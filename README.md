@@ -54,8 +54,20 @@ Residual definitions, normalization, and stopping criteria must remain
 consistent across theory, implementation, and experiments.
 
 See [`docs/research_protocol.md`](docs/research_protocol.md) and
-[`docs/mathematical_conventions.md`](docs/mathematical_conventions.md) for the
+[`docs/mathematical-conventions.md`](docs/mathematical-conventions.md) for the
 project-wide protocol and conventions.
+
+## Research context and paper library
+
+Start with [`docs/research-context.md`](docs/research-context.md) for the
+current problem statement, intended contributions, open definitions, and
+documentation map. Curated notes and page-level pointers live in
+[`docs/literature/`](docs/literature/).
+
+Shareable source PDFs may be added to [`papers/`](papers/) when their licenses
+or permissions allow redistribution. PDFs in that directory are configured
+for Git LFS. See [`papers/README.md`](papers/README.md) before adding a paper;
+adding an unannotated collection of PDFs is intentionally discouraged.
 
 ## Development setup
 

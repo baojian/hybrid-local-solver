@@ -2,6 +2,22 @@
 
 This repository is a research project targeting a JMLR submission.
 
+## Required research context
+
+Before modifying theory, algorithms, solver behavior, or experiments, read:
+
+- `docs/research-context.md`;
+- `docs/mathematical-conventions.md`;
+- the relevant topic file under `docs/literature/`.
+
+Before changing a residual, normalization, or residual-based stopping rule,
+also read `docs/decisions/residual-convention.md`.
+
+Use the literature index to find source papers. Verify theorem statements,
+equations, and comparisons against the source PDF and record page or section
+pointers in the relevant literature note. Source papers provide evidence, but
+the project documentation is authoritative for this repository's conventions.
+
 ## Scientific invariants
 
 1. Do not change mathematical definitions without updating documentation and tests.
