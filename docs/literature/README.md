@@ -4,10 +4,15 @@ This directory is the curated entry point to the project's source literature.
 PDFs are evidence; these notes explain why each source matters and where its
 relevant material appears.
 
+The [`index.md`](index.md) catalog organizes the current paper library by
+research area. Paper titles are the primary labels; year, venue, and BibTeX key
+provide stable lookup metadata.
+
 ## Topic map
 
 | Topic | Notes | Current focus |
 | --- | --- | --- |
+| Paper catalog | [`index.md`](index.md) | Research areas, reading paths, and library status |
 | Local solvers | [`local-solvers.md`](local-solvers.md) | APPR, evolving sets, AESP, LocGD, LocCH, LocSOR |
 | Acceleration | [`acceleration.md`](acceleration.md) | Catalyst and accelerated/local interactions |
 | Graph optimization | [`graph-optimization.md`](graph-optimization.md) | Local PageRank formulation, locality, and work models |
@@ -22,7 +27,7 @@ Add an entry to the relevant topic file with:
 
 - full citation and BibTeX key;
 - DOI, arXiv identifier, or canonical URL;
-- local PDF path, when redistribution is permitted;
+- local PDF path;
 - why the paper matters to this project;
 - relevant theorem, algorithm, or experiment;
 - exact page, theorem, equation, or section pointers;
@@ -34,17 +39,14 @@ statement is an inference rather than a claim made by the paper.
 
 ## Intake workflow
 
-1. Confirm that the PDF may legally be redistributed through this repository.
-2. Install and initialize Git LFS in the clone.
-3. Save the PDF under `papers/<topic>/` using
-   `<year>-<first-author>-<short-title>.pdf`.
+1. Install and initialize Git LFS in the clone.
+2. Save the PDF directly under `papers/` using
+   `<year>-<venue>-<first-author>-<short-title>.pdf`; do not create subfolders.
+3. Add the paper to [`index.md`](index.md).
 4. Add a source-grounded annotation to the relevant topic file.
 5. Add or correct the BibTeX entry in `paper/references.bib`.
-6. Commit the LFS pointer, annotation, and bibliography update together.
-
-If redistribution is not permitted, do not commit the PDF. Record a canonical
-link and citation instead; a private local copy may be kept outside the
-repository.
+6. Commit the LFS pointer, catalog entry, annotation, and bibliography update
+   together.
 
 ## Annotation template
 

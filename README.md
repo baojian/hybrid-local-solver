@@ -64,10 +64,9 @@ current problem statement, intended contributions, open definitions, and
 documentation map. Curated notes and page-level pointers live in
 [`docs/literature/`](docs/literature/).
 
-Shareable source PDFs may be added to [`papers/`](papers/) when their licenses
-or permissions allow redistribution. PDFs in that directory are configured
-for Git LFS. See [`papers/README.md`](papers/README.md) before adding a paper;
-adding an unannotated collection of PDFs is intentionally discouraged.
+Source PDFs may be added to [`papers/`](papers/), which is configured for Git
+LFS. See [`papers/README.md`](papers/README.md) before adding a paper; adding an
+unannotated collection of PDFs is intentionally discouraged.
 
 ## Development setup
 

@@ -1,0 +1,238 @@
+# Research Paper Index
+
+This index organizes the project's paper library by research role. Use the
+paper title as the main identifier and the BibTeX key for citations. A paper
+may support several areas even though the catalog assigns one primary area.
+
+## Research areas
+
+### PageRank foundations and formulations
+
+These papers establish the PageRank-based local partitioning problem, its
+optimization interpretation, and broader algorithmic context.
+
+- *Local Graph Partitioning Using PageRank Vectors* (Andersen, Chung, and
+  Lang, 2006) - APPR and local partitioning foundation.
+- *Variational Perspective on Local Graph Clustering* (Fountoulakis et al.,
+  2019) - variational and optimization formulation.
+- *Efficient Algorithms for Personalized PageRank Computation: A Survey*
+  (Yang et al., 2024) - PPR algorithms and comparison framework.
+
+### Heat-kernel PageRank
+
+These papers develop heat-kernel PageRank and its use in local graph
+partitioning.
+
+- *The Heat Kernel as the PageRank of a Graph* (Chung, 2007).
+- *A Local Graph Partitioning Algorithm Using Heat Kernel PageRank* (Chung,
+  2009).
+
+### Evolving-set methods
+
+These papers use evolving sets or locally evolving-set processes for local
+clustering and local PageRank computation.
+
+- *Evolving Sets and Mixing* (Morris and Peres, 2003).
+- *Finding Sparse Cuts Locally Using Evolving Sets* (Andersen and Peres,
+  2009).
+- *Almost Optimal Local Graph Clustering Using Evolving Sets* (Andersen et
+  al., 2016).
+- *Iterative Methods via Locally Evolving Set Process* (Zhou et al., 2024).
+- *Accelerated Evolving Set Processes for Local PageRank Computation* (Huang
+  et al., 2025).
+
+### Local graph solvers and diffusion
+
+These papers develop local iterative solvers or related graph-diffusion
+methods whose work is intended to depend on local structure.
+
+- *Local Computation of PageRank Contributions* (Andersen et al., 2007).
+- *Using PageRank to Locally Partition a Graph* (Andersen, Chung, and Lang,
+  2007) - journal treatment of approximate PageRank push, sweep cuts, and
+  output-sensitive local partitioning.
+- *A Local Clustering Algorithm for Massive Graphs and Its Application to
+  Nearly Linear Time Graph Partitioning* (Spielman and Teng, 2013).
+- *Local Algorithms for Finding Densely Connected Clusters* (Macgregor and
+  Sun, 2021) - personalized-PageRank local clustering for paired,
+  densely-interconnected vertex sets.
+- *Revisiting Local Computation of PageRank: Simple and Optimal* (Wang et al.,
+  2024).
+- *Fast Online Node Labeling for Very Large Graphs* (Zhou, Sun, and
+  Babanezhad Harikandeh, 2023).
+- *Faster Local Solvers for Graph Diffusion Equations* (Bai et al., 2024).
+
+### Spectral graph optimization
+
+These papers connect graph partitioning, spectral sparsification,
+preconditioning, and fast solution of graph-structured linear systems.
+
+- *Nearly-Linear Time Algorithms for Graph Partitioning, Graph
+  Sparsification, and Solving Linear Systems* (Spielman and Teng, 2004).
+- *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices*
+  (Spielman, 2010) - survey connecting the main algorithmic primitives.
+- *Spectral Sparsification of Graphs* (Spielman and Teng, 2011).
+
+### Acceleration and sparse PageRank
+
+These papers study accelerated, sparse, or complexity-improved methods for
+PageRank and related local problems.
+
+- *Catalyst Acceleration for First-order Convex Optimization: From Theory to
+  Practice* (Lin, Mairal, and Harchaoui, 2018) - general outer acceleration
+  framework.
+- *A Universal Catalyst for First-Order Optimization* (Lin, Mairal, and
+  Harchaoui, 2015) - original NeurIPS presentation of the Catalyst framework.
+- *A Note on the Optimal Convergence Rate of Descent Methods with Fixed Step
+  Sizes for Smooth Strongly Convex Functions* (Uschmajew and Vandereycken,
+  2022) - sharp rates for variable-metric and inexact-gradient methods.
+- *Open Problem: Running Time Complexity of Accelerated
+  ℓ1-Regularized PageRank* (Fountoulakis and Yang, 2022).
+- *Accelerated and Sparse Algorithms for Approximate Personalized PageRank
+  and Beyond* (Martínez-Rubio, Wirth, and Pokutta, 2023).
+- *Accelerating Personalized PageRank Vector Computation* (Chen et al.,
+  2023).
+- *Efficient Numerical Methods to Solve Sparse Linear Equations with
+  Application to PageRank* (Anikin et al., 2022) - sparse simplex
+  optimization methods for global PageRank.
+- *Complexity of Classical Acceleration for ℓ1-Regularized PageRank*
+  (Fountoulakis and Martínez-Rubio, 2026).
+- *A Coordinate Gradient Descent Method for Nonsmooth Separable
+  Minimization* (Tseng and Yun, 2009) - block coordinate updates for composite
+  objectives.
+- *Adaptive Restart for Accelerated Gradient Schemes* (O'Donoghue and Candès,
+  2015) - observable restart rules for accelerated first-order methods.
+- *Breaking Locality Accelerates Block Gauss-Seidel* (Tu et al., 2017) -
+  acceleration under random block sampling.
+
+### Sublinear algorithms and access models
+
+These papers provide general query-model and approximation foundations for
+algorithms whose work is smaller than the full input size.
+
+- *Sublinear Time Algorithms* (Rubinfeld and Shapira, 2011).
+- *Space-Efficient Local Computation Algorithms* (Alon et al., 2012) -
+  consistent query-local computation with polylogarithmic time and storage.
+
+### Statistical guarantees
+
+These papers analyze recovery or statistical behavior rather than only
+worst-case algorithmic complexity.
+
+- *Statistical Guarantees for Local Graph Clustering* (Ha, Fountoulakis, and
+  Mahoney, 2021).
+
+### PageRank applications and fairness
+
+These papers adapt PageRank scores or PageRank-based optimization models to
+downstream ranking requirements.
+
+- *FairRARI: A Plug and Play Framework for Fairness-Aware PageRank*
+  (Kariotakis and Konar, 2026) - fairness-constrained PageRank optimization.
+
+## Master catalog
+
+| Year | Venue | Paper | BibTeX key | Primary area |
+| --- | --- | --- | --- | --- |
+| 2003 | STOC | *Evolving Sets and Mixing* | `morris2003evolving` | Evolving-set foundations |
+| 2004 | STOC | *Nearly-Linear Time Algorithms for Graph Partitioning, Graph Sparsification, and Solving Linear Systems* | `spielman2004nearly` | Spectral graph optimization |
+| 2006 | FOCS | *Local Graph Partitioning Using PageRank Vectors* | `andersen2006local` | PageRank foundations |
+| 2007 | PNAS | *The Heat Kernel as the PageRank of a Graph* | `chung2007heat` | Heat-kernel PageRank |
+| 2007 | WAW | *Local Computation of PageRank Contributions* | `andersen2007localcontributions` | Local PageRank computation |
+| 2007 | IM | [*Using PageRank to Locally Partition a Graph*](../../papers/2007-im-andersen-using-pagerank-locally-partition-graph.pdf) | `andersen2007using` | Local graph clustering |
+| 2009 | MP | [*A Coordinate Gradient Descent Method for Nonsmooth Separable Minimization*](../../papers/2009-mp-tseng-coordinate-gradient-descent-nonsmooth-separable-minimization.pdf) | `tseng2009coordinate` | Coordinate optimization |
+| 2009 | IM | *A Local Graph Partitioning Algorithm Using Heat Kernel PageRank* | `chung2009local` | Heat-kernel PageRank |
+| 2009 | STOC | *Finding Sparse Cuts Locally Using Evolving Sets* | `andersen2009finding` | Evolving-set methods |
+| 2010 | ICM | *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices* | `spielman2010algorithms` | Spectral graph optimization |
+| 2011 | SICOMP | *Spectral Sparsification of Graphs* | `spielman2011spectral` | Spectral graph optimization |
+| 2011 | SIDMA | [*Sublinear Time Algorithms*](../../papers/2011-sidma-rubinfeld-sublinear-time-algorithms.pdf) | `rubinfeld2011sublinear` | Sublinear algorithms |
+| 2012 | SODA | [*Space-Efficient Local Computation Algorithms*](../../papers/2012-soda-alon-space-efficient-local-computation-algorithms.pdf) | `alon2012space` | Local computation algorithms |
+| 2013 | SICOMP | *A Local Clustering Algorithm for Massive Graphs and Its Application to Nearly Linear Time Graph Partitioning* | `spielman2013local` | Local graph clustering |
+| 2015 | FoCM | [*Adaptive Restart for Accelerated Gradient Schemes*](../../papers/2015-focm-odonoghue-adaptive-restart-accelerated-gradient-schemes.pdf) | `odonoghue2015adaptive` | Acceleration |
+| 2015 | NeurIPS | [*A Universal Catalyst for First-Order Optimization*](../../papers/2015-neurips-lin-universal-catalyst-first-order-optimization.pdf) | `lin2015universal` | Acceleration |
+| 2016 | JACM | *Almost Optimal Local Graph Clustering Using Evolving Sets* | `andersen2016almost` | Evolving-set methods |
+| 2017 | ICML | [*Breaking Locality Accelerates Block Gauss-Seidel*](../../papers/2017-icml-tu-breaking-locality-accelerates-block-gauss-seidel.pdf) | `tu2017breaking` | Acceleration |
+| 2018 | JMLR | [*Catalyst Acceleration for First-order Convex Optimization: From Theory to Practice*](../../papers/2018-jmlr-lin-catalyst-acceleration-first-order-convex-optimization.pdf) | `lin2018catalyst` | Acceleration |
+| 2019 | MP | *Variational Perspective on Local Graph Clustering* | `fountoulakis2019variational` | PageRank formulations |
+| 2021 | JMLR | [*Statistical Guarantees for Local Graph Clustering*](../../papers/2021-jmlr-ha-statistical-guarantees-local-graph-clustering.pdf) | `ha2021statistical` | Statistical guarantees |
+| 2021 | ICML | [*Local Algorithms for Finding Densely Connected Clusters*](../../papers/2021-icml-macgregor-local-algorithms-finding-densely-connected-clusters.pdf) | `macgregor2021local` | Local graph clustering |
+| 2022 | COLT | [*Open Problem: Running Time Complexity of Accelerated ℓ1-Regularized PageRank*](../../papers/2022-colt-fountoulakis-running-time-complexity-accelerated-l1-regularized-pagerank.pdf) | `fountoulakis2022open` | Acceleration |
+| 2022 | JOTA | [*A Note on the Optimal Convergence Rate of Descent Methods with Fixed Step Sizes for Smooth Strongly Convex Functions*](../../papers/2022-jota-uschmajew-optimal-convergence-descent-fixed-step-smooth-strongly-convex.pdf) | `uschmajew2022note` | First-order convergence |
+| 2022 | OMS | [*Efficient Numerical Methods to Solve Sparse Linear Equations with Application to PageRank*](../../papers/2022-oms-anikin-efficient-numerical-methods-sparse-linear-equations-pagerank.pdf) | `anikin2022efficient` | Sparse PageRank optimization |
+| 2023 | COLT | [*Accelerated and Sparse Algorithms for Approximate Personalized PageRank and Beyond*](../../papers/2023-colt-martinez-rubio-accelerated-sparse-algorithms-approximate-personalized-pagerank-beyond.pdf) | `martinezrubio2023accelerated` | Acceleration |
+| 2023 | ICML | [*Fast Online Node Labeling for Very Large Graphs*](../../papers/2023-icml-zhou-fast-online-node-labeling-very-large-graphs.pdf) | `zhou2023fast` | Local graph solvers |
+| 2023 | KDD | *Accelerating Personalized PageRank Vector Computation* | `chen2023accelerating` | Acceleration |
+| 2024 | NeurIPS | [*Faster Local Solvers for Graph Diffusion Equations*](../../papers/2024-neurips-bai-faster-local-solvers-graph-diffusion-equations.pdf) | `bai2024faster` | Local graph solvers |
+| 2024 | NeurIPS | [*Iterative Methods via Locally Evolving Set Process*](../../papers/2024-neurips-zhou-iterative-methods-locally-evolving-set-process.pdf) | `zhou2024iterative` | Evolving-set methods |
+| 2024 | STOC | [*Revisiting Local Computation of PageRank: Simple and Optimal*](../../papers/2024-stoc-wang-revisiting-local-computation-pagerank-simple-optimal.pdf) | `wang2024revisiting` | Local PageRank computation |
+| 2024 | TKDE | *Efficient Algorithms for Personalized PageRank Computation: A Survey* | `yang2024efficient` | PageRank foundations |
+| 2025 | NeurIPS | [*Accelerated Evolving Set Processes for Local PageRank Computation*](../../papers/2025-neurips-huang-accelerated-evolving-set-processes-local-pagerank.pdf) | `huang2025accelerated` | Evolving sets and acceleration |
+| 2026 | ICML | [*FairRARI: A Plug and Play Framework for Fairness-Aware PageRank*](../../papers/2026-icml-kariotakis-fairrari-fairness-aware-pagerank.pdf) | `kariotakis2026fairrari` | PageRank applications and fairness |
+| 2026 | arXiv | [*Complexity of Classical Acceleration for ℓ1-Regularized PageRank*](../../papers/2026-arxiv-fountoulakis-complexity-classical-acceleration-l1-regularized-pagerank.pdf) | `fountoulakis2026complexity` | Acceleration |
+
+## Suggested reading paths
+
+### Local PageRank foundations
+
+1. Andersen, Chung, and Lang (2006).
+2. Fountoulakis et al. (2019).
+3. Yang et al. (2024).
+
+### Evolving sets toward AESP
+
+1. Morris and Peres (2003).
+2. Andersen and Peres (2009).
+3. Andersen et al. (2016).
+4. Zhou et al. (2024).
+5. Huang et al. (2025).
+
+### Acceleration toward the hybrid solver
+
+1. Tseng and Yun (2009).
+2. Lin, Mairal, and Harchaoui (2015).
+3. O'Donoghue and Candès (2015).
+4. Tu et al. (2017).
+5. Lin, Mairal, and Harchaoui (2018).
+6. Uschmajew and Vandereycken (2022).
+7. Fountoulakis and Yang (2022).
+8. Martínez-Rubio, Wirth, and Pokutta (2023).
+9. Chen et al. (2023).
+10. Huang et al. (2025).
+11. Fountoulakis and Martínez-Rubio (2026).
+
+### Local solver comparisons
+
+1. Andersen et al. (2007).
+2. Andersen, Chung, and Lang (2007).
+3. Spielman and Teng (2013).
+4. Macgregor and Sun (2021).
+5. Zhou, Sun, and Babanezhad Harikandeh (2023).
+6. Wang et al. (2024).
+7. Bai et al. (2024).
+8. Zhou et al. (2024).
+9. Huang et al. (2025).
+
+### Spectral graph optimization foundations
+
+1. Spielman and Teng (2004).
+2. Spielman (2010).
+3. Spielman and Teng (2013).
+4. Spielman and Teng (2011).
+
+### PageRank applications
+
+1. Kariotakis and Konar (2026).
+
+### Sublinear and local computation foundations
+
+1. Rubinfeld and Shapira (2011).
+2. Alon et al. (2012).
+
+## Maintenance
+
+- Add each new paper to one primary area and cross-list it only where useful.
+- Keep detailed theorem, equation, and experiment notes in the topic files,
+  not in this index.
+- Use the formal venue after publication; use `arXiv` while a paper remains a
+  preprint.
+- Update the Fountoulakis and Martínez-Rubio 2026 arXiv entry, filename, and
+  BibTeX record after formal publication.

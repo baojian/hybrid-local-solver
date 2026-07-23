@@ -1,13 +1,12 @@
-# Shared Paper Library
+# Paper Library
 
-This directory holds source papers that may legally be shared through the
-project's GitHub repository. PDFs support the curated notes in
-`docs/literature/`; they do not replace those notes.
+This directory holds source papers used by the project. PDFs support the
+curated notes in `docs/literature/`; they do not replace those notes.
 
 ## Can I add papers directly?
 
-Yes. Copy each permitted PDF directly into `papers/`; do not create
-subfolders. Use filenames such as:
+Yes. Copy each PDF directly into `papers/`; do not create subfolders. Use
+filenames such as:
 
 ```text
 papers/2024-neurips-author-short-title.pdf
@@ -44,18 +43,6 @@ The first command should report `filter: lfs`. This machine did not have Git
 LFS installed initially; Git LFS 3.7.1 has now been installed and initialized
 for this repository.
 
-## Redistribution policy
-
-Commit only PDFs whose licenses or permissions allow redistribution, such as
-appropriately licensed open-access or author-posted versions. A paper being
-free to read does not necessarily mean it may be redistributed.
-
-For a paper that cannot be committed:
-
-- record its full citation and canonical URL in `docs/literature/`;
-- keep any personal copy outside this repository;
-- do not add the personal copy to Git history.
-
 ## Naming and organization
 
 - Keep all PDFs directly under `papers/`; do not use subfolders.
@@ -66,6 +53,6 @@ For a paper that cannot be committed:
   `<year>-arxiv-<first-author>-<short-title>.pdf`.
 - When an arXiv preprint is formally published, rename its PDF with the formal
   venue and update its BibTeX entry in `paper/references.bib`.
-- Prefer stable author manuscripts or official open-access versions.
+- Prefer stable final versions or author manuscripts.
 - Do not store multiple unexplained versions of the same paper.
 - Record the PDF path and exact page or section pointers in its annotation.
