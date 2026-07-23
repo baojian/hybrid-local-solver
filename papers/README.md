@@ -6,12 +6,13 @@ project's GitHub repository. PDFs support the curated notes in
 
 ## Can I add papers directly?
 
-Yes. Copy a permitted PDF into a topic directory such as:
+Yes. Copy each permitted PDF directly into `papers/`; do not create
+subfolders. Use filenames such as:
 
 ```text
-papers/local-solvers/2024-author-short-title.pdf
-papers/acceleration/2019-author-short-title.pdf
-papers/graph-optimization/2020-author-short-title.pdf
+papers/2024-neurips-author-short-title.pdf
+papers/2023-colt-author-short-title.pdf
+papers/2026-arxiv-author-short-title.pdf
 ```
 
 Then annotate it in `docs/literature/` and add its BibTeX entry to
@@ -35,7 +36,7 @@ git lfs pull
 Before committing a new PDF, verify that it is LFS-managed:
 
 ```bash
-git check-attr filter -- papers/local-solvers/example.pdf
+git check-attr filter -- papers/example.pdf
 git lfs ls-files
 ```
 
@@ -57,8 +58,14 @@ For a paper that cannot be committed:
 
 ## Naming and organization
 
-- Organize papers by research topic.
-- Use `<year>-<first-author>-<short-title>.pdf`.
+- Keep all PDFs directly under `papers/`; do not use subfolders.
+- Use `<year>-<venue>-<first-author>-<short-title>.pdf`.
+- Use lowercase conference or journal abbreviations for `<venue>`, such as
+  `colt`, `icml`, `kdd`, `neurips`, or `tkde`.
+- For a paper that has not been formally published, use `arxiv` as the venue:
+  `<year>-arxiv-<first-author>-<short-title>.pdf`.
+- When an arXiv preprint is formally published, rename its PDF with the formal
+  venue and update its BibTeX entry in `paper/references.bib`.
 - Prefer stable author manuscripts or official open-access versions.
 - Do not store multiple unexplained versions of the same paper.
 - Record the PDF path and exact page or section pointers in its annotation.
