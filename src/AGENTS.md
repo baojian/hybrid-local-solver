@@ -18,7 +18,7 @@ These rules apply to every file under `src/`.
 
 ### `baselines/`
 
-- This is shared reference code used for scientific comparisons.
+- This is shared reference code used for algorithm comparisons.
 - All agents may read, import, execute, test, and benchmark it.
 - Do not tune a baseline merely to favor one hybrid implementation.
 - Modify existing baseline behavior only to correct a verified defect or when
