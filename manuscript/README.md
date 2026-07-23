@@ -30,6 +30,8 @@ implementation, and the tests.
 
 Complete previous-paper projects live under `manuscript/archive/`:
 
+- [`archive/neurips-2024-locch/`](archive/neurips-2024-locch/) contains the
+  standalone NeurIPS 2024 LocCH paper and reviewer response.
 - [`archive/neurips-2025-aesp/`](archive/neurips-2025-aesp/) contains the
   standalone NeurIPS 2025 AESP paper and author response.
 
