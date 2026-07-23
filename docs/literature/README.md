@@ -44,7 +44,7 @@ statement is an inference rather than a claim made by the paper.
    `<year>-<venue>-<first-author>-<short-title>.pdf`; do not create subfolders.
 3. Add the paper to [`index.md`](index.md).
 4. Add a source-grounded annotation to the relevant topic file.
-5. Add or correct the BibTeX entry in `paper/references.bib`.
+5. Add or correct the BibTeX entry in `manuscript/references.bib`.
 6. Commit the LFS pointer, catalog entry, annotation, and bibliography update
    together.
 

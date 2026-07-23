@@ -15,7 +15,7 @@ papers/2026-arxiv-author-short-title.pdf
 ```
 
 Then annotate it in `docs/literature/` and add its BibTeX entry to
-`paper/references.bib`.
+`manuscript/references.bib`.
 
 Use a local Git clone for PDF uploads. GitHub's browser upload does not provide
 a reliable Git LFS workflow, and storing large PDFs as ordinary Git objects
@@ -52,7 +52,7 @@ for this repository.
 - For a paper that has not been formally published, use `arxiv` as the venue:
   `<year>-arxiv-<first-author>-<short-title>.pdf`.
 - When an arXiv preprint is formally published, rename its PDF with the formal
-  venue and update its BibTeX entry in `paper/references.bib`.
+  venue and update its BibTeX entry in `manuscript/references.bib`.
 - Prefer stable final versions or author manuscripts.
 - Do not store multiple unexplained versions of the same paper.
 - Record the PDF path and exact page or section pointers in its annotation.

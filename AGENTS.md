@@ -1,6 +1,7 @@
 # Agent Instructions
 
-This repository is a research project targeting a JMLR submission.
+This repository is a research project targeting peer-reviewed publication,
+including possible JMLR and ICML submissions.
 
 ## Required research context
 
@@ -26,6 +27,25 @@ Whenever papers are added or their publication metadata changes, update
 2. Residual conventions, normalization, and stopping criteria must remain consistent between theory and code.
 3. Every experiment must record graph, alpha, epsilon, random seed, stopping rule, and code version.
 4. Never manually edit generated figures.
+
+## Source ownership boundaries
+
+Solver implementations are separated by ownership under `src/`:
+
+- `src/hybrid_solver_codex/` is owned by Codex agents.
+- `src/hybrid_solver_claude/` is owned by Claude agents.
+- `src/baselines/` is shared reference code.
+
+An agent must not modify another agent family's implementation directory.
+Cross-implementation comparison must happen through tests, experiments, or stable
+interfaces rather than by rewriting the other implementation.
+
+Treat baseline implementations as controlled references. All agents may read,
+import, execute, and test them, but should modify them only when the baseline
+itself is demonstrably incorrect or an explicitly requested baseline is being
+added. Keep such changes narrow, document the reason, and add or update tests.
+
+See `src/AGENTS.md` for the detailed rules that apply within the source tree.
 
 ## Required checks
 

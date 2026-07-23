@@ -1,7 +1,7 @@
 .PHONY: test lint paper experiments figures reproduce clean
 
 paper:
-	cd paper && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+	cd manuscript && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 
 test:
 	uv run pytest
@@ -20,4 +20,4 @@ figures:
 reproduce: test experiments figures paper
 
 clean:
-	cd paper && latexmk -C
+	cd manuscript && latexmk -C

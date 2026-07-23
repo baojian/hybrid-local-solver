@@ -28,12 +28,14 @@ Relevant questions include convergence, preservation of locality, practical
 stopping criteria, and dependence on the teleportation parameter
 `alpha` and target accuracy `epsilon`.
 
-## Publication target
+## Publication targets
 
-This repository supports a planned submission to the *Journal of Machine
-Learning Research* (JMLR). The manuscript sources live in [`paper/`](paper/),
-while mathematical conventions and evolving research decisions are recorded
-in [`docs/`](docs/).
+This repository supports venue-neutral manuscript development, with possible
+submissions to the *Journal of Machine Learning Research* (JMLR) and the
+*International Conference on Machine Learning* (ICML). Shared manuscript
+sources live in [`manuscript/`](manuscript/), while venue-specific formatting
+can be isolated there as submission targets are prepared. Mathematical
+conventions and evolving research decisions are recorded in [`docs/`](docs/).
 
 ## Reproducibility
 
@@ -84,7 +86,7 @@ make test
 make lint
 ```
 
-Build the paper with:
+Build the manuscript with:
 
 ```bash
 make paper
