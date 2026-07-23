@@ -17,6 +17,8 @@ Use the literature index to find source papers. Verify theorem statements,
 equations, and comparisons against the source PDF and record page or section
 pointers in the relevant literature note. Source papers provide evidence, but
 the project documentation is authoritative for this repository's conventions.
+Whenever papers are added or their publication metadata changes, update
+`docs/literature/index.md` and the relevant topic note in the same change.
 
 ## Scientific invariants
 

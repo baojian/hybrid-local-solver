@@ -19,5 +19,248 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 ## Source annotations
 
-No source has been annotated yet. Add each paper using the template in
-[`README.md`](README.md), with exact page or section pointers.
+## Citation key: `morris2003evolving`
+
+- Citation: Ben Morris and Yuval Peres. “Evolving Sets and Mixing.”
+  *Proceedings of the 35th Annual ACM Symposium on Theory of Computing*,
+  pages 279-286, 2003.
+- DOI/arXiv/URL: <https://doi.org/10.1145/780542.780585>
+- Local PDF: `papers/2003-stoc-morris-evolving-sets-mixing.pdf`.
+- Relevance: This paper supplies the evolving-set Markov-chain construction
+  underlying later evolving-set local clustering methods. It connects the
+  process to conductance profiles and mixing bounds rather than presenting a
+  PageRank linear solver.
+- Exact pointers:
+  - Page 279, Introduction, “Definition: Evolving sets”: defines the random
+    threshold update
+    \(S'=\{y:Q(S,y)\geq U\pi(y)\}\), with the one-step inclusion probability
+    in Equation (9).
+  - Pages 279-280, Theorem 1 and Equations (6)-(8): bound uniform mixing time
+    using the conductance profile \(\Phi(u)\).
+  - Page 280, Section 2, Lemma 2: relates the evolving-set boundary gauge
+    \(\psi(S)\) to conductance under a holding-probability assumption.
+- Formulation differences: The state is a random subset generated from a
+  Markov chain, and the target guarantee concerns mixing. This project studies
+  deterministic or hybrid local updates for a PageRank-type solve, with
+  residual-based accuracy and an explicit local-work model.
+- Open questions: Determine precisely which evolving-set identities are used
+  by LocESP and AESP, and whether their randomized set evolution has a useful
+  analogue for the hybrid solver’s active-set or switching rule.
+
+## Citation key: `andersen2009finding`
+
+- Citation: Reid Andersen and Yuval Peres. “Finding Sparse Cuts Locally Using
+  Evolving Sets.” *Proceedings of the 41st Annual ACM Symposium on Theory of
+  Computing*, pages 235-244, 2009.
+- DOI/arXiv/URL: <https://doi.org/10.1145/1536414.1536449>
+- Local PDF:
+  `papers/2009-stoc-andersen-finding-sparse-cuts-locally-evolving-sets.pdf`.
+- Relevance: This paper turns the volume-biased evolving-set process into the
+  local partitioning algorithm EvoCut. It explicitly analyzes work relative to
+  output volume, making it a key predecessor for LocESP, AESP, and this
+  project’s locality-aware work model.
+- Exact pointers:
+  - Pages 235-236, Introduction and Table 1: compare EvoCut with Nibble and
+    PRNibble using both approximation quality and work/volume ratio.
+  - Page 236, Theorem 1: states EvoCut’s expected work/volume bound and its
+    local conductance guarantee for starting vertices in a low-conductance
+    target set.
+  - Page 237, Sections 2.2 and 2.4: define the evolving-set transition in
+    Equation (1) and the volume-biased transition kernel in Equation (2).
+  - Pages 239-240, Section 4: construct the local simulation procedure and
+    EvoCut, then connect its sampled-path cost to the work/volume guarantee.
+- Formulation differences: EvoCut is randomized, returns a vertex set, and
+  measures accuracy through conductance. The hybrid solver targets a
+  PageRank-type numerical solution with residual-based termination; its local
+  work and output must therefore be compared through an explicit conversion,
+  not treated as the same guarantee.
+- Open questions: Identify whether the boundary-update implementation and
+  sampled-path cost can inform an active-set work bound for LocESP or AESP,
+  and determine which randomness-dependent guarantees can be compared fairly
+  with deterministic solver stopping rules.
+
+## Citation key: `andersen2007localcontributions`
+
+- Citation: Reid Andersen, Christian Borgs, Jennifer T. Chayes, John E.
+  Hopcroft, Vahab S. Mirrokni, and Shang-Hua Teng. “Local Computation of
+  PageRank Contributions.” In *Algorithms and Models for the Web-Graph: 5th
+  International Workshop, WAW 2007*, LNCS 4863, pages 150-165, Springer,
+  2007.
+- DOI/arXiv/URL: <https://doi.org/10.1007/978-3-540-77004-6_12>
+- Local PDF:
+  `papers/2007-waw-andersen-local-computation-pagerank-contributions.pdf`
+  was extracted from physical pages 159-174 of the supplied proceedings
+  volume.
+- Relevance: The paper gives a backward local-push algorithm for approximating
+  the contribution of all source vertices to one target vertex’s PageRank. Its
+  explicit push-count and support bounds are relevant to local update
+  accounting, although its target-column problem differs from the project’s
+  seed-based PageRank solve.
+- Exact pointers:
+  - Page 150, Abstract and Introduction: define the contribution-vector and
+    significant-contributor problems and state the local \(O(1/\epsilon)\)
+    exploration objective.
+  - Pages 153-154, Sections 2-3: define personalized PageRank contributions,
+    the contribution vector, and the approximation criterion.
+  - Pages 156-158, Section 3.2, Theorem 1 and Corollary 1: specify
+    `ApproxContributions`, its pushback invariant, and its push-count bound.
+  - Pages 160-162, Section 4, Theorems 2-6: derive local algorithms for top
+    contributors and significant supporting sets from the approximate
+    contribution vector.
+  - Page 164, Theorem 7: relates PageRank contributions in a Markov chain to
+    personalized PageRank in its time-reversed chain.
+- Formulation differences: The method explores edges backward from a target
+  vertex on a directed web graph and approximates a column of the personalized
+  PageRank matrix. The hybrid solver begins from a seed distribution and
+  targets a PageRank-type solution under the repository’s residual and work
+  conventions.
+- Open questions: Determine whether the pushback invariant or time-reversal
+  relation provides a useful dual view of local residual propagation, and
+  whether the support bounds can be translated to the hybrid solver’s active
+  set without imposing directed-web assumptions.
+
+## Citation key: `spielman2013local`
+
+- Citation: Daniel A. Spielman and Shang-Hua Teng. “A Local Clustering
+  Algorithm for Massive Graphs and Its Application to Nearly Linear Time Graph
+  Partitioning.” *SIAM Journal on Computing*, 42(1):1-26, 2013.
+- DOI/arXiv/URL: <https://doi.org/10.1137/080744888>; preprint
+  <https://arxiv.org/abs/0809.3232>.
+- Local PDF:
+  `papers/2013-sicomp-spielman-local-clustering-massive-graphs-nearly-linear-partitioning.pdf`.
+- Relevance: The paper introduces Nibble, an output-sensitive local clustering
+  method based on truncated random walks, and uses repeated local calls to
+  obtain a nearly linear-time graph partitioning algorithm. Its support
+  truncation and work-versus-output analysis are relevant precedents for
+  locality control in the hybrid solver.
+- Exact pointers:
+  - Preprint pages 1-2, Abstract and Section 1.1: state the local-clustering
+    objective and explain why truncating random-walk distributions controls
+    support growth.
+  - Preprint pages 4-8, Section 2.1 and Theorem 2.1: define Nibble and state its
+    running-time, conductance, volume, and seed-set guarantees.
+  - Preprint Section 2.3, Lemma 2.13: bounds the error introduced by truncated
+    random walks.
+  - Preprint pages 18-20, Section 3, `RandomNibble`, and Theorem 3.2: assemble
+    local calls into the nearly linear-time `Partition` algorithm.
+- Formulation differences: Nibble returns a low-conductance vertex set and
+  measures approximation through conductance and overlap. The hybrid solver
+  targets a numerical PageRank-type solution with residual-based accuracy, so
+  truncation error and work bounds require an explicit translation before
+  comparison.
+- Open questions: Determine whether Nibble’s degree-scaled truncation threshold
+  suggests a principled active-set threshold for the hybrid solver, and compare
+  its support/work accounting with LocESP, AESP, and residual-based local
+  updates under a common edge-operation model.
+
+## Citation key: `wang2024revisiting`
+
+- Citation: Hanzhi Wang, Zhewei Wei, Ji-Rong Wen, and Mingji Yang. “Revisiting
+  Local Computation of PageRank: Simple and Optimal.” *Proceedings of the 56th
+  Annual ACM Symposium on Theory of Computing*, pages 911-922, 2024.
+- DOI/arXiv/URL: <https://doi.org/10.1145/3618260.3649661>; full version
+  <https://arxiv.org/abs/2403.12648>.
+- Local PDF:
+  `papers/2024-stoc-wang-revisiting-local-computation-pagerank-simple-optimal.pdf`.
+- Relevance: This paper gives a modern worst-case analysis of the
+  `ApproxContributions` backward local-push algorithm introduced by Andersen et
+  al. (2007), proves its optimality for detecting significant contributors,
+  and combines it with Monte Carlo sampling to improve single-node PageRank
+  estimation. It is directly relevant to local work accounting and lower
+  bounds for PageRank computations.
+- Exact pointers:
+  - Pages 911-913, Sections 1.1-1.2 and Theorems 1.1-1.6: define the local
+    graph-access problems and summarize the upper and lower bounds.
+  - Pages 914-915, Section 2 and Algorithm 1: specify
+    `ApproxContributions`, its approximation invariant, and prior
+    output-sensitive complexity bounds.
+  - Pages 916-917, Section 4: prove the new worst-case complexity bound for
+    `ApproxContributions` and derive the contributing-set result.
+  - Pages 917-918, Section 5: analyze the bidirectional
+    `ApproxContributions` plus Monte Carlo estimator for single-node PageRank.
+  - Pages 919-922, Sections 6-7: establish lower bounds for contributor
+    detection and single-node PageRank estimation.
+- Formulation differences: The target is a column-oriented contribution vector
+  or one node’s global PageRank score on a directed graph under an oracle
+  access model. The hybrid solver starts from a seed distribution, produces a
+  PageRank-type solution vector, and measures residual-based accuracy and
+  concrete edge work, so the lower bounds do not transfer without a reduction.
+- Open questions: Determine whether the paper’s degree-sensitive lower bounds
+  constrain the hybrid solver’s backward or dual operations, translate its
+  query model into the repository’s edge-operation model, and compare its
+  output-sensitive term with active-set volume and residual support.
+
+## Citation key: `macgregor2021local`
+
+- Citation: Peter Macgregor and He Sun. “Local Algorithms for Finding Densely
+  Connected Clusters.” *Proceedings of the 38th International Conference on
+  Machine Learning*, PMLR 139:7268-7278, 2021.
+- DOI/arXiv/URL: <https://proceedings.mlr.press/v139/macgregor21a.html>;
+  preprint <https://arxiv.org/abs/2106.05245>.
+- Local PDF:
+  `papers/2021-icml-macgregor-local-algorithms-finding-densely-connected-clusters.pdf`.
+- Relevance: This paper uses approximate personalized PageRank and a new
+  double-cover reduction to find two seed-local vertex sets that are densely
+  connected to each other but weakly connected to the rest of an undirected
+  graph. It is a concrete example in which local PageRank is a computational
+  primitive for a richer clustering objective rather than the final output.
+- Exact pointers:
+  - Preprint pages 2-3, Section 2 and Equation (1): define personalized
+    PageRank, its random-walk interpretation, approximate PageRank, and the
+    residual invariant.
+  - Preprint pages 3-5, Sections 3.1-3.2 and Lemmas 1-3: introduce the
+    double-cover reduction, simplify operator, and local algorithm design.
+  - Preprint pages 6-8, Algorithms 1-3 and Theorem 1: specify
+    `LocBipartDC`, its paired-coordinate PageRank push, and its local
+    conductance, volume, and running-time guarantees.
+  - Preprint pages 9-11, Section 4, Algorithm 4, and Theorem 2: replace
+    PageRank with an evolving-set process for the directed-graph objective.
+  - Preprint pages 11-15, Section 5: evaluate the methods on interstate
+    disputes, migration flows, and synthetic graphs.
+- Formulation differences: The PageRank routine is applied to a doubled graph
+  and followed by sweep cuts to return a pair of clusters. Its guarantee is
+  expressed through bipartiteness ratio, conductance, target volume, and
+  randomized seed quality rather than numerical residual accuracy alone.
+- Open questions: Compare the paired `dcpush` operation with the hybrid
+  solver's update kernels, determine whether the double-cover structure can be
+  handled without explicitly duplicating graph state, and translate its
+  output-sensitive running time into the repository's edge-operation model.
+
+## Citation key: `andersen2007using`
+
+- Citation: Reid Andersen, Fan R. K. Chung, and Kevin J. Lang. “Using
+  PageRank to Locally Partition a Graph.” *Internet Mathematics*,
+  4(1):35-64, 2007.
+- DOI/arXiv/URL: <https://doi.org/10.1080/15427951.2007.10129139>.
+- Local PDF:
+  `papers/2007-im-andersen-using-pagerank-locally-partition-graph.pdf`.
+- Relevance: This paper gives the detailed PageRank-Nibble framework:
+  personalized PageRank from a seed, a residual-push approximation whose work
+  depends on output scale, degree-normalized sweep cuts, and a local
+  partitioning guarantee. These are central precedents for the project's
+  residual convention and locality-sensitive work model.
+- Exact pointers:
+  - Pages 38-41, Section 2: define lazy-walk PageRank, conductance,
+    degree-normalized sweeps, and mixing curves.
+  - Pages 41-44, Section 3, Algorithm 1, and Theorem 3.2: define
+    `ApproximatePR`, its push invariant, residual threshold, support bound, and
+    running time.
+  - Pages 44-51, Section 4 and Theorems 4.1 and 4.5: derive the PageRank
+    mixing result that links excess mass to a low-conductance sweep cut.
+  - Pages 51-55, Section 5 and Theorems 5.1 and 5.3: show that many seeds
+    inside a target set retain enough PageRank mass to expose a nearby cut.
+  - Pages 55-60, Section 6, Algorithm 2, and Theorems 6.1-6.2: specify
+    PageRank-Nibble and its output-sensitive local guarantee.
+- Relationship to other library entries: The 2006 FOCS paper
+  `andersen2006local` is the conference version. This journal article is
+  retained as the expanded treatment with full PageRank approximation,
+  mixing, and local-partitioning analysis.
+- Formulation differences: The algorithm returns a low-conductance set after
+  a sweep and tunes PageRank accuracy from a target volume scale. The hybrid
+  solver primarily targets a numerical solution under a prescribed residual
+  tolerance, so cut quality and volume guarantees are downstream rather than
+  its sole correctness criteria.
+- Open questions: Align the paper's row-vector, lazy-walk, and teleportation
+  conventions with the implementation, reproduce the push invariant exactly,
+  and compare PageRank-Nibble's volume-indexed work bound with the hybrid
+  solver's residual-driven stopping and edge-operation accounting.
