@@ -21,6 +21,26 @@ the project documentation is authoritative for this repository's conventions.
 Whenever papers are added or their publication metadata changes, update
 `docs/literature/index.md` and the relevant topic note in the same change.
 
+## Repository map and change routing
+
+The `Repository structure` section in `README.md` is the canonical high-level
+map. Place changes according to these boundaries:
+
+- research context, mathematical conventions, decisions, and literature notes
+  belong in `docs/`;
+- publication prose, equations, and bibliography belong in `manuscript/`;
+- reusable graph and solver code belongs in `src/`;
+- runnable experiment orchestration belongs in `experiments/`;
+- automated verification belongs in `tests/`;
+- source PDFs belong in `papers/` and must follow its Git LFS policy.
+
+Keep reusable solver logic out of experiment entry points, and do not use the
+manuscript as the only record of a project-wide convention. Before changing
+source code, experiments, or the paper library, read `src/AGENTS.md` and
+`src/README.md`, `experiments/README.md`, or `papers/README.md`, respectively.
+If a directory's responsibility changes, update the root `README.md`; update
+this file as well only when agent workflow or ownership boundaries change.
+
 ## Scientific invariants
 
 1. Do not change mathematical definitions without updating documentation and tests.

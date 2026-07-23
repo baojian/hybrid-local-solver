@@ -37,6 +37,22 @@ sources live in [`manuscript/`](manuscript/), while venue-specific formatting
 can be isolated there as submission targets are prepared. Mathematical
 conventions and evolving research decisions are recorded in [`docs/`](docs/).
 
+## Repository structure
+
+| Path | Purpose |
+| --- | --- |
+| [`src/`](src/) | Reusable graph loading, solver implementations, and shared baselines. |
+| [`experiments/`](experiments/) | Runnable experiment and parameter-sweep entry points built on `src/`. |
+| [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
+| [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
+| [`manuscript/`](manuscript/) | LaTeX sources and bibliography for the research paper. |
+| [`papers/`](papers/) | Source PDFs managed with Git LFS; annotations belong in `docs/literature/`. |
+
+Keep reusable computational logic in `src/`; experiment scripts should
+orchestrate that logic, and tests should verify its stable interfaces. When
+research definitions change, keep `docs/`, the implementation, tests, and
+manuscript consistent.
+
 ## Reproducibility
 
 Every reported experiment should record:
