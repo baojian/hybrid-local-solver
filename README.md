@@ -33,9 +33,11 @@ stopping criteria, and dependence on the teleportation parameter
 This repository supports venue-neutral manuscript development, with possible
 submissions to the *Journal of Machine Learning Research* (JMLR) and the
 *International Conference on Machine Learning* (ICML). Shared manuscript
-sources live in [`manuscript/`](manuscript/), while venue-specific formatting
-can be isolated there as submission targets are prepared. Mathematical
-conventions and evolving research decisions are recorded in [`docs/`](docs/).
+sources live in [`manuscript/`](manuscript/), while complete previous-paper
+projects are preserved separately under `manuscript/archive/`. Venue-specific
+formatting can be isolated in the manuscript workspace as submission targets
+are prepared. Mathematical conventions and evolving research decisions are
+recorded in [`docs/`](docs/).
 
 ## Repository structure
 
@@ -45,7 +47,7 @@ conventions and evolving research decisions are recorded in [`docs/`](docs/).
 | [`experiments/`](experiments/) | Runnable experiment and parameter-sweep entry points built on `src/`. |
 | [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
-| [`manuscript/`](manuscript/) | LaTeX sources and bibliography for the research paper. |
+| [`manuscript/`](manuscript/) | Active LaTeX paper sources plus read-only archives of previous paper projects. |
 | [`papers/`](papers/) | Source PDFs managed with Git LFS; annotations belong in `docs/literature/`. |
 
 Keep reusable computational logic in `src/`; experiment scripts should
