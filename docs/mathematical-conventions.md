@@ -30,6 +30,21 @@ with the archived writing style.
 These typography rules do not resolve vector orientation, transition-matrix
 orientation, or any of the scientific choices listed below.
 
+### Source-aligned RPPR notation
+
+The active manuscript's reference RPPR formulation deliberately follows the
+plain italic notation of Fountoulakis and Martínez-Rubio (2026):
+\(x,s,A,D,Q,I\), with \(x\) and \(s\) interpreted as column vectors. This is a
+scoped exception to the bold vector/matrix typography above, chosen so that
+the imported objective, KKT conditions, FISTA updates, and locality analysis
+can be compared symbol-for-symbol with arXiv `2602.21138v2`.
+
+The complete source-to-manuscript notation inventory is in
+[`manuscript/sections/problem_formulation.tex`](../manuscript/sections/problem_formulation.tex).
+Notation copied there is a source-grounded reference convention; it does not
+become an implementation or stopping-rule convention until the remaining
+decisions and tests below are completed.
+
 ## PageRank formulation
 
 The project studies local PageRank as its initial graph problem. The following
@@ -46,6 +61,27 @@ definitions are not yet fixed and must not be inferred from a cited paper:
 
 When these choices are adopted, update this document, the paper, and tests in
 the same change.
+
+The current source-grounded candidate, recorded for evaluation rather than
+adopted implementation-wide, assumes an undirected unweighted graph with no
+isolated vertices and uses
+\[
+\mathcal{L}=I-D^{-1/2}AD^{-1/2},
+\qquad
+Q=\alpha I+\frac{1-\alpha}{2}\mathcal{L},
+\]
+\[
+F_\rho(x)
+=
+\frac12\langle x,Qx\rangle
+-\alpha\langle D^{-1/2}s,x\rangle
++\alpha\rho\|D^{1/2}x\|_1.
+\]
+Here \(s\geq0\), \(\langle\mathbf{1},s\rangle=1\), and the single-seed case is
+\(s=e_v\). See Fountoulakis and Martínez-Rubio (2026), PDF page 3,
+Section 3 and equation (RPPR). This candidate does not yet determine the
+hybrid solver's transition-matrix orientation, output transformation, or
+residual convention.
 
 ## Algorithm parameters
 

@@ -18,6 +18,48 @@ starting points, but their applicability has not yet been established.
 
 ## Source annotations
 
+## Citation key: `fountoulakis2026complexity`
+
+- Citation: Kimon Fountoulakis and David Martínez-Rubio. “Complexity of
+  Classical Acceleration for \(\ell_1\)-Regularized PageRank.” arXiv
+  `2602.21138v2`, 2026.
+- DOI/arXiv/URL: <https://doi.org/10.48550/arXiv.2602.21138>;
+  <https://arxiv.org/abs/2602.21138>.
+- Local PDF:
+  `papers/2026-arxiv-fountoulakis-complexity-classical-acceleration-l1-regularized-pagerank.pdf`.
+- Relevance: The paper gives a source-compatible RPPR objective, classical
+  FISTA iteration, degree-weighted work model, conditional locality bound
+  under boundary confinement, and a star-graph lower bound showing that
+  standard FISTA can be asymptotically worse than ISTA.
+- Exact pointers:
+  - PDF page 3, Section 3 and equation (RPPR): define graph/set notation,
+    \(Q\), \(f\), \(F_\rho\), the optimal support, and coordinatewise KKT
+    conditions.
+  - PDF page 4, Section 3.1 and equations (FISTA), (2), and (3): define
+    \(L,\mu,\eta,\beta\), the FISTA iterates, weighted soft thresholding, and
+    degree-weighted per-iteration work.
+  - PDF pages 4-5, Sections 4.1-4.2 and equations (4)-(6): define the
+    over-regularized A/B problems, spurious active sets, complementarity
+    margins, and the work decomposition.
+  - PDF pages 5-6, Theorems 4.3-4.4: state the conditional total-work bound
+    and the boundary no-percolation condition.
+  - PDF pages 18-23, Appendix D: construct the star-graph lower bound where
+    FISTA activates a high-degree center while ISTA remains local.
+  - PDF page 24, Appendix E, “Stopping criterion”: define the unit-step
+    proximal fixed-point residual used in all experiments.
+- Formulation differences: The paper uses plain italic vector/matrix symbols
+  and studies undirected unweighted graphs with \(s=e_v\). It overloads
+  \(\varepsilon\): theory uses an objective-gap target while experiments use a
+  proximal fixed-point residual tolerance. The active manuscript now
+  distinguishes these as \(\varepsilon_{\mathrm{obj}}\) and
+  \(\varepsilon_{\mathrm{pg}}\). Neither residual nor its conversion to the
+  project's PageRank error has yet been adopted implementation-wide.
+- Open questions: Prove a conversion between the proximal fixed-point
+  residual and the project's eventual PageRank accuracy convention; determine
+  whether the hybrid method preserves boundary confinement; and compare the
+  paper's degree-weighted work with edge-operation accounting for local inner
+  solves.
+
 ## Citation key: `lin2018catalyst`
 
 - Citation: Hongzhou Lin, Julien Mairal, and Zaid Harchaoui. “Catalyst
