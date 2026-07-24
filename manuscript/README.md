@@ -13,8 +13,30 @@ manuscript/
 ├── appendix.tex
 ├── references.bib
 ├── sections/
+├── tex/
+│   └── shared/
+│       ├── preamble.tex
+│       ├── math_commands.tex
+│       └── writing_commands.tex
 └── jmlr2e.sty
 ```
+
+`main.tex` contains document structure only. Shared package configuration and
+notation live under `tex/shared/`. The active command set preserves the
+author's recurring NeurIPS 2024 and 2025 writing conventions without importing
+archived scientific claims or the unrelated machine-learning boilerplate in
+those older command files:
+
+- `math_commands.tex` defines the canonical `\v...` vector, `\m...` matrix,
+  `\g...` calligraphic, and `\s...` blackboard-bold families, together with
+  common graph operators and helpers such as `\mc`, `\eps`, and `\grad`;
+- `writing_commands.tex` contains figure-panel labels, reference wrappers,
+  drafting colors, checkmarks, and pseudocode assignment symbols;
+- `preamble.tex` owns package loading and theorem-environment setup.
+
+Add reusable notation to these shared files rather than defining commands
+inside individual sections. Archived macro files remain read-only references
+and are never input by the active manuscript.
 
 Build the active paper from the repository root with:
 
@@ -30,6 +52,8 @@ implementation, and the tests.
 
 Complete previous-paper projects live under `manuscript/archive/`:
 
+- [`archive/kdd-2023-appr-sor/`](archive/kdd-2023-appr-sor/) contains the
+  standalone KDD 2023 APPR-SOR paper.
 - [`archive/neurips-2024-locch/`](archive/neurips-2024-locch/) contains the
   standalone NeurIPS 2024 LocCH paper and reviewer response.
 - [`archive/neurips-2025-aesp/`](archive/neurips-2025-aesp/) contains the
