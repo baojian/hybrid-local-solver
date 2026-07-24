@@ -8,6 +8,28 @@ This document records mathematical conventions shared by proofs,
 implementations, and experiments. It must describe a convention before code or
 reported results depend on that convention.
 
+## Typographic notation
+
+The notation typography follows the author's NeurIPS 2024 and 2025 papers:
+
+- ordinary italic letters denote scalars;
+- bold lowercase letters denote vectors;
+- bold uppercase letters denote matrices;
+- calligraphic uppercase letters denote graphs, sets, and indexed families;
+- blackboard-bold letters denote number systems, spaces, and distributions.
+
+The active manuscript implements these habits in
+[`manuscript/tex/shared/math_commands.tex`](../manuscript/tex/shared/math_commands.tex):
+`\v...` commands produce vectors, `\m...` commands produce matrices, `\g...`
+commands produce calligraphic symbols, and `\s...` commands produce
+blackboard-bold symbols. The shorthand `\mc` remains available for an
+occasional calligraphic symbol that has no semantic alias. Long-standing
+shortcuts such as `\R`, `\E`, `\G`, and `\N` are retained for compatibility
+with the archived writing style.
+
+These typography rules do not resolve vector orientation, transition-matrix
+orientation, or any of the scientific choices listed below.
+
 ## PageRank formulation
 
 The project studies local PageRank as its initial graph problem. The following
