@@ -48,6 +48,20 @@ Project-wide mathematical definitions and research decisions belong in
 `docs/`. Keep the active manuscript consistent with those documents, the
 implementation, and the tests.
 
+## Imported source workspaces
+
+Exact external LaTeX sources used to prepare agent-oriented reader editions
+live locally under the Git-ignored `imports/` directory. Each workspace pins
+an explicit source version, retains the downloaded archive and per-file
+hashes, and separates immutable `source/extracted/` evidence from an editable
+`reader/` copy. Do not commit imported archives, extracted sources, builds, or
+page renders.
+
+Use a provenance-pinned workflow to fetch, audit, compile, render, and migrate
+imported sources. Do not copy their claims into the active manuscript without
+following the repository-level literature and mathematical-convention
+requirements.
+
 ## Archived manuscripts
 
 Complete previous-paper projects live under `manuscript/archive/`:

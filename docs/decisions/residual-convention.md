@@ -47,4 +47,4 @@ Record source-grounded alternatives here before accepting one:
 
 | Alternative | Source and exact pointer | Advantages | Risks or conversion needed |
 | --- | --- | --- | --- |
-| Not yet recorded | — | — | — |
+| Proximal fixed-point residual \(r_{\mathrm{pg}}(x)=\|x-\operatorname{prox}_{g_\rho}(x-\nabla f(x))\|_\infty\) with unit step | Fountoulakis and Martínez-Rubio (2026), arXiv `2602.21138v2`, PDF p. 24, Appendix E, “Stopping criterion” | Computable without knowing the optimum; identical certificate for ISTA and FISTA; zero exactly at an RPPR minimizer | Must relate this certificate to PageRank-vector error, degree normalization, local computability, and the residuals used by APPR, LocSOR, AESP, and the hybrid solver |

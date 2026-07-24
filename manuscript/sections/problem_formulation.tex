@@ -1,29 +1,537 @@
-\textbf{Notations.} Define
-$\mQ = \alpha \mI + \frac{1-\alpha}{2}\mL$ where $\mL = \mI - \mD^{-1/2} \mA \mD^{-1/2}$.
+% Source-aligned reference formulation.
+% Primary source: Fountoulakis and Martínez-Rubio, arXiv:2602.21138v2.
+% Verified against the source PDF, especially pp. 3--5 and 24, and against
+% main.tex in the provenance-pinned local import.
 
-In this paper, we consider the following two optimization problems:
+\subsection{Source-aligned notation}
+\label{subsec:source-aligned-notation}
+
+This section follows the notation of
+\citet{fountoulakis2026complexity}. In particular, vectors and matrices are
+written as plain italic symbols \(x,s,A,D,Q\), as in that paper, rather than
+using the boldface convention employed elsewhere in this manuscript. We record
+the source convention completely so that later algorithms can state any
+translation explicitly.
+
+The source uses \(\varepsilon\) in two different contexts: as an objective-gap
+target in its theoretical bounds and as a proximal fixed-point residual
+tolerance in its experiments. We retain both definitions below, but do not
+identify them. The repository has not yet adopted either one as its canonical
+stopping rule.
+
+\paragraph{Sets, graph, and volume.}
+Let \(G=(V,E)\) be an undirected, unweighted graph with
+\(V=[n]:=\{1,\ldots,n\}\). For \(S\subseteq V\), the notation is:
+\begin{itemize}[leftmargin=*]
+    \item \(|S|\) is the cardinality of \(S\), and
+    \(S^c:=[n]\setminus S\) is its complement;
+    \item \(\mathcal{N}(S)\) is the set of vertices adjacent to at least one
+    vertex in \(S\);
+    \item
+    \[
+        \partial S
+        :=
+        \mathcal{N}(S)\setminus S,
+        \qquad
+        \operatorname{Ext}(S)
+        :=
+        V\setminus(S\cup\partial S)
+    \]
+    are the vertex boundary and exterior of \(S\);
+    \item \(d_i:=|\mathcal{N}(\{i\})|\) is the degree of vertex \(i\), with
+    \(d_i>0\) for every \(i\);
+    \item
+    \[
+        \vol(S):=\sum_{i\in S}d_i,
+        \qquad
+        d_{\min,\partial S}:=\min_{j\in\partial S}d_j
+    \]
+    are the degree volume of \(S\) and the minimum boundary degree.
+\end{itemize}
+
+The adjacency matrix is \(A\in\{0,1\}^{n\times n}\),
+\(D:=\diag(d_1,\ldots,d_n)\) is the diagonal degree matrix, and
+\(I\in\R^{n\times n}\) is the identity matrix. All optimization vectors are
+column vectors in \(\R^n\). The support of a vector is
+\[
+    \supp(x):=\{i\in[n]:x_i\neq 0\}.
+\]
+We use \(\norm{\cdot}_2\), \(\norm{\cdot}_1\), and
+\(\norm{\cdot}_\infty\) for the Euclidean, \(\ell_1\), and maximum norms,
+respectively. Matrix inequalities such as \(M\preceq N\) use the Loewner
+order.
+
+\paragraph{Seed and PageRank matrices.}
+The seed distribution satisfies
+\[
+    s\in\R_+^n,
+    \qquad
+    \langle\mathbf{1},s\rangle=1.
+\]
+The single-seed specialization is \(s=e_v\), where \(e_v\) is the \(v\)-th
+standard basis vector. For a teleportation parameter
+\(\alpha\in(0,1]\), define the symmetric normalized Laplacian and the shifted
+PageRank matrix by
 \begin{equation}
-\min_{\vx \in \R^n}
-\left\{
-f(\vx)
-:=
-\frac{1}{2}\langle \vx, \mQ \vx \rangle
-- \alpha \langle \mD^{-1/2} \vs, \vx \rangle
-\right\},
-\label{equ:f(x)}
+    \mathcal{L}
+    :=
+    I-D^{-1/2}AD^{-1/2},
+    \qquad
+    Q
+    :=
+    \alpha I+\frac{1-\alpha}{2}\mathcal{L}
+    =
+    \frac{1+\alpha}{2}I
+    -
+    \frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
+    \label{eq:source-pagerank-matrices}
+\end{equation}
+Since \(0\preceq\mathcal{L}\preceq2I\),
+\[
+    \alpha I\preceq Q\preceq I.
+\]
+
+\subsection{\texorpdfstring{The \(\ell_1\)-regularized PageRank problem}
+{The l1-regularized PageRank problem}}
+\label{subsec:source-rppr}
+
+The smooth PageRank quadratic is
+\begin{equation}
+    f(x)
+    :=
+    \frac{1}{2}\langle x,Qx\rangle
+    -
+    \alpha\langle D^{-1/2}s,x\rangle,
+    \qquad
+    \nabla f(x)=Qx-\alpha D^{-1/2}s.
+    \label{equ:f(x)}
+\end{equation}
+For a sparsity parameter \(\rho>0\), define
+\[
+    g_\rho(x)
+    :=
+    \alpha\rho\norm{D^{1/2}x}_1.
+\]
+The source often abbreviates \(g_\rho\) as \(g\). Its central
+\(\ell_1\)-regularized personalized PageRank problem is
+\begin{equation}
+    \min_{x\in\R^n} F_\rho(x),
+    \qquad
+    F_\rho(x)
+    :=
+    f(x)+g_\rho(x).
+    \label{equ:F(x)}
 \end{equation}
 
+The matrix bound in \cref{eq:source-pagerank-matrices} makes \(f\)
+\(1\)-smooth and \(\alpha\)-strongly convex. Consequently \(F_\rho\) has a
+unique minimizer, denoted by
+\[
+    x^\star(\rho)
+    :=
+    \argmin_{x\in\R^n}F_\rho(x).
+\]
+When \(\rho\) is fixed, we abbreviate \(x^\star(\rho)\) as \(x^\star\), and
+write
+\[
+    S^\star
+    :=
+    \supp(x^\star),
+    \qquad
+    I^\star
+    :=
+    [n]\setminus S^\star.
+\]
+The source records that \(x^\star(\rho)\geq0\) coordinatewise and invokes the
+sparsity guarantee
+\(\vol(S^\star)\leq1/\rho\)
+\citep{fountoulakis2019variational,fountoulakis2026complexity}.
+
+The coordinatewise optimality conditions used by the source are
 \begin{equation}
-\min_{\vx \in \R^n}
-\left\{
-F_\rho(\vx)
-:=
-f(\vx) + g(\vx)
-\right\},
-\qquad
-\text{where }
-g(\vx)
-:=
-\alpha \rho \left\|\mD^{1/2}\vx\right\|_1.
-\label{equ:F(x)}
+    \nabla_i f\bigl(x^\star(\rho)\bigr)
+    \in
+    \begin{cases}
+        \{-\alpha\rho\sqrt{d_i}\},
+            & x_i^\star(\rho)>0,\\
+        [-\alpha\rho\sqrt{d_i},0],
+            & x_i^\star(\rho)=0.
+    \end{cases}
+    \label{eq:source-rppr-kkt}
 \end{equation}
+For the initialization \(x_0=0\), the initial objective gap is
+\[
+    \Delta_0
+    :=
+    F_\rho(0)-F_\rho(x^\star)
+    \leq
+    \frac{\alpha}{2}.
+\]
+
+\subsection{Composite optimization and FISTA notation}
+\label{subsec:source-fista-notation}
+
+For a generic composite objective \(F=f+g\), \(L>0\) is the Euclidean
+smoothness constant of \(f\), and \(\mu>0\) is the Euclidean
+strong-convexity constant of \(F\). For RPPR,
+\[
+    L=1,
+    \qquad
+    \mu=\alpha,
+    \qquad
+    \eta:=\frac{1}{L}=1,
+    \qquad
+    \beta
+    :=
+    \frac{\sqrt{L/\mu}-1}{\sqrt{L/\mu}+1}
+    =
+    \frac{1-\sqrt{\alpha}}{1+\sqrt{\alpha}}.
+\]
+
+For any proper convex function \(g\), its scaled proximal operator is
+\[
+    \prox_{\eta g}(x)
+    :=
+    \argmin_{y\in\R^n}
+    \left\{
+        \eta g(y)+\frac{1}{2}\norm{y-x}_2^2
+    \right\}.
+\]
+Starting from \(x_{-1}=x_0=0\), the source writes strongly-convex FISTA as
+\begin{equation}
+    y_k
+    =
+    x_k+\beta(x_k-x_{k-1}),
+    \qquad
+    x_{k+1}
+    =
+    \prox_{\eta g}\bigl(y_k-\eta\nabla f(y_k)\bigr),
+    \qquad
+    k\geq0.
+    \label{eq:source-fista}
+\end{equation}
+For \(g=g_\rho\), the coordinate update is the weighted
+soft-thresholding rule
+\begin{equation}
+    x_{k+1,i}
+    =
+    \sign\bigl(y_{k,i}-\eta\nabla_i f(y_k)\bigr)
+    \max\left\{
+        \left|y_{k,i}-\eta\nabla_i f(y_k)\right|
+        -
+        \eta\alpha\rho\sqrt{d_i},
+        0
+    \right\}.
+    \label{eq:source-fista-coordinate}
+\end{equation}
+ISTA is the specialization \(y_k=x_k\), equivalently \(\beta=0\).
+
+\subsection{Degree-weighted work and source stopping rule}
+\label{subsec:source-work-and-stopping}
+
+The source charges \(d_i\) work whenever the neighborhood of vertex \(i\) is
+scanned. For an iterate pair \((y_k,x_{k+1})\), its symmetric per-iteration
+work measure and cumulative work are
+\begin{equation}
+    \operatorname{work}_k
+    :=
+    \vol(\supp(y_k))
+    +
+    \vol(\supp(x_{k+1})),
+    \qquad
+    \operatorname{Work}(N)
+    :=
+    \sum_{k=0}^{N-1}\operatorname{work}_k.
+    \label{eq:source-degree-work}
+\end{equation}
+This counts neighbor accesses with repetition and is distinct from iteration
+count.
+
+The source experiments use the unit-step proximal-gradient map and its
+fixed-point residual
+\begin{equation}
+    T_{\alpha,\rho}(x)
+    :=
+    \prox_{g_\rho}\bigl(x-\nabla f(x)\bigr),
+    \qquad
+    r_{\mathrm{pg}}(x)
+    :=
+    \norm{x-T_{\alpha,\rho}(x)}_\infty.
+    \label{eq:source-fixed-point-residual}
+\end{equation}
+They stop when \(r_{\mathrm{pg}}(x_k)\leq\varepsilon_{\mathrm{pg}}\).
+We add the subscript ``pg'' to distinguish this experimental tolerance from
+the theoretical objective-gap target
+\[
+    F_\rho(x_N)-F_\rho(x^\star)\leq\varepsilon_{\mathrm{obj}}.
+\]
+The source itself writes both quantities as \(\varepsilon\).
+
+\subsection{Over-regularization and locality notation}
+\label{subsec:source-locality-notation}
+
+The source compares the base problem (A), with regularization \(\rho\), and
+the over-regularized problem (B), with regularization \(2\rho\):
+\[
+    g_A(x)
+    :=
+    \alpha\rho\norm{D^{1/2}x}_1,
+    \qquad
+    g_B(x)
+    :=
+    2\alpha\rho\norm{D^{1/2}x}_1,
+\]
+\[
+    F_A:=f+g_A,
+    \qquad
+    F_B:=f+g_B,
+    \qquad
+    x_A^\star\in\argmin_xF_A(x),
+    \qquad
+    x_B^\star\in\argmin_xF_B(x).
+\]
+Their active and inactive sets are
+\[
+    S_A:=\supp(x_A^\star),
+    \qquad
+    S_B:=\supp(x_B^\star),
+    \qquad
+    I_B:=[n]\setminus S_B.
+\]
+The spurious active set of FISTA relative to the base support is
+\[
+    \widetilde{A}_k
+    :=
+    \supp(x_{k+1})\cap S_A^c.
+\]
+With this notation, the source decomposes degree-weighted work as
+\[
+    \operatorname{Work}(N)
+    =
+    O\left(
+        N\vol(S_A)
+        +
+        \sum_{k=0}^{N-1}\vol(\widetilde{A}_k)
+    \right).
+\]
+
+For the forward-gradient map
+\[
+    u(x):=x-\eta\nabla f(x),
+\]
+the (B)-problem soft-threshold and the degree-normalized complementarity slack
+of an inactive coordinate \(i\in I_B\) are
+\[
+    \lambda_i^{(B)}
+    :=
+    2\alpha\rho\sqrt{d_i},
+    \qquad
+    \gamma_i^{(B)}
+    :=
+    \frac{
+        \lambda_i^{(B)}
+        -
+        |\nabla_i f(x_B^\star)|
+    }{\sqrt{d_i}}
+    =
+    2\alpha\rho
+    +
+    \frac{\nabla_i f(x_B^\star)}{\sqrt{d_i}}.
+\]
+For the base problem, the analogous threshold is
+\(\lambda_i^{(A)}:=\alpha\rho\sqrt{d_i}\).
+The superscripts on \(\lambda_i^{(A)}\) and \(\lambda_i^{(B)}\) are added here
+to keep the two problems distinct; the source writes \(\lambda_i\) and lets
+the active problem determine whether the threshold is
+\(\alpha\rho\sqrt{d_i}\) or \(2\alpha\rho\sqrt{d_i}\).
+The global inactive-set margin sometimes used in the source is
+\[
+    \gamma
+    :=
+    \min_{i\in I^\star}\gamma_i.
+\]
+
+The source further defines
+\[
+    A_{\mathrm{spur}}(y)
+    :=
+    \supp\left(
+        \prox_{\eta g_B}\bigl(u(y)\bigr)
+    \right)
+    \cap I_B,
+\]
+\[
+    I_B^{\mathrm{small}}
+    :=
+    \left\{
+        i\in I_B:
+        \gamma_i^{(B)}<\rho\alpha
+    \right\},
+    \qquad
+    I_B^{\mathrm{large}}
+    :=
+    \left\{
+        i\in I_B:
+        \gamma_i^{(B)}\geq\rho\alpha
+    \right\}.
+\]
+The source denotes \(A_{\mathrm{spur}}(y)\) simply by \(A(y)\); the renamed
+version here avoids collision with the adjacency matrix \(A\).
+
+A confinement set \(\mathcal{B}\) satisfies
+\(\widetilde{A}_k\subseteq\mathcal{B}\) for every \(k\). For a candidate core
+\(S\supseteq S_B\), the principal choice is
+\[
+    \mathcal{B}:=\partial S,
+    \qquad
+    \supp(x_k)\subseteq S\cup\partial S.
+\]
+Thus the notation distinguishes the core \(S\), its boundary
+\(\mathcal{B}\), and its exterior \(\operatorname{Ext}(S)\).
+
+\subsection{Auxiliary symbols used in the source analysis}
+\label{subsec:source-auxiliary-notation}
+
+For completeness, the remaining recurring analytical symbols in
+\citet{fountoulakis2026complexity} are:
+\begin{itemize}[leftmargin=*]
+    \item \(b:=\alpha D^{-1/2}s\), so that
+    \(\nabla f(x)=Qx-b\);
+    \item \(q:=1-\sqrt{\mu/L}=1-\sqrt{\alpha}\), the geometric contraction
+    factor used in the FISTA proof;
+    \item
+    \[
+        N_{\varepsilon_{\mathrm{obj}}}
+        :=
+        \left\lceil
+            \frac{
+                \log(\Delta_0/\varepsilon_{\mathrm{obj}})
+            }{
+                \log\bigl(1/(1-\sqrt{\mu/L})\bigr)
+            }
+        \right\rceil,
+    \]
+    the sufficient iteration count for the stated objective-gap target;
+    \item
+    \[
+        M
+        :=
+        \frac{8\Delta_0}{\mu}
+        \left(
+            (1+\beta)^2(1-\sqrt{\mu/L})+\beta^2
+        \right),
+    \]
+    an iterate-distance constant in the source proof;
+    \item \(\mathcal{B}'\subseteq\mathcal{B}\), the subset of confined
+    coordinates whose (B)-margin is at least \(\rho\alpha\);
+    \item \(R\), any uniform bound satisfying
+    \(\norm{y_k-x_B^\star}_2\leq R\);
+    \item \(\Delta x:=x_A^\star-x_B^\star\), used in the
+    regularization-path comparison;
+    \item \(w_k:=y_k-\eta\nabla f(y_k)=u(y_k)\), an alternative name for the
+    forward point.
+    \item \(\widetilde{\operatorname{vol}}(S)\), used only in the comparison
+    with prior work, is the number of edges in the subgraph induced by \(S\).
+\end{itemize}
+
+\paragraph{High-degree cutoff.}
+The source uses \(R\) in the sufficient nonactivation condition
+\[
+    d_i
+    \geq
+    \left(\frac{LR}{\alpha\rho}\right)^2.
+\]
+For RPPR, \(L\leq1\) and the source obtains \(R\leq\sqrt{20}\), giving the
+more concrete cutoff \(d_i\geq20\alpha^{-2}\rho^{-2}\).
+
+\paragraph{Breakpoint examples.}
+The source uses two short graph families to show that the global margin
+\(\gamma\) can vanish.
+\begin{itemize}[leftmargin=*]
+    \item In the center-seeded star, \(G\) has \(m+1\) vertices, center \(c\)
+    with \(d_c=m\), leaves \(\ell\) with \(d_\ell=1\), and seed \(s=e_c\).
+    It defines
+    \[
+        \rho_0:=\frac{1-\alpha}{2m},
+        \qquad
+        x^\star:=x_c^\star e_c,
+        \qquad
+        x_c^\star
+        :=
+        \frac{2\alpha(1-\rho m)}
+        {(1+\alpha)\sqrt{m}},
+    \]
+    and the leaf slack
+    \[
+        \gamma_\ell
+        :=
+        \frac{2\alpha}{1+\alpha}(\rho-\rho_0).
+    \]
+    \item In the endpoint-seeded path,
+    \(G=P_{m+1}\) has vertices \(1,\ldots,m+1\), seed \(s=e_1\), and
+    \[
+        \rho_0:=\frac{1-\alpha}{3+\alpha},
+        \qquad
+        x^\star:=x_1^\star e_1,
+        \qquad
+        x_1^\star
+        :=
+        \frac{2\alpha(1-\rho)}{1+\alpha}.
+    \]
+    The degree-normalized slack at vertex \(2\) is
+    \[
+        \gamma_2
+        :=
+        \frac{\alpha(3+\alpha)}
+        {2(1+\alpha)}(\rho-\rho_0).
+    \]
+\end{itemize}
+In both families, \(\gamma=0\) at \(\rho=\rho_0\).
+
+\paragraph{Leaf-seeded star lower bound.}
+In the source's lower-bound construction, \(G(m)\) has \(n=m+1\) vertices:
+center \(w\), seed leaf \(v\), and remaining leaves
+\(u_1,\ldots,u_{m-1}\). Here
+\[
+    \rho_0
+    :=
+    \frac{1-\alpha}
+    {m(1+\alpha)+(1-\alpha)},
+    \qquad
+    x^\star
+    :=
+    x_v^\star e_v,
+    \qquad
+    x_v^\star
+    :=
+    \frac{2\alpha(1-\rho)}{1+\alpha}.
+\]
+At the breakpoint \(\rho=\rho_0\), the proof also names the one-step
+candidate
+\[
+    x^+
+    :=
+    \prox_{\alpha\rho_0\norm{D^{1/2}\cdot}_1}\bigl(u(y)\bigr).
+\]
+The symbols
+\[
+    e_k:=x_{k,v}-x_v^\star,
+    \qquad
+    \widetilde e_k:=y_{k,v}-x_v^\star,
+    \qquad
+    a:=\frac{1-\alpha}{2}
+\]
+denote the one-dimensional seed-coordinate errors and recurrence coefficient.
+The lower-bound objective-gap threshold is
+\[
+    \varepsilon_0(\alpha)
+    :=
+    \frac{
+        \alpha^3(1-\alpha)^4\beta^4
+    }{
+        2(3+\alpha)^2
+    }.
+\]
+These instance-specific symbols are not part of the generic RPPR definition,
+but including them makes the catalogue cover the paper's proof-local
+notation as well as its main formulation.
