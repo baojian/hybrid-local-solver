@@ -1,7 +1,7 @@
 .PHONY: test lint paper experiments eps-sweep omega-sweep figures reproduce clean
 
 paper:
-	cd manuscript && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+	$(MAKE) -C manuscript
 
 test:
 	uv run pytest
@@ -26,4 +26,4 @@ figures:
 reproduce: test experiments figures paper
 
 clean:
-	cd manuscript && latexmk -C
+	$(MAKE) -C manuscript distclean
