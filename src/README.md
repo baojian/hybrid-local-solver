@@ -3,6 +3,7 @@
 ```text
 src/
 ├── graphs.py              # Pinned Hugging Face access and shared GraphData
+├── synthetic_graphs.py    # Shared star, path, and spider constructions
 ├── baselines/             # Shared, controlled reference implementations
 ├── hybrid_solver_codex/   # Solver implementation owned by Codex agents
 └── hybrid_solver_claude/  # Solver implementation owned by Claude agents

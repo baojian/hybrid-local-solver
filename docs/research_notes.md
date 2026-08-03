@@ -42,6 +42,10 @@ Implementation status and open items:
 - Whether a path or long spider is tight in the coupled regime
   `L = Theta(1/eps)` with `alpha * L^2 = O(1)` is left open; the star needs no
   such coupling.
+- The lower-bound checker enforces the theorem regime
+  `0 < eps_appr <= 1/16`; out-of-regime values are rejected rather than
+  reported as theorem checks. The figure generator validates the complete
+  `(alpha, eps_appr, ordering)` grid before plotting actual or scaled work.
 - The relation between `eps_appr` and the RPPR sparsity parameter `rho` is
   deliberately not asserted. Both bound support volume, and settling it is a
   prerequisite for a fair APPR-versus-RPPR work comparison.

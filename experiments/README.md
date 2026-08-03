@@ -26,7 +26,8 @@ uv run python -m experiments.check_appr_lower_bound
 ```
 
 The star rows test the proved lower bound. Path and long-spider rows are
-diagnostics and are not labeled as theorem verification.
+diagnostics and are not labeled as theorem verification. The checker accepts
+only `0 < eps_appr <= 1/16`, the parameter regime proved by the star theorem.
 
 Generate the manuscript figure comparing actual hard-star work with both
 proved bounds using:
@@ -36,5 +37,7 @@ make figures
 ```
 
 This writes the complete plotted records, including run provenance, to
-`results/appr_star_work_bounds.json` and generates PDF and PNG versions of
-`manuscript/figures/appr_star_work_bounds`.
+`results/appr_star_work_bounds.json`. It generates PDF and PNG versions of
+`manuscript/figures/appr_star_work_bounds` for actual work and
+`manuscript/figures/appr_star_scaled_work` for the normalized quantity
+`alpha * eps_appr * W`.

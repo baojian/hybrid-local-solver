@@ -13,58 +13,13 @@ import math
 import subprocess
 from pathlib import Path
 
-import numpy as np
-import scipy.sparse as sp
-
 from src.baselines.appr import APPR_ORDERINGS, approximate_pagerank
-from src.graphs import GraphData
+from src.synthetic_graphs import path_graph, spider_graph, star_graph
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 STOPPING_RULE = "terminate when r[u] < eps_appr * d[u] for every vertex u"
-
-
-def graph_from_edges(name: str, node_count: int, edges: list[tuple[int, int]]) -> GraphData:
-    first = np.fromiter((u for u, _ in edges), dtype=int)
-    second = np.fromiter((v for _, v in edges), dtype=int)
-    rows = np.concatenate((first, second))
-    columns = np.concatenate((second, first))
-    adjacency = sp.csr_matrix(
-        (np.ones(len(rows)), (rows, columns)),
-        shape=(node_count, node_count),
-    )
-    degree = np.asarray(adjacency.sum(axis=1)).ravel()
-    return GraphData(name=name, adjacency=adjacency, degree=degree)
-
-
-def star_graph(leaf_count: int) -> GraphData:
-    return graph_from_edges(
-        f"star-{leaf_count}",
-        leaf_count + 1,
-        [(0, leaf) for leaf in range(1, leaf_count + 1)],
-    )
-
-
-def path_graph(node_count: int) -> GraphData:
-    return graph_from_edges(
-        f"path-{node_count}",
-        node_count,
-        [(u, u + 1) for u in range(node_count - 1)],
-    )
-
-
-def spider_graph(arm_count: int, arm_length: int) -> GraphData:
-    edges = []
-    for arm in range(arm_count):
-        previous = 0
-        for depth in range(arm_length):
-            node = 1 + arm * arm_length + depth
-            edges.append((previous, node))
-            previous = node
-    return graph_from_edges(
-        f"spider-{arm_count}x{arm_length}",
-        1 + arm_count * arm_length,
-        edges,
-    )
+APPR_LOWER_BOUND_MAX_EPS = 1.0 / 16.0
+GRAPH_KINDS = ("star", "path", "spider")
 
 
 def code_version() -> str:
@@ -99,24 +54,14 @@ def run_checks(
     spider_length: int,
     graph_kinds: tuple[str, ...] = ("star", "path", "spider"),
 ) -> list[dict[str, object]]:
+    _validate_check_parameters(alphas, eps_values, orderings, spider_length, graph_kinds)
     records = []
     version = code_version()
     for eps_appr in eps_values:
         leaf_count = math.floor(1.0 / (8.0 * eps_appr))
-        cases = [
-            ("star", star_graph(leaf_count), 0, True),
-            ("path", path_graph(2 * leaf_count + 1), leaf_count, False),
-            (
-                "spider",
-                spider_graph(leaf_count, spider_length),
-                0,
-                spider_length == 1,
-            ),
-        ]
+        cases = [_build_case(graph_kind, leaf_count, spider_length) for graph_kind in graph_kinds]
         for alpha in alphas:
             for graph_kind, graph, source, lower_bound_applies in cases:
-                if graph_kind not in graph_kinds:
-                    continue
                 for ordering in orderings:
                     result = approximate_pagerank(
                         graph,
@@ -158,6 +103,62 @@ def run_checks(
     return records
 
 
+def _validate_check_parameters(
+    alphas: list[float],
+    eps_values: list[float],
+    orderings: list[str],
+    spider_length: int,
+    graph_kinds: tuple[str, ...],
+) -> None:
+    if not alphas:
+        raise ValueError("at least one alpha value is required")
+    if not eps_values:
+        raise ValueError("at least one eps_appr value is required")
+    if not orderings:
+        raise ValueError("at least one ordering is required")
+    if not graph_kinds:
+        raise ValueError("at least one graph kind is required")
+    if spider_length < 1:
+        raise ValueError(f"spider_length must be positive, got {spider_length}")
+
+    invalid_alphas = [alpha for alpha in alphas if not math.isfinite(alpha) or not 0 < alpha <= 1]
+    if invalid_alphas:
+        raise ValueError(f"alpha values must lie in (0, 1], got {invalid_alphas}")
+    invalid_eps = [
+        eps_appr
+        for eps_appr in eps_values
+        if not math.isfinite(eps_appr) or not 0 < eps_appr <= APPR_LOWER_BOUND_MAX_EPS
+    ]
+    if invalid_eps:
+        raise ValueError(
+            f"eps_appr values must lie in the proved regime (0, 1/16], got {invalid_eps}"
+        )
+
+    unknown_orderings = set(orderings).difference(APPR_ORDERINGS)
+    if unknown_orderings:
+        raise ValueError(f"unknown orderings: {', '.join(sorted(unknown_orderings))}")
+    unknown_graph_kinds = set(graph_kinds).difference(GRAPH_KINDS)
+    if unknown_graph_kinds:
+        raise ValueError(f"unknown graph kinds: {', '.join(sorted(unknown_graph_kinds))}")
+    if len(set(graph_kinds)) != len(graph_kinds):
+        raise ValueError("graph_kinds must not contain duplicates")
+
+
+def _build_case(graph_kind: str, leaf_count: int, spider_length: int):
+    if graph_kind == "star":
+        return "star", star_graph(leaf_count), 0, True
+    if graph_kind == "path":
+        return "path", path_graph(2 * leaf_count + 1), leaf_count, False
+    if graph_kind == "spider":
+        return (
+            "spider",
+            spider_graph(leaf_count, spider_length),
+            0,
+            spider_length == 1,
+        )
+    raise AssertionError(f"validated graph kind unexpectedly missing: {graph_kind}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--alphas", default="1,0.5,0.1")
@@ -168,22 +169,19 @@ def main() -> None:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
 
-    alphas = [float(value) for value in args.alphas.split(",")]
-    eps_values = [float(value) for value in args.eps.split(",")]
-    orderings = [value for value in args.orderings.split(",") if value]
-    if args.spider_length < 1:
-        parser.error("--spider-length must be positive")
-    unknown = set(orderings).difference(APPR_ORDERINGS)
-    if unknown:
-        parser.error(f"unknown orderings: {', '.join(sorted(unknown))}")
-
-    records = run_checks(
-        alphas,
-        eps_values,
-        orderings,
-        random_seed=args.random_seed,
-        spider_length=args.spider_length,
-    )
+    try:
+        alphas = [float(value) for value in args.alphas.split(",") if value]
+        eps_values = [float(value) for value in args.eps.split(",") if value]
+        orderings = [value for value in args.orderings.split(",") if value]
+        records = run_checks(
+            alphas,
+            eps_values,
+            orderings,
+            random_seed=args.random_seed,
+            spider_length=args.spider_length,
+        )
+    except ValueError as error:
+        parser.error(str(error))
     payload = json.dumps(records, indent=2)
     if args.output is not None:
         args.output.write_text(payload + "\n")

@@ -67,6 +67,9 @@ manuscript and cross-check FIFO output against the Numba APPR kernel in
 `src/baselines/sdd_solver.py`. That kernel now re-enqueues the pushed vertex
 when its retained residual is still active, as required by ACL Algorithm 1,
 and includes the final partial queue round in reported work.
+The lower-bound experiment rejects `eps_appr` outside `(0, 1/16]`, exactly the
+parameter regime of the star theorem; it does not label out-of-regime runs as
+theorem verification.
 
 ## PageRank formulation
 
