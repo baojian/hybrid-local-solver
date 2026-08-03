@@ -21,7 +21,7 @@ omega-sweep:
 	uv run python -m experiments.run_omega_sweep
 
 figures:
-	uv run python experiments/generate_figures.py
+	uv run python -m experiments.generate_figures
 
 reproduce: test experiments figures paper
 

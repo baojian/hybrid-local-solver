@@ -29,6 +29,12 @@ The current targets are:
 
 These are research targets, not established claims.
 
+One baseline result is now established rather than targeted: classical APPR
+has worst-case degree-weighted work `Theta(1/(alpha * eps_appr))`, proved in
+`manuscript/sections/appr_lower_bound.tex`. The upper bound is Andersen,
+Chung, and Lang (2007); the matching ordering-independent lower bound is
+proved here. Contribution 3 is measured against it.
+
 ## Current scope
 
 In scope:

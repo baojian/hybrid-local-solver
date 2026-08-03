@@ -246,7 +246,11 @@ def sdd_local_appr(n, indptr, indices, degree, s, alpha, eps, opt_x=None):
     # queue data structure
     st = np.nonzero(s)[0]
     front = int64(0)
-    queue = np.zeros(n + 1, dtype=int64)
+    # One slot for every vertex, one for the iteration flag, and one spare
+    # slot so the circular queue never confuses a full frontier with an empty
+    # one.
+    queue_capacity = n + 2
+    queue = np.zeros(queue_capacity, dtype=int64)
     queue[: len(st)] = st
     q_mark = np.zeros(n + 1, dtype=bool_)
     q_mark[st] = True
@@ -268,7 +272,7 @@ def sdd_local_appr(n, indptr, indices, degree, s, alpha, eps, opt_x=None):
     while True:
         u = queue[front]
         q_mark[u] = False
-        front = (front + 1) % n
+        front = (front + 1) % queue_capacity
         if u == n:  # one local iteration
             # ------ debug time ------
             with objmode(debug_start="f8"):
@@ -284,23 +288,28 @@ def sdd_local_appr(n, indptr, indices, degree, s, alpha, eps, opt_x=None):
             # ------------------------
 
             queue[rear] = n
-            rear = (rear + 1) % n
+            rear = (rear + 1) % queue_capacity
             continue
 
         oper += degree[u]
         delta = 0.5 * (1.0 - alpha) * rt[u]
         xt[u] += alpha * rt[u]
         rt[u] = delta
+        # ACL Algorithm 1 requires an active pushed vertex to return to the
+        # queue. Without this check the routine can stop with r[u] >= eps*d[u]
+        # when none of u's neighbors becomes active.
+        if not q_mark[u] and eps_vec[u] <= rt[u]:
+            queue[rear] = u
+            q_mark[u] = True
+            rear = (rear + 1) % queue_capacity
         for v in indices[indptr[u] : indptr[u + 1]]:
             rt[v] += delta / degree[u]
             if not q_mark[v] and eps_vec[v] <= rt[v]:
                 queue[rear] = v
                 q_mark[v] = True
-                rear = (rear + 1) % n
+                rear = (rear + 1) % queue_capacity
         # only iteration flag left, quit
-        if (rear - front) == 1:
-            if len(errs) != 0:
-                break
+        if (rear - front) % queue_capacity == 1:
             # ------ debug time ------
             with objmode(debug_start="f8"):
                 debug_start = time.perf_counter()

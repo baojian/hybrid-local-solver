@@ -1,0 +1,536 @@
+% Worst-case complexity of classical APPR.
+% Primary source: Andersen, Chung, and Lang, Internet Mathematics 4(1):35--64,
+% 2007. Verified against the source PDF, especially Definition 3.1 (p. 41),
+% Definition 3.3 and Lemma 3.4 (p. 42), Algorithm 1 and Theorem 3.2 with
+% Equation (3.3) (pp. 41--43).
+%
+% Notation: this section continues the plain-italic, column-vector convention
+% of \cref{sec:problem-formulation}. The source states its algorithm with row
+% vectors and the lazy walk matrix acting on the right; we transpose it.
+
+We prove that the classical lazy Andersen--Chung--Lang approximate
+personalized PageRank algorithm (APPR) of \citet{andersen2007using} has
+worst-case adjacency-list work
+\(\Theta(1/(\alpha\epsappr))\).
+The upper bound is the residual-mass argument of that paper. For the matching
+lower bound, a star whose center is the seed is sufficient. Moreover, the
+lower bound holds for every legal ordering of active vertices; it is not an
+artifact of FIFO, priority-queue, or any other tie-breaking rule. This
+settles the worst-case complexity of the baseline against which accelerated
+and hybrid local solvers are measured in this manuscript.
+
+\subsection{Algorithm and work model}
+\label{subsec:appr-work-model}
+
+Let \(G=(V,E)\) be a finite, simple, undirected graph on \(V=[n]\) with no
+isolated vertices, so that \(d_u\geq1\) for every \(u\in V\), and let
+\(v\in V\) be the seed vertex, with seed vector \(s=e_v\) as in
+\cref{subsec:source-aligned-notation}. Fix a teleportation parameter
+\(\alpha\in(0,1]\) and a residual tolerance \(\epsappr>0\), and write
+\begin{equation}
+    a:=\frac{1-\alpha}{2},
+    \label{eq:appr-lazy-factor}
+\end{equation}
+which is the lazy half-step factor already used in
+\cref{subsec:source-locality-notation}. APPR maintains nonnegative vectors
+\(p_t,r_t\in\R_{\geq0}^{n}\), initialized by
+\begin{equation}
+    p_0=0,
+    \qquad
+    r_0=s=e_v.
+    \label{eq:appr-initialization}
+\end{equation}
+A vertex \(u\) is \emph{active} at time \(t\) if
+\begin{equation}
+    r_t(u)\geq\epsappr\,d_u.
+    \label{eq:appr-active}
+\end{equation}
+Given any active vertex \(u_t\), set \(q_t:=r_t(u_t)\). The operation
+\(\push(u_t)\) makes the updates
+\begin{align}
+    p_{t+1}(u_t)
+        &=p_t(u_t)+\alpha q_t,
+        \label{eq:appr-push-p}\\
+    r_{t+1}(u_t)
+        &=a\,q_t,
+        \label{eq:appr-push-self}\\
+    r_{t+1}(w)
+        &=r_t(w)+\frac{a\,q_t}{d_{u_t}}
+        \qquad\text{for every }w\sim u_t,
+        \label{eq:appr-push-neighbor}
+\end{align}
+while all other coordinates remain unchanged. These are exactly the updates of
+\citet[Definition~3.3]{andersen2007using}. The algorithm terminates at the
+first time \(T\) with no active vertex, that is, when
+\begin{equation}
+    r_T(u)<\epsappr\,d_u
+    \qquad\text{for every }u\in V.
+    \label{eq:appr-termination}
+\end{equation}
+The source imposes no further requirement on the choice of \(u_t\): its
+Algorithm~1 picks \emph{any} active vertex. We call any sequence obeying
+\cref{eq:appr-active,eq:appr-termination} a \emph{legal ordering} and denote it
+by \(\sigma\).
+
+We measure adjacency-list work by
+\begin{equation}
+    W:=\sum_{t=0}^{T-1}d_{u_t}.
+    \label{eq:appr-work}
+\end{equation}
+A push at \(u\) costs \(d_u\), because it scans the adjacency list of \(u\).
+This is the same unit of work as the degree-weighted measure
+\cref{eq:source-degree-work}: both charge \(d_i\) whenever the neighborhood of
+vertex \(i\) is scanned. They differ only in which coordinates are scanned per
+iteration, since APPR touches one active coordinate at a time whereas a
+proximal-gradient step scans the whole current support.
+
+\subsection{What APPR computes}
+\label{subsec:appr-target}
+
+Let \(P:=AD^{-1}\) be the column-stochastic random-walk matrix and define the
+lazy personalized PageRank vector \(\pi\) of the seed \(s\) as the solution of
+\begin{equation}
+    \pi
+    =\alpha s+(1-\alpha)\frac{I+P}{2}\pi.
+    \label{eq:lazy-ppr-system}
+\end{equation}
+More generally, write \(\pr(z):=\alpha\bigl(I-(1-\alpha)(I+P)/2\bigr)^{-1}z\)
+for the lazy PageRank vector of an arbitrary nonnegative \(z\), so that
+\(\pi=\pr(s)\). The operator \(\pr\) is linear, preserves nonnegativity, and
+preserves \(\ell_1\) mass, because \((I+P)/2\) is column-stochastic.
+
+\begin{lemma}[Push invariant, {\citealp[Lemma~3.4]{andersen2007using}}]
+\label{lem:appr-invariant}
+Every APPR execution satisfies \(p_t+\pr(r_t)=\pi\) for all \(t\), and hence
+\begin{equation}
+    \norm{\pi-p_T}_1
+    =\norm{r_T}_1
+    <\epsappr\vol(V).
+    \label{eq:appr-accuracy}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The invariant is the column-vector transpose of
+\citet[Lemma~3.4]{andersen2007using}, whose statement
+\(p=\pr(s-r)\) is equivalent to \(p+\pr(r)=\pr(s)\) by linearity of \(\pr\).
+The identity \(\norm{\pi-p_T}_1=\norm{\pr(r_T)}_1=\norm{r_T}_1\) uses
+nonnegativity and mass preservation, and the final inequality sums
+\cref{eq:appr-termination} over \(V\).
+\end{proof}
+
+The next proposition places \(\pi\) inside the optimization formulation of
+\cref{sec:problem-formulation} and identifies the problem APPR actually
+solves.
+
+\begin{proposition}[APPR targets the unregularized RPPR solution]
+\label{prop:appr-rppr-bridge}
+Let \(\pi\) solve \cref{eq:lazy-ppr-system} and set \(x:=D^{-1/2}\pi\). Then
+\begin{equation}
+    \grad f(x)=Qx-\alpha D^{-1/2}s=0,
+    \label{eq:appr-stationarity}
+\end{equation}
+with \(f\) and \(Q\) as in \cref{equ:f(x),eq:source-pagerank-matrices}.
+Equivalently, \(x=D^{-1/2}\pi\) is the unique minimizer of \(F_\rho\) in
+\cref{equ:F(x)} at \(\rho=0\).
+\end{proposition}
+
+\begin{proof}
+Rearranging \cref{eq:lazy-ppr-system} gives
+\(\frac{1+\alpha}{2}\pi-\frac{1-\alpha}{2}P\pi=\alpha s\).
+Since \(D^{-1/2}AD^{-1/2}D^{-1/2}\pi=D^{-1/2}AD^{-1}\pi=D^{-1/2}P\pi\),
+\cref{eq:source-pagerank-matrices} yields
+\[
+    Qx
+    =\frac{1+\alpha}{2}D^{-1/2}\pi
+     -\frac{1-\alpha}{2}D^{-1/2}P\pi
+    =D^{-1/2}\left(
+        \frac{1+\alpha}{2}\pi-\frac{1-\alpha}{2}P\pi
+    \right)
+    =\alpha D^{-1/2}s.
+\]
+Because \(\alpha I\preceq Q\preceq I\), the matrix \(Q\) is nonsingular and
+\(f\) is strongly convex, so this stationary point is the unique minimizer.
+\end{proof}
+
+\begin{remark}[Scope of \(\epsappr\)]
+\label{rem:appr-epsilon-scope}
+The tolerance \(\epsappr\) is a degree-normalized residual threshold in the
+sense of \cref{eq:appr-active}. It is not identified in this manuscript with
+the objective-gap target \(\varepsilon_{\mathrm{obj}}\) or the proximal
+fixed-point tolerance \(\varepsilon_{\mathrm{pg}}\) of
+\cref{subsec:source-work-and-stopping}. \Cref{eq:appr-accuracy} is the only
+accuracy statement attached to \(\epsappr\) here. Similarly, \(\epsappr\) and
+the sparsity parameter \(\rho\) play analogous locality roles, since
+\(\vol(\supp(x^\star(\rho)))\leq1/\rho\) while
+\(\vol(\supp(p_T))\leq2/((1-\alpha)\epsappr)\) by
+\citet[Theorem~3.2]{andersen2007using} when \(0<\alpha<1\), but we do not
+assert a translation between them.
+\end{remark}
+
+\subsection{Mass identity and the classical upper bound}
+\label{subsec:appr-upper-bound}
+
+\begin{lemma}[Residual-mass identity]
+\label{lem:appr-mass-identity}
+For every APPR execution and every \(T\geq0\),
+\begin{equation}
+    \norm{p_T}_1
+    =\alpha\sum_{t=0}^{T-1}q_t,
+    \qquad
+    \norm{r_T}_1
+    =1-\alpha\sum_{t=0}^{T-1}q_t,
+    \label{eq:appr-mass-identities}
+\end{equation}
+and hence
+\begin{equation}
+    \norm{p_T}_1+\norm{r_T}_1=1.
+    \label{eq:appr-total-mass}
+\end{equation}
+In particular, \(\norm{r_t}_1\leq1\) at every time \(t\).
+\end{lemma}
+
+\begin{proof}
+Consider a push whose residual is \(q_t\). \Cref{eq:appr-push-p}
+increases \(\norm{p_t}_1\) by \(\alpha q_t\). The pushed residual coordinate
+retains \(a\,q_t\), while its neighbors receive total residual
+\(d_{u_t}\cdot a\,q_t/d_{u_t}=a\,q_t\). Consequently,
+\begin{equation}
+    \norm{r_{t+1}}_1
+    =\norm{r_t}_1-q_t+2a\,q_t
+    =\norm{r_t}_1-\alpha q_t,
+    \label{eq:appr-one-step-mass}
+\end{equation}
+where the last equality uses \(2a=1-\alpha\). Summing over all pushes and
+using \cref{eq:appr-initialization} proves
+\cref{eq:appr-mass-identities,eq:appr-total-mass}.
+\end{proof}
+
+\begin{proposition}[Classical APPR upper bound,
+{\citealp[Theorem~3.2]{andersen2007using}}]
+\label{prop:appr-upper-bound}
+Every terminating APPR execution satisfies
+\begin{equation}
+    W\leq\frac{1}{\alpha\epsappr}.
+    \label{eq:appr-upper-bound}
+\end{equation}
+This bound is independent of the ordering in which active vertices are
+selected.
+\end{proposition}
+
+\begin{proof}
+Because \(u_t\) is active, \(q_t\geq\epsappr d_{u_t}\), and therefore
+\begin{equation}
+    W
+    =\sum_{t=0}^{T-1}d_{u_t}
+    \leq\frac{1}{\epsappr}\sum_{t=0}^{T-1}q_t
+    =\frac{\norm{p_T}_1}{\alpha\epsappr}
+    \leq\frac{1}{\alpha\epsappr},
+    \label{eq:appr-upper-bound-proof}
+\end{equation}
+where \cref{lem:appr-mass-identity} gives the equality and the final
+inequality. Notice also that every push has
+\(q_t\geq\epsappr d_{u_t}\geq\epsappr\). Since
+\(\sum_tq_t\leq1/\alpha\), every legal execution contains at most
+\(1/(\alpha\epsappr)\) pushes and therefore terminates. This is
+\citet[Equation~(3.3)]{andersen2007using}, restated in the work model
+\cref{eq:appr-work}.
+\end{proof}
+
+\subsection{A matching star lower bound}
+\label{subsec:appr-star-lower-bound}
+
+Let \(K_{1,m}\) be the star with center \(c\) and leaf set \(L\), where
+\begin{equation}
+    m:=\floor{\frac{1}{8\epsappr}},
+    \qquad
+    v:=c.
+    \label{eq:hard-star-size}
+\end{equation}
+This is the center-seeded star of \cref{subsec:source-auxiliary-notation}, with
+the leaf count tied to \(\epsappr\). For \(0<\epsappr\leq1/16\), the choice in
+\cref{eq:hard-star-size} satisfies
+\begin{equation}
+    \frac{1}{16\epsappr}\leq m\leq\frac{1}{8\epsappr},
+    \qquad
+    \vol(V)=2m.
+    \label{eq:hard-star-size-bounds}
+\end{equation}
+Indeed, \(1/(8\epsappr)\geq2\), and hence
+\(\floor{1/(8\epsappr)}\geq1/(16\epsappr)\).
+
+\begin{theorem}[Ordering-independent star lower bound]
+\label{thm:appr-star-lower-bound}
+Fix \(\alpha\in(0,1]\) and \(\epsappr\in(0,1/16]\). Run lazy APPR on the
+center-seeded star \cref{eq:hard-star-size}. For every legal ordering of
+active vertices, the resulting adjacency-list work obeys
+\begin{equation}
+    W>\frac{3}{128\,\alpha\epsappr}.
+    \label{eq:appr-star-lower-bound}
+\end{equation}
+Together with \cref{prop:appr-upper-bound}, this yields
+\begin{equation}
+    \frac{3}{128\,\alpha\epsappr}
+    <W
+    \leq\frac{1}{\alpha\epsappr}.
+    \label{eq:appr-star-two-sided-bound}
+\end{equation}
+More formally, define the worst-case work over all finite graphs without
+isolated vertices, all seeds, and all legal orderings by
+\begin{equation}
+    W_{\mathrm{appr}}^{\mathrm{worst}}(\alpha,\epsappr)
+    :=\sup_{G,v,\sigma}W(G,v;\alpha,\epsappr,\sigma).
+    \label{eq:appr-worst-work-definition}
+\end{equation}
+Then classical APPR has worst-case work
+\begin{equation}
+    W_{\mathrm{appr}}^{\mathrm{worst}}(\alpha,\epsappr)
+    =\Theta\!\left(\frac{1}{\alpha\epsappr}\right).
+    \label{eq:appr-tight-complexity}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let
+\begin{equation}
+    Z_c:=\sum_{t:u_t=c}q_t,
+    \qquad
+    Z_L:=\sum_{t:u_t\in L}q_t,
+    \qquad
+    Z:=Z_c+Z_L
+    \label{eq:appr-cumulative-masses}
+\end{equation}
+be the cumulative pushed residual at the center, at the leaves, and in total.
+The seed is active initially, since \(r_0(c)=1\) and
+\(\epsappr d_c=\epsappr m\leq1/8\), so the execution is nonempty. We establish
+the result in three steps.
+
+\paragraph{Step 1: APPR must process \(\Omega(1/\alpha)\) residual mass.}
+At termination, \cref{eq:appr-termination,eq:hard-star-size-bounds} give
+\begin{equation}
+    \norm{r_T}_1
+    <\epsappr\sum_{u\in V}d_u
+    =\epsappr\vol(V)
+    =2\epsappr m
+    \leq\frac14.
+    \label{eq:appr-star-terminal-residual}
+\end{equation}
+\Cref{lem:appr-mass-identity} therefore implies
+\begin{equation}
+    \norm{p_T}_1
+    =1-\norm{r_T}_1
+    >\frac34.
+    \label{eq:appr-star-settled-mass}
+\end{equation}
+Because \(\norm{p_T}_1=\alpha Z\), we obtain
+\begin{equation}
+    Z>\frac{3}{4\alpha}.
+    \label{eq:appr-star-total-pushed-mass}
+\end{equation}
+This is the source of the factor \(1/\alpha\).
+
+\paragraph{Step 2: A constant fraction of the pushed mass passes through the
+center.}
+Define the aggregate residual on the leaves by
+\begin{equation}
+    \res_L(t):=\sum_{\ell\in L}r_t(\ell).
+    \label{eq:appr-leaf-residual}
+\end{equation}
+A center push of size \(q\) sends total residual \(a\,q\) to the leaves and
+hence changes \(\res_L\) by \(+a\,q\). A leaf push of size \(q\) changes the
+residual at that leaf from \(q\) to \(a\,q\) and sends \(a\,q\) to the center,
+so it changes \(\res_L\) by \(-(1-a)q\). Since \(\res_L(0)=0\), summing these
+exact changes over the entire execution yields
+\begin{equation}
+    \res_L(T)=a\,Z_c-(1-a)Z_L.
+    \label{eq:appr-leaf-flow-identity}
+\end{equation}
+The nonnegativity of the terminal residual gives
+\begin{equation}
+    Z_L\leq\frac{a}{1-a}Z_c.
+    \label{eq:appr-leaf-center-comparison}
+\end{equation}
+Consequently,
+\begin{equation}
+    Z=Z_c+Z_L
+    \leq\frac{Z_c}{1-a},
+    \qquad\text{so}\qquad
+    Z_c\geq(1-a)Z.
+    \label{eq:appr-center-fraction}
+\end{equation}
+Since \(1-a=(1+\alpha)/2\geq1/2\),
+\cref{eq:appr-star-total-pushed-mass,eq:appr-center-fraction} imply
+\begin{equation}
+    Z_c>\frac{3}{8\alpha}.
+    \label{eq:appr-center-pushed-mass}
+\end{equation}
+
+\paragraph{Step 3: Convert center mass into adjacency-list work.}
+Let \(k_c\) denote the number of center pushes. By
+\cref{lem:appr-mass-identity}, every center-push residual satisfies
+\begin{equation}
+    q_t=r_t(c)\leq\norm{r_t}_1\leq1.
+    \label{eq:appr-center-push-at-most-one}
+\end{equation}
+It follows that
+\begin{equation}
+    k_c\geq Z_c>\frac{3}{8\alpha}.
+    \label{eq:appr-number-center-pushes}
+\end{equation}
+Each center push scans all \(m\) incident edges. Therefore,
+\begin{equation}
+    W
+    \geq m\,k_c
+    >\frac{1}{16\epsappr}\cdot\frac{3}{8\alpha}
+    =\frac{3}{128\,\alpha\epsappr},
+    \label{eq:appr-final-star-calculation}
+\end{equation}
+which proves \cref{eq:appr-star-lower-bound}. The matching upper bound in
+\cref{prop:appr-upper-bound} holds for every instance and every ordering, so
+\cref{eq:appr-tight-complexity} follows. None of the three steps uses the order
+in which active vertices are selected, proving the claimed ordering
+independence.
+\end{proof}
+
+\begin{corollary}[Properties of the hard instance]
+\label{cor:appr-hard-instance-properties}
+The lower bound in \cref{thm:appr-star-lower-bound} is witnessed by an
+unweighted, undirected, single-seed instance and measures actual
+adjacency-update work rather than merely the number of push operations. It
+holds under FIFO, LIFO, priority-based, and arbitrary legal active-vertex
+orderings.
+\end{corollary}
+
+\begin{proof}
+The graph in \cref{eq:hard-star-size} has all the stated structural
+properties. The proof of \cref{thm:appr-star-lower-bound} lower-bounds
+\(\sum_td_{u_t}\) directly and is independent of the active-vertex ordering.
+\end{proof}
+
+\begin{remark}[Constants]
+\label{rem:appr-constants}
+No attempt is made to optimize the constant \(3/128\). The leaf count
+\(m=\floor{1/(8\epsappr)}\) was chosen so that the terminal residual budget
+\(\epsappr\vol(V)\) is at most \(1/4\); other choices trade the constants in
+\cref{eq:appr-star-terminal-residual,eq:appr-final-star-calculation} against
+each other. Only the \(\Theta(1/(\alpha\epsappr))\) scaling in
+\cref{eq:appr-tight-complexity} is claimed to be tight.
+\end{remark}
+
+\subsection{Why the star is the clean witness}
+\label{subsec:appr-star-discussion}
+
+The construction isolates the two mechanisms in the APPR upper bound.
+\begin{enumerate}[leftmargin=*]
+    \item The stopping condition on a graph of volume
+    \(\Theta(1/\epsappr)\) forces APPR to settle a constant amount of
+    probability mass. Since a push settles only an \(\alpha\)-fraction of its
+    pushed residual, the cumulative pushed residual is \(\Omega(1/\alpha)\).
+    \item The leaf-flow identity \cref{eq:appr-leaf-flow-identity} forces a
+    constant fraction of that cumulative residual through the center. The
+    center has degree \(\Theta(1/\epsappr)\), so repeatedly processing it
+    incurs \(\Omega(1/(\alpha\epsappr))\) adjacency-list work.
+\end{enumerate}
+Thus the star simultaneously realizes the \(1/\alpha\) mass-processing factor
+and the \(1/\epsappr\) high-degree work factor.
+
+\subsection{Paths and spiders}
+\label{subsec:appr-paths-and-spiders}
+
+\Cref{thm:appr-star-lower-bound} does not require a path or a genuinely long
+spider. A depth-one spider is exactly a star and hence already supplies the
+matching lower bound. Long spiders may be useful for lower bounds that must
+also expose propagation distance, repeated wavefront motion, or local spectral
+effects, as occurs in analyses of successive over-relaxation and accelerated
+local methods; those properties require a separate argument and are not needed
+for classical APPR.
+
+The contrast with a path can be seen from the exact lazy PageRank kernel on
+the infinite path.
+
+\begin{lemma}[Lazy PageRank kernel on the infinite path]
+\label{lem:lazy-path-kernel}
+Let the graph be the infinite path \(\sZ\), let the seed be the origin, and let
+\(\alpha\in(0,1)\). The solution of \cref{eq:lazy-ppr-system} is
+\begin{equation}
+    \pi(j)
+    =\sqrt{\alpha}
+     \left(\frac{1-\sqrt{\alpha}}{1+\sqrt{\alpha}}\right)^{\abs{j}},
+    \qquad j\in\sZ.
+    \label{eq:lazy-path-kernel}
+\end{equation}
+For \(\alpha\downarrow0\), its decay length is \(\Theta(1/\sqrt{\alpha})\).
+\end{lemma}
+
+\begin{proof}
+Write \(\theta:=\sqrt{\alpha}\). Away from the seed, every neighbor has degree
+two, so \cref{eq:lazy-ppr-system} reads
+\begin{equation}
+    \pi(j)
+    =(1-\alpha)
+     \left(
+        \frac12\pi(j)
+        +\frac14\pi(j-1)
+        +\frac14\pi(j+1)
+     \right),
+    \qquad j\neq0.
+    \label{eq:lazy-path-recurrence}
+\end{equation}
+The characteristic equation has a unique root in \([0,1)\), namely
+\begin{equation}
+    \varrho
+    =\frac{1-\theta}{1+\theta}.
+    \label{eq:lazy-path-rho}
+\end{equation}
+Symmetry and summability therefore give \(\pi(j)=C\varrho^{\abs{j}}\).
+Normalizing the total mass to one gives
+\begin{equation}
+    1
+    =C\left(1+2\sum_{j=1}^{\infty}\varrho^{\,j}\right)
+    =C\frac{1+\varrho}{1-\varrho},
+    \qquad
+    C=\frac{1-\varrho}{1+\varrho}=\theta.
+    \label{eq:lazy-path-normalization}
+\end{equation}
+The seed equation is also satisfied, since
+\begin{equation}
+    \alpha+(1-\alpha)C\frac{1+\varrho}{2}
+    =\theta^2+(1-\theta^2)\frac{\theta}{1+\theta}
+    =\theta
+    =C.
+    \label{eq:lazy-path-source-check}
+\end{equation}
+This proves \cref{eq:lazy-path-kernel}. Finally,
+\begin{equation}
+    -\log\varrho
+    =2\operatorname{arctanh}(\sqrt{\alpha})
+    =2\sqrt{\alpha}+\bigO(\alpha^{3/2}),
+    \label{eq:lazy-path-decay-rate}
+\end{equation}
+so the reciprocal decay rate is \(\Theta(1/\sqrt{\alpha})\).
+\end{proof}
+
+\begin{remark}[What the path calculation does and does not show]
+\label{rem:appr-path-caveat}
+A path has bounded degree, and its intrinsic lazy PageRank propagation scale is
+\(1/\sqrt{\alpha}\) by \cref{lem:lazy-path-kernel}. It therefore does not
+expose the two factors in the APPR bound as directly as the star, whose
+expensive center has degree \(\Theta(1/\epsappr)\). This observation is not an
+impossibility theorem for every path parameter regime: a finite chain can still
+be tight under additional relations among its length, \(\alpha\), and
+\(\epsappr\). For example, regimes with length \(L=\Theta(1/\epsappr)\) and
+\(\alpha L^2=\bigO(1)\) merit a separate schedule-sensitive analysis. The point
+here is only that no such additional argument or parameter coupling is needed
+for the center-seeded star.
+\end{remark}
+
+\paragraph{Summary.}
+The center-seeded star proves, by itself and without assumptions on the active
+ordering, that the classical bound \(\bigO(1/(\alpha\epsappr))\) for lazy APPR
+is worst-case tight. The obstruction is exact: APPR must process
+\(\Theta(1/\alpha)\) cumulative residual mass, and the star forces a constant
+fraction of this mass to be processed repeatedly at a vertex of degree
+\(\Theta(1/\epsappr)\). Any local solver that improves on
+\cref{eq:appr-tight-complexity} must therefore break at least one of these two
+mechanisms, which is the design target of the hybrid method developed in
+\cref{sec:algorithm}.

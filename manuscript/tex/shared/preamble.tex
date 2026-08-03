@@ -34,11 +34,37 @@
 \usepackage[capitalize,nameinlink,noabbrev]{cleveref}
 
 % The JMLR style already defines theorem, lemma, proposition, corollary,
-% definition, remark, and related environments.
+% definition, remark, and related environments. It declares them before
+% cleveref is loaded, however, so cleveref only sees their shared `theorem`
+% counter and would name every one of them ``Theorem''. Redeclare the
+% dependent environments here, after cleveref, preserving jmlr2e's plain style
+% and shared counter, so that \cref reports the correct environment name. The
+% `theorem` and `example` environments own their counters and are named
+% through \crefname instead.
+\makeatletter
+\let\lemma\@undefined       \let\endlemma\@undefined
+\let\proposition\@undefined \let\endproposition\@undefined
+\let\remark\@undefined      \let\endremark\@undefined
+\let\corollary\@undefined   \let\endcorollary\@undefined
+\let\definition\@undefined  \let\enddefinition\@undefined
+\let\conjecture\@undefined  \let\endconjecture\@undefined
+\let\axiom\@undefined       \let\endaxiom\@undefined
+\makeatother
+\theoremstyle{plain}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{axiom}[theorem]{Axiom}
+
 \theoremstyle{definition}
 \newtheorem{assumption}[theorem]{Assumption}
 \newtheorem{problem}[theorem]{Problem}
 \theoremstyle{plain}
 
+\crefname{theorem}{Theorem}{Theorems}
+\crefname{example}{Example}{Examples}
 \crefname{assumption}{Assumption}{Assumptions}
 \crefname{problem}{Problem}{Problems}

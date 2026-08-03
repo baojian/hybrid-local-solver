@@ -255,6 +255,30 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   `andersen2006local` is the conference version. This journal article is
   retained as the expanded treatment with full PageRank approximation,
   mixing, and local-partitioning analysis.
+- Later terminology: Zhou et al. (2024), PDF page 1, Abstract, and page 3,
+  Section 2.1 and Lemma 2.1, write the APPR dependence as
+  `Theta(1/(alpha * eps))`. The displayed lemma is nevertheless a one-sided
+  upper inequality, and the accompanying argument derives only
+  `sum_u d_u <= 1/(alpha * eps)` from residual-mass decrease. It gives no hard
+  instance or lower-bound proof. The new star theorem below supplies that
+  missing direction rather than treating the later `Theta` notation itself as
+  evidence of tightness.
+- Use in this repository: `manuscript/sections/appr_lower_bound.tex` restates
+  the push operation (Definition 3.3), the push invariant (Lemma 3.4), and the
+  work bound of Theorem 3.2 / Equation (3.3) in the repository's column-vector
+  and degree-weighted work conventions, and adds a matching lower bound. The
+  source proves only the upper bound `O(1/(alpha * eps))`; the paper does not
+  state whether it is worst-case tight. The manuscript closes this by a
+  center-seeded star `K_{1,m}` with `m = floor(1/(8 * eps_appr))`, giving
+  `3/(128 * alpha * eps_appr) < W <= 1/(alpha * eps_appr)` for every legal
+  active-vertex ordering, hence
+  `W_appr^worst(alpha, eps_appr) = Theta(1/(alpha * eps_appr))`. The two
+  mechanisms are: termination on a graph of volume `Theta(1/eps_appr)` forces
+  `Omega(1/alpha)` cumulative pushed residual, and a leaf-flow identity routes
+  a constant fraction of it through a vertex of degree `Theta(1/eps_appr)`.
+  The manuscript also records that `x = D^{-1/2} pi` is the unique minimizer of
+  the RPPR objective at `rho = 0`, which is what makes APPR and the
+  `l1`-regularized formulation comparable at all.
 - Formulation differences: The algorithm returns a low-conductance set after
   a sweep and tunes PageRank accuracy from a target volume scale. The hybrid
   solver primarily targets a numerical solution under a prescribed residual

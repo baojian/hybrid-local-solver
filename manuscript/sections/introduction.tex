@@ -1,1 +1,18 @@
-This section will introduce local graph optimization problems, existing local PageRank methods, accelerated optimization approaches, and the motivation for hybrid acceleration.
+Local graph algorithms aim to answer seed-centered questions without scanning
+an entire graph. Approximate personalized PageRank (APPR) is the canonical
+example: its residual-push implementation has degree-weighted work
+\(\bigO(1/(\alpha\epsappr))\), independent of the total graph size
+\citep{andersen2007using}. This guarantee is also the natural baseline for
+local optimization methods that seek a better dependence on the PageRank
+parameter \(\alpha\).
+
+We first make that baseline precise. In
+\cref{thm:appr-star-lower-bound}, we give a center-seeded star on which every
+legal ordering of APPR pushes incurs
+\(\Omega(1/(\alpha\epsappr))\) adjacency-list work. Together with the classical
+upper bound, this proves a tight worst-case complexity of
+\(\Theta(1/(\alpha\epsappr))\). The proof separates the obstruction into two
+parts: APPR must process \(\Omega(1/\alpha)\) cumulative residual mass, and the
+star forces a constant fraction of that mass through a vertex of degree
+\(\Theta(1/\epsappr)\). These mechanisms clarify what an accelerated or hybrid
+local solver must change to improve the worst-case bound.

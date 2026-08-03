@@ -45,6 +45,29 @@ Notation copied there is a source-grounded reference convention; it does not
 become an implementation or stopping-rule convention until the remaining
 decisions and tests below are completed.
 
+### APPR baseline notation
+
+[`manuscript/sections/appr_lower_bound.tex`](../manuscript/sections/appr_lower_bound.tex)
+continues the same scoped plain-italic, column-vector convention so that the
+APPR push vectors \(p_t,r_t\) share the graph symbols \(G,V,E,A,D,d_u\) of the
+RPPR formulation. Andersen, Chung, and Lang (2007) state their algorithm with
+row vectors acting on the right of the lazy walk matrix; the manuscript
+transposes it and records this explicitly. Two further scoped choices:
+
+- \(a:=(1-\alpha)/2\) is the lazy half-step factor. The symbol \(\beta\) is
+  already the FISTA momentum coefficient and must not be reused for it.
+- \(Z_c,Z_L,Z\) denote cumulative pushed residual mass, because \(Q\) is the
+  shifted PageRank matrix and \(R\) is an iterate-distance bound.
+
+The executable reference is `src/baselines/appr.py`. It implements exactly
+the active test above, charges \(d_u\) per push, and exposes FIFO, LIFO,
+maximum-residual-ratio, and seeded-random legal orderings. The focused checks
+in `tests/test_appr_lower_bound.py` use the center-seeded star from the
+manuscript and cross-check FIFO output against the Numba APPR kernel in
+`src/baselines/sdd_solver.py`. That kernel now re-enqueues the pushed vertex
+when its retained residual is still active, as required by ACL Algorithm 1,
+and includes the final partial queue round in reported work.
+
 ## PageRank formulation
 
 The project studies local PageRank as its initial graph problem. The following
@@ -91,6 +114,19 @@ residual convention.
   measure and normalization are specified.
 - The SOR relaxation parameter is `omega`, with `1 < omega < 2`.
 
+Three tolerances now appear in the manuscript and must stay distinct. None of
+them is yet the repository's canonical stopping rule, and no translation
+between them is asserted:
+
+| Symbol | Macro | Meaning |
+| --- | --- | --- |
+| `eps_appr` | `\epsappr` | Degree-normalized APPR residual threshold: vertex `u` is active while `r(u) >= eps_appr * d_u`. |
+| `eps_obj` | written out | Objective-gap target `F_rho(x_N) - F_rho(x*) <= eps_obj`. |
+| `eps_pg` | written out | Proximal fixed-point residual tolerance of the source experiments. |
+
+The only accuracy statement attached to `eps_appr` is the push invariant
+consequence `||pi - p_T||_1 = ||r_T||_1 < eps_appr * vol(V)`.
+
 Do not translate between alternative `alpha` conventions implicitly. Any
 translation used for a baseline must be stated and tested.
 
@@ -123,6 +159,13 @@ Report at least:
 
 Any alternative unit of work must be defined and reported in addition to,
 rather than silently replacing, these quantities.
+
+The manuscript's two work measures share one unit: `d_i` is charged whenever
+the neighborhood of vertex `i` is scanned. APPR work is
+`W = sum_t d_{u_t}` over pushes; the proximal-gradient measure is
+`Work(N) = sum_k [vol(supp(y_k)) + vol(supp(x_{k+1}))]`. They differ in which
+coordinates a single iteration scans, not in the unit, so edge-operation
+counts are comparable across the two without conversion.
 
 ## Invariants
 
