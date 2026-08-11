@@ -21,6 +21,54 @@ the project documentation is authoritative for this repository's conventions.
 Whenever papers are added or their publication metadata changes, update
 `docs/literature/index.md` and the relevant topic note in the same change.
 
+## Research-note development strategy
+
+Use a common mathematical language across the project. Every research note
+must follow the notation and problem formulation in
+`docs/mathematical-conventions.md` and accepted decision records. When a
+project convention is still unresolved, or a source theorem requires a
+different formulation, label that choice as note-scoped and give an explicit
+mapping to the project's current formulation; never let separate notes drift
+into silently incompatible conventions.
+
+Develop materially distinct, promising directions as independent research
+notes under `manuscript/notes/`. Create as many valuable notes as the evidence
+warrants, including proof attempts, structural conditions, counterexamples,
+algorithm variants, and alternative amortizations. Each note must clearly
+separate source results, new proved statements, conditional statements,
+empirical observations, open conjectures, and refuted claims, and must name
+its central missing lemmas and possible weaker targets.
+
+Evolve and refine these notes as proofs, counterexamples, and better
+conditions become available. Preserve useful corrections and failed proof
+paths, and cross-reference related notes instead of prematurely forcing them
+into one narrative. Promote material into the active manuscript only after it
+is reconciled with project conventions and either all dependencies of the
+stated claim are proved or the claim is narrowed to a correct conditional or
+weaker theorem.
+
+### Current AESP--LOCSOR promotion gate
+
+Keep `manuscript/notes/hybrid_aesp_locsor/` as a standalone rigorous research
+note. Do not promote its graph-uniform end-to-end complexity claim into the
+active manuscript until either:
+
+1. the central early-AESP locality lemma
+   \[
+   \Lambda_J
+   := \max_{1\leq t\leq J}
+      \frac{\overline{\operatorname{vol}}(S_t)}{\gamma_t}
+   = O(1/\epsilon)
+   \]
+   is proved with a graph-independent hidden constant; or
+2. a correct weaker structural condition or alternative burn-in work argument
+   sufficient for the stated manuscript theorem is proved.
+
+Until then, agents may develop the proved trajectory-dependent theorem and
+explicitly conditional confinement corollaries, but must label the universal
+`O~(1/(sqrt(alpha) * epsilon))` work bound as open. Keep the detailed status
+in `docs/research_notes.md` synchronized with this gate.
+
 ## Repository map and change routing
 
 The `Repository structure` section in `README.md` is the canonical high-level
