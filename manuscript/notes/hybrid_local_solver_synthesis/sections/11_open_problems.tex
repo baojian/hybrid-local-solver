@@ -2,8 +2,10 @@
 \label{sec:open-problems}
 
 The hybrid is convergent, and its tail can be placed on the desired accelerated
-work scale.  The unresolved issue is the locality of the AESP burn-in.  The
-following research order minimizes logical dependence and empirical risk.
+work scale.  The unresolved issue is the locality of the accelerated burn-in
+and, for RPPR, the local cost of a momentum-free cleanup from an arbitrary
+accelerated warm start.  The following research order minimizes logical
+dependence and empirical risk.
 
 \subsection{Priority 1: establish or refute early AESP locality}
 
@@ -101,7 +103,24 @@ optimal SOR.  That result should not be silently transferred to AESP, but it
 warns that fixed-relaxation spectral intuition alone cannot prove a universal
 local accelerated bound.
 
-\subsection{Priority 6: benchmark implementation}
+\subsection{Priority 6: arbitrary-warm-start locality for RPPR}
+
+\Cref{thm:rppr-hybrid-convergence} proves that composite Catalyst followed by
+full ISTA converges, but the COLT-style degree-work target remains open.  A
+useful theorem should establish one of the following:
+\begin{enumerate}[leftmargin=2em]
+\item a certified support set \(\Omega\supseteq\supp(x_\rho^\star)\) of volume
+      \(\mathcal O(1/\rho)\), followed by a zero restart on \(\Omega\);
+\item a weighted proximal/KKT potential that decreases under local coordinate
+      updates from an arbitrary signed or overshooting warm start; or
+\item an over-regularized boundary-charging theorem whose cumulative overhead
+      is compatible with \(\softO(1/(\rho\sqrt\alpha))\).
+\end{enumerate}
+The correct stopping object is the fixed-point residual \(R_\rho\), with the
+solution certificate divided by \(\alpha\).  Any proof that instead reuses
+zero-start support monotonicity without qualification is incomplete.
+
+\subsection{Priority 7: benchmark implementation}
 
 The TB-Science task can be built in parallel with the theoretical work once a
 private hybrid reference reliably beats frozen AESP.  The implementation order
@@ -116,17 +135,23 @@ should be:
       format.
 \end{enumerate}
 
-\subsection{A precise claim that should not yet appear in the paper}
+\subsection{Precise claims that should not yet appear in the paper}
 
-The following unconditional statement is not supported by the current proof:
-\begin{equation}
-    \text{``AESP--LocSOR has }
+The following unconditional statements are not supported by the current
+proof:
+\begin{align}
+    &\text{``AESP--LocSOR has }
     \softO(1/(\sqrt\alpha\eps))
-    \text{ work on every graph.''}
-    \label{eq:not-yet-claim}
-\end{equation}
-The manuscript-ready statement is instead
-\cref{thm:trajectory-total}, followed by the conditional
-\cref{thm:conditional-total} and an explicit description of the missing
-locality lemma.  This distinction is central to the scientific credibility of
-the project.
+    \text{ work on every graph,''}
+    \label{eq:not-yet-claim}\\
+    &\text{``Composite Catalyst--ISTA has }
+    \softO(1/(\rho\sqrt\alpha))
+    \text{ local work from every handoff.''}
+    \label{eq:not-yet-rppr-claim}
+\end{align}
+The manuscript-ready unregularized statements are
+\cref{thm:trajectory-total,thm:conditional-total,cor:black-box-rate}.  The
+manuscript-ready RPPR statement is \cref{thm:rppr-hybrid-convergence}, followed
+by an explicit description of the missing arbitrary-warm-start locality
+lemma.  These distinctions are central to the scientific credibility of the
+project.
