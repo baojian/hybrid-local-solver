@@ -1,0 +1,227 @@
+\section{A composite Catalyst--ISTA hybrid for
+\texorpdfstring{$\ell_1$}{l1}-regularized PageRank}
+\label{sec:composite-rppr-hybrid}
+
+The confinement section used RPPR mainly as a source of structural ideas.  We
+now treat the composite objective \cref{eq:rppr-objective} itself.  Catalyst
+is compatible with the weighted $\ell_1$ term because the nonsmooth function
+remains unchanged inside each shifted proximal subproblem.  The resulting
+hybrid is therefore well defined.  Its convergence after an arbitrary finite
+handoff can be proved exactly; the graph-independent local-work theorem is a
+separate question.
+
+\subsection{Algorithm and optimality residual}
+
+Write
+\begin{equation}
+  r_\rho(x):=\alpha\rho\norm{D^{1/2}x}_1,
+  \qquad
+  F_\rho(x):=f(x)+r_\rho(x),
+  \label{eq:composite-rppr}
+\end{equation}
+and define the unit-step proximal map and fixed-point residual
+\begin{equation}
+  \mathcal T_\rho(x)
+  :=\prox_{r_\rho}\bigl(x-\grad f(x)\bigr),
+  \qquad
+  R_\rho(x):=x-\mathcal T_\rho(x).
+  \label{eq:rppr-prox-residual}
+\end{equation}
+The proximal map is coordinatewise weighted soft thresholding with threshold
+$\alpha\rho\sqrt{d_i}$.
+
+At outer stage $t$, composite Catalyst approximately minimizes
+\begin{equation}
+  H_t(z)
+  :=F_\rho(z)+\frac\eta2\norm{z-y^{(t-1)}}_2^2,
+  \qquad \eta=1-2\alpha.
+  \label{eq:composite-catalyst-subproblem}
+\end{equation}
+The shifted smooth Hessian $Q+\eta I$ has condition number two.  Proximal
+LOCGD or proximal coordinate updates are therefore natural inner candidates,
+but their degree-weighted local work from a signed Catalyst center is not an
+automatic consequence of constant conditioning.
+
+\begin{algorithm}[t]
+\caption{Proof-oriented composite Catalyst--ISTA hybrid}
+\label{alg:composite-rppr-hybrid}
+\begin{algorithmic}[1]
+\REQUIRE $G,s$, $0<\alpha<1/2$, $\rho>0$, solution tolerance
+         $\eps_{\rm sol}>0$, and any finite valid composite Catalyst burn-in.
+\STATE Run the finite burn-in for \cref{eq:composite-catalyst-subproblem},
+       obtaining $x^{(0)}$.
+\STATE Optionally replace $x^{(0)}$ by its coordinatewise positive part.
+\STATE Discard all Catalyst momentum.
+\FOR{$k=0,1,2,\ldots$}
+  \IF{$\norm{D^{-1/2}R_\rho(x^{(k)})}_\infty
+         \leq\alpha\eps_{\rm sol}$}
+    \RETURN $x^{(k)}$.
+  \ENDIF
+  \STATE $x^{(k+1)}\leftarrow\mathcal T_\rho(x^{(k)})$.
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Weighted contraction and the correct stopping certificate}
+
+\begin{lemma}[Weighted contraction of the RPPR proximal map]
+\label{lem:rppr-prox-contraction}
+For every $x,y\in\R^n$,
+\begin{align}
+  \norm{D^{-1/2}(\mathcal T_\rho(x)-\mathcal T_\rho(y))}_\infty
+  &\leq
+  (1-\alpha)\norm{D^{-1/2}(x-y)}_\infty,
+  \label{eq:rppr-prox-infty}\\
+  \norm{D^{1/2}(\mathcal T_\rho(x)-\mathcal T_\rho(y))}_1
+  &\leq
+  (1-\alpha)\norm{D^{1/2}(x-y)}_1.
+  \label{eq:rppr-prox-one}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Weighted soft thresholding is coordinatewise nonexpansive.  Since
+\[
+  \mathcal T_\rho(x)
+  =\prox_{r_\rho}\bigl((I-Q)x+b\bigr),
+\]
+we have componentwise
+\[
+  \abs{\mathcal T_\rho(x)-\mathcal T_\rho(y)}
+  \leq (I-Q)\abs{x-y},
+\]
+because $I-Q=(1-\alpha)(I+W)/2$ is entrywise nonnegative.  Moreover,
+\begin{align*}
+  D^{-1/2}(I-Q)D^{1/2}
+  &=\frac{1-\alpha}{2}(I+D^{-1}A),\\
+  D^{1/2}(I-Q)D^{-1/2}
+  &=\frac{1-\alpha}{2}(I+AD^{-1}).
+\end{align*}
+The first matrix has row sums $1-\alpha$, and the second has column sums
+$1-\alpha$.  These are the corresponding induced weighted
+$\ell_\infty$ and $\ell_1$ norms.
+\end{proof}
+
+\begin{corollary}[Proximal residual certifies solution error]
+\label{cor:rppr-prox-certificate}
+Let $x_\rho^\star$ be the unique minimizer of $F_\rho$.  Then
+\begin{align}
+  \norm{D^{-1/2}(x-x_\rho^\star)}_\infty
+  &\leq
+  \frac1\alpha\norm{D^{-1/2}R_\rho(x)}_\infty,
+  \label{eq:rppr-residual-infty}\\
+  \norm{D^{1/2}(x-x_\rho^\star)}_1
+  &\leq
+  \frac1\alpha\norm{D^{1/2}R_\rho(x)}_1.
+  \label{eq:rppr-residual-one}
+\end{align}
+Thus the stopping rule in Algorithm~\ref{alg:composite-rppr-hybrid} is a
+solution-error certificate.  Using $R_\rho(x)\leq\eps_{\rm sol}$ without the
+$1/\alpha$ conversion can stop by a factor of order $1/\alpha$ too early.
+\end{corollary}
+
+\begin{proof}
+The minimizer is the unique fixed point
+$x_\rho^\star=\mathcal T_\rho(x_\rho^\star)$.  In either weighted norm,
+\[
+\begin{split}
+  \norm{x-x_\rho^\star}
+  &\leq\norm{x-\mathcal T_\rho(x)}
+       +\norm{\mathcal T_\rho(x)-\mathcal T_\rho(x_\rho^\star)}\\
+  &\leq\norm{R_\rho(x)}+(1-\alpha)\norm{x-x_\rho^\star}.
+\end{split}
+\]
+Rearrange.
+\end{proof}
+
+\begin{lemma}[Safe positive-part projection]
+\label{lem:rppr-positive-part}
+Let $x_+:=\max\{x,0\}$ coordinatewise.  Then
+\begin{equation}
+  F_\rho(x_+)\leq F_\rho(x).
+  \label{eq:rppr-positive-part}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $x=x_+-x_-$ with disjoint nonnegative parts.  The PageRank matrix $Q$
+has nonpositive off-diagonal entries, so $x_+^\top Qx_-\leq0$.  Hence
+\[
+  x^\top Qx
+  =x_+^\top Qx_++x_-^\top Qx_- -2x_+^\top Qx_-
+  \geq x_+^\top Qx_+.
+\]
+Since $b\geq0$, replacing $x$ by $x_+$ cannot increase $-b^\top x$, and the
+weighted $\ell_1$ term splits over $x_+$ and $x_-$.
+\end{proof}
+
+\begin{theorem}[Unconditional convergence after every finite handoff]
+\label{thm:rppr-hybrid-convergence}
+Let any finite Phase-I method, including inexact composite Catalyst, return a
+point.  Let $x^{(0)}$ be that point or its positive part, and run the
+momentum-free proximal cleanup.  Then
+\begin{equation}
+  \norm{D^{-1/2}(x^{(k)}-x_\rho^\star)}_\infty
+  \leq
+  (1-\alpha)^k
+  \norm{D^{-1/2}(x^{(0)}-x_\rho^\star)}_\infty.
+  \label{eq:rppr-hybrid-convergence}
+\end{equation}
+In particular, the composite hybrid converges from every finite Catalyst
+handoff.
+\end{theorem}
+
+\begin{proof}
+Apply \cref{eq:rppr-prox-infty} recursively.  The optional positive-part
+projection is objective safe by \cref{lem:rppr-positive-part}; it is not
+needed for the contraction itself.
+\end{proof}
+
+\subsection{What the earlier project draft already contained}
+
+The earlier draft supplied for this project already contained the main
+building blocks: the RPPR objective, weighted soft thresholding, local ISTA
+and coordinate updates, KKT conditions, the support-volume estimate
+$\vol(\supp(x_\rho^\star))\leq1/\rho$, and a Catalyst construction.  The
+hybrid insight supplies the missing architecture: Catalyst need not remain
+local through the final high-accuracy regime; it can be used as a burn-in and
+then discarded before a locality-preserving proximal cleanup.
+
+Before reusing the old arguments, five points must be repaired or stated
+explicitly:
+\begin{enumerate}[leftmargin=2em]
+  \item fix one PageRank normalization and its corresponding step size;
+  \item use the proximal fixed-point residual, not only the smooth gradient;
+  \item include the $1/\alpha$ conversion in the solution certificate;
+  \item do not claim active-set identification without the required
+        nondegeneracy/strict-complementarity hypothesis; and
+  \item do not transfer zero-start support monotonicity to a signed or
+        overshooting Catalyst warm start.
+\end{enumerate}
+
+\subsection{The remaining COLT-style locality gap}
+
+\Cref{thm:rppr-hybrid-convergence} settles correctness, not the target
+\begin{equation}
+  \softO\!\left(\frac1{\rho\sqrt\alpha}\right)
+  \label{eq:rppr-target-work}
+\end{equation}
+degree-weighted work.  A full proximal-gradient step may scan the warm-start
+support and its boundary.  The known zero-initialized local ISTA proof uses
+nonnegativity and support monotonicity, whereas a Catalyst point can overshoot
+and need not lie below $x_\rho^\star$.  Iteration contraction therefore does
+not imply local work.
+
+The most promising proof routes are:
+\begin{enumerate}[leftmargin=2em]
+  \item certify a support envelope, restart from zero on that restricted
+        region, and reuse monotone local ISTA;
+  \item find a weighted proximal/KKT potential that decreases under local
+        coordinate updates from an arbitrary warm start; or
+  \item run a slightly over-regularized accelerated phase and charge clearly
+        inactive boundary activations through KKT slack and a summable path
+        length.
+\end{enumerate}
+Accordingly, the strongest current RPPR statement is that the hybrid is
+well-defined and unconditionally convergent; the graph-independent
+accelerated local-work theorem remains open.
