@@ -173,7 +173,7 @@ counts are comparable across the two without conversion.
 ## Invariants
 
 - Experiments record graph, `alpha`, `epsilon`, random seed, stopping rule,
-  solver parameters, and code version.
+  solver parameters, code version, and dirty-worktree status.
 - Mathematical definitions change only with corresponding documentation and
   tests.
 - Generated figures are never manually edited.

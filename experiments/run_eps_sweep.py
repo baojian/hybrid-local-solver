@@ -11,18 +11,20 @@ seeded-random source nodes, it reports per (eps, solver):
   l1-err   the solver's OWN `errs[-1]` = ||xt/sqrt(d) - opt_x||_1, MEDIAN
   wins     how many sources that solver had the FEWEST opers on, at that eps
 
-l1-err note: all six solvers here scale to x-coordinates before comparing, so
+l1-err note: all seven solver configurations here scale to x-coordinates before comparing, so
 their `errs` are mutually consistent.
 
-Comparability of `opers` across solvers.  The stop threshold `eps_vec` is
+Comparability of `opers` across solvers.  The active-vertex threshold `eps_vec` is
   appr          eps * d          (indicator residual; Lemma 2.1)
-  gd sor hb cheby  eps * alpha * d  (gradient residual;  Lemma 2.2)
-so the five GRADIENT solvers stop at the SAME certificate and their opers ARE
-comparable at equal nominal eps (they land at the same achieved accuracy -- see
-the near-equal `gate` column).  Only `appr` uses a looser threshold, so it does
-slightly less work for slightly less accuracy; keep that in mind when it wins.
-Strictly equal-achieved-accuracy comparisons require a separate calibration
-workflow.
+  gd sor hb cheby  eps * alpha * d  (implemented gradient-residual threshold)
+The six non-APPR solver configurations therefore share one intended threshold inside this
+script, but an empty active frontier is not automatically a residual certificate
+for every legacy accelerated implementation.  Each run checks the returned
+residual, and rankings require every sampled source to pass.  This is still not
+a project-wide accuracy convention: the canonical residual decision remains
+open, and no conversion to APPR's looser certificate has been adopted.  All
+cross-method rankings printed here are exploratory.  A definitive equal-accuracy
+comparison requires a separate, documented calibration workflow.
 
 Cost warning: APPR is O(1/(alpha*eps)), so tightening eps by 10x costs it ~10x
 more work, while the accelerated methods grow far more slowly.  At 1e-4/n APPR
@@ -32,10 +34,13 @@ that would have been cheap).
 """
 
 import argparse
+import sys
 import time
+from pathlib import Path
 
 import numpy as np
 
+from experiments.result_schema import make_result_bundle, write_result_bundle
 from src.baselines.sdd_solver import (
     sdd_get_opt,
     sdd_local_gd,
@@ -49,6 +54,115 @@ from src.baselines.sdd_solver import (
 from src.graphs import load_graph
 
 ALGOS = ("gd", "appr", "sor", "opt-sor", "adp-sor", "hb", "cheby")
+RESULTS_DIR = Path(__file__).resolve().parents[1] / "results" / "raw"
+APPR_STOPPING_RULE = (
+    "terminate when the FIFO active queue is empty; a vertex u is (re)enqueued whenever "
+    "r[u] >= eps * d[u]"
+)
+GD_STOPPING_RULE = (
+    "terminate when the next active frontier is empty; after processing u, a neighboring "
+    "vertex v is activated whenever r[v] >= eps * alpha * d[v]"
+)
+SIGNED_STOPPING_RULE = (
+    "terminate when the next active queue/frontier is empty; after processing u, only "
+    "neighboring vertices v with abs(r[v]) >= eps * alpha * d[v] are activated, and u is "
+    "not retested solely because its own residual changed"
+)
+WORK_UNIT = "degree-weighted adjacency-list entries scanned"
+
+
+def _stopping_rule(algo: str) -> str:
+    if algo == "appr":
+        return APPR_STOPPING_RULE
+    if algo == "gd":
+        return GD_STOPPING_RULE
+    return SIGNED_STOPPING_RULE
+
+
+def _solver_parameters(algo: str, *, alpha: float, eps: float, n: int) -> dict:
+    if algo == "appr":
+        return {"ordering": "fifo"}
+    if algo == "sor":
+        return {"omega": 1.0}
+    if algo == "opt-sor":
+        return {"omega": float(opt_omega(alpha)), "omega_rule": "global spectral optimum"}
+    if algo == "adp-sor":
+        return {
+            "omega": float(adaptive_omega(alpha, eps, n)),
+            "omega_rule": "legacy adaptive heuristic",
+        }
+    return {}
+
+
+def _certificate_metrics(
+    algo: str,
+    residual: np.ndarray,
+    degree: np.ndarray,
+    *,
+    alpha: float,
+    eps: float,
+) -> tuple[bool, float]:
+    """Evaluate the intended coordinate residual certificate after termination."""
+    threshold = eps * degree if algo == "appr" else eps * alpha * degree
+    magnitude = residual if algo == "gd" or algo == "appr" else np.abs(residual)
+    normalized = np.divide(
+        magnitude,
+        threshold,
+        out=np.where(magnitude == 0.0, 0.0, np.inf),
+        where=threshold > 0.0,
+    )
+    return bool(np.all(magnitude < threshold)), float(np.max(normalized))
+
+
+def _result_record(
+    *,
+    dataset: str,
+    source: int,
+    alpha: float,
+    eps: float,
+    random_seed: int,
+    algo: str,
+    n: int,
+    status: str,
+    edge_operations: float | None,
+    local_iterations: int | None,
+    runtime_seconds: float | None,
+    l1_error: float | None,
+    target_certificate_achieved: bool | None,
+    terminal_max_normalized_residual: float | None,
+) -> dict:
+    return {
+        "graph": dataset,
+        "alpha": alpha,
+        "epsilon": eps,
+        "epsilon_name": "eps_appr" if algo == "appr" else "eps_gradient_residual",
+        "random_seed": random_seed,
+        "stopping_rule": _stopping_rule(algo),
+        "solver": algo,
+        "solver_parameters": _solver_parameters(algo, alpha=alpha, eps=eps, n=n),
+        "source": source,
+        "status": status,
+        "work": {
+            "edge_operations": edge_operations,
+            "local_inner_iterations": local_iterations,
+            "outer_acceleration_iterations": 0,
+            "runtime_seconds": runtime_seconds,
+            "unit": WORK_UNIT,
+        },
+        "metrics": {
+            "l1_error": l1_error,
+            "target_certificate": (
+                "r[u] < eps * d[u] for every vertex u"
+                if algo == "appr"
+                else "r[u] < eps * alpha * d[u] for every vertex u"
+                if algo == "gd"
+                else "abs(r[u]) < eps * alpha * d[u] for every vertex u"
+            ),
+            "target_certificate_achieved": target_certificate_achieved,
+            "terminal_max_normalized_residual": terminal_max_normalized_residual,
+            "comparison_status": "exploratory; project-wide residual conversion unresolved",
+        },
+    }
 
 
 def run_one(algo, n, indptr, indices, degree, b, s, alpha, eps, opt_x):
@@ -93,6 +207,11 @@ def main():
         default=2e9,
         help="skip a solver at tighter eps once it exceeds this",
     )
+    ap.add_argument(
+        "--output",
+        type=Path,
+        help="structured JSON output (default: results/raw/eps-sweep-<dataset>.json)",
+    )
     a = ap.parse_args()
 
     graph = load_graph(a.dataset)
@@ -127,6 +246,7 @@ def main():
     ops_all = {(mu, al): [] for mu in mults for al in algos}
     l1_all = {(mu, al): [] for mu in mults for al in algos}
     wins = {(mu, al): 0 for mu in mults for al in algos}
+    records = []
 
     for src in sources:
         b = np.zeros(n, dtype=np.float64)
@@ -141,15 +261,72 @@ def main():
             row = {}
             for algo in algos:
                 if algo in over:
+                    records.append(
+                        _result_record(
+                            dataset=a.dataset,
+                            source=int(src),
+                            alpha=a.alpha,
+                            eps=eps,
+                            random_seed=a.seed,
+                            algo=algo,
+                            n=n,
+                            status="skipped_after_operation_budget",
+                            edge_operations=None,
+                            local_iterations=None,
+                            runtime_seconds=None,
+                            l1_error=None,
+                            target_certificate_achieved=None,
+                            terminal_max_normalized_residual=None,
+                        )
+                    )
                     continue
                 ret, _ = run_one(algo, n, indptr, indices, degree, b, s, a.alpha, eps, opt_x)
                 opers = float(np.sum(ret[3]))
                 errs = ret[2]
                 l1 = float(errs[-1]) if len(errs) else float("nan")
-                ops_all[(mu, algo)].append(opers)
-                l1_all[(mu, algo)].append(l1)
-                row[algo] = opers
-                if opers > a.max_ops:
+                certificate_achieved, max_normalized_residual = _certificate_metrics(
+                    algo,
+                    np.asarray(ret[1]),
+                    degree,
+                    alpha=a.alpha,
+                    eps=eps,
+                )
+                finite_run = bool(
+                    np.isfinite(opers) and np.isfinite(l1) and np.isfinite(float(ret[4]))
+                )
+                if not finite_run:
+                    status = "unstable"
+                elif certificate_achieved:
+                    status = "completed"
+                else:
+                    status = "completed_without_target_certificate"
+                if status == "completed":
+                    ops_all[(mu, algo)].append(opers)
+                    l1_all[(mu, algo)].append(l1)
+                    row[algo] = opers
+                records.append(
+                    _result_record(
+                        dataset=a.dataset,
+                        source=int(src),
+                        alpha=a.alpha,
+                        eps=eps,
+                        random_seed=a.seed,
+                        algo=algo,
+                        n=n,
+                        status=status,
+                        edge_operations=opers if np.isfinite(opers) else None,
+                        local_iterations=len(ret[3]),
+                        runtime_seconds=float(ret[4]) if np.isfinite(float(ret[4])) else None,
+                        l1_error=l1 if np.isfinite(l1) else None,
+                        target_certificate_achieved=certificate_achieved,
+                        terminal_max_normalized_residual=(
+                            max_normalized_residual
+                            if np.isfinite(max_normalized_residual)
+                            else None
+                        ),
+                    )
+                )
+                if np.isfinite(opers) and opers > a.max_ops:
                     over.add(algo)
             if row:
                 wins[(mu, min(row, key=row.get))] += 1
@@ -160,13 +337,12 @@ def main():
 
     med_ops = {k2: (float(np.median(v)) if v else None) for k2, v in ops_all.items()}
     med_l1 = {k2: (float(np.median(v)) if v else None) for k2, v in l1_all.items()}
-    best = {
-        mu: min(
-            (al for al in algos if med_ops[(mu, al)] is not None), key=lambda al: med_ops[(mu, al)]
-        )
-        for mu in mults
-    }
-    best_keys = {(mu, best[mu]) for mu in mults}
+    best = {}
+    for mu in mults:
+        eligible = [al for al in algos if len(ops_all[(mu, al)]) == k]
+        if eligible:
+            best[mu] = min(eligible, key=lambda al: med_ops[(mu, al)])
+    best_keys = set(best.items())
 
     _pivot(
         f"median operations over {k} sources  ('*' = fewest at that eps)",
@@ -189,19 +365,54 @@ def main():
     print(f"\nlowest median opers per eps (alpha={a.alpha}):")
     for mu in mults:
         lab = "1/n" if mu == 1 else f"{mu:g}/n"
-        print(
-            f"  eps={lab:>8}  ->  {best[mu]:>8}  "
-            f"({med_ops[(mu, best[mu])]:,.0f} median opers, "
-            f"{wins[(mu, best[mu])]}/{k} sources)"
-        )
+        if mu in best:
+            print(
+                f"  eps={lab:>8}  ->  {best[mu]:>8}  "
+                f"({med_ops[(mu, best[mu])]:,.0f} median opers, "
+                f"{wins[(mu, best[mu])]}/{k} sources)"
+            )
+        else:
+            print(f"  eps={lab:>8}  ->  no solver certified on all {k} sources")
     from collections import Counter
 
     tally = Counter(best.values())
-    top, cnt = tally.most_common(1)[0]
-    print(
-        f"\noverall: {top} is cheapest at {cnt}/{len(mults)} eps levels "
-        f"on {a.dataset} at alpha={a.alpha}."
+    if tally:
+        top, cnt = tally.most_common(1)[0]
+        print(
+            f"\nexploratory ranking among certified runs: {top} is cheapest at "
+            f"{cnt}/{len(best)} rankable eps levels on {a.dataset} at alpha={a.alpha}."
+        )
+    else:
+        print("\nno eps level had a solver certified on every sampled source")
+
+    output_path = a.output or RESULTS_DIR / f"eps-sweep-{a.dataset}.json"
+    bundle = make_result_bundle(
+        experiment="local-solver-epsilon-sweep",
+        config={
+            "dataset": a.dataset,
+            "nodes": n,
+            "edges": m,
+            "alpha": a.alpha,
+            "num_sources": a.num_sources,
+            "random_seed": a.seed,
+            "minimum_source_degree": a.min_deg,
+            "solvers": algos,
+            "epsilon_multipliers_over_n": mults,
+            "max_operations_budget": a.max_ops,
+            "comparison_status": "exploratory; canonical residual conversion unresolved",
+            "reference_solution": {
+                "solver": "src.baselines.sdd_solver.sdd_get_opt",
+                "solver_epsilon": 1.0e-10,
+                "reported_error_norm": "l1",
+                "reported_error_coordinates": "x = D^(-1/2) pi",
+                "appr_output_conversion": "pi / sqrt(degree)",
+            },
+        },
+        records=records,
+        argv=sys.argv,
     )
+    write_result_bundle(output_path, bundle)
+    print(f"structured results: {output_path}")
 
 
 def _pivot(title, table, mults, algos, fmt, best=None):
