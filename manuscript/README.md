@@ -72,6 +72,25 @@ It is deliberately not input by `manuscript/main.tex`. Migrate material into
 the active paper only after reconciling it with the residual convention,
 existing CF-Push analysis, implementation, and tests.
 
+The AESP--LocGD center-star lower bound is in:
+
+```text
+manuscript/notes/aesp_locgd_star_lower_bound/
+```
+
+Build it independently with:
+
+```bash
+make -C manuscript/notes/aesp_locgd_star_lower_bound
+```
+
+This note proves an unconditional
+`Omega(1 / (sqrt(alpha) * epsilon))` active-volume lower bound for the literal
+AESP-PPR outer loop with batched LocGD on a center-seeded star. It also records
+the failed residual-cone route, the exact algorithmic scope, and the
+`Omega(min(m, 1 / epsilon) / sqrt(alpha))` graph-budget refinement. It is not
+a lower bound for arbitrary AESP inner maps or all hybrid local methods.
+
 ## Imported source workspaces
 
 Exact external LaTeX sources used to prepare agent-oriented reader editions
