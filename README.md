@@ -45,6 +45,7 @@ recorded in [`docs/`](docs/).
 | --- | --- |
 | [`src/`](src/) | Reusable graph loading, solver implementations, and shared baselines. |
 | [`experiments/`](experiments/) | Runnable experiment and parameter-sweep entry points built on `src/`. |
+| [`results/`](results/) | Structured experiment records and provenance; transient raw runs remain ignored. |
 | [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
 | [`manuscript/`](manuscript/) | Active LaTeX paper sources plus read-only archives of previous paper projects. |
@@ -65,7 +66,8 @@ Every reported experiment should record:
 - random seed;
 - stopping criterion;
 - solver parameters;
-- Git commit hash.
+- Git commit hash;
+- dirty-worktree status.
 
 Complexity comparisons should report outer acceleration iterations, local
 inner iterations, and edge operations. Figures must be generated
@@ -116,5 +118,17 @@ Run the complete reproducibility workflow with:
 make reproduce
 ```
 
-The full workflow assumes that the experiment implementations and datasets
-required by the evolving research project are available.
+This default workflow is offline-friendly: it runs the automated checks, a
+deterministic synthetic APPR theorem smoke test, figure generation, and the
+manuscript build. The smoke result is written under `results/raw/` with its Git
+commit and dirty-worktree status.
+
+The real-graph parameter sweeps may download datasets and run for a long time,
+so they are kept behind an explicit command:
+
+```bash
+make full-experiments
+```
+
+See [`experiments/README.md`](experiments/README.md) for the individual sweep
+commands and their structured outputs.
