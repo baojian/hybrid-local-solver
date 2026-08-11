@@ -1,0 +1,195 @@
+\section{Purpose, scope, and logical status}
+\label{sec:scope}
+
+This document converts the project discussion into a mathematical research
+note suitable for incorporation into the repository.  It is deliberately not
+a verbatim transcript.  The discussion contained exploratory claims, notation
+collisions, and one important error concerning the SOR relaxation range.  The
+present note performs four operations:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em]
+  \item it restates the two source frameworks in a common normalization;
+  \item it separates empirical motivation from theorem statements;
+  \item it proves the parts of the hybrid analysis that are currently closed;
+  \item it records the exact remaining locality lemma needed for a universal
+        accelerated-work theorem.
+\end{enumerate}
+
+The note studies the unregularized symmetric PageRank quadratic used by
+\citet{huang2025accelerated}.  The $\ell_1$-regularized objective of
+\citet{fountoulakis2026complexity} is used as structural evidence and as a
+source of confinement techniques; it is not silently identified with the
+unregularized problem.
+
+\begin{table}[t]
+\centering
+\caption{Status of the principal statements in this note.}
+\label{tab:status-overview}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.40\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}X@{}}
+\toprule
+Statement & Status & Qualification \\
+\midrule
+Locally evolving-set and AESP source guarantees
+  & \statussource & Restated from
+    \citet{zhou2024iterative,huang2025accelerated}. \\
+AESP is especially effective in the early stage
+  & \statusobservation & Supported by Figure~4 of
+    \citet{huang2025accelerated}; not a universal theorem. \\
+Finite convergence of AESP followed by local SOR
+  & \statusproved & Holds from every finite handoff for fixed
+    $0<\omega<2$. \\
+$\bigO(1/(\sqrt\alpha\eps))$ SOR tail after an objective-gap handoff
+  & \statusproved & Uses $\omega=1$ and the handoff
+    $f(x_J)-f^\star\leq\alpha^{3/2}\eps/(1+\alpha)$. \\
+$\bigO(1/(\sqrt\alpha\eps))$ SOR tail after a weighted-$\ell_1$ handoff
+  & \statusproved & Uses $\omega=1$ and
+    $\norm{D^{1/2}\nabla f(x_J)}_1=\bigO(\alpha^{3/2})$. \\
+End-to-end trajectory bound
+  & \statusproved & Depends on the realized early AESP locality factor
+    $\Lambda_J$. \\
+Graph-uniform $\softO(1/(\sqrt\alpha\eps))$ total work
+  & \statusconditional & Follows from
+    $\Lambda_J=\bigO(1/\eps)$; this bound is not yet proved for every graph. \\
+Plain optimal local SOR is weighted-$\ell_1$ monotone
+  & \textbf{False} & The universal monotone range is
+    $0<\omega<1+\alpha$, not all of $(0,2)$. \\
+Plain local Chebyshev gives an unconditional tail theorem
+  & \textbf{Open} & The source theorem retains a
+    localization-forcing condition. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Problem, normalization, certificate, and work model}
+\label{sec:problem}
+
+\subsection{Symmetric PageRank quadratic}
+
+Let $G=(V,E)$ be a finite, connected, undirected simple graph without isolated
+vertices.  Let $A\in\R^{n\times n}$ be its adjacency matrix,
+$D=\diag(d_1,\ldots,d_n)$ its degree matrix, and
+\[
+  W:=D^{-1/2}AD^{-1/2}.
+\]
+Fix a source vertex $s\in V$ and a PageRank parameter
+$\alpha\in(0,1)$.  We use the AESP normalization
+\begin{equation}
+  Q:=\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}W
+    =\alpha I+\frac{1-\alpha}{2}(I-W),
+  \qquad
+  b:=\alpha D^{-1/2}e_s.
+  \label{eq:Q-b}
+\end{equation}
+The objective is
+\begin{equation}
+  f(x):=\frac12 x^{\trans}Qx-b^{\trans}x,
+  \qquad
+  g(x):=\nabla f(x)=Qx-b.
+  \label{eq:f-g}
+\end{equation}
+Since the spectrum of $I-W$ is contained in $[0,2]$,
+\begin{equation}
+  \alpha I\preceq Q\preceq I.
+  \label{eq:spectrum-Q}
+\end{equation}
+Thus $f$ is $\alpha$-strongly convex and $1$-smooth, and its unique minimizer
+is $x^\star=Q^{-1}b$.  The corresponding personalized PageRank vector is
+\begin{equation}
+  \pi:=D^{1/2}x^\star.
+  \label{eq:pi-from-x}
+\end{equation}
+
+\subsection{Coordinatewise accuracy certificate}
+
+The AESP paper proves the following certificate in this normalization.
+
+\begin{lemma}[Degree-normalized gradient certificate]
+\label{lem:certificate}
+For every $x\in\R^n$,
+\begin{equation}
+  \norm{D^{-1/2}(x-x^\star)}_\infty
+  \leq
+  \frac1\alpha\norm{D^{-1/2}g(x)}_\infty.
+  \label{eq:certificate}
+\end{equation}
+Consequently,
+\begin{equation}
+  \norm{D^{-1/2}g(x)}_\infty\leq\alpha\eps
+  \quad\Longrightarrow\quad
+  \norm{D^{-1}(D^{1/2}x-\pi)}_\infty\leq\eps.
+  \label{eq:certificate-stop}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let
+$\Pi_\alpha:=\alpha D^{1/2}Q^{-1}D^{-1/2}$ be the PageRank matrix.  The source
+analysis gives $\norm{D^{-1}\Pi_\alpha D}_\infty=1$.  Since
+\[
+  x-x^\star=Q^{-1}g(x),
+  \qquad
+  D^{-1/2}Q^{-1}D^{1/2}
+  =\frac1\alpha D^{-1}\Pi_\alpha D,
+\]
+we obtain
+\[
+  \norm{D^{-1/2}(x-x^\star)}_\infty
+  \leq
+  \norm{D^{-1/2}Q^{-1}D^{1/2}}_\infty
+  \norm{D^{-1/2}g(x)}_\infty
+  =\frac1\alpha\norm{D^{-1/2}g(x)}_\infty.
+\]
+The second claim follows from $D^{-1}(D^{1/2}x-\pi)=D^{-1/2}(x-x^\star)$.
+\end{proof}
+
+It is convenient to define the degree-shifted gradient
+\begin{equation}
+  q(x):=D^{1/2}g(x).
+  \label{eq:q-def}
+\end{equation}
+Then a coordinate is active at final tolerance $\eps$ precisely when
+\begin{equation}
+  \abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}
+  \quad\Longleftrightarrow\quad
+  \abs{q_u(x)}\geq\alpha\eps d_u.
+  \label{eq:final-active}
+\end{equation}
+
+\subsection{Dictionary between the 2024 and 2025 normalizations}
+
+The locally evolving-set paper uses
+\begin{equation}
+  \widehat Q:=I-\chi W,
+  \qquad
+  \widehat b:=\frac{2\alpha}{1+\alpha}D^{-1/2}e_s,
+  \qquad
+  \chi:=\frac{1-\alpha}{1+\alpha}.
+  \label{eq:work1-normalization}
+\end{equation}
+The two systems have the same solution because
+\begin{equation}
+  Q=\frac{1+\alpha}{2}\widehat Q,
+  \qquad
+  b=\frac{1+\alpha}{2}\widehat b.
+  \label{eq:normalization-scale}
+\end{equation}
+If
+$\widehat r:=\widehat b-\widehat Qx$, then
+\begin{equation}
+  g(x)=-\frac{1+\alpha}{2}\widehat r.
+  \label{eq:gradient-residual-dictionary}
+\end{equation}
+Hence the Work-I residual certificate
+$\norm{D^{-1/2}\widehat r}_\infty\leq 2\alpha\eps/(1+\alpha)$
+is exactly the AESP certificate in \cref{eq:certificate-stop}.
+
+\subsection{Degree-weighted local work}
+
+Scanning the adjacency list of a vertex $u$ costs $d_u$ units.  A sequence of
+coordinate updates $(u_j)_{j=0}^{K-1}$ therefore has work
+\begin{equation}
+  W:=\sum_{j=0}^{K-1}d_{u_j}.
+  \label{eq:coordinate-work}
+\end{equation}
+For a parallel evolving-set iteration with active set $S_k$, the corresponding
+work is $\vol(S_k):=\sum_{u\in S_k}d_u$.  This is the common unit used by
+\APPR, \LOCSOR, the AESP inner methods, and the present hybrid analysis.
