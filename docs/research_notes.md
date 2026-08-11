@@ -12,6 +12,42 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-12: rigorous AESP--LocGD center-star lower bound
+
+Recorded as a standalone note in
+`manuscript/notes/aesp_locgd_star_lower_bound/`. The note reconstructs the
+complete proof development for the literal AESP-PPR outer loop with the
+batched LocGD inner solver and uses the AESP paper's cumulative active-volume
+work measure.
+
+Closed statements:
+
+- on the center-seeded star `K_{1,B}`, every nonempty batched LocGD call costs
+  at least `B`, and every `epsilon`-accurate output requires
+  `Omega(B / sqrt(alpha))` work whenever `B * epsilon <= 1/4`;
+- choosing `B = floor(1 / (4 * epsilon))` gives the unconditional lower bound
+  `Omega(1 / (sqrt(alpha) * epsilon))` for this literal algorithm;
+- under an edge budget `m`, the construction gives
+  `Omega(min(m, 1 / epsilon) / sqrt(alpha))`;
+- if unit outer-loop overhead is counted in addition to active volume, the
+  first nonempty call contributes a separate
+  `Omega(log(B / alpha^2) / sqrt(alpha))` delay in the small-`alpha` regime.
+
+Proof correction and scope:
+
+- leaf symmetry rigorously forces a full center or leaf-block scan, but it does
+  not imply the proposed signed residual cone;
+- the unconditional proof instead uses the first nonempty activation to bound
+  every later subproblem's slow-mode error, followed by a positive
+  Green-function calculation for the critically damped outer recurrence;
+- the theorem does not apply to arbitrary AESP inner maps, sequential
+  LocAPPR, RPPR, or every hybrid local method, and therefore does not by itself
+  close the AESP--LOCSOR publication gate above;
+- no polynomially larger AESP-LocGD lower bound is currently proved. A
+  multiscale spider, star-of-stars, or clustered lollipop would have to force
+  transient explored volume beyond the `O(1 / epsilon)` significant-output
+  scale.
+
 ## 2026-08-12: black-box tradeoff and composite RPPR extension
 
 The standalone note in `manuscript/notes/hybrid_aesp_locsor/` now includes the
