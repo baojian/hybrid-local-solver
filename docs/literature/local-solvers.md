@@ -19,6 +19,51 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 ## Source annotations
 
+## Citation key: `huang2025accelerated`
+
+- Citation: Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian
+  Zhou. “Accelerated Evolving Set Processes for Local PageRank Computation.”
+  *Advances in Neural Information Processing Systems 39*, 2025.
+- DOI/arXiv/URL: <https://doi.org/10.48550/arXiv.2510.08010>;
+  arXiv `2510.08010v4`.
+- Local PDF:
+  `papers/2025-neurips-huang-accelerated-evolving-set-processes-local-pagerank.pdf`.
+- Relevance: The paper defines the AESP outer process and two localized inexact
+  proximal maps, including batched LocGD. It is the source algorithm for the
+  standalone center-star lower-bound note and fixes the active-volume work
+  measure, inexact gap schedule, activation threshold, momentum, and PPR
+  accuracy used there.
+- Exact pointers:
+  - PDF pages 1-3, Equation (1), (P1), and Equation (3): define lazy-walk PPR,
+    the symmetrized quadratic, and the degree-normalized infinity-error target.
+  - PDF pages 4-5, Equations (4)-(10), condition (C1), and Lemma 3.2: define
+    nested active-volume work, the inexact proximal set, the inner threshold,
+    the batched LocGD update, and the scaled-gradient progress ratio.
+  - PDF pages 6-7, Algorithms 1-2 and Theorems 3.3-3.6: specify the AESP-PPR
+    schedule, `eta = 1 - 2 * alpha`, constant momentum, early stopping, inner
+    gap guarantee, outer iteration count, and source upper bound.
+  - PDF pages 16-21, Appendix A.2-A.3: prove the inner objective-gap certificate
+    and LocGD convergence statement used to include initially empty calls.
+  - PDF pages 26-27, Appendix A.5-A.6: prove the AESP and AESP-PPR complexity
+    theorems and expose the run-dependent scaled-gradient constant `R`.
+  - PDF page 29, Algorithms 3-4: distinguish the batched LocGD queue from the
+    sequential LocAPPR queue. This distinction is essential to the star scan
+    lower bound.
+- Formulation differences: The source uses its own PPR accuracy `epsilon` and
+  dominated active-volume cost. The repository-wide residual convention is
+  still open, so the standalone note treats both definitions as note-scoped
+  and asserts no conversion to RPPR, APPR, or implementation-wide stopping.
+- Use in this repository: `manuscript/notes/aesp_locgd_star_lower_bound/`
+  proves a new, source-compatible lower bound for the literal AESP-PPR plus
+  batched LocGD algorithm. On a center-seeded star it gives
+  `Omega(1 / (sqrt(alpha) * epsilon))` active-volume work, and under an edge
+  budget it gives `Omega(min(m, 1 / epsilon) / sqrt(alpha))`. These are new
+  repository results, not claims made by the source paper.
+- Open questions: Determine whether a different graph forces transient volume
+  beyond `O(1 / epsilon)`; extend the lower-bound mechanism to sequential
+  LocAPPR or a wider local-oracle model; and reconcile AESP accuracy with the
+  eventual repository residual convention.
+
 ## Citation key: `morris2003evolving`
 
 - Citation: Ben Morris and Yuval Peres. “Evolving Sets and Mixing.”
