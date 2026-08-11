@@ -1,0 +1,292 @@
+\section{The proposed hybrid algorithm}
+\label{sec:algorithm}
+
+We first state a proof-oriented algorithm.  Its Phase II uses $\omega=1$;
+optimal over-relaxation and Chebyshev are treated later as optional safeguarded
+or experimental variants.
+
+\subsection{Objective-gap handoff}
+
+Define the target handoff gap
+\begin{equation}
+  \Delta_{\rm sw}
+  :=\frac{\alpha^{3/2}\eps}{1+\alpha}.
+  \label{eq:Delta-switch}
+\end{equation}
+Run AESP until the deterministic upper bound in
+\cref{eq:aesp-outer-bound} satisfies
+\begin{equation}
+  U_J\leq\Delta_{\rm sw}.
+  \label{eq:objective-switch}
+\end{equation}
+This rule is theoretical but computable: it does not require $f^\star$.
+After the switch, discard all Catalyst momentum and run local Gauss--Seidel
+SOR at the final coordinate threshold \cref{eq:final-active}.
+
+\begin{algorithm}[t]
+\caption{Proof-oriented AESP--LOCSOR hybrid}
+\label{alg:hybrid}
+\begin{algorithmic}[1]
+\REQUIRE $G,s,\alpha\in(0,1/2),\eps>0$; AESP inner method
+         $\mathcal M\in\{\LOCGD,\LOCAPPR\}$
+\STATE Set $x^{(0)}=y^{(0)}=0$, $\eta=1-2\alpha$.
+\STATE Define $U_t$ by \cref{eq:aesp-outer-bound} and
+       $\Delta_{\rm sw}$ by \cref{eq:Delta-switch}.
+\FOR{$t=1,2,\ldots$}
+  \STATE Use $\mathcal M$ to return $x^{(t)}$ satisfying the AESP
+         inner objective requirement for stage $t$.
+  \IF{$\norm{D^{-1/2}g(x^{(t)})}_\infty\leq\alpha\eps$}
+    \RETURN $\widehat\pi=D^{1/2}x^{(t)}$.
+  \ENDIF
+  \IF{$U_t\leq\Delta_{\rm sw}$}
+    \STATE Set $x\leftarrow x^{(t)}$ and discard the momentum state.
+    \STATE \textbf{break}.
+  \ENDIF
+  \STATE $y^{(t)}\leftarrow x^{(t)}+
+    \beta_{\rm A}(x^{(t)}-x^{(t-1)})$.
+\ENDFOR
+\WHILE{there exists $u$ with $\abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}$}
+  \STATE Choose any active coordinate $u$.
+  \STATE $x\leftarrow x-\dfrac{2g_u(x)}{1+\alpha}e_u$.
+\ENDWHILE
+\RETURN $\widehat\pi=D^{1/2}x$.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{remark}[A coarser AESP target]
+The switch target is much weaker than solving the final PageRank problem by
+AESP alone.  If AESP is parameterized through a coordinate-error target
+$\eps_{\rm burn}$ satisfying
+$\alpha\eps_{\rm burn}^2/2=\Delta_{\rm sw}$, then
+\begin{equation}
+  \eps_{\rm burn}
+  =\sqrt{\frac{2\sqrt\alpha\eps}{1+\alpha}}.
+  \label{eq:burn-eps}
+\end{equation}
+For the high-accuracy regime $\eps\ll\sqrt\alpha$, this is substantially
+larger than the final $\eps$.
+\end{remark}
+
+\subsection{Alternative residual-mass handoff}
+
+Define the original weighted gradient mass
+\begin{equation}
+  M(x):=\norm{D^{1/2}g(x)}_1=\norm{q(x)}_1.
+  \label{eq:mass-def}
+\end{equation}
+A second switch rule is
+\begin{equation}
+  M(x^{(J)})\leq\theta\alpha^{3/2},
+  \qquad \theta=\bigO(1).
+  \label{eq:mass-switch}
+\end{equation}
+This rule gives a stronger tail-locality theorem in
+\cref{thm:mass-tail}, but the current AESP theory does not guarantee that the
+threshold is reached with graph-independent local work.  It is therefore best
+viewed as an online diagnostic and an alternative theorem hypothesis.
+
+\section{Unconditional convergence and tail bounds}
+\label{sec:tail}
+
+\subsection{Exact coordinate descent identity}
+
+Since $G$ is simple, $Q_{uu}=(1+\alpha)/2$.  A SOR coordinate step with
+relaxation $\omega$ is
+\begin{equation}
+  x^+=x-\frac{\omega g_u(x)}{Q_{uu}}e_u
+      =x-\frac{2\omega}{1+\alpha}g_u(x)e_u.
+  \label{eq:sor-coordinate}
+\end{equation}
+
+\begin{lemma}[Exact objective decrease]
+\label{lem:sor-decrease}
+For every $x$, coordinate $u$, and $\omega\in\R$,
+\begin{equation}
+  f(x)-f(x^+)
+  =\frac{\omega(2-\omega)}{1+\alpha}g_u(x)^2.
+  \label{eq:sor-exact-decrease}
+\end{equation}
+In particular, the objective decreases strictly whenever
+$g_u(x)\neq0$ and $0<\omega<2$.
+\end{lemma}
+
+\begin{proof}
+For $t=-\omega g_u(x)/Q_{uu}$, the quadratic expansion gives
+\[
+  f(x+te_u)
+  =f(x)+t g_u(x)+\frac12Q_{uu}t^2.
+\]
+Substituting $t$ yields
+\[
+  f(x)-f(x^+)
+  =\frac{\omega(2-\omega)}{2Q_{uu}}g_u(x)^2
+  =\frac{\omega(2-\omega)}{1+\alpha}g_u(x)^2.
+\]
+\end{proof}
+
+\begin{theorem}[Finite convergence from every handoff]
+\label{thm:finite-tail}
+Let $x_0\in\R^n$ be arbitrary, including a signed AESP handoff point.  Fix
+$\omega\in(0,2)$.  Repeatedly apply \cref{eq:sor-coordinate} to any coordinate
+satisfying \cref{eq:final-active}.  Then the process terminates after finite
+degree-weighted work, and its output $\widehat\pi=D^{1/2}x$ satisfies
+\[
+  \norm{D^{-1}(\widehat\pi-\pi)}_\infty\leq\eps.
+\]
+Moreover,
+\begin{equation}
+  W_{\rm tail}(x_0;\omega)
+  \leq
+  \frac{(1+\alpha)(f(x_0)-f^\star)}
+       {\omega(2-\omega)\alpha^2\eps^2}.
+  \label{eq:generic-tail-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+An active coordinate satisfies
+$g_u(x)^2\geq\alpha^2\eps^2d_u$.  By
+\cref{lem:sor-decrease}, its update decreases $f$ by at least
+\[
+  \frac{\omega(2-\omega)\alpha^2\eps^2}{1+\alpha}d_u.
+\]
+Summing over all updates and using $f(x)\geq f^\star$ gives
+\cref{eq:generic-tail-work}.  Hence the total charged degree is finite, so no
+active coordinate can be processed indefinitely.  At termination the test in
+\cref{eq:certificate-stop} holds, and \cref{lem:certificate} gives the stated
+PageRank error.
+\end{proof}
+
+\begin{corollary}[Unconditional convergence of the hybrid]
+\label{cor:hybrid-converges}
+Suppose the AESP phase executes any finite number of valid outer stages and
+then hands off to local SOR with fixed $\omega\in(0,2)$.  The resulting hybrid
+terminates and satisfies the final PageRank certificate, independently of any
+active-set locality assumption.
+\end{corollary}
+
+This answers the basic correctness question affirmatively.  What remains is
+the degree-weighted work of the AESP burn-in and the SOR tail.
+
+\subsection{Objective-gap handoff gives an accelerated-size tail}
+
+\begin{theorem}[Objective-gap tail theorem]
+\label{thm:objective-tail}
+Run local SOR with $\omega=1$ from a handoff point $x_J$.  If
+\begin{equation}
+  f(x_J)-f^\star
+  \leq\frac{\alpha^{3/2}\eps}{1+\alpha},
+  \label{eq:objective-tail-assumption}
+\end{equation}
+then
+\begin{equation}
+  W_{\rm tail}\leq\frac{1}{\sqrt\alpha\eps}.
+  \label{eq:objective-tail-result}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Set $\omega=1$ in \cref{eq:generic-tail-work} and substitute
+\cref{eq:objective-tail-assumption}:
+\[
+  W_{\rm tail}
+  \leq
+  \frac{(1+\alpha)(f(x_J)-f^\star)}{\alpha^2\eps^2}
+  \leq\frac{1}{\sqrt\alpha\eps}.
+\]
+\end{proof}
+
+\begin{remark}
+The tail is not spectrally accelerated in this theorem.  The factor
+$1/\sqrt\alpha$ is supplied by the quality of the AESP handoff.  Safe local
+coordinate descent merely converts the remaining objective budget into the
+final $1/\eps$ accuracy dependence.
+\end{remark}
+
+\subsection{Signed weighted-$\ell_1$ tail theorem}
+
+The objective-gap argument gives total tail work but does not itself bound
+each active-set volume.  The weighted gradient mass does.
+
+For $q=D^{1/2}g$ and a SOR step at $u$, define
+$\chi=(1-\alpha)/(1+\alpha)$.  Multiplying the gradient recurrence by
+$D^{1/2}$ gives
+\begin{equation}
+  q^+=q-\omega q_u e_u+\chi\omega q_uAD^{-1}e_u.
+  \label{eq:q-sor-update}
+\end{equation}
+For $\omega=1$, this becomes
+\begin{equation}
+  q_u^+=0,
+  \qquad
+  q_v^+=q_v+\chi\frac{q_u}{d_u}
+  \quad(v\sim u).
+  \label{eq:q-gs-update}
+\end{equation}
+
+\begin{lemma}[Signed weighted-$\ell_1$ decrease at $\omega=1$]
+\label{lem:signed-l1}
+For every signed vector $q$ and every coordinate update
+\cref{eq:q-gs-update},
+\begin{equation}
+  \norm{q^+}_1
+  \leq
+  \norm{q}_1-\frac{2\alpha}{1+\alpha}\abs{q_u}.
+  \label{eq:signed-l1-drop}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The column $AD^{-1}e_u$ is nonnegative and has $\ell_1$ norm one.  Therefore
+\[
+  \norm{q^+}_1
+  \leq
+  \norm{q}_1-\abs{q_u}
+  +\chi\abs{q_u}
+  =\norm{q}_1-(1-\chi)\abs{q_u},
+\]
+and $1-\chi=2\alpha/(1+\alpha)$.
+\end{proof}
+
+\begin{theorem}[Residual-mass tail theorem]
+\label{thm:mass-tail}
+Let $x_0$ be any handoff point and run local SOR with $\omega=1$.  Then
+\begin{equation}
+  W_{\rm tail}
+  \leq
+  \frac{1+\alpha}{2\alpha^2\eps}M(x_0).
+  \label{eq:mass-tail-general}
+\end{equation}
+If $M(x_0)\leq\theta\alpha^{3/2}$, then
+\begin{equation}
+  W_{\rm tail}
+  \leq
+  \frac{\theta(1+\alpha)}{2\sqrt\alpha\eps},
+  \label{eq:mass-tail-accelerated}
+\end{equation}
+and every active set $S_k$ in the tail satisfies
+\begin{equation}
+  \vol(S_k)
+  \leq\frac{\theta\sqrt\alpha}{\eps}.
+  \label{eq:mass-tail-volume}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+An active update has $\abs{q_u}\geq\alpha\eps d_u$.  Combining this with
+\cref{eq:signed-l1-drop} gives
+\[
+  M(x)-M(x^+)
+  \geq\frac{2\alpha^2\eps}{1+\alpha}d_u.
+\]
+Summing and using nonnegativity of $M$ yields
+\cref{eq:mass-tail-general}; the handoff assumption gives
+\cref{eq:mass-tail-accelerated}.  Moreover, at any tail iterate,
+\[
+  \alpha\eps\vol(S_k)
+  \leq\sum_{u\in S_k}\abs{q_u}
+  \leq M(x_k)
+  \leq M(x_0),
+\]
+which proves \cref{eq:mass-tail-volume}.
+\end{proof}
