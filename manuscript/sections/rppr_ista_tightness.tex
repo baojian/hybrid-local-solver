@@ -1,0 +1,1074 @@
+% Tightness and refinements for ISTA on l1-regularized PageRank.
+%
+% Primary source for the formulation, Algorithm 3, monotone-support theorem,
+% support-volume bound, and published work upper bound:
+% Fountoulakis et al., Mathematical Programming 174:553--573, 2019.
+% Verified against arXiv:1602.01886, especially equations (1), (8)--(10),
+% Algorithms 3--4, and Theorems 1--3 (published-paper Sections 4--5).
+%
+% Scope: the center-star and direct-sum lower bounds, the residual-contraction
+% upper bounds, and the thresholded coordinate method below are new arguments.
+% They are deliberately separated from statements quoted from the source.
+% The relative stopping parameter is denoted by delta, rather than epsilon or
+% eta, to avoid collision with the manuscript's PageRank tolerances and the
+% FISTA/Catalyst parameters.
+
+\section{Tightness and Refinements for Local ISTA on
+\texorpdfstring{$\ell_1$}{l1}-Regularized PageRank}
+\label{sec:rppr-ista-tightness}
+
+This section determines which parts of the classical local-ISTA work bound
+for \(\ell_1\)-regularized PageRank are genuine.  There are three distinct
+conclusions.  First, the factor \(1/(\alpha\rho)\) and the support-volume
+bound \(1/\rho\) are simultaneously attained by a center-seeded star.
+Second, the factor \(\log(1/\alpha)\) in the published ISTA analysis is not
+necessary: a direct contraction argument removes \(\alpha\) from inside the
+logarithm.  Third, a remaining \(\log(1/\rho)\) factor is necessary for the
+original full-batch ISTA in the general teleportation-distribution setting,
+but it is not intrinsic to the variational problem.  A residual-thresholded
+coordinate implementation removes that logarithm for constant relative
+accuracy.
+
+The distinction between an algorithm-specific lower bound and a
+problem-level lower bound is essential.  Nothing in this section proves an
+\(\Omega(1/(\alpha\rho))\) lower bound for every local solver of the
+regularized problem.
+
+\subsection{ISTA, the relative KKT residual, and the work model}
+\label{subsec:rppr-ista-setup}
+
+We use the source-aligned formulation of
+\cref{subsec:source-rppr}.  Thus
+\begin{equation}
+    F_\rho(x)
+    =
+    \frac12\langle x,Qx\rangle
+    -\alpha\langle D^{-1/2}s,x\rangle
+    +\alpha\rho\norm{D^{1/2}x}_1,
+    \qquad
+    Q=\frac{1+\alpha}{2}I
+      -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
+    \label{eq:rppr-ista-objective}
+\end{equation}
+Throughout this section, \(G=(V,E)\) is a finite, undirected, unweighted
+graph without isolated vertices,
+\(s\geq0\), \(\langle\mathbf{1},s\rangle=1\),
+\(\alpha\in(0,1)\), and \(0<\rho\leq\norm{s}_\infty\), as in the source
+ISTA theorem.  Define
+\begin{equation}
+    a:=\frac{1-\alpha}{2},
+    \qquad
+    c:=\frac{1+\alpha}{2}=1-a,
+    \qquad
+    B:=D^{-1/2}AD^{-1/2},
+    \qquad
+    P:=D^{-1}A.
+    \label{eq:rppr-ista-matrices}
+\end{equation}
+Then \(Q=cI-aB\), \(P\) is row stochastic, and
+\begin{equation}
+    QD^{1/2}\mathbf{1}=\alpha D^{1/2}\mathbf{1}.
+    \label{eq:rppr-degree-eigenvector}
+\end{equation}
+
+Let \(g_\rho(x):=\alpha\rho\norm{D^{1/2}x}_1\), and let
+\begin{equation}
+    \mathcal{T}_\rho(x)
+    :=
+    \prox_{g_\rho}\bigl(x-\nabla f(x)\bigr)
+    =
+    \prox_{g_\rho}\bigl((I-Q)x+\alpha D^{-1/2}s\bigr).
+    \label{eq:rppr-ista-map}
+\end{equation}
+The full-batch ISTA iterates are
+\begin{equation}
+    x_0=0,
+    \qquad
+    x_{k+1}=\mathcal{T}_\rho(x_k).
+    \label{eq:rppr-batch-ista}
+\end{equation}
+Under the initialization and nonnegative seed above,
+\citet[Theorem~1]{fountoulakis2019variational} proves
+\begin{equation}
+    0\leq x_k\leq x_{k+1}\leq x^\star,
+    \qquad
+    \supp(x_k)\subseteq\supp(x_{k+1})\subseteq S^\star,
+    \qquad
+    \nabla f(x_k)\leq0,
+    \label{eq:rppr-monotone-invariants}
+\end{equation}
+where \(x^\star\) is the unique minimizer of \(F_\rho\) and
+\(S^\star:=\supp(x^\star)\).  The same source proves
+\begin{equation}
+    \vol(S^\star)\leq\frac1\rho.
+    \label{eq:rppr-support-upper}
+\end{equation}
+
+The source writes its relative stopping parameter as \(\epsilon\).  We rename
+it \(\delta\in(0,1)\) and define the degree-normalized negative gradient,
+the KKT excess, and its maximum norm by
+\begin{equation}
+    r(x):=-D^{-1/2}\nabla f(x),
+    \qquad
+    h(x):=\bigl(r(x)-\alpha\rho\mathbf{1}\bigr)_+,
+    \qquad
+    \mathcal{R}_\rho(x):=\norm{h(x)}_\infty.
+    \label{eq:rppr-kkt-excess}
+\end{equation}
+Here and below the positive part is coordinatewise.  Since
+\(\nabla f(x_k)\leq0\), Algorithm~3 of
+\citet{fountoulakis2019variational} stops precisely when
+\begin{equation}
+    \norm{D^{-1/2}\nabla f(x_k)}_\infty
+    \leq(1+\delta)\alpha\rho
+    \quad\Longleftrightarrow\quad
+    \mathcal{R}_\rho(x_k)\leq\delta\alpha\rho.
+    \label{eq:rppr-relative-stopping}
+\end{equation}
+Thus \(\delta\) is dimensionless; the absolute KKT-excess tolerance is
+\(\delta\alpha\rho\).
+
+For the batch method, we use the degree-weighted work measure already defined
+in \cref{eq:source-degree-work}:
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    :=
+    \sum_{k=0}^{T-1}
+    \left(
+        \vol(\supp(x_k))+\vol(\supp(x_{k+1}))
+    \right).
+    \label{eq:rppr-batch-work}
+\end{equation}
+On an unweighted graph this is equivalent, up to a universal constant, to the
+\(|S^\star|+\widehat{\vol}(S^\star)\) per-iteration accounting in
+\citet[Theorem~3]{fountoulakis2019variational}.  In particular,
+\cref{eq:rppr-monotone-invariants,eq:rppr-support-upper} imply
+\begin{equation}
+    W_{\mathrm{batch}}(T)\leq\frac{2T}{\rho}.
+    \label{eq:rppr-work-from-iterations}
+\end{equation}
+
+\begin{lemma}[Increment--residual identity]
+\label{lem:rppr-increment-residual}
+For every batch-ISTA iterate,
+\begin{equation}
+    x_{k+1}-x_k=D^{1/2}h(x_k).
+    \label{eq:rppr-increment-residual}
+\end{equation}
+Consequently, \cref{eq:rppr-relative-stopping} is equivalent to
+\begin{equation}
+    \norm{D^{-1/2}(x_{k+1}-x_k)}_\infty
+    \leq\delta\alpha\rho.
+    \label{eq:rppr-step-stopping}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Weighted soft thresholding and
+\cref{eq:rppr-monotone-invariants} give, coordinatewise,
+\[
+    x_{k+1,i}
+    =
+    \max\left\{
+        x_{k,i}-\nabla_i f(x_k)-\alpha\rho\sqrt{d_i},0
+    \right\}.
+\]
+Every positive coordinate of \(x_k\) satisfies
+\(-\nabla_i f(x_k)\geq\alpha\rho\sqrt{d_i}\), while a zero coordinate is
+activated exactly when this inequality is strict.  Subtracting \(x_{k,i}\)
+therefore yields
+\[
+    x_{k+1,i}-x_{k,i}
+    =
+    \sqrt{d_i}
+    \left(
+        -\frac{\nabla_i f(x_k)}{\sqrt{d_i}}-\alpha\rho
+    \right)_+,
+\]
+which is \cref{eq:rppr-increment-residual}.  The stopping equivalence follows
+immediately.
+\end{proof}
+
+\subsection{What the stopping rule certifies for unregularized PageRank}
+\label{subsec:rppr-ppr-certificate}
+
+Let \(x^{(0)}\) denote the unregularized solution,
+\begin{equation}
+    Qx^{(0)}=\alpha D^{-1/2}s,
+    \qquad
+    p^{(0)}:=D^{1/2}x^{(0)}.
+    \label{eq:rppr-unregularized-solution}
+\end{equation}
+For an approximate regularized solution \(x\), write \(p:=D^{1/2}x\).
+
+\begin{proposition}[Regularized stopping implies approximate PPR]
+\label{prop:rppr-to-ppr-certificate}
+Suppose \(\nabla f(x)\leq0\) and
+\(\mathcal{R}_\rho(x)\leq\delta\alpha\rho\).  Then
+\begin{equation}
+    0
+    \leq
+    D^{-1}(p^{(0)}-p)
+    =D^{-1/2}(x^{(0)}-x)
+    \leq
+    (1+\delta)\rho\mathbf{1}.
+    \label{eq:rppr-to-ppr-coordinate-bound}
+\end{equation}
+In particular,
+\begin{equation}
+    \norm{D^{-1}(p^{(0)}-p)}_\infty
+    \leq(1+\delta)\rho.
+    \label{eq:rppr-to-ppr-infinity-bound}
+\end{equation}
+Thus a target PPR accuracy \(\varepsilon_{\mathrm{ppr}}\) is guaranteed by
+choosing
+\begin{equation}
+    (1+\delta)\rho\leq\varepsilon_{\mathrm{ppr}}.
+    \label{eq:rppr-rho-delta-choice}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let \(z:=-\nabla f(x)\).  The assumptions imply
+\[
+    0\leq z\leq(1+\delta)\alpha\rho D^{1/2}\mathbf{1}.
+\]
+Moreover,
+\[
+    Q(x^{(0)}-x)=z.
+\]
+The matrix \(Q=cI-aB\) is a nonsingular symmetric \(M\)-matrix.  Indeed,
+\(a/c<1\), \(B\geq0\), and
+\[
+    Q^{-1}
+    =
+    \frac1c\sum_{t=0}^{\infty}\left(\frac ac B\right)^t
+    \geq0.
+\]
+Using this entrywise nonnegativity together with
+\cref{eq:rppr-degree-eigenvector} gives
+\[
+    0
+    \leq x^{(0)}-x
+    =Q^{-1}z
+    \leq
+    (1+\delta)\alpha\rho Q^{-1}D^{1/2}\mathbf{1}
+    =(1+\delta)\rho D^{1/2}\mathbf{1}.
+\]
+Multiplication by \(D^{-1/2}\) proves the result.
+\end{proof}
+
+\begin{remark}[Approximation, not exact equality]
+\label{rem:rppr-not-exact-ppr}
+For fixed \(\rho>0\), arbitrarily accurate optimization converges to
+\(x^\star(\rho)\), which generally differs from \(x^{(0)}\).  The guarantee
+in \cref{prop:rppr-to-ppr-certificate} is an approximation statement.  Exact
+equality requires \(\rho=0\), a special instance on which the regularizer is
+inactive, or a subsequent unregularized debiasing solve.
+\end{remark}
+
+\subsection{A sharper upper bound for the same full-batch ISTA}
+\label{subsec:rppr-sharp-batch-upper}
+
+The logarithm in \citet[Theorem~3]{fountoulakis2019variational} enters by
+first reducing the objective gap to order
+\(\delta^2\rho^2\alpha^2d_{\min}\) and then converting objective gap to the
+stopping residual.  The next lemma contracts the stopping residual directly.
+
+\begin{lemma}[Direct contraction of the KKT excess]
+\label{lem:rppr-kkt-contraction}
+Let \(h_k:=h(x_k)\).  Then
+\begin{equation}
+    0\leq h_{k+1}\leq a(I+P)h_k
+    \label{eq:rppr-kkt-vector-contraction}
+\end{equation}
+coordinatewise, and hence
+\begin{equation}
+    \norm{h_{k+1}}_\infty
+    \leq(1-\alpha)\norm{h_k}_\infty.
+    \label{eq:rppr-kkt-infinity-contraction}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+By \cref{lem:rppr-increment-residual},
+\(x_{k+1}-x_k=D^{1/2}h_k\).  Therefore
+\begin{align}
+    r(x_{k+1})
+    &=r(x_k)-D^{-1/2}QD^{1/2}h_k \notag\\
+    &=r(x_k)-(cI-aP)h_k.
+    \label{eq:rppr-r-update}
+\end{align}
+The definition of the positive part gives
+\(r(x_k)\leq\alpha\rho\mathbf{1}+h_k\).  Subtracting
+\(\alpha\rho\mathbf{1}\) from \cref{eq:rppr-r-update} thus yields
+\[
+    r(x_{k+1})-\alpha\rho\mathbf{1}
+    \leq
+    (1-c)h_k+aPh_k
+    =a(I+P)h_k.
+\]
+The right-hand side is nonnegative, so taking positive parts proves
+\cref{eq:rppr-kkt-vector-contraction}.  Since \(P\) is row stochastic,
+\(\norm{I+P}_{\infty}=2\), and \(2a=1-\alpha\), proving
+\cref{eq:rppr-kkt-infinity-contraction}.
+\end{proof}
+
+Define
+\begin{equation}
+    H_\rho(s)
+    :=
+    \norm{\bigl(D^{-1}s-\rho\mathbf{1}\bigr)_+}_\infty,
+    \qquad
+    \log_+(z):=\max\{\log z,0\}.
+    \label{eq:rppr-H-definition}
+\end{equation}
+
+\begin{theorem}[Sharpened residual and work upper bounds]
+\label{thm:rppr-sharp-batch-upper}
+Let \(T\) be the first index satisfying
+\cref{eq:rppr-relative-stopping}.  Then
+\begin{equation}
+    T
+    \leq
+    \left\lceil
+        \frac{
+            \log_+\bigl(H_\rho(s)/(\delta\rho)\bigr)
+        }{-\log(1-\alpha)}
+    \right\rceil
+    \leq
+    \left\lceil
+        \frac1\alpha
+        \log_+\left(\frac{H_\rho(s)}{\delta\rho}\right)
+    \right\rceil.
+    \label{eq:rppr-sharp-iteration-upper}
+\end{equation}
+Consequently,
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    \leq
+    \frac{2}{\rho}
+    \left\lceil
+        \frac{
+            \log_+\bigl(H_\rho(s)/(\delta\rho)\bigr)
+        }{-\log(1-\alpha)}
+    \right\rceil.
+    \label{eq:rppr-sharp-work-upper}
+\end{equation}
+In particular, because \(H_\rho(s)\leq1/d_{\min}\),
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    =
+    O\left(
+        \frac{1}{\alpha\rho}
+        \left[1+\log_+\left(
+            \frac{1}{\delta\rho d_{\min}}
+        \right)\right]
+    \right).
+    \label{eq:rppr-sharp-worst-upper}
+\end{equation}
+The teleportation parameter \(\alpha\) does not occur inside the logarithm.
+\end{theorem}
+
+\begin{proof}
+At initialization,
+\begin{equation}
+    h_0
+    =
+    \alpha\bigl(D^{-1}s-\rho\mathbf{1}\bigr)_+,
+    \qquad
+    \norm{h_0}_\infty=\alpha H_\rho(s).
+    \label{eq:rppr-initial-excess}
+\end{equation}
+Iterating \cref{eq:rppr-kkt-infinity-contraction} gives
+\[
+    \mathcal{R}_\rho(x_k)
+    =\norm{h_k}_\infty
+    \leq
+    \alpha(1-\alpha)^kH_\rho(s).
+\]
+The right-hand side is at most \(\delta\alpha\rho\) once the first bound in
+\cref{eq:rppr-sharp-iteration-upper} holds.  The second bound uses
+\(-\log(1-\alpha)\geq\alpha\).  The work bound follows from
+\cref{eq:rppr-work-from-iterations}.  Finally,
+\(s_i/d_i\leq1/d_{\min}\) for every \(i\), which proves
+\cref{eq:rppr-sharp-worst-upper}.
+\end{proof}
+
+The restricted strong-convexity parameter can also be retained in this
+sharper analysis.  Define
+\begin{equation}
+    \mu_\star:=\lambda_{\min}(Q_{S^\star S^\star}),
+    \qquad
+    B_\rho(s)
+    :=
+    \norm{D^{-1/2}(s-\rho d)_+}_2,
+    \label{eq:rppr-restricted-parameters}
+\end{equation}
+where \(d=D\mathbf{1}\).
+
+\begin{proposition}[Restricted contraction without \(\log(1/\alpha)\)]
+\label{prop:rppr-restricted-contraction}
+Assume \(S^\star\neq\emptyset\).  Then
+\begin{equation}
+    T
+    \leq
+    \left\lceil
+        \frac{
+            \log_+\left(
+                B_\rho(s)/(\delta\rho\sqrt{d_{\min}})
+            \right)
+        }{-\log(1-\mu_\star)}
+    \right\rceil,
+    \label{eq:rppr-restricted-iteration-upper}
+\end{equation}
+and therefore
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    =
+    O\left(
+        \frac{1}{\rho\mu_\star}
+        \left[
+            1+
+            \log_+\left(
+                \frac{B_\rho(s)}
+                     {\delta\rho\sqrt{d_{\min}}}
+            \right)
+        \right]
+    \right).
+    \label{eq:rppr-restricted-work-upper}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let \(\Delta_k:=x_{k+1}-x_k\).  Soft thresholding is coordinatewise
+nonexpansive.  Both \(\mathcal{T}_\rho(x_{k+1})\) and
+\(\mathcal{T}_\rho(x_k)\) are supported on \(S^\star\) by
+\cref{eq:rppr-monotone-invariants}; hence
+\begin{align}
+    \norm{\Delta_{k+1}}_2
+    &\leq
+    \norm{(I-Q_{S^\star S^\star})\Delta_k}_2 \notag\\
+    &\leq
+    (1-\mu_\star)\norm{\Delta_k}_2.
+    \label{eq:rppr-restricted-step-contraction}
+\end{align}
+Here all eigenvalues of \(Q_{S^\star S^\star}\) lie in
+\([\mu_\star,1]\).  Moreover,
+\[
+    \Delta_0
+    =
+    \alpha D^{-1/2}(s-\rho d)_+,
+    \qquad
+    \norm{\Delta_0}_2=\alpha B_\rho(s).
+\]
+By \cref{eq:rppr-step-stopping}, termination is guaranteed whenever
+\[
+    \norm{\Delta_k}_2
+    \leq\delta\alpha\rho\sqrt{d_{\min}}.
+\]
+The factor \(\alpha\) cancels between the initial step and the stopping
+threshold, giving \cref{eq:rppr-restricted-iteration-upper}.  The work bound
+again follows from \cref{eq:rppr-work-from-iterations} and
+\(-\log(1-\mu_\star)\geq\mu_\star\).
+\end{proof}
+
+\begin{remark}[Comparison with the published bound]
+\label{rem:rppr-published-log-comparison}
+After renaming the source accuracy parameter as \(\delta\), the published
+unweighted-graph work bound has the form
+\begin{equation}
+    O\left(
+        \frac{1}{\rho\mu}
+        \log\frac{2}{\delta^2\rho^2\alpha^2d_{\min}}
+    \right),
+    \label{eq:rppr-published-work-bound}
+\end{equation}
+where \(\mu\geq\alpha\) is a lower bound on the restricted curvature.
+\Cref{thm:rppr-sharp-batch-upper,prop:rppr-restricted-contraction} prove that
+the \(\log(1/\alpha)\) contribution is an artifact of the objective-gap to
+residual conversion.  They do not, by themselves, remove
+\(\log(1/\rho)\) for arbitrary seed distributions.
+\end{remark}
+
+\subsection{A center-star lower bound}
+\label{subsec:rppr-center-star-lower}
+
+We first show that one center-seeded star simultaneously saturates the
+support-volume bound and the polynomial factors in the full-batch ISTA work
+bound.
+
+\begin{theorem}[Center-star lower bound for full-batch ISTA]
+\label{thm:rppr-center-star-lower}
+Fix
+\begin{equation}
+    0<\alpha\leq\frac14,
+    \qquad
+    0<\rho\leq\frac1{16},
+    \qquad
+    0<\delta<1.
+    \label{eq:rppr-star-parameter-range}
+\end{equation}
+Let \(G=K_{1,m}\), put the seed at its center \(c\), and choose
+\begin{equation}
+    m:=\floor{\frac1{8\rho}},
+    \qquad
+    s=e_c.
+    \label{eq:rppr-star-size}
+\end{equation}
+Then
+\begin{equation}
+    S^\star=V,
+    \qquad
+    \vol(S^\star)=2m=\Theta(1/\rho),
+    \label{eq:rppr-star-full-support}
+\end{equation}
+and full-batch ISTA requires degree-weighted work
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    \geq
+    \frac{3}{32\alpha\rho}\log\frac2\delta.
+    \label{eq:rppr-star-work-lower}
+\end{equation}
+Consequently, on this single-seed instance,
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    =
+    \Theta\left(
+        \frac{1}{\alpha\rho}
+        \left[1+\log\frac1\delta\right]
+    \right).
+    \label{eq:rppr-star-tight-order}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let \(\ell\) be any leaf and define
+\begin{equation}
+    \kappa:=\rho m,
+    \qquad
+    u_k:=\sqrt{m}\,x_{k,c},
+    \qquad
+    v_k:=m x_{k,\ell}.
+    \label{eq:rppr-star-aggregate-coordinates}
+\end{equation}
+The choice of \(m\) and \(\rho\leq1/16\) gives
+\begin{equation}
+    \frac1{16}\leq\kappa\leq\frac18,
+    \qquad
+    2m\geq\frac1{8\rho}.
+    \label{eq:rppr-kappa-range}
+\end{equation}
+Symmetry is preserved by ISTA.  Applying
+\cref{eq:rppr-ista-map} at the center and at a leaf gives
+\begin{align}
+    u_{k+1}
+    &=a(u_k+v_k)+\alpha(1-\kappa),
+    \label{eq:rppr-star-u-recurrence}\\
+    v_{k+1}
+    &=\bigl[a(u_k+v_k)-\alpha\kappa\bigr]_+.
+    \label{eq:rppr-star-v-recurrence}
+\end{align}
+In particular,
+\[
+    u_1=\alpha(1-\kappa),
+    \qquad
+    v_1=0.
+\]
+All leaves activate in the next step, because
+\begin{equation}
+    a(1-\kappa)
+    \geq\frac38\cdot\frac78
+    =\frac{21}{64}
+    >\frac18
+    \geq\kappa.
+    \label{eq:rppr-star-leaf-activation}
+\end{equation}
+Thereafter the positive part in
+\cref{eq:rppr-star-v-recurrence} is inactive.  With
+\(t_k:=u_k+v_k\), we obtain, for every \(k\geq1\),
+\begin{equation}
+    t_{k+1}
+    =(1-\alpha)t_k+\alpha(1-2\kappa).
+    \label{eq:rppr-star-t-recurrence}
+\end{equation}
+The fixed point satisfies
+\begin{equation}
+    t^\star=1-2\kappa,
+    \qquad
+    u^\star-v^\star=\alpha,
+    \label{eq:rppr-star-fixed-relations}
+\end{equation}
+and therefore
+\begin{equation}
+    u^\star=\frac{1-2\kappa+\alpha}{2},
+    \qquad
+    v^\star=\frac{1-2\kappa-\alpha}{2}>0.
+    \label{eq:rppr-star-fixed-point}
+\end{equation}
+The last inequality follows from
+\(2\kappa+\alpha\leq1/2\).  Thus every coordinate of the unique fixed point
+of ISTA is positive, proving \(S^\star=V\).  Since the star has volume
+\(2m\), \cref{eq:rppr-star-full-support} follows.
+
+Let
+\begin{equation}
+    G_0
+    :=t^\star-t_1
+    =1-2\kappa-\alpha(1-\kappa).
+    \label{eq:rppr-star-G0}
+\end{equation}
+The parameter range gives \(G_0\geq1/2\), and
+\cref{eq:rppr-star-t-recurrence} gives the exact slow mode
+\begin{equation}
+    t^\star-t_k
+    =G_0(1-\alpha)^{k-1},
+    \qquad k\geq1.
+    \label{eq:rppr-star-slow-mode}
+\end{equation}
+Moreover, \(u_k-v_k=\alpha\) for every \(k\geq2\).  Hence, for
+\(k\geq2\),
+\begin{equation}
+    u_{k+1}-u_k
+    =v_{k+1}-v_k
+    =\frac{\alpha G_0}{2}(1-\alpha)^{k-1}.
+    \label{eq:rppr-star-equal-increments}
+\end{equation}
+Using \cref{lem:rppr-increment-residual} and the definitions of \(u_k,v_k\),
+we obtain the same normalized KKT excess at the center and at every leaf:
+\begin{equation}
+    \mathcal{R}_\rho(x_k)
+    =
+    \frac{\alpha G_0}{2m}(1-\alpha)^{k-1},
+    \qquad k\geq2.
+    \label{eq:rppr-star-exact-residual}
+\end{equation}
+
+Let \(T\) be the first stopping index.  The activation inequality
+\cref{eq:rppr-star-leaf-activation} is quantitatively stronger than mere
+activation: at \(x_1\), the excess at every leaf is
+\[
+    h_\ell(x_1)
+    =
+    \alpha\rho\,
+    \frac{a(1-\kappa)-\kappa}{\kappa}
+    \geq
+    \frac{13}{8}\alpha\rho
+    >
+    \delta\alpha\rho.
+\]
+Thus \(T\geq2\).  From
+\cref{eq:rppr-relative-stopping,eq:rppr-star-exact-residual},
+\begin{equation}
+    G_0(1-\alpha)^{T-1}
+    \leq2\kappa\delta.
+    \label{eq:rppr-star-stop-inequality}
+\end{equation}
+Therefore
+\begin{equation}
+    T-1
+    \geq
+    \frac{\log(G_0/(2\kappa\delta))}
+         {-\log(1-\alpha)}
+    \geq
+    \frac{3}{4\alpha}\log\frac2\delta,
+    \label{eq:rppr-star-iteration-lower}
+\end{equation}
+where we used \(G_0\geq1/2\), \(2\kappa\leq1/4\), and
+\(-\log(1-\alpha)\leq\alpha/(1-\alpha)\leq4\alpha/3\).
+
+For every update \(k=1,\ldots,T-1\), the new iterate \(x_{k+1}\) has full
+support and hence contributes \(\vol(V)=2m\) to
+\cref{eq:rppr-batch-work}.  Consequently,
+\[
+    W_{\mathrm{batch}}(T)
+    \geq2m(T-1)
+    \geq
+    \frac1{8\rho}\cdot
+    \frac{3}{4\alpha}\log\frac2\delta,
+\]
+which is \cref{eq:rppr-star-work-lower}.  On this instance
+\(H_\rho(s)=1/m-\rho=\Theta(\rho)\), so
+\cref{thm:rppr-sharp-batch-upper} supplies the matching upper order in
+\cref{eq:rppr-star-tight-order}.
+\end{proof}
+
+\subsection{The remaining logarithm for general full-batch ISTA}
+\label{subsec:rppr-direct-sum-lower}
+
+The center star cannot force \(\log(1/\rho)\), because its initial
+degree-normalized seed density is already \(1/m=\Theta(\rho)\).  For the
+general seed-distribution setting, a direct sum separates the large active
+volume from a constant-scale slow residual.
+
+\begin{theorem}[Direct-sum lower bound]
+\label{thm:rppr-direct-sum-lower}
+Under \cref{eq:rppr-star-parameter-range}, let
+\begin{equation}
+    G=K_2\mathbin{\dot\cup}K_{1,m},
+    \qquad
+    m=\floor{\frac1{8\rho}},
+    \qquad
+    s=\frac12e_u+\frac12e_c,
+    \label{eq:rppr-direct-sum-instance}
+\end{equation}
+where \(u\) is one endpoint of \(K_2\) and \(c\) is the star center.  Then
+\(S^\star=V\), \(\vol(S^\star)=\Theta(1/\rho)\), and
+\begin{equation}
+    W_{\mathrm{batch}}(T)
+    \geq
+    \frac{3}{32\alpha\rho}
+    \log\left(\frac{1}{8\delta\rho}\right).
+    \label{eq:rppr-direct-sum-work-lower}
+\end{equation}
+Consequently, if arbitrary teleportation distributions and disconnected
+graphs are permitted, the worst-case work of the original full-batch ISTA is
+\begin{equation}
+    W_{\mathrm{batch}}^{\mathrm{worst}}(\alpha,\rho,\delta)
+    =
+    \Theta\left(
+        \frac{1}{\alpha\rho}
+        \left[1+\log\frac{1}{\delta\rho}\right]
+    \right)
+    \label{eq:rppr-batch-general-tight}
+\end{equation}
+throughout this parameter regime.
+\end{theorem}
+
+\begin{proof}
+Write \(\beta=\gamma=1/2\) for the seed mass on the \(K_2\) and star
+components, respectively.  On the star, the aggregate recurrence from
+\cref{eq:rppr-star-u-recurrence,eq:rppr-star-v-recurrence} becomes
+\begin{align}
+    u_{k+1}&=a(u_k+v_k)+\alpha(\gamma-\kappa),
+    \label{eq:rppr-half-star-u}\\
+    v_{k+1}&=\bigl[a(u_k+v_k)-\alpha\kappa\bigr]_+.
+    \label{eq:rppr-half-star-v}
+\end{align}
+All leaves activate in the second iterate because
+\begin{equation}
+    a(\gamma-\kappa)
+    \geq\frac38\left(\frac12-\frac18\right)
+    =\frac9{64}
+    >\frac18
+    \geq\kappa.
+    \label{eq:rppr-half-star-activation}
+\end{equation}
+The star fixed point satisfies
+\[
+    u^\star+v^\star=\gamma-2\kappa,
+    \qquad
+    u^\star-v^\star=\alpha\gamma,
+\]
+so
+\[
+    v^\star
+    =\frac{\gamma(1-\alpha)-2\kappa}{2}
+    \geq\frac{1/8}{2}>0.
+\]
+Thus the entire star belongs to \(S^\star\).
+
+Let \(x_k^{u},x_k^{v}\) denote the two degree-one coordinates on the
+\(K_2\) component.  We have
+\[
+    x_1^{u}=\alpha(\beta-\rho),
+    \qquad
+    x_1^{v}=0.
+\]
+The unseeded endpoint activates in the next iterate because
+\[
+    a(\beta-\rho)
+    \geq\frac38\left(\frac12-\frac1{16}\right)
+    >\frac1{16}
+    \geq\rho.
+\]
+Thereafter, with \(z_k:=x_k^{u}+x_k^{v}\),
+\begin{equation}
+    z_{k+1}
+    =(1-\alpha)z_k+\alpha(\beta-2\rho),
+    \qquad k\geq1.
+    \label{eq:rppr-K2-sum-recurrence}
+\end{equation}
+The fixed point obeys
+\[
+    z^\star=\beta-2\rho,
+    \qquad
+    x^{u,\star}-x^{v,\star}=\alpha\beta,
+\]
+and hence
+\[
+    x^{v,\star}
+    =\frac{\beta(1-\alpha)-2\rho}{2}>0.
+\]
+Thus \(S^\star=V\), and its volume is \(2m+2=\Theta(1/\rho)\).
+
+Define \(E_k:=z^\star-z_k\).  From
+\cref{eq:rppr-K2-sum-recurrence},
+\begin{equation}
+    E_k=E_1(1-\alpha)^{k-1},
+    \qquad
+    E_1=\beta-2\rho-\alpha(\beta-\rho)
+    \geq\frac{17}{64}>\frac14.
+    \label{eq:rppr-K2-error}
+\end{equation}
+For every \(k\geq2\), the difference
+\(x_k^{u}-x_k^{v}=\alpha\beta\) is fixed, so the two increments are equal.
+By \cref{lem:rppr-increment-residual}, their KKT excess is
+\begin{equation}
+    h_u(x_k)=h_v(x_k)
+    =\frac{\alpha E_k}{2}.
+    \label{eq:rppr-K2-excess}
+\end{equation}
+Global termination therefore requires \(E_T\leq2\delta\rho\), and hence
+\begin{equation}
+    T-1
+    \geq
+    \frac{\log(E_1/(2\delta\rho))}{-\log(1-\alpha)}
+    \geq
+    \frac{3}{4\alpha}
+    \log\left(\frac{1}{8\delta\rho}\right).
+    \label{eq:rppr-direct-sum-iteration-lower}
+\end{equation}
+From the second iterate onward, the star has full support.  Exactly as in the
+last paragraph of the proof of \cref{thm:rppr-center-star-lower},
+\[
+    W_{\mathrm{batch}}(T)
+    \geq2m(T-1),
+\]
+which proves \cref{eq:rppr-direct-sum-work-lower}.  The matching worst-case
+upper bound in \cref{eq:rppr-batch-general-tight} follows from
+\cref{thm:rppr-sharp-batch-upper}, because
+\(H_\rho(s)\leq1\) and \(\vol(S^\star)\leq1/\rho\) on every unweighted
+instance.
+\end{proof}
+
+\begin{remark}[What the direct sum does not prove]
+\label{rem:rppr-connected-single-seed-open}
+\Cref{thm:rppr-direct-sum-lower} uses two seeded components.  It proves that
+\(\log(1/\rho)\) is necessary for the general full-batch theorem, but it does
+not prove the same logarithm for connected graphs with a single-node seed.
+The center star already proves the tight polynomial factor
+\(1/(\alpha\rho)\) in that narrower setting.  Whether a connected,
+single-seed construction forces the additional \(\log(1/\rho)\) for
+full-batch ISTA remains open here.
+\end{remark}
+
+\subsection{A logarithm-free local coordinate implementation}
+\label{subsec:rppr-threshold-coordinate}
+
+The logarithm in \cref{thm:rppr-direct-sum-lower} comes from repeatedly
+scanning the already-active star while the small \(K_2\) component is still
+converging.  A coordinate method need not perform those stale scans.
+
+\begin{algorithm}[t]
+\caption{Residual-thresholded coordinate ISTA}
+\label{alg:rppr-threshold-coordinate}
+\begin{algorithmic}[1]
+\REQUIRE \(G,s,\alpha,\rho,\delta\), with \(\delta\in(0,1]\)
+\STATE \(x\gets0\), \(\nabla f(x)\gets-\alpha D^{-1/2}s\)
+\STATE Initialize a local queue with coordinates in \(\supp(s)\) satisfying
+       \(h_i(x)\geq\delta\alpha\rho\)
+\WHILE{the queue is nonempty}
+    \STATE Remove any queued coordinate \(i\) that still satisfies
+           \(h_i(x)\geq\delta\alpha\rho\))
+    \STATE \(\Delta\gets\sqrt{d_i}\,h_i(x)\)
+    \STATE \(x_i\gets x_i+\Delta\)
+    \STATE Update \(\nabla f(x)\gets\nabla f(x)+\Delta Qe_i\) on
+           \(\{i\}\cup\mathcal{N}(i)\))
+    \STATE Refresh the queue status of \(i\) and its neighbors
+\ENDWHILE
+\RETURN \(x\)
+\end{algorithmic}
+\end{algorithm}
+
+Only the selected adjacency list is scanned.  Since the initial negative
+gradient is supported on \(\supp(s)\) and a coordinate update changes the
+gradient only at that coordinate and its neighbors, the violating set can be
+maintained without a global graph scan.  We assume that \(s\) is supplied in
+sparse form; otherwise, an \(O(\nnz(s))\) input-initialization cost must be
+added to the work below.
+
+\begin{theorem}[Coordinate work bound]
+\label{thm:rppr-threshold-coordinate-work}
+Algorithm~\ref{alg:rppr-threshold-coordinate} terminates with
+\begin{equation}
+    \nabla f(x)\leq0,
+    \qquad
+    \mathcal{R}_\rho(x)\leq\delta\alpha\rho,
+    \qquad
+    0\leq x\leq x^\star.
+    \label{eq:rppr-coordinate-certificate}
+\end{equation}
+Its total adjacency-list work satisfies
+\begin{equation}
+    W_{\mathrm{coord}}
+    :=\sum_{\text{updates at }i}d_i
+    \leq\frac{1}{\delta\alpha\rho}.
+    \label{eq:rppr-coordinate-work-bound}
+\end{equation}
+For constant \(\delta\), this is
+\(O(1/(\alpha\rho))\), with no logarithmic factor.
+\end{theorem}
+
+\begin{proof}
+First, the invariants in \cref{eq:rppr-coordinate-certificate} are preserved.
+Suppose coordinate \(i\) is selected.  Before the update,
+\[
+    \nabla_i f(x)
+    =-\sqrt{d_i}\bigl(\alpha\rho+h_i(x)\bigr).
+\]
+Since \(Q_{ii}=c\) and all off-diagonal entries of \(Q\) are nonpositive,
+\begin{align}
+    \nabla_i f(x+\Delta e_i)
+    &\leq
+    -\sqrt{d_i}\bigl(\alpha\rho+h_i(x)\bigr)
+    +c\sqrt{d_i}h_i(x) \notag\\
+    &=-\sqrt{d_i}
+       \bigl(\alpha\rho+(1-c)h_i(x)\bigr)<0.
+    \label{eq:rppr-coordinate-gradient-invariant}
+\end{align}
+The gradients at neighboring coordinates only decrease, and all remaining
+gradients are unchanged.  Hence \(\nabla f(x)\leq0\) is invariant.
+
+Next, \(I-Q=a(I+B)\) is entrywise nonnegative, so the map
+\(\mathcal{T}_\rho\) in \cref{eq:rppr-ista-map} is monotone in the
+coordinatewise order.  If \(0\leq x\leq x^\star\), then
+\[
+    \mathcal{T}_\rho(x)
+    \leq\mathcal{T}_\rho(x^\star)=x^\star.
+\]
+The coordinate update sets
+\(x_i\) to \([\mathcal{T}_\rho(x)]_i\), while leaving all other coordinates
+unchanged; the selected violation makes this new value at least \(x_i\).
+Induction from \(x=0\) proves \(0\leq x\leq x^\star\), and in particular the
+method never activates a coordinate outside \(S^\star\).
+
+It remains to bound work.  Define the nonnegative residual-mass potential
+\begin{equation}
+    \Phi(x)
+    :=\sum_{j\in V}d_jr_j(x)
+    =-\left\langle D^{1/2}\mathbf{1},\nabla f(x)\right\rangle.
+    \label{eq:rppr-coordinate-potential}
+\end{equation}
+The initialization gives \(\Phi(0)=\alpha\).  An update at \(i\) changes the
+potential by the exact amount
+\begin{align}
+    \Phi(x+\Delta e_i)-\Phi(x)
+    &=-\Delta\left\langle D^{1/2}\mathbf{1},Qe_i\right\rangle \notag\\
+    &=-\alpha d_i h_i(x),
+    \label{eq:rppr-coordinate-potential-drop}
+\end{align}
+where \cref{eq:rppr-degree-eigenvector} and
+\(\Delta=\sqrt{d_i}h_i(x)\) were used.  Every selected coordinate satisfies
+\(h_i(x)\geq\delta\alpha\rho\), and hence decreases \(\Phi\) by at least
+\(\delta\alpha^2\rho d_i\).  Since \(\Phi\geq0\), summing these decreases
+gives
+\[
+    \delta\alpha^2\rho
+    \sum_{\text{updates at }i}d_i
+    \leq\Phi(0)=\alpha,
+\]
+which is \cref{eq:rppr-coordinate-work-bound}.  At termination no coordinate
+violates the threshold, giving the remaining statement in
+\cref{eq:rppr-coordinate-certificate}.
+\end{proof}
+
+For very small \(\delta\), the \(1/\delta\) dependence in
+\cref{eq:rppr-coordinate-work-bound} is avoidable by using coordinate updates
+only as a coarse localization phase.
+
+\begin{corollary}[Coarse-to-fine logarithm-free-in-\(\rho\) bound]
+\label{cor:rppr-coarse-to-fine}
+Run Algorithm~\ref{alg:rppr-threshold-coordinate} first with relative
+threshold \(1\), obtaining \(\bar{x}\) with
+\(\mathcal{R}_\rho(\bar{x})\leq\alpha\rho\).  Starting from \(\bar{x}\), run
+full-batch ISTA until
+\(\mathcal{R}_\rho(x)\leq\delta\alpha\rho\).  Then
+\begin{equation}
+    W_{\mathrm{coarse\mbox{-}to\mbox{-}fine}
+    }
+    \leq
+    \frac{1}{\alpha\rho}
+    +
+    \frac{2}{\rho}
+    \left\lceil
+        \frac{\log(1/\delta)}{-\log(1-\alpha)}
+    \right\rceil
+    =
+    O\left(
+        \frac{1+\log(1/\delta)}{\alpha\rho}
+    \right).
+    \label{eq:rppr-coarse-to-fine-work}
+\end{equation}
+In particular, for constant \(\delta\) the work is
+\(O(1/(\alpha\rho))\).
+\end{corollary}
+
+\begin{proof}
+The first phase costs at most \(1/(\alpha\rho)\) by
+\cref{thm:rppr-threshold-coordinate-work}.  Its proof also gives
+\(0\leq\bar{x}\leq x^\star\) and \(\nabla f(\bar{x})\leq0\), so the monotone
+batch-ISTA invariants continue to hold from this warm start.  Applying
+\cref{lem:rppr-kkt-contraction} repeatedly gives
+\[
+    \mathcal{R}_\rho(x_k)
+    \leq(1-\alpha)^k\alpha\rho.
+\]
+The displayed number of cleanup iterations is therefore sufficient.  Each
+cleanup iteration has work at most \(2\vol(S^\star)\leq2/\rho\), proving
+\cref{eq:rppr-coarse-to-fine-work}.
+\end{proof}
+
+\subsection{Tightness status and remaining boundary}
+\label{subsec:rppr-tightness-status}
+
+The results above support the following precise conclusions.
+
+\begin{enumerate}[leftmargin=*]
+    \item The solution-volume guarantee
+    \(\vol(S^\star)\leq1/\rho\) is tight up to a universal constant, even for
+    an unweighted center-seeded star.
+
+    \item For the original full-batch ISTA and general teleportation
+    distributions, the worst-case degree-weighted work is
+    \[
+        \Theta\left(
+            \frac{1}{\alpha\rho}
+            \left[1+\log\frac{1}{\delta\rho}\right]
+        \right).
+    \]
+    The \(\log(1/\alpha)\) in the published upper bound is unnecessary; the
+    \(\log(1/\rho)\) is necessary in this general batch setting.
+
+    \item For a center-seeded star, the exact order is instead
+    \[
+        \Theta\left(
+            \frac{1}{\alpha\rho}
+            \left[1+\log\frac1\delta\right]
+        \right),
+    \]
+    because the initial degree-normalized seed density is already
+    \(\Theta(\rho)\).
+
+    \item The logarithm in \(1/\rho\) is not intrinsic to solving the
+    regularized problem to the relative certificate
+    \cref{eq:rppr-relative-stopping}.  Thresholded coordinate ISTA costs
+    \(O(1/(\delta\alpha\rho))\), and the coarse-to-fine method costs
+    \(O((1+\log(1/\delta))/(\alpha\rho))\).
+
+    \item If \(\delta\) is a fixed constant and the desired unregularized PPR
+    accuracy is \(\varepsilon_{\mathrm{ppr}}\), choosing
+    \(\rho=\Theta(\varepsilon_{\mathrm{ppr}})\) in
+    \cref{eq:rppr-rho-delta-choice} gives
+    \(O(1/(\alpha\varepsilon_{\mathrm{ppr}}))\) coordinate work.
+
+    \item These are algorithm-specific results.  Under an explicit-vector
+    output model, the star gives the problem-level output-size obstruction
+    \(\Omega(1/\rho)\).  No \(\Omega(1/(\alpha\rho))\) lower bound for every
+    local first-order method is proved here.  Indeed, the possibility of
+    accelerated sparse methods with improved \(\alpha\)-dependence motivates
+    the open problem of \citet{fountoulakis2022open} and the accelerated
+    constructions of \citet{martinezrubio2023accelerated}.  Establishing the
+    correct local-oracle lower bound remains separate from the batch-ISTA
+    tightness theorem above.
+\end{enumerate}
