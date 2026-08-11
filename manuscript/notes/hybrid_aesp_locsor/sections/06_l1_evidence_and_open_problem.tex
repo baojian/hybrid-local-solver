@@ -1,0 +1,179 @@
+\section{What the 2026 $\ell_1$ paper contributes--and what it does not}
+\label{sec:l1-paper}
+
+\citet{fountoulakis2026complexity} studies
+\begin{equation}
+  F_\rho(x)
+  :=f(x)+\alpha\rho\norm{D^{1/2}x}_1.
+  \label{eq:rppr}
+\end{equation}
+Its minimizer has support $S_\rho^\star$ satisfying
+\begin{equation}
+  \vol(S_\rho^\star)\leq\frac1\rho.
+  \label{eq:rppr-support}
+\end{equation}
+For standard FISTA, the paper gives two complementary messages.
+
+\paragraph{Positive conditional result.}
+The analysis runs FISTA on a slightly over-regularized objective, uses the
+support at the smaller regularization as a core, and charges transient
+activations outside the core through KKT slacks.  If all spurious activations
+are confined to a boundary set $B$, the work is bounded by
+\begin{equation}
+  \bigO\!\left(
+    \frac1{\rho\sqrt\alpha}\log\frac{\alpha}{\eps_{\rm obj}}
+    +\frac{\sqrt{\vol(B)}}{\rho\alpha^{3/2}}
+  \right).
+  \label{eq:fmr-work}
+\end{equation}
+The paper also gives an explicit no-percolation condition ensuring that FISTA
+iterates remain in a core plus its immediate boundary.
+
+\paragraph{Negative result.}
+On a seed-at-leaf star, the optimal support contains only the seed leaf, but
+FISTA overshoots the seed coordinate and activates the degree-$m$ center after
+two extrapolated steps.  It therefore incurs $\Omega(m)$ work before reaching
+a fixed target, whereas ISTA remains local.  This shows that small optimal
+support alone does not control accelerated transient work.
+
+\paragraph{Implication for the AESP hybrid.}
+The support guarantee \cref{eq:rppr-support} does not directly prove
+$\Lambda_J=\bigO(1/\eps)$ for unregularized AESP.  AESP solves changing shifted
+quadratics without the soft-thresholding map that enforces the RPPR support.
+The KKT-slack argument also refers to an optimum of an over-regularized
+composite problem, whereas AESP inner activity is governed by the shifted
+smooth gradient.  The valid transfer is methodological: over-regularization,
+margin separation, and a no-percolation induction identify the type of
+structural lemma needed.  \Cref{lem:aesp-confinement} is one explicit smooth
+AESP analogue, but it remains conditional on a bounded path norm and a graph
+exposure inequality.
+
+\section{Why a universal accelerated theorem is still open}
+\label{sec:open-gap}
+
+The conversation initially moved too quickly from ``AESP is fast early'' to
+``the whole hybrid has $\bigO(1/(\sqrt\alpha\eps))$ work.''  The missing step is
+not convergence of the SOR tail; that part is closed.  The missing step is a
+graph-independent upper bound on the work needed for AESP to reach the
+handoff.
+
+There are three distinct obstacles.
+
+\paragraph{Outer iterations are not local work.}
+The AESP theorem gives $\softO(1/\sqrt\alpha)$ outer stages, but each stage can
+process a large active volume.  One must control $\Lambda_t$ or another
+stagewise local-work quantity.
+
+\paragraph{Objective convergence does not control weighted-$\ell_1$ mass
+without a support factor.}
+Since $f$ is $1$-smooth,
+\begin{equation}
+  \norm{g(x)}_2^2\leq2(f(x)-f^\star).
+  \label{eq:gradient-gap}
+\end{equation}
+If $\Omega_x:=\supp(g(x))$, then
+\begin{equation}
+  M(x)
+  \leq\sqrt{\vol(\Omega_x)}\norm{g(x)}_2
+  \leq\sqrt{2\vol(\Omega_x)(f(x)-f^\star)}.
+  \label{eq:mass-gap-support}
+\end{equation}
+Thus a function-gap rate becomes a mass rate only after controlling the
+explored support volume--the very locality issue under study.
+
+\paragraph{Momentum can cause high-degree transient exploration.}
+The star construction of \citet{fountoulakis2026complexity} rules out the
+principle that acceleration automatically preserves a small support envelope.
+The active repository's separate coarse-forward-push/SOR analysis also finds
+a long-spider obstruction for a fixed optimal-SOR FIFO tail.  These results do
+not disprove the AESP burn-in hybrid, but they prevent a proof that ignores
+transient graph geometry.
+
+The central open statement can therefore be written cleanly as follows.
+
+\begin{conjecture}[Early AESP locality]
+\label{conj:early-locality}
+For the AESP burn-in stopped at
+$U_J\leq\alpha^{3/2}\eps/(1+\alpha)$, there exists a graph-independent constant
+$K$ such that
+\begin{equation}
+  \max_{t\leq J}
+  \frac{\overline{\vol}(S_t)}{\gamma_t}
+  \leq\frac{K}{\eps}.
+  \label{eq:early-locality-conjecture}
+\end{equation}
+\end{conjecture}
+
+The available papers do not prove \cref{conj:early-locality}.  A valid paper
+claim should therefore present either:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+  \item a proof of \cref{conj:early-locality};
+  \item a weaker structural theorem such as
+        \cref{cor:confinement-total};
+  \item a modified AESP mechanism that enforces confinement; or
+  \item a different burn-in amortization that bypasses $\Lambda_t$.
+\end{enumerate}
+
+\section{Possible mechanisms for closing the locality gap}
+\label{sec:paths}
+
+The following paths are serious research directions, but none is claimed as a
+completed universal proof.
+
+\subsection{Over-regularized AESP burn-in}
+
+Introduce a temporary $\ell_1$ term with parameter $\rho\asymp\eps$ in the
+burn-in shifted subproblems, use a slightly larger regularization to create a
+uniform KKT margin, and switch to the unregularized safe tail after the core is
+identified.  The hoped-for chain is
+\[
+  \vol(S_\rho^\star)=\bigO(1/\eps)
+  \quad+\quad
+  \text{no percolation}
+  \quad\Longrightarrow\quad
+  \Lambda_J=\bigO(1/\eps).
+\]
+The technical challenge is to preserve Catalyst's inexact proximal guarantee
+while the temporary composite objective differs from the final unregularized
+quadratic.
+
+\subsection{Restart controlled by the original gradient mass}
+
+At the end of each AESP stage, evaluate
+$M(x^{(t)})=\norm{D^{1/2}g(x^{(t)})}_1$ and keep the best checkpoint.  Reject an
+outer extrapolation that causes a prescribed mass explosion, or reset to
+$x^{(t)}$.  A useful inner transfer inequality can be obtained because the
+proximal term vanishes at the center and the inner weighted-$\ell_1$ gradient
+contracts.  What remains is to prove that the restart frequency does not
+destroy the $\softO(1/\sqrt\alpha)$ outer rate.
+
+\subsection{Priority inner updates}
+
+Replace FIFO LOCAPPR by the density rule \cref{eq:priority-rule}.  Under a
+support envelope, \cref{eq:priority-amortization} gives a direct work charge
+to the active ratio.  This may trade a priority-queue logarithm for a cleaner
+locality theorem.
+
+\subsection{Adaptive $\ell_2$ inner certificate}
+
+The AESP paper notes that the conservative mixed-norm stopping condition can
+force a coordinate threshold of order $\eps^2$ near the final target.  During
+burn-in one can test the local process at progressively finer thresholds and
+stop as soon as
+\begin{equation}
+  \norm{\nabla h_t(z)}_2
+  \leq\sqrt{2(\alpha+\eta)\phi_t}.
+  \label{eq:l2-inner-certificate}
+\end{equation}
+Because $\sqrt{\phi_t}$ rather than $\phi_t$ appears, this route may recover a
+linear $1/\eps$ dependence.  The missing issue is evaluating and maintaining
+the global $\ell_2$ certificate at genuinely local cost.
+
+\subsection{Verified accelerated tail}
+
+After an AESP checkpoint, one can experimentally try a block of optimal SOR
+or LOCCH and accept it only if an observable residual norm decreases while a
+weighted-mass envelope remains controlled.  A failed block is rolled back and
+the algorithm returns to AESP or safe LOCSOR.  This is a practical state
+machine, but its strongest theorem is a safeguarded/verified bound rather than
+an unconditional theorem for plain LOCCH.
