@@ -8,14 +8,14 @@ consistent.
 
 At stage $t$, the inner queue is driven by $\nabla h_t$, but the final PageRank
 certificate and both switch diagnostics use the original gradient $g=\nabla
-f$.  Since
+f$. Since
 \begin{equation}
   \nabla h_t(x)
   =g(x)+\eta(x-y^{(t-1)}),
   \label{eq:inner-original-gradient}
 \end{equation}
-one may recover the original gradient locally by subtracting the proximal
-term.  At the handoff:
+one may recover the original gradient by subtracting the proximal term. At the
+handoff:
 \begin{enumerate}[label=(\roman*),leftmargin=2em]
   \item retain the selected checkpoint $x_J$;
   \item discard $y^{(J)}$, $x^{(J)}-x^{(J-1)}$, and all inner momentum/state;
@@ -23,6 +23,19 @@ term.  At the handoff:
   \item enqueue precisely the coordinates satisfying
         $\abs{q_{J,u}}\geq\alpha\eps d_u$.
 \end{enumerate}
+
+Because $Q$ is graph local,
+\begin{equation}
+  \supp(g_J)
+  \subseteq
+  \supp(x_J)\cup N(\supp(x_J))\cup\{s\}.
+  \label{eq:handoff-gradient-support}
+\end{equation}
+Thus a sparse AESP checkpoint permits local queue construction by scanning the
+checkpoint support and its boundary. This scan is not free: its adjacency-list
+cost must be included in $B_J$ or reported as a separate outer/handoff
+initialization term. The Path-I theorem controls inner evolving-set work and
+retains this qualification explicitly.
 
 The Work-I residual, if needed for a shared implementation, is
 \begin{equation}
@@ -44,9 +57,26 @@ $R=q_u$ and performs
   \label{eq:implementation-qv}
 \end{align}
 After every changed coordinate, queue membership is tested against
-$\abs{q_v}\geq\alpha\eps d_v$.  The pushed vertex is re-enqueued if its
+$\abs{q_v}\geq\alpha\eps d_v$. The pushed vertex is re-enqueued if its
 retained residual is active; for $\omega=1$ it is zero immediately, but this
 rule is required by a shared SOR implementation with $\omega\neq1$.
+
+\subsection{Composite RPPR handoff}
+
+For the regularized hybrid, store the fixed-point residual
+$R_\rho(x)=x-\mathcal T_\rho(x)$ rather than using the smooth gradient alone.
+The certified termination test is
+\begin{equation}
+  \norm{D^{-1/2}R_\rho(x)}_\infty
+  \leq\alpha\eps_{\rm sol},
+  \label{eq:implementation-rppr-stop}
+\end{equation}
+not merely $\norm{D^{-1/2}R_\rho(x)}_\infty\leq\eps_{\rm sol}$. At the
+composite handoff, discard Catalyst momentum, optionally project to the
+nonnegative orthant, recompute the proximal residual exactly on the known
+support and boundary, and account for that scan. A sparse implementation can
+then update only coordinates whose thresholding status may change, but a
+universal bound on the cumulative boundary work is still open.
 
 \subsection{Diagnostics to record}
 
@@ -58,9 +88,13 @@ Every run should record at least:
         $\Lambda_t$;
   \item $f(x^{(t)})$ when an accurate reference value is available, the
         deterministic upper bound $U_t$, and $M(x^{(t)})$;
-  \item switch stage, switch reason, and handoff checkpoint;
+  \item switch stage, switch reason, handoff checkpoint, and all queue
+        construction/outer initialization work;
   \item tail work, maximum tail active volume, accepted/rejected safeguarded
-        over-relaxation steps, and final certificate.
+        over-relaxation steps, and final certificate;
+  \item for RPPR, $\rho$, weighted proximal-residual norms, current support and
+        boundary volume, and any spurious activations relative to a reference
+        support.
 \end{enumerate}
 
 \section{Experimental program suggested by the theory}
@@ -72,29 +106,39 @@ not merely the final wall-clock ranking.
 \paragraph{Early locality profiles.}
 For each graph and source, plot
 $\vol(S_t^{(k)})$, $\overline{\vol}(S_t)$, $\gamma_t$, $\Lambda_t$, original
-gradient mass $M(x^{(t)})$, and error against cumulative work.  This directly
+gradient mass $M(x^{(t)})$, and error against cumulative work. This directly
 tests whether the visually favorable part of Figure~4 coincides with
 $\Lambda_t=\bigO(1/\eps)$.
 
 \paragraph{Switch rules.}
 Compare the deterministic objective rule \cref{eq:objective-switch}, the
-residual-mass rule \cref{eq:mass-switch}, and an empirical marginal-gain rule.
-All variants must return under the same final certificate.
+residual-mass rule \cref{eq:mass-switch}, the Path-I balanced target
+\cref{eq:path-I-delta-star}, and an empirical marginal-gain rule. All variants
+must return under the same final certificate and charge the handoff scan.
 
 \paragraph{Tail solvers.}
 Compare safe $\omega=1$ LOCSOR, safeguarded $\omega_\star$, plain
-$\omega_\star$, and a verified LOCCH block.  Report both work and the maximum
+$\omega_\star$, and a verified LOCCH block. Report both work and the maximum
 active-set volume so that a faster iteration count is not mistaken for local
 work improvement.
 
+\paragraph{Composite RPPR.}
+Compare zero-start local ISTA, FISTA, composite Catalyst followed by full
+ISTA, and a localized proximal-coordinate tail. Report the fixed-point
+residual certificate from \cref{cor:rppr-residual-certificate}, not only an
+objective gap. Separate accelerated iteration savings from support and
+boundary exploration, and include over-regularized variants suggested by
+\cref{lem:kkt-charge}.
+
 \paragraph{Adversarial graph families.}
 Include center- and leaf-seeded stars, paths, long spiders, and
-core--boundary--exterior graphs.  These instances isolate residual-mass
+core--boundary--exterior graphs. These instances isolate residual-mass
 settling, diffusive propagation, and high-degree transient activation.
 
 \paragraph{Ablations.}
 Measure the effect of AESP-LOCAPPR versus AESP-LOCGD, FIFO versus priority
-selection, momentum restart, and exact versus adaptive inner certificates.
+selection, momentum restart, exact versus adaptive inner certificates,
+positive-part projection for RPPR, and safe versus aggressive tails.
 
 \section{Corrections and notation discipline}
 \label{sec:corrections}
@@ -103,7 +147,7 @@ The following corrections are essential when this note is migrated into the
 active paper or code.
 
 \begin{enumerate}[leftmargin=2.2em]
-  \item \textbf{Do not overload $C_t$.}  Use
+  \item \textbf{Do not overload $C_t$.} Use
         \[
           F_t:=f(x^{(t)})-f^\star,
           \qquad
@@ -113,21 +157,24 @@ active paper or code.
         \]
         A claim $M_t=\bigO(1/\eps)$ is not the locality bound needed for the
         total theorem.
-  \item \textbf{Separate the SOR ranges.}  Global objective convergence holds
-        for $0<\omega<2$.  Universal signed weighted-$\ell_1$ decrease holds
-        only for $0<\omega<1+\alpha$.  The optimal parameter can lie outside
+  \item \textbf{Separate the SOR ranges.} Global objective convergence holds
+        for $0<\omega<2$. Universal signed weighted-$\ell_1$ decrease holds
+        only for $0<\omega<1+\alpha$. The optimal parameter can lie outside
         that interval.
   \item \textbf{Use the original gradient for switching and final stopping.}
         The inner queue is driven by $\nabla h_t$; the PageRank certificate is
         driven by $g=\nabla f$.
-  \item \textbf{Reset momentum at the handoff.}  Catalyst momentum cannot be
+  \item \textbf{Reset momentum at the handoff.} Catalyst momentum cannot be
         reused as Chebyshev or SOR state.
   \item \textbf{Keep $q_{\rm cat}$ and $\sqrt{q_{\rm cat}}$ distinct.}
         Here $q_{\rm cat}=\alpha/(1-\alpha)$, while the accelerated scale is
         $\sqrt{\alpha/(1-\alpha)}$.
-  \item \textbf{Use a product/log argument for sequential LOCAPPR.}  Per-update
+  \item \textbf{Use a product/log argument for sequential LOCAPPR.} Per-update
         contractions multiply; replacing the product by an unqualified
         $1-\tau\sum_j\gamma_j$ expression can be invalid.
   \item \textbf{Do not import RPPR support results as unregularized AESP
-        support theorems.}  The objectives and activation mechanisms differ.
+        support theorems.} The objectives and activation mechanisms differ.
+  \item \textbf{Distinguish smooth and proximal residuals.} For RPPR, the
+        fixed-point residual $R_\rho$ is the optimality object, and the
+        solution-error certificate contains the factor $1/\alpha$.
 \end{enumerate}
