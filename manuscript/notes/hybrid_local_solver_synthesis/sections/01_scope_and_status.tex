@@ -9,7 +9,11 @@ the locally evolving set framework of \citet{zhou2024iterative}, the AESP
 framework of \citet{huang2025accelerated}, and the recent analysis of
 classical acceleration for \(\ell_1\)-regularized PageRank by
 \citet{fountoulakis2026complexity}.  Catalyst supplies the outer inexact
-accelerated proximal-point machinery \citep{lin2018catalyst}.
+accelerated proximal-point machinery \citep{lin2018catalyst}.  An earlier
+project draft supplied additional motivation and partial derivations for local
+ISTA, proximal coordinate descent, support-volume control, and composite
+Catalyst; its reusable statements are audited rather than treated as a
+published source.
 
 The note uses one scoped PageRank normalization in order to state and prove
 results.  This normalization is not asserted to be the repository-wide
@@ -69,7 +73,8 @@ worst-case local bound is
 \).
 The hybrid proposal exploits the experimentally favorable early AESP regime
 and delegates the final high-accuracy cleanup to a direct local relaxation
-method.
+method.  For RPPR, the analogous target is
+\(\softO(1/(\rho\sqrt\alpha))\), preserving the \(1/\rho\) sparsity scale.
 
 \subsection{Main conclusions of the synthesis}
 
@@ -90,7 +95,13 @@ An objective-gap handoff at
 \(f(x_J)-f^\star\leq\alpha^{3/2}\eps/(1+\alpha)\) gives
 \(\Work_{\rm tail}\leq1/(\sqrt{\alpha}\eps)\) for \(\omega=1\).
 & \statusproved & \Cref{thm:objective-handoff-tail} \\
-AESP reaches the above objective-gap scale in
+A master handoff inequality holds for every finite Phase-I method.
+& \statusproved & \Cref{thm:master-handoff} \\
+Direct AESP/SOR balancing gives
+\(\mathcal O(R/(\alpha^{3/4}\eps))\) inner-plus-tail work.
+& \statusproved, parameterized & \Cref{cor:black-box-rate}; the realized
+  AESP ratio \(R\) remains in the bound. \\
+AESP reaches the objective-gap switch in
 \(\softO(1/\sqrt{\alpha})\) outer stages.
 & \statussource\ plus algebra & \Cref{prop:aesp-handoff-stage} \\
 The full hybrid has
@@ -104,8 +115,19 @@ A no-percolation condition plus an
 \(\mathcal O(1/\eps)\)-volume gradient envelope implies the missing early
 AESP locality bound for LOCGD or priority LocAPPR.
 & \statusconditional & \Cref{thm:confinement-total} \\
-The same accelerated work bound holds on every graph without a confinement or
-comparable structural mechanism.
+For RPPR, the unit-step proximal map is a weighted
+\((1-\alpha)\)-contraction and its fixed-point residual divided by \(\alpha\)
+certifies solution error.
+& \statusproved & \Cref{lem:rppr-prox-contraction,cor:rppr-prox-certificate} \\
+A finite composite Catalyst burn-in followed by full ISTA converges from every
+handoff.
+& \statusproved & \Cref{thm:rppr-hybrid-convergence} \\
+The graph-independent RPPR work bound
+\(\softO(1/(\rho\sqrt\alpha))\) follows from Catalyst compatibility alone.
+& \statusconjecture & Correctness is closed; arbitrary-warm-start locality is
+  open in \cref{sec:composite-rppr-hybrid}. \\
+The same accelerated unregularized work bound holds on every graph without a
+confinement or comparable structural mechanism.
 & \statusconjecture & \Cref{sec:open-problems} \\
 The TB-Science task should officially require improving a frozen AESP
 baseline, while the task author calibrates against all standalone local
@@ -115,10 +137,11 @@ baselines.
 \end{tabularx}
 \end{table}
 
-Two cautions are essential.  First, the objective-gap handoff proves a fast
+Three cautions are essential.  First, the objective-gap handoff proves a fast
 \emph{tail}; it does not by itself bound the degree-weighted work spent by the
-AESP burn-in.  Second, the recent star lower bound for classical FISTA shows
-that small optimal support does not prevent transient activation of a
-high-degree boundary vertex \citep{fountoulakis2026complexity}.  A complete
-worst-case theorem must therefore control the path of active sets, not only the
-final solution.
+AESP burn-in.  Second, Path I is graph-structure-free but remains
+\(R\)-parameterized and must charge outer initialization work.  Third, the
+recent star lower bound for classical FISTA shows that small optimal support
+does not prevent transient activation of a high-degree boundary vertex
+\citep{fountoulakis2026complexity}.  A complete worst-case theorem must
+therefore control the path of active sets, not only the final solution.
