@@ -1,0 +1,182 @@
+\section{A black-box handoff theorem and three proof paths}
+\label{sec:black-box-tradeoff}
+
+The preceding analysis gives the target tail and the conditional optimal
+end-to-end theorem.  This section adds a third level of guarantee that uses
+only the published AESP direct amortization and the safe LOCSOR tail.  It is
+free of graph-structural and sign assumptions, but retains the run-dependent
+AESP quantity $R$.
+
+\subsection{Master handoff inequality}
+
+Let $M(x)=\norm{D^{1/2}g(x)}_1$ as in
+\cref{eq:mass-functional}.
+
+\begin{theorem}[Master handoff inequality]
+\label{thm:master-handoff}
+Let an arbitrary Phase-I method return $x_J$ after degree-weighted work $B_J$.
+If Phase II is LOCSOR with $\omega=1$, then
+\begin{equation}
+\begin{split}
+  \Work_{\rm hybrid}(J)
+  \leq B_J+\min\Biggl\{
+    &\frac{(1+\alpha)[f(x_J)-f^\star]}
+          {\alpha^2\eps^2},\\
+    &\frac{1+\alpha}{2\alpha^2\eps}M(x_J)
+  \Biggr\}.
+  \label{eq:master-handoff}
+\end{split}
+\end{equation}
+No residual-sign, confinement, or support-monotonicity assumption is imposed
+on Phase I.
+\end{theorem}
+
+\begin{proof}
+Add $B_J$ to the objective-tail bound
+\cref{eq:general-tail-work} at $\omega=1$ and to the mass-tail bound
+\cref{eq:mass-tail-work}, then take the smaller certificate.
+\end{proof}
+
+The theorem is an optimal-stopping principle: the accelerated phase pays to
+reduce one or both handoff potentials, and the monotone phase pays only for
+the certified remaining budget.
+
+\subsection{Path I: direct AESP amortization}
+
+Set
+\begin{equation}
+  c_A:=1-\rho_A,
+  \qquad
+  \phi_t:=\frac{1+\alpha}{18}c_A^t,
+  \label{eq:black-box-phi}
+\end{equation}
+and initialize each AESP stage at
+$z_t^{(0)}=y^{(t-1)}$.  Recall
+$C_{t,0}=\norm{D^{1/2}\grad h_t(z_t^{(0)})}_1$, and define
+\begin{equation}
+  R_J:=\max_{1\leq t\leq J}\frac{C_{t,0}}{\alpha}.
+  \label{eq:black-box-R}
+\end{equation}
+For a single seed, $C_{1,0}=\alpha$.  Let $B_J^{\rm in}$ denote the inner
+adjacency-list work covered by the AESP theorem; queue construction and outer
+sparse-state maintenance are additional unless already charged.
+
+\begin{proposition}[AESP work to an arbitrary objective handoff]
+\label{prop:black-box-burnin}
+Fix $\Delta>0$, and let $J\geq1$ be the first stage satisfying
+$U_J\leq\Delta$, where $U_t$ is given by
+\cref{eq:aesp-objective-bound}.  Then
+\begin{equation}
+  B_J^{\rm in}
+  \leq
+  \frac{3000R_J^2\sqrt{\alpha(1-\alpha)}}{\Delta}.
+  \label{eq:black-box-burnin}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For $\eta=1-2\alpha$, the inner contraction parameter is $\tau=2/3$.
+The second term in \cref{eq:aesp-inner-tolerance} gives
+\[
+  \eps_t\geq\frac{2(1-\alpha)\phi_t}{C_{t,0}}.
+\]
+The direct-amortization branch of \cref{eq:aesp-stage-work} therefore yields
+\begin{equation}
+  \Work_t^{\rm in}
+  \leq
+  \frac{C_{t,0}}{\tau\eps_t}
+  \leq
+  \frac{C_{t,0}^2}{2\tau(1-\alpha)\phi_t}
+  \leq
+  \frac{R_J^2\alpha^2}{2\tau(1-\alpha)\phi_t}.
+  \label{eq:black-box-stage}
+\end{equation}
+Since $J$ is the first crossing, $U_J>c_A\Delta$.  From the two source
+schedules,
+\[
+  \frac{U_J}{\phi_J}
+  =\frac{3600(1-\alpha)c_A}{\alpha},
+\]
+so
+\begin{equation}
+  \phi_J>\frac{\alpha\Delta}{3600(1-\alpha)}.
+  \label{eq:black-box-phiJ}
+\end{equation}
+The schedule is geometric and hence
+$\sum_{t=1}^J\phi_t^{-1}\leq(\rho_A\phi_J)^{-1}$.
+Sum \cref{eq:black-box-stage}, apply
+\cref{eq:black-box-phiJ}, and substitute
+$\rho_A=0.9\sqrt{\alpha/(1-\alpha)}$ and $\tau=2/3$.
+\end{proof}
+
+\begin{corollary}[Graph-structure-free, $R$-parameterized hybrid rate]
+\label{cor:black-box-rate}
+Under the conditions of \cref{prop:black-box-burnin},
+\begin{equation}
+  \Work_{\rm hybrid}^{\rm in+tail}
+  \leq
+  \frac{3000R_J^2\sqrt{\alpha(1-\alpha)}}{\Delta}
+  +\frac{(1+\alpha)\Delta}{\alpha^2\eps^2}.
+  \label{eq:black-box-tradeoff}
+\end{equation}
+If an available bound $\widehat R\geq R_J$ is valid up to the handoff, then
+choosing
+\begin{equation}
+  \Delta^\star
+  :=
+  \sqrt{3000}\,
+  \frac{\widehat R\,\alpha^{5/4}(1-\alpha)^{1/4}}
+       {\sqrt{1+\alpha}}\,\eps
+  \label{eq:black-box-switch}
+\end{equation}
+gives
+\begin{equation}
+  \Work_{\rm hybrid}^{\rm in+tail}
+  \leq
+  2\sqrt{3000}\,
+  \frac{\widehat R(1-\alpha)^{1/4}\sqrt{1+\alpha}}
+       {\alpha^{3/4}\eps}
+  =\mathcal O\!\left(\frac{\widehat R}{\alpha^{3/4}\eps}\right),
+  \label{eq:black-box-rate}
+\end{equation}
+provided the nontrivial switch lies below the initial certificate.
+\end{corollary}
+
+\begin{proof}
+The AESP certificate gives $f(x_J)-f^\star\leq\Delta$.
+Combine \cref{prop:black-box-burnin} with the objective branch of
+\cref{thm:master-handoff}.  The resulting expression is $a/\Delta+b\Delta$;
+minimization gives \cref{eq:black-box-switch,eq:black-box-rate}.
+\end{proof}
+
+\begin{remark}[Meaning of ``unconditional'']
+\Cref{eq:black-box-tradeoff} uses no graph-structural, confinement, or
+residual-sign assumption.  The simplified rate retains the realized AESP
+ratio $R_J$, for which no input-only universal bound is currently known, and
+it covers inner-plus-tail work rather than any separately uncharged outer
+initialization.  Thus Path I is a closed instance-wise theorem, not an
+absolute $\mathcal O(1/(\alpha^{3/4}\eps))$ theorem for all instances.
+\end{remark}
+
+\begin{remark}[Black-box tightness]
+Given only a burn-in estimate $a/\Delta$ and a tail estimate $b\Delta$, the
+best handoff equals $2\sqrt{ab}$.  Hence the exponent $\alpha^{-3/4}$ cannot be
+improved by retuning this black-box switch alone.  Reaching
+$\alpha^{-1/2}$ requires a stronger burn-in argument, such as the early
+locality theorem of \cref{thm:conditional-total}.
+\end{remark}
+
+\subsection{The three paths in one view}
+
+The resulting proof landscape is:
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Black-box balancing:} closed and graph-structure-free, but
+        $R$-parameterized, giving \cref{eq:black-box-rate}.
+  \item \textbf{Early locality/confinement:} the trajectory theorem plus
+        $\Lambda_t=\mathcal O(1/\eps)$ gives the target
+        $\softO(1/(\sqrt\alpha\eps))$ rate.
+  \item \textbf{Cumulative boundary charging:} over-regularization and KKT
+        slack can replace hard confinement by a summable spurious-work term;
+        adapting the margin and path-length arguments to AESP's changing
+        shifted subproblems remains open.
+\end{enumerate}
