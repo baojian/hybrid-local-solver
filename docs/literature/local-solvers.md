@@ -23,7 +23,7 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 - Citation: Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian
   Zhou. “Accelerated Evolving Set Processes for Local PageRank Computation.”
-  *Advances in Neural Information Processing Systems 39*, 2025.
+  *Advances in Neural Information Processing Systems 38*, 2025.
 - DOI/arXiv/URL: <https://doi.org/10.48550/arXiv.2510.08010>;
   arXiv `2510.08010v4`.
 - Local PDF:
