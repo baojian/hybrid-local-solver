@@ -48,6 +48,30 @@ Project-wide mathematical definitions and research decisions belong in
 `docs/`. Keep the active manuscript consistent with those documents, the
 implementation, and the tests.
 
+## Standalone research notes
+
+Publication-oriented but not-yet-integrated derivations live under
+`manuscript/notes/`. These notes may use a scoped normalization while a
+repository-wide mathematical decision remains open, and they must label source
+results, proved statements, conditional statements, empirical observations,
+and open conjectures separately.
+
+The AESP--LOCSOR synthesis is in:
+
+```text
+manuscript/notes/hybrid_aesp_locsor/
+```
+
+Build it independently with:
+
+```bash
+make -C manuscript/notes/hybrid_aesp_locsor
+```
+
+It is deliberately not input by `manuscript/main.tex`. Migrate material into
+the active paper only after reconciling it with the residual convention,
+existing CF-Push analysis, implementation, and tests.
+
 ## Imported source workspaces
 
 Exact external LaTeX sources used to prepare agent-oriented reader editions
