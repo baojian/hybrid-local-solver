@@ -12,6 +12,43 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-12: rigorous AESP--LOCSOR synthesis
+
+Recorded as a standalone note in
+`manuscript/notes/hybrid_aesp_locsor/`. The note reconstructs the project
+conversation in a common PageRank normalization and separates source results,
+new proofs, conditional statements, empirical observations, corrections, and
+open claims.
+
+Closed statements:
+
+- after any finite valid AESP handoff, local SOR with fixed
+  `0 < omega < 2` terminates under the final degree-normalized gradient
+  certificate;
+- with the proof-safe tail `omega = 1`, an objective-gap handoff
+  `f(x_J)-f* <= alpha^(3/2) * eps / (1+alpha)` gives tail work
+  `O(1/(sqrt(alpha) * eps))`;
+- the weighted-gradient-mass handoff
+  `||D^(1/2) grad f(x_J)||_1 = O(alpha^(3/2))` gives the same tail order and
+  bounds every tail active-set volume;
+- the complete hybrid has a trajectory-dependent bound
+  `O~(Lambda_J/sqrt(alpha)) + O(1/(sqrt(alpha) * eps))`.
+
+Corrections and open item:
+
+- the universal signed weighted-`l1` monotone SOR range is
+  `0 < omega < 1+alpha`, not all of `(0,2)`; objective descent still holds on
+  `(0,2)`;
+- the graph-uniform target total work follows if the early AESP locality
+  factor satisfies `Lambda_J = O(1/eps)`;
+- that early-locality statement is not proved for every graph. The note gives
+  a support-envelope lemma and an explicit no-percolation condition under
+  which it does hold, and explains why the 2026 RPPR/FISTA support results do
+  not transfer automatically to unregularized AESP.
+
+The note is intentionally not input by the active manuscript while the
+repository-wide residual convention remains open.
+
 ## 2026-08-02: APPR worst-case work is `Theta(1/(alpha * eps))`
 
 Recorded in `manuscript/sections/appr_lower_bound.tex`. The classical ACL
