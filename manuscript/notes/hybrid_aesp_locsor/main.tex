@@ -1,11 +1,11 @@
 % Standalone research note for the hybrid-local-solver project.
 %
 % This document is a curated, source-grounded reconstruction of the project
-% discussion on combining AESP with a local SOR tail.  It is not a verbatim
-% chat transcript.  Incorrect intermediate claims are corrected, and every
-% statement is classified as source-derived, proved here, conditional, or
-% open.  The note intentionally does not modify the active manuscript's
-% project-wide residual convention, which remains an open repository decision.
+% discussion on combining AESP with local refinement. It is not a verbatim
+% chat transcript. Incorrect intermediate claims are corrected, and every
+% statement is classified as source-derived, proved here, parameterized,
+% conditional, or open. The note intentionally does not modify the active
+% manuscript's project-wide residual convention.
 
 \documentclass[11pt]{article}
 
@@ -60,8 +60,8 @@
 \newcommand{\statusopen}{\textbf{Open}}
 \newcommand{\statusobservation}{\textbf{Empirical}}
 
-\title{Hybrid Local Acceleration for Personalized PageRank:\\
-A Rigorous Research Note on AESP Burn-In and LOCSOR Cleanup}
+\title{Hybrid Local Acceleration for PageRank and Sparse Graph Optimization:\\
+A Rigorous Research Note on AESP Burn-In and Local Refinement}
 \author{Baojian Zhou\\
 \small Working research note for \texttt{hybrid-local-solver}}
 \date{August 2026}
@@ -71,41 +71,34 @@ A Rigorous Research Note on AESP Burn-In and LOCSOR Cleanup}
 
 \begin{abstract}
 This note formalizes a hybrid local method suggested by two complementary
-lines of work on personalized PageRank.  The locally evolving-set framework
+lines of work on personalized PageRank. The locally evolving-set framework
 shows how Gauss--Seidel/SOR, gradient descent, Chebyshev, and heavy-ball
 iterations can be localized, but its accelerated variants face
-momentum-localization errors.  The AESP framework instead places Catalyst
+momentum-localization errors. The AESP framework instead places Catalyst
 acceleration outside short monotone local solves and exhibits particularly
-fast early-stage convergence.  The resulting design principle is to use AESP
+fast early-stage convergence. The resulting design principle is to use AESP
 as an early residual/objective compressor and then reset momentum and finish
-with a direct local coordinate method.
+with a direct local method.
 
-We prove three statements that do not require a locality assumption.  First,
-for any finite AESP handoff point, local SOR with any fixed relaxation
-parameter in $(0,2)$ terminates under the standard degree-normalized gradient
-certificate.  Second, with the proof-safe choice $\omega=1$, if the AESP
-handoff objective gap is at most
-$\alpha^{3/2}\eps/(1+\alpha)$, then the entire SOR tail costs at most
-$1/(\sqrt\alpha\eps)$ degree-weighted operations.  Third, a stronger
-weighted-$\ell_1$ handoff condition gives the same tail order and uniformly
-bounds every tail active-set volume.  Combining these facts with the source
-AESP work theorem yields a rigorous trajectory-dependent bound
-\[
-  W_{\rm hybrid}
-  \leq
-  \softO\!\left(\frac{\Lambda_J}{\sqrt\alpha}\right)
-  +\frac{1}{\sqrt\alpha\eps},
-\]
-where $\Lambda_J$ is the largest early-stage AESP locality factor.  Hence the
-desired $\softO(1/(\sqrt\alpha\eps))$ total work follows whenever
-$\Lambda_J=\bigO(1/\eps)$ during burn-in.  We give explicit confinement and
-support-envelope conditions under which this implication is valid, and we
-explain why the available literature does not yet establish the condition for
-all graphs.  In particular, the latest $\ell_1$-regularized PageRank analysis
-shows that momentum can activate a high-degree boundary node even when the
-optimal support is tiny.  Thus unconditional convergence is established, but
-a graph-uniform accelerated local-work theorem remains an open lemma rather
-than a completed claim.
+For unregularized PageRank, we prove finite convergence from every signed
+handoff, objective-gap and weighted-residual-mass tail bounds, and a master
+handoff inequality. Combining the direct AESP amortization with the SOR tail
+gives an unconditional instance-wise
+$\bigO(R/(\alpha^{3/4}\eps))$ inner-plus-tail bound, parameterized by the
+run-dependent AESP ratio $R$. A sharper trajectory analysis yields
+$\softO(1/(\sqrt\alpha\eps))$ under an early-locality condition; explicit
+support-envelope and no-percolation conditions are given, but the premise is
+not known for every graph. A KKT-slack charging lemma provides a third,
+boundary-sensitive proof route.
+
+For $\ell_1$-regularized PageRank, Catalyst is naturally compatible with the
+weighted soft-thresholding term. We prove that the unit-step proximal map is a
+$(1-\alpha)$ contraction in degree-weighted $\ell_\infty$ and $\ell_1$ norms,
+and that its fixed-point residual divided by $\alpha$ certifies solution
+error. Thus a finite composite Catalyst burn-in followed by momentum-free
+ISTA is unconditionally convergent. The remaining open problem is a
+graph-independent local-work bound from an arbitrary accelerated warm start,
+not correctness of the hybrid itself.
 \end{abstract}
 
 \tableofcontents
@@ -115,7 +108,9 @@ than a completed claim.
 \input{sections/03_algorithm_and_tail}
 \input{sections/04_relaxation_and_handoff}
 \input{sections/05_trajectory_and_locality}
+\input{sections/06a_black_box_tradeoff}
 \input{sections/06_l1_evidence_and_open_problem}
+\input{sections/06b_composite_rppr_hybrid}
 \input{sections/07_implementation_and_experiments}
 \input{sections/08_relation_conclusion_appendix}
 
