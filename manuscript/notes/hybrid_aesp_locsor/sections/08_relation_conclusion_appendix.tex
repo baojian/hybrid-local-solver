@@ -4,23 +4,23 @@
 The active repository already contains
 \texttt{manuscript/sections/cf\_push\_two\_stage\_analysis.tex}, which studies a
 different two-stage method: coarse monotone forward push followed by fixed
-SOR.  That note proves finite convergence and several handoff facts, and it
+SOR. That note proves finite convergence and several handoff facts, and it
 also records a long-spider obstruction to a graph-uniform accelerated work
 bound for the current fixed-relaxation FIFO method.
 
-The present note does not supersede that analysis.  Its Phase I is AESP rather
-than coarse forward push, and its principal handoff is an objective gap.  The
+The present note does not supersede that analysis. Its Phase I is AESP rather
+than coarse forward push, and its principal handoff is an objective gap. The
 long-spider obstruction remains relevant to claims about a plain optimal-SOR
 tail, but it does not by itself refute \cref{thm:objective-tail}: after a
 sufficiently small objective-gap handoff, even $\omega=1$ has the stated tail
-budget.  The unresolved question moves to whether AESP reaches that handoff
+budget. The unresolved question moves to whether AESP reaches that handoff
 with $\softO(1/(\sqrt\alpha\eps))$ local work on every graph.
 
-\section{Conclusions}
+\section{Conclusions and publication-level claim boundary}
 \label{sec:conclusion}
 
-The hybrid idea is mathematically coherent and at least convergent.  The most
-robust proof architecture is
+The hybrid idea is mathematically coherent and at least convergent. For the
+unregularized problem, the most robust proof architecture is
 \[
   \boxed{
   \text{coarse AESP burn-in}
@@ -31,26 +31,48 @@ robust proof architecture is
 \]
 The SOR tail is fully controlled: an objective-gap handoff gives
 $\bigO(1/(\sqrt\alpha\eps))$ tail work, and a weighted-gradient-mass handoff
-additionally controls every tail active set.  The overall algorithm has a
-rigorous trajectory-dependent accelerated bound.  The exact remaining theorem
-is an early-stage AESP locality bound such as
-$\Lambda_J=\bigO(1/\eps)$, or an alternative mechanism that provides the same
-burn-in work without assuming confinement.
+additionally controls every tail active set. The master inequality in
+\cref{thm:master-handoff} makes the handoff tradeoff explicit.
 
-For a publication, the central claim should therefore be stated in one of two
-ways.  A conservative version proves the trajectory theorem and a structural
-confinement corollary, supported by experiments showing that the condition is
-mild in practice.  A stronger version first closes the universal early-locality
-lemma.  It would be incorrect at the current stage to present the universal
-$\softO(1/(\sqrt\alpha\eps))$ bound as already proved solely from the existing
-AESP and locally evolving-set theorems.
+Three levels of total-work result should be kept distinct. Path I gives the
+closed, graph-structure-free but run-dependent rate
+$\bigO(R/(\alpha^{3/4}\eps))$. Path II reaches the target
+$\softO(1/(\sqrt\alpha\eps))$ under an early-locality factor or support
+envelope. Path III replaces hard confinement by boundary charging, but still
+requires shifted-margin and localized path-length lemmas. Calling Path I
+``unconditional'' is appropriate only with the explicit qualification that
+$R$ remains in the bound and that outer initialization work must be charged.
+
+For RPPR, the proof architecture becomes
+\[
+  \boxed{
+  \text{composite Catalyst burn-in}
+  \;\longrightarrow\;
+  \text{momentum reset}
+  \;\longrightarrow\;
+  \text{proximal-gradient cleanup}.}
+\]
+The weighted proximal map is contractive, so correctness and convergence are
+closed. What remains open is preserving the $1/\rho$ locality scaling from an
+arbitrary accelerated warm start. This distinction is important: the hybrid
+resolves the algorithmic compatibility question, but not yet the full COLT
+2022 degree-work target.
+
+A publication can therefore make a strong and accurate claim today: introduce
+the acceleration--locality phase transition, prove the master handoff and the
+$R$-parameterized rate, prove the conditional optimal theorem, establish the
+composite convergence extension, and support the switch empirically against
+AESP, LOCSOR, optimal SOR, and LOCCH. A universal
+$\softO(1/(\sqrt\alpha\eps))$ or
+$\softO(1/(\rho\sqrt\alpha))$ theorem should be claimed only after the
+corresponding locality lemma is closed.
 
 \appendix
 
 \section{A compact dependency map}
 \label{app:dependency}
 
-The desired total theorem decomposes into the following implications:
+The unregularized target theorem decomposes into the following implications:
 \begin{align*}
   &\text{AESP inner certificates}
     &&\Longrightarrow\quad
@@ -66,8 +88,33 @@ The desired total theorem decomposes into the following implications:
       W_{\rm hybrid}
       =\softO\!\left(\frac{K+1}{\sqrt\alpha\eps}\right).
 \end{align*}
-Only the third implication's premise is currently unresolved in a
-fully graph-uniform form.
+Only the third implication's premise is currently unresolved in a fully
+graph-uniform form. Independently, the direct AESP amortization and the
+objective tail imply the Path-I tradeoff
+\[
+  W_{\rm hybrid}^{\rm in+tail}
+  \leq
+  \frac{3000R_J^2\sqrt{\alpha(1-\alpha)}}{\Delta}
+  +\frac{(1+\alpha)\Delta}{\alpha^2\eps^2},
+\]
+whose optimal black-box balance is
+$\bigO(R_J/(\alpha^{3/4}\eps))$.
+
+For RPPR, the closed dependency chain is
+\begin{align*}
+  &\text{coordinatewise nonexpansive soft thresholding}
+    &&\Longrightarrow\quad
+      \mathcal T_\rho\text{ is a weighted }(1-\alpha)\text{-contraction},\\
+  &x_\rho^\star=\mathcal T_\rho(x_\rho^\star)
+    &&\Longrightarrow\quad
+      \norm{x-x_\rho^\star}_{D,\infty}
+      \leq\alpha^{-1}\norm{R_\rho(x)}_{D,\infty},\\
+  &\text{finite Catalyst handoff plus full ISTA}
+    &&\Longrightarrow\quad
+      x^{(k)}\to x_\rho^\star.
+\end{align*}
+The missing implication is from this iteration contraction to a
+$\softO(1/(\rho\sqrt\alpha))$ degree-weighted local-work bound.
 
 \section{Useful inequalities}
 \label{app:inequalities}
@@ -81,7 +128,9 @@ For reference, the analysis repeatedly uses:
   \item for $0<z<1$, $(1-z)^k\leq e^{-zk}$;
   \item for a thresholded set $S$ and support envelope $\Omega$,
         the average density on $S$ is at least the average density on
-        $\Omega$, yielding \cref{eq:support-envelope-bound}.
+        $\Omega$, yielding \cref{eq:support-envelope-bound};
+  \item for $a,b>0$,
+        $\min_{\Delta>0}(a/\Delta+b\Delta)=2\sqrt{ab}$.
 \end{enumerate}
 
 \begin{thebibliography}{9}
@@ -103,10 +152,38 @@ Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian Zhou.
   volume~38, 2025.
 \newblock arXiv:2510.08010v4.
 
+\bibitem[Fountoulakis and Yang(2022)]{fountoulakis2022open}
+Kimon Fountoulakis and Shenghao Yang.
+\newblock Open problem: Running time complexity of accelerated
+  $\ell_1$-regularized {PageRank}.
+\newblock In \emph{Proceedings of the 35th Conference on Learning Theory},
+  2022.
+
+\bibitem[Mart{\'i}nez-Rubio et~al.(2023)Mart{\'i}nez-Rubio, Wirth, and
+  Pokutta]{martinezrubio2023accelerated}
+David Mart{\'i}nez-Rubio, Elias Wirth, and Sebastian Pokutta.
+\newblock Accelerated and sparse algorithms for approximate personalized
+  {PageRank} and beyond.
+\newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
+  2023.
+
 \bibitem[Fountoulakis and Mart{\'i}nez-Rubio(2026)]{fountoulakis2026complexity}
 Kimon Fountoulakis and David Mart{\'i}nez-Rubio.
 \newblock Complexity of classical acceleration for
   $\ell_1$-regularized {PageRank}.
 \newblock \emph{arXiv preprint arXiv:2602.21138v2}, 2026.
+
+\bibitem[Lin et~al.(2018)Lin, Mairal, and Harchaoui]{lin2018catalyst}
+Hongzhou Lin, Julien Mairal, and Zaid Harchaoui.
+\newblock Catalyst acceleration for first-order convex optimization: From
+  theory to practice.
+\newblock \emph{Journal of Machine Learning Research}, 18(212):1--54, 2018.
+
+\bibitem[Fountoulakis et~al.(2019)Fountoulakis, Roosta-Khorasani, Shun,
+  Cheng, and Mahoney]{fountoulakis2019variational}
+Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang Cheng, and
+Michael W. Mahoney.
+\newblock Variational perspective on local graph clustering.
+\newblock \emph{Mathematical Programming}, 174:553--573, 2019.
 
 \end{thebibliography}

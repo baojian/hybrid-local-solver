@@ -12,6 +12,42 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-12: black-box tradeoff and composite RPPR extension
+
+The standalone note in `manuscript/notes/hybrid_aesp_locsor/` now includes the
+latest parts of the project discussion rather than treating the 2026 RPPR paper
+only as structural evidence.
+
+New closed statements:
+
+- for every finite handoff, total work is bounded by Phase-I work plus the
+  smaller of the objective-gap and weighted-gradient-mass LOCSOR tails;
+- using the direct AESP inner amortization and optimizing the objective handoff
+  gives an instance-wise
+  `O(R / (alpha^(3/4) * epsilon))` inner-plus-tail bound;
+- this Path-I result is unconditional with respect to graph structure,
+  confinement, and residual signs, but remains parameterized by the realized
+  AESP ratio `R` and excludes uncharged outer initialization work;
+- the RPPR unit-step proximal map is a `(1 - alpha)` contraction in
+  degree-weighted infinity and one norms;
+- its fixed-point residual divided by `alpha` certifies solution error;
+- a finite composite Catalyst burn-in followed by full ISTA is therefore
+  unconditionally convergent from every handoff.
+
+The three proof paths are now separated explicitly:
+
+1. black-box AESP/SOR balancing: closed and `R`-parameterized;
+2. early locality/support confinement: conditionally gives
+   `O_tilde(1 / (sqrt(alpha) * epsilon))`;
+3. KKT-slack cumulative boundary charging: the abstract charge is proved, but
+   a shifted-subproblem margin and a localized inner path-length lemma are
+   still missing for AESP.
+
+For RPPR, correctness is no longer the open point. The open point is the
+`O_tilde(1 / (rho * sqrt(alpha)))` degree-work theorem from an arbitrary
+accelerated warm start. Zero-start support monotonicity cannot be silently
+reused after Catalyst overshoot.
+
 ## 2026-08-12: rigorous AESP--LOCSOR synthesis
 
 Recorded as a standalone note in

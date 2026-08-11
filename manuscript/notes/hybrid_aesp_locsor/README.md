@@ -1,10 +1,11 @@
-# AESP--LOCSOR hybrid research note
+# AESP--local-refinement hybrid research note
 
 This directory contains a standalone LaTeX research note that reconstructs the
-project discussion on an AESP burn-in followed by a local SOR cleanup. It is a
-curated mathematical synthesis rather than a verbatim chat transcript:
-source theorems, new derivations, conditional statements, empirical
-observations, corrections, and open claims are labeled separately.
+project discussion on an AESP/Catalyst burn-in followed by momentum-free local
+refinement. It is a curated mathematical synthesis rather than a verbatim chat
+transcript: source theorems, new derivations, parameterized results,
+conditional statements, empirical observations, corrections, and open claims
+are labeled separately.
 
 Build from this directory with:
 
@@ -12,19 +13,23 @@ Build from this directory with:
 make
 ```
 
-The note embeds its three-item bibliography so that it can compile without a
-BibTeX executable. It deliberately does not modify the active manuscript or
-adopt a repository-wide residual convention. Its PageRank normalization and
-stopping certificate are scoped to the note and follow the symmetric
-quadratic used in the AESP paper.
+The note embeds its bibliography so that it compiles without a BibTeX
+executable. It deliberately does not modify the active manuscript or adopt a
+repository-wide residual convention. Its PageRank normalization and stopping
+certificates are scoped to the note.
 
-The main proved results in the note are:
+The main established results are:
 
-- finite convergence of the AESP-to-LOCSOR hybrid after every finite handoff;
-- an `O(1/(sqrt(alpha) * epsilon))` LOCSOR tail after a certified
-  objective-gap or weighted-gradient-mass handoff;
-- a trajectory-dependent end-to-end work theorem;
-- a confinement-based corollary that yields the target total work under an
-  explicit early-stage locality condition.
+- finite convergence of AESP-to-LOCSOR after every finite signed handoff;
+- objective-gap and weighted-gradient-mass LOCSOR tail bounds;
+- a master handoff inequality for arbitrary Phase-I methods;
+- an unconditional, run-dependent
+  `O(R / (alpha^(3/4) * epsilon))` AESP-plus-LOCSOR bound;
+- a trajectory-dependent theorem and a confinement-based
+  `O_tilde(1 / (sqrt(alpha) * epsilon))` corollary;
+- weighted contraction and residual-to-solution certificates for the RPPR
+  proximal map, proving convergence of a composite Catalyst-to-ISTA hybrid.
 
-The graph-uniform early-AESP locality lemma remains open and is stated as such.
+The graph-uniform early-AESP locality lemma and the graph-independent RPPR
+local-work theorem from an arbitrary accelerated warm start remain open and
+are stated as such.
