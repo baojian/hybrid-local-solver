@@ -4,18 +4,65 @@ Experiment drivers live here rather than under `src/baselines/`. They may
 download graph data, trigger Numba compilation, and run for a long time, so
 they are not collected by pytest.
 
+## Offline reproduction smoke
+
+Run the lightweight reproduction path with:
+
+```bash
+make experiments
+```
+
+This runs a deterministic, center-seeded APPR star case without downloading
+data. It verifies the proved strict lower bound and the classical upper bound
+on degree-weighted work, then writes a validated result bundle to
+`results/raw/reproduction_smoke.json`. The output records the graph, source,
+`alpha`, `eps_appr`, random seed, exact stopping rule, solver parameters, work,
+metrics, and code version.
+
+`make reproduce` is the offline-friendly repository reproduction target. It
+runs the tests and lint checks, the smoke experiment, the synthetic APPR figure
+generation, and the manuscript build.
+
+## Full dataset sweeps
+
+The real-graph sweeps may download data and run for a long time. Run both with:
+
+```bash
+make full-experiments
+```
+
+The individual `make eps-sweep` and `make omega-sweep` targets remain
+available for running one sweep at a time.
+
+Both sweeps write validated, per-source JSON records by default under
+`results/raw/`; pass `--output PATH` to choose another destination. Each record
+contains the exact implemented queue/frontier termination rule, an
+`epsilon_name`, the intended residual certificate, and whether the returned
+iterate actually achieved that certificate. Rankings exclude a solver at an
+epsilon unless it certifies every sampled source. This matters for legacy
+accelerated baselines whose empty active frontier need not imply their intended
+coordinate residual threshold. The remaining cross-method rankings are still
+exploratory because the repository has not adopted conversions between APPR
+and gradient-residual certificates.
+
+The sweep configuration also records the reference-solution routine and
+tolerance used for reported L1 errors, together with the coordinate conversion
+applied to APPR output.
+
 Run the epsilon sweep with:
 
 ```bash
 uv run python -m experiments.run_eps_sweep \
-    --dataset com-dblp --alpha 0.05 --num-sources 10
+    --dataset com-dblp --alpha 0.05 --num-sources 10 \
+    --output results/raw/eps-sweep-com-dblp.json
 ```
 
 Run the SOR omega sweep with:
 
 ```bash
 uv run python -m experiments.run_omega_sweep \
-    --dataset com-dblp --alpha 0.05
+    --dataset com-dblp --alpha 0.05 \
+    --output results/raw/omega-sweep-com-dblp.json
 ```
 
 Check the APPR lower-bound constructions under several legal active-vertex
