@@ -1,0 +1,132 @@
+\section{Open proof obligations and recommended research order}
+\label{sec:open-problems}
+
+The hybrid is convergent, and its tail can be placed on the desired accelerated
+work scale.  The unresolved issue is the locality of the AESP burn-in.  The
+following research order minimizes logical dependence and empirical risk.
+
+\subsection{Priority 1: establish or refute early AESP locality}
+
+\begin{problem}[Early-locality lemma]
+\label{prob:early-locality}
+For the AESP run truncated at the objective-gap handoff stage \(J\), prove a
+bound of the form
+\begin{equation}
+    \max_{t\leq J}\Lambda_t
+    \leq\frac{K}{\eps},
+    \label{eq:open-early-locality}
+\end{equation}
+with graph-independent or structurally interpretable \(K\); alternatively,
+construct a graph family showing that no such uniform bound is possible for
+the current FIFO AESP implementation.
+\end{problem}
+
+A useful intermediate target is a boundary-sensitive summation rather than a
+uniform maximum:
+\begin{equation}
+    \sum_{t=1}^{J}\Work_t^{\rm in}
+    \leq
+    \softO\!\left(
+       \frac{1}{\sqrt\alpha\eps}
+       +\mathsf{BoundaryOverhead}
+    \right).
+    \label{eq:boundary-sensitive-target}
+\end{equation}
+This would parallel the core-plus-spurious-work decomposition of
+\citet{fountoulakis2026complexity} and may be more realistic than requiring
+all active sets to remain uniformly small.
+
+\subsection{Priority 2: adapt KKT slack to changing shifted systems}
+
+The over-regularized RPPR proof obtains a uniform inactive-coordinate margin
+by comparing two regularization levels.  An AESP analogue would need to
+address three new effects:
+\begin{enumerate}[leftmargin=2em]
+\item the linear term changes with the outer center \(y^{(t-1)}\);
+\item the inner objective is shifted by \(\eta I\);
+\item the relevant activation threshold \(\eps_t\) changes with the Catalyst
+      accuracy schedule.
+\end{enumerate}
+A successful proof should identify a common core or a controlled sequence of
+cores, show that low-margin coordinates can be charged to an
+\(\mathcal O(1/\eps)\)-volume region, and sum clearly inactive activations
+using the outer geometric contraction.
+
+\subsection{Priority 3: analyze the online FIFO advantage}
+
+AESP-LOCAPPR is empirically stronger than AESP-LOCGD because it immediately
+reuses coordinate updates.  The support-to-locality proof in
+\cref{lem:support-to-locality} is direct for simultaneous LOCGD and for a
+normalized priority rule, but not for arbitrary FIFO ordering.  The missing
+queue lemma should quantify how much stale queue entries can inflate
+\begin{equation}
+    \frac{\overline{\vol}(S_t)}{\gamma_t}
+    \label{eq:fifo-locality-object}
+\end{equation}
+relative to the support envelope.  A constant-factor comparison would preserve
+the practical implementation while closing the theorem.
+
+\subsection{Priority 4: improve the inner accuracy certificate}
+
+The current \(1/\eps^2\) bound uses the mixed
+\(\ell_\infty\)-by-\(\ell_1\) certificate
+\cref{eq:mixed-norm-certificate}.  A local or incrementally maintainable
+\(\ell_2\) certificate would have the desired square-root relation
+\begin{equation}
+    \norm{\grad h_t(z)}_2
+    =\mathcal O(\sqrt{\phi_t}),
+    \label{eq:l2-certificate-target}
+\end{equation}
+so a final \(\phi_t=\mathcal O(\eps^2)\) would require an
+\(\mathcal O(\eps)\) gradient scale rather than
+\(\mathcal O(\eps^2)\).  The challenge is to verify this without scanning the
+whole graph.
+
+\subsection{Priority 5: over-relaxation and accelerated tails}
+
+There are three distinct questions:
+\begin{enumerate}[leftmargin=2em]
+\item Can the safeguard of \cref{def:safeguarded-sor} accept
+      \(\omega_\star\) on most practical updates while preserving the mass
+      theorem?
+\item Can a block or sweep-level potential prove accelerated local behavior
+      even though one-coordinate weighted \(\ell_1\) mass can increase?
+\item Can a short verified LocCH block be used as an optional branch, with
+      rollback to the proved \(\omega=1\) tail when its locality envelope or
+      residual reduction fails?
+\end{enumerate}
+The current project already contains a rigorous long-spider obstruction for a
+different two-stage method---coarse monotone forward push followed by fixed
+optimal SOR.  That result should not be silently transferred to AESP, but it
+warns that fixed-relaxation spectral intuition alone cannot prove a universal
+local accelerated bound.
+
+\subsection{Priority 6: benchmark implementation}
+
+The TB-Science task can be built in parallel with the theoretical work once a
+private hybrid reference reliably beats frozen AESP.  The implementation order
+should be:
+\begin{enumerate}[leftmargin=2em]
+\item freeze the AESP baseline and graph-access instrumentation;
+\item implement the proof-oriented hybrid and exact stopping certificate;
+\item calibrate a hidden suite against all standalone baselines;
+\item run frontier-agent pilots and set the speed threshold;
+\item submit the concise proposal and disclose provenance;
+\item only then expose the task repository and tests required by the Harbor
+      format.
+\end{enumerate}
+
+\subsection{A precise claim that should not yet appear in the paper}
+
+The following unconditional statement is not supported by the current proof:
+\begin{equation}
+    \text{``AESP--LocSOR has }
+    \softO(1/(\sqrt\alpha\eps))
+    \text{ work on every graph.''}
+    \label{eq:not-yet-claim}
+\end{equation}
+The manuscript-ready statement is instead
+\cref{thm:trajectory-total}, followed by the conditional
+\cref{thm:conditional-total} and an explicit description of the missing
+locality lemma.  This distinction is central to the scientific credibility of
+the project.

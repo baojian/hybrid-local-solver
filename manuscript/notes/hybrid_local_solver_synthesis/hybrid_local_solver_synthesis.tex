@@ -1,0 +1,109 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue]{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{problem}[theorem]{Problem}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\prox}{\operatorname{prox}}
+\newcommand{\grad}{\nabla}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\softO}{\widetilde{\mathcal O}}
+\newcommand{\Work}{\mathsf{Work}}
+\newcommand{\AESP}{\textsc{AESP}}
+\newcommand{\LOCSOR}{\textsc{LocSOR}}
+\newcommand{\LOCAPPR}{\textsc{LocAPPR}}
+\newcommand{\LOCGD}{\textsc{LocGD}}
+\newcommand{\LOCCH}{\textsc{LocCH}}
+\newcommand{\LOCHB}{\textsc{LocHB}}
+\newcommand{\APPR}{\textsc{APPR}}
+\newcommand{\FISTA}{\textsc{Fista}}
+\newcommand{\ISTA}{\textsc{Ista}}
+\newcommand{\statusproved}{\textcolor{teal!70!black}{\textbf{Proved}}}
+\newcommand{\statussource}{\textcolor{blue!70!black}{\textbf{Source result}}}
+\newcommand{\statusconditional}{\textcolor{orange!80!black}{\textbf{Conditional}}}
+\newcommand{\statusconjecture}{\textcolor{red!70!black}{\textbf{Open / conjectural}}}
+\newcommand{\statusempirical}{\textcolor{purple!70!black}{\textbf{Empirical}}}
+
+\title{Hybrid Accelerated Local Solvers for Personalized PageRank\\
+\large A Rigorous Technical Synthesis, Proof Audit, and TB-Science Task Specification}
+\author{Baojian Zhou\\
+\small Working research note for the \texttt{hybrid-local-solver} project}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note converts a sequence of research discussions into a self-contained,
+claim-audited technical document.  It reviews the locally evolving set
+framework and the Accelerated Evolving Set Process (AESP), formalizes a
+proof-oriented hybrid that uses AESP as an early-stage accelerator and
+Gauss--Seidel local SOR as a tail solver, and separates unconditional
+convergence statements from conditional accelerated work bounds.  The main
+rigorous conclusions are: (i) the AESP-to-LocSOR hybrid converges from every
+finite handoff point; (ii) an objective-gap handoff gives a tail work bound
+\(\mathcal O(1/(\sqrt{\alpha}\eps))\); and (iii) the full end-to-end bound
+\(\softO(1/(\sqrt{\alpha}\eps))\) follows whenever the early AESP locality
+factor is \(\mathcal O(1/\eps)\).  We also correct a previously misstated
+weighted-\(\ell_1\) SOR range, derive an exact safeguard for over-relaxation,
+and explain how the confinement machinery for \(\ell_1\)-regularized
+PageRank suggests a route to the missing AESP locality lemma.  The final part
+turns the research problem into an objectively verifiable Terminal-Bench
+Science task whose official target is to improve a frozen AESP baseline on a
+hidden suite, while retaining broader baseline comparisons for task-author
+calibration.
+\end{abstract}
+
+\tableofcontents
+
+\input{sections/01_scope_and_status}
+\input{sections/02_problem_and_normalizations}
+\input{sections/03_source_frameworks}
+\input{sections/04_hybrid_algorithm}
+\input{sections/05_convergence}
+\input{sections/06_accelerated_work}
+\input{sections/07_sor_correction}
+\input{sections/08_confinement_route}
+\input{sections/09_experimental_program}
+\input{sections/10_tbscience_task}
+\input{sections/11_open_problems}
+
+\appendix
+\input{sections/A_detailed_derivations}
+\input{sections/B_task_prompt}
+\input{sections/C_claim_audit}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

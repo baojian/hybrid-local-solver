@@ -1,0 +1,66 @@
+\section{Draft TB-Science task prompt and verifier contract}
+\label{app:task-prompt}
+
+\subsection{Agent-visible task description}
+
+The final task description should remain short.  A candidate is:
+
+\begin{quote}
+The repository contains a correct local solver for single-source personalized
+PageRank based on Accelerated Evolving Set Processes (AESP).  Improve the
+solver's algorithmic efficiency.  On every evaluation instance, your
+implementation must return a vector satisfying the repository's certified
+PageRank accuracy condition.  Across a hidden suite of graphs, sources,
+damping parameters, and tolerances, it must reduce the geometric-mean number
+of instrumented adjacency-list accesses by at least the stated percentage
+relative to the frozen AESP baseline, while respecting the per-instance
+regression limit.
+
+You may change or replace the candidate solver implementation but may not
+modify the graph-access instrumentation, correctness tests, frozen baseline,
+or evaluation data.  Any algorithmic approach is allowed.  The primary score
+is degree-weighted graph-access work; wall-clock time is reported only as a
+secondary diagnostic.  Run the provided test command to validate correctness
+on the public development instances.
+\end{quote}
+
+This wording states the outcome, preserves method freedom, and does not reveal
+the hybrid reference solution.
+
+\subsection{Hidden verifier contract}
+
+For each instance \(i\), the verifier should:
+\begin{enumerate}[leftmargin=2em]
+\item construct or load \((G_i,s_i,\alpha_i,\eps_i)\);
+\item run the frozen AESP baseline and cache its certified work
+      \(W_{\AESP}(i)\);
+\item run the candidate under the same deterministic resource limits;
+\item verify all outputs are finite and have the expected sparse-vector
+      representation;
+\item verify the final residual certificate and, on small cases, cross-check
+      against a high-accuracy reference solution;
+\item read the adjacency-access counter from the protected graph interface;
+\item reject timeouts, memory violations, instrumentation tampering, and
+      nondeterministic results;
+\item aggregate work using \cref{eq:geomean-work-ratio} and enforce the
+      regression guard \cref{eq:regression-guard}.
+\end{enumerate}
+
+The public suite should test API correctness and common failure modes but must
+not reveal the hidden distribution or the exact pass threshold margins.
+
+\subsection{Author-side calibration protocol}
+
+Before submitting the task proposal:
+\begin{enumerate}[leftmargin=2em]
+\item run AESP, APPR, LocGD, LocCH, \(\omega=1\) LocSOR, and optimal LocSOR on
+      the complete candidate suite;
+\item run the private hybrid reference with at least three switching rules;
+\item choose a suite on which the reference passes comfortably and every
+      standalone baseline fails the official aggregate gate;
+\item perturb graph orderings, sources, and parameters to ensure the result is
+      not a fixed-constant artifact;
+\item estimate container runtime and shrink the suite without changing its
+      mechanism coverage;
+\item run several frontier agents before fixing the final threshold.
+\end{enumerate}

@@ -1,0 +1,198 @@
+\section{Correct signed warm-start SOR analysis}
+\label{sec:sor-correction}
+
+A central correction from the discussion is the distinction between two
+parameter ranges:
+\begin{equation}
+    \boxed{
+    0<\omega<2
+    \text{ is the classical global SOR convergence range,}}
+    \label{eq:global-sor-range}
+\end{equation}
+whereas a graph-uniform one-coordinate weighted-\(\ell_1\) contraction holds
+only on a smaller interval.  Conflating these statements leads to an invalid
+local work proof for the optimal over-relaxed parameter.
+
+\begin{proposition}[Correct signed weighted-\(\ell_1\) bound]
+\label{prop:signed-sor-l1}
+Let \(q=D^{1/2}g(x)\), \(\chi=(1-\alpha)/(1+\alpha)\), and apply the relaxed
+coordinate update \cref{eq:general-coordinate-update}.  Then
+\begin{equation}
+    q^+
+    =q-\omega q_u e_u
+      +\chi\omega q_uAD^{-1}e_u.
+    \label{eq:signed-sor-scaled-update}
+\end{equation}
+For every signed vector \(q\),
+\begin{equation}
+    \norm{q^+}_1
+    \leq
+    \norm{q}_1-\delta_\alpha(\omega)\abs{q_u},
+    \label{eq:signed-sor-bound}
+\end{equation}
+where
+\begin{equation}
+    \delta_\alpha(\omega)
+    :=1-\abs{1-\omega}-\chi\omega
+    =
+    \begin{cases}
+      \dfrac{2\alpha\omega}{1+\alpha},
+      &0<\omega\leq1,\\[2mm]
+      \dfrac{2(1+\alpha-\omega)}{1+\alpha},
+      &1\leq\omega<2.
+    \end{cases}
+    \label{eq:delta-alpha}
+\end{equation}
+Hence strict uniform weighted-\(\ell_1\) decrease is guaranteed precisely for
+\begin{equation}
+    0<\omega<1+\alpha.
+    \label{eq:l1-safe-range}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Only coordinate \(u\) and its neighbors change.  Since the graph is simple,
+\(q_u^+=(1-\omega)q_u\), while
+\begin{equation}
+    q_v^+
+    =q_v+\chi\omega\frac{q_u}{d_u}
+    \qquad(v\sim u).
+    \label{eq:sor-neighbor-update}
+\end{equation}
+Using \(\norm{AD^{-1}e_u}_1=1\),
+\begin{align*}
+  \norm{q^+}_1
+  &\leq
+  \norm{q}_1-\abs{q_u}
+  +\abs{1-\omega}\abs{q_u}
+  +\chi\omega\abs{q_u}\\
+  &=\norm{q}_1-
+    \bigl(1-\abs{1-\omega}-\chi\omega\bigr)\abs{q_u}.
+\end{align*}
+Expanding the absolute value on the intervals \((0,1]\) and \([1,2)\)
+gives \cref{eq:delta-alpha}.  The coefficient is positive exactly when
+\(\omega<1+\alpha\).
+\end{proof}
+
+\begin{remark}[Why the earlier derivation failed]
+The invalid step was to replace
+\(
+\abs{(1-\omega)q_u}
+\)
+by
+\(
+(1-\omega)\abs{q_u}
+\)
+for \(\omega>1\).  The correct value is
+\((\omega-1)\abs{q_u}\).  The formula valid on \(0<\omega\leq1\) therefore
+cannot be extended unchanged to optimal over-relaxation.
+\end{remark}
+
+\begin{proposition}[Sharpness of the safe range]
+\label{prop:sor-l1-sharp}
+For every \(\omega>1+\alpha\), there exists a signed warm-start residual for
+which one SOR coordinate update increases \(\norm{q}_1\).
+\end{proposition}
+
+\begin{proof}
+Take \(q\) supported only on the processed vertex \(u\).  Then all triangle
+inequalities in \cref{prop:signed-sor-l1} are equalities, and
+\begin{equation}
+    \frac{\norm{q^+}_1}{\norm{q}_1}
+    =\abs{1-\omega}+\chi\omega.
+    \label{eq:sor-supported-ratio}
+\end{equation}
+For \(\omega>1\), this equals
+\(
+2\omega/(1+\alpha)-1
+\), which exceeds one exactly when \(\omega>1+\alpha\).
+\end{proof}
+
+The optimal global parameter from \cref{eq:optimal-sor} lies in the uniform
+\(\ell_1\)-safe range only when
+\begin{equation}
+    \omega_\star\leq1+\alpha
+    \quad\Longleftrightarrow\quad
+    \alpha\geq(\sqrt2-1)^2=3-2\sqrt2\approx0.1716.
+    \label{eq:omega-star-safe-condition}
+\end{equation}
+For the small \(\alpha\) regime where acceleration is most valuable,
+\(\omega_\star\) is therefore outside the graph-uniform signed
+weighted-\(\ell_1\) contraction interval.  Its speed comes from multi-step
+spectral effects and cancellation, not a larger guaranteed one-coordinate
+mass decrease.
+
+\subsection{An exact local safeguard}
+
+The failure of a universal \(\ell_1\) theorem does not prevent using
+\(\omega_\star\) opportunistically.  Because only \(u\) and \(N(u)\) change,
+the exact local mass decrease of a candidate parameter \(\omega\) is
+\begin{align}
+    \Delta_u(\omega)
+    &:={}
+    \abs{q_u}+\sum_{v\sim u}\abs{q_v}
+    -\abs{(1-\omega)q_u}
+    -\sum_{v\sim u}
+       \abs{q_v+\chi\omega q_u/d_u}.
+    \label{eq:exact-local-mass-decrease}
+\end{align}
+Computing \(\Delta_u(\omega)\) costs \(\mathcal O(d_u)\), the same order as
+executing the push.
+
+\begin{definition}[Safeguarded optimal LocSOR]
+\label{def:safeguarded-sor}
+Fix \(\sigma\in(0,1]\) and let
+\begin{equation}
+    \delta_{\rm GS}:=\frac{2\alpha}{1+\alpha}.
+    \label{eq:gs-delta}
+\end{equation}
+At an active coordinate \(u\), accept the \(\omega_\star\) candidate only if
+\begin{equation}
+    \Delta_u(\omega_\star)
+    \geq\sigma\delta_{\rm GS}\abs{q_u}.
+    \label{eq:safeguard-test}
+\end{equation}
+Otherwise execute the \(\omega=1\) update.
+\end{definition}
+
+\begin{theorem}[Safeguard guarantee]
+\label{thm:safeguarded-sor}
+Every committed update of safeguarded optimal LocSOR satisfies
+\begin{equation}
+    M(x^+)\leq M(x)
+      -\sigma\frac{2\alpha}{1+\alpha}\abs{q_u}.
+    \label{eq:safeguard-decrease}
+\end{equation}
+Consequently, from any handoff point \(x_0\),
+\begin{equation}
+    \Work_{\rm tail}^{\rm safe}
+    \leq
+    \frac{1+\alpha}{2\sigma\alpha^2\eps}M(x_0).
+    \label{eq:safeguard-tail-work}
+\end{equation}
+Under the mass handoff
+\(M(x_0)\leq\theta\alpha^{3/2}\), this becomes
+\begin{equation}
+    \Work_{\rm tail}^{\rm safe}
+    \leq
+    \frac{\theta(1+\alpha)}{2\sigma\sqrt\alpha\eps}.
+    \label{eq:safeguard-accelerated}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+If the \(\omega_\star\) candidate is accepted, the claim is exactly the test
+\cref{eq:safeguard-test}.  If it is rejected, the fallback \(\omega=1\)
+satisfies the stronger decrease with \(\sigma=1\) by
+\cref{lem:gs-mass-decrease}.  An active coordinate obeys
+\(\abs{q_u}\geq\alpha\eps d_u\).  Sum the resulting decrease over all
+committed updates.
+\end{proof}
+
+\begin{remark}[Recommended theoretical hierarchy]
+The cleanest correctness and work theorem uses \(\omega=1\).  The safeguarded
+method preserves the same asymptotic guarantee while testing optimal
+relaxation at no additional asymptotic edge cost.  Plain \(\omega_\star\)
+remains a valuable empirical baseline and is globally convergent, but the
+weighted-\(\ell_1\) proof must not be assigned to it.
+\end{remark}

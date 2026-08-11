@@ -1,0 +1,264 @@
+\section{A confinement route inspired by \texorpdfstring{\(\ell_1\)}{l1}-regularized PageRank}
+\label{sec:confinement}
+
+\subsection{What the 2026 \texorpdfstring{\(\ell_1\)}{l1} analysis establishes}
+
+For the same smooth PageRank quadratic \(f\), define the regularized problem
+\begin{equation}
+    F_\rho(x)
+    :=f(x)+\alpha\rho\norm{D^{1/2}x}_1.
+    \label{eq:rppr-objective}
+\end{equation}
+Its unique minimizer \(x_\rho^\star\) is sparse, with
+\begin{equation}
+    \vol\bigl(\supp(x_\rho^\star)\bigr)
+    \leq\frac{1}{\rho}.
+    \label{eq:rppr-volume}
+\end{equation}
+The recent work of \citet{fountoulakis2026complexity} gives two complementary
+messages.
+
+First, standard FISTA can be asymptotically worse than ISTA in the
+locality-aware work model.  On a seed-at-leaf star, the optimum remains on the
+seed leaf and ISTA stays local, whereas FISTA's extrapolation activates the
+high-degree center after two extrapolated steps and incurs \(\Omega(m)\)
+work.  Therefore neither accelerated iteration count nor small optimal support
+is sufficient to control degree-weighted work.
+
+Second, the paper analyzes FISTA on a slightly over-regularized objective and
+uses complementarity slack to separate a small core from clearly inactive
+coordinates.  Under a boundary-confinement condition, its work decomposes as
+\begin{equation}
+    \softO\!\left(
+       \frac{1}{\rho\sqrt\alpha}
+       \log\frac{\alpha}{\eps_{\rm obj}}
+       +\frac{\sqrt{\vol(B)}}{\rho\alpha^{3/2}}
+    \right),
+    \label{eq:fista-boundary-bound}
+\end{equation}
+where \(B\) contains the transient spurious activations.  A graph-structural
+no-percolation condition ensures that iterates remain in a core plus its
+vertex boundary.  These are source results for the composite RPPR problem;
+they do not directly prove locality for unregularized AESP.
+
+\subsection{An AESP no-percolation lemma}
+
+The changing shifted systems of AESP nevertheless have a useful structural
+property: outside the current support, the proximal shift vanishes.  This
+allows a direct support induction under an explicit exposure condition.
+
+Let \(\mathcal C\subseteq V\) be a proposed core containing the source,
+let
+\begin{equation}
+    \mathcal B:=\partial\mathcal C,
+    \qquad
+    \mathcal H:=\mathcal C\cup\mathcal B,
+    \qquad
+    \operatorname{Ext}(\mathcal C):=V\setminus\mathcal H.
+    \label{eq:core-boundary}
+\end{equation}
+Let
+\begin{equation}
+    d_{\min,\mathcal B}
+    :=\min_{j\in\mathcal B}d_j.
+    \label{eq:min-boundary-degree}
+\end{equation}
+For a finite burn-in horizon \(J\), suppose
+\begin{equation}
+    \underline\eps
+    :=\min_{1\leq t\leq J}\eps_t>0,
+    \qquad
+    R_z
+    :=\max_{\substack{1\leq t\leq J\\0\leq k\leq K_t}}
+       \norm{z_t^{(k)}}_2<\infty.
+    \label{eq:threshold-and-radius}
+\end{equation}
+
+\begin{assumption}[AESP no-percolation condition]
+\label{ass:aesp-no-percolation}
+For every \(i\in\operatorname{Ext}(\mathcal C)\),
+\begin{equation}
+    \frac{\abs{N(i)\cap\mathcal B}}{d_i}
+    <
+    \left(
+      \frac{2\underline\eps}{(1-\alpha)R_z}
+    \right)^2
+    d_i d_{\min,\mathcal B}.
+    \label{eq:aesp-no-percolation}
+\end{equation}
+\end{assumption}
+
+\begin{proposition}[Confinement of AESP inner and outer iterates]
+\label{prop:aesp-confinement}
+Assume \cref{ass:aesp-no-percolation}, initialize
+\(x^{(0)}=y^{(0)}=0\), and use thresholded LOCGD or LOCAPPR inner updates.
+Then, for every \(t\leq J\) and every inner iteration \(k\),
+\begin{equation}
+    \supp(x^{(t)})\cup\supp(y^{(t)})
+    \cup\supp(z_t^{(k)})
+    \subseteq\mathcal H.
+    \label{eq:aesp-support-confinement}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The base point is zero and the source belongs to \(\mathcal C\).  Assume
+inductively that \(y^{(t-1)}\) and \(z=z_t^{(k)}\) are supported in
+\(\mathcal H\).  Fix \(i\in\operatorname{Ext}(\mathcal C)\).  Then
+\(z_i=y_i^{(t-1)}=0\), \(i\neq s\), and by definition of the vertex boundary
+\(i\) has no neighbor in \(\mathcal C\).  Therefore
+\begin{equation}
+    \grad_i h_t(z)
+    =-\frac{1-\alpha}{2}
+      \sum_{j\in N(i)\cap\mathcal B}
+      \frac{z_j}{\sqrt{d_i d_j}}.
+    \label{eq:exterior-inner-gradient}
+\end{equation}
+The diagonal part of \(Qz\), the source term, and the proximal term
+\(\eta(z_i-y_i^{(t-1)})\) all vanish.  By Cauchy--Schwarz,
+\begin{align}
+  \frac{\abs{\grad_i h_t(z)}}{\sqrt{d_i}}
+  &\leq
+  \frac{1-\alpha}{2d_i}
+  \sqrt{\frac{\abs{N(i)\cap\mathcal B}}
+              {d_{\min,\mathcal B}}}
+  \norm{z}_2
+  \notag\\
+  &\leq
+  \frac{(1-\alpha)R_z}{2d_i}
+  \sqrt{\frac{\abs{N(i)\cap\mathcal B}}
+              {d_{\min,\mathcal B}}}
+  <\underline\eps\leq\eps_t,
+  \label{eq:exterior-gradient-bound}
+\end{align}
+where the strict inequality is exactly
+\cref{eq:aesp-no-percolation}.  Thus no exterior vertex is active.  The next
+inner update remains supported in \(\mathcal H\).  At the end of the stage,
+\(x^{(t)}\) is supported there, and the extrapolation
+\(
+ y^{(t)}=x^{(t)}+\beta(x^{(t)}-x^{(t-1)})
+\)
+preserves the same support.  Induction over \(k\) and \(t\) completes the
+proof.
+\end{proof}
+
+\subsection{From support confinement to the AESP locality factor}
+
+Define the one-hop gradient envelope
+\begin{equation}
+    \Omega:=\mathcal H\cup N(\mathcal H).
+    \label{eq:gradient-envelope}
+\end{equation}
+If \(z\) and \(y\) are supported in \(\mathcal H\), graph locality of \(Q\)
+implies
+\begin{equation}
+    \supp(D^{1/2}\grad h_t(z))\subseteq\Omega.
+    \label{eq:gradient-support-envelope}
+\end{equation}
+
+\begin{lemma}[Support-to-locality inequality for LOCGD]
+\label{lem:support-to-locality}
+Let \(q\) be supported in \(\Omega\), and define the thresholded active set
+\begin{equation}
+    S:=\left\{u:\frac{\abs{q_u}}{d_u}\geq\eps_t\right\}.
+    \label{eq:thresholded-set-generic}
+\end{equation}
+If \(S\neq\varnothing\) and
+\(
+\gamma=\norm{q_S}_1/\norm{q}_1
+\), then
+\begin{equation}
+    \frac{\vol(S)}{\gamma}
+    \leq\vol(\Omega).
+    \label{eq:support-to-locality}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Every active density \(\abs{q_u}/d_u\) is at least \(\eps_t\), and every
+inactive density inside \(\Omega\) is smaller than \(\eps_t\).  Hence the
+weighted average density on \(S\) is no smaller than the weighted average over
+\(\Omega\):
+\[
+    \frac{\norm{q_S}_1}{\vol(S)}
+    \geq
+    \frac{\norm{q}_1}{\vol(\Omega)}.
+\]
+Rearrange and use the definition of \(\gamma\).
+\end{proof}
+
+Averaging \cref{eq:support-to-locality} over LOCGD inner iterations gives
+\begin{equation}
+    \Lambda_t\leq\vol(\Omega).
+    \label{eq:locgd-envelope-locality}
+\end{equation}
+For an online coordinate method, the same conclusion follows from a
+normalized Gauss--Southwell rule
+\begin{equation}
+    u_k\in\arg\max_u\frac{\abs{q_u^{(k)}}}{d_u}.
+    \label{eq:priority-rule}
+\end{equation}
+Indeed,
+\begin{equation}
+    d_{u_k}
+    \leq
+    \vol(\Omega)
+    \frac{\abs{q_{u_k}^{(k)}}}{\norm{q^{(k)}}_1},
+    \label{eq:priority-cost-charge}
+\end{equation}
+so the degree cost can be charged to the online active-ratio sum.  This yields
+the same locality factor up to priority-queue logarithms.  Confinement alone
+does not imply the corresponding statement for an arbitrary FIFO order; a
+queue-order lemma would still be needed.
+
+\begin{theorem}[Conditional end-to-end bound under confinement]
+\label{thm:confinement-total}
+Assume \cref{ass:aesp-no-percolation} and suppose
+\begin{equation}
+    \vol(\Omega)\leq\frac{K}{\eps}.
+    \label{eq:small-envelope}
+\end{equation}
+Use AESP-LOCGD or AESP with the normalized priority rule
+\cref{eq:priority-rule} until the objective-gap handoff, followed by
+\(\omega=1\) LocSOR.  Then
+\begin{equation}
+    \Work_{\rm hybrid}
+    =\softO\!\left(
+       \frac{K+1}{\sqrt\alpha\eps}
+    \right).
+    \label{eq:confinement-total-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \cref{prop:aesp-confinement}, all early inner gradients are supported in
+\(\Omega\).  By \cref{lem:support-to-locality} or
+\cref{eq:priority-cost-charge},
+\(\Lambda_t\leq\vol(\Omega)\leq K/\eps\).  Apply
+\cref{thm:conditional-total}.
+\end{proof}
+
+\subsection{What this route does and does not prove}
+
+A natural analytical choice is
+\begin{equation}
+    \mathcal C=\supp(x_\rho^\star),
+    \qquad \rho\asymp\eps,
+    \label{eq:rppr-core-choice}
+\end{equation}
+for which \cref{eq:rppr-volume} gives
+\(\vol(\mathcal C)=\mathcal O(1/\eps)\).  This fact alone does not imply
+\cref{eq:small-envelope}; a single boundary vertex can have arbitrarily high
+degree.  The star lower bound of \citet{fountoulakis2026complexity} is exactly
+such a warning.  Moreover, AESP in this note solves the unregularized
+quadratic, whereas \(\mathcal C\) is defined through a regularized optimum.
+The RPPR core is therefore a proof device, not an automatically invariant
+support.
+
+The most promising refinement is to combine AESP with slight
+\emph{over-regularization}, as in the 2026 FISTA analysis.  Low-margin
+coordinates would be absorbed into a larger \(\mathcal O(1/\eps)\)-volume
+core, clearly inactive coordinates would be charged through KKT slack, and the
+remaining boundary work would be summed using accelerated outer contraction.
+Adapting that argument to AESP's sequence of changing shifted subproblems is a
+substantial open proof obligation, not a completed theorem.

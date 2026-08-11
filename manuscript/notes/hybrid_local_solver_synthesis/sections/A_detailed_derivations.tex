@@ -1,0 +1,147 @@
+\section{Detailed derivations and implementation formulas}
+\label{app:derivations}
+
+\subsection{Local gradient update in AESP normalization}
+
+For the coordinate step
+\(
+ x^+=x-2\omega g_u e_u/(1+\alpha)
+\),
+\begin{align}
+  g^+
+  &=g+Q(x^+-x)
+  \notag\\
+  &=g-\omega g_u e_u+\chi\omega g_uWe_u,
+  \qquad
+  \chi=\frac{1-\alpha}{1+\alpha}.
+  \label{eq:app-gradient-update}
+\end{align}
+Multiplying by \(D^{1/2}\) and using
+\(
+D^{1/2}We_u=Ae_u/\sqrt{d_u}
+\)
+and \(g_u=q_u/\sqrt{d_u}\) yields
+\begin{equation}
+    q^+=q-\omega q_u e_u+\chi\omega q_uAD^{-1}e_u.
+    \label{eq:app-scaled-update}
+\end{equation}
+Thus a sparse implementation changes only \(u\) and its neighbors:
+\begin{equation}
+    q_u^+=(1-\omega)q_u,
+    \qquad
+    q_v^+=q_v+\chi\omega\frac{q_u}{d_u}
+    \quad(v\sim u).
+    \label{eq:app-coordinate-updates}
+\end{equation}
+
+\subsection{Transfer to the Work-I residual}
+
+At an AESP checkpoint \(x\), compute
+\begin{equation}
+    \widehat r
+    =-\frac{2}{1+\alpha}g(x).
+    \label{eq:app-handoff-residual}
+\end{equation}
+If the code stores degree-scaled quantities,
+\begin{equation}
+    D^{1/2}\widehat r
+    =-\frac{2}{1+\alpha}q(x).
+    \label{eq:app-handoff-scaled}
+\end{equation}
+The Work-I active condition
+\(
+\abs{\widehat r_u}\geq 2\alpha\eps\sqrt{d_u}/(1+\alpha)
+\)
+is then exactly \cref{eq:final-active-unscaled}.
+
+\subsection{Why objective convergence alone does not bound weighted mass}
+
+Smoothness gives
+\begin{equation}
+    \norm{g(x)}_2^2
+    \leq2\,[f(x)-f(x^\star)].
+    \label{eq:gradient-gap-upper}
+\end{equation}
+If \(\Omega_x:=\supp(g(x))\), then
+\begin{align}
+    M(x)
+    &=\sum_{u\in\Omega_x}\sqrt{d_u}\abs{g_u(x)}
+    \notag\\
+    &\leq
+    \sqrt{\vol(\Omega_x)}\norm{g(x)}_2
+    \notag\\
+    &\leq
+    \sqrt{2\vol(\Omega_x)[f(x)-f(x^\star)]}.
+    \label{eq:mass-from-gap}
+\end{align}
+Thus objective acceleration implies weighted-mass compression only after
+controlling the degree-volume of the gradient support.  This is another form
+of the locality bottleneck.
+
+\subsection{Marginal handoff rule from the mass tail bound}
+
+Suppose the current best AESP checkpoint has mass \(M_{t-1}\), the next stage
+costs \(W_t\), and it improves the mass by
+\begin{equation}
+    \Delta M_t:=M_{t-1}-M_t>0.
+    \label{eq:mass-improvement}
+\end{equation}
+The proved \(\omega=1\) tail upper bound decreases by
+\begin{equation}
+    \Delta \widehat W_{\rm tail}
+    =\frac{1+\alpha}{2\alpha^2\eps}\Delta M_t.
+    \label{eq:predicted-work-saved}
+\end{equation}
+A natural marginal rule is therefore to continue AESP only while
+\begin{equation}
+    W_t
+    <
+    \frac{1+\alpha}{2\alpha^2\eps}\Delta M_t.
+    \label{eq:marginal-switch}
+\end{equation}
+This is a heuristic because the tail formula is an upper bound, not an exact
+cost model.  It is nevertheless preferable to an arbitrary fixed number of
+outer stages and directly reflects the empirically observed knee.
+
+\subsection{Plain optimal SOR: convergence without a local mass theorem}
+
+By \cref{lem:coordinate-decrease}, plain \(\omega_\star\)-SOR is an objective
+descent method.  Its general tail bound is
+\begin{equation}
+    \Work_{\rm tail}^{\omega_\star}
+    \leq
+    \frac{(1+\alpha)[f(x_0)-f(x^\star)]}
+         {\omega_\star(2-\omega_\star)\alpha^2\eps^2}.
+    \label{eq:omega-star-objective-work}
+\end{equation}
+The product is
+\begin{equation}
+    \omega_\star(2-\omega_\star)
+    =\frac{8\sqrt\alpha(1+\alpha)}{(1+\sqrt\alpha)^4}.
+    \label{eq:omega-star-product}
+\end{equation}
+This objective-decrease analysis is insufficient to establish the desired
+local \(1/\eps\) dependence.  It proves convergence but does not capture the
+multi-step spectral acceleration that makes optimal SOR fast in practice.
+
+\subsection{AESP inner condition number as an effective damping parameter}
+
+Write
+\begin{equation}
+    \nu:=\frac{\alpha+\eta}{1+\eta}.
+    \label{eq:effective-damping}
+\end{equation}
+Then
+\begin{equation}
+    Q+\eta I
+    =(1+\eta)
+      \left[
+        \frac{1+\nu}{2}I-
+        \frac{1-\nu}{2}W
+      \right].
+    \label{eq:shifted-ppr-form}
+\end{equation}
+For \(\eta=1-2\alpha\), \(\nu=1/2\).  Hence the inner system is not merely
+constant-conditioned abstractly; it is exactly a uniformly damped
+PageRank-type system.  This structural observation supports reusing local
+PPR-style coordinate solvers inside AESP.
