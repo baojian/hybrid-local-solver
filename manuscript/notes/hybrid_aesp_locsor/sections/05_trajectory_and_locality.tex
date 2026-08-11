@@ -1,0 +1,245 @@
+\section{Trajectory-dependent total-work theorem}
+\label{sec:trajectory}
+
+Let
+\begin{equation}
+  B_J:=\sum_{t=1}^J W_t^{\rm AESP}
+  \label{eq:BJ}
+\end{equation}
+be the actual burn-in work, and let
+\begin{equation}
+  \Lambda_J:=\max_{1\leq t\leq J}\Lambda_t
+  =\max_{1\leq t\leq J}
+    \frac{\overline{\vol}(S_t)}{\gamma_t}.
+  \label{eq:Lambda-J}
+\end{equation}
+The AESP source theorem controls $B_J$ through \cref{eq:aesp-stage-work}.  In
+particular, after absorbing its stagewise logarithmic factors,
+\begin{equation}
+  B_J
+  =\softO\!\left(\frac{\Lambda_J}{\sqrt\alpha}\right).
+  \label{eq:BJ-soft}
+\end{equation}
+The following statement is the clean end-to-end result currently supported by
+the two frameworks.
+
+\begin{theorem}[Hybrid trajectory theorem]
+\label{thm:trajectory}
+Assume each AESP inner call satisfies its source objective-gap requirement,
+and switch at the first $J$ satisfying \cref{eq:objective-switch}.  Then
+Algorithm~\ref{alg:hybrid} returns an $\eps$-accurate PageRank vector and
+\begin{equation}
+  W_{\rm hybrid}
+  \leq
+  B_J+\frac1{\sqrt\alpha\eps}.
+  \label{eq:trajectory-exact}
+\end{equation}
+Using the AESP trajectory theorem,
+\begin{equation}
+  W_{\rm hybrid}
+  =\softO\!\left(\frac{\Lambda_J}{\sqrt\alpha}\right)
+   +\bigO\!\left(\frac1{\sqrt\alpha\eps}\right).
+  \label{eq:trajectory-soft}
+\end{equation}
+Consequently, if
+\begin{equation}
+  \Lambda_J\leq\frac{K}{\eps}
+  \label{eq:Lambda-condition}
+\end{equation}
+for a parameter $K$ independent of graph size, then
+\begin{equation}
+  W_{\rm hybrid}
+  =\softO\!\left(\frac{K+1}{\sqrt\alpha\eps}\right).
+  \label{eq:conditional-total}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Correctness follows from the AESP handoff and
+\cref{thm:objective-tail}.  The exact work decomposition is
+\cref{eq:trajectory-exact}.  Substituting the AESP work theorem gives
+\cref{eq:trajectory-soft}; applying \cref{eq:Lambda-condition} proves the
+last display.
+\end{proof}
+
+\begin{remark}[What is and is not proved]
+\Cref{thm:trajectory} proves a complete algorithmic guarantee in terms of the
+realized early AESP locality factor.  It does not prove that
+\cref{eq:Lambda-condition} holds for every graph.  Establishing that universal
+bound, or replacing it by a different graph-independent early-stage work
+argument, is the central unresolved lemma.
+\end{remark}
+
+\section{Support envelopes and a sufficient locality lemma}
+\label{sec:support-envelope}
+
+This section gives deterministic conditions under which
+\cref{eq:Lambda-condition} follows.  The result is strongest for AESP-LOCGD
+and for a degree-normalized priority version of AESP-LOCAPPR.
+
+\subsection{Thresholded support implies a locality-factor bound}
+
+Fix one AESP inner iteration and write
+\begin{equation}
+  q:=D^{1/2}\nabla h_t(z).
+  \label{eq:q-inner-short}
+\end{equation}
+Suppose $\supp(q)\subseteq\Omega\subseteq V$.  For LOCGD, the thresholded
+active set is
+\begin{equation}
+  S:=\left\{u:\frac{\abs{q_u}}{d_u}\geq\eps_t\right\},
+  \qquad
+  \gamma:=\frac{\norm{q_S}_1}{\norm{q}_1}.
+  \label{eq:threshold-support}
+\end{equation}
+
+\begin{lemma}[Support-envelope locality bound]
+\label{lem:support-envelope}
+Under \cref{eq:threshold-support},
+\begin{equation}
+  \frac{\vol(S)}{\gamma}\leq\vol(\Omega).
+  \label{eq:support-envelope-bound}
+\end{equation}
+Therefore, if every inner gradient during stage $t$ is supported in the same
+$\Omega$, then
+\begin{equation}
+  \Lambda_t\leq\vol(\Omega).
+  \label{eq:Lambda-envelope}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+All active densities $\abs{q_u}/d_u$ are at least $\eps_t$, while all inactive
+densities in $\Omega\setminus S$ are below $\eps_t$.  Hence the average
+density on $S$ is at least the average density on $\Omega$:
+\[
+  \frac{\norm{q_S}_1}{\vol(S)}
+  \geq
+  \frac{\norm{q}_1}{\vol(\Omega)}.
+\]
+Rearranging gives \cref{eq:support-envelope-bound}.  Averaging the pointwise
+inequality over the inner iterations yields \cref{eq:Lambda-envelope}.
+\end{proof}
+
+For online coordinate updates, confinement alone is not enough to obtain the
+same inequality for an arbitrary FIFO order.  A proof-compatible alternative
+is the degree-normalized Gauss--Southwell rule
+\begin{equation}
+  u\in\arg\max_{v\in\Omega}\frac{\abs{q_v}}{d_v}.
+  \label{eq:priority-rule}
+\end{equation}
+Then
+\begin{equation}
+  d_u
+  \leq
+  \vol(\Omega)\frac{\abs{q_u}}{\norm{q}_1},
+  \label{eq:priority-amortization}
+\end{equation}
+which plugs directly into the source coordinatewise contraction.  Thus a
+priority-LOCAPPR variant preserves the online-update advantage while admitting
+a clean support-sensitive proof.  For the original FIFO LOCAPPR, an additional
+queue-order lemma is required.
+
+\subsection{A no-percolation induction for shifted AESP systems}
+
+The following lemma is an AESP analogue of the boundary-confinement ideas in
+\citet{fountoulakis2026complexity}.  It is a sufficient condition, not a claim
+that every graph satisfies it.
+
+Let $S\subseteq V$ contain the seed, let
+$B:=\partial S$ be its vertex boundary, and define
+\begin{equation}
+  \mathcal A:=S\cup B,
+  \qquad
+  \operatorname{Ext}(S):=V\setminus\mathcal A.
+  \label{eq:core-boundary}
+\end{equation}
+Assume $B\neq\varnothing$ and set
+$d_{\min,B}:=\min_{j\in B}d_j$.  Over the burn-in stages, define
+\begin{equation}
+  \underline\eps
+  :=\min_{t\leq J}\eps_t,
+  \qquad
+  R:=\max_{t\leq J,\,k<K_t}\norm{z_t^{(k)}}_2.
+  \label{eq:no-perc-parameters}
+\end{equation}
+
+\begin{assumption}[AESP no-percolation condition]
+\label{ass:no-perc}
+For every $i\in\operatorname{Ext}(S)$,
+\begin{equation}
+  \frac{\abs{N(i)\cap B}}{d_i}
+  <
+  \left(\frac{2\underline\eps}{(1-\alpha)R}\right)^2
+  d_i d_{\min,B}.
+  \label{eq:aesp-no-perc}
+\end{equation}
+\end{assumption}
+
+\begin{lemma}[Confinement of AESP inner and outer iterates]
+\label{lem:aesp-confinement}
+Assume AESP starts from zero, every inner process starts from its Catalyst
+center, and \cref{ass:no-perc} holds.  Then every inner iterate
+$z_t^{(k)}$, outer point $x^{(t)}$, and momentum center $y^{(t)}$ is supported
+in $\mathcal A=S\cup B$ for all $t\leq J$.
+\end{lemma}
+
+\begin{proof}
+Proceed by induction.  The zero initialization is supported in $\mathcal A$.
+Assume $y^{(t-1)}$ and $z_t^{(k)}$ are supported in $\mathcal A$, and fix
+$i\in\operatorname{Ext}(S)$.  Then
+$z_{t,i}^{(k)}=y_i^{(t-1)}=0$, $i\neq s$, and $i$ has no neighbor in $S$ by
+the definition of the vertex boundary.  Therefore the proximal term vanishes
+at coordinate $i$ and
+\begin{equation}
+  \nabla_i h_t(z)
+  =-\frac{1-\alpha}{2}
+    \sum_{j\in N(i)\cap B}\frac{z_j}{\sqrt{d_i d_j}}.
+  \label{eq:exterior-gradient}
+\end{equation}
+Consequently,
+\begin{align}
+  \frac{\abs{\nabla_i h_t(z)}}{\sqrt{d_i}}
+  &\leq
+  \frac{1-\alpha}{2d_i}
+  \sum_{j\in N(i)\cap B}\frac{\abs{z_j}}{\sqrt{d_j}}
+  \nonumber\\
+  &\leq
+  \frac{(1-\alpha)R}{2d_i}
+  \sqrt{\frac{\abs{N(i)\cap B}}{d_{\min,B}}}
+  <\underline\eps\leq\eps_t,
+  \label{eq:exterior-inactive}
+\end{align}
+where the second line uses Cauchy--Schwarz and the definition of $R$, and the
+last inequality is exactly \cref{eq:aesp-no-perc}.  Thus no exterior coordinate
+is active.  The next local update remains supported in $\mathcal A$.
+At inner termination, $x^{(t)}$ is supported in $\mathcal A$; the Catalyst
+linear combination of $x^{(t)}$ and $x^{(t-1)}$ is also supported there.
+This closes the induction.
+\end{proof}
+
+If $z$ and $y$ are supported in $\mathcal A$, graph locality implies
+\begin{equation}
+  \supp(D^{1/2}\nabla h_t(z))
+  \subseteq
+  \Omega:=\mathcal A\cup N(\mathcal A).
+  \label{eq:gradient-envelope}
+\end{equation}
+Combining \cref{lem:aesp-confinement,lem:support-envelope} gives the following
+conditional accelerated result.
+
+\begin{corollary}[Confinement-based accelerated total work]
+\label{cor:confinement-total}
+Suppose \cref{ass:no-perc} holds and
+\begin{equation}
+  \vol\!\left(\mathcal A\cup N(\mathcal A)\right)
+  \leq\frac{K}{\eps}.
+  \label{eq:envelope-volume-condition}
+\end{equation}
+If the AESP inner method is LOCGD, or degree-normalized priority LOCAPPR, then
+\begin{equation}
+  W_{\rm hybrid}
+  =\softO\!\left(\frac{K+1}{\sqrt\alpha\eps}\right).
+  \label{eq:confinement-total}
+\end{equation}
+\end{corollary}

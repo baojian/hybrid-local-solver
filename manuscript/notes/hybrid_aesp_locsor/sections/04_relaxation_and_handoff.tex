@@ -1,0 +1,149 @@
+\section{The SOR relaxation correction and safeguarded over-relaxation}
+\label{sec:omega}
+
+An intermediate discussion incorrectly attempted to extend
+\cref{eq:signed-l1-drop} to the full SOR convergence interval $(0,2)$.  The
+mistake is the sign of $1-\omega$.  The correct statement is piecewise.
+
+\begin{lemma}[Correct universal one-step $\ell_1$ bound]
+\label{lem:omega-l1}
+For the update \cref{eq:q-sor-update},
+\begin{equation}
+  \norm{q^+}_1
+  \leq
+  \norm{q}_1-\delta_\alpha(\omega)\abs{q_u},
+  \label{eq:omega-l1-general}
+\end{equation}
+where
+\begin{equation}
+  \delta_\alpha(\omega)
+  :=1-\abs{1-\omega}-\chi\omega
+  =
+  \begin{cases}
+    \dfrac{2\alpha\omega}{1+\alpha},&0<\omega\leq1,\\[2mm]
+    \dfrac{2(1+\alpha-\omega)}{1+\alpha},&1\leq\omega<2.
+  \end{cases}
+  \label{eq:delta-omega}
+\end{equation}
+Thus a graph-independent signed-$q$ decrease is guaranteed only for
+$0<\omega<1+\alpha$.
+\end{lemma}
+
+\begin{proof}
+Remove the old $u$ contribution, add the retained value
+$(1-\omega)q_u$, and bound the neighbor contribution by
+$\chi\omega\abs{q_u}$:
+\[
+  \norm{q^+}_1
+  \leq
+  \norm{q}_1-\abs{q_u}
+  +\abs{1-\omega}\abs{q_u}
+  +\chi\omega\abs{q_u}.
+\]
+This is \cref{eq:omega-l1-general}; simplifying separately on either side of
+$\omega=1$ gives \cref{eq:delta-omega}.
+\end{proof}
+
+\begin{proposition}[Sharpness of the universal range]
+\label{prop:omega-counterexample}
+Take a vector $q$ supported only at the updated coordinate $u$.  Then
+\begin{equation}
+  \frac{\norm{q^+}_1}{\norm{q}_1}
+  =\abs{1-\omega}+\chi\omega.
+  \label{eq:omega-counterexample}
+\end{equation}
+For $\omega>1+\alpha$, this ratio exceeds one.  Hence no universal signed
+weighted-$\ell_1$ contraction theorem can hold on the entire interval
+$1<\omega<2$.
+\end{proposition}
+
+The optimal parameter \cref{eq:omega-star} lies in the universal
+$\ell_1$-safe interval only when
+\begin{equation}
+  \alpha\geq(\sqrt2-1)^2=3-2\sqrt2\approx0.1716.
+  \label{eq:omega-safe-alpha}
+\end{equation}
+For the small-$\alpha$ regime where acceleration is most interesting,
+$\omega_\star$ is generally not weighted-$\ell_1$ monotone.
+
+\subsection{Safeguarded optimal SOR}
+
+Over-relaxation can still be used without sacrificing the proof.  Before
+committing the candidate $\omega_\star$ update at $u$, compute its exact local
+change in $M=\norm{q}_1$:
+\begin{align}
+  \Delta_u(\omega_\star)
+  :=&\ \abs{q_u}+\sum_{v\sim u}\abs{q_v}
+  -\abs{(1-\omega_\star)q_u}
+  \nonumber\\
+  &-\sum_{v\sim u}
+     \abs{q_v+\chi\omega_\star q_u/d_u}.
+  \label{eq:exact-local-mass-change}
+\end{align}
+For $\sigma\in(0,1]$, accept the candidate only if
+\begin{equation}
+  \Delta_u(\omega_\star)
+  \geq
+  \sigma\frac{2\alpha}{1+\alpha}\abs{q_u}.
+  \label{eq:safeguard-test}
+\end{equation}
+Otherwise execute the $\omega=1$ update.  The fallback always passes with
+$\sigma=1$ by \cref{lem:signed-l1}.  Hence every committed update has the
+same amortization as \cref{thm:mass-tail}, up to $1/\sigma$ and a constant
+factor for evaluating the candidate.  This gives a proof-safe practical tail
+that uses $\omega_\star$ whenever local cancellation is favorable.
+
+\begin{remark}[Plain optimal SOR still converges]
+The failure of weighted-$\ell_1$ monotonicity does not imply divergence.
+\Cref{lem:sor-decrease} proves objective descent for every
+$0<\omega<2$, including $\omega_\star$.  What is lost is the
+$1/\eps$ residual-mass amortization.  The unconditional objective argument
+alone gives an $\eps^{-2}$ tail bound unless the handoff gap is chosen as in
+\cref{thm:objective-tail}.
+\end{remark}
+
+\section{How many AESP stages are needed before the switch?}
+\label{sec:burnin-stages}
+
+The outer rate gives an explicit answer for the objective-gap switch.
+
+\begin{proposition}[AESP stage count to the objective handoff]
+\label{prop:J-bound}
+Let $J$ be the first integer satisfying \cref{eq:objective-switch}.  It is
+sufficient to choose
+\begin{equation}
+  J+1
+  \geq
+  \frac{10}{9}\sqrt{\frac{1-\alpha}{\alpha}}
+  \log_+\!\left(
+    \frac{200(1-\alpha)(1+\alpha)^2}
+         {\alpha^{5/2}\eps}
+  \right),
+  \label{eq:J-bound}
+\end{equation}
+where $\log_+(z):=\max\{0,\log z\}$.  Therefore
+\begin{equation}
+  J
+  =\bigO\!\left(
+    \frac1{\sqrt\alpha}\log\frac1{\alpha\eps}
+  \right).
+  \label{eq:J-order}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+By \cref{eq:aesp-outer-bound}, it suffices that
+\[
+  \frac{200(1-\alpha^2)}{\alpha}
+  (1-\rho_{\rm A})^{J+1}
+  \leq\frac{\alpha^{3/2}\eps}{1+\alpha}.
+\]
+Rearranging and using
+$(1-\rho_{\rm A})^{J+1}\leq e^{-\rho_{\rm A}(J+1)}$ with
+$\rho_{\rm A}=0.9\sqrt{\alpha/(1-\alpha)}$ proves
+\cref{eq:J-bound}.
+\end{proof}
+
+The stage count is accelerated, but stage count is not degree-weighted work.
+A local theorem must also bound the volume processed inside each shifted
+solve.

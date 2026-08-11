@@ -1,0 +1,234 @@
+\section{Source framework I: locally evolving sets}
+\label{sec:work1}
+
+The 2024 framework of \citet{zhou2024iterative} represents a local iterative
+solver as a deterministic evolving-set process
+\[
+  (S_t,x^{(t)},r^{(t)})
+  \longmapsto
+  (S_{t+1},x^{(t+1)},r^{(t+1)}),
+  \qquad
+  S_{t+1}\subseteq S_t\cup\bigcup_{u\in S_t}N(u).
+\]
+Its total work is $\sum_t\vol(S_t)$.  Two trajectory statistics summarize the
+locality of a run:
+\begin{equation}
+  \overline{\vol}_T
+  :=\frac1T\sum_{t=0}^{T-1}\vol(S_t),
+  \qquad
+  \overline\gamma_T
+  :=\frac1T\sum_{t=0}^{T-1}\gamma_t,
+  \label{eq:work1-trajectory}
+\end{equation}
+where $\gamma_t$ is the fraction of the weighted residual mass processed in
+round $t$.  For the monotone methods, the source proves
+\begin{equation}
+  \frac{\overline{\vol}_T}{\overline\gamma_T}\leq\frac1\eps.
+  \label{eq:work1-locality}
+\end{equation}
+
+\subsection{LOCSOR and LOCGD}
+
+Because $\diag(\widehat Q)=I$, a Work-I SOR coordinate update is
+\begin{align}
+  x^+&=x+\omega\widehat r_u e_u,
+  \label{eq:work1-sor-x}\\
+  \widehat r^+&=\widehat r-\omega\widehat r_u e_u
+    +\chi\omega\widehat r_u We_u.
+  \label{eq:work1-sor-r}
+\end{align}
+For $\omega=1$, the source obtains a local work bound of order
+\begin{equation}
+  \softO\!\left(
+    \frac{\overline{\vol}_T}{\alpha\overline\gamma_T}
+  \right),
+  \label{eq:locsor-source-bound}
+\end{equation}
+with the classical graph-independent fallback $\bigO(1/(\alpha\eps))$.
+The localized gradient/Jacobi variant has the same structural bound and is
+more parallelizable.
+
+The globally optimal SOR parameter is
+\begin{equation}
+  \omega_\star
+  =\frac{2(1+\alpha)}{(1+\sqrt\alpha)^2},
+  \label{eq:omega-star}
+\end{equation}
+which yields a global asymptotic factor
+$(1-\sqrt\alpha)/(1+\sqrt\alpha)$.  The source explicitly identifies the
+obstacle to a matching local theorem: for $\omega_\star>1$, residual signs and
+weighted-$\ell_1$ monotonicity may be lost.
+
+\subsection{LOCCH and localization forcing}
+
+The localized Chebyshev method masks both the residual and momentum updates on
+$S_t$.  If $S_t=V$ for all $t$, the method reduces to the standard Chebyshev
+iteration.  Under localization, skipped coordinates appear as a forcing term
+in a nonhomogeneous second-order residual recurrence.  The source controls the
+forcing through run-dependent quantities $\beta_k$ and proves acceleration
+when their geometric mean remains below a threshold corresponding to a
+constant $c<2$.  Thus the result is informative and often effective in
+practice, but it is not a graph-uniform unconditional accelerated theorem.
+
+\subsection{Empirical active-set shape}
+
+The project observation motivating the present hybrid is that accelerated
+local trajectories often display an expansion--peak--contraction pattern:
+active volumes are small initially, become largest in an intermediate regime,
+and shrink near termination.  This pattern is visible in the source
+experiments and is consistent with the locally evolving-set interpretation.
+It must be treated as an empirical regularity, not as a property proved for
+every graph or every accelerated method.
+
+\section{Source framework II: AESP}
+\label{sec:work2}
+
+The AESP framework of \citet{huang2025accelerated} moves acceleration outside
+the local process.  Each outer step solves a shifted system by a short,
+weighted-$\ell_1$ monotone local method, then applies Catalyst extrapolation
+between completed inner solves.
+
+\subsection{Shifted subproblems}
+
+At outer stage $t$, with center $y^{(t-1)}$, define
+\begin{equation}
+  h_t(z):=f(z)+\frac\eta2\norm{z-y^{(t-1)}}_2^2.
+  \label{eq:aesp-ht}
+\end{equation}
+Its Hessian is $Q+\eta I$, with eigenvalues in
+$[\alpha+\eta,1+\eta]$.  For
+\begin{equation}
+  \eta:=1-2\alpha,
+  \qquad \alpha<\frac12,
+  \label{eq:aesp-eta}
+\end{equation}
+we have
+\begin{equation}
+  \kappa(Q+\eta I)
+  =\frac{1+\eta}{\alpha+\eta}=2.
+  \label{eq:aesp-condition-two}
+\end{equation}
+Equivalently, each inner shifted system has an effective PageRank damping
+parameter $1/2$, independent of the original small $\alpha$.
+
+Let
+\begin{equation}
+  q_t(z):=D^{1/2}\nabla h_t(z).
+  \label{eq:aesp-inner-q}
+\end{equation}
+The AESP inner operators use the threshold
+\begin{equation}
+  \abs{\nabla_u h_t(z)}\geq\eps_t\sqrt{d_u}
+  \quad\Longleftrightarrow\quad
+  \abs{q_{t,u}(z)}\geq\eps_t d_u.
+  \label{eq:aesp-inner-active}
+\end{equation}
+The source derives a sufficient local stopping tolerance
+\begin{equation}
+  \eps_t
+  :=\max\left\{
+    \sqrt{\frac{(\alpha+\eta)\phi_t}{m}},
+    \frac{2(\alpha+\eta)\phi_t}
+         {\norm{q_t(z_t^{(0)})}_1}
+  \right\},
+  \label{eq:aesp-eps-t}
+\end{equation}
+which guarantees
+$h_t(z_t^{(K_t)})-\min h_t\leq\phi_t$ whenever the weighted
+$\ell_1$ inner gradient does not grow.
+
+For AESP-LOCGD, the scaled inner gradient satisfies
+\begin{equation}
+  \norm{q_t(z_t^{(k+1)})}_1
+  \leq
+  \left(1-\tau\gamma_t^{(k)}\right)
+  \norm{q_t(z_t^{(k)})}_1,
+  \qquad
+  \tau=\frac{2(\alpha+\eta)}{1+\alpha+2\eta}.
+  \label{eq:aesp-inner-contraction}
+\end{equation}
+With \cref{eq:aesp-eta}, $\tau=2/3$.  AESP-LOCAPPR obtains the
+coordinatewise analogue using online Gauss--Seidel updates.  Importantly, the
+argument allows signed inner gradients; it does not rely on nonnegativity of
+the Catalyst center.
+
+\subsection{Outer accelerated rate}
+
+Let
+\begin{equation}
+  q_{\rm cat}:=\frac{\alpha}{\alpha+\eta}
+  =\frac{\alpha}{1-\alpha},
+  \qquad
+  \rho_{\rm A}:=0.9\sqrt{q_{\rm cat}}.
+  \label{eq:aesp-q-rho}
+\end{equation}
+The outer momentum coefficient is
+\begin{equation}
+  \beta_{\rm A}
+  =\frac{\sqrt{\alpha+\eta}-\sqrt\alpha}
+         {\sqrt{\alpha+\eta}+\sqrt\alpha}
+  =\frac{\sqrt{1-\alpha}-\sqrt\alpha}
+         {\sqrt{1-\alpha}+\sqrt\alpha}.
+  \label{eq:aesp-beta}
+\end{equation}
+With the source accuracy schedule, the AESP theorem gives
+\begin{equation}
+  f(x^{(t)})-f^\star
+  \leq
+  U_t
+  :=\frac{200(1-\alpha^2)}{\alpha}
+       (1-\rho_{\rm A})^{t+1}.
+  \label{eq:aesp-outer-bound}
+\end{equation}
+Thus the number of outer stages needed for a prescribed objective target is
+$\softO(1/\sqrt\alpha)$.
+
+For stage $t$, let $\overline{\vol}(S_t)$ be the average inner active volume
+and $\gamma_t$ the source-defined average active ratio.  Define
+\begin{equation}
+  \Lambda_t
+  :=\frac{\overline{\vol}(S_t)}{\gamma_t}.
+  \label{eq:Lambda-t}
+\end{equation}
+The source work theorem has the stagewise form
+\begin{equation}
+  W_t^{\rm AESP}
+  \leq
+  \min\left\{
+    \frac{\overline{\vol}(S_t)}{\tau\gamma_t}
+      \log\frac{C_t^0}{C_t^{K_t}},
+    \frac{C_t^0-C_t^{K_t}}{\tau\eps_t}
+  \right\},
+  \label{eq:aesp-stage-work}
+\end{equation}
+where
+$C_t^k:=\norm{D^{1/2}\nabla h_t(z_t^{(k)})}_1$.  Its published
+worst-case local corollary is
+\begin{equation}
+  W_{\rm AESP}
+  \leq
+  \min\left\{
+    \softO\!\left(\frac{m}{\sqrt\alpha}\right),
+    \softO\!\left(\frac{R^2}{\sqrt\alpha\eps^2}\right)
+  \right\}.
+  \label{eq:aesp-published-bound}
+\end{equation}
+The $1/\eps^2$ factor arises from converting a quadratic objective target into
+a coordinatewise inner threshold through an $\ell_\infty$--$\ell_1$
+certificate.
+
+\subsection{Figure 4 and the hybrid motivation}
+
+Figure~4 of \citet{huang2025accelerated} reports error versus degree-weighted
+operations on four very large real graphs.  AESP-LOCAPPR is the most efficient
+AESP variant, attributed to online per-coordinate updates.  More importantly
+for the present project, the shifted systems yield much faster early-stage
+convergence than the direct baselines.  The hybrid hypothesis is therefore:
+\begin{quote}
+Use AESP only while its shifted local systems obtain large error reduction at
+small active volume; before the later high-accuracy inner thresholds become
+expensive, reset momentum and hand the remaining problem to a direct local
+solver.
+\end{quote}
+This is a design hypothesis supported by experiments, not a consequence of
+the AESP theorem alone.
