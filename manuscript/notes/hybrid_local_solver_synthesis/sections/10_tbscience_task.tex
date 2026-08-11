@@ -1,0 +1,160 @@
+\section{Terminal-Bench Science task design}
+\label{sec:tbscience}
+
+Terminal-Bench Science asks for real scientific computational workflows that
+are scientifically grounded, objectively and deterministically verifiable,
+and difficult for substantive reasons; it targets a release solve rate around
+10--20\% \citep{tbscience2026announcement,tbscience2026rubric}.  The
+contribution process requires a proposal followed by a containerized Harbor
+task and pytest-based verification.  The announced pull-request deadline is
+August 17, 2026 \citep{tbscience2026announcement}.
+
+\subsection{Recommended official objective}
+
+The official task should be:
+\begin{quote}
+\emph{Improve the provided frozen AESP-LOCAPPR solver on a hidden suite of
+personalized PageRank instances.  The submitted solver must satisfy the same
+certified accuracy condition on every instance and reduce aggregate
+instrumented degree-weighted graph-access work by a prescribed margin.}
+\end{quote}
+The task should not officially require the agent to prove
+\(\softO(1/(\sqrt\alpha\eps))\), nor should it require beating the
+instance-wise minimum of every known solver.
+
+This narrower target has four advantages.
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{It is outcome-verifiable.}  Correctness and work are both
+      deterministic numerical quantities.
+\item \textbf{It is scientifically coherent.}  The task asks the agent to
+      improve a published accelerated local solver at its documented
+      limitation, rather than solve an unbounded literature-review problem.
+\item \textbf{It is demonstrably solvable.}  The two-stage hybrid is a private
+      reference approach that can establish a realistic improvement threshold.
+\item \textbf{It leaves room for discovery.}  The agent may find switching,
+      restart, adaptive inner accuracy, priority scheduling, guarded
+      over-relaxation, or a different mechanism.
+\end{enumerate}
+
+\subsection{Why not ``beat the best of all solvers''?}
+
+Let \(W_a(i)\) be the work of an agent on instance \(i\), and let
+\begin{equation}
+  W_{\rm oracle}(i)
+  :=\min\{W_{\AESP}(i),W_{\omega_\star\text{-SOR}}(i),
+            W_{\LOCCH}(i),W_{\LOCGD}(i),W_{\APPR}(i)\}.
+    \label{eq:oracle-baseline}
+\end{equation}
+Requiring \(W_a(i)<W_{\rm oracle}(i)\) broadly or on every instance is a
+poor primary specification.  It makes solvability depend on five tuned
+implementations, encourages portfolio selection rather than algorithmic
+improvement, and complicates the verifier without improving scientific
+clarity.
+
+The broader solver set remains essential on the \emph{author side}.  Before
+submission, the task author should verify that no included standalone baseline
+passes the chosen threshold by itself.  In particular, replacing AESP with
+plain optimal SOR should not be a trivial passing solution.  The recommended
+separation is therefore
+\begin{equation}
+  \boxed{
+  \begin{aligned}
+  &\text{agent-facing baseline: frozen AESP-LOCAPPR},\\
+  &\text{author-side calibration: AESP, optimal SOR, LocCH, LocGD, APPR}.
+  \end{aligned}}
+  \label{eq:benchmark-separation}
+\end{equation}
+
+\subsection{Verifier and score}
+
+Let \(\mathcal I_{\rm hidden}\) be a deterministic hidden suite.  Every valid
+submission must satisfy, for all \(i\in\mathcal I_{\rm hidden}\),
+\begin{equation}
+   \norm{D_i^{-1}(\widehat\pi_i-\pi_i)}_\infty\leq\eps_i.
+   \label{eq:benchmark-correctness}
+\end{equation}
+The graph must be accessed through an instrumented interface that charges every
+adjacency-list scan.  Full-graph matrix construction is permitted only if the
+same accesses are charged; otherwise the task would reward bypassing the
+scientific work model.
+
+Define the geometric-mean work ratio
+\begin{equation}
+  R_{\rm work}
+  :=\exp\left(
+       \frac{1}{N}\sum_{i=1}^N
+       \log\frac{W_a(i)}{W_{\AESP}(i)}
+     \right).
+  \label{eq:geomean-work-ratio}
+\end{equation}
+A plausible initial pass gate is
+\begin{equation}
+   R_{\rm work}\leq0.80,
+   \label{eq:initial-speed-gate}
+\end{equation}
+provided the private hybrid reference passes with substantial margin, for
+example \(R_{\rm work}\leq0.70\).  The exact gate must be calibrated using
+frontier agents and the final container.  Add a regression guard such as
+\begin{equation}
+  Q_{0.90}\!\left(
+      \frac{W_a(i)}{W_{\AESP}(i)}
+  \right)\leq1.25,
+  \label{eq:regression-guard}
+\end{equation}
+so a solver cannot pass by being exceptionally fast on a few cases and
+catastrophically slow on many others.
+
+The verifier should also check:
+\begin{itemize}[leftmargin=2em]
+\item deterministic output and work counts across repeated runs;
+\item no modification of the frozen baseline or instrumentation;
+\item finite memory and time limits;
+\item correct handling of signed residuals and all hidden parameter regimes;
+\item metadata recording sufficient to reproduce any failure.
+\end{itemize}
+
+\subsection{Hidden-suite design}
+
+The hidden suite should vary graph family, source degree, \(\alpha\), and
+\(\eps\).  It must include cases where AESP's early acceleration is valuable
+and cases where late AESP overhead creates room for a hybrid.  A fixed switch
+iteration should not pass.  Recommended strata are:
+\begin{enumerate}[leftmargin=2em]
+\item real sparse graphs with low-, medium-, and high-degree sources;
+\item several small \(\alpha\) values;
+\item at least three final tolerances per graph family;
+\item star, path, long-spider, and core--boundary synthetic cases;
+\item held-out graphs not named in the task description;
+\item a few cases where continuing AESP is preferable, to penalize blind early
+      switching.
+\end{enumerate}
+
+\subsection{Solvability witness and disclosure}
+
+The task author should maintain a private reference implementation of the
+AESP-to-LocSOR hybrid and use it only to calibrate the pass threshold.  The
+agent-visible prompt should not reveal the switching rule.  The proposal must
+disclose that the task originates from the authors' AESP and locally evolving
+set research, and that a candidate hybrid reference solution exists.  The
+TB-Science announcement explicitly requires provenance and prior use to be
+disclosed \citep{tbscience2026announcement}.
+
+\subsection{Acceptance assessment}
+
+Under the rubric, the task is a strong candidate if the following are shown
+before proposal submission:
+\begin{enumerate}[leftmargin=2em]
+\item a deterministic verifier enforces both accuracy and exact graph-access
+      work;
+\item the private reference hybrid clears the gate with comfortable margin;
+\item all standalone baselines fail the official gate on the hidden aggregate;
+\item the suite is small enough for reliable container execution but diverse
+      enough to defeat fixed tuning;
+\item pilot frontier-agent runs give a low but nonzero solve rate;
+\item the task description is concise and does not reveal the hybrid method.
+\end{enumerate}
+Without a reference speedup or with only one or two public instances, the task
+would be vulnerable to rejection as insufficiently demonstrated or too easy
+to overfit.  Requiring a universal new theorem would create the opposite
+problem: the outcome would no longer be efficiently verifiable.  The frozen
+AESP improvement target is the appropriate middle ground.

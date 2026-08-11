@@ -1,0 +1,274 @@
+\section{Accelerated tail bounds and the remaining end-to-end lemma}
+\label{sec:accelerated-work}
+
+\subsection{Objective-gap handoff}
+
+The objective-gap switch is chosen so that the nonaccelerated coordinate tail
+fits inside the accelerated target budget.
+
+\begin{theorem}[Accelerated LocSOR tail from an objective-gap handoff]
+\label{thm:objective-handoff-tail}
+Let \(x_J\) satisfy
+\begin{equation}
+    f(x_J)-f(x^\star)
+    \leq
+    \Delta_{\rm sw}
+    =\frac{\alpha^{3/2}\eps}{1+\alpha}.
+    \label{eq:objective-handoff-condition}
+\end{equation}
+Run the local SOR tail with \(\omega=1\).  Then
+\begin{equation}
+    \Work_{\rm tail}
+    \leq\frac{1}{\sqrt\alpha\,\eps}.
+    \label{eq:objective-handoff-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Set \(\omega=1\) in \cref{eq:general-tail-work} and substitute
+\cref{eq:objective-handoff-condition}:
+\[
+    \Work_{\rm tail}
+    \leq
+    \frac{(1+\alpha)[f(x_J)-f(x^\star)]}
+         {\alpha^2\eps^2}
+    \leq
+    \frac{1}{\sqrt\alpha\eps}.
+\]
+\end{proof}
+
+\begin{proposition}[AESP stage count to the handoff]
+\label{prop:aesp-handoff-stage}
+Let \(U_t\) be the AESP upper bound in
+\cref{eq:aesp-objective-bound}, and let \(J\) be defined by
+\cref{eq:switch-stage}.  Write
+\begin{equation}
+    \log_+(z):=\max\{0,\log z\}.
+    \label{eq:log-plus}
+\end{equation}
+Then a sufficient stage count is
+\begin{equation}
+    J+1
+    \leq
+    1+
+    \left\lceil
+    \frac{1}{\rho_A}
+    \log_+\!\left(
+       \frac{200(1-\alpha)(1+\alpha)^2}
+            {\alpha^{5/2}\eps}
+    \right)
+    \right\rceil,
+    \label{eq:handoff-stage-count}
+\end{equation}
+where \(\rho_A=0.9\sqrt{\alpha/(1-\alpha)}\).  In particular,
+\begin{equation}
+    J=\mathcal O\!\left(
+       \frac{1}{\sqrt\alpha}
+       \log\frac{1}{\alpha\eps}
+    \right).
+    \label{eq:handoff-stage-asymptotic}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The condition \(U_J\leq\Delta_{\rm sw}\) is
+\[
+    (1-\rho_A)^{J+1}
+    \leq
+    \frac{\alpha^{5/2}\eps}
+         {200(1-\alpha)(1+\alpha)^2}.
+\]
+Use \((1-\rho_A)^k\leq e^{-\rho_A k}\), solve for \(k=J+1\),
+and use the definition of \(\rho_A\).
+\end{proof}
+
+The handoff target is substantially coarser than the final PPR tolerance.
+Equivalently, if one invokes the standard AESP theorem with a coarse solution
+parameter \(\eps_{\rm burn}\) satisfying
+\begin{equation}
+    \frac{\alpha\eps_{\rm burn}^2}{2}
+    =\frac{\alpha^{3/2}\eps}{1+\alpha},
+    \qquad
+    \eps_{\rm burn}
+    =\sqrt{\frac{2\sqrt\alpha\eps}{1+\alpha}},
+    \label{eq:coarse-aesp-tolerance}
+\end{equation}
+then its objective-gap target is exactly the switch scale.  This is the formal
+sense in which the hybrid uses only AESP's early or coarse-accuracy regime.
+
+\subsection{Trajectory-dependent full complexity}
+
+Let
+\begin{equation}
+    B_J:=\sum_{t=1}^{J}\Work_t^{\rm in},
+    \qquad
+    \Lambda_J:=\max_{1\leq t\leq J}\Lambda_t.
+    \label{eq:burn-work-and-locality}
+\end{equation}
+The truncated version of the AESP work analysis gives
+\begin{equation}
+    B_J
+    =\softO\!\left(\frac{\Lambda_J}{\sqrt\alpha}\right),
+    \label{eq:truncated-aesp-work}
+\end{equation}
+where the soft notation hides the outer geometric schedule and the logarithmic
+inner contractions in \cref{eq:aesp-stage-work}.
+
+\begin{theorem}[Trajectory-dependent hybrid work]
+\label{thm:trajectory-total}
+The proof-oriented hybrid satisfies
+\begin{equation}
+    \Work_{\rm hybrid}
+    \leq
+    \softO\!\left(\frac{\Lambda_J}{\sqrt\alpha}\right)
+    +\frac{1}{\sqrt\alpha\eps}.
+    \label{eq:trajectory-total-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Add the truncated AESP work \cref{eq:truncated-aesp-work} to the tail bound
+\cref{eq:objective-handoff-work}.
+\end{proof}
+
+\begin{theorem}[Conditional accelerated local bound]
+\label{thm:conditional-total}
+Suppose the early AESP stages satisfy
+\begin{equation}
+    \Lambda_t\leq\frac{K}{\eps}
+    \qquad\text{for every }1\leq t\leq J,
+    \label{eq:early-locality-assumption}
+\end{equation}
+where \(K\) is independent of graph size.  Then
+\begin{equation}
+    \Work_{\rm hybrid}
+    =\softO\!\left(
+       \frac{K+1}{\sqrt\alpha\eps}
+    \right).
+    \label{eq:conditional-total-work}
+\end{equation}
+In particular, if \(K=\mathcal O(1)\), the desired scale
+\(\softO(1/(\sqrt\alpha\eps))\) follows.
+\end{theorem}
+
+\begin{proof}
+Insert \cref{eq:early-locality-assumption} into
+\cref{eq:trajectory-total-work}.
+\end{proof}
+
+\begin{remark}[The exact missing lemma]
+The existing AESP theorem controls outer objective convergence and bounds each
+stage by its realized locality factor.  It does not prove
+\cref{eq:early-locality-assumption} on every graph.  Thus the full theorem is
+not yet unconditional.  The scientific core of the project is to prove a
+useful version of this early-locality statement, weaken it to a summable
+boundary overhead, or exhibit a counterexample that identifies the necessary
+algorithmic safeguard.
+\end{remark}
+
+\subsection{A stronger residual-mass handoff}
+\label{sec:mass-handoff}
+
+The weighted original-gradient mass
+\begin{equation}
+    M(x):=\norm{D^{1/2}g(x)}_1
+    \label{eq:mass-functional}
+\end{equation}
+controls both active volume and the work of Gauss--Seidel cleanup.
+
+\begin{lemma}[Mass controls the final active-set volume]
+\label{lem:mass-volume}
+For
+\(
+S_\eps(x):=\{u:\abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}\}
+\),
+\begin{equation}
+    \vol(S_\eps(x))
+    \leq\frac{M(x)}{\alpha\eps}.
+    \label{eq:mass-volume-bound}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For each \(u\in S_\eps(x)\),
+\(
+\abs{\sqrt{d_u}g_u(x)}\geq\alpha\eps d_u
+\).
+Sum over the active set.
+\end{proof}
+
+\begin{lemma}[Signed Gauss--Seidel mass decrease]
+\label{lem:gs-mass-decrease}
+Let \(q=D^{1/2}g(x)\), let \(u\) be processed with \(\omega=1\), and set
+\(\chi=(1-\alpha)/(1+\alpha)\).  Then
+\begin{equation}
+    q^+=q-q_u e_u+\chi q_uAD^{-1}e_u,
+    \label{eq:gs-scaled-update}
+\end{equation}
+and
+\begin{equation}
+    \norm{q^+}_1
+    \leq
+    \norm{q}_1-\frac{2\alpha}{1+\alpha}\abs{q_u}.
+    \label{eq:gs-mass-decrease}
+\end{equation}
+No sign assumption on \(q\) is required.
+\end{lemma}
+
+\begin{proof}
+The update formula follows by multiplying the local gradient update by
+\(D^{1/2}\).  Since \(AD^{-1}e_u\geq0\) and
+\(\norm{AD^{-1}e_u}_1=1\), the triangle inequality gives
+\[
+  \norm{q^+}_1
+  \leq
+  \norm{q}_1-\abs{q_u}+\chi\abs{q_u}
+  =\norm{q}_1-\frac{2\alpha}{1+\alpha}\abs{q_u}.
+\]
+\end{proof}
+
+\begin{theorem}[Residual-mass handoff]
+\label{thm:mass-handoff}
+Start the \(\omega=1\) LocSOR tail from \(x_0\).  Then
+\begin{equation}
+    \Work_{\rm tail}
+    \leq
+    \frac{1+\alpha}{2\alpha^2\eps}M(x_0).
+    \label{eq:mass-tail-work}
+\end{equation}
+If, for a constant \(\theta>0\),
+\begin{equation}
+    M(x_0)\leq\theta\alpha^{3/2},
+    \label{eq:mass-switch-condition}
+\end{equation}
+then
+\begin{equation}
+    \Work_{\rm tail}
+    \leq
+    \frac{\theta(1+\alpha)}{2\sqrt\alpha\eps},
+    \qquad
+    \vol(S_\eps(x_k))
+    \leq\frac{\theta\sqrt\alpha}{\eps}
+    \quad\text{for every tail iterate }x_k.
+    \label{eq:mass-tail-accelerated}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+An active coordinate satisfies \(\abs{q_u}\geq\alpha\eps d_u\).  By
+\cref{lem:gs-mass-decrease}, processing it decreases \(M\) by at least
+\(
+2\alpha^2\eps d_u/(1+\alpha)
+\).  Sum this telescoping decrease to obtain
+\cref{eq:mass-tail-work}.  Under \cref{eq:mass-switch-condition}, substitute
+into the work bound.  The active-volume statement follows from
+\cref{lem:mass-volume} and monotonicity of \(M\) during the tail.
+\end{proof}
+
+At \(x=0\), \(M(0)=\alpha\); thus
+\cref{eq:mass-switch-condition} asks AESP to reduce the mass by only a factor
+of order \(\sqrt\alpha\).  This is highly plausible empirically, but a
+uniform degree-weighted \(\ell_1\) contraction theorem for the AESP outer
+sequence is not currently available.  The objective-gap handoff is therefore
+the cleaner proved route, while the residual-mass handoff is a stronger target
+for future analysis and implementation.

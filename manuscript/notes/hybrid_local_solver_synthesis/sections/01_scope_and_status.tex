@@ -1,0 +1,124 @@
+\section{Scope, provenance, and claim status}
+\label{sec:scope}
+
+This document is a rigorous synthesis rather than a verbatim transcript.  It
+retains the substantive ideas developed in the discussion, removes duplicated
+or informal passages, corrects statements that were later found to be false,
+and makes every remaining proof obligation explicit.  The source results are
+the locally evolving set framework of \citet{zhou2024iterative}, the AESP
+framework of \citet{huang2025accelerated}, and the recent analysis of
+classical acceleration for \(\ell_1\)-regularized PageRank by
+\citet{fountoulakis2026complexity}.  Catalyst supplies the outer inexact
+accelerated proximal-point machinery \citep{lin2018catalyst}.
+
+The note uses one scoped PageRank normalization in order to state and prove
+results.  This normalization is not asserted to be the repository-wide
+canonical convention.  The active project documentation still treats the
+residual convention as an open decision; consequently, any migration into the
+main manuscript, solver code, or experiments must update the mathematical
+conventions, the residual decision record, and the tests in the same change.
+
+\subsection{Status vocabulary}
+
+We use the following labels throughout.
+
+\begin{table}[h]
+\centering
+\caption{Meaning of claim-status labels in this note.}
+\label{tab:status-vocabulary}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+Label & Meaning \\
+\midrule
+\statussource
+& A result stated in a cited paper.  We preserve its assumptions and
+  normalization rather than silently strengthening it. \\
+\statusproved
+& A statement proved in this note from the displayed definitions. \\
+\statusconditional
+& A theorem whose conclusion is rigorous once an explicitly stated locality,
+  confinement, or work assumption holds. \\
+\statusempirical
+& An observation supported by the reported experiments but not by a
+  graph-uniform theorem. \\
+\statusconjecture
+& A proposed route, missing lemma, or research question. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Central research question}
+
+The target problem is to compute an \(\eps\)-accurate personalized PageRank
+vector using degree-weighted local work.  Classical monotone local methods
+have worst-case work of order
+\[
+    \frac{1}{\alpha\eps},
+\]
+whereas global accelerated methods replace the condition-number dependence
+\(1/\alpha\) by \(1/\sqrt{\alpha}\) but may lose locality.  The desired local
+accelerated scale is therefore
+\begin{equation}
+    \softO\!\left(\frac{1}{\sqrt{\alpha}\eps}\right).
+    \label{eq:target-complexity}
+\end{equation}
+AESP proves the accelerated outer-iteration dependence, but its current
+worst-case local bound is
+\(
+\softO(R^2/(\sqrt{\alpha}\eps^2))
+\).
+The hybrid proposal exploits the experimentally favorable early AESP regime
+and delegates the final high-accuracy cleanup to a direct local relaxation
+method.
+
+\subsection{Main conclusions of the synthesis}
+
+The logical outcome is summarized in \cref{tab:main-status}.
+
+\begin{table}[h]
+\centering
+\caption{Main conclusions and their logical status.}
+\label{tab:main-status}
+\begin{tabularx}{\textwidth}{@{}p{0.42\textwidth}p{0.18\textwidth}X@{}}
+\toprule
+Statement & Status & Location \\
+\midrule
+AESP followed by local SOR converges from every finite handoff point, for any
+fair active-coordinate implementation and \(0<\omega<2\).
+& \statusproved & \Cref{thm:tail-convergence} \\
+An objective-gap handoff at
+\(f(x_J)-f^\star\leq\alpha^{3/2}\eps/(1+\alpha)\) gives
+\(\Work_{\rm tail}\leq1/(\sqrt{\alpha}\eps)\) for \(\omega=1\).
+& \statusproved & \Cref{thm:objective-handoff-tail} \\
+AESP reaches the above objective-gap scale in
+\(\softO(1/\sqrt{\alpha})\) outer stages.
+& \statussource\ plus algebra & \Cref{prop:aesp-handoff-stage} \\
+The full hybrid has
+\(\softO(1/(\sqrt{\alpha}\eps))\) total work if the early AESP locality factor
+\(\Lambda_t\) is \(\mathcal O(1/\eps)\).
+& \statusconditional & \Cref{thm:conditional-total} \\
+The weighted-\(\ell_1\) SOR contraction holds uniformly for
+\(0<\omega<1+\alpha\), not for the whole global SOR interval \((0,2)\).
+& \statusproved & \Cref{prop:signed-sor-l1} \\
+A no-percolation condition plus an
+\(\mathcal O(1/\eps)\)-volume gradient envelope implies the missing early
+AESP locality bound for LOCGD or priority LocAPPR.
+& \statusconditional & \Cref{thm:confinement-total} \\
+The same accelerated work bound holds on every graph without a confinement or
+comparable structural mechanism.
+& \statusconjecture & \Cref{sec:open-problems} \\
+The TB-Science task should officially require improving a frozen AESP
+baseline, while the task author calibrates against all standalone local
+baselines.
+& Design recommendation & \Cref{sec:tbscience} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Two cautions are essential.  First, the objective-gap handoff proves a fast
+\emph{tail}; it does not by itself bound the degree-weighted work spent by the
+AESP burn-in.  Second, the recent star lower bound for classical FISTA shows
+that small optimal support does not prevent transient activation of a
+high-degree boundary vertex \citep{fountoulakis2026complexity}.  A complete
+worst-case theorem must therefore control the path of active sets, not only the
+final solution.

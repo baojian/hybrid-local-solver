@@ -1,0 +1,150 @@
+\section{Experimental program for the hybrid solver}
+\label{sec:experiments}
+
+The theory identifies a clear experimental question: does AESP's early
+progress compensate for its outer-stage overhead, and can a direct local tail
+avoid the expensive part of the active-volume trajectory?  The experiments
+must measure this question under a common accuracy and work convention.
+
+\subsection{Hypotheses}
+
+\begin{description}[leftmargin=2.9cm,style=nextline]
+\item[H1: early AESP advantage.]
+For small \(\alpha\), AESP-LOCAPPR reduces the original PPR error or original
+gradient residual more rapidly per degree-weighted operation than standalone
+APPR, LocGD, and LocSOR during an initial regime.
+
+\item[H2: diminishing AESP returns.]
+The marginal progress per operation decreases after the early regime because
+active sets expand, inner tolerances become more demanding, or repeated
+outer-stage initialization dominates.
+
+\item[H3: hybrid dominance over AESP.]
+A switch to a direct local tail at an adaptive knee reduces total work relative
+to the frozen AESP implementation while preserving the same final certificate.
+
+\item[H4: no universal standalone winner.]
+AESP, optimal LocSOR, LocCH, LocGD, and APPR have complementary regimes; the
+instance-wise best solver depends on graph structure, source, \(\alpha\), and
+\(\eps\).
+\end{description}
+
+H1 and H2 are motivated by Figure 4 of \citet{huang2025accelerated}: AESP
+methods show steep early error reduction, and AESP-LOCAPPR is the most
+efficient AESP variant because of online coordinate updates.  H3 is the new
+hybrid hypothesis.  H4 motivates using the broader solver set for scientific
+calibration without making an instance-wise oracle the official benchmark
+target.
+
+\subsection{Methods}
+
+At minimum, compare:
+\begin{equation}
+\begin{aligned}
+    \mathcal M_{\rm exp}:=\{&\AESP\text{-}\LOCAPR,
+      \AESP\text{-}\LOCGD,
+      \APPR,
+      \LOCGD,\\
+      \LOCSOR(\omega=1),
+      \LOCSOR(\omega_\star),
+      \LOCCH,
+      \text{hybrid}\}.
+\end{aligned}
+    \label{eq:experimental-methods}
+\end{equation}
+The first benchmarked hybrid should be the simplest proof-oriented version in
+\cref{alg:hybrid-aesp-locsor}.  Additional variants should isolate one change
+at a time:
+\begin{enumerate}[leftmargin=2em]
+\item fixed outer-stage switch versus objective-bound switch;
+\item residual-mass switch versus marginal-work switch;
+\item \(\omega=1\) tail versus plain \(\omega_\star\) tail;
+\item \(\omega=1\) tail versus safeguarded \(\omega_\star\) tail;
+\item FIFO LOCAPPR versus normalized-priority LOCAPR;
+\item reset momentum versus any experimental momentum-transfer rule.
+\end{enumerate}
+
+\subsection{Primary metrics and correctness}
+
+The primary work measure is
+\begin{equation}
+    \Work=\sum_{\text{executed }u}d_u,
+    \label{eq:experiment-work}
+\end{equation}
+or the exactly equivalent count of instrumented adjacency-list entries.  Every
+method must also report:
+\begin{itemize}[leftmargin=2em]
+\item outer stages;
+\item inner sweeps or coordinate updates;
+\item active-set volume by stage and by sweep;
+\item queue initialization and stopping-check work;
+\item wall-clock time as a secondary engineering metric;
+\item peak sparse-state size.
+\end{itemize}
+
+A run is valid only if
+\begin{equation}
+    \norm{D^{-1}(\widehat\pi-\pi)}_\infty\leq\eps,
+    \label{eq:experiment-correctness}
+\end{equation}
+with either an exact small-graph reference or the certified residual condition
+\cref{eq:ppr-certificate}.  All baselines must be translated to this same
+normalization explicitly.  The inner AESP gradient is never accepted as the
+final residual.
+
+\subsection{Instance families}
+
+The suite should mix real and synthetic graphs.
+
+\paragraph{Real graphs.}
+Use graphs spanning degree distributions and local community structures,
+including the large graphs from the AESP study when practical.  For each
+graph, draw sources from degree strata rather than only uniformly: low-degree,
+median-degree, and high-degree seeds can produce qualitatively different
+active trajectories.
+
+\paragraph{Synthetic mechanisms.}
+Include the following controlled families:
+\begin{itemize}[leftmargin=2em]
+\item center- and leaf-seeded stars, which expose high-degree boundary costs;
+\item paths and long spiders, which expose diffusive propagation and local
+      spectral obstructions;
+\item core--boundary--exterior graphs of varying boundary volume, following
+      the mechanism in \citet{fountoulakis2026complexity};
+\item expanders and dense local cores, which test whether the hybrid switches
+      too early when global mixing is favorable;
+\item graphs with the same local core but different remote graph size, which
+      test graph-size independence.
+\end{itemize}
+
+\subsection{Parameter grid and reporting}
+
+Use a logarithmic grid in \(\alpha\), emphasizing
+\(
+10^{-3}\) to \(10^{-1}
+\), and several \(\eps\) values spanning coarse and high-accuracy regimes.
+For every run, record
+\begin{equation}
+   (G,s,\alpha,\eps,\text{seed},\text{ordering},\text{switch rule},
+    \text{stopping rule},\text{code version}).
+    \label{eq:experiment-metadata}
+\end{equation}
+Plots should show error versus cumulative work and active volume versus work,
+not only final bar charts.  The hybrid claim is specifically about the shape
+of the trajectory and the location of the switching knee.
+
+\subsection{Falsification criteria}
+
+The hybrid hypothesis should be considered falsified, or at least materially
+weakened, if any of the following persists after implementation debugging:
+\begin{enumerate}[leftmargin=2em]
+\item the reference hybrid fails to beat frozen AESP on a diverse held-out
+      suite by more than measurement noise;
+\item all gains are explained by a stopping-rule mismatch;
+\item a standalone existing solver already passes the proposed benchmark
+      threshold on almost every hidden instance;
+\item the switch requires graph-family labels or hand-tuned per-instance
+      parameters unavailable to an agent;
+\item queue initialization or residual reconstruction makes the nominal local
+      work advantage disappear under exact accounting.
+\end{enumerate}

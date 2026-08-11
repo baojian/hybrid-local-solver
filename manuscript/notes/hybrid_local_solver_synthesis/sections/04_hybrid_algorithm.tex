@@ -1,0 +1,128 @@
+\section{A proof-oriented AESP-to-LocSOR hybrid}
+\label{sec:hybrid-algorithm}
+
+\subsection{Design principle}
+
+The proposed division of labor is
+\begin{equation}
+    \boxed{
+    \text{AESP for early accelerated compression}
+    \quad\longrightarrow\quad
+    \text{LocSOR for local high-accuracy cleanup}.}
+    \label{eq:hybrid-principle}
+\end{equation}
+AESP is used only while its shifted systems and small early active sets are
+expected to provide favorable progress per edge access.  The tail discards all
+outer momentum and runs a direct local coordinate method on the original
+PageRank objective.  The proof-oriented version uses \(\omega=1\) in the tail;
+a safeguarded over-relaxed variant is developed in \cref{sec:sor-correction}.
+
+The clean theoretical handoff is based on the original objective gap.  Define
+\begin{equation}
+    \Delta_{\rm sw}
+    :=\frac{\alpha^{3/2}\eps}{1+\alpha}.
+    \label{eq:switch-gap}
+\end{equation}
+AESP supplies the computable upper bound \(U_t\) in
+\cref{eq:aesp-objective-bound}.  The switch occurs at
+\begin{equation}
+    J
+    :=\min\{t\geq0:U_t\leq\Delta_{\rm sw}\}.
+    \label{eq:switch-stage}
+\end{equation}
+This rule is conservative but does not require knowing \(f(x^\star)\).
+
+\subsection{Algorithm}
+
+\begin{algorithm}[t]
+\caption{Proof-oriented hybrid AESP--LocSOR}
+\label{alg:hybrid-aesp-locsor}
+\begin{algorithmic}[1]
+\REQUIRE Graph \(G\), source \(s\), \(\alpha\in(0,1/2)\), target \(\eps>0\)
+\STATE Set \(x^{(0)}=y^{(0)}=0\), \(\eta=1-2\alpha\), and define \(U_t\) by
+       \cref{eq:aesp-objective-bound}
+\FOR{\(t=1,2,\ldots\)}
+    \STATE Approximately minimize
+    \(
+       h_t(z)=f(z)+\frac{\eta}{2}\norm{z-y^{(t-1)}}_2^2
+    \)
+    with LOCAPPR or LOCGD to the AESP-prescribed accuracy \(\phi_t\), obtaining
+    \(x^{(t)}\)
+    \IF{\(\norm{D^{-1/2}g(x^{(t)})}_\infty<\alpha\eps\)}
+        \RETURN \(D^{1/2}x^{(t)}\)
+    \ENDIF
+    \IF{\(U_t\leq\Delta_{\rm sw}\)}
+        \STATE Set \(x_{\rm sw}=x^{(t)}\) and break
+    \ENDIF
+    \STATE Update
+    \(
+       y^{(t)}=x^{(t)}+\beta(x^{(t)}-x^{(t-1)})
+    \)
+    with \(\beta\) from \cref{eq:aesp-momentum}
+\ENDFOR
+\STATE Discard all Catalyst momentum and initialize
+       \(x\leftarrow x_{\rm sw}\), \(g\leftarrow Qx-\alpha D^{-1/2}e_s\)
+\WHILE{there exists \(u\) with \(\abs{g_u}\geq\alpha\eps\sqrt{d_u}\)}
+    \STATE Choose any active \(u\) and set
+    \(
+       x\leftarrow x-\frac{2g_u}{1+\alpha}e_u
+    \)
+    \STATE Update \(g\leftarrow Qx-\alpha D^{-1/2}e_s\) locally on
+          \(\{u\}\cup N(u)\)
+\ENDWHILE
+\RETURN \(D^{1/2}x\)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{State transfer and invariants}
+
+Three details are mandatory.
+
+\paragraph{Use the original gradient.}
+The inner queue is controlled by
+\begin{equation}
+    \grad h_t(x)
+    =g(x)+\eta(x-y^{(t-1)}).
+    \label{eq:inner-vs-original-gradient}
+\end{equation}
+The tail must instead initialize from \(g(x_{\rm sw})\).  Using the inner
+proximal gradient would solve the wrong linear system.
+
+\paragraph{Reset momentum.}
+The vectors \(x^{(t)}-x^{(t-1)}\) in Catalyst and the momentum state used by
+Chebyshev or heavy-ball iterations arise from different recurrences.  The
+tail therefore starts with zero momentum.  Reusing Catalyst momentum in a
+LocCH tail would not be justified by either source analysis.
+
+\paragraph{Preserve the final certificate.}
+The tail stops only when \cref{eq:ppr-certificate} holds.  An inner AESP
+threshold \(\eps_t\) certifies the shifted subproblem and is not a substitute
+for the original PPR residual test.
+
+\subsection{Practical switching rules}
+
+The theoretical rule \cref{eq:switch-stage} may be conservative.  The
+following observable rules are reasonable experimental variants, but they do
+not replace the theorem unless separately analyzed.
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Residual-mass switch.}  Maintain the best checkpoint in
+\(
+M_t=\norm{D^{1/2}g(x^{(t)})}_1
+\)
+and switch when \(M_t\leq\theta\alpha^{3/2}\).  This gives the stronger
+LocSOR bounds in \cref{sec:mass-handoff}, but the AESP burn-in time needed to
+reach this threshold is currently open.
+
+\item \textbf{Marginal-work switch.}  Let \(W_t\) be the work of the latest
+AESP stage and let \(P_t\) be an observable progress statistic, such as the
+reduction of the best original residual mass.  Switch when \(P_t/W_t\) remains
+below a calibrated threshold for several stages.
+
+\item \textbf{Probe switch.}  Checkpoint the AESP state, run a short LocSOR or
+LocCH probe, and accept the handoff only if the probe provides sufficient
+certified progress per work.  Otherwise roll back and continue AESP.
+\end{enumerate}
+
+The benchmark in \cref{sec:tbscience} should leave the switching mechanism
+unspecified so that an agent may discover any of these ideas or a better one.
