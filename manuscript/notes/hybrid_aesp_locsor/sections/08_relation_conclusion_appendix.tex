@@ -1,0 +1,112 @@
+\section{Relationship to the existing CF-Push analysis}
+\label{sec:cf-relation}
+
+The active repository already contains
+\texttt{manuscript/sections/cf\_push\_two\_stage\_analysis.tex}, which studies a
+different two-stage method: coarse monotone forward push followed by fixed
+SOR.  That note proves finite convergence and several handoff facts, and it
+also records a long-spider obstruction to a graph-uniform accelerated work
+bound for the current fixed-relaxation FIFO method.
+
+The present note does not supersede that analysis.  Its Phase I is AESP rather
+than coarse forward push, and its principal handoff is an objective gap.  The
+long-spider obstruction remains relevant to claims about a plain optimal-SOR
+tail, but it does not by itself refute \cref{thm:objective-tail}: after a
+sufficiently small objective-gap handoff, even $\omega=1$ has the stated tail
+budget.  The unresolved question moves to whether AESP reaches that handoff
+with $\softO(1/(\sqrt\alpha\eps))$ local work on every graph.
+
+\section{Conclusions}
+\label{sec:conclusion}
+
+The hybrid idea is mathematically coherent and at least convergent.  The most
+robust proof architecture is
+\[
+  \boxed{
+  \text{coarse AESP burn-in}
+  \;\longrightarrow\;
+  \text{momentum reset}
+  \;\longrightarrow\;
+  \omega=1\text{ LOCSOR cleanup}.}
+\]
+The SOR tail is fully controlled: an objective-gap handoff gives
+$\bigO(1/(\sqrt\alpha\eps))$ tail work, and a weighted-gradient-mass handoff
+additionally controls every tail active set.  The overall algorithm has a
+rigorous trajectory-dependent accelerated bound.  The exact remaining theorem
+is an early-stage AESP locality bound such as
+$\Lambda_J=\bigO(1/\eps)$, or an alternative mechanism that provides the same
+burn-in work without assuming confinement.
+
+For a publication, the central claim should therefore be stated in one of two
+ways.  A conservative version proves the trajectory theorem and a structural
+confinement corollary, supported by experiments showing that the condition is
+mild in practice.  A stronger version first closes the universal early-locality
+lemma.  It would be incorrect at the current stage to present the universal
+$\softO(1/(\sqrt\alpha\eps))$ bound as already proved solely from the existing
+AESP and locally evolving-set theorems.
+
+\appendix
+
+\section{A compact dependency map}
+\label{app:dependency}
+
+The desired total theorem decomposes into the following implications:
+\begin{align*}
+  &\text{AESP inner certificates}
+    &&\Longrightarrow\quad
+      f(x^{(t)})-f^\star\leq U_t,\\
+  &U_J\leq\frac{\alpha^{3/2}\eps}{1+\alpha}
+    &&\Longrightarrow\quad
+      W_{\rm tail}\leq\frac1{\sqrt\alpha\eps},\\
+  &\Lambda_J\leq\frac{K}{\eps}
+    &&\Longrightarrow\quad
+      B_J=\softO\!\left(\frac{K}{\sqrt\alpha\eps}\right),\\
+  &\text{the previous two lines}
+    &&\Longrightarrow\quad
+      W_{\rm hybrid}
+      =\softO\!\left(\frac{K+1}{\sqrt\alpha\eps}\right).
+\end{align*}
+Only the third implication's premise is currently unresolved in a
+fully graph-uniform form.
+
+\section{Useful inequalities}
+\label{app:inequalities}
+
+For reference, the analysis repeatedly uses:
+\begin{enumerate}[leftmargin=2em]
+  \item for a convex $1$-smooth function,
+        $\norm{\nabla f(x)}_2^2\leq2(f(x)-f^\star)$;
+  \item for $q=D^{1/2}g$ supported in $\Omega$,
+        $\norm{q}_1\leq\sqrt{\vol(\Omega)}\norm{g}_2$;
+  \item for $0<z<1$, $(1-z)^k\leq e^{-zk}$;
+  \item for a thresholded set $S$ and support envelope $\Omega$,
+        the average density on $S$ is at least the average density on
+        $\Omega$, yielding \cref{eq:support-envelope-bound}.
+\end{enumerate}
+
+\begin{thebibliography}{9}
+
+\bibitem[Zhou et~al.(2024)Zhou, Sun, Harikandeh, Guo, Yang, and
+  Xiao]{zhou2024iterative}
+Baojian Zhou, Yifan Sun, Reza Babanezhad Harikandeh, Xingzhi Guo, Deqing
+Yang, and Yanghua Xiao.
+\newblock Iterative methods via locally evolving set process.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~37, 2024.
+
+\bibitem[Huang et~al.(2025)Huang, Luo, Xiao, Yang, and
+  Zhou]{huang2025accelerated}
+Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian Zhou.
+\newblock Accelerated evolving set processes for local {PageRank}
+  computation.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~38, 2025.
+\newblock arXiv:2510.08010v4.
+
+\bibitem[Fountoulakis and Mart{\'i}nez-Rubio(2026)]{fountoulakis2026complexity}
+Kimon Fountoulakis and David Mart{\'i}nez-Rubio.
+\newblock Complexity of classical acceleration for
+  $\ell_1$-regularized {PageRank}.
+\newblock \emph{arXiv preprint arXiv:2602.21138v2}, 2026.
+
+\end{thebibliography}
