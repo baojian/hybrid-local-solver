@@ -49,6 +49,28 @@ Corrections and open item:
 The note is intentionally not input by the active manuscript while the
 repository-wide residual convention remains open.
 
+### Publication gate
+
+Keep `manuscript/notes/hybrid_aesp_locsor/` as a rigorous standalone research
+note; do not promote its graph-uniform end-to-end complexity claim into the
+active paper until one of the following is established:
+
+1. the central early-AESP locality lemma
+   \[
+   \Lambda_J
+   := \max_{1\leq t\leq J}
+      \frac{\overline{\operatorname{vol}}(S_t)}{\gamma_t}
+   = O(1/\epsilon),
+   \]
+   with a graph-independent hidden constant; or
+2. a correct weaker structural condition or alternative burn-in work argument
+   that is sufficient for the paper's stated theorem.
+
+Until this gate is closed, paper-facing statements may use the proved
+trajectory-dependent theorem and explicitly conditional confinement
+corollaries, but must continue to label the universal
+`O~(1/(sqrt(alpha) * epsilon))` work bound as open.
+
 ## 2026-08-02: APPR worst-case work is `Theta(1/(alpha * eps))`
 
 Recorded in `manuscript/sections/appr_lower_bound.tex`. The classical ACL
