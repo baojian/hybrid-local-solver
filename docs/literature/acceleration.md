@@ -27,6 +27,8 @@ starting points, but their applicability has not yet been established.
   <https://arxiv.org/abs/2602.21138>.
 - Local PDF:
   `papers/2026-arxiv-fountoulakis-complexity-classical-acceleration-l1-regularized-pagerank.pdf`.
+- Source-faithful reader archive:
+  `manuscript/archive/arxiv-2026-classical-acceleration-rppr/`.
 - Relevance: The paper gives a source-compatible RPPR objective, classical
   FISTA iteration, degree-weighted work model, conditional locality bound
   under boundary confinement, and a star-graph lower bound showing that
