@@ -1,22 +1,9 @@
-\subsection{Graph operator}
+\input{../../tex/shared/source_aligned_problem}
 
-Let $G=(V,E)$ be a finite undirected unweighted graph with no isolated
-vertices, adjacency matrix $A$, degree matrix $D=\diag(d_i)$, and normalized
-adjacency
+\paragraph{Note specialization.}
+This note assumes \(0<\alpha<1/2\). Define the proof-scoped degree vector and
+weighted mass functional
 \[
-  W:=D^{-1/2}AD^{-1/2}.
-\]
-Fix $\alpha\in(0,1/2)$ and define
-\begin{equation}
-  Q
-  :=\alpha I+\frac{1-\alpha}{2}(I-W)
-  =\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}W.
-  \label{eq:Q}
-\end{equation}
-For a source distribution $s\ge 0$ with $\one^Ts=1$, set
-\[
-  b:=\alpha D^{-1/2}s,
-  \qquad
   w:=D^{1/2}\one,
   \qquad
   p(x):=w^Tx.
@@ -33,20 +20,12 @@ The identities
 are used throughout.  The matrix $Q$ is a symmetric positive-definite
 $M$-matrix and satisfies $\alpha I\preceq Q\preceq I$.
 
-\subsection{\texorpdfstring{$\ell_1$}{l1}-regularized PageRank}
+\subsection{Orthant form and note-scoped KKT residual}
 
-For $\rho>0$, define
-\begin{equation}
-  F_\rho(x)
-  :=\frac12x^TQx-b^Tx+\alpha\rho J(x),
-  \qquad
-  J(x):=\norm{D^{1/2}x}_1=\sum_i w_i|x_i|.
-  \label{eq:rppr}
-\end{equation}
-This is the source-aligned RPPR formulation of
-\citet{fountoulakis2019variational,fountoulakis2026complexity}.  Since $b\ge0$
-and $Q$ is an $M$-matrix, the unique minimizer $x_\rho^\star$ is nonnegative.
-It is therefore convenient to use the equivalent orthant formulation
+Write \(J(x):=\norm{D^{1/2}x}_1=\sum_i w_i|x_i|\). Since \(b\ge0\)
+and \(Q\) is an \(M\)-matrix, the shared minimizer \(x^\star(\rho)\) is
+nonnegative. In this note it is convenient to write it as \(x_\rho^\star\)
+and use the equivalent orthant formulation
 \begin{equation}
  F_\rho^+(x)
  :=\frac12x^TQx-b^Tx+\alpha\rho w^Tx+I_{\R_+^V}(x).
@@ -55,16 +34,16 @@ It is therefore convenient to use the equivalent orthant formulation
 
 On the orthant, introduce the note-scoped signed KKT residual
 \begin{equation}
-  r_\rho(x):=b-Qx-\alpha\rho w.
+  \kappa_\rho(x):=b-Qx-\alpha\rho w.
   \label{eq:kkt-residual}
 \end{equation}
 The minimizer obeys
 \begin{equation}
-  r_\rho(x_\rho^\star)\le0,
+  \kappa_\rho(x_\rho^\star)\le0,
   \qquad
   x_\rho^\star\ge0,
   \qquad
-  x_{\rho,i}^\star r_{\rho,i}(x_\rho^\star)=0.
+  x_{\rho,i}^\star \kappa_{\rho,i}(x_\rho^\star)=0.
   \label{eq:kkt}
 \end{equation}
 Our sign convention makes positive residual a legal direction in which to
@@ -76,19 +55,16 @@ Multiplying the active KKT equations by $w$ gives the standard support budget
   \label{eq:rppr-support-budget}
 \end{equation}
 Thus $\rho^{-1}$ is simultaneously a regularization scale and a worst-case
-support-volume scale.  It is not identified here with the repository's
-unresolved global symbol $\epsilon$.
+support-volume scale. It is not identified here with an unresolved global
+accuracy symbol.
 
 \subsection{Local work}
 
-Scanning the neighborhood of vertex $i$ costs $d_i$.  A batched active set
-$S$ therefore costs
-\[
-  \vol(S):=\sum_{i\in S}d_i.
-\]
+Scanning the neighborhood of vertex $i$ costs $d_i$. By the shared work
+definition, a batched active set $S$ therefore costs $\vol(S)$.
 For an active-set trajectory $(S_t)_{t<T}$ we charge
 \begin{equation}
-  W_T:=\sum_{t=0}^{T-1}\vol(S_t).
+  \Work_T:=\sum_{t=0}^{T-1}\vol(S_t).
   \label{eq:work-model}
 \end{equation}
 This is the same edge-operation unit used in the locally evolving-set

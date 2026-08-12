@@ -1,7 +1,10 @@
-.PHONY: test lint paper experiments full-experiments eps-sweep omega-sweep figures reproduce clean
+.PHONY: test lint paper notes experiments full-experiments eps-sweep omega-sweep figures reproduce clean
 
 paper:
 	$(MAKE) -C manuscript
+
+notes:
+	$(MAKE) -C manuscript notes
 
 test:
 	uv run pytest
@@ -28,3 +31,4 @@ reproduce: test lint experiments figures paper
 
 clean:
 	$(MAKE) -C manuscript distclean
+	$(MAKE) -C manuscript notes-clean

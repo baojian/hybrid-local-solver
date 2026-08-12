@@ -13,157 +13,22 @@ using the boldface convention employed elsewhere in this manuscript. We record
 the source convention completely so that later algorithms can state any
 translation explicitly.
 
-The source uses \(\varepsilon\) in two different contexts: as an objective-gap
+The source uses one undifferentiated accuracy glyph in two contexts: as an objective-gap
 target in its theoretical bounds and as a proximal fixed-point residual
 tolerance in its experiments. We retain both definitions below, but do not
 identify them. The repository has not yet adopted either one as its canonical
 stopping rule.
 
-\paragraph{Sets, graph, and volume.}
-Let \(G=(V,E)\) be an undirected, unweighted graph with
-\(V=[n]:=\{1,\ldots,n\}\). For \(S\subseteq V\), the notation is:
-\begin{itemize}[leftmargin=*]
-    \item \(|S|\) is the cardinality of \(S\), and
-    \(S^c:=[n]\setminus S\) is its complement;
-    \item \(\mathcal{N}(S)\) is the set of vertices adjacent to at least one
-    vertex in \(S\);
-    \item
-    \[
-        \partial S
-        :=
-        \mathcal{N}(S)\setminus S,
-        \qquad
-        \operatorname{Ext}(S)
-        :=
-        V\setminus(S\cup\partial S)
-    \]
-    are the vertex boundary and exterior of \(S\);
-    \item \(d_i:=|\mathcal{N}(\{i\})|\) is the degree of vertex \(i\), with
-    \(d_i>0\) for every \(i\);
-    \item
-    \[
-        \vol(S):=\sum_{i\in S}d_i,
-        \qquad
-        d_{\min,\partial S}:=\min_{j\in\partial S}d_j
-    \]
-    are the degree volume of \(S\) and the minimum boundary degree.
-\end{itemize}
+\input{tex/shared/source_aligned_problem}
 
-The adjacency matrix is \(A\in\{0,1\}^{n\times n}\),
-\(D:=\diag(d_1,\ldots,d_n)\) is the diagonal degree matrix, and
-\(I\in\R^{n\times n}\) is the identity matrix. All optimization vectors are
-column vectors in \(\R^n\). The support of a vector is
-\[
-    \supp(x):=\{i\in[n]:x_i\neq 0\}.
-\]
-We use \(\norm{\cdot}_2\), \(\norm{\cdot}_1\), and
-\(\norm{\cdot}_\infty\) for the Euclidean, \(\ell_1\), and maximum norms,
-respectively. Matrix inequalities such as \(M\preceq N\) use the Loewner
-order.
-
-\paragraph{Seed and PageRank matrices.}
-The seed distribution satisfies
-\[
-    s\in\R_+^n,
-    \qquad
-    \langle\mathbf{1},s\rangle=1.
-\]
-The single-seed specialization is \(s=e_v\), where \(e_v\) is the \(v\)-th
-standard basis vector. For a teleportation parameter
-\(\alpha\in(0,1]\), define the symmetric normalized Laplacian and the shifted
-PageRank matrix by
-\begin{equation}
-    \mathcal{L}
-    :=
-    I-D^{-1/2}AD^{-1/2},
-    \qquad
-    Q
-    :=
-    \alpha I+\frac{1-\alpha}{2}\mathcal{L}
-    =
-    \frac{1+\alpha}{2}I
-    -
-    \frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
-    \label{eq:source-pagerank-matrices}
-\end{equation}
-Since \(0\preceq\mathcal{L}\preceq2I\),
-\[
-    \alpha I\preceq Q\preceq I.
-\]
-
-\subsection{\texorpdfstring{The \(\ell_1\)-regularized PageRank problem}
-{The l1-regularized PageRank problem}}
-\label{subsec:source-rppr}
-
-The smooth PageRank quadratic is
-\begin{equation}
-    f(x)
-    :=
-    \frac{1}{2}\langle x,Qx\rangle
-    -
-    \alpha\langle D^{-1/2}s,x\rangle,
-    \qquad
-    \nabla f(x)=Qx-\alpha D^{-1/2}s.
-    \label{equ:f(x)}
-\end{equation}
-For a sparsity parameter \(\rho>0\), define
-\[
-    g_\rho(x)
-    :=
-    \alpha\rho\norm{D^{1/2}x}_1.
-\]
-The source often abbreviates \(g_\rho\) as \(g\). Its central
-\(\ell_1\)-regularized personalized PageRank problem is
-\begin{equation}
-    \min_{x\in\R^n} F_\rho(x),
-    \qquad
-    F_\rho(x)
-    :=
-    f(x)+g_\rho(x).
-    \label{equ:F(x)}
-\end{equation}
-
-The matrix bound in \cref{eq:source-pagerank-matrices} makes \(f\)
-\(1\)-smooth and \(\alpha\)-strongly convex. Consequently \(F_\rho\) has a
-unique minimizer, denoted by
-\[
-    x^\star(\rho)
-    :=
-    \argmin_{x\in\R^n}F_\rho(x).
-\]
-When \(\rho\) is fixed, we abbreviate \(x^\star(\rho)\) as \(x^\star\), and
-write
-\[
-    S^\star
-    :=
-    \supp(x^\star),
-    \qquad
-    I^\star
-    :=
-    [n]\setminus S^\star.
-\]
-The source records that \(x^\star(\rho)\geq0\) coordinatewise and invokes the
-sparsity guarantee
-\(\vol(S^\star)\leq1/\rho\)
-\citep{fountoulakis2019variational,fountoulakis2026complexity}.
-
-The coordinatewise optimality conditions used by the source are
-\begin{equation}
-    \nabla_i f\bigl(x^\star(\rho)\bigr)
-    \in
-    \begin{cases}
-        \{-\alpha\rho\sqrt{d_i}\},
-            & x_i^\star(\rho)>0,\\
-        [-\alpha\rho\sqrt{d_i},0],
-            & x_i^\star(\rho)=0.
-    \end{cases}
-    \label{eq:source-rppr-kkt}
-\end{equation}
-For the initialization \(x_0=0\), the initial objective gap is
+For the single-seed initialization \(s=e_v\) and \(x_0=0\), the source gives
+the sharper initial-gap bound
 \[
     \Delta_0
     :=
     F_\rho(0)-F_\rho(x^\star)
+    \leq
+    \frac{\alpha}{2d_v}
     \leq
     \frac{\alpha}{2}.
 \]
@@ -259,13 +124,13 @@ fixed-point residual
     \norm{x-T_{\alpha,\rho}(x)}_\infty.
     \label{eq:source-fixed-point-residual}
 \end{equation}
-They stop when \(r_{\mathrm{pg}}(x_k)\leq\varepsilon_{\mathrm{pg}}\).
+They stop when \(r_{\mathrm{pg}}(x_k)\leq\epspg\).
 We add the subscript ``pg'' to distinguish this experimental tolerance from
 the theoretical objective-gap target
 \[
-    F_\rho(x_N)-F_\rho(x^\star)\leq\varepsilon_{\mathrm{obj}}.
+    F_\rho(x_N)-F_\rho(x^\star)\leq\epsobj.
 \]
-The source itself writes both quantities as \(\varepsilon\).
+The source itself writes both quantities with the same glyph.
 
 \subsection{Over-regularization and locality notation}
 \label{subsec:source-locality-notation}
@@ -401,11 +266,11 @@ For completeness, the remaining recurring analytical symbols in
     factor used in the FISTA proof;
     \item
     \[
-        N_{\varepsilon_{\mathrm{obj}}}
+        N_{\epsobj}
         :=
         \left\lceil
             \frac{
-                \log(\Delta_0/\varepsilon_{\mathrm{obj}})
+                \log(\Delta_0/\epsobj)
             }{
                 \log\bigl(1/(1-\sqrt{\mu/L})\bigr)
             }

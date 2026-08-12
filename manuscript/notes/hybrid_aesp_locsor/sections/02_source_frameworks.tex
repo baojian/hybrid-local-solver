@@ -8,7 +8,7 @@ solver as a deterministic evolving-set process
   \longmapsto
   (S_{t+1},x^{(t+1)},r^{(t+1)}),
   \qquad
-  S_{t+1}\subseteq S_t\cup\bigcup_{u\in S_t}N(u).
+  S_{t+1}\subseteq S_t\cup\bigcup_{u\in S_t}\mathcal N(u).
 \]
 Its total work is $\sum_t\vol(S_t)$.  Two trajectory statistics summarize the
 locality of a run:
@@ -23,7 +23,7 @@ locality of a run:
 where $\gamma_t$ is the fraction of the weighted residual mass processed in
 round $t$.  For the monotone methods, the source proves
 \begin{equation}
-  \frac{\overline{\vol}_T}{\overline\gamma_T}\leq\frac1\eps.
+  \frac{\overline{\vol}_T}{\overline\gamma_T}\leq\frac1\epsppr.
   \label{eq:work1-locality}
 \end{equation}
 
@@ -34,7 +34,7 @@ Because $\diag(\widehat Q)=I$, a Work-I SOR coordinate update is
   x^+&=x+\omega\widehat r_u e_u,
   \label{eq:work1-sor-x}\\
   \widehat r^+&=\widehat r-\omega\widehat r_u e_u
-    +\chi\omega\widehat r_u We_u.
+    +\chi\omega\widehat r_u D^{-1/2}AD^{-1/2}e_u.
   \label{eq:work1-sor-r}
 \end{align}
 For $\omega=1$, the source obtains a local work bound of order
@@ -44,7 +44,7 @@ For $\omega=1$, the source obtains a local work bound of order
   \right),
   \label{eq:locsor-source-bound}
 \end{equation}
-with the classical graph-independent fallback $\bigO(1/(\alpha\eps))$.
+with the classical graph-independent fallback $\bigO(1/(\alpha\epsppr))$.
 The localized gradient/Jacobi variant has the same structural bound and is
 more parallelizable.
 
@@ -65,7 +65,8 @@ The localized Chebyshev method masks both the residual and momentum updates on
 $S_t$.  If $S_t=V$ for all $t$, the method reduces to the standard Chebyshev
 iteration.  Under localization, skipped coordinates appear as a forcing term
 in a nonhomogeneous second-order residual recurrence.  The source controls the
-forcing through run-dependent quantities $\beta_k$ and proves acceleration
+forcing through run-dependent quantities $\vartheta_k^{\rm CH}$ (denoted
+$\beta_k$ in the source) and proves acceleration
 when their geometric mean remains below a threshold corresponding to a
 constant $c<2$.  Thus the result is informative and often effective in
 practice, but it is not a graph-uniform unconditional accelerated theorem.
@@ -92,20 +93,20 @@ between completed inner solves.
 
 At outer stage $t$, with center $y^{(t-1)}$, define
 \begin{equation}
-  h_t(z):=f(z)+\frac\eta2\norm{z-y^{(t-1)}}_2^2.
+  h_t(z):=f(z)+\frac{\kappa_{\rm A}}2\norm{z-y^{(t-1)}}_2^2.
   \label{eq:aesp-ht}
 \end{equation}
-Its Hessian is $Q+\eta I$, with eigenvalues in
-$[\alpha+\eta,1+\eta]$.  For
+Its Hessian is $Q+\kappa_{\rm A}I$, with eigenvalues in
+$[\alpha+\kappa_{\rm A},1+\kappa_{\rm A}]$.  For
 \begin{equation}
-  \eta:=1-2\alpha,
+  \kappa_{\rm A}:=1-2\alpha,
   \qquad \alpha<\frac12,
-  \label{eq:aesp-eta}
+  \label{eq:aesp-shift}
 \end{equation}
 we have
 \begin{equation}
-  \kappa(Q+\eta I)
-  =\frac{1+\eta}{\alpha+\eta}=2.
+  \kappa(Q+\kappa_{\rm A}I)
+  =\frac{1+\kappa_{\rm A}}{\alpha+\kappa_{\rm A}}=2.
   \label{eq:aesp-condition-two}
 \end{equation}
 Equivalently, each inner shifted system has an effective PageRank damping
@@ -113,23 +114,23 @@ parameter $1/2$, independent of the original small $\alpha$.
 
 Let
 \begin{equation}
-  q_t(z):=D^{1/2}\nabla h_t(z).
+  q_{\mathrm{in},t}(z):=D^{1/2}\nabla h_t(z).
   \label{eq:aesp-inner-q}
 \end{equation}
 The AESP inner operators use the threshold
 \begin{equation}
-  \abs{\nabla_u h_t(z)}\geq\eps_t\sqrt{d_u}
+  \abs{\nabla_u h_t(z)}\geq\epsin^{(t)}\sqrt{d_u}
   \quad\Longleftrightarrow\quad
-  \abs{q_{t,u}(z)}\geq\eps_t d_u.
+  \abs{q_{\mathrm{in},t,u}(z)}\geq\epsin^{(t)}d_u.
   \label{eq:aesp-inner-active}
 \end{equation}
 The source derives a sufficient local stopping tolerance
 \begin{equation}
-  \eps_t
+  \epsin^{(t)}
   :=\max\left\{
-    \sqrt{\frac{(\alpha+\eta)\phi_t}{m}},
-    \frac{2(\alpha+\eta)\phi_t}
-         {\norm{q_t(z_t^{(0)})}_1}
+    \sqrt{\frac{(\alpha+\kappa_{\rm A})\phi_t}{m}},
+    \frac{2(\alpha+\kappa_{\rm A})\phi_t}
+         {\norm{q_{\mathrm{in},t}(z_t^{(0)})}_1}
   \right\},
   \label{eq:aesp-eps-t}
 \end{equation}
@@ -139,15 +140,16 @@ $\ell_1$ inner gradient does not grow.
 
 For AESP-LOCGD, the scaled inner gradient satisfies
 \begin{equation}
-  \norm{q_t(z_t^{(k+1)})}_1
+  \norm{q_{\mathrm{in},t}(z_t^{(k+1)})}_1
   \leq
   \left(1-\tau\gamma_t^{(k)}\right)
-  \norm{q_t(z_t^{(k)})}_1,
+  \norm{q_{\mathrm{in},t}(z_t^{(k)})}_1,
   \qquad
-  \tau=\frac{2(\alpha+\eta)}{1+\alpha+2\eta}.
+  \tau=\frac{2(\alpha+\kappa_{\rm A})}
+              {1+\alpha+2\kappa_{\rm A}}.
   \label{eq:aesp-inner-contraction}
 \end{equation}
-With \cref{eq:aesp-eta}, $\tau=2/3$.  AESP-LOCAPPR obtains the
+With \cref{eq:aesp-shift}, $\tau=2/3$.  AESP-LOCAPPR obtains the
 coordinatewise analogue using online Gauss--Seidel updates.  Importantly, the
 argument allows signed inner gradients; it does not rely on nonnegativity of
 the Catalyst center.
@@ -156,28 +158,28 @@ the Catalyst center.
 
 Let
 \begin{equation}
-  q_{\rm cat}:=\frac{\alpha}{\alpha+\eta}
+  \vartheta_{\mathrm A}:=\frac{\alpha}{\alpha+\kappa_{\rm A}}
   =\frac{\alpha}{1-\alpha},
   \qquad
-  \rho_{\rm A}:=0.9\sqrt{q_{\rm cat}}.
+  \varpi_{\mathrm A}:=0.9\sqrt{\vartheta_{\mathrm A}}.
   \label{eq:aesp-q-rho}
 \end{equation}
 The outer momentum coefficient is
 \begin{equation}
   \beta_{\rm A}
-  =\frac{\sqrt{\alpha+\eta}-\sqrt\alpha}
-         {\sqrt{\alpha+\eta}+\sqrt\alpha}
+  =\frac{\sqrt{\alpha+\kappa_{\rm A}}-\sqrt\alpha}
+         {\sqrt{\alpha+\kappa_{\rm A}}+\sqrt\alpha}
   =\frac{\sqrt{1-\alpha}-\sqrt\alpha}
          {\sqrt{1-\alpha}+\sqrt\alpha}.
   \label{eq:aesp-beta}
 \end{equation}
 With the source accuracy schedule, the AESP theorem gives
 \begin{equation}
-  f(x^{(t)})-f^\star
+  f(x^{(t)})-f(x^0)
   \leq
   U_t
   :=\frac{200(1-\alpha^2)}{\alpha}
-       (1-\rho_{\rm A})^{t+1}.
+       (1-\varpi_{\mathrm A})^{t+1}.
   \label{eq:aesp-outer-bound}
 \end{equation}
 Thus the number of outer stages needed for a prescribed objective target is
@@ -197,7 +199,7 @@ The source work theorem has the stagewise form
   \min\left\{
     \frac{\overline{\vol}(S_t)}{\tau\gamma_t}
       \log\frac{C_t^0}{C_t^{K_t}},
-    \frac{C_t^0-C_t^{K_t}}{\tau\eps_t}
+    \frac{C_t^0-C_t^{K_t}}{\tau\epsin^{(t)}}
   \right\},
   \label{eq:aesp-stage-work}
 \end{equation}
@@ -209,11 +211,11 @@ worst-case local corollary is
   \leq
   \min\left\{
     \softO\!\left(\frac{m}{\sqrt\alpha}\right),
-    \softO\!\left(\frac{R^2}{\sqrt\alpha\eps^2}\right)
+    \softO\!\left(\frac{R^2}{\sqrt\alpha\epsppr^2}\right)
   \right\}.
   \label{eq:aesp-published-bound}
 \end{equation}
-The $1/\eps^2$ factor arises from converting a quadratic objective target into
+The $1/\epsppr^2$ factor arises from converting a quadratic objective target into
 a coordinatewise inner threshold through an $\ell_\infty$--$\ell_1$
 certificate.
 

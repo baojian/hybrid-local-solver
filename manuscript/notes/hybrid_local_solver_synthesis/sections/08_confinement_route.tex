@@ -3,15 +3,10 @@
 
 \subsection{What the 2026 \texorpdfstring{\(\ell_1\)}{l1} analysis establishes}
 
-For the same smooth PageRank quadratic \(f\), define the regularized problem
+For the shared regularized objective \(F_\rho=f+g_\rho\), its unique minimizer
+\(x^\star(\rho)\) is sparse, with
 \begin{equation}
-    F_\rho(x)
-    :=f(x)+\alpha\rho\norm{D^{1/2}x}_1.
-    \label{eq:rppr-objective}
-\end{equation}
-Its unique minimizer \(x_\rho^\star\) is sparse, with
-\begin{equation}
-    \vol\bigl(\supp(x_\rho^\star)\bigr)
+    \vol\bigl(\supp(x^\star(\rho))\bigr)
     \leq\frac{1}{\rho}.
     \label{eq:rppr-volume}
 \end{equation}
@@ -31,7 +26,7 @@ coordinates.  Under a boundary-confinement condition, its work decomposes as
 \begin{equation}
     \softO\!\left(
        \frac{1}{\rho\sqrt\alpha}
-       \log\frac{\alpha}{\eps_{\rm obj}}
+       \log\frac{\alpha}{\epsobj}
        +\frac{\sqrt{\vol(B)}}{\rho\alpha^{3/2}}
     \right),
     \label{eq:fista-boundary-bound}
@@ -47,8 +42,8 @@ The changing shifted systems of AESP nevertheless have a useful structural
 property: outside the current support, the proximal shift vanishes.  This
 allows a direct support induction under an explicit exposure condition.
 
-Let \(\mathcal C\subseteq V\) be a proposed core containing the source,
-let
+Let \(\mathcal C\subseteq V\) be a proposed core containing the seed vertex
+\(v\), and let
 \begin{equation}
     \mathcal B:=\partial\mathcal C,
     \qquad
@@ -65,8 +60,8 @@ Let
 \end{equation}
 For a finite burn-in horizon \(J\), suppose
 \begin{equation}
-    \underline\eps
-    :=\min_{1\leq t\leq J}\eps_t>0,
+    \epsin^{\min}
+    :=\min_{1\leq t\leq J}\epsin^{(t)}>0,
     \qquad
     R_z
     :=\max_{\substack{1\leq t\leq J\\0\leq k\leq K_t}}
@@ -78,10 +73,10 @@ For a finite burn-in horizon \(J\), suppose
 \label{ass:aesp-no-percolation}
 For every \(i\in\operatorname{Ext}(\mathcal C)\),
 \begin{equation}
-    \frac{\abs{N(i)\cap\mathcal B}}{d_i}
+    \frac{\abs{\mathcal N(i)\cap\mathcal B}}{d_i}
     <
     \left(
-      \frac{2\underline\eps}{(1-\alpha)R_z}
+      \frac{2\epsin^{\min}}{(1-\alpha)R_z}
     \right)^2
     d_i d_{\min,\mathcal B}.
     \label{eq:aesp-no-percolation}
@@ -105,30 +100,30 @@ Then, for every \(t\leq J\) and every inner iteration \(k\),
 The base point is zero and the source belongs to \(\mathcal C\).  Assume
 inductively that \(y^{(t-1)}\) and \(z=z_t^{(k)}\) are supported in
 \(\mathcal H\).  Fix \(i\in\operatorname{Ext}(\mathcal C)\).  Then
-\(z_i=y_i^{(t-1)}=0\), \(i\neq s\), and by definition of the vertex boundary
+\(z_i=y_i^{(t-1)}=0\), \(i\neq v\), and by definition of the vertex boundary
 \(i\) has no neighbor in \(\mathcal C\).  Therefore
 \begin{equation}
-    \grad_i h_t(z)
+    \nabla_i h_t(z)
     =-\frac{1-\alpha}{2}
-      \sum_{j\in N(i)\cap\mathcal B}
+      \sum_{j\in\mathcal N(i)\cap\mathcal B}
       \frac{z_j}{\sqrt{d_i d_j}}.
     \label{eq:exterior-inner-gradient}
 \end{equation}
 The diagonal part of \(Qz\), the source term, and the proximal term
-\(\eta(z_i-y_i^{(t-1)})\) all vanish.  By Cauchy--Schwarz,
+\(\kappa_{\mathrm A}(z_i-y_i^{(t-1)})\) all vanish.  By Cauchy--Schwarz,
 \begin{align}
-  \frac{\abs{\grad_i h_t(z)}}{\sqrt{d_i}}
+  \frac{\abs{\nabla_i h_t(z)}}{\sqrt{d_i}}
   &\leq
   \frac{1-\alpha}{2d_i}
-  \sqrt{\frac{\abs{N(i)\cap\mathcal B}}
+  \sqrt{\frac{\abs{\mathcal N(i)\cap\mathcal B}}
               {d_{\min,\mathcal B}}}
   \norm{z}_2
   \notag\\
   &\leq
   \frac{(1-\alpha)R_z}{2d_i}
-  \sqrt{\frac{\abs{N(i)\cap\mathcal B}}
+  \sqrt{\frac{\abs{\mathcal N(i)\cap\mathcal B}}
               {d_{\min,\mathcal B}}}
-  <\underline\eps\leq\eps_t,
+  <\epsin^{\min}\leq\epsin^{(t)},
   \label{eq:exterior-gradient-bound}
 \end{align}
 where the strict inequality is exactly
@@ -136,7 +131,7 @@ where the strict inequality is exactly
 inner update remains supported in \(\mathcal H\).  At the end of the stage,
 \(x^{(t)}\) is supported there, and the extrapolation
 \(
- y^{(t)}=x^{(t)}+\beta(x^{(t)}-x^{(t-1)})
+ y^{(t)}=x^{(t)}+\beta_{\mathrm A}(x^{(t)}-x^{(t-1)})
 \)
 preserves the same support.  Induction over \(k\) and \(t\) completes the
 proof.
@@ -146,26 +141,28 @@ proof.
 
 Define the one-hop gradient envelope
 \begin{equation}
-    \Omega:=\mathcal H\cup N(\mathcal H).
+    \Omega:=\mathcal H\cup\mathcal N(\mathcal H).
     \label{eq:gradient-envelope}
 \end{equation}
 If \(z\) and \(y\) are supported in \(\mathcal H\), graph locality of \(Q\)
 implies
 \begin{equation}
-    \supp(D^{1/2}\grad h_t(z))\subseteq\Omega.
+    \supp(D^{1/2}\nabla h_t(z))\subseteq\Omega.
     \label{eq:gradient-support-envelope}
 \end{equation}
 
 \begin{lemma}[Support-to-locality inequality for LOCGD]
 \label{lem:support-to-locality}
-Let \(q\) be supported in \(\Omega\), and define the thresholded active set
+Let the AESP inner scaled gradient \(q_{\mathrm{in}}\) be supported in
+\(\Omega\), and define the thresholded active set
 \begin{equation}
-    S:=\left\{u:\frac{\abs{q_u}}{d_u}\geq\eps_t\right\}.
+    S:=\left\{u:\frac{\abs{q_{\mathrm{in},u}}}{d_u}
+                   \geq\epsin^{(t)}\right\}.
     \label{eq:thresholded-set-generic}
 \end{equation}
 If \(S\neq\varnothing\) and
 \(
-\gamma=\norm{q_S}_1/\norm{q}_1
+\gamma=\norm{q_{\mathrm{in},S}}_1/\norm{q_{\mathrm{in}}}_1
 \), then
 \begin{equation}
     \frac{\vol(S)}{\gamma}
@@ -175,14 +172,15 @@ If \(S\neq\varnothing\) and
 \end{lemma}
 
 \begin{proof}
-Every active density \(\abs{q_u}/d_u\) is at least \(\eps_t\), and every
-inactive density inside \(\Omega\) is smaller than \(\eps_t\).  Hence the
+Every active density \(\abs{q_{\mathrm{in},u}}/d_u\) is at least
+\(\epsin^{(t)}\), and every inactive density inside
+\(\Omega\) is smaller than \(\epsin^{(t)}\).  Hence the
 weighted average density on \(S\) is no smaller than the weighted average over
 \(\Omega\):
 \[
-    \frac{\norm{q_S}_1}{\vol(S)}
+    \frac{\norm{q_{\mathrm{in},S}}_1}{\vol(S)}
     \geq
-    \frac{\norm{q}_1}{\vol(\Omega)}.
+    \frac{\norm{q_{\mathrm{in}}}_1}{\vol(\Omega)}.
 \]
 Rearrange and use the definition of \(\gamma\).
 \end{proof}
@@ -195,7 +193,7 @@ Averaging \cref{eq:support-to-locality} over LOCGD inner iterations gives
 For an online coordinate method, the same conclusion follows from a
 normalized Gauss--Southwell rule
 \begin{equation}
-    u_k\in\arg\max_u\frac{\abs{q_u^{(k)}}}{d_u}.
+    u_k\in\arg\max_u\frac{\abs{q_{\mathrm{in},u}^{(k)}}}{d_u}.
     \label{eq:priority-rule}
 \end{equation}
 Indeed,
@@ -203,7 +201,8 @@ Indeed,
     d_{u_k}
     \leq
     \vol(\Omega)
-    \frac{\abs{q_{u_k}^{(k)}}}{\norm{q^{(k)}}_1},
+    \frac{\abs{q_{\mathrm{in},u_k}^{(k)}}}
+         {\norm{q_{\mathrm{in}}^{(k)}}_1},
     \label{eq:priority-cost-charge}
 \end{equation}
 so the degree cost can be charged to the online active-ratio sum.  This yields
@@ -215,7 +214,7 @@ queue-order lemma would still be needed.
 \label{thm:confinement-total}
 Assume \cref{ass:aesp-no-percolation} and suppose
 \begin{equation}
-    \vol(\Omega)\leq\frac{K}{\eps}.
+    \vol(\Omega)\leq\frac{K}{\epsppr}.
     \label{eq:small-envelope}
 \end{equation}
 Use AESP-LOCGD or AESP with the normalized priority rule
@@ -224,7 +223,7 @@ Use AESP-LOCGD or AESP with the normalized priority rule
 \begin{equation}
     \Work_{\rm hybrid}
     =\softO\!\left(
-       \frac{K+1}{\sqrt\alpha\eps}
+       \frac{K+1}{\sqrt\alpha\epsppr}
     \right).
     \label{eq:confinement-total-work}
 \end{equation}
@@ -234,7 +233,7 @@ Use AESP-LOCGD or AESP with the normalized priority rule
 By \cref{prop:aesp-confinement}, all early inner gradients are supported in
 \(\Omega\).  By \cref{lem:support-to-locality} or
 \cref{eq:priority-cost-charge},
-\(\Lambda_t\leq\vol(\Omega)\leq K/\eps\).  Apply
+\(\Lambda_t\leq\vol(\Omega)\leq K/\epsppr\).  Apply
 \cref{thm:conditional-total}.
 \end{proof}
 
@@ -242,12 +241,12 @@ By \cref{prop:aesp-confinement}, all early inner gradients are supported in
 
 A natural analytical choice is
 \begin{equation}
-    \mathcal C=\supp(x_\rho^\star),
-    \qquad \rho\asymp\eps,
+    \mathcal C=\supp(x^\star(\rho)),
+    \qquad \rho\asymp\epsppr,
     \label{eq:rppr-core-choice}
 \end{equation}
 for which \cref{eq:rppr-volume} gives
-\(\vol(\mathcal C)=\mathcal O(1/\eps)\).  This fact alone does not imply
+\(\vol(\mathcal C)=\mathcal O(1/\epsppr)\).  This fact alone does not imply
 \cref{eq:small-envelope}; a single boundary vertex can have arbitrarily high
 degree.  The star lower bound of \citet{fountoulakis2026complexity} is exactly
 such a warning.  Moreover, AESP in this note solves the unregularized
@@ -257,7 +256,7 @@ support.
 
 The most promising refinement is to combine AESP with slight
 \emph{over-regularization}, as in the 2026 FISTA analysis.  Low-margin
-coordinates would be absorbed into a larger \(\mathcal O(1/\eps)\)-volume
+coordinates would be absorbed into a larger \(\mathcal O(1/\epsppr)\)-volume
 core, clearly inactive coordinates would be charged through KKT slack, and the
 remaining boundary work would be summed using accelerated outer contraction.
 Adapting that argument to AESP's sequence of changing shifted subproblems is a

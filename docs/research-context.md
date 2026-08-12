@@ -94,6 +94,10 @@ may make silently.
   reproducibility requirements.
 - [`research_notes.md`](research_notes.md): tentative hypotheses and proof
   ideas.
+- [`../manuscript/notes/README.md`](../manuscript/notes/README.md): exhaustive
+  standalone-note inventory and build entry point.
+- [`../manuscript/tex/shared/NOTATION.md`](../manuscript/tex/shared/NOTATION.md):
+  reserved manuscript symbols and shared LaTeX ownership.
 - [`literature/README.md`](literature/README.md): annotated literature index
   and paper-intake workflow.
 - [`decisions/`](decisions/): accepted and open scientific decisions.

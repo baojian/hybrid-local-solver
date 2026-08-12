@@ -1,0 +1,150 @@
+\documentclass[11pt]{article}
+\input{../../tex/shared/research_note_preamble}
+
+\title{AESP-CD: Local Proximal Coordinate Descent for
+  $\ell_1$-Regularized PageRank}
+\author{Research Note}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Scope and status}
+
+This standalone note records a proposed Accelerated Evolving Set Process with
+local proximal coordinate descent (AESP-CD) for regularized PageRank.  It
+separates the shared problem definition, proved implementation facts, and the
+central unproved locality target.  Nothing here changes the repository-wide
+residual decision.
+
+\section{Problem formulation}
+
+\input{../../tex/shared/source_aligned_problem}
+
+This note specializes the shared model to $\alpha\in(0,1/2)$ and solves the
+same composite objective $F_\rho$.  Its final, note-scoped diagnostic target is
+\begin{equation}
+  \frac{R_{\mathrm{kkt},\rho}(x)}{\alpha}\leq\epskkt.
+  \label{eq:aesp-cd-target}
+\end{equation}
+This is not identified with $\epsobj$, $\epspg$, or $\epsppr$.
+
+\section{KKT diagnostic}
+
+Define the note-scoped minimum KKT-violation vector
+\begin{equation}
+\kappa_{\rho,i}(x)=
+\begin{cases}
+\nabla_i f(x)+\alpha\rho\sqrt{d_i},&x_i>0,\\
+\nabla_i f(x)-\alpha\rho\sqrt{d_i},&x_i<0,\\
+\nabla_i f(x)-\operatorname{clip}
+  \bigl(\nabla_i f(x),-\alpha\rho\sqrt{d_i},
+                    \alpha\rho\sqrt{d_i}\bigr),&x_i=0,
+\end{cases}
+\label{eq:aesp-cd-kkt-vector}
+\end{equation}
+and the scalar diagnostic
+\begin{equation}
+  R_{\mathrm{kkt},\rho}(x)
+  :=\norm{D^{-1/2}\kappa_\rho(x)}_\infty.
+  \label{eq:aesp-cd-kkt-diagnostic}
+\end{equation}
+The implication from this diagnostic to a solution-error norm is a required
+lemma, not an adopted stopping convention.
+
+\section{AESP outer framework}
+
+At outer iteration $t$, the proposed method approximately minimizes
+\begin{equation}
+  F_{\rho,t}(z):=F_\rho(z)
+  +\frac{\kappa_{\mathrm A}}{2}
+       \norm{z-y^{(t-1)}}_2^2,
+  \qquad \kappa_{\mathrm A}:=1-2\alpha,
+  \label{eq:aesp-cd-subproblem}
+\end{equation}
+with AESP-scoped momentum
+\begin{equation}
+  \beta_{\mathrm A}
+  :=\frac{\sqrt{1-\alpha}-\sqrt\alpha}
+          {\sqrt{1-\alpha}+\sqrt\alpha}.
+  \label{eq:aesp-cd-momentum}
+\end{equation}
+The inner initialization is $z_t^{(0)}=y^{(t-1)}$.
+
+\section{Inner local proximal coordinate descent}
+
+The smooth part of the inner objective has gradient
+\begin{equation}
+  \nabla f_t(z)
+  =(Q+\kappa_{\mathrm A}I)z-b
+    -\kappa_{\mathrm A}y^{(t-1)}.
+  \label{eq:aesp-cd-inner-gradient}
+\end{equation}
+Define $\kappa_t(z)$ from \cref{eq:aesp-cd-kkt-vector} by replacing
+$\nabla f$ with $\nabla f_t$, and set
+\begin{equation}
+  C_t(z):=\norm{D^{1/2}\kappa_t(z)}_1.
+  \label{eq:aesp-cd-kkt-mass}
+\end{equation}
+
+For coordinate $i$, exact proximal coordinate descent uses
+\begin{equation}
+  z_i^+
+  =\prox_{(\alpha\rho\sqrt{d_i}/\ell)\abs{\cdot}}
+     \left(z_i-\frac{\nabla_i f_t(z)}{\ell}\right),
+  \qquad
+  \ell=(Q+\kappa_{\mathrm A}I)_{ii}
+      =\frac{1+\alpha}{2}+\kappa_{\mathrm A}.
+  \label{eq:aesp-cd-coordinate-update}
+\end{equation}
+Only coordinate $i$ and its neighbors require gradient updates, so the shared
+work charge for this update is $d_i$.
+
+\section{Open local-monotonicity target}
+
+\begin{conjecture}[KKT-mass decrease target]
+For a sequential proximal coordinate update at coordinate $i$,
+\begin{equation}
+  C_t(z^+)
+  \leq C_t(z)
+  -\tau_{\mathrm{cd}}\sqrt{d_i}\abs{\kappa_{t,i}(z)},
+  \qquad
+  \tau_{\mathrm{cd}}
+  :=\frac{2(\alpha+\kappa_{\mathrm A})}
+          {1+\alpha+2\kappa_{\mathrm A}}.
+  \label{eq:aesp-cd-mass-target}
+\end{equation}
+Under $\kappa_{\mathrm A}=1-2\alpha$, the displayed coefficient is $2/3$.
+\end{conjecture}
+
+This composite analogue of the ordinary-PPR residual-mass contraction remains
+open until every sign and zero-coordinate subgradient case is verified.
+
+\section{Inner stopping proposal}
+
+The proposed active set is
+\begin{equation}
+  S_t^{(k)}
+  :=\left\{i:
+       \frac{\abs{\kappa_{t,i}(z^{(k)})}}{\sqrt{d_i}}
+       \geq\epsin
+     \right\}.
+  \label{eq:aesp-cd-active-set}
+\end{equation}
+If an oracle does not expose $m=|E|$, the simple-graph bound
+$m\leq n(n-1)/2$ is a correctness-preserving but potentially conservative
+choice when calibrating an inner objective certificate.
+
+\section{Implementation record and open questions}
+
+Any experiment for this proposal must record the shared graph and work model,
+$\alpha$, $\rho$, $\epskkt$, $\epsin$, random seed, stopping formula, and code
+version.  It should report both $R_{\mathrm{kkt},\rho}(x)$ and the KKT-mass
+decrease diagnostics.
+
+The remaining theoretical tasks are to prove or refute
+\cref{eq:aesp-cd-mass-target}, derive a valid total AESP-CD complexity from an
+explicit inner oracle guarantee, and identify a correct handoff to direct
+local coordinate descent.
+
+\end{document}

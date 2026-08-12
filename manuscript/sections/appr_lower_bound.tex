@@ -22,17 +22,15 @@ and hybrid local solvers are measured in this manuscript.
 \subsection{Algorithm and work model}
 \label{subsec:appr-work-model}
 
-Let \(G=(V,E)\) be a finite, simple, undirected graph on \(V=[n]\) with no
-isolated vertices, so that \(d_u\geq1\) for every \(u\in V\), and let
-\(v\in V\) be the seed vertex, with seed vector \(s=e_v\) as in
-\cref{subsec:source-aligned-notation}. Fix a teleportation parameter
-\(\alpha\in(0,1]\) and a residual tolerance \(\epsappr>0\), and write
+Use the common graph and seed conventions of
+\cref{subsec:shared-source-aligned-problem}, specialized to the single seed
+\(s=e_v\). Fix \(\alpha\in(0,1]\) and an APPR residual tolerance
+\(\epsappr>0\), and write
 \begin{equation}
     a:=\frac{1-\alpha}{2},
     \label{eq:appr-lazy-factor}
 \end{equation}
-which is the lazy half-step factor already used in
-\cref{subsec:source-locality-notation}. APPR maintains nonnegative vectors
+for the lazy half-step factor. APPR maintains nonnegative vectors
 \(p_t,r_t\in\R_{\geq0}^{n}\), initialized by
 \begin{equation}
     p_0=0,
@@ -45,17 +43,17 @@ A vertex \(u\) is \emph{active} at time \(t\) if
     r_t(u)\geq\epsappr\,d_u.
     \label{eq:appr-active}
 \end{equation}
-Given any active vertex \(u_t\), set \(q_t:=r_t(u_t)\). The operation
+Given any active vertex \(u_t\), set \(\xi_t:=r_t(u_t)\). The operation
 \(\push(u_t)\) makes the updates
 \begin{align}
     p_{t+1}(u_t)
-        &=p_t(u_t)+\alpha q_t,
+        &=p_t(u_t)+\alpha \xi_t,
         \label{eq:appr-push-p}\\
     r_{t+1}(u_t)
-        &=a\,q_t,
+        &=a\,\xi_t,
         \label{eq:appr-push-self}\\
     r_{t+1}(w)
-        &=r_t(w)+\frac{a\,q_t}{d_{u_t}}
+        &=r_t(w)+\frac{a\,\xi_t}{d_{u_t}}
         \qquad\text{for every }w\sim u_t,
         \label{eq:appr-push-neighbor}
 \end{align}
@@ -87,8 +85,9 @@ proximal-gradient step scans the whole current support.
 \subsection{What APPR computes}
 \label{subsec:appr-target}
 
-Let \(P:=AD^{-1}\) be the column-stochastic random-walk matrix and define the
-lazy personalized PageRank vector \(\pi\) of the seed \(s\) as the solution of
+Let \(P:=AD^{-1}\) be the column-stochastic random-walk matrix. The shared
+lazy personalized PageRank vector \(\pi\) from
+\cref{eq:shared-ppr-solution} satisfies
 \begin{equation}
     \pi
     =\alpha s+(1-\alpha)\frac{I+P}{2}\pi.
@@ -119,29 +118,24 @@ nonnegativity and mass preservation, and the final inequality sums
 \cref{eq:appr-termination} over \(V\).
 \end{proof}
 
-The next proposition places \(\pi\) inside the optimization formulation of
-\cref{sec:problem-formulation} and identifies the problem APPR actually
-solves.
+The next proposition identifies the fixed-point form used by APPR with the
+shared optimization target.
 
 \begin{proposition}[APPR targets the unregularized RPPR solution]
 \label{prop:appr-rppr-bridge}
-Let \(\pi\) solve \cref{eq:lazy-ppr-system} and set \(x:=D^{-1/2}\pi\). Then
-\begin{equation}
-    \grad f(x)=Qx-\alpha D^{-1/2}s=0,
-    \label{eq:appr-stationarity}
-\end{equation}
-with \(f\) and \(Q\) as in \cref{equ:f(x),eq:source-pagerank-matrices}.
-Equivalently, \(x=D^{-1/2}\pi\) is the unique minimizer of \(F_\rho\) in
-\cref{equ:F(x)} at \(\rho=0\).
+The solution of \cref{eq:lazy-ppr-system} is the vector \(\pi\) in
+\cref{eq:shared-ppr-solution}. Equivalently,
+\(x^0=D^{-1/2}\pi\) is the unique minimizer of the shared smooth
+objective \(f\), equivalently of the \(\rho=0\) extension of \(F_\rho\).
 \end{proposition}
 
 \begin{proof}
 Rearranging \cref{eq:lazy-ppr-system} gives
 \(\frac{1+\alpha}{2}\pi-\frac{1-\alpha}{2}P\pi=\alpha s\).
 Since \(D^{-1/2}AD^{-1/2}D^{-1/2}\pi=D^{-1/2}AD^{-1}\pi=D^{-1/2}P\pi\),
-\cref{eq:source-pagerank-matrices} yields
+\cref{eq:shared-pagerank-matrices} yields
 \[
-    Qx
+    QD^{-1/2}\pi
     =\frac{1+\alpha}{2}D^{-1/2}\pi
      -\frac{1-\alpha}{2}D^{-1/2}P\pi
     =D^{-1/2}\left(
@@ -149,16 +143,17 @@ Since \(D^{-1/2}AD^{-1/2}D^{-1/2}\pi=D^{-1/2}AD^{-1}\pi=D^{-1/2}P\pi\),
     \right)
     =\alpha D^{-1/2}s.
 \]
-Because \(\alpha I\preceq Q\preceq I\), the matrix \(Q\) is nonsingular and
-\(f\) is strongly convex, so this stationary point is the unique minimizer.
+Because \(\alpha I\preceq Q\preceq I\), this identifies the fixed-point
+solution with the unique point \(x^0=Q^{-1}b\) already defined in
+\cref{eq:shared-ppr-solution}.
 \end{proof}
 
 \begin{remark}[Scope of \(\epsappr\)]
 \label{rem:appr-epsilon-scope}
 The tolerance \(\epsappr\) is a degree-normalized residual threshold in the
 sense of \cref{eq:appr-active}. It is not identified in this manuscript with
-the objective-gap target \(\varepsilon_{\mathrm{obj}}\) or the proximal
-fixed-point tolerance \(\varepsilon_{\mathrm{pg}}\) of
+the objective-gap target \(\epsobj\) or the proximal fixed-point tolerance
+\(\epspg\) of
 \cref{subsec:source-work-and-stopping}. \Cref{eq:appr-accuracy} is the only
 accuracy statement attached to \(\epsappr\) here. Similarly, \(\epsappr\) and
 the sparsity parameter \(\rho\) play analogous locality roles, since
@@ -176,10 +171,10 @@ assert a translation between them.
 For every APPR execution and every \(T\geq0\),
 \begin{equation}
     \norm{p_T}_1
-    =\alpha\sum_{t=0}^{T-1}q_t,
+    =\alpha\sum_{t=0}^{T-1}\xi_t,
     \qquad
     \norm{r_T}_1
-    =1-\alpha\sum_{t=0}^{T-1}q_t,
+    =1-\alpha\sum_{t=0}^{T-1}\xi_t,
     \label{eq:appr-mass-identities}
 \end{equation}
 and hence
@@ -191,14 +186,14 @@ In particular, \(\norm{r_t}_1\leq1\) at every time \(t\).
 \end{lemma}
 
 \begin{proof}
-Consider a push whose residual is \(q_t\). \Cref{eq:appr-push-p}
-increases \(\norm{p_t}_1\) by \(\alpha q_t\). The pushed residual coordinate
-retains \(a\,q_t\), while its neighbors receive total residual
-\(d_{u_t}\cdot a\,q_t/d_{u_t}=a\,q_t\). Consequently,
+Consider a push whose residual is \(\xi_t\). \Cref{eq:appr-push-p}
+increases \(\norm{p_t}_1\) by \(\alpha \xi_t\). The pushed residual coordinate
+retains \(a\,\xi_t\), while its neighbors receive total residual
+\(d_{u_t}\cdot a\,\xi_t/d_{u_t}=a\,\xi_t\). Consequently,
 \begin{equation}
     \norm{r_{t+1}}_1
-    =\norm{r_t}_1-q_t+2a\,q_t
-    =\norm{r_t}_1-\alpha q_t,
+    =\norm{r_t}_1-\xi_t+2a\,\xi_t
+    =\norm{r_t}_1-\alpha \xi_t,
     \label{eq:appr-one-step-mass}
 \end{equation}
 where the last equality uses \(2a=1-\alpha\). Summing over all pushes and
@@ -219,19 +214,19 @@ selected.
 \end{proposition}
 
 \begin{proof}
-Because \(u_t\) is active, \(q_t\geq\epsappr d_{u_t}\), and therefore
+Because \(u_t\) is active, \(\xi_t\geq\epsappr d_{u_t}\), and therefore
 \begin{equation}
     W
     =\sum_{t=0}^{T-1}d_{u_t}
-    \leq\frac{1}{\epsappr}\sum_{t=0}^{T-1}q_t
+    \leq\frac{1}{\epsappr}\sum_{t=0}^{T-1}\xi_t
     =\frac{\norm{p_T}_1}{\alpha\epsappr}
     \leq\frac{1}{\alpha\epsappr},
     \label{eq:appr-upper-bound-proof}
 \end{equation}
 where \cref{lem:appr-mass-identity} gives the equality and the final
 inequality. Notice also that every push has
-\(q_t\geq\epsappr d_{u_t}\geq\epsappr\). Since
-\(\sum_tq_t\leq1/\alpha\), every legal execution contains at most
+\(\xi_t\geq\epsappr d_{u_t}\geq\epsappr\). Since
+\(\sum_t\xi_t\leq1/\alpha\), every legal execution contains at most
 \(1/(\alpha\epsappr)\) pushes and therefore terminates. This is
 \citet[Equation~(3.3)]{andersen2007using}, restated in the work model
 \cref{eq:appr-work}.
@@ -293,9 +288,9 @@ Then classical APPR has worst-case work
 \begin{proof}
 Let
 \begin{equation}
-    Z_c:=\sum_{t:u_t=c}q_t,
+    Z_c:=\sum_{t:u_t=c}\xi_t,
     \qquad
-    Z_L:=\sum_{t:u_t\in L}q_t,
+    Z_L:=\sum_{t:u_t\in L}\xi_t,
     \qquad
     Z:=Z_c+Z_L
     \label{eq:appr-cumulative-masses}
@@ -336,10 +331,10 @@ Define the aggregate residual on the leaves by
     \res_L(t):=\sum_{\ell\in L}r_t(\ell).
     \label{eq:appr-leaf-residual}
 \end{equation}
-A center push of size \(q\) sends total residual \(a\,q\) to the leaves and
-hence changes \(\res_L\) by \(+a\,q\). A leaf push of size \(q\) changes the
-residual at that leaf from \(q\) to \(a\,q\) and sends \(a\,q\) to the center,
-so it changes \(\res_L\) by \(-(1-a)q\). Since \(\res_L(0)=0\), summing these
+A center push of size \(\xi\) sends total residual \(a\,\xi\) to the leaves and
+hence changes \(\res_L\) by \(+a\,\xi\). A leaf push of size \(\xi\) changes the
+residual at that leaf from \(\xi\) to \(a\,\xi\) and sends \(a\,\xi\) to the center,
+so it changes \(\res_L\) by \(-(1-a)\xi\). Since \(\res_L(0)=0\), summing these
 exact changes over the entire execution yields
 \begin{equation}
     \res_L(T)=a\,Z_c-(1-a)Z_L.
@@ -369,7 +364,7 @@ Since \(1-a=(1+\alpha)/2\geq1/2\),
 Let \(k_c\) denote the number of center pushes. By
 \cref{lem:appr-mass-identity}, every center-push residual satisfies
 \begin{equation}
-    q_t=r_t(c)\leq\norm{r_t}_1\leq1.
+    \xi_t=r_t(c)\leq\norm{r_t}_1\leq1.
     \label{eq:appr-center-push-at-most-one}
 \end{equation}
 It follows that

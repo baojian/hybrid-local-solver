@@ -39,21 +39,21 @@ AESP is especially effective in the early stage
 Finite convergence of AESP followed by local SOR
   & \statusproved & Holds from every finite handoff for fixed
     $0<\omega<2$. \\
-$\bigO(1/(\sqrt\alpha\eps))$ SOR tail after an objective-gap handoff
+$\bigO(1/(\sqrt\alpha\epsppr))$ SOR tail after an objective-gap handoff
   & \statusproved & Uses $\omega=1$ and the handoff
-    $f(x_J)-f^\star\leq\alpha^{3/2}\eps/(1+\alpha)$. \\
-$\bigO(1/(\sqrt\alpha\eps))$ SOR tail after a weighted-$\ell_1$ handoff
+    $f(x_J)-f(x^0)\leq\alpha^{3/2}\epsppr/(1+\alpha)$. \\
+$\bigO(1/(\sqrt\alpha\epsppr))$ SOR tail after a weighted-$\ell_1$ handoff
   & \statusproved & Uses $\omega=1$ and
     $\norm{D^{1/2}\nabla f(x_J)}_1=\bigO(\alpha^{3/2})$. \\
 Master handoff and end-to-end trajectory bounds
   & \statusproved & Depend on the Phase-I work and, for the AESP trajectory
     form, on the realized early locality factor $\Lambda_J$. \\
-Black-box $\bigO(R/(\alpha^{3/4}\eps))$ AESP--LOCSOR rate
+Black-box $\bigO(R/(\alpha^{3/4}\epsppr))$ AESP--LOCSOR rate
   & \textbf{Parameterized} & Closed for inner-plus-tail work with realized
     AESP ratio $R$; outer initialization must be charged separately. \\
-Graph-uniform $\softO(1/(\sqrt\alpha\eps))$ total work
+Graph-uniform $\softO(1/(\sqrt\alpha\epsppr))$ total work
   & \statusconditional & Follows from
-    $\Lambda_J=\bigO(1/\eps)$; not yet proved for every graph. \\
+    $\Lambda_J=\bigO(1/\epsppr)$; not yet proved for every graph. \\
 Composite Catalyst followed by full ISTA for RPPR
   & \statusproved & The proximal map is a weighted
     $(1-\alpha)$ contraction, so every finite handoff converges. \\
@@ -73,41 +73,14 @@ Plain local Chebyshev gives an unconditional tail theorem
 \section{Problem, normalization, certificate, and work model}
 \label{sec:problem}
 
-\subsection{Symmetric PageRank quadratic}
+\input{../../tex/shared/source_aligned_problem}
 
-Let $G=(V,E)$ be a finite, connected, undirected simple graph without isolated
-vertices.  Let $A\in\R^{n\times n}$ be its adjacency matrix,
-$D=\diag(d_1,\ldots,d_n)$ its degree matrix, and
-\[
-  W:=D^{-1/2}AD^{-1/2}.
-\]
-Fix a source vertex $s\in V$ and a PageRank parameter
-$\alpha\in(0,1)$.  We use the AESP normalization
-\begin{equation}
-  Q:=\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}W
-    =\alpha I+\frac{1-\alpha}{2}(I-W),
-  \qquad
-  b:=\alpha D^{-1/2}e_s.
-  \label{eq:Q-b}
-\end{equation}
-The objective is
-\begin{equation}
-  f(x):=\frac12 x^{\trans}Qx-b^{\trans}x,
-  \qquad
-  g(x):=\nabla f(x)=Qx-b.
-  \label{eq:f-g}
-\end{equation}
-Since the spectrum of $I-W$ is contained in $[0,2]$,
-\begin{equation}
-  \alpha I\preceq Q\preceq I.
-  \label{eq:spectrum-Q}
-\end{equation}
-Thus $f$ is $\alpha$-strongly convex and $1$-smooth, and its unique minimizer
-is $x^\star=Q^{-1}b$.  The corresponding personalized PageRank vector is
-\begin{equation}
-  \pi:=D^{1/2}x^\star.
-  \label{eq:pi-from-x}
-\end{equation}
+\paragraph{Note specialization.}
+The unregularized AESP--local-refinement results below additionally assume
+that \(G\) is connected, \(0<\alpha<1\), and \(s=e_v\) for one seed vertex
+\(v\).  They use the shared quadratic \(f\), its minimizer \(x^0\), and
+\(\pi=D^{1/2}x^0\).  These restrictions narrow the shared model; they do not
+redefine it.
 
 \subsection{Coordinatewise accuracy certificate}
 
@@ -117,16 +90,16 @@ The AESP paper proves the following certificate in this normalization.
 \label{lem:certificate}
 For every $x\in\R^n$,
 \begin{equation}
-  \norm{D^{-1/2}(x-x^\star)}_\infty
+  \norm{D^{-1/2}(x-x^0)}_\infty
   \leq
-  \frac1\alpha\norm{D^{-1/2}g(x)}_\infty.
+  \frac1\alpha\norm{D^{-1/2}\nabla f(x)}_\infty.
   \label{eq:certificate}
 \end{equation}
 Consequently,
 \begin{equation}
-  \norm{D^{-1/2}g(x)}_\infty\leq\alpha\eps
+  \norm{D^{-1/2}\nabla f(x)}_\infty\leq\alpha\epsppr
   \quad\Longrightarrow\quad
-  \norm{D^{-1}(D^{1/2}x-\pi)}_\infty\leq\eps.
+  \norm{D^{-1}(D^{1/2}x-\pi)}_\infty\leq\epsppr.
   \label{eq:certificate-stop}
 \end{equation}
 \end{lemma}
@@ -136,32 +109,32 @@ Let
 $\Pi_\alpha:=\alpha D^{1/2}Q^{-1}D^{-1/2}$ be the PageRank matrix.  The source
 analysis gives $\norm{D^{-1}\Pi_\alpha D}_\infty=1$.  Since
 \[
-  x-x^\star=Q^{-1}g(x),
+  x-x^0=Q^{-1}\nabla f(x),
   \qquad
   D^{-1/2}Q^{-1}D^{1/2}
   =\frac1\alpha D^{-1}\Pi_\alpha D,
 \]
 we obtain
 \[
-  \norm{D^{-1/2}(x-x^\star)}_\infty
+  \norm{D^{-1/2}(x-x^0)}_\infty
   \leq
   \norm{D^{-1/2}Q^{-1}D^{1/2}}_\infty
-  \norm{D^{-1/2}g(x)}_\infty
-  =\frac1\alpha\norm{D^{-1/2}g(x)}_\infty.
+  \norm{D^{-1/2}\nabla f(x)}_\infty
+  =\frac1\alpha\norm{D^{-1/2}\nabla f(x)}_\infty.
 \]
-The second claim follows from $D^{-1}(D^{1/2}x-\pi)=D^{-1/2}(x-x^\star)$.
+The second claim follows from $D^{-1}(D^{1/2}x-\pi)=D^{-1/2}(x-x^0)$.
 \end{proof}
 
 It is convenient to define the degree-shifted gradient
 \begin{equation}
-  q(x):=D^{1/2}g(x).
+  q_{\mathrm{sc}}(x):=D^{1/2}\nabla f(x).
   \label{eq:q-def}
 \end{equation}
-Then a coordinate is active at final tolerance $\eps$ precisely when
+Then a coordinate is active at final tolerance $\epsppr$ precisely when
 \begin{equation}
-  \abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}
+  \abs{\nabla_u f(x)}\geq\alpha\epsppr\sqrt{d_u}
   \quad\Longleftrightarrow\quad
-  \abs{q_u(x)}\geq\alpha\eps d_u.
+  \abs{q_{\mathrm{sc},u}(x)}\geq\alpha\epsppr d_u.
   \label{eq:final-active}
 \end{equation}
 
@@ -169,9 +142,9 @@ Then a coordinate is active at final tolerance $\eps$ precisely when
 
 The locally evolving-set paper uses
 \begin{equation}
-  \widehat Q:=I-\chi W,
+  \widehat Q:=I-\chi D^{-1/2}AD^{-1/2},
   \qquad
-  \widehat b:=\frac{2\alpha}{1+\alpha}D^{-1/2}e_s,
+  \widehat b:=\frac{2\alpha}{1+\alpha}D^{-1/2}s,
   \qquad
   \chi:=\frac{1-\alpha}{1+\alpha}.
   \label{eq:work1-normalization}
@@ -186,11 +159,11 @@ The two systems have the same solution because
 If
 $\widehat r:=\widehat b-\widehat Qx$, then
 \begin{equation}
-  g(x)=-\frac{1+\alpha}{2}\widehat r.
+  \nabla f(x)=-\frac{1+\alpha}{2}\widehat r.
   \label{eq:gradient-residual-dictionary}
 \end{equation}
 Hence the Work-I residual certificate
-$\norm{D^{-1/2}\widehat r}_\infty\leq 2\alpha\eps/(1+\alpha)$
+$\norm{D^{-1/2}\widehat r}_\infty\leq 2\alpha\epsppr/(1+\alpha)$
 is exactly the AESP certificate in \cref{eq:certificate-stop}.
 
 \subsection{Degree-weighted local work}
@@ -198,9 +171,9 @@ is exactly the AESP certificate in \cref{eq:certificate-stop}.
 Scanning the adjacency list of a vertex $u$ costs $d_u$ units.  A sequence of
 coordinate updates $(u_j)_{j=0}^{K-1}$ therefore has work
 \begin{equation}
-  W:=\sum_{j=0}^{K-1}d_{u_j}.
+  W_{\rm coord}:=\sum_{j=0}^{K-1}d_{u_j}.
   \label{eq:coordinate-work}
 \end{equation}
 For a parallel evolving-set iteration with active set $S_k$, the corresponding
-work is $\vol(S_k):=\sum_{u\in S_k}d_u$.  This is the common unit used by
+work is the shared degree volume $\vol(S_k)$.  This is the common unit used by
 \APPR, \LOCSOR, the AESP inner methods, and the present hybrid analysis.

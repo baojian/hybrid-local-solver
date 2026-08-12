@@ -18,6 +18,58 @@ starting points, but their applicability has not yet been established.
 
 ## Source annotations
 
+## Citation key: `martinezrubio2023accelerated`
+
+- Citation: David Martínez-Rubio, Elias Wirth, and Sebastian Pokutta.
+  “Accelerated and Sparse Algorithms for Approximate Personalized PageRank and
+  Beyond.” *Proceedings of the 36th Conference on Learning Theory*, PMLR
+  195:2852-2876, 2023.
+- DOI/arXiv/URL: <https://doi.org/10.48550/arXiv.2303.12875>;
+  arXiv `2303.12875v1`;
+  <https://proceedings.mlr.press/v195/martinez-rubio23b.html>.
+- Local PDF:
+  `papers/2023-colt-martinez-rubio-accelerated-sparse-algorithms-approximate-personalized-pagerank-beyond.pdf`.
+- Source-faithful reader archive:
+  `manuscript/archive/colt-2023-accelerated-sparse-appr/`.
+- Relevance: The paper proposes an exact conjugate-directions PageRank method
+  (CDPR) and an accelerated sparse active-set method (ASPR) for nonnegative
+  quadratics with symmetric positive-definite M-matrix Hessians. Its geometry
+  and retraction arguments are directly relevant to safe support expansion,
+  while its repeated full-gradient scans expose a locality cost that a hybrid
+  solver must account for explicitly.
+- Exact pointers:
+  - arXiv v1 PDF pages 4-5, Section 2 and Equations (1)-(6): define the graph
+    volumes, PageRank matrix, ℓ1-regularized objective, nonnegative quadratic
+    reformulation, and KKT conditions. The printed expansion in Equation (4)
+    is algebraically inconsistent with its defining equality and must not be
+    reused without correction and documentation.
+  - arXiv v1 PDF pages 6-7, Proposition 2: establish monotone restricted
+    minimizers, strict positivity of exposed coordinates, and support
+    containment for M-matrix quadratics.
+  - arXiv v1 PDF pages 8-9, Algorithm 2 and Theorems 3-4: define CDPR and state
+    exact correctness plus
+    `O(|S*|^3 + |S*| vol(S*))` time and `O(|S*|^2)` space.
+  - arXiv v1 PDF pages 9-11, Algorithm 3, Proposition 5, Lemma 6, Algorithm 4,
+    and Theorems 7-8: define the accelerated inner solve and ASPR, prove
+    support containment and an objective-gap guarantee, and state the sparse
+    accelerated complexity.
+  - arXiv v1 PDF pages 18-23, Appendix A: give the deferred proofs; the proof
+    of Lemma 6 on pages 19-20 prints a degree denominator inconsistent with
+    Equation (1), although that step uses only the off-diagonal sign.
+  - arXiv v1 PDF page 23, Appendix B: compare the stated CDPR, ASPR, and ISTA
+    complexities. The paper contains no computational experiments.
+- Formulation differences: The source uses ε for objective gap and exact sign
+  tests for active-set expansion; it specifies no residual-based stopping
+  criterion or finite-precision tolerance. Its volume includes selected-set
+  cardinality and its algorithms inspect full gradients. `ASPR` in this paper
+  is not AESP. The active project uses a corrected source-aligned RPPR
+  objective and distinct accuracy namespaces.
+- Open questions: Reverify Equation (4) and the cited support-volume result;
+  translate the objective-gap guarantee into any adopted residual convention;
+  determine whether negative-gradient discovery can be localized without the
+  full-gradient volume charge; and audit the sparse operation counts under an
+  executable access model.
+
 ## Citation key: `fountoulakis2026complexity`
 
 - Citation: Kimon Fountoulakis and David Martínez-Rubio. “Complexity of

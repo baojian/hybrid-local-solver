@@ -12,6 +12,20 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-12: composite AESP-CD proposal
+
+The former loose file is now the standalone note
+`manuscript/notes/aesp_cd_l1_rppr/`. It uses the shared RPPR objective and
+records a local proximal-coordinate inner method with degree-weighted update
+cost.
+
+Its proposed KKT-mass decrease is explicitly a conjecture: the sign and
+zero-coordinate subgradient cases have not yet been proved. Likewise, the
+note-scoped scalar KKT diagnostic is not identified with the source proximal
+residual, a PPR error, or a repository stopping rule. The note cannot support
+an end-to-end AESP-CD locality theorem until both the mass-decrease lemma and
+a diagnostic-to-solution-error conversion are established.
+
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 
 Recorded as a standalone note in

@@ -7,17 +7,17 @@ SOR is a descent method for the original strongly convex quadratic.
 
 \begin{lemma}[Exact objective decrease of one relaxed coordinate update]
 \label{lem:coordinate-decrease}
-Let \(g=\grad f(x)\), choose a coordinate \(u\), and let
+Let \(x\in\R^n\), choose a coordinate \(u\), and let
 \begin{equation}
     x^+
-    =x-\frac{2\omega}{1+\alpha}g_u e_u,
+    =x-\frac{2\omega}{1+\alpha}\nabla_u f(x)e_u,
     \qquad 0<\omega<2.
     \label{eq:general-coordinate-update}
 \end{equation}
 Then
 \begin{equation}
     f(x)-f(x^+)
-    =\frac{\omega(2-\omega)}{1+\alpha}g_u^2.
+    =\frac{\omega(2-\omega)}{1+\alpha}\bigl[\nabla_u f(x)\bigr]^2.
     \label{eq:exact-coordinate-decrease}
 \end{equation}
 \end{lemma}
@@ -26,9 +26,11 @@ Then
 Because the graph is simple, \(Q_{uu}=(1+\alpha)/2\).  For a scalar step
 \(d\), quadratic expansion gives
 \[
-    f(x+de_u)=f(x)+d g_u+\frac12Q_{uu}d^2.
+    f(x+de_u)=f(x)+d\nabla_u f(x)+\frac12Q_{uu}d^2.
 \]
-Substitute \(d=-\omega g_u/Q_{uu}=-2\omega g_u/(1+\alpha)\) and simplify.
+Substitute
+\(d=-\omega\nabla_u f(x)/Q_{uu}
+=-2\omega\nabla_u f(x)/(1+\alpha)\) and simplify.
 \end{proof}
 
 \begin{theorem}[Finite convergence of the local SOR tail]
@@ -37,21 +39,21 @@ Let \(x_0\in\R^n\) be any finite handoff point, possibly with a signed
 gradient.  Suppose a local queue implementation has the following fairness
 property: whenever a coordinate satisfies
 \(
-\abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}
+\abs{\nabla_u f(x)}\geq\alpha\epsppr\sqrt{d_u}
 \), it is eventually processed unless it becomes inactive first.  Run
 \cref{eq:general-coordinate-update} with a fixed \(\omega\in(0,2)\) until no
 active coordinate remains.  Then the method terminates after finite
 degree-weighted work and returns \(x_{\rm out}\) satisfying
 \begin{equation}
-    \norm{D^{-1/2}g(x_{\rm out})}_\infty<\alpha\eps.
+    \norm{D^{-1/2}\nabla f(x_{\rm out})}_\infty<\alpha\epsppr.
     \label{eq:tail-final-certificate}
 \end{equation}
 Moreover,
 \begin{equation}
     \Work_{\rm tail}
     \leq
-    \frac{(1+\alpha)\,[f(x_0)-f(x^\star)]}
-         {\omega(2-\omega)\alpha^2\eps^2}.
+    \frac{(1+\alpha)\,[f(x_0)-f(x^0)]}
+         {\omega(2-\omega)\alpha^2\epsppr^2}.
     \label{eq:general-tail-work}
 \end{equation}
 \end{theorem}
@@ -59,14 +61,14 @@ Moreover,
 \begin{proof}
 Every processed coordinate is active at execution time, so
 \begin{equation}
-    g_u^2\geq\alpha^2\eps^2d_u.
+    \bigl[\nabla_u f(x)\bigr]^2\geq\alpha^2\epsppr^2d_u.
     \label{eq:active-square}
 \end{equation}
 By \cref{lem:coordinate-decrease}, its objective decrease is at least
 \[
-    \frac{\omega(2-\omega)\alpha^2\eps^2}{1+\alpha}d_u.
+    \frac{\omega(2-\omega)\alpha^2\epsppr^2}{1+\alpha}d_u.
 \]
-Summing over all executed updates and using \(f(x)\geq f(x^\star)\) yields
+Summing over all executed updates and using \(f(x)\geq f(x^0)\) yields
 \cref{eq:general-tail-work}.  Since all degrees are positive integers, finite
 work implies finitely many executed updates.  Fairness then implies that at
 termination no active coordinate remains, which is
@@ -78,7 +80,7 @@ termination no active coordinate remains, which is
 Under the assumptions of \cref{thm:tail-convergence}, the returned vector
 \(\widehat\pi=D^{1/2}x_{\rm out}\) satisfies
 \begin{equation}
-    \norm{D^{-1}(\widehat\pi-\pi)}_\infty<\eps.
+    \norm{D^{-1}(\widehat\pi-\pi)}_\infty<\epsppr.
     \label{eq:tail-ppr-accuracy}
 \end{equation}
 \end{corollary}
@@ -105,7 +107,7 @@ from \cref{thm:tail-convergence,cor:tail-ppr-accuracy}.
 \begin{remark}[What convergence does not prove]
 The theorem establishes correctness and finite work.  For an arbitrary
 handoff, the quantitative bound in \cref{eq:general-tail-work} has
-\(1/\eps^2\) dependence.  Acceleration requires a handoff point with a
+\(1/\epsppr^2\) dependence.  Acceleration requires a handoff point with a
 sufficiently small objective gap or weighted residual mass; this is addressed
 next.
 \end{remark}

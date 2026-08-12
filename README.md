@@ -48,7 +48,7 @@ recorded in [`docs/`](docs/).
 | [`results/`](results/) | Structured experiment records and provenance; transient raw runs remain ignored. |
 | [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
-| [`manuscript/`](manuscript/) | Active LaTeX paper sources plus read-only archives of previous paper projects. |
+| [`manuscript/`](manuscript/) | Active LaTeX paper, independently buildable research notes, shared notation, and read-only archives. |
 | [`papers/`](papers/) | Source PDFs managed with Git LFS; annotations belong in `docs/literature/`. |
 
 Keep reusable computational logic in `src/`; experiment scripts should
@@ -110,6 +110,12 @@ Build the manuscript with:
 
 ```bash
 make paper
+```
+
+Build all standalone research notes with:
+
+```bash
+make notes
 ```
 
 Run the complete reproducibility workflow with:

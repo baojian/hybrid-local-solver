@@ -38,23 +38,10 @@ regularized problem.
 \label{subsec:rppr-ista-setup}
 
 We use the source-aligned formulation of
-\cref{subsec:source-rppr}.  Thus
-\begin{equation}
-    F_\rho(x)
-    =
-    \frac12\langle x,Qx\rangle
-    -\alpha\langle D^{-1/2}s,x\rangle
-    +\alpha\rho\norm{D^{1/2}x}_1,
-    \qquad
-    Q=\frac{1+\alpha}{2}I
-      -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
-    \label{eq:rppr-ista-objective}
-\end{equation}
-Throughout this section, \(G=(V,E)\) is a finite, undirected, unweighted
-graph without isolated vertices,
-\(s\geq0\), \(\langle\mathbf{1},s\rangle=1\),
-\(\alpha\in(0,1)\), and \(0<\rho\leq\norm{s}_\infty\), as in the source
-ISTA theorem.  Define
+\cref{subsec:shared-source-aligned-problem}, in particular
+\cref{eq:shared-seed,eq:shared-pagerank-matrices,eq:shared-rppr-objective}.
+Throughout this section we retain the source theorem's additional restrictions
+\(\alpha\in(0,1)\) and \(0<\rho\leq\norm{s}_\infty\).  Define
 \begin{equation}
     a:=\frac{1-\alpha}{2},
     \qquad
@@ -67,11 +54,11 @@ ISTA theorem.  Define
 \end{equation}
 Then \(Q=cI-aB\), \(P\) is row stochastic, and
 \begin{equation}
-    QD^{1/2}\mathbf{1}=\alpha D^{1/2}\mathbf{1}.
+    QD^{1/2}\one=\alpha D^{1/2}\one.
     \label{eq:rppr-degree-eigenvector}
 \end{equation}
 
-Let \(g_\rho(x):=\alpha\rho\norm{D^{1/2}x}_1\), and let
+Using the shared regularizer \(g_\rho\), let
 \begin{equation}
     \mathcal{T}_\rho(x)
     :=
@@ -97,20 +84,22 @@ Under the initialization and nonnegative seed above,
     \nabla f(x_k)\leq0,
     \label{eq:rppr-monotone-invariants}
 \end{equation}
-where \(x^\star\) is the unique minimizer of \(F_\rho\) and
-\(S^\star:=\supp(x^\star)\).  The same source proves
+where \(x^\star:=x^\star(\rho)\) and
+\(S^\star:=S^\star(\rho)\) use the shared RPPR notation.  The same
+source proves
 \begin{equation}
     \vol(S^\star)\leq\frac1\rho.
     \label{eq:rppr-support-upper}
 \end{equation}
 
-The source writes its relative stopping parameter as \(\epsilon\).  We rename
+The source writes its relative stopping parameter with an undifferentiated
+epsilon glyph. We rename
 it \(\delta\in(0,1)\) and define the degree-normalized negative gradient,
 the KKT excess, and its maximum norm by
 \begin{equation}
     r(x):=-D^{-1/2}\nabla f(x),
     \qquad
-    h(x):=\bigl(r(x)-\alpha\rho\mathbf{1}\bigr)_+,
+    h(x):=\bigl(r(x)-\alpha\rho\one\bigr)_+,
     \qquad
     \mathcal{R}_\rho(x):=\norm{h(x)}_\infty.
     \label{eq:rppr-kkt-excess}
@@ -192,14 +181,10 @@ immediately.
 \subsection{What the stopping rule certifies for unregularized PageRank}
 \label{subsec:rppr-ppr-certificate}
 
-Let \(x^{(0)}\) denote the unregularized solution,
-\begin{equation}
-    Qx^{(0)}=\alpha D^{-1/2}s,
-    \qquad
-    p^{(0)}:=D^{1/2}x^{(0)}.
-    \label{eq:rppr-unregularized-solution}
-\end{equation}
-For an approximate regularized solution \(x\), write \(p:=D^{1/2}x\).
+Recall from \cref{eq:shared-ppr-solution} that \(x^0\) is the
+unregularized minimizer and \(\pi=D^{1/2}x^0\) is its lazy personalized
+PageRank vector.  For an approximate regularized solution \(x\), write
+\(p:=D^{1/2}x\).
 
 \begin{proposition}[Regularized stopping implies approximate PPR]
 \label{prop:rppr-to-ppr-certificate}
@@ -208,22 +193,22 @@ Suppose \(\nabla f(x)\leq0\) and
 \begin{equation}
     0
     \leq
-    D^{-1}(p^{(0)}-p)
-    =D^{-1/2}(x^{(0)}-x)
+    D^{-1}(\pi-p)
+    =D^{-1/2}(x^0-x)
     \leq
-    (1+\delta)\rho\mathbf{1}.
+    (1+\delta)\rho\one.
     \label{eq:rppr-to-ppr-coordinate-bound}
 \end{equation}
 In particular,
 \begin{equation}
-    \norm{D^{-1}(p^{(0)}-p)}_\infty
+    \norm{D^{-1}(\pi-p)}_\infty
     \leq(1+\delta)\rho.
     \label{eq:rppr-to-ppr-infinity-bound}
 \end{equation}
-Thus a target PPR accuracy \(\varepsilon_{\mathrm{ppr}}\) is guaranteed by
+Thus a target PPR accuracy \(\epsppr\) is guaranteed by
 choosing
 \begin{equation}
-    (1+\delta)\rho\leq\varepsilon_{\mathrm{ppr}}.
+    (1+\delta)\rho\leq\epsppr.
     \label{eq:rppr-rho-delta-choice}
 \end{equation}
 \end{proposition}
@@ -231,11 +216,11 @@ choosing
 \begin{proof}
 Let \(z:=-\nabla f(x)\).  The assumptions imply
 \[
-    0\leq z\leq(1+\delta)\alpha\rho D^{1/2}\mathbf{1}.
+    0\leq z\leq(1+\delta)\alpha\rho D^{1/2}\one.
 \]
 Moreover,
 \[
-    Q(x^{(0)}-x)=z.
+    Q(x^0-x)=z.
 \]
 The matrix \(Q=cI-aB\) is a nonsingular symmetric \(M\)-matrix.  Indeed,
 \(a/c<1\), \(B\geq0\), and
@@ -249,11 +234,11 @@ Using this entrywise nonnegativity together with
 \cref{eq:rppr-degree-eigenvector} gives
 \[
     0
-    \leq x^{(0)}-x
+    \leq x^0-x
     =Q^{-1}z
     \leq
-    (1+\delta)\alpha\rho Q^{-1}D^{1/2}\mathbf{1}
-    =(1+\delta)\rho D^{1/2}\mathbf{1}.
+    (1+\delta)\alpha\rho Q^{-1}D^{1/2}\one
+    =(1+\delta)\rho D^{1/2}\one.
 \]
 Multiplication by \(D^{-1/2}\) proves the result.
 \end{proof}
@@ -261,7 +246,7 @@ Multiplication by \(D^{-1/2}\) proves the result.
 \begin{remark}[Approximation, not exact equality]
 \label{rem:rppr-not-exact-ppr}
 For fixed \(\rho>0\), arbitrarily accurate optimization converges to
-\(x^\star(\rho)\), which generally differs from \(x^{(0)}\).  The guarantee
+\(x^\star(\rho)\), which generally differs from \(x^0\).  The guarantee
 in \cref{prop:rppr-to-ppr-certificate} is an approximation statement.  Exact
 equality requires \(\rho=0\), a special instance on which the regularizer is
 inactive, or a subsequent unregularized debiasing solve.
@@ -300,10 +285,10 @@ By \cref{lem:rppr-increment-residual},
     \label{eq:rppr-r-update}
 \end{align}
 The definition of the positive part gives
-\(r(x_k)\leq\alpha\rho\mathbf{1}+h_k\).  Subtracting
-\(\alpha\rho\mathbf{1}\) from \cref{eq:rppr-r-update} thus yields
+\(r(x_k)\leq\alpha\rho\one+h_k\).  Subtracting
+\(\alpha\rho\one\) from \cref{eq:rppr-r-update} thus yields
 \[
-    r(x_{k+1})-\alpha\rho\mathbf{1}
+    r(x_{k+1})-\alpha\rho\one
     \leq
     (1-c)h_k+aPh_k
     =a(I+P)h_k.
@@ -318,7 +303,7 @@ Define
 \begin{equation}
     H_\rho(s)
     :=
-    \norm{\bigl(D^{-1}s-\rho\mathbf{1}\bigr)_+}_\infty,
+    \norm{\bigl(D^{-1}s-\rho\one\bigr)_+}_\infty,
     \qquad
     \log_+(z):=\max\{\log z,0\}.
     \label{eq:rppr-H-definition}
@@ -375,7 +360,7 @@ At initialization,
 \begin{equation}
     h_0
     =
-    \alpha\bigl(D^{-1}s-\rho\mathbf{1}\bigr)_+,
+    \alpha\bigl(D^{-1}s-\rho\one\bigr)_+,
     \qquad
     \norm{h_0}_\infty=\alpha H_\rho(s).
     \label{eq:rppr-initial-excess}
@@ -405,7 +390,7 @@ sharper analysis.  Define
     \norm{D^{-1/2}(s-\rho d)_+}_2,
     \label{eq:rppr-restricted-parameters}
 \end{equation}
-where \(d=D\mathbf{1}\).
+where \(d=D\one\).
 
 \begin{proposition}[Restricted contraction without \(\log(1/\alpha)\)]
 \label{prop:rppr-restricted-contraction}
@@ -509,11 +494,11 @@ Fix
     0<\delta<1.
     \label{eq:rppr-star-parameter-range}
 \end{equation}
-Let \(G=K_{1,m}\), put the seed at its center \(c\), and choose
+Let \(G=K_{1,m}\), put the seed at its center \(v\), and choose
 \begin{equation}
     m:=\floor{\frac1{8\rho}},
     \qquad
-    s=e_c.
+    s=e_v.
     \label{eq:rppr-star-size}
 \end{equation}
 Then
@@ -547,7 +532,7 @@ Let \(\ell\) be any leaf and define
 \begin{equation}
     \kappa:=\rho m,
     \qquad
-    u_k:=\sqrt{m}\,x_{k,c},
+    u_k:=\sqrt{m}\,x_{k,v},
     \qquad
     v_k:=m x_{k,\ell}.
     \label{eq:rppr-star-aggregate-coordinates}
@@ -709,10 +694,10 @@ Under \cref{eq:rppr-star-parameter-range}, let
     \qquad
     m=\floor{\frac1{8\rho}},
     \qquad
-    s=\frac12e_u+\frac12e_c,
+    s=\frac12e_u+\frac12e_w,
     \label{eq:rppr-direct-sum-instance}
 \end{equation}
-where \(u\) is one endpoint of \(K_2\) and \(c\) is the star center.  Then
+where \(u\) is one endpoint of \(K_2\) and \(w\) is the star center.  Then
 \(S^\star=V\), \(\vol(S^\star)=\Theta(1/\rho)\), and
 \begin{equation}
     W_{\mathrm{batch}}(T)
@@ -736,18 +721,18 @@ throughout this parameter regime.
 \end{theorem}
 
 \begin{proof}
-Write \(\beta=\gamma=1/2\) for the seed mass on the \(K_2\) and star
-components, respectively.  On the star, the aggregate recurrence from
+Each component has seed mass \(1/2\).  On the star, the aggregate recurrence
+from
 \cref{eq:rppr-star-u-recurrence,eq:rppr-star-v-recurrence} becomes
 \begin{align}
-    u_{k+1}&=a(u_k+v_k)+\alpha(\gamma-\kappa),
+    u_{k+1}&=a(u_k+v_k)+\alpha(1/2-\kappa),
     \label{eq:rppr-half-star-u}\\
     v_{k+1}&=\bigl[a(u_k+v_k)-\alpha\kappa\bigr]_+.
     \label{eq:rppr-half-star-v}
 \end{align}
 All leaves activate in the second iterate because
 \begin{equation}
-    a(\gamma-\kappa)
+    a(1/2-\kappa)
     \geq\frac38\left(\frac12-\frac18\right)
     =\frac9{64}
     >\frac18
@@ -756,14 +741,14 @@ All leaves activate in the second iterate because
 \end{equation}
 The star fixed point satisfies
 \[
-    u^\star+v^\star=\gamma-2\kappa,
+    u^\star+v^\star=1/2-2\kappa,
     \qquad
-    u^\star-v^\star=\alpha\gamma,
+    u^\star-v^\star=\alpha/2,
 \]
 so
 \[
     v^\star
-    =\frac{\gamma(1-\alpha)-2\kappa}{2}
+    =\frac{(1-\alpha)/2-2\kappa}{2}
     \geq\frac{1/8}{2}>0.
 \]
 Thus the entire star belongs to \(S^\star\).
@@ -771,13 +756,13 @@ Thus the entire star belongs to \(S^\star\).
 Let \(x_k^{u},x_k^{v}\) denote the two degree-one coordinates on the
 \(K_2\) component.  We have
 \[
-    x_1^{u}=\alpha(\beta-\rho),
+    x_1^{u}=\alpha(1/2-\rho),
     \qquad
     x_1^{v}=0.
 \]
 The unseeded endpoint activates in the next iterate because
 \[
-    a(\beta-\rho)
+    a(1/2-\rho)
     \geq\frac38\left(\frac12-\frac1{16}\right)
     >\frac1{16}
     \geq\rho.
@@ -785,20 +770,20 @@ The unseeded endpoint activates in the next iterate because
 Thereafter, with \(z_k:=x_k^{u}+x_k^{v}\),
 \begin{equation}
     z_{k+1}
-    =(1-\alpha)z_k+\alpha(\beta-2\rho),
+    =(1-\alpha)z_k+\alpha(1/2-2\rho),
     \qquad k\geq1.
     \label{eq:rppr-K2-sum-recurrence}
 \end{equation}
 The fixed point obeys
 \[
-    z^\star=\beta-2\rho,
+    z^\star=1/2-2\rho,
     \qquad
-    x^{u,\star}-x^{v,\star}=\alpha\beta,
+    x^{u,\star}-x^{v,\star}=\alpha/2,
 \]
 and hence
 \[
     x^{v,\star}
-    =\frac{\beta(1-\alpha)-2\rho}{2}>0.
+    =\frac{(1-\alpha)/2-2\rho}{2}>0.
 \]
 Thus \(S^\star=V\), and its volume is \(2m+2=\Theta(1/\rho)\).
 
@@ -807,12 +792,13 @@ Define \(E_k:=z^\star-z_k\).  From
 \begin{equation}
     E_k=E_1(1-\alpha)^{k-1},
     \qquad
-    E_1=\beta-2\rho-\alpha(\beta-\rho)
+    E_1=1/2-2\rho-\alpha(1/2-\rho)
     \geq\frac{17}{64}>\frac14.
     \label{eq:rppr-K2-error}
 \end{equation}
 For every \(k\geq2\), the difference
-\(x_k^{u}-x_k^{v}=\alpha\beta\) is fixed, so the two increments are equal.
+\(x_k^{u}-x_k^{v}=\alpha/2\) is fixed, so the two increments are
+equal.
 By \cref{lem:rppr-increment-residual}, their KKT excess is
 \begin{equation}
     h_u(x_k)=h_v(x_k)
@@ -947,14 +933,14 @@ It remains to bound work.  Define the nonnegative residual-mass potential
 \begin{equation}
     \Phi(x)
     :=\sum_{j\in V}d_jr_j(x)
-    =-\left\langle D^{1/2}\mathbf{1},\nabla f(x)\right\rangle.
+    =-\left\langle D^{1/2}\one,\nabla f(x)\right\rangle.
     \label{eq:rppr-coordinate-potential}
 \end{equation}
 The initialization gives \(\Phi(0)=\alpha\).  An update at \(i\) changes the
 potential by the exact amount
 \begin{align}
     \Phi(x+\Delta e_i)-\Phi(x)
-    &=-\Delta\left\langle D^{1/2}\mathbf{1},Qe_i\right\rangle \notag\\
+    &=-\Delta\left\langle D^{1/2}\one,Qe_i\right\rangle \notag\\
     &=-\alpha d_i h_i(x),
     \label{eq:rppr-coordinate-potential-drop}
 \end{align}
@@ -1057,10 +1043,10 @@ The results above support the following precise conclusions.
     \(O((1+\log(1/\delta))/(\alpha\rho))\).
 
     \item If \(\delta\) is a fixed constant and the desired unregularized PPR
-    accuracy is \(\varepsilon_{\mathrm{ppr}}\), choosing
-    \(\rho=\Theta(\varepsilon_{\mathrm{ppr}})\) in
+    accuracy is \(\epsppr\), choosing
+    \(\rho=\Theta(\epsppr)\) in
     \cref{eq:rppr-rho-delta-choice} gives
-    \(O(1/(\alpha\varepsilon_{\mathrm{ppr}}))\) coordinate work.
+    \(O(1/(\alpha\epsppr))\) coordinate work.
 
     \item These are algorithm-specific results.  Under an explicit-vector
     output model, the star gives the problem-level output-size obstruction

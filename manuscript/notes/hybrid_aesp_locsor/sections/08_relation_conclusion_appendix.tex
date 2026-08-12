@@ -14,7 +14,7 @@ long-spider obstruction remains relevant to claims about a plain optimal-SOR
 tail, but it does not by itself refute \cref{thm:objective-tail}: after a
 sufficiently small objective-gap handoff, even $\omega=1$ has the stated tail
 budget. The unresolved question moves to whether AESP reaches that handoff
-with $\softO(1/(\sqrt\alpha\eps))$ local work on every graph.
+with $\softO(1/(\sqrt\alpha\epsppr))$ local work on every graph.
 
 \section{Conclusions and publication-level claim boundary}
 \label{sec:conclusion}
@@ -30,14 +30,14 @@ unregularized problem, the most robust proof architecture is
   \omega=1\text{ LOCSOR cleanup}.}
 \]
 The SOR tail is fully controlled: an objective-gap handoff gives
-$\bigO(1/(\sqrt\alpha\eps))$ tail work, and a weighted-gradient-mass handoff
+$\bigO(1/(\sqrt\alpha\epsppr))$ tail work, and a weighted-gradient-mass handoff
 additionally controls every tail active set. The master inequality in
 \cref{thm:master-handoff} makes the handoff tradeoff explicit.
 
 Three levels of total-work result should be kept distinct. Path I gives the
 closed, graph-structure-free but run-dependent rate
-$\bigO(R/(\alpha^{3/4}\eps))$. Path II reaches the target
-$\softO(1/(\sqrt\alpha\eps))$ under an early-locality factor or support
+$\bigO(R/(\alpha^{3/4}\epsppr))$. Path II reaches the target
+$\softO(1/(\sqrt\alpha\epsppr))$ under an early-locality factor or support
 envelope. Path III replaces hard confinement by boundary charging, but still
 requires shifted-margin and localized path-length lemmas. Calling Path I
 ``unconditional'' is appropriate only with the explicit qualification that
@@ -63,7 +63,7 @@ the acceleration--locality phase transition, prove the master handoff and the
 $R$-parameterized rate, prove the conditional optimal theorem, establish the
 composite convergence extension, and support the switch empirically against
 AESP, LOCSOR, optimal SOR, and LOCCH. A universal
-$\softO(1/(\sqrt\alpha\eps))$ or
+$\softO(1/(\sqrt\alpha\epsppr))$ or
 $\softO(1/(\rho\sqrt\alpha))$ theorem should be claimed only after the
 corresponding locality lemma is closed.
 
@@ -76,17 +76,17 @@ The unregularized target theorem decomposes into the following implications:
 \begin{align*}
   &\text{AESP inner certificates}
     &&\Longrightarrow\quad
-      f(x^{(t)})-f^\star\leq U_t,\\
-  &U_J\leq\frac{\alpha^{3/2}\eps}{1+\alpha}
+      f(x^{(t)})-f(x^0)\leq U_t,\\
+  &U_J\leq\frac{\alpha^{3/2}\epsppr}{1+\alpha}
     &&\Longrightarrow\quad
-      W_{\rm tail}\leq\frac1{\sqrt\alpha\eps},\\
-  &\Lambda_J\leq\frac{K}{\eps}
+      W_{\rm tail}\leq\frac1{\sqrt\alpha\epsppr},\\
+  &\Lambda_J\leq\frac{K}{\epsppr}
     &&\Longrightarrow\quad
-      B_J=\softO\!\left(\frac{K}{\sqrt\alpha\eps}\right),\\
+      B_J=\softO\!\left(\frac{K}{\sqrt\alpha\epsppr}\right),\\
   &\text{the previous two lines}
     &&\Longrightarrow\quad
       W_{\rm hybrid}
-      =\softO\!\left(\frac{K+1}{\sqrt\alpha\eps}\right).
+      =\softO\!\left(\frac{K+1}{\sqrt\alpha\epsppr}\right).
 \end{align*}
 Only the third implication's premise is currently unresolved in a fully
 graph-uniform form. Independently, the direct AESP amortization and the
@@ -95,23 +95,23 @@ objective tail imply the Path-I tradeoff
   W_{\rm hybrid}^{\rm in+tail}
   \leq
   \frac{3000R_J^2\sqrt{\alpha(1-\alpha)}}{\Delta}
-  +\frac{(1+\alpha)\Delta}{\alpha^2\eps^2},
+  +\frac{(1+\alpha)\Delta}{\alpha^2\epsppr^2},
 \]
 whose optimal black-box balance is
-$\bigO(R_J/(\alpha^{3/4}\eps))$.
+$\bigO(R_J/(\alpha^{3/4}\epsppr))$.
 
 For RPPR, the closed dependency chain is
 \begin{align*}
   &\text{coordinatewise nonexpansive soft thresholding}
     &&\Longrightarrow\quad
-      \mathcal T_\rho\text{ is a weighted }(1-\alpha)\text{-contraction},\\
-  &x_\rho^\star=\mathcal T_\rho(x_\rho^\star)
+      T_{\alpha,\rho}\text{ is a weighted }(1-\alpha)\text{-contraction},\\
+  &x^\star(\rho)=T_{\alpha,\rho}(x^\star(\rho))
     &&\Longrightarrow\quad
-      \norm{x-x_\rho^\star}_{D,\infty}
-      \leq\alpha^{-1}\norm{R_\rho(x)}_{D,\infty},\\
+      \norm{x-x^\star(\rho)}_{D,\infty}
+      \leq\alpha^{-1}\norm{R_{\mathrm{fp},\alpha,\rho}(x)}_{D,\infty},\\
   &\text{finite Catalyst handoff plus full ISTA}
     &&\Longrightarrow\quad
-      x^{(k)}\to x_\rho^\star.
+      x^{(k)}\to x^\star(\rho).
 \end{align*}
 The missing implication is from this iteration contraction to a
 $\softO(1/(\rho\sqrt\alpha))$ degree-weighted local-work bound.
@@ -122,9 +122,10 @@ $\softO(1/(\rho\sqrt\alpha))$ degree-weighted local-work bound.
 For reference, the analysis repeatedly uses:
 \begin{enumerate}[leftmargin=2em]
   \item for a convex $1$-smooth function,
-        $\norm{\nabla f(x)}_2^2\leq2(f(x)-f^\star)$;
-  \item for $q=D^{1/2}g$ supported in $\Omega$,
-        $\norm{q}_1\leq\sqrt{\vol(\Omega)}\norm{g}_2$;
+        $\norm{\nabla f(x)}_2^2\leq2(f(x)-f(x^0))$;
+  \item for $q_{\rm sc}(x)=D^{1/2}\nabla f(x)$ supported in $\Omega$,
+        $\norm{q_{\rm sc}(x)}_1
+        \leq\sqrt{\vol(\Omega)}\norm{\nabla f(x)}_2$;
   \item for $0<z<1$, $(1-z)^k\leq e^{-zk}$;
   \item for a thresholded set $S$ and support envelope $\Omega$,
         the average density on $S$ is at least the average density on
