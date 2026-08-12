@@ -1,19 +1,23 @@
 \subsection{Exact accelerated proximal iterates}
 
 Apply accelerated proximal point directly to the orthant objective
-$F_{\bar\rho}^+$.  With $\kappa=1-2\alpha$, define
+$F_{\bar\rho}^+$. With $\kappa_{\mathrm A}=1-2\alpha$, define
 \begin{equation}
- q:=\frac{\alpha}{\alpha+\kappa},
+ \vartheta_{\mathrm A}:=
+ \frac{\alpha}{\alpha+\kappa_{\mathrm A}},
  \qquad
- \beta:=\frac{1-\sqrt q}{1+\sqrt q},
+ \beta_{\mathrm A}:=
+ \frac{1-\sqrt{\vartheta_{\mathrm A}}}
+      {1+\sqrt{\vartheta_{\mathrm A}}},
  \label{eq:app-momentum}
 \end{equation}
 and initialize $x_{-1}=x_0=0$.  For $t\ge1$ let
 \begin{align}
- y_{t-1}&=(1+\beta)x_{t-1}-\beta x_{t-2},
+ y_{t-1}&=(1+\beta_{\mathrm A})x_{t-1}-\beta_{\mathrm A} x_{t-2},
  \label{eq:app-center}\\
  x_t&=\arg\min_{x\ge0}
- \left\{F_{\bar\rho}(x)+\frac\kappa2\norm{x-y_{t-1}}_2^2\right\}.
+ \left\{F_{\bar\rho}(x)
+ +\frac{\kappa_{\mathrm A}}{2}\norm{x-y_{t-1}}_2^2\right\}.
  \label{eq:app-step}
 \end{align}
 Set
@@ -37,8 +41,8 @@ mass of coordinates present two iterates ago and absent now:
 \label{lem:active-kkt-sum}
 Every exact step~\eqref{eq:app-step} satisfies
 \begin{equation}
- (\alpha+\kappa)p_t+\alpha\bar\rho V_t
- \le \alpha+\kappa p_{A_t}(y_{t-1}).
+ (\alpha+\kappa_{\mathrm A})p_t+\alpha\bar\rho V_t
+ \le \alpha+\kappa_{\mathrm A} p_{A_t}(y_{t-1}).
  \label{eq:active-kkt-sum}
 \end{equation}
 \end{lemma}
@@ -47,7 +51,7 @@ Every exact step~\eqref{eq:app-step} satisfies
 On $A_t$, the proximal KKT equations are
 \[
  \bigl(Qx_t-b+\alpha\bar\rho w
-       +\kappa(x_t-y_{t-1})\bigr)_i=0.
+       +\kappa_{\mathrm A}(x_t-y_{t-1})\bigr)_i=0.
 \]
 Because $x_t$ is zero off $A_t$ and $Q$ has nonpositive off-diagonal
 entries,
@@ -62,9 +66,9 @@ active equations gives~\eqref{eq:active-kkt-sum}.
 The restricted center mass obeys
 \begin{align}
  p_{A_t}(y_{t-1})
- &=(1+\beta)p_{A_t}(x_{t-1})
-   -\beta p_{A_t}(x_{t-2}) \notag\\
- &\le (1+\beta)p_{t-1}-\beta p_{t-2}+\beta d_t.
+ &=(1+\beta_{\mathrm A})p_{A_t}(x_{t-1})
+   -\beta_{\mathrm A} p_{A_t}(x_{t-2}) \notag\\
+ &\le (1+\beta_{\mathrm A})p_{t-1}-\beta_{\mathrm A} p_{t-2}+\beta_{\mathrm A} d_t.
  \label{eq:center-mass-bound}
 \end{align}
 Support growth is free in this inequality; only disappearance of old mass
@@ -79,22 +83,22 @@ For the exact iterates~\eqref{eq:app-center}--\eqref{eq:app-step},
  \alpha\bar\rho\sum_{t=1}^T V_t
  +\alpha\sum_{t=1}^T p_t
  \le
- \alpha T+\kappa(\beta p_{T-1}-p_T)
- +\kappa\beta\sum_{t=1}^T d_t.
+ \alpha T+\kappa_{\mathrm A}(\beta_{\mathrm A} p_{T-1}-p_T)
+ +\kappa_{\mathrm A}\beta_{\mathrm A}\sum_{t=1}^T d_t.
  \label{eq:cumulative-volume-identity}
 \end{equation}
 Define the nonnegative deactivation flux
 \begin{equation}
  \Phi_T
- :=\pos{\beta p_{T-1}-p_T}
-   +\beta\sum_{t=1}^T d_t.
+ :=\pos{\beta_{\mathrm A} p_{T-1}-p_T}
+   +\beta_{\mathrm A}\sum_{t=1}^T d_t.
  \label{eq:flux}
 \end{equation}
 Then
 \begin{equation}
  \sum_{t=1}^T V_t
  \le \frac{T}{\bar\rho}
-     +\frac{\kappa\Phi_T}{\alpha\bar\rho}.
+     +\frac{\kappa_{\mathrm A}\Phi_T}{\alpha\bar\rho}.
  \label{eq:volume-via-flux}
 \end{equation}
 \end{theorem}
@@ -102,11 +106,11 @@ Then
 \begin{proof}
 Substitute~\eqref{eq:center-mass-bound} into
 ~\eqref{eq:active-kkt-sum}, separate $\alpha p_t$ from
-$(\alpha+\kappa)p_t$, and sum over $t$.  The momentum terms telescope:
+$(\alpha+\kappa_{\mathrm A})p_t$, and sum over $t$.  The momentum terms telescope:
 \[
  \sum_{t=1}^T
- \bigl((1+\beta)p_{t-1}-\beta p_{t-2}-p_t\bigr)
- =\beta p_{T-1}-p_T,
+ \bigl((1+\beta_{\mathrm A})p_{t-1}-\beta_{\mathrm A} p_{t-2}-p_t\bigr)
+ =\beta_{\mathrm A} p_{T-1}-p_T,
 \]
 because $p_{-1}=p_0=0$.  This proves
 ~\eqref{eq:cumulative-volume-identity}.  Replace the endpoint by its positive
@@ -119,17 +123,17 @@ For an approximate inner solve, let
  E_t:=\sum_{i\in A_t}w_i
  \left|
    \bigl(Qx_t-b+\alpha\bar\rho w
-          +\kappa(x_t-y_{t-1})\bigr)_i
+          +\kappa_{\mathrm A}(x_t-y_{t-1})\bigr)_i
  \right|.
  \label{eq:inner-kkt-error}
 \end{equation}
 The right side of~\eqref{eq:volume-via-flux} gains
 $\sum_tE_t/(\alpha\bar\rho)$.
 
-Since $Q+\kappa I$ has constant condition number, a positive-residual local
+Since $Q+\kappa_{\mathrm A} I$ has constant condition number, a positive-residual local
 coordinate method solves each proximal problem in $\softO(V_t)$ work.  Thus
 \begin{equation}
- W_{\mathrm{warm}}
+ \Work_{\mathrm{warm}}
  =\softO\!\left(
    \frac{T}{\rho}
    +\frac{\Phi_T}{\alpha\rho}
@@ -140,7 +144,7 @@ coordinate method solves each proximal problem in $\softO(V_t)$ work.  Thus
 Combining with~\eqref{eq:tail-target} and
 $T=\softO(1/\sqrt\alpha)$ gives the observable conditional bound
 \begin{equation}
- W_{\mathrm{hybrid}}
+ \Work_{\mathrm{hybrid}}
  =\softO\!\left(
    \frac1{\rho\sqrt\alpha}
    +\frac{\Phi_T}{\alpha\rho}
@@ -168,14 +172,14 @@ added, and a dropout is charged by its value rather than its degree.
 
 The correct dynamic variable reveals why the conjecture is fragile.  Let
 \[
- r_0:=1-\sqrt{\frac{\alpha}{\alpha+\kappa}},
+ r_0:=1-\sqrt{\frac{\alpha}{\alpha+\kappa_{\mathrm A}}},
  \qquad
  z_t:=x_t-r_0x_{t-1}.
 \]
 Writing $\lambda_t\ge0$ for the orthant KKT multiplier, the inertial system
 factors as
 \begin{equation}
- (\alpha+\kappa)(z_t-r_0z_{t-1})
+ (\alpha+\kappa_{\mathrm A})(z_t-r_0z_{t-1})
  +(Q-\alpha I)x_t
  =b-\alpha\bar\rho w+\lambda_t.
  \label{eq:transformed-wave}
@@ -186,4 +190,3 @@ constants, a bound on the cumulative weighted negative wave.  Branching
 graphs can amplify that wave in degree-weighted $\ell_1$ even though the
 accelerated method remains stable in objective and Euclidean norm.  The exact
 mechanism is developed in \cref{sec:tree-wave}.
-

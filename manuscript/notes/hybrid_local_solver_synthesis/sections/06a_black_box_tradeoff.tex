@@ -9,7 +9,7 @@ AESP quantity $R$.
 
 \subsection{Master handoff inequality}
 
-Let $M(x)=\norm{D^{1/2}g(x)}_1$ as in
+Let $M(x)=\norm{D^{1/2}\nabla f(x)}_1$ as in
 \cref{eq:mass-functional}.
 
 \begin{theorem}[Master handoff inequality]
@@ -20,9 +20,9 @@ If Phase II is LOCSOR with $\omega=1$, then
 \begin{split}
   \Work_{\rm hybrid}(J)
   \leq B_J+\min\Biggl\{
-    &\frac{(1+\alpha)[f(x_J)-f^\star]}
-          {\alpha^2\eps^2},\\
-    &\frac{1+\alpha}{2\alpha^2\eps}M(x_J)
+    &\frac{(1+\alpha)[f(x_J)-f(x^0)]}
+          {\alpha^2\epsppr^2},\\
+    &\frac{1+\alpha}{2\alpha^2\epsppr}M(x_J)
   \Biggr\}.
   \label{eq:master-handoff}
 \end{split}
@@ -45,14 +45,14 @@ the certified remaining budget.
 
 Set
 \begin{equation}
-  c_A:=1-\rho_A,
+  c_A:=1-\varpi_{\mathrm A},
   \qquad
   \phi_t:=\frac{1+\alpha}{18}c_A^t,
   \label{eq:black-box-phi}
 \end{equation}
 and initialize each AESP stage at
 $z_t^{(0)}=y^{(t-1)}$.  Recall
-$C_{t,0}=\norm{D^{1/2}\grad h_t(z_t^{(0)})}_1$, and define
+$C_{t,0}=\norm{D^{1/2}\nabla h_t(z_t^{(0)})}_1$, and define
 \begin{equation}
   R_J:=\max_{1\leq t\leq J}\frac{C_{t,0}}{\alpha}.
   \label{eq:black-box-R}
@@ -75,16 +75,16 @@ $U_J\leq\Delta$, where $U_t$ is given by
 \end{proposition}
 
 \begin{proof}
-For $\eta=1-2\alpha$, the inner contraction parameter is $\tau=2/3$.
+For $\kappa_{\mathrm A}=1-2\alpha$, the inner contraction parameter is $\tau=2/3$.
 The second term in \cref{eq:aesp-inner-tolerance} gives
 \[
-  \eps_t\geq\frac{2(1-\alpha)\phi_t}{C_{t,0}}.
+  \epsin^{(t)}\geq\frac{2(1-\alpha)\phi_t}{C_{t,0}}.
 \]
 The direct-amortization branch of \cref{eq:aesp-stage-work} therefore yields
 \begin{equation}
   \Work_t^{\rm in}
   \leq
-  \frac{C_{t,0}}{\tau\eps_t}
+  \frac{C_{t,0}}{\tau\epsin^{(t)}}
   \leq
   \frac{C_{t,0}^2}{2\tau(1-\alpha)\phi_t}
   \leq
@@ -103,10 +103,10 @@ so
   \label{eq:black-box-phiJ}
 \end{equation}
 The schedule is geometric and hence
-$\sum_{t=1}^J\phi_t^{-1}\leq(\rho_A\phi_J)^{-1}$.
+$\sum_{t=1}^J\phi_t^{-1}\leq(\varpi_{\mathrm A}\phi_J)^{-1}$.
 Sum \cref{eq:black-box-stage}, apply
 \cref{eq:black-box-phiJ}, and substitute
-$\rho_A=0.9\sqrt{\alpha/(1-\alpha)}$ and $\tau=2/3$.
+$\varpi_{\mathrm A}=0.9\sqrt{\alpha/(1-\alpha)}$ and $\tau=2/3$.
 \end{proof}
 
 \begin{corollary}[Graph-structure-free, $R$-parameterized hybrid rate]
@@ -116,7 +116,7 @@ Under the conditions of \cref{prop:black-box-burnin},
   \Work_{\rm hybrid}^{\rm in+tail}
   \leq
   \frac{3000R_J^2\sqrt{\alpha(1-\alpha)}}{\Delta}
-  +\frac{(1+\alpha)\Delta}{\alpha^2\eps^2}.
+  +\frac{(1+\alpha)\Delta}{\alpha^2\epsppr^2}.
   \label{eq:black-box-tradeoff}
 \end{equation}
 If an available bound $\widehat R\geq R_J$ is valid up to the handoff, then
@@ -126,7 +126,7 @@ choosing
   :=
   \sqrt{3000}\,
   \frac{\widehat R\,\alpha^{5/4}(1-\alpha)^{1/4}}
-       {\sqrt{1+\alpha}}\,\eps
+       {\sqrt{1+\alpha}}\,\epsppr
   \label{eq:black-box-switch}
 \end{equation}
 gives
@@ -135,15 +135,15 @@ gives
   \leq
   2\sqrt{3000}\,
   \frac{\widehat R(1-\alpha)^{1/4}\sqrt{1+\alpha}}
-       {\alpha^{3/4}\eps}
-  =\mathcal O\!\left(\frac{\widehat R}{\alpha^{3/4}\eps}\right),
+       {\alpha^{3/4}\epsppr}
+  =\mathcal O\!\left(\frac{\widehat R}{\alpha^{3/4}\epsppr}\right),
   \label{eq:black-box-rate}
 \end{equation}
 provided the nontrivial switch lies below the initial certificate.
 \end{corollary}
 
 \begin{proof}
-The AESP certificate gives $f(x_J)-f^\star\leq\Delta$.
+The AESP certificate gives $f(x_J)-f(x^0)\leq\Delta$.
 Combine \cref{prop:black-box-burnin} with the objective branch of
 \cref{thm:master-handoff}.  The resulting expression is $a/\Delta+b\Delta$;
 minimization gives \cref{eq:black-box-switch,eq:black-box-rate}.
@@ -155,7 +155,7 @@ residual-sign assumption.  The simplified rate retains the realized AESP
 ratio $R_J$, for which no input-only universal bound is currently known, and
 it covers inner-plus-tail work rather than any separately uncharged outer
 initialization.  Thus Path I is a closed instance-wise theorem, not an
-absolute $\mathcal O(1/(\alpha^{3/4}\eps))$ theorem for all instances.
+absolute $\mathcal O(1/(\alpha^{3/4}\epsppr))$ theorem for all instances.
 \end{remark}
 
 \begin{remark}[Black-box tightness]
@@ -173,8 +173,8 @@ The resulting proof landscape is:
   \item \textbf{Black-box balancing:} closed and graph-structure-free, but
         $R$-parameterized, giving \cref{eq:black-box-rate}.
   \item \textbf{Early locality/confinement:} the trajectory theorem plus
-        $\Lambda_t=\mathcal O(1/\eps)$ gives the target
-        $\softO(1/(\sqrt\alpha\eps))$ rate.
+        $\Lambda_t=\mathcal O(1/\epsppr)$ gives the target
+        $\softO(1/(\sqrt\alpha\epsppr))$ rate.
   \item \textbf{Cumulative boundary charging:} over-regularization and KKT
         slack can replace hard confinement by a summable spurious-work term;
         adapting the margin and path-length arguments to AESP's changing

@@ -17,6 +17,10 @@ manuscript/
 │   └── shared/
 │       ├── preamble.tex
 │       ├── math_commands.tex
+│       ├── research_commands.tex
+│       ├── research_note_preamble.tex
+│       ├── source_aligned_problem.tex
+│       ├── NOTATION.md
 │       └── writing_commands.tex
 └── jmlr2e.sty
 ```
@@ -29,14 +33,23 @@ those older command files:
 
 - `math_commands.tex` defines the canonical `\v...` vector, `\m...` matrix,
   `\g...` calligraphic, and `\s...` blackboard-bold families, together with
-  common graph operators and helpers such as `\mc`, `\eps`, and `\grad`;
+  common graph operators and helpers such as `\mc`, `\norm`, and `\grad`, plus
+  semantic accuracy macros such as `\epsappr`, `\epsobj`, and `\epsppr`;
+- `source_aligned_problem.tex` is the one reusable graph, PageRank, RPPR,
+  work-unit, and tolerance-namespace definition imported by the paper and all
+  notes;
+- `research_commands.tex` owns algorithm names and claim-status labels, while
+  `research_note_preamble.tex` gives every standalone note the same shell;
+- `NOTATION.md` is the human-readable registry of reserved and proof-scoped
+  scientific symbols;
 - `writing_commands.tex` contains figure-panel labels, reference wrappers,
   drafting colors, checkmarks, and pseudocode assignment symbols;
 - `preamble.tex` owns package loading and theorem-environment setup.
 
 Add reusable notation to these shared files rather than defining commands
-inside individual sections. Archived macro files remain read-only references
-and are never input by the active manuscript.
+inside individual sections. Structural tests enforce that boundary and prevent
+the source-aligned problem from being redeclared. Archived macro files remain
+read-only references and are never input by the active manuscript.
 
 Build the active paper from the repository root with:
 
@@ -55,6 +68,20 @@ Publication-oriented but not-yet-integrated derivations live under
 repository-wide mathematical decision remains open, and they must label source
 results, proved statements, conditional statements, empirical observations,
 and open conjectures separately.
+
+[`notes/manifest.toml`](notes/manifest.toml) is the exhaustive machine-readable
+inventory and [`notes/README.md`](notes/README.md) is the concise status index.
+Every note is normalized to `notes/<note-id>/main.tex`, `README.md`, and
+`Makefile`; all six can be built together with:
+
+```bash
+make notes
+```
+
+Each note imports the shared source-aligned model, then states only its
+stronger assumptions and proof-scoped quantities. This shares mathematical
+language without adopting a repository-wide PageRank residual or stopping
+rule.
 
 The AESP--LOCSOR synthesis is in:
 
@@ -132,6 +159,10 @@ Complete previous-paper projects live under `manuscript/archive/`:
 - [`archive/arxiv-2026-classical-acceleration-rppr/`](archive/arxiv-2026-classical-acceleration-rppr/)
   contains the source-faithful arXiv v2 reader edition of *Complexity of
   Classical Acceleration for \(\ell_1\)-Regularized PageRank*.
+- [`archive/colt-2023-accelerated-sparse-appr/`](archive/colt-2023-accelerated-sparse-appr/)
+  contains the source-faithful arXiv v1 / COLT 2023 reader archive of
+  *Accelerated and Sparse Algorithms for Approximate Personalized PageRank and
+  Beyond*.
 - [`archive/kdd-2023-appr-sor/`](archive/kdd-2023-appr-sor/) contains the
   standalone KDD 2023 APPR-SOR paper.
 - [`archive/neurips-2024-locch/`](archive/neurips-2024-locch/) contains the

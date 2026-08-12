@@ -5,31 +5,35 @@
 
 For the coordinate step
 \(
- x^+=x-2\omega g_u e_u/(1+\alpha)
+ x^+=x-2\omega\nabla_u f(x)e_u/(1+\alpha)
 \),
 \begin{align}
-  g^+
-  &=g+Q(x^+-x)
+  \nabla f(x^+)
+  &=\nabla f(x)+Q(x^+-x)
   \notag\\
-  &=g-\omega g_u e_u+\chi\omega g_uWe_u,
+  &=\nabla f(x)-\omega\nabla_u f(x)e_u
+    +\chi\omega\nabla_u f(x)D^{-1/2}AD^{-1/2}e_u,
   \qquad
   \chi=\frac{1-\alpha}{1+\alpha}.
   \label{eq:app-gradient-update}
 \end{align}
 Multiplying by \(D^{1/2}\) and using
 \(
-D^{1/2}We_u=Ae_u/\sqrt{d_u}
+D^{1/2}(D^{-1/2}AD^{-1/2})e_u=Ae_u/\sqrt{d_u}
 \)
-and \(g_u=q_u/\sqrt{d_u}\) yields
+and \(\nabla_u f(x)=q_{\mathrm{sc},u}/\sqrt{d_u}\) yields
 \begin{equation}
-    q^+=q-\omega q_u e_u+\chi\omega q_uAD^{-1}e_u.
+    q_{\mathrm{sc}}^+
+    =q_{\mathrm{sc}}-\omega q_{\mathrm{sc},u}e_u
+     +\chi\omega q_{\mathrm{sc},u}AD^{-1}e_u,
     \label{eq:app-scaled-update}
 \end{equation}
 Thus a sparse implementation changes only \(u\) and its neighbors:
 \begin{equation}
-    q_u^+=(1-\omega)q_u,
+    q_{\mathrm{sc},u}^+=(1-\omega)q_{\mathrm{sc},u},
     \qquad
-    q_v^+=q_v+\chi\omega\frac{q_u}{d_u}
+    q_{\mathrm{sc},v}^+
+    =q_{\mathrm{sc},v}+\chi\omega\frac{q_{\mathrm{sc},u}}{d_u}
     \quad(v\sim u).
     \label{eq:app-coordinate-updates}
 \end{equation}
@@ -39,18 +43,18 @@ Thus a sparse implementation changes only \(u\) and its neighbors:
 At an AESP checkpoint \(x\), compute
 \begin{equation}
     \widehat r
-    =-\frac{2}{1+\alpha}g(x).
+    =-\frac{2}{1+\alpha}\nabla f(x).
     \label{eq:app-handoff-residual}
 \end{equation}
 If the code stores degree-scaled quantities,
 \begin{equation}
     D^{1/2}\widehat r
-    =-\frac{2}{1+\alpha}q(x).
+    =-\frac{2}{1+\alpha}q_{\mathrm{sc}}(x).
     \label{eq:app-handoff-scaled}
 \end{equation}
 The Work-I active condition
 \(
-\abs{\widehat r_u}\geq 2\alpha\eps\sqrt{d_u}/(1+\alpha)
+\abs{\widehat r_u}\geq 2\alpha\epsppr\sqrt{d_u}/(1+\alpha)
 \)
 is then exactly \cref{eq:final-active-unscaled}.
 
@@ -58,20 +62,20 @@ is then exactly \cref{eq:final-active-unscaled}.
 
 Smoothness gives
 \begin{equation}
-    \norm{g(x)}_2^2
-    \leq2\,[f(x)-f(x^\star)].
+    \norm{\nabla f(x)}_2^2
+    \leq2\,[f(x)-f(x^0)].
     \label{eq:gradient-gap-upper}
 \end{equation}
-If \(\Omega_x:=\supp(g(x))\), then
+If \(\Omega_x:=\supp(\nabla f(x))\), then
 \begin{align}
     M(x)
-    &=\sum_{u\in\Omega_x}\sqrt{d_u}\abs{g_u(x)}
+    &=\sum_{u\in\Omega_x}\sqrt{d_u}\abs{\nabla_u f(x)}
     \notag\\
     &\leq
-    \sqrt{\vol(\Omega_x)}\norm{g(x)}_2
+    \sqrt{\vol(\Omega_x)}\norm{\nabla f(x)}_2
     \notag\\
     &\leq
-    \sqrt{2\vol(\Omega_x)[f(x)-f(x^\star)]}.
+    \sqrt{2\vol(\Omega_x)[f(x)-f(x^0)]}.
     \label{eq:mass-from-gap}
 \end{align}
 Thus objective acceleration implies weighted-mass compression only after
@@ -89,14 +93,14 @@ costs \(W_t\), and it improves the mass by
 The proved \(\omega=1\) tail upper bound decreases by
 \begin{equation}
     \Delta \widehat W_{\rm tail}
-    =\frac{1+\alpha}{2\alpha^2\eps}\Delta M_t.
+    =\frac{1+\alpha}{2\alpha^2\epsppr}\Delta M_t.
     \label{eq:predicted-work-saved}
 \end{equation}
 A natural marginal rule is therefore to continue AESP only while
 \begin{equation}
     W_t
     <
-    \frac{1+\alpha}{2\alpha^2\eps}\Delta M_t.
+    \frac{1+\alpha}{2\alpha^2\epsppr}\Delta M_t.
     \label{eq:marginal-switch}
 \end{equation}
 This is a heuristic because the tail formula is an upper bound, not an exact
@@ -110,8 +114,8 @@ descent method.  Its general tail bound is
 \begin{equation}
     \Work_{\rm tail}^{\omega_\star}
     \leq
-    \frac{(1+\alpha)[f(x_0)-f(x^\star)]}
-         {\omega_\star(2-\omega_\star)\alpha^2\eps^2}.
+    \frac{(1+\alpha)[f(x_0)-f(x^0)]}
+         {\omega_\star(2-\omega_\star)\alpha^2\epsppr^2}.
     \label{eq:omega-star-objective-work}
 \end{equation}
 The product is
@@ -121,27 +125,27 @@ The product is
     \label{eq:omega-star-product}
 \end{equation}
 This objective-decrease analysis is insufficient to establish the desired
-local \(1/\eps\) dependence.  It proves convergence but does not capture the
+local \(1/\epsppr\) dependence.  It proves convergence but does not capture the
 multi-step spectral acceleration that makes optimal SOR fast in practice.
 
 \subsection{AESP inner condition number as an effective damping parameter}
 
 Write
 \begin{equation}
-    \nu:=\frac{\alpha+\eta}{1+\eta}.
+    \nu:=\frac{\alpha+\kappa_{\mathrm A}}{1+\kappa_{\mathrm A}}.
     \label{eq:effective-damping}
 \end{equation}
 Then
 \begin{equation}
-    Q+\eta I
-    =(1+\eta)
+    Q+\kappa_{\mathrm A} I
+    =(1+\kappa_{\mathrm A})
       \left[
         \frac{1+\nu}{2}I-
-        \frac{1-\nu}{2}W
+        \frac{1-\nu}{2}D^{-1/2}AD^{-1/2}
       \right].
     \label{eq:shifted-ppr-form}
 \end{equation}
-For \(\eta=1-2\alpha\), \(\nu=1/2\).  Hence the inner system is not merely
-constant-conditioned abstractly; it is exactly a uniformly damped
+For \(\kappa_{\mathrm A}=1-2\alpha\), \(\nu=1/2\).  Hence the inner system is
+not merely constant-conditioned abstractly; it is exactly a uniformly damped
 PageRank-type system.  This structural observation supports reusing local
 PPR-style coordinate solvers inside AESP.

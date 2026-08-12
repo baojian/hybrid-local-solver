@@ -53,23 +53,23 @@ Label & Meaning \\
 
 \subsection{Central research question}
 
-The target problem is to compute an \(\eps\)-accurate personalized PageRank
+The target problem is to compute an \(\epsppr\)-accurate personalized PageRank
 vector using degree-weighted local work.  Classical monotone local methods
 have worst-case work of order
 \[
-    \frac{1}{\alpha\eps},
+    \frac{1}{\alpha\epsppr},
 \]
 whereas global accelerated methods replace the condition-number dependence
 \(1/\alpha\) by \(1/\sqrt{\alpha}\) but may lose locality.  The desired local
 accelerated scale is therefore
 \begin{equation}
-    \softO\!\left(\frac{1}{\sqrt{\alpha}\eps}\right).
+    \softO\!\left(\frac{1}{\sqrt{\alpha}\epsppr}\right).
     \label{eq:target-complexity}
 \end{equation}
 AESP proves the accelerated outer-iteration dependence, but its current
 worst-case local bound is
 \(
-\softO(R^2/(\sqrt{\alpha}\eps^2))
+\softO(R^2/(\sqrt{\alpha}\epsppr^2))
 \).
 The hybrid proposal exploits the experimentally favorable early AESP regime
 and delegates the final high-accuracy cleanup to a direct local relaxation
@@ -80,7 +80,7 @@ method.  For RPPR, the analogous target is
 
 The logical outcome is summarized in \cref{tab:main-status}.
 
-\begin{table}[h]
+\begin{table}[p]
 \centering
 \caption{Main conclusions and their logical status.}
 \label{tab:main-status}
@@ -92,27 +92,27 @@ AESP followed by local SOR converges from every finite handoff point, for any
 fair active-coordinate implementation and \(0<\omega<2\).
 & \statusproved & \Cref{thm:tail-convergence} \\
 An objective-gap handoff at
-\(f(x_J)-f^\star\leq\alpha^{3/2}\eps/(1+\alpha)\) gives
-\(\Work_{\rm tail}\leq1/(\sqrt{\alpha}\eps)\) for \(\omega=1\).
+\(f(x_J)-f(x^0)\leq\alpha^{3/2}\epsppr/(1+\alpha)\) gives
+\(\Work_{\rm tail}\leq1/(\sqrt{\alpha}\epsppr)\) for \(\omega=1\).
 & \statusproved & \Cref{thm:objective-handoff-tail} \\
 A master handoff inequality holds for every finite Phase-I method.
 & \statusproved & \Cref{thm:master-handoff} \\
 Direct AESP/SOR balancing gives
-\(\mathcal O(R/(\alpha^{3/4}\eps))\) inner-plus-tail work.
+\(\mathcal O(R/(\alpha^{3/4}\epsppr))\) inner-plus-tail work.
 & \statusproved, parameterized & \Cref{cor:black-box-rate}; the realized
   AESP ratio \(R\) remains in the bound. \\
 AESP reaches the objective-gap switch in
 \(\softO(1/\sqrt{\alpha})\) outer stages.
 & \statussource\ plus algebra & \Cref{prop:aesp-handoff-stage} \\
 The full hybrid has
-\(\softO(1/(\sqrt{\alpha}\eps))\) total work if the early AESP locality factor
-\(\Lambda_t\) is \(\mathcal O(1/\eps)\).
+\(\softO(1/(\sqrt{\alpha}\epsppr))\) total work if the early AESP locality factor
+\(\Lambda_t\) is \(\mathcal O(1/\epsppr)\).
 & \statusconditional & \Cref{thm:conditional-total} \\
 The weighted-\(\ell_1\) SOR contraction holds uniformly for
 \(0<\omega<1+\alpha\), not for the whole global SOR interval \((0,2)\).
 & \statusproved & \Cref{prop:signed-sor-l1} \\
 A no-percolation condition plus an
-\(\mathcal O(1/\eps)\)-volume gradient envelope implies the missing early
+\(\mathcal O(1/\epsppr)\)-volume gradient envelope implies the missing early
 AESP locality bound for LOCGD or priority LocAPPR.
 & \statusconditional & \Cref{thm:confinement-total} \\
 For RPPR, the unit-step proximal map is a weighted
@@ -136,6 +136,7 @@ baselines.
 \bottomrule
 \end{tabularx}
 \end{table}
+\clearpage
 
 Three cautions are essential.  First, the objective-gap handoff proves a fast
 \emph{tail}; it does not by itself bound the degree-weighted work spent by the

@@ -22,8 +22,10 @@ Build with:
 make -C manuscript/notes/hybrid_local_solver_synthesis
 ```
 
-The main source is `hybrid_local_solver_synthesis.tex`; individual sections are
-under `sections/` to facilitate selective incorporation into the active paper.
+The main source is `main.tex`; individual sections are under `sections/` to
+facilitate selective incorporation into the active paper. The entry point
+loads the shared manuscript notation and problem modules from
+`manuscript/tex/shared/`.
 
 New results beyond the initial synthesis include:
 

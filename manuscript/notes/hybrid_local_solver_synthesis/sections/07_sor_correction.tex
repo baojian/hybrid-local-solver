@@ -15,19 +15,20 @@ local work proof for the optimal over-relaxed parameter.
 
 \begin{proposition}[Correct signed weighted-\(\ell_1\) bound]
 \label{prop:signed-sor-l1}
-Let \(q=D^{1/2}g(x)\), \(\chi=(1-\alpha)/(1+\alpha)\), and apply the relaxed
-coordinate update \cref{eq:general-coordinate-update}.  Then
+Let \(q_{\mathrm{sc}}=D^{1/2}\nabla f(x)\),
+\(\chi=(1-\alpha)/(1+\alpha)\), and apply the relaxed coordinate update
+\cref{eq:general-coordinate-update}.  Then
 \begin{equation}
-    q^+
-    =q-\omega q_u e_u
-      +\chi\omega q_uAD^{-1}e_u.
+    q_{\mathrm{sc}}^+
+    =q_{\mathrm{sc}}-\omega q_{\mathrm{sc},u} e_u
+      +\chi\omega q_{\mathrm{sc},u}AD^{-1}e_u.
     \label{eq:signed-sor-scaled-update}
 \end{equation}
-For every signed vector \(q\),
+For every signed vector \(q_{\mathrm{sc}}\),
 \begin{equation}
-    \norm{q^+}_1
+    \norm{q_{\mathrm{sc}}^+}_1
     \leq
-    \norm{q}_1-\delta_\alpha(\omega)\abs{q_u},
+    \norm{q_{\mathrm{sc}}}_1-\delta_\alpha(\omega)\abs{q_{\mathrm{sc},u}},
     \label{eq:signed-sor-bound}
 \end{equation}
 where
@@ -52,22 +53,22 @@ Hence strict uniform weighted-\(\ell_1\) decrease is guaranteed precisely for
 
 \begin{proof}
 Only coordinate \(u\) and its neighbors change.  Since the graph is simple,
-\(q_u^+=(1-\omega)q_u\), while
+\(q_{\mathrm{sc},u}^+=(1-\omega)q_{\mathrm{sc},u}\), while
 \begin{equation}
-    q_v^+
-    =q_v+\chi\omega\frac{q_u}{d_u}
+    q_{\mathrm{sc},v}^+
+    =q_{\mathrm{sc},v}+\chi\omega\frac{q_{\mathrm{sc},u}}{d_u}
     \qquad(v\sim u).
     \label{eq:sor-neighbor-update}
 \end{equation}
 Using \(\norm{AD^{-1}e_u}_1=1\),
 \begin{align*}
-  \norm{q^+}_1
+  \norm{q_{\mathrm{sc}}^+}_1
   &\leq
-  \norm{q}_1-\abs{q_u}
-  +\abs{1-\omega}\abs{q_u}
-  +\chi\omega\abs{q_u}\\
-  &=\norm{q}_1-
-    \bigl(1-\abs{1-\omega}-\chi\omega\bigr)\abs{q_u}.
+  \norm{q_{\mathrm{sc}}}_1-\abs{q_{\mathrm{sc},u}}
+  +\abs{1-\omega}\abs{q_{\mathrm{sc},u}}
+  +\chi\omega\abs{q_{\mathrm{sc},u}}\\
+  &=\norm{q_{\mathrm{sc}}}_1-
+    \bigl(1-\abs{1-\omega}-\chi\omega\bigr)\abs{q_{\mathrm{sc},u}}.
 \end{align*}
 Expanding the absolute value on the intervals \((0,1]\) and \([1,2)\)
 gives \cref{eq:delta-alpha}.  The coefficient is positive exactly when
@@ -77,28 +78,28 @@ gives \cref{eq:delta-alpha}.  The coefficient is positive exactly when
 \begin{remark}[Why the earlier derivation failed]
 The invalid step was to replace
 \(
-\abs{(1-\omega)q_u}
+\abs{(1-\omega)q_{\mathrm{sc},u}}
 \)
 by
 \(
-(1-\omega)\abs{q_u}
+(1-\omega)\abs{q_{\mathrm{sc},u}}
 \)
 for \(\omega>1\).  The correct value is
-\((\omega-1)\abs{q_u}\).  The formula valid on \(0<\omega\leq1\) therefore
+\((\omega-1)\abs{q_{\mathrm{sc},u}}\).  The formula valid on \(0<\omega\leq1\) therefore
 cannot be extended unchanged to optimal over-relaxation.
 \end{remark}
 
 \begin{proposition}[Sharpness of the safe range]
 \label{prop:sor-l1-sharp}
 For every \(\omega>1+\alpha\), there exists a signed warm-start residual for
-which one SOR coordinate update increases \(\norm{q}_1\).
+which one SOR coordinate update increases \(\norm{q_{\mathrm{sc}}}_1\).
 \end{proposition}
 
 \begin{proof}
-Take \(q\) supported only on the processed vertex \(u\).  Then all triangle
+Take \(q_{\mathrm{sc}}\) supported only on the processed vertex \(u\).  Then all triangle
 inequalities in \cref{prop:signed-sor-l1} are equalities, and
 \begin{equation}
-    \frac{\norm{q^+}_1}{\norm{q}_1}
+    \frac{\norm{q_{\mathrm{sc}}^+}_1}{\norm{q_{\mathrm{sc}}}_1}
     =\abs{1-\omega}+\chi\omega.
     \label{eq:sor-supported-ratio}
 \end{equation}
@@ -125,15 +126,16 @@ mass decrease.
 \subsection{An exact local safeguard}
 
 The failure of a universal \(\ell_1\) theorem does not prevent using
-\(\omega_\star\) opportunistically.  Because only \(u\) and \(N(u)\) change,
+\(\omega_\star\) opportunistically.  Because only \(u\) and
+\(\mathcal N(u)\) change,
 the exact local mass decrease of a candidate parameter \(\omega\) is
 \begin{align}
     \Delta_u(\omega)
     &:={}
-    \abs{q_u}+\sum_{v\sim u}\abs{q_v}
-    -\abs{(1-\omega)q_u}
+    \abs{q_{\mathrm{sc},u}}+\sum_{v\sim u}\abs{q_{\mathrm{sc},v}}
+    -\abs{(1-\omega)q_{\mathrm{sc},u}}
     -\sum_{v\sim u}
-       \abs{q_v+\chi\omega q_u/d_u}.
+       \abs{q_{\mathrm{sc},v}+\chi\omega q_{\mathrm{sc},u}/d_u}.
     \label{eq:exact-local-mass-decrease}
 \end{align}
 Computing \(\Delta_u(\omega)\) costs \(\mathcal O(d_u)\), the same order as
@@ -149,7 +151,7 @@ Fix \(\sigma\in(0,1]\) and let
 At an active coordinate \(u\), accept the \(\omega_\star\) candidate only if
 \begin{equation}
     \Delta_u(\omega_\star)
-    \geq\sigma\delta_{\rm GS}\abs{q_u}.
+    \geq\sigma\delta_{\rm GS}\abs{q_{\mathrm{sc},u}}.
     \label{eq:safeguard-test}
 \end{equation}
 Otherwise execute the \(\omega=1\) update.
@@ -160,14 +162,14 @@ Otherwise execute the \(\omega=1\) update.
 Every committed update of safeguarded optimal LocSOR satisfies
 \begin{equation}
     M(x^+)\leq M(x)
-      -\sigma\frac{2\alpha}{1+\alpha}\abs{q_u}.
+      -\sigma\frac{2\alpha}{1+\alpha}\abs{q_{\mathrm{sc},u}}.
     \label{eq:safeguard-decrease}
 \end{equation}
 Consequently, from any handoff point \(x_0\),
 \begin{equation}
     \Work_{\rm tail}^{\rm safe}
     \leq
-    \frac{1+\alpha}{2\sigma\alpha^2\eps}M(x_0).
+    \frac{1+\alpha}{2\sigma\alpha^2\epsppr}M(x_0).
     \label{eq:safeguard-tail-work}
 \end{equation}
 Under the mass handoff
@@ -175,7 +177,7 @@ Under the mass handoff
 \begin{equation}
     \Work_{\rm tail}^{\rm safe}
     \leq
-    \frac{\theta(1+\alpha)}{2\sigma\sqrt\alpha\eps}.
+    \frac{\theta(1+\alpha)}{2\sigma\sqrt\alpha\epsppr}.
     \label{eq:safeguard-accelerated}
 \end{equation}
 \end{theorem}
@@ -185,8 +187,8 @@ If the \(\omega_\star\) candidate is accepted, the claim is exactly the test
 \cref{eq:safeguard-test}.  If it is rejected, the fallback \(\omega=1\)
 satisfies the stronger decrease with \(\sigma=1\) by
 \cref{lem:gs-mass-decrease}.  An active coordinate obeys
-\(\abs{q_u}\geq\alpha\eps d_u\).  Sum the resulting decrease over all
-committed updates.
+\(\abs{q_{\mathrm{sc},u}}\geq\alpha\epsppr d_u\).  Sum the resulting
+decrease over all committed updates.
 \end{proof}
 
 \begin{remark}[Recommended theoretical hierarchy]

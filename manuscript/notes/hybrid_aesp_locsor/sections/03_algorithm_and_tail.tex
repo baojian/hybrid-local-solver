@@ -10,7 +10,7 @@ or experimental variants.
 Define the target handoff gap
 \begin{equation}
   \Delta_{\rm sw}
-  :=\frac{\alpha^{3/2}\eps}{1+\alpha}.
+  :=\frac{\alpha^{3/2}\epsppr}{1+\alpha}.
   \label{eq:Delta-switch}
 \end{equation}
 Run AESP until the deterministic upper bound in
@@ -19,7 +19,7 @@ Run AESP until the deterministic upper bound in
   U_J\leq\Delta_{\rm sw}.
   \label{eq:objective-switch}
 \end{equation}
-This rule is theoretical but computable: it does not require $f^\star$.
+This rule is theoretical but computable: it does not require $f(x^0)$.
 After the switch, discard all Catalyst momentum and run local Gauss--Seidel
 SOR at the final coordinate threshold \cref{eq:final-active}.
 
@@ -27,15 +27,16 @@ SOR at the final coordinate threshold \cref{eq:final-active}.
 \caption{Proof-oriented AESP--LOCSOR hybrid}
 \label{alg:hybrid}
 \begin{algorithmic}[1]
-\REQUIRE $G,s,\alpha\in(0,1/2),\eps>0$; AESP inner method
+\REQUIRE $G,s,\alpha\in(0,1/2),\epsppr>0$; AESP inner method
          $\mathcal M\in\{\LOCGD,\LOCAPPR\}$
-\STATE Set $x^{(0)}=y^{(0)}=0$, $\eta=1-2\alpha$.
+\STATE Set $x^{(0)}=y^{(0)}=0$, $\kappa_{\rm A}=1-2\alpha$.
 \STATE Define $U_t$ by \cref{eq:aesp-outer-bound} and
        $\Delta_{\rm sw}$ by \cref{eq:Delta-switch}.
 \FOR{$t=1,2,\ldots$}
   \STATE Use $\mathcal M$ to return $x^{(t)}$ satisfying the AESP
          inner objective requirement for stage $t$.
-  \IF{$\norm{D^{-1/2}g(x^{(t)})}_\infty\leq\alpha\eps$}
+  \IF{$\norm{D^{-1/2}\nabla f(x^{(t)})}_\infty
+        \leq\alpha\epsppr$}
     \RETURN $\widehat\pi=D^{1/2}x^{(t)}$.
   \ENDIF
   \IF{$U_t\leq\Delta_{\rm sw}$}
@@ -45,9 +46,10 @@ SOR at the final coordinate threshold \cref{eq:final-active}.
   \STATE $y^{(t)}\leftarrow x^{(t)}+
     \beta_{\rm A}(x^{(t)}-x^{(t-1)})$.
 \ENDFOR
-\WHILE{there exists $u$ with $\abs{g_u(x)}\geq\alpha\eps\sqrt{d_u}$}
+\WHILE{there exists $u$ with
+       $\abs{\nabla_u f(x)}\geq\alpha\epsppr\sqrt{d_u}$}
   \STATE Choose any active coordinate $u$.
-  \STATE $x\leftarrow x-\dfrac{2g_u(x)}{1+\alpha}e_u$.
+  \STATE $x\leftarrow x-\dfrac{2\nabla_u f(x)}{1+\alpha}e_u$.
 \ENDWHILE
 \RETURN $\widehat\pi=D^{1/2}x$.
 \end{algorithmic}
@@ -56,22 +58,22 @@ SOR at the final coordinate threshold \cref{eq:final-active}.
 \begin{remark}[A coarser AESP target]
 The switch target is much weaker than solving the final PageRank problem by
 AESP alone.  If AESP is parameterized through a coordinate-error target
-$\eps_{\rm burn}$ satisfying
-$\alpha\eps_{\rm burn}^2/2=\Delta_{\rm sw}$, then
+$\epsburn$ satisfying
+$\alpha\epsburn^2/2=\Delta_{\rm sw}$, then
 \begin{equation}
-  \eps_{\rm burn}
-  =\sqrt{\frac{2\sqrt\alpha\eps}{1+\alpha}}.
+  \epsburn
+  =\sqrt{\frac{2\sqrt\alpha\epsppr}{1+\alpha}}.
   \label{eq:burn-eps}
 \end{equation}
-For the high-accuracy regime $\eps\ll\sqrt\alpha$, this is substantially
-larger than the final $\eps$.
+For the high-accuracy regime $\epsppr\ll\sqrt\alpha$, this is substantially
+larger than the final $\epsppr$.
 \end{remark}
 
 \subsection{Alternative residual-mass handoff}
 
 Define the original weighted gradient mass
 \begin{equation}
-  M(x):=\norm{D^{1/2}g(x)}_1=\norm{q(x)}_1.
+  M(x):=\norm{D^{1/2}\nabla f(x)}_1=\norm{q_{\rm sc}(x)}_1.
   \label{eq:mass-def}
 \end{equation}
 A second switch rule is
@@ -93,8 +95,8 @@ viewed as an online diagnostic and an alternative theorem hypothesis.
 Since $G$ is simple, $Q_{uu}=(1+\alpha)/2$.  A SOR coordinate step with
 relaxation $\omega$ is
 \begin{equation}
-  x^+=x-\frac{\omega g_u(x)}{Q_{uu}}e_u
-      =x-\frac{2\omega}{1+\alpha}g_u(x)e_u.
+  x^+=x-\frac{\omega\nabla_u f(x)}{Q_{uu}}e_u
+      =x-\frac{2\omega}{1+\alpha}\nabla_u f(x)e_u.
   \label{eq:sor-coordinate}
 \end{equation}
 
@@ -103,24 +105,24 @@ relaxation $\omega$ is
 For every $x$, coordinate $u$, and $\omega\in\R$,
 \begin{equation}
   f(x)-f(x^+)
-  =\frac{\omega(2-\omega)}{1+\alpha}g_u(x)^2.
+  =\frac{\omega(2-\omega)}{1+\alpha}\nabla_u f(x)^2.
   \label{eq:sor-exact-decrease}
 \end{equation}
 In particular, the objective decreases strictly whenever
-$g_u(x)\neq0$ and $0<\omega<2$.
+$\nabla_u f(x)\neq0$ and $0<\omega<2$.
 \end{lemma}
 
 \begin{proof}
-For $t=-\omega g_u(x)/Q_{uu}$, the quadratic expansion gives
+For $t=-\omega\nabla_u f(x)/Q_{uu}$, the quadratic expansion gives
 \[
   f(x+te_u)
-  =f(x)+t g_u(x)+\frac12Q_{uu}t^2.
+  =f(x)+t\nabla_u f(x)+\frac12Q_{uu}t^2.
 \]
 Substituting $t$ yields
 \[
   f(x)-f(x^+)
-  =\frac{\omega(2-\omega)}{2Q_{uu}}g_u(x)^2
-  =\frac{\omega(2-\omega)}{1+\alpha}g_u(x)^2.
+  =\frac{\omega(2-\omega)}{2Q_{uu}}\nabla_u f(x)^2
+  =\frac{\omega(2-\omega)}{1+\alpha}\nabla_u f(x)^2.
 \]
 \end{proof}
 
@@ -131,26 +133,26 @@ $\omega\in(0,2)$.  Repeatedly apply \cref{eq:sor-coordinate} to any coordinate
 satisfying \cref{eq:final-active}.  Then the process terminates after finite
 degree-weighted work, and its output $\widehat\pi=D^{1/2}x$ satisfies
 \[
-  \norm{D^{-1}(\widehat\pi-\pi)}_\infty\leq\eps.
+  \norm{D^{-1}(\widehat\pi-\pi)}_\infty\leq\epsppr.
 \]
 Moreover,
 \begin{equation}
   W_{\rm tail}(x_0;\omega)
   \leq
-  \frac{(1+\alpha)(f(x_0)-f^\star)}
-       {\omega(2-\omega)\alpha^2\eps^2}.
+  \frac{(1+\alpha)(f(x_0)-f(x^0))}
+       {\omega(2-\omega)\alpha^2\epsppr^2}.
   \label{eq:generic-tail-work}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
 An active coordinate satisfies
-$g_u(x)^2\geq\alpha^2\eps^2d_u$.  By
+$\nabla_u f(x)^2\geq\alpha^2\epsppr^2d_u$.  By
 \cref{lem:sor-decrease}, its update decreases $f$ by at least
 \[
-  \frac{\omega(2-\omega)\alpha^2\eps^2}{1+\alpha}d_u.
+  \frac{\omega(2-\omega)\alpha^2\epsppr^2}{1+\alpha}d_u.
 \]
-Summing over all updates and using $f(x)\geq f^\star$ gives
+Summing over all updates and using $f(x)\geq f(x^0)$ gives
 \cref{eq:generic-tail-work}.  Hence the total charged degree is finite, so no
 active coordinate can be processed indefinitely.  At termination the test in
 \cref{eq:certificate-stop} holds, and \cref{lem:certificate} gives the stated
@@ -174,13 +176,13 @@ the degree-weighted work of the AESP burn-in and the SOR tail.
 \label{thm:objective-tail}
 Run local SOR with $\omega=1$ from a handoff point $x_J$.  If
 \begin{equation}
-  f(x_J)-f^\star
-  \leq\frac{\alpha^{3/2}\eps}{1+\alpha},
+  f(x_J)-f(x^0)
+  \leq\frac{\alpha^{3/2}\epsppr}{1+\alpha},
   \label{eq:objective-tail-assumption}
 \end{equation}
 then
 \begin{equation}
-  W_{\rm tail}\leq\frac{1}{\sqrt\alpha\eps}.
+  W_{\rm tail}\leq\frac{1}{\sqrt\alpha\epsppr}.
   \label{eq:objective-tail-result}
 \end{equation}
 \end{theorem}
@@ -191,8 +193,8 @@ Set $\omega=1$ in \cref{eq:generic-tail-work} and substitute
 \[
   W_{\rm tail}
   \leq
-  \frac{(1+\alpha)(f(x_J)-f^\star)}{\alpha^2\eps^2}
-  \leq\frac{1}{\sqrt\alpha\eps}.
+  \frac{(1+\alpha)(f(x_J)-f(x^0))}{\alpha^2\epsppr^2}
+  \leq\frac{1}{\sqrt\alpha\epsppr}.
 \]
 \end{proof}
 
@@ -200,7 +202,7 @@ Set $\omega=1$ in \cref{eq:generic-tail-work} and substitute
 The tail is not spectrally accelerated in this theorem.  The factor
 $1/\sqrt\alpha$ is supplied by the quality of the AESP handoff.  Safe local
 coordinate descent merely converts the remaining objective budget into the
-final $1/\eps$ accuracy dependence.
+final $1/\epsppr$ accuracy dependence.
 \end{remark}
 
 \subsection{Signed weighted-$\ell_1$ tail theorem}
@@ -208,30 +210,33 @@ final $1/\eps$ accuracy dependence.
 The objective-gap argument gives total tail work but does not itself bound
 each active-set volume.  The weighted gradient mass does.
 
-For $q=D^{1/2}g$ and a SOR step at $u$, define
-$\chi=(1-\alpha)/(1+\alpha)$.  Multiplying the gradient recurrence by
-$D^{1/2}$ gives
+For $q_{\rm sc}=D^{1/2}\nabla f(x)$, with $\chi$ as in
+\cref{eq:work1-normalization}, a SOR step at $u$ gives the following recurrence
+after multiplication by $D^{1/2}$:
 \begin{equation}
-  q^+=q-\omega q_u e_u+\chi\omega q_uAD^{-1}e_u.
+  q_{\rm sc}^+=q_{\rm sc}-\omega q_{{\rm sc},u}e_u
+  +\chi\omega q_{{\rm sc},u}AD^{-1}e_u.
   \label{eq:q-sor-update}
 \end{equation}
 For $\omega=1$, this becomes
 \begin{equation}
-  q_u^+=0,
+  q_{{\rm sc},u}^+=0,
   \qquad
-  q_v^+=q_v+\chi\frac{q_u}{d_u}
-  \quad(v\sim u).
+  q_{{\rm sc},j}^+=q_{{\rm sc},j}
+  +\chi\frac{q_{{\rm sc},u}}{d_u}
+  \quad(j\sim u).
   \label{eq:q-gs-update}
 \end{equation}
 
 \begin{lemma}[Signed weighted-$\ell_1$ decrease at $\omega=1$]
 \label{lem:signed-l1}
-For every signed vector $q$ and every coordinate update
+For every signed vector $q_{\rm sc}$ and every coordinate update
 \cref{eq:q-gs-update},
 \begin{equation}
-  \norm{q^+}_1
+  \norm{q_{\rm sc}^+}_1
   \leq
-  \norm{q}_1-\frac{2\alpha}{1+\alpha}\abs{q_u}.
+  \norm{q_{\rm sc}}_1
+  -\frac{2\alpha}{1+\alpha}\abs{q_{{\rm sc},u}}.
   \label{eq:signed-l1-drop}
 \end{equation}
 \end{lemma}
@@ -239,11 +244,11 @@ For every signed vector $q$ and every coordinate update
 \begin{proof}
 The column $AD^{-1}e_u$ is nonnegative and has $\ell_1$ norm one.  Therefore
 \[
-  \norm{q^+}_1
+  \norm{q_{\rm sc}^+}_1
   \leq
-  \norm{q}_1-\abs{q_u}
-  +\chi\abs{q_u}
-  =\norm{q}_1-(1-\chi)\abs{q_u},
+  \norm{q_{\rm sc}}_1-\abs{q_{{\rm sc},u}}
+  +\chi\abs{q_{{\rm sc},u}}
+  =\norm{q_{\rm sc}}_1-(1-\chi)\abs{q_{{\rm sc},u}},
 \]
 and $1-\chi=2\alpha/(1+\alpha)$.
 \end{proof}
@@ -254,37 +259,38 @@ Let $x_0$ be any handoff point and run local SOR with $\omega=1$.  Then
 \begin{equation}
   W_{\rm tail}
   \leq
-  \frac{1+\alpha}{2\alpha^2\eps}M(x_0).
+  \frac{1+\alpha}{2\alpha^2\epsppr}M(x_0).
   \label{eq:mass-tail-general}
 \end{equation}
 If $M(x_0)\leq\theta\alpha^{3/2}$, then
 \begin{equation}
   W_{\rm tail}
   \leq
-  \frac{\theta(1+\alpha)}{2\sqrt\alpha\eps},
+  \frac{\theta(1+\alpha)}{2\sqrt\alpha\epsppr},
   \label{eq:mass-tail-accelerated}
 \end{equation}
 and every active set $S_k$ in the tail satisfies
 \begin{equation}
   \vol(S_k)
-  \leq\frac{\theta\sqrt\alpha}{\eps}.
+  \leq\frac{\theta\sqrt\alpha}{\epsppr}.
   \label{eq:mass-tail-volume}
 \end{equation}
 \end{theorem}
 
 \begin{proof}
-An active update has $\abs{q_u}\geq\alpha\eps d_u$.  Combining this with
+An active update has
+$\abs{q_{{\rm sc},u}}\geq\alpha\epsppr d_u$.  Combining this with
 \cref{eq:signed-l1-drop} gives
 \[
   M(x)-M(x^+)
-  \geq\frac{2\alpha^2\eps}{1+\alpha}d_u.
+  \geq\frac{2\alpha^2\epsppr}{1+\alpha}d_u.
 \]
 Summing and using nonnegativity of $M$ yields
 \cref{eq:mass-tail-general}; the handoff assumption gives
 \cref{eq:mass-tail-accelerated}.  Moreover, at any tail iterate,
 \[
-  \alpha\eps\vol(S_k)
-  \leq\sum_{u\in S_k}\abs{q_u}
+  \alpha\epsppr\vol(S_k)
+  \leq\sum_{u\in S_k}\abs{q_{{\rm sc},u}}
   \leq M(x_k)
   \leq M(x_0),
 \]

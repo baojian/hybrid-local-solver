@@ -30,20 +30,29 @@ with the archived writing style.
 These typography rules do not resolve vector orientation, transition-matrix
 orientation, or any of the scientific choices listed below.
 
-### Source-aligned RPPR notation
+### Source-aligned manuscript and research-note notation
 
-The active manuscript's reference RPPR formulation deliberately follows the
-plain italic notation of Fountoulakis and Martínez-Rubio (2026):
+The active manuscript and every standalone research note deliberately share a
+single reference RPPR formulation following the plain italic notation of
+Fountoulakis and Martínez-Rubio (2026):
 \(x,s,A,D,Q,I\), with \(x\) and \(s\) interpreted as column vectors. This is a
 scoped exception to the bold vector/matrix typography above, chosen so that
 the imported objective, KKT conditions, FISTA updates, and locality analysis
 can be compared symbol-for-symbol with arXiv `2602.21138v2`.
 
-The complete source-to-manuscript notation inventory is in
-[`manuscript/sections/problem_formulation.tex`](../manuscript/sections/problem_formulation.tex).
-Notation copied there is a source-grounded reference convention; it does not
-become an implementation or stopping-rule convention until the remaining
-decisions and tests below are completed.
+The canonical reusable definition is
+[`manuscript/tex/shared/source_aligned_problem.tex`](../manuscript/tex/shared/source_aligned_problem.tex),
+and the reserved-symbol inventory is
+[`manuscript/tex/shared/NOTATION.md`](../manuscript/tex/shared/NOTATION.md).
+The active paper and each note input that definition rather than restating it.
+Reusable LaTeX commands are declared only under `manuscript/tex/shared/`;
+structural tests reject local declarations, missing imports, and duplicate core
+definitions. Proof-local indexed quantities remain permitted only when their
+scope is stated and they do not reuse a reserved symbol.
+
+This shared layer is a source-grounded manuscript reference convention. It
+does not become an implementation or stopping-rule convention until the
+remaining decisions and tests below are completed.
 
 ### APPR baseline notation
 
@@ -117,15 +126,20 @@ residual convention.
   measure and normalization are specified.
 - The SOR relaxation parameter is `omega`, with `1 < omega < 2`.
 
-Three tolerances now appear in the manuscript and must stay distinct. None of
-them is yet the repository's canonical stopping rule, and no translation
-between them is asserted:
+The following accuracy namespaces appear in the manuscript workspace and must
+stay distinct. None is yet the repository's canonical stopping rule, and no
+translation between them is asserted:
 
 | Symbol | Macro | Meaning |
 | --- | --- | --- |
 | `eps_appr` | `\epsappr` | Degree-normalized APPR residual threshold: vertex `u` is active while `r(u) >= eps_appr * d_u`. |
-| `eps_obj` | written out | Objective-gap target `F_rho(x_N) - F_rho(x*) <= eps_obj`. |
-| `eps_pg` | written out | Proximal fixed-point residual tolerance of the source experiments. |
+| `eps_obj` | `\epsobj` | Objective-gap target `F_rho(x_N) - F_rho(x*) <= eps_obj`. |
+| `eps_pg` | `\epspg` | Proximal fixed-point residual tolerance of the source experiments. |
+| `eps_ppr` | `\epsppr` | Document-scoped degree-normalized PPR target; its exact formula must be stated. |
+| `eps_in` | `\epsin` | Document-scoped inner-solver target; its exact certificate must be stated. |
+| `eps_kkt` | `\epskkt` | Document-scoped KKT diagnostic target; no solution-error implication is assumed. |
+| `eps_burn` | `\epsburn` | Document-scoped burn-in target; it is not a final PPR tolerance. |
+| `eps_sol` | `\epssol` | Document-scoped solution diagnostic; its norm and scaling must be stated. |
 
 The only accuracy statement attached to `eps_appr` is the push invariant
 consequence `||pi - p_T||_1 = ||r_T||_1 < eps_appr * vol(V)`.

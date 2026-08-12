@@ -54,3 +54,30 @@ jobs:
           working_directory: manuscript
           texlive_version: "2022"
           args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
+
+  research-notes:
+    name: Research note (${{ matrix.note }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        note:
+          - aesp_cd_l1_rppr
+          - aesp_locgd_star_lower_bound
+          - hybrid_aesp_locsor
+          - hybrid_local_solver_complete_note
+          - hybrid_local_solver_synthesis
+          - volume_gated_acceleration
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Compile standalone research note
+        uses: xu-cheng/latex-action@6549dc21effb2730855a1281407ecfcececc6c1b # 4.1.0
+        with:
+          root_file: main.tex
+          working_directory: manuscript/notes/${{ matrix.note }}
+          texlive_version: "2022"
+          args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error

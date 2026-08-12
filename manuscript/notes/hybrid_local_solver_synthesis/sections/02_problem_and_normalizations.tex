@@ -1,69 +1,37 @@
 \section{Problem setting and normalization dictionary}
 \label{sec:problem}
 
-\subsection{Graph and PageRank objective}
+\input{../../tex/shared/source_aligned_problem}
 
-Let \(G=(V,E)\) be a finite, connected, undirected, unweighted graph with no
-isolated vertices.  Let \(A\) be its adjacency matrix,
-\(D=\diag(d_1,\ldots,d_n)\) its degree matrix, and
-\begin{equation}
-    W:=D^{-1/2}AD^{-1/2}
-    \label{eq:normalized-adjacency}
-\end{equation}
-its symmetric normalized adjacency matrix.  We fix a source vertex
-\(s\in V\), write \(e_s\) for its coordinate vector, and take
-\(\alpha\in(0,1/2)\) unless stated otherwise.
+\paragraph{Note specialization.}
+The unregularized hybrid analysis additionally assumes that \(G\) is
+connected, \(s=e_v\), and \(0<\alpha<1/2\), unless a statement says
+otherwise. It uses the shared \(f\), \(x^0\), and
+\(\pi=D^{1/2}x^0\).
 
-The normalization used by AESP is
-\begin{equation}
-    Q
-    :=\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}W,
-    \qquad
-    f(x)
-    :=\frac12 x^\mathsf{T}Qx
-       -\alpha x^\mathsf{T}D^{-1/2}e_s.
-    \label{eq:aesp-objective}
-\end{equation}
-The spectrum satisfies
-\begin{equation}
-    \alpha I\preceq Q\preceq I,
-    \label{eq:q-spectrum}
-\end{equation}
-so \(f\) is \(\alpha\)-strongly convex and \(1\)-smooth.  Its unique minimizer
-is
-\begin{equation}
-    x^\star=\alpha Q^{-1}D^{-1/2}e_s,
-    \qquad
-    \pi=D^{1/2}x^\star.
-    \label{eq:ppr-solution}
-\end{equation}
-The gradient is
-\begin{equation}
-    g(x):=\grad f(x)=Qx-\alpha D^{-1/2}e_s.
-    \label{eq:original-gradient}
-\end{equation}
+\subsection{AESP accuracy certificate}
 
 The source result of \citet{huang2025accelerated} gives the coordinatewise
 certificate
 \begin{equation}
-    \norm{D^{-1/2}g(x)}_\infty<\alpha\eps
+    \norm{D^{-1/2}\nabla f(x)}_\infty<\alpha\epsppr
     \quad\Longrightarrow\quad
-    \norm{D^{-1}(D^{1/2}x-\pi)}_\infty<\eps.
+    \norm{D^{-1}(D^{1/2}x-\pi)}_\infty<\epsppr.
     \label{eq:ppr-certificate}
 \end{equation}
-Thus a vertex is active at final tolerance \(\eps\) when
+Thus a vertex is active at final tolerance \(\epsppr\) when
 \begin{equation}
-    \abs{g_u(x)}\geq \alpha\eps\sqrt{d_u}.
+    \abs{\nabla_u f(x)}\geq \alpha\epsppr\sqrt{d_u}.
     \label{eq:final-active-unscaled}
 \end{equation}
 If the implementation stores the scaled gradient
 \begin{equation}
-    q(x):=D^{1/2}g(x),
+    q_{\mathrm{sc}}(x):=D^{1/2}\nabla f(x),
     \label{eq:q-scaled-gradient}
 \end{equation}
 then the equivalent activation rule is
 \begin{equation}
-    \abs{q_u(x)}\geq\alpha\eps d_u.
+    \abs{q_{\mathrm{sc},u}(x)}\geq\alpha\epsppr d_u.
     \label{eq:final-active-scaled}
 \end{equation}
 This distinction is purely notational but must be preserved in code and in the
@@ -75,18 +43,18 @@ The NeurIPS 2024 locally evolving set paper uses the symmetric system
 \begin{equation}
     \widehat Qx=\widehat b,
     \qquad
-    \widehat Q:=I-\chi W,
+    \widehat Q:=I-\chi D^{-1/2}AD^{-1/2},
     \qquad
     \chi:=\frac{1-\alpha}{1+\alpha},
     \qquad
-    \widehat b:=\frac{2\alpha}{1+\alpha}D^{-1/2}e_s.
+    \widehat b:=\frac{2\alpha}{1+\alpha}D^{-1/2}s.
     \label{eq:work-one-system}
 \end{equation}
 The two normalizations are related by
 \begin{equation}
     Q=\frac{1+\alpha}{2}\widehat Q,
     \qquad
-    \alpha D^{-1/2}e_s
+    \alpha D^{-1/2}s
       =\frac{1+\alpha}{2}\widehat b.
     \label{eq:normalization-dictionary}
 \end{equation}
@@ -97,20 +65,20 @@ For the Work-I residual
 \end{equation}
 we therefore have the exact identity
 \begin{equation}
-    g(x)=-\frac{1+\alpha}{2}\widehat r(x).
+    \nabla f(x)=-\frac{1+\alpha}{2}\widehat r(x).
     \label{eq:gradient-residual-dictionary}
 \end{equation}
 Consequently, the AESP certificate in \cref{eq:ppr-certificate} is equivalent
 to
 \begin{equation}
     \norm{D^{-1/2}\widehat r(x)}_\infty
-    <\frac{2\alpha}{1+\alpha}\eps,
+    <\frac{2\alpha}{1+\alpha}\epsppr,
     \label{eq:work-one-certificate}
 \end{equation}
 which is the stopping scale used by the locally evolving set solvers.
 
 \begin{remark}[Why the dictionary matters]
-The hybrid switches between an AESP phase written in terms of \(g(x)\) and a
+The hybrid switches between an AESP phase written in terms of \(\nabla f(x)\) and a
 LocSOR phase often implemented in terms of \(\widehat r(x)\).  The state
 handoff must use \cref{eq:gradient-residual-dictionary}; reusing an inner
 proximal gradient, or omitting the scalar factor, changes the active set and
@@ -127,10 +95,7 @@ A local update at vertex \(u\) scans its adjacency list and is charged
     \label{eq:degree-work}
 \end{equation}
 For a simultaneous active set \(S_k\), one iteration costs
-\begin{equation}
-    \vol(S_k):=\sum_{u\in S_k}d_u.
-    \label{eq:set-volume}
-\end{equation}
+\(\vol(S_k)\), using the shared definition in \cref{eq:shared-volume}.
 The nested AESP work at outer stage \(t\) is
 \begin{equation}
     \Work_t^{\rm in}
@@ -147,11 +112,11 @@ The discussion used the symbol \(C_t\) for more than one object.  We henceforth
 separate them:
 \begin{align}
     F_t
-    &:=f(x^{(t)})-f(x^\star),
+    &:=f(x^{(t)})-f(x^0),
     &&\text{original objective gap},
     \label{eq:objective-gap-def}\\
     M_t
-    &:=\norm{D^{1/2}g(x^{(t)})}_1,
+    &:=\norm{D^{1/2}\nabla f(x^{(t)})}_1,
     &&\text{original weighted residual mass},
     \label{eq:mass-def}\\
     \Lambda_t

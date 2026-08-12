@@ -22,11 +22,17 @@ else
 OPEN := xdg-open
 endif
 
-.PHONY: all pdf watch view clean distclean
+.PHONY: all pdf notes notes-clean watch view clean distclean
 
 all: $(MAIN).pdf
 
 pdf: all
+
+notes:
+	$(MAKE) -C notes
+
+notes-clean:
+	$(MAKE) -C notes distclean
 
 $(MAIN).pdf: $(SOURCES)
 	$(LATEXMK) $(LATEXMKFLAGS) $(MAIN).tex

@@ -7,11 +7,11 @@ consistent.
 \subsection{AESP state and the handoff}
 
 At stage $t$, the inner queue is driven by $\nabla h_t$, but the final PageRank
-certificate and both switch diagnostics use the original gradient $g=\nabla
-f$. Since
+certificate and both switch diagnostics use the original gradient $\nabla f$.
+Since
 \begin{equation}
   \nabla h_t(x)
-  =g(x)+\eta(x-y^{(t-1)}),
+  =\nabla f(x)+\kappa_{\rm A}(x-y^{(t-1)}),
   \label{eq:inner-original-gradient}
 \end{equation}
 one may recover the original gradient by subtracting the proximal term. At the
@@ -19,16 +19,17 @@ handoff:
 \begin{enumerate}[label=(\roman*),leftmargin=2em]
   \item retain the selected checkpoint $x_J$;
   \item discard $y^{(J)}$, $x^{(J)}-x^{(J-1)}$, and all inner momentum/state;
-  \item initialize $g_J=Qx_J-b$ or $q_J=D^{1/2}g_J$ exactly;
+  \item initialize $\nabla f(x_J)=Qx_J-b$ and
+        $q_{\rm sc}(x_J)=D^{1/2}\nabla f(x_J)$ exactly;
   \item enqueue precisely the coordinates satisfying
-        $\abs{q_{J,u}}\geq\alpha\eps d_u$.
+        $\abs{q_{{\rm sc},u}(x_J)}\geq\alpha\epsppr d_u$.
 \end{enumerate}
 
 Because $Q$ is graph local,
 \begin{equation}
-  \supp(g_J)
+  \supp(\nabla f(x_J))
   \subseteq
-  \supp(x_J)\cup N(\supp(x_J))\cup\{s\}.
+  \supp(x_J)\cup\mathcal N(\supp(x_J))\cup\{v\}.
   \label{eq:handoff-gradient-support}
 \end{equation}
 Thus a sparse AESP checkpoint permits local queue construction by scanning the
@@ -39,39 +40,40 @@ retains this qualification explicitly.
 
 The Work-I residual, if needed for a shared implementation, is
 \begin{equation}
-  \widehat r_J=-\frac{2}{1+\alpha}g_J.
+  \widehat r_J=-\frac{2}{1+\alpha}\nabla f(x_J).
   \label{eq:handoff-residual-conversion}
 \end{equation}
 
 \subsection{Queue update with shifted gradient storage}
 
-If the tail stores $q=D^{1/2}g$, a safe $\omega=1$ push at active $u$ uses
-$R=q_u$ and performs
+If the tail stores $q_{\rm sc}=D^{1/2}\nabla f$, a safe $\omega=1$ push at
+active $u$ uses $\sigma_u=q_{{\rm sc},u}$ and performs
 \begin{align}
-  x_u&\leftarrow x_u-\frac{2R}{(1+\alpha)\sqrt{d_u}},
+  x_u&\leftarrow x_u-\frac{2\sigma_u}{(1+\alpha)\sqrt{d_u}},
   \label{eq:implementation-x}\\
-  q_u&\leftarrow0,
+  q_{{\rm sc},u}&\leftarrow0,
   \label{eq:implementation-qu}\\
-  q_v&\leftarrow q_v+\chi\frac{R}{d_u}
-  \quad(v\sim u).
+  q_{{\rm sc},j}&\leftarrow q_{{\rm sc},j}+\chi\frac{\sigma_u}{d_u}
+  \quad(j\sim u).
   \label{eq:implementation-qv}
 \end{align}
 After every changed coordinate, queue membership is tested against
-$\abs{q_v}\geq\alpha\eps d_v$. The pushed vertex is re-enqueued if its
+$\abs{q_{{\rm sc},j}}\geq\alpha\epsppr d_j$. The pushed vertex is re-enqueued
+if its
 retained residual is active; for $\omega=1$ it is zero immediately, but this
 rule is required by a shared SOR implementation with $\omega\neq1$.
 
 \subsection{Composite RPPR handoff}
 
 For the regularized hybrid, store the fixed-point residual
-$R_\rho(x)=x-\mathcal T_\rho(x)$ rather than using the smooth gradient alone.
+$R_{\mathrm{fp},\alpha,\rho}(x)=x-T_{\alpha,\rho}(x)$ rather than using the smooth gradient alone.
 The certified termination test is
 \begin{equation}
-  \norm{D^{-1/2}R_\rho(x)}_\infty
-  \leq\alpha\eps_{\rm sol},
+  \norm{D^{-1/2}R_{\mathrm{fp},\alpha,\rho}(x)}_\infty
+  \leq\alpha\epssol,
   \label{eq:implementation-rppr-stop}
 \end{equation}
-not merely $\norm{D^{-1/2}R_\rho(x)}_\infty\leq\eps_{\rm sol}$. At the
+which certifies weighted solution error at most $\epssol$. At the
 composite handoff, discard Catalyst momentum, optionally project to the
 nonnegative orthant, recompute the proximal residual exactly on the known
 support and boundary, and account for that scan. A sparse implementation can
@@ -82,7 +84,8 @@ universal bound on the cumulative boundary work is still open.
 
 Every run should record at least:
 \begin{enumerate}[label=(\alph*),leftmargin=2em]
-  \item graph, source, $\alpha$, final $\eps$, and code commit;
+  \item graph, seed distribution $s$ (and seed vertex $v$ when $s=e_v$),
+        $\alpha$, final $\epsppr$, and code commit;
   \item the exact PageRank normalization and stopping certificate;
   \item per-stage AESP work, $\overline{\vol}(S_t)$, $\gamma_t$, and
         $\Lambda_t$;
@@ -108,7 +111,7 @@ For each graph and source, plot
 $\vol(S_t^{(k)})$, $\overline{\vol}(S_t)$, $\gamma_t$, $\Lambda_t$, original
 gradient mass $M(x^{(t)})$, and error against cumulative work. This directly
 tests whether the visually favorable part of Figure~4 coincides with
-$\Lambda_t=\bigO(1/\eps)$.
+$\Lambda_t=\bigO(1/\epsppr)$.
 
 \paragraph{Switch rules.}
 Compare the deterministic objective rule \cref{eq:objective-switch}, the
@@ -149,13 +152,13 @@ active paper or code.
 \begin{enumerate}[leftmargin=2.2em]
   \item \textbf{Do not overload $C_t$.} Use
         \[
-          F_t:=f(x^{(t)})-f^\star,
+          F_t:=f(x^{(t)})-f(x^0),
           \qquad
-          M_t:=\norm{D^{1/2}g(x^{(t)})}_1,
+          M_t:=\norm{D^{1/2}\nabla f(x^{(t)})}_1,
           \qquad
           \Lambda_t:=\overline{\vol}(S_t)/\gamma_t.
         \]
-        A claim $M_t=\bigO(1/\eps)$ is not the locality bound needed for the
+        A claim $M_t=\bigO(1/\epsppr)$ is not the locality bound needed for the
         total theorem.
   \item \textbf{Separate the SOR ranges.} Global objective convergence holds
         for $0<\omega<2$. Universal signed weighted-$\ell_1$ decrease holds
@@ -163,11 +166,11 @@ active paper or code.
         that interval.
   \item \textbf{Use the original gradient for switching and final stopping.}
         The inner queue is driven by $\nabla h_t$; the PageRank certificate is
-        driven by $g=\nabla f$.
+        driven by $\nabla f$.
   \item \textbf{Reset momentum at the handoff.} Catalyst momentum cannot be
         reused as Chebyshev or SOR state.
-  \item \textbf{Keep $q_{\rm cat}$ and $\sqrt{q_{\rm cat}}$ distinct.}
-        Here $q_{\rm cat}=\alpha/(1-\alpha)$, while the accelerated scale is
+  \item \textbf{Keep $\vartheta_{\mathrm A}$ and $\sqrt{\vartheta_{\mathrm A}}$ distinct.}
+        Here $\vartheta_{\mathrm A}=\alpha/(1-\alpha)$, while the accelerated scale is
         $\sqrt{\alpha/(1-\alpha)}$.
   \item \textbf{Use a product/log argument for sequential LOCAPPR.} Per-update
         contractions multiply; replacing the product by an unqualified
@@ -175,6 +178,6 @@ active paper or code.
   \item \textbf{Do not import RPPR support results as unregularized AESP
         support theorems.} The objectives and activation mechanisms differ.
   \item \textbf{Distinguish smooth and proximal residuals.} For RPPR, the
-        fixed-point residual $R_\rho$ is the optimality object, and the
+        fixed-point residual $R_{\mathrm{fp},\alpha,\rho}$ is the optimality object, and the
         solution-error certificate contains the factor $1/\alpha$.
 \end{enumerate}

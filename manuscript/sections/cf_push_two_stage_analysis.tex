@@ -3,9 +3,8 @@
 % Suggested integration in manuscript/main.tex:
 %   \input{sections/cf_push_two_stage_analysis}
 %
-% This file is intentionally self-contained at the section level.  It uses
-% only packages and theorem environments already loaded by
-% manuscript/tex/shared/preamble.tex.  The notation is scoped to this section
+% This file imports the active manuscript's shared PageRank model through the
+% problem-formulation section.  The residual below remains section-scoped
 % because the repository-wide residual convention is still an open decision.
 
 \section{Two-Stage Forward Push and SOR: Guarantees and Limitations}
@@ -23,7 +22,7 @@ resulting algorithm.
 The conclusion is mixed.  The coarse phase, its handoff certificate, and
 finite convergence of the signed SOR phase admit clean proofs.  However, a
 long-spider instance rules out a graph-uniform
-\(\widetilde{\mathcal O}(1/(\sqrt{\alpha}\epsilon))\) work bound for the
+\(\widetilde{\mathcal O}(1/(\sqrt{\alpha}\epsppr))\) work bound for the
 current fixed-relaxation FIFO method.  This obstruction concerns the
 unregularized PageRank linear system, or equivalently the case \(\rho=0\) of
 the optimization formulation.  It does not by itself prove a corresponding
@@ -32,10 +31,10 @@ lower bound for an arbitrary algorithm for \(\ell_1\)-regularized PageRank.
 \subsection{Normalized PageRank system and local pushes}
 \label{subsec:cf-setup}
 
-Let \(G=(V,E)\) be a finite undirected graph without isolated vertices, with
-adjacency matrix \(A\), degree matrix \(D\), and degrees \(d_u\).  All vectors
-in this section are columns.  Fix a source \(s\in V\) and
-\(\alpha\in(0,1)\), and define
+Use the common graph, matrix, and column-vector conventions of
+\cref{subsec:shared-source-aligned-problem}.  Throughout this section,
+specialize to \(\rho=0\), a single seed \(s=e_v\) with source vertex
+\(v\in V\), and \(\alpha\in(0,1)\).  Define
 \begin{equation}
     c_\alpha:=\frac{1-\alpha}{1+\alpha},
     \qquad
@@ -43,11 +42,14 @@ in this section are columns.  Fix a source \(s\in V\) and
     =\frac{2\alpha}{1+\alpha}.
     \label{eq:cf-c-gamma}
 \end{equation}
-We study the degree-scaled system
+By \cref{eq:shared-pagerank-matrices,eq:shared-ppr-solution}, the shared
+unregularized solution \(x^0\) and PageRank vector
+\(\pi=D^{1/2}x^0\) obey the degree-scaled system
 \begin{equation}
-    H z^\star=\gamma_\alpha e_s,
+    H\pi=\gamma_\alpha e_v,
     \qquad
-    H:=I-c_\alpha A D^{-1}.
+    H:=\frac{2}{1+\alpha}D^{1/2}QD^{-1/2}
+      =I-c_\alpha A D^{-1}.
     \label{eq:cf-linear-system}
 \end{equation}
 The matrix \(A D^{-1}\) is column stochastic.  Consequently,
@@ -57,39 +59,39 @@ The matrix \(A D^{-1}\) is column stochastic.  Consequently,
     Hd=\gamma_\alpha d,
     \label{eq:cf-positive-inverse}
 \end{equation}
-where \(d:=D\mathbf 1\), and inequalities between vectors and matrices are
+where \(d:=D\one\), and inequalities between vectors and matrices are
 entrywise.
 
 For an iterate \(z\), define the residual and error by
 \begin{equation}
-    r:=\gamma_\alpha e_s-Hz,
+    r:=\gamma_\alpha e_v-Hz,
     \qquad
-    e:=z^\star-z,
+    e:=\pi-z,
     \qquad
     r=He.
     \label{eq:cf-residual-error}
 \end{equation}
 A push at vertex \(u\), with relaxation parameter \(\omega\in(0,2)\), uses
-\(R:=r_u\) and performs
+\(\sigma:=r_u\) and performs
 \begin{align}
-    z^+&=z+\omega R e_u,
+    z^+&=z+\omega \sigma e_u,
     \label{eq:cf-push-z}\\
-    r^+&=r-\omega R e_u
-          +\frac{c_\alpha\omega R}{d_u}
-             \sum_{v\sim u}e_v.
+    r^+&=r-\omega \sigma e_u
+          +\frac{c_\alpha\omega \sigma}{d_u}
+             \sum_{w\sim u}e_w.
     \label{eq:cf-push-r}
 \end{align}
 In particular,
 \begin{equation}
-    r_u^+=(1-\omega)R,
+    r_u^+=(1-\omega)\sigma,
     \qquad
-    r_v^+=r_v+\frac{c_\alpha\omega R}{d_u}
-    \quad(v\sim u).
+    r_w^+=r_w+\frac{c_\alpha\omega \sigma}{d_u}
+    \quad(w\sim u).
     \label{eq:cf-push-coordinates}
 \end{equation}
-At tolerance \(\eta>0\), a coordinate is active when
+At tolerance \(\tau_{\mathrm{act}}>0\), a coordinate is active when
 \begin{equation}
-    |r_u|\geq\gamma_\alpha\eta d_u.
+    |r_u|\geq\gamma_\alpha\tau_{\mathrm{act}} d_u.
     \label{eq:cf-active}
 \end{equation}
 We charge \(d_u\) units of work for a push at \(u\), since the push scans the
@@ -100,33 +102,24 @@ adjacency list of \(u\).  Thus an execution \((u_j)_j\) has work
 \end{equation}
 This is the same adjacency-list unit used in the preceding APPR analysis.
 
-The symmetric PageRank objective associated with
-\cref{eq:cf-linear-system} is
-\begin{equation}
-    f(x)
-    :=\frac12x^\mathsf{T}Qx
-       -\alpha x^\mathsf{T}D^{-1/2}e_s,
-    \qquad
-    Q:=\frac{1+\alpha}{2}I
-       -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
-    \label{eq:cf-objective}
-\end{equation}
-The change of variables \(x=D^{-1/2}z\) converts its optimality system into
+Under the change of variables \(x=D^{-1/2}z\), the optimality system of
+the shared smooth objective \(f\) in
+\cref{eq:shared-pagerank-objective} is exactly
 \cref{eq:cf-linear-system}.
 
 \subsection{The two-stage CF-Push method}
 \label{subsec:cf-algorithm}
 
-Let \(\epsilon>0\) be the final degree-normalized residual tolerance and let
-\(\tau>\epsilon\) be a coarse tolerance.  Starting from \(z^{(0)}=0\) and
-\(r^{(0)}=\gamma_\alpha e_s\), the method is as follows.
+Let \(\epsppr>0\) be the final degree-normalized residual tolerance and let
+\(\tau>\epsppr\) be a coarse tolerance.  Starting from \(z^{(0)}=0\)
+and \(r^{(0)}=\gamma_\alpha e_v\), the method is as follows.
 
 \begin{algorithm}[t]
 \caption{Two-stage coarse-forward-push/SOR (CF-Push)}
 \label{alg:cf-push}
 \begin{algorithmic}[1]
-\REQUIRE \(G,s,\alpha,\epsilon,\tau\)
-\STATE \(z\leftarrow0\), \(r\leftarrow\gamma_\alpha e_s\)
+\REQUIRE \(G,v,\alpha,\epsppr,\tau\)
+\STATE \(z\leftarrow0\), \(r\leftarrow\gamma_\alpha e_v\)
 \WHILE{some \(u\) satisfies \(r_u\geq\gamma_\alpha\tau d_u\)}
     \STATE apply \cref{eq:cf-push-z,eq:cf-push-r} with \(\omega=1\)
 \ENDWHILE
@@ -134,7 +127,7 @@ Let \(\epsilon>0\) be the final degree-normalized residual tolerance and let
     \omega_\star\leftarrow
     \frac{2(1+\alpha)}{(1+\sqrt\alpha)^2}\)
 \WHILE{some \(u\) satisfies
-       \(|r_u|\geq\gamma_\alpha\epsilon d_u\)}
+       \(|r_u|\geq\gamma_\alpha\epsppr d_u\)}
     \STATE apply \cref{eq:cf-push-z,eq:cf-push-r} with
            \(\omega=\omega_\star\)
 \ENDWHILE
@@ -165,9 +158,9 @@ Statement & Status \\
 \midrule
 Phase-I work \(W_{\rm I}\leq1/(\gamma_\alpha\tau)\)
     & Proved; its dependence on \(\alpha\) and \(\tau\) is star-tight. \\
-Switch \(\tau=\Theta(\epsilon/\sqrt\alpha)\)
+Switch \(\tau=\Theta(\epsppr/\sqrt\alpha)\)
     & The smallest power-law scale compatible with
-      \(\mathcal O(1/(\sqrt\alpha\epsilon))\) Phase-I work. \\
+      \(\mathcal O(1/(\sqrt\alpha\epsppr))\) Phase-I work. \\
 Handoff coordinate and objective certificates
     & Proved. \\
 Phase-II convergence and final residual certificate
@@ -175,7 +168,7 @@ Phase-II convergence and final residual certificate
       \(0<\omega<2\). \\
 Graph-uniform accelerated work for fixed \(\omega_\star\)
     & False: a long spider gives
-      \(\Omega(1/(\alpha\epsilon))\) work. \\
+      \(\Omega(1/(\alpha\epsppr))\) work. \\
 Lower bound for every two-stage algorithm
     & False without an oracle or update-model restriction; only a conditional
       diffusive-stage statement is justified. \\
@@ -198,29 +191,29 @@ For every graph and every active-coordinate ordering, Phase I preserves
 \end{equation}
 In particular, for
 \begin{equation}
-    \tau_{\rm th}:=\frac{\epsilon}{\sqrt\alpha},
+    \tau_{\rm th}:=\frac{\epsppr}{\sqrt\alpha},
     \label{eq:cf-theory-switch}
 \end{equation}
 we have
 \begin{equation}
     W_{\rm I}(\tau_{\rm th})
     \leq
-    \frac{1+\alpha}{2\sqrt\alpha\,\epsilon}
-    \leq\frac{1}{\sqrt\alpha\,\epsilon}.
+    \frac{1+\alpha}{2\sqrt\alpha\,\epsppr}
+    \leq\frac{1}{\sqrt\alpha\,\epsppr}.
     \label{eq:cf-phase-one-target}
 \end{equation}
 \end{proposition}
 
 \begin{proof}
-When \(\omega=1\), a push of residual \(R=r_u\geq0\) deletes \(R\) at
-\(u\) and sends total mass \(c_\alpha R\) to its neighbors.  Hence
+When \(\omega=1\), a push of residual \(\sigma=r_u\geq0\) deletes \(\sigma\) at
+\(u\) and sends total mass \(c_\alpha \sigma\) to its neighbors.  Hence
 \begin{equation}
     \norm{r}_1-\norm{r^+}_1
-    =(1-c_\alpha)R
-    =\gamma_\alpha R.
+    =(1-c_\alpha)\sigma
+    =\gamma_\alpha \sigma.
     \label{eq:cf-phase-one-mass-drop}
 \end{equation}
-The active test gives \(R\geq\gamma_\alpha\tau d_u\), so the mass decrease is
+The active test gives \(\sigma\geq\gamma_\alpha\tau d_u\), so the mass decrease is
 at least \(\gamma_\alpha^2\tau d_u\).  Initially
 \(\norm{r^{(0)}}_1=\gamma_\alpha\).  Summing the decreases over Phase I yields
 \(\gamma_\alpha^2\tau W_{\rm I}\leq\gamma_\alpha\), which proves
@@ -233,9 +226,9 @@ mass argument.
 
 \begin{proposition}[Star tightness of the coarse phase]
 \label{prop:cf-phase-one-star}
-Fix a constant \(q\in(0,1/4)\).  Along parameter sequences for which
-\(k=q/\tau\) is an integer and \(\alpha\downarrow0\), the center-seeded star
-with \(k\) leaves satisfies
+Fix a constant \(\theta_{\mathrm{sp}}\in(0,1/4)\). Along parameter sequences
+for which \(k=\theta_{\mathrm{sp}}/\tau\) is an integer and
+\(\alpha\downarrow0\), the center-seeded star with \(k\) leaves satisfies
 \begin{equation}
     W_{\rm I}(\tau)
     =\Theta\!\left(\frac{1}{\gamma_\alpha\tau}\right)
@@ -245,24 +238,25 @@ with \(k\) leaves satisfies
 \end{proposition}
 
 \begin{proof}
-Let \(R_j\) be the center residual before the \(j\)-th center push.  A center
-push sends total residual \(c_\alpha R_j\) uniformly to the leaves; pushing
-all leaves returns total residual \(c_\alpha^2R_j\) to the center.  Therefore
+Let \(r_j^{(c)}\) be the center residual before the \(j\)-th center push.  A center
+push sends total residual \(c_\alpha r_j^{(c)}\) uniformly to the leaves; pushing
+all leaves returns total residual \(c_\alpha^2r_j^{(c)}\) to the center.  Therefore
 \begin{equation}
-    R_j=\gamma_\alpha c_\alpha^{2j}.
+    r_j^{(c)}=\gamma_\alpha c_\alpha^{2j}.
     \label{eq:cf-coarse-star-center}
 \end{equation}
 The center threshold is
-\(\gamma_\alpha\tau k=\gamma_\alpha q\), and the leaf threshold gives the
+\(\gamma_\alpha\tau k=\gamma_\alpha \theta_{\mathrm{sp}}\), and the leaf threshold gives the
 same condition up to one factor of \(c_\alpha\).  Thus a constant fraction of
-the cycles with \(c_\alpha^{2j}\geq q\) execute.  Their number is
+the cycles with \(c_\alpha^{2j}\geq \theta_{\mathrm{sp}}\) execute.  Their number is
 \begin{equation}
     \Theta\!\left(\frac{1}{-\log c_\alpha}\right)
     =\Theta\!\left(\frac{1}{1-c_\alpha}\right)
     =\Theta(1/\gamma_\alpha).
     \label{eq:cf-coarse-star-cycles}
 \end{equation}
-Each center--leaves cycle processes degree \(2k=2q/\tau\).  Multiplying the
+Each center--leaves cycle processes degree
+\(2k=2\theta_{\mathrm{sp}}/\tau\). Multiplying the
 number and cost of cycles proves the lower bound in
 \cref{eq:cf-phase-one-star-tight}; the matching upper bound is
 \cref{prop:cf-phase-one-work}.
@@ -272,21 +266,21 @@ number and cost of cycles proves the lower bound in
 \label{cor:cf-pareto-scale}
 Consider coarse tolerances
 \begin{equation}
-    \tau=\kappa\epsilon\alpha^{-p},
+    \tau=\kappa\epsppr\alpha^{-p},
     \qquad \kappa=\Theta(1).
     \label{eq:cf-power-switch}
 \end{equation}
 Among these schedules, \(p=1/2\) is the unique exponent that simultaneously
 keeps the worst-case Phase-I work at the target scale
-\(\mathcal O(1/(\sqrt\alpha\epsilon))\) and gives the strongest handoff
+\(\mathcal O(1/(\sqrt\alpha\epsppr))\) and gives the strongest handoff
 scale up to constants.
 \end{corollary}
 
 \begin{proof}
 Combining \cref{eq:cf-phase-one-work,eq:cf-phase-one-star-tight} with
-\(B(\alpha,\epsilon):=1/(\sqrt\alpha\epsilon)\) gives
+\(B(\alpha,\epsppr):=1/(\sqrt\alpha\epsppr)\) gives
 \begin{equation}
-    \frac{W_{\rm I}}{B(\alpha,\epsilon)}
+    \frac{W_{\rm I}}{B(\alpha,\epsppr)}
     =\Theta\!\left(\alpha^{p-1/2}\right).
     \label{eq:cf-power-ratio}
 \end{equation}
@@ -294,7 +288,7 @@ For \(p<1/2\), the star ratio diverges as \(\alpha\downarrow0\).  The choice
 \(p=1/2\) matches the target scale.  For \(p>1/2\), Phase I is cheaper, but
 the coordinate handoff error \(\tau\) in
 \cref{prop:cf-handoff} is polynomially larger.  A fixed smaller constant
-multiple of \(\epsilon/\sqrt\alpha\) changes only the constant in the work;
+multiple of \(\epsppr/\sqrt\alpha\) changes only the constant in the work;
 the asymptotic violation occurs when that multiple tends to zero.
 \end{proof}
 
@@ -302,21 +296,21 @@ the asymptotic violation occurs when that multiple tends to zero.
 \label{rem:cf-empirical-switch}
 The proof selects the family
 \begin{equation}
-    \tau_\kappa=\kappa\frac{\epsilon}{\sqrt\alpha},
+    \tau_\kappa=\kappa\frac{\epsppr}{\sqrt\alpha},
     \qquad \kappa=\Theta(1),
     \label{eq:cf-kappa-switch}
 \end{equation}
 rather than a unique numerical constant.  An empirical rule considered during
 development was
 \begin{equation}
-    \tau_{\rm emp}=0.1\,\alpha^{1/4}\sqrt\epsilon.
+    \tau_{\rm emp}=0.1\,\alpha^{1/4}\sqrt\epsppr.
     \label{eq:cf-empirical-switch}
 \end{equation}
 The two scales satisfy
 \begin{equation}
     \tau_{\rm emp}\geq\tau_{\rm th}
     \quad\Longleftrightarrow\quad
-    \epsilon\leq0.01\,\alpha^{3/2}.
+    \epsppr\leq0.01\,\alpha^{3/2}.
     \label{eq:cf-switch-comparison}
 \end{equation}
 Thus the empirical rule is a coarser handoff in that high-accuracy regime.  It
@@ -339,25 +333,25 @@ At the end of Phase I,
 \end{equation}
 The transferred iterate satisfies
 \begin{equation}
-    0\leq z^\star-z^{(1)}\leq\tau d,
+    0\leq \pi-z^{(1)}\leq\tau d,
     \qquad
-    \norm{D^{-1}(z^\star-z^{(1)})}_\infty\leq\tau.
+    \norm{D^{-1}(\pi-z^{(1)})}_\infty\leq\tau.
     \label{eq:cf-handoff-coordinate}
 \end{equation}
-Writing \(x^{(1)}=D^{-1/2}z^{(1)}\), the objective in
-\cref{eq:cf-objective} obeys
+Writing \(x^{(1)}=D^{-1/2}z^{(1)}\), the shared objective in
+\cref{eq:shared-pagerank-objective} obeys
 \begin{equation}
-    f(x^{(1)})-f(x^\star)
+    f(x^{(1)})-f(x^0)
     \leq\frac{\alpha\tau}{2}.
     \label{eq:cf-handoff-objective}
 \end{equation}
-For \(\tau=\epsilon/\sqrt\alpha\), these bounds become
+For \(\tau=\epsppr/\sqrt\alpha\), these bounds become
 \begin{equation}
-    \norm{D^{-1}(z^\star-z^{(1)})}_\infty
-    \leq\frac{\epsilon}{\sqrt\alpha},
+    \norm{D^{-1}(\pi-z^{(1)})}_\infty
+    \leq\frac{\epsppr}{\sqrt\alpha},
     \qquad
-    f(x^{(1)})-f(x^\star)
-    \leq\frac{\sqrt\alpha\,\epsilon}{2}.
+    f(x^{(1)})-f(x^0)
+    \leq\frac{\sqrt\alpha\,\epsppr}{2}.
     \label{eq:cf-handoff-at-switch}
 \end{equation}
 \end{proposition}
@@ -367,7 +361,7 @@ The residual properties follow from
 \cref{prop:cf-phase-one-work}.  By
 \cref{eq:cf-positive-inverse,eq:cf-residual-error},
 \begin{equation}
-    0\leq z^\star-z^{(1)}
+    0\leq \pi-z^{(1)}
     =H^{-1}r^{(1)}
     \leq H^{-1}(\gamma_\alpha\tau d)
     =\tau d,
@@ -390,10 +384,11 @@ The matrix \(D^{-1}H\) is symmetric positive definite.  Since
     \leq\frac{\gamma_\alpha\tau}{2}.
     \label{eq:cf-handoff-energy}
 \end{equation}
-The change of variables below \cref{eq:cf-objective} gives
+The change of variables relating \cref{eq:cf-linear-system} to
+\cref{eq:shared-pagerank-objective} gives
 \begin{equation}
-    f(x)-f(x^\star)
-    =\frac{1+\alpha}{2}\Phi(z^\star-z).
+    f(x)-f(x^0)
+    =\frac{1+\alpha}{2}\Phi(\pi-z).
     \label{eq:cf-objective-energy-relation}
 \end{equation}
 Using \((1+\alpha)\gamma_\alpha=2\alpha\) proves
@@ -407,7 +402,7 @@ with \(t:=\sqrt\alpha\),
     =\frac{4t}{(1+t)^2}
     =\Theta(t),
     \qquad
-    \frac{\tau_{\rm th}}{\epsilon}
+    \frac{\tau_{\rm th}}{\epsppr}
     =\frac1t
     =\Theta\!\left(\frac{1}{2-\omega_\star}\right).
     \label{eq:cf-damping-horizon}
@@ -435,9 +430,9 @@ A direct calculation gives
     1-\omega_\star=-\lambda^2.
     \label{eq:cf-opt-sor-identities}
 \end{equation}
-Hence an optimal-SOR push of residual \(R\) leaves the signed reflection
-\(-\lambda^2R\) at the pushed vertex and sends total neighboring residual
-\(2\lambda R\).
+Hence an optimal-SOR push of residual \(\sigma\) leaves the signed reflection
+\(-\lambda^2\sigma\) at the pushed vertex and sends total neighboring residual
+\(2\lambda \sigma\).
 
 \begin{theorem}[Energy descent, finite termination, and certificate]
 \label{thm:cf-phase-two-convergence}
@@ -450,7 +445,7 @@ For any \(0<\omega<2\), one push at \(u\) satisfies the exact identity
 Consequently, Phase II terminates after finitely many active pushes.  At
 termination its output satisfies
 \begin{equation}
-    \norm{D^{-1}(z^\star-z)}_\infty<\epsilon.
+    \norm{D^{-1}(\pi-z)}_\infty<\epsppr.
     \label{eq:cf-final-certificate}
 \end{equation}
 For \(\omega=\omega_\star\) and an arbitrary nonnegative handoff satisfying
@@ -460,14 +455,14 @@ For \(\omega=\omega_\star\) and an arbitrary nonnegative handoff satisfying
     \leq
     \frac{\tau}
          {\omega_\star(2-\omega_\star)
-          \gamma_\alpha\epsilon^2}.
+          \gamma_\alpha\epsppr^2}.
     \label{eq:cf-phase-two-energy-bound}
 \end{equation}
-At \(\tau=\epsilon/\sqrt\alpha\), this becomes
+At \(\tau=\epsppr/\sqrt\alpha\), this becomes
 \begin{equation}
     W_{\rm II}
     \leq
-    \frac{(1+\sqrt\alpha)^4}{16\alpha^2\epsilon}.
+    \frac{(1+\sqrt\alpha)^4}{16\alpha^2\epsppr}.
     \label{eq:cf-phase-two-explicit-upper}
 \end{equation}
 \end{theorem}
@@ -484,17 +479,17 @@ Because \(e^+=e-\omega r_u e_u\), expanding the quadratic energy and using
     \label{eq:cf-energy-expansion}
 \end{align}
 which is \cref{eq:cf-energy-descent}.  An active push has
-\(r_u^2/d_u\geq\gamma_\alpha^2\epsilon^2d_u\).  Since every degree is at
+\(r_u^2/d_u\geq\gamma_\alpha^2\epsppr^2d_u\).  Since every degree is at
 least one and \(\Phi\geq0\), only finitely many such decreases are possible.
 
-At termination, \(|r|<\gamma_\alpha\epsilon d\).  Positivity of \(H^{-1}\)
+At termination, \(|r|<\gamma_\alpha\epsppr d\).  Positivity of \(H^{-1}\)
 and \cref{eq:cf-positive-inverse} yield
 \begin{equation}
-    |z^\star-z|
+    |\pi-z|
     =|H^{-1}r|
     \leq H^{-1}|r|
-    <H^{-1}(\gamma_\alpha\epsilon d)
-    =\epsilon d,
+    <H^{-1}(\gamma_\alpha\epsppr d)
+    =\epsppr d,
     \label{eq:cf-final-certificate-proof}
 \end{equation}
 which proves \cref{eq:cf-final-certificate}.
@@ -503,7 +498,7 @@ Summing \cref{eq:cf-energy-descent} over Phase II and using the active test
 gives
 \begin{equation}
     \frac{\omega(2-\omega)}2
-       \gamma_\alpha^2\epsilon^2 W_{\rm II}
+       \gamma_\alpha^2\epsppr^2 W_{\rm II}
     \leq\Phi(e^{(1)}).
     \label{eq:cf-energy-work-sum}
 \end{equation}
@@ -516,13 +511,13 @@ Apply \cref{eq:cf-handoff-energy} to obtain
     \label{eq:cf-sor-delta}
 \end{equation}
 Substituting this identity, \cref{eq:cf-c-gamma}, and
-\(\tau=\epsilon/\sqrt\alpha\) proves
+\(\tau=\epsppr/\sqrt\alpha\) proves
 \cref{eq:cf-phase-two-explicit-upper}.
 \end{proof}
 
 The energy proof is deliberately recorded because it cleanly separates
 correctness from accelerated locality.  It proves convergence, but its work
-bound is much weaker than \(1/(\sqrt\alpha\epsilon)\).  A sharper argument
+bound is much weaker than \(1/(\sqrt\alpha\epsppr)\).  A sharper argument
 would need to exploit FIFO wave structure or cancellation rather than only
 quadratic descent.
 
@@ -537,7 +532,7 @@ A tempting route is the signed warm-start estimate
     \label{eq:cf-false-l1-lemma}
 \end{equation}
 Together with the active threshold, it would imply
-\(W_{\rm II}=\mathcal O(1/(\sqrt\alpha\epsilon))\).  The estimate is false.
+\(W_{\rm II}=\mathcal O(1/(\sqrt\alpha\epsppr))\).  The estimate is false.
 The star calculation in \cref{subsec:cf-star-lower} gives
 \begin{equation}
     \sum_j |r_{u_j}^{(j)}|
@@ -564,13 +559,13 @@ Thus the proposed inequality fails by a factor
 \label{subsec:cf-star-lower}
 
 The first obstruction is already visible on a star.  Fix a constant
-\(q\in(0,1/4)\), choose \(k=q/\epsilon\) leaves, and assume
-\(t=\sqrt\alpha<q\).  For the theoretical switch
-\(\tau=\epsilon/t\),
+\(\theta_{\mathrm{sp}}\in(0,1/4)\), choose \(k=\theta_{\mathrm{sp}}/\epsppr\) leaves, and assume
+\(t=\sqrt\alpha<\theta_{\mathrm{sp}}\).  For the theoretical switch
+\(\tau=\epsppr/t\),
 \begin{equation}
-    \tau k=\frac{q}{t}>1,
+    \tau k=\frac{\theta_{\mathrm{sp}}}{t}>1,
     \qquad
-    \epsilon k=q<1.
+    \epsppr k=\theta_{\mathrm{sp}}<1.
     \label{eq:cf-star-bypass}
 \end{equation}
 Therefore Phase I does nothing, while the center is active at the start of
@@ -594,9 +589,9 @@ The characteristic polynomial is \((z-\lambda)^2\), and hence
     x_j=(j+1)\lambda^j\gamma_\alpha.
     \label{eq:cf-star-block-solution}
 \end{equation}
-Both types of block execute while \(x_j\geq\gamma_\alpha q\).  Let
+Both types of block execute while \(x_j\geq\gamma_\alpha \theta_{\mathrm{sp}}\).  Let
 \begin{equation}
-    J_q:=\max\{j:(j+1)\lambda^j\geq q\}.
+    J_{\mathrm{blk}}:=\max\{j:(j+1)\lambda^j\geq \theta_{\mathrm{sp}}\}.
     \label{eq:cf-star-J}
 \end{equation}
 Since
@@ -607,24 +602,24 @@ Since
     \label{eq:cf-lambda-log}
 \end{equation}
 the descending solution of
-\((j+1)\lambda^j=q\) satisfies
+\((j+1)\lambda^j=\theta_{\mathrm{sp}}\) satisfies
 \begin{equation}
-    J_q
+    J_{\mathrm{blk}}
     =\Theta\!\left(
        \frac{\log(1/t)}{t}
       \right)
     =\Theta\!\left(
        \frac{\log(1/\alpha)}{\sqrt\alpha}
       \right)
-    \quad\text{for fixed }q.
+    \quad\text{for fixed }\theta_{\mathrm{sp}}.
     \label{eq:cf-star-block-count}
 \end{equation}
-Every block costs \(k=q/\epsilon\), so
+Every block costs \(k=\theta_{\mathrm{sp}}/\epsppr\), so
 \begin{equation}
     W_{\rm II}^{\rm star}
     =\Theta\!\left(
        \frac{\log(1/\alpha)}
-            {\sqrt\alpha\,\epsilon}
+            {\sqrt\alpha\,\epsppr}
       \right).
     \label{eq:cf-star-log-lower}
 \end{equation}
@@ -637,29 +632,30 @@ worst case.
 \label{subsec:cf-spider-lower}
 
 The long spider exposes a stronger obstruction.  It combines
-\(\Theta(1/\epsilon)\) arms with a propagation depth
+\(\Theta(1/\epsppr)\) arms with a propagation depth
 \(\Theta(1/\sqrt\alpha)\), and the FIFO signed wave revisits the interior of
 each arm in a triangular spacetime pattern.
 
-Fix \(q\in(0,1/4)\), set \(k=q/\epsilon\), and construct a spider with center
-\(s\) and arms
+Fix \(\theta_{\mathrm{sp}}\in(0,1/4)\), set
+\(k=\theta_{\mathrm{sp}}/\epsppr\), and construct a spider with seed center
+\(v\) and arms
 \begin{equation}
-    s-v_{a,1}-v_{a,2}-\cdots-v_{a,L},
+    v-v_{a,1}-v_{a,2}-\cdots-v_{a,L},
     \qquad a\in\{1,\ldots,k\}.
     \label{eq:cf-spider}
 \end{equation}
 Order the center adjacency list by arms and order each arm adjacency list
 inward before outward.  Define
 \begin{equation}
-    R_q:=\frac{\log(1/q)}{-\log\lambda},
+    L_{\mathrm{sp}}:=\frac{\log(1/\theta_{\mathrm{sp}})}{-\log\lambda},
     \qquad
-    M:=\left\lfloor\frac{R_q}{2}\right\rfloor,
+    M:=\left\lfloor\frac{L_{\mathrm{sp}}}{2}\right\rfloor,
     \qquad
     L\geq M+1.
     \label{eq:cf-spider-scales}
 \end{equation}
-For fixed \(q\), \cref{eq:cf-lambda-log} gives
-\(R_q=\Theta(1/\sqrt\alpha)\).
+For fixed \(\theta_{\mathrm{sp}}\), \cref{eq:cf-lambda-log} gives
+\(L_{\mathrm{sp}}=\Theta(1/\sqrt\alpha)\).
 
 \begin{lemma}[FIFO wave on the spider]
 \label{lem:cf-spider-wave}
@@ -679,7 +675,7 @@ Immediately before the push of \(v_{a,\ell}\), its residual is
 \end{equation}
 The center residual before its \(j\)-th push is
 \begin{equation}
-    r_s^{(j)}=\gamma_\alpha\lambda^{2j}.
+    r_v^{(j)}=\gamma_\alpha\lambda^{2j}.
     \label{eq:cf-spider-center-residual}
 \end{equation}
 \end{lemma}
@@ -688,9 +684,9 @@ The center residual before its \(j\)-th push is
 The first center push sends
 \(2\lambda\gamma_\alpha/k=C\lambda\) to every first arm vertex, establishing
 the case \(m=1\).  Suppose the statement holds for macro-cycle \(m\).  An
-interior push of residual \(R\) leaves \(-\lambda^2R\) at its vertex and sends
-\(\lambda R\) in each arm direction.  Therefore the negative residual left at
-depth \(\ell\) is
+interior push of residual \(\sigma\) leaves \(-\lambda^2\sigma\) at its vertex
+and sends \(\lambda \sigma\) in each arm direction. Therefore the negative
+residual left at depth \(\ell\) is
 \(-C\lambda^{2m-\ell+2}\).  The subsequent inward push at depth
 \(\ell-1\) sends
 \begin{equation}
@@ -717,48 +713,48 @@ the induction.  Self-requeued entries whose residual has been cancelled are
 stale and are skipped.
 
 It remains to check thresholds.  The center activation threshold is
-\(\gamma_\alpha\epsilon k=\gamma_\alpha q\).  For \(m\leq M\), the required
-center residuals satisfy \(\lambda^{2(m-1)}\geq q\).  Every used arm vertex is
+\(\gamma_\alpha\epsppr k=\gamma_\alpha \theta_{\mathrm{sp}}\).  For \(m\leq M\), the required
+center residuals satisfy \(\lambda^{2(m-1)}\geq \theta_{\mathrm{sp}}\).  Every used arm vertex is
 interior and has threshold
 \begin{equation}
-    2\gamma_\alpha\epsilon
-    =\frac{2\gamma_\alpha q}{k}
-    =Cq.
+    2\gamma_\alpha\epsppr
+    =\frac{2\gamma_\alpha \theta_{\mathrm{sp}}}{k}
+    =C\theta_{\mathrm{sp}}.
     \label{eq:cf-spider-arm-threshold}
 \end{equation}
 For \(1\leq\ell\leq m\leq M\), we have
-\(2m-\ell\leq2M-1\leq R_q\), so
-\(\lambda^{2m-\ell}\geq q\).  Hence every push used by the induction is
+\(2m-\ell\leq2M-1\leq L_{\mathrm{sp}}\), so
+\(\lambda^{2m-\ell}\geq \theta_{\mathrm{sp}}\).  Hence every push used by the induction is
 indeed active.
 \end{proof}
 
 \begin{theorem}[Long-spider obstruction for CF-Push]
 \label{thm:cf-spider-lower}
-For every fixed \(q\in(0,1/4)\) and all sufficiently small \(\alpha\), the
-spider family above, with \(\epsilon=q/k\) and
-\(\tau=\epsilon/\sqrt\alpha\), satisfies
+For every fixed \(\theta_{\mathrm{sp}}\in(0,1/4)\) and all sufficiently small \(\alpha\), the
+spider family above, with \(\epsppr=\theta_{\mathrm{sp}}/k\) and
+\(\tau=\epsppr/\sqrt\alpha\), satisfies
 \begin{equation}
     W_{\rm CF\text{-}Push}
-    =\Omega\!\left(\frac{1}{\alpha\epsilon}\right).
+    =\Omega\!\left(\frac{1}{\alpha\epsppr}\right).
     \label{eq:cf-spider-lower}
 \end{equation}
 Consequently, neither
-\(\mathcal O(1/(\sqrt\alpha\epsilon))\) nor
-\(\widetilde{\mathcal O}(1/(\sqrt\alpha\epsilon))\) is a graph-uniform work
+\(\mathcal O(1/(\sqrt\alpha\epsppr))\) nor
+\(\widetilde{\mathcal O}(1/(\sqrt\alpha\epsppr))\) is a graph-uniform work
 bound for the current fixed-\(\omega_\star\) FIFO method.
 \end{theorem}
 
 \begin{proof}
-Because \(d_s=k\), Phase I activates the source if and only if
+Because \(d_v=k\), Phase I activates the source if and only if
 \(\tau k\leq1\).  Here
 \begin{equation}
-    \tau k=\frac{q}{\sqrt\alpha}>1,
+    \tau k=\frac{\theta_{\mathrm{sp}}}{\sqrt\alpha}>1,
     \qquad
-    \epsilon k=q<1,
+    \epsppr k=\theta_{\mathrm{sp}}<1,
     \label{eq:cf-spider-bypass}
 \end{equation}
 so Phase I is silent and Phase II starts from
-\(r=\gamma_\alpha e_s\).  By \cref{lem:cf-spider-wave}, every arm executes at
+\(r=\gamma_\alpha e_v\).  By \cref{lem:cf-spider-wave}, every arm executes at
 least
 \begin{equation}
     \sum_{m=1}^{M}m=\frac{M(M+1)}2
@@ -768,13 +764,13 @@ interior pushes.  Each costs degree two.  Hence
 \begin{equation}
     W_{\rm II}
     \geq kM(M+1)
-    =\Omega(kR_q^2)
+    =\Omega(kL_{\mathrm{sp}}^2)
     =\Omega\!\left(
-       \frac{q\log^2(1/q)}{\alpha\epsilon}
+       \frac{\theta_{\mathrm{sp}}\log^2(1/\theta_{\mathrm{sp}})}{\alpha\epsppr}
       \right).
     \label{eq:cf-spider-work-calculation}
 \end{equation}
-For fixed \(q\), this is \cref{eq:cf-spider-lower}.
+For fixed \(\theta_{\mathrm{sp}}\), this is \cref{eq:cf-spider-lower}.
 \end{proof}
 
 The star and spider mechanisms are different.  The star repeatedly reflects
@@ -790,16 +786,16 @@ case.
 
 The spider lower bound transfers exactly to any coarse-gated hybrid whose
 first stage leaves the initial source untouched whenever
-\(\tau d_s>1\), and whose second stage is the FIFO optimal-SOR method analyzed
+\(\tau d_v>1\), and whose second stage is the FIFO optimal-SOR method analyzed
 above.  The reason is the bypass interval
 \begin{equation}
-    \epsilon k<1<\tau k:
+    \epsppr k<1<\tau k:
     \quad
     \text{Phase I is silent but Phase II is active.}
     \label{eq:cf-bypass-interval}
 \end{equation}
-For \(\tau=\epsilon/\sqrt\alpha\), any fixed
-\(q\in(\sqrt\alpha,1)\) and \(k=q/\epsilon\) realize this interval.
+For \(\tau=\epsppr/\sqrt\alpha\), any fixed
+\(\theta_{\mathrm{sp}}\in(\sqrt\alpha,1)\) and \(k=\theta_{\mathrm{sp}}/\epsppr\) realize this interval.
 
 The phrase ``two-stage algorithm'' by itself is nevertheless too broad for a
 universal lower bound.  The following statement is only a conditional template
@@ -821,9 +817,9 @@ Under \cref{assump:cf-diffusive-annulus},
     \label{eq:cf-m-stage-bound}
 \end{equation}
 In particular, for fixed \(m\),
-\(k=\Theta(1/\epsilon)\), and
+\(k=\Theta(1/\epsppr)\), and
 \(L=\Theta(1/\sqrt\alpha)\), the work is
-\(\Omega(1/(\alpha\epsilon))\).
+\(\Omega(1/(\alpha\epsppr))\).
 \end{proposition}
 
 \begin{proof}
@@ -842,7 +838,7 @@ algorithms, because \cref{assump:cf-diffusive-annulus} is an algorithm-class
 restriction rather than a consequence of having two stages.  For example,
 one stage may explore the spider once and a second stage may solve the
 resulting tree system by leaf elimination and back-substitution.  Such a
-procedure costs \(\mathcal O(kL)=\mathcal O(1/(\sqrt\alpha\epsilon))\) on the
+procedure costs \(\mathcal O(kL)=\mathcal O(1/(\sqrt\alpha\epsppr))\) on the
 spider.  Directed-edge messages or a nonbacktracking state can likewise avoid
 the repeated triangular traversal.  A universal theorem would therefore need
 an explicit oracle model, such as one-hop vertex-residual pushes with no
@@ -870,18 +866,18 @@ The complete conclusion for the current method is
     \boxed{
     \begin{aligned}
     W_{\rm I}
-        &\leq\frac{1+\alpha}{2\sqrt\alpha\,\epsilon},\\
+        &\leq\frac{1+\alpha}{2\sqrt\alpha\,\epsppr},\\
     W_{\rm II}
-        &\leq\frac{(1+\sqrt\alpha)^4}{16\alpha^2\epsilon},\\
+        &\leq\frac{(1+\sqrt\alpha)^4}{16\alpha^2\epsppr},\\
     W_{\rm CF\text{-}Push}^{\rm worst}
-        &\geq\Omega\!\left(\frac{1}{\alpha\epsilon}\right)
+        &\geq\Omega\!\left(\frac{1}{\alpha\epsppr}\right)
         \quad\text{for the FIFO fixed-\(\omega_\star\) implementation.}
     \end{aligned}}
     \label{eq:cf-final-summary}
 \end{equation}
 The upper and lower bounds for Phase II do not match; in particular, this
 section does not establish a general
-\(\mathcal O(1/(\alpha\epsilon))\) upper bound for signed LocalSOR.  It does
+\(\mathcal O(1/(\alpha\epsppr))\) upper bound for signed LocalSOR.  It does
 establish that the hoped-for graph-uniform accelerated bound is impossible for
 the present implementation.
 
@@ -891,12 +887,12 @@ that removes the repeated fixed-SOR reflection, directed-edge or
 nonbacktracking residual state, elimination on the explored tree-like region,
 or an active-volume trigger that abandons SOR when a triangular wave begins to
 form.  Another useful target is a conditional theorem in terms of FIFO round
-volumes: if every round processes \(\mathcal O(1/\epsilon)\) degree and the
+volumes: if every round processes \(\mathcal O(1/\epsppr)\) degree and the
 number of rounds is
 \(\mathcal O((1+\log(1/\alpha))/\sqrt\alpha)\), then the empirically observed
 \begin{equation}
     \mathcal O\!\left(
-      \frac{1+\log(1/\alpha)}{\sqrt\alpha\,\epsilon}
+      \frac{1+\log(1/\alpha)}{\sqrt\alpha\,\epsppr}
     \right)
     \label{eq:cf-conditional-flat-volume}
 \end{equation}

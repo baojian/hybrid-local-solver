@@ -15,7 +15,7 @@ For the AESP run truncated at the objective-gap handoff stage \(J\), prove a
 bound of the form
 \begin{equation}
     \max_{t\leq J}\Lambda_t
-    \leq\frac{K}{\eps},
+    \leq\frac{K}{\epsppr},
     \label{eq:open-early-locality}
 \end{equation}
 with graph-independent or structurally interpretable \(K\); alternatively,
@@ -29,7 +29,7 @@ uniform maximum:
     \sum_{t=1}^{J}\Work_t^{\rm in}
     \leq
     \softO\!\left(
-       \frac{1}{\sqrt\alpha\eps}
+       \frac{1}{\sqrt\alpha\epsppr}
        +\mathsf{BoundaryOverhead}
     \right).
     \label{eq:boundary-sensitive-target}
@@ -45,13 +45,13 @@ by comparing two regularization levels.  An AESP analogue would need to
 address three new effects:
 \begin{enumerate}[leftmargin=2em]
 \item the linear term changes with the outer center \(y^{(t-1)}\);
-\item the inner objective is shifted by \(\eta I\);
-\item the relevant activation threshold \(\eps_t\) changes with the Catalyst
+\item the inner objective is shifted by \(\kappa_{\mathrm A} I\);
+\item the relevant activation threshold \(\epsin^{(t)}\) changes with the Catalyst
       accuracy schedule.
 \end{enumerate}
 A successful proof should identify a common core or a controlled sequence of
 cores, show that low-margin coordinates can be charged to an
-\(\mathcal O(1/\eps)\)-volume region, and sum clearly inactive activations
+\(\mathcal O(1/\epsppr)\)-volume region, and sum clearly inactive activations
 using the outer geometric contraction.
 
 \subsection{Priority 3: analyze the online FIFO advantage}
@@ -70,18 +70,18 @@ the practical implementation while closing the theorem.
 
 \subsection{Priority 4: improve the inner accuracy certificate}
 
-The current \(1/\eps^2\) bound uses the mixed
+The current \(1/\epsppr^2\) bound uses the mixed
 \(\ell_\infty\)-by-\(\ell_1\) certificate
 \cref{eq:mixed-norm-certificate}.  A local or incrementally maintainable
 \(\ell_2\) certificate would have the desired square-root relation
 \begin{equation}
-    \norm{\grad h_t(z)}_2
+    \norm{\nabla h_t(z)}_2
     =\mathcal O(\sqrt{\phi_t}),
     \label{eq:l2-certificate-target}
 \end{equation}
-so a final \(\phi_t=\mathcal O(\eps^2)\) would require an
-\(\mathcal O(\eps)\) gradient scale rather than
-\(\mathcal O(\eps^2)\).  The challenge is to verify this without scanning the
+so a final \(\phi_t=\mathcal O(\epsppr^2)\) would require an
+\(\mathcal O(\epsppr)\) gradient scale rather than
+\(\mathcal O(\epsppr^2)\).  The challenge is to verify this without scanning the
 whole graph.
 
 \subsection{Priority 5: over-relaxation and accelerated tails}
@@ -109,14 +109,14 @@ local accelerated bound.
 full ISTA converges, but the COLT-style degree-work target remains open.  A
 useful theorem should establish one of the following:
 \begin{enumerate}[leftmargin=2em]
-\item a certified support set \(\Omega\supseteq\supp(x_\rho^\star)\) of volume
+\item a certified support set \(\Omega\supseteq\supp(x^\star(\rho))\) of volume
       \(\mathcal O(1/\rho)\), followed by a zero restart on \(\Omega\);
 \item a weighted proximal/KKT potential that decreases under local coordinate
       updates from an arbitrary signed or overshooting warm start; or
 \item an over-regularized boundary-charging theorem whose cumulative overhead
       is compatible with \(\softO(1/(\rho\sqrt\alpha))\).
 \end{enumerate}
-The correct stopping object is the fixed-point residual \(R_\rho\), with the
+The correct stopping object is the fixed-point residual \(R_{\mathrm{fp},\alpha,\rho}\), with the
 solution certificate divided by \(\alpha\).  Any proof that instead reuses
 zero-start support monotonicity without qualification is incomplete.
 
@@ -141,7 +141,7 @@ The following unconditional statements are not supported by the current
 proof:
 \begin{align}
     &\text{``AESP--LocSOR has }
-    \softO(1/(\sqrt\alpha\eps))
+    \softO(1/(\sqrt\alpha\epsppr))
     \text{ work on every graph,''}
     \label{eq:not-yet-claim}\\
     &\text{``Composite Catalyst--ISTA has }
