@@ -1,0 +1,919 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This is a curated reconstruction of the project conversation on a
+% center-star lower bound for AESP-PPR with the batched LocGD inner solver.
+% It is not a verbatim transcript.  Incorrect intermediate claims are
+% retained only as explicitly refuted or conditional proof routes.
+
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,tabularx}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue]{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\Work}{\mathcal{W}}
+\newcommand{\AESP}{\textnormal{\textsc{AESP}}}
+\newcommand{\LOCGD}{\textnormal{\textsc{LocGD}}}
+\newcommand{\LOCAPPR}{\textnormal{\textsc{LocAPPR}}}
+\newcommand{\APPR}{\textnormal{\textsc{APPR}}}
+\newcommand{\softO}{\widetilde{\mathcal O}}
+\newcommand{\statussource}{\textbf{Source result}}
+\newcommand{\statusproved}{\textbf{Proved here}}
+\newcommand{\statusconditional}{\textbf{Conditional}}
+\newcommand{\statusrefuted}{\textbf{Refuted route}}
+\newcommand{\statusopen}{\textbf{Open}}
+
+\title{A Star-Graph Work Lower Bound for AESP with Batched Local Gradient Descent}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove a worst-case lower bound for the literal personalized PageRank
+specialization of the accelerated evolving-set process (AESP) when every
+proximal subproblem is solved by the batched local gradient method LocGD.  On
+a center-seeded star with $B$ leaves, every nonempty inner batch scans degree
+volume at least $B$.  The nontrivial part is to show that Catalyst momentum
+cannot turn only $o(1/\sqrt{\alpha})$ such batches into a constant amount of
+PageRank mass.  A direct residual-cone argument is only conditional, because
+outer extrapolation need not preserve the cone.  We close this gap using the
+first nonempty call: its activation condition forces all subsequent AESP
+subproblem tolerances to be on the $\alpha^2/B$ scale.  The certified
+subproblem objective gap then bounds every slow-mode proximal error by
+$\sqrt{2}\alpha/(1-\alpha)$.  A positive Green-function calculation controls
+all momentum amplification and yields
+\[
+  \Work_{\AESP\text{-}\LOCGD}
+  =\Omega\!\left(\frac{1}{\sqrt{\alpha}\,\epsilon}\right).
+\]
+More generally, the worst-case work over graphs with at most $m$ edges is
+$\Omega(\min\{m,1/\epsilon\}/\sqrt{\alpha})$.  The theorem is unconditional
+within its stated algorithm and work model; it is not a lower bound for an
+arbitrary AESP inner map, sequential LocAPPR, or every hybrid local solver.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope, status, and source map}
+\label{sec:scope}
+
+This note reconstructs the complete proof development leading to the
+center-star lower bound.  It deliberately separates the literal source
+algorithm from new arguments and from proof paths that did not close.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The AESP-PPR parameters, LocGD activation threshold,
+subproblem-gap certificate, stopping rule, and active-volume work model are
+those of Algorithms 2--3 and Lemma 3.2 of \citet{huang2025aesp}. \\
+\statusproved & Batched LocGD preserves leaf symmetry; every nonempty star
+batch costs at least $B$; and the literal AESP-LocGD algorithm has work
+$\Omega(B/\sqrt{\alpha})$ whenever $B\epsilon\leq 1/4$. \\
+\statusproved & Choosing $B=\lfloor 1/(4\epsilon)\rfloor$ gives
+$\Omega(1/(\sqrt{\alpha}\epsilon))$; imposing an edge budget gives
+$\Omega(\min\{m,1/\epsilon\}/\sqrt{\alpha})$. \\
+\statusconditional & A shorter slow-innovation proof works if a
+center--leaf residual cone is invariant at every outer point. \\
+\statusrefuted & Leaf symmetry alone does not imply that cone and does not by
+itself imply an $O(\alpha)$ innovation bound. \\
+\statusopen & A polynomially larger lower bound for AESP-LocGD, or the same
+lower bound for arbitrary AESP inner operators and hybrid local methods,
+requires a different argument. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The source locations used here are as follows.  In \citet{huang2025aesp}, PDF
+pages 3--5 define the PPR quadratic, inexact proximal set, nested work, and
+inner threshold; PDF pages 5--7 state the LocGD update and AESP-PPR parameters;
+PDF pages 16--21 prove the inner gap and convergence claims; and PDF page 29
+gives the batched queue implementation of Algorithm 3.  These locations are
+recorded in the repository literature note as well.
+
+\paragraph{Note-scoped convention.}
+The repository-wide residual convention remains open.  Throughout this note,
+$\epsilon$ means only the AESP-PPR output accuracy
+\begin{equation}
+  \norm{D^{-1}(\widehat\pi-\pi)}_\infty\leq\epsilon,
+  \label{eq:accuracy}
+\end{equation}
+and $\Work$ means only the cumulative active degree volume in
+\cref{def:work}.  No conversion to an RPPR proximal-gradient residual, APPR
+threshold, or implementation-wide stopping rule is asserted.
+
+\section{The literal AESP-LocGD model}
+\label{sec:model}
+
+Let $G=(V,E)$ be a connected undirected unweighted graph with adjacency
+matrix $A$, degree matrix $D$, and $m=|E|$.  For a source distribution
+$s\geq 0$ with $\one^\top s=1$, the symmetrized PPR quadratic is
+\begin{equation}
+  f(x)
+  :=\frac12 x^\top Qx-\alpha x^\top D^{-1/2}s,
+  \qquad
+  Q:=\frac{1+\alpha}{2}I
+     -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
+  \label{eq:ppr-objective}
+\end{equation}
+Its unique minimizer $x^\star$ satisfies $\pi=D^{1/2}x^\star$.
+The eigenvalues of $Q$ lie in $[\alpha,1]$.
+
+We use the PPR specialization of AESP for
+\begin{equation}
+  0<\alpha<\frac12,
+  \qquad
+  \eta:=1-2\alpha,
+  \qquad
+  d:=\alpha+\eta=1-\alpha.
+  \label{eq:parameters}
+\end{equation}
+At outer iteration $t$, given the extrapolated point $y^{(t-1)}$, LocGD
+approximately minimizes
+\begin{equation}
+  h_t(z):=f(z)+\frac{\eta}{2}\norm{z-y^{(t-1)}}_2^2
+  \label{eq:subproblem}
+\end{equation}
+from $z_t^{(0)}=y^{(t-1)}$.  The required gap and its scheduled tolerance are
+\begin{align}
+  H_t(\phi_t)
+  &:=\{z:h_t(z)-h_t^\star\leq\phi_t\},
+  \label{eq:Ht}\\
+  \phi_t
+  &:=\frac{1+\alpha}{18}
+      \left(1-\frac9{10}\sqrt{\frac{\alpha}{1-\alpha}}\right)^t.
+  \label{eq:phi}
+\end{align}
+The inner normalized-gradient threshold in Algorithm 3 is
+\begin{equation}
+  \varepsilon_t^{\mathrm{in}}
+  :=\max\left\{
+       \sqrt{\frac{d\phi_t}{m}},
+       \frac{2d\phi_t}
+       {\norm{D^{1/2}\nabla h_t(z_t^{(0)})}_1}
+     \right\}.
+  \label{eq:inner-threshold}
+\end{equation}
+If the denominator vanishes, Algorithm 3 returns the exact initial minimizer.
+Otherwise, a vertex is active when
+\begin{equation}
+  \abs{[\nabla h_t(z)]_v}
+  \geq \varepsilon_t^{\mathrm{in}}\sqrt{d_v}.
+  \label{eq:activation}
+\end{equation}
+All currently queued vertices form one batch and are updated with step size
+\begin{equation}
+  \tau_{\mathrm{gd}}:=\frac{2}{1+\alpha+2\eta}
+  =\frac{2}{3(1-\alpha)}.
+  \label{eq:gd-step}
+\end{equation}
+The source analysis guarantees that the returned point $x^{(t)}$ belongs to
+$H_t(\phi_t)$, including when the queue is initially empty.  The outer update
+is
+\begin{equation}
+  y^{(t)}=x^{(t)}+\beta(x^{(t)}-x^{(t-1)}),
+  \qquad
+  \beta:=\frac{\sqrt{1-\alpha}-\sqrt\alpha}
+               {\sqrt{1-\alpha}+\sqrt\alpha}.
+  \label{eq:momentum}
+\end{equation}
+
+\begin{definition}[Work measure]
+\label{def:work}
+If $S_t^{(k)}$ is the active set in inner batch $k$ of outer call $t$, define
+\begin{equation}
+  \Work:=\sum_t\sum_{k=0}^{K_t-1}\vol(S_t^{(k)}),
+  \qquad
+  \vol(S):=\sum_{v\in S}d_v.
+  \label{eq:work}
+\end{equation}
+This is exactly $\sum_t K_t\overline{\vol}(S_t)$ in the AESP paper.  It does
+not charge an empty outer call.  A separate augmented measure that charges
+outer-loop overhead is considered in \cref{sec:refinements}.
+\end{definition}
+
+\section{Center-star reduction}
+\label{sec:star}
+
+Let $G_B=K_{1,B}$, let $c$ denote its center, let $L$ denote its $B$ leaves,
+and take the source $s=e_c$.  The center has degree $B$ and every leaf has
+degree one.  All iterates remain leaf-symmetric, so write $x_\ell$ for the
+common leaf coordinate and define
+\begin{equation}
+  C(x):=\sqrt{B}\,x_c,
+  \qquad
+  L(x):=B x_\ell,
+  \qquad
+  M(x):=C(x)+L(x),
+  \qquad
+  F(x):=C(x)-L(x).
+  \label{eq:mass-coordinates}
+\end{equation}
+Here $C$ is the center PageRank mass, $L$ is aggregate leaf mass, $M$ is the
+slow stationary mode, and $F$ is the fast alternating mode.
+
+\begin{lemma}[Exact solution and norm conversion]
+\label{lem:norm-conversion}
+On the center-seeded star,
+\begin{equation}
+  C^\star=\frac{1+\alpha}{2},
+  \qquad
+  L^\star=\frac{1-\alpha}{2},
+  \qquad
+  M^\star=1,
+  \qquad
+  F^\star=\alpha.
+  \label{eq:star-solution}
+\end{equation}
+For every leaf-symmetric $x$ and $\widehat\pi=D^{1/2}x$,
+\begin{equation}
+  \norm{D^{-1}(\widehat\pi-\pi)}_\infty
+  =\frac{
+      \abs{M(x)-1}+\abs{F(x)-\alpha}
+    }{2B}.
+  \label{eq:star-error}
+\end{equation}
+Consequently, if $B\epsilon\leq 1/4$, every output satisfying
+\cref{eq:accuracy} obeys $M(x)\geq 1/2$.
+\end{lemma}
+
+\begin{proof}
+The PPR fixed point reduces to the two-state lazy star walk, giving
+\cref{eq:star-solution}.  The center and per-leaf errors are
+\begin{align*}
+  C-C^\star
+  &=\frac{(M-1)+(F-\alpha)}2,\\
+  \frac{L-L^\star}{B}
+  &=\frac{(M-1)-(F-\alpha)}{2B}.
+\end{align*}
+After degree normalization both coordinates have denominator $B$.  The
+identity $\max\{|a+b|,|a-b|\}=|a|+|b|$ proves
+\cref{eq:star-error}.  Accuracy therefore implies
+$|M-1|\leq2B\epsilon\leq1/2$.
+\end{proof}
+
+\begin{lemma}[Symmetry and scan cost]
+\label{lem:scan-cost}
+For AESP with batched LocGD on $G_B$, every inner active set is one of
+\begin{equation}
+  \varnothing,\qquad \{c\},\qquad L,\qquad \{c\}\cup L.
+  \label{eq:active-sets}
+\end{equation}
+Every nonempty inner batch therefore has volume at least $B$.  In particular,
+if $K$ outer calls contain at least one nonempty batch, then
+\begin{equation}
+  \Work\geq BK.
+  \label{eq:work-vs-calls}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The zero initialization is invariant under every permutation of the leaves.
+The AESP extrapolation is linear and permutation-equivariant.  At an inner
+point with identical leaves, their gradients and activation tests are
+identical.  A center update changes all leaf gradients by the same amount,
+and a simultaneous leaf update treats all leaves identically.  Induction over
+the outer calls and inner batches proves \cref{eq:active-sets}.  Finally,
+\[
+  \vol(\{c\})=B,
+  \qquad
+  \vol(L)=B,
+  \qquad
+  \vol(V)=2B.
+\]
+\end{proof}
+
+Thus the lower bound reduces to showing that at least
+$\Omega(1/\sqrt\alpha)$ outer calls must be effective.
+
+\section{The residual-cone route and why it is insufficient}
+\label{sec:cone}
+
+This section records the first proof route.  Its inner-process algebra is
+useful, but its proposed outer invariant is not implied by symmetry.
+
+For a fixed subproblem, let $r_c$ and $r_L$ be the negative-gradient residual
+in the mass coordinates.  The shifted Hessian on the $(C,L)$ subspace is
+\begin{equation}
+  H=Q+\eta I
+   =\frac{1-\alpha}{2}
+     \begin{pmatrix}3&-1\\-1&3\end{pmatrix}.
+  \label{eq:shifted-hessian}
+\end{equation}
+Using \cref{eq:gd-step}, one LocGD batch transforms the residual exactly as
+\begin{equation}
+\begin{array}{c|cc}
+\text{active block}&r_c^+&r_L^+\\
+\hline
+\{c\}&0&r_L+r_c/3\\
+L&r_c+r_L/3&0\\
+V&r_L/3&r_c/3.
+\end{array}
+\label{eq:residual-map}
+\end{equation}
+At the initial point $z=y$ of an inner call, put
+\begin{equation}
+  \sigma:=r_c+r_L=\alpha(1-M(y)),
+  \qquad
+  \Delta:=r_c-r_L=\alpha-F(y).
+  \label{eq:sigma-delta}
+\end{equation}
+
+\begin{lemma}[Conditional slow innovation]
+\label{lem:conditional-innovation}
+Suppose an inner call begins in the cone
+\begin{equation}
+  \sigma\geq0,
+  \qquad
+  |\Delta|\leq2\sigma.
+  \label{eq:cone}
+\end{equation}
+If $x$ is the LocGD output and $u:=M(x)-M(y)$, then
+\begin{equation}
+  0\leq u
+  \leq\frac{\alpha}{1-\alpha}(1-M(y)).
+  \label{eq:cone-innovation}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+If $r_c,r_L\geq0$, every map in \cref{eq:residual-map} preserves
+nonnegativity and does not increase their sum.  Otherwise, assume without
+loss of generality that $r_c=-a<0$ and $r_L=b>0$.  The cone gives
+$a+b\leq2(b-a)$, hence $b\geq3a$.  Because the activation threshold is common
+in mass coordinates, the negative coordinate cannot be active without the
+positive one.  If only the positive leaf block is active, the new residual is
+$(-a+b/3,0)\geq0$.  If both blocks are active, it is
+$(b/3,-a/3)$ and the same dominance is preserved.  Thus the residual sum
+remains nonnegative and nonincreasing throughout the inner process.
+
+The slow eigenvalue of \cref{eq:shifted-hessian} is $1-\alpha$, so
+\[
+  \sigma_{\mathrm{out}}
+  =\sigma_{\mathrm{in}}-(1-\alpha)u.
+\]
+Combining $0\leq\sigma_{\mathrm{out}}\leq\sigma_{\mathrm{in}}$ with
+\cref{eq:sigma-delta} proves the result.
+\end{proof}
+
+The missing step would have been to prove \cref{eq:cone} at every AESP outer
+point.  That claim is stronger than symmetry and is not automatic under
+extrapolation.  For example, a symmetric point with
+\[
+  M=\frac12,
+  \qquad
+  F=\frac14
+\]
+has $\sigma=\alpha/2$ and $\Delta=\alpha-1/4$.  For small $\alpha$ the cone
+fails by a factor of order $1/\alpha$.  A common threshold can then select the
+positive coordinate while leaving a negative coordinate untouched, creating
+an order-one slow innovation.  This example need not itself be an AESP
+iterate; it is enough to refute the inference ``leaf symmetry implies the
+cone.''  The unconditional proof must use the actual tolerance schedule.
+
+\section{Unconditional lower bound for literal AESP-LocGD}
+\label{sec:main-proof}
+
+Set
+\begin{equation}
+  q:=\frac{\alpha}{1-\alpha},
+  \qquad
+  \delta:=\sqrt q,
+  \qquad
+  \beta=\frac{1-\delta}{1+\delta},
+  \qquad
+  r:=1-\delta.
+  \label{eq:q-delta}
+\end{equation}
+Because $\alpha<1/2$, we have $0<\delta<1$ and $0<\beta<1$.
+
+\subsection{The first nonempty call fixes the error scale}
+
+At the start of an inner call, define the symmetric residual masses
+\begin{equation}
+  r_c:=-\sqrt B\,[\nabla h_t(y^{(t-1)})]_c,
+  \qquad
+  r_L:=-B[\nabla h_t(y^{(t-1)})]_\ell,
+  \qquad
+  R_t:=|r_c|+|r_L|.
+  \label{eq:mass-residuals}
+\end{equation}
+Symmetry gives
+$R_t=\norm{D^{1/2}\nabla h_t(y^{(t-1)})}_1$.  Since $m=B$, multiplying
+\cref{eq:inner-threshold} by $B$ shows that the common activation threshold in
+the mass coordinates is
+\begin{equation}
+  \Theta_t
+  :=B\varepsilon_t^{\mathrm{in}}
+  =\max\left\{A_t,\frac{2A_t^2}{R_t}\right\},
+  \qquad
+  A_t:=\sqrt{B(1-\alpha)\phi_t}.
+  \label{eq:mass-threshold}
+\end{equation}
+
+\begin{lemma}[First-activation certificate]
+\label{lem:first-activation}
+Let $t_0$ be the first outer call with a nonempty LocGD batch.  Then
+\begin{equation}
+  A_{t_0}\leq\frac{\alpha}{\sqrt2},
+  \qquad
+  A_t\leq\frac{\alpha}{\sqrt2}
+  \quad\text{for all }t\geq t_0.
+  \label{eq:A-bound}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Every earlier empty call returns its initial point.  Starting from
+$x^{(0)}=y^{(0)}=0$, all points before $t_0$ therefore remain zero.  At
+$t_0$,
+\[
+  r_c=\alpha,
+  \qquad
+  r_L=0,
+  \qquad
+  R_{t_0}=\alpha.
+\]
+The center is active only if
+\[
+  \alpha\geq\Theta_{t_0}
+  =\max\left\{A_{t_0},\frac{2A_{t_0}^2}{\alpha}\right\}.
+\]
+The second term gives $A_{t_0}\leq\alpha/\sqrt2$.  The schedule
+\cref{eq:phi} decreases with $t$, so the same bound holds later.
+\end{proof}
+
+\subsection{Certified slow-mode accuracy of every later inner output}
+
+Let
+\begin{equation}
+  M_t:=M(x^{(t)}),
+  \qquad
+  Y_{t-1}:=M(y^{(t-1)}).
+  \label{eq:M-Y}
+\end{equation}
+The normalized stationary eigenvector is
+\[
+  w:=\frac{D^{1/2}\one}{\sqrt{2B}},
+  \qquad
+  Qw=\alpha w.
+\]
+Multiplying the exact proximal system
+\[
+  (Q+\eta I)\widetilde x_t
+  =\alpha D^{-1/2}e_c+\eta y^{(t-1)}
+\]
+by $\one^\top D^{1/2}$ gives its exact slow mass
+\begin{equation}
+  \widetilde M_t
+  =\frac{\alpha+\eta Y_{t-1}}{\alpha+\eta}
+  =q+(1-q)Y_{t-1}.
+  \label{eq:exact-prox-mass}
+\end{equation}
+
+\begin{lemma}[Uniform slow-mode proximal error]
+\label{lem:prox-error}
+Renumber $t_0$ as outer call $1$.  For every subsequent returned point,
+including an empty call,
+\begin{equation}
+  M_t=q+(1-q)Y_{t-1}+\xi_t,
+  \qquad
+  |\xi_t|\leq\sqrt2\,q.
+  \label{eq:xi-bound}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The source guarantee gives $x^{(t)}\in H_t(\phi_t)$.  Since the slow
+eigenvalue of $Q+\eta I$ is $1-\alpha$, strong convexity projected onto $w$
+gives
+\begin{equation}
+  h_t(x^{(t)})-h_t^\star
+  \geq\frac{1-\alpha}{4B}
+       (M_t-\widetilde M_t)^2.
+  \label{eq:gap-projection}
+\end{equation}
+For completeness, the full two-mode decomposition is
+\[
+  h_t(x)-h_t^\star
+  =\frac{1-\alpha}{4B}(M(x)-\widetilde M_t)^2
+   +\frac{1-\alpha}{2B}(F(x)-\widetilde F_t)^2.
+\]
+Combining \cref{eq:gap-projection} with the gap certificate and
+\cref{eq:A-bound},
+\[
+  |M_t-\widetilde M_t|
+  \leq2\sqrt{\frac{B\phi_t}{1-\alpha}}
+  =\frac{2A_t}{1-\alpha}
+  \leq\sqrt2\frac{\alpha}{1-\alpha}
+  =\sqrt2\,q.
+\]
+This proves \cref{eq:xi-bound}.  If the initial gradient is zero, the output
+is exact; if the queue is merely empty, Lemma 3.2 of the source still certifies
+the displayed objective gap.
+\end{proof}
+
+\subsection{Positive Green function and momentum control}
+
+Using $Y_{t-1}=(1+\beta)M_{t-1}-\beta M_{t-2}$, the slow recurrence is
+\begin{equation}
+  M_t
+  =q+(1-q)\bigl((1+\beta)M_{t-1}-\beta M_{t-2}\bigr)+\xi_t.
+  \label{eq:slow-recurrence}
+\end{equation}
+All pre-$t_0$ iterates vanish, so after renumbering
+$M_{-1}=M_0=0$.  The identities
+\begin{equation}
+  (1-q)(1+\beta)=2r,
+  \qquad
+  (1-q)\beta=r^2
+  \label{eq:critical-identities}
+\end{equation}
+turn \cref{eq:slow-recurrence} into
+\begin{equation}
+  M_t=2rM_{t-1}-r^2M_{t-2}+q+\xi_t.
+  \label{eq:critical-recurrence}
+\end{equation}
+
+Let $\overline M_t$ denote the exact-proximal trajectory, obtained by setting
+$\xi_t=0$.  Solving the repeated-root recurrence gives
+\begin{equation}
+  \overline M_t
+  =1-(1+t\delta)(1-\delta)^t.
+  \label{eq:exact-trajectory}
+\end{equation}
+Its extrapolated mass is
+\begin{equation}
+  \overline Y_t
+  =(1+\beta)\overline M_t-\beta\overline M_{t-1},
+  \qquad
+  1-\overline Y_t
+  =\frac{1+(t+1)\delta}{1+\delta}(1-\delta)^t.
+  \label{eq:exact-Y}
+\end{equation}
+Hence $0\leq\overline Y_t\leq1$.
+
+\begin{lemma}[Positive impulse response]
+\label{lem:green}
+The impulse response from $\xi_j$ to $M_{j+k}$ in
+\cref{eq:critical-recurrence} is
+\begin{equation}
+  h_k=(k+1)r^k,
+  \qquad
+  \sum_{k=0}^\infty h_k=\frac1q.
+  \label{eq:h-green}
+\end{equation}
+The impulse response from $\xi_j$ to the corresponding extrapolated mass is
+nonnegative and equals
+\begin{equation}
+  g_0=1+\beta,
+  \qquad
+  g_k=(1+\beta)h_k-\beta h_{k-1}
+     =\beta(k+2)r^{k-1}\quad(k\geq1),
+  \qquad
+  \sum_{k=0}^\infty g_k=\frac1q.
+  \label{eq:g-green}
+\end{equation}
+Consequently,
+\begin{equation}
+  |Y_{t-1}-\overline Y_{t-1}|\leq\sqrt2,
+  \qquad
+  Y_{t-1}\geq-\sqrt2.
+  \label{eq:Y-lower}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The transfer polynomial of the homogeneous recurrence is
+$(z-r)^2$, giving $h_k=(k+1)r^k$.  Summing the geometric derivative gives
+$\sum_k h_k=(1-r)^{-2}=\delta^{-2}=q^{-1}$.  Applying the extrapolation
+filter $(1+\beta)-\beta z^{-1}$ gives \cref{eq:g-green}; direct substitution
+using $\beta=r/(1+\delta)$ shows every coefficient is nonnegative.  Its sum is
+the sum of $h_k$ because the filter has unit gain at one.  Therefore
+\[
+  |Y_{t-1}-\overline Y_{t-1}|
+  \leq \sup_j|\xi_j|\sum_{k\geq0}g_k
+  \leq(\sqrt2 q)q^{-1}=\sqrt2.
+\]
+Now use $\overline Y_{t-1}\geq0$.
+\end{proof}
+
+\subsection{Innovation counting}
+
+Define the innovation created by outer call $t$ as
+\begin{equation}
+  u_t:=M_t-Y_{t-1}.
+  \label{eq:innovation}
+\end{equation}
+The identities \cref{eq:exact-prox-mass,eq:xi-bound,eq:Y-lower} imply
+\begin{equation}
+  u_t=q(1-Y_{t-1})+\xi_t
+  \leq(1+2\sqrt2)q.
+  \label{eq:uniform-innovation}
+\end{equation}
+If call $t$ is empty, its output equals its initialization, so $u_t=0$.
+
+Independently of the proximal recurrence, the momentum identity gives
+\begin{equation}
+  M_t=(1+\beta)M_{t-1}-\beta M_{t-2}+u_t.
+  \label{eq:innovation-recurrence}
+\end{equation}
+Starting from zero and unrolling,
+\begin{equation}
+  M_T
+  =\sum_{t=1}^T
+     u_t\frac{1-\beta^{T-t+1}}{1-\beta}.
+  \label{eq:innovation-unroll}
+\end{equation}
+All weights are positive and at most $(1-\beta)^{-1}$.  Negative innovations
+only lower the right-hand side, so if $K$ calls are effective,
+\begin{equation}
+  M_T\leq
+  \frac{(1+2\sqrt2)qK}{1-\beta}.
+  \label{eq:M-upper}
+\end{equation}
+
+\begin{theorem}[Center-star lower bound]
+\label{thm:star-lower-bound}
+Let $0<\alpha<1/2$, let $G_B=K_{1,B}$ have its center as source, and run the
+literal AESP-PPR algorithm with the batched LocGD inner solver from zero.  If
+$B\epsilon\leq1/4$, then every output satisfying \cref{eq:accuracy} requires
+\begin{equation}
+  \boxed{
+  \Work
+  \geq
+  \frac{B}
+  {(1+2\sqrt2)\delta(1+\delta)},
+  \qquad
+  \delta=\sqrt{\frac{\alpha}{1-\alpha}}.}
+  \label{eq:main-lower-bound}
+\end{equation}
+In particular,
+\begin{equation}
+  \Work=\Omega\!\left(B\sqrt{\frac{1-\alpha}{\alpha}}\right).
+  \label{eq:B-alpha-asymptotic}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:norm-conversion}, accuracy forces $M_T\geq1/2$.  Combining this
+with \cref{eq:M-upper} gives
+\[
+  K\geq\frac{1-\beta}{2(1+2\sqrt2)q}.
+\]
+Since
+\[
+  1-\beta=\frac{2\delta}{1+\delta},
+  \qquad q=\delta^2,
+\]
+we obtain
+\[
+  K\geq\frac1{(1+2\sqrt2)\delta(1+\delta)}.
+\]
+Apply \cref{lem:scan-cost}.
+\end{proof}
+
+\begin{corollary}[Accuracy-parametrized lower bound]
+\label{cor:epsilon-bound}
+For $0<\epsilon\leq1/8$, choose
+$B=\lfloor1/(4\epsilon)\rfloor$.  Then
+\begin{equation}
+  \boxed{
+  \Work_{\AESP\text{-}\LOCGD}
+  \geq
+  \frac{1}{16\sqrt2(1+2\sqrt2)}
+  \frac1{\sqrt\alpha\,\epsilon}.}
+  \label{eq:epsilon-lower-bound}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+For $\epsilon\leq1/8$,
+$B\geq1/(8\epsilon)$.  Also $\delta<1$, so
+$(1+\delta)^{-1}>1/2$, and $1-\alpha>1/2$, so
+$\delta^{-1}\geq1/\sqrt{2\alpha}$.  Substitute these estimates into
+\cref{eq:main-lower-bound}.
+\end{proof}
+
+\section{Exact-proximal outer obstruction}
+\label{sec:exact-prox}
+
+The preceding theorem concerns the literal thresholded inner solver.  A
+simpler companion calculation isolates the outer slow-mode obstruction.  For
+exact proximal solves, \cref{eq:exact-trajectory} gives the normalized slow
+error
+\begin{equation}
+  E_t:=1-\overline M_t
+  =(1+t\delta)(1-\delta)^t.
+  \label{eq:exact-error}
+\end{equation}
+If $t\delta\leq1/4$, then Bernoulli's inequality yields
+\[
+  E_t\geq(1-\delta)^t\geq1-t\delta\geq\frac34,
+\]
+so $\overline M_t\leq1/4$.  Hence even exact-proximal AESP needs
+$\Omega(1/\sqrt\alpha)$ outer calls to create constant slow mass.  This
+calculation is not itself a work lower bound for LocGD: the literal theorem
+additionally needs \cref{lem:first-activation,lem:prox-error,lem:green} to
+connect each effective call to degree work.
+
+\section{Refinements and prospects for stronger lower bounds}
+\label{sec:refinements}
+
+\subsection{A graph-budget statement}
+
+\begin{corollary}[Worst case under an edge budget]
+\label{cor:edge-budget}
+Let $m\geq1$ and $0<\epsilon\leq1/8$.  Among connected graphs with at most
+$m$ edges, AESP-PPR with batched LocGD has worst-case work
+\begin{equation}
+  \boxed{
+  \Omega\!\left(
+    \frac{\min\{m,1/\epsilon\}}{\sqrt\alpha}
+  \right).}
+  \label{eq:edge-budget}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Choose the star with
+$B=\min\{m,\lfloor1/(4\epsilon)\rfloor\}$.  It has at most $m$ edges and
+$B\epsilon\leq1/4$.  Moreover,
+$B=\Omega(\min\{m,1/\epsilon\})$.  Apply
+\cref{thm:star-lower-bound}.
+\end{proof}
+
+When $m=\Theta(1/\epsilon)$, the construction forces
+$\Omega(m/\sqrt\alpha)$ work: every effective round scans essentially the
+whole graph.
+
+\subsection{Outer-loop overhead ignored by active volume}
+
+The work measure \cref{eq:work} charges an empty inner call zero, although the
+implementation still initializes its tolerance and evaluates its queue.  The
+first-activation certificate gives a separate delay.  From
+\cref{eq:phi,eq:mass-threshold},
+\[
+  A_t^2
+  =\frac{B(1-\alpha^2)}{18}
+    \left(1-\frac9{10}\delta\right)^t.
+\]
+The necessary condition $A_{t_0}^2\leq\alpha^2/2$ therefore implies
+\begin{equation}
+  t_0\geq
+  \frac{
+    \log\!\left(B(1-\alpha^2)/(9\alpha^2)\right)
+  }{
+    -\log(1-0.9\delta)
+  }
+  \label{eq:first-call-delay}
+\end{equation}
+whenever the numerator is positive.  If one defines an augmented cost
+$\Work_+:=\Work+T$ that charges one unit per outer call, then for small
+$\alpha$,
+\begin{equation}
+  \Work_+
+  =\Omega\!\left(
+     \frac{B}{\sqrt\alpha}
+     +\frac1{\sqrt\alpha}
+      \log_+\frac{B}{\alpha^2}
+   \right).
+  \label{eq:augmented-work}
+\end{equation}
+The logarithmic term is genuine implementation overhead but is not part of
+the dominated active-volume measure used in the AESP theorem.
+
+\subsection{Why the star does not currently give a polynomially larger bound}
+
+The proved result does not establish either
+\[
+  \Omega\!\left(\frac1{\alpha\epsilon}\right)
+  \qquad\text{or}\qquad
+  \Omega\!\left(\frac1{\sqrt\alpha\,\epsilon^2}\right)
+\]
+for AESP-LocGD.  The star exposes two obstructions and no more:
+\begin{enumerate}[leftmargin=*]
+\item its stationary slow mode needs $\Theta(1/\sqrt\alpha)$ accelerated
+      outer progress; and
+\item every effective symmetric scan costs $\Theta(B)$.
+\end{enumerate}
+Accuracy forces constant mass only while $B=O(1/\epsilon)$, so this direct
+product saturates at $1/(\sqrt\alpha\epsilon)$.  Even a hypothetical
+precision-sensitive refinement
+$B\log(1/(B\epsilon))/\sqrt\alpha$ would optimize to only
+$\Theta(1/(\sqrt\alpha\epsilon))$ over $B\epsilon\leq1/4$.
+
+A stronger active-volume lower bound therefore needs a graph that forces
+transient exploration beyond the $O(1/\epsilon)$ volume needed by the final
+significant output.  Plausible candidates are a multiscale spider, a
+star-of-stars, or a clustered lollipop in which momentum repeatedly crosses
+successive activation thresholds.  A successful construction must prove all
+of the following simultaneously:
+\begin{enumerate}[leftmargin=*]
+\item the high-volume blocks are actually activated by the literal AESP
+      threshold, not merely by an unconstrained accelerated recurrence;
+\item cancellation or signed residuals cannot bypass the intended scans;
+\item the required output accuracy remains nontrivial under degree
+      normalization; and
+\item the total forced work is not already limited by a matching explicit
+      AESP trajectory.
+\end{enumerate}
+At present these are research directions, not lower-bound claims.
+
+\section{Proof audit and exact scope}
+\label{sec:audit}
+
+The proof depends on the following chain, each link of which is explicit:
+\begin{enumerate}[leftmargin=*]
+\item AESP-PPR uses $\eta=1-2\alpha$, the schedule \cref{eq:phi}, and the
+      LocGD threshold \cref{eq:inner-threshold}.
+\item Batched queue processing, rather than sequential LocAPPR, preserves the
+      all-leaf active block and forces cost at least $B$.
+\item The first nonempty call starts from zero and certifies
+      $A_{t_0}\leq\alpha/\sqrt2$.
+\item The source inner guarantee $x^{(t)}\in H_t(\phi_t)$ converts that
+      certificate into the uniform slow error $|\xi_t|\leq\sqrt2q$.
+\item The critically damped outer recurrence has nonnegative impulse
+      coefficients whose total gain is exactly $1/q$.
+\item Therefore each effective call contributes at most $O(q)$ innovation
+      before a total momentum amplification of $O(1/\sqrt q)$.
+\item Accuracy forces constant slow mass, hence
+      $\Omega(1/\sqrt q)=\Omega(1/\sqrt\alpha)$ effective calls.
+\item Every such call costs at least $B$, and $B=\Theta(1/\epsilon)$ is legal.
+\end{enumerate}
+
+No step invokes the residual cone in \cref{sec:cone}.  Thus
+\cref{thm:star-lower-bound} is unconditional for the stated algorithm.  The
+following extensions are \emph{not} proved by this note:
+\begin{itemize}[leftmargin=*]
+\item replacing batched LocGD by sequential LocAPPR or an arbitrary map $M$;
+\item changing the AESP tolerance schedule, momentum, or initialization;
+\item transferring the result to $\ell_1$-regularized PageRank;
+\item lower-bounding every accelerated local first-order or hybrid method; or
+\item proving that $1/(\sqrt\alpha\epsilon)$ is optimal for the entire local
+      oracle model.
+\end{itemize}
+
+\section{Conclusion}
+
+The center-star argument rigorously matches the hoped-for hybrid target
+$1/(\sqrt\alpha\epsilon)$ for one important baseline: literal AESP-PPR with
+batched LocGD.  The key correction to the initial proof attempt is that
+symmetry controls scan cost but not signed slow-mode progress.  The actual
+AESP threshold supplies the missing control: the first effective call forces
+all later proximal errors to the $O(\alpha)$ scale, and the positive Green
+function bounds their total momentum amplification.  The resulting lower
+bound is publication-ready at its stated scope, while a stronger or
+algorithm-independent lower bound remains open.
+
+\footnotesize
+\begin{thebibliography}{9}
+
+\bibitem[Huang et~al.(2025)Huang, Luo, Xiao, Yang, and Zhou]{huang2025aesp}
+Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian Zhou.
+\newblock Accelerated evolving set processes for local PageRank computation.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2025.
+
+\bibitem[Zhou et~al.(2024)Zhou, Sun, Babanezhad Harikandeh, Guo, Yang, and
+Xiao]{zhou2024locesp}
+Baojian Zhou, Yifan Sun, Reza Babanezhad Harikandeh, Xingzhi Guo, Deqing Yang,
+and Yanghua Xiao.
+\newblock Iterative methods via locally evolving set process.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2024.
+
+\bibitem[Lin et~al.(2018)Lin, Mairal, and Harchaoui]{lin2018catalyst}
+Hongzhou Lin, Julien Mairal, and Zaid Harchaoui.
+\newblock Catalyst acceleration for first-order convex optimization: From
+theory to practice.
+\newblock \emph{Journal of Machine Learning Research}, 18(212):1--54, 2018.
+
+\end{thebibliography}
+
+\end{document}
