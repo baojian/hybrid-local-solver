@@ -1,0 +1,189 @@
+\subsection{Exact accelerated proximal iterates}
+
+Apply accelerated proximal point directly to the orthant objective
+$F_{\bar\rho}^+$.  With $\kappa=1-2\alpha$, define
+\begin{equation}
+ q:=\frac{\alpha}{\alpha+\kappa},
+ \qquad
+ \beta:=\frac{1-\sqrt q}{1+\sqrt q},
+ \label{eq:app-momentum}
+\end{equation}
+and initialize $x_{-1}=x_0=0$.  For $t\ge1$ let
+\begin{align}
+ y_{t-1}&=(1+\beta)x_{t-1}-\beta x_{t-2},
+ \label{eq:app-center}\\
+ x_t&=\arg\min_{x\ge0}
+ \left\{F_{\bar\rho}(x)+\frac\kappa2\norm{x-y_{t-1}}_2^2\right\}.
+ \label{eq:app-step}
+\end{align}
+Set
+\[
+ A_t:=\supp(x_t),
+ \qquad V_t:=\vol(A_t),
+ \qquad p_t:=p(x_t).
+\]
+The relevant nonmonotonicity is not the number of new coordinates.  It is the
+mass of coordinates present two iterates ago and absent now:
+\begin{equation}
+ d_t
+ :=p_{A_{t-2}\setminus A_t}(x_{t-2})
+ =\sum_{i\in A_{t-2}\setminus A_t}w_i x_{t-2,i}.
+ \label{eq:dropout-mass}
+\end{equation}
+
+\subsection{One-step active-volume inequality}
+
+\begin{lemma}[Active KKT sum; \ProvedStatus]
+\label{lem:active-kkt-sum}
+Every exact step~\eqref{eq:app-step} satisfies
+\begin{equation}
+ (\alpha+\kappa)p_t+\alpha\bar\rho V_t
+ \le \alpha+\kappa p_{A_t}(y_{t-1}).
+ \label{eq:active-kkt-sum}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+On $A_t$, the proximal KKT equations are
+\[
+ \bigl(Qx_t-b+\alpha\bar\rho w
+       +\kappa(x_t-y_{t-1})\bigr)_i=0.
+\]
+Because $x_t$ is zero off $A_t$ and $Q$ has nonpositive off-diagonal
+entries,
+\[
+ \sum_{i\in A_t}w_i(Qx_t)_i
+ \ge w^TQx_t=\alpha p_t.
+\]
+Also $\sum_{i\in A_t}w_i b_i\le w^Tb=\alpha$.  Weighted summation of the
+active equations gives~\eqref{eq:active-kkt-sum}.
+\end{proof}
+
+The restricted center mass obeys
+\begin{align}
+ p_{A_t}(y_{t-1})
+ &=(1+\beta)p_{A_t}(x_{t-1})
+   -\beta p_{A_t}(x_{t-2}) \notag\\
+ &\le (1+\beta)p_{t-1}-\beta p_{t-2}+\beta d_t.
+ \label{eq:center-mass-bound}
+\end{align}
+Support growth is free in this inequality; only disappearance of old mass
+creates the final positive term.
+
+\subsection{Cumulative identity}
+
+\begin{theorem}[Cumulative active volume; \ProvedStatus]
+\label{thm:cumulative-volume}
+For the exact iterates~\eqref{eq:app-center}--\eqref{eq:app-step},
+\begin{equation}
+ \alpha\bar\rho\sum_{t=1}^T V_t
+ +\alpha\sum_{t=1}^T p_t
+ \le
+ \alpha T+\kappa(\beta p_{T-1}-p_T)
+ +\kappa\beta\sum_{t=1}^T d_t.
+ \label{eq:cumulative-volume-identity}
+\end{equation}
+Define the nonnegative deactivation flux
+\begin{equation}
+ \Phi_T
+ :=\pos{\beta p_{T-1}-p_T}
+   +\beta\sum_{t=1}^T d_t.
+ \label{eq:flux}
+\end{equation}
+Then
+\begin{equation}
+ \sum_{t=1}^T V_t
+ \le \frac{T}{\bar\rho}
+     +\frac{\kappa\Phi_T}{\alpha\bar\rho}.
+ \label{eq:volume-via-flux}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Substitute~\eqref{eq:center-mass-bound} into
+~\eqref{eq:active-kkt-sum}, separate $\alpha p_t$ from
+$(\alpha+\kappa)p_t$, and sum over $t$.  The momentum terms telescope:
+\[
+ \sum_{t=1}^T
+ \bigl((1+\beta)p_{t-1}-\beta p_{t-2}-p_t\bigr)
+ =\beta p_{T-1}-p_T,
+\]
+because $p_{-1}=p_0=0$.  This proves
+~\eqref{eq:cumulative-volume-identity}.  Replace the endpoint by its positive
+part and discard the nonnegative term $\alpha\sum_t p_t$ to obtain
+~\eqref{eq:volume-via-flux}.
+\end{proof}
+
+For an approximate inner solve, let
+\begin{equation}
+ E_t:=\sum_{i\in A_t}w_i
+ \left|
+   \bigl(Qx_t-b+\alpha\bar\rho w
+          +\kappa(x_t-y_{t-1})\bigr)_i
+ \right|.
+ \label{eq:inner-kkt-error}
+\end{equation}
+The right side of~\eqref{eq:volume-via-flux} gains
+$\sum_tE_t/(\alpha\bar\rho)$.
+
+Since $Q+\kappa I$ has constant condition number, a positive-residual local
+coordinate method solves each proximal problem in $\softO(V_t)$ work.  Thus
+\begin{equation}
+ W_{\mathrm{warm}}
+ =\softO\!\left(
+   \frac{T}{\rho}
+   +\frac{\Phi_T}{\alpha\rho}
+   +\frac{\sum_tE_t}{\alpha\rho}
+ \right).
+ \label{eq:warm-work-flux}
+\end{equation}
+Combining with~\eqref{eq:tail-target} and
+$T=\softO(1/\sqrt\alpha)$ gives the observable conditional bound
+\begin{equation}
+ W_{\mathrm{hybrid}}
+ =\softO\!\left(
+   \frac1{\rho\sqrt\alpha}
+   +\frac{\Phi_T}{\alpha\rho}
+   +\frac{\sum_tE_t}{\alpha\rho}
+ \right).
+ \label{eq:hybrid-flux-bound}
+\end{equation}
+
+\subsection{The flux conjecture and transformed wave}
+
+The tempting final lemma was
+\begin{conjecture}[Deactivation-flux conjecture; now rejected]
+\label{conj:flux}
+For the exact accelerated Euclidean proximal iterates above, uniformly over
+graphs,
+\begin{equation}
+ \Phi_T=O(\alpha T).
+ \label{eq:flux-conjecture}
+\end{equation}
+\end{conjecture}
+If true, it would turn~\eqref{eq:hybrid-flux-bound} into the target
+~\eqref{eq:target-work}.  It is strictly sharper than counting face changes:
+monotone support growth has $d_t=0$ regardless of how many vertices are
+added, and a dropout is charged by its value rather than its degree.
+
+The correct dynamic variable reveals why the conjecture is fragile.  Let
+\[
+ r_0:=1-\sqrt{\frac{\alpha}{\alpha+\kappa}},
+ \qquad
+ z_t:=x_t-r_0x_{t-1}.
+\]
+Writing $\lambda_t\ge0$ for the orthant KKT multiplier, the inertial system
+factors as
+\begin{equation}
+ (\alpha+\kappa)(z_t-r_0z_{t-1})
+ +(Q-\alpha I)x_t
+ =b-\alpha\bar\rho w+\lambda_t.
+ \label{eq:transformed-wave}
+\end{equation}
+Both the endpoint term and a two-step dropout are controlled by negative
+parts of the transformed momentum.  Consequently, the conjecture is, up to
+constants, a bound on the cumulative weighted negative wave.  Branching
+graphs can amplify that wave in degree-weighted $\ell_1$ even though the
+accelerated method remains stable in objective and Euclidean norm.  The exact
+mechanism is developed in \cref{sec:tree-wave}.
+

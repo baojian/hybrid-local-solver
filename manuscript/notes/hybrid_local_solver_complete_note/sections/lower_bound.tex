@@ -1,0 +1,151 @@
+\subsection{Oracle restriction}
+
+The classical $\Omega(1/\sqrt\alpha)$ first-order iteration lower bound and
+the $\Omega(1/\rho)$ output-size bound cannot be multiplied without an oracle
+restriction.  The following restriction is natural for methods that keep
+every explored coordinate resident.
+
+\begin{definition}[Persistent-support one-hop oracle]
+Starting from a source $s$, the method maintains sets
+\begin{equation}
+ S_0=\{s\},
+ \qquad
+ S_t\subseteq S_{t+1}\subseteq S_t\cup N(S_t),
+ \label{eq:persistent-oracle}
+\end{equation}
+its iterate is supported in $S_t$, and it pays
+$W_T=\sum_{t<T}\vol(S_t)$.
+\end{definition}
+
+\subsection{Path-bundle instance}
+
+Let $a:=\sqrt\alpha$.  For sufficiently small $\alpha$ and
+$0<\rho\le a/16$, choose
+\begin{equation}
+ L:=\left\lfloor\frac1{8a}\right\rfloor,
+ \qquad
+ M:=\left\lfloor\frac{a}{8\rho}\right\rfloor.
+ \label{eq:path-bundle-parameters}
+\end{equation}
+Construct a root vertex $s$ with $M$ disjoint path arms of length $N>L$ and
+use $s$ as the source.  Let $x^{(0)}=Q^{-1}b$ be the unregularized PageRank
+solution and define the degree-normalized value at depth $k$ of arm $j$ by
+\[
+ z_k:=\frac{x^{(0)}_{j,k}}{\sqrt{d_{j,k}}}.
+\]
+
+\begin{lemma}[Exact arm profile; \ProvedStatus]
+\label{lem:arm-profile}
+With
+\begin{equation}
+ r:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \label{eq:path-root}
+\end{equation}
+the common arm profile is
+\begin{equation}
+ z_k
+ =\frac{\sqrt\alpha}{M}
+   \frac{r^k+r^{2N-k}}{1-r^{2N}}.
+ \label{eq:arm-profile}
+\end{equation}
+In particular, $z_k\ge(\sqrt\alpha/M)r^k$.
+\end{lemma}
+
+\begin{proof}
+After dividing $Qx^{(0)}=b$ coordinatewise by $\sqrt d$, the interior of an
+arm satisfies a second-order recurrence whose characteristic roots are $r$
+and $r^{-1}$.  The degree-one endpoint condition fixes the reflected
+coefficient as $r^{2N}$.  The root equation
+\[
+ \frac{1+\alpha}{2}z_0-\frac{1-\alpha}{2}z_1=\frac\alpha M
+\]
+then fixes the leading coefficient as
+$\sqrt\alpha/(M(1-r^{2N}))$, giving~\eqref{eq:arm-profile}.
+\end{proof}
+
+For $k\le L$, Bernoulli's inequality gives
+\[
+ r^k\ge(1-2\sqrt\alpha)^L\ge\frac34.
+\]
+The choice of $M$ therefore implies
+\begin{equation}
+  z_k\ge6\rho,
+  \qquad 1\le k\le L.
+  \label{eq:arm-large}
+\end{equation}
+
+\subsection{Transfer to the regularized optimum}
+
+Define
+\begin{equation}
+ \ell:=\pos{x^{(0)}-\rho w}
+ \label{eq:path-lower-point}
+\end{equation}
+coordinatewise and let $h:=x^{(0)}-\ell=\min\{x^{(0)},\rho w\}$.
+At every $i\in\supp(\ell)$, $h_i=\rho w_i$, while $h\le\rho w$.  Since $Q$
+has nonpositive off-diagonal entries and $Qw=\alpha w$,
+\begin{equation}
+ (Qh)_i\ge(Q(\rho w))_i=\alpha\rho w_i
+ \qquad (i\in\supp\ell).
+\end{equation}
+Hence $r_{\rho,i}(\ell)=Qh_i-\alpha\rho w_i\ge0$ on the support.  By
+\cref{lem:lower-comparison},
+\begin{equation}
+  \ell\le x_\rho^\star.
+  \label{eq:path-lower-transfer}
+\end{equation}
+Combining~\eqref{eq:arm-large} and~\eqref{eq:path-lower-transfer} gives
+\begin{equation}
+ \frac{x_{\rho,j,k}^\star}{\sqrt{d_{j,k}}}
+ \ge5\rho,
+ \qquad 1\le k\le L.
+ \label{eq:regularized-arm-large}
+\end{equation}
+
+\subsection{Work lower bound}
+
+\begin{theorem}[Persistent-support product lower bound; \ProvedStatus]
+\label{thm:persistent-lower-bound}
+Any method in the oracle~\eqref{eq:persistent-oracle} that returns $x$ with
+\begin{equation}
+ \norm{D^{-1/2}(x-x_\rho^\star)}_\infty\le\rho
+ \label{eq:path-output-accuracy}
+\end{equation}
+on the path bundle above has
+\begin{equation}
+ W_T=\Omega\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:persistent-product-lb}
+\end{equation}
+The same conclusion holds for a sufficiently small constant objective-gap
+target $F_\rho(x)-F_\rho^\star\le c\alpha\rho^2$.
+\end{theorem}
+
+\begin{proof}
+By~\eqref{eq:regularized-arm-large}, an output satisfying
+~\eqref{eq:path-output-accuracy} cannot set any of the first $L$ vertices of
+any arm to zero.  Let $\tau_{j,k}$ be the first round in which depth $k$ of arm
+$j$ enters the persistent support.  One-hop exploration gives
+$\tau_{j,k}\ge\tau_{j,k-1}+1$.  Since depth $L$ must have entered by the
+terminal round, backward induction shows that the depth-$k$ vertex remains in
+the support for at least $L-k+1$ charged rounds.  These vertices have degree
+two, so
+\[
+ W_T
+ \ge2\sum_{j=1}^M\sum_{k=1}^L(L-k+1)
+ =M L(L+1)
+ =\Omega\!\left(\frac1{\rho\sqrt\alpha}\right).
+\]
+For objective accuracy, $F_\rho$ is $\alpha$-strongly convex.  Omitting one of
+the coordinates in~\eqref{eq:regularized-arm-large} already creates squared
+Euclidean error of constant order $\rho^2$, so a sufficiently small constant
+$c$ forces the same inclusion.
+\end{proof}
+
+\subsection{Limitation}
+
+This theorem is not a lower bound for the full locally evolving-set oracle of
+\citet{zhou2024iterative}.  A moving-frontier method can discard old prefixes,
+keep only $O(M)$ current volume, and cross $L$ levels in work $ML=\Theta(1/\rho)$.
+Likewise, a broad sparse-direction Krylov oracle can combine past directions
+without keeping their union active.  A product lower bound for arbitrary
+moving-frontier, coordinate-push, or sparse-direction methods remains open.

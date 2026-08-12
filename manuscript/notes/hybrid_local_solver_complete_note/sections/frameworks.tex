@@ -1,13 +1,60 @@
-The note studies two complementary frameworks.
+\subsection{Three relevant baselines}
 
-\paragraph{Locally evolving-set methods.}
-Local iterative solvers maintain an active set and exploit graph locality. Their
-cost is controlled by active volume and residual progress.
+\paragraph{Monotone local push.}
+The approximate PageRank push method of \citet{andersen2007using} is local
+because nonnegative residual mass is spent monotonically.  In its native
+degree-normalized tolerance, its classical worst-case work is
+$O(1/(\alpha\epsilon_{\mathrm{appr}}))$.  The repository contains a separate
+matching star lower bound; this note uses the result only as motivation and
+does not assert a conversion between $\epsilon_{\mathrm{appr}}$ and $\rho$.
 
-\paragraph{AESP.}
-AESP applies Catalyst-style acceleration outside local inner solves. The shifted
-systems have improved conditioning and provide accelerated outer convergence.
+\paragraph{Locally evolving sets.}
+\citet{zhou2024iterative} define a local process with
+$S_{t+1}\subseteq S_t\cup N(S_t)$ and charge~\eqref{eq:work-model}.  Their
+analysis emphasizes that nonmonotone active sets can still be local when
+active volume is paired with a residual-progress factor.  This is the natural
+work model for the present discussion: convergence in a global norm alone is
+not enough.
 
-The empirical motivation is that early AESP iterations often reduce error
-rapidly before local volume becomes expensive. This motivates switching to a
-monotone local tail.
+\paragraph{Accelerated outer processes.}
+Catalyst approximately solves a sequence of quadratically regularized
+subproblems and extrapolates their centers
+\citep{lin2018catalyst}.  AESP localizes this idea for PageRank and uses only
+$\softO(1/\sqrt\alpha)$ outer subproblems
+\citep{huang2025accelerated}.  AESP's published work contains a run-dependent
+locality quantity and its experiments show especially rapid progress in the
+early stages.  Classical FISTA, however, can activate a high-degree star
+center that ISTA never touches \citep{fountoulakis2026complexity}.  Acceleration
+and locality must therefore be analyzed jointly.
+
+\subsection{The bell-volume observation}
+
+The motivating empirical trajectory has three phases:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+  \item a small active set and rapid accelerated error reduction;
+  \item a middle phase in which active volume expands and may form a large
+  bell-shaped peak; and
+  \item a late phase in which a monotone local relaxation can finish cheaply
+  once the remaining positive residual mass is small.
+\end{enumerate}
+This suggested two related questions.
+\begin{itemize}[leftmargin=*]
+  \item Can one stop acceleration before the volume peak and hand the state to
+  a monotone local solver?
+  \item Can the bell be flattened by allowing
+  $\softO((1/\sqrt\alpha)\log(1/\rho))$ outer stages while enforcing
+  $O(1/\rho)$ active volume at every stage?
+\end{itemize}
+The second question is not answered merely by the optimal support
+budget~\eqref{eq:rppr-support-budget}: extrapolated intermediate points need
+not share the optimum's support.
+
+\subsection{Why the known sparse accelerated algorithm does not settle the target}
+
+The expanding-subspace method of \citet{martinezrubio2023accelerated} gives a
+rigorous accelerated sparse algorithm for positive-definite $M$-matrix
+quadratics.  Its dependence on the optimal support differs from the desired
+linear $1/\rho$ locality scale.  It proves that sparse acceleration is
+possible, but it does not imply~\eqref{eq:target-work} for the classical
+one-gradient or one-proximal-center trajectory studied here.
+

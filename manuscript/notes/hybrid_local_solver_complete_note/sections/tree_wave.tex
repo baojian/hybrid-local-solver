@@ -1,0 +1,237 @@
+\label{sec:tree-wave}
+\subsection{Finite radial reduction}
+
+Let $G_L$ be the depth-$L$ rooted $3$-regular tree.  Its levels
+$\mathcal L_k$ have
+\[
+ |\mathcal L_0|=1,
+ \qquad
+ |\mathcal L_k|=3\cdot2^{k-1}\quad(k\ge1).
+\]
+The root and nonleaf vertices have degree three and leaves have degree one.
+Use the root as the single source.  Radial symmetry implies that every
+proximal iterate is constant on each level.  Define its total
+degree-weighted shell mass and shell volume by
+\begin{equation}
+ m_{t,k}:=\sum_{v\in\mathcal L_k}\sqrt{d_v}\,x_{t,v},
+ \qquad
+ v_k:=\vol(\mathcal L_k).
+ \label{eq:shell-mass}
+\end{equation}
+Then $p_t=\sum_{k=0}^Lm_{t,k}$.
+
+Let $P_L$ be the column-stochastic radial random-walk matrix:
+\begin{align*}
+ (P_L)_{1,0}&=1,\\
+ (P_L)_{k-1,k}&=\frac13,
+ & (P_L)_{k+1,k}&=\frac23
+ &&(1\le k<L),\\
+ (P_L)_{L-1,L}&=1.
+\end{align*}
+For $\kappa=1-2\alpha$,
+\begin{equation}
+ Q+\kappa I
+ =\frac{1-\alpha}{2}(3I-W).
+ \label{eq:tree-prox-hessian}
+\end{equation}
+The similarity transformation from radial coordinate values to shell masses
+turns $W$ into $P_L$.
+
+\begin{proposition}[Exact radial obstacle recurrence; \ProvedStatus]
+\label{prop:radial-recurrence}
+The exact proximal iterate~\eqref{eq:app-step} on $G_L$ is the unique fixed
+point of
+\begin{equation}
+ m_t=pos{
+   \frac13P_Lm_t
+   +\frac{2}{3(1-\alpha)}
+    \left[
+      \alpha e_0-\alpha\bar\rho v
+      +\kappa\bigl((1+\beta)m_{t-1}-\beta m_{t-2}\bigr)
+    \right]
+ }.
+ \label{eq:radial-obstacle}
+\end{equation}
+The positive part is componentwise.  In shell variables,
+\begin{equation}
+ d_t
+ =\sum_{\substack{k:m_{t-2,k}>0\\m_{t,k}=0}}m_{t-2,k}.
+ \label{eq:radial-dropout}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Multiply the radial KKT system by the shell mass weights.  The quadratic term
+is~\eqref{eq:tree-prox-hessian}, the source has mass $\alpha e_0$, and the
+$\ell_1$ derivative has shell mass $\alpha\bar\rho v$.  Solving the obstacle
+equation for $m_t$ gives~\eqref{eq:radial-obstacle}.  Since
+$\norm{P_L}_1=1$ and positive-part projection is nonexpansive, its right side
+is a $1/3$ contraction in $\ell_1$.  The fixed point is therefore unique.
+Equation~\eqref{eq:radial-dropout} is~\eqref{eq:dropout-mass} grouped by
+levels.
+\end{proof}
+
+This recurrence removes the main numerical ambiguity of the full graph: a
+depth-$L$ tree with exponentially many vertices is represented by only $L+1$
+nonnegative masses, and every proximal subproblem is solved by a stable
+$1/3$-contractive iteration.
+
+\subsection{Finite-tree stress test}
+
+Fix
+\begin{equation}
+ \alpha=10^{-3},
+ \qquad
+ \bar\rho_L=10^{-0.275L}.
+ \label{eq:tree-parameters}
+\end{equation}
+Since $1/\bar\rho_L=10^{0.275L}$ whereas
+$|V(G_L)|=\Theta(2^L)=10^{0.3010\ldots L}$, this remains a genuinely local
+parameter regime.
+
+Starting from $m_{-1}=m_0=0$, we solved~\eqref{eq:radial-obstacle} until
+successive fixed-point iterates differed by at most
+$10^{-14}\max\{1,\norm{m_t}_1\}$.  The following values are direct
+evaluations of~\eqref{eq:flux} and~\eqref{eq:radial-dropout}.
+
+\begin{table}[ht]
+\centering
+\caption{Finite rooted-tree deactivation flux for~\eqref{eq:tree-parameters}.
+These are computational observations, not hidden asymptotic claims.}
+\label{tab:tree-flux}
+\begin{tabular}{rrrr}
+\toprule
+Depth $L$ & Iteration $T$ & $\Phi_T$ & $\Phi_T/(\alpha T)$ \\
+\midrule
+60  & 117 & $3.552001$             & $3.0359\times10^{1}$ \\
+100 & 198 & $6.291300\times10^{1}$ & $3.1774\times10^{2}$ \\
+140 & 254 & $1.013375\times10^{3}$ & $3.9897\times10^{3}$ \\
+180 & 335 & $1.602154\times10^{4}$ & $4.7826\times10^{4}$ \\
+240 & 418 & $9.371581\times10^{5}$ & $2.2420\times10^{6}$ \\
+280 & 498 & $1.392457\times10^{7}$ & $2.7961\times10^{7}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At $L=100,T=198$,
+\[
+ \sum_{t\le198}d_t=67.024028\ldots,
+ \qquad
+ \Phi_{198}=62.913002\ldots,
+ \qquad
+ \alpha T=0.198.
+\]
+Changing the shell-support threshold between zero and $10^{-10}$ changes none
+of these displayed digits.  Direct nonnegative quadratic programming in the
+radial value coordinates agrees with the mass fixed point on moderate depths.
+
+\paragraph{Interpretation.}
+For each fixed finite graph, accelerated proximal point still converges in
+objective value.  The instability is in a different norm: momentum launches
+an outward radial wave whose Euclidean energy can remain controlled while its
+degree-weighted $\ell_1$ mass grows across exponentially expanding shells.
+Repeated shell disappearance then accumulates in $\Phi_T$.
+
+\subsection{Exact outward traveling wave}
+
+The mechanism can be isolated analytically.  On a rooted $B$-regular tree,
+the inward current-shell coupling vanishes as $B\to\infty$.  Away from the
+root and leaves,~\eqref{eq:radial-obstacle} becomes
+\begin{equation}
+ m_{t,k}
+ =\pos{
+   \frac13m_{t,k-1}
+   +a_\alpha\bigl((1+\beta)m_{t-1,k}-\beta m_{t-2,k}\bigr)
+ },
+ \qquad
+ a_\alpha:=\frac{2(1-2\alpha)}{3(1-\alpha)}.
+ \label{eq:outward-recurrence}
+\end{equation}
+At $\alpha=0$ this is
+\begin{equation}
+ m_{t,k}
+ =\pos{
+   \frac13m_{t,k-1}
+   +\frac43m_{t-1,k}-\frac23m_{t-2,k}
+ }.
+ \label{eq:zero-alpha-outward}
+\end{equation}
+
+\begin{proposition}[Growing period-11 wave; \ProvedStatus]
+\label{prop:period-eleven-wave}
+Let $g=1.186095084\ldots$ be the largest real root with the sign pattern
+below of
+\begin{equation}
+ 19683g^6-69984g^5+91854g^4-54000g^3
+ +13560g^2-1088g+8=0.
+ \label{eq:g-polynomial}
+\end{equation}
+Set $u_{-2}=u_{-1}=0$, $u_0=1$, and for $0\le j\le8$ define
+\begin{equation}
+ u_{j+1}=3g u_j-4g u_{j-1}+2g u_{j-2}.
+ \label{eq:phase-recurrence}
+\end{equation}
+Then $u_9=u_{10}=0$, $u_0,\ldots,u_8>0$, and
+\begin{equation}
+ m_{t,k}=c g^k u_{(t-k)\bmod 11}
+ \label{eq:traveling-wave}
+\end{equation}
+is an exact nonnegative solution of~\eqref{eq:zero-alpha-outward} for every
+$c>0$.
+\end{proposition}
+
+\begin{proof}
+The positive phases generated by~\eqref{eq:phase-recurrence} are
+approximately
+\[
+ (u_0,\ldots,u_8)
+ =(1,3.558,7.917,13.661,19.490,23.319,22.912,17.130,7.565).
+\]
+The equation $u_9=0$ factors as $g^3$ times
+~\eqref{eq:g-polynomial}.  The two inactive phases are strict because
+\[
+ \frac43u_8-\frac23u_7<0,
+ \qquad
+ \frac{u_0}{3g}-\frac23u_8<0.
+\]
+Substitute~\eqref{eq:traveling-wave} into
+~\eqref{eq:zero-alpha-outward}.  On phases $0,\ldots,8$, division by
+$cg^{k-1}$ gives exactly~\eqref{eq:phase-recurrence}; on phases $9$ and $10$,
+the two strict inequalities make the positive part zero.  The modulo wrap at
+phase zero uses $u_1=3g u_0$.
+\end{proof}
+
+A shell positive at phase seven is zero two steps later at phase nine, so it
+contributes mass proportional to $g^k u_7$ to a dropout.  The strict sign
+pattern persists for small positive $\alpha$.  At $\alpha=10^{-3}$, the
+analogous outward recurrence has a growth root
+\begin{equation}
+ 1.1485<g_\alpha<1.1486.
+ \label{eq:positive-alpha-growth}
+\end{equation}
+
+\subsection{Rigorous scope of the tree conclusion}
+
+Three statements should not be conflated.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+  \item \cref{prop:radial-recurrence} is an exact finite-graph reduction.
+  \item \cref{tab:tree-flux} is a reproducible numerical evaluation of that
+  exact reduction and exhibits growth by more than six orders of magnitude in
+  the normalized ratio.
+  \item \cref{prop:period-eleven-wave} is an exact analytic growing solution
+  of the outward limiting dynamics, and its strict phases persist under small
+  coefficient perturbations.
+\end{enumerate}
+
+Together these facts invalidate~\eqref{eq:flux-conjecture} as a defensible
+graph-uniform lemma for an unconditional algorithmic theorem: classical
+inertia has a concrete branching-wave mechanism that the conjecture does not
+charge.  A completely formal asymptotic disproof for the specific
+\emph{zero-start, root-source, finite-tree} family still requires one final
+transfer statement: prove that the causal root response has a uniformly
+nonzero component in the growing phase and that finite branching and the leaf
+boundary preserve it over the required horizon.  Alternatively, one can
+produce interval-arithmetic certificates for an unbounded sequence of finite
+depths.  The finite computations strongly support this transfer but are not
+silently substituted for it here.
+
