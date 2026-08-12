@@ -91,6 +91,26 @@ the failed residual-cone route, the exact algorithmic scope, and the
 `Omega(min(m, 1 / epsilon) / sqrt(alpha))` graph-budget refinement. It is not
 a lower bound for arbitrary AESP inner maps or all hybrid local methods.
 
+The volume-gated acceleration note is in:
+
+```text
+manuscript/notes/volume_gated_acceleration/
+```
+
+Build it independently with:
+
+```bash
+make -C manuscript/notes/volume_gated_acceleration
+```
+
+This note proves a graph-uniform `1 / rho` peak-volume invariant for an
+RPPR-based safe support gate, derives exact spider-prefix conditioning, gives
+a path counterexample to restart-on-every-expansion, and proves an amortized
+restricted re-solving lemma. The final
+`O_tilde(1 / (rho * sqrt(alpha)))` work bound remains conditional on a
+one-sided expanding-subspace continuation lemma or an equivalent
+newly-admitted-volume charge. The note is not input by the active manuscript.
+
 ## Imported source workspaces
 
 Exact external LaTeX sources used to prepare agent-oriented reader editions
