@@ -12,6 +12,46 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
+
+Recorded as a standalone note in
+`manuscript/notes/volume_gated_acceleration/`. The note reconstructs the
+active-volume flattening discussion and separates the spider's spectral
+behavior from support-growth and repeated-scan work.
+
+Closed statements:
+
+- every principal restricted PageRank system has condition number at most
+  `1 / alpha`; on a depth-`L` spider prefix the exact scale is
+  `Theta(1 / (alpha + L^(-2)))`, so the spider obstruction is geometric
+  rather than a local condition number of order `1 / alpha^2`;
+- exact PPR has a degree-volume-`1 / tau` superlevel core whose Dirichlet
+  restriction is `tau`-accurate in degree-normalized infinity norm;
+- fixed RPPR regularization gives support volume at most `1 / rho` and PPR
+  error at most `rho`;
+- an arbitrary signed restricted candidate can be corrected to a safe lower
+  envelope; one-sided KKT violations then admit only true-support vertices,
+  and the absence of such violations certifies normalized infinity error;
+- choosing `rho = tau = epsilon / 2` proves peak working volume at most
+  `2 / epsilon` and final PPR error at most `epsilon`;
+- an endpoint-source path forces
+  `Omega(log(sqrt(alpha) / rho) / sqrt(alpha))` one-vertex expansions,
+  refuting the claim that support changes can always be grouped into only
+  `O(log(1 / epsilon))` ordinary restarts;
+- the exact expansion gain is a Schur-complement quadratic. Its elementary
+  bound is a lower bound, not the upper perturbation bound required for
+  accelerated stability;
+- continuous restricted re-solving costs telescope to
+  `O(log(1 / epsilon) / sqrt(alpha)) + N_exp` full iterations.
+
+Open item:
+
+- the graph-uniform `O_tilde(1 / (rho * sqrt(alpha)))` work theorem requires
+  a one-sided projected continuation lemma over safely expanding subspaces, or
+  the weaker ability to charge expansion overhead only to newly admitted
+  degree volume. The note does not close the separate AESP--LOCSOR promotion
+  gate and does not promote the universal bound into the active manuscript.
+
 ## 2026-08-12: rigorous AESP--LocGD center-star lower bound
 
 Recorded as a standalone note in

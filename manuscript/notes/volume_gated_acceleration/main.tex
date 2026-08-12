@@ -1,0 +1,1233 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This document is a curated reconstruction of the project conversation on
+% active-volume flattening, spider obstructions, safe RPPR support gates, and
+% acceleration over expanding subspaces.  It is not a verbatim transcript.
+% Source results, new proved statements, conditional implications, refuted
+% claims, and open lemmas are labeled separately.
+
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,tabularx}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue]{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\inner}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\prox}{\operatorname{prox}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\softO}{\widetilde{\mathcal O}}
+\newcommand{\bigO}{\mathcal O}
+\newcommand{\AESP}{\textsc{AESP}}
+\newcommand{\APPR}{\textsc{APPR}}
+\newcommand{\ASPR}{\textsc{ASPR}}
+\newcommand{\LOCSOR}{\textsc{LocSOR}}
+\newcommand{\LOCCH}{\textsc{LocCH}}
+\newcommand{\ISTA}{\textsc{ISTA}}
+\newcommand{\FISTA}{\textsc{FISTA}}
+\newcommand{\statussource}{\textbf{Source result}}
+\newcommand{\statusproved}{\textbf{Proved here}}
+\newcommand{\statusconditional}{\textbf{Conditional}}
+\newcommand{\statusrefuted}{\textbf{Refuted}}
+\newcommand{\statusopen}{\textbf{Open}}
+
+\title{Volume-Gated Acceleration for Local PageRank:\\
+Spectral Structure, Safe Support Certification, and the Expanding-Subspace Lemma}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Accelerated local PageRank methods can reduce the number of iteration-scale
+steps while enlarging the degree volume scanned by each step.  This note asks
+whether one can flatten the observed bell-shaped active-volume curve: permit
+$\bigO(\alpha^{-1/2}\log(1/\epsilon))$ iterations, but keep every active set
+at volume $\bigO(1/\epsilon)$.  We first separate conditioning from locality.
+Every principal PageRank system has condition number at most $1/\alpha$, and
+the exact condition number of a depth-$L$ spider prefix is
+$\Theta(1/(\alpha+L^{-2}))$.  Thus the spider obstruction comes from support
+growth and edge revisits, not a fictitious local condition number
+$\Theta(\alpha^{-2})$.
+
+We then prove the support-certification part of a volume-gated method.  Exact
+PPR has a degree-volume-$1/\tau$ superlevel core whose Dirichlet restriction is
+$\tau$-accurate in degree-normalized infinity norm.  More importantly, the
+$\ell_1$-regularized PageRank solution has support volume at most $1/\rho$ and
+is $\rho$-accurate for unregularized PPR.  An arbitrary signed accelerated
+candidate on a certified subspace can be converted into a componentwise lower
+envelope.  Negative KKT violations at this envelope safely reveal only true
+support vertices, while a one-sided global KKT test certifies solution error.
+Taking $\rho=\tau=\epsilon/2$ therefore proves a uniform peak-volume cap
+$2/\epsilon$ and final PPR error at most $\epsilon$.
+
+The remaining acceleration claim is not closed.  We give two corrections to
+the initial proof route.  First, an endpoint-source path forces
+$\Omega(\alpha^{-1/2}\log(\sqrt\alpha/\rho))$ one-vertex support expansions,
+so restarting after every expansion cannot yield only
+$\bigO(\log(1/\epsilon))$ restarts uniformly in $\alpha$.  Second, the
+Schur-complement ``shock energy'' lower bound has the wrong direction for a
+stability proof.  A valid telescoping argument nevertheless bounds all
+continuous re-solving work by
+$\bigO(\alpha^{-1/2}\log(1/\epsilon))$ accelerated sweeps plus one discrete
+term per expansion.  Closing the desired
+$\softO(1/(\sqrt\alpha\epsilon))$ work theorem now reduces to a precise
+one-sided, projected, expanding-subspace acceleration lemma.  The universal
+work bound is explicitly left open.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope, status, and source map}
+\label{sec:scope}
+
+This note reconstructs the complete volume-flattening discussion that grew
+out of the AESP--local-refinement project.  It complements, but does not
+replace, the broader standalone AESP--\LOCSOR{} note.  In particular, it does
+not promote a graph-uniform end-to-end complexity theorem into the active
+manuscript.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The RPPR objective, support-volume bound, classical
+\FISTA{} work model, confinement analysis, and bad-star phenomenon are from
+\citet{fountoulakis2026}.  The locally evolving-set and nonhomogeneous
+\LOCCH{} recurrences are from \citet{zhou2024}; AESP is from
+\citet{huang2025}. \\
+\statusproved & Principal restricted PageRank systems have condition number
+at most $1/\alpha$; a depth-$L$ spider prefix has condition number
+$\Theta(1/(\alpha+L^{-2}))$. \\
+\statusproved & A $1/\tau$-volume exact PPR core exists; fixed RPPR
+regularization gives a $1/\rho$-volume safe support; signed candidates admit
+a safe lower-envelope correction; and one-sided KKT tests give safe admission
+and an infinity-error certificate. \\
+\statusproved & The exact stagewise gate terminates and, with
+$\rho=\tau=\epsilon/2$, returns an $\epsilon$-accurate PPR approximation while
+every working set has volume at most $2/\epsilon$. \\
+\statusproved & A path forces
+$\Omega(\alpha^{-1/2}\log(\sqrt\alpha/\rho))$ expansions; the exact expansion
+gain is a Schur-complement quadratic; and continuous restricted re-solving
+costs telescope to an accelerated term plus one discrete term per expansion.
+\\
+\statusconditional & Geometric volume epochs would give
+$\bigO(1/(\rho\sqrt\alpha))$ work if subspace discovery and continuation can
+be charged without repeatedly scanning the whole current support. \\
+\statusrefuted & The spider does not have local condition number
+$\Theta(\alpha^{-2})$; splitting large sweeps into batches does not reduce
+work; support changes cannot in general be grouped into only
+$\bigO(\log(1/\epsilon))$ ordinary restarts; and a lower bound on expansion
+gain cannot serve as the upper perturbation bound needed for stability. \\
+\statusopen & A one-sided projected acceleration lemma for safely expanding
+subspaces, or a weaker newly-admitted-volume charging lemma, is still needed
+for a graph-uniform $\softO(1/(\rho\sqrt\alpha))$ work theorem. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Source pointers.}
+The RPPR formulation and KKT conditions appear on PDF page 3, Section 3, of
+\citet{fountoulakis2026}; its FISTA update and degree-weighted work are on PDF
+page 4, Section 3.1; its conditional confinement theorems are on PDF pages
+5--6, Sections 4.2--4.3; its star lower bound is in Appendix D, PDF pages
+18--23; and its experimental fixed-point residual is on PDF page 24.  The
+locally evolving-set work model and localized Chebyshev recurrence appear in
+Sections 3--4 and Appendix C of \citet{zhou2024}.  The AESP active-volume
+model, inexact proximal maps, and PPR specialization appear on PDF pages 4--7
+and 26--29 of \citet{huang2025}.  These source locations are also recorded in
+the repository literature notes.
+
+\paragraph{Note-scoped conventions.}
+The repository-wide residual convention is unresolved.  In this note:
+$\rho$ is the RPPR regularization level; $\tau$ is a one-sided KKT/error
+tolerance; and $\epsilon$ is only the final PPR error target
+\begin{equation}
+  \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsilon.
+  \label{eq:note-error}
+\end{equation}
+One full restricted first-order step on $U$ is charged $\vol(U)$, corresponding
+to scanning every incident edge of every active coordinate once.  No
+conversion to the repository's APPR threshold, objective-gap tolerance, or
+eventual implementation stopping rule is asserted.
+
+\section{PageRank and RPPR as a Stieltjes quadratic}
+\label{sec:model}
+
+Let $G=(V,E)$ be a connected undirected unweighted graph with no isolated
+vertices, adjacency matrix $A$, degree matrix $D=\diag(d_i)$, and a source
+distribution $s\geq0$ satisfying $\one^\top s=1$.  Fix $0<\alpha<1$ and set
+\begin{equation}
+ Q:=\frac{1+\alpha}{2}I
+      -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2},
+ \qquad
+ b:=\alpha D^{-1/2}s.
+ \label{eq:Q-b}
+\end{equation}
+The matrix $Q$ is a symmetric nonsingular Stieltjes matrix:
+\begin{equation}
+  \alpha I\preceq Q\preceq I,
+  \qquad Q_{ij}\leq0\ (i\neq j),
+  \qquad Q^{-1}\geq0,
+  \qquad QD^{1/2}\one=\alpha D^{1/2}\one.
+  \label{eq:Q-properties}
+\end{equation}
+The unregularized PPR point $x^0:=Q^{-1}b$ is nonnegative.  With
+$\pi:=D^{1/2}x^0$, the last identity in \cref{eq:Q-properties} gives
+\begin{equation}
+  \one^\top\pi=1.
+  \label{eq:ppr-mass}
+\end{equation}
+
+For $\rho>0$, define the RPPR objective
+\begin{equation}
+ F_\rho(x)
+ :=\frac12x^\top Qx-b^\top x
+   +\alpha\rho\norm{D^{1/2}x}_1.
+ \label{eq:rppr}
+\end{equation}
+This is the source-aligned formulation of \citet{fountoulakis2026}.  It is
+useful to expose its one-sided obstacle structure.
+
+\begin{lemma}[Equivalent nonnegative quadratic program]
+\label{lem:nonnegative-equivalence}
+The unique minimizer $x_\rho^\star$ of \cref{eq:rppr} is nonnegative and is
+equivalently the unique minimizer of
+\begin{equation}
+  \min_{x\geq0}G_\rho(x),
+  \qquad
+  G_\rho(x):=\frac12x^\top Qx-c_\rho^\top x,
+  \qquad
+  c_\rho:=b-\alpha\rho D^{1/2}\one.
+  \label{eq:obstacle-QP}
+\end{equation}
+It satisfies the complementarity system
+\begin{equation}
+ x_\rho^\star\geq0,
+ \qquad
+ g_\rho(x_\rho^\star):=Qx_\rho^\star-c_\rho\geq0,
+ \qquad
+ x_{\rho,i}^\star g_{\rho,i}(x_\rho^\star)=0.
+ \label{eq:KKT}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Because the off-diagonal entries of $Q$ are nonpositive,
+$\abs{x}^\top Q\abs{x}\leq x^\top Qx$.  Moreover
+$b^\top\abs{x}\geq b^\top x$ and the weighted $\ell_1$ term is unchanged.
+Thus $F_\rho(\abs{x})\leq F_\rho(x)$.  Strong convexity makes the minimizer
+unique, hence nonnegative.  On the nonnegative orthant the weighted
+$\ell_1$ term is linear, giving \cref{eq:obstacle-QP};
+\cref{eq:KKT} is its KKT system.
+\end{proof}
+
+For a vector $v$, write $(v_-)_i:=\max\{-v_i,0\}$.  All componentwise
+inequalities below use the ordinary coordinate order.
+
+\section{The spider obstruction is geometric, not spectral}
+\label{sec:spider}
+
+The first question in the discussion was whether the local system on a long
+spider might have condition number $\Theta(\alpha^{-2})$, thereby erasing the
+usual square-root acceleration.  Principal-submatrix interlacing rules this
+out immediately.
+
+\begin{lemma}[Uniform restricted conditioning]
+\label{lem:principal-conditioning}
+For every $U\subseteq V$,
+\begin{equation}
+  \alpha I_U\preceq Q_{UU}\preceq I_U,
+  \qquad
+  \kappa_2(Q_{UU})\leq\frac1\alpha.
+  \label{eq:principal-kappa}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$Q_{UU}$ is a principal submatrix of $Q$.  The claim follows from
+\cref{eq:Q-properties}, equivalently from Cauchy interlacing.
+\end{proof}
+
+The exact spider calculation identifies the scale more sharply.  Let
+$G_{B,N}$ have a center $o$ and $B$ disjoint arms of length $N$.  Let $U_L$
+contain $o$ and the first $L$ vertices of each arm, where $1\leq L<N$; degrees
+are always those of the full spider, so every truncated depth-$L$ vertex has
+degree two.
+
+\begin{proposition}[Exact spider-prefix spectrum]
+\label{prop:spider-spectrum}
+Let $S=D^{-1/2}AD^{-1/2}$.  Then
+\begin{equation}
+ \lambda_{\max}(S_{U_LU_L})
+ =\cos\!\left(\frac{\pi}{2(L+1)}\right).
+ \label{eq:spider-lambda}
+\end{equation}
+Consequently, with $\beta:=(1-\alpha)/(1+\alpha)$,
+\begin{align}
+ \kappa_2(Q_{U_LU_L})
+ &=\frac{1+\beta\cos(\pi/(2(L+1)))}
+         {1-\beta\cos(\pi/(2(L+1)))}
+ \label{eq:spider-kappa-exact}\\
+ &=\Theta\!\left(\frac1{\alpha+L^{-2}}\right)
+ =\Theta\!\left(\min\left\{L^2,\frac1\alpha\right\}\right).
+ \label{eq:spider-kappa-asymptotic}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+The Perron eigenvector is invariant under permutations of the arms.  In the
+orthonormal radial basis consisting of the center and the uniform vector on
+each depth, $S_{U_LU_L}$ becomes a tridiagonal matrix whose first off-diagonal
+entry is $1/\sqrt2$ and whose remaining off-diagonal entries are $1/2$.
+Its radial eigenvalues are
+\[
+  \cos\!\left(\frac{(2k-1)\pi}{2(L+1)}\right),
+  \qquad 1\leq k\leq L+1.
+\]
+The nonradial arm-difference modes have strictly smaller spectral radius, so
+\cref{eq:spider-lambda} follows.  The spider is bipartite, hence the extreme
+restricted normalized-adjacency eigenvalues are the positive and negative of
+\cref{eq:spider-lambda}.  Substitution into \cref{eq:Q-b} gives
+\cref{eq:spider-kappa-exact}.  Finally,
+$1-\beta\cos(\pi/(2(L+1)))=\Theta(\alpha+L^{-2})$, whereas the numerator is
+bounded above and below by constants.
+\end{proof}
+
+Thus $L=\Theta(\alpha^{-1/2})$ already saturates the global condition number
+$\Theta(1/\alpha)$.  Optimal polynomial or SOR-type acceleration still needs
+only $\Theta(1/\sqrt\alpha)$ sweep-scale iterations.  The difficulty is the
+cost of those sweeps.
+
+\subsection{A space--time accounting model}
+
+Write
+\begin{equation}
+  B:=\Theta(1/\epsilon),
+  \qquad L:=\Theta(1/\sqrt\alpha).
+  \label{eq:B-L}
+\end{equation}
+Suppose a FIFO wavefront scans all $B$ arm prefixes through depth $j$ at its
+$j$th sweep.  This is a structural accounting model, not a graph-uniform
+lower bound for every SOR implementation.  It gives
+\begin{equation}
+ \vol(S_j)=\Theta(Bj),
+ \qquad
+ \sum_{j=1}^{L}\vol(S_j)
+ =\Theta(BL^2)
+ =\Theta\!\left(\frac1{\alpha\epsilon}\right).
+ \label{eq:triangular-work}
+\end{equation}
+Equivalently, a late sweep costs $BL$ and there are $L$ accelerated-scale
+sweeps.  Merely splitting a size-$Bj$ sweep into $j$ batches of size $B$ does
+not change the sum.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Dynamics & Peak active volume & Iteration/batch count & Total work \\
+\midrule
+Growing FIFO prefix & $BL$ & $L$ sweeps & $BL^2$ \\
+Same work split into batches & $B$ & $L^2$ batches & $BL^2$ \\
+Desired volume-gated method & $B$ & $L\log(1/\epsilon)$ & $BL\log(1/\epsilon)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The desired method must therefore freeze old interior coordinates or charge
+their revisits amortizedly.  A change in iteration labels is insufficient.
+
+\section{The conditional geometric-epoch tradeoff}
+\label{sec:epoch-blueprint}
+
+The cleanest algebraic expression of volume flattening uses geometrically
+decreasing tolerances
+\begin{equation}
+  \tau_j=2^{-j}\tau_0,
+  \qquad J=\Theta(\log(\tau_0/\tau_J)).
+  \label{eq:geometric-tolerances}
+\end{equation}
+
+\begin{proposition}[Conditional geometric-epoch work]
+\label{prop:conditional-epochs}
+Suppose that at epoch $j$ an algorithm has a certified region $U_j$ with
+\begin{equation}
+  \vol(U_j)\leq\frac{C}{\tau_j},
+  \label{eq:epoch-volume}
+\end{equation}
+and that $H=C_0/\sqrt\alpha$ restricted iterations reduce the relevant error
+by a constant factor.  If discovery and transition between epochs introduce
+no additional full scans, then
+\begin{align}
+ T&=\bigO\!\left(\frac1{\sqrt\alpha}
+                  \log\frac{\tau_0}{\tau_J}\right),
+ \label{eq:epoch-iterations}\\
+ \mathcal W
+ &\leq H\sum_{j=0}^{J}\vol(U_j)
+ =\bigO\!\left(\frac1{\sqrt\alpha\,\tau_J}\right).
+ \label{eq:epoch-work}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+The iteration bound is $H(J+1)$.  Because $1/\tau_j$ grows geometrically,
+$\sum_j1/\tau_j=\bigO(1/\tau_J)$, which gives \cref{eq:epoch-work}.
+\end{proof}
+
+The proposition is only an accounting implication.  It assumes precisely the
+two properties that need proof: a locally discoverable certified region and
+stable acceleration as that region grows.
+
+\subsection{Why constant-frequency restarting loses acceleration}
+
+For a degree-$H$ polynomial method on an SPD spectrum $[\alpha,1]$, the best
+worst-case block contraction is
+\begin{equation}
+  \rho_H^\star
+  =\frac1{\abs{T_H((1+\alpha)/(1-\alpha))}},
+  \label{eq:cheb-block}
+\end{equation}
+where $T_H$ is the Chebyshev polynomial of the first kind.  If
+$H\sqrt\alpha\ll1$, then
+\begin{equation}
+  1-\rho_H^\star=\Theta(H^2\alpha).
+  \label{eq:short-block}
+\end{equation}
+Repeating such blocks therefore needs
+\begin{equation}
+  \Omega\!\left(\frac1{H\alpha}\log\frac1\epsilon\right)
+  \label{eq:restart-lower}
+\end{equation}
+total polynomial degree.  In particular, $H=\bigO(1)$ returns to the
+nonaccelerated $\alpha^{-1}$ scale.  An accelerated accuracy epoch must retain
+momentum for $H=\Omega(1/\sqrt\alpha)$ steps.  This classical polynomial fact
+does not by itself resolve support changes, but it rules out constant-step
+ordinary restarts as the flattening mechanism.
+
+\section{A canonical exact PPR core}
+\label{sec:exact-core}
+
+Before constructing an implementable gate, it is useful to see that a small
+accurate region always exists.  Define normalized PPR values
+\begin{equation}
+  y^0:=D^{-1/2}x^0=D^{-1}\pi
+\end{equation}
+and the exact superlevel set
+\begin{equation}
+  U_\tau^0:=\{i:y_i^0>\tau\}.
+  \label{eq:exact-core}
+\end{equation}
+
+\begin{theorem}[Exact superlevel core]
+\label{thm:exact-core}
+The core in \cref{eq:exact-core} satisfies
+\begin{equation}
+  \vol(U_\tau^0)\leq\frac1\tau.
+  \label{eq:exact-core-volume}
+\end{equation}
+Let $x^{U}$ solve the Dirichlet restriction
+\begin{equation}
+  Q_{UU}x_U^U=b_U,
+  \qquad x_{U^c}^U=0,
+  \qquad U=U_\tau^0.
+  \label{eq:dirichlet}
+\end{equation}
+Then
+\begin{equation}
+  0\leq x^U\leq x^0,
+  \qquad
+  \norm{D^{-1/2}(x^0-x^U)}_\infty\leq\tau.
+  \label{eq:dirichlet-error}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \cref{eq:ppr-mass},
+$\sum_i d_i y_i^0=1$.  Markov's inequality gives
+\cref{eq:exact-core-volume}.  Positivity of $Q_{UU}^{-1}$ and the fact that
+$Q_{UU}x_U^0=b_U-Q_{UU^c}x_{U^c}^0\geq b_U$ give
+$0\leq x^U\leq x^0$.
+
+Set $e=x^0-x^U$ and $h=D^{-1/2}e$.  For $i\in U$,
+$(Qe)_i=0$, hence
+\begin{equation}
+  h_i=\frac{1-\alpha}{1+\alpha}
+      \sum_j\frac{A_{ij}}{d_i}h_j.
+  \label{eq:discounted-harmonic}
+\end{equation}
+On $U^c$, $0\leq h_i=y_i^0\leq\tau$.  If a positive maximum larger than
+$\tau$ occurred in $U$, \cref{eq:discounted-harmonic} would make it strictly
+smaller than a convex combination of values no larger than that maximum, a
+contradiction.  This proves \cref{eq:dirichlet-error}.
+\end{proof}
+
+The theorem is existential because $U_\tau^0$ depends on the unknown exact
+solution.  It nevertheless shows that a peak volume larger than
+$\Theta(1/\epsilon)$ is not information-theoretically required by the output
+criterion \cref{eq:note-error}.
+
+\subsection{Why a residual wave can be unnecessary on a spider}
+
+For the center-source spider $G_{B,N}$, direct solution of the radial
+recurrence gives
+\begin{equation}
+  y_o^0
+  =\frac{\sqrt\alpha}{B}
+    \frac{1+\chi^{2N}}{1-\chi^{2N}},
+  \qquad
+  \chi:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+  \label{eq:spider-center-value}
+\end{equation}
+For long arms, $y_o^0\to\sqrt\alpha/B$.  If
+$B=1/(4\epsilon)$ and $\alpha<1/16$, then the limiting center value is below
+$\epsilon$, and all arm values are smaller.  The true $\epsilon$-important
+core is empty even though a residual-based process may launch a wave from the
+center.  This example motivates a gate based on solution/KKT importance rather
+than momentum residual magnitude.
+
+\section{RPPR supplies an implementable safe core}
+\label{sec:rppr-core}
+
+Let $S_\rho:=\supp(x_\rho^\star)$.  The following properties turn fixed
+regularization into a localization certificate.
+
+\begin{theorem}[RPPR support and approximation]
+\label{thm:rppr-support}
+For every $\rho>0$,
+\begin{align}
+  \vol(S_\rho)&\leq\frac1\rho,
+  \label{eq:rppr-volume}\\
+  0\leq D^{-1/2}(x^0-x_\rho^\star)&\leq\rho\one.
+  \label{eq:rppr-ppr-error}
+\end{align}
+Moreover, if $\rho'\geq\rho$, then
+$x_{\rho'}^\star\leq x_\rho^\star$ and
+$S_{\rho'}\subseteq S_\rho$.
+\end{theorem}
+
+\begin{proof}
+Regularization-path monotonicity is the source result stated, for example, in
+the appendix of \citet{fountoulakis2026}.  We prove the two quantitative
+claims.  Let $r_\rho:=b-Qx_\rho^\star$.  On $S_\rho$, KKT gives
+$r_{\rho,i}=\alpha\rho\sqrt{d_i}$.  Outside $S_\rho$,
+$x_{\rho,i}^\star=0$ and the off-diagonal entries of $Q$ are nonpositive, so
+$(Qx_\rho^\star)_i\leq0$ and hence $r_{\rho,i}\geq0$.  The full
+$\ell_1$ KKT condition also gives
+$r_\rho\leq\alpha\rho D^{1/2}\one$.  Therefore
+\begin{align*}
+ \alpha\rho\vol(S_\rho)
+ &\leq\one^\top D^{1/2}r_\rho\\
+ &=\one^\top D^{1/2}b
+   -\one^\top D^{1/2}Qx_\rho^\star\\
+ &=\alpha-\alpha\one^\top D^{1/2}x_\rho^\star
+ \leq\alpha,
+\end{align*}
+which proves \cref{eq:rppr-volume}.  Finally,
+\[
+  x^0-x_\rho^\star=Q^{-1}r_\rho,
+\]
+and \cref{eq:Q-properties} gives
+\[
+  0\leq D^{-1/2}Q^{-1}r_\rho
+  \leq\alpha\rho D^{-1/2}Q^{-1}D^{1/2}\one
+  =\rho\one.
+\]
+\end{proof}
+
+Thus RPPR is not merely a different target: when $\rho$ is chosen on the
+desired error scale, it is an internal localization device for unregularized
+PPR.
+
+\section{Safe envelopes for signed accelerated candidates}
+\label{sec:safe-envelope}
+
+Acceleration may overshoot, so its candidate cannot itself control support.
+The next lemma converts any signed restricted candidate into a certified lower
+point.
+
+For $U\subseteq S_\rho$, let $x_U^\star$ solve the restricted nonnegative
+quadratic program
+\begin{equation}
+  x_U^\star\in\arg\min_{z_U\geq0}
+  \left\{\frac12z_U^\top Q_{UU}z_U-c_{\rho,U}^\top z_U\right\},
+  \qquad x_{U^c}^\star=0.
+  \label{eq:restricted-QP}
+\end{equation}
+The Stieltjes obstacle comparison principle gives
+\begin{equation}
+  0\leq x_U^\star\leq x_\rho^\star.
+  \label{eq:restricted-comparison}
+\end{equation}
+Indeed, $x_{\rho,U}^\star$ is a supersolution of the restricted KKT system
+because $U\subseteq S_\rho$ and
+$Q_{UU}x_{\rho,U}^\star-c_{\rho,U}
+=-Q_{UU^c}x_{\rho,U^c}^\star\geq0$.
+
+\begin{theorem}[Signed candidate to safe lower envelope]
+\label{thm:safe-envelope}
+Let $z_U\in\R^U$ be arbitrary and define
+\begin{equation}
+ q_U:=c_{\rho,U}-Q_{UU}z_U,
+ \qquad
+ \delta_U:=\frac1\alpha
+  \norm{D_U^{-1/2}(q_U)_-}_\infty.
+ \label{eq:envelope-delta}
+\end{equation}
+Set
+\begin{equation}
+ \ell_U:=\left[z_U-\delta_UD_U^{1/2}\one\right]_+,
+ \qquad \ell_{U^c}:=0.
+ \label{eq:safe-envelope}
+\end{equation}
+Then
+\begin{equation}
+  0\leq\ell\leq x_U^\star\leq x_\rho^\star.
+  \label{eq:envelope-order}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $q_U^\star:=c_{\rho,U}-Q_{UU}x_U^\star\leq0$ be the restricted KKT
+residual.  Since $Q_{UU}^{-1}\geq0$,
+\begin{align*}
+ x_U^\star-z_U
+ &=Q_{UU}^{-1}(q_U-q_U^\star)
+ \geq-Q_{UU}^{-1}(q_U)_-.
+\end{align*}
+The full eigenvector identity in \cref{eq:Q-properties} and the signs of the
+cut entries imply
+\begin{equation}
+ Q_{UU}D_U^{1/2}\one
+ =\alpha D_U^{1/2}\one-Q_{UU^c}D_{U^c}^{1/2}\one
+ \geq\alpha D_U^{1/2}\one.
+\end{equation}
+Thus
+$Q_{UU}^{-1}D_U^{1/2}\one\leq\alpha^{-1}D_U^{1/2}\one$.
+By \cref{eq:envelope-delta},
+$Q_{UU}^{-1}(q_U)_-\leq\delta_UD_U^{1/2}\one$, and hence
+$z_U-\delta_UD_U^{1/2}\one\leq x_U^\star$.  Taking the positive part preserves
+the inequality because $x_U^\star\geq0$.  The last comparison is
+\cref{eq:restricted-comparison}.
+\end{proof}
+
+The accelerator is therefore free to use signed momentum in $z$; only
+$\ell$ is allowed to govern expansion.
+
+\subsection{Safe admission and a one-sided stopping certificate}
+
+\begin{lemma}[Safe admission]
+\label{lem:safe-admission}
+Let $\ell\leq x_\rho^\star$ be nonnegative.  If $\ell_i=0$ and
+\begin{equation}
+  g_{\rho,i}(\ell)<0,
+  \label{eq:negative-violation}
+\end{equation}
+then $i\in S_\rho$.
+\end{lemma}
+
+\begin{proof}
+If $i\notin S_\rho$, then $\ell_i=x_{\rho,i}^\star=0$.  Since all
+off-diagonal entries in row $i$ of $Q$ are nonpositive and
+$\ell\leq x_\rho^\star$,
+\[
+ g_{\rho,i}(\ell)-g_{\rho,i}(x_\rho^\star)
+ =\sum_{j\neq i}Q_{ij}(\ell_j-x_{\rho,j}^\star)\geq0.
+\]
+KKT gives $g_{\rho,i}(x_\rho^\star)\geq0$, contradicting
+\cref{eq:negative-violation}.
+\end{proof}
+
+\begin{lemma}[One-sided maximum-principle certificate]
+\label{lem:one-sided-certificate}
+Let $0\leq\ell\leq x_\rho^\star$.  If
+\begin{equation}
+  g_{\rho,i}(\ell)\geq-\alpha\tau\sqrt{d_i}
+  \qquad\text{for every }i,
+  \label{eq:global-certificate}
+\end{equation}
+then
+\begin{equation}
+  \norm{D^{-1/2}(x_\rho^\star-\ell)}_\infty\leq\tau.
+  \label{eq:certificate-error}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $e=x_\rho^\star-\ell\geq0$, and choose $i$ maximizing
+$M:=e_i/\sqrt{d_i}$.  If $M=0$ there is nothing to prove.  Otherwise
+$x_{\rho,i}^\star>0$, so $g_{\rho,i}(x_\rho^\star)=0$.  The normalized
+maximum principle gives
+\begin{align*}
+ \frac{(Qe)_i}{\sqrt{d_i}}
+ &=\frac{1+\alpha}{2}M
+   -\frac{1-\alpha}{2}
+     \sum_j\frac{A_{ij}}{d_i}\frac{e_j}{\sqrt{d_j}}
+ \geq\alpha M.
+\end{align*}
+On the other hand,
+$(Qe)_i=g_{\rho,i}(x_\rho^\star)-g_{\rho,i}(\ell)
+=-g_{\rho,i}(\ell)$.  Condition \cref{eq:global-certificate} yields
+$\alpha M\leq\alpha\tau$.
+\end{proof}
+
+\begin{corollary}[PPR accuracy and peak volume]
+\label{cor:accuracy-volume}
+Suppose a process maintains $U_t\subseteq S_\rho$, constructs $\ell_t$ by
+\cref{eq:safe-envelope}, admits only vertices satisfying
+\begin{equation}
+  g_{\rho,i}(\ell_t)<-\alpha\tau\sqrt{d_i},
+  \label{eq:strong-admission}
+\end{equation}
+and stops when \cref{eq:global-certificate} holds.  Then
+\begin{equation}
+  \max_t\vol(U_t)\leq\frac1\rho,
+  \qquad
+  \norm{D^{-1/2}(x^0-\ell_t)}_\infty\leq\rho+\tau.
+  \label{eq:gate-main-bound}
+\end{equation}
+In particular, $\rho=\tau=\epsilon/2$ gives peak volume at most
+$2/\epsilon$ and PPR error at most $\epsilon$.
+\end{corollary}
+
+\begin{proof}
+Safe admission follows from \cref{lem:safe-admission}, and the volume bound
+then follows from \cref{eq:rppr-volume}.  The error bound is the triangle
+inequality applied to \cref{eq:rppr-ppr-error} and
+\cref{eq:certificate-error}.
+\end{proof}
+
+Only $U_t$, its graph boundary, and source coordinates need inspection.  If a
+vertex is outside $U_t\cup N(U_t)$, then $(Q\ell_t)_i=0$; if its initial
+gradient was strongly negative it would already have been admitted, and
+otherwise it automatically satisfies the tolerance in
+\cref{eq:global-certificate}.  A boundary check is therefore chargeable to
+the incident edges of the current certified set, subject to the usual sparse
+source assumption.
+
+\subsection{An exact stagewise gate is correct but not yet fast}
+
+Consider the idealized procedure that begins with $U=\varnothing$, exactly
+solves \cref{eq:restricted-QP}, adds every outside vertex satisfying
+\cref{eq:strong-admission}, and repeats.  At an exact interior restricted
+solution $x_U^\star$, the envelope correction is zero.  If $B$ is the next
+batch, $h_B:=g_{\rho,B}(x_U^\star)<0$.  The Schur-complement formula used in
+\cref{sec:shock} below shows that the enlarged unconstrained minimizer has
+positive correction
+\begin{equation}
+ w_B=-S_B^{-1}h_B>0,
+ \qquad
+ w_U=-Q_{UU}^{-1}Q_{UB}w_B\geq0.
+ \label{eq:positive-expansion}
+\end{equation}
+Thus every admitted coordinate is positive at the enlarged restricted
+minimizer, and induction justifies the interior claim.  Every batch lies in
+$S_\rho$ by safe admission.  If no batch exists, the exact restricted
+gradient vanishes on $U$ and the global certificate holds outside $U$.
+Consequently the stagewise exact process terminates after at most
+$|S_\rho|$ nonempty admissions and satisfies \cref{eq:gate-main-bound}.
+
+This proves correctness and peak-volume flattening.  Exactly re-solving after
+every batch can still repeat too much work; acceleration across expansions is
+the remaining issue.
+
+\section{A path refutes the logarithmic-restart claim}
+\label{sec:path}
+
+The initial proposal hoped to group all support changes into only
+$\bigO(\log(1/\epsilon))$ ordinary restarts.  A path rules this out.
+
+Let $P_N=(v_0,v_1,\ldots,v_N)$ be a path with source $s=e_{v_0}$.  Write
+$y_i^0=x_i^0/\sqrt{d_i}$.  Solving the recurrence gives
+\begin{equation}
+ y_i^0
+ =\sqrt\alpha\,
+   \frac{\chi^i+\chi^{2N-i}}{1-\chi^{2N}}
+ \geq\sqrt\alpha\,\chi^i,
+ \qquad
+ \chi=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:path-solution}
+\end{equation}
+By \cref{eq:rppr-ppr-error},
+\begin{equation}
+  \frac{x_{\rho,i}^\star}{\sqrt{d_i}}
+  \geq\sqrt\alpha\,\chi^i-\rho.
+  \label{eq:path-rppr-lower}
+\end{equation}
+Define
+\begin{equation}
+ R_\rho:=\left\lfloor
+   \frac{\log(\sqrt\alpha/(3\rho))}{-\log\chi}
+ \right\rfloor,
+ \label{eq:path-radius}
+\end{equation}
+assuming $3\rho<\sqrt\alpha$ and $N>R_\rho$.
+
+\begin{theorem}[One-coordinate expansion on a path]
+\label{thm:path-expansion}
+Run the exact safe gate with $\tau=\rho$.  Once
+$U_j=\{v_0,\ldots,v_j\}$, every stage with $j<R_\rho$ admits precisely the
+next vertex $v_{j+1}$ and no more distant vertex.  Consequently any method
+that restarts after every safe expansion makes at least
+\begin{equation}
+ \Omega\!\left(
+   \frac1{\sqrt\alpha}
+   \log\frac{\sqrt\alpha}{\rho}
+ \right)
+ \label{eq:path-restarts}
+\end{equation}
+restarts for $0<\alpha\leq1/4$ and sufficiently small $\rho$.
+\end{theorem}
+
+\begin{proof}
+Let $x^{U_j}$ be the exact restricted minimizer.  For $i\geq j+2$, vertex
+$v_i$ has no neighbor in $U_j$ and is not the source, so
+\begin{equation}
+  g_{\rho,i}(x^{U_j})=\alpha\rho\sqrt{d_i}>0.
+  \label{eq:path-far-gradient}
+\end{equation}
+On the other hand, \cref{eq:path-rppr-lower} gives normalized RPPR value at
+least $2\rho$ through radius $R_\rho$.  Since $x^{U_j}_{j+1}=0$, the
+restricted point is more than $\rho$ away from $x_\rho^\star$ in normalized
+infinity norm.  The contrapositive of \cref{lem:one-sided-certificate} implies
+that some coordinate has gradient below $-\alpha\rho\sqrt{d_i}$.  The exact
+restricted gradient vanishes on $U_j$, while
+\cref{eq:path-far-gradient} rules out every $i\geq j+2$.  Hence only
+$v_{j+1}$ can violate, proving the first claim.  Finally,
+\begin{equation}
+  -\log\chi
+  =2\operatorname{artanh}(\sqrt\alpha)
+  =\Theta(\sqrt\alpha)
+\end{equation}
+for $\alpha\leq1/4$, which yields \cref{eq:path-restarts}.
+\end{proof}
+
+This lower bound is exactly on the accelerated propagation scale.  It does
+not refute restart-free continuation; it refutes only the assertion that the
+number of support-triggered ordinary restarts is independent of the
+$1/\sqrt\alpha$ propagation distance.
+
+\section{Expansion shock: exact identity and corrected direction}
+\label{sec:shock}
+
+Let $x_U^\star$ be an interior exact restricted minimizer and let $B$ be a
+batch of negative-gradient coordinates.  Define
+\begin{equation}
+ h_B:=g_{\rho,B}(x_U^\star),
+ \qquad
+ S_B:=Q_{BB}-Q_{BU}Q_{UU}^{-1}Q_{UB}.
+ \label{eq:schur}
+\end{equation}
+Assume the enlarged optimum is interior, as it is for the negative-gradient
+admissions in the exact stagewise process.
+
+\begin{proposition}[Exact expansion gain]
+\label{prop:shock}
+The improvement in the restricted optimal value is
+\begin{equation}
+ \Delta_B
+ :=G_\rho(x_U^\star)-G_\rho(x_{U\cup B}^\star)
+ =\frac12h_B^\top S_B^{-1}h_B.
+ \label{eq:shock-exact}
+\end{equation}
+Moreover,
+\begin{equation}
+  \alpha I\preceq S_B\preceq I,
+  \qquad
+  \frac12\norm{h_B}_2^2
+  \leq\Delta_B
+  \leq\frac1{2\alpha}\norm{h_B}_2^2.
+  \label{eq:shock-bounds}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Eliminating the old variables from the enlarged quadratic gives the reduced
+problem
+$\min_w\{\frac12w^\top S_Bw+h_B^\top w\}$, whose minimizer is
+$w=-S_B^{-1}h_B$ and whose gain is \cref{eq:shock-exact}.  The Schur
+complement is the minimum of the full quadratic over the eliminated block;
+using $\alpha I\preceq Q\preceq I$ gives
+$\alpha I\preceq S_B\preceq I$.  Inverting these inequalities yields
+\cref{eq:shock-bounds}.
+\end{proof}
+
+The lower bound in \cref{eq:shock-bounds} is useful for proving that an
+expansion makes genuine progress.  It cannot upper-bound the perturbation of
+an accelerated Lyapunov function.  The upper bound may be larger by
+$1/\alpha$.  This corrects the earlier proposal to restart only when a sum of
+lower shock bounds reaches a fixed energy fraction.
+
+\section{What telescopes: an amortized re-solving lemma}
+\label{sec:amortized}
+
+Although the number of expansions can be large, the continuous optimization
+work needed to adapt to them admits a clean amortization.
+
+For a safe point $0\leq x\leq x_\rho^\star$, define the one-sided violation
+\begin{equation}
+  \nu(x):=\norm{D^{-1/2}(g_\rho(x))_-}_\infty.
+  \label{eq:nu}
+\end{equation}
+
+\begin{lemma}[Violation to objective gap]
+\label{lem:violation-gap}
+For every safe point,
+\begin{align}
+ \norm{D^{-1/2}(x_\rho^\star-x)}_\infty
+ &\leq\frac{\nu(x)}\alpha,
+ \label{eq:nu-error}\\
+ \nu(x)\leq\alpha\sigma
+ \quad&\Longrightarrow\quad
+ G_\rho(x)-G_\rho(x_\rho^\star)
+ \leq\frac{\sigma^2}{2\rho}.
+ \label{eq:nu-gap}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The proof of \cref{lem:one-sided-certificate} with
+$\tau=\nu(x)/\alpha$ gives \cref{eq:nu-error}.  Put
+$e=x_\rho^\star-x$.  Because $e$ is supported on $S_\rho$ and complementarity
+annihilates the linear term,
+\begin{equation}
+ G_\rho(x)-G_\rho(x_\rho^\star)=\frac12e^\top Qe
+ \leq\frac12\norm{e}_2^2.
+\end{equation}
+If $\nu(x)\leq\alpha\sigma$, then $e_i\leq\sigma\sqrt{d_i}$ by
+\cref{eq:nu-error}.  Hence
+\[
+ \norm{e}_2^2
+ \leq\sigma^2\vol(S_\rho)
+ \leq\frac{\sigma^2}\rho,
+\]
+using \cref{eq:rppr-volume}.
+\end{proof}
+
+\begin{assumption}[Restricted accelerated contraction]
+\label{ass:contraction}
+On every fixed restricted QP, $k$ full restricted iterations reduce objective
+error by a factor at most $\exp(-k/H)$, where
+$H=C/\sqrt\alpha$ and $C$ is universal.
+\end{assumption}
+
+Strongly convex accelerated proximal gradient has this fixed-subspace
+property.  The assumption says nothing about continuing momentum across a
+subspace change.
+
+\begin{theorem}[Amortized re-solving]
+\label{thm:amortized}
+Let $\sigma_{j-1}=2\sigma_j$ be geometric accuracy epochs and put
+\begin{equation}
+  E_j:=\frac{\sigma_j^2}{2\rho}.
+\end{equation}
+Suppose epoch $j$ begins at a safe point with
+$\nu(x)\leq\alpha\sigma_{j-1}$, and restore restricted objective error to
+$E_j$ after every support expansion.  Under \cref{ass:contraction}, the total
+number of restricted iterations over all epochs down to $\sigma_J=\tau$ is
+\begin{equation}
+ K
+ \leq\bigO\!\left(
+       \frac1{\sqrt\alpha}\log\frac{\sigma_0}{\tau}
+      \right)+N_{\mathrm{exp}},
+ \label{eq:amortized-iterations}
+\end{equation}
+where $N_{\mathrm{exp}}$ is the number of nonempty expansion events.  Since
+$\vol(U)\leq1/\rho$, full-sweep work obeys
+\begin{equation}
+ \mathcal W
+ \leq\bigO\!\left(
+       \frac1{\rho\sqrt\alpha}\log\frac{\sigma_0}{\tau}
+      \right)
+      +\bigO\!\left(\frac{N_{\mathrm{exp}}}{\rho}\right).
+ \label{eq:amortized-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:violation-gap}, the global objective gap at the start of epoch
+$j$ is at most $4E_j$.  Restricted optimal values decrease monotonically
+toward the global value, so all expansion gains $\Delta_{j,\ell}$ in that
+epoch telescope:
+\begin{equation}
+  \sum_\ell\Delta_{j,\ell}\leq4E_j.
+  \label{eq:shock-telescope}
+\end{equation}
+If the pre-expansion restricted error is at most $E_j$, then immediately after
+an optimum shift of size $\Delta_{j,\ell}$ it is at most
+$E_j+\Delta_{j,\ell}$.  By \cref{ass:contraction}, restoring it to $E_j$
+takes at most
+\begin{equation}
+ k_{j,\ell}
+ =\left\lceil H\log\left(1+\frac{\Delta_{j,\ell}}{E_j}\right)\right\rceil.
+\end{equation}
+Therefore
+\begin{align*}
+ \sum_\ell k_{j,\ell}
+ &\leq H\sum_\ell
+       \log\left(1+\frac{\Delta_{j,\ell}}{E_j}\right)
+       +N_{\mathrm{exp},j}\\
+ &\leq\frac{H}{E_j}\sum_\ell\Delta_{j,\ell}
+       +N_{\mathrm{exp},j}
+ \leq4H+N_{\mathrm{exp},j}.
+\end{align*}
+Summing over $\bigO(\log(\sigma_0/\tau))$ epochs proves
+\cref{eq:amortized-iterations}.  Multiplying full iterations by the uniform
+volume cap proves \cref{eq:amortized-work}.
+\end{proof}
+
+This theorem improves over independently re-solving every enlarged subspace:
+all continuous shock sizes telescope.  The unresolved term is discrete.  In
+the worst case $N_{\mathrm{exp}}$ may be as large as the support size, and the
+proof above charges a full current-support scan to every such event.
+
+\section{The correct open lemma: one-sided expanding-subspace acceleration}
+\label{sec:open-lemma}
+
+The path in \cref{sec:path} shows that support may expand on nearly every
+accelerated-scale propagation step.  The desired algorithm must therefore
+continue through expansions, or charge each expansion only to newly exposed
+edges.
+
+A concrete candidate zero-pads its history when $U_t$ expands and otherwise
+uses the standard strongly convex momentum
+\begin{align}
+ y^{(t)}
+ &=x^{(t)}+\beta\bigl(x^{(t)}-x^{(t-1)}\bigr),
+ \qquad
+ \beta:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \label{eq:dynamic-y}\\
+ z^{(t+1)}
+ &=\Pi_{\R_+^{U_t}}
+   \bigl(y^{(t)}-(Qy^{(t)}-c_\rho)\bigr),
+ \label{eq:dynamic-step}
+\end{align}
+where vectors are zero outside $U_t$.  Construct $\ell^{(t+1)}$ from
+$z^{(t+1)}$ by \cref{eq:envelope-delta,eq:safe-envelope}, then set
+\begin{equation}
+ U_{t+1}:=U_t\cup
+ \left\{i:
+ g_{\rho,i}(\ell^{(t+1)})
+ <-\alpha\tau\sqrt{d_i}
+ \right\}.
+ \label{eq:dynamic-gate}
+\end{equation}
+The proved gate invariants hold regardless of whether the following
+conjecture is true:
+\begin{equation}
+ \ell^{(t)}\leq x_\rho^\star,
+ \qquad
+ U_t\subseteq S_\rho,
+ \qquad
+ \vol(U_t)\leq\frac1\rho.
+ \label{eq:dynamic-invariants}
+\end{equation}
+
+\begin{conjecture}[One-sided expanding-subspace acceleration]
+\label{conj:one-sided-continuation}
+For the recurrence \cref{eq:dynamic-y,eq:dynamic-step,eq:dynamic-gate}, or for
+a closely related projected Chebyshev recurrence, universal constants $C,c>0$
+exist such that
+\begin{equation}
+ \norm{D^{-1/2}(x_\rho^\star-\ell^{(t)})}_\infty
+ \leq C\exp(-c\sqrt\alpha\,t)+\tau.
+ \label{eq:desired-continuation}
+\end{equation}
+\end{conjecture}
+
+If \cref{conj:one-sided-continuation} holds, then
+\begin{equation}
+ t=\bigO\!\left(\frac1{\sqrt\alpha}\log\frac1\tau\right),
+ \qquad
+ \mathcal W
+ =\bigO\!\left(
+   \frac1{\rho\sqrt\alpha}\log\frac1\tau
+ \right).
+ \label{eq:conditional-final}
+\end{equation}
+With $\rho=\tau=\epsilon/2$, this is the sought
+$\softO(1/(\sqrt\alpha\epsilon))$ bound.
+
+\paragraph{Why existing analyses do not immediately prove it.}
+The nonhomogeneous \LOCCH{} formula of \citet{zhou2024} controls a full signed
+inactive residual.  The safe gate controls only the negative part of the KKT
+residual at a corrected lower envelope.  Outside the optimal support, positive
+KKT slack can be dense and is harmless for the obstacle problem, but it enters
+a two-sided residual norm.  Energy contraction alone also does not imply the
+uniform active-volume invariant.  Finally, \cref{prop:shock} supplies an
+upper perturbation bound only with a possible $1/\alpha$ loss.
+
+\paragraph{A weaker sufficient target.}
+It is enough to strengthen \cref{thm:amortized} so that discrete expansion
+overhead is charged to newly admitted volume:
+\begin{equation}
+  \mathcal W_{\mathrm{exp}}
+  \leq C\sum_t\vol(U_{t+1}\setminus U_t)
+  \leq\frac{C}{\rho},
+  \label{eq:new-volume-charge}
+\end{equation}
+rather than $N_{\mathrm{exp}}/\rho$.  Combining
+\cref{eq:new-volume-charge} with the continuous telescoping term already gives
+the target up to a logarithm.  This newly-admitted-edge lemma may be easier
+than proving the pointwise contraction \cref{eq:desired-continuation}.
+
+\section{Implications for the hybrid-solver program}
+\label{sec:implications}
+
+The conversation leads to four firm conclusions.
+
+\begin{enumerate}[leftmargin=2em]
+\item \emph{Acceleration has not vanished spectrally.}
+The spider's restricted condition number is never worse than $1/\alpha$.
+The extra factor observed in local work comes from the space--time footprint
+of repeated scans.
+
+\item \emph{Peak-volume flattening is rigorously feasible.}
+RPPR KKT structure supplies a locally checkable, momentum-independent gate
+whose working set never exceeds volume $1/\rho$.  This part no longer depends
+on a conjectural signed-residual $\ell_1$ invariant.
+
+\item \emph{Naive restart and batching mechanisms are insufficient.}
+Short fixed restart blocks lose acceleration; FIFO batch splitting preserves
+triangular work; and a path forces accelerated-scale many safe expansions.
+
+\item \emph{The open problem is now narrow.}
+One must prove one-sided accelerated tracking over nested obstacle subspaces,
+or amortize expansion work by newly exposed volume.  Until then, the
+graph-uniform $\softO(1/(\sqrt\alpha\epsilon))$ theorem remains open.
+\end{enumerate}
+
+The gate is compatible with the broader hybrid philosophy: use signed AESP,
+Chebyshev, SOR, or another accelerator to generate candidates, but let a
+monotone KKT envelope decide which coordinates may be exposed.  A
+momentum-free local cleanup remains a proof-safe fallback.  The new result
+does not close the separate early-AESP locality promotion gate in the
+repository's AESP--\LOCSOR{} note; it instead supplies an alternative route
+whose own continuation lemma must be resolved.
+
+\subsection{Recommended proof and falsification sequence}
+
+\begin{enumerate}[leftmargin=2em]
+\item Prove \cref{eq:desired-continuation} first on endpoint-source paths,
+where support expands by one coordinate and the recurrence is scalar after a
+Schur complement.
+\item Extend the proof to trees with bounded branching, isolating whether
+simultaneous boundary admissions create an unavoidable $1/\alpha$ shock.
+\item Test the zero-padded recurrence on adversarial spiders, stars of stars,
+and lollipops.  Record peak volume, newly admitted volume, edge revisits,
+$\nu(\ell_t)$, and objective shock separately.
+\item If pointwise continuation fails, target the weaker charge
+\cref{eq:new-volume-charge}; if that also fails, construct the corresponding
+M-matrix counterexample and state the structural condition that restores it.
+\end{enumerate}
+
+\section{Claim ledger}
+\label{sec:ledger}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}X p{0.22\textwidth}@{}}
+\toprule
+Claim & Status \\
+\midrule
+$\kappa(Q_{UU})\leq1/\alpha$ for every working set & Proved,
+\cref{lem:principal-conditioning} \\
+Exact depth-$L$ spider condition number is
+$\Theta(1/(\alpha+L^{-2}))$ & Proved, \cref{prop:spider-spectrum} \\
+An $\epsilon$-accurate PPR Dirichlet core of volume $1/\epsilon$ exists &
+Proved, \cref{thm:exact-core} \\
+Fixed RPPR regularization supplies a safe $1/\rho$ support & Proved/source,
+\cref{thm:rppr-support} \\
+Signed accelerated candidates can be used without unsafe admissions & Proved,
+\cref{thm:safe-envelope,lem:safe-admission} \\
+The exact safe gate has peak volume $2/\epsilon$ and PPR error $\epsilon$ &
+Proved, \cref{cor:accuracy-volume} \\
+Only $\bigO(\log(1/\epsilon))$ support restarts are needed & Refuted by path,
+\cref{thm:path-expansion} \\
+Expansion shocks can be absorbed using only their elementary lower bound &
+Refuted; direction corrected in \cref{prop:shock} \\
+Continuous restricted re-solving has accelerated amortized cost & Proved
+under fixed-subspace contraction, \cref{thm:amortized} \\
+The dynamic gate achieves
+$\softO(1/(\rho\sqrt\alpha))$ graph-uniform work & Open,
+\cref{conj:one-sided-continuation} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{thebibliography}{99}
+
+\bibitem[Andersen et al.(2007)Andersen, Chung, and Lang]{andersen2007}
+Reid Andersen, Fan Chung, and Kevin Lang.
+\newblock Using PageRank to locally partition a graph.
+\newblock \emph{Internet Mathematics}, 4(1):35--64, 2007.
+
+\bibitem[Fountoulakis et al.(2019)Fountoulakis, Roosta-Khorasani, Shun,
+Cheng, and Mahoney]{fountoulakis2019}
+Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang Cheng, and
+Michael Mahoney.
+\newblock Variational perspective on local graph clustering.
+\newblock \emph{Mathematical Programming}, 174:553--573, 2019.
+
+\bibitem[Fountoulakis and Martínez-Rubio(2026)]{fountoulakis2026}
+Kimon Fountoulakis and David Martínez-Rubio.
+\newblock Complexity of classical acceleration for
+$\ell_1$-regularized PageRank.
+\newblock arXiv:2602.21138v2, 2026.
+
+\bibitem[Huang et al.(2025)Huang, Luo, Xiao, Yang, and Zhou]{huang2025}
+Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian Zhou.
+\newblock Accelerated evolving set processes for local PageRank computation.
+\newblock \emph{Advances in Neural Information Processing Systems}, 38, 2025.
+
+\bibitem[Lin et al.(2018)Lin, Mairal, and Harchaoui]{lin2018}
+Hongzhou Lin, Julien Mairal, and Zaid Harchaoui.
+\newblock Catalyst acceleration for first-order convex optimization: From
+theory to practice.
+\newblock \emph{Journal of Machine Learning Research}, 18(212):1--54, 2018.
+
+\bibitem[Martínez-Rubio et al.(2023)Martínez-Rubio, Wirth, and
+Pokutta]{martinezrubio2023}
+David Martínez-Rubio, Elias Wirth, and Sebastian Pokutta.
+\newblock Accelerated and sparse algorithms for approximate personalized
+PageRank and beyond.
+\newblock In \emph{Proceedings of COLT}, volume 195 of PMLR, pages
+2852--2876, 2023.
+
+\bibitem[O'Donoghue and Candès(2015)]{odonoghue2015}
+Brendan O'Donoghue and Emmanuel Candès.
+\newblock Adaptive restart for accelerated gradient schemes.
+\newblock \emph{Foundations of Computational Mathematics}, 15:715--732, 2015.
+
+\bibitem[Zhou et al.(2024)Zhou, Sun, Babanezhad Harikandeh, Guo, Yang, and
+Xiao]{zhou2024}
+Baojian Zhou, Yifan Sun, Reza Babanezhad Harikandeh, Xingzhi Guo, Deqing Yang,
+and Yanghua Xiao.
+\newblock Iterative methods via locally evolving set process.
+\newblock \emph{Advances in Neural Information Processing Systems}, 37, 2024.
+
+\end{thebibliography}
+
+\end{document}
