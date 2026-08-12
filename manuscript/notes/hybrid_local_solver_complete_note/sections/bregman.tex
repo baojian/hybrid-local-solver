@@ -1,0 +1,238 @@
+\subsection{The activation-tax construction}
+
+The first attempt was to encode locality directly in the proximal geometry.
+Let
+\[
+  h_\rho(x):=\frac12\norm{x}_2^2+\rho J(x).
+\]
+Given $y\ge0$ and a set $S\supseteq\supp(y)$, choose the particular
+subgradient $g^S\in\partial J(y)$ by
+\begin{equation}
+  g_i^S:=
+  \begin{cases}
+    w_i,&i\in S,\\
+    0,&i\notin S.
+  \end{cases}
+  \label{eq:selected-subgradient}
+\end{equation}
+The corresponding generalized Bregman divergence is
+\[
+ D_{h_\rho}^{g^S}(z,y)
+ :=\frac12\norm{z-y}_2^2
+   +\rho J(z)-\rho J(y)-\rho\ip{g^S}{z-y}.
+\]
+
+\begin{lemma}[Exact activation tax; \ProvedStatus]
+\label{lem:activation-tax}
+For $y,z\ge0$ with $\supp(y)\subseteq S$,
+\begin{equation}
+  D_{h_\rho}^{g^S}(z,y)
+  =\frac12\norm{z-y}_2^2
+   +\rho\sum_{i\notin S}w_i z_i.
+  \label{eq:activation-tax}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+On the nonnegative orthant $J(z)=w^Tz$.  The linear terms cancel on $S$.
+Outside $S$ we have $y_i=g_i^S=0$, leaving $\rho w_i z_i$.
+\end{proof}
+
+Thus the geometry is a Euclidean proximal term plus a linear reserve for every
+coordinate not yet admitted to the face.
+
+\subsection{What the matched subproblem proves}
+
+Consider
+\begin{equation}
+ H_{y,S}(z)
+ :=F_\rho(z)+\kappa D_{h_\rho}^{g^S}(z,y),
+ \qquad \kappa>0.
+ \label{eq:matched-subproblem}
+\end{equation}
+Up to constants,
+\begin{equation}
+ H_{y,S}(z)
+ =\frac12z^T(Q+\kappa I)z
+  -\ip{b+\kappa y+\kappa\rho g^S}{z}
+  +(\alpha+\kappa)\rho J(z).
+ \label{eq:matched-expansion}
+\end{equation}
+
+\begin{lemma}[Matched support budget; \ProvedStatus]
+\label{lem:matched-budget}
+Assume
+\begin{equation}
+  p(y)+\rho\vol(S)\le1.
+  \label{eq:center-set-budget}
+\end{equation}
+Let $z^\star$ minimize~\eqref{eq:matched-subproblem}.  Then $z^\star\ge0$ and
+\begin{equation}
+ p(z^\star)+\rho\vol(\supp z^\star)\le1.
+ \label{eq:matched-support-budget}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The effective source in~\eqref{eq:matched-expansion} is nonnegative and
+$Q+\kappa I$ is an $M$-matrix, hence $z^\star\ge0$.  Its stationarity equation
+can be written
+\[
+ (Q+\kappa I)z^\star
+ =b+\kappa y+\kappa\rho g^S
+  -(\alpha+\kappa)\rho\,w\odot u,
+\]
+where $u_i=1$ when $z_i^\star>0$ and $u_i\in[0,1]$ otherwise.  Multiplication
+by $w^T$ and~\eqref{eq:weighted-identities} gives
+\[
+ (\alpha+\kappa)
+ \left(p(z^\star)+\rho\sum_i d_i u_i\right)
+ =\alpha+\kappa\left(p(y)+\rho\vol(S)\right).
+\]
+Use~\eqref{eq:center-set-budget} and
+$\sum_i d_i u_i\ge\vol(\supp z^\star)$.
+\end{proof}
+
+This is stronger than a post-hoc optimal support bound: every exact matched
+inner minimizer is $1/\rho$-local.  A monotone coordinate solver started below
+$z^\star$ remains inside the same order interval.
+
+For the Catalyst shift
+\begin{equation}
+  \kappa:=1-2\alpha,
+  \label{eq:kappa}
+\end{equation}
+the diagonal-to-weighted-eigenvalue ratio gives
+\begin{equation}
+ \chi_\kappa
+ :=\frac{2(\alpha+\kappa)}{1+\alpha+2\kappa}
+ =\frac23.
+ \label{eq:inner-contraction}
+\end{equation}
+One complete sweep over currently positive KKT coordinates therefore contracts
+their weighted mass by a constant factor.  If $\mathcal C_k^+$ is the positive
+KKT mass at inner sweep $k$, then
+\[
+ \mathcal C_{k+1}^+\le\frac13\mathcal C_k^+.
+\]
+Moreover, for a monotone iterate $z\le z^\star$,
+\[
+ H_{y,S}(z)-H_{y,S}(z^\star)
+ \le \pos{r(z)}^T(z^\star-z)
+ \le \mathcal C^+(z).
+\]
+Consequently, an inner gap $\phi$ costs
+\begin{equation}
+ W_{\mathrm{inner}}(\phi)
+ =O\!\left(
+   \frac1\rho\log\frac{\mathcal C_0^+}{\phi}
+ \right).
+ \label{eq:matched-inner-work}
+\end{equation}
+The locality and inner-solution parts of the matched-Bregman proposal are
+therefore valid.
+
+\subsection{Exact face-change obstruction}
+
+The failure occurs when accelerated interpolation activates a coordinate that
+was zero at the center.  Take one coordinate with $y_i=0$, selected
+subgradient $g_i^S=0$, and $z_i=a>0$.  By
+\cref{lem:activation-tax},
+\[
+ D_{h_\rho}^{0}(ae_i,0)=\frac12a^2+\rho w_i a.
+\]
+For $\theta\in(0,1)$,
+\begin{equation}
+ D_{h_\rho}^{0}(\theta ae_i,0)
+ =\theta^2D_{h_\rho}^{0}(ae_i,0)
+  +\theta(1-\theta)\rho w_i a.
+ \label{eq:face-change-defect}
+\end{equation}
+
+\begin{proposition}[No uniform exponent-two scaling; \RefutedStatus]
+\label{prop:no-triangle-scaling}
+There is no constant $G$ independent of $a$ and $\theta$ such that
+\[
+ D_{h_\rho}^{0}(\theta ae_i,0)
+ \le G\theta^2D_{h_\rho}^{0}(ae_i,0)
+\]
+at every newly activated coordinate.
+\end{proposition}
+
+\begin{proof}
+Divide~\eqref{eq:face-change-defect} by
+$\theta^2D_{h_\rho}^{0}(ae_i,0)$ and let $a\downarrow0$.  The ratio tends to
+$1/\theta$, so any admissible $G$ must satisfy $G\ge1/\theta$.
+\end{proof}
+
+The sharp face-change exponent is one, whereas Euclidean acceleration uses
+exponent two.  This is precisely the distinction in the triangle-scaling
+theory of \citet{hanzely2021accelerated}.  There is also a geometric warning:
+on the positive orthant, the canonical derivative of
+$h_\rho(x)=\frac12\norm{x}^2+\rho w^Tx$ produces a purely Euclidean Bregman
+distance.  The activation tax exists only because the subgradient at zero is
+chosen as a function of $S$.  It is a changing-face generalized divergence,
+not one fixed smooth Bregman geometry.
+
+\subsection{Why the defect does not telescope}
+
+Let $S_t$ be the admitted face, $A_t=S_{t+1}\setminus S_t$, and define the
+newly revealed optimal mass
+\[
+ \Gamma_t:=\sum_{i\in A_t}w_i x_{\bar\rho,i}^\star.
+\]
+Inserting~\eqref{eq:face-change-defect} into the usual accelerated
+estimate-sequence template adds a term of the form
+\begin{equation}
+ \mathcal E_{t+1}
+ \le q\mathcal E_t+C\theta\bar\rho\Gamma_t+e_t,
+ \qquad
+ q=1-c\sqrt\alpha,quad
+ \theta=\Theta(\sqrt\alpha),
+ \label{eq:defective-estimate-sequence}
+\end{equation}
+where $e_t$ is inner error.  Hence late activations carry essentially no
+geometric discount.  The support budget gives only
+$\sum_t\Gamma_t\le p(x_{\bar\rho}^\star)\le1$; it does not provide the much
+smaller geometrically weighted mass needed to reach the handoff
+gap~\eqref{eq:warm-gap}.
+
+Adding the undiscovered mass
+$R_t=\sum_{i\notin S_t}w_i x_{\bar\rho,i}^\star$ to the potential does not
+repair the proof.  During a fixed-face accelerated step $R_t$ is unchanged,
+so the combined recurrence contains a noncontracting term proportional to
+$(1-q)\bar\rho R_t$.  The argument would have to assume that unseen mass is
+already small.
+
+\subsection{Dual-envelope obstruction}
+
+The conjugate route fails even in one dimension.  Let
+\[
+ h(x)=\frac12x^2+\rho|x|,
+ \qquad
+ F(x)=\frac\lambda2x^2-bx+\alpha\rho|x|,
+\]
+and consider
+\[
+ E_\kappa(u)
+ :=\kappa h^\star(u)-(F+\kappa h)^\star(\kappa u).
+\]
+For $0\le u<\rho$ while the inner primal coordinate is active,
+\[
+ E_\kappa(u)
+ =-\frac{[b+\kappa u-(\alpha+\kappa)\rho]^2}
+         {2(\lambda+\kappa)},
+ \qquad
+ E_\kappa''(u)=-\frac{\kappa^2}{\lambda+\kappa}<0.
+\]
+Thus conjugation does not produce a globally convex envelope suitable for
+projected Nesterov acceleration.  It becomes a regular quadratic only after
+the active face has already been fixed.
+
+\paragraph{No-go principle.}
+Any generalized prox geometry that retains a positive linear reserve for
+activation at zero has triangle-scaling exponent one at a new coordinate.
+Choosing the canonical derivative removes the defect and the activation tax
+simultaneously.  Changing constants or replacing $J$ by another locally
+linear sparsity potential cannot resolve this conflict.
+

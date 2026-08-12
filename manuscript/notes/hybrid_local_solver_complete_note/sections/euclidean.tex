@@ -1,0 +1,135 @@
+\subsection{Lower subsolutions}
+
+The Bregman obstruction motivates returning to ordinary Euclidean proximal
+subproblems while enforcing order explicitly.
+
+\begin{definition}[Lower certificate]
+A vector $\ell\ge0$ is a lower certificate for $F_\rho^+$ if
+\begin{equation}
+ r_{\rho,i}(\ell)\ge0
+ \qquad\text{for every }i\in\supp(\ell).
+ \label{eq:lower-certificate}
+\end{equation}
+\end{definition}
+
+\begin{lemma}[$M$-matrix lower comparison; \ProvedStatus]
+\label{lem:lower-comparison}
+If~\eqref{eq:lower-certificate} holds, then
+\begin{equation}
+  \ell\le x_\rho^\star
+  \qquad\text{coordinatewise}.
+  \label{eq:lower-order}
+\end{equation}
+\end{lemma}
+
+\begin{proof}[Proof idea]
+Suppose $(\ell-x_\rho^\star)_i$ attained a positive maximum after the usual
+positive diagonal scaling.  At such a coordinate $i$ we have $\ell_i>0$,
+so~\eqref{eq:lower-certificate} applies.  The nonpositive off-diagonal entries
+of $Q$, together with the KKT inequalities~\eqref{eq:kkt}, force
+$(Q(\ell-x_\rho^\star))_i\le0$, contradicting positive definiteness and the
+$M$-matrix maximum principle.  Equivalently, this is the standard comparison
+argument for obstacle problems with a nonsingular $M$-matrix.
+\end{proof}
+
+\subsection{A local Euclidean proximal subproblem}
+
+Given a lower certificate $\ell$, define
+\begin{equation}
+ z^\star
+ :=\arg\min_{z\ge0}
+ \left\{F_\rho(z)+\frac\kappa2\norm{z-\ell}_2^2\right\}.
+ \label{eq:safe-euclidean-prox}
+\end{equation}
+
+\begin{theorem}[Order-safe Euclidean center; \ProvedStatus]
+\label{thm:safe-euclidean-center}
+If $\ell$ satisfies~\eqref{eq:lower-certificate}, then
+\begin{equation}
+  \ell\le z^\star\le x_\rho^\star
+  \label{eq:prox-sandwich}
+\end{equation}
+and
+\begin{equation}
+  p(z^\star)+\rho\vol(\supp z^\star)\le1.
+  \label{eq:euclidean-prox-budget}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+At any coordinate where $z^\star$ would cross below $\ell$, the optimality
+system of~\eqref{eq:safe-euclidean-prox}, the lower-certificate inequality,
+and the $M$-matrix maximum principle give a contradiction.  Comparing the
+same system with the KKT system of $x_\rho^\star$ gives the upper inequality in
+~\eqref{eq:prox-sandwich}.
+
+For the volume bound, write the proximal KKT equation as
+\[
+ (Q+\kappa I)z^\star
+ =b+\kappa\ell-\alpha\rho\,w\odot u,
+\]
+where $u_i=1$ on $\supp(z^\star)$ and $u_i\in[0,1]$ elsewhere.  Multiplying by
+$w^T$ gives
+\[
+ (\alpha+\kappa)p(z^\star)
+ +\alpha\rho\sum_i d_i u_i
+ =\alpha+\kappa p(\ell).
+\]
+Since $p(z^\star)\ge p(\ell)$ by~\eqref{eq:prox-sandwich},
+\[
+ \alpha\left(p(z^\star)+\rho\sum_i d_i u_i\right)\le\alpha.
+\]
+This implies~\eqref{eq:euclidean-prox-budget}.
+\end{proof}
+
+Ordinary Euclidean proximal subproblems therefore already have the desired
+$1/\rho$ locality whenever their centers remain lower certificates.  The
+problem is acceleration: removing extrapolation gives the usual proximal
+point contraction $1-\Theta(\alpha)$ and total work
+$\softO(1/(\alpha\rho))$.
+
+\subsection{Complete conditional variants}
+
+Two conditional theorems survive all later counterexamples.
+
+\begin{theorem}[Bounded-core warmup; \ConditionalStatus]
+\label{thm:bounded-core}
+Let $\bar\rho=(1+\sqrt\alpha)\rho$.  Suppose a known region $C$ contains
+$\supp(x_{\bar\rho}^\star)$ and
+\begin{equation}
+  \vol(C)\le B/\rho.
+  \label{eq:bounded-core}
+\end{equation}
+If every accelerated warmup subproblem is restricted to $C$, then a
+fixed-face Euclidean accelerated method reaches~\eqref{eq:warm-gap} in
+\begin{equation}
+ W_{\mathrm{warm}}
+ =\softO\!\left(\frac{B}{\rho\sqrt\alpha}\right).
+ \label{eq:bounded-core-work}
+\end{equation}
+After a lower retraction, the full hybrid method has
+\[
+ W_{\mathrm{hybrid}}
+ =\softO\!\left(\frac{B+1}{\rho\sqrt\alpha}\right).
+\]
+\end{theorem}
+
+\begin{theorem}[Controlled face phases; \ConditionalStatus]
+\label{thm:controlled-faces}
+Suppose a certified active-set method reaches~\eqref{eq:warm-gap} after at
+most $K$ face enlargements, every face is contained in
+$\supp(x_{\bar\rho}^\star)$, and momentum is restarted at each enlargement.
+Then
+\begin{equation}
+ W_{\mathrm{hybrid}}
+ =\softO\!\left(\frac{K+1}{\rho\sqrt\alpha}\right).
+ \label{eq:face-phase-work}
+\end{equation}
+\end{theorem}
+
+Both statements are fixed-face acceleration plus the support
+budget~\eqref{eq:rppr-support-budget} and the tail
+bound~\eqref{eq:tail-target}.  They are consistent with expanding-subspace
+acceleration \citep{martinezrubio2023accelerated}.  Neither theorem bounds
+$B$ or $K$ uniformly over graphs.
+

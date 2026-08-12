@@ -1,18 +1,87 @@
-For the local SOR tail, a coordinate update satisfies an exact quadratic descent
-identity. Therefore any fixed relaxation parameter $0<\omega<2$ gives objective
-descent.
+\subsection{Positive KKT mass}
 
-With the safe choice $\omega=1$, an objective-gap handoff
-\[
-f(x_J)-f^\star\leq\frac{\alpha^{3/2}\eps}{1+\alpha}
-\]
-gives tail work
-\[
-\mathcal O\left(\frac1{\sqrt\alpha\eps}\right).
-\]
+For the note-scoped residual~\eqref{eq:kkt-residual}, define
+\begin{equation}
+  \mathcal M_\rho^+(x)
+  :=\sum_i w_i\pos{r_{\rho,i}(x)}.
+  \label{eq:positive-kkt-mass}
+\end{equation}
+For a lower point $x\le x_\rho^\star$, the $M$-matrix comparison principle
+confines positive residual to coordinates that can still increase toward the
+optimum.  This is the mass consumed by the one-sided coordinate tail.
 
-The full hybrid complexity remains conditional on controlling AESP burn-in
-locality, for example through
-\[
-\Lambda_J=\max_t\frac{\overline{\vol}(S_t)}{\gamma_t}=O(1/\eps).
-\]
+\begin{lemma}[One-sided local tail; \ProvedStatus]
+\label{lem:tail}
+Let $\ell\le x_\rho^\star$.  Activate coordinate $i$ only when
+$r_{\rho,i}(x)\ge\zeta w_i$, perform the exact $\omega=1$ coordinate
+minimization, and maintain the usual local queue of newly positive residuals.
+Then
+\begin{equation}
+  W_{\mathrm{tail}}
+  \le
+  \frac{1+\alpha}{2\alpha\zeta}\,
+  \mathcal M_\rho^+(\ell).
+  \label{eq:tail-bound}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The diagonal of $Q$ is $(1+\alpha)/2$.  An exact coordinate minimization at
+$i$ increases $x_i$ by
+$2r_{\rho,i}(x)/(1+\alpha)$ and preserves the lower-point order.  Multiplying
+the residual update by $w$ and using $w^TQ=\alpha w^T$ shows that the total
+positive KKT mass decreases by at least
+$2\alpha r_{\rho,i}(x)w_i/(1+\alpha)$.  At an active coordinate this is at
+least $2\alpha\zeta d_i/(1+\alpha)$.  Summing the paid degrees until no
+coordinate remains active proves~\eqref{eq:tail-bound}.
+\end{proof}
+
+\subsection{Regularization-gap handoff}
+
+The following is the useful homotopy estimate retained from the discussion.
+
+\begin{lemma}[Over-regularized handoff; \ProvedStatus]
+\label{lem:handoff}
+Let $\bar\rho$ be as in~\eqref{eq:overrho}.  Suppose a retracted point
+$\ell\le x_{\bar\rho}^\star$ satisfies
+\begin{equation}
+  F_{\bar\rho}(\ell)-F_{\bar\rho}^\star
+  \le c\alpha^4\bar\rho.
+  \label{eq:warm-gap}
+\end{equation}
+Then
+\begin{equation}
+  \mathcal M_\rho^+(\ell)
+  \le
+  \alpha^{3/2}
+  +\sqrt{
+       \frac{2\bigl(F_{\bar\rho}(\ell)-F_{\bar\rho}^\star\bigr)}
+            {\alpha\bar\rho}}
+  =O(\alpha^{3/2}).
+  \label{eq:homotopy-mass}
+\end{equation}
+\end{lemma}
+
+\begin{proof}[Proof sketch]
+Changing $\bar\rho$ to $\rho$ adds
+$\alpha(\bar\rho-\rho)w$ to the signed residual.  On a set of volume at most
+$1/\bar\rho$, its weighted positive mass is at most
+$\alpha(\bar\rho-\rho)/\bar\rho\le\alpha^{3/2}$.  For the remaining
+$F_{\bar\rho}$ residual, strong convexity gives
+$\norm{\ell-x_{\bar\rho}^\star}_2
+ \le\sqrt{2(F_{\bar\rho}(\ell)-F_{\bar\rho}^\star)/\alpha}$.
+Cauchy--Schwarz on the positive-residual support, together with its
+$1/\bar\rho$ volume budget, gives the square-root term in
+~\eqref{eq:homotopy-mass}.
+\end{proof}
+
+Taking $\zeta=\alpha\rho$ in \cref{lem:tail,lem:handoff} yields
+\begin{equation}
+  W_{\mathrm{tail}}
+  =O\!\left(\frac{1}{\rho\sqrt\alpha}\right).
+  \label{eq:tail-target}
+\end{equation}
+This is an end-to-end tail theorem in the note-scoped KKT convention.  It does
+not prove that a classical accelerated warmup can reach~\eqref{eq:warm-gap}
+with local work.
+

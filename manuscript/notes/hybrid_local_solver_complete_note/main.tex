@@ -2,12 +2,20 @@
 
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools,bm}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage{booktabs,tabularx}
+\usepackage{booktabs,tabularx,array}
 \usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage[round,authoryear]{natbib}
 \usepackage{hyperref}
-\usepackage[nameinlink]{cleveref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!55!black,
+  citecolor=green!35!black,
+  urlcolor=blue!60!black
+}
 
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -17,18 +25,35 @@
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{observation}[theorem]{Observation}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
 
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\one}{\mathbf{1}}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
 \newcommand{\vol}{\operatorname{vol}}
 \newcommand{\supp}{\operatorname{supp}}
-\newcommand{\eps}{\epsilon}
+\newcommand{\diag}{\operatorname{diag}}
 \newcommand{\softO}{\widetilde{\mathcal O}}
-\newcommand{\AESP}{\textsc{AESP}}
-\newcommand{\LOCSOR}{\textsc{LocSOR}}
+\newcommand{\softOmega}{\widetilde{\Omega}}
 \newcommand{\APPR}{\textsc{APPR}}
+\newcommand{\AESP}{\textsc{AESP}}
+\newcommand{\LocProxGS}{\textsc{LocProxGS}}
+\newcommand{\LocSOR}{\textsc{LocSOR}}
+\newcommand{\pos}[1]{\left[#1\right]_{+}}
+\newcommand{\Status}[2]{\textbf{#1:} #2}
+\newcommand{\SourceStatus}{\textnormal{\textsc{Source result}}}
+\newcommand{\ProvedStatus}{\textnormal{\textsc{Proved here}}}
+\newcommand{\ConditionalStatus}{\textnormal{\textsc{Conditional}}}
+\newcommand{\ComputedStatus}{\textnormal{\textsc{Computed}}}
+\newcommand{\RefutedStatus}{\textnormal{\textsc{Refuted route}}}
+\newcommand{\OpenStatus}{\textnormal{\textsc{Open}}}
 
-\title{Hybrid Local Solvers for Personalized PageRank\\
-Independent Research Note}
+\title{Acceleration versus Locality in $\ell_1$-Regularized\\
+Personalized PageRank\\[0.3em]
+\large Proof Attempts, Obstructions, Lower Bounds, and Tree Waves}
 \author{Baojian Zhou}
 \date{August 2026}
 
@@ -36,31 +61,66 @@ Independent Research Note}
 \maketitle
 
 \begin{abstract}
-This note organizes the hybrid local solver research program into an
-independent mathematical document. The central idea is to combine accelerated
-outer convergence from \AESP{} with a monotone local relaxation tail. The note
-separates established results, conditional complexity bounds, and unresolved
-locality questions.
+This note reconstructs the full research path toward a hybrid local solver
+with degree-weighted work
+$\softO(1/(\rho\sqrt{\alpha}))$ for $\ell_1$-regularized personalized
+PageRank.  A slightly over-regularized accelerated warmup followed by a
+one-sided local Gauss--Seidel tail gives the desired tail complexity.  The
+difficulty is to accelerate the warmup without allowing momentum to destroy
+locality.  We prove that a matched generalized-Bregman proximal subproblem is
+individually $1/\rho$-local, but also prove an exact linear face-change defect
+that prevents uniform exponent-two Bregman acceleration.  Ordinary Euclidean
+proximal centers preserve locality when they are lower subsolutions, but
+unrestricted extrapolation introduces a cumulative deactivation flux.  We
+derive an exact active-volume inequality in terms of this flux.  A proposed
+graph-uniform flux bound is then stress-tested on finite rooted trees: an
+exact radial obstacle recurrence produces outward traveling shells and
+rapidly growing normalized flux.  A period-11 growing wave is proved for the
+outward limiting recurrence; finite-tree computations provide reproducible
+certificates of the same mechanism.  Separately, we prove a matching
+$\Omega(1/(\rho\sqrt{\alpha}))$ lower bound for persistent-support one-hop
+local methods.  The resulting conclusion is precise: the monotone local tail
+and several conditional hybrid theorems survive, while unconditional locality
+of classical inertial warmup does not.  Safeguarded centers, wave-triggered
+restarts, or a narrower oracle are required for the next complete theorem.
 \end{abstract}
 
 \tableofcontents
 
-\section{Scope and research status}
+\section{Scope, chronology, and claim status}
 \input{sections/scope}
 
-\section{Problem formulation}
+\section{Note-scoped RPPR formulation and work model}
 \input{sections/problem}
 
-\section{Source frameworks}
+\section{Source frameworks and the hybrid motivation}
 \input{sections/frameworks}
 
-\section{Hybrid algorithm}
+\section{The hybrid target and the monotone tail}
 \input{sections/hybrid}
 
-\section{Convergence and complexity}
+\section{Handoff analysis and what is already complete}
 \input{sections/convergence}
 
-\section{Open problems}
+\section{Matched generalized-Bregman geometry}
+\input{sections/bregman}
+
+\section{Order-safe Euclidean proximal centers}
+\input{sections/euclidean}
+
+\section{Cumulative volume and the deactivation flux}
+\input{sections/flux}
+
+\section{A product lower bound for persistent-support local methods}
+\input{sections/lower_bound}
+
+\section{Rooted-tree traveling shells}
+\input{sections/tree_wave}
+
+\section{Final assessment and next theorems}
 \input{sections/open}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
 
 \end{document}

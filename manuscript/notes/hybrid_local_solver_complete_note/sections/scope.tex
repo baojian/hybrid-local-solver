@@ -1,18 +1,106 @@
-This note is a rigorous synthesis of the hybrid local solver research discussion.
+\subsection{Purpose of this note}
 
-The goal is to develop local PageRank solvers with accelerated dependence on
-$\alpha$. Classical local push methods achieve worst-case complexity
-$\mathcal O(1/(\alpha\eps))$, while accelerated methods suggest a target scale
-$\softO(1/(\sqrt\alpha\eps))$.
+The research question is whether one can combine an accelerated
+$\widetilde O(1/\sqrt{\alpha})$ outer rate with the output-sensitive locality
+of PageRank push methods.  In the $\ell_1$-regularized formulation, the target
+degree-weighted work scale is
+\begin{equation}
+  \softO\!\left(\frac{1}{\rho\sqrt{\alpha}}\right),
+  \label{eq:target-work}
+\end{equation}
+where $\rho$ is the note-scoped regularization/locality scale.  This note is a
+proof ledger for that target.  It preserves successful lemmas, failed proof
+routes, counterexamples, and the exact remaining alternatives instead of
+retrofitting the discussion into a theorem that is not yet available.
 
-The note follows a strict claim status convention:
+The chronology was as follows.
+\begin{enumerate}[label=\arabic*.,leftmargin=*]
+  \item Empirically, accelerated local methods often reduce the error rapidly
+  before their active-set volume reaches the peak of its bell-shaped
+  trajectory.  This suggested an accelerated burn-in followed by a monotone
+  local relaxation tail.
+  \item Over-regularization and a lower retraction gave a rigorous handoff to
+  a one-sided $\omega=1$ local Gauss--Seidel process with work at the target
+  scale in~\eqref{eq:target-work}.  The only missing part was the warmup work.
+  \item A generalized Bregman divergence was designed to charge a linear tax
+  exactly when a new coordinate activates.  Every matched inner minimizer is
+  $1/\rho$-local, but the same linear tax destroys the quadratic triangle
+  scaling needed for acceleration.
+  \item Ordinary Euclidean proximal subproblems were then shown to be local
+  whenever their centers are certified lower subsolutions.  Classical
+  extrapolation, however, does not preserve that order.
+  \item An exact cumulative-volume identity reduced the warmup problem to a
+  mass-weighted two-step deactivation flux.  The conjecture that this flux is
+  $O(\alpha T)$ would have completed the proof.
+  \item Radial computations on finite rooted trees exposed repeated
+  activation/deactivation waves with rapidly increasing degree-weighted mass.
+  An exact growing period-11 wave exists in the outward limiting recurrence.
+  Thus the flux conjecture must not be used as a graph-uniform lemma.
+  \item In parallel, a path-bundle construction gave a matching product lower
+  bound for a natural persistent-support one-hop oracle.  It does not extend
+  automatically to the broader locally evolving-set oracle.
+\end{enumerate}
 
-\begin{itemize}
-\item source results: directly inherited from published algorithms;
-\item proved results: derived in this note;
-\item conditional results: requiring explicit locality assumptions;
-\item open problems: not currently established.
-\end{itemize}
+\subsection{Status conventions}
 
-The main unresolved issue is not convergence of the hybrid method, but proving
-that accelerated burn-in preserves sufficiently small local work.
+The repository-wide residual decision is open.  All RPPR residuals,
+thresholds, and accuracy statements below are therefore explicitly
+\emph{note-scoped}; no conversion to the active manuscript's eventual
+canonical stopping rule is asserted.
+
+We use six claim labels.
+\begin{description}[style=nextline,leftmargin=2.8cm]
+  \item[\SourceStatus] A statement taken from a cited paper in the source's
+  own normalization.
+  \item[\ProvedStatus] A self-contained algebraic or graph-theoretic statement
+  proved in this note.
+  \item[\ConditionalStatus] A theorem whose locality hypothesis is displayed
+  explicitly.
+  \item[\ComputedStatus] A reproducible finite-dimensional computation, not
+  silently promoted to an interval-arithmetic proof.
+  \item[\RefutedStatus] A proposed lemma or proof route for which an exact
+  obstruction or counter-mechanism has been identified.
+  \item[\OpenStatus] A missing theorem, reduction, or formal transfer step.
+\end{description}
+
+\subsection{Executive status table}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.35\textwidth}
+                              >{\raggedright\arraybackslash}p{0.18\textwidth}X}
+\toprule
+Statement & Status & Precise meaning \\
+\midrule
+Matched proximal subproblems have support volume at most $1/\rho$
+& Proved & Follows from a weighted KKT identity under the matched center-set
+budget. \\
+Local coordinate solution of each matched subproblem
+& Proved & Constant contraction of positive KKT mass for
+$\kappa=1-2\alpha$. \\
+Uniform accelerated matched-Bregman proof
+& Refuted & A newly activated coordinate has a linear face-change defect and
+triangle-scaling exponent one. \\
+Order-safe Euclidean proximal centers
+& Proved & A lower subsolution is sandwiched below both the proximal minimizer
+and the RPPR minimizer. \\
+Warmup bound under a bounded core or controlled face phases
+& Conditional & Gives $\softO(B/(\rho\sqrt\alpha))$ or
+$\softO((K+1)/(\rho\sqrt\alpha))$. \\
+Cumulative active-volume/deactivation-flux identity
+& Proved & Exact for the stated accelerated Euclidean proximal iterates, up
+to displayed inner errors. \\
+Graph-uniform flux law $\Phi_T=O(\alpha T)$
+& Refuted as a proof hypothesis & Finite rooted-tree computations and an
+exact outward traveling wave show the instability mechanism; a formal
+zero-start finite-tree asymptotic transfer is isolated separately. \\
+$\Omega(1/(\rho\sqrt\alpha))$ product lower bound
+& Proved for a restricted oracle & Applies to persistent-support one-hop
+methods, not arbitrary moving-frontier evolving-set methods. \\
+Unconditional graph-uniform hybrid work~\eqref{eq:target-work}
+& Open & Requires a safeguarded/restarted algorithm or a different oracle
+argument. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+

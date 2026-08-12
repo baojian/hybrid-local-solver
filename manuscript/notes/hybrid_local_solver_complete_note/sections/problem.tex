@@ -1,15 +1,101 @@
-Let $G=(V,E)$ be an undirected graph with adjacency matrix $A$ and degree
-matrix $D$. Define
-\[
-Q=\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2}.
-\]
-The symmetric PageRank quadratic is
-\[
-f(x)=\frac12x^TQx-b^Tx,
-\qquad b=\alpha D^{-1/2}s.
-\]
-The minimizer gives the personalized PageRank vector through
-$\pi=D^{1/2}x^\star$.
+\subsection{Graph operator}
 
-The local work model charges a coordinate update at vertex $u$ by $d_u$ and
-parallel active-set updates by $\vol(S)=\sum_{u\in S}d_u$.
+Let $G=(V,E)$ be a finite undirected unweighted graph with no isolated
+vertices, adjacency matrix $A$, degree matrix $D=\diag(d_i)$, and normalized
+adjacency
+\[
+  W:=D^{-1/2}AD^{-1/2}.
+\]
+Fix $\alpha\in(0,1/2)$ and define
+\begin{equation}
+  Q
+  :=\alpha I+\frac{1-\alpha}{2}(I-W)
+  =\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}W.
+  \label{eq:Q}
+\end{equation}
+For a source distribution $s\ge 0$ with $\one^Ts=1$, set
+\[
+  b:=\alpha D^{-1/2}s,
+  \qquad
+  w:=D^{1/2}\one,
+  \qquad
+  p(x):=w^Tx.
+\]
+The identities
+\begin{equation}
+  Qw=\alpha w,
+  \qquad
+  w^TQ=\alpha w^T,
+  \qquad
+  w^Tb=\alpha
+  \label{eq:weighted-identities}
+\end{equation}
+are used throughout.  The matrix $Q$ is a symmetric positive-definite
+$M$-matrix and satisfies $\alpha I\preceq Q\preceq I$.
+
+\subsection{\texorpdfstring{$\ell_1$}{l1}-regularized PageRank}
+
+For $\rho>0$, define
+\begin{equation}
+  F_\rho(x)
+  :=\frac12x^TQx-b^Tx+\alpha\rho J(x),
+  \qquad
+  J(x):=\norm{D^{1/2}x}_1=\sum_i w_i|x_i|.
+  \label{eq:rppr}
+\end{equation}
+This is the source-aligned RPPR formulation of
+\citet{fountoulakis2019variational,fountoulakis2026complexity}.  Since $b\ge0$
+and $Q$ is an $M$-matrix, the unique minimizer $x_\rho^\star$ is nonnegative.
+It is therefore convenient to use the equivalent orthant formulation
+\begin{equation}
+ F_\rho^+(x)
+ :=\frac12x^TQx-b^Tx+\alpha\rho w^Tx+I_{\R_+^V}(x).
+ \label{eq:orthant-rppr}
+\end{equation}
+
+On the orthant, introduce the note-scoped signed KKT residual
+\begin{equation}
+  r_\rho(x):=b-Qx-\alpha\rho w.
+  \label{eq:kkt-residual}
+\end{equation}
+The minimizer obeys
+\begin{equation}
+  r_\rho(x_\rho^\star)\le0,
+  \qquad
+  x_\rho^\star\ge0,
+  \qquad
+  x_{\rho,i}^\star r_{\rho,i}(x_\rho^\star)=0.
+  \label{eq:kkt}
+\end{equation}
+Our sign convention makes positive residual a legal direction in which to
+increase a coordinate.  This convention is local to this note.
+
+Multiplying the active KKT equations by $w$ gives the standard support budget
+\begin{equation}
+  p(x_\rho^\star)+\rho\vol(\supp x_\rho^\star)\le1.
+  \label{eq:rppr-support-budget}
+\end{equation}
+Thus $\rho^{-1}$ is simultaneously a regularization scale and a worst-case
+support-volume scale.  It is not identified here with the repository's
+unresolved global symbol $\epsilon$.
+
+\subsection{Local work}
+
+Scanning the neighborhood of vertex $i$ costs $d_i$.  A batched active set
+$S$ therefore costs
+\[
+  \vol(S):=\sum_{i\in S}d_i.
+\]
+For an active-set trajectory $(S_t)_{t<T}$ we charge
+\begin{equation}
+  W_T:=\sum_{t=0}^{T-1}\vol(S_t).
+  \label{eq:work-model}
+\end{equation}
+This is the same edge-operation unit used in the locally evolving-set
+framework of \citet{zhou2024iterative}, although different algorithms may
+choose different active sets.
+
+The target~\eqref{eq:target-work} is stronger than multiplying an
+$O(1/\sqrt\alpha)$ iteration count by the trivial $O(1/\rho)$ support bound
+only if each accelerated subproblem can actually be solved with local work and
+the momentum state itself does not create expensive transient support.

@@ -1,16 +1,119 @@
-The central open problem is proving a graph-independent early AESP locality theorem.
+\subsection{What is settled}
 
-Current rigorous routes are:
-
-\begin{enumerate}
-\item prove an early locality bound for AESP;
-\item develop a confinement theorem inspired by $\ell_1$-regularized PageRank;
-\item use cumulative boundary charging rather than uniform support bounds;
-\item design safeguarded accelerated local tails.
+The discussion yields the following durable conclusions.
+\begin{enumerate}[label=\arabic*.,leftmargin=*]
+  \item The over-regularized handoff and the one-sided $\omega=1$ local tail
+  are complete in the note-scoped KKT convention; the tail costs
+  $O(1/(\rho\sqrt\alpha))$.
+  \item A matched activation-tax proximal subproblem is individually local and
+  can be solved locally at a constant inner contraction rate.
+  \item The same linear activation tax prevents uniform exponent-two Bregman
+  acceleration across changing support.  The corresponding dual envelope is
+  not globally convex.
+  \item A Euclidean proximal subproblem centered at a lower certificate is
+  sandwiched below the RPPR optimum and has support volume at most $1/\rho$.
+  \item For classical inertial Euclidean centers, cumulative active volume is
+  controlled exactly by~\eqref{eq:volume-via-flux}.  Support growth itself is
+  not the obstruction; repeated mass deactivation is.
+  \item Branching trees support outward activation/deactivation waves.  The
+  tree mechanism rules out using an unguarded $O(\alpha T)$ flux assumption in
+  a graph-uniform proof.
+  \item The product lower bound
+  $\Omega(1/(\rho\sqrt\alpha))$ is rigorous for persistent-support one-hop
+  methods, but not for arbitrary moving-frontier local algorithms.
 \end{enumerate}
 
-The desired theorem
-\[
-\widetilde{\mathcal O}(1/(\sqrt\alpha\eps))
-\]
-remains a research target rather than an established result.
+Accordingly, the unconditional graph-uniform work bound
+\begin{equation}
+  W_{\mathrm{hybrid}}
+  =\softO\!\left(\frac1{\rho\sqrt\alpha}\right)
+  \label{eq:still-open-target}
+\end{equation}
+must remain open for the classical extrapolated warmup.  It should not be
+promoted into the active manuscript.
+
+\subsection{The most credible safeguarded algorithm}
+
+The tree calculation suggests a concrete redesign rather than another global
+potential.  Maintain two states:
+\begin{itemize}[leftmargin=*]
+  \item an accelerated trial state, allowed to extrapolate; and
+  \item a monotone lower shadow $\ell_t$, updated only by certified positive
+  residual coordinate steps.
+\end{itemize}
+During an acceleration epoch, monitor a local wave certificate such as
+\begin{equation}
+ \mathfrak D_{a:b}
+ :=\pos{\beta p_{b-1}-p_b}
+   +\beta\sum_{t=a}^b
+     p_{A_{t-2}\setminus A_t}(x_{t-2}),
+ \label{eq:epoch-flux}
+\end{equation}
+or the weighted negative part suggested by~\eqref{eq:transformed-wave}.
+When the certificate exceeds a fixed fraction of the source mass injected in
+the epoch, discard momentum, retract to the lower shadow, enlarge the certified
+face if necessary, and restart.
+
+The observable theorem to seek is not that restarts never occur.  It is an
+amortized statement of the form
+\begin{equation}
+  W
+  =\softO\!\left(
+      \frac1{\rho\sqrt\alpha}
+      +\frac{R}{\rho}
+    \right),
+  \label{eq:restart-target}
+\end{equation}
+where $R$ is the number of certified wave restarts, followed by either a
+structural bound on $R$ or an instance-adaptive guarantee that exposes $R$ in
+the theorem.  This formulation is compatible with
+\cref{thm:bounded-core,thm:controlled-faces} and with classical adaptive
+restart ideas \citep{odonoghue2015adaptive}, while using a graph-local signal
+instead of a global objective test.
+
+\subsection{Central missing lemmas}
+
+\begin{description}[style=nextline,leftmargin=3.4cm]
+  \item[Finite-tree excitation.] Complete the rigorous transfer from the
+  outward period-11 wave to the zero-start root-source response on a sequence
+  of finite simple trees.  This would convert the current computational and
+  limiting evidence into a formal asymptotic counterexample to
+  \cref{conj:flux}.
+
+  \item[Restart amortization.] Prove that a wave-triggered restart pays for
+  itself through objective decrease, newly certified KKT slack, or expansion
+  of a bounded core.  Counting restarts without such a payment simply
+  reintroduces the unknown $K$ in~\eqref{eq:face-phase-work}.
+
+  \item[Lower-shadow accuracy.] Bound the gap between the accelerated trial
+  point and the monotone lower shadow tightly enough that restarting does not
+  lose the $1/\sqrt\alpha$ progress already obtained.
+
+  \item[Flattened bell.] Determine whether
+  $\softO((1/\sqrt\alpha)\log(1/\rho))$ guarded epochs can enforce
+  $O(1/\rho)$ active volume per epoch.  The tree wave shows that a simple
+  fixed momentum schedule cannot be the entire proof.
+
+  \item[Broader oracle lower bound.] Either construct a hard family that
+  forces simultaneous volume on a moving-frontier evolving-set algorithm, or
+  prove that such an algorithm can evade the product lower bound.  Output size
+  and iteration complexity alone do not settle this question.
+
+  \item[Residual reconciliation.] Translate the note-scoped KKT threshold,
+  the AESP degree-normalized infinity error, the APPR threshold, and the
+  proximal fixed-point residual into one accepted repository convention before
+  promoting any theorem.
+\end{description}
+
+\subsection{Final research position}
+
+The hybrid idea remains viable, but the proof target has changed.  The
+correct algorithm cannot be ``classical acceleration plus locality for free.''
+It must make locality an enforced invariant or an observable restart
+condition.  The strongest current theorem is the flux-dependent
+bound~\eqref{eq:hybrid-flux-bound}, together with the bounded-core and
+controlled-face corollaries.  The strongest obstruction is the combination
+of the exact face-change defect~\eqref{eq:face-change-defect} and the rooted
+tree wave~\eqref{eq:radial-obstacle}.  Any next proof should state explicitly
+which of these two mechanisms it suppresses.
+
