@@ -129,6 +129,9 @@ requirements.
 
 Complete previous-paper projects live under `manuscript/archive/`:
 
+- [`archive/arxiv-2026-classical-acceleration-rppr/`](archive/arxiv-2026-classical-acceleration-rppr/)
+  contains the source-faithful arXiv v2 reader edition of *Complexity of
+  Classical Acceleration for \(\ell_1\)-Regularized PageRank*.
 - [`archive/kdd-2023-appr-sor/`](archive/kdd-2023-appr-sor/) contains the
   standalone KDD 2023 APPR-SOR paper.
 - [`archive/neurips-2024-locch/`](archive/neurips-2024-locch/) contains the
