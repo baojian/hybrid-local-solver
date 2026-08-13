@@ -239,6 +239,85 @@ Finally,
 \end{equation*}
 \end{proof}
 
+\begin{theorem}[Stieltjes-quadratic inner locality]
+\label{thm:aesp-cd-stieltjes}
+Let
+\begin{equation*}
+ \Psi(z)=\frac12 z^\top Hz-c^\top z
+          +\sum_{j=1}^n\lambda_j\abs{z_j},
+ \qquad \lambda_j\geq0,
+\end{equation*}
+where $H$ is symmetric positive definite and $H_{ij}\leq0$ for $i\neq j$.
+Suppose there are $\upsilon\in\R_{++}^n$ and $\mu>0$ such that
+$H\upsilon\geq\mu\upsilon$ coordinatewise.  Let $\kappa_\Psi(z)$ be the
+minimum-magnitude KKT vector, and define
+\begin{equation*}
+ C_\upsilon(z):=\sum_j\upsilon_j\abs{\kappa_{\Psi,j}(z)},
+ \qquad
+ \theta_i:=\frac{(H\upsilon)_i}{H_{ii}\upsilon_i}.
+\end{equation*}
+Then $0<\mu/H_{ii}\leq\theta_i\leq1$, and an exact proximal update of
+coordinate $i$ satisfies
+\begin{equation}
+ C_\upsilon(z^+)
+ \leq C_\upsilon(z)
+       -\theta_i\upsilon_i\abs{\kappa_{\Psi,i}(z)}.
+ \label{eq:aesp-cd-stieltjes-mass}
+\end{equation}
+If $z_\Psi^\star$ minimizes $\Psi$, then
+\begin{equation}
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             (z-z_\Psi^\star)}_\infty
+ \leq\frac1\mu
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             \kappa_\Psi(z)}_\infty.
+ \label{eq:aesp-cd-stieltjes-error}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $\Delta_i=z_i^+-z_i$.  Exact scalar proximal minimization gives
+$\kappa_{\Psi,i}(z^+)=0$ and
+$H_{ii}\abs{\Delta_i}\leq\abs{\kappa_{\Psi,i}(z)}$.  The minimum KKT map
+at every untouched coordinate is one-Lipschitz in its smooth gradient, so
+\begin{align*}
+ C_\upsilon(z^+)
+ &\leq C_\upsilon(z)-\upsilon_i\abs{\kappa_{\Psi,i}(z)}
+       +\sum_{j\neq i}\upsilon_j\abs{H_{ji}\Delta_i}\\
+ &\leq C_\upsilon(z)
+       -\left(\upsilon_i
+         -\frac{\sum_{j\neq i}\upsilon_j\abs{H_{ji}}}{H_{ii}}\right)
+        \abs{\kappa_{\Psi,i}(z)}\\
+ &=C_\upsilon(z)-\theta_i\upsilon_i
+        \abs{\kappa_{\Psi,i}(z)}.
+\end{align*}
+The last identity uses symmetry and the nonpositive off-diagonal entries.
+Those same signs show $\theta_i\leq1$, while
+$H\upsilon\geq\mu\upsilon$ gives
+$\theta_i\geq\mu/H_{ii}>0$.
+
+For the error certificate, put $e=z-z_\Psi^\star$ and choose $i$ maximizing
+$M:=\abs{e_i}/\upsilon_i$.  The weighted maximum principle gives
+\begin{equation*}
+ \frac{\operatorname{sign}(e_i)(He)_i}{\upsilon_i}
+ \geq M\frac{(H\upsilon)_i}{\upsilon_i}\geq\mu M.
+\end{equation*}
+Monotonicity of each absolute-value subdifferential makes its contribution
+nonnegative after multiplication by $\operatorname{sign}(e_i)$.  Therefore
+$\abs{\kappa_{\Psi,i}(z)}/\upsilon_i\geq\mu M$, which proves
+\cref{eq:aesp-cd-stieltjes-error}.
+\end{proof}
+
+The PageRank result is the specialization of
+\cref{thm:aesp-cd-stieltjes} with
+$H=H_t$, $\upsilon=D^{1/2}\one$, and
+$H_t\upsilon=\mu_t\upsilon$.  Since every diagonal entry is $\ell$, one has
+$\theta_i=\mu_t/\ell=\tau_{\mathrm{cd}}$ for every coordinate.  Thus the
+proved inner-locality mechanism applies not only to RPPR, but also to shifted
+RPPR subproblems and, more generally, to separable $\ell_1$ regularization of
+any Stieltjes quadratic admitting a positive supersolution.  It does not by
+itself control how an outer extrapolation chooses its successive starts.
+
 Thus the composite analogue of the ordinary-PPR residual-mass contraction is
 valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
 

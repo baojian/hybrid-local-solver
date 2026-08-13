@@ -62,6 +62,9 @@ Closed statements:
   violation, including zero hits and sign crossings;
 - the degree-normalized KKT diagnostic divided by the shifted strong-convexity
   constant certifies degree-normalized solution error;
+- both results extend to any separable `l1`-regularized Stieltjes quadratic
+  `H` that admits a positive supersolution `H v >= mu v`, with coordinate
+  contraction factor `(H v)_i / (H_ii v_i)`;
 - thresholded sequential updates have work at most
   `C_t(z_0) / (tau_cd * eps_in)` and give an explicit objective-gap inner
   oracle; for `kappa_A = 1 - 2 * alpha`, `tau_cd = 2/3`;
