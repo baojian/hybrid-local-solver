@@ -409,6 +409,42 @@ $\mu_t=1-\alpha$ and $\tau_{\mathrm{cd}}=2/3$.  Thus
  \label{eq:aesp-cd-specialized-work}
 \end{equation}
 
+\begin{corollary}[Composite AESP plug-in]
+\label{cor:aesp-cd-plugin}
+Suppose a composite AESP outer loop accepts its stage-$t$ inner output when
+\begin{equation*}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)\leq\varphi_t
+\end{equation*}
+and initializes the inner solve at $z_t^{(0)}=y^{(t-1)}$.  If
+$C_t(y^{(t-1)})=0$, the initial point is already optimal.  Otherwise,
+thresholded exact coordinate descent with
+\begin{equation*}
+ \varepsilon_{\mathrm{in},t}
+ =\frac{2(1-\alpha)\varphi_t}{C_t(y^{(t-1)})}
+\end{equation*}
+satisfies every such inner-oracle condition, even when the extrapolated
+centers are signed.  Across any $T$ outer stages its total degree work obeys
+\begin{equation}
+ \mathcal W_{\mathrm{inner}}(T)
+ \leq\frac{3}{4(1-\alpha)}
+       \sum_{t=1}^T
+       \frac{C_t(y^{(t-1)})^2}{\varphi_t}.
+ \label{eq:aesp-cd-cumulative-interface}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Apply \cref{thm:aesp-cd-inner-work} independently at every stage and sum
+\cref{eq:aesp-cd-specialized-work}.  The signed-center claim follows because
+\cref{thm:aesp-cd-mass} made no sign assumption.
+\end{proof}
+
+\Cref{eq:aesp-cd-cumulative-interface} is the precise interface supplied to
+the outer acceleration proof.  It removes inner correctness and sign
+monotonicity from the open problem: a graph-uniform end-to-end theorem now
+requires a bound on the displayed cumulative start-mass functional, or an
+outer safeguard that bounds it while retaining accelerated convergence.
+
 \begin{corollary}[Zero-start RPPR coordinate descent]
 \label{cor:aesp-cd-zero-start}
 For the unshifted objective, $C_\rho(0)\leq\alpha$.  Coordinate descent from
@@ -443,7 +479,7 @@ $\alpha$, $\rho$, $\epskkt$, $\epsin$, random seed, stopping formula, and code
 version.  It should report both $R_{\mathrm{kkt},\rho}(x)$ and the KKT-mass
 decrease diagnostics.
 
-\Cref{thm:aesp-cd-mass,thm:aesp-cd-inner-work} close the inner
+\Cref{thm:aesp-cd-mass,thm:aesp-cd-inner-work,cor:aesp-cd-plugin} close the inner
 local-monotonicity and oracle-correctness tasks.  The remaining central task is
 outer locality.  The work in \cref{eq:aesp-cd-specialized-work} depends on the
 start mass $C_t(z_t^{(0)})$ of each shifted subproblem.  Catalyst extrapolation

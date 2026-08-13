@@ -68,6 +68,9 @@ Closed statements:
 - thresholded sequential updates have work at most
   `C_t(z_0) / (tau_cd * eps_in)` and give an explicit objective-gap inner
   oracle; for `kappa_A = 1 - 2 * alpha`, `tau_cd = 2/3`;
+- consequently, composite AESP can use this oracle from its signed
+  extrapolated centers, with cumulative inner work at most
+  `3 / (4 * (1 - alpha)) * sum_t C_t(y_(t-1))^2 / phi_t`;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
