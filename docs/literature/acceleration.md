@@ -57,10 +57,7 @@ starting points, but their applicability has not yet been established.
     of Lemma 6 on pages 19-20 prints a degree denominator inconsistent with
     Equation (1), although that step uses only the off-diagonal sign.
   - arXiv v1 PDF page 23, Appendix B: compare the stated CDPR, ASPR, and ISTA
-    complexities. The COLT/arXiv-v1 paper contains no computational
-    experiments. A later official Julia repository at
-    <https://github.com/ZIB-IOL/AAPPR.jl> contains code, serialized results,
-    and plots labeled as journal-version experiments.
+    complexities. The paper contains no computational experiments.
 - Formulation differences: The source uses ε for objective gap and exact sign
   tests for active-set expansion; it specifies no residual-based stopping
   criterion or finite-precision tolerance. Its volume includes selected-set
@@ -80,12 +77,8 @@ starting points, but their applicability has not yet been established.
   `Omega(|S*|^2 / sqrt(alpha))` work on a path, matching the leading published
   product up to logarithms. The scaling `alpha = |S*|^{-2}`,
   `rho = alpha / 100`, and `eps_obj = 10^{-4} alpha^2` yields a literal
-  same-tolerance factor-`|S*|` separation from standard FISTA. The audit also
-  proves that the official periodic-gradient implementation deletes the
-  active-boundary cross block, making early discovery inert on RPPR, and
-  records an in-place retraction defect. The official plots generally favor
-  default ASPR over their FISTA/ISTA baselines, with CASPR fastest. This does
-  not establish a lower bound for every local first-order method or under the
+  same-tolerance factor-`|S*|` separation from standard FISTA. This does not
+  establish a lower bound for every local first-order method or under the
   repository's unresolved residual.
 
 ## Citation key: `fountoulakis2026complexity`

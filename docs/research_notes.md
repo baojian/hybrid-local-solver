@@ -37,20 +37,7 @@ Closed statements:
   `Omega(|S*|^3 log |S*|)` ASPR work versus
   `O(|S*|^2 log |S*|)` FISTA work at the same tolerance, while the 2026
   leaf-star lower bound gives the opposite separation when FISTA activates a
-  high-degree center;
-- the post-COLT official Julia repository generally plots default ASPR faster
-  than its FISTA and ISTA baselines, with CASPR fastest, so those plots are not
-  evidence that default ASPR is empirically slow;
-- in official commit `3a169eb`, the periodic boundary-gradient option deletes
-  the active-to-boundary cross block before evaluation. Its early-discovery
-  flag is therefore inert on RPPR and the periodic variants only add work;
-- the same implementation's in-place retraction fails to clip entries in
-  `(0, delta)`, and the baseline support filter performs an `O(n)` complement
-  allocation outside the stated local work model;
-- a corrected early-discovery method still needs one successful event per path
-  layer and `Omega(|S*|^2)` work under fresh-prefix scans, although the current
-  proof does not retain the per-stage `1 / sqrt(alpha)` inner lower bound for
-  that variant.
+  high-degree center.
 
 Scope boundary:
 
