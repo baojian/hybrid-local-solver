@@ -14,8 +14,14 @@
 This standalone note records a proposed Accelerated Evolving Set Process with
 local proximal coordinate descent (AESP-CD) for regularized PageRank.  It
 separates the shared problem definition, proved implementation facts, and the
-central unproved locality target.  Nothing here changes the repository-wide
-residual decision.
+remaining outer-locality target.  The coordinate-level theory is closed: the
+minimum-norm KKT mass contracts under every exact proximal coordinate update,
+including sign changes and zero-coordinate clipping, and the KKT diagnostic
+certifies degree-normalized solution error.  These statements give a rigorous
+local inner oracle for composite AESP.  They do not bound the KKT mass of an
+arbitrary extrapolated Catalyst center, so a graph-uniform accelerated
+end-to-end work theorem remains open.  Nothing here changes the
+repository-wide residual decision.
 
 \section{Problem formulation}
 
@@ -50,7 +56,8 @@ and the scalar diagnostic
   \label{eq:aesp-cd-kkt-diagnostic}
 \end{equation}
 The implication from this diagnostic to a solution-error norm is a required
-lemma, not an adopted stopping convention.
+lemma proved below, but it is not an adopted repository-wide stopping
+convention.
 
 \section{AESP outer framework}
 
@@ -87,6 +94,21 @@ $\nabla f$ with $\nabla f_t$, and set
   \label{eq:aesp-cd-kkt-mass}
 \end{equation}
 
+Let
+\begin{equation}
+  H_t:=Q+\kappa_{\mathrm A}I,
+  \qquad
+  \mu_t:=\alpha+\kappa_{\mathrm A}.
+  \label{eq:aesp-cd-shifted-hessian}
+\end{equation}
+Then $H_t$ has nonpositive off-diagonal entries and satisfies
+\begin{equation}
+  \mu_t I\preceq H_t,
+  \qquad
+  H_tD^{1/2}\one=\mu_tD^{1/2}\one.
+  \label{eq:aesp-cd-shifted-properties}
+\end{equation}
+
 For coordinate $i$, exact proximal coordinate descent uses
 \begin{equation}
   z_i^+
@@ -100,9 +122,61 @@ For coordinate $i$, exact proximal coordinate descent uses
 Only coordinate $i$ and its neighbors require gradient updates, so the shared
 work charge for this update is $d_i$.
 
-\section{Open local-monotonicity target}
+\section{KKT certificate and local monotonicity}
 
-\begin{conjecture}[KKT-mass decrease target]
+\begin{lemma}[KKT diagnostic certifies inner solution error]
+\label{lem:aesp-cd-kkt-error}
+Let $z_t^\star$ be the unique minimizer of $F_{\rho,t}$.  Then every
+$z\in\R^n$ satisfies
+\begin{equation}
+  \norm{D^{-1/2}(z-z_t^\star)}_\infty
+  \leq
+  \frac{1}{\mu_t}
+  \norm{D^{-1/2}\kappa_t(z)}_\infty.
+  \label{eq:aesp-cd-inner-error}
+\end{equation}
+In particular, for the unshifted RPPR objective,
+\begin{equation}
+  \norm{D^{-1/2}(x-x^\star(\rho))}_\infty
+  \leq \frac{R_{\mathrm{kkt},\rho}(x)}{\alpha}.
+  \label{eq:aesp-cd-rppr-error}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Choose subgradients $\xi\in\partial\norm{D^{1/2}z}_1$ and
+$\xi^\star\in\partial\norm{D^{1/2}z_t^\star}_1$ so that
+\begin{equation*}
+  \kappa_t(z)=H_t(z-z_t^\star)
+  +\alpha\rho(\xi-\xi^\star).
+\end{equation*}
+The coordinate definition of $\kappa_t$ is precisely the minimum-magnitude
+valid choice at $z$, while optimality supplies a choice with zero residual at
+$z_t^\star$.
+
+Put $e=z-z_t^\star$ and choose $i$ maximizing
+$M:=\abs{e_i}/\sqrt{d_i}$.  If $M=0$, the result is immediate.  Otherwise,
+the normalized maximum principle and
+\cref{eq:aesp-cd-shifted-properties} give
+\begin{equation*}
+ \frac{\operatorname{sign}(e_i)(H_te)_i}{\sqrt{d_i}}
+ \geq \mu_tM.
+\end{equation*}
+Coordinatewise monotonicity of the weighted absolute-value subdifferential
+gives
+$e_i(\xi_i-\xi_i^\star)\geq0$.  Hence
+\begin{equation*}
+ \frac{\abs{\kappa_{t,i}(z)}}{\sqrt{d_i}}
+ \geq
+ \frac{\operatorname{sign}(e_i)\kappa_{t,i}(z)}{\sqrt{d_i}}
+ \geq \mu_tM,
+\end{equation*}
+which proves \cref{eq:aesp-cd-inner-error}.  Set
+$\kappa_{\mathrm A}=0$ for \cref{eq:aesp-cd-rppr-error}.
+\end{proof}
+
+\begin{theorem}[Exact KKT-mass decrease]
+\label{thm:aesp-cd-mass}
 For a sequential proximal coordinate update at coordinate $i$,
 \begin{equation}
   C_t(z^+)
@@ -115,10 +189,137 @@ For a sequential proximal coordinate update at coordinate $i$,
   \label{eq:aesp-cd-mass-target}
 \end{equation}
 Under $\kappa_{\mathrm A}=1-2\alpha$, the displayed coefficient is $2/3$.
-\end{conjecture}
+\end{theorem}
 
-This composite analogue of the ordinary-PPR residual-mass contraction remains
-open until every sign and zero-coordinate subgradient case is verified.
+\begin{proof}
+Write $\lambda_i:=\alpha\rho\sqrt{d_i}$ and
+$\Delta_i:=z_i^+-z_i$.  Exact scalar proximal minimization makes the new
+coordinate KKT violation zero and gives
+\begin{equation}
+  \kappa_{t,i}(z^+)=0,
+  \qquad
+  \ell\abs{\Delta_i}\leq\abs{\kappa_{t,i}(z)}.
+  \label{eq:aesp-cd-displacement}
+\end{equation}
+The second inequality follows directly from the three scalar soft-threshold
+cases: the update stays on the same nonzero face, reaches zero, or crosses to
+the opposite face.  Equality holds in the first case; thresholding can only
+shorten the displacement in the latter two.
+
+For every $j\neq i$, the value $z_j$ is unchanged.  As a function of its
+smooth gradient, the minimum KKT violation is either a translate
+$g\mapsto g\pm\lambda_j$ on a nonzero face or the soft-threshold map
+$g\mapsto g-\operatorname{clip}(g,-\lambda_j,\lambda_j)$ at zero.  Each map
+is one-Lipschitz.  Therefore
+\begin{equation*}
+ \abs{\kappa_{t,j}(z^+)}
+ \leq
+ \abs{\kappa_{t,j}(z)}+\abs{H_{t,ji}\Delta_i}.
+\end{equation*}
+Only neighbors of $i$ have a nonzero off-diagonal entry, and
+\begin{equation*}
+ \sum_{j\neq i}\sqrt{d_j}\abs{H_{t,ji}\Delta_i}
+ =\frac{1-\alpha}{2}\sqrt{d_i}\abs{\Delta_i}.
+\end{equation*}
+Using \cref{eq:aesp-cd-displacement}, we obtain
+\begin{align*}
+ C_t(z^+)
+ &\leq C_t(z)-\sqrt{d_i}\abs{\kappa_{t,i}(z)}
+       +\frac{1-\alpha}{2}\sqrt{d_i}\abs{\Delta_i}\\
+ &\leq C_t(z)
+ -\left(1-\frac{1-\alpha}{2\ell}\right)
+  \sqrt{d_i}\abs{\kappa_{t,i}(z)}.
+\end{align*}
+Finally,
+\begin{equation*}
+ 1-\frac{1-\alpha}{2\ell}
+ =\frac{2(\alpha+\kappa_{\mathrm A})}
+        {1+\alpha+2\kappa_{\mathrm A}}
+ =\tau_{\mathrm{cd}}.
+\end{equation*}
+\end{proof}
+
+\begin{theorem}[Stieltjes-quadratic inner locality]
+\label{thm:aesp-cd-stieltjes}
+Let
+\begin{equation*}
+ \Psi(z)=\frac12 z^\top Hz-c^\top z
+          +\sum_{j=1}^n\lambda_j\abs{z_j},
+ \qquad \lambda_j\geq0,
+\end{equation*}
+where $H$ is symmetric positive definite and $H_{ij}\leq0$ for $i\neq j$.
+Suppose there are $\upsilon\in\R_{++}^n$ and $\mu>0$ such that
+$H\upsilon\geq\mu\upsilon$ coordinatewise.  Let $\kappa_\Psi(z)$ be the
+minimum-magnitude KKT vector, and define
+\begin{equation*}
+ C_\upsilon(z):=\sum_j\upsilon_j\abs{\kappa_{\Psi,j}(z)},
+ \qquad
+ \theta_i:=\frac{(H\upsilon)_i}{H_{ii}\upsilon_i}.
+\end{equation*}
+Then $0<\mu/H_{ii}\leq\theta_i\leq1$, and an exact proximal update of
+coordinate $i$ satisfies
+\begin{equation}
+ C_\upsilon(z^+)
+ \leq C_\upsilon(z)
+       -\theta_i\upsilon_i\abs{\kappa_{\Psi,i}(z)}.
+ \label{eq:aesp-cd-stieltjes-mass}
+\end{equation}
+If $z_\Psi^\star$ minimizes $\Psi$, then
+\begin{equation}
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             (z-z_\Psi^\star)}_\infty
+ \leq\frac1\mu
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             \kappa_\Psi(z)}_\infty.
+ \label{eq:aesp-cd-stieltjes-error}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $\Delta_i=z_i^+-z_i$.  Exact scalar proximal minimization gives
+$\kappa_{\Psi,i}(z^+)=0$ and
+$H_{ii}\abs{\Delta_i}\leq\abs{\kappa_{\Psi,i}(z)}$.  The minimum KKT map
+at every untouched coordinate is one-Lipschitz in its smooth gradient, so
+\begin{align*}
+ C_\upsilon(z^+)
+ &\leq C_\upsilon(z)-\upsilon_i\abs{\kappa_{\Psi,i}(z)}
+       +\sum_{j\neq i}\upsilon_j\abs{H_{ji}\Delta_i}\\
+ &\leq C_\upsilon(z)
+       -\left(\upsilon_i
+         -\frac{\sum_{j\neq i}\upsilon_j\abs{H_{ji}}}{H_{ii}}\right)
+        \abs{\kappa_{\Psi,i}(z)}\\
+ &=C_\upsilon(z)-\theta_i\upsilon_i
+        \abs{\kappa_{\Psi,i}(z)}.
+\end{align*}
+The last identity uses symmetry and the nonpositive off-diagonal entries.
+Those same signs show $\theta_i\leq1$, while
+$H\upsilon\geq\mu\upsilon$ gives
+$\theta_i\geq\mu/H_{ii}>0$.
+
+For the error certificate, put $e=z-z_\Psi^\star$ and choose $i$ maximizing
+$M:=\abs{e_i}/\upsilon_i$.  The weighted maximum principle gives
+\begin{equation*}
+ \frac{\operatorname{sign}(e_i)(He)_i}{\upsilon_i}
+ \geq M\frac{(H\upsilon)_i}{\upsilon_i}\geq\mu M.
+\end{equation*}
+Monotonicity of each absolute-value subdifferential makes its contribution
+nonnegative after multiplication by $\operatorname{sign}(e_i)$.  Therefore
+$\abs{\kappa_{\Psi,i}(z)}/\upsilon_i\geq\mu M$, which proves
+\cref{eq:aesp-cd-stieltjes-error}.
+\end{proof}
+
+The PageRank result is the specialization of
+\cref{thm:aesp-cd-stieltjes} with
+$H=H_t$, $\upsilon=D^{1/2}\one$, and
+$H_t\upsilon=\mu_t\upsilon$.  Since every diagonal entry is $\ell$, one has
+$\theta_i=\mu_t/\ell=\tau_{\mathrm{cd}}$ for every coordinate.  Thus the
+proved inner-locality mechanism applies not only to RPPR, but also to shifted
+RPPR subproblems and, more generally, to separable $\ell_1$ regularization of
+any Stieltjes quadratic admitting a positive supersolution.  It does not by
+itself control how an outer extrapolation chooses its successive starts.
+
+Thus the composite analogue of the ordinary-PPR residual-mass contraction is
+valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
 
 \section{Inner stopping proposal}
 
@@ -135,16 +336,122 @@ If an oracle does not expose $m=|E|$, the simple-graph bound
 $m\leq n(n-1)/2$ is a correctness-preserving but potentially conservative
 choice when calibrating an inner objective certificate.
 
-\section{Implementation record and open questions}
+\begin{theorem}[Local inner-oracle work]
+\label{thm:aesp-cd-inner-work}
+Starting from $z^{(0)}$, repeatedly update any coordinate in
+$S_t^{(k)}$ until this set is empty.  Then the method terminates with
+\begin{align}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ &\leq
+ \frac{C_t(z^{(0)})}{\tau_{\mathrm{cd}}\epsin},
+ \label{eq:aesp-cd-work}\\
+ \norm{D^{-1/2}(z^{(K_t)}-z_t^\star)}_\infty
+ &<\frac{\epsin}{\mu_t}.
+ \label{eq:aesp-cd-output-error}
+\end{align}
+Moreover,
+\begin{equation}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)
+ \leq
+ \frac{\epsin C_t(z^{(0)})}{2\mu_t}.
+ \label{eq:aesp-cd-output-gap}
+\end{equation}
+Consequently, choosing
+\begin{equation}
+ \epsin=\frac{2\mu_t\varphi_t}{C_t(z^{(0)})}
+ \label{eq:aesp-cd-phi-threshold}
+\end{equation}
+is a valid local oracle for the AESP inner requirement
+$F_{\rho,t}(z)-F_{\rho,t}(z_t^\star)\leq\varphi_t$, with work
+\begin{equation}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ \leq
+ \frac{C_t(z^{(0)})^2}
+      {2\tau_{\mathrm{cd}}\mu_t\varphi_t}.
+ \label{eq:aesp-cd-gap-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Every active update has
+$\sqrt{d_i}\abs{\kappa_{t,i}(z)}\geq\epsin d_i$.
+Sum \cref{eq:aesp-cd-mass-target} and use nonnegativity of $C_t$ to prove
+\cref{eq:aesp-cd-work}.  At termination, the KKT diagnostic is below
+$\epsin$, so \cref{lem:aesp-cd-kkt-error} proves
+\cref{eq:aesp-cd-output-error}.
+
+The function $F_{\rho,t}$ is $\mu_t$-strongly convex and
+$\kappa_t(z^{(K_t)})\in\partial F_{\rho,t}(z^{(K_t)})$.  Hence
+\begin{equation*}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)
+ \leq\frac{\norm{\kappa_t(z^{(K_t)})}_2^2}{2\mu_t}.
+\end{equation*}
+At termination and by \cref{thm:aesp-cd-mass},
+\begin{align*}
+ \norm{\kappa_t(z^{(K_t)})}_2^2
+ &\leq
+ \norm{D^{-1/2}\kappa_t(z^{(K_t)})}_\infty
+ \norm{D^{1/2}\kappa_t(z^{(K_t)})}_1\\
+ &<\epsin C_t(z^{(K_t)})
+ \leq\epsin C_t(z^{(0)}).
+\end{align*}
+This proves \cref{eq:aesp-cd-output-gap}; substitution yields
+\cref{eq:aesp-cd-gap-work}.
+\end{proof}
+
+For the AESP shift $\kappa_{\mathrm A}=1-2\alpha$, one has
+$\mu_t=1-\alpha$ and $\tau_{\mathrm{cd}}=2/3$.  Thus
+\cref{eq:aesp-cd-gap-work} becomes
+\begin{equation}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ \leq
+ \frac{3C_t(z^{(0)})^2}{4(1-\alpha)\varphi_t}.
+ \label{eq:aesp-cd-specialized-work}
+\end{equation}
+
+\begin{corollary}[Zero-start RPPR coordinate descent]
+\label{cor:aesp-cd-zero-start}
+For the unshifted objective, $C_\rho(0)\leq\alpha$.  Coordinate descent from
+zero, stopped when $R_{\mathrm{kkt},\rho}(x)<\alpha\epskkt$, therefore
+returns
+\begin{equation*}
+ \norm{D^{-1/2}(x-x^\star(\rho))}_\infty<\epskkt
+\end{equation*}
+with degree work at most
+\begin{equation}
+ \frac{1+\alpha}{2\alpha\epskkt}.
+ \label{eq:aesp-cd-zero-start-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+At zero, the only KKT violations are seed coordinates and
+\begin{equation*}
+ C_\rho(0)
+ =\alpha\sum_i(s_i-\rho d_i)_+
+ \leq\alpha\sum_i s_i=\alpha.
+\end{equation*}
+Apply \cref{thm:aesp-cd-inner-work} with $\kappa_{\mathrm A}=0$,
+$\tau_{\mathrm{cd}}=2\alpha/(1+\alpha)$, and
+$\epsin=\alpha\epskkt$.
+\end{proof}
+
+\section{Implementation record and remaining open question}
 
 Any experiment for this proposal must record the shared graph and work model,
 $\alpha$, $\rho$, $\epskkt$, $\epsin$, random seed, stopping formula, and code
 version.  It should report both $R_{\mathrm{kkt},\rho}(x)$ and the KKT-mass
 decrease diagnostics.
 
-The remaining theoretical tasks are to prove or refute
-\cref{eq:aesp-cd-mass-target}, derive a valid total AESP-CD complexity from an
-explicit inner oracle guarantee, and identify a correct handoff to direct
-local coordinate descent.
+\Cref{thm:aesp-cd-mass,thm:aesp-cd-inner-work} close the inner
+local-monotonicity and oracle-correctness tasks.  The remaining central task is
+outer locality.  The work in \cref{eq:aesp-cd-specialized-work} depends on the
+start mass $C_t(z_t^{(0)})$ of each shifted subproblem.  Catalyst extrapolation
+can be signed, and no graph-uniform bound on the cumulative start masses is
+proved here.  Therefore this note does not claim the target
+$\softO(1/(\rho\sqrt\alpha))$ end-to-end work.  A valid continuation must
+either control those extrapolated start masses, enforce a safe support
+envelope without destroying acceleration, or prove an alternative amortized
+outer-work bound.
 
 \end{document}

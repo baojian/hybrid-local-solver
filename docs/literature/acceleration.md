@@ -69,6 +69,17 @@ starting points, but their applicability has not yet been established.
   determine whether negative-gradient discovery can be localized without the
   full-gradient volume charge; and audit the sparse operation counts under an
   executable access model.
+- Project audit: `manuscript/notes/aspr23_bound_audit/` repairs the quadratic
+  normalization, Equation (4), and the APGD-output distance display, then
+  proves an algorithm-specific endpoint-path lower bound. For sufficiently
+  small objective-gap tolerance, literal ASPR performs exactly `|S*|`
+  restricted solves and requires
+  `Omega(|S*|^2 / sqrt(alpha))` work on a path, matching the leading published
+  product up to logarithms. The scaling `alpha = |S*|^{-2}`,
+  `rho = alpha / 100`, and `eps_obj = 10^{-4} alpha^2` yields a literal
+  same-tolerance factor-`|S*|` separation from standard FISTA. This does not
+  establish a lower bound for every local first-order method or under the
+  repository's unresolved residual.
 
 ## Citation key: `fountoulakis2026complexity`
 

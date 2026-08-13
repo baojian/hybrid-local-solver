@@ -1,4 +1,5 @@
 NOTES := \
+	aspr23_bound_audit \
 	aesp_cd_l1_rppr \
 	aesp_locgd_star_lower_bound \
 	hybrid_aesp_locsor \

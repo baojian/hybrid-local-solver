@@ -1,0 +1,799 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This note audits the COLT 2023 ASPR theorem and proves a path-family lower
+% bound for the literal nested active-set algorithm. Source claims, repaired
+% statements, new proofs, and open problem-level lower bounds are separated.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{The ASPR 2023 Bound Revisited:\\
+Correctness, Repeated Restricted Solves, and a Tight Path Lower Bound}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Mart\'inez-Rubio, Wirth, and Pokutta proposed the accelerated sparse PageRank
+method (\ASPR{}), which repeatedly solves an expanding restricted
+positive-orthant quadratic by accelerated projected gradient descent, retracts
+the approximate restricted minimizer, and adds every negative-gradient
+coordinate.  Its stated work is
+\[
+ \softO\!\left(
+   |S^\star|\,\widetilde{\vol}(S^\star)\sqrt{L/\alpha}
+   +|S^\star|\vol(S^\star)
+ \right).
+\]
+We first audit the proof.  The intended support-safety and objective-gap
+argument is correct after repairing the quadratic normalization, the printed
+RPPR linear term, and one distance display that uses the retracted point where
+the APGD output is required.  Several further defects affect constants,
+notation, or the executable access model but not the repaired theorem.
+
+We then prove that the factor $|S^\star|$ is genuine.  On an endpoint-seeded
+RPPR path whose regularized solution is positive on all $s$ vertices, every
+proper active prefix exposes exactly its next vertex and no other vertex.
+For all sufficiently small objective tolerances, the retraction preserves this
+strict frontier gradient, so literal \ASPR{} makes exactly $s$ restricted
+APGD calls.  The prescribed inner count is
+$\Omega(1/\sqrt\alpha)$ at every stage, while a restricted gradient on a
+prefix of length $r$ costs $\Omega(r)$.  Consequently
+\[
+ \Work_{\ASPR}
+ =\Omega\!\left(\frac{s^2}{\sqrt\alpha}\right),
+\]
+and literal full-gradient discovery additionally costs $\Omega(s^2)$.
+Because both internal and incident path volume are $\Theta(s)$, this matches
+the leading published upper bound up to logarithms.  Standard FISTA on the
+same finite path avoids the repeated prefix solves.  Quantitatively, taking
+$\alpha=s^{-2}$, $\rho=\alpha/100$, and
+$\varepsilon_{\mathrm{obj}}=10^{-4}\alpha^2$ gives
+$\Omega(s^3\log s)$ work for literal \ASPR{} but only
+$O(s^2\log s)$ for full-space FISTA.  Thus restarting acceleration after
+every safe expansion causes an actual factor-$s$ loss on this family.  These
+are algorithm-specific results, not an oracle lower bound for every local
+PageRank method.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope, status, and source map}
+\label{sec:scope}
+
+This note concerns Algorithm~4 and Theorems~7--8 of
+\citet{martinezrubio2023}.  It does not audit the separate conjugate-directions
+method except where the two algorithms share geometric preliminaries.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The nested active-set algorithm, APGD subroutine, retraction,
+support-safety theorem, and stated work bound are from
+\citet{martinezrubio2023}. \\
+\statusproved & After the repairs in \cref{sec:audit}, the exact-arithmetic
+support-containment and objective-gap argument is valid for strongly convex
+quadratics with Stieltjes Hessian. \\
+\statusproved & An endpoint-seeded RPPR path with full optimal support forces
+one new coordinate per outer stage.  For sufficiently small objective
+tolerance, literal \ASPR{} uses
+$\Omega(s^2/\sqrt\alpha)$ restricted-solve work and
+$\Omega(s^2)$ discovery work. \\
+\statusproved & With $\alpha=s^{-2}$, $\rho=\alpha/100$, and
+$\varepsilon_{\rm obj}=10^{-4}\alpha^2$, the same-tolerance work is
+$\Omega(s^3\log s)$ for literal \ASPR{} and $O(s^2\log s)$ for
+full-space \FISTA{}, an actual factor-$s$ separation. \\
+\statusconditional & The published $O(|S^\star|)$ space claim is executable
+with sorted adjacency lists and a streaming multiway merge, at an additional
+logarithmic time factor.  A hash-accumulator implementation instead uses
+boundary-sized memory. \\
+\statusopen & A lower bound for every local first-order method, or a matching
+lower bound under a fixed repository-wide PageRank residual, is not proved.
+\qquad The repository-wide residual convention remains open. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Source pointers.}
+The model and RPPR specialization are on PDF pages 4--5 of
+\citet{martinezrubio2023}; Proposition~2 is on pages 6--7; Algorithm~3 and
+Proposition~5 are on pages 9--10; Algorithm~4 and Theorems~7--8 are on pages
+10--11; the correctness proof is on pages 21--23; and the complexity proof is
+on page 24.  The source contains no experiments.  The classical FISTA work
+comparison and its locality limitations are taken from
+\citet{fountoulakis2026}, especially PDF pages 3--6 and 18--23.
+
+\paragraph{Accuracy and work boundary.}
+Throughout this note, $\varepsilon_{\rm obj}$ is an objective-gap target.  It
+is not APPR's degree-normalized threshold, a PPR infinity-error target, or the
+proximal fixed-point residual used in the experiments of
+\citet{fountoulakis2026}.  A restricted first-order step is charged the
+number of stored nonzeros touched in the restricted Hessian; on a path prefix
+this is $\Theta(r)$.  A literal expansion scan is charged the incident
+nonzeros of the current support.
+
+\section{Source-aligned RPPR and the corrected obstacle problem}
+\label{sec:model}
+
+\input{../../tex/shared/source_aligned_problem}
+
+The shared RPPR minimizer is nonnegative.  On the nonnegative orthant the
+weighted $\ell_1$ term is linear, so the source-compatible obstacle form is
+\begin{equation}
+ \min_{x\geq0}G_\rho(x),
+ \qquad
+ G_\rho(x)
+ :=\frac12x^\top Qx-c_\rho^\top x,
+ \qquad
+ c_\rho:=\alpha D^{-1/2}s-\alpha\rho D^{1/2}\one.
+ \label{eq:obstacle}
+\end{equation}
+Thus
+\begin{equation}
+ \nabla G_\rho(x)=Qx-c_\rho,
+ \qquad
+ \alpha I\preceq Q\preceq I,
+ \qquad
+ Q_{ij}\leq0\quad(i\neq j).
+ \label{eq:obstacle-properties}
+\end{equation}
+The last property makes $Q$ a symmetric nonsingular Stieltjes matrix.  It is
+the order structure used by \ASPR{}.
+
+For the proof audit it is useful to state the generic version.  Let
+\begin{equation}
+ H=H^\top,
+ \qquad
+ \mu I\preceq H\preceq LI,
+ \qquad
+ H_{ij}\leq0\quad(i\neq j),
+ \label{eq:generic-H}
+\end{equation}
+and consider
+\begin{equation}
+ \min_{x\geq0}G(x),
+ \qquad G(x):=\frac12x^\top Hx-c^\top x.
+ \label{eq:generic-QP}
+\end{equation}
+The RPPR specialization is $H=Q$, $\mu=\alpha$, and $L=1$.
+
+\section{A corrected exact-arithmetic ASPR contract}
+\label{sec:contract}
+
+Let $S$ be the current active set and let
+\begin{equation}
+ z^S:=\argmin\{G(z):z\geq0,\ \supp(z)\subseteq S\}
+ \label{eq:restricted-minimizer}
+\end{equation}
+be the exact restricted minimizer.  At an outer stage with $r=|S|$, the
+source algorithm chooses
+\begin{equation}
+ \delta_S^2:=\frac{\varepsilon_{\rm obj}\mu}{(1+r)L^2},
+ \qquad
+ \widehat\varepsilon_S:=\frac{\mu\delta_S^2}{2}
+ =\frac{\varepsilon_{\rm obj}\mu^2}{2(1+r)L^2}.
+ \label{eq:inner-tolerances}
+\end{equation}
+It runs projected APGD until its output $\bar x^S$ satisfies
+\begin{equation}
+ G(\bar x^S)-G(z^S)\leq\widehat\varepsilon_S,
+ \label{eq:inner-gap}
+\end{equation}
+then retracts
+\begin{equation}
+ x^+:=[\bar x^S-\delta_S\one]_+
+ \label{eq:retraction}
+\end{equation}
+on $S$, leaves all other coordinates zero, and sets
+\begin{equation}
+ S^+:=S\cup\{i:\nabla_iG(x^+)<0\}.
+ \label{eq:expansion}
+\end{equation}
+It terminates when $S^+=S$.
+
+The executable inner count should be written
+\begin{equation}
+ K_S
+ :=1+\max\left\{0,
+ \left\lceil
+  2\sqrt{\frac L\mu}\,
+  \log\!\left(
+   \frac{(L-\mu)\|\nabla_SG(x)\|_2^2}
+        {2\widehat\varepsilon_S\mu^2}
+  \right)
+ \right\rceil\right\}.
+ \label{eq:corrected-inner-count}
+\end{equation}
+The positive-part clamp is absent from the source pseudocode but is necessary
+when the starting point is already sufficiently accurate or has zero
+restricted gradient.  It changes no upper bound.
+
+\begin{lemma}[Retraction envelope and restricted gap]
+\label{lem:retraction}
+Under \cref{eq:inner-gap}, assume also that $z_i^S>0$ for every $i\in S$.
+This is the invariant maintained by the ASPR expansion rule.
+\begin{equation}
+ \|\bar x^S-z^S\|_2\leq\delta_S,
+ \qquad
+ 0\leq x^+\leq z^S,
+ \qquad
+ G(x^+)-G(z^S)\leq\frac{\varepsilon_{\rm obj}\mu}{L}.
+ \label{eq:retraction-properties}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Strong convexity and \cref{eq:inner-gap} give
+\[
+ \|\bar x^S-z^S\|_2^2
+ \leq\frac{2\widehat\varepsilon_S}{\mu}
+ =\delta_S^2.
+\]
+If $x_i^+>z_i^S$, then
+$\bar x_i^S-z_i^S>\delta_S$, contradicting this distance bound.  Hence
+$x^+\leq z^S$.  Since both points lie in the same face and the restricted
+gradient of $G$ vanishes at the positive restricted minimizer, smoothness and
+nonexpansiveness of projection give
+\begin{align*}
+ G(x^+)-G(z^S)
+ &\leq\frac L2\|x^+-z^S\|_2^2\\
+ &\leq L\bigl(\|\bar x^S-z^S\|_2^2+r\delta_S^2\bigr)\\
+ &\leq L(1+r)\delta_S^2
+ =\frac{\varepsilon_{\rm obj}\mu}{L}.
+\end{align*}
+\end{proof}
+
+\begin{lemma}[Safe discovery and progress alternative]
+\label{lem:safe-progress}
+Assume the current active set is contained in the global optimal support.
+Every newly discovered coordinate in \cref{eq:expansion} also belongs to that
+support.  Moreover, either
+\begin{equation}
+ G(x^+)-G(x^\star)\leq\varepsilon_{\rm obj}
+ \label{eq:accurate-alternative}
+\end{equation}
+or $S^+\supsetneq S$.
+\end{lemma}
+
+\begin{proof}
+The envelope $x^+\leq z^S$ and the nonpositive off-diagonal entries imply
+that, for $j\notin S$,
+\[
+ \nabla_jG(x^+)\geq\nabla_jG(z^S).
+\]
+Thus a negative gradient at $x^+$ is also negative at $z^S$.  Enlarging the
+restricted problem by that coordinate makes it strictly positive, and
+inverse-positivity of principal Stieltjes matrices shows that the enlarged
+restricted minimizer is dominated by $x^\star$.  The coordinate therefore
+belongs to the global support.
+
+For the second claim, let
+\[
+ T(x^+):=\Pi_{\mathbb R_+^n}
+ \left(x^+-\frac1L\nabla G(x^+)\right).
+\]
+Projected gradient descent for a $\mu$-strongly convex, $L$-smooth objective
+satisfies
+\[
+ G(T(x^+))-G(x^\star)
+ \leq\left(1-\frac\mu L\right)
+       (G(x^+)-G(x^\star)).
+\]
+If the global gap exceeds $\varepsilon_{\rm obj}$, the progress of this step
+is strictly larger than $\varepsilon_{\rm obj}\mu/L$, which is at least the
+restricted gap in \cref{eq:retraction-properties}.  Hence
+$G(T(x^+))<G(z^S)$.  The point $T(x^+)$ cannot lie in the current face, where
+$z^S$ is optimal.  Since $x_j^+=0$ outside $S$, an outside coordinate of
+$T(x^+)$ is positive exactly when its gradient at $x^+$ is negative.  Thus
+the active set expands.
+\end{proof}
+
+Lemmas~\ref{lem:retraction}--\ref{lem:safe-progress} give the intended
+Theorem~7: all active sets stay inside $S^\star$, and a stable stage is
+$\varepsilon_{\rm obj}$-optimal.
+
+\section{Audit of the published proof}
+\label{sec:audit}
+
+The repaired argument above is short, but it is not literally the argument
+printed in every display.  The defects fall into three classes.
+
+\subsection{Essential repairs}
+
+\begin{enumerate}[leftmargin=*]
+\item The generic source model writes $\langle x,Qx\rangle-\langle b,x\rangle$
+while calling $Q$ its Hessian.  The Hessian is $2Q$.  Every subsequent
+gradient, smoothness, and PageRank formula instead uses
+$\frac12x^\top Qx-b^\top x$.  The latter is the only consistent
+interpretation.
+
+\item Source Equation~(4) gives an incorrect expansion of the RPPR obstacle
+objective.  The correct linear term is
+\[
+ \alpha\bigl(\rho D^{1/2}\one-D^{-1/2}s\bigr)^\top x,
+\]
+as in \cref{eq:obstacle}.  The sign of the seed term and the placement of
+$D^{1/2}$ on the penalty are both wrong in the printed expansion.
+
+\item In the proof of Theorem~7, the display that is supposed to establish
+$\|\bar x^{(t+1)}-x^{(\star,t+1)}\|\leq\delta_t$ inserts the retracted
+$x^{(t+1)}$ inside the objective gap.  APGD controls the gap of
+$\bar x^{(t+1)}$, not the later retracted point.  Replacing that one symbol by
+$\bar x^{(t+1)}$ yields exactly the first inequality in
+\cref{eq:retraction-properties} and repairs the proof.
+\end{enumerate}
+
+Without these repairs the displayed derivation is invalid.  With them, the
+later support and progress arguments use the correct quantities.
+
+\subsection{Nonfatal algebra and notation defects}
+
+\begin{enumerate}[leftmargin=*]
+\item The PageRank off-diagonal entry is printed with denominator
+$2d_id_j$ rather than $2\sqrt{d_id_j}$.  Only its nonpositive sign is used.
+\item A restricted-gradient Lipschitz estimate uses $L$ where the squared
+norm bound requires $L^2$.  The next logarithmic expression already contains
+$L^2$, so the final soft-order statement is unchanged.
+\item The volume definition alternates between a generic set and
+$S^\star$, and the graph formula counts an undirected internal edge once
+while $\operatorname{nnz}(Q_{S,S})$ counts both symmetric entries.  These
+differ only by a factor at most two in the stated work results.
+\item The complexity proof places a stage-dependent
+$\widehat\varepsilon_t$ under a maximum without taking the corresponding
+minimum tolerance.  Bounding it by the smallest stage tolerance repairs the
+uniform logarithm.
+\item The PageRank norm estimate should use coordinatewise absolute-value
+bounds, replacing a displayed difference by a sum.  This changes only the
+constant inside a logarithm.
+\end{enumerate}
+
+\subsection{Executable access-model obligations}
+
+The source uses exact tests of $\nabla_iG(x)<0$ and exact active-set equality.
+A numerical implementation needs sign tolerances and a proof that they do not
+admit bad coordinates or terminate prematurely.  Likewise, computing the
+outside gradient by accumulating active columns in a hash table takes memory
+proportional to the current boundary, not $O(|S^\star|)$.  The simultaneous
+soft-linear-time and $O(|S^\star|)$-space claim can be realized if adjacency
+lists are sorted: merge the active neighbor streams with a heap of size
+$O(|S|)$, aggregate one outside coordinate at a time, and retain only the
+newly negative indices.  This adds a $\log|S|$ time factor hidden by
+$\softO$, but it is an additional data-structure assumption rather than a
+consequence of the pseudocode alone.
+
+\section{Endpoint paths force one coordinate per stage}
+\label{sec:path-expansion}
+
+Let $P_s=(v_0,v_1,\ldots,v_{s-1})$ be an unweighted path, take the endpoint
+seed $s=e_{v_0}$, and use the shared RPPR objective.  Define
+\begin{equation}
+ \chi:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:chi}
+\end{equation}
+Let $x^\star(0)$ denote the unregularized solution and put
+$y_i^\star(0):=x_i^\star(0)/\sqrt{d_i}$.  Direct solution of the path
+recurrence gives
+\begin{equation}
+ y_i^\star(0)
+ =\sqrt\alpha\,
+   \frac{\chi^i+\chi^{2(s-1)-i}}{1-\chi^{2(s-1)}}
+ \geq\sqrt\alpha\,\chi^i.
+ \label{eq:path-green}
+\end{equation}
+Moreover, $Q(D^{1/2}\one)=\alpha D^{1/2}\one$.  The Stieltjes comparison
+principle applied to
+$[x^\star(0)-\rho D^{1/2}\one]_+$ therefore gives
+\begin{equation}
+ \frac{x_i^\star(\rho)}{\sqrt{d_i}}
+ \geq y_i^\star(0)-\rho
+ \geq \sqrt\alpha\,\chi^i-\rho.
+ \label{eq:path-positive-lower}
+\end{equation}
+Consequently, the sufficient condition
+\begin{equation}
+ 0<\rho<\frac12\sqrt\alpha\,\chi^{s-1}
+ \label{eq:full-support-condition}
+\end{equation}
+ensures $S^\star(\rho)=V(P_s)$.
+
+\begin{lemma}[Unique negative frontier]
+\label{lem:unique-frontier}
+Let $U_r:=\{v_0,\ldots,v_{r-1}\}$ for $1\leq r<s$, and let $z^{(r)}$ be the
+exact minimizer of $G_\rho$ on the nonnegative face supported on $U_r$.
+Then
+\begin{equation}
+ \nabla_{v_r}G_\rho(z^{(r)})<0,
+ \qquad
+ \nabla_{v_j}G_\rho(z^{(r)})>0\quad(j\geq r+1).
+ \label{eq:unique-frontier}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Every vertex $v_j$ with $j\geq r+1$ has no neighbor in $U_r$ and is not the
+seed.  Hence its quadratic contribution is zero and its obstacle gradient is
+$\alpha\rho\sqrt{d_j}>0$.  The only remaining outside coordinate is $v_r$.
+If its gradient were nonnegative, $z^{(r)}$ would satisfy all global KKT
+conditions: the restricted KKT conditions hold on $U_r$, the frontier would
+be nonnegative, and all farther gradients are strictly positive.  Strong
+convexity would give $z^{(r)}=x^\star(\rho)$, contradicting
+$x_{v_r}^\star(\rho)>0$ from \cref{eq:full-support-condition}.
+\end{proof}
+
+Starting with $U_1$, the restricted minimizer is strictly positive.  The
+negative frontier in \cref{lem:unique-frontier}, together with inverse
+positivity of the enlarged principal Stieltjes matrix, makes the next
+restricted minimizer strictly positive on all of $U_{r+1}$ and no smaller on
+$U_r$.  Induction therefore verifies the positivity invariant required in
+\cref{lem:retraction} and justifies the strict positivity of $a_*$ below.
+
+The strict inequalities allow a quantitative finite-accuracy statement.
+Define
+\begin{equation}
+ a_*:=\min_{1\leq r\leq s}z_{v_{r-1}}^{(r)}>0,
+ \qquad
+ m_*:=\min_{1\leq r<s}
+       \bigl(-\nabla_{v_r}G_\rho(z^{(r)})\bigr)>0,
+ \label{eq:path-margins}
+\end{equation}
+and let
+\begin{equation}
+ q_*:=\max_{\{i,j\}\in E(P_s)}|Q_{ij}|<1.
+ \label{eq:path-coupling}
+\end{equation}
+
+\begin{theorem}[Exactly $s$ ASPR calls on a path]
+\label{thm:s-calls}
+Assume \cref{eq:full-support-condition}.  There exists
+$\varepsilon_0=\varepsilon_0(\alpha,\rho,s)>0$ such that, for every
+$0<\varepsilon_{\rm obj}\leq\varepsilon_0$, literal \ASPR{} generates
+\begin{equation}
+ S^{(r-1)}=U_r,
+ \qquad r=1,\ldots,s,
+ \label{eq:prefix-sequence}
+\end{equation}
+and therefore calls APGD exactly $s$ times before its active set stabilizes.
+\end{theorem}
+
+\begin{proof}
+At zero, only the seed has negative obstacle gradient, so the first active set
+is $U_1$.  At a stage with active prefix $U_r$, Lemma~\ref{lem:retraction}
+gives
+\begin{equation}
+ \|x^+-z^{(r)}\|_2
+ \leq\|x^+-\bar x\|_2+\|\bar x-z^{(r)}\|_2
+ \leq(1+\sqrt r)\delta_{U_r}.
+ \label{eq:path-retraction-distance}
+\end{equation}
+More sharply, its last coordinate differs from $z_{v_{r-1}}^{(r)}$ by at
+most $2\delta_{U_r}$.  Choose $\varepsilon_0$ small enough that, for every
+$r\leq s$,
+\begin{equation}
+ 2\delta_{U_r}\leq\frac{a_*}{2},
+ \qquad
+ 2q_*\delta_{U_r}\leq\frac{m_*}{2}.
+ \label{eq:epsilon-small-enough}
+\end{equation}
+Then the last prefix coordinate remains positive.  The frontier-gradient
+perturbation uses only the last path edge, so
+\[
+ \nabla_{v_r}G_\rho(x^+)
+ \leq -m_*+2q_*\delta_{U_r}
+ \leq-\frac{m_*}{2}<0.
+\]
+All vertices beyond $v_r$ retain the strictly positive regularization
+gradient because they have no neighbor in $U_r$.  Thus the only new index is
+$v_r$, and induction gives \cref{eq:prefix-sequence}.  At $U_s=V(P_s)$ there
+is no outside coordinate, so the set stabilizes after the $s$th call.
+\end{proof}
+
+The theorem is stronger than the generic counting argument ``at most
+$|S^\star|$ stages'': it gives an RPPR family on which equality holds.
+
+\section{A matching work lower bound for literal ASPR}
+\label{sec:work-lower-bound}
+
+At stage $r+1$, the starting point is supported on $U_r$ and has zero entry
+at the newly admitted coordinate $v_r$.  The preceding proof gives
+\begin{equation}
+ \|\nabla_{U_{r+1}}G_\rho(x^{(r)})\|_2
+ \geq\frac{m_*}{2}
+ \qquad(1\leq r<s).
+ \label{eq:starting-gradient-lower}
+\end{equation}
+The first call has the fixed nonzero seed gradient.  Let $g_*>0$ be the
+minimum of these finitely many lower bounds.  Substituting
+\cref{eq:inner-tolerances} into the inner-count ratio gives, for RPPR,
+\begin{equation}
+ \frac{(1-\alpha)\|\nabla_{U_r}G_\rho(x^{(r-1)})\|_2^2}
+      {2\widehat\varepsilon_{U_r}\alpha^2}
+ \geq
+ \frac{(1-\alpha)(1+r)g_*^2}
+      {\varepsilon_{\rm obj}\alpha^4}.
+ \label{eq:inner-ratio-lower}
+\end{equation}
+After decreasing $\varepsilon_0$ once more, the right-hand side is at least
+$e$.  The corrected prescribed count \cref{eq:corrected-inner-count} then
+satisfies
+\begin{equation}
+ K_{U_r}\geq 2\sqrt{1/\alpha}
+ \qquad(r=1,\ldots,s).
+ \label{eq:inner-count-lower}
+\end{equation}
+
+\begin{theorem}[ASPR path-work lower bound]
+\label{thm:aspr-path-work}
+Under the assumptions of Theorem~\ref{thm:s-calls}, for all sufficiently
+small $\varepsilon_{\rm obj}$ the literal \ASPR{} algorithm satisfies
+\begin{equation}
+ \Work_{\rm inner}
+ \geq c\frac{s^2}{\sqrt\alpha}
+ \label{eq:inner-work-lower}
+\end{equation}
+for a universal work-model constant $c>0$.  If every expansion line computes
+the full gradient afresh from the active columns, then
+\begin{equation}
+ \Work_{\rm discover}\geq c' s^2.
+ \label{eq:discovery-work-lower}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+A path prefix of length $r$ has $r$ diagonal entries and $2(r-1)$ symmetric
+off-diagonal entries in its principal matrix.  Thus a restricted gradient
+touches $3r-2=\Theta(r)$ stored entries; even under the source's once-per-edge
+internal-volume convention, the cost is $2r-1=\Theta(r)$.  Combining this
+with \cref{eq:inner-count-lower},
+\[
+ \Work_{\rm inner}
+ \geq c_0\sum_{r=1}^s\frac{r}{\sqrt\alpha}
+ =\Omega\!\left(\frac{s^2}{\sqrt\alpha}\right).
+\]
+A fresh incident-column scan at stage $r$ touches $\Theta(r)$ path entries,
+so summing the $s$ scans gives \cref{eq:discovery-work-lower}.
+\end{proof}
+
+\begin{corollary}[A same-tolerance factor-$s$ separation]
+\label{cor:quantitative-separation}
+For integers $s\geq2$, set
+\begin{equation}
+ \alpha=s^{-2},
+ \qquad
+ \rho=\frac{\alpha}{100},
+ \qquad
+ \varepsilon_{\rm obj}=10^{-4}\alpha^2.
+ \label{eq:quantitative-family}
+\end{equation}
+Then this endpoint-path family has full optimal support and
+\begin{equation}
+ \Work_{\ASPR}=\Omega(s^3\log s),
+ \qquad
+ \Work_{\FISTA}=O(s^2\log s).
+ \label{eq:quantitative-separation}
+\end{equation}
+Thus the same instances at the same objective tolerance exhibit a factor
+$\Omega(s)$ separation.
+\end{corollary}
+
+\begin{proof}
+The full-support condition follows from
+$\chi=(s-1)/(s+1)$ and
+$\chi^{s-1}\geq e^{-2}$.  To quantify the finite-accuracy margins, write
+\[
+ b:=\frac{1-\alpha}{2},
+ \qquad
+ \theta:=\log\frac{1+\sqrt\alpha}{1-\sqrt\alpha}.
+\]
+For an unregularized proper prefix $U_r$, the degree-normalized last
+coordinate is obtained by solving the Dirichlet path recurrence:
+\begin{equation}
+ \frac{z_{v_{r-1}}^{(r,0)}}{\sqrt{d_{r-1}}}
+ =\frac{\alpha}{b\cosh(r\theta)}.
+ \label{eq:prefix-green-last}
+\end{equation}
+Here $r\theta\leq s\theta\leq2\log3$, so the right-hand side is at least
+$2\alpha/5$.  If $Q_r:=Q_{U_r,U_r}$ and
+$w_r:=(D^{1/2}\one)_{U_r}$, then
+\[
+ Q_rw_r\geq\alpha w_r,
+ \qquad
+ Q_r^{-1}\alpha w_r\leq w_r.
+\]
+Consequently the regularized restricted solution is bounded below by the
+unregularized one minus $\rho w_r$.  Every proper-prefix last coordinate is
+therefore at least $39\alpha/100$ after degree normalization.  The full-path
+last coordinate has the same order by \cref{eq:path-green}.  In particular,
+\[
+ a_*\geq\frac{\alpha}{5}.
+\]
+For a proper prefix, multiplying the frontier gradient by
+$\sqrt{d_r}$ gives
+\[
+ \sqrt{d_r}\,
+ \bigl(-\nabla_{v_r}G_\rho(z^{(r)})\bigr)
+ =b\,\frac{z_{v_{r-1}}^{(r)}}{\sqrt{d_{r-1}}}
+  -\alpha\rho d_r.
+\]
+Since $b\geq3/8$ and $d_r\leq2$, this yields
+$m_*\geq\alpha/20$.
+
+Under \cref{eq:quantitative-family},
+$\delta_{U_r}\leq10^{-2}\alpha^{3/2}/\sqrt2$.  The two strict-margin
+requirements in \cref{eq:epsilon-small-enough} hold, so
+\cref{thm:s-calls} applies.  The seed gradient is at least $\alpha/2$, and
+every later starting gradient is at least $m_*/2$.  Thus the ratio in
+\cref{eq:inner-ratio-lower} is $\Omega(\alpha^{-4})$, and the prescribed count
+at every stage is
+\[
+ K_{U_r}=\Omega\!\left(
+   \alpha^{-1/2}\log(1/\alpha)
+ \right)=\Omega(s\log s).
+\]
+Summing the $\Theta(r)$ restricted-gradient costs proves the \ASPR{} bound.
+
+For FISTA, $\|c_\rho\|_2^2=O(\alpha^2)$ on this family, and hence
+$\Delta_0=G_\rho(0)-G_\rho(x^\star)\leq
+\|c_\rho\|_2^2/(2\alpha)=O(\alpha)$.  Its iteration count is therefore
+$O(\alpha^{-1/2}\log(\Delta_0/\varepsilon_{\rm obj}))
+=O(s\log s)$.  Each full-path gradient costs $\Theta(s)$, proving the second
+bound in \cref{eq:quantitative-separation}.
+\end{proof}
+
+On this family,
+\begin{equation}
+ |S^\star|=s,
+ \qquad
+ \widetilde\vol(S^\star)=\Theta(s),
+ \qquad
+ \vol(S^\star)=\Theta(s),
+ \qquad L=1.
+ \label{eq:path-parameters}
+\end{equation}
+Therefore Theorem~\ref{thm:aspr-path-work} matches both structural products in
+the published upper bound:
+\begin{equation}
+ |S^\star|\widetilde\vol(S^\star)\sqrt{L/\alpha}
+ =\Theta(s^2/\sqrt\alpha),
+ \qquad
+ |S^\star|\vol(S^\star)=\Theta(s^2),
+ \label{eq:matching-products}
+\end{equation}
+up to the logarithm in the prescribed APGD accuracy.  This establishes
+algorithm-specific tightness even within normalized RPPR, not merely within
+the larger class of arbitrary M-matrix quadratics.
+
+\section{Why standard FISTA can be linearly faster}
+\label{sec:fista-comparison}
+
+Run standard strongly convex \FISTA{} directly on the same finite path
+problem.  Regardless of transient sparsity, every iterate is supported in a
+graph of total degree volume $\Theta(s)$.  The standard objective-gap rate
+uses
+\begin{equation}
+ N_{\varepsilon}
+ =O\!\left(
+  \frac1{\sqrt\alpha}
+  \log\frac{\Delta_0}{\varepsilon_{\rm obj}}
+ \right)
+ \label{eq:fista-iterations}
+\end{equation}
+iterations.  Hence
+\begin{equation}
+ \Work_{\FISTA}
+ =O\!\left(
+  \frac{s}{\sqrt\alpha}
+  \log\frac{\Delta_0}{\varepsilon_{\rm obj}}
+ \right).
+ \label{eq:fista-path-work}
+\end{equation}
+The structural comparison is a factor $s$ before accuracy logarithms.
+\Cref{cor:quantitative-separation} shows that this is also a literal
+same-tolerance factor-$s$ separation, rather than an artifact of suppressing a
+path-length-dependent logarithm.
+
+This does not contradict the star lower bound of
+\citet{fountoulakis2026}.  On their leaf-seeded star, standard FISTA
+transiently activates a center of arbitrarily large degree even though the
+optimum is seed-supported, whereas \ASPR{} stays in the true support.  The two
+families establish incomparability:
+\begin{itemize}[leftmargin=*]
+\item a full-support path punishes repeated active-set restarts and favors
+      continuation by standard FISTA;
+\item a tiny-support, high-degree-boundary star punishes momentum overshoot
+      and favors ASPR's safe support containment.
+\end{itemize}
+
+\section{What is and is not tight}
+\label{sec:tightness-scope}
+
+The path theorem closes the main algorithmic question:
+\begin{enumerate}[leftmargin=*]
+\item The maximum number of APGD calls is exactly $|S^\star|$ in the worst
+      case.
+\item Repeated restricted-gradient work can attain
+      $|S^\star|\widetilde\vol(S^\star)/\sqrt\alpha$ up to logarithms.
+\item Literal recomputation of every discovery gradient can attain
+      $|S^\star|\vol(S^\star)$.
+\end{enumerate}
+
+Three stronger interpretations remain false or open.
+\begin{enumerate}[leftmargin=*]
+\item The result is not a lower bound for an implementation that preserves an
+      accelerated estimate sequence across expansions.  Such a method is not
+      Algorithm~4.
+\item It is not an information-theoretic lower bound for local RPPR.  Standard
+      FISTA already beats ASPR on the path, while safe local continuation may
+      do better still.
+\item The sufficiently-small threshold
+      $\varepsilon_0(\alpha,\rho,s)$ is an objective-gap threshold.  A fair
+      lower bound under APPR accuracy, PPR infinity error, or a proximal
+      fixed-point residual requires an explicit conversion that the current
+      repository has not adopted.
+\end{enumerate}
+
+The lower bound identifies the precise design target for a successor to
+ASPR.  It must retain the safe lower-envelope or retraction idea without
+restarting a high-accuracy accelerated solve after every frontier event.  A
+useful theorem would charge
+\begin{equation}
+ \begin{aligned}
+  \sum_t K_t\widetilde\vol(S_t)
+  &\quad\text{by accelerated continuation, and}\\
+  \sum_t\bigl(\vol(S_{t+1})-\vol(S_t)\bigr)
+  &\quad\text{by newly admitted volume},
+ \end{aligned}
+ \label{eq:desired-amortization}
+\end{equation}
+rather than multiplying both final volumes by $|S^\star|$.
+
+\section{Conclusion}
+
+The COLT 2023 ASPR theorem has a correct mathematical core but needs an
+explicit repaired formulation.  More importantly, its pessimistic-looking
+$|S^\star|$ multiplier is a real property of the algorithm.  Endpoint paths
+force one coordinate per stage, and sufficiently accurate nested solves force
+the full $\Omega(s^2/\sqrt\alpha)$ work.  This explains the observed empirical
+slowness without appealing only to implementation constants: ASPR repeatedly
+solves almost the same growing path prefix and discards its acceleration state
+after each discovery.  The safe-support mechanism remains valuable, but it
+should be combined with continuation rather than nested restarts.
+
+\footnotesize
+\begin{thebibliography}{9}
+
+\bibitem[Mart\'inez-Rubio et~al.(2023)Mart\'inez-Rubio, Wirth, and
+Pokutta]{martinezrubio2023}
+David Mart\'inez-Rubio, Elias Wirth, and Sebastian Pokutta.
+\newblock Accelerated and sparse algorithms for approximate personalized
+PageRank and beyond.
+\newblock In \emph{Proceedings of the 36th Conference on Learning Theory},
+pages 2852--2876, 2023.
+
+\bibitem[Fountoulakis and Mart\'inez-Rubio(2026)]{fountoulakis2026}
+Kimon Fountoulakis and David Mart\'inez-Rubio.
+\newblock Complexity of classical acceleration for
+$\ell_1$-regularized PageRank.
+\newblock arXiv:2602.21138v2, 2026.
+
+\bibitem[Diakonikolas and Orecchia(2019)]{diakonikolas2019}
+Jelena Diakonikolas and Lorenzo Orecchia.
+\newblock The approximate duality gap technique: A unified theory of
+first-order methods.
+\newblock \emph{SIAM Journal on Optimization}, 29(1):660--689, 2019.
+
+\bibitem[Fountoulakis et~al.(2019)Fountoulakis, Roosta-Khorasani,
+Shun, Cheng, and Mahoney]{fountoulakis2019}
+Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang Cheng, and
+Michael W. Mahoney.
+\newblock Variational perspective on local graph clustering.
+\newblock \emph{Mathematical Programming}, 174:553--573, 2019.
+
+\end{thebibliography}
+
+\end{document}
