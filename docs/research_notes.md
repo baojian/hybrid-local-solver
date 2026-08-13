@@ -37,7 +37,20 @@ Closed statements:
   `Omega(|S*|^3 log |S*|)` ASPR work versus
   `O(|S*|^2 log |S*|)` FISTA work at the same tolerance, while the 2026
   leaf-star lower bound gives the opposite separation when FISTA activates a
-  high-degree center.
+  high-degree center;
+- the post-COLT official Julia repository generally plots default ASPR faster
+  than its FISTA and ISTA baselines, with CASPR fastest, so those plots are not
+  evidence that default ASPR is empirically slow;
+- in official commit `3a169eb`, the periodic boundary-gradient option deletes
+  the active-to-boundary cross block before evaluation. Its early-discovery
+  flag is therefore inert on RPPR and the periodic variants only add work;
+- the same implementation's in-place retraction fails to clip entries in
+  `(0, delta)`, and the baseline support filter performs an `O(n)` complement
+  allocation outside the stated local work model;
+- a corrected early-discovery method still needs one successful event per path
+  layer and `Omega(|S*|^2)` work under fresh-prefix scans, although the current
+  proof does not retain the per-stage `1 / sqrt(alpha)` inner lower bound for
+  that variant.
 
 Scope boundary:
 
@@ -86,6 +99,16 @@ Closed statements:
   `O_tilde(V_exp_max / sqrt(alpha))`, where `V_exp_max` is the largest degree
   volume explored by one stage; every newly nonzero KKT key is locally exposed
   by a touched coordinate or one of its neighbors;
+- if a proximal center is a certified lower solution, Stieltjes comparison
+  traps its exact shifted minimizer, proximal warm start, and every greedy
+  coordinate iterate below the RPPR optimum; no KKT key outside the optimal
+  support activates, so that entire safe-centered call costs
+  `O_tilde(1 / rho)` without a support oracle;
+- any signed finite-support trial point can be converted locally into a lower
+  certificate by subtracting its maximum normalized negative one-sided
+  residual and clipping at zero; this makes the safe-center result directly
+  applicable to accelerated trial points, but does not itself prove that
+  repeated retraction preserves acceleration;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
@@ -96,8 +119,10 @@ Scope boundary:
 - the result closes the composite inner-locality conjecture but not the
   oracle-free graph-uniform accelerated theorem: start-mass interaction is now
   closed both on a fixed certified envelope and in terms of realized explored
-  volume, but proving `V_exp_max = O(1 / rho)` on every graph, or enforcing
-  that cap without repeated acceleration restarts, remains open.
+  volume; safe lower centers also enforce `V_exp_max <= 1 / rho` for each
+  inner call. What remains open is an accelerated outer continuation whose
+  centers retain this order safety, or an amortized safeguard that corrects
+  unsafe extrapolated centers without repeated acceleration restarts.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 

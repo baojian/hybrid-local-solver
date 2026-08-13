@@ -18,6 +18,14 @@ heap implementation has a trajectory-dependent
 $\widetilde O(V_{\max}^{\rm exp}/\sqrt\alpha)$ bound in terms of the maximum
 actually explored stage volume.  The remaining graph-uniform task is to prove
 $V_{\max}^{\rm exp}=O(1/\rho)$ or enforce that cap without repeated restarts.
+For a certified lower center, the cap is automatic: the shifted minimizer,
+proximal warm start, and every greedy coordinate iterate stay between the
+center and the RPPR optimum.  Thus each safe-centered proximal call is
+oracle-free and costs $\widetilde O(1/\rho)$; preserving the accelerated
+outer rate while keeping all centers lower is the remaining continuation
+problem.  A local retraction converts any signed finite-support trial point
+into such a lower certificate, but a proof that repeated retraction preserves
+the accelerated outer rate is not asserted.
 
 Build with:
 

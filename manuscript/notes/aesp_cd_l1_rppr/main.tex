@@ -27,6 +27,10 @@ support gives $V\leq1/\rho$; discovering such an envelope locally without an
 oracle remains open.  The same heap implementation does, however, admit an
 oracle-free bound in terms of the maximum volume it actually explores; this
 reduces the remaining universal question to controlling that explored volume.
+For any certified lower center, a comparison argument controls it
+automatically: the full inner trajectory stays in the optimal RPPR support
+and costs $\softO(1/\rho)$.  The unresolved step is therefore strictly outer:
+retaining accelerated continuation while the centers are kept order-safe.
 Nothing here changes the repository-wide residual decision.
 
 \section{Problem formulation}
@@ -664,8 +668,8 @@ $\mathcal V_U$, yielding \cref{eq:aesp-cd-relative-work}.
 
 The fixed envelope in \cref{thm:aesp-cd-relative-oracle} is useful for a
 graph-uniform corollary, but it is not required to implement the method.  For
-a full-graph stage, let $E_t$ be the union of the sparse source support, the
-supports of the center and proximal displacement, every coordinate whose KKT
+a full-graph stage, let $E_t$ be the union of the supports of the center and
+proximal displacement, every coordinate whose KKT
 key becomes nonzero, and every coordinate updated before
 \cref{eq:aesp-cd-relative-stop} holds.  Put
 \begin{equation*}
@@ -710,8 +714,9 @@ statement.
 For a sparse $z$ and center $y$, a zero coordinate outside
 $\supp(z)\cup N(\supp(z))\cup\supp(y)\cup\supp(b)$ has zero smooth gradient
 and hence zero minimum KKT key.  Initially, the proximal displacement is
-found by scanning the center support, its incident edges, and the sparse
-source.  Thereafter an exact coordinate update changes KKT keys only at the
+found by scanning the center support and its incident edges; entries of the
+sparse source require only scalar accesses unless they enter the displacement.
+Thereafter an exact coordinate update changes KKT keys only at the
 updated coordinate and its neighbors.  Thus the heap contains every nonzero
 key and its maximum is the global maximum; newly exposed coordinates are
 discovered while scanning already charged incident edges.
@@ -733,6 +738,152 @@ restriction.  Bound every explored volume in
 \cref{eq:aesp-cd-explored-work} by
 $\mathcal V_{\max}^{\mathrm{exp}}$ and use the
 $\bigO(\alpha^{-1/2}\log(1/\epsobj))$ stage count.
+\end{proof}
+
+The explored-volume theorem becomes graph-uniform as soon as the outer center
+is an order-safe lower point.  This is the exact sense in which the solved
+inner-locality problem applies to the safe-envelope program.  Define the
+one-sided RPPR residual
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(x)
+ :=b-Qx-\alpha\rho D^{1/2}\one.
+\end{equation*}
+Call $\ell$ a \emph{lower certificate} if $\ell\geq0$ and
+\begin{equation}
+ \zeta_{\rho,i}^{\mathrm{low}}(\ell)\geq0
+ \qquad\text{for every }i\in\supp(\ell).
+ \label{eq:aesp-cd-lower-certificate}
+\end{equation}
+Here $[v]_-:=\max\{-v,0\}$ coordinatewise.
+
+\begin{lemma}[Local lower retraction]
+\label{lem:aesp-cd-lower-retraction}
+For any signed finite-support trial point $a$, put $A:=\supp(a)$,
+\begin{equation}
+ \Delta(a):=\frac1\alpha
+  \norm{D_A^{-1/2}
+    [\zeta_{\rho,A}^{\mathrm{low}}(a)]_-}_\infty,
+ \qquad
+ \mathcal L(a):=[a-\Delta(a)D^{1/2}\one]_+.
+ \label{eq:aesp-cd-lower-retraction}
+\end{equation}
+Then $\mathcal L(a)$ is a lower certificate and hence
+$0\leq\mathcal L(a)\leq x^\star(\rho)$.  Constructing it requires only the
+trial support and its incident edges.
+\end{lemma}
+
+\begin{proof}
+Write $w=D^{1/2}\one$, $\Delta=\Delta(a)$, and
+$\ell=\mathcal L(a)$.  If $\ell_i>0$, then $i\in A$,
+$\ell_i=a_i-\Delta w_i$, and $\ell_j\geq a_j-\Delta w_j$ for every $j$.
+The off-diagonal signs of $Q$ and $Qw=\alpha w$ give
+\begin{align*}
+ (Q\ell)_i
+ &\leq(Q(a-\Delta w))_i
+   =(Qa)_i-\alpha\Delta w_i,\\
+ \zeta_{\rho,i}^{\mathrm{low}}(\ell)
+ &\geq\zeta_{\rho,i}^{\mathrm{low}}(a)
+       +\alpha\Delta w_i\geq0.
+\end{align*}
+Thus \cref{eq:aesp-cd-lower-certificate} holds.  Stieltjes obstacle
+comparison with the RPPR KKT system gives the last claim.  Evaluating
+$\zeta_{\rho,A}^{\mathrm{low}}(a)$ scans only adjacency lists in $A$.
+\end{proof}
+
+\begin{theorem}[Safe-center inner locality]
+\label{thm:aesp-cd-safe-center}
+Let $\ell$ satisfy \cref{eq:aesp-cd-lower-certificate}, and let
+$S^\star(\rho):=\supp(x^\star(\rho))$.  Consider the full-graph shifted
+subproblem centered at $\ell$, and write $p(\ell)$ for its minimizer.  Then
+\begin{equation}
+ 0\leq\ell\leq p(\ell)\leq x^\star(\rho),
+ \qquad
+ \supp(p(\ell))\subseteq S^\star(\rho).
+ \label{eq:aesp-cd-safe-sandwich}
+\end{equation}
+Moreover, the proximal warm start and every subsequent greedy exact
+coordinate iterate satisfy the same sandwich with $p(\ell)$ in place of
+$x^\star(\rho)$.  No coordinate outside $S^\star(\rho)$ ever has a nonzero
+minimum KKT key.  Hence the full-graph heap implementation needs no support
+oracle and reaches the relative stopping rule using degree work at most
+\begin{equation}
+ \frac1\rho\left[
+ 2+\frac{1}{2\tau_{\mathrm{cd}}}
+ \log_+\left(
+  \frac{16(1-\alpha)^2}
+       {\rho\,\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}
+ \right)\right],
+ \label{eq:aesp-cd-safe-center-work}
+\end{equation}
+apart from constant-time accesses to the sparse source.
+\end{theorem}
+
+\begin{proof}
+On the nonnegative orthant, the RPPR objective is the obstacle quadratic with
+linear term $c_\rho:=b-\alpha\rho D^{1/2}\one$.  The standard Stieltjes
+comparison principle applied to
+\cref{eq:aesp-cd-lower-certificate} gives $\ell\leq x^\star(\rho)$.
+The shifted minimizer is nonnegative: replacing a vector by its coordinatewise
+absolute value cannot increase the Stieltjes quadratic, the weighted
+$\ell_1$ term, or its squared distance to $\ell\geq0$.
+
+Put $H:=Q+\kappa_{\mathrm A}I$ and
+$d:=c_\rho+\kappa_{\mathrm A}\ell$.  The shifted obstacle residual is
+$R(z):=d-Hz$, and
+$R(\ell)=\zeta_\rho^{\mathrm{low}}(\ell)$.  Thus $\ell$ is a subsolution on
+its positive coordinates.  Conversely, the RPPR KKT conditions and
+$x^\star(\rho)\geq\ell$ give
+\begin{equation*}
+ Hx^\star(\rho)-d
+ =Qx^\star(\rho)-c_\rho
+   +\kappa_{\mathrm A}(x^\star(\rho)-\ell)\geq0,
+\end{equation*}
+so $x^\star(\rho)$ is a supersolution of the shifted obstacle problem.
+Stieltjes comparison between the subsolution, its solution, and the
+supersolution proves \cref{eq:aesp-cd-safe-sandwich}.
+
+At a positive coordinate of $\ell$, the lower-certificate residual is
+nonnegative.  At a zero coordinate, $Q\ell-b\leq0$ because $Q$ has
+nonpositive off-diagonal entries and $b\geq0$.  The composite proximal warm
+start therefore has the explicit orthant form
+\begin{equation*}
+ u=\ell+\frac1{L_{\mathrm A}}
+       [\zeta_\rho^{\mathrm{low}}(\ell)]_+\geq\ell.
+\end{equation*}
+The forward--backward map is order preserving because
+$I-H/L_{\mathrm A}$ is entrywise nonnegative.  Since $p(\ell)$ is its fixed
+point, $u\leq p(\ell)$.  Furthermore, for every $i\in\supp(u)$,
+\begin{equation*}
+ R_i(u)
+ =\zeta_{\rho,i}^{\mathrm{low}}(\ell)
+  -\frac1{L_{\mathrm A}}
+    \sum_j H_{ij}[\zeta_{\rho,j}^{\mathrm{low}}(\ell)]_+
+ \geq0,
+\end{equation*}
+using $H_{ii}\leq L_{\mathrm A}$ and $H_{ij}\leq0$ for $i\neq j$.
+Thus $u$ is again a lower subsolution.
+
+From any lower subsolution $z\leq p(\ell)$, a nonzero minimum KKT key points
+in the increasing direction.  Its exact coordinate update increases that
+coordinate to the one-dimensional obstacle minimizer, preserves the lower
+subsolution inequalities, and remains below $p(\ell)$ by coordinatewise
+Stieltjes comparison.  Induction proves the claimed sandwich for the entire
+greedy trajectory.
+
+Finally take $i\notin S^\star(\rho)$.  Along this trajectory
+$z_i=p_i(\ell)=\ell_i=0$, and
+\begin{equation*}
+ R_i(z)-R_i(p(\ell))
+ =-\sum_{j\neq i}H_{ij}(z_j-p_j(\ell))\leq0.
+\end{equation*}
+Obstacle optimality gives $R_i(p(\ell))\leq0$, hence $R_i(z)\leq0$.
+The opposite signed $\ell_1$ direction cannot activate either, because at
+such a zero coordinate the smooth gradient is nonpositive.  Therefore its
+minimum KKT key is zero.  All displacement and update scans are confined to
+$S^\star(\rho)$.  Apply \cref{thm:aesp-cd-relative-oracle} retrospectively
+with $U=S^\star(\rho)$ and use
+$\vol(S^\star(\rho))\leq1/\rho$ to obtain
+\cref{eq:aesp-cd-safe-center-work}.
 \end{proof}
 
 \begin{corollary}[Accelerated work on a certified envelope]
