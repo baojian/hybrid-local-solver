@@ -1,9 +1,11 @@
 # AESP-CD RPPR note
 
 This standalone note proposes a composite AESP outer loop with local proximal
-coordinate descent for the shared regularized PageRank model.  Its KKT-mass
-decrease statement and diagnostic-to-solution-error implication are explicit
-open proof obligations, not promoted manuscript claims or stopping decisions.
+coordinate descent for the shared regularized PageRank model.  The weighted
+KKT-mass decrease, diagnostic-to-solution-error conversion, and local
+inner-oracle work bound are proved for arbitrary signed iterates.  The
+graph-uniform outer-locality theorem remains open because Catalyst
+extrapolation can make the shifted subproblems' initial KKT masses large.
 
 Build with:
 

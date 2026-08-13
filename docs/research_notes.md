@@ -12,19 +12,70 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
-## 2026-08-12: composite AESP-CD proposal
+## 2026-08-12: ASPR 2023 correctness and path tightness audit
 
-The former loose file is now the standalone note
-`manuscript/notes/aesp_cd_l1_rppr/`. It uses the shared RPPR objective and
-records a local proximal-coordinate inner method with degree-weighted update
-cost.
+Recorded as a standalone note in `manuscript/notes/aspr23_bound_audit/`.
+The note reconstructs the intended exact-arithmetic ASPR theorem after
+repairing the source's quadratic normalization, RPPR linear term, and the
+APGD-output distance display.
 
-Its proposed KKT-mass decrease is explicitly a conjecture: the sign and
-zero-coordinate subgradient cases have not yet been proved. Likewise, the
-note-scoped scalar KKT diagnostic is not identified with the source proximal
-residual, a PPR error, or a repository stopping rule. The note cannot support
-an end-to-end AESP-CD locality theorem until both the mass-decrease lemma and
-a diagnostic-to-solution-error conversion are established.
+Closed statements:
+
+- the support-safety and objective-gap argument is valid for the corrected
+  Stieltjes quadratic contract;
+- on an endpoint-seeded RPPR path with full optimal support, every proper
+  active prefix exposes exactly its next vertex;
+- for sufficiently small objective-gap tolerance, literal ASPR makes exactly
+  `|S*|` APGD calls and has restricted-solve work
+  `Omega(|S*|^2 / sqrt(alpha))`;
+- literal fresh-gradient discovery separately costs `Omega(|S*|^2)` on the
+  same family;
+- these bounds match the two structural products in the published ASPR upper
+  bound up to logarithms;
+- the quantitative scaling `alpha = |S*|^{-2}`, `rho = alpha / 100`, and
+  `eps_obj = 10^{-4} alpha^2` gives
+  `Omega(|S*|^3 log |S*|)` ASPR work versus
+  `O(|S*|^2 log |S*|)` FISTA work at the same tolerance, while the 2026
+  leaf-star lower bound gives the opposite separation when FISTA activates a
+  high-degree center.
+
+Scope boundary:
+
+- the lower bound is for literal ASPR, not every accelerated local solver;
+- the sufficiently small accuracy is an objective-gap target and is not
+  identified with APPR, PPR infinity error, or the experimental proximal
+  fixed-point residual;
+- an algorithm-independent local-oracle lower bound remains open.
+
+## 2026-08-13: composite AESP-CD inner oracle proved
+
+The standalone note `manuscript/notes/aesp_cd_l1_rppr/` uses the shared RPPR
+objective and analyzes a local proximal-coordinate inner method with
+degree-weighted update cost.
+
+Closed statements:
+
+- the minimum-magnitude composite KKT map is one-Lipschitz in each untouched
+  coordinate's smooth gradient;
+- every exact proximal coordinate update decreases weighted KKT mass by the
+  factor `2 * (alpha + kappa_A) / (1 + alpha + 2 * kappa_A)` times the updated
+  violation, including zero hits and sign crossings;
+- the degree-normalized KKT diagnostic divided by the shifted strong-convexity
+  constant certifies degree-normalized solution error;
+- thresholded sequential updates have work at most
+  `C_t(z_0) / (tau_cd * eps_in)` and give an explicit objective-gap inner
+  oracle; for `kappa_A = 1 - 2 * alpha`, `tau_cd = 2/3`;
+- zero-start coordinate descent for unshifted RPPR recovers the standard
+  `O(1 / (alpha * eps_kkt))` degree-work scale.
+
+Scope boundary:
+
+- the diagnostic remains note-scoped and is not identified with the source
+  proximal fixed-point residual or a repository stopping rule;
+- the result closes the composite inner-locality conjecture but not the
+  graph-uniform accelerated theorem: Catalyst extrapolation can be signed, and
+  the cumulative initial KKT masses of the shifted subproblems remain
+  uncontrolled.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 
