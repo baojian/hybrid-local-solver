@@ -71,6 +71,16 @@ Closed statements:
 - consequently, composite AESP can use this oracle from its signed
   extrapolated centers, with cumulative inner work at most
   `3 / (4 * (1 - alpha)) * sum_t C_t(y_(t-1))^2 / phi_t`;
+- the raw absolute-gap functional cannot be controlled pointwise by outer
+  objective error: minimum KKT mass is discontinuous when a nonzero coordinate
+  approaches an `l1` kink;
+- the standard composite Catalyst proximal warm start smooths this
+  discontinuity, and greedy normalized-KKT coordinate selection contracts
+  mass exponentially in degree work on a fixed envelope of volume `V`;
+- with Catalyst's relative criterion C2, every inner stage costs
+  `O_tilde(V)`, so a certified envelope gives total
+  `O_tilde(V / sqrt(alpha))`; an optimal-support oracle specializes this to
+  `O_tilde(1 / (rho * sqrt(alpha)))`;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
@@ -79,9 +89,9 @@ Scope boundary:
 - the diagnostic remains note-scoped and is not identified with the source
   proximal fixed-point residual or a repository stopping rule;
 - the result closes the composite inner-locality conjecture but not the
-  graph-uniform accelerated theorem: Catalyst extrapolation can be signed, and
-  the cumulative initial KKT masses of the shifted subproblems remain
-  uncontrolled.
+  oracle-free graph-uniform accelerated theorem: start-mass interaction is now
+  closed on a fixed certified envelope, but discovering and expanding an
+  `O(1 / rho)` envelope without repeated acceleration restarts remains open.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 

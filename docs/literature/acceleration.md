@@ -163,6 +163,14 @@ starting points, but their applicability has not yet been established.
   to Catalyst's inner accuracy criteria, determine whether warm starts preserve
   the active set, and account for outer-loop extrapolation and auxiliary
   regularization without introducing global dense work.
+- Project continuation: `manuscript/notes/aesp_cd_l1_rppr/` now instantiates
+  the strongly convex relative criterion (C2), the composite proximal warm
+  start of Proposition 15, and the outer rate of Proposition 8. On a fixed
+  certified graph envelope of degree volume `V`, greedy local coordinate
+  descent supplies C2 in `O_tilde(V)` degree work per stage, yielding
+  `O_tilde(V / sqrt(alpha))` total work. This closes the inner/start-mass
+  interaction but still requires an oracle-free way to discover an envelope
+  of volume `O(1 / rho)`.
 
 ## Citation key: `uschmajew2022note`
 

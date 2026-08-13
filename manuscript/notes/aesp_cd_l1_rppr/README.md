@@ -7,9 +7,14 @@ inner-oracle work bound are proved for arbitrary signed iterates.  The
 contraction and error certificate are also stated for any separable
 $\ell_1$-regularized Stieltjes quadratic with a positive supersolution.  The
 note gives the resulting cumulative inner-work interface for a composite AESP
-outer loop, with no sign restriction on its extrapolated centers.  The
-graph-uniform outer-locality theorem remains open because Catalyst
-extrapolation can make the shifted subproblems' initial KKT masses large.
+outer loop, with no sign restriction on its extrapolated centers.  The raw
+absolute-gap interface is shown to be intrinsically too coarse at an
+$\ell_1$ kink.  Using the relative Catalyst criterion, a proximal warm start,
+and greedy coordinate selection gives $\widetilde O(V/\sqrt\alpha)$ total
+work on any fixed certified envelope of degree volume $V$.  An optimal-support
+oracle gives $V\leq1/\rho$ and the target
+$\widetilde O(1/(\rho\sqrt\alpha))$ bound.  The remaining graph-uniform task
+is oracle-free support discovery/continuation, not start-mass monotonicity.
 
 Build with:
 

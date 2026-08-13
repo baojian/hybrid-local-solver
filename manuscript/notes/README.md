@@ -15,7 +15,7 @@ but it may not redefine a reserved object.  The registry is
 | Note | Role | Current boundary |
 | --- | --- | --- |
 | `aspr23_bound_audit` | COLT 2023 ASPR correctness and tightness audit | Bound is tight for literal ASPR; no local-oracle lower bound is claimed. |
-| `aesp_cd_l1_rppr` | Composite AESP with local coordinate descent | Inner KKT-mass oracle is proved; extrapolated outer locality is open. |
+| `aesp_cd_l1_rppr` | Composite AESP with local coordinate descent | Fixed-envelope accelerated work is proved; oracle-free envelope discovery is open. |
 | `aesp_locgd_star_lower_bound` | Center-star stress test | Lower bound is specific to the literal AESP--LocGD loop. |
 | `hybrid_aesp_locsor` | Accelerated burn-in plus local refinement | Graph-uniform early-AESP locality is open. |
 | `hybrid_local_solver_complete_note` | Proof history and failed routes | Several safeguard/flux directions remain open. |
