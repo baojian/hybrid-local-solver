@@ -13,8 +13,11 @@ $\ell_1$ kink.  Using the relative Catalyst criterion, a proximal warm start,
 and greedy coordinate selection gives $\widetilde O(V/\sqrt\alpha)$ total
 work on any fixed certified envelope of degree volume $V$.  An optimal-support
 oracle gives $V\leq1/\rho$ and the target
-$\widetilde O(1/(\rho\sqrt\alpha))$ bound.  The remaining graph-uniform task
-is oracle-free support discovery/continuation, not start-mass monotonicity.
+$\widetilde O(1/(\rho\sqrt\alpha))$ bound.  Without an oracle, the same local
+heap implementation has a trajectory-dependent
+$\widetilde O(V_{\max}^{\rm exp}/\sqrt\alpha)$ bound in terms of the maximum
+actually explored stage volume.  The remaining graph-uniform task is to prove
+$V_{\max}^{\rm exp}=O(1/\rho)$ or enforce that cap without repeated restarts.
 
 Build with:
 

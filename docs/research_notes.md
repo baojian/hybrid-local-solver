@@ -81,6 +81,11 @@ Closed statements:
   `O_tilde(V)`, so a certified envelope gives total
   `O_tilde(V / sqrt(alpha))`; an optimal-support oracle specializes this to
   `O_tilde(1 / (rho * sqrt(alpha)))`;
+- the actual full-graph heap implementation needs no support oracle and has
+  trajectory-dependent work
+  `O_tilde(V_exp_max / sqrt(alpha))`, where `V_exp_max` is the largest degree
+  volume explored by one stage; every newly nonzero KKT key is locally exposed
+  by a touched coordinate or one of its neighbors;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
@@ -90,8 +95,9 @@ Scope boundary:
   proximal fixed-point residual or a repository stopping rule;
 - the result closes the composite inner-locality conjecture but not the
   oracle-free graph-uniform accelerated theorem: start-mass interaction is now
-  closed on a fixed certified envelope, but discovering and expanding an
-  `O(1 / rho)` envelope without repeated acceleration restarts remains open.
+  closed both on a fixed certified envelope and in terms of realized explored
+  volume, but proving `V_exp_max = O(1 / rho)` on every graph, or enforcing
+  that cap without repeated acceleration restarts, remains open.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 

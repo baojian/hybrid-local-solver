@@ -169,8 +169,10 @@ starting points, but their applicability has not yet been established.
   certified graph envelope of degree volume `V`, greedy local coordinate
   descent supplies C2 in `O_tilde(V)` degree work per stage, yielding
   `O_tilde(V / sqrt(alpha))` total work. This closes the inner/start-mass
-  interaction but still requires an oracle-free way to discover an envelope
-  of volume `O(1 / rho)`.
+  interaction. The oracle-free heap implementation also satisfies a
+  trajectory-dependent `O_tilde(V_exp_max / sqrt(alpha))` bound; the remaining
+  universal question is whether its maximum explored volume is
+  `O(1 / rho)`, or can be capped at that scale without repeated restarts.
 
 ## Citation key: `uschmajew2022note`
 

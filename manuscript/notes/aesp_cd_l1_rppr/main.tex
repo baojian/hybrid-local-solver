@@ -24,8 +24,10 @@ below proves that, on any fixed certified envelope of degree volume $V$, the
 inner work is only $\softO(V)$ per outer stage and hence
 $\softO(V/\sqrt\alpha)$ overall.  Taking the envelope to be the optimal RPPR
 support gives $V\leq1/\rho$; discovering such an envelope locally without an
-oracle remains open.  Nothing here changes the repository-wide residual
-decision.
+oracle remains open.  The same heap implementation does, however, admit an
+oracle-free bound in terms of the maximum volume it actually explores; this
+reduces the remaining universal question to controlling that explored volume.
+Nothing here changes the repository-wide residual decision.
 
 \section{Problem formulation}
 
@@ -660,6 +662,79 @@ most $\mathcal V_U$.  The proximal warm start costs another
 $\mathcal V_U$, yielding \cref{eq:aesp-cd-relative-work}.
 \end{proof}
 
+The fixed envelope in \cref{thm:aesp-cd-relative-oracle} is useful for a
+graph-uniform corollary, but it is not required to implement the method.  For
+a full-graph stage, let $E_t$ be the union of the sparse source support, the
+supports of the center and proximal displacement, every coordinate whose KKT
+key becomes nonzero, and every coordinate updated before
+\cref{eq:aesp-cd-relative-stop} holds.  Put
+\begin{equation*}
+ \mathcal V_t^{\mathrm{exp}}:=\vol(E_t),
+ \qquad
+ \mathcal V_{\max}^{\mathrm{exp}}
+ :=\max_{1\leq t\leq T}\mathcal V_t^{\mathrm{exp}}.
+\end{equation*}
+
+\begin{theorem}[Oracle-free explored-volume bound]
+\label{thm:aesp-cd-explored-volume}
+Run full-graph strongly convex Catalyst with parameters
+\cref{eq:aesp-cd-relative-parameters}.  At every stage, compute the proximal
+warm start locally, maintain all nonzero normalized KKT keys in a heap, run
+the greedy coordinate updates, and stop by
+\cref{eq:aesp-cd-relative-stop}.  Then each inner output satisfies the full
+relative condition \cref{eq:aesp-cd-c2}, and the total degree work through
+$T$ stages is at most
+\begin{equation}
+ \sum_{t=1}^T \mathcal V_t^{\mathrm{exp}}
+ \left[
+  3+\frac{1}{2\tau_{\mathrm{cd}}}
+  \log_+\left(
+   \frac{16(1-\alpha)^2\mathcal V_t^{\mathrm{exp}}}
+        {\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}
+  \right)\right].
+ \label{eq:aesp-cd-explored-work}
+\end{equation}
+Consequently, reaching objective gap $\epsobj$ costs
+\begin{equation}
+ \softO\left(
+   \frac{\mathcal V_{\max}^{\mathrm{exp}}}{\sqrt\alpha}
+   \log\frac1{\epsobj}
+ \right).
+ \label{eq:aesp-cd-explored-rate}
+\end{equation}
+No support oracle or graph-wide scan is used in this trajectory-dependent
+statement.
+\end{theorem}
+
+\begin{proof}
+For a sparse $z$ and center $y$, a zero coordinate outside
+$\supp(z)\cup N(\supp(z))\cup\supp(y)\cup\supp(b)$ has zero smooth gradient
+and hence zero minimum KKT key.  Initially, the proximal displacement is
+found by scanning the center support, its incident edges, and the sparse
+source.  Thereafter an exact coordinate update changes KKT keys only at the
+updated coordinate and its neighbors.  Thus the heap contains every nonzero
+key and its maximum is the global maximum; newly exposed coordinates are
+discovered while scanning already charged incident edges.
+
+The proof of \cref{lem:aesp-cd-smoothed-mass} on the full graph uses
+Cauchy--Schwarz only on the support of the proximal displacement, whose
+volume is at most $\mathcal V_t^{\mathrm{exp}}$.  At every later update, the
+support of the KKT mass also has volume at most
+$\mathcal V_t^{\mathrm{exp}}$.  Hence the proofs of
+\cref{lem:aesp-cd-greedy-linear,thm:aesp-cd-relative-oracle} apply
+retrospectively with this explored volume.  Two local scans initialize the
+proximal point and its heap keys, and the last coordinate update may overshoot
+the mass budget by one coordinate cost; these give the constant three in
+\cref{eq:aesp-cd-explored-work}.
+
+Every stage satisfies the full relative Catalyst condition, so the outer
+rate used in \cref{cor:aesp-cd-certified-envelope} applies without
+restriction.  Bound every explored volume in
+\cref{eq:aesp-cd-explored-work} by
+$\mathcal V_{\max}^{\mathrm{exp}}$ and use the
+$\bigO(\alpha^{-1/2}\log(1/\epsobj))$ stage count.
+\end{proof}
+
 \begin{corollary}[Accelerated work on a certified envelope]
 \label{cor:aesp-cd-certified-envelope}
 Assume a fixed envelope $U$ contains the optimal RPPR support, so minimizing
@@ -706,13 +781,14 @@ parameters.  The last claim uses the RPPR support-volume theorem.
 \end{proof}
 
 This closes the start-mass and outer-rate interaction on every fixed certified
-envelope.  It also explains why the absolute interface
+envelope, while \cref{thm:aesp-cd-explored-volume} gives an oracle-free
+trajectory-dependent result.  It also explains why the absolute interface
 \cref{eq:aesp-cd-cumulative-interface} loses a power of the final tolerance:
 it uses a one-shot $C^2/\varphi$ estimate where the relative oracle instead
 uses geometric mass contraction.  The remaining graph-uniform algorithmic
-task is no longer to control signed KKT mass.  It is to discover or maintain a
-certified envelope of volume $\bigO(1/\rho)$ without an optimal-support oracle
-and without restarting acceleration after every admission.
+task is no longer to control signed KKT mass.  It is to prove that the
+automatically explored envelope has volume $\bigO(1/\rho)$, or to enforce
+such an envelope without restarting acceleration after every admission.
 
 \begin{corollary}[Zero-start RPPR coordinate descent]
 \label{cor:aesp-cd-zero-start}
