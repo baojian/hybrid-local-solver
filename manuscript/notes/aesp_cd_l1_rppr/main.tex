@@ -30,7 +30,13 @@ reduces the remaining universal question to controlling that explored volume.
 For any certified lower center, a comparison argument controls it
 automatically: the full inner trajectory stays in the optimal RPPR support
 and costs $\softO(1/\rho)$.  The unresolved step is therefore strictly outer:
-retaining accelerated continuation while the centers are kept order-safe.
+retaining accelerated continuation while the centers are kept order-safe.  A
+safeguarded extrapolation analyzed below makes the iterates and their supports
+monotone and, crucially, makes the cumulative KKT start mass telescope with no
+$1/\alpha$ loss.  Its only remaining defect is an explicit positive momentum
+correction whose cumulative degree-weighted mass is at most one.  Proving that
+this correction is harmless in the accelerated outer potential is the final
+lemma, rather than another inner-locality question.
 Nothing here changes the repository-wide residual decision.
 
 \section{Problem formulation}
@@ -886,6 +892,211 @@ $\vol(S^\star(\rho))\leq1/\rho$ to obtain
 \cref{eq:aesp-cd-safe-center-work}.
 \end{proof}
 
+\subsection{Safeguarded outer continuation and a telescoping start-mass ledger}
+
+The lower retraction can be combined with extrapolation without losing the
+safe support invariant.  The following exact construction isolates what this
+does, and does not, yet prove about acceleration.  For vectors, $a\vee b$
+denotes the componentwise maximum, and
+$\mathfrak m(a):=\norm{D^{1/2}a}_1$ when $a\geq0$.
+
+\begin{lemma}[Lattice closure of lower certificates]
+\label{lem:aesp-cd-lower-max}
+If $a$ and $c$ are lower certificates, then $a\vee c$ is a lower
+certificate and satisfies $a\vee c\leq x^\star(\rho)$.
+\end{lemma}
+
+\begin{proof}
+Put $q=a\vee c$.  If $q_i>0$, choose $h\in\{a,c\}$ with $q_i=h_i$.
+Since $q_j\geq h_j$ for every $j$ and $Q_{ij}\leq0$ for $i\neq j$,
+$(Qq)_i\leq(Qh)_i$.  Therefore
+$\zeta_{\rho,i}^{\mathrm{low}}(q)\geq
+\zeta_{\rho,i}^{\mathrm{low}}(h)\geq0$.  The comparison conclusion in
+\cref{lem:aesp-cd-lower-retraction} gives $q\leq x^\star(\rho)$.
+\end{proof}
+
+Initialize $x_{-1}=x_0=0$ and $\ell_{-1}=0$.  For $t\geq0$, define the
+exact safeguarded recurrence
+\begin{align}
+ d_t&:=x_t-x_{t-1},
+ &y_t&:=x_t+\beta_{\mathrm A}d_t,\notag\\
+ \ell_t&:=x_t\vee\mathcal L(y_t),
+ &x_{t+1}&:=p(\ell_t),
+ \label{eq:aesp-cd-safe-outer}
+\end{align}
+where $p(\ell_t)$ is the exact shifted minimizer from
+\cref{thm:aesp-cd-safe-center}.  Write
+\begin{equation}
+ r_t:=y_t-\ell_t,
+ \qquad
+ s_t:=x_t-\ell_{t-1} \quad(t\geq1),
+ \qquad s_0:=0.
+ \label{eq:aesp-cd-safe-defects}
+\end{equation}
+
+\begin{theorem}[Safe outer ledger]
+\label{thm:aesp-cd-safe-outer-ledger}
+The recurrence \cref{eq:aesp-cd-safe-outer} is graph-local and satisfies
+\begin{equation}
+ 0\leq x_{t-1}\leq\ell_{t-1}\leq x_t\leq\ell_t
+ \leq x_{t+1}\leq x^\star(\rho).
+ \label{eq:aesp-cd-safe-chain}
+\end{equation}
+Consequently every support in the recurrence is contained in
+$S^\star(\rho)$ and has volume at most $1/\rho$.
+
+More strongly, let $C_{t+1}(x_t)$ denote the minimum KKT mass at $x_t$ for
+the shifted subproblem centered at $\ell_t$.  Then
+\begin{equation}
+ C_{t+1}(x_t)
+ =\kappa_{\mathrm A}\mathfrak m(\ell_t-\ell_{t-1}),
+ \qquad t\geq1,
+ \label{eq:aesp-cd-safe-start-exact}
+\end{equation}
+while $C_1(x_0)\leq\alpha$.  Hence, for every $T\geq1$,
+\begin{equation}
+ \sum_{t=0}^T C_{t+1}(x_t)
+ \leq\alpha+\kappa_{\mathrm A}=1-\alpha,
+ \qquad
+ \sum_{t=0}^T C_{t+1}(x_t)^2\leq(1-\alpha)^2.
+ \label{eq:aesp-cd-safe-start-ledger}
+\end{equation}
+Thus the cumulative stage-start mass itself has no volume factor and no
+$1/\alpha$ penalty.
+
+Finally, if $\Delta_t:=\Delta(y_t)$ is the retraction magnitude in
+\cref{eq:aesp-cd-lower-retraction}, then
+\begin{align}
+ r_t
+ &=\min\{\beta_{\mathrm A}d_t,\Delta_tD^{1/2}\one\}
+ \quad\text{componentwise},
+ \label{eq:aesp-cd-safe-correction}\\
+ \sum_{t=0}^T \mathfrak m(r_t)&\leq\beta_{\mathrm A},
+ \label{eq:aesp-cd-safe-correction-ledger}\\
+ \alpha\Delta_t
+ &=\kappa_{\mathrm A}
+ \norm{D_{A_t}^{-1/2}
+ \bigl[\beta_{\mathrm A}s_{t-1}
+       -(1+\beta_{\mathrm A})s_t\bigr]_+}_\infty,
+ \qquad A_t:=\supp(x_t),\quad t\geq2.
+ \label{eq:aesp-cd-safe-collapse}
+\end{align}
+In particular, after the first extrapolation a correction can be triggered
+only where the current proximal displacement has fallen below
+$\beta_{\mathrm A}/(1+\beta_{\mathrm A})<1/2$ of the preceding one.
+\end{theorem}
+
+\begin{proof}
+For $t=0$, one has $x_{-1}=\ell_{-1}=x_0=\ell_0=0$, and
+\cref{thm:aesp-cd-safe-center} gives $0\leq x_1\leq x^\star(\rho)$.
+Now let $t\geq1$ and suppose inductively that $\ell_{t-1}$ is a lower
+certificate.  By
+\cref{thm:aesp-cd-safe-center},
+$\ell_{t-1}\leq x_t\leq x^\star(\rho)$.  On every positive coordinate of
+$x_t$, shifted optimality gives
+\begin{equation}
+ \zeta_{\rho,i}^{\mathrm{low}}(x_t)
+ =\kappa_{\mathrm A}(x_{t,i}-\ell_{t-1,i})\geq0.
+ \label{eq:aesp-cd-safe-prox-slack}
+\end{equation}
+Thus $x_t$ is a lower certificate.  Both $\mathcal L(y_t)$ and $x_t$ are
+lower certificates, so \cref{lem:aesp-cd-lower-max} proves the same statement
+for $\ell_t$.  A second application of
+\cref{thm:aesp-cd-safe-center} yields \cref{eq:aesp-cd-safe-chain}.
+The support-volume conclusion follows from
+$\vol(S^\star(\rho))\leq1/\rho$.  All operations used to construct
+$\mathcal L(y_t)$ scan only the current support and its incident edges, and
+the shifted solve is local by \cref{thm:aesp-cd-safe-center}.
+
+The formula for $\ell_t$ and $d_t\geq0$ give
+\begin{equation*}
+ \ell_t=x_t+
+ [\beta_{\mathrm A}d_t-\Delta_tD^{1/2}\one]_+.
+\end{equation*}
+In particular, $\supp(\ell_t)=\supp(x_t)$.  At a positive coordinate of
+$x_t$, subtracting the two shifted centers in
+\cref{eq:aesp-cd-safe-prox-slack} shows that the KKT vector for the next
+subproblem at $x_t$ is
+$\kappa_{\mathrm A}(\ell_{t-1}-\ell_t)$.  At a zero coordinate,
+$\ell_{t-1,i}=\ell_{t,i}=0$.  Shifted obstacle optimality gives
+$Qx_t-b+\alpha\rho D^{1/2}\one\geq0$ there, while the Stieltjes signs and
+$b\geq0$ give $Qx_t-b\leq0$; hence the signed $\ell_1$ KKT key is zero.
+This proves \cref{eq:aesp-cd-safe-start-exact} for $t\geq1$.  At the initial
+point the shift cancels and the seed normalization gives
+$C_1(x_0)=C_\rho(0)\leq\alpha$.
+
+The center increments are nonnegative and telescope.  Moreover
+$\mathfrak m(x^\star(\rho))\leq1$: multiplying its active KKT equations by
+$D^{1/2}\one$ and using
+$Q_{AA}D_A^{1/2}\one\geq\alpha D_A^{1/2}\one$ gives
+$\alpha\mathfrak m(x^\star(\rho))
+\leq(D_A^{1/2}\one)^Tb_A\leq\alpha$.
+It follows that
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(\ell_t-\ell_{t-1})
+ =\mathfrak m(\ell_T)\leq1.
+\end{equation*}
+Together with the initial mass bound, this proves the first inequality in
+\cref{eq:aesp-cd-safe-start-ledger}; the second follows from
+$\sum_t a_t^2\leq(\sum_t a_t)^2$ for $a_t\geq0$.
+
+Subtracting the displayed formula for $\ell_t$ from
+$y_t=x_t+\beta_{\mathrm A}d_t$ proves
+\cref{eq:aesp-cd-safe-correction}.  Therefore
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(r_t)
+ \leq\beta_{\mathrm A}\sum_{t=0}^T\mathfrak m(d_t)
+ =\beta_{\mathrm A}\mathfrak m(x_T)\leq\beta_{\mathrm A},
+\end{equation*}
+which is \cref{eq:aesp-cd-safe-correction-ledger}.
+
+It remains to identify when a correction occurs after the initial shifted
+solve.  Since the residual map is affine and the coefficients of $y_t$ sum
+to one,
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(y_t)
+ =(1+\beta_{\mathrm A})
+     \zeta_\rho^{\mathrm{low}}(x_t)
+  -\beta_{\mathrm A}
+     \zeta_\rho^{\mathrm{low}}(x_{t-1}).
+\end{equation*}
+On a coordinate positive in both iterates,
+\cref{eq:aesp-cd-safe-prox-slack} identifies the two residuals with
+$\kappa_{\mathrm A}s_t$ and $\kappa_{\mathrm A}s_{t-1}$.  If the coordinate
+is new at time $t\geq2$, shifted obstacle optimality at time $t-1$ gives a
+nonpositive old residual, so neither side of the corresponding negative-part
+identity is positive.  Hence, on $A_t$,
+\begin{equation*}
+ [\zeta_\rho^{\mathrm{low}}(y_t)]_-
+ =\kappa_{\mathrm A}
+   [\beta_{\mathrm A}s_{t-1}
+     -(1+\beta_{\mathrm A})s_t]_+.
+\end{equation*}
+Substitution in the definition of $\Delta_t$ proves
+\cref{eq:aesp-cd-safe-collapse} and the final claim.
+\end{proof}
+
+The theorem removes the cumulative start-mass obstruction in a stronger
+form than a per-stage volume estimate: the exact warm-start masses telescope
+over an arbitrarily long run.  It also suppresses the tree-wave mechanism,
+because supports cannot deactivate.  What it does not prove is that replacing
+the Catalyst center $y_t$ by $\ell_t=y_t-r_t$ preserves the classical
+accelerated estimate.  Exact shifted optimality can be written as
+\begin{equation}
+ 0\in\partial F_\rho(x_{t+1})
+   +\kappa_{\mathrm A}(x_{t+1}-y_t)
+   +\kappa_{\mathrm A}r_t.
+ \label{eq:aesp-cd-safe-perturbed-app}
+\end{equation}
+Thus the strictly outer problem is now the following precise amortization
+lemma: absorb the nonnegative perturbations in
+\cref{eq:aesp-cd-safe-perturbed-app}, using both the unit correction ledger
+\cref{eq:aesp-cd-safe-correction-ledger} and the sharp-collapse identity
+\cref{eq:aesp-cd-safe-collapse}, into a Catalyst potential contracting at
+$1-\Theta(\sqrt\alpha)$.  A generic additive-error bound is too coarse,
+because it discards the sign and the fact that every correction is paid by a
+monotone increment $d_t$.
+
 \begin{corollary}[Accelerated work on a certified envelope]
 \label{cor:aesp-cd-certified-envelope}
 Assume a fixed envelope $U$ contains the optimal RPPR support, so minimizing
@@ -979,12 +1190,14 @@ decrease diagnostics.
 inner local-monotonicity and oracle-correctness tasks.
 \Cref{thm:aesp-cd-relative-oracle,cor:aesp-cd-certified-envelope} additionally
 close the interaction between start mass and the accelerated outer rate on a
-fixed certified envelope.  The remaining central task is oracle-free envelope
-discovery and expanding-subspace continuation.  Therefore this note does not
-yet claim the target $\softO(1/(\rho\sqrt\alpha))$ for a fully implementable
-graph-uniform algorithm.  A valid continuation must maintain the certified
-$\bigO(1/\rho)$ envelope without destroying acceleration or charge every
-expansion only to newly admitted degree volume.
+fixed certified envelope.  For the implementable safeguarded continuation,
+\cref{thm:aesp-cd-safe-outer-ledger} now proves oracle-free envelope control,
+monotone support, and a dimension-free telescoping start-mass bound.  The
+remaining central task is strictly the outer perturbation estimate described
+after \cref{eq:aesp-cd-safe-perturbed-app}.  Therefore this note does not yet
+claim the target $\softO(1/(\rho\sqrt\alpha))$ for a fully implementable
+graph-uniform algorithm: it remains to prove that the signed, increment-paid
+corrections $r_t$ preserve a $1-\Theta(\sqrt\alpha)$ outer contraction.
 
 \begin{thebibliography}{9}
 
