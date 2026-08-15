@@ -12,6 +12,44 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-14: active lower-bound ledger and first tight local hybrid
+
+The active manuscript now separates six algorithm-specific statements under
+their native accuracy conventions.
+
+Closed statements:
+
+- the classical APPR proof was rechecked against Andersen, Chung, and Lang
+  (2007), Definition 3.3, Lemma 3.4, Algorithm 1, and Theorem 3.2. The lazy
+  update, column-vector invariant, mass identity, ordering-independent star
+  lower bound, and RPPR bridge are correct;
+- a new numerical regression test solves the PageRank and RPPR systems
+  directly and verifies `p + pr(r) = pi` for every implemented active ordering;
+- full-batch RPPR ISTA retains its previously proved tight general-seed work
+  `Theta((1 + log(1 / (delta * rho))) / (alpha * rho))`;
+- residual-thresholded coordinate ISTA has a new ordering-independent star
+  lower bound `Omega(1 / (alpha * rho))`. Together with its existing potential
+  upper bound, this proves exact worst-case work
+  `Theta_delta(1 / (alpha * rho))` for every fixed relative accuracy `delta`;
+- the coordinate-to-batch coarse-to-fine hybrid inherits the same lower bound
+  from its first phase and therefore has the same exact fixed-accuracy
+  worst-case order. This is the first active-manuscript hybrid with matching
+  upper and lower work bounds;
+- the coarse forward-push star proof was strengthened from a scheduled-cycle
+  argument to an ordering-independent flow proof, giving an explicit matching
+  lower bound for Phase I;
+- the full fixed-relaxation FIFO CF-Push hybrid still has only the spider lower
+  bound `Omega(1 / (alpha * eps_ppr))` and the weaker energy upper bound. Its
+  exact worst-case order remains open.
+
+Scope boundary:
+
+- these statements do not identify `eps_appr`, `rho`, `delta`, and `eps_ppr`;
+- tightness is for the stated algorithms and work models, not for every local
+  graph oracle;
+- the graph-uniform accelerated `O_tilde(1 / (rho * sqrt(alpha)))` target
+  remains open and the AESP--LOCSOR publication gate is unchanged.
+
 ## 2026-08-12: ASPR 2023 correctness and path tightness audit
 
 Recorded as a standalone note in `manuscript/notes/aspr23_bound_audit/`.
@@ -37,7 +75,20 @@ Closed statements:
   `Omega(|S*|^3 log |S*|)` ASPR work versus
   `O(|S*|^2 log |S*|)` FISTA work at the same tolerance, while the 2026
   leaf-star lower bound gives the opposite separation when FISTA activates a
-  high-degree center.
+  high-degree center;
+- the post-COLT official Julia repository generally plots default ASPR faster
+  than its FISTA and ISTA baselines, with CASPR fastest, so those plots are not
+  evidence that default ASPR is empirically slow;
+- in official commit `3a169eb`, the periodic boundary-gradient option deletes
+  the active-to-boundary cross block before evaluation. Its early-discovery
+  flag is therefore inert on RPPR and the periodic variants only add work;
+- the same implementation's in-place retraction fails to clip entries in
+  `(0, delta)`, and the baseline support filter performs an `O(n)` complement
+  allocation outside the stated local work model;
+- a corrected early-discovery method still needs one successful event per path
+  layer and `Omega(|S*|^2)` work under fresh-prefix scans, although the current
+  proof does not retain the per-stage `1 / sqrt(alpha)` inner lower bound for
+  that variant.
 
 Scope boundary:
 

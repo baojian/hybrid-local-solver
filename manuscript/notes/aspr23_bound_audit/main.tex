@@ -34,6 +34,13 @@ argument is correct after repairing the quadratic normalization, the printed
 RPPR linear term, and one distance display that uses the retracted point where
 the APGD output is required.  Several further defects affect constants,
 notation, or the executable access model but not the repaired theorem.
+We also audit the authors' later Julia implementation.  Its official plots do
+not show default \ASPR{} to be slow relative to its FISTA baseline; they
+usually show \ASPR{} faster and CASPR fastest.  However, the optional
+periodic-gradient variants delete the active-to-boundary matrix block before
+their purported full-gradient check, so early discovery cannot fire on RPPR
+and the variants only add work.  The in-place retraction also fails to clip
+newly negative entries.
 
 We then prove that the factor $|S^\star|$ is genuine.  On an endpoint-seeded
 RPPR path whose regularized solution is positive on all $s$ vertices, every
@@ -93,6 +100,14 @@ full-space \FISTA{}, an actual factor-$s$ separation. \\
 with sorted adjacency lists and a streaming multiway merge, at an additional
 logarithmic time factor.  A hash-accumulator implementation instead uses
 boundary-sized memory. \\
+\statusproved & In official commit \texttt{3a169eb}, the periodic
+full-gradient option removes the active--boundary cross block before
+evaluation, making early discovery inert for RPPR.  The in-place retraction
+also fails when an entry lies strictly between zero and the retraction size. \\
+\statusempirical & The later official repository plots generally show default
+\ASPR{} faster than the included FISTA and ISTA baselines, with CASPR fastest.
+They use one timed run and a minimum-degree seed; they are not experiments in
+the COLT/arXiv-v1 PDF. \\
 \statusopen & A lower bound for every local first-order method, or a matching
 lower bound under a fixed repository-wide PageRank residual, is not proved.
 \qquad The repository-wide residual convention remains open. \\
@@ -105,8 +120,11 @@ The model and RPPR specialization are on PDF pages 4--5 of
 \citet{martinezrubio2023}; Proposition~2 is on pages 6--7; Algorithm~3 and
 Proposition~5 are on pages 9--10; Algorithm~4 and Theorems~7--8 are on pages
 10--11; the correctness proof is on pages 21--23; and the complexity proof is
-on page 24.  The source contains no experiments.  The classical FISTA work
-comparison and its locality limitations are taken from
+on page 24.  The COLT/arXiv-v1 source contains no experiments.  A later
+official Julia repository, labeled as containing experiments for a journal
+version, is available at
+\url{https://github.com/ZIB-IOL/AAPPR.jl}.  The classical FISTA work comparison
+and its locality limitations are taken from
 \citet{fountoulakis2026}, especially PDF pages 3--6 and 18--23.
 
 \paragraph{Accuracy and work boundary.}
@@ -367,6 +385,150 @@ newly negative indices.  This adds a $\log|S|$ time factor hidden by
 $\softO$, but it is an additional data-structure assumption rather than a
 consequence of the pseudocode alone.
 
+\section{Official implementation and empirical-speed audit}
+\label{sec:implementation-audit}
+
+\subsection{Provenance and what the plots actually show}
+
+The public repository
+\url{https://github.com/ZIB-IOL/AAPPR.jl} was committed in December 2023,
+after the March 2023 arXiv submission and the COLT version.  Commit
+\texttt{f016c46} contains the Julia implementation, serialized results, and
+plots; commit \texttt{3a169eb} adds the last journal-version experiment.  The
+benchmark driver uses four SNAP graphs, selects a minimum-degree vertex as the
+seed, fixes $\varepsilon=10^{-6}$, sweeps either $\alpha$ or $\rho$, performs
+one compilation warm-up, and records one timed run per point.  There are no
+repeated seeds, error bars, or machine-independent work counts.
+
+The official performance plots do \emph{not} support the statement that
+default \ASPR{} is empirically slow relative to the repository's FISTA and
+ISTA baselines.  Across the displayed sweeps, default \ASPR{} is usually
+faster than both; CASPR is usually fastest.  The accurate empirical statement
+is narrower:
+\begin{enumerate}[leftmargin=*]
+\item \ASPR{} is slower than CASPR in those experiments;
+\item periodic-gradient variants
+      \texttt{ASPR 1}, \texttt{ASPR 5}, and \texttt{ASPR 15}
+      are slower than default \ASPR{} on the displayed Amazon and
+      \texttt{ca-Astroph} sweeps; and
+\item an independently implemented ASPR can still be slow for the
+      theorem-level repeated-solve reason proved later in this note.
+\end{enumerate}
+
+The second observation is not evidence against early discovery as a
+mathematical idea.  It is explained by a concrete implementation defect.
+
+\subsection{The periodic boundary check is inert on RPPR}
+
+Let $S$ be the current good set and $B=N(S)\setminus S$.  In
+\path{accelerated_projected_gradient_descent}, the implementation copies
+the neighborhood objective and then calls
+\path{set_nonindex_entries_to_zero!} with indices $B$.  That helper
+retains only the principal block $Q_{B,B}$, deleting the cross block
+$Q_{B,S}$.  The alleged outside gradient is then evaluated at an iterate
+$y$ supported on $S$.
+
+\begin{proposition}[The official early-discovery flag cannot fire on RPPR]
+\label{prop:official-early-inert}
+Assume all initially negative constant-gradient coordinates were placed in
+the first good set, as in the official implementation.  At every later
+periodic check, the code computes a nonnegative value for every coordinate in
+$B$.  Consequently its early-discovery flag is always false.
+\end{proposition}
+
+\begin{proof}
+After the cross block is deleted and because $y_B=0$, the implemented value at
+$i\in B$ is
+\[
+ (Q_{B,B}y_B)_i+
+ \alpha\rho\sqrt{d_i}-\frac{\alpha s_i}{\sqrt{d_i}}
+ =
+ \alpha\rho\sqrt{d_i}-\frac{\alpha s_i}{\sqrt{d_i}}.
+\]
+Every coordinate where this constant is negative was selected at
+initialization.  The good sets only grow, so a remaining outside coordinate
+has nonnegative constant.  Hence the periodic check finds no negative outside
+entry and cannot trigger its early-return branch.
+\end{proof}
+
+Thus the periodic variants perform the default inner iterations plus
+additional matrix copies, restrictions, and boundary-gradient calls.  Their
+slowdown in the official plots is the expected consequence of
+\cref{prop:official-early-inert}, not evidence that correctly implemented
+early discovery is intrinsically slower.
+
+The correct local boundary computation is
+\[
+ \nabla_B G(y)=Q_{B,S}y_S-c_B.
+\]
+It needs the cross block and can be maintained incrementally from newly
+changed active coordinates; constructing a principal outside objective is
+both mathematically wrong and unnecessarily expensive.
+
+\subsection{The implementation's early predicate is nevertheless safe}
+
+The code checks negativity only on currently positive active entries, whereas
+the source lemma assumes nonpositive gradient on all of $S$.  For a
+Stieltjes quadratic, the code's weaker-looking predicate is in fact
+sufficient.
+
+\begin{lemma}[Support-restricted negativity implies a lower point]
+\label{lem:positive-support-predicate}
+Let $z^S>0$ on $S$ be the exact restricted minimizer.  Let $y\geq0$ be
+supported on $S$, put $P:=\supp(y)$, and assume
+$\nabla_PG(y)\leq0$.  Then $y\leq z^S$.  Therefore any outside coordinate
+with negative gradient at $y$ belongs to the global optimal support.
+\end{lemma}
+
+\begin{proof}
+Let $Z:=S\setminus P$.  Restricted optimality gives
+$\nabla_SG(z^S)=0$.  On $P$,
+\[
+ H_{P,P}(y_P-z_P^S)
+ =\nabla_PG(y)+H_{P,Z}z_Z^S\leq0,
+\]
+because $H_{P,Z}\leq0$.  Principal Stieltjes inverses are entrywise
+nonnegative, so $y_P\leq z_P^S$; on $Z$, $y_Z=0<z_Z^S$.
+The outside-gradient comparison and the support-safety argument from
+\cref{lem:safe-progress} finish the proof.
+\end{proof}
+
+Accordingly, the flaw in the periodic option is the deleted cross block, not
+the positive-support predicate.
+
+\subsection{Further executable defects and benchmark caveats}
+
+\begin{enumerate}[leftmargin=*]
+\item The in-place retraction first copies the old vector, subtracts
+      $\delta$ from the positive entries of the original, and then tests the
+      \emph{old copy} for negativity.  If
+      $0<x_i<\delta$, the result is $x_i-\delta<0$ rather than zero.  This
+      violates feasibility and the lower-envelope proof.  The tests cover
+      $x_i=\delta$ but not the strict interval $(0,\delta)$.
+\item The prescribed APGD count is converted directly to an integer without
+      the positive-part clamp in \cref{eq:corrected-inner-count}.
+\item The official inner APGD also exits when its restricted gradient norm
+      falls below $\mu\delta$.  Under the positive restricted-minimizer
+      invariant this is a valid sufficient distance test, but it is not the
+      fixed-count Algorithm~4 analyzed by
+      \cref{thm:aspr-path-work}.  The literal lower bound therefore applies to
+      the paper algorithm, not automatically to every run of this code.
+\item The in-place support filter constructs
+      \texttt{setdiff(1:n, indices)}.  ISTA and FISTA call it in every outer
+      iteration, introducing an $O(n)$ allocation that is absent from the
+      stated local work model and biases their wall-time comparison.
+\item Neighborhood construction repeatedly concatenates, sorts, and
+      deduplicates index arrays, while restricted objectives are repeatedly
+      copied and mutated.  These costs can dominate sparse arithmetic for
+      small active sets.
+\item The algorithms do not stop by evaluating the claimed objective gap.
+      They use algorithm-dependent gradient-norm logic calibrated by
+      $\varepsilon$, and the diagnostic plots subtract the minimum objective
+      observed among the compared runs rather than a certified optimum.
+      Hence the wall times are not a fully verified equal-achieved-accuracy
+      comparison.
+\end{enumerate}
+
 \section{Endpoint paths force one coordinate per stage}
 \label{sec:path-expansion}
 
@@ -495,6 +657,36 @@ is no outside coordinate, so the set stabilizes after the $s$th call.
 
 The theorem is stronger than the generic counting argument ``at most
 $|S^\star|$ stages'': it gives an RPPR family on which equality holds.
+
+\begin{proposition}[Early discovery cannot skip path layers]
+\label{prop:early-path-layers}
+Consider any active-set method on the same path that currently uses the prefix
+$U_r$, queries gradients only at points supported on $U_r$, and admits only
+negative-gradient coordinates.  A gradient query can admit at most the single
+vertex $v_r$.  Thus even the source's optional early-discovery modification
+requires at least $s-1$ successful expansion events.  If each event uses a
+fresh incident-gradient scan of the current prefix, its discovery work is
+$\Omega(s^2)$.
+\end{proposition}
+
+\begin{proof}
+For every $j\geq r+1$, vertex $v_j$ is neither the seed nor adjacent to
+$U_r$.  At every point supported on $U_r$,
+\[
+ \nabla_{v_j}G_\rho(x)=\alpha\rho\sqrt{d_j}>0.
+\]
+Only $v_r$ can have negative outside gradient.  Hence at most one path layer
+is admitted per successful query.  A fresh incident scan at prefix length
+$r$ costs $\Theta(r)$, and summing over $r=1,\ldots,s-1$ gives the result.
+\end{proof}
+
+This proposition separates two effects.  Correct early discovery may avoid
+solving every prefix to the final inner tolerance, so the
+$1/\sqrt\alpha$ factor in the literal-Algorithm~4 lower bound need not survive
+unchanged.  It cannot, however, remove the $s$ sequential path discoveries;
+with fresh scans it still pays quadratic discovery work.  An implementation
+that incrementally maintains only the frontier residual is outside this scan
+model and can avoid that particular $\Omega(s^2)$ charge.
 
 \section{A matching work lower bound for literal ASPR}
 \label{sec:work-lower-bound}
@@ -722,11 +914,15 @@ The path theorem closes the main algorithmic question:
       $|S^\star|\vol(S^\star)$.
 \end{enumerate}
 
-Three stronger interpretations remain false or open.
+Four stronger interpretations remain false or open.
 \begin{enumerate}[leftmargin=*]
 \item The result is not a lower bound for an implementation that preserves an
       accelerated estimate sequence across expansions.  Such a method is not
       Algorithm~4.
+\item The optional early-discovery variant still needs $|S^\star|$ successful
+      events and $\Omega(s^2)$ fresh-scan work on the path, but the present
+      proof does not force it to spend $\Omega(1/\sqrt\alpha)$ inner
+      iterations before every event.
 \item It is not an information-theoretic lower bound for local RPPR.  Standard
       FISTA already beats ASPR on the path, while safe local continuation may
       do better still.
@@ -752,17 +948,38 @@ useful theorem would charge
 \end{equation}
 rather than multiplying both final volumes by $|S^\star|$.
 
+The new safe-predicate lemma isolates the remaining continuation problem.
+Under the positive-restricted-minimizer invariant, at an accelerated iterate
+$y$ one may safely expand whenever
+\[
+ \nabla_{\supp(y)}G(y)\leq0
+ \quad\text{and}\quad
+ \min_{j\in N(S)\setminus S}\nabla_jG(y)<0,
+\]
+provided the boundary gradient retains the cross term $Q_{B,S}y_S$.  No
+high-accuracy restricted solution is needed for that support-safety step.
+What is still missing is an expanding-face estimate-sequence lemma showing
+that the accelerated potential survives embedding its momentum state into
+$S^+\supset S$.  Without such a lemma, carrying momentum is a plausible
+algorithmic proposal but not a proved accelerated rate.  This, rather than
+support safety, is the precise theorem that a continuation-based hybrid must
+establish.
+
 \section{Conclusion}
 
 The COLT 2023 ASPR theorem has a correct mathematical core but needs an
 explicit repaired formulation.  More importantly, its pessimistic-looking
 $|S^\star|$ multiplier is a real property of the algorithm.  Endpoint paths
 force one coordinate per stage, and sufficiently accurate nested solves force
-the full $\Omega(s^2/\sqrt\alpha)$ work.  This explains the observed empirical
-slowness without appealing only to implementation constants: ASPR repeatedly
-solves almost the same growing path prefix and discards its acceleration state
-after each discovery.  The safe-support mechanism remains valuable, but it
-should be combined with continuation rather than nested restarts.
+the full $\Omega(s^2/\sqrt\alpha)$ work.  The official later experiments do
+not show default \ASPR{} losing to their FISTA baseline, so they must not be
+cited as evidence of empirical ASPR slowness.  They do show periodic-scan
+variants losing to default \ASPR{}, which
+\cref{prop:official-early-inert} explains as an implementation defect.
+Independent slow implementations can still realize the repeated-prefix
+worst case proved here.  The safe-support mechanism remains valuable, but it
+should be combined with continuation and incremental frontier maintenance
+rather than nested restarts and repeated scans.
 
 \footnotesize
 \begin{thebibliography}{9}

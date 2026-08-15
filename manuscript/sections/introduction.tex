@@ -16,3 +16,69 @@ parts: APPR must process \(\Omega(1/\alpha)\) cumulative residual mass, and the
 star forces a constant fraction of that mass through a vertex of degree
 \(\Theta(1/\epsappr)\). These mechanisms clarify what an accelerated or hybrid
 local solver must change to improve the worst-case bound.
+
+We next turn to the variational, \(\ell_1\)-regularized PageRank problem.  For
+the original full-batch ISTA, we remove an unnecessary
+\(\log(1/\alpha)\) from the published upper analysis and prove matching
+lower bounds.  With general teleportation distributions, its exact worst-case
+order is
+\[
+    \Theta\!\left(
+      \frac{1}{\alpha\rho}
+      \left[1+\log\frac{1}{\delta\rho}\right]
+    \right),
+\]
+where \(\delta\) is the relative KKT accuracy.  The extra
+\(\log(1/\rho)\) is a stale full-batch scanning cost, not an intrinsic
+problem barrier.  A residual-thresholded coordinate implementation removes
+it: for every fixed \(\delta\), both that method and a coordinate-to-batch
+coarse-to-fine hybrid have exact worst-case work
+\(\Theta(1/(\alpha\rho))\).  Their matching lower bound is again a
+center-seeded star and holds for every violating-coordinate ordering.
+
+Our unregularized two-stage experiment combines coarse forward push with a
+signed, optimally relaxed SOR tail.  The coarse phase has exact order
+\(\Theta(1/(\alpha\tau))\) at tolerance \(\tau\), independently of the
+active ordering.  This justifies the balancing scale
+\(\tau=\Theta(\epsppr/\sqrt\alpha)\), but it does not make the complete
+method uniformly accelerated.  A long spider forces
+\(\Omega(1/(\alpha\epsppr))\) work for the fixed-relaxation FIFO tail.
+Thus an effective hybrid must change the propagation mechanism, not only its
+handoff tolerance.
+
+\Cref{tab:lower-bound-ledger} summarizes the proved statements in the active
+manuscript.  The accuracy symbols in different rows are deliberately not
+identified.
+
+\begin{table}[t]
+\centering
+\caption{Active-manuscript lower-bound ledger.  ``Tight'' always refers to
+the stated algorithm and work model, not to every local graph oracle.}
+\label{tab:lower-bound-ledger}
+\begin{tabularx}{\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.25\textwidth}
+    >{\raggedright\arraybackslash}X
+    >{\raggedright\arraybackslash}p{0.21\textwidth}@{}}
+\toprule
+Method & Accuracy and worst-case work & Status \\
+\midrule
+APPR & \(\epsappr\)-threshold; \(\Theta(1/(\alpha\epsappr))\)
+& Tight \\
+Full-batch RPPR ISTA
+& relative \(\delta\); \(\Theta((1+\log(1/(\delta\rho)))/(\alpha\rho))\)
+& Tight in the general seed model \\
+Coordinate RPPR ISTA
+& fixed relative \(\delta\); \(\Theta(1/(\alpha\rho))\)
+& Tight \\
+Coordinate--batch hybrid
+& fixed final \(\delta\); \(\Theta(1/(\alpha\rho))\)
+& Tight \\
+CF-Push Phase I
+& coarse \(\tau\); \(\Theta(1/(\alpha\tau))\)
+& Tight as \(\alpha\downarrow0\) \\
+CF-Push/FIFO-SOR hybrid
+& final \(\epsppr\); \(\Omega(1/(\alpha\epsppr))\)
+& Upper/lower gap remains \\
+\bottomrule
+\end{tabularx}
+\end{table}
