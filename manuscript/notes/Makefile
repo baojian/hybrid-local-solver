@@ -5,7 +5,10 @@ NOTES := \
 	hybrid_aesp_locsor \
 	hybrid_local_solver_complete_note \
 	hybrid_local_solver_synthesis \
-	volume_gated_acceleration
+	volume_gated_acceleration \
+	rlsor_terminal_exact_rung \
+	delayed_reflection_ladder \
+	evolving_support_cg
 
 .PHONY: all clean distclean $(NOTES)
 
