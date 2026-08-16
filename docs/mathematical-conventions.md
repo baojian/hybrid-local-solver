@@ -177,12 +177,14 @@ Report at least:
 Any alternative unit of work must be defined and reported in addition to,
 rather than silently replacing, these quantities.
 
-The manuscript's two work measures share one unit: `d_i` is charged whenever
-the neighborhood of vertex `i` is scanned. APPR work is
-`W = sum_t d_{u_t}` over pushes; the proximal-gradient measure is
+The manuscript's work measures share one unit: `d_i` is charged whenever the
+neighborhood of vertex `i` is scanned. APPR, thresholded coordinate ISTA, and
+CF-Push use `W = sum_t d_{u_t}` over coordinate pushes. The full-batch
+proximal-gradient measure is
 `Work(N) = sum_k [vol(supp(y_k)) + vol(supp(x_{k+1}))]`. They differ in which
 coordinates a single iteration scans, not in the unit, so edge-operation
-counts are comparable across the two without conversion.
+counts are comparable without a unit conversion. Their stopping tolerances
+remain distinct.
 
 ## Invariants
 

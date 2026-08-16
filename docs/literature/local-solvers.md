@@ -19,6 +19,45 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 ## Source annotations
 
+## Citation key: `fountoulakis2019variational`
+
+- Citation: Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang
+  Cheng, and Michael W. Mahoney. “Variational Perspective on Local Graph
+  Clustering.” *Mathematical Programming*, 174(1-2):553-573, 2019.
+- DOI/URL: <https://doi.org/10.1007/s10107-017-1214-8>.
+- Local PDF:
+  `papers/2019-mp-fountoulakis-variational-perspective-local-graph-clustering.pdf`.
+- Relevance: This paper introduces the local ISTA formulation used by the
+  active manuscript's RPPR tightness analysis. It supplies the monotone
+  zero-start invariants, support-volume bound, relative gradient stopping
+  rule, and published batch-work upper bound.
+- Exact pointers:
+  - PDF pages 8-10, Section 4 and equations (8)-(10): define the regularized
+    PageRank objective and its KKT conditions.
+  - PDF pages 11-13, Algorithm 3, Algorithm 4, and Theorem 1: identify the
+    local active-set procedure with ISTA and prove nonnegativity, monotonicity,
+    gradient signs, and support containment.
+  - PDF page 14, Theorem 2: prove `vol(S*) <= ||s||_1 / rho`.
+  - PDF pages 15-17, equation (17) and Theorem 3: define restricted curvature
+    and state the iteration and work bounds under the relative gradient
+    stopping rule.
+  - PDF page 18: compare the source stopping rule with APPR's threshold.
+- Formulation differences: The source uses its own PageRank normalization and
+  writes the relative accuracy with an undifferentiated epsilon. The active
+  manuscript maps the objective to the shared source-aligned RPPR notation,
+  renames the relative accuracy `delta`, and does not identify it with
+  `eps_appr`, `eps_ppr`, `eps_obj`, or `eps_pg`.
+- Use in this repository: `manuscript/sections/rppr_ista_tightness.tex`
+  sharpens the full-batch analysis, proves matching star and direct-sum lower
+  bounds, and introduces residual-thresholded coordinate ISTA. For fixed
+  `delta`, both the coordinate method and its coordinate-to-batch hybrid have
+  ordering-independent worst-case work `Theta(1 / (alpha * rho))`; this is an
+  algorithm-specific result, not a lower bound for every local RPPR solver.
+- Open questions: Determine the optimal dependence on nonconstant `delta` for
+  a purely coordinate-local cleanup, construct or rule out a connected
+  single-seed instance forcing the batch `log(1 / rho)`, and reconcile the
+  relative KKT certificate with the eventual repository-wide residual.
+
 ## Citation key: `huang2025accelerated`
 
 - Citation: Binbin Huang, Luo Luo, Yanghua Xiao, Deqing Yang, and Baojian
@@ -329,7 +368,8 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   solver primarily targets a numerical solution under a prescribed residual
   tolerance, so cut quality and volume guarantees are downstream rather than
   its sole correctness criteria.
-- Open questions: Align the paper's row-vector, lazy-walk, and teleportation
-  conventions with the implementation, reproduce the push invariant exactly,
-  and compare PageRank-Nibble's volume-indexed work bound with the hybrid
-  solver's residual-driven stopping and edge-operation accounting.
+- Open questions: Compare PageRank-Nibble's volume-indexed work bound with the
+  hybrid solver's residual-driven stopping and edge-operation accounting. The
+  row/column translation, push invariant, implementation cross-check, and
+  ordering-independent tight work bound are now complete in the active
+  manuscript.

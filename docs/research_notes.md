@@ -12,6 +12,202 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-16: finite-propagation CG and evolving principal systems
+
+Recorded as the standalone note
+`manuscript/notes/evolving_support_cg/`, with executable prototypes in
+`src/hybrid_solver_codex/evolving_cg.py`.
+
+Closed statements:
+
+- exact ordinary CG from a seed-supported right-hand side has one-hop finite
+  propagation; its cumulative direction envelope is a valid locally evolving
+  set sequence, while each matrix product scans only the current direction;
+- the resulting graph work through iteration `K` is bounded by the sum of
+  the degree volumes of the visited seed balls, without changing the CG
+  recurrence or its `1 / sqrt(alpha)` spectral iteration scale;
+- the note-scoped degree-infinity residual certificate implies the matching
+  degree-scaled solution-error guarantee;
+- masking or thresholding a live direction destroys conjugacy on a
+  three-coordinate path, whereas full reorthogonalization remains spatially
+  confined but becomes dense in the accumulated support;
+- exact principal-subsystem solutions are nonnegative, grow coordinatewise
+  under support expansion, and expose nonnegative residual only on the
+  boundary, giving a correct restarted evolving-set scaffold.
+
+Measured boundary:
+
+- frontier-sparse exact CG certified all five synthetic graph families;
+- restart-after-every-boundary-expansion cost `1.6` to `23.4` times more
+  graph work, so that literal policy is refuted as the primary solver;
+- fast-growth graphs still make exact CG global quickly. A graph-uniform
+  accelerated local theorem therefore needs either a ball-confinement lemma
+  or a stable-envelope discovery rule with amortized restarts.
+
+## 2026-08-15: alpha-scaled exact rungs and delayed reflection debt
+
+Recorded as the standalone note
+`manuscript/notes/delayed_reflection_ladder/`.  The note turns the measured
+alternating exact-rung R-LSOR mechanism into a proof program and audits it
+against the active long-spider obstruction.
+
+Closed statements:
+
+- with `lambda = (1 - sqrt(alpha)) / (1 + sqrt(alpha))`, optimal SOR has
+  `omega_star = 1 + lambda^2` and leaves signed self-reflection
+  `-lambda^2 * r_u`;
+- an immediate over-relaxed push followed by an exact push is exactly one
+  unit-relaxation push, so delay is mathematically load-bearing;
+- current-rung no-self-reactivation requires
+  `b <= lambda^(-2)`, and missing the next rung requires
+  `b <= lambda^(-1)`;
+- both admissible bases are `1 + Theta(sqrt(alpha))`, giving
+  `Theta(log(R) / sqrt(alpha))` rungs over dynamic range `R`;
+- every fixed base `b > 1`, including two and three, eventually violates the
+  optimal-SOR no-self-reactivation window as `alpha -> 0`;
+- exact unit-relaxation cleanup contracts degree-weighted absolute residual
+  mass from arbitrary signed states;
+- a fresh/debt residual split preserves `r = b - Qx` exactly while allowing
+  self-reflection to be delayed;
+- on a spider arm, the neighbor-generated backward packet has magnitude
+  `lambda * |r_u|`, larger than the self-debt `lambda^2 * |r_u|`, so delaying
+  self-reflection alone cannot remove the triangular traversal.
+
+Conditional target:
+
+- if a causal spreading/exact-cleanup pair costs `O(V_loc)` work and reduces
+  the live threshold by an admissible alpha-scaled factor, the total is
+  `O(V_loc * log(R) / sqrt(alpha))`; this yields the intended accelerated
+  scale under an `O(1 / eps_ppr)` PPR volume bound or the proved safe RPPR
+  `O(1 / rho)` support bound.
+
+Open item:
+
+- the exact-debt half of causal pair locality is now closed: a restricted
+  block correction zeros all residual in a discovered region; leaf
+  elimination computes the correction and boundary residual in `O(vol(S))`
+  work on forests, while a width-`w` elimination order costs
+  `O((w + 1)^2 vol(S))`;
+- exact block cleanup erases all SOR relaxation and scheduling history within
+  a fixed region, returning the unique restricted Dirichlet point; therefore
+  the only possible accelerated role of the ladder is online region discovery;
+- given the exact RPPR support, a shifted Dirichlet solve plus boundary KKT
+  check returns the RPPR optimum and an unregularized residual certificate;
+  on a forest support with a single seed its cost is `O(1 / rho)`;
+- RPPR support components must contain seed coordinates, so single-seed
+  support is connected and boundary expansion is complete;
+- on an endpoint path, a forward Schur recurrence discovers the exact RPPR
+  boundary at the first nonpositive transformed demand; one reverse pass
+  solves the support in `O(1 + vol(S*))` work;
+- arm symmetry reduces the lower-bound path-bundle spider to the same radial
+  recurrence, giving `Theta(1 / rho)` actual scan work on that instance;
+- therefore the existing `Omega(1 / (rho sqrt(alpha)))` persistent-support
+  product is oracle-specific rather than universal: it charges all resident
+  volume at every exposure round, whereas directed Schur messages scan only
+  the frontier and then back-substitute once;
+- on a rooted tree, every child subtree response as a function of its parent
+  value is continuous, monotone, and piecewise affine with nested supports;
+  it is zero exactly below the one-edge threshold
+  `alpha * rho * sqrt(d_child) / (-Q_parent,child)` and has at most one new
+  affine piece per activated subtree vertex;
+- the exact tree recursion sums child responses into a strictly increasing
+  inverse map `H_u`; its slope is the local Schur complement divided by the
+  parent coupling and is at least `alpha / (-Q_parent,child)`, so child
+  breakpoints are merged and monotonically transformed without combinatorial
+  proliferation;
+- explicit bottom-up materialization of these response lists gives an exact
+  `O(n^2 log(1 + max_degree))` solver on every finite tree, with no exponential
+  active-set enumeration;
+- lazy response iterators request only realized activation events, scan an
+  active vertex's adjacency once, and never inspect descendants of an inactive
+  boundary vertex;
+- Chebyshev approximation of `Q^(-1)` gives exponential graph-distance decay
+  with ratio `(1 - sqrt(alpha)) / (1 + sqrt(alpha))`; on every graph, the
+  exact support radius is
+  `O(1 + log(1 / (alpha rho)) / sqrt(alpha))`;
+- charging each realized activation through its active ancestors proves an
+  exact, support-oracle-free
+  `O~(1 / (rho sqrt(alpha)))` degree-work solver on every finite tree, with
+  `O(vol(S*))` storage;
+- fixing the root value on an arbitrary graph gives one scalar
+  piecewise-affine obstacle homotopy with nested supports and at most one
+  activation event per nonseed vertex; cyclicity therefore does not obstruct
+  exact support discovery;
+- an exact block-inverse identity shows that one activation updates every
+  remaining slack by one nonpositive Schur-complement column times the new
+  coordinate; the unresolved event data structure is therefore a kinetic
+  minimum under successive signed low-rank updates, not a correctness issue;
+- for block-incidence graphs with biconnected blocks of size at most `q`, lazy
+  block responses give an exact, condition-free
+  `O~(q^3 / (rho sqrt(alpha)))` solver;
+- on a single-seed cycle, reflection symmetry reduces the whole biconnected
+  core to a radial tridiagonal Stieltjes system; one forward Schur recurrence
+  and one reverse solve discover and return the exact solution in
+  `O(1 + vol(S*))` work;
+- the supplied-support assumption is removable on arbitrary graphs: exact
+  boundary-violation batches admit only true RPPR-support vertices, terminate
+  at the exact optimum in at most `|S*|` batches, cost
+  `O(1 / rho^2)` with fresh forest elimination, and cost
+  `O((w + 1)^2 / rho^2)` with supplied width-`w` intermediate orderings;
+- retaining the realized nonempty-batch count `J` sharpens the latter bound to
+  `O((w + 1)^2 (J + 1) vol(S*))`; if at most `chi_*` support vertices occupy
+  each root-distance shell, then `J + 1 <= chi_* (R_* + 1)` and the
+  graph-universal radius lemma gives
+  `O~((w + 1)^2 chi_* / (rho sqrt(alpha)))`;
+- this radial-width result closes arbitrarily long cycles and fixed-width
+  cyclic strips without assuming bounded biconnected blocks; the direct cycle
+  recurrence is stronger and output-linear;
+- this condition-free bound already meets `O(1 / (rho sqrt(alpha)))` for
+  `rho >= sqrt(alpha)`; the lazy-response theorem closes the fine regime on
+  trees as well;
+- on the alpha-scaled path `rho[k + 1] = lambda^s rho[k]`, the supplied-
+  support exact-rung volume ledger is geometric and costs
+  `O((w + 1)^2 / (rho_final sqrt(alpha)))`, without an extra dynamic-range
+  logarithm;
+- the remaining open structural item is compressed event maintenance, or a
+  universal batch-count argument, inside a large biconnected core with
+  neither bounded articulation blocks nor thin radial support.  Exact support
+  discovery, cycles, fixed-width strips, and bounded-size cyclic blocks are
+  closed.
+
+## 2026-08-14: active lower-bound ledger and first tight local hybrid
+
+The active manuscript now separates six algorithm-specific statements under
+their native accuracy conventions.
+
+Closed statements:
+
+- the classical APPR proof was rechecked against Andersen, Chung, and Lang
+  (2007), Definition 3.3, Lemma 3.4, Algorithm 1, and Theorem 3.2. The lazy
+  update, column-vector invariant, mass identity, ordering-independent star
+  lower bound, and RPPR bridge are correct;
+- a new numerical regression test solves the PageRank and RPPR systems
+  directly and verifies `p + pr(r) = pi` for every implemented active ordering;
+- full-batch RPPR ISTA retains its previously proved tight general-seed work
+  `Theta((1 + log(1 / (delta * rho))) / (alpha * rho))`;
+- residual-thresholded coordinate ISTA has a new ordering-independent star
+  lower bound `Omega(1 / (alpha * rho))`. Together with its existing potential
+  upper bound, this proves exact worst-case work
+  `Theta_delta(1 / (alpha * rho))` for every fixed relative accuracy `delta`;
+- the coordinate-to-batch coarse-to-fine hybrid inherits the same lower bound
+  from its first phase and therefore has the same exact fixed-accuracy
+  worst-case order. This is the first active-manuscript hybrid with matching
+  upper and lower work bounds;
+- the coarse forward-push star proof was strengthened from a scheduled-cycle
+  argument to an ordering-independent flow proof, giving an explicit matching
+  lower bound for Phase I;
+- the full fixed-relaxation FIFO CF-Push hybrid still has only the spider lower
+  bound `Omega(1 / (alpha * eps_ppr))` and the weaker energy upper bound. Its
+  exact worst-case order remains open.
+
+Scope boundary:
+
+- these statements do not identify `eps_appr`, `rho`, `delta`, and `eps_ppr`;
+- tightness is for the stated algorithms and work models, not for every local
+  graph oracle;
+- the graph-uniform accelerated `O_tilde(1 / (rho * sqrt(alpha)))` target
+  remains open and the AESP--LOCSOR publication gate is unchanged.
+
 ## 2026-08-12: ASPR 2023 correctness and path tightness audit
 
 Recorded as a standalone note in `manuscript/notes/aspr23_bound_audit/`.
@@ -37,7 +233,20 @@ Closed statements:
   `Omega(|S*|^3 log |S*|)` ASPR work versus
   `O(|S*|^2 log |S*|)` FISTA work at the same tolerance, while the 2026
   leaf-star lower bound gives the opposite separation when FISTA activates a
-  high-degree center.
+  high-degree center;
+- the post-COLT official Julia repository generally plots default ASPR faster
+  than its FISTA and ISTA baselines, with CASPR fastest, so those plots are not
+  evidence that default ASPR is empirically slow;
+- in official commit `3a169eb`, the periodic boundary-gradient option deletes
+  the active-to-boundary cross block before evaluation. Its early-discovery
+  flag is therefore inert on RPPR and the periodic variants only add work;
+- the same implementation's in-place retraction fails to clip entries in
+  `(0, delta)`, and the baseline support filter performs an `O(n)` complement
+  allocation outside the stated local work model;
+- a corrected early-discovery method still needs one successful event per path
+  layer and `Omega(|S*|^2)` work under fresh-prefix scans, although the current
+  proof does not retain the per-stage `1 / sqrt(alpha)` inner lower bound for
+  that variant.
 
 Scope boundary:
 
@@ -68,6 +277,34 @@ Closed statements:
 - thresholded sequential updates have work at most
   `C_t(z_0) / (tau_cd * eps_in)` and give an explicit objective-gap inner
   oracle; for `kappa_A = 1 - 2 * alpha`, `tau_cd = 2/3`;
+- consequently, composite AESP can use this oracle from its signed
+  extrapolated centers, with cumulative inner work at most
+  `3 / (4 * (1 - alpha)) * sum_t C_t(y_(t-1))^2 / phi_t`;
+- the raw absolute-gap functional cannot be controlled pointwise by outer
+  objective error: minimum KKT mass is discontinuous when a nonzero coordinate
+  approaches an `l1` kink;
+- the standard composite Catalyst proximal warm start smooths this
+  discontinuity, and greedy normalized-KKT coordinate selection contracts
+  mass exponentially in degree work on a fixed envelope of volume `V`;
+- with Catalyst's relative criterion C2, every inner stage costs
+  `O_tilde(V)`, so a certified envelope gives total
+  `O_tilde(V / sqrt(alpha))`; an optimal-support oracle specializes this to
+  `O_tilde(1 / (rho * sqrt(alpha)))`;
+- the actual full-graph heap implementation needs no support oracle and has
+  trajectory-dependent work
+  `O_tilde(V_exp_max / sqrt(alpha))`, where `V_exp_max` is the largest degree
+  volume explored by one stage; every newly nonzero KKT key is locally exposed
+  by a touched coordinate or one of its neighbors;
+- if a proximal center is a certified lower solution, Stieltjes comparison
+  traps its exact shifted minimizer, proximal warm start, and every greedy
+  coordinate iterate below the RPPR optimum; no KKT key outside the optimal
+  support activates, so that entire safe-centered call costs
+  `O_tilde(1 / rho)` without a support oracle;
+- any signed finite-support trial point can be converted locally into a lower
+  certificate by subtracting its maximum normalized negative one-sided
+  residual and clipping at zero; this makes the safe-center result directly
+  applicable to accelerated trial points, but does not itself prove that
+  repeated retraction preserves acceleration;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
@@ -76,9 +313,12 @@ Scope boundary:
 - the diagnostic remains note-scoped and is not identified with the source
   proximal fixed-point residual or a repository stopping rule;
 - the result closes the composite inner-locality conjecture but not the
-  graph-uniform accelerated theorem: Catalyst extrapolation can be signed, and
-  the cumulative initial KKT masses of the shifted subproblems remain
-  uncontrolled.
+  oracle-free graph-uniform accelerated theorem: start-mass interaction is now
+  closed both on a fixed certified envelope and in terms of realized explored
+  volume; safe lower centers also enforce `V_exp_max <= 1 / rho` for each
+  inner call. What remains open is an accelerated outer continuation whose
+  centers retain this order safety, or an amortized safeguard that corrects
+  unsafe extrapolated centers without repeated acceleration restarts.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 

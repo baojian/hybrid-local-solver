@@ -19,9 +19,25 @@ minimum-norm KKT mass contracts under every exact proximal coordinate update,
 including sign changes and zero-coordinate clipping, and the KKT diagnostic
 certifies degree-normalized solution error.  These statements give a rigorous
 local inner oracle for composite AESP.  They do not bound the KKT mass of an
-arbitrary extrapolated Catalyst center, so a graph-uniform accelerated
-end-to-end work theorem remains open.  Nothing here changes the
-repository-wide residual decision.
+arbitrary extrapolated Catalyst center.  A relative-accuracy continuation
+below proves that, on any fixed certified envelope of degree volume $V$, the
+inner work is only $\softO(V)$ per outer stage and hence
+$\softO(V/\sqrt\alpha)$ overall.  Taking the envelope to be the optimal RPPR
+support gives $V\leq1/\rho$; discovering such an envelope locally without an
+oracle remains open.  The same heap implementation does, however, admit an
+oracle-free bound in terms of the maximum volume it actually explores; this
+reduces the remaining universal question to controlling that explored volume.
+For any certified lower center, a comparison argument controls it
+automatically: the full inner trajectory stays in the optimal RPPR support
+and costs $\softO(1/\rho)$.  The unresolved step is therefore strictly outer:
+retaining accelerated continuation while the centers are kept order-safe.  A
+safeguarded extrapolation analyzed below makes the iterates and their supports
+monotone and, crucially, makes the cumulative KKT start mass telescope with no
+$1/\alpha$ loss.  Its only remaining defect is an explicit positive momentum
+correction whose cumulative degree-weighted mass is at most one.  Proving that
+this correction is harmless in the accelerated outer potential is the final
+lemma, rather than another inner-locality question.
+Nothing here changes the repository-wide residual decision.
 
 \section{Problem formulation}
 
@@ -409,6 +425,733 @@ $\mu_t=1-\alpha$ and $\tau_{\mathrm{cd}}=2/3$.  Thus
  \label{eq:aesp-cd-specialized-work}
 \end{equation}
 
+\begin{corollary}[Composite AESP plug-in]
+\label{cor:aesp-cd-plugin}
+Suppose a composite AESP outer loop accepts its stage-$t$ inner output when
+\begin{equation*}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)\leq\varphi_t
+\end{equation*}
+and initializes the inner solve at $z_t^{(0)}=y^{(t-1)}$.  If
+$C_t(y^{(t-1)})=0$, the initial point is already optimal.  Otherwise,
+thresholded exact coordinate descent with
+\begin{equation*}
+ \varepsilon_{\mathrm{in},t}
+ =\frac{2(1-\alpha)\varphi_t}{C_t(y^{(t-1)})}
+\end{equation*}
+satisfies every such inner-oracle condition, even when the extrapolated
+centers are signed.  Across any $T$ outer stages its total degree work obeys
+\begin{equation}
+ \mathcal W_{\mathrm{inner}}(T)
+ \leq\frac{3}{4(1-\alpha)}
+       \sum_{t=1}^T
+       \frac{C_t(y^{(t-1)})^2}{\varphi_t}.
+ \label{eq:aesp-cd-cumulative-interface}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Apply \cref{thm:aesp-cd-inner-work} independently at every stage and sum
+\cref{eq:aesp-cd-specialized-work}.  The signed-center claim follows because
+\cref{thm:aesp-cd-mass} made no sign assumption.
+\end{proof}
+
+\Cref{eq:aesp-cd-cumulative-interface} is the precise interface supplied to
+the outer acceleration proof.  It removes inner correctness and sign
+monotonicity from the open problem: a graph-uniform end-to-end theorem now
+requires a bound on the displayed cumulative start-mass functional, or an
+outer safeguard that bounds it while retaining accelerated convergence.
+
+\section{Outer-locality continuation: relative accuracy}
+\label{sec:aesp-cd-relative}
+
+The absolute-gap interface above is valid but too coarse to preserve the
+accelerated locality target.  This section first records the obstruction and
+then replaces the raw center by the standard composite Catalyst warm start.
+
+\begin{lemma}[The shift cancels at the raw center]
+\label{lem:aesp-cd-center-cancel}
+At every outer stage,
+\begin{equation}
+ \kappa_t(y^{(t-1)})=\kappa_\rho(y^{(t-1)}),
+ \qquad
+ C_t(y^{(t-1)})
+ =\norm{D^{1/2}\kappa_\rho(y^{(t-1)})}_1.
+ \label{eq:aesp-cd-center-cancel}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Substitution into \cref{eq:aesp-cd-inner-gradient} gives
+$\nabla f_t(y^{(t-1)})=Qy^{(t-1)}-b=\nabla f(y^{(t-1)})$.
+The coordinatewise minimum-magnitude subgradient choices are consequently
+identical.
+\end{proof}
+
+There is no dimension-free inequality that upper-bounds the right-hand side
+of \cref{eq:aesp-cd-center-cancel} by the current objective gap.  Indeed, for
+the one-dimensional Stieltjes objective
+\begin{equation*}
+ \Psi(w)=\frac{h}{2}w^2+\lambda\abs w,
+ \qquad h,\lambda>0,
+\end{equation*}
+the minimizer is zero, while for $w>0$,
+\begin{equation*}
+ \kappa_\Psi(w)=hw+\lambda,
+ \qquad
+ \frac{\abs{\kappa_\Psi(w)}^2}{\Psi(w)-\Psi(0)}
+ =\frac{(hw+\lambda)^2}{hw^2/2+\lambda w}
+ \longrightarrow\infty
+ \quad\text{as }w\downarrow0.
+\end{equation*}
+Thus a proof that merely combines a decaying outer objective gap with the raw
+KKT mass cannot close the cumulative bound.  The discontinuity is caused by
+a nonzero point approaching an $\ell_1$ kink; it is not a graph-volume issue.
+
+We next give the relative-accuracy repair.  Let $U\subseteq V$ be a fixed
+coordinate envelope, put
+\begin{equation*}
+ \mathcal V_U:=\vol(U),
+\end{equation*}
+and restrict every vector and objective to coordinates in $U$.  A matrix-vector
+product with $Q_{UU}$ is charged at most $\mathcal V_U$, since scanning the
+adjacency lists of $U$ also exposes every internal entry and cut edge.  Write
+\begin{equation}
+ L_{\mathrm A}:=1+\kappa_{\mathrm A}=2(1-\alpha),
+ \qquad
+ \chi_{\mathrm A}:=\frac{\alpha}{\alpha+\kappa_{\mathrm A}}
+               =\frac{\alpha}{1-\alpha},
+ \qquad
+ \delta_{\mathrm A}:=
+ \frac{\sqrt{\chi_{\mathrm A}}}{2-\sqrt{\chi_{\mathrm A}}}.
+ \label{eq:aesp-cd-relative-parameters}
+\end{equation}
+For a stage center $y\in\R^U$, let $p_U(y)$ minimize the restricted shifted
+objective $F_{\rho,t}^U$.  Define the composite proximal warm start
+\begin{equation}
+ u_U(y):=\prox_{g_{\rho,U}/L_{\mathrm A}}
+ \left(y-\frac{\nabla f_{t,U}(y)}{L_{\mathrm A}}\right).
+ \label{eq:aesp-cd-smoothed-start}
+\end{equation}
+
+\begin{lemma}[Smoothed start-mass bound]
+\label{lem:aesp-cd-smoothed-mass}
+The restricted minimum KKT mass at \cref{eq:aesp-cd-smoothed-start} satisfies
+\begin{equation}
+ C_{t,U}(u_U(y))
+ \leq 2(1-\alpha)\sqrt{\mathcal V_U}
+       \norm{y-p_U(y)}_2.
+ \label{eq:aesp-cd-smoothed-mass}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $u=u_U(y)$ and $H_U=Q_{UU}+\kappa_{\mathrm A}I_U$.  Proximal
+optimality supplies a subgradient for which the shifted KKT vector at $u$ is
+\begin{equation*}
+ (L_{\mathrm A}I_U-H_U)(y-u)=(I_U-Q_{UU})(y-u).
+\end{equation*}
+The minimum KKT vector can only have smaller coordinate magnitudes.  The
+matrix $I-Q$ is entrywise nonnegative and, with
+$v=D^{1/2}\one$, satisfies $(I-Q)v=(1-\alpha)v$.  Restriction to $U$ can
+only decrease its weighted column sums, so
+\begin{equation*}
+ C_{t,U}(u)
+ \leq(1-\alpha)\norm{D_U^{1/2}(y-u)}_1
+ \leq(1-\alpha)\sqrt{\mathcal V_U}\norm{y-u}_2.
+\end{equation*}
+The forward map in \cref{eq:aesp-cd-smoothed-start} is nonexpansive because
+$0\preceq I_U-H_U/L_{\mathrm A}\preceq I_U$, and the proximal map is
+nonexpansive.  Since $p_U(y)$ is a fixed point of their composition,
+$\norm{u-p_U(y)}_2\leq\norm{y-p_U(y)}_2$.  The triangle inequality now gives
+$\norm{y-u}_2\leq2\norm{y-p_U(y)}_2$.
+\end{proof}
+
+\begin{lemma}[Greedy KKT-mass contraction in degree work]
+\label{lem:aesp-cd-greedy-linear}
+Starting from any $z^{(0)}\in\R^U$, choose at each update
+\begin{equation*}
+ i_k\in\argmax_{i\in U}
+       \frac{\abs{\kappa_{t,U,i}(z^{(k)})}}{\sqrt{d_i}}.
+\end{equation*}
+If $W_K:=\sum_{k=0}^{K-1}d_{i_k}$, then
+\begin{equation}
+ C_{t,U}(z^{(K)})
+ \leq C_{t,U}(z^{(0)})
+       \exp\left(-\frac{\tau_{\mathrm{cd}}W_K}{\mathcal V_U}\right).
+ \label{eq:aesp-cd-greedy-linear}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The principal system satisfies
+$H_UD_U^{1/2}\one\geq\mu_tD_U^{1/2}\one$.  Hence
+\cref{thm:aesp-cd-stieltjes} gives at least the PageRank contraction
+$\tau_{\mathrm{cd}}=\mu_t/\ell$.  Moreover,
+\begin{equation*}
+ \max_{i\in U}
+ \frac{\abs{\kappa_{t,U,i}(z)}}{\sqrt{d_i}}
+ \geq\frac{C_{t,U}(z)}{\mathcal V_U}.
+\end{equation*}
+The chosen update therefore gives
+\begin{equation*}
+ C_{t,U}(z^+)
+ \leq C_{t,U}(z)
+       \left(1-\frac{\tau_{\mathrm{cd}}d_i}{\mathcal V_U}\right)
+ \leq C_{t,U}(z)
+       \exp\left(-\frac{\tau_{\mathrm{cd}}d_i}{\mathcal V_U}\right).
+\end{equation*}
+Multiplication over the updates proves the claim.
+\end{proof}
+
+The greedy key can be maintained in a heap.  A coordinate update changes the
+smooth gradient, and hence the KKT key, only at the updated vertex and its
+neighbors.  Its data-structure overhead is therefore logarithmic per touched
+edge and is hidden by $\softO$; no repeated scan of all of $U$ is required.
+
+For the relative Catalyst condition at center $y$, require
+\begin{equation}
+ F_{\rho,t}^U(z)-F_{\rho,t}^{U,\star}
+ \leq\frac{\delta_{\mathrm A}\kappa_{\mathrm A}}2
+             \norm{z-y}_2^2.
+ \label{eq:aesp-cd-c2}
+\end{equation}
+The following theorem makes this condition locally certifiable and bounds
+its work.
+
+\begin{theorem}[Local relative-accuracy oracle]
+\label{thm:aesp-cd-relative-oracle}
+Initialize at $u_U(y)$ and run the greedy updates of
+\cref{lem:aesp-cd-greedy-linear} until
+\begin{equation}
+ C_{t,U}(z)^2
+ \leq\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t
+       \norm{z-y}_2^2.
+ \label{eq:aesp-cd-relative-stop}
+\end{equation}
+Then \cref{eq:aesp-cd-c2} holds.  Including the proximal warm start, the
+degree work of the stage is at most
+\begin{equation}
+ \mathcal V_U\left[
+ 2+\frac{1}{2\tau_{\mathrm{cd}}}
+ \log_+\left(
+  \frac{16(1-\alpha)^2\mathcal V_U}
+       {\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}
+ \right)\right].
+ \label{eq:aesp-cd-relative-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The strong-convexity subgradient bound gives, for every $z$,
+\begin{equation*}
+ F_{\rho,t}^U(z)-F_{\rho,t}^{U,\star}
+ \leq\frac{\norm{\kappa_{t,U}(z)}_2^2}{2\mu_t}
+ \leq\frac{C_{t,U}(z)^2}{2\mu_t}.
+\end{equation*}
+Thus \cref{eq:aesp-cd-relative-stop} implies
+\cref{eq:aesp-cd-c2}.
+
+Put $r=\norm{y-p_U(y)}_2$.  If $r=0$, the proximal warm start is already
+optimal.  Otherwise, it is sufficient to reduce the KKT mass until
+\begin{equation*}
+ C_{t,U}(z)^2
+ \leq\frac{\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}{4}r^2.
+\end{equation*}
+Indeed, the preceding gap bound and strong convexity then give
+$\norm{z-p_U(y)}_2\leq r/2$, so
+$\norm{z-y}_2\geq r/2$ and \cref{eq:aesp-cd-relative-stop} follows.
+By \cref{lem:aesp-cd-smoothed-mass}, the squared ratio between the initial
+mass and this sufficient target is at most
+\begin{equation*}
+ \frac{16(1-\alpha)^2\mathcal V_U}
+      {\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}.
+\end{equation*}
+Now apply \cref{eq:aesp-cd-greedy-linear}.  Crossing the target can overshoot
+the corresponding work budget by at most one coordinate cost, which is at
+most $\mathcal V_U$.  The proximal warm start costs another
+$\mathcal V_U$, yielding \cref{eq:aesp-cd-relative-work}.
+\end{proof}
+
+The fixed envelope in \cref{thm:aesp-cd-relative-oracle} is useful for a
+graph-uniform corollary, but it is not required to implement the method.  For
+a full-graph stage, let $E_t$ be the union of the supports of the center and
+proximal displacement, every coordinate whose KKT
+key becomes nonzero, and every coordinate updated before
+\cref{eq:aesp-cd-relative-stop} holds.  Put
+\begin{equation*}
+ \mathcal V_t^{\mathrm{exp}}:=\vol(E_t),
+ \qquad
+ \mathcal V_{\max}^{\mathrm{exp}}
+ :=\max_{1\leq t\leq T}\mathcal V_t^{\mathrm{exp}}.
+\end{equation*}
+
+\begin{theorem}[Oracle-free explored-volume bound]
+\label{thm:aesp-cd-explored-volume}
+Run full-graph strongly convex Catalyst with parameters
+\cref{eq:aesp-cd-relative-parameters}.  At every stage, compute the proximal
+warm start locally, maintain all nonzero normalized KKT keys in a heap, run
+the greedy coordinate updates, and stop by
+\cref{eq:aesp-cd-relative-stop}.  Then each inner output satisfies the full
+relative condition \cref{eq:aesp-cd-c2}, and the total degree work through
+$T$ stages is at most
+\begin{equation}
+ \sum_{t=1}^T \mathcal V_t^{\mathrm{exp}}
+ \left[
+  3+\frac{1}{2\tau_{\mathrm{cd}}}
+  \log_+\left(
+   \frac{16(1-\alpha)^2\mathcal V_t^{\mathrm{exp}}}
+        {\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}
+  \right)\right].
+ \label{eq:aesp-cd-explored-work}
+\end{equation}
+Consequently, reaching objective gap $\epsobj$ costs
+\begin{equation}
+ \softO\left(
+   \frac{\mathcal V_{\max}^{\mathrm{exp}}}{\sqrt\alpha}
+   \log\frac1{\epsobj}
+ \right).
+ \label{eq:aesp-cd-explored-rate}
+\end{equation}
+No support oracle or graph-wide scan is used in this trajectory-dependent
+statement.
+\end{theorem}
+
+\begin{proof}
+For a sparse $z$ and center $y$, a zero coordinate outside
+$\supp(z)\cup N(\supp(z))\cup\supp(y)\cup\supp(b)$ has zero smooth gradient
+and hence zero minimum KKT key.  Initially, the proximal displacement is
+found by scanning the center support and its incident edges; entries of the
+sparse source require only scalar accesses unless they enter the displacement.
+Thereafter an exact coordinate update changes KKT keys only at the
+updated coordinate and its neighbors.  Thus the heap contains every nonzero
+key and its maximum is the global maximum; newly exposed coordinates are
+discovered while scanning already charged incident edges.
+
+The proof of \cref{lem:aesp-cd-smoothed-mass} on the full graph uses
+Cauchy--Schwarz only on the support of the proximal displacement, whose
+volume is at most $\mathcal V_t^{\mathrm{exp}}$.  At every later update, the
+support of the KKT mass also has volume at most
+$\mathcal V_t^{\mathrm{exp}}$.  Hence the proofs of
+\cref{lem:aesp-cd-greedy-linear,thm:aesp-cd-relative-oracle} apply
+retrospectively with this explored volume.  Two local scans initialize the
+proximal point and its heap keys, and the last coordinate update may overshoot
+the mass budget by one coordinate cost; these give the constant three in
+\cref{eq:aesp-cd-explored-work}.
+
+Every stage satisfies the full relative Catalyst condition, so the outer
+rate used in \cref{cor:aesp-cd-certified-envelope} applies without
+restriction.  Bound every explored volume in
+\cref{eq:aesp-cd-explored-work} by
+$\mathcal V_{\max}^{\mathrm{exp}}$ and use the
+$\bigO(\alpha^{-1/2}\log(1/\epsobj))$ stage count.
+\end{proof}
+
+The explored-volume theorem becomes graph-uniform as soon as the outer center
+is an order-safe lower point.  This is the exact sense in which the solved
+inner-locality problem applies to the safe-envelope program.  Define the
+one-sided RPPR residual
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(x)
+ :=b-Qx-\alpha\rho D^{1/2}\one.
+\end{equation*}
+Call $\ell$ a \emph{lower certificate} if $\ell\geq0$ and
+\begin{equation}
+ \zeta_{\rho,i}^{\mathrm{low}}(\ell)\geq0
+ \qquad\text{for every }i\in\supp(\ell).
+ \label{eq:aesp-cd-lower-certificate}
+\end{equation}
+Here $[v]_-:=\max\{-v,0\}$ coordinatewise.
+
+\begin{lemma}[Local lower retraction]
+\label{lem:aesp-cd-lower-retraction}
+For any signed finite-support trial point $a$, put $A:=\supp(a)$,
+\begin{equation}
+ \Delta(a):=\frac1\alpha
+  \norm{D_A^{-1/2}
+    [\zeta_{\rho,A}^{\mathrm{low}}(a)]_-}_\infty,
+ \qquad
+ \mathcal L(a):=[a-\Delta(a)D^{1/2}\one]_+.
+ \label{eq:aesp-cd-lower-retraction}
+\end{equation}
+Then $\mathcal L(a)$ is a lower certificate and hence
+$0\leq\mathcal L(a)\leq x^\star(\rho)$.  Constructing it requires only the
+trial support and its incident edges.
+\end{lemma}
+
+\begin{proof}
+Write $w=D^{1/2}\one$, $\Delta=\Delta(a)$, and
+$\ell=\mathcal L(a)$.  If $\ell_i>0$, then $i\in A$,
+$\ell_i=a_i-\Delta w_i$, and $\ell_j\geq a_j-\Delta w_j$ for every $j$.
+The off-diagonal signs of $Q$ and $Qw=\alpha w$ give
+\begin{align*}
+ (Q\ell)_i
+ &\leq(Q(a-\Delta w))_i
+   =(Qa)_i-\alpha\Delta w_i,\\
+ \zeta_{\rho,i}^{\mathrm{low}}(\ell)
+ &\geq\zeta_{\rho,i}^{\mathrm{low}}(a)
+       +\alpha\Delta w_i\geq0.
+\end{align*}
+Thus \cref{eq:aesp-cd-lower-certificate} holds.  Stieltjes obstacle
+comparison with the RPPR KKT system gives the last claim.  Evaluating
+$\zeta_{\rho,A}^{\mathrm{low}}(a)$ scans only adjacency lists in $A$.
+\end{proof}
+
+\begin{theorem}[Safe-center inner locality]
+\label{thm:aesp-cd-safe-center}
+Let $\ell$ satisfy \cref{eq:aesp-cd-lower-certificate}, and let
+$S^\star(\rho):=\supp(x^\star(\rho))$.  Consider the full-graph shifted
+subproblem centered at $\ell$, and write $p(\ell)$ for its minimizer.  Then
+\begin{equation}
+ 0\leq\ell\leq p(\ell)\leq x^\star(\rho),
+ \qquad
+ \supp(p(\ell))\subseteq S^\star(\rho).
+ \label{eq:aesp-cd-safe-sandwich}
+\end{equation}
+Moreover, the proximal warm start and every subsequent greedy exact
+coordinate iterate satisfy the same sandwich with $p(\ell)$ in place of
+$x^\star(\rho)$.  No coordinate outside $S^\star(\rho)$ ever has a nonzero
+minimum KKT key.  Hence the full-graph heap implementation needs no support
+oracle and reaches the relative stopping rule using degree work at most
+\begin{equation}
+ \frac1\rho\left[
+ 2+\frac{1}{2\tau_{\mathrm{cd}}}
+ \log_+\left(
+  \frac{16(1-\alpha)^2}
+       {\rho\,\delta_{\mathrm A}\kappa_{\mathrm A}\mu_t}
+ \right)\right],
+ \label{eq:aesp-cd-safe-center-work}
+\end{equation}
+apart from constant-time accesses to the sparse source.
+\end{theorem}
+
+\begin{proof}
+On the nonnegative orthant, the RPPR objective is the obstacle quadratic with
+linear term $c_\rho:=b-\alpha\rho D^{1/2}\one$.  The standard Stieltjes
+comparison principle applied to
+\cref{eq:aesp-cd-lower-certificate} gives $\ell\leq x^\star(\rho)$.
+The shifted minimizer is nonnegative: replacing a vector by its coordinatewise
+absolute value cannot increase the Stieltjes quadratic, the weighted
+$\ell_1$ term, or its squared distance to $\ell\geq0$.
+
+Put $H:=Q+\kappa_{\mathrm A}I$ and
+$d:=c_\rho+\kappa_{\mathrm A}\ell$.  The shifted obstacle residual is
+$R(z):=d-Hz$, and
+$R(\ell)=\zeta_\rho^{\mathrm{low}}(\ell)$.  Thus $\ell$ is a subsolution on
+its positive coordinates.  Conversely, the RPPR KKT conditions and
+$x^\star(\rho)\geq\ell$ give
+\begin{equation*}
+ Hx^\star(\rho)-d
+ =Qx^\star(\rho)-c_\rho
+   +\kappa_{\mathrm A}(x^\star(\rho)-\ell)\geq0,
+\end{equation*}
+so $x^\star(\rho)$ is a supersolution of the shifted obstacle problem.
+Stieltjes comparison between the subsolution, its solution, and the
+supersolution proves \cref{eq:aesp-cd-safe-sandwich}.
+
+At a positive coordinate of $\ell$, the lower-certificate residual is
+nonnegative.  At a zero coordinate, $Q\ell-b\leq0$ because $Q$ has
+nonpositive off-diagonal entries and $b\geq0$.  The composite proximal warm
+start therefore has the explicit orthant form
+\begin{equation*}
+ u=\ell+\frac1{L_{\mathrm A}}
+       [\zeta_\rho^{\mathrm{low}}(\ell)]_+\geq\ell.
+\end{equation*}
+The forward--backward map is order preserving because
+$I-H/L_{\mathrm A}$ is entrywise nonnegative.  Since $p(\ell)$ is its fixed
+point, $u\leq p(\ell)$.  Furthermore, for every $i\in\supp(u)$,
+\begin{equation*}
+ R_i(u)
+ =\zeta_{\rho,i}^{\mathrm{low}}(\ell)
+  -\frac1{L_{\mathrm A}}
+    \sum_j H_{ij}[\zeta_{\rho,j}^{\mathrm{low}}(\ell)]_+
+ \geq0,
+\end{equation*}
+using $H_{ii}\leq L_{\mathrm A}$ and $H_{ij}\leq0$ for $i\neq j$.
+Thus $u$ is again a lower subsolution.
+
+From any lower subsolution $z\leq p(\ell)$, a nonzero minimum KKT key points
+in the increasing direction.  Its exact coordinate update increases that
+coordinate to the one-dimensional obstacle minimizer, preserves the lower
+subsolution inequalities, and remains below $p(\ell)$ by coordinatewise
+Stieltjes comparison.  Induction proves the claimed sandwich for the entire
+greedy trajectory.
+
+Finally take $i\notin S^\star(\rho)$.  Along this trajectory
+$z_i=p_i(\ell)=\ell_i=0$, and
+\begin{equation*}
+ R_i(z)-R_i(p(\ell))
+ =-\sum_{j\neq i}H_{ij}(z_j-p_j(\ell))\leq0.
+\end{equation*}
+Obstacle optimality gives $R_i(p(\ell))\leq0$, hence $R_i(z)\leq0$.
+The opposite signed $\ell_1$ direction cannot activate either, because at
+such a zero coordinate the smooth gradient is nonpositive.  Therefore its
+minimum KKT key is zero.  All displacement and update scans are confined to
+$S^\star(\rho)$.  Apply \cref{thm:aesp-cd-relative-oracle} retrospectively
+with $U=S^\star(\rho)$ and use
+$\vol(S^\star(\rho))\leq1/\rho$ to obtain
+\cref{eq:aesp-cd-safe-center-work}.
+\end{proof}
+
+\subsection{Safeguarded outer continuation and a telescoping start-mass ledger}
+
+The lower retraction can be combined with extrapolation without losing the
+safe support invariant.  The following exact construction isolates what this
+does, and does not, yet prove about acceleration.  For vectors, $a\vee b$
+denotes the componentwise maximum, and
+$\mathfrak m(a):=\norm{D^{1/2}a}_1$ when $a\geq0$.
+
+\begin{lemma}[Lattice closure of lower certificates]
+\label{lem:aesp-cd-lower-max}
+If $a$ and $c$ are lower certificates, then $a\vee c$ is a lower
+certificate and satisfies $a\vee c\leq x^\star(\rho)$.
+\end{lemma}
+
+\begin{proof}
+Put $q=a\vee c$.  If $q_i>0$, choose $h\in\{a,c\}$ with $q_i=h_i$.
+Since $q_j\geq h_j$ for every $j$ and $Q_{ij}\leq0$ for $i\neq j$,
+$(Qq)_i\leq(Qh)_i$.  Therefore
+$\zeta_{\rho,i}^{\mathrm{low}}(q)\geq
+\zeta_{\rho,i}^{\mathrm{low}}(h)\geq0$.  The comparison conclusion in
+\cref{lem:aesp-cd-lower-retraction} gives $q\leq x^\star(\rho)$.
+\end{proof}
+
+Initialize $x_{-1}=x_0=0$ and $\ell_{-1}=0$.  For $t\geq0$, define the
+exact safeguarded recurrence
+\begin{align}
+ d_t&:=x_t-x_{t-1},
+ &y_t&:=x_t+\beta_{\mathrm A}d_t,\notag\\
+ \ell_t&:=x_t\vee\mathcal L(y_t),
+ &x_{t+1}&:=p(\ell_t),
+ \label{eq:aesp-cd-safe-outer}
+\end{align}
+where $p(\ell_t)$ is the exact shifted minimizer from
+\cref{thm:aesp-cd-safe-center}.  Write
+\begin{equation}
+ r_t:=y_t-\ell_t,
+ \qquad
+ s_t:=x_t-\ell_{t-1} \quad(t\geq1),
+ \qquad s_0:=0.
+ \label{eq:aesp-cd-safe-defects}
+\end{equation}
+
+\begin{theorem}[Safe outer ledger]
+\label{thm:aesp-cd-safe-outer-ledger}
+The recurrence \cref{eq:aesp-cd-safe-outer} is graph-local and satisfies
+\begin{equation}
+ 0\leq x_{t-1}\leq\ell_{t-1}\leq x_t\leq\ell_t
+ \leq x_{t+1}\leq x^\star(\rho).
+ \label{eq:aesp-cd-safe-chain}
+\end{equation}
+Consequently every support in the recurrence is contained in
+$S^\star(\rho)$ and has volume at most $1/\rho$.
+
+More strongly, let $C_{t+1}(x_t)$ denote the minimum KKT mass at $x_t$ for
+the shifted subproblem centered at $\ell_t$.  Then
+\begin{equation}
+ C_{t+1}(x_t)
+ =\kappa_{\mathrm A}\mathfrak m(\ell_t-\ell_{t-1}),
+ \qquad t\geq1,
+ \label{eq:aesp-cd-safe-start-exact}
+\end{equation}
+while $C_1(x_0)\leq\alpha$.  Hence, for every $T\geq1$,
+\begin{equation}
+ \sum_{t=0}^T C_{t+1}(x_t)
+ \leq\alpha+\kappa_{\mathrm A}=1-\alpha,
+ \qquad
+ \sum_{t=0}^T C_{t+1}(x_t)^2\leq(1-\alpha)^2.
+ \label{eq:aesp-cd-safe-start-ledger}
+\end{equation}
+Thus the cumulative stage-start mass itself has no volume factor and no
+$1/\alpha$ penalty.
+
+Finally, if $\Delta_t:=\Delta(y_t)$ is the retraction magnitude in
+\cref{eq:aesp-cd-lower-retraction}, then
+\begin{align}
+ r_t
+ &=\min\{\beta_{\mathrm A}d_t,\Delta_tD^{1/2}\one\}
+ \quad\text{componentwise},
+ \label{eq:aesp-cd-safe-correction}\\
+ \sum_{t=0}^T \mathfrak m(r_t)&\leq\beta_{\mathrm A},
+ \label{eq:aesp-cd-safe-correction-ledger}\\
+ \alpha\Delta_t
+ &=\kappa_{\mathrm A}
+ \norm{D_{A_t}^{-1/2}
+ \bigl[\beta_{\mathrm A}s_{t-1}
+       -(1+\beta_{\mathrm A})s_t\bigr]_+}_\infty,
+ \qquad A_t:=\supp(x_t),\quad t\geq2.
+ \label{eq:aesp-cd-safe-collapse}
+\end{align}
+In particular, after the first extrapolation a correction can be triggered
+only where the current proximal displacement has fallen below
+$\beta_{\mathrm A}/(1+\beta_{\mathrm A})<1/2$ of the preceding one.
+\end{theorem}
+
+\begin{proof}
+For $t=0$, one has $x_{-1}=\ell_{-1}=x_0=\ell_0=0$, and
+\cref{thm:aesp-cd-safe-center} gives $0\leq x_1\leq x^\star(\rho)$.
+Now let $t\geq1$ and suppose inductively that $\ell_{t-1}$ is a lower
+certificate.  By
+\cref{thm:aesp-cd-safe-center},
+$\ell_{t-1}\leq x_t\leq x^\star(\rho)$.  On every positive coordinate of
+$x_t$, shifted optimality gives
+\begin{equation}
+ \zeta_{\rho,i}^{\mathrm{low}}(x_t)
+ =\kappa_{\mathrm A}(x_{t,i}-\ell_{t-1,i})\geq0.
+ \label{eq:aesp-cd-safe-prox-slack}
+\end{equation}
+Thus $x_t$ is a lower certificate.  Both $\mathcal L(y_t)$ and $x_t$ are
+lower certificates, so \cref{lem:aesp-cd-lower-max} proves the same statement
+for $\ell_t$.  A second application of
+\cref{thm:aesp-cd-safe-center} yields \cref{eq:aesp-cd-safe-chain}.
+The support-volume conclusion follows from
+$\vol(S^\star(\rho))\leq1/\rho$.  All operations used to construct
+$\mathcal L(y_t)$ scan only the current support and its incident edges, and
+the shifted solve is local by \cref{thm:aesp-cd-safe-center}.
+
+The formula for $\ell_t$ and $d_t\geq0$ give
+\begin{equation*}
+ \ell_t=x_t+
+ [\beta_{\mathrm A}d_t-\Delta_tD^{1/2}\one]_+.
+\end{equation*}
+In particular, $\supp(\ell_t)=\supp(x_t)$.  At a positive coordinate of
+$x_t$, subtracting the two shifted centers in
+\cref{eq:aesp-cd-safe-prox-slack} shows that the KKT vector for the next
+subproblem at $x_t$ is
+$\kappa_{\mathrm A}(\ell_{t-1}-\ell_t)$.  At a zero coordinate,
+$\ell_{t-1,i}=\ell_{t,i}=0$.  Shifted obstacle optimality gives
+$Qx_t-b+\alpha\rho D^{1/2}\one\geq0$ there, while the Stieltjes signs and
+$b\geq0$ give $Qx_t-b\leq0$; hence the signed $\ell_1$ KKT key is zero.
+This proves \cref{eq:aesp-cd-safe-start-exact} for $t\geq1$.  At the initial
+point the shift cancels and the seed normalization gives
+$C_1(x_0)=C_\rho(0)\leq\alpha$.
+
+The center increments are nonnegative and telescope.  Moreover
+$\mathfrak m(x^\star(\rho))\leq1$: multiplying its active KKT equations by
+$D^{1/2}\one$ and using
+$Q_{AA}D_A^{1/2}\one\geq\alpha D_A^{1/2}\one$ gives
+$\alpha\mathfrak m(x^\star(\rho))
+\leq(D_A^{1/2}\one)^Tb_A\leq\alpha$.
+It follows that
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(\ell_t-\ell_{t-1})
+ =\mathfrak m(\ell_T)\leq1.
+\end{equation*}
+Together with the initial mass bound, this proves the first inequality in
+\cref{eq:aesp-cd-safe-start-ledger}; the second follows from
+$\sum_t a_t^2\leq(\sum_t a_t)^2$ for $a_t\geq0$.
+
+Subtracting the displayed formula for $\ell_t$ from
+$y_t=x_t+\beta_{\mathrm A}d_t$ proves
+\cref{eq:aesp-cd-safe-correction}.  Therefore
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(r_t)
+ \leq\beta_{\mathrm A}\sum_{t=0}^T\mathfrak m(d_t)
+ =\beta_{\mathrm A}\mathfrak m(x_T)\leq\beta_{\mathrm A},
+\end{equation*}
+which is \cref{eq:aesp-cd-safe-correction-ledger}.
+
+It remains to identify when a correction occurs after the initial shifted
+solve.  Since the residual map is affine and the coefficients of $y_t$ sum
+to one,
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(y_t)
+ =(1+\beta_{\mathrm A})
+     \zeta_\rho^{\mathrm{low}}(x_t)
+  -\beta_{\mathrm A}
+     \zeta_\rho^{\mathrm{low}}(x_{t-1}).
+\end{equation*}
+On a coordinate positive in both iterates,
+\cref{eq:aesp-cd-safe-prox-slack} identifies the two residuals with
+$\kappa_{\mathrm A}s_t$ and $\kappa_{\mathrm A}s_{t-1}$.  If the coordinate
+is new at time $t\geq2$, shifted obstacle optimality at time $t-1$ gives a
+nonpositive old residual, so neither side of the corresponding negative-part
+identity is positive.  Hence, on $A_t$,
+\begin{equation*}
+ [\zeta_\rho^{\mathrm{low}}(y_t)]_-
+ =\kappa_{\mathrm A}
+   [\beta_{\mathrm A}s_{t-1}
+     -(1+\beta_{\mathrm A})s_t]_+.
+\end{equation*}
+Substitution in the definition of $\Delta_t$ proves
+\cref{eq:aesp-cd-safe-collapse} and the final claim.
+\end{proof}
+
+The theorem removes the cumulative start-mass obstruction in a stronger
+form than a per-stage volume estimate: the exact warm-start masses telescope
+over an arbitrarily long run.  It also suppresses the tree-wave mechanism,
+because supports cannot deactivate.  What it does not prove is that replacing
+the Catalyst center $y_t$ by $\ell_t=y_t-r_t$ preserves the classical
+accelerated estimate.  Exact shifted optimality can be written as
+\begin{equation}
+ 0\in\partial F_\rho(x_{t+1})
+   +\kappa_{\mathrm A}(x_{t+1}-y_t)
+   +\kappa_{\mathrm A}r_t.
+ \label{eq:aesp-cd-safe-perturbed-app}
+\end{equation}
+Thus the strictly outer problem is now the following precise amortization
+lemma: absorb the nonnegative perturbations in
+\cref{eq:aesp-cd-safe-perturbed-app}, using both the unit correction ledger
+\cref{eq:aesp-cd-safe-correction-ledger} and the sharp-collapse identity
+\cref{eq:aesp-cd-safe-collapse}, into a Catalyst potential contracting at
+$1-\Theta(\sqrt\alpha)$.  A generic additive-error bound is too coarse,
+because it discards the sign and the fact that every correction is paid by a
+monotone increment $d_t$.
+
+\begin{corollary}[Accelerated work on a certified envelope]
+\label{cor:aesp-cd-certified-envelope}
+Assume a fixed envelope $U$ contains the optimal RPPR support, so minimizing
+$F_\rho$ over $\R^U$ has the same solution and value as the full problem.
+Run strongly convex Catalyst on this restricted objective with
+\cref{eq:aesp-cd-relative-parameters} and use
+\cref{thm:aesp-cd-relative-oracle} at every stage.  To obtain
+$F_\rho(x^{(T)})-F_\rho(x^\star)\leq\epsobj$, it is sufficient to take
+\begin{equation*}
+ T\leq
+ \left\lceil\frac{2}{\sqrt{\chi_{\mathrm A}}}
+ \log\left(\frac{2(F_\rho(x^{(0)})-F_\rho(x^\star))}{\epsobj}\right)
+ \right\rceil.
+\end{equation*}
+The total degree work is consequently
+\begin{equation}
+ \softO\left(\frac{\mathcal V_U}{\sqrt\alpha}
+                  \log\frac1{\epsobj}\right).
+ \label{eq:aesp-cd-certified-envelope-work}
+\end{equation}
+If an oracle supplies $U=S^\star(\rho)$, then
+$\mathcal V_U\leq1/\rho$ and the bound becomes
+\begin{equation}
+ \softO\left(\frac1{\rho\sqrt\alpha}
+                  \log\frac1{\epsobj}\right).
+ \label{eq:aesp-cd-support-oracle-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Condition \cref{eq:aesp-cd-c2} is the relative Catalyst criterion of
+\citet{lin2018catalyst}.  With
+$\chi_{\mathrm A}=\alpha/(\alpha+\kappa_{\mathrm A})$ and
+$\delta_{\mathrm A}=\sqrt{\chi_{\mathrm A}}/(2-\sqrt{\chi_{\mathrm A}})$,
+the standard strongly convex Catalyst estimate is
+\begin{equation*}
+ F_\rho(x^{(T)})-F_\rho(x^\star)
+ \leq2\left(1-\frac{\sqrt{\chi_{\mathrm A}}}{2}\right)^T
+       (F_\rho(x^{(0)})-F_\rho(x^\star)).
+\end{equation*}
+Combine this estimate with \cref{eq:aesp-cd-relative-work}.  All factors
+other than $\mathcal V_U/\sqrt\alpha$ are logarithmic in the displayed
+parameters.  The last claim uses the RPPR support-volume theorem.
+\end{proof}
+
+This closes the start-mass and outer-rate interaction on every fixed certified
+envelope, while \cref{thm:aesp-cd-explored-volume} gives an oracle-free
+trajectory-dependent result.  It also explains why the absolute interface
+\cref{eq:aesp-cd-cumulative-interface} loses a power of the final tolerance:
+it uses a one-shot $C^2/\varphi$ estimate where the relative oracle instead
+uses geometric mass contraction.  The remaining graph-uniform algorithmic
+task is no longer to control signed KKT mass.  It is to prove that the
+automatically explored envelope has volume $\bigO(1/\rho)$, or to enforce
+such an envelope without restarting acceleration after every admission.
+
 \begin{corollary}[Zero-start RPPR coordinate descent]
 \label{cor:aesp-cd-zero-start}
 For the unshifted objective, $C_\rho(0)\leq\alpha$.  Coordinate descent from
@@ -443,15 +1186,27 @@ $\alpha$, $\rho$, $\epskkt$, $\epsin$, random seed, stopping formula, and code
 version.  It should report both $R_{\mathrm{kkt},\rho}(x)$ and the KKT-mass
 decrease diagnostics.
 
-\Cref{thm:aesp-cd-mass,thm:aesp-cd-inner-work} close the inner
-local-monotonicity and oracle-correctness tasks.  The remaining central task is
-outer locality.  The work in \cref{eq:aesp-cd-specialized-work} depends on the
-start mass $C_t(z_t^{(0)})$ of each shifted subproblem.  Catalyst extrapolation
-can be signed, and no graph-uniform bound on the cumulative start masses is
-proved here.  Therefore this note does not claim the target
-$\softO(1/(\rho\sqrt\alpha))$ end-to-end work.  A valid continuation must
-either control those extrapolated start masses, enforce a safe support
-envelope without destroying acceleration, or prove an alternative amortized
-outer-work bound.
+\Cref{thm:aesp-cd-mass,thm:aesp-cd-inner-work,cor:aesp-cd-plugin} close the
+inner local-monotonicity and oracle-correctness tasks.
+\Cref{thm:aesp-cd-relative-oracle,cor:aesp-cd-certified-envelope} additionally
+close the interaction between start mass and the accelerated outer rate on a
+fixed certified envelope.  For the implementable safeguarded continuation,
+\cref{thm:aesp-cd-safe-outer-ledger} now proves oracle-free envelope control,
+monotone support, and a dimension-free telescoping start-mass bound.  The
+remaining central task is strictly the outer perturbation estimate described
+after \cref{eq:aesp-cd-safe-perturbed-app}.  Therefore this note does not yet
+claim the target $\softO(1/(\rho\sqrt\alpha))$ for a fully implementable
+graph-uniform algorithm: it remains to prove that the signed, increment-paid
+corrections $r_t$ preserve a $1-\Theta(\sqrt\alpha)$ outer contraction.
+
+\begin{thebibliography}{9}
+
+\bibitem[Lin et al.(2018)Lin, Mairal, and Harchaoui]{lin2018catalyst}
+Hongzhou Lin, Julien Mairal, and Zaid Harchaoui.
+\newblock Catalyst acceleration for first-order convex optimization: From
+theory to practice.
+\newblock \emph{Journal of Machine Learning Research}, 18(212):1--54, 2018.
+
+\end{thebibliography}
 
 \end{document}

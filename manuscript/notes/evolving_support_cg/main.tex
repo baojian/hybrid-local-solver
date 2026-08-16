@@ -1,0 +1,581 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This note separates exact finite-propagation CG, invalid masked CG, exact
+% expanding-support conjugate directions, and restarted principal-system CG.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Conjugate Gradients as a Locally Evolving Set Process:\\
+Finite Propagation, the Masking Obstruction, and the Restart Tax}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Conjugate gradients (CG) is usually treated as a global baseline for local
+PageRank, yet its graph propagation from a seed-supported right-hand side is
+finite. For the shared symmetric PageRank matrix, the iterate, residual, and
+search direction after $k$ iterations are supported inside the $k$-hop seed
+ball. Exact CG can therefore be implemented as a locally evolving set process
+whose active envelope is the cumulative support of its search directions and
+whose actual matrix work scans only the current direction support. Its
+degree-weighted work is bounded by the sum of volumes of the visited balls.
+The usual $1/\sqrt\alpha$ CG iteration scale survives under this
+implementation. Orthogonality does not destroy spatial locality.
+
+The obstruction is threshold locality. Projecting a live search direction
+onto a changing residual-active set destroys $Q$-conjugacy even on a
+three-coordinate path. Full reorthogonalization repairs conjugacy but makes
+each new direction dense on the accumulated support, leading to the known
+quadratic-space and cubic-time conjugate-directions PageRank construction.
+Restarting CG after every support change is another correct repair. For the
+PageRank $M$-matrix, exact principal-subsystem solutions grow coordinatewise,
+and their residual is nonnegative and supported only on the boundary, so an
+evolving-set outer loop has a rigorous certificate. The missing ingredient is
+work: repeated principal solves can revisit every prefix.
+
+An instrumented prototype confirms the distinction. Exact frontier-sparse CG
+is certified on paths, stars, trees, spiders, and random regular graphs.
+Restart-after-every-expansion is between $1.6$ and $23.4$ times more expensive
+on the tested instances, with the largest penalties on a path and long
+spider. We therefore refute that literal restart policy as the primary
+solver. The promising research target is exact frontier-sparse CG as a new
+baseline and a guarded hybrid that calls restricted CG only after a monotone
+local phase has discovered a stable envelope. A graph-uniform
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ work theorem remains conditional on an
+explicit ball- or envelope-confinement lemma.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim status}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+This note studies the unregularized shared system $Qx=b$ on a finite simple
+undirected graph without isolated vertices. Define the verifier-owned
+residual
+\begin{equation}
+ r(x):=b-Qx.
+ \label{eq:residual}
+\end{equation}
+The note-scoped terminal certificate is
+\begin{equation}
+ \norm{D^{-1/2}r(x)}_\infty\leq\alpha\epsppr.
+ \label{eq:certificate}
+\end{equation}
+The accuracy $\epsppr$ in \cref{eq:certificate} is neither $\epsappr$ nor
+$\epsobj$, and it does not resolve the repository-wide residual decision.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statusproved & Exact ordinary CG from a seed-supported right-hand side has
+one-hop finite propagation and can be evaluated with degree work bounded by
+$\sum_k\vol(B_k)$ rather than one full-graph scan per iteration. \\
+\statusproved & The certificate in \cref{eq:certificate} implies
+$\norm{D^{-1/2}(x-x^0)}_\infty\leq\epsppr$. \\
+\statusrefuted & Thresholding or masking a live CG direction while retaining
+the standard short recurrence does not preserve conjugacy. \\
+\statussource & Full $Q$-orthogonalization on nested coordinate supports is
+the CDPR construction of \citet{martinezrubio2023accelerated}; its published
+cost is cubic time and quadratic space in the optimal support size. \\
+\statusproved & Exact principal-subsystem solutions are nonnegative,
+coordinatewise monotone under set expansion, and expose residual only on the
+current boundary. \\
+\statusempirical & Restarting CG after every boundary-driven expansion is
+certified but substantially more expensive than frontier-sparse CG on all
+five current synthetic cases. \\
+\statusconditional & A local accelerated work theorem follows from a bound on
+the volumes of all seed balls visited before the residual certificate, or
+from an envelope-discovery rule with a bounded number of restricted-CG
+restarts. Neither condition is graph-uniformly proved. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The locally evolving set framework requires only that the next active set be
+contained in the current set and its one-hop neighborhood
+\citep{zhou2024iterative}. It does not require the active set to be selected
+by residual threshold. This distinction permits exact CG to fit the framework
+without changing its recurrence.
+
+\section{Exact CG has finite graph propagation}
+\label{sec:finite-propagation}
+
+Let $C:=\supp(b)$ and recursively define closed seed balls
+\begin{equation}
+ B_0:=C,
+ \qquad
+ B_{k+1}:=B_k\cup\mathcal N(B_k).
+ \label{eq:balls}
+\end{equation}
+Starting from $x_0=0$, exact CG uses
+\begin{align}
+ r_0&=b, & p_0&=r_0,\nonumber\\
+ a_k&=\frac{\inner{r_k}{r_k}}{\inner{p_k}{Qp_k}},
+ &x_{k+1}&=x_k+a_kp_k,\nonumber\\
+ r_{k+1}&=r_k-a_kQp_k,
+ &p_{k+1}&=r_{k+1}
+  +\frac{\inner{r_{k+1}}{r_{k+1}}}{\inner{r_k}{r_k}}p_k.
+ \label{eq:cg}
+\end{align}
+These are the standard exact-arithmetic recurrences
+\citep{hestenes1952methods}.
+
+\begin{theorem}[Finite propagation]
+\label{thm:finite-propagation}
+For every $k\geq0$ before exact CG terminates,
+\begin{equation}
+ \supp(x_k)\subseteq B_{k-1},
+ \qquad
+ \supp(r_k)\subseteq B_k,
+ \qquad
+ \supp(p_k)\subseteq B_k,
+ \label{eq:support-inclusions}
+\end{equation}
+where $B_{-1}:=\emptyset$. Moreover,
+$\supp(Qp_k)\subseteq B_{k+1}$.
+\end{theorem}
+
+\begin{proof}
+The base case follows from $x_0=0$ and $r_0=p_0=b$. The matrix $Q$ has
+nonzeros only on the diagonal and graph edges, so applying $Q$ to a vector
+supported on $B_k$ produces a vector supported on $B_{k+1}$. If the
+inclusions hold at $k$, then $x_{k+1}$ is supported on $B_k$,
+$r_{k+1}$ on $B_{k+1}$, and $p_{k+1}$ on the union of $B_{k+1}$ and $B_k$,
+which is $B_{k+1}$. Induction proves the claim.
+\end{proof}
+
+\begin{corollary}[Locally evolving realization and work]
+\label{cor:local-cg-work}
+Define the cumulative direction envelope
+\begin{equation}
+ E_k:=\bigcup_{j=0}^k\supp(p_j).
+ \label{eq:cumulative-envelope}
+\end{equation}
+Then $E_{k+1}\subseteq E_k\cup\mathcal N(E_k)$, so $(E_k)$ is a locally
+evolving set sequence. Computing $Qp_k$ by scanning only adjacency lists of
+$S_k:=\supp(p_k)$ costs exactly $\vol(S_k)$ edge operations and at most
+$\vol(B_k)$. Through iteration $K$, exact frontier-sparse CG costs
+\begin{equation}
+ W_{\rm FCG}(K)
+ =\sum_{k=0}^{K-1}\vol(S_k)+\vol(\supp(x_K))
+ \leq\sum_{k=0}^{K}\vol(B_k),
+ \label{eq:frontier-work}
+\end{equation}
+where the final term recomputes the verifier-owned residual.
+\end{corollary}
+
+\begin{proof}
+Every coordinate newly entering $\supp(p_{k+1})$ must enter through
+$Qp_k$: the other terms in the recurrence are $r_k$ and $p_k$, whose supports
+are already contained in $E_k$. Since $Q$ couples only equal or adjacent
+vertices, the new coordinates lie in $\mathcal N(\supp(p_k))\subseteq
+\mathcal N(E_k)$. This proves the evolving-set inclusion.
+
+Only columns indexed by $S_k$ contribute to $Qp_k$, and each selected graph
+column costs its degree. The support inclusions in
+\cref{thm:finite-propagation} give the upper bound. The iterate support is
+contained in $B_{K-1}$, so the final residual recomputation is covered by the
+last ball term.
+\end{proof}
+
+\begin{remark}[The active set generally grows]
+The containment in \cref{thm:finite-propagation} is spatial locality, not a
+sparsity theorem for every direction. The recurrence adds a multiple of the
+previous direction, so $p_k$ is typically dense on much of $B_k$. Exact CG
+therefore revisits the explored ball, unlike a queue process that can forget
+inactive interior vertices.
+\end{remark}
+
+\section{Convergence and the residual certificate}
+\label{sec:certificate}
+
+The shared matrix is a nonsingular symmetric $M$-matrix and satisfies
+\begin{equation}
+ \alpha I\preceq Q\preceq I,
+ \qquad
+ Q\sqrt d=\alpha\sqrt d,
+ \label{eq:q-bounds}
+\end{equation}
+where $\sqrt d:=D^{1/2}\one$.
+
+\begin{lemma}[Degree-infinity residual certificate]
+\label{lem:certificate}
+Every $x\in\R^n$ satisfying \cref{eq:certificate} also satisfies
+\begin{equation}
+ \norm{D^{-1/2}(x-x^0)}_\infty\leq\epsppr.
+ \label{eq:error-certificate}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $c=(1-\alpha)/(1+\alpha)$. Then
+\begin{equation*}
+ Q^{-1}=\frac{2}{1+\alpha}\sum_{j=0}^\infty
+ c^j\left(D^{-1/2}AD^{-1/2}\right)^j\geq0
+\end{equation*}
+coordinatewise. Since $Q\sqrt d=\alpha\sqrt d$, it follows that
+$Q^{-1}\sqrt d=\alpha^{-1}\sqrt d$. With $e=x^0-x=Q^{-1}r(x)$,
+\begin{equation*}
+ |e|\leq Q^{-1}|r(x)|
+ \leq\alpha\epsppr Q^{-1}\sqrt d
+ =\epsppr\sqrt d.
+\end{equation*}
+Divide coordinatewise by $\sqrt d$.
+\end{proof}
+
+\begin{proposition}[A priori CG iteration scale]
+\label{prop:cg-rate}
+For $0<\alpha<1$, define
+\begin{equation}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+\end{equation}
+Exact CG satisfies
+\begin{equation}
+ \norm{x_k-x^0}_Q
+ \leq2\lambda_\alpha^k\norm{x_0-x^0}_Q.
+ \label{eq:cg-energy-rate}
+\end{equation}
+For a point seed $s=e_v$, it is sufficient for \cref{eq:certificate} that
+\begin{equation}
+ 2\lambda_\alpha^k\sqrt{\frac{\alpha}{d_v}}
+ \leq\alpha\epsppr\sqrt{d_{\min}},
+ \qquad d_{\min}:=\min_i d_i.
+ \label{eq:sufficient-k}
+\end{equation}
+Thus a sufficient iteration count is
+$O(\alpha^{-1/2}\log(1/(\epsppr\sqrt\alpha)))$.
+\end{proposition}
+
+\begin{proof}
+The standard CG energy bound uses
+$\kappa(Q)\leq1/\alpha$, giving \cref{eq:cg-energy-rate}. Moreover,
+\begin{equation*}
+ \norm{x^0}_Q^2=b^\top Q^{-1}b
+ \leq\frac{1}{\alpha}\norm{b}_2^2
+ =\frac{\alpha}{d_v}.
+\end{equation*}
+Because $Q^2\preceq Q$,
+$\norm{r_k}_2=\norm{Q(x^0-x_k)}_2\leq\norm{x^0-x_k}_Q$. Therefore
+\begin{equation*}
+ \norm{D^{-1/2}r_k}_\infty
+ \leq\frac{\norm{r_k}_2}{\sqrt{d_{\min}}},
+\end{equation*}
+and \cref{eq:sufficient-k} is sufficient. Finally,
+$-\log\lambda_\alpha=\Theta(\sqrt\alpha)$.
+\end{proof}
+
+\begin{corollary}[Conditional accelerated local work]
+\label{cor:conditional-work}
+If all balls through the sufficient iteration $K$ in
+\cref{prop:cg-rate} satisfy $\vol(B_k)\leq V_{\rm loc}$, then
+\begin{equation}
+ W_{\rm FCG}(K)
+ =\widetilde O\left(\frac{V_{\rm loc}}{\sqrt\alpha}\right).
+ \label{eq:conditional-work}
+\end{equation}
+If additionally $V_{\rm loc}=O(1/\epsppr)$, this has the desired
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ scale.
+\end{corollary}
+
+The second premise is strong. It constrains graph balls, whereas APPR-style
+locality constrains coordinates whose residual exceeds a threshold. A star
+or expander can make $B_k$ global before CG has certified the requested
+accuracy.
+
+\section{Why thresholded CG is not CG}
+\label{sec:masking}
+
+A direct attempted localization replaces $p_k$ by
+$P_{S_k}p_k$, where $S_k$ contains only residual-active coordinates, but
+retains the Fletcher--Reeves coefficient in \cref{eq:cg}. The following
+minimal example refutes that route.
+
+\begin{proposition}[Three-coordinate masking obstruction]
+\label{prop:masking-obstruction}
+Let
+\begin{equation}
+ H=\begin{bmatrix}
+ 2&-1&0\\
+ -1&2&-1\\
+ 0&-1&2
+ \end{bmatrix},
+ \qquad b=e_1.
+ \label{eq:three-path}
+\end{equation}
+After exact line minimization along $d_0=e_1$, the residual is
+$r_1=(0,1/2,0)^\top$. If the next direction is masked to the residual-active
+set $\{2\}$, then $d_1$ is proportional to $e_2$ and
+\begin{equation}
+ d_0^\top H d_1\neq0.
+\end{equation}
+Hence the masked directions are not $H$-conjugate.
+\end{proposition}
+
+\begin{proof}
+The first step length is
+$a_0=(e_1^\top e_1)/(e_1^\top He_1)=1/2$, giving the displayed residual.
+But $e_1^\top He_2=-1$. The unique correction within
+$\operatorname{span}\{e_1,e_2\}$ that is conjugate to $e_1$ is proportional to
+$e_2+\tfrac12e_1$, which reactivates the previous coordinate.
+\end{proof}
+
+\begin{remark}[A design trilemma]
+A support-changing conjugate method must give up at least one of the
+following without further structure:
+\begin{enumerate}[leftmargin=*]
+ \item exact conjugacy to all previous directions;
+ \item freely changing or shrinking active sets;
+ \item a short recurrence with local memory.
+\end{enumerate}
+Full reorthogonalization retains the first two at increasing storage cost.
+Restarting retains the second and third but discards conjugacy history.
+Flexible-CG theory similarly uses explicit orthogonalization or truncation
+when the underlying iteration varies \citep{notay2000flexible}.
+\end{remark}
+
+\section{Full orthogonalization preserves support but densifies it}
+\label{sec:full-orthogonalization}
+
+Suppose $U_0\subset U_1\subset\cdots$ are nested coordinate sets. At step
+$t$, select a coordinate vector $u_t$ supported on $U_t$ and define
+\begin{equation}
+ d_t=u_t-\sum_{j<t}
+ \frac{\inner{u_t}{Qd_j}}{\inner{d_j}{Qd_j}}d_j.
+ \label{eq:gram-schmidt}
+\end{equation}
+If every old $d_j$ is supported in $U_j$, then $d_t$ is supported in $U_t$.
+Thus $Q$-orthogonalization cannot create coordinates outside the accumulated
+set. It does, however, combine every previous direction and is generally
+dense within $U_t$.
+
+This is exactly the structural tradeoff exposed by CDPR
+\citep{martinezrubio2023accelerated}. CDPR adds one negative-gradient
+coordinate at a time, performs full $Q$-orthogonalization, and reaches the
+exact minimizer of a nonnegative $M$-matrix quadratic. Its published bounds
+are
+\begin{equation}
+ O\left(|S^\star|^3+|S^\star|\vol(S^\star)\right)
+ \quad\text{time},
+ \qquad
+ O(|S^\star|^2)
+ \quad\text{space}.
+ \label{eq:cdpr-cost}
+\end{equation}
+Consequently, full orthogonalization proves that exact spatial locality is
+possible, but it is not the preferred large-scale implementation.
+
+\section{Exact evolving principal systems}
+\label{sec:principal}
+
+Restarting CG after a support change avoids invalid masked recurrences. The
+outer set process has particularly clean geometry for PageRank.
+
+For a set $U\supseteq\supp(b)$, let $x^U$ be the zero-padded principal
+solution
+\begin{equation}
+ x^U_U:=Q_{UU}^{-1}b_U,
+ \qquad
+ x^U_{V\setminus U}:=0,
+ \label{eq:principal-solution}
+\end{equation}
+and let $r^U=b-Qx^U$.
+
+\begin{theorem}[Principal-solution locality and monotonicity]
+\label{thm:principal-geometry}
+For every $U\supseteq\supp(b)$:
+\begin{enumerate}[leftmargin=*]
+ \item $x^U\geq0$;
+ \item $r^U_U=0$, $r^U_{\operatorname{Ext}(U)}=0$, and
+       $r^U_{\partial U}\geq0$;
+ \item if $U\subseteq U'$, then $x^U\leq x^{U'}\leq x^0$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Every principal matrix $Q_{UU}$ is a nonsingular $M$-matrix, so
+$Q_{UU}^{-1}\geq0$ and $x^U_U\geq0$. The principal equation gives zero
+residual on $U$. A vertex in $\operatorname{Ext}(U)$ is neither a seed nor a
+neighbor of $U$, so its residual is zero. For $i\in\partial U$,
+\begin{equation*}
+ r^U_i=-Q_{iU}x^U_U\geq0
+\end{equation*}
+because the off-diagonal entries of $Q$ are nonpositive.
+
+Pad $x^U$ into $U'$. Its residual restricted to $U'$ is nonnegative by the
+same argument. Therefore
+\begin{equation*}
+ x^{U'}-x^U
+ =Q_{U'U'}^{-1}r^U_{U'}\geq0.
+\end{equation*}
+The comparison with $x^0$ is the special case $U'=V$.
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Exact evolving principal-system process}
+\label{alg:exact-restarted}
+\begin{algorithmic}[1]
+\STATE $U_0\gets\supp(b)$
+\FOR{$j=0,1,\ldots$}
+  \STATE compute $x^{U_j}$ from \cref{eq:principal-solution}
+  \STATE recompute $r^{U_j}=b-Qx^{U_j}$
+  \IF{$\norm{D^{-1/2}r^{U_j}}_\infty\leq\alpha\epsppr$}
+    \STATE return $x^{U_j}$
+  \ENDIF
+  \STATE $A_j\gets\{i\in\partial U_j:r^{U_j}_i>
+      \alpha\epsppr\sqrt{d_i}\}$
+  \STATE $U_{j+1}\gets U_j\cup A_j$
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\begin{corollary}[Certificate and finite termination]
+\label{cor:principal-termination}
+Algorithm~\ref{alg:exact-restarted} either returns a point satisfying
+\cref{eq:error-certificate}, or adds at least one vertex. It therefore
+terminates after at most $n-|\supp(b)|+1$ principal solves.
+\end{corollary}
+
+\begin{proof}
+By \cref{thm:principal-geometry}, every nonzero residual outside $U_j$ is on
+the boundary and is nonnegative. If $A_j$ is empty, the residual certificate
+holds; otherwise the set expands. Apply \cref{lem:certificate} at
+termination.
+\end{proof}
+
+In the executable prototype, each principal system is solved approximately
+by warm-started CG until its interior residual is at most one quarter of the
+final threshold. The full residual is then recomputed, all violating outside
+vertices are admitted in one batch, and CG is restarted. This is safe because
+no direction crosses a support change, but the exact monotonicity of
+\cref{thm:principal-geometry} is no longer asserted for intermediate CG
+iterates.
+
+Every $Q_{UU}$ has spectrum in $[\alpha,1]$, so an inner solve has the usual
+$1/\sqrt\alpha$ iteration scale. The unresolved cost is the sum over
+expanding supports:
+\begin{equation}
+ W_{\rm RCG}
+ =\sum_j\left[
+   \vol(\supp(x_j))
+   +\sum_{\ell=0}^{K_j-1}\vol(\supp(p_{j,\ell}))
+ \right].
+ \label{eq:restart-work}
+\end{equation}
+A path can expose only the next one or two boundary vertices, forcing many
+restarts and repeated prefix scans. Correctness alone does not amortize
+\cref{eq:restart-work}.
+
+\section{Executable evidence}
+\label{sec:evidence}
+
+The implementation in
+\texttt{src/hybrid\_solver\_codex/evolving\_cg.py} charges one unit for every
+adjacency-list entry scanned by a local $Q$ product. It recomputes the true
+residual before accepting either solver. The deterministic experiment
+\texttt{experiments/explore\_evolving\_cg.py} uses
+$\alpha=0.01$, $\epsppr=10^{-7}$, random seed $7$, and a sparse direct solve
+only for the reported error diagnostic.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Degree-weighted edge work in the synthetic exploration. These are
+empirical records, not theorem values.}
+\label{tab:synthetic-work}
+\begin{tabular}{lrrrrr}
+\toprule
+Graph & FCG work & FCG iters & RCG work & RCG inner & Restarts \\
+\midrule
+Path, $n=511$               & 12,164 & 77 & 278,090 & 1,608 & 76 \\
+Center star, $n=511$        &  2,550 &  2 &   4,080 &     3 &  1 \\
+Binary tree, $n=511$        &  3,538 &  9 &  23,562 &    45 &  8 \\
+Spider $8\times64$          & 34,816 & 65 & 815,040 & 1,317 & 64 \\
+Random $4$-regular, $n=512$ & 47,264 & 27 & 147,496 &   100 &  7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both methods certified \cref{eq:certificate} on every row. Frontier-sparse
+CG explored only $153$ vertices on the path but all vertices on the other
+four graphs. This directly supports three conclusions:
+\begin{enumerate}[leftmargin=*]
+ \item Orthogonality and spatial locality coexist on slow-growth graphs.
+ \item Fast graph growth can make exact CG global within a few iterations.
+ \item Restarting after every boundary expansion is not a competitive
+ standalone method: relative to FCG it costs $22.9$ times more work on the
+ path and $23.4$ times more on the long spider.
+\end{enumerate}
+
+The third conclusion is a refutation of a literal algorithm, not of every
+support-growing CG hybrid. The restart process remains useful as a safe
+correction mechanism and as a proof scaffold.
+
+\section{Recommended algorithmic direction}
+\label{sec:direction}
+
+The evidence supports two distinct next steps.
+
+\paragraph{Promote frontier-sparse CG to a measured baseline.}
+The current global CG baseline scans every graph vertex on every iteration.
+The exact sparse recurrence should instead maintain the supports of $p_k$ and
+$Qp_k$, charge \cref{eq:frontier-work}, and report ball growth. This change
+does not alter CG numerically; it corrects the access model.
+
+\paragraph{Use restricted CG only after envelope stabilization.}
+A competitive hybrid should not solve every one-hop principal system. A
+monotone local method should first discover a coarse envelope $U$ and a true
+boundary residual. Restricted CG can then refine on fixed $U$. If the
+boundary violates the final certificate, expand in a batch, restart, and
+fall back when the restart or volume budget is exceeded. The target is a
+small number of support changes, not one restart per graph layer.
+
+The corresponding proof obligations are:
+\begin{description}[style=nextline,leftmargin=3.4cm]
+ \item[Ball confinement for FCG.] Bound $\vol(B_K)$ through the certified CG
+ iteration $K$, or identify graph parameters under which this is possible.
+ \item[Envelope sufficiency.] Relate a coarse local residual or KKT margin to
+ the probability that restricted CG triggers another boundary expansion.
+ \item[Restart amortization.] Prove a graph- or trajectory-dependent bound on
+ $\sum_jK_j\vol(U_j)$ with significantly fewer than $|U|$ effective solves.
+ \item[Signed handoff.] If CG is used before a monotone local tail, prove that
+ the tail accepts its signed warm-start residual under the same final
+ certificate.
+ \item[Finite precision.] Recompute the residual periodically and restart on
+ loss of conjugacy; no recursively updated residual is accepted by the final
+ verifier.
+\end{description}
+
+\section{Conclusion}
+
+The initial concern that orthogonal directions eliminate locality is too
+strong. Exact CG is already a locally evolving graph process: its support has
+finite propagation, the cumulative direction envelope expands by at most one
+hop, its matrix products can be charged to the current direction volume, and
+it retains accelerated spectral convergence. What
+orthogonality eliminates is aggressive forgetting of the explored interior.
+Masking breaks conjugacy; full reorthogonalization stores dense history; and
+one-hop restart pays repeated-prefix work.
+
+The immediate deliverable is therefore frontier-sparse exact CG with honest
+local work accounting. The publishable hybrid target is more selective:
+discover a stable local envelope first, invoke restricted CG as a refinement,
+and use boundary verification plus a restart budget as the safeguard. This
+route is mathematically sound, empirically motivated, and has a sharply
+identified missing lemma rather than an unsupported graph-uniform claim.
+
+\bibliographystyle{plainnat}
+\bibliography{references,../../references}
+
+\end{document}

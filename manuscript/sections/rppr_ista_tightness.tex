@@ -959,6 +959,92 @@ violates the threshold, giving the remaining statement in
 \cref{eq:rppr-coordinate-certificate}.
 \end{proof}
 
+The preceding upper bound is worst-case tight for constant relative
+accuracy.  The proof uses the same center-star geometry as
+\cref{thm:rppr-center-star-lower}, but it does not assume that the coordinate
+queue preserves leaf symmetry.
+
+\begin{theorem}[Ordering-independent lower bound for coordinate ISTA]
+\label{thm:rppr-threshold-coordinate-lower}
+Fix
+\begin{equation}
+    0<\alpha\leq\frac14,
+    \qquad
+    0<\rho\leq\frac1{16},
+    \qquad
+    0<\delta\leq1.
+    \label{eq:rppr-coordinate-lower-range}
+\end{equation}
+Run Algorithm~\ref{alg:rppr-threshold-coordinate} on the center-seeded star
+\(K_{1,m}\), where \(m=\floor{1/(8\rho)}\).  Every legal ordering of the
+violating-coordinate queue satisfies
+\begin{equation}
+    W_{\mathrm{coord}}
+    \geq\frac{m}{4\alpha}
+    \geq\frac{1}{64\alpha\rho}.
+    \label{eq:rppr-coordinate-star-lower}
+\end{equation}
+Consequently, for every fixed \(\delta\in(0,1]\), the worst-case work of the
+thresholded coordinate method is
+\begin{equation}
+    W_{\mathrm{coord}}^{\mathrm{worst}}(\alpha,\rho;\delta)
+    =\Theta_\delta\!\left(\frac1{\alpha\rho}\right)
+    \label{eq:rppr-coordinate-tight}
+\end{equation}
+throughout the displayed \((\alpha,\rho)\) regime.
+\end{theorem}
+
+\begin{proof}
+Let \(c=(1+\alpha)/2\), and let \(v\) be the star center.  The exact
+unregularized PageRank mass at the center is
+\(\pi_v=\alpha+(1-\alpha)/2=c\): after a lazy walk, exactly half of the
+total star mass is at its center.  Thus
+\begin{equation}
+    x_v^0=\frac{c}{\sqrt m}.
+    \label{eq:rppr-coordinate-star-ppr-center}
+\end{equation}
+At termination, the coordinate certificate
+\cref{eq:rppr-coordinate-certificate} and
+\cref{prop:rppr-to-ppr-certificate} imply
+\begin{equation}
+    x_v
+    \geq
+    x_v^0-(1+\delta)\rho\sqrt m
+    =
+    \frac{c-(1+\delta)\rho m}{\sqrt m}
+    \geq\frac{1}{4\sqrt m},
+    \label{eq:rppr-coordinate-center-progress}
+\end{equation}
+where we used \(c\geq1/2\), \(\delta\leq1\), and
+\(\rho m\leq1/8\).
+
+It remains to bound how much one center update can contribute.  In the proof
+of \cref{thm:rppr-threshold-coordinate-work}, the nonnegative potential
+\(\Phi(x)=\sum_i d_i r_i(x)\) starts at \(\alpha\) and decreases at every
+update.  Since \(r(x)\geq0\), at every iterate
+\begin{equation}
+    h_v(x)\leq r_v(x)\leq\frac{\Phi(x)}{d_v}
+    \leq\frac{\alpha}{m}.
+    \label{eq:rppr-coordinate-center-update-cap}
+\end{equation}
+Only a center update changes \(x_v\), and such an update adds
+\(\sqrt m\,h_v(x)\).  Therefore
+\begin{equation}
+    \sum_{\text{center updates}}h_v(x)
+    =\frac{x_v}{\sqrt m}
+    \geq\frac1{4m}.
+    \label{eq:rppr-coordinate-center-total}
+\end{equation}
+Combining
+\cref{eq:rppr-coordinate-center-update-cap,eq:rppr-coordinate-center-total}
+shows that at least \(1/(4\alpha)\) center updates occur.  Each scans all
+\(m\) incident edges, giving the first inequality in
+\cref{eq:rppr-coordinate-star-lower}.  The second uses
+\(m\geq1/(16\rho)\).  No step depends on the ordering of the other violating
+coordinates.  The matching upper bound is
+\cref{eq:rppr-coordinate-work-bound}.
+\end{proof}
+
 For very small \(\delta\), the \(1/\delta\) dependence in
 \cref{eq:rppr-coordinate-work-bound} is avoidable by using coordinate updates
 only as a coarse localization phase.
@@ -1005,6 +1091,33 @@ cleanup iteration has work at most \(2\vol(S^\star)\leq2/\rho\), proving
 \cref{eq:rppr-coarse-to-fine-work}.
 \end{proof}
 
+\begin{corollary}[Tight fixed-accuracy work of the coarse-to-fine hybrid]
+\label{cor:rppr-coarse-to-fine-tight}
+On the center-seeded star in
+\cref{thm:rppr-threshold-coordinate-lower}, the coarse-to-fine method of
+\cref{cor:rppr-coarse-to-fine} has
+\begin{equation}
+    W_{\mathrm{coarse\mbox{-}to\mbox{-}fine}}
+    \geq\frac{1}{64\alpha\rho}.
+    \label{eq:rppr-coarse-to-fine-lower}
+\end{equation}
+Hence for every fixed final \(\delta\in(0,1]\), its worst-case work is
+\begin{equation}
+    W_{\mathrm{coarse\mbox{-}to\mbox{-}fine}}^{\mathrm{worst}}
+    (\alpha,\rho;\delta)
+    =\Theta_\delta\!\left(\frac1{\alpha\rho}\right).
+    \label{eq:rppr-coarse-to-fine-tight}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The first phase is Algorithm~\ref{alg:rppr-threshold-coordinate} with
+relative threshold one, so
+\cref{thm:rppr-threshold-coordinate-lower} lower-bounds that phase alone.
+The matching upper bound for fixed final \(\delta\) is
+\cref{eq:rppr-coarse-to-fine-work}.
+\end{proof}
+
 \subsection{Tightness status and remaining boundary}
 \label{subsec:rppr-tightness-status}
 
@@ -1037,10 +1150,16 @@ The results above support the following precise conclusions.
     \(\Theta(\rho)\).
 
     \item The logarithm in \(1/\rho\) is not intrinsic to solving the
-    regularized problem to the relative certificate
-    \cref{eq:rppr-relative-stopping}.  Thresholded coordinate ISTA costs
-    \(O(1/(\delta\alpha\rho))\), and the coarse-to-fine method costs
-    \(O((1+\log(1/\delta))/(\alpha\rho))\).
+      regularized problem to the relative certificate
+      \cref{eq:rppr-relative-stopping}.  Thresholded coordinate ISTA costs
+      \(O(1/(\delta\alpha\rho))\), and the coarse-to-fine method costs
+      \(O((1+\log(1/\delta))/(\alpha\rho))\).
+
+    \item For every fixed relative accuracy \(\delta\), both of those local
+      methods have exact worst-case order \(\Theta(1/(\alpha\rho))\).  The
+      matching lower bound is ordering-independent and already holds on a
+      center-seeded star.  It is an algorithm-specific tightness result, not
+      a lower bound for all local RPPR solvers.
 
     \item If \(\delta\) is a fixed constant and the desired unregularized PPR
     accuracy is \(\epsppr\), choosing

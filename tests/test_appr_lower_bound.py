@@ -61,6 +61,45 @@ def test_path_and_spider_diagnostics_terminate_with_valid_mass_and_work(graph, s
     assert result.work <= 1.0 / (alpha * eps_appr)
 
 
+@pytest.mark.parametrize("ordering", APPR_ORDERINGS)
+def test_reference_appr_satisfies_pagerank_invariant_and_rppr_bridge(ordering):
+    graph = spider_graph(3, 2)
+    source = 0
+    alpha = 0.2
+    eps_appr = 1.0 / 64.0
+    result = approximate_pagerank(
+        graph,
+        source,
+        alpha=alpha,
+        eps_appr=eps_appr,
+        ordering=ordering,
+        random_seed=17,
+    )
+
+    adjacency = np.zeros((graph.n, graph.n), dtype=np.float64)
+    for u in range(graph.n):
+        start, stop = graph.indptr[u], graph.indptr[u + 1]
+        adjacency[u, graph.indices[start:stop]] = 1.0
+    transition = adjacency @ np.diag(1.0 / graph.degree)
+    lazy_walk = 0.5 * (np.eye(graph.n) + transition)
+    pagerank_system = np.eye(graph.n) - (1.0 - alpha) * lazy_walk
+    seed = np.zeros(graph.n)
+    seed[source] = 1.0
+    exact_pagerank = np.linalg.solve(pagerank_system, alpha * seed)
+    residual_pagerank = np.linalg.solve(pagerank_system, alpha * result.residual)
+
+    np.testing.assert_allclose(result.estimate + residual_pagerank, exact_pagerank)
+    assert np.linalg.norm(exact_pagerank - result.estimate, ord=1) == pytest.approx(
+        result.residual.sum()
+    )
+
+    inv_sqrt_degree = np.diag(1.0 / np.sqrt(graph.degree))
+    normalized_adjacency = inv_sqrt_degree @ adjacency @ inv_sqrt_degree
+    q_matrix = 0.5 * (1.0 + alpha) * np.eye(graph.n) - 0.5 * (1.0 - alpha) * normalized_adjacency
+    rppr_solution = np.linalg.solve(q_matrix, alpha * inv_sqrt_degree @ seed)
+    np.testing.assert_allclose(np.sqrt(graph.degree) * rppr_solution, exact_pagerank)
+
+
 def test_reference_fifo_matches_existing_numba_appr_kernel():
     graph = star_graph(4)
     alpha = 0.2

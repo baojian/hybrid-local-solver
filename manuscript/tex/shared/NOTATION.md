@@ -60,6 +60,10 @@ the active paper or notes.
 | \(w=D^{1/2}\mathbf1\) | Proof-scoped Perron weight in the complete RPPR note. |
 | \(J_{\mathrm{path}}(\rho)\) | Proof-scoped admission radius on the path instance. |
 | \(N_{\mathrm{rst}}\) | Number of certified restarts in an adaptive-work target. |
+| \(\lambda_\alpha=(1-\sqrt\alpha)/(1+\sqrt\alpha)\) | Optimal-SOR reflection factor in the delayed-reflection ladder note. |
+| \(b_{\rm self}(\alpha)=\lambda_\alpha^{-2}\), \(b_{\rm next}(\alpha)=\lambda_\alpha^{-1}\) | Alpha-scaled ladder bases for current- and next-rung self-reactivation control. |
+| \(\varphi,h\) | Fresh residual and delayed reflection-debt components in the split-residual note, with \(r=\varphi+h\). |
+| \(\mathcal M(r)=\sum_i\sqrt{d_i}|r_i|\) | Note-scoped weighted absolute residual mass for exact-rung cleanup. |
 
 The letter \(W\) is not a shared graph matrix: normalized adjacency is always
 written explicitly as \(D^{-1/2}AD^{-1/2}\). Cumulative cost uses

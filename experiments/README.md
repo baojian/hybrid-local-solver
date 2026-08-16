@@ -76,6 +76,20 @@ The star rows test the proved lower bound. Path and long-spider rows are
 diagnostics and are not labeled as theorem verification. The checker accepts
 only `0 < eps_appr <= 1/16`, the parameter regime proved by the star theorem.
 
+Explore conjugate-direction locality on deterministic synthetic graphs with:
+
+```bash
+uv run python -m experiments.explore_evolving_cg
+```
+
+This compares exact frontier-sparse CG against CG restarted after every
+boundary-driven support expansion.  It uses the explicitly note-scoped
+certificate `max_i |r[i]| / sqrt(d[i]) <= alpha * eps_ppr`; its epsilon is not
+identified with `eps_appr`, `eps_obj`, or the unresolved repository-wide
+residual.  The experiment records direction or active-set trajectories,
+restarts, explored volume, degree-weighted edge work, and error against a
+direct synthetic reference solve.
+
 Generate the manuscript figure comparing actual hard-star work with both
 proved bounds using:
 

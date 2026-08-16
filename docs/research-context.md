@@ -29,11 +29,17 @@ The current targets are:
 
 These are research targets, not established claims.
 
-One baseline result is now established rather than targeted: classical APPR
-has worst-case degree-weighted work `Theta(1/(alpha * eps_appr))`, proved in
-`manuscript/sections/appr_lower_bound.tex`. The upper bound is Andersen,
-Chung, and Lang (2007); the matching ordering-independent lower bound is
-proved here. Contribution 3 is measured against it.
+Several algorithm-specific baselines are now established rather than
+targeted. Classical APPR has worst-case degree-weighted work
+`Theta(1/(alpha * eps_appr))`, proved in
+`manuscript/sections/appr_lower_bound.tex`. For fixed relative RPPR accuracy,
+residual-thresholded coordinate ISTA and the coordinate-to-batch hybrid both
+have exact worst-case work `Theta(1/(alpha * rho))`; the full-batch method has
+the additional tight stale-scan logarithm in the general seed model. The
+coarse phase of CF-Push is ordering-independently tight, while the full FIFO
+fixed-SOR hybrid has a spider lower bound but no matching general upper bound.
+These results use different accuracy namespaces and are not silently
+identified with one another. Contribution 3 is measured against this ledger.
 
 ## Current scope
 

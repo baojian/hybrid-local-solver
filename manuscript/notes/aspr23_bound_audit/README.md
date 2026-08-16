@@ -27,6 +27,14 @@ The central conclusions are:
   `eps_obj = 10^{-4} alpha^2` gives same-tolerance work
   `Omega(|S*|^3 log |S*|)` for literal ASPR versus
   `O(|S*|^2 log |S*|)` for standard FISTA;
+- the later official Julia plots generally show default ASPR faster than the
+  included FISTA and ISTA baselines, with CASPR fastest, so they do not support
+  a blanket claim that ASPR is empirically slow;
+- the official periodic-gradient option deletes the active-to-boundary matrix
+  block and therefore cannot trigger early RPPR discovery; its extra work and
+  the in-place retraction defect are documented in the note;
+- even a corrected early-discovery variant needs `|S*|` successful path-layer
+  discoveries and `Omega(|S*|^2)` work if it freshly scans every active prefix;
 - none of these algorithm-specific statements is a lower bound for every
   local PageRank solver.
 
