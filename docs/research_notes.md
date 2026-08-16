@@ -133,14 +133,30 @@ Open item:
   piecewise-affine obstacle homotopy with nested supports and at most one
   activation event per nonseed vertex; cyclicity therefore does not obstruct
   exact support discovery;
+- an exact block-inverse identity shows that one activation updates every
+  remaining slack by one nonpositive Schur-complement column times the new
+  coordinate; the unresolved event data structure is therefore a kinetic
+  minimum under successive signed low-rank updates, not a correctness issue;
 - for block-incidence graphs with biconnected blocks of size at most `q`, lazy
   block responses give an exact, condition-free
   `O~(q^3 / (rho sqrt(alpha)))` solver;
+- on a single-seed cycle, reflection symmetry reduces the whole biconnected
+  core to a radial tridiagonal Stieltjes system; one forward Schur recurrence
+  and one reverse solve discover and return the exact solution in
+  `O(1 + vol(S*))` work;
 - the supplied-support assumption is removable on arbitrary graphs: exact
   boundary-violation batches admit only true RPPR-support vertices, terminate
   at the exact optimum in at most `|S*|` batches, cost
   `O(1 / rho^2)` with fresh forest elimination, and cost
   `O((w + 1)^2 / rho^2)` with supplied width-`w` intermediate orderings;
+- retaining the realized nonempty-batch count `J` sharpens the latter bound to
+  `O((w + 1)^2 (J + 1) vol(S*))`; if at most `chi_*` support vertices occupy
+  each root-distance shell, then `J + 1 <= chi_* (R_* + 1)` and the
+  graph-universal radius lemma gives
+  `O~((w + 1)^2 chi_* / (rho sqrt(alpha)))`;
+- this radial-width result closes arbitrarily long cycles and fixed-width
+  cyclic strips without assuming bounded biconnected blocks; the direct cycle
+  recurrence is stronger and output-linear;
 - this condition-free bound already meets `O(1 / (rho sqrt(alpha)))` for
   `rho >= sqrt(alpha)`; the lazy-response theorem closes the fine regime on
   trees as well;
@@ -148,10 +164,11 @@ Open item:
   support exact-rung volume ledger is geometric and costs
   `O((w + 1)^2 / (rho_final sqrt(alpha)))`, without an extra dynamic-range
   logarithm;
-- the remaining open structural item is compressed event maintenance inside
-  a large biconnected width-`w` core.  Exact support discovery and
-  bounded-size cyclic blocks are closed; a long cycle shows why bounded
-  treewidth does not by itself imply bounded block size.
+- the remaining open structural item is compressed event maintenance, or a
+  universal batch-count argument, inside a large biconnected core with
+  neither bounded articulation blocks nor thin radial support.  Exact support
+  discovery, cycles, fixed-width strips, and bounded-size cyclic blocks are
+  closed.
 
 ## 2026-08-14: active lower-bound ledger and first tight local hybrid
 

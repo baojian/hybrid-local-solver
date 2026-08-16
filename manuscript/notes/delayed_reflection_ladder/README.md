@@ -19,9 +19,11 @@ admits an exact terminal rung in `O(1 / rho)` work for a single seed.
 The remaining conditional step for unrestricted graphs is no longer support
 correctness.  Fixing the seed value produces one monotone piecewise-affine
 active-set homotopy on every graph, and an exact boundary gate admits only
-vertices in the true RPPR support.  The remaining cost issue is maintaining
-the next event inside a large biconnected cyclic core without refreshing its
-entire boundary after every activation.
+vertices in the true RPPR support.  Its actual work is
+`O((w + 1)^2 (J + 1) vol(S*))`, where `J` is the realized number of nonempty
+boundary batches.  The remaining cost issue is controlling `J`, or
+maintaining the next event without refreshing the entire boundary, inside a
+large cyclic core with no other thin structure.
 
 For the RPPR continuation path
 `rho[k + 1] = lambda(alpha)^s rho[k]`, the note proves a sharper supplied-
@@ -65,14 +67,21 @@ condition-free
 The Chebyshev radius proof is actually graph-universal.  Cycles also preserve
 a scalar ordered homotopy: conditioned on the root value, coordinates activate
 monotonically and at most once, and the root equation has Schur-complement
-slope at least `alpha`.  For a block-incidence graph whose biconnected blocks
+slope at least `alpha`.  One activation changes every remaining affine slack
+through one signed Schur-complement column, identifying the open maintenance
+problem as a kinetic minimum under low-rank updates.  For a block-incidence
+graph whose biconnected blocks
 have size at most `q`, lazy scalar block responses yield the exact,
 condition-free bound
 `O~(q^3 / (rho sqrt(alpha)))`.  Thus trees with bounded-size cyclic gadgets
-glued at articulation vertices are closed at the product scale.  A large
-biconnected core remains open; treewidth alone is insufficient for this
-argument because an arbitrarily long cycle has width two but unbounded block
-size.
+glued at articulation vertices are closed at the product scale.  Unbounded
+blocks are not automatically hard: reflection symmetry reduces a whole cycle
+to a radial tridiagonal recurrence and gives an output-linear exact solver.
+More generally, if at most `chi_*` exact-support vertices occur in any
+root-distance shell, the condition-free gate costs
+`O~((w + 1)^2 chi_* / (rho sqrt(alpha)))`.  This closes arbitrarily long
+cycles and fixed-width cyclic strips.  What remains open is a large core with
+neither bounded articulation blocks nor thin radial support.
 
 The supplied-support condition has also been removed on arbitrary graphs for
 correctness and locality.  An exact boundary-violation gate admits only
@@ -80,8 +89,10 @@ vertices in the true RPPR support and terminates at the exact optimum.  It costs
 `O(|S*| vol(S*)) = O(1 / rho^2)` with fresh tree elimination.  This already
 matches `O(1 / (rho sqrt(alpha)))` when `rho >= sqrt(alpha)` and supplies a
 separate monotone correctness proof; supplied width-`w` intermediate
-orderings give `O((w + 1)^2 / rho^2)`.  Lazy tree and bounded-block responses
-give the sharper product bound in the fine-regularization regime.
+orderings give `O((w + 1)^2 / rho^2)`.  Retaining the realized batch count
+gives the sharper bound above, so thin radial support also reaches the fine-
+regularization product scale.  Lazy tree and bounded-block responses cover
+branching structures whose shells need not be thin.
 
 Build from this directory with:
 

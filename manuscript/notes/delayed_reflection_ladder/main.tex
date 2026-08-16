@@ -75,11 +75,19 @@ biconnected articulation blocks have size at most $q$, lazy block responses
 give the condition-free bound
 $\widetilde O(q^3/(\rho\sqrt\alpha))$; this includes bounded cyclic gadgets
 glued through articulation vertices.
+Large blocks are not automatically hard.  Reflection symmetry reduces an
+arbitrarily long cycle to a tridiagonal radial system, giving an output-linear
+exact solver.  More generally, if the exact support contains at most
+$\chi_\star$ vertices in any root-distance shell, the condition-free boundary
+gate with width-$w$ elimination costs
+$\widetilde O((w+1)^2\chi_\star/(\rho\sqrt\alpha))$.  Thus constant-width
+cycles and strips meet the product scale even though their biconnected blocks
+can be arbitrarily large.
 We also give an exact RPPR support-oracle terminal theorem: on a forest
 support, the shifted Dirichlet solve returns the RPPR optimum and the
 unregularized residual certificate in $O(1/\rho)$ work.  What remains is
-compressed event maintenance inside a large biconnected core; even a long
-cycle has treewidth two but unbounded block size.  Along the RPPR path
+compressed event or batch maintenance inside a large biconnected core that
+has neither bounded articulation blocks nor thin radial support.  Along the RPPR path
 $\rho_{k+1}=\lambda_\alpha^s\rho_k$, the support volumes form a geometric
 ledger: exact re-solving of all supplied width-$w$ supports costs
 $O((w+1)^2/(\rho_{\rm final}\sqrt\alpha))$, with no extra dynamic-range
@@ -112,7 +120,7 @@ $\vol(S^\star(\rho))\leq1/\rho$.  These two accuracy namespaces are not
 identified.
 
 \begin{center}
-\small
+\footnotesize
 \begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
 \toprule
 Status & Statement \\
@@ -172,20 +180,29 @@ cores; efficient event maintenance is the remaining issue. \\
 \statusproved & For block-incidence graphs with biconnected blocks of size at
 most $q$, lazy scalar block responses give an exact, condition-free
 $\widetilde O(q^3/(\rho\sqrt\alpha))$ solver. \\
+\statusproved & On a single-seed cycle, reflection symmetry and a radial
+tridiagonal Schur recurrence discover and solve the exact RPPR support in
+$O(1+\vol(S^\star))$ work, even when the cycle is one unbounded biconnected
+block. \\
 \statusproved & The supplied-support condition can be removed on arbitrary
 graphs: exact
 boundary-violation batches admit only true support vertices and terminate at
 $x^\star(\rho)$ in at most $|S^\star|$ batches.  Forest intermediates cost
 $O(1/\rho^2)$; supplied width-$w$ intermediate orderings cost
 $O((w+1)^2/\rho^2)$. \\
+\statusproved & If at most $\chi_\star$ true-support vertices lie in any
+root-distance shell, the same condition-free gate costs
+$\widetilde O((w+1)^2\chi_\star/(\rho\sqrt\alpha))$ under width-$w$
+intermediate orderings.  This closes constant-width cyclic strips without a
+bounded-block assumption. \\
 \statusconditional & If online causal expansion scans each certified region
 only $O(1)$ times per alpha-scaled rung and supplies a width-$w$ elimination
 order, total work is
 $\widetilde O((w+1)^2V/\sqrt\alpha)$. \\
-\statusopen & Compress the scalar homotopy trace inside a large biconnected
-width-$w$ core without refreshing all boundary slacks after every activation.
-Exact discovery, the universal radius bound, and bounded-block cyclic graphs
-are no longer open. \\
+\statusopen & Compress the scalar homotopy trace, or bound the exact-gate batch
+count, inside a large biconnected core with neither bounded blocks nor thin
+radial support.  Exact discovery, the universal radius bound, cycles,
+constant-width strips, and bounded-block cyclic graphs are no longer open. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -964,6 +981,78 @@ scan and write of the root and all $BJ$ active arm vertices costs exactly the
 claimed degree-weighted order.
 \end{proof}
 
+\begin{theorem}[Output-linear exact RPPR on a cycle]
+\label{thm:cycle-one-pass}
+Let $G=C_n$ and let the single seed be $o$.  Put
+\begin{equation*}
+ \mathcal L_i:=\{v:\operatorname{dist}(o,v)=i\},
+ \qquad k_i:=|\mathcal L_i|,
+ \qquad 0\leq i\leq m:=\lfloor n/2\rfloor.
+\end{equation*}
+On the radial subspace write $y_i:=\sqrt{k_i}x_v$ for
+$v\in\mathcal L_i$, let $\widehat Q$ be the resulting symmetric
+tridiagonal restriction of $Q$, and put
+$\widehat c_i:=\sqrt{k_i}c_{\rho,v}$.  The edge inside the last shell of an
+odd cycle is included in $\widehat Q_{mm}$.  With
+$\widehat q_i:=\widehat Q_{i,i-1}<0$, form
+\begin{align}
+ \delta_0&:=\widehat Q_{00},
+ &\eta_0&:=\widehat c_0,
+ \notag\\
+ \delta_i&:=\widehat Q_{ii}-\frac{\widehat q_i^2}{\delta_{i-1}},
+ &\eta_i&:=\widehat c_i-
+   \frac{\widehat q_i\eta_{i-1}}{\delta_{i-1}}
+ \qquad(1\leq i\leq m).
+ \label{eq:cycle-radial-schur}
+\end{align}
+If $\eta_0\leq0$, the optimum is zero.  Otherwise let $J$ be the index
+immediately before the first nonpositive $\eta_i$, or $J=m$ if all messages
+are positive.  Then
+\begin{equation}
+ S^\star(\rho)=\bigcup_{i=0}^J\mathcal L_i.
+ \label{eq:cycle-radial-support}
+\end{equation}
+The exact coordinates follow from
+\begin{equation}
+ y_J=\frac{\eta_J}{\delta_J},
+ \qquad
+ y_i=\frac{\eta_i-\widehat q_{i+1}y_{i+1}}{\delta_i}
+ \quad(i=J-1,\ldots,0),
+ \qquad
+ x_v=\frac{y_i}{\sqrt{k_i}}
+ \quad(v\in\mathcal L_i).
+ \label{eq:cycle-radial-backsolve}
+\end{equation}
+This discovers, solves, and certifies the final-$\rho$ problem in
+$O(1+\vol(S^\star(\rho)))$ adjacency and arithmetic work.
+\end{theorem}
+
+\begin{proof}
+Reflection about the seed preserves both the cycle and the RPPR objective.
+Uniqueness therefore makes $x^\star$ constant on every distance shell.
+The nonempty support is connected and contains the seed, so it is a radial
+prefix.  Scaling shell $i$ by $\sqrt{k_i}$ makes the radial restriction
+symmetric.  It is a principal restriction of the positive-definite
+Stieltjes quadratic, hence every pivot $\delta_i$ in
+\cref{eq:cycle-radial-schur} is positive.
+
+Gaussian elimination gives the displayed forward messages and
+\cref{eq:cycle-radial-backsolve}.  If the first nonpositive message is
+$\eta_{J+1}$, then the solve on the first $J+1$ shells has positive
+coordinates, while
+\begin{equation*}
+ \eta_{J+1}
+ =\widehat c_{J+1}-\widehat q_{J+1}y_J\leq0
+\end{equation*}
+is the aggregated inactive KKT slack.  Every vertex in the shell has the
+same slack, so this is exactly the coordinatewise boundary certificate.  If
+all messages are positive, every shell is active and there is no outside
+boundary; the within-shell edge in an odd cycle was already absorbed into
+the final diagonal.  Apply \cref{thm:shifted-dirichlet} in either case.
+Each shell has at most two vertices and cycle degrees equal two, so the
+forward scan, reverse solve, and output write have the claimed work.
+\end{proof}
+
 \begin{corollary}[The persistent-support product lower bound is oracle-specific]
 \label{cor:spider-oracle-separation}
 On the path-bundle instance used for the repository's persistent-support
@@ -1412,10 +1501,55 @@ root equation is $G(t)=0$, and \cref{eq:graph-root-schur-slope} makes its zero
 unique.  When $c_{\rho,o}\leq0$, zero satisfies all shifted KKT inequalities.
 \end{proof}
 
+\begin{lemma}[One-event Schur update]
+\label{lem:one-event-schur-update}
+Suppose the homotopy has active set $A$ immediately before an untied event
+$k\notin A$ at $t=\tau$.  Put
+\begin{equation}
+ M:=H_{AA},
+ \qquad h:=H_{Ak},
+ \qquad r:=M^{-1}h\leq0,
+ \qquad \sigma:=H_{kk}-h^\top M^{-1}h>0.
+ \label{eq:event-schur-data}
+\end{equation}
+On the next affine piece,
+\begin{align}
+ z_k^+(t)&=-\frac{g_k(t)}{\sigma},
+ &z_A^+(t)&=z_A(t)-r z_k^+(t),
+ \label{eq:event-primal-update}\\
+ g_v^+(t)&=g_v(t)+s_{vk}z_k^+(t),
+ &s_{vk}&:=H_{vk}-H_{vA}M^{-1}H_{Ak}\leq0
+ \qquad(v\notin A\cup\{k\}).
+ \label{eq:event-slack-update}
+\end{align}
+In particular, since $g_k(\tau)=0$ and $g_k'(t)<0$ at a genuine untied
+crossing, every remaining slack slope can only become more negative.  Thus
+one activation changes all future event keys through one column of a Schur
+complement.  A tied event has the identical block-Schur formula.
+\end{lemma}
+
+\begin{proof}
+The old active equations are $Mz_A=d_A(t)$.  After adjoining $k$, eliminate
+the old coordinates from
+\begin{equation*}
+ \begin{bmatrix}M&h\\h^\top&H_{kk}\end{bmatrix}
+ \begin{bmatrix}z_A^+\\z_k^+\end{bmatrix}
+ =\begin{bmatrix}d_A(t)\\d_k(t)\end{bmatrix}.
+\end{equation*}
+The first block row gives $z_A^+=z_A-rz_k^+$; substitution into the second
+gives $\sigma z_k^+=-g_k(t)$.  Insert this expression in the definition of
+an inactive slack to obtain \cref{eq:event-slack-update}.  Principal Schur
+complements of a Stieltjes matrix are again Stieltjes, so
+$\sigma>0$, $r\leq0$, and $s_{vk}\leq0$ for $v\ne k$.  The slope claim
+follows from $z_k^+(t)=-g_k'(t)(t-\tau)/\sigma$.
+\end{proof}
+
 The theorem removes cyclic ambiguity at the level of correctness: there is
 still one ordered stream of activation events.  A literal implementation,
 however, refactors the current principal system and refreshes every boundary
-slack after each event, which can cost quadratic output work.  Trees avoid
+slack after each event, which can cost quadratic output work.
+\Cref{lem:one-event-schur-update} shows exactly what must be compressed: a
+kinetic minimum under successive signed Schur-column updates.  Trees avoid
 that refresh through scalar child independence.  The same mechanism extends
 to cyclic graphs whose articulation blocks have bounded size.
 
@@ -1480,11 +1614,15 @@ $\vol(S^\star)\leq1/\rho$ to obtain the second line of
 \cref{eq:bounded-block-work}.
 \end{proof}
 
-Large biconnected cores remain different: even treewidth two permits an
-arbitrarily long cycle, so bounded treewidth does not imply bounded block
-size.  The open data-structure lemma is now precise: compress the scalar
-homotopy trace of a large width-$w$ block without refreshing all boundary
-slacks after every activation.
+Large biconnected cores remain different, but block size alone is not the
+right obstruction.  \Cref{thm:cycle-one-pass} closes an arbitrarily long
+cycle in output-linear work, and \cref{cor:radial-width-gate} below closes
+every bounded-width core whose true support is thin across distance shells.
+The open data-structure lemma is now more precise: in a core with neither a
+bounded-block decomposition nor thin radial support, compress the scalar
+homotopy trace without refreshing all boundary slacks after every activation,
+or prove that the exact boundary gate realizes only
+$\widetilde O(1/\sqrt\alpha)$ batches.
 
 \subsection{Removing the supplied-support condition on arbitrary graphs}
 \label{subsec:condition-free-graph}
@@ -1526,6 +1664,16 @@ stage,
 \end{equation}
 It terminates with $U_J=S^\star(\rho)$ and
 $x^{(J)}=x^\star(\rho)$ after at most $|S^\star(\rho)|$ nonempty batches.
+Writing $J_\star$ for the actual number of nonempty batches, supplied
+width-$w$ orderings for the intermediate regions give the sharper
+trajectory-dependent bound
+\begin{equation}
+ \Work_{\rm graph\text{-}gate}
+ =O\!\left(
+  (w+1)^2(J_\star+1)\vol(S^\star(\rho))
+ \right).
+ \label{eq:graph-gate-batch-work}
+\end{equation}
 If every $G[U_j]$ is a forest, fresh elimination and one boundary scan at each
 stage give
 \begin{equation}
@@ -1599,6 +1747,54 @@ boundary residual in $O(\vol(U_j))$ work.  With width-$w$ orderings, use
 \cref{thm:width-resolution} instead.  Sum over at most $|S^\star|$ stages and
 use $U_j\subseteq S^\star$, then
 $|S^\star|\leq\vol(S^\star)\leq1/\rho$.
+\end{proof}
+
+\begin{corollary}[Thin-support product bound]
+\label{cor:radial-width-gate}
+For a nonzero single-seed problem, define the active radial width
+\begin{equation}
+ \chi_\star
+ :=\max_{0\leq\ell\leq R_\star}
+ \left|
+  S^\star(\rho)\cap
+  \{v:\operatorname{dist}(o,v)=\ell\}
+ \right|.
+ \label{eq:active-radial-width}
+\end{equation}
+Under supplied width-$w$ orderings for the intermediate regions, the exact
+boundary gate is condition-free and obeys
+\begin{align}
+ \Work_{\rm radial\text{-}gate}
+ &\leq
+ O\!\left(
+  (w+1)^2\chi_\star(R_\star+1)
+  \vol(S^\star(\rho))
+ \right)
+ \notag\\
+ &=\widetilde O\!\left(
+  \frac{(w+1)^2\chi_\star}{\rho\sqrt\alpha}
+ \right).
+ \label{eq:radial-width-gate-work}
+\end{align}
+Consequently, arbitrarily long cycles and fixed-width cyclic strips meet the
+product scale even though their biconnected blocks need not have bounded
+size.  On a cycle, \cref{thm:cycle-one-pass} gives the stronger
+output-linear bound without a supplied ordering.
+\end{corollary}
+
+\begin{proof}
+Every nonempty batch admits at least one new true-support vertex, so
+\begin{equation*}
+ J_\star+1
+ \leq |S^\star(\rho)|
+ \leq \chi_\star(R_\star+1).
+\end{equation*}
+Insert this in \cref{eq:graph-gate-batch-work}, then use
+$\vol(S^\star)\leq1/\rho$ and the graph-universal radius estimate
+\cref{lem:graph-support-radius}.  A cycle has width at most two and at most
+two vertices per root-distance shell.  A fixed-width strip has uniformly
+bounded elimination width and shell cardinality under its natural layered
+ordering.
 \end{proof}
 
 \begin{corollary}[The coarse-regularization product target is unconditional]
@@ -1807,11 +2003,16 @@ The central proof obligations are:
  intermediates for $\rho\geq\sqrt\alpha$;
  \cref{thm:lazy-tree-response} closes the fine regime on trees at
  $\widetilde O(1/(\rho\sqrt\alpha))$, while
- \cref{thm:bounded-block-response} closes bounded cyclic blocks.
+ \cref{thm:bounded-block-response} closes bounded cyclic blocks and
+ \cref{cor:radial-width-gate} closes thin bounded-width cores.
  \item[Large cyclic blocks.] \Cref{thm:graph-scalar-homotopy} proves that
- cycles preserve a one-dimensional ordered event stream.  Maintain its
- Schur slopes and minimum boundary event inside a large width-$w$ block
- without a full boundary refresh after every activation.
+ cycles preserve a one-dimensional ordered event stream.
+ \Cref{thm:cycle-one-pass} closes a whole cycle in output-linear work, so
+ unbounded block size by itself is not the obstruction.  For a core with
+ neither bounded articulation blocks nor thin radial support, maintain the
+ Schur slopes and minimum boundary event without a full refresh after every
+ activation, or prove an
+ $\widetilde O(1/\sqrt\alpha)$ bound on exact-gate batches.
  \item[Elimination-order maintenance.] \Cref{thm:width-resolution} gives the
  exact cost once a width-$w$ ordering is supplied.  Maintain such an ordering
  locally as the region grows, or charge the ordering and fill explicitly.
@@ -1881,10 +2082,13 @@ $\widetilde O(1/(\rho\sqrt\alpha))$ local solver on every finite tree.  Paths
 and symmetric spiders admit the even stronger output-linear final-$\rho$
 solution and therefore beat the persistent-support product charge.
 Bounded-size biconnected cyclic gadgets also meet the product scale through
-lazy block responses.  The remaining obstruction is now narrower: compress
-the scalar event trace inside a large biconnected core.  In particular,
-treewidth alone does not close the proof because an arbitrarily long cycle has
-width two but unbounded block size.
+lazy block responses.  Large blocks are no longer uniformly open: radial
+Schur elimination solves a whole cycle in output-linear work, while the exact
+boundary gate reaches the product scale whenever only $\chi_\star$ support
+vertices occupy each distance shell.  This includes fixed-width cyclic
+strips.  The remaining obstruction is now narrower: compress the scalar event
+trace, or bound the number of exact-gate batches, inside a large core with
+neither bounded articulation blocks nor thin radial support.
 
 \bibliographystyle{plainnat}
 \bibliography{../../references}
