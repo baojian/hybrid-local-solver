@@ -24,8 +24,13 @@ center and the RPPR optimum.  Thus each safe-centered proximal call is
 oracle-free and costs $\widetilde O(1/\rho)$; preserving the accelerated
 outer rate while keeping all centers lower is the remaining continuation
 problem.  A local retraction converts any signed finite-support trial point
-into such a lower certificate, but a proof that repeated retraction preserves
-the accelerated outer rate is not asserted.
+into such a lower certificate.  For the resulting safeguarded recurrence, the
+stage-start KKT masses telescope to at most $1-\alpha$, with no
+$1/\alpha$ loss.  The note also derives the exact correction term in the
+Nesterov potential and a Euclidean progress telescope for it.  A three-vertex
+path refutes pointwise momentum nonexpansion, so the remaining proof obligation
+is the sharper amortization that combines this defect formula with the
+proximal-displacement collapse identity.
 
 Build with:
 
