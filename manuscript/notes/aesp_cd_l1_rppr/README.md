@@ -30,7 +30,10 @@ $1/\alpha$ loss.  The note also derives the exact correction term in the
 Nesterov potential and a Euclidean progress telescope for it.  A three-vertex
 path refutes pointwise momentum nonexpansion, so the remaining proof obligation
 is the sharper amortization that combines this defect formula with the
-proximal-displacement collapse identity.
+proximal-displacement collapse identity.  A multiplicative potential ledger
+now reduces that obligation further to bounding cumulative log-inflation (or
+the number of effective correction rounds); each correction inflates the
+classical potential by at most a factor two.
 
 Build with:
 
