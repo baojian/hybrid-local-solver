@@ -215,6 +215,16 @@ The causal block-merge theorem closes this obligation for bounded blocks; the
 P0 case is therefore a large nonequitable cyclic core, not block metadata
 maintenance.
 
+The finite-band interface is now margin-adaptive. Certified lower endpoints
+drive safe admission, certified upper endpoints drive termination, and no
+uniform pointwise estimate or coordinate-specific response leverage is
+required. Exterior response changes are energy contractions, so degree volume
+moving by a normalized margin is shock-packed. Source-aware squared leverage
+is exactly terminal Schur-diagonal loss and telescopes to at most
+`(1-alpha)/2` per still-exterior label. The remaining P0 primitive is dynamic
+local maintenance of aggregate diagonal losses, yielding an output-sensitive
+heavy-change reporter without refreshing the full boundary.
+
 ### P0: expanding-subspace acceleration without repeated restarts
 
 Maintain a support-safe lower certificate separately from signed accelerated
@@ -224,6 +234,46 @@ than restarting a complete accelerated solve after each singleton expansion.
 The fixed-envelope rate is already available in `aesp_cd_l1_rppr`; the
 one-sided continuation obligation is isolated in
 `volume_gated_acceleration`.
+
+For the mixed response-preconditioned direction, the numerical accumulation
+part is now closed: arbitrary approximate Schur-frontier corrections lift into
+mutually `Q`-orthogonal subspaces, so their energy errors add in quadrature and
+no old face is numerically restarted. The remaining mixed-track obligation is
+to apply those lifts and report finite-band crossings within the charged
+response budget. This does not solve the response-free estimate-sequence
+problem above.
+
+Static group-trace evaluation is also reduced to a logarithmic number of
+source-normalized Gaussian response sketches: with high probability their
+squared subtree sums give constant-factor masses for every hierarchy node
+simultaneously. This static reduction does not by itself avoid dense exterior
+updates or justify reusing one signed sketch along an adaptive trace.
+
+The adaptive-sketch issue is now separated from that data-structural theorem.
+At event j, draw fresh probes only after the new frontier space is fixed and
+add their nonnegative squared masses with a summable conditional failure
+budget. The normalized frontier spaces are mutually energy-orthogonal, and a
+newly exposed boundary label has zero response to every older space. Thus all
+prefix estimates remain valid without replay. What remains is the local
+implementation of one signed normalized response followed by its squared-mass
+range-add on the live hierarchy. Equivalently, the accumulated group mass is
+the weighted decrease of the same terminal Schur diagonals from the initial to
+the current face. A certified one-sided estimate may have additive error at
+the current pruning scale, so the implementation need not estimate negligible
+groups multiplicatively or retain the random source dimension.
+
+The two available telescopes should be used together, not as separate update
+clocks. For a still-exterior label or fixed hierarchy node, the response
+uncertainty accumulated during an epoch is bounded by the square root of its
+Schur-diagonal loss times the orthogonal correction energy spent in that
+epoch. Disjoint wake-up epochs therefore obey a geometric-mean budget. For a
+unit seed, a label `v` awakened at margin `Theta(alpha*tau)` is awakened only
+`O(1/(tau*sqrt(alpha*d_v)))` times. The recommended scheduler is consequently
+to let a hierarchy node sleep until the product of its accumulated loss and
+energy reaches the current pruning scale. Publishing every additive
+`alpha*tau` key change throws away this square-root gain. This is still a
+per-label statement; an exposure-charged aggregate implementation is needed
+before summing it into a graph-uniform work bound.
 
 ### P0: response-preconditioned composition
 
@@ -243,6 +293,66 @@ every newly enlarged frontier one converged reduced-system probe before a
 volume-triggered rebuild. A center-seeded star is a heavy batch but its Schur
 frontier solves in one CG step, so immediate factor-two rebuilding is wasteful.
 This is measured policy evidence, not an amortized local-work theorem.
+
+The boundary-deflation theorem in `two_rung_direct_theory` now supplies one
+exact structured preconditioner for this interface. Certified closed forest
+decorations can be peeled in linear work; their lifted generalized eigenvalues
+are exactly one, and the remaining effective condition number is precisely
+that of the Schur 2-core. Thus acyclic decorations are no longer part of the
+P0 conditioning problem. Online closure certification and finite-band
+reporting on the remaining nonequitable cyclic core are still open. Absorbing
+one closed component produces exactly one Green-column update and one
+nonnegative exterior range-add vector, matching the response reporter's
+current heavy-change primitive.
+
+The newest response lemma gives a sharper reporter target. If a correction is
+generated by a frontier batch `B`, its source-aware squared exterior
+leverages sum to at most `|B|`. Thus the degree volume whose certified interval
+can meet a prescribed transition margin is bounded before the dense correction
+is materialized. A matched-edge example shows that a source-oblivious uniform
+energy interval can still refresh the entire boundary after a one-row change.
+A rank-sensitive branch-and-bound lemma further proves that constant-factor
+subtree leverage-mass queries locate all candidate rows with probe count
+controlled by the packed batch-rank/energy budget and hierarchy depth. The P0
+data structure can therefore be stated as a dynamic aggregate
+Schur-diagonal-loss oracle with scale-matched additive error, equivalently a
+source-conditioned group-trace oracle; uniform global error clocks are not
+sufficient.
+
+There is a close external blueprint: the dynamic electrical-flow locator of
+[van den Brand et al.](https://arxiv.org/abs/2112.00722) combines dynamic
+spectral vertex sparsifiers with an $\ell_2$ heavy-hitter recovery map to find
+large-energy coordinates. This supports the proposed architecture, but does
+not supply the theorem here: its preprocessing and update bounds are measured
+against the ambient graph and its resistance-update sequence. A valid import
+must instead handle monotone terminal additions, vertex boundary demands,
+adaptive finite-band intervals, and charge every sketch/Schur operation to the
+locally exposed volume.
+
+The import is algebraically exact after diagonal scaling: the PageRank
+Stieltjes matrix is congruent to the grounded Laplacian with conductance
+`(1-alpha)/2` on original edges and `alpha*d_v` from each vertex to ground.
+Moreover, the response operator for a face depends only on its internal edges,
+cut incidences, and boundary degrees; edges wholly in the unexposed exterior
+are irrelevant. Static locator input is therefore exposure-sized, and
+geometric rebuilding can already be charged to final active volume. The next
+construction attempt should specialize that locator rather than invent a
+response hierarchy from scratch: maintain exposed-terminal Schur state within
+each epoch, recover degree-scaled vertex-response heavy hitters, wake nodes by
+the loss--energy product, and exactly test only the finite-band candidates.
+The proof must account separately for terminal additions, epoch-internal
+locator refreshes, candidate tests, and rebuilds.
+
+The exact interface between the iterative frontier and this locator is now
+available. At a fixed anchor, precompute transposed harmonic extensions for
+the rows of any chosen linear boundary sketch. Once the iterative arm solves
+the Schur-frontier system, the full exterior dual-update sketch is obtained
+from scans of the frontier incidences and reads of the touched stored sketch
+rows; the known frontier source is subtracted. The dense old-face correction
+and the ambient boundary are never materialized. CountSketch or hierarchical
+measurements are therefore legitimate concrete candidates, but their row
+count, anchor right-hand-side solves, stored-response reads, and dynamic
+maintenance must all fit the exposure ledger.
 
 ### P1: lower-bound separation by computational resource
 

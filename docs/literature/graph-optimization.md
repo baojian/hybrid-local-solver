@@ -124,6 +124,60 @@ optimization concepts needed to define locality, accuracy, and work.
   convention, and identify an error composition bound between truncation,
   sparsification, and iterative-solve errors.
 
+## Citation key: `brand2022faster`
+
+- Citation: Jan van den Brand, Yu Gao, Arun Jambulapati, Yin Tat Lee, Yang P.
+  Liu, Richard Peng, and Aaron Sidford. “Faster Maxflow via Improved Dynamic
+  Spectral Vertex Sparsifiers.” *Proceedings of the 54th Annual ACM Symposium
+  on Theory of Computing*, pages 543-556, 2022.
+- DOI/arXiv/URL: <https://doi.org/10.1145/3519935.3520068>; extended version
+  <https://arxiv.org/abs/2112.00722>.
+- Local PDF:
+  `papers/2022-stoc-brand-faster-maxflow-dynamic-spectral-vertex-sparsifiers.pdf`.
+- Relevance: The paper supplies an existing construction pattern for the
+  hybrid project's heavy-change reporter. It combines sparse ℓ2 heavy-hitter
+  sketches, harmonic extension, and a dynamically maintained spectral Schur
+  complement to locate large electrical-flow coordinates without evaluating
+  every edge. The grounded-Laplacian reduction in
+  `manuscript/notes/response_preconditioned_hybrid/` shows algebraic
+  compatibility with the shared PageRank operator.
+- Exact pointers:
+  - PDF pages 1-4, Abstract and Section 1.1: identify dynamic Schur
+    complements, operator heavy hitters, and adaptivity as the three main
+    data-structural ingredients.
+  - PDF page 13, Theorem 4.1: states the informal dynamic-Schur interface and
+    its initialization, terminal-addition, update, and query costs.
+  - PDF pages 21-22, Section 4.2 and Theorem 4.10: give the precise dynamic
+    spectral Schur-complement interface, including `InitialSC`, the terminal
+    budget, and the oblivious-adversary qualification.
+  - PDF pages 23-25, Section 5.1 and Lemmas 5.2-5.3: express inverse action
+    through harmonic extension and a terminal Schur complement.
+  - PDF pages 32-34, Section 5.4, Theorem 5.10, and Algorithm 5: construct the
+    sparse-projection locator and state its candidate-size and running-time
+    guarantees.
+  - PDF pages 35-42, Section 6: develop the nontrivial reduction from
+    oblivious to adaptive queries.
+- Formulation differences: The source begins with the full `m`-edge graph,
+  locates edge-current coordinates relative to a global ℓ2 norm, and charges
+  global preprocessing and periodic rebuilding. Its parameters give
+  initialization `O_tilde(m beta^-2 xi^-2)`, terminal/update cost
+  `O_tilde(beta^-2 xi^-2)`, and locator cost
+  `O_tilde(beta m xi^-2)`, with only `O(beta m)` updates before rebuilding.
+  The local PageRank target instead exposes a seed-local graph online, reports
+  degree-normalized vertex boundary demands at an absolute finite-band scale,
+  and requires total work in the final active volume. Therefore the source
+  architecture transfers, but its complexity theorem does not.
+- Use in this repository: The response-preconditioned note proves that the
+  PageRank Stieltjes matrix is diagonally congruent to a grounded graph
+  Laplacian and maps normalized boundary response to a degree-scaled vertex
+  divergence. It uses the paper as a concrete implementation blueprint while
+  retaining dynamic local sketch maintenance as an open lemma.
+- Open questions: Replace full-graph initialization by exposure-charged
+  geometric epochs, adapt the edge-flow locator to degree-scaled vertex
+  divergence, exploit monotone terminal additions and killed walks, and use
+  the note's two-ledger square-root scheduler to target total
+  `O_tilde(V / sqrt(alpha))` or `O_tilde(V)` work.
+
 ## Citation key: `rubinfeld2011sublinear`
 
 - Citation: Ronitt Rubinfeld and Asaf Shapira. “Sublinear Time Algorithms.”

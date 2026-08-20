@@ -77,7 +77,11 @@ requires `Omega(n^2)` updates.  Neither result rules out compressed, lazy, or
 matrix-free state.  Positively, a stable exposed block--cut presentation with
 block size `b` supports an exact response-generated solver whose route cost is
 quadratic in `b`; polylogarithmic blocks reach the product scale when the
-presentation itself can be maintained within that budget.
+presentation itself can be maintained within that budget.  The companion
+`delayed_reflection_ladder` note now removes this metadata assumption for
+bounded blocks.  Activating zero-valued vertices preserves all consumed
+response prefixes, so online block mergers rebuild only future iterator state
+and retain the same product scale under ordinary adjacency access.
 
 The universal hybrid proof is now reduced to one precise response step.
 Exact Schur algebra is used until `zeta = ceil(alpha^(-1/4))`, which costs at
@@ -104,6 +108,17 @@ finite-band response oracle would give
 `epsilon / 3`.  Establishing that band-response oracle on general cyclic
 cores is now the weakest sufficient unresolved theorem; exact zero-sign
 maintenance is no longer necessary for this approximate target.
+
+The response certificate is now weakened further.  Uniform point estimates
+are unnecessary: certified lower endpoints suffice for admission, certified
+upper endpoints suffice for termination, and only intervals intersecting the
+transition band must be refined.  For any nested exact-face expansion, the
+full exterior demand change has squared Euclidean norm at most twice the
+objective shock.  Therefore boundary degree volume moving by normalized
+margin `theta` is at most `2 * shock / theta^2`, with telescoping shock over
+disjoint epochs.  The remaining cyclic problem is an output-sensitive
+heavy-change reporter for these energy-packed crossings, not a full boundary
+refresh.
 
 Build from this directory with:
 

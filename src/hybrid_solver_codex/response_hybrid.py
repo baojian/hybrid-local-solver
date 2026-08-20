@@ -211,6 +211,67 @@ class DenseNestedResponse:
         reduced_rhs = rhs[frontier_vertices] - coupling.T @ (self._inverse @ rhs[self._vertices])
         return 0.5 * (schur + schur.T), reduced_rhs
 
+    def lift_frontier_vector(
+        self,
+        frontier: Iterable[int] | np.ndarray,
+        frontier_vector: np.ndarray,
+    ) -> np.ndarray:
+        """Lift a Schur-frontier vector into the current ambient face.
+
+        If the settled anchor is ``S`` and ``frontier`` is ``B``, this
+        returns the vector with frontier block ``y`` and anchor block
+        ``-Q_SS^{-1} Q_SB y``.  Multiplication by ``Q`` therefore vanishes
+        on ``S``.  The method is a dense diagnostic realization of the
+        orthogonal lifted-frontier operator used in the accompanying note;
+        it is not a locality claim.
+        """
+        frontier_vertices = self._validated_new_vertices(frontier)
+        values = np.asarray(frontier_vector, dtype=float)
+        if values.shape != (frontier_vertices.size,) or not np.all(np.isfinite(values)):
+            raise ValueError(
+                "frontier_vector must be finite and match the number of frontier vertices"
+            )
+
+        lifted = np.zeros(self.n, dtype=float)
+        lifted[frontier_vertices] = values
+        if self._vertices.size and frontier_vertices.size:
+            coupling = self._matrix[np.ix_(self._vertices, frontier_vertices)]
+            lifted[self._vertices] = -(self._inverse @ coupling @ values)
+        return lifted
+
+    def normalized_frontier_lift(
+        self,
+        frontier: Iterable[int] | np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Return an energy-orthonormal basis for one lifted frontier.
+
+        The returned ambient matrix is L K^{-1/2}, where K is the exact
+        frontier Schur complement and L is the frontier lift. Its columns are
+        orthonormal in the full-matrix energy inner product. Bases produced at
+        successive nested expansions are mutually energy-orthogonal.
+        """
+        frontier_vertices = self._validated_new_vertices(frontier)
+        frontier_size = int(frontier_vertices.size)
+        if frontier_size == 0:
+            return np.empty((self.n, 0), dtype=float), np.empty((0, 0), dtype=float)
+
+        frontier_block = self._matrix[np.ix_(frontier_vertices, frontier_vertices)]
+        if self._vertices.size:
+            coupling = self._matrix[np.ix_(self._vertices, frontier_vertices)]
+            inverse_coupling = self._inverse @ coupling
+            schur = frontier_block - coupling.T @ inverse_coupling
+        else:
+            inverse_coupling = np.empty((0, frontier_size), dtype=float)
+            schur = frontier_block
+        schur = 0.5 * (schur + schur.T)
+        inverse_square_root = _spd_inverse_square_root(schur)
+
+        basis = np.zeros((self.n, frontier_size), dtype=float)
+        basis[frontier_vertices, :] = inverse_square_root
+        if self._vertices.size:
+            basis[self._vertices, :] = -(inverse_coupling @ inverse_square_root)
+        return basis, schur
+
     def solve_with_frontier(
         self,
         right_hand_side: np.ndarray,
@@ -523,6 +584,13 @@ def _spd_inverse(matrix: np.ndarray) -> np.ndarray:
         raise ValueError("new Schur block must be positive definite") from error
     identity = np.eye(matrix.shape[0], dtype=float)
     return np.linalg.solve(factor.T, np.linalg.solve(factor, identity))
+
+
+def _spd_inverse_square_root(matrix: np.ndarray) -> np.ndarray:
+    eigenvalues, eigenvectors = np.linalg.eigh(matrix)
+    if eigenvalues.size and eigenvalues[0] <= 0.0:
+        raise ValueError("new Schur block must be positive definite")
+    return (eigenvectors * (eigenvalues**-0.5)) @ eigenvectors.T
 
 
 def _local_true_residual(

@@ -91,7 +91,11 @@ the entire problem in $O(\mathcal V)$ work, whereas settling the leaves while
 retaining the old center pivot still needs $\Omega(1/\alpha)$ steps.  Splicing
 this boundary operation into the radial wave proves the accelerated
 explored-volume bound for finite symmetric spiders of every arm length,
-including those whose true leaves are reached.
+including those whose true leaves are reached.  Exact forest response also
+has an exact preconditioning interpretation: every eliminated forest mode
+becomes a unit generalized eigenvalue and all nontrivial conditioning is
+confined to the Schur core.  Peeling to the graph $2$-core is the canonical
+maximal version of this reduction.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -202,10 +206,9 @@ On the center-seeded three-vertex path, with $B=2.5$ and
 $\epsppr=10^{-2}$, singleton top-$1/32$ batches have
 $\Work_{\rm spread}\geq\alpha^{-3/2}/1408$ for
 $\alpha\leq10^{-4}$ although $\mathcal V_{\rm exp}=4$. \\
-\statusproved & A certified closed pendant forest can be permanently
-Schur-deflated in linear work without core fill.  This solves reached stars
-in $O(\mathcal V)$ and, spliced with the radial wave, proves the accelerated
-bound on every finite symmetric spider. \\
+\statusproved & Certified pendant-forest Schur deflation has linear work,
+unit forest preconditioned eigenvalues, a canonical graph-$2$-core reduction,
+and an accelerated finite-spider radial bound. \\
 \statusrefuted & A proof based only on self-reflection cannot explain a fixed
 $B=2.5$ as $\alpha\downarrow0$, and a proof using only monotone objective
 decrease loses the factor
@@ -2548,6 +2551,189 @@ graph is a tree and $H$ is one vertex, every component of $G[C]$ has that
 vertex as its unique external neighbor, and the reduced system is scalar.
 \end{proof}
 
+The repository's newer response-preconditioned framework suggests a stronger
+interpretation of this reduction.  Exact forest response is a preconditioner
+whose spectrum can be read without inequalities: every eliminated forest mode
+becomes a unit eigenvalue, and all remaining nontrivial conditioning belongs
+to the reduced core.
+
+\begin{proposition}[Exact forest-response spectral lift]
+\label{prop:direct-forest-spectral-lift}
+Under \cref{thm:direct-pendant-deflation}, the reduced core retains the shared
+spectral bounds
+\begin{equation}
+ \alpha I\preceq\widehat Q\preceq I.
+ \label{eq:direct-forest-schur-bounds}
+\end{equation}
+Define
+\begin{equation}
+ F_C:=\begin{pmatrix}I&0\\E^\mathsf TA^{-1}&I\end{pmatrix}.
+ \label{eq:direct-forest-response-factor}
+\end{equation}
+For an arbitrary SPD core preconditioner $P_H$, lift it to the full system by
+\begin{equation}
+ M_C(P_H):=
+ F_C\begin{pmatrix}A&0\\0&P_H\end{pmatrix}F_C^\mathsf T.
+ \label{eq:direct-forest-lifted-preconditioner}
+\end{equation}
+Then
+\begin{equation}
+ \sigma\!\left(M_C(P_H)^{-1/2}QM_C(P_H)^{-1/2}\right)
+ =\{1\}^{|C|}\cup
+ \sigma\!\left(P_H^{-1/2}\widehat QP_H^{-1/2}\right).
+ \label{eq:direct-forest-lifted-spectrum}
+\end{equation}
+In particular, if
+$\mu_{\min}$ and $\mu_{\max}$ are the extreme eigenvalues of the core
+preconditioned matrix, the full effective condition number is exactly
+\begin{equation}
+ \kappa_{\rm eff}
+ =\frac{\max\{1,\mu_{\max}\}}{\min\{1,\mu_{\min}\}}.
+ \label{eq:direct-forest-lifted-condition}
+\end{equation}
+After the forest factor has been stored, one application of
+$M_C(P_H)^{-1}$ costs two forest passes and one application of $P_H^{-1}$.
+Permanent reduction to $\widehat Q$ instead pays the forest only at
+construction and final recovery.
+\end{proposition}
+
+\begin{proof}
+For every $y\in\mathbb R^H$, Schur minimization and the shared bounds
+$\alpha I\preceq Q\preceq I$ give
+\begin{equation*}
+ y^\mathsf T\widehat Qy
+ =\min_{z\in\mathbb R^C}
+  \begin{pmatrix}z\\y\end{pmatrix}^{\!\mathsf T}
+  Q
+  \begin{pmatrix}z\\y\end{pmatrix}
+ \geq\alpha\|y\|_2^2,
+\end{equation*}
+while choosing $z=0$ gives the upper bound
+$y^\mathsf T\widehat Qy\leq\|y\|_2^2$.  This proves
+\cref{eq:direct-forest-schur-bounds}.
+
+Direct multiplication gives the block factorization
+\begin{equation}
+ Q=F_C
+ \begin{pmatrix}A&0\\0&\widehat Q\end{pmatrix}F_C^\mathsf T.
+ \label{eq:direct-forest-block-factorization}
+\end{equation}
+Congruence by the invertible $F_C$ transforms the generalized pair
+$(Q,M_C(P_H))$ into the block-diagonal pair
+\begin{equation*}
+ \left(
+  \begin{pmatrix}A&0\\0&\widehat Q\end{pmatrix},
+  \begin{pmatrix}A&0\\0&P_H\end{pmatrix}
+ \right).
+\end{equation*}
+Its generalized spectrum is $|C|$ copies of one plus the spectrum of the core
+pair $(\widehat Q,P_H)$, proving
+\cref{eq:direct-forest-lifted-spectrum,eq:direct-forest-lifted-condition}.
+Applying $F_C^{-1}$ and $F_C^{-\mathsf T}$ uses two solves with the stored
+forest factor $A$; the middle block uses $P_H^{-1}$.  This proves the work
+claim.
+\end{proof}
+
+The same factorization also identifies the exact update seen by a persistent
+core response when a newly certified pendant component is absorbed.
+
+\begin{proposition}[Pendant absorption is one positive Green-column update]
+\label{prop:direct-pendant-rank-one-response}
+Let one closed component $C$ attach at $p\in H$, put
+$q:=Q_{Cp}$, and suppose the pre-absorption core system is
+$K_Hx=h$, where $K_H$ is SPD Stieltjes, with inverse
+$G_H:=K_H^{-1}$.  Define
+\begin{equation}
+ \sigma:=q^\mathsf TA^{-1}q,
+ \qquad
+ \gamma:=-q^\mathsf TA^{-1}b_C,
+ \qquad
+ g_p:=G_He_p.
+ \label{eq:direct-pendant-rank-one-data}
+\end{equation}
+After exact pendant elimination, the core system is
+\begin{equation*}
+ K_H'=K_H-\sigma e_pe_p^\mathsf T,
+ \qquad h'=h+\gamma e_p,
+\end{equation*}
+and
+\begin{align}
+ (K_H')^{-1}
+ &=G_H+\frac{\sigma}{1-\sigma (G_H)_{pp}}g_pg_p^\mathsf T,
+ \label{eq:direct-pendant-inverse-update}\\
+ x'-x
+ &=\frac{\gamma+\sigma x_p}{1-\sigma (G_H)_{pp}}g_p.
+ \label{eq:direct-pendant-solution-update}
+\end{align}
+The denominator is strictly positive.  If $h\geq0$ and $b_C\geq0$, then
+$G_H\geq0$, $\gamma\geq0$, and the update is entrywise nonnegative.  For every
+still-exterior vertex set $R$, its demand increment is the single nonnegative
+range-add vector
+\begin{equation}
+ -Q_{RH}(x'-x)\geq0.
+ \label{eq:direct-pendant-boundary-range-add}
+\end{equation}
+Thus online forest absorption creates no general dense matrix update: it
+creates one scalar attachment update and one implicit Green-column response.
+Locating all finite-band crossings caused by that column is exactly the
+remaining cyclic-core reporting problem.
+\end{proposition}
+
+\begin{proof}
+Because $q$ is supported only at attachment $p$, the Schur correction and
+reduced load in \cref{eq:direct-pendant-schur-system} are respectively
+$\sigma e_pe_p^\mathsf T$ and $\gamma e_p$.  The matrix determinant lemma and
+positive definiteness of $K_H'$ give
+$1-\sigma (G_H)_{pp}>0$.  Sherman--Morrison gives
+\cref{eq:direct-pendant-inverse-update}; multiplying it by $h'$ and collecting
+the coefficient of $g_p$ gives
+\cref{eq:direct-pendant-solution-update}.  A positive-definite Stieltjes
+matrix has entrywise nonnegative inverse.  Moreover $q\leq0$ and
+$A^{-1}\geq0$, so $b_C\geq0$ implies $\gamma\geq0$.  Finally
+$Q_{RH}\leq0$ proves \cref{eq:direct-pendant-boundary-range-add}.
+\end{proof}
+
+\begin{corollary}[Canonical reduction to the graph $2$-core]
+\label{cor:direct-two-core-reduction}
+Let $G$ be a completely exposed finite connected graph and let $H$ be its
+graph-theoretic $2$-core.  If $H\neq\emptyset$, then
+$C:=V\setminus H$ is a closed pendant forest and
+\cref{thm:direct-pendant-deflation,prop:direct-forest-spectral-lift} apply.
+If $H=\emptyset$, then $G$ is a tree and is solved exactly by one elimination
+and one reverse pass.
+
+Consequently, if $k:=|H|>0$, forming and factoring the remaining core densely
+gives an exact full solve in
+\begin{equation}
+ O\!\left(\operatorname{cvol}(V)+k^3\right)
+ \quad\text{work and}\quad
+ O\!\left(\operatorname{cvol}(V)+k^2\right)
+ \quad\text{storage}.
+ \label{eq:direct-two-core-dense-work}
+\end{equation}
+More generally, any iterative or persistent-response guarantee for the Schur
+core lifts with only linear forest construction and recovery work; the forest
+size does not multiply the core condition factor.
+\end{corollary}
+
+\begin{proof}
+Compute the $2$-core by repeatedly deleting vertices of current degree at most
+one.  A deleted component cannot contain a cycle, because every cycle survives
+this peeling.  It cannot meet the surviving core at two distinct vertices:
+a component path between two attachments, together with its attachment edges,
+has minimum degree two relative to the core plus that path and would also
+survive.  Connectedness gives exactly one core attachment per deleted
+component.  Thus the peeling order is already a linear-work forest
+elimination order.
+
+If no vertex survives, the connected graph is a tree.  Otherwise the forest
+messages change only core diagonals.  A dense factorization of the resulting
+$k$-vertex SPD core costs $O(k^3)$ work and $O(k^2)$ storage, after which one
+reverse forest pass recovers the eliminated coordinates.  The final claim is
+\cref{eq:direct-forest-lifted-spectrum} or, under permanent elimination,
+\cref{cor:direct-pendant-core-composition}.
+\end{proof}
+
 The theorem is a trajectory-erasure identity: after the conditional lift,
 the residual and objective seen by the surviving core depend only on
 $x_H$, not on how many reflected coordinate pushes previously occurred in
@@ -2820,10 +3006,10 @@ The direct route should now proceed in the following order.
  $\alpha=1/49$, where the endpoint weight may lag several interior amplitude
  levels.  The static counterexample proves that the invariant must use the
  actual top-$1/32$ history, not arbitrary legal reachability.
- \item Extend the proved pendant Schur correction beyond radial spiders.
- Detect maximal closed pendant forests online, prove that each attachment
- diagonal is installed only once, and couple the reduced-core solver to the
- same charged-work ledger.
+ \item Couple the proved maximal $2$-core reduction to the repository's
+ response-preconditioned controller.  The remaining online obligation is to
+ certify when a newly exposed decoration is permanently closed and to update
+ the reduced-core boundary reporter without a global rekey.
  \item Splice the proved nonsymmetric expansion theorem with maximal unary
  corridors.  Every piece must carry either a positive Dirichlet gap, an
  exact event-wave certificate, or an explicit boundary eliminator; merely
@@ -2902,7 +3088,12 @@ in $\alpha$.  The old-pivot proposition proves that this diagonal correction
 is essential, not cosmetic: exact conditional leaf settlement alone retains
 a $1-\Theta(\alpha)$ center mode.  Combining permanent deflation with the
 radial parity wave closes the finite-spider theorem for every arm length and
-removes the earlier unreached-leaf condition.
+removes the earlier unreached-leaf condition.  The spectral-lift proposition
+now makes the connection to the repository's response-preconditioned program
+exact: forest modes become unit modes, so only the Schur $2$-core contributes
+nontrivial effective conditioning.  A small cyclic core can therefore be
+factored densely after linear forest peeling, while a large core is handed to
+the mixed iterative/response backend.
 
 The resulting framework is sharp enough to guide a new algorithm.  An
 accelerated region must possess one of three certificates: a causal corridor

@@ -90,7 +90,11 @@ framework.  More sharply, expanders force quadratic storage for explicit
 original-basis dense fronts, while sparse cyclic Stieltjes systems admit
 arbitrarily light singleton cascades that force quadratic updates in eager
 demand arrays.  Stable bounded block--cut presentations nevertheless give an
-exact product-scale hierarchy for polylogarithmic block size.  A cutoff at
+exact product-scale hierarchy for polylogarithmic block size.  The companion
+\texttt{delayed\_reflection\_ladder} note removes the stable-metadata
+assumption: activation at a zero coordinate preserves the consumed response
+prefix, so an online block merge rebuilds only future pieces and retains the
+same product scale under ordinary adjacency access.  A cutoff at
 $\zeta=\alpha^{-1/4}$ pays the accelerated dense-algebra budget exactly.
 Per-event shock-only continuation is itself refuted; nevertheless, all
 numerical repair over an accuracy epoch collapses to one final accelerated
@@ -98,6 +102,10 @@ solve when responses are carried separately.  Arbitrary rooted trees meet
 the product bound with a different exact trace.  For approximate output, a
 finite-resolution theorem replaces exact zero signs by an $\alpha\tau$ KKT
 band and reduces the product bound to certified band-response maintenance.
+Uniform point estimates are unnecessary: certified one-sided intervals
+suffice, and exact exterior response changes are $\ell_2$ contractions of the
+primal energy shock.  Thus only energy-packed interval crossings need to be
+located.
 Exact light response and its strictly weaker finite-resolution version remain
 open on nonequitable cyclic cores.
 \end{abstract}
@@ -221,15 +229,24 @@ sparse cyclic light cascade. \\
 of size $b$ admit an exact response-generated solver with the route charge in
 \cref{eq:stable-bounded-block-work}; polylogarithmic $b$ reaches the product
 scale when presentation work does. \\
+\statusproved & The causal merge theorem in
+\texttt{delayed\_reflection\_ladder} removes stable block metadata for bounded
+blocks: a newly relevant cycle is incident on an activating zero coordinate,
+so consumed prefixes remain exact and future-only iterator rebuilds preserve
+the product bound under ordinary adjacency access. \\
 \statusproved & Finite-resolution continuation is support-safe and loses at
 most $\tau_{\rm gate}$ in degree-normalized error when certified demand error
 is $\alpha\tau_{\rm gate}/4$.  One final accelerated solve gives the total
 error and work in \cref{eq:finite-response-total-error,eq:finite-response-work}.
 \\
-\statusopen & On nonequitable cyclic cores, prove either exact light-shock
-response \cref{prob:light-shock-response}, or the strictly weaker certified
-band-response bound \cref{prob:finite-resolution-response}.  Online response
-recourse when exposed blocks merge is also open.
+\statusproved & The uniform pointwise certificate can be replaced by
+one-sided intervals refined only near the transition band.  An exact nested
+face correction changes exterior demands by at most its energy norm, so
+degree volume moving by normalized margin $\theta$ is at most
+$2\Delta/\theta^2$. \\
+\statusopen & On large nonequitable cyclic cores, prove either exact
+light-shock response \cref{prob:light-shock-response}, or the strictly weaker
+certified band-response bound \cref{prob:finite-resolution-response}.
 \\
 \bottomrule
 \end{tabularx}
@@ -2530,11 +2547,17 @@ generates its own safe response trace; no equivalence with the literal
 boundary-gate batches is asserted.
 \end{proof}
 
-The presentation condition is real.  Ordinary incremental biconnectivity
-maintains only the combinatorial block forest.  When a newly active vertex
-closes a cycle, already constructed response iterators may merge and require
-reparenting.  Proving linear-polylogarithmic total response recourse without
-replaying past events is open even when the final blocks are small.
+The presentation condition can now be removed for bounded blocks.  The
+zero-prefix theorem in \texttt{delayed\_reflection\_ladder} observes that a
+newly relevant cycle always contains a just-activated zero coordinate.  The
+old response prefix is therefore unchanged; versioned iterators discard only
+unconsumed lookaheads, preserve off-path child heaps through articulation
+handles, and rebuild the merged at-most-$b$ front from the current checkpoint.
+Charging every such rebuild and propagated rekey to the activating incidence
+gives ordinary adjacency access the same
+$\widetilde O(b^3/(\rho\sqrt\alpha))$ product scale.  Stable metadata remains
+a useful abstraction for \cref{thm:stable-bounded-block-response}, but it is
+not an oracle assumption for the bounded-block result.
 
 For approximate PageRank output, however, exact zero signs are stronger than
 necessary.  The following theorem replaces them by a finite normalized KKT
@@ -2668,10 +2691,89 @@ $\mathcal S_B\preceq I$,
 proving \cref{eq:finite-response-shock-density}.
 \end{proof}
 
+\begin{corollary}[Margin-adaptive interval continuation]
+\label{cor:finite-response-intervals}
+In \cref{thm:finite-resolution-continuation}, replace the point estimates by
+arbitrary certified intervals
+\begin{equation}
+ L_v\leq
+ \frac{e_{\ell_\rho}(x^U)_v}{\sqrt{d_v}}
+ \leq U_v,
+ \qquad v\in\partial U.
+ \label{eq:finite-response-intervals}
+\end{equation}
+At a fixed face, admit every label with $L_v>\eta/2$; if none exists, stop
+when every $U_v\leq\eta$, and otherwise refine only intervals preventing one
+of these two certificates.  If refinement terminates at each fixed face,
+then the safety, gate-error, and shock conclusions
+\cref{eq:finite-response-safety,eq:finite-response-gate-error,eq:finite-response-shock-density}
+all remain valid.  No common interval width is required away from the
+transition band.
+\end{corollary}
+
+\begin{proof}
+The proof of \cref{thm:finite-resolution-continuation} uses its uniform
+estimate only twice.  Admission needs the exact inequality
+$e_{\ell_\rho}(x^U)_v>\eta\sqrt{d_v}/2$, which follows from the certified
+lower endpoint.  Termination needs
+$e_{\ell_\rho}(x^T)_v\leq\eta\sqrt{d_v}$, which follows from the certified
+upper endpoint.  The same comparison induction, maximum principle, and Schur
+shock calculation therefore apply verbatim.
+\end{proof}
+
+\begin{lemma}[Energy packing of finite-band response changes]
+\label{lem:finite-response-energy-packing}
+Let $U\subseteq T\subseteq S^\star$ be positive exact Dirichlet faces and
+let $W\subseteq V\setminus T$.  Extend $x^U$ by zero on $T\setminus U$ and
+put
+\begin{equation*}
+ y_W:=e_{\ell_\rho}(x^T)_W-e_{\ell_\rho}(x^U)_W.
+\end{equation*}
+Then $y_W\geq0$ and
+\begin{equation}
+ \|y_W\|_2^2
+ \leq\|x^T-x^U\|_{Q_{TT}}^2
+ =2\bigl(\Psi_{\ell_\rho}(x^U)-\Psi_{\ell_\rho}(x^T)\bigr).
+ \label{eq:finite-response-energy-packing}
+\end{equation}
+For arbitrary margins $m_v>0$, if
+$H:=\{v\in W:y_v/\sqrt{d_v}\geq m_v\}$, then
+\begin{equation}
+ \sum_{v\in H}d_vm_v^2
+ \leq2\bigl(\Psi_{\ell_\rho}(x^U)-\Psi_{\ell_\rho}(x^T)\bigr).
+ \label{eq:finite-response-weighted-packing}
+\end{equation}
+In particular, a common margin $\theta$ gives
+\begin{equation*}
+ \vol(H)\leq
+ \frac{2}{\theta^2}
+ \bigl(\Psi_{\ell_\rho}(x^U)-\Psi_{\ell_\rho}(x^T)\bigr).
+\end{equation*}
+The note's charged volume differs only by its stated constant/additive
+convention.  These bounds telescope over disjoint nested response epochs.
+\end{lemma}
+
+\begin{proof}
+For $\delta:=x^T_T-x^U_T\geq0$, Stieltjes signs give
+$y_W=-Q_{WT}\delta\geq0$.  The Schur complement of $Q_{TT}$ in the principal
+matrix on $T\cup W$ yields
+\begin{equation*}
+ Q_{WT}Q_{TT}^{-1}Q_{TW}\preceq Q_{WW}\preceq I.
+\end{equation*}
+Thus $Q_{WT}Q_{TT}^{-1/2}$ has spectral norm at most one and
+$\|y_W\|_2\leq\|\delta\|_{Q_{TT}}$.  Completing the square around the exact
+face solution $x^T$ proves the equality in
+\cref{eq:finite-response-energy-packing}.  Every $v\in H$ obeys
+$y_v^2\geq d_vm_v^2$, proving
+\cref{eq:finite-response-weighted-packing}; objective drops telescope.
+\end{proof}
+
 \begin{problem}[Finite-resolution cyclic response]
 \label{prob:finite-resolution-response}
 For $\eta=\alpha\tau$, maintain the certificates
-\cref{eq:finite-response-certificate} and report the finite-resolution gate
+\cref{eq:finite-response-certificate}, or the strictly weaker interval
+certificates \cref{eq:finite-response-intervals}, and report the
+finite-resolution gate
 with
 \begin{equation}
  \mathcal C_{\rm resp}^{(\eta)}
@@ -2681,13 +2783,14 @@ with
  \label{eq:finite-resolution-response-target}
 \end{equation}
 No exact positive-versus-nonpositive distinction is required inside the
-normalized KKT band $[0,\eta]$; producing the pointwise certificate may still
-require refinement within that band.  In the certified response-tree model,
-the exact theorem supplies this oracle only conditionally on bounding visited
-nodes, finite-accuracy factor maintenance, leaf work, and presentation
-updates at the displayed scale.  A sharper finite-resolution analysis would
-charge the nodes whose certified intervals meet the transition band
-$[\eta/2,\eta]$ rather than every exact zero-sign ambiguity.
+normalized KKT band $[0,\eta]$.  By
+\cref{lem:finite-response-energy-packing}, the degree volume whose cumulative
+normalized response moves through a prescribed interval margin is charged to
+objective shock.  The remaining operation is therefore an output-sensitive
+heavy-change report, not an eager refresh of every boundary demand.  In the
+certified response-tree model, the exact theorem supplies this oracle only
+conditionally on bounding visited nodes, finite-accuracy factor maintenance,
+leaf work, and presentation updates at the displayed scale.
 \end{problem}
 
 This problem is strictly weaker than exact light-sign maintenance.  If it is
@@ -2827,8 +2930,9 @@ dynamic-range logarithm.  The incremental route is now more sharply resolved:
  give complete work theorems for these three
  mechanisms, including presentation and reporting charges.  Stable bounded
  block--cut presentations extend the response route to cyclic compositions
- by \cref{thm:stable-bounded-block-response}; removing their stable-metadata
- assumption requires an online block-response recourse theorem.
+ by \cref{thm:stable-bounded-block-response}; the causal zero-prefix theorem
+ in \texttt{delayed\_reflection\_ladder} now supplies ordinary-adjacency
+ recourse when those exposed blocks merge.
  \item \emph{Universal hybrid route.}  Run exact incremental Schur algebra up
  to the cutoff \cref{eq:separator-cutoff}; after overflow, aggregate small
  face shocks before paying for an old-face pass.  The pre-overflow phase and
@@ -2839,7 +2943,10 @@ dynamic-range logarithm.  The incremental route is now more sharply resolved:
  \item \emph{Finite-resolution route.}  For approximate output, stop asking
  for exact signs inside an $\alpha\tau$ normalized KKT band.  The resulting
  support-safe error and work reduction is proved in
- \cref{thm:finite-resolution-continuation}.  Its remaining response target
+ \cref{thm:finite-resolution-continuation};
+ \cref{cor:finite-response-intervals} removes uniform point estimates, and
+ \cref{lem:finite-response-energy-packing} charges large interval movements
+ to shock.  Its remaining response target
  \cref{prob:finite-resolution-response} is strictly weaker than the literal
  exact-gate problem.
 \end{enumerate}
@@ -2850,9 +2957,9 @@ separator or a bounded number of exact signatures.  The remaining proof
 problem within the literal hybrid route is no longer numerical continuation:
 one final accelerated repair already suffices.  It is the exact response
 hierarchy needed to report light events without old-face rescans.  For the
-approximate target, the weaker obligation is a certified finite-band response
-hierarchy.  These are strictly more precise than asking for an unspecified
-``better separator.''
+approximate target, the weaker obligation is an output-sensitive reporter for
+the energy-packed interval crossings.  These are strictly more precise than
+asking for an unspecified ``better separator.''
 
 \section{Conclusion}
 
@@ -2883,8 +2990,9 @@ $\zeta,\nu=\Omega(n)$.  This is not a lower bound against all local solvers;
 it is a proof that the representation must change.  Explicit original-basis
 dense fronts and eager exact-demand arrays are also ruled out by
 \cref{prop:explicit-multifrontal-expander,prop:explicit-demand-light-cascade},
-while \cref{thm:stable-bounded-block-response} proves that a stable bounded-
-block composition is sufficient.  The
+while \cref{thm:stable-bounded-block-response} proves that a bounded-block
+composition is sufficient.  Causal zero-prefix rebuilding removes the stable
+presentation requirement under ordinary adjacency access.  The
 $\alpha^{-1/4}$ cutoff changes the dense-algebra representation at exactly
 the accelerated budget.  The tempting per-event shock lemma is false by
 \cref{thm:shock-output-obstruction,thm:no-full-sweep-shock-repair}.  What
@@ -2895,7 +3003,9 @@ Within the literal exact-response hybrid route, what remains unproved is the
 graph-uniform light-response hierarchy in
 \cref{prob:light-shock-response}.  For approximate PageRank output,
 \cref{thm:finite-resolution-continuation} shows that exact zero signs are not
-needed: the strictly weaker band-response problem
+needed.  Certified one-sided intervals replace uniform point estimates, and
+\cref{lem:finite-response-energy-packing} bounds the unavoidable large-change
+output by objective shock.  The strictly weaker band-response problem
 \cref{prob:finite-resolution-response} already implies the desired
 $\widetilde O(1/(\varepsilon\sqrt\alpha))$ degree-normalized guarantee.
 

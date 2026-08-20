@@ -73,4 +73,18 @@ settlement with the old center pivot would still require
 wave proves the accelerated volume bound on every finite symmetric spider,
 including when the far leaves are reached.
 
+In the repository's newer response-preconditioned language, the forest
+operation has an exact spectral lift: every eliminated forest coordinate
+becomes a unit generalized eigenvalue, and the remaining effective condition
+number is exactly that of the Schur core. Repeated degree-one peeling gives
+the canonical maximal reduction to the graph 2-core. A completely exposed
+graph with a k-vertex 2-core therefore has an exact
+`O(cvol(V) + k^3)` dense-core solve, while arbitrary core preconditioners and
+response solvers lift with only linear forest construction and recovery.
+Absorbing one newly certified pendant component is exactly a rank-one
+attachment update: Sherman--Morrison shows that the entire core correction is
+one Green-function column and that all exterior demand changes form one
+nonnegative range-add vector. This pinpoints the remaining online task as
+finite-band crossing reports on the cyclic core, rather than forest algebra.
+
 Build with make (latexmk).

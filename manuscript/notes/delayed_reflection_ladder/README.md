@@ -102,9 +102,15 @@ graph whose biconnected blocks
 have size at most `q`, lazy scalar block responses yield the exact,
 condition-free bound
 `O~(q^3 / (rho sqrt(alpha)))`.  Thus trees with bounded-size cyclic gadgets
-glued at articulation vertices are closed at the product scale.  Unbounded
-blocks are not automatically hard: reflection symmetry reduces a whole cycle
-to a radial tridiagonal recurrence and gives an output-linear exact solver.
+glued at articulation vertices are closed at the product scale.  The block
+identifiers and rooted block-cut tree no longer need to be supplied.  With
+ordinary adjacency access, a newly activated zero coordinate can merge
+current blocks without changing any consumed response prefix; only the
+affected future iterators are rebuilt.  Charging those rebuilds to the
+activating incidences preserves the same `O~(q^3 / (rho sqrt(alpha)))`
+bound.  Unbounded blocks are not automatically hard: reflection symmetry
+reduces a whole cycle to a radial tridiagonal recurrence and gives an
+output-linear exact solver.
 More generally, every root-distance-equitable graph has an exact symmetric
 tridiagonal shell quotient.  A lazy shell scan tests the next Schur demand
 before scanning that shell, so it discovers, solves, and certifies the optimum
@@ -133,9 +139,24 @@ preserves the same product-scale work bound using ordinary adjacency access.
 More generally, if at most `chi_*` exact-support vertices occur in any
 root-distance shell, the condition-free gate costs
 `O~((w + 1)^2 chi_* / (rho sqrt(alpha)))`.  This closes arbitrarily long
-cycles and fixed-width cyclic strips.  What remains open is a large core with
-neither bounded articulation blocks, an equitable tree quotient, nor thin
-radial support.
+cycles and fixed-width cyclic strips.
+
+For approximate output, the note now weakens the response requirement again.
+A margin-adaptive gate needs only certified one-sided intervals: it admits a
+label whose lower endpoint is safely positive, terminates when every upper
+endpoint is below the allowed band, and refines only ambiguous intervals.
+Nested exact-face corrections satisfy an exterior response contraction:
+the squared change of all boundary demands is no larger than the primal
+energy shock.  Hence boundary degree volume moving by normalized margin
+`theta` is at most `2 * shock / theta^2`, and every scalar response leverage
+is at most one. Source-aware leverage has now been reduced to an exact scalar
+state: its square is the decrease of a terminal Schur diagonal across the
+batch elimination. These losses telescope to at most `(1-alpha)/2` per
+still-exterior label. A bounded-arity locator needs only a certified one-sided
+aggregate estimate with additive error at the current pruning scale. What
+remains open on a large core with neither bounded articulation blocks, an
+equitable tree quotient, nor thin radial support is dynamic local maintenance
+of these aggregate diagonal losses, without scanning the full boundary.
 
 The supplied-support condition has also been removed on arbitrary graphs for
 correctness and locality.  An exact boundary-violation gate admits only

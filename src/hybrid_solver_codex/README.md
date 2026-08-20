@@ -27,10 +27,22 @@ iterative roadmap. It maintains a dense principal inverse on a settled anchor,
 uses warm-started CG on the anchor Schur complement for a light frontier, and
 absorbs the frontier when degree volume grows geometrically. The backend
 probes every new frontier once before a rebuild, allowing an easy heavy batch
-to certify without being factorized. The backend
+to certify without being factorized. Its diagnostic frontier-lift operation
+also realizes the exact old-face response and verifies that arbitrary nested
+Schur-frontier errors are mutually energy-orthogonal. Its normalized lift
+constructs an energy-orthonormal basis for each frontier, allowing the
+append-only multi-event response-sketch identities in the accompanying note
+to be checked directly. The backend
 materializes the full matrix and records global boundary reads and dense
 arithmetic explicitly. It validates bordered updates and switching invariants;
 it is not the sought output-sensitive SDD implementation.
+
+`tests/test_response_theory_identities.py` is the numerical theorem harness
+for the response track. It checks the grounded-Laplacian and Schur congruence,
+source leverage as exact Schur-diagonal loss, invariance under
+degree-preserving exterior rewiring, the transposed fixed-anchor harmonic
+sketch, and the two-ledger square-root response bound. These are dense
+small-graph identities and do not constitute a complexity experiment.
 
 Claude agents may read, run, benchmark, and review this implementation, but
 must not modify files in this directory.

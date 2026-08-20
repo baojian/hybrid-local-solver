@@ -74,6 +74,9 @@ preconditioning, and fast solution of graph-structured linear systems.
 - *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices*
   (Spielman, 2010) - survey connecting the main algorithmic primitives.
 - *Spectral Sparsification of Graphs* (Spielman and Teng, 2011).
+- *Faster Maxflow via Improved Dynamic Spectral Vertex Sparsifiers* (van den
+  Brand et al., 2022) - dynamic Schur complements and operator heavy-hitter
+  location for electrical flows.
 
 ### Acceleration and sparse PageRank
 
@@ -164,6 +167,7 @@ downstream ranking requirements.
 | 2022 | COLT | [*Open Problem: Running Time Complexity of Accelerated ℓ1-Regularized PageRank*](../../papers/2022-colt-fountoulakis-running-time-complexity-accelerated-l1-regularized-pagerank.pdf) | `fountoulakis2022open` | Acceleration |
 | 2022 | JOTA | [*A Note on the Optimal Convergence Rate of Descent Methods with Fixed Step Sizes for Smooth Strongly Convex Functions*](../../papers/2022-jota-uschmajew-optimal-convergence-descent-fixed-step-smooth-strongly-convex.pdf) | `uschmajew2022note` | First-order convergence |
 | 2022 | OMS | [*Efficient Numerical Methods to Solve Sparse Linear Equations with Application to PageRank*](../../papers/2022-oms-anikin-efficient-numerical-methods-sparse-linear-equations-pagerank.pdf) | `anikin2022efficient` | Sparse PageRank optimization |
+| 2022 | STOC | [*Faster Maxflow via Improved Dynamic Spectral Vertex Sparsifiers*](../../papers/2022-stoc-brand-faster-maxflow-dynamic-spectral-vertex-sparsifiers.pdf) | `brand2022faster` | Dynamic spectral graph optimization |
 | 2023 | COLT | [*Accelerated and Sparse Algorithms for Approximate Personalized PageRank and Beyond*](../../papers/2023-colt-martinez-rubio-accelerated-sparse-algorithms-approximate-personalized-pagerank-beyond.pdf) | `martinezrubio2023accelerated` | Acceleration |
 | 2023 | ICML | [*Fast Online Node Labeling for Very Large Graphs*](../../papers/2023-icml-zhou-fast-online-node-labeling-very-large-graphs.pdf) | `zhou2023fast` | Local graph solvers |
 | 2023 | KDD | *Accelerating Personalized PageRank Vector Computation* | `chen2023accelerating` | Acceleration |
@@ -223,6 +227,7 @@ downstream ranking requirements.
 2. Spielman (2010).
 3. Spielman and Teng (2013).
 4. Spielman and Teng (2011).
+5. van den Brand et al. (2022).
 
 ### PageRank applications
 

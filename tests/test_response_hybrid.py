@@ -66,6 +66,139 @@ def test_frontier_schur_cg_matches_direct_principal_solve_and_warm_starts():
     np.testing.assert_allclose(second.solution, first.solution, rtol=1.0e-11, atol=1.0e-12)
 
 
+def test_nested_frontier_lifts_are_isometric_orthogonal_and_accumulate_error():
+    graph = path_graph(8)
+    alpha = 0.08
+    matrix = pagerank_matrix(graph, alpha).toarray()
+    right_hand_side = pagerank_rhs(graph, alpha, source=0)
+    response = DenseNestedResponse(matrix)
+    response.expand([0])
+    exact = response.solve_active(right_hand_side)
+    approximate = exact.copy()
+    error_energy = 0.0
+    earlier_lifts: list[np.ndarray] = []
+    rng = np.random.default_rng(11)
+
+    for batch in (np.array([1, 2]), np.array([3]), np.array([4, 5])):
+        schur, reduced_rhs = response.reduced_frontier_system(right_hand_side, batch)
+        exact_frontier = np.linalg.solve(schur, reduced_rhs)
+        perturbation = 1.0e-3 * rng.normal(size=batch.size)
+        exact_lift = response.lift_frontier_vector(batch, exact_frontier)
+        error_lift = response.lift_frontier_vector(batch, perturbation)
+
+        anchor = response.vertices
+        np.testing.assert_allclose((matrix @ error_lift)[anchor], 0.0, atol=1.0e-13)
+        np.testing.assert_allclose(
+            error_lift @ matrix @ error_lift,
+            perturbation @ schur @ perturbation,
+            rtol=1.0e-11,
+            atol=1.0e-14,
+        )
+        for earlier_lift in earlier_lifts:
+            np.testing.assert_allclose(earlier_lift @ matrix @ error_lift, 0.0, atol=1.0e-14)
+
+        exact += exact_lift
+        approximate += exact_lift + error_lift
+        error_energy += float(perturbation @ schur @ perturbation)
+        earlier_lifts.append(error_lift)
+        response.expand(batch)
+        np.testing.assert_allclose(
+            exact,
+            response.solve_active(right_hand_side),
+            rtol=1.0e-11,
+            atol=1.0e-12,
+        )
+
+    total_error = approximate - exact
+    np.testing.assert_allclose(
+        total_error @ matrix @ total_error,
+        error_energy,
+        rtol=1.0e-11,
+        atol=1.0e-14,
+    )
+
+    def objective(vector: np.ndarray) -> float:
+        return float(0.5 * vector @ matrix @ vector - right_hand_side @ vector)
+
+    np.testing.assert_allclose(
+        objective(approximate) - objective(exact),
+        0.5 * error_energy,
+        rtol=1.0e-11,
+        atol=1.0e-14,
+    )
+
+
+def test_frontier_lift_validates_vector_shape_and_values():
+    response = DenseNestedResponse(pagerank_matrix(path_graph(4), alpha=0.1).toarray())
+    response.expand([0])
+
+    with pytest.raises(ValueError, match="frontier_vector"):
+        response.lift_frontier_vector([1, 2], np.array([1.0]))
+    with pytest.raises(ValueError, match="frontier_vector"):
+        response.lift_frontier_vector([1], np.array([np.inf]))
+
+
+def test_normalized_frontier_bases_are_mergeable_response_sketches():
+    graph = path_graph(10)
+    matrix = pagerank_matrix(graph, alpha=0.06).toarray()
+    response = DenseNestedResponse(matrix)
+    response.expand([0])
+    bases: list[np.ndarray] = []
+
+    for batch in (np.array([1, 2]), np.array([3, 4]), np.array([5])):
+        basis, schur = response.normalized_frontier_lift(batch)
+        np.testing.assert_allclose(
+            basis.T @ matrix @ basis,
+            np.eye(batch.size),
+            rtol=1.0e-11,
+            atol=1.0e-12,
+        )
+        assert np.linalg.eigvalsh(schur)[0] > 0.0
+        for earlier_basis in bases:
+            np.testing.assert_allclose(
+                earlier_basis.T @ matrix @ basis,
+                0.0,
+                atol=1.0e-12,
+            )
+        bases.append(basis)
+        response.expand(batch)
+
+    combined_basis = np.concatenate(bases, axis=1)
+    np.testing.assert_allclose(
+        combined_basis.T @ matrix @ combined_basis,
+        np.eye(combined_basis.shape[1]),
+        rtol=1.0e-11,
+        atol=1.0e-12,
+    )
+
+    exterior = np.array([6])
+    np.testing.assert_allclose(
+        matrix[np.ix_(exterior, np.arange(graph.n))] @ np.concatenate(bases[:-1], axis=1),
+        0.0,
+        atol=1.0e-14,
+    )
+    exact_mass = float(
+        np.linalg.norm(matrix[np.ix_(exterior, np.arange(graph.n))] @ combined_basis) ** 2
+        / graph.degree[exterior[0]]
+    )
+    rng = np.random.default_rng(29)
+    samples = rng.normal(size=(combined_basis.shape[1], 20_000))
+    response_samples = (
+        matrix[np.ix_(exterior, np.arange(graph.n))] @ combined_basis @ samples
+    ) / np.sqrt(graph.degree[exterior[0]])
+    estimated_mass = float(np.mean(response_samples**2))
+    np.testing.assert_allclose(estimated_mass, exact_mass, rtol=0.04)
+
+    fresh_mass = 0.0
+    for basis in bases:
+        fresh_samples = rng.normal(size=(basis.shape[1], 20_000))
+        response_samples = (
+            matrix[np.ix_(exterior, np.arange(graph.n))] @ basis @ fresh_samples
+        ) / np.sqrt(graph.degree[exterior[0]])
+        fresh_mass += float(np.mean(response_samples**2))
+    np.testing.assert_allclose(fresh_mass, exact_mass, rtol=0.04)
+
+
 @pytest.mark.parametrize("rebuild_volume_factor", [1.0, 2.0, np.inf])
 def test_response_frontier_endpoints_and_hybrid_certify(rebuild_volume_factor):
     graph = path_graph(33)
