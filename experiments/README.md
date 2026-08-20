@@ -105,6 +105,26 @@ violation-only restart remains at constant explored volume and work, whereas
 factor-two halo growth is forced to admit the hub and incurs work linear in
 its arbitrarily large degree.
 
+Compare the response, mixed, and iterative-frontier realizations of the common
+restricted inverse with:
+
+```bash
+make response-hybrid
+```
+
+This is a dense correctness experiment. It compares rebuilding the exact
+response after every batch, probe-then-factor-two response/frontier switching,
+and a fixed exact source anchor with a growing iterative frontier. The mixed
+arm gives every new frontier one converged Schur-CG solve before it may trigger
+a volume rebuild; this avoids rebuilding a large but spectrally easy batch.
+The output keeps
+adjacency scans, global boundary-coordinate reads, dense response-update
+arithmetic, Schur construction, frontier iteration, materialization, and final
+writes in separate fields. Because the implementation materializes the full
+matrix and reads every boundary coordinate, these results test algebra and
+switching behavior only; they are not evidence for an output-sensitive local
+complexity bound.
+
 Generate the manuscript figure comparing actual hard-star work with both
 proved bounds using:
 

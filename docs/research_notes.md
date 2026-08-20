@@ -49,6 +49,35 @@ expanding faces without restarting a complete solve after every support event.
 Use `make note-audit`, `make note-report`, and `make note-graph` to validate and
 inspect the inventory. These tools do not rewrite research sources.
 
+### Dense response--frontier reference implementation
+
+`src/hybrid_solver_codex/response_hybrid.py` now realizes the proposed
+heavy/light controller exactly on small graphs. It maintains a dense inverse on
+the settled anchor, warm-starts CG on the exact frontier Schur complement, and
+absorbs the frontier after geometric degree-volume growth. Rebuild factors one,
+two, and infinity expose the pure-response, mixed, and fixed-anchor iterative
+endpoints behind the same support and verification controller.
+
+The experiment `make response-hybrid` keeps adjacency scans, global boundary
+reads, dense response-update arithmetic, Schur construction, frontier CG,
+materialization, and output writes separate. At `alpha = 0.05`, note-scoped
+`eps_ppr = 1e-6`, and random seed 7, factor two reduced the diagnostic response
+update arithmetic relative to rebuilding every batch by approximately `77%`
+on the path, `88%` on the binary tree, `68%` on the spider, and `66%` on the
+random 4-regular graph. Relative to never rebuilding, it reduced frontier CG
+iterations by approximately `53%`, `78%`, `54%`, and `34%`, respectively.
+
+An immediate factor-two rebuild fails on the center-seeded star: its single
+heavy batch would trigger the full dense response although the frontier solves
+in one CG step. The implemented mixed arm therefore gives each new frontier
+one converged iterative probe before permitting a volume-triggered rebuild.
+This makes the star collapse to the fixed-anchor endpoint with one iteration
+and no post-initial response update. These measurements establish a
+reproducible tradeoff surface, not a combined work bound or universal hybrid
+advantage. The implementation deliberately materializes the full matrix and
+performs global boundary reads; replacing those two operations remains the
+graph-local P0 obligation.
+
 ## 2026-08-20: repeated active-set SDD factor isolated
 
 The new standalone note

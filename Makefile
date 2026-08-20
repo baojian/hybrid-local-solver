@@ -1,4 +1,4 @@
-.PHONY: test lint paper notes note-audit note-report note-targets note-graph experiments full-experiments eps-sweep omega-sweep figures reproduce clean
+.PHONY: test lint paper notes note-audit note-report note-targets note-graph experiments full-experiments eps-sweep omega-sweep response-hybrid figures reproduce clean
 
 paper:
 	$(MAKE) -C manuscript
@@ -35,6 +35,9 @@ eps-sweep:
 
 omega-sweep:
 	uv run python -m experiments.run_omega_sweep
+
+response-hybrid:
+	uv run python -m experiments.explore_response_hybrid
 
 figures:
 	MPLBACKEND=Agg uv run python -m experiments.generate_figures

@@ -133,6 +133,16 @@ make note-targets
 make note-graph
 ```
 
+Run the dense response--iterative reference comparison with:
+
+```bash
+make response-hybrid
+```
+
+This diagnostic validates Schur updates and switching while reporting dense
+response arithmetic and global boundary reads separately; it is not a claimed
+local-time implementation.
+
 Run the complete reproducibility workflow with:
 
 ```bash

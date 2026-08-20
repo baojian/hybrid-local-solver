@@ -70,6 +70,9 @@ Schur correction. \\
 every queried boundary KKT demand through one response-leverage scalar. \\
 \statusproved & If anchor volumes grow geometrically, all linear-volume
 rebuild costs sum to a constant multiple of the final volume. \\
+\statusproved & A converged frontier probe may precede a heavy rebuild without
+changing the eventual exact response.  It can omit a terminal rebuild when the
+probe already certifies the requested output. \\
 \statusconditional & Given a fully charged response interface and
 preconditioned repairs on geometrically growing faces, total work is bounded
 by response maintenance plus final volume times the square root of the
@@ -292,6 +295,33 @@ Read the geometrically increasing sequence backward from its final term and
 sum the resulting geometric series.
 \end{proof}
 
+\begin{lemma}[Probe before rebuild]
+\label{lem:probe-before-rebuild}
+Fix a settled anchor $A$, frontier $F$, and face $S=A\cup F$.  Suppose a
+frontier repair returns an iterate whose declared error certificate is strong
+enough to evaluate the terminal and boundary predicates.  Then:
+\begin{enumerate}[label=(\roman*)]
+\item if the terminal predicate passes, the algorithm may return without
+      constructing a response representation for $Q_{SS}^{-1}$;
+\item if it fails, constructing the exact response after the probe produces
+      the same state $Q_{SS}^{-1}$ as constructing it before the probe;
+\item for a fixed support-event trace and fixed heavy-frontier decisions, the
+      probe-first schedule performs no more response rebuilds than the
+      rebuild-first schedule and adds at most one certified repair per
+      scheduled rebuild, plus a possible terminal probe.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The terminal certificate concerns the returned iterate, not whether an unused
+factor was built, proving (i).  The exact response is a function only of the
+principal matrix $Q_{SS}$, so its value is independent of every preceding
+iterate and repair, proving (ii).  On the fixed event trace, each heavy
+frontier that requires further propagation triggers the same rebuild after its
+probe; a terminally certified frontier triggers none.  Charging the one probe
+to the corresponding rebuild, with one unmatched terminal probe, proves (iii).
+\end{proof}
+
 The lemma pays only the rebuild.  Between rebuilds, small face shocks still
 need a lazy response representation; explicitly applying every old-face
 correction is not covered.
@@ -383,8 +413,10 @@ on the existence of a static nearly-linear SDD solver.
 \section{Proposed controller}
 \label{sec:algorithm}
 
-The following pseudocode is a research contract rather than an implemented
-solver.  All thresholds and certificates remain note-scoped.
+The following pseudocode is the research contract.  The dense reference backend
+implements its algebra and switching order, but not the required local response
+or reporting data structure.  All thresholds and certificates remain
+note-scoped.
 
 \begin{algorithm}[h]
 \caption{Response-preconditioned nested continuation}
@@ -396,9 +428,10 @@ buffer $F\gets\emptyset$.
 \WHILE{the boundary reporter certifies a nonempty violating batch $T$}
     \STATE Expose and charge $T$ and its required incidences.
     \STATE Set $S\gets S\cup T$ and $F\gets F\cup T$.
-    \STATE Update the implicit response and every affected certified interval.
-    \IF{$\operatorname{cvol}(F)\geq\gamma\operatorname{cvol}(A)$}
-        \STATE Aggregate the epoch demands and repair once on $A\cup F$.
+    \STATE Warm-start one certified repair on the Schur frontier over $A$.
+    \STATE Update every affected certified boundary interval.
+    \IF{more propagation is needed and
+          $\operatorname{cvol}(F)\geq\gamma\operatorname{cvol}(A)$}
         \STATE Rebuild the anchor: $A\gets A\cup F$ and $F\gets\emptyset$.
     \ENDIF
 \ENDWHILE
@@ -407,12 +440,14 @@ buffer $F\gets\emptyset$.
 \end{algorithmic}
 \end{algorithm}
 
-There are three nonnegotiable safeguards.
+There are four nonnegotiable safeguards.
 
 \begin{enumerate}
 \item The reporter must certify completeness outside its declared finite band.
 \item A failed structural fast path must fall back without discarding already
       charged exposure or claiming an unproved transfer of state.
+\item Boundary decisions after support growth use only a converged repair; the
+      one-probe rule may certify an easy heavy frontier before any rebuild.
 \item The final output and every adjacency scan are charged explicitly.
 \end{enumerate}
 
@@ -514,6 +549,45 @@ trees, cycles, equitable thick shells, bounded-block compositions, and
 nonequitable cyclic cores exercise different parts of the ledger.  A backend
 that is fast only because it omits boundary reporting or final materialization
 does not pass the comparison.
+
+\subsection{Dense reference backend and first measurement}
+
+The project now contains an exact dense response--hybrid diagnostic module.
+It stores the principal inverse on the anchor, runs warm-started CG on the
+exact frontier Schur complement, and absorbs the frontier when combined degree
+volume reaches a chosen rebuild factor.  Rebuild factor one is the
+pure-response endpoint; infinite factor is the fixed-anchor iterative
+endpoint.  This implementation materializes $Q$ and reads every boundary
+coordinate, so it validates the algebra and switching logic but supplies no
+local-complexity evidence.
+
+At $\alpha=0.05$, note-scoped $\epsppr=10^{-6}$, and seed 7, the factor-two
+variant gave the following separated ledger.  ``Resp.'' is the diagnostic
+dense response-update flop estimate; ``CG'' is the number of frontier Schur-CG
+iterations.  The two columns are deliberately not added.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Graph & Resp., every batch & Resp., mixed & CG, never rebuild & CG, mixed \\
+\midrule
+Path, 511 vertices & 129809 & 30101 & 238 & 112 \\
+Star, 510 leaves & 133692421 & 1 & 1 & 1 \\
+Binary tree, 511 vertices & 133519701 & 16602965 & 36 & 8 \\
+Spider, $8\times64$ & 5728401 & 1803761 & 194 & 90 \\
+Random 4-regular, 512 vertices & 121475342 & 41788069 & 61 & 40 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The mixed arm gives every new frontier one converged Schur-CG probe before a
+volume-triggered rebuild.  The path, tree, spider, and regular cases then show
+an interior response/iteration tradeoff.  The star collapses safely to the
+iterative endpoint: its one heavy batch certifies in one CG step, so no dense
+rebuild occurs.  Thus the architecture makes both resources available, but an
+individual execution need not consume both.  A universal immediate-rebuild
+factor is not justified by these measurements.
 
 \section{Conclusion}
 \label{sec:conclusion}

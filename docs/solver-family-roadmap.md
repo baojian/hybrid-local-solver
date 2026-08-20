@@ -176,6 +176,11 @@ algorithmic resource:
 - the path, tree, bounded-block, shell, and quotient response solvers inside
   `delayed_reflection_ladder` and `propagate_settle_framework`.
 
+For bounded biconnected blocks, ordinary adjacency access is now sufficient:
+zero-prefix invariance at activation events permits online block mergers and
+future-only response rebuilds.  Stable block identifiers are no longer an
+assumption for the product-scale theorem.
+
 ### Mixed track
 
 Use this track when propagation or acceleration and response settlement are
@@ -206,6 +211,9 @@ maintenance is not required for approximate output.
 
 This is the weakest known response theorem that plugs into the proved
 finite-resolution continuation result in `propagate_settle_framework`.
+The causal block-merge theorem closes this obligation for bounded blocks; the
+P0 case is therefore a large nonequitable cyclic core, not block metadata
+maintenance.
 
 ### P0: expanding-subspace acceleration without repeated restarts
 
@@ -229,6 +237,12 @@ Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF}.
 Use geometric rebuilds for large frontier growth and low-rank or iterative
 repair for small growth. Materialize the old-face correction only at final
 output.
+
+The dense reference backend now identifies a useful switching safeguard: give
+every newly enlarged frontier one converged reduced-system probe before a
+volume-triggered rebuild. A center-seeded star is a heavy batch but its Schur
+frontier solves in one CG step, so immediate factor-two rebuilding is wasteful.
+This is measured policy evidence, not an amortized local-work theorem.
 
 ### P1: lower-bound separation by computational resource
 
