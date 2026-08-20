@@ -66,3 +66,22 @@ def spider_graph(arm_count: int, arm_length: int) -> GraphData:
         1 + arm_count * arm_length,
         edges,
     )
+
+
+def decoy_hub_graph(hub_degree: int) -> GraphData:
+    """Return the high-degree halo-overshoot obstruction.
+
+    Vertex zero is the seed, vertex one is a degree-three branch, vertex two
+    is its low-degree violating leaf, and vertex three is a decoy hub with
+    ``hub_degree - 1`` private leaves.  The construction has ``hub_degree + 3``
+    vertices and no isolated vertices.
+    """
+    if hub_degree < 1:
+        raise ValueError(f"hub_degree must be positive, got {hub_degree}")
+    edges = [(0, 1), (1, 2), (1, 3)]
+    edges.extend((3, leaf) for leaf in range(4, hub_degree + 3))
+    return graph_from_edges(
+        f"decoy-hub-{hub_degree}",
+        hub_degree + 3,
+        edges,
+    )

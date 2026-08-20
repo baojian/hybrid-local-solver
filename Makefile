@@ -1,10 +1,22 @@
-.PHONY: test lint paper notes experiments full-experiments eps-sweep omega-sweep figures reproduce clean
+.PHONY: test lint paper notes note-audit note-report note-targets note-graph experiments full-experiments eps-sweep omega-sweep figures reproduce clean
 
 paper:
 	$(MAKE) -C manuscript
 
-notes:
+notes: note-audit
 	$(MAKE) -C manuscript notes
+
+note-audit:
+	uv run python manuscript/notes/tools/note_inventory.py check
+
+note-report:
+	uv run python manuscript/notes/tools/note_inventory.py report --format markdown
+
+note-targets:
+	uv run python manuscript/notes/tools/note_inventory.py targets --format markdown
+
+note-graph:
+	uv run python manuscript/notes/tools/note_inventory.py graph --format mermaid
 
 test:
 	uv run pytest

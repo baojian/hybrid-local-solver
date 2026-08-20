@@ -8,8 +8,12 @@ The routines in this module deliberately separate two notions of locality:
 * ``restarted_evolving_set_cg`` freezes an explored vertex set, runs CG on
   the corresponding principal system, inspects the true boundary residual,
   expands the set, and restarts CG.
+* ``geometric_envelope_cg`` uses the same certified restart, but grows every
+  failed envelope by a prescribed degree-volume factor.  This converts the
+  repeated-prefix volume ledger into a geometric series while explicitly
+  charging the extra graph discovery.
 
-Both solvers use the shared manuscript system
+All three solvers use the shared manuscript system
 
     Q = alpha I + (1 - alpha) / 2 * (I - D^{-1/2} A D^{-1/2}),
     b = alpha D^{-1/2} e_source.
@@ -45,8 +49,12 @@ class EvolvingCGTrace:
     active_size: tuple[int, ...]
     active_volume: tuple[float, ...]
     added_size: tuple[int, ...]
+    violating_size: tuple[int, ...]
     inner_iterations: tuple[int, ...]
     residual_scaled_inf: tuple[float, ...]
+    objective_value: tuple[float, ...]
+    discovery_edge_operations: tuple[float, ...]
+    growth_target_reached: tuple[bool, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,7 +207,71 @@ def restarted_evolving_set_cg(
     is added in one batch, and CG is restarted on the expanded principal
     system.  No live CG direction is projected onto a changing set.
     """
+    return _run_evolving_set_cg(
+        graph,
+        alpha=alpha,
+        source=source,
+        eps_ppr=eps_ppr,
+        inner_tolerance_fraction=inner_tolerance_fraction,
+        max_epochs=max_epochs,
+        max_inner_iterations=max_inner_iterations,
+        volume_growth_factor=None,
+    )
+
+
+def geometric_envelope_cg(
+    graph: GraphData,
+    *,
+    alpha: float,
+    source: int,
+    eps_ppr: float,
+    volume_growth_factor: float = 2.0,
+    inner_tolerance_fraction: float = 0.25,
+    max_epochs: int | None = None,
+    max_inner_iterations: int | None = None,
+) -> CGResult:
+    """Run restarted CG on envelopes with geometric degree-volume growth.
+
+    After a fixed-envelope solve, every outside residual violation is
+    admitted.  If those vertices do not increase active degree volume by
+    ``volume_growth_factor``, a deterministic breadth-first halo is added
+    until the target is met or the seed component is exhausted.  Halo
+    adjacency scans are included in ``edge_operations``.
+
+    Directions never cross an envelope change.  Thus the routine preserves
+    the same verifier-owned correctness safeguard as
+    :func:`restarted_evolving_set_cg`; geometric growth changes only the
+    support-discovery policy.
+    """
+    if not np.isfinite(volume_growth_factor) or volume_growth_factor <= 1.0:
+        raise ValueError("volume_growth_factor must be finite and greater than 1")
+    return _run_evolving_set_cg(
+        graph,
+        alpha=alpha,
+        source=source,
+        eps_ppr=eps_ppr,
+        inner_tolerance_fraction=inner_tolerance_fraction,
+        max_epochs=max_epochs,
+        max_inner_iterations=max_inner_iterations,
+        volume_growth_factor=volume_growth_factor,
+    )
+
+
+def _run_evolving_set_cg(
+    graph: GraphData,
+    *,
+    alpha: float,
+    source: int,
+    eps_ppr: float,
+    inner_tolerance_fraction: float,
+    max_epochs: int | None,
+    max_inner_iterations: int | None,
+    volume_growth_factor: float | None,
+) -> CGResult:
+    """Shared fixed-envelope CG loop for literal and geometric expansion."""
     _validate_inputs(graph, alpha, eps_ppr)
+    if not 0 <= source < graph.n:
+        raise ValueError(f"source must lie in [0, {graph.n}), got {source}")
     if not 0.0 < inner_tolerance_fraction < 1.0:
         raise ValueError("inner_tolerance_fraction must lie in (0, 1)")
     epoch_limit = graph.n if max_epochs is None else max_epochs
@@ -221,8 +293,12 @@ def restarted_evolving_set_cg(
     active_size_history: list[int] = []
     active_volume_history: list[float] = []
     added_size_history: list[int] = []
+    violating_size_history: list[int] = []
     inner_iteration_history: list[int] = []
     residual_history: list[float] = []
+    objective_history: list[float] = []
+    discovery_work_history: list[float] = []
+    growth_target_history: list[bool] = []
     termination_reason = "epoch_limit"
     verified_residual = right_hand_side.copy()
 
@@ -250,27 +326,52 @@ def restarted_evolving_set_cg(
         )
         edge_operations += verification_work
         scaled_residual = _scaled_inf_norm(verified_residual, graph.degree)
+        objective_value = float(
+            0.5 * solution @ (right_hand_side - verified_residual) - right_hand_side @ solution
+        )
 
         active_size_history.append(int(np.count_nonzero(active)))
         active_volume_history.append(float(np.sum(graph.degree[active])))
         inner_iteration_history.append(inner_iterations)
         residual_history.append(scaled_residual)
+        objective_history.append(objective_value)
 
         if scaled_residual <= certificate_threshold:
             added_size_history.append(0)
+            violating_size_history.append(0)
+            discovery_work_history.append(0.0)
+            growth_target_history.append(True)
             termination_reason = "verified_residual_certificate"
             break
 
         outside_violations = (~active) & (
             np.abs(verified_residual) > certificate_threshold * np.sqrt(graph.degree)
         )
-        added_size = int(np.count_nonzero(outside_violations))
-        added_size_history.append(added_size)
-        if added_size == 0:
+        violating_size = int(np.count_nonzero(outside_violations))
+        violating_size_history.append(violating_size)
+        if violating_size == 0:
+            added_size_history.append(0)
+            discovery_work_history.append(0.0)
+            growth_target_history.append(False)
             termination_reason = "uncertified_interior_residual"
             break
 
-        active |= outside_violations
+        if volume_growth_factor is None:
+            additions = outside_violations
+            discovery_work = 0.0
+            growth_target_reached = True
+        else:
+            additions, discovery_work, growth_target_reached = _geometric_expansion(
+                graph,
+                active,
+                outside_violations,
+                volume_growth_factor,
+            )
+        added_size_history.append(int(np.count_nonzero(additions)))
+        discovery_work_history.append(discovery_work)
+        growth_target_history.append(growth_target_reached)
+        edge_operations += discovery_work
+        active |= additions
         restarts += 1
 
     certified = _scaled_inf_norm(verified_residual, graph.degree) <= certificate_threshold
@@ -287,10 +388,75 @@ def restarted_evolving_set_cg(
             active_size=tuple(active_size_history),
             active_volume=tuple(active_volume_history),
             added_size=tuple(added_size_history),
+            violating_size=tuple(violating_size_history),
             inner_iterations=tuple(inner_iteration_history),
             residual_scaled_inf=tuple(residual_history),
+            objective_value=tuple(objective_history),
+            discovery_edge_operations=tuple(discovery_work_history),
+            growth_target_reached=tuple(growth_target_history),
         ),
     )
+
+
+def _geometric_expansion(
+    graph: GraphData,
+    active: np.ndarray,
+    outside_violations: np.ndarray,
+    volume_growth_factor: float,
+) -> tuple[np.ndarray, float, bool]:
+    """Admit violations, then scan the active boundary and grow a BFS halo."""
+    expanded = active.copy()
+    expanded[outside_violations] = True
+    additions = outside_violations.copy()
+    active_volume = float(np.sum(graph.degree[active]))
+    expanded_volume = float(np.sum(graph.degree[expanded]))
+    target_volume = volume_growth_factor * active_volume
+    if expanded_volume >= target_volume:
+        return additions, 0.0, True
+    if np.all(expanded):
+        return additions, 0.0, False
+
+    # Scan the whole active set once so failure to reach the target means that
+    # every connected component meeting ``active`` was actually exhausted.
+    # This scan is deliberately charged even though a production
+    # implementation could cache boundary information from residual checks.
+    queued = np.zeros(graph.n, dtype=bool)
+    boundary_candidates: list[int] = []
+    discovery_work = 0.0
+    for node in np.flatnonzero(active):
+        neighbors = graph.indices[graph.indptr[node] : graph.indptr[node + 1]]
+        discovery_work += float(graph.degree[node])
+        for neighbor in neighbors:
+            if expanded[neighbor] or queued[neighbor]:
+                continue
+            queued[neighbor] = True
+            boundary_candidates.append(int(neighbor))
+
+    queue = list(np.flatnonzero(outside_violations))
+    for node in boundary_candidates:
+        expanded[node] = True
+        additions[node] = True
+        queue.append(node)
+        expanded_volume += float(graph.degree[node])
+        if expanded_volume >= target_volume:
+            return additions, discovery_work, True
+
+    cursor = 0
+    while expanded_volume < target_volume and cursor < len(queue):
+        node = queue[cursor]
+        cursor += 1
+        neighbors = graph.indices[graph.indptr[node] : graph.indptr[node + 1]]
+        discovery_work += float(graph.degree[node])
+        for neighbor in neighbors:
+            if expanded[neighbor]:
+                continue
+            expanded[neighbor] = True
+            additions[neighbor] = True
+            queue.append(int(neighbor))
+            expanded_volume += float(graph.degree[neighbor])
+            if expanded_volume >= target_volume:
+                break
+    return additions, discovery_work, expanded_volume >= target_volume
 
 
 def _restricted_cg_epoch(

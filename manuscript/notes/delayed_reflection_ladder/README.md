@@ -25,6 +25,34 @@ boundary batches.  The remaining cost issue is controlling `J`, or
 maintaining the next event without refreshing the entire boundary, inside a
 large cyclic core with no other thin structure.
 
+The companion `propagate_settle_framework` note sharpens this ledger: fresh
+settlement actually costs
+`O((w + 1)^2 sum_j vol(U_j))`, so it is enough to bound cumulative settled
+volume by `O_tilde(vol(S*) / sqrt(alpha))`. This revisit-volume target is
+strictly weaker than bounding `J` and directly mirrors the adaptive frontier
+solver's measured work-per-touched-support ratio.
+
+That companion note also proves the log-free version false for the literal
+gate: a width-two, radius-two tailed fan forces arbitrarily many singleton
+activations in one distance shell and
+`R_set = Omega_alpha(log(1 / rho))`.  Thus a surviving gate theorem must retain
+a polylogarithmic dynamic-range factor, or replace fresh solves with retained
+Schur state.
+
+The gate now has a quantitative convergence theorem as well.  Each enlarged
+restricted solve dominates one unit proximal-gradient step, so its objective
+gap contracts by `1 - alpha`; if `delta_*` is the smallest positive optimum
+coordinate, this gives an exact instance bound
+`O(1 + alpha^(-1) log_+(1 / (d_o delta_*^2)))` on the number of batches.
+This route cannot by itself yield acceleration: on the three-vertex endpoint
+path the first-batch gap ratio tends to
+`(1 - alpha)^2 / (1 + 6 alpha + alpha^2) = 1 - 8 alpha + O(alpha^2)` as
+`rho -> 0`.  The note also gives the exact tied-batch Schur formula, showing
+that simultaneous activations update all remaining slacks through one signed
+Schur block-column.  Hence the open accelerated argument must exploit finite
+support discovery or compressed event maintenance, not a generic
+`1 - Theta(sqrt(alpha))` energy contraction.
+
 For the RPPR continuation path
 `rho[k + 1] = lambda(alpha)^s rho[k]`, the note proves a sharper supplied-
 support ledger.  Since `vol(S*(rho[k])) <= 1 / rho[k]`, all exact bounded-width
@@ -77,11 +105,37 @@ condition-free bound
 glued at articulation vertices are closed at the product scale.  Unbounded
 blocks are not automatically hard: reflection symmetry reduces a whole cycle
 to a radial tridiagonal recurrence and gives an output-linear exact solver.
+More generally, every root-distance-equitable graph has an exact symmetric
+tridiagonal shell quotient.  A lazy shell scan tests the next Schur demand
+before scanning that shell, so it discovers, solves, and certifies the optimum
+in `O(1 + vol(S*))` work without a support or radius oracle.  This permits
+arbitrarily thick shells and includes cliques, complete bipartite graphs,
+hypercubes, Hamming and Johnson graphs, and all distance-regular graphs.
+The fast path is now certifying on an arbitrary graph: active-shell scans
+audit the quotient identities, coordinatewise boundary violations either
+prove termination or provide the exact safe gate batch, and any failed audit
+falls back to the general boundary gate without risking correctness.
+
+The one-cell-per-shell restriction is also removed.  If an equitable cell
+partition has a tree quotient, the same orthogonal reduction
+turns the graph obstacle problem into a tree Stieltjes problem.  Lazy cell
+responses discover only active cells, scanning every active original
+adjacency list once and paying one quotient-ancestor walk per cell event.
+This gives the exact bound `O~(1 / (rho sqrt(alpha)))` with no support, radius,
+or confinement oracle.  Several inequivalent thick cells may occupy one
+distance shell, and the original graph may have unbounded treewidth and
+arbitrarily large biconnected cores.  Cell identifiers no longer need to be
+supplied.  Online rooted color refinement groups exposed labels by degree and
+their incidences with scanned classes.  Indistinguishable cells have the same
+next slack zero, activate as one tied bundle, and split only after the bundle
+is safely scanned.  Smaller-half refinement plus persistent response forks
+preserves the same product-scale work bound using ordinary adjacency access.
 More generally, if at most `chi_*` exact-support vertices occur in any
 root-distance shell, the condition-free gate costs
 `O~((w + 1)^2 chi_* / (rho sqrt(alpha)))`.  This closes arbitrarily long
 cycles and fixed-width cyclic strips.  What remains open is a large core with
-neither bounded articulation blocks nor thin radial support.
+neither bounded articulation blocks, an equitable tree quotient, nor thin
+radial support.
 
 The supplied-support condition has also been removed on arbitrary graphs for
 correctness and locality.  An exact boundary-violation gate admits only

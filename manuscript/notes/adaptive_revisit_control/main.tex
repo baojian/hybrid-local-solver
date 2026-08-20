@@ -1,0 +1,1902 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This note studies the adaptive-revisit direction suggested by the measured
+% frontier alternating ladder.  It separates exact ledgers, impossibility
+% statements, unconditional safeguards, and the remaining accelerated arm
+% theorem.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Adaptive Revisit Control for Local SOR:\\
+What the Signal Certifies and How to Use It Safely}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The measured frontier adaptive ladder stores one number after each solve:
+total charged row work divided by the charge of the touched support.  We
+analyze this revisit ratio as a possible controller for later local PageRank
+instances.  The ratio has an exact interpretation: it is the
+charge-weighted mean number of paid visits to a touched coordinate.  A finer
+four-way ledger, indexed by the previous and current relaxation modes on each
+revisited coordinate, gives more information.  In particular, every revisit
+whose previous operation was exact Gauss--Seidel certifies intervening
+neighbor-generated backflow, because the exact operation left zero residual
+on that coordinate.  On a nested propagate--settle execution, the same
+measured ratio factors exactly into a within-epoch work multiplier and the
+settled-volume revisit factor.  This yields a causal revisit bank that
+enforces a declared work-per-touched-support ceiling online.  On any
+support-safe terminal RPPR trace, the realized ratio itself gives the
+a posteriori bound $W\leq2\varrho_{\rm rev}/\rho$.  Thus a global bank at
+$\widetilde O(1/\sqrt\alpha)$ certifies an accelerated target-scale fast path;
+if the bank blocks, the spent prefix is capped before a certified fallback.
+This success certificate cannot be promoted to a universal theorem for the
+literal fixed-band two-rung arm.  On a one-edge graph, a support-safe handoff
+can lie strictly below the spreading threshold while its exact delivery tail
+takes $\Omega(1/\alpha)$ work at fixed regularization and accuracy.  Thus
+that arm needs forced or quantitatively developed spreading, or an exact
+incremental Schur block, to carry an accelerated worst-case theorem.
+
+The scalar ratio is not, however, a direction certificate for relaxation.
+Its denominator depends on the policy, it does not order total work, and one
+historical observation cannot distinguish future task classes whose best
+relaxations are opposite.  The exact coordinate-energy identity gives a
+second limitation: at a fixed residual and coordinate, immediate objective
+decrease per charge is uniquely maximized by unit relaxation.  Any benefit
+from over-relaxation must therefore be a multi-operation transport effect,
+not a myopic descent effect.
+
+Two unconditional safeguards survive these negative results.  For the
+note-scoped unregularized residual gate, any causal controller may select
+relaxations from $[1,2-\delta]$.  If every paid update is live, the resulting
+variable-relaxation method terminates from the zero iterate with charged work
+at most
+\[
+ \frac{1+\alpha}
+ {\delta(2-\delta)\,\alpha\epsppr^{2}}.
+\]
+This is a safety bound, not the desired accelerated rate.  More importantly,
+a budgeted adaptive prefix can switch to exact Gauss--Seidel on the same
+irreversible state with an explicit near-baseline work ceiling.  For RPPR,
+exact restricted settlement supplies an even stronger canonical checkpoint:
+any history-dependent policy may switch without reset, and any nonempty
+subset of exact boundary violations can be admitted while preserving true
+support containment and finite termination.  Combining this absorption law
+with the revisit bank gives a one-state, work-capped switching theorem.
+Absorption alone is not enough for best-arm work.  Already on a finite
+unweighted tree, the exact single-seed RPPR boundary gate has two safe batch
+orders with the same terminal point whose settled-volume revisit differs by
+an arbitrarily large factor.  We isolate the missing property as a mergeable
+countdown.  If every arm has a work-valued countdown decreased by its own
+blocks and never increased by other arms, a work-fair scheduler on one shared
+state is $K\kappa$-competitive whenever those countdowns are
+$\kappa$-tight.  Irreversible activation tokens instantiate this condition:
+on endpoint paths, common forward Schur records plus one reverse recovery
+give a $\kappa=1$ countdown and $O(C(S^\star))\leq O(1/\rho)$ work.  A
+two-vertex activation breakpoint proves that no jointly continuous
+state-energy countdown can pay a fixed activation charge uniformly.
+
+In addition, a branchable weighted portfolio of $K$ local policies satisfies
+the exact oracle inequality
+\[
+ \operatorname{Work}_{\rm port}
+ \leq \min_j \frac{\operatorname{Work}_j}{\nu_j},
+\]
+up to one scheduling chunk, where $\nu_j$ is policy $j$'s work share.
+Uniform shares are $K$-competitive with the best arm on every instance.  A
+learned predictor may use the causal revisit ledger to set the shares; mixing
+it with an exploration floor preserves the worst-case guarantee without any
+stationarity, graph-transfer, or identifiability assumption.  Consequently a
+finite portfolio automatically inherits a
+$\widetilde O(\mathsf V_{\rm loc}/\sqrt\alpha)$ local-work theorem whenever one of its arms has
+one.  Simultaneous branches are not essential: a geometric restart portfolio
+uses one live state and is less than $4K$-competitive up to its base work
+quantum.  The unresolved mathematical task is now clean: prove an accelerated
+bank for a modified arm with a genuine transport mechanism, or construct an
+interference-monotone transport countdown tight for such an arm.  Revisit
+feedback can safely select among theories; by itself it does not create the
+missing accelerated theory.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim ledger}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+The repository-wide residual convention remains open.  This note uses only
+the document-scoped unregularized residual
+\begin{equation}
+ r(\widehat x):=b-Q\widehat x,
+ \qquad
+ \max_{u\in V}\frac{\abs{r_u(\widehat x)}}{\sqrt{d_u}}
+ \leq g,
+ \qquad g:=\alpha\epsppr.
+ \label{eq:note-gate}
+\end{equation}
+It is the verifier gate of the measured ladder notes, not an adopted
+repository stopping rule.  No conversion from $\epsppr$ to $\rho$,
+$\epsappr$, $\epsobj$, or $\epspg$ is asserted.
+
+The measured row-operation charge is
+\begin{equation}
+ c(u):=1+d_u.
+ \label{eq:charge}
+\end{equation}
+This differs from the manuscript's pure adjacency-scan charge $d_u$ by at
+most a factor two because the shared model has $d_u\geq1$.  Theorems below
+state which convention they use.  Frontier enumeration, ranking, state
+copying, and scheduler arithmetic are not hidden inside \eqref{eq:charge};
+where they matter, they are reported separately.
+When discussing a future accelerated arm, $\mathsf V_{\rm loc}(I)$ denotes
+its explicitly defined local degree-volume ledger on instance $I$; it is not
+the reserved vertex set $V$.
+
+\begin{center}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statusobservation & The sibling note
+\texttt{frontier\_adaptive\_ladder} records the measured scalar revisit
+memory and its fixed update map.  The fixed two-rung schedule beats that
+complete adaptive artifact by $12\%$ on the available 24-cell campaign, so
+the memory has no demonstrated empirical gain on that schedule. \\
+\statussource & Adaptive restart uses observable oscillation to reset global
+momentum \citep{odonoghue2015adaptive}.  That precedent does not prove that a
+local revisit count identifies a good SOR relaxation. \\
+\statusproved & The scalar revisit ratio is exactly a charge-weighted mean
+multiplicity.  A four-way previous-mode/current-mode decomposition is exact,
+and every revisit following an exact operation certifies intervening
+off-coordinate backflow. \\
+\statusproved & On nested propagate--settle traces, the empirical ratio
+factors exactly into within-epoch multiplicity and settled-volume revisit.
+An online revisit bank enforces the former work cap rather than assuming it. \\
+\statusproved & Every terminal support-safe RPPR trace has the a posteriori
+certificate $W\leq2\varrho_{\rm rev}/\rho$.  A global bank at the accelerated
+revisit scale therefore gives a certified fast path, while its failure caps
+the prefix before fallback. \\
+\statusrefuted & The literal fixed-band two-rung continuation is not a
+graph-uniform accelerated arm.  A support-safe one-edge handoff can skip its
+spreading rung and require $\Omega(1/\alpha)$ exact-delivery work at fixed
+regularization and accuracy. \\
+\statusrefuted & The scalar ratio alone neither orders total work nor
+determines whether the next relaxation should rise or fall over unrestricted
+task sequences.  Immediate energy decrease per charge also cannot justify
+over-relaxation. \\
+\statusproved & Any causal variable-relaxation controller clamped to
+$[1,2-\delta]$ terminates under the live gate \eqref{eq:note-gate}; a
+condition-free but nonaccelerated work bound is explicit.  A budgeted
+adaptive prefix followed by exact fallback retains a quantified one-state
+work ceiling without reset. \\
+\statusproved & A branchable weighted policy portfolio has a deterministic
+best-arm oracle inequality on every instance.  A geometric restart portfolio
+obtains a constant-factor best-arm guarantee with only one live state.  An
+arbitrary learned allocation remains safe after mixing with a positive
+exploration floor. \\
+\statusproved & For RPPR, exact settlement is an absorption-safe canonical
+checkpoint.  Arbitrary causal policy changes and partial exact-certified
+boundary batches preserve support containment and terminate correctly on one
+irreversible state; the revisit bank caps inter-checkpoint work. \\
+\statusrefuted & Absorption, nested support, and persistence of unadmitted
+violations do not imply best-order work.  A finite unweighted single-seed
+RPPR tree has an unbounded settled-revisit gap between two legal exact
+boundary-batch orders with the same terminal point. \\
+\statusconditional & Interference-monotone, $\kappa$-tight work countdowns
+give a $K\kappa$-competitive shared-state portfolio without solution branches
+or reset.  The common energy countdown instantiates safety but not
+acceleration. \\
+\statusproved & Irreversible activation tokens instantiate the mergeable
+condition.  On endpoint paths, a common forward Schur record and one reverse
+recovery give $\kappa=1$ and work at most $4/\rho$; continuous numerical
+countdowns cannot pay activation uniformly near a two-vertex support
+breakpoint. \\
+\statusconditional & If one arm has
+$\widetilde O(\mathsf V_{\rm loc}/\sqrt\alpha)$ work on an instance class, the finite
+portfolio inherits that scale.  No such graph-uniform theorem is claimed
+here for the literal frontier ladder or the fixed two-rung arm. \\
+\statusopen & Construct an order-independent common transport representation
+on general branching/cyclic graphs, prove a forced-spreading accelerated arm
+beyond its current structural classes, or reduce the continuous $\omega$
+family to a finite safe menu. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{The literal feedback signal}
+\label{sec:literal}
+
+Consider one sequential run with paid row operations
+$t=1,\ldots,T$.  Operation $t$ acts on $u_t$, uses relaxation
+$\omega_t$, and costs $c(u_t)$.  Guarded skips have zero charge and are not
+included.  Let
+\begin{equation}
+ S:=\{u_t:1\leq t\leq T\},
+ \qquad
+ C(S):=\sum_{u\in S}c(u),
+ \qquad
+ m_u:=\card{\{t:u_t=u\}},
+ \label{eq:touched}
+\end{equation}
+and define
+\begin{equation}
+ W:=\sum_{t=1}^T c(u_t),
+ \qquad
+ \varrho_{\rm rev}:=\frac{W}{C(S)}.
+ \label{eq:revisit}
+\end{equation}
+This is the mathematical version of the frontier artifact's stored ratio.
+
+\begin{lemma}[Exact multiplicity identity]
+\label{lem:multiplicity}
+For every nonempty paid run,
+\begin{equation}
+ \varrho_{\rm rev}
+ =\frac{\sum_{u\in S}c(u)m_u}{\sum_{u\in S}c(u)}
+ =1+\frac{\sum_{u\in S}c(u)(m_u-1)}{C(S)}.
+ \label{eq:multiplicity}
+\end{equation}
+Hence $\varrho_{\rm rev}\geq1$, with equality exactly when every touched
+coordinate is paid for once.
+\end{lemma}
+
+\begin{proof}
+Group the terms in $W$ by their operated coordinate.  The second equality
+subtracts the first paid visit to every $u\in S$.
+\end{proof}
+
+Thus the numerator of $\varrho_{\rm rev}-1$ is an exact redundant-work
+ledger relative to the realized touched set.  This is useful, but it is not
+yet causal: a planned spread-then-settle revisit, a same-mode repeated sweep,
+and a neighbor-reactivated coordinate all contribute identically.
+
+\subsection{A causal four-way refinement}
+
+Label a paid operation \emph{exact} if $\omega_t=1$ and \emph{spreading} if
+$\omega_t>1$.  For every revisit of $u$, inspect the most recent earlier paid
+operation on the same $u$.  For $a,b\in\{\mathrm e,\mathrm s\}$, let
+$\mathsf{Rev}_{a\to b}$ be the total charge of revisits whose previous same-coordinate
+mode was $a$ and whose current mode is $b$.  This ledger requires only two
+bits of state per touched coordinate: whether it has been visited and the
+mode of its most recent paid visit.
+
+\begin{proposition}[Causal revisit ledger]
+\label{prop:causal-ledger}
+Every paid run satisfies
+\begin{equation}
+ W=C(S)+\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm s},
+ \label{eq:causal-ledger}
+\end{equation}
+and therefore
+\begin{equation}
+ \varrho_{\rm rev}
+ =1+\frac{\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm s}}{C(S)}.
+ \label{eq:causal-ratio}
+\end{equation}
+Moreover, in exact sequential arithmetic, every charged revisit counted in
+$\mathsf{Rev}_{\mathrm e\to\mathrm e}
+ +\mathsf{Rev}_{\mathrm e\to\mathrm s}$ certifies that at
+least one off-coordinate operation altered that coordinate's residual after
+its previous exact operation.  In the shared graph model, such an operation
+must occur at a neighbor.
+\end{proposition}
+
+\begin{proof}
+Every paid operation is either the first paid visit to its coordinate or is
+in exactly one of the four previous/current-mode classes.  The first visits
+sum to $C(S)$, proving \eqref{eq:causal-ledger}.
+
+For the causal statement, write $r=b-Q\widehat x$.  A row operation on $u$
+has the form
+\begin{equation}
+ \widehat x^+=\widehat x+\omega\frac{r_u}{Q_{uu}}e_u,
+ \qquad
+ r^+=r-\omega\frac{r_u}{Q_{uu}}Qe_u.
+ \label{eq:row-update}
+\end{equation}
+If $\omega=1$, then $r_u^+=0$.  Before a later paid revisit, $r_u$ must
+again cross the live guard.  Operations on a coordinate $v$ change $r_u$
+only through $Q_{uv}$.  In the shared PageRank matrix, $Q_{uv}\neq0$ for
+$u\neq v$ exactly when $u$ and $v$ are adjacent.  Thus some intervening
+neighbor operation generated the new residual.
+\end{proof}
+
+The quantity
+\begin{equation}
+ B_{\rm nbr}:=
+ \frac{\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}}{C(S)}
+ \label{eq:backflow-share}
+\end{equation}
+is therefore a certified neighbor-backflow revisit share.  By contrast,
+$\mathsf{Rev}_{\mathrm s\to\mathrm e}
+ +\mathsf{Rev}_{\mathrm s\to\mathrm s}$ mixes neighbor
+backflow with the deterministic self-reflection left by over-relaxation.  The
+four-way ledger does not prove which $\omega$ is optimal, but it separates a
+real causal event that the scalar ratio erases.
+
+\section{What the scalar cannot certify}
+\label{sec:limits}
+
+\subsection{The denominator is policy dependent}
+
+The touched set $S$ is produced by the policy.  Consequently
+$\varrho_{\rm rev}$ is not a normalization by an instance-only quantity.
+
+\begin{proposition}[Revisit ratio does not order work]
+\label{prop:not-order}
+There are valid charged-event ledgers $A$ and $B$ for which
+$\varrho_{\rm rev}(A)<\varrho_{\rm rev}(B)$ but $W(A)>W(B)$, with an
+arbitrarily large work ratio.
+\end{proposition}
+
+\begin{proof}
+Use coordinates of charge two.  Ledger $A$ touches $M$ coordinates once, so
+$C(S_A)=W(A)=2M$ and $\varrho_{\rm rev}(A)=1$.  Ledger $B$ touches one
+coordinate twice, so $C(S_B)=2$, $W(B)=4$, and
+$\varrho_{\rm rev}(B)=2$.  For $M\geq3$, the ratio ordering is opposite the
+work ordering, and $W(A)/W(B)=M/2$ is unbounded.  This is a ledger-level
+counterexample; it makes no claim that every such event stream is generated
+by the same SOR instance.
+\end{proof}
+
+This proposition rules out comparing policies by the scalar ratio alone.  A
+repeated-task learner needs an arm-independent loss normalization, such as a
+declared work cap, or it must learn total charged work directly.
+
+\subsection{One historical scalar gives no direction}
+
+Even if the denominator problem is repaired, one chosen policy reveals no
+counterfactual cost for another policy.
+
+\begin{proposition}[One-signal nonidentifiability]
+\label{prop:nonidentify}
+Fix two candidate future policies.  Over unrestricted repeated-task cost
+sequences, no deterministic rule that sees the same historical revisit
+record in two environments can choose a bounded-competitive future policy in
+both.  For a randomized rule and every $M>1$, one of two indistinguishable
+environments has expected competitive ratio at least $(M+1)/2$.
+\end{proposition}
+
+\begin{proof}
+Let the complete history, including $\varrho_{\rm rev}$, be identical.  In
+environment one, assign future policy costs $(1,M)$; in environment two,
+assign $(M,1)$.  A deterministic rule makes the same choice in both and pays
+$M$ in one of them while the best policy costs one.  If it chooses the first
+policy with probability $p$, its expected costs are
+$p+(1-p)M$ and $pM+(1-p)$.  Their maximum is at least their average,
+$(M+1)/2$.
+\end{proof}
+
+This is a decision-theoretic result, not an SOR graph construction.  Its role
+is precise: a guarantee from the historical scalar requires an additional
+assumption such as stationary tasks, a relation between contexts and costs,
+counterfactual probes, or a safe portfolio that runs more than one policy.
+Keying memory only by graph size $n$ supplies none of these assumptions;
+nonisomorphic graphs, different seeds, and different gates can share $n$.
+
+\section{Turning revisit into an online work certificate}
+\label{sec:revisit-certificate}
+
+The scalar is not a reliable predictor of the best relaxation, but it is an
+exact certificate of work already spent.  It also factors cleanly into the
+two revisit mechanisms isolated by the propagate--settle framework:
+repetition inside one epoch and repeated settlement of a growing region.
+
+\subsection{Two-level revisit factorization}
+
+Let
+\[
+ U_0\subseteq U_1\subseteq\cdots\subseteq U_K
+\]
+be nonempty nested regions.  Suppose epoch $k$ incurs charged work $W_k$,
+the union of all coordinates touched by the full run is $U_K$, and write
+\begin{equation}
+ \mu_k:=\frac{W_k}{C(U_k)},
+ \qquad
+ \mathfrak R_{\rm set}
+ :=\frac{\sum_{k=0}^K C(U_k)}{C(U_K)}.
+ \label{eq:two-level-definitions}
+\end{equation}
+The first quantity is the within-epoch work multiplier.  The second is the
+settled-volume revisit factor proved useful in the sibling
+\texttt{propagate\_settle\_framework} note.
+
+\begin{theorem}[Exact two-level revisit factorization]
+\label{thm:two-level-factorization}
+Define the settled-volume-weighted mean
+\begin{equation}
+ \overline\mu:=
+ \frac{\sum_{k=0}^K\mu_kC(U_k)}
+      {\sum_{k=0}^K C(U_k)}.
+ \label{eq:mean-local-multiplier}
+\end{equation}
+Then the final operation-level revisit ratio satisfies
+\begin{equation}
+ \varrho_{\rm rev}
+ =\overline\mu\,\mathfrak R_{\rm set}.
+ \label{eq:two-level-factorization}
+\end{equation}
+Consequently, if $m\leq\mu_k\leq M$ for every epoch, then
+\begin{equation}
+ m\,\mathfrak R_{\rm set}
+ \leq\varrho_{\rm rev}
+ \leq M\,\mathfrak R_{\rm set}.
+ \label{eq:factorization-sandwich}
+\end{equation}
+If every epoch scans its whole settled region at least once, one may take
+$m=1$.
+\end{theorem}
+
+\begin{proof}
+The total charged work is
+\[
+ W=\sum_{k=0}^K W_k
+  =\sum_{k=0}^K\mu_kC(U_k)
+  =\overline\mu\sum_{k=0}^K C(U_k).
+\]
+Divide by $C(U_K)$ and use
+\cref{eq:revisit,eq:two-level-definitions}.  The sandwich follows because a
+weighted mean lies between its smallest and largest entries.
+\end{proof}
+
+This identity bridges the empirical and theoretical statistics.  A large
+$\varrho_{\rm rev}$ can arise from large within-epoch multiplicity, large
+settled-volume revisit, or both.  The causal ledger diagnoses the first
+mechanism; incremental Schur state or a different expansion schedule attacks
+the second.  The identity applies to nested propagate--settle executions, not
+automatically to the literal frontier artifact's noncanonical SOR phases.
+
+\subsection{The revisit bank}
+
+The ratio admits a causal token interpretation requiring no model of the
+graph dynamics.  After $t$ paid events, let $S_t$ be the touched union and
+$W_t$ the charged work.  For a declared budget factor $\Gamma\geq1$, define
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma):=\Gamma C(S_t)-W_t.
+ \label{eq:revisit-bank}
+\end{equation}
+
+\begin{theorem}[Exact revisit-bank updates]
+\label{thm:revisit-bank}
+Suppose event $t$ operates coordinate $u$ at charge $c(u)$.  If this is its
+first paid visit, then
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma)-\mathsf{Bank}_{t-1}(\Gamma)
+ =(\Gamma-1)c(u).
+ \label{eq:bank-first}
+\end{equation}
+If it is a revisit, then
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma)-\mathsf{Bank}_{t-1}(\Gamma)
+ =-c(u).
+ \label{eq:bank-revisit}
+\end{equation}
+Therefore a controller that admits every desired first visit but admits a
+revisit only when
+\begin{equation}
+ c(u)\leq\mathsf{Bank}_{t-1}(\Gamma)
+ \label{eq:bank-admission}
+\end{equation}
+maintains, at every nonempty prefix,
+\begin{equation}
+ W_t\leq\Gamma C(S_t),
+ \qquad
+ \varrho_{{\rm rev},t}\leq\Gamma.
+ \label{eq:bank-invariant}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+A first visit increases both $C(S_t)$ and $W_t$ by $c(u)$, proving
+\cref{eq:bank-first}.  A revisit increases only $W_t$, proving
+\cref{eq:bank-revisit}.  The bank starts at zero.  First visits preserve its
+nonnegativity for $\Gamma\geq1$, and
+\cref{eq:bank-admission} preserves it on revisits.  Rearranging a nonnegative
+bank gives \cref{eq:bank-invariant}.
+\end{proof}
+
+The bank is stronger than checking the ratio after a solve: it makes a
+work-per-touched-support cap enforceable online.  It is not a convergence
+proof.  When a useful revisit would overdraw the bank, the controller must
+settle, switch policy, increase its declared budget, or invoke a certified
+fallback.  Silently dropping the operation could destroy progress.
+
+The same identity gives a useful guarantee even before one proves that the
+bank never blocks.
+
+\begin{corollary}[A posteriori accelerated RPPR fast path]
+\label{cor:rppr-fast-path}
+Consider any terminal RPPR execution whose charged touched union $S$ is
+contained in $S^\star(\rho)$.  No nesting or fixed relaxation schedule is
+required.  Its realized charged work satisfies
+\begin{equation}
+ W=\varrho_{\rm rev}C(S)
+ \leq \frac{2\varrho_{\rm rev}}{\rho}.
+ \label{eq:rppr-fast-path}
+\end{equation}
+Consequently, if a global revisit bank with factor $\Gamma$ remains
+nonnegative until termination, then
+\begin{equation}
+ W\leq\frac{2\Gamma}{\rho}.
+ \label{eq:banked-rppr-fast-path}
+\end{equation}
+Taking $\Gamma=\widetilde O(1/\sqrt\alpha)$ certifies the intended
+$\widetilde O(1/(\rho\sqrt\alpha))$ work scale on that execution.
+\end{corollary}
+
+\begin{proof}
+The first equality is the definition of the measured revisit ratio.  Support
+containment and the source volume bound give
+\[
+ C(S)\leq C(S^\star(\rho))
+ \leq2\vol(S^\star(\rho))\leq\frac2\rho.
+\]
+If the bank remains nonnegative, \eqref{eq:bank-invariant} supplies
+$\varrho_{\rm rev}\leq\Gamma$.
+\end{proof}
+
+This is an a posteriori certificate with no graph-structural hypothesis
+beyond support safety, not a graph-uniform success theorem.  A safe service
+can declare an
+accelerated cap $\Gamma_{\rm acc}$, run any support-safe mixture of the new
+policies, and switch at the first proposed event that would overdraw the
+global bank.  The prefix then costs at most $2\Gamma_{\rm acc}/\rho$.
+Canonicalize the current certified region and include that cost in any
+fallback continuation bound $C_{\rm fall}$; the complete service obeys
+\begin{equation}
+ W_{\rm total}
+ \leq \frac{2\Gamma_{\rm acc}}{\rho}+C_{\rm fall}.
+ \label{eq:accelerated-or-fallback}
+\end{equation}
+Thus every instance either carries an a posteriori target-scale
+certificate or enters a separately certified fallback after a capped local
+prefix.  Proving that fallback is never invoked remains the universal
+acceleration problem.
+
+The literal measured two-rung arm does not solve that problem.  The next
+theorem keeps the note's unregularized residual gate and uses RPPR only as
+the certified support envelope, exactly as in
+\Cref{cor:rppr-fast-path}.
+
+\begin{theorem}[A support-safe one-edge obstruction to fixed-band two-rung]
+\label{thm:two-vertex-two-rung-obstruction}
+Fix a band factor $B>1$ and put
+\[
+ \vartheta_B:=\frac{B+1}{2}\in(1,B),
+ \qquad
+ \alpha_B:=\min\left\{\frac14,
+                   \frac{3\log\vartheta_B}{16}\right\}.
+\]
+For every $0<\alpha\leq\alpha_B$, there is a one-edge, single-seed
+support-safe handoff at fixed RPPR regularization $\rho=1/4$ for which the
+literal two-rung schedule
+\[
+ [(Bg,\omega_\star),(g,1)]
+\]
+executes no spreading operation and needs exactly
+\begin{equation}
+ N_B(\alpha)
+ :=\left\lceil
+   \frac{\log\vartheta_B}
+        {\log((1+\alpha)/(1-\alpha))}
+  \right\rceil
+ \label{eq:two-vertex-exact-tail}
+\end{equation}
+exact-delivery pushes.  Its realized revisit factor satisfies
+\begin{equation}
+ \varrho_{\rm rev}
+ \geq\frac{N_B(\alpha)}2
+ \geq\frac{3\log\vartheta_B}{16\alpha}.
+ \label{eq:two-vertex-bank-lower}
+\end{equation}
+Here $\rho$ is fixed and
+$\epsppr=(1-\alpha)/[(1+\alpha)\vartheta_B]$ stays bounded away from zero.
+Consequently the literal fixed-band arm cannot guarantee an
+$\widetilde O(1/\sqrt\alpha)$ global bank, even on one edge.
+\end{theorem}
+
+\begin{proof}
+Let the graph be $o-v$, with seed $o$.  Both degrees equal one, and write
+\[
+ Q=\begin{pmatrix}a&-h\\-h&a\end{pmatrix},
+ \qquad
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ h:=\frac{1-\alpha}{2},
+ \qquad
+ \zeta:=\frac{h}{a}=\frac{1-\alpha}{1+\alpha}.
+\]
+At $\rho=1/4$, the shifted RPPR load is
+$\ell_\rho=(3\alpha/4,-\alpha/4)$.  Its full solution has
+\[
+ (Q^{-1}\ell_\rho)_v
+ =\frac{\alpha(3h-a)}{4(a^2-h^2)}>0
+\]
+because $\alpha<1/2$.  Thus $S^\star(1/4)=\{o,v\}$.  More explicitly, the
+canonical root point $y=(3\alpha/(4a),0)$ has shifted boundary violation
+\[
+ (\ell_\rho-Qy)_v=\frac{\alpha(3\zeta-1)}4>0,
+\]
+so the exact boundary gate certifies $v$ before any operation on it.
+
+Do not settle the enlarged two-coordinate RPPR system.  Instead switch on
+the same irreversible state to the note's unregularized residual
+$r=b-Q\widehat x$.  One exact root update moves $y_o$ to $\alpha/a$, the
+unregularized root checkpoint, and leaves
+\begin{equation}
+ r=(0,\alpha\zeta).
+ \label{eq:two-vertex-handoff}
+\end{equation}
+This update and every later one touch only the certified set
+$S^\star(1/4)$.
+
+Choose
+\[
+ g:=\frac{\alpha\zeta}{\vartheta_B},
+ \qquad
+ \epsppr:=\frac g\alpha=\frac{\zeta}{\vartheta_B}.
+\]
+At the handoff, $\max_u|r_u|=\alpha\zeta<Bg$, so the strict live guard on
+the spreading rung is empty with a nonzero margin.  In the exact rung only
+one residual coordinate is nonzero at a time.  A unit row push zeros it and
+transfers the factor $h/a=\zeta$ to the other endpoint.  After $t$ pushes,
+the maximum residual is therefore $\alpha\zeta^{t+1}$.  The first $t$ for
+which this is at most $g$ is exactly \eqref{eq:two-vertex-exact-tail}.
+
+Each tail push has charge two and $C(S^\star)=4$, so the tail alone gives
+$\varrho_{\rm rev}\geq N_B/2$.  For $\alpha\leq1/2$,
+\[
+ \log\frac{1+\alpha}{1-\alpha}
+ =2\operatorname{arctanh}(\alpha)
+ \leq\frac{2\alpha}{1-\alpha^2}
+ \leq\frac{8\alpha}{3}.
+\]
+Substitution proves \eqref{eq:two-vertex-bank-lower}.  The choice of
+$\alpha_B$ also makes $N_B\geq2$; all prior gate and handoff work can only
+increase the ratio.
+\end{proof}
+
+Thus the false lemma is now precise: support containment, current residual
+band, and an exact delivery rung do not imply accelerated cleanup.  This
+does not refute a forced or quantitatively developed $\omega_\star$ burn-in,
+nor exact Schur settlement; either mechanism prevents the displayed dead
+spreading phase.  In the causal ledger, the tail is entirely
+exact-after-exact neighbor backflow, so merely labeling that debt also does
+not make it an accelerated countdown.
+
+For the next corollary, every paid row update, ranking scan, or boundary scan
+is represented as a charged coordinate-touch event in this same ledger.  A
+procedure may use a more detailed cost model, but it may not omit these
+charges and still invoke the bank guarantee.
+
+\begin{corollary}[Banked propagate--settle work]
+\label{cor:banked-propagate-settle}
+Consider nested epochs $U_0,\ldots,U_K$.  In epoch $k$, cap all propagation,
+ranking, and boundary-inspection work by running a revisit bank with factor
+$\Gamma_{\rm p}$ and touched union $U_k$.  Suppose exact settlement and its
+boundary update cost at most
+$C_{\rm s}(w+1)^2C(U_k)$.  Then
+\begin{equation}
+ \operatorname{Work}_{0:K}
+ \leq
+ \bigl(\Gamma_{\rm p}+C_{\rm s}(w+1)^2\bigr)
+ \mathfrak R_{\rm set}\,C(U_K).
+ \label{eq:banked-propagate-work}
+\end{equation}
+For RPPR, if $U_K=S^\star(\rho)$ and
+$\mathfrak R_{\rm set}=\widetilde O(1/\sqrt\alpha)$, this becomes
+\begin{equation}
+ \operatorname{Work}_{0:K}
+ =\widetilde O\!\left(
+ \frac{\Gamma_{\rm p}+(w+1)^2}{\rho\sqrt\alpha}
+ \right).
+ \label{eq:banked-rppr-product}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The bank gives propagation-side work at most
+$\Gamma_{\rm p}C(U_k)$ in each epoch.  Add the settlement bound and sum.
+Definition \eqref{eq:two-level-definitions} proves
+\eqref{eq:banked-propagate-work}.  In the shared graph model,
+$C(U)\leq2\vol(U)$, while
+$\vol(S^\star(\rho))\leq1/\rho$.  Substitute these inequalities and the
+stated revisit target.
+\end{proof}
+
+This corollary removes one assumption from the abstract propagate--settle
+ledger: bounded propagation multiplicity can be enforced rather than merely
+postulated.  The remaining product-scale obligation is the cross-epoch
+factor $\mathfrak R_{\rm set}$, or an incremental state representation that
+avoids paying fresh settlement volume at every epoch.
+
+\section{Absorption-safe causal switching}
+\label{sec:absorption-switching}
+
+Exact settlement supplies a canonical checkpoint at which changing policies
+requires neither cloning nor restart.  The cleanest theorem is for RPPR,
+whose support gate is already compatible with the shared source model.
+Define the shifted load
+\begin{equation}
+ \ell_\rho:=b-\alpha\rho D^{1/2}\one.
+ \label{eq:adaptive-shifted-load}
+\end{equation}
+For a nonempty region $U$, its canonical restricted point is
+\begin{equation}
+ x[U]_U:=Q_{UU}^{-1}(\ell_\rho)_U,
+ \qquad
+ x[U]_{U^c}:=0.
+ \label{eq:adaptive-canonical-point}
+\end{equation}
+At this checkpoint, define the boundary-violation set
+\begin{equation}
+ \mathcal B(U):=
+ \left\{v\in\partial U:
+  (\ell_\rho-Qx[U])_v>0
+ \right\}.
+ \label{eq:adaptive-boundary-violations}
+\end{equation}
+
+\begin{theorem}[Absorption-safe adaptive boundary gate]
+\label{thm:absorption-safe-switch}
+Assume a single seed $o$ and $(\ell_\rho)_o>0$.  Start with $U_0=\{o\}$.
+At checkpoint $k$, a causal controller may use the entire work and revisit
+history to choose any nonempty subset
+\begin{equation}
+ \varnothing\neq B_k\subseteq\mathcal B(U_k)
+ \label{eq:adaptive-subset}
+\end{equation}
+when $\mathcal B(U_k)$ is nonempty, and set
+$U_{k+1}:=U_k\cup B_k$.  It may change its ranking, relaxation, batching, or
+proposal policy arbitrarily between checkpoints.  After every expansion,
+replace the current iterate by the canonical point $x[U_{k+1}]$.
+
+Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every $U_k$ lies in the true support $S^\star(\rho)$;
+ \item every newly added coordinate is positive at the next checkpoint;
+ \item the checkpoint $x[U_k]$ depends only on $U_k$, so every earlier
+ propagation and policy choice is absorbed exactly;
+ \item the process terminates after at most
+ $|S^\star(\rho)|-|U_0|$ expansions; and
+ \item at termination, $x[U_K]=x^\star(\rho)$.
+\end{enumerate}
+Thus policy switching at exact checkpoints is correct on one irreversible
+state and needs no cross-policy state-transfer assumption.
+\end{theorem}
+
+\begin{proof}
+The matrix $Q$ is a symmetric positive-definite Stieltjes matrix, so every
+principal inverse and every principal Schur-complement inverse is
+entrywise nonnegative.  At $U_0$, the positive seed load gives
+$x[U_0]_o>0$.  It also forces $o\in S^\star(\rho)$: otherwise the inactive
+KKT inequality would contradict $(\ell_\rho)_o>0$.  Suppose
+$x[U_k]_{U_k}>0$ and choose
+$B_k$ as in \eqref{eq:adaptive-subset}.  Block elimination gives
+\begin{equation}
+ x[U_{k+1}]_{B_k}
+ =
+ \left(
+  Q_{B_kB_k}
+  -Q_{B_kU_k}Q_{U_kU_k}^{-1}Q_{U_kB_k}
+ \right)^{-1}
+ (\ell_\rho-Qx[U_k])_{B_k}>0.
+ \label{eq:adaptive-schur-positive}
+\end{equation}
+The old coordinates receive
+$-Q_{U_kU_k}^{-1}Q_{U_kB_k}x[U_{k+1}]_{B_k}\geq0$, so positivity persists.
+
+For support containment, assume inductively $U_k\subseteq S^\star(\rho)$.
+Order comparison gives
+$x[U_k]_{U_k}\leq x^\star_{U_k}$.  If
+$v\in\mathcal B(U_k)$ but $x_v^\star=0$, then the Stieltjes off-diagonal
+signs and $x^\star\geq0$ imply
+\[
+ (\ell_\rho-Qx^\star)_v
+ \geq(\ell_\rho-Qx[U_k])_v>0,
+\]
+contradicting the inactive RPPR KKT inequality.  Hence every boundary
+violation lies in $S^\star(\rho)$.
+
+The formula \eqref{eq:adaptive-canonical-point} is unique, proving absorption
+and policy independence at a fixed $U_k$.  Each nonterminal checkpoint adds
+at least one new true-support vertex, so the number of expansions is finite.
+If $\mathcal B(U_K)$ is empty, the restricted equations give the active KKT
+equalities.  On a boundary coordinate, the stopping test gives
+$\ell_\rho-Qx[U_K]\leq0$; also $b_v=0$ and the Stieltjes signs give
+$b_v-(Qx[U_K])_v\geq0$.  These are exactly the lower and upper inactive RPPR
+KKT inequalities.  A nonseed coordinate outside
+$U_K\cup\partial U_K$ has no edge to $U_K$, so $Qx[U_K]=b_v=0$ there and its
+inactive KKT interval holds as well.  The seed already lies in $U_K$.
+The global KKT conditions and uniqueness imply
+$x[U_K]=x^\star(\rho)$.
+\end{proof}
+
+\begin{corollary}[Revisit-controlled no-reset switching]
+\label{cor:no-reset-switching}
+In \Cref{thm:absorption-safe-switch}, let any number of proposal or
+propagation policies run between checkpoints, but charge all of their work
+to the bank of \Cref{thm:revisit-bank}.  Require charged row operations to
+remain inside the current certified region together with coordinates already
+admitted by the exact boundary certificate.  If an operation would overdraw
+the bank, settle that certified region and switch policy at the canonical
+checkpoint.  At every nonterminal checkpoint, still admit a nonempty subset
+of the exact boundary violations as in \eqref{eq:adaptive-subset}.
+Correctness is independent of the switch sequence, and the work obeys
+\eqref{eq:banked-propagate-work} whenever the stated settlement-cost bound
+holds.
+\end{corollary}
+
+\begin{proof}
+The bank supplies the per-epoch propagation bound.  Exact settlement absorbs
+the policy history, while \Cref{thm:absorption-safe-switch} supplies support
+containment and correctness.  Apply
+\Cref{cor:banked-propagate-settle}.
+\end{proof}
+
+This is a genuine no-reset switch theorem, but not yet a best-arm competitive
+one.  It proves that revisit-triggered switching is state-compatible and
+work-capped.  Matching the fastest arm still requires bounding
+$\mathfrak R_{\rm set}$, maintaining incremental Schur state, or proving that
+pre-switch work is useful to the arm chosen next.
+
+\subsection{Why absorption alone cannot give a work oracle}
+
+The obstruction occurs inside the exact RPPR gate itself.  It is therefore
+unsafe to infer a competitive ratio merely from canonical settlement,
+monotone support growth, or persistence of unadmitted violations.
+
+\begin{theorem}[RPPR heavy-early obstruction on a tree]
+\label{prop:batch-order-obstruction}
+Fix $\alpha\in(0,1)$.  For every integer $L\geq1$, there are a finite simple
+unweighted tree, a single seed $o$, and $\rho>0$ for which the exact RPPR
+boundary gate of \Cref{thm:absorption-safe-switch} has two legal batch traces
+with the same terminal region and terminal canonical point, but
+\begin{equation}
+ \frac{\mathfrak R_{\rm set}^{\rm early}}
+      {\mathfrak R_{\rm set}^{\rm late}}
+ \geq \frac{L+1}{5}.
+ \label{eq:rppr-heavy-early-ratio}
+\end{equation}
+Every batch before a possible common final batch is a singleton.  In
+particular, exact RPPR absorption, true-support containment, and persistent
+boundary violations do not imply a constant best-order settled-work bound,
+even on trees.
+\end{theorem}
+
+\begin{proof}
+Put
+\[
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ \beta:=\frac{1-\alpha}{2},
+ \qquad
+ t:=\frac{\beta}{a}=\frac{1-\alpha}{1+\alpha}.
+\]
+For an integer $M$, form a tree from the path
+$o-z_1-\cdots-z_L$, a vertex $h$ adjacent to $o$, and $M-1$ pendant leaves
+$y_1,\ldots,y_{M-1}$ adjacent to $h$.  Thus
+\[
+ d_o=2,
+ \quad d_h=M,
+ \quad d_{z_i}=2\ (i<L),
+ \quad d_{z_L}=d_{y_j}=1.
+\]
+Write $P_k:=\{o,z_1,\ldots,z_k\}$, with $P_0=\{o\}$.
+
+We first make every next path vertex a strict violation at its path-only
+prefix.  For $0\leq k<L$, define
+\[
+ r_k(\rho):=(\ell_\rho-Qx[P_k])_{z_{k+1}}.
+\]
+The principal system on $P_k$ is independent of $M$.  At $\rho=0$ it is an
+irreducible Stieltjes system with positive load at $o$, so
+$x[P_k]_{z_k}>0$ and
+\[
+ r_k(0)=-Q_{z_{k+1},z_k}x[P_k]_{z_k}>0.
+\]
+Moreover, $r_k$ is affine in $\rho$:
+\begin{equation}
+ r_k(\rho)=r_k(0)-\rho\gamma_k,
+ \qquad
+ \gamma_k:=\alpha\left(
+  \sqrt{d_{z_{k+1}}}
+  -Q_{z_{k+1},P_k}Q_{P_kP_k}^{-1}
+       D_{P_k}^{1/2}\one
+ \right)>0.
+ \label{eq:path-prefix-margin}
+\end{equation}
+The last inequality follows from the Stieltjes signs.  Hence
+\begin{equation}
+ \eta_L:=\frac12\min_{0\leq k<L}\frac{r_k(0)}{\gamma_k}>0
+ \label{eq:path-prefix-eta}
+\end{equation}
+and $r_k(\rho)>0$ for every $k<L$ whenever $0<\rho<\eta_L$.
+
+Now set
+\begin{equation}
+ \rho=\rho_M:=\frac{t}{4(M+t)}.
+ \label{eq:heavy-rho}
+\end{equation}
+At the initial checkpoint $P_0$,
+\[
+ x_o[P_0]=\frac{\alpha(1-2\rho)}{a\sqrt2},
+\]
+and the violation residual at $h$ is
+\begin{equation}
+ (\ell_\rho-Qx[P_0])_h
+ =\frac{\alpha}{\sqrt M}
+  \left(\frac{t(1-2\rho)}2-\rho M\right).
+ \label{eq:heavy-initial-margin}
+\end{equation}
+It is positive exactly when $\rho<t/[2(M+t)]$, hence at $\rho_M$.
+Because $\rho_M\to0$, choose $M$ large enough that
+\begin{equation}
+ \rho_M<\eta_L,
+ \qquad
+ M\geq\frac32L^2+\frac{21}{2}L+6.
+ \label{eq:heavy-M-choice}
+\end{equation}
+
+We shall use persistence inside the exact gate.  Suppose
+$U'=U\cup B$ and every coordinate of $B$ violates at $x[U]$.  The Schur
+formula \eqref{eq:adaptive-schur-positive} gives
+$x[U']_B>0$ and $x[U']_U-x[U]_U\geq0$.  For every $v\notin U'$,
+\begin{align}
+ &(\ell_\rho-Qx[U'])_v-(\ell_\rho-Qx[U])_v \notag\\
+ &\qquad={}-Q_{vU}(x[U']_U-x[U]_U)-Q_{vB}x[U']_B\geq0.
+ \label{eq:rppr-violation-persistence}
+\end{align}
+Thus every unadmitted violation persists under every legal canonical
+expansion.
+
+Two traces are consequently legal.  The \emph{late} trace admits
+$z_1,\ldots,z_L$ and then $h$: each $z_{k+1}$ violates on $P_k$ by
+\eqref{eq:path-prefix-eta}, while $h$ persists.  For the \emph{early} trace,
+first admit $h$.  At every later region $P_k\cup\{h\}$, comparison with the
+legal expansion from $P_k$ gives
+$x[P_k\cup\{h\}]_{P_k}\geq x[P_k]_{P_k}$.  Since $h$ is not adjacent to
+$z_{k+1}$, the Stieltjes signs then give
+\[
+ (\ell_\rho-Qx[P_k\cup\{h\}])_{z_{k+1}}
+ \geq r_k(\rho)>0.
+\]
+Thus the early trace may admit $h,z_1,\ldots,z_L$.  Both traces reach
+\[
+ U^\dagger:=P_L\cup\{h\},
+\]
+where absorption makes their canonical points identical.
+
+Only the leaves $y_j$ remain outside $U^\dagger$.  They have equal degree,
+equal shifted load, and the same sole active neighbor $h$, so their violation
+residuals are tied.  If the common residual is nonpositive, both traces stop
+at $U^\dagger$.  If it is positive, both admit all leaves in one common
+final batch, after which the full graph is terminal.  Thus their suffix,
+terminal point, and denominator $C(U_K)$ are identical.
+
+It remains to compare the settled-charge numerators.  Here
+\[
+ C(P_k)=3+3k\quad(k<L),
+ \qquad
+ C(P_L)=3L+2,
+ \qquad
+ c(h)=M+1.
+\]
+Let $S$ denote the common optional final settlement charge.  Direct summation
+gives
+\begin{align}
+ A_{\rm early}
+ &=3+\sum_{k=0}^L\bigl(C(P_k)+M+1\bigr)+S \notag\\
+ &=(L+1)M+\frac32L^2+\frac{11}{2}L+6+S,
+ \label{eq:heavy-early}\\
+ A_{\rm late}
+ &=3+\sum_{k=1}^LC(P_k)+\bigl(C(P_L)+M+1\bigr)+S \notag\\
+ &=M+\frac32L^2+\frac{15}{2}L+5+S.
+ \label{eq:heavy-late}
+\end{align}
+The full graph has charge $3M+3L+1$, so $S$ is either zero or at most this
+quantity.  Therefore
+\[
+ A_{\rm early}\geq(L+1)M,
+ \qquad
+ A_{\rm late}
+ \leq4M+\frac32L^2+\frac{21}{2}L+6
+ \leq5M,
+\]
+where the last inequality is \eqref{eq:heavy-M-choice}.  The common terminal
+denominator cancels, proving \eqref{eq:rppr-heavy-early-ratio}.
+\end{proof}
+
+The expensive branch can therefore be admitted early and paid throughout a
+long independent chain even though every addition is KKT-certified and both
+orders end at the same exact solution.  A positive one-state oracle theorem
+must use more than correctness and monotonicity: for example an
+interference-monotone countdown, an explicit order rule whose charge can be
+amortized, or incremental settlement state that does not repay the whole
+region.
+
+\begin{corollary}[No policy-blind accelerated-bank success theorem]
+\label{cor:no-policy-blind-bank}
+Fix $\alpha\in(0,1)$ and any finite bank factor $\Gamma$.  There is a legal
+support-safe exact RPPR trace on a finite unweighted tree whose settlement
+touches alone violate $W\leq\Gamma C(S)$ at some prefix.  Consequently
+support safety, exact checkpoint absorption, and the RPPR KKT gate cannot by
+themselves prove that a global bank of scale
+$\widetilde O(1/\sqrt\alpha)$ never blocks.
+\end{corollary}
+
+\begin{proof}
+Choose $L$ with $(L+1)/4>\Gamma$ in
+\Cref{prop:batch-order-obstruction} and use the early trace.  Its cumulative
+settlement work is at least $(L+1)M$.  Its terminal region is contained in
+the full graph, whose charge is $3M+3L+1\leq4M$ under
+\eqref{eq:heavy-M-choice}.  Hence its terminal realized ratio is greater
+than $\Gamma$.  The bank invariant must therefore fail at or before that
+checkpoint.
+\end{proof}
+
+\subsection{A mergeable countdown certificate}
+
+There is, however, a sharp positive condition under which all policy work can
+be committed to one state without branching or reset.  Let $\mathcal Z$ be a
+space of certified states with a terminal subset.  A paid policy block maps
+one certified state to another and has a declared positive charge.  In the
+RPPR application, these may be the canonical checkpoints of
+\Cref{thm:absorption-safe-switch}.
+
+\begin{theorem}[Shared-state portfolio from mergeable countdowns]
+\label{thm:mergeable-countdown}
+Let $P_1,\ldots,P_K$ be policies acting on the same certified state.  Suppose
+that for every $j$ there is a work-valued function
+$\Phi_j:\mathcal Z\to\mathbb R_+$ with the following properties at every
+nonterminal state $z$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item \emph{interference monotonicity:} every legal block of every policy,
+ $z\mapsto z^+$, satisfies $\Phi_j(z^+)\leq\Phi_j(z)$;
+ \item \emph{own-service progress:} every block of $P_j$ with charge $a$,
+ including a block that reaches the terminal state, satisfies
+ $\Phi_j(z^+)\leq\Phi_j(z)-a$; and
+ \item $P_j$ always has a legal next block unless the common terminal
+ certificate already holds.
+\end{enumerate}
+Run a work-fair scheduler with fixed positive shares
+$\nu_1,\ldots,\nu_K$, $\sum_j\nu_j=1$, committing every scheduled block to
+the same state.  Assume that at every prefix of total charge $C$, policy $j$
+has received at least $\nu_j(C-\Delta)$ service.  Then it terminates with
+\begin{equation}
+ C_{\rm shared}
+ \leq
+ \min_{1\leq j\leq K}
+ \frac{\Phi_j(z_0)}{\nu_j}+\Delta.
+ \label{eq:mergeable-countdown-bound}
+\end{equation}
+In particular, uniform shares give
+\begin{equation}
+ C_{\rm shared}
+ \leq K\min_j\Phi_j(z_0)+\Delta.
+ \label{eq:mergeable-uniform}
+\end{equation}
+If $C_j$ is the standalone work of $P_j$ and the countdown is
+$\kappa$-tight, meaning $\Phi_j(z_0)\leq\kappa C_j$ for every $j$, then the
+shared irreversible run is $K\kappa$-competitive with the best arm, up to
+$\Delta$.
+\end{theorem}
+
+\begin{proof}
+Fix $j$.  Blocks of other policies never increase $\Phi_j$.  Until
+and including termination, every unit of service given to $P_j$ decreases
+$\Phi_j$ by at least one unit.  Because $\Phi_j$ is nonnegative, the common
+certificate must therefore hold by the time $P_j$ receives
+$\Phi_j(z_0)$ service.  Work
+fairness gives that amount of service by total charge at most
+$\Phi_j(z_0)/\nu_j+\Delta$.  Minimize over $j$.  The last two conclusions are
+immediate.
+\end{proof}
+
+Unlike the branchable portfolio, this theorem has only one evolving solution
+state: every block from every arm is retained.  Unlike a restart portfolio,
+no completed block is discarded.  The price is precisely
+interference monotonicity.  The batch-order obstruction shows why that
+property cannot be omitted from a settlement-volume countdown.
+
+\subsection{Activation tokens: a tight mergeable countdown}
+
+The abstract condition has a concrete realization when transport work is
+represented by irreversible common-state events rather than by a smooth
+numerical error.
+
+\begin{lemma}[Irreversible activation-token countdown]
+\label{lem:activation-token-countdown}
+For policy $P_j$, let $T_j$ be a finite token set with positive weights
+$w_j(t)$.  Suppose every certified shared state $z$ records a consumed set
+$H_j(z)\subseteq T_j$ such that:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every legal block $z\mapsto z^+$ satisfies
+ $H_j(z)\subseteq H_j(z^+)$;
+ \item every nonterminal $P_j$ block of charge $a$ consumes new tokens
+ $N=H_j(z^+)\setminus H_j(z)$ with
+ $a\leq\sum_{t\in N}w_j(t)$;
+ \item $P_j$ has a legal next block until the common terminal certificate;
+ and
+ \item
+ $\sum_{t\in T_j\setminus H_j(z_0)}w_j(t)\leq\kappa_j C_j$,
+ where $C_j$ is its standalone work from $z_0$.
+\end{enumerate}
+Then
+\begin{equation}
+ \Phi_j(z):=\sum_{t\in T_j\setminus H_j(z)}w_j(t)
+ \label{eq:activation-token-potential}
+\end{equation}
+is an interference-monotone, $\kappa_j$-tight mergeable countdown for
+\Cref{thm:mergeable-countdown}.
+\end{lemma}
+
+\begin{proof}
+Monotonicity of $H_j$ makes $\Phi_j$ nonincreasing under every legal block.
+For an own block,
+\[
+ \Phi_j(z)-\Phi_j(z^+)
+ =\sum_{t\in H_j(z^+)\setminus H_j(z)}w_j(t)\geq a.
+\]
+The last hypothesis is exactly $\kappa_j$-tightness.
+\end{proof}
+
+The important restriction is that these are events in the common certified
+state.  Tokens for an arm-private simulated trajectory would merely hide a
+branch and would not establish interference monotonicity.
+
+\begin{theorem}[A $\kappa=1$ shared-state countdown on endpoint paths]
+\label{thm:path-token-countdown}
+Consider single-seed RPPR on an endpoint-seeded path
+$P_N=(v_0,\ldots,v_N)$, and suppose
+\[
+ S^\star(\rho)=U_J:=\{v_0,\ldots,v_J\}.
+\]
+Require the common checkpoint representation to store, for every admitted
+prefix $U_k$, the exact forward Schur records described below.  Every legal
+support expansion, regardless of which arm requests it, appends the unique
+new record; support-preserving blocks leave the records unchanged.  Once the
+terminal prefix is certified, the common verifier enters a terminalization
+phase: reverse-recovery blocks are legal, while numerical policy updates that
+could overwrite recovered output are not.
+
+Then the exact path-Schur arm has an irreversible activation-token countdown
+with $\kappa=1$.  Its declared standalone work and initial countdown are
+\begin{equation}
+ C_{\rm path}=\Phi_{\rm path}(z_0)\leq2C(S^\star(\rho)),
+ \label{eq:path-token-work}
+\end{equation}
+up to deletion of any seed-initialization token already paid at $z_0$.
+Consequently
+\begin{equation}
+ C_{\rm path}\leq\frac4\rho,
+ \label{eq:path-token-rppr}
+\end{equation}
+and a uniform work-fair shared-state portfolio containing this arm terminates
+on the promised path class in at most
+$2K C(S^\star)+\Delta\leq4K/\rho+\Delta$ declared work.  No reset or
+arm-private numerical iterate is required.
+\end{theorem}
+
+\begin{proof}
+Write
+\[
+ a_i:=Q_{v_i v_i},
+ \qquad
+ \beta_i:=-Q_{v_{i-1}v_i}>0\quad(i\geq1),
+ \qquad
+ \lambda_i:=(\ell_\rho)_{v_i}.
+\]
+The common representation stores the forward elimination records
+\begin{align}
+ \delta_0&=a_0,& \eta_0&=\lambda_0,\notag\\
+ \delta_i&=a_i-\frac{\beta_i^2}{\delta_{i-1}},&
+ \eta_i&=\lambda_i+\frac{\beta_i\eta_{i-1}}{\delta_{i-1}}.
+ \label{eq:path-common-schur-record}
+\end{align}
+Positive definiteness gives $\delta_i>0$.  At prefix $U_k$, the unique
+boundary residual has the sign of
+$\eta_{k+1}=\lambda_{k+1}+\beta_{k+1}\eta_k/\delta_k$.
+Thus it is positive for $k<J$ and nonpositive at $k=J$ unless $J=N$.
+The next forward block is therefore always legal until the exact terminal
+prefix is found.  The terminal solution is then recovered once in reverse:
+\begin{equation}
+ x_{v_J}=\frac{\eta_J}{\delta_J},
+ \qquad
+ x_{v_i}=\frac{\eta_i+\beta_{i+1}x_{v_{i+1}}}{\delta_i}
+ \quad(i=J-1,\ldots,0).
+ \label{eq:path-common-backsolve}
+\end{equation}
+
+Let $w_i:=c(v_i)=1+d_{v_i}$.  Give every $v_i\in S^\star$ one forward
+token $f_i$ and one reverse token $b_i$, both of weight $w_i$.  The forward
+token is consumed when $v_i$ is admitted or initialized and its record is
+appended; the reverse token is consumed when
+\eqref{eq:path-common-backsolve} recovers that coordinate.  If the current
+prefix is $U_k$ and $H$ is the reverse-recovered set, the remaining-token
+countdown is
+\begin{equation}
+ \Phi_{\rm path}(U_k,H)
+ =\sum_{i=k+1}^{J}w_i
+  +\sum_{v_i\in S^\star\setminus H}w_i,
+ \label{eq:path-token-potential}
+\end{equation}
+with the already initialized seed token handled identically on both sides.
+Any compatible block either leaves this quantity unchanged, advances the
+prefix, or recovers output.  A path-arm forward or reverse block has declared
+charge exactly the token it consumes, so
+\Cref{lem:activation-token-countdown} applies with $\kappa=1$ and initial
+value at most $2C(S^\star)$.
+
+The recurrence and backsolve use constant arithmetic per path vertex; the
+declared charge dominates this work and its adjacency access by an absolute
+factor.  Finally,
+$C(S^\star)\leq2\vol(S^\star)\leq2/\rho$, proving
+\eqref{eq:path-token-rppr}.  Apply
+\Cref{thm:mergeable-countdown} with uniform shares for the portfolio bound.
+\end{proof}
+
+This theorem is the clean positive answer for serializable fronts: preserve
+an activation-once transport representation in the common state, and charge
+forward discovery and terminal recovery exactly once.  Extending it from
+paths to arbitrary trees requires an order-independent dynamic response
+merge.  The existing lazy tree response follows one sorted homotopy order,
+whereas a legal exact gate can choose a different positive boundary branch;
+no proof yet repairs the affected ancestor responses without recreating old
+tokens.  The all-tree extension is therefore not claimed.
+
+\begin{proposition}[Continuous numerical countdowns cannot pay activation]
+\label{prop:no-continuous-activation-countdown}
+Fix $\alpha\in(0,1)$.  On the one-edge graph there are legal exact RPPR
+activations of fixed charge two whose before-and-after canonical states
+converge to one another.  Hence no countdown jointly continuous in
+$(\rho,x)$ can decrease by the full activation charge uniformly over RPPR
+instances.  In particular, an exact obstacle-energy countdown needs an
+unbounded multiplier near the activation breakpoint.
+\end{proposition}
+
+\begin{proof}
+Retain $a=(1+\alpha)/2$ and $h=(1-\alpha)/2$.  For $0<\rho<h$, the shifted
+load is $\ell_\rho=(\alpha(1-\rho),-\alpha\rho)$ and the root checkpoint is
+\[
+ x^-=(\alpha(1-\rho)/a,0).
+\]
+Its boundary demand at $v$ is
+\[
+ g_v=(\ell_\rho-Qx^-)_v=\frac{\alpha(h-\rho)}a>0.
+\]
+The Schur complement is $a-h^2/a=\alpha/a$, so the legal exact expansion
+satisfies
+\begin{equation}
+ x_v^+=h-\rho,
+ \qquad
+ x_o^+-x_o^-=\frac{h(h-\rho)}a.
+ \label{eq:vanishing-activation-jump}
+\end{equation}
+Thus $\|x^+-x^-\|\to0$ as $\rho\uparrow h$, although scanning and activating
+$v$ always costs $c(v)=2$.  Joint continuity would force
+$\Phi(\rho,x^-)-\Phi(\rho,x^+)\to0$, contradicting a uniform own-service
+decrease of two.  The exact obstacle-energy drop is
+\[
+ \frac12\frac{g_v^2}{\alpha/a}
+ =\frac{\alpha(h-\rho)^2}{2a}.
+\]
+An energy scaling that pays charge two must therefore be at least
+$4a/[\alpha(h-\rho)^2]$, which diverges.
+\end{proof}
+
+The discontinuous support token in \Cref{thm:path-token-countdown} is not a
+technical convenience; the proposition shows why a support jump must be
+recorded explicitly.  Raw causal debts do not repair this issue either: an
+exact neighbor push can create new exact-after-exact backflow from zero, and
+a fresh over-relaxed push can create delayed-reflection magnitude from zero.
+Neither raw magnitude is interference monotone without additional transport
+aggregation.
+
+\section{Energy facts for adaptive relaxation}
+\label{sec:energy}
+
+The next statements apply to the unregularized quadratic $f$ in the shared
+model.  They do not assume monotone residual signs.
+Define the error energy
+\begin{equation}
+ \mathcal E(\widehat x)
+ :=f(\widehat x)-f(x^0)
+ =\frac12(\widehat x-x^0)^\mathsf TQ(\widehat x-x^0).
+ \label{eq:error-energy}
+\end{equation}
+
+\begin{lemma}[Exact coordinate-energy ledger]
+\label{lem:energy}
+Let $\widehat x$ be any iterate, $r=b-Q\widehat x$, and let
+$\widehat x^+$ be the row update \eqref{eq:row-update} on $u$.  For every
+$0<\omega<2$,
+\begin{equation}
+ f(\widehat x)-f(\widehat x^+)
+ =\frac{\omega(2-\omega)}{2Q_{uu}}r_u^2
+ =\frac{\omega(2-\omega)}{1+\alpha}r_u^2.
+ \label{eq:energy-drop}
+\end{equation}
+Consequently, along any finite adaptive run,
+\begin{equation}
+ f(\widehat x_0)-f(\widehat x_T)
+ =\sum_{t=0}^{T-1}
+ \frac{\omega_t(2-\omega_t)}{1+\alpha}r_{t,u_t}^2.
+ \label{eq:telescope}
+\end{equation}
+The right-hand side is computable from the live local residuals and does not
+require knowing $x^0$.
+\end{lemma}
+
+\begin{proof}
+Set $z=\omega r_u/Q_{uu}$.  The exact quadratic expansion gives
+\[
+ f(\widehat x+ze_u)-f(\widehat x)
+ =z\nabla_u f(\widehat x)+\tfrac12Q_{uu}z^2
+ =-\frac{\omega(2-\omega)}{2Q_{uu}}r_u^2.
+\]
+The shared matrix has $Q_{uu}=(1+\alpha)/2$.  Summing proves the telescoping
+identity.
+\end{proof}
+
+\begin{corollary}[Myopic descent selects the exact rung]
+\label{cor:myopic}
+At a fixed iterate and coordinate, immediate objective decrease per charge
+is uniquely maximized over $0<\omega<2$ by $\omega=1$.
+\end{corollary}
+
+\begin{proof}
+The residual and charge are fixed, while
+$\omega(2-\omega)=1-(\omega-1)^2$ is uniquely maximized at one.
+\end{proof}
+
+Thus no controller based only on the current update's energy efficiency can
+explain the measured advantage of over-relaxation.  The benefit must appear
+over a block: over-relaxation changes which coordinates become live, how far
+the frontier travels, and which expensive rows are revisited.  Equation
+\eqref{eq:telescope} is still useful as an auditable block-progress
+denominator, but comparing modes from the same starting state requires a
+probe, a branch, or a structural theorem.
+
+\subsection{A condition-free safety theorem}
+
+The energy ledger proves that adaptive relaxation itself does not endanger
+termination if it is clamped away from two.
+
+\begin{theorem}[Safe causal variable relaxation]
+\label{thm:safe-adaptive}
+Fix $\delta\in(0,1]$.  Start from $\widehat x_0=0$.  At every paid step,
+choose any coordinate satisfying the live guard
+\begin{equation}
+ \frac{\abs{r_{t,u_t}}}{\sqrt{d_{u_t}}}>g
+ \label{eq:live}
+\end{equation}
+and choose $\omega_t\in[1,2-\delta]$ by any causal function of the entire
+past, including the causal revisit ledger.  Require the controller to execute
+such a live coordinate whenever \eqref{eq:note-gate} fails.  Then only
+finitely much charged row work can occur before \eqref{eq:note-gate} holds,
+and
+\begin{equation}
+ W\leq
+ \frac{1+\alpha}
+ {\delta(2-\delta)\,\alpha\epsppr^{2}}.
+ \label{eq:safety-work}
+\end{equation}
+The statement is ordering independent and allows signed residuals.
+\end{theorem}
+
+\begin{proof}
+Let $m_\delta:=\delta(2-\delta)$.  On $[1,2-\delta]$,
+$\omega(2-\omega)\geq m_\delta$.  A paid live operation satisfies
+$r_{t,u_t}^2>g^2d_{u_t}$.  Since $d_u\geq1$,
+$c(u)=1+d_u\leq2d_u$.  By \Cref{lem:energy}, its objective decrease is at
+least
+\begin{equation}
+ \frac{m_\delta g^2}{2(1+\alpha)}c(u_t).
+ \label{eq:progress-charge}
+\end{equation}
+
+The minimum objective is $f(x^0)$, and the zero-start energy is
+\[
+ f(0)-f(x^0)=\tfrac12 b^\mathsf TQ^{-1}b
+ \leq\frac{\norm{b}_2^2}{2\alpha}
+ \leq\frac{\alpha}{2}.
+\]
+The last inequality follows from
+$b_i=\alpha s_i/\sqrt{d_i}$, $d_i\geq1$, $s\geq0$, and
+$\sum_i s_i=1$, which give $\norm{b}_2^2\leq\alpha^2$.  Sum
+\eqref{eq:progress-charge}, use $g=\alpha\epsppr$, and solve for $W$ to
+obtain \eqref{eq:safety-work}.  Infinite charged work would force more
+objective decrease than the zero-start energy, so the paid process is finite.
+If a live coordinate remained, the rule could make another paid step;
+therefore exhaustion is exactly the note-scoped gate.
+\end{proof}
+
+The theorem permits the literal clipping interval $[1.10,1.68]$ used by the
+frontier artifact, as well as a controller that raises or lowers $\omega$
+after every operation.  It does not prove acceleration: the
+$\epsppr^{-2}$ and $\alpha^{-1}$ scale is weaker than the intended
+$\widetilde O(\mathsf V_{\rm loc}/\sqrt\alpha)$ target.  Its value is modular.  A learned rule
+may be experimentally aggressive without carrying the correctness proof; the
+clamp and live guard carry it.
+
+This energy argument is also one unconditional but nonaccelerated instance
+of \Cref{thm:mergeable-countdown}.  With
+$m_\delta:=\delta(2-\delta)$, define
+\begin{equation}
+ \Phi_{\rm en}(\widehat x)
+ :=\frac{2(1+\alpha)}{m_\delta g^2}\mathcal E(\widehat x).
+ \label{eq:energy-countdown}
+\end{equation}
+Every live update with relaxation in $[1,2-\delta]$ decreases this same
+countdown by at least its charge, regardless of which policy requested the
+update.  Hence it is interference monotone and recovers the safety theorem on
+a genuinely shared state.  It does not distinguish the arms and has the
+nonaccelerated scale.  The exact missing object for a lower-bound-matching
+adaptive theorem is a $\kappa=\widetilde O(1)$ transport-block countdown for
+at least one accelerated arm that other support-safe blocks cannot increase.
+The delayed-reflection debt and the exact-after-exact backflow ledger are
+concrete candidates for constructing such a countdown.
+
+\subsection{A no-reset experimental prefix with exact fallback}
+
+Even on one irreversible state, an adaptive policy can be tried for a
+controlled budget and then handed to exact Gauss--Seidel.  The prefix's
+energy decrease is not discarded.
+
+\begin{theorem}[Budgeted adaptive prefix]
+\label{thm:budgeted-prefix}
+Under the hypotheses of \Cref{thm:safe-adaptive}, run an arbitrary causal
+prefix of charged work $W_{\rm pre}$ with
+$\omega_t\in[1,2-\delta]$.  From the resulting iterate, switch irreversibly
+to live unit-relaxation updates until \eqref{eq:note-gate} holds.  Define
+\begin{equation}
+ H_0:=\frac{2(1+\alpha)\mathcal E(0)}{g^2}
+ \leq\frac{1+\alpha}{\alpha\epsppr^2},
+ \qquad m_\delta:=\delta(2-\delta).
+ \label{eq:fallback-budget}
+\end{equation}
+Then
+\begin{equation}
+ W_{\rm total}
+ \leq H_0+(1-m_\delta)W_{\rm pre}.
+ \label{eq:fallback-total}
+\end{equation}
+In particular, imposing the hard cap $W_{\rm pre}\leq\theta H_0$ gives
+\begin{equation}
+ W_{\rm total}
+ \leq[1+(1-m_\delta)\theta]H_0
+ \leq(1+\theta)H_0.
+ \label{eq:fallback-cap}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \eqref{eq:progress-charge}, the prefix decreases $\mathcal E$ by at
+least $m_\delta g^2W_{\rm pre}/(2(1+\alpha))$.  If
+$\mathcal E_{\rm hand}$ is the energy at handoff, the same live-update
+argument with $\omega=1$ bounds the exact tail by
+\[
+ W_{\rm tail}
+ \leq\frac{2(1+\alpha)\mathcal E_{\rm hand}}{g^2}
+ \leq H_0-m_\delta W_{\rm pre}.
+\]
+Add $W_{\rm pre}$ and apply its cap.  The upper bound on $H_0$ is the
+zero-start calculation in \Cref{thm:safe-adaptive}.
+\end{proof}
+
+The theorem allows a revisit-based switch trigger on the actual single
+state, with a work cap as its independent safety certificate.  It is not a
+best-arm oracle inequality: the fallback ceiling is still the weak
+energy-based exact-Gauss--Seidel scale.  A lower-bound-matching result would
+need to replace $H_0$ by an accelerated local tail or show that a losing
+prefix is chargeable to such a tail.
+
+\section{A condition-free best-of-policy wrapper}
+\label{sec:portfolio}
+
+The nonidentifiability result concerns a controller forced to choose one
+future policy.  Branching removes that information bottleneck.  Let
+$P_1,\ldots,P_K$ be local solvers for the same instance and terminal
+certificate.  They may include, for example, exact Gauss--Seidel, fixed
+two-rung schedules at several band widths, an alpha-scaled ladder, and the
+frontier adaptive ladder.  Each policy receives an independent sparse state
+initialized from the same input.
+
+For instance $I$, let $C_j(I)$ be the charged edge or row work policy $P_j$
+would need if run alone until the verifier accepts it.  Fix positive service
+shares $\nu_j$ with $\sum_j\nu_j=1$.  A fractional work scheduler gives arm
+$j$ exactly a $\nu_j$ fraction of aggregate charged work and stops all arms
+as soon as one certifies.
+
+\begin{theorem}[Weighted portfolio oracle inequality]
+\label{thm:portfolio}
+Under fractional charged-work scheduling,
+\begin{equation}
+ C_{\rm port}(I)
+ =\min_{1\leq j\leq K}\frac{C_j(I)}{\nu_j}.
+ \label{eq:portfolio-exact}
+\end{equation}
+In particular, uniform service satisfies
+\begin{equation}
+ C_{\rm port}(I)=K\min_j C_j(I).
+ \label{eq:uniform-portfolio}
+\end{equation}
+
+If work is scheduled in indivisible chunks and a fair scheduler maintains
+received work $w_j(W)\geq\nu_jW-\Delta$ for every arm after aggregate work
+$W$, then
+\begin{equation}
+ C_{\rm port}(I)
+ \leq\min_j\frac{C_j(I)+\Delta}{\nu_j}.
+ \label{eq:portfolio-discrete}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+After aggregate fractional work $W$, arm $j$ has received $\nu_jW$.  It
+finishes exactly when $W=C_j(I)/\nu_j$; the first finishing arm proves
+\eqref{eq:portfolio-exact}.  Uniform shares give
+\eqref{eq:uniform-portfolio}.  Under the discrete invariant, aggregate work
+$W=(C_j(I)+\Delta)/\nu_j$ guarantees
+$w_j(W)\geq C_j(I)$, so arm $j$ has finished.  Minimize over $j$.
+\end{proof}
+
+The fractional model is natural for the manuscript's adjacency-edge work:
+an adjacency scan can be paused and resumed after buffering its row update.
+With atomic service operations, $\Delta$ can instead be taken as the largest
+scheduling chunk.  The wrapper uses $K$ sparse solver states and may explore
+the union of their frontiers; that storage and scalar-copy overhead must be
+reported even though \eqref{eq:portfolio-exact} counts graph work exactly.
+The benchmark service used by the measured artifact exposes only one mutable
+state, so literal implementation there would require protocol support for
+checkpoints or independent instances.
+
+\subsection{Removing simultaneous branches by geometric restart}
+
+If independent branch states are unavailable but the instance can be reset
+to its common initial state, a universal geometric schedule retains a
+constant-factor guarantee.  It uses one live solver state at a time.
+
+\begin{algorithm}[H]
+\caption{Single-live-state restart portfolio}
+\begin{algorithmic}[1]
+\REQUIRE policies $P_1,\ldots,P_K$; base charged-work quantum $B_0>0$
+\STATE test the terminal certificate at the common initial state
+\FOR{$k=0,1,2,\ldots$}
+  \FOR{$j=1,\ldots,K$}
+    \STATE reset to the common initial state
+    \STATE run $P_j$ for charged-work budget $2^kB_0$
+    \IF{$P_j$ certifies within the budget}
+      \RETURN its certified iterate
+    \ENDIF
+  \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Best-of-policy guarantee with one live state]
+\label{thm:restart-portfolio}
+Assume charged work can be paused at the declared budget and every policy is
+deterministic from the common initial state.  Let
+$C_\star:=\min_j C_j(I)$.  The restart portfolio returns a certified solution
+using one live policy state and total work
+\begin{equation}
+ C_{\rm restart}(I)<4K\max\{C_\star,B_0\}
+ \leq4K(C_\star+B_0).
+ \label{eq:restart-bound}
+\end{equation}
+With indivisible chunks, the same proof holds after adding the maximum
+per-trial budget overshoot to $B_0$.
+\end{theorem}
+
+\begin{proof}
+Let $k_\star$ be the first epoch with
+$2^{k_\star}B_0\geq C_\star$.
+A best policy certifies during that epoch.  Bounding every attempted policy
+in every epoch by its full budget gives
+\[
+ C_{\rm restart}(I)
+ \leq K\sum_{k=0}^{k_\star}2^kB_0
+ <2K\,2^{k_\star}B_0.
+\]
+If $k_\star=0$, the last quantity is $2KB_0$.  Otherwise minimality gives
+$2^{k_\star}B_0<2C_\star$.  Both cases imply
+\eqref{eq:restart-bound}.
+\end{proof}
+
+This theorem removes simultaneous branching and all distributional
+assumptions, at the price of recomputing prefixes.  It does require a true
+reset.  A service exposing one irreversible mutable state, with neither
+checkpointing nor reset, still needs a switch amortization proving that early
+work under a losing mode is useful to the eventual winner.
+
+\subsection{Safe learned allocation}
+
+Let an arbitrary predictor output shares
+$\widehat\nu_{t,1},\ldots,\widehat\nu_{t,K}$ for repeated instance $I_t$.
+Its context may include graph identity, seed features, $\alpha$, gate
+hardness, phase-wise touched charge, and the four-way causal revisit ledger.
+For $\gamma\in(0,1]$, use
+\begin{equation}
+ \nu_{t,j}:=(1-\gamma)\widehat\nu_{t,j}+\frac{\gamma}{K}.
+ \label{eq:floor}
+\end{equation}
+
+\begin{corollary}[Distribution-free safety of learned shares]
+\label{cor:learned-safe}
+For every sequence of instances and every predictor, the discrete portfolio
+satisfies, separately on every $I_t$,
+\begin{equation}
+ C_{{\rm port},t}
+ \leq\frac{K}{\gamma}
+       \left(\min_j C_{t,j}+\Delta_t\right).
+ \label{eq:floor-bound}
+\end{equation}
+If a best arm $j_t^\star$ receives predicted mass
+$\widehat\nu_{t,j_t^\star}=\upsilon_t$, the sharper bound is
+\begin{equation}
+ C_{{\rm port},t}
+ \leq
+ \frac{C_{t,j_t^\star}+\Delta_t}
+ {(1-\gamma)\upsilon_t+\gamma/K}.
+ \label{eq:prediction-bound}
+\end{equation}
+No stationarity or transfer assumption is required.
+\end{corollary}
+
+\begin{proof}
+Equation \eqref{eq:floor} gives $\nu_{t,j}\geq\gamma/K$ for every arm.
+Apply \eqref{eq:portfolio-discrete} to a best arm for
+\eqref{eq:floor-bound}, and retain its actual share for
+\eqref{eq:prediction-bound}.
+\end{proof}
+
+This is the clean theoretical role for revisit memory.  It may improve the
+constant by predicting a useful service allocation, but a wrong prediction
+cannot remove any arm or invalidate the certificate.  The exploration floor,
+not the empirical map from $\varrho_{\rm rev}$ to $\omega$, supplies the
+worst-case theorem.
+
+\subsection{Inheritance of accelerated work}
+
+\begin{corollary}[Finite-menu inheritance]
+\label{cor:inherit}
+Let $\mathcal I$ be an instance class.  Suppose that for every
+$I\in\mathcal I$ at least one policy in a fixed menu of size $K$ satisfies
+\begin{equation}
+ C_j(I)\leq A(I).
+ \label{eq:arm-bound}
+\end{equation}
+Then the uniform fractional portfolio satisfies
+$C_{\rm port}(I)\leq K A(I)$.  In particular, if
+$A(I)=\widetilde O(\mathsf V_{\rm loc}(I)/\sqrt\alpha)$ and $K$ is constant, the portfolio has
+the same asymptotic scale.
+\end{corollary}
+
+\begin{proof}
+Substitute \eqref{eq:arm-bound} into \eqref{eq:uniform-portfolio}.
+\end{proof}
+
+The quantifiers matter.  The good arm may vary with the graph, seed,
+accuracy, or local geometry; the portfolio does not need to identify it in
+advance.  But the arm must already possess the asserted bound.  This wrapper
+therefore removes the \emph{selection condition}, not the structural work
+condition needed to prove an accelerated local arm.  It also does not turn an
+algorithm-specific lower bound into a universal lower bound for the richer
+branching access model.
+
+\section{Recommended adaptive architecture}
+\label{sec:architecture}
+
+The proofs suggest three layers with distinct responsibilities.
+
+\paragraph{Layer 1: a causal diagnostic, not a scalar verdict.}
+Record $C(S)$, total work, all four $\mathsf{Rev}_{a\to b}$ entries,
+phase-wise work,
+and the block energy decrease from \eqref{eq:telescope}.  The pair
+$\mathsf{Rev}_{\mathrm e\to\mathrm e}
+ +\mathsf{Rev}_{\mathrm e\to\mathrm s}$ is certified
+neighbor backflow.  A large scalar $\varrho_{\rm rev}$ without this
+decomposition is ambiguous.  Also record full graph identity or a stable
+fingerprint; graph size alone is not a theoretical context.
+For support-safe RPPR traces, report the global fast-path certificate
+$2\varrho_{\rm rev}/\rho$ from \Cref{cor:rppr-fast-path}, not merely the
+dimensionless ratio.
+
+\paragraph{Layer 2: a safety mechanism independent of prediction.}
+For a single state, clamp every adaptive choice to $[1,2-\delta]$ and retain
+the live guard, invoking \Cref{thm:safe-adaptive}; independently cap an
+experimental prefix and invoke \Cref{thm:budgeted-prefix} before exact
+fallback.  On nested RPPR regions, enforce \Cref{thm:revisit-bank} between
+canonical settlements and switch only through the exact boundary gate of
+\Cref{thm:absorption-safe-switch}; this preserves the irreversible state
+without requiring cross-policy state transfer.  Also enforce a global
+accelerated bank: successful runs receive \Cref{cor:rppr-fast-path}, and an
+overdraw triggers canonicalization plus fallback under
+\eqref{eq:accelerated-or-fallback}.  If mergeable countdowns are available,
+\Cref{thm:mergeable-countdown} permits a work-fair shared-state portfolio.
+With branchable state,
+keep exact Gauss--Seidel and at least one conservative two-rung policy in the
+portfolio, and enforce \eqref{eq:floor}.  Every returned answer is checked by
+the same verifier-owned terminal gate.  If branches are unavailable but a
+clean reset is allowed, use \Cref{thm:restart-portfolio}.
+
+\paragraph{Layer 3: learning only changes allocation.}
+Use the causal ledger to predict service shares, not to delete arms or alter
+the terminal certificate.  One plausible qualitative prior is to distinguish
+large exact-after-exact backflow from large spread-to-exact delivery work;
+the former is direct evidence of reactivation after settlement, whereas the
+latter can be planned debt cleanup.  Whether this distinction predicts the
+best arm is empirical and must be evaluated out of sample.
+
+For the presently measured family, a minimal menu is
+\begin{equation}
+ \left\{
+  P_{\rm exact},\;
+  P_{\rm 2rung}(\chi_{\rm band}=2.5,\omega_\star),\;
+  P_{\rm scaled},\;
+  P_{\rm adaptive}
+ \right\},
+ \label{eq:menu}
+\end{equation}
+where $P_{\rm scaled}$ uses an alpha-dependent band or relaxation motivated
+by the delayed-reflection note, and $\chi_{\rm band}$ is the note-scoped
+threshold multiplier rather than the reserved PageRank right-hand side $b$.
+The value $2.5$ is only the best of six
+tested band widths on the existing campaign; it is not a universal optimum.
+
+\section{What remains for a matching bound}
+\label{sec:remaining}
+
+The third direction now has a sharp theoretical boundary.
+
+\begin{enumerate}[leftmargin=*]
+ \item \textbf{Selection is solved for a finite branchable menu.}
+ The portfolio chooses the fastest certifying arm up to a constant factor on
+ every instance, without assuming that revisit statistics transfer between
+ instances.
+
+ \item \textbf{Arbitrary causal relaxation is safe.}
+ The energy ledger proves termination and an explicit work ceiling, but that
+ ceiling has the classical $1/\alpha$ rather than accelerated
+ $1/\sqrt\alpha$ dependence and a quadratic tolerance cost.
+
+ \item \textbf{Within-epoch multiplicity is enforceable.}
+ The exact factorization \eqref{eq:two-level-factorization} connects the
+ empirical ratio to the settled-volume ledger, and the revisit bank caps its
+ within-epoch factor online.  A global bank also certifies the complete fast
+ path whenever it succeeds.  For a theorem guaranteeing success, the
+ remaining structural term is $\mathfrak R_{\rm set}$, unless incremental
+ Schur state avoids repeated full settlement.
+
+ \item \textbf{The accelerated fast path is certifiable but not universal.}
+ Every support-safe terminal trace with
+ $\varrho_{\rm rev}=\widetilde O(1/\sqrt\alpha)$ already performs
+ $\widetilde O(1/(\rho\sqrt\alpha))$ charged work.  The heavy-early RPPR
+ tree rules out policy-blind bank success, and the one-edge theorem proves
+ that the literal fixed-band two-rung arm can take $\Omega(1/\alpha)$ even at
+ fixed regularization and accuracy.  A universal positive result therefore
+ needs a modified forced-spreading or incremental-transport arm in a fixed
+ menu that performs
+ $\widetilde O(\mathsf V_{\rm loc}/\sqrt\alpha)$ charged graph work under a clearly stated
+ local-volume ledger $\mathsf V_{\rm loc}$.
+
+ \item \textbf{The exact one-state competition condition is isolated.}
+ A capped experimental prefix plus exact fallback is safe without reset, and
+ the RPPR absorption checkpoint permits arbitrary causal policy switches
+ while preserving support containment and correctness.  Separately,
+ the geometric restart portfolio is constant-competitive without retaining
+ parallel states when reset is available.  On a truly shared irreversible
+ state, mergeable $\kappa$-tight countdowns are sufficient for a
+ $K\kappa$-competitive theorem.  The heavy-early gate proves that absorption
+ alone cannot supply them.  Activation tokens supply the missing countdown
+ with $\kappa=1$ on endpoint paths, giving work at most $4/\rho$ for the exact
+ Schur arm.  The two-vertex continuity obstruction explains why energy or raw
+ debt magnitude cannot replace those discrete tokens.  The remaining
+ amortization problem is an order-independent activation-once representation
+ for branching and cyclic fronts.
+
+ \item \textbf{A continuous $\omega$ family needs regularity.}
+ A finite grid inherits the best grid arm.  Approximating the best continuous
+ relaxation requires a theorem controlling how thresholded SOR work changes
+ with $\omega$; live-set discontinuities make a naive Lipschitz assumption
+ unsafe.
+\end{enumerate}
+
+Thus this direction can remove a major condition---knowing in advance which
+local solver is appropriate---using multiple states or restart, and it now
+removes the separate state-compatibility obstacle for irreversible RPPR
+switching.  It also gives an a posteriori accelerated certificate without a
+graph-structural hypothesis and a precise sufficient condition for a
+shared-state best-arm ratio.  It cannot yet prove that the accelerated bank
+always succeeds on general graphs.  It does construct the tight transport
+countdown on serializable endpoint paths and proves why the literal two-rung,
+arbitrary exact batching, and continuous state-energy routes cannot supply a
+universal theorem.  This boundary prevents an adaptive wrapper from being
+mistaken for a graph-uniform proof of the desired lower-bound-matching rate.
+
+\section{Decisive experiments}
+\label{sec:experiments}
+
+The next empirical campaign should test the claims at their actual boundary.
+
+\begin{enumerate}[leftmargin=*]
+ \item Log $C(S)$ and all four causal revisit charges, separately by rung.
+ Verify that a paid revisit after an exact operation is preceded by a
+ neighbor update in the trace.
+ \item Run a global bank with
+ $\Gamma_{\rm acc}=c\log^p(1/(\alpha\rho))/\sqrt\alpha$.  Report the fraction
+ of instances certifying before overdraw, the overdraw checkpoint, and the
+ exact fallback charge.  This directly tests \Cref{cor:rppr-fast-path}.
+ \item Compare total work, not just $\varrho_{\rm rev}$, across policies.
+ Report objective decrease from \eqref{eq:telescope} per charged work over
+ complete rungs, since per-operation energy necessarily favors $\omega=1$.
+ \item Replace the size-only memory key by graph fingerprint, seed class,
+ $\alpha$, and hardness.  Evaluate transfer only from earlier to later
+ instances; never leak a later arm's cost into the predictor.
+ \item Simulate the weighted portfolio offline from per-arm work traces.  The
+ measured total should obey \eqref{eq:portfolio-discrete}; report the chunk
+ overhead $\Delta$ and peak union support.
+ \item Stress distribution shift: alternate path-like, star-like, and
+ thick-core instances at equal $n$.  The exploration floor should preserve
+ the oracle bound even when the predictor is systematically wrong.
+ \item Sweep smaller $\alpha$ and fit work exponents.  A better constant at
+ $\alpha\in\{0.025,0.04\}$ does not establish the desired
+ $\alpha^{-1/2}$ scale.
+\end{enumerate}
+
+\section{Conclusion}
+
+The revisit idea is promising, but its strongest theoretical form is not the
+literal scalar-to-$\omega$ formula.  The exact scalar is a multiplicity
+statistic.  Its causal refinement exposes neighbor backflow, while the energy
+identity shows why over-relaxation must be judged over a transport block.
+These facts explain both the signal's value and its ambiguity.
+
+Several guarantees are already complete.  Causal variable relaxation is safe
+under a compact clamp and live residual guard.  The empirical revisit ratio
+factors exactly across nested epochs, and its within-epoch contribution can
+be capped online.  On support-safe RPPR traces the global ratio is also a
+direct a posteriori accelerated-work certificate.  A capped adaptive prefix
+can fall back exactly on the same irreversible state with a quantified
+ceiling.  Exact RPPR settlements form absorption-safe checkpoints for
+history-dependent no-reset switching.  A
+branchable finite portfolio is condition-free relative to its best arm and
+can accept arbitrary
+revisit-based predictions without sacrificing a per-instance oracle
+inequality.  A geometric restart portfolio retains a constant-factor
+best-arm theorem with one live state.  Together these supply a broader
+framework for combining exact, two-rung, alpha-scaled, and adaptive local
+solvers.
+
+The actual RPPR batch-order obstruction shows why checkpoint safety is not a
+work oracle, and the one-edge exact tail rules out the literal fixed-band
+two-rung arm as a universal accelerated fallback.  The mergeable-countdown
+theorem identifies the positive replacement.  It is fully instantiated on
+endpoint paths by common activation-once Schur tokens, with $\kappa=1$ and
+$O(C(S^\star))$ work.  The remaining graph-uniform target is an
+order-independent version of that representation for branching and cyclic
+fronts, or a forced-spreading arm with its own tight transport proof.  Revisit
+feedback can select such theories safely; it is a controller, certificate,
+and diagnostic, not by itself the source of the accelerated rate.
+
+\bibliographystyle{plainnat}
+\bibliography{../../references}
+
+\end{document}

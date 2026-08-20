@@ -60,6 +60,9 @@ methods whose work is intended to depend on local structure.
 - *Fast Online Node Labeling for Very Large Graphs* (Zhou, Sun, and
   Babanezhad Harikandeh, 2023).
 - *Faster Local Solvers for Graph Diffusion Equations* (Bai et al., 2024).
+- *A Simple Active-Set Method for PageRank-Based Local Graph Clustering* (Wei
+  and Yang, 2026) - growing active sets with nearly-linear SDD solves and
+  polylogarithmic dependence on the inverse teleportation parameter.
 
 ### Spectral graph optimization
 
@@ -103,6 +106,9 @@ PageRank and related local problems.
   2015) - observable restart rules for accelerated first-order methods.
 - *Breaking Locality Accelerates Block Gauss-Seidel* (Tu et al., 2017) -
   acceleration under random block sampling.
+- *A Simple Active-Set Method for PageRank-Based Local Graph Clustering* (Wei
+  and Yang, 2026) - an alternative accuracy/locality tradeoff whose repeated
+  nested-SDD factor is the subject of a project reuse note.
 
 ### Sublinear algorithms and access models
 

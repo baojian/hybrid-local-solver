@@ -11,9 +11,15 @@ The accompanying implementation compares two designs. Exact frontier-sparse
 CG is promising and is algebraically identical to ordinary CG. Restarting a
 principal-system solve after every one-hop boundary expansion is correct but
 is empirically refuted as a standalone strategy on paths and long spiders due
-to repeated-prefix work. The remaining algorithmic target is a guarded
-hybrid that invokes restricted CG only after a local method has discovered a
-stable envelope.
+to repeated-prefix work. A factor-two geometric-envelope variant now gives a
+proved logarithmic restart bound and geometrically amortized revisit work in
+terms of the terminal explored volume. A high-degree decoy theorem now proves
+that this terminal volume is unbounded as a function of `alpha` and
+`eps_ppr`: one nonviolating halo vertex can have arbitrary degree. In
+contrast, exact violation-only expansion has terminal volume at most
+`d_source + (1 + alpha) / (2 * alpha * eps_ppr)`. This closes the proof
+program as a rigorous tradeoff. Any geometric implementation needs a hard
+volume/degree guard and a certifying fallback.
 
 Build from this directory with:
 
@@ -25,4 +31,5 @@ Reproduce the synthetic exploration with:
 
 ```bash
 uv run python -m experiments.explore_evolving_cg
+uv run python -m experiments.explore_geometric_envelope_obstruction
 ```

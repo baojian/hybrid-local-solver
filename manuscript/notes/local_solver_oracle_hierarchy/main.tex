@@ -1,0 +1,934 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Adjacency Access Is Not a Solver Class:\\
+An Oracle and Representation Hierarchy for Local PageRank Lower Bounds}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Adjacency-list access is a clean model of how a local graph algorithm learns
+its input, but it is too broad to distinguish local recurrence from persistent
+elimination.  After exposing a subgraph, an adjacency-access algorithm may run
+coordinate descent, conjugate gradients, exact Gaussian elimination, an SDD
+solver, or a dynamic Schur data structure.  Consequently an algorithm-specific
+star or spider lower bound cannot be promoted to every adjacency-access local
+solver without an additional computational or representation restriction.
+
+This note proposes a capability ledger for the project and proves two
+information-level facts for degree-normalized additive PPR error.  First, the
+exact superlevel set is connected to the seed and has degree volume at most
+$1/\varepsilon$; a center-seeded star gives the matching explicit-output
+lower bound.  Thus the word/output complexity is
+$\Theta(1/\varepsilon)$, with no polynomial dependence on $1/\alpha$.
+Second, an $\alpha$-killed capacity argument proves that internally disjoint
+seed corridors obey a packing inequality.  At diffusion depth
+$L=\Theta(1/\sqrt\alpha)$, $M$ such corridors can coexist with an
+$\varepsilon$-visible normalized PPR coordinate only when
+$ML=O(1/\varepsilon)$.  This formally explains why the project's spider gives
+product work only after a persistent-support rescan restriction is imposed.
+
+The ambient adjacency class allows arbitrary persistent computation on
+exposed information.  Within it we distinguish materialized repeated
+restricted solves, local linear-span or bounded-recurrence methods, and
+persistent response methods that store elimination or Schur summaries.  We
+derive the exact low-rank Green-function formula for a degree-preserving hidden
+edge swap and isolate a bounded-overlap influence-packing lemma as the central
+missing statement for stronger oracle lower bounds.  No graph-uniform
+$\Omega(1/(\varepsilon\sqrt\alpha))$ adjacency-query lower bound is claimed.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and status}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+The shared matrix $Q$ fixes the numerical operator discussed below.  The note
+does not adopt a repository-wide residual or convert between APPR, PPR, and
+RPPR tolerances.  Whenever $\epsppr$ appears below, it has only the note-scoped
+meaning
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsppr.
+ \label{eq:note-ppr-error}
+\end{equation}
+Explicit output means a word-RAM list of vertex labels and numerical values;
+one listed coordinate costs at least one word operation.  The information and
+capacity statements specialize to a single seed $s=e_v$ and do not choose an
+implementable stopping certificate.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statusproved & Adjacency access specifies input revelation, not the arithmetic
+performed on the revealed subgraph.  It contains both iterative and
+elimination-based algorithms. \\
+\statusproved & Explicitly writing a vector with $k$ listed nonzeros costs
+$\Omega(k)$ word operations.  Explicitly writing every active vector along
+nested supports costs at least the sum of their cardinalities. \\
+\statusproved & The project has representation separations on paths: repeated
+materialization can be quadratic while persistent directed elimination is
+linear in final active size or volume. \\
+\statusproved & For note-scoped degree-normalized error, the exact PPR
+superlevel set is seed-connected and has volume at most $1/\epsppr$.
+Together with a center-star instance, explicit-output complexity is
+$\Theta(1/\epsppr)$. \\
+\statusproved & An $\alpha$-killed capacity packing theorem prevents a bundle
+of disjoint diffusion-depth corridors from carrying more than
+$O(1/\epsppr)$ total corridor length whenever an $\epsppr$-visible coordinate
+exists.  Hence this entire construction template cannot prove the desired
+universal product lower bound. \\
+\statusobservation & Existing APPR, AESP--LocGD, ASPR, CF-Push/SOR, and
+persistent-support bounds apply to their stated algorithms or restricted
+oracles.  None is presently a lower bound for every adjacency-access solver. \\
+\statusopen & The optimal variable-$\alpha$ adjacency-query complexity is not
+proved here.  A killed-Green influence-packing theorem, or a counterexample to
+it, is the central proposed next step. \\
+\statusconjecture & A useful next theorem should separate a formally defined
+local-linear-span or bounded-recurrence class from persistent response on the
+same instance family. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Ambient adjacency access}
+\label{sec:adjacency}
+
+Consider an undirected graph with vertex labels.  A standard adjacency-list
+interface may provide the following operations, with returned information and
+work explicitly charged:
+
+\begin{enumerate}[label=(\roman*)]
+\item query the degree of a known vertex;
+\item query one indexed neighbor and its edge weight, or scan the complete
+      adjacency list at degree-proportional cost;
+\item store arbitrary data derived from previous replies;
+\item output a list of vertex labels and numerical values.
+\end{enumerate}
+
+The graph labels outside the revealed boundary carry no usable structure.  An
+adaptive algorithm chooses its next query from the transcript.  Randomized
+algorithms additionally have private random bits, and the lower-bound theorem
+must state whether the graph or query adversary is oblivious or adaptive.
+
+This access model says nothing about the arithmetic after a scan.  In
+particular, after exposing an active principal matrix $Q_{SS}$, the algorithm
+may legally:
+
+\begin{itemize}
+\item apply one row or one sparse matrix--vector product;
+\item run local coordinate or proximal updates;
+\item construct a Krylov basis;
+\item factor $Q_{SS}$ or an associated Laplacian;
+\item eliminate vertices and retain fill or response messages;
+\item build a spectral sparsifier or preconditioner;
+\item answer future queries from any persistent representation it has paid to
+      construct.
+\end{itemize}
+
+Therefore ``adjacency access'' and ``first-order method'' are complementary
+phrases, not competing definitions.  The first describes the input oracle; the
+second restricts how numerical information is generated.
+
+\section{Capability and representation ledger}
+\label{sec:hierarchy}
+
+The following classes are proposed note-scoped definitions.  They should not
+be used in a theorem without restating their exact memory, arithmetic, and
+charging rules.
+
+\subsection{General exposed-graph computation}
+
+Let $\mathsf{Adj}$ contain algorithms that use adjacency access and arbitrary
+persistent computation on every exposed entry.  Factorization, SDD solving,
+Schur complements, and iterative methods all belong to $\mathsf{Adj}$.  A
+lower bound against $\mathsf{Adj}$ is correspondingly strong.
+
+The arithmetic model must still be declared.  Unit-cost exact real arithmetic,
+word-RAM arithmetic with bounded precision, and bit complexity are not
+interchangeable.
+
+\subsection{Materialized restricted continuation}
+
+Let $\mathsf{MatRestrict}$ contain a growing-face implementation that, after
+each expansion $S_j\subset S_{j+1}$, explicitly stores or returns one numerical
+word for every coordinate in its current active approximation.  It may use an
+arbitrarily powerful solver inside each round; the restriction concerns the
+representation exposed after every round.
+
+\begin{lemma}[Materialization charge]
+\label{lem:materialization}
+Every $\mathsf{MatRestrict}$ execution on active sets
+$S_0\subset S_1\subset\cdots\subset S_K$ performs at least
+\begin{equation}
+ \sum_{j=0}^K|S_j|
+ \label{eq:materialization-charge}
+\end{equation}
+word writes if every active vector is materialized freshly.
+\end{lemma}
+
+\begin{proof}
+At round $j$, the declared representation contains at least one word for each
+of the $|S_j|$ active coordinates.  Summing these disjoint round charges proves
+the claim.
+\end{proof}
+
+On a path that activates one new vertex per round,
+\cref{eq:materialization-charge} is $\Omega(K^2)$.  This is a representation
+lower bound, not an information lower bound for PageRank.
+
+\subsection{Local-linear-span and recurrence methods}
+
+A candidate class $\mathsf{LocalSpan}$ should require that new numerical
+directions are generated from previously stored directions by charged local
+row actions, supported matrix--vector products, diagonal or fixed splitting
+operations, and scalar linear combinations.  The definition must specify:
+
+\begin{enumerate}[label=(\alph*)]
+\item whether a round may apply all exposed rows or only selected rows;
+\item whether arbitrary diagonal scaling is allowed;
+\item whether momentum, conjugate directions, restarts, and reorthogonalization
+      are allowed;
+\item how many persistent scalars may be stored per vertex or incidence;
+\item whether the support of a direction may be masked or projected;
+\item whether a graph-dependent preconditioner may be built and, if so, how
+      its construction and application are charged.
+\end{enumerate}
+
+Without item (f), the class is not stable: a method described syntactically as
+preconditioned CG could encode the entire restricted inverse in its
+preconditioner and have the power of a response solver.
+
+The classical square-root condition-number barrier is relevant to a suitable
+linear-span class.  It is not automatically a lower bound for
+$\mathsf{Adj}$.
+
+\subsection{Persistent response methods}
+
+Let $\mathsf{Response}$ contain adjacency-access methods that may retain
+directed elimination messages, factor records, Schur complements, terminal
+responses, or certified approximations to them.  A response method can leave
+the current old-face vector implicit and perform one reverse materialization
+at final output.
+
+Its charge must include:
+
+\begin{itemize}
+\item construction and update of every response record;
+\item fill, separator, or hierarchy storage;
+\item all old-face reads and response applications;
+\item boundary reporting, interval refinement, and rekeying;
+\item final output and verification.
+\end{itemize}
+
+Allowing response state does not make an algorithm free or automatically
+local.  Exact fill can be quadratic on cyclic expanders, and an eager boundary
+demand array can require quadratic updates.  Those are lower bounds for the
+named representations, not for all compressed or matrix-free response
+methods.
+
+\section{The classes are not one syntactic chain}
+\label{sec:not-chain}
+
+$\mathsf{MatRestrict}$ is a representation property and
+$\mathsf{LocalSpan}$ is an arithmetic-generation property.  An algorithm may
+belong to both, one, or neither.  A response solver may use an iterative SDD
+routine internally, and a Krylov implementation may materialize its complete
+active vector every round.  The correct lower-bound statement therefore names
+all restrictions it uses rather than relying on one family label.
+
+One useful capability diagram is
+\[
+ \mathsf{LocalSpan}\subseteq\mathsf{Adj},
+ \qquad
+ \mathsf{Response}\subseteq\mathsf{Adj},
+\]
+with no claimed inclusion between $\mathsf{LocalSpan}$ and
+$\mathsf{Response}$ until their preconditioner and memory clauses are fixed.
+
+\section{Existing project bounds by scope}
+\label{sec:ledger}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.25\textwidth}p{0.25\textwidth}X@{}}
+\toprule
+Result & Actual scope & What it does not prove \\
+\midrule
+APPR star lower bound
+& Every legal active ordering of the stated APPR push rule
+& A lower bound for arbitrary PageRank algorithms or SDD response \\
+Coordinate RPPR star lower bound
+& Thresholded coordinate ISTA and its stated coarse-to-fine wrapper
+& A lower bound for accelerated, block, or elimination methods \\
+CF-Push/SOR spider bound
+& The fixed-relaxation FIFO tail after the stated coarse gate
+& A lower bound for variable polynomial relaxation or response deflation \\
+AESP--LocGD star bound
+& The literal AESP outer loop with batched LocGD inner solves
+& A lower bound for arbitrary AESP inner maps \\
+ASPR path bound
+& Literal repeated principal APGD calls and fresh discovery scans
+& A lower bound for no-restart continuation or implicit response \\
+Persistent-support path bundle
+& The note's repeated one-hop resident-volume oracle
+& A lower bound once directed elimination messages are allowed \\
+Path materialization barrier
+& Explicit active-vector output after every nested expansion
+& A barrier to an implicit append-only factor and final reverse solve \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+This ledger explains why the same graph can be hard for one local solver and
+easy for another.  The hard resource may be repeated mass processing,
+resident-volume rescanning, loss of conjugacy, reflection, factor
+materialization, or boundary reporting.  These mechanisms require different
+model clauses.
+
+\section{Proved representation separation on paths}
+\label{sec:path-separation}
+
+The project's growing-active-set SDD audit supplies the cleanest separation.
+There are endpoint-seeded paths on which the support-safe active trace visits
+every prefix.  Any fresh full-vector representation pays quadratic writes by
+\cref{lem:materialization}.  On the identical trace, an append-only
+tridiagonal $LDL^\top$ recurrence stores constant information per admitted
+vertex, evaluates the next boundary gate from its forward messages, and
+performs one final reverse substitution.  Its total arithmetic, exposure, and
+output work is linear in the final path size.
+
+This example proves:
+
+\begin{enumerate}
+\item the repeated-prefix bound is not information-theoretic;
+\item warm starting an explicit vector is weaker than changing the
+      representation;
+\item an oracle lower bound that charges all resident coordinates every round
+      excludes the directed-message algorithm by definition;
+\item a universal lower bound must survive persistent elimination or explicitly
+      forbid it.
+\end{enumerate}
+
+The response results on trees, cycles, bounded blocks, and equitable quotients
+provide further examples.  They do not yet settle arbitrary nonequitable
+cyclic cores.
+
+\section{What can be universal?}
+\label{sec:universal}
+
+An explicit sparse vector with $k$ listed nonzeros requires $\Omega(k)$ output
+words.  This elementary bound does not automatically become
+$\Omega(\vol(S))$: a high-degree vertex still needs one output value unless
+the requested certificate or cluster output requires scanning its incidences.
+Every volume lower bound must state why adjacency exposure is necessary.
+
+Similarly, no graph-uniform polynomial dependence on $1/\alpha$ should be
+asserted merely from the condition number of $Q$.  Graph-aware SDD and
+elimination algorithms use individual entries and response structure that a
+black-box first-order oracle hides.  The 2026 growing-active-set SDD result also
+rules out several uniform product lower bounds across all parameter regimes in
+its model.
+
+Meaningful universal lower bounds may instead depend on:
+
+\begin{itemize}
+\item explicit output size;
+\item the number of adjacency incidences that must be distinguished;
+\item allowed approximation and failure probability;
+\item boundary-reporting output size;
+\item memory, adaptivity rounds, or bit complexity;
+\item a representation parameter such as response rank, separator size, or
+      required refinement count.
+\end{itemize}
+
+\section{Exact normalized PPR geometry}
+\label{sec:normalized-geometry}
+
+The first information-level question can be answered without an algorithm.
+Define the degree-normalized exact PPR potential and its superlevel set by
+\begin{equation}
+ y^0:=D^{-1/2}x^0=D^{-1}\pi,
+ \qquad
+ U_\tau^0:=\{i\in V:y_i^0>\tau\}.
+ \label{eq:normalized-potential}
+\end{equation}
+Multiplying $Qx^0=b$ by $D^{1/2}$ and substituting
+$x^0=D^{1/2}y^0$ gives the degree-form system
+\begin{equation}
+ H_\alpha y^0=\alpha e_v,
+ \qquad
+ H_\alpha:=D^{1/2}QD^{1/2}
+ =\alpha D+\frac{1-\alpha}{2}(D-A).
+ \label{eq:killed-system}
+\end{equation}
+
+\begin{lemma}[Strict ascent and seed-connected superlevels; \ProvedStatus]
+\label{lem:strict-ascent}
+For every $i\neq v$,
+\begin{equation}
+ y_i^0
+ =\frac{1-\alpha}{1+\alpha}
+   \frac1{d_i}\sum_{j\in\mathcal N(i)}y_j^0.
+ \label{eq:discounted-average}
+\end{equation}
+If $y_i^0>0$, then $i$ has a neighbor $j$ with $y_j^0>y_i^0$.
+Consequently $y_v^0=\max_i y_i^0$, every nonempty $U_\tau^0$ contains $v$,
+and every vertex of $U_\tau^0$ has a path to $v$ lying entirely in
+$U_\tau^0$.
+\end{lemma}
+
+\begin{proof}
+The nonsource row of \cref{eq:killed-system} is
+\[
+ \frac{1+\alpha}{2}d_i y_i^0
+ =\frac{1-\alpha}{2}\sum_{j\in\mathcal N(i)}y_j^0,
+\]
+which is \cref{eq:discounted-average}.  Its prefactor is strictly below one,
+so a positive $y_i^0$ is strictly smaller than at least one neighboring
+value.  Repeating this strict ascent cannot cycle in a finite graph and can
+terminate only at the sourced row $v$.  Starting from a value above $\tau$
+keeps every vertex of the ascent path above $\tau$.
+\end{proof}
+
+\begin{theorem}[Exact information core; \ProvedStatus]
+\label{thm:information-core}
+For every $\tau>0$,
+\begin{equation}
+ \vol(U_\tau^0)\leq\frac1\tau.
+ \label{eq:information-core-volume}
+\end{equation}
+Moreover, the omniscient truncation
+\begin{equation}
+ \widehat x_i:=
+ \begin{cases}
+ x_i^0,&i\in U_\tau^0,\\
+ 0,&i\notin U_\tau^0
+ \end{cases}
+ \label{eq:omniscient-truncation}
+\end{equation}
+satisfies
+$\norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\tau$ and has support degree
+volume at most $1/\tau$.
+\end{theorem}
+
+\begin{proof}
+Left-multiplying \cref{eq:killed-system} by $\one^\top$ and using
+$\one^\top(D-A)=0$ yields
+\begin{equation}
+ \sum_i d_i y_i^0=1.
+ \label{eq:normalized-mass}
+\end{equation}
+Therefore
+$1\geq\sum_{i\in U_\tau^0}d_i y_i^0
+>\tau\vol(U_\tau^0)$.
+Outside $U_\tau^0$, the normalized truncation error equals $y_i^0\leq\tau$;
+inside it is zero.
+\end{proof}
+
+The theorem is representational, not algorithmic: membership in
+$U_\tau^0$ and its exact values are initially unknown.  It strengthens the
+existential interpretation of the exact Dirichlet-core theorem in the
+companion \texttt{volume\_gated\_acceleration} note.  Strict ascent also gives
+the useful distance consequence
+\begin{equation}
+ i\in U_\tau^0
+ \quad\Longrightarrow\quad
+ \operatorname{dist}(v,i)+1
+ \leq |U_\tau^0|
+ \leq\vol(U_\tau^0)
+ \leq\frac1\tau.
+ \label{eq:significant-distance}
+\end{equation}
+
+\begin{theorem}[Tight explicit-output complexity; \ProvedStatus]
+\label{thm:output-tight}
+Fix $0<\alpha\leq1/2$ and
+$0<\epsppr\leq(1-\alpha)/8$.  In the word-output model, the worst-case
+number of listed coordinates required by \cref{eq:note-ppr-error} is
+\begin{equation}
+ \Theta(1/\epsppr).
+ \label{eq:output-theta}
+\end{equation}
+The conclusion concerns output words; bit precision introduces the usual
+additional representation factors.
+\end{theorem}
+
+\begin{proof}
+The upper bound follows from \cref{thm:information-core}, because every
+nonisolated vertex has degree at least one.  For the lower bound, take a star
+with seed $v$ at its center and
+\[
+ M:=\left\lfloor\frac{1-\alpha}{4\epsppr}\right\rfloor
+\]
+leaves.  Direct substitution into \cref{eq:killed-system} gives
+\begin{equation}
+ y_v^0=\frac{1+\alpha}{2M},
+ \qquad
+ y_i^0=\frac{1-\alpha}{2M}
+ \quad\text{for every leaf }i.
+ \label{eq:star-normalized-values}
+\end{equation}
+Thus every leaf has $y_i^0\geq2\epsppr$.  An output satisfying
+\cref{eq:note-ppr-error} must list a nonzero approximation at every leaf, and
+$M=\Omega(1/\epsppr)$ in the stated regime.
+\end{proof}
+
+The best currently documented general upper bounds should not be confused
+with this existential result.  Wei and Yang's growing-active-set method has
+an ACL upper bound
+$\widetilde O(\min\{1/\varepsilon^2,1/(\alpha\varepsilon)\})$ in its native,
+nonlazy convention.  Their Section~6, PDF pages 14--15, explicitly observes
+that this rules out uniform
+$\Omega(1/(\alpha\varepsilon))$ and
+$\Omega(1/(\sqrt\alpha\varepsilon))$ lower bounds across all parameter
+regimes, and identifies reuse toward $\widetilde O(1/\varepsilon)$ as open
+\citep{wei2026simple}.  After the teleportation mapping recorded in the
+companion \texttt{incremental\_active\_set\_sdd} note, this is fully
+consistent with \cref{thm:output-tight}; it does not yet prove an
+$\widetilde O(1/\epsppr)$ adjacency-query algorithm on arbitrary graphs.
+
+\section{Killed-capacity packing for hidden corridors}
+\label{sec:capacity-packing}
+
+The preceding mass bound charges vertices that are significant in one fixed
+instance.  A lower-bound distribution may instead contain many decoy
+corridors and make a different one relevant in each counterfactual graph.
+The following capacity argument still limits every construction in which
+those corridors coexist as internally disjoint passive paths.
+
+\begin{definition}[Killed seed capacity]
+\label{def:killed-capacity}
+For a single seed $v$, define
+\begin{equation}
+ \operatorname{cap}_\alpha(v)
+ :=\min_{f\in\mathbb R^V:\,f_v=1} f^\top H_\alpha f.
+ \label{eq:killed-capacity}
+\end{equation}
+\end{definition}
+
+The quadratic has the electrical form
+\begin{equation}
+ f^\top H_\alpha f
+ =\alpha\sum_i d_i f_i^2
+  +\frac{1-\alpha}{2}
+    \sum_{\{i,j\}\in E}(f_i-f_j)^2.
+ \label{eq:killed-energy}
+\end{equation}
+The first term is distributed killing and the second is ordinary edge
+energy.
+
+\begin{lemma}[Capacity--PPR identity; \ProvedStatus]
+\label{lem:capacity-ppr}
+For exact single-seed PPR,
+\begin{equation}
+ y_v^0=\frac{\alpha}{\operatorname{cap}_\alpha(v)}.
+ \label{eq:capacity-ppr}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For every symmetric positive-definite matrix $H$, minimizing
+$f^\top Hf$ subject to $f_v=1$ gives value
+$1/(e_v^\top H^{-1}e_v)$.  Apply this to $H_\alpha$ and use
+$y^0=\alpha H_\alpha^{-1}e_v$ from \cref{eq:killed-system}.
+\end{proof}
+
+\begin{theorem}[Disjoint-corridor capacity packing; \ProvedStatus]
+\label{thm:corridor-capacity}
+Assume $0<\alpha\leq1/4$.  Suppose $G$ contains paths
+\begin{equation}
+ P_j=(v=v_{j,0},v_{j,1},\ldots,v_{j,L_j}),
+ \qquad 1\leq j\leq M,
+ \label{eq:corridor-paths}
+\end{equation}
+that are vertex-disjoint outside the seed.  Then
+\begin{equation}
+ \operatorname{cap}_\alpha(v)
+ \geq
+ \frac1{32}\sum_{j=1}^M
+ \min\{\alpha L_j,\sqrt\alpha\}.
+ \label{eq:corridor-capacity-bound}
+\end{equation}
+Consequently, if any exact normalized PPR coordinate exceeds $\tau$, then
+\begin{equation}
+ \sum_{j=1}^M\min\{\alpha L_j,\sqrt\alpha\}
+ <\frac{32\alpha}{\tau}.
+ \label{eq:corridor-packing}
+\end{equation}
+In particular, if every $L_j\leq1/\sqrt\alpha$, then
+\begin{equation}
+ \sum_{j=1}^M L_j<\frac{32}{\tau}.
+ \label{eq:short-corridor-packing}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Fix any $f$ with $f_v=1$ and put
+\[
+ K_j:=\min\left\{L_j,
+                 \left\lfloor\frac1{\sqrt\alpha}\right\rfloor\right\}.
+\]
+Assign to path $j$ one unit of the seed's degree-weighted killing term, the
+killing terms of its first $K_j$ private vertices, and the first $K_j$ edge
+energies.  These assignments do not overlap: the paths are disjoint outside
+$v$, their first edges are distinct, and $d_v\geq M$.  Hence
+\begin{equation}
+ f^\top H_\alpha f\geq\sum_{j=1}^M E_j(f),
+ \label{eq:path-energy-sum}
+\end{equation}
+where, writing $a_k=f_{v_{j,k}}$,
+\[
+ E_j(f):=
+ \alpha\sum_{k=0}^{K_j}a_k^2
+ +\frac{1-\alpha}{2}
+  \sum_{k=0}^{K_j-1}(a_k-a_{k+1})^2.
+\]
+If $|a_k|\geq1/2$ for every $k\leq K_j$, the killing term is at least
+$\alpha K_j/4$.  Otherwise choose $m\leq K_j$ with $|a_m|<1/2$.
+Since $a_0=1$, Cauchy--Schwarz gives
+\[
+ \sum_{k=0}^{m-1}(a_k-a_{k+1})^2
+ \geq\frac{(a_0-a_m)^2}{m}
+ >\frac1{4K_j}.
+\]
+Because $\alpha K_j^2\leq1$ and $(1-\alpha)/2\geq3/8$, both cases imply
+$E_j(f)\geq\alpha K_j/16$.  Finally,
+$K_j=L_j$ when $L_j\leq\lfloor1/\sqrt\alpha\rfloor$, while otherwise
+$K_j\geq1/(2\sqrt\alpha)$; therefore
+\[
+ E_j(f)\geq\frac1{32}
+             \min\{\alpha L_j,\sqrt\alpha\}.
+\]
+Minimizing over $f$ proves \cref{eq:corridor-capacity-bound}.
+
+If some $y_i^0>\tau$, \cref{lem:strict-ascent} gives $y_v^0>\tau$.
+Then \cref{lem:capacity-ppr} gives
+$\operatorname{cap}_\alpha(v)<\alpha/\tau$, which yields
+\cref{eq:corridor-packing}.  The final claim follows by substituting
+$\min\{\alpha L_j,\sqrt\alpha\}=\alpha L_j$.
+\end{proof}
+
+For equal diffusion-depth corridors $L_j=\Theta(1/\sqrt\alpha)$,
+\cref{eq:corridor-packing} says
+\begin{equation}
+ M=O(\sqrt\alpha/\tau),
+ \qquad
+ ML=O(1/\tau).
+ \label{eq:diffusion-cancellation}
+\end{equation}
+This is the exact cancellation behind the path bundle in the companion
+complete hybrid-local-solver note.  Its parameters are
+$M=\Theta(\sqrt\alpha/\rho)$ and
+$L=\Theta(1/\sqrt\alpha)$.  Moving a frontier across every arm once costs
+$ML=\Theta(1/\rho)$; the proved
+$\Omega(1/(\rho\sqrt\alpha))$ work comes from charging the accumulated
+prefix for $L$ rounds, namely $ML^2$, under persistent support.
+
+\begin{corollary}[No-go for disjoint hidden-port constructions;
+\ProvedStatus]
+\label{cor:hidden-ports}
+Consider a family of nonnegative PPR instances that all contain the same
+internally disjoint seed corridors with $L_j\leq1/\sqrt\alpha$, while their
+completions beyond the corridor endpoints may differ.  If any member has an
+exact normalized coordinate larger than $\tau$, then the total one-pass
+corridor exposure is less than $32/\tau$.  In particular, changing a passive
+terminal gadget, trap, or degree-preserving edge swap beyond one of these
+ports cannot turn this template into an
+$\Omega(1/(\tau\sqrt\alpha))$ information lower bound.
+\end{corollary}
+
+The corollary does not settle overlapping corridors, global encodings, or the
+cost of rejecting counterfactual completions.  It does prove that the most
+natural direct-sum construction fails for structural, rather than merely
+constant-factor, reasons.
+
+\section{Exact path-completion calculation}
+\label{sec:path-completion}
+
+A second standard attempt hides the endpoint of a long path.  The exact
+Green function again shows that its distinguishability depth never exceeds
+the output scale.
+
+Let $P_N$ be a path of $N$ edges with the seed at one endpoint, and put
+\begin{equation}
+ r:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \qquad
+ t:=-\log r
+ =2\operatorname{artanh}(\sqrt\alpha).
+ \label{eq:path-decay}
+\end{equation}
+
+\begin{proposition}[Path completion sensitivity; \ProvedStatus]
+\label{prop:path-completion}
+The normalized seed value on $P_N$ is
+\begin{equation}
+ y_v^0(P_N)
+ =\sqrt\alpha\,
+  \frac{1+r^{2N}}{1-r^{2N}}
+ =\sqrt\alpha\,\coth(Nt).
+ \label{eq:path-seed-value}
+\end{equation}
+Consequently
+\begin{equation}
+ y_v^0(P_N)-y_v^0(P_{2N})
+ =\frac{\sqrt\alpha}{\sinh(2Nt)}.
+ \label{eq:path-completion-gap}
+\end{equation}
+If the two rooted paths must have seed values separated by more than
+$2\epsppr$, then necessarily
+\begin{equation}
+ N
+ <\frac{1}{2t}
+   \operatorname{arsinh}\!\left(
+      \frac{\sqrt\alpha}{2\epsppr}
+   \right)
+ \leq\frac1{8\epsppr}.
+ \label{eq:path-depth-output-scale}
+\end{equation}
+Thus this indistinguishable-completion pair cannot prove more than
+$O(1/\epsppr)$ queries.
+\end{proposition}
+
+\begin{proof}
+The nonsource recurrence associated with \cref{eq:killed-system} has roots
+$r$ and $r^{-1}$; the reflecting degree-one endpoint contributes the image
+term $r^{2N-k}$.  Enforcing the sourced endpoint row gives
+\cref{eq:path-seed-value}.  The identity
+$\coth z-\coth(2z)=1/\sinh(2z)$ gives
+\cref{eq:path-completion-gap}.  Separation by more than $2\epsppr$ implies
+the first inequality in \cref{eq:path-depth-output-scale}.  Finally
+$t=2\operatorname{artanh}(\sqrt\alpha)\geq2\sqrt\alpha$ and
+$\operatorname{arsinh}(u)\leq u$ for $u\geq0$.
+\end{proof}
+
+The precise regimes are informative.  When
+$N\sqrt\alpha\ll1$, the gap is $\Theta(1/N)$.  At
+$N=\Theta(1/\sqrt\alpha)$ it is $\Theta(\sqrt\alpha)$, and beyond that scale
+it decays as
+$\sqrt\alpha\exp(-\Theta(N\sqrt\alpha))$.  If
+$\epsppr\ll\sqrt\alpha$, one may hide the endpoint for an additional
+logarithmic factor, but
+$\alpha^{-1/2}\log(\sqrt\alpha/\epsppr)=O(1/\epsppr)$.
+
+\section{Hidden edge swaps and killed-Green influence}
+\label{sec:green-influence}
+
+The corridor theorem identifies a failed construction, not a complete oracle
+upper bound.  The strongest remaining lower-bound template is to choose a
+base graph and many locally hidden, degree-preserving two-edge swaps.  Until a
+queried incidence touches the changed edges, an adjacency transcript can be
+identical; correctness then requires the swap to change normalized PPR by
+more than twice the requested error.
+
+The analytic part has an exact low-rank form.  Let
+$H_\alpha'=H_\alpha+UCU^\top$ be the degree-form matrix after a
+degree-preserving swap.  Here the degree matrix is unchanged and $UCU^\top$
+has constant rank.  Whenever $C$ is invertible, Woodbury gives
+\begin{equation}
+ y^{0\prime}-y^0
+ =-\alpha H_\alpha^{-1}U
+   \left(C^{-1}+U^\top H_\alpha^{-1}U\right)^{-1}
+   U^\top H_\alpha^{-1}e_v.
+ \label{eq:swap-woodbury}
+\end{equation}
+Thus the distinguishability of a hidden switch is governed by killed Green
+columns from the seed to the switch endpoints, multiplied by a constant-size
+local impedance matrix.  A condition-number lower bound alone discards this
+graph-specific information and is therefore too coarse for the ambient
+adjacency model.
+
+\begin{conjecture}[Bounded-overlap killed-influence packing]
+\label{conj:influence-packing}
+There is a constant or polylogarithmic function $C$ with the following
+property.  For degree-preserving swaps hidden behind exposure regions of
+overlap at most $B$, let $L_j$ be the shortest charged reveal depth and let
+$y^{0,j}$ be the normalized PPR vector after swap $j$.  In the diffusion
+range $L_j\leq c/\sqrt\alpha$,
+\begin{equation}
+ \sum_j L_j
+   \norm{y^{0,j}-y^{0,0}}_\infty
+ \leq C B.
+ \label{eq:influence-packing-conjecture}
+\end{equation}
+An appropriate extension beyond the diffusion range replaces $L_j$ by its
+killed effective length and separately charges exponential attenuation.
+\end{conjecture}
+
+The disjoint passive-corridor case of the intended conclusion is already
+captured by \cref{thm:corridor-capacity}.  Proving
+\cref{conj:influence-packing} would show that every bounded-overlap swap
+family with PPR gaps larger than $2\epsppr$ has only
+$\widetilde O(B/\epsppr)$ total effective reveal depth.  Refuting it would be
+equally valuable: the smallest counterexample would supply a genuinely new
+hard gadget not reducible to independent arms.
+
+The recommended proof tools are the variational characterization
+\cref{eq:killed-capacity}, Schur complements of $H_\alpha$, monotonicity of
+passive Dirichlet-to-Neumann maps, and the low-rank identity
+\cref{eq:swap-woodbury}.  The first stress tests should be paths, cycles,
+barbells, lollipops, trees, and expanders behind narrow necks.  For each
+family, the relevant statistic is not condition number but
+\begin{equation}
+ (\text{charged queries needed to expose the switch})
+ \times
+ \norm{y^{0,j}-y^{0,0}}_\infty.
+ \label{eq:swap-search-statistic}
+\end{equation}
+
+\section{What remains genuinely open}
+\label{sec:information-open}
+
+The proved statements now support the following precise boundary.
+
+\begin{enumerate}
+\item Explicit output has tight worst-case complexity
+      $\Theta(1/\epsppr)$.
+\item Every currently analyzed path, spider, passive-trap, or disjoint-port
+      construction collapses to $\widetilde O(1/\epsppr)$ one-pass exposure.
+\item No graph-uniform $\widetilde O(1/\epsppr)$ adjacency-query algorithm is
+      proved here.  Unknown completions can create many decoys, and an
+      algorithm still needs a locally computable upper certificate proving
+      that no unseen coordinate exceeds $\epsppr$.
+\item The project product lower bound remains correct for its
+      persistent-support one-hop oracle: it charges repeated resident volume,
+      not discovery information.
+\item A universal product lower bound would need either a counterexample to
+      killed-influence packing or a hard family with essential global
+      interference rather than independent passive corridors.
+\end{enumerate}
+
+One possible upper-bound program is a capacity-guided best-first exploration.
+It would maintain a revealed subgraph and a rigorous envelope over all passive
+unseen completions, expand the port of largest possible killed-Green
+influence, and stop when every envelope falls below $\epsppr$.  Capacity
+packing suggests output-linear total exposure.  Constructing an envelope
+that remains valid under unknown cross-connections between boundary ports is
+the central obstacle; until that certificate is proved, the proposal is an
+algorithmic direction rather than a theorem.
+
+\section{Target separation theorem}
+\label{sec:target}
+
+The recommended lower-bound program is not ``prove every local solver needs
+$1/\sqrt\alpha$.''  It is the following quantified separation.
+
+\begin{problem}[Recurrence versus response]
+\label{prob:separation}
+Define a local-linear-span class with explicit adjacency, memory,
+preconditioner, support, adaptivity, and output clauses.  Construct one graph
+family and one native accuracy regime for which:
+\begin{enumerate}[label=(\roman*)]
+\item every algorithm in that class uses
+      $\widetilde\Omega(V/\sqrt\alpha)$ charged work;
+\item a fully specified persistent-response algorithm uses
+      $\widetilde O(V)$ charged work;
+\item both algorithms receive the same adjacency access and return the same
+      certificate;
+\item all response construction, boundary reporting, and output work is
+      charged.
+\end{enumerate}
+\end{problem}
+
+An endpoint path is unlikely to prove the strongest recurrence lower bound
+once arbitrary Krylov directions are allowed, but it is the correct
+materialization separation.  Candidate harder families should combine a slow
+spectral corridor with enough asymmetry or cyclic response complexity to avoid
+a scalar quotient, while still admitting a compressed response algorithm that
+can be analyzed exactly.
+
+\section{Candidate proof strategies}
+\label{sec:strategies}
+
+\subsection{Polynomial indistinguishability}
+
+For a fixed-support linear-span class, use two locally indistinguishable
+Stieltjes systems whose relevant Green-function values require polynomial
+degree $\Omega(1/\sqrt\alpha)$ to separate.  The construction must preserve
+the local output and accuracy convention and must not reveal the answer through
+degrees or boundary labels.
+
+\subsection{Direct-sum locality}
+
+Attach many independent hard corridors through a seed-local selector so that a
+solver must resolve a constant fraction of them.  Charge only information that
+the output certificate genuinely needs.  Symmetry must be handled carefully:
+one aggregate shell response can collapse an apparently large direct sum.
+
+\subsection{Memory or response-rank tradeoff}
+
+Parameterize the lower bound by the amount of persistent response state.
+Small state may force repeated row access; large state may pay fill or update
+cost.  A useful theorem could give a continuous time--memory tradeoff rather
+than a binary first-order/direct distinction.
+
+\subsection{Dynamic boundary reporting}
+
+Reduce a known dynamic reporting problem to maintaining all KKT threshold
+crossings under successive low-rank Schur updates.  The reduction must respect
+monotone support, graph signs, local exposure, and the requested approximation
+band.  A lower bound for eager exact keys alone is not enough because a lazy
+finite-band hierarchy may avoid those updates.
+
+\section{Checklist for every future lower bound}
+\label{sec:checklist}
+
+Before labeling a theorem algorithm-independent, state:
+
+\begin{enumerate}
+\item the graph-access operations and their charges;
+\item the arithmetic and precision model;
+\item persistent memory and allowed preprocessing;
+\item whether elimination, fill, sparsification, and graph-dependent
+      preconditioning are allowed;
+\item the support-evolution rule and whether future support is known;
+\item the exact output and native accuracy convention;
+\item whether all boundary reporting and final writes are charged;
+\item the adversary and failure-probability model;
+\item the reason the hard instance cannot be compressed by symmetry, quotient,
+      tree response, or a small separator;
+\item the exact existing algorithms excluded by each restriction.
+\end{enumerate}
+
+If the theorem omits one of these clauses, it should be labeled
+algorithm-specific or interface-restricted rather than universal.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Adjacency access is general enough to contain the project's local solvers, but
+that generality is precisely why it does not by itself capture a first-order
+condition-number barrier.  The lower-bound program should use adjacency access
+as the ambient information model and add the weakest explicit computational
+or representation restriction needed by the proof.  The most informative
+proved universal statement is currently the tight
+$\Theta(1/\epsppr)$ explicit-output bound.  Killed-capacity packing explains
+why independent diffusion corridors cannot multiply this by
+$1/\sqrt\alpha$.  The next information-level result should settle the
+killed-Green influence conjecture; the next computational result should be a
+same-instance separation between recurrent local span and persistent
+response, not another lower bound for one named queue or handoff schedule.
+
+\begin{thebibliography}{9}
+
+\bibitem[Wei and Yang(2026)Wei and Yang]{wei2026simple}
+Zhewei Wei and Mingji Yang.
+\newblock A simple active-set method for PageRank-based local graph clustering.
+\newblock \emph{arXiv preprint arXiv:2608.16339v1}, 2026.
+\newblock Source pointers used here: Theorems 1.2--1.3 and Section 6,
+PDF pages 14--15.
+
+\end{thebibliography}
+
+\end{document}

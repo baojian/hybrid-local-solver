@@ -64,6 +64,26 @@ the active paper or notes.
 | \(b_{\rm self}(\alpha)=\lambda_\alpha^{-2}\), \(b_{\rm next}(\alpha)=\lambda_\alpha^{-1}\) | Alpha-scaled ladder bases for current- and next-rung self-reactivation control. |
 | \(\varphi,h\) | Fresh residual and delayed reflection-debt components in the split-residual note, with \(r=\varphi+h\). |
 | \(\mathcal M(r)=\sum_i\sqrt{d_i}|r_i|\) | Note-scoped weighted absolute residual mass for exact-rung cleanup. |
+| \(B\), \(B_{\mathrm{edge}}\) | Band factor in the direct two-rung note and its universal one-edge settlement ceiling; lowercase \(b\) remains the PageRank right-hand side. |
+| \(c_u=1+d_u\) | Per-operation service charge in the direct two-rung note; the shared adjacency-scan work remains \(d_u\). |
+| \(p_u(r)\), \(h_u(r)\) | Empirical rank key and exact objective-decrease-per-charge score in the direct two-rung note. |
+| \(\chi_{\mathrm{set}}(r;\mathcal O)\) | Trajectory-specific exact-rung settlement factor in the direct two-rung note. |
+| \(\ell,\ell_\rho,\mathcal E_U^\ell\) | Note-scoped fixed loads and exact Dirichlet settlement map in the propagate--settle framework. |
+| \(\operatorname{cvol}(U),\mathfrak R_{\rm set}\) | Empirical-charge volume and cumulative settled-volume revisit factor in the propagate--settle framework. |
+| \(\mathcal F_m,\vartheta_0,\psi_d(\vartheta)\) | Tailed-fan obstruction, its critical gate scaling, and limiting degree-\(d\) shifted demand in the propagate--settle framework. |
+| \(\tau(v),\eta_d^{(j)}\) | Activation time in a nested settled trace and the live degree-\(d\) fan-boundary violation demand in the propagate--settle framework. |
+| \(\varrho_{\rm rev}\) | Charge-weighted mean paid-visit multiplicity in the adaptive-revisit note. |
+| \(\mathsf{Rev}_{a\to b}\), \(a,b\in\{\mathrm e,\mathrm s\}\) | Note-scoped causal revisit charge, classified by previous and current exact/spreading modes. |
+| \(\mu_k,\overline\mu\) | Within-epoch charged-work multiplier and its settled-volume-weighted mean in the adaptive-revisit factorization. |
+| \(\mathsf{Bank}_t(\Gamma)=\Gamma C(S_t)-W_t\) | Online adaptive-revisit work slack for declared factor \(\Gamma\). |
+| \(x[U],\mathcal B(U)\) | Canonical shifted RPPR settlement on region \(U\) and its exact boundary-violation set in the adaptive-revisit note. |
+| \(\Phi_j\), \(\Phi_{\rm en}\), \(\Phi_{\rm path}\) | Work-valued mergeable policy countdown, its common energy-based safety instance, and its endpoint-path activation-token instance in the adaptive-revisit note. |
+| \(f_i,b_i\) (adaptive-revisit note only) | Forward Schur-record and reverse-recovery tokens for the endpoint-path mergeable countdown; these local token labels are unrelated to the shared PageRank load \(b\). |
+| \(\mathcal E(\widehat x)=f(\widehat x)-f(x^0)\) | Note-scoped unregularized quadratic error energy for adaptive-relaxation safety. |
+| \(\mathsf V_{\rm loc}(I)\) | Placeholder for an explicitly defined instance-local degree-volume ledger in an accelerated policy-arm theorem; never the vertex set \(V\). |
+| \(y^0=D^{-1/2}x^0=D^{-1}\pi\), \(U_\tau^0=\{i:y_i^0>\tau\}\) | Degree-normalized exact PPR potential and its exact superlevel core in the volume-gated and local-oracle notes. |
+| \(H_\alpha=D^{1/2}QD^{1/2}=\alpha D+(1-\alpha)(D-A)/2\) | Note-scoped killed degree-form PageRank matrix used for capacity and Green-function arguments. |
+| \(\operatorname{cap}_\alpha(v)\) | Killed seed capacity in the local-solver oracle hierarchy note; defined variationally from \(H_\alpha\). |
 
 The letter \(W\) is not a shared graph matrix: normalized adjacency is always
 written explicitly as \(D^{-1/2}AD^{-1/2}\). Cumulative cost uses

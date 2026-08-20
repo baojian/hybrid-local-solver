@@ -1,0 +1,530 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Response-Preconditioned Local PageRank:\
+A Common Interface for Iterative Repair and Persistent Schur State}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The project currently has two credible routes to faster local PageRank.  Local
+first-order and Krylov methods seek work
+$\widetilde O(V/\sqrt\alpha)$ on a certified active envelope of charged volume
+$V$.  Growing-active-set SDD and directed-response methods can remove every
+polynomial dependence on $1/\alpha$ on paths and several structured graph
+classes, and could reach $\widetilde O(V)$ if their evolving boundary response
+were maintainable at output-sensitive cost.  Neither endpoint is known on
+arbitrary graphs.
+
+This note formulates their common operator and a response-preconditioned
+composition.  A settled anchor stores an implicit approximation to its
+restricted inverse, newly admitted vertices form a frontier buffer, and
+iterative repair acts on the preconditioned current face.  We prove three
+backend-independent facts: the exact bordered Schur correction, an
+energy-to-coordinate boundary interval using a response leverage, and a
+geometric rebuild amortization.  Under an exhaustively charged response and
+boundary interface, these yield a conditional work theorem of the form
+\[
+ \widetilde O\bigl(
+ U_{\rm resp}(V)+V\sqrt{\kappa_{\rm eff}}+V
+ \bigr).
+\]
+The identity preconditioner recovers the iterative product target; a
+near-linear response interface with bounded effective condition approaches the
+output scale.  The theorem is not a graph-uniform construction.  The missing
+ingredient remains certified finite-band response maintenance on general
+nonequitable cyclic cores, together with a no-restart expanding-subspace
+accelerated repair if the response is inexact.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim ledger}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+The shared project model supplies the symmetric Stieltjes matrix $Q$, the
+smooth PageRank quadratic, and the RPPR objective.  This note uses the shared
+model only as a mathematical reference.  It does not adopt a repository-wide
+residual or identify the ACL, objective-gap, proximal, and degree-normalized
+accuracy namespaces.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statusproved & Iterative and response methods act on the same restricted
+Green operator $Q_{SS}^{-1}$.  A bordered active-set expansion has an exact
+Schur correction. \\
+\statusproved & An energy-norm error certificate gives a rigorous interval for
+every queried boundary KKT demand through one response-leverage scalar. \\
+\statusproved & If anchor volumes grow geometrically, all linear-volume
+rebuild costs sum to a constant multiple of the final volume. \\
+\statusconditional & Given a fully charged response interface and
+preconditioned repairs on geometrically growing faces, total work is bounded
+by response maintenance plus final volume times the square root of the
+effective preconditioned condition number, up to logarithms. \\
+\statusopen & No arbitrary-graph implementation of the required finite-band
+boundary reporter is proved.  Spectral or energy accuracy alone does not list
+all threshold violations without a reporting argument. \\
+\statusrefuted & The phrase ``warm start the SDD solver'' is not a sufficient
+algorithm: explicit old-face correction, complete boundary refresh, or full
+vector output after every expansion can recreate quadratic repeated-prefix
+work. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The architectural recommendation is therefore risk-adjusted rather than
+absolute.  A graph-uniform output-linear response solver would dominate the
+mixed construction asymptotically.  Conversely, a graph-uniform
+expanding-subspace first-order theorem could attain the product scale without
+nontrivial response state.  The mixed route is useful because it exposes and
+combines the partial theorems already available at both endpoints.
+
+\section{The common restricted operator}
+\label{sec:operator}
+
+For a nonnegative RPPR face $S$, define the note-scoped shifted load
+\begin{equation}
+ c_S:=b_S-\alpha\rho D_S^{1/2}\one_S.
+ \label{eq:shifted-load}
+\end{equation}
+Whenever the restricted optimum is positive on $S$, its active coordinates
+satisfy
+\begin{equation}
+ x[S]_S=Q_{SS}^{-1}c_S,
+ \qquad
+ x[S]_{V\setminus S}=0.
+ \label{eq:restricted-state}
+\end{equation}
+The same algebra applies to an unregularized or source-shifted restricted
+system after replacing $c_S$.  Thus the central object is
+\begin{equation}
+ G_S:=Q_{SS}^{-1}.
+ \label{eq:green-operator}
+\end{equation}
+
+An iterative backend approximates $G_Sc_S$ by row operations, splittings,
+coordinate updates, or a Krylov recurrence.  A response backend represents
+selected actions of $G_S$ through factors, elimination messages, Schur
+complements, or a hierarchy.  These are different representations of the same
+operator, not different optimization problems.
+
+\subsection{Exact bordered correction}
+
+Let $S^+=S\cup T$ with $S\cap T=\emptyset$, and order the enlarged principal
+matrix by $(S,T)$.  Put
+\begin{equation}
+ K_T:=Q_{TT}-Q_{TS}Q_{SS}^{-1}Q_{ST}.
+ \label{eq:frontier-schur}
+\end{equation}
+
+\begin{proposition}[Exact response correction]
+\label{prop:correction}
+Let $x^-=x[S]$ and $x^+=x[S^+]$ solve the same fixed quadratic on their
+respective faces, and put $\Delta=x^+-x^-$.  If
+\begin{equation}
+ h_T:=c_T-Q_{TS}x^-_S,
+ \label{eq:frontier-demand}
+\end{equation}
+then $K_T$ is positive definite and
+\begin{equation}
+ \Delta_T=K_T^{-1}h_T,
+ \qquad
+ \Delta_S=-Q_{SS}^{-1}Q_{ST}\Delta_T.
+ \label{eq:correction}
+\end{equation}
+Moreover, for
+$\phi(x):=x^\top Qx/2-c^\top x$,
+\begin{equation}
+ \phi(x^-)-\phi(x^+)
+ =\frac12\|\Delta\|_{Q_{S^+S^+}}^2
+ =\frac12h_T^\top K_T^{-1}h_T.
+ \label{eq:correction-energy}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Restricted optimality gives
+$(Qx^--c)_S=0$ and
+$(Qx^--c)_T=-h_T$.  Subtracting the enlarged optimality equations gives
+\[
+ \begin{bmatrix}Q_{SS}&Q_{ST}\\Q_{TS}&Q_{TT}\end{bmatrix}
+ \begin{bmatrix}\Delta_S\\\Delta_T\end{bmatrix}
+ =\begin{bmatrix}0\\h_T\end{bmatrix}.
+\]
+Eliminating the first block proves \cref{eq:correction}.  Positive
+definiteness of the principal matrix implies positive definiteness of its
+Schur complement.  Completing the square around $x^+$ and substituting the
+block solution proves \cref{eq:correction-energy}.
+\end{proof}
+
+The formula identifies the two costs that a literal warm start hides.  The
+frontier solve uses $K_T^{-1}$, while the old-face correction uses the response
+$Q_{SS}^{-1}Q_{ST}$.  Either action can be dense even when $T$ contains one
+vertex.
+
+\section{A response-preconditioned state}
+\label{sec:state}
+
+At an epoch, split the current face as
+\begin{equation}
+ S=A\mathbin{\dot\cup}F,
+ \label{eq:anchor-frontier}
+\end{equation}
+where $A$ is a settled anchor and $F$ is a frontier buffer.  The backend stores:
+
+\begin{enumerate}[label=(\roman*)]
+\item a persistent response representation for selected actions of
+      $Q_{AA}^{-1}$;
+\item the exposed blocks $Q_{AF}$ and $Q_{FF}$;
+\item a frontier Schur operator
+      $Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF}$, exact or certified approximate;
+\item an implicit numerical state and error certificate on $S$;
+\item a boundary dictionary whose keys are intervals, not uncertified point
+      estimates;
+\item a work ledger charging adjacency exposure, old-face reads, response
+      updates, rekeys, iterative row operations, and final writes.
+\end{enumerate}
+
+The controller requests four conceptual operations.
+
+\begin{description}[leftmargin=2.8cm,style=nextline]
+\item[\textsc{Expand}$(T)$]
+Expose and add a support-safe batch, updating the anchor--frontier
+representation without materializing every old coordinate.
+\item[\textsc{BoundaryBounds}]
+Return all certified violations and certify that every unreported boundary
+coordinate lies below the admission threshold or inside the declared
+transition band.
+\item[\textsc{Repair}$(\delta)$]
+Reduce numerical error on the current face using an exact solve or a
+preconditioned iterative method.
+\item[\textsc{Finalize}]
+Materialize the terminal vector once and return its note-scoped correctness
+certificate.
+\end{description}
+
+The completeness clause in \textsc{BoundaryBounds} is essential.  A data
+structure that answers the value at one requested vertex is not yet a local
+active-set backend because it may not find an unqueried violating vertex.
+
+\section{Certified finite-band boundary intervals}
+\label{sec:intervals}
+
+Fix a current face $S$ and a boundary vertex $v$.  Let
+\begin{equation}
+ a_v:=Q_{Sv},
+ \qquad
+ \chi_v^2:=a_v^\top Q_{SS}^{-1}a_v.
+ \label{eq:boundary-leverage}
+\end{equation}
+The scalar $\chi_v$ is a response leverage.  It is closely related to the
+energy needed to transmit a unit boundary demand through the active face.
+
+\begin{lemma}[Energy-to-boundary interval]
+\label{lem:boundary-interval}
+Suppose $x_S$ is the exact restricted solution and $\widetilde x_S$ satisfies
+\begin{equation}
+ \|\widetilde x_S-x_S\|_{Q_{SS}}\leq\delta.
+ \label{eq:energy-error}
+\end{equation}
+For every queried boundary vertex $v$,
+\begin{equation}
+ \left|
+ Q_{vS}(\widetilde x_S-x_S)
+ \right|
+ \leq \chi_v\delta.
+ \label{eq:boundary-error}
+\end{equation}
+Consequently a point estimate of any boundary demand affine in $Q_{vS}x_S$
+becomes a certified interval after adding and subtracting $\chi_v\delta$.
+\end{lemma}
+
+\begin{proof}
+Write the left side as
+\[
+ \left|
+ (Q_{SS}^{-1/2}a_v)^\top
+ Q_{SS}^{1/2}(\widetilde x_S-x_S)
+ \right|.
+\]
+Cauchy--Schwarz and \cref{eq:boundary-leverage,eq:energy-error} prove the
+claim.
+\end{proof}
+
+If the lower endpoint exceeds the gate, admission is safe.  If the upper
+endpoint is below the gate, rejection is safe.  Only intervals intersecting
+the transition band require refinement.  The lemma proves correctness of one
+queried interval; it does not bound the work needed to find all ambiguous or
+violating vertices.  That reporting problem is the main open response theorem.
+
+\section{Geometric anchors and aggregate repair}
+\label{sec:epochs}
+
+Rebuilding after every support addition recreates repeated-prefix work.  A
+minimal remedy is to rebuild only after geometric growth.
+
+\begin{lemma}[Geometric rebuild amortization]
+\label{lem:geometric-rebuild}
+Let $V_j$ be the charged anchor volume after rebuild $j$, with
+$V_{j+1}\geq(1+\gamma)V_j$ for a fixed $\gamma>0$.  If rebuild $j$ costs at
+most $cV_j$, then all rebuilds through final volume $V$ cost at most
+\begin{equation}
+ c\sum_jV_j\leq c\frac{1+\gamma}{\gamma}V.
+ \label{eq:rebuild-sum}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Read the geometrically increasing sequence backward from its final term and
+sum the resulting geometric series.
+\end{proof}
+
+The lemma pays only the rebuild.  Between rebuilds, small face shocks still
+need a lazy response representation; explicitly applying every old-face
+correction is not covered.
+
+Aggregate repair avoids a second unnecessary repetition.  Within an epoch,
+the response mechanism may update support and boundary certificates while the
+numerical iterate remains at its anchor value.  The accumulated block demands
+form one final right-hand side.  One preconditioned solve at the end of the
+epoch repairs their sum.  Linearity makes this final repair identical to the
+sum of exact corrections on the fixed terminal face, while avoiding one old-
+face iteration pass per event.
+
+\section{Conditional composition theorem}
+\label{sec:composition}
+
+For an SPD preconditioner $P_S$ on a current face, define
+\begin{equation}
+ \kappa_{\rm eff}(S)
+ :=\kappa\!\left(P_S^{-1/2}Q_{SS}P_S^{-1/2}\right).
+ \label{eq:effective-condition}
+\end{equation}
+
+\begin{theorem}[Conditional response-preconditioned work]
+\label{thm:conditional-work}
+Consider a support-safe nested trace ending at charged volume $V$.  Suppose:
+
+\begin{enumerate}[label=(\roman*)]
+\item every adjacency exposure, response update, old-face read, interval
+      refinement, rekey, and reported event has total charge
+      $U_{\rm resp}(V)$;
+\item anchor rebuilds occur only after $(1+\gamma)$-factor charged-volume
+      growth and cost $O(V_j)$ at anchor volume $V_j$;
+\item one aggregate repair per epoch reaches its declared energy tolerance in
+      \[
+      \widetilde O\!\left(\sqrt{\kappa_{\rm eff}(S_j)}\right)
+      \]
+      preconditioned iterations, each charged by $O(V_j)$;
+\item \textsc{Finalize} costs $O(V)$ and returns the terminal certificate.
+\end{enumerate}
+
+Then the total charged work is
+\begin{equation}
+ \widetilde O\!\left(
+ U_{\rm resp}(V)
+ +V\sqrt{\kappa_{\max}}
+ +V
+ \right),
+ \qquad
+ \kappa_{\max}:=\max_j\kappa_{\rm eff}(S_j).
+ \label{eq:conditional-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The first and fourth terms are charged by assumptions (i) and (iv).  Apply
+\cref{lem:geometric-rebuild} to the rebuild work.  The aggregate repair work is
+at most, up to tolerance logarithms,
+\[
+ \sqrt{\kappa_{\max}}\sum_jO(V_j)
+ =O\!\left(V\sqrt{\kappa_{\max}}\right)
+\]
+by the same geometric series.  Summing the four disjoint ledger categories
+proves \cref{eq:conditional-work}.
+\end{proof}
+
+The theorem is deliberately an interface theorem.  Assumption (i) contains
+the hard graph problem and may not be replaced by an uncharged oracle call.
+
+\subsection{The two endpoints}
+
+With the identity preconditioner, the shared spectral bounds give
+$\kappa_{\max}\leq1/\alpha$.  If response work is no larger than the active
+scan work, \cref{eq:conditional-work} has the iterative target
+\begin{equation}
+ \widetilde O(V/\sqrt\alpha).
+ \label{eq:iterative-endpoint}
+\end{equation}
+
+At the other endpoint, suppose the response state provides a constant- or
+polylogarithmic-quality preconditioner and
+$U_{\rm resp}(V)=\widetilde O(V)$.  Then the work approaches
+\begin{equation}
+ \widetilde O(V).
+ \label{eq:response-endpoint}
+\end{equation}
+This conclusion is conditional on the complete reporting interface, not just
+on the existence of a static nearly-linear SDD solver.
+
+\section{Proposed controller}
+\label{sec:algorithm}
+
+The following pseudocode is a research contract rather than an implemented
+solver.  All thresholds and certificates remain note-scoped.
+
+\begin{algorithm}[h]
+\caption{Response-preconditioned nested continuation}
+\label{alg:response-preconditioned}
+\begin{algorithmic}[1]
+\STATE Initialize a support-safe face $S$, anchor $A\gets S$, and frontier
+buffer $F\gets\emptyset$.
+\STATE Build the initial response state and certified boundary dictionary.
+\WHILE{the boundary reporter certifies a nonempty violating batch $T$}
+    \STATE Expose and charge $T$ and its required incidences.
+    \STATE Set $S\gets S\cup T$ and $F\gets F\cup T$.
+    \STATE Update the implicit response and every affected certified interval.
+    \IF{$\operatorname{cvol}(F)\geq\gamma\operatorname{cvol}(A)$}
+        \STATE Aggregate the epoch demands and repair once on $A\cup F$.
+        \STATE Rebuild the anchor: $A\gets A\cup F$ and $F\gets\emptyset$.
+    \ENDIF
+\ENDWHILE
+\STATE Perform one final aggregate repair and materialize the terminal vector.
+\STATE Return the vector, boundary certificate, and complete work ledger.
+\end{algorithmic}
+\end{algorithm}
+
+There are three nonnegotiable safeguards.
+
+\begin{enumerate}
+\item The reporter must certify completeness outside its declared finite band.
+\item A failed structural fast path must fall back without discarding already
+      charged exposure or claiming an unproved transfer of state.
+\item The final output and every adjacency scan are charged explicitly.
+\end{enumerate}
+
+\section{Relation to existing project lines}
+\label{sec:map}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.25\textwidth}p{0.26\textwidth}X@{}}
+\toprule
+Project line & Contribution to this interface & Remaining obligation \\
+\midrule
+Incremental active-set SDD
+& Exact block correction, energy telescope, path-linear implicit solver
+& General solve-and-boundary state without repeated materialization \\
+Propagate--settle
+& Settlement absorption, finite-band reduction, aggregate repair
+& Cyclic finite-band response hierarchy \\
+Delayed-reflection ladder
+& Directed tree, block, shell, and quotient responses
+& Nonequitable thick-core event maintenance \\
+Volume-gated acceleration
+& Safe support cap and one-sided expansion gate
+& No-restart expanding-subspace acceleration \\
+AESP--CD
+& Product-scale local work on a fixed certified envelope
+& Accelerated continuation with safe centers \\
+Evolving-support CG
+& Finite propagation and geometric restart ledger
+& Avoid unbounded nonviolating halo exposure \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The empirical SOR ladders remain useful propagation arms.  Their exact unit
+coordinate rungs are not response factorizations.  They enter the present
+framework only after an exact or certified block-response operation is added.
+
+\section{Focused proof program}
+\label{sec:proof-program}
+
+\subsection{Finite-band cyclic response}
+
+The strongest immediate target is a data structure that reports every
+boundary demand whose normalized lower interval exceeds the gate, certifies
+all demands below the safe rejection threshold, and refines only the finite
+transition band.  Its total charge must include hierarchy construction,
+old-face reads, response applications, leverage estimates, rekeys, and output.
+
+One plausible route is a hierarchical terminal sparsifier or approximate Schur
+representation.  Spectral approximation supplies energy control, and
+\cref{lem:boundary-interval} converts it to queried coordinate intervals.  The
+unresolved step is an output-sensitive reporter for all ambiguous or violating
+coordinates.
+
+\subsection{Heavy/light frontier events}
+
+Use a dichotomy at every epoch.  A heavy batch causes geometric volume growth
+and pays a rebuild.  Light batches remain in the low-dimensional frontier and
+are represented lazily until their aggregate correction justifies one repair.
+The proof must charge a long sequence of light events without requiring a
+full old-face pass after each event.
+
+\subsection{No-restart accelerated repair}
+
+If the face grows during a repair, preserve a support-safe lower certificate
+separately from signed accelerated variables.  Extend new coordinates with
+zero numerical and momentum state and prove that the estimate-sequence
+potential survives the enlarged feasible subspace.  Restarting a complete
+accelerated solve after every singleton event is not an acceptable substitute.
+
+\subsection{Lower-bound separation}
+
+Any negative theorem should name the forbidden response resource.  Adjacency
+access alone permits the path and tree elimination messages that already beat
+repeated-prefix bounds.  A useful separation would prove a product lower bound
+for a local-linear-span or bounded-recurrence class and an output-sensitive
+response upper bound on the same family.
+
+\section{Experimental contract}
+\label{sec:experiments}
+
+A future implementation should compare three backends behind one controller:
+iteration with the identity preconditioner, persistent response, and the mixed
+method.
+Every run should record:
+
+\begin{itemize}
+\item newly exposed charged volume and peak active volume;
+\item propagation row operations and iterative repair iterations;
+\item response updates, factor rebuilds, old-face reads, and rekeys;
+\item certified, rejected, and ambiguous boundary intervals;
+\item final output writes and verifier work;
+\item the exact note-scoped accuracy convention and all solver parameters.
+\end{itemize}
+
+Endpoint paths, stars, spiders, tailed fans, high-degree decoys, asymmetric
+trees, cycles, equitable thick shells, bounded-block compositions, and
+nonequitable cyclic cores exercise different parts of the ledger.  A backend
+that is fast only because it omits boundary reporting or final materialization
+does not pass the comparison.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+The common object is the restricted Green operator, and preconditioning is the
+mathematical bridge between the project's two solver families.  The mixed
+architecture is presently the most robust research plan because it can use
+exact response where structure is exposed and iterative repair where exact
+transport is too expensive.  It is not proved universally best.  The decisive
+next theorem is a fully charged finite-band response hierarchy on general
+cyclic cores; the decisive acceleration theorem is continuation over safely
+expanding subspaces without repeated restarts.
+
+\end{document}
