@@ -70,8 +70,9 @@ reflected trajectory, and costs linear forest work. On a reached q-star it
 solves the full system in `O(q)` work uniformly in `alpha`; exact leaf
 settlement with the old center pivot would still require
 `Omega(1 / alpha)` steps. Splicing this operation into the radial parity
-wave proves the accelerated volume bound on every finite symmetric spider,
-including when the far leaves are reached.
+wave proves the accelerated volume bound on every finite symmetric spider
+under the theorem's conditions `1 < B < B_edge` and
+`B * q * eps_ppr < 1`, including when the far leaves are reached.
 
 In the repository's newer response-preconditioned language, the forest
 operation has an exact spectral lift: every eliminated forest coordinate
@@ -83,8 +84,26 @@ graph with a k-vertex 2-core therefore has an exact
 response solvers lift with only linear forest construction and recovery.
 Absorbing one newly certified pendant component is exactly a rank-one
 attachment update: Sherman--Morrison shows that the entire core correction is
-one Green-function column and that all exterior demand changes form one
-nonnegative range-add vector. This pinpoints the remaining online task as
-finite-band crossing reports on the cyclic core, rather than forest algebra.
+one Green-function column; under the theorem's `h >= 0` and `b_C >= 0`
+hypotheses, all exterior demand changes form one nonnegative range-add vector.
+The note now closes the first cyclic online case with the explicitly named
+fixed-attachment Green crossing reporter `FACR(p)`. On a simple cycle core,
+if every newly certified closed component attaches at the same core vertex,
+the cumulative core solution is `x_k = x_0 + z_k g_p` for one fixed Green
+column and one nondecreasing scalar. Each exterior boundary key is therefore
+an affine function of `z_k`. Sorting its exact crossing scalar once for each
+of the two gates gives total work
+`O(V_fin + |R| log(2 + |R|) + Z)`, where `Z` counts reported gate-label pairs,
+including verification/scanning of supplied closure certificates and
+adjacency, forest elimination and final recovery, Green-column
+construction/application, queries, exact validation, and output; memory is
+separately `O(V_fin)`. No current boundary keys are materialized or globally
+rekeyed. These are exact real/algebraic-cell bounds, not bit-complexity,
+finite-precision, or numerical-stability guarantees.
+This is a fixed-attachment, absorption-only crossing theorem; it does not
+maintain a terminal-rung queue after exterior coordinates are changed.
+Successive absorptions at different core vertices can introduce different
+Green directions, so final-volume/output-sensitive reporting in that setting
+remains open.
 
 Build with make (latexmk).

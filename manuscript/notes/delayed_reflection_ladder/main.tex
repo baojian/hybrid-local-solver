@@ -117,8 +117,26 @@ by a prescribed normalized margin, and every scalar response leverage is at
 most one.  Source-aware squared leverage is exactly terminal Schur-diagonal
 loss; it telescopes to at most $(1-\alpha)/2$ per still-exterior label.  Its
 hierarchical locator needs only one-sided additive accuracy at the current
-margin scale.  This reduces the general cyclic target to dynamic aggregate
-Schur-diagonal-loss reporting for the energy-packed interval crossings.
+margin scale.  A randomized Chebyshev inverse-square-root sketch now
+constructs all
+exposed boundary diagonal losses at a fixed face in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work, and geometrically spaced full
+checkpoints have the same final-volume product bound.  This reduces the
+general cyclic target further to incremental diagonal-loss reporting between
+checkpoints for the energy-packed interval crossings.  The associated
+frontier source probes no longer require an exact Schur inverse square root:
+Chebyshev whitening accepts any constant-factor spectral frontier and costs
+only $\widetilde O(T_{\rm mv}/\sqrt\alpha)$.  More directly, a positive
+geometric resolvent ladder realizes the inverse square root through shifted
+exact rungs whose total monotone settlement mass is $O(1/\sqrt\alpha)$.
+Every partial rung has an exact nonnegative delayed-anchor debt.  The companion
+response note now aggregates every fixed-face debt before a signed Chebyshev
+flush, returning certified one-sided exterior intervals in
+$\widetilde O(\operatorname{cvol}(T)/\sqrt\alpha)$ graph work.  The remaining
+graph operation on high-rank cores is an output-sensitive partial flush or a
+different safe trace: the companion note also proves that a literal path gate
+can be forced through singleton faces whose volume-growth ratios tend to one,
+so pure geometric sleep is not sufficient.
 The exact gate also dominates one unit proximal-gradient step in objective
 value.  Consequently its objective gap contracts by the unconditional factor
 $1-\alpha$ per nonempty batch, giving an exact margin-sensitive termination
@@ -310,14 +328,32 @@ leverage is at most one. \\
 terminal Schur diagonal across a batch elimination and telescopes to at most
 $(1-\alpha)/2$ per exterior label.  A hierarchy needs only one-sided additive
 accuracy at its current pruning scale. \\
+\statusproved & At a fixed exposed face, Chebyshev inverse-square-root probes
+estimate every normalized boundary Schur-diagonal loss simultaneously with
+high probability in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work.  Full snapshots at geometrically
+growing checkpoints have the same final-volume product bound. \\
+\statusproved & Exact frontier whitening is unnecessary.  Any constant-factor
+spectral approximation of the frontier Schur complement supplies all Gaussian
+source probes in $\widetilde O(T_{\rm mv}/\sqrt\alpha)$ work; an exact
+frontier multiplication uses one charged anchor-response application. \\
+\statusproved & The inverse square root also has a positive logarithmic ladder
+of shifted Stieltjes resolvents.  Its work-mass and monotone Schur-coordinate
+settlement ledgers have the exact $1/\sqrt\alpha$ dependence.  Each rung is a
+sparse shifted face system whose unfinished state is exact nonnegative anchor
+debt. \\
 \statusconditional & If online causal expansion scans each certified region
 only $O(1)$ times per alpha-scaled rung and supplies a width-$w$ elimination
 order, total work is
 $\widetilde O((w+1)^2V/\sqrt\alpha)$. \\
 \statusopen & Inside a large biconnected core with neither bounded blocks, an
-equitable tree quotient, nor thin radial support, maintain aggregate terminal
-Schur-diagonal losses and report all energy-packed finite-band crossings
-without refreshing the full boundary, or
+equitable tree quotient, nor thin radial support, maintain incremental
+terminal-Schur diagonal losses between the now-affordable full checkpoints
+and report all energy-packed finite-band crossings.  The companion response
+note now gives a product-scale fixed-face aggregate debt flush; the open
+condition is to prove geometric online sleep scheduling or output-sensitive
+partial flushes without refreshing the full boundary after every light update,
+or
 compress the exact scalar homotopy trace.  Exact
 discovery, the universal radius bound, cycles, thick equitable cells,
 constant-width strips, and bounded-block cyclic graphs are no longer open. \\
@@ -3212,6 +3248,389 @@ $d_vm^2\leq(\chi_v^{B\mid A})^2E^2$; summing and reusing the rank budget proves
 \cref{eq:additive-schur-locator-output}.
 \end{proof}
 
+\begin{theorem}[Accelerated all-boundary diagonal-loss checkpoint]
+\label{thm:chebyshev-diagonal-loss-checkpoint}
+Let $S\subseteq V$ be a nonempty exposed face and
+$W:=\{v\notin S:Q_{vS}\neq0\}$ its exposed boundary.  For $v\in W$, define
+the cumulative normalized terminal-Schur diagonal loss
+\begin{equation}
+ \ell_v(S)
+ :=\frac{Q_{vS}Q_{SS}^{-1}Q_{Sv}}{d_v}
+ =\frac{Q_{vv}-(Q/S)_{vv}}{d_v}.
+ \label{eq:checkpoint-diagonal-loss}
+\end{equation}
+Fix $\zeta,\xi,\delta\in(0,1/2)$ and put
+$M:=\max\{1,|W|\}$.  There is a degree
+\begin{equation}
+ m=O\!\left(
+  \frac1{\sqrt\alpha}
+  \log\frac1{\alpha\zeta}
+ \right)
+ \label{eq:inverse-square-root-degree}
+\end{equation}
+polynomial $p_m$ such that the following procedure uses
+\begin{equation}
+ r=O\!\left(\xi^{-2}\log\frac{M}{\delta}\right)
+ \label{eq:checkpoint-sketch-count}
+\end{equation}
+independent standard Gaussian vectors $g_t\in\mathbb R^S$:
+\begin{equation}
+ z_t:=p_m(Q_{SS})g_t,
+ \qquad
+ \overline\ell_v
+ :=\frac1r\sum_{t=1}^r
+ \frac{(Q_{vS}z_t)^2}{d_v},
+ \qquad
+ \widehat\ell_v
+ :=\frac{\overline\ell_v}
+ {(1-\xi)(1-\zeta)^2}.
+ \label{eq:checkpoint-estimator}
+\end{equation}
+With probability at least $1-\delta$, simultaneously for all $v\in W$,
+\begin{equation}
+ \ell_v(S)\leq\widehat\ell_v
+ \leq
+ \Gamma_{\zeta,\xi}\ell_v(S),
+ \qquad
+ \Gamma_{\zeta,\xi}
+ :=\frac{(1+\xi)(1+\zeta)^2}
+ {(1-\xi)(1-\zeta)^2}.
+ \label{eq:checkpoint-one-sided-guarantee}
+\end{equation}
+Consequently every hierarchy group $C\subseteq W$ has the simultaneous
+one-sided estimate
+\begin{equation}
+ \sum_{v\in C}\ell_v(S)
+ \leq\sum_{v\in C}\widehat\ell_v
+ \leq\Gamma_{\zeta,\xi}
+       \sum_{v\in C}\ell_v(S).
+ \label{eq:checkpoint-group-guarantee}
+\end{equation}
+All estimates can be constructed from the adjacency lists of $S$ and the
+degrees of their incident boundary labels in
+\begin{equation}
+ O\!\left(r(m+1)\vol(S)\right)
+ =\widetilde O_{\zeta,\xi,\delta}
+   \!\left(\frac{\vol(S)}{\sqrt\alpha}\right)
+ \label{eq:checkpoint-construction-work}
+\end{equation}
+work and $O(r(|S|+|W|))$ storage.
+\end{theorem}
+
+\begin{proof}
+This is the ``Static all-boundary checkpoint at accelerated cost'' theorem
+proved in the companion response-preconditioned hybrid note, under the
+notational substitutions $h_v(S)=\ell_v(S)$ and $W_S=W$.  Its proof gives
+the displayed Chebyshev degree, Gaussian concentration guarantee, and a
+charged-volume construction bound.  Here every exposed vertex has positive
+degree, so
+$\operatorname{cvol}(S)=|S|+\vol(S)\leq2\vol(S)$; the same row-scan argument
+therefore proves \cref{eq:checkpoint-construction-work}.  We retain the local
+statement so later ladder arguments can cite its exact notation, while proof
+ownership remains with the response-preconditioned note.
+\end{proof}
+
+\begin{corollary}[Geometric checkpoints already meet the product scale]
+\label{cor:geometric-diagonal-loss-checkpoints}
+Let $S_0\subsetneq\cdots\subsetneq S_K$ be checkpoint faces satisfying
+\begin{equation*}
+ \vol(S_{i+1})\geq(1+\gamma)\vol(S_i),
+ \qquad \gamma>0.
+\end{equation*}
+Run \cref{thm:chebyshev-diagonal-loss-checkpoint} independently at every
+checkpoint with failure budgets $\delta_i>0$ satisfying
+$\sum_i\delta_i\leq\delta$.  Then all checkpoint guarantees hold with
+probability at least $1-\delta$, and for fixed $\zeta,\xi,\gamma$ their
+total construction work is
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{\vol(S_K)}{\sqrt\alpha}
+ \right).
+ \label{eq:geometric-checkpoint-total-work}
+\end{equation}
+Thus a full exposed-boundary snapshot at every geometric anchor is already
+affordable at the accelerated product scale.
+\end{corollary}
+
+\begin{proof}
+A union bound gives simultaneous correctness.  The geometric growth implies
+$\sum_i\vol(S_i)\leq(1+1/\gamma)\vol(S_K)$; applying
+\cref{eq:checkpoint-construction-work} and absorbing the logarithmic failure
+budgets proves \cref{eq:geometric-checkpoint-total-work}.
+\end{proof}
+
+\begin{proposition}[Frontier whitening needs no exact square root]
+\label{prop:spectral-frontier-chebyshev-whitening}
+Let $A\subsetneq A\mathbin{\dot\cup}F=:T$ and define the frontier Schur
+complement and its lifted response by
+\begin{equation*}
+ K_F:=Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF},
+ \qquad
+ (\mathcal U_Fy)_A:=-Q_{AA}^{-1}Q_{AF}y,
+ \qquad
+ (\mathcal U_Fy)_F:=y.
+\end{equation*}
+For an exterior group $C\subseteq V\setminus T$, put
+\begin{equation}
+ R_C:=D_C^{-1/2}Q_{CV}\mathcal U_F,
+ \qquad
+ Z_{F\mid A}(C):=\norm{R_CK_F^{-1/2}}_F^2.
+ \label{eq:frontier-whitening-group-mass}
+\end{equation}
+Then $\alpha I\preceq K_F\preceq I$.  Suppose an SPD representation
+$\widetilde K_F$ satisfies
+\begin{equation}
+ (1-\upsilon)K_F\preceq\widetilde K_F
+ \preceq(1+\upsilon)K_F,
+ \qquad 0\leq\upsilon<1.
+ \label{eq:frontier-whitening-spectral-approximation}
+\end{equation}
+For every $\zeta\in(0,1/2)$, a polynomial $p_q$ of degree
+\begin{equation}
+ q=O_\upsilon\!\left(
+  \frac1{\sqrt\alpha}\log\frac1{\alpha\zeta}
+ \right)
+ \label{eq:frontier-whitening-polynomial-degree}
+\end{equation}
+gives, simultaneously for every exterior group,
+\begin{equation}
+ \frac{(1-\zeta)^2}{1+\upsilon}Z_{F\mid A}(C)
+ \leq\norm{R_Cp_q(\widetilde K_F)}_F^2
+ \leq
+ \frac{(1+\zeta)^2}{1-\upsilon}Z_{F\mid A}(C).
+ \label{eq:frontier-whitening-group-sandwich}
+\end{equation}
+Thus logarithmically many Gaussian source vectors
+$p_q(\widetilde K_F)g_t$ replace the exact vectors $K_F^{-1/2}g_t$ in every
+group-norm sketch at a total source-preparation cost
+\begin{equation}
+ \widetilde O_{\zeta,\upsilon,\delta}\!\left(
+  \frac{T_{\rm mv}}{\sqrt\alpha}
+ \right),
+ \label{eq:frontier-whitening-source-work}
+\end{equation}
+where $T_{\rm mv}$ is the cost of one multiplication by
+$\widetilde K_F$.  In the exact case, one multiplication
+\begin{equation}
+ K_Fy=Q_{FF}y-Q_{FA}Q_{AA}^{-1}Q_{AF}y
+ \label{eq:frontier-whitening-exact-matvec}
+\end{equation}
+uses one charged anchor-response application plus
+$O(\vol(F))$ frontier-incidence work.
+\end{proposition}
+
+\begin{proof}
+The Schur variational identity gives
+\begin{equation*}
+ y^TK_Fy
+ =\min_x
+ \begin{pmatrix}x\\y\end{pmatrix}^{\!T}
+ Q_{TT}
+ \begin{pmatrix}x\\y\end{pmatrix}
+ \geq\alpha\norm{y}_2^2,
+\end{equation*}
+while $K_F\preceq Q_{FF}\preceq I$.  Hence
+$\operatorname{spec}(\widetilde K_F)\subseteq
+[(1-\upsilon)\alpha,1+\upsilon]$.  Chebyshev approximation of
+$x^{-1/2}$ on this interval yields \cref{eq:frontier-whitening-polynomial-degree}
+and
+\begin{equation*}
+ (1-\zeta)^2\widetilde K_F^{-1}
+ \preceq p_q(\widetilde K_F)^2
+ \preceq(1+\zeta)^2\widetilde K_F^{-1}.
+\end{equation*}
+Inverting \cref{eq:frontier-whitening-spectral-approximation}, taking a
+congruence by $R_C$, and tracing proves
+\cref{eq:frontier-whitening-group-sandwich}.  A Chebyshev recurrence takes
+$q$ matrix-vector products per Gaussian source; the usual
+$O(\log(M/\delta))$ sources for $M$ simultaneous group tests are absorbed in
+\cref{eq:frontier-whitening-source-work}.  Finally,
+\cref{eq:frontier-whitening-exact-matvec} is the definition of the Schur
+complement.  Its two sparse products are formed from the rows of $F$, and its
+middle operation is one application of the stored anchor response.
+\end{proof}
+
+\begin{proposition}[Positive exact-rung square-root ladder]
+\label{prop:positive-resolvent-rung-ladder}
+Use the anchor, frontier, face, lift, and frontier Schur complement of
+\cref{prop:spectral-frontier-chebyshev-whitening}.  Fix
+$\eta\in(0,1/8)$, let
+\begin{equation*}
+ t_0:=\eta\sqrt\alpha,
+ \qquad t_{j+1}:=(1+\eta)t_j,
+ \qquad J:=\min\{j:t_j\geq\eta^{-1}\},
+\end{equation*}
+and, for $0\leq j<J$, define
+\begin{equation}
+ \sigma_j:=t_{j+1}^2,
+ \qquad
+ \omega_j:=\frac2\pi(t_{j+1}-t_j),
+ \qquad
+ r_\eta(x):=\sum_{j=0}^{J-1}\frac{\omega_j}{x+\sigma_j}.
+ \label{eq:positive-rung-rational}
+\end{equation}
+Then the ladder has
+\begin{equation*}
+ J=O\!\left(
+  \eta^{-1}\left(\log\frac1\alpha+\log\frac1\eta\right)
+ \right)
+\end{equation*}
+rungs and, uniformly on $[\alpha,1]$,
+\begin{equation}
+ (1-4\eta)x^{-1/2}\leq r_\eta(x)\leq x^{-1/2}.
+ \label{eq:positive-rung-sandwich}
+\end{equation}
+Its two work-mass sums satisfy
+\begin{align}
+ \sum_j\frac{\omega_j}{\alpha+\sigma_j}
+ &\leq\frac1{\sqrt\alpha},
+ \label{eq:positive-rung-work-mass}\\
+ \sum_j\omega_j\frac{1+\sigma_j}{\alpha+\sigma_j}
+ &\leq\frac1{\sqrt\alpha}
+  +\frac{2(1+\eta)}{\pi\eta}.
+ \label{eq:positive-rung-coordinate-mass}
+\end{align}
+
+Let $E_F$ embed the frontier into $T=A\mathbin{\dot\cup}F$ and put
+\begin{equation*}
+ M_j:=Q_{TT}+\sigma_jE_FE_F^T.
+\end{equation*}
+Every rung is a sparse shifted face system and obeys the exact block identity
+\begin{equation}
+ M_j^{-1}E_F
+ =\mathcal U_F(K_F+\sigma_jI)^{-1},
+ \qquad
+ \mathcal U_Fr_\eta(K_F)
+ =\sum_j\omega_jM_j^{-1}E_F.
+ \label{eq:positive-rung-block-identity}
+\end{equation}
+Consequently every exterior group mass obtained from
+$\mathcal U_Fr_\eta(K_F)$ lies between $(1-4\eta)^2$ times and one times the
+exact $K_F^{-1/2}$ group mass.
+
+This ladder also has a monotone delayed-push realization.  Put
+$s_F:=(\sqrt{d_u})_{u\in F}$.  If $g\geq0$, residual coordinate settlement of
+all shifted Schur systems
+\begin{equation*}
+ (K_F+\sigma_jI)y_j=\omega_jg
+\end{equation*}
+at the trigger $p_{j,u}/\sqrt{d_u}\geq\tau$, charging $d_u$ for coordinate
+$u$, uses at most
+\begin{equation}
+ \frac{\langle s_F,g\rangle}{\tau}
+ \left(
+  \frac1{\sqrt\alpha}+\frac{2(1+\eta)}{\pi\eta}
+ \right)
+ \label{eq:positive-rung-coordinate-work}
+\end{equation}
+Schur-coordinate work.  Signed sources are split into their positive and
+negative parts.
+
+For the sparse face realization, let $x_j\geq0$ be any partial state with
+nonnegative debt
+\begin{equation*}
+ d_j:=\omega_jE_Fg-M_jx_j\geq0.
+\end{equation*}
+Then
+\begin{equation}
+ \mathcal U_Fr_\eta(K_F)g
+ =\sum_jx_j+\sum_jM_j^{-1}d_j
+ \label{eq:positive-rung-debt-invariant}
+\end{equation}
+exactly.  A local settlement touches only one sparse graph row and its cut
+incidences.  If $d_j=(d_{j,A},d_{j,F})$, exact anchor cleanup replaces the
+frontier debt by
+\begin{equation}
+ d_{j,F}-Q_{FA}Q_{AA}^{-1}d_{j,A}\geq0,
+ \label{eq:positive-rung-anchor-cleanup}
+\end{equation}
+which is precisely the residual of the shifted Schur system.  Thus the
+$1/\sqrt\alpha$ inverse-square-root scale admits positive exact rungs and
+delayed nonnegative debt; no signed over-relaxation or precomputed target
+harmonic row is algebraically necessary.
+\end{proposition}
+
+\begin{proof}
+The identity
+\begin{equation*}
+ x^{-1/2}=\frac2\pi\int_0^\infty\frac{dt}{x+t^2}
+\end{equation*}
+is a positive resolvent representation.  \Cref{eq:positive-rung-rational}
+is its right-endpoint rule on the geometric
+grid $[t_0,t_J]$.  It is a lower bound.  On one grid interval the integrand
+changes by at most $(1+\eta)^2$; hence quadrature loses at most $2\eta$
+relatively.  The omitted lower and upper tails each lose at most
+$2\eta/\pi$ relatively.  This proves
+\cref{eq:positive-rung-sandwich}.  Evaluating the same lower sum at
+$x=\alpha$ proves
+\cref{eq:positive-rung-work-mass}.  Also
+$\sum_j\omega_j=2(t_J-t_0)/\pi\leq2(1+\eta)/(\pi\eta)$, which proves
+\cref{eq:positive-rung-coordinate-mass}.
+
+The Schur complement of $M_j$ onto $F$ is
+$K_F+\sigma_jI$; block inversion proves
+\cref{eq:positive-rung-block-identity}.  Functional calculus in
+\cref{eq:positive-rung-sandwich}, followed by squaring, congruence, and a
+trace, proves the group-mass statement.
+
+Since $Q\sqrt d=\alpha\sqrt d$, principal restriction and inverse positivity
+give $K_Fs_F\geq\alpha s_F$ coordinatewise.  Also $K_F$ is Stieltjes and
+$(K_F)_{uu}\leq1$.  The residual potential
+$\langle s_F,p_j\rangle$ therefore decreases by at least
+\begin{equation*}
+ \tau d_u\frac{\alpha+\sigma_j}{1+\sigma_j}
+\end{equation*}
+when $u$ is settled, while its initial value is
+$\omega_j\langle s_F,g\rangle$.  Summing over the rungs and applying
+\cref{eq:positive-rung-coordinate-mass} proves
+\cref{eq:positive-rung-coordinate-work}.
+
+Finally $M_jx_j+d_j=\omega_jE_Fg$.  Apply $M_j^{-1}$, sum, and use
+\cref{eq:positive-rung-block-identity} to obtain
+\cref{eq:positive-rung-debt-invariant}.  Stieltjes signs preserve
+nonnegativity and make each coordinate settlement row-local.  Adding
+$Q_{AA}^{-1}d_{j,A}$ to the anchor state zeros its debt and changes the
+frontier residual by $-Q_{FA}Q_{AA}^{-1}d_{j,A}$, proving
+\cref{eq:positive-rung-anchor-cleanup} and the shifted Schur interpretation.
+\end{proof}
+
+The checkpoint theorem deliberately estimates the cumulative loss from the
+original matrix to the present face.  Subtracting two noisy snapshots does
+not give relative control of a tiny intervening loss.  Therefore the theorem
+closes the Monte Carlo work bound for full boundary initialization and
+geometric anchor rebuilding, but not the light-update problem between
+checkpoints.  A deterministic certificate or Las Vegas validation remains
+separate.  The dynamic operation is now sharper: starting from a materialized
+one-sided snapshot, maintain or locate only the incremental terminal-Schur
+diagonal loss created by the current frontier, with additive accuracy at the
+pruning scale of \cref{cor:additive-schur-diagonal-locator}.
+By \cref{prop:spectral-frontier-chebyshev-whitening}, this locator does not
+need an exact frontier inverse square root: an exact charged anchor response,
+or any constant-factor spectral frontier representation, prepares all source
+probes at the accelerated scale.  Alternatively,
+\cref{prop:positive-resolvent-rung-ladder} replaces both the square root and
+the target-row algebra by positive sparse shifted propagation with exact
+delayed debt.  What it does not yet prove is that settling those graph debts
+inherits the Schur-coordinate work bound without repeatedly scanning the old
+anchor.  The companion response note now removes the literal-settlement
+obstruction at a fixed face: it sums every outstanding debt fragment first,
+uses signed Chebyshev semi-iteration only inside the flush, and converts its
+energy certificate into simultaneous one-sided exterior intervals.  One such
+flush costs
+$\widetilde O(\operatorname{cvol}(T)/\sqrt\alpha)$ graph work, and one flush
+per geometrically growing face has the final-volume product bound.  The
+companion's singleton-path proposition rules out relying on those flushes
+alone for the literal exact gate.  The open condition is therefore an
+output-sensitive partial flush after light events, or a separately proved
+support-safe trace, rather than fixed-face propagation itself.
+The companion response note closes that target operation when the normalized
+anchor--boundary cut has small rank: a rank-$s$ cut needs only $s$ harmonic
+basis vectors.  It also gives a linear-volume comb whose cut has full rank and
+whose rank-deficient energy error is bounded below independently of the comb
+length for fixed $\alpha<1$.  Thus a universal low-rank bank is not
+the missing arbitrary-core theorem; high-rank nonequitable cores require
+on-demand sparsification, sparse recovery, or a different implicit response.
+
 The packing lemma does not itself locate the labels in $H(m)$.  It proves
 that their output volume, rather than the full boundary size, is the correct
 charge.  The remaining large-core primitive is therefore precise: maintain a
@@ -3552,11 +3971,29 @@ is uniformly at most one, and exterior demand changes are energy contractions.
 Source-aware sensitivity has an exact scalar state: it is the loss of terminal
 Schur diagonal under the current batch elimination, and these losses telescope
 per exterior label.  A margin-adaptive hierarchy may use additive error at its
-current pruning scale.  Thus only energy-packed interval crossings need to be
-reported.  The remaining obstruction is to maintain aggregate diagonal losses
-and locate those crossings without scanning the full boundary inside a large
-core with neither bounded articulation blocks, an equitable tree quotient,
-nor thin radial support.  Exact trace compression or
+current pruning scale.  Chebyshev inverse-square-root probes build a complete
+one-sided boundary-loss snapshot in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work, so all full rebuilds at geometric
+anchors already fit the product ledger.  Source normalization inside an epoch
+also needs no exact frontier square root: a constant-factor spectral frontier
+and Chebyshev recurrence prepare every Gaussian source probe in
+$\widetilde O(T_{\rm mv}/\sqrt\alpha)$ work.  The positive resolvent theorem
+goes further: the inverse square root is a constant-factor positive sum of
+shifted exact rungs whose total work mass and monotone Schur-coordinate
+settlement count have the $1/\sqrt\alpha$ dependence.  Each shifted rung is a
+sparse face system, and every unfinished local solve is represented exactly
+by nonnegative anchor debt; exact cleanup produces precisely the shifted Schur
+residual.  Thus only energy-packed interval crossings created by light updates
+between checkpoints need to be reported.
+Small cut rank closes the target-side harmonic bank, while a comb construction
+refutes any universal low-rank reduction.  The remaining obstruction is now
+online graph-work scheduling on high-rank cores: the companion response note
+already flushes every fixed-face aggregate debt at the product scale, but one
+must locate all intervening crossings by partial output-sensitive work without
+forcing that full flush or a boundary scan after every light admission inside
+a large core with neither bounded
+articulation blocks, an equitable tree quotient, nor thin radial support.
+Exact trace compression or
 an exact-gate batch bound remain stronger alternatives.  The gate does
 dominate proximal gradient and therefore has an exact margin-sensitive
 termination bound, but a three-vertex path proves that its per-batch objective

@@ -6,6 +6,13 @@ algorithm, oracle model, lower-bound family, proof mechanism, or experimental
 question. Extend an existing note when the new result shares its mathematical
 object and central proof obligation.
 
+The shared entry point is [`_shared/`](_shared/). Direction agents read its
+problem definition, related-work map, accumulated-results ledger, and current
+broadcast before resuming a note. They work in one direction directory and
+return a structured `STATUS.md` handoff; the controller verifies and
+redistributes cross-direction results. The detailed ownership and collision
+rules are in [`AGENTS.md`](AGENTS.md).
+
 ## Claim discipline
 
 Every major statement should be visibly one of:
@@ -32,11 +39,15 @@ not a first-order restriction.
 2. Use `tex/shared/research_note_preamble.tex` and
    `tex/shared/source_aligned_problem.tex`; do not create a private PageRank
    normalization or redefine reserved notation.
-3. Give the note its own directory containing `main.tex`, `README.md`, and a
-   `Makefile` that includes `../note.mk`.
+3. Give the note its own directory containing `main.tex`, `README.md`,
+   `STATUS.md`, and a `Makefile` that includes `../note.mk`. Use the shared
+   coordination status template and keep proof details in `main.tex`.
 4. Register the note in `manifest.toml`, `taxonomy.toml`, this directory's
    `README.md`, and `Makefile`. The taxonomy entry must state its primitive,
    support evolution, evidence level, dependencies, and next target.
+   A taxonomy dependency is a direct theorem/construction import. Record
+   empirical ancestry, sibling comparisons, and companion-note provenance in
+   `STATUS.md` instead of turning them into formal graph edges.
 5. Add focused automated tests for executable tools or implementations. Keep
    experiment orchestration in `experiments/` and reusable logic in `src/`.
 6. Run the inventory audit, tests, lint, and the changed note build.

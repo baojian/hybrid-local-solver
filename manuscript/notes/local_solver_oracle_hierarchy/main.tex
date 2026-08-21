@@ -39,9 +39,55 @@ The ambient adjacency class allows arbitrary persistent computation on
 exposed information.  Within it we distinguish materialized repeated
 restricted solves, local linear-span or bounded-recurrence methods, and
 persistent response methods that store elimination or Schur summaries.  We
-derive the exact low-rank Green-function formula for a degree-preserving hidden
-edge swap and isolate a bounded-overlap influence-packing lemma as the central
-missing statement for stronger oracle lower bounds.  No graph-uniform
+give an exhaustive execution ledger that separately charges adjacency
+exposure and adaptivity, external interaction, preprocessing, online control,
+recurrence, response computation, persistent and transient memory,
+intermediate materialization, and emitted replies/output.  Two exact boundary
+results follow.  After complete exposure, an inverse oracle whose construction,
+encoding, and application are all free collapses a residual recurrence to one
+exact step, so that class cannot support a recurrence-iteration or
+condition-number lower bound.  Conversely, on one auxiliary online
+endpoint-path task stopped at $\tau_{\rm stop}\leq K$, every exact-materialized
+implementation writes $\Omega(\tau_{\rm stop}^2)$ algebraic cells, while one
+append-only tridiagonal response uses linear work and space in
+$\tau_{\rm stop}$.  This exact-arithmetic result is only a weaker
+representation analogue; it is neither word/bit complexity nor the desired
+charged-volume recurrence-versus-response separation.  We also derive the exact
+low-rank Green-function formula for a degree-preserving hidden edge swap and
+isolate a bounded-overlap influence-packing lemma as the central missing
+statement for stronger oracle lower bounds.  Finally, under the concrete
+budget $(0,\lfloor\sqrt{\nu_n}\rfloor,32\nu_n)$, exact
+conjugate gradients defeats the fully exposed, fixed-support path product
+candidate when
+$\alpha=n^{-4}$: it uses $O(n^2)$ charged work while
+$\nu_{\rm fin}/\sqrt\alpha=\Theta(n^3)$.  More generally, after an
+$n$-dimensional exact SPD system has been fully exposed with
+$O(\nu_{\rm fin})$ representation and matrix--vector cost and enough vector
+memory, a product-scale lower bound against a class containing CG requires
+$n=\widetilde\Omega(1/\sqrt\alpha)$.  This condition is not asserted for an
+approximate local support-discovery task.  In the surviving choice
+$\alpha=n^{-2}$, endpoint cyclicity gives a matching
+$\Omega(n\nu_n)$ recurrence obstruction for a named exact \emph{full-vector}
+subclass containing
+polynomial/Chebyshev/momentum methods, positive-diagonal PCG, polynomial
+preconditioning with every underlying $T$ application counted, and explicitly
+charged spectral deflation of at most $\sqrt{\nu_n}$ atoms.  It does not cover
+arbitrary adaptive or nonlinear response.  On the same path and parameter
+scale, however, replacing exact full-vector output by the actual sparse PPR
+residual certificate changes the answer completely: a five-coordinate,
+degree-four supported polynomial has exact residual below
+$\alpha/10$ and uses only constant charged work.  A fully charged five-row
+append-only response returns the same sparse output.  Thus supported-prefix
+polynomial generation alone does not imply product work; the literal exact-CG
+cost comes from its Galerkin trajectory, not from the certificate or support
+geometry by themselves.  Tightening the same certificate to
+$\epsppr=1/(10n)$ forces every valid output to have full path support, but it
+still does not restore product work: exact cancellations generate singleton
+coordinate directions and a fixed spatial profile is synthesized in
+$\Theta(n)$ fully charged recurrence work, matching an append-only response
+up to constants while $\nu_{\rm fin}/\sqrt\alpha=\Theta(n^2)$.  The profile
+synthesis is not a projected solve; any factor or graph-dependent inverse
+used for coefficient synthesis remains response work.  No graph-uniform
 $\Omega(1/(\varepsilon\sqrt\alpha))$ adjacency-query lower bound is claimed.
 \end{abstract}
 
@@ -65,6 +111,16 @@ one listed coordinate costs at least one word operation.  The information and
 capacity statements specialize to a single seed $s=e_v$ and do not choose an
 implementable stopping certificate.
 
+For the still-open computational separation, let $S_{\rm fin}$ denote the
+final exposed active set and define the distinct final charged-volume symbol
+\begin{equation}
+ \nu_{\rm fin}:=\vol(S_{\rm fin})=\sum_{i\in S_{\rm fin}}d_i.
+ \label{eq:final-charged-volume}
+\end{equation}
+This is not the vertex set $V$ and is not total work: repeated reads,
+recurrence, response, control, materialization, and emission remain additional
+ledger charges.
+
 \begin{center}
 \small
 \begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
@@ -80,6 +136,56 @@ nested supports costs at least the sum of their cardinalities. \\
 \statusproved & The project has representation separations on paths: repeated
 materialization can be quadratic while persistent directed elimination is
 linear in final active size or volume. \\
+\statusproved & An exhaustive cost vector separates adjacency exposure and
+adaptivity, external interaction, preprocessing, online control, recurrence,
+response-query computation, persistent and transient memory, intermediate
+materialization, and emitted replies/output.  If graph-dependent inverse
+construction, encoding, and application are all free after complete exposure,
+one residual step is exact.  The three capabilities cannot all be free; the
+lemma does not make each restriction independently necessary. \\
+\statusproved & On one auxiliary endpoint-path task stopped at
+$\tau_{\rm stop}$, every exact-materialized implementation writes
+$\Omega(\tau_{\rm stop}^2)$ algebraic cells, and this materialization
+coordinate is tight.  One append-only $LDL^\top$ response has linear
+exact-cell costs in $\tau_{\rm stop}$; worst case is $\tau_{\rm stop}=K$.
+This is a weaker exact-arithmetic representation analogue, not word/bit
+complexity or a recurrence lower bound. \\
+\statusproved & For the concrete exact-algebraic budget
+$(0,\lfloor\sqrt{\nu_n}\rfloor,32\nu_n)$ on an endpoint path, unpreconditioned
+CG is admissible and terminates in at most $n$ iterations.  At
+$\alpha=n^{-4}$ it uses $O(n^2)$ charged work while
+$\nu_n/\sqrt\alpha=\Theta(n^3)$; hence this fully exposed path candidate
+cannot give a uniform-in-$(n,\alpha)$ product lower bound.  The condition
+$n=\widetilde\Omega(1/\sqrt\alpha)$ is necessary only for the analogous
+fixed-support exact-system route with linear-cost matrix--vector access. \\
+\statusproved & At the surviving exact choice $\alpha=n^{-2}$, for every
+positive diagonal $M$, $h=M^{-1/2}b_n$ is cyclic for the symmetric scaling
+$T=M^{-1/2}Q_nM^{-1/2}$ of the fully exposed path matrix.
+Polynomial/Chebyshev/momentum and fixed-positive-diagonal Krylov methods, plus
+polynomial preconditioning within $\mathsf{DiagSpecPoly}(0)$ with every
+underlying $T$ application counted, need degree at least $n-1$.  Under the
+named charged spectral-atom convention, $r\leq\sqrt{\nu_n}$ deflated modes
+leave degree at least $n-r-1$, hence $\Omega(n\nu_n)$ full-vector recurrence
+work.  This is a named-subclass result, not a lower bound for arbitrary
+budgeted response. \\
+\statusproved & For the sparse actual-certificate task on the same endpoint
+path with $\alpha=n^{-2}$ and $\epsppr=1/10$, a five-coordinate vector is a
+degree-four supported polynomial in $Q$ applied to $b$ and has strict
+degree-normalized residual below $\alpha/10$ for every $n\geq8$.  Both a
+charged supported polynomial realization and a five-row append-only response
+use $O(1)$ exact-cell work in all nonmemory coordinates.  Hence the named
+$\mathsf{CertPrefixPoly}$ class has a sub-product counteralgorithm; this does
+not contradict the exact full-vector $\mathsf{DiagSpecPoly}(r)$ theorem or the
+literal ordinary-CG trajectory. \\
+\statusproved & Tightening the same path task to
+$\epsppr=1/(10n)$ forces every certified sparse list to contain all $n$
+coordinates.  Nevertheless, the broad supported-prefix class generates the
+singleton coordinate basis by exact sparse row actions and cancellations,
+then synthesizes a fixed degree-six spatial profile in $\Theta(n)$ charged
+work.  The same-task append-only response is also linear, while
+$\nu_{\rm fin}/\sqrt\alpha=\Theta(n^2)$.  This is an exact-cell counterexample,
+not a finite-precision claim or a refutation of a narrower trajectory or
+materialization class. \\
 \statusproved & For note-scoped degree-normalized error, the exact PPR
 superlevel set is seed-connected and has volume at most $1/\epsppr$.
 Together with a center-star instance, explicit-output complexity is
@@ -190,8 +296,9 @@ lower bound, not an information lower bound for PageRank.
 
 \subsection{Local-linear-span and recurrence methods}
 
-A candidate class $\mathsf{LocalSpan}$ should require that new numerical
-directions are generated from previously stored directions by charged local
+The budgeted family $\mathsf{RowRec}$ sharpened in
+\cref{sec:resource-vector} requires that new numerical directions are
+generated from previously stored directions by charged local
 row actions, supported matrix--vector products, diagonal or fixed splitting
 operations, and scalar linear combinations.  The definition must specify:
 
@@ -208,7 +315,8 @@ operations, and scalar linear combinations.  The definition must specify:
 
 Without item (f), the class is not stable: a method described syntactically as
 preconditioned CG could encode the entire restricted inverse in its
-preconditioner and have the power of a response solver.
+preconditioner and have the power of a response solver.  The formal collapse
+is \cref{lem:free-preconditioner-collapse}.
 
 The classical square-root condition-number barrier is relevant to a suitable
 linear-span class.  It is not automatically a lower bound for
@@ -238,23 +346,321 @@ demand array can require quadratic updates.  Those are lower bounds for the
 named representations, not for all compressed or matrix-free response
 methods.
 
+\section{An exhaustive resource vector rather than a scalar oracle}
+\label{sec:resource-vector}
+
+A capability name is not a work bound.  For an execution $\mathcal E$, record
+the vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C(\mathcal E):=\bigl(&
+ C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+ C_{\rm rec},C_{\rm resp},\\
+ &M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit}
+ \bigr).
+ \end{aligned}
+ \label{eq:resource-vector}
+\end{equation}
+Its coordinates have the following note-scoped meanings.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.14\textwidth}X@{}}
+\toprule
+Coordinate & Charged resource \\
+\midrule
+$C_{\rm adj}$ & Every degree reply and returned adjacency incidence, including
+repeated reads.  A complete scan of $i$ costs $d_i$. \\
+$R_{\rm adj}$ & Sequential batches of algorithm-chosen adjacency queries whose
+choice depends on earlier graph replies.  Query work remains charged in
+$C_{\rm adj}$. \\
+$R_{\rm int}$ & Externally ordered online input/reply stages, such as a gate
+that requests one certificate before deciding whether to continue.  This is
+not an adjacency-adaptivity lower bound. \\
+$C_{\rm pre}$ & Graph-dependent arithmetic performed before the seed is known
+or before online continuation begins.  Seed-oblivious preprocessing is
+reported rather than hidden in an amortization convention. \\
+$C_{\rm ctl}$ & Online arithmetic and data-structure work that is neither a
+row-recurrence action nor response computation: control flow, queues, heaps,
+gates, bookkeeping, aggregation, and certificate logic belong here. \\
+$C_{\rm rec}$ & Exposed-row actions, supported matrix--vector products,
+diagonal actions, scalar combinations, orthogonalization, and restart work
+used to generate recurrent numerical directions. \\
+$C_{\rm resp}$ & Construction, update, application, and query computation for
+factors, elimination messages, Schur maps, graph-dependent preconditioners,
+sketches, or other implicit response objects.  Computing a response query is
+charged here; emitting the resulting reply is charged in $C_{\rm emit}$. \\
+$M_{\rm pers}$ & Peak graph-dependent state retained across online stages,
+including recurrence vectors, factor records, fill, tables, sketches, and
+cached keys. \\
+$M_{\rm tmp}$ & Peak transient workspace in addition to persistent state,
+including scratch vectors and temporary factor/application buffers.  Freeing
+it after one operation does not remove this peak-space charge. \\
+$C_{\rm mat}$ & Intermediate cell reads and writes whose purpose is to keep
+every coordinate of a current active vector explicitly materialized.  Factor
+and message writes are instead charged to $C_{\rm resp}$. \\
+$C_{\rm emit}$ & Words or algebraic cells emitted as required scalar replies
+and final output.  Arithmetic used to compute or verify them remains in
+$C_{\rm ctl}$, $C_{\rm rec}$, or $C_{\rm resp}$. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Every online arithmetic operation must be assigned to $C_{\rm ctl}$,
+$C_{\rm rec}$, or $C_{\rm resp}$; preprocessing arithmetic belongs to
+$C_{\rm pre}$.  Both persistent and transient peak space are reported.  Thus
+the vector does not silently drop online control work, scratch space, or the
+difference between computing and emitting a query answer.  Bit precision,
+random bits, and failure probability are additional clauses.  A scalar
+total-work bound may be formed only after every coordinate of
+\cref{eq:resource-vector} is bounded or assigned an explicit weight.
+
+This ledger gives a semantic division between recurrence and response.  A
+\emph{row-recurrence action} produces a new active-space vector from the load,
+previous active-space vectors, scalar linear combinations, fixed diagonal
+maps, and charged applications of exposed rows.  Momentum, conjugate
+directions, masking, restart, and reorthogonalization may all be allowed and
+charged in $C_{\rm rec}$.  A graph-dependent linear map not generated by those
+actions is a \emph{response object}: its construction or preprocessing,
+persistent and transient representation, and every application are charged in
+$C_{\rm pre}$ or $C_{\rm resp}$, $M_{\rm pers}$ and $M_{\rm tmp}$, and
+$C_{\rm resp}$, respectively.  Thus an algorithm may have both nonzero
+recurrence and response coordinates.  In particular, the word
+\emph{preconditioned} does not decide its class.
+
+For budgets $B_{\rm pre},B_{\rm resp},B_{\rm mem}$, let
+$\mathsf{RowRec}[B_{\rm pre},B_{\rm resp},B_{\rm mem}]$ denote executions of
+the preceding form with
+\[
+ C_{\rm pre}\leq B_{\rm pre},\qquad
+ C_{\rm resp}\leq B_{\rm resp},\qquad
+ M_{\rm pers}+M_{\rm tmp}\leq B_{\rm mem}.
+\]
+This is a budgeted family, not a single black-box first-order oracle.  A future
+lower bound must additionally specify support masking, allowed fixed diagonal
+maps, precision, and the charged cost of a row action.  Those choices may
+change the theorem and are deliberately not smuggled into the name.
+
+\begin{lemma}[A free exposed-system inverse oracle collapses recurrence
+iterations; \ProvedStatus]
+\label{lem:free-preconditioner-collapse}
+Let $T\succ0$ and $h$ be completely exposed.  In exact arithmetic, suppose a
+purported recurrence class permits the update
+\begin{equation}
+ z_{t+1}=z_t+P_t(h-Tz_t)
+ \label{eq:preconditioned-residual-step}
+\end{equation}
+and simultaneously places no charge or restriction on graph-dependent
+construction, persistent encoding, or application of $P_t$.  Then it solves
+$Tz=h$ exactly in one update.  Consequently no lower bound on recurrence
+iteration count or condition-number dependence \emph{after complete exposure}
+can hold for that class.  The conclusion does not remove adjacency exposure,
+preprocessing, response, memory, workspace, control, emission, or bit costs.
+\end{lemma}
+
+\begin{proof}
+Choose $P_0=T^{-1}$.  From any $z_0$,
+\[
+ z_1=z_0+T^{-1}(h-Tz_0)=T^{-1}h.
+\]
+Constructing, encoding, and applying this inverse may each be expensive.  The
+lemma proves only that those three capabilities cannot all be free
+simultaneously; it does not prove that each one is independently necessary in
+every valid lower-bound model.
+\end{proof}
+
+The lemma rules out a common but invalid definition: linear span plus a free
+arbitrary preconditioner oracle.  An inverse hidden behind that oracle has the
+power of persistent response.  The lemma is not an adjacency-query,
+preprocessing, memory, or output lower bound.
+
+\subsection{A weaker exact-algebraic materialization analogue}
+\label{sec:online-path-separation}
+
+The following auxiliary theorem isolates one representation restriction.  It
+does not close a version of \cref{prob:separation}.  Fix $0<\alpha<1$ and an
+endpoint-seeded unweighted path $P_K=(v_1,\ldots,v_K)$.  Degrees are the fixed
+ambient degrees in $P_K$, $S_k:=\{v_1,\ldots,v_k\}$, and
+\begin{equation}
+ T_k:=Q_{S_kS_k},\qquad
+ h^{(k)}:=b_{S_k},\qquad
+ z^{(k)}:=T_k^{-1}h^{(k)}.
+ \label{eq:online-prefix-system}
+\end{equation}
+At interaction stage $k$, the solver obtains the next path coefficients
+through adjacency access and must emit the exact boundary scalar
+$z_k^{(k)}$.  An external controller requests the next stage only after that
+reply and may stop at a realized time
+\[
+ \tau_{\rm stop}\in\{1,\ldots,K\}.
+\]
+On stopping, the solver emits the complete current vector
+$z^{(\tau_{\rm stop})}$.  This protocol imposes
+$R_{\rm int}=\tau_{\rm stop}$.  It neither forbids graph prefetching nor proves
+a lower bound on $R_{\rm adj}$; those are separate ledger coordinates.
+
+This subsection uses unit-cost exact real-RAM, equivalently exact
+algebraic-cell, arithmetic.  An exact coordinate occupies one algebraic cell
+and every arithmetic operation or cell read/write is charged once.  The
+theorem below is not a word-RAM or bit-complexity result and supplies no
+finite-precision or precision-robust separation.
+
+Call a representation \emph{exact materialized} if, after every boundary
+reply, it retains a distinct coordinate-addressed current algebraic cell equal
+to $z_i^{(k)}$ for every $i\leq k$.  In-place updates are allowed.  A
+stage-indexed table prepared
+early does not evade the definition: its explicit stage--coordinate cells are
+charged to $C_{\rm mat}$ when written, while the arithmetic used to prepare
+them is also reported in $C_{\rm pre}$.
+
+\begin{theorem}[Stopping-time path materialization analogue; \ProvedStatus]
+\label{thm:online-path-resource-separation}
+For every realized stopping time $\tau_{\rm stop}\leq K$ in the task
+\cref{eq:online-prefix-system}:
+\begin{enumerate}[label=(\roman*)]
+\item every exact-materialized implementation performs at least
+      \begin{equation}
+       C_{\rm mat}\geq
+       \frac{\tau_{\rm stop}(\tau_{\rm stop}+1)}2
+       =\Omega(\tau_{\rm stop}^2)
+       \label{eq:path-materialization-lower}
+      \end{equation}
+      necessary algebraic-cell writes;
+\item this materialization-coordinate bound is tight: once each exact prefix
+      solution has been computed, directly writing its current cells uses
+      $C_{\rm mat}=O(\tau_{\rm stop}^2)$.  No bound on that implementation's
+      other resource coordinates is asserted;
+\item one specified non-prefetching append-only tridiagonal response returns
+      the same exact boundary replies and stopping-time vector with
+      \begin{equation}
+       \begin{aligned}
+       (&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+         C_{\rm rec})\\
+         &\hspace{2em}=(\Theta(\tau_{\rm stop}),\tau_{\rm stop},
+             \tau_{\rm stop},0,\Theta(\tau_{\rm stop}),0),\\
+       (&C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+         &\hspace{2em}=(\Theta(\tau_{\rm stop}),\Theta(\tau_{\rm stop}),
+             O(1),0,\Theta(\tau_{\rm stop})).
+       \end{aligned}
+       \label{eq:path-response-resource-vector}
+      \end{equation}
+\end{enumerate}
+The worst allowed stopping time is $\tau_{\rm stop}=K$.  The theorem isolates
+only intermediate exact materialization.  It proves no
+$1/\sqrt\alpha$ row-recurrence lower bound, no precision-robust separation,
+and no lower bound for an implicit tree or path response.
+\end{theorem}
+
+\begin{proof}
+Every $T_k$ is an irreducible positive-definite Stieltjes tridiagonal matrix.
+Write the next bordered system as
+\[
+ T_{k+1}=
+ \begin{bmatrix}T_k&c_ke_k\\c_ke_k^\top&a_{k+1}\end{bmatrix},
+ \qquad c_k<0,
+ \qquad h^{(k+1)}=\begin{bmatrix}h^{(k)}\\0\end{bmatrix}.
+\]
+The inverse of $T_k$ is entrywise positive, and the positive load at $v_1$
+implies $z_{k+1}^{(k+1)}>0$.  The first block row gives
+\begin{equation}
+ z_{1:k}^{(k+1)}
+ =z^{(k)}-c_k z_{k+1}^{(k+1)}T_k^{-1}e_k
+ >z^{(k)}
+ \quad\hbox{coordinatewise}.
+ \label{eq:every-old-path-coordinate-changes}
+\end{equation}
+Thus all $k$ old materialized values change and one new value is added at
+stage $k+1$.  An in-place representation must rewrite all of them.  A
+precomputed stage-indexed representation instead stores a distinct explicit
+cell for every stage--coordinate pair.  In either case, summing through the
+realized stopping time gives \cref{eq:path-materialization-lower}.  Conversely,
+writing one length-$k$ exact array at each completed stage uses the matching
+number of materialization writes.  This upper statement concerns
+$C_{\rm mat}$ only.
+
+For the response implementation, factor the nested tridiagonal matrices as
+$T_k=L_k\Delta_kL_k^\top$.  Put
+\[
+ \delta_1=(T_1)_{11},\qquad u_1=h_1,
+\]
+and, when row $k$ is appended, compute
+\begin{equation}
+ \ell_{k-1}:=\frac{(T_k)_{k,k-1}}{\delta_{k-1}},\qquad
+ \delta_k:=(T_k)_{kk}
+             -\frac{(T_k)_{k,k-1}^2}{\delta_{k-1}},\qquad
+ u_k:=h_k-\ell_{k-1}u_{k-1}.
+ \label{eq:append-only-ldl-messages}
+\end{equation}
+These are respectively the new elimination multiplier, Schur pivot, and
+forward-substitution message.  If $w_i:=u_i/\delta_i$, then the last equation
+of $L_k^\top z^{(k)}=w$ computes the response-query value
+$z_k^{(k)}=w_k$; writing that scalar is charged separately to
+$C_{\rm emit}$.  At the stopping time, one reverse response application
+\begin{equation}
+ z_{\tau_{\rm stop}}=w_{\tau_{\rm stop}},\qquad
+ z_i=w_i-\ell_i z_{i+1}
+ \quad(i=\tau_{\rm stop}-1,\ldots,1)
+ \label{eq:single-final-path-materialization}
+\end{equation}
+computes the complete vector, whose cell writes are final emissions rather
+than intermediate materialization.
+
+The specified implementation deliberately queries only the next path
+incidence at each interaction stage.  It therefore uses
+$C_{\rm adj}=\Theta(\tau_{\rm stop})$ and
+$R_{\rm adj}=\tau_{\rm stop}$, but these are its actual costs, not
+adaptivity lower bounds for the task.  Exact factor/message updates, boundary
+query computations, and the one reverse application use
+$C_{\rm resp}=\Theta(\tau_{\rm stop})$.  Loop, adjacency-orchestration, and
+reply bookkeeping use $C_{\rm ctl}=\Theta(\tau_{\rm stop})$; no vector
+row-recurrence is invoked.  Stored factors/messages take
+$M_{\rm pers}=\Theta(\tau_{\rm stop})$ cells and the update/reverse sweep needs
+only $M_{\rm tmp}=O(1)$ additional cells when final values are streamed.
+There are $\tau_{\rm stop}$ scalar replies and $\tau_{\rm stop}$ final vector
+cells, so $C_{\rm emit}=\Theta(\tau_{\rm stop})$.
+\end{proof}
+
+Although \cref{eq:append-only-ldl-messages} is syntactically a scalar
+recurrence, it is response state in the semantic ledger: the pivots and
+multipliers persistently encode the Schur response and later apply the inverse
+in \cref{eq:single-final-path-materialization}.  Calling every scalar update a
+row recurrence would erase the capability the model is intended to measure.
+
+\paragraph{Independent memory/rank stress test.}
+The companion \texttt{response\_preconditioned\_hybrid} note proves, in its
+Proposition \emph{A comb tree obstructs a universal low-rank bank}, that a
+linear-volume comb has full anchor--boundary cut rank $n$, a dense harmonic
+bank, and energy-operator error at least
+$(1-\alpha)/(2\sqrt3)$ for every rank-below-$n$ bank.  Explicitly storing the
+full bank takes $\Theta(n^2)$ nonzero values.  The same proposition explicitly
+does \emph{not} lower-bound an implicit tree recurrence.  This is a
+memory/rank representation obstruction: it forbids a universal low-rank bank,
+not all response algorithms and not all local solvers.
+
 \section{The classes are not one syntactic chain}
 \label{sec:not-chain}
 
 $\mathsf{MatRestrict}$ is a representation property and
-$\mathsf{LocalSpan}$ is an arithmetic-generation property.  An algorithm may
+$\mathsf{RowRec}[B_{\rm pre},B_{\rm resp},B_{\rm mem}]$ is an
+arithmetic-generation family with explicit resource budgets.  An algorithm may
 belong to both, one, or neither.  A response solver may use an iterative SDD
 routine internally, and a Krylov implementation may materialize its complete
 active vector every round.  The correct lower-bound statement therefore names
-all restrictions it uses rather than relying on one family label.
+all restrictions it uses rather than relying on one family label.  The
+endpoint-path task in \cref{thm:online-path-resource-separation} is identical
+for both arms.  Its lower bound concerns only $C_{\rm mat}$ under
+$\mathsf{MatRestrict}$'s exact full-current-vector invariant; it neither
+bounds every resource coordinate of a materialized implementation nor changes
+the shared reply/output request.
 
 One useful capability diagram is
 \[
- \mathsf{LocalSpan}\subseteq\mathsf{Adj},
+ \mathsf{RowRec}[B_{\rm pre},B_{\rm resp},B_{\rm mem}]
+ \subseteq\mathsf{Adj},
  \qquad
  \mathsf{Response}\subseteq\mathsf{Adj},
 \]
-with no claimed inclusion between $\mathsf{LocalSpan}$ and
+with no claimed inclusion between the budgeted row-recurrence family and
 $\mathsf{Response}$ until their preconditioner and memory clauses are fixed.
 
 \section{Existing project bounds by scope}
@@ -297,19 +703,24 @@ resident-volume rescanning, loss of conjugacy, reflection, factor
 materialization, or boundary reporting.  These mechanisms require different
 model clauses.
 
-\section{Proved representation separation on paths}
+\section{A proved auxiliary path representation analogue}
 \label{sec:path-separation}
 
 The project's growing-active-set SDD audit supplies the cleanest separation.
 There are endpoint-seeded paths on which the support-safe active trace visits
 every prefix.  Any fresh full-vector representation pays quadratic writes by
-\cref{lem:materialization}.  On the identical trace, an append-only
-tridiagonal $LDL^\top$ recurrence stores constant information per admitted
-vertex, evaluates the next boundary gate from its forward messages, and
-performs one final reverse substitution.  Its total arithmetic, exposure, and
-output work is linear in the final path size.
+\cref{lem:materialization}; more strongly, the exact-algebraic auxiliary
+theorem \cref{thm:online-path-resource-separation} proves that even an in-place
+exact materialization changes every old algebraic cell before the realized
+stopping time.  On the identical query/reply task, one append-only tridiagonal
+$LDL^\top$ response stores constant information per admitted vertex, evaluates
+the next boundary value from its forward messages, and performs one final
+reverse substitution.  Every displayed resource coordinate of this specified
+response is linear in the stopping time except constant transient workspace.
+For the materialized arm, only the intermediate-materialization coordinate is
+bounded.
 
-This example proves:
+Within its exact-algebraic scope, this example proves:
 
 \begin{enumerate}
 \item the repeated-prefix bound is not information-theoretic;
@@ -826,27 +1237,890 @@ $1/\sqrt\alpha$.''  It is the following quantified separation.
 
 \begin{problem}[Recurrence versus response]
 \label{prob:separation}
-Define a local-linear-span class with explicit adjacency, memory,
-preconditioner, support, adaptivity, and output clauses.  Construct one graph
-family and one native accuracy regime for which:
+Fix explicit budgets in
+$\mathsf{RowRec}[B_{\rm pre},B_{\rm resp},B_{\rm mem}]$, together with its
+support, precision, row-action, and failure-probability clauses.  Construct one
+graph family and one native accuracy regime for which:
 \begin{enumerate}[label=(\roman*)]
 \item every algorithm in that class uses
-      $\widetilde\Omega(V/\sqrt\alpha)$ charged work;
+      $\widetilde\Omega(\nu_{\rm fin}/\sqrt\alpha)$ charged work;
 \item a fully specified persistent-response algorithm uses
-      $\widetilde O(V)$ charged work;
-\item both algorithms receive the same adjacency access and return the same
-      certificate;
-\item all response construction, boundary reporting, and output work is
-      charged.
+      $\widetilde O(\nu_{\rm fin})$ charged work;
+\item both algorithms have the same adjacency interface, adaptive query task,
+      native certificate, and final-output obligation;
+\item the theorem states every coordinate of
+      \cref{eq:resource-vector}, including preprocessing and peak memory, for
+      both arms.
 \end{enumerate}
 \end{problem}
 
+Here $\nu_{\rm fin}$ is the final charged degree volume from
+\cref{eq:final-charged-volume}; it is not the vertex set $V$ or a proxy for
+uncharged repeated work.  The exact-algebraic path theorem
+\cref{thm:online-path-resource-separation} is only a weaker auxiliary
+representation analogue.  It bounds $C_{\rm mat}$ for every materialized
+implementation and gives the full vector only for one response
+implementation; it does not close a representation-only version of
+\cref{prob:separation}.  The desired computational separation remains open.
 An endpoint path is unlikely to prove the strongest recurrence lower bound
-once arbitrary Krylov directions are allowed, but it is the correct
-materialization separation.  Candidate harder families should combine a slow
-spectral corridor with enough asymmetry or cyclic response complexity to avoid
-a scalar quotient, while still admitting a compressed response algorithm that
-can be analyzed exactly.
+once arbitrary Krylov directions are allowed.  Candidate harder families
+should combine a slow spectral corridor with enough asymmetry or cyclic
+response complexity to avoid a scalar quotient, while still admitting a
+compressed response algorithm that can be analyzed exactly.
+
+\section{A concrete budget and a Krylov counteralgorithm}
+\label{sec:finite-krylov-cap}
+
+This section fixes one nontrivial budget and tests the most natural
+same-task path candidate.  The test defeats the candidate in one parameter
+regime and therefore narrows any future theorem.
+
+\subsection{Budget, task, and candidate family}
+
+For an endpoint-seeded path $P_n$ with $n\geq2$, let
+\[
+ S_{\rm fin}=V(P_n),
+ \qquad
+ \nu_n:=\vol(S_{\rm fin})=2(n-1).
+\]
+Fix the exact-algebraic budget
+\begin{equation}
+ \mathcal B_n:=
+ (B_{\rm pre},B_{\rm resp},B_{\rm mem})
+ :=
+ \left(0,\left\lfloor\sqrt{\nu_n}\right\rfloor,32\nu_n\right),
+ \label{eq:concrete-rowrec-budget}
+\end{equation}
+and consider
+$\mathsf{RowRec}[\mathcal B_n]$ with the following allowed actions:
+
+\begin{itemize}
+\item exact applications of exposed rows of $Q_n$, scalar linear
+      combinations, inner products, conjugate directions, momentum, restarts,
+      and fixed diagonal maps;
+\item graph-dependent response or preconditioner construction, application,
+      and query computation only within the total
+      $B_{\rm resp}=\lfloor\sqrt{\nu_n}\rfloor$ charge;
+\item persistent plus transient graph-dependent state at most $32\nu_n$
+      algebraic cells;
+\item no graph-dependent preprocessing before the seeded online execution.
+\end{itemize}
+
+The common task is stronger than approximate PPR: starting from the endpoint
+seed, expose the path, then emit the complete exact source-aligned solution
+\begin{equation}
+ x_n^0:=Q_n^{-1}b_n
+ \label{eq:path-exact-output-task}
+\end{equation}
+as $\Theta(n)$ labeled algebraic cells.  There is one solve/output interaction after
+exposure.  Exact output satisfies every positive value of the note-scoped
+$\epsppr$, but this section makes no word-RAM, bit-complexity, or
+finite-precision claim.
+
+The path initially looks like a candidate separation.  A fully charged
+append-only tridiagonal response solves
+\cref{eq:path-exact-output-task} in $\Theta(\nu_n)$ exact-cell work, whereas a
+condition-number argument puts the
+$\nu_n/\sqrt\alpha$ recurrent scale in view.  That scale cannot be a uniform
+lower bound because the recurrent space has finite dimension.
+
+\begin{lemma}[Finite-dimensional exact Krylov cap; \ProvedStatus]
+\label{lem:finite-krylov-cap}
+Let $T\succ0$ be an exposed $m$-dimensional system whose matrix--vector product
+cost is $O(\nu)$ and whose stored representation uses $O(\nu)$ cells, with
+$m\leq\nu$.  Exact unpreconditioned conjugate gradients from zero returns
+$T^{-1}h$ after at most $m$ matrix--vector products.  It uses no
+graph-dependent preprocessing or response object and has
+\begin{equation}
+ C_{\rm rec}=O(m\nu),\qquad
+ C_{\rm ctl}=O(m),\qquad
+ C_{\rm mat}=O(m^2),\qquad
+ M_{\rm pers}=O(\nu),\qquad M_{\rm tmp}=O(\nu).
+ \label{eq:finite-krylov-resource-cap}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $\lambda_1,\ldots,\lambda_s$ be the distinct eigenvalues of $T$ that have
+nonzero spectral weight in $h$, so $s\leq m$.  Interpolation supplies a
+polynomial $q$ of degree at most $s-1$ with
+$q(\lambda_j)=1/\lambda_j$ for every such eigenvalue.  Hence
+\[
+ T^{-1}h=q(T)h\in\mathcal K_s(T,h).
+\]
+In exact arithmetic, conjugate gradients minimizes the $T$-energy error over
+this Krylov affine space and therefore reaches zero error by iteration
+$s\leq m$.
+
+Each iteration performs one matrix--vector product and $O(m)$ scalar/vector
+work, all charged to the recurrence coordinate because it generates the next
+Krylov direction.  Thus $C_{\rm rec}=O(m\nu)$; loop and stopping bookkeeping
+use $C_{\rm ctl}=O(m)$.
+Writing the current full iterate at most once per iteration gives
+$C_{\rm mat}=O(m^2)$.  A stored sparse matrix, a constant number of persistent
+Krylov vectors, and one temporary product vector give
+$M_{\rm pers}=O(\nu)$ and $M_{\rm tmp}=O(\nu)$.  No
+factor, Schur map, inverse, or graph-dependent preconditioner is constructed
+or applied, so $C_{\rm pre}=C_{\rm resp}=0$.
+\end{proof}
+
+\begin{theorem}[The small-dimension path defeats the uniform product
+candidate; \ProvedStatus]
+\label{thm:path-krylov-counteralgorithm}
+Run the common task \cref{eq:path-exact-output-task} under
+$\mathsf{RowRec}[\mathcal B_n]$ with
+\begin{equation}
+ \alpha_n:=n^{-4}.
+ \label{eq:krylov-counter-alpha}
+\end{equation}
+Then exact unpreconditioned conjugate gradients is an admissible algorithm
+with total charged nonmemory work
+$O(n\nu_n)=O(n^2)$, $C_{\rm resp}=0$, and memory below $32\nu_n$.
+Nevertheless,
+\begin{equation}
+ \frac{\nu_n}{\sqrt{\alpha_n}}=\Theta(n^3).
+ \label{eq:krylov-product-contradiction}
+\end{equation}
+Thus the endpoint-path family cannot establish a uniform-in-$(n,\alpha)$
+$\widetilde\Omega(\nu_{\rm fin}/\sqrt\alpha)$ lower bound for this budgeted
+class.  On the identical path task, a fully charged response algorithm uses
+$\Theta(\nu_n)$ work.
+\end{theorem}
+
+\begin{proof}
+The path matrix $Q_n$ is SPD and tridiagonal.  The path-exposure phase is part
+of the seeded execution, not preprocessing.  Store its exposed diagonal and
+subdiagonal and run the algorithm of \cref{lem:finite-krylov-cap} with
+$m=n$ and $\nu=\nu_n=\Theta(n)$.  Store the iterate, residual, and direction
+persistently, and one product vector transiently.  Including scalar state,
+this uses at most $7n$ algebraic cells, which is below $32\nu_n$ for $n\geq2$.
+It uses the identity preconditioner, so its
+positive response allowance is unused and
+$C_{\rm resp}=0\leq\lfloor\sqrt{\nu_n}\rfloor$.
+
+Both the recurrent and response implementations expose the same path from the
+endpoint.  The sequential exposure used by these two implementations has
+$C_{\rm adj}=\Theta(\nu_n)$ and $R_{\rm adj}=n$; the latter is an actual
+implementation cost rather than a lower bound on prefetching.  Both have
+$R_{\rm int}=1$ and emit the same $\Theta(n)$ labeled solution cells.  In the coordinate
+order of \cref{eq:resource-vector}, the conjugate-gradient implementation has
+\begin{equation}
+ \mathcal C_{\rm CG}=\bigl(
+ \Theta(\nu_n),n,1,0,O(n),O(n\nu_n),0,
+ O(\nu_n),O(\nu_n),O(n^2),\Theta(n)\bigr).
+ \label{eq:path-cg-resource-vector}
+\end{equation}
+Here the two memory coordinates jointly obey the explicit $32\nu_n$ bound;
+the displayed asymptotic bounds do not replace the preceding cell count.
+
+For the response comparator, build the tridiagonal $LDL^\top$ factors after
+exposure and charge every pivot, message, reverse application, and emitted
+cell.  Its exhaustive vector is
+\begin{equation}
+ \mathcal C_{\rm LDL}=\bigl(
+ \Theta(\nu_n),n,1,0,\Theta(\nu_n),0,\Theta(\nu_n),
+ \Theta(\nu_n),O(1),0,\Theta(n)\bigr).
+ \label{eq:path-ldl-resource-vector}
+\end{equation}
+No inverse construction or application is hidden.  This fully charged
+response comparator is the other arm of the same task; it is not asserted to
+fit the row-recurrence response budget $B_{\rm resp}$.  Finally,
+$\sqrt{\alpha_n}=n^{-2}$ gives
+\cref{eq:krylov-product-contradiction}.  Since
+$n^2=o(n^3/\log^c n)$ for every fixed $c$, the contradiction also survives
+the usual polylogarithmic slack in $\widetilde\Omega$.
+\end{proof}
+
+\paragraph{What the stress tests actually show.}
+The counteralgorithm already uses the strongest standard Krylov action allowed
+by the budget.  Momentum and restart only enlarge the class and cannot restore
+a lower bound contradicted by one admissible member.  The diagonal of $Q_n$ is
+the scalar $(1+\alpha_n)/2$, so Jacobi scaling is a scalar rescaling and leaves
+the Krylov spaces unchanged.  The positive response/preconditioner budget in
+\cref{eq:concrete-rowrec-budget} is also harmless to the counterexample:
+conjugate gradients uses none of it, while any permitted extra action only
+enlarges the algorithm class.  This logical defeat does not claim a separate
+lower bound on what those budgeted response actions can accomplish.
+
+For a fully exposed, fixed-support exact SPD task with
+$O(\nu)$ representation and matrix--vector cost and enough memory for a
+constant number of full vectors, the reusable narrowing is
+\begin{equation}
+ \text{a product-scale exact-algebraic lower bound requires}\qquad
+ n=\widetilde\Omega(1/\sqrt\alpha).
+ \label{eq:krylov-required-dimension}
+\end{equation}
+The iteration factor of a class containing exact conjugate gradients cannot
+be forced above $n$ on such an $n$-dimensional exact SPD task without an
+additional restriction.  This does not impose a dimension condition on an
+approximate local task whose relevant fixed system is not exposed within its
+final-active-volume budget.
+Condition \cref{eq:krylov-required-dimension} is necessary, not sufficient:
+the note still has no recurrence lower bound in that regime.
+
+\section{The surviving path regime for a named polynomial subclass}
+\label{sec:surviving-path-polynomial}
+
+Set
+\begin{equation}
+ \alpha_n^{\rm surv}:=n^{-2},
+ \qquad
+ \frac{\nu_n}{\sqrt{\alpha_n^{\rm surv}}}
+ =\Theta(n^2).
+ \label{eq:surviving-path-regime}
+\end{equation}
+The task and budget remain exactly
+\cref{eq:path-exact-output-task,eq:concrete-rowrec-budget}.  This section
+does not prove a lower bound for the full budgeted row-recurrence framework.
+It closes only the following named polynomial escape routes after the complete
+$n$-coordinate path system has been exposed.
+
+\paragraph{The named subclass.}
+Grant an execution any fixed positive diagonal $M$ and put
+\begin{equation}
+ T:=M^{-1/2}Q_nM^{-1/2},
+ \qquad h:=M^{-1/2}b_n.
+ \label{eq:diagonal-krylov-transform}
+\end{equation}
+Any actual graph-dependent work used to choose or encode $M$ remains charged,
+although the cyclicity argument below holds even if $M$ is supplied.
+For $r\geq0$, define
+$\mathsf{DiagSpecPoly}(r)$ as follows.  The response part may select a set
+$J$ of at most $r$ eigenpairs $(\lambda_j,u_j)$ of $T$ and return the exact
+spectral correction
+\begin{equation}
+ z_J:=\sum_{j\in J}\lambda_j^{-1}
+       \inner{u_j}{h}u_j.
+ \label{eq:spectral-atom-correction}
+\end{equation}
+The remaining output in the $M^{1/2}$ coordinates must have the form
+\begin{equation}
+ z_J+p(T)(I-\Pi_J)h,
+ \qquad
+ \Pi_J:=\sum_{j\in J}u_ju_j^\top,
+ \label{eq:diag-spec-poly-output}
+\end{equation}
+where $p(T)(I-\Pi_J)h$ is generated by full-vector applications of $T$ and
+scalar linear combinations.  Every $T$ application includes one charged
+full-vector application of $Q_n$ plus diagonal actions charged to recurrence
+when $M$ is a supplied fixed map and to response when $M$ is a
+graph-dependent preconditioner.  The emitted solution in the original
+coordinates is $M^{-1/2}$ times
+\cref{eq:diag-spec-poly-output}, with that final diagonal arithmetic and its
+output cells charged separately.
+
+This named atom convention charges at least one response operation to
+construct or identify each spectral atom and at least one for every
+application.  No dense atom is a unit-cost object: every additional
+construction and application operation is charged to $C_{\rm resp}$, every
+explicit encoded atom and scratch cell to $M_{\rm pers}$ or $M_{\rm tmp}$,
+every cell used to maintain a complete current correction to $C_{\rm mat}$,
+and every required final cell to $C_{\rm emit}$.  Thus
+$r\leq C_{\rm resp}\leq B_{\rm resp}$ holds only by this named atom-cost
+convention.  It is \emph{not} an inference that an arbitrary response of
+charge $B_{\rm resp}$ has rank at most $B_{\rm resp}$.
+
+The case $r=0$ includes exact polynomial and Chebyshev evaluation, scalar
+momentum and restart polynomials, polynomial preconditioners when every
+underlying $T$ application is counted, and standard Krylov/PCG with the fixed
+positive diagonal $M$.  The subclass deliberately excludes rational or
+nonlinear response, adaptive nonspectral maps, elimination, and supported
+frontier recurrences.
+
+\begin{theorem}[Endpoint cyclicity blocks the named full-vector escapes;
+\ProvedStatus]
+\label{thm:surviving-path-polynomial-obstruction}
+Let $n\geq16$ and use exact algebraic-cell arithmetic.  For every positive
+diagonal $M$, the vector $h$ in \cref{eq:diagonal-krylov-transform} is cyclic
+for $T$: its relative minimal polynomial has degree $n$.  Consequently:
+\begin{enumerate}[label=(\roman*)]
+\item an exact $r=0$ polynomial, Chebyshev, scalar-momentum, polynomially
+      preconditioned, or fixed-positive-diagonal PCG execution needs a
+      polynomial of degree at least $n-1$;
+\item an exact $\mathsf{DiagSpecPoly}(r)$ execution needs degree at least
+      $n-r-1$ after its spectral correction;
+\item under the named atom convention, the defining full-vector application
+      rule, and the budget $\mathcal B_n$,
+      $r\leq\lfloor\sqrt{\nu_n}\rfloor$, so the execution needs
+      $\Omega(n)$ full-vector $T$ applications.  Since each such application
+      costs $\Theta(\nu_n)$ recurrence work on the exposed path,
+      \begin{equation}
+       C_{\rm rec}=\Omega(n\nu_n)
+       =\Omega\!\left(
+          \frac{\nu_n}{\sqrt{\alpha_n^{\rm surv}}}
+        \right).
+       \label{eq:surviving-path-polynomial-work}
+      \end{equation}
+\end{enumerate}
+The first two conclusions lower-bound polynomial degree and the number of
+$Q_n/T$ applications, not total work.  The last conclusion uses the
+subclass's explicit full-vector path-application rule to convert them to
+recurrence work.  Degree alone does not give this work bound for a supported
+implementation whose active prefix grows over time.
+\end{theorem}
+
+\begin{proof}
+The matrix $T$ is symmetric tridiagonal and every subdiagonal entry is
+nonzero.  For a fixed eigenvalue, its first coordinate determines an
+eigenvector recursively.  If that coordinate were zero, the first row and
+then every successive row would force the whole eigenvector to vanish.
+Thus every eigenspace is one-dimensional, all $n$ eigenvalues are distinct,
+and every eigenvector has nonzero first coordinate.  Because
+$b_n$ is a nonzero multiple of the first coordinate vector, so is $h$ after
+diagonal scaling.  It therefore has nonzero projection on every eigenvector
+of $T$ and is cyclic.
+
+For $r=0$, exactness would give a polynomial $p$ with
+$p(\lambda_j)=1/\lambda_j$ at all $n$ distinct eigenvalues.  If
+$\deg p\leq n-2$, then $q(t):=tp(t)-1$ has degree at most $n-1$ and $n$
+distinct roots, yet $q(0)=-1$, a contradiction.  Hence
+$\deg p\geq n-1$.  After correcting $r$ eigencomponents in
+\cref{eq:spectral-atom-correction}, the same argument on the remaining
+$n-r$ eigenvalues gives $\deg p\geq n-r-1$.
+
+By definition, one full-vector $T$ application can raise polynomial degree by
+at most one.  Under \cref{eq:concrete-rowrec-budget} and the named atom charge,
+\[
+ r\leq C_{\rm resp}\leq\lfloor\sqrt{\nu_n}\rfloor=o(n).
+\]
+For $n\geq16$, $n-r-1=\Omega(n)$.  Independently of how the diagonal actions
+are classified, every full $T$ application contains a full $Q_n$ application
+and hence $\Theta(\nu_n)$ recurrence arithmetic on the stored exposed path.
+Multiplying the application lower bound by this charged cost proves
+\cref{eq:surviving-path-polynomial-work}; it does not add repeated adjacency
+exposure to $C_{\rm adj}$.
+\end{proof}
+
+\paragraph{Eleven-coordinate ledger.}
+When a budget-admissible $\mathsf{DiagSpecPoly}(r)$ execution is coupled to
+the same chosen sequential exposure trace, its ledger constraints are
+\begin{equation}
+ \mathcal C_{\mathcal A}=\bigl(
+ \Theta(\nu_n),n,1,0,C_{\rm ctl},\Omega(n\nu_n),C_{\rm resp},
+ M_{\rm pers},M_{\rm tmp},C_{\rm mat},\Theta(n)\bigr),
+ \label{eq:surviving-named-subclass-resource-constraints}
+\end{equation}
+where $C_{\rm ctl},C_{\rm mat}\geq0$,
+$r\leq C_{\rm resp}\leq\lfloor\sqrt{\nu_n}\rfloor$, and
+$M_{\rm pers},M_{\rm tmp}\geq0$ with
+$M_{\rm pers}+M_{\rm tmp}\leq32\nu_n$.  The fixed values in this display are
+properties of that chosen access/output implementation; only the recurrence
+coordinate is lower-bounded by the cyclicity theorem after exposure.
+
+At \cref{eq:surviving-path-regime}, the standard full-vector exact-CG
+implementation uses no response atoms and is budget-admissible.  With the
+same sequential exposure convention as \cref{eq:path-cg-resource-vector}, its
+resource vector is
+\begin{equation}
+ \mathcal C_{\rm CG,surv}=\bigl(
+ \Theta(\nu_n),n,1,0,\Theta(n),\Theta(n\nu_n),0,
+ \Theta(\nu_n),\Theta(\nu_n),\Theta(n^2),\Theta(n)\bigr).
+ \label{eq:surviving-path-cg-resource-vector}
+\end{equation}
+Here $R_{\rm adj}=n$ is the cost of this chosen exposure implementation, not
+an adaptivity lower bound.  The complete-vector writes are those of the
+standard materialized implementation.  The same-task fully charged
+tridiagonal response still has the eleven-coordinate vector
+\cref{eq:path-ldl-resource-vector} and $\Theta(\nu_n)$ total nonmemory work;
+it is the comparison response arm and exceeds the row-recurrence budget
+$B_{\rm resp}$.
+
+The result is a tight $\Theta(n\nu_n)$ cap/obstruction for the named subclass,
+not the desired theorem for every execution in
+$\mathsf{RowRec}[\mathcal B_n]$.  In particular, it says nothing about an
+arbitrary nonlinear or adaptive response map, a rational factor, an implicit
+path solve, or a local algorithm that discovers and grows support.  The
+degree proof by itself does not lower-bound the cumulative work of supported
+path Krylov; that would require a separate sum-of-growing-support argument.
+The cyclicity statement concerns a completely exposed fixed-support exact system
+only.  It has no finite-precision consequence.
+
+\section{The actual sparse certificate defeats supported-prefix polynomial
+work}
+\label{sec:supported-prefix-certificate-counteralgorithm}
+
+The full-vector task in \cref{eq:path-exact-output-task} is deliberately
+stronger than the project's sparse PPR task.  This distinction is decisive on
+the same endpoint path.  The companion
+\texttt{evolving\_support\_cg} note proves in
+Theorem~\texttt{thm:endpoint-path-exact-cg-certificate} that ordinary exact CG
+at $\alpha=n^{-2}$ does not satisfy its actual residual certificate before
+step $n$.  The proof and its literal ledger are imported here rather than
+repeated.  They do not say that every supported polynomial must follow the CG
+Galerkin residual.
+
+\subsection{A named certificate-level recurrence class}
+
+Fix an endpoint-seeded unweighted path $P_n$, with ambient path degrees and
+$n\geq8$, and set
+\begin{equation}
+ \alpha_n:=n^{-2},
+ \qquad \epsppr:=\frac1{10},
+ \qquad \nu_n:=\vol(V(P_n))=2(n-1).
+ \label{eq:certificate-path-task-parameters}
+\end{equation}
+The common task $\mathcal T_n^{\rm cert}$ is to emit an explicit sparse list
+$\widehat x$ whose unlisted coordinates are zero and for which an exact final
+verifier confirms
+\begin{equation}
+ \norm{D^{-1/2}(b-Q_n\widehat x)}_\infty
+ \leq \alpha_n\epsppr=\frac{\alpha_n}{10}.
+ \label{eq:sparse-path-residual-task}
+\end{equation}
+There is one solve/output interaction.  The verifier recomputes the residual
+on the emitted support and its exposed graph boundary; recursively maintained
+residuals are not accepted without that pass.
+
+\begin{definition}[Certificate-level supported-prefix polynomial class]
+\label{def:cert-prefix-poly}
+$\mathsf{CertPrefixPoly}$ contains deterministic exact-algebraic-cell
+executions for this promised family with the following rules.
+
+\begin{enumerate}[label=(\roman*)]
+\item Numerical directions start from $b$ and are generated by charged
+      applications of exposed rows of $Q_n$ and exact scalar linear
+      combinations.  Polynomial coefficients may depend on $\alpha_n$ and on
+      previously exposed exact scalars.  Scalar momentum, scalar restart,
+      and exact scalar reorthogonalization are allowed.
+\item A degree-$j$ direction is stored only on the reached prefix
+      $[j+1]$.  The only mask is projection onto a reached prefix; arbitrary
+      interior coordinate deletion is excluded.  Every exposed-row action,
+      scalar/vector operation, and intermediate coordinate read or write is
+      charged to $C_{\rm rec}$ or $C_{\rm mat}$ as appropriate.
+\item Scalar diagonal maps are allowed.  This includes Jacobi scaling because
+      $\diag(Q_n)=((1+\alpha_n)/2)I$.  Non-scalar diagonal maps,
+      graph-dependent preconditioners, factors, Schur maps, rational inverse
+      maps, and spectral atoms are excluded from this named recurrence class;
+      thus $C_{\rm pre}=C_{\rm resp}=0$.
+\item Adjacency labels are learned from the endpoint through the shared
+      adjacency-list interface.  There is no seed-oblivious or graph-dependent
+      preprocessing, and every degree/incidence reply, adaptive query batch,
+      recurrence operation, state cell, scratch cell, verifier operation, and
+      emitted cell is reported in \cref{eq:resource-vector}.
+\item Exact algebraic cells are used throughout.  There is no randomness,
+      failure probability, word/bit, finite-precision, or numerical-stability
+      claim.  The only accepted output is the sparse list certified by
+      \cref{eq:sparse-path-residual-task}.
+\end{enumerate}
+\end{definition}
+
+This is a semantically explicit supported-growing-prefix polynomial subclass,
+not the full $\mathsf{RowRec}$ framework.  In particular, it does not relabel
+an append-only factor as recurrence work.  Conversely, its certificate task
+does not require exact full-vector output.
+
+\subsection{A five-coordinate counteralgorithm}
+
+Let $\widehat y:=D^{-1/2}\widehat x$ and define
+\begin{equation}
+ z_i:=\frac{2(6-i)(7-i)}{11}
+ \quad(1\leq i\leq5),
+ \qquad
+ \widehat y_i:=
+ \begin{cases}
+  \alpha_n z_i,&1\leq i\leq5,\\
+  0,&i\geq6.
+ \end{cases}
+ \label{eq:five-site-certificate-candidate}
+\end{equation}
+Thus
+$(z_1,z_2,z_3,z_4,z_5)=(60,40,24,12,4)/11$ and
+$\widehat x=D^{1/2}\widehat y$ has exactly five nonzero coordinates.
+
+\begin{theorem}[A degree-four supported polynomial beats the product scale;
+\ProvedStatus]
+\label{thm:five-site-supported-prefix-counteralgorithm}
+For every $n\geq8$, the vector in
+\cref{eq:five-site-certificate-candidate} satisfies the strict version of
+\cref{eq:sparse-path-residual-task}.  It belongs to
+$\mathcal K_5(Q_n,b)$ and hence is returned by an admissible degree-four
+$\mathsf{CertPrefixPoly}$ execution with resource vector
+\begin{equation}
+ \mathcal C_{\rm CPP}=\bigl(
+ \Theta(1),\Theta(1),1,0,\Theta(1),\Theta(1),0,
+ \Theta(1),\Theta(1),\Theta(1),5\bigr).
+ \label{eq:certificate-prefix-poly-resource-vector}
+\end{equation}
+On the identical task and adjacency interface, a fully charged five-row
+append-only $LDL^\top$ response emits the same vector with
+\begin{equation}
+ \mathcal C_{\rm cert\text{-}LDL}=\bigl(
+ \Theta(1),\Theta(1),1,0,\Theta(1),0,\Theta(1),
+ \Theta(1),\Theta(1),0,5\bigr).
+ \label{eq:certificate-path-response-resource-vector}
+\end{equation}
+Both algorithms are deterministic and use only exact algebraic cells.
+Their realized final exposed set may be taken as $[6]$, of degree volume
+$\nu_{\rm fin}=11$.  Consequently neither
+$\Omega(\nu_{\rm fin}/\sqrt{\alpha_n})=\Omega(n)$ nor
+$\Omega(\nu_n/\sqrt{\alpha_n})=\Omega(n^2)$ lower-bounds the charged work of
+this named sparse-certificate recurrence class on the endpoint path.
+\end{theorem}
+
+\begin{proof}
+Put $a=(1+\alpha_n)/2$ and $\eta=(1-\alpha_n)/2$.  Because the first six
+vertices are not the far endpoint when $n\geq8$, direct substitution in the
+ambient-degree path rows gives
+\begin{equation}
+ \frac{1}{\alpha_n}
+ \bigl[D^{-1/2}(b-Q_n\widehat x)\bigr]_i
+ =
+ \begin{cases}
+  (1-50\alpha_n)/11,&i=1,\\
+  (1-41\alpha_n)/11,&i=2,\\
+  (1-25\alpha_n)/11,&i=3,\\
+  (1-13\alpha_n)/11,&i=4,\\
+  (1-5\alpha_n)/11,&i=5,\\
+  (1-\alpha_n)/11,&i=6,\\
+  0,&i\geq7.
+ \end{cases}
+ \label{eq:five-site-exact-residual}
+\end{equation}
+For example, at $\alpha_n=0$ the scaled row equations reduce to
+\[
+ 1-\frac{z_1-z_2}{2}
+ =\frac{z_{i-1}-2z_i+z_{i+1}}4
+ =\frac{z_5}{4}=\frac1{11},
+\]
+where the middle identity uses $2\leq i\leq5$ and $z_6=0$.
+The $\alpha_n$ terms give the coefficients displayed in
+\cref{eq:five-site-exact-residual}.  Since
+$\alpha_n\leq1/64$, all six displayed values are positive and at most
+$1/11<1/10$.  This proves the strict certificate.
+
+The endpoint Krylov triangularity established in the companion exact-CG
+theorem gives
+\[
+ \mathcal K_5(Q_n,b)
+ =\operatorname{span}\{e_1,\ldots,e_5\}.
+\]
+Hence there is a polynomial $p$ of degree at most four with
+$\widehat x=p(Q_n)b$.  A concrete supported realization forms
+$w_0=b$ and $w_{j+1}=Q_nw_j$ for $0\leq j<4$, then solves the resulting
+constant $5\times5$ lower-triangular Krylov coordinate system and emits the
+linear combination equal to $\widehat x$.  The four row actions scan prefixes
+$[1],[2],[3],[4]$, of total ambient degree volume
+$1+3+5+7=16$.  The coefficient solve and vector combination are constant
+exact recurrence arithmetic, not an uncharged response.  Exposing and caching
+the first six path rows, the four supported products, intermediate cells, and
+the exact final support-plus-boundary verifier all use constant work and
+space.  There is no preprocessing or response object, and exactly five final
+cells are emitted.  This proves every coordinate in
+\cref{eq:certificate-prefix-poly-resource-vector}; its constant adjacency
+round count is an implementation charge, not an adaptivity lower bound.
+
+For the response arm, append the first five tridiagonal pivots, multipliers,
+and forward messages.  Equivalently, solve the leading five-row system with
+right-hand side equal to the first five coordinates of
+$b-D^{1/2}g$, where
+$g:=D^{-1/2}(b-Q_n\widehat x)$ is given by
+\cref{eq:five-site-exact-residual}.  One reverse pass gives exactly
+$\widehat x_{1:5}$; row six supplies the boundary residual.  Charge every
+adjacency reply and verifier operation to $C_{\rm adj}$ or $C_{\rm ctl}$,
+every pivot, message, and reverse application to $C_{\rm resp}$, every stored
+or scratch cell to its memory coordinate, and the five output cells to
+$C_{\rm emit}$.  No intermediate full vector is maintained, so
+$C_{\rm mat}=0$.  All quantities are constant, proving
+\cref{eq:certificate-path-response-resource-vector} on the same task and
+interface.
+
+Finally, $\nu_n=2(n-1)$, $\nu_{\rm fin}=\vol([6])=11$, and
+$1/\sqrt{\alpha_n}=n$, whereas both charged executions have constant
+nonmemory work.
+\end{proof}
+
+\paragraph{Exact scope of the refutation.}
+The theorem refutes a product lower bound based only on supported-prefix
+polynomial generation plus the actual sparse residual certificate.  It does
+not refute the full-vector exact
+$\mathsf{DiagSpecPoly}(r)$ obstruction in
+\cref{thm:surviving-path-polynomial-obstruction}: the two results have
+different output tasks.  It also does not shorten the ordinary-CG trajectory
+proved in the companion note.  Ordinary CG annihilates the old-prefix
+residual and leaves a frontier value just above the threshold; the
+counteralgorithm instead spends the permitted residual slack across six local
+rows.  The result is path-specific, tied to $\alpha=n^{-2}$ and
+$\epsppr=1/10$, and has no finite-precision or graph-uniform consequence.
+
+\subsection{A tighter certificate forces full support but not product work}
+
+Keep the path, exact-cell model, and every generation rule of
+\cref{def:cert-prefix-poly}, but tighten only the common task to
+\begin{equation}
+ q:=\frac1n,
+ \qquad
+ \alpha_n=q^2,
+ \qquad
+ \epsppr^{\rm tight}:=\frac{q}{10}=\frac1{10n}.
+ \label{eq:tight-certificate-path-parameters}
+\end{equation}
+Thus the task $\mathcal T_n^{\rm tight}$ accepts an explicit sparse list only
+after an exact final verifier confirms
+\begin{equation}
+ \norm{D^{-1/2}(b-Q_n\widehat x)}_\infty
+ \leq \alpha_n\epsppr^{\rm tight}=\frac{q^3}{10}.
+ \label{eq:tight-sparse-path-residual-task}
+\end{equation}
+Unlisted coordinates are zero, there is one solve/output interaction, and the
+verifier recomputes the residual from exposed path rows.  Write
+$\mathsf{CertPrefixPoly}^{\rm tight}$ for the same executions as in
+\cref{def:cert-prefix-poly} with this stricter task.  In particular, this
+notation changes neither the allowed recurrence actions nor the exclusions.
+
+Define the fixed spatial polynomial
+\begin{equation}
+ P(s):=\frac5{18}+\frac59s^2+\frac5{27}s^4+\frac2{81}s^6,
+ \qquad 0\leq s\leq1.
+ \label{eq:tight-profile-polynomial}
+\end{equation}
+Put $a:=(1+q^2)/2$, $\eta:=(1-q^2)/2$, and
+\begin{equation}
+ \gamma_n:=
+ \frac{q}{aP(1-q)-\eta P(1-2q)},
+ \qquad
+ s_i:=\frac{n-i}{n}.
+ \label{eq:tight-profile-normalizer}
+\end{equation}
+The candidate is specified in normalized coordinates by
+\begin{equation}
+ \widehat y_i:=\gamma_n qP(s_i),
+ \qquad
+ \widehat x_i:=\sqrt{d_i}\,\widehat y_i
+ \quad(1\leq i\leq n).
+ \label{eq:tight-profile-candidate}
+\end{equation}
+The degree six in \cref{eq:tight-profile-polynomial} is a spatial profile
+degree.  As a polynomial in $Q_n$ applied to $b$, the final vector may have
+degree $n-1$.
+
+\begin{theorem}[A full-support sparse-basis recurrence beats the product
+scale; \ProvedStatus]
+\label{thm:tight-certificate-sparse-basis-counteralgorithm}
+For every $n\geq8$:
+\begin{enumerate}[label=(\roman*)]
+\item every output accepted by $\mathcal T_n^{\rm tight}$ has all $n$
+      coordinates nonzero, so its final support is $V(P_n)$ and
+      $\nu_{\rm fin}=\nu_n=2(n-1)$;
+\item the vector in \cref{eq:tight-profile-candidate} satisfies the strict
+      version of \cref{eq:tight-sparse-path-residual-task} and is generated
+      by an admissible $\mathsf{CertPrefixPoly}^{\rm tight}$ execution with
+      \begin{equation}
+       \mathcal C_{\rm sparse\text{-}basis}=\bigl(
+       \Theta(n),n,1,0,\Theta(n),\Theta(n),0,
+       \Theta(n),O(1),0,n\bigr);
+       \label{eq:tight-sparse-basis-resource-vector}
+      \end{equation}
+\item on the identical task and chosen sequential adjacency interface, a
+      fully charged append-only $LDL^\top$ response emits the exact solution
+      and has
+      \begin{equation}
+       \mathcal C_{\rm tight\text{-}LDL}=\bigl(
+       \Theta(n),n,1,0,\Theta(n),0,\Theta(n),
+       \Theta(n),O(1),0,n\bigr).
+       \label{eq:tight-path-response-resource-vector}
+      \end{equation}
+\end{enumerate}
+Both executions are deterministic exact-algebraic-cell algorithms, with no
+preprocessing, randomness, or failure probability.  Thus their charged
+nonmemory work is
+$\Theta(n)=\Theta(\nu_{\rm fin})$, whereas
+\begin{equation}
+ \frac{\nu_{\rm fin}}{\sqrt{\alpha_n}}=\Theta(n^2).
+ \label{eq:tight-path-product-refutation}
+\end{equation}
+The stricter accuracy therefore does not restore a product lower bound for
+the broad supported-prefix polynomial semantics.
+\end{theorem}
+
+\begin{proof}
+We first prove the full-support assertion.  Let
+$y^0:=D^{-1/2}x^0$ and
+\begin{equation*}
+ \chi:=\frac{1-q}{1+q}.
+\end{equation*}
+Solving the second-order path recurrence with its two ambient endpoint rows
+gives
+\begin{equation}
+ y_i^0
+ =q\frac{\chi^{i-1}+\chi^{2n-i-1}}
+          {1-\chi^{2n-2}}
+ \quad(1\leq i\leq n).
+ \label{eq:tight-path-exact-profile}
+\end{equation}
+The numerator decreases through $i=n$.  The companion exact-CG calibration
+proves $\chi^{-n}\leq8$ for $n\geq3$, and hence
+\begin{equation}
+ y_i^0\geq y_n^0
+ =\frac{2q\chi^{n-1}}{1-\chi^{2n-2}}
+ >2q\chi^{n-1}\geq\frac q4.
+ \label{eq:tight-path-minimum-solution}
+\end{equation}
+For any residual $r=b-Q_n\widehat x$, the matrix
+$D^{-1/2}Q_n^{-1}D^{1/2}$ is nonnegative and has every row sum equal to
+$1/\alpha_n$: this follows from the nonsingular $M$-matrix property and
+$Q_n\sqrt d=\alpha_n\sqrt d$.  Therefore the certificate implies
+\begin{equation*}
+ \norm{D^{-1/2}(x^0-\widehat x)}_\infty
+ \leq\alpha_n^{-1}\norm{D^{-1/2}r}_\infty
+ \leq\frac q{10}.
+\end{equation*}
+If any coordinate were unlisted, its normalized error would be
+$y_i^0>q/4$, a contradiction.  This proves (i), including the value of
+$\nu_{\rm fin}$.
+
+We next check the candidate residual exactly.  Since $P$ is increasing and
+\begin{equation*}
+ P'(3/4)=\frac{907}{768},
+\end{equation*}
+the denominator in \cref{eq:tight-profile-normalizer} obeys, for $q\leq1/8$,
+\begin{align*}
+ aP(1-q)-\eta P(1-2q)
+ &=\frac{P(1-q)-P(1-2q)}2
+   +\frac{q^2}{2}\bigl(P(1-q)+P(1-2q)\bigr)\\
+ &\geq\frac q2P'(3/4)=\frac{907}{1536}q.
+\end{align*}
+Thus $\gamma_n$ is positive and
+\begin{equation}
+ 0<\gamma_n\leq\frac{1536}{907}.
+ \label{eq:tight-profile-normalizer-bound}
+\end{equation}
+Let $h:=D^{-1/2}(b-Q_n\widehat x)$.  The choice of $\gamma_n$ gives
+$h_1=0$.  For $2\leq i\leq n-1$, the exact centered-difference identity for
+the degree-six polynomial gives
+\begin{equation}
+ h_i=\gamma_n q^3R_q(s_i),
+ \label{eq:tight-profile-interior-residual}
+\end{equation}
+where
+\begin{equation}
+ R_q(s):=-P(s)+\frac{1-q^2}{4}P''(s)
+       +\frac{(1-q^2)q^2}{48}P^{(4)}(s)
+       +\frac{(1-q^2)q^4}{1440}P^{(6)}(s).
+ \label{eq:tight-profile-residual-polynomial}
+\end{equation}
+The coefficients in \cref{eq:tight-profile-polynomial} were chosen so that
+\begin{equation*}
+ \frac14P''(s)-P(s)=-\frac2{81}s^6.
+\end{equation*}
+Moreover,
+$P''(1)=110/27$, $P^{(4)}(1)=40/3$, and $P^{(6)}=160/9$;
+these derivatives are nonnegative and increasing where applicable on
+$[0,1]$.  Rewriting \cref{eq:tight-profile-residual-polynomial} around the
+preceding cancellation gives
+\begin{equation*}
+ R_q(s)=\left(\frac14P''(s)-P(s)\right)
+       -\frac{q^2}{4}P''(s)
+       +\frac{(1-q^2)q^2}{48}P^{(4)}(s)
+       +\frac{(1-q^2)q^4}{1440}P^{(6)}(s).
+\end{equation*}
+Therefore the triangle inequality, $1-q^2\leq1$, and the displayed
+derivative maxima give, for $q\leq1/8$,
+\begin{align}
+ |R_q(s)|
+ &\leq\frac2{81}
+   +\left(\frac{55}{54}+\frac5{18}\right)q^2
+   +\frac1{81}q^4
+ \nonumber\\
+ &=\frac2{81}+\frac{35}{27}q^2+\frac1{81}q^4
+ \leq\frac{1657}{36864},
+ \nonumber\\
+ \frac{|h_i|}{q^3}
+ &\leq\frac{1536}{907}\frac{1657}{36864}
+ =\frac{1657}{21768}<\frac1{10}.
+ \label{eq:tight-profile-interior-bound}
+\end{align}
+At the far endpoint, direct substitution gives
+\begin{equation}
+ h_n=-\gamma_n q^5
+ \left(\frac5{27}+\frac{13}{162}q^2+\frac1{81}q^4\right),
+ \label{eq:tight-profile-endpoint-residual}
+\end{equation}
+and therefore
+\begin{equation}
+ \frac{|h_n|}{q^3}
+ \leq\frac{2291}{464384}<\frac1{10}.
+ \label{eq:tight-profile-endpoint-bound}
+\end{equation}
+Together with $h_1=0$, this proves the strict certificate.
+
+It remains to realize the candidate without a hidden response.  Put
+$c_j:=-(Q_n)_{j,j+1}>0$.  Start with
+$u_1:=b/\alpha_n=e_1$.  After exposing the next path row, use one charged
+sparse row action and the exact scalar combination
+\begin{equation}
+ u_{j+1}:=
+ \frac{a u_j-c_{j-1}u_{j-1}-Q_nu_j}{c_j}=e_{j+1}
+ \quad(1\leq j<n),
+ \label{eq:tight-coordinate-basis-recurrence}
+\end{equation}
+where the $c_0u_0$ term is omitted.  Inductively, $u_j=e_j$ is a polynomial
+of degree $j-1$ in $Q_n$ applied to $b$, stored on a singleton inside its
+allowed reached prefix.  The cancellations in
+\cref{eq:tight-coordinate-basis-recurrence} are exact scalar linear
+combinations, not interior masks.  Every row action touches only a constant
+number of path entries.  Once the far endpoint reveals $n$, evaluate the
+fixed formula
+$\sqrt{d_i}\gamma_nqP(s_i)$ and combine it with $u_i$ for each coordinate.
+Each exposed $\sqrt{d_i}$ is merely the scalar coefficient of one singleton
+direction; no non-scalar diagonal map is applied.
+This delayed synthesis uses $\Theta(n)$ charged recurrence arithmetic.
+
+The chosen implementation exposes and caches the path in $n$ sequential
+adjacency batches, stores its rows and the singleton directions, and uses a
+constant-size rolling workspace.  A first streamed profile pass recomputes
+the exact residual from cached rows; after it succeeds, a second streamed pass
+emits the $n$ cells.  Coefficient evaluation and scalar combinations belong
+to $C_{\rm rec}$, while loop, stopping, and verifier arithmetic belong to
+$C_{\rm ctl}$.  No complete current active vector is maintained, so
+$C_{\rm mat}=0$.  This proves every coordinate of
+\cref{eq:tight-sparse-basis-resource-vector}; $R_{\rm adj}=n$ is the cost of
+this nonprefetching realization, not an adaptivity lower bound.
+
+For the response arm, use the same sequential exposure to append every
+tridiagonal pivot, multiplier, and forward message.  Two linear reverse
+passes suffice to recompute and verify the exact solution and then emit its
+$n$ nonzero cells, using constant rolling workspace and no intermediate
+complete vector.  Every factor/message construction and reverse application
+is charged to $C_{\rm resp}$, and the residual scan is charged to
+$C_{\rm ctl}$.  This proves
+\cref{eq:tight-path-response-resource-vector}.  The work comparison and
+\cref{eq:tight-path-product-refutation} now follow from
+$\nu_{\rm fin}=2(n-1)$ and $\sqrt{\alpha_n}=1/n$.
+\end{proof}
+
+\paragraph{Classification of sparse propagation and delayed synthesis.}
+The coordinate-basis construction is sparse Lanczos propagation specialized
+to an unreduced path: exposed-row actions and scalar cancellations generate
+its directions, so their arithmetic is $C_{\rm rec}$.  Finite propagation
+still forces $n-1$ such actions before the far coordinate is available, but
+each generated direction is a singleton rather than a full prefix.  The fixed
+profile in
+\cref{eq:tight-profile-polynomial} is evaluated only after $n$ is exposed;
+its numerical combinations remain $C_{\rm rec}$ and its scheduling is
+$C_{\rm ctl}$.  Its universal rational coefficients are not graph-dependent
+preprocessing, and no inverse coefficients are precomputed.  Any
+graph-dependent coefficient table prepared before the online phase would be
+reported in $C_{\rm pre}$ and its response representation.  By contrast, if an
+implementation builds a projected tridiagonal system and computes its
+coefficients with Thomas pivots, a factor, a Green formula, or another
+graph-dependent inverse map, that construction and application are
+$C_{\rm resp}$, with its state and scratch charged to the two memory
+coordinates.  Calling such a scalar solve ``coefficient synthesis'' would
+not make it free recurrence work.  Conversely, the class does not require
+full-prefix scans when exact cancellations leave singleton directions; an
+implementation that chooses to maintain a complete current prefix would pay
+the corresponding $C_{\rm mat}$ charge.
+
+\paragraph{Exact scope of the tighter refutation.}
+The tighter task removes the constant-prefix escape: every certified output
+has full support and therefore pays the optimal $\Theta(n)$ exposure and
+emission scale.  It still leaves a linear-work supported recurrence because
+the broad semantics permit sparse coordinate directions and delayed scalar
+combinations.  The result is exact-cell and path-specific.  It neither
+shortens ordinary CG, supplies a finite-precision implementation, refutes the
+exact full-vector $\mathsf{DiagSpecPoly}(r)$ theorem, nor rules out a product
+lower bound for a narrower independently motivated materialization or
+trajectory class or for a different graph family.
 
 \section{Candidate proof strategies}
 \label{sec:strategies}
@@ -857,7 +2131,14 @@ For a fixed-support linear-span class, use two locally indistinguishable
 Stieltjes systems whose relevant Green-function values require polynomial
 degree $\Omega(1/\sqrt\alpha)$ to separate.  The construction must preserve
 the local output and accuracy convention and must not reveal the answer through
-degrees or boundary labels.
+degrees or boundary labels.  On a sparse residual-certificate task it must
+also rule out the constant-prefix slack-spreading mechanism in
+\cref{thm:five-site-supported-prefix-counteralgorithm}; exact-CG
+nontermination alone is not such a degree lower bound.  The tighter path task
+adds a second obstruction: even when the certificate forces full support, the
+broad class can propagate singleton coordinate directions and synthesize a
+global profile in linear work.  A future class restriction must exclude this
+mechanism explicitly and independently, or the graph family must defeat it.
 
 \subsection{Direct-sum locality}
 
@@ -888,13 +2169,18 @@ Before labeling a theorem algorithm-independent, state:
 
 \begin{enumerate}
 \item the graph-access operations and their charges;
+\item algorithmic adjacency-query adaptivity separately from externally
+      imposed interaction stages;
 \item the arithmetic and precision model;
-\item persistent memory and allowed preprocessing;
+\item preprocessing, online control arithmetic, persistent memory, and
+      transient workspace;
 \item whether elimination, fill, sparsification, and graph-dependent
-      preconditioning are allowed;
+      preconditioning are allowed, and how construction, application, and
+      query computation are charged;
 \item the support-evolution rule and whether future support is known;
 \item the exact output and native accuracy convention;
-\item whether all boundary reporting and final writes are charged;
+\item response-query computation separately from emitted boundary replies and
+      final writes;
 \item the adversary and failure-probability model;
 \item the reason the hard instance cannot be compressed by symmetry, quotient,
       tree response, or a small separator;
@@ -915,10 +2201,42 @@ or representation restriction needed by the proof.  The most informative
 proved universal statement is currently the tight
 $\Theta(1/\epsppr)$ explicit-output bound.  Killed-capacity packing explains
 why independent diffusion corridors cannot multiply this by
-$1/\sqrt\alpha$.  The next information-level result should settle the
-killed-Green influence conjecture; the next computational result should be a
-same-instance separation between recurrent local span and persistent
-response, not another lower bound for one named queue or handoff schedule.
+$1/\sqrt\alpha$.  At the computational level,
+\cref{lem:free-preconditioner-collapse} proves that uncharged graph-dependent
+inverse construction, encoding, and application cannot all be free in an
+exposed-system recurrence-iteration lower bound.  The weaker auxiliary path
+analogue \cref{thm:online-path-resource-separation} isolates only exact
+intermediate materialization; it gives no precision-robust computational
+separation.  The exact-CG counteralgorithm
+\cref{thm:path-krylov-counteralgorithm} further defeats the fully exposed
+endpoint-path product candidate when $n\ll1/\sqrt\alpha$.  For the analogous
+fixed-support exact-system route with linear-cost matrix--vector access, it
+leaves $n=\widetilde\Omega(1/\sqrt\alpha)$ as a necessary, not sufficient,
+regime; it does not constrain every local support-discovery mechanism.
+In that surviving regime,
+\cref{thm:surviving-path-polynomial-obstruction} proves the matching
+full-vector work obstruction only for the explicitly named diagonal,
+polynomial, and charged spectral-deflation subclass.  It deliberately leaves
+arbitrary nonlinear, adaptive, rational, and implicit response maps open.
+For the actual sparse residual-certificate task on the same path,
+\cref{thm:five-site-supported-prefix-counteralgorithm} gives a stronger stop
+signal: a degree-four, five-coordinate polynomial and a fully charged
+five-row response both succeed in constant exact-cell work.  Thus neither
+support growth nor the ordinary-CG prefix trace can support the desired lower
+bound.  Tightening the certificate to $1/(10n)$ removes the constant-prefix
+output but not the broad recurrence escape:
+\cref{thm:tight-certificate-sparse-basis-counteralgorithm} generates
+singleton coordinate directions and a global certified profile in
+$\Theta(n)=\Theta(\nu_{\rm fin})$ work, rather than the
+$\Theta(n^2)$ product scale.  Any endpoint-path theorem must therefore impose
+an independently motivated trajectory or materialization rule that excludes
+exact sparse-basis cancellation, or change the same-task graph family.
+None of these results proves the desired
+$\nu_{\rm fin}/\sqrt\alpha$ row-recurrence lower bound.
+The next information-level result should settle the killed-Green influence
+conjecture; the next computational result should be a same-instance separation
+between budgeted recurrent local span and fully charged persistent response,
+not another lower bound for one named queue or handoff schedule.
 
 \begin{thebibliography}{9}
 

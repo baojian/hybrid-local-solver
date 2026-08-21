@@ -199,6 +199,70 @@ def test_normalized_frontier_bases_are_mergeable_response_sketches():
     np.testing.assert_allclose(fresh_mass, exact_mass, rtol=0.04)
 
 
+def test_two_sided_group_sketch_matches_transposed_harmonic_measurement():
+    graph = graph_from_edges(
+        "two-sided response sketch",
+        8,
+        [
+            (0, 1),
+            (0, 2),
+            (1, 3),
+            (2, 3),
+            (0, 4),
+            (2, 4),
+            (1, 5),
+            (3, 5),
+            (0, 6),
+            (3, 6),
+            (1, 7),
+            (2, 7),
+        ],
+    )
+    matrix = pagerank_matrix(graph, alpha=0.09).toarray()
+    response = DenseNestedResponse(matrix)
+    response.expand([0, 1])
+    anchor = response.vertices
+    frontier = np.array([2, 3])
+    exterior = np.array([4, 5, 6, 7])
+    basis, schur = response.normalized_frontier_lift(frontier)
+    response_matrix = (matrix[np.ix_(exterior, np.arange(graph.n))] @ basis) / np.sqrt(
+        graph.degree[exterior]
+    )[:, None]
+    exact_mass = float(np.linalg.norm(response_matrix) ** 2)
+
+    rng = np.random.default_rng(73)
+    source_samples = rng.normal(size=(frontier.size, 1_500))
+    target_samples = rng.normal(size=(exterior.size, 1_500))
+    estimated_mass = float(np.mean((target_samples.T @ response_matrix @ source_samples) ** 2))
+    np.testing.assert_allclose(estimated_mass, exact_mass, rtol=0.08)
+
+    source = rng.normal(size=frontier.size)
+    target = rng.normal(size=exterior.size)
+    eigenvalues, eigenvectors = np.linalg.eigh(schur)
+    inverse_square_root = (eigenvectors * (eigenvalues**-0.5)) @ eigenvectors.T
+    frontier_vector = inverse_square_root @ source
+    lifted = response.lift_frontier_vector(frontier, frontier_vector)
+    dual = matrix @ lifted
+    direct_measurement = float(target @ (dual[exterior] / np.sqrt(graph.degree[exterior])))
+
+    outside_anchor = np.setdiff1d(np.arange(graph.n), anchor)
+    measurement_row = np.zeros(outside_anchor.size)
+    exterior_positions = np.searchsorted(outside_anchor, exterior)
+    measurement_row[exterior_positions] = target
+    inverse_sqrt_degree = 1.0 / np.sqrt(graph.degree[outside_anchor])
+    harmonic_row = (
+        response.inverse
+        @ matrix[np.ix_(anchor, outside_anchor)]
+        @ (inverse_sqrt_degree * measurement_row)
+    )
+    transposed_measurement = float(
+        measurement_row
+        @ (inverse_sqrt_degree * (matrix[np.ix_(outside_anchor, frontier)] @ frontier_vector))
+        - harmonic_row @ (matrix[np.ix_(anchor, frontier)] @ frontier_vector)
+    )
+    np.testing.assert_allclose(transposed_measurement, direct_measurement, atol=1.0e-12)
+
+
 @pytest.mark.parametrize("rebuild_volume_factor", [1.0, 2.0, np.inf])
 def test_response_frontier_endpoints_and_hybrid_certify(rebuild_volume_factor):
     graph = path_graph(33)

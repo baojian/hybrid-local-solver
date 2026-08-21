@@ -96,6 +96,14 @@ has an exact preconditioning interpretation: every eliminated forest mode
 becomes a unit generalized eigenvalue and all nontrivial conditioning is
 confined to the Schur core.  Peeling to the graph $2$-core is the canonical
 maximal version of this reduction.
+On the minimal cyclic-core family, a further online case is now closed.
+If every newly certified forest component attaches at one fixed cycle vertex,
+all core corrections remain on one fixed Green column.  A kinetic reporter
+sorts each boundary row's two gate-crossing scalars once and thereafter uses
+only one response scalar and two advancing pointers.  Its total work is
+linear in final charged volume up to sorting and reported crossings, with no
+global boundary rekey.  This conclusion is specific to a fixed attachment;
+varying attachment vertices can create new Green directions and remain open.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -209,6 +217,10 @@ $\alpha\leq10^{-4}$ although $\mathcal V_{\rm exp}=4$. \\
 \statusproved & Certified pendant-forest Schur deflation has linear work,
 unit forest preconditioned eigenvalues, a canonical graph-$2$-core reduction,
 and an accelerated finite-spider radial bound. \\
+\statusproved & On a cycle core, certified pendant forests all attached at one
+fixed core vertex admit an exact Green crossing reporter.  After one cyclic
+solve and one sort per gate, every absorption costs $O(1)$ plus its newly
+reported crossings and requires no global boundary rekey. \\
 \statusrefuted & A proof based only on self-reflection cannot explain a fixed
 $B=2.5$ as $\alpha\downarrow0$, and a proof using only monotone objective
 decrease loses the factor
@@ -2693,6 +2705,177 @@ $A^{-1}\geq0$, so $b_C\geq0$ implies $\gamma\geq0$.  Finally
 $Q_{RH}\leq0$ proves \cref{eq:direct-pendant-boundary-range-add}.
 \end{proof}
 
+The rank-one formula becomes an output-sensitive online reporter when the
+attachment vertex does not change.  The following definition fixes the
+reporting semantics: it reports upward gate crossings caused by forest
+absorption while the still-exterior coordinates are held at zero.  It does
+not claim to maintain a terminal-rung queue after those exterior coordinates
+are themselves updated.
+
+\begin{definition}[Fixed-attachment Green crossing reporter]
+\label{def:direct-fixed-attachment-reporter}
+Fix a core $H$, an attachment $p\in H$, and still-exterior boundary rows
+$R$.  For the current core solution $x_H^{(k)}$, define the exact normalized
+boundary key
+\begin{equation}
+ \kappa_w^{(k)}
+ :=d_w^{-1/2}\bigl(b_w-Q_{wH}x_H^{(k)}\bigr),
+ \qquad w\in R.
+ \label{eq:direct-fixed-attachment-key}
+\end{equation}
+For each gate $\theta\in\{\tau,B\tau\}$, the reporter returns the initial
+labels with $\kappa_w^{(0)}\geq\theta$ and, after absorption $k\geq1$, the
+upward-crossing set
+\begin{equation}
+ \mathcal X_k(\theta)
+ :=\{w\in R:\kappa_w^{(k-1)}<\theta
+                    \leq\kappa_w^{(k)}\}.
+ \label{eq:direct-fixed-attachment-crossings}
+\end{equation}
+The \emph{fixed-attachment Green crossing reporter}, denoted
+$\mathsf{FACR}(p)$, stores one static affine profile for the rows in $R$, one
+sorted crossing list per gate, and one pointer into each list.  In
+particular, it does not materialize the current key of every boundary row.
+\end{definition}
+
+\begin{theorem}[A fixed-attachment cycle needs no global rekey]
+\label{thm:direct-fixed-attachment-cycle-reporter}
+Let the settled core $H=\{u_0,\ldots,u_{m-1}\}$ induce a simple cycle, let
+$p\in H$, and let $H,R,C_1,\ldots,C_K$ be pairwise disjoint.  Let every
+$w\in R$ have at least one exposed edge into $H$.
+Start from an SPD Stieltjes core system
+\begin{equation*}
+ K_0x_H^{(0)}=h_0,
+ \qquad h_0\geq0,
+\end{equation*}
+whose nonzero off-diagonal pattern on $H$ is the cycle.  Suppose
+$C_1,\ldots,C_K$ are certified closed pendant trees, all with the same unique
+attachment $p$, and absorb them in any order.  For component $C_j$, let
+$\sigma_j,\gamma_j$ be the nonnegative scalars in
+\cref{eq:direct-pendant-rank-one-data}, and put
+\begin{equation}
+ \Lambda_k:=\sum_{j\leq k}\sigma_j,
+ \qquad
+ \Gamma_k:=\sum_{j\leq k}\gamma_j.
+ \label{eq:direct-fixed-attachment-cumulative-data}
+\end{equation}
+Assume these are the successive exact Schur core pairs; in particular,
+$K_0-\Lambda_ke_pe_p^\mathsf T$ is SPD for every $0\leq k\leq K$.
+Then $\mathsf{FACR}(p)$ reports
+\cref{eq:direct-fixed-attachment-crossings} exactly, for both gates, without
+any boundary-key rekey.  If $Z$ is the total number of reported
+gate--label pairs and
+\begin{equation}
+ \mathcal V_{\rm fin}
+ :=\sum_{u\in H\cup R\cup C_1\cup\cdots\cup C_K}(1+d_u),
+ \label{eq:direct-fixed-attachment-final-volume}
+\end{equation}
+then its complete ledger, including final core materialization and forest
+recovery, is
+\begin{equation}
+ O\!\left(\mathcal V_{\rm fin}+|R|\log(2+|R|)+Z\right)
+ =\widetilde O(\mathcal V_{\rm fin}+Z)
+ \label{eq:direct-fixed-attachment-work}
+\end{equation}
+arithmetic and charged adjacency work, and $O(\mathcal V_{\rm fin})$ memory.
+This includes verification and scanning of the supplied closure certificates,
+stored-row reads, response construction and application, membership, exact
+validation, and output.
+\end{theorem}
+
+\begin{proof}
+Write $G_0:=K_0^{-1}$, $g:=G_0e_p$, and
+$x^{(0)}:=G_0h_0$.  After the first $k$ absorptions the core pair is
+\begin{equation*}
+ K_k=K_0-\Lambda_ke_pe_p^\mathsf T,
+ \qquad
+ h_k=h_0+\Gamma_ke_p.
+\end{equation*}
+Every $K_k$ is the Schur complement obtained after eliminating the certified
+components, hence is SPD.  Therefore
+$1-\Lambda_k g_p>0$, and Sherman--Morrison gives the exact one-dimensional
+state
+\begin{equation}
+ x_H^{(k)}=x^{(0)}+z_kg,
+ \qquad
+ z_k:=\frac{\Gamma_k+\Lambda_kx_p^{(0)}}
+                {1-\Lambda_kg_p}.
+ \label{eq:direct-fixed-attachment-affine-state}
+\end{equation}
+The Stieltjes hypotheses and $h_0\geq0$ give
+$g\geq0$ and $x_p^{(0)}\geq0$.  The pendant hypotheses give
+$\sigma_j,\gamma_j\geq0$.  Consequently $z_k$ is nondecreasing: over the
+domain with positive denominator, its partial derivatives with respect to
+$\Gamma$ and $\Lambda$ are respectively
+\begin{equation*}
+ \frac1{1-\Lambda g_p}
+ \quad\text{and}\quad
+ \frac{x_p^{(0)}+g_p\Gamma}{(1-\Lambda g_p)^2},
+\end{equation*}
+both nonnegative.
+
+For each boundary row, precompute
+\begin{equation}
+ a_w:=-d_w^{-1/2}Q_{wH}g\geq0.
+ \label{eq:direct-fixed-attachment-slope}
+\end{equation}
+Equations
+\cref{eq:direct-fixed-attachment-key,eq:direct-fixed-attachment-affine-state}
+then give
+\begin{equation}
+ \kappa_w^{(k)}=\kappa_w^{(0)}+a_wz_k.
+ \label{eq:direct-fixed-attachment-affine-key}
+\end{equation}
+For each $a_w>0$ and gate $\theta$, form the static crossing scalar
+\begin{equation*}
+ t_{w,\theta}:=\frac{\theta-\kappa_w^{(0)}}{a_w}.
+\end{equation*}
+Labels already above the gate are output initially; labels with $a_w=0$
+never cross afterward.  Sort the remaining pairs by $t_{w,\theta}$.  Because
+$z_k$ is monotone, advancing the corresponding pointer through all values in
+$(z_{k-1},z_k]$ returns exactly
+$\mathcal X_k(\theta)$.  Evaluating
+$\kappa_w^{(0)}+a_wz_k$ validates each emitted label in constant time.  The
+two lists are static, so an absorption changes only
+$(\Lambda_k,\Gamma_k,z_k)$ and the two pointers; no stored boundary key is
+rewritten.
+
+It remains to expose the work hidden by this representation.  Scan every
+relevant adjacency list once.  In particular, the full list of the common
+attachment $p$ is scanned once and reused by all closure certificates, rather
+than once per component.  Leaf elimination computes each
+$(\sigma_j,\gamma_j)$ and stores its recovery messages in
+$O(\sum_{u\in C_j}(1+d_u))$ work; the final reverse passes have the same
+total charge.  Since $K_0$ is cyclic tridiagonal, a width-two elimination
+ordering factors it and constructs $g$ and $x^{(0)}$ in $O(m)$ arithmetic
+and $O(m)$ memory.  Reading the boundary rows and forming
+$\kappa^{(0)},a$ costs
+$O(\sum_{w\in R}(1+d_w))$, and the two sorts cost
+$O(|R|\log(2+|R|))$.  The $K$ scalar response applications and pointer queries
+cost $O(K+Z)$ in total; $K$ is at most the forest vertex count.  Membership
+bits cost $O(|R|)$ memory, while exact validation and streaming the reports
+cost $O(Z)$ work.  Finally, materializing
+\cref{eq:direct-fixed-attachment-affine-state} costs $O(m)$ before forest
+recovery; writing all recovered coordinates, if requested, is also absorbed
+by $\mathcal V_{\rm fin}$.  These charges prove
+\cref{eq:direct-fixed-attachment-work} and the memory bound.
+\end{proof}
+
+\begin{remark}[Exact scope of the no-rekey result]
+\label{rem:direct-fixed-attachment-scope}
+A simple cycle is an edge-minimal connected cyclic $2$-core topology, but
+cyclicity is used here only to construct the base Green column in linear work.
+The no-rekey mechanism is the stronger fixed-attachment fact: all updates lie
+on the single column $g$.  If absorbed components attach at
+different core vertices, the response can acquire a new Green direction at
+each event and the static crossing order above need not exist.  The theorem
+therefore neither settles the varying-attachment cyclic-core reporter nor
+rules out an implicit, kinetic, coded, or batched reporter for that case.  Its
+arithmetic and storage bounds are exact real/algebraic-cell counts; they imply
+no word- or bit-complexity bound, finite-precision robustness, or
+numerical-stability guarantee.
+\end{remark}
+
 \begin{corollary}[Canonical reduction to the graph $2$-core]
 \label{cor:direct-two-core-reduction}
 Let $G$ be a completely exposed finite connected graph and let $H$ be its
@@ -3006,10 +3189,10 @@ The direct route should now proceed in the following order.
  $\alpha=1/49$, where the endpoint weight may lag several interior amplitude
  levels.  The static counterexample proves that the invariant must use the
  actual top-$1/32$ history, not arbitrary legal reachability.
- \item Couple the proved maximal $2$-core reduction to the repository's
- response-preconditioned controller.  The remaining online obligation is to
- certify when a newly exposed decoration is permanently closed and to update
- the reduced-core boundary reporter without a global rekey.
+ \item Extend \cref{thm:direct-fixed-attachment-cycle-reporter} beyond one
+ fixed attachment.  Closure discovery and one-column reporting are now
+ charged; the remaining online obligation is a final-volume/output-sensitive
+ reporter when successive absorptions introduce different Green columns.
  \item Splice the proved nonsymmetric expansion theorem with maximal unary
  corridors.  Every piece must carry either a positive Dirichlet gap, an
  exact event-wave certificate, or an explicit boundary eliminator; merely
@@ -3094,6 +3277,15 @@ exact: forest modes become unit modes, so only the Schur $2$-core contributes
 nontrivial effective conditioning.  A small cyclic core can therefore be
 factored densely after linear forest peeling, while a large core is handed to
 the mixed iterative/response backend.
+
+For the first cyclic online case, that handoff is now fully charged.  When
+all certified components attach at one fixed cycle vertex, cumulative Schur
+absorption changes the core solution along one fixed Green column.  The
+$\mathsf{FACR}(p)$ state stores static affine crossing times rather than eager
+boundary keys, so it reports both two-rung gates in
+$\widetilde O(\mathcal V_{\rm fin}+Z)$ total work with no global rekey.  This
+is a one-response-direction theorem, not a general cyclic-core reporter:
+varying attachment vertices remain the first unresolved composition test.
 
 The resulting framework is sharp enough to guide a new algorithm.  An
 accelerated region must possess one of three certificates: a causal corridor

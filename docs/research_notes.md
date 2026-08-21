@@ -12,6 +12,844 @@ Important topics:
 - hybrid switching rules;
 - complexity bounds.
 
+## 2026-08-21: Round 013 reaches one local checkpoint and quarantines two tempting shortcuts
+
+Two independently reviewed exact-real results sharpen the response and hybrid
+directions. A third attempted path lower bound was withdrawn after independent
+audits. None of these statements is a graph-uniform accelerated solver theorem.
+
+First, fix the notched-double-sun face containing all `n` cycle/chord anchors
+and all source petals, together with its rank-`n` anchor--report cut and shifted
+ladder. For fixed `n` and sufficiently near-one `alpha`, let
+`vartheta=(1-alpha)/2`. A unit first-rung fragment has matching response
+`Theta(vartheta^2)` and off-matching response `O_n(vartheta^3)`. At gate
+`g=vartheta^(5/2)` and band `g/2`, the exact fixed-face trace emits one new
+delta label per event, yet every response increment is dense. Consequently the
+named separately addressed exact-vector representation `EagerExactSlack`
+performs `Theta(p n^2)` response/control/materialization work for
+`Theta(r n)` delta/certificate output, with `p=r` for nonnegative columns and
+`p=2r` for signed certification. Its full ledger is
+`eq:notched-sun-eager-eleven-vector`:
+
+```text
+(Theta(n), 2, n, Theta(n+J),
+ Theta(C_frag^Sigma+p n^2+pJ), 0, Theta(p n^2),
+ Theta(pn+n+J), O(n+p), Theta(p n^2), Theta(rn)).
+```
+
+This is a fixed-face debt/query representation STOP only. The trace is not an
+RPPR load or admission chronology, and the proposition does not constrain
+implicit cyclic transfer, packed coded queries, scale-truncated state,
+on-demand validation, or a general output-sensitive partial reporter.
+
+Second, on the fixed `m>=2`, branch-seeded caterpillar with `alpha<1/2` and
+`rho<rho_can`, the response-native `FirstLayer-BC_1` policy supplies an actual
+local checkpoint at `k=1`. It scans exactly
+`Uhat_1={b_1,b_2,a_1,r_1}`, commits the canonical first batch
+`{b_2,a_1,r_1}`, settles the restricted point exactly, and retains the native
+response state. Admitted support, numerical support, and scanned rows are all
+`Uhat_1`; only the next layer's labels are known without row exposure or
+admission. The prefix ledger is
+
+```text
+(9, 2, 1, 0, O(1), 0, O(1), O(1), O(1), Theta(1), Theta(1)),
+```
+
+and `eq:branch-caterpillar-first-layer-post-eleven-vector` charges the
+remaining `J_+=m-1` batches and terminal return as
+
+```text
+(vol(S*\Uhat_1), J_+, J_++1, 0, O(C(S*)), 0,
+ O(C(S*)+J_+ log(2+m)), Theta(C(S*)), O(C(S*)), Theta(|S*|),
+ |S*\Uhat_1|+|S*|+Theta(J_++1)).
+```
+
+Extending the retained response in place gives exact total
+`O(C(S*) log(2+C(S*)))`, with no hidden `log(1/(1-2 alpha))`. This is an
+exact-real, canonical delta-interface, response-native RPPR comparator, not a
+useful accelerated burn-in.
+
+The companion signed-gate proposition identifies the missing accelerated
+interface. At checkpoint `k`, a boundary demand changes exactly by
+`beta_(k,v)(z_parent-x_parent)`, so the sharp symmetric radius is
+`mu_k=min_v g_(k,v)/beta_(k,v)`. Strong convexity makes
+`Delta<alpha mu_k^2/2` sufficient. The imported relative-gap route has
+zero-stage success when `Delta_(k,0)=0`; for positive initial gap it provides
+only
+
+```text
+T > (2/sqrt(alpha/(1-alpha)))
+    log_+(4 Delta_(k,0)/(alpha mu_k^2)),
+```
+
+and each relative-oracle stage still contains the explicit
+`log(1/(1-2 alpha))` factor. The previous constant half-gap does not establish
+the required comparison. This is a sharp norm-ball/gap-interface barrier, not
+a lower bound against exact settlement or a new one-sided local certificate.
+
+Finally, the proposed constant-ratio endpoint-path terminal logarithmic lower
+theorem was removed. Conditional on inactive projection, its full-face
+recurrence has the derived damped-cosine roots, but those roots do not supply
+the actual entry coefficients or an anti-cancellation bound for the moving
+residual range. The finite exact runs remain direction-local scaffolding only.
+There is no terminal logarithmic block, asymptotic lower eleven-vector, or
+refutation of `K_face=O(q^-1)`. The Round-012 moving-maximum theorem remains
+the authoritative one-log upper bound; whether that logarithm can be removed
+or is necessary remains open.
+
+## 2026-08-21: Round 012 charges flushing, caps one Phase I, and bounds the moving maximum
+
+Three independently reviewed exact-real results repair the provisional
+response summary, supply one fully paid caterpillar prefix witness, and give
+the first uniform constant-ratio path chronology upper bound. None is a
+graph-uniform solver theorem.
+
+First, aggregate shifted debt is closed only on one frozen `(A,F)` partition,
+exposed cut, and ladder. The scalar recurrence costs
+`O_tilde(cvol(T)/sqrt(alpha)+C_frag)`, where every fragment-coordinate event is
+charged. For `r` nonnegative columns the actual product count is the sum of
+the `r` runs; signed columns use `p=2r` nonnegative streams without
+pre-certificate cancellation. The energy certificate gives simultaneous
+mathematical exterior intervals, not materialized replies. The named
+non-output-sensitive `AllBoundaryFlush` pays cut scans, interval computation,
+classification, validation, materialization, memory, rounds, and every
+emission in a complete eleven-vector. With fixed column count, geometrically
+growing fixed-decision faces retain the product scale only with those charges
+and `C_frag` included. On ambient-degree endpoint paths, a family-dependent
+`rho_n` forces canonical singleton batches while charged-volume ratios tend to
+one. The linear exact-real comparator has `R_int=n`; this refutes geometric
+sleep only as a schedule, not by a path work or round lower bound.
+
+Second, “any finite valid burn-in” cannot bound caterpillar Phase I: an
+arbitrary number `N` of valid exact-inner Catalyst stages may preserve the
+pre-gate checkpoint `Uhat_0={b_1}` while adding `Omega(N)` control work. The
+named `Full-BC-AESP_0` policy gives one capped comparator on the promised
+fixed-`m`, branch-seeded family for `alpha<1/2` and `rho<rho_can`. It pays full
+exposure, certifies `U=V=S*`, runs
+`T_*=ceil(2 log(4)/sqrt(alpha/(1-alpha)))` AESP-CD stages, and hands off at
+`k=0`. Its authoritative prefix bound is `O(H_*)`, and the separately charged
+response gives exact output in `O(H_*+C_* log(2+C_*))`. The soft product
+notation hides `log(1/(1-2 alpha))` and is not uniform near `alpha=1/2`. This
+is a full-realized-support fixed-family witness, not adaptive locality, a
+general prefix theorem, graph-uniform work, finite precision, or PPR accuracy.
+
+Third, for the exact-real zero-start, internally gated transported-center
+endpoint path at `rho=tau=q/5`, set
+`K_q=ceil(log(50(1+q^2)^2 q^(-10))/(-log(1-q)))`. Every visited face admits
+or certifies within `K_q` consecutive steps, independently of where the global
+correction maximizer moves. Therefore
+`T<=(J+1)K_q=O(q^(-2) log(1/q))` and
+`mathfrak V_T=O(q^(-3) log(1/q))`; the literal implementation charges all
+eleven coordinates as
+`(Theta(q^-1),Theta(q^-1),1,0,O(q^-3 log(1/q)),O(q^-3 log(1/q)),`
+`O(q^-3 log(1/q)),Theta(q^-1),O(q^-1),O(q^-3 log(1/q)),Theta(q^-1))`.
+These are one-log upper bounds, not matching `Theta` laws, lower bounds,
+logarithm removal, a product separation, a zero-padded or nonpath theorem, or
+a finite-precision result.
+
+## 2026-08-21: Round 011 retires one cyclic family and closes a growing-core handoff
+
+Three independently reviewed exact results close the relay-seed audit, add a
+paid branch-caterpillar switch, and establish the rigorous part of the
+constant-ratio path chronology. None is a graph-uniform product theorem.
+
+First, the relay seed supplies no escape on the even double-cycle feed. For
+every even `n>=4`, site `j`, `0<alpha<1`, and `rho>0`, let
+`t=(1+alpha)/(1-alpha)`,
+`rho_W=1/(2(2t+1))`, and `rho_B=1/(2(4t+1))`. The exact canonical
+all-violations gate has the exhaustive first-step split: no initialized face
+for `rho>=1/2`; a terminal relay singleton for `rho_W<=rho<1/2`; first batch
+`{w_j}` for `rho_B<=rho<rho_W`; and first batch `{w_j,b_j}` for
+`0<rho<rho_B`, with equality inactive under the strict gate. Thus every
+relay-seeded trace that propagates reports in its first batch, before any
+petal. Together with the backbone and anchor seed stops, this retires the
+double-cycle family only for the prescribed canonical long report-free
+later-petal witness. It does not retire all cyclic witnesses, cover arbitrary
+positive-subset policies or post-report behavior, or prove a response,
+reporter/work, stability, or finite-precision lower bound. The next candidate
+needs a different coupling or bounded-degree settlement gadget.
+
+Second, the strict-range canonical branch caterpillar now has a paid hybrid
+handoff. Fix `m>=2`, branch seed `s=e_(b_1)`, `0<alpha<1`, and
+`0<rho<rho_can(m,alpha)<=rho_cat(m,alpha)<=1/3`. Any fully charged Phase-I
+prefix ending after `k` actual canonical layers may discard all signed
+numerical, momentum, queue, and uncommitted state. One direct support-only
+pass builds the current arm/leaf absorptions, tridiagonal branch cells, and
+balanced transfer tree, then continues with `CaterpillarCanonicalLayerDelta`
+without replaying or querying any prior face. The exact-real total is
+
+```text
+B_J^full + O(C(S*) log(2+C(S*))).
+```
+
+The prefix and suffix ledgers charge all eleven resource coordinates,
+including prior and remaining delta/certificate emissions, recovery,
+validation, terminal materialization, exact output, and peak memory. Product
+work follows only if an independent theorem bounds the fully charged prefix
+`B_J^full`; the result does not transport estimate-sequence energy or cover
+the remaining parameter range, other seeds or policies, repeated full lists,
+finite precision, PPR conversion, or arbitrary graphs.
+
+Third, the constant-ratio endpoint path yields exact floors rather than the
+numerically suggested separation. For `0<q<=1/4`, `alpha=q^2`,
+`rho=tau=q/5`, and
+`L_q=floor(log(5/3)/(-log((1-q)/(1+q))))`, the zero-start transported-center
+execution on a long enough ambient-degree path satisfies
+
+```text
+J, nu_fin = Theta(1/q),   T >= J,
+mathfrak V_T = Omega(q^(-2)) = Omega(nu_fin/q).
+```
+
+This is the realized product scale. It does not prove
+`T=Theta(q^(-2))`, `mathfrak V_T=Theta(q^(-3))`, or any product separation.
+An exact `q=1/5` trace also gives a decisive gate-locality STOP: a
+seed-attained global safe-envelope correction suppresses a raw stage-6
+frontier violation, and after the next admission its maximizer moves to old
+interior vertex `v_2` by stage 9. Neither the raw frontier coordinate nor a
+correction pinned to one old vertex determines the chronology. The next exact
+target at Round 011 was the time-varying global correction over all old
+coordinates. Round 012 above now controls it up to one logarithm; matching
+lower powers or logarithm removal remain open.
+
+## 2026-08-21: Round 010 closes the anchor rescue and isolates an accuracy-log sweep
+
+Three independently reviewed exact results advance the cyclic-legality,
+reporting, and expanding-face ledgers without promoting a graph-uniform
+solver theorem.
+
+First, the apparent anchor-seed escape on the double-cycle feed is not a long
+canonical witness. For every even `n>=6`, `0<alpha<1`, and
+`0<rho<(1-alpha)/8`, the exact-real canonical all-violations continuation has
+at most the three report-free petals at the seed and its two neighboring
+sites. If the first `j+/-2` petal batch occurs, it co-admits `w_j` unless a
+report entered earlier. This retires the anchor-seeded rescue only. At Round
+010 the relay seed remained unaudited; Round 011 above now closes that orbit
+and retires the graph family only for the prescribed witness. The anchor
+theorem itself makes no claim for arbitrary positive-subset policies,
+post-report behavior, finite-band reporting, response directions,
+reporter/work lower bounds, stability, or finite precision.
+
+Second, the actual canonical policy is positive on a smaller fixed-family
+caterpillar range. Fix `m`, branch seed `s=e_(b_1)`, `0<alpha<1`, and
+`0<rho<rho_can(m,alpha)<=rho_cat(m,alpha)<=1/3`. The canonical trace has
+exactly `m` strict three-label distance-layer batches.
+`CaterpillarCanonicalLayerDelta` changes one branch load/diagonal cell for an
+early side leaf; a long-arm append adds one arm-transfer cell and updates its
+induced `b_1` absorption cell; and a backbone append adds one tridiagonal cell.
+Balanced transfers answer the parent-coordinate queries. Its exhaustive
+resource vector is
+
+```text
+(Theta(m), Theta(m), m+1, 0, Theta(m), 0,
+ O(m log(2+m)), Theta(m), O(m), Theta(m), Theta(m)).
+```
+
+Every exact demand test, delta/certificate exchange, retained and scratch
+cell, terminal recovery, validation, candidate write, and exact output is
+charged. Total work is `O(m log(2+m))` with `O(m)` state. The result is
+fixed-`m`, branch-seeded, family-dependent, exact-real, canonical, and
+delta-only. It excludes `rho_can<=rho<rho_cat`, other seeds or policies,
+pre-backbone interleavings, repeated full lists, `kappa=1`, finite precision,
+PPR conversion, and graph-uniform product work. Those are the next reporter
+extensions; no positive `rho` range uniform in `m` is claimed.
+
+Third, a zero-start endpoint path forces an exact accuracy-driven swept-prefix
+separation for the literal implementation. Use the endpoint seed and ambient
+path degrees on a finite path with exactly `N=L+1` edges. Put `q=1/n` for
+integer `n>=2`, `L=n^2`, and
+`rho=tau=(q/3)((1-q)/(1+q))^L`, with `eps_ppr=2rho`. The terminal certificate
+forces the first `L+1` path vertices into the support; only one outside
+successor can enter per fixed-face step. Hence `L<=J<=L+1`, `T>=J`,
+`nu_fin=Theta(q^(-2))`, and
+
+```text
+mathfrak V_T >= sum_(j=1)^L (1+2(j-1)) = L^2 = q^(-4).
+```
+
+The named literal full-prefix implementation therefore exceeds its realized
+`nu_fin/q=Theta(q^(-3))` scale by a certified factor `1/q`. That certified
+factor is only `Theta(log(q/rho))`; no matching upper bound on actual swept
+volume is proved. This refutes a log-free accounting statement only. It does
+not refute soft order or an implicit implementation, extend beyond endpoint
+paths, or give a finite-precision result. Round 011 above proves only
+product-scale constant-ratio floors and a moving-global-correction STOP; the
+observed stage and swept exponents remain open.
+
+## 2026-08-21: Round 009 stops the double-cycle trace and sharpens two implicit ledgers
+
+Three independently reviewed exact results refine the current chronology,
+reporting, and expanding-face targets.
+
+First, the independent double-cycle feed still fails for the intended
+backbone-`B`-seeded canonical all-violations chronology. Before the first
+report or petal, every active anchor has its relay. If the next batch remains
+report-free, report quietness caps every active anchor below the petal
+threshold; when an inactive anchor is admitted, its relay is already active or
+is co-admitted in the same batch. Consequently every report-free canonical
+prefix is petal-free and the first petal batch contains a report. This rules
+out only the prescribed backbone-seeded report-free petal/attachment trace and
+makes no claim after `W` enters. The seed qualifier cannot be removed: with an
+anchor seed and `0<rho<(1-alpha)/8`, the first petal batch is exactly
+report-free. Arbitrary positive-subset policies, reporter/work lower bounds,
+response-direction conclusions, finite precision, and stability remain open.
+The next attempt first follows that anchor-seeded counterrange through its full
+canonical chronology. If it does not yield the required epoch, the next
+feed/gadget must escape the anchor--relay maximum principle or the canonical
+cyclic-witness route should be deprioritized; chronology and changing response
+directions still precede reporter analysis.
+
+Second, the implicit route succeeds for one explicit growing-core policy and
+delta interface. Fix `m`, branch seed `s=e_(b_1)`, `0<alpha<1`, and
+`0<rho<rho_cat(m,alpha)<=1/3`. After the exact-KKT positive-subset policy
+commits backbone singletons `b_2,...,b_m`, it may commit arbitrary nonempty
+subsets of currently known strict-positive pendant tips.
+`CaterpillarKineticDelta` uses the separable last Green column and a strict
+crossing-key heap to retain the exact all-positive live-tip set; equality stays
+in the heap and every label is emitted only when it first becomes strictly
+positive. Its full vector is
+
+```text
+(Theta(m), Theta(m), J+1, 0, O(m log(2+m)), 0,
+ O(m log(2+m)), Theta(m), O(m), Theta(m), Theta(m)),
+```
+
+for `2m-1<=J<=3m`. This charges every transfer update/query, heap operation,
+membership and proposed-batch check, retained/scratch cell, delta/certificate
+label, terminal recovery, validation, materialization, and exact output. The
+result is fixed-`m`, exact-real, family-dependent in `rho`, backbone-first, and
+delta-only. It is not canonical all-violations, arbitrary pre-backbone
+interleaving, repeated full-list reporting, `kappa=1`, finite precision, or a
+graph-uniform accelerated theorem. The next reporter target is precisely one
+of those broader policy/interfaces, with full-list output charged separately.
+
+Third, weighted Schur shocks admit an exact analytical decomposition but not
+the hoped-for unweighted shortcut. With `q=sqrt(alpha)`, `theta=1-q`, and
+`H_t` the remaining restricted-face optimum gain,
+
+```text
+sum_t theta^(T-1-t) Delta_t
+  = theta^(T-1) H_0
+    + q sum_(t=1)^(T-1) theta^(T-1-t) H_t.
+```
+
+The right object is therefore discounted remaining-gain occupancy. A terminal
+gate-compatible endpoint edge has `T=2`, one admission, final volume two,
+swept volume three, and weighted-to-`q`-unweighted ratio `(1-q)/q`. This
+refutes only a universal `C q sum_t Delta_t` packing. It does not lower-bound
+stage count or swept work and leaves terminal-floor terms, occupancy-based
+potentials, other potentials, and zero-initialized growing-path executions
+open. The endpoint-path continuation target is now to control or refute the
+occupancy term together with the terminal floor, `T`, and every charged
+old-prefix sweep.
+
+## 2026-08-21: Round 008 retires a fourth cyclic trace and separates transport from reporting
+
+Three independently reviewed exact results sharpen the chronology,
+representation, and expanding-face acceleration frontiers.
+
+First, raising the exterior petals to degree three reverses the local
+petal/relay threshold but still does not produce the required canonical
+relay-first epoch. On the even petal-cycle relay graph, for every
+`0<alpha<1`, `rho>0`, and seed orbit, a `W`-free canonical face containing
+all relays whose next all-violations batch is also `W`-free has at most one
+inactive petal. If a report enters with or before the last relay, or in the
+first post-last-relay batch, the report-free epoch has already failed. Thus
+the degree-three petal-cycle candidate is retired. This is an exact KKT
+chronology stop for the canonical all-violations policy only: arbitrary
+positive-subset policies remain outside it, and it is not a reporter,
+response-rank, work, scan, output, stability, or finite-precision lower bound.
+The next legal witness must feed relays from an independent active backbone or
+use a different bounded-degree gadget, with all seed cases and genuinely
+changing response directions proved before reporter analysis.
+
+Second, a growing branch core does force quadratic maintenance in one named
+eager state, but not in implicit response generally. Fix `m`, branch seed
+`s=e_(b_1)`, `0<alpha<1`, and the family-dependent exact range
+`0<rho<rho_cat(m,alpha)<=1/3`. One legal KKT positive-subset singleton order
+first admits the branch backbone, then a length-`m` endpoint arm, and finally
+the deferred leaves. Each arm append strictly changes all `m+1` deferred
+positive leaf demands. The literal `EagerTipKey` representation, which keeps
+one separately addressed exact cell per live tip and refreshes every changed
+cell without lazy indirection, therefore performs at least `m(m+1)` old-key
+writes. The chronology is not the canonical all-violations batch, and no
+positive range for `rho` uniform in `m` is claimed. Lazy affine keys,
+sign-persistence flags, kinetic/group structures, on-demand queries, arbitrary
+RPPR algorithms, and finite precision are not lower-bounded. Indeed, a
+balanced affine-transfer tree supports one named append/update or tip query in
+`O(log(2+m))` exact operations with `O(m)` retained cells. The open target is
+a charge-comparable dynamic all-positive reporter for every legal order, with
+every internal query and external emission charged.
+
+Third, exact center transport closes the one-expansion analytical identity on
+endpoint paths without closing total work. If `d` is the restricted-optimum
+shift for a safe expansion `U` to `U+`, then
+
+```text
+E_(U+)(x, v+d) = E_U(x, v) + Delta_B.
+```
+
+The nonnegative Schur gains telescope over nested faces. An append-only exact
+`LDL^T` response stores centered momentum `v-x_U*`, appends zero state at an
+admission, and thereby represents the dense optimum shift without rewriting
+the old prefix. Factor, Schur, gate, admission, and state-append work is
+charged to newly admitted volume. The full eleven-coordinate ledger still
+charges every old-face recurrence read and response application through the
+swept volume, as well as validation, materialization, memory, and terminal
+sparse output. The stated path execution is internally gated and uses one
+terminal external certificate/output stage; intermediate external emissions
+are not covered. This modifies the center recurrence rather than proving the
+literal zero-padded conjecture. It supplies no bound on the step count, late
+weighted shocks, or total swept volume, and does not cover branching/cyclic
+responses, floating point, or bit complexity. PPR conversion still requires
+the terminal one-sided certificate with `rho=tau=eps_ppr/2`. The next proof
+must pack the signed zero-padding defect or control those late shocks and
+old-prefix sweeps, then test whether centered-state transport survives the
+first branching core.
+
+## 2026-08-21: Round 007 closes the double-Y handoff and rejects two stronger witnesses
+
+Three independently reviewed exact results sharpen the cyclic-legality,
+hybrid-composition, and recurrence-model frontiers.
+
+First, inserting a relay does not create the desired preloaded cyclic epoch.
+On the two-edge active-relay matched sun, at every `W`-free canonical face, a
+canonical all-violations batch that admits a nonseed relay `r_i` must find its
+degree-one petal `f_i` already active or admit it in the same batch. The proof
+exhausts the seed orbits and holds for every `0<alpha<1` and `rho>0`; the raw
+anchor--relay and relay--report cuts are nevertheless full rank. Hence a
+common face containing all relays already contains at least all but one petal
+and cannot precede a linear petal-only epoch. This is a KKT chronology stop,
+not a reporter, response-rank, scan, output, or finite-precision lower bound.
+Paired petal--relay batches remain possible, and arbitrary positive-subset
+policies are outside the canonical-all-violations theorem. This motivated the
+degree-three petal-cycle and independent-backbone tests. Round 008 above
+retires the petal-cycle option; the independent-backbone or different-gadget
+route still needs its all-seed chronology proved before reporter analysis.
+
+Second, the branch-seeded double-Y response now has a paid common-state hybrid
+handoff. For `s=e_o`, `0<alpha<1`, and `0<rho<1/3`, every finite fully charged
+gate-compatible Phase-I prefix discards its signed numerical state and, in one
+common outward pass, reconstructs the four actual pendant prefixes together
+with the scalar core before `h` enters or the SPD rank-two core afterward.
+There is no private order replay. The prefix and post-handoff statements each
+give the full eleven-coordinate vector. In particular, the post phase charges
+adjacency, conversion/control, affine and core response work, recovery,
+validation, persistent and scratch cells, terminal materialization, exact
+output, and one constant-size certificate emission per declared external
+stage. The total is
+
+```text
+B_J^full + O(C(S*(rho))).
+```
+
+Product scale follows only from an independent bound on the fully charged
+prefix `B_J^full`; no signed estimate-sequence energy is transported. Other
+seeds, growing branch cores, arbitrary trees or cycles, finite precision, and
+graph-uniform continuation remain open.
+
+Third, full-support accuracy still does not rescue the broad endpoint-path
+supported-prefix lower-bound candidate. At `n>=8`, `alpha=n^(-2)`, and
+`eps_ppr=1/(10n)`, the actual residual certificate implies normalized solution
+error at most `1/(10n)`, while the exact path solution exceeds that value at
+every coordinate. Every valid sparse list therefore has all `n` coordinates
+and `nu_fin=2(n-1)`. Yet exact sparse row actions and scalar cancellations
+generate singleton coordinate directions `e_1,...,e_n`; a fixed degree-six
+spatial profile is then synthesized, verified, and emitted in `Theta(n)`
+charged work with no intermediate full current vector. A same-task append-only
+`LDL^T` response also costs `Theta(n)`, while
+`nu_fin/sqrt(alpha)=Theta(n^2)`. This refutes the product lower bound only for
+the broad exact-cell `CertPrefixPoly` task. Ordinary CG's literal trajectory
+and the exact full-vector `DiagSpecPoly(r)` theorem remain unchanged. A next
+candidate must defeat both constant-prefix residual-slack spreading and
+singleton-basis delayed synthesis, or justify a narrower trajectory or
+materialization invariant.
+
+## 2026-08-21: Round 006 closes a fixed rank-two response and rejects two candidate witnesses
+
+Three independently reviewed exact results sharpen the legality, composition,
+and lower-bound queues.
+
+First, breaking source/report degree symmetry does not by itself create a
+legal long cyclic admission trace. On the even matched-report sun, every
+anchor has degree four, every source petal degree one, and every matched report
+vertex degree two, so the raw anchor--report block has full rank `n`. Yet on a
+canonical face and next batch that both avoid the report set `W`, exact report
+quietness, with `vartheta=(1-alpha)/2`, gives
+
+```text
+x_(u_i) <= 4 * alpha * rho / vartheta,
+```
+
+whereas a positive source-petal demand gives
+
+```text
+x_(u_i) > 2 * alpha * rho / vartheta.
+```
+
+For a nonseed anchor, its active KKT equation and the same upper bounds on its
+two cycle neighbors make this interval impossible. Exhausting anchor, petal,
+report, and nonpositive seed cases shows that every `W`-free canonical prefix
+contains at most one `F` petal, for every `0<alpha<1` and `rho>0`. This is a
+KKT-legality obstruction despite full raw cut rank. It is not a reporter,
+response-rank, scan, output, or finite-precision lower bound. The then-next
+candidate used an active relay with an unadmitted report endpoint; Round 007
+above records why that repair also fails its canonical chronology test.
+
+Second, common irreversible response state survives the first two-branch
+core. On the double-Y seeded at branch vertex `o`, `s=e_o`, exact affine
+records for the four actual pendant prefixes couple through one scalar before
+the adjacent branch `h` is admitted and through a fixed-size SPD `2 x 2` Schur
+core afterward. Every legal certified batch order updates only this common
+state; there is no private replay or eager global rekey. For `0<alpha<1` and
+`0<rho<1/3`, the activation-token countdown has `kappa=1` and the fully charged
+exact-real ledger is
+
+```text
+O(C(S*(rho))) = O(1 / rho),
+```
+
+including adjacency, gate/control, response construction, updates and
+queries, state, recovery, validation, and exact output. With
+`zeta=(1-alpha)/(1+alpha)` and
+`rho_link(alpha):=zeta/[3(3+zeta)]`, the condition
+`rho<rho_link(alpha)` forces every legal order to admit `h` and enter the
+rank-two phase. This theorem fixes only one two-vertex branch core. The
+response direction next tests growing branch-core backbones and cycles. At
+Round 006 the hybrid composition was still open; Round 007 above closes that
+fixed-core handoff while leaving the Phase-I budget independent.
+
+Third, the actual sparse residual certificate defeats the first named
+supported-prefix product candidate. On the endpoint path with `n>=8`,
+`alpha=n^(-2)`, and `eps_ppr=1/10`, a five-coordinate vector supported inside
+the first six exposed vertices lies in `K_5(Q,b)` and passes the strict
+degree-normalized residual certificate. A degree-four `CertPrefixPoly`
+execution uses four constant-prefix row actions and `O(1)` exact cells; a
+fully charged five-row append-only `LDL^T` response emits the identical sparse
+output in `O(1)` exact cells. The realized final degree volume is `11`, so the
+named class/task does not have a product lower bound. This does not alter the
+ordinary-CG theorem that its Galerkin trajectory first certifies at step `n`,
+and it does not weaken the distinct exact full-vector `DiagSpecPoly(r)`
+obstruction. The next lower-bound family must prevent constant-prefix
+residual-slack spreading or explicitly justify a stronger accuracy or
+trajectory requirement.
+
+## 2026-08-21: Round 005 validates one handoff and rejects two unsafe generalizations
+
+Three independently reviewed results sharpen the current trajectory,
+recurrence, and composition boundaries.
+
+First, the prescribed notched-double-sun `F`-only epoch is not a canonical
+single-seed RPPR trace. At any positive face containing the anchor and no
+report leaf, every unseeded matched pair `f_i,w_i` has exact normalized demand
+
+```text
+-alpha * rho + (1-alpha) * x_(u_i) / (2 * sqrt(d_(u_i))).
+```
+
+The canonical all-violations gate therefore co-admits the two labels. One seed
+can make at most one pair exceptional, so no parameter choice realizes
+linearly many distinct `F` admissions while all report leaves remain outside.
+The finite-band corollary is narrower still: for one simultaneous uniform
+point-estimate call at one common face, both labels lie on the same side of
+the robust band. It says nothing about separately scheduled interval
+refinement. The existing structural rank and explicit dense-table audits are
+still valid representation audits, but neither is a reporter lower bound for
+a legal RPPR trajectory. The next cyclic witness must break the pair symmetry
+and prove its single-seed KKT admission chronology before any reporter claim.
+
+Second, literal supported exact CG has an exact product-scale calibration. On
+the endpoint-seeded unweighted path, use ambient degrees,
+`alpha_n=n^(-2)`, `eps_ppr=1/10`, and start ordinary CG from zero. Before
+termination, the residual is a positive singleton at the next frontier while
+the search direction is positive on the full visited prefix. The actual
+degree-normalized residual certificate first holds at `K=n`. Consequently,
+
+```text
+sum_(k=0)^(n-1) vol(supp(p_k)) = n^2 - 1,
+total literal work including verification = Theta(n^2)
+                                         = Theta(nu_n / sqrt(alpha_n)).
+```
+
+The complete eleven-coordinate ledger charges the chosen sequential
+supported-row rereads, recurrence and control, explicit materialization,
+memory, validation, and output. This is an algorithm- and
+implementation-specific exact-algebraic result. It is not a lower bound for
+arbitrary supported polynomials or recurrences, implicit or rational response,
+prefetching adaptivity, or finite precision. Those broader representations
+remain the next recurrence/model tests.
+
+Third, the three-arm structural response now composes with a fully charged
+Phase-I prefix without replay. On the center-seeded unweighted three-arm
+spider with `0<alpha<1` and `0<rho<1/3`, any finite gate-compatible prefix records the actual
+irreversible common arm prefixes and charges initialization, excess exposure,
+old-row reads, recurrence and gate work, exact canonical settlement/response,
+checkpoint materialization and recovery, and state. At the handoff it discards
+all signed trial and momentum state, reconstructs the affine records in one
+pass over the committed prefixes, and finishes with exact response, validation,
+recovery, and output. Thus
+
+```text
+W_total <= B_J^full + O(C(S*(rho))).
+```
+
+The suffix is common-state and accepts every legal certified bulk order; it
+does not privately replay a canonical history. The product scale is only the
+conditional corollary obtained from an independent fully charged bound on
+`B_J^full`. No numerical estimate-sequence energy survives, so the theorem
+does not provide shock-free acceleration. It is exact-real, one-branch, and
+RPPR-only; the note's particular composite Catalyst/AESP prefix is covered
+only for `alpha<1/2`. The next tests are the smallest tree with two branching
+vertices and a separate Phase-I budget theorem.
+
+## 2026-08-21: Round 004 transports structure, but only on the first composable families
+
+Three independently reviewed results identify the smallest settings where
+the current composition interfaces succeed or fail.
+
+First, exact RPPR activation tokens extend from an endpoint path to one true
+branch. On a center-seeded unweighted three-arm spider with `0 < rho < 1/3`,
+one affine transfer product per actual common arm prefix and two scalar root
+aggregates represent every canonical checkpoint. Stieltjes violation
+persistence serializes any legal certified boundary batch, so every policy
+updates only the actual committed common prefixes without an arm-private
+trajectory. Exposure, forward response, all three tip tests, state writes and
+resident cells, terminal recovery, and exact output are separately charged. In exact
+real-cell arithmetic the resulting activation-token countdown has
+`kappa = 1` and standalone work
+
+```text
+O(C(S*)) = O(1 / rho).
+```
+
+This is not a graph-uniform accelerated solver and has no finite-precision or
+bit-complexity consequence. The next falsifiable family is the smallest tree
+with two branching vertices, where the number of transported response
+directions can grow.
+
+Second, a fixed-attachment cyclic reporter is now completely charged. Let a
+simple cycle be the settled core, let supplied certified closed pendant trees
+all attach at one core vertex `p`, and keep still-exterior coordinates fixed
+at zero during absorption. Sherman--Morrison confines every core correction
+to one Green column, so each boundary key is affine in one nondecreasing
+scalar. `FACR(p)` sorts the two gate-crossing lists once and advances two
+pointers. Its exact-cell ledger is
+
+```text
+work   = O(V_fin + |R| log(2 + |R|) + Z),
+memory = O(V_fin),
+```
+
+including verification and scans for the supplied closure certificates,
+forest elimination and recovery, Green-column construction/application,
+queries, exact validation, state, and output. No current boundary-key array is
+materialized or globally rekeyed. The result is absorption-only: online
+closure discovery, varying attachment vertices, growing response rank, a
+post-repair terminal queue, and finite precision remain open.
+
+Third, zero-padding alone cannot transport an accelerated face energy. For
+`0 < alpha < 1` and `rho=tau=r<(1-alpha)/(3+alpha)`, start the exact
+safe-gated recurrence on one endpoint edge at a zero-momentum exact restricted
+optimum. The gate safely admits the other endpoint, but the first
+enlarged-face step retains the positive objective gap
+
+```text
+alpha * eta^2 * m^2 = (2 eta^2 / a) * Delta_B,
+```
+
+where `Delta_B` is the exact Schur expansion gain. Every fixed-face-exact old
+energy is zero, so a shock-free pointwise contraction is impossible. This
+does not refute the global zero-start rate, an inequality with an explicit
+Schur or transported-state term, cumulative shock packing, or a
+newly-admitted-volume work bound. The next proof must carry that term and
+charge old-face recurrence, gate/admission work, persistent state,
+validation, and output cumulatively.
+
+## 2026-08-21: Round 003 closes three tempting implementations, not the parent targets
+
+Three independently reviewed exact results narrow the live proof routes.
+
+First, the safeguarded AESP-CD collateral charge cannot be packed by simply
+normalizing the monotone Euclidean-error telescope. On an exact full-support
+single-edge family with `alpha=q^2/(1+q^2)` and fixed `rho=9/20`, stage two is
+a harmful full collateral correction with
+
+```text
+C_2^col = (44/9) q + o(q),
+log(||e_1||_2^2 / ||e_2||_2^2) = (88/9) q^2 + o(q^2).
+```
+
+The same separation holds on the first two-stage prefix. Hence no
+`o(1/q)` coefficient, including an `alpha`-uniform or polylogarithmic one,
+charges the analytical collateral fraction to Euclidean log-progress. This
+does not refute a cumulative bound for the actual log-inflation `I_T`, a
+multistep collapse-history potential, or another one-sided surrogate. The
+next AESP target is exactly one of those alternatives.
+
+Second, on the prescribed notched-double-sun structural epoch, a literal
+adaptive coded-bank implementation that rebuilds and stores a fresh explicit
+dense harmonic table at every event writes at least
+
+```text
+n (L_n + 1) * sum_k c_k
+```
+
+table cells, leaving an unsuppressed anchor-size factor above charged volume
+plus all candidate caps. This is an implementation audit, not an RPPR
+trajectory or reporter lower bound. Fresh implicit multi-right-hand-side
+solves, batched or compressed row access, predeclared charged block pools,
+dynamic terminal sparsifiers, cyclic transfer state, and sparse recovery all
+remain open. The next response target is an aggregate epoch charge for one of
+those representations, including anchor solves, old-face reads, adaptive
+random blocks, workspace, validation, and output.
+
+Third, the fully exposed endpoint path survives the exact-system dimension
+test at `alpha=n^(-2)` only under a named execution class. For every positive
+diagonal `M`, the transformed load is cyclic for
+`T=M^(-1/2) Q_n M^(-1/2)`. Exact full-vector `DiagSpecPoly(r)` therefore needs
+polynomial degree at least `n-r-1`; the named spectral-atom charge gives
+`r<=floor(sqrt(nu_n))`, and the defining full-vector application rule yields
+
+```text
+C_rec = Omega(n * nu_n) = Omega(nu_n / sqrt(alpha)).
+```
+
+This is exact algebraic-cell work for the named full-vector subclass only.
+It does not cover supported growing-prefix Krylov, arbitrary nonlinear,
+adaptive, rational, or implicit response, or finite precision. Polynomial
+preconditioning is included only when every underlying `T` application is
+counted. The next model target is a separately named supported-prefix or
+response subclass; killed-Green influence packing remains an independent
+information route.
+
+## 2026-08-21: positive shifted resolvents turn whitening into exact debt
+
+The frontier inverse square root has a monotone representation that connects
+the spectral proof directly to delayed push. Starting from
+
+```text
+x^(-1/2) = (2/pi) * integral_0^infinity 1/(x+t^2) dt,
+```
+
+a geometric right-endpoint quadrature gives positive weights `omega_j` and
+shifts `sigma_j` with
+
+```text
+(1-4*eta) * x^(-1/2)
+    <= sum_j omega_j/(x+sigma_j)
+    <= x^(-1/2)
+```
+
+uniformly on `[alpha,1]`. The key ledger is not merely the logarithmic rung
+count: `sum_j omega_j/(alpha+sigma_j) <= 1/sqrt(alpha)`. A residual-coordinate
+settlement argument strengthens this to an `O(1/sqrt(alpha))` total
+Schur-coordinate work factor for nonnegative sources. Signed Gaussian sources
+are handled by their positive and negative parts.
+
+Every shifted frontier resolvent is exactly a sparse shifted face solve. If
+`K_F` is the frontier Schur complement and `E_F` embeds the frontier, then
+
+```text
+(Q_TT + sigma_j E_F E_F^T)^(-1) E_F
+    = U_F (K_F + sigma_j I)^(-1).
+```
+
+An unfinished sparse solve has a nonnegative residual debt `d_j`, and the
+exact rational lift is the current sparse state plus
+`sum_j M_j^(-1) d_j`. Settling the anchor part later changes the frontier debt
+by exactly `-Q_FA Q_AA^(-1) d_A`, which is the shifted Schur residual and
+remains nonnegative. Thus delayed anchor debt is not a heuristic: it is an
+exact invariant for a positive inverse-square-root ladder.
+
+This removes target harmonic-row construction as an algebraic necessity and
+explains why the empirical delayed-rung idea can carry the accelerated
+`1/sqrt(alpha)` scale. Literal nonnegative row-by-row settlement is not enough:
+the first rung on one edge needs `Omega(1/alpha)` alternating exact pushes for
+a fixed residual reduction.
+
+The fixed-face escape is now proved in a frozen exact-real model. Keep one
+partition `(A,F)`, its exposed cut, and the complete shifted ladder fixed while
+additive nonnegative debt fragments arrive. Sum the fragments rung by rung,
+run signed Chebyshev semi-iteration on each sparse shifted face matrix, and
+allocate residual tolerances so that the sum of the `Q`-energy errors is at
+most `delta`. Since `alpha I <= M_j <= (1+sigma_j) I` and
+`sum_j sqrt(1+sigma_j) <= J+(1+eta)^2/eta^2`, the scalar sparse-recurrence
+work is
+
+```text
+O_tilde_eta(cvol(T)/sqrt(alpha) + C_frag),
+```
+
+where `C_frag` charges every incoming fragment-coordinate read, write, and
+aggregation event. For `r` nonnegative columns, the authoritative product
+count is the sum of the `r` column runs. Signed columns are split into
+`p=2r` nonnegative streams with no cancellation credit before certification.
+The universal boundary-leverage bound converts each final energy certificate
+into simultaneous mathematical one-sided exterior intervals; that quantifier
+does not materialize any interval or implement `BoundaryBounds`.
+
+The named `AllBoundaryFlush` supplies the stronger implementation only by
+paying for it. It scans the exposed cut, contracts every requested output
+column, computes and materializes both endpoints of every current boundary
+interval, classifies and validates them against the gate/band, and emits every
+interval plus one certificate record per output column. Its eleven-vector
+also charges fragment and ladder control, Chebyshev recurrence work,
+persistent debt, sequential workspace, full-face writes, adjacency and
+interaction rounds, and output. It is non-output-sensitive and exact-real;
+face or ladder mutation, refinement of ambiguous labels, finite precision,
+bit complexity, and terminal PPR/RPPR output are separate.
+
+With fixed column count, geometrically growing fixed-decision faces and one
+fully charged all-boundary flush each retain the final-volume product bound,
+including the summed fragment, cut, memory, materialization, round, and
+emission coordinates. Pure geometric sleep is nevertheless false for the
+literal exact gate. On every fixed sufficiently long ambient-degree endpoint
+path, one may choose a family-dependent positive `rho_n` so canonical
+all-violations batching admits exactly the next singleton; no positive lower
+bound on `rho_n` uniform in path length is asserted. The charged append-only
+exact-real comparator has a complete linear ledger with `R_int=n`. Thus the
+result is a scheduling obstruction, not a path work or interaction-round lower
+bound. The remaining operation is an output-sensitive partial flush on
+high-cut-rank cores, unless a separately proved support-safe trace bypasses
+the literal batches.
+
+The coded-bank route has simultaneously removed two other apparent
+multipliers. Exact validation plus a first-failure coupling reuses one target
+hash/sign bank per doubling capacity throughout the adaptive epoch, so the
+total target-row count is controlled by the largest packed query rather than
+the sum over events. The same harmonic product has exact target and source
+orientations. An online rent-or-buy rule uses at most twice the smaller of the
+target-row count and cumulative source width in anchor right-hand sides. The
+remaining charge is no longer measurement dimension, adaptive target
+randomness, or the number of anchor solves; it is repeated source-side
+anchor-cut scanning versus target-side stored-response reads and applications.
+
+## 2026-08-20: low-cut-rank harmonic queries close, but not universally
+
+The remaining scalar harmonic-query interface is exact in a useful structural
+regime. For a fixed anchor `A`, factor the normalized cut
+`Q_AU D_U^(-1/2) = B*C` with rank `s` and precompute
+`Y = Q_AA^(-1) B`. Every target harmonic extension is then `Y*(C*a)`.
+The normalized exterior response is a sparse direct vector minus `C^T` times
+an `s`-vector. Its squared norm on every hierarchy node is therefore an exact
+quadratic of an additive `s`-by-`s` Gram matrix, an additive `s`-vector, and an
+additive scalar. These summaries are updated only on hierarchy paths touched
+by the frontier. Source-only Gaussian probes, prepared by Chebyshev whitening,
+then give the complete packed reporter. Thus bounded or polylogarithmic cut
+rank closes the group-query side after explicitly charged anchor solves,
+storage, and touched-incidence work.
+
+This route is not graph-universal. On the comb tree formed by an active
+`n`-vertex path with one exterior leaf per path vertex, the normalized cut is
+a nonsingular diagonal matrix. Its harmonic bank is dense and rank `n`, and
+the smallest energy-scaled singular value is at least
+`(1-alpha)/(2*sqrt(3))`. Hence every rank-deficient bank has constant operator
+error while the active charged volume is only `4*n-2`. This is a
+representation lower bound only: path/tree message passing can still exploit
+order. It rules out precomputing a universal low-rank harmonic bank and leaves
+the high-cut-rank nonequitable core as the precise dynamic-sparsification or
+sparse-recovery target.
+
 ## 2026-08-20: two telescopes give a square-root response scheduler
 
 The source-aware Schur-diagonal-loss telescope and the orthogonal
@@ -49,11 +887,15 @@ The full exterior graph is nevertheless unnecessary. For a fixed face, every
 response row, source leverage, and diagonal loss is determined by the face's
 internal edges, its exposed cut incidences, and the degrees of the boundary
 labels. Thus the static operator record has size linear in charged active
-volume, and geometric rebuilding removes ambient-`m` preprocessing at the
-information level. The next proof target is an exposure-charged
-grounded-PageRank specialization whose *within-epoch* updates and locator
-queries obey the local ledger and whose queries use the two-ledger wake-up
-schedule.
+volume. More strongly, Chebyshev inverse-square-root probes construct
+simultaneous one-sided estimates of every exposed boundary diagonal loss in
+`O_tilde(cvol(S)/sqrt(alpha))` work. Geometric full checkpoints therefore fit
+the final-volume product ledger. Approximation-stable Chebyshev whitening also
+prepares every within-epoch Gaussian source from a constant-factor spectral
+frontier in `O_tilde(T_mv/sqrt(alpha))` work; no exact frontier square root is
+needed. The next proof target is target-side maintenance of requested
+harmonic rows or a shared sparse-recovery bank whose queries use the
+two-ledger wake-up schedule.
 
 There is also an exact fixed-anchor implementation identity. Let `Pi` be any
 linear sketch on degree-normalized exterior dual demands and precompute
@@ -71,6 +913,17 @@ sketch can be subtracted to leave only exterior coordinates. This eliminates
 both dense old-face materialization and an ambient boundary scan. It does not
 hide the hard costs: the sketch dimension, anchor solves, storage and reads of
 `Z`, and epoch-internal updates remain the quantitative obligations.
+
+A two-sided Gaussian reduction now fixes the group-measurement side of that
+interface. Random normalized frontier sources and random targets supported on
+one reached hierarchy node estimate its complete leverage mass using only
+polylogarithmically many scalar transposed harmonic measurements. The packed
+hierarchical locator therefore tests only output-sensitive nodes and never
+forms a dense exterior response or an all-leaf squared update. The remaining
+problem is narrower: produce or maintain each requested harmonic target row,
+or one shared sparse-recovery family covering those rows, within the local
+epoch ledger. The reduction is Monte Carlo; deterministic validation remains
+separate.
 
 ## 2026-08-20: orthogonal frontier lifts close mixed no-restart repair
 
@@ -93,9 +946,13 @@ group traces. Fresh sketches drawn after each adaptive batch can be accumulated
 through their nonnegative squared masses with a summable conditional failure
 budget. Mutual frontier orthogonality makes every prefix valid, and newly
 exposed boundary labels have zero response to all earlier frontier bases, so
-past probes are never replayed. The decisive third-direction target is now a
-local squared-response range-add on the live hierarchy of a large
-nonequitable cyclic core. The
+past probes are never replayed. The two-sided harmonic reduction further
+removes the all-leaf range-add. Chebyshev full-boundary sketches separately
+close geometric anchor initialization at the product scale, while spectral
+Chebyshev whitening removes exact source solves between checkpoints. The
+decisive third-direction target is now a target-side dynamic local harmonic
+row or shared sparse-recovery interface on a large nonequitable cyclic core.
+The
 separate response-free expanding-subspace acceleration problem remains open.
 
 ## 2026-08-20: source-aware boundary leverage narrows the cyclic reporter
@@ -477,6 +1334,17 @@ Closed statements:
 - cumulative settled volume has an exact activation-age dual: every vertex is
   charged once for every fresh settlement after it enters, so the fan lower
   bound is caused by the long paid lifetime of its degree-`m` root;
+- seven exact stop rules across five cyclic graph families hold in their stated
+  scopes. On the independent double-cycle feed, every backbone-seeded
+  report-free prefix is petal-free and the first petal batch contains a report.
+  In the anchor-seed counterrange `0<rho<(1-alpha)/8`, the exact continuation
+  permits at most the three report-free petals at the seed and its neighbors;
+  the first next-layer petal batch co-admits the seed report unless one entered
+  earlier. From every relay seed, the initialized singleton either terminates
+  or its first propagating batch contains the incident report. The graph family
+  is therefore retired only for this prescribed canonical long report-free
+  later-petal witness. These are not arbitrary-positive-subset results,
+  reporter lower bounds, or claims after reports enter;
 - a lazy block-Schur update represents the correction to old coordinates and
   updates all remaining violation demands through one signed Schur
   block-column, without algebraically resettling the old region;
@@ -556,7 +1424,12 @@ Open item:
   Root radius, constant flat width, and one global low-rank factor are each
   insufficient on their own. For the approximate target it is enough to prove
   the strictly weaker finite-band certificate bound, charging only the
-  transition-band refinements and finite-accuracy response maintenance.
+  transition-band refinements and finite-accuracy response maintenance. Before
+  that reporter analysis, a new legality candidate must use a different
+  coupling or bounded-degree settlement gadget: the backbone, anchor, and
+  relay seed orbits retire the double-cycle family for the prescribed witness.
+  The new trace must still prove every seed orbit and genuinely changing
+  response directions before reporter algebra begins.
 
 ## 2026-08-16: adaptive revisit control and safe policy portfolios
 
@@ -634,6 +1507,25 @@ Closed statements:
   reverse-recovery token per true-support vertex give `kappa = 1`, exact
   declared work at most `2 C(S*) <= 4 / rho`, and a no-reset shared-state
   portfolio bound `4K / rho + Delta`;
+- on the fixed-`m`, branch-seeded caterpillar, literal separately addressed
+  `EagerTipKey` storage has `m(m+1)` changed old-key writes along one legal
+  positive-subset order, but this is only a representation obstruction;
+- for the explicit backbone-first positive-subset policy on that same family,
+  `CaterpillarKineticDelta` maintains the exact all-positive live-tip set with
+  strict crossing keys, emits each newly positive label once, and charges
+  `O(m log(2+m))` exact-cell work and `O(m)` retained state. The result is
+  delta-only and family-dependent in `rho`; canonical all-violations,
+  pre-backbone interleavings, repeated full lists, finite precision, and a
+  graph-uniform reporter remain open;
+- on the smaller fixed-family range
+  `0<rho<rho_can(m,alpha)<=rho_cat(m,alpha)`, the actual canonical
+  all-violations caterpillar trace has exactly `m` strict three-label layers.
+  `CaterpillarCanonicalLayerDelta` charges every localized absorption/transfer
+  update, demand query, certificate exchange, recovery, validation,
+  materialization, and output in `O(m log(2+m))` exact work and `O(m)` state.
+  It remains branch-seeded, fixed-`m`, delta-only, and exact-real;
+  `rho_can<=rho<rho_cat`, other seeds or policies, repeated full lists, finite
+  precision, and graph-uniform work remain open;
 - on a two-vertex RPPR breakpoint, a legal activation of fixed charge two has
   a vanishing state jump and energy drop; therefore no jointly continuous
   numerical-state countdown can pay activation uniformly, and the necessary
@@ -659,11 +1551,15 @@ Boundary and open items:
   branching and cyclic fronts, or a quantitatively forced-spreading arm; raw
   delayed-reflection and causal-backflow magnitudes are not themselves
   interference monotone;
-- the endpoint-path activation-token theorem does not yet extend to arbitrary
-  trees: the existing lazy tree-response iterator follows a sorted homotopy
-  event order, while another legal boundary policy can admit a different
-  positive branch first; a dynamic order-independent response-merge lemma is
-  missing;
+- structured extensions now cover the center-seeded three-arm spider and the
+  branch-seeded double-Y fixed core, while the backbone-first and strict
+  canonical-layer caterpillar results supply delta reporting on one growing
+  core. They still do not give an
+  arbitrary-tree, order-independent response: the existing lazy tree-response
+  iterator follows a sorted homotopy order, and another legal boundary policy
+  can admit a different positive branch first. The next tests are the
+  remaining canonical range `rho_can<=rho<rho_cat`, arbitrary pre-backbone
+  behavior, and the separate full-list interface;
 - a continuous relaxation family cannot be reduced safely to a finite grid
   without a regularity theorem for thresholded SOR work as a function of
   `omega`.
@@ -1011,8 +1907,28 @@ Closed statements:
 - any signed finite-support trial point can be converted locally into a lower
   certificate by subtracting its maximum normalized negative one-sided
   residual and clipping at zero; this makes the safe-center result directly
-  applicable to accelerated trial points, but does not itself prove that
-  repeated retraction preserves acceleration;
+  applicable to accelerated trial points;
+- the resulting safeguarded outer recurrence remains inside the optimal
+  support, its stage-start KKT masses telescope to at most `1-alpha`, and its
+  total correction mass has no hidden `1/alpha` loss;
+- the exact Nesterov-potential defect is identified. A three-vertex path
+  refutes pointwise momentum nonexpansion, while the multiplicative potential
+  ledger reduces the remaining accelerated-continuation question to bounding
+  positive cumulative correction log-inflation under the
+  proximal-displacement collapse identity;
+- an exact single-edge family with singleton optimal support has a full
+  correction every other stage but zero normalized log-inflation. Thus raw
+  correction count cannot be charged only to support additions or substituted
+  for the positive-inflation ledger;
+- every `log max(1,gamma_t)` is now upper-bounded by a normalized
+  collateral-clipping fraction. The fraction uses the unknown optimum, may
+  overcharge a benign collateral round, and has the exact collapse amplitude
+  for stages `t >= 2`;
+- an exact full-support single-edge family has a harmful stage-two collateral
+  charge of order `q` but only order-`q^2` Euclidean log-progress. Thus no
+  `o(1/q)` coefficient packs the analytical charge by that logarithmic
+  telescope. This does not refute actual cumulative log-inflation or another
+  potential;
 - zero-start coordinate descent for unshifted RPPR recovers the standard
   `O(1 / (alpha * eps_kkt))` degree-work scale.
 
@@ -1024,9 +1940,12 @@ Scope boundary:
   oracle-free graph-uniform accelerated theorem: start-mass interaction is now
   closed both on a fixed certified envelope and in terms of realized explored
   volume; safe lower centers also enforce `V_exp_max <= 1 / rho` for each
-  inner call. What remains open is an accelerated outer continuation whose
-  centers retain this order safety, or an amortized safeguard that corrects
-  unsafe extrapolated centers without repeated acceleration restarts.
+  inner call, and the safeguarded recurrence retains this order safety. What
+  remains open is the quantitative outer amortization: cumulatively pack the
+  proved collateral fractions using multistep collapse information or a
+  different potential, or replace them by a locally checkable surrogate,
+  tightly enough to retain the
+  `O_tilde(1 / sqrt(alpha))` accelerated stage scale.
 
 ## 2026-08-12: volume-gated RPPR acceleration and expanding-subspace lemma
 
@@ -1057,16 +1976,65 @@ Closed statements:
 - the exact expansion gain is a Schur-complement quadratic. Its elementary
   bound is a lower bound, not the upper perturbation bound required for
   accelerated stability;
+- transporting the estimate center by the exact restricted-optimum shift adds
+  exactly one Schur gain, and these nonnegative gains telescope. On an endpoint
+  path, centered momentum plus an append-only exact `LDL^T` response realizes
+  each transport append in newly admitted volume while every old-prefix pass
+  remains separately charged;
+- with `q=sqrt(alpha)`, the weighted Schur tail is exactly
+  `(1-q)^(T-1) H_0 + q sum_(t=1)^(T-1) (1-q)^(T-1-t) H_t`, where `H_t` is
+  remaining face gain. A terminal-edge execution has ratio
+  `W_T/(q sum_t Delta_t)=(1-q)/q`, refuting only a universal
+  `C q sum_t Delta_t` shortcut;
+- the exact zero-start endpoint-seeded ambient-degree path family with
+  `q=1/n`, integer `n>=2`, `L=n^2`, exactly `N=L+1` edges, and
+  `rho=tau=(q/3)((1-q)/(1+q))^L` forces `J>=L`, `T>=L`, and literal
+  full-prefix swept work `mathfrak V_T>=L^2=q^(-4)`, while
+  `nu_fin/q=Theta(q^(-3))`. This refutes only a log-free charge for that named
+  exact-real implementation: the certified extra factor is
+  `Theta(log(q/rho))`, no matching swept-volume upper bound is proved, and
+  soft order and implicit implementations remain open;
+- at the constant ratio `rho=tau=q/5`, with `0<q<=1/4`, the exact support
+  radius gives `J,nu_fin=Theta(1/q)`, `T>=J`, and
+  `mathfrak V_T=Omega(q^(-2))=Omega(nu_fin/q)`. An exact `q=1/5` run refutes
+  frontier-only gate logic: the global correction suppresses a raw stage-6
+  frontier violation while maximized at the seed, then moves to old interior
+  vertex `v_2` by stage 9. These are a product-scale floor and a gate-locality
+  STOP, not the observed `q^(-2)` stage or `q^(-3)` swept laws;
+- for that same exact-real zero-start, internally gated transported-center
+  path execution, a moving-maximum energy argument controls the correction
+  without locating its maximizer. With
+  `K_q=ceil(log(50(1+q^2)^2 q^(-10))/(-log(1-q)))`, every visited face admits
+  or certifies within `K_q` consecutive fixed-face steps. Hence
+  `T<=(J+1)K_q=O(q^(-2) log(1/q))` and
+  `mathfrak V_T=O(q^(-3) log(1/q))`. The literal full-prefix upper vector
+  charges all eleven coordinates and has exactly one terminal external return.
+  It proves neither matching lower bounds nor removal of the logarithm, and it
+  does not cover the zero-padded recurrence, nonpath graphs, intermediate
+  emissions, or finite precision;
+- a Round-013 attempt to prove a terminal logarithmic block from the
+  conditional full-face spectral recurrence was withdrawn. The damped-cosine
+  roots are correct under inactive projection, but they do not determine the
+  actual entry coefficients or prevent cancellation in the moving residual
+  range. The finite exact runs are scaffolding, not an asymptotic theorem;
 - continuous restricted re-solving costs telescope to
   `O(log(1 / epsilon) / sqrt(alpha)) + N_exp` full iterations.
 
 Open item:
 
-- the graph-uniform `O_tilde(1 / (rho * sqrt(alpha)))` work theorem requires
-  a one-sided projected continuation lemma over safely expanding subspaces, or
-  the weaker ability to charge expansion overhead only to newly admitted
-  degree volume. The note does not close the separate AESP--LOCSOR promotion
-  gate and does not promote the universal bound into the active manuscript.
+- the graph-uniform `O_tilde(1 / (rho * sqrt(alpha)))` work theorem remains
+  open. The accuracy-driven family separates only log-free literal accounting.
+  At constant ratio, the product-scale floor and one-log upper bounds do not
+  match: `Omega(q^(-2))` stages, `Omega(q^(-3))` swept volume, and removal of
+  the logarithm remain unproved. The quarantined root calculation supplies no
+  terminal lower block, asymptotic lower ledger, or refutation of
+  `K_face=O(q^-1)`. The next falsifiable target is an exact space--time lower
+  potential with explicit entry coefficients and anti-cancellation, or a
+  logarithm-free moving-maximum analysis, with every old-prefix pass charged.
+  Endpoint-path implicit transport still does not cover branching, finite
+  precision, or the literal zero-padded recurrence. The note does not close
+  the separate AESP--LOCSOR promotion gate or promote the universal bound into
+  the active manuscript.
 
 ## 2026-08-12: rigorous AESP--LocGD center-star lower bound
 
@@ -1198,6 +2166,76 @@ Until this gate is closed, paper-facing statements may use the proved
 trajectory-dependent theorem and explicitly conditional confinement
 corollaries, but must continue to label the universal
 `O~(1/(sqrt(alpha) * epsilon))` work bound as open.
+
+The reviewed three-arm RPPR handoff does not close this gate. It proves only
+`B_J^full + O(C(S*))` after a fully charged gate-compatible prefix, discards
+the prefix's signed numerical energy, and obtains product work only from an
+independent theorem bounding `B_J^full`. Its exact-real one-branch response is
+therefore a structural composition result, not the missing graph-uniform PPR
+or RPPR burn-in bound.
+
+The branch-seeded double-Y now also has a fully charged common-state handoff,
+including complete prefix and post-handoff eleven-coordinate vectors and the
+external certificate emissions. It proves the same scoped total
+`B_J^full + O(C(S*))`, with scalar response before the second branch enters
+and fixed SPD rank two afterward. It still does not bound `B_J^full`, retain
+signed numerical energy, cover a growing branch core, or imply graph-uniform
+continuation. The independent prefix-budget obligation therefore remains and
+the publication gate is unchanged.
+
+The fixed-`m` branch caterpillar now closes the next structural handoff only
+on its strict canonical range. For `m>=2`, branch seed `s=e_(b_1)`,
+`0<alpha<1`, and `rho<rho_can(m,alpha)`, any paid actual canonical checkpoint
+converts in one support-only pass to `CaterpillarCanonicalLayerDelta`, without
+historical replay. Its total is
+`B_J^full + O(C(S*) log(2+C(S*)))`, and product work still requires an
+independent theorem for that particular `B_J^full`. The result discards signed
+numerical energy and does not cover the remaining canonical range, other
+policies, finite precision, PPR conversion, or arbitrary graphs.
+
+One response-native policy now reaches a local actual checkpoint without
+promised full-support exposure. In the narrower composite range
+`alpha<1/2`, `FirstLayer-BC_1` scans exactly
+`Uhat_1={b_1,b_2,a_1,r_1}`, commits one canonical interaction, settles that
+face exactly, and retains the native response state. Its prefix vector is
+`(9,2,1,0,O(1),0,O(1),O(1),O(1),Theta(1),Theta(1))`; the separately displayed
+post vector charges the remaining `m-1` batches and terminal return. The exact
+total is `O(C(S*) log(2+C(S*)))`. This closes one local `k=1` RPPR comparator,
+not a useful accelerated prefix.
+
+The signed-state interface remains quantitatively different. At checkpoint
+`k`, the exact sharp radius is `mu_k=min_v g_(k,v)/beta_(k,v)`. Zero initial
+gap is exact and runs zero stages. For positive initial gap, the imported
+relative-gap route supplies only the sufficient cap
+`T>(2/sqrt(alpha/(1-alpha))) log_+(4 Delta_(k,0)/(alpha mu_k^2))`, while its
+relative oracle retains `log(1/(1-2 alpha))`. The earlier constant half-gap
+does not imply the required comparison. A future accelerated local splice
+must pay this interface or prove a stronger charged one-sided certificate.
+
+Validity and finiteness alone cannot supply the missing prefix theorem. In the
+composite range `alpha<1/2`, any reachable pre-gate prefix may be extended by
+an arbitrary finite number `N` of valid exact-inner Catalyst stages while the
+common canonical checkpoint remains `Uhat_0={b_1}`. Each stage adds at least
+one outer-control operation, so the added `C_ctl=Omega(N)`. This is an
+algorithm-specification obstruction to the uncapped phrase “any finite valid
+burn-in,” not a lower bound for a capped policy.
+
+One capped fixed-family witness does close its own prefix obligation. For the
+promised branch caterpillar with `m>=2`, `alpha<1/2`, and `rho<rho_can`,
+`Full-BC-AESP_0` pays a complete traversal and uses the strict-range support
+theorem to certify the full envelope `U=V=S*`. It then runs exactly
+`T_*=ceil(2 log(4)/sqrt(alpha/(1-alpha)))` relative-accuracy AESP-CD stages,
+invokes no canonical gate, and hands off at the unchanged checkpoint `k=0`.
+Its full prefix vector is
+`(O(D_*),O(D_*),0,O(C_*),O(H_*),O(D_*),0,O(C_*),O(C_*),O(D_*),0)`, and the
+authoritative bound is `B_env^full=O(H_*)`. The separately charged response
+returns exact output with total `O(H_*+C_* log(2+C_*))`. The soft product
+notation hides `log(1/(1-2 alpha))` and is not uniform as `alpha` approaches
+`1/2`. The proved half-gap is discarded at handoff. This is a
+full-realized-support, promised-family, zero-checkpoint witness, not adaptive
+locality, a general prefix theorem, graph-uniform continuation, finite
+precision, or PPR accuracy. It therefore leaves the publication gate
+unchanged while adding a precise positive comparator.
 
 ## 2026-08-02: APPR worst-case work is `Theta(1/(alpha * eps))`
 

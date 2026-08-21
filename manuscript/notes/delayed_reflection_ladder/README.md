@@ -153,21 +153,53 @@ is at most one. Source-aware leverage has now been reduced to an exact scalar
 state: its square is the decrease of a terminal Schur diagonal across the
 batch elimination. These losses telescope to at most `(1-alpha)/2` per
 still-exterior label. A bounded-arity locator needs only a certified one-sided
-aggregate estimate with additive error at the current pruning scale. What
-remains open on a large core with neither bounded articulation blocks, an
-equitable tree quotient, nor thin radial support is dynamic local maintenance
-of these aggregate diagonal losses, without scanning the full boundary.
+aggregate estimate with additive error at the current pruning scale. A
+Chebyshev inverse-square-root sketch constructs every exposed boundary loss at
+a fixed face in `O_tilde(vol(S) / sqrt(alpha))` work; geometrically spaced
+full checkpoints have the same final-volume product bound. What remains open
+between checkpoints is narrower still: Chebyshev whitening of any
+constant-factor spectral frontier prepares all Gaussian source probes in
+`O_tilde(T_mv / sqrt(alpha))` work, without an exact frontier square root.
+The same inverse square root also has a positive geometric ladder of shifted
+exact rungs. Its total shifted work mass and monotone Schur-coordinate
+settlement count are `O(1 / sqrt(alpha))`. Every rung is a sparse shifted face
+system, and an unfinished solve is represented exactly by nonnegative anchor
+debt whose later cleanup produces the shifted Schur residual. This turns the
+source construction into a rigorous delayed-push mechanism rather than a
+signed polynomial recurrence.
+The companion response note now proves that arbitrarily many fixed-face debt
+fragments may be summed before propagation and flushed by signed Chebyshev
+semi-iteration in `O_tilde(cvol(T) / sqrt(alpha))` graph work. A computable
+energy certificate restores simultaneous one-sided exterior intervals, so
+signed variables remain strictly internal. This removes the one-edge
+`Omega(1 / alpha)` factor for fixed-face realization and preserves the product
+bound when there is one flush per geometrically growing face.
+The same companion note proves that the literal exact gate cannot rely on
+that schedule: a single-seed path can force singleton prefix admissions while
+successive charged-volume ratios tend to one. Paths remain easy by scalar
+response, so this is a scheduling obstruction rather than a work lower bound.
+The companion `response_preconditioned_hybrid` note proves that small
+normalized cut rank closes the target harmonic bank, and also gives the
+linear-volume comb with full cut rank and rank-deficient energy error bounded
+below independently of the comb length for fixed `alpha < 1`.
+On a high-rank large core with neither bounded articulation blocks, an
+equitable tree quotient, nor thin radial support, the remaining problem is now
+an output-sensitive partial flush, or a different proved support-safe trace,
+without rescanning the full boundary after every light update. Pure geometric
+sleep for the literal gate is already refuted.
 
 The supplied-support condition has also been removed on arbitrary graphs for
-correctness and locality.  An exact boundary-violation gate admits only
-vertices in the true RPPR support and terminates at the exact optimum.  It costs
-`O(|S*| vol(S*)) = O(1 / rho^2)` with fresh tree elimination.  This already
-matches `O(1 / (rho sqrt(alpha)))` when `rho >= sqrt(alpha)` and supplies a
-separate monotone correctness proof; supplied width-`w` intermediate
-orderings give `O((w + 1)^2 / rho^2)`.  Retaining the realized batch count
-gives the sharper bound above, so thin radial support also reaches the fine-
-regularization product scale.  Lazy tree and bounded-block responses cover
-branching structures whose shells need not be thin.
+correctness. An exact boundary-violation gate admits only vertices in the true
+RPPR support and terminates at the exact optimum. If every intermediate
+induced graph is a forest, fresh tree elimination costs
+`O(|S*| vol(S*)) = O(1 / rho^2)`; more generally, supplied width-`w`
+intermediate orderings give `O((w + 1)^2 / rho^2)`. The forest bound already
+matches `O(1 / (rho sqrt(alpha)))` when `rho >= sqrt(alpha)`, while the
+arbitrary-graph theorem by itself is a monotone correctness result. Retaining
+the realized batch count gives the sharper trajectory-dependent bound above,
+so thin radial support also reaches the fine-regularization product scale.
+Lazy tree and bounded-block responses cover branching structures whose shells
+need not be thin.
 
 Build from this directory with:
 

@@ -32,7 +32,8 @@ also realizes the exact old-face response and verifies that arbitrary nested
 Schur-frontier errors are mutually energy-orthogonal. Its normalized lift
 constructs an energy-orthonormal basis for each frontier, allowing the
 append-only multi-event response-sketch identities in the accompanying note
-to be checked directly. The backend
+to be checked directly. The tests also verify the two-sided group estimator
+and its exact transposed harmonic measurement identity. The backend
 materializes the full matrix and records global boundary reads and dense
 arithmetic explicitly. It validates bordered updates and switching invariants;
 it is not the sought output-sensitive SDD implementation.
