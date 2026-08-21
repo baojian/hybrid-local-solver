@@ -85,7 +85,14 @@ margin lemma explains why its signed relative-accuracy state cannot simply be
 declared a canonical gate state: a parent-coordinate error must be smaller
 than the minimum exact demand-to-coupling ratio, adding a margin-dependent
 accuracy logarithm unless exact settlement or a new one-sided certificate is
-paid.  The remaining open problem is a
+paid.  At the actual first-layer checkpoint, that ratio is exceptionally
+local: one paid scan of the three live boundary rows gives the exact sharp
+$\mu_1$.  The capped \texttt{MarginCert-BC-AESP}$_1$ witness then carries a
+genuine signed AESP endpoint into the next certified gate, with complete
+prefix/post ledgers and both the margin logarithm and per-stage
+$\log(1/(1-2\alpha))$ factor explicit.  Its separately charged exact
+constant-size margin response makes it a comparison witness, not an
+acceleration speedup.  The remaining open problem is a
 graph-independent local-work bound
 from an arbitrary accelerated warm start, not correctness of the hybrid
 itself.
@@ -1440,11 +1447,435 @@ where the degree-three child $b_2$ attains the minimum; $a_1$ and $r_1$ have
 degrees two and one.  Moving the single seed coordinate down by exactly this
 amount makes the $b_2$ demand zero.  Because this face is one-dimensional,
 \texttt{FirstLayer-BC}$_1$ simply settles it exactly and avoids the margin
-logarithm.  At a growing checkpoint, retaining a useful signed accelerated
-state requires either paying
+logarithm.  At a generic growing checkpoint, retaining a useful signed
+accelerated state still requires either paying
 \cref{eq:branch-caterpillar-signed-gate-stage-cap}, proving a stronger
 one-sided certificate, or performing the exact response settlement that the
-current handoff already charges.
+current handoff already charges.  The first nonzero checkpoint is exceptional:
+its face and boundary have constant size, so its sharp margin can be computed
+and charged on demand.  We make that exception precise next.
+
+\subsection{An on-demand first-layer margin and a numerical gate splice}
+\label{sec:branch-caterpillar-first-layer-numerical-splice}
+
+The result below does not maintain an eager array of future margins.  It
+computes one scalar certificate only when the actual execution is already at
+$\widehat U_1$, from the retained constant-size response and one paid scan of
+the three currently live boundary rows.  This distinction matters: the scan
+exposes rows in $\mathcal F_1$, but it neither admits those vertices nor lets
+the numerical method use their coordinates.
+
+Let
+\begin{equation}
+ \xi_1:=a_0^2-\frac{11h_0^2}{18}>0.
+ \label{eq:branch-caterpillar-first-layer-response-denominator}
+\end{equation}
+The four restricted equations at $\widehat U_1$ give
+\begin{align}
+ (x_1)_{b_1}
+  &=\frac{\alpha(a_0-3\rho)}{\sqrt3\,\xi_1},
+ \notag\\
+ (x_1)_{b_2}
+  &=\frac{h_0(x_1)_{b_1}/3-\alpha\rho\sqrt3}{a_0},
+ &
+ (x_1)_{a_1}
+  &=\frac{h_0(x_1)_{b_1}/\sqrt6-\alpha\rho\sqrt2}{a_0},
+ \notag\\
+ (x_1)_{r_1}
+  &=\frac{h_0(x_1)_{b_1}/\sqrt3-\alpha\rho}{a_0}.
+ \label{eq:branch-caterpillar-first-layer-response-formula}
+\end{align}
+Define the scan-derived scalar
+\begin{equation}
+ \underline\mu_1:=
+ \begin{cases}
+  \min\left\{
+   (x_1)_{b_2}-\dfrac{3\alpha\rho\sqrt3}{h_0},
+   (x_1)_{a_1}-\dfrac{2\alpha\rho\sqrt2}{h_0}
+       \right\},&m>2,\\[7pt]
+  \min\left\{
+   (x_1)_{b_2}-\dfrac{\alpha\rho\sqrt3}{h_0},
+   (x_1)_{a_1}-\dfrac{\alpha\rho\sqrt2}{h_0}
+       \right\},&m=2.
+ \end{cases}
+ \label{eq:branch-caterpillar-first-layer-local-margin}
+\end{equation}
+
+\begin{lemma}[Exact on-demand certificate for the first-layer margin]
+\label{lem:branch-caterpillar-first-layer-margin-certificate}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  At the actual checkpoint
+$\widehat U_1$, scan each row in $\mathcal F_1$ once and retain it.  The local
+incidences, degrees, $\alpha$, $\rho$, and
+\cref{eq:branch-caterpillar-first-layer-response-formula} are an exact-real,
+locally checkable certificate that
+\begin{equation}
+ 0<\underline\mu_1=\mu_1.
+ \label{eq:branch-caterpillar-first-layer-margin-equality}
+\end{equation}
+No value for another checkpoint is computed or retained.  Without the stated
+strict-range promise, the same local routine fails closed whenever its
+computed minimum is nonpositive; the lemma makes no conclusion in that case.
+
+Put
+\begin{equation}
+ \nu_1:=\vol(\mathcal F_1)
+ =\begin{cases}6,&m>2,\\3,&m=2.\end{cases}
+ \label{eq:branch-caterpillar-first-layer-boundary-volume}
+\end{equation}
+Incremental to the already paid state of
+\texttt{FirstLayer-BC}$_1$, one batched implementation of this on-demand
+certificate has the complete vector
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_{\mu_1})
+ =\bigl(\nu_1,1,0,0,O(1),0,O(1),O(1),O(1),O(1),0\bigr).
+ \label{eq:branch-caterpillar-first-layer-margin-certificate-vector}
+\end{equation}
+The response coordinate pays the constant-size retained-response readout and
+algebraic cross-check in
+\cref{eq:branch-caterpillar-first-layer-response-formula}; control pays the
+degree, parent, strict-sign, minimum, and certificate checks; persistent and
+materialization cells pay the three retained rows and the constant-size
+certificate transcript.  There is no external interaction or emission.
+\end{lemma}
+
+\begin{proof}
+On $\widehat U_1=\{b_1,b_2,a_1,r_1\}$ the diagonal of $Q$ is $a_0$ and its
+three off-diagonal entries incident to $b_1$ are
+$-h_0/3$, $-h_0/\sqrt6$, and $-h_0/\sqrt3$.  The shifted loads at
+$b_1,b_2,a_1,r_1$ are respectively
+\[
+ \frac{\alpha(1-3\rho)}{\sqrt3},\qquad
+ -\alpha\rho\sqrt3,\qquad
+ -\alpha\rho\sqrt2,\qquad
+ -\alpha\rho.
+\]
+Eliminating the last three coordinates gives the coefficient
+$a_0-11h_0^2/(18a_0)$ at $b_1$ and proves
+\cref{eq:branch-caterpillar-first-layer-response-formula}.
+
+For any unseeded boundary vertex $v$ with active parent $p$, its load is
+$-\alpha\rho\sqrt{d_v}$ and
+$\beta_{1,v}=h_0/\sqrt{d_vd_p}$.  Therefore
+\begin{equation}
+ \frac{g_{1,v}}{\beta_{1,v}}
+ =(x_1)_p-\frac{\alpha\rho}{h_0}d_v\sqrt{d_p}.
+ \label{eq:branch-caterpillar-first-layer-margin-ratio}
+\end{equation}
+If $m>2$, the scanned boundary is $\{b_3,a_2,r_2\}$, with degree/parent
+pairs $(3,b_2),(2,a_1),(1,b_2)$.  The $r_2$ ratio strictly exceeds the
+$b_3$ ratio, leaving exactly the first line of
+\cref{eq:branch-caterpillar-first-layer-local-margin}.  If $m=2$, the
+boundary is $\{a_2,r_2,r_3\}$; all three vertices have degree one and the
+two $r$ ratios coincide, giving the second line.  The imported strict-range
+chronology makes all three exact demands positive, so their minimum ratio is
+strictly positive.  This proves
+\cref{eq:branch-caterpillar-first-layer-margin-equality}.
+
+The four rows of $\widehat U_1$ were paid by
+\texttt{FirstLayer-BC}$_1$.  The three boundary rows have total degree
+$\nu_1$ and can be scanned in one additional batched round.  All remaining
+arithmetic and storage is constant size.  Assigning each operation as stated
+proves
+\cref{eq:branch-caterpillar-first-layer-margin-certificate-vector}.
+\end{proof}
+
+We now use the certificate in one deliberately auditable numerical splice.
+It is useful as an interface witness, not as an efficiency claim: the exact
+constant-size response needed to certify $\underline\mu_1$ could itself
+decide the same boundary.  We nevertheless retire that response before the
+handoff, so the coordinate state actually carried into the next gate is the
+signed numerical endpoint, not a relabeled exact settlement.
+
+Put
+\begin{align}
+ \mathcal V_1&:=\vol(\widehat U_1)=9,
+ &C_1&:=C(\widehat U_1)=13,
+ &C_2&:=C(\widehat U_2)=16+\nu_1,
+ \notag\\
+ L_1^{\rm rel}
+ &:=2+\frac34\log_+\!\left(
+  \frac{16(1-\alpha)^2\mathcal V_1}
+       {\delta_{\rm A}(1-2\alpha)(1-\alpha)}
+                         \right).
+ \label{eq:branch-caterpillar-first-layer-numerical-oracle-log}
+\end{align}
+Let $F_{\rho,\widehat U_1}$ denote $F_\rho$ restricted to vectors supported
+on $\widehat U_1$, with all other coordinates fixed to zero.  For an
+explicitly materialized signed start $z^{(0)}$ on that face, let
+\begin{equation}
+ \Delta_{1,0}:=
+ F_{\rho,\widehat U_1}(z^{(0)})
+ -F_{\rho,\widehat U_1}(x_1)\geq0
+ \label{eq:branch-caterpillar-first-layer-initial-gap}
+\end{equation}
+and define the integer cap
+\begin{equation}
+ T_1(z^{(0)}):=
+ \begin{cases}
+  0,&\Delta_{1,0}=0,\\[2pt]
+  1+\left\lfloor
+   \dfrac{2}{\sqrt{\chi_{\rm A}}}
+   \log_+\!\left(
+    \dfrac{4\Delta_{1,0}}
+          {\alpha\underline\mu_1^2}
+               \right)
+     \right\rfloor,&\Delta_{1,0}>0.
+ \end{cases}
+ \label{eq:branch-caterpillar-first-layer-numerical-stage-cap}
+\end{equation}
+Thus the zero-gap branch invokes neither the logarithm nor a numerical stage.
+For the named nontrivial instantiation below we use $z^{(0)}=0$.  Then
+\begin{equation}
+ \Delta_{1,0}
+ =\frac12 x_1^TQ_{\widehat U_1\widehat U_1}x_1>0,
+ \label{eq:branch-caterpillar-first-layer-zero-start-gap}
+\end{equation}
+so at least one genuine numerical stage is run.
+
+\begin{definition}[Margin-certified first-layer numerical splice]
+\label{def:branch-caterpillar-first-layer-numerical-policy}
+The policy \texttt{MarginCert-BC-}\allowbreak
+\texttt{AESP}$_1(z^{(0)})$ performs the following operations.
+\begin{enumerate}
+ \item Run \texttt{FirstLayer-BC}$_1$ to the actual checkpoint
+       $\widehat U_1$, and run the single on-demand certificate in
+       \Cref{lem:branch-caterpillar-first-layer-margin-certificate}.  Store
+       $\underline\mu_1$, the exact restricted optimum-value scalar, and the
+       local certificate transcript.  Retire the exact response arena by an
+       epoch pointer; do not call its point the accelerated state.
+ \item On the fixed numerical face $\widehat U_1$, run exactly
+       $T_1(z^{(0)})$ relative-accuracy composite Catalyst stages with
+       AESP--CD inner solves, using the same relative oracle as
+       \Cref{thm:branch-caterpillar-envelope-aesp-prefix}.  Every warm-start
+       row and repeated coordinate row is rescanned and charged.  Coordinates
+       in $\mathcal F_1$ remain identically zero in this numerical arena.  The
+       accelerated target here is the restricted point $x_1$, not the full
+       RPPR minimizer; no claim that $\widehat U_1$ contains $S^\star$ is used.
+ \item Materialize the signed endpoint $z^{(T_1)}$ and locally recompute its
+       exact restricted objective gap from the retained four face rows and
+       optimum-value scalar.  Store the strict certificate
+       \[
+        F_{\rho,\widehat U_1}(z^{(T_1)})
+        -F_{\rho,\widehat U_1}(x_1)
+       <\frac{\alpha\underline\mu_1^2}{2}.
+       \]
+       Put
+       $\Delta_{1,T_1}:=
+       F_{\rho,\widehat U_1}(z^{(T_1)})-
+       F_{\rho,\widehat U_1}(x_1)$ and
+       $r_1^{\rm cert}:=\sqrt{2\Delta_{1,T_1}/\alpha}
+       <\underline\mu_1$.  If $\mu_{1,v}:=g_{1,v}/\beta_{1,v}$ is the
+       corresponding one of the three stored ratios, certify
+       \begin{equation}
+        (\ell_\rho-Qz^{(T_1)})_v
+        \geq\beta_{1,v}(\mu_{1,v}-r_1^{\rm cert})
+        \geq\beta_{1,v}(\underline\mu_1-r_1^{\rm cert})>0.
+        \label{eq:branch-caterpillar-first-layer-numerical-positive-interval}
+       \end{equation}
+       For each of the three stored boundary rows, compute the signed demand
+       $(\ell_\rho-Qz^{(T_1)})_v$ and its certified positive lower interval.
+       Stop before the second external interaction, carrying the signed
+       endpoint, the scalar certificate, the paid rows, and the common
+       admitted checkpoint $\widehat U_1$.
+ \item In the post phase, use those three certified signed demands for the
+       canonical all-violations interaction, emit and commit
+       $\mathcal F_1$, then build and exactly settle the native response on
+       $\widehat U_2$.  Retire the signed arena and continue
+       \emph{CaterpillarCanonicalLayerDelta} from this actual checkpoint.
+\end{enumerate}
+The zero-gap branch in step 2 has $z^{(0)}=x_1$ by strong convexity and runs
+zero stages.  It is correct but is not called a numerical acceleration.  The
+named zero-start instance has positive gap by
+\cref{eq:branch-caterpillar-first-layer-zero-start-gap} and is the genuinely
+numerical comparison witness.
+\end{definition}
+
+Immediately before the second interaction, its four arenas are
+\begin{equation}
+ \begin{aligned}
+ U_{\mathrm{adm}}&=\widehat U_1,
+ &U_{\mathrm{num}}&=\widehat U_1,
+ &\supp(z^{(T_1)})&\subseteq\widehat U_1,\\
+ E_{\mathrm{row}}&=\widehat U_2,
+ &E_{\mathrm{lab}}&=
+ \begin{cases}
+  \widehat U_2,&m=2,\\
+  \widehat U_3,&m>2.
+ \end{cases}
+ \end{aligned}
+ \label{eq:branch-caterpillar-first-layer-numerical-arenas}
+\end{equation}
+Here $U_{\mathrm{num}}$ is the allocated signed face; its actual support may
+be smaller.  The rows in $\mathcal F_1=\widehat U_2\setminus\widehat U_1$
+are scanned lookahead only and have zero numerical coordinates.  When $m>2$,
+the labels in $\widehat U_3\setminus\widehat U_2$ are names returned by those
+rows; their own rows are unscanned.  No lookahead vertex is admitted before
+the certified external interaction.
+
+Because this interface has already performed a paid internal prequery of
+$\mathcal F_1$, it is not asserted to satisfy the stricter endpoint clause in
+\Cref{def:branch-caterpillar-canonical-checkpoint-prefix}.  The post vector
+below is proved directly from the stored rows and the native reporter state;
+it is not obtained by silently invoking that older conversion theorem.
+
+Define the charged numerical budgets
+\begin{align}
+ \mathfrak A_1&:=T_1(z^{(0)})\mathcal V_1L_1^{\rm rel},
+ &\mathfrak D_1&:=C_2+\mathfrak A_1,
+ \notag\\
+\mathfrak H_1&:=C_2+
+  \bigl(1+\log(2+C_1)\bigr)\mathfrak A_1.
+ \label{eq:branch-caterpillar-first-layer-numerical-budgets}
+\end{align}
+
+\begin{theorem}[Capped numerical gate at the actual first-layer checkpoint]
+\label{thm:branch-caterpillar-first-layer-numerical-handoff}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  The policy in
+\Cref{def:branch-caterpillar-first-layer-numerical-policy} certifies the
+complete batch $\mathcal F_1$ and returns the exact RPPR minimizer.  Its
+pre-handoff phase ends at the actual common checkpoint $\widehat U_1$ before
+the second external interaction.  In the shared order it has the complete
+prefix vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm MC1}^{\rm pref})=\bigl(&
+ 9+\nu_1+O(\mathfrak A_1),
+ 3+O(\mathfrak A_1),1,0,O(\mathfrak H_1),
+ O(\mathfrak A_1),O(1),\\
+ &O(C_2),O(C_1),O(\mathfrak D_1),\Theta(1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-first-layer-numerical-prefix-eleven-vector}
+\end{equation}
+The prefix emission is exactly the first three delta labels and one
+constant-size certificate reply; the on-demand margin and all numerical
+certificates are internal control/state and emit no cell.  In particular,
+\begin{equation}
+ B_{\rm MC1}^{\rm full}=O(\mathfrak H_1).
+ \label{eq:branch-caterpillar-first-layer-numerical-prefix-work}
+\end{equation}
+
+After the handoff, the stored rows of $\mathcal F_1$ are not scanned again.
+One batched continuation has the complete post vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm MC1}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_2),m-2,m,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-1)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),\\
+ &\Theta(\card{S^\star}),
+ \card{S^\star\setminus\widehat U_1}
+ +\card{S^\star}+\Theta(m)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-first-layer-numerical-post-eleven-vector}
+\end{equation}
+The $m-2$ adjacency rounds are zero when $m=2$.  The $m$ interactions are
+the certified $\mathcal F_1$ batch, the remaining $m-2$ batches, and the
+terminal return.  The emission coordinate contains every still-unemitted
+positive label once, every exact output coordinate once, one reply for every
+remaining batch, and the terminal reply.
+
+All additive and round coordinates sum across the handoff.  Releasing the
+constant-size numerical/certificate epoch after the $\mathcal F_1$ response
+update gives total persistent and temporary peaks
+$\Theta(C(S^\star))$ and $O(C(S^\star))$.  Therefore
+\begin{equation}
+ W_{\rm total}
+ =O\!\left(
+   \mathfrak H_1+C(S^\star)\log(2+C(S^\star))
+       \right).
+ \label{eq:branch-caterpillar-first-layer-numerical-total-work}
+\end{equation}
+The exact margin-dependent expression is authoritative.  It contains
+\begin{equation*}
+ \log_+\!\left(
+ \frac{4\Delta_{1,0}}{\alpha\underline\mu_1^2}
+             \right)
+ \quad\text{when }\Delta_{1,0}>0,
+ \qquad\text{and}\qquad
+ L_1^{\rm rel}=2+\frac34\log_+\!\left(
+  \frac{144(1-\alpha)}{\delta_{\rm A}(1-2\alpha)}\right)
+\end{equation*}
+with the full constants fixed in
+\cref{eq:branch-caterpillar-first-layer-numerical-oracle-log,eq:branch-caterpillar-first-layer-numerical-stage-cap}.
+The second expression retains its explicit
+$\log(1/(1-2\alpha))$ upper-end nonuniformity.  Neither factor is hidden by a
+claim uniform in the margin or as $\alpha\uparrow1/2$.
+
+This is an exact-real, fixed-family, branch-seeded, fixed-face numerical
+gate witness at $k=1$.  Its signed state really supplies the carried
+pre-gate coordinate vector in the positive-gap branch, but its one-time
+margin certificate was obtained from a separately charged exact
+constant-size response.  Hence it is not a speedup over
+\texttt{FirstLayer-BC}$_1$, not an automatically exploring accelerated
+prefix, and not a graph-uniform locality result.  It proves no claim for
+another checkpoint, range, seed, policy, repeated complete-positive-list
+interface, finite precision, bit complexity, PPR conversion, or arbitrary
+graph.
+\end{theorem}
+
+\begin{proof}
+For $\Delta_{1,0}=0$, strong convexity gives $z^{(0)}=x_1$ and the policy runs
+zero stages.  Suppose $\Delta_{1,0}>0$.  By construction,
+$T_1(z^{(0)})$ is an integer satisfying the strict stage inequality
+\begin{equation*}
+ T_1(z^{(0)})>
+ \frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(
+  \frac{4\Delta_{1,0}}
+       {\alpha\underline\mu_1^2}
+             \right).
+\end{equation*}
+The imported relative Catalyst estimate and
+\cref{eq:branch-caterpillar-first-layer-margin-equality} therefore give
+\[
+ F_{\rho,\widehat U_1}(z^{(T_1)})
+ -F_{\rho,\widehat U_1}(x_1)
+ <\frac{\alpha\mu_1^2}{2}.
+\]
+This invokes only the generic strongly convex outer rate on the restricted
+objective.  The certified-envelope corollary's separate conclusion that a
+restricted solve equals the full optimum is neither assumed nor needed here.
+This also covers the case where the logarithm is zero: then $T_1=1$ and the
+strict exponential contraction improves the already sufficient
+$4\Delta_{1,0}\leq\alpha\mu_1^2$ bound.  Strong convexity and
+\Cref{prop:branch-caterpillar-signed-gate-margin} make all three signed
+boundary demands strictly positive.  Hence the carried signed state and its
+certificate select exactly the actual canonical batch $\mathcal F_1$.
+
+The imported fixed-envelope relative oracle charges at most
+$\mathcal V_1L_1^{\rm rel}$ degree work per stage, including every warm start
+and repeated row scan.  One adjacency round per charged row scan gives the
+$O(\mathfrak A_1)$ additions to the first two coordinates.  Proximal,
+gradient, and outer recurrences cost $O(\mathfrak A_1)$ in $C_{\rm rec}$;
+heap, queue, strict-gap, signed-demand, interval, and outer-stage logic costs
+$O(\mathfrak H_1)$ in $C_{\rm ctl}$.  The exact first-layer settlement and
+one-time response readout remain separately visible as $C_{\rm resp}=O(1)$.
+Every explicit numerical state read/write and full four-coordinate stage
+materialization is covered by $O(\mathfrak D_1)$ in $C_{\rm mat}$.  The
+common records, seven scanned rows, numerical face, heap, certificate
+transcript, and temporary vectors give the displayed memory coordinates.
+There is no preprocessing, no external AESP interaction, and no numerical
+emission.  Adding the vectors from
+\cref{eq:branch-caterpillar-first-layer-prefix-eleven-vector,eq:branch-caterpillar-first-layer-margin-certificate-vector}
+proves
+\cref{eq:branch-caterpillar-first-layer-numerical-prefix-eleven-vector}.
+
+At the second interaction, consume the already scanned $\mathcal F_1$ rows,
+emit its three labels once, and pay the exact response build and settlement
+on $\widehat U_2$.  Schur associativity gives the native reporter state at
+that actual checkpoint; no earlier face is replayed.  The subsequent live
+boundary rows partition $S^\star\setminus\widehat U_2$, giving the first two
+post coordinates.  Removing the already paid first layer and pre-scanned
+second layer from the reviewed canonical reporter ledger gives every other
+coordinate in
+\cref{eq:branch-caterpillar-first-layer-numerical-post-eleven-vector}.
+The stated sum and peak rules now prove
+\cref{eq:branch-caterpillar-first-layer-numerical-total-work}.  Exact terminal
+settlement returns $x^\star(\rho)$.
+\end{proof}
 
 \input{sections/07_implementation_and_experiments}
 \input{sections/08_relation_conclusion_appendix}

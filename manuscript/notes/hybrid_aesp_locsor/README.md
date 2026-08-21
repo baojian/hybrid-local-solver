@@ -11,6 +11,7 @@ Build from this directory with:
 
 ```bash
 make
+python3 check_round014.py
 ```
 
 The note embeds its bibliography so that it compiles without a BibTeX
@@ -116,6 +117,25 @@ The main established results are:
   The old constant half-gap does not supply this comparison. This is a sharp
   norm-ball/gap-interface obstruction, not a lower bound against exact
   settlement or a new one-sided local certificate;
+- the exceptional `k=1` margin is now closed exactly by
+  `lem:branch-caterpillar-first-layer-margin-certificate`. One on-demand scan
+  of the three live rows in `F_1` costs `nu_1=6` for `m>2` and `nu_1=3` for
+  `m=2`; together with the retained four-coordinate response it computes the
+  exact sharp scalar `underline(mu)_1=mu_1`. No future margin table is built or
+  maintained. The named `MarginCert-BC-AESP_1` splice then runs the exact
+  positive-gap cap
+  `1+floor((2/sqrt(alpha/(1-alpha)))*log_+(4 Delta_(1,0)/(alpha mu_1^2)))`
+  on the fixed numerical face `Uhat_1`; `Delta_(1,0)=0` instead runs zero
+  stages. Every stage retains the explicit `log(1/(1-2 alpha))` oracle factor.
+  Before the next interaction the admitted and numerical arenas are `Uhat_1`,
+  the scanned-row arena is `Uhat_2`, and only the next layer's labels are
+  further lookahead. Its full ledgers are
+  `eq:branch-caterpillar-first-layer-numerical-prefix-eleven-vector` and
+  `eq:branch-caterpillar-first-layer-numerical-post-eleven-vector`. The signed
+  endpoint really supplies the carried gate state for positive gap, but the
+  exact constant-size response used to certify `mu_1` is separately charged;
+  this is a fixed-face numerical comparison witness, not an acceleration
+  speedup, automatic exploration, or a certificate for any other `mu_k`;
 - in that strict caterpillar range and with `alpha<1/2`, the named
   `Full-BC-AESP_0` policy supplies one independent fully charged prefix bound.
   It pays a complete traversal of the promised fixed family, uses the imported
@@ -153,10 +173,12 @@ named first-layer policy supplies a locally exposed actual `k=1` checkpoint
 and retains its exact response state, but it is response-native rather than
 accelerated. The full-envelope zero-checkpoint policy remains a capped AESP
 comparison at its exact interface; no analogous bound follows for an uncapped
-or automatically exploring signed prefix, and the exact margin proposition
-shows the additional certificate that its relative-gap state lacks. No
-numerical
-estimate-sequence energy is retained across these handoffs, so no shock-free
+or automatically exploring signed prefix. The Round-014 `k=1` witness closes
+one constant-size on-demand margin and carries a signed numerical endpoint
+into the next gate, but it relies on a separately charged exact response and
+retains both the margin logarithm and the upper-alpha oracle logarithm. It does
+not scale to `k>=2` or prove a speedup. No numerical estimate-sequence energy
+is retained beyond the certified gate into the response, so no shock-free
 carryover or Euclidean-log collateral packing is claimed. The caterpillar
 statement does not cover `rho_can<=rho<rho_cat`, another seed or policy,
 repeated complete-positive-list output, a positive `m`-uniform `rho` range,

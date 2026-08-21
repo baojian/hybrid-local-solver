@@ -40,7 +40,18 @@ State: proved-open
   and scanned-row set are all `Uhat_1`; only the next layer's labels are known
   lookahead, with no row or coordinate exposure. This policy performs no
   AESP stage and is therefore a response-native local comparator, not an
-  accelerated prefix. The three-arm and double-Y structural
+  accelerated prefix. Round-014 closes the exceptional sharp margin at this
+  actual checkpoint: one on-demand scan of the three live rows in `F_1`, plus
+  the separately charged four-coordinate exact response, computes
+  `underline(mu)_1=mu_1`. The named `MarginCert-BC-AESP_1` policy uses this
+  scalar to cap relative-accuracy AESP-CD on the fixed signed face `Uhat_1`
+  and carries its numerical endpoint into the second canonical gate. Before
+  that interaction, admission and numerical allocation are `Uhat_1`, scanned
+  rows are `Uhat_2`, and only the following layer's labels are further
+  lookahead. The exact response used for the margin is retired before the
+  handoff and remains separately charged, so this is a genuine signed-state
+  gate witness but only a comparison, not an acceleration speedup or automatic
+  exploration. The three-arm and double-Y structural
   handoffs otherwise accept any fully charged gate-compatible Phase-I prefix;
   the caterpillar handoff accepts only the defined canonical checkpoints.
 - **Accuracy namespace:** PPR uses the note-scoped degree-normalized gradient
@@ -91,7 +102,19 @@ State: proved-open
   degree work of rows `b_1,b_2,a_1,r_1`, and the two adjacency rounds separate
   seed-row discovery from the parallel live-boundary scan. The retained
   response grows in place through the suffix, so memory composes by a single
-  peak and no conversion traversal or first-layer replay is charged.
+  peak and no conversion traversal or first-layer replay is charged. The
+  Round-014 on-demand margin itself has incremental vector
+  `eq:branch-caterpillar-first-layer-margin-certificate-vector`:
+  `(nu_1,1,0,0,O(1),0,O(1),O(1),O(1),O(1),0)`, where `nu_1=6` for `m>2` and
+  `nu_1=3` for `m=2`. The numerical splice has the complete prefix/post vectors
+  `eq:branch-caterpillar-first-layer-numerical-prefix-eleven-vector` and
+  `eq:branch-caterpillar-first-layer-numerical-post-eleven-vector`. Its prefix
+  charges the original nine row units, the `nu_1` certificate scan, every
+  repeated AESP row, recurrence, heap/certificate/state/materialization cell,
+  the first interaction and its four emitted cells, and the separately paid
+  constant response. Its post does not rescan `F_1`; it charges every later
+  row, response update, interaction/reply, terminal materialization, exact
+  output, and both memory peaks.
 - **Intended result:** Graph-uniform
   `O_tilde(1/(sqrt(alpha)*eps_ppr))` PPR work and, separately,
   `O_tilde(1/(rho*sqrt(alpha)))` RPPR work.
@@ -153,6 +176,22 @@ State: proved-open
   stage cap,
   and each such stage retains its explicit `log(1/(1-2 alpha))` oracle factor;
   the constant half-gap result alone does not meet that gate certificate.
+  New `lem:branch-caterpillar-first-layer-margin-certificate` solves the
+  exceptional `k=1` certificate exactly. It derives the four restricted
+  coordinates in closed form, scans the three current boundary rows once,
+  and computes the exact minimum demand-to-coupling ratio with no eager future
+  margin state. New `thm:branch-caterpillar-first-layer-numerical-handoff`
+  composes that scalar with fixed-face relative-accuracy AESP-CD. For positive
+  initial gap it runs exactly
+  `1+floor((2/sqrt(alpha/(1-alpha)))*log_+(4 Delta_(1,0)/(alpha mu_1^2)))`
+  stages; for zero gap, strong convexity gives the exact point and it runs zero
+  stages. The signed endpoint and its strict objective-gap certificate supply
+  the next gate, after which a separately charged native response settles the
+  committed face and finishes exactly. Both the full margin logarithm and the
+  per-stage `log(1/(1-2 alpha))` factor remain visible; the theorem makes no
+  uniform product claim in either quantity and explicitly classifies the
+  construction as a response-assisted numerical comparison rather than a
+  speedup.
   New `thm:branch-caterpillar-envelope-aesp-prefix` proves
   `B_env^full=O_tilde(C(S*)/sqrt(alpha))` for `Full-BC-AESP_0`, using exactly
   `T_*=ceil(2 log(4)/sqrt(alpha/(1-alpha)))` relative-accuracy stages and the
@@ -183,8 +222,11 @@ State: proved-open
   full-envelope zero-checkpoint AESP policy. Independently,
   `FirstLayer-BC_1` constructs a local actual checkpoint and completes with a
   stronger response-native bound, but it supplies no accelerated-prefix
-  theorem. Neither result bounds an uncapped or automatically exploring
-  signed AESP prefix. Even for the full-envelope policy, the shorthand
+  theorem. `MarginCert-BC-AESP_1` supplies a capped signed gate only on the
+  already reached constant-size face and retains the exact margin-dependent
+  multivariate bound; it is not an automatically exploring prefix and does
+  not remove either logarithm. None of these results bounds an uncapped or
+  automatically exploring signed AESP prefix. Even for the full-envelope policy, the shorthand
   product bound is pointwise on `alpha<1/2`, not uniform at the upper endpoint;
   use the exact `O(H_*)` prefix bound near `alpha=1/2`.
 - **Measured:** AESP Figure 4 supports early-stage practical effectiveness;
@@ -200,7 +242,7 @@ State: proved-open
   must also be below the sharp margin `mu_k`.
 - **Open:** A graph-independent early-AESP prefix bound, local RPPR work from
   a retained arbitrary signed warm start, a lower bound and charged local
-  certificate for all canonical margins `mu_k`, another seed on the double-Y,
+  certificate for the canonical margins `mu_k` with `k>=2`, another seed on the double-Y,
   caterpillar checkpoints for `rho_can<=rho<rho_cat`, other seeds or policies,
   arbitrary pre-backbone interleavings, and repeated complete-positive-list
   output remain open. Arbitrary trees, cycles, finite precision, bit
@@ -215,11 +257,17 @@ delta/certificate interface. `FirstLayer-BC_1` now closes construction of one
 actual, locally exposed nonzero checkpoint and retains its exact native
 response, but it performs no acceleration. The named full-envelope policy
 closes one `k=0` AESP composition, but it discovers the whole realized support
-before acceleration and discards all numerical progress. The live hybrid
-blocker is therefore a capped automatically exploring signed Phase I whose
-state either satisfies the sharp margin gate or has a separately charged
-one-sided certificate, without paying a margin-dependent repeated-work term
-that destroys the target. The remaining canonical range and wider
+before acceleration and discards all numerical progress. Round-014 now gives
+one response-assisted fixed-face numerical gate at `k=1`: its margin is
+computed once from seven local rows, its signed endpoint is actually carried,
+and its exact prefix/post ledger is complete. This does not solve the live
+hybrid blocker because the exact constant-size response already determines
+the same boundary and the cap retains both margin and upper-alpha logarithms.
+The blocker is therefore a capped automatically exploring signed Phase I on a
+growing face whose state either satisfies a charged sharp-margin certificate
+without an exact response comparator or has a new locally checkable one-sided
+certificate, without paying a margin-dependent repeated-work term that
+destroys the target. The remaining canonical range and wider
 pre-backbone policies are separate blockers. No generic claim may use the
 uncapped "any finite burn-in" specification.
 
@@ -232,8 +280,8 @@ uncapped "any finite burn-in" specification.
 - Imported proof anchors: `adaptive_revisit_control`,
   `thm:three-arm-spider-token-countdown` and
   `thm:double-y-two-core-token-countdown`, and
-  `thm:branch-caterpillar-canonical-layer-reporter`; the named capped prefix
-  also imports `aesp_cd_l1_rppr`, `thm:aesp-cd-relative-oracle` and
+  `thm:branch-caterpillar-canonical-layer-reporter`; both named capped AESP
+  prefixes also import `aesp_cd_l1_rppr`, `thm:aesp-cd-relative-oracle` and
   `cor:aesp-cd-certified-envelope`. The expansion-shock and
   safeguarded collateral results delimit excluded numerical-energy routes but
   are not used as amortizations here.
@@ -241,8 +289,10 @@ uncapped "any finite burn-in" specification.
   proved one-pass common-state conversion for scalar and fixed rank-two cores,
   and now for the strict canonical growing tridiagonal core; exact resource
   ledgers; one locally exposed native `k=1` product-scale execution; one fully
-  exposed fixed-family AESP comparison witness; the sharp signed gate margin
-  and its margin-dependent stage-cap interface; the uncapped-prefix
+  exposed fixed-family AESP comparison witness; one exact on-demand `mu_1`
+  certificate and response-assisted numerical gate with complete ledgers; the
+  general sharp signed gate margin and its margin-dependent stage-cap
+  interface; the uncapped-prefix
   specification obstruction; and the distinction among irreversible
   admissions, scanned rows, label-only lookahead, and signed trial support.
 
@@ -270,16 +320,21 @@ uncapped "any finite burn-in" specification.
   `prop:branch-caterpillar-uncapped-prefix-obstruction`,
   `def:branch-caterpillar-envelope-aesp-zero-policy`,
   `thm:branch-caterpillar-envelope-aesp-prefix`, and
-  `cor:branch-caterpillar-envelope-aesp-product`; finally
+  `cor:branch-caterpillar-envelope-aesp-product`; then
   `sec:branch-caterpillar-signed-gate-margin` and
-  `prop:branch-caterpillar-signed-gate-margin`. Graph-uniform gates remain
+  `prop:branch-caterpillar-signed-gate-margin`; finally
+  `sec:branch-caterpillar-first-layer-numerical-splice`, especially
+  `lem:branch-caterpillar-first-layer-margin-certificate`,
+  `def:branch-caterpillar-first-layer-numerical-policy`,
+  `thm:branch-caterpillar-first-layer-numerical-handoff`, and its two full
+  eleven-vectors. Graph-uniform gates remain
   `conj:early-locality`, `sec:open-gap`, and `sec:composite-hybrid`.
-- Next concrete action: Starting from the paid local `k=1` checkpoint, prove a
-  lower bound or locally checkable one-sided certificate for `mu_k` that lets a
-  capped signed AESP state trigger a later canonical batch within product
-  work. Otherwise give an exact family where the margin-dependent stage cap
-  forces repeated-prefix work. Separately extend or refute the response beyond
-  `rho<rho_can`.
+- Next concrete action: At the first growing checkpoint `k>=2`, derive an
+  on-demand lower certificate that avoids an exact response comparator, or
+  give an exact family where the margin-dependent stage cap forces
+  repeated-prefix work. The certificate must scale beyond a constant face and
+  must not maintain every future margin eagerly. Separately extend or refute
+  the response beyond `rho<rho_can`.
 - Stop/go test: Stop any proof that privately replays a canonical order,
   rescans old prefixes per admission, identifies numerical support with safe
   admission, or transports estimate-sequence energy without an explicit
@@ -293,7 +348,7 @@ uncapped "any finite burn-in" specification.
 ## Verification
 
 - Source pointers checked: Root and note-level agent rules, shared problem,
-  related-work/results/broadcast ledgers, Round-011 through Round-013 assignments,
+  related-work/results/broadcast ledgers, Round-011 through Round-014 assignments,
   direction
   README/status/taxonomy/main and relevant sections, acceleration literature
   notes, and the exact canonical gate, three-arm, branch-seeded double-Y, and
@@ -350,6 +405,17 @@ uncapped "any finite burn-in" specification.
   `Delta_(k,0)=0` is now handled as immediate zero-stage success, while
   `log_+(4 Delta_(k,0)/(alpha mu_k^2))` is invoked only under the explicit
   assumption `Delta_(k,0)>0`. The README records the same exact formula.
+  Round-014 added the exact on-demand `mu_1` certificate and the capped
+  `MarginCert-BC-AESP_1` numerical splice. The focused checker independently
+  solves the four-by-four restricted system, compares all terminal and
+  nonterminal boundary ratios with the displayed formulas, verifies the
+  zero-start gap identity, and checks the strict integer stage cap. The
+  final direction build produced 52 pages with no undefined reference or new
+  overfull-box warning. `check_round014.py` passed its focused checks and Ruff
+  lint/format validation. `make note-audit` reported 18 notes across 5 tracks;
+  `make note-graph` reported the same 26-edge acyclic graph. Duplicate-label,
+  undefined-reference, conflict-marker, control-character, trailing-whitespace,
+  and scoped tracked/untracked diff checks all passed on 2026-08-21.
 - Known gaps: The structural handoffs deliberately discard all numerical
   progress and therefore prove no shock-free accelerated continuation. They
   are exact-real, fixed-tree-family, RPPR-only statements, not graph-uniform
@@ -361,10 +427,13 @@ uncapped "any finite burn-in" specification.
   locality or arbitrary finite burn-ins. Its soft-order work statement is also
   nonuniform as `alpha -> 1/2`. The responder-native policy separately reaches
   `k=1` with only local rows and retains exact response progress, but performs
-  no accelerated work. The signed-margin proposition shows exactly what is
-  still missing to combine those two properties: the old half-gap has no
-  certified relation to `mu_k`, and the available refinement adds both a
-  margin logarithm and the explicit `log(1/(1-2 alpha))` per-stage factor. The double-Y
+  no accelerated work. The Round-014 policy carries a genuine signed endpoint
+  through the next gate, but only after a separately charged exact
+  constant-size response computes `mu_1`; it therefore supplies no speedup and
+  no scalable margin mechanism. For `k>=2`, the signed-margin proposition
+  shows exactly what is still missing: the old half-gap has no certified
+  relation to `mu_k`, and the available refinement adds both a margin logarithm
+  and the explicit `log(1/(1-2 alpha))` per-stage factor. The double-Y
   result fixes `s=e_o` and a core of dimension at most two. The caterpillar
   response for a generic prefix remains conditional on an already valid
   canonical checkpoint and proves no bound for constructing such a prefix.

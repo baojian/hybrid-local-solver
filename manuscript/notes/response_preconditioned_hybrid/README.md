@@ -243,6 +243,26 @@ chronology, and the proposition does not refute implicit cyclic transfer,
 packed coded queries, scale truncation, on-demand validation, or an
 output-sensitive partial flush.
 
+Round 014 gives the matching narrow GO on that exact calibration trace.
+`NotchedSunScaleDelta` first validates the complete frozen
+cycle–chord–petal–report template, cut, ladder, event order, and stream mode.
+For the explicit near-one range
+`0 < vartheta <= 1 / (1296 n^2)`, a nonnegative Neumann expansion has kernel
+norm at most three. Its length-one matching term is already above
+`g = vartheta^(5/2)`, while the uniform tail over every still-unreported label
+is at most `g/2`. The reporter therefore retains only the template and label
+map, ladder, event counter, and stream metadata. It checks every incoming
+fragment, then emits `w_k` and one universal future-safe certificate per
+logical column without forming a response column or slack cell. Its complete
+vector is `eq:notched-sun-scale-delta-eleven-vector`; total work is linear in
+`n + J + p + C_frag + r n`, with `p=r` and `C_frag=rn` for nonnegative
+columns or `p=2r` and `C_frag=2rn` for the separately checked signed
+`2-minus-1` streams. This is a fixed-template, fixed-order, exact-real,
+scale-aware partial reporter—not a dynamic reporter for arbitrary fragments
+or a PPR/RPPR chronology. It demonstrates constructively why the
+`EagerExactSlack` STOP cannot be broadened to this template-aware
+representation.
+
 The remaining online question is not resolved by sleeping. For every fixed
 path length, a family-dependent sufficiently small positive `rho_n` makes the
 ambient-degree, endpoint-seeded canonical all-violations trace admit one new
@@ -398,5 +418,12 @@ uv run python manuscript/notes/response_preconditioned_hybrid/check_round013.py 
   --seed 20260821 --trials 100 --max-n 24
 ```
 
-Both scripts are numerical proof audits, not finite-precision theorems or
+Reproduce the Round-014 Neumann-tail certificate and template reporter checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round014.py \
+  --seed 20260821 --trials 100 --max-n 24
+```
+
+All three scripts are numerical proof audits, not finite-precision theorems or
 replacements for the LaTeX proofs.

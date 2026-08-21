@@ -10,6 +10,7 @@ Build from this directory with:
 ```bash
 make
 python3 check_round013.py
+python3 check_round014.py
 ```
 
 The note embeds its bibliography and deliberately uses note-scoped
@@ -63,6 +64,15 @@ The main closed statements are:
   the safe-envelope correction is seed-attained and suppresses a raw
   frontier violation at stage 6, then its maximizer switches to the old
   interior vertex `v_2` by stage 9;
+- the same actual projected trace gives a narrower pointwise STOP
+  (`prop:path-monotone-correction-potential-fails`): on the held face `U_3`,
+  the full moving correction increases strictly from stage 6 to stage 7, and
+  at stage 7 it exceeds `q^(-1)` times the normalized error to the restricted
+  optimum. The complete run has `J=4`, `T=16`, final volume `9`, swept volume
+  `114`, no intermediate emission, one terminal return, and the specialized
+  eleven-vector `eq:path-monotone-correction-stop-eleven-vector`. This
+  refutes only monotone correction debt and that coefficient-one pointwise
+  bound, not a nonmonotone or phase-aware aggregate proof;
 - a moving-maximum energy bound controls the full old-face correction without
   locating its maximizer: every constant-ratio path face admits or certifies
   within `O(q^(-1) log(1/q))` steps, giving
@@ -94,7 +104,9 @@ rigorous logarithmic fixed-face lower bound.  The
 observed `T=Theta(1/q^2)` and `mathfrak V_T=Theta(1/q^3)` exponents still lack
 matching global lower bounds.  The exact gate requires a nonlocal correction
 rather than a frontier-only scalar, and any future upper or lower proof must
-retain its moving global correction.  The
+retain its moving global correction. The correction itself also cannot simply
+be declared decreasing on held faces or bounded by `q^(-1)` times normalized
+face error with unit coefficient. The
 ledger also does not control nonpath response growth. The results use exact
 real cells and prove no
 finite-precision or automatic RPPR-to-PPR conversion;
