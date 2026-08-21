@@ -1,0 +1,616 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Removing the Repeated-Active-Set Factor:\\
+Nested SDD Corrections, Materialization Barriers, and an Exact Path Solver}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Wei and Yang's 2026 growing-active-set PageRank method solves a nearly-linear
+SDD system on every active set.  Its RPPR work is therefore
+$\widetilde O(|S^\star|\vol(S^\star))$, and the paper asks whether nested
+systems can be reused to approach $\widetilde O(\vol(S^\star))$.  This note
+isolates what is true about that proposal.  Exact nested minimizers satisfy a
+block-Schur update formula, their squared correction energies telescope, and
+the total correction energy is at most the PageRank teleportation parameter.
+This is a genuine warm-start invariant.  It does not, however, pay for even
+one full active-set matrix pass per expansion.  On endpoint paths the active
+sets can grow one vertex at a time, so any implementation that materializes
+the complete active solution at every round performs
+$\Omega(|S^\star|^2)=\Omega(|S^\star|\vol(S^\star))$ word writes.
+
+The repeated factor is nevertheless representational rather than intrinsic
+on paths.  An append-only tridiagonal $LDL^\top$ message computes the unique
+boundary gate from two scalars, stores one constant-size record per admitted
+vertex, and performs one terminal reverse substitution.  It exactly realizes
+the growing-active-set method in $O(\operatorname{cvol}(S_K))$ arithmetic and
+adjacency work.  Consequently it gives deterministic ACL approximation and
+RPPR additive-accuracy guarantees with no polynomial dependence on
+$1/\alpha$ on endpoint paths.  For arbitrary graphs we state the precise
+implicit incremental interface that would remove the factor.  Proving a
+near-linear total-work implementation of that interface---including boundary
+violation queries---remains open; ordinary warm starts and the energy
+telescope alone are insufficient.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim ledger}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+The shared project system uses the lazy symmetric matrix $Q$.  Wei and Yang
+instead use a degree-form, nonlazy PageRank matrix.  We keep the two
+teleportation parameters distinct until \cref{sec:mapping}.  All source claims
+below refer to arXiv \texttt{2608.16339v1}; all complexity comparisons charge
+at least one word operation per explicitly written vector coordinate and one
+degree unit when an adjacency list is scanned.
+
+For every exposed vertex set $U$, define the note-scoped charged volume
+\begin{equation}
+ \operatorname{cvol}(U):=\sum_{u\in U}(1+d_u).
+ \label{eq:charged-volume}
+\end{equation}
+Because the shared graph has no isolated vertices,
+$\vol(U)\leq\operatorname{cvol}(U)\leq2\vol(U)$.  This quantity charges one
+stored/output word per active coordinate in addition to its adjacency scan.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The growing-active-set method returns an ACL
+$\varepsilon$-approximation in $\widetilde O(1/\varepsilon^2)$ time and an
+additive RPPR approximation in
+$\widetilde O(|S^\star|\vol(S^\star))$ time.  It solves every nested SDD
+system from scratch and explicitly names incremental reuse as open. \\
+\statusproved & Successive exact restricted solutions satisfy an exact
+block-Schur correction formula.  Their squared correction energies telescope;
+along a source-valid PageRank trajectory their total is at most the source
+teleportation parameter. \\
+\statusrefuted & A conventional warm start, followed by a full active-set
+matrix pass or explicit active-vector output at every expansion, does not
+remove the repeated factor.  Endpoint paths give quadratic repeated-prefix
+work. \\
+\statusproved & On endpoint paths, append-only tridiagonal elimination
+computes every exact boundary gate in constant arithmetic per new vertex and
+recovers the final vector in one reverse pass.  Total charged work is linear
+in the final active volume. \\
+\statusconditional & On arbitrary graphs, the Wei--Yang correctness proof
+immediately accepts an implicit incremental solve-and-boundary oracle.  If its
+total update, query, and final-output work is near-linear in the final active
+volume, the repeated factor disappears. \\
+\statusopen & No such graph-uniform local oracle is proved here.  A block
+Schur correction can be dense, while boundary residuals depend on the changed
+old coordinates.  Energy telescoping alone does not bound the work needed to
+represent or query those changes. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The conclusions do not assert a new lower bound for all local graph-access
+algorithms.  In fact, the path theorem proves the opposite: the quadratic
+path cost belongs to a materialized repeated-solve representation, not to the
+PageRank problem itself.
+
+\section{Mapping the source system to the shared RPPR system}
+\label{sec:mapping}
+
+Let $\alpha\in(0,1)$ denote the shared lazy PageRank parameter and put
+\begin{equation}
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ \beta:=\frac{1-\alpha}{2},
+ \qquad
+ \bar\alpha:=\frac{\alpha}{a}=\frac{2\alpha}{1+\alpha}.
+ \label{eq:alpha-map}
+\end{equation}
+For $x=D^{1/2}z$,
+\begin{equation}
+ D^{1/2}QD^{1/2}=aD-\beta A
+ =a\bigl(D-(1-\bar\alpha)A\bigr).
+ \label{eq:matrix-map}
+\end{equation}
+Dividing the shared RPPR objective by $a$ therefore gives
+\begin{equation}
+ \frac12 z^\top L_{\bar\alpha}z
+ -\bar\alpha s^\top z
+ +\bar\alpha\rho\,d^\top |z|,
+ \qquad
+ L_{\bar\alpha}:=D-(1-\bar\alpha)A.
+ \label{eq:source-degree-form}
+\end{equation}
+Thus the source regularization parameter $\rho$ is unchanged, its variable is
+the degree-normalized variable $z=D^{-1/2}x$, and its teleportation parameter
+is $\bar\alpha$.  In particular,
+$\bar\alpha=\Theta(\alpha)$ uniformly on $(0,1)$, so polynomial comparisons
+in $1/\alpha$ are preserved.
+
+For the rest of the note, write $M:=L_{\bar\alpha}$ and define the source
+residue
+\begin{equation}
+ r(z):=s-\bar\alpha^{-1}Mz.
+ \label{eq:source-residue}
+\end{equation}
+For an active set $U$ containing the seed support and an internal residue
+level $\lambda>0$, the exact restricted state is
+\begin{equation}
+ z[U]_U=M_{UU}^{-1}c_U,
+ \qquad
+ z[U]_{V\setminus U}=0,
+ \qquad
+ c:=\bar\alpha(s-\lambda d).
+ \label{eq:restricted-state}
+\end{equation}
+It has $r(z[U])_U=\lambda d_U$.  The exact version of the source gate admits
+\begin{equation}
+ T(U):=\{v\in\partial U:r(z[U])(v)>(\lambda+\kappa)d_v\},
+ \label{eq:exact-gate}
+\end{equation}
+where $\kappa>0$ is the activation gap.
+
+\section{What the 2026 source proves}
+\label{sec:source}
+
+Wei and Yang solve \cref{eq:restricted-state} approximately at every round,
+scan the boundary, add all coordinates whose approximate residue exceeds the
+gate, and repeat.  Their energy tolerance is chosen small enough to make
+active coordinates and boundary residues accurate coordinatewise.  The
+M-matrix comparison then gives monotone support growth; in the RPPR setting,
+every admitted coordinate lies in the exact optimal support $S^\star$.
+
+Their Theorem~1.2 gives an ACL $\varepsilon$-approximate PageRank vector of
+support volume at most $2/\varepsilon$ in
+$\widetilde O(1/\varepsilon^2)$ time.  Their Theorem~1.3 gives a
+$\xi$-additive RPPR minimizer whose output is also an ACL
+$2\rho$-approximation in
+\begin{equation}
+ O\!\left(
+ |S^\star|\,\widetilde{\vol}(S^\star)
+ \operatorname{polylog}\frac{1}{\bar\alpha\rho\xi\delta}
+ +|S^\star|\vol(S^\star)
+ \right)
+ =\widetilde O(|S^\star|\vol(S^\star)).
+ \label{eq:source-rppr-work}
+\end{equation}
+The factor $|S^\star|$ comes from at most one fresh solve and active-boundary
+scan per admitted batch, with only the guarantee that a nonterminal batch is
+nonempty.  The source conclusion explicitly proposes reusing the nested SDD
+systems to approach $\widetilde O(1/\varepsilon)$ for ACL PageRank.  The next
+sections determine what nestedness gives for free and what it does not.
+
+\section{Exact nested correction and energy telescoping}
+\label{sec:telescope}
+
+Define the fixed quadratic
+\begin{equation}
+ \phi(z):=\frac12 z^\top Mz-c^\top z.
+ \label{eq:fixed-quadratic}
+\end{equation}
+The vector $z[U]$ is its minimizer over vectors supported in $U$.
+
+\begin{theorem}[Block-Schur correction]
+\label{thm:block-schur}
+Let $U^+=U\cup T$, where $T\cap U=\emptyset$, and put
+$z^-=z[U]$, $z^+=z[U^+]$, and $\Delta=z^+-z^-$.  Order the coordinates as
+$U,T$ and define
+\begin{equation}
+ K_T:=M_{TT}-M_{TU}M_{UU}^{-1}M_{UT},
+ \qquad
+ h_T:=r(z^-)_T-\lambda d_T.
+ \label{eq:schur-data}
+\end{equation}
+Then $K_T$ is positive definite and
+\begin{align}
+ \Delta_T&=\bar\alpha K_T^{-1}h_T,
+ &
+ \Delta_U&=-M_{UU}^{-1}M_{UT}\Delta_T,
+ \label{eq:block-correction}\\
+ \phi(z^-)-\phi(z^+)
+ &=\frac12\|\Delta\|_{M_{U^+U^+}}^2
+ =\frac{\bar\alpha^2}{2}h_T^\top K_T^{-1}h_T.
+ \label{eq:block-energy}
+\end{align}
+If $h_T>0$ entrywise, then $\Delta>0$ on every coordinate connected through
+the active component to $T$.
+\end{theorem}
+
+\begin{proof}
+The old restricted optimality equations give
+$(Mz^--c)_U=0$.  On $T$, \cref{eq:source-residue} gives
+$(Mz^--c)_T=-\bar\alpha h_T$.  Subtracting the optimality equation for
+$z^+$ therefore yields
+\begin{equation}
+ \begin{bmatrix}M_{UU}&M_{UT}\\M_{TU}&M_{TT}\end{bmatrix}
+ \begin{bmatrix}\Delta_U\\\Delta_T\end{bmatrix}
+ =\bar\alpha\begin{bmatrix}0\\h_T\end{bmatrix}.
+ \label{eq:block-system}
+\end{equation}
+Eliminating the first block proves \cref{eq:block-correction}.  Positive
+definiteness of $M_{U^+U^+}$ implies positive definiteness of its Schur
+complement $K_T$.  Completing the square around the minimizer $z^+$ gives
+the first equality in \cref{eq:block-energy}; substituting
+\cref{eq:block-correction} gives the second.  Finally, $M_{U^+U^+}$ is a
+nonsingular Stieltjes matrix, so its inverse is entrywise nonnegative and is
+strictly positive on each connected irreducible block.  Apply this fact to
+\cref{eq:block-system}.
+\end{proof}
+
+\begin{corollary}[Correction energies telescope]
+\label{cor:energy-telescope}
+For nested active sets $U_0\subset U_1\subset\cdots\subset U_K$,
+\begin{equation}
+ \sum_{k=0}^{K-1}
+ \|z[U_{k+1}]-z[U_k]\|_{M_{U_{k+1}U_{k+1}}}^2
+ =2\bigl(\phi(z[U_0])-\phi(z[U_K])\bigr).
+ \label{eq:telescope}
+\end{equation}
+If the trajectory has $z[U_K]\geq0$ and nonnegative PageRank residue, then
+\begin{equation}
+ \sum_{k=0}^{K-1}
+ \|z[U_{k+1}]-z[U_k]\|_{M_{U_{k+1}U_{k+1}}}^2
+ \leq \bar\alpha.
+ \label{eq:telescope-bound}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Summing \cref{eq:block-energy} proves \cref{eq:telescope}.  The zero vector
+is feasible for every restricted problem, hence
+$\phi(z[U_0])\leq0$.  Restricted optimality gives
+\begin{equation}
+ -\phi(z[U_K])=\frac12c^\top z[U_K]
+ \leq\frac{\bar\alpha}{2}z[U_K](s).
+ \end{equation}
+The PageRank mass identity
+$d^\top z[U_K]+\mathbf 1^\top r(z[U_K])=1$ and nonnegativity imply
+$z[U_K](s)\leq1/d_s\leq1$.  Consequently
+$\phi(z[U_0])-\phi(z[U_K])\leq\bar\alpha/2$.
+\end{proof}
+
+This is the strongest unconditional warm-start fact obtained from nested
+optimality alone.  It controls the sum of squared correction energies, not
+the number of coordinates that a solver writes or the edges touched by a
+matrix-vector product.  In particular, it cannot charge a fixed positive
+full-support pass when the next correction has very small energy.
+
+\section{Why a literal warm start cannot remove the factor}
+\label{sec:materialization}
+
+Call an implementation \emph{round-materialized} if, at each active set $U$,
+it writes an explicit word for every coordinate of the approximate restricted
+solution before evaluating the next gate.  This includes a literal black-box
+SDD call returning a dense length-$|U|$ vector.  The next result charges only
+those writes and is therefore independent of the internal SDD algorithm.
+
+\begin{theorem}[Endpoint-path materialization barrier]
+\label{thm:path-materialization}
+For every $J\geq1$, there are positive $\lambda=\kappa$ for which the
+successful execution of the source active-set framework on the endpoint-seeded
+path $P_{J+1}=(v_0,\ldots,v_J)$ visits every prefix
+\begin{equation}
+ U_k=\{v_0,\ldots,v_k\},\qquad 0\leq k\leq J,
+ \label{eq:path-prefixes}
+\end{equation}
+and adds exactly one vertex per nonterminal round.  Every round-materialized
+implementation consequently performs at least
+\begin{equation}
+ \sum_{k=0}^{J}|U_k|=\frac{(J+1)(J+2)}2
+ =\Omega(|S^\star|\vol(S^\star))
+ \label{eq:write-lower}
+\end{equation}
+word writes, since $S^\star=V(P_{J+1})$ and
+$\vol(S^\star)=\Theta(J)$.
+\end{theorem}
+
+\begin{proof}
+At $\lambda=0$, the exact restricted system on every prefix has a positive
+right-hand side at $v_0$.  Its matrix is an irreducible Stieltjes matrix, so
+$z[U_k](v_k)>0$.  For $k<J$, the only boundary vertex is $v_{k+1}$ and
+\begin{equation}
+ r(z[U_k])(v_{k+1})
+ =\frac{1-\bar\alpha}{\bar\alpha}z[U_k](v_k)>0.
+ \label{eq:positive-path-gate}
+\end{equation}
+There are finitely many prefixes, and every restricted state and boundary
+residue is continuous in $\lambda$.  Hence one may choose
+$\lambda=\kappa=\eta>0$ so small that, for every $k<J$, the exact boundary
+residue is greater than $2.2\eta d_{v_{k+1}}$ and
+$2\eta d_{v_0}<1$, while every prefix state remains positive.
+
+Condition on all SDD calls satisfying the source energy guarantee.  The
+source boundary-error lemma then makes the approximate boundary residue
+differ from the exact one by at most $0.1\kappa d_{v_{k+1}}$.  It is therefore
+strictly larger than
+$(\lambda+\kappa)d_{v_{k+1}}=2\eta d_{v_{k+1}}$.  The unique boundary vertex
+is admitted.  Induction proves \cref{eq:path-prefixes}; the full path then has
+empty boundary and terminates.  The source RPPR support-containment lemma
+implies that every admitted vertex lies in $S^\star$, hence $S^\star=V$.
+Writing every coordinate on every prefix costs the sum in
+\cref{eq:write-lower}.
+\end{proof}
+
+The theorem also applies to any iterative warm start that performs one full
+$M_{U_kU_k}$ matrix pass in every nonterminal round: on a bounded-degree path
+each pass costs $\Theta(\vol(U_k))$, giving the same quadratic sum.  Thus a
+successful general improvement must be implicit and incremental; changing
+only the initial vector of a conventional SDD solver is insufficient.
+
+\section{The repeated factor disappears exactly on endpoint paths}
+\label{sec:path-solver}
+
+We now use the same path family constructively.  The statement is written for
+an arbitrary symmetric positive definite tridiagonal Stieltjes matrix, so it
+applies both to the source degree form and to the shared symmetric system.
+
+Let the diagonal of $M$ on $(v_0,\ldots,v_N)$ be $a_i>0$ and write the edge
+entry as $M_{i-1,i}=M_{i,i-1}=-b_i$ with $b_i>0$.  Let $c_i$ be the fixed
+right-hand side.  Define append-only forward records
+\begin{align}
+ \delta_0&:=a_0,
+ &\eta_0&:=c_0,
+ \label{eq:path-forward-base}\\
+ \delta_i&:=a_i-\frac{b_i^2}{\delta_{i-1}},
+ &\eta_i&:=c_i+\frac{b_i}{\delta_{i-1}}\eta_{i-1}.
+ \label{eq:path-forward}
+\end{align}
+
+\begin{theorem}[Activation-once path solver]
+\label{thm:path-linear}
+Consider the exact active-set gate \cref{eq:exact-gate} on an endpoint-seeded
+path.  At prefix $U_k$, the last coordinate of the exact restricted solution
+is
+\begin{equation}
+ z[U_k](v_k)=\frac{\eta_k}{\delta_k}.
+ \label{eq:path-endpoint-value}
+\end{equation}
+For the source degree-form system, the unique next vertex $v_{k+1}$ violates
+the gate exactly when
+\begin{equation}
+ c_{k+1}+b_{k+1}\frac{\eta_k}{\delta_k}
+ >\bar\alpha\kappa d_{v_{k+1}}.
+ \label{eq:path-gate-scalar}
+\end{equation}
+Appending \cref{eq:path-forward} after each successful gate and, at the
+terminal prefix $U_J$, performing the single reverse recurrence
+\begin{align}
+ z(v_J)&=\eta_J/\delta_J,
+ \nonumber\\
+ z(v_i)&=\frac{\eta_i+b_{i+1}z(v_{i+1})}{\delta_i},
+ \qquad i=J-1,\ldots,0,
+ \label{eq:path-reverse}
+\end{align}
+returns the exact terminal restricted solution.  Each admitted vertex and
+edge is processed $O(1)$ times.  The total arithmetic, storage, and charged
+adjacency work is
+\begin{equation}
+ O(\operatorname{cvol}(U_J)+d_{v_{J+1}}),
+ \label{eq:path-linear-work}
+\end{equation}
+where the last term is absent when $J=N$.  In particular, the factor
+$|U_J|$ multiplying final active volume is eliminated.
+\end{theorem}
+
+\begin{proof}
+\Cref{eq:path-forward-base,eq:path-forward} are ordinary scalar
+$LDL^\top$ elimination on a tridiagonal matrix.  Every pivot $\delta_i$ is
+positive because every leading principal submatrix is positive definite.
+At the last row of the eliminated prefix there is no later variable, so its
+solution is \cref{eq:path-endpoint-value}.
+
+For $v_{k+1}\notin U_k$, extend the prefix state by zero.  From
+$c=\bar\alpha(s-\lambda d)$ and \cref{eq:source-residue},
+\begin{equation}
+ \bar\alpha\bigl(r(z[U_k])(v_{k+1})-\lambda d_{v_{k+1}}\bigr)
+ =c_{k+1}-M_{k+1,k}z[U_k](v_k).
+\end{equation}
+Substituting $M_{k+1,k}=-b_{k+1}$ and
+\cref{eq:path-endpoint-value} proves \cref{eq:path-gate-scalar}.  Once the
+gate fails, standard triangular back substitution is exactly
+\cref{eq:path-reverse}.  The forward pass stores two scalars per vertex, the
+reverse pass visits each record once, and path adjacency is exposed once,
+which proves \cref{eq:path-linear-work}.
+\end{proof}
+
+\begin{corollary}[Source guarantees with linear path work]
+\label{cor:path-source-guarantees}
+On endpoint paths, replace every approximate SDD solve in the source active-set
+framework by \cref{thm:path-linear} and evaluate the exact gate.
+\begin{enumerate}[label=(\roman*)]
+\item With $\lambda=\kappa=\varepsilon/2$, the output is a deterministic ACL
+$\varepsilon$-approximate PageRank vector of support volume at most
+$2/\varepsilon$.
+\item With $\lambda=\rho$ and
+$0<\kappa\leq\min\{\rho,\xi/\bar\alpha\}$, every active prefix is contained
+in $S^\star$, the returned degree-form vector has RPPR objective gap at most
+$\bar\alpha\kappa\leq\xi$, and its PageRank output is an ACL
+$(\rho+\kappa)$-approximation.
+\end{enumerate}
+Both conclusions use the linear work in \cref{eq:path-linear-work} and have
+no polynomial dependence on $1/\bar\alpha$.
+\end{corollary}
+
+\begin{proof}
+At termination, exact restricted optimality gives residue $\lambda d$ on the
+active prefix and the failed gate gives residue at most
+$(\lambda+\kappa)d$ outside it.  Residue nonnegativity follows from the
+Stieltjes comparison and the boundary formula.  The PageRank mass identity
+then gives active volume at most $1/\lambda$, proving (i).
+
+For (ii), the exact support comparison used by Wei and Yang shows inductively
+that a boundary vertex with residue greater than $\rho d_v$ lies in
+$S^\star$; the stronger gate therefore keeps every prefix inside
+$S^\star$.  For the RPPR objective $\psi$, a valid subgradient at the terminal
+point is $\bar\alpha(\rho d-r)$.  It is zero on the active prefix and bounded
+below by $-\bar\alpha\kappa d$ outside.  Convexity, zero exterior coordinates,
+and $d^\top z^\star\leq1$ give
+\begin{equation}
+ \psi(z)-\psi(z^\star)
+ \leq -\langle\bar\alpha(\rho d-r),z^\star\rangle
+ \leq\bar\alpha\kappa.
+\end{equation}
+The remaining claims follow directly from the terminal residue bounds and
+\cref{thm:path-linear}.
+\end{proof}
+
+This theorem is stronger than an accelerated
+$\widetilde O(\vol(S^\star)/\sqrt\alpha)$ path bound: it is output-linear.
+It is compatible with the activation-token and exact-Schur path results in
+the project's adaptive-revisit and propagate--settle notes.  It also explains
+why the materialization lower bound is not an information lower bound.
+
+\section{The exact arbitrary-graph target}
+\label{sec:interface}
+
+The path proof suggests the correct abstraction.  It must include boundary
+queries; an incremental linear-system solver alone does not implement the
+outer gate.
+
+\begin{definition}[Implicit nested solve-and-boundary interface]
+\label{def:interface}
+For fixed $(M,c,\lambda,\kappa)$, an implicit nested interface stores a shared
+state for the current $U$ and supports:
+\begin{enumerate}[label=(\roman*)]
+\item \textsc{Violations}: return exactly, or with the source-safe error
+margin, all $v\in\partial U$ satisfying the activation gate;
+\item \textsc{Expand}$(T)$: update the representation from $z[U]$ to
+$z[U\cup T]$ without materializing every old coordinate;
+\item \textsc{Finalize}: materialize the terminal vector once and return the
+required residue or objective certificate.
+\end{enumerate}
+Its total work includes all adjacency exposure, numerical updates, violation
+queries, and output writes.
+\end{definition}
+
+\begin{theorem}[Conditional removal of the repeated factor]
+\label{thm:conditional-interface}
+Suppose \cref{def:interface} realizes the source error margins and has total
+work $\mathcal I(U_K)$ over a complete growing-active-set trace.  Then the
+source ACL and RPPR correctness proofs remain valid and their total work is
+\begin{equation}
+ O\bigl(\mathcal I(U_K)+\operatorname{cvol}(U_K)\bigr),
+ \label{eq:interface-work}
+\end{equation}
+with no additional factor equal to the number of active-set rounds.  In
+particular, a graph-uniform
+$\mathcal I(U_K)=\widetilde O(\operatorname{cvol}(U_K))$ interface would give
+$\widetilde O(1/\rho)$ RPPR work, while
+$\mathcal I(U_K)=\widetilde O(\operatorname{cvol}(U_K)/\sqrt\alpha)$ would
+give the project's conjectured product scale.
+\end{theorem}
+
+\begin{proof}
+The source induction uses only the restricted-solution error bounds, the
+boundary-residue error bound, and the returned violation set.  It is
+independent of how those quantities are represented.  Support containment
+then gives $U_K\subseteq S^\star$ and
+$\operatorname{cvol}(U_K)=O(\operatorname{cvol}(S^\star))$.  Charging the
+interface once over the whole trace and the terminal output once proves
+\cref{eq:interface-work}.  The source mass bound
+$\vol(S^\star)\leq1/\rho$ gives the two stated consequences.
+\end{proof}
+
+The theorem is deliberately conditional: writing an oracle definition does
+not construct the oracle.  It does, however, prevent a hidden repeated scan
+from being mislabeled as incremental reuse.
+
+\section{Why the general construction remains open}
+\label{sec:open}
+
+The block identity pinpoints three distinct difficulties.
+\begin{enumerate}[label=(\arabic*)]
+\item \emph{Dense transport.}  Even when $T$ is one boundary vertex,
+$\Delta_U=-M_{UU}^{-1}M_{UT}\Delta_T$ can be nonzero throughout the old
+active component.  Explicitly applying this correction recreates the
+repeated-prefix cost.
+\item \emph{Boundary queries.}  A changed old coordinate changes every
+outside residue incident to it.  A dynamic SDD solve that answers energy or
+single-coordinate queries does not automatically maintain the complete set
+of threshold violations required by the active-set gate.
+\item \emph{Energy is not work.}  The telescope
+\cref{eq:telescope-bound} permits many small, spatially broad corrections.
+It bounds a numerical quantity but does not pay a fixed full-support pass,
+factor rebuild, or vector write.
+\end{enumerate}
+
+The next proof target is therefore not ``warm-start the nearly-linear SDD
+solver.''  It is the following concrete data-structural statement.
+
+\begin{conjecture}[Aggregate implicit continuation]
+\label{conj:aggregate}
+For the nested support-safe PageRank/RPPR trace, there is a local data
+structure implementing \cref{def:interface} with high probability in total
+work
+\begin{equation}
+ \widetilde O\!\left(
+ \frac{\operatorname{cvol}(S^\star)}{\sqrt\alpha}
+ \operatorname{polylog}\frac{1}{\rho\xi\delta}
+ \right).
+ \label{eq:aggregate-target}
+\end{equation}
+The stronger $\widetilde O(\operatorname{cvol}(S^\star))$ bound suggested by
+the 2026 source is also open on arbitrary graphs.
+\end{conjecture}
+
+Paths prove \cref{conj:aggregate} with the stronger output-linear bound.
+Equitable shells, bounded response blocks, and several tree-like classes in
+the companion notes also admit activation-once compressed transport.  The
+unresolved case is a large nonequitable cyclic core in which Schur transport
+is broad and the boundary has no known low-dimensional kinetic description.
+
+\section{Conclusions for the project conjecture}
+\label{sec:conclusion}
+
+The repeated factor can be eliminated, but the quantifiers matter.
+
+\begin{itemize}
+\item It is eliminated completely and rigorously on endpoint paths by
+\cref{thm:path-linear}.  This is a new exact active-set realization, not a
+heuristic warm start.
+\item It cannot be eliminated inside the literal round-materialized source
+implementation; \cref{thm:path-materialization} already blocks that route on
+paths.
+\item On arbitrary graphs, the energy telescope is useful but incomplete.
+The missing object is an implicit dynamic Schur/SDD representation coupled to
+a boundary-violation dictionary.
+\item If an output-linear arbitrary-graph interface is found, the resulting
+$\widetilde O(1/\rho)$ RPPR bound would beat, rather than merely match, the
+project's $\widetilde O(1/(\rho\sqrt\alpha))$ conjectured scale.  This does not
+contradict the project's existing lower bounds, which are tied to narrower
+persistent-support or repeated-row access models.
+\end{itemize}
+
+The immediate proof program is to extend the path record from a scalar
+frontier to a low-rank separator while charging each eliminated vertex and
+each boundary key only once.  Any proposed extension must be tested against
+the two failure modes isolated here: dense old-coordinate transport and
+repeated boundary-key refresh.
+
+\begin{thebibliography}{9}
+
+\bibitem[Wei and Yang(2026)]{wei2026simple}
+Zhewei Wei and Mingji Yang.
+\newblock A simple active-set method for PageRank-based local graph clustering.
+\newblock \emph{arXiv preprint arXiv:2608.16339v1}, 2026.
+
+\bibitem[Fountoulakis et~al.(2019)Fountoulakis, Roosta-Khorasani, Shun,
+Cheng, and Mahoney]{fountoulakis2019variational}
+Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang Cheng, and
+Michael~W. Mahoney.
+\newblock Variational perspective on local graph clustering.
+\newblock \emph{Mathematical Programming}, 174(1--2):553--573, 2019.
+
+\end{thebibliography}
+
+\end{document}

@@ -83,12 +83,47 @@ uv run python -m experiments.explore_evolving_cg
 ```
 
 This compares exact frontier-sparse CG against CG restarted after every
-boundary-driven support expansion.  It uses the explicitly note-scoped
+boundary-driven support expansion and a factor-two variant that grows every
+failed envelope by a factor of two in degree volume. The factor-two method
+charges all breadth-first halo discovery. It uses the explicitly note-scoped
 certificate `max_i |r[i]| / sqrt(d[i]) <= alpha * eps_ppr`; its epsilon is not
 identified with `eps_appr`, `eps_obj`, or the unresolved repository-wide
 residual.  The experiment records direction or active-set trajectories,
 restarts, explored volume, degree-weighted edge work, and error against a
 direct synthetic reference solve.
+
+Reproduce the high-degree decoy obstruction to geometric-envelope locality
+with:
+
+```bash
+uv run python -m experiments.explore_geometric_envelope_obstruction
+```
+
+The construction keeps `alpha = 0.01` and the note-scoped `eps_ppr = 0.25`
+fixed while increasing the degree of a nonviolating boundary hub. Literal
+violation-only restart remains at constant explored volume and work, whereas
+factor-two halo growth is forced to admit the hub and incurs work linear in
+its arbitrarily large degree.
+
+Compare the response, mixed, and iterative-frontier realizations of the common
+restricted inverse with:
+
+```bash
+make response-hybrid
+```
+
+This is a dense correctness experiment. It compares rebuilding the exact
+response after every batch, probe-then-factor-two response/frontier switching,
+and a fixed exact source anchor with a growing iterative frontier. The mixed
+arm gives every new frontier one converged Schur-CG solve before it may trigger
+a volume rebuild; this avoids rebuilding a large but spectrally easy batch.
+The output keeps
+adjacency scans, global boundary-coordinate reads, dense response-update
+arithmetic, Schur construction, frontier iteration, materialization, and final
+writes in separate fields. Because the implementation materializes the full
+matrix and reads every boundary coordinate, these results test algebra and
+switching behavior only; they are not evidence for an output-sensitive local
+complexity bound.
 
 Generate the manuscript figure comparing actual hard-star work with both
 proved bounds using:

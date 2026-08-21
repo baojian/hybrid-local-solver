@@ -100,6 +100,9 @@ may make silently.
   reproducibility requirements.
 - [`research_notes.md`](research_notes.md): tentative hypotheses and proof
   ideas.
+- [`solver-family-roadmap.md`](solver-family-roadmap.md): iterative, response,
+  mixed, and lower-bound-model organization, including the current proof
+  priorities and stop/go criteria.
 - [`../manuscript/notes/README.md`](../manuscript/notes/README.md): exhaustive
   standalone-note inventory and build entry point.
 - [`../manuscript/tex/shared/NOTATION.md`](../manuscript/tex/shared/NOTATION.md):

@@ -15,6 +15,7 @@ from src.hybrid_solver_codex.evolving_cg import (
     CGTrace,
     EvolvingCGTrace,
     frontier_sparse_cg,
+    geometric_envelope_cg,
     pagerank_matrix,
     pagerank_rhs,
     restarted_evolving_set_cg,
@@ -27,7 +28,9 @@ STOPPING_RULE = (
     "terminate only after recomputing r = b - Qx and verifying "
     "max_i |r[i]| / sqrt(d[i]) <= alpha * eps_ppr"
 )
-WORK_UNIT = "degree-weighted adjacency-list entries scanned by local Q products"
+WORK_UNIT = (
+    "degree-weighted adjacency-list entries scanned by local Q products or envelope discovery"
+)
 
 
 def _binary_tree(node_count: int) -> GraphData:
@@ -65,11 +68,12 @@ def run_exploration(
         matrix = pagerank_matrix(graph, alpha)
         right_hand_side = pagerank_rhs(graph, alpha, source)
         direct_solution = spsolve(matrix, right_hand_side)
-        for solver_name, solver, parameters in (
+        for solver_name, solver, parameters, solver_kwargs in (
             (
                 "frontier_sparse_cg",
                 frontier_sparse_cg,
                 {"direction_thresholding": False, "support_change_policy": "exact CG"},
+                {},
             ),
             (
                 "restarted_evolving_set_cg",
@@ -78,6 +82,19 @@ def run_exploration(
                     "inner_tolerance_fraction": 0.25,
                     "support_change_policy": "batch boundary violations then restart",
                 },
+                {},
+            ),
+            (
+                "geometric_envelope_cg",
+                geometric_envelope_cg,
+                {
+                    "inner_tolerance_fraction": 0.25,
+                    "volume_growth_factor": 2.0,
+                    "support_change_policy": (
+                        "admit boundary violations, double active volume by BFS halo, restart"
+                    ),
+                },
+                {"volume_growth_factor": 2.0},
             ),
         ):
             result = solver(
@@ -85,6 +102,7 @@ def run_exploration(
                 alpha=alpha,
                 source=source,
                 eps_ppr=eps_ppr,
+                **solver_kwargs,
             )
             scaled_residual = float(np.max(np.abs(result.residual) / np.sqrt(graph.degree)))
             scaled_error = float(
@@ -102,7 +120,12 @@ def run_exploration(
                     "max_active_size": max(result.trace.active_size),
                     "max_active_volume": max(result.trace.active_volume),
                     "active_size_trajectory": list(result.trace.active_size),
+                    "active_volume_trajectory": list(result.trace.active_volume),
                     "added_size_trajectory": list(result.trace.added_size),
+                    "violating_size_trajectory": list(result.trace.violating_size),
+                    "objective_trajectory": list(result.trace.objective_value),
+                    "discovery_edge_operations": sum(result.trace.discovery_edge_operations),
+                    "growth_target_trajectory": list(result.trace.growth_target_reached),
                 }
             else:  # pragma: no cover - exhaustiveness guard for future trace types
                 raise TypeError(f"unknown trace type {type(result.trace)!r}")

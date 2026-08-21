@@ -28,6 +28,16 @@ degree-weighted work is bounded by the sum of volumes of the visited balls.
 The usual $1/\sqrt\alpha$ CG iteration scale survives under this
 implementation. Orthogonality does not destroy spatial locality.
 
+That upper ledger is attained on a concrete calibration.  On the
+endpoint-seeded unweighted path $P_n$ with $\alpha_n=n^{-2}$, exact ordinary
+CG from zero has a singleton residual at the next frontier but a search
+direction supported on the entire visited prefix.  For the fixed actual
+certificate accuracy $\epsppr=1/10$, no iterate before $x_n$ certifies.  A
+literal supported-row implementation therefore performs
+$\Theta(n^2)=\Theta(\vol(P_n)/\sqrt{\alpha_n})$ charged work.  This is an
+exact-trajectory statement, not a lower bound for arbitrary supported
+polynomials or implicit response methods.
+
 The obstruction is threshold locality. Projecting a live search direction
 onto a changing residual-active set destroys $Q$-conjugacy even on a
 three-coordinate path. Full reorthogonalization repairs conjugacy but makes
@@ -37,18 +47,24 @@ Restarting CG after every support change is another correct repair. For the
 PageRank $M$-matrix, exact principal-subsystem solutions grow coordinatewise,
 and their residual is nonnegative and supported only on the boundary, so an
 evolving-set outer loop has a rigorous certificate. The missing ingredient is
-work: repeated principal solves can revisit every prefix.
+work: repeated principal solves can revisit every prefix. A geometric-envelope
+rule closes this particular gap. After every failed solve it grows active
+degree volume by a factor of two, or exhausts the seed component. The number
+of restarts is then logarithmic and the sum of revisited envelope volumes is
+at most three times the terminal envelope volume. This trade is not uniformly
+local: a nonviolating boundary hub of arbitrary degree can be forced into the
+halo by one low-degree violation.
 
 An instrumented prototype confirms the distinction. Exact frontier-sparse CG
 is certified on paths, stars, trees, spiders, and random regular graphs.
 Restart-after-every-expansion is between $1.6$ and $23.4$ times more expensive
-on the tested instances, with the largest penalties on a path and long
-spider. We therefore refute that literal restart policy as the primary
-solver. The promising research target is exact frontier-sparse CG as a new
-baseline and a guarded hybrid that calls restricted CG only after a monotone
-local phase has discovered a stable envelope. A graph-uniform
-$\widetilde O(1/(\epsppr\sqrt\alpha))$ work theorem remains conditional on an
-explicit ball- or envelope-confinement lemma.
+on the tested instances. Factor-two geometric envelopes reduce its work by
+$10.8$ times on the path and $9.1$ times on the long spider, but still cost
+$2.1$ and $2.6$ times frontier-sparse CG and overshoot the path envelope.
+The promising research target is therefore exact frontier-sparse CG as a new
+baseline. Geometric-envelope CG is useful only behind an explicit volume or
+degree-overshoot guard. For the literal factor-two policy, a graph-uniform
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ theorem is refuted, not merely open.
 \end{abstract}
 
 \tableofcontents
@@ -82,6 +98,11 @@ Status & Statement \\
 \statusproved & Exact ordinary CG from a seed-supported right-hand side has
 one-hop finite propagation and can be evaluated with degree work bounded by
 $\sum_k\vol(B_k)$ rather than one full-graph scan per iteration. \\
+\statusproved & On the endpoint-seeded path with $\alpha_n=n^{-2}$ and
+$\epsppr=1/10$, the exact-CG residual is a positive frontier singleton and
+the live direction fills the visited prefix.  The first certified iterate is
+$x_n$, and literal supported-row work is
+$\Theta(n^2)=\Theta(\vol(P_n)/\sqrt{\alpha_n})$. \\
 \statusproved & The certificate in \cref{eq:certificate} implies
 $\norm{D^{-1/2}(x-x^0)}_\infty\leq\epsppr$. \\
 \statusrefuted & Thresholding or masking a live CG direction while retaining
@@ -92,13 +113,26 @@ cost is cubic time and quadratic space in the optimal support size. \\
 \statusproved & Exact principal-subsystem solutions are nonnegative,
 coordinatewise monotone under set expansion, and expose residual only on the
 current boundary. \\
+\statusproved & Exact violation-only expansion has terminal degree volume at
+most $d_v+(1+\alpha)/(2\alpha\epsppr)$ for a point seed $v$. \\
 \statusempirical & Restarting CG after every boundary-driven expansion is
 certified but substantially more expensive than frontier-sparse CG on all
 five current synthetic cases. \\
+\statusproved & Factor-two envelope growth gives at most logarithmically many
+restarts and geometrically amortizes repeated principal-system volume. With
+$K_{\max}$ inner iterations, total graph work is $O(K_{\max}\vol(U_J))$,
+including local halo discovery. \\
+\statusempirical & Factor-two envelopes reduce the literal restart tax
+sharply on paths, spiders, and the random regular graph, but do not beat
+frontier-sparse CG on the five current cases. \\
+\statusrefuted & No bound depending only on $\alpha$ and $\epsppr$ controls
+the terminal degree volume or work of factor-two halo growth. A fixed
+four-vertex core with an arbitrarily high-degree nonviolating decoy hub gives
+the counterexample. \\
 \statusconditional & A local accelerated work theorem follows from a bound on
 the volumes of all seed balls visited before the residual certificate, or
-from an envelope-discovery rule with a bounded number of restricted-CG
-restarts. Neither condition is graph-uniformly proved. \\
+from additional structure that excludes halo overshoot. No such condition is
+graph-uniform for the literal methods analyzed here. \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -197,6 +231,170 @@ previous direction, so $p_k$ is typically dense on much of $B_k$. Exact CG
 therefore revisits the explored ball, unlike a queue process that can forget
 inactive interior vertices.
 \end{remark}
+
+\begin{theorem}[Endpoint path saturates the literal supported-CG ledger]
+\label{thm:endpoint-path-exact-cg-certificate}
+Let $n\geq2$, let $P_n$ have vertices $[n]$ in path order, use its ambient
+degrees, and take the endpoint seed $s=e_1$, $\alpha_n=n^{-2}$, and
+$\epsppr=1/10$.  Run the exact ordinary-CG recurrence \cref{eq:cg} from
+$x_0=0$.  Put
+\begin{equation}
+ q_n:=\sqrt{\alpha_n}=\frac1n,
+ \qquad
+ \chi_n:=\frac{1-q_n}{1+q_n}=\frac{n-1}{n+1}.
+ \label{eq:path-cg-chi}
+\end{equation}
+Then, for every $0\leq k<n$,
+\begin{equation}
+ \supp(p_k)=[k+1],
+ \qquad
+ \supp(r_0)=\{1\},
+ \qquad
+ \supp(r_k)=\{k+1\}\quad(1\leq k<n).
+ \label{eq:path-cg-exact-supports}
+\end{equation}
+The actual degree-normalized residual is
+\begin{equation}
+ \frac{\norm{D^{-1/2}r_k}_\infty}{\alpha_n}
+ =
+ \begin{cases}
+  1, & k=0,\\[2pt]
+  \displaystyle\frac{\chi_n^k}{1+\chi_n^{2k}},
+     & 1\leq k\leq n-2,\\[7pt]
+  \displaystyle\frac{2\chi_n^{n-1}}{1+\chi_n^{2(n-1)}},
+     & k=n-1,
+ \end{cases}
+ \label{eq:path-cg-exact-residual}
+\end{equation}
+where the middle range is empty when $n=2$.  Every value in
+\cref{eq:path-cg-exact-residual} is strictly larger than $1/10$, whereas
+$r_n=0$.  Thus the first iterate satisfying \cref{eq:certificate} is exactly
+$K=n$.
+
+Let $\nu_n:=\vol(V(P_n))=2n-2$.  A literal sparse realization that discovers
+the path from the endpoint, scans exactly the ambient adjacency rows in
+$\supp(p_k)$ for each supported product $Qp_k$, explicitly maintains the CG
+vectors, and performs the final verifier product has
+\begin{equation}
+ \sum_{k=0}^{n-1}\vol(\supp(p_k))
+ =\sum_{j=1}^{n}\vol([j])=n^2-1.
+ \label{eq:path-cg-prefix-work}
+\end{equation}
+Including the final $\nu_n$-cost verifier scan, its literal sparse work is
+$\Theta(n^2)=\Theta(\nu_n/\sqrt{\alpha_n})$.  In the exhaustive resource
+coordinate order
+\begin{equation*}
+ (C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})
+\end{equation*}
+of the shared oracle-hierarchy ledger, this chosen exact-algebraic-cell
+implementation has
+\begin{equation}
+ \mathcal C_{\rm path\text{-}CG}
+ =\bigl(
+ \Theta(n^2),n+1,1,0,\Theta(n),\Theta(n^2),0,
+ \Theta(n),\Theta(n),\Theta(n^2),\Theta(n)
+ \bigr).
+ \label{eq:path-cg-eleven-resource-vector}
+\end{equation}
+The $n+1$ adjacency batches are a charge for this sequential realization,
+not an adaptivity lower bound against prefetching.  The theorem is
+deterministic and specific to the exact ordinary-CG trajectory and this
+literal sparse materialization.  It is not a lower bound for arbitrary
+supported polynomials, masked or restarted trajectories, implicit or
+rational response methods, or finite-precision implementations.
+\end{theorem}
+
+\begin{proof}
+Write $a=(1+\alpha_n)/2$, $\eta=(1-\alpha_n)/2$, and
+$c_i:=-(Q_n)_{i,i+1}>0$.  The path matrix $Q_n$ is an unreduced symmetric
+tridiagonal matrix.  Hence $Q_n^j e_1$ is supported on $[j+1]$ and has a
+nonzero $(j+1)$st coordinate.  The resulting triangular Krylov basis gives
+\begin{equation*}
+ \mathcal K_k(Q_n,b)=\operatorname{span}\{e_1,\ldots,e_k\}
+ \qquad(1\leq k\leq n).
+\end{equation*}
+The CG Galerkin condition $r_k\perp\mathcal K_k(Q_n,b)$ therefore says that
+$x_k$ is the exact solve on the leading $k\times k$ principal block, padded
+by zeros.  Consequently, for $1\leq k<n$, its first $k$ residual coordinates
+vanish and only coordinate $k+1$ can be nonzero; at $k=n$ the residual is
+zero.
+
+For completeness, let $\theta_j$ be the leading continuant, with
+$\theta_0=1$, $\theta_1=a$, and
+\begin{equation*}
+ \theta_j=a\theta_{j-1}-c_{j-1}^2\theta_{j-2}.
+\end{equation*}
+Positive definiteness gives $\theta_j>0$, and the tridiagonal corner-inverse
+formula gives, for $1\leq k<n$,
+\begin{equation*}
+ (r_k)_{k+1}
+ =\alpha_n c_k(Q_n[1\!:\!k,1\!:\!k]^{-1})_{k1}
+ =\alpha_n\frac{\prod_{i=1}^k c_i}{\theta_k}>0.
+\end{equation*}
+This proves the frontier singleton assertion without a condition-number
+estimate.
+
+The same continuant recurrence gives the magnitude in closed form.  Set
+$z_i^{(k)}=(x_k)_i/\sqrt{d_i}$ and $z_{k+1}^{(k)}=0$.  Because the principal
+block retains the \emph{ambient} path degrees, its equations are
+\begin{align*}
+ a z_1^{(k)}-\eta z_2^{(k)}&=\alpha_n,\\
+ a z_i^{(k)}-\frac{\eta}{2}
+   \bigl(z_{i-1}^{(k)}+z_{i+1}^{(k)}\bigr)&=0
+   \qquad(2\leq i\leq k).
+\end{align*}
+The second-order recurrence has roots $\chi_n$ and $\chi_n^{-1}$; its source
+equation and the zero boundary give
+\begin{equation}
+ z_i^{(k)}
+ =q_n\frac{\chi_n^{i-1}-\chi_n^{2k-i+1}}
+              {1+\chi_n^{2k}}
+ \qquad(1\leq i\leq k<n).
+ \label{eq:path-cg-principal-closed-form}
+\end{equation}
+Since
+\begin{equation*}
+ \frac{(r_k)_{k+1}}{\sqrt{d_{k+1}}}
+ =\frac{\eta z_k^{(k)}}{d_{k+1}},
+\end{equation*}
+and $d_{k+1}=2$ before the last frontier but $d_n=1$, substitution of
+\cref{eq:path-cg-principal-closed-form} proves
+\cref{eq:path-cg-exact-residual}.
+
+It remains to compare the exact values with the certificate.  For $n\geq3$,
+the function
+$t\mapsto t\log((t+1)/(t-1))$ is decreasing on $(1,\infty)$, so
+\begin{equation*}
+ \chi_n^{-n}=\left(\frac{n+1}{n-1}\right)^n\leq 8.
+\end{equation*}
+Thus, for $1\leq k<n$,
+$\chi_n^{-k}+\chi_n^k<\chi_n^{-n}+1\leq9$.  The middle ratio in
+\cref{eq:path-cg-exact-residual} is the reciprocal of this sum and the last
+ratio is twice its reciprocal.  Both exceed $1/10$.  When $n=2$, the sole
+noninitial ratio is $2\chi_2/(1+\chi_2^2)=3/5$.  The Krylov space first fills
+$\R^n$ at step $n$, so $r_n=0$ and no earlier termination is possible.
+
+Finally, $p_0=\alpha_n e_1>0$.  Whenever $k<n$, the frontier residual is
+positive and the Fletcher--Reeves multiplier
+$\norm{r_k}_2^2/\norm{r_{k-1}}_2^2$ is positive.  Induction in
+\cref{eq:cg} makes every coordinate of $p_k$ on $[k+1]$ positive, proving the
+full-prefix statement.  For $j<n$, $\vol([j])=2j-1$, while
+$\vol([n])=2n-2$, which proves \cref{eq:path-cg-prefix-work}.
+
+In \cref{eq:path-cg-eleven-resource-vector}, repeated ambient-row reads and
+the final verifier scan give $C_{\rm adj}=\Theta(n^2)$ and $R_{\rm adj}=n+1$;
+there is one solve/output interaction and no preprocessing.  Loop,
+certificate, and stopping logic costs $C_{\rm ctl}=\Theta(n)$.  Supported
+products, dot products, and vector recurrences give
+$C_{\rm rec}=\Theta(n^2)$, while no factor, Schur map, preconditioner, or
+other response object is used.  A constant number of length-$n$ recurrence
+vectors and one product scratch vector give the two $\Theta(n)$ memory
+coordinates.  Explicitly reading and writing the nonzero prefixes gives
+$C_{\rm mat}=\Theta(n^2)$.  Since $Q_n$ is an irreducible nonsingular
+$M$-matrix, $Q_n^{-1}b>0$, so the exact solution emits $\Theta(n)$ labeled
+cells.  These charges establish all eleven coordinates.
+\end{proof}
 
 \section{Convergence and the residual certificate}
 \label{sec:certificate}
@@ -477,6 +675,245 @@ A path can expose only the next one or two boundary vertices, forcing many
 restarts and repeated prefix scans. Correctness alone does not amortize
 \cref{eq:restart-work}.
 
+The literal policy nevertheless has a graph-uniform output-volume guarantee.
+
+\begin{proposition}[Violation-only envelope volume]
+\label{prop:violation-only-volume}
+Run the exact principal-system process from $U_0=\{v\}$ and admit only
+coordinates satisfying
+$r^{U_j}_i>\alpha\epsppr\sqrt{d_i}$. If $U_J$ is its terminal set, then
+\begin{equation}
+ \vol(U_J)
+ \leq d_v+\frac{1+\alpha}{2\alpha\epsppr}.
+ \label{eq:violation-volume}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let $i$ be admitted when $U_j$ expands to $U_{j+1}$. By
+\cref{thm:principal-geometry}, the old residual restricted to $U_{j+1}$ is
+nonnegative and
+\begin{equation*}
+ x^{U_{j+1}}-x^{U_j}
+ =Q_{U_{j+1}U_{j+1}}^{-1}r^{U_j}_{U_{j+1}}\geq0.
+\end{equation*}
+For every positive-definite matrix, its inverse diagonal is at least the
+reciprocal of its diagonal. Since $Q_{ii}=(1+\alpha)/2$ and the inverse here
+is coordinatewise nonnegative,
+\begin{equation*}
+ x^{U_{j+1}}_i
+ \geq\left(Q_{U_{j+1}U_{j+1}}^{-1}\right)_{ii}r^{U_j}_i
+ >\frac{2\alpha\epsppr}{1+\alpha}\sqrt{d_i}.
+\end{equation*}
+Later principal solutions only increase this coordinate. Moreover,
+$x^{U_J}\leq x^0$ and
+$\inner{\sqrt d}{x^0}=1$, the latter following from
+$Q\sqrt d=\alpha\sqrt d$ and $\inner{\sqrt d}{b}=\alpha$.
+Summing over the distinct admitted vertices gives
+\begin{equation*}
+ 1\geq\inner{\sqrt d}{x^{U_J}}
+ >\frac{2\alpha\epsppr}{1+\alpha}
+   \sum_{i\in U_J\setminus\{v\}}d_i.
+\end{equation*}
+Adding the initial degree $d_v$ proves \cref{eq:violation-volume}.
+\end{proof}
+
+\section{Geometric envelopes amortize the restart tax}
+\label{sec:geometric-envelope}
+
+The failed literal policy suggests separating two questions: whether a
+restricted solve is certified, and how far the next envelope should grow.
+The factor-two rule used here is:
+\begin{enumerate}[leftmargin=*]
+ \item solve on the fixed set $U_j$ until the interior satisfies one quarter
+ of the final coordinate threshold, then recompute the true full residual;
+ \item admit every outside coordinate violating \cref{eq:certificate};
+ \item if the new degree volume is below $2\vol(U_j)$, scan the active
+ boundary and grow a breadth-first halo until the volume doubles or every
+ connected component meeting $U_j$ is exhausted;
+ \item restart CG on the resulting fixed envelope.
+\end{enumerate}
+Every individual halo admission is adjacent to the currently exposed set, so
+the batched description decomposes into legal one-hop locally evolving steps.
+All active-set scans and all scans of newly admitted halo vertices are charged.
+
+The following warm-start observation retains the usual CG iteration scale.
+
+\begin{lemma}[Nonpositive-objective warm starts]
+\label{lem:warm-start}
+Let $x^U$ be the principal minimizer on $U$, and let $z$ be supported on $U$
+with $f(z)\leq0$. Then
+\begin{equation}
+ \norm{z-x^U}_Q^2
+ \leq\norm{x^U}_Q^2
+ \leq\frac{\alpha}{d_v}
+ \label{eq:warm-start-bound}
+\end{equation}
+for the point seed $s=e_v$.
+\end{lemma}
+
+\begin{proof}
+Completing the square on the principal system gives
+\begin{equation*}
+ \norm{z-x^U}_Q^2=2\bigl(f(z)-f(x^U)\bigr),
+ \qquad
+ f(x^U)=-\tfrac12\norm{x^U}_Q^2.
+\end{equation*}
+The first inequality follows from $f(z)\leq0$. Since
+$Q_{UU}\succeq\alpha I$ and $\norm{b}_2^2=\alpha^2/d_v$,
+\begin{equation*}
+ \norm{x^U}_Q^2=b_U^\top Q_{UU}^{-1}b_U
+ \leq\alpha^{-1}\norm{b}_2^2=\frac{\alpha}{d_v}.
+\end{equation*}
+\end{proof}
+
+Starting from zero, exact CG line minimizations never increase $f$, and
+zero-padding an iterate into an expanded coordinate set does not change its
+objective. Hence every warm start used by the geometric-envelope process
+satisfies \cref{lem:warm-start}. In particular, a uniform sufficient inner
+iteration count $K$ is determined by
+\begin{equation}
+ 2\lambda_\alpha^K\sqrt{\frac{\alpha}{d_v}}
+ \leq\frac{\alpha\epsppr\sqrt{d_{\min}}}{4},
+ \label{eq:geometric-inner-count}
+\end{equation}
+so $K=O(\alpha^{-1/2}\log(1/(\epsppr\sqrt\alpha)))$.
+
+\begin{theorem}[Geometric-envelope work]
+\label{thm:geometric-envelope-work}
+Assume every fixed-envelope CG call reaches its stated interior certificate.
+Let $U_0,\ldots,U_J$ be the solved envelopes of the factor-two process and
+write $v_j:=\vol(U_j)$. Then
+\begin{align}
+ J&\leq1+\left\lceil\log_2\frac{v_J}{v_0}\right\rceil,
+ &\sum_{j=0}^Jv_j&\leq3v_J.
+ \label{eq:geometric-volume-ledger}
+\end{align}
+If each call uses at most $K_{\max}$ CG iterations, the implementation's
+degree-weighted graph work, including verifier products and halo discovery,
+satisfies
+\begin{equation}
+ W_{\rm GECG}\leq(3K_{\max}+10)v_J.
+ \label{eq:geometric-work}
+\end{equation}
+The returned point satisfies \cref{eq:error-certificate}.
+\end{theorem}
+
+\begin{proof}
+Every nonexhausting failed envelope at least doubles in volume. If a halo
+cannot double, scanning the whole active boundary followed by breadth-first
+search has exhausted every component meeting the active set. The next
+principal solve has no outside residual, so there can be at most one such
+nondoubling expansion and it is terminal. The restart and geometric-series
+bounds in \cref{eq:geometric-volume-ledger} follow.
+
+At envelope $U_j$, the initial warm-residual product, at most $K_{\max}$
+direction products, and the verifier product cost at most
+$(K_{\max}+2)v_j$. Boundary discovery scans at most $v_j$ at a failed epoch,
+and breadth-first discovery scans each newly admitted vertex at most once.
+Thus discovery costs at most $\sum_jv_j+v_J$, and
+\begin{equation*}
+ W_{\rm GECG}
+ \leq(K_{\max}+3)\sum_jv_j+v_J
+ \leq(3K_{\max}+10)v_J.
+\end{equation*}
+The interior certificate is strictly stronger than the final threshold. If
+the full certificate fails, an outside violation therefore exists and the
+set expands. Finite termination and \cref{lem:certificate} complete the
+correctness claim.
+\end{proof}
+
+Combining \cref{eq:geometric-inner-count,eq:geometric-work} yields the
+trajectory-dependent bound
+\begin{equation}
+ W_{\rm GECG}
+ =\widetilde O\left(\frac{\vol(U_J)}{\sqrt\alpha}\right).
+ \label{eq:geometric-conditional-work}
+\end{equation}
+This closes restart amortization in terms of the terminal explored envelope.
+It does not prove that $\vol(U_J)=O(1/\epsppr)$ on every graph; look-ahead can
+overshoot a minimal certificate-supporting region.
+
+In fact, no graph-uniform terminal-envelope bound exists for the factor-two
+halo rule.
+
+\begin{proposition}[High-degree decoy obstruction]
+\label{prop:decoy-obstruction}
+Fix $0<\alpha<1$ and choose $\epsppr$ such that
+\begin{equation}
+ 0<\epsppr<\min\left\{
+ \frac{1-\alpha}{3(1+\alpha)},
+ \frac{(1-\alpha)^2}
+ {3(1+\alpha)^2-(1-\alpha)^2}
+ \right\}.
+ \label{eq:decoy-epsilon-range}
+\end{equation}
+There is a family of seed-connected graphs, indexed by an arbitrarily large
+integer $M$, on which exact violation-only expansion terminates with degree
+volume $5$, while factor-two halo expansion has terminal degree volume at
+least $M+5$ and graph work at least $M$. Consequently, neither terminal
+volume nor work admits an upper bound depending only on $\alpha$ and
+$\epsppr$ for the factor-two policy.
+\end{proposition}
+
+\begin{proof}
+Use vertices $s,a,u,h,z_1,\ldots,z_{M-1}$ and edges
+\begin{equation*}
+ sa,\quad au,\quad ah,\quad hz_j\ (1\leq j<M),
+\end{equation*}
+with seed $s$. Thus
+$d_s=d_u=d_{z_j}=1$, $d_a=3$, and $d_h=M$.
+
+For the exact principal solution on $U_0=\{s\}$, direct substitution gives
+\begin{equation}
+ \frac{r^{U_0}_a}{\sqrt{d_a}}
+ =\alpha\frac{1-\alpha}{3(1+\alpha)}.
+ \label{eq:decoy-first-residual}
+\end{equation}
+Hence $a$ is admitted. Its degree already grows the envelope from volume one
+to volume four, so no halo is needed at this step.
+
+On $U_1=\{s,a\}$, solving the two-by-two principal system gives
+\begin{align}
+ \frac{r^{U_1}_u}{\sqrt{d_u}}
+ &=\alpha\frac{(1-\alpha)^2}
+ {3(1+\alpha)^2-(1-\alpha)^2},
+ &
+ \frac{r^{U_1}_h}{\sqrt{d_h}}
+ &=\frac{1}{M}\frac{r^{U_1}_u}{\sqrt{d_u}}.
+ \label{eq:decoy-second-residuals}
+\end{align}
+By \cref{eq:decoy-epsilon-range}, $u$ violates. For all sufficiently large
+$M$, $h$ does not. Violation-only expansion therefore adds just $u$.
+After solving on $\{s,a,u\}$, the remaining normalized hub residual is
+\begin{equation}
+ \frac{r^{\{s,a,u\}}_h}{\sqrt{d_h}}
+ =\frac{\alpha}{M}
+ \frac{(1-\alpha)^2}
+ {3(1+\alpha)^2-2(1-\alpha)^2},
+ \label{eq:decoy-literal-terminal}
+\end{equation}
+which is below $\alpha\epsppr$ for all sufficiently large $M$. Thus the
+violation-only process terminates at volume
+$d_s+d_a+d_u=5$.
+
+For factor-two growth, however, adding $u$ to $U_1$ raises volume only from
+$4$ to $5$, short of the target $8$. The only other boundary coordinate is
+the nonviolating hub $h$, so any boundary-first halo that reaches the target
+must admit it. The envelope volume immediately becomes at least $M+5$ and
+never decreases. At final verification the positive hub coordinate forces a
+scan of its $M$ incident edges, so work is at least $M$. Since $M$ is
+arbitrary, the claimed uniform bounds are impossible.
+\end{proof}
+
+The obstruction is caused by degree volume, not vertex count: the geometric
+method adds only one unnecessary vertex. It also survives exact principal
+solves, so tighter inner tolerances cannot repair it. A valid implementation
+safeguard must reject a halo admission before its degree crosses a declared
+volume budget and then revert to violation-only expansion or another
+certifying method. Such a guard preserves correctness but forfeits the
+unconditional geometric restart ledger whenever it fires.
+
 \section{Executable evidence}
 \label{sec:evidence}
 
@@ -496,31 +933,44 @@ empirical records, not theorem values.}
 \label{tab:synthetic-work}
 \begin{tabular}{lrrrrr}
 \toprule
-Graph & FCG work & FCG iters & RCG work & RCG inner & Restarts \\
+Graph & FCG work & Literal RCG & Geometric & Geo. restarts & Geo. explored \\
 \midrule
-Path, $n=511$               & 12,164 & 77 & 278,090 & 1,608 & 76 \\
-Center star, $n=511$        &  2,550 &  2 &   4,080 &     3 &  1 \\
-Binary tree, $n=511$        &  3,538 &  9 &  23,562 &    45 &  8 \\
-Spider $8\times64$          & 34,816 & 65 & 815,040 & 1,317 & 64 \\
-Random $4$-regular, $n=512$ & 47,264 & 27 & 147,496 &   100 &  7 \\
+Path, $n=511$               & 12,164 & 278,090 & 25,676 & 7 & 192 \\
+Center star, $n=511$        &  2,550 &   4,080 &  4,080 & 1 & 511 \\
+Binary tree, $n=511$        &  3,538 &  23,562 & 23,562 & 8 & 511 \\
+Spider $8\times64$          & 34,816 & 815,040 & 89,460 & 7 & 513 \\
+Random $4$-regular, $n=512$ & 47,264 & 147,496 & 98,096 & 6 & 512 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Both methods certified \cref{eq:certificate} on every row. Frontier-sparse
-CG explored only $153$ vertices on the path but all vertices on the other
-four graphs. This directly supports three conclusions:
+All three methods certified \cref{eq:certificate} on every row.
+Frontier-sparse CG explored only $153$ vertices on the path but all vertices
+on the other four graphs. Geometric envelopes explored $192$ path vertices.
+This directly supports four conclusions:
 \begin{enumerate}[leftmargin=*]
  \item Orthogonality and spatial locality coexist on slow-growth graphs.
  \item Fast graph growth can make exact CG global within a few iterations.
  \item Restarting after every boundary expansion is not a competitive
  standalone method: relative to FCG it costs $22.9$ times more work on the
  path and $23.4$ times more on the long spider.
+ \item Factor-two growth removes most of that restart tax: relative to the
+ literal policy, work falls by $10.8$ times on the path, $9.1$ times on the
+ spider, and $1.5$ times on the random regular graph. It is unchanged on the
+ star and tree, whose natural boundary batches already grow geometrically.
 \end{enumerate}
 
-The third conclusion is a refutation of a literal algorithm, not of every
-support-growing CG hybrid. The restart process remains useful as a safe
-correction mechanism and as a proof scaffold.
+The geometric policy is nevertheless more expensive than FCG on every row;
+on the path and spider its factors are $2.1$ and $2.6$. The result repairs a
+specific repeated-prefix failure rather than establishing empirical
+superiority over ordinary CG.
+
+The separate decoy experiment fixes $\alpha=0.01$ and $\epsppr=0.25$ and uses
+hub degrees $M=16,64,256,1024$, and $4096$. Every run is certified. Violation-only
+CG has explored volume $5$ and work $33$ for every $M$; geometric-envelope CG
+has explored volume $M+5$ and measured work exactly $4M+37$. This is an
+executable scaling witness for \cref{prop:decoy-obstruction}, not the basis of
+its proof.
 
 \section{Recommended algorithmic direction}
 \label{sec:direction}
@@ -531,15 +981,19 @@ The evidence supports two distinct next steps.
 The current global CG baseline scans every graph vertex on every iteration.
 The exact sparse recurrence should instead maintain the supports of $p_k$ and
 $Qp_k$, charge \cref{eq:frontier-work}, and report ball growth. This change
-does not alter CG numerically; it corrects the access model.
+does not alter CG numerically; it corrects the access model.  The endpoint
+calibration in \cref{thm:endpoint-path-exact-cg-certificate} shows that this
+literal implementation can genuinely revisit every prefix until all $n$
+steps are complete, even though each residual is only a frontier singleton.
 
-\paragraph{Use restricted CG only after envelope stabilization.}
+\paragraph{Put geometric CG behind a hard overshoot guard.}
 A competitive hybrid should not solve every one-hop principal system. A
 monotone local method should first discover a coarse envelope $U$ and a true
 boundary residual. Restricted CG can then refine on fixed $U$. If the
-boundary violates the final certificate, expand in a batch, restart, and
-fall back when the restart or volume budget is exceeded. The target is a
-small number of support changes, not one restart per graph layer.
+boundary violates the final certificate, the factor-two rule gives a proved
+restart and revisit ledger only while halo vertices fit a declared degree
+budget. The decoy obstruction proves that fallback is mathematically
+necessary, not merely conservative engineering.
 
 The corresponding proof obligations are:
 \begin{description}[style=nextline,leftmargin=3.4cm]
@@ -547,8 +1001,9 @@ The corresponding proof obligations are:
  iteration $K$, or identify graph parameters under which this is possible.
  \item[Envelope sufficiency.] Relate a coarse local residual or KKT margin to
  the probability that restricted CG triggers another boundary expansion.
- \item[Restart amortization.] Prove a graph- or trajectory-dependent bound on
- $\sum_jK_j\vol(U_j)$ with significantly fewer than $|U|$ effective solves.
+ \item[Envelope overshoot.] The graph-uniform bound is refuted by
+ \cref{prop:decoy-obstruction}. Future positive results must assume bounded
+ degree/volume growth, use a hard cap, or avoid nonviolating halo admission.
  \item[Signed handoff.] If CG is used before a monotone local tail, prove that
  the tail accepts its signed warm-start residual under the same final
  certificate.
@@ -563,17 +1018,27 @@ The initial concern that orthogonal directions eliminate locality is too
 strong. Exact CG is already a locally evolving graph process: its support has
 finite propagation, the cumulative direction envelope expands by at most one
 hop, its matrix products can be charged to the current direction volume, and
-it retains accelerated spectral convergence. What
+it retains accelerated spectral convergence.  On the endpoint path at
+$\alpha_n=n^{-2}$, the actual residual certificate nevertheless forces all
+$n$ exact-CG steps and the live directions fill every visited prefix, so the
+literal sparse ledger is exactly on the
+$\Theta(\nu_n/\sqrt{\alpha_n})$ scale.  What
 orthogonality eliminates is aggressive forgetting of the explored interior.
 Masking breaks conjugacy; full reorthogonalization stores dense history; and
-one-hop restart pays repeated-prefix work.
+one-hop restart pays repeated-prefix work. Geometric envelope growth removes
+that last tax in terms of the terminal explored volume, while making the
+remaining obstacle explicit: envelope overshoot.
 
 The immediate deliverable is therefore frontier-sparse exact CG with honest
-local work accounting. The publishable hybrid target is more selective:
-discover a stable local envelope first, invoke restricted CG as a refinement,
-and use boundary verification plus a restart budget as the safeguard. This
-route is mathematically sound, empirically motivated, and has a sharply
-identified missing lemma rather than an unsupported graph-uniform claim.
+local work accounting and violation-only restricted CG as the support-safe
+reference. The factor-two variant has a complete conditional work theorem but
+an unconditional locality counterexample. The publishable conclusion is
+therefore a proved tradeoff, not a missing lemma: short-recurrence CG keeps
+finite propagation; masking destroys conjugacy; violation-only restarts keep
+output volume but can revisit prefixes; and nonviolating geometric look-ahead
+amortizes those revisits only by risking unbounded degree-volume overshoot.
+Any future positive hybrid must add graph structure, an explicit budgeted
+fallback, or a new way to recycle orthogonality without admitting that halo.
 
 \bibliographystyle{plainnat}
 \bibliography{references,../../references}

@@ -31,7 +31,8 @@ New results beyond the initial synthesis include:
 
 - a master handoff inequality for arbitrary finite Phase-I methods;
 - a graph-structure-free but `R`-parameterized
-  `O(R / (alpha^(3/4) * epsilon))` AESP-plus-LocSOR bound;
+  `O(R / (alpha^(3/4) * epsilon))` inner-plus-tail bound, with outer
+  initialization and sparse-state work charged separately;
 - a weighted contraction and residual-to-solution certificate for
   `l1`-regularized PageRank; and
 - unconditional convergence of a finite composite Catalyst burn-in followed

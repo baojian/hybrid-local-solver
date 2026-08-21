@@ -39,6 +39,9 @@ separate source results, new proved statements, conditional statements,
 empirical observations, open conjectures, and refuted claims, and must name
 its central missing lemmas and possible weaker targets.
 
+For direction ownership, controller-managed shared summaries, status handoffs,
+and concurrent-edit rules, also follow `manuscript/notes/AGENTS.md`.
+
 Evolve and refine these notes as proofs, counterexamples, and better
 conditions become available. Preserve useful corrections and failed proof
 paths, and cross-reference related notes instead of prematurely forcing them

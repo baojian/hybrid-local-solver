@@ -74,20 +74,87 @@ so cyclicity does not obstruct exact support discovery.  For graphs whose
 biconnected articulation blocks have size at most $q$, lazy block responses
 give the condition-free bound
 $\widetilde O(q^3/(\rho\sqrt\alpha))$; this includes bounded cyclic gadgets
-glued through articulation vertices.
+glued through articulation vertices.  The block identifiers need not be
+supplied.  When an activation merges previously exposed blocks, every newly
+usable edge is incident on a zero-valued activating vertex, so the old
+response prefix remains exact and only the future suffix is rebuilt.  This
+causal merge rule recovers the same product scale from ordinary degree and
+adjacency access.
 Large blocks are not automatically hard.  Reflection symmetry reduces an
 arbitrarily long cycle to a tridiagonal radial system, giving an output-linear
-exact solver.  More generally, if the exact support contains at most
+exact solver.  The same conclusion holds with arbitrarily thick shells on
+every root-distance-equitable graph: orthogonal shell averaging reduces the
+entire obstacle problem to a tridiagonal quotient, and a lazy shell scan
+discovers and solves the exact support in output-linear work.  This includes
+cliques, complete bipartite graphs, hypercubes, and all distance-regular
+graphs.  The shell fast path is locally certifying on every graph: it either
+returns the exact solution or exposes the first partial-shell or nonuniform
+event and safely transfers to the general gate.  More broadly, several
+inequivalent thick cells may occupy one distance layer.  If they admit an
+equitable tree quotient, the lazy tree-response solver applies to the quotient
+and gives the exact product bound
+$\widetilde O(1/(\rho\sqrt\alpha))$, even when the original graph has
+unbounded treewidth and large biconnected cores.  No cell identifiers are
+needed: online rooted color refinement groups indistinguishable boundary
+cells into a tied event, scans that bundle only after activation, and forks
+its future response when newly exposed incidences distinguish the cells.
+The refinement and response forks have the same product-scale amortization.
+Independently, if the exact
+support contains at most
 $\chi_\star$ vertices in any root-distance shell, the condition-free boundary
 gate with width-$w$ elimination costs
 $\widetilde O((w+1)^2\chi_\star/(\rho\sqrt\alpha))$.  Thus constant-width
 cycles and strips meet the product scale even though their biconnected blocks
 can be arbitrarily large.
+For approximate output, uniform point estimates on the whole boundary are
+also stronger than necessary.  A margin-adaptive gate needs only certified
+one-sided intervals: admit when a lower endpoint is above the safe threshold,
+stop when every upper endpoint is below the error threshold, and refine only
+the unresolved transition band.  The change of all exterior demands under a
+nested exact expansion is an $\ell_2$ contraction of the primal energy
+correction.  Consequently only energy-proportional boundary volume can move
+by a prescribed normalized margin, and every scalar response leverage is at
+most one.  Source-aware squared leverage is exactly terminal Schur-diagonal
+loss; it telescopes to at most $(1-\alpha)/2$ per still-exterior label.  Its
+hierarchical locator needs only one-sided additive accuracy at the current
+margin scale.  A randomized Chebyshev inverse-square-root sketch now
+constructs all
+exposed boundary diagonal losses at a fixed face in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work, and geometrically spaced full
+checkpoints have the same final-volume product bound.  This reduces the
+general cyclic target further to incremental diagonal-loss reporting between
+checkpoints for the energy-packed interval crossings.  The associated
+frontier source probes no longer require an exact Schur inverse square root:
+Chebyshev whitening accepts any constant-factor spectral frontier and costs
+only $\widetilde O(T_{\rm mv}/\sqrt\alpha)$.  More directly, a positive
+geometric resolvent ladder realizes the inverse square root through shifted
+exact rungs whose total monotone settlement mass is $O(1/\sqrt\alpha)$.
+Every partial rung has an exact nonnegative delayed-anchor debt.  The companion
+response note now aggregates every fixed-face debt before a signed Chebyshev
+flush, returning certified one-sided exterior intervals in
+$\widetilde O(\operatorname{cvol}(T)/\sqrt\alpha)$ graph work.  The remaining
+graph operation on high-rank cores is an output-sensitive partial flush or a
+different safe trace: the companion note also proves that a literal path gate
+can be forced through singleton faces whose volume-growth ratios tend to one,
+so pure geometric sleep is not sufficient.
+The exact gate also dominates one unit proximal-gradient step in objective
+value.  Consequently its objective gap contracts by the unconditional factor
+$1-\alpha$ per nonempty batch, giving an exact margin-sensitive termination
+bound.  This is sharp at the level relevant to acceleration: on the
+three-vertex endpoint path, the first-batch gap ratio tends to
+$(1-\alpha)^2/(1+6\alpha+\alpha^2)=1-8\alpha+O(\alpha^2)$ as
+$\rho\downarrow0$.  Thus no graph-uniform
+$1-\Theta(\sqrt\alpha)$ batch contraction is available; an accelerated
+general proof must use finite support discovery or compressed Schur events,
+not objective decrease alone.  We record the exact block-Schur formula for a
+tied activation batch, reducing that remaining implementation problem to
+signed block-column updates of inactive slacks.
 We also give an exact RPPR support-oracle terminal theorem: on a forest
 support, the shifted Dirichlet solve returns the RPPR optimum and the
 unregularized residual certificate in $O(1/\rho)$ work.  What remains is
 compressed event or batch maintenance inside a large biconnected core that
-has neither bounded articulation blocks nor thin radial support.  Along the RPPR path
+has neither bounded articulation blocks, an equitable tree quotient, nor
+thin radial support.  Along the RPPR path
 $\rho_{k+1}=\lambda_\alpha^s\rho_k$, the support volumes form a geometric
 ledger: exact re-solving of all supplied width-$w$ supports costs
 $O((w+1)^2/(\rho_{\rm final}\sqrt\alpha))$, with no extra dynamic-range
@@ -180,6 +247,11 @@ cores; efficient event maintenance is the remaining issue. \\
 \statusproved & For block-incidence graphs with biconnected blocks of size at
 most $q$, lazy scalar block responses give an exact, condition-free
 $\widetilde O(q^3/(\rho\sqrt\alpha))$ solver. \\
+\statusproved & The block-incidence representation is unnecessary.  Under
+ordinary degree queries and adjacency scans, newly activated zero coordinates
+permit causal block merges: past response pieces remain immutable and only
+the affected future iterators are rebuilt.  Bounded blocks retain the exact
+$\widetilde O(q^3/(\rho\sqrt\alpha))$ product bound. \\
 \statusproved & On a single-seed cycle, reflection symmetry and a radial
 tridiagonal Schur recurrence discover and solve the exact RPPR support in
 $O(1+\vol(S^\star))$ work, even when the cycle is one unbounded biconnected
@@ -190,18 +262,100 @@ boundary-violation batches admit only true support vertices and terminate at
 $x^\star(\rho)$ in at most $|S^\star|$ batches.  Forest intermediates cost
 $O(1/\rho^2)$; supplied width-$w$ intermediate orderings cost
 $O((w+1)^2/\rho^2)$. \\
+\statusproved & Every exact-gate batch dominates a unit proximal-gradient
+step and contracts the RPPR objective gap by $1-\alpha$.  If
+$\delta_\star$ is the smallest positive optimum coordinate, this yields an
+exact margin-sensitive batch bound
+$O(1+\alpha^{-1}\log_+(1/(d_o\delta_\star^2)))$. \\
+\statusrefuted & A uniform accelerated objective contraction cannot prove the
+remaining batch bound.  On the three-vertex endpoint path, the first-batch
+gap ratio approaches
+$(1-\alpha)^2/(1+6\alpha+\alpha^2)=1-8\alpha+O(\alpha^2)$ as
+$\rho\downarrow0$, not $1-\Theta(\sqrt\alpha)$. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+\begin{center}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement (continued) \\
+\midrule
+\statusproved & On every root-distance-equitable graph, orthogonal shell
+averaging reduces the exact obstacle problem to a symmetric tridiagonal
+quotient.  A lazy shell scan discovers, solves, and certifies the optimum in
+$O(1+\vol(S^\star))$ work.  This allows arbitrarily thick shells and includes
+cliques, complete bipartite graphs, hypercubes, and distance-regular graphs. \\
+\statusproved & The shell quotient is a certifying fast path on every graph:
+active scans audit all symmetry identities, coordinatewise boundary slacks
+either certify exact termination or produce the exact safe gate batch, and a
+failed audit falls back without affecting correctness. \\
+\statusproved & If an equitable tree partition exists, online rooted color
+refinement reconstructs a sufficient active quotient from ordinary degree and
+adjacency access; no cell identifiers are needed.  Indistinguishable boundary
+cells activate as one
+exact tied bundle, and later splits fork only the future response.  Lazy cell
+responses retain the exact $\widetilde O(1/(\rho\sqrt\alpha))$ bound even with
+multiple thick cells per shell, unbounded treewidth, and large biconnected
+cores. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+\begin{center}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}X@{}}
+\toprule
+Status & Statement (continued) \\
+\midrule
 \statusproved & If at most $\chi_\star$ true-support vertices lie in any
 root-distance shell, the same condition-free gate costs
 $\widetilde O((w+1)^2\chi_\star/(\rho\sqrt\alpha))$ under width-$w$
 intermediate orderings.  This closes constant-width cyclic strips without a
 bounded-block assumption. \\
+\statusproved & Finite-resolution support discovery needs only certified
+one-sided demand intervals, not a uniform point estimate at every boundary
+label.  Safe lower endpoints imply support-safe admission; terminal upper
+endpoints imply normalized solution error at most $\eta/\alpha$. \\
+\statusproved & A nested exact-face correction changes all exterior demands
+by at most its primal energy norm.  Boundary volume whose normalized demand
+moves by at least $\theta$ is at most $2\Delta/\theta^2$, and every response
+leverage is at most one. \\
+\statusproved & Source-aware squared leverage equals the decrease of one
+terminal Schur diagonal across a batch elimination and telescopes to at most
+$(1-\alpha)/2$ per exterior label.  A hierarchy needs only one-sided additive
+accuracy at its current pruning scale. \\
+\statusproved & At a fixed exposed face, Chebyshev inverse-square-root probes
+estimate every normalized boundary Schur-diagonal loss simultaneously with
+high probability in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work.  Full snapshots at geometrically
+growing checkpoints have the same final-volume product bound. \\
+\statusproved & Exact frontier whitening is unnecessary.  Any constant-factor
+spectral approximation of the frontier Schur complement supplies all Gaussian
+source probes in $\widetilde O(T_{\rm mv}/\sqrt\alpha)$ work; an exact
+frontier multiplication uses one charged anchor-response application. \\
+\statusproved & The inverse square root also has a positive logarithmic ladder
+of shifted Stieltjes resolvents.  Its work-mass and monotone Schur-coordinate
+settlement ledgers have the exact $1/\sqrt\alpha$ dependence.  Each rung is a
+sparse shifted face system whose unfinished state is exact nonnegative anchor
+debt. \\
 \statusconditional & If online causal expansion scans each certified region
 only $O(1)$ times per alpha-scaled rung and supplies a width-$w$ elimination
 order, total work is
 $\widetilde O((w+1)^2V/\sqrt\alpha)$. \\
-\statusopen & Compress the scalar homotopy trace, or bound the exact-gate batch
-count, inside a large biconnected core with neither bounded blocks nor thin
-radial support.  Exact discovery, the universal radius bound, cycles,
+\statusopen & Inside a large biconnected core with neither bounded blocks, an
+equitable tree quotient, nor thin radial support, maintain incremental
+terminal-Schur diagonal losses between the now-affordable full checkpoints
+and report all energy-packed finite-band crossings.  The companion response
+note now gives a product-scale fixed-face aggregate debt flush; the open
+condition is to prove geometric online sleep scheduling or output-sensitive
+partial flushes without refreshing the full boundary after every light update,
+or
+compress the exact scalar homotopy trace.  Exact
+discovery, the universal radius bound, cycles, thick equitable cells,
 constant-width strips, and bounded-block cyclic graphs are no longer open. \\
 \bottomrule
 \end{tabularx}
@@ -1053,6 +1207,257 @@ Each shell has at most two vertices and cycle degrees equal two, so the
 forward scan, reverse solve, and output write have the claimed work.
 \end{proof}
 
+\subsection{Thick equitable shells also collapse to one dimension}
+\label{subsec:equitable-shells}
+
+Let $G$ be connected, fix a root $o$, and write
+\begin{equation}
+ \mathcal L_i:=\{v:\operatorname{dist}(o,v)=i\},
+ \qquad
+ m_i:=|\mathcal L_i|,
+ \qquad 0\leq i\leq R.
+ \label{eq:equitable-shells}
+\end{equation}
+Call the rooted graph \emph{root-distance equitable} if, for every
+$v\in\mathcal L_i$, the three counts
+\begin{equation}
+ \nu_i^-:=|N(v)\cap\mathcal L_{i-1}|,
+ \qquad
+ \nu_i^0:=|N(v)\cap\mathcal L_i|,
+ \qquad
+ \nu_i^+:=|N(v)\cap\mathcal L_{i+1}|
+ \label{eq:equitable-neighbor-counts}
+\end{equation}
+depend only on $i$; shells outside $[0,R]$ are empty.  Put
+$\bar d_i:=\nu_i^-+\nu_i^0+\nu_i^+$.  Double-counting consecutive-shell
+edges gives
+\begin{equation}
+ m_i\nu_i^+=m_{i+1}\nu_{i+1}^-.
+ \label{eq:equitable-edge-balance}
+\end{equation}
+This promise allows large and internally complicated shells.  It holds, for
+example, for cliques and complete bipartite graphs rooted at any vertex, and
+for hypercubes, Hamming graphs, Johnson graphs, and every distance-regular
+graph.
+
+Use the standard adjacency-list access model: querying the degree of an
+exposed vertex label costs $O(1)$, while enumerating its adjacency list costs
+$d_v$.  The following is a promise-class result; recognizing global
+equitability is not charged to the solver.
+
+\begin{theorem}[Output-linear exact RPPR on root-distance-equitable graphs]
+\label{thm:equitable-shell-one-pass}
+Suppose $G$ is root-distance equitable and the RPPR seed is $o$.  Let
+$e_i:=\mathbf 1_{\mathcal L_i}/\sqrt{m_i}$ and let $\widehat Q$ be the
+restriction of $Q$ to their span.  This matrix is symmetric tridiagonal, with
+\begin{align}
+ \widehat Q_{ii}
+ &=\frac{1+\alpha}{2}
+   -\frac{1-\alpha}{2}\frac{\nu_i^0}{\bar d_i},
+ \label{eq:equitable-quotient-diagonal}\\
+ \widehat Q_{i,i+1}
+ &=-\frac{1-\alpha}{2}
+ \sqrt{\frac{\nu_i^+\nu_{i+1}^-}
+ {\bar d_i\bar d_{i+1}}}.
+ \label{eq:equitable-quotient-offdiagonal}
+\end{align}
+The quotient demand is
+\begin{equation}
+ \widehat c_0
+ =\frac{\alpha}{\sqrt{\bar d_0}}
+  -\alpha\rho\sqrt{\bar d_0},
+ \qquad
+ \widehat c_i=-\alpha\rho\sqrt{m_i\bar d_i}
+ \quad(1\leq i\leq R).
+ \label{eq:equitable-quotient-demand}
+\end{equation}
+For $i\geq1$, put $\gamma_i:=-\widehat Q_{i,i-1}>0$ and form
+\begin{align}
+ \delta_0&:=\widehat Q_{00},
+ &\eta_0&:=\widehat c_0,
+ \notag\\
+ \delta_i&:=\widehat Q_{ii}-\frac{\gamma_i^2}{\delta_{i-1}},
+ &\eta_i&:=\widehat c_i+
+   \frac{\gamma_i\eta_{i-1}}{\delta_{i-1}}
+ \qquad(1\leq i\leq R).
+ \label{eq:equitable-forward-schur}
+\end{align}
+If $\eta_0\leq0$, the optimum is zero.  Otherwise let $J$ be the index
+immediately before the first nonpositive $\eta_i$, or $J=R$ if all messages
+are positive.  Then
+\begin{equation}
+ S^\star(\rho)=\bigcup_{i=0}^J\mathcal L_i.
+ \label{eq:equitable-exact-support}
+\end{equation}
+Its exact coordinates are recovered from
+\begin{equation}
+ y_J=\frac{\eta_J}{\delta_J},
+ \qquad
+ y_i=\frac{\eta_i+\gamma_{i+1}y_{i+1}}{\delta_i}
+ \quad(i=J-1,\ldots,0),
+ \qquad
+ x_v=\frac{y_i}{\sqrt{m_i}}
+ \quad(v\in\mathcal L_i).
+ \label{eq:equitable-backsolve}
+\end{equation}
+A lazy shell scan discovers the quotient coefficients, solves the problem,
+and certifies the full KKT system in
+\begin{equation}
+ O\bigl(1+\vol(S^\star(\rho))\bigr)
+ \label{eq:equitable-output-linear-work}
+\end{equation}
+adjacency and arithmetic work, with no support, radius, or confinement oracle.
+\end{theorem}
+
+\begin{proof}
+Let $\mathcal U$ be the subspace of vectors constant on every shell and let
+$P$ be orthogonal averaging onto $\mathcal U$.  Equitability and constant
+degree $\bar d_i$ within each shell show directly that normalized adjacency,
+and hence $Q$, maps $\mathcal U$ into itself.  Since $Q$ is symmetric,
+$\mathcal U^\perp$ is invariant as well, so $PQ=QP$.  The shifted demand
+$c_\rho$ lies in $\mathcal U$.  For every feasible $x\geq0$, also $Px\geq0$,
+and, with $z:=(I-P)x$,
+\begin{equation}
+ \Phi_\rho(x)=\Phi_\rho(Px)+\frac12z^\top Qz.
+ \label{eq:equitable-orthogonal-splitting}
+\end{equation}
+Positive definiteness therefore puts the unique optimum in $\mathcal U$.
+Its nonempty support is connected and contains $o$; because it is a union of
+whole shells, it must be a shell prefix.
+
+Taking the matrix entries in the orthonormal basis $(e_i)_{i=0}^R$ gives
+\cref{eq:equitable-quotient-diagonal}.  Consecutive-shell edge balance
+\cref{eq:equitable-edge-balance} gives
+\begin{equation*}
+ e_i^\top D^{-1/2}AD^{-1/2}e_{i+1}
+ =\sqrt{\frac{\nu_i^+\nu_{i+1}^-}
+ {\bar d_i\bar d_{i+1}}},
+\end{equation*}
+which proves
+\cref{eq:equitable-quotient-offdiagonal}; nonconsecutive entries vanish.
+Projecting $c_\rho$ gives
+\cref{eq:equitable-quotient-demand}.  Thus $\widehat Q$ is a symmetric
+positive-definite tridiagonal Stieltjes matrix, all pivots in
+\cref{eq:equitable-forward-schur} are positive, and Gaussian elimination
+gives the forward recurrence and
+\cref{eq:equitable-backsolve}.
+
+All messages through $J$ are positive, so reverse substitution gives
+$y_i>0$ for $0\leq i\leq J$.  If $J<R$, applying one more formal elimination
+step to the prefix solution gives
+\begin{equation}
+ \eta_{J+1}=\widehat c_{J+1}+\gamma_{J+1}y_J\leq0.
+ \label{eq:equitable-message-is-kkt}
+\end{equation}
+The negative of this quantity is the aggregated shifted KKT slack on the
+first inactive shell.  Equitability makes the coordinate slack identical at
+every vertex of that shell, so its sign is coordinatewise valid.  Vertices
+beyond it have no edge to the support and have negative shifted demand.
+Thus the prefix solve satisfies the full KKT system.  If every message is
+positive, there is no inactive boundary.  The zero case follows directly
+from $\widehat c_0\leq0$ and the negative demands away from the seed.
+
+It remains to justify locality.  Once $\mathcal L_i$ is certified active,
+scan its adjacency lists exactly once.  The scan enumerates the distinct
+labels in $\mathcal L_{i+1}$, hence $m_{i+1}$, and counts their incident edges
+from $\mathcal L_i$, hence the promised common value $\nu_{i+1}^-$.  Degree
+queries give $\bar d_{i+1}$, while the same scan gives $\nu_i^+$.  Therefore
+$\gamma_{i+1}$, $\widehat c_{i+1}$, and $\eta_{i+1}$ are known before any
+adjacency list in $\mathcal L_{i+1}$ is scanned.  Only when this message is
+positive does the algorithm scan the new shell to obtain $\nu_{i+1}^0$ and
+$\nu_{i+1}^+$, form its pivot, and continue.  Consequently every active
+adjacency list is scanned once and no inactive-boundary list is scanned.
+The boundary labels and their degree queries are charged to edges in the
+last active scan.  The reverse scalar solve and output write are linear in
+the active shells and vertices.  This proves
+\cref{eq:equitable-output-linear-work}.
+\end{proof}
+
+The preceding theorem was stated as a promise result only to keep its formula
+short.  Its structural hypothesis can in fact be audited online, so using the
+fast path never requires trusting a global symmetry oracle.  For the current
+shell prefix
+$U_i:=\bigcup_{h=0}^i\mathcal L_h$, let $x^{[i]}$ denote its restricted
+Dirichlet solution and let $\xi_i^{[i]}$ be its common coordinate value on
+$\mathcal L_i$.  Once the scalar checks have succeeded through shell $i$,
+the boundary violation at $v\in\mathcal L_{i+1}$ is explicitly
+\begin{equation}
+ \zeta_v^{[i]}
+ :=c_{\rho,v}-(Qx^{[i]})_v
+ =c_{\rho,v}
+  +\frac{1-\alpha}{2\sqrt{d_v\bar d_i}}
+   |N(v)\cap\mathcal L_i|\,\xi_i^{[i]}.
+ \label{eq:audited-shell-boundary-violation}
+\end{equation}
+
+\begin{theorem}[A certifying shell-quotient fast path on every graph]
+\label{thm:certifying-shell-fast-path}
+There is an exact single-seed RPPR algorithm on an arbitrary graph with the
+following behavior.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item It follows the scalar recurrence
+ \cref{eq:equitable-forward-schur} only while scans certify that every active
+ shell has common degree and common neighbor counts to the preceding, current,
+ and next shells.
+ \item Before admitting the next shell, it evaluates
+ $\zeta_v^{[i]}$ for every exposed boundary label using only the last active
+ shell scan and degree queries.  If all values are nonpositive, it returns the
+ exact optimum.  If the positive set is not the entire shell, or a uniformity
+ check fails, it hands that exact positive set and the current safe prefix to
+ the condition-free boundary gate of
+ \cref{thm:condition-free-graph}.
+ \item Every fast-path admission contains only true-support vertices.  Hence
+ the fallback is exact, and a failed audit returns a concrete pair of labels
+ with different local signatures or different violation signs.
+\end{enumerate}
+If the algorithm terminates without fallback, its work is
+$O(1+\vol(S^\star(\rho)))$.  This happens on every root-distance-equitable
+graph, but requires equitability only on the scanned active prefix; the graph
+beyond the first inactive boundary may be arbitrary.  Thus the global promise
+and its recognition cost are removed from the correctness claim.
+\end{theorem}
+
+\begin{proof}
+Scanning $\mathcal L_i$ reveals, for every vertex in that shell, its degree
+and its three neighbor counts, and it enumerates every label in
+$\mathcal L_{i+1}$.  Counting appearances of each boundary label gives
+$|N(v)\cap\mathcal L_i|$ without scanning that label's adjacency list; one
+degree query then gives every quantity in
+\cref{eq:audited-shell-boundary-violation}.  Hashing the resulting signatures
+either certifies uniformity or returns two explicit witnesses in time linear
+in the scan.
+
+Inductively, suppose all audits through $i$ succeeded.  The invariant-subspace
+and Gaussian-elimination proof of
+\cref{thm:equitable-shell-one-pass}, applied only to $Q_{U_iU_i}$, shows that
+the scalar point is exactly $x^{[i]}$ and is positive.  The set
+\begin{equation*}
+ B_i=\{v\in\mathcal L_{i+1}:\zeta_v^{[i]}>0\}
+\end{equation*}
+is therefore precisely the violating batch of the exact boundary gate.
+\Cref{thm:condition-free-graph} gives
+$B_i\subseteq S^\star(\rho)$.  If it is empty, the active equalities hold on
+$U_i$, every boundary inequality holds by the displayed test, and every more
+distant nonseed vertex has zero coupling to $U_i$ and strictly negative
+shifted demand.  These are the full KKT conditions.
+
+If $B_i$ is a proper nonempty subset, the one-scalar shell recurrence has
+encountered a genuine partial-shell event, and the exact gate continues from
+the same batch.  If $B_i=\mathcal L_{i+1}$, the Schur-complement argument in
+\cref{thm:condition-free-graph} proves that the restricted minimizer on
+$U_i\cup B_i$ is positive.  The algorithm may therefore scan the admitted
+shell.  A successful audit supplies the next quotient diagonal and continues
+the induction; a failed audit starts the general gate from this still-safe
+region.  Thus no failed symmetry guess can affect correctness.
+
+On a no-fallback execution, every active adjacency list is scanned once, and
+the inactive boundary contributes only labels, incident-edge counts, degree
+queries, and the coordinatewise KKT test.  All are charged to the last active
+scan, proving the stated work.  Global root-distance equitability makes every
+audit succeed, while the proof itself used no information beyond the scanned
+prefix and its boundary.
+\end{proof}
+
 \begin{corollary}[The persistent-support product lower bound is oracle-specific]
 \label{cor:spider-oracle-separation}
 On the path-bundle instance used for the repository's persistent-support
@@ -1428,6 +1833,360 @@ scale.  It does not claim a universal lower bound: paths and symmetric
 spiders remain output-linear special cases.  Cycles destroy vertex-by-vertex
 subtree independence, but not the underlying one-dimensional event order.
 
+\subsection{Tree responses survive thick equitable cell quotients}
+\label{subsec:equitable-tree-quotients}
+
+The tree-response proof does not require the original graph itself to be a
+tree.  It requires only a tree after exact symmetry compression.  Let
+\begin{equation}
+ \mathcal P=\{C_a:a\in\mathcal A\}
+ \label{eq:equitable-cell-partition}
+\end{equation}
+be a partition of $V$ with a root cell $C_r=\{o\}$.  Call it an
+\emph{equitable tree partition} if every $v\in C_a$ has a common degree
+$d_a$ and, for every cell $C_b$, a common count
+\begin{equation}
+ \nu_{ab}:=|N(v)\cap C_b|,
+ \label{eq:equitable-cell-count}
+\end{equation}
+and if the graph on distinct cell indices with
+$a\sim b$ when $\nu_{ab}>0$ is a tree rooted at $r$.  Edges within one cell
+are allowed.  Put $m_a:=|C_a|$.  As before,
+$m_a\nu_{ab}=m_b\nu_{ba}$.
+
+The partition is \emph{locally enumerable} if an exposed vertex label carries
+its cell identifier at $O(1)$ cost.  Scanning an active cell then groups its
+incident labels by neighboring cell.  This representation supplies neither
+the active cells nor their depth.  Moreover, it is locally auditable: all
+degree and incidence counts of an active cell are read during its one scan.
+
+\begin{theorem}[Exact RPPR at the product scale on equitable tree quotients]
+\label{thm:equitable-tree-quotient}
+Suppose a single-seed instance has a locally enumerable equitable tree
+partition.  With
+\begin{equation}
+ e_a:=\frac{\mathbf 1_{C_a}}{\sqrt{m_a}},
+ \label{eq:equitable-cell-basis}
+\end{equation}
+the restriction $\widehat Q$ of $Q$ to the cell-constant subspace is a
+symmetric positive-definite Stieltjes matrix supported on the quotient tree,
+with
+\begin{align}
+ \widehat Q_{aa}
+ &=\frac{1+\alpha}{2}
+   -\frac{1-\alpha}{2}\frac{\nu_{aa}}{d_a},
+ \label{eq:equitable-tree-quotient-diagonal}\\
+ \widehat Q_{ab}
+ &=-\frac{1-\alpha}{2}
+   \sqrt{\frac{\nu_{ab}\nu_{ba}}{d_ad_b}}
+ \quad(a\sim b).
+ \label{eq:equitable-tree-quotient-edge}
+\end{align}
+Its demand is
+\begin{equation}
+ \widehat c_r
+ =\frac{\alpha}{\sqrt{d_r}}-\alpha\rho\sqrt{d_r},
+ \qquad
+ \widehat c_a=-\alpha\rho\sqrt{m_ad_a}
+ \quad(a\neq r).
+ \label{eq:equitable-tree-quotient-demand}
+\end{equation}
+The RPPR optimum is cell-constant.  Writing
+\begin{equation*}
+ \mathcal A^\star:=\{a:C_a\subseteq S^\star(\rho)\},
+\end{equation*}
+there is an exact adjacency-local algorithm that discovers these cells and
+returns the full optimum using
+\begin{align}
+ \Work_{\rm cell\text{-}tree}
+ &\leq
+ O\!\left(
+  \vol(S^\star)
+  +\log(1+\Delta_{\mathcal P})
+   \sum_{a\in\mathcal A^\star}
+   \operatorname{depth}_{\mathcal P}(a)
+ \right)
+ \notag\\
+ &\leq
+ O\!\left(
+  \vol(S^\star)
+  [1+R_\star\log(1+\Delta_{\mathcal P})]
+ \right)
+ =\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right),
+ \label{eq:equitable-tree-quotient-work}
+\end{align}
+where $\Delta_{\mathcal P}$ is the maximum quotient-tree degree.  It uses
+$O(\vol(S^\star))$ storage and no support, radius, or confinement oracle.
+Every degree and incidence identity encountered on the active exploration is
+audited.  An observed failure hands the current safe region and its exact
+coordinatewise violating batch to the general boundary gate, without
+compromising correctness.
+\end{theorem}
+
+\begin{proof}
+Let $P_{\mathcal P}$ be orthogonal averaging onto the cell-constant subspace.
+The degree and incidence identities make this subspace invariant under
+$D^{-1/2}AD^{-1/2}$.  Symmetry makes its orthogonal complement invariant as
+well, so $P_{\mathcal P}Q=QP_{\mathcal P}$.  The shifted demand is constant
+on each cell.  Therefore, for $z=(I-P_{\mathcal P})x$,
+\begin{equation*}
+ \Phi_\rho(x)
+ =\Phi_\rho(P_{\mathcal P}x)+\frac12z^\top Qz.
+\end{equation*}
+Orthogonal averaging preserves nonnegativity, and positive definiteness puts
+the unique optimum in the cell-constant subspace.  Direct projection, using
+edge balance, gives
+\cref{eq:equitable-tree-quotient-diagonal,eq:equitable-tree-quotient-edge,eq:equitable-tree-quotient-demand}.
+As a restriction of $Q$, the quotient has spectrum in $[\alpha,1]$.
+
+Root the quotient tree at $r$.  The response construction in
+\cref{thm:tree-response,cor:inverse-tree-response} uses only tree sparsity,
+the Stieltjes signs, strictly negative nonroot demands, and the spectral lower
+bound $\alpha I$.  It therefore applies verbatim to $(\widehat Q,\widehat c)$.
+For a child cell $a$ with parent $p(a)$, its first event is
+\begin{equation}
+ \widehat\tau_a
+ =\frac{\alpha\rho\sqrt{m_ad_a}}
+        {-\widehat Q_{p(a),a}}.
+ \label{eq:equitable-cell-first-event}
+\end{equation}
+Scanning all adjacency lists in the active parent cell enumerates every label
+of $C_a$: equitability gives each such label the positive common number
+$\nu_{a,p(a)}$ of parent neighbors.  The same scan gives $m_a$,
+$\nu_{p(a),a}$, and $\nu_{a,p(a)}$, while degree queries give $d_a$.
+Thus \cref{eq:equitable-cell-first-event} is known before $C_a$ is scanned.
+Only if that event is consumed does the algorithm scan $C_a$, learn its
+diagonal and child couplings, and initialize its child-event heap.
+
+Consequently every active original adjacency list is scanned once, for
+$O(\vol(S^\star))$ work.  There is one activation label per active cell, and
+the lazy merge advances it once through each quotient ancestor, giving the
+first line of \cref{eq:equitable-tree-quotient-work}.  Because the quotient
+graph is a rooted tree and every child-cell vertex has a parent neighbor,
+$\operatorname{depth}_{\mathcal P}(a)$ equals the original root distance of
+the vertices in $C_a$.  Hence it is at most $R_\star$ for an active cell.
+Also $|\mathcal A^\star|\leq|S^\star|\leq\vol(S^\star)$.  This proves the
+second line; the support-volume bound and
+\cref{lem:graph-support-radius} give the final order.
+
+Top-down evaluation of the quotient responses returns $y_a$ and then
+$x_v=y_a/\sqrt{m_a}$ for $v\in C_a$.  This is the full optimum by the
+orthogonal splitting.  Finally, before a child event is consumed, the parent
+scan checks the degrees and backward incidences of all its exposed labels; if
+they differ, their individual violations define the safe gate batch.  After a
+whole child cell is admitted, its own scan checks the internal and forward
+incidences.  A failure at that point follows a boundary-gate violation that
+has already admitted the cell safely.  The same Schur-complement argument as
+in \cref{thm:certifying-shell-fast-path} permits an exact fallback in either
+case.
+\end{proof}
+
+This theorem strictly extends the one-cell-per-shell result.  Unequal
+clique, independent-set, or biregular blow-ups of a rooted tree may have
+several inequivalent thick cells in one distance shell, unbounded treewidth,
+and arbitrarily large biconnected cores.  Their original graph need not be
+root-distance equitable, but the exact quotient still has tree responses and
+meets the intended product scale.
+
+The cell labels in the preceding statement are convenient but not necessary.
+The reason is causal: before an inactive cell activates, only its degree and
+its incidences with already scanned cells affect its obstacle slack.  Those
+quantities are visible from the scanned side of the boundary.  Cells that
+cannot yet be distinguished therefore have the same next event and may be
+opened together.  Their different futures can be separated after, but not
+before, that event.
+
+For a scanned set $U$ containing $o$, form a emph{visible refinement}
+$\mathcal R_U$ as follows.  Initially color vertices of $U$ by the root flag
+and their full graph degree.  Repeatedly split a color class whenever two of
+its vertices have different neighbor counts into some current class.  In an
+online run, colors present before an expansion are retained as base colors,
+so later refinement may split but never merge old classes.  All incidences
+used here are known because every adjacency list in $U$ has been scanned.
+For an exposed label $v\in N(U)\setminus U$, define its visible signature
+by
+\begin{equation}
+ \sigma_U(v)
+ :=\left(
+   d_v,
+   \bigl(|N(v)\cap B|\bigr)_{B\in\mathcal R_U}
+ \right).
+ \label{eq:visible-boundary-signature}
+\end{equation}
+The counts are accumulated from the scanned endpoints in $U$; the adjacency
+list of $v$ is not read.
+
+\begin{lemma}[Hidden tree cells refine causally]
+\label{lem:hidden-cell-refinement}
+Suppose $G$ admits an equitable tree partition $\mathcal P$ with root cell
+$\{o\}$, but $\mathcal P$ is not supplied to the algorithm.  Let $U$ be a
+union of cells whose quotient indices form a rooted connected subtree.  Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every class of $\mathcal R_U$ is a union of cells of $\mathcal P$,
+ and the distinct-class interaction graph of $\mathcal R_U$ is a rooted
+ tree;
+ \item the restricted obstacle solution on $U$, and every affine piece of
+ the root-conditioned homotopy on $U$, is constant on the classes of
+ $\mathcal R_U$;
+ \item every signature class in $N(U)\setminus U$ is a union of whole
+ boundary cells of $\mathcal P$, and all its labels have the same affine
+ obstacle slack;
+ \item if such a signature class reaches the next event, admitting the whole
+ class and scanning its lists is exact.  Refining afterward preserves the
+ common solution value at the event and forks only the future affine pieces.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The initial colors do not split a cell of $\mathcal P$: the root cell is a
+singleton and degree is constant inside every other cell.  If each current
+color is a union of $\mathcal P$-cells, equitability makes the neighbor count
+into that color constant on every $\mathcal P$-cell.  Induction over the
+refinement steps therefore proves the first assertion of (i).
+
+The unique root color propagates through one quotient edge per refinement
+round, so two visible classes at different quotient depths cannot merge.
+Moreover, if two nonroot $\mathcal P$-cells remain in one visible class, their
+unique parent cells must lie in one visible class: otherwise their count
+vectors into the two parent classes differ.  Consequently each nonroot
+visible class has one visible parent, proving that its interaction graph is a
+rooted tree.
+
+Stability of the refinement says that degree and all within-$U$ incidence
+counts are constant on a visible class.  Hence its cell-constant subspace is
+invariant under $Q_{UU}$, while the restricted shifted demand is constant on
+the same classes.  Orthogonal averaging, exactly as in the proof of
+\cref{thm:equitable-tree-quotient}, puts the restricted obstacle minimizer and
+each fixed-support homotopy solution in that subspace.  This proves (ii).
+
+Let $C_a$ be a quotient cell adjacent to $U$.  Its unique parent cell belongs
+to $U$, and $\nu_{a,p(a)}>0$.  Scanning that parent therefore exposes every
+label of $C_a$.  Equitability makes
+\cref{eq:visible-boundary-signature} constant throughout $C_a$, so a
+signature class is a union of whole boundary cells.  If $x_U(t)$ is one
+affine homotopy piece, the inactive slack at $v$ is
+\begin{equation*}
+ g_v(t)=(Q_{vU}x_U(t))-c_{\rho,v}.
+\end{equation*}
+By (ii), the visible signature determines every term on the right.  Thus the
+slack is common and affine on a signature class, proving (iii).
+
+At its zero, the entire tied class satisfies the activation equality.  Before
+the zero all its coordinates are zero, so unrevealed internal or forward
+edges have made no contribution.  The coordinates are continuous at the
+event.  Carrying the old colors as base colors and scanning the new bundle
+can only split classes of the old exact quotient; every new class inherits
+the common event value, after which its own affine continuation is computed
+from the refined quotient.  This proves (iv).
+\end{proof}
+
+\begin{lemma}[Amortized visible refinement and response forks]
+\label{lem:visible-refinement-work}
+Let $k_\star$ be the number of active cells in a witnessing equitable tree
+partition.  Along the exact homotopy up to its root zero, visible refinement
+can be maintained in
+\begin{equation}
+ O\!\left(
+  \vol(S^\star)\log(1+\vol(S^\star))
+ \right)
+ \label{eq:visible-refinement-work}
+\end{equation}
+total work and $O(\vol(S^\star))$ storage.  The additional lazy-response work
+created by class splits is at most a constant multiple of
+\begin{equation}
+ \log(1+\Delta_{\mathcal P})
+ \sum_{a\in\mathcal A^\star}
+ \operatorname{depth}_{\mathcal P}(a).
+ \label{eq:visible-response-fork-work}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Store every incidence when its active endpoint is first scanned.  Maintain
+the stable colors with a splitter queue, always retaining one largest part of
+a split under its old record and placing the other parts on the queue.  An
+incidence is revisited only when one of its endpoint classes is a newly
+inserted class or is charged to a part of at most half the former size.  The
+first case occurs once and the second at most
+$\log_2(1+\vol(S^\star))$ times.  Boundary-label counts are updated by the
+same stored incidences.  This is the standard smaller-half refinement charge
+and proves \cref{eq:visible-refinement-work}.
+
+Past affine pieces are immutable.  When a visible class splits, retain their
+shared prefix and create records only for the new future pieces.  Each split
+strictly increases the active visible-class count, and no true cell is split
+by \cref{lem:hidden-cell-refinement}; hence the total number of created active
+records is $O(k_\star)$.  More precisely, the class histories form refinement
+forests with no unary internal nodes, hence fewer than twice as many records
+as final visible classes.  Every record and all of its descendant classes
+have the same quotient depth.  Their total propagation depth is therefore at
+most twice the sum of the witnessing active-cell depths.  A new record changes
+only the response of its unique visible parent, so the lazy merge propagates
+it once through each ancestor.  Heap maintenance supplies the logarithm in
+\cref{eq:visible-response-fork-work}, exactly as in
+\cref{thm:lazy-tree-response}.
+\end{proof}
+
+\begin{theorem}[Representation-free product bound for hidden equitable trees]
+\label{thm:hidden-equitable-tree-quotient}
+Suppose a single-seed graph admits an equitable tree partition with root cell
+$\{o\}$.  The partition and its cell identifiers need not be supplied.
+Ordinary degree queries and adjacency-list scans suffice to discover and
+solve exact RPPR using
+\begin{align}
+ \Work_{\rm hidden\text{-}cell\text{-}tree}
+ &=O\!\left(
+   \vol(S^\star)\log(1+\vol(S^\star))
+   +\log(1+\Delta_{\mathcal P})
+    \sum_{a\in\mathcal A^\star}
+    \operatorname{depth}_{\mathcal P}(a)
+  \right)
+ \notag\\
+ &=\widetilde O\!\left(
+   \vol(S^\star)(1+R_\star)
+  \right)
+ =\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:hidden-equitable-tree-work}
+\end{align}
+The algorithm uses $O(\vol(S^\star))$ storage and no support, radius,
+confinement, partition, or cell-identifier oracle.
+
+On an arbitrary graph the same procedure is certifying.  If a revealed
+refined quotient is not a tree, it hands the exact active region and the
+individual tied violation batch to the graph-universal homotopy or boundary
+gate.  Thus the hidden-tree property is used only for the work bound, not for
+correctness.
+\end{theorem}
+
+\begin{proof}
+Run the lazy quotient-response algorithm of
+\cref{thm:equitable-tree-quotient}, replacing supplied cells by the visible
+classes and boundary signatures above.  By
+\cref{lem:hidden-cell-refinement}, its current quotient and every event are
+exact; a bundle is scanned only after its common event is consumed.  The
+root iterator therefore stops at the unique root zero and exposes exactly
+$S^\star$.  The original adjacency lists of active vertices are scanned once.
+Add the refinement and fork charges of
+\cref{lem:visible-refinement-work} to the ordinary lazy-response work.  Since
+$|\mathcal A^\star|\leq\vol(S^\star)$ and every active quotient depth is at
+most $R_\star$, the second line of
+\cref{eq:hidden-equitable-tree-work} follows.  The support-volume and radius
+bounds give the last equality.
+
+For a graph outside the promised class, visible refinement still gives an
+exact quotient of the scanned principal problem, and every consumed boundary
+label has an exact zero slack.  The first non-tree interaction is therefore
+an observed structural witness, not a speculative failure.  Monotonicity of
+the graph-universal homotopy makes the active set a subset of $S^\star$.
+Re-solve that scanned set at the fixed target $\rho$ and
+\cref{thm:condition-free-graph} completes an exact fallback.
+\end{proof}
+
+Equivalently, the useful structural condition is intrinsic: the stable
+root-and-degree equitable refinement may have a tree interaction graph.  The
+algorithm discovers only the portion that becomes active.  A precomputed or
+trusted symmetry partition is not part of the access model.
+
 \subsection{A graph-universal scalar homotopy and bounded cyclic blocks}
 \label{subsec:graph-homotopy}
 
@@ -1544,12 +2303,60 @@ $\sigma>0$, $r\leq0$, and $s_{vk}\leq0$ for $v\ne k$.  The slope claim
 follows from $z_k^+(t)=-g_k'(t)(t-\tau)/\sigma$.
 \end{proof}
 
+\begin{lemma}[Exact tied-batch Schur update]
+\label{lem:block-event-schur-update}
+Let $A$ be the current active set and let a nonempty block
+$B\subseteq\bar o\setminus A$ join on the next homotopy piece.  Write
+\begin{equation}
+ M:=H_{AA},
+ \qquad E:=H_{AB},
+ \qquad
+ \mathcal S_B:=H_{BB}-E^\top M^{-1}E,
+ \label{eq:block-event-schur-data}
+\end{equation}
+and let
+$g_B(t):=H_{BA}z_A(t)-d_B(t)$, where
+$d(t):=c_{\rho,\bar o}+at$.  Then the new affine solution satisfies
+\begin{align}
+ z_B^+(t)&=-\mathcal S_B^{-1}g_B(t),
+ &z_A^+(t)&=z_A(t)-M^{-1}Ez_B^+(t),
+ \label{eq:block-event-primal-update}\\
+ g_C^+(t)&=g_C(t)+\mathcal S_{CB}z_B^+(t),
+ &\mathcal S_{CB}&:=H_{CB}-H_{CA}M^{-1}E\leq0
+ \label{eq:block-event-slack-update}
+\end{align}
+for every remaining inactive block
+$C\subseteq\bar o\setminus(A\cup B)$.  Moreover,
+$\mathcal S_B$ is Stieltjes, $\mathcal S_B^{-1}\geq0$, and
+$-M^{-1}E\geq0$.  The same identities hold for an exact boundary-gate batch
+after replacing $H$ by $Q$ and $g_B$ by the current shifted KKT slack.
+\end{lemma}
+
+\begin{proof}
+The enlarged active equations are
+\begin{equation*}
+ \begin{bmatrix}M&E\\E^\top&H_{BB}\end{bmatrix}
+ \begin{bmatrix}z_A^+\\z_B^+\end{bmatrix}
+ =\begin{bmatrix}d_A(t)\\d_B(t)\end{bmatrix}.
+\end{equation*}
+Eliminating the old coordinates gives
+$\mathcal S_Bz_B^+=d_B-H_{BA}z_A=-g_B$ and then the second formula in
+\cref{eq:block-event-primal-update}.  Substitution in the definition of the
+remaining inactive slacks gives
+\cref{eq:block-event-slack-update}.  Principal Schur complements of a
+Stieltjes matrix are Stieltjes, and inverse positivity gives all displayed
+signs.  The gate statement is the identical block elimination applied to
+$Q_{A\cup B,A\cup B}$.
+\end{proof}
+
 The theorem removes cyclic ambiguity at the level of correctness: there is
 still one ordered stream of activation events.  A literal implementation,
 however, refactors the current principal system and refreshes every boundary
 slack after each event, which can cost quadratic output work.
 \Cref{lem:one-event-schur-update} shows exactly what must be compressed: a
-kinetic minimum under successive signed Schur-column updates.  Trees avoid
+kinetic minimum under successive signed Schur-column or block-column updates;
+\cref{lem:block-event-schur-update} shows that simultaneous crossings require
+no additional algebra.  Trees avoid
 that refresh through scalar child independence.  The same mechanism extends
 to cyclic graphs whose articulation blocks have bounded size.
 
@@ -1614,15 +2421,167 @@ $\vol(S^\star)\leq1/\rho$ to obtain the second line of
 \cref{eq:bounded-block-work}.
 \end{proof}
 
+The preceding representation is convenient but not necessary.  The missing
+fact is again causal.  An inactive vertex contributes no off-diagonal term to
+an active equation.  Consequently a cycle can become relevant only at the
+event at which one of its previously inactive vertices has value zero.
+
+\begin{lemma}[Zero-prefix invariance under causal block merges]
+\label{lem:causal-block-zero-prefix}
+Run the root-conditioned homotopy of
+\cref{thm:graph-scalar-homotopy} using ordinary degree queries and adjacency
+scans, and scan a vertex only when it activates.  Let $A$ be the active set
+immediately before a homotopy event at parameter $t_0$, and let $B$ be its
+tied activation batch.  The exposed graph contains every cached edge with at
+least one scanned endpoint, including its zero-valued inactive boundary
+endpoint.  After scanning $B$, insert every newly revealed edge into this
+exposed graph.  Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every edge newly inserted into the exposed graph has at least one
+ endpoint in $B$;
+ \item the old solution $z_A(t_0)$, extended by $z_B(t_0)=0$, is the unique
+ solution of the enlarged active equations at $t_0$, while every other newly
+ exposed endpoint remains a valid zero boundary coordinate;
+ \item every response piece already consumed at a parameter below $t_0$
+ remains exact.  Only unconsumed lookaheads and future affine pieces belonging
+ to blocks changed by the insertion can become invalid.
+\end{enumerate}
+The same statements hold when several edges inside $B$ merge more than two
+current blocks at once.
+\end{lemma}
+
+\begin{proof}
+Every newly revealed edge is read from an adjacency list in $B$, proving
+(i); an edge with two previously scanned endpoints was already cached.  Before
+$t_0$ every coordinate in $B$ is zero.  Hence an incidence from $B$ to $A$,
+an incidence internal to $B$, and an incidence from $B$ to a future boundary
+vertex contribute zero to the old active equations.  At $t_0$ the
+KKT slack of every label in the tied batch is zero by definition.  Therefore
+the old equations on $A$ and the new equations on $B$ are all satisfied by
+$(z_A(t_0),0_B)$.  The enlarged principal matrix is positive definite, so
+this solution is unique, proving (ii).
+
+For every earlier parameter, the same zero-coordinate argument shows that
+the response seen by the old active variables is unchanged.  Continuity at
+$t_0$ gives a common checkpoint for the old and enlarged systems.  Refactoring
+from that checkpoint changes their derivatives and future breakpoints but
+not their common prefix, proving (iii).  Internal batch edges have two zero
+endpoints, so the proof is unchanged for a multiway merge.
+\end{proof}
+
+\begin{theorem}[Representation-free product bound for bounded cyclic blocks]
+\label{thm:causal-bounded-block-response}
+Suppose every biconnected block in the seed component has at most $q$
+vertices, with each bridge counted as a two-vertex block.  The block
+decomposition, block identifiers, root orientation, and $q$ itself need not
+be supplied.  With only ordinary degree queries and adjacency-list scans,
+exact single-seed RPPR can be solved in
+\begin{align}
+ \Work_{\rm causal\text{-}block}
+ &=O\!\left(
+   q^3\log\!\bigl(2+\Delta+\vol(S^\star)\bigr)
+   \sum_{v\in S^\star}
+    (1+d_v)\bigl(1+\operatorname{dist}(o,v)\bigr)
+  \right)\notag\\
+ &=\widetilde O\!\left(
+   \frac{q^3}{\rho\sqrt\alpha}
+  \right)
+ \label{eq:causal-bounded-block-work}
+\end{align}
+degree work and $O(q\vol(S^\star))$ storage, without a support, radius,
+confinement, or structural oracle.  In particular, the presentation
+condition in \cref{thm:bounded-block-response} can be removed without losing
+the intended product scale.
+\end{theorem}
+
+\begin{proof}
+Maintain the block--cut forest of the exposed graph: every scanned vertex,
+its inactive boundary labels, and every cached incidence are present, while
+unscanned boundary coordinates are fixed at zero.  This convention is
+important.  If one boundary label touches several active branches, its
+combined slack already belongs to one exposed block response rather than to a
+separate cross-branch demand array.  Adding a newly scanned adjacency list
+consists of leaf insertions and contractions of block--cut paths: inserting a
+cycle-closing edge merges precisely the blocks and articulations on the path
+between its endpoints.  For a tied batch, inserting all of its edges
+contracts the corresponding union of such paths.  Every current biconnected
+block is contained in a biconnected block of the full graph, so every
+contracted path or subtree that becomes one block contains at most $q$
+original vertices.  A rooted dynamic-forest path expose, followed by
+union--find contraction, therefore maintains the combinatorial block forest
+in
+\begin{equation}
+ O\!\left(q\log\bigl(2+\vol(S^\star)\bigr)\right)
+ \label{eq:causal-block-forest-update}
+\end{equation}
+work per inserted exposed incidence.  Processing all incidences of a tied
+batch before publishing its new block records avoids any dependence on their
+arbitrary scan order.
+
+Keep the lazy scalar block iterators of
+\cref{thm:bounded-block-response}, but make every response record checkpointed
+and versioned, with one current piece and one live lookahead.  At an
+articulation, its off-path child iterators remain
+behind one meldable-heap handle owned by the articulation rather than by its
+current parent block.  Thus a contraction does not enumerate or copy those
+child subtrees.  Blocks disjoint from the contracted subtree retain their
+iterators.  For every changed block, discard stale unconsumed heap records,
+checkpoint all incident child iterators at their current articulation values,
+and rebuild the at-most-$q$-variable affine system and its next-event heap.
+Dense refactorization and rekeying cost
+\begin{equation}
+ O\!\left(q^3\log\bigl(2+\Delta+\vol(S^\star)\bigr)\right)
+ \label{eq:causal-block-rebuild}
+\end{equation}
+per conservatively charged newly exposed incidence.  No past breakpoint list is
+replayed.  By \cref{lem:causal-block-zero-prefix}, the checkpoint and every
+consumed prefix are exact; the rebuilt iterator is the unique exact future
+continuation.  Induction over activation batches therefore proves exactness.
+
+Every admitted adjacency list is scanned once.  Charge its exposed-incidence
+insertions, stale versions, local rebuilds, and any conservative propagated
+rekey to the newly activated endpoint $v$.  A propagated version crosses at
+most $1+\operatorname{dist}(o,v)$ block nodes, just as in
+\cref{thm:bounded-block-response}.  Monotonicity labels every genuinely
+consumed response event by one support vertex, and equality remains inactive,
+so there are no additional unlabeled event chains.  Summing the per-incidence
+charge gives the first line of \cref{eq:causal-bounded-block-work}; final
+block-tree recovery and the cached boundary KKT scan fit in the same bound.
+Addressable handles replace invalidated ancestor keys in place, while a
+consumed prefix retains only its emitted labels and current checkpoints.
+Consequently current dense factors, articulation heaps, cached incidences,
+and version records use $O(q\vol(S^\star))$ storage.
+
+If the seed component is nontrivial, $1+d_v\leq2d_v$ for every support
+vertex.  Writing $R_\star:=\max_{v\in S^\star}\operatorname{dist}(o,v)$,
+\begin{equation*}
+ \sum_{v\in S^\star}(1+d_v)
+       \bigl(1+\operatorname{dist}(o,v)\bigr)
+ \leq2(1+R_\star)\vol(S^\star).
+\end{equation*}
+The isolated-seed case is constant work.  Now apply
+\cref{lem:graph-support-radius} and
+$\vol(S^\star)\leq1/\rho$ to obtain the second line of
+\cref{eq:causal-bounded-block-work}.  The algorithm uses realized block sizes
+only; $q$ is an analysis parameter, not advice.
+\end{proof}
+
 Large biconnected cores remain different, but block size alone is not the
 right obstruction.  \Cref{thm:cycle-one-pass} closes an arbitrarily long
-cycle in output-linear work, and \cref{cor:radial-width-gate} below closes
-every bounded-width core whose true support is thin across distance shells.
-The open data-structure lemma is now more precise: in a core with neither a
-bounded-block decomposition nor thin radial support, compress the scalar
-homotopy trace without refreshing all boundary slacks after every activation,
-or prove that the exact boundary gate realizes only
-$\widetilde O(1/\sqrt\alpha)$ batches.
+cycle in output-linear work, \cref{thm:equitable-shell-one-pass} closes
+arbitrarily thick root-distance-equitable shells in the same work,
+\cref{thm:hidden-equitable-tree-quotient} closes multiple thick cell types
+whenever an equitable tree quotient exists, without supplied cell labels, and
+\cref{cor:radial-width-gate} below closes every bounded-width core whose true
+support is thin across distance shells.  The open data-structure lemma is now
+more precise: in a core with neither a bounded-block decomposition, an
+equitable tree quotient, nor thin radial support, compress the scalar homotopy
+trace without refreshing all boundary slacks after every activation, or prove
+that the exact boundary gate realizes only
+$\widetilde O(1/\sqrt\alpha)$ batches.  The block update in
+\cref{lem:block-event-schur-update} is the exact algebraic interface for the
+first route; \cref{prop:three-path-gap-obstruction} below shows that the second
+route cannot follow from a uniform accelerated objective contraction.
 
 \subsection{Removing the supplied-support condition on arbitrary graphs}
 \label{subsec:condition-free-graph}
@@ -1749,6 +2708,155 @@ use $U_j\subseteq S^\star$, then
 $|S^\star|\leq\vol(S^\star)\leq1/\rho$.
 \end{proof}
 
+\begin{theorem}[Proximal domination and margin-sensitive gate bound]
+\label{thm:gate-objective-contraction}
+On the nonnegative orthant define the shifted obstacle objective and its unit
+proximal-gradient map by
+\begin{align}
+ \Phi_\rho(x)
+ &:=\frac12x^\top Qx-c_\rho^\top x
+    +\operatorname{ind}_{\mathbb R_+^V}(x),
+ &T_\rho(x)&:=[x-Qx+c_\rho]_+.
+ \label{eq:shifted-obstacle-objective}
+\end{align}
+Here $\operatorname{ind}_{\mathbb R_+^V}$ is zero on the nonnegative orthant
+and $+\infty$ outside it.
+At every nonterminal exact-gate stage,
+\begin{equation}
+ \Phi_\rho(x^{(j+1)})
+ \leq \Phi_\rho(T_\rho(x^{(j)}))
+ \leq
+ (1-\alpha)\Phi_\rho(x^{(j)})
+ +\alpha\Phi_\rho(x^\star).
+ \label{eq:gate-objective-contraction}
+\end{equation}
+Thus, with
+$\Delta_j:=\Phi_\rho(x^{(j)})-\Phi_\rho(x^\star)$,
+\begin{equation}
+ \Delta_j\leq(1-\alpha)^j\Delta_0,
+ \qquad
+ \Delta_0\leq\frac{\alpha}{2d_o}.
+ \label{eq:gate-gap-geometric}
+\end{equation}
+If $S^\star\neq\{o\}$ and
+\begin{equation}
+ \delta_\star:=\min_{v\in S^\star}x_v^\star>0,
+ \label{eq:active-coordinate-margin}
+\end{equation}
+then the number of nonempty batches also obeys
+\begin{align}
+ J_\star
+ &\leq
+ \min\left\{
+ |S^\star|-1,
+ 1+\left\lceil
+ \frac{
+  \max\left\{0,\log\!\left(2\Delta_0/(\alpha\delta_\star^2)\right)\right\}}
+ {-\log(1-\alpha)}
+ \right\rceil
+ \right\}
+ \notag\\
+ &\leq
+ \min\left\{
+ |S^\star|-1,
+ 2+\frac{1}{\alpha}
+ \max\left\{0,\log\!\frac{1}{d_o\delta_\star^2}\right\}
+ \right\}.
+ \label{eq:gate-margin-batch-bound}
+\end{align}
+In particular, the first quantity in \cref{eq:gate-margin-batch-bound} may
+replace $J_\star$ in \cref{eq:graph-gate-batch-work}.  This is an
+unconditional instance bound: $\delta_\star$ is measured from the unique
+optimum, not assumed by the algorithm.
+\end{theorem}
+
+\begin{proof}
+The active equations give
+$T_\rho(x^{(j)})_{U_j}=x^{(j)}_{U_j}$.  Outside $U_j$, a coordinate of the
+proximal point is positive exactly when its shifted KKT slack is negative.
+A nonboundary nonseed coordinate has no edge to $U_j$ and has strictly
+negative shifted demand, so it remains zero.  Consequently
+\begin{equation*}
+ \supp(T_\rho(x^{(j)}))\subseteq U_j\cup B_j.
+\end{equation*}
+The next gate point is the exact minimizer of $\Phi_\rho$ on that enlarged
+coordinate subspace, proving the first inequality in
+\cref{eq:gate-objective-contraction}.
+
+For the second, put $x=x^{(j)}$, $p=T_\rho(x)$, and
+$z=(1-\alpha)x+\alpha x^\star$.  The proximal optimality inequality and the
+unit smoothness of the quadratic give
+\begin{equation*}
+ \Phi_\rho(p)
+ \leq
+ \frac12x^\top Qx-c_\rho^\top x
+ +\operatorname{ind}_{\mathbb R_+^V}(z)
+ +\langle Qx-c_\rho,z-x\rangle
+ +\frac12\|z-x\|_2^2.
+\end{equation*}
+The orthant indicator is convex.  Applying $\alpha$-strong convexity of the
+quadratic between $x$ and $x^\star$ cancels the final
+$\alpha^2\|x-x^\star\|_2^2/2$ term and yields the convex combination on the
+right side of \cref{eq:gate-objective-contraction}.  Iteration proves the
+first part of \cref{eq:gate-gap-geometric}.  Since the singleton gate point
+minimizes over a set containing zero, its initial gap is no larger than the
+standard single-seed zero-start bound $\alpha/(2d_o)$.
+
+If the gate has not terminated, some $v\in S^\star\setminus U_j$ has
+$x_v^{(j)}=0$ and $x_v^\star\geq\delta_\star$.  Strong convexity therefore
+gives
+\begin{equation*}
+ \Delta_j\geq\frac{\alpha}{2}
+ \|x^{(j)}-x^\star\|_2^2
+ \geq\frac{\alpha\delta_\star^2}{2}.
+\end{equation*}
+Combining this lower bound with \cref{eq:gate-gap-geometric} proves the first
+margin estimate, with one extra batch covering equality.  Finally use
+$-\log(1-\alpha)\geq\alpha$ and the initial-gap estimate.  The support-count
+bound improves by one because $o\in U_0\subseteq S^\star$.
+\end{proof}
+
+\begin{proposition}[A three-path rules out uniform accelerated gap decay]
+\label{prop:three-path-gap-obstruction}
+No constant $c>0$ can make
+\begin{equation}
+ \Delta_{j+1}\leq(1-c\sqrt\alpha)\Delta_j
+ \label{eq:false-accelerated-gate-gap}
+\end{equation}
+hold for every exact-gate batch on every single-seed RPPR instance.  Indeed,
+on the path $o-u-v$, for all sufficiently small $\rho>0$ the gate visits
+$\{o\}$, $\{o,u\}$, and $\{o,u,v\}$, and
+\begin{equation}
+ \lim_{\rho\downarrow0}\frac{\Delta_1}{\Delta_0}
+ =\frac{(1-\alpha)^2}{1+6\alpha+\alpha^2}
+ =1-8\alpha+O(\alpha^2).
+ \label{eq:three-path-gap-ratio}
+\end{equation}
+This obstruction concerns a contraction proof, not the batch-count
+conjecture: the displayed instance terminates after two nonempty batches.
+\end{proposition}
+
+\begin{proof}
+At $\rho=0$, write
+$a=(1+\alpha)/2$ and $q=(1-\alpha)/(2\sqrt2)$.  In the order $(o,u,v)$,
+the matrix has diagonal $a$ and path off-diagonal $-q$, while the demand is
+supported at $o$.  A restricted quadratic minimum on the first $k$
+coordinates has value
+$-\alpha^2(Q_{1:k,1:k}^{-1})_{oo}/2$.  Direct tridiagonal inversion gives
+\begin{align*}
+ (Q_{1:1,1:1}^{-1})_{oo}&=\frac1a,\\
+ (Q_{1:2,1:2}^{-1})_{oo}&=\frac{a}{a^2-q^2},\\
+ (Q^{-1})_{oo}&=\frac{a^2-q^2}{a(a^2-2q^2)}.
+\end{align*}
+Subtracting successive restricted values gives
+$\Delta_1/\Delta_0=q^2/(a^2-q^2)$, which simplifies to the rational
+expression in \cref{eq:three-path-gap-ratio}.  The strict gate inequalities,
+the active-set sequence, and the ratio persist by continuity for all
+sufficiently small positive $\rho$.  Since
+$1-8\alpha+O(\alpha^2)>1-c\sqrt\alpha$ for sufficiently small $\alpha$,
+\cref{eq:false-accelerated-gate-gap} cannot hold uniformly.
+\end{proof}
+
 \begin{corollary}[Thin-support product bound]
 \label{cor:radial-width-gate}
 For a nonzero single-seed problem, define the active radial width
@@ -1796,6 +2904,742 @@ two vertices per root-distance shell.  A fixed-width strip has uniformly
 bounded elimination width and shell cardinality under its natural layered
 ordering.
 \end{proof}
+
+\subsection{Finite-band intervals and energy-packed response changes}
+\label{subsec:finite-band-packing}
+
+Exact zero signs are unnecessary for an approximate output guarantee.  More
+strongly, a response implementation need not maintain the same additive
+accuracy at every boundary label.  Define the normalized shifted demand
+\begin{equation}
+ \bar e_{\rho,v}(x)
+ :=\frac{c_{\rho,v}-(Qx)_v}{\sqrt{d_v}}
+ =-\frac{\kappa_{\rho,v}(x)}{\sqrt{d_v}}.
+ \label{eq:normalized-shifted-demand}
+\end{equation}
+
+\begin{theorem}[Margin-adaptive finite-band gate]
+\label{thm:margin-adaptive-finite-gate}
+Fix $\eta>0$.  Starting from the zero or singleton initialization in
+\cref{thm:condition-free-graph}, maintain an exact positive Dirichlet point
+$x^U$ on the current face $U$.  Suppose a response procedure supplies
+certified intervals
+\begin{equation}
+ L_v\leq \bar e_{\rho,v}(x^U)\leq U_v,
+ \qquad v\in\partial U.
+ \label{eq:adaptive-demand-interval}
+\end{equation}
+At a fixed face, apply the following exhaustive rule:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item if
+ $B:=\{v\in\partial U:L_v>\eta/2\}$ is nonempty, admit $B$ and compute the
+ exact Dirichlet point on $U\cup B$;
+ \item if $B$ is empty and $U_v\leq\eta$ for every boundary label, stop;
+ \item otherwise refine any intervals that prevent either certificate,
+ without changing the face.
+\end{enumerate}
+Assume only that the refinement procedure eventually produces (i) or (ii) at
+each fixed face.  Then every admitted face is contained in
+$S^\star(\rho)$, all Dirichlet coordinates remain positive, and the terminal
+face $T$ satisfies
+\begin{equation}
+ 0\leq x^T\leq x^\star(\rho),
+ \qquad
+ \left\|D^{-1/2}\bigl(x^\star(\rho)-x^T\bigr)\right\|_\infty
+ \leq\frac\eta\alpha.
+ \label{eq:adaptive-finite-gate-error}
+\end{equation}
+Every admitted batch additionally has the exact objective shock
+\begin{equation}
+ \Phi_\rho(x^U)-\Phi_\rho(x^{U\cup B})
+ \geq\frac{\eta^2}{8}\vol(B).
+ \label{eq:adaptive-finite-gate-shock}
+\end{equation}
+Thus interval widths may be arbitrarily coarse away from the transition band;
+uniform pointwise $\eta/4$ estimates are sufficient but not necessary.
+\end{theorem}
+
+\begin{proof}
+The zero and singleton cases are handled exactly as in
+\cref{thm:condition-free-graph}.  Suppose inductively that
+$U\subseteq S^\star$ and $0\leq x^U\leq x^\star$.  If
+$v\notin S^\star$, Stieltjes signs and the optimum KKT inequality give
+\begin{equation*}
+ \bar e_{\rho,v}(x^U)
+ \leq \bar e_{\rho,v}(x^\star)\leq0.
+\end{equation*}
+An admitted label instead has exact normalized demand larger than
+$\eta/2$, so $B\subseteq S^\star$.  Its Schur right-hand side
+$q_B:=c_{\rho,B}-Q_{BU}x^U$ obeys
+$q_B>(\eta/2)D_B^{1/2}\one$.  Inverse positivity of the block Schur
+complement gives a strictly positive new block correction; back-substitution
+is nonnegative.  Comparison with the full optimum gives
+$x^U\leq x^{U\cup B}\leq x^\star$, closing the induction.
+
+At termination, the active demands vanish and every boundary demand is at
+most $\eta\sqrt{d_v}$; all more distant nonseed demands are negative.  Put
+$h:=x^\star-x^T\geq0$ and
+$M:=\|D^{-1/2}h\|_\infty$.  If $M>0$, choose a maximizing coordinate $i$.
+Because $x_i^\star>0$, the optimum demand vanishes there, and the maximum
+principle using $QD^{1/2}\one=\alpha D^{1/2}\one$ gives
+\begin{equation*}
+ \alpha M\sqrt{d_i}
+ \leq(Qh)_i
+ =c_{\rho,i}-(Qx^T)_i
+ \leq\eta\sqrt{d_i}.
+\end{equation*}
+This proves \cref{eq:adaptive-finite-gate-error}.
+
+For an admitted batch, completing the square after Schur elimination gives
+\begin{equation*}
+ \Phi_\rho(x^U)-\Phi_\rho(x^{U\cup B})
+ =\frac12q_B^T\mathcal S_B^{-1}q_B.
+\end{equation*}
+Since $\mathcal S_B\preceq I$ and
+$q_B>(\eta/2)D_B^{1/2}\one$, the right side is at least
+$\eta^2\vol(B)/8$, proving
+\cref{eq:adaptive-finite-gate-shock}.
+\end{proof}
+
+The next lemma controls what a response reporter must update.  It applies to
+an arbitrary exterior set, not only to the immediate graph boundary.
+
+\begin{lemma}[Exterior response is an energy contraction]
+\label{lem:response-energy-packing}
+Let $U\subseteq T\subseteq S^\star(\rho)$ be two positive exact Dirichlet
+faces, extend $x^U$ by zero on $T\setminus U$, and let
+$W\subseteq V\setminus T$.  Put
+\begin{equation}
+ y_W
+ :=\bigl(c_{\rho,W}-Q_{WT}x^T_T\bigr)
+   -\bigl(c_{\rho,W}-Q_{WT}x^U_T\bigr).
+ \label{eq:exterior-response-change}
+\end{equation}
+Then $y_W\geq0$ and
+\begin{equation}
+ \|y_W\|_2^2
+ \leq\|x^T-x^U\|_{Q_{TT}}^2
+ =2\bigl(\Phi_\rho(x^U)-\Phi_\rho(x^T)\bigr).
+ \label{eq:response-energy-contraction}
+\end{equation}
+Consequently, for arbitrary margins $m_v>0$ and
+\begin{equation*}
+ H(m):=\left\{
+  v\in W:\frac{y_v}{\sqrt{d_v}}\geq m_v
+ \right\},
+\end{equation*}
+one has
+\begin{equation}
+ \sum_{v\in H(m)}d_vm_v^2
+ \leq2\bigl(\Phi_\rho(x^U)-\Phi_\rho(x^T)\bigr).
+ \label{eq:weighted-response-packing}
+\end{equation}
+In particular, if $m_v=\theta$ then
+\begin{equation}
+ \vol(H(\theta))
+ \leq\frac{2}{\theta^2}
+ \bigl(\Phi_\rho(x^U)-\Phi_\rho(x^T)\bigr).
+ \label{eq:uniform-response-packing}
+\end{equation}
+For disjoint nested expansion epochs, the right sides telescope.
+\end{lemma}
+
+\begin{proof}
+Put $\delta:=x^T_T-x^U_T\geq0$.  Stieltjes signs give
+$y_W=-Q_{WT}\delta\geq0$.  The principal matrix on $T\cup W$ is positive
+definite, so its Schur complement gives
+\begin{equation*}
+ Q_{WT}Q_{TT}^{-1}Q_{TW}\preceq Q_{WW}\preceq I.
+\end{equation*}
+Hence the operator
+$R:=Q_{WT}Q_{TT}^{-1/2}$ has $\|R\|_2\leq1$, and
+\begin{equation*}
+ \|y_W\|_2
+ =\|R Q_{TT}^{1/2}\delta\|_2
+ \leq\|\delta\|_{Q_{TT}}.
+\end{equation*}
+Because $x^T$ is stationary on $T$, completing the square gives the equality
+in \cref{eq:response-energy-contraction}.  For every $v\in H(m)$,
+$y_v^2\geq d_vm_v^2$; summing and applying
+\cref{eq:response-energy-contraction} proves
+\cref{eq:weighted-response-packing,eq:uniform-response-packing}.  Objective
+drops telescope over disjoint nested index intervals.
+\end{proof}
+
+\begin{corollary}[Uniform response leverage bound]
+\label{cor:uniform-response-leverage}
+For a face $T$ and exterior label $v$, define
+\begin{equation*}
+ \chi_v^2:=Q_{vT}Q_{TT}^{-1}Q_{Tv}.
+\end{equation*}
+Then $\chi_v^2\leq Q_{vv}\leq1$.  Consequently, if $x^T$ is the exact face
+solution and
+$\|\widetilde x_T-x^T_T\|_{Q_{TT}}\leq\delta$, then
+\begin{equation}
+ \frac{\left|Q_{vT}(\widetilde x_T-x^T_T)\right|}{\sqrt{d_v}}
+ \leq\delta.
+ \label{eq:uniform-response-leverage-error}
+\end{equation}
+Thus no coordinate-specific leverage estimate is required to turn an energy
+certificate into a valid queried boundary interval.
+\end{corollary}
+
+\begin{proof}
+Take the singleton exterior set $W=\{v\}$ in the Schur-complement inequality
+used in \cref{lem:response-energy-packing}.  Cauchy--Schwarz in the
+$Q_{TT}$ energy norm then gives the displayed error bound, using $d_v\geq1$.
+\end{proof}
+
+The universal leverage bound is deliberately source-oblivious.  A correction
+created by a new batch has a smaller subspace, and its complete sensitivity
+ledger has an exact scalar interpretation.
+
+\begin{theorem}[Source-aware leverage is terminal Schur-diagonal loss]
+\label{thm:source-aware-schur-diagonal-loss}
+Let $A\subsetneq T=A\mathbin{\dot\cup}B$ and
+$W\subseteq V\setminus T$.  For $U\subseteq V$, use
+\begin{equation*}
+ Q/U:=Q_{\bar U\bar U}
+       -Q_{\bar U U}Q_{UU}^{-1}Q_{U\bar U},
+ \qquad \bar U:=V\setminus U.
+\end{equation*}
+Write $L^A:=Q/A$ and $L^T:=Q/T$ for these terminal Schur complements, let
+$E_B$ embed $\mathbb R^B$ into $\mathbb R^T$, and put
+\begin{equation*}
+ H_B:=E_B^TQ_{TT}^{-1}E_B.
+\end{equation*}
+For $v\in W$, define the source-aware squared leverage
+\begin{equation}
+ (\chi_v^{B\mid A})^2
+ :=Q_{vT}Q_{TT}^{-1}E_BH_B^{-1}
+      E_B^TQ_{TT}^{-1}Q_{Tv}.
+ \label{eq:source-aware-schur-leverage}
+\end{equation}
+Then
+\begin{equation}
+ (\chi_v^{B\mid A})^2
+ =L^A_{vB}(L^A_{BB})^{-1}L^A_{Bv}
+ =L^A_{vv}-L^T_{vv},
+ \label{eq:source-aware-diagonal-identity}
+\end{equation}
+and
+\begin{equation}
+ \sum_{v\in W}(\chi_v^{B\mid A})^2\leq |B|.
+ \label{eq:source-aware-rank-budget}
+\end{equation}
+Every source correction $\Delta=Q_{TT}^{-1}E_Bh$ obeys
+\begin{equation}
+ |Q_{vT}\Delta|
+ \leq\chi_v^{B\mid A}\|\Delta\|_{Q_{TT}}.
+ \label{eq:source-aware-response-interval}
+\end{equation}
+Consequently, for every group $C\subseteq W$,
+\begin{equation}
+ Z_{B\mid A}(C)
+ :=\sum_{v\in C}\frac{(\chi_v^{B\mid A})^2}{d_v}
+ =\operatorname{tr}\!\left[
+  D_C^{-1}\bigl(L^A_{CC}-L^T_{CC}\bigr)
+ \right].
+ \label{eq:source-aware-group-diagonal-loss}
+\end{equation}
+
+If $S_0\subsetneq\cdots\subsetneq S_J$ and
+$B_j:=S_{j+1}\setminus S_j$, then every $v\notin S_k$ has the temporal
+budget
+\begin{equation}
+ \sum_{j=0}^{k-1}(\chi_v^{B_j\mid S_j})^2
+ =(Q/S_0)_{vv}-(Q/S_k)_{vv}
+ \leq Q_{vv}-\alpha
+ =\frac{1-\alpha}{2}.
+ \label{eq:source-aware-temporal-budget}
+\end{equation}
+Thus source-aware sensitivity is a monotone scalar resource that telescopes
+per exterior label, independently of the number of previous batches.
+\end{theorem}
+
+\begin{proof}
+Order $T$ as $(A,B)$ and put $K_B:=L^A_{BB}$.  Block inversion gives
+\begin{equation*}
+ H_B=K_B^{-1},
+ \qquad
+ Q_{vT}Q_{TT}^{-1}E_B=L^A_{vB}K_B^{-1}.
+\end{equation*}
+Substitution proves the first equality in
+\cref{eq:source-aware-diagonal-identity}.  Schur associativity gives
+\begin{equation*}
+ L^T_{WW}
+ =L^A_{WW}-L^A_{WB}K_B^{-1}L^A_{BW},
+\end{equation*}
+which proves the diagonal equality and
+\cref{eq:source-aware-group-diagonal-loss}.
+
+For the rank budget, define
+\begin{equation*}
+ P_B:=Q_{TT}^{-1/2}E_BH_B^{-1}E_B^TQ_{TT}^{-1/2},
+ \qquad
+ R:=Q_{WT}Q_{TT}^{-1/2}.
+\end{equation*}
+The first matrix is an orthogonal projector of rank $|B|$.  The Schur
+inequality in \cref{lem:response-energy-packing} gives $RR^T\preceq I$, so
+\begin{equation*}
+ \sum_{v\in W}(\chi_v^{B\mid A})^2
+ =\operatorname{tr}(RP_BR^T)
+ \leq\operatorname{tr}(P_B)=|B|.
+\end{equation*}
+Writing $w_v:=E_B^TQ_{TT}^{-1}Q_{Tv}$ and applying Cauchy--Schwarz in the
+$H_B$ inner product proves
+\cref{eq:source-aware-response-interval}.
+
+Finally apply \cref{eq:source-aware-diagonal-identity} at consecutive faces
+and telescope.  The variational characterization gives
+$Q/S_k\succeq\alpha I$, while $(Q/S_0)_{vv}\leq Q_{vv}$.  Since
+$Q_{vv}=(1+\alpha)/2$, this proves
+\cref{eq:source-aware-temporal-budget}.
+\end{proof}
+
+\begin{corollary}[Additive-error hierarchical locator]
+\label{cor:additive-schur-diagonal-locator}
+Under \cref{thm:source-aware-schur-diagonal-loss}, let a rooted partition
+hierarchy on $W$ have arity at most $b$ and depth $L$.  Fix a source
+correction $\Delta=Q_{TT}^{-1}E_Bh$, its energy
+$E:=\|\Delta\|_{Q_{TT}}>0$, and a common normalized interval margin $m>0$.
+Put $\tau:=m^2/E^2$.  Suppose a group query returns a certified one-sided
+estimate
+\begin{equation}
+ Z_{B\mid A}(C)\leq\widehat Z(C)
+ \leq\gamma Z_{B\mid A}(C)+\beta\tau,
+ \qquad 0\leq\beta<1.
+ \label{eq:additive-schur-group-oracle}
+\end{equation}
+Starting at the root, discard $C$ when $\widehat Z(C)<\tau$ and otherwise
+visit its children; test the exact predicate at every reached leaf.  This
+returns precisely
+\begin{equation*}
+ \mathcal A_m
+ :=\left\{v\in W:
+   \frac{\chi_v^{B\mid A}E}{\sqrt{d_v}}\geq m
+ \right\}
+\end{equation*}
+using at most
+\begin{equation}
+ 1+bL\left(
+  1+\frac{\gamma}{1-\beta}|B|\frac{E^2}{m^2}
+ \right)
+ \label{eq:additive-schur-locator-work}
+\end{equation}
+group queries.  Its candidate output satisfies
+\begin{equation}
+ \vol(\mathcal A_m)\leq |B|\frac{E^2}{m^2}.
+ \label{eq:additive-schur-locator-output}
+\end{equation}
+Thus negligible Schur-diagonal losses need only scale-matched additive
+accuracy, not a multiplicative estimate.
+\end{corollary}
+
+\begin{proof}
+If $v\in\mathcal A_m$, every ancestor $C$ satisfies
+$Z_{B\mid A}(C)\geq\tau$ and cannot be discarded.  Conversely the exact leaf
+test removes every false candidate.  A retained node has
+$Z_{B\mid A}(C)\geq(1-\beta)\tau/\gamma$.  Retained nodes at a fixed depth
+are disjoint, and \cref{eq:source-aware-rank-budget} gives
+$Z_{B\mid A}(W)\leq|B|$ because $d_v\geq1$.  This proves
+\cref{eq:additive-schur-locator-work}.  Every candidate satisfies
+$d_vm^2\leq(\chi_v^{B\mid A})^2E^2$; summing and reusing the rank budget proves
+\cref{eq:additive-schur-locator-output}.
+\end{proof}
+
+\begin{theorem}[Accelerated all-boundary diagonal-loss checkpoint]
+\label{thm:chebyshev-diagonal-loss-checkpoint}
+Let $S\subseteq V$ be a nonempty exposed face and
+$W:=\{v\notin S:Q_{vS}\neq0\}$ its exposed boundary.  For $v\in W$, define
+the cumulative normalized terminal-Schur diagonal loss
+\begin{equation}
+ \ell_v(S)
+ :=\frac{Q_{vS}Q_{SS}^{-1}Q_{Sv}}{d_v}
+ =\frac{Q_{vv}-(Q/S)_{vv}}{d_v}.
+ \label{eq:checkpoint-diagonal-loss}
+\end{equation}
+Fix $\zeta,\xi,\delta\in(0,1/2)$ and put
+$M:=\max\{1,|W|\}$.  There is a degree
+\begin{equation}
+ m=O\!\left(
+  \frac1{\sqrt\alpha}
+  \log\frac1{\alpha\zeta}
+ \right)
+ \label{eq:inverse-square-root-degree}
+\end{equation}
+polynomial $p_m$ such that the following procedure uses
+\begin{equation}
+ r=O\!\left(\xi^{-2}\log\frac{M}{\delta}\right)
+ \label{eq:checkpoint-sketch-count}
+\end{equation}
+independent standard Gaussian vectors $g_t\in\mathbb R^S$:
+\begin{equation}
+ z_t:=p_m(Q_{SS})g_t,
+ \qquad
+ \overline\ell_v
+ :=\frac1r\sum_{t=1}^r
+ \frac{(Q_{vS}z_t)^2}{d_v},
+ \qquad
+ \widehat\ell_v
+ :=\frac{\overline\ell_v}
+ {(1-\xi)(1-\zeta)^2}.
+ \label{eq:checkpoint-estimator}
+\end{equation}
+With probability at least $1-\delta$, simultaneously for all $v\in W$,
+\begin{equation}
+ \ell_v(S)\leq\widehat\ell_v
+ \leq
+ \Gamma_{\zeta,\xi}\ell_v(S),
+ \qquad
+ \Gamma_{\zeta,\xi}
+ :=\frac{(1+\xi)(1+\zeta)^2}
+ {(1-\xi)(1-\zeta)^2}.
+ \label{eq:checkpoint-one-sided-guarantee}
+\end{equation}
+Consequently every hierarchy group $C\subseteq W$ has the simultaneous
+one-sided estimate
+\begin{equation}
+ \sum_{v\in C}\ell_v(S)
+ \leq\sum_{v\in C}\widehat\ell_v
+ \leq\Gamma_{\zeta,\xi}
+       \sum_{v\in C}\ell_v(S).
+ \label{eq:checkpoint-group-guarantee}
+\end{equation}
+All estimates can be constructed from the adjacency lists of $S$ and the
+degrees of their incident boundary labels in
+\begin{equation}
+ O\!\left(r(m+1)\vol(S)\right)
+ =\widetilde O_{\zeta,\xi,\delta}
+   \!\left(\frac{\vol(S)}{\sqrt\alpha}\right)
+ \label{eq:checkpoint-construction-work}
+\end{equation}
+work and $O(r(|S|+|W|))$ storage.
+\end{theorem}
+
+\begin{proof}
+This is the ``Static all-boundary checkpoint at accelerated cost'' theorem
+proved in the companion response-preconditioned hybrid note, under the
+notational substitutions $h_v(S)=\ell_v(S)$ and $W_S=W$.  Its proof gives
+the displayed Chebyshev degree, Gaussian concentration guarantee, and a
+charged-volume construction bound.  Here every exposed vertex has positive
+degree, so
+$\operatorname{cvol}(S)=|S|+\vol(S)\leq2\vol(S)$; the same row-scan argument
+therefore proves \cref{eq:checkpoint-construction-work}.  We retain the local
+statement so later ladder arguments can cite its exact notation, while proof
+ownership remains with the response-preconditioned note.
+\end{proof}
+
+\begin{corollary}[Geometric checkpoints already meet the product scale]
+\label{cor:geometric-diagonal-loss-checkpoints}
+Let $S_0\subsetneq\cdots\subsetneq S_K$ be checkpoint faces satisfying
+\begin{equation*}
+ \vol(S_{i+1})\geq(1+\gamma)\vol(S_i),
+ \qquad \gamma>0.
+\end{equation*}
+Run \cref{thm:chebyshev-diagonal-loss-checkpoint} independently at every
+checkpoint with failure budgets $\delta_i>0$ satisfying
+$\sum_i\delta_i\leq\delta$.  Then all checkpoint guarantees hold with
+probability at least $1-\delta$, and for fixed $\zeta,\xi,\gamma$ their
+total construction work is
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{\vol(S_K)}{\sqrt\alpha}
+ \right).
+ \label{eq:geometric-checkpoint-total-work}
+\end{equation}
+Thus a full exposed-boundary snapshot at every geometric anchor is already
+affordable at the accelerated product scale.
+\end{corollary}
+
+\begin{proof}
+A union bound gives simultaneous correctness.  The geometric growth implies
+$\sum_i\vol(S_i)\leq(1+1/\gamma)\vol(S_K)$; applying
+\cref{eq:checkpoint-construction-work} and absorbing the logarithmic failure
+budgets proves \cref{eq:geometric-checkpoint-total-work}.
+\end{proof}
+
+\begin{proposition}[Frontier whitening needs no exact square root]
+\label{prop:spectral-frontier-chebyshev-whitening}
+Let $A\subsetneq A\mathbin{\dot\cup}F=:T$ and define the frontier Schur
+complement and its lifted response by
+\begin{equation*}
+ K_F:=Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF},
+ \qquad
+ (\mathcal U_Fy)_A:=-Q_{AA}^{-1}Q_{AF}y,
+ \qquad
+ (\mathcal U_Fy)_F:=y.
+\end{equation*}
+For an exterior group $C\subseteq V\setminus T$, put
+\begin{equation}
+ R_C:=D_C^{-1/2}Q_{CV}\mathcal U_F,
+ \qquad
+ Z_{F\mid A}(C):=\norm{R_CK_F^{-1/2}}_F^2.
+ \label{eq:frontier-whitening-group-mass}
+\end{equation}
+Then $\alpha I\preceq K_F\preceq I$.  Suppose an SPD representation
+$\widetilde K_F$ satisfies
+\begin{equation}
+ (1-\upsilon)K_F\preceq\widetilde K_F
+ \preceq(1+\upsilon)K_F,
+ \qquad 0\leq\upsilon<1.
+ \label{eq:frontier-whitening-spectral-approximation}
+\end{equation}
+For every $\zeta\in(0,1/2)$, a polynomial $p_q$ of degree
+\begin{equation}
+ q=O_\upsilon\!\left(
+  \frac1{\sqrt\alpha}\log\frac1{\alpha\zeta}
+ \right)
+ \label{eq:frontier-whitening-polynomial-degree}
+\end{equation}
+gives, simultaneously for every exterior group,
+\begin{equation}
+ \frac{(1-\zeta)^2}{1+\upsilon}Z_{F\mid A}(C)
+ \leq\norm{R_Cp_q(\widetilde K_F)}_F^2
+ \leq
+ \frac{(1+\zeta)^2}{1-\upsilon}Z_{F\mid A}(C).
+ \label{eq:frontier-whitening-group-sandwich}
+\end{equation}
+Thus logarithmically many Gaussian source vectors
+$p_q(\widetilde K_F)g_t$ replace the exact vectors $K_F^{-1/2}g_t$ in every
+group-norm sketch at a total source-preparation cost
+\begin{equation}
+ \widetilde O_{\zeta,\upsilon,\delta}\!\left(
+  \frac{T_{\rm mv}}{\sqrt\alpha}
+ \right),
+ \label{eq:frontier-whitening-source-work}
+\end{equation}
+where $T_{\rm mv}$ is the cost of one multiplication by
+$\widetilde K_F$.  In the exact case, one multiplication
+\begin{equation}
+ K_Fy=Q_{FF}y-Q_{FA}Q_{AA}^{-1}Q_{AF}y
+ \label{eq:frontier-whitening-exact-matvec}
+\end{equation}
+uses one charged anchor-response application plus
+$O(\vol(F))$ frontier-incidence work.
+\end{proposition}
+
+\begin{proof}
+The Schur variational identity gives
+\begin{equation*}
+ y^TK_Fy
+ =\min_x
+ \begin{pmatrix}x\\y\end{pmatrix}^{\!T}
+ Q_{TT}
+ \begin{pmatrix}x\\y\end{pmatrix}
+ \geq\alpha\norm{y}_2^2,
+\end{equation*}
+while $K_F\preceq Q_{FF}\preceq I$.  Hence
+$\operatorname{spec}(\widetilde K_F)\subseteq
+[(1-\upsilon)\alpha,1+\upsilon]$.  Chebyshev approximation of
+$x^{-1/2}$ on this interval yields \cref{eq:frontier-whitening-polynomial-degree}
+and
+\begin{equation*}
+ (1-\zeta)^2\widetilde K_F^{-1}
+ \preceq p_q(\widetilde K_F)^2
+ \preceq(1+\zeta)^2\widetilde K_F^{-1}.
+\end{equation*}
+Inverting \cref{eq:frontier-whitening-spectral-approximation}, taking a
+congruence by $R_C$, and tracing proves
+\cref{eq:frontier-whitening-group-sandwich}.  A Chebyshev recurrence takes
+$q$ matrix-vector products per Gaussian source; the usual
+$O(\log(M/\delta))$ sources for $M$ simultaneous group tests are absorbed in
+\cref{eq:frontier-whitening-source-work}.  Finally,
+\cref{eq:frontier-whitening-exact-matvec} is the definition of the Schur
+complement.  Its two sparse products are formed from the rows of $F$, and its
+middle operation is one application of the stored anchor response.
+\end{proof}
+
+\begin{proposition}[Positive exact-rung square-root ladder]
+\label{prop:positive-resolvent-rung-ladder}
+Use the anchor, frontier, face, lift, and frontier Schur complement of
+\cref{prop:spectral-frontier-chebyshev-whitening}.  Fix
+$\eta\in(0,1/8)$, let
+\begin{equation*}
+ t_0:=\eta\sqrt\alpha,
+ \qquad t_{j+1}:=(1+\eta)t_j,
+ \qquad J:=\min\{j:t_j\geq\eta^{-1}\},
+\end{equation*}
+and, for $0\leq j<J$, define
+\begin{equation}
+ \sigma_j:=t_{j+1}^2,
+ \qquad
+ \omega_j:=\frac2\pi(t_{j+1}-t_j),
+ \qquad
+ r_\eta(x):=\sum_{j=0}^{J-1}\frac{\omega_j}{x+\sigma_j}.
+ \label{eq:positive-rung-rational}
+\end{equation}
+Then the ladder has
+\begin{equation*}
+ J=O\!\left(
+  \eta^{-1}\left(\log\frac1\alpha+\log\frac1\eta\right)
+ \right)
+\end{equation*}
+rungs and, uniformly on $[\alpha,1]$,
+\begin{equation}
+ (1-4\eta)x^{-1/2}\leq r_\eta(x)\leq x^{-1/2}.
+ \label{eq:positive-rung-sandwich}
+\end{equation}
+Its two work-mass sums satisfy
+\begin{align}
+ \sum_j\frac{\omega_j}{\alpha+\sigma_j}
+ &\leq\frac1{\sqrt\alpha},
+ \label{eq:positive-rung-work-mass}\\
+ \sum_j\omega_j\frac{1+\sigma_j}{\alpha+\sigma_j}
+ &\leq\frac1{\sqrt\alpha}
+  +\frac{2(1+\eta)}{\pi\eta}.
+ \label{eq:positive-rung-coordinate-mass}
+\end{align}
+
+Let $E_F$ embed the frontier into $T=A\mathbin{\dot\cup}F$ and put
+\begin{equation*}
+ M_j:=Q_{TT}+\sigma_jE_FE_F^T.
+\end{equation*}
+Every rung is a sparse shifted face system and obeys the exact block identity
+\begin{equation}
+ M_j^{-1}E_F
+ =\mathcal U_F(K_F+\sigma_jI)^{-1},
+ \qquad
+ \mathcal U_Fr_\eta(K_F)
+ =\sum_j\omega_jM_j^{-1}E_F.
+ \label{eq:positive-rung-block-identity}
+\end{equation}
+Consequently every exterior group mass obtained from
+$\mathcal U_Fr_\eta(K_F)$ lies between $(1-4\eta)^2$ times and one times the
+exact $K_F^{-1/2}$ group mass.
+
+This ladder also has a monotone delayed-push realization.  Put
+$s_F:=(\sqrt{d_u})_{u\in F}$.  If $g\geq0$, residual coordinate settlement of
+all shifted Schur systems
+\begin{equation*}
+ (K_F+\sigma_jI)y_j=\omega_jg
+\end{equation*}
+at the trigger $p_{j,u}/\sqrt{d_u}\geq\tau$, charging $d_u$ for coordinate
+$u$, uses at most
+\begin{equation}
+ \frac{\langle s_F,g\rangle}{\tau}
+ \left(
+  \frac1{\sqrt\alpha}+\frac{2(1+\eta)}{\pi\eta}
+ \right)
+ \label{eq:positive-rung-coordinate-work}
+\end{equation}
+Schur-coordinate work.  Signed sources are split into their positive and
+negative parts.
+
+For the sparse face realization, let $x_j\geq0$ be any partial state with
+nonnegative debt
+\begin{equation*}
+ d_j:=\omega_jE_Fg-M_jx_j\geq0.
+\end{equation*}
+Then
+\begin{equation}
+ \mathcal U_Fr_\eta(K_F)g
+ =\sum_jx_j+\sum_jM_j^{-1}d_j
+ \label{eq:positive-rung-debt-invariant}
+\end{equation}
+exactly.  A local settlement touches only one sparse graph row and its cut
+incidences.  If $d_j=(d_{j,A},d_{j,F})$, exact anchor cleanup replaces the
+frontier debt by
+\begin{equation}
+ d_{j,F}-Q_{FA}Q_{AA}^{-1}d_{j,A}\geq0,
+ \label{eq:positive-rung-anchor-cleanup}
+\end{equation}
+which is precisely the residual of the shifted Schur system.  Thus the
+$1/\sqrt\alpha$ inverse-square-root scale admits positive exact rungs and
+delayed nonnegative debt; no signed over-relaxation or precomputed target
+harmonic row is algebraically necessary.
+\end{proposition}
+
+\begin{proof}
+The identity
+\begin{equation*}
+ x^{-1/2}=\frac2\pi\int_0^\infty\frac{dt}{x+t^2}
+\end{equation*}
+is a positive resolvent representation.  \Cref{eq:positive-rung-rational}
+is its right-endpoint rule on the geometric
+grid $[t_0,t_J]$.  It is a lower bound.  On one grid interval the integrand
+changes by at most $(1+\eta)^2$; hence quadrature loses at most $2\eta$
+relatively.  The omitted lower and upper tails each lose at most
+$2\eta/\pi$ relatively.  This proves
+\cref{eq:positive-rung-sandwich}.  Evaluating the same lower sum at
+$x=\alpha$ proves
+\cref{eq:positive-rung-work-mass}.  Also
+$\sum_j\omega_j=2(t_J-t_0)/\pi\leq2(1+\eta)/(\pi\eta)$, which proves
+\cref{eq:positive-rung-coordinate-mass}.
+
+The Schur complement of $M_j$ onto $F$ is
+$K_F+\sigma_jI$; block inversion proves
+\cref{eq:positive-rung-block-identity}.  Functional calculus in
+\cref{eq:positive-rung-sandwich}, followed by squaring, congruence, and a
+trace, proves the group-mass statement.
+
+Since $Q\sqrt d=\alpha\sqrt d$, principal restriction and inverse positivity
+give $K_Fs_F\geq\alpha s_F$ coordinatewise.  Also $K_F$ is Stieltjes and
+$(K_F)_{uu}\leq1$.  The residual potential
+$\langle s_F,p_j\rangle$ therefore decreases by at least
+\begin{equation*}
+ \tau d_u\frac{\alpha+\sigma_j}{1+\sigma_j}
+\end{equation*}
+when $u$ is settled, while its initial value is
+$\omega_j\langle s_F,g\rangle$.  Summing over the rungs and applying
+\cref{eq:positive-rung-coordinate-mass} proves
+\cref{eq:positive-rung-coordinate-work}.
+
+Finally $M_jx_j+d_j=\omega_jE_Fg$.  Apply $M_j^{-1}$, sum, and use
+\cref{eq:positive-rung-block-identity} to obtain
+\cref{eq:positive-rung-debt-invariant}.  Stieltjes signs preserve
+nonnegativity and make each coordinate settlement row-local.  Adding
+$Q_{AA}^{-1}d_{j,A}$ to the anchor state zeros its debt and changes the
+frontier residual by $-Q_{FA}Q_{AA}^{-1}d_{j,A}$, proving
+\cref{eq:positive-rung-anchor-cleanup} and the shifted Schur interpretation.
+\end{proof}
+
+The checkpoint theorem deliberately estimates the cumulative loss from the
+original matrix to the present face.  Subtracting two noisy snapshots does
+not give relative control of a tiny intervening loss.  Therefore the theorem
+closes the Monte Carlo work bound for full boundary initialization and
+geometric anchor rebuilding, but not the light-update problem between
+checkpoints.  A deterministic certificate or Las Vegas validation remains
+separate.  The dynamic operation is now sharper: starting from a materialized
+one-sided snapshot, maintain or locate only the incremental terminal-Schur
+diagonal loss created by the current frontier, with additive accuracy at the
+pruning scale of \cref{cor:additive-schur-diagonal-locator}.
+By \cref{prop:spectral-frontier-chebyshev-whitening}, this locator does not
+need an exact frontier inverse square root: an exact charged anchor response,
+or any constant-factor spectral frontier representation, prepares all source
+probes at the accelerated scale.  Alternatively,
+\cref{prop:positive-resolvent-rung-ladder} replaces both the square root and
+the target-row algebra by positive sparse shifted propagation with exact
+delayed debt.  What it does not yet prove is that settling those graph debts
+inherits the Schur-coordinate work bound without repeatedly scanning the old
+anchor.  The companion response note now removes the literal-settlement
+obstruction at a fixed face: it sums every outstanding debt fragment first,
+uses signed Chebyshev semi-iteration only inside the flush, and converts its
+energy certificate into simultaneous one-sided exterior intervals.  One such
+flush costs
+$\widetilde O(\operatorname{cvol}(T)/\sqrt\alpha)$ graph work, and one flush
+per geometrically growing face has the final-volume product bound.  The
+companion's singleton-path proposition rules out relying on those flushes
+alone for the literal exact gate.  The open condition is therefore an
+output-sensitive partial flush after light events, or a separately proved
+support-safe trace, rather than fixed-face propagation itself.
+The companion response note closes that target operation when the normalized
+anchor--boundary cut has small rank: a rank-$s$ cut needs only $s$ harmonic
+basis vectors.  It also gives a linear-volume comb whose cut has full rank and
+whose rank-deficient energy error is bounded below independently of the comb
+length for fixed $\alpha<1$.  Thus a universal low-rank bank is not
+the missing arbitrary-core theorem; high-rank nonequitable cores require
+on-demand sparsification, sparse recovery, or a different implicit response.
+
+The packing lemma does not itself locate the labels in $H(m)$.  It proves
+that their output volume, rather than the full boundary size, is the correct
+charge.  The remaining large-core primitive is therefore precise: maintain a
+certified aggregate Schur-diagonal-loss oracle, equivalently a heavy-change
+reporter for the Schur response, rekeying a label only when its accumulated
+normalized change consumes its current interval margin.
+Far-below-threshold labels may retain coarse one-sided intervals.  This target
+is strictly weaker than refreshing every demand or maintaining every exact
+zero crossing.
 
 \begin{corollary}[The coarse-regularization product target is unconditional]
 \label{cor:coarse-tree-target}
@@ -1991,7 +3835,8 @@ The central proof obligations are:
  closed for every finite tree by \cref{thm:lazy-tree-response}; paths and
  symmetric spiders obey the stronger output-linear bounds in
  \cref{thm:path-one-pass,thm:spider-one-pass}.  It is also closed for
- bounded-size articulation blocks by \cref{thm:bounded-block-response}.
+ bounded-size articulation blocks, without supplied block identifiers, by
+ \cref{thm:causal-bounded-block-response}.
  \item[Branch-response merge.] \Cref{thm:tree-response} proves that every
  child message is monotone piecewise affine and exposes a local pruning
  threshold.  The lazy iterator in \cref{thm:lazy-tree-response} pays one
@@ -2003,16 +3848,36 @@ The central proof obligations are:
  intermediates for $\rho\geq\sqrt\alpha$;
  \cref{thm:lazy-tree-response} closes the fine regime on trees at
  $\widetilde O(1/(\rho\sqrt\alpha))$, while
- \cref{thm:bounded-block-response} closes bounded cyclic blocks and
+ \cref{thm:hidden-equitable-tree-quotient} closes hidden thick-cell tree
+ quotients without cell identifiers,
+ \cref{thm:causal-bounded-block-response} closes hidden bounded cyclic blocks
+ under ordinary adjacency access and
  \cref{cor:radial-width-gate} closes thin bounded-width cores.
+ \par\smallskip
  \item[Large cyclic blocks.] \Cref{thm:graph-scalar-homotopy} proves that
  cycles preserve a one-dimensional ordered event stream.
  \Cref{thm:cycle-one-pass} closes a whole cycle in output-linear work, so
- unbounded block size by itself is not the obstruction.  For a core with
- neither bounded articulation blocks nor thin radial support, maintain the
- Schur slopes and minimum boundary event without a full refresh after every
- activation, or prove an
- $\widetilde O(1/\sqrt\alpha)$ bound on exact-gate batches.
+ unbounded block size by itself is not the obstruction.
+ \Cref{thm:equitable-shell-one-pass} goes further: arbitrary shell thickness
+ is harmless whenever the root-distance partition is equitable, and
+ \cref{thm:certifying-shell-fast-path} makes this a safe audited fast path on
+ every graph.  \Cref{thm:hidden-equitable-tree-quotient} permits several
+ inequivalent thick cell types per shell whenever an equitable tree quotient
+ exists, and reconstructs the needed cells online.  For a core with neither
+ bounded articulation blocks, an equitable tree quotient, nor thin radial
+ support, the weakest sufficient target is now an output-sensitive reporter
+ for the interval crossings in
+ \cref{thm:margin-adaptive-finite-gate}.  The reporter may ignore labels whose
+ certified upper endpoint remains safe; by
+ \cref{lem:response-energy-packing}, the total degree volume moving by a
+ prescribed normalized margin is charged to exact objective shock.  What is
+ still missing is a general data structure that locates those labels without
+ a full boundary refresh.  Exact Schur-event compression or a
+ $\widetilde O(1/\sqrt\alpha)$ exact-gate batch bound remain stronger routes.
+ \Cref{thm:gate-objective-contraction} gives a condition-free
+ $1-\alpha$ gap contraction and an exact margin-sensitive fallback, while
+ \cref{prop:three-path-gap-obstruction} rules out obtaining the accelerated
+ batch bound from graph-uniform objective contraction alone.
  \item[Elimination-order maintenance.] \Cref{thm:width-resolution} gives the
  exact cost once a width-$w$ ordering is supplied.  Maintain such an ordering
  locally as the region grows, or charge the ordering and fill explicitly.
@@ -2082,13 +3947,59 @@ $\widetilde O(1/(\rho\sqrt\alpha))$ local solver on every finite tree.  Paths
 and symmetric spiders admit the even stronger output-linear final-$\rho$
 solution and therefore beat the persistent-support product charge.
 Bounded-size biconnected cyclic gadgets also meet the product scale through
-lazy block responses.  Large blocks are no longer uniformly open: radial
-Schur elimination solves a whole cycle in output-linear work, while the exact
-boundary gate reaches the product scale whenever only $\chi_\star$ support
-vertices occupy each distance shell.  This includes fixed-width cyclic
-strips.  The remaining obstruction is now narrower: compress the scalar event
-trace, or bound the number of exact-gate batches, inside a large core with
-neither bounded articulation blocks nor thin radial support.
+lazy block responses.  Their block identifiers and final block--cut tree do
+not need to be supplied: zero-valued activation events make online mergers
+prefix-preserving, so affected response iterators restart only from the
+current checkpoint.  Large blocks are no longer uniformly open: radial
+Schur elimination solves a whole cycle in output-linear work.  More strongly,
+orthogonal shell averaging gives the same output-linear exact solver on every
+root-distance-equitable graph, including thick-shell families such as
+hypercubes and distance-regular graphs.  The symmetry test is certifying on an
+arbitrary graph and falls back safely at the first irregular event.  Still
+more generally, online refinement plus lazy responses on a hidden equitable
+tree quotient permit several inequivalent thick cells per distance layer and
+achieve the
+exact $\widetilde O(1/(\rho\sqrt\alpha))$ product bound even on original
+graphs with unbounded treewidth and large biconnected cores, without supplied
+cell identifiers.  Independently,
+the exact boundary gate reaches the product scale whenever only
+$\chi_\star$ support vertices
+occupy each distance shell; this includes fixed-width cyclic strips.  The
+approximate-output target is weaker still.  Certified one-sided intervals
+suffice for support-safe admission and termination, scalar response leverage
+is uniformly at most one, and exterior demand changes are energy contractions.
+Source-aware sensitivity has an exact scalar state: it is the loss of terminal
+Schur diagonal under the current batch elimination, and these losses telescope
+per exterior label.  A margin-adaptive hierarchy may use additive error at its
+current pruning scale.  Chebyshev inverse-square-root probes build a complete
+one-sided boundary-loss snapshot in
+$\widetilde O(\vol(S)/\sqrt\alpha)$ work, so all full rebuilds at geometric
+anchors already fit the product ledger.  Source normalization inside an epoch
+also needs no exact frontier square root: a constant-factor spectral frontier
+and Chebyshev recurrence prepare every Gaussian source probe in
+$\widetilde O(T_{\rm mv}/\sqrt\alpha)$ work.  The positive resolvent theorem
+goes further: the inverse square root is a constant-factor positive sum of
+shifted exact rungs whose total work mass and monotone Schur-coordinate
+settlement count have the $1/\sqrt\alpha$ dependence.  Each shifted rung is a
+sparse face system, and every unfinished local solve is represented exactly
+by nonnegative anchor debt; exact cleanup produces precisely the shifted Schur
+residual.  Thus only energy-packed interval crossings created by light updates
+between checkpoints need to be reported.
+Small cut rank closes the target-side harmonic bank, while a comb construction
+refutes any universal low-rank reduction.  The remaining obstruction is now
+online graph-work scheduling on high-rank cores: the companion response note
+already flushes every fixed-face aggregate debt at the product scale, but one
+must locate all intervening crossings by partial output-sensitive work without
+forcing that full flush or a boundary scan after every light admission inside
+a large core with neither bounded
+articulation blocks, an equitable tree quotient, nor thin radial support.
+Exact trace compression or
+an exact-gate batch bound remain stronger alternatives.  The gate does
+dominate proximal gradient and therefore has an exact margin-sensitive
+termination bound, but a three-vertex path proves that its per-batch objective
+contraction can be only $1-\Theta(\alpha)$.  Consequently the missing
+$1/\sqrt\alpha$ argument, if true, must be combinatorial or data-structural:
+it cannot be recovered by a black-box strongly-convex energy estimate.
 
 \bibliographystyle{plainnat}
 \bibliography{../../references}

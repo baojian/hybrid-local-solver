@@ -11,22 +11,28 @@ until they are documented, tested, and reflected in the accompanying paper.
 
 ## Research direction
 
-The central goal is to understand when acceleration and local iterative
-updates can be combined without losing the computational advantages of
-locality. The project studies connections among:
+The central goal is to understand when acceleration, local iterative updates,
+and persistent graph response can be combined without losing the computational
+advantages of locality. The project studies connections among:
 
 - **Catalyst acceleration**, as an outer acceleration framework for iterative
   optimization methods;
 - **AESP**, as a reference point for accelerated local graph solving;
 - **LocSOR**, which uses localized successive over-relaxation updates;
+- **incremental SDD and Schur response**, which reuse restricted-system state
+  instead of solving or materializing every active prefix from scratch;
 - **local PageRank**, as the primary graph problem and a setting in which work
   can be measured through local iterations and edge operations.
 
-The intended hybrid method will investigate switching or coupling rules
-between accelerated outer iterations and efficient local inner solves.
-Relevant questions include convergence, preservation of locality, practical
-stopping criteria, and dependence on the teleportation parameter
-`alpha` and target accuracy `epsilon`.
+The intended hybrid method will investigate switching or coupling rules among
+accelerated iterations, efficient local updates, and persistent response state.
+Relevant questions include convergence, preservation of locality, boundary
+certification, practical stopping criteria, and dependence on the
+teleportation parameter `alpha` and target accuracy `epsilon`. The current
+family taxonomy and proof priorities are maintained in
+[`docs/solver-family-roadmap.md`](docs/solver-family-roadmap.md); it explicitly
+labels the response--iterative architecture as a research hypothesis rather
+than a universal optimality theorem.
 
 ## Publication targets
 
@@ -117,6 +123,25 @@ Build all standalone research notes with:
 ```bash
 make notes
 ```
+
+Audit or inspect the machine-readable research-note taxonomy with:
+
+```bash
+make note-audit
+make note-report
+make note-targets
+make note-graph
+```
+
+Run the dense response--iterative reference comparison with:
+
+```bash
+make response-hybrid
+```
+
+This diagnostic validates Schur updates and switching while reporting dense
+response arithmetic and global boundary reads separately; it is not a claimed
+local-time implementation.
 
 Run the complete reproducibility workflow with:
 

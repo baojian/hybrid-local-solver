@@ -19,6 +19,54 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 ## Source annotations
 
+## Citation key: `wei2026simple`
+
+- Citation: Zhewei Wei and Mingji Yang. “A Simple Active-Set Method for
+  PageRank-Based Local Graph Clustering.” arXiv preprint `2608.16339v1`, 2026.
+- DOI/arXiv/URL: <https://arxiv.org/abs/2608.16339>.
+- Local PDF:
+  `papers/2026-arxiv-wei-simple-active-set-pagerank-local-clustering.pdf`.
+- Relevance: This paper gives a growing-active-set PageRank method that solves
+  a nearly-linear SDD system on every active set. It obtains only
+  polylogarithmic dependence on the inverse teleportation parameter, at the
+  cost of a quadratic dependence on ACL accuracy and a repeated
+  `|S*|` factor for RPPR. It is the source algorithm audited in
+  `manuscript/notes/incremental_active_set_sdd/`.
+- Exact pointers:
+  - PDF pages 2-4, Definition 1.1 and Theorems 1.2-1.3: define ACL
+    approximation and source RPPR, then state the
+    `O_tilde(1 / epsilon^2)` ACL and
+    `O_tilde(|S*| vol(S*))` RPPR bounds.
+  - PDF pages 8-10, Theorem 4.1, Algorithm 2, and Lemmas 4.2-4.4: specify the
+    SDD accuracy, internal residue level, activation gap, monotone expansion,
+    coordinate error, boundary error, support-volume bound, and repeated-solve
+    runtime analysis.
+  - PDF pages 13-14, Lemmas 5.1-5.2 and proof of Theorem 1.3: prove RPPR
+    support containment, additive objective accuracy, and the
+    `|S*|`-round accounting.
+  - PDF pages 14-15, Section 6: compare with classical push, rule out uniform
+    `1 / (alpha * epsilon)` and `1 / (sqrt(alpha) * epsilon)` lower bounds in
+    the source model, and explicitly identify reuse of nested SDD solves as an
+    open direction toward `O_tilde(1 / epsilon)`.
+- Formulation differences: The source uses
+  `L_alpha = D - (1 - alpha) A` and a degree-normalized variable. Under the
+  shared lazy RPPR convention, set
+  `alpha_source = 2 * alpha_shared / (1 + alpha_shared)` and
+  `x_shared = D^(1/2) z_source`; the regularization parameter `rho` is
+  unchanged. The source accuracy `epsilon`, additive objective target `xi`,
+  and activation gap are not identified with any unresolved repository-wide
+  stopping namespace.
+- Use in this repository: The incremental-active-set note proves an exact
+  block-Schur correction and telescoping energy identity, a quadratic
+  full-vector materialization barrier on endpoint paths, and an exact
+  output-linear path implementation using append-only tridiagonal
+  elimination. It states the arbitrary-graph dynamic solve-and-boundary
+  result only conditionally.
+- Open questions: Maintain all boundary violations without refreshing every
+  old coordinate, compress dense Schur transport in nonequitable cyclic cores,
+  and determine whether arbitrary graphs admit total
+  `O_tilde(vol(S*))` or only `O_tilde(vol(S*) / sqrt(alpha))` local work.
+
 ## Citation key: `fountoulakis2019variational`
 
 - Citation: Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang
