@@ -50,3 +50,16 @@ cross-direction message. Round records are the audit trail connecting them.
   partial response, local capped prefixes, and the path chronology logarithm.
 - [`2026-08-21-round-014.md`](2026-08-21-round-014.md) — implicit partial
   response, charged first-layer margins, and an audited path-logarithm test.
+- [`2026-08-21-round-015.md`](2026-08-21-round-015.md) — permutation-robust
+  response, response-free local margins, and phase-aware path accounting.
+- [`2026-08-21-round-016.md`](2026-08-21-round-016.md) — repetition-aware
+  response, transported lower points, and constant-coefficient path banks.
+- [`2026-08-21-round-017.md`](2026-08-21-round-017.md) — amplitude-aware
+  response, incremental lower diagnostics, and face-dependent path banks.
+- [`2026-08-21-round-018.md`](2026-08-21-round-018.md) — asynchronous
+  per-column amplitudes, carried lower diagnostics, and adjacent path-bank
+  steps.
+- [`2026-08-21-round-019.md`](2026-08-21-round-019.md) — simultaneous response
+  batches, accelerated-state carry, and explicit path-phase reserves.
+- [`2026-08-21-round-020.md`](2026-08-21-round-020.md) — coupled partial-flush
+  hypotheses, nonsettled continuation, and cross-face recovery testing.
