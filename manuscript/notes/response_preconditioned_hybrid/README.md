@@ -167,10 +167,16 @@ width, and the decoder retains only append-only squared bucket norms. This
 closes heterogeneous-slack packing, realized source dimension, and fixed-bank
 source-history state. Round 020 identifies the first exact boundary of that
 state: after a genuine checkpoint-slack reweight, retained squared bucket
-norms alone need not determine the refreshed decoder. Installing or applying
-the slack-weighted harmonic rows, enlarging bank capacity, a paid replay or
-richer-state policy for changed checkpoint weights, transition-band
-maintenance, and exact validation remain unresolved in aggregate.
+norms alone need not determine the refreshed decoder. Round 021 closes the
+fixed three-label bucket exactly: one additional pivot norm recovers the two
+needed inner products, provided every weighted append block is first converted
+back to canonical unweighted rows. Four labels already obstruct that same
+one-pivot state. The general exact co-side Gram state is quadratic in bucket
+occupancy and needs richer measurements or per-label reads to maintain once
+there are more labels than ordinary coded measurement rows. Installing or
+applying the slack-weighted harmonic rows, enlarging bank capacity, a sparse
+or geometrically replayed refresh policy, transition-band maintenance, and
+exact validation remain unresolved in aggregate.
 
 Exact source whitening is no longer hidden: a Chebyshev
 polynomial of any constant-factor spectral frontier prepares all Gaussian
@@ -448,6 +454,47 @@ against richer Gram state, source replay, cut rebuilding, collision-free
 banks, another decoder, or another support-safe trace. It proves no RPPR/KKT
 chronology, terminal solver, finite-precision, word, or bit result.
 
+Round 021 supplies the smallest matching richer state for that exact bucket.
+Theorem `thm:three-label-pivot-gram-refresh` defines
+`ThreeLabelPivotGramRefresh` on the codes `00,01,10`. It retains the canonical
+unweighted state
+
+`S=(P_0,A_1,C_1,A_2,C_2)`
+
+and recovers
+`g_02=(C_1-P_0-A_2)/2` and `g_01=(C_2-P_0-A_1)/2`. These two inner products
+give all four exact decoder norms for every positive weight triple. The state
+never absorbs the current weights: an append arriving as
+`M_1=w_1 z_1`, `M_2=w_2 z_2`, and
+`M_0=w_0 z_0+w_1 z_1+w_2 z_2` first recovers the three unweighted rows and
+only then adds its five canonical quadratic increments. Induction therefore
+covers arbitrary repeated positive refreshes and source-block appends without
+old-source replay. One refresh has complete vector
+
+`(0,0,1,0,Theta(1),0,0,Theta(1),Theta(1),4,1)`.
+
+The extra persistent state is exactly one scalar relative to the Round-020
+four-norm state; the four materialization writes are the refreshed decoder
+norms. Proposition `prop:four-label-one-pivot-refresh-obstruction` is the
+sharp boundary of this repair. For codes `00,01,10,11`, histories
+`(-6,-5,-5,4)` and `(-6,-5,-5,6)` share `P_0=36` and old decoder state
+`(1,121,1,121)`, but weights `(1,1,1,3)` give first-bit comparisons
+`49<121` and `169>121`.
+
+Theorem `thm:co-side-gram-refresh` gives the general exact state: retain every
+diagonal Gram entry and an off-diagonal entry exactly when its two codes share
+a bit side. Only bitwise-complement pairs are omitted. Since those pairs form
+a matching of size `c<=floor(k/2)`, the state dimension is
+`k+binom(k,2)-c=Theta(k^2)`. This count is necessary only for linear explicit
+Gram-statistic states required to reproduce every side norm on an open set;
+it is not an unrestricted real-cell lower bound. With individual new rows,
+append maintenance costs `Theta((k^2-c) r_new)` arithmetic and
+`Theta(k^2)` state. For `k>L+1`, the ordinary total-plus-`L`-bit measurements
+do not in general determine those increments, so richer measurements or
+per-label reads and all corresponding response/materialization charges remain
+necessary. This is a bucket-state theorem, not a product-scale graph-work,
+RPPR, finite-precision, or bit-complexity result.
+
 The remaining online question is not resolved by sleeping. For every fixed
 path length, a family-dependent sufficiently small positive `rho_n` makes the
 ambient-degree, endpoint-seeded canonical all-violations trace admit one new
@@ -657,6 +704,14 @@ uv run python manuscript/notes/response_preconditioned_hybrid/check_round020.py 
   --seed 20260821 --trials 100
 ```
 
-The Round-012--019 scripts are numerical proof audits. The Round-020 script
-uses exact rational arithmetic. None is a finite-precision theorem or a
-replacement for the LaTeX proofs.
+Reproduce the Round-021 exact repeated pivot refresh/append, four-label STOP,
+and co-side Gram reconstruction checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round021.py \
+  --seed 20260822 --trials 2000
+```
+
+The Round-012--019 scripts are numerical proof audits. The Round-020 and
+Round-021 scripts use exact rational arithmetic. None is a finite-precision
+theorem or a replacement for the LaTeX proofs.

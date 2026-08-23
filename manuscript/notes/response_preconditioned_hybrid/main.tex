@@ -45,6 +45,10 @@ energies, and append-only exact decoder-norm accumulation for a fixed bank,
 a minimal three-label obstruction showing that a genuine checkpoint-slack
 reweight cannot be refreshed from those norms alone without replay, richer
 prechange state, or rejection,
+a matching three-label pivot-Gram state that uses one additional scalar and
+supports arbitrary repeated positive reweights, together with a sharp
+four-label obstruction to that one-pivot state and a general co-side Gram
+state whose exact linear-statistic dimension is quadratic in bucket occupancy,
 a Chebyshev all-boundary diagonal-loss checkpoint costing
 $\widetilde O(V/\sqrt\alpha)$, approximation-stable Chebyshev whitening of
 the frontier Schur complement, a positive shifted-resolvent ladder with
@@ -264,6 +268,26 @@ must reject; an explicit micro-replay instead pays six old response-cell reads
 and twelve numerical writes.  This is not a lower bound against richer Gram
 state, source replay, cut rebuilding, collision-free banks, or other decoders.
 \\
+\statusproved & For one bucket containing exactly the three codes
+$00,01,10$, retaining the four canonical unweighted decoder norms and the
+single pivot norm $\|z_0\|_2^2$ determines every exact decoder norm under
+arbitrary positive row weights.  The named
+\textsc{ThreeLabelPivotGramRefresh} materializes four refreshed norms with one
+additional persistent scalar and supports arbitrary repeated reweights.
+Incoming source blocks remain append-only only after their three ordinary
+bucket measurements are divided back to the canonical unweighted rows.  More
+generally, retaining every Gram entry whose two codes share a bit side is
+sufficient; among $k$ distinct codes it has
+$k+\binom{k}{2}-c=\Theta(k^2)$ cells, where $c$ is the number of complementary
+code pairs.  This count is necessary only among linear explicit
+Gram-statistic states that reconstruct every side norm on an open set.
+\\
+\statusrefuted & One pivot norm is not a universal bucket-refresh state.
+For codes $00,01,10,11$, two scalar histories have the same four old decoder
+norms and the same pivot norm, but positive weights $(1,1,1,3)$ make the first
+bit comparison $49<121$ in one history and $169>121$ in the other.  This is a
+four-label obstruction to the named five-scalar state, not an unrestricted
+cell-information lower bound. \\
 \statusproved & If the normalized anchor--boundary cut has rank $s$, one bank
 of $s$ harmonic basis vectors turns every hierarchy group norm into an exact
 quadratic of additive $s$-dimensional summaries.  Source-only Gaussian probes
@@ -3157,8 +3181,237 @@ validation/rejection interface and the explicit six-read, twelve-write replay
 schedule coordinate by coordinate.
 \end{proof}
 
+\begin{theorem}[Three-label pivot-Gram refresh]
+\label{thm:three-label-pivot-gram-refresh}
+Fix one repetition and one bucket containing exactly the three sign-absorbed
+rows $z_0,z_1,z_2\in\mathbb R^r$ with identifiers $00,01,10$.  Retain the
+canonical unweighted five-scalar state
+\begin{equation}
+ \mathsf S
+ :=(P_0,A_1,C_1,A_2,C_2)
+ :=\bigl(
+ \|z_0\|_2^2,
+ \|z_1\|_2^2,
+ \|z_0+z_2\|_2^2,
+ \|z_2\|_2^2,
+ \|z_0+z_1\|_2^2
+ \bigr).
+ \label{eq:three-label-pivot-gram-state}
+\end{equation}
+Then the two needed pivot Gram entries are
+\begin{equation}
+ g_{02}:=\langle z_0,z_2\rangle
+ =\frac{C_1-P_0-A_2}{2},
+ \qquad
+ g_{01}:=\langle z_0,z_1\rangle
+ =\frac{C_2-P_0-A_1}{2}.
+ \label{eq:three-label-pivot-recovery}
+\end{equation}
+Consequently every positive weight triple $w=(w_0,w_1,w_2)$ has exact
+refreshed decoder norms
+\begin{align}
+ A_1(w)&=w_1^2A_1,
+ &C_1(w)&=w_0^2P_0+w_2^2A_2+2w_0w_2g_{02},
+ \notag\\
+ A_2(w)&=w_2^2A_2,
+ &C_2(w)&=w_0^2P_0+w_1^2A_1+2w_0w_1g_{01}.
+ \label{eq:three-label-pivot-refresh}
+\end{align}
+
+The state in \cref{eq:three-label-pivot-gram-state} remains canonical and
+unweighted.  In particular, after any refresh at current weights $w$, let a
+new source block of width $r_{\rm new}$ have sign-absorbed unweighted rows
+$\widehat z_0,\widehat z_1,\widehat z_2$.  The ordinary total and two bit
+measurements arrive as
+\begin{equation}
+ M_1=w_1\widehat z_1,
+ \qquad
+ M_2=w_2\widehat z_2,
+ \qquad
+ M_0=w_0\widehat z_0+w_1\widehat z_1+w_2\widehat z_2.
+ \label{eq:three-label-weighted-append-measurements}
+\end{equation}
+Before changing the canonical state, recover
+\begin{equation}
+ \widehat z_1=M_1/w_1,
+ \qquad
+ \widehat z_2=M_2/w_2,
+ \qquad
+ \widehat z_0=(M_0-M_1-M_2)/w_0,
+ \label{eq:three-label-unweighted-append-recovery}
+\end{equation}
+and add the five increments defined by
+\cref{eq:three-label-pivot-gram-state} with $z_i$ replaced by
+$\widehat z_i$.  Thus arbitrary interleavings of source-block appends and
+positive weight refreshes are exact; no old source block is replayed.
+Supplying the three measurements remains charged to the underlying harmonic
+or response implementation.
+
+Name the refresh operation
+\begin{equation*}
+ \textsc{ThreeLabelPivotGramRefresh}.
+\end{equation*}
+It validates one fixed-bucket/version header and three positive weights, evaluates
+\cref{eq:three-label-pivot-recovery,eq:three-label-pivot-refresh}, materializes
+the four refreshed decoder norms, and emits one decoder record.  The canonical
+state uses one additional persistent scalar compared with the four-norm state
+in \cref{prop:three-label-norm-only-reweight-obstruction}.  Its complete
+per-refresh vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &=\bigl(0,0,1,0,\Theta(1),0,0,\Theta(1),\Theta(1),4,1\bigr).
+ \end{aligned}
+ \label{eq:three-label-pivot-refresh-eleven-vector}
+\end{equation}
+Repeated refreshes add this vector request by request; source-block append
+arithmetic and measurement supply are separate from it.
+\end{theorem}
+
+\begin{proof}
+Expanding $C_1$ and $C_2$ in
+\cref{eq:three-label-pivot-gram-state} gives
+\cref{eq:three-label-pivot-recovery}.  In the first bit, $z_1$ is alone and
+$z_0,z_2$ share the complementary side; in the second bit, $z_2$ is alone and
+$z_0,z_1$ share the complementary side.  Expanding the corresponding weighted
+squared norms proves \cref{eq:three-label-pivot-refresh}.
+
+Positivity of the current weights makes
+\cref{eq:three-label-unweighted-append-recovery} exact.  Column concatenation
+adds squared norms and inner products across disjoint old and new source
+coordinates, so the five recovered increments produce exactly the canonical
+state of the concatenated unweighted rows.  Induction over an arbitrary
+append/refresh sequence proves repeated exactness.  Counting the one extra
+canonical scalar, four materialized decoder norms, validation workspace, and
+one emitted record gives
+\cref{eq:three-label-pivot-refresh-eleven-vector}.
+\end{proof}
+
+\begin{proposition}[Four-label obstruction to one-pivot refresh]
+\label{prop:four-label-one-pivot-refresh-obstruction}
+The five-scalar state of
+\cref{thm:three-label-pivot-gram-refresh} is not a universal state after a
+fourth collision.  Give the codes $00,01,10,11$ realized signs $+1$ and unit
+old weights.  The scalar histories
+\begin{equation}
+ X=(-6,-5,-5,4)^T,
+ \qquad
+ X'=(-6,-5,-5,6)^T
+ \label{eq:four-label-pivot-histories}
+\end{equation}
+have the common pivot $P_0=36$ and common four decoder norms
+\begin{equation}
+ (A_1,C_1,A_2,C_2)=(1,121,1,121).
+ \label{eq:four-label-pivot-common-state}
+\end{equation}
+After the positive refresh $w=(1,1,1,3)$, the first-bit isolated-side norm is
+$49$ for $X$ and $169$ for $X'$, while its complement norm remains $121$.
+Hence the exact first-bit comparison is $49<121$ in the first history and
+$169>121$ in the second.  No deterministic refresh from this named
+five-scalar state can be exact on both histories.
+
+This is a sharp STOP for extending the one-pivot three-label state unchanged
+to four labels.  It is not a lower bound on richer Gram state, nonlinear
+encodings into unrestricted real cells, source replay, or another decoder.
+\end{proposition}
+
+\begin{proof}
+For either history, the first bit has sides $z_1+z_3=\mp1$ and
+$z_0+z_2=-11$; the second has sides $z_2+z_3=\mp1$ and
+$z_0+z_1=-11$.  This proves
+\cref{eq:four-label-pivot-common-state}.  Reweighting the first isolated side
+gives $-5+3\cdot4=7$ and $-5+3\cdot6=13$, while the complement is unchanged.
+Squaring proves the two opposite comparisons and the indistinguishability
+claim.
+\end{proof}
+
+\begin{theorem}[Co-side Gram refresh]
+\label{thm:co-side-gram-refresh}
+Fix one bucket containing $k$ sign-absorbed rows
+$z_1,\ldots,z_k\in\mathbb R^r$ with distinct codes in $\{0,1\}^L$.  Call an
+unordered pair $\{i,j\}$ \emph{co-side} when the two codes agree in at least
+one bit, and let $c$ be the number of pairs whose codes are bitwise
+complements.  Retain the canonical state
+\begin{equation}
+ \mathsf G_{\rm side}
+ :=\{G_{ii}:1\leq i\leq k\}
+ \mathbin{\cup}
+ \{G_{ij}:i<j,\ \{i,j\}\text{ is co-side}\},
+ \qquad
+ G_{ij}:=\langle z_i,z_j\rangle.
+ \label{eq:co-side-gram-state}
+\end{equation}
+For every positive weight vector $w\in\mathbb R_{>0}^k$, every bit
+$\ell$, and side $a\in\{0,1\}$, its exact weighted decoder norm is
+\begin{equation}
+ \left\|\sum_{i:\operatorname{bit}_\ell(i)=a}w_i z_i\right\|_2^2
+ =\sum_{i:\operatorname{bit}_\ell(i)=a}w_i^2G_{ii}
+ +2\!\sum_{\substack{i<j:\operatorname{bit}_\ell(i)=
+                     \operatorname{bit}_\ell(j)=a}}
+       w_iw_jG_{ij}.
+ \label{eq:co-side-gram-refresh}
+\end{equation}
+Thus the named \textsc{CoSideGramRefresh} state is sufficient for arbitrary
+repeated positive reweights.  Complementarity is a matching on the distinct
+codes, so $c\leq\lfloor k/2\rfloor$ and its exact dimension is
+\begin{equation}
+ d_{\rm side}=k+\binom{k}{2}-c=\Theta(k^2).
+ \label{eq:co-side-gram-dimension}
+\end{equation}
+
+The dimension in \cref{eq:co-side-gram-dimension} is also necessary only in
+the following explicit model: the retained cells are linear statistics of
+the Gram matrix, $r\geq k$, and from them one must reconstruct every exact
+side norm in \cref{eq:co-side-gram-refresh} for all positive weights on an
+open set.  No unrestricted real-cell information lower bound is claimed.
+
+Maintenance is not free.  If a new width-$r_{\rm new}$ block supplies every
+individual unweighted row $\widehat z_i$, then updating
+\cref{eq:co-side-gram-state} costs
+\begin{equation*}
+ \Theta(d_{\rm side}r_{\rm new})
+ =\Theta((k^2-c)r_{\rm new})
+\end{equation*}
+inner-product arithmetic and $\Theta(k^2)$ persistent scalar cells.  When
+$k>L+1$, the ordinary total-plus-$L$-bit measurement block has fewer vector
+rows than labels and does not in general determine these individual rows or
+all of their co-side Gram increments.  The implementation must therefore pay
+for richer measurements or per-label reads, together with their response,
+materialization, and validation costs.  This theorem proves no generic
+product-scale graph-work bound, RPPR/KKT chronology, terminal solver result,
+finite-precision guarantee, or word/bit complexity.
+\end{theorem}
+
+\begin{proof}
+Two distinct binary codes fail to share a bit side exactly when they differ
+in every bit, that is, when they are bitwise complements.  Every code has at
+most one complement, so the omitted pairs form a matching of size $c$.
+Expanding each squared side sum gives
+\cref{eq:co-side-gram-refresh}; every off-diagonal term appearing there is
+co-side, and no complementary-pair entry can appear.  Counting the retained
+diagonals and all noncomplementary pairs proves
+\cref{eq:co-side-gram-dimension} and sufficiency.
+
+For the qualified necessity statement, positive-definite $k\times k$ Gram
+matrices form an open subset of the symmetric matrices when $r\geq k$.
+Viewed as a polynomial in the positive weights, a side norm has coefficient
+$G_{ii}$ on $w_i^2$ and coefficient $2G_{ij}$ on $w_iw_j$ exactly when
+$i,j$ share that side.  Exact reconstruction on an open weight set therefore
+recovers all $d_{\rm side}$ displayed Gram coordinate functionals.  Any
+linear Gram-statistic state from which they are recovered must have them in
+its row span and hence have dimension at least $d_{\rm side}$.
+
+For an appended block, each retained entry increases by the corresponding
+width-$r_{\rm new}$ inner product, proving the stated update count.  Finally,
+the ordinary coded measurements are only $L+1$ linear combinations of the
+$k$ row vectors.  If $k>L+1$, their coefficient map has a nontrivial kernel,
+so those measurements do not identify the individual rows and, in general,
+do not identify every required Gram increment.
+\end{proof}
+
 Together,
-\cref{thm:slack-normalized-partial-gate-packing,cor:realized-directional-slack-bank,cor:gaussian-compressed-slack-bank,lem:append-only-bucket-norm-accumulation,prop:three-label-norm-only-reweight-obstruction}
+\cref{thm:slack-normalized-partial-gate-packing,cor:realized-directional-slack-bank,cor:gaussian-compressed-slack-bank,lem:append-only-bucket-norm-accumulation,prop:three-label-norm-only-reweight-obstruction,thm:three-label-pivot-gram-refresh,prop:four-label-one-pivot-refresh-obstruction,thm:co-side-gram-refresh}
 close the information-level parts of an epoch-internal partial query.
 Checkpoint slack normalization handles heterogeneous far-label margins with
 one heavy-row threshold.  For the realized gate, one accumulated directional
@@ -3168,9 +3421,16 @@ Gaussian compression reduces the concatenated batch source dimension to
 logarithmic size and a fixed coded bank retains exact prefix decoder norms
 without storing old source columns.  That fixed-weight state has an exact
 boundary: a three-label collision cannot be refreshed after a genuine slack
-reweight from its retained norms alone.  A correct implementation must retain
-richer prechange information, replay old response/source cells, rebuild from
-the cut, use a different bank/decoder, or reject.  These results do not yet
+reweight from its retained norms alone.  One additional pivot norm repairs
+that exact three-label bucket across arbitrary repeated positive refreshes,
+provided weighted append measurements are first converted back to canonical
+unweighted rows.  Four labels already obstruct the same one-pivot state.  A
+general exact repair retains precisely the co-side Gram entries, but this is
+quadratic bucket state and its append maintenance needs richer measurements
+or per-label reads once the occupancy exceeds $L+1$.  A correct scalable
+implementation must exploit sparser collision structure, replay old
+response/source cells geometrically, rebuild from the cut, use a different
+bank/decoder, or reject.  These results do not yet
 bound installation or application of the slack-weighted harmonic target rows,
 growth beyond a bank's declared capacity, a paid strategy for checkpoint
 slack-weight changes, maintenance of the transition band, or exact

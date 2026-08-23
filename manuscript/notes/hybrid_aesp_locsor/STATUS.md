@@ -2,7 +2,7 @@
 
 Last reviewed: 2026-08-22
 State: proved-open
-Review: Round 020 independently audited clean after one README wording repair on 2026-08-22
+Review: Round 022 independently audited clean after scope and mechanical checker repairs on 2026-08-22
 
 ## Exact question and contract
 
@@ -124,7 +124,16 @@ Review: Round 020 independently audited clean after one README wording repair on
   extrapolated center before the paid native `Uhat_1` suffix. This is a fresh
   estimate-proof reset, not an unchanged carry or shock amortization; no row
   beyond the live first batch is exposed, and the exact margin, both products,
-  oracle logarithm, and suffix remain charged. The three-arm
+  oracle logarithm, and suffix remain charged. Round-021 locks that first
+  fixed-face oracle to the imported greedy normalized-KKT policy. The carried
+  center `y+` is lower but does not itself certify `F_1`; its proximal warm
+  start has the exact positive margins in
+  `eq:branch-caterpillar-second-nonsettled-margins`, and greedy order preserves
+  them through the actual strictly nonsettled output `z_1`. Under the sharper
+  `rho_2` range, this commits `F_1`, registers a second observable KKT budget
+  `B_2` with another two products/twelve appends, and runs a second genuinely
+  extrapolated relative stage on `Uhat_2`. This is a second finite
+  continuation, not a contraction from `B_ns` to `B_2` or a speedup. The three-arm
   and double-Y structural
   handoffs otherwise accept any fully charged gate-compatible Phase-I prefix;
   the caterpillar handoff accepts only the defined canonical checkpoints.
@@ -275,6 +284,25 @@ Review: Round 020 independently audited clean after one README wording repair on
   factor. Prefix/post interaction and structural first-exposure totals are
   `m+1`, while numerical rounds remain explicit in
   `R_adj=m+1+O(A_ns)`.
+  The Round-021 second register has standalone vector
+  `eq:branch-caterpillar-second-nonsettled-transition-vector`:
+  `(2 V_2,2,0,0,O(1),Theta(V_2),0,Theta(C_2),O(C_2),12+Theta(1),0)`.
+  The complete two-admission execution uses
+  `eq:branch-caterpillar-two-nonsettled-prefix-eleven-vector` and
+  `eq:branch-caterpillar-two-nonsettled-post-eleven-vector`; its prefix has
+  exact `R_int=2`, `C_resp=0`, and only `Uhat_2` rows. Prefix/post
+  interactions total exactly `m+1`; structural first-exposure rounds also
+  total `m+1`, while the full adjacency-round coordinate is
+  `m+1+O(A_2NS)`.
+  Round 022 separates analytical reset size from the cost of the declared
+  register. The settled `P_3` obstruction has no execution vector beyond its
+  single already exposed face transition: it compares the observable scalar
+  `B_1` with the exact Schur drop and does not claim a work lower bound. If the
+  existing conservative no-sharing two-product register is instead invoked
+  literally at all `m` canonical caterpillar admissions, its stored-row reads
+  are exactly `2 sum_(j=1)^m V_j=6m^2+12m-6`. This identity assumes the two
+  products remain separately charged; it is not unavoidable because a settled
+  zero-momentum implementation may share them.
 - **Intended result:** Graph-uniform
   `O_tilde(1/(sqrt(alpha)*eps_ppr))` PPR work and, separately,
   `O_tilde(1/(rho*sqrt(alpha)))` RPPR work.
@@ -438,6 +466,44 @@ Review: Round 020 independently audited clean after one README wording repair on
   oracle stage with its full logarithm, and the direct native `Uhat_1`
   suffix in three complete eleven-vectors. It proves only a fresh first-face
   reset and one valid continuation, not shock amortization or a rate.
+  New `lem:branch-caterpillar-second-nonsettled-safe-center` proves that the
+  extrapolated `y+` is a strict principal-face lower center but cannot itself
+  certify `F_1`, while the standard warm start and every exact greedy
+  normalized-KKT iterate obey `u_1(y+)<=z_1<=p_1(y+)<x_1`. New
+  `lem:branch-caterpillar-second-nonsettled-admission` derives the exact
+  `m>2` and terminal `m=2` warm-start margins and the sharp `rho_2` threshold,
+  so the actual greedy endpoint commits the second canonical batch while
+  remaining nonsettled. New
+  `lem:branch-caterpillar-second-nonsettled-shock-reset` charges another two
+  products and twelve auxiliary appends and bounds the positive second-face
+  estimate certificate by the observable `B_2`. New
+  `thm:branch-caterpillar-two-nonsettled-continuation` runs a second
+  extrapolated relative stage on `Uhat_2` and gives complete prefix/post
+  vectors. It proves two-admission/two-continuation feasibility only: no
+  inequality connects `B_2` with `B_ns`, so no multi-face rate or speedup is
+  claimed.
+  New `prop:path-three-settled-reset-drop-obstruction` gives an exact complete
+  one-admission trace on the endpoint-seeded three-vertex path at `rho=3/10`,
+  `alpha=s/(1+s)`, and `0<s<1/12`. Its settled KKT reset and exact Schur drop
+  obey `B_1/Delta_1=3/(4q_r^2)+O(1)`, with
+  `q_r=sqrt(alpha/(1-alpha))`. Thus alpha-uniform and `O(1/q_r)` additive
+  reset/drop coefficients fail even at zero momentum. The result concerns the
+  observable KKT upper budget, not the actual analytical shock: the latter
+  satisfies `Sigma^es<2Delta_1`. New
+  `lem:settled-reset-optimum-drop-bound` uses `Q<=I` and the feasible
+  negative-KKT step to prove the surviving
+  `sum B_j<=((3-5alpha)/(alpha(1-alpha)))sum Delta_j` bound for settled
+  zero-momentum safe expansions. Its `Theta(1/alpha)` order is sharp on the
+  same path, and it makes no statement about nonsettled `D_j^2` terms. New
+  `prop:conditional-nested-reset-budget-telescope` records a separate
+  face-general algebraic telescope under exact settlement, lower-center,
+  ordered-greedy, and live-residual identities. Its corrected coefficient is
+  `Theta(q_r^-4)=Theta(alpha^-2)`, not `Theta(q_r^-3)`. Those premises are not
+  established on the actual Round-021 nonsettled trajectory. Finally,
+  `eq:branch-caterpillar-literal-reset-product-count` gives the exact
+  `6m^2+12m-6` row reads only for the conservative declared no-sharing
+  two-product register; it is not an implementation or algorithm-class lower
+  bound.
   New `thm:branch-caterpillar-envelope-aesp-prefix` proves
   `B_env^full=O_tilde(C(S*)/sqrt(alpha))` for `Full-BC-AESP_0`, using exactly
   `T_*=ceil(2 log(4)/sqrt(alpha/(1-alpha)))` relative-accuracy stages and the
@@ -495,8 +561,14 @@ Review: Round 020 independently audited clean after one README wording repair on
   `FirstNonsettled-BC-AESP_(0->1)^(+1)` audit closes only the first admission:
   it uses the exact `rho<1/30` one-stage margin, registers the fresh KKT budget
   `B_ns`, and runs one extrapolated stage. It neither proves that `B_ns`
-  contracts nor extends the reset to a second nonsettled admission. None of these
-  results bounds an uncapped
+  contracts nor by itself extends the reset to a second nonsettled admission.
+  Round 021 supplies that second finite reset, but not a comparison between
+  the two budgets. Round 022's nested telescope is conditional on exact
+  settlements, lower extrapolated centers, ordered greedy evolution, and the
+  displayed live-residual identity; it therefore cannot be applied to the
+  two nonsettled endpoints merely because their individual reset bounds are
+  valid. Its `Theta(alpha^-2)` coefficient is also not the missing accelerated
+  rate. None of these results bounds an uncapped
   or automatically exploring signed AESP prefix. Even for the full-envelope
   policy, the shorthand
   product bound is pointwise on `alpha<1/2`, not uniform at the upper endpoint;
@@ -514,11 +586,17 @@ Review: Round 020 independently audited clean after one README wording repair on
   must also be below the sharp margin `mu_k`. Even at a settled canonical
   checkpoint, an all-zero proximal append is not the imported composite warm
   start, and zero-padding the exact old estimate certificate does not preserve
-  its zero value on the enlarged face.
+  its zero value on the enlarged face. For the declared observable KKT reset,
+  neither an alpha-uniform multiple nor an `O(1/q_r)` multiple of exact
+  face-optimum drops can pay all settled zero-momentum resets: the exact
+  `P_3` ratio is `3/(4q_r^2)+O(1)`. This refutes only those additive
+  reset-budget packings. It does not make the actual settled shock large, does
+  not lower-bound stage work, and does not refute logarithmic or nonadditive
+  budget use.
 - **Open:** A graph-independent early-AESP prefix bound, local RPPR work from
   a retained arbitrary signed warm start, a charged amortization (or a
-  face-general observable reset bound) for the positive analytical face shock
-  beyond the first Round-020 transition, a lower bound and charged
+  nonadditive/logarithmic reset ledger) for the positive analytical face shock
+  along the actual nonsettled greedy transitions, a lower bound and charged
   local certificate for the canonical margins `mu_k` with `k>=2`, another seed on the double-Y,
   caterpillar checkpoints for `rho_can<=rho<rho_cat`, other seeds or policies,
   arbitrary pre-backbone interleavings, and repeated complete-positive-list
@@ -559,13 +637,29 @@ The proximal array needs three positive new entries, and the zero old
 estimate certificate acquires a strictly positive analytical shock. The
 concrete audit resets that proof and then uses the native response, so it
 neither transports useful accelerated energy nor improves the Round-018
-execution. Round-020 now crosses the first face from one explicitly
+execution. Round-020 crosses the first face from one explicitly
 nonsettled shifted endpoint, registers an optimum-free KKT upper bound, and
 runs one extrapolated stage. It pays two products, uses only the live first
 candidate batch, and replaces `mu_0` by the exact `rho<1/30` margin. It does
-not contract the registered budget or reach a second nonsettled transition.
+not contract the registered budget. Round-021 now reaches the second
+nonsettled transition by exploiting the greedy safe-order theorem: `y+` is
+lower but fails the gate, whereas its proximal warm start has a sharp positive
+`rho_2` margin that every greedy iterate preserves. The second transition
+again pays its live rows, two products, twelve appends, and fresh KKT budget,
+then runs a genuine extrapolated stage on `Uhat_2`. No proved relation connects
+`B_2` to `B_ns`, and the sharper range is not uniform in `m`.
+Round 022 now rules out the simplest additive repair: even one settled
+zero-momentum path admission has observable reset/drop ratio
+`Theta(1/alpha)`, so neither an alpha-uniform nor an `O(1/q_r)` coefficient
+can telescope these declared budgets. The surviving settled bound has sharp
+order `1/alpha`, while the only face-general multi-reset telescope proved here
+has a conditional `Theta(alpha^-2)` coefficient and assumptions absent from
+the Round-021 nonsettled trace. This is not a work lower bound because the
+relative inner-stage count sees its initial budget through a logarithm, and
+the actual analytical settled shock is still `O(Delta)`.
 The blocker is therefore a capped automatically exploring signed Phase I that
-amortizes these observable reset budgets over multiple actual transitions,
+uses a nonadditive or logarithmic ledger for these observable reset budgets
+over multiple actual transitions,
 avoids candidate-row overexposure, and
 controls the margin-dependent repeated-work term. The remaining
 canonical range and wider
@@ -588,7 +682,10 @@ uncapped "any finite burn-in" specification.
   `eq:aesp-cd-smoothed-start`, `eq:aesp-cd-moreau-envelope`,
   `eq:aesp-cd-momentum-states`, and `eq:aesp-cd-potential-defect`
   definitions exactly. Round-020 additionally imports the minimum-norm KKT
-  vector and local relative-oracle work guarantee. The expansion-shock and
+  vector and local relative-oracle work guarantee. Round-021 also imports the
+  principal-face safe-center order and requires its exact greedy
+  normalized-KKT update policy; relative accuracy alone is insufficient for
+  its second gate. The expansion-shock and
   safeguarded collateral results delimit excluded numerical-energy routes but
   are not used as amortizations here.
 - Supplies to: The synthesis and response-composition directions through a
@@ -609,9 +706,14 @@ uncapped "any finite burn-in" specification.
   an exact three-key/lazy-anchor face transition through the full-support edge,
   a third complete prefix/post ledger, and a scoped dense-fresh-auxiliary
   quadratic accounting identity; a settled-state four-array sparse append,
-  one first-face nonsettled twelve-cell append with two charged products, an
-  observable KKT estimate-reset budget, one extrapolated continuation stage,
-  and complete transition/prefix/post vectors;
+  first- and second-face nonsettled twelve-cell appends, four charged products,
+  two observable KKT estimate-reset budgets, two extrapolated continuation
+  stages, sharp second-batch margins, and complete transition/prefix/post
+  vectors; an exact settled `P_3` reset/drop obstruction, the sharp-order
+  general settled `O(1/alpha)` budget bound, a conditional
+  `Theta(alpha^-2)` nested reset telescope, and the literal no-sharing
+  caterpillar two-product identity `6m^2+12m-6` with its representation-only
+  scope;
   the exact three-cell proximal correction, a positive analytical estimate
   shock requiring reset or explicit charge, and a fully charged one-admission
   audit with complete vectors;
@@ -688,12 +790,27 @@ uncapped "any finite burn-in" specification.
   `lem:branch-caterpillar-nonsettled-shock-reset`,
   `eq:branch-caterpillar-nonsettled-transition-vector`,
   `thm:branch-caterpillar-first-nonsettled-continuation`, and its prefix/post
-  eleven-vectors. Graph-uniform gates remain
+  eleven-vectors; then
+  `sec:branch-caterpillar-second-nonsettled-continuation`, especially
+  `lem:branch-caterpillar-second-nonsettled-safe-center`,
+  `lem:branch-caterpillar-second-nonsettled-admission`,
+  `lem:branch-caterpillar-second-nonsettled-shock-reset`,
+  `eq:branch-caterpillar-second-nonsettled-transition-vector`, and
+  `thm:branch-caterpillar-two-nonsettled-continuation` with its prefix/post
+  vectors; then `sec:settled-reset-budget-amortization`, especially
+  `prop:path-three-settled-reset-drop-obstruction`,
+  `eq:path-three-reset-drop-ratio`,
+  `lem:settled-reset-optimum-drop-bound`,
+  `prop:conditional-nested-reset-budget-telescope`, and
+  `eq:branch-caterpillar-literal-reset-product-count`. Graph-uniform gates remain
   `conj:early-locality`, `sec:open-gap`, and `sec:composite-hybrid`.
-- Next concrete action: Round-020 registers and bounds the first nonsettled
-  shock but does not amortize it. Extend the observable KKT reset to the next
-  actual `FaceCarryLowerHeap` admission and prove a two-face contraction or
-  exhibit the first exact failure. A useful extension must avoid
+- Next concrete action: Round-022 refutes alpha-uniform and `O(1/q_r)`
+  additive reset/drop packing but does not refute accelerated work, because
+  the inner oracle uses the reset budget logarithmically. Prove a nonadditive
+  or logarithmic two-reset ledger along the exact Round-021 greedy trajectory,
+  or exhibit its first exact failure. Do not apply the conditional settled
+  telescope until its lower-center/order/residual premises are verified on
+  those nonsettled states. A useful extension must avoid
   candidate-row exposure beyond the live certificate batch and must not
   maintain every future margin eagerly. Separately extend or refute
   the response beyond `rho<rho_can`.
@@ -704,7 +821,11 @@ uncapped "any finite burn-in" specification.
   settled canonical face, and an analytical value of `Sigma_k^es` is not an
   online scalar unless every solve/query/write used to obtain its bound is
   charged. Fully charged repeated sweeps remain valid comparison
-  work but cannot establish the target. A direct one-pass build from the
+  work but cannot establish the target. Also stop any inference that the
+  `P_3` KKT-budget ratio is a shock-size or stage-work lower bound: the actual
+  settled shock is below `2Delta`, and the relative stage bound depends on
+  `B` logarithmically. The `6m^2+12m-6` product count belongs only to the
+  explicitly no-sharing register. A direct one-pass build from the
   actual checkpoint support is allowed;
   reconstructing its historical gate states is not. Also stop any prefix proof
   that leaves its stage count uncapped, calls full-family exposure local
@@ -900,6 +1021,47 @@ uncapped "any finite burn-in" specification.
   one README repair distinguishing the zero-padded carried arrays from the
   three positive proximal appends; focused readback, checker, and diff checks
   then returned clean without an audit edit.
+  Round-021 added the strict lower-center/proximal-start distinction, the
+  exact `m>2` and terminal `m=2` second-batch margins, greedy safe ordering,
+  a second positive KKT reset, two-admission prefix/post ledgers, and the
+  explicit rate STOP. `check_round021.py` runs exact rational
+  degree-scaled greedy AESP-CD for `m=2,...,12` and six rational values of
+  `sqrt(chi_A)` from `1/10` through `9/10`, always at `0.999 rho_2`. It checks
+  that `y+` is lower but fails `F_1`, the warm start has the displayed sharp
+  margins, every greedy update on the first face is increasing, the output
+  remains below the shifted and unshifted optima, all three second-batch signs
+  survive, positive momentum drives the next center, the second proximal
+  append has exactly twelve cells, `0<Psi_2<=B_2`, the second relative rule,
+  exact threshold equality at `rho_2`, all row/round/interaction/label
+  partitions, and every stable label. The checker and Ruff format/lint pass.
+  The focused build produces 81 pages with no unresolved reference and only
+  the three preexisting overfull-box warnings. Independent Round-021 audit
+  rederived the center ratio and lower-but-noncertifying distinction, the
+  safe-center greedy order, both margin systems and sharp `rho_2`, strict
+  momentum, the second twelve-cell append and KKT reset, both oracle budgets,
+  every prefix/post partition, and the exact rate STOP. It required one
+  provenance repair from the KKT-mass contraction lemma to the imported
+  safe-center theorem; focused readback, exact checker, Ruff, diff, and forced
+  81-page build checks then returned clean.
+  Round-022 added the exact settled `P_3` KKT-budget/Schur-drop obstruction,
+  the sharp-order general settled bound, the conditional nested reset
+  telescope, the actual-shock disclaimer, and the literal no-sharing
+  caterpillar two-product count. `check_round022.py` reconstructs the
+  degree-scaled three-vertex Hessian and shifted load in exact rational
+  arithmetic, solves both restricted faces, verifies `g_0>0`, `g_1<0`, the
+  Schur pivot, objective drop, reset budget, exact ratio decomposition, the
+  surviving settled coefficient, the rational dominant term in the
+  `Theta(q_r^-4)` conditional coefficient, actual canonical face volumes, the
+  row-count identity through `m=24`, and every stable label/scope marker. The
+  checker and Ruff lint/format checks pass. The focused build produces 85
+  pages with no unresolved reference and only the three preexisting overfull-
+  box warnings. Independent review rederived every demand, settlement, Schur,
+  reset, inequality, asymptotic, conditional telescope coefficient, and row
+  count. It required repair of missing `\qquad` tokens, erroneous stable-text
+  strings, and explicit scope statements that `B` is only an observable upper
+  budget, the actual settled shock is below `2 Delta`, and the two-product
+  count assumes the named conservative no-sharing interface. Post-repair
+  checker, Ruff, build/log, and source readback returned clean.
 - Known gaps: The structural response handoffs deliberately discard accelerated
   auxiliary state and therefore prove no shock-free accelerated continuation.
   Round-016 preserves a coordinatewise lower vector across admissions, but not
@@ -932,8 +1094,16 @@ uncapped "any finite burn-in" specification.
   an exactly settled, zero-momentum checkpoint; its estimate proof is reset,
   no enlarged-face accelerated stage is run, and the native suffix supplies
   the completion. Round-020 handles one actual nonsettled first-face state by
-  a charged KKT reset and runs one continuation stage, but it neither proves
-  contraction of that budget nor reaches a second admission. Candidate rows
+  a charged KKT reset and runs one continuation stage. Round-021 reaches a
+  second nonsettled admission and continuation only in the sharper `rho_2`
+  range and only for the exact greedy oracle; it then restarts at `B_2`
+  without proving contraction from `B_ns`. Round-022 refutes only the simplest
+  additive settled-reset packing below order `1/alpha`; its surviving
+  `O(1/alpha)` bound omits nonsettled displacement and its
+  `Theta(alpha^-2)` multi-reset telescope assumes exact settlement and ordered
+  lower-center identities absent from the actual execution. Since the oracle
+  uses `B` inside a logarithm, this is no accelerated-work obstruction.
+  Candidate rows
   remain pre-exposed in the general growing-face policy, no face-general
   charged shock amortization is known for its non-settled momentum states,
   missing bulk products remain charged, and each later analysis cap uses

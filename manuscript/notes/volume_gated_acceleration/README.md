@@ -17,6 +17,8 @@ python3 check_round017.py
 python3 check_round018.py
 python3 check_round019.py
 python3 check_round020.py
+python3 check_round021.py
+python3 check_round021.py --enumerate
 ```
 
 The note embeds its bibliography and deliberately uses note-scoped
@@ -168,6 +170,24 @@ The main closed statements are:
   convergence, objective-decrease, or work certificate, pointwise potential,
   uniform recovery horizon, all-admission telescope, logarithm removal,
   nonpath theorem, or finite-precision result;
+- the next exact nonpath test gives the complementary causal-ledger STOP.
+  On the asymmetric T tree with edges
+  `(0,1),(1,2),(2,3),(2,4),(4,5)`, seed `0`, and
+  `q=1/5`, `alpha=rho=tau=1/25`, the exact chronology admits vertices
+  `1,2,3,4,5` at stages `1,2,4,9,15` and certifies at stage `17`.
+  Restarting `Xi=delta^2` with zero balance at held stage 3 produces a
+  negative stage-5 balance that remains negative immediately before and
+  after the next admission at stage 9; stage 13 is the last local STOP and
+  stage 14 the first local GO.  The run has `J=5`, `T=17`, final volume `10`,
+  six final vertices, and swept volume `125`.  This refutes uniform
+  recovery-before-the-next-admission for the named recurrence and complete
+  gate.  It does not refute the all-history ledger or prove a nonpath response
+  lower bound.  The optional exact checker exhausts all `3806` connected
+  labeled rooted graphs on two through five vertices and finds no smaller
+  witness; that finite minimality audit is computational scaffolding, not part
+  of the proposition.  No eleven-vector is claimed because the reviewed path
+  response/read-write accounting does not automatically extend through the
+  branch;
 - a moving-maximum energy bound controls the full old-face correction without
   locating its maximizer: every constant-ratio path face admits or certifies
   within `O(q^(-1) log(1/q))` steps, giving
@@ -222,9 +242,12 @@ realized-credit identity is face-general as an accounting condition and its
 finite path balance survives the next canonical admission by carrying unused
 stage-4 credit; without that carry the stage-8 account first recovers at stage
 12. This establishes one exact cross-state cancellation, but gives no uniform
-closing time or all-admission telescope. Extending or stopping this causal
-balance on another graph, face, or order remains open.
-The ledger also does not control nonpath response growth. The results use exact
+closing time or all-admission telescope. The asymmetric T-tree witness
+supplies the first nonpath STOP: restarted debt can
+survive the next admission and recover only later.  The surviving upper route
+must retain earlier all-history credit or impose a structural solvency
+condition; it must also charge every correction scan and exact drop query.
+The ledger does not control nonpath response growth. The results use exact
 real cells and prove no
 finite-precision or automatic RPPR-to-PPR conversion;
 the existing PPR guarantee applies only after the terminal one-sided
