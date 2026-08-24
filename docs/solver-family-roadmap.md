@@ -147,6 +147,35 @@ This expression is a proof template, not an established general theorem.
   \(U_{\mathrm{response}}(V)=\widetilde O(V)\), the target approaches
   \(\widetilde O(V)\).
 
+### Frozen Round-022 acceptance target
+
+The end-to-end graph-uniform target is now fixed for auditing. On a finite
+simple undirected unweighted graph with no isolated vertices, adjacency-list
+access, and a sparse nonnegative seed distribution `s`, define
+`x^0=Q^(-1)b`, `pi=D^(1/2)x^0`, and
+`pi_hat=D^(1/2)x_hat`. An accepted exact-real algorithm must return a sparse
+`x_hat` satisfying
+
+```text
+max_i |pi_hat_i-pi_i|/d_i <= eps_ppr
+```
+
+with one complete terminal certificate and return, while charging the seed
+input and every discovery, repeated row read, inner update, correction/rekey,
+response operation if used, certificate query, materialization, state write,
+and output write. The target is
+
+```text
+nnz(s) + O_tilde(1/(sqrt(alpha) eps_ppr)).
+```
+
+An RPPR route must state its regularization conversion, for example
+`rho=tau=eps_ppr/2`, and terminal certificate. When `alpha` is bounded below
+by a constant, monotone coordinate descent is an allowed fallback. Exact-real
+means algebraic-cell arithmetic, not exact minimizer output or a floating-
+point/bit guarantee. This paragraph is a target contract, not a theorem. No
+current route meets it.
+
 ## Current note routing
 
 ### Iterative track
@@ -309,6 +338,202 @@ splice must therefore pay the margin interface or prove a stronger charged
 one-sided certificate; this proposition is not a lower bound against exact
 settlement.
 
+The exceptional first-layer margin is now closed, but only as a comparison
+witness. At the actual checkpoint `Uhat_1`, one paid scan of the three live
+rows has volume `nu_1=6` for `m>2` and `nu_1=3` for `m=2`; together with the
+retained four-coordinate exact response it computes the sharp `mu_1` on
+demand with incremental vector
+`(nu_1,1,0,0,O(1),0,O(1),O(1),O(1),O(1),0)`. The named
+`MarginCert-BC-AESP_1` policy then runs zero stages at zero gap or the exact
+positive-gap cap
+`T_1=1+floor((2/sqrt(alpha/(1-alpha)))`
+`log_+(4 Delta_(1,0)/(alpha mu_1^2)))` on the fixed signed face `Uhat_1`.
+With `A_1=T_1*9*L_1^rel`, `C_1=13`, `C_2=16+nu_1`,
+`D_1=C_2+A_1`, and `H_1=C_2+(1+log(2+C_1))A_1`, its complete prefix vector is
+`(9+nu_1+O(A_1),3+O(A_1),1,0,O(H_1),O(A_1),O(1),O(C_2),O(C_1),`
+`O(D_1),Theta(1))`; its direct suffix vector is
+`(vol(S*\Uhat_2),m-2,m,0,O(C(S*)),0,O(C(S*)+(m-1)log(2+m)),`
+`Theta(C(S*)),O(C(S*)),Theta(|S*|),|S*\Uhat_1|+|S*|+Theta(m))`.
+The total is `O(H_1+C(S*) log(2+C(S*)))`. The signed endpoint genuinely
+supplies the next gate state, but the exact response that certified `mu_1`
+could decide the same gate and is separately charged. This is therefore no
+speedup or automatic locality result. The mixed-track priority is now a
+scalable on-demand certificate at `k>=2` that does not use an exact response
+comparator, followed by a capped automatically exploring signed prefix; both
+the margin logarithm and `log(1/(1-2 alpha))` remain live costs.
+
+Round 015 removes the response from the first-layer sign certificate, but not
+from the eventual solver. The principal-face Stieltjes lower retraction
+`L_U(z)=[z-Delta_U^low(z)D_U^(1/2)1]_+` satisfies `0<=L_U(z)<=x_k`, so a
+strict positive boundary demand at the lower point certifies the exact sign.
+At `k=1`, the same paid live-row scan now has incremental vector
+`(nu_1,1,0,0,O(1),0,0,O(1),O(1),O(1),0)`, with `C_resp=0` exactly. The
+two-gate `LowerGate-BC-AESP_(0:1)` policy commits the first batch without
+settlement and has pre-second-interaction prefix vector
+`(9+nu_1+O(A_<2^low),3+O(A_<2^low),1,0,O(H_<2^low),`
+`O(A_<2^low),0,O(C_2),O(C_1),O(D_<2^low),Theta(1))`.
+Only this prefix is response-free. Its direct suffix builds and charges the
+native response on `Uhat_2`, with vector
+`(vol(S*\Uhat_2),m-2,m,0,O(C(S*)),0,O(C(S*)+(m-1)log(2+m)),`
+`Theta(C(S*)),O(C(S*)),Theta(|S*|),|S*\Uhat_1|+|S*|+Theta(m))`.
+Charged validation also forces the degree-six candidate rows
+`b_2,a_1,r_1` to be exposed before the first reply. That is a scoped access
+STOP, not an information-theoretic lower bound or a claim against free trusted
+template metadata. The named zero resets discard cross-face progress, the
+analysis-side stage bound still uses `mu_0,mu_1`, and no speedup follows. The
+mixed-track priority is therefore a `k>=2` lower-point diagnostic that avoids
+full old-face scans, candidate-row pre-exposure, and zero resets before a
+capped automatically exploring prefix is attempted.
+
+Round 016 closes the all-layer correctness and whole-vector-reset parts of
+that priority, but not its efficiency or accelerated-state parts. Principal
+Stieltjes face monotonicity makes zero padding preserve any charged lower
+point, and the anchored map `a vee L_U(z)` never decreases its old lower
+coordinates. For every fixed `2<=q<=m`,
+`TransportLower-BC-AESP_(0:q-1)` commits `q-1` canonical batches while
+preserving a nonzero lower anchor and remains response-free only before
+interaction `q`. Its exact prefix vector is
+`(V_q^can+O(A_<q^tr),q+1+O(A_<q^tr),q-1,0,O(H_<q^tr),`
+`O(A_<q^tr),0,O(C_q^can),O(C_(q-1)^can),O(D_<q^tr),Theta(q))`.
+The direct suffix then builds and settles the native response on `Uhat_q` and
+has vector
+`(vol(S*\Uhat_q),m-q,m-q+2,0,O(C(S*)),0,`
+`O(C(S*)+(m-q+1)log(2+m)),Theta(C(S*)),O(C(S*)),Theta(|S*|),`
+`|S*\Uhat_(q-1)|+|S*|+Theta(m-q+2))`; total work is
+`O(H_<q^tr+C(S*)log(2+C(S*)))`. Every AESP momentum, proximal, center, and
+estimate-sequence record is restarted, every live candidate row is
+pre-exposed, and every sign test pays a full growing-face sweep. The current
+mixed-track priority is therefore a sublinear charged diagnostic or matching
+repeated-prefix obstruction plus an explicit admission-shock law that
+transports or amortizes useful accelerated state. The all-layer theorem is a
+comparison, not a speedup, automatically exploring prefix, graph-uniform
+bound, finite-precision result, or PPR conversion.
+
+Round 017 closes the repeated query-time sweep part of that priority, but not
+the phase-transition cost. `ImplicitLowerHeap` stores the raw lower residual
+and an indexed maximum of its normalized negative part. A coordinate write
+rekeys only the written coordinate and its in-face neighbors from the already
+paid stencil; a complete caterpillar gate query reads that maximum and three
+cached boundary-parent coordinates in constant work, without scanning or
+materializing the old lower vector. For every fixed `2<=q<=m`,
+`ImplicitLowerHeap-BC-AESP_(0:q-1)` therefore preserves exactly the Round-016
+anchor and has response-free prefix vector
+`(V_q^can+O(S_<q^row+A_<q^ih),2q+1+O(A_<q^ih),q-1,0,`
+`O(H_<q^ih),O(D_<q^ih),0,O(C_q^can),O(C_(q-1)^can),`
+`O(D_<q^ih),Theta(q))`. Its direct suffix still builds and pays the native
+response on `Uhat_q`. Crucially, the prefix charges
+`S_<q^row=3q^2` for one raw-product/heap initialization per face and
+`S_<q^adm=(q-1)(3q+2)/2` for transported-anchor writes, restarts every AESP
+auxiliary, pre-exposes candidates, and retains the margin-dependent analysis.
+For `q=m` those admission/restart shocks remain quadratic. The next
+mixed-track target is therefore to transport or amortize useful accelerated
+state across admissions, or prove an exact obstruction; the incremental heap
+is a diagnostic GO, not a speedup or energy-transport theorem, and the named
+`LiteralDenseLowerSweep` comparison is not a class lower bound.
+
+Round 018's `thm:branch-caterpillar-incremental-face-handoff` removes the
+raw-product rebuild and eager-anchor-copy portions of
+that transition cost, but not the accelerated restart. `FaceCarryLowerHeap`
+zero-pads a successful signed endpoint: every old raw lower residual and heap
+key remains exact, and the three pre-exposed candidate rows generate exactly
+three new keys. Heap-maximum range-minimum tags plus flush-before-write markers
+represent every old lower-anchor coordinate without an admission-time old-face
+visit. For fixed `2<=q<=m`, `FaceCarryLowerHeap-BC-AESP_(0:q)` commits all
+`q` canonical batches and has prefix vector
+`(V_q^can+O(A_<q^fc),q+1+O(A_<q^fc),q,0,O(H_<q^fc),`
+`O(A_<q^fc + Q_<q^fc + q),0,O(C_q^can),O(C_(q-1)^can),`
+`O(D_<q^fc),3q+Theta(q))`. Its paid native-response suffix is
+`(vol(S*\Uhat_q),m-q,m-q+1,0,O(C(S*)),0,`
+`O(C(S*)+(m-q)log(2+m)),Theta(C(S*)),O(C(S*)),Theta(|S*|),`
+`|S*\Uhat_q|+|S*|+Theta(m-q+1))`. The interaction coordinate is exactly
+`R_int=m+1`; the adjacency coordinate is instead
+`R_adj=m+1+O(A_<q^fc)`, because charged numerical row touches and missing bulk
+endpoint products cannot be discarded. Candidates remain pre-exposed, and
+the named `DenseFreshAESP` representation still writes `q(3q-1)/2` fresh
+momentum/proximal/center/estimate-sequence coordinate records, which is
+quadratic at `q=m`. The next mixed-track target is a lazy, transported, or
+amortized accelerated auxiliary representation—or an exact obstruction—while
+retaining all endpoint products and analysis margins. This result is no
+speedup, energy-transport, scalar-potential, graph-uniform, finite-precision,
+or PPR theorem.
+
+Round 019 shows that the named dense restart is not intrinsic at one specially
+settled zero-momentum checkpoint, while exposing the first exact semantic
+obstruction. The center, momentum, and estimate-point arrays zero-pad; the
+proximal array retains every old entry and appends exactly three positive
+`g_(k,v)/L_A` cells. `SettledAuxAppend` therefore writes twelve new coordinate
+records across the four explicit arrays plus one reset marker, with transition
+vector
+`(0,0,0,0,O(1),O(1),0,Theta(C_(k+1)^can),O(1),12+Theta(1),0)`
+and no old-coordinate rewrite, row/product/query, adjacency, or response
+operation. The old zero analytical estimate certificate nevertheless acquires
+the mandatory shock
+`Sigma_k^es>=(mu_E/2)sum_(v in F_k)(x_(k+1))_v^2>0`; it must be restarted or
+explicitly bounded and charged. The response-assisted
+`FirstAuxShock-BC-AESP_(1->2)` audit has prefix vector
+`(9+nu_1,3,2,0,O(1),O(1),O(1),O(C_2),O(C_2),Theta(C_2),6+Theta(2))`
+and the directly paid post vector
+`(vol(S*\Uhat_2),m-2,m-1,0,O(C(S*)),0,`
+`O(C(S*)+(m-2)log(2+m)),Theta(C(S*)),O(C(S*)),Theta(|S*|),`
+`|S*\Uhat_2|+|S*|+Theta(m-1))`; both interaction and first-exposure totals
+are exactly `m+1`. It runs no accelerated stage after the append and hence
+proves no speedup or amortization for actual nonsettled momentum states. The
+mixed-track priority is now to bound and pack that analytical shock along the
+actual `FaceCarryLowerHeap` endpoints, or prove their first obstruction,
+without candidate-row overexposure or hidden margin/product work. The
+remaining canonical range, other seeds/policies, graph-uniform work, PPR
+conversion, and finite precision remain separate.
+
+Round 020 crosses the semantic boundary identified by the settled audit. For
+`rho<min(rho_can(m,alpha),1/30)`, one shifted AESP stage on `Uhat_0` ends at
+a strictly nonsettled point whose exact margins certify `F_0`. The primal,
+nonzero momentum, extrapolated center, and estimate point zero-pad across the
+admission, while the proximal warm start retains its old cell and appends
+three positive cells. `NonsettledShockRegister` charges two stored-row
+products, twelve appended array cells, and the observable KKT budget `B_ns`,
+which bounds the positive enlarged-face estimate certificate without an
+optimum query. One relative-accuracy AESP-CD stage then runs on `Uhat_1`
+before the paid native suffix. All live candidate rows, endpoint products,
+margin conditions, state writes, and oracle logarithms remain in the exact
+transition, prefix, and post vectors. This is a genuine one-admission/one-
+continuation GO, but its fresh reset provides no shock amortization or
+speedup.
+
+Round 021 reaches a second actual nonsettled admission only in the sharper
+range `rho<min(rho_can(m,alpha),rho_2(m,alpha))`, with
+`rho_2=(1+beta_A)/(138+3beta_A)` for `m=2` and
+`rho_2=(1+beta_A)/(354+3beta_A)` for `m>2`. The extrapolated lower center
+`y+` does not certify `F_1`; its proximal warm start `u_1(y+)` does. Locking
+the imported oracle to greedy normalized-KKT AESP-CD gives
+`u_1(y+)<=z_1<=p_1(y+)<x_1`, so the actual oracle output preserves the three
+strict batch signs. After committing `F_1`, a second two-product, twelve-cell
+register computes fresh `B_2`, followed by one genuine stage on `Uhat_2` and
+the native response suffix. The complete ledgers have total
+`R_int=m+1`, structural first exposure exactly `m+1`, and full
+`R_adj=m+1+O(A_2NS)`. No inequality relates `B_2` to `B_ns`; the result is a
+two-admission/two-continuation GO and an accelerated-rate STOP. The next
+mixed-track target is a multi-face shock relation or a scoped obstruction,
+with the greedy restriction, sharper margin, four transition products, both
+oracle logarithms, candidate exposure, and every fixed-family/exact-real
+qualification retained.
+
+Round 022 stops the simplest additive reset repair without giving a work
+lower bound. On the exact settled endpoint path `P_3`, with
+`q_r^2=alpha/(1-alpha)`, the declared observable reset and exact admission drop
+satisfy `B_1/Delta_1=3/(4q_r^2)+O(1)`. Thus neither an alpha-uniform nor an
+`O(1/q_r)` additive coefficient works for this budget. The surviving general
+settled coefficient has sharp order `Theta(1/alpha)`, and the separate
+conditional nested telescope costs `Theta(alpha^-2)` under assumptions not
+proved for the actual nonsettled greedy trace. The analytical settled shock
+itself remains below `2Delta`, and the relative stage oracle sees `B_1` only
+inside a logarithm. Separately, literal use of the conservative no-sharing
+two-product reset register at all `m` canonical caterpillar admissions reads
+exactly `6m^2+12m-6` stored-row cells. Sharing or another representation may
+avoid this named-interface cost, so it is not necessary work or a class lower
+bound. Route A's next target is a nonadditive or logarithmic reset ledger on
+the actual Round-021 trajectory, with every candidate exposure and product
+charged.
+
 ### Model and synthesis track
 
 Use this track for scope control, lower-bound models, and cross-note ledgers:
@@ -371,6 +596,126 @@ complete charge is `eq:notched-sun-eager-eleven-vector`. This is a fixed-face
 exact-real debt/query obstruction, not an RPPR chronology or a lower bound on
 implicit cyclic transfer, packed coded queries, scale-truncated state,
 on-demand validation, or any general partial reporter.
+The same frozen trace now has a narrow positive comparator. For `n>=5`,
+`eta in (0,1/8)`, and `vartheta=(1-alpha)/2<=1/(1296n^2)`, when the face, cut,
+ladder, unit event order, and amplitudes are all verified, an
+entrywise-nonnegative Neumann expansion
+puts the matching response above `vartheta^(5/2)` and the cumulative future
+tail below half that gate. `NotchedSunScaleDelta` therefore stores only the
+template/label map, ladder, counter, and stream metadata and emits one delta
+plus one universal future-safe certificate per logical column without a
+response application, future-label scan, or response/slack cell. Its complete
+vector is `(Theta(n),2,n,Theta(n+J+p),Theta(C_frag+rn+n),0,0,`
+`Theta(n+J+p),O(1),0,Theta(rn))`, with `p=r,C_frag=rn` for nonnegative columns
+and `p=2r,C_frag=2rn` for separately checked signed streams. This is
+exact-real, fixed-template, fixed-order, and scale-aware; it is neither RPPR
+chronology nor a generic dynamic reporter, terminal solver, fixed-`alpha`
+uniform theorem, or finite-precision result. Consequently P0 is no longer
+allowed to infer a broad lower bound from `EagerExactSlack`; it must handle
+arbitrary legal fragments/orders, capacity and slack refresh, and transition
+bands without repeated cut scans or stored-response reads.
+Round 015 removes the prescribed order axis only. Because the matching and
+off-matching bounds are pointwise, `NotchedSunPermutationDelta` verifies one
+common previously unseen petal across all streams using a seen-label set and
+supports every common permutation. Its vector, including `p=r` versus `2r`
+and `C_frag=rn` versus `2rn`, is unchanged. The GO still fixes the template,
+face, cut, pairing, complete ladder, unit amplitudes, near-one scale, and
+exact-real model. P0 must now handle repeats, missing petals, per-column
+schedules, batches, arbitrary fragments/amplitudes, template changes, and the
+already open capacity/slack/transition-band costs; the permutation result is
+not RPPR chronology or a generic partial flush.
+Round 016 removes bounded declared repetition from that list, still for fixed
+`n>=5` and `eta in (0,1/8)`. For positive exact multiplicities `mu_i`, let
+`L=sum_i mu_i` and
+`H=L-min_i mu_i`; the exact scalar-envelope condition is
+`18H sqrt(vartheta)+3vartheta<=1`, equivalently
+`vartheta<=(sqrt(81H^2+3)+9H)^(-2)`. Under the same fixed template, face,
+cut, pairing, ladder, unit amplitudes, exact-real model, and one common
+cross-stream multiset schedule, `NotchedSunMultiplicityDelta` uses one
+exact-cell counter per label. First occurrences emit deltas, repeats emit no
+delta, and every accepted event emits a future-safe certificate per logical
+column. Its vector is
+`(Theta(n),2,L,Theta(n+J+p),Theta(C_frag+rL+n),0,0,`
+`Theta(n+J+p),O(1),0,Theta(rL))`, with `p=r,C_frag=rL` or
+`p=2r,C_frag=2rL`; it performs no response application, future-label scan,
+slack update, or numerical materialization. P0 must now handle unbounded or
+undeclared repetitions, omitted labels, different per-column schedules,
+batches, arbitrary fragments/amplitudes, template mutation, and the already
+open capacity/slack/transition-band costs. The displayed root is sharp only
+for the uniform scalar Neumann envelope. This multiplicity result is not
+RPPR chronology, a generic dynamic partial flush, a fixed-`alpha` uniform
+theorem as `L` grows, terminal solving, or finite-precision/word/bit work.
+Round 017 removes the unit-logical-amplitude promise, but only for one declared
+finite positive schedule shared by all logical columns and streams, still for
+fixed `n>=5` and `eta in (0,1/8)`. For label `i`, let `k_i*` be the first
+declared prefix mass above
+`kappa_i=d_(u_i)(1+c_eta)sqrt(vartheta)`, define
+`gamma_i=kappa_i-A_(i,k_i*-1)` and the tight full-interleaving horizon
+`F_i=A-A_i+A_(i,k_i*-1)`, and require
+`m_A=min_i(lambda_i gamma_i-epsilon F_i)>0`. Then
+`NotchedSunAmplitudeDelta` keeps every unseen or seen-but-unreported label at
+most `g-m_A` and reports label `i` exactly at its first strict crossing,
+occurrence `k_i*`, for every allowed common interleaving. Its vector is
+`(Theta(n),2,L,Theta(n+J+p+L),Theta(C_frag+rL+L+n),0,0,`
+`Theta(n+J+p+L),O(1),0,Theta(rL))`; nonnegative streams have
+`p=r,C_frag=rL` and absolute mass `rA`, while signed `2-minus-1` streams have
+`p=2r,C_frag=2rL` and absolute mass `3rA`. There is no response/slack state,
+future-label scan, or numerical materialization. Every fixed finite positive
+schedule passes at a sufficiently near-one scale, but failure of this margin
+rejects only the displayed scalar certificate. P0 must still handle
+undeclared/unbounded mass, arbitrary signed logical amplitudes, omitted
+labels, per-column schedules, batches, arbitrary fragment supports, template
+mutation, dynamic capacity/slack refresh, RPPR chronology, and finite
+precision. The result remains fixed-template, fixed-`n`, common-schedule,
+complete-coverage, schedule-band, and exact-real only.
+
+Round 018's `thm:notched-sun-columnwise-amplitude-delta-reporter` removes
+exactly that common logical-column schedule. Each column
+declares independent finite positive label/amplitude schedules, and
+`NotchedSunColumnAmplitudeDelta` accepts an arbitrary one-column-at-a-time
+asynchronous global interleaving. Cell `(q,i)` has a column-specific crossing,
+pre-crossing gap, local mass horizon
+`F_(q,i)=A_q-A_(q,i)+A_(q,i,k*_(q,i)-1)`, and positive margin `m_q`.
+Other-column events enlarge only the global latency horizon because they leave
+response column `q` unchanged. Only the affected column is recertified per
+event, and all `rn` cells are emitted at their first exact crossings. With
+`L_Sigma=sum_q L_q>=rn`, the vector is
+`(Theta(n),2,L_Sigma,Theta(n+J+p+L_Sigma),Theta(C_frag+L_Sigma),0,0,`
+`Theta(n+J+p+L_Sigma),O(1),0,Theta(L_Sigma))`. Nonnegative mode has
+`p=r,C_frag=L_Sigma` and absolute mass `A_Sigma`; signed `2-minus-1` mode has
+`p=2r,C_frag=2L_Sigma` and mass `3A_Sigma`, with the two physical records checked
+atomically within their logical column. No response/slack/materialization or
+other-column recertification is credited. P0 must now handle undeclared or
+unbounded mass, arbitrary signed logical amplitudes, omitted labels, signed
+pairs split across interactions, simultaneous batches, arbitrary fragment
+supports, template mutation, dynamic capacity/slack refresh, RPPR chronology,
+and finite precision. The result remains fixed-template, fixed-`n`, declared
+positive, complete-coverage, per-column-schedule-band, and exact-real only; a
+failed `m_q` rejects only this scalar certificate.
+
+Round 019 removes exactly the one-event interaction restriction on that same
+verified template. A nonempty atomic batch may mix labels and columns and may
+contain several consecutive occurrences of one cell, but every touched cell
+must supply a gap-free block of its next tagged declared occurrences.
+`NotchedSunBatchAmplitudeDelta` stages and validates the complete batch before
+mutation, then reports exactly the cells whose declared crossing indices lie
+between the old and new endpoint counts and emits one certificate per affected
+column. It defines no internal order or subevent crossing. For accepted-batch
+count `B`, affected-column total `S_Sigma`, logical total `L_Sigma`, and peak
+size `b_max`, `B<=S_Sigma<=L_Sigma`, `b_max<=L_Sigma`, and the vector is
+`(Theta(n),2,B,Theta(n+J+p+L_Sigma),Theta(C_frag+L_Sigma),0,0,`
+`Theta(n+J+p+L_Sigma),O(b_max),0,Theta(S_Sigma+rn))`.
+Nonnegative mode has `(p,C_frag,mass)=(r,L_Sigma,A_Sigma)`; same-record
+atomically paired signed mode has `(2r,2L_Sigma,3A_Sigma)`. Invalid attempts
+pay their own interaction, staging, validation, scratch, and rejection output
+without a persistent write. P0 must now handle undeclared/unbounded mass,
+arbitrary signed logical amplitudes, omitted labels, signed pairs split across
+records, coupled response, arbitrary fragment supports, template/ladder
+mutation, dynamic capacity/slack refresh, RPPR chronology, and finite
+precision. The result remains fixed-template, fixed-`n`, complete-declaration,
+positive-mass, per-column-band, exactly separated, batch-boundary-only, and
+exact-real; it gives no generic dynamic partial flush or hidden chronology.
+
 On the prescribed notched-double-sun structural trace, exact diagonal-loss
 updates have linear fixed-decoder dimension for each fixed size when `alpha`
 is sufficiently close to one. This stops only the universal exact linear-tag
@@ -484,6 +829,353 @@ actual cumulative log-inflation, a multistep collapse-aware potential, or a
 different locally checkable surrogate. The broader one-sided
 expanding-subspace obligation remains isolated in `volume_gated_acceleration`.
 
+Round 022 rules out deriving the missing inflation theorem from those scalar
+identities alone. An abstract self-similar sequence satisfies the safe chain,
+start-mass, correction-mass, collapse, defect, and defective-contraction
+ledgers, but over `Theta(q^-2)` steps permits `I_T=Omega(q^-1)` with only
+constant logarithmic potential progress. It is not an RPPR instance or an
+exact-proximal trajectory and omits the fixed Stieltjes operator. Actual
+fixed-operator traces supply the complementary finite boundary: endpoint
+`P_4` has optimal support from stage 7 but positive inflation through stage
+498, while the corroborating endpoint `P_7` trace has stable optimal support
+from stage 9 and positive inflation through stage 796. They refute charging
+positive inflation only to support additions or assuming it eventually
+vanishes after discovery. They prove no infinite recurrence, exponent,
+asymptotic obstruction, finite-inner theorem, or end-to-end work lower bound.
+
+Round 023 proves that the finite behavior is genuinely infinite on one fixed
+operator. For endpoint `P_4` with `q=1/8`, `alpha=1/65`, and `rho=7/40`, an
+exact rational invariant cone begins at stage 44 and repeats
+`F N N F N^6 P0`. One harmful full correction per word gives
+`I_(44+11N)>=(315/33280)N`, while the error contracts by at most `11/500` per
+word. Thus `I_T=Theta(T)` even on a settled support and convergent exact
+trajectory. Horizon-uniform, fixed-support/fixed-parameter, and transient-only
+inflation targets are therefore retired. The geometric contraction leaves
+accuracy-polylogarithmic dependence viable, and fixed `q=1/8` supplies no
+small-`q` or net-exponent obstruction.
+
+The implementable recurrence has a sharper boundary. A finite monotone
+shifted solve has a positive residual `a_t` that enters the active fixed-row
+identity, the next start mass, and the next collapse. A scalar quadratic shows
+that relative C2 stopping alone can retain residual of relative order
+`Theta(sqrt(q))`. The proved dual stop therefore enforces both C2 and
+`C_end<=mu_t xi/sqrt(V)`; it gives shifted-solution error at most `xi` with a
+logarithmic extra inner-work factor. Exact-tail proofs cannot delete this
+residual or transfer through C2 alone.
+
+Round 024 first closes one tempting but invalid transfer route. On
+endpoint-seeded `P_2`, the support-indexed lower retraction is discontinuous
+when a zero coordinate enters the trial support, and its sharp fixed-positive-
+support infinity-norm amplification is `1+1/alpha`. Iterating that ambient
+factor over `T` stages forces exponentially small local tolerances and puts a
+`V T^2 log(1/alpha)` term in the certified dual-polish ledger. This is a STOP
+only for black-box exact-to-finite trajectory shadowing. It is not actual
+finite instability, a direct-packing obstruction, or a solver lower bound.
+
+The same round extracts useful fixed-operator structure. Assume
+`A=S*(rho)`, `supp(x_t)=A`, `ell_t=x_t`, and
+`Q_A(x*-x_t)>=0`, and let `M_A=kappa_A(Q_A+kappa_A I)^(-1)` and
+`S_A=(1+beta_A)M_A-beta_A I`. Then `S_A>=q beta_A I` spectrally,
+`S_A>=0` entrywise, and `S_A` commutes with `Q_A`. If the solve after that
+full center is exact, `x_(t+1)=p(x_t)`, its next extrapolate needs no
+correction. For a finite output after the same center that remains positive on
+`A` and zero off `A`, every adjacent correction is residual-only:
+
+```text
+alpha Delta_(t+1)
+  <= 2(1-q)||D_A^(-1/2)a_(t+1)||_infinity
+  <= 2(1-q) C_end,t+1.
+```
+
+This separation does not bound the density or cumulative inflation of partial
+corrections.
+
+More substantially, Round 024 gives a genuine partial GO without inflation
+packing. Let the optimal support `A` be nonempty and define
+
+```text
+lambda_A = lambda_min(Q_A),
+theta_A  = lambda_A/(kappa_A+lambda_A).
+```
+
+Each actual finite stage with
+`||p(ell_t)-x_(t+1)||_2<=xi_t` satisfies
+
+```text
+||x*-x_(t+1)||_2
+  <= (1-theta_A)||x*-x_t||_2 + xi_t.
+```
+
+On the promised class `theta_A>=c_0 q`, with absolute `c_0>0`, take
+
+```text
+eta_gate = 2 alpha tau/(1+alpha),
+xi_t     <= c_0 q eta_gate/2,
+T        >= (c_0 q)^(-1) log(2/eta_gate).
+```
+
+Then `x_T` passes the fresh gate `H_rho(x_T)<=alpha tau` and has RPPR error
+at most `tau`, without a `J_T^fin` hypothesis. For `alpha<1/4` and
+`rho=tau=eps_ppr/2`, the bias bridge gives total PPR error at most `eps_ppr`,
+and the cached implementation has the unconditional-on-the-promise vector
+`(O(V_eps),O(V_eps),1,0,O(W_eps),O(W_eps),0,O(V_eps),O(V_eps),`
+`O(W_eps),Theta(k+1))`, with `C_resp=0`,
+`V_eps=nnz(s)+2/eps_ppr`,
+`W_eps=nnz(s)+O_tilde(1/(sqrt(alpha) eps_ppr))`, and `k<=2/eps_ppr`.
+The promise depends on the unknown optimal face and is a-posteriori, not an
+algorithmically certified or graph-uniform condition.
+
+Round 025 removes support entry itself from the low-Dirichlet blocker. For the
+actual finite recurrence, split `A_t=supp(x_t)` into new rows
+`E_t=A_t\A_(t-1)` and persistent rows `P_t=A_t intersect A_(t-1)`. The first
+retraction on a new row satisfies
+
+```text
+0 <= g_(t,E_t) <= beta_A a_(t-1,E_t),
+G_t^ent <= beta_A C_end,t-1,
+alpha Delta_t = max(G_t^ent,G_t^per).
+```
+
+It is exactly zero for exact shifted solves. If a finite stage is
+entry-dominated, then `alpha Delta_t<=beta_A C_end,t-1`: its entire common
+correction is controlled by the preceding end residual.
+
+The same residual identity gives a one-sided same-state comparison on every
+support. Relative to the residual-free driver `bar_r_t`,
+
+```text
+0 <= [r_t-bar_r_t]_+
+   <= (beta_A/alpha)
+      ||D_A_t^(-1/2)a_(t-1,A_t)||_infinity D^(1/2)1.
+```
+
+With the C2-plus-absolute stop and `vol(A_t)<=V`, its momentum-state norm is at
+most `((1-q)/q)(mu_t/alpha)xi_(t-1)=O(xi/(alpha q))`. This is only the positive
+excess at the same realized states. Current residual and boundary multiplier
+terms may suppress a correction, so it is not an exact-versus-finite
+trajectory-distance bound and cannot by itself prove net packing.
+
+For `alpha<1/2`, on a pre-gate prefix `H_rho(x_t)>alpha tau`, put
+`eta_gate=2 alpha tau/(1+alpha)` and impose the locally maintained heap stop
+
+```text
+C_end,t <= delta alpha eta_gate^2 q^2.
+```
+
+Every entry-dominated stage then has positive log inflation at most
+`4 delta q`, and their total before horizon `T` is at most `4 delta q T`,
+independent of the number of entries. The same increasing greedy heap as C2
+stores the exact end mass. Over `T=O_tilde(1/q)` stages on volume `V`, all
+updates and cached rekeys cost `O_tilde(V/q)`; for `V<=1/rho`, this is
+`O_tilde(1/(rho q))`. This is an affordable charged ledger, not a resource
+vector: persistent-row-dominated inflation and the resulting complete
+rate-to-gate/work ledger remain open.
+
+Round 025 also identifies the exact post-full spectral filter. With exact
+shifted solves on a settled positive face, `ell_t=x_t`, and `Q_Ae_t>=0`, the
+next stage has no correction and the stage-`t+2` collapse driver is
+
+```text
+Q_A(Q_A+kappa_A I)^(-2)
+[beta_A(2+beta_A)Q_A-kappa_A I]e_t.
+```
+
+A single nonnegative eigenmode can retrigger only above the high-pass threshold
+
+```text
+lambda/kappa_A > (1+q)^2/((1-q)(3+q)).
+```
+
+Coordinatewise positive parts mix low and high modes. The proposition's exact
+`K_8`, `q=1/10` vector has `Q_Ae>0` and a positive filtered coordinate, but it
+was only an algebraic filter stress test in Round 025. Round 026 realizes the
+same mixed event on an exact dense-seed safeguarded trajectory, but only as a
+two-pulse transient; it still supplies neither a graph-uniform two-step
+separation nor a cumulative exponent.
+
+Round 026 gives an exact actual-finite energy package for the remaining
+persistent rows. For `t>=2`, put
+
+```text
+P_t   = supp(x_t) intersect supp(x_(t-1)),
+e_t   = x* - x_t,
+u_t   = Qe_t,
+E_t^Q = <e_t,Qe_t>.
+```
+
+Lemma `lem:aesp-cd-persistent-square-ledger` retains the finite residuals in
+`u_t` and proves
+
+```text
+g_(t,P_t)
+  = [beta_A u_(t-1,P_t)-(1+beta_A)u_(t,P_t)]_+
+  <= beta_A[Qd_t]_(+,P_t).
+```
+
+For every `2<=k<=ell`, this yields the horizon-independent windows
+
+```text
+sum G_t^per
+  <= (beta_A(1+alpha)/2)m(x_ell-x_(k-1))
+  <= beta_A(1+alpha)/2,
+
+sum (G_t^per)^2
+  <= beta_A^2(E_(k-1)^Q-E_ell^Q).
+```
+
+Assigning ties to the persistent class also gives
+`alpha^2 sum Delta_t^2<=beta_A^2(E_(k-1)^Q-E_ell^Q)` on the
+persistent-dominated stages. These are identities for the realized finite
+states; they need neither exact shadowing nor the C2-plus-absolute stop.
+
+Lemma `lem:aesp-cd-truncation-q-energy` separately handles the two sides of
+the moving coordinate cap:
+
+```text
+r_t = D^(1/2)min{beta_A D^(-1/2)d_t,Delta_t 1},
+p_t = beta_A d_t-r_t,
+<r_t,Qr_t> <= beta_A^2<d_t,Qd_t>,
+<p_t,Qp_t> <= beta_A^2<d_t,Qd_t>.
+```
+
+Each window sum is separately at most
+`beta_A^2(E_(k-1)^Q-E_ell^Q)`; the correction and surviving-momentum left
+sides cannot be added under one copy of the bank. This boundary-aware
+truncation ledger does not yet absorb the Euclidean cross term in the defect.
+
+Proposition `prop:aesp-cd-k8-reachable-pulse` fixes `K_8`, `q=1/10`,
+`alpha=1/101`, `kappa_A=99/101`, `beta_A=9/11`, `rho=1/112`, and seed
+`(363437/651088,41093/651088,...,41093/651088)`. The exact word is
+`N,N,P0,F,N^infinity`. Its persistent partial stage 2 and full stage 3 are
+both harmful before the `tau=1/1000` fresh gate, but all later corrections
+vanish and
+
+```text
+J_T^fin = log(gamma_2^fin)+log(gamma_3^fin) < 2 log 2,  T>=4.
+```
+
+The pulse is reachable but additive-constant. The independent exact audit
+returned clean after repairing the tail to use later trials `t=3+k`, `k>=1`,
+the exact ratio `(11/7)|H_(k+1)/L_(k+1)|`, and its maximal envelope multiplier
+`5/6`; the checker now asserts that guardrail.
+
+Proposition `prop:aesp-cd-k8-q-bank-stop` gives the complementary one-window
+STOP. On a reachable rational `0<q<=1/100` family, set
+
+```text
+alpha   = q^2/(1+q^2),
+kappa_A = (1-q^2)/(1+q^2),
+beta_A  = (1-q)/(1+q),
+rho     = 1/112.
+```
+
+The harmful persistent full stage 2 has
+
+```text
+D_2^fin       > 28q(7/112^2),
+E_1^Q-E_2^Q   < 197q^4(7/112^2).
+```
+
+Raw payment by that same-window unsplit `Q`-energy drop therefore needs
+`Omega(q^(-3))=Omega(alpha^(-3/2))`; after the actual
+`mu_E=kappa_A q^2` weight it still needs `Omega(q^(-1))` against the same
+drop. This does not refute an additive polylogarithmic allowance, a
+`q^(-1)`-weighted, spectrally split, or differently normalized bank, the net
+exponent, or the solver.
+
+Round 027 first proves an exact actual-finite Euclidean reserve. With
+
+```text
+omega_q^E = (1-q)^2 mu_E/(2q),
+Psi_t^E   = Phi_t^fin+omega_q^E||e_(t-1)||_2^2,
+eta_t     = 2 kappa_A xi_t+kappa_A xi_t^2,
+```
+
+the realized finite recurrence satisfies
+
+```text
+Psi_(t+1)^E <= Psi_t^E-q Phi_t^fin+eta_t,
+Psi_t^E <= ((1+q+q^2)/q)Phi_t^fin.
+```
+
+Thus the reserve absorbs the Euclidean collateral term without erasing the
+finite shifted-solve error, but its graph-uniform drift is only
+`q^2/(1+q+q^2)` and gives `O(q^(-2))` stages.
+
+The same round then tests the lagged unsplit bank
+`Psi_t^A=Phi_t+(A/q)E_(t-1)^Q`. Direct payment of the reachable `K_8` stage-2
+pulse forces
+
+```text
+A > 14(1-q)kappa_A/197
+  >= A_star = 6929307/98509850.
+```
+
+On the complementary uniform-seed `K_2` family, support is full from stage 1,
+so the first genuine persistent controller is stage `t=2`. The corresponding
+bank transition is `Psi_2^A -> Psi_3^A`, not the entry-stage transition out of
+`t=1`, and
+
+```text
+0 <= 1-Psi_3^A/Psi_2^A
+   <= (4+2/A_star)q^2.
+```
+
+This stops a uniform one-step `1-cq` proof for the plain lagged unsplit bank.
+It is not a net or additive-term obstruction: the same trajectory obeys
+
+```text
+Psi_t^A/Psi_1^A <= (4/e)exp(-q(t-1)),
+Psi_1^A/Phi_0   <= 1+A/(q(1-q^2)),
+```
+
+so absolute `A` costs only `O(log(q^(-1)))` in the startup normalization. The
+final independent audit returned clean after repairing the witness to use the
+genuinely persistent `Psi_3/Psi_2` comparison and the constant
+`4+2/A_star`.
+
+The `K_8` pulse itself remains compatible with a high-band reserve: its exact
+`mu_E`-weighted payment divided by the `q^(-1)` high-band energy drop tends to
+`14641/32256`. This is only a one-pulse check. In the general fixed-face
+filter, the low spectral projector is not positivity preserving and
+coordinatewise positive part does not commute with the low/high projectors.
+No windowed spectral or nonlinear transfer follows.
+
+After Round 027, the remaining low-Dirichlet Route-B lemma is the
+**persistent-row mixed-mode actual-finite net exponent**
+
+```text
+J_T^fin <= (1-c) q T + B,
+```
+
+with `V_eps=nnz(s)+2/eps_ppr`, `c>=c_0>0` absolute,
+`B=polylog(alpha^(-1),eps_ppr^(-1),V_eps)`, and every coordinate update,
+residual, correction, rekey, certificate, materialization, and output charged.
+Conditional on this bound, computable `T` and `xi` reach a fresh unshifted KKT
+gate; the `rho=tau=eps_ppr/2` bias bridge gives semantic PPR accuracy. In the
+frozen accelerated regime `alpha<1/4`, caching each activated row once,
+rekeying closed neighborhoods, and materializing the fresh terminal product
+gives the conditional vector
+`(O(V_eps),O(V_eps),1,0,O(W_eps),O(W_eps),0,O(V_eps),O(V_eps),`
+`O(W_eps),Theta(k+1))`, with `C_resp=0` and
+`W_eps=nnz(s)+O_tilde(1/(sqrt(alpha) eps_ppr))` and `k<=2/eps_ppr`. Gate correctness, cache
+mechanics, and the `1/4<=alpha<=1` zero-start `O(1/eps_ppr)` fallback are
+unconditional; the fallback vector uses
+`W_eps=nnz(s)+O(1/eps_ppr)`. Round 024 also makes the accelerated rate and
+eleven-vector unconditional on the promised high-Dirichlet class above;
+outside that class they remain conditional. Safe-center locality,
+full-correction separation, the entry-dominated ledger, volume-gated scalar
+accounts, and response machinery remain useful ingredients and stress tests.
+Round 026 controls persistent controllers and both truncation pieces in
+`Q`-energy, but the same-unsplit-drop conversion loses the polynomial factors
+above. Round 027 additionally stops the plain lagged unsplit `q^(-1)Q`
+stagewise reserve while preserving the global low-mode rate. A successor must
+use only a windowed spectrally split, nonlinear-transfer, or differently
+normalized low-Dirichlet Lyapunov that implies the net bound and handles the
+spectral positive-part seam. Round 027 adds no resource vector because that
+net bound is missing. No additive-resistant obstruction or exact-real graph-
+uniform accelerated solver is yet established.
+
 An exact endpoint-edge calculation now removes the simplest interpretation of
 that obligation: in its stated admissible `rho=tau` range, zero-padding cannot
 carry any fixed-face-exact energy through one safe admission with no additive
@@ -587,6 +1279,170 @@ terminal logarithmic block, asymptotic lower eleven-vector, or refutation of
 question; a valid lower route must derive the literal entry coefficients and
 an explicit anti-cancellation bound, while an upper route must retain the
 moving global correction.
+
+The actual `q=1/5` projected run now also rules out two simpler upper-potential
+shortcuts. Stages 6 and 7 are consecutive held steps on the same face `U_3`,
+yet `delta_7-delta_6=1747556648/751181640625>0` and
+`delta_7/e_7=5361340160387/858557821215>5=1/q`; both the proximal candidate
+and moving envelope are strictly unclipped. The complete run has `J=4`,
+`T=16`, final volume `9`, swept volume `114`, one terminal return, and vector
+`(Theta(9),Theta(5),1,0,Theta(114),Theta(114),Theta(114),Theta(9),O(9),`
+`Theta(114),Theta(9))`. This finite exact STOP refutes only monotone held-face
+correction debt and the coefficient-one pointwise comparison
+`delta<=q^(-1)e`. It leaves the reviewed `q^(-2)` estimate, nonmonotone,
+phase-aware, space--time, and amortized potentials, logarithm removal, and all
+matching/asymptotic lower bounds open. The upper route must therefore be
+genuinely nonmonotone or aggregate; the lower route still needs literal entry
+coefficients, anti-cancellation, and uniform projection/envelope margins.
+
+The first coefficient-one correction-aware repair also fails. On the same
+literal execution, the face-local bank
+`Phi_t^bank(U)=delta(x^(t))+q^(-1)||D_U^(-1/2)(x^(t)-x_U^*)||_infinity`
+decreases across the Round-014 held pair on `U_3`, but rises on the earliest
+later held pair, stages 9--10 on `U_4`:
+`Phi_10^bank-Phi_9^bank=`
+`11777177533637842088/2957905129146728515625>0`, even though
+`delta_10<delta_9`. The full clipped-envelope chronology and the same
+eleven-vector remain charged. This finite STOP is specific to coefficient one,
+face-local reinitialization, and the literal stage order; it says nothing
+about another coefficient, longer phase blocks, signed phase variables,
+aggregate space--time potentials, or alternative phase origins/orders. The
+upper-route priority is now one of those genuinely different potentials; the
+lower route is unchanged and still needs literal entry coefficients,
+anti-cancellation, and uniform projection/envelope margins.
+
+Round 016 closes every fixed constant coefficient on the same two literal
+held pairs. For `Phi_t(c;U)=delta_t+c q^(-1)e_t(U)`, held stages `6->7` on
+`U_3` are nonincreasing exactly when
+`c>=2978273417354/42112483166425`; after the stage-8 transport and face-local
+optimum reset, held stages `9->10` on `U_4` are nonincreasing exactly when
+`c<=95554102960761584/1567701294665491845`. The lower endpoint is larger, so
+the two feasible half-lines are disjoint: no real constant, hence no
+nonnegative constant, works on both. The full actual run and vector remain
+`J=4,T=16,nu_fin=9,n_fin=5,mathfrak V_T=114` and
+`(Theta(9),Theta(5),1,0,Theta(114),Theta(114),Theta(114),Theta(9),O(9),`
+`Theta(114),Theta(9))`. This is a finite pairwise, face-local STOP only. The
+upper-route priority is now a time- or face-dependent coefficient, a longer
+phase-aware block, a signed phase variable, or a genuinely aggregate
+space--time potential; coordinatewise lower-point invariants with explicitly
+restarted accelerated auxiliaries are not refuted. The matching-lower route
+still needs literal entry coefficients, anti-cancellation, and uniform
+projection/envelope margins, and no logarithm or asymptotic conclusion follows.
+
+Round 017 identifies one dimension-consistent face-switch charge without
+turning the finite pair into a global potential. Choose the tight endpoints
+`c_3=2978273417354/42112483166425` and
+`c_4=95554102960761584/1567701294665491845`; their scalar banks are exactly
+flat on held pairs `6->7` and `9->10`. At the frozen stage-8 candidate, the
+raw linear bank jump exceeds the exact restricted-optimum drop
+`Delta_8=175006441/6398713140625`, so a unit linear shock rule is refuted.
+After squaring, the bank jump is strictly smaller than `Delta_8`; hence the
+named `TightPair-Schur_(3->4)` reserve
+`Psi=b^2+H_j`, with `H_3=Delta_8,H_4=0`, strictly decreases across that one
+reset. The tight endpoints maximize the reset jump over the locally feasible
+rectangle `c_3'>=c_3,0<=c_4'<=c_4`. The run and eleven-vector are unchanged:
+`J=4,T=16,nu_fin=9,n_fin=5,mathfrak V_T=114` and
+`(Theta(9),Theta(5),1,0,Theta(114),Theta(114),Theta(114),Theta(9),O(9),`
+`Theta(114),Theta(9))`. This finite exact-real GO deliberately separates
+held-face evolution from the isolated frozen-candidate reset; it controls
+neither every held pair nor the neighboring fixed-face steps. The next upper
+target is to extend the squared bank plus remaining-optimum-drop reserve to
+every actual held segment and admission, or find the first exact obstruction.
+No online coefficient rule, multi-face telescope, global block horizon,
+logarithm removal, asymptotic bound, spectral conclusion, or nonpath theorem
+follows.
+
+Round 018's `prop:path-tight-pair-local-chain-stop` supplies that first exact
+obstruction. On the same literal
+`q=1/5` replay, separate the fixed-`U_3` production step `7->8^-`, the
+instantaneous reset `8^-->8^+`, and the first fixed-`U_4` follow-up
+`8^+->9`. The squared bank plus remaining-optimum-drop reserve rises on the
+production step, falls across the paid reset, rises again on the follow-up,
+and at the tight endpoints has positive net stage-7-to-9 change. The two
+adjacent failures hold throughout the held-pair-feasible rectangle: production
+nonincrease would require
+`c_3<=2103479690463/41819574955745<c_3^tight`, while follow-up nonincrease
+would require
+`c_4>=2617155474971384896/14508305905763575885>c_4^tight`. Thus every
+held-pair-feasible coefficient pair passes the Round-017 reset comparison but
+fails both adjacent fixed-face comparisons; the net sign is not uniform over
+that rectangle. The finite exact-real run and
+vector remain `J=4,T=16,nu_fin=9,n_fin=5,mathfrak V_T=114` and
+`(Theta(9),Theta(5),1,0,Theta(114),Theta(114),Theta(114),Theta(9),O(9),`
+`Theta(114),Theta(9))`. The next upper target needs an explicit production
+reserve, cross-state cancellation, a longer phase block, or another aggregate
+potential before attempting a multi-admission telescope. This local-chain
+STOP proves no longer-block obstruction, global horizon, logarithm removal or
+necessity, asymptotic bound, nonpath theorem, alternate-order result, or finite
+precision.
+
+Round 019 tests the first non-tautological longer account without inventing a
+production reserve. It retains the held, production, reset, and follow-up
+boundaries, then defines
+`R_(9:k)^post=Psi_9-Psi_k` solely from squared-bank decreases actually
+realized on fixed `U_4`. At the tight pair,
+`Psi_9=Psi_10>Psi_11>Psi_12>Psi_7>Psi_13`, so the reserve is still
+insufficient at stage 12 and first closes at stage 13 among the reviewed
+post-follow-up endpoints. The rectangle proof uses the repaired variable
+banks `b_7(c_3)` and `b_13(c_4)`: the derivative of
+`Psi_13-Psi_7` is negative in `c_3` and positive in `c_4`, making the tight
+pair its maximum. Thus only the longer `7->13` endpoint GO is uniform over the
+held-pair-feasible rectangle. The adjacent production/follow-up failures
+remain rectangle-uniform; the positive `7->9` net remains tight-pair-only and
+not sign-uniform. The eleven-vector is unchanged at
+`(Theta(9),Theta(5),1,0,Theta(114),Theta(114),Theta(114),Theta(9),O(9),`
+`Theta(114),Theta(9))`. This is an analytical telescope available only after
+the displayed decreases occur, not advance state. The next upper target is a
+face-general closing condition with a charged realized source, followed by a
+second-admission test; an explicit production reserve or cross-state
+cancellation remains the fallback. No online/global horizon, multi-admission
+telescope, logarithm/asymptotic claim, nonpath result, alternate-order theorem,
+or finite-precision guarantee follows.
+
+Round 020 supplies the requested face-general closing condition as an exact
+accounting identity, then shows one finite two-admission GO. Put
+`Xi_t=delta_t^2`; after every realized transition, credit a score decrease,
+debit a score increase, and credit an exact restricted-optimum drop only after
+the admission backend has materialized and charged it. On the literal
+`q=1/5` path, a balance started at held stage 3 remains nonnegative through
+the consecutive stage-4 and stage-8 admissions and through stage 12. The
+unused stage-4 Schur credit supplies the cross-state cancellation. If that
+credit is discarded and the account restarts at stage 7, it remains negative
+through stage 11 and first closes at stage 12. One retained scalar and
+constant checkpoint control leave the path eleven-vector unchanged. This is
+a finite causal solvency certificate, not a pointwise potential, convergence
+or work theorem, uniform recovery horizon, or all-admission telescope.
+
+Round 021 stops the next tempting rule. On the asymmetric six-vertex tree
+with edges `(0,1),(1,2),(2,3),(2,4),(4,5)`, seed `0`, and
+`q=1/5`, `alpha=rho=tau=1/25`, the exact complete-gate chronology admits at
+stages `1,2,4,9,15` and certifies at `17`. Restarting the causal ledger at
+held stage 3 makes it negative at stage 5; it remains negative immediately
+before and after the next admission at stage 9, stops through stage 13, and
+first goes at stage 14. Thus a restarted negative block need not recover
+before its next admission. This named finite STOP neither refutes an
+all-history balance nor supplies a nonpath eleven-vector, convergence
+failure, global horizon, logarithmic/asymptotic claim, or finite-precision
+result. The upper-route priority is now an all-history solvency invariant or
+a graph/face structural condition guaranteeing enough earlier realized
+credit, with every exact drop query charged. A stronger lower test would keep
+debt negative through several later admissions.
+
+Round 022 leaves this volume route as a secondary structural program rather
+than the central completion path. Its finite causal ledgers do not control the
+full-space safeguarded recurrence's cumulative `I_T`, and its path response
+does not provide a graph-uniform reporter. Conversely, the Route-B target does
+not import a response backend. Composing either result without the missing
+persistent-row mixed-mode low-Dirichlet net exponent and residual-stability
+argument would therefore be circular. The promised high-Dirichlet branch is
+already closed but does not certify graph-uniform membership. Round 026 gives
+exact actual-finite persistent and truncation `Q`-energy banks, but its
+same-unsplit-drop STOP leaves a weighted completion open. Round 027 shows that
+the exact Euclidean reserve has only `q^2` drift and stops uniform stagewise
+acceleration for the plain lagged unsplit `q^(-1)Q` bank, while preserving its
+global low-mode rate. Only a windowed spectrally split, nonlinear-transfer, or
+differently normalized Lyapunov remains open; it supplies no graph-uniform
+vector.
 
 For the mixed response-preconditioned direction, the numerical accumulation
 part is now closed: arbitrary approximate Schur-frontier corrections lift into
@@ -783,6 +1639,35 @@ measurements are therefore legitimate concrete candidates, but their row
 count, anchor right-hand-side solves, stored-response reads, and dynamic
 maintenance must all fit the exposure ledger.
 
+Rounds 020--021 isolate the first exact state boundary when checkpoint slack
+weights themselves change. For one reused `00,01,10` bucket, the complete
+four fixed-weight decoder norms collide on two source histories that require
+opposite first-bit outcomes after `(1,1,1)->(1,3,2)`. The named norm-only
+state must reject, with zero old-source reads, or pay explicit replay/rebuild;
+this is not a lower bound against richer state. `ThreeLabelPivotGramRefresh`
+repairs exactly that bucket by adding canonical `P_0`, recovering the two
+needed pivot inner products, and keeping all state unweighted. Weighted
+appends are inverted back to their three unweighted rows before the five
+quadratic increments are accumulated. Arbitrary positive append/refresh
+interleavings are then exact, and one refresh has vector
+`(0,0,1,0,Theta(1),0,0,Theta(1),Theta(1),4,1)`.
+
+The one-pivot repair is not universal. Codes `00,01,10,11` admit two histories
+with identical five-scalar state but refreshed first-bit norms `49<121` and
+`169>121`. General `CoSideGramRefresh` stores each diagonal and exactly the
+off-diagonal pairs that share some bit side. Omitting only the complement-pair
+matching gives `k+binom(k,2)-c=Theta(k^2)` explicit statistics. This dimension
+is necessary only for linear explicit Gram-statistic states on an open set,
+not unrestricted real-cell representations. Moreover, when `k>L+1`, the
+ordinary total-plus-`L`-bit measurements do not determine append increments;
+maintenance requires richer measurements or per-label reads and
+`Theta((k^2-c)r_new)` arithmetic, plus the corresponding response and
+materialization charges. The next response-composition target is therefore a
+sparse collision-sensitive subset of this state or a paid replay/rebuild
+theorem that survives repeated refreshes on a high-rank core. Product-scale
+graph work, dynamic RPPR chronology, finite precision, and bit complexity
+remain open.
+
 ### P1: lower-bound separation by computational resource
 
 Use adjacency access as the ambient input model, then state the additional
@@ -886,6 +1771,50 @@ Continue the mixed route if at least one of the following is established:
   additions;
 - a graph family on which the mixed method provably separates from both
   endpoint implementations.
+
+For the current solver search, Round 024 is a genuine partial GO on the
+promised high-Dirichlet class `theta_A>=c_0 q`: use
+`eta_gate=2 alpha tau/(1+alpha)`, `xi<=c_0 q eta_gate/2`, and
+`T>=(c_0 q)^(-1)log(2/eta_gate)` to reach the fresh finite gate and the cached
+eleven-vector. Because `theta_A` uses the unknown optimal support, this does
+not certify graph-uniform membership. Outside that promise, GO toward the
+graph-uniform accelerated theorem only if a windowed spectrally split,
+nonlinear-transfer, or differently normalized Lyapunov for the actual
+C2-plus-absolute low-Dirichlet trajectory's persistent-row mixed-mode partial
+corrections proves
+`J_T^fin <= (1-c)qT+B`, with `c>=c_0>0` absolute and the required
+polylogarithmic `B`. The proof must retain every residual, correction, rekey,
+terminal `eps_ppr` certificate, materialization, and output charge. The
+Round-023 fixed-`P_4` cone
+is an infinite and exponent theorem for raw harmful inflation, so the old
+horizon-uniform `I_T` target is retired; because the cone uses exact shifted
+minimizers and fixed `q=1/8`, it is not a finite-inner, small-`q`, or net-rate
+obstruction. The Round-022 operator-free scalar countermodel, support volume,
+a response construction, and an ideal exact recurrence alone likewise do not
+meet the frozen end-to-end target. The Round-024 `P_2` discontinuity stops only
+ambient black-box shadowing, and its full-correction separation does not bound
+  partial-correction density. Round 025 is a GO for entry rows: the heap stop
+  `C_end<=delta alpha eta_gate^2 q^2` charges their pre-gate inflation by
+  `4 delta q T` in `O_tilde(V/q)` work. It is not a complete GO because it gives
+  no vector for persistent rows. Round 026 is a further analytic GO: its exact
+  actual-finite persistent L1/square ledger and the separate correction and
+  surviving-momentum `Q`-energy windows are horizon-independent. The fixed
+  dense-seed `K_8` word `N,N,P0,F,N^infinity` proves the mixed pulse reachable,
+  but `J_T^fin<2log2` makes it only an additive-constant transient. The reachable
+  small-`q` family is a STOP only for paying the raw defect directly from the
+  same unsplit `Q`-energy drop: it requires `Omega(q^(-3))` before and
+  `Omega(q^(-1))` after the `mu_E` weight. Round 027 proves the exact residual-
+  retaining Euclidean reserve but only with `q^2` drift. It also stops uniform
+  `1-cq` contraction of the plain lagged unsplit `q^(-1)Q` bank at the genuine
+  persistent transition `Psi_2->Psi_3`, with loss at most
+  `(4+2/A_star)q^2`, while its global low-mode decay remains compatible with
+  the allowed logarithmic startup term. GO now requires only a windowed
+  spectrally split, nonlinear-transfer, or differently normalized low-
+  Dirichlet persistent Lyapunov that closes the net exponent with all
+  implementation charges and handles spectral positive-part noncommutation.
+  No additive-resistant obstruction, graph-uniform solver, or Round-027
+  vector follows. The settled `P_3` reset ratio remains a representation
+  obstruction rather than a stage-work lower bound.
 
 Narrow or abandon a proposed universal mixed theorem if its proof requires an
 uncharged boundary scan, future-support advice, an unproved conversion between

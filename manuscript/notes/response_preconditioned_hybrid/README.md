@@ -165,10 +165,18 @@ nor source history are needed. If direction-independent row energies are
 required, a Gaussian map reduces all concatenated batch sources to logarithmic
 width, and the decoder retains only append-only squared bucket norms. This
 closes heterogeneous-slack packing, realized source dimension, and fixed-bank
-source-history state. It does not yet pay for
-installing or applying the slack-weighted harmonic rows, enlarging bank
-capacity, changing checkpoint weights, maintaining the transition band, or
-exact validation.
+source-history state. Round 020 identifies the first exact boundary of that
+state: after a genuine checkpoint-slack reweight, retained squared bucket
+norms alone need not determine the refreshed decoder. Round 021 closes the
+fixed three-label bucket exactly: one additional pivot norm recovers the two
+needed inner products, provided every weighted append block is first converted
+back to canonical unweighted rows. Four labels already obstruct that same
+one-pivot state. The general exact co-side Gram state is quadratic in bucket
+occupancy and needs richer measurements or per-label reads to maintain once
+there are more labels than ordinary coded measurement rows. Installing or
+applying the slack-weighted harmonic rows, enlarging bank capacity, a sparse
+or geometrically replayed refresh policy, transition-band maintenance, and
+exact validation remain unresolved in aggregate.
 
 Exact source whitening is no longer hidden: a Chebyshev
 polynomial of any constant-factor spectral frontier prepares all Gaussian
@@ -242,6 +250,250 @@ representation/query obstruction only. The fragment trace is not an RPPR
 chronology, and the proposition does not refute implicit cyclic transfer,
 packed coded queries, scale truncation, on-demand validation, or an
 output-sensitive partial flush.
+
+Round 014 gives the matching narrow GO on that exact calibration trace.
+`NotchedSunScaleDelta` first validates the complete frozen
+cycle–chord–petal–report template, cut, ladder, event order, and stream mode.
+For the explicit near-one range
+`0 < vartheta <= 1 / (1296 n^2)`, a nonnegative Neumann expansion has kernel
+norm at most three. Its length-one matching term is already above
+`g = vartheta^(5/2)`, while the uniform tail over every still-unreported label
+is at most `g/2`. The reporter therefore retains only the template and label
+map, ladder, event counter, and stream metadata. It checks every incoming
+fragment, then emits `w_k` and one universal future-safe certificate per
+logical column without forming a response column or slack cell. Its complete
+vector is `eq:notched-sun-scale-delta-eleven-vector`; total work is linear in
+`n + J + p + C_frag + r n`, with `p=r` and `C_frag=rn` for nonnegative
+columns or `p=2r` and `C_frag=2rn` for the separately checked signed
+`2-minus-1` streams. This is a fixed-template, fixed-order, exact-real,
+scale-aware partial reporter—not a dynamic reporter for arbitrary fragments
+or a PPR/RPPR chronology. It demonstrates constructively why the
+`EagerExactSlack` STOP cannot be broadened to this template-aware
+representation.
+
+Round 015 relaxes exactly that reporter's prescribed common event order.
+`NotchedSunPermutationDelta` accepts any online-verified permutation of the
+same unit petal events. At each interaction it checks that every stream names
+the same valid, previously unseen petal with the required amplitude, marks one
+seen-label entry, emits the paired report label, and certifies the unreported
+complement using the same prefix-length Neumann tail. The matching lower bound
+and off-matching upper bound are pointwise and hence independent of the
+permutation. The complete vector
+`eq:notched-sun-permutation-eleven-vector` remains
+`(Theta(n),2,n,Theta(n+J+p),Theta(C_frag+rn+n),0,0,Theta(n+J+p),O(1),0,Theta(rn))`.
+Thus `p=r`, `C_frag=rn` for nonnegative columns and `p=2r`, `C_frag=2rn`
+for separately read signed `2-minus-1` streams. The seen set is absorbed in
+linear template memory, and there is still no response application,
+future-label scan, slack cell, or numerical materialization. This changes no
+other axis: the face, cut, ladder, label pairing, amplitudes, fixed `n`,
+near-one scale, exact-real model, and common cross-stream schedule remain
+promised. Repeats, different per-column orders, batches, arbitrary fragments,
+RPPR chronology, fixed-alpha uniformity, and finite precision remain outside
+scope.
+
+Round 016 relaxes exactly the no-repetition clause while retaining complete
+petal coverage. `NotchedSunMultiplicityDelta` preprocesses positive exact
+multiplicities `mu_i`, accepts any online-verified common permutation of that
+multiset, and atomically rejects bad labels, amplitudes, exhausted counts, or
+events beyond `L = sum_i mu_i`. The total length `L` is authoritative for
+interaction and fragment charges; the exact last-unseen horizon
+`H = L - min_i mu_i` is authoritative for the nonvacuous tail certificate.
+Solving the scalar Neumann inequality without a relaxed constant gives
+
+`vartheta <= 1 / (sqrt(81 H^2 + 3) + 9 H)^2`,
+
+equivalently `18 H sqrt(vartheta) + 3 vartheta <= 1`. At a label's first
+occurrence the matching response crosses and one delta is emitted; on a
+repeat the label is already reported, no delta is emitted, and every unseen
+label remains below `g-m`. One counter per label replaces the seen bit but
+retains linear persistent state and stores no response or slack coordinate.
+The complete vector `eq:notched-sun-multiplicity-eleven-vector` is
+`(Theta(n),2,L,Theta(n+J+p),Theta(C_frag+rL+n),0,0,Theta(n+J+p),O(1),0,Theta(rL))`,
+with `C_frag=pL=rL` for `p=r` nonnegative streams and `C_frag=pL=2rL` for
+`p=2r` separately checked signed streams. The scale is sharp only for the
+displayed uniform template Neumann envelope, not a generic scalar-potential
+or reporter lower bound. Unbounded repetitions, arbitrary fragments or
+amplitudes, batches, per-column orders, RPPR chronology, fixed-alpha
+uniformity as `L` grows, and finite precision remain outside scope.
+
+Round 017 relaxes the unit-logical-amplitude clause to one finite positive
+exact-real occurrence schedule shared by every logical column and physical
+stream. For label `i`, declared prefix masses `A_(i,k)` are compared with the
+response-mass capacity
+
+`kappa_i = d_(u_i) (1 + c_eta) sqrt(vartheta)`.
+
+Its first certified index `k_i*` is the first prefix strictly above that
+capacity; it may be larger than one. The pre-crossing gap
+`gamma_i = kappa_i - A_(i,k_i*-1)`, event horizon
+`H_i = L - mu_i + k_i* - 1`, and full interleaving mass horizon
+`F_i = A - A_i + A_(i,k_i*-1)` distinguish unseen, seen-but-unreported, and
+already-reported labels. With
+
+`lambda_i = vartheta^2 / (d_(u_i) (1 + c_eta))`,
+`epsilon = 9 vartheta^3 / (1 - 3 vartheta)`, and
+`m_A = min_i(lambda_i gamma_i - epsilon F_i) > 0`,
+
+`NotchedSunAmplitudeDelta` certifies every unreported label below `g-m_A` and
+emits `w_i` exactly when occurrence `k_i*` arrives. Thus the certified crossing
+is the first exact strict crossing even when earlier positive occurrences were
+too small. The reporter stores one common prefix schedule, crossing indices,
+and counters but no response or slack coordinate. Its complete vector
+`eq:notched-sun-amplitude-eleven-vector` is
+`(Theta(n),2,L,Theta(n+J+p+L),Theta(C_frag+rL+L+n),0,0,Theta(n+J+p+L),O(1),0,Theta(rL))`.
+Here `C_frag=rL` and total absolute supplied coefficient mass is `r A` for
+`p=r` nonnegative streams; `C_frag=2rL` and absolute mass is `3r A` for the
+separately checked signed `2-minus-1` streams. Every fixed finite positive
+schedule passes at a sufficiently near-one scale. Failure of the displayed
+margin rejects only this scalar certificate, not every reporter. Undeclared
+or unbounded mass, arbitrary signed logical amplitudes, per-column schedules,
+batches, arbitrary fragment support, RPPR chronology, fixed-alpha uniformity,
+and finite precision remain outside scope.
+
+Round 018 relaxes exactly the common logical-column schedule. Each column
+`q` declares its own positive schedules `a_(q,i,k)`, lengths `L_q`, and
+logical mass `A_q`; the accepted stream may arbitrarily interleave one event
+from any column. The structural capacity is still
+
+`kappa_(q,i) = d_(u_i) (1 + c_eta) sqrt(vartheta)`,
+
+but its crossing index, pre-crossing gap, local mass horizon, and margin are
+column-specific. In particular,
+
+`F_(q,i) = A_q - A_(q,i) + A_(q,i,k*_(q,i)-1)` and
+`m_q = min_i(lambda_i gamma_(q,i) - epsilon F_(q,i)) > 0`.
+
+The global asynchronous event horizon is
+`H^(async)_(q,i) = L_Sigma - mu_(q,i) + k*_(q,i) - 1`, whereas unrelated
+columns never enter `F_(q,i)` because they do not change response column `q`.
+`NotchedSunColumnAmplitudeDelta` therefore emits one updated universal
+certificate only for the affected column; certificates for all other columns
+remain unchanged. It emits exactly `r n` deltas over the epoch. With
+`L_Sigma = sum_q L_q >= r n`, its full vector
+`eq:notched-sun-columnwise-amplitude-eleven-vector` simplifies to
+`(Theta(n),2,L_Sigma,Theta(n+J+p+L_Sigma),Theta(C_frag+L_Sigma),0,0,Theta(n+J+p+L_Sigma),O(1),0,Theta(L_Sigma))`.
+Here `C_frag=L_Sigma` and absolute physical mass is `A_Sigma` for the
+nonnegative interface; `C_frag=2L_Sigma` and absolute mass is `3A_Sigma` for
+the atomically paired signed `2-minus-1` interface. The reporter stores all
+declared schedules and `r n` counters but no response or slack coordinate.
+It still excludes undeclared or unbounded mass, arbitrary signed logical
+amplitudes, signed pairs split across interactions, simultaneous batches,
+arbitrary fragment support, RPPR chronology, fixed-alpha uniformity, and
+finite precision. A failed per-column margin rejects only this scalar
+certificate. The cross-direction lesson is conditional: global latency can
+be separated from local certificate mass only when unrelated events provably
+leave that state block unchanged.
+
+Round 019 removes exactly the one-logical-event interaction restriction.
+`NotchedSunBatchAmplitudeDelta` accepts any finite sequence of nonempty
+simultaneous batches whose tagged records are the next consecutive declared
+occurrences in each touched column--label cell. A batch may mix columns,
+labels, and several occurrences of one cell. The reporter stages the entire
+batch, verifies every tag, amplitude, cap, stream identity, and atomic signed
+`2-minus-1` pair before committing, and rejects a duplicate, replay, gap,
+split pair, or mismatch without changing persistent state. At a batch
+boundary it emits exactly the cells satisfying
+
+`c_(q,i)^- < k*_(q,i) <= c_(q,i)^+`
+
+and one universal remaining-label certificate per affected column. The same
+column-local mass horizon remains valid because simultaneous positive
+increments commute and every other-label mass was already included in
+`F_(q,i)`; other-column mass still changes a disjoint response block. This is
+an exact first crossing only at atomic batch boundaries---there is
+deliberately no hidden order or subevent certificate inside a simultaneous
+batch.
+
+For `B` accepted batches, `L_Sigma` logical records, affected-column count
+`S_Sigma`, and maximum batch size `b_max`, the complete vector
+`eq:notched-sun-batch-eleven-vector` is
+
+`(Theta(n),2,B,Theta(n+J+p+L_Sigma),Theta(C_frag+L_Sigma),0,0,Theta(n+J+p+L_Sigma),O(b_max),0,Theta(S_Sigma+rn))`.
+
+The physical ledgers stay distinct: nonnegative mode has
+`(p,C_frag,absolute mass)=(r,L_Sigma,A_Sigma)`, while atomically paired signed
+mode has `(2r,2L_Sigma,3A_Sigma)`. The theorem keeps the fixed template,
+face, cut, ladder, pairing, fixed `n`, complete finite declared positive
+schedules, per-column margin, and exact-real arithmetic. It does not cover
+undeclared or unbounded mass, arbitrary signed logical amplitudes, split
+signed pairs, cross-column coupled response, arbitrary fragment support, RPPR
+chronology, fixed-alpha uniformity, or finite precision. A failed margin is
+still only rejection by this scalar reporter.
+
+Round 020 leaves that frozen separated-batch line and changes actual
+checkpoint slack weights in a reused packed bucket. Proposition
+`prop:three-label-norm-only-reweight-obstruction` fixes one hash repetition,
+one bucket, labels `00,01,10`, and realized positive signs. The scalar source
+histories `(-4,1,1)` and `(-2,-1,-1)` have the identical complete retained
+norm state `(A_1,C_1,A_2,C_2)=(1,9,1,9)` under unit weights. After the genuine
+inverse-slack refresh `(1,1,1)->(1,3,2)`, the first bit test is `9>4` for the
+first history and `9<16` for the second. A two-source nonnegative variant has
+common old state `(1,5,1,5)` and flips as `9>8` versus `9<10`. Therefore the
+named `NormOnlyWeightRefresh` state cannot accept every such refresh without
+old-source information. Three colliding labels are minimal: with at most two,
+a separating bit gives the individual row norms, and any grouped old norm
+supplies the only missing inner product.
+
+The exact no-replay policy stages and validates the version/capacity header
+and three new weights, then rejects without persistent mutation. Its full
+vector is
+
+`(0,0,1,0,Theta(1),0,0,Theta(1),Theta(1),0,1)`.
+
+The explicit accepted `ReplayThreeWeightRefresh` comparator reads the six old
+response cells of the nonnegative witness, writes four two-cell reweighted
+measurements and four updated norms, and emits one decoder record. Its full
+vector is
+
+`(0,0,1,0,Theta(1),0,6,Theta(1),Theta(1),12,1)`.
+
+If those cells were not retained, rebuilding them must instead add the actual
+source-side anchor-cut scan and response application, plus any newly exposed
+adjacency. This is a one-bucket exact-real named-state STOP, not a lower bound
+against richer Gram state, source replay, cut rebuilding, collision-free
+banks, another decoder, or another support-safe trace. It proves no RPPR/KKT
+chronology, terminal solver, finite-precision, word, or bit result.
+
+Round 021 supplies the smallest matching richer state for that exact bucket.
+Theorem `thm:three-label-pivot-gram-refresh` defines
+`ThreeLabelPivotGramRefresh` on the codes `00,01,10`. It retains the canonical
+unweighted state
+
+`S=(P_0,A_1,C_1,A_2,C_2)`
+
+and recovers
+`g_02=(C_1-P_0-A_2)/2` and `g_01=(C_2-P_0-A_1)/2`. These two inner products
+give all four exact decoder norms for every positive weight triple. The state
+never absorbs the current weights: an append arriving as
+`M_1=w_1 z_1`, `M_2=w_2 z_2`, and
+`M_0=w_0 z_0+w_1 z_1+w_2 z_2` first recovers the three unweighted rows and
+only then adds its five canonical quadratic increments. Induction therefore
+covers arbitrary repeated positive refreshes and source-block appends without
+old-source replay. One refresh has complete vector
+
+`(0,0,1,0,Theta(1),0,0,Theta(1),Theta(1),4,1)`.
+
+The extra persistent state is exactly one scalar relative to the Round-020
+four-norm state; the four materialization writes are the refreshed decoder
+norms. Proposition `prop:four-label-one-pivot-refresh-obstruction` is the
+sharp boundary of this repair. For codes `00,01,10,11`, histories
+`(-6,-5,-5,4)` and `(-6,-5,-5,6)` share `P_0=36` and old decoder state
+`(1,121,1,121)`, but weights `(1,1,1,3)` give first-bit comparisons
+`49<121` and `169>121`.
+
+Theorem `thm:co-side-gram-refresh` gives the general exact state: retain every
+diagonal Gram entry and an off-diagonal entry exactly when its two codes share
+a bit side. Only bitwise-complement pairs are omitted. Since those pairs form
+a matching of size `c<=floor(k/2)`, the state dimension is
+`k+binom(k,2)-c=Theta(k^2)`. This count is necessary only for linear explicit
+Gram-statistic states required to reproduce every side norm on an open set;
+it is not an unrestricted real-cell lower bound. With individual new rows,
+append maintenance costs `Theta((k^2-c) r_new)` arithmetic and
+`Theta(k^2)` state. For `k>L+1`, the ordinary total-plus-`L`-bit measurements
+do not in general determine those increments, so richer measurements or
+per-label reads and all corresponding response/materialization charges remain
+necessary. This is a bucket-state theorem, not a product-scale graph-work,
+RPPR, finite-precision, or bit-complexity result.
 
 The remaining online question is not resolved by sleeping. For every fixed
 path length, a family-dependent sufficiently small positive `rho_n` makes the
@@ -398,5 +650,68 @@ uv run python manuscript/notes/response_preconditioned_hybrid/check_round013.py 
   --seed 20260821 --trials 100 --max-n 24
 ```
 
-Both scripts are numerical proof audits, not finite-precision theorems or
-replacements for the LaTeX proofs.
+Reproduce the Round-014 Neumann-tail certificate and template reporter checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round014.py \
+  --seed 20260821 --trials 100 --max-n 24
+```
+
+Reproduce the Round-015 verified-permutation reporter checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round015.py \
+  --seed 20260821 --trials 100 --max-n 24
+```
+
+Reproduce the Round-016 bounded-multiplicity reporter checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round016.py \
+  --seed 20260821 --trials 100 --max-n 24 --max-multiplicity 6
+```
+
+Reproduce the Round-017 positive-amplitude capacity and first-crossing checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round017.py \
+  --seed 20260821 --trials 100 --max-n 24 --max-multiplicity 6
+```
+
+Reproduce the Round-018 independent-column schedule, asynchronous
+interleaving, and atomic-pairing checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round018.py \
+  --seed 20260821 --trials 100 --max-n 24 --max-multiplicity 6 \
+  --max-columns 4
+```
+
+Reproduce the Round-019 simultaneous-batch, atomic-validation, endpoint-
+crossing, and batch-ledger checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round019.py \
+  --seed 20260821 --trials 100 --max-n 24 --max-multiplicity 6 \
+  --max-columns 4 --max-batch-size 16
+```
+
+Reproduce the Round-020 exact slack-reweighting collision, decoder flip,
+nonnegative variant, and one/two-label minimality checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round020.py \
+  --seed 20260821 --trials 100
+```
+
+Reproduce the Round-021 exact repeated pivot refresh/append, four-label STOP,
+and co-side Gram reconstruction checks:
+
+```bash
+uv run python manuscript/notes/response_preconditioned_hybrid/check_round021.py \
+  --seed 20260822 --trials 2000
+```
+
+The Round-012--019 scripts are numerical proof audits. The Round-020 and
+Round-021 scripts use exact rational arithmetic. None is a finite-precision
+theorem or a replacement for the LaTeX proofs.

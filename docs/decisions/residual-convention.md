@@ -1,14 +1,19 @@
 # Residual Convention
 
 - **Status:** Open
-- **Last updated:** 2026-07-23
+- **Last updated:** 2026-08-22
 - **Applies to:** Theory, solvers, experiments, tables, and figures
 
 ## Context
 
 The repository requires residual conventions, normalization, and stopping
-criteria to remain consistent between theory and code. The current scaffold
-does not yet define a PageRank equation precisely enough to adopt a residual.
+criteria to remain consistent between theory and code.  The research-note
+workspace now has a precise controller-level PageRank object, semantic output
+target, and sufficient residual certificate in
+[`../../manuscript/notes/_shared/problem_definition/README.md`](../../manuscript/notes/_shared/problem_definition/README.md).
+That contract is intentionally scoped to research-direction comparison: the
+implementation-wide orientation, residual formula, evaluation schedule, and
+baseline conversions needed for an accepted repository decision remain open.
 
 ## Current decision
 
