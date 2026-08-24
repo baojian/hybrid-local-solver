@@ -1,0 +1,342 @@
+\subsection{Branching trees send piecewise-affine Schur responses}
+\label{subsec:tree-response}
+
+The path proof uses one realized scalar message at each depth.  On a
+nonsymmetric tree, a subtree must describe how its root reacts as the parent
+value changes.  The next theorem shows that this response remains highly
+structured.
+
+Root a tree at the single seed $o$.  For a nonroot vertex $u$ with parent
+$p$, let $T_u$ be the descendant subtree rooted at $u$ and put
+$\beta_{pu}:=-Q_{pu}>0$.  Given a hypothetical parent value $t\geq0$, define
+the conditional subtree solution
+\begin{equation}
+ z^{(u)}(t)
+ :=\argmin_{z\in\mathbb R_+^{T_u}}
+ \left\{
+  \frac12 z^\top Q_{T_uT_u}z-c_{\rho,T_u}^\top z
+  -\beta_{pu}t z_u
+ \right\},
+ \qquad
+ \mu_u(t):=\beta_{pu}z_u^{(u)}(t).
+ \label{eq:conditional-subtree-response}
+\end{equation}
+Here $\mu_u(t)$ is the nonnegative Schur response returned to the parent.
+
+\begin{theorem}[Monotone piecewise-affine tree response]
+\label{thm:tree-response}
+For every nonroot subtree $T_u$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item $z^{(u)}(t)$ is continuous and coordinatewise nondecreasing in $t$;
+ its supports are nested.
+ \item With the explicit activation threshold
+ \begin{equation}
+  \tau_u
+  :=\frac{\alpha\rho\sqrt{d_u}}{\beta_{pu}},
+  \label{eq:subtree-activation-threshold}
+ \end{equation}
+ one has $z^{(u)}(t)=0$ if and only if $0\leq t\leq\tau_u$.
+ \item The response $\mu_u$ is continuous, nondecreasing, and piecewise
+ affine with at most $|T_u|+1$ pieces.  On an interval with fixed nonempty
+ active set $A\subseteq T_u$,
+ \begin{align}
+  z_A^{(u)}(t)
+  &=Q_{AA}^{-1}
+    \bigl(c_{\rho,A}+\beta_{pu}t e_u\bigr),
+  \label{eq:tree-affine-piece}\\
+  \mu_u'(t)
+  &=\beta_{pu}^2(Q_{AA}^{-1})_{uu}>0.
+  \label{eq:tree-response-slope}
+ \end{align}
+ \item If $c_{\rho,o}>0$, the root value of the full RPPR solution is the
+ unique positive solution of
+ \begin{equation}
+  Q_{oo}t-c_{\rho,o}
+  -\sum_{u:\,p(u)=o}\mu_u(t)=0.
+  \label{eq:root-response-equation}
+ \end{equation}
+ On every fixed-support interval, the left-hand side has positive slope equal
+ to the Schur complement of the active descendants in $Q$.  In particular,
+ \begin{equation}
+  \alpha
+  \leq Q_{oo}-\sum_{u:\,p(u)=o}\mu_u'(t)
+  \leq Q_{oo},
+  \label{eq:root-response-slope-bound}
+ \end{equation}
+ wherever the derivatives exist.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Strong convexity gives a unique conditional solution and continuity in the
+linear parameter $t$.  If $t_2\geq t_1$, then the demand in the $u$ coordinate
+increases by $\beta_{pu}(t_2-t_1)$.  The obstacle comparison principle for a
+Stieltjes matrix gives
+$z^{(u)}(t_2)\geq z^{(u)}(t_1)$, proving monotonicity and nested support.
+
+Every vertex of $T_u$ is a nonseed, so
+$c_{\rho,v}=-\alpha\rho\sqrt{d_v}<0$.  At the zero point, every descendant
+$v\neq u$ has strictly positive obstacle gradient
+$-c_{\rho,v}$, while the $u$ gradient is
+$-c_{\rho,u}-\beta_{pu}t
+=\alpha\rho\sqrt{d_u}-\beta_{pu}t$.
+Thus zero satisfies all conditional KKT inequalities exactly when
+$t\leq\tau_u$.  When $t>\tau_u$, the $u$ inequality is violated, so the
+solution is nonzero.  Moreover, every nonempty active component must contain
+$u$: a component separated from $u$ has only the strictly negative shifted
+demand $c_{\rho,C}$ and would satisfy
+$Q_{CC}z_C=c_{\rho,C}<0$, contradicting
+$Q_{CC}^{-1}\geq0$ and $z_C>0$.  Hence $u$ itself is active whenever the
+conditional solution is nonzero.  This proves (ii).
+
+On an interval where the active set is $A$, its positive coordinates solve
+the linear system in \cref{eq:tree-affine-piece}.  Principal Stieltjes
+inverses are nonnegative, giving \cref{eq:tree-response-slope}.  By (i), an
+active vertex never leaves as $t$ increases; every change of affine formula
+therefore activates at least one previously inactive vertex.  There are at
+most $|T_u|$ such events, proving (iii).
+
+Finally, conditioned on root value $t$, the child subtrees are independent
+and return $\mu_u(t)=\beta_{ou}z_u^{(u)}(t)$.  The active root KKT equality is
+exactly \cref{eq:root-response-equation}.  On a fixed global active set,
+eliminating all active descendants leaves the scalar Schur complement at the
+root; it is positive because $Q$ is positive definite.  Hence the left-hand
+side is strictly increasing piece by piece and its zero is unique.  Because
+the relevant principal block is bounded below by $\alpha I$, the scalar Schur
+complement is at least $\alpha$, proving
+\cref{eq:root-response-slope-bound}.
+\end{proof}
+
+\begin{corollary}[Exact inverse-response recursion]
+\label{cor:inverse-tree-response}
+For a nonroot vertex $u$, let $\mathcal C(u)$ be its children and define
+\begin{equation}
+ H_u(z)
+ :=\frac{
+  Q_{uu}z-c_{\rho,u}
+  -\sum_{v\in\mathcal C(u)}\mu_v(z)
+ }{\beta_{pu}},
+ \qquad z\geq0.
+ \label{eq:inverse-response-map}
+\end{equation}
+Then $H_u(0)=\tau_u$, $H_u$ is continuous piecewise affine, and on every
+linear piece
+\begin{equation}
+ H_u'(z)
+ =\frac{Q_{uu}-\sum_{v\in\mathcal C(u)}\mu_v'(z)}{\beta_{pu}}
+ \geq\frac{\alpha}{\beta_{pu}}>0.
+ \label{eq:inverse-response-slope}
+\end{equation}
+Consequently,
+\begin{equation}
+ z_u^{(u)}(t)
+ =\begin{cases}
+  0,&0\leq t\leq\tau_u,\\
+  H_u^{-1}(t),&t>\tau_u,
+ \end{cases}
+ \qquad
+ \mu_u(t)=\beta_{pu}z_u^{(u)}(t).
+ \label{eq:tree-response-inverse}
+\end{equation}
+The breakpoints used to construct $H_u$ are exactly the union of the child
+response breakpoints, plus the activation point at zero; branching introduces
+merging but no combinatorial proliferation.
+\end{corollary}
+
+\begin{proof}
+Condition on $z_u=z$.  Each child subtree minimizes independently and sends
+back $\mu_v(z)=\beta_{uv}z_v^{(v)}(z)$.  The active $u$ equation is
+\[
+ Q_{uu}z-c_{\rho,u}-\beta_{pu}t
+ -\sum_{v\in\mathcal C(u)}\mu_v(z)=0,
+\]
+which is equivalent to $t=H_u(z)$.  On a fixed collection of active child
+pieces, the numerator slope is the Schur complement obtained by eliminating
+their active descendants.  The same argument as
+\cref{eq:root-response-slope-bound} bounds it below by $\alpha$.  Thus $H_u$
+is strictly increasing and invertible above $H_u(0)=\tau_u$, proving the
+recursion.  Addition changes slopes only at child breakpoints, and inversion
+maps those breakpoints monotonically without creating new ones.
+\end{proof}
+
+\begin{corollary}[Polynomial exact solver on an arbitrary finite tree]
+\label{cor:finite-tree-message-solver}
+Let $n=|V|$, let $\Delta$ be the maximum degree, and root a finite tree at the
+single seed.  Explicitly materializing every subtree response from the leaves
+upward, solving \cref{eq:root-response-equation}, and evaluating the responses
+top down returns the exact RPPR solution in
+\begin{equation}
+ O\!\left(
+  \log(1+\Delta)\sum_{u\neq o}|T_u|
+ \right)
+ \subseteq O(n^2\log(1+\Delta))
+ \label{eq:finite-tree-message-work}
+\end{equation}
+arithmetic, with $O(\sum_{u\neq o}|T_u|)\subseteq O(n^2)$ response storage.
+There is no exponential active-set enumeration.
+\end{corollary}
+
+\begin{proof}
+A leaf response has one inactive and one affine piece.  Inductively, suppose
+the sorted response breakpoints of all children of $u$ are available.  Their
+arguments are already the common parent value $z_u$, so a multiway merge
+forms the sorted breakpoint list of the sum in
+\cref{eq:inverse-response-map}.  On every resulting interval, update the
+aggregate slope and intercept of $H_u$ and invert that affine segment.  By
+\cref{eq:inverse-response-slope}, the ordering is preserved.  The child lists
+contain at most
+$\sum_{v\in\mathcal C(u)}|T_v|=|T_u|-1$ breakpoints, so the work at $u$ is
+$O(|T_u|\log(1+d_u))$ and the stored output has $O(|T_u|)$ pieces.  Sum over
+vertices.  The root uses the same merge to locate the unique zero of
+\cref{eq:root-response-equation}; one top-down evaluation then recovers every
+coordinate.
+\end{proof}
+
+The preceding corollary materializes response pieces that lie far beyond the
+eventual root value.  Locality instead requests child events lazily and stops
+as soon as the root equation is solved.  The price of the elementary lazy
+implementation is one propagation through the active ancestors per realized
+event.  The next lemma shows that this depth factor is already on the
+$1/\sqrt\alpha$ scale.
+
+\begin{lemma}[Graph-universal Chebyshev support-radius bound]
+\label{lem:graph-support-radius}
+Let
+\begin{equation*}
+ R_\star:=\max\{\operatorname{dist}(o,v):v\in S^\star(\rho)\},
+\end{equation*}
+with $R_\star=0$ when the support is empty or contains only the root.  On any
+finite graph with one root seed and $0<\alpha<1$,
+\begin{equation}
+ R_\star
+ \leq
+ 1+\frac{
+  \log_+\!\bigl((1-\alpha)/(\alpha\rho)\bigr)
+ }{
+  \log\!\bigl((1+\sqrt\alpha)/(1-\sqrt\alpha)\bigr)
+ }
+ \leq
+ 1+\frac{
+  \log_+\!\bigl((1-\alpha)/(\alpha\rho)\bigr)
+ }{2\sqrt\alpha}.
+ \label{eq:graph-support-radius}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The spectrum of $Q$ lies in $[\alpha,1]$.  The Chebyshev approximation to
+$q\mapsto q^{-1}$ gives, for every $k\geq0$, a degree-$k$ polynomial $p_k$
+such that
+\begin{equation}
+ \norm{Q^{-1}-p_k(Q)}_2
+ \leq\frac{2}{\alpha}\lambda_\alpha^{k+1}.
+ \label{eq:chebyshev-inverse-error}
+\end{equation}
+Indeed, with
+$c=(1+\alpha)/(1-\alpha)$ and
+$q_{k+1}(x)=
+T_{k+1}((1+\alpha-2x)/(1-\alpha))/T_{k+1}(c)$, the polynomial
+$p_k(x)=(1-q_{k+1}(x))/x$ has degree $k$ and the displayed estimate follows
+from
+$T_{k+1}(c)=(\lambda_\alpha^{-(k+1)}+
+\lambda_\alpha^{k+1})/2$.
+If $\operatorname{dist}(o,v)=\ell$ and $k=\ell-1$, sparsity gives
+$(p_k(Q))_{vo}=0$.  Therefore, for the unregularized solution
+$\bar x:=Q^{-1}b$,
+\begin{equation}
+ 0\leq x_v^\star\leq\bar x_v
+ \leq 2\lambda_\alpha^\ell,
+ \label{eq:graph-green-decay}
+\end{equation}
+where obstacle comparison gives the middle inequality; the harmless same
+bound at $\ell=0$ follows directly from
+$\norm{Q^{-1}}_2\norm{b}_2\leq1$.  Here the single-seed normalization
+$b_o=\alpha/\sqrt{d_o}$ was used.
+
+Suppose $R_\star\geq1$ and choose a deepest active vertex $v$.  Its active
+KKT equality and nonnegativity give
+\begin{equation}
+ \alpha\rho\sqrt{d_v}
+ <\sum_{u\in\mathcal N(v)\cap S^\star}
+   \frac{1-\alpha}{2\sqrt{d_ud_v}}x_u^\star.
+ \label{eq:deepest-active-demand}
+\end{equation}
+Every neighbor of $v$ has distance at least $R_\star-1$.  Applying
+\cref{eq:graph-green-decay} and
+$\sum_{u\in\mathcal N(v)}d_u^{-1/2}\leq d_v$ bounds the right-hand side by
+$(1-\alpha)\sqrt{d_v}\lambda_\alpha^{R_\star-1}$.  Hence
+\begin{equation*}
+ \lambda_\alpha^{R_\star-1}
+ >\frac{\alpha\rho}{1-\alpha}.
+\end{equation*}
+Taking logarithms proves the first inequality in
+\cref{eq:graph-support-radius}.  The second uses
+$\log((1+t)/(1-t))\geq2t$ for $0<t<1$.
+\end{proof}
+
+\begin{theorem}[Condition-free lazy-response solver on an arbitrary tree]
+\label{thm:lazy-tree-response}
+Let $\Delta$ be the maximum degree.  There is an exact adjacency-local RPPR
+algorithm for every finite tree with one seed.  It discovers
+$S^\star(\rho)$ without a support, radius, or confinement oracle and uses
+\begin{align}
+ \Work_{\rm lazy\text{-}tree}
+ &\leq
+ O\!\left(
+  \vol(S^\star)
+  +\log(1+\Delta)
+    \sum_{v\in S^\star}\operatorname{dist}(o,v)
+ \right)\notag\\
+ &\leq
+ O\!\left(
+  \vol(S^\star)\bigl[1+R_\star\log(1+\Delta)\bigr]
+ \right)\notag\\
+ &=\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right)
+ \label{eq:lazy-tree-response-work}
+\end{align}
+degree work and $O(\vol(S^\star))$ storage.  The final equality hides only
+the displayed logarithms in $\Delta$ and $(\alpha\rho)^{-1}$.
+\end{theorem}
+
+\begin{proof}
+Turn \cref{cor:inverse-tree-response} into a lazy iterator.  The first event
+of the response from a child $u$ is its activation threshold $\tau_u$, which
+requires only the child edge and degree.  Once $u$ activates, scan its
+adjacency list once and initialize a heap with the first event of each child.
+On the current affine piece, the next breakpoint of $H_u$ is the minimum next
+child breakpoint in the common argument $z_u$.  Map that point through the
+current affine formula for $H_u$, emit the resulting parent-coordinate event,
+update the aggregate slope and intercept, and advance only the child streams
+attaining the minimum.  The positivity in
+\cref{eq:inverse-response-slope} preserves event order.  Induction from the
+leaves proves that this iterator emits exactly the labeled activation
+breakpoints of $\mu_u$, including tied labels, while never inspecting a
+descendant of an inactive boundary vertex.
+
+At the root, merge the child iterators in the same fashion and walk the
+piecewise-affine left side of \cref{eq:root-response-equation}.  Its slope is
+positive by \cref{eq:root-response-slope-bound}.  On each piece, compute its
+affine zero.  If that zero occurs no later than the next event, stop; otherwise
+consume the event and continue.  A label is consumed exactly when its vertex
+is positive at the final root value.  Thus the consumed labels, together with
+the active root, are exactly $S^\star(\rho)$.  Equality with the next event is
+not consumed, consistently with the definition of support.  If
+$c_{\rho,o}\leq0$, the zero solution is certified before any event.
+
+Building the heaps scans each active adjacency list once, for total
+$O(\vol(S^\star))$ work and storage, including inactive boundary edges.  An
+event labeled by $v$ is advanced once through the heap of each ancestor of
+$v$, costing
+$O(\operatorname{dist}(o,v)\log(1+\Delta))$.  Iterator state stores only the current affine
+piece and one next event per exposed child, so response histories are not
+copied through all ancestors.  After discovery, apply
+\cref{thm:forest-resolution} once to $S^\star$ and check its boundary KKT
+certificate in $O(\vol(S^\star))$ work.  Summing the event charges proves the
+first two lines of \cref{eq:lazy-tree-response-work}; the support-volume bound
+and \cref{lem:graph-support-radius} prove the last.
+\end{proof}
+
+This closes the nonsymmetric-tree free boundary at the intended product
+scale.  It does not claim a universal lower bound: paths and symmetric
+spiders remain output-linear special cases.  Cycles destroy vertex-by-vertex
+subtree independence, but not the underlying one-dimensional event order.

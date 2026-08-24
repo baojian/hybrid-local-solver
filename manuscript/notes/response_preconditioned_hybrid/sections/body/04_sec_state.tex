@@ -1,0 +1,44 @@
+\section{A response-preconditioned state}
+\label{sec:state}
+
+At an epoch, split the current face as
+\begin{equation}
+ S=A\mathbin{\dot\cup}F,
+ \label{eq:anchor-frontier}
+\end{equation}
+where $A$ is a settled anchor and $F$ is a frontier buffer.  The backend stores:
+
+\begin{enumerate}[label=(\roman*)]
+\item a persistent response representation for selected actions of
+      $Q_{AA}^{-1}$;
+\item the exposed blocks $Q_{AF}$ and $Q_{FF}$;
+\item a frontier Schur operator
+      $Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF}$, exact or certified approximate;
+\item an implicit numerical state and error certificate on $S$;
+\item a boundary dictionary whose keys are intervals, not uncertified point
+      estimates;
+\item a work ledger charging adjacency exposure, old-face reads, response
+      updates, rekeys, iterative row operations, and final writes.
+\end{enumerate}
+
+The controller requests four conceptual operations.
+
+\begin{description}[leftmargin=2.8cm,style=nextline]
+\item[\textsc{Expand}$(T)$]
+Expose and add a support-safe batch, updating the anchor--frontier
+representation without materializing every old coordinate.
+\item[\textsc{BoundaryBounds}]
+Return all certified violations and certify that every unreported boundary
+coordinate lies below the admission threshold or inside the declared
+transition band.
+\item[\textsc{Repair}$(\delta)$]
+Reduce numerical error on the current face using an exact solve or a
+preconditioned iterative method.
+\item[\textsc{Finalize}]
+Materialize the terminal vector once and return its note-scoped correctness
+certificate.
+\end{description}
+
+The completeness clause in \textsc{BoundaryBounds} is essential.  A data
+structure that answers the value at one requested vertex is not yet a local
+active-set backend because it may not find an unqueried violating vertex.

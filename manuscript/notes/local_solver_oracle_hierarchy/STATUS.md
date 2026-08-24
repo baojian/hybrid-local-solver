@@ -169,7 +169,7 @@ support-discovery lower bound may instead require a different information argume
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: `incremental_active_set_sdd`,
+- Formal registry dependencies: `incremental_active_set_sdd`,
   `delayed_reflection_ladder`,
   `response_preconditioned_hybrid`, `aspr23_bound_audit`, and
   `aesp_locgd_star_lower_bound`. The Round-006/007 counteralgorithms additionally
@@ -220,7 +220,7 @@ support-discovery lower bound may instead require a different information argume
 
 - Source pointers checked: shared problem, related-work, results, and
   broadcast files; project conventions; local-solvers, graph-optimization,
-  and acceleration literature notes; complete direction note and taxonomy;
+  and acceleration literature notes; complete direction note and registry;
   the companion comb proposition with its qualifier; and
   `evolving_support_cg`, `thm:endpoint-path-exact-cg-certificate`, including
   its exact certificate, ambient-degree path convention, Krylov triangularity,
@@ -259,4 +259,4 @@ support-discovery lower bound may instead require a different information argume
   robustness is claimed. The path analogue bounds only
   every materialized implementation's `C_mat`; it does not bound its other
   resources. `RowRec` remains a framework until a target fixes all remaining
-  clauses. No controller-owned taxonomy dependency was changed.
+  clauses. No controller-owned registry dependency was changed.

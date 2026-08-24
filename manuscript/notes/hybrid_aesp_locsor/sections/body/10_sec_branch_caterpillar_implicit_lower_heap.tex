@@ -1,0 +1,366 @@
+\subsection{An implicit lower heap removes the repeated diagnostic sweep}
+\label{sec:branch-caterpillar-implicit-lower-heap}
+
+The transported point in
+\Cref{lem:branch-caterpillar-anchored-lower-transport} was materialized in
+full after every AESP endpoint.  That implementation is conservative but not
+necessary.  The lower map has one global scalar and the caterpillar boundary
+has only three active parent coordinates.  We can therefore maintain the
+global scalar under local numerical writes and evaluate only the three
+coordinates that a gate actually reads.  This section separates that
+diagnostic improvement from the dense face-admission shock: a fresh AESP
+epoch still materializes its warm start and initializes its numerical state
+on the enlarged face.
+
+Fix one canonical face $U=\widehat U_k$, a charged anchor
+$0\leq a\leq x_k$, and a signed numerical point $z\in\mathbb R^U$.  For
+$i\in U$ define
+\begin{align}
+ r_i(z)&:=\ell_{\rho,i}-(Q_{UU}z)_i,
+ &
+ h_i(z)&:=\frac{[-r_i(z)]_+}{\alpha\sqrt{d_i}},
+ \notag\\
+ \Delta(z)&:=\max_{i\in U}h_i(z),
+ &
+ \widehat y_i(a,z)&:=
+ \max\left\{a_i,[z_i-\Delta(z)\sqrt{d_i}]_+\right\}.
+ \label{eq:branch-caterpillar-implicit-lower-state}
+\end{align}
+The state \texttt{ImplicitLowerHeap}$(U,a,z)$ stores $a,z,r$, an indexed
+exact max-heap for the keys $h_i$, and the three validated
+boundary-parent/coupling records.  It does \emph{not} store the vector
+$\widehat y(a,z)$.
+
+\begin{lemma}[Exact incremental lower-state diagnostic]
+\label{lem:branch-caterpillar-implicit-lower-heap}
+The state in
+\cref{eq:branch-caterpillar-implicit-lower-state} represents exactly the
+anchored lower point:
+\begin{equation}
+ \widehat y(a,z)=\mathcal T_{k,a}(z),
+ \qquad
+ 0\leq\widehat y(a,z)\leq x_k.
+ \label{eq:branch-caterpillar-implicit-lower-equality}
+\end{equation}
+For a validated row $v\in\mathcal F_k$ with unique active parent
+$p=p_k(v)$ and $\beta_{k,v}:=-Q_{vp}>0$, its exact implicit query is
+\begin{equation}
+ \widehat g_{k,v}(a,z)
+ :=\ell_{\rho,v}+\beta_{k,v}
+ \max\left\{a_p,[z_p-\Delta(z)\sqrt{d_p}]_+\right\}.
+ \label{eq:branch-caterpillar-implicit-lower-query}
+\end{equation}
+It satisfies $\widehat g_{k,v}(a,z)\leq g_{k,v}$, so three strict positive
+queries certify the complete canonical batch.
+
+If one numerical coordinate is written as $z_j\leftarrow z_j+\delta$, then
+the exact update is
+\begin{equation}
+ r_i\leftarrow r_i-Q_{ij}\delta
+ \quad\text{for }i\in U\cap(\{j\}\cup N(j)),
+ \label{eq:branch-caterpillar-implicit-lower-update}
+\end{equation}
+followed by rekeying precisely those heap entries.  No other residual or key
+changes.  With the row stencil already charged by the numerical host, the
+additional diagnostic work is
+\begin{equation}
+ C_{\rm rec}+C_{\rm mat}=O(d_j+1),
+ \qquad
+ C_{\rm ctl}=O((d_j+1)\log(2+C(U))),
+ \label{eq:branch-caterpillar-implicit-lower-local-cost}
+\end{equation}
+and all adjacency, adjacency-round, interaction, preprocessing, response,
+and emission increments are zero.  Without a supplied stencil, reading it
+adds at most $d_j$ adjacency cells and one adjacency round.  Once the three
+boundary rows have been exposed and validated, a complete query uses
+$O(1)$ control/recurrence operations, $O(1)$ scratch, no materialized old
+coordinate, and no new adjacency, interaction, response, or emission work.
+The diagnostic state uses $\Theta(C(U))$ persistent cells and $O(1)$ scratch.
+\end{lemma}
+
+\begin{proof}
+The maximum of the keys in
+\cref{eq:branch-caterpillar-implicit-lower-state} is exactly
+\begin{equation*}
+ \frac1\alpha
+ \left\lVert D_U^{-1/2}[\ell_{\rho,U}-Q_{UU}z]_-\right\rVert_\infty
+ =\Delta_U^{\rm low}(z).
+\end{equation*}
+Thus each coordinate in the implicit query is exactly the corresponding
+coordinate of
+$a\vee\mathcal L_U(z)=\mathcal T_{k,a}(z)$.  Lowerness and the boundary
+comparison now follow from
+\Cref{lem:branch-caterpillar-anchored-lower-transport}.  Under a coordinate
+write, linearity gives
+\cref{eq:branch-caterpillar-implicit-lower-update}; the principal PageRank
+matrix has no other nonzero entry in column $j$.  An indexed heap supports
+each changed exact-real key in logarithmic control work, and its maximum is a
+constant-time read.  A caterpillar boundary has three rows and one active
+parent per row, proving the query and storage claims.
+\end{proof}
+
+There are two ways to initialize the state.  Given retained rows and only a
+materialized $z$, one stored-row matrix pass and a linear-time heapify have
+the exhaustive vector
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_{\rm ILH-init}(U))=
+ \bigl(\vol(U),1,0,0,O(C(U)),O(\vol(U)),0,
+       \Theta(C(U)),O(1),\Theta(C(U)),0\bigr).
+ \label{eq:branch-caterpillar-implicit-lower-init-vector}
+\end{equation}
+If the numerical host already supplies the charged raw product $Q_{UU}z$,
+the first two coordinates are zero and only the linear key/heap state is
+written.  The relative-accuracy AESP implementation already computes its
+shifted gradient at every bulk warm start; subtracting the known shift gives
+$Q_{UU}z$, so the two states can be populated during the same charged pass.
+Thereafter its coordinate stencil is also the stencil in
+\cref{eq:branch-caterpillar-implicit-lower-update}.  The following composed
+policy nevertheless charges one independent initialization pass on every
+new face, so correctness does not rely on an unpriced shared scan.
+
+For comparison, define \texttt{LiteralDenseLowerSweep} to be the specific
+implementation that retains neither $r$ nor a maximum key and, at every
+test, explicitly rebuilds $Q_{UU}z$, all of
+$\mathcal L_U(z)$, and all of $a\vee\mathcal L_U(z)$.
+
+\begin{proposition}[Cost of the named literal dense representation]
+\label{prop:branch-caterpillar-literal-dense-lower-sweep-cost}
+On $\widehat U_k$, $N_k+1$ invocations of
+\texttt{LiteralDenseLowerSweep} have, by its declared interface,
+\begin{equation}
+ C_{\rm adj}=(N_k+1)\mathcal V_k^{\rm can},
+ \qquad
+ C_{\rm rec}=\Theta((N_k+1)\mathcal V_k^{\rm can}),
+ \qquad
+ C_{\rm mat}=\Theta((N_k+1)\card{\widehat U_k}).
+ \label{eq:branch-caterpillar-literal-dense-lower-sweep-cost}
+\end{equation}
+Across one invocation on each face $k=0,\ldots,q-1$, its row work is
+$\sum_{k<q}\mathcal V_k^{\rm can}=3q^2$.  This is a representation- and
+policy-specific accounting identity, not a lower bound for another lower
+certificate or for every exact algorithm.  In particular,
+\Cref{lem:branch-caterpillar-implicit-lower-heap} replaces the
+$(N_k+1)$ full diagnostic passes by one initialization pass, local rekeys
+piggybacked on the numerical writes, and $N_k+1$ constant-size queries.
+\end{proposition}
+
+We now compose the implicit state with the transported policy.  The
+chronology, row-validation contract, and observed stopping rule are unchanged;
+only the implementation of each lower test changes.
+
+\begin{definition}[Implicit transported-lower canonical prefix]
+\label{def:branch-caterpillar-implicit-lower-policy}
+The policy
+\texttt{ImplicitLowerHeap-}\allowbreak
+\texttt{BC-AESP}$_{0:q-1}$, for $2\leq q\leq m$,
+uses the following face epoch for $k=0,\ldots,q-1$.
+\begin{enumerate}
+ \item It exposes and validates exactly the current live boundary
+       $\mathcal F_k$, retaining its three parent/coupling records.  At face
+       entry it uses the explicitly materialized transported anchor $a_k$
+       (with $a_0=0$), creates fresh
+       AESP momentum, proximal, center, and estimate-sequence arrays, and
+       performs and charges one stored-row pass to initialize
+       \texttt{ImplicitLowerHeap}.  This is the face-admission/restart shock;
+       no accelerated auxiliary record crosses the admission.
+ \item It queries
+       \cref{eq:branch-caterpillar-implicit-lower-query} at the initial point
+       and after every relative-accuracy AESP endpoint.  Every local
+       coordinate write performs
+       \cref{eq:branch-caterpillar-implicit-lower-update} from the same paid
+       row stencil.  Every bulk AESP replacement populates the raw lower
+       keys during its already charged gradient pass.  If an implementation
+       does not expose that product, the policy performs one additional
+       stored-row product pass for that endpoint; its
+       $T_k^{\rm ih}\mathcal V_k^{\rm can}$ charge is included in
+       $O(\mathfrak A_k^{\rm ih})$ because $\Lambda_k^{\rm tr}\geq2$.
+       No query materializes $\widehat y(a_k,z)$ or scans an old face.
+ \item At the first all-positive query, if $k<q-1$, it emits and commits
+       $\mathcal F_k$.  It then makes one explicit admission sweep: for each
+       old coordinate it writes the value in
+       \cref{eq:branch-caterpillar-implicit-lower-state}, zero-pads the three
+       new coordinates, retires every old AESP auxiliary and diagnostic cell,
+       and uses this materialized vector as $a_{k+1}$.  This sweep is charged
+       even if no AESP stage ran on the old face.
+ \item On face $q-1$ it stops after the successful query and before the
+       $q$th interaction.  The post phase commits that batch, directly builds
+       and settles the native response on $\widehat U_q$, and continues the
+       reviewed canonical reporter exactly as in
+       \Cref{def:branch-caterpillar-transported-lower-policy}.
+\end{enumerate}
+The row, admission, numerical, and label arenas at the handoff are therefore
+exactly those in
+\cref{eq:branch-caterpillar-transported-lower-arenas}.  Candidate rows are
+still pre-exposed, and no response is built in the prefix.
+\end{definition}
+
+For its observed execution, put
+\begin{align}
+ T_k^{\rm ih}
+ &:=\min\left\{t\geq0:
+   \widehat g_{k,v}(a_k,z_k^{(t)})>0
+   \text{ for every }v\in\mathcal F_k\right\},
+ \notag\\
+ \Delta_{k,0}^{\rm ih}
+ &:=F_{\rho,\widehat U_k}(a_k)
+    -F_{\rho,\widehat U_k}(x_k).
+ \label{eq:branch-caterpillar-implicit-lower-stopping-time}
+\end{align}
+Because the implicit query equals the materialized anchored query, this
+stopping time is finite and obeys the same analysis-side alternatives:
+$T_k^{\rm ih}=0$ when the initial gap is zero, while for positive gap
+\begin{equation}
+ T_k^{\rm ih}\leq
+ 1+\left\lfloor\frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(
+ \frac{4(\alpha+\sqrt3)^2\Delta_{k,0}^{\rm ih}}
+      {\alpha^3\mu_k^2}
+             \right)\right\rfloor.
+ \label{eq:branch-caterpillar-implicit-lower-stage-bound}
+\end{equation}
+Neither quantity on the right is computed online.  Put
+\begin{align}
+ \mathcal N_k^{\rm can}&:=\card{\widehat U_k},
+ &
+ \mathfrak A_k^{\rm ih}
+ &:=T_k^{\rm ih}\mathcal V_k^{\rm can}\Lambda_k^{\rm tr},
+ \notag\\
+ \mathfrak A_{<q}^{\rm ih}&:=\sum_{k=0}^{q-1}\mathfrak A_k^{\rm ih},
+ &
+ \mathfrak Q_{<q}^{\rm ih}&:=\sum_{k=0}^{q-1}(T_k^{\rm ih}+1),
+ \notag\\
+ \mathfrak S_{<q}^{\rm row}
+ &:=\sum_{k=0}^{q-1}\mathcal V_k^{\rm can}=3q^2,
+ &
+ \mathfrak S_{<q}^{\rm adm}
+ &:=\sum_{k=1}^{q-1}\mathcal N_k^{\rm can}
+   =\frac{(q-1)(3q+2)}2,
+ \label{eq:branch-caterpillar-implicit-lower-shock}\\
+ \mathfrak D_{<q}^{\rm ih}
+ &:=\mathcal C_q^{\rm can}
+   +\mathfrak A_{<q}^{\rm ih}
+   +\mathfrak S_{<q}^{\rm row}
+   +\mathfrak S_{<q}^{\rm adm}
+   +\mathfrak Q_{<q}^{\rm ih},
+ \notag\\
+ \mathfrak H_{<q}^{\rm ih}
+ &:=\mathcal C_q^{\rm can}
+   +\mathfrak S_{<q}^{\rm row}
+   +\mathfrak S_{<q}^{\rm adm}
+   +\mathfrak Q_{<q}^{\rm ih}
+   +\sum_{k=0}^{q-1}\mathfrak H_k^{\rm ih},
+ \notag\\
+ \mathfrak H_k^{\rm ih}
+ &:= (1+\log(2+\mathcal C_k^{\rm can}))\mathfrak A_k^{\rm ih}.
+ \label{eq:branch-caterpillar-implicit-lower-budgets}
+\end{align}
+Here $\mathfrak S^{\rm row}$ charges one raw-residual/heap initialization on
+every face, even when it could share a numerical scan, and
+$\mathfrak S^{\rm adm}$ charges every old coordinate copied into a new warm
+start.  Thus the quadratic growing-face shock is visible rather than hidden
+inside the constant-time diagnostic queries.
+
+\begin{theorem}[All-layer implicit-diagnostic response-free prefix]
+\label{thm:branch-caterpillar-implicit-lower-handoff}
+Fix $m\geq2$, $0<\alpha<1/2$,
+$0<\rho<\rho_{\rm can}(m,\alpha)$, and $2\leq q\leq m$.
+The policy
+\texttt{ImplicitLowerHeap-BC-AESP}$_{0:q-1}$ certifies the first $q$
+canonical batches, commits the first $q-1$ without exact settlement, and
+preserves the same coordinatewise lower anchor as
+\texttt{TransportLower-BC-AESP}$_{0:q-1}$.  No diagnostic query scans an old
+face or materializes the anchored lower vector.  Before the $q$th interaction
+its complete vector is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm ILH,q}^{\rm pref})=\bigl(&
+ \mathcal V_q^{\rm can}
+   +O(\mathfrak S_{<q}^{\rm row}+\mathfrak A_{<q}^{\rm ih}),
+ 2q+1+O(\mathfrak A_{<q}^{\rm ih}),q-1,0,\\
+ &O(\mathfrak H_{<q}^{\rm ih}),
+ O(\mathfrak D_{<q}^{\rm ih}),0,
+ O(\mathcal C_q^{\rm can}),
+ O(\mathcal C_{q-1}^{\rm can}),
+ O(\mathfrak D_{<q}^{\rm ih}),\Theta(q)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-implicit-lower-prefix-eleven-vector}
+\end{equation}
+The first $q+1$ adjacency rounds expose the seed and $q$ live boundaries;
+the next at most $q$ rounds are the explicitly charged face-initialization
+passes, and the final term covers adaptive numerical row touches.  The
+prefix has exactly $q-1$ interactions, emits the first $3(q-1)$ labels and
+one constant-size reply per interaction, and has $C_{\rm resp}=0$ exactly.
+
+After the handoff, the direct native response and canonical continuation have
+the separately charged vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm ILH,q}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_q),m-q,m-q+2,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-q+1)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),
+ \Theta(\card{S^\star}),\\
+ &\card{S^\star\setminus\widehat U_{q-1}}
+  +\card{S^\star}+\Theta(m-q+2)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-implicit-lower-post-eleven-vector}
+\end{equation}
+Thus the total interaction count is exactly $m+1$ and the exact total work is
+\begin{equation}
+ O\!\left(\mathfrak H_{<q}^{\rm ih}
+       +C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-implicit-lower-total-work}
+\end{equation}
+After releasing the numerical/diagnostic epoch, both total memory peaks are
+$O(C(S^\star))$.
+
+The improvement is exact but deliberately narrow.  It removes the extra
+full-face construction of the lower vector at every sign test.  It does not
+remove the AESP stage work, the one raw-product initialization per face, the
+$\Theta(\sum_{k<q}\card{\widehat U_k})$ admission materialization, candidate
+row exposure, or the margin and $\log(1/(1-2\alpha))$ terms.  In particular,
+for $q=m$ the charged restart/admission shock is still $\Theta(m^2)$, so the
+theorem proves no speedup and no subquadratic growing-face prefix.  It
+transports no momentum or estimate-sequence energy.  The statement is
+exact-real, fixed-$m$, branch-seeded, strict-range, and delta/certificate
+scoped; it proves nothing for another seed, graph, range, or policy,
+finite precision, bit complexity, PPR, graph-uniform work, or RPPR-to-PPR
+conversion.
+\end{theorem}
+
+\begin{proof}
+At every endpoint,
+\Cref{lem:branch-caterpillar-implicit-lower-heap} evaluates exactly the point
+used by
+\Cref{thm:branch-caterpillar-transported-lower-handoff}.  Its strict signs
+therefore certify the same canonical batch, the stopping-time proof and
+analysis cap are unchanged, and the explicit successful admission sweep
+writes exactly the same padded anchor.  Induction through the first $q-1$
+admissions proves lowerness, chronology, and response freedom.
+
+The seed and $q$ boundary batches first-expose precisely
+$\widehat U_q$, of volume $\mathcal V_q^{\rm can}$.  One independent
+diagnostic initialization pass on each of the $q$ numerical faces contributes
+$\mathfrak S_{<q}^{\rm row}$ row work.  Relative-accuracy numerical stages
+contribute $O(\mathfrak A_{<q}^{\rm ih})$; the raw residual reuses each paid
+local stencil or bulk gradient pass, while its exact rekeys contribute the
+logarithmic control term in $\mathfrak H_{<q}^{\rm ih}$.  There are
+$\mathfrak Q_{<q}^{\rm ih}$ constant-size sign queries.  The $q-1$ explicit
+anchor writes and fresh auxiliary allocations contribute
+$\mathfrak S_{<q}^{\rm adm}$ materialization cells.  Retained rows through
+$\widehat U_q$ dominate persistent storage, while only the current face's
+anchor, numerical arrays, residual, and heaps are temporary.  These facts
+give every prefix coordinate in
+\cref{eq:branch-caterpillar-implicit-lower-prefix-eleven-vector}.
+
+The post phase starts from the identical paid common state as in
+\Cref{thm:branch-caterpillar-transported-lower-handoff}: the first $q-1$
+batches were emitted, the $q$th is certified, and rows through
+$\widehat U_q$ are retained.  Its direct response build, remaining canonical
+layers, terminal validation, exact output, emissions, and memory peaks are
+therefore exactly
+\cref{eq:branch-caterpillar-implicit-lower-post-eleven-vector}.  Summing
+additive work and both round coordinates, and taking storage peaks, proves
+the remaining claims.
+\end{proof}

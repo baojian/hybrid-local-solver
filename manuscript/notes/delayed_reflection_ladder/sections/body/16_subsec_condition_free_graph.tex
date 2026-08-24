@@ -1,0 +1,321 @@
+\subsection{Removing the supplied-support condition on arbitrary graphs}
+\label{subsec:condition-free-graph}
+
+The response machinery is not required for correctness.  It is required only
+to accelerate the following condition-free local gate.  Continue to assume a
+single root seed $o$ on an arbitrary graph, and recall
+$c_\rho=b-\alpha\rho D^{1/2}\one$.
+If $c_{\rho,o}\leq0$, return zero.  Otherwise initialize $U_0=\{o\}$ and, at
+stage $j$, compute
+\begin{equation}
+ Q_{U_jU_j}x^{(j)}_{U_j}=c_{\rho,U_j},
+ \qquad x^{(j)}_{U_j^c}=0,
+ \label{eq:exact-tree-gate-solve}
+\end{equation}
+then form the violating boundary batch
+\begin{equation}
+ B_j
+ :=\left\{
+  v\in\partial U_j:
+  r_v(x^{(j)})>\alpha\rho\sqrt{d_v}
+ \right\}.
+ \label{eq:exact-tree-gate-batch}
+\end{equation}
+If $B_j=\emptyset$, return $x^{(j)}$; otherwise set
+$U_{j+1}=U_j\cup B_j$.
+
+\begin{theorem}[Condition-free exact local RPPR on an arbitrary graph]
+\label{thm:condition-free-graph}
+The exact boundary gate is well defined and satisfies, at every nonterminal
+stage,
+\begin{equation}
+ x^{(j)}_{U_j}>0,
+ \qquad
+ 0\leq x^{(j)}\leq x^{(j+1)}\leq x^\star(\rho),
+ \qquad
+ U_j\subsetneq U_{j+1}\subseteq S^\star(\rho).
+ \label{eq:graph-gate-monotonicity}
+\end{equation}
+It terminates with $U_J=S^\star(\rho)$ and
+$x^{(J)}=x^\star(\rho)$ after at most $|S^\star(\rho)|$ nonempty batches.
+Writing $J_\star$ for the actual number of nonempty batches, supplied
+width-$w$ orderings for the intermediate regions give the sharper
+trajectory-dependent bound
+\begin{equation}
+ \Work_{\rm graph\text{-}gate}
+ =O\!\left(
+  (w+1)^2(J_\star+1)\vol(S^\star(\rho))
+ \right).
+ \label{eq:graph-gate-batch-work}
+\end{equation}
+If every $G[U_j]$ is a forest, fresh elimination and one boundary scan at each
+stage give
+\begin{equation}
+ \Work_{\rm graph\text{-}gate}
+ =O\!\left(
+  |S^\star(\rho)|\vol(S^\star(\rho))
+ \right)
+ =O(1/\rho^2).
+ \label{eq:graph-gate-work}
+\end{equation}
+More generally, supplied width-$w$ orderings for the intermediate regions give
+$O((w+1)^2/\rho^2)$ work.  No exact support, radius, or confinement oracle is
+assumed; the width ordering is needed only for this arithmetic bound, not for
+correctness or discovery.
+\end{theorem}
+
+\begin{proof}
+If $c_{\rho,o}\leq0$, then $x=0$ satisfies every shifted KKT inequality:
+the root inequality is the assumed one and every nonseed shifted demand is
+strictly negative.  Hence the early return is exact.  When
+$c_{\rho,o}>0$, the singleton solution is
+$x_o^{(0)}=c_{\rho,o}/Q_{oo}>0$.  Moreover, the active equation of the full
+solution gives
+\[
+ Q_{oo}x_o^\star
+ =c_{\rho,o}-Q_{o,S^\star\setminus\{o\}}x_{S^\star\setminus\{o\}}^\star
+ \geq c_{\rho,o},
+\]
+so $x^{(0)}\leq x^\star$.
+
+Suppose inductively that $U_j\subseteq S^\star$,
+$x^{(j)}_{U_j}>0$, and $0\leq x^{(j)}\leq x^\star$.  If
+$v\notin S^\star$, then $x_v^\star=0$ and the
+off-diagonal signs give
+\begin{equation}
+ \kappa_{\rho,v}(x^{(j)})
+ \geq\kappa_{\rho,v}(x^\star)\geq0,
+ \qquad
+ \kappa_\rho(x):=Qx-b+\alpha\rho D^{1/2}\one.
+ \label{eq:tree-safe-admission}
+\end{equation}
+The inequality in \cref{eq:exact-tree-gate-batch} is equivalent to
+$\kappa_{\rho,v}(x^{(j)})<0$.  Hence every admitted vertex belongs to
+$S^\star$.
+
+Let $W=U_j\cup B_j$ and
+$h_B:=\kappa_{\rho,B_j}(x^{(j)})<0$.  Eliminating the old block gives the
+Schur-complement correction
+\begin{equation}
+ \Delta_B=-\mathcal S_B^{-1}h_B>0,
+ \qquad
+ \Delta_U=-Q_{UU}^{-1}Q_{UB}\Delta_B\geq0,
+ \label{eq:tree-positive-expansion}
+\end{equation}
+because $\mathcal S_B$ is a principal Schur complement and hence a Stieltjes
+matrix with nonnegative inverse.  Thus the enlarged shifted Dirichlet solution
+is positive and no smaller than the previous one.  Comparison with the full
+solution gives $x^{(j+1)}\leq x^\star$, closing the induction.
+
+Every nonterminal batch is nonempty and lies in the finite set $S^\star$, so
+there are at most $|S^\star|$ batches.  At termination, the active equations
+hold on $U_J$, the boundary KKT inequalities hold by the empty-batch test, and
+every boundary residual is also nonnegative because
+$r_v=-Q_{vU_J}x_{U_J}\geq0$.  All more distant nonseed residuals vanish.  The
+shifted Dirichlet certificate
+\cref{thm:shifted-dirichlet} gives $x^{(J)}=x^\star$, so positivity implies
+$U_J=S^\star$.
+
+At stage $j$, \cref{thm:forest-resolution} computes the forest solve and
+boundary residual in $O(\vol(U_j))$ work.  With width-$w$ orderings, use
+\cref{thm:width-resolution} instead.  Sum over at most $|S^\star|$ stages and
+use $U_j\subseteq S^\star$, then
+$|S^\star|\leq\vol(S^\star)\leq1/\rho$.
+\end{proof}
+
+\begin{theorem}[Proximal domination and margin-sensitive gate bound]
+\label{thm:gate-objective-contraction}
+On the nonnegative orthant define the shifted obstacle objective and its unit
+proximal-gradient map by
+\begin{align}
+ \Phi_\rho(x)
+ &:=\frac12x^\top Qx-c_\rho^\top x
+    +\operatorname{ind}_{\mathbb R_+^V}(x),
+ &T_\rho(x)&:=[x-Qx+c_\rho]_+.
+ \label{eq:shifted-obstacle-objective}
+\end{align}
+Here $\operatorname{ind}_{\mathbb R_+^V}$ is zero on the nonnegative orthant
+and $+\infty$ outside it.
+At every nonterminal exact-gate stage,
+\begin{equation}
+ \Phi_\rho(x^{(j+1)})
+ \leq \Phi_\rho(T_\rho(x^{(j)}))
+ \leq
+ (1-\alpha)\Phi_\rho(x^{(j)})
+ +\alpha\Phi_\rho(x^\star).
+ \label{eq:gate-objective-contraction}
+\end{equation}
+Thus, with
+$\Delta_j:=\Phi_\rho(x^{(j)})-\Phi_\rho(x^\star)$,
+\begin{equation}
+ \Delta_j\leq(1-\alpha)^j\Delta_0,
+ \qquad
+ \Delta_0\leq\frac{\alpha}{2d_o}.
+ \label{eq:gate-gap-geometric}
+\end{equation}
+If $S^\star\neq\{o\}$ and
+\begin{equation}
+ \delta_\star:=\min_{v\in S^\star}x_v^\star>0,
+ \label{eq:active-coordinate-margin}
+\end{equation}
+then the number of nonempty batches also obeys
+\begin{align}
+ J_\star
+ &\leq
+ \min\left\{
+ |S^\star|-1,
+ 1+\left\lceil
+ \frac{
+  \max\left\{0,\log\!\left(2\Delta_0/(\alpha\delta_\star^2)\right)\right\}}
+ {-\log(1-\alpha)}
+ \right\rceil
+ \right\}
+ \notag\\
+ &\leq
+ \min\left\{
+ |S^\star|-1,
+ 2+\frac{1}{\alpha}
+ \max\left\{0,\log\!\frac{1}{d_o\delta_\star^2}\right\}
+ \right\}.
+ \label{eq:gate-margin-batch-bound}
+\end{align}
+In particular, the first quantity in \cref{eq:gate-margin-batch-bound} may
+replace $J_\star$ in \cref{eq:graph-gate-batch-work}.  This is an
+unconditional instance bound: $\delta_\star$ is measured from the unique
+optimum, not assumed by the algorithm.
+\end{theorem}
+
+\begin{proof}
+The active equations give
+$T_\rho(x^{(j)})_{U_j}=x^{(j)}_{U_j}$.  Outside $U_j$, a coordinate of the
+proximal point is positive exactly when its shifted KKT slack is negative.
+A nonboundary nonseed coordinate has no edge to $U_j$ and has strictly
+negative shifted demand, so it remains zero.  Consequently
+\begin{equation*}
+ \supp(T_\rho(x^{(j)}))\subseteq U_j\cup B_j.
+\end{equation*}
+The next gate point is the exact minimizer of $\Phi_\rho$ on that enlarged
+coordinate subspace, proving the first inequality in
+\cref{eq:gate-objective-contraction}.
+
+For the second, put $x=x^{(j)}$, $p=T_\rho(x)$, and
+$z=(1-\alpha)x+\alpha x^\star$.  The proximal optimality inequality and the
+unit smoothness of the quadratic give
+\begin{equation*}
+ \Phi_\rho(p)
+ \leq
+ \frac12x^\top Qx-c_\rho^\top x
+ +\operatorname{ind}_{\mathbb R_+^V}(z)
+ +\langle Qx-c_\rho,z-x\rangle
+ +\frac12\|z-x\|_2^2.
+\end{equation*}
+The orthant indicator is convex.  Applying $\alpha$-strong convexity of the
+quadratic between $x$ and $x^\star$ cancels the final
+$\alpha^2\|x-x^\star\|_2^2/2$ term and yields the convex combination on the
+right side of \cref{eq:gate-objective-contraction}.  Iteration proves the
+first part of \cref{eq:gate-gap-geometric}.  Since the singleton gate point
+minimizes over a set containing zero, its initial gap is no larger than the
+standard single-seed zero-start bound $\alpha/(2d_o)$.
+
+If the gate has not terminated, some $v\in S^\star\setminus U_j$ has
+$x_v^{(j)}=0$ and $x_v^\star\geq\delta_\star$.  Strong convexity therefore
+gives
+\begin{equation*}
+ \Delta_j\geq\frac{\alpha}{2}
+ \|x^{(j)}-x^\star\|_2^2
+ \geq\frac{\alpha\delta_\star^2}{2}.
+\end{equation*}
+Combining this lower bound with \cref{eq:gate-gap-geometric} proves the first
+margin estimate, with one extra batch covering equality.  Finally use
+$-\log(1-\alpha)\geq\alpha$ and the initial-gap estimate.  The support-count
+bound improves by one because $o\in U_0\subseteq S^\star$.
+\end{proof}
+
+\begin{proposition}[A three-path rules out uniform accelerated gap decay]
+\label{prop:three-path-gap-obstruction}
+No constant $c>0$ can make
+\begin{equation}
+ \Delta_{j+1}\leq(1-c\sqrt\alpha)\Delta_j
+ \label{eq:false-accelerated-gate-gap}
+\end{equation}
+hold for every exact-gate batch on every single-seed RPPR instance.  Indeed,
+on the path $o-u-v$, for all sufficiently small $\rho>0$ the gate visits
+$\{o\}$, $\{o,u\}$, and $\{o,u,v\}$, and
+\begin{equation}
+ \lim_{\rho\downarrow0}\frac{\Delta_1}{\Delta_0}
+ =\frac{(1-\alpha)^2}{1+6\alpha+\alpha^2}
+ =1-8\alpha+O(\alpha^2).
+ \label{eq:three-path-gap-ratio}
+\end{equation}
+This obstruction concerns a contraction proof, not the batch-count
+conjecture: the displayed instance terminates after two nonempty batches.
+\end{proposition}
+
+\begin{proof}
+At $\rho=0$, write
+$a=(1+\alpha)/2$ and $q=(1-\alpha)/(2\sqrt2)$.  In the order $(o,u,v)$,
+the matrix has diagonal $a$ and path off-diagonal $-q$, while the demand is
+supported at $o$.  A restricted quadratic minimum on the first $k$
+coordinates has value
+$-\alpha^2(Q_{1:k,1:k}^{-1})_{oo}/2$.  Direct tridiagonal inversion gives
+\begin{align*}
+ (Q_{1:1,1:1}^{-1})_{oo}&=\frac1a,\\
+ (Q_{1:2,1:2}^{-1})_{oo}&=\frac{a}{a^2-q^2},\\
+ (Q^{-1})_{oo}&=\frac{a^2-q^2}{a(a^2-2q^2)}.
+\end{align*}
+Subtracting successive restricted values gives
+$\Delta_1/\Delta_0=q^2/(a^2-q^2)$, which simplifies to the rational
+expression in \cref{eq:three-path-gap-ratio}.  The strict gate inequalities,
+the active-set sequence, and the ratio persist by continuity for all
+sufficiently small positive $\rho$.  Since
+$1-8\alpha+O(\alpha^2)>1-c\sqrt\alpha$ for sufficiently small $\alpha$,
+\cref{eq:false-accelerated-gate-gap} cannot hold uniformly.
+\end{proof}
+
+\begin{corollary}[Thin-support product bound]
+\label{cor:radial-width-gate}
+For a nonzero single-seed problem, define the active radial width
+\begin{equation}
+ \chi_\star
+ :=\max_{0\leq\ell\leq R_\star}
+ \left|
+  S^\star(\rho)\cap
+  \{v:\operatorname{dist}(o,v)=\ell\}
+ \right|.
+ \label{eq:active-radial-width}
+\end{equation}
+Under supplied width-$w$ orderings for the intermediate regions, the exact
+boundary gate is condition-free and obeys
+\begin{align}
+ \Work_{\rm radial\text{-}gate}
+ &\leq
+ O\!\left(
+  (w+1)^2\chi_\star(R_\star+1)
+  \vol(S^\star(\rho))
+ \right)
+ \notag\\
+ &=\widetilde O\!\left(
+  \frac{(w+1)^2\chi_\star}{\rho\sqrt\alpha}
+ \right).
+ \label{eq:radial-width-gate-work}
+\end{align}
+Consequently, arbitrarily long cycles and fixed-width cyclic strips meet the
+product scale even though their biconnected blocks need not have bounded
+size.  On a cycle, \cref{thm:cycle-one-pass} gives the stronger
+output-linear bound without a supplied ordering.
+\end{corollary}
+
+\begin{proof}
+Every nonempty batch admits at least one new true-support vertex, so
+\begin{equation*}
+ J_\star+1
+ \leq |S^\star(\rho)|
+ \leq \chi_\star(R_\star+1).
+\end{equation*}
+Insert this in \cref{eq:graph-gate-batch-work}, then use
+$\vol(S^\star)\leq1/\rho$ and the graph-universal radius estimate
+\cref{lem:graph-support-radius}.  A cycle has width at most two and at most
+two vertices per root-distance shell.  A fixed-width strip has uniformly
+bounded elimination width and shell cardinality under its natural layered
+ordering.
+\end{proof}

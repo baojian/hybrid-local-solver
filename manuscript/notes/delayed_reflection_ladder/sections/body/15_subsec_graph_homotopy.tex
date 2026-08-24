@@ -1,0 +1,395 @@
+\subsection{A graph-universal scalar homotopy and bounded cyclic blocks}
+\label{subsec:graph-homotopy}
+
+Let $\bar o:=V\setminus\{o\}$,
+$H:=Q_{\bar o\bar o}$, and
+$a:=-Q_{\bar o,o}\geq0$.  Fixing the root coordinate at $t\geq0$ gives the
+conditional obstacle problem
+\begin{equation}
+ z(t)
+ :=\argmin_{z\in\mathbb R_+^{\bar o}}
+ \left\{
+  \frac12z^\top Hz-(c_{\rho,\bar o}+at)^\top z
+ \right\},
+ \qquad
+ \mu(t):=a^\top z(t).
+ \label{eq:graph-conditional-response}
+\end{equation}
+
+\begin{theorem}[Graph-universal scalar active-set homotopy]
+\label{thm:graph-scalar-homotopy}
+For every finite graph with one seed:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item $z(t)$ is continuous and coordinatewise nondecreasing; its supports
+ are nested and change at most $n-1$ times.
+ \item On an interval with active set $A\subseteq\bar o$,
+ \begin{align}
+  z_A(t)&=H_{AA}^{-1}(c_{\rho,A}+a_At),
+  \label{eq:graph-homotopy-affine}\\
+  \mu'(t)&=a_A^\top H_{AA}^{-1}a_A,
+  \label{eq:graph-homotopy-response-slope}\\
+  G'(t)&=Q_{oo}-a_A^\top H_{AA}^{-1}a_A\geq\alpha,
+  \qquad
+  G(t):=Q_{oo}t-c_{\rho,o}-\mu(t).
+  \label{eq:graph-root-schur-slope}
+ \end{align}
+ \item If $c_{\rho,o}>0$, the root value of $x^\star(\rho)$ is the unique
+ zero of $G$.  Walking the affine pieces of $G$ discovers the exact support
+ without a support oracle.  If $c_{\rho,o}\leq0$, the optimum is zero.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Strong convexity gives uniqueness and continuity.  Increasing $t$ increases
+the demand by the nonnegative vector $a(t_2-t_1)$, so Stieltjes obstacle
+comparison gives $z(t_2)\geq z(t_1)$.  Thus supports are nested and each
+change activates at least one new vertex.  On a fixed support, the active KKT
+equalities give \cref{eq:graph-homotopy-affine} and differentiation gives
+\cref{eq:graph-homotopy-response-slope}.  The final expression in
+\cref{eq:graph-root-schur-slope} is the Schur complement of $H_{AA}$ in the
+principal matrix on $A\cup\{o\}$.  Since that matrix is bounded below by
+$\alpha I$, its scalar Schur complement is at least $\alpha$.
+
+For completeness, the next event is locally explicit.  At an inactive
+coordinate $v$, define its obstacle slack
+\begin{equation}
+ g_v(t)
+ :=H_{vA}H_{AA}^{-1}(c_{\rho,A}+a_At)
+   -c_{\rho,v}-a_vt.
+ \label{eq:graph-homotopy-slack}
+\end{equation}
+Its slope is nonpositive because $H_{vA}\leq0$,
+$H_{AA}^{-1}a_A\geq0$, and $a_v\geq0$.  Only a graph-boundary vertex can
+have negative slope.  Starting from $A=\emptyset$ at $t=0$, take the smallest
+future zero of the affine slacks and add every tied coordinate.  Between two
+such events, $G$ is affine.  If its affine zero occurs no later than the next
+event, stop; otherwise consume the event and continue.  Strictly negative
+nonseed demands prevent a nonboundary coordinate from appearing in the same
+event without first becoming exposed.  Hence the walk is adjacency-local and
+consumes precisely the labels positive at the final root value.  The active
+root equation is $G(t)=0$, and \cref{eq:graph-root-schur-slope} makes its zero
+unique.  When $c_{\rho,o}\leq0$, zero satisfies all shifted KKT inequalities.
+\end{proof}
+
+\begin{lemma}[One-event Schur update]
+\label{lem:one-event-schur-update}
+Suppose the homotopy has active set $A$ immediately before an untied event
+$k\notin A$ at $t=\tau$.  Put
+\begin{equation}
+ M:=H_{AA},
+ \qquad h:=H_{Ak},
+ \qquad r:=M^{-1}h\leq0,
+ \qquad \sigma:=H_{kk}-h^\top M^{-1}h>0.
+ \label{eq:event-schur-data}
+\end{equation}
+On the next affine piece,
+\begin{align}
+ z_k^+(t)&=-\frac{g_k(t)}{\sigma},
+ &z_A^+(t)&=z_A(t)-r z_k^+(t),
+ \label{eq:event-primal-update}\\
+ g_v^+(t)&=g_v(t)+s_{vk}z_k^+(t),
+ &s_{vk}&:=H_{vk}-H_{vA}M^{-1}H_{Ak}\leq0
+ \qquad(v\notin A\cup\{k\}).
+ \label{eq:event-slack-update}
+\end{align}
+In particular, since $g_k(\tau)=0$ and $g_k'(t)<0$ at a genuine untied
+crossing, every remaining slack slope can only become more negative.  Thus
+one activation changes all future event keys through one column of a Schur
+complement.  A tied event has the identical block-Schur formula.
+\end{lemma}
+
+\begin{proof}
+The old active equations are $Mz_A=d_A(t)$.  After adjoining $k$, eliminate
+the old coordinates from
+\begin{equation*}
+ \begin{bmatrix}M&h\\h^\top&H_{kk}\end{bmatrix}
+ \begin{bmatrix}z_A^+\\z_k^+\end{bmatrix}
+ =\begin{bmatrix}d_A(t)\\d_k(t)\end{bmatrix}.
+\end{equation*}
+The first block row gives $z_A^+=z_A-rz_k^+$; substitution into the second
+gives $\sigma z_k^+=-g_k(t)$.  Insert this expression in the definition of
+an inactive slack to obtain \cref{eq:event-slack-update}.  Principal Schur
+complements of a Stieltjes matrix are again Stieltjes, so
+$\sigma>0$, $r\leq0$, and $s_{vk}\leq0$ for $v\ne k$.  The slope claim
+follows from $z_k^+(t)=-g_k'(t)(t-\tau)/\sigma$.
+\end{proof}
+
+\begin{lemma}[Exact tied-batch Schur update]
+\label{lem:block-event-schur-update}
+Let $A$ be the current active set and let a nonempty block
+$B\subseteq\bar o\setminus A$ join on the next homotopy piece.  Write
+\begin{equation}
+ M:=H_{AA},
+ \qquad E:=H_{AB},
+ \qquad
+ \mathcal S_B:=H_{BB}-E^\top M^{-1}E,
+ \label{eq:block-event-schur-data}
+\end{equation}
+and let
+$g_B(t):=H_{BA}z_A(t)-d_B(t)$, where
+$d(t):=c_{\rho,\bar o}+at$.  Then the new affine solution satisfies
+\begin{align}
+ z_B^+(t)&=-\mathcal S_B^{-1}g_B(t),
+ &z_A^+(t)&=z_A(t)-M^{-1}Ez_B^+(t),
+ \label{eq:block-event-primal-update}\\
+ g_C^+(t)&=g_C(t)+\mathcal S_{CB}z_B^+(t),
+ &\mathcal S_{CB}&:=H_{CB}-H_{CA}M^{-1}E\leq0
+ \label{eq:block-event-slack-update}
+\end{align}
+for every remaining inactive block
+$C\subseteq\bar o\setminus(A\cup B)$.  Moreover,
+$\mathcal S_B$ is Stieltjes, $\mathcal S_B^{-1}\geq0$, and
+$-M^{-1}E\geq0$.  The same identities hold for an exact boundary-gate batch
+after replacing $H$ by $Q$ and $g_B$ by the current shifted KKT slack.
+\end{lemma}
+
+\begin{proof}
+The enlarged active equations are
+\begin{equation*}
+ \begin{bmatrix}M&E\\E^\top&H_{BB}\end{bmatrix}
+ \begin{bmatrix}z_A^+\\z_B^+\end{bmatrix}
+ =\begin{bmatrix}d_A(t)\\d_B(t)\end{bmatrix}.
+\end{equation*}
+Eliminating the old coordinates gives
+$\mathcal S_Bz_B^+=d_B-H_{BA}z_A=-g_B$ and then the second formula in
+\cref{eq:block-event-primal-update}.  Substitution in the definition of the
+remaining inactive slacks gives
+\cref{eq:block-event-slack-update}.  Principal Schur complements of a
+Stieltjes matrix are Stieltjes, and inverse positivity gives all displayed
+signs.  The gate statement is the identical block elimination applied to
+$Q_{A\cup B,A\cup B}$.
+\end{proof}
+
+The theorem removes cyclic ambiguity at the level of correctness: there is
+still one ordered stream of activation events.  A literal implementation,
+however, refactors the current principal system and refreshes every boundary
+slack after each event, which can cost quadratic output work.
+\Cref{lem:one-event-schur-update} shows exactly what must be compressed: a
+kinetic minimum under successive signed Schur-column or block-column updates;
+\cref{lem:block-event-schur-update} shows that simultaneous crossings require
+no additional algebra.  Trees avoid
+that refresh through scalar child independence.  The same mechanism extends
+to cyclic graphs whose articulation blocks have bounded size.
+
+Count every bridge as a two-vertex block.  Suppose the block-cut
+decomposition is exposed with the adjacency oracle, and every biconnected
+block contains at most $q$ vertices.  This representation identifies blocks
+but supplies neither the RPPR support nor its radius.
+
+\begin{theorem}[Condition-free product bound for bounded cyclic blocks]
+\label{thm:bounded-block-response}
+Under the preceding block-incidence representation, exact single-seed RPPR
+can be solved using
+\begin{align}
+ \Work_{\rm block}
+ &=O\!\left(
+  q^3\log(1+\Delta)
+  \left[
+   \vol(S^\star)
+   +\sum_{v\in S^\star}\operatorname{dist}(o,v)
+  \right]
+ \right)\notag\\
+ &=\widetilde O\!\left(
+  \frac{q^3}{\rho\sqrt\alpha}
+ \right)
+ \label{eq:bounded-block-work}
+\end{align}
+degree work and $O(q\vol(S^\star))$ storage, without a support, radius, or
+confinement oracle.  Thus every fixed-$q$ block graph, including graphs formed
+from trees by gluing bounded-size cyclic gadgets at articulation vertices,
+meets the intended product scale.
+\end{theorem}
+
+\begin{proof}
+Root the block-cut tree at $o$.  A descendant block $K$ meets its parent side
+in one articulation $p$, so after fixing $x_p=t$ the entire block-descendant
+region sends a scalar response to $p$.  Its first event is obtained by scanning
+the at most $q$ vertices of $K$ adjacent to $p$; no descendant block of an
+inactive articulation can activate first.
+
+Maintain one lazy iterator per exposed block.  On a fixed collection of child
+response pieces and a fixed active subset of $K$, the at most $q-1$ internal
+coordinates solve one affine linear system in $t$.  The next event is either
+an inactive internal KKT slack reaching zero or an active articulation value
+reaching the next breakpoint of one of its child-block responses.  Both are
+zeros of known affine functions.  Refactor the local system and refresh its
+event heap in $O(q^3\log(1+\Delta))$ work.  Stieltjes comparison and
+\cref{thm:graph-scalar-homotopy} guarantee that coordinates never deactivate
+and that these are all possible events.
+
+When an event labeled by $v$ is consumed, advance it through each ancestor
+block on the block-cut path to the root.  Distinct consecutive blocks contain
+distinct articulation vertices joined by a nonempty graph path, so the number
+of traversed blocks is at most $1+\operatorname{dist}(o,v)$.  Exposing a block
+scans only a bounded-size incident gadget; summing these scans over active
+articulations and their inactive boundary blocks is
+$O(q\vol(S^\star))$.  The root iterator stops at the unique zero in
+\cref{thm:graph-scalar-homotopy}; its consumed labels are exactly
+$S^\star$.  One final width-$(q-1)$ block solve and boundary KKT scan recovers
+and certifies $x^\star$ within the displayed order.  Apply
+\cref{lem:graph-support-radius} and
+$\vol(S^\star)\leq1/\rho$ to obtain the second line of
+\cref{eq:bounded-block-work}.
+\end{proof}
+
+The preceding representation is convenient but not necessary.  The missing
+fact is again causal.  An inactive vertex contributes no off-diagonal term to
+an active equation.  Consequently a cycle can become relevant only at the
+event at which one of its previously inactive vertices has value zero.
+
+\begin{lemma}[Zero-prefix invariance under causal block merges]
+\label{lem:causal-block-zero-prefix}
+Run the root-conditioned homotopy of
+\cref{thm:graph-scalar-homotopy} using ordinary degree queries and adjacency
+scans, and scan a vertex only when it activates.  Let $A$ be the active set
+immediately before a homotopy event at parameter $t_0$, and let $B$ be its
+tied activation batch.  The exposed graph contains every cached edge with at
+least one scanned endpoint, including its zero-valued inactive boundary
+endpoint.  After scanning $B$, insert every newly revealed edge into this
+exposed graph.  Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every edge newly inserted into the exposed graph has at least one
+ endpoint in $B$;
+ \item the old solution $z_A(t_0)$, extended by $z_B(t_0)=0$, is the unique
+ solution of the enlarged active equations at $t_0$, while every other newly
+ exposed endpoint remains a valid zero boundary coordinate;
+ \item every response piece already consumed at a parameter below $t_0$
+ remains exact.  Only unconsumed lookaheads and future affine pieces belonging
+ to blocks changed by the insertion can become invalid.
+\end{enumerate}
+The same statements hold when several edges inside $B$ merge more than two
+current blocks at once.
+\end{lemma}
+
+\begin{proof}
+Every newly revealed edge is read from an adjacency list in $B$, proving
+(i); an edge with two previously scanned endpoints was already cached.  Before
+$t_0$ every coordinate in $B$ is zero.  Hence an incidence from $B$ to $A$,
+an incidence internal to $B$, and an incidence from $B$ to a future boundary
+vertex contribute zero to the old active equations.  At $t_0$ the
+KKT slack of every label in the tied batch is zero by definition.  Therefore
+the old equations on $A$ and the new equations on $B$ are all satisfied by
+$(z_A(t_0),0_B)$.  The enlarged principal matrix is positive definite, so
+this solution is unique, proving (ii).
+
+For every earlier parameter, the same zero-coordinate argument shows that
+the response seen by the old active variables is unchanged.  Continuity at
+$t_0$ gives a common checkpoint for the old and enlarged systems.  Refactoring
+from that checkpoint changes their derivatives and future breakpoints but
+not their common prefix, proving (iii).  Internal batch edges have two zero
+endpoints, so the proof is unchanged for a multiway merge.
+\end{proof}
+
+\begin{theorem}[Representation-free product bound for bounded cyclic blocks]
+\label{thm:causal-bounded-block-response}
+Suppose every biconnected block in the seed component has at most $q$
+vertices, with each bridge counted as a two-vertex block.  The block
+decomposition, block identifiers, root orientation, and $q$ itself need not
+be supplied.  With only ordinary degree queries and adjacency-list scans,
+exact single-seed RPPR can be solved in
+\begin{align}
+ \Work_{\rm causal\text{-}block}
+ &=O\!\left(
+   q^3\log\!\bigl(2+\Delta+\vol(S^\star)\bigr)
+   \sum_{v\in S^\star}
+    (1+d_v)\bigl(1+\operatorname{dist}(o,v)\bigr)
+  \right)\notag\\
+ &=\widetilde O\!\left(
+   \frac{q^3}{\rho\sqrt\alpha}
+  \right)
+ \label{eq:causal-bounded-block-work}
+\end{align}
+degree work and $O(q\vol(S^\star))$ storage, without a support, radius,
+confinement, or structural oracle.  In particular, the presentation
+condition in \cref{thm:bounded-block-response} can be removed without losing
+the intended product scale.
+\end{theorem}
+
+\begin{proof}
+Maintain the block--cut forest of the exposed graph: every scanned vertex,
+its inactive boundary labels, and every cached incidence are present, while
+unscanned boundary coordinates are fixed at zero.  This convention is
+important.  If one boundary label touches several active branches, its
+combined slack already belongs to one exposed block response rather than to a
+separate cross-branch demand array.  Adding a newly scanned adjacency list
+consists of leaf insertions and contractions of block--cut paths: inserting a
+cycle-closing edge merges precisely the blocks and articulations on the path
+between its endpoints.  For a tied batch, inserting all of its edges
+contracts the corresponding union of such paths.  Every current biconnected
+block is contained in a biconnected block of the full graph, so every
+contracted path or subtree that becomes one block contains at most $q$
+original vertices.  A rooted dynamic-forest path expose, followed by
+union--find contraction, therefore maintains the combinatorial block forest
+in
+\begin{equation}
+ O\!\left(q\log\bigl(2+\vol(S^\star)\bigr)\right)
+ \label{eq:causal-block-forest-update}
+\end{equation}
+work per inserted exposed incidence.  Processing all incidences of a tied
+batch before publishing its new block records avoids any dependence on their
+arbitrary scan order.
+
+Keep the lazy scalar block iterators of
+\cref{thm:bounded-block-response}, but make every response record checkpointed
+and versioned, with one current piece and one live lookahead.  At an
+articulation, its off-path child iterators remain
+behind one meldable-heap handle owned by the articulation rather than by its
+current parent block.  Thus a contraction does not enumerate or copy those
+child subtrees.  Blocks disjoint from the contracted subtree retain their
+iterators.  For every changed block, discard stale unconsumed heap records,
+checkpoint all incident child iterators at their current articulation values,
+and rebuild the at-most-$q$-variable affine system and its next-event heap.
+Dense refactorization and rekeying cost
+\begin{equation}
+ O\!\left(q^3\log\bigl(2+\Delta+\vol(S^\star)\bigr)\right)
+ \label{eq:causal-block-rebuild}
+\end{equation}
+per conservatively charged newly exposed incidence.  No past breakpoint list is
+replayed.  By \cref{lem:causal-block-zero-prefix}, the checkpoint and every
+consumed prefix are exact; the rebuilt iterator is the unique exact future
+continuation.  Induction over activation batches therefore proves exactness.
+
+Every admitted adjacency list is scanned once.  Charge its exposed-incidence
+insertions, stale versions, local rebuilds, and any conservative propagated
+rekey to the newly activated endpoint $v$.  A propagated version crosses at
+most $1+\operatorname{dist}(o,v)$ block nodes, just as in
+\cref{thm:bounded-block-response}.  Monotonicity labels every genuinely
+consumed response event by one support vertex, and equality remains inactive,
+so there are no additional unlabeled event chains.  Summing the per-incidence
+charge gives the first line of \cref{eq:causal-bounded-block-work}; final
+block-tree recovery and the cached boundary KKT scan fit in the same bound.
+Addressable handles replace invalidated ancestor keys in place, while a
+consumed prefix retains only its emitted labels and current checkpoints.
+Consequently current dense factors, articulation heaps, cached incidences,
+and version records use $O(q\vol(S^\star))$ storage.
+
+If the seed component is nontrivial, $1+d_v\leq2d_v$ for every support
+vertex.  Writing $R_\star:=\max_{v\in S^\star}\operatorname{dist}(o,v)$,
+\begin{equation*}
+ \sum_{v\in S^\star}(1+d_v)
+       \bigl(1+\operatorname{dist}(o,v)\bigr)
+ \leq2(1+R_\star)\vol(S^\star).
+\end{equation*}
+The isolated-seed case is constant work.  Now apply
+\cref{lem:graph-support-radius} and
+$\vol(S^\star)\leq1/\rho$ to obtain the second line of
+\cref{eq:causal-bounded-block-work}.  The algorithm uses realized block sizes
+only; $q$ is an analysis parameter, not advice.
+\end{proof}
+
+Large biconnected cores remain different, but block size alone is not the
+right obstruction.  \Cref{thm:cycle-one-pass} closes an arbitrarily long
+cycle in output-linear work, \cref{thm:equitable-shell-one-pass} closes
+arbitrarily thick root-distance-equitable shells in the same work,
+\cref{thm:hidden-equitable-tree-quotient} closes multiple thick cell types
+whenever an equitable tree quotient exists, without supplied cell labels, and
+\cref{cor:radial-width-gate} below closes every bounded-width core whose true
+support is thin across distance shells.  The open data-structure lemma is now
+more precise: in a core with neither a bounded-block decomposition, an
+equitable tree quotient, nor thin radial support, compress the scalar homotopy
+trace without refreshing all boundary slacks after every activation, or prove
+that the exact boundary gate realizes only
+$\widetilde O(1/\sqrt\alpha)$ batches.  The block update in
+\cref{lem:block-event-schur-update} is the exact algebraic interface for the
+first route; \cref{prop:three-path-gap-obstruction} below shows that the second
+route cannot follow from a uniform accelerated objective contraction.

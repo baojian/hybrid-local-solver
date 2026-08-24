@@ -1,0 +1,93 @@
+\subsection{One-pass exact discovery on an endpoint path}
+\label{subsec:path-schur-discovery}
+
+Let $P_N=(v_0,v_1,\ldots,v_N)$ be a path with seed $e_{v_0}$.  Write
+\begin{equation}
+ a_i:=Q_{v_iv_i}=\frac{1+\alpha}{2},
+ \qquad
+ \beta_i:=-Q_{v_i v_{i-1}}
+ =\frac{1-\alpha}{2\sqrt{d_{v_i}d_{v_{i-1}}}}>0
+ \quad(1\leq i\leq N),
+ \label{eq:path-schur-coefficients}
+\end{equation}
+and $c_i:=c_{\rho,v_i}$.  Define forward pivots and transformed demands by
+\begin{align}
+ \delta_0&:=a_0,
+ &\eta_0&:=c_0,
+ \notag\\
+ \delta_i&:=a_i-\frac{\beta_i^2}{\delta_{i-1}},
+ &\eta_i&:=c_i+\frac{\beta_i\eta_{i-1}}{\delta_{i-1}}
+ \quad(1\leq i\leq N).
+ \label{eq:path-forward-schur}
+\end{align}
+Every $\delta_i$ is positive because it is a pivot of a leading principal
+block of the positive definite tridiagonal matrix $Q$.
+
+\begin{theorem}[First nonpositive Schur demand is the exact free boundary]
+\label{thm:path-one-pass}
+If $\eta_0\leq0$, then $x^\star(\rho)=0$.  Otherwise let
+\begin{equation}
+ J:=
+ \begin{cases}
+  \min\{i-1:1\leq i\leq N,\ \eta_i\leq0\},
+    &\text{if this set is nonempty},\\
+  N,&\text{otherwise}.
+ \end{cases}
+ \label{eq:path-boundary-index}
+\end{equation}
+Then
+\begin{equation}
+ S^\star(\rho)=\{v_0,\ldots,v_J\}.
+ \label{eq:path-exact-support}
+\end{equation}
+The exact solution is recovered from
+\begin{align}
+ x_{v_J}^\star&=\frac{\eta_J}{\delta_J},
+ \notag\\
+ x_{v_i}^\star
+ &=\frac{\eta_i+\beta_{i+1}x_{v_{i+1}}^\star}{\delta_i}
+ \quad(i=J-1,\ldots,0),
+ \label{eq:path-back-substitution}
+\end{align}
+with zero values after $J$.  Discovery, solution, and the terminal KKT check
+cost $O(1+\vol(S^\star(\rho)))$ work and storage.
+\end{theorem}
+
+\begin{proof}
+If $\eta_0=c_0\leq0$, then at $x=0$ the seed residual satisfies
+$b_{v_0}\leq\alpha\rho\sqrt{d_{v_0}}$, while every nonseed residual is zero;
+the RPPR KKT conditions hold.
+
+Assume $\eta_0>0$.  Forward Gaussian elimination of the shifted Dirichlet
+system on a prefix ends at
+\begin{equation}
+ \delta_i x_{v_i}-\beta_{i+1}x_{v_{i+1}}=\eta_i.
+ \label{eq:path-eliminated-row}
+\end{equation}
+For $i\leq J$, the definition of $J$ gives $\eta_i>0$.  Therefore
+\cref{eq:path-back-substitution} is strictly positive and solves
+$Q_{SS}x_S=c_{\rho,S}$ on $S=\{v_0,\ldots,v_J\}$.
+
+If $J<N$, the residual at the only outside boundary vertex is
+\begin{equation}
+ r_{v_{J+1}}=\beta_{J+1}x_{v_J}^\star.
+ \label{eq:path-frontier-residual}
+\end{equation}
+Eliminating the prefix through $J$ shows
+\begin{equation}
+ \eta_{J+1}
+ =c_{J+1}+\beta_{J+1}\frac{\eta_J}{\delta_J}
+ =r_{v_{J+1}}-\alpha\rho\sqrt{d_{v_{J+1}}}.
+ \label{eq:path-message-is-kkt}
+\end{equation}
+Thus the stopping test $\eta_{J+1}\leq0$ is exactly the boundary KKT upper
+bound.  All more distant residuals are zero.  Apply
+\cref{thm:shifted-dirichlet}; the full-support case has no outside boundary.
+The forward pass touches every discovered path edge once, and the reverse
+pass does the same.  Path degrees are at most two, proving the work bound.
+\end{proof}
+
+The theorem is stronger than continuation on this family: it solves the
+\emph{final} regularization problem directly, without visiting the
+intermediate $\rho_k$ values.  The scalar $\eta_i$ is precisely the causal
+message that repeated row pushes fail to preserve.

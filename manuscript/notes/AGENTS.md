@@ -12,7 +12,7 @@ Every direction agent reads, in order:
 2. [`_shared/related_work/README.md`](_shared/related_work/README.md);
 3. [`_shared/results/README.md`](_shared/results/README.md);
 4. [`_shared/coordination/BROADCAST.md`](_shared/coordination/BROADCAST.md);
-5. the target direction's `README.md`, `STATUS.md`, taxonomy entry, and relevant
+5. the target direction's `README.md`, `STATUS.md`, registry entry, and relevant
    parts of `main.tex`;
 6. the required project context and literature files named by the root
    `AGENTS.md`.
@@ -24,8 +24,8 @@ paper or proof file.
 
 - A **direction agent** owns one named note directory for one task. It may edit
   that directory only unless the controller explicitly expands the scope.
-- The **controller agent** owns `_shared/`, the root note index, the manifest,
-  the taxonomy, and cross-direction synchronization.
+- The **controller agent** owns `_shared/`, the root note index, the registry,
+  and cross-direction synchronization.
 - Do not rename, merge, split, or delete a direction while other work is
   present. Propose such changes to the controller instead.
 - Inspect the working tree before editing. Preserve unrelated or concurrent
@@ -33,12 +33,12 @@ paper or proof file.
 - Cross-reference another direction; do not copy its proof into the local
   note. A dependency is not a proved local lemma until its exact assumptions
   have been checked.
-- Treat `taxonomy.toml`'s `depends_on` array as the **formal proof/import
+- Treat `registry.toml`'s `depends_on` array as the **formal proof/import
   graph**: add an edge only when the consuming direction invokes a result from
   the provider as part of a claim or construction.  Empirical ancestry,
   motivating siblings, comparison baselines, and companion notes belong in
   `STATUS.md` under a separate **Context/provenance** label; they are not
-  missing taxonomy edges and must not be added when doing so would merely
+  missing registry edges and must not be added when doing so would merely
   encode narrative history or create a provenance cycle.
 
 ## Independent-direction contract
@@ -50,7 +50,7 @@ is the operational handoff and must state:
 - the exact question, model, accuracy namespace, and charged work;
 - source, proved, conditional, measured, open, and refuted claims separately;
 - the central blocker and the next falsifiable target;
-- formal taxonomy dependencies, context/provenance, and reusable outputs;
+- formal registry dependencies, context/provenance, and reusable outputs;
 - where a new agent should resume and which checks were last run.
 
 `STATUS.md` is a navigation aid, not proof authority. `main.tex` and cited

@@ -1,0 +1,58 @@
+\subsection{Removing simultaneous branches by geometric restart}
+
+If independent branch states are unavailable but the instance can be reset
+to its common initial state, a universal geometric schedule retains a
+constant-factor guarantee.  It uses one live solver state at a time.
+
+\begin{algorithm}[H]
+\caption{Single-live-state restart portfolio}
+\begin{algorithmic}[1]
+\REQUIRE policies $P_1,\ldots,P_K$; base charged-work quantum $B_0>0$
+\STATE test the terminal certificate at the common initial state
+\FOR{$k=0,1,2,\ldots$}
+  \FOR{$j=1,\ldots,K$}
+    \STATE reset to the common initial state
+    \STATE run $P_j$ for charged-work budget $2^kB_0$
+    \IF{$P_j$ certifies within the budget}
+      \RETURN its certified iterate
+    \ENDIF
+  \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Best-of-policy guarantee with one live state]
+\label{thm:restart-portfolio}
+Assume charged work can be paused at the declared budget and every policy is
+deterministic from the common initial state.  Let
+$C_\star:=\min_j C_j(I)$.  The restart portfolio returns a certified solution
+using one live policy state and total work
+\begin{equation}
+ C_{\rm restart}(I)<4K\max\{C_\star,B_0\}
+ \leq4K(C_\star+B_0).
+ \label{eq:restart-bound}
+\end{equation}
+With indivisible chunks, the same proof holds after adding the maximum
+per-trial budget overshoot to $B_0$.
+\end{theorem}
+
+\begin{proof}
+Let $k_\star$ be the first epoch with
+$2^{k_\star}B_0\geq C_\star$.
+A best policy certifies during that epoch.  Bounding every attempted policy
+in every epoch by its full budget gives
+\[
+ C_{\rm restart}(I)
+ \leq K\sum_{k=0}^{k_\star}2^kB_0
+ <2K\,2^{k_\star}B_0.
+\]
+If $k_\star=0$, the last quantity is $2KB_0$.  Otherwise minimality gives
+$2^{k_\star}B_0<2C_\star$.  Both cases imply
+\eqref{eq:restart-bound}.
+\end{proof}
+
+This theorem removes simultaneous branching and all distributional
+assumptions, at the price of recomputing prefixes.  It does require a true
+reset.  A service exposing one irreversible mutable state, with neither
+checkpointing nor reset, still needs a switch amortization proving that early
+work under a losing mode is useful to the eventual winner.

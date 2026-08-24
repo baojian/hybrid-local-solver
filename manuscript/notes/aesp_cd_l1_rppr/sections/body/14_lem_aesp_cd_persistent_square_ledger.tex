@@ -1,0 +1,590 @@
+\subsection{Round-026 persistent-row energy banks and a reachable pulse}
+
+The finite residual terms in the collapse do not disappear coordinatewise.
+On a row that stays active, however, they are already part of the exact
+fixed-row residual $Qe_t$.  This gives a windowed square budget without
+comparing a finite trajectory to an exact one.
+
+\begin{lemma}[Persistent finite controllers have a windowed square-energy budget]
+\label{lem:aesp-cd-persistent-square-ledger}
+Consider the actual finite recurrence of
+\cref{lem:aesp-cd-finite-inner-identities}.  For $t\geq2$, retain the sets
+$P_t$, the vectors $g_t$, and the quantities $G_t^{\mathrm{ent}}$ and
+$G_t^{\mathrm{per}}$ from
+\cref{lem:aesp-cd-support-entry-shield}, and put
+\begin{equation*}
+ e_t:=x^\star-x_t,
+ \qquad u_t:=Qe_t,
+ \qquad \mathfrak E_t^Q:=\langle e_t,Qe_t\rangle.
+\end{equation*}
+Then, on the persistent rows,
+\begin{equation}
+ g_{t,P_t}
+ =\bigl[\beta_{\mathrm A}u_{t-1,P_t}
+        -(1+\beta_{\mathrm A})u_{t,P_t}\bigr]_+
+ \leq\beta_{\mathrm A}[Qd_t]_{+,P_t}.
+ \label{eq:aesp-cd-persistent-driver-bound}
+\end{equation}
+In particular, for every integer window $2\leq k\leq \ell$,
+\begin{align}
+ \sum_{t=k}^{\ell}G_t^{\mathrm{per}}
+ &\leq
+ \frac{\beta_{\mathrm A}(1+\alpha)}2
+ \mathfrak m(x_\ell-x_{k-1})
+ \leq\frac{\beta_{\mathrm A}(1+\alpha)}2,
+ \label{eq:aesp-cd-persistent-l1-window}\\
+ \sum_{t=k}^{\ell}(G_t^{\mathrm{per}})^2
+ &\leq\beta_{\mathrm A}^2
+ \bigl(\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q\bigr).
+ \label{eq:aesp-cd-persistent-square-window}
+\end{align}
+Let
+\begin{equation*}
+ \mathcal T_{\mathrm{per}}[k,\ell]
+ :=\{t\in\{k,\ldots,\ell\}:
+       G_t^{\mathrm{per}}\geq G_t^{\mathrm{ent}}\}.
+\end{equation*}
+The tie is deliberately assigned to the persistent class.  On this class,
+$\alpha\Delta_t=G_t^{\mathrm{per}}$, and hence
+\begin{equation}
+ \alpha^2\sum_{t\in\mathcal T_{\mathrm{per}}[k,\ell]}
+       \Delta_t^2
+ \leq\beta_{\mathrm A}^2
+       \bigl(\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q\bigr)
+ \leq\beta_{\mathrm A}^2.
+ \label{eq:aesp-cd-persistent-delta-square-window}
+\end{equation}
+All statements are for the realized finite states and retain both end
+residuals in the collapse.  They require neither an exact-solve shadow
+trajectory nor the C2-plus-absolute stop.
+\end{lemma}
+
+\begin{proof}
+If $i\in P_t$, both $x_{t-1,i}$ and $x_{t,i}$ are positive.  The active-row
+identity in \cref{lem:aesp-cd-finite-inner-identities} and complementarity
+therefore give
+\begin{equation*}
+ u_{t,i}=\kappa_{\mathrm A}s_{t,i}+a_{t,i},
+ \qquad
+ u_{t-1,i}=\kappa_{\mathrm A}s_{t-1,i}+a_{t-1,i},
+ \qquad
+ \lambda_{t-1,i}=0.
+\end{equation*}
+Substitution into the exact finite collapse identity proves the equality in
+\cref{eq:aesp-cd-persistent-driver-bound}.  Since $u_{t,i}\geq0$,
+\begin{equation*}
+ [\beta_{\mathrm A}u_{t-1,i}
+   -(1+\beta_{\mathrm A})u_{t,i}]_+
+ \leq\beta_{\mathrm A}[u_{t-1,i}-u_{t,i}]_+
+ =\beta_{\mathrm A}[Qd_t]_i{}_+,
+\end{equation*}
+which proves the inequality.
+
+The shared matrix has constant diagonal
+$Q_{ii}=(1+\alpha)/2$ and nonpositive off-diagonal entries.  Because
+$d_t\geq0$, one has
+$[Qd_t]_{i,+}\leq(1+\alpha)d_{t,i}/2$.  The graph has no isolates, so
+$d_i\geq1$ and
+\begin{equation*}
+ G_t^{\mathrm{per}}
+ \leq\frac{\beta_{\mathrm A}(1+\alpha)}2
+       \mathfrak m(d_t).
+\end{equation*}
+Summing and using
+$\sum_{t=k}^{\ell}d_t=x_\ell-x_{k-1}\leq x^\star$ and
+$\mathfrak m(x^\star)\leq1$ proves
+\cref{eq:aesp-cd-persistent-l1-window}.
+
+For the square estimate, $0\preceq Q\preceq I$ gives
+\begin{equation*}
+ \norm{g_{t,P_t}}_2^2
+ \leq\beta_{\mathrm A}^2\norm{Qd_t}_2^2
+ \leq\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle.
+\end{equation*}
+Moreover, $\supp(d_t)\subseteq A_t$ and the finite active-row identity gives
+$[Qe_t]_{A_t}=\kappa_{\mathrm A}s_{t,A_t}+a_{t,A_t}\geq0$.  Consequently,
+\begin{equation}
+ \mathfrak E_{t-1}^Q-\mathfrak E_t^Q
+ =2\langle d_t,Qe_t\rangle+\langle d_t,Qd_t\rangle
+ \geq\langle d_t,Qd_t\rangle.
+ \label{eq:aesp-cd-q-energy-drop}
+\end{equation}
+Since $G_t^{\mathrm{per}}\leq\norm{g_{t,P_t}}_2$, summation proves
+\cref{eq:aesp-cd-persistent-square-window}.  On the declared persistent
+class, \cref{eq:aesp-cd-entry-persistent-split} gives
+$\alpha\Delta_t=G_t^{\mathrm{per}}$.  The first inequality in
+\cref{eq:aesp-cd-persistent-delta-square-window} follows by restriction to a
+subset of the window.  Finally,
+$\mathfrak E_{k-1}^Q\leq\norm{e_{k-1}}_2^2\leq\norm{x^\star}_2^2\leq1$.
+\end{proof}
+
+The common cap itself is also compatible with Dirichlet energy.  This uses
+the boundary-aware normalized coordinate on which the cap is a scalar
+truncation, rather than an ambient Lipschitz estimate for the lower
+retraction.
+
+\begin{lemma}[The correction and surviving momentum contract $Q$-energy]
+\label{lem:aesp-cd-truncation-q-energy}
+For every actual finite stage, put
+\begin{equation*}
+ p_t:=\ell_t-x_t=\beta_{\mathrm A}d_t-r_t.
+\end{equation*}
+Then
+\begin{equation}
+ \langle r_t,Qr_t\rangle
+ \leq\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle,
+ \qquad
+ \langle p_t,Qp_t\rangle
+ \leq\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle.
+ \label{eq:aesp-cd-truncation-q-energy}
+\end{equation}
+Consequently, for every $1\leq k\leq\ell$,
+\begin{align}
+ \sum_{t=k}^{\ell}\langle r_t,Qr_t\rangle
+ &\leq\beta_{\mathrm A}^2
+       (\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q),
+ \notag\\
+ \sum_{t=k}^{\ell}\langle p_t,Qp_t\rangle
+ &\leq\beta_{\mathrm A}^2
+       (\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q).
+ \label{eq:aesp-cd-truncation-q-window}
+\end{align}
+These are two separate bounds; their left-hand sides are not being added
+under a single copy of the right-hand side.
+\end{lemma}
+
+\begin{proof}
+Write $w=D^{1/2}\one$, $z=D^{-1/2}d_t\geq0$, and define on
+$[0,\infty)$
+\begin{equation*}
+ f(a):=\min\{\beta_{\mathrm A}a,\Delta_t\},
+ \qquad
+ \bar f(a):=\beta_{\mathrm A}a-f(a)
+             =[\beta_{\mathrm A}a-\Delta_t]_+.
+\end{equation*}
+Then $r_{t,i}=\sqrt{d_i}f(z_i)$ and
+$p_{t,i}=\sqrt{d_i}\bar f(z_i)$.  Both scalar maps vanish at zero, are
+nondecreasing, and are $\beta_{\mathrm A}$-Lipschitz.  Thus, for either
+$v_i=\sqrt{d_i}F(z_i)$ with $F\in\{f,\bar f\}$,
+\begin{align*}
+ \norm{v}_2^2
+ &=\sum_i d_iF(z_i)^2
+ \leq\beta_{\mathrm A}^2\sum_i d_iz_i^2,
+ \\
+ \langle v,\mathcal Lv\rangle
+ &=\sum_{\{i,j\}\in E}(F(z_i)-F(z_j))^2
+ \leq\beta_{\mathrm A}^2
+       \sum_{\{i,j\}\in E}(z_i-z_j)^2
+ =\beta_{\mathrm A}^2\langle d_t,\mathcal Ld_t\rangle.
+\end{align*}
+Combining the two inequalities in
+$Q=\alpha I+(1-\alpha)\mathcal L/2$ proves
+\cref{eq:aesp-cd-truncation-q-energy}.  Summation and
+\cref{eq:aesp-cd-q-energy-drop} prove
+\cref{eq:aesp-cd-truncation-q-window}.
+\end{proof}
+
+The square banks are scale-sensitive and horizon-independent, but they do
+not yet control the Euclidean cross term
+$2\langle e_t,h_t\rangle$ in
+\cref{eq:aesp-cd-coordinate-defect}.  The direct conversion
+$\norm v_2^2\leq\alpha^{-1}\langle v,Qv\rangle$, together with
+$h_t=(1+q)r_t/q$, already loses polynomial factors in $1/\alpha$ and $1/q$.
+The following reachable pulse shows why the mixed collateral interface
+cannot be discarded.  It does not show that those polynomial factors are
+necessary for every window.
+
+\begin{proposition}[A reachable dense-seed $K_8$ has two harmful persistent pulses]
+\label{prop:aesp-cd-k8-reachable-pulse}
+Consider $K_8$, put
+\begin{equation*}
+ q=\frac1{10},\qquad
+ \alpha=\frac1{101},\qquad
+ \kappa_{\mathrm A}=\frac{99}{101},\qquad
+ \beta_{\mathrm A}=\frac9{11},\qquad
+ \rho=\frac1{112},
+\end{equation*}
+and use the positive seed
+\begin{equation}
+ s=\left(\frac{363437}{651088},
+          \frac{41093}{651088},\ldots,
+          \frac{41093}{651088}\right)^T.
+ \label{eq:aesp-cd-k8-reachable-seed}
+\end{equation}
+Its entries sum to one.  In degree-scaled coordinates
+$\widehat x=D^{-1/2}x$, the RPPR optimum is
+\begin{equation}
+ \widehat x^\star
+ =\left(\frac{5693}{569702},
+         \frac{2500}{284851},\ldots,
+         \frac{2500}{284851}\right)^T.
+ \label{eq:aesp-cd-k8-reachable-optimum}
+\end{equation}
+The exact shifted solves are valid finite outputs with zero end residual.
+Starting from $x_{-1}=x_0=0$, every coordinate is positive by stage one:
+\begin{align}
+ \widehat x_1
+ &=\left(\frac{11009}{22788080},
+          \frac{3763}{113940400},\ldots,
+          \frac{3763}{113940400}\right)^T,
+ \notag\\
+ \widehat x_2
+ &=\left(\frac{89111}{81386000},
+          \frac{10523}{81386000},\ldots,
+          \frac{10523}{81386000}\right)^T.
+ \label{eq:aesp-cd-k8-reachable-first-points}
+\end{align}
+The exact correction word is
+\begin{equation}
+ \mathsf N,\ \mathsf N,\ \mathsf P_0,\ \mathsf F,
+ \ \mathsf N,\ \mathsf N,\ldots.
+ \label{eq:aesp-cd-k8-reachable-word}
+\end{equation}
+In particular, the stage-$2$ controller is persistent.  At that stage the
+trial-error residual, common cap, and coordinate caps are
+\begin{align}
+ Q\widehat g_2
+ &=\left(-\frac{191403}{126587784400},
+          \frac{12270123}{126587784400},\ldots,
+          \frac{12270123}{126587784400}\right)^T,
+ \notag\\
+ \Delta_2&=\frac{191403}{1253344400},
+ \notag\\
+ \beta_{\mathrm A}\widehat d_2
+ &=\left(\frac{392121}{783340250},
+          \frac{22437}{284851000},\ldots,
+          \frac{22437}{284851000}\right)^T.
+ \label{eq:aesp-cd-k8-reachable-partial-data}
+\end{align}
+Thus row zero is strictly partial and the other seven coordinates are fully
+retracted.  At stage three,
+\begin{equation}
+ \Delta_3=\frac{479606913}{62667220000}
+ >\max\left\{
+   \frac{4543516557}{13786788400000},
+   \frac{1024681671}{13786788400000}\right\},
+ \label{eq:aesp-cd-k8-reachable-full-data}
+\end{equation}
+so that correction is full.  Both corrections have positive finite
+inflation:
+\begin{equation}
+ \gamma_2^{\mathrm{fin}}
+ =\frac{57072309867}{51440146040}>1,
+ \qquad
+ \gamma_3^{\mathrm{fin}}
+ =\frac{192036347475007}{168765931042095}>1.
+ \label{eq:aesp-cd-k8-reachable-gammas}
+\end{equation}
+For example, in the original coordinates the first defect satisfies
+\begin{equation}
+ \frac{\mathfrak D_2^{\mathrm{fin}}}
+      {\alpha^2\Delta_2^2}
+ =\frac{48663286609745269}{139594225}>10^8.
+ \label{eq:aesp-cd-k8-reachable-bank-ratio}
+\end{equation}
+
+Both harmful stages occur before the fresh gate at tolerance
+$\tau=1/1000$.  Indeed, the normalized gate residuals at stages
+$0,1,2,3$ are respectively
+\begin{equation}
+ \frac{40343}{57539902},\quad
+ \frac{10791}{22788080},\quad
+ \frac{12213423}{57539902000},\quad
+ \frac{1024681671}{11507980400000},
+ \label{eq:aesp-cd-k8-reachable-pre-gate}
+\end{equation}
+and every one is larger than $\alpha\tau=1/101000$.
+Nevertheless, all later corrections vanish, so
+\begin{equation*}
+ \mathcal J_T^{\mathrm{fin}}
+ =\log\gamma_2^{\mathrm{fin}}+\log\gamma_3^{\mathrm{fin}}
+ <2\log2
+ \qquad(T\geq4).
+\end{equation*}
+Thus the pulse proves reachability of the mixed persistent collateral event
+and rules out simply deleting it.  It is absorbed by an additive constant
+and is not an additive-resistant obstruction to the desired net exponent.
+\end{proposition}
+
+\begin{proof}
+For $K_8$, all degrees are seven and the recurrence preserves vectors with
+one source value and one common nonsource value.  Dividing the
+degree-scaled shifted equations by seven gives the two-value reduction
+\begin{equation*}
+ Q=\begin{pmatrix}
+ (1+\alpha)/2&-(1-\alpha)/2\\
+ -(1-\alpha)/14&(1+\alpha)/2-3(1-\alpha)/7
+ \end{pmatrix},
+ \qquad H=Q+\kappa_{\mathrm A}I.
+\end{equation*}
+Direct multiplication verifies that
+\cref{eq:aesp-cd-k8-reachable-seed} is positive and normalized and that
+\begin{equation*}
+ Q\widehat x^\star
+ =\frac\alpha7(s-7\rho\one).
+\end{equation*}
+Thus \cref{eq:aesp-cd-k8-reachable-optimum} is the positive RPPR optimum.
+Applying $M=\kappa_{\mathrm A}H^{-1}$ and the exact lower retraction in this
+two-value system gives
+\cref{eq:aesp-cd-k8-reachable-first-points} and the four displayed phases.
+The same substitution gives
+\cref{eq:aesp-cd-k8-reachable-partial-data,eq:aesp-cd-k8-reachable-full-data}.
+The envelope Hessian on this positive face is
+$\kappa_{\mathrm A}QH^{-1}$.  Substitution in the definitions of
+$\Phi_t^{\mathrm{fin}}$, $\mathfrak D_t^{\mathrm{fin}}$, and
+$\gamma_t^{\mathrm{fin}}$ gives
+\cref{eq:aesp-cd-k8-reachable-gammas,eq:aesp-cd-k8-reachable-bank-ratio}.
+The four residual evaluations give
+\cref{eq:aesp-cd-k8-reachable-pre-gate}.
+
+It remains to prove the infinite no-correction suffix rather than infer it
+from a finite replay.  Decompose the error immediately before the full
+stage-$3$ correction into its constant and source-orthogonal modes:
+\begin{equation*}
+ L=\frac{556598061}{65108800000},
+ \qquad
+ H_0=-\frac{38318427}{716196800000},
+ \qquad
+ \frac{H_0}{L}=-\frac{17521}{2799533}.
+\end{equation*}
+The two eigenvalues of $Q$ are $\alpha=1/101$ and $407/707$, and the
+corresponding eigenvalues of $M$ are $99/100$ and $63/100$.  After the full
+reset, the constant-mode error is exactly
+\begin{equation*}
+ L_k=L\left(1+\frac{k}{10}\right)\left(\frac9{10}\right)^k.
+\end{equation*}
+The high-mode recurrence has characteristic-root modulus
+$\sqrt{567/1100}$, squared cosine $7/11$, and amplitude factor at most
+$\sqrt{407/400}$.  Hence
+\begin{equation*}
+ \left|\frac{H_k}{L_k}\right|
+ \leq
+ \left|\frac{H_0}{L}\right|\sqrt{\frac{407}{400}}
+ \frac{(\sqrt{7/11})^k}{1+k/10}.
+\end{equation*}
+The initial squared factor satisfies the exact strict bound
+\begin{equation*}
+ \frac{11358461317}{284995818839600}
+ <\left(\frac{49}{4477}\right)^2.
+\end{equation*}
+For the trial at stage $t=3+k$, $k\geq1$, the exact modal ratio is
+$(11/7)|H_{k+1}/L_{k+1}|$.  Substitution in the preceding envelope is
+maximal at $k=1$, where its multiplier relative to the initial amplitude is
+exactly
+\begin{equation*}
+ \frac{11}{7}\frac{7}{11}\frac1{1+2/10}=\frac56<1.
+\end{equation*}
+It only decreases thereafter.  The strict initial bound therefore implies
+that every later trial has high-to-constant ratio below $49/4477<7/407$.
+Multiplication by
+the two eigenvalues shows that its $Q$-image is positive on the source row
+and on all seven nonsource rows.  Every later trial is therefore already a
+lower certificate, so $\Delta_t=0$ for all $t\geq4$.  This proves the
+infinite suffix and the final inflation statement.
+\end{proof}
+
+The preceding fixed instance makes the mixed event reachable but does not
+show an asymptotic loss.  A second dense-seed $K_8$ family gives a precise
+STOP for paying the raw Euclidean defect directly from an unsplit
+$Q$-energy bank.
+
+\begin{proposition}[A reachable $K_8$ prefix separates raw defect from $Q$-energy]
+\label{prop:aesp-cd-k8-q-bank-stop}
+Let $q\in(0,1/100]$ be rational, put
+\begin{equation*}
+ \alpha=\frac{q^2}{1+q^2},\qquad
+ \kappa_{\mathrm A}=\frac{1-q^2}{1+q^2},\qquad
+ \beta_{\mathrm A}=\frac{1-q}{1+q},\qquad
+ \rho=\frac1{112},
+\end{equation*}
+and work on $K_8$ in degree-scaled coordinates.  Let
+\begin{equation*}
+ v=(1,-1/7,\ldots,-1/7)^T,
+ \qquad e^{(0)}=\one+12q^2v,
+ \qquad \widehat x^\star=\frac1{112}e^{(0)}.
+\end{equation*}
+Define the dense seed coordinatewise by
+\begin{equation}
+ s_i:=\frac1{16}\left(1+\frac{(Qe^{(0)})_i}{\alpha}\right).
+ \label{eq:aesp-cd-k8-q-family-seed}
+\end{equation}
+Then $s>0$, $\one^Ts=1$, and $\widehat x^\star$ is the positive RPPR
+optimum.  The exact finite recurrence has no correction at stages zero and
+one, has full support by stage one, and makes a harmful full correction at
+the persistent stage two.  Its raw Euclidean defect obeys
+\begin{equation}
+ \mathfrak D_2^{\mathrm{fin}}>28q\,\frac7{112^2},
+ \label{eq:aesp-cd-k8-q-family-defect}
+\end{equation}
+whereas the actual stage-two $Q$-energy drop satisfies
+\begin{equation}
+ \mathfrak E_1^Q-\mathfrak E_2^Q
+ <197q^4\,\frac7{112^2}.
+ \label{eq:aesp-cd-k8-q-family-energy-drop}
+\end{equation}
+The common factor seven maps the degree-scaled norm to the original
+Euclidean norm.  Consequently,
+\begin{equation}
+ \frac{\mathfrak D_2^{\mathrm{fin}}}
+      {\mathfrak E_1^Q-\mathfrak E_2^Q}
+ >\frac{28}{197q^3}.
+ \label{eq:aesp-cd-k8-q-family-ratio}
+\end{equation}
+Thus no estimate that pays the \emph{raw} Euclidean defect by a constant
+multiple of the same-window unsplit $Q$-energy drop in
+\cref{eq:aesp-cd-persistent-square-window,eq:aesp-cd-truncation-q-window}
+can have an $\alpha$-independent constant; it needs
+$\Omega(1/q^3)=\Omega(\alpha^{-3/2})$ on this family.
+
+The full correction is pre-gate for $\tau=1/1000$ and has
+$\gamma_2^{\mathrm{fin}}>1$.  This is only a one-window STOP.  Multiplying
+the defect by $\mu_{\mathcal E}=\kappa_{\mathrm A}q^2$ still leaves an
+$\Omega(1/q)$ ratio against this same unsplit local $Q$-energy drop, so an
+$\alpha$-independent direct payment of that form is refuted as well.  The
+proposition does not refute a $q^{-1}$-weighted, spectrally split, or
+differently normalized bank, an additive polylogarithmic allowance, the
+desired net exponent, or the solver.
+\end{proposition}
+
+\begin{proof}
+The constant and source-orthogonal eigenvalues of $Q$ are
+\begin{equation*}
+ \alpha,
+ \qquad \lambda_h=\frac{4+3\alpha}{7}.
+\end{equation*}
+Thus $Qe^{(0)}>0$ precisely when $84q^2<1$, which holds in the stated
+range.  Also $\one^TQe^{(0)}=8\alpha$, so
+\cref{eq:aesp-cd-k8-q-family-seed} is positive and sums to one.  Since
+\begin{equation*}
+ Q\widehat x^\star
+ =\frac\alpha7(s-7\rho\one),
+\end{equation*}
+it is the positive optimum.
+
+Let
+\begin{equation*}
+ m_0=1-q^2,
+ \qquad m_h=\frac{\kappa_{\mathrm A}}
+                  {\kappa_{\mathrm A}+\lambda_h},
+ \qquad
+ s_j=(1+\beta_{\mathrm A})m_j-\beta_{\mathrm A}
+ \quad(j\in\{0,h\}).
+\end{equation*}
+Both $s_0$ and $s_h$ lie in $(0,1)$.  The first two iterate errors have
+modal pairs
+\begin{equation*}
+ \frac1{112}(m_0,12q^2m_h),
+ \qquad
+ \frac1{112}(m_0s_0,12q^2m_hs_h),
+\end{equation*}
+and $m_0s_0=1-3q^2+2q^3$.  Direct use of
+$s_0=(1-q)(1+2q)/(1+q)>99/100$, $0<s_h<3/10$, and
+$\lambda_h\leq1$ shows that the nonsource row of the stage-one trial
+$Q$-image is greater than
+\begin{equation*}
+ \frac{q^2}{112}
+ \left(\frac{99/100}{1+q^2}-\frac{18}{35}\right)>0;
+\end{equation*}
+the source row is positive as well.  Also $Qe^{(0)}>0$ and strict positivity
+of the connected Stieltjes inverse give
+$\widehat x_1=H^{-1}Q\widehat x^\star>0$.  Once the stage-one trial is a
+lower certificate, the safe chain gives
+$\widehat x_2\geq\widehat\ell_1\geq\widehat x_1>0$.  Hence the first two
+phases are $\mathsf N,\mathsf N$ and the stage-two controller is persistent.
+
+Let $\sigma_q=\beta_{\mathrm A}(2+\beta_{\mathrm A})$.  Direct evaluation
+of the two-stage polynomial gives the same two filter coefficients as in
+\cref{prop:aesp-cd-post-full-high-pass}:
+\begin{equation*}
+ \psi_q(\alpha)=-q^2+q^4(1+\sigma_q),
+ \qquad
+ \sigma_q\geq\frac{29}{10},
+ \qquad
+ \psi_q(\lambda_h)\geq\frac{23}{245}.
+\end{equation*}
+Therefore the source-row collapse driver at stage two is at least
+$(31/245)q^2/112$.  Its actual common cap satisfies
+\begin{equation*}
+ \Delta_2>\frac1{1120},
+ \qquad
+ \norm{\beta_{\mathrm A}D^{-1/2}d_2}_\infty
+ \leq\frac{14q^2}{112}<\frac1{1120}.
+\end{equation*}
+The correction is consequently full.
+
+For a full correction, the corrected momentum error equals the current
+error.  Orthogonality of the two modes gives an unscaled low-mode defect
+\begin{equation*}
+ 32q(1-q)^4(1+q)
+\end{equation*}
+and a high-mode term whose absolute value is at most
+\begin{equation*}
+ \frac87(144q^2+288q^3).
+\end{equation*}
+Their sum is greater than $28q$ on the stated interval, proving
+\cref{eq:aesp-cd-k8-q-family-defect}.  Put $p_0=m_0s_0$ and
+$p_h=m_hs_h$.  The unscaled stage-two energy drop is
+\begin{equation*}
+ 8\alpha(m_0^2-p_0^2)
+ +\frac87\lambda_h(12q^2)^2(m_h^2-p_h^2)
+ <\left(32+\frac{1152}{7}\right)q^4<197q^4.
+\end{equation*}
+This proves
+\cref{eq:aesp-cd-k8-q-family-energy-drop,eq:aesp-cd-k8-q-family-ratio}.
+The positive defect gives $\gamma_2^{\mathrm{fin}}>1$.  Finally, the
+constant component of $Qe_2$ gives a normalized gate residual at least
+$\alpha(1-3q^2+2q^3)/112>\alpha/1000$, proving the pre-gate claim.
+\end{proof}
+
+The two energy lemmas and the reachable pulse do not supply a bound on
+$\mathcal J_T^{\mathrm{fin}}$.  In particular, the pulse does not justify
+counting persistent events as transient on a general graph, while the
+windowed $Q$-energy banks do not absorb the Euclidean collateral cross term
+with graph-uniform accelerated constants.  Persistent-row-dominated
+inflation therefore remains the sole low-Dirichlet packing gap.
+
+The absolute stop gives a clean but conditional finite-outer interface.
+For the finite trajectory define
+\begin{align*}
+ z_t^{\mathrm{fin}}
+ &:=x_t+(q^{-1}-1)(x_t-x_{t-1}),
+ &\widetilde z_t^{\mathrm{fin}}
+ &:=z_t^{\mathrm{fin}}-\frac{1+q}{q}r_t,\\
+ \Phi_t^{\mathrm{fin}}
+ &:=\mathcal E(x_t)-\mathcal E(x^\star)
+   +\frac{\mu_{\mathcal E}}2
+       \norm{z_t^{\mathrm{fin}}-x^\star}_2^2,
+ &\mathfrak D_t^{\mathrm{fin}}
+ &:=\norm{\widetilde z_t^{\mathrm{fin}}-x^\star}_2^2
+      -\norm{z_t^{\mathrm{fin}}-x^\star}_2^2,
+\end{align*}
+and, whenever $\Phi_t^{\mathrm{fin}}>0$, put
+\begin{equation*}
+ \gamma_t^{\mathrm{fin}}
+ :=1+\frac{\mu_{\mathcal E}\mathfrak D_t^{\mathrm{fin}}}
+          {2\Phi_t^{\mathrm{fin}}}.
+\end{equation*}
+Now put $v_{t+1}:=p(\ell_t)-x_{t+1}$ and
+\begin{equation*}
+ \bar z_{t+1}:=p(\ell_t)
+   +(q^{-1}-1)(p(\ell_t)-x_t).
+\end{equation*}
+Then $z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$.  If
+$\norm{v_{t+1}}_2\leq\xi_t\leq1$, the exact virtual step followed by this
+comparison gives
+\begin{equation}
+ \Phi_{t+1}^{\mathrm{fin}}
+ \leq(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}
+      +2\kappa_{\mathrm A}\xi_t
+      +\kappa_{\mathrm A}\xi_t^2.
+ \label{eq:aesp-cd-finite-inner-potential}
+\end{equation}
+Indeed, $0\leq\bar z_{t+1}\leq x^\star/q$ and
+$\norm{x^\star}_2\leq1$.  The momentum-square comparison costs at most
+$\kappa_{\mathrm A}\xi_t+
+\kappa_{\mathrm A}\xi_t^2/2$.  Also
+$\norm{\nabla\mathcal E(a)}_2\leq\kappa_{\mathrm A}$ for
+$0\leq a\leq x^\star$.  Envelope smoothness therefore shows that replacing
+$p(\ell_t)$ by $x_{t+1}$ costs at most
+$\kappa_{\mathrm A}\xi_t+\kappa_{\mathrm A}\xi_t^2/2$.
+Adding the two comparisons proves the displayed constants.

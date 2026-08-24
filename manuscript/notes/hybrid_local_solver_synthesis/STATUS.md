@@ -28,7 +28,7 @@ Primary: settle `prob:early-locality` for the current FIFO AESP trace or give a 
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: `hybrid_aesp_locsor` and
+- Formal registry dependencies: `hybrid_aesp_locsor` and
   `aesp_cd_l1_rppr`.
 - Supplies to: The broad controller synthesis, active-manuscript claim audit, experimental/TB design, and downstream work using the handoff, SOR correction, or RPPR fixed-point certificate.
 - Ownership boundary: This directory owns the controller-facing integration,
@@ -44,7 +44,7 @@ Primary: settle `prob:early-locality` for the current FIFO AESP trace or give a 
 
 ## Verification
 
-- Source pointers checked: `README.md:1-42`; `main.tex:14-63`; `sections/01_scope_and_status.tex`, `02_problem_and_normalizations.tex`, `04_hybrid_algorithm.tex`, `05_convergence.tex`, `06_accelerated_work.tex`, `06a_black_box_tradeoff.tex`, `07_sor_correction.tex`, `08_confinement_route.tex`, `08a_composite_rppr_hybrid.tex`, `11_open_problems.tex`, and `C_claim_audit.tex`; `taxonomy.toml:71-78`.
+- Source pointers checked: `README.md`; `main.tex`; the listed section files; and the note's entry in `registry.toml`.
 - Focused build/checks run: No TeX source changed; repository `make note-audit` is the required post-edit check.
 - Known gaps: The main status table now says the RPPR work theorem remains
   open and Catalyst compatibility alone is insufficient, consistent with

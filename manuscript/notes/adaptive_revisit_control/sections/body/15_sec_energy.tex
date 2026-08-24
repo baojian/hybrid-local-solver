@@ -1,0 +1,64 @@
+\section{Energy facts for adaptive relaxation}
+\label{sec:energy}
+
+The next statements apply to the unregularized quadratic $f$ in the shared
+model.  They do not assume monotone residual signs.
+Define the error energy
+\begin{equation}
+ \mathcal E(\widehat x)
+ :=f(\widehat x)-f(x^0)
+ =\frac12(\widehat x-x^0)^\mathsf TQ(\widehat x-x^0).
+ \label{eq:error-energy}
+\end{equation}
+
+\begin{lemma}[Exact coordinate-energy ledger]
+\label{lem:energy}
+Let $\widehat x$ be any iterate, $r=b-Q\widehat x$, and let
+$\widehat x^+$ be the row update \eqref{eq:row-update} on $u$.  For every
+$0<\omega<2$,
+\begin{equation}
+ f(\widehat x)-f(\widehat x^+)
+ =\frac{\omega(2-\omega)}{2Q_{uu}}r_u^2
+ =\frac{\omega(2-\omega)}{1+\alpha}r_u^2.
+ \label{eq:energy-drop}
+\end{equation}
+Consequently, along any finite adaptive run,
+\begin{equation}
+ f(\widehat x_0)-f(\widehat x_T)
+ =\sum_{t=0}^{T-1}
+ \frac{\omega_t(2-\omega_t)}{1+\alpha}r_{t,u_t}^2.
+ \label{eq:telescope}
+\end{equation}
+The right-hand side is computable from the live local residuals and does not
+require knowing $x^0$.
+\end{lemma}
+
+\begin{proof}
+Set $z=\omega r_u/Q_{uu}$.  The exact quadratic expansion gives
+\[
+ f(\widehat x+ze_u)-f(\widehat x)
+ =z\nabla_u f(\widehat x)+\tfrac12Q_{uu}z^2
+ =-\frac{\omega(2-\omega)}{2Q_{uu}}r_u^2.
+\]
+The shared matrix has $Q_{uu}=(1+\alpha)/2$.  Summing proves the telescoping
+identity.
+\end{proof}
+
+\begin{corollary}[Myopic descent selects the exact rung]
+\label{cor:myopic}
+At a fixed iterate and coordinate, immediate objective decrease per charge
+is uniquely maximized over $0<\omega<2$ by $\omega=1$.
+\end{corollary}
+
+\begin{proof}
+The residual and charge are fixed, while
+$\omega(2-\omega)=1-(\omega-1)^2$ is uniquely maximized at one.
+\end{proof}
+
+Thus no controller based only on the current update's energy efficiency can
+explain the measured advantage of over-relaxation.  The benefit must appear
+over a block: over-relaxation changes which coordinates become live, how far
+the frontier travels, and which expensive rows are revisited.  Equation
+\eqref{eq:telescope} is still useful as an auditable block-progress
+denominator, but comparing modes from the same starting state requires a
+probe, a branch, or a structural theorem.

@@ -1,4 +1,4 @@
-.PHONY: test lint paper notes note-audit note-report note-targets note-graph experiments full-experiments eps-sweep omega-sweep response-hybrid figures reproduce clean
+.PHONY: test lint paper notes note-audit note-report note-targets note-graph research-audit-fast research-audit research-audit-list experiments full-experiments eps-sweep omega-sweep response-hybrid figures reproduce clean
 
 paper:
 	$(MAKE) -C manuscript
@@ -17,6 +17,15 @@ note-targets:
 
 note-graph:
 	uv run python manuscript/notes/tools/note_inventory.py graph --format mermaid
+
+research-audit-fast:
+	uv run python -m experiments.proof_audits.runner --tier fast
+
+research-audit:
+	uv run python -m experiments.proof_audits.runner --tier full
+
+research-audit-list:
+	uv run python -m experiments.proof_audits.runner --list
 
 test:
 	uv run pytest

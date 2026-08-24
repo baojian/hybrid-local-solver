@@ -29,7 +29,7 @@ accelerated iterations, efficient local updates, and persistent response state.
 Relevant questions include convergence, preservation of locality, boundary
 certification, practical stopping criteria, and dependence on the
 teleportation parameter `alpha` and target accuracy `epsilon`. The current
-family taxonomy and proof priorities are maintained in
+family map and proof priorities are maintained in
 [`docs/solver-family-roadmap.md`](docs/solver-family-roadmap.md); it explicitly
 labels the response--iterative architecture as a research hypothesis rather
 than a universal optimality theorem.
@@ -50,7 +50,7 @@ recorded in [`docs/`](docs/).
 | Path | Purpose |
 | --- | --- |
 | [`src/`](src/) | Reusable graph loading, solver implementations, and shared baselines. |
-| [`experiments/`](experiments/) | Runnable experiment and parameter-sweep entry points built on `src/`. |
+| [`experiments/`](experiments/) | Runnable experiments, parameter sweeps, and registered research-note proof audits. |
 | [`results/`](results/) | Structured experiment records and provenance; transient raw runs remain ignored. |
 | [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
@@ -124,13 +124,20 @@ Build all standalone research notes with:
 make notes
 ```
 
-Audit or inspect the machine-readable research-note taxonomy with:
+Audit or inspect the machine-readable research-note registry with:
 
 ```bash
 make note-audit
 make note-report
 make note-targets
 make note-graph
+```
+
+Run the representative or complete registered proof-audit suite with:
+
+```bash
+make research-audit-fast
+make research-audit
 ```
 
 Run the dense response--iterative reference comparison with:

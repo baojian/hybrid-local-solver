@@ -1,0 +1,63 @@
+\subsection{A mergeable countdown certificate}
+
+There is, however, a sharp positive condition under which all policy work can
+be committed to one state without branching or reset.  Let $\mathcal Z$ be a
+space of certified states with a terminal subset.  A paid policy block maps
+one certified state to another and has a declared positive charge.  In the
+RPPR application, these may be the canonical checkpoints of
+\Cref{thm:absorption-safe-switch}.
+
+\begin{theorem}[Shared-state portfolio from mergeable countdowns]
+\label{thm:mergeable-countdown}
+Let $P_1,\ldots,P_K$ be policies acting on the same certified state.  Suppose
+that for every $j$ there is a work-valued function
+$\Phi_j:\mathcal Z\to\mathbb R_+$ with the following properties at every
+nonterminal state $z$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item \emph{interference monotonicity:} every legal block of every policy,
+ $z\mapsto z^+$, satisfies $\Phi_j(z^+)\leq\Phi_j(z)$;
+ \item \emph{own-service progress:} every block of $P_j$ with charge $a$,
+ including a block that reaches the terminal state, satisfies
+ $\Phi_j(z^+)\leq\Phi_j(z)-a$; and
+ \item $P_j$ always has a legal next block unless the common terminal
+ certificate already holds.
+\end{enumerate}
+Run a work-fair scheduler with fixed positive shares
+$\nu_1,\ldots,\nu_K$, $\sum_j\nu_j=1$, committing every scheduled block to
+the same state.  Assume that at every prefix of total charge $C$, policy $j$
+has received at least $\nu_j(C-\Delta)$ service.  Then it terminates with
+\begin{equation}
+ C_{\rm shared}
+ \leq
+ \min_{1\leq j\leq K}
+ \frac{\Phi_j(z_0)}{\nu_j}+\Delta.
+ \label{eq:mergeable-countdown-bound}
+\end{equation}
+In particular, uniform shares give
+\begin{equation}
+ C_{\rm shared}
+ \leq K\min_j\Phi_j(z_0)+\Delta.
+ \label{eq:mergeable-uniform}
+\end{equation}
+If $C_j$ is the standalone work of $P_j$ and the countdown is
+$\kappa$-tight, meaning $\Phi_j(z_0)\leq\kappa C_j$ for every $j$, then the
+shared irreversible run is $K\kappa$-competitive with the best arm, up to
+$\Delta$.
+\end{theorem}
+
+\begin{proof}
+Fix $j$.  Blocks of other policies never increase $\Phi_j$.  Until
+and including termination, every unit of service given to $P_j$ decreases
+$\Phi_j$ by at least one unit.  Because $\Phi_j$ is nonnegative, the common
+certificate must therefore hold by the time $P_j$ receives
+$\Phi_j(z_0)$ service.  Work
+fairness gives that amount of service by total charge at most
+$\Phi_j(z_0)/\nu_j+\Delta$.  Minimize over $j$.  The last two conclusions are
+immediate.
+\end{proof}
+
+Unlike the branchable portfolio, this theorem has only one evolving solution
+state: every block from every arm is retained.  Unlike a restart portfolio,
+no completed block is discarded.  The price is precisely
+interference monotonicity.  The batch-order obstruction shows why that
+property cannot be omitted from a settlement-volume countdown.

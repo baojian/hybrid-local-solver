@@ -29,7 +29,7 @@ Prove restart amortization for the two-state safeguarded algorithm while preserv
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: `hybrid_aesp_locsor`.
+- Formal registry dependencies: `hybrid_aesp_locsor`.
 - Source/shared prerequisites: the frameworks recorded in
   `sections/frameworks.tex`.
 - Supplies to: The controller's historical proof ledger, safeguarded-acceleration directions, oracle-lower-bound scoping, and any synthesis that cites the tail, face-change defect, or tree-wave obstruction.
@@ -46,7 +46,7 @@ Prove restart amortization for the two-state safeguarded algorithm while preserv
 
 ## Verification
 
-- Source pointers checked: `README.md:1-23`; `main.tex:14-72`; `sections/scope.tex`, `problem.tex`, `frameworks.tex`, `convergence.tex`, `bregman.tex`, `euclidean.tex`, `flux.tex`, `lower_bound.tex`, `tree_wave.tex`, and `open.tex`; `taxonomy.toml:61-68`.
+- Source pointers checked: `README.md`; `main.tex`; the listed section files; and the note's entry in `registry.toml`.
 - Focused build/checks run: No TeX source changed; repository `make note-audit` is the required post-edit check.
 - Known gaps: The abstract now matches the precise ledger: unconditional
   inertial-warmup locality is unproved, the proposed uniform-flux route is

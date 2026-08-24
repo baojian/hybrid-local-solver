@@ -49,7 +49,7 @@ nonisomorphic graphs with the same size.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** none.
+- **Formal registry dependencies:** none.
 - **Source/shared prerequisites:** the shared benchmark and model.
 - **Context/provenance:** the R-LSOR reference recorded in
   `rlsor_terminal_exact_rung` supplies the preserved comparison run, not a

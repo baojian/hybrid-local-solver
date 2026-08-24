@@ -1,0 +1,154 @@
+\section{Killed-capacity packing for hidden corridors}
+\label{sec:capacity-packing}
+
+The preceding mass bound charges vertices that are significant in one fixed
+instance.  A lower-bound distribution may instead contain many decoy
+corridors and make a different one relevant in each counterfactual graph.
+The following capacity argument still limits every construction in which
+those corridors coexist as internally disjoint passive paths.
+
+\begin{definition}[Killed seed capacity]
+\label{def:killed-capacity}
+For a single seed $v$, define
+\begin{equation}
+ \operatorname{cap}_\alpha(v)
+ :=\min_{f\in\mathbb R^V:\,f_v=1} f^\top H_\alpha f.
+ \label{eq:killed-capacity}
+\end{equation}
+\end{definition}
+
+The quadratic has the electrical form
+\begin{equation}
+ f^\top H_\alpha f
+ =\alpha\sum_i d_i f_i^2
+  +\frac{1-\alpha}{2}
+    \sum_{\{i,j\}\in E}(f_i-f_j)^2.
+ \label{eq:killed-energy}
+\end{equation}
+The first term is distributed killing and the second is ordinary edge
+energy.
+
+\begin{lemma}[Capacity--PPR identity; \ProvedStatus]
+\label{lem:capacity-ppr}
+For exact single-seed PPR,
+\begin{equation}
+ y_v^0=\frac{\alpha}{\operatorname{cap}_\alpha(v)}.
+ \label{eq:capacity-ppr}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For every symmetric positive-definite matrix $H$, minimizing
+$f^\top Hf$ subject to $f_v=1$ gives value
+$1/(e_v^\top H^{-1}e_v)$.  Apply this to $H_\alpha$ and use
+$y^0=\alpha H_\alpha^{-1}e_v$ from \cref{eq:killed-system}.
+\end{proof}
+
+\begin{theorem}[Disjoint-corridor capacity packing; \ProvedStatus]
+\label{thm:corridor-capacity}
+Assume $0<\alpha\leq1/4$.  Suppose $G$ contains paths
+\begin{equation}
+ P_j=(v=v_{j,0},v_{j,1},\ldots,v_{j,L_j}),
+ \qquad 1\leq j\leq M,
+ \label{eq:corridor-paths}
+\end{equation}
+that are vertex-disjoint outside the seed.  Then
+\begin{equation}
+ \operatorname{cap}_\alpha(v)
+ \geq
+ \frac1{32}\sum_{j=1}^M
+ \min\{\alpha L_j,\sqrt\alpha\}.
+ \label{eq:corridor-capacity-bound}
+\end{equation}
+Consequently, if any exact normalized PPR coordinate exceeds $\tau$, then
+\begin{equation}
+ \sum_{j=1}^M\min\{\alpha L_j,\sqrt\alpha\}
+ <\frac{32\alpha}{\tau}.
+ \label{eq:corridor-packing}
+\end{equation}
+In particular, if every $L_j\leq1/\sqrt\alpha$, then
+\begin{equation}
+ \sum_{j=1}^M L_j<\frac{32}{\tau}.
+ \label{eq:short-corridor-packing}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Fix any $f$ with $f_v=1$ and put
+\[
+ K_j:=\min\left\{L_j,
+                 \left\lfloor\frac1{\sqrt\alpha}\right\rfloor\right\}.
+\]
+Assign to path $j$ one unit of the seed's degree-weighted killing term, the
+killing terms of its first $K_j$ private vertices, and the first $K_j$ edge
+energies.  These assignments do not overlap: the paths are disjoint outside
+$v$, their first edges are distinct, and $d_v\geq M$.  Hence
+\begin{equation}
+ f^\top H_\alpha f\geq\sum_{j=1}^M E_j(f),
+ \label{eq:path-energy-sum}
+\end{equation}
+where, writing $a_k=f_{v_{j,k}}$,
+\[
+ E_j(f):=
+ \alpha\sum_{k=0}^{K_j}a_k^2
+ +\frac{1-\alpha}{2}
+  \sum_{k=0}^{K_j-1}(a_k-a_{k+1})^2.
+\]
+If $|a_k|\geq1/2$ for every $k\leq K_j$, the killing term is at least
+$\alpha K_j/4$.  Otherwise choose $m\leq K_j$ with $|a_m|<1/2$.
+Since $a_0=1$, Cauchy--Schwarz gives
+\[
+ \sum_{k=0}^{m-1}(a_k-a_{k+1})^2
+ \geq\frac{(a_0-a_m)^2}{m}
+ >\frac1{4K_j}.
+\]
+Because $\alpha K_j^2\leq1$ and $(1-\alpha)/2\geq3/8$, both cases imply
+$E_j(f)\geq\alpha K_j/16$.  Finally,
+$K_j=L_j$ when $L_j\leq\lfloor1/\sqrt\alpha\rfloor$, while otherwise
+$K_j\geq1/(2\sqrt\alpha)$; therefore
+\[
+ E_j(f)\geq\frac1{32}
+             \min\{\alpha L_j,\sqrt\alpha\}.
+\]
+Minimizing over $f$ proves \cref{eq:corridor-capacity-bound}.
+
+If some $y_i^0>\tau$, \cref{lem:strict-ascent} gives $y_v^0>\tau$.
+Then \cref{lem:capacity-ppr} gives
+$\operatorname{cap}_\alpha(v)<\alpha/\tau$, which yields
+\cref{eq:corridor-packing}.  The final claim follows by substituting
+$\min\{\alpha L_j,\sqrt\alpha\}=\alpha L_j$.
+\end{proof}
+
+For equal diffusion-depth corridors $L_j=\Theta(1/\sqrt\alpha)$,
+\cref{eq:corridor-packing} says
+\begin{equation}
+ M=O(\sqrt\alpha/\tau),
+ \qquad
+ ML=O(1/\tau).
+ \label{eq:diffusion-cancellation}
+\end{equation}
+This is the exact cancellation behind the path bundle in the companion
+complete hybrid-local-solver note.  Its parameters are
+$M=\Theta(\sqrt\alpha/\rho)$ and
+$L=\Theta(1/\sqrt\alpha)$.  Moving a frontier across every arm once costs
+$ML=\Theta(1/\rho)$; the proved
+$\Omega(1/(\rho\sqrt\alpha))$ work comes from charging the accumulated
+prefix for $L$ rounds, namely $ML^2$, under persistent support.
+
+\begin{corollary}[No-go for disjoint hidden-port constructions;
+\ProvedStatus]
+\label{cor:hidden-ports}
+Consider a family of nonnegative PPR instances that all contain the same
+internally disjoint seed corridors with $L_j\leq1/\sqrt\alpha$, while their
+completions beyond the corridor endpoints may differ.  If any member has an
+exact normalized coordinate larger than $\tau$, then the total one-pass
+corridor exposure is less than $32/\tau$.  In particular, changing a passive
+terminal gadget, trap, or degree-preserving edge swap beyond one of these
+ports cannot turn this template into an
+$\Omega(1/(\tau\sqrt\alpha))$ information lower bound.
+\end{corollary}
+
+The corollary does not settle overlapping corridors, global encodings, or the
+cost of rejecting counterfactual completions.  It does prove that the most
+natural direct-sum construction fails for structural, rather than merely
+constant-factor, reasons.

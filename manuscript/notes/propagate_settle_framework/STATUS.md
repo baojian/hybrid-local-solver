@@ -33,7 +33,7 @@ Implement or prove the finite-resolution reporter in `prob:finite-resolution-res
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: `delayed_reflection_ladder`, `two_rung_sor`,
+- Formal registry dependencies: `delayed_reflection_ladder`, `two_rung_sor`,
   and `frontier_adaptive_ladder`.
 - Context/provenance: the README opening source map also names
   `rlsor_terminal_exact_rung` as empirical ancestry, not a graph edge.
@@ -47,7 +47,7 @@ Implement or prove the finite-resolution reporter in `prob:finite-resolution-res
 
 ## Verification
 
-- Source pointers checked: current shared problem, related-work, results, and broadcast ledgers; root/project conventions; direction README/STATUS/taxonomy; `sec:rppr-gate`, `thm:finite-resolution-continuation`, `lem:finite-response-energy-packing`, and the notched-double-sun graph definition in `response_preconditioned_hybrid`.
+- Source pointers checked: current shared problem, related-work, results, and broadcast ledgers; root/project conventions; direction README/STATUS/registry entry; `sec:rppr-gate`, `thm:finite-resolution-continuation`, `lem:finite-response-energy-packing`, and the notched-double-sun graph definition in `response_preconditioned_hybrid`.
 - Focused build/checks run: after the independent-review corrections, `make`
   in this direction passed on 2026-08-21 (40 pages, references resolved; only
   pre-existing underfull-box warnings).
@@ -69,7 +69,7 @@ Implement or prove the finite-resolution reporter in `prob:finite-resolution-res
 - Round-011 exact check: `prop:double-cycle-relay-seed-obstruction` exhausts every relay seed `e_(r_j)` on the double-cycle graph, for every even `n>=4`, every site `j` (hence both parity classes of the fixed `W` matching), every `alpha in (0,1)`, and every `rho>0`. With `t=(1+alpha)/(1-alpha)`, `rho_W=1/(2(2t+1))`, and `rho_B=1/(2(4t+1))`, a nonpositive start at `rho>=1/2` has zero as its unique optimum. For `rho<1/2`, the singleton coordinate is `q_j=(1/(2rho)-1)/t`, and its only boundary demands are `-1+q_j/2` at `w_j` and `-2+q_j/2` at `b_j`. The first batch is therefore empty for `rho_W<=rho<1/2`, exactly `{w_j}` for `rho_B<=rho<rho_W`, and exactly `{w_j,b_j}` for `0<rho<rho_B`. Strict-gate equality is explicit: `w_j` stays out at `rho=rho_W`, and `b_j` stays out while `w_j` enters at `rho=rho_B`. Thus every propagating relay trace reports in its first batch, before any petal; together with the backbone and anchor results this retires the current double-cycle graph family only for the prescribed long report-free later-petal witness, not all cyclic witnesses. `P_firstW^relay` pays the full prefix through report, termination, or absent initialization; only the fixed-site audit has fresh/stored vectors `(O(1),1,0,0,O(1),0,0,0,O(1),0,0)` and `(0,0,0,0,O(1),0,0,0,O(1),0,0)` in `eq:double-cycle-relay-audit-vectors`, and an all-rotation audit restores linear scan/control. The result is exact-real canonical all-violations only, with no arbitrary positive-subset, post-report, reporter/rank/work lower-bound, finite-precision, or stability claim. Exact rational checks at `alpha=1/20,1/5,7/10,19/20` covered both equality thresholds and an interior point of every interval, confirming all displayed strict/equality signs; the algebraic proof is primary.
 - Known gaps: The README now defines `cvol`; this `STATUS.md` remains the exact
   resume pointer. Its named provenance includes `rlsor_terminal_exact_rung`,
-  intentionally absent from the formal taxonomy dependency list because it is
+  intentionally absent from the formal registry dependency list because it is
   empirical ancestry rather than a proof import. Claim status is otherwise
   consistent: structural and conditional results do not close the arbitrary
   cyclic-core reporter. The double-cycle retirement is only for the prescribed

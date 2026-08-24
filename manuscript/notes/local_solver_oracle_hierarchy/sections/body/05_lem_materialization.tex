@@ -1,0 +1,28 @@
+\subsection{Materialized restricted continuation}
+
+Let $\mathsf{MatRestrict}$ contain a growing-face implementation that, after
+each expansion $S_j\subset S_{j+1}$, explicitly stores or returns one numerical
+word for every coordinate in its current active approximation.  It may use an
+arbitrarily powerful solver inside each round; the restriction concerns the
+representation exposed after every round.
+
+\begin{lemma}[Materialization charge]
+\label{lem:materialization}
+Every $\mathsf{MatRestrict}$ execution on active sets
+$S_0\subset S_1\subset\cdots\subset S_K$ performs at least
+\begin{equation}
+ \sum_{j=0}^K|S_j|
+ \label{eq:materialization-charge}
+\end{equation}
+word writes if every active vector is materialized freshly.
+\end{lemma}
+
+\begin{proof}
+At round $j$, the declared representation contains at least one word for each
+of the $|S_j|$ active coordinates.  Summing these disjoint round charges proves
+the claim.
+\end{proof}
+
+On a path that activates one new vertex per round,
+\cref{eq:materialization-charge} is $\Omega(K^2)$.  This is a representation
+lower bound, not an information lower bound for PageRank.

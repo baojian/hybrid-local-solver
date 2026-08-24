@@ -1,0 +1,887 @@
+\begin{theorem}[Independent positive column schedules have an asynchronous
+reporter]
+\label{thm:notched-sun-columnwise-amplitude-delta-reporter}
+Keep the frozen face, exposed cut, label pairing, complete ladder, fixed
+$n\geq5$, gate $g=\vartheta^{5/2}$, exact-real model, positive logical
+amplitudes, and the nonnegative or signed $2$-minus-$1$ stream interface of
+\cref{thm:notched-sun-amplitude-delta-reporter}.  Relax exactly its common
+logical-column schedule.  There are $r\geq1$ logical columns.  For every
+column $q\in\{1,\ldots,r\}$ and label $i\in\{1,\ldots,n\}$, independently
+declare
+\begin{equation}
+ \begin{gathered}
+  \mu_{qi}\in\mathbb N_{\geq1},
+  \qquad
+  a_{qi1},\ldots,a_{qi\mu_{qi}}\in\mathbb R_{>0},\\
+  A_{qi,k}:=\sum_{s=1}^{k}a_{qis},
+  \qquad A_{qi,0}:=0,
+  \qquad
+  A_{qi}:=A_{qi,\mu_{qi}}.
+ \end{gathered}
+ \label{eq:notched-sun-columnwise-amplitude-schedule}
+\end{equation}
+Put
+\begin{equation}
+ L_q:=\sum_{i=1}^{n}\mu_{qi},
+ \qquad
+ \mathcal A_q:=\sum_{i=1}^{n}A_{qi},
+ \qquad
+ L_\Sigma:=\sum_{q=1}^{r}L_q,
+ \qquad
+ \mathcal A_\Sigma:=\sum_{q=1}^{r}\mathcal A_q.
+ \label{eq:notched-sun-columnwise-amplitude-totals}
+\end{equation}
+Thus $L_\Sigma$ counts externally accepted logical events and
+$\mathcal A_\Sigma$ is their total positive logical coefficient mass.  They
+are not the fragment-cell and absolute physical masses charged below.
+
+For $0<\vartheta<1/3$, retain the structural matching coefficient and
+Neumann remainder envelope
+\begin{equation}
+ \lambda_i:=\frac{\vartheta^2}{d_{u_i}(1+c_\eta)},
+ \qquad
+ \epsilon_\vartheta:=\frac{9\vartheta^3}{1-3\vartheta},
+ \qquad
+ \kappa_{qi}:=\frac{g}{\lambda_i}
+ =d_{u_i}(1+c_\eta)\sqrt\vartheta.
+ \label{eq:notched-sun-columnwise-amplitude-capacity}
+\end{equation}
+The notation $\kappa_{qi}$ records which declared column--label cell is
+tested; its numerical value is column-independent because the frozen response
+operator is shared.  Define
+\begin{equation}
+ k_{qi}^*:=
+ \min\{k\in\{1,\ldots,\mu_{qi}\}:A_{qi,k}>\kappa_{qi}\},
+ \label{eq:notched-sun-columnwise-amplitude-crossing-index}
+\end{equation}
+and require every displayed set to be nonempty.  The exact pre-crossing gap,
+local event horizon, global asynchronous event horizon, and response-relevant
+mass horizon are
+\begin{align}
+ \gamma_{qi}
+ &:=\kappa_{qi}-A_{qi,k_{qi}^*-1}>0,
+ \label{eq:notched-sun-columnwise-amplitude-gap}\\
+ H_{qi}^{\rm loc}
+ &:=L_q-\mu_{qi}+k_{qi}^*-1,
+ &
+ H_{qi}^{\rm async}
+ &:=L_\Sigma-\mu_{qi}+k_{qi}^*-1
+ =H_{qi}^{\rm loc}+L_\Sigma-L_q,
+ \label{eq:notched-sun-columnwise-amplitude-event-horizons}\\
+ F_{qi}
+ &:=\mathcal A_q-A_{qi}+A_{qi,k_{qi}^*-1}.
+ \label{eq:notched-sun-columnwise-amplitude-mass-horizon}
+\end{align}
+The distinction is essential: events in other columns can consume the extra
+$L_\Sigma-L_q$ global interactions, but they contribute no mass to column
+$q$'s response.  Give every column its own margin
+\begin{equation}
+ m_q:=\min_{1\leq i\leq n}
+ \{\lambda_i\gamma_{qi}-\epsilon_\vartheta F_{qi}\},
+ \qquad
+ m_\Sigma:=\min_{1\leq q\leq r}m_q>0.
+ \label{eq:notched-sun-columnwise-amplitude-margin}
+\end{equation}
+Then $0<m_q<g$ and column $q$ uses its own transition band $[g-m_q,g]$.
+For every fixed finite family of positive schedules, all crossing sets and
+margins pass simultaneously at every sufficiently small positive
+$\vartheta$: then every $k_{qi}^*=1$,
+$\lambda_i\gamma_{qi}=g$, and
+$\epsilon_\vartheta F_{qi}/g\to0$.
+
+Name the reporter \textsc{NotchedSunColumnAmplitudeDelta}.  The external
+stream is any asynchronous interleaving of the declared column events.  At
+global interaction $t\in\{1,\ldots,L_\Sigma\}$, one logical-event header
+first names a column $q_t$ and a label $\pi_t$.  With $c_{qi}(t-1)$ the
+earlier accepted occurrence count in that cell, its required logical amplitude is
+\begin{equation}
+ a_t:=a_{q_t\pi_t,\,c_{q_t\pi_t}(t-1)+1}.
+ \label{eq:notched-sun-columnwise-amplitude-event}
+\end{equation}
+In the nonnegative interface, the event contains exactly the one fragment
+$a_te_{f_{\pi_t}}$ on physical stream $q_t$.  In the signed interface, it
+contains exactly the paired positive fragments
+$2a_te_{f_{\pi_t}}$ and $a_te_{f_{\pi_t}}$ on the positive and negative
+physical streams belonging to that same column.  The reporter atomically
+checks the column, physical stream identity, paired labels and amplitudes,
+cell cap $c_{q_t\pi_t}(t-1)<\mu_{q_t\pi_t}$, column cap, and global cap before
+changing state.  No event requires a label or occurrence to agree with any
+other column, and one event is not a batch.
+
+For every prefix define
+\begin{equation}
+ \begin{gathered}
+  \ell_q(t):=\sum_{i=1}^{n}c_{qi}(t),
+  \qquad
+  S_{qi}(t):=A_{qi,c_{qi}(t)},
+  \qquad
+  \mathcal A_q(t):=\sum_{i=1}^{n}S_{qi}(t),\\
+  \mathsf{Reported}_{q,t}:=
+  \{i:c_{qi}(t)\geq k_{qi}^*\},
+  \qquad
+  \sum_q\ell_q(t)=t.
+ \end{gathered}
+ \label{eq:notched-sun-columnwise-amplitude-prefix-state}
+\end{equation}
+Every accepted length-$L_\Sigma$ trace exhausts every declared cell: all
+counts are coordinatewise capped and their sum equals the sum of those caps.
+The exact logical response in column $q$ is
+\begin{equation}
+ y_q^{[t]}:=
+ \sum_{\substack{1\leq s\leq t\\q_s=q}}a_sh^{(\pi_s)}.
+ \label{eq:notched-sun-columnwise-amplitude-response}
+\end{equation}
+When the event changes $c_{qi}$ from $k_{qi}^*-1$ to $k_{qi}^*$, the reporter
+emits exactly the new delta $(q,w_i)$.  Every other occurrence emits no delta.
+After an event in column $q_t$, it emits one updated universal certificate
+\begin{equation}
+ y_{q_t,i}^{[t]}\leq g-m_{q_t}
+ \qquad(i\notin\mathsf{Reported}_{q_t,t}).
+ \label{eq:notched-sun-columnwise-amplitude-certificate}
+\end{equation}
+Certificates for $q\ne q_t$ remain valid without re-emission because neither
+$y_q$ nor its counts changed.  Hence occurrence $k_{qi}^*$ is the first exact
+strict crossing of $g$ in cell $(q,i)$ for every global interleaving.  The
+certificate includes unseen and seen-but-unreported labels; an empty
+complement is recorded as such.
+
+Before the epoch, the reporter reads all $L_\Sigma$ amplitude cells, validates
+positivity and complete label coverage, constructs every prefix, and rejects
+unless all capacities, crossing indices, horizons, and margins pass.  Its
+persistent state is
+\begin{equation}
+ \mathsf{CAState}_t=\left(
+ \begin{gathered}
+  \text{verified template and label map},\text{fixed ladder},t,\\
+  (L_q),(\mathcal A_q(t)),(m_q),(\mu_{qi}),(A_{qi,k}),
+  (k_{qi}^*),(c_{qi}(t)),\\
+  \text{logical-column and physical-stream metadata}
+ \end{gathered}
+ \right).
+ \label{eq:notched-sun-columnwise-amplitude-reporter-state}
+\end{equation}
+All $rn$ counter, crossing, and margin-heading cells and all schedule prefixes
+are charged.  Since every $\mu_{qi}\geq1$, $L_\Sigma\geq rn$.  There is no
+response coordinate, cumulative response coordinate, exterior slack cell, or
+future-label scan.
+
+There are $p=r$ persistent physical stream identities in the nonnegative
+interface and $p=2r$ in the signed interface, but an asynchronous event reads
+only its affected column.  Consequently
+\begin{align}
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=L_\Sigma,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}
+ &=\mathcal A_\Sigma,
+ &&\text{nonnegative},
+ \notag\\
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=2L_\Sigma,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}
+ &=3\mathcal A_\Sigma,
+ &&\text{signed $2$-minus-$1$}.
+ \label{eq:notched-sun-columnwise-amplitude-fragments}
+\end{align}
+No cancellation is credited until both signed physical records pass their
+atomic pairing check.  The complete epoch vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,L_\Sigma,\Theta(n+J+p+L_\Sigma),\\
+ &\Theta(\mathcal C_{\rm frag}^{\Sigma}+L_\Sigma+rn+n),0,0,\\
+ &\Theta(n+J+p+L_\Sigma),O(1),0,
+ \Theta(L_\Sigma+rn)\bigr)\\
+ =\bigl(&\Theta(n),2,L_\Sigma,\Theta(n+J+p+L_\Sigma),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+L_\Sigma),0,0,\\
+ &\Theta(n+J+p+L_\Sigma),O(1),0,\Theta(L_\Sigma)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-columnwise-amplitude-eleven-vector}
+\end{equation}
+The first line deliberately exposes the $rn$ declared cell headings, all
+$L_\Sigma$ event validations, one certificate per event, and exactly $rn$
+delta records before using $L_\Sigma\geq rn$.  Control also charges column and
+stream identifiers, every fragment read, signed-pair comparison, amplitude
+comparison, cap/count update, membership test, and reply construction.
+Preprocessing and persistent memory charge the template, ladder, $p$ stream
+identities, $rn$ schedule headers, all $L_\Sigma$ amplitude/prefix cells, and
+per-column margins.  There is no factor application, numerical recurrence,
+response-state write, or numerical materialization.
+
+This GO relaxes only the common logical-column occurrence schedule and its
+lockstep all-column event interface.  It preserves the frozen graph, face,
+cut, ladder, label pairing, fixed $n$, complete label coverage in every
+column, declared finite positive mass, exact-real arithmetic, and the atomic
+signed pairing within each column.  It does not cover undeclared or unbounded
+mass, arbitrary signed logical amplitudes, a signed pair split across global
+interactions, simultaneous batches, arbitrary fragment support, incomplete
+labels, template or ladder mutation, RPPR chronology, fixed-$\alpha$
+uniformity, a terminal solver, coefficient-bit complexity, word-RAM costs,
+rounding, or finite precision.  Failure of any margin in
+\cref{eq:notched-sun-columnwise-amplitude-margin} rejects only this declared
+scalar-envelope reporter; it is not a lower bound on response queries or
+other reporters.
+\end{theorem}
+
+\begin{proof}
+Fix one column $q$.  By
+\cref{eq:notched-sun-amplitude-pointwise-matching,eq:notched-sun-amplitude-pointwise-off},
+linearity and positivity give, for
+every global prefix,
+\begin{equation}
+ \lambda_iS_{qi}(t)
+ \leq y_{q,i}^{[t]}
+ \leq\lambda_iS_{qi}(t)+\epsilon_\vartheta\mathcal A_q(t).
+ \label{eq:notched-sun-columnwise-amplitude-prefix-envelope}
+\end{equation}
+Only events with $q_s=q$ occur in this sum.  Thus asynchronous events in the
+other $r-1$ columns affect global time but neither side of this envelope.
+
+If $i\notin\mathsf{Reported}_{q,t}$, then
+$c_{qi}(t)\leq k_{qi}^*-1$.  Positivity and the cell caps imply
+\begin{equation*}
+ S_{qi}(t)\leq A_{qi,k_{qi}^*-1}=\kappa_{qi}-\gamma_{qi},
+ \qquad
+ \ell_q(t)\leq H_{qi}^{\rm loc},
+ \qquad
+ t\leq H_{qi}^{\rm async},
+ \qquad
+ \mathcal A_q(t)\leq F_{qi}.
+\end{equation*}
+The event bounds are tight when all other permitted events are exhausted;
+the response bound uses the local mass $F_{qi}$ rather than the generally
+larger and irrelevant $\mathcal A_\Sigma$.  Substitution in
+\cref{eq:notched-sun-columnwise-amplitude-prefix-envelope} gives
+\begin{equation*}
+ y_{q,i}^{[t]}
+ \leq\lambda_i(\kappa_{qi}-\gamma_{qi})
+      +\epsilon_\vartheta F_{qi}
+ \leq g-m_q.
+\end{equation*}
+This proves the per-column certificate at every asynchronous prefix.
+
+When occurrence $k_{qi}^*$ arrives,
+$S_{qi}(t)=A_{qi,k_{qi}^*}>\kappa_{qi}$.  The lower envelope yields
+$y_{q,i}^{[t]}>\lambda_i\kappa_{qi}=g$, while the preceding prefix was at
+most $g-m_q$.  Every other unreported label in column $q$ retains its
+certificate.  Every other column is exactly unchanged, so its last emitted
+certificate remains valid.  Positivity prevents a second delta after a cell
+is reported.  This proves exact first crossing and validates emitting only
+the affected column's certificate.
+
+The count caps and authoritative total $L_\Sigma=\sum_{q,i}\mu_{qi}$ prove
+completion.  The paired signed fragments have exact logical difference
+$a_te_{f_{\pi_t}}$ only after both positive records are validated.  Summing
+the structural scan, schedule and prefix cells, physical records, atomic
+checks, counters, certificates, and deltas gives
+\cref{eq:notched-sun-columnwise-amplitude-eleven-vector}; serial processing
+uses constant temporary cells.  The stated state and scope follow from the
+named interface.
+\end{proof}
+
+\begin{theorem}[Declared simultaneous batches preserve the column-local
+reporter]
+\label{thm:notched-sun-batched-columnwise-amplitude-delta-reporter}
+Keep every hypothesis, schedule, capacity, and positive margin of
+\cref{thm:notched-sun-columnwise-amplitude-delta-reporter}, but replace its
+one-event interactions by atomic simultaneous batches.  A batch
+$\mathcal B_h$, $h\in\{1,\ldots,B\}$, is a nonempty unordered collection of
+tagged logical records $(q,i,k,a_{qik})$.  If $c_{qi}^{h-1}$ is the accepted
+count before the batch, then, for some integer $b_{hqi}\geq0$, the records of
+cell $(q,i)$ must have exactly the tagged amplitude records
+\begin{equation}
+ \left\{(k,a_{qik}):
+ k=c_{qi}^{h-1}+1,\ldots,c_{qi}^{h-1}+b_{hqi}\right\}.
+ \label{eq:notched-sun-batch-contract}
+\end{equation}
+The set in \cref{eq:notched-sun-batch-contract} is empty when $b_{hqi}=0$.
+Thus a batch may contain several consecutive occurrences of one cell and may
+mix arbitrary labels and columns, but it may not duplicate, replay, skip, or
+invent an occurrence.  Put
+\begin{equation}
+ \begin{gathered}
+  b_h:=\sum_{q,i}b_{hqi},
+  \qquad
+  s_h:=\left|\left\{q:\sum_i b_{hqi}>0\right\}\right|,
+  \qquad
+  b_{\max}:=\max_h b_h,\\
+  S_\Sigma:=\sum_{h=1}^{B}s_h,
+  \qquad
+  \sum_{h=1}^{B}b_h=L_\Sigma,
+  \qquad
+  c_{qi}^{h}:=c_{qi}^{h-1}+b_{hqi}.
+ \end{gathered}
+ \label{eq:notched-sun-batch-counts}
+\end{equation}
+Every batch is nonempty, so $B\leq S_\Sigma\leq L_\Sigma$ and
+$b_{\max}\leq L_\Sigma$.
+
+Name the reporter \textsc{NotchedSunBatchAmplitudeDelta}.  Before changing
+any persistent state, it stages the whole current batch and atomically checks
+its nonempty header, every column and label, every occurrence tag and exact
+declared amplitude, the gap-free blocks in
+\cref{eq:notched-sun-batch-contract}, every cell/column/global cap, and every
+physical stream identity.  In the nonnegative interface, logical record
+$(q,i,k,a_{qik})$ contains exactly $a_{qik}e_{f_i}$ on stream $q$.  In the
+signed interface it contains exactly the same-column, same-label, same-tag
+pair $2a_{qik}e_{f_i}$ and $a_{qik}e_{f_i}$ on the positive and negative
+streams.  A missing, split, mismatched, or cross-column pair rejects the whole
+batch without changing a count or emitting a certificate.  No cancellation
+is credited during validation.
+
+At batch boundary $h$, define
+\begin{equation}
+ \begin{gathered}
+  S_{qi}^{h}:=A_{qi,c_{qi}^{h}},
+  \qquad
+  \mathcal A_q^{h}:=\sum_i S_{qi}^{h},
+  \qquad
+  \mathsf{Reported}_{q,h}:=\{i:c_{qi}^{h}\geq k_{qi}^*\},\\
+  y_q^{[h]}:=\sum_{i=1}^{n}S_{qi}^{h}h^{(i)},
+  \qquad
+  \mathsf{New}_{q,h}:=
+  \{i:c_{qi}^{h-1}<k_{qi}^*\leq c_{qi}^{h}\}.
+ \end{gathered}
+ \label{eq:notched-sun-batch-boundary-state}
+\end{equation}
+After a successful commit, it emits exactly the delta records
+$(q,w_i)$ for $i\in\mathsf{New}_{q,h}$.  For each of the $s_h$ affected
+columns, and only those columns, it emits one universal certificate
+\begin{equation}
+ y_{q,i}^{[h]}\leq g-m_q
+ \qquad(i\notin\mathsf{Reported}_{q,h}).
+ \label{eq:notched-sun-batch-certificate}
+\end{equation}
+An unaffected column retains its preceding response, counts, and certificate
+verbatim.  For every cell $(q,i)$, the unique batch whose endpoints satisfy
+$c_{qi}^{h-1}<k_{qi}^*\leq c_{qi}^{h}$ is its first exact strict
+\emph{batch-boundary} crossing of $g$.  No within-batch exact-crossing order
+is defined or emitted, and no separate certificate semantics are assigned to
+the simultaneous records inside a batch.
+
+The reporter keeps the schedule state from
+\cref{eq:notched-sun-columnwise-amplitude-reporter-state}, replaces the event
+counter by a batch counter, and stages at most one batch:
+\begin{equation}
+ \mathsf{BAState}_h=\left(
+ \begin{gathered}
+  \text{verified template, label map, ladder, schedules, and stream metadata},\\
+  h,(\mathcal A_q^h),(m_q),(k_{qi}^*),(c_{qi}^{h}),
+  \text{one atomic batch buffer}
+ \end{gathered}
+ \right).
+ \label{eq:notched-sun-batch-reporter-state}
+\end{equation}
+The persistent part has the same asymptotic size as before; the batch buffer
+uses $O(b_{\max})$ exact cells, including the physical-pair staging by a
+constant factor.  Batch contents and history are not retained after commit.
+
+The logical event and physical fragment totals do not change under batching:
+\begin{align}
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=L_\Sigma,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}
+ &=\mathcal A_\Sigma,
+ &&\text{nonnegative},
+ \notag\\
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=2L_\Sigma,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}
+ &=3\mathcal A_\Sigma,
+ &&\text{signed $2$-minus-$1$}.
+ \label{eq:notched-sun-batch-fragments}
+\end{align}
+Here $p=r$ or $p=2r$, respectively.  There are exactly $S_\Sigma$
+universal certificate records and exactly $rn$ delta records.  The complete
+accepted-epoch vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,B,\Theta(n+J+p+L_\Sigma),\\
+ &\Theta(\mathcal C_{\rm frag}^{\Sigma}+L_\Sigma+B+S_\Sigma+rn+n),0,0,\\
+ &\Theta(n+J+p+L_\Sigma),O(b_{\max}),0,
+ \Theta(S_\Sigma+rn)\bigr)\\
+ =\bigl(&\Theta(n),2,B,\Theta(n+J+p+L_\Sigma),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+L_\Sigma),0,0,\\
+ &\Theta(n+J+p+L_\Sigma),O(b_{\max}),0,
+ \Theta(S_\Sigma+rn)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-batch-eleven-vector}
+\end{equation}
+The unsimplified line exposes every batch header, logical occurrence and
+physical fragment read, atomic validation, affected-column reply, and delta
+construction.  The simplification uses
+$B,S_\Sigma,rn,n\leq L_\Sigma$ and
+$\mathcal C_{\rm frag}^{\Sigma}\geq L_\Sigma$.  An invalid attempted batch of
+$\widehat b$ supplied logical records is charged one interaction, its staged
+header/records and validation work, $O(1+\widehat b)$ temporary cells, and one
+rejection record; it makes no persistent write.  Such attempts add to, rather
+than disappear inside, the accepted-epoch vector.
+
+This GO removes only the one-logical-event interaction restriction.  It keeps
+the frozen graph, face, cut, ladder, pairing, fixed $n$, complete declared
+positive schedules, per-column scalar margins, exact column separation,
+exact-real arithmetic, and atomic within-record signed pairing.  It does not
+cover a hidden chronology inside a simultaneous batch, undeclared or
+unbounded mass, arbitrary signed logical amplitudes, a signed pair split
+between records or batches, cross-column coupled response state, arbitrary
+fragment support, incomplete labels, template or ladder mutation, RPPR
+chronology, fixed-$\alpha$ uniformity, a terminal solver, coefficient-bit or
+word-RAM complexity, rounding, or finite precision.  A failed margin still
+rejects only this scalar-envelope reporter.
+\end{theorem}
+
+\begin{proof}
+Fix a batch boundary $h$ and column $q$.  The batch response in
+\cref{eq:notched-sun-batch-boundary-state} is the sum of the same positive
+logical fragments as any serialization of the accepted records.  Addition is
+commutative, and the response column is linear, so
+\cref{eq:notched-sun-columnwise-amplitude-prefix-envelope} applies at the
+boundary without choosing an internal order:
+\begin{equation}
+ \lambda_iS_{qi}^{h}
+ \leq y_{q,i}^{[h]}
+ \leq\lambda_iS_{qi}^{h}+\epsilon_\vartheta\mathcal A_q^{h}.
+ \label{eq:notched-sun-batch-prefix-envelope}
+\end{equation}
+No record from another column occurs in this sum.
+
+If $i\notin\mathsf{Reported}_{q,h}$, then
+$c_{qi}^{h}\leq k_{qi}^*-1$.  The same coordinatewise caps and positivity as
+in the one-event proof give
+\begin{equation*}
+ S_{qi}^{h}\leq A_{qi,k_{qi}^*-1}
+ =\kappa_{qi}-\gamma_{qi},
+ \qquad
+ \mathcal A_q^{h}\leq F_{qi}.
+\end{equation*}
+Substitution in \cref{eq:notched-sun-batch-prefix-envelope} proves
+\cref{eq:notched-sun-batch-certificate}.  Thus simultaneous mass on other
+labels in the same column is already paid by $F_{qi}$, and mass in other
+columns is absent because it changes a different response column.
+
+If $i\in\mathsf{New}_{q,h}$, then before the batch
+$c_{qi}^{h-1}\leq k_{qi}^*-1$, so the preceding certificate puts its exact
+response at most $g-m_q$.  After the batch,
+$S_{qi}^{h}\geq A_{qi,k_{qi}^*}>\kappa_{qi}$, and the lower envelope gives
+$y_{q,i}^{[h]}>\lambda_i\kappa_{qi}=g$.  Conversely, every cell not in
+$\mathsf{New}_{q,h}$ is either still certified below the band or was already
+reported.  Hence the displayed delta set is exact, even when one batch jumps
+over several occurrence indices or crosses several cells at once.  Positivity
+prevents a second crossing.
+
+The gap-free occurrence-tag check makes the post-batch counts independent of
+record order and proves completion after $L_\Sigma$ logical records.  The
+two signed physical fragments give the same positive logical increment only
+after their same-record pairing check.  Staging before commit proves atomic
+rejection and the $O(b_{\max})$ temporary-space charge.  Summing template and
+schedule preprocessing, $B$ batch headers, all logical and physical records,
+affected-column certificates, and the unique cell deltas proves
+\cref{eq:notched-sun-batch-eleven-vector} coordinate by coordinate.
+\end{proof}
+
+\paragraph{Cross-direction handoff.}
+The reusable distinction is between global event latency and the state on
+which a certificate depends.  Exact column separation lets unrelated events
+increase $H_{qi}^{\rm async}$ without entering $F_{qi}$ or forcing a
+recertification.  Atomic batching further shows that a positive linear state
+needs only endpoint counts and total local mass; this says nothing about a
+hidden within-batch chronology or about coupled state blocks.  An incremental
+lower-state or reset-bank argument in another
+direction may use the same accounting only after proving the analogous block
+separation; a shared phase transition, response row, or reset reserve must
+still pay for every component it actually changes.  In particular, an
+event-local certificate or reset payment does not imply neighboring-stage
+monotonicity or a generic scalar potential.  This observation adds no formal
+dependency edge.
+
+\begin{proposition}[Canonical singleton paths obstruct literal geometric
+sleep]
+\label{prop:singleton-path-geometric-sleep-obstruction}
+Fix $\alpha\in(0,1)$ and $\gamma>0$.  For every sufficiently long unweighted
+path $P_n=(v_0,\ldots,v_{n-1})$ with single seed $s=e_{v_0}$, form $D,Q,b$
+using the \emph{ambient} degrees in $P_n$:
+$d_{v_0}=d_{v_{n-1}}=1$ and $d_{v_i}=2$ for $0<i<n-1$.
+There is a family-dependent $\rho_n>0$ for which the canonical
+all-violations RPPR gate, initialized at $S_0=\{v_0\}$, has the forced trace
+\begin{equation}
+ S_k=\{v_0,\ldots,v_k\},
+ \qquad
+ B_k=\{v_{k+1}\},
+ \qquad 0\leq k<n-1.
+ \label{eq:singleton-path-gate-trace}
+\end{equation}
+Here, at the exact positive restricted point $x[S]$, the canonical batch is
+\begin{equation}
+ \mathcal B(S)
+ :=\{v\in\partial S:
+ c_v-Q_{vS}x[S]_S>0\},
+ \qquad c:=b-\alpha\rho_nD^{1/2}\one,
+ \label{eq:singleton-path-canonical-gate}
+\end{equation}
+so equality is inactive and every strict violation is admitted in the same
+batch.  The proof chooses $\rho_n$ only after $n$ is fixed; no positive lower
+bound uniform in $n$ is asserted.
+
+For $1\leq k\leq n-3$,
+\begin{equation}
+ \frac{\operatorname{cvol}(S_{k+1})}
+      {\operatorname{cvol}(S_k)}
+ =1+\frac{3}{2+3k}.
+ \label{eq:singleton-path-volume-ratio}
+\end{equation}
+Hence all but $O(1/\gamma)$ of the required gate certifications occur without
+$\gamma$-multiplicative face growth.  A controller whose only certified
+\textsc{BoundaryBounds} calls occur on a geometrically growing face sequence
+cannot reproduce the literal gate on this family.
+
+This does not give a work lower bound.  To make that exclusion fully charged,
+use the non-prefetching append-only tridiagonal $LDL^T$ response written out
+in the proof below.  It is the same response independently audited by the
+stopping-time path materialization theorem in the companion
+local-solver-oracle-hierarchy note (stable label
+\texttt{thm:online-path-}\allowbreak\texttt{resource-separation}), now applied
+to the append-only load $c_{S_k}$: old load entries retain their ambient
+degrees and only the new coordinate is appended.  Request one
+\textsc{BoundaryBounds} reply for each of the $n-1$ singleton batches and
+co-return the empty-boundary terminal certificate and final vector at the
+$n$th external stage.  The named exact-real execution has
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &\qquad=(\Theta(n),n,n,0,\Theta(n),0,\Theta(n),
+           \Theta(n),O(1),0,\Theta(n)).
+ \end{aligned}
+ \label{eq:singleton-path-sleep-eleven-vector}
+\end{equation}
+This is an upper-bound realization, not a lower bound on its adjacency or
+interaction rounds.  Terminal coordinates are final emissions, so they do
+not enter intermediate $C_{\rm mat}$.  The proposition proves only that
+\cref{cor:geometric-aggregate-debt-flush} cannot close online completeness by
+itself.  A general theorem still needs an output-sensitive partial reporter
+between checkpoints or a separately proved support-safe trace that bypasses
+the literal canonical batches.  No finite-precision, word-RAM, bit-complexity,
+or PPR-conversion claim is made.
+\end{proposition}
+
+\begin{proof}
+First set $\rho=0$.  For every prefix $S_k$, with all entries of $Q$ still
+formed from the ambient $P_n$ degrees, the principal matrix
+$Q_{S_kS_k}$ is an irreducible SPD Stieltjes matrix.  Its inverse is strictly
+positive, while the restricted load $b_{S_k}$ is positive at $v_0$ and zero
+elsewhere.  Therefore
+\begin{equation*}
+ x^{(k)}(0):=Q_{S_kS_k}^{-1}b_{S_k}>0.
+\end{equation*}
+The only boundary vertex is $v_{k+1}$, and its exact demand is
+\begin{equation*}
+ h_k(0)
+ :=b_{v_{k+1}}-Q_{v_{k+1},S_k}x^{(k)}(0)
+ =-Q_{v_{k+1},v_k}x^{(k)}_{v_k}(0)>0.
+\end{equation*}
+The active coordinates and the finitely many strict demands
+\begin{equation*}
+ h_k(\rho)
+ :=c_{v_{k+1}}-Q_{v_{k+1},S_k}
+ Q_{S_kS_k}^{-1}c_{S_k}
+\end{equation*}
+depend continuously (indeed affinely) on $\rho$.  Choose $\rho_n>0$ after
+fixing $n$ so that every restricted prefix remains positive and every
+$h_k(\rho_n)>0$.  This finite continuity choice supplies no $n$-uniform
+lower bound.  Since the path prefix has exactly one boundary vertex,
+canonical all-violations batching gives
+\cref{eq:singleton-path-gate-trace}; the full restricted point is positive as
+well.
+
+The endpoint $v_0$ contributes $2$ to charged volume, and each
+$v_i$, $1\leq i\leq k<n-1$, has full-graph degree two and contributes $3$.
+Thus $\operatorname{cvol}(S_k)=2+3k$, proving
+\cref{eq:singleton-path-volume-ratio}.  Once
+$3/(2+3k)<\gamma$, the next required certification precedes
+$\gamma$-multiplicative growth.  There are $n-O(1/\gamma)$ such indices.
+
+Finally, write the tridiagonal factor of $Q_{S_kS_k}$ as
+$L_k\Delta_kL_k^T$.  Starting with
+$\Delta_0=Q_{v_0v_0}$ and $u_0=c_{v_0}$, admission of $v_{i+1}$ appends only
+\begin{equation*}
+ \ell_i:=\frac{Q_{v_{i+1},v_i}}{\Delta_i},
+ \qquad
+ \Delta_{i+1}:=Q_{v_{i+1},v_{i+1}}
+   -\frac{Q_{v_{i+1},v_i}^2}{\Delta_i},
+ \qquad
+ u_{i+1}:=c_{v_{i+1}}-\ell_i u_i.
+\end{equation*}
+Put $w_i:=u_i/\Delta_i$.  At prefix $S_k$, back substitution starts with
+$x[S_k]_{v_k}=w_k$, so the unique next demand is computed in constant work as
+$c_{v_{k+1}}-Q_{v_{k+1},v_k}w_k$.  At termination, the one reverse response
+application
+\begin{equation*}
+ x_{v_{n-1}}=w_{n-1},
+ \qquad
+ x_{v_i}=w_i-\ell_i x_{v_{i+1}}
+ \quad(i=n-2,\ldots,0)
+\end{equation*}
+streams the terminal vector.  Thus appending the new ambient-degree row and
+load entry costs constant response and control work.  Counting the $n$ row
+exposures, $n$ external stages, retained records, scalar replies, and final
+coordinates gives \cref{eq:singleton-path-sleep-eleven-vector}.
+\end{proof}
+
+\begin{corollary}[Packed node tests with charged source whitening]
+\label{cor:packed-harmonic-node-tests}
+Suppose $\widetilde K_F$ satisfies
+\cref{eq:frontier-spectral-approximation}, one multiplication by it costs
+$T_{\rm mv}$ work, and one scalar measurement in
+\cref{eq:chebyshev-whitened-group-estimator}, including construction or
+maintenance of its target harmonic row, costs $T_{\rm harm}$ work.  Under
+the hypotheses of \cref{lem:source-aware-hierarchical-locator}, all
+potentially ambiguous leaves at one event are found with high probability in
+\begin{equation}
+ \widetilde O\!\left(
+ \frac{T_{\rm mv}}{\sqrt\alpha}
+ +
+ T_{\rm harm}\,bL
+ \left(1+|F|\frac{E^2}{m^2}\right)
+ \right)
+ \label{eq:packed-harmonic-query-work}
+\end{equation}
+work, plus exact reached-leaf validation and output.  No dense exterior
+response or all-leaf squared range-add is used.
+\end{corollary}
+
+\begin{proof}
+Fix absolute constants $\xi,\zeta,\upsilon<1$.  The estimator
+\cref{eq:chebyshev-whitened-one-sided} gives
+\cref{eq:source-aware-group-oracle} with the absolute constant
+$\gamma=\Gamma_{\xi,\zeta,\upsilon}$.  Apply
+\cref{lem:source-aware-hierarchical-locator}; the
+$O(\log^2(M/\delta))$ scalar measurements per reached group are absorbed by
+$\widetilde O$.  The source vectors are prepared once and reused by every
+reached group, so \cref{eq:frontier-whitening-work} is additive rather than
+multiplied by the query count.
+\end{proof}
+
+\begin{theorem}[Low-cut-rank harmonic bank]
+\label{thm:low-cut-rank-harmonic-bank}
+Fix an anchor $A$, put $U:=V\setminus A$, and define its normalized cut
+matrix
+\begin{equation}
+ \mathsf C_A:=Q_{AU}D_U^{-1/2}.
+ \label{eq:normalized-anchor-cut}
+\end{equation}
+Suppose an exact rank-$s$ factorization
+\begin{equation}
+ \mathsf C_A=BC,
+ \qquad
+ B\in\mathbb R^{A\times s},
+ \quad
+ C\in\mathbb R^{s\times U}
+ \label{eq:cut-rank-factorization}
+\end{equation}
+is available, and precompute the harmonic basis
+\begin{equation}
+ Y:=Q_{AA}^{-1}B.
+ \label{eq:cut-rank-harmonic-basis}
+\end{equation}
+Then every target vector $a\in\mathbb R^U$ has harmonic extension
+\begin{equation}
+ Q_{AA}^{-1}Q_{AU}D_U^{-1/2}a=Y(Ca).
+ \label{eq:cut-rank-target-extension}
+\end{equation}
+For every frontier $F\subseteq U$, $y\in\mathbb R^F$, and
+$w:=Q_{AF}y$, its scalar transposed harmonic response is therefore
+\begin{equation}
+ a^TD_U^{-1/2}Q_{UA}Q_{AA}^{-1}w
+ =(Ca)^TY^Tw.
+ \label{eq:cut-rank-scalar-response}
+\end{equation}
+
+The low-rank factorization in fact removes target-side random measurements
+entirely.  For $y\in\mathbb R^F$, define on $U$
+\begin{equation*}
+ b(y):=D_U^{-1/2}Q_{UF}y,
+ \qquad
+ t(y):=Y^TQ_{AF}y.
+\end{equation*}
+The normalized dual signature of the frontier lift is
+\begin{equation}
+ D_U^{-1/2}q_U=b(y)-C^Tt(y).
+ \label{eq:cut-rank-dual-decomposition}
+\end{equation}
+For every hierarchy node $\mathcal C\subseteq U\setminus F$, store the
+anchor-only Gram summary
+\begin{equation}
+ G_{\mathcal C}:=C_{:,\mathcal C}C_{:,\mathcal C}^T
+ \label{eq:cut-rank-group-gram}
+\end{equation}
+and, for the current $y$, form the direct summaries
+\begin{equation}
+ r_{\mathcal C}(y):=C_{:,\mathcal C}b_{\mathcal C}(y),
+ \qquad
+ \nu_{\mathcal C}(y):=\|b_{\mathcal C}(y)\|_2^2.
+ \label{eq:cut-rank-direct-summaries}
+\end{equation}
+Then the complete node response norm is the exact scalar
+\begin{equation}
+ \left\|D_{\mathcal C}^{-1/2}q_{\mathcal C}\right\|_2^2
+ =\nu_{\mathcal C}(y)
+  -2t(y)^Tr_{\mathcal C}(y)
+  +t(y)^TG_{\mathcal C}t(y).
+ \label{eq:cut-rank-exact-group-norm}
+\end{equation}
+All three group summaries are additive over hierarchy children.
+$G_{\mathcal C}$ is built once from the cut columns.  The vector $b(y)$ is
+formed by scanning frontier incidences; propagating each touched leaf to its
+ancestors constructs every nonzero $r_{\mathcal C}(y)$ and
+$\nu_{\mathcal C}(y)$.  If the hierarchy depth is $L$, this costs
+$O(sL)$ per touched exterior label after the frontier scan.  Forming $t(y)$
+reads $s$ entries of $Y$ per touched anchor row, and evaluating
+\cref{eq:cut-rank-exact-group-norm} at a requested node costs $O(s^2)$.
+
+Consequently, after the $s$ anchor solves and
+$O(s|A|+s^2M)$ stored scalars for an $M$-node hierarchy, all fixed-frontier
+group norms for one vector $y$ are obtained without a target harmonic solve,
+a target Gaussian probe, or a scan of an untouched hierarchy subtree.
+Polylogarithmic cut rank therefore closes the target side of
+\cref{cor:packed-harmonic-node-tests}, conditional only on the declared
+factorization, anchor-solve, and touched-incidence charges.
+
+This rank dependence is exact.  The full harmonic bank
+\begin{equation*}
+ \mathsf H_A:=Q_{AA}^{-1}\mathsf C_A
+\end{equation*}
+has $\operatorname{rank}(\mathsf H_A)=
+\operatorname{rank}(\mathsf C_A)$.  Moreover, for every integer $k\geq0$,
+\begin{equation}
+ \min_{\operatorname{rank}(\widetilde{\mathsf H})\leq k}
+ \left\|Q_{AA}^{1/2}
+   (\mathsf H_A-\widetilde{\mathsf H})\right\|_2
+ =\sigma_{k+1}\!\left(Q_{AA}^{-1/2}\mathsf C_A\right).
+ \label{eq:harmonic-bank-numerical-rank}
+\end{equation}
+An energy-operator error at most $\eta$ consequently guarantees, for all
+$a$ and $w$,
+\begin{equation}
+ \left|a^T(\mathsf H_A-\widetilde{\mathsf H})^Tw\right|
+ \leq\eta\|a\|_2\|w\|_{Q_{AA}^{-1}}.
+ \label{eq:harmonic-bank-bilinear-error}
+\end{equation}
+The squared singular values have the general packing bound
+\begin{equation}
+ \sum_i\sigma_i^2\!\left(Q_{AA}^{-1/2}\mathsf C_A\right)
+ =\sum_{v\in U}
+   \frac{Q_{vA}Q_{AA}^{-1}Q_{Av}}{d_v}
+ \leq |A|.
+ \label{eq:harmonic-bank-singular-packing}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+\Cref{eq:cut-rank-target-extension,eq:cut-rank-scalar-response} follow by
+substituting \cref{eq:cut-rank-factorization} and using symmetry.  The same
+substitution in the exterior block
+$q_U=Q_{UF}y-Q_{UA}Q_{AA}^{-1}Q_{AF}y$ proves
+\cref{eq:cut-rank-dual-decomposition}.  Expanding the squared norm of
+$b_{\mathcal C}(y)-C_{:,\mathcal C}^Tt(y)$ gives
+\cref{eq:cut-rank-exact-group-norm}.  Each displayed summary is a sum of
+leaf contributions, proving additivity.  Scanning the nonzeros of $b(y)$ and
+the touched rows of $Q_{AF}y$, then propagating leaf contributions along
+their ancestor paths, gives the work and storage statements.
+
+Invertibility of $Q_{AA}$ preserves rank.  The energy-scaled approximation
+problem is ordinary best rank-$k$ approximation of
+$Q_{AA}^{1/2}\mathsf H_A=Q_{AA}^{-1/2}\mathsf C_A$; the
+Eckart--Young theorem proves
+\cref{eq:harmonic-bank-numerical-rank}.  Cauchy--Schwarz between
+$Q_{AA}^{1/2}(\mathsf H_A-\widetilde{\mathsf H})a$ and
+$Q_{AA}^{-1/2}w$ proves \cref{eq:harmonic-bank-bilinear-error}.  Finally,
+expanding the Frobenius norm gives the equality in
+\cref{eq:harmonic-bank-singular-packing}.  Apply
+\cref{eq:source-aware-leverage-sum} with source set equal to the whole face
+$A$, then use $d_v\geq1$, to obtain the inequality.
+\end{proof}
+
+\begin{corollary}[Low-cut-rank packed group reporter]
+\label{cor:low-cut-rank-packed-reporter}
+Assume the factorization and harmonic bank of
+\cref{thm:low-cut-rank-harmonic-bank}, and let the boundary hierarchy have
+depth $L$ and at most $M$ nodes.  Use the Chebyshev-whitened source vectors
+$y_t=p_q(\widetilde K_F)g_t$ from
+\cref{thm:chebyshev-frontier-whitening}, but replace the target-side Gaussian
+estimator by
+\begin{equation}
+ \overline Z_{F,q}^{\rm lr}(\mathcal C)
+ :=\frac1r\sum_{t=1}^r
+ \left\|D_{\mathcal C}^{-1/2}q_{\mathcal C}(y_t)\right\|_2^2,
+ \label{eq:low-rank-source-only-estimator}
+\end{equation}
+where every summand is evaluated exactly by
+\cref{eq:cut-rank-exact-group-norm}.  For
+$r=O(\xi^{-2}\log(2M/\delta))$, with probability at least $1-\delta$,
+simultaneously for every node,
+\begin{equation}
+ (1-\xi)a_-Z_F(\mathcal C)
+ \leq\overline Z_{F,q}^{\rm lr}(\mathcal C)
+ \leq(1+\xi)a_+Z_F(\mathcal C),
+ \label{eq:low-rank-source-only-guarantee}
+\end{equation}
+with $a_-,a_+$ from
+\cref{eq:frontier-whitening-sandwich}.  Rescaling the estimator therefore
+gives the one-sided group oracle required by
+\cref{lem:source-aware-hierarchical-locator}.
+
+Moreover, the factorization makes one exact frontier multiplication local.
+Indeed,
+\begin{equation}
+ Q_{AA}^{-1}Q_{AF}y
+ =Y\,C_{:,F}D_F^{1/2}y,
+ \label{eq:low-rank-anchor-application}
+\end{equation}
+so \cref{eq:exact-frontier-matvec} costs
+$O(s\operatorname{cvol}(F))$ row reads and arithmetic.  After the separately
+charged factorization, $s$ anchor solves, and hierarchy-Gram construction,
+one packed ambiguous-row search consequently costs
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{s\operatorname{cvol}(F)}{\sqrt\alpha}
+  +s^2bL\left(1+|F|\frac{E^2}{m^2}\right)
+ \right),
+ \label{eq:low-rank-packed-reporter-work}
+\end{equation}
+plus exact reached-leaf validation and output.  Thus a polylogarithmic-rank
+cut gives a complete charged group reporter at the accelerated frontier
+scale; no target harmonic query remains.
+\end{corollary}
+
+\begin{proof}
+For fixed $\mathcal C$, the vector
+$D_{\mathcal C}^{-1/2}q_{\mathcal C}(y_t)$ is the matrix
+$R_{\mathcal C}p_q(\widetilde K_F)$ applied to a standard Gaussian source.
+The first Gaussian quadratic-form argument in
+\cref{lem:two-sided-harmonic-group-sketch}, followed by a union bound over
+the $M$ nodes, compares
+\cref{eq:low-rank-source-only-estimator} with
+$Z_{F,q}(\mathcal C)$.  Combine this with
+\cref{eq:frontier-whitening-sandwich} to prove
+\cref{eq:low-rank-source-only-guarantee}.
+
+The cut factorization gives
+$Q_{AF}=BC_{:,F}D_F^{1/2}$, proving
+\cref{eq:low-rank-anchor-application}.  The products incident on $F$ scan
+its rows and read only the corresponding rows of $Y$.  Hence
+$T_{\rm mv}=O(s\operatorname{cvol}(F))$ in
+\cref{eq:frontier-whitening-work}.  For the logarithmic number of final
+source probes, construct $b(y_t)$ from the same frontier incidences, propagate
+\cref{eq:cut-rank-direct-summaries} along at most $L$ ancestors, and form
+$t(y_t)$ from touched rows of $Y$; these costs are absorbed by the first term
+up to logarithms.  Each queried group then costs $O(s^2)$ by
+\cref{eq:cut-rank-exact-group-norm}.  Substitute the query count from
+\cref{eq:source-aware-group-query-count} to obtain
+\cref{eq:low-rank-packed-reporter-work}.
+\end{proof}

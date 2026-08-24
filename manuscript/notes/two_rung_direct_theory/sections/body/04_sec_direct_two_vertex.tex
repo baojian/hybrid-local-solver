@@ -1,0 +1,181 @@
+\section{Complete two-vertex dynamics}
+\label{sec:direct-two-vertex}
+
+Let $G$ be one edge with seed at vertex $0$. Both degrees equal one, so the
+empirical score is simply $|r_u|/2$ and every batch contains one coordinate.
+It is convenient to use the equivalent degree-scaled residual
+\begin{equation}
+ \widehat r:=\frac{2}{1+\alpha}D^{1/2}r.
+ \label{eq:direct-scaled-residual}
+\end{equation}
+Set
+\begin{equation}
+ \gamma_\alpha:=\frac{2\alpha}{1+\alpha},
+ \qquad
+ c_\alpha:=\frac{1-\alpha}{1+\alpha}
+ =\frac{2\lambda_\alpha}{1+\lambda_\alpha^2}.
+ \label{eq:direct-scaled-parameters}
+\end{equation}
+The scaled system starts from
+$\widehat r^{(0)}=(\gamma_\alpha,0)$; the terminal gate is
+$\|\widehat r\|_\infty\leq\gamma_\alpha\epsppr$. An optimal-SOR push leaves
+$-\lambda_\alpha^2\sigma$ at the pushed coordinate and sends
+$2\lambda_\alpha\sigma$ to its neighbor.
+
+\begin{lemma}[Closed-form ranked trajectory on one edge]
+\label{lem:direct-edge-trajectory}
+Write $\lambda:=\lambda_\alpha$. The score-maximizing spreading phase
+alternates coordinates. After $2k$ and $2k+1$ pushes, respectively,
+\begin{align}
+ \widehat r^{(2k)}
+ &=\gamma_\alpha\lambda^{2k}
+   \bigl(2k+1,-2k\lambda\bigr),
+ \label{eq:direct-even-trajectory}\\
+ \widehat r^{(2k+1)}
+ &=\gamma_\alpha\lambda^{2k}
+   \bigl(-\lambda^2(2k+1),2\lambda(k+1)\bigr).
+ \label{eq:direct-odd-trajectory}
+\end{align}
+The first coordinate has larger magnitude in every even state, and the
+second has larger magnitude in every odd state.
+\end{lemma}
+
+\begin{proof}
+The claim holds at $k=0$. In an even state,
+$2k+1>2k\lambda$, so coordinate $0$ is selected. Applying the optimal-SOR
+update gives \cref{eq:direct-odd-trajectory}. There,
+\begin{equation*}
+ 2\lambda(k+1)>\lambda^2(2k+1),
+\end{equation*}
+so coordinate $1$ is selected. One more update gives
+\cref{eq:direct-even-trajectory} with $k$ replaced by $k+1$.
+\end{proof}
+
+The formulas exhibit critical damping: the geometric factor
+$\lambda^{2k}$ is multiplied by the linear transient $k$. More importantly,
+the two residual entries have opposite signs. The exact rung can exploit
+that correlation.
+
+\begin{lemma}[One-push settlement ratio]
+\label{lem:direct-edge-settlement-ratio}
+Suppose the spreading phase stops in state $2k$ or $2k+1$ and the exact phase
+pushes the larger-magnitude coordinate. The remaining residual magnitude,
+divided by the pre-push maximum magnitude, equals
+\begin{align}
+ R_{2k}(\lambda)
+ &=\frac{2\lambda\{k(1-\lambda^2)+1\}}
+         {(1+\lambda^2)(2k+1)},
+ \label{eq:direct-even-settlement}\\
+ R_{2k+1}(\lambda)
+ &=\frac{\lambda\{2k(1-\lambda^2)+3-\lambda^2\}}
+         {2(k+1)(1+\lambda^2)}.
+ \label{eq:direct-odd-settlement}
+\end{align}
+Both ratios satisfy
+\begin{equation}
+ R_j(\lambda)
+ \leq
+ \frac{\lambda(1-\lambda^2)}{1+\lambda^2}
+ +\frac1{k+1}.
+ \label{eq:direct-settlement-upper}
+\end{equation}
+Furthermore,
+\begin{equation}
+ R_\star
+ :=\max_{0<\lambda<1}
+   \frac{\lambda(1-\lambda^2)}{1+\lambda^2}
+ =0.3002831060\ldots,
+ \label{eq:direct-universal-settlement}
+\end{equation}
+where the maximum occurs at
+$\lambda^2=\sqrt5-2$.
+\end{lemma}
+
+\begin{proof}
+An exact push sends $c_\alpha$ times its residual to the neighbor. Apply this
+to \cref{eq:direct-even-trajectory,eq:direct-odd-trajectory}, use
+$c_\alpha=2\lambda/(1+\lambda^2)$, and simplify to obtain
+\cref{eq:direct-even-settlement,eq:direct-odd-settlement}.
+
+For the even ratio, separate the term with $k(1-\lambda^2)$; the remaining
+coefficient is at most $1/(2k+1)$. For the odd ratio, the remaining
+coefficient is at most $1/(k+1)$ because
+\begin{equation*}
+ \frac{\lambda(3-\lambda^2)}{2(1+\lambda^2)}\leq1.
+\end{equation*}
+This proves \cref{eq:direct-settlement-upper}. Differentiating the limiting
+function gives numerator
+$1-4\lambda^2-\lambda^4$; its unique root in $(0,1)$ satisfies
+$\lambda^2=\sqrt5-2$, proving \cref{eq:direct-universal-settlement}.
+\end{proof}
+
+\begin{theorem}[Eventual one-push terminal rung on one edge]
+\label{thm:direct-edge-one-push}
+Let
+\begin{equation}
+ B_{\rm edge}:=R_\star^{-1}=3.3301906768\ldots.
+ \label{eq:direct-edge-band-ceiling}
+\end{equation}
+For every fixed $1<B<B_{\rm edge}$, there is an integer $K(B)$ such that if
+the spreading phase executes at least $2K(B)$ pushes, then its terminal exact
+phase performs at most one push. For $B=2.5$, one may take $K(B)=10$.
+\end{theorem}
+
+\begin{proof}
+At the switch, the maximum scaled residual is at most
+$B\gamma_\alpha\epsppr$. Choose $K(B)$ so that
+\begin{equation*}
+ B\left(R_\star+\frac1{K(B)+1}\right)\leq1.
+\end{equation*}
+After one exact push, \cref{lem:direct-edge-settlement-ratio} bounds the only
+remaining residual by $\gamma_\alpha\epsppr$, while the pushed coordinate is
+zero. Thus the terminal gate holds. For $B=2.5$,
+\begin{equation*}
+ 2.5\left(0.3002831061+\frac1{11}\right)<1,
+\end{equation*}
+so $K=10$ suffices.
+\end{proof}
+
+\begin{corollary}[Accelerated one-edge work]
+\label{cor:direct-edge-work}
+For $0<\alpha\leq1/9$, the number $N$ of spreading pushes is characterized,
+up to absolute constant factors, by
+\begin{equation}
+ (k+1)\lambda_\alpha^{2k}\asymp B\epsppr,
+ \qquad k=\left\lfloor\frac N2\right\rfloor.
+ \label{eq:direct-edge-count-characterization}
+\end{equation}
+Consequently,
+\begin{equation}
+ N
+ =\Theta\!\left(
+   \frac{1+\log(1/(\epsppr\sqrt\alpha))}{\sqrt\alpha}
+  \right)
+ \label{eq:direct-edge-accelerated-count}
+\end{equation}
+in the joint small-$\alpha$, small-gate regime, up to the harmless iterated
+logarithm from inverting $k\lambda_\alpha^{2k}$. The exact phase adds at most
+one push once \cref{thm:direct-edge-one-push} applies.
+\end{corollary}
+
+\begin{proof}
+For $\alpha\leq1/9$, one has $\lambda_\alpha\geq1/2$. The larger magnitude
+in either \cref{eq:direct-even-trajectory,eq:direct-odd-trajectory}, divided
+by $\gamma_\alpha$, lies between
+$(k+1)\lambda_\alpha^{2k}$ and
+$2(k+1)\lambda_\alpha^{2k}$. This proves
+\cref{eq:direct-edge-count-characterization}. Finally,
+$-\log\lambda_\alpha=2\operatorname{arctanh}(\sqrt\alpha)
+=\Theta(\sqrt\alpha)$; invert the displayed geometric-polynomial relation.
+\end{proof}
+
+\begin{remark}[Why the self-reflection predictor is conservative]
+The self-reflection-only condition would require
+$B\lambda_\alpha^2\leq1$, or $B\leq\lambda_\alpha^{-2}$, which tends to one
+as $\alpha\downarrow0$. The two-vertex theorem instead permits every fixed
+$B<B_{\rm edge}$. The difference is exactly the opposite-sign neighbor
+residual already present at the switch: the exact push combines with it and
+cancels most of both packets. This is a rigorous mechanism by which the
+measured $B=2.5$ can outperform a band rule derived from self-reflection
+alone.
+\end{remark}

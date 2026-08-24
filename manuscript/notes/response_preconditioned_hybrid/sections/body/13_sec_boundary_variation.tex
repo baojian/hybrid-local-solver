@@ -1,0 +1,98 @@
+\subsection{Monotone boundary variation}
+\label{sec:boundary-variation}
+
+The reporting problem is not caused by oscillating exact keys.  The next
+ledger shows that every still-inactive demand moves in only one direction and
+that the total normalized motion is bounded independently of the number of
+active-set events.
+
+\begin{lemma}[Monotone demand-variation ledger]
+\label{lem:boundary-variation}
+Assume the source has unit mass.  Let
+$S_0\subsetneq\cdots\subsetneq S_J\subseteq S^\star$ be a trace whose exact
+positive restricted solutions $z^j:=x[S_j]$, extended by zero, satisfy
+\begin{equation}
+ 0\leq z^0\leq z^1\leq\cdots\leq z^J\leq x^\star.
+ \label{eq:monotone-face-trace}
+\end{equation}
+Write $c:=b-\alpha\rho D^{1/2}\one$.  For $v\notin S_j$, define its
+normalized shifted demand by
+\begin{equation}
+ g_v^j:=\frac{c_v-(Qz^j)_v}{\sqrt{d_v}}.
+ \label{eq:normalized-boundary-demand}
+\end{equation}
+Then $g_v^{j+1}\geq g_v^j$ whenever $v\notin S_{j+1}$.  Moreover,
+\begin{equation}
+ \sum_{j=0}^{J-1}\ \sum_{v\notin S_{j+1}}
+ d_v\bigl(g_v^{j+1}-g_v^j\bigr)
+ \leq\frac{1-\alpha}{2}.
+ \label{eq:boundary-total-variation}
+\end{equation}
+Consequently every inactive exact key crosses any fixed admission threshold
+at most once.
+\end{lemma}
+
+\begin{proof}
+Put $\Delta^j:=z^{j+1}-z^j\geq0$.  If $v\notin S_{j+1}$, then $v$ is
+disjoint from the support of $\Delta^j$, so the Stieltjes signs give
+\begin{equation}
+ g_v^{j+1}-g_v^j
+ =-\frac{Q_{vS_{j+1}}\Delta^j_{S_{j+1}}}{\sqrt{d_v}}
+ \geq0.
+ \label{eq:boundary-monotone-increment}
+\end{equation}
+For the shared normalized PageRank matrix, every graph edge $uv$ has
+$-Q_{uv}=(1-\alpha)/(2\sqrt{d_ud_v})$.  Multiplying
+\cref{eq:boundary-monotone-increment} by $d_v$, summing, and then dropping the
+restriction on inactive neighbors gives
+\begin{align}
+ \sum_{v\notin S_{j+1}}d_v(g_v^{j+1}-g_v^j)
+ &\leq\frac{1-\alpha}{2}
+   \sum_u\frac{\Delta_u^j}{\sqrt{d_u}}
+   \sum_{v\in\mathcal N(u)}1 \notag\\
+ &=\frac{1-\alpha}{2}\sum_u\sqrt{d_u}\,\Delta_u^j.
+ \label{eq:boundary-variation-one-step}
+\end{align}
+The coordinate increments telescope under
+\cref{eq:monotone-face-trace}, hence their sum is at most $x^\star$.
+Stieltjes comparison gives $x^\star\leq x^0:=Q^{-1}b$.  Finally,
+$QD^{1/2}\one=\alpha D^{1/2}\one$ and
+$b=\alpha D^{-1/2}s$ with $\one^Ts=1$ imply
+\begin{equation}
+ \sum_u\sqrt{d_u}\,x_u^0=1.
+ \label{eq:ppr-normalized-mass}
+\end{equation}
+Summing \cref{eq:boundary-variation-one-step} over $j$ proves
+\cref{eq:boundary-total-variation}.  Monotonicity proves the final claim.
+\end{proof}
+
+\begin{corollary}[Limit of additive scalar bucketing]
+\label{cor:additive-key-ledger}
+Suppose an exact-key implementation publishes an update at $v$ only after
+the normalized demand accumulated since its previous publication reaches
+$\beta>0$, and let $N_v$ be the number of such publications before $v$ is
+activated or the trace terminates.  Then
+\begin{equation}
+ \sum_v d_vN_v\leq\frac{1-\alpha}{2\beta}.
+ \label{eq:additive-key-publications}
+\end{equation}
+With the finite-band scale $\beta=\alpha\tau/4$, this ledger is only
+$O(1/(\alpha\tau))$, the classical push scale, rather than the desired
+$\widetilde O(1/(\tau\sqrt\alpha))$ scale.
+\end{corollary}
+
+\begin{proof}
+Charge every publication at $v$ by $d_v\beta$ of previously unpublished
+variation and apply \cref{eq:boundary-total-variation}.  At most one final
+sub-$\beta$ remainder is stored per discovered boundary label; these distinct
+labels are charged to exposed incidence volume because each has an edge to a
+scanned active vertex.
+\end{proof}
+
+The corollary is an accounting statement, not a lower bound: it assumes that
+the dense increments in \cref{eq:boundary-monotone-increment} are already
+available.  Its value is to isolate the required compression.  A successful
+finite-band hierarchy should treat each Schur correction as an implicit
+nonnegative range-add vector, exploit the one-crossing property, and locate
+all threshold crossings without publishing additive $\alpha\tau$ quanta or
+refreshing the whole old boundary.

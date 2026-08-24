@@ -1,0 +1,71 @@
+\section{The exact reflection algebra}
+\label{sec:algebra}
+
+For the shared matrix $Q$, every diagonal entry is
+$Q_{uu}=(1+\alpha)/2$.  A coordinate push of the current residual
+$\sigma:=r_u$ at relaxation $\omega$ is
+\begin{equation}
+ x^+=x+\omega\frac{\sigma}{Q_{uu}}e_u,
+ \qquad
+ r^+=r-\omega\frac{\sigma}{Q_{uu}}Qe_u.
+ \label{eq:sor-push}
+\end{equation}
+Its self-coordinate is
+\begin{equation}
+ r_u^+=(1-\omega)\sigma.
+ \label{eq:self-reflection}
+\end{equation}
+
+\begin{lemma}[Optimal-SOR parameterization]
+\label{lem:optimal-parameterization}
+Let
+\begin{equation}
+ t:=\sqrt\alpha,
+ \qquad
+ \lambda_\alpha:=\frac{1-t}{1+t}.
+ \label{eq:lambda-alpha}
+\end{equation}
+Then
+\begin{equation}
+ \omega_\star
+ =\frac{2(1+\alpha)}{(1+\sqrt\alpha)^2}
+ =1+\lambda_\alpha^2.
+ \label{eq:omega-lambda}
+\end{equation}
+Consequently, an optimal-SOR push leaves the signed self-reflection
+$-\lambda_\alpha^2\sigma$.
+\end{lemma}
+
+\begin{proof}
+Expanding the numerator of $1+\lambda_\alpha^2$ gives
+\[
+ 1+\frac{(1-t)^2}{(1+t)^2}
+ =\frac{2(1+t^2)}{(1+t)^2}.
+\]
+Substitute $t^2=\alpha$ and use \cref{eq:self-reflection}.
+\end{proof}
+
+\begin{lemma}[Immediate cleanup collapse]
+\label{lem:immediate-collapse}
+Suppose an over-relaxed push of $\sigma=r_u$ is followed immediately by an
+exact $\omega=1$ push at $u$, with no intervening update.  Their combined
+effect on $(x,r)$ is exactly one $\omega=1$ coordinate push of $\sigma$.
+\end{lemma}
+
+\begin{proof}
+After the first push, $r_u^+=(1-\omega)\sigma$.  The two increments to $x_u$
+sum to
+\[
+ \omega\frac{\sigma}{Q_{uu}}
+ +(1-\omega)\frac{\sigma}{Q_{uu}}
+ =\frac{\sigma}{Q_{uu}}.
+\]
+Residual updates are linear in the same increment, proving the claim.
+\end{proof}
+
+\begin{remark}[The delay is load-bearing]
+The measured gain cannot come from the two relaxation values alone.  Mass
+must propagate, be batched, or be ranked between the spreading update and its
+cleanup; otherwise the pair is ordinary Gauss--Seidel by
+\cref{lem:immediate-collapse}.
+\end{remark}

@@ -1,0 +1,301 @@
+\subsection{Round-024 stability boundary and structural positive branch}
+
+The absolute polish controls the error of one shifted solve.  It does not,
+by itself, justify a black-box trajectory-shadowing argument through the
+support-indexed lower retraction.  The obstruction is already exact on one
+edge.
+
+\begin{proposition}[The lower retraction is discontinuous and sharply ill-conditioned]
+\label{prop:aesp-cd-retraction-shadowing-stop}
+Let $G=P_2$, use the endpoint seed, fix $0<\alpha<1/4$, and write
+\begin{equation*}
+ \lambda:=\frac{1+\alpha}{2},
+ \qquad \nu:=\frac{1-\alpha}{2},
+ \qquad \rho:=\frac{\nu}{4}.
+\end{equation*}
+For the support-indexed map $\mathcal L$ in
+\cref{eq:aesp-cd-lower-retraction}, put
+\begin{equation*}
+ a:=\left(\frac\alpha8,0\right),
+ \qquad a^\eta:=\left(\frac\alpha8,\eta\right),\quad \eta>0.
+\end{equation*}
+Then
+\begin{equation}
+ \mathcal L(a)=a,
+ \qquad
+ \mathcal L(a^\eta)=0,
+ \qquad
+ \lim_{\eta\downarrow0}
+ \norm{\mathcal L(a^\eta)-\mathcal L(a)}_\infty
+ =\frac\alpha8.
+ \label{eq:aesp-cd-retraction-discontinuity}
+\end{equation}
+Thus $\mathcal L$ is discontinuous when a zero coordinate enters the trial
+support.
+
+Even with the support fixed and every input and output coordinate positive,
+the sharp local amplification is $1+1/\alpha$.  Specifically, put
+\begin{equation*}
+ u:=\left(\frac\lambda2,\frac\nu2\right),
+ \qquad h:=(1,-1),
+ \qquad 0<\varepsilon<\frac{\alpha\nu}{4}.
+\end{equation*}
+Both $u$ and $u+\varepsilon h$ have full support, the same row uniquely
+controls their retractions, neither output clips, and
+\begin{equation}
+ \frac{\norm{\mathcal L(u+\varepsilon h)-\mathcal L(u)}_\infty}
+      {\norm{\varepsilon h}_\infty}
+ =1+\frac1\alpha.
+ \label{eq:aesp-cd-retraction-sharp-amplification}
+\end{equation}
+On the fixed full support of $P_2$, this is also an upper Lipschitz bound.
+Consequently, a proof that shadows an exact trajectory only by iterating this
+ambient Lipschitz constant over $T$ outer stages must take a uniform local
+perturbation of order
+$(1+1/\alpha)^{-T}$ (up to the requested final error).  Substitution in the
+certified upper ledger \cref{eq:aesp-cd-dual-inner-work} then contains a
+$VT^2\log(1/\alpha)$ inner-log term, so this template cannot certify the
+target accelerated work.  This is a STOP for that
+black-box shadowing template, not an instability theorem for the actual
+finite recurrence and not a counterexample to direct finite-sequence
+packing.
+\end{proposition}
+
+\begin{proof}
+On $P_2$,
+\begin{equation*}
+ Q=\begin{pmatrix}\lambda&-\nu\\-\nu&\lambda\end{pmatrix},
+ \qquad
+ c_\rho=\alpha(1-\rho,-\rho)^T,
+ \qquad \lambda+\nu=1,
+ \qquad \lambda-\nu=\alpha.
+\end{equation*}
+At $a$, row zero is feasible, while the excluded row-one lower residual is
+$-\alpha\nu/8$.  Hence the maximum over $\supp(a)=\{0\}$ is zero and
+$\mathcal L(a)=a$.  Once $\eta>0$, row one enters the support and uniquely
+sets
+\begin{equation*}
+ \Delta(a^\eta)=\frac\nu8+\frac\lambda\alpha\eta.
+\end{equation*}
+Because $\nu>\alpha$ and $\lambda>\alpha$, this common shift exceeds both
+coordinates of $a^\eta$, proving
+\cref{eq:aesp-cd-retraction-discontinuity}.
+
+For the second claim, row zero is feasible at $u$, row one is the unique
+violating row, and $\Delta(u)=\rho=\nu/4$.  Since $Qh=h$, the same row
+controls $u+\varepsilon h$ and
+\begin{equation*}
+ \Delta(u+\varepsilon h)=\frac\nu4-\frac\varepsilon\alpha.
+\end{equation*}
+The stated range keeps the shift positive and both retracted coordinates
+strictly positive.  Therefore
+\begin{equation*}
+ \mathcal L(u+\varepsilon h)-\mathcal L(u)
+ =\varepsilon\left(1+\frac1\alpha,
+                    -1+\frac1\alpha\right),
+\end{equation*}
+which proves the lower bound.  On a common full support,
+$\Delta(v)=\alpha^{-1}\max\{0,(Qv-c_\rho)_0,(Qv-c_\rho)_1\}$.
+Every row of $Q$ has absolute row sum one, so
+\begin{equation*}
+ \abs{\Delta(v)-\Delta(w)}
+ \leq\alpha^{-1}\norm{v-w}_\infty.
+\end{equation*}
+The positive-part map is nonexpansive, proving the matching upper bound.
+Iterating that bound gives the stated shadowing and work consequence.
+\end{proof}
+
+The fixed operator does supply structure that the preceding ambient STOP
+throws away.  In particular, a full correction cannot repeat immediately on
+an exact settled face.
+
+\begin{lemma}[Full corrections are separated on a settled face]
+\label{lem:aesp-cd-full-correction-separation}
+Let $A=S^\star(\rho)$ and suppose $\supp(x_t)=A$, $\ell_t=x_t$, and
+$x_t$ is an admissible exact or finite safeguarded output, so that
+$Q_{AA}(x^\star-x_t)\geq0$.  All displayed identities are restricted to
+this same positive face.  Let
+$H_A:=Q_{AA}+\kappa_{\mathrm A}I$, and define
+\begin{equation}
+ M_A:=\kappa_{\mathrm A}H_A^{-1},
+ \qquad
+ S_A:=(1+\beta_{\mathrm A})M_A-\beta_{\mathrm A}I.
+ \label{eq:aesp-cd-full-correction-maps}
+\end{equation}
+Then
+\begin{equation}
+ S_A\succeq q\beta_{\mathrm A}I,
+ \qquad S_A\geq0\quad\text{entrywise},
+ \qquad S_AQ_{AA}=Q_{AA}S_A.
+ \label{eq:aesp-cd-full-correction-positive-map}
+\end{equation}
+If the solve after this full center is exact, so
+$x_{t+1}=p(x_t)$, then the stage-$t+1$ trial has no correction.
+
+For a finite solve after the same full center, assume that $x_{t+1}$ remains
+positive on $A$ and zero off $A$, write
+$p(x_t)-x_{t+1}=u_{t+1}\geq0$ and let
+$a_{t+1}=H_Au_{t+1}$ be its end residual.  The next trial error is
+\begin{equation}
+ x^\star-y_{t+1}
+ =S_A(x^\star-x_t)+(1+\beta_{\mathrm A})H_A^{-1}a_{t+1},
+ \label{eq:aesp-cd-finite-after-full-trial}
+\end{equation}
+and any adjacent correction is residual-only:
+\begin{equation}
+ \alpha\Delta_{t+1}
+ \leq2(1-q)
+ \norm{D_A^{-1/2}a_{t+1}}_\infty
+ \leq2(1-q)C_{\mathrm{end},t+1}.
+ \label{eq:aesp-cd-finite-after-full-bound}
+\end{equation}
+Thus exact full corrections are separated, while an immediately adjacent
+finite correction vanishes with the absolute polish.  This does not bound
+the density or cumulative inflation of partial corrections.
+\end{lemma}
+
+\begin{proof}
+The spectrum of $Q_{AA}$ lies in $[\alpha,1]$.  The corresponding scalar
+eigenvalue map for $S_A$ is decreasing on this interval, so its minimum is
+at least the value at the upper endpoint $1$, namely
+\begin{equation*}
+ (1+\beta_{\mathrm A})
+ \frac{\kappa_{\mathrm A}}{1+\kappa_{\mathrm A}}
+ -\beta_{\mathrm A}
+ =q\frac{1-q}{1+q}=q\beta_{\mathrm A}.
+\end{equation*}
+The inverse of the Stieltjes matrix $H_A$ is entrywise nonnegative.
+Therefore the off-diagonal entries of $S_A$ are nonnegative, while its
+positive-semidefinite lower bound makes every diagonal entry nonnegative.
+Both $M_A$ and $S_A$ are rational functions of $Q_{AA}$, proving
+commutation.
+
+Put $e_t=x^\star-x_t$.  Exact fixed-row optimality gives
+$Q_{AA}e_t\geq0$; for the finite statement, the corresponding identity is
+$Q_{AA}e_t=\kappa_{\mathrm A}s_{t,A}+a_{t,A}\geq0$.  A full correction yields
+$e_{t+1}=M_Ae_t$, and the next trial error is $S_Ae_t$.  Consequently
+$Q_{AA}S_Ae_t=S_AQ_{AA}e_t\geq0$, so the next extrapolate is already a
+lower certificate and its correction is zero.
+
+For the finite output, $u_{t+1}=H_A^{-1}a_{t+1}$ gives
+\cref{eq:aesp-cd-finite-after-full-trial}.  Applying $Q_{AA}$ and using
+$Q_{AA}H_A^{-1}=I-M_A$ shows that its only possibly negative part is bounded
+coordinatewise by
+$(1+\beta_{\mathrm A})M_Aa_{t+1}$.  Since
+$Q_{AA}D_A^{1/2}\one\geq\alpha D_A^{1/2}\one$, Stieltjes comparison gives
+\begin{equation*}
+ M_AD_A^{1/2}\one
+ \leq\frac{\kappa_{\mathrm A}}
+              {\alpha+\kappa_{\mathrm A}}D_A^{1/2}\one
+ =(1-q^2)D_A^{1/2}\one.
+\end{equation*}
+Thus the normalized negative part is at most
+$(1+\beta_{\mathrm A})(1-q^2)
+\norm{D_A^{-1/2}a_{t+1}}_\infty=2(1-q)$ times that norm.
+The definition of the lower retraction and
+$\norm{D_A^{-1/2}a}_{\infty}\leq\langle D_A^{1/2}\one,a\rangle$
+prove \cref{eq:aesp-cd-finite-after-full-bound}.
+\end{proof}
+
+There is also a genuine structural regime in which the missing inflation
+packing is unnecessary.
+
+\begin{theorem}[High-Dirichlet optimal supports bypass inflation packing]
+\label{thm:aesp-cd-high-dirichlet-branch}
+Let the optimal support $A=S^\star(\rho)$ be nonempty and put
+\begin{equation}
+ \lambda_A:=\lambda_{\min}(Q_{AA}),
+ \qquad
+ \vartheta_A:=\frac{\lambda_A}
+                    {\kappa_{\mathrm A}+\lambda_A}.
+ \label{eq:aesp-cd-high-dirichlet-parameter}
+\end{equation}
+For every finite safeguarded stage satisfying
+$\norm{p(\ell_t)-x_{t+1}}_2\leq\xi_t$, one has the direct recursion
+\begin{equation}
+ \norm{x^\star-x_{t+1}}_2
+ \leq(1-\vartheta_A)\norm{x^\star-x_t}_2+\xi_t.
+ \label{eq:aesp-cd-high-dirichlet-recursion}
+\end{equation}
+Suppose, a posteriori, that
+$\vartheta_A\geq c_0q$ for an absolute $c_0>0$.  For a gate tolerance
+$0<\tau\leq1$, set
+\begin{equation*}
+ \eta_{\mathrm{gate}}:=\frac{2\alpha\tau}{1+\alpha},
+ \qquad
+ \xi_t\leq\frac{c_0q\eta_{\mathrm{gate}}}{2},
+ \qquad
+ T\geq\frac1{c_0q}
+       \log\frac{2}{\eta_{\mathrm{gate}}}.
+\end{equation*}
+Then $x_T$ passes the fresh gate
+$H_\rho(x_T)\leq\alpha\tau$ and has RPPR error at most $\tau$.
+No hypothesis on $\mathcal J_T^{\mathrm{fin}}$ is used.
+
+In particular, for $\alpha<1/4$, $0<\varepsilon\leq1$, and
+$\rho=\tau=\varepsilon/2$, the cached implementation on this promised
+structural class has the unconditional vector
+\begin{equation}
+ \begin{split}
+ &(C_{\mathrm{adj}},R_{\mathrm{adj}},R_{\mathrm{int}},C_{\mathrm{pre}},
+ C_{\mathrm{ctl}},C_{\mathrm{rec}},C_{\mathrm{resp}},M_{\mathrm{pers}},
+ M_{\mathrm{tmp}},C_{\mathrm{mat}},C_{\mathrm{emit}})\\
+ &\quad=
+ (O(V_\varepsilon),O(V_\varepsilon),1,0,
+ O(W_\varepsilon),O(W_\varepsilon),0,
+ O(V_\varepsilon),O(V_\varepsilon),O(W_\varepsilon),\Theta(k+1)),
+ \end{split}
+ \label{eq:aesp-cd-high-dirichlet-vector}
+\end{equation}
+where
+$V_\varepsilon=\operatorname{nnz}(s)+2/\varepsilon$,
+$W_\varepsilon=\operatorname{nnz}(s)
++\widetilde O(1/(\sqrt\alpha\,\varepsilon))$,
+$k\leq2/\varepsilon$, and
+$C_{\mathrm{ctl}}+C_{\mathrm{rec}}+C_{\mathrm{mat}}=O(W_\varepsilon)$.
+The emitted fresh gate is the one at $x_T$ above; the RPPR bias bound with
+$\rho=\tau=\varepsilon/2$ gives total degree-normalized PPR error at most
+$\varepsilon$.
+The condition on the unknown optimal face is structural and not
+algorithmically certified; hence this is not a graph-uniform solver theorem.
+The low-Dirichlet case $\vartheta_A=o(q)$ remains the central open branch.
+\end{theorem}
+
+\begin{proof}
+On $\R^A$, the obstacle objective is $\lambda_A$-strongly convex.  Its
+shifted resolvent is therefore
+$\kappa_{\mathrm A}/(\kappa_{\mathrm A}+\lambda_A)
+=1-\vartheta_A$ Lipschitz.  Since $p(x^\star)=x^\star$ and the safe chain
+gives $x_t\leq\ell_t\leq x^\star$, one has
+\begin{equation*}
+ \norm{x^\star-p(\ell_t)}_2
+ \leq(1-\vartheta_A)\norm{x^\star-\ell_t}_2
+ \leq(1-\vartheta_A)\norm{x^\star-x_t}_2.
+\end{equation*}
+The finite error triangle inequality proves
+\cref{eq:aesp-cd-high-dirichlet-recursion}.  Iteration and
+$\norm{x^\star}_2\leq1$ give
+\begin{equation*}
+ \norm{x^\star-x_T}_2
+ \leq e^{-c_0qT}+\frac{\max_t\xi_t}{c_0q}
+ \leq\eta_{\mathrm{gate}}.
+\end{equation*}
+Because $x_T$ is a lower certificate, the same Stieltjes row bound used in
+\cref{cor:aesp-cd-frozen-conditional-contract} gives
+\begin{equation*}
+ H_\rho(x_T)
+ \leq\frac{1+\alpha}{2}
+       \norm{D^{-1/2}(x^\star-x_T)}_\infty
+ \leq\frac{1+\alpha}{2}\norm{x^\star-x_T}_2
+ \leq\alpha\tau.
+\end{equation*}
+The KKT maximum principle then proves the RPPR error statement.
+
+Finally, \cref{cor:aesp-cd-dual-inner-stop} enforces the displayed
+$\xi_t$ with only soft logarithms.  Safe-center locality confines all rows
+to volume $1/\rho$, and the horizon is $\widetilde O(1/q)$.  The cached-row,
+fresh-gate, materialization, and emission accounting in
+\cref{cor:aesp-cd-frozen-conditional-contract} therefore applies verbatim,
+but without its packing hypothesis, and proves
+\cref{eq:aesp-cd-high-dirichlet-vector}.
+\end{proof}

@@ -1,0 +1,38 @@
+\section{Ambient adjacency access}
+\label{sec:adjacency}
+
+Consider an undirected graph with vertex labels.  A standard adjacency-list
+interface may provide the following operations, with returned information and
+work explicitly charged:
+
+\begin{enumerate}[label=(\roman*)]
+\item query the degree of a known vertex;
+\item query one indexed neighbor and its edge weight, or scan the complete
+      adjacency list at degree-proportional cost;
+\item store arbitrary data derived from previous replies;
+\item output a list of vertex labels and numerical values.
+\end{enumerate}
+
+The graph labels outside the revealed boundary carry no usable structure.  An
+adaptive algorithm chooses its next query from the transcript.  Randomized
+algorithms additionally have private random bits, and the lower-bound theorem
+must state whether the graph or query adversary is oblivious or adaptive.
+
+This access model says nothing about the arithmetic after a scan.  In
+particular, after exposing an active principal matrix $Q_{SS}$, the algorithm
+may legally:
+
+\begin{itemize}
+\item apply one row or one sparse matrix--vector product;
+\item run local coordinate or proximal updates;
+\item construct a Krylov basis;
+\item factor $Q_{SS}$ or an associated Laplacian;
+\item eliminate vertices and retain fill or response messages;
+\item build a spectral sparsifier or preconditioner;
+\item answer future queries from any persistent representation it has paid to
+      construct.
+\end{itemize}
+
+Therefore ``adjacency access'' and ``first-order method'' are complementary
+phrases, not competing definitions.  The first describes the input oracle; the
+second restricts how numerical information is generated.

@@ -1,0 +1,64 @@
+\section{An exact delayed-debt representation}
+\label{sec:debt}
+
+The self-reflection can be separated algebraically without changing the
+linear-system residual.  Maintain a fresh component $\varphi$ and a delayed
+component $h$ satisfying
+\begin{equation}
+ r=b-Qx=\varphi+h.
+ \label{eq:split-invariant}
+\end{equation}
+Initially $x=0$, $\varphi=b$, and $h=0$.
+
+\begin{definition}[Fresh over-relaxed push]
+\label{def:fresh-push}
+At coordinate $u$, let $\sigma:=\varphi_u$ and set
+\begin{align}
+ x^+&=x+\omega\frac{\sigma}{Q_{uu}}e_u,\notag\\
+ \varphi_u^+&=0,
+ &h_u^+&=h_u+(1-\omega)\sigma,\notag\\
+ \varphi_v^+&=\varphi_v-\omega\frac{\sigma Q_{vu}}{Q_{uu}}
+ \quad(v\neq u),
+ &h_v^+&=h_v\quad(v\neq u).
+ \label{eq:fresh-push}
+\end{align}
+\end{definition}
+
+\begin{definition}[Debt-only exact cleanup]
+\label{def:debt-cleanup}
+At coordinate $u$, let $\delta:=h_u$ and set
+\begin{align}
+ x^+&=x+\frac{\delta}{Q_{uu}}e_u,\notag\\
+ h_u^+&=0,
+ &\varphi_u^+&=\varphi_u,\notag\\
+ \varphi_v^+&=\varphi_v-\frac{\delta Q_{vu}}{Q_{uu}}
+ \quad(v\neq u),
+ &h_v^+&=h_v\quad(v\neq u).
+ \label{eq:debt-cleanup}
+\end{align}
+\end{definition}
+
+\begin{lemma}[Split-residual correctness]
+\label{lem:split-correctness}
+Both \cref{def:fresh-push,def:debt-cleanup} preserve
+\cref{eq:split-invariant} exactly.  If a fresh push starts from $h_u=0$ and
+its new debt is cleaned immediately, the combined operation is the ordinary
+exact push from \cref{lem:immediate-collapse}.
+\end{lemma}
+
+\begin{proof}
+For the fresh push, summing the two updated components gives
+\[
+ \varphi^++h^+
+ =\varphi+h-\omega\frac{\sigma}{Q_{uu}}Qe_u
+ =b-Qx^+.
+\]
+The debt-cleanup calculation is identical with amplitude $\delta$ and
+$\omega=1$.  The last statement follows by summing the two increments to
+$x_u$.
+\end{proof}
+
+This representation makes self-reactivation optional at the scheduler level:
+$h_u$ need not make $u$ eligible during a spreading epoch.  Correctness is
+not the difficulty.  The difficulty is deciding which neighbor-generated
+arrivals belong to the advancing frontier and which are backward debt.

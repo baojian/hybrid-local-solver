@@ -1,0 +1,158 @@
+\begin{proposition}[A singleton support retains logarithmically many corrections]
+\label{prop:aesp-cd-singleton-corrections}
+Let $G$ consist of one edge, let the seed be one endpoint, and choose
+\begin{equation}
+ 0<q\leq q_0:=\frac{\sqrt{41}-5}{8},
+ \qquad
+ \alpha:=\frac{q^2}{1+q^2},
+ \qquad
+ \frac{1-\alpha}{2}\leq\rho<1.
+ \label{eq:aesp-cd-singleton-parameters}
+\end{equation}
+For the exact safeguarded recurrence
+\cref{eq:aesp-cd-safe-outer}, the RPPR optimum and every nonzero iterate are
+supported only on the seed.  Let $e_t:=x_1^\star-x_{t,1}$ denote the scalar
+error on that coordinate and define
+\begin{equation}
+ \vartheta:=\frac{2(1-q^2)}{3},
+ \qquad
+ u:=\frac{(1-q)(1+4q)}{3(1+q)},
+ \qquad
+ \xi:=\vartheta u.
+ \label{eq:aesp-cd-singleton-ratios}
+\end{equation}
+Then, for every $k\geq0$,
+\begin{equation}
+ e_{2k}=\xi^ke_0,
+ \qquad
+ e_{2k+1}=\vartheta\xi^ke_0.
+ \label{eq:aesp-cd-singleton-errors}
+\end{equation}
+There is no correction at an odd stage, whereas every even stage $2k\geq2$
+is a full correction:
+\begin{equation}
+ \begin{aligned}
+ r_{2k+1}&=0,&&k\geq0,\\
+ r_{2k}&=\beta_{\mathrm A}d_{2k},&&k\geq1.
+ \end{aligned}
+ \label{eq:aesp-cd-singleton-schedule}
+\end{equation}
+Thus the raw count through $T$ stages is
+\begin{equation}
+ N_T=\left\lfloor\frac{T-1}{2}\right\rfloor.
+ \label{eq:aesp-cd-singleton-count}
+\end{equation}
+Nevertheless, every one of these corrections satisfies
+$\mathfrak D_{2k}<0$ and $\gamma_{2k}<1$, and hence
+\begin{equation}
+ \mathcal I_T=0
+ \qquad\text{for every }T.
+ \label{eq:aesp-cd-singleton-zero-inflation}
+\end{equation}
+
+For fixed admissible $\rho$, reaching scalar error $\eta$ takes
+$\Theta(\log(e_0/\eta))$ stages and incurs the same order of nonzero
+correction calls.  Equivalently, since
+$F_\rho(x_t)-F_\rho(x^\star)=((1+\alpha)/4)e_t^2$, reaching objective gap
+$\epsobj$ incurs $\Theta(\log(1/\epsobj))$ corrections.  The seed entry and
+the only edge are discovered once.  Each subsequent correction/rekey call
+has degree work one, so this is cumulative correction work rather than
+repeated support-discovery work.  It is a statement about the safeguarded
+recurrence, not a lower bound for a different algorithm or a cached response
+primitive.
+\end{proposition}
+
+\begin{proof}
+Let the seed be vertex $1$.  On this graph
+\begin{equation*}
+ Q=\begin{pmatrix}
+ (1+\alpha)/2&-(1-\alpha)/2\\
+ -(1-\alpha)/2&(1+\alpha)/2
+ \end{pmatrix},
+ \qquad
+ c_\rho:=b-\alpha\rho\one
+ =\alpha\begin{pmatrix}1-\rho\\-\rho\end{pmatrix}.
+\end{equation*}
+Writing $\lambda:=(1+\alpha)/2$, the obstacle KKT conditions give
+\begin{equation*}
+ x^\star
+ =\begin{pmatrix}\alpha(1-\rho)/\lambda\\0\end{pmatrix}.
+\end{equation*}
+Indeed, the inactive-coordinate inequality is exactly
+$\rho\geq(1-\alpha)/2$.  The same direct KKT check, or Stieltjes comparison,
+shows that every shifted minimizer centered below $x^\star$ also has zero
+second coordinate.  Thus the entire recurrence is scalar after the one-time
+edge exposure.
+
+Put $\kappa:=1-2\alpha$.  For a scalar safe center $\ell$, exact shifted
+minimization gives
+\begin{equation*}
+ p(\ell)=\frac{\lambda x^\star+\kappa\ell}{\lambda+\kappa},
+ \qquad
+ x^\star-p(\ell)=\vartheta(x^\star-\ell),
+ \qquad
+ \vartheta=\frac{\kappa}{\lambda+\kappa}
+            =\frac{2(1-q^2)}3.
+\end{equation*}
+Also $\beta_{\mathrm A}=(1-q)/(1+q)$.  Starting immediately after a full
+correction, one shifted solve therefore changes the error from $e$ to
+$\vartheta e$.  At the following odd stage,
+\begin{equation*}
+ x^\star-y
+ =\bigl((1+\beta_{\mathrm A})\vartheta
+        -\beta_{\mathrm A}\bigr)e
+ =ue>0.
+\end{equation*}
+There is no correction, and the next shifted solve changes the error to
+$\vartheta ue=\xi e$.
+
+At the following even stage, the extrapolate instead satisfies
+\begin{equation*}
+ y-x^\star
+ =\vartheta\bigl(\beta_{\mathrm A}
+            -(1+\beta_{\mathrm A})u\bigr)e,
+ \qquad
+ \beta_{\mathrm A}-(1+\beta_{\mathrm A})u
+ =\frac{(1-q)(1-5q)}{3(1+q)^2}>0.
+\end{equation*}
+For this one-coordinate trial point, the retraction magnitude is
+$\Delta=(\lambda/\alpha)(y-x^\star)$.  The condition that it removes the
+entire extrapolation, $\Delta\geq\beta_{\mathrm A}d$, reduces after
+cancelling positive factors to
+\begin{equation*}
+ 4q^2+5q\leq1,
+\end{equation*}
+which is exactly $q\leq q_0$.  Hence $\ell=x$ at every even correction and
+the same two-stage calculation repeats at every scale.  This proves
+\cref{eq:aesp-cd-singleton-errors,eq:aesp-cd-singleton-schedule} and the
+count in \cref{eq:aesp-cd-singleton-count}.
+
+At every correction put $a_q:=(1-q)/q$ and
+$h:=((1+q)/q)r=a_qd$.  Its defect is
+\begin{equation*}
+ \mathfrak D=h(2e-h)<0,
+\end{equation*}
+because overshoot gives $\beta_{\mathrm A}d>e$ and hence
+$a_qd=((1+q)/q)\beta_{\mathrm A}d>2e$.  Noncorrection stages have
+$\gamma_t=1$, proving \cref{eq:aesp-cd-singleton-zero-inflation}.  Finally,
+$0<\xi<1$ and \cref{eq:aesp-cd-singleton-errors} give the logarithmic
+accuracy statements.  The work statement follows because the seed vertex
+has graph degree one and the shared model charges its adjacency scan.
+\end{proof}
+
+For a concrete rational instance, take $q=1/7$, so
+$\alpha=1/50$, $\beta_{\mathrm A}=3/4$,
+$\vartheta=32/49$, $u=11/28$, and $\xi=88/343$; every
+$\rho\in[49/100,1)$ is admissible.  This exact example shows that the
+collapse identity cannot remove the logarithm from the \emph{number} of
+correction calls, even when the support is a singleton and never expands.
+It also shows why $N_T$ must not replace $\mathcal I_T$ indiscriminately:
+the normalized inflation correctly assigns zero cost to all of these
+benign resets.
+
+In the singleton family,
+$\mathcal B_t^{\mathrm{col}}=\varnothing$ at every correction, so
+\cref{lem:aesp-cd-collateral-charge} also proves
+$\mathcal I_T=0$.  In contrast, the positive three-path defect below forces
+$\mathcal B_3^{\mathrm{col}}\neq\varnothing$ and is charged by
+$\mathfrak C_3^{\mathrm{col}}$.

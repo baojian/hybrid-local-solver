@@ -1,0 +1,90 @@
+\subsection{Safe admission and a one-sided stopping certificate}
+
+\begin{lemma}[Safe admission]
+\label{lem:safe-admission}
+Let $\ell\leq x_\rho^\star$ be nonnegative.  If $\ell_i=0$ and
+\begin{equation}
+  \kappa_{\rho,i}(\ell)<0,
+  \label{eq:negative-violation}
+\end{equation}
+then $i\in S_\rho$.
+\end{lemma}
+
+\begin{proof}
+If $i\notin S_\rho$, then $\ell_i=x_{\rho,i}^\star=0$.  Since all
+off-diagonal entries in row $i$ of $Q$ are nonpositive and
+$\ell\leq x_\rho^\star$,
+\[
+ \kappa_{\rho,i}(\ell)-\kappa_{\rho,i}(x_\rho^\star)
+ =\sum_{j\neq i}Q_{ij}(\ell_j-x_{\rho,j}^\star)\geq0.
+\]
+KKT gives $\kappa_{\rho,i}(x_\rho^\star)\geq0$, contradicting
+\cref{eq:negative-violation}.
+\end{proof}
+
+\begin{lemma}[One-sided maximum-principle certificate]
+\label{lem:one-sided-certificate}
+Let $0\leq\ell\leq x_\rho^\star$.  If
+\begin{equation}
+  \kappa_{\rho,i}(\ell)\geq-\alpha\tau\sqrt{d_i}
+  \qquad\text{for every }i,
+  \label{eq:global-certificate}
+\end{equation}
+then
+\begin{equation}
+  \norm{D^{-1/2}(x_\rho^\star-\ell)}_\infty\leq\tau.
+  \label{eq:certificate-error}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $e=x_\rho^\star-\ell\geq0$, and choose $i$ maximizing
+$M:=e_i/\sqrt{d_i}$.  If $M=0$ there is nothing to prove.  Otherwise
+$x_{\rho,i}^\star>0$, so $\kappa_{\rho,i}(x_\rho^\star)=0$.  The normalized
+maximum principle gives
+\begin{align*}
+ \frac{(Qe)_i}{\sqrt{d_i}}
+ &=\frac{1+\alpha}{2}M
+   -\frac{1-\alpha}{2}
+     \sum_j\frac{A_{ij}}{d_i}\frac{e_j}{\sqrt{d_j}}
+ \geq\alpha M.
+\end{align*}
+On the other hand,
+$(Qe)_i=\kappa_{\rho,i}(x_\rho^\star)-\kappa_{\rho,i}(\ell)
+=-\kappa_{\rho,i}(\ell)$.  Condition \cref{eq:global-certificate} yields
+$\alpha M\leq\alpha\tau$.
+\end{proof}
+
+\begin{corollary}[PPR accuracy and peak volume]
+\label{cor:accuracy-volume}
+Suppose a process maintains $U_t\subseteq S_\rho$, constructs $\ell_t$ by
+\cref{eq:safe-envelope}, admits only vertices satisfying
+\begin{equation}
+  \kappa_{\rho,i}(\ell_t)<-\alpha\tau\sqrt{d_i},
+  \label{eq:strong-admission}
+\end{equation}
+and stops when \cref{eq:global-certificate} holds.  Then
+\begin{equation}
+  \max_t\vol(U_t)\leq\frac1\rho,
+  \qquad
+  \norm{D^{-1/2}(x^0-\ell_t)}_\infty\leq\rho+\tau.
+  \label{eq:gate-main-bound}
+\end{equation}
+In particular, $\rho=\tau=\epsppr/2$ gives peak volume at most
+$2/\epsppr$ and PPR error at most $\epsppr$.
+\end{corollary}
+
+\begin{proof}
+Safe admission follows from \cref{lem:safe-admission}, and the volume bound
+then follows from \cref{eq:rppr-volume}.  The error bound is the triangle
+inequality applied to \cref{eq:rppr-ppr-error} and
+\cref{eq:certificate-error}.
+\end{proof}
+
+Only $U_t$, its graph boundary, and source coordinates need inspection.  If a
+vertex is outside $U_t\cup N(U_t)$, then $(Q\ell_t)_i=0$; if its initial
+gradient was strongly negative it would already have been admitted, and
+otherwise it automatically satisfies the tolerance in
+\cref{eq:global-certificate}.  A boundary check is therefore chargeable to
+the incident edges of the current certified set, subject to the usual sparse
+source assumption.

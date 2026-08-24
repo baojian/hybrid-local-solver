@@ -1,0 +1,46 @@
+\subsection{Safe learned allocation}
+
+Let an arbitrary predictor output shares
+$\widehat\nu_{t,1},\ldots,\widehat\nu_{t,K}$ for repeated instance $I_t$.
+Its context may include graph identity, seed features, $\alpha$, gate
+hardness, phase-wise touched charge, and the four-way causal revisit ledger.
+For $\gamma\in(0,1]$, use
+\begin{equation}
+ \nu_{t,j}:=(1-\gamma)\widehat\nu_{t,j}+\frac{\gamma}{K}.
+ \label{eq:floor}
+\end{equation}
+
+\begin{corollary}[Distribution-free safety of learned shares]
+\label{cor:learned-safe}
+For every sequence of instances and every predictor, the discrete portfolio
+satisfies, separately on every $I_t$,
+\begin{equation}
+ C_{{\rm port},t}
+ \leq\frac{K}{\gamma}
+       \left(\min_j C_{t,j}+\Delta_t\right).
+ \label{eq:floor-bound}
+\end{equation}
+If a best arm $j_t^\star$ receives predicted mass
+$\widehat\nu_{t,j_t^\star}=\upsilon_t$, the sharper bound is
+\begin{equation}
+ C_{{\rm port},t}
+ \leq
+ \frac{C_{t,j_t^\star}+\Delta_t}
+ {(1-\gamma)\upsilon_t+\gamma/K}.
+ \label{eq:prediction-bound}
+\end{equation}
+No stationarity or transfer assumption is required.
+\end{corollary}
+
+\begin{proof}
+Equation \eqref{eq:floor} gives $\nu_{t,j}\geq\gamma/K$ for every arm.
+Apply \eqref{eq:portfolio-discrete} to a best arm for
+\eqref{eq:floor-bound}, and retain its actual share for
+\eqref{eq:prediction-bound}.
+\end{proof}
+
+This is the clean theoretical role for revisit memory.  It may improve the
+constant by predicting a useful service allocation, but a wrong prediction
+cannot remove any arm or invalidate the certificate.  The exploration floor,
+not the empirical map from $\varrho_{\rm rev}$ to $\omega$, supplies the
+worst-case theorem.

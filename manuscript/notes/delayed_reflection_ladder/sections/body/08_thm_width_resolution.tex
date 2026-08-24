@@ -1,0 +1,32 @@
+\subsection{Sparse cyclic regions via elimination width}
+
+The forest proof extends with an explicit and measurable price for fill.
+For a symmetric elimination ordering of $Q_{SS}$, let $w$ be the maximum
+number of later neighbors of any pivot in the filled graph.
+
+\begin{theorem}[Width-sensitive exact debt resolution]
+\label{thm:width-resolution}
+Given an elimination ordering of width $w$, the block correction and boundary
+update on $S$ can be computed in
+\begin{equation}
+ O\bigl(\vol(S)+w^2|S|\bigr)
+ =O\bigl((w+1)^2\vol(S)\bigr)
+ \label{eq:width-resolution-work}
+\end{equation}
+arithmetic and adjacency-list work, with $O(\vol(S)+w|S|)$ storage.
+\end{theorem}
+
+\begin{proof}
+At a pivot with $k$ later filled neighbors, the symmetric Schur update is a
+rank-one update of a $k\times k$ block and costs $O(k^2)$ arithmetic.  The
+definition of the ordering gives $k\leq w$, so all factorization updates cost
+$O(w^2|S|)$.  Forward and backward substitution cost $O(w|S|)$.  Matrix
+assembly and the boundary residual update each require one adjacency-list
+scan of $S$, costing $O(\vol(S))$.  The stored factors have at most
+$O(w|S|)$ off-diagonal entries.  Finally $|S|\leq\vol(S)$.
+\end{proof}
+
+Thus cycles do not force a return to repeated row cleanup.  They enter the
+bound through local elimination width.  Forests have $w=1$; cactus-like and
+small-cycle-core regions are promising precisely when they admit a uniformly
+small-width ordering.

@@ -1,0 +1,77 @@
+\section{A path refutes the logarithmic-restart claim}
+\label{sec:path}
+
+The initial proposal hoped to group all support changes into only
+$\bigO(\log(1/\epsppr))$ ordinary restarts.  A path rules this out.
+
+Let $P_N=(v_0,v_1,\ldots,v_N)$ be a path with source $s=e_{v_0}$.  Write
+$y_i^0=x_i^0/\sqrt{d_i}$.  Solving the recurrence gives
+\begin{equation}
+ y_i^0
+ =\sqrt\alpha\,
+   \frac{\chi^i+\chi^{2N-i}}{1-\chi^{2N}}
+ \geq\sqrt\alpha\,\chi^i,
+ \qquad
+ \chi=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:path-solution}
+\end{equation}
+By \cref{eq:rppr-ppr-error},
+\begin{equation}
+  \frac{x_{\rho,i}^\star}{\sqrt{d_i}}
+  \geq\sqrt\alpha\,\chi^i-\rho.
+  \label{eq:path-rppr-lower}
+\end{equation}
+Define
+\begin{equation}
+ J_{\mathrm{path}}(\rho):=\left\lfloor
+   \frac{\log(\sqrt\alpha/(3\rho))}{-\log\chi}
+ \right\rfloor,
+ \label{eq:path-radius}
+\end{equation}
+assuming $3\rho<\sqrt\alpha$ and $N>J_{\mathrm{path}}(\rho)$.
+
+\begin{theorem}[One-coordinate expansion on a path]
+\label{thm:path-expansion}
+Run the exact safe gate with $\tau=\rho$.  Once
+$U_j=\{v_0,\ldots,v_j\}$, every stage with
+$j<J_{\mathrm{path}}(\rho)$ admits precisely the
+next vertex $v_{j+1}$ and no more distant vertex.  Consequently any method
+that restarts after every safe expansion makes at least
+\begin{equation}
+ \Omega\!\left(
+   \frac1{\sqrt\alpha}
+   \log\frac{\sqrt\alpha}{\rho}
+ \right)
+ \label{eq:path-restarts}
+\end{equation}
+restarts for $0<\alpha\leq1/4$ and sufficiently small $\rho$.
+\end{theorem}
+
+\begin{proof}
+Let $x^{U_j}$ be the exact restricted minimizer.  For $i\geq j+2$, vertex
+$v_i$ has no neighbor in $U_j$ and is not the source, so
+\begin{equation}
+  \kappa_{\rho,i}(x^{U_j})=\alpha\rho\sqrt{d_i}>0.
+  \label{eq:path-far-gradient}
+\end{equation}
+On the other hand, \cref{eq:path-rppr-lower} gives normalized RPPR value at
+least $2\rho$ through radius $J_{\mathrm{path}}(\rho)$. Since
+$x^{U_j}_{j+1}=0$, the
+restricted point is more than $\rho$ away from $x_\rho^\star$ in normalized
+infinity norm.  The contrapositive of \cref{lem:one-sided-certificate} implies
+that some coordinate has gradient below $-\alpha\rho\sqrt{d_i}$.  The exact
+restricted gradient vanishes on $U_j$, while
+\cref{eq:path-far-gradient} rules out every $i\geq j+2$.  Hence only
+$v_{j+1}$ can violate, proving the first claim.  Finally,
+\begin{equation}
+  -\log\chi
+  =2\operatorname{artanh}(\sqrt\alpha)
+  =\Theta(\sqrt\alpha)
+\end{equation}
+for $\alpha\leq1/4$, which yields \cref{eq:path-restarts}.
+\end{proof}
+
+This lower bound is exactly on the accelerated propagation scale.  It does
+not refute restart-free continuation; it refutes only the assertion that the
+number of support-triggered ordinary restarts is independent of the
+$1/\sqrt\alpha$ propagation distance.

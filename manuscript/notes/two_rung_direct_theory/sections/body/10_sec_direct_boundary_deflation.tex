@@ -1,0 +1,624 @@
+\section{Boundary Schur deflation: the minimal reflecting-leaf correction}
+\label{sec:direct-boundary-deflation}
+
+The lower bound identifies more than a bad schedule: it identifies the
+missing numerical quantity.  Once a finite forward region is known to be
+closed, its response changes the attachment vertex's diagonal.  Repeated
+coordinate pushes use the old diagonal $q_0$ and therefore rediscover this
+response one reflected packet at a time.  A Schur complement records it
+once and removes the slow mode permanently.
+
+Call $C\subset V$ a \emph{closed pendant forest} if every connected
+component $T_j$ of $G[C]$ is a tree and has exactly one neighbor
+$p_j\in H:=V\setminus C$.  Distinct components may have the same attachment
+vertex.  Discovery of the complete adjacency lists of $C$ and its boundary
+is the certificate that the forest is closed.
+
+\begin{theorem}[Permanent pendant-forest deflation]
+\label{thm:direct-pendant-deflation}
+Partition $Q$ and $b$ over $C\cup H$ as
+\begin{equation*}
+ Q=\begin{pmatrix}A&E\\ E^\mathsf T&Q_{HH}\end{pmatrix},
+ \qquad
+ b=\begin{pmatrix}b_C\\b_H\end{pmatrix},
+ \qquad A:=Q_{CC},
+\end{equation*}
+where $C$ is a closed pendant forest.  Define
+\begin{equation}
+ \widehat Q:=Q_{HH}-E^\mathsf TA^{-1}E,
+ \qquad
+ \widehat b:=b_H-E^\mathsf TA^{-1}b_C.
+ \label{eq:direct-pendant-schur-system}
+\end{equation}
+Then $\widehat Q$ is symmetric positive definite, and eliminating $C$
+creates no off-diagonal fill between vertices of $H$.  For every core vector
+$x_H$, its conditional lift
+\begin{equation}
+ x_C^*(x_H):=A^{-1}(b_C-Ex_H)
+ \label{eq:direct-pendant-conditional-lift}
+\end{equation}
+satisfies the exact identities
+\begin{align}
+ r_C(x_C^*(x_H),x_H)&=0,\label{eq:direct-pendant-zero-residual}\\
+ r_H(x_C^*(x_H),x_H)&=\widehat b-\widehat Qx_H,
+ \label{eq:direct-pendant-reduced-residual}\\
+ f(x_C^*(x_H),x_H)
+ &=\frac12x_H^\mathsf T\widehat Qx_H-\widehat b^\mathsf Tx_H
+   -\frac12b_C^\mathsf TA^{-1}b_C.
+ \label{eq:direct-pendant-objective-identity}
+\end{align}
+The messages defining \cref{eq:direct-pendant-schur-system} and the final
+recovery \cref{eq:direct-pendant-conditional-lift} can be computed by one
+leaf-elimination and one reverse pass, using $O(|C|)$ arithmetic and
+$O(\sum_{u\in C}(1+d_u))$ charged local work.
+\end{theorem}
+
+\begin{proof}
+The matrix $A$ is a principal submatrix of the positive definite matrix
+$Q$, and $\widehat Q$ is its Schur complement, hence both are positive
+definite.  Every row of $E$ has support only at the unique attachment of its
+component.  Since $A$ is block diagonal across the components,
+$E^\mathsf TA^{-1}E$ is diagonal on $H$ (contributions from components with
+the same attachment simply add).  Thus no core edge or nonedge is changed;
+only attachment diagonals are reduced.
+
+Substitution of \cref{eq:direct-pendant-conditional-lift} into $b-Qx$ gives
+\cref{eq:direct-pendant-zero-residual,eq:direct-pendant-reduced-residual}.
+Completing the square in $x_C$ gives
+\cref{eq:direct-pendant-objective-identity}.  On a forest, ordinary Gaussian
+elimination from the leaves creates only a parent update.  Store each scalar
+pivot and right-hand-side message, then reverse the order for recovery.
+Every forest edge and vertex is processed a constant number of times, which
+proves the work statement.
+\end{proof}
+
+\begin{corollary}[Work-preserving core composition]
+\label{cor:direct-pendant-core-composition}
+Suppose an algorithm applied to $(\widehat Q,\widehat b)$ returns $x_H$ with
+\begin{equation*}
+ \norm{D_H^{-1/2}(\widehat b-\widehat Qx_H)}_\infty\leq\tau
+\end{equation*}
+using work $\widehat\Work$.  Store the forest elimination implicitly during
+the core solve and perform \cref{eq:direct-pendant-conditional-lift} only at
+the end.  The lifted vector obeys the original full-system certificate and
+has total work
+\begin{equation}
+ \Work\leq\widehat\Work
+ +O\!\left(\sum_{u\in C}(1+d_u)\right).
+ \label{eq:direct-pendant-composition-work}
+\end{equation}
+In particular, a completely discovered finite tree can be solved exactly in
+linear degree volume by retaining any one vertex as the core, eliminating
+all remaining branches, solving one scalar, and reversing the elimination.
+\end{corollary}
+
+\begin{proof}
+Equations \cref{eq:direct-pendant-zero-residual,eq:direct-pendant-reduced-residual}
+make the full residual zero on $C$ and identical to the reduced residual on
+$H$.  The work is the reduced solve plus the two forest passes.  If the full
+graph is a tree and $H$ is one vertex, every component of $G[C]$ has that
+vertex as its unique external neighbor, and the reduced system is scalar.
+\end{proof}
+
+The repository's newer response-preconditioned framework suggests a stronger
+interpretation of this reduction.  Exact forest response is a preconditioner
+whose spectrum can be read without inequalities: every eliminated forest mode
+becomes a unit eigenvalue, and all remaining nontrivial conditioning belongs
+to the reduced core.
+
+\begin{proposition}[Exact forest-response spectral lift]
+\label{prop:direct-forest-spectral-lift}
+Under \cref{thm:direct-pendant-deflation}, the reduced core retains the shared
+spectral bounds
+\begin{equation}
+ \alpha I\preceq\widehat Q\preceq I.
+ \label{eq:direct-forest-schur-bounds}
+\end{equation}
+Define
+\begin{equation}
+ F_C:=\begin{pmatrix}I&0\\E^\mathsf TA^{-1}&I\end{pmatrix}.
+ \label{eq:direct-forest-response-factor}
+\end{equation}
+For an arbitrary SPD core preconditioner $P_H$, lift it to the full system by
+\begin{equation}
+ M_C(P_H):=
+ F_C\begin{pmatrix}A&0\\0&P_H\end{pmatrix}F_C^\mathsf T.
+ \label{eq:direct-forest-lifted-preconditioner}
+\end{equation}
+Then
+\begin{equation}
+ \sigma\!\left(M_C(P_H)^{-1/2}QM_C(P_H)^{-1/2}\right)
+ =\{1\}^{|C|}\cup
+ \sigma\!\left(P_H^{-1/2}\widehat QP_H^{-1/2}\right).
+ \label{eq:direct-forest-lifted-spectrum}
+\end{equation}
+In particular, if
+$\mu_{\min}$ and $\mu_{\max}$ are the extreme eigenvalues of the core
+preconditioned matrix, the full effective condition number is exactly
+\begin{equation}
+ \kappa_{\rm eff}
+ =\frac{\max\{1,\mu_{\max}\}}{\min\{1,\mu_{\min}\}}.
+ \label{eq:direct-forest-lifted-condition}
+\end{equation}
+After the forest factor has been stored, one application of
+$M_C(P_H)^{-1}$ costs two forest passes and one application of $P_H^{-1}$.
+Permanent reduction to $\widehat Q$ instead pays the forest only at
+construction and final recovery.
+\end{proposition}
+
+\begin{proof}
+For every $y\in\mathbb R^H$, Schur minimization and the shared bounds
+$\alpha I\preceq Q\preceq I$ give
+\begin{equation*}
+ y^\mathsf T\widehat Qy
+ =\min_{z\in\mathbb R^C}
+  \begin{pmatrix}z\\y\end{pmatrix}^{\!\mathsf T}
+  Q
+  \begin{pmatrix}z\\y\end{pmatrix}
+ \geq\alpha\|y\|_2^2,
+\end{equation*}
+while choosing $z=0$ gives the upper bound
+$y^\mathsf T\widehat Qy\leq\|y\|_2^2$.  This proves
+\cref{eq:direct-forest-schur-bounds}.
+
+Direct multiplication gives the block factorization
+\begin{equation}
+ Q=F_C
+ \begin{pmatrix}A&0\\0&\widehat Q\end{pmatrix}F_C^\mathsf T.
+ \label{eq:direct-forest-block-factorization}
+\end{equation}
+Congruence by the invertible $F_C$ transforms the generalized pair
+$(Q,M_C(P_H))$ into the block-diagonal pair
+\begin{equation*}
+ \left(
+  \begin{pmatrix}A&0\\0&\widehat Q\end{pmatrix},
+  \begin{pmatrix}A&0\\0&P_H\end{pmatrix}
+ \right).
+\end{equation*}
+Its generalized spectrum is $|C|$ copies of one plus the spectrum of the core
+pair $(\widehat Q,P_H)$, proving
+\cref{eq:direct-forest-lifted-spectrum,eq:direct-forest-lifted-condition}.
+Applying $F_C^{-1}$ and $F_C^{-\mathsf T}$ uses two solves with the stored
+forest factor $A$; the middle block uses $P_H^{-1}$.  This proves the work
+claim.
+\end{proof}
+
+The same factorization also identifies the exact update seen by a persistent
+core response when a newly certified pendant component is absorbed.
+
+\begin{proposition}[Pendant absorption is one positive Green-column update]
+\label{prop:direct-pendant-rank-one-response}
+Let one closed component $C$ attach at $p\in H$, put
+$q:=Q_{Cp}$, and suppose the pre-absorption core system is
+$K_Hx=h$, where $K_H$ is SPD Stieltjes, with inverse
+$G_H:=K_H^{-1}$.  Define
+\begin{equation}
+ \sigma:=q^\mathsf TA^{-1}q,
+ \qquad
+ \gamma:=-q^\mathsf TA^{-1}b_C,
+ \qquad
+ g_p:=G_He_p.
+ \label{eq:direct-pendant-rank-one-data}
+\end{equation}
+After exact pendant elimination, the core system is
+\begin{equation*}
+ K_H'=K_H-\sigma e_pe_p^\mathsf T,
+ \qquad h'=h+\gamma e_p,
+\end{equation*}
+and
+\begin{align}
+ (K_H')^{-1}
+ &=G_H+\frac{\sigma}{1-\sigma (G_H)_{pp}}g_pg_p^\mathsf T,
+ \label{eq:direct-pendant-inverse-update}\\
+ x'-x
+ &=\frac{\gamma+\sigma x_p}{1-\sigma (G_H)_{pp}}g_p.
+ \label{eq:direct-pendant-solution-update}
+\end{align}
+The denominator is strictly positive.  If $h\geq0$ and $b_C\geq0$, then
+$G_H\geq0$, $\gamma\geq0$, and the update is entrywise nonnegative.  For every
+still-exterior vertex set $R$, its demand increment is the single nonnegative
+range-add vector
+\begin{equation}
+ -Q_{RH}(x'-x)\geq0.
+ \label{eq:direct-pendant-boundary-range-add}
+\end{equation}
+Thus online forest absorption creates no general dense matrix update: it
+creates one scalar attachment update and one implicit Green-column response.
+Locating all finite-band crossings caused by that column is exactly the
+remaining cyclic-core reporting problem.
+\end{proposition}
+
+\begin{proof}
+Because $q$ is supported only at attachment $p$, the Schur correction and
+reduced load in \cref{eq:direct-pendant-schur-system} are respectively
+$\sigma e_pe_p^\mathsf T$ and $\gamma e_p$.  The matrix determinant lemma and
+positive definiteness of $K_H'$ give
+$1-\sigma (G_H)_{pp}>0$.  Sherman--Morrison gives
+\cref{eq:direct-pendant-inverse-update}; multiplying it by $h'$ and collecting
+the coefficient of $g_p$ gives
+\cref{eq:direct-pendant-solution-update}.  A positive-definite Stieltjes
+matrix has entrywise nonnegative inverse.  Moreover $q\leq0$ and
+$A^{-1}\geq0$, so $b_C\geq0$ implies $\gamma\geq0$.  Finally
+$Q_{RH}\leq0$ proves \cref{eq:direct-pendant-boundary-range-add}.
+\end{proof}
+
+The rank-one formula becomes an output-sensitive online reporter when the
+attachment vertex does not change.  The following definition fixes the
+reporting semantics: it reports upward gate crossings caused by forest
+absorption while the still-exterior coordinates are held at zero.  It does
+not claim to maintain a terminal-rung queue after those exterior coordinates
+are themselves updated.
+
+\begin{definition}[Fixed-attachment Green crossing reporter]
+\label{def:direct-fixed-attachment-reporter}
+Fix a core $H$, an attachment $p\in H$, and still-exterior boundary rows
+$R$.  For the current core solution $x_H^{(k)}$, define the exact normalized
+boundary key
+\begin{equation}
+ \kappa_w^{(k)}
+ :=d_w^{-1/2}\bigl(b_w-Q_{wH}x_H^{(k)}\bigr),
+ \qquad w\in R.
+ \label{eq:direct-fixed-attachment-key}
+\end{equation}
+For each gate $\theta\in\{\tau,B\tau\}$, the reporter returns the initial
+labels with $\kappa_w^{(0)}\geq\theta$ and, after absorption $k\geq1$, the
+upward-crossing set
+\begin{equation}
+ \mathcal X_k(\theta)
+ :=\{w\in R:\kappa_w^{(k-1)}<\theta
+                    \leq\kappa_w^{(k)}\}.
+ \label{eq:direct-fixed-attachment-crossings}
+\end{equation}
+The \emph{fixed-attachment Green crossing reporter}, denoted
+$\mathsf{FACR}(p)$, stores one static affine profile for the rows in $R$, one
+sorted crossing list per gate, and one pointer into each list.  In
+particular, it does not materialize the current key of every boundary row.
+\end{definition}
+
+\begin{theorem}[A fixed-attachment cycle needs no global rekey]
+\label{thm:direct-fixed-attachment-cycle-reporter}
+Let the settled core $H=\{u_0,\ldots,u_{m-1}\}$ induce a simple cycle, let
+$p\in H$, and let $H,R,C_1,\ldots,C_K$ be pairwise disjoint.  Let every
+$w\in R$ have at least one exposed edge into $H$.
+Start from an SPD Stieltjes core system
+\begin{equation*}
+ K_0x_H^{(0)}=h_0,
+ \qquad h_0\geq0,
+\end{equation*}
+whose nonzero off-diagonal pattern on $H$ is the cycle.  Suppose
+$C_1,\ldots,C_K$ are certified closed pendant trees, all with the same unique
+attachment $p$, and absorb them in any order.  For component $C_j$, let
+$\sigma_j,\gamma_j$ be the nonnegative scalars in
+\cref{eq:direct-pendant-rank-one-data}, and put
+\begin{equation}
+ \Lambda_k:=\sum_{j\leq k}\sigma_j,
+ \qquad
+ \Gamma_k:=\sum_{j\leq k}\gamma_j.
+ \label{eq:direct-fixed-attachment-cumulative-data}
+\end{equation}
+Assume these are the successive exact Schur core pairs; in particular,
+$K_0-\Lambda_ke_pe_p^\mathsf T$ is SPD for every $0\leq k\leq K$.
+Then $\mathsf{FACR}(p)$ reports
+\cref{eq:direct-fixed-attachment-crossings} exactly, for both gates, without
+any boundary-key rekey.  If $Z$ is the total number of reported
+gate--label pairs and
+\begin{equation}
+ \mathcal V_{\rm fin}
+ :=\sum_{u\in H\cup R\cup C_1\cup\cdots\cup C_K}(1+d_u),
+ \label{eq:direct-fixed-attachment-final-volume}
+\end{equation}
+then its complete ledger, including final core materialization and forest
+recovery, is
+\begin{equation}
+ O\!\left(\mathcal V_{\rm fin}+|R|\log(2+|R|)+Z\right)
+ =\widetilde O(\mathcal V_{\rm fin}+Z)
+ \label{eq:direct-fixed-attachment-work}
+\end{equation}
+arithmetic and charged adjacency work, and $O(\mathcal V_{\rm fin})$ memory.
+This includes verification and scanning of the supplied closure certificates,
+stored-row reads, response construction and application, membership, exact
+validation, and output.
+\end{theorem}
+
+\begin{proof}
+Write $G_0:=K_0^{-1}$, $g:=G_0e_p$, and
+$x^{(0)}:=G_0h_0$.  After the first $k$ absorptions the core pair is
+\begin{equation*}
+ K_k=K_0-\Lambda_ke_pe_p^\mathsf T,
+ \qquad
+ h_k=h_0+\Gamma_ke_p.
+\end{equation*}
+Every $K_k$ is the Schur complement obtained after eliminating the certified
+components, hence is SPD.  Therefore
+$1-\Lambda_k g_p>0$, and Sherman--Morrison gives the exact one-dimensional
+state
+\begin{equation}
+ x_H^{(k)}=x^{(0)}+z_kg,
+ \qquad
+ z_k:=\frac{\Gamma_k+\Lambda_kx_p^{(0)}}
+                {1-\Lambda_kg_p}.
+ \label{eq:direct-fixed-attachment-affine-state}
+\end{equation}
+The Stieltjes hypotheses and $h_0\geq0$ give
+$g\geq0$ and $x_p^{(0)}\geq0$.  The pendant hypotheses give
+$\sigma_j,\gamma_j\geq0$.  Consequently $z_k$ is nondecreasing: over the
+domain with positive denominator, its partial derivatives with respect to
+$\Gamma$ and $\Lambda$ are respectively
+\begin{equation*}
+ \frac1{1-\Lambda g_p}
+ \quad\text{and}\quad
+ \frac{x_p^{(0)}+g_p\Gamma}{(1-\Lambda g_p)^2},
+\end{equation*}
+both nonnegative.
+
+For each boundary row, precompute
+\begin{equation}
+ a_w:=-d_w^{-1/2}Q_{wH}g\geq0.
+ \label{eq:direct-fixed-attachment-slope}
+\end{equation}
+Equations
+\cref{eq:direct-fixed-attachment-key,eq:direct-fixed-attachment-affine-state}
+then give
+\begin{equation}
+ \kappa_w^{(k)}=\kappa_w^{(0)}+a_wz_k.
+ \label{eq:direct-fixed-attachment-affine-key}
+\end{equation}
+For each $a_w>0$ and gate $\theta$, form the static crossing scalar
+\begin{equation*}
+ t_{w,\theta}:=\frac{\theta-\kappa_w^{(0)}}{a_w}.
+\end{equation*}
+Labels already above the gate are output initially; labels with $a_w=0$
+never cross afterward.  Sort the remaining pairs by $t_{w,\theta}$.  Because
+$z_k$ is monotone, advancing the corresponding pointer through all values in
+$(z_{k-1},z_k]$ returns exactly
+$\mathcal X_k(\theta)$.  Evaluating
+$\kappa_w^{(0)}+a_wz_k$ validates each emitted label in constant time.  The
+two lists are static, so an absorption changes only
+$(\Lambda_k,\Gamma_k,z_k)$ and the two pointers; no stored boundary key is
+rewritten.
+
+It remains to expose the work hidden by this representation.  Scan every
+relevant adjacency list once.  In particular, the full list of the common
+attachment $p$ is scanned once and reused by all closure certificates, rather
+than once per component.  Leaf elimination computes each
+$(\sigma_j,\gamma_j)$ and stores its recovery messages in
+$O(\sum_{u\in C_j}(1+d_u))$ work; the final reverse passes have the same
+total charge.  Since $K_0$ is cyclic tridiagonal, a width-two elimination
+ordering factors it and constructs $g$ and $x^{(0)}$ in $O(m)$ arithmetic
+and $O(m)$ memory.  Reading the boundary rows and forming
+$\kappa^{(0)},a$ costs
+$O(\sum_{w\in R}(1+d_w))$, and the two sorts cost
+$O(|R|\log(2+|R|))$.  The $K$ scalar response applications and pointer queries
+cost $O(K+Z)$ in total; $K$ is at most the forest vertex count.  Membership
+bits cost $O(|R|)$ memory, while exact validation and streaming the reports
+cost $O(Z)$ work.  Finally, materializing
+\cref{eq:direct-fixed-attachment-affine-state} costs $O(m)$ before forest
+recovery; writing all recovered coordinates, if requested, is also absorbed
+by $\mathcal V_{\rm fin}$.  These charges prove
+\cref{eq:direct-fixed-attachment-work} and the memory bound.
+\end{proof}
+
+\begin{remark}[Exact scope of the no-rekey result]
+\label{rem:direct-fixed-attachment-scope}
+A simple cycle is an edge-minimal connected cyclic $2$-core topology, but
+cyclicity is used here only to construct the base Green column in linear work.
+The no-rekey mechanism is the stronger fixed-attachment fact: all updates lie
+on the single column $g$.  If absorbed components attach at
+different core vertices, the response can acquire a new Green direction at
+each event and the static crossing order above need not exist.  The theorem
+therefore neither settles the varying-attachment cyclic-core reporter nor
+rules out an implicit, kinetic, coded, or batched reporter for that case.  Its
+arithmetic and storage bounds are exact real/algebraic-cell counts; they imply
+no word- or bit-complexity bound, finite-precision robustness, or
+numerical-stability guarantee.
+\end{remark}
+
+\begin{corollary}[Canonical reduction to the graph $2$-core]
+\label{cor:direct-two-core-reduction}
+Let $G$ be a completely exposed finite connected graph and let $H$ be its
+graph-theoretic $2$-core.  If $H\neq\emptyset$, then
+$C:=V\setminus H$ is a closed pendant forest and
+\cref{thm:direct-pendant-deflation,prop:direct-forest-spectral-lift} apply.
+If $H=\emptyset$, then $G$ is a tree and is solved exactly by one elimination
+and one reverse pass.
+
+Consequently, if $k:=|H|>0$, forming and factoring the remaining core densely
+gives an exact full solve in
+\begin{equation}
+ O\!\left(\operatorname{cvol}(V)+k^3\right)
+ \quad\text{work and}\quad
+ O\!\left(\operatorname{cvol}(V)+k^2\right)
+ \quad\text{storage}.
+ \label{eq:direct-two-core-dense-work}
+\end{equation}
+More generally, any iterative or persistent-response guarantee for the Schur
+core lifts with only linear forest construction and recovery work; the forest
+size does not multiply the core condition factor.
+\end{corollary}
+
+\begin{proof}
+Compute the $2$-core by repeatedly deleting vertices of current degree at most
+one.  A deleted component cannot contain a cycle, because every cycle survives
+this peeling.  It cannot meet the surviving core at two distinct vertices:
+a component path between two attachments, together with its attachment edges,
+has minimum degree two relative to the core plus that path and would also
+survive.  Connectedness gives exactly one core attachment per deleted
+component.  Thus the peeling order is already a linear-work forest
+elimination order.
+
+If no vertex survives, the connected graph is a tree.  Otherwise the forest
+messages change only core diagonals.  A dense factorization of the resulting
+$k$-vertex SPD core costs $O(k^3)$ work and $O(k^2)$ storage, after which one
+reverse forest pass recovers the eliminated coordinates.  The final claim is
+\cref{eq:direct-forest-lifted-spectrum} or, under permanent elimination,
+\cref{cor:direct-pendant-core-composition}.
+\end{proof}
+
+The theorem is a trajectory-erasure identity: after the conditional lift,
+the residual and objective seen by the surviving core depend only on
+$x_H$, not on how many reflected coordinate pushes previously occurred in
+$C$.  Because the correction changes only attachment diagonals, it can be
+installed permanently and the same local solver can continue on
+$(\widehat Q,\widehat b)$.
+
+The corresponding one-shot operation can also be written directly in
+residual form.  Let one pendant component $C$ attach at $p$, put
+$q:=Q_{Cp}$, and let $\mathcal B=C\cup\{p\}$.  For an arbitrary current
+residual define
+\begin{equation}
+ s_p:=Q_{pp}-q^\mathsf TA^{-1}q,
+ \qquad
+ \widehat r_p:=r_p-q^\mathsf TA^{-1}r_C.
+ \label{eq:direct-boundary-schur-pivot}
+\end{equation}
+The block correction
+\begin{equation}
+ z_p=\frac{\widehat r_p}{s_p},
+ \qquad
+ z_C=A^{-1}(r_C-qz_p),
+ \qquad x_{\mathcal B}^+=x_{\mathcal B}+z
+ \label{eq:direct-boundary-schur-push}
+\end{equation}
+is exactly $z=Q_{\mathcal B\mathcal B}^{-1}r_{\mathcal B}$.
+Consequently $r_{\mathcal B}^+=0$ and the only packet sent outside
+$\mathcal B$ is
+$-Q_{H\setminus\{p\},p}z_p$.  Thus a boundary Schur push is the minimal
+block operation that settles both the closed region and its attachment.
+
+\begin{corollary}[The reached star is solved in linear work]
+\label{cor:direct-star-schur-solve}
+Let a degree-$q$ center $c$ be joined to $q$ degree-one leaves and seed the
+center.  Put
+\begin{equation*}
+ q_0=\frac{1+\alpha}{2},
+ \qquad
+ \gamma_q=\frac{1-\alpha}{2\sqrt q}.
+\end{equation*}
+Eliminating all leaves gives the scalar pivot and exact solution
+\begin{equation}
+ s_c=q_0-\frac{q\gamma_q^2}{q_0}
+     =\frac{2\alpha}{1+\alpha},
+ \qquad
+ x_c=\frac{1+\alpha}{2\sqrt q},
+ \qquad
+ x_\ell=\frac{1-\alpha}{2q}.
+ \label{eq:direct-star-schur-solution}
+\end{equation}
+Hence a scan certifying the $q$ leaves, one scalar Schur solve, and reverse
+recovery cost $O(q)=O(\mathcal V)$, uniformly in $\alpha$.  In particular,
+the $P_3$ instance of \cref{thm:direct-three-vertex-lower-bound} is solved in
+constant work by the boundary-aware method.
+\end{corollary}
+
+\begin{proof}
+Here $A=q_0I$, every center--leaf entry is $-\gamma_q$, and the source has
+$b_c=\alpha/\sqrt q$, $b_C=0$.  Substitution in
+\cref{eq:direct-pendant-schur-system,eq:direct-pendant-conditional-lift}
+gives \cref{eq:direct-star-schur-solution}.  The full star has degree volume
+$2q$.
+\end{proof}
+
+Merely settling the leaves is not enough.  The Schur pivot itself is
+essential.
+
+\begin{proposition}[Old-pivot leaf settlement retains the slow mode]
+\label{prop:direct-old-pivot-slow}
+On the star of \cref{cor:direct-star-schur-solve}, suppose the leaves are
+conditionally minimized after every center step, but the center step still
+uses the original diagonal $q_0$.  For any relaxation $0<\omega\leq2$, the
+reduced center residual obeys
+\begin{equation}
+ \widehat r_c^+
+ =\left(1-\omega\frac{s_c}{q_0}\right)\widehat r_c,
+ \qquad
+ \frac{s_c}{q_0}=\frac{4\alpha}{(1+\alpha)^2}.
+ \label{eq:direct-old-pivot-factor}
+\end{equation}
+For $0<\alpha\leq1/16$, reducing its magnitude by a factor two therefore
+requires at least $\log(2)/(16\alpha)$ such steps.  Replacing $q_0$ by the
+Schur pivot $s_c$ makes the exact step $\omega=1$ annihilate the residual in
+one operation.
+\end{proposition}
+
+\begin{proof}
+Conditional leaf minimization restricts the quadratic to the scalar Hessian
+$s_c$.  A step of length $\omega\widehat r_c/q_0$ therefore gives
+\cref{eq:direct-old-pivot-factor}.  Since $\omega\leq2$, each nonnegative
+factor is at least $1-8\alpha$.  For $8\alpha\leq1/2$,
+$-\log(1-8\alpha)\leq16\alpha$, so fewer than
+$\log(2)/(16\alpha)$ steps cannot halve the residual.  The last claim is
+\cref{eq:direct-boundary-schur-push} with $C$ equal to all leaves.
+\end{proof}
+
+The same correction closes the finite-arm hole in the radial spider theorem.
+
+\begin{theorem}[Boundary-deflated radial two-rung on a finite spider]
+\label{thm:direct-finite-spider-deflation}
+Consider a symmetric $q$-arm spider whose arms have finite length $R\geq1$,
+and assume $1<B<B_{\rm edge}$ and $Bq\epsppr<1$.  Run the radial parity-wave
+schedule of \cref{thm:direct-spider-radial-block}.  If that wave exposes the
+far-leaf block no later than its coarse stopping plateau ($R\leq L_q$),
+certify the $q$ closed arms, permanently Schur-deflate them, solve the
+remaining center scalar, and reverse-recover the arms.  Otherwise use the
+usual exact radial rung, truncated at the finite boundary if necessary.
+
+With $L_q$ defined by \cref{eq:direct-spider-radial-depth}, this algorithm
+has work
+\begin{equation}
+ \Work_{\rm def}
+ =O\!\left(
+  \mathcal V
+  \left[1+\frac{\log(1/(Bq\epsppr))}{\sqrt\alpha}\right]
+ \right),
+ \qquad \mathcal V=2qR,
+ \label{eq:direct-finite-spider-deflation-work}
+\end{equation}
+for every arm length, including when the true leaves are reached.
+If $R\leq L_q$, the more explicit pre-deflation bound is
+\begin{equation}
+ \Work_{\rm discover}
+ \leq3q\left\lfloor\frac{(R+1)^2}{4}\right\rfloor,
+ \qquad
+ \Work_{\rm eliminate}+\Work_{\rm recover}=O(qR).
+ \label{eq:direct-finite-spider-explicit-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+If $R>L_q$, the spreading wave stops before reaching a true leaf.  The exact
+radial proof then applies unchanged; if its optional outer push is itself a
+far leaf, the missing outward packet only deletes a residual that the
+infinite-arm proof already bounded below the gate.  Suppose instead
+$R\leq L_q$.  Completing event levels $0,\ldots,R-1$ exposes depth $R$ and costs
+at most $3q$ times the endpoint-path event count
+$\lfloor(R+1)^2/4\rfloor$.  Each arm is now a certified closed pendant path
+attached only to the center.  Apply \cref{thm:direct-pendant-deflation}; the
+reduced graph has one vertex, so one exact scalar solve and the stored
+reverse passes produce the exact full solution.  The forest work is
+$O(qR)$.
+
+The degree volume of the whole spider is exactly $2qR$.  Moreover,
+\cref{eq:direct-path-log-lambda} gives
+\begin{equation*}
+ R\leq L_q
+ \leq1+\frac{\log(1/(Bq\epsppr))}{2\sqrt\alpha}.
+\end{equation*}
+Thus $qR^2=O(\mathcal V R)$ is bounded by the right-hand side of
+\cref{eq:direct-finite-spider-deflation-work}.  Combining the two cases
+proves the theorem.
+\end{proof}
+
+This result does not rescue the original literal coordinate policy; it
+defines and proves a boundary-aware extension.  It is nevertheless sharp on
+the obstruction: settling the closed region with the old pivot remains
+$\Omega(1/\alpha)$ by \cref{prop:direct-old-pivot-slow}, whereas permanent
+Schur deflation removes the reflecting mode exactly and preserves the
+accelerated finite-spider volume bound.
+
+The preceding results therefore close the radial theorem both before and
+after true leaves on finite spiders, extend persistent expansion to variable
+and fully nonsymmetric trees, and disprove the unrestricted graph-uniform
+claim for the unmodified policy.  They also identify the next splice: a
+general decomposition must hand each maximal nonexpanding corridor either to
+its causal wave certificate or, once its far boundary is certified closed,
+to the pendant Schur eliminator.

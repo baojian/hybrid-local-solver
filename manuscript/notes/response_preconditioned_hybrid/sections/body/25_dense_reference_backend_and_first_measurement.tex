@@ -1,0 +1,38 @@
+\subsection{Dense reference backend and first measurement}
+
+The project now contains an exact dense response--hybrid diagnostic module.
+It stores the principal inverse on the anchor, runs warm-started CG on the
+exact frontier Schur complement, and absorbs the frontier when combined degree
+volume reaches a chosen rebuild factor.  Rebuild factor one is the
+pure-response endpoint; infinite factor is the fixed-anchor iterative
+endpoint.  This implementation materializes $Q$ and reads every boundary
+coordinate, so it validates the algebra and switching logic but supplies no
+local-complexity evidence.
+
+At $\alpha=0.05$, note-scoped $\epsppr=10^{-6}$, and seed 7, the factor-two
+variant gave the following separated ledger.  ``Resp.'' is the diagnostic
+dense response-update flop estimate; ``CG'' is the number of frontier Schur-CG
+iterations.  The two columns are deliberately not added.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Graph & Resp., every batch & Resp., mixed & CG, never rebuild & CG, mixed \\
+\midrule
+Path, 511 vertices & 129809 & 30101 & 238 & 112 \\
+Star, 510 leaves & 133692421 & 1 & 1 & 1 \\
+Binary tree, 511 vertices & 133519701 & 16602965 & 36 & 8 \\
+Spider, $8\times64$ & 5728401 & 1803761 & 194 & 90 \\
+Random 4-regular, 512 vertices & 121475342 & 41788069 & 61 & 40 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The mixed arm gives every new frontier one converged Schur-CG probe before a
+volume-triggered rebuild.  The path, tree, spider, and regular cases then show
+an interior response/iteration tradeoff.  The star collapses safely to the
+iterative endpoint: its one heavy batch certifies in one CG step, so no dense
+rebuild occurs.  Thus the architecture makes both resources available, but an
+individual execution need not consume both.  A universal immediate-rebuild
+factor is not justified by these measurements.

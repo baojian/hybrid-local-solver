@@ -1,0 +1,194 @@
+\subsection{Why absorption alone cannot give a work oracle}
+
+The obstruction occurs inside the exact RPPR gate itself.  It is therefore
+unsafe to infer a competitive ratio merely from canonical settlement,
+monotone support growth, or persistence of unadmitted violations.
+
+\begin{theorem}[RPPR heavy-early obstruction on a tree]
+\label{prop:batch-order-obstruction}
+Fix $\alpha\in(0,1)$.  For every integer $L\geq1$, there are a finite simple
+unweighted tree, a single seed $o$, and $\rho>0$ for which the exact RPPR
+boundary gate of \Cref{thm:absorption-safe-switch} has two legal batch traces
+with the same terminal region and terminal canonical point, but
+\begin{equation}
+ \frac{\mathfrak R_{\rm set}^{\rm early}}
+      {\mathfrak R_{\rm set}^{\rm late}}
+ \geq \frac{L+1}{5}.
+ \label{eq:rppr-heavy-early-ratio}
+\end{equation}
+Every batch before a possible common final batch is a singleton.  In
+particular, exact RPPR absorption, true-support containment, and persistent
+boundary violations do not imply a constant best-order settled-work bound,
+even on trees.
+\end{theorem}
+
+\begin{proof}
+Put
+\[
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ \beta:=\frac{1-\alpha}{2},
+ \qquad
+ t:=\frac{\beta}{a}=\frac{1-\alpha}{1+\alpha}.
+\]
+For an integer $M$, form a tree from the path
+$o-z_1-\cdots-z_L$, a vertex $h$ adjacent to $o$, and $M-1$ pendant leaves
+$y_1,\ldots,y_{M-1}$ adjacent to $h$.  Thus
+\[
+ d_o=2,
+ \quad d_h=M,
+ \quad d_{z_i}=2\ (i<L),
+ \quad d_{z_L}=d_{y_j}=1.
+\]
+Write $P_k:=\{o,z_1,\ldots,z_k\}$, with $P_0=\{o\}$.
+
+We first make every next path vertex a strict violation at its path-only
+prefix.  For $0\leq k<L$, define
+\[
+ r_k(\rho):=(\ell_\rho-Qx[P_k])_{z_{k+1}}.
+\]
+The principal system on $P_k$ is independent of $M$.  At $\rho=0$ it is an
+irreducible Stieltjes system with positive load at $o$, so
+$x[P_k]_{z_k}>0$ and
+\[
+ r_k(0)=-Q_{z_{k+1},z_k}x[P_k]_{z_k}>0.
+\]
+Moreover, $r_k$ is affine in $\rho$:
+\begin{equation}
+ r_k(\rho)=r_k(0)-\rho\gamma_k,
+ \qquad
+ \gamma_k:=\alpha\left(
+  \sqrt{d_{z_{k+1}}}
+  -Q_{z_{k+1},P_k}Q_{P_kP_k}^{-1}
+       D_{P_k}^{1/2}\one
+ \right)>0.
+ \label{eq:path-prefix-margin}
+\end{equation}
+The last inequality follows from the Stieltjes signs.  Hence
+\begin{equation}
+ \eta_L:=\frac12\min_{0\leq k<L}\frac{r_k(0)}{\gamma_k}>0
+ \label{eq:path-prefix-eta}
+\end{equation}
+and $r_k(\rho)>0$ for every $k<L$ whenever $0<\rho<\eta_L$.
+
+Now set
+\begin{equation}
+ \rho=\rho_M:=\frac{t}{4(M+t)}.
+ \label{eq:heavy-rho}
+\end{equation}
+At the initial checkpoint $P_0$,
+\[
+ x_o[P_0]=\frac{\alpha(1-2\rho)}{a\sqrt2},
+\]
+and the violation residual at $h$ is
+\begin{equation}
+ (\ell_\rho-Qx[P_0])_h
+ =\frac{\alpha}{\sqrt M}
+  \left(\frac{t(1-2\rho)}2-\rho M\right).
+ \label{eq:heavy-initial-margin}
+\end{equation}
+It is positive exactly when $\rho<t/[2(M+t)]$, hence at $\rho_M$.
+Because $\rho_M\to0$, choose $M$ large enough that
+\begin{equation}
+ \rho_M<\eta_L,
+ \qquad
+ M\geq\frac32L^2+\frac{21}{2}L+6.
+ \label{eq:heavy-M-choice}
+\end{equation}
+
+We shall use persistence inside the exact gate.  Suppose
+$U'=U\cup B$ and every coordinate of $B$ violates at $x[U]$.  The Schur
+formula \eqref{eq:adaptive-schur-positive} gives
+$x[U']_B>0$ and $x[U']_U-x[U]_U\geq0$.  For every $v\notin U'$,
+\begin{align}
+ &(\ell_\rho-Qx[U'])_v-(\ell_\rho-Qx[U])_v \notag\\
+ &\qquad={}-Q_{vU}(x[U']_U-x[U]_U)-Q_{vB}x[U']_B\geq0.
+ \label{eq:rppr-violation-persistence}
+\end{align}
+Thus every unadmitted violation persists under every legal canonical
+expansion.
+
+Two traces are consequently legal.  The \emph{late} trace admits
+$z_1,\ldots,z_L$ and then $h$: each $z_{k+1}$ violates on $P_k$ by
+\eqref{eq:path-prefix-eta}, while $h$ persists.  For the \emph{early} trace,
+first admit $h$.  At every later region $P_k\cup\{h\}$, comparison with the
+legal expansion from $P_k$ gives
+$x[P_k\cup\{h\}]_{P_k}\geq x[P_k]_{P_k}$.  Since $h$ is not adjacent to
+$z_{k+1}$, the Stieltjes signs then give
+\[
+ (\ell_\rho-Qx[P_k\cup\{h\}])_{z_{k+1}}
+ \geq r_k(\rho)>0.
+\]
+Thus the early trace may admit $h,z_1,\ldots,z_L$.  Both traces reach
+\[
+ U^\dagger:=P_L\cup\{h\},
+\]
+where absorption makes their canonical points identical.
+
+Only the leaves $y_j$ remain outside $U^\dagger$.  They have equal degree,
+equal shifted load, and the same sole active neighbor $h$, so their violation
+residuals are tied.  If the common residual is nonpositive, both traces stop
+at $U^\dagger$.  If it is positive, both admit all leaves in one common
+final batch, after which the full graph is terminal.  Thus their suffix,
+terminal point, and denominator $C(U_K)$ are identical.
+
+It remains to compare the settled-charge numerators.  Here
+\[
+ C(P_k)=3+3k\quad(k<L),
+ \qquad
+ C(P_L)=3L+2,
+ \qquad
+ c(h)=M+1.
+\]
+Let $S$ denote the common optional final settlement charge.  Direct summation
+gives
+\begin{align}
+ A_{\rm early}
+ &=3+\sum_{k=0}^L\bigl(C(P_k)+M+1\bigr)+S \notag\\
+ &=(L+1)M+\frac32L^2+\frac{11}{2}L+6+S,
+ \label{eq:heavy-early}\\
+ A_{\rm late}
+ &=3+\sum_{k=1}^LC(P_k)+\bigl(C(P_L)+M+1\bigr)+S \notag\\
+ &=M+\frac32L^2+\frac{15}{2}L+5+S.
+ \label{eq:heavy-late}
+\end{align}
+The full graph has charge $3M+3L+1$, so $S$ is either zero or at most this
+quantity.  Therefore
+\[
+ A_{\rm early}\geq(L+1)M,
+ \qquad
+ A_{\rm late}
+ \leq4M+\frac32L^2+\frac{21}{2}L+6
+ \leq5M,
+\]
+where the last inequality is \eqref{eq:heavy-M-choice}.  The common terminal
+denominator cancels, proving \eqref{eq:rppr-heavy-early-ratio}.
+\end{proof}
+
+The expensive branch can therefore be admitted early and paid throughout a
+long independent chain even though every addition is KKT-certified and both
+orders end at the same exact solution.  A positive one-state oracle theorem
+must use more than correctness and monotonicity: for example an
+interference-monotone countdown, an explicit order rule whose charge can be
+amortized, or incremental settlement state that does not repay the whole
+region.
+
+\begin{corollary}[No policy-blind accelerated-bank success theorem]
+\label{cor:no-policy-blind-bank}
+Fix $\alpha\in(0,1)$ and any finite bank factor $\Gamma$.  There is a legal
+support-safe exact RPPR trace on a finite unweighted tree whose settlement
+touches alone violate $W\leq\Gamma C(S)$ at some prefix.  Consequently
+support safety, exact checkpoint absorption, and the RPPR KKT gate cannot by
+themselves prove that a global bank of scale
+$\widetilde O(1/\sqrt\alpha)$ never blocks.
+\end{corollary}
+
+\begin{proof}
+Choose $L$ with $(L+1)/4>\Gamma$ in
+\Cref{prop:batch-order-obstruction} and use the early trace.  Its cumulative
+settlement work is at least $(L+1)M$.  Its terminal region is contained in
+the full graph, whose charge is $3M+3L+1\leq4M$ under
+\eqref{eq:heavy-M-choice}.  Hence its terminal realized ratio is greater
+than $\Gamma$.  The bank invariant must therefore fail at or before that
+checkpoint.
+\end{proof}

@@ -1,0 +1,64 @@
+\section{Hidden edge swaps and killed-Green influence}
+\label{sec:green-influence}
+
+The corridor theorem identifies a failed construction, not a complete oracle
+upper bound.  The strongest remaining lower-bound template is to choose a
+base graph and many locally hidden, degree-preserving two-edge swaps.  Until a
+queried incidence touches the changed edges, an adjacency transcript can be
+identical; correctness then requires the swap to change normalized PPR by
+more than twice the requested error.
+
+The analytic part has an exact low-rank form.  Let
+$H_\alpha'=H_\alpha+UCU^\top$ be the degree-form matrix after a
+degree-preserving swap.  Here the degree matrix is unchanged and $UCU^\top$
+has constant rank.  Whenever $C$ is invertible, Woodbury gives
+\begin{equation}
+ y^{0\prime}-y^0
+ =-\alpha H_\alpha^{-1}U
+   \left(C^{-1}+U^\top H_\alpha^{-1}U\right)^{-1}
+   U^\top H_\alpha^{-1}e_v.
+ \label{eq:swap-woodbury}
+\end{equation}
+Thus the distinguishability of a hidden switch is governed by killed Green
+columns from the seed to the switch endpoints, multiplied by a constant-size
+local impedance matrix.  A condition-number lower bound alone discards this
+graph-specific information and is therefore too coarse for the ambient
+adjacency model.
+
+\begin{conjecture}[Bounded-overlap killed-influence packing]
+\label{conj:influence-packing}
+There is a constant or polylogarithmic function $C$ with the following
+property.  For degree-preserving swaps hidden behind exposure regions of
+overlap at most $B$, let $L_j$ be the shortest charged reveal depth and let
+$y^{0,j}$ be the normalized PPR vector after swap $j$.  In the diffusion
+range $L_j\leq c/\sqrt\alpha$,
+\begin{equation}
+ \sum_j L_j
+   \norm{y^{0,j}-y^{0,0}}_\infty
+ \leq C B.
+ \label{eq:influence-packing-conjecture}
+\end{equation}
+An appropriate extension beyond the diffusion range replaces $L_j$ by its
+killed effective length and separately charges exponential attenuation.
+\end{conjecture}
+
+The disjoint passive-corridor case of the intended conclusion is already
+captured by \cref{thm:corridor-capacity}.  Proving
+\cref{conj:influence-packing} would show that every bounded-overlap swap
+family with PPR gaps larger than $2\epsppr$ has only
+$\widetilde O(B/\epsppr)$ total effective reveal depth.  Refuting it would be
+equally valuable: the smallest counterexample would supply a genuinely new
+hard gadget not reducible to independent arms.
+
+The recommended proof tools are the variational characterization
+\cref{eq:killed-capacity}, Schur complements of $H_\alpha$, monotonicity of
+passive Dirichlet-to-Neumann maps, and the low-rank identity
+\cref{eq:swap-woodbury}.  The first stress tests should be paths, cycles,
+barbells, lollipops, trees, and expanders behind narrow necks.  For each
+family, the relevant statistic is not condition number but
+\begin{equation}
+ (\text{charged queries needed to expose the switch})
+ \times
+ \norm{y^{0,j}-y^{0,0}}_\infty.
+ \label{eq:swap-search-statistic}
+\end{equation}

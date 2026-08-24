@@ -1,0 +1,879 @@
+\subsection{The exact cutoff and the remaining universal lemma}
+\label{sec:exact-cutoff}
+
+The obstruction identifies where a hybrid proof must change representations.
+Set
+\begin{equation}
+ \zeta_0:=\lceil\alpha^{-1/4}\rceil.
+ \label{eq:separator-cutoff}
+\end{equation}
+Before the first stage whose live frontal size exceeds $\zeta_0$, the cumulative
+dense Schur algebra is at most
+\begin{equation}
+ O\!\left(\zeta_0^2\operatorname{cvol}(S)\right)
+ =O\!\left(\frac{\operatorname{cvol}(S)}{\sqrt\alpha}\right).
+ \label{eq:cutoff-dense-work}
+\end{equation}
+If response queries and
+presentation updates are also stopped when their measured charge reaches
+this budget, the algorithm reaches the overflow with an exact safe face
+state.  This is a rigorous reduction, but not yet a continuation theorem.
+
+For the precise missing statement, write
+\begin{equation}
+ \Phi_U:=\min\left\{
+   \frac12x^TQx-\ell_\rho^Tx:x\geq0,
+   \ \operatorname{supp}(x)\subseteq U
+ \right\},
+ \qquad
+ \Delta(U,B):=\Phi_U-\Phi_{U\cup B}\geq0.
+ \label{eq:face-shock}
+\end{equation}
+For an exact positive gate batch, Schur complementation gives
+$\Delta(U,B)=q_B^T\mathcal S_B^{-1}q_B/2$.  It is tempting to require a
+separate repair after every event with old-face work proportional to
+$\log(1+\Delta/E)$.  The next two results show that this target is false.
+
+\begin{theorem}[Explicit RPPR output obstruction]
+\label{thm:shock-output-obstruction}
+Fix $\alpha\in(0,1)$.  For every sufficiently large $m$ there is a tree and
+$\rho=\Theta(1/m)$ whose exact RPPR gate batches begin with a singleton $B$
+and then a batch of size $m$, while
+\begin{equation}
+ \Delta(\{o\},B)=\Theta(1/m^2).
+ \label{eq:tiny-shock-large-output}
+\end{equation}
+Consequently, with $E=\Theta(1/m)$, no explicit-batch algorithm can report
+the subsequent gate event in
+\begin{equation}
+ O\!\left(
+  \operatorname{cvol}(B)
+  +\frac{\operatorname{cvol}(\{o\}\cup B)}{\sqrt\alpha}
+   \log\!\left(1+\frac{\Delta(\{o\},B)}E\right)
+ \right)=O(1)
+ \label{eq:false-shock-output-bound}
+\end{equation}
+work.
+\end{theorem}
+
+\begin{proof}
+Let $a=(1+\alpha)/2$ and $c=(1-\alpha)/2$.  The seed root $o$ has one leaf
+$b$ and $m$ neighbors $c_i$, each of which has its own pendant $z_i$.  Thus
+$D:=d_o=m+1$, $d_b=d_{z_i}=1$, and $d_{c_i}=2$.  Put
+\begin{equation}
+ H:=c+2a=1+a,
+ \quad g:=\frac c{\sqrt D},
+ \quad \sigma:=a-\frac{g^2}{a},
+ \quad \lambda:=\frac{g^2}{a\sigma},
+ \quad \rho_0:=\frac c{DH},
+ \label{eq:shock-tree-parameters}
+\end{equation}
+and
+\begin{equation}
+ q_0:=\frac{\alpha c(1-1/H)}{aD},
+ \qquad
+ \delta:=\frac{a\lambda q_0}{2\alpha(H+\lambda)},
+ \qquad
+ \rho:=\rho_0+\delta.
+ \label{eq:shock-tree-rho}
+\end{equation}
+At the exact root solve, the violation of $b$ and the common scaled violation
+of the $c_i$ are
+\begin{equation}
+ q_b=\frac\alpha a\left(\frac cD-\rho\right)>0,
+ \qquad
+ r_c:=\sqrt2e_{\ell_\rho}(x)_{c_i}
+ =\frac\alpha a\left(\frac cD-H\rho\right)<0.
+ \label{eq:shock-tree-first-gate}
+\end{equation}
+Hence the first batch is $\{b\}$.  Eliminating $b$ increases every $r_c$ by
+$\lambda q_b$, and the choice of $\delta$ gives
+\begin{equation}
+ r_c+\lambda q_b=\frac{\lambda q_0}{2}>0.
+ \label{eq:shock-tree-second-gate}
+\end{equation}
+Thus the next batch is $\{c_1,\ldots,c_m\}$.  Since
+$\lambda=\Theta(1/D)$ and $q_b=\Theta(1/D)$,
+$\Delta(\{o\},\{b\})=q_b^2/(2\sigma)=\Theta(D^{-2})$.
+Meanwhile $\operatorname{cvol}(\{b\})=2$ and
+$\operatorname{cvol}(\{o,b\})=\Theta(D)$.  Taking $E=D^{-1}$ makes the
+right-hand side of \cref{eq:false-shock-output-bound} constant, but writing
+the next batch requires $m=\Theta(D)$ word outputs.
+\end{proof}
+
+Even a compressed batch handle does not rescue a generic full-sweep repair.
+
+\begin{theorem}[No per-event shock bound for full-sweep repair]
+\label{thm:no-full-sweep-shock-repair}
+Let $A$ have order at least two, and let an enlarged restricted Hessian be
+\begin{equation}
+ M=\begin{bmatrix}A&g\\g^T&c\end{bmatrix},
+ \qquad A\succeq\alpha I,\quad g\leq0,\quad
+ \sigma:=c-g^TA^{-1}g\in(0,c).
+ \label{eq:full-sweep-enlargement}
+\end{equation}
+There are a strictly positive old optimum $x^U$, a feasible point
+$y=x^U+e$ of old-face error $E$ with $g^Te=0$, and an arbitrarily small
+positive new-coordinate demand $q$, such
+that optimizing the new coordinate alone leaves enlarged-face error strictly
+larger than $E$.  Hence accelerated gradient, Chebyshev, or CG repairs whose
+first nontrivial old-face operation is a full matrix--vector product must pay
+$\Omega(\operatorname{cvol}(U))$ even as $\Delta/E\to0$.
+\end{theorem}
+
+\begin{proof}
+Choose a nonzero $e\in\ker(g^T)$ and scale it so that
+$e^TAe/2=E$.  Choose $x^U$ positive enough that $x^U+e\geq0$, set the old
+load to $Ax^U$, and choose the new load so its demand at $x^U$ is $q>0$.
+The exact enlargement gain is $\Delta=q^2/(2\sigma)$.  The demand at $y$ is
+still $q$, so optimizing only the new coordinate decreases the objective by
+$q^2/(2c)=(\sigma/c)\Delta$.  The enlarged error therefore remains
+\begin{equation}
+ E+\left(1-\frac\sigma c\right)\Delta>E.
+ \label{eq:full-sweep-residual-error}
+\end{equation}
+Some old coordinate must change.  The stated full-sweep methods cannot make
+that change before one old-face matrix--vector product.  Bounded-degree path
+or cycle Stieltjes blocks with one pendant new vertex realize
+\cref{eq:full-sweep-enlargement}; taking
+$\Delta/E=1/\operatorname{cvol}(U)^2$ makes the proposed logarithmic budget
+$O(1)$ while that first sweep costs $\Omega(\operatorname{cvol}(U))$.
+\end{proof}
+
+The second missing resource is exact sign information.  If $x^T$ is the
+exact point on a safe face and $z$ has objective error at most $E$, then
+\begin{equation}
+ \|z-x^T\|_{Q_{TT}}\leq\sqrt{2E},
+ \qquad
+ |e_{\ell_\rho}(z)_v-e_{\ell_\rho}(x^T)_v|<\sqrt{2E}
+ \label{eq:gate-margin-from-error}
+\end{equation}
+for every boundary vertex $v$.  Indeed, Cauchy--Schwarz in the $Q_{TT}$ norm
+and the positive scalar Schur complement give
+$Q_{vT}Q_{TT}^{-1}Q_{Tv}<Q_{vv}\leq1$.  Thus an approximate point certifies
+exact gate signs only under a margin larger than $\sqrt{2E}$, or with a
+separately charged exact response oracle.
+
+The correct remaining target must therefore be aggregate, explicitly charge
+new output and response queries, and allow small shocks to accumulate before
+an old-face sweep.
+
+Conditional on exhaustively charging exact response maintenance, the
+numerical part of this target is completely amortized.  To avoid hiding work
+in an ``oracle,'' define $\mathcal C_{\rm resp}$ to include exactly one state
+initialization or conversion at the cutoff, all preprocessing, every exact
+sign query and response update on old or newly admitted coordinates, and
+every old-face read or arithmetic operation before the final repair.  The
+first adjacency-list scan of a newly admitted vertex and its explicit label
+output are excluded and charged separately.  The response state contains no
+advice depending on $S^\star$ or on future batches.
+
+\begin{theorem}[Aggregate repair given an exact response oracle]
+\label{thm:aggregate-repair-oracle}
+Let $E>0$, let $U_0\subsetneq\cdots\subsetneq U_J=:T$ be safe faces,
+$B_j:=U_{j+1}\setminus U_j$, and
+$\Delta_j:=\Phi_{U_j}-\Phi_{U_{j+1}}$.  Let $y\geq0$ be supported on $U_0$
+and satisfy
+\begin{equation}
+ \frac12y^TQy-\ell_\rho^Ty-\Phi_{U_0}\leq E.
+ \label{eq:aggregate-initial-error}
+\end{equation}
+Suppose an online exact-response oracle reports every $B_j$ and certifies
+termination with exhaustive charge $\mathcal C_{\rm resp}$ as defined above,
+while each admitted adjacency list is otherwise scanned once.  Suppose also
+that a fixed-face routine on $T$ satisfies
+$G_k\leq C_A\exp(-c_{\rm ctr}k\sqrt\alpha)G_0$ for absolute constants
+$C_A\geq1$ and $c_{\rm ctr}>0$ after $k$ full iterations, each costing
+$O(\!\operatorname{cvol}(T))$.  Then the segment, including explicit output
+and one final repair to error $E$, costs
+\begin{equation}
+ O\!\left(
+  \sum_{j<J}\operatorname{cvol}(B_j)+\mathcal C_{\rm resp}
+  +\frac{\operatorname{cvol}(T)}{\sqrt\alpha}\left[
+    1+\log\!\left(1+\frac{\sum_{j<J}\Delta_j}{E}\right)
+  \right]
+ \right).
+ \label{eq:aggregate-oracle-work}
+\end{equation}
+If $\sum_{j<J}\Delta_j\leq C_0E$, its numerical-repair term is
+$O_{C_0}(\operatorname{cvol}(T)/\sqrt\alpha)$.
+\end{theorem}
+
+\begin{proof}
+Do not numerically repair between response events; zero-extend $y$ as the face
+grows.  Its objective value does not change, whereas the restricted optimum
+telescopes:
+\begin{equation}
+ \frac12y^TQy-\ell_\rho^Ty-\Phi_T
+ \leq E+\Phi_{U_0}-\Phi_T
+ =E+\sum_{j<J}\Delta_j.
+ \label{eq:aggregate-gap-telescope}
+\end{equation}
+One final repair therefore needs at most
+\begin{equation}
+ \left\lceil
+  \frac1{c_{\rm ctr}\sqrt\alpha}
+  \log\!\left(C_A\left[1+\frac{\sum_{j<J}\Delta_j}{E}\right]\right)
+ \right\rceil
+ \label{eq:aggregate-final-iterations}
+\end{equation}
+full iterations.  Its constant logarithm gives the displayed
+$\operatorname{cvol}(T)/\sqrt\alpha$ term.  All earlier response operations
+belong to $\mathcal C_{\rm resp}$, while the $1$ in
+$\operatorname{cvol}(B_j)$ pays each explicit label and first adjacency
+scan.  The final $\operatorname{cvol}(T)/\sqrt\alpha$ term also covers
+materializing the final vector and its boundary certificate.
+\end{proof}
+
+This proves that repeated numerical repair is not the remaining obstacle.
+When exact response certificates are maintained independently, heavy shocks
+also bound how often a numerical repair is needed.
+
+\begin{theorem}[Aggregate continuation for heavy-shock groups]
+\label{thm:heavy-shock-continuation}
+Let $E>0$ and let
+$U_0\subsetneq\cdots\subsetneq U_H=:T$ be the materialized safe faces of one
+accuracy epoch, with $B_h:=U_{h+1}\setminus U_h$ and
+$\Delta_h:=\Phi_{U_h}-\Phi_{U_{h+1}}$.  Suppose the epoch begins with
+objective error at most $E$ on $U_0$, and
+\begin{equation}
+ \sum_{h<H}\Delta_h\leq C_{\rm sh}E,
+ \qquad
+ \Delta_h\geq\theta E\quad(h<H-1),
+ \label{eq:heavy-shock-groups}
+\end{equation}
+where $C_{\rm sh}$ and $\theta>0$ are fixed.  Suppose an independently
+maintained exact-response state reports every group and certifies all
+nonmembership signs using
+$O(\operatorname{cvol}(U_h)+\operatorname{cvol}(B_h))$ work for group $h$,
+including all internal response events, and after each group a fixed-face
+routine with the contraction in \cref{thm:aggregate-repair-oracle} restores
+error at most $E$.  Then the epoch work is
+\begin{equation}
+ O\!\left(
+  \left(\frac{C_{\rm sh}}\theta+1\right)
+  \frac{\operatorname{cvol}(T)}{\sqrt\alpha}
+  +\sum_{h<H}\operatorname{cvol}(B_h)
+ \right).
+ \label{eq:heavy-shock-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The shock floor and telescoping give
+$H-1\leq C_{\rm sh}/\theta$.  Immediately after group $h$, zero-padding the
+old point gives error at most $E+\Delta_h$.  The fixed-face contraction restores
+error $E$ in $O_{C_A,c_{\rm ctr},C_{\rm sh}}(1/\sqrt\alpha)$ iterations.
+Every intermediate face has charged volume at most
+$\operatorname{cvol}(T)$, so summing those iterations and the assumed exact
+response charge per group proves \cref{eq:heavy-shock-work}.  The new batches
+are disjoint.
+\end{proof}
+
+For a natural exact batch with demand $q_B$ and Schur complement
+$\mathcal S_B$, the bounds
+$\alpha I\preceq\mathcal S_B\preceq I$ imply
+\begin{equation}
+ \frac12\|q_B\|_2^2
+ \leq\Delta(U,B)
+ \leq\frac1{2\alpha}\|q_B\|_2^2.
+ \label{eq:shock-demand-sandwich}
+\end{equation}
+Thus, once an exact response mechanism supplies the natural batches,
+\cref{thm:heavy-shock-continuation}'s repair-frequency hypothesis holds if
+every nonfinal batch satisfies $\|q_B\|_2^2\geq2\theta E$.  The remaining
+\emph{numerical-repair} difficulty is confined to light batches; exact
+response certification remains necessary for both heavy and light batches.
+
+\begin{problem}[Graph-uniform light-shock response]
+\label{prob:light-shock-response}
+Within an accuracy epoch, maintain the exact gate while leaving the numerical
+iterate unchanged across consecutive batches with $\Delta_j<\theta E$.
+Either terminate or group them until their cumulative shock reaches
+$\theta E$, with exhaustive total response charge
+\begin{equation}
+ \mathcal C_{\rm resp}
+ =\widetilde O\!\left(
+  \frac{\operatorname{cvol}(S^\star)}{\sqrt\alpha}
+ \right)
+ \label{eq:light-shock-response-target}
+\end{equation}
+over all epochs, in addition to explicit output and one scan of each newly
+admitted adjacency list.  No terminal-support or future-batch advice is
+allowed.
+\end{problem}
+
+\begin{lemma}[Graph-universal RPPR support radius]
+\label{lem:aggregate-support-radius}
+For a finite graph with one seed, put
+$R_\star:=\max_{v\in S^\star}\operatorname{dist}(o,v)$, with $R_\star=0$ for
+empty support or support containing only the root.  Then
+\begin{equation}
+ R_\star
+ \leq1+
+ \frac{\log_+((1-\alpha)/(\alpha\rho))}
+ {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \leq1+
+ \frac{\log_+((1-\alpha)/(\alpha\rho))}{2\sqrt\alpha}.
+ \label{eq:aggregate-tree-radius}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The spectrum of $Q$ lies in $[\alpha,1]$.  Put
+$\lambda_\alpha:=(1-\sqrt\alpha)/(1+\sqrt\alpha)$.  The degree-$k$
+Chebyshev approximation can be written explicitly by setting
+\begin{equation*}
+ q_{k+1}(x):=
+ \frac{T_{k+1}((1+\alpha-2x)/(1-\alpha))}
+      {T_{k+1}((1+\alpha)/(1-\alpha))},
+ \qquad p_k(x):=\frac{1-q_{k+1}(x)}x.
+\end{equation*}
+Because $q_{k+1}(0)=1$, $p_k$ is a polynomial of degree $k$; the extremal
+bound for $T_{k+1}$ gives
+\begin{equation}
+ \|Q^{-1}-p_k(Q)\|_2
+ \leq\frac2\alpha\lambda_\alpha^{k+1}.
+ \label{eq:aggregate-chebyshev-inverse}
+\end{equation}
+If $\operatorname{dist}(o,v)=\ell\geq1$, sparsity makes
+$(p_{\ell-1}(Q))_{vo}=0$.  For the unregularized point $x^0:=Q^{-1}b$,
+$b_o=\alpha/\sqrt{d_o}$ therefore gives
+\begin{equation}
+ 0\leq x_v^\star\leq x_v^0\leq2\lambda_\alpha^\ell.
+ \label{eq:aggregate-green-decay}
+\end{equation}
+Choose a deepest active $v$ when $R_\star\geq1$.  Its active KKT equality,
+nonnegativity, and the fact that every neighbor has depth at least
+$R_\star-1$ imply
+\begin{equation}
+ \alpha\rho\sqrt{d_v}
+ <\sum_{u\in\mathcal N(v)\cap S^\star}
+   \frac{1-\alpha}{2\sqrt{d_ud_v}}x_u^\star
+ \leq(1-\alpha)\sqrt{d_v}\lambda_\alpha^{R_\star-1},
+ \label{eq:aggregate-deepest-demand}
+\end{equation}
+where $\sum_{u\in\mathcal N(v)}d_u^{-1/2}\leq d_v$.  Taking logarithms gives
+the first inequality in \cref{eq:aggregate-tree-radius}; the second uses
+$\log((1+t)/(1-t))\geq2t$.
+\end{proof}
+
+\begin{theorem}[Exact aggregate response solver on a rooted tree]
+\label{thm:aggregate-tree-response}
+Let the RPPR graph be a finite tree rooted at its single seed, let
+$\Delta_\star:=\max(\{d_u:u\in S^\star\}\cup\{0\})$, and define $R_\star$ as
+in \cref{lem:aggregate-support-radius}.  Exact lazy subtree-response iterators
+explicitly emit every active label, perform no old-face sweep during
+discovery, and use one final forest resolution.  Their charges satisfy
+\begin{align}
+ \mathcal C_{\rm resp}
+ &\leq O\!\left(
+  \log(2+\Delta_\star)\left[
+   \operatorname{cvol}(S^\star)
+   +\sum_{v\in S^\star}\operatorname{dist}(o,v)
+  \right]
+ \right),
+ \label{eq:tree-aggregate-response}\\
+ \Work
+ &\leq O\!\left(
+  1+\operatorname{cvol}(S^\star)+\mathcal C_{\rm resp}
+ \right)
+ =\widetilde O\!\left(
+  \frac{1+\operatorname{cvol}(S^\star)}{\sqrt\alpha}
+ \right).
+ \label{eq:tree-aggregate-work}
+\end{align}
+Thus arbitrary rooted trees bypass the literal gate in
+\cref{prob:light-shock-response} with a condition-free exact
+response-generated support solver at the same aggregate budget.  On rooted
+spiders, \cref{thm:rooted-spider-kinetic} additionally reproduces the literal
+exact gate batches.
+\end{theorem}
+
+\begin{proof}
+For a nonroot $u$ with parent $p$, put $\beta_{pu}:=-Q_{pu}>0$.  Condition on
+the parent value $t$, let $z^{(u)}(t)$ be the exact nonnegative minimizer on
+the subtree rooted at $u$, and let
+$\mu_u(t):=\beta_{pu}z_u^{(u)}(t)$.  If $\mathcal C(u)$ is the child set, the
+inverse response of the scalar root coordinate $z=z_u^{(u)}$ is
+\begin{equation}
+ H_u(z):=\frac{
+  Q_{uu}z-\ell_{\rho,u}-\sum_{w\in\mathcal C(u)}\mu_w(z)
+ }{\beta_{pu}}.
+ \label{eq:aggregate-tree-inverse}
+\end{equation}
+On each affine piece, its numerator slope is the scalar Schur complement
+after eliminating the active descendants, hence
+$H_u'(z)\geq\alpha/\beta_{pu}>0$.  Therefore $H_u$ is invertible on its active
+part.  Its breakpoints are contained in the merged child breakpoints plus
+$u$'s activation, with ties merged; branching creates no new breakpoints.
+
+A lazy iterator stores the current affine piece and one next event per child.
+Advancing a consumed event labeled $v$ through a proper support ancestor $u$
+costs $O(\log(1+d_u))$, once on every root-path edge.  Initial child records
+and the final unconsumed lookahead records cost
+$O(\operatorname{cvol}(S^\star)\log(2+\Delta_\star))$: an inactive child is
+represented by its edge and degree without scanning its adjacency list, and
+any lookahead propagated upward follows the route of its active parent.
+This proves \cref{eq:tree-aggregate-response}; each active adjacency list and
+emitted label is charged once.
+
+At the root, if $-\ell_{\rho,o}\geq0$, zero satisfies the root and every
+nonseed KKT inequality and is returned in $O(1)$ work.  Otherwise the root
+performs the same merge on
+$Q_{oo}z-\ell_{\rho,o}-\sum_{w\in\mathcal C(o)}\mu_w(z)$ and stops when its
+unique zero precedes the next event.  A label is consumed exactly when its
+coordinate is positive there, with equality left inactive.  Thus the
+consumed labels are precisely $S^\star$.  One top-down forest solve and one
+boundary KKT check recover and certify the exact solution in
+$O(\operatorname{cvol}(S^\star))$ work.
+
+For nonempty support,
+$\sum_{v\in S^\star}\operatorname{dist}(o,v)
+\leq R_\star\operatorname{cvol}(S^\star)$ and
+$\log(2+\Delta_\star)\leq\log(2+\operatorname{cvol}(S^\star))$.
+Combining these bounds with \cref{lem:aggregate-support-radius} proves
+\cref{eq:tree-aggregate-work}; the empty-support case was handled separately.
+\end{proof}
+
+The tree proof suggests the correct higher-rank sufficient structure, but it
+requires an explicit routing contract.
+
+\begin{lemma}[Hierarchical response-route charge]
+\label{lem:hierarchical-response-charge}
+Suppose an online, locally constructed exact response hierarchy persists
+through an epoch.  Every emitted support label $v$ creates one event that
+visits each node of a route $P(v)$ once; tied blocks are charged per emitted
+label, and there are no unlabeled breakpoints except one live lookahead per
+route.  At a hierarchy node $a$, let $r_a$ be the port dimension, let $N_a$
+be the maximum number of live response rows, and suppose one event update or
+lookahead query costs
+\begin{equation}
+ c_a=O\!\left(
+  r_a^2+\mathcal T_{r_a}(N_a)+\log(1+\deg_{\mathcal H}(a))
+ \right).
+ \label{eq:hierarchical-node-charge}
+\end{equation}
+Let $\mathcal C_{\rm build}$ include all initial factorizations, in particular
+any $O(r_a^3)$ port setup; let $\mathcal C_{\rm rekey}$ include only rekeys
+not already charged in $c_a$; and let $\mathcal C_{\rm recover}$ include
+final recovery and certification.  If strict-zero events remain inactive,
+then the exact trace generated by the hierarchy has
+\begin{equation}
+ \mathcal C_{\rm resp}
+ \leq
+ \mathcal C_{\rm build}+\mathcal C_{\rm recover}
+ +\mathcal C_{\rm rekey}
+ +\sum_{v\in S^\star}\sum_{a\in P(v)}c_a.
+ \label{eq:hierarchical-response-charge}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Charge construction and recovery to their named terms.  Persistent state
+prevents rebuilding between events.  The routing contract charges every
+successful event update once to $(v,a)$; the one live lookahead on a route is
+charged to that route's closest emitted predecessor.  Tied events are charged
+per label, and all remaining row changes are precisely the separately counted
+rekeys.  Summation gives \cref{eq:hierarchical-response-charge}.
+\end{proof}
+
+If the right-hand side of \cref{eq:hierarchical-response-charge} is
+$\widetilde O((1+\operatorname{cvol}(S^\star))/\sqrt\alpha)$, the hierarchy
+meets the aggregate response budget for the exact safe trace it generates.
+It solves the literal \cref{prob:light-shock-response} only when its events are
+also proved to reproduce those gate batches.  Tree event streams are scalar,
+monotone, route once, and have no rekeys; a stable low-dimensional separator
+has hierarchy depth one.  The full-response-rank construction following
+\cref{eq:kinetic-response-rank} shows why one flat low-rank state cannot
+establish \cref{eq:hierarchical-response-charge} on general cyclic cores.
+
+Two further results delimit what a cyclic hierarchy may do.  First, exact
+dense fronts cannot be its graph-uniform representation.
+
+\begin{proposition}[Explicit multifrontal hierarchies fail on expanders]
+\label{prop:explicit-multifrontal-expander}
+On the bounded-degree expander RPPR family of
+\cref{prop:expander-response-obstruction}, where
+$\alpha_n=\Theta(1/\log n)$, $\rho_n=\Theta(1/n)$, and $S^\star=V$, every
+original-basis multifrontal $LDL^T$ or Cholesky hierarchy that explicitly
+stores every numerical nonzero of its frontal matrices or triangular factor
+has build or storage charge $\Omega(n^2)$.  This exceeds the intended
+$\widetilde O(n\sqrt{\log n})$ work even when the terminal support and the
+best offline ordering are supplied.
+\end{proposition}
+
+\begin{proof}
+Let $X$ be a balanced vertex separator.  If $|X|=\Omega(n)$ there is nothing
+to prove.  Otherwise, by grouping components of $G-X$, choose their union
+$A$ with $n/3\leq|A|\leq2n/3$.  Every edge leaving $A$ is incident on $X$;
+bounded degree and edge expansion therefore force $|X|=\Omega(n)$.  Hence
+the graph has treewidth $\Omega(n)$, so every scalar vertex-elimination
+ordering in the original coordinate basis creates a filled clique of order
+$\Omega(n)$.
+The fill is numerical, not only symbolic.  Eliminating a Stieltjes pivot
+updates
+\begin{equation}
+ q'_{ij}=q_{ij}-q_{ik}q_{kk}^{-1}q_{kj};
+ \label{eq:stieltjes-strict-fill}
+\end{equation}
+whenever the fill path exists, both incident off-diagonals are negative, so
+the new entry is strictly negative and cannot cancel.  The materialized
+front or factor therefore contains $\Omega(n^2)$ stored scalars.  Since the
+expander has
+$\operatorname{cvol}(V)=\Theta(n)$, the claimed separation follows.
+\end{proof}
+
+The same issue appears dynamically before a whole dense front is built.
+
+\begin{proposition}[A light cascade defeats explicit demand arrays]
+\label{prop:explicit-demand-light-cascade}
+There is a family of sparse cyclic SPD Stieltjes systems with an active core
+of size $n$ and $n$ exterior candidates such that an exact boundary gate
+activates the candidates in $n$ prescribed singleton batches with
+arbitrarily small total shock.  After every event, every remaining exact
+candidate demand changes.  Consequently any response implementation that
+explicitly stores and updates all current scalar candidate demands performs
+$\Omega(n^2)$ arithmetic operations or writes, although graph volume and
+explicit output are $\Theta(n)$.
+\end{proposition}
+
+\begin{proof}
+Let $A$ be an irreducible SPD Stieltjes matrix with
+$\operatorname{nnz}(A)=O(n)$ whose graph contains a cycle.  Choose $\tau>0$
+and $\gamma>\tau^2/\lambda_{\min}(A)$, and set
+\begin{equation}
+ M:=\begin{bmatrix}A&-\tau I\\-\tau I&\gamma I\end{bmatrix}.
+ \label{eq:cyclic-core-leaf-matrix}
+\end{equation}
+Then $M$ is positive definite.  After the first $n$ coordinates are active,
+the
+exterior Schur matrix is
+\begin{equation}
+ S:=\gamma I-\tau^2A^{-1}.
+ \label{eq:dense-leaf-schur}
+\end{equation}
+Irreducibility gives $A^{-1}>0$, so every off-diagonal of $S$ is strictly
+negative.  All later Schur complements remain strictly dense Stieltjes by
+\cref{eq:stieltjes-strict-fill}.
+
+Work in the reduced exterior quadratic $z^TSz/2-h^Tz$.  Set
+$h_1=\varepsilon_1>0$.  Inductively, suppose the first $i-1$ singleton events
+have occurred, and let $z^{(k)}$ be the restricted solution on
+$\{1,\ldots,k\}$.  For the as-yet unspecified $h_i$, write
+$r_i^{(k)}:=h_i-S_{i,1:k}z^{(k)}$.  Strict Stieltjes monotonicity makes
+\begin{equation*}
+ \delta_i:=r_i^{(i-1)}-r_i^{(i-2)}>0;
+\end{equation*}
+the difference is independent of $h_i$.  Choose
+$0<\varepsilon_i<\delta_i$ and put
+\begin{equation}
+ h_i=S_{i,1:i-1}z^{(i-1)}+\varepsilon_i.
+ \label{eq:light-cascade-load}
+\end{equation}
+Then $r_i^{(i-1)}=\varepsilon_i>0$ while
+$r_i^{(i-2)}<0$; monotonicity gives $r_i^{(k)}\leq0$ at every earlier stage.
+Future choices do not alter earlier restricted solutions.  If $\sigma_i>0$
+is the current Schur pivot, this event's shock is
+$\varepsilon_i^2/(2\sigma_i)$.  Given any $\delta>0$, additionally choosing
+$\varepsilon_i<\sqrt{2\sigma_i\delta/2^i}$ makes the total shock smaller
+than $\delta$.
+
+To lift the construction to the full system, choose any $\bar x>0$, set
+$\ell_U=A\bar x$, and set $\ell_W=h-\tau\bar x$.  Eliminating the active
+core $U$ gives exactly the reduced load $h$; after an exterior vector $z$
+activates, the core solution is $\bar x+\tau A^{-1}z>0$.  Thus the core
+remains active throughout.  Strict density makes event $i$ change all $n-i$
+remaining demands.  An eager array that materializes each post-event demand
+in a distinct scalar record must therefore perform
+$\sum_{i<n}(n-i)=\Theta(n^2)$ scalar updates.  The block system has only
+$O(n)$ nonzeros, and the emitted output has $n$ labels.
+\end{proof}
+
+These are representation lower bounds, not unconditional computational
+lower bounds.  Lazy semiseparable state may compress the cyclic example, and
+matrix-free or approximate state may bypass the expander front.  A positive
+cyclic composition theorem is nevertheless available when its block
+presentation is stable.
+
+\begin{definition}[Stable exposed block--cut presentation]
+\label{def:stable-block-presentation}
+An online block presentation assigns every exposed edge its true
+biconnected-block identifier and every exposed articulation incidence its
+parent or child role in the true block--cut tree of the seed component, with
+each bridge treated as a size-two block.  The tree is rooted at the seed
+vertex when it is an articulation, and otherwise at its unique incident root
+block.  Every nonroot vertex label has a unique owner block closest to the
+root; a child block conditions on and does not own its parent articulation.
+Identifiers, ownership, and roles never merge or change.  Exposing an edge
+also supplies its exact normalized coefficient and the neighbor degree.  The
+presentation reveals no activation time, terminal-support membership, or
+unexposed adjacency.  Let $\mathcal C_{\mathcal B}$ include all work for
+revealing and rooting this combinatorial metadata and every presentation-
+induced rekey, but not numerical block factors or reverse-solve records.
+\end{definition}
+
+\begin{theorem}[Aggregate response with bounded stable blocks]
+\label{thm:stable-bounded-block-response}
+Suppose a single-seed RPPR graph has a stable exposed block--cut presentation
+and the true size of every block incident on an exposed edge is at most $b$.
+Put
+\begin{equation*}
+ N:=1+\operatorname{cvol}(S^\star),
+ \qquad
+ h_{\mathcal B}(v):=\text{number of block nodes on the root route to $v$}.
+\end{equation*}
+There is an exact response-generated solver that is adjacency-local relative
+to the presentation, with
+\begin{equation}
+ \Work=O\!\left(
+  \mathcal C_{\mathcal B}+b^3N
+  +(b^2+\log(2+N))
+    \sum_{v\in S^\star}(1+h_{\mathcal B}(v))
+ \right).
+ \label{eq:stable-bounded-block-work}
+\end{equation}
+It scans each admitted adjacency list once, emits every support label, charges
+all lookaheads, and finishes with exact block-tree recovery and a boundary
+KKT certificate.  Since
+$h_{\mathcal B}(v)\leq1+\operatorname{dist}(o,v)$, if
+$b=\log^{O(1)}(2+N)$ and
+$\mathcal C_{\mathcal B}=\widetilde O(N/\sqrt\alpha)$, then
+$\Work=\widetilde O(N/\sqrt\alpha)$.
+\end{theorem}
+
+\begin{proof}
+A directed block--cut subtree $H$ meets its parent only at one articulation
+$p$.  Condition on $x_p=t$.  Since $-Q_{Hp}\geq0$, Stieltjes comparison makes
+the obstacle solution on $H$ coordinatewise nondecreasing in $t$.  On every
+fixed active set it is affine with nonnegative slope, and the scalar response
+$-Q_{pH}z(t)$ is continuous, monotone, and piecewise affine.  Every
+nontrivial breakpoint carries a newly positive vertex label; ties are grouped
+and equality stays inactive.
+
+At a block $B$, current child pieces modify only diagonal and load entries at
+their articulation vertices.  These are exact Schur-complement updates, so
+the local matrix remains SPD Stieltjes and every inverse-update denominator
+is positive.  The active block system has order at most $b$.  A bordered
+vertex insertion or one labeled child-piece change updates its inverse in
+$O(b^2)$ work, with ties charged per label.  For each articulation, keep a
+heap of child breakpoints in the local articulation coordinate and expose
+only its minimum to the block heap.  Advancing a child changes one record in
+that heap at $O(\log(2+N))$ cost.  The block heap has at most one aggregate
+child record per articulation and one activation record per exposed inactive
+block vertex, hence $O(b)$ records.  After an inverse update, re-pulling and
+rekeying those records costs
+$O(b\log b)\subseteq O(b^2+\log(2+N))$.  Exact affine pullback gives the next
+parent-parameter event, so each support label advances once through each
+ancestor block, with no unlabeled breakpoint proliferation.  A zero-slope
+coordinate keeps an unreachable child event at infinity until a later rekey;
+immediate and tied events are exhausted before the iterator advances.
+
+At the root, merge the incident block responses and define
+\begin{equation*}
+ F_o(t):=Q_{oo}t-(\ell_\rho)_o-
+         \sum_{B\ni o}\mu_B(t).
+\end{equation*}
+On every affine piece, $F_o'$ is the scalar Schur complement after eliminating
+the active descendants and is at least $\alpha$.  If $F_o(0)\geq0$, zero is
+the optimum.  Otherwise consume the next labeled response event whenever it
+occurs strictly before the unique positive zero of the current root piece.
+Stop when that zero is no later than the next event; equality remains
+inactive.  Obstacle comparison then identifies the root (when
+$F_o(0)<0$), together with the consumed labels, with exactly $S^\star$ and
+gives the exact stopping certificate.
+
+The stable presentation prevents block merging and response reparenting.
+Local initialization and root-only or empty-support records are charged to
+$N$.  A final unconsumed lookahead propagated through several blocks is
+charged to the closest preceding emitted label on the same route; if its
+stream has no emitted descendant, it is charged to the active articulation
+that owns the stream.  This adds at most a constant copy of the displayed
+route sum.  Conservative dense block initialization costs $O(b^3N)$.
+Retained bordered and diagonal update records permit reverse block
+substitution; one cached scan of active-to-boundary incidences then evaluates
+all exact KKT inequalities.  Recovery and certification also cost
+$O(b^3N)$.  Therefore the event ledger gives
+\cref{eq:stable-bounded-block-work}.  Finally,
+\begin{equation*}
+ \sum_{v\in S^\star}(1+h_{\mathcal B}(v))
+ \leq (2+R_\star)|S^\star|\leq(2+R_\star)N,
+\end{equation*}
+so \cref{lem:aggregate-support-radius} proves the final claim.  This solver
+generates its own safe response trace; no equivalence with the literal
+boundary-gate batches is asserted.
+\end{proof}
+
+The presentation condition can now be removed for bounded blocks.  The
+zero-prefix theorem in \texttt{delayed\_reflection\_ladder} observes that a
+newly relevant cycle always contains a just-activated zero coordinate.  The
+old response prefix is therefore unchanged; versioned iterators discard only
+unconsumed lookaheads, preserve off-path child heaps through articulation
+handles, and rebuild the merged at-most-$b$ front from the current checkpoint.
+Charging every such rebuild and propagated rekey to the activating incidence
+gives ordinary adjacency access the same
+$\widetilde O(b^3/(\rho\sqrt\alpha))$ product scale.  Stable metadata remains
+a useful abstraction for \cref{thm:stable-bounded-block-response}, but it is
+not an oracle assumption for the bounded-block result.
+
+For approximate PageRank output, however, exact zero signs are stronger than
+necessary.  The following theorem replaces them by a finite normalized KKT
+band.
+
+\begin{theorem}[Finite-resolution aggregate RPPR continuation]
+\label{thm:finite-resolution-continuation}
+Fix $\rho,\tau_{\rm gate},\tau_{\rm sol}>0$ and put
+$\eta:=\alpha\tau_{\rm gate}$.  In the single-seed problem, if
+$(\ell_\rho)_o\leq0$, set $T=\varnothing$ and return zero in $O(1)$ work.
+Otherwise start
+$U_0=\{o\}$ and maintain a \emph{positive Dirichlet face}
+\begin{equation*}
+ x^U_{U^c}=0,
+ \qquad Q_{UU}x^U_U=(\ell_\rho)_U,
+ \qquad x^U_U>0.
+\end{equation*}
+Suppose an online certified response procedure returns, for every
+$v\in\partial U$, an estimate of the exact mathematical demand satisfying
+\begin{equation}
+ |\widehat e_v-e_{\ell_\rho}(x^U)_v|
+ \leq\frac\eta4\sqrt{d_v}.
+ \label{eq:finite-response-certificate}
+\end{equation}
+It admits every vertex with
+$\widehat e_v>3\eta\sqrt{d_v}/4$, scans each admitted list once, and stops
+when no such vertex remains.  Let
+$\mathcal C_{\rm resp}^{(\eta)}$ exhaustively charge its preprocessing,
+certified error bounds, old-face reads, rekeys, response updates, and final
+termination query, excluding the separately charged first scans and label
+output.  If $T$ is the terminal face, then
+\begin{align}
+ T&\subseteq S^\star(\rho),
+ &\operatorname{cvol}(T)&\leq\frac2\rho,
+ \label{eq:finite-response-safety}\\
+ \|D^{-1/2}(x^\star(\rho)-x^T)\|_\infty
+ &\leq\tau_{\rm gate}.
+ \label{eq:finite-response-gate-error}
+\end{align}
+If a final feasible fixed-face accelerated solve returns $z\geq0$ supported
+on $T$ with
+\begin{equation}
+ \Psi_{\ell_\rho}(z)-\Psi_{\ell_\rho}(x^T)
+ \leq\frac{\alpha\tau_{\rm sol}^2}{2},
+ \label{eq:finite-response-solve-error}
+\end{equation}
+then
+\begin{equation}
+ \|D^{-1/2}(x^0-z)\|_\infty
+ \leq\rho+\tau_{\rm gate}+\tau_{\rm sol}.
+ \label{eq:finite-response-total-error}
+\end{equation}
+The total work is
+\begin{equation}
+ O\!\left(
+  1+\mathcal C_{\rm resp}^{(\eta)}+\operatorname{cvol}(T)
+  +\frac{\operatorname{cvol}(T)}{\sqrt\alpha}
+    \left[1+\log_+\!\frac{2}{\alpha\tau_{\rm sol}^2}\right]
+ \right).
+ \label{eq:finite-response-work}
+\end{equation}
+Every admitted batch additionally has shock density
+\begin{equation}
+ \Delta(U,B)\geq\frac{\eta^2}{8}\vol(B).
+ \label{eq:finite-response-shock-density}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+If $(\ell_\rho)_o\leq0$, every nonseed load is negative, so zero satisfies
+the KKT conditions and is $x^\star$; \cref{eq:rppr-regularization-bias},
+proved below, gives the claimed error for the returned zero vector.  Hence
+assume $(\ell_\rho)_o>0$.  The initialization is then a positive Dirichlet
+face, lies in $S^\star$, and satisfies $0\leq x^{U_0}\leq x^\star$.
+
+Suppose these invariants hold at $U$.  If $v\notin S^\star$, Stieltjes signs
+give
+$e_{\ell_\rho}(x^U)_v\leq e_{\ell_\rho}(x^\star)_v\leq0$.
+Every admitted vertex instead has exact demand larger than
+$\eta\sqrt{d_v}/2>0$, so $B\subseteq S^\star$.  Its exact Schur right-hand
+side satisfies $q_B>(\eta/2)D_B^{1/2}\one>0$.  Hence
+$x_B^{U\cup B}=\mathcal S_B^{-1}q_B>0$, while back-substitution and
+Stieltjes signs give $x_U^{U\cup B}\geq x_U^U$.  Since
+$U\cup B\subseteq S^\star$, comparison with the active optimum equations
+also gives $x^{U\cup B}\leq x^\star$.  This closes the induction.  Every
+nonterminal batch is nonempty and contained in the finite set
+$S^\star\setminus U$, so the process terminates after at most
+$|S^\star\setminus U_0|$ batches.  The support-volume theorem and
+\cref{eq:charged-volume-equivalence} give the volume bound.
+
+At termination, \cref{eq:finite-response-certificate} gives
+$e_{\ell_\rho}(x^T)_v\leq\eta\sqrt{d_v}$ on the boundary.  The residual is
+zero on $T$ and nonpositive outside $T\cup\partial T$.  Put
+$h:=x^\star-x^T\geq0$ and let
+$M:=\|D^{-1/2}h\|_\infty$.  At a maximizing coordinate $i$ with $M>0$,
+$x_i^\star>0$ and
+\begin{equation}
+ \alpha M\sqrt{d_i}
+ \leq(Qh)_i=e_{\ell_\rho}(x^T)_i
+ \leq\alpha\tau_{\rm gate}\sqrt{d_i}.
+ \label{eq:finite-response-maximum-principle}
+\end{equation}
+The first inequality uses $h_j\leq M\sqrt{d_j}$, nonpositive
+off-diagonals, and $QD^{1/2}\one=\alpha D^{1/2}\one$.  This proves
+\cref{eq:finite-response-gate-error}.
+
+For $g:=x^0-x^\star\geq0$, the optimum KKT inequalities give
+$(Qg)_i\leq\alpha\rho\sqrt{d_i}$ at every coordinate and equality on the
+active support.  Applying the same maximum-principle argument at a maximizing
+coordinate of $D^{-1/2}g$ gives
+\begin{equation}
+ \|D^{-1/2}(x^0-x^\star)\|_\infty\leq\rho.
+ \label{eq:rppr-regularization-bias}
+\end{equation}
+Strong convexity and \cref{eq:finite-response-solve-error} give
+$\|z-x^T\|_2\leq\tau_{\rm sol}$, which also bounds the normalized infinity
+norm because $d_i\geq1$.  The triangle inequality proves
+\cref{eq:finite-response-total-error}.
+
+The zero-start restricted objective gap is at most $1/2$: by
+\cref{lem:rppr-unit-envelope}, $\|x^T\|_2\leq1$ and $Q\preceq I$.
+Standard fixed-face acceleration therefore proves
+\cref{eq:finite-response-work}.  Finally, every admitted exact batch demand
+satisfies $q_B\geq(\eta/2)D_B^{1/2}\one$.  Since its Schur complement obeys
+$\mathcal S_B\preceq I$,
+\begin{equation*}
+ \Delta(U,B)=\frac12q_B^T\mathcal S_B^{-1}q_B
+ \geq\frac12\|q_B\|_2^2
+ \geq\frac{\eta^2}{8}\vol(B),
+\end{equation*}
+proving \cref{eq:finite-response-shock-density}.
+\end{proof}
+
+\begin{corollary}[Margin-adaptive interval continuation]
+\label{cor:finite-response-intervals}
+In \cref{thm:finite-resolution-continuation}, replace the point estimates by
+arbitrary certified intervals
+\begin{equation}
+ L_v\leq
+ \frac{e_{\ell_\rho}(x^U)_v}{\sqrt{d_v}}
+ \leq U_v,
+ \qquad v\in\partial U.
+ \label{eq:finite-response-intervals}
+\end{equation}
+At a fixed face, admit every label with $L_v>\eta/2$; if none exists, stop
+when every $U_v\leq\eta$, and otherwise refine only intervals preventing one
+of these two certificates.  If refinement terminates at each fixed face,
+then the safety, gate-error, and shock conclusions
+\cref{eq:finite-response-safety,eq:finite-response-gate-error,eq:finite-response-shock-density}
+all remain valid.  No common interval width is required away from the
+transition band.
+\end{corollary}
+
+\begin{proof}
+The proof of \cref{thm:finite-resolution-continuation} uses its uniform
+estimate only twice.  Admission needs the exact inequality
+$e_{\ell_\rho}(x^U)_v>\eta\sqrt{d_v}/2$, which follows from the certified
+lower endpoint.  Termination needs
+$e_{\ell_\rho}(x^T)_v\leq\eta\sqrt{d_v}$, which follows from the certified
+upper endpoint.  The same comparison induction, maximum principle, and Schur
+shock calculation therefore apply verbatim.
+\end{proof}

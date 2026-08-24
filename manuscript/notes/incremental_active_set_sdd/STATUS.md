@@ -29,7 +29,7 @@ Support complete boundary-violation reporting under dense implicit Schur correct
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: none.
+- Formal registry dependencies: none.
 - Source/shared prerequisites: the shared PageRank/RPPR model and the
   Wei--Yang 2026 source.
 - Supplies to: `response_preconditioned_hybrid` (block correction and implicit interface), `local_solver_oracle_hierarchy` (path representation separation), and the controller's persistent-response track.
@@ -42,7 +42,7 @@ Support complete boundary-violation reporting under dense implicit Schur correct
 
 ## Verification
 
-- Source pointers checked: `README.md:1-23`; `main.tex:46-182,184-276,280-455,465-589`; `taxonomy.toml:131-138`; shared related-work/results/broadcast ledgers dated 2026-08-20.
+- Source pointers checked: `README.md`; `main.tex`; the note's entry in `registry.toml`; and shared related-work/results/broadcast ledgers dated 2026-08-20.
 - Focused build/checks run: No TeX source changed; repository `make note-audit` is the required post-edit check.
 - Known gaps: `cvol` is now defined locally in the scope section, removing the
   dependence on `propagate_settle_framework` for the basic work unit. The short

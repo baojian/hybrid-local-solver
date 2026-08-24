@@ -51,7 +51,7 @@ independent rerun of the graft. Treat `B = 2.5` as best tested, not optimal.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** none.
+- **Formal registry dependencies:** none.
 - **Source/shared prerequisites:** the shared problem contract and benchmark
   artifacts.
 - **Context/provenance:** `frontier_adaptive_ladder` preserves the frontier

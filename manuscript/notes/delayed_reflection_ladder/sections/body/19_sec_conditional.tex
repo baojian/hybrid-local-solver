@@ -1,0 +1,52 @@
+\section{The conditional accelerated theorem}
+\label{sec:conditional}
+
+The preceding RPPR theorem reaches the exact product scale under an
+output-sensitive discovery lemma.  For an unregularized residual-threshold
+ladder without the RPPR volume path, the following more generic statement
+retains the dynamic-range logarithm.
+
+\begin{assumption}[Certified causal expansion]
+\label{assump:causal-expansion}
+For a problem-dependent volume bound $V_{\rm loc}$, the algorithm executes
+paired epochs on regions $S_k$ satisfying $\vol(S_k)\leq V_{\rm loc}$.  In
+each epoch its causal spreading phase scans every adjacency list of $S_k$ at
+most $C_0$ times, all deferred traffic is included in one exact block
+correction, and a supplied elimination ordering has width at most $w$.  The
+verified live threshold decreases by
+$b_\alpha=\lambda_\alpha^{-s}$ for some fixed $s\in\{1,2\}$.
+\end{assumption}
+
+\begin{theorem}[Conditional bounded-width matching scale]
+\label{thm:conditional-work}
+Under \cref{assump:causal-expansion}, crossing dynamic range $R$ costs
+\begin{equation}
+ \Work
+ =O\!\left(
+  (w+1)^2V_{\rm loc}\bigl(K_s(R,\alpha)+1\bigr)
+ \right)
+ =O\!\left(
+   \frac{(w+1)^2 V_{\rm loc}}{\sqrt\alpha}(1+\log R)
+  \right).
+ \label{eq:conditional-work}
+\end{equation}
+In particular, $V_{\rm loc}=O(1/\epsppr)$ gives
+$\widetilde O(1/(\epsppr\sqrt\alpha))$, while a safe RPPR envelope with
+$V_{\rm loc}=O(1/\rho)$ gives
+$\widetilde O(1/(\rho\sqrt\alpha))$.
+\end{theorem}
+
+\begin{proof}
+The spreading pass costs $O(C_0V_{\rm loc})$.  By
+\cref{thm:width-resolution}, the exact cleanup and boundary update cost
+$O((w+1)^2V_{\rm loc})$.  Multiply their sum by the exact epoch count in
+\cref{cor:rung-count}.  The two specializations substitute the stated volume
+bounds; they do not identify $\epsppr$ with $\rho$.
+\end{proof}
+
+On a spider every induced region is a forest, so $w=1$ and
+\cref{cor:forest-pair-locality} removes the triangular inward-cleanup cost.
+The unresolved spider statement is now narrower: prove that the online
+spreading rule discovers a certified region and advances its threshold after
+only $O(1)$ scans of that region.  Backward traffic itself is no longer the
+obstruction once it is resolved as one tree block.

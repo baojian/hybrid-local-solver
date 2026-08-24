@@ -1,0 +1,188 @@
+\section{A fully charged composite handoff on the three-arm spider}
+\label{sec:three-arm-composite-handoff}
+
+This section composes a finite gate-compatible Phase-I prefix with the
+proved structural response theorem in the adaptive-revisit-control project
+note (stable label \texttt{thm:three-arm-spider-}\allowbreak
+\texttt{token-countdown}). We use that theorem with all of its restrictions:
+a center-seeded unweighted three-arm spider,
+$\alpha\in(0,1)$, $\rho\in(0,1/3)$, the exact canonical RPPR boundary gate,
+and exact real-cell arithmetic. We do not reprove its affine countdown.
+
+\begin{definition}[Fully charged gate-compatible prefix]
+\label{def:three-arm-gate-compatible-prefix}
+Let a finite Phase-I prefix have numerical output $x_J$, momentum state, and
+fully charged work $B_J^{\rm full}$. This includes the composite Catalyst/AESP
+construction of this note when its parameters are valid. The charge includes
+seed and input reads, every adjacency exposure (including excess exposure),
+repeated old-row reads, inner recurrence work, outer and queue control, gate
+queries and certificate verification, exact restricted canonical settlement
+or Schur-response updates, any checkpoint materialization or recovery, and all
+state reads and writes. Let $M_J^{\rm pers}$ and $M_J^{\rm scr}$ be its
+separately reported peak persistent and scratch cell counts, including the
+exact gate state.
+The superscript distinguishes this all-resource ledger from the inner-only
+$B_J$ in \cref{eq:BJ}; when $B_J$ already denotes the fully charged prefix,
+set $B_J=B_J^{\rm full}$ below.
+
+The prefix is \emph{gate-compatible} if it also maintains one common
+irreversible admission set
+\begin{equation}
+ U_J=\{o\}\cup
+ \bigcup_{a=1}^3\{v_{a,1},\ldots,v_{a,k_a}\},
+ \qquad 0\leq k_a\leq N_a,
+ \label{eq:three-arm-handoff-prefixes}
+\end{equation}
+with the three prefix lengths (and any admitted-label log) stored as paid
+common records. Every committed batch was a nonempty subset of the positive
+tips at the
+exact canonical RPPR boundary gate, whose common gate state was canonically
+settled after that batch. Its certificate was checked and charged when
+committed. Signed trial coordinates, momentum coordinates, and merely
+exposed labels outside $U_J$ are not admissions. A prefix that never invokes
+the gate is covered by taking $U_J=\{o\}$.
+\end{definition}
+
+The distinction in the last sentence is essential. Numerical support may be
+nonnested and signed; the certified admission set is the only irreversible
+support state passed to the response phase.
+
+\begin{theorem}[Common-state Phase-I-to-affine-response handoff]
+\label{thm:three-arm-composite-response-handoff}
+Let $Y(N_1,N_2,N_3)$ be the center-seeded unweighted three-arm spider. Fix
+$\alpha\in(0,1)$ and $\rho\in(0,1/3)$, and let any finite Phase-I prefix
+satisfy \Cref{def:three-arm-gate-compatible-prefix}. For the particular
+composite Catalyst/AESP construction in \cref{sec:composite-hybrid}, also
+assume its stated range $\alpha\in(0,1/2)$. After discarding all numerical
+momentum, there is a deterministic common-state conversion followed by the
+exact affine activation-token response that returns $x^\star(\rho)$ and obeys
+the following bound, where
+$C(S):=\sum_{v\in S}(1+d_v)$:
+\begin{align}
+ W_{\rm post}
+ &\leq c\,C(S^\star(\rho)),
+ \notag\\
+ W_{\rm total}
+ &\leq B_J^{\rm full}+c\,C(S^\star(\rho))
+ \leq B_J^{\rm full}+\frac{2c}{\rho},
+ \label{eq:three-arm-composite-work}
+\end{align}
+for an absolute constant $c$ under a fixed exact-cell operation convention.
+The post-handoff resource coordinates satisfy
+\begin{align}
+ \mathcal C_{\rm adj}^{\rm post}
+   &\leq 2\vol(S^\star)+O(1),
+ \notag\\
+ \mathcal C_{\rm conv}^{\rm post}
+   +\mathcal C_{\rm resp}^{\rm post}
+   +\mathcal C_{\rm ctl}^{\rm post}
+   &=O(C(S^\star)),
+ \notag\\
+ \mathcal C_{\rm set/rec}^{\rm post}
+   +\mathcal C_{\rm val}^{\rm post}
+   &=O(C(S^\star)),
+ \notag\\
+ \mathcal C_{\rm state\text{-}write}^{\rm post}
+   &=O(C(S^\star)),
+ \notag\\
+ \mathcal M_{\rm persistent}^{\rm post}
+   &=O(C(S^\star)),
+ \notag\\
+ \mathcal M_{\rm scratch}^{\rm post}
+   &=O(1),
+ \notag\\
+ \mathcal C_{\rm out}^{\rm post}
+   &=\card{S^\star}.
+ \label{eq:three-arm-composite-resources}
+\end{align}
+If the retired prefix arena remains resident, total peak persistent state is
+$M_J^{\rm pers}+O(C(S^\star))$; an arena/epoch pointer may instead release it
+without enumerating its cells. Across the two sequential phases, total peak
+scratch is $\max\{M_J^{\rm scr},O(1)\}$. There is no ambient-graph
+preprocessing.
+
+The terminal vector is exact and therefore also satisfies
+\begin{equation}
+ R_{\mathrm{fp},\alpha,\rho}(x^\star(\rho))=0.
+ \label{eq:three-arm-terminal-proximal}
+\end{equation}
+Thus it meets every positive note-scoped proximal residual tolerance. The
+claim has no RPPR-to-PPR accuracy conversion and no finite-precision or bit
+complexity consequence. It is not a graph-uniform accelerated solver.
+\end{theorem}
+
+\begin{proof}
+Gate compatibility and the absorption-safe support theorem imply
+$U_J\subseteq S^\star(\rho)$. The set in
+\cref{eq:three-arm-handoff-prefixes} records the actual common prefixes, not a
+private policy trajectory. At the switch, change one phase/epoch flag so that
+$x_J$, its momentum, queues, and nonadmitted caches can never again influence
+the solver. No cell-by-cell clearing or scan of excess exposure is required;
+its work and residence were already recorded in $B_J^{\rm full}$,
+$M_J^{\rm pers}$, and $M_J^{\rm scr}$.
+
+Make one conversion pass over the common admitted set. Starting at the center,
+walk each actual arm to its stored prefix length; no membership search,
+sorting, or historical admission order is needed. Read a
+compatible cached row or scan each visited vertex once, construct the missing
+local transfer cell and its prefix product, and retain the resulting affine
+record. Then form the two root aggregates and evaluate the three current tip
+slots. This costs $O(1+d_v)$ for each $v\in U_J$, plus constant work for at
+most one exterior tip on each arm. It writes $O(\card{U_J})$ cells and uses
+constant transient scratch. The resulting state is exactly the common affine
+state of the cited three-arm countdown theorem at $U_J$.
+
+This pass does not replay the Catalyst iterates or any historical batch order.
+It constructs a canonical response from the actual committed set. In
+particular, if two or three symmetric tips were certified in one batch, they
+remain one common batch. The fixed-size records may be written in any order
+inside that batch because exact violation persistence keeps every unprocessed
+tip legal and the final prefix products depend only on the committed prefix
+lengths.
+
+Starting from this reachable common state, the suffix of the proved
+activation-token response admits only new positive tips, appends each new
+record once, and queries all three tips after every expansion. At terminality
+it performs one canonical recovery and writes every coordinate of
+$x^\star(\rho)$ once. A simultaneous exact KKT/proximal validation uses the
+stored rows and at most the three terminal exterior tips; allowing a fresh
+validation traversal gives the conservative adjacency bound in
+\cref{eq:three-arm-composite-resources}. Thus conversion, remaining response,
+control, state, validation, recovery, and output are all
+$O(C(S^\star))$.
+
+The prefix and response phases never delete an admitted vertex. Conversely,
+the numerical Catalyst state is discarded rather than transported, so this
+argument retains no estimate-sequence energy and needs no shock-free
+carryover. Retaining any part of that numerical energy would require an
+explicit expansion/transport shock and is outside the theorem.
+
+Finally, $C(S^\star)\leq2\vol(S^\star)\leq2/\rho$ in the shared RPPR model.
+This proves \cref{eq:three-arm-composite-work}. Exact optimality gives the
+fixed-point identity in \cref{eq:three-arm-terminal-proximal}.
+\end{proof}
+
+\begin{corollary}[Product work only from an independent prefix bound]
+\label{cor:three-arm-composite-product-conditional}
+Under \Cref{thm:three-arm-composite-response-handoff}, if a separate theorem
+proves the fully charged prefix bound
+\begin{equation}
+ B_J^{\rm full}=\softO\!\left(
+   \frac{C(S^\star(\rho))}{\sqrt\alpha}
+ \right),
+ \label{eq:three-arm-independent-prefix-bound}
+\end{equation}
+then
+\begin{equation}
+ W_{\rm total}
+ =\softO\!\left(
+   \frac{C(S^\star(\rho))}{\sqrt\alpha}
+ \right)
+ =\softO\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:three-arm-conditional-product-work}
+\end{equation}
+Without \cref{eq:three-arm-independent-prefix-bound}, the proved statement is
+only $B_J^{\rm full}+O(C(S^\star))$. In particular, the theorem does not use
+raw correction counts or the refuted Euclidean-log packing of safeguarded
+AESP collateral clipping.
+\end{corollary}

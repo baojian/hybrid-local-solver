@@ -1,0 +1,103 @@
+\subsection{A graph-uniform obstruction to flat response complexity}
+\label{sec:expander-response-obstruction}
+
+The condition on $(\zeta,\nu)$ cannot be removed from the flat separator
+theorem.  The obstruction already occurs on constant-degree expanders whose
+RPPR optimum has full support.
+
+\begin{proposition}[Expander obstruction]
+\label{prop:expander-response-obstruction}
+Fix constants $d\geq3$, $\gamma>0$, and $c>0$.  Let $(G_n,o_n)$ be connected
+$d$-regular graphs such that, for $P_n:=A_n/d$,
+$\lambda_2(P_n)\leq1-\gamma$.  Put $\alpha_n:=c/\log n$.  There is a constant
+$\kappa=\kappa(c,\gamma)>0$ such that, for all sufficiently large $n$, the
+single-seed RPPR problem with
+\begin{equation}
+ \rho_n:=\frac{\kappa}{2dn}=\Theta(1/n)
+ \label{eq:expander-rho}
+\end{equation}
+has $S^\star(\rho_n)=V_n$.  Moreover every exact boundary trace from
+$\{o_n\}$ to $V_n$ and every activation-aligned separator presentation of
+that trace satisfy
+\begin{equation}
+ \zeta\geq\min\{1/3,\gamma/6\}n,
+ \qquad
+ \nu\geq\min\{1/(3d),\gamma/(6d)\}n.
+ \label{eq:expander-response-lower-bound}
+\end{equation}
+Consequently \cref{eq:response-product-criterion} is not graph-uniform.
+\end{proposition}
+
+\begin{proof}
+Let $W_n:=(I+P_n)/2$.  In the shared normalization,
+\begin{equation}
+ Q_n=I-(1-\alpha_n)W_n,
+ \qquad
+ \pi_n:=\alpha_nQ_n^{-1}e_{o_n}
+ =\alpha_n\sum_{t\geq0}(1-\alpha_n)^tW_n^te_{o_n}.
+ \label{eq:expander-pagerank-series}
+\end{equation}
+Every nonconstant eigenvalue of $W_n$ lies in $[0,1-\gamma/2]$.  Set
+\begin{equation}
+ T_n:=\left\lceil
+ \frac{\log(2n)}{-\log(1-\gamma/2)}
+ \right\rceil.
+ \label{eq:expander-mixing-time}
+\end{equation}
+Spectral decomposition gives
+$|(W_n^t)_{vo_n}-1/n|\leq(1-\gamma/2)^t$, so
+$(W_n^t)_{vo_n}\geq1/(2n)$ for $t\geq T_n$.  Since
+$T_n\leq C_\gamma\log n$ and $\alpha_n\leq1/2$ for large $n$,
+\begin{equation}
+ \pi_{n,v}
+ \geq\frac{(1-\alpha_n)^{T_n}}{2n}
+ \geq\frac{e^{-2\alpha_nT_n}}{2n}
+ \geq\frac{e^{-2cC_\gamma}}{2n}.
+ \label{eq:expander-pagerank-floor}
+\end{equation}
+Take $\kappa=e^{-2cC_\gamma}/2$.  Since $Q_n\one=\alpha_n\one$, the
+all-active shifted point is
+\begin{equation}
+ Q_n^{-1}\ell_{\rho_n}
+ =\frac1{\sqrt d}\bigl(\pi_n-\rho_nd\one\bigr)>0.
+ \label{eq:expander-full-support}
+\end{equation}
+It satisfies every active KKT equality; strict convexity therefore makes it
+the RPPR optimum and $S^\star(\rho_n)=V_n$.
+
+Consider a trace $U_0\subsetneq\cdots\subsetneq U_K=V_n$.  If some
+$|B_k|\geq n/3$, then $\zeta\geq n/3$.  Otherwise let $j$ be the first index
+with $|U_j|\geq n/3$; then $|U_j|<2n/3$.  For
+$f=\mathbf1_{U_j}-(|U_j|/n)\one$, the spectral gap gives
+\begin{equation}
+ \frac{|E(U_j,V_n\setminus U_j)|}{d}
+ =f^T(I-P_n)f
+ \geq\gamma\|f\|_2^2
+ \geq\frac{\gamma n}{6}.
+ \label{eq:expander-cut}
+\end{equation}
+Separation forbids any cut edge from having its active endpoint in $P_j$.
+All cut edges are therefore incident on $Z_j$, so
+$|Z_j|\geq\gamma n/6$, proving the $\zeta$ bound.
+
+At every stage, a nonseed frontier vertex has
+\begin{equation}
+ \ell_{\rho_n,v}=-\alpha_n\rho_n\sqrt d,
+ \qquad
+ Q_{vZ_k}=-\frac{1-\alpha_n}{2d}
+          \mathbf1_{N(v)\cap Z_k}.
+ \label{eq:expander-signature}
+\end{equation}
+The active-neighbor set is nonempty and, by separation, lies in $Z_k$.
+Vertices in one signature class have the same neighbor subset; choosing one
+$z$ in that subset shows the class is contained in $N(z)$ and has size at
+most $d$.  A batch of size $n/3$ therefore forces
+$\nu\geq n/(3d)$.  In the balanced-cut case,
+$|\Gamma_j|\geq|E(U_j,V_n\setminus U_j)|/d\geq\gamma n/6$, so
+$\nu\geq\gamma n/(6d)$.  This proves
+\cref{eq:expander-response-lower-bound}.
+\end{proof}
+
+This is a framework obstruction, not an algorithmic lower bound.  It rules
+out graph-uniform removal of the flat separator/signature hypothesis, but it
+does not rule out hierarchical, approximate, or Krylov continuation methods.

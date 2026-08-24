@@ -1,0 +1,141 @@
+\section{What the ranking theorem already proves}
+\label{sec:direct-fixed-region}
+
+Fix a coordinate region $S$ and hold $x_{S^c}$ constant. Let $x^\dagger$
+be the unique minimizer over that affine subspace, define
+\begin{equation}
+ \Delta(x):=f(x)-f(x^\dagger),
+ \qquad
+ C_S:=\sum_{u\in S}(1+d_u),
+ \label{eq:direct-fixed-region-quantities}
+\end{equation}
+and rank only coordinates in $S$.
+
+\begin{theorem}[Refreshed charge-aware contraction]
+\label{thm:direct-refreshed-contraction}
+Suppose every update refreshes the residual and chooses a maximizer of
+$p_u(r)$ over all $u\in S$. If
+$W_K:=\sum_{j=0}^{K-1}c_{u_j}$, then a fixed-$\omega$ phase satisfies
+\begin{equation}
+ \Delta(x^{(K)})
+ \leq\Delta(x^{(0)})
+ \exp\left(-\frac{\kappa_\omega\alpha W_K}{C_S}\right).
+ \label{eq:direct-refreshed-contraction}
+\end{equation}
+If selection is instead restricted to a nonempty frontier
+$\mathcal F_\theta(r)$, the first operation after each refresh obeys the
+weaker one-step bound
+\begin{equation}
+ \Delta(x^+)
+ \leq
+ \left(1-\frac{\kappa_\omega\alpha c_u}{4C_S}\right)
+ \Delta(x).
+ \label{eq:direct-frontier-contraction}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+On the fixed region,
+\begin{equation*}
+ \Delta(x)=\frac12r_S^\mathsf TQ_{SS}^{-1}r_S
+ \leq\frac{\|r_S\|_2^2}{2\alpha}.
+\end{equation*}
+Writing $h_{\max}=\max_{i\in S}r_i^2/c_i$ gives
+\begin{equation*}
+ h_{\max}\geq\frac{\|r_S\|_2^2}{C_S}
+ \geq\frac{2\alpha\Delta(x)}{C_S}.
+\end{equation*}
+By \cref{thm:direct-ranking}, all-coordinate score maximization chooses
+$h_u\geq h_{\max}/2$. Combining this with
+\cref{lem:direct-coordinate-decrease} yields
+\begin{equation*}
+ \Delta(x)-\Delta(x^+)
+ =\kappa_\omega c_uh_u
+ \geq\frac{\kappa_\omega\alpha c_u}{C_S}\Delta(x).
+\end{equation*}
+Multiplication over updates and $1-z\leq e^{-z}$ prove
+\cref{eq:direct-refreshed-contraction}.
+
+For frontier selection, an inactive $v$ has $p_v\leq\theta$, while the
+selected active coordinate has $p_u>\theta/2$. Hence
+$p_u\geq\frac12\max_{i\in S}p_i$ and
+$h_u\geq h_{\max}/8$. Repeating the preceding calculation gives
+\cref{eq:direct-frontier-contraction}.
+\end{proof}
+
+This theorem validates the ranking chassis but does not explain acceleration.
+For optimal SOR, put
+\begin{equation}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:direct-lambda}
+\end{equation}
+Then $\omega_\star=1+\lambda_\alpha^2$ and
+\begin{equation}
+ \kappa_{\omega_\star}
+ =\frac{1-\lambda_\alpha^4}{1+\alpha}
+ =\frac{8\sqrt\alpha}{(1+\sqrt\alpha)^4}.
+ \label{eq:direct-optimal-objective-factor}
+\end{equation}
+Thus a ledger that sees only monotone coordinate objective decrease assigns
+the spreading pushes a factor $\Theta(\sqrt\alpha)$ less progress than exact
+pushes at the same residual. Classical SOR acceleration must instead be
+visible through propagation, cancellation, or a multi-step polynomial.
+
+\begin{proposition}[Unconditional finite-work fallback]
+\label{prop:direct-fallback}
+Consider any fixed-$\omega$ threshold phase that executes only coordinates
+with $|r_u|/\sqrt{d_u}>\theta$. If its initial fixed-region objective gap is
+$\Delta_0$, then
+\begin{equation}
+ \Work_{\rm phase}
+ \leq\frac{2\Delta_0}{\kappa_\omega\theta^2}.
+ \label{eq:direct-phase-fallback}
+\end{equation}
+Consequently, every literal two-rung run on a finite graph terminates. If
+$U_{\rm sw}:=\operatorname{supp}(r^{\rm sw})$ at the switch and
+$\mathcal V_{\rm sw}:=\sum_{u\in U_{\rm sw}}d_u$, then
+\begin{equation}
+ \Work_{\rm exact}
+ \leq\frac{B^2(1+\alpha)}{\alpha}\mathcal V_{\rm sw}.
+ \label{eq:direct-exact-fallback}
+\end{equation}
+For a single seed $s=e_v$, the spreading phase has the explicit bound
+\begin{equation}
+ \Work_{\rm spread}
+ \leq
+ \frac{(1+\sqrt\alpha)^4}
+      {8B^2d_v\alpha^{3/2}\epsppr^2}.
+ \label{eq:direct-spread-fallback}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+An executed coordinate satisfies
+$r_u^2>\theta^2d_u\geq\theta^2c_u/2$. Its objective decrease is therefore
+larger than $\kappa_\omega\theta^2c_u/2$. Sum over the phase to obtain
+\cref{eq:direct-phase-fallback}.
+
+At the switch,
+\begin{equation*}
+ \|r^{\rm sw}\|_2^2
+ =\sum_{u\in U_{\rm sw}}d_u
+   \left(\frac{|r_u^{\rm sw}|}{\sqrt{d_u}}\right)^2
+ \leq B^2\tau^2\mathcal V_{\rm sw}.
+\end{equation*}
+Hence the remaining objective gap is at most
+$B^2\tau^2\mathcal V_{\rm sw}/(2\alpha)$. Apply
+\cref{eq:direct-phase-fallback} with $\omega=1$, $\theta=\tau$, and
+$\kappa_1=1/(1+\alpha)$.
+
+Finally, at zero start and a single seed,
+$\Delta_0=\frac12b^\mathsf TQ^{-1}b\leq\|b\|_2^2/(2\alpha)
+=\alpha/(2d_v)$. Use the spreading threshold $B\tau=B\alpha\epsppr$ and
+substitute \cref{eq:direct-optimal-objective-factor} into
+\cref{eq:direct-phase-fallback}.
+\end{proof}
+
+The fallback is deliberately recorded as a correctness boundary, not as the
+desired result. Its $1/\alpha$ terminal factor and
+$1/(\alpha^{3/2}\epsppr^2)$ spreading factor are much too large. The next
+section proves on the smallest coupled graph that both losses can be artifacts
+of a one-step energy ledger.

@@ -14,7 +14,7 @@ State: proved-open
 - **Accuracy namespace:** Unregularized sections use
   `||D^(-1/2)(b - Q x)||_infinity <= alpha * eps_ppr`. RPPR sections use
   regularization `rho` and `vol(S*(rho)) <= 1/rho`; no conversion between these
-  namespaces is asserted (`main.tex:163-178`).
+  namespaces is asserted (Section `sec:scope`).
 - **Access and charged work:** Default cost is adjacency degree-volume,
   including repeated scans. Elimination, fill, factor/response updates,
   boundary reports, sketches, checkpoints, and output must also be charged.
@@ -29,25 +29,29 @@ State: proved-open
 - **Source:** Measured exact-rung behavior comes from
   `rlsor_terminal_exact_rung`; source RPPR/FISTA conventions come from
   Fountoulakis-Martinez-Rubio; adaptive restart and AESP are motivation only
-  (`main.tex:186-189,348-355`).
+  (Sections `sec:scope` and `sec:ladder`).
 - **Proved here:** Exact reflection/base algebra and block debt cleanup
-  (`main.tex:357-846`); output-sensitive response solvers for paths, trees,
+  (Sections `sec:algebra`--`sec:block-resolution` and Theorem
+  `thm:width-resolution`); output-sensitive response solvers for paths, trees,
   cycles, bounded blocks, equitable quotients, and thin radial structures
-  (`main.tex:853-2479`); arbitrary-graph exact support-safe gate correctness
-  (`main.tex:2570-2634`); finite-band intervals, response-energy packing,
+  (Theorems `thm:path-one-pass`, `thm:tree-response`, `thm:cycle-one-pass`,
+  `thm:bounded-block-response`, and `thm:hidden-equitable-tree-quotient`);
+  arbitrary-graph exact support-safe gate correctness
+  (Theorem `thm:condition-free-graph`); finite-band intervals, response-energy packing,
   terminal-Schur diagonal-loss accounting, Chebyshev full checkpoints, and
-  frontier whitening (`main.tex:2892-3508`).
+  frontier whitening (Section `subsec:finite-band-packing`).
 - **Conditional:** The general unregularized matching-scale theorem assumes
   `O(1)` scans of each certified region per alpha-scaled rung and a charged
-  width-`w` ordering (`main.tex:3617-3653`). An end-to-end PPR result also needs
+  width-`w` ordering (Theorem `thm:width-resolution`). An end-to-end PPR result also needs
   an explicit RPPR-to-PPR accuracy conversion when RPPR is used as a surrogate.
 - **Measured:** No new campaign is run here; empirical claims are imported and
   remain measured.
 - **Refuted:** Fixed ladder bases cannot preserve the no-reactivation window as
   `alpha -> 0`; self-reflection debt alone misses larger neighbor backflow
-  (`main.tex:429-685`). The persistent-support spider charge is not universal
-  under directed elimination (`main.tex:1445-1468`), and generic accelerated
-  objective contraction fails on `P3` (`main.tex:2803-2821`).
+  (Propositions `prop:fixed-base` and `prop:backflow`). The persistent-support
+  spider charge is not universal under directed elimination
+  (Corollary `cor:spider-oracle-separation`), and generic accelerated objective
+  contraction fails on `P3` (Proposition `prop:three-path-gap-obstruction`).
 - **Open:** Online completeness between geometric checkpoints on high-cut-rank
   nonequitable cyclic cores: the companion response note now supplies a
   product-scale fixed-face aggregate debt flush, while its singleton-path
@@ -68,12 +72,13 @@ full boundary after each light update.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** `rlsor_terminal_exact_rung`.
+- **Formal registry dependencies:** `rlsor_terminal_exact_rung`.
 - **Context/provenance:** `propagate_settle_framework` and
   `aesp_cd_l1_rppr` supply adjacent support/gate context.
   `response_preconditioned_hybrid` is the companion continuation that proves
   the low-cut-rank closure and comb obstruction; those are not local proofs or
-  reverse formal edges here (`main.tex:3493-3498`).
+  reverse formal edges here (discussion following Proposition
+  `prop:positive-resolvent-rung-ladder`).
 - **Supplies to:** `adaptive_revisit_control`, `two_rung_direct_theory`,
   `propagate_settle_framework`, and the response-preconditioned program through
   structured exact responses, gate correctness, and checkpoint machinery.
@@ -82,7 +87,8 @@ full boundary after each light update.
 
 - **Exact pointer:** Proposition `prop:positive-resolvent-rung-ladder`, its
   following checkpoint discussion, and the final boundary statement in
-  `main.tex`; companion Theorem `thm:aggregate-chebyshev-debt-flush` and
+  `sections/body/17_subsec_finite_band_packing.tex`; companion Theorem
+  `thm:aggregate-chebyshev-debt-flush` and
   Corollary `cor:geometric-aggregate-debt-flush` in
   `response_preconditioned_hybrid/main.tex`.
 - **Next action:** Instantiate one target-side output-sensitive partial flush

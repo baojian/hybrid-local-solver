@@ -1,0 +1,92 @@
+\section{A settlement-factor framework beyond one edge}
+\label{sec:direct-settlement-framework}
+
+For an exact push at $u$, define its residual map
+\begin{equation}
+ P_u:=I-\frac{Qe_ue_u^\mathsf T}{Q_{uu}},
+ \qquad r^+=P_ur.
+ \label{eq:direct-exact-residual-map}
+\end{equation}
+For a no-repeat coordinate sequence
+$\mathcal O=(u_1,\ldots,u_m)$, define the note-scoped settlement factor
+\begin{equation}
+ \chi_{\rm set}(r;\mathcal O)
+ :=\frac{
+   \norm{D^{-1/2}P_{u_m}\cdots P_{u_1}r}_\infty
+ }{\norm{D^{-1/2}r}_\infty}.
+ \label{eq:direct-settlement-factor}
+\end{equation}
+This quantity is trajectory-specific; it is not a condition number or a
+stopping rule.
+
+\begin{proposition}[One-pass settlement certificate]
+\label{prop:direct-one-pass-certificate}
+Suppose the switch residual satisfies
+\begin{equation*}
+ \norm{D^{-1/2}r^{\rm sw}}_\infty\leq B\tau.
+\end{equation*}
+If a no-repeat sequence
+$\mathcal O$ consists of legal live exact pushes and
+\begin{equation}
+ B\chi_{\rm set}(r^{\rm sw};\mathcal O)\leq1,
+ \label{eq:direct-one-pass-condition}
+\end{equation}
+then the terminal phase ends after that sequence with work at most
+\begin{equation}
+ \sum_{u\in\mathcal O}(1+d_u).
+ \label{eq:direct-one-pass-work}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Apply \cref{eq:direct-settlement-factor} and the switch bound. The work
+display is the declared charge, and no coordinate occurs twice.
+\end{proof}
+
+On one edge, \cref{lem:direct-edge-settlement-ratio} proves that the
+one-coordinate sequence chosen by the ranked exact phase has asymptotic
+factor at most $R_\star$. On the endpoint path,
+\cref{thm:direct-path-two-rung} proves that one parity sweep plus at most one
+outer push suffices. Beyond paths, the same idea has three distinct failure
+modes.
+
+\begin{enumerate}[leftmargin=*]
+ \item \textbf{Multi-neighbor interference.} A pushed coordinate sends a
+ packet to every neighbor. On a path the two incoming packets give exactly
+ \cref{eq:direct-path-terminal-ratio}; at a branch they can reactivate
+ several already settled directions. The delayed-reflection note proves
+ that backward neighbor traffic can be larger than self-reflection on a
+ spider arm.
+ \item \textbf{Rank staleness.} The measured top-fraction batch is chosen
+ from one snapshot. A proof must compare the live charged sequence with a
+ refreshed settlement order, or bound the price of coordinates whose score
+ becomes stale but remains above the gate.
+ \item \textbf{Spreading-wave overlap.} A short terminal rung is not enough.
+ The optimal-SOR phase itself must expose the relevant region while charging
+ each layer only $\widetilde O(1/\sqrt\alpha)$ times in aggregate. Existing
+ FIFO spider results show that this is false for some schedules; the
+ charge-aware ranked order requires its own proof or counterexample.
+\end{enumerate}
+
+The refreshed endpoint-path target is closed by
+\cref{thm:direct-path-two-rung}, and the measured literal batching is closed
+by \cref{thm:direct-path-literal-measured-regime}.  The proposed
+bounded-overlap theorem without an additional boundary condition is now
+refuted by \cref{thm:direct-three-vertex-lower-bound}: the three-vertex path
+has bounded degree, no merging, constant explored volume, singleton fresh
+batches, and nevertheless costs $\Omega(\alpha^{-3/2})$.
+
+The corrected structural statement has two proved branches.  A causal
+corridor event DAG pays gapless propagation by geometric attenuation, while a
+uniform positive supersolution pays all revisits by a final-region Dirichlet
+gap.  A third ingredient is necessary at a reached boundary: it must rule out
+or explicitly eliminate the reflecting slow mode
+\cref{eq:direct-three-vertex-macro-spectrum}.  Maximum degree, batch
+staleness, and explored volume alone cannot do this.
+
+These results deliberately use explored volume rather than replacing it by
+$1/\epsppr$. Such a replacement is a separate locality lemma and is not
+currently available under the note-scoped unregularized residual. They also
+do not identify this problem with the repository's
+$1/(\rho\sqrt\alpha)$ persistent-support RPPR lower bound, which belongs to a
+different accuracy convention and oracle model.

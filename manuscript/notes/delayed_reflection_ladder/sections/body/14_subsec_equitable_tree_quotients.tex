@@ -1,0 +1,353 @@
+\subsection{Tree responses survive thick equitable cell quotients}
+\label{subsec:equitable-tree-quotients}
+
+The tree-response proof does not require the original graph itself to be a
+tree.  It requires only a tree after exact symmetry compression.  Let
+\begin{equation}
+ \mathcal P=\{C_a:a\in\mathcal A\}
+ \label{eq:equitable-cell-partition}
+\end{equation}
+be a partition of $V$ with a root cell $C_r=\{o\}$.  Call it an
+\emph{equitable tree partition} if every $v\in C_a$ has a common degree
+$d_a$ and, for every cell $C_b$, a common count
+\begin{equation}
+ \nu_{ab}:=|N(v)\cap C_b|,
+ \label{eq:equitable-cell-count}
+\end{equation}
+and if the graph on distinct cell indices with
+$a\sim b$ when $\nu_{ab}>0$ is a tree rooted at $r$.  Edges within one cell
+are allowed.  Put $m_a:=|C_a|$.  As before,
+$m_a\nu_{ab}=m_b\nu_{ba}$.
+
+The partition is \emph{locally enumerable} if an exposed vertex label carries
+its cell identifier at $O(1)$ cost.  Scanning an active cell then groups its
+incident labels by neighboring cell.  This representation supplies neither
+the active cells nor their depth.  Moreover, it is locally auditable: all
+degree and incidence counts of an active cell are read during its one scan.
+
+\begin{theorem}[Exact RPPR at the product scale on equitable tree quotients]
+\label{thm:equitable-tree-quotient}
+Suppose a single-seed instance has a locally enumerable equitable tree
+partition.  With
+\begin{equation}
+ e_a:=\frac{\mathbf 1_{C_a}}{\sqrt{m_a}},
+ \label{eq:equitable-cell-basis}
+\end{equation}
+the restriction $\widehat Q$ of $Q$ to the cell-constant subspace is a
+symmetric positive-definite Stieltjes matrix supported on the quotient tree,
+with
+\begin{align}
+ \widehat Q_{aa}
+ &=\frac{1+\alpha}{2}
+   -\frac{1-\alpha}{2}\frac{\nu_{aa}}{d_a},
+ \label{eq:equitable-tree-quotient-diagonal}\\
+ \widehat Q_{ab}
+ &=-\frac{1-\alpha}{2}
+   \sqrt{\frac{\nu_{ab}\nu_{ba}}{d_ad_b}}
+ \quad(a\sim b).
+ \label{eq:equitable-tree-quotient-edge}
+\end{align}
+Its demand is
+\begin{equation}
+ \widehat c_r
+ =\frac{\alpha}{\sqrt{d_r}}-\alpha\rho\sqrt{d_r},
+ \qquad
+ \widehat c_a=-\alpha\rho\sqrt{m_ad_a}
+ \quad(a\neq r).
+ \label{eq:equitable-tree-quotient-demand}
+\end{equation}
+The RPPR optimum is cell-constant.  Writing
+\begin{equation*}
+ \mathcal A^\star:=\{a:C_a\subseteq S^\star(\rho)\},
+\end{equation*}
+there is an exact adjacency-local algorithm that discovers these cells and
+returns the full optimum using
+\begin{align}
+ \Work_{\rm cell\text{-}tree}
+ &\leq
+ O\!\left(
+  \vol(S^\star)
+  +\log(1+\Delta_{\mathcal P})
+   \sum_{a\in\mathcal A^\star}
+   \operatorname{depth}_{\mathcal P}(a)
+ \right)
+ \notag\\
+ &\leq
+ O\!\left(
+  \vol(S^\star)
+  [1+R_\star\log(1+\Delta_{\mathcal P})]
+ \right)
+ =\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right),
+ \label{eq:equitable-tree-quotient-work}
+\end{align}
+where $\Delta_{\mathcal P}$ is the maximum quotient-tree degree.  It uses
+$O(\vol(S^\star))$ storage and no support, radius, or confinement oracle.
+Every degree and incidence identity encountered on the active exploration is
+audited.  An observed failure hands the current safe region and its exact
+coordinatewise violating batch to the general boundary gate, without
+compromising correctness.
+\end{theorem}
+
+\begin{proof}
+Let $P_{\mathcal P}$ be orthogonal averaging onto the cell-constant subspace.
+The degree and incidence identities make this subspace invariant under
+$D^{-1/2}AD^{-1/2}$.  Symmetry makes its orthogonal complement invariant as
+well, so $P_{\mathcal P}Q=QP_{\mathcal P}$.  The shifted demand is constant
+on each cell.  Therefore, for $z=(I-P_{\mathcal P})x$,
+\begin{equation*}
+ \Phi_\rho(x)
+ =\Phi_\rho(P_{\mathcal P}x)+\frac12z^\top Qz.
+\end{equation*}
+Orthogonal averaging preserves nonnegativity, and positive definiteness puts
+the unique optimum in the cell-constant subspace.  Direct projection, using
+edge balance, gives
+\cref{eq:equitable-tree-quotient-diagonal,eq:equitable-tree-quotient-edge,eq:equitable-tree-quotient-demand}.
+As a restriction of $Q$, the quotient has spectrum in $[\alpha,1]$.
+
+Root the quotient tree at $r$.  The response construction in
+\cref{thm:tree-response,cor:inverse-tree-response} uses only tree sparsity,
+the Stieltjes signs, strictly negative nonroot demands, and the spectral lower
+bound $\alpha I$.  It therefore applies verbatim to $(\widehat Q,\widehat c)$.
+For a child cell $a$ with parent $p(a)$, its first event is
+\begin{equation}
+ \widehat\tau_a
+ =\frac{\alpha\rho\sqrt{m_ad_a}}
+        {-\widehat Q_{p(a),a}}.
+ \label{eq:equitable-cell-first-event}
+\end{equation}
+Scanning all adjacency lists in the active parent cell enumerates every label
+of $C_a$: equitability gives each such label the positive common number
+$\nu_{a,p(a)}$ of parent neighbors.  The same scan gives $m_a$,
+$\nu_{p(a),a}$, and $\nu_{a,p(a)}$, while degree queries give $d_a$.
+Thus \cref{eq:equitable-cell-first-event} is known before $C_a$ is scanned.
+Only if that event is consumed does the algorithm scan $C_a$, learn its
+diagonal and child couplings, and initialize its child-event heap.
+
+Consequently every active original adjacency list is scanned once, for
+$O(\vol(S^\star))$ work.  There is one activation label per active cell, and
+the lazy merge advances it once through each quotient ancestor, giving the
+first line of \cref{eq:equitable-tree-quotient-work}.  Because the quotient
+graph is a rooted tree and every child-cell vertex has a parent neighbor,
+$\operatorname{depth}_{\mathcal P}(a)$ equals the original root distance of
+the vertices in $C_a$.  Hence it is at most $R_\star$ for an active cell.
+Also $|\mathcal A^\star|\leq|S^\star|\leq\vol(S^\star)$.  This proves the
+second line; the support-volume bound and
+\cref{lem:graph-support-radius} give the final order.
+
+Top-down evaluation of the quotient responses returns $y_a$ and then
+$x_v=y_a/\sqrt{m_a}$ for $v\in C_a$.  This is the full optimum by the
+orthogonal splitting.  Finally, before a child event is consumed, the parent
+scan checks the degrees and backward incidences of all its exposed labels; if
+they differ, their individual violations define the safe gate batch.  After a
+whole child cell is admitted, its own scan checks the internal and forward
+incidences.  A failure at that point follows a boundary-gate violation that
+has already admitted the cell safely.  The same Schur-complement argument as
+in \cref{thm:certifying-shell-fast-path} permits an exact fallback in either
+case.
+\end{proof}
+
+This theorem strictly extends the one-cell-per-shell result.  Unequal
+clique, independent-set, or biregular blow-ups of a rooted tree may have
+several inequivalent thick cells in one distance shell, unbounded treewidth,
+and arbitrarily large biconnected cores.  Their original graph need not be
+root-distance equitable, but the exact quotient still has tree responses and
+meets the intended product scale.
+
+The cell labels in the preceding statement are convenient but not necessary.
+The reason is causal: before an inactive cell activates, only its degree and
+its incidences with already scanned cells affect its obstacle slack.  Those
+quantities are visible from the scanned side of the boundary.  Cells that
+cannot yet be distinguished therefore have the same next event and may be
+opened together.  Their different futures can be separated after, but not
+before, that event.
+
+For a scanned set $U$ containing $o$, form a emph{visible refinement}
+$\mathcal R_U$ as follows.  Initially color vertices of $U$ by the root flag
+and their full graph degree.  Repeatedly split a color class whenever two of
+its vertices have different neighbor counts into some current class.  In an
+online run, colors present before an expansion are retained as base colors,
+so later refinement may split but never merge old classes.  All incidences
+used here are known because every adjacency list in $U$ has been scanned.
+For an exposed label $v\in N(U)\setminus U$, define its visible signature
+by
+\begin{equation}
+ \sigma_U(v)
+ :=\left(
+   d_v,
+   \bigl(|N(v)\cap B|\bigr)_{B\in\mathcal R_U}
+ \right).
+ \label{eq:visible-boundary-signature}
+\end{equation}
+The counts are accumulated from the scanned endpoints in $U$; the adjacency
+list of $v$ is not read.
+
+\begin{lemma}[Hidden tree cells refine causally]
+\label{lem:hidden-cell-refinement}
+Suppose $G$ admits an equitable tree partition $\mathcal P$ with root cell
+$\{o\}$, but $\mathcal P$ is not supplied to the algorithm.  Let $U$ be a
+union of cells whose quotient indices form a rooted connected subtree.  Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every class of $\mathcal R_U$ is a union of cells of $\mathcal P$,
+ and the distinct-class interaction graph of $\mathcal R_U$ is a rooted
+ tree;
+ \item the restricted obstacle solution on $U$, and every affine piece of
+ the root-conditioned homotopy on $U$, is constant on the classes of
+ $\mathcal R_U$;
+ \item every signature class in $N(U)\setminus U$ is a union of whole
+ boundary cells of $\mathcal P$, and all its labels have the same affine
+ obstacle slack;
+ \item if such a signature class reaches the next event, admitting the whole
+ class and scanning its lists is exact.  Refining afterward preserves the
+ common solution value at the event and forks only the future affine pieces.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The initial colors do not split a cell of $\mathcal P$: the root cell is a
+singleton and degree is constant inside every other cell.  If each current
+color is a union of $\mathcal P$-cells, equitability makes the neighbor count
+into that color constant on every $\mathcal P$-cell.  Induction over the
+refinement steps therefore proves the first assertion of (i).
+
+The unique root color propagates through one quotient edge per refinement
+round, so two visible classes at different quotient depths cannot merge.
+Moreover, if two nonroot $\mathcal P$-cells remain in one visible class, their
+unique parent cells must lie in one visible class: otherwise their count
+vectors into the two parent classes differ.  Consequently each nonroot
+visible class has one visible parent, proving that its interaction graph is a
+rooted tree.
+
+Stability of the refinement says that degree and all within-$U$ incidence
+counts are constant on a visible class.  Hence its cell-constant subspace is
+invariant under $Q_{UU}$, while the restricted shifted demand is constant on
+the same classes.  Orthogonal averaging, exactly as in the proof of
+\cref{thm:equitable-tree-quotient}, puts the restricted obstacle minimizer and
+each fixed-support homotopy solution in that subspace.  This proves (ii).
+
+Let $C_a$ be a quotient cell adjacent to $U$.  Its unique parent cell belongs
+to $U$, and $\nu_{a,p(a)}>0$.  Scanning that parent therefore exposes every
+label of $C_a$.  Equitability makes
+\cref{eq:visible-boundary-signature} constant throughout $C_a$, so a
+signature class is a union of whole boundary cells.  If $x_U(t)$ is one
+affine homotopy piece, the inactive slack at $v$ is
+\begin{equation*}
+ g_v(t)=(Q_{vU}x_U(t))-c_{\rho,v}.
+\end{equation*}
+By (ii), the visible signature determines every term on the right.  Thus the
+slack is common and affine on a signature class, proving (iii).
+
+At its zero, the entire tied class satisfies the activation equality.  Before
+the zero all its coordinates are zero, so unrevealed internal or forward
+edges have made no contribution.  The coordinates are continuous at the
+event.  Carrying the old colors as base colors and scanning the new bundle
+can only split classes of the old exact quotient; every new class inherits
+the common event value, after which its own affine continuation is computed
+from the refined quotient.  This proves (iv).
+\end{proof}
+
+\begin{lemma}[Amortized visible refinement and response forks]
+\label{lem:visible-refinement-work}
+Let $k_\star$ be the number of active cells in a witnessing equitable tree
+partition.  Along the exact homotopy up to its root zero, visible refinement
+can be maintained in
+\begin{equation}
+ O\!\left(
+  \vol(S^\star)\log(1+\vol(S^\star))
+ \right)
+ \label{eq:visible-refinement-work}
+\end{equation}
+total work and $O(\vol(S^\star))$ storage.  The additional lazy-response work
+created by class splits is at most a constant multiple of
+\begin{equation}
+ \log(1+\Delta_{\mathcal P})
+ \sum_{a\in\mathcal A^\star}
+ \operatorname{depth}_{\mathcal P}(a).
+ \label{eq:visible-response-fork-work}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Store every incidence when its active endpoint is first scanned.  Maintain
+the stable colors with a splitter queue, always retaining one largest part of
+a split under its old record and placing the other parts on the queue.  An
+incidence is revisited only when one of its endpoint classes is a newly
+inserted class or is charged to a part of at most half the former size.  The
+first case occurs once and the second at most
+$\log_2(1+\vol(S^\star))$ times.  Boundary-label counts are updated by the
+same stored incidences.  This is the standard smaller-half refinement charge
+and proves \cref{eq:visible-refinement-work}.
+
+Past affine pieces are immutable.  When a visible class splits, retain their
+shared prefix and create records only for the new future pieces.  Each split
+strictly increases the active visible-class count, and no true cell is split
+by \cref{lem:hidden-cell-refinement}; hence the total number of created active
+records is $O(k_\star)$.  More precisely, the class histories form refinement
+forests with no unary internal nodes, hence fewer than twice as many records
+as final visible classes.  Every record and all of its descendant classes
+have the same quotient depth.  Their total propagation depth is therefore at
+most twice the sum of the witnessing active-cell depths.  A new record changes
+only the response of its unique visible parent, so the lazy merge propagates
+it once through each ancestor.  Heap maintenance supplies the logarithm in
+\cref{eq:visible-response-fork-work}, exactly as in
+\cref{thm:lazy-tree-response}.
+\end{proof}
+
+\begin{theorem}[Representation-free product bound for hidden equitable trees]
+\label{thm:hidden-equitable-tree-quotient}
+Suppose a single-seed graph admits an equitable tree partition with root cell
+$\{o\}$.  The partition and its cell identifiers need not be supplied.
+Ordinary degree queries and adjacency-list scans suffice to discover and
+solve exact RPPR using
+\begin{align}
+ \Work_{\rm hidden\text{-}cell\text{-}tree}
+ &=O\!\left(
+   \vol(S^\star)\log(1+\vol(S^\star))
+   +\log(1+\Delta_{\mathcal P})
+    \sum_{a\in\mathcal A^\star}
+    \operatorname{depth}_{\mathcal P}(a)
+  \right)
+ \notag\\
+ &=\widetilde O\!\left(
+   \vol(S^\star)(1+R_\star)
+  \right)
+ =\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:hidden-equitable-tree-work}
+\end{align}
+The algorithm uses $O(\vol(S^\star))$ storage and no support, radius,
+confinement, partition, or cell-identifier oracle.
+
+On an arbitrary graph the same procedure is certifying.  If a revealed
+refined quotient is not a tree, it hands the exact active region and the
+individual tied violation batch to the graph-universal homotopy or boundary
+gate.  Thus the hidden-tree property is used only for the work bound, not for
+correctness.
+\end{theorem}
+
+\begin{proof}
+Run the lazy quotient-response algorithm of
+\cref{thm:equitable-tree-quotient}, replacing supplied cells by the visible
+classes and boundary signatures above.  By
+\cref{lem:hidden-cell-refinement}, its current quotient and every event are
+exact; a bundle is scanned only after its common event is consumed.  The
+root iterator therefore stops at the unique root zero and exposes exactly
+$S^\star$.  The original adjacency lists of active vertices are scanned once.
+Add the refinement and fork charges of
+\cref{lem:visible-refinement-work} to the ordinary lazy-response work.  Since
+$|\mathcal A^\star|\leq\vol(S^\star)$ and every active quotient depth is at
+most $R_\star$, the second line of
+\cref{eq:hidden-equitable-tree-work} follows.  The support-volume and radius
+bounds give the last equality.
+
+For a graph outside the promised class, visible refinement still gives an
+exact quotient of the scanned principal problem, and every consumed boundary
+label has an exact zero slack.  The first non-tree interaction is therefore
+an observed structural witness, not a speculative failure.  Monotonicity of
+the graph-universal homotopy makes the active set a subset of $S^\star$.
+Re-solve that scanned set at the fixed target $\rho$ and
+\cref{thm:condition-free-graph} completes an exact fallback.
+\end{proof}
+
+Equivalently, the useful structural condition is intrinsic: the stable
+root-and-degree equitable refinement may have a tree interaction graph.  The
+algorithm discovers only the portion that becomes active.  A precomputed or
+trusted symmetry partition is not part of the access model.

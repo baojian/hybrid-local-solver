@@ -1,0 +1,70 @@
+\subsection{A causal four-way refinement}
+
+Label a paid operation \emph{exact} if $\omega_t=1$ and \emph{spreading} if
+$\omega_t>1$.  For every revisit of $u$, inspect the most recent earlier paid
+operation on the same $u$.  For $a,b\in\{\mathrm e,\mathrm s\}$, let
+$\mathsf{Rev}_{a\to b}$ be the total charge of revisits whose previous same-coordinate
+mode was $a$ and whose current mode is $b$.  This ledger requires only two
+bits of state per touched coordinate: whether it has been visited and the
+mode of its most recent paid visit.
+
+\begin{proposition}[Causal revisit ledger]
+\label{prop:causal-ledger}
+Every paid run satisfies
+\begin{equation}
+ W=C(S)+\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm s},
+ \label{eq:causal-ledger}
+\end{equation}
+and therefore
+\begin{equation}
+ \varrho_{\rm rev}
+ =1+\frac{\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm s\to\mathrm s}}{C(S)}.
+ \label{eq:causal-ratio}
+\end{equation}
+Moreover, in exact sequential arithmetic, every charged revisit counted in
+$\mathsf{Rev}_{\mathrm e\to\mathrm e}
+ +\mathsf{Rev}_{\mathrm e\to\mathrm s}$ certifies that at
+least one off-coordinate operation altered that coordinate's residual after
+its previous exact operation.  In the shared graph model, such an operation
+must occur at a neighbor.
+\end{proposition}
+
+\begin{proof}
+Every paid operation is either the first paid visit to its coordinate or is
+in exactly one of the four previous/current-mode classes.  The first visits
+sum to $C(S)$, proving \eqref{eq:causal-ledger}.
+
+For the causal statement, write $r=b-Q\widehat x$.  A row operation on $u$
+has the form
+\begin{equation}
+ \widehat x^+=\widehat x+\omega\frac{r_u}{Q_{uu}}e_u,
+ \qquad
+ r^+=r-\omega\frac{r_u}{Q_{uu}}Qe_u.
+ \label{eq:row-update}
+\end{equation}
+If $\omega=1$, then $r_u^+=0$.  Before a later paid revisit, $r_u$ must
+again cross the live guard.  Operations on a coordinate $v$ change $r_u$
+only through $Q_{uv}$.  In the shared PageRank matrix, $Q_{uv}\neq0$ for
+$u\neq v$ exactly when $u$ and $v$ are adjacent.  Thus some intervening
+neighbor operation generated the new residual.
+\end{proof}
+
+The quantity
+\begin{equation}
+ B_{\rm nbr}:=
+ \frac{\mathsf{Rev}_{\mathrm e\to\mathrm e}
+       +\mathsf{Rev}_{\mathrm e\to\mathrm s}}{C(S)}
+ \label{eq:backflow-share}
+\end{equation}
+is therefore a certified neighbor-backflow revisit share.  By contrast,
+$\mathsf{Rev}_{\mathrm s\to\mathrm e}
+ +\mathsf{Rev}_{\mathrm s\to\mathrm s}$ mixes neighbor
+backflow with the deterministic self-reflection left by over-relaxation.  The
+four-way ledger does not prove which $\omega$ is optimal, but it separates a
+real causal event that the scalar ratio erases.

@@ -1,0 +1,69 @@
+\section{A cumulative-volume work theorem}
+\label{sec:work}
+
+The raw number of epochs is too coarse.  A hundred tiny early regions may
+cost less than two full-support passes.  Define
+\begin{equation}
+ \mathfrak R_{\rm set}(U_{0:K})
+ :=\frac{\sum_{k=0}^K\operatorname{cvol}(U_k)}
+          {\operatorname{cvol}(U_K)}.
+ \label{eq:settled-revisit-factor}
+\end{equation}
+It always lies in $[1,K+1]$, but may be much smaller than $K+1$.
+
+\begin{theorem}[Propagate--settle work ledger]
+\label{thm:propagate-settle-work}
+Suppose epoch $k$ satisfies the following measured conditions:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item propagation, ranking, and boundary inspection cost at most
+ $C_{\rm p}\operatorname{cvol}(U_k)$;
+ \item exact settlement and its boundary update cost at most
+ $C_{\rm s}(w_k+1)^2\operatorname{cvol}(U_k)$.
+\end{enumerate}
+Writing $w:=\max_kw_k$, total charged work obeys
+\begin{align}
+ \Work_{0:K}
+ &\leq
+ \bigl(C_{\rm p}+C_{\rm s}(w+1)^2\bigr)
+ \sum_{k=0}^K\operatorname{cvol}(U_k)
+ \notag\\
+ &=O\!\left(
+  (w+1)^2\mathfrak R_{\rm set}
+  \operatorname{cvol}(U_K)
+ \right).
+ \label{eq:propagate-settle-work}
+\end{align}
+This is a trajectory theorem: no bound on $K$ is required.
+\end{theorem}
+
+\begin{proof}
+Add the two stated costs over all epochs and factor out their maxima.  The
+second line is the definition of $\mathfrak R_{\rm set}$.
+\end{proof}
+
+\begin{corollary}[Two useful revisit regimes]
+\label{cor:revisit-regimes}
+The ledger has the following immediate consequences.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item If there are at most $K+1$ settlements, then
+ $\mathfrak R_{\rm set}\leq K+1$.  In particular an alpha-scaled ladder with
+ $K=\widetilde O(1/\sqrt\alpha)$ reaches the accelerated revisit scale.
+ \item If for some $0<\gamma<1$ the nested volumes satisfy
+ \begin{equation}
+  \operatorname{cvol}(U_k)
+  \leq\gamma^{K-k}\operatorname{cvol}(U_K),
+  \label{eq:geometric-volume-growth}
+ \end{equation}
+ then $\mathfrak R_{\rm set}\leq(1-\gamma)^{-1}$, independent of $K$.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+The first claim uses monotonicity of charged volume.  The second sums a
+geometric series.
+\end{proof}
+
+The second regime is why batch count is not the right remaining conjecture.
+Many activation events are harmless if they occur while the settled region is
+still small.  Conversely, repeatedly revisiting a nearly final region is
+expensive even if the event count is only moderately large.

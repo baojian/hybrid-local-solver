@@ -1,0 +1,123 @@
+\section{Inner stopping proposal}
+
+The proposed active set is
+\begin{equation}
+  S_t^{(k)}
+  :=\left\{i:
+       \frac{\abs{\kappa_{t,i}(z^{(k)})}}{\sqrt{d_i}}
+       \geq\epsin
+     \right\}.
+  \label{eq:aesp-cd-active-set}
+\end{equation}
+If an oracle does not expose $m=|E|$, the simple-graph bound
+$m\leq n(n-1)/2$ is a correctness-preserving but potentially conservative
+choice when calibrating an inner objective certificate.
+
+\begin{theorem}[Local inner-oracle work]
+\label{thm:aesp-cd-inner-work}
+Starting from $z^{(0)}$, repeatedly update any coordinate in
+$S_t^{(k)}$ until this set is empty.  Then the method terminates with
+\begin{align}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ &\leq
+ \frac{C_t(z^{(0)})}{\tau_{\mathrm{cd}}\epsin},
+ \label{eq:aesp-cd-work}\\
+ \norm{D^{-1/2}(z^{(K_t)}-z_t^\star)}_\infty
+ &<\frac{\epsin}{\mu_t}.
+ \label{eq:aesp-cd-output-error}
+\end{align}
+Moreover,
+\begin{equation}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)
+ \leq
+ \frac{\epsin C_t(z^{(0)})}{2\mu_t}.
+ \label{eq:aesp-cd-output-gap}
+\end{equation}
+Consequently, choosing
+\begin{equation}
+ \epsin=\frac{2\mu_t\varphi_t}{C_t(z^{(0)})}
+ \label{eq:aesp-cd-phi-threshold}
+\end{equation}
+is a valid local oracle for the AESP inner requirement
+$F_{\rho,t}(z)-F_{\rho,t}(z_t^\star)\leq\varphi_t$, with work
+\begin{equation}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ \leq
+ \frac{C_t(z^{(0)})^2}
+      {2\tau_{\mathrm{cd}}\mu_t\varphi_t}.
+ \label{eq:aesp-cd-gap-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Every active update has
+$\sqrt{d_i}\abs{\kappa_{t,i}(z)}\geq\epsin d_i$.
+Sum \cref{eq:aesp-cd-mass-target} and use nonnegativity of $C_t$ to prove
+\cref{eq:aesp-cd-work}.  At termination, the KKT diagnostic is below
+$\epsin$, so \cref{lem:aesp-cd-kkt-error} proves
+\cref{eq:aesp-cd-output-error}.
+
+The function $F_{\rho,t}$ is $\mu_t$-strongly convex and
+$\kappa_t(z^{(K_t)})\in\partial F_{\rho,t}(z^{(K_t)})$.  Hence
+\begin{equation*}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)
+ \leq\frac{\norm{\kappa_t(z^{(K_t)})}_2^2}{2\mu_t}.
+\end{equation*}
+At termination and by \cref{thm:aesp-cd-mass},
+\begin{align*}
+ \norm{\kappa_t(z^{(K_t)})}_2^2
+ &\leq
+ \norm{D^{-1/2}\kappa_t(z^{(K_t)})}_\infty
+ \norm{D^{1/2}\kappa_t(z^{(K_t)})}_1\\
+ &<\epsin C_t(z^{(K_t)})
+ \leq\epsin C_t(z^{(0)}).
+\end{align*}
+This proves \cref{eq:aesp-cd-output-gap}; substitution yields
+\cref{eq:aesp-cd-gap-work}.
+\end{proof}
+
+For the AESP shift $\kappa_{\mathrm A}=1-2\alpha$, one has
+$\mu_t=1-\alpha$ and $\tau_{\mathrm{cd}}=2/3$.  Thus
+\cref{eq:aesp-cd-gap-work} becomes
+\begin{equation}
+ \sum_{k=0}^{K_t-1}d_{i_k}
+ \leq
+ \frac{3C_t(z^{(0)})^2}{4(1-\alpha)\varphi_t}.
+ \label{eq:aesp-cd-specialized-work}
+\end{equation}
+
+\begin{corollary}[Composite AESP plug-in]
+\label{cor:aesp-cd-plugin}
+Suppose a composite AESP outer loop accepts its stage-$t$ inner output when
+\begin{equation*}
+ F_{\rho,t}(z^{(K_t)})-F_{\rho,t}(z_t^\star)\leq\varphi_t
+\end{equation*}
+and initializes the inner solve at $z_t^{(0)}=y^{(t-1)}$.  If
+$C_t(y^{(t-1)})=0$, the initial point is already optimal.  Otherwise,
+thresholded exact coordinate descent with
+\begin{equation*}
+ \varepsilon_{\mathrm{in},t}
+ =\frac{2(1-\alpha)\varphi_t}{C_t(y^{(t-1)})}
+\end{equation*}
+satisfies every such inner-oracle condition, even when the extrapolated
+centers are signed.  Across any $T$ outer stages its total degree work obeys
+\begin{equation}
+ \mathcal W_{\mathrm{inner}}(T)
+ \leq\frac{3}{4(1-\alpha)}
+       \sum_{t=1}^T
+       \frac{C_t(y^{(t-1)})^2}{\varphi_t}.
+ \label{eq:aesp-cd-cumulative-interface}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Apply \cref{thm:aesp-cd-inner-work} independently at every stage and sum
+\cref{eq:aesp-cd-specialized-work}.  The signed-center claim follows because
+\cref{thm:aesp-cd-mass} made no sign assumption.
+\end{proof}
+
+\Cref{eq:aesp-cd-cumulative-interface} is the precise interface supplied to
+the outer acceleration proof.  It removes inner correctness and sign
+monotonicity from the open problem: a graph-uniform end-to-end theorem now
+requires a bound on the displayed cumulative start-mass functional, or an
+outer safeguard that bounds it while retaining accelerated convergence.

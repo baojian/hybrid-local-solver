@@ -1,0 +1,144 @@
+\subsection{The exact signed-state margin at a canonical gate}
+\label{sec:branch-caterpillar-signed-gate-margin}
+
+The responder-native policy above avoids a signed conversion.  A genuinely
+accelerated local prefix would instead like to use an inexact signed iterate
+to decide the next exact canonical batch.  Relative objective accuracy alone
+does not make that identification: the missing quantity is the exact
+boundary margin.
+
+Write
+$\ell_\rho:=b-\alpha\rho D^{1/2}\mathbf 1$ for the shifted RPPR load.
+For $0\leq k<m$, let $x_k:=x[\widehat U_k]$ be the exact restricted RPPR
+point and let
+$\mathcal F_k:=\widehat U_{k+1}\setminus\widehat U_k$.  Every
+$v\in\mathcal F_k$ has one parent $p_k(v)\in\widehat U_k$.  Define
+\begin{equation}
+ \beta_{k,v}:=-Q_{v,p_k(v)}>0,
+ \qquad
+ g_{k,v}:=(\ell_\rho-Qx_k)_v>0,
+ \qquad
+ \mu_k:=\min_{v\in\mathcal F_k}\frac{g_{k,v}}{\beta_{k,v}}>0.
+ \label{eq:branch-caterpillar-signed-gate-margin}
+\end{equation}
+These are analysis quantities at the exact checkpoint, not free online
+records.
+
+\begin{proposition}[Exact margin barrier for a signed approximate gate]
+\label{prop:branch-caterpillar-signed-gate-margin}
+Under \cref{eq:branch-caterpillar-composite-range}, fix $0\leq k<m$ and let
+$z$ be any signed point supported on $\widehat U_k$.  For every
+$v\in\mathcal F_k$,
+\begin{equation}
+ (\ell_\rho-Qz)_v
+ =g_{k,v}+\beta_{k,v}
+   \bigl(z_{p_k(v)}-(x_k)_{p_k(v)}\bigr).
+ \label{eq:branch-caterpillar-signed-demand-identity}
+\end{equation}
+Consequently, the symmetric certificate
+$\lVert z-x_k\rVert_\infty<\mu_k$ is sufficient to preserve the complete
+strict-positive canonical batch.  It is sharp for such a norm-ball
+certificate: if $v_\star$ attains the minimum in
+\cref{eq:branch-caterpillar-signed-gate-margin}, then
+\begin{equation}
+ z^-=x_k-\mu_k e_{p_k(v_\star)}
+ \quad\Longrightarrow\quad
+ (\ell_\rho-Qz^- )_{v_\star}=0,
+ \label{eq:branch-caterpillar-signed-gate-equality-witness}
+\end{equation}
+and any larger perturbation in that direction changes the gate sign.
+
+Because $F_\rho$ restricted to $\widehat U_k$ is
+$\alpha$-strongly convex, the objective-gap condition
+\begin{equation}
+ F_\rho(z)-F_\rho(x_k)<\frac{\alpha\mu_k^2}{2}
+ \label{eq:branch-caterpillar-signed-gap-sufficient}
+\end{equation}
+is sufficient for the same gate conclusion.  When additionally
+$0<\alpha<1/2$, if relative-accuracy AESP--CD is used to obtain this
+condition from an initial restricted gap
+$\Delta_{k,0}$, then $\Delta_{k,0}=0$ is immediate zero-stage success by
+strong convexity.  Assume henceforth that $\Delta_{k,0}>0$.  The reviewed
+Catalyst estimate guarantees the condition, by this proof route, after any
+integer $T$ satisfying
+\begin{equation}
+ T>
+ \frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(\frac{4\Delta_{k,0}}
+                      {\alpha\mu_k^2}\right).
+ \label{eq:branch-caterpillar-signed-gate-stage-cap}
+\end{equation}
+Moreover each imported relative-oracle stage retains the explicit factor
+\begin{equation}
+ L_k^{\rm rel}:=
+ 2+\frac34\log_+\!\left(
+  \frac{16(1-\alpha)^2\vol(\widehat U_k)}
+       {\delta_{\rm A}(1-2\alpha)(1-\alpha)}
+                         \right).
+ \label{eq:branch-caterpillar-signed-gate-oracle-log}
+\end{equation}
+Thus this available signed-state route has both the margin logarithm in
+\cref{eq:branch-caterpillar-signed-gate-stage-cap} and the explicit
+$\log(1/(1-2\alpha))$ nonuniformity in
+\cref{eq:branch-caterpillar-signed-gate-oracle-log}.  The constant half-gap
+guarantee in
+\cref{eq:branch-caterpillar-envelope-aesp-half-gap} does not imply
+\cref{eq:branch-caterpillar-signed-gap-sufficient} unless the additional
+comparison $\Delta_{k,0}<\alpha\mu_k^2$ is proved.
+
+This is an exact signed-state/gate obstruction for the imported
+relative-gap proof interface, not a lower bound for every local algorithm.
+It does not refute exact settlement, a one-sided locally checkable interval,
+or a new theorem that lower-bounds and charges the margins $\mu_k$.
+\end{proposition}
+
+\begin{proof}
+Only the parent coordinate of a tree-boundary vertex is nonzero in the row
+$Q_{v,\widehat U_k}$.  Subtracting the exact and approximate demands gives
+\cref{eq:branch-caterpillar-signed-demand-identity}.  If
+$\lVert z-x_k\rVert_\infty<\mu_k$, then for every boundary vertex the right
+side is strictly larger than
+$g_{k,v}-\beta_{k,v}\mu_k\geq0$.  Choosing a minimizer and perturbing exactly
+its parent proves
+\cref{eq:branch-caterpillar-signed-gate-equality-witness}.
+
+Strong convexity gives
+\[
+ F_\rho(z)-F_\rho(x_k)
+ \geq\frac\alpha2\lVert z-x_k\rVert_2^2.
+\]
+Hence \cref{eq:branch-caterpillar-signed-gap-sufficient} implies the strict
+infinity-norm condition.  The imported relative Catalyst estimate gives
+\[
+ \Delta_{k,T}
+ \leq2\left(1-\frac{\sqrt{\chi_{\rm A}}}{2}\right)^T
+       \Delta_{k,0}
+ \leq2e^{-T\sqrt{\chi_{\rm A}}/2}\Delta_{k,0},
+\]
+For $\Delta_{k,0}=0$, strong convexity already gives the exact point and no
+stage is run; for $\Delta_{k,0}>0$, the displayed estimate proves the
+sufficient stage cap.  Substitution of
+$\kappa_{\rm A}=1-2\alpha$ and $\mu_t=1-\alpha$ into the imported
+relative-oracle work bound gives
+\cref{eq:branch-caterpillar-signed-gate-oracle-log}.
+\end{proof}
+
+The smallest instance of the barrier is already the seed face.  Put
+$a_0=(1+\alpha)/2$ and $h_0=(1-\alpha)/2$.  Then
+\begin{equation}
+ (x_0)_{b_1}=\frac{\alpha(1-3\rho)}{a_0\sqrt3},
+ \qquad
+ \mu_0=(x_0)_{b_1}-\frac{3\alpha\rho\sqrt3}{h_0}>0,
+ \label{eq:branch-caterpillar-seed-gate-margin}
+\end{equation}
+where the degree-three child $b_2$ attains the minimum; $a_1$ and $r_1$ have
+degrees two and one.  Moving the single seed coordinate down by exactly this
+amount makes the $b_2$ demand zero.  Because this face is one-dimensional,
+\texttt{FirstLayer-BC}$_1$ simply settles it exactly and avoids the margin
+logarithm.  At a generic growing checkpoint, retaining a useful signed
+accelerated state still requires either paying
+\cref{eq:branch-caterpillar-signed-gate-stage-cap}, proving a stronger
+one-sided certificate, or performing the exact response settlement that the
+current handoff already charges.  The first nonzero checkpoint is exceptional:
+its face and boundary have constant size, so its sharp margin can be computed
+and charged on demand.  We make that exception precise next.

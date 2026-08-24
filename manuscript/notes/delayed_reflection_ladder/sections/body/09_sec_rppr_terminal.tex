@@ -1,0 +1,97 @@
+\section{Exact local RPPR on supplied supports, paths, and trees}
+\label{sec:rppr-terminal}
+
+The block theorem also identifies what is easy and what is hard in the RPPR
+problem.  Put
+\begin{equation}
+ w_D:=D^{1/2}\one,
+ \qquad
+ c_\rho:=b-\alpha\rho w_D.
+ \label{eq:shifted-rppr-demand}
+\end{equation}
+
+\begin{theorem}[Shifted Dirichlet KKT certificate]
+\label{thm:shifted-dirichlet}
+Let $S\subseteq V$, and let
+\begin{equation}
+ z_S:=Q_{SS}^{-1}c_{\rho,S},
+ \qquad z_{S^c}:=0,
+ \qquad r(z):=b-Qz.
+ \label{eq:shifted-dirichlet-solve}
+\end{equation}
+If
+\begin{equation}
+ z_S>0,
+ \qquad
+ 0\leq r_i(z)\leq\alpha\rho\sqrt{d_i}
+ \quad\bigl(i\in S^c\cap(\partial S\cup\supp(s))\bigr),
+ \label{eq:boundary-kkt-certificate}
+\end{equation}
+then $z=x^\star(\rho)$.  Moreover,
+\begin{equation}
+ 0\leq D^{-1/2}r(z)\leq\alpha\rho\one,
+ \label{eq:rppr-residual-certificate}
+\end{equation}
+so the same point is an unregularized PageRank approximation with a verified
+degree-normalized residual gate at scale $\rho$.
+\end{theorem}
+
+\begin{proof}
+On $S$, \cref{eq:shifted-dirichlet-solve} gives
+$(Qz-b)_i=-\alpha\rho\sqrt{d_i}$.  Since $z_i>0$, this is exactly the active
+RPPR KKT equality in \cref{eq:shared-rppr-kkt}.  On $\partial S$,
+\cref{eq:boundary-kkt-certificate} is equivalent to
+$(Qz-b)_i\in[-\alpha\rho\sqrt{d_i},0]$, the inactive KKT interval.  If
+$i\in\operatorname{Ext}(S)\setminus\supp(s)$, then $Q_{iS}=0$ and $b_i=0$,
+so $r_i(z)=0$.  The displayed test separately covers seed coordinates outside
+$S$.  Thus all KKT conditions hold.  Strong convexity makes the minimizer
+unique, proving $z=x^\star(\rho)$.  The same coordinatewise argument gives
+\cref{eq:rppr-residual-certificate}.
+\end{proof}
+
+\begin{corollary}[Linear terminal rung on a forest support]
+\label{cor:forest-rppr-terminal}
+If $S=S^\star(\rho)$ is supplied and $G[S]$ is a forest, then the RPPR optimum
+and the full boundary KKT certificate can be computed in
+\begin{equation}
+ O\bigl(\vol(S^\star(\rho))+|\supp(s)|\bigr)
+ =O(1/\rho+|\supp(s)|)
+ \label{eq:forest-rppr-terminal-work}
+\end{equation}
+work.  In the single-seed setting this is $O(1/\rho)$.  With a supplied
+width-$w$ ordering, the corresponding single-seed bound is
+$O((w+1)^2/\rho)$.
+\end{corollary}
+
+\begin{proof}
+On the exact support, the active KKT equations are precisely the shifted
+Dirichlet system.  Apply \cref{thm:forest-resolution} or
+\cref{thm:width-resolution}, scan the boundary once, and use the source
+support-volume bound $\vol(S^\star(\rho))\leq1/\rho$.  Seed coordinates
+outside the support are checked directly from the sparse seed input.
+\end{proof}
+
+\begin{lemma}[RPPR support components contain seeds]
+\label{lem:support-components}
+Every connected component of $G[S^\star(\rho)]$ intersects $\supp(s)$.  In
+particular, for a single seed, $S^\star(\rho)$ is either empty or connected
+and contains the seed.
+\end{lemma}
+
+\begin{proof}
+Suppose an active component $C$ contains no seed coordinate.  Because $C$ is
+a component of the active induced graph, every active coordinate outside $C$
+has zero coupling to $C$, and every inactive coordinate has value zero.  The
+active KKT equations on $C$ therefore reduce to
+\[
+ Q_{CC}x_C^\star=-\alpha\rho D_C^{1/2}\one<0.
+\]
+The principal matrix $Q_{CC}$ is a positive definite Stieltjes matrix, so
+$Q_{CC}^{-1}\geq0$.  Hence $x_C^\star<0$, contradicting positivity on the
+support.  For a single seed, two different active components cannot both
+intersect its singleton support.
+\end{proof}
+
+The lemma rules out disconnected active islands in the single-seed problem.
+It justifies boundary expansion as a complete discovery mechanism, although
+it does not yet bound how many scans that expansion needs.

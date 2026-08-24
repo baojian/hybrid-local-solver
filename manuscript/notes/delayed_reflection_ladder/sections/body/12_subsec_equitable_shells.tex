@@ -1,0 +1,282 @@
+\subsection{Thick equitable shells also collapse to one dimension}
+\label{subsec:equitable-shells}
+
+Let $G$ be connected, fix a root $o$, and write
+\begin{equation}
+ \mathcal L_i:=\{v:\operatorname{dist}(o,v)=i\},
+ \qquad
+ m_i:=|\mathcal L_i|,
+ \qquad 0\leq i\leq R.
+ \label{eq:equitable-shells}
+\end{equation}
+Call the rooted graph \emph{root-distance equitable} if, for every
+$v\in\mathcal L_i$, the three counts
+\begin{equation}
+ \nu_i^-:=|N(v)\cap\mathcal L_{i-1}|,
+ \qquad
+ \nu_i^0:=|N(v)\cap\mathcal L_i|,
+ \qquad
+ \nu_i^+:=|N(v)\cap\mathcal L_{i+1}|
+ \label{eq:equitable-neighbor-counts}
+\end{equation}
+depend only on $i$; shells outside $[0,R]$ are empty.  Put
+$\bar d_i:=\nu_i^-+\nu_i^0+\nu_i^+$.  Double-counting consecutive-shell
+edges gives
+\begin{equation}
+ m_i\nu_i^+=m_{i+1}\nu_{i+1}^-.
+ \label{eq:equitable-edge-balance}
+\end{equation}
+This promise allows large and internally complicated shells.  It holds, for
+example, for cliques and complete bipartite graphs rooted at any vertex, and
+for hypercubes, Hamming graphs, Johnson graphs, and every distance-regular
+graph.
+
+Use the standard adjacency-list access model: querying the degree of an
+exposed vertex label costs $O(1)$, while enumerating its adjacency list costs
+$d_v$.  The following is a promise-class result; recognizing global
+equitability is not charged to the solver.
+
+\begin{theorem}[Output-linear exact RPPR on root-distance-equitable graphs]
+\label{thm:equitable-shell-one-pass}
+Suppose $G$ is root-distance equitable and the RPPR seed is $o$.  Let
+$e_i:=\mathbf 1_{\mathcal L_i}/\sqrt{m_i}$ and let $\widehat Q$ be the
+restriction of $Q$ to their span.  This matrix is symmetric tridiagonal, with
+\begin{align}
+ \widehat Q_{ii}
+ &=\frac{1+\alpha}{2}
+   -\frac{1-\alpha}{2}\frac{\nu_i^0}{\bar d_i},
+ \label{eq:equitable-quotient-diagonal}\\
+ \widehat Q_{i,i+1}
+ &=-\frac{1-\alpha}{2}
+ \sqrt{\frac{\nu_i^+\nu_{i+1}^-}
+ {\bar d_i\bar d_{i+1}}}.
+ \label{eq:equitable-quotient-offdiagonal}
+\end{align}
+The quotient demand is
+\begin{equation}
+ \widehat c_0
+ =\frac{\alpha}{\sqrt{\bar d_0}}
+  -\alpha\rho\sqrt{\bar d_0},
+ \qquad
+ \widehat c_i=-\alpha\rho\sqrt{m_i\bar d_i}
+ \quad(1\leq i\leq R).
+ \label{eq:equitable-quotient-demand}
+\end{equation}
+For $i\geq1$, put $\gamma_i:=-\widehat Q_{i,i-1}>0$ and form
+\begin{align}
+ \delta_0&:=\widehat Q_{00},
+ &\eta_0&:=\widehat c_0,
+ \notag\\
+ \delta_i&:=\widehat Q_{ii}-\frac{\gamma_i^2}{\delta_{i-1}},
+ &\eta_i&:=\widehat c_i+
+   \frac{\gamma_i\eta_{i-1}}{\delta_{i-1}}
+ \qquad(1\leq i\leq R).
+ \label{eq:equitable-forward-schur}
+\end{align}
+If $\eta_0\leq0$, the optimum is zero.  Otherwise let $J$ be the index
+immediately before the first nonpositive $\eta_i$, or $J=R$ if all messages
+are positive.  Then
+\begin{equation}
+ S^\star(\rho)=\bigcup_{i=0}^J\mathcal L_i.
+ \label{eq:equitable-exact-support}
+\end{equation}
+Its exact coordinates are recovered from
+\begin{equation}
+ y_J=\frac{\eta_J}{\delta_J},
+ \qquad
+ y_i=\frac{\eta_i+\gamma_{i+1}y_{i+1}}{\delta_i}
+ \quad(i=J-1,\ldots,0),
+ \qquad
+ x_v=\frac{y_i}{\sqrt{m_i}}
+ \quad(v\in\mathcal L_i).
+ \label{eq:equitable-backsolve}
+\end{equation}
+A lazy shell scan discovers the quotient coefficients, solves the problem,
+and certifies the full KKT system in
+\begin{equation}
+ O\bigl(1+\vol(S^\star(\rho))\bigr)
+ \label{eq:equitable-output-linear-work}
+\end{equation}
+adjacency and arithmetic work, with no support, radius, or confinement oracle.
+\end{theorem}
+
+\begin{proof}
+Let $\mathcal U$ be the subspace of vectors constant on every shell and let
+$P$ be orthogonal averaging onto $\mathcal U$.  Equitability and constant
+degree $\bar d_i$ within each shell show directly that normalized adjacency,
+and hence $Q$, maps $\mathcal U$ into itself.  Since $Q$ is symmetric,
+$\mathcal U^\perp$ is invariant as well, so $PQ=QP$.  The shifted demand
+$c_\rho$ lies in $\mathcal U$.  For every feasible $x\geq0$, also $Px\geq0$,
+and, with $z:=(I-P)x$,
+\begin{equation}
+ \Phi_\rho(x)=\Phi_\rho(Px)+\frac12z^\top Qz.
+ \label{eq:equitable-orthogonal-splitting}
+\end{equation}
+Positive definiteness therefore puts the unique optimum in $\mathcal U$.
+Its nonempty support is connected and contains $o$; because it is a union of
+whole shells, it must be a shell prefix.
+
+Taking the matrix entries in the orthonormal basis $(e_i)_{i=0}^R$ gives
+\cref{eq:equitable-quotient-diagonal}.  Consecutive-shell edge balance
+\cref{eq:equitable-edge-balance} gives
+\begin{equation*}
+ e_i^\top D^{-1/2}AD^{-1/2}e_{i+1}
+ =\sqrt{\frac{\nu_i^+\nu_{i+1}^-}
+ {\bar d_i\bar d_{i+1}}},
+\end{equation*}
+which proves
+\cref{eq:equitable-quotient-offdiagonal}; nonconsecutive entries vanish.
+Projecting $c_\rho$ gives
+\cref{eq:equitable-quotient-demand}.  Thus $\widehat Q$ is a symmetric
+positive-definite tridiagonal Stieltjes matrix, all pivots in
+\cref{eq:equitable-forward-schur} are positive, and Gaussian elimination
+gives the forward recurrence and
+\cref{eq:equitable-backsolve}.
+
+All messages through $J$ are positive, so reverse substitution gives
+$y_i>0$ for $0\leq i\leq J$.  If $J<R$, applying one more formal elimination
+step to the prefix solution gives
+\begin{equation}
+ \eta_{J+1}=\widehat c_{J+1}+\gamma_{J+1}y_J\leq0.
+ \label{eq:equitable-message-is-kkt}
+\end{equation}
+The negative of this quantity is the aggregated shifted KKT slack on the
+first inactive shell.  Equitability makes the coordinate slack identical at
+every vertex of that shell, so its sign is coordinatewise valid.  Vertices
+beyond it have no edge to the support and have negative shifted demand.
+Thus the prefix solve satisfies the full KKT system.  If every message is
+positive, there is no inactive boundary.  The zero case follows directly
+from $\widehat c_0\leq0$ and the negative demands away from the seed.
+
+It remains to justify locality.  Once $\mathcal L_i$ is certified active,
+scan its adjacency lists exactly once.  The scan enumerates the distinct
+labels in $\mathcal L_{i+1}$, hence $m_{i+1}$, and counts their incident edges
+from $\mathcal L_i$, hence the promised common value $\nu_{i+1}^-$.  Degree
+queries give $\bar d_{i+1}$, while the same scan gives $\nu_i^+$.  Therefore
+$\gamma_{i+1}$, $\widehat c_{i+1}$, and $\eta_{i+1}$ are known before any
+adjacency list in $\mathcal L_{i+1}$ is scanned.  Only when this message is
+positive does the algorithm scan the new shell to obtain $\nu_{i+1}^0$ and
+$\nu_{i+1}^+$, form its pivot, and continue.  Consequently every active
+adjacency list is scanned once and no inactive-boundary list is scanned.
+The boundary labels and their degree queries are charged to edges in the
+last active scan.  The reverse scalar solve and output write are linear in
+the active shells and vertices.  This proves
+\cref{eq:equitable-output-linear-work}.
+\end{proof}
+
+The preceding theorem was stated as a promise result only to keep its formula
+short.  Its structural hypothesis can in fact be audited online, so using the
+fast path never requires trusting a global symmetry oracle.  For the current
+shell prefix
+$U_i:=\bigcup_{h=0}^i\mathcal L_h$, let $x^{[i]}$ denote its restricted
+Dirichlet solution and let $\xi_i^{[i]}$ be its common coordinate value on
+$\mathcal L_i$.  Once the scalar checks have succeeded through shell $i$,
+the boundary violation at $v\in\mathcal L_{i+1}$ is explicitly
+\begin{equation}
+ \zeta_v^{[i]}
+ :=c_{\rho,v}-(Qx^{[i]})_v
+ =c_{\rho,v}
+  +\frac{1-\alpha}{2\sqrt{d_v\bar d_i}}
+   |N(v)\cap\mathcal L_i|\,\xi_i^{[i]}.
+ \label{eq:audited-shell-boundary-violation}
+\end{equation}
+
+\begin{theorem}[A certifying shell-quotient fast path on every graph]
+\label{thm:certifying-shell-fast-path}
+There is an exact single-seed RPPR algorithm on an arbitrary graph with the
+following behavior.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item It follows the scalar recurrence
+ \cref{eq:equitable-forward-schur} only while scans certify that every active
+ shell has common degree and common neighbor counts to the preceding, current,
+ and next shells.
+ \item Before admitting the next shell, it evaluates
+ $\zeta_v^{[i]}$ for every exposed boundary label using only the last active
+ shell scan and degree queries.  If all values are nonpositive, it returns the
+ exact optimum.  If the positive set is not the entire shell, or a uniformity
+ check fails, it hands that exact positive set and the current safe prefix to
+ the condition-free boundary gate of
+ \cref{thm:condition-free-graph}.
+ \item Every fast-path admission contains only true-support vertices.  Hence
+ the fallback is exact, and a failed audit returns a concrete pair of labels
+ with different local signatures or different violation signs.
+\end{enumerate}
+If the algorithm terminates without fallback, its work is
+$O(1+\vol(S^\star(\rho)))$.  This happens on every root-distance-equitable
+graph, but requires equitability only on the scanned active prefix; the graph
+beyond the first inactive boundary may be arbitrary.  Thus the global promise
+and its recognition cost are removed from the correctness claim.
+\end{theorem}
+
+\begin{proof}
+Scanning $\mathcal L_i$ reveals, for every vertex in that shell, its degree
+and its three neighbor counts, and it enumerates every label in
+$\mathcal L_{i+1}$.  Counting appearances of each boundary label gives
+$|N(v)\cap\mathcal L_i|$ without scanning that label's adjacency list; one
+degree query then gives every quantity in
+\cref{eq:audited-shell-boundary-violation}.  Hashing the resulting signatures
+either certifies uniformity or returns two explicit witnesses in time linear
+in the scan.
+
+Inductively, suppose all audits through $i$ succeeded.  The invariant-subspace
+and Gaussian-elimination proof of
+\cref{thm:equitable-shell-one-pass}, applied only to $Q_{U_iU_i}$, shows that
+the scalar point is exactly $x^{[i]}$ and is positive.  The set
+\begin{equation*}
+ B_i=\{v\in\mathcal L_{i+1}:\zeta_v^{[i]}>0\}
+\end{equation*}
+is therefore precisely the violating batch of the exact boundary gate.
+\Cref{thm:condition-free-graph} gives
+$B_i\subseteq S^\star(\rho)$.  If it is empty, the active equalities hold on
+$U_i$, every boundary inequality holds by the displayed test, and every more
+distant nonseed vertex has zero coupling to $U_i$ and strictly negative
+shifted demand.  These are the full KKT conditions.
+
+If $B_i$ is a proper nonempty subset, the one-scalar shell recurrence has
+encountered a genuine partial-shell event, and the exact gate continues from
+the same batch.  If $B_i=\mathcal L_{i+1}$, the Schur-complement argument in
+\cref{thm:condition-free-graph} proves that the restricted minimizer on
+$U_i\cup B_i$ is positive.  The algorithm may therefore scan the admitted
+shell.  A successful audit supplies the next quotient diagonal and continues
+the induction; a failed audit starts the general gate from this still-safe
+region.  Thus no failed symmetry guess can affect correctness.
+
+On a no-fallback execution, every active adjacency list is scanned once, and
+the inactive boundary contributes only labels, incident-edge counts, degree
+queries, and the coordinatewise KKT test.  All are charged to the last active
+scan, proving the stated work.  Global root-distance equitability makes every
+audit succeed, while the proof itself used no information beyond the scanned
+prefix and its boundary.
+\end{proof}
+
+\begin{corollary}[The persistent-support product lower bound is oracle-specific]
+\label{cor:spider-oracle-separation}
+On the path-bundle instance used for the repository's persistent-support
+lower bound, the algorithm in \cref{thm:spider-one-pass} has
+\begin{equation}
+ \Work=\Theta(1/\rho).
+ \label{eq:spider-direct-work}
+\end{equation}
+The same instance costs
+$\Omega(1/(\rho\sqrt\alpha))$ under the persistent-support one-hop payment
+rule.  Hence that product is not a lower bound for local methods that charge
+actual frontier scans and retain directed Schur messages.
+\end{corollary}
+
+\begin{proof}
+The source support bound gives
+$\vol(S^\star(\rho))\leq1/\rho$.  Conversely, the lower-bound construction
+proves that the first
+$L=\Theta(1/\sqrt\alpha)$ vertices of each of
+$B=\Theta(\sqrt\alpha/\rho)$ arms are active.  Their volume is
+$\Omega(BL)=\Omega(1/\rho)$.  Apply \cref{thm:spider-one-pass}.  The larger
+persistent-support charge comes from summing the entire resident volume over
+the $L$ exposure rounds; the Schur-message algorithm scans only the new
+frontier and makes one reverse pass.
+\end{proof}
+
+This separation changes the interpretation of ``matching the lower bound.''
+For literal persistent-support algorithms, the product scale remains tight.
+For elimination-aware local algorithms, the symmetric spider is no longer a
+hard instance; a future universal lower bound must obstruct compressed
+messages, not merely one-hop propagation.

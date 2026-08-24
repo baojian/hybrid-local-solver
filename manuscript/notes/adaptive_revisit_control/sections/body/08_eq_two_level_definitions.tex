@@ -1,0 +1,63 @@
+\subsection{Two-level revisit factorization}
+
+Let
+\[
+ U_0\subseteq U_1\subseteq\cdots\subseteq U_K
+\]
+be nonempty nested regions.  Suppose epoch $k$ incurs charged work $W_k$,
+the union of all coordinates touched by the full run is $U_K$, and write
+\begin{equation}
+ \mu_k:=\frac{W_k}{C(U_k)},
+ \qquad
+ \mathfrak R_{\rm set}
+ :=\frac{\sum_{k=0}^K C(U_k)}{C(U_K)}.
+ \label{eq:two-level-definitions}
+\end{equation}
+The first quantity is the within-epoch work multiplier.  The second is the
+settled-volume revisit factor proved useful in the sibling
+\texttt{propagate\_settle\_framework} note.
+
+\begin{theorem}[Exact two-level revisit factorization]
+\label{thm:two-level-factorization}
+Define the settled-volume-weighted mean
+\begin{equation}
+ \overline\mu:=
+ \frac{\sum_{k=0}^K\mu_kC(U_k)}
+      {\sum_{k=0}^K C(U_k)}.
+ \label{eq:mean-local-multiplier}
+\end{equation}
+Then the final operation-level revisit ratio satisfies
+\begin{equation}
+ \varrho_{\rm rev}
+ =\overline\mu\,\mathfrak R_{\rm set}.
+ \label{eq:two-level-factorization}
+\end{equation}
+Consequently, if $m\leq\mu_k\leq M$ for every epoch, then
+\begin{equation}
+ m\,\mathfrak R_{\rm set}
+ \leq\varrho_{\rm rev}
+ \leq M\,\mathfrak R_{\rm set}.
+ \label{eq:factorization-sandwich}
+\end{equation}
+If every epoch scans its whole settled region at least once, one may take
+$m=1$.
+\end{theorem}
+
+\begin{proof}
+The total charged work is
+\[
+ W=\sum_{k=0}^K W_k
+  =\sum_{k=0}^K\mu_kC(U_k)
+  =\overline\mu\sum_{k=0}^K C(U_k).
+\]
+Divide by $C(U_K)$ and use
+\cref{eq:revisit,eq:two-level-definitions}.  The sandwich follows because a
+weighted mean lies between its smallest and largest entries.
+\end{proof}
+
+This identity bridges the empirical and theoretical statistics.  A large
+$\varrho_{\rm rev}$ can arise from large within-epoch multiplicity, large
+settled-volume revisit, or both.  The causal ledger diagnoses the first
+mechanism; incremental Schur state or a different expansion schedule attacks
+the second.  The identity applies to nested propagate--settle executions, not
+automatically to the literal frontier artifact's noncanonical SOR phases.

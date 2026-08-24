@@ -1,0 +1,116 @@
+\subsection{Certified response trees}
+\label{sec:certified-response-trees}
+
+A complementary extension groups response rows that are not equal but are
+certifiably too far from zero for their differences to matter.  The following
+unit envelope makes the certificate local.  Let $x^0:=Q^{-1}b$ denote the
+unregularized single-seed PageRank point.
+
+\begin{lemma}[Unit envelope for RPPR gate states]
+\label{lem:rppr-unit-envelope}
+Every exact restricted gate state $x^U$ on a safe region
+$U\subseteq S^\star(\rho)$ satisfies
+\begin{equation}
+ 0\leq x^U\leq x^\star(\rho)\leq x^0,
+ \qquad
+ \|x^U\|_2\leq1.
+ \label{eq:rppr-unit-envelope}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The first two inequalities are \cref{thm:safe-boundary-expansion}.  On an
+active optimum coordinate, $(Qx^\star)_v=b_v-\alpha\rho\sqrt{d_v}\leq b_v$;
+on an inactive nonseed coordinate, Stieltjes signs and $x_v^\star=0$ give
+$(Qx^\star)_v\leq0=b_v$.  Hence $Qx^\star\leq b$, and inverse positivity
+gives $x^\star\leq Q^{-1}b=x^0$.  Finally
+$\lambda_{\min}(Q)\geq\alpha$ and
+$\|b\|_2=\alpha\|D^{-1/2}e_o\|_2\leq\alpha$, so
+$\|x^0\|_2\leq1$.
+\end{proof}
+
+At stage $k$, suppose a certified factorization of the live response is
+\begin{equation}
+ Q_{\Gamma_kZ_k}=Y_kR_k+E_k,
+ \qquad R_kR_k^T=I_{r_k},
+ \qquad \|(E_k)_{v,:}\|_2\leq\varepsilon_v.
+ \label{eq:certified-response-factor}
+\end{equation}
+A node $C$ of a response tree stores a center
+$(\bar\ell_C,\bar y_C)$ and radii
+\begin{equation}
+ |\ell_v-\bar\ell_C|\leq a_C,
+ \quad \|(Y_k)_{v,:}-\bar y_C\|_2\leq b_C,
+ \quad \varepsilon_v\leq\varepsilon_C
+ \qquad(v\in C).
+ \label{eq:response-cluster-radii}
+\end{equation}
+For $t_k:=R_kx^k_{Z_k}$, put
+\begin{equation}
+ m_C:=\bar\ell_C-\bar y_C^Tt_k,
+ \qquad \delta_C:=a_C+b_C+\varepsilon_C.
+ \label{eq:response-cluster-interval}
+\end{equation}
+By \cref{lem:rppr-unit-envelope}, every exact demand in $C$ lies in
+$[m_C-\delta_C,m_C+\delta_C]$.  Therefore a whole node is accepted when its
+lower endpoint is positive, rejected when its upper endpoint is nonpositive,
+and otherwise refined, eventually to an exact singleton row.
+
+\begin{theorem}[Certified low-rank response-tree gate]
+\label{thm:certified-response-tree}
+Suppose a safe exact RPPR trace has a charged activation-aligned separator
+presentation of frontal size $\zeta$ and the certified structures
+\cref{eq:certified-response-factor,eq:response-cluster-radii}.  Let
+$\mathcal V_k$ be the response-tree nodes visited at stage $k$, let
+$\mathcal L_k$ be the ambiguous vertices resolved by exact singleton rows,
+and put $r:=\max_kr_k$.  If $\mathcal C_{\rm maint}$ is the total work of
+maintaining the factors and trees, and
+\begin{equation}
+ \mathcal C_{\rm leaf}
+ :=\sum_k\sum_{v\in\mathcal L_k}
+   \bigl(1+|N(v)\cap Z_k|\bigr),
+ \label{eq:response-leaf-charge}
+\end{equation}
+then the identical exact batches and final solution are generated in
+\begin{equation}
+ O\!\left(
+  (1+\zeta^2)\operatorname{cvol}(S)
+  +r\sum_k|\mathcal V_k|
+  +\mathcal C_{\rm leaf}+\mathcal C_{\rm maint}
+  +\mathcal T_{\rm sep}
+ \right)
+ \label{eq:certified-response-tree-work}
+\end{equation}
+work.  In particular, it reaches the accelerated product scale if the four
+response-maintenance terms after the first are collectively
+$\widetilde O(\operatorname{cvol}(S)/\sqrt\alpha)$ and
+$\zeta^2=\widetilde O(1/\sqrt\alpha)$.
+\end{theorem}
+
+\begin{proof}
+For $v\in C$, subtract the center expression in
+\cref{eq:response-cluster-interval} from
+$e_{\ell_\rho}(x^k)_v=\ell_v-(Y_k)_{v,:}t_k-(E_k)_{v,:}x^k_{Z_k}$.
+The triangle inequality, $\|t_k\|_2\leq\|x^k\|_2\leq1$, and
+\cref{eq:rppr-unit-envelope} give the claimed interval.  Hence accepted,
+rejected, and exact singleton leaves classify every frontier vertex exactly,
+including the strict zero convention.  Induction therefore reproduces the
+exact batches.  A visited node costs $O(r)$, exact leaves cost
+\cref{eq:response-leaf-charge}, the factor/tree changes cost
+$\mathcal C_{\rm maint}$, and the separator/Schur algebra is exactly the
+charge in \cref{thm:aligned-separator-signature} without its signature term.
+Reverse recovery gives the exact terminal solution.
+\end{proof}
+
+One global numerical-rank hypothesis cannot make this theorem universal.
+For a matched interface of size $q$ in a $D$-regular graph,
+$Q_{\Gamma Z}=-cI_q$ with $c=(1-\alpha)/(2D)$.  Every rank-$r$ matrix $M$
+satisfies
+\begin{equation}
+ \|cI_q-M\|_F^2\geq(q-r)c^2.
+ \label{eq:matched-interface-rank-obstruction}
+\end{equation}
+Thus uniformly small relative row error forces $r=\Omega(q)$.  A successful
+general response tree must exploit sparse near-field structure, hierarchical
+low rank, margins, or another monotonicity principle rather than one global
+factor.

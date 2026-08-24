@@ -1,0 +1,134 @@
+\section{A branching obstruction: the spider center echo}
+\label{sec:direct-spider-center}
+
+The path certificate depends on equal interior rank weights. It fails at a
+branch even before different waves return from positive depth. Consider a
+symmetric spider with center $c$, $q\geq3$ arms of length at least two, and
+seed $s=e_c$. The center has degree $q$, while every first arm vertex
+$v_i$ has degree two. In normalized residual coordinates, put
+\begin{equation}
+ \zeta:=\frac{\alpha}{q},
+ \qquad
+ w_q:=\frac{q}{q+1},
+ \qquad
+ \beta_\lambda:=\frac23\eta
+ =\frac{2\lambda}{3(1+\lambda^2)}.
+ \label{eq:direct-spider-parameters}
+\end{equation}
+
+\begin{proposition}[Exact center-only prefix]
+\label{prop:direct-spider-center-prefix}
+Suppose the first $t$ optimal-SOR pushes are all at the center. Immediately
+after them,
+\begin{align}
+ y_c^{(t)}&=(-\lambda^2)^t\zeta,
+ \label{eq:direct-spider-center-residual}\\
+ y_{v_i}^{(t)}&=eta\bigl(1-(-\lambda^2)^t\bigr)\zeta,
+ \qquad i=1,\ldots,q.
+ \label{eq:direct-spider-arm-residual}
+\end{align}
+All other residuals vanish. Consequently, the center and each first arm
+vertex have ranks
+\begin{align}
+ p_c^{(t)}&=w_q\lambda^{2t}\zeta,
+ \label{eq:direct-spider-center-rank}\\
+ p_{v_i}^{(t)}&=\beta_\lambda
+ \bigl(1-(-\lambda^2)^t\bigr)\zeta.
+ \label{eq:direct-spider-arm-rank}
+\end{align}
+Thus, while the displayed entries remain above the spreading gate, refreshed
+ranking continues to push the center exactly while
+\begin{equation}
+ w_q\lambda^{2t}>
+ \beta_\lambda\bigl(1-(-\lambda^2)^t\bigr).
+ \label{eq:direct-spider-center-condition}
+\end{equation}
+An exact score tie only delegates the next operation to the implementation's
+tie rule.
+\end{proposition}
+
+\begin{proof}
+Initially $y_c^{(0)}=\zeta$. A center push multiplies its residual by
+$-\lambda^2$ and sends $\lambda y_c$ to each degree-two arm target. Therefore
+\begin{equation*}
+ y_{v_i}^{(t)}
+ =\lambda\zeta\sum_{j=0}^{t-1}(-\lambda^2)^j
+ =\frac{\lambda}{1+\lambda^2}
+   \bigl(1-(-\lambda^2)^t\bigr)\zeta.
+\end{equation*}
+This proves the residual formulas. Multiply their magnitudes by the rank
+weights $q/(q+1)$ and $2/3$ from \cref{eq:direct-path-rank}. No deeper arm
+coordinate has received a packet, so comparing the displayed ranks proves
+\cref{eq:direct-spider-center-condition}.
+\end{proof}
+
+\begin{corollary}[The branch consumes a full accelerated revisit budget]
+\label{cor:direct-spider-center-echo}
+For every fixed $q\geq3$ and $Bq\epsppr<1/4$, the spreading gate does not
+truncate the center-only prefix for all sufficiently small $\alpha$. As
+$\alpha\downarrow0$, the number $T_q$ of consecutive center pushes before an
+arm first has at least the center's rank satisfies
+\begin{equation}
+ T_q
+ =\Theta\!\left(\frac1{\sqrt\alpha}\right),
+ \qquad
+ T_q\sqrt\alpha
+ \longrightarrow
+ \frac14\log\!\left(\frac{2q-1}{q+1}\right)
+ \label{eq:direct-spider-center-asymptotic}
+\end{equation}
+away from the immaterial exact-tie parameters. In particular, about half of
+these operations push a negative center residual, and their charged work is
+\begin{equation}
+ (q+1)T_q=\Theta\!\left(\frac q{\sqrt\alpha}\right).
+ \label{eq:direct-spider-center-work}
+\end{equation}
+Moreover, the second center operation is already a negative-residual revisit
+whenever
+\begin{equation}
+ \lambda>\frac{2(q+1)}{3q}
+ \quad\Longleftrightarrow\quad
+ \sqrt\alpha<\frac{q-2}{5q+2}.
+ \label{eq:direct-spider-immediate-negative}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Write $x_t:=\lambda^{2t}$. At odd $t$, the arm term in
+\cref{eq:direct-spider-center-condition} is
+$\beta_\lambda(1+x_t)$. Its crossover is therefore
+\begin{equation*}
+ x_t=\frac{\beta_\lambda}{w_q-\beta_\lambda}
+ \longrightarrow\frac{q+1}{2q-1}.
+\end{equation*}
+At even $t$ the arm term is $\beta_\lambda(1-x_t)$ and its crossover is
+strictly later. Since
+$-\log\lambda=2\operatorname{arctanh}(\sqrt\alpha)
+\sim2\sqrt\alpha$, solving $\lambda^{2t}$ at the odd crossover proves
+\cref{eq:direct-spider-center-asymptotic}; parity and an exact tie change
+$T_q$ by only $O(1)$. The center sign alternates, giving the work statement.
+The limiting odd crossover is at least $1/2$, whereas the spreading threshold
+divided by $\zeta$ is $Bq\epsppr<1/4$. Hence, for sufficiently small
+$\alpha$, neither the center prefix nor the first competitive arm is removed
+by the gate.
+
+After the first center push, compare
+$w_q\lambda^2\zeta$ with the arm rank
+$(2/3)\lambda\zeta$. The center is still larger precisely under the first
+inequality in \cref{eq:direct-spider-immediate-negative}. Substitution of
+$\lambda=(1-\sqrt\alpha)/(1+\sqrt\alpha)$ gives the equivalent second
+inequality.
+\end{proof}
+
+This result is an obstruction to extending the path proof, not yet a lower
+bound against two-rung SOR. The exposed degree volume after the first push is
+$\Theta(q)$, so \cref{eq:direct-spider-center-work} exactly saturates the
+desired $\mathcal V_{\rm exp}/\sqrt\alpha$ scale at one branch. A global
+theorem must show that many branch echoes do not multiply. It must also treat
+literal batching separately: a top-fraction batch can move several tied arms
+after the center operation, so batching may reduce this particular refreshed
+obstruction rather than merely introduce staleness. The calculation suggests
+a branch-aware alternative---rank a center together with the aggregate score
+of its forward children, or use the sign guard from
+\cref{cor:direct-path-sign-guarded-batches}---but no graph-uniform claim for
+either modification is made here.

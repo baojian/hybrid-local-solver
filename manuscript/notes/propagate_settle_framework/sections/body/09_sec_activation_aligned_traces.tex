@@ -1,0 +1,264 @@
+\subsection{Activation-aligned separator traces}
+\label{sec:activation-aligned-traces}
+
+The fan proof uses two properties that are more general than its symmetry.
+First, already processed coordinates are separated from the live boundary by
+a small retained interface.  Second, boundary vertices fall into a small
+number of classes whose exact violation demands agree.  The next definition
+isolates precisely these two properties.
+
+For a zero-exterior Dirichlet trace
+$U_0\subsetneq\cdots\subsetneq U_K$, let
+\begin{equation}
+ \Gamma_k:=\partial U_k,
+ \qquad
+ B_k:=\{v\in\Gamma_k:e_\ell(x^k)_v>0\},
+ \qquad
+ U_{k+1}:=U_k\cup B_k,
+ \label{eq:aligned-gate-trace}
+\end{equation}
+where $Q_{U_kU_k}x^k_{U_k}=\ell_{U_k}$ and
+$x^k_{U_k^c}=0$.  Thus $B_k$ is the exact gate batch, not a proposed
+surrogate.
+
+We use a unit-cost exact-arithmetic adjacency-list model in this subsection.
+Once a vertex identifier is exposed, its degree and load can be queried in
+$O(1)$ work; scanning its neighbors still costs its degree.  Exact signature
+keys have a canonical representation with unit-cost equality and hashing.
+For normalized RPPR this can be implemented by a discrete key containing the
+degree/load token and the labeled neighborhood inside $Z_k$.  Thus the theorem
+below is an exact-real-RAM statement, not a finite-bit complexity theorem.
+
+\begin{definition}[Online activation-aligned separator presentation]
+\label{def:activation-aligned-presentation}
+An exact trace \cref{eq:aligned-gate-trace} has a charged online
+$(\zeta,\nu)$ activation-aligned separator presentation if it is equipped
+with a uniform transcript-measurable update algorithm which, from the graph
+exposed through $U_k$, maintains a partition
+\begin{equation}
+ U_k=P_k\mathbin{\dot\cup}Z_k
+ \label{eq:processed-separator-partition}
+\end{equation}
+with the following properties.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item Initially $P_0=\varnothing$, and after admitting $B_k$ the next
+ separator is chosen online so that
+ \begin{equation}
+  Z_{k+1}\subseteq Z_k\cup B_k,
+  \qquad
+  P_{k+1}=P_k\cup\bigl((Z_k\cup B_k)\setminus Z_{k+1}\bigr).
+  \label{eq:aligned-retirement}
+ \end{equation}
+ \item The retained separator shields the current frontier from every
+ retired coordinate:
+ \begin{equation}
+  Q_{\Gamma_kP_k}=0.
+  \label{eq:frontier-separation}
+ \end{equation}
+ \item The live frontal system is bounded:
+ \begin{equation}
+  |Z_k\cup B_k|\leq\zeta,
+  \label{eq:aligned-frontal-size}
+ \end{equation}
+ where $B_K:=\varnothing$ at termination.
+ \item At stage $k$, the frontier equivalence relation
+ \begin{equation}
+  v\sim_k w
+  \quad\Longleftrightarrow\quad
+  \ell_v=\ell_w
+  \quad\text{and}\quad
+  Q_{vZ_k}=Q_{wZ_k}
+  \label{eq:boundary-signature}
+ \end{equation}
+ has at most $\nu$ classes.
+\end{enumerate}
+Let $\mathcal T_{\rm sep}$ be the total work of producing and updating these
+separator choices which is not already charged to admitted adjacency scans or
+to the dense Schur operations below.  Nonuniform advice and knowledge of the
+terminal support are not included in the presentation.
+\end{definition}
+
+The last condition is an exact response condition, not merely a graph-type
+label.  Degrees, normalized edge weights, and the shifted RPPR load are all
+already encoded in $(\ell_v,Q_{vZ_k})$.  Equitability or a global graph
+automorphism is sufficient for repeated signatures but is not required.
+
+\begin{lemma}[Exact signature-table maintenance]
+\label{lem:exact-signature-table}
+Under \cref{def:activation-aligned-presentation}, the exact frontier classes,
+their member lists, and one representative per class can be maintained in
+\begin{equation}
+ O\!\left(
+   \zeta\operatorname{cvol}(S)+(K+1)\nu\zeta
+ \right)
+ \label{eq:signature-table-work}
+\end{equation}
+work, excluding $\mathcal T_{\rm sep}$.
+\end{lemma}
+
+\begin{proof}
+Every frontier vertex is first exposed by an edge scanned from an admitted
+vertex.  Consequently the number of distinct frontier vertices ever exposed
+is at most $\vol(S)$, and its degree and load metadata are charged once at
+exposure.  Store one canonical key and a member list for each current class.
+
+When a vertex of $B_k$ becomes a new coordinate of $Z_{k+1}$, only frontier
+vertices incident to that coordinate can split.  Those incidences are exactly
+the edges revealed while scanning $B_k$; inserting a labeled coordinate into
+a key costs $O(\zeta)$, so all such splits cost
+$O(\zeta\operatorname{cvol}(S))$.  If a coordinate retires, separation
+\cref{eq:frontier-separation} says that its entry is zero for every surviving
+frontier vertex.  It can therefore be deleted once from each of the at most
+$\nu$ class keys, after which equal class lists are spliced, without touching
+their members individually.  Rekeying representatives and exact gate queries
+over all $K+1$ stages cost $O((K+1)\nu\zeta)$.  This proves
+\cref{eq:signature-table-work}.
+\end{proof}
+
+\begin{theorem}[Exact work from separator and signature complexity]
+\label{thm:aligned-separator-signature}
+Suppose an exact boundary trace ending at $S:=U_K$ has an online
+$(\zeta,\nu)$ activation-aligned separator presentation.  Then the identical
+batches $B_0,\ldots,B_{K-1}$, every exact gate decision, and the final
+Dirichlet solution on $S$ can be generated with
+\begin{equation}
+ \Work_{\rm aligned}
+ =O\!\left(
+  (1+\zeta^2+\nu\zeta)\operatorname{cvol}(S)
+  +\mathcal T_{\rm sep}
+ \right)
+ \label{eq:aligned-separator-work}
+\end{equation}
+degree work and exact arithmetic.  The bound contains no settled-volume
+revisit factor.
+\end{theorem}
+
+\begin{proof}
+At stage $k$, eliminate the retired block $P_k$ but do not recover its
+coordinates.  Retain only
+\begin{align}
+ \widehat Q_k
+ &:={Q}_{Z_kZ_k}
+   -Q_{Z_kP_k}Q_{P_kP_k}^{-1}Q_{P_kZ_k},
+ \label{eq:aligned-reduced-matrix}\\
+ \widehat\ell_k
+ &:=\ell_{Z_k}
+   -Q_{Z_kP_k}Q_{P_kP_k}^{-1}\ell_{P_k}.
+ \label{eq:aligned-reduced-load}
+\end{align}
+For an empty $P_k$, these displays mean
+$\widehat Q_k=Q_{Z_kZ_k}$ and
+$\widehat\ell_k=\ell_{Z_k}$.  Schur-complement exactness gives
+\begin{equation}
+ x^k_{Z_k}=\widehat Q_k^{-1}\widehat\ell_k.
+ \label{eq:aligned-separator-solution}
+\end{equation}
+
+Now let $v\in\Gamma_k$.  By
+\cref{eq:frontier-separation} and the zero exterior condition,
+\begin{equation}
+ e_\ell(x^k)_v
+ =\ell_v-Q_{vZ_k}x^k_{Z_k}.
+ \label{eq:signature-demand}
+\end{equation}
+Consequently every vertex in one class of
+\cref{eq:boundary-signature} has exactly the same violation demand.  Solving
+\cref{eq:aligned-separator-solution} and testing one representative of each
+class therefore recovers $B_k$ exactly; enumerating the positive classes
+costs only the number of vertices actually admitted.
+
+Because $B_k\subseteq\Gamma_k$, separation also gives
+$Q_{P_kB_k}=0$.  Append the new batch to the retained system:
+\begin{equation}
+ \begin{bmatrix}
+  \widehat Q_k&Q_{Z_kB_k}\\
+  Q_{B_kZ_k}&Q_{B_kB_k}
+ \end{bmatrix}
+ \begin{bmatrix}x_{Z_k}\\x_{B_k}\end{bmatrix}
+ =
+ \begin{bmatrix}\widehat\ell_k\\\ell_{B_k}\end{bmatrix}.
+ \label{eq:aligned-frontal-system}
+\end{equation}
+Eliminating
+$(Z_k\cup B_k)\setminus Z_{k+1}$ from this system produces exactly
+$(\widehat Q_{k+1},\widehat\ell_{k+1})$.  Store its pivots and multipliers
+rather than expanding the solution on $P_{k+1}$.  Induction proves both the
+exactness of every gate decision and the reduced system.  At termination,
+one reverse pass through the stored eliminations recovers the exact solution
+on all of $S$.
+
+The dense algebra can be charged per admitted or retired coordinate rather
+than cubically per stage.  Maintain both $\widehat Q_k$ and its inverse.  If
+$\zeta$ is taken to be the realized maximum frontal size, initializing
+$\widehat Q_0^{-1}$ costs
+$O(|Z_0|^3)\leq O(\zeta^2|S|)$.  If
+$b_k:=|B_k|$, block inversion of \cref{eq:aligned-frontal-system} first forms
+\begin{equation*}
+ \mathcal T_k
+ :=Q_{B_kB_k}
+   -Q_{B_kZ_k}\widehat Q_k^{-1}Q_{Z_kB_k}
+\end{equation*}
+and then uses the standard $2$-by-$2$ inverse formula.  This costs
+$O(\zeta^2b_k)$ because $b_k\leq\zeta$.  Let
+$R_k:=(Z_k\cup B_k)\setminus Z_{k+1}$ and $r_k:=|R_k|$.
+The inverse of the next Schur complement is the $Z_{k+1}$ principal block of
+the frontal inverse.  Its matrix and reduced load are obtained by eliminating
+$R_k$ directly from the frontal system in $O(\zeta^2r_k)$ arithmetic.  Thus
+both $\widehat Q_{k+1}$ and its inverse remain available.
+
+The batches are disjoint, and the retired sets are disjoint because $P_k$ is
+monotone, so
+\begin{equation*}
+ \sum_k b_k\leq|S|,
+ \qquad
+ \sum_k r_k\leq|S|.
+\end{equation*}
+Multiplying $\widehat Q_k^{-1}\widehat\ell_k$ for all $K+1$ gate tests costs
+$O((K+1)\zeta^2)$, and reverse recovery costs $O(\zeta^2|S|)$.  Every
+nonterminal batch is nonempty, so
+$K\leq|S|\leq\operatorname{cvol}(S)$.  Combining these dense charges with
+the scans, \cref{lem:exact-signature-table}, and the charged separator updates
+proves
+\cref{eq:aligned-separator-work} (with $\zeta\geq1$).
+\end{proof}
+
+\begin{corollary}[RPPR response-complexity criterion]
+\label{cor:rppr-response-complexity}
+If the exact RPPR boundary trace has an online $(\zeta,\nu)$
+activation-aligned separator presentation, then it can be solved exactly in
+\begin{equation}
+ O\!\left(
+  \frac{1+\zeta^2+\nu\zeta}{\rho}+\mathcal T_{\rm sep}
+ \right)
+ \label{eq:rppr-response-complexity}
+\end{equation}
+work.  In particular, bounded $\zeta$ and $\nu$ together with
+$\mathcal T_{\rm sep}=O(1/\rho)$ give output-linear $O(1/\rho)$ work, while
+\begin{equation}
+ 1+\zeta^2+\nu\zeta
+ =\widetilde O(1/\sqrt\alpha)
+ \label{eq:response-product-criterion}
+\end{equation}
+is sufficient for the intended
+$\widetilde O(1/(\rho\sqrt\alpha))$ product scale, provided also that
+$\mathcal T_{\rm sep}=\widetilde O(1/(\rho\sqrt\alpha))$.
+\end{corollary}
+
+\begin{proof}
+By \cref{thm:safe-boundary-expansion}, the terminal set is
+$S^\star(\rho)$.  Apply \cref{thm:aligned-separator-signature} and the source
+support bound $\vol(S^\star(\rho))\leq1/\rho$, together with
+\cref{eq:charged-volume-equivalence}.
+\end{proof}
+
+The fan prefix satisfies the definition with $\zeta=3$ and $\nu=2$: retain
+$\{o,v_j\}$, distinguish only the next path vertex from the remote root
+neighbors, and admit one vertex.  Thus
+\cref{thm:fan-lazy-trace} is the smallest nontrivial instance of
+\cref{thm:aligned-separator-signature}.  More broadly, the theorem covers
+activation paths through bounded articulation blocks and nonequitable graphs
+whose current boundary has only a few exact response rows.  It does not
+cover an arbitrary thick core: there $\zeta$, $\nu$, or both may grow with
+the boundary.  The open problem has therefore become quantitative---bound
+the product in \cref{eq:response-product-criterion}, or replace exact
+signatures by a certified approximate representation.

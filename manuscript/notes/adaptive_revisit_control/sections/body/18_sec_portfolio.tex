@@ -1,0 +1,59 @@
+\section{A condition-free best-of-policy wrapper}
+\label{sec:portfolio}
+
+The nonidentifiability result concerns a controller forced to choose one
+future policy.  Branching removes that information bottleneck.  Let
+$P_1,\ldots,P_K$ be local solvers for the same instance and terminal
+certificate.  They may include, for example, exact Gauss--Seidel, fixed
+two-rung schedules at several band widths, an alpha-scaled ladder, and the
+frontier adaptive ladder.  Each policy receives an independent sparse state
+initialized from the same input.
+
+For instance $I$, let $C_j(I)$ be the charged edge or row work policy $P_j$
+would need if run alone until the verifier accepts it.  Fix positive service
+shares $\nu_j$ with $\sum_j\nu_j=1$.  A fractional work scheduler gives arm
+$j$ exactly a $\nu_j$ fraction of aggregate charged work and stops all arms
+as soon as one certifies.
+
+\begin{theorem}[Weighted portfolio oracle inequality]
+\label{thm:portfolio}
+Under fractional charged-work scheduling,
+\begin{equation}
+ C_{\rm port}(I)
+ =\min_{1\leq j\leq K}\frac{C_j(I)}{\nu_j}.
+ \label{eq:portfolio-exact}
+\end{equation}
+In particular, uniform service satisfies
+\begin{equation}
+ C_{\rm port}(I)=K\min_j C_j(I).
+ \label{eq:uniform-portfolio}
+\end{equation}
+
+If work is scheduled in indivisible chunks and a fair scheduler maintains
+received work $w_j(W)\geq\nu_jW-\Delta$ for every arm after aggregate work
+$W$, then
+\begin{equation}
+ C_{\rm port}(I)
+ \leq\min_j\frac{C_j(I)+\Delta}{\nu_j}.
+ \label{eq:portfolio-discrete}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+After aggregate fractional work $W$, arm $j$ has received $\nu_jW$.  It
+finishes exactly when $W=C_j(I)/\nu_j$; the first finishing arm proves
+\eqref{eq:portfolio-exact}.  Uniform shares give
+\eqref{eq:uniform-portfolio}.  Under the discrete invariant, aggregate work
+$W=(C_j(I)+\Delta)/\nu_j$ guarantees
+$w_j(W)\geq C_j(I)$, so arm $j$ has finished.  Minimize over $j$.
+\end{proof}
+
+The fractional model is natural for the manuscript's adjacency-edge work:
+an adjacency scan can be paused and resumed after buffering its row update.
+With atomic service operations, $\Delta$ can instead be taken as the largest
+scheduling chunk.  The wrapper uses $K$ sparse solver states and may explore
+the union of their frontiers; that storage and scalar-copy overhead must be
+reported even though \eqref{eq:portfolio-exact} counts graph work exactly.
+The benchmark service used by the measured artifact exposes only one mutable
+state, so literal implementation there would require protocol support for
+checkpoints or independent instances.
