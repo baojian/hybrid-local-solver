@@ -96,6 +96,12 @@ the active assignment ledger and provider-owned path declarations.
 
 ## Research context and paper library
 
+A new collaborator should begin with the
+[`docs/agent-onboarding/`](docs/agent-onboarding/) package. It gives a
+self-contained formal problem contract, the verified current research state,
+and the contribution workflow while routing every claim back to its
+authoritative source.
+
 Start with [`docs/research-context.md`](docs/research-context.md) for the
 current problem statement, intended contributions, open definitions, and
 documentation map. Curated notes and page-level pointers live in
