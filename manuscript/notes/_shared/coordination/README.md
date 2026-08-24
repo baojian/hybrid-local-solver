@@ -3,6 +3,11 @@
 The notes workspace uses a controller/worker model that preserves independent
 directions and makes cross-direction communication explicit.
 
+Repository-level branch, worktree, provider ownership, and assignment rules
+are defined in [`../../../../docs/coordination/policy.md`](../../../../docs/coordination/policy.md).
+Every note assignment must also have a matching entry in the root active
+assignment ledger.
+
 ## Roles
 
 - The **controller** maintains the shared problem, literature map, accumulated
@@ -45,6 +50,7 @@ accepted and routed each conclusion.
 
 Every handoff uses [`STATUS_TEMPLATE.md`](STATUS_TEMPLATE.md) and includes:
 
+- agent family, role, branch, base commit, and allowed write scope;
 - exact claim-status changes;
 - proof, counterexample, source, code, or experiment pointers;
 - which shared lemma is now reusable;
@@ -66,6 +72,8 @@ result.
 
 - Direction agents do not edit `_shared/`, `registry.toml`, or
   the root note `README.md` unless assigned as controller.
+- Agents use separate clean worktrees and `agent/<family>/<task>` branches;
+  they do not share a dirty worktree.
 - The controller does not rewrite a dirty direction file while its worker is
   active; it communicates a requested change instead.
 - Each agent inspects current diffs immediately before applying a patch and

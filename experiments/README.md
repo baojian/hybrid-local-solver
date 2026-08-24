@@ -1,8 +1,12 @@
 # Experiments
 
 Experiment drivers live here rather than under `src/baselines/`. They may
-download graph data, trigger Numba compilation, and run for a long time, so
-they are not collected by pytest.
+trigger Numba compilation and run for a long time, so they are not collected
+by pytest. Experiment execution never retrieves a missing graph implicitly.
+
+Provider-specific drivers live under `providers/<provider-id>/`. Shared
+sweeps, schemas, and proof-audit orchestration remain directly under
+`experiments/` and must not import one provider merely as an unnamed default.
 
 ## Research-note proof audits
 
@@ -34,14 +38,26 @@ generation, and the manuscript build.
 
 ## Full dataset sweeps
 
-The real-graph sweeps may download data and run for a long time. Run both with:
+First retrieve the revision-pinned files into a directory you choose:
 
 ```bash
-make full-experiments
+make fetch-graphs DATA_DIR=/absolute/path/to/graphs
 ```
 
-The individual `make eps-sweep` and `make omega-sweep` targets remain
-available for running one sweep at a time.
+This is the only graph-retrieval command. It verifies byte counts and SHA-256
+values before installing a completed file. See
+[`../docs/data-acquisition.md`](../docs/data-acquisition.md) for selective
+retrieval and the local directory layout.
+
+Run both sweeps with:
+
+```bash
+make full-experiments DATA_DIR=/absolute/path/to/graphs
+```
+
+The individual `make eps-sweep DATA_DIR=...` and
+`make omega-sweep DATA_DIR=...` targets remain available for one sweep at a
+time.
 
 Both sweeps write validated, per-source JSON records by default under
 `results/raw/`; pass `--output PATH` to choose another destination. Each record
@@ -62,6 +78,7 @@ Run the epsilon sweep with:
 
 ```bash
 uv run python -m experiments.run_eps_sweep \
+    --data-dir /absolute/path/to/graphs \
     --dataset com-dblp --alpha 0.05 --num-sources 10 \
     --output results/raw/eps-sweep-com-dblp.json
 ```
@@ -70,6 +87,7 @@ Run the SOR omega sweep with:
 
 ```bash
 uv run python -m experiments.run_omega_sweep \
+    --data-dir /absolute/path/to/graphs \
     --dataset com-dblp --alpha 0.05 \
     --output results/raw/omega-sweep-com-dblp.json
 ```
@@ -88,7 +106,7 @@ only `0 < eps_appr <= 1/16`, the parameter regime proved by the star theorem.
 Explore conjugate-direction locality on deterministic synthetic graphs with:
 
 ```bash
-uv run python -m experiments.explore_evolving_cg
+uv run python -m experiments.providers.codex.explore_evolving_cg
 ```
 
 This compares exact frontier-sparse CG against CG restarted after every
@@ -105,7 +123,7 @@ Reproduce the high-degree decoy obstruction to geometric-envelope locality
 with:
 
 ```bash
-uv run python -m experiments.explore_geometric_envelope_obstruction
+uv run python -m experiments.providers.codex.explore_geometric_envelope_obstruction
 ```
 
 The construction keeps `alpha = 0.01` and the note-scoped `eps_ppr = 0.25`

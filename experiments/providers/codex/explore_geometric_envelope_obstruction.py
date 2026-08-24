@@ -14,7 +14,7 @@ from src.hybrid_solver_codex.evolving_cg import (
 )
 from src.synthetic_graphs import decoy_hub_graph
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT = REPOSITORY_ROOT / "results" / "raw" / "geometric-envelope-obstruction.json"
 DEFAULT_HUB_DEGREES = (16, 64, 256, 1024, 4096)
 STOPPING_RULE = (

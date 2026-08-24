@@ -914,7 +914,7 @@ def main(args):
     # only -- graph loading pulls scipy and is needed only on this CLI path.
     from ..graphs import load_graph
 
-    graph = load_graph(args.dataset)
+    graph = load_graph(args.dataset, data_dir=args.data_dir)
     eps = parse_eps(args.eps, graph.n)
     res = single_local_sdd_solver([args.alpha, eps, args.source_id, graph, args.algo])
     errs, opers = res[-1][2], np.sum(res[-1][3])
@@ -928,6 +928,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Local SDD Solver")
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        required=True,
+        help="local graph root created by the explicit data-acquisition command",
+    )
     parser.add_argument(
         "--algo",
         type=str,

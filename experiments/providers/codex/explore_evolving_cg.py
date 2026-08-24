@@ -22,7 +22,7 @@ from src.hybrid_solver_codex.evolving_cg import (
 )
 from src.synthetic_graphs import graph_from_edges, path_graph, spider_graph, star_graph
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT = REPOSITORY_ROOT / "results" / "raw" / "evolving-cg-synthetic.json"
 STOPPING_RULE = (
     "terminate only after recomputing r = b - Qx and verifying "

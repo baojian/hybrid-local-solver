@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
@@ -35,6 +37,17 @@ jobs:
 
       - name: Synchronize locked environment
         run: uv sync --locked --all-groups
+
+      - name: Check coordination records
+        run: make agent-audit
+
+      - name: Check assigned and owned paths
+        if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'agent/')
+        run: >-
+          uv run python -m tools.agent_boundaries check-diff
+          --base "${{ github.event.pull_request.base.sha }}"
+          --head "${{ github.event.pull_request.head.sha }}"
+          --branch "${{ github.head_ref }}"
 
       - name: Check note registry
         run: make note-audit

@@ -9,13 +9,16 @@ substitute for the direction notes or their proofs.
 
 Date: YYYY-MM-DD
 Controller snapshot: <branch or dirty-tree description>
+Controller family: <family>
+Controller branch: `agent/<family>/<task>`
+Base commit: `<40-character commit>`
 Round state: <active | reviewed | redistributed>
 
 ## Assignments
 
-| Direction | Exact target | Allowed edit scope | Outcome |
-|---|---|---|---|
-| `<note-id>` | One falsifiable question | `<note-id>/` | `<pending | proved | conditional | refuted | narrowed | no-change>` |
+| Direction | Agent family | Branch | Exact target | Allowed edit scope | Outcome |
+|---|---|---|---|---|---|
+| `<note-id>` | `<family>` | `agent/<family>/<task>` | One falsifiable question | `<note-id>/` | `<pending | proved | conditional | refuted | narrowed | no-change>` |
 
 ## Direction handoffs
 

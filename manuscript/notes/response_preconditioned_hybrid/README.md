@@ -20,7 +20,7 @@ output-sensitively on high-rank nonequitable cores, and composing them into a
 graph-uniform RPPR solver, remain open.
 
 The diagnostic backend in `src/hybrid_solver_codex/response_hybrid.py` and
-driver `experiments/explore_response_hybrid.py` are dense correctness tools,
+driver `experiments/providers/codex/explore_response_hybrid.py` are dense correctness tools,
 not output-sensitive implementations.
 
 Build and audit from the repository root with:

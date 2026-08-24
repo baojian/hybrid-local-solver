@@ -1,4 +1,6 @@
-.PHONY: test lint paper notes note-audit note-report note-targets note-graph research-audit-fast research-audit research-audit-list experiments full-experiments eps-sweep omega-sweep response-hybrid figures reproduce clean
+.PHONY: test lint agent-audit paper notes note-audit note-report note-targets note-graph research-audit-fast research-audit research-audit-list experiments fetch-graphs require-data-dir full-experiments eps-sweep omega-sweep response-hybrid figures reproduce clean
+
+DATA_DIR ?=
 
 paper:
 	$(MAKE) -C manuscript
@@ -34,19 +36,28 @@ lint:
 	uv run ruff check .
 	uv run ruff format --check .
 
+agent-audit:
+	uv run python -m tools.agent_boundaries check
+
 experiments:
 	uv run python -m experiments.smoke_reproduce
 
-full-experiments: eps-sweep omega-sweep
+require-data-dir:
+	@test -n "$(DATA_DIR)" || (echo "Set DATA_DIR to an explicit graph directory." && exit 2)
 
-eps-sweep:
-	uv run python -m experiments.run_eps_sweep
+fetch-graphs: require-data-dir
+	uv run python -m experiments.data_acquisition.fetch_graphs --data-dir "$(DATA_DIR)" --all
 
-omega-sweep:
-	uv run python -m experiments.run_omega_sweep
+full-experiments: require-data-dir eps-sweep omega-sweep
+
+eps-sweep: require-data-dir
+	uv run python -m experiments.run_eps_sweep --data-dir "$(DATA_DIR)"
+
+omega-sweep: require-data-dir
+	uv run python -m experiments.run_omega_sweep --data-dir "$(DATA_DIR)"
 
 response-hybrid:
-	uv run python -m experiments.explore_response_hybrid
+	uv run python -m experiments.providers.codex.explore_response_hybrid
 
 figures:
 	MPLBACKEND=Agg uv run python -m experiments.generate_figures

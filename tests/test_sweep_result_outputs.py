@@ -11,7 +11,7 @@ def test_epsilon_sweep_persists_provisional_certificate_and_work(tmp_path, monke
     graph = star_graph(4)
     output_path = tmp_path / "eps.json"
 
-    monkeypatch.setattr(run_eps_sweep, "load_graph", lambda _name: graph)
+    monkeypatch.setattr(run_eps_sweep, "load_graph", lambda _name, *, data_dir: graph)
     monkeypatch.setattr(run_eps_sweep, "sdd_get_opt", lambda *args: np.zeros(graph.n))
 
     def fake_run_one(*args):
@@ -30,6 +30,8 @@ def test_epsilon_sweep_persists_provisional_certificate_and_work(tmp_path, monke
         "sys.argv",
         [
             "run_eps_sweep",
+            "--data-dir",
+            str(tmp_path),
             "--dataset",
             "tiny-star",
             "--alpha",
@@ -64,7 +66,7 @@ def test_omega_sweep_persists_each_source_run(tmp_path, monkeypatch):
     graph = star_graph(4)
     output_path = tmp_path / "omega.json"
 
-    monkeypatch.setattr(run_omega_sweep, "load_graph", lambda _name: graph)
+    monkeypatch.setattr(run_omega_sweep, "load_graph", lambda _name, *, data_dir: graph)
     monkeypatch.setattr(run_omega_sweep, "sdd_get_opt", lambda *args: np.zeros(graph.n))
 
     def fake_local_sor(*args):
@@ -82,6 +84,8 @@ def test_omega_sweep_persists_each_source_run(tmp_path, monkeypatch):
         "sys.argv",
         [
             "run_omega_sweep",
+            "--data-dir",
+            str(tmp_path),
             "--dataset",
             "tiny-star",
             "--alpha",
@@ -152,7 +156,7 @@ def test_omega_sweep_does_not_compare_against_uncertified_theoretical_row(
     graph = star_graph(4)
     output_path = tmp_path / "omega-uncertified.json"
 
-    monkeypatch.setattr(run_omega_sweep, "load_graph", lambda _name: graph)
+    monkeypatch.setattr(run_omega_sweep, "load_graph", lambda _name, *, data_dir: graph)
     monkeypatch.setattr(run_omega_sweep, "sdd_get_opt", lambda *args: np.zeros(graph.n))
 
     def fake_local_sor(*args):
@@ -174,6 +178,8 @@ def test_omega_sweep_does_not_compare_against_uncertified_theoretical_row(
         "sys.argv",
         [
             "run_omega_sweep",
+            "--data-dir",
+            str(tmp_path),
             "--dataset",
             "tiny-star",
             "--alpha",
