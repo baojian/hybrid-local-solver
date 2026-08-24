@@ -1,7 +1,22 @@
 # Agent Instructions
 
+This is a numerical optimization repository.
+
 This repository is a research project targeting peer-reviewed publication,
 including possible JMLR and ICML submissions.
+
+## Multi-agent coordination
+
+Before writing, read `docs/coordination/policy.md`, register the assignment in
+`docs/coordination/active_assignments.toml`, and use a dedicated clean
+worktree on a branch named `agent/<family>/<task>`. Active assignments must
+have disjoint write scopes. Shared-file permission and provider ownership are
+checked by `make agent-audit` and CI.
+
+Use `docs/coordination/context.toml` as the canonical default-context
+manifest. Load excluded source material only when the active task names it.
+Host-provided agent packages are not repository content; keep them outside the
+versioned worktree or mount them only for the task that needs them.
 
 ## Required research context
 
@@ -83,6 +98,7 @@ map. Place changes according to these boundaries:
 - reusable graph and solver code belongs in `src/`;
 - runnable experiment orchestration belongs in `experiments/`;
 - automated verification belongs in `tests/`;
+- repository coordination and maintenance commands belong in `tools/`;
 - source PDFs belong in `papers/` and must follow its Git LFS policy.
 
 Keep reusable solver logic out of experiment entry points, and do not use the
@@ -107,6 +123,12 @@ Solver implementations are separated by ownership under `src/`:
 - `src/hybrid_solver_claude/` is owned by Claude agents.
 - `src/baselines/` is shared reference code.
 
+The same provider ownership extends to
+`experiments/providers/<family>/` and `tests/providers/<family>/`. A new agent
+family receives new directories and a new `src/solver_providers.toml` entry;
+never repurpose an existing family's directory. Shared orchestration uses
+`src/solver_contract.py`.
+
 An agent must not modify another agent family's implementation directory.
 Cross-implementation comparison must happen through tests, experiments, or stable
 interfaces rather than by rewriting the other implementation.
@@ -123,6 +145,7 @@ See `src/AGENTS.md` for the detailed rules that apply within the source tree.
 Before finishing code changes:
 
 ```bash
+make agent-audit
 make test
 make lint
 ```

@@ -1,0 +1,92 @@
+schema_version = 1
+
+[default]
+include = [
+  "AGENTS.md",
+  "README.md",
+  "docs/project-scope.md",
+  "docs/research-context.md",
+  "docs/mathematical-conventions.md",
+  "docs/decisions/**",
+  "docs/literature/index.md",
+  "docs/coordination/**",
+  "src/AGENTS.md",
+  "src/README.md",
+  "src/solver_contract.py",
+  "src/solver_providers.toml",
+  "experiments/README.md",
+  "manuscript/notes/AGENTS.md",
+  "manuscript/notes/README.md",
+  "tools/**",
+  "manuscript/main.tex",
+  "manuscript/notes/registry.toml",
+]
+exclude = [
+  ".agents/**",
+  "papers/**",
+  "manuscript/archive/**",
+  "manuscript/notes/_shared/coordination/rounds/**",
+  "src/hybrid_solver_codex/**",
+  "src/hybrid_solver_claude/**",
+  "experiments/providers/**",
+  "tests/providers/**",
+  "manuscript/build/**",
+  "manuscript/notes/*/build/**",
+  "output/**",
+  "results/raw/**",
+  "tmp/**",
+  "**/__pycache__/**",
+]
+
+[[on_demand]]
+id = "literature-topic"
+paths = ["docs/literature/*.md"]
+condition = "Load only the topic note required by the active research or code task."
+
+[[on_demand]]
+id = "shared-source"
+paths = ["src/*.py", "src/baselines/**", "experiments/*.py", "tests/*.py"]
+condition = "Load only files relevant to the assigned implementation or verification task."
+
+[[on_demand]]
+id = "codex-provider"
+paths = [
+  "src/hybrid_solver_codex/**",
+  "experiments/providers/codex/**",
+  "tests/providers/codex/**",
+]
+condition = "Load for a Codex-owned assignment or an explicitly read-only comparison."
+
+[[on_demand]]
+id = "claude-provider"
+paths = [
+  "src/hybrid_solver_claude/**",
+  "experiments/providers/claude/**",
+  "tests/providers/claude/**",
+]
+condition = "Load for a Claude-owned assignment or an explicitly read-only comparison."
+
+[[on_demand]]
+id = "research-direction"
+paths = ["manuscript/notes/*/**"]
+condition = "Load only the direction named by the active assignment."
+
+[[on_demand]]
+id = "source-paper"
+paths = ["papers/**"]
+condition = "Load only the source named by the active literature-check task."
+
+[[on_demand]]
+id = "archived-manuscript"
+paths = ["manuscript/archive/**"]
+condition = "Load only the archive named by a comparison or provenance task."
+
+[[on_demand]]
+id = "round-history"
+paths = ["manuscript/notes/_shared/coordination/rounds/**"]
+condition = "Load only the round cited by a current handoff or evidence pointer."
+
+[[on_demand]]
+id = "agent-package"
+paths = [".agents/**"]
+condition = "Mount and load only for an explicitly assigned paper-import task."

@@ -8,6 +8,11 @@ returned to the controller.
 
 Last reviewed: YYYY-MM-DD
 State: <source | proved-open | conditional | measured | synthesis | refuted>
+Agent family: <family>
+Role: <controller | direction | reviewer>
+Branch: `agent/<family>/<task>`
+Base commit: `<40-character commit>`
+Allowed write scope: `<note directory and any explicitly shared files>`
 
 Choose exactly one state value from the enum above; put qualifications in the
 claim ledger rather than appending prose to `State`.
@@ -52,6 +57,12 @@ or experiment.
 - Source pointers checked:
 - Focused build/checks run:
 - Known gaps:
+
+## Repository handoff
+
+- Provider-owned paths changed:
+- Shared paths changed:
+- Assignment state: <active | ready_for_review>
 ```
 
 Keep the status concise. Long derivations and experiment records belong in the

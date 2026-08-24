@@ -36,6 +36,16 @@ Common protocols, data structures, and utility modules may live directly under
 `src/`. Keep them implementation-neutral: shared code must not silently favor,
 merge, or rewrite either agent-owned solver.
 
+`solver_contract.py` is the stable cross-provider request/result boundary, and
+`solver_providers.toml` is the provider registry. A new agent family receives a
+new owned package; never reuse another family's package. Provider-specific
+experiment and test code follows the matching paths under
+`experiments/providers/` and `tests/providers/`.
+
+`graphs.py` resolves and validates files only below a caller-supplied data
+directory. Remote retrieval belongs exclusively in the explicit experiment
+preparation utility described by `docs/data-acquisition.md`.
+
 ## Cross-boundary work
 
 - Never copy changes into the other agent family's directory.
@@ -44,3 +54,6 @@ merge, or rewrite either agent-owned solver.
   family must make the corresponding source change.
 - Tests may compare all implementations and baselines without taking ownership
   of their internal code.
+- Follow `docs/coordination/ownership.toml` and the active assignment ledger;
+  provider-owned changes must come from a matching `agent/<family>/<task>`
+  branch and isolated worktree.

@@ -1,6 +1,5 @@
 import hashlib
 from io import BytesIO
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -25,43 +24,54 @@ def _graph_payload():
     return output.getvalue()
 
 
-def test_downloads_pinned_graph_once_and_loads_it(monkeypatch, tmp_path):
-    payload = _graph_payload()
-    checksum = hashlib.sha256(payload).hexdigest()
-    monkeypatch.setitem(graphs.GRAPH_FILES, "com-dblp", (len(payload), checksum))
-    calls = []
+def _write_catalogued_graph(monkeypatch, data_dir):
+    graph_name = "com-dblp"
+    file_path = data_dir / graph_name / f"{graph_name}_csr-mat.npz"
+    file_path.parent.mkdir(parents=True)
+    file_payload = _graph_payload()
+    file_path.write_bytes(file_payload)
+    monkeypatch.setitem(
+        graphs.GRAPH_FILES,
+        graph_name,
+        (len(file_payload), hashlib.sha256(file_payload).hexdigest()),
+    )
+    return graph_name, file_path
 
-    def fake_urlopen(request, timeout):
-        calls.append((request.full_url, timeout))
-        return BytesIO(payload)
 
-    monkeypatch.setattr(graphs, "urlopen", fake_urlopen)
+def test_resolves_explicit_local_path_and_loads_graph(monkeypatch, tmp_path):
+    graph_name, file_path = _write_catalogued_graph(monkeypatch, tmp_path)
 
-    path = Path(graphs.graph_path("com-dblp", cache_dir=tmp_path))
-    assert path.read_bytes() == payload
-    assert calls == [(graphs.graph_url("com-dblp"), 60)]
-    assert graphs.HF_DATASET_REVISION in calls[0][0]
+    assert graphs.graph_path(graph_name, data_dir=tmp_path) == file_path
+    graph = graphs.load_graph(graph_name, data_dir=tmp_path)
 
-    graph = graphs.load_graph("com-dblp", cache_dir=tmp_path)
     assert isinstance(graph, graphs.GraphData)
-    assert graph.name == "com-dblp"
+    assert graph.name == graph_name
     assert graph.n == 3
     assert graph.m == 2
     assert graph.adjacency.nnz == 4
     np.testing.assert_array_equal(graph.degree, [1.0, 2.0, 1.0])
     assert len(graph.indptr) == graph.n + 1
     assert len(graph.indices) == graph.adjacency.nnz
-    assert len(calls) == 1
 
 
-def test_rejects_unknown_graph_before_downloading(monkeypatch, tmp_path):
-    def unexpected_download(request, timeout):
-        raise AssertionError("unknown graphs must not trigger a download")
-
-    monkeypatch.setattr(graphs, "urlopen", unexpected_download)
-
+def test_rejects_unknown_graph(tmp_path):
     with pytest.raises(ValueError, match="unknown graph"):
-        graphs.graph_path("not-a-graph", cache_dir=tmp_path)
+        graphs.graph_path("not-a-graph", data_dir=tmp_path)
+
+
+def test_missing_graph_has_explicit_acquisition_guidance(tmp_path):
+    with pytest.raises(FileNotFoundError, match="explicit data-acquisition command"):
+        graphs.graph_path("com-dblp", data_dir=tmp_path)
+
+
+def test_validates_size_and_optional_digest(monkeypatch, tmp_path):
+    graph_name, file_path = _write_catalogued_graph(monkeypatch, tmp_path)
+
+    assert graphs.validate_graph_file(graph_name, file_path, check_sha256=True) == file_path
+
+    monkeypatch.setitem(graphs.GRAPH_FILES, graph_name, (file_path.stat().st_size, "0" * 64))
+    with pytest.raises(OSError, match="SHA-256 mismatch"):
+        graphs.validate_graph_file(graph_name, file_path, check_sha256=True)
 
 
 def test_source_sampling_is_reproducible_sorted_and_degree_filtered():
@@ -91,15 +101,3 @@ def test_source_sampling_is_reproducible_sorted_and_degree_filtered():
 
     with pytest.raises(ValueError, match="count must be nonnegative"):
         graph.sample_sources(count=-1, seed=17)
-
-
-def test_rejects_corrupt_download(monkeypatch, tmp_path):
-    payload = b"not the expected graph"
-    monkeypatch.setitem(graphs.GRAPH_FILES, "com-dblp", (len(payload), "0" * 64))
-    monkeypatch.setattr(graphs, "urlopen", lambda request, timeout: BytesIO(payload))
-
-    with pytest.raises(OSError, match="SHA-256 mismatch"):
-        graphs.graph_path("com-dblp", cache_dir=tmp_path)
-
-    destination = tmp_path / graphs.HF_DATASET_SUBDIR / "com-dblp" / "com-dblp_csr-mat.npz"
-    assert not destination.exists()

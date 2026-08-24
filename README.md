@@ -1,9 +1,12 @@
 # Hybrid Local Solver
 
-`hybrid-local-solver` is a research codebase for developing and evaluating
-accelerated local solvers for large-scale graph optimization problems. The
-initial focus is local PageRank: obtaining an accurate solution near a seed
-set while avoiding work over the entire graph whenever locality permits.
+This is a numerical optimization repository.
+
+`hybrid-local-solver` develops and evaluates accelerated local solvers for
+large-scale graph optimization problems. The initial focus is local PageRank:
+obtaining an accurate solution near a seed set while avoiding work over the
+entire graph whenever locality permits. The canonical scope statement is
+[`docs/project-scope.md`](docs/project-scope.md).
 
 The project is in an early research stage. Algorithmic definitions, complexity
 claims, and experimental conclusions should be treated as work in progress
@@ -56,6 +59,7 @@ recorded in [`docs/`](docs/).
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
 | [`manuscript/`](manuscript/) | Active LaTeX paper, independently buildable research notes, shared notation, and read-only archives. |
 | [`papers/`](papers/) | Source PDFs managed with Git LFS; annotations belong in `docs/literature/`. |
+| [`tools/`](tools/) | Machine-checkable repository coordination and maintenance commands. |
 
 Keep reusable computational logic in `src/`; experiment scripts should
 orchestrate that logic, and tests should verify its stable interfaces. When
@@ -85,6 +89,11 @@ See [`docs/research_protocol.md`](docs/research_protocol.md) and
 [`docs/mathematical-conventions.md`](docs/mathematical-conventions.md) for the
 project-wide protocol and conventions.
 
+Agent-family ownership, branch/worktree isolation, handoffs, and default
+context selection are defined in
+[`docs/coordination/`](docs/coordination/). Run `make agent-audit` to validate
+the active assignment ledger and provider-owned path declarations.
+
 ## Research context and paper library
 
 Start with [`docs/research-context.md`](docs/research-context.md) for the
@@ -108,6 +117,7 @@ uv sync
 Run the standard checks with:
 
 ```bash
+make agent-audit
 make test
 make lint
 ```
@@ -161,12 +171,15 @@ deterministic synthetic APPR theorem smoke test, figure generation, and the
 manuscript build. The smoke result is written under `results/raw/` with its Git
 commit and dirty-worktree status.
 
-The real-graph parameter sweeps may download datasets and run for a long time,
-so they are kept behind an explicit command:
+Normal solver and sweep execution does not retrieve graph files. Prepare a
+chosen data directory explicitly, then pass that same directory to the long
+real-graph sweeps:
 
 ```bash
-make full-experiments
+make fetch-graphs DATA_DIR=/absolute/path/to/graphs
+make full-experiments DATA_DIR=/absolute/path/to/graphs
 ```
 
-See [`experiments/README.md`](experiments/README.md) for the individual sweep
-commands and their structured outputs.
+See [`docs/data-acquisition.md`](docs/data-acquisition.md) and
+[`experiments/README.md`](experiments/README.md) for selective retrieval,
+individual sweep commands, and structured outputs.

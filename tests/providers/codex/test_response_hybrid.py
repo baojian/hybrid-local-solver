@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from experiments import explore_response_hybrid
+from experiments.providers.codex import explore_response_hybrid
 from experiments.result_schema import make_result_bundle
 from src.hybrid_solver_codex.evolving_cg import pagerank_matrix, pagerank_rhs
 from src.hybrid_solver_codex.response_hybrid import (

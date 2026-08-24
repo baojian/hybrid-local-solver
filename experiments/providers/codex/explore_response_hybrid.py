@@ -8,12 +8,12 @@ from pathlib import Path
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from experiments.explore_evolving_cg import synthetic_cases
+from experiments.providers.codex.explore_evolving_cg import synthetic_cases
 from experiments.result_schema import make_result_bundle, write_result_bundle
 from src.hybrid_solver_codex.evolving_cg import pagerank_matrix, pagerank_rhs
 from src.hybrid_solver_codex.response_hybrid import dense_response_frontier_hybrid
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUTPUT = REPOSITORY_ROOT / "results" / "raw" / "response-hybrid-synthetic.json"
 STOPPING_RULE = (
     "terminate only after dense reference verification of r = b - Qx and "

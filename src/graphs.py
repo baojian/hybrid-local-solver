@@ -1,4 +1,4 @@
-"""The 10 evaluation graphs hosted in the pinned Hugging Face dataset."""
+"""Shared graph metadata, local-file validation, and graph representation."""
 
 from __future__ import annotations
 
@@ -6,25 +6,9 @@ import hashlib
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 import numpy as np
 import scipy.sparse as sp
-
-HF_DATASET_ID = "baojian-zh/local-pagerank-graphs"
-HF_DATASET_REVISION = "a1fcce6153e4c9707c1eb18a91eeebd6bbe7a0ed"
-HF_DATASET_SUBDIR = "localized-sparse-spd-solver/input"
-HF_DATASET_BASE_URL = (
-    f"https://huggingface.co/datasets/{HF_DATASET_ID}/resolve/"
-    f"{HF_DATASET_REVISION}/{HF_DATASET_SUBDIR}"
-)
-
-DEFAULT_CACHE_ROOT = (
-    Path(os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface"))
-    / "datasets"
-    / HF_DATASET_ID.replace("/", "--")
-    / HF_DATASET_REVISION
-)
 
 # name -> (nodes, undirected edges, average degree)
 GRAPHS = {
@@ -150,57 +134,56 @@ def _validate_name(name: str) -> None:
         raise ValueError(f"unknown graph {name!r}; expected one of: {choices}")
 
 
-def graph_url(name: str) -> str:
-    """Return the pinned Hugging Face URL for one graph."""
-    _validate_name(name)
-    return f"{HF_DATASET_BASE_URL}/{name}/{name}_csr-mat.npz"
-
-
-def graph_path(name: str, cache_dir: str | os.PathLike[str] | None = None) -> str:
-    """Download one graph if needed and return its local Hugging Face cache path."""
-    _validate_name(name)
-    cache_root = Path(cache_dir) if cache_dir is not None else DEFAULT_CACHE_ROOT
-    destination = cache_root / HF_DATASET_SUBDIR / name / f"{name}_csr-mat.npz"
-    expected_size, expected_sha256 = GRAPH_FILES[name]
-
-    if destination.is_file() and destination.stat().st_size == expected_size:
-        return str(destination)
-
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = destination.with_name(f".{destination.name}.{os.getpid()}.part")
+def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    downloaded = 0
-    request = Request(
-        graph_url(name),
-        headers={"User-Agent": "hybrid-local-solver/0.1"},
-    )
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
+
+def validate_graph_file(
+    name: str,
+    path: str | os.PathLike[str],
+    *,
+    check_sha256: bool = False,
+) -> Path:
+    """Validate one catalogued graph file without accessing a remote service."""
+    _validate_name(name)
+    destination = Path(path)
+    if not destination.is_file():
+        raise FileNotFoundError(f"graph file not found: {destination}")
+
+    expected_size, expected_sha256 = GRAPH_FILES[name]
+    actual_size = destination.stat().st_size
+    if actual_size != expected_size:
+        raise OSError(f"size mismatch for {name}: expected {expected_size}, found {actual_size}")
+    if check_sha256:
+        actual_sha256 = _sha256(destination)
+        if actual_sha256 != expected_sha256:
+            raise OSError(
+                f"SHA-256 mismatch for {name}: expected {expected_sha256}, found {actual_sha256}"
+            )
+    return destination
+
+
+def graph_path(name: str, *, data_dir: str | os.PathLike[str]) -> Path:
+    """Return a validated local graph path under an explicit data directory."""
+    _validate_name(name)
+    destination = Path(data_dir).expanduser() / name / f"{name}_csr-mat.npz"
     try:
-        with urlopen(request, timeout=60) as response, temporary.open("wb") as output:
-            while chunk := response.read(1024 * 1024):
-                output.write(chunk)
-                digest.update(chunk)
-                downloaded += len(chunk)
-
-        if downloaded != expected_size:
-            raise OSError(
-                f"size mismatch for {name}: expected {expected_size}, downloaded {downloaded}"
-            )
-        if digest.hexdigest() != expected_sha256:
-            raise OSError(
-                f"SHA-256 mismatch for {name}: expected {expected_sha256}, "
-                f"downloaded {digest.hexdigest()}"
-            )
-        temporary.replace(destination)
-    finally:
-        temporary.unlink(missing_ok=True)
-
-    return str(destination)
+        return validate_graph_file(name, destination)
+    except FileNotFoundError as error:
+        raise FileNotFoundError(
+            f"graph {name!r} is not present under {Path(data_dir).expanduser()}; "
+            "run the explicit data-acquisition command documented in "
+            "experiments/README.md"
+        ) from error
 
 
-def load_graph(name: str, cache_dir: str | os.PathLike[str] | None = None) -> GraphData:
-    """Download and load one dataset graph into the shared representation."""
-    adjacency = sp.load_npz(graph_path(name, cache_dir=cache_dir)).tocsr()
+def load_graph(name: str, *, data_dir: str | os.PathLike[str]) -> GraphData:
+    """Load one local dataset graph into the shared representation."""
+    adjacency = sp.load_npz(graph_path(name, data_dir=data_dir)).tocsr()
     adjacency.data[:] = 1.0
     adjacency.setdiag(0)
     adjacency.eliminate_zeros()

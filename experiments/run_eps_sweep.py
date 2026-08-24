@@ -2,6 +2,7 @@
 cheapest at each accuracy level.
 
     uv run python -m experiments.run_eps_sweep \
+        --data-dir /path/to/graphs \
         --dataset com-dblp --alpha 0.05 --num-sources 10
 
 For eps in {1/n, 0.1/n, 0.01/n, 0.001/n, 0.0001/n}, across `--num-sources`
@@ -192,6 +193,12 @@ def run_one(algo, n, indptr, indices, degree, b, s, alpha, eps, opt_x):
 
 def main():
     ap = argparse.ArgumentParser(description="eps sweep, l1 error + operations")
+    ap.add_argument(
+        "--data-dir",
+        type=Path,
+        required=True,
+        help="local graph root created by the explicit data-acquisition command",
+    )
     ap.add_argument("--dataset", default="com-dblp")
     ap.add_argument("--alpha", type=float, default=0.05)
     ap.add_argument("--num-sources", type=int, default=10)
@@ -214,7 +221,7 @@ def main():
     )
     a = ap.parse_args()
 
-    graph = load_graph(a.dataset)
+    graph = load_graph(a.dataset, data_dir=a.data_dir)
     n, m = graph.n, graph.m
     indptr, indices, degree = graph.indptr, graph.indices, graph.degree
     sq = np.sqrt(degree)

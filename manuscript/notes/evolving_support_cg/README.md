@@ -44,6 +44,6 @@ make
 Reproduce the synthetic exploration with:
 
 ```bash
-uv run python -m experiments.explore_evolving_cg
-uv run python -m experiments.explore_geometric_envelope_obstruction
+uv run python -m experiments.providers.codex.explore_evolving_cg
+uv run python -m experiments.providers.codex.explore_geometric_envelope_obstruction
 ```
