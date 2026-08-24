@@ -28,7 +28,7 @@ The exact endpoint-path CG trajectory is now resolved: for eps_ppr=1/10 its firs
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: none.
+- Formal registry dependencies: none.
 - Source/shared prerequisites: the shared PPR matrix/certificate and standard
   exact-CG identities.
 - Supplies to: response_preconditioned_hybrid as an iterative-frontier baseline; local_solver_oracle_hierarchy as an algorithm-specific exact-CG calibration, not a class lower bound; and the shared warning that finite propagation or a singleton residual alone does not imply one-pass work.
@@ -41,7 +41,7 @@ The exact endpoint-path CG trajectory is now resolved: for eps_ppr=1/10 its firs
 
 ## Verification
 
-- Source pointers checked: README.md, taxonomy.toml, main.tex, experiments, literature index/topic notes, and shared ledgers were cross-read on 2026-08-21.
+- Source pointers checked: README.md, registry.toml, main.tex, experiments, literature index/topic notes, and shared ledgers were cross-read on 2026-08-21.
 - Focused build/checks run: `make` and repository-wide `make note-audit` passed; exact formulas, full-prefix supports, termination, and prefix sums were checked numerically for n in {2,3,4,5,10,25,100}; scoped `git diff --check` passed. An independent read-only audit rederived the Krylov/Galerkin structure, continuant formulas, all endpoint cases, certificate inequality, prefix-volume sum, target-scale identity, eleven-coordinate implementation ledger, and scope and found no substantive defect.
 - Known gaps: The README now states the point-seed and exact-principal-solve
   assumptions of `prop:violation-only-volume`. Hestenes--Stiefel and Notay remain only

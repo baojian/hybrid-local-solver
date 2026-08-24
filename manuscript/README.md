@@ -69,10 +69,11 @@ repository-wide mathematical decision remains open, and they must label source
 results, proved statements, conditional statements, empirical observations,
 and open conjectures separately.
 
-[`notes/manifest.toml`](notes/manifest.toml) is the exhaustive machine-readable
+[`notes/registry.toml`](notes/registry.toml) is the exhaustive machine-readable
 inventory and [`notes/README.md`](notes/README.md) is the concise status index.
-Every note is normalized to `notes/<note-id>/main.tex`, `README.md`, and
-`Makefile`; all six can be built together with:
+Every note has `main.tex`, `README.md`, `STATUS.md`, and a shared-rule
+`Makefile`; large notes keep ordered proof units under `sections/body/`. All
+registered notes can be built together with:
 
 ```bash
 make notes

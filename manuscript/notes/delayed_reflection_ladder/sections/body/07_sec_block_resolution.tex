@@ -1,0 +1,132 @@
+\section{Exact block resolution of delayed debt}
+\label{sec:block-resolution}
+
+Repeated coordinate cleanup is not required by the residual invariant.  Let
+$S\subseteq V$ be a nonempty discovered region, and let
+$\iota_S:\mathbb R^S\to\mathbb R^V$ denote zero extension outside $S$.
+
+\begin{lemma}[Exact block correction]
+\label{lem:block-correction}
+For an arbitrary iterate $x$ and signed residual $r=b-Qx$, define
+\begin{equation}
+ z_S:=Q_{SS}^{-1}r_S,
+ \qquad
+ x^+:=x+\iota_S z_S.
+ \label{eq:block-correction}
+\end{equation}
+Then
+\begin{align}
+ r_S^+&=0,
+ \label{eq:block-interior-zero}\\
+ r_{S^c}^+&=r_{S^c}-Q_{S^cS}z_S,
+ \label{eq:block-boundary-update}\\
+ r_{\operatorname{Ext}(S)}^+&=r_{\operatorname{Ext}(S)}.
+ \label{eq:block-exterior-fixed}
+\end{align}
+Consequently, if the old residual on $\operatorname{Ext}(S)$ and the newly
+computed residual on $\partial S$ satisfy the terminal gate
+\cref{eq:note-gate}, then $x^+$ satisfies that gate globally.
+\end{lemma}
+
+\begin{proof}
+Since $Q\succeq\alpha I$, its principal block $Q_{SS}$ is positive definite
+and invertible.  The residual after the correction is
+\[
+ r^+=r-Q\iota_Sz_S.
+\]
+Restriction to $S$ and the definition of $z_S$ give
+$r_S^+=r_S-Q_{SS}z_S=0$, while restriction to $S^c$ gives
+\cref{eq:block-boundary-update}.  The sparsity pattern of $Q$ is the graph
+adjacency pattern plus the diagonal.  Hence $Q_{iS}=0$ for
+$i\in\operatorname{Ext}(S)$, proving \cref{eq:block-exterior-fixed}.  The
+global certificate follows by partitioning $V$ into
+$S$, $\partial S$, and $\operatorname{Ext}(S)$.
+\end{proof}
+
+The lemma is indifferent to the history of $r_S$.  Fresh forward arrivals,
+self-reflection, and neighbor-generated backward arrivals may all be added
+with signs into one right-hand side and removed by the same block correction.
+
+\begin{corollary}[Block cleanup erases relaxation history]
+\label{cor:block-history-erasure}
+The point produced by \cref{lem:block-correction} satisfies
+\begin{equation}
+ x_S^+
+ =Q_{SS}^{-1}\bigl(b_S-Q_{SS^c}x_{S^c}\bigr),
+ \qquad
+ x_{S^c}^+=x_{S^c}.
+ \label{eq:restricted-dirichlet-point}
+\end{equation}
+Hence any two spreading trajectories that finish with the same region $S$
+and the same outside iterate produce exactly the same point after exact block
+cleanup, regardless of their relaxation parameters or scheduling.
+\end{corollary}
+
+\begin{proof}
+Substitute
+$r_S=b_S-Q_{SS}x_S-Q_{SS^c}x_{S^c}$ into
+$x_S^+=x_S+Q_{SS}^{-1}r_S$ and cancel $x_S$.
+\end{proof}
+
+This is the block analogue of \cref{lem:immediate-collapse}.  It moves the
+possible source of acceleration entirely into the online choice of $S$:
+over-relaxed spreading may be a fast region-discovery signal, but after an
+exact block rung it contributes no additional numerical memory on a fixed
+region.
+
+\begin{theorem}[Linear exact debt resolution on a forest]
+\label{thm:forest-resolution}
+Suppose the induced graph $G[S]$ is a forest.  The block correction
+\cref{eq:block-correction}, including the boundary update
+\cref{eq:block-boundary-update}, can be computed using
+\begin{equation}
+ O\bigl(\vol(S)\bigr)
+ \label{eq:forest-resolution-work}
+\end{equation}
+arithmetic and adjacency-list work.  Every induced edge and every boundary
+edge is inspected only $O(1)$ times.
+\end{theorem}
+
+\begin{proof}
+Root each component of $G[S]$.  Initially set
+$a_u:=Q_{uu}$ and $g_u:=r_u$.  Process nonroot vertices in postorder.  When
+$u$ is a leaf of the remaining forest with parent $p$, eliminate $z_u$ by
+the two scalar updates
+\begin{equation}
+ a_p\leftarrow a_p-\frac{Q_{pu}^2}{a_u},
+ \qquad
+ g_p\leftarrow g_p-\frac{Q_{pu}g_u}{a_u}.
+ \label{eq:leaf-schur-update}
+\end{equation}
+Record $(a_u,g_u,Q_{up})$.  At a root $q$, set $z_q=g_q/a_q$; then traverse
+the tree in preorder and recover
+\begin{equation}
+ z_u=\frac{g_u-Q_{up}z_p}{a_u}.
+ \label{eq:forest-back-substitution}
+\end{equation}
+All pivots are positive because they are pivots of Schur complements of the
+positive definite matrix $Q_{SS}$.  Leaf elimination creates no fill outside
+the parent diagonal, so each vertex and induced edge causes only constant
+arithmetic.  One scan of the adjacency lists of $S$ assembles the edge
+coefficients and applies the boundary update.  Its cost is $\vol(S)$, and it
+also dominates $|S|$ because the ambient graph has no isolated vertices.
+\end{proof}
+
+\begin{corollary}[Forest pair locality for batch cleanup]
+\label{cor:forest-pair-locality}
+Consider one causal epoch on a discovered forest $S$.  If its spreading pass
+scans every adjacency list in $S$ only $O(1)$ times and accumulates all
+deferred packets in the exact residual right-hand side, then spreading plus
+exact block debt resolution costs $O(\vol(S))$.  During the cleanup there is
+no residual-driven reactivation and hence no triangular inward traversal.
+\end{corollary}
+
+\begin{proof}
+The spreading work is $O(\vol(S))$ by hypothesis.  Apply
+\cref{thm:forest-resolution} once to the net signed right-hand side; its cost
+does not depend on the number of causal paths that contributed to an entry.
+\end{proof}
+
+This closes the pair-locality question on a fixed forest region.  It does
+\emph{not} prove that an online method discovers the right $S$ or advances the
+threshold after the solve; those are separated below.

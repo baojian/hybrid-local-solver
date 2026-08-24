@@ -1,0 +1,47 @@
+\section{Spider audit: self-debt is not enough}
+\label{sec:spider}
+
+The active manuscript's long-spider construction uses the same
+$\lambda_\alpha$ parameterization.  On every degree-two arm interior, an
+optimal-SOR push of residual $\sigma$ leaves
+$-\lambda_\alpha^2\sigma$ at the pushed vertex and sends
+$\lambda_\alpha\sigma$ to each of its two neighbors.  FIFO scheduling turns
+these packets into a triangular inward traversal and costs
+$\Omega(1/(\alpha\epsppr))$.
+
+\begin{proposition}[Neighbor backflow dominates self-debt]
+\label{prop:backflow}
+Fix an interior arm coordinate and $0<\alpha<1$.  After its optimal-SOR push,
+the magnitude sent to its already processed parent is strictly larger than
+the magnitude of its own self-reflection:
+\begin{equation}
+ \lambda_\alpha|\sigma|
+ >\lambda_\alpha^2|\sigma|.
+ \label{eq:backflow-dominates}
+\end{equation}
+Consequently, for any live threshold strictly between these two values, a
+policy that suppresses only tagged self-debt still activates the parent.
+\end{proposition}
+
+\begin{proof}
+For $0<\alpha<1$, one has $0<\lambda_\alpha<1$.  The displayed inequality is
+immediate.  The parent-directed packet is a neighbor arrival and therefore
+belongs to $\varphi$ under \cref{def:fresh-push}; suppressing $h$ alone does
+not suppress it.
+\end{proof}
+
+This proposition identifies the required extra state.  During a causal
+spreading epoch, arrivals to newly discovered coordinates may remain fresh,
+while arrivals to already processed coordinates must be deferred as backward
+debt or summarized by a directed-edge message.  The next section proves that
+once a region has been discovered, all of this debt can be summarized exactly
+in linear work on a tree and in elimination-width-sensitive work on a sparse
+cyclic region.
+
+The audit also limits what an eight-phase empirical ladder can establish.
+The active manuscript proves, under a diffusive-annulus assumption, that an
+$m$-stage vertex-push method resolving spider depth $L$ pays at least
+$\Omega(kL^2/m)$.  Thus a fixed number of ordinary diffusive rungs does not
+yield the target bound.  An alpha-scaled number of lightweight causal epochs,
+or a nonbacktracking/elimination state that invalidates the annulus
+assumption, is necessary.

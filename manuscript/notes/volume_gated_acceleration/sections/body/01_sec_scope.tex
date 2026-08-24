@@ -1,0 +1,182 @@
+\section{Scope, status, and source map}
+\label{sec:scope}
+
+This note reconstructs the complete volume-flattening discussion that grew
+out of the AESP--local-refinement project.  It complements, but does not
+replace, the broader standalone AESP--\LOCSOR{} note.  In particular, it does
+not promote a graph-uniform end-to-end complexity theorem into the active
+manuscript.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The RPPR objective, support-volume bound, classical
+\FISTA{} work model, confinement analysis, and bad-star phenomenon are from
+\citet{fountoulakis2026}.  The locally evolving-set and nonhomogeneous
+\LOCCH{} recurrences are from \citet{zhou2024}; AESP is from
+\citet{huang2025}. \\
+\statusproved & Principal restricted PageRank systems have condition number
+at most $1/\alpha$; a depth-$L$ spider prefix has condition number
+$\Theta(1/(\alpha+L^{-2}))$. \\
+\statusproved & A $1/\tau$-volume exact PPR core exists; fixed RPPR
+regularization gives a $1/\rho$-volume safe support; signed candidates admit
+a safe lower-envelope correction; and one-sided KKT tests give safe admission
+and an infinity-error certificate. \\
+\statusproved & The exact stagewise gate terminates and, with
+$\rho=\tau=\epsppr/2$, returns an $\epsppr$-accurate PPR approximation while
+every working set has volume at most $2/\epsppr$. \\
+\statusproved & A path forces
+$\Omega(\alpha^{-1/2}\log(\sqrt\alpha/\rho))$ expansions; the exact expansion
+gain is a Schur-complement quadratic; and continuous restricted re-solving
+costs telescope to an accelerated term plus one discrete term per expansion.
+\\
+\statusrefuted & On a single endpoint edge, the exact zero-padded recurrence
+cannot inherit a zero fixed-face estimate-sequence energy through admission
+without an additive expansion-shock term.  This is a pointwise obstruction,
+not a refutation of cumulative shock or newly admitted-volume amortization.
+\\
+\statusproved & For a modified estimate-center recurrence, transporting the
+center by the exact restricted-optimum displacement adds exactly the Schur
+gain.  On endpoint paths an append-only $LDL^\top$ response realizes this
+transport with incremental expansion work proportional to newly admitted
+volume, while all old-face recurrence and response passes remain charged.
+\\
+\statusproved & The weighted Schur tail is exactly a geometrically discounted
+remaining-face-gain occupancy charge. \\
+\statusrefuted & Even on a terminal endpoint-edge execution, the weighted
+tail cannot be bounded by a universal $O(\sqrt\alpha)$ multiple of the
+unweighted Schur telescope.  This is not an asymptotic work lower bound. \\
+\statusproved & An exact rational zero-start endpoint-path family has
+$J=\Theta(q^{-2})$, $T=\Omega(q^{-2})$, and
+$\mathfrak V_T=\Omega(q^{-4})
+=\Omega((\nu_{\rm fin}/q)/q)$ for the literal full-prefix implementation.
+The certified lower-bound factor is logarithmic in the chosen accuracy, so
+this is not a soft-order lower bound. \\
+\statusproved & At $\rho=\tau=q/5$, an exact endpoint-path support radius
+gives $J,\nu_{\rm fin}=\Theta(q^{-1})$, $T\geq J$, and
+$\mathfrak V_T=\Omega(q^{-2})=\Omega(\nu_{\rm fin}/q)$ for the same literal
+implementation.  This is a product-scale floor, not a separation. \\
+\statusrefuted & An exact $q=1/5$ zero-start trace refutes frontier-only
+admission logic: at stage $6$ the global correction is attained at the seed
+and suppresses a raw frontier violation, while by stage $9$ its maximizer is
+the old interior vertex $v_2$. \\
+\statusproved & A pointwise energy bound on the full moving correction gives
+at most $O(q^{-1}\log(1/q))$ consecutive steps per path face, hence
+$T=O(q^{-2}\log(1/q))$ and
+$\mathfrak V_T=O(q^{-3}\log(1/q))$ in the constant-ratio exact-real
+execution.  This is an upper bound up to a logarithm, not either sampled
+$\Theta$ law. \\
+\statusrefuted & On the actual $q=1/5$ zero-start path, the full moving
+correction strictly increases from stage $6$ to stage $7$ while the face
+remains $U_3$, and at stage $7$ it is larger than $q^{-1}$ times the
+normalized error to the restricted optimum.  Thus neither monotone
+correction debt nor that named pointwise $q^{-1}$ error bound removes the
+logarithm. \\
+\statusrefuted & The explicit correction--error bank
+$\Phi_t^{\rm bank}=\delta_t+q^{-1}e_t$ does decrease from stage $6$ to
+stage $7$, so the preceding two facts do not themselves refute it.  On the
+same actual run, however, stages $9$ and $10$ are consecutive held steps on
+$U_4$ and $\Phi_{10}^{\rm bank}>\Phi_9^{\rm bank}$.  This is a finite
+coefficient-one bank STOP.  In fact the full constant family
+$\delta_t+cq^{-1}e_t$, $c\geq0$, has incompatible local constraints:
+the $6\to7$ pair requires $c\geq c_{6,7}$ while the $9\to10$ pair requires
+$c\leq c_{9,10}<c_{6,7}$.  This is not a lower bound or a refutation of
+longer phase-aware or amortized potentials. \\
+\statusproved & The unique tight endpoints of those two local half-lines
+define the finite \textsc{TightPair-Schur} bank.  Its scalar value is exactly
+flat on held pairs $6\to7$ and $9\to10$.  At the literal stage-$8$ face
+reset, the raw linear switch is larger than the exact restricted-optimum
+drop, but the squared-bank switch is strictly smaller and is paid with unit
+coefficient by that Schur drop.  This separates held-face evolution from one
+instantaneous admission/reset; it is not a global potential. \\
+\statusrefuted & The same squared bank plus remaining-optimum-drop reserve is
+not nonincreasing across the complete local chain.  The first failure is the
+actual fixed-$U_3$ candidate-production step $7\to8^-$; the reset
+$8^-\to8^+$ still decreases strictly, but the first fixed-$U_4$ follow-up
+$8^+\to9$ rises as well and the net stage-$7$--$9$ change is positive.
+Moreover, held-pair feasibility forces $c_3$ above the production-step cap and
+$c_4$ below the follow-up floor, so both adjacent-step failures persist
+throughout the earlier feasible rectangle.  This finite STOP does not rule out
+longer or nonlocal aggregate potentials,
+\cref{prop:path-tight-pair-local-chain-stop}. \\
+\statusproved & On the same literal chain, the explicit post-reset reserve
+$\mathcal R_{9:k}^{\rm post}=\Psi_9-\Psi_k$ is sourced only by telescoping
+later fixed-$U_4$ decreases and has the same squared-bank/objective units as
+$\Psi$.  It remains too small through stage $12$ but first pays the
+stage-$7$--$9$ deficit at stage $13$.  The resulting $7\to13$ endpoint GO is
+uniform over the held-pair-feasible rectangle by endpoint extremality.  This
+is a finite single-admission block, not a global or multi-admission telescope,
+\cref{prop:path-tight-pair-recovery-block}. \\
+\statusproved & The observable face score $\Xi=\delta^2$ admits a causal
+realized-credit ledger: after each transition, credit the exact score decrease,
+debit the exact score increase, and credit a restricted-optimum drop only
+after its charged admission query.  The resulting identity is face-general.
+On the actual $q=1/5$ trace its balance stays nonnegative through the
+consecutive stage-$4$ and stage-$8$ admissions; the narrowest carried margin
+is the positive stage-$9$ balance.  Restarting the same account at stage $7$
+discards the old credit, stops through stage $11$, and first closes at stage
+$12$.  This is a finite conditional two-admission scalar-ledger GO, not a
+convergence certificate, uniform horizon, or global potential,
+\cref{prop:path-causal-two-admission-recovery}. \\
+\statusrefuted & On the exact $q=1/5$ asymmetric six-vertex T tree, the same
+ledger restarted at the held stage-$3$ checkpoint is negative after the
+stage-$4$ branch admission and remains negative immediately before and after
+the next admission at stage $9$.  It first becomes positive at stage $14$.
+Thus uniform per-block recovery before the next admission fails for the named
+exact recurrence and full gate.  This is a finite algorithm-specific STOP,
+not a lower bound or an all-history-ledger failure,
+\cref{prop:t-tree-causal-next-admission-stop}. \\
+\statusopen & For the candidate family $q=1/(16m)$ on the full endpoint path
+$P_m$, the conditional fixed-full-face residual recurrence has exact damped
+cosine roots.  Exact rational runs at $m\in\{2,4,8\}$ verify only finite
+admission and terminal prefixes.  Audit rejected the proposed asymptotic
+packet/range lower bound, so no logarithmic terminal block or fixed-face lower
+bound is proved. \\
+\statusconditional & Geometric volume epochs would give
+$\bigO(1/(\rho\sqrt\alpha))$ work if subspace discovery and continuation can
+be charged without repeatedly scanning the whole current support. \\
+\statusrefuted & The spider does not have local condition number
+$\Theta(\alpha^{-2})$; splitting large sweeps into batches does not reduce
+work; support changes cannot in general be grouped into only
+$\bigO(\log(1/\epsppr))$ ordinary restarts; and a lower bound on expansion
+gain cannot serve as the upper perturbation bound needed for stability. \\
+\statusopen & Packing the signed defect of the literal zero-padded recurrence
+and controlling the remaining-gain occupancy remain open.  In the
+constant-ratio path regime, the support scale is proved, but the observed
+$T=\Theta(q^{-2})$ and $\mathfrak V_T=\Theta(q^{-3})$ exponents have only
+the matching polynomial upper powers up to one logarithm.  Both a uniform
+$O(q^{-1})$ fixed-face bound and a logarithmic fixed-face lower bound remain
+live possibilities; matching global lower powers remain open.
+The path response does not give a graph-uniform
+$\softO(1/(\rho\sqrt\alpha))$ work theorem. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Source pointers.}
+The RPPR formulation and KKT conditions appear on PDF page 3, Section 3, of
+\citet{fountoulakis2026}; its FISTA update and degree-weighted work are on PDF
+page 4, Section 3.1; its conditional confinement theorems are on PDF pages
+5--6, Sections 4.2--4.3; its star lower bound is in Appendix D, PDF pages
+18--23; and its experimental fixed-point residual is on PDF page 24.  The
+locally evolving-set work model and localized Chebyshev recurrence appear in
+Sections 3--4 and Appendix C of \citet{zhou2024}.  The AESP active-volume
+model, inexact proximal maps, and PPR specialization appear on PDF pages 4--7
+and 26--29 of \citet{huang2025}.  These source locations are also recorded in
+the repository literature notes.
+
+\paragraph{Note-scoped conventions.}
+The repository-wide residual convention is unresolved.  In this note:
+$\rho$ is the RPPR regularization level; $\tau$ is a one-sided KKT/error
+tolerance; and $\epsppr$ is only the final PPR error target
+\begin{equation}
+  \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsppr.
+  \label{eq:note-error}
+\end{equation}
+One full restricted first-order step on $U$ is charged $\vol(U)$, corresponding
+to scanning every incident edge of every active coordinate once.  No
+conversion to the repository's APPR threshold, objective-gap tolerance, or
+eventual implementation stopping rule is asserted.

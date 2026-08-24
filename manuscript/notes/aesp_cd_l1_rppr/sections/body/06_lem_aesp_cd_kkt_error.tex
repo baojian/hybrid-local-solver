@@ -1,0 +1,198 @@
+\section{KKT certificate and local monotonicity}
+
+\begin{lemma}[KKT diagnostic certifies inner solution error]
+\label{lem:aesp-cd-kkt-error}
+Let $z_t^\star$ be the unique minimizer of $F_{\rho,t}$.  Then every
+$z\in\R^n$ satisfies
+\begin{equation}
+  \norm{D^{-1/2}(z-z_t^\star)}_\infty
+  \leq
+  \frac{1}{\mu_t}
+  \norm{D^{-1/2}\kappa_t(z)}_\infty.
+  \label{eq:aesp-cd-inner-error}
+\end{equation}
+In particular, for the unshifted RPPR objective,
+\begin{equation}
+  \norm{D^{-1/2}(x-x^\star(\rho))}_\infty
+  \leq \frac{R_{\mathrm{kkt},\rho}(x)}{\alpha}.
+  \label{eq:aesp-cd-rppr-error}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Choose subgradients $\xi\in\partial\norm{D^{1/2}z}_1$ and
+$\xi^\star\in\partial\norm{D^{1/2}z_t^\star}_1$ so that
+\begin{equation*}
+  \kappa_t(z)=H_t(z-z_t^\star)
+  +\alpha\rho(\xi-\xi^\star).
+\end{equation*}
+The coordinate definition of $\kappa_t$ is precisely the minimum-magnitude
+valid choice at $z$, while optimality supplies a choice with zero residual at
+$z_t^\star$.
+
+Put $e=z-z_t^\star$ and choose $i$ maximizing
+$M:=\abs{e_i}/\sqrt{d_i}$.  If $M=0$, the result is immediate.  Otherwise,
+the normalized maximum principle and
+\cref{eq:aesp-cd-shifted-properties} give
+\begin{equation*}
+ \frac{\operatorname{sign}(e_i)(H_te)_i}{\sqrt{d_i}}
+ \geq \mu_tM.
+\end{equation*}
+Coordinatewise monotonicity of the weighted absolute-value subdifferential
+gives
+$e_i(\xi_i-\xi_i^\star)\geq0$.  Hence
+\begin{equation*}
+ \frac{\abs{\kappa_{t,i}(z)}}{\sqrt{d_i}}
+ \geq
+ \frac{\operatorname{sign}(e_i)\kappa_{t,i}(z)}{\sqrt{d_i}}
+ \geq \mu_tM,
+\end{equation*}
+which proves \cref{eq:aesp-cd-inner-error}.  Set
+$\kappa_{\mathrm A}=0$ for \cref{eq:aesp-cd-rppr-error}.
+\end{proof}
+
+\begin{theorem}[Exact KKT-mass decrease]
+\label{thm:aesp-cd-mass}
+For a sequential proximal coordinate update at coordinate $i$,
+\begin{equation}
+  C_t(z^+)
+  \leq C_t(z)
+  -\tau_{\mathrm{cd}}\sqrt{d_i}\abs{\kappa_{t,i}(z)},
+  \qquad
+  \tau_{\mathrm{cd}}
+  :=\frac{2(\alpha+\kappa_{\mathrm A})}
+          {1+\alpha+2\kappa_{\mathrm A}}.
+  \label{eq:aesp-cd-mass-target}
+\end{equation}
+Under $\kappa_{\mathrm A}=1-2\alpha$, the displayed coefficient is $2/3$.
+\end{theorem}
+
+\begin{proof}
+Write $\lambda_i:=\alpha\rho\sqrt{d_i}$ and
+$\Delta_i:=z_i^+-z_i$.  Exact scalar proximal minimization makes the new
+coordinate KKT violation zero and gives
+\begin{equation}
+  \kappa_{t,i}(z^+)=0,
+  \qquad
+  \ell\abs{\Delta_i}\leq\abs{\kappa_{t,i}(z)}.
+  \label{eq:aesp-cd-displacement}
+\end{equation}
+The second inequality follows directly from the three scalar soft-threshold
+cases: the update stays on the same nonzero face, reaches zero, or crosses to
+the opposite face.  Equality holds in the first case; thresholding can only
+shorten the displacement in the latter two.
+
+For every $j\neq i$, the value $z_j$ is unchanged.  As a function of its
+smooth gradient, the minimum KKT violation is either a translate
+$g\mapsto g\pm\lambda_j$ on a nonzero face or the soft-threshold map
+$g\mapsto g-\operatorname{clip}(g,-\lambda_j,\lambda_j)$ at zero.  Each map
+is one-Lipschitz.  Therefore
+\begin{equation*}
+ \abs{\kappa_{t,j}(z^+)}
+ \leq
+ \abs{\kappa_{t,j}(z)}+\abs{H_{t,ji}\Delta_i}.
+\end{equation*}
+Only neighbors of $i$ have a nonzero off-diagonal entry, and
+\begin{equation*}
+ \sum_{j\neq i}\sqrt{d_j}\abs{H_{t,ji}\Delta_i}
+ =\frac{1-\alpha}{2}\sqrt{d_i}\abs{\Delta_i}.
+\end{equation*}
+Using \cref{eq:aesp-cd-displacement}, we obtain
+\begin{align*}
+ C_t(z^+)
+ &\leq C_t(z)-\sqrt{d_i}\abs{\kappa_{t,i}(z)}
+       +\frac{1-\alpha}{2}\sqrt{d_i}\abs{\Delta_i}\\
+ &\leq C_t(z)
+ -\left(1-\frac{1-\alpha}{2\ell}\right)
+  \sqrt{d_i}\abs{\kappa_{t,i}(z)}.
+\end{align*}
+Finally,
+\begin{equation*}
+ 1-\frac{1-\alpha}{2\ell}
+ =\frac{2(\alpha+\kappa_{\mathrm A})}
+        {1+\alpha+2\kappa_{\mathrm A}}
+ =\tau_{\mathrm{cd}}.
+\end{equation*}
+\end{proof}
+
+\begin{theorem}[Stieltjes-quadratic inner locality]
+\label{thm:aesp-cd-stieltjes}
+Let
+\begin{equation*}
+ \Psi(z)=\frac12 z^\top Hz-c^\top z
+          +\sum_{j=1}^n\lambda_j\abs{z_j},
+ \qquad \lambda_j\geq0,
+\end{equation*}
+where $H$ is symmetric positive definite and $H_{ij}\leq0$ for $i\neq j$.
+Suppose there are $\upsilon\in\R_{++}^n$ and $\mu>0$ such that
+$H\upsilon\geq\mu\upsilon$ coordinatewise.  Let $\kappa_\Psi(z)$ be the
+minimum-magnitude KKT vector, and define
+\begin{equation*}
+ C_\upsilon(z):=\sum_j\upsilon_j\abs{\kappa_{\Psi,j}(z)},
+ \qquad
+ \theta_i:=\frac{(H\upsilon)_i}{H_{ii}\upsilon_i}.
+\end{equation*}
+Then $0<\mu/H_{ii}\leq\theta_i\leq1$, and an exact proximal update of
+coordinate $i$ satisfies
+\begin{equation}
+ C_\upsilon(z^+)
+ \leq C_\upsilon(z)
+       -\theta_i\upsilon_i\abs{\kappa_{\Psi,i}(z)}.
+ \label{eq:aesp-cd-stieltjes-mass}
+\end{equation}
+If $z_\Psi^\star$ minimizes $\Psi$, then
+\begin{equation}
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             (z-z_\Psi^\star)}_\infty
+ \leq\frac1\mu
+ \norm{\operatorname{diag}(\upsilon)^{-1}
+             \kappa_\Psi(z)}_\infty.
+ \label{eq:aesp-cd-stieltjes-error}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $\Delta_i=z_i^+-z_i$.  Exact scalar proximal minimization gives
+$\kappa_{\Psi,i}(z^+)=0$ and
+$H_{ii}\abs{\Delta_i}\leq\abs{\kappa_{\Psi,i}(z)}$.  The minimum KKT map
+at every untouched coordinate is one-Lipschitz in its smooth gradient, so
+\begin{align*}
+ C_\upsilon(z^+)
+ &\leq C_\upsilon(z)-\upsilon_i\abs{\kappa_{\Psi,i}(z)}
+       +\sum_{j\neq i}\upsilon_j\abs{H_{ji}\Delta_i}\\
+ &\leq C_\upsilon(z)
+       -\left(\upsilon_i
+         -\frac{\sum_{j\neq i}\upsilon_j\abs{H_{ji}}}{H_{ii}}\right)
+        \abs{\kappa_{\Psi,i}(z)}\\
+ &=C_\upsilon(z)-\theta_i\upsilon_i
+        \abs{\kappa_{\Psi,i}(z)}.
+\end{align*}
+The last identity uses symmetry and the nonpositive off-diagonal entries.
+Those same signs show $\theta_i\leq1$, while
+$H\upsilon\geq\mu\upsilon$ gives
+$\theta_i\geq\mu/H_{ii}>0$.
+
+For the error certificate, put $e=z-z_\Psi^\star$ and choose $i$ maximizing
+$M:=\abs{e_i}/\upsilon_i$.  The weighted maximum principle gives
+\begin{equation*}
+ \frac{\operatorname{sign}(e_i)(He)_i}{\upsilon_i}
+ \geq M\frac{(H\upsilon)_i}{\upsilon_i}\geq\mu M.
+\end{equation*}
+Monotonicity of each absolute-value subdifferential makes its contribution
+nonnegative after multiplication by $\operatorname{sign}(e_i)$.  Therefore
+$\abs{\kappa_{\Psi,i}(z)}/\upsilon_i\geq\mu M$, which proves
+\cref{eq:aesp-cd-stieltjes-error}.
+\end{proof}
+
+The PageRank result is the specialization of
+\cref{thm:aesp-cd-stieltjes} with
+$H=H_t$, $\upsilon=D^{1/2}\one$, and
+$H_t\upsilon=\mu_t\upsilon$.  Since every diagonal entry is $\ell$, one has
+$\theta_i=\mu_t/\ell=\tau_{\mathrm{cd}}$ for every coordinate.  Thus the
+proved inner-locality mechanism applies not only to RPPR, but also to shifted
+RPPR subproblems and, more generally, to separable $\ell_1$ regularization of
+any Stieltjes quadratic admitting a positive supersolution.  It does not by
+itself control how an outer extrapolation chooses its successive starts.
+
+Thus the composite analogue of the ordinary-PPR residual-mass contraction is
+valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.

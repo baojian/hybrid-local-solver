@@ -1,0 +1,161 @@
+\subsection{A zero-start path can force an accuracy-driven swept-prefix factor}
+\label{sec:path-swept-separation}
+
+The path ledger also has an exact lower-bound regime.  The construction below
+does not prove the numerically observed separation when $\rho=\tau=q/5$.
+Instead, it chooses a much smaller rational accuracy so that the mandatory
+support-discovery distance itself is $q^{-2}$.  This gives a clean first
+separation for the literal full-prefix implementation, while also showing why
+it is not yet the desired soft-order obstruction.
+
+\begin{proposition}[Zero-start accuracy-driven swept-prefix separation]
+\label{prop:path-zero-start-swept-separation}
+Fix an integer $n\geq2$ and put
+\begin{equation}
+ q_n:=\frac1n,
+ \qquad \alpha_n:=q_n^2,
+ \qquad \chi_n:=\frac{1-q_n}{1+q_n},
+ \qquad L_n:=n^2,
+ \qquad N_n:=L_n+1,
+ \label{eq:path-swept-parameters-a}
+\end{equation}
+and
+\begin{equation}
+ \rho_n=\tau_n:=\frac{q_n}{3}\chi_n^{L_n},
+ \qquad \epspprinst{n}:=2\rho_n.
+ \label{eq:path-swept-parameters-b}
+\end{equation}
+On the endpoint-seeded path
+$P_{N_n}=(v_0,\ldots,v_{N_n})$, use ambient path degrees and initialize the
+internally gated transported-center execution at
+\begin{equation}
+ U_0=\{v_0\},
+ \qquad x^{(0)}=v^{(0)}=0.
+ \label{eq:path-swept-zero-start}
+\end{equation}
+At every stage perform
+\cref{eq:center-prox-step,eq:center-update}, construct the safe envelope, admit
+the complete all-violations batch from \cref{eq:dynamic-gate}, and transport
+the center exactly as in \cref{prop:path-implicit-transport-ledger}.  Stop at
+the first envelope satisfying \cref{eq:global-certificate}.  This exact-real
+execution terminates, and if $T_n$ is its number of fixed-face steps and $J_n$
+its number of admissions, then
+\begin{equation}
+ L_n\leq J_n\leq L_n+1,
+ \qquad T_n\geq J_n,
+ \qquad
+ 1+2L_n\leq\nu_{\rm fin}\leq2(L_n+1).
+ \label{eq:path-swept-stage-bounds}
+\end{equation}
+Moreover,
+\begin{equation}
+ \mathfrak V_{T_n}
+ \geq\sum_{j=1}^{L_n}\bigl(1+2(j-1)\bigr)
+ =L_n^2=q_n^{-4}
+ \geq\frac{\nu_{\rm fin}}{4q_n^2}
+ =\frac1{4q_n}\frac{\nu_{\rm fin}}{q_n}.
+ \label{eq:path-swept-separation}
+\end{equation}
+For the literal full-prefix implementation in
+\cref{prop:path-implicit-transport-ledger}, the exhaustive resource vector
+specializes to
+\begin{equation}
+ \begin{aligned}
+ (&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(\nu_{\rm fin}),\Theta(J_n+1),1,0,
+ \Theta(\mathfrak V_{T_n}),\Theta(\mathfrak V_{T_n}),
+ \Theta(\mathfrak V_{T_n}),\\
+ &\Theta(\nu_{\rm fin}),O(\nu_{\rm fin}),
+ \Theta(\mathfrak V_{T_n}),\Theta(\nu_{\rm fin})\bigr).
+ \end{aligned}
+ \label{eq:path-swept-eleven-vector}
+\end{equation}
+Thus its charged exact-cell work is $\Omega(q_n^{-4})$, whereas the realized
+final-volume product is
+$\nu_{\rm fin}/q_n=\Theta(q_n^{-3})$.
+\end{proposition}
+
+\begin{proof}
+First, \cref{eq:path-rppr-lower} at $i=0$ gives
+$x_{\rho_n,0}^\star/\sqrt{d_0}\geq q_n-\rho_n>0$, so the seed face lies in
+$S_{\rho_n}$ and has an interior restricted optimum.  Every subsequent
+strong admission preserves interiority by \cref{eq:positive-expansion}.
+The execution is finite.  On any fixed prefix without an admission,
+\cref{lem:fixed-face-estimate-center} drives both the primal point and the
+estimate center to the interior restricted optimum.  The residual and the
+envelope correction therefore converge to zero, so the safe envelope
+converges to that optimum.  If the immediate successor is a strict strong
+violation at the restricted optimum, it is admitted after finitely many
+steps.  Otherwise the successor satisfies the one-sided threshold; equality
+is harmless because the envelope lies below the restricted optimum and the
+cut row is nonpositive.  The active-coordinate KKT values converge to zero,
+and every more distant coordinate has positive KKT slack.  Hence the global
+certificate holds after finitely many further steps.  There are only
+$N_n+1$ faces, so induction proves termination.
+
+For the terminal safe envelope $\ell_T$, the endpoint-path estimates
+\cref{eq:path-solution,eq:path-rppr-lower} give, for every $0\leq i\leq L_n$,
+\begin{equation}
+ \frac{x_{\rho_n,i}^\star}{\sqrt{d_i}}
+ \geq q_n\chi_n^i-\rho_n
+ \geq q_n\chi_n^{L_n}-\rho_n
+ =2\rho_n.
+ \label{eq:path-swept-mandatory-prefix}
+\end{equation}
+The terminal certificate and \cref{lem:one-sided-certificate} give
+$\norm{D^{-1/2}(x_{\rho_n}^\star-\ell_T)}_\infty\leq\tau_n=\rho_n$.
+Since $\ell_T$ vanishes outside $U_T$, \cref{eq:path-swept-mandatory-prefix}
+forces $v_0,\ldots,v_{L_n}\in U_T$.
+
+Every safe envelope is supported on a path prefix.  Beyond that prefix only
+its immediate successor has an active neighbor; every farther nonseed row has
+KKT value $\alpha_n\rho_n\sqrt{d_i}>0$.  Thus each all-violations batch has at
+most one newly admitted outside vertex (active violations, if any, do not
+change the face).  Starting from $v_0$, reaching $v_{L_n}$ takes at least
+$L_n$ admissions in distinct fixed-face steps, while the ambient path has
+only one additional vertex.  This proves \cref{eq:path-swept-stage-bounds}.
+
+Immediately before the $j$th mandatory admission, the active prefix has
+ambient degree volume $1+2(j-1)$.  These $L_n$ distinct steps alone contribute
+the sum in \cref{eq:path-swept-separation}.  Since $L_n=q_n^{-2}$ and
+$\nu_{\rm fin}\leq2(L_n+1)\leq4L_n$, the remaining inequalities follow.
+
+Finally, this implementation exposes every retained path incidence once and
+has one terminal external return.  Every fixed-face step performs a full
+proximal recurrence, a full response application, an envelope maximum, and
+full active-state writes; bounded path degrees make each of those charges
+equivalent to the current face volume.  The factor records and active vectors
+occupy $\Theta(\nu_{\rm fin})$ persistent cells, a streamed reverse pass uses
+$O(\nu_{\rm fin})$ scratch cells, and the terminal sparse vector and
+certificate emit $\Theta(\nu_{\rm fin})$ cells.  Together with one exposure
+round per admitted vertex, this proves
+\cref{eq:path-swept-eleven-vector}.
+\end{proof}
+
+\paragraph{Limitation of the separation.}
+The certified lower-bound factor in \cref{eq:path-swept-separation} is
+polynomial in $1/q_n$, but this family deliberately encodes it in the
+accuracy:
+\begin{equation}
+ \log\frac{q_n}{3\rho_n}
+ =L_n(-\log\chi_n)
+ =\Theta(q_nL_n)
+ =\Theta(q_n^{-1}).
+ \label{eq:path-swept-log-accuracy}
+\end{equation}
+Here $-\log\chi_n=2\operatorname{artanh}(q_n)=\Theta(q_n)$ uniformly for
+$n\geq2$.
+Consequently the result refutes a log-free
+$O(\nu_{\rm fin}/q_n)$ charge for this literal swept-prefix implementation,
+but not a $\softO(\nu_{\rm fin}/q_n)$ theorem that may hide logarithms in the
+accuracy.  It is also far below the RPPR volume-cap benchmark
+$1/(\rho_nq_n)$, makes no claim about implicit implementations that avoid the
+full-prefix operations defining $\mathfrak V_T$, and does not prove the
+observed $\Theta(q^{-3})$ swept work when $\rho=\tau=q/5$.  The latter
+constant-ratio support scale is fixed by
+\cref{prop:path-constant-ratio-floor};
+\cref{thm:path-moving-max-soft-upper} later bounds its stage and swept-volume
+powers up to one logarithm, but the exact exponents remain open because the
+global envelope correction couples frontier admission to old-coordinate
+momentum overshoot.

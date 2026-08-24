@@ -1,0 +1,122 @@
+\section{Literal update and the exact work score}
+\label{sec:direct-score}
+
+Every diagonal entry of $Q$ is
+\begin{equation}
+ q_0:=Q_{uu}=\frac{1+\alpha}{2}.
+ \label{eq:direct-diagonal}
+\end{equation}
+At a current residual value $\sigma=r_u$, a relaxation-$\omega$ push is
+\begin{equation}
+ x^+=x+\omega\frac{\sigma}{q_0}e_u,
+ \qquad
+ r^+=r-\omega\frac{\sigma}{q_0}Qe_u.
+ \label{eq:direct-push}
+\end{equation}
+The literal implementation forms the live frontier
+\begin{equation}
+ \mathcal F_\theta(r)
+ :=\left\{u:\frac{|r_u|}{\sqrt{d_u}}>\theta\right\},
+ \label{eq:direct-frontier}
+\end{equation}
+ranks its snapshot by
+\begin{equation}
+ p_u(r):=\frac{|r_u|\sqrt{d_u}}{1+d_u},
+ \label{eq:direct-empirical-score}
+\end{equation}
+and takes the top
+$\min\{8192,\lceil|\mathcal F_\theta|/32\rceil\}$ coordinates. Operations
+are sequential and guarded against the live threshold; a coordinate made
+inactive by an earlier operation in the batch is skipped without charge.
+
+\begin{lemma}[Exact coordinate decrease]
+\label{lem:direct-coordinate-decrease}
+For every $0<\omega<2$, the update \cref{eq:direct-push} satisfies
+\begin{equation}
+ f(x)-f(x^+)
+ =\kappa_\omega r_u^2,
+ \qquad
+ \kappa_\omega:=\frac{\omega(2-\omega)}{1+\alpha}.
+ \label{eq:direct-coordinate-decrease}
+\end{equation}
+Consequently, the exact objective decrease per charged operation is ranked by
+\begin{equation}
+ h_u(r):=\frac{r_u^2}{1+d_u}
+ \label{eq:direct-exact-work-score}
+\end{equation}
+when $\omega$ is fixed within a phase.
+\end{lemma}
+
+\begin{proof}
+Since $\nabla_u f(x)=-r_u$, the one-dimensional quadratic expansion with
+$\delta=\omega r_u/q_0$ gives
+\[
+ f(x+\delta e_u)-f(x)
+ =-\delta r_u+\frac{q_0\delta^2}{2}
+ =-\frac{\omega(2-\omega)}{2q_0}r_u^2.
+\]
+Use $2q_0=1+\alpha$ and divide by $c_u$.
+\end{proof}
+
+\begin{theorem}[The empirical key is universally charge-aware]
+\label{thm:direct-ranking}
+For every coordinate of every graph without isolated vertices,
+\begin{equation}
+ p_u(r)^2\leq h_u(r)\leq2p_u(r)^2.
+ \label{eq:direct-score-equivalence}
+\end{equation}
+Therefore, if $u$ maximizes $p_i(r)$ over a set of coordinates, then
+\begin{equation}
+ h_u(r)\geq\frac12\max_i h_i(r).
+ \label{eq:direct-rank-two-approx}
+\end{equation}
+More generally, the $k$ coordinates with largest $p_i(r)$ have total
+snapshot work score at least one half of the largest possible total
+$h$-score of any $k$ coordinates.
+\end{theorem}
+
+\begin{proof}
+The definitions give the exact relation
+\begin{equation*}
+ p_u(r)^2
+ =\frac{d_u}{1+d_u}h_u(r).
+\end{equation*}
+Because $d_u\geq1$, the multiplier belongs to $[1/2,1)$. If $u$ maximizes
+$p$, then
+$h_u\geq p_u^2\geq\max_i p_i^2\geq\frac12\max_i h_i$.
+For the top-$k$ statement, the selected set maximizes the sum of $p_i^2$;
+apply \cref{eq:direct-score-equivalence} before and after that comparison.
+\end{proof}
+
+\begin{corollary}[An exact alternative score]
+\label{cor:direct-exact-score}
+The key
+\begin{equation}
+ \widehat p_u(r):=\frac{|r_u|}{\sqrt{1+d_u}}
+ \label{eq:direct-alternative-score}
+\end{equation}
+orders coordinates exactly by objective decrease per charge. The measured
+key obeys
+\begin{equation}
+ \frac1{\sqrt2}\widehat p_u(r)
+ \leq p_u(r)<\widehat p_u(r).
+ \label{eq:direct-key-comparison}
+\end{equation}
+\end{corollary}
+
+The theorem is stronger than a band-restricted comparison: it uses neither
+an upper residual threshold nor a sign assumption. It also identifies a
+low-risk empirical ablation, namely replacing $p_u$ by $\widehat p_u$ while
+leaving the two-rung schedule unchanged.
+
+\begin{remark}[Snapshot quality is not batch quality]
+\label{rem:direct-staleness}
+The top-$k$ conclusion is about the residual at the moment of ranking.
+Earlier sequential pushes change the live residuals of later selected
+coordinates. The live guard makes a newly inactive entry free, but an entry
+can remain barely active and still be charged. Thus
+\cref{thm:direct-ranking} proves the quality of the first executed operation
+of every refreshed batch and the static quality of the declared set; a
+separate staleness amortization is required for the work of the whole literal
+batch.
+\end{remark}

@@ -1,0 +1,55 @@
+\section{Conditional composition theorem}
+\label{sec:composition}
+
+For an SPD preconditioner $P_S$ on a current face, define
+\begin{equation}
+ \kappa_{\rm eff}(S)
+ :=\kappa\!\left(P_S^{-1/2}Q_{SS}P_S^{-1/2}\right).
+ \label{eq:effective-condition}
+\end{equation}
+
+\begin{theorem}[Conditional response-preconditioned work]
+\label{thm:conditional-work}
+Consider a support-safe nested trace ending at charged volume $V$.  Suppose:
+
+\begin{enumerate}[label=(\roman*)]
+\item every adjacency exposure, response update, old-face read, interval
+      refinement, rekey, and reported event has total charge
+      $U_{\rm resp}(V)$;
+\item anchor rebuilds occur only after $(1+\gamma)$-factor charged-volume
+      growth and cost $O(V_j)$ at anchor volume $V_j$;
+\item one aggregate repair per epoch reaches its declared energy tolerance in
+      \[
+      \widetilde O\!\left(\sqrt{\kappa_{\rm eff}(S_j)}\right)
+      \]
+      preconditioned iterations, each charged by $O(V_j)$;
+\item \textsc{Finalize} costs $O(V)$ and returns the terminal certificate.
+\end{enumerate}
+
+Then the total charged work is
+\begin{equation}
+ \widetilde O\!\left(
+ U_{\rm resp}(V)
+ +V\sqrt{\kappa_{\max}}
+ +V
+ \right),
+ \qquad
+ \kappa_{\max}:=\max_j\kappa_{\rm eff}(S_j).
+ \label{eq:conditional-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The first and fourth terms are charged by assumptions (i) and (iv).  Apply
+\cref{lem:geometric-rebuild} to the rebuild work.  The aggregate repair work is
+at most, up to tolerance logarithms,
+\[
+ \sqrt{\kappa_{\max}}\sum_jO(V_j)
+ =O\!\left(V\sqrt{\kappa_{\max}}\right)
+\]
+by the same geometric series.  Summing the four disjoint ledger categories
+proves \cref{eq:conditional-work}.
+\end{proof}
+
+The theorem is deliberately an interface theorem.  Assumption (i) contains
+the hard graph problem and may not be replaced by an uncharged oracle call.

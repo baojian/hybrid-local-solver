@@ -36,7 +36,7 @@ or experiment.
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies:
+- Formal registry dependencies:
 - Source/shared prerequisites:
 - Context/provenance:
 - Supplies to:

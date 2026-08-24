@@ -1,0 +1,74 @@
+\section{Safe envelopes for signed accelerated candidates}
+\label{sec:safe-envelope}
+
+Acceleration may overshoot, so its candidate cannot itself control support.
+The next lemma converts any signed restricted candidate into a certified lower
+point.
+
+For $U\subseteq S_\rho$, let $x_U^\star$ solve the restricted nonnegative
+quadratic program
+\begin{equation}
+  x_U^\star\in\arg\min_{z_U\geq0}
+  \left\{\frac12z_U^\top Q_{UU}z_U-c_{\rho,U}^\top z_U\right\},
+  \qquad x_{U^c}^\star=0.
+  \label{eq:restricted-QP}
+\end{equation}
+The Stieltjes obstacle comparison principle gives
+\begin{equation}
+  0\leq x_U^\star\leq x_\rho^\star.
+  \label{eq:restricted-comparison}
+\end{equation}
+Indeed, $x_{\rho,U}^\star$ is a supersolution of the restricted KKT system
+because $U\subseteq S_\rho$ and
+$Q_{UU}x_{\rho,U}^\star-c_{\rho,U}
+=-Q_{UU^c}x_{\rho,U^c}^\star\geq0$.
+
+\begin{theorem}[Signed candidate to safe lower envelope]
+\label{thm:safe-envelope}
+Let $z_U\in\R^U$ be arbitrary and define
+\begin{equation}
+ q_U:=c_{\rho,U}-Q_{UU}z_U,
+ \qquad
+ \delta_U:=\frac1\alpha
+  \norm{D_U^{-1/2}(q_U)_-}_\infty.
+ \label{eq:envelope-delta}
+\end{equation}
+Set
+\begin{equation}
+ \ell_U:=\left[z_U-\delta_UD_U^{1/2}\one\right]_+,
+ \qquad \ell_{U^c}:=0.
+ \label{eq:safe-envelope}
+\end{equation}
+Then
+\begin{equation}
+  0\leq\ell\leq x_U^\star\leq x_\rho^\star.
+  \label{eq:envelope-order}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $q_U^\star:=c_{\rho,U}-Q_{UU}x_U^\star\leq0$ be the restricted KKT
+residual.  Since $Q_{UU}^{-1}\geq0$,
+\begin{align*}
+ x_U^\star-z_U
+ &=Q_{UU}^{-1}(q_U-q_U^\star)
+ \geq-Q_{UU}^{-1}(q_U)_-.
+\end{align*}
+The full eigenvector identity in \cref{eq:Q-properties} and the signs of the
+cut entries imply
+\begin{equation}
+ Q_{UU}D_U^{1/2}\one
+ =\alpha D_U^{1/2}\one-Q_{UU^c}D_{U^c}^{1/2}\one
+ \geq\alpha D_U^{1/2}\one.
+\end{equation}
+Thus
+$Q_{UU}^{-1}D_U^{1/2}\one\leq\alpha^{-1}D_U^{1/2}\one$.
+By \cref{eq:envelope-delta},
+$Q_{UU}^{-1}(q_U)_-\leq\delta_UD_U^{1/2}\one$, and hence
+$z_U-\delta_UD_U^{1/2}\one\leq x_U^\star$.  Taking the positive part preserves
+the inequality because $x_U^\star\geq0$.  The last comparison is
+\cref{eq:restricted-comparison}.
+\end{proof}
+
+The accelerator is therefore free to use signed momentum in $z$; only
+$\ell$ is allowed to govern expansion.

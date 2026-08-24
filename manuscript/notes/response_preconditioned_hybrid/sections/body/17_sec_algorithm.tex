@@ -1,0 +1,41 @@
+\section{Proposed controller}
+\label{sec:algorithm}
+
+The following pseudocode is the research contract.  The dense reference backend
+implements its algebra and switching order, but not the required local response
+or reporting data structure.  All thresholds and certificates remain
+note-scoped.
+
+\begin{algorithm}[h]
+\caption{Response-preconditioned nested continuation}
+\label{alg:response-preconditioned}
+\begin{algorithmic}[1]
+\STATE Initialize a support-safe face $S$, anchor $A\gets S$, and frontier
+buffer $F\gets\emptyset$.
+\STATE Build the initial response state and certified boundary dictionary.
+\WHILE{the boundary reporter certifies a nonempty violating batch $T$}
+    \STATE Expose and charge $T$ and its required incidences.
+    \STATE Set $S\gets S\cup T$ and $F\gets F\cup T$.
+    \STATE Compute one certified Schur-frontier repair and store its lifted
+      response contribution; do not restart a solve on an earlier face.
+    \STATE Update every affected certified boundary interval.
+    \IF{more propagation is needed and
+          $\operatorname{cvol}(F)\geq\gamma\operatorname{cvol}(A)$}
+        \STATE Rebuild the anchor: $A\gets A\cup F$ and $F\gets\emptyset$.
+    \ENDIF
+\ENDWHILE
+\STATE Perform one final aggregate repair and materialize the terminal vector.
+\STATE Return the vector, boundary certificate, and complete work ledger.
+\end{algorithmic}
+\end{algorithm}
+
+There are four nonnegotiable safeguards.
+
+\begin{enumerate}
+\item The reporter must certify completeness outside its declared finite band.
+\item A failed structural fast path must fall back without discarding already
+      charged exposure or claiming an unproved transfer of state.
+\item Boundary decisions after support growth use only a converged repair; the
+      one-probe rule may certify an easy heavy frontier before any rebuild.
+\item The final output and every adjacency scan are charged explicitly.
+\end{enumerate}

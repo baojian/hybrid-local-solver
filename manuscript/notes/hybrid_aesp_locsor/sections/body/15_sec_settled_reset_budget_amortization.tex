@@ -1,0 +1,322 @@
+\subsection{Settled reset budgets: a sharp path obstruction and a
+conditional telescope}
+\label{sec:settled-reset-budget-amortization}
+
+Round~021 leaves two logically different questions.  The first is whether an
+\emph{additive} sum of observable reset budgets can be paid by the objective
+drops at face admissions.  The second is whether the work of the accelerated
+stages, where an initial budget enters only through an oracle logarithm, can
+still be accelerated.  The following three-vertex example gives a sharp STOP
+for the first question at coefficients smaller than order $1/\alpha$.  It does
+not answer the second question.
+
+Let $P_3$ be the path $0$--$1$--$2$, seeded at $0$, and use the ambient
+degrees $(1,2,1)$.  Fix
+\begin{equation}
+ \rho=\frac3{10},\qquad
+ q_{\rm r}:=t,\qquad s:=t^2,
+ \qquad \alpha:=\frac{s}{1+s},
+ \qquad 0<s<\frac1{12},
+ \label{eq:path-three-reset-parameters}
+\end{equation}
+so $q_{\rm r}=\sqrt{\alpha/(1-\alpha)}$ is the proof-local reset scale, not
+the reserved bare FISTA symbol.  Put
+\begin{equation}
+ A_s:=1+2s,\qquad E_s:=1+8s+8s^2,
+ \label{eq:path-three-reset-polynomials}
+\end{equation}
+and use degree-scaled coordinates $p=D^{-1/2}x$.  Let
+$U_0=\{0\}$ and $U_1=\{0,1\}$.
+
+\begin{proposition}[A settled $P_3$ reset needs an order-$1/\alpha$ drop
+coefficient]
+\label{prop:path-three-settled-reset-drop-obstruction}
+Under \cref{eq:path-three-reset-parameters}, exact settlement on $U_0$ gives
+\begin{equation}
+ p_0^{(0)}=\frac{2s(1-\rho)}{A_s},
+ \qquad
+ g_0:=\frac{(\ell_\rho-Qx^{(0)})_1}{\sqrt{d_1}}
+ =\frac{s(1-12s)}{20(1+s)A_s}>0.
+ \label{eq:path-three-first-settlement-demand}
+\end{equation}
+Thus the exact all-violations gate admits vertex $1$.  Exact settlement on
+$U_1$ gives
+\begin{equation}
+ p_0^{(1)}=\frac{4s\{A_s(1-\rho)-\rho\}}{E_s}>0,
+ \qquad
+ p_1^{(1)}=\frac{2s\{1-\rho(3+4s)\}}{E_s}>0,
+ \label{eq:path-three-second-settlement}
+\end{equation}
+whereas the remaining normalized boundary demand is
+\begin{equation}
+ g_1:=\frac{(\ell_\rho-Qx^{(1)})_2}{\sqrt{d_2}}
+ =\frac{s\{1-4\rho(1+s)A_s\}}{(1+s)E_s}<0.
+ \label{eq:path-three-terminal-demand}
+\end{equation}
+Hence this is a complete one-admission canonical trace.
+
+At the $U_0\to U_1$ admission, retain the settled primal point and zero
+momentum.  The reset quantities in
+\cref{eq:branch-caterpillar-nonsettled-shock-budget} then satisfy
+\begin{equation}
+ D_1^2=0,\qquad K_1^2=2g_0^2,\qquad
+ B_1=\frac{(3-2s)g_0^2}{\alpha}.
+ \label{eq:path-three-reset-budget}
+\end{equation}
+For the degree-scaled Hessian
+$H=D^{1/2}QD^{1/2}$, the new-coordinate Schur pivot and exact restricted
+optimum drop are
+\begin{equation}
+ S_1=\frac{E_s}{2(1+s)A_s},
+ \qquad
+ \Delta_1:=F_{\rho,U_0}(x^{(0)})-F_{\rho,U_1}(x^{(1)})
+ =\frac{(2g_0)^2}{2S_1}
+ =\frac{4(1+s)A_sg_0^2}{E_s}.
+ \label{eq:path-three-schur-drop}
+\end{equation}
+Consequently
+\begin{align}
+ \frac{B_1}{\Delta_1}
+ &=\frac{E_s(3-2s)}{4A_ss}
+ =\frac{3}{4s}+\frac{2(2+s-2s^2)}{A_s}
+ =\frac{3}{4q_{\rm r}^2}+O(1),
+ \notag\\
+ q_{\rm r}\frac{B_1}{\Delta_1}
+ &=\frac{3}{4q_{\rm r}}+O(q_{\rm r}).
+ \label{eq:path-three-reset-drop-ratio}
+\end{align}
+Thus no $\alpha$-uniform constant, and no coefficient
+$O(1/q_{\rm r})$, can bound even this one settled reset budget by its exact
+face-optimum drop as $q_{\rm r}\downarrow0$.
+
+The separation concerns the \emph{observable upper budget} $B_1$, not the
+actual analytical settled shock.  Indeed, for any settled admission,
+$\operatorname{Env}(\bar x)\leq F_\rho(\bar x)$ and strong convexity give
+\begin{equation}
+ \Sigma^{\rm es}
+ \leq\left(1+\frac{\mu_{\rm E}}\alpha\right)\Delta<2\Delta.
+ \label{eq:settled-actual-shock-drop-bound}
+\end{equation}
+Thus the path diagnoses looseness in this locally observable KKT reset
+formula; it does not show that the underlying face shock itself is
+$\Theta(1/\alpha)$ times the drop.
+
+This is a reset-budget obstruction for the declared interface, not a work
+lower bound.  In the imported relative inner oracle, the initial estimate
+budget occurs inside a logarithm.  The factor
+$B_1/\Delta_1=\Theta(q_{\rm r}^{-2})$ therefore contributes only an
+$O(\log(1/q_{\rm r}))$ change to that stage bound by itself.  The proposition
+does not refute accelerated total work, another potential, a nonadditive
+packing, or a different reset representation.
+\end{proposition}
+
+\begin{proof}
+In degree-scaled coordinates the $U_1$ Hessian and shifted load are
+\begin{equation*}
+ H_{U_1U_1}=\frac1{1+s}
+ \begin{pmatrix}A_s/2&-1/2\\-1/2&A_s\end{pmatrix},
+ \qquad
+ c_{U_1}=\frac{s}{1+s}
+ \begin{pmatrix}1-\rho\\-2\rho\end{pmatrix}.
+\end{equation*}
+The scalar solve on $U_0$ gives $p_0^{(0)}$.  The missing-coordinate
+degree-scaled demand is $2g_0$; direct substitution with $\rho=3/10$ gives
+\cref{eq:path-three-first-settlement-demand}.  The determinant of the
+displayed $2$-by-$2$ matrix is $E_s/[4(1+s)^2]$, and its exact solve gives
+\cref{eq:path-three-second-settlement}.  Since
+$1-\rho(3+4s)=1/10-6s/5$, both coordinates are positive precisely throughout
+the stated range.  Substitution of $p_1^{(1)}$ in the row at vertex $2$
+gives \cref{eq:path-three-terminal-demand}; its numerator is already negative
+at $s=0$ and decreases for $s>0$.
+
+The minimum-norm KKT vector at the padded settled point vanishes on $U_0$
+and has raw $x$-coordinate magnitude $\sqrt2g_0$ at vertex $1$.  This proves
+$K_1^2=2g_0^2$ and $D_1^2=0$.  Substituting
+$\mu_{\rm E}=\alpha(1-2\alpha)/(1-\alpha)$ in the reset definition gives
+\begin{equation*}
+ B_1=\left(\frac1{2\alpha}+\frac{\mu_{\rm E}}{\alpha^2}\right)K_1^2
+ =\frac{(3-2s)g_0^2}{\alpha}.
+\end{equation*}
+Eliminating the old coordinate in $H$ gives the displayed $S_1$.  The new
+degree-scaled linear demand is $2g_0$, so the standard quadratic Schur identity
+gives \cref{eq:path-three-schur-drop}.  Division and the exact decomposition
+in \cref{eq:path-three-reset-drop-ratio} finish the proof.
+\end{proof}
+
+The previous coefficient is not merely an artifact of that path.  A general
+settled expansion retains an order-$1/\alpha$ upper bound, and the path shows
+that its order cannot be improved for this reset formula.
+
+\begin{lemma}[Sharp-order settled reset/drop bound]
+\label{lem:settled-reset-optimum-drop-bound}
+Fix $0<\alpha<1/2$.  Let $U\subset U^+$ be a safe face expansion, let $x_U$
+be the exact restricted minimizer, and zero-pad it to $\bar x$ on $U^+$ with
+zero momentum.  Suppose the minimum-norm KKT vector $\kappa$ at $\bar x$ is
+supported on admitted violating coordinates, so $\bar x-\kappa$ is a feasible
+nonnegative point on the same positive-orthant quadratic piece.  Put
+\begin{equation*}
+ K^2:=\norm{\kappa}_2^2,\qquad
+ \Delta:=F_{\rho,U}(x_U)-F_{\rho,U^+}(x_{U^+}),\qquad
+ B:=\left(\frac1{2\alpha}+\frac{\mu_{\rm E}}{\alpha^2}\right)K^2.
+\end{equation*}
+Then
+\begin{equation}
+ \Delta\geq\frac{K^2}{2},
+ \qquad
+ B\leq
+ \frac{3-5\alpha}{\alpha(1-\alpha)}\,\Delta.
+ \label{eq:settled-reset-optimum-drop-bound}
+\end{equation}
+Consequently the same coefficient bounds sums over any finite collection of
+such settled zero-momentum expansions.  Its order is
+$\Theta(1/\alpha)=\Theta(q_{\rm r}^{-2})$, and
+\Cref{prop:path-three-settled-reset-drop-obstruction} makes that order sharp.
+No conclusion about the nonsettled displacement term $D^2$ follows.
+\end{lemma}
+
+\begin{proof}
+The RPPR quadratic piece has Hessian $Q\preceq I$.  The feasible KKT step
+therefore gives
+\begin{equation*}
+ F_{\rho,U^+}(\bar x-\kappa)-F_{\rho,U^+}(\bar x)
+ =-K^2+\frac12\langle\kappa,Q\kappa\rangle
+ \leq-\frac{K^2}{2}.
+\end{equation*}
+The new restricted optimum is no worse than this trial point, proving the
+first inequality.  Since
+\begin{equation*}
+ 2\left(\frac1{2\alpha}+\frac{\mu_{\rm E}}{\alpha^2}\right)
+ =\frac{3-5\alpha}{\alpha(1-\alpha)},
+\end{equation*}
+the second follows.  Summation is immediate.  On the path,
+$q_{\rm r}^2=\alpha/(1-\alpha)=s$ and
+$B_1/\Delta_1\sim3/(4q_{\rm r}^2)$.
+\end{proof}
+
+There is also a face-general algebraic telescope, but only under a stronger
+settlement-and-order interface that the actual Round--021 nonsettled policy
+does not establish.  We state it to fix both its scope and its correct
+coefficient.
+
+\begin{proposition}[Conditional nested reset-budget telescope]
+\label{prop:conditional-nested-reset-budget-telescope}
+Let $U_0\subset\cdots\subset U_K$, $K\geq2$, be nested faces of one
+full-space RPPR objective.  Put $x_0=0$, and for $1\leq k\leq K$ let $x_k$
+be the exact settled minimizer on $U_k$ with
+\begin{equation}
+ d_k:=x_k-\iota_{k-1}x_{k-1}\geq0,
+ \qquad
+ \Delta_k:=F_{\rho,U_k}(\iota_{k-1}x_{k-1})
+             -F_{\rho,U_k}(x_k)\geq0.
+ \label{eq:conditional-reset-face-drops}
+\end{equation}
+For this proposition only, set
+\begin{equation}
+ q_{\rm r}:=\sqrt{\frac{\alpha}{1-\alpha}},\quad
+ \beta:=\frac{1-q_{\rm r}}{1+q_{\rm r}},\quad
+ a:=\frac{1-q_{\rm r}}{q_{\rm r}},\quad
+ \mu:=\mu_{\rm E},\quad L:=L_{\rm A},\quad
+ A_0:=\frac1{2\alpha}+\frac{\mu}{\alpha^2}.
+ \label{eq:conditional-reset-parameters}
+\end{equation}
+For every $1\leq k<K$, assume that
+$y_k:=x_k+\beta d_k$ is a lower certificate on $U_{k+1}$, that the next
+greedy shifted evolution remains ordered between its proximal warm start and
+$x_{k+1}$, and that its live reset residual $r_k^y$ satisfies the declared
+interface identities
+\begin{equation}
+ \kappa_{k+1}(\iota_kx_k)=r_k^y+\beta Q\iota_kd_k,\qquad
+ \norm{r_k^y}_2^2\leq2L\Delta_{k+1}.
+ \label{eq:conditional-reset-interface}
+\end{equation}
+Use the carried estimate point
+$v_k^{\rm es}=x_k+a d_k$, and define
+\begin{equation*}
+ K_{k+1}:=\norm{\kappa_{k+1}(\iota_kx_k)}_2,\qquad
+ D_{k+1}:=\norm{\iota_kv_k^{\rm es}-\iota_kx_k}_2,\qquad
+ B_{k+1}:=A_0K_{k+1}^2+\mu D_{k+1}^2.
+\end{equation*}
+Then, for every $\eta>0$,
+\begin{equation}
+ B_{k+1}\leq
+ 2A_0(1+\eta)L\Delta_{k+1}
+ +\frac2\alpha\left[
+  A_0(1+\eta^{-1})\beta^2+\mu a^2\right]\Delta_k.
+ \label{eq:conditional-reset-local-bound}
+\end{equation}
+Optimizing the common $\eta$ and summing the interior reset budgets gives
+\begin{align}
+ \sum_{k=1}^{K-1}B_{k+1}
+ &\leq \mathcal A_{\rm rst}(\alpha)
+       \sum_{j=1}^{K}\Delta_j
+ =\mathcal A_{\rm rst}(\alpha)
+   \{F_\rho(0)-F_{\rho,U_K}(x_K)\},
+ \notag\\
+ \mathcal A_{\rm rst}(\alpha)
+ &:=2A_0\left(\sqrt L+\frac\beta{\sqrt\alpha}\right)^2
+   +\frac{2\mu a^2}{\alpha}
+ =\Theta(q_{\rm r}^{-4})=\Theta(\alpha^{-2})
+ \quad(q_{\rm r}\downarrow0).
+ \label{eq:conditional-reset-global-telescope}
+\end{align}
+The scaling is $\Theta(q_{\rm r}^{-4})$, not
+$\Theta(q_{\rm r}^{-3})$.  This proposition is conditional on every displayed
+settlement, lower-center, ordered-greedy, and residual identity.  Those
+premises have not been proved for the Round--021 two-nonsettled trajectory or
+for all canonical caterpillar faces, so the result is not a graph-uniform
+accelerated-rate theorem.
+\end{proposition}
+
+\begin{proof}
+Strong convexity at the settled point and
+\cref{eq:conditional-reset-face-drops} give
+$\norm{d_k}_2^2\leq2\Delta_k/\alpha$.  Using
+$Q\preceq I$ in \cref{eq:conditional-reset-interface} yields
+\begin{equation*}
+ K_{k+1}\leq\sqrt{2L\Delta_{k+1}}
+  +\beta\sqrt{\frac{2\Delta_k}{\alpha}},
+ \qquad
+ D_{k+1}^2=a^2\norm{d_k}_2^2
+ \leq\frac{2a^2\Delta_k}{\alpha}.
+\end{equation*}
+Apply
+$(u+v)^2\leq(1+\eta)u^2+(1+\eta^{-1})v^2$ and substitute in $B_{k+1}$ to
+obtain \cref{eq:conditional-reset-local-bound}.  Each of the partial sums
+$\sum_{k=1}^{K-1}\Delta_k$ and
+$\sum_{k=1}^{K-1}\Delta_{k+1}$ is at most
+$\sum_{j=1}^{K}\Delta_j$.  The latter telescopes because zero padding does
+not change the common full-space objective.  Choosing
+$\eta=\beta/\sqrt{\alpha L}$ gives the displayed square.  Finally,
+$A_0=\Theta(q_{\rm r}^{-2})$, $\beta=\Theta(1)$,
+$\alpha^{-1/2}=\Theta(q_{\rm r}^{-1})$, and the first term therefore has
+order $q_{\rm r}^{-4}$; the remaining term has only order
+$q_{\rm r}^{-2}$.
+\end{proof}
+
+For the literal canonical caterpillar interface, there is a separate exact
+representation charge.  If the existing conservative two-product reset
+register is invoked after every one of the $m$ canonical admissions, without
+sharing the KKT and proximal-start products, then
+\begin{equation}
+ \mathcal V_j=\vol(\widehat U_j)=6j+3\quad(1\leq j<m),
+ \qquad \mathcal V_m=6m,
+ \qquad
+ 2\sum_{j=1}^{m}\mathcal V_j=6m^2+12m-6.
+ \label{eq:branch-caterpillar-literal-reset-product-count}
+\end{equation}
+This is the exact stored-row read count of that \emph{literal} no-sharing
+interface.  At a settled zero-momentum checkpoint the two products may be
+algebraically shareable, and another implementation may represent or reuse
+them differently.  Therefore
+\cref{eq:branch-caterpillar-literal-reset-product-count} is not a necessary
+cost, an algorithm-class lower bound, or a graph-uniform obstruction.
+
+The combined Round--022 conclusion is deliberately narrow.  Additive
+$O(1)$ and $O(1/q_{\rm r})$ reset/drop packing are refuted, while the general
+settled $O(1/\alpha)$ coefficient survives and is sharp in order.  The only
+current multi-reset telescope has the stronger conditional interface above
+and coefficient $\Theta(\alpha^{-2})$.  Because actual stage work depends on
+the reset budgets logarithmically, neither fact settles accelerated work.
+Route~A still needs a nonadditive or logarithmic reset ledger valid on the
+actual nonsettled greedy trajectory, with candidate exposure and every
+product charged.

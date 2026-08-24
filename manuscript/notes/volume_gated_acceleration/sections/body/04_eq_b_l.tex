@@ -1,0 +1,37 @@
+\subsection{A space--time accounting model}
+
+Write
+\begin{equation}
+  B:=\Theta(1/\epsppr),
+  \qquad L:=\Theta(1/\sqrt\alpha).
+  \label{eq:B-L}
+\end{equation}
+Suppose a FIFO wavefront scans all $B$ arm prefixes through depth $j$ at its
+$j$th sweep.  This is a structural accounting model, not a graph-uniform
+lower bound for every SOR implementation.  It gives
+\begin{equation}
+ \vol(S_j)=\Theta(Bj),
+ \qquad
+ \sum_{j=1}^{L}\vol(S_j)
+ =\Theta(BL^2)
+ =\Theta\!\left(\frac1{\alpha\epsppr}\right).
+ \label{eq:triangular-work}
+\end{equation}
+Equivalently, a late sweep costs $BL$ and there are $L$ accelerated-scale
+sweeps.  Merely splitting a size-$Bj$ sweep into $j$ batches of size $B$ does
+not change the sum.
+
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Dynamics & Peak active volume & Iteration/batch count & Total work \\
+\midrule
+Growing FIFO prefix & $BL$ & $L$ sweeps & $BL^2$ \\
+Same work split into batches & $B$ & $L^2$ batches & $BL^2$ \\
+Desired volume-gated method & $B$ & $L\log(1/\epsppr)$ & $BL\log(1/\epsppr)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The desired method must therefore freeze old interior coordinates or charge
+their revisits amortizedly.  A change in iteration labels is insufficient.

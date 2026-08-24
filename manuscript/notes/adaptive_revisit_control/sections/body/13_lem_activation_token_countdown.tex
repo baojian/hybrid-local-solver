@@ -1,0 +1,885 @@
+\subsection{Activation tokens: a tight mergeable countdown}
+
+The abstract condition has a concrete realization when transport work is
+represented by irreversible common-state events rather than by a smooth
+numerical error.
+
+\begin{lemma}[Irreversible activation-token countdown]
+\label{lem:activation-token-countdown}
+For policy $P_j$, let $T_j$ be a finite token set with positive weights
+$w_j(t)$.  Suppose every certified shared state $z$ records a consumed set
+$H_j(z)\subseteq T_j$ such that:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every legal block $z\mapsto z^+$ satisfies
+ $H_j(z)\subseteq H_j(z^+)$;
+ \item every nonterminal $P_j$ block of charge $a$ consumes new tokens
+ $N=H_j(z^+)\setminus H_j(z)$ with
+ $a\leq\sum_{t\in N}w_j(t)$;
+ \item $P_j$ has a legal next block until the common terminal certificate;
+ and
+ \item
+ $\sum_{t\in T_j\setminus H_j(z_0)}w_j(t)\leq\kappa_j C_j$,
+ where $C_j$ is its standalone work from $z_0$.
+\end{enumerate}
+Then
+\begin{equation}
+ \Phi_j(z):=\sum_{t\in T_j\setminus H_j(z)}w_j(t)
+ \label{eq:activation-token-potential}
+\end{equation}
+is an interference-monotone, $\kappa_j$-tight mergeable countdown for
+\Cref{thm:mergeable-countdown}.
+\end{lemma}
+
+\begin{proof}
+Monotonicity of $H_j$ makes $\Phi_j$ nonincreasing under every legal block.
+For an own block,
+\[
+ \Phi_j(z)-\Phi_j(z^+)
+ =\sum_{t\in H_j(z^+)\setminus H_j(z)}w_j(t)\geq a.
+\]
+The last hypothesis is exactly $\kappa_j$-tightness.
+\end{proof}
+
+The important restriction is that these are events in the common certified
+state.  Tokens for an arm-private simulated trajectory would merely hide a
+branch and would not establish interference monotonicity.
+
+\begin{theorem}[A $\kappa=1$ shared-state countdown on endpoint paths]
+\label{thm:path-token-countdown}
+Consider single-seed RPPR on an endpoint-seeded path
+$P_N=(v_0,\ldots,v_N)$, and suppose
+\[
+ S^\star(\rho)=U_J:=\{v_0,\ldots,v_J\}.
+\]
+Require the common checkpoint representation to store, for every admitted
+prefix $U_k$, the exact forward Schur records described below.  Every legal
+support expansion, regardless of which arm requests it, appends the unique
+new record; support-preserving blocks leave the records unchanged.  Once the
+terminal prefix is certified, the common verifier enters a terminalization
+phase: reverse-recovery blocks are legal, while numerical policy updates that
+could overwrite recovered output are not.
+
+Then the exact path-Schur arm has an irreversible activation-token countdown
+with $\kappa=1$.  Its declared standalone work and initial countdown are
+\begin{equation}
+ C_{\rm path}=\Phi_{\rm path}(z_0)\leq2C(S^\star(\rho)),
+ \label{eq:path-token-work}
+\end{equation}
+up to deletion of any seed-initialization token already paid at $z_0$.
+Consequently
+\begin{equation}
+ C_{\rm path}\leq\frac4\rho,
+ \label{eq:path-token-rppr}
+\end{equation}
+and a uniform work-fair shared-state portfolio containing this arm terminates
+on the promised path class in at most
+$2K C(S^\star)+\Delta\leq4K/\rho+\Delta$ declared work.  No reset or
+arm-private numerical iterate is required.
+\end{theorem}
+
+\begin{proof}
+Write
+\[
+ a_i:=Q_{v_i v_i},
+ \qquad
+ \beta_i:=-Q_{v_{i-1}v_i}>0\quad(i\geq1),
+ \qquad
+ \lambda_i:=(\ell_\rho)_{v_i}.
+\]
+The common representation stores the forward elimination records
+\begin{align}
+ \delta_0&=a_0,& \eta_0&=\lambda_0,\notag\\
+ \delta_i&=a_i-\frac{\beta_i^2}{\delta_{i-1}},&
+ \eta_i&=\lambda_i+\frac{\beta_i\eta_{i-1}}{\delta_{i-1}}.
+ \label{eq:path-common-schur-record}
+\end{align}
+Positive definiteness gives $\delta_i>0$.  At prefix $U_k$, the unique
+boundary residual has the sign of
+$\eta_{k+1}=\lambda_{k+1}+\beta_{k+1}\eta_k/\delta_k$.
+Thus it is positive for $k<J$ and nonpositive at $k=J$ unless $J=N$.
+The next forward block is therefore always legal until the exact terminal
+prefix is found.  The terminal solution is then recovered once in reverse:
+\begin{equation}
+ x_{v_J}=\frac{\eta_J}{\delta_J},
+ \qquad
+ x_{v_i}=\frac{\eta_i+\beta_{i+1}x_{v_{i+1}}}{\delta_i}
+ \quad(i=J-1,\ldots,0).
+ \label{eq:path-common-backsolve}
+\end{equation}
+
+Let $w_i:=c(v_i)=1+d_{v_i}$.  Give every $v_i\in S^\star$ one forward
+token $f_i$ and one reverse token $b_i$, both of weight $w_i$.  The forward
+token is consumed when $v_i$ is admitted or initialized and its record is
+appended; the reverse token is consumed when
+\eqref{eq:path-common-backsolve} recovers that coordinate.  If the current
+prefix is $U_k$ and $H$ is the reverse-recovered set, the remaining-token
+countdown is
+\begin{equation}
+ \Phi_{\rm path}(U_k,H)
+ =\sum_{i=k+1}^{J}w_i
+  +\sum_{v_i\in S^\star\setminus H}w_i,
+ \label{eq:path-token-potential}
+\end{equation}
+with the already initialized seed token handled identically on both sides.
+Any compatible block either leaves this quantity unchanged, advances the
+prefix, or recovers output.  A path-arm forward or reverse block has declared
+charge exactly the token it consumes, so
+\Cref{lem:activation-token-countdown} applies with $\kappa=1$ and initial
+value at most $2C(S^\star)$.
+
+The recurrence and backsolve use constant arithmetic per path vertex; the
+declared charge dominates this work and its adjacency access by an absolute
+factor.  Finally,
+$C(S^\star)\leq2\vol(S^\star)\leq2/\rho$, proving
+\eqref{eq:path-token-rppr}.  Apply
+\Cref{thm:mergeable-countdown} with uniform shares for the portfolio bound.
+\end{proof}
+
+This theorem is the clean positive answer for serializable fronts: preserve
+an activation-once transport representation in the common state, and charge
+forward discovery and terminal recovery exactly once.  The next result shows
+that the first genuine branch is still serializable if the common state stores
+an implicit affine response rather than eagerly materializing all current
+coordinate values.
+
+\begin{theorem}[Three-arm common-state countdown]
+\label{thm:three-arm-spider-token-countdown}
+Let $Y(N_1,N_2,N_3)$ be the unweighted tree with center $o$ and three
+internally disjoint arms
+\begin{equation*}
+ o-v_{a,1}-\cdots-v_{a,N_a},
+ \qquad a\in\{1,2,3\},\qquad N_a\geq1.
+\end{equation*}
+Use the single seed $s=e_o$, fix $\alpha\in(0,1)$ and
+$\rho\in(0,1/3)$, and run the exact canonical RPPR boundary gate of
+\Cref{thm:absorption-safe-switch}.  A legal certified block may admit any
+nonempty subset of the currently positive boundary tips.  The common state
+stores the actual three admitted prefixes, the affine transfer records below,
+and a terminal output phase; it stores no arm-private support or numerical
+trajectory.
+
+In exact real-cell arithmetic, there is an exact response arm such that every
+legal certified block order, including orders committed by other policies,
+preserves its irreversible activation-token countdown with $\kappa=1$.
+Writing $S^\star:=S^\star(\rho)$ and
+$C(S^\star)=\sum_{v\in S^\star}(1+d_v)$, its resource coordinates obey
+\begin{align}
+ \mathcal C_{\rm adj}
+ &\leq \vol(S^\star)+6,
+ &
+ \mathcal C_{\rm resp}
+ &=O(\card{S^\star}),
+ \notag\\
+ \mathcal C_{\rm set/rec}
+ &=O(\card{S^\star}),
+ &
+ \mathcal C_{\rm ctl}
+ &=O(\card{S^\star}),
+ \label{eq:spider-resource-ledger}\\
+ \mathcal C_{\rm state\text{-}write}
+ &=O(\card{S^\star}),
+ &
+ \mathcal M_{\rm state}
+ &=O(\card{S^\star}),
+ \qquad
+ \mathcal C_{\rm out}=\card{S^\star}.
+ \notag
+\end{align}
+Here response work includes every forward record and exact checkpoint update;
+settlement/recovery is the one terminal materialization pass, not an
+intermediate full-vector solve; control includes all three tip tests after
+each committed expansion; state writes and peak resident cells are separate;
+and output counts exact listed coordinates.  There is no ambient-graph
+preprocessing.  For a fixed cell-operation convention, the arm's declared
+standalone work $C_Y$ and initial token mass are equal and satisfy
+\begin{equation}
+ \Phi_Y(z_0)=C_Y=O(C(S^\star))=O(1/\rho),
+ \label{eq:spider-token-work}
+\end{equation}
+after deleting initialization tokens already paid at $z_0$.  Therefore a
+uniform work-fair common-state portfolio containing this arm finishes on this
+three-arm family in at most $K C_Y+\Delta$ declared work.
+
+The statement is structural.  It does not cover two branching vertices,
+arbitrary trees, cycles, finite precision, or bit complexity, and it does not
+assert a conversion from $\rho$ to $\epsppr$.
+\end{theorem}
+
+\begin{proof}
+Put
+\begin{equation*}
+ \lambda_v:=(\ell_\rho)_v,
+ \qquad
+ \sigma_v:=Q_{vv},
+ \qquad
+ \beta_{a,i}:=-Q_{v_{a,i-1},v_{a,i}}>0,
+ \qquad v_{a,0}:=o.
+\end{equation*}
+The condition $\rho<1/3$ is exactly
+$\lambda_o=\alpha(1-3\rho)/\sqrt3>0$, so the seed initialization required by
+\Cref{thm:absorption-safe-switch} is valid.  Every region reached from $o$ is
+the union of three arm prefixes.  Since the exact gate terminates at the true
+support, write
+\begin{equation}
+ S^\star
+ =\{o\}\cup
+  \bigcup_{a=1}^3\{v_{a,1},\ldots,v_{a,J_a}\},
+ \label{eq:spider-support-prefixes}
+\end{equation}
+for some $0\leq J_a\leq N_a$.
+
+We first give the common exact response.  Introduce a harmless positive ghost
+coupling
+\begin{equation*}
+ \widehat\beta_{a,i+1}
+ :=\begin{cases}
+     \beta_{a,i+1},&i<N_a,\\
+     1,&i=N_a,
+   \end{cases}
+\end{equation*}
+and the affine transfer cell
+\begin{equation}
+ M_{a,i}
+ :=
+ \begin{pmatrix}
+  \sigma_{v_{a,i}}/\widehat\beta_{a,i+1}
+    &-\beta_{a,i}/\widehat\beta_{a,i+1}
+    &-\lambda_{v_{a,i}}/\widehat\beta_{a,i+1}\\
+  1&0&0\\
+  0&0&1
+ \end{pmatrix}.
+ \label{eq:spider-transfer-cell}
+\end{equation}
+For an admitted prefix of length $k\geq1$, set
+\begin{equation}
+ P_{a,k}:=M_{a,k}\cdots M_{a,1}
+ =
+ \begin{pmatrix}
+  A_{a,k}&B_{a,k}&C_{a,k}\\
+  D_{a,k}&E_{a,k}&F_{a,k}\\
+  0&0&1
+ \end{pmatrix}.
+ \label{eq:spider-transfer-product}
+\end{equation}
+The arm equations say exactly that
+\begin{equation*}
+ \begin{pmatrix}x_{v_{a,k+1}}\\x_{v_{a,k}}\\1\end{pmatrix}
+ =P_{a,k}
+  \begin{pmatrix}x_{v_{a,1}}\\x_o\\1\end{pmatrix},
+\end{equation*}
+where the current restricted endpoint condition is the ghost value
+$x_{v_{a,k+1}}=0$.  The coefficient $A_{a,k}$ is the positive determinant of
+the arm-prefix principal matrix divided by
+$\prod_{i=1}^k\widehat\beta_{a,i+1}$, so it is nonzero.  Consequently
+\begin{align}
+ p_{a,k}&:=-B_{a,k}/A_{a,k},
+ &q_{a,k}&:=-C_{a,k}/A_{a,k},\notag\\
+ r_{a,k}&:=D_{a,k}p_{a,k}+E_{a,k},
+ &s_{a,k}&:=D_{a,k}q_{a,k}+F_{a,k}
+ \label{eq:spider-affine-arm-response}
+\end{align}
+give the exact affine readouts
+\begin{equation*}
+ x_{v_{a,1}}=p_{a,k}x_o+q_{a,k},
+ \qquad
+ x_{v_{a,k}}=r_{a,k}x_o+s_{a,k}.
+\end{equation*}
+For $k=0$, use $p_{a,0}=q_{a,0}=0$ and regard the arm endpoint as $o$, so
+$r_{a,0}=1$ and $s_{a,0}=0$.
+
+At the common prefix vector $k=(k_1,k_2,k_3)$, store only the two root
+aggregates
+\begin{align}
+ \Delta(k)
+ &:=Q_{oo}-\sum_{a:k_a>0}\beta_{a,1}p_{a,k_a},\notag\\
+ \eta(k)
+ &:=\lambda_o+\sum_{a:k_a>0}\beta_{a,1}q_{a,k_a}.
+ \label{eq:spider-root-aggregates}
+\end{align}
+Here $\Delta(k)>0$ is the root Schur complement, and the canonical root value
+is exactly
+\begin{equation}
+ x[U(k)]_o=\eta(k)/\Delta(k).
+ \label{eq:spider-root-readout}
+\end{equation}
+If $k_a<N_a$, the exact KKT violation at the next tip is
+\begin{equation}
+ g_a(k)
+ :=(\ell_\rho-Qx[U(k)])_{v_{a,k_a+1}}
+ =\lambda_{v_{a,k_a+1}}
+  +\beta_{a,k_a+1}
+    \bigl(r_{a,k_a}x[U(k)]_o+s_{a,k_a}\bigr).
+ \label{eq:spider-tip-readout}
+\end{equation}
+Thus all current boundary certificates are obtained by three constant-size
+readouts.  No stored value on an untouched arm is rekeyed when the root value
+changes.
+
+Appending $v_{a,k_a+1}$ left-multiplies one product,
+$P_{a,k_a+1}=M_{a,k_a+1}P_{a,k_a}$, replaces one pair $(p,q)$ in
+\cref{eq:spider-root-aggregates}, and reevaluates
+\cref{eq:spider-root-readout,eq:spider-tip-readout}.  This is constant exact
+arithmetic and a constant number of cell writes.  A legal batch contains at
+most one tip from each arm.  It may be processed in any order: every tip was
+positive before the batch, and violation persistence
+\eqref{eq:rppr-violation-persistence} keeps the unprocessed tips positive.
+The final products and the two root sums are independent of that
+sequentialization.  Hence the representation follows the actual committed
+common prefixes under every legal certified batch order.
+
+Once all three readouts are nonpositive or their arms are exhausted, the
+exact KKT gate has certified the terminal support.  The verifier then forbids
+support-changing numerical blocks and enters an irreversible output phase.
+Compute the root once; on each nonempty arm compute
+$x_{v_{a,1}}=p_{a,J_a}x_o+q_{a,J_a}$ and apply the stored cells
+\cref{eq:spider-transfer-cell} outward.  This recovers and writes each exact
+coordinate once.  The three-tip check that discovers terminality is always
+part of the preceding initialization or append block; that block also writes
+the terminal-phase bit.  There is therefore no paid, tokenless terminal-check
+block.
+
+We now audit resources.  Every admitted vertex is scanned once.  In addition,
+at most one terminal exterior tip per arm is exposed, and each has degree at
+most two.  This proves the adjacency bound in
+\cref{eq:spider-resource-ledger}.  Every append performs one constant-size
+product update, one root-sum update, and at most three tip tests.  Every local
+transfer cell is written once and retained until recovery, and recovery and
+output touch each support vertex once.  These facts prove all remaining
+coordinates in \cref{eq:spider-resource-ledger}.  In particular, the ledger
+does not hide an intermediate materialized canonical vector.  This is an
+exact-cell count only; coefficient bit lengths and numerical stability are
+outside the claim.
+
+For completeness, define the tokens explicitly.  Let
+\begin{equation*}
+ \mathcal X_Y
+ :=S^\star\cup\bigl(\partial S^\star\cap
+       \{v_{a,i}:a\in\{1,2,3\},\ i\geq1\}\bigr).
+\end{equation*}
+The token set contains an exposure token $e_v$ for every $v\in\mathcal X_Y$,
+a forward response token $f_v$ for every $v\in S^\star$, and a terminal
+recovery/output token $b_v$ for every $v\in S^\star$.  Fix the implementation's
+cell-operation templates: an exposure executes its full adjacency scan and
+boundary-record write, a forward append executes the fixed $3$-by-$3$
+product/root template and tests all three tip slots (including an exhaustion
+flag), and a recovery executes its fixed state/output template.  Give
+$e_v,f_v,b_v$ exactly the charges of those respective templates.  Thus these
+are the arm's actual declared operations, not padded analytical credits.  Call
+the resulting token set $T_Y$; its remaining total from $z_0$ is exactly the
+standalone declared charge $C_Y$.
+
+The consumed set $H_Y(z)$ is defined by events in the common state: first
+exposure of a label, committed admission and response append, and irreversible
+terminal recovery/output.  A support-preserving block leaves it unchanged;
+every certified expansion or terminal block only adds events.  An own forward
+block chooses a positive tip from \cref{eq:spider-tip-readout}, consumes its
+new $f_v$ and any newly exposed $e_v$ tokens, and charges no more than their
+weight.  An own terminal block consumes a new $b_v$ and likewise charges no
+more than its weight.  The arm always has one of these legal blocks until the
+full exact output certificate holds.  Tokens consumed by another policy are
+consumed in the same committed prefixes and can only help; no simulated
+private order appears in $H_Y$.
+
+Therefore
+\begin{equation*}
+ \Phi_Y(z):=\sum_{t\in T_Y\setminus H_Y(z)}w(t)
+\end{equation*}
+satisfies \Cref{lem:activation-token-countdown}.  By the definition of the
+declared cell charges, its initial mass equals the standalone declared work,
+so $\kappa=1$.  Finally $\card{\mathcal X_Y}\leq\card{S^\star}+3$,
+$C(S^\star)\leq2\vol(S^\star)\leq2/\rho$, and $\rho<1/3$ absorbs the constant
+exterior-tip term.  This proves \cref{eq:spider-token-work}; the portfolio
+bound is \Cref{thm:mergeable-countdown}.
+\end{proof}
+
+The minimal degree-three branch therefore does not furnish a legal-order
+counterexample.  Its three response directions meet only through one scalar
+root value, so one fixed-size affine product per arm is enough.  The next
+theorem tests the first larger interface rather than extrapolating this scalar
+argument: two adjacent branching vertices require a rank-two core.
+
+\begin{theorem}[Double-Y rank-two common-state countdown]
+\label{thm:double-y-two-core-token-countdown}
+Let $\mathsf{DY}(N_{o,1},N_{o,2};N_{h,1},N_{h,2})$ be the unweighted tree
+with adjacent degree-three vertices $o$ and $h$ and four pendant arms
+\begin{equation*}
+ u-v_{u,a,1}-\cdots-v_{u,a,N_{u,a}},
+ \qquad u\in\{o,h\},\quad a\in\{1,2\},\quad N_{u,a}\geq1.
+\end{equation*}
+Use the single seed $s=e_o$, fix $\alpha\in(0,1)$ and
+$\rho\in(0,1/3)$, and run the exact canonical RPPR gate of
+\Cref{thm:absorption-safe-switch}.  Require every committed support expansion,
+including one requested by another policy, to maintain the common response
+state below and to include that update in its declared charge.  Support-
+preserving blocks may not overwrite these records, and the terminal phase may
+not overwrite recovered coordinates.
+
+In exact real-cell arithmetic, one affine transfer product per actual pendant
+prefix and a core Schur interface of dimension at most two give an exact
+response arm for every legal certified boundary-batch order.  Its irreversible
+activation-token countdown remains $\kappa=1$.  Before $h$ is admitted the
+interface dimension is one; after $h$ is admitted its core matrix is positive
+definite of rank two.  In particular, writing
+\begin{equation}
+ \zeta:=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ \rho_{\rm link}(\alpha):=\frac{\zeta}{3(3+\zeta)},
+ \label{eq:double-y-link-threshold}
+\end{equation}
+every legal order enters the rank-two phase whenever
+$0<\rho<\rho_{\rm link}(\alpha)$.
+
+For arbitrary $0<\rho<1/3$, with $S^\star:=S^\star(\rho)$ and
+$C(S^\star)=\sum_{v\in S^\star}(1+d_v)$, the implementation has the separately
+charged resource coordinates
+\begin{align}
+ \mathcal C_{\rm adj}
+ &\leq \vol(S^\star)+8,
+ &
+ \mathcal C_{\rm gate\text{-}ctl}
+ &=O(\card{S^\star}),
+ \notag\\
+ \mathcal C_{\rm resp\text{-}build}
+ &=O(\card{S^\star}),
+ &
+ \mathcal C_{\rm resp\text{-}upd}
+ &=O(\card{S^\star}),
+ \notag\\
+ \mathcal C_{\rm resp\text{-}qry}
+ &=O(\card{S^\star}),
+ &
+ \mathcal C_{\rm state\text{-}write}
+ &=O(\card{S^\star}),
+ \label{eq:double-y-resource-ledger}\\
+ \mathcal M_{\rm persistent}
+ &=O(\card{S^\star}),
+ &
+ \mathcal M_{\rm transient}
+ &=O(1),
+ \notag\\
+ \mathcal C_{\rm rec}
+ &=O(\card{S^\star}),
+ &
+ \mathcal C_{\rm val}
+ &=O(\card{S^\star}),
+ \qquad
+ \mathcal C_{\rm out}=\card{S^\star}.
+ \notag
+\end{align}
+There is no ambient preprocessing.  Adjacency includes closure discovery from
+the seed, gate/control includes every fixed-slot membership and positivity
+test, response construction/update/query are distinct coordinates, validation
+reads the stored rows after recovery, and output counts exact listed
+coordinates.  Reading and initializing the single seed costs $O(1)$ and is
+included in the paid initial state.  If $C_{\rm DY}$ is the sum of these declared cell-operation
+templates, then, after removing initialization events already paid at the
+initial common state $z_0$,
+\begin{equation}
+ \Phi_{\rm DY}(z_0)=C_{\rm DY}
+ =O(C(S^\star))=O(1/\rho).
+ \label{eq:double-y-token-work}
+\end{equation}
+Thus a uniform work-fair portfolio containing this arm terminates on the
+double-Y family within $K C_{\rm DY}+\Delta$ declared work.
+
+The theorem is an exact RPPR result on this promised tree family.  It does not
+cover a longer backbone of branching vertices, arbitrary trees, cycles,
+finite precision, bit complexity, or an RPPR-to-PPR accuracy conversion.
+\end{theorem}
+
+\begin{proof}
+Put $\lambda_v:=(\ell_\rho)_v$ and $\beta_0:=-Q_{oh}>0$.  Since
+$d_o=d_h=3$,
+\begin{equation*}
+ \lambda_o=\frac{\alpha(1-3\rho)}{\sqrt3}>0,
+ \qquad
+ \lambda_h=-\alpha\rho\sqrt3,
+ \qquad
+ \beta_0=\frac{1-\alpha}{6}.
+\end{equation*}
+Thus the seed initialization satisfies
+\Cref{thm:absorption-safe-switch}.  Every reached region is connected.  Before
+$h$ is admitted it consists of $o$ and two prefixes on the $o$-arms; afterward
+it consists of $o,h$ and four pendant prefixes.  The true support has the same
+form because the exact gate terminates at $S^\star$.
+
+For each admitted pendant prefix, use the ghost-coupled transfer cells and
+products of
+\cref{eq:spider-transfer-cell,eq:spider-transfer-product}, with the relevant
+branch vertex $u\in\{o,h\}$ in place of the spider root.  Denote the resulting
+affine readouts by
+\begin{equation*}
+ x_{v_{u,a,1}}=p_{u,a,k}x_u+q_{u,a,k},
+ \qquad
+ x_{v_{u,a,k}}=r_{u,a,k}x_u+s_{u,a,k},
+\end{equation*}
+and use $p=q=0$, $r=1$, $s=0$ at an empty prefix.  Positive definiteness of
+every arm-prefix principal matrix makes each division in these readouts valid.
+For the two branch vertices store
+\begin{align}
+ \Delta_u(k)
+ &:=Q_{uu}-\sum_{a:k_{u,a}>0}
+      \beta_{u,a,1}p_{u,a,k_{u,a}},
+ &
+ \eta_u(k)
+ &:=\lambda_u+\sum_{a:k_{u,a}>0}
+      \beta_{u,a,1}q_{u,a,k_{u,a}},
+ \label{eq:double-y-branch-aggregates}
+\end{align}
+where $\beta_{u,a,i}:=-Q_{v_{u,a,i-1},v_{u,a,i}}$ and
+$v_{u,a,0}:=u$.
+
+While $h$ is inactive, the exact core and central boundary readouts are
+\begin{equation}
+ x_o=\frac{\eta_o}{\Delta_o},
+ \qquad
+ g_h:=\lambda_h+\beta_0x_o.
+ \label{eq:double-y-scalar-core}
+\end{equation}
+Once $h$ is admitted, eliminating the four current pendant prefixes leaves
+\begin{equation}
+ \mathcal K(k):=
+ \begin{pmatrix}
+  \Delta_o(k)&-\beta_0\\
+  -\beta_0&\Delta_h(k)
+ \end{pmatrix},
+ \qquad
+ \mathcal K(k)\binom{x_o}{x_h}=\binom{\eta_o(k)}{\eta_h(k)}.
+ \label{eq:double-y-rank-two-core}
+\end{equation}
+This is a principal Schur complement and hence is positive definite and rank
+two.  With
+$\Theta(k):=\Delta_o(k)\Delta_h(k)-\beta_0^2>0$, its exact readout is
+\begin{equation}
+ x_o=\frac{\Delta_h\eta_o+\beta_0\eta_h}{\Theta},
+ \qquad
+ x_h=\frac{\beta_0\eta_o+\Delta_o\eta_h}{\Theta}.
+ \label{eq:double-y-core-readout}
+\end{equation}
+For every active branch vertex $u$, the next pendant-tip violation is
+\begin{equation}
+ g_{u,a}(k)
+ =\lambda_{v_{u,a,k_{u,a}+1}}
+  +\beta_{u,a,k_{u,a}+1}
+   \bigl(r_{u,a,k_{u,a}}x_u+s_{u,a,k_{u,a}}\bigr).
+ \label{eq:double-y-tip-readout}
+\end{equation}
+There are three live slots before $h$ is admitted---two $o$-tips and $h$---and
+at most four afterward.  The implementation computes these constant-size
+readouts when needed; it stores no materialized boundary keys.
+
+The displayed threshold genuinely reaches both branch vertices.  At the
+initial region $\{o\}$, $Q_{oo}=(1+\alpha)/2$.  Equation
+\eqref{eq:double-y-scalar-core} and $\beta_0=(1-\alpha)/6$ give
+\begin{equation*}
+ g_h(\{o\})
+ =\frac{\alpha}{\sqrt3}
+   \left[-3\rho+\frac{\zeta}{3}(1-3\rho)\right]>0
+ \quad\Longleftrightarrow\quad
+ \rho<\frac{\zeta}{3(3+\zeta)}.
+\end{equation*}
+Hence $h\in S^\star$ in this range.  If another positive tip is selected
+first, violation persistence
+\eqref{eq:rppr-violation-persistence} keeps $h$ positive; finiteness of the
+tree forces its eventual admission under every legal order.  For larger
+$\rho<1/3$, the same representation remains valid whether or not $h$ belongs
+to $S^\star$; if it does not, the core stays scalar.
+
+Appending a pendant tip left-multiplies only its own transfer product, changes
+one pair in \eqref{eq:double-y-branch-aggregates}, and reevaluates the scalar or
+rank-two core.  Admitting $h$ changes the active-core bit, initializes
+$(\Delta_h,\eta_h)=(Q_{hh},\lambda_h)$, and exposes its two pendant-tip slots.
+Every operation uses constant exact arithmetic and constant state writes.  A
+legal batch contains at most one current tip from each active arm and may also
+contain $h$ before the rank-two phase.  Sequentialize only those actually
+committed vertices.  Every member was positive before the batch and remains
+positive by \eqref{eq:rppr-violation-persistence}; the final prefix products,
+branch sums, and core bit depend only on the committed support.  This is not a
+private replay of a different order.
+
+At most four exterior boundary rows are ever live at termination.  If $h$ is
+active they are four pendant tips, each of degree at most two; if $h$ is
+inactive they are at most two such tips and the degree-three vertex $h$.
+Scanning each admitted or boundary row once therefore costs at most
+$\vol(S^\star)+8$.  Every admission constructs one local transfer cell,
+updates one product and one constant-size core, queries at most four slots, and
+writes only permanent prefix/core records.  This proves all forward coordinates
+of \eqref{eq:double-y-resource-ledger} and gives linear persistent state and
+constant transient workspace.
+
+The fixed-slot check in the initialization or last append that finds no
+positive violation also writes the irreversible terminal-phase bit.  Recover
+the one- or two-vertex core once and traverse each stored pendant product
+outward once.  Then make one charged pass over the stored bounded-degree rows
+to validate active positivity and equations and the terminal boundary
+inequalities, and make one separate exact output pass.  Nonboundary inactive
+vertices have no active neighbor and satisfy their KKT interval automatically.
+These operations prove the recovery, validation, and output coordinates in
+\eqref{eq:double-y-resource-ledger}; no row is rediscovered and no intermediate
+canonical vector is materialized during the forward phase.
+
+It remains to verify the countdown without analytical padding.  Let
+\begin{equation*}
+ \mathcal X_{\rm DY}:=S^\star\cup\partial S^\star.
+\end{equation*}
+Give every $v\in\mathcal X_{\rm DY}$ one exposure token with weight equal to
+its full adjacency/row-record template.  Give every $v\in S^\star$ separate
+forward-response, recovery, validation, and output tokens whose weights are
+exactly the corresponding fixed cell-operation templates, including gate,
+control, state-write, and core-query work where it occurs.  The common consumed
+set records first row exposure, committed admission and response update,
+irreversible recovery, completed validation, and exact output.  Events already
+paid during initialization are removed from both the token set and
+$C_{\rm DY}$.
+
+Every compatible block only adds common events.  An own forward or terminal
+block charges no more than the exact weights of the new tokens it consumes and
+one is always legal until the full validated output certificate holds.  An
+expansion performed by another policy invokes the same mandatory common
+updater and consumes the same permanent events, so it can only decrease the
+remaining mass; there is no catch-up replay.  Thus
+\Cref{lem:activation-token-countdown} applies.  By construction the initial
+mass is exactly the standalone declared work, proving $\kappa=1$.  Finally
+$\card{\mathcal X_{\rm DY}}\leq\card{S^\star}+4$, all degrees are at most three,
+and
+$C(S^\star)\leq2\vol(S^\star)\leq2/\rho$.  This proves
+\eqref{eq:double-y-token-work} and the portfolio bound.
+\end{proof}
+
+The adjacent second branch therefore increases the exact response interface
+from one scalar to one fixed rank-two Schur core, but does not break the
+activation-once countdown.  The next unresolved tree has a growing branch-core
+backbone rather than this constant two-vertex interface.
+
+\begin{proposition}[A growing branch core forces global rekeys in an eager tip array]
+\label{prop:branch-caterpillar-eager-rekey-obstruction}
+Fix $\alpha\in(0,1)$ and an integer $m\geq2$.  Let
+$\mathsf{BC}_m$ be the unweighted branch caterpillar with branch path
+$b_1-\cdots-b_m$, single seed $s=e_{b_1}$, and the following pendant arms:
+$b_1-a_1-\cdots-a_m$ and $b_1-r_1$, one leaf $r_i$ at every
+$b_i$ for $2\leq i<m$, and two leaves $r_m,r_{m+1}$ at $b_m$.
+Thus every $b_i$ has degree three, both endpoint branches have two nonempty
+pendant arms, and
+\begin{equation}
+ |V(\mathsf{BC}_m)|=3m+1,
+ \qquad C(V(\mathsf{BC}_m))=9m+1.
+ \label{eq:branch-caterpillar-size}
+\end{equation}
+For each fixed $m$ there is an explicit number
+$\rho_{\rm cat}(m,\alpha)>0$, defined in
+\eqref{eq:branch-caterpillar-reach-threshold} below.  For every
+$0<\rho<\rho_{\rm cat}(m,\alpha)$, the exact canonical RPPR KKT gate with the
+positive-subset policy permitted by \Cref{thm:absorption-safe-switch} may
+follow the legal singleton order
+\begin{equation}
+ b_2,b_3,\ldots,b_m;\qquad
+ a_1,a_2,\ldots,a_m;\qquad
+ r_1,r_2,\ldots,r_{m+1}.
+ \label{eq:branch-caterpillar-legal-order}
+\end{equation}
+In particular, the response core genuinely reaches dimension $m$ and the
+true support is the whole tree.  This is not the canonical all-violations
+batch rule: that rule may co-admit the deliberately deferred positive leaves.
+No positive lower bound on $\rho_{\rm cat}(m,\alpha)$ uniform in $m$ is
+claimed.  The threshold is an analysis-side reach condition, not a table
+constructed or queried by the online execution.
+
+Consider the named representation \emph{EagerTipKey}: at every canonical
+checkpoint $U$ it retains a separately addressed exact-real cell
+\begin{equation*}
+ K_v=(\ell_\rho-Qx[U])_v
+ \qquad(v\in\partial U),
+\end{equation*}
+and, before the next gate reply, it overwrites every such cell whose exact
+value changed.  Shared lazy tags, affine formulas, sign-only flags, and
+on-demand recomputation are not EagerTipKey states.  Along
+\eqref{eq:branch-caterpillar-legal-order}, each of the $m$ long-arm admissions
+changes all $m+1$ deferred leaf keys.  Hence EagerTipKey incurs at least
+$m(m+1)$ old-key writes and cannot have an $O(C(S^\star))$ activation-once
+countdown.
+
+A literal sequential implementation that scans each row once, solves the
+current tridiagonal branch response by a linear exact sweep at each
+checkpoint, refreshes the eager array internally, emits one constant-size
+singleton certificate per expansion and one terminal certificate, then
+materializes, validates, and emits the exact solution once has the exhaustive
+resource vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_m^{\rm eager})
+ :=\bigl(&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+ C_{\rm rec},C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit}
+ \bigr)\\
+ =\bigl(&\Theta(m),\Theta(m),3m+1,0,\Theta(m^2),0,
+ \Theta(m^2),\Theta(m),O(m),\Theta(m),\Theta(m)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-eager-eleven-vector}
+\end{equation}
+The $\Omega(m^2)$ eager-key work in $C_{\rm ctl}$ persists even if exact core
+coordinates are supplied for free; the displayed $C_{\rm resp}$ is the
+separate cost of the chosen repeated linear tridiagonal sweeps.  If the
+external interface instead requires the complete positive-tip label list at
+every checkpoint, then its repeated list itself adds
+$C_{\rm emit}=\Theta(m^2)$.
+Here the cached boundary-key array is a control data structure: indexing,
+testing, and persistent key-cell overwrites belong to $C_{\rm ctl}$, whereas
+the response arithmetic that computes the exact values belongs to
+$C_{\rm resp}$.
+
+This is only a representation-specific exact-cell obstruction.  It is not a
+lower bound for implicit or lazy response states, kinetic/group reporters,
+sign-only persistence records, arbitrary RPPR algorithms, or finite-precision
+implementations.
+\end{proposition}
+
+\begin{proof}
+Put $B_i:=\{b_1,\ldots,b_i\}$,
+$A_t:=\{a_1,\ldots,a_t\}$, and $A_0:=\varnothing$.  For a connected
+$U\ni b_1$ and a nonseed boundary vertex $v$, define
+\begin{align}
+ \Gamma_{U,v}
+ &:=-Q_{vU}Q_{UU}^{-1}b_U,
+ &
+ H_{U,v}
+ &:=\sqrt{d_v}-Q_{vU}Q_{UU}^{-1}D_U^{1/2}\one.
+ \label{eq:branch-caterpillar-affine-demand}
+\end{align}
+The principal matrix $Q_{UU}$ is an irreducible Stieltjes matrix.  Its inverse
+is strictly positive, $b_U$ is positive at $b_1$, and $v$ has an edge into
+$U$.  Therefore $\Gamma_{U,v}>0$ and $H_{U,v}>0$.  Direct substitution of
+$\ell_\rho=b-\alpha\rho D^{1/2}\one$ gives the exact affine demand
+\begin{equation}
+ (\ell_\rho-Qx[U])_v
+ =\Gamma_{U,v}-\alpha\rho H_{U,v}.
+ \label{eq:branch-caterpillar-demand-line}
+\end{equation}
+
+Let
+\begin{equation*}
+ \mathcal P_m:=
+ \{(B_i,b_{i+1}):1\leq i<m\}
+ \cup\{(B_m\cup A_t,a_{t+1}):0\leq t<m\}
+ \cup\{(B_m,r_i):1\leq i\leq m+1\}
+\end{equation*}
+and set
+\begin{equation}
+ \rho_{\rm cat}(m,\alpha)
+ :=\min\left\{
+  \frac13,
+  \min_{(U,v)\in\mathcal P_m}
+  \frac{\Gamma_{U,v}}{\alpha H_{U,v}}
+ \right\}>0.
+ \label{eq:branch-caterpillar-reach-threshold}
+\end{equation}
+For $0<\rho<\rho_{\rm cat}(m,\alpha)$,
+\eqref{eq:branch-caterpillar-demand-line} is strictly positive for every pair
+in $\mathcal P_m$, while $\rho<1/3$ makes the degree-three seed load positive.
+Consequently the backbone and then the long arm in
+\eqref{eq:branch-caterpillar-legal-order} are legal singleton admissions.
+All $r_i$ are already positive at $B_m$ and remain positive under every later
+admission by violation persistence
+\eqref{eq:rppr-violation-persistence}.  They may therefore be admitted in the
+displayed singleton order.  The absorption theorem puts every admitted vertex
+in $S^\star$; since the order admits every graph vertex,
+$S^\star=V(\mathsf{BC}_m)$.  Eliminating the current pendant prefixes leaves
+an SPD tridiagonal system on $b_1,\ldots,b_m$, so the active branch-core
+dimension is exactly $m$ after the first phase.  The vertex and charge counts
+in \eqref{eq:branch-caterpillar-size} follow from
+$|E|=3m$ and $C(V)=|V|+2|E|$.
+
+Fix $1\leq t\leq m$, let $U=B_m\cup A_{t-1}$, and append $v=a_t$.
+Block elimination gives
+\begin{equation}
+ x[U\cup\{v\}]_U-x[U]_U
+ =-Q_{UU}^{-1}Q_{Uv}\,x[U\cup\{v\}]_v.
+ \label{eq:branch-caterpillar-dense-shift}
+\end{equation}
+The new coordinate is strictly positive.  The set $U$ is connected, so
+$Q_{UU}^{-1}$ is strictly positive; moreover $-Q_{Uv}$ has one positive
+entry at the parent of $v$.  Hence the vector in
+\eqref{eq:branch-caterpillar-dense-shift} is strictly positive in every old
+coordinate.  In particular, every branch value $x_{b_i}$ increases strictly.
+For the deferred leaf attached to $b_i$,
+\begin{equation*}
+ K_{r_i}=(\ell_\rho)_{r_i}-Q_{r_i b_i}x_{b_i}
+          =(\ell_\rho)_{r_i}+(-Q_{r_i b_i})x_{b_i},
+\end{equation*}
+with the same formula for $r_{m+1}$ at $b_m$.  Thus all $m+1$ leaf keys
+change strictly after each of the $m$ long-arm admissions.  A literal eager
+array has no shared indirection by definition, so it must perform at least
+$m(m+1)$ distinct persistent-cell overwrites.
+
+For the displayed implementation, first-exposure bounded-degree scans and
+their sequential batches cost $\Theta(m)$.  There are $3m$ singleton
+expansions after the initialized seed and one terminal interaction.  Eager
+key testing, indexing, and overwriting cost $\Theta(m^2)$; the lower bound
+above is matched by scanning the live array.  Re-solving a tridiagonal core of
+length at most $m$ at each checkpoint costs $\Theta(m^2)$ response arithmetic,
+separately from those writes.  Stored rows, core records, and keys use
+$\Theta(m)$ persistent cells, and a linear sweep uses $O(m)$ scratch.  There
+is no preprocessing or recurrence direction.  One terminal recovery,
+stored-row validation, final vector materialization, all singleton replies,
+and the exact $3m+1$-cell output are linear.  These charges prove
+\eqref{eq:branch-caterpillar-eager-eleven-vector}.
+
+Finally, the ordinary bounded-degree activation and exposure tokens consumed
+by the first long-arm append have $O(1)$ weight, whereas that block already
+forces $m+1$ old-key writes.  Pairwise append--key tokens can pay the block,
+but the $m(m+1)$ such tokens have quadratic initial mass.  Thus the first
+long-arm append is an explicit failure point for the linear activation-token
+template, and any own-service countdown paying the entire eager trace has
+quadratic initial mass by telescoping.
+\end{proof}
+
+\begin{remark}[The implicit transfer route remains open]
+\label{rem:branch-caterpillar-implicit-transfer-comparator}
+Eliminating each actual pendant prefix changes only the diagonal and load at
+its attachment branch.  The remaining branch system is tridiagonal.  A
+current core of length $t$ has equations
+\begin{equation*}
+ \Delta_i x_i-\beta_{i-1}x_{i-1}-\beta_i x_{i+1}=\eta_i,
+ \qquad x_0=x_{t+1}=0,
+\end{equation*}
+where $\beta_0$ and the last $\beta_t$ may be any positive ghost couplings.
+Thus the
+constant-size cells
+\begin{equation*}
+ T_i=
+ \begin{pmatrix}
+  \Delta_i/\beta_i&-\beta_{i-1}/\beta_i&-\eta_i/\beta_i\\
+  1&0&0\\0&0&1
+ \end{pmatrix},
+ \qquad
+ \begin{pmatrix}x_{i+1}\\x_i\\1\end{pmatrix}
+ =T_i\begin{pmatrix}x_i\\x_{i-1}\\1\end{pmatrix},
+\end{equation*}
+encode the exact response.  Positive definiteness makes the endpoint
+coefficient used to solve $x_1$ from $x_{t+1}=0$ nonzero.  A balanced product
+tree over the $T_i$ supports one attachment-cell update in
+$O(\log(2+m))$ exact operations.  A branch append replaces the old ghost cell
+and appends one new ghost cell, again in $O(\log(2+m))$ work.  The total
+product determines $x_1$, and a prefix-product query then determines any named
+$x_i$ and its attached tip demand in $O(\log(2+m))$ work.  The tree retains
+$O(m)$ cells.
+
+This represents the dense shift
+\eqref{eq:branch-caterpillar-dense-shift} without rewriting every coordinate
+or key.  With $q$ internally requested exact tip values, its response work is
+$O((m+q)\log(2+m))$ plus $O(m)$ terminal recovery; every requested value must
+still be charged, and an externally emitted scalar reply adds one output
+cell.  Querying every live tip at every checkpoint of the witness has
+$q=\Theta(m^2)$, and emitting every complete positive-tip list has quadratic
+output by itself.
+
+The point-query comparator alone is not a dynamic all-positive-tip reporter.
+In particular, the proposition does not rule out lazy affine keys,
+persistence flags for already positive tips, or a kinetic/group minimum
+structure.  It only closes the literal eager exact-key route and keeps the
+append-only tridiagonal response distinct from repeated core solves.  The
+next two theorems give charged delta reporters for one explicit
+backbone-first positive-subset policy and for the actual canonical
+all-violations trace on a stricter fixed-family parameter range.  Arbitrary
+pre-backbone positive-subset interleavings and the remaining canonical range
+stay open.  Transfer-product conditioning and finite-precision stability are
+not claimed.
+\end{remark}

@@ -1,0 +1,145 @@
+\section{Exact normalized PPR geometry}
+\label{sec:normalized-geometry}
+
+The first information-level question can be answered without an algorithm.
+Define the degree-normalized exact PPR potential and its superlevel set by
+\begin{equation}
+ y^0:=D^{-1/2}x^0=D^{-1}\pi,
+ \qquad
+ U_\tau^0:=\{i\in V:y_i^0>\tau\}.
+ \label{eq:normalized-potential}
+\end{equation}
+Multiplying $Qx^0=b$ by $D^{1/2}$ and substituting
+$x^0=D^{1/2}y^0$ gives the degree-form system
+\begin{equation}
+ H_\alpha y^0=\alpha e_v,
+ \qquad
+ H_\alpha:=D^{1/2}QD^{1/2}
+ =\alpha D+\frac{1-\alpha}{2}(D-A).
+ \label{eq:killed-system}
+\end{equation}
+
+\begin{lemma}[Strict ascent and seed-connected superlevels; \ProvedStatus]
+\label{lem:strict-ascent}
+For every $i\neq v$,
+\begin{equation}
+ y_i^0
+ =\frac{1-\alpha}{1+\alpha}
+   \frac1{d_i}\sum_{j\in\mathcal N(i)}y_j^0.
+ \label{eq:discounted-average}
+\end{equation}
+If $y_i^0>0$, then $i$ has a neighbor $j$ with $y_j^0>y_i^0$.
+Consequently $y_v^0=\max_i y_i^0$, every nonempty $U_\tau^0$ contains $v$,
+and every vertex of $U_\tau^0$ has a path to $v$ lying entirely in
+$U_\tau^0$.
+\end{lemma}
+
+\begin{proof}
+The nonsource row of \cref{eq:killed-system} is
+\[
+ \frac{1+\alpha}{2}d_i y_i^0
+ =\frac{1-\alpha}{2}\sum_{j\in\mathcal N(i)}y_j^0,
+\]
+which is \cref{eq:discounted-average}.  Its prefactor is strictly below one,
+so a positive $y_i^0$ is strictly smaller than at least one neighboring
+value.  Repeating this strict ascent cannot cycle in a finite graph and can
+terminate only at the sourced row $v$.  Starting from a value above $\tau$
+keeps every vertex of the ascent path above $\tau$.
+\end{proof}
+
+\begin{theorem}[Exact information core; \ProvedStatus]
+\label{thm:information-core}
+For every $\tau>0$,
+\begin{equation}
+ \vol(U_\tau^0)\leq\frac1\tau.
+ \label{eq:information-core-volume}
+\end{equation}
+Moreover, the omniscient truncation
+\begin{equation}
+ \widehat x_i:=
+ \begin{cases}
+ x_i^0,&i\in U_\tau^0,\\
+ 0,&i\notin U_\tau^0
+ \end{cases}
+ \label{eq:omniscient-truncation}
+\end{equation}
+satisfies
+$\norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\tau$ and has support degree
+volume at most $1/\tau$.
+\end{theorem}
+
+\begin{proof}
+Left-multiplying \cref{eq:killed-system} by $\one^\top$ and using
+$\one^\top(D-A)=0$ yields
+\begin{equation}
+ \sum_i d_i y_i^0=1.
+ \label{eq:normalized-mass}
+\end{equation}
+Therefore
+$1\geq\sum_{i\in U_\tau^0}d_i y_i^0
+>\tau\vol(U_\tau^0)$.
+Outside $U_\tau^0$, the normalized truncation error equals $y_i^0\leq\tau$;
+inside it is zero.
+\end{proof}
+
+The theorem is representational, not algorithmic: membership in
+$U_\tau^0$ and its exact values are initially unknown.  It strengthens the
+existential interpretation of the exact Dirichlet-core theorem in the
+companion \texttt{volume\_gated\_acceleration} note.  Strict ascent also gives
+the useful distance consequence
+\begin{equation}
+ i\in U_\tau^0
+ \quad\Longrightarrow\quad
+ \operatorname{dist}(v,i)+1
+ \leq |U_\tau^0|
+ \leq\vol(U_\tau^0)
+ \leq\frac1\tau.
+ \label{eq:significant-distance}
+\end{equation}
+
+\begin{theorem}[Tight explicit-output complexity; \ProvedStatus]
+\label{thm:output-tight}
+Fix $0<\alpha\leq1/2$ and
+$0<\epsppr\leq(1-\alpha)/8$.  In the word-output model, the worst-case
+number of listed coordinates required by \cref{eq:note-ppr-error} is
+\begin{equation}
+ \Theta(1/\epsppr).
+ \label{eq:output-theta}
+\end{equation}
+The conclusion concerns output words; bit precision introduces the usual
+additional representation factors.
+\end{theorem}
+
+\begin{proof}
+The upper bound follows from \cref{thm:information-core}, because every
+nonisolated vertex has degree at least one.  For the lower bound, take a star
+with seed $v$ at its center and
+\[
+ M:=\left\lfloor\frac{1-\alpha}{4\epsppr}\right\rfloor
+\]
+leaves.  Direct substitution into \cref{eq:killed-system} gives
+\begin{equation}
+ y_v^0=\frac{1+\alpha}{2M},
+ \qquad
+ y_i^0=\frac{1-\alpha}{2M}
+ \quad\text{for every leaf }i.
+ \label{eq:star-normalized-values}
+\end{equation}
+Thus every leaf has $y_i^0\geq2\epsppr$.  An output satisfying
+\cref{eq:note-ppr-error} must list a nonzero approximation at every leaf, and
+$M=\Omega(1/\epsppr)$ in the stated regime.
+\end{proof}
+
+The best currently documented general upper bounds should not be confused
+with this existential result.  Wei and Yang's growing-active-set method has
+an ACL upper bound
+$\widetilde O(\min\{1/\varepsilon^2,1/(\alpha\varepsilon)\})$ in its native,
+nonlazy convention.  Their Section~6, PDF pages 14--15, explicitly observes
+that this rules out uniform
+$\Omega(1/(\alpha\varepsilon))$ and
+$\Omega(1/(\sqrt\alpha\varepsilon))$ lower bounds across all parameter
+regimes, and identifies reuse toward $\widetilde O(1/\varepsilon)$ as open
+\citep{wei2026simple}.  After the teleportation mapping recorded in the
+companion \texttt{incremental\_active\_set\_sdd} note, this is fully
+consistent with \cref{thm:output-tight}; it does not yet prove an
+$\widetilde O(1/\epsppr)$ adjacency-query algorithm on arbitrary graphs.

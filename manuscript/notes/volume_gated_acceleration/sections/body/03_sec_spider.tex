@@ -1,0 +1,76 @@
+\section{The spider obstruction is geometric, not spectral}
+\label{sec:spider}
+
+The first question in the discussion was whether the local system on a long
+spider might have condition number $\Theta(\alpha^{-2})$, thereby erasing the
+usual square-root acceleration.  Principal-submatrix interlacing rules this
+out immediately.
+
+\begin{lemma}[Uniform restricted conditioning]
+\label{lem:principal-conditioning}
+For every $U\subseteq V$,
+\begin{equation}
+  \alpha I_U\preceq Q_{UU}\preceq I_U,
+  \qquad
+  \kappa_2(Q_{UU})\leq\frac1\alpha.
+  \label{eq:principal-kappa}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$Q_{UU}$ is a principal submatrix of $Q$.  The claim follows from
+\cref{eq:Q-properties}, equivalently from Cauchy interlacing.
+\end{proof}
+
+The exact spider calculation identifies the scale more sharply.  Let
+$G_{B,N}$ have a center $o$ and $B$ disjoint arms of length $N$.  Let $U_L$
+contain $o$ and the first $L$ vertices of each arm, where $1\leq L<N$; degrees
+are always those of the full spider, so every truncated depth-$L$ vertex has
+degree two.
+
+\begin{proposition}[Exact spider-prefix spectrum]
+\label{prop:spider-spectrum}
+Let $S=D^{-1/2}AD^{-1/2}$.  Then
+\begin{equation}
+ \lambda_{\max}(S_{U_LU_L})
+ =\cos\!\left(\frac{\pi}{2(L+1)}\right).
+ \label{eq:spider-lambda}
+\end{equation}
+Consequently, with the spider-scoped ratio
+$\beta_{\mathrm{sp}}:=(1-\alpha)/(1+\alpha)$,
+\begin{align}
+ \kappa_2(Q_{U_LU_L})
+ &=\frac{1+\beta_{\mathrm{sp}}\cos(\pi/(2(L+1)))}
+         {1-\beta_{\mathrm{sp}}\cos(\pi/(2(L+1)))}
+ \label{eq:spider-kappa-exact}\\
+ &=\Theta\!\left(\frac1{\alpha+L^{-2}}\right)
+ =\Theta\!\left(\min\left\{L^2,\frac1\alpha\right\}\right).
+ \label{eq:spider-kappa-asymptotic}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+The Perron eigenvector is invariant under permutations of the arms.  In the
+orthonormal radial basis consisting of the center and the uniform vector on
+each depth, $S_{U_LU_L}$ becomes a tridiagonal matrix whose first off-diagonal
+entry is $1/\sqrt2$ and whose remaining off-diagonal entries are $1/2$.
+Its radial eigenvalues are
+\[
+  \cos\!\left(\frac{(2k-1)\pi}{2(L+1)}\right),
+  \qquad 1\leq k\leq L+1.
+\]
+The nonradial arm-difference modes have strictly smaller spectral radius, so
+\cref{eq:spider-lambda} follows.  The spider is bipartite, hence the extreme
+restricted normalized-adjacency eigenvalues are the positive and negative of
+\cref{eq:spider-lambda}. Substitution into
+\cref{eq:shared-pagerank-matrices} gives
+\cref{eq:spider-kappa-exact}.  Finally,
+$1-\beta_{\mathrm{sp}}\cos(\pi/(2(L+1)))
+=\Theta(\alpha+L^{-2})$, whereas the numerator is
+bounded above and below by constants.
+\end{proof}
+
+Thus $L=\Theta(\alpha^{-1/2})$ already saturates the global condition number
+$\Theta(1/\alpha)$.  Optimal polynomial or SOR-type acceleration still needs
+only $\Theta(1/\sqrt\alpha)$ sweep-scale iterations.  The difficulty is the
+cost of those sweeps.

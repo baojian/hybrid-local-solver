@@ -1,0 +1,84 @@
+\subsection{Radial blocks remove the center echo}
+
+The center echo is caused by comparing the center with each arm separately.
+On a symmetric spider, grouping a whole radial shell restores the path
+algebra exactly.
+
+\begin{theorem}[Exact radial-block two-rung theorem on a symmetric spider]
+\label{thm:direct-spider-radial-block}
+Consider the same $q$-arm spider and suppose its arms are long enough that the
+far leaves are not reached. A radial block operation at depth $i\geq1$
+pushes the $q$ arm vertices of that depth once each; those pushes commute.
+Use the optimal-SOR parity-wave schedule during spreading and the analogous
+exact radial sweep at the terminal rung. If $Bq\epsppr<1$, define
+\begin{equation}
+ L_q:=\min\{m\geq0:\lambda^m\leq Bq\epsppr\}.
+ \label{eq:direct-spider-radial-depth}
+\end{equation}
+Then the spreading phase has the same radial event count
+\begin{equation}
+ N_q=\left\lfloor\frac{(L_q+1)^2}{4}\right\rfloor
+ \label{eq:direct-spider-radial-count}
+\end{equation}
+as the endpoint path, and its exact charged work is
+\begin{equation}
+ \Work_{\rm spread}^{\rm radial}
+ =3qN_q-(2q-1)\left\lceil\frac{L_q}{2}\right\rceil.
+ \label{eq:direct-spider-radial-spread-work}
+\end{equation}
+For every $1<B<B_{\rm edge}$, the exact rung uses at most one radial
+high-parity sweep and one outer radial block, with
+\begin{equation}
+ \Work_{\rm exact}^{\rm radial}
+ \leq3q\left(\left\lfloor\frac{L_q}{2}\right\rfloor+2\right).
+ \label{eq:direct-spider-radial-exact-work}
+\end{equation}
+It certifies the terminal gate. With explored degree volume
+\begin{equation*}
+ \mathcal V_{\rm exp}=q(2L_q+1),
+\end{equation*}
+the total work consequently satisfies
+\begin{equation}
+ \Work^{\rm radial}
+ =O\!\left(\mathcal V_{\rm exp}
+ \left[1+\frac{\log(1/(Bq\epsppr))}{\sqrt\alpha}\right]\right).
+ \label{eq:direct-spider-radial-volume-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Let $z_0$ be the center normalized residual and let $z_i$ be the common
+normalized residual on arm depth $i$. Initially $z_0=\alpha/q$ and all other
+$z_i$ vanish. A center optimal-SOR push sends $\lambda z_0$ to every
+degree-two first-arm target. A radial block push at depth $i>1$ sends
+$\lambda z_i$ both inward and outward on every arm. At depth one, each arm
+push sends $(2\lambda/q)z_1$ to the center; summing the $q$ identical packets
+gives $2\lambda z_1$. Hence the radial vector $(z_0,z_1,\ldots)$ follows
+exactly \cref{eq:direct-path-sor-update}, with endpoint scale $\alpha/q$.
+
+The spreading threshold divided by that scale is $Bq\epsppr$, so
+\cref{lem:direct-path-sweep,eq:direct-path-push-count} give
+\cref{eq:direct-spider-radial-depth,eq:direct-spider-radial-count}. Every
+positive-depth radial event consists of $q$ charge-three pushes. There are
+$\lceil L_q/2\rceil$ center events, each of charge $q+1$. Therefore
+\begin{equation*}
+ 3q\left(N_q-\left\lceil\frac{L_q}{2}\right\rceil\right)
+ +(q+1)\left\lceil\frac{L_q}{2}\right\rceil
+ =3qN_q-(2q-1)\left\lceil\frac{L_q}{2}\right\rceil.
+\end{equation*}
+
+For exact pushes, a positive-depth target receives $\eta z_i$, while the
+center receives $q(2\eta/q)z_1=2\eta z_1$. Thus the exact radial dynamics are
+also identical to the endpoint-path dynamics. The proof of
+\cref{thm:direct-path-two-rung} gives the terminal certificate and the stated
+upper bound after multiplying positive-depth charges by $q$. Finally apply
+\cref{eq:direct-path-log-lambda} and
+$\mathcal V_{\rm exp}=q(2L_q+1)$.
+\end{proof}
+
+The theorem identifies a concrete branch-aware abstraction: a forward shell
+should be ranked by its aggregate decrease and aggregate charge, not only by
+the largest individual child. Literal top-fraction batching partially forms
+such blocks when many tied arms enter one batch; proving that it forms them
+reliably is now a precise route from the empirical algorithm to the radial
+theorem.

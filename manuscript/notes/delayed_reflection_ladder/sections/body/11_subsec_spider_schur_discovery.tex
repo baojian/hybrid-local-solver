@@ -1,0 +1,148 @@
+\subsection{Radial one-pass discovery on the symmetric spider}
+\label{subsec:spider-schur-discovery}
+
+Let $G_{B,N}$ have a root $o$ and $B$ identical length-$N$ path arms, and use
+the root seed $s=e_o$.  Uniqueness and arm-permutation symmetry imply that
+$x^\star$ is radial.  By \cref{lem:support-components}, its nonempty support
+is the root together with a common prefix of every arm.
+
+Let $x_i$ denote the common value at arm depth $i$, put
+$a=(1+\alpha)/2$, and retain
+$\beta_i=-Q_{v_{j,i}v_{j,i-1}}>0$.  Let $c_0=c_{\rho,o}$ and let $c_i$ be
+the common shifted demand at depth $i$.  Set
+\begin{align}
+ \delta_0&:=a,
+ &\eta_0&:=c_0,
+ \notag\\
+ \delta_1&:=a-\frac{B\beta_1^2}{\delta_0},
+ &\eta_1&:=c_1+\frac{\beta_1\eta_0}{\delta_0},
+ \notag\\
+ \delta_i&:=a-\frac{\beta_i^2}{\delta_{i-1}},
+ &\eta_i&:=c_i+\frac{\beta_i\eta_{i-1}}{\delta_{i-1}}
+ \quad(2\leq i\leq N).
+ \label{eq:spider-forward-schur}
+\end{align}
+The first pivot contains $B\beta_1^2$ because the root equation contains all
+$B$ equal arm values.
+
+\begin{theorem}[Output-linear exact RPPR on a symmetric spider]
+\label{thm:spider-one-pass}
+If $\eta_0\leq0$, the RPPR solution is zero.  Otherwise let $J$ be the depth
+immediately before the first nonpositive $\eta_i$, or $J=N$ if all messages
+are positive.  Then
+\begin{equation}
+ S^\star(\rho)
+ =\{o\}\cup\{v_{j,i}:1\leq j\leq B,\ 1\leq i\leq J\}.
+ \label{eq:spider-exact-support}
+\end{equation}
+For $J\geq1$, recover the common values by
+\begin{align}
+ x_J&=\frac{\eta_J}{\delta_J},
+ &x_i&=\frac{\eta_i+\beta_{i+1}x_{i+1}}{\delta_i}
+ \quad(i=J-1,\ldots,1),
+ \notag\\
+ x_0&=\frac{\eta_0+B\beta_1x_1}{\delta_0};
+ \label{eq:spider-back-substitution}
+\end{align}
+for $J=0$, use $x_0=\eta_0/\delta_0$.  On the promised path-bundle family,
+the full solution and KKT certificate require
+\begin{equation}
+ O\bigl(1+\vol(S^\star(\rho))\bigr)
+ \label{eq:spider-output-linear-work}
+\end{equation}
+work, including writing all arm coordinates.
+\end{theorem}
+
+\begin{proof}
+Restrict $Q$ to the radial subspace.  Its root row has off-diagonal
+$-B\beta_1$, whereas the first arm row has off-diagonal $-\beta_1$.
+Scaling every positive-depth radial coordinate by $\sqrt B$ makes the radial
+matrix symmetric positive definite, so all pivots in
+\cref{eq:spider-forward-schur} are positive.  Gaussian elimination gives the
+displayed recurrence and reverse solve.
+
+Every message before the stopping depth is positive, so all reconstructed
+radial values are positive.  At each of the $B$ outside boundary vertices,
+the same calculation as \cref{eq:path-message-is-kkt} gives
+\begin{equation}
+ \eta_{J+1}
+ =\beta_{J+1}x_J-\alpha\rho\sqrt{d_{v_{j,J+1}}}\leq0.
+ \label{eq:spider-message-is-kkt}
+\end{equation}
+All other outside residuals vanish.  The shifted Dirichlet KKT theorem now
+proves exactness.  The radial recurrence uses $O(J)$ scalar operations; a
+scan and write of the root and all $BJ$ active arm vertices costs exactly the
+claimed degree-weighted order.
+\end{proof}
+
+\begin{theorem}[Output-linear exact RPPR on a cycle]
+\label{thm:cycle-one-pass}
+Let $G=C_n$ and let the single seed be $o$.  Put
+\begin{equation*}
+ \mathcal L_i:=\{v:\operatorname{dist}(o,v)=i\},
+ \qquad k_i:=|\mathcal L_i|,
+ \qquad 0\leq i\leq m:=\lfloor n/2\rfloor.
+\end{equation*}
+On the radial subspace write $y_i:=\sqrt{k_i}x_v$ for
+$v\in\mathcal L_i$, let $\widehat Q$ be the resulting symmetric
+tridiagonal restriction of $Q$, and put
+$\widehat c_i:=\sqrt{k_i}c_{\rho,v}$.  The edge inside the last shell of an
+odd cycle is included in $\widehat Q_{mm}$.  With
+$\widehat q_i:=\widehat Q_{i,i-1}<0$, form
+\begin{align}
+ \delta_0&:=\widehat Q_{00},
+ &\eta_0&:=\widehat c_0,
+ \notag\\
+ \delta_i&:=\widehat Q_{ii}-\frac{\widehat q_i^2}{\delta_{i-1}},
+ &\eta_i&:=\widehat c_i-
+   \frac{\widehat q_i\eta_{i-1}}{\delta_{i-1}}
+ \qquad(1\leq i\leq m).
+ \label{eq:cycle-radial-schur}
+\end{align}
+If $\eta_0\leq0$, the optimum is zero.  Otherwise let $J$ be the index
+immediately before the first nonpositive $\eta_i$, or $J=m$ if all messages
+are positive.  Then
+\begin{equation}
+ S^\star(\rho)=\bigcup_{i=0}^J\mathcal L_i.
+ \label{eq:cycle-radial-support}
+\end{equation}
+The exact coordinates follow from
+\begin{equation}
+ y_J=\frac{\eta_J}{\delta_J},
+ \qquad
+ y_i=\frac{\eta_i-\widehat q_{i+1}y_{i+1}}{\delta_i}
+ \quad(i=J-1,\ldots,0),
+ \qquad
+ x_v=\frac{y_i}{\sqrt{k_i}}
+ \quad(v\in\mathcal L_i).
+ \label{eq:cycle-radial-backsolve}
+\end{equation}
+This discovers, solves, and certifies the final-$\rho$ problem in
+$O(1+\vol(S^\star(\rho)))$ adjacency and arithmetic work.
+\end{theorem}
+
+\begin{proof}
+Reflection about the seed preserves both the cycle and the RPPR objective.
+Uniqueness therefore makes $x^\star$ constant on every distance shell.
+The nonempty support is connected and contains the seed, so it is a radial
+prefix.  Scaling shell $i$ by $\sqrt{k_i}$ makes the radial restriction
+symmetric.  It is a principal restriction of the positive-definite
+Stieltjes quadratic, hence every pivot $\delta_i$ in
+\cref{eq:cycle-radial-schur} is positive.
+
+Gaussian elimination gives the displayed forward messages and
+\cref{eq:cycle-radial-backsolve}.  If the first nonpositive message is
+$\eta_{J+1}$, then the solve on the first $J+1$ shells has positive
+coordinates, while
+\begin{equation*}
+ \eta_{J+1}
+ =\widehat c_{J+1}-\widehat q_{J+1}y_J\leq0
+\end{equation*}
+is the aggregated inactive KKT slack.  Every vertex in the shell has the
+same slack, so this is exactly the coordinatewise boundary certificate.  If
+all messages are positive, every shell is active and there is no outside
+boundary; the within-shell edge in an odd cycle was already absorbed into
+the final diagonal.  Apply \cref{thm:shifted-dirichlet} in either case.
+Each shell has at most two vertices and cycle degrees equal two, so the
+forward scan, reverse solve, and output write have the claimed work.
+\end{proof}

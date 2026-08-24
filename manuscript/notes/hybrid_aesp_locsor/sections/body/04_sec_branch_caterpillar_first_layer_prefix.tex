@@ -1,0 +1,170 @@
+\subsection{A responder-native first-layer prefix}
+\label{sec:branch-caterpillar-first-layer-prefix}
+
+The canonical response itself gives a small but exact answer to the
+nonzero-checkpoint question.  The point is not to rename a numerical support
+as an admission.  Instead, stop after one real gate interaction and retain
+the response cells that performed its exact settlement.  This replaces full
+row exposure by a genuinely layer-local prefix, although it does not yet make
+an accelerated numerical state useful.
+
+Put
+\begin{equation}
+ \mathcal F_0:=\widehat U_1\setminus\widehat U_0
+ =\{b_2,a_1,r_1\},
+ \qquad
+ \mathcal F_1:=\widehat U_2\setminus\widehat U_1.
+ \label{eq:branch-caterpillar-first-layer-sets}
+\end{equation}
+The second set is defined because $m\geq2$; when $m=2$ it is the terminal
+layer $\{a_2,r_2,r_3\}$.
+
+\begin{definition}[Responder-native first-layer policy]
+\label{def:branch-caterpillar-first-layer-policy}
+The policy \texttt{FirstLayer-BC}$_1$ starts from the paid seed checkpoint
+$\widehat U_0=\{b_1\}$ and performs the following finite Phase I.
+\begin{enumerate}
+ \item Scan the row of $b_1$, solve the one-coordinate restricted RPPR
+       problem exactly, and identify its three live boundary labels.  In the
+       next adjacency round scan exactly the rows of
+       $\mathcal F_0$.  Compute and strictly test their exact canonical
+       demands; make no numerical-envelope scan beyond these rows.
+ \item Make one canonical all-violations interaction.  Emit the three delta
+       labels in $\mathcal F_0$, commit that batch, construct the constant-size
+       arm absorption, leaf absorption, and two-cell tridiagonal response on
+       $\widehat U_1$, settle the restricted point exactly, and return the
+       charged certificate reply.
+ \item Stop immediately at $k=1$.  Retain the exact response cells, the
+       committed-membership set, and the common support/layer record.  Invoke
+       no Catalyst stage and create no separate signed numerical arena.
+\end{enumerate}
+The continuation is the native \emph{CaterpillarCanonicalLayerDelta} state,
+not the support-only reconstruction in
+\Cref{thm:branch-caterpillar-composite-response-handoff}.
+\end{definition}
+
+The four arenas at the stopping time are exact and distinct:
+\begin{equation}
+ \begin{aligned}
+ U_{\mathrm{adm}}^{(1)}&=\widehat U_1,
+ &U_{\mathrm{num}}^{(1)}&=\supp(x[\widehat U_1])=\widehat U_1,\\
+ E_{\mathrm{row}}^{(1)}&=\widehat U_1,
+ &E_{\mathrm{lab}}^{(1)}&=\widehat U_1\cup\mathcal F_1=\widehat U_2.
+ \end{aligned}
+ \label{eq:branch-caterpillar-first-layer-arenas}
+\end{equation}
+Thus there is no excess numerical support and no scanned row outside the
+irreversible admission.  The labels in
+$E_{\mathrm{lab}}^{(1)}\setminus U_{\mathrm{adm}}^{(1)}=\mathcal F_1$ are merely
+lookahead names revealed by the scanned rows: their rows are unscanned, their
+coordinates are zero, and they are not admitted.  For $m=2$ these names happen
+to be all remaining graph labels, but their rows and numerical coordinates
+are still neither exposed nor admitted.
+
+\begin{theorem}[Paid local prefix and native nonzero-checkpoint splice]
+\label{thm:branch-caterpillar-first-layer-prefix}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  Then
+\texttt{FirstLayer-BC}$_1$ stops after its one declared interaction at the
+actual common checkpoint $\widehat U_1$.  In the shared order, one batched-row
+realization has the prefix vector
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_1^{\rm pref})
+ =\bigl(9,2,1,0,O(1),0,O(1),O(1),O(1),\Theta(1),\Theta(1)\bigr).
+ \label{eq:branch-caterpillar-first-layer-prefix-eleven-vector}
+\end{equation}
+Here $C_{\rm adj}=9$ is the degree work of the four rows in
+$\widehat U_1$, the two adjacency rounds are the seed-row round and the
+parallel first-boundary round, and the emission consists of three delta labels
+and one constant-size certificate reply.  The materialization coordinate pays
+the common checkpoint record; response-state writes remain in
+$C_{\rm resp}$ and retained memory.  Thus the seven additive prefix
+coordinates sum to $B_1^{\rm full}=O(1)$.
+
+Put $J_+:=m-1$.  Starting from the retained native state and making no
+conversion traversal, the remaining $J_+$ canonical batches and terminal
+return have the post vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{1\to\star}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_1),J_+,J_++1,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+J_+\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),\\
+ &\Theta(\card{S^\star}),
+ \card{S^\star\setminus\widehat U_1}
+ +\card{S^\star}+\Theta(J_++1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-first-layer-post-eleven-vector}
+\end{equation}
+The last coordinate contains every remaining delta label once, every exact
+output coordinate once, one reply for each remaining batch, and the terminal
+reply.  Additive work and both round coordinates sum.  The retained prefix
+response is extended in place, so the concatenated persistent and temporary
+peaks are respectively $O(C(S^\star))$ and $O(C(S^\star))$, rather than the
+sum of two response arenas.  In particular,
+$R_{\rm adj}^{\rm total}=R_{\rm int}^{\rm total}=m+1$, and the adjacency work
+is $9+\vol(S^\star\setminus\widehat U_1)=\vol(S^\star)=6m$.
+\end{theorem}
+
+\begin{proof}
+The imported canonical-layer theorem says that the boundary of
+$\widehat U_0$ is exactly $\mathcal F_0$ and that all three demands are
+strictly positive in the stated range.  Hence the first all-violations reply
+commits exactly that batch and reaches $\widehat U_1$; no stopping table or
+knowledge of $\rho_{\rm can}$ is queried online.  The same theorem gives
+strict positivity of the restricted point on its admitted face, proving the
+two support identities in
+\cref{eq:branch-caterpillar-first-layer-arenas}.
+
+The degrees of $b_1,b_2,a_1,r_1$ are $3,3,2,1$, respectively.  Their four
+row scans therefore cost nine degree cells.  The seed row must precede the
+three boundary rows, while those three rows can be returned together in the
+second adaptive round.  Their union is exactly $\widehat U_1$.  Because the
+graph is a tree, the only new labels in those rows form $\mathcal F_1$;
+querying none of their rows proves the exposure identities.  Scalar seed
+settlement, three strict comparisons, one batch update, the constant-size
+Schur construction, exact restricted settlement, membership writes, and the
+declared reply all use constant exact-cell work and space.  No preprocessing,
+row recurrence, or ambient response is hidden.  This proves
+\cref{eq:branch-caterpillar-first-layer-prefix-eleven-vector}.
+
+After commitment, eliminate $a_1$ and $r_1$ into the $b_1$ cell and retain
+the two-branch tridiagonal product with $b_2$.  These are exactly the native
+cells obtained after the first update in the proof of the imported reporter:
+Schur associativity leaves no historical key, and the consumed membership
+set is precisely $\mathcal F_0$.  Consequently the suffix neither rebuilds
+$\widehat U_0$, rescans a row of $\widehat U_1$, nor emits a first-layer label
+again.
+
+At each of the remaining $J_+$ checkpoints, scan the at-most-three newly live
+boundary rows in one adjacency round, perform the imported constant number of
+balanced-tree updates and named queries, and consume the complete positive
+boundary.  These rows partition $S^\star\setminus\widehat U_1$, so their
+degree work is the first coordinate of
+\cref{eq:branch-caterpillar-first-layer-post-eleven-vector}.  Removing the
+already paid first batch from the imported canonical ledger gives every other
+displayed work, round, memory, materialization, and emission coordinate.
+The response cells grow in place, which proves the peak-memory rule.
+\end{proof}
+
+\begin{corollary}[Exact local product-scale comparator at $k=1$]
+\label{cor:branch-caterpillar-first-layer-product}
+Under \Cref{thm:branch-caterpillar-first-layer-prefix}, the concatenated
+exact-real execution returns $x^\star(\rho)$ with
+\begin{equation}
+ W_{\rm total}
+ =O\!\left(C(S^\star)\log(2+C(S^\star))\right)
+ =\softO\!\left(\frac{C(S^\star)}{\sqrt\alpha}\right)
+ =\softO\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:branch-caterpillar-first-layer-total-work}
+\end{equation}
+The exact first bound is authoritative and is uniform as
+$\alpha\uparrow1/2$.  Its soft notation hides only
+$\log(2+C(S^\star))$; in particular it hides no
+$\log(1/(1-2\alpha))$ term.  This is a responder-native, fixed-family,
+branch-seeded, canonical delta-interface RPPR result.  It is not evidence that
+an accelerated burn-in is local or useful, and it makes no claim for another
+range, seed, policy, graph, precision model, repeated-full-list interface, or
+PPR accuracy.
+\end{corollary}

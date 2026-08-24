@@ -1,0 +1,263 @@
+\subsection{The revisit bank}
+
+The ratio admits a causal token interpretation requiring no model of the
+graph dynamics.  After $t$ paid events, let $S_t$ be the touched union and
+$W_t$ the charged work.  For a declared budget factor $\Gamma\geq1$, define
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma):=\Gamma C(S_t)-W_t.
+ \label{eq:revisit-bank}
+\end{equation}
+
+\begin{theorem}[Exact revisit-bank updates]
+\label{thm:revisit-bank}
+Suppose event $t$ operates coordinate $u$ at charge $c(u)$.  If this is its
+first paid visit, then
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma)-\mathsf{Bank}_{t-1}(\Gamma)
+ =(\Gamma-1)c(u).
+ \label{eq:bank-first}
+\end{equation}
+If it is a revisit, then
+\begin{equation}
+ \mathsf{Bank}_t(\Gamma)-\mathsf{Bank}_{t-1}(\Gamma)
+ =-c(u).
+ \label{eq:bank-revisit}
+\end{equation}
+Therefore a controller that admits every desired first visit but admits a
+revisit only when
+\begin{equation}
+ c(u)\leq\mathsf{Bank}_{t-1}(\Gamma)
+ \label{eq:bank-admission}
+\end{equation}
+maintains, at every nonempty prefix,
+\begin{equation}
+ W_t\leq\Gamma C(S_t),
+ \qquad
+ \varrho_{{\rm rev},t}\leq\Gamma.
+ \label{eq:bank-invariant}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+A first visit increases both $C(S_t)$ and $W_t$ by $c(u)$, proving
+\cref{eq:bank-first}.  A revisit increases only $W_t$, proving
+\cref{eq:bank-revisit}.  The bank starts at zero.  First visits preserve its
+nonnegativity for $\Gamma\geq1$, and
+\cref{eq:bank-admission} preserves it on revisits.  Rearranging a nonnegative
+bank gives \cref{eq:bank-invariant}.
+\end{proof}
+
+The bank is stronger than checking the ratio after a solve: it makes a
+work-per-touched-support cap enforceable online.  It is not a convergence
+proof.  When a useful revisit would overdraw the bank, the controller must
+settle, switch policy, increase its declared budget, or invoke a certified
+fallback.  Silently dropping the operation could destroy progress.
+
+The same identity gives a useful guarantee even before one proves that the
+bank never blocks.
+
+\begin{corollary}[A posteriori accelerated RPPR fast path]
+\label{cor:rppr-fast-path}
+Consider any terminal RPPR execution whose charged touched union $S$ is
+contained in $S^\star(\rho)$.  No nesting or fixed relaxation schedule is
+required.  Its realized charged work satisfies
+\begin{equation}
+ W=\varrho_{\rm rev}C(S)
+ \leq \frac{2\varrho_{\rm rev}}{\rho}.
+ \label{eq:rppr-fast-path}
+\end{equation}
+Consequently, if a global revisit bank with factor $\Gamma$ remains
+nonnegative until termination, then
+\begin{equation}
+ W\leq\frac{2\Gamma}{\rho}.
+ \label{eq:banked-rppr-fast-path}
+\end{equation}
+Taking $\Gamma=\widetilde O(1/\sqrt\alpha)$ certifies the intended
+$\widetilde O(1/(\rho\sqrt\alpha))$ work scale on that execution.
+\end{corollary}
+
+\begin{proof}
+The first equality is the definition of the measured revisit ratio.  Support
+containment and the source volume bound give
+\[
+ C(S)\leq C(S^\star(\rho))
+ \leq2\vol(S^\star(\rho))\leq\frac2\rho.
+\]
+If the bank remains nonnegative, \eqref{eq:bank-invariant} supplies
+$\varrho_{\rm rev}\leq\Gamma$.
+\end{proof}
+
+This is an a posteriori certificate with no graph-structural hypothesis
+beyond support safety, not a graph-uniform success theorem.  A safe service
+can declare an
+accelerated cap $\Gamma_{\rm acc}$, run any support-safe mixture of the new
+policies, and switch at the first proposed event that would overdraw the
+global bank.  The prefix then costs at most $2\Gamma_{\rm acc}/\rho$.
+Canonicalize the current certified region and include that cost in any
+fallback continuation bound $C_{\rm fall}$; the complete service obeys
+\begin{equation}
+ W_{\rm total}
+ \leq \frac{2\Gamma_{\rm acc}}{\rho}+C_{\rm fall}.
+ \label{eq:accelerated-or-fallback}
+\end{equation}
+Thus every instance either carries an a posteriori target-scale
+certificate or enters a separately certified fallback after a capped local
+prefix.  Proving that fallback is never invoked remains the universal
+acceleration problem.
+
+The literal measured two-rung arm does not solve that problem.  The next
+theorem keeps the note's unregularized residual gate and uses RPPR only as
+the certified support envelope, exactly as in
+\Cref{cor:rppr-fast-path}.
+
+\begin{theorem}[A support-safe one-edge obstruction to fixed-band two-rung]
+\label{thm:two-vertex-two-rung-obstruction}
+Fix a band factor $B>1$ and put
+\[
+ \vartheta_B:=\frac{B+1}{2}\in(1,B),
+ \qquad
+ \alpha_B:=\min\left\{\frac14,
+                   \frac{3\log\vartheta_B}{16}\right\}.
+\]
+For every $0<\alpha\leq\alpha_B$, there is a one-edge, single-seed
+support-safe handoff at fixed RPPR regularization $\rho=1/4$ for which the
+literal two-rung schedule
+\[
+ [(Bg,\omega_\star),(g,1)]
+\]
+executes no spreading operation and needs exactly
+\begin{equation}
+ N_B(\alpha)
+ :=\left\lceil
+   \frac{\log\vartheta_B}
+        {\log((1+\alpha)/(1-\alpha))}
+  \right\rceil
+ \label{eq:two-vertex-exact-tail}
+\end{equation}
+exact-delivery pushes.  Its realized revisit factor satisfies
+\begin{equation}
+ \varrho_{\rm rev}
+ \geq\frac{N_B(\alpha)}2
+ \geq\frac{3\log\vartheta_B}{16\alpha}.
+ \label{eq:two-vertex-bank-lower}
+\end{equation}
+Here $\rho$ is fixed and
+$\epsppr=(1-\alpha)/[(1+\alpha)\vartheta_B]$ stays bounded away from zero.
+Consequently the literal fixed-band arm cannot guarantee an
+$\widetilde O(1/\sqrt\alpha)$ global bank, even on one edge.
+\end{theorem}
+
+\begin{proof}
+Let the graph be $o-v$, with seed $o$.  Both degrees equal one, and write
+\[
+ Q=\begin{pmatrix}a&-h\\-h&a\end{pmatrix},
+ \qquad
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ h:=\frac{1-\alpha}{2},
+ \qquad
+ \zeta:=\frac{h}{a}=\frac{1-\alpha}{1+\alpha}.
+\]
+At $\rho=1/4$, the shifted RPPR load is
+$\ell_\rho=(3\alpha/4,-\alpha/4)$.  Its full solution has
+\[
+ (Q^{-1}\ell_\rho)_v
+ =\frac{\alpha(3h-a)}{4(a^2-h^2)}>0
+\]
+because $\alpha<1/2$.  Thus $S^\star(1/4)=\{o,v\}$.  More explicitly, the
+canonical root point $y=(3\alpha/(4a),0)$ has shifted boundary violation
+\[
+ (\ell_\rho-Qy)_v=\frac{\alpha(3\zeta-1)}4>0,
+\]
+so the exact boundary gate certifies $v$ before any operation on it.
+
+Do not settle the enlarged two-coordinate RPPR system.  Instead switch on
+the same irreversible state to the note's unregularized residual
+$r=b-Q\widehat x$.  One exact root update moves $y_o$ to $\alpha/a$, the
+unregularized root checkpoint, and leaves
+\begin{equation}
+ r=(0,\alpha\zeta).
+ \label{eq:two-vertex-handoff}
+\end{equation}
+This update and every later one touch only the certified set
+$S^\star(1/4)$.
+
+Choose
+\[
+ g:=\frac{\alpha\zeta}{\vartheta_B},
+ \qquad
+ \epsppr:=\frac g\alpha=\frac{\zeta}{\vartheta_B}.
+\]
+At the handoff, $\max_u|r_u|=\alpha\zeta<Bg$, so the strict live guard on
+the spreading rung is empty with a nonzero margin.  In the exact rung only
+one residual coordinate is nonzero at a time.  A unit row push zeros it and
+transfers the factor $h/a=\zeta$ to the other endpoint.  After $t$ pushes,
+the maximum residual is therefore $\alpha\zeta^{t+1}$.  The first $t$ for
+which this is at most $g$ is exactly \eqref{eq:two-vertex-exact-tail}.
+
+Each tail push has charge two and $C(S^\star)=4$, so the tail alone gives
+$\varrho_{\rm rev}\geq N_B/2$.  For $\alpha\leq1/2$,
+\[
+ \log\frac{1+\alpha}{1-\alpha}
+ =2\operatorname{arctanh}(\alpha)
+ \leq\frac{2\alpha}{1-\alpha^2}
+ \leq\frac{8\alpha}{3}.
+\]
+Substitution proves \eqref{eq:two-vertex-bank-lower}.  The choice of
+$\alpha_B$ also makes $N_B\geq2$; all prior gate and handoff work can only
+increase the ratio.
+\end{proof}
+
+Thus the false lemma is now precise: support containment, current residual
+band, and an exact delivery rung do not imply accelerated cleanup.  This
+does not refute a forced or quantitatively developed $\omega_\star$ burn-in,
+nor exact Schur settlement; either mechanism prevents the displayed dead
+spreading phase.  In the causal ledger, the tail is entirely
+exact-after-exact neighbor backflow, so merely labeling that debt also does
+not make it an accelerated countdown.
+
+For the next corollary, every paid row update, ranking scan, or boundary scan
+is represented as a charged coordinate-touch event in this same ledger.  A
+procedure may use a more detailed cost model, but it may not omit these
+charges and still invoke the bank guarantee.
+
+\begin{corollary}[Banked propagate--settle work]
+\label{cor:banked-propagate-settle}
+Consider nested epochs $U_0,\ldots,U_K$.  In epoch $k$, cap all propagation,
+ranking, and boundary-inspection work by running a revisit bank with factor
+$\Gamma_{\rm p}$ and touched union $U_k$.  Suppose exact settlement and its
+boundary update cost at most
+$C_{\rm s}(w+1)^2C(U_k)$.  Then
+\begin{equation}
+ \operatorname{Work}_{0:K}
+ \leq
+ \bigl(\Gamma_{\rm p}+C_{\rm s}(w+1)^2\bigr)
+ \mathfrak R_{\rm set}\,C(U_K).
+ \label{eq:banked-propagate-work}
+\end{equation}
+For RPPR, if $U_K=S^\star(\rho)$ and
+$\mathfrak R_{\rm set}=\widetilde O(1/\sqrt\alpha)$, this becomes
+\begin{equation}
+ \operatorname{Work}_{0:K}
+ =\widetilde O\!\left(
+ \frac{\Gamma_{\rm p}+(w+1)^2}{\rho\sqrt\alpha}
+ \right).
+ \label{eq:banked-rppr-product}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The bank gives propagation-side work at most
+$\Gamma_{\rm p}C(U_k)$ in each epoch.  Add the settlement bound and sum.
+Definition \eqref{eq:two-level-definitions} proves
+\eqref{eq:banked-propagate-work}.  In the shared graph model,
+$C(U)\leq2\vol(U)$, while
+$\vol(S^\star(\rho))\leq1/\rho$.  Substitute these inequalities and the
+stated revisit target.
+\end{proof}
+
+This corollary removes one assumption from the abstract propagate--settle
+ledger: bounded propagation multiplicity can be enforced rather than merely
+postulated.  The remaining product-scale obligation is the cross-epoch
+factor $\mathfrak R_{\rm set}$, or an incremental state representation that
+avoids paying fresh settlement volume at every epoch.

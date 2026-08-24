@@ -1,0 +1,894 @@
+\subsection{Grounded-Laplacian route to an operator heavy-hitter locator}
+\label{sec:grounded-laplacian-locator}
+
+The remaining dynamic object is compatible with spectral vertex-sparsifier
+machinery after a simple exact transformation.
+
+\begin{proposition}[Grounded-Laplacian representation]
+\label{prop:grounded-laplacian-representation}
+Put $c_\alpha:=(1-\alpha)/2$ and
+\begin{equation}
+ H:=D^{1/2}QD^{1/2}=c_\alpha(D-A)+\alpha D.
+ \label{eq:grounded-pagerank-matrix}
+\end{equation}
+Construct an augmented weighted graph on $V\cup\{\bot\}$ by giving every
+original edge conductance $c_\alpha$ and adding a ground edge
+$(v,\bot)$ of conductance $\alpha d_v$.  After pinning $\bot$, its Laplacian
+principal minor is exactly $H$.
+
+For every eliminated set $S$ and surviving set $W:=V\setminus S$,
+\begin{equation}
+ Q/S=D_W^{-1/2}(H/S)D_W^{-1/2}.
+ \label{eq:schur-congruence-grounded}
+\end{equation}
+Consequently, for $A\subsetneq T$ and $v\notin T$,
+\begin{equation}
+ (Q/A)_{vv}-(Q/T)_{vv}
+ =\frac{(H/A)_{vv}-(H/T)_{vv}}{d_v}.
+ \label{eq:diagonal-loss-grounded}
+\end{equation}
+If a normalized-coordinate correction is written as
+$\Delta_x=D_T^{1/2}\Delta_z$, then its normalized exterior response is
+\begin{equation}
+ \frac{(Q\Delta_x)_v}{\sqrt{d_v}}
+ =\frac{(H\Delta_z)_v}{d_v},
+ \qquad v\notin T.
+ \label{eq:boundary-response-grounded}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The first identity follows by direct multiplication.  The augmented graph
+contributes $c_\alpha L$ on original edges and the diagonal
+$\alpha D$ through its ground edges.  Diagonal congruence commutes with
+principal Schur complementation: substituting
+$Q_{UV}=D_U^{-1/2}H_{UV}D_V^{-1/2}$ into the block formula proves
+\cref{eq:schur-congruence-grounded}.  Taking a diagonal difference proves
+\cref{eq:diagonal-loss-grounded}.  Finally,
+$Q\Delta_x=D^{-1/2}H\Delta_z$; divide its $v$th coordinate by
+$\sqrt{d_v}$ to obtain \cref{eq:boundary-response-grounded}.
+\end{proof}
+
+\begin{proposition}[Exposed-incidence sufficiency]
+\label{prop:exposed-incidence-sufficiency}
+Fix a face $T$ and let
+$W:=\{v\notin T:Q_{vT}\neq0\}$ be its graph boundary.  For every source set
+$B\subseteq T$, all of the following objects are determined by
+$Q_{TT}$, $Q_{WT}$, and $D_W$:
+\begin{enumerate}[label=(\roman*)]
+\item the degree-normalized response matrix
+\begin{equation}
+ \mathcal M_{W\leftarrow B}^{(T)}
+ :=D_W^{-1/2}Q_{WT}Q_{TT}^{-1}E_B
+   \left(E_B^TQ_{TT}^{-1}E_B\right)^{-1/2};
+ \label{eq:exposed-normalized-response}
+\end{equation}
+\item every source-aware leverage and group mass formed from its row norms;
+\item the normalized exterior demand caused by any dual source supported on
+      $B$; and
+\item every diagonal loss across a nested elimination $A\subsetneq T$, for
+      labels in $W$.
+\end{enumerate}
+Consequently, changing arbitrary edges with both endpoints in $V\setminus T$
+while keeping the degrees of labels in $W$ fixed changes none of these
+objects.
+
+In the adjacency-access model, scanning the rows of $T$ reveals every
+internal edge, cut incidence, and boundary label.  One degree query for each
+distinct label in $W$ completes the record.  Its size is
+\begin{equation}
+ O\!\left(|T|+\sum_{u\in T}d_u+|W|\right)
+ =O\!\left(\operatorname{cvol}(T)\right).
+ \label{eq:exposed-record-size}
+\end{equation}
+If a static operator-locator build on a record of size $M$ costs
+$\widetilde O(MF)$ for a parameter factor $F$, rebuilding it only at anchor
+faces whose charged volumes grow by a fixed constant factor costs
+$\widetilde O(VF)$ through final exposed volume $V$.
+\end{proposition}
+
+\begin{proof}
+The matrix in \cref{eq:exposed-normalized-response} is written entirely in
+terms of the three declared blocks.  Its row norms give (ii), and multiplying
+the same response by an arbitrary coefficient vector gives (iii).  For (iv),
+\cref{eq:source-leverage-diagonal-loss} identifies every required diagonal
+loss with the corresponding source-aware squared leverage.  Equivalently, it
+is a diagonal of the response product in the block Schur formula.  No block
+with both indices in $V\setminus T$ appears.
+
+For the shared unweighted graph, $Q_{TT}$ is fixed by the degrees in $T$ and
+the edges internal to $T$, while $Q_{WT}$ is fixed by the cut incidences and
+the endpoint degrees.  Scanning the adjacency lists of $T$ reveals the first
+two edge sets and all labels in $W$.  Moreover $|W|$ is at most the number of
+cut incidences, hence at most $\sum_{u\in T}d_u$, proving
+\cref{eq:exposed-record-size}.  The final claim is the geometric-series
+argument of \cref{lem:geometric-rebuild} applied to the successive record
+sizes.
+\end{proof}
+
+\begin{lemma}[Transposed fixed-anchor response sketch]
+\label{lem:transposed-anchor-response-sketch}
+Fix an anchor $A$, put $U:=V\setminus A$, and let
+$\Pi\in\mathbb R^{p\times U}$ be any linear measurement matrix.  Define the
+precomputed harmonic sketch
+\begin{equation}
+ Z_\Pi
+ :=Q_{AA}^{-1}Q_{AU}D_U^{-1/2}\Pi^T
+ \in\mathbb R^{A\times p}.
+ \label{eq:transposed-harmonic-sketch}
+\end{equation}
+For any frontier $F\subseteq U$ and vector $y\in\mathbb R^F$, lift $y$ by
+\begin{equation*}
+ \Delta_A:=-Q_{AA}^{-1}Q_{AF}y,
+ \qquad
+ \Delta_F:=y,
+ \qquad
+ \Delta_{U\setminus F}:=0,
+\end{equation*}
+and put $q:=Q\Delta$.  Then $q|_A=0$ and
+\begin{equation}
+ \Pi D_U^{-1/2}q_U
+ =\Pi D_U^{-1/2}Q_{UF}y-Z_\Pi^TQ_{AF}y.
+ \label{eq:transposed-response-sketch}
+\end{equation}
+If $y$ is the exact Schur-frontier solution
+\begin{equation*}
+ \left(Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF}\right)y=h_F,
+\end{equation*}
+then $q_F=h_F$.  With $R:=U\setminus F$, the exterior-only measurement is
+therefore
+\begin{equation}
+ \Pi_R D_R^{-1/2}q_R
+ =\Pi D_U^{-1/2}q_U-\Pi_FD_F^{-1/2}h_F.
+ \label{eq:frontier-contamination-subtraction}
+\end{equation}
+
+The two products $Q_{UF}y$ and $Q_{AF}y$ in
+\cref{eq:transposed-response-sketch} are generated by scanning the rows of
+$F$.  Thus, after the $p$ anchor right-hand sides in
+\cref{eq:transposed-harmonic-sketch} have been solved and represented, the
+identity requires no dense read of $\Delta_A$ and no pass over $U$.  It does
+not declare the multiplication by the touched rows of $Z_\Pi$ free: their
+storage, reads, sketch dimension $p$, and every anchor solve remain explicit
+response charges.
+\end{lemma}
+
+\begin{proof}
+The old-face block vanishes by construction.  On $U$,
+\begin{equation*}
+ q_U=Q_{UF}y-Q_{UA}Q_{AA}^{-1}Q_{AF}y.
+\end{equation*}
+Left-multiply by $\Pi D_U^{-1/2}$, use symmetry of $Q$, and transpose the
+definition of $Z_\Pi$ to obtain
+\cref{eq:transposed-response-sketch}.  On $F$, the same block multiplication
+gives
+\begin{equation*}
+ q_F=\left(Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF}\right)y=h_F.
+\end{equation*}
+The measurement over $U$ is the sum of its $F$ and $R$ column restrictions,
+so subtracting the known frontier contribution proves
+\cref{eq:frontier-contamination-subtraction}.  Finally, every nonzero of
+$Q_{VF}y$ is exposed by a row scan of $F$; the stated implementation ledger
+follows directly from the two right-hand-side products.
+\end{proof}
+
+\begin{lemma}[Two-sided group sketch from transposed harmonic measurements]
+\label{lem:two-sided-harmonic-group-sketch}
+Use \cref{lem:transposed-anchor-response-sketch} with fixed anchor $A$,
+frontier $F$, frontier Schur complement
+\begin{equation*}
+ K_F:=Q_{FF}-Q_{FA}Q_{AA}^{-1}Q_{AF},
+\end{equation*}
+and exterior $R:=V\setminus(A\cup F)$.  Let
+$\mathcal U_F:\mathbb R^F\to\mathbb R^V$ be the corresponding frontier lift,
+so that
+\begin{equation*}
+ (\mathcal U_Fy)_A=-Q_{AA}^{-1}Q_{AF}y,
+ \qquad
+ (\mathcal U_Fy)_F=y.
+\end{equation*}
+For a current hierarchy node $C\subseteq R$, define
+\begin{equation}
+ T_C:=D_C^{-1/2}Q_{CV}\mathcal U_FK_F^{-1/2},
+ \qquad
+ Z_F(C):=\|T_C\|_F^2.
+ \label{eq:two-sided-harmonic-response}
+\end{equation}
+This is exactly the normalized source-aware group mass of $F$ relative to
+$A$.
+
+Draw independent standard Gaussian source vectors
+$g_1,\ldots,g_r\in\mathbb R^F$ and, independently, global standard Gaussian
+target vectors $a_1,\ldots,a_p\in\mathbb R^R$.  For every hierarchy node
+$C$, let $a_{C,\ell}$ be the restriction of $a_\ell$ to $C$ and put
+\begin{equation}
+ \widetilde Z_F(C)
+ :=\frac1{pr}\sum_{\ell=1}^p\sum_{t=1}^r
+ \left(a_{C,\ell}^TT_Cg_t\right)^2.
+ \label{eq:two-sided-harmonic-estimator}
+\end{equation}
+For $\xi,\delta\in(0,1)$ and a hierarchy with at most $M$ nodes, there is a
+universal constant $c_{\rm 2sk}$ such that
+\begin{equation}
+ p,r\geq c_{\rm 2sk}\xi^{-2}\log(4M/\delta)
+ \label{eq:two-sided-harmonic-count}
+\end{equation}
+implies, with probability at least $1-\delta$, simultaneously for every node
+$C$,
+\begin{equation}
+ (1-\xi)^2Z_F(C)
+ \leq\widetilde Z_F(C)
+ \leq(1+\xi)^2Z_F(C).
+ \label{eq:two-sided-harmonic-guarantee}
+\end{equation}
+Every scalar in \cref{eq:two-sided-harmonic-estimator} is an exterior
+measurement in \cref{eq:frontier-contamination-subtraction}: choose one row of
+$\Pi_R$ to be $a_{C,\ell}^TD_C^{-1/2}$, set
+$y=K_F^{-1/2}g_t$, and subtract the known frontier contamination.  Therefore
+the estimator requires no materialized exterior response and no scan over
+$R$.
+\end{lemma}
+
+\begin{proof}
+The source identity in
+\cref{eq:normalized-frontier-source-identity} applied to $(A,F)$ shows that
+$\mathcal U_FK_F^{-1/2}$ is the energy-normalized source-response basis, so
+its normalized exterior row norms give the declared group mass.
+
+Let $G:=[g_1\ \cdots\ g_r]$.  The Gaussian quadratic-form bound, unioned over
+the hierarchy nodes, gives
+\begin{equation*}
+ (1-\xi)Z_F(C)
+ \leq\frac1r\|T_CG\|_F^2
+ \leq(1+\xi)Z_F(C)
+\end{equation*}
+simultaneously with failure probability at most $\delta/2$.  Condition on
+$G$ and this event.  For $Y_C:=T_CG$, a second application of the same bound
+to $Y_CY_C^T$, using the restricted target vectors $a_{C,\ell}$ and the remaining
+failure probability $\delta/2$, gives
+\begin{equation*}
+ (1-\xi)\|Y_C\|_F^2
+ \leq\frac1p\sum_{\ell=1}^p\|a_{C,\ell}^TY_C\|_2^2
+ \leq(1+\xi)\|Y_C\|_F^2
+\end{equation*}
+for every node.  Combining the two displays proves
+\cref{eq:two-sided-harmonic-guarantee}.  The final implementation statement
+is exactly \cref{eq:frontier-contamination-subtraction} for the declared row
+of $\Pi$ and source vector $y$.  The target restrictions are correlated
+between nodes, but each restriction has the required standard Gaussian law;
+the union bound uses no independence between nodes.  Sharing the global
+targets therefore preserves the simultaneous guarantee.
+\end{proof}
+
+\begin{theorem}[Chebyshev whitening of a spectral frontier]
+\label{thm:chebyshev-frontier-whitening}
+Use the anchor, frontier, lift, and exact frontier Schur complement $K_F$ of
+\cref{lem:two-sided-harmonic-group-sketch}.  Then
+\begin{equation}
+ \alpha I_F\preceq K_F\preceq I_F.
+ \label{eq:frontier-schur-spectrum}
+\end{equation}
+Suppose an SPD frontier representation $\widetilde K_F$ satisfies
+\begin{equation}
+ (1-\upsilon)K_F\preceq\widetilde K_F
+ \preceq(1+\upsilon)K_F,
+ \qquad 0\leq\upsilon<1.
+ \label{eq:frontier-spectral-approximation}
+\end{equation}
+Fix $\zeta\in(0,1/2)$.  There is a polynomial $p_q$ of degree
+\begin{equation}
+ q=O\!\left(
+ \sqrt{\frac{1+\upsilon}{(1-\upsilon)\alpha}}\,
+ \log\frac{1+\upsilon}{(1-\upsilon)\alpha\zeta}
+ \right)
+ =O_\upsilon\!\left(
+ \frac1{\sqrt\alpha}\log\frac1{\alpha\zeta}
+ \right)
+ \label{eq:frontier-whitening-degree}
+\end{equation}
+such that, for
+\begin{equation*}
+ R_C:=D_C^{-1/2}Q_{CV}\mathcal U_F,
+ \qquad
+ Z_{F,q}(C):=\norm{R_Cp_q(\widetilde K_F)}_F^2,
+\end{equation*}
+every hierarchy node $C\subseteq R$ obeys
+\begin{equation}
+ a_-Z_F(C)\leq Z_{F,q}(C)\leq a_+Z_F(C),
+ \qquad
+ a_-:=\frac{(1-\zeta)^2}{1+\upsilon},
+ \quad
+ a_+:=\frac{(1+\zeta)^2}{1-\upsilon}.
+ \label{eq:frontier-whitening-sandwich}
+\end{equation}
+
+Replace $K_F^{-1/2}g_t$ in
+\cref{eq:two-sided-harmonic-estimator} by
+$y_t:=p_q(\widetilde K_F)g_t$ and denote the resulting estimator by
+\begin{equation}
+ \widetilde Z_{F,q}(C)
+ :=\frac1{pr}\sum_{\ell=1}^p\sum_{t=1}^r
+ \left(a_{C,\ell}^TR_Cy_t\right)^2.
+ \label{eq:chebyshev-whitened-group-estimator}
+\end{equation}
+Under \cref{eq:two-sided-harmonic-count}, with probability at least
+$1-\delta$, simultaneously for every hierarchy node,
+\begin{equation}
+ (1-\xi)^2a_-Z_F(C)
+ \leq\widetilde Z_{F,q}(C)
+ \leq(1+\xi)^2a_+Z_F(C).
+ \label{eq:chebyshev-whitened-group-guarantee}
+\end{equation}
+Consequently
+\begin{equation}
+ \widehat Z_{F,q}(C)
+ :=\frac{\widetilde Z_{F,q}(C)}{(1-\xi)^2a_-}
+ \label{eq:chebyshev-whitened-one-sided}
+\end{equation}
+is a simultaneous one-sided oracle with
+\begin{equation}
+ Z_F(C)\leq\widehat Z_{F,q}(C)
+ \leq\Gamma_{\xi,\zeta,\upsilon}Z_F(C),
+ \qquad
+ \Gamma_{\xi,\zeta,\upsilon}
+ :=
+ \left(\frac{1+\xi}{1-\xi}\right)^2
+ \left(\frac{1+\zeta}{1-\zeta}\right)^2
+ \frac{1+\upsilon}{1-\upsilon}.
+ \label{eq:chebyshev-whitened-oracle-factor}
+\end{equation}
+
+If one multiplication by $\widetilde K_F$ costs $T_{\rm mv}$ work, all
+$r$ source vectors $y_t$ are prepared once, before any adaptive group search,
+in
+\begin{equation}
+ O(rqT_{\rm mv})
+ =\widetilde O_{\xi,\zeta,\upsilon,\delta}\!\left(
+  \frac{T_{\rm mv}}{\sqrt\alpha}
+ \right)
+ \label{eq:frontier-whitening-work}
+\end{equation}
+work.  In the exact case $\widetilde K_F=K_F$, one frontier multiplication
+\begin{equation}
+ K_Fy=Q_{FF}y-Q_{FA}Q_{AA}^{-1}Q_{AF}y
+ \label{eq:exact-frontier-matvec}
+\end{equation}
+uses one charged anchor-response application and
+$O(\operatorname{cvol}(F))$ additional incidence work.  Thus neither an exact
+frontier square root nor an exact solve for every Gaussian source is required.
+\end{theorem}
+
+\begin{proof}
+For $y\in\mathbb R^F$, the Schur variational identity gives
+\begin{equation*}
+ y^TK_Fy
+ =\min_{x\in\mathbb R^A}
+ \begin{pmatrix}x\\y\end{pmatrix}^{\!T}
+ Q_{A\cup F,A\cup F}
+ \begin{pmatrix}x\\y\end{pmatrix}
+ \geq\alpha\norm{y}_2^2.
+\end{equation*}
+Also $K_F\preceq Q_{FF}\preceq I$, proving
+\cref{eq:frontier-schur-spectrum}.  Hence the spectrum of
+$\widetilde K_F$ lies in
+$[(1-\upsilon)\alpha,1+\upsilon]$.  Chebyshev approximation on this interval
+supplies the degree in \cref{eq:frontier-whitening-degree} and the relative
+inverse-square-root bound
+\begin{equation*}
+ (1-\zeta)^2\widetilde K_F^{-1}
+ \preceq p_q(\widetilde K_F)^2
+ \preceq(1+\zeta)^2\widetilde K_F^{-1}.
+\end{equation*}
+Inverting \cref{eq:frontier-spectral-approximation} gives
+\begin{equation*}
+ \frac1{1+\upsilon}K_F^{-1}
+ \preceq\widetilde K_F^{-1}
+ \preceq\frac1{1-\upsilon}K_F^{-1}.
+\end{equation*}
+Congruence by $R_C$ and taking traces proves
+\cref{eq:frontier-whitening-sandwich}.
+
+Apply the two Gaussian concentration steps in the proof of
+\cref{lem:two-sided-harmonic-group-sketch} to the fixed matrix
+$R_Cp_q(\widetilde K_F)$ in place of $T_C$.  They bound
+\cref{eq:chebyshev-whitened-group-estimator} between
+$(1-\xi)^2Z_{F,q}(C)$ and $(1+\xi)^2Z_{F,q}(C)$ simultaneously for all
+nodes.  Combining this with \cref{eq:frontier-whitening-sandwich} proves
+\cref{eq:chebyshev-whitened-group-guarantee,eq:chebyshev-whitened-oracle-factor}.
+
+A Chebyshev recurrence uses $q$ multiplications by $\widetilde K_F$ for each
+source vector, proving \cref{eq:frontier-whitening-work}.  Finally,
+\cref{eq:exact-frontier-matvec} follows from the definition of $K_F$.
+Both sparse products incident on $F$ are formed by scanning its rows; the
+middle operation is exactly one application of the stored anchor response.
+\end{proof}
+
+\begin{theorem}[Coded bucket locator for row energy]
+\label{thm:coded-bucket-row-locator}
+Let $\mathcal W$ be a set of labels with an injective binary encoding in a
+universe of size $N\geq2$, and let
+$X\in\mathbb R^{\mathcal W\times r}$.  Fix $\theta>0$, $K\geq1$, and
+$\delta\in(0,1)$ such that
+\begin{equation}
+ \|X\|_F^2\leq K\theta.
+ \label{eq:coded-locator-mass-cap}
+\end{equation}
+Put
+\begin{equation*}
+ L:=\left\lceil\log_2N\right\rceil,
+ \qquad
+ B:=\left\lceil128KL\right\rceil,
+ \qquad
+ R:=\left\lceil\log_4(N/\delta)\right\rceil.
+\end{equation*}
+For every repetition $s\in[R]$, independently draw a pairwise-independent
+uniform hash $h_s:\mathcal W\to[B]$ and pairwise-independent Rademacher
+signs $\sigma_s(v)$.  For $b\in[B]$ form the vector measurements
+\begin{align}
+ M_{s,b,0}
+ &:=\sum_{v:h_s(v)=b}\sigma_s(v)X_{v,:},
+ \label{eq:coded-locator-total-bucket}\\
+ M_{s,b,\ell}
+ &:=\sum_{\substack{v:h_s(v)=b\\
+              \operatorname{bit}_\ell(v)=1}}
+       \sigma_s(v)X_{v,:},
+ \qquad 1\leq\ell\leq L.
+ \label{eq:coded-locator-bit-bucket}
+\end{align}
+Decode one label from every pair $(s,b)$ by setting its $\ell$th bit to one
+when
+\begin{equation}
+ \|M_{s,b,\ell}\|_2>
+ \|M_{s,b,0}-M_{s,b,\ell}\|_2,
+ \label{eq:coded-locator-bit-test}
+\end{equation}
+breaking ties arbitrarily, and retain the decoded label only when it belongs
+to $\mathcal W$.  Let $\mathcal C$ be the union of the retained labels.  Then,
+with probability at least $1-\delta$,
+\begin{equation}
+ \left\{v\in\mathcal W:\|X_{v,:}\|_2^2\geq\theta\right\}
+ \subseteq\mathcal C,
+ \qquad
+ |\mathcal C|\leq BR.
+ \label{eq:coded-locator-output}
+\end{equation}
+The complete measurement family has
+\begin{equation}
+ p=B(L+1)R
+ =O\!\left(K\log^2N\log(N/\delta)\right)
+ \label{eq:coded-locator-row-count}
+\end{equation}
+scalar target rows.  It is implicit: a label contributes to exactly one total
+bucket and at most $L$ bit buckets in each repetition.  The decoder uses
+$O(pr)$ arithmetic and produces at most
+$O(K\log N\log(N/\delta))$ candidates before exact validation.
+\end{theorem}
+
+\begin{proof}
+Fix a heavy label $v$, one repetition $s$, and its bucket
+$b:=h_s(v)$.  For each bit $\ell$ and value $c\in\{0,1\}$, let
+\begin{equation*}
+ N_{\ell,c}
+ :=\sum_{\substack{u\neq v:\ h_s(u)=b\\
+              \operatorname{bit}_\ell(u)=c}}
+       \sigma_s(u)X_{u,:}.
+\end{equation*}
+Pairwise independence of the signs removes all cross terms, and pairwise
+independence of the hash gives
+\begin{equation*}
+ \mathbb E\|N_{\ell,c}\|_2^2
+ \leq\frac{\|X\|_F^2}{B}
+ \leq\frac{K\theta}{B}.
+\end{equation*}
+Since $\|X_{v,:}\|_2^2\geq\theta$, Markov's inequality yields
+\begin{equation*}
+ \Pr\!\left\{
+  \|N_{\ell,c}\|_2>\tfrac14\|X_{v,:}\|_2
+ \right\}
+ \leq\frac{16K}{B}.
+\end{equation*}
+A union bound over the $2L$ pairs $(\ell,c)$ shows that all of these noise
+vectors have norm at most $\|X_{v,:}\|_2/4$ with probability at least
+$1-32KL/B\geq3/4$.
+
+On that event, if the $\ell$th bit of $v$ is one, then
+$M_{s,b,\ell}$ contains $\sigma_s(v)X_{v,:}$ plus noise of norm at most one
+quarter of the signal, whereas
+$M_{s,b,0}-M_{s,b,\ell}$ is noise of norm at most one quarter of the signal.
+Their norms are therefore at least three quarters and at most one quarter of
+$\|X_{v,:}\|_2$, respectively.  The inequalities reverse when the bit is
+zero.  Thus every bit test in
+\cref{eq:coded-locator-bit-test} is correct and the bucket decodes $v$.
+
+The repetitions are independent, so the probability that none decodes this
+fixed $v$ is at most $4^{-R}\leq\delta/N$.  A union bound over at most $N$
+heavy labels proves the containment in
+\cref{eq:coded-locator-output}.  There is at most one retained candidate per
+pair $(s,b)$, proving the size bound.  Counting the total and bit rows proves
+\cref{eq:coded-locator-row-count}.  Finally, evaluating all vector norms in
+the bit tests costs $O(pr)$, and the stated column sparsity follows directly
+from \cref{eq:coded-locator-total-bucket,eq:coded-locator-bit-bucket}.
+\end{proof}
+
+\begin{corollary}[One fixed-event shared coded harmonic bank for a packed query]
+\label{cor:shared-coded-harmonic-bank}
+Use the anchor $A$, frontier $F$, and full exterior graph boundary
+\begin{equation*}
+ W:=\{v\notin A\cup F:Q_{v,A\cup F}\neq0\}.
+\end{equation*}
+Let $\widetilde K_F$ be the spectral frontier and use the Chebyshev source vectors
+$y_t=p_q(\widetilde K_F)g_t$ of
+\cref{thm:chebyshev-frontier-whitening}.  Assume $F\neq\varnothing$, and let
+the exposed labels have identifiers in a universe of size $N\geq2$.  For
+$r$ independent source probes define the row matrix
+\begin{equation}
+ X_{v,t}:=\frac{(Q\mathcal U_Fy_t)_v}{\sqrt{r d_v}},
+ \qquad v\in W,\qquad 1\leq t\leq r.
+ \label{eq:coded-harmonic-row-matrix}
+\end{equation}
+Fix $\xi,\delta\in(0,1/2)$ and take
+\begin{equation*}
+ r\geq c_{\rm sk}\xi^{-2}\log(4M/\delta),
+\end{equation*}
+where $M$ bounds the current hierarchy nodes and leaves.  For a correction
+energy radius $E>0$ and normalized margin $m>0$, put
+\begin{equation}
+ \tau:=\frac{m^2}{E^2},
+ \qquad
+ \theta:=(1-\xi)a_-\tau,
+ \qquad
+ K:=\max\!\left\{1,
+  \frac{(1+\xi)a_+|F|}{(1-\xi)a_-\tau}
+ \right\},
+ \label{eq:coded-harmonic-budget}
+\end{equation}
+with $a_-,a_+$ from
+\cref{eq:frontier-whitening-sandwich}.  Draw the coded bank of
+\cref{thm:coded-bucket-row-locator}, with failure parameter $\delta/2$,
+independently after the current
+$A,F,\widetilde K_F$ are fixed.  With probability at least $1-\delta$, its
+candidate set contains every potentially ambiguous leaf
+\begin{equation}
+ \left\{v\in W:Z_F(\{v\})\geq\frac{m^2}{E^2}\right\},
+ \label{eq:coded-harmonic-ambiguous-set}
+\end{equation}
+and has size
+\begin{equation}
+ \widetilde O_{\xi,\zeta,\upsilon,\delta}\!\left(
+  1+|F|\frac{E^2}{m^2}
+ \right).
+ \label{eq:coded-harmonic-candidate-count}
+\end{equation}
+The number of target rows in the single shared bank obeys the same bound up
+to logarithms.  Exact validation of those candidates therefore returns the
+same ambiguous set as the hierarchy search, without constructing one target
+harmonic row per reached hierarchy node.
+
+More precisely, define every signed bucket/bit coefficient on the whole
+identifier universe $U:=V\setminus A$ and use the resulting rows as $\Pi$ in
+\cref{lem:transposed-anchor-response-sketch}; the locator uses their
+restriction $\Pi_W$.  All entries of $\Pi_WX$ are supplied exactly by the
+transposed harmonic identity after subtracting the known frontier block.
+Labels outside $F\cup W$ contribute zero because they are not adjacent to the
+support of the lifted vector.  Thus the harmonic bank may be formed at the
+fixed anchor before $W$ is known.  Its capacity may depend on the already-fixed
+public event parameters $F,E,m,\xi,\zeta,\upsilon$ and the assigned failure
+budget, but it may not be selected after inspecting sampled source responses or
+bank answers.  A block built earlier must use a declared capacity envelope and
+an assignment rule independent of its unobserved contents.  Let
+$\mathcal C_{\rm harm}(A,\Pi,Y)$ denote every charged anchor right-hand-side
+construction, anchor solve or update, representation write, touched old-face
+row read, and harmonic application needed for the $p$ target rows and the
+source matrix $Y=[y_1\ \cdots\ y_r]$.  Apart from this declared response
+charge, the query costs
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{T_{\rm mv}}{\sqrt\alpha}
+  +rRL\operatorname{cvol}(F)
+  +pr
+ \right)
+ +\mathcal C_{\rm val}(\mathcal C),
+ \label{eq:coded-harmonic-query-work}
+\end{equation}
+where $R,L,p$ are from
+\cref{thm:coded-bucket-row-locator} and
+$\mathcal C_{\rm val}$ charges construction or maintenance of the exposed
+boundary-membership dictionary, membership lookup, exact leaf evaluation, and
+output.  In addition to retained response state, the explicit measurement,
+decoder, and candidate arrays use $O(pr+BR)$ transient cells.  The
+$rRL\operatorname{cvol}(F)$ term forms the direct bucket
+contributions by incidence scans: each touched label updates only one bucket
+and its $L$ bit counters per repetition.
+Forming the anchor right-hand sides does not enumerate $U$: only columns with
+$Q_{Av}\neq0$ contribute, and their identifiers and degrees are already in
+the exposed anchor-cut record of
+\cref{prop:exposed-incidence-sufficiency}.
+
+For an adaptive trace, the same conclusion is valid event by event only if,
+after the event tuple $(A,F,\widetilde K_F,E,m)$ is fixed, the event either
+draws both fresh Gaussian source probes $g_t$ (hence $Y$) and a fresh
+hash/sign target bank, or consumes an unused, unobserved block containing both
+random layers and independent of the complete history.  All such blocks are
+charged in $\mathcal C_{\rm harm}$.  A simultaneous whole-trace guarantee
+additionally assigns summable budgets $\sum_j\delta_j\leq\delta$ and uses
+\begin{equation*}
+ r_j\geq c_{\rm sk}\xi^{-2}\log(4M_j/\delta_j),
+ \qquad
+ R_j=\left\lceil\log_4(2N/\delta_j)\right\rceil,
+\end{equation*}
+with every resulting logarithm included in the aggregate block charge.
+Reusing either random layer after its answers have influenced a later event is
+not justified by this corollary.
+\end{corollary}
+
+\begin{proof}
+Condition on the current frontier.  The first Gaussian quadratic-form step in
+\cref{lem:two-sided-harmonic-group-sketch}, unioned over the current leaves
+and the root group $W$, gives, with failure probability at most $\delta/2$,
+\begin{equation*}
+ (1-\xi)a_-Z_F(\{v\})
+ \leq\|X_{v,:}\|_2^2
+ \leq(1+\xi)a_+Z_F(\{v\})
+\end{equation*}
+for every $v\in W$, and
+\begin{equation*}
+ \|X\|_F^2
+ \leq(1+\xi)a_+Z_F(W)
+ \leq(1+\xi)a_+|F|.
+\end{equation*}
+The last inequality is the source-aware leverage packing bound
+\cref{eq:source-aware-normalized-mass-total}.  Hence
+\cref{eq:coded-locator-mass-cap} holds with the $\theta,K$ in
+\cref{eq:coded-harmonic-budget}, and every leaf in
+\cref{eq:coded-harmonic-ambiguous-set} has sampled row energy at least
+$\theta$.
+
+Condition on this source event and draw the independent coded bank with
+failure budget $\delta/2$.  Apply
+\cref{thm:coded-bucket-row-locator}.  A final union bound proves the
+no-false-negative claim.  Substitution of
+\cref{eq:coded-harmonic-budget} into
+\cref{eq:coded-locator-output,eq:coded-locator-row-count} proves the candidate
+and target-row bounds.
+
+For a source column $y_t$, the corresponding coded measurements are exactly
+\begin{equation*}
+ \frac1{\sqrt r}\Pi_WD_W^{-1/2}
+      (Q\mathcal U_Fy_t)_W.
+\end{equation*}
+This is \cref{eq:frontier-contamination-subtraction}: the full measurement is
+formed first and its known $F$ contribution is subtracted.  The
+source-preparation cost is
+\cref{eq:frontier-whitening-work}.  A scan of the frontier rows forms the
+direct exterior terms; the implicit bank has at most $R(L+1)$ nonzeros per
+label, so all $r$ source columns cost the second term of
+\cref{eq:coded-harmonic-query-work}.  The decoder and its vector norms cost
+$O(pr)$.  Every operation involving the anchor representation or final
+candidate is, by definition, retained in the two explicit charges.  Finally,
+  both random layers in a fresh unused block are independent of the history
+  that fixes the current event, so the conditional union-bound argument of
+\cref{thm:causal-orthogonal-response-sketches} applies event by event.
+\end{proof}
+
+The corollary closes the measurement-count question for one packed query:
+the target rows are output-sensitive even at full cut rank and are shared by
+all would-be hierarchy nodes.  It does not close the graph-local theorem,
+because $\mathcal C_{\rm harm}$ may still include too many anchor solves,
+stored old-face reads, or independent bank blocks.  The next lemma must bound
+that aggregate charge through an epoch, or replace the harmonic bank by the
+positive shifted-debt realization below.
+
+\begin{theorem}[Certified adaptive reuse of multiscale coded banks]
+\label{thm:certified-adaptive-coded-bank-reuse}
+Fix an identifier universe of size $N\geq2$ and an upper bound $J_{\max}$ on
+the number of packed queries in one fixed-anchor epoch.  At exact reference
+query $j$, let
+\begin{equation*}
+ X_j\in\mathbb R^{\mathcal W_j\times r_j},
+ \qquad
+ \|X_j\|_F^2\leq K_j\theta_j,
+ \qquad
+ K_j\geq1,\quad \theta_j>0,
+\end{equation*}
+where $\mathcal W_j$ is any current subset of the identifier universe.  The
+row-heavy superset is
+\begin{equation}
+ \mathcal G_j
+ :=\{v\in\mathcal W_j:\|(X_j)_{v,:}\|_2^2\geq\theta_j\}
+ \label{eq:certified-reference-row-heavy-set}
+\end{equation}
+and suppose the exact reference event set $\mathcal H_j$ satisfies
+$\mathcal H_j\subseteq\mathcal G_j$.  Exact validation returns
+$\mathcal H_j$ from any candidate set containing it, and the reference
+controller's next state is a fixed function of this validated set and of
+randomness independent of the target banks.  Rejected false candidates,
+their order, and the raw bucket values do not change this state.
+
+Put $\kappa_\ell:=2^\ell$.  For every capacity level that is used, draw one
+target bank $\Pi^{(\ell)}$ from
+\cref{thm:coded-bucket-row-locator} with mass parameter
+$K=\kappa_\ell$ and failure parameter $\delta/J_{\max}$.  At query $j$, use
+the smallest level $\ell(j)$ with $K_j\leq\kappa_{\ell(j)}$, decode its
+candidate set, exactly validate every candidate, and update the controller
+only with the validated set.  The same bank at a level is reused at every
+later query assigned to that level.
+
+Then, with probability at least $1-\delta$, no reference-heavy label is
+missed at any query and the adaptive run follows exactly the reference state
+trace.  If
+\begin{equation*}
+ K_{\max}:=\max_{j\leq J_{\max}}K_j,
+\end{equation*}
+the total number of distinct target rows over all capacity levels is
+\begin{equation}
+ P_{\rm epoch}
+ =O\!\left(
+  K_{\max}\log^2N\log(NJ_{\max}/\delta)
+ \right),
+ \label{eq:certified-multiscale-bank-rows}
+\end{equation}
+not the sum of the per-query row counts.  Query $j$ decodes and validates at
+most
+\begin{equation}
+ O\!\left(
+  K_j\log N\log(NJ_{\max}/\delta)
+ \right)
+ \label{eq:certified-multiscale-query-candidates}
+\end{equation}
+candidates, up to harmless rounding at $K_j=1$.
+
+The levels need not be allocated in advance.  A level may be drawn lazily
+the first time its capacity is requested, after the current query tuple is
+fixed and before its measurements are inspected.  This requires no advice
+about $K_{\max}$ and preserves the same row bound.
+
+For the harmonic realization in
+\cref{cor:shared-coded-harmonic-bank}, this proves that one harmonic target
+bank per realized capacity level suffices throughout a certified adaptive
+epoch.  The source probes may remain fresh with summable failure budgets as in
+\cref{thm:causal-orthogonal-response-sketches}; on their simultaneous success
+event, the truly ambiguous leaves are the required sets $\mathcal H_j$ and
+are contained in the sampled row-heavy sets $\mathcal G_j$.  Their failure
+probability is added separately.  The target-side response charge has the
+exact decomposition
+\begin{equation}
+ \mathcal C_{\rm harm}^{\rm epoch}
+ =\mathcal C_{\rm build}
+   \bigl(A,\{\Pi^{(\ell)}\}_{\ell}\bigr)
+  +\sum_j\mathcal C_{\rm apply}
+   \bigl(A,\Pi^{(\ell(j))},Y_j\bigr),
+ \label{eq:certified-harmonic-build-apply-split}
+\end{equation}
+where the first term builds each distinct row only once and the second term
+charges every later old-face read and application.  Thus adaptive
+correctness no longer forces one fresh harmonic bank build per event.  The
+theorem does not bound either implementation term in
+\cref{eq:certified-harmonic-build-apply-split}.
+\end{theorem}
+
+\begin{proof}
+First condition on the graph, the exact validation rule, and all randomness
+other than the target banks.  This fixes the exact reference trace
+recursively, including every
+$(\mathcal W_j,X_j,\theta_j,K_j,\mathcal G_j,\mathcal H_j)$.  For a fixed reference query
+$j$, its assigned bank has capacity
+$\kappa_{\ell(j)}\geq K_j$, so
+\begin{equation*}
+ \|X_j\|_F^2\leq\kappa_{\ell(j)}\theta_j.
+\end{equation*}
+By \cref{thm:coded-bucket-row-locator}, the probability that this bank misses
+a member of $\mathcal G_j$, and hence the probability that it misses a member
+of $\mathcal H_j\subseteq\mathcal G_j$, is at most
+$\delta/J_{\max}$.  The events may be
+correlated because a level is reused; a union bound over the fixed reference
+queries still gives total failure probability at most $\delta$.
+
+It remains to justify using the reference queries in an adaptive execution.
+If the execution ever leaves the reference trace, let $j$ be the first such
+query.  Every earlier candidate set contained its complete reference event
+set, and exact validation deleted every false candidate.  By the controller
+hypothesis, all earlier state transitions therefore equal their reference
+transitions.  Hence the query tuple at $j$ is exactly the fixed reference
+tuple, and divergence can occur only if its assigned bank misses a member of
+$\mathcal H_j$.  The probability of any first divergence is consequently
+bounded by the preceding union.  This is the certified first-failure
+coupling; no for-all adaptive-sketch guarantee is assumed.
+
+For one level, substitute the common failure parameter
+$\delta/J_{\max}$ into
+\cref{eq:coded-locator-row-count}.  Since the realized capacities are powers
+of two,
+\begin{equation*}
+ \sum_{\ell:\ \kappa_\ell\leq2K_{\max}}\kappa_\ell
+ <4K_{\max}.
+\end{equation*}
+This proves \cref{eq:certified-multiscale-bank-rows}.  Minimality of
+$\ell(j)$ gives $\kappa_{\ell(j)}<2K_j$ unless $K_j=1$; apply
+\cref{eq:coded-locator-output} to prove
+\cref{eq:certified-multiscale-query-candidates}.
+
+For lazy allocation, condition on the certified history through the first
+request to a new level.  The current query tuple is already fixed, while the
+new bank is fresh and independent.  The same first-failure argument applies
+from that point onward.  Geometric summation is unchanged.  Finally, the
+global identifier construction in
+\cref{cor:shared-coded-harmonic-bank} lets the same $\Pi^{(\ell)}$ be
+restricted to every later boundary.  Building each harmonic extension once
+and charging every application separately gives
+\cref{eq:certified-harmonic-build-apply-split}.
+\end{proof}
+
+The theorem removes the adaptive fresh-bank multiplier from
+$\mathcal C_{\rm harm}$.  The remaining high-rank question is now strictly
+implementation-side: represent the $P_{\rm epoch}$ harmonic rows and apply
+the selected level after each light event within the desired aggregate old-face
+ledger.
+
+\begin{theorem}[Bidirectional harmonic application]
+\label{thm:bidirectional-harmonic-application}
+Fix an anchor $A$, put $U:=V\setminus A$, and let
+$\Pi\in\mathbb R^{p\times U}$ be any target bank.  For a frontier
+$F\subseteq U$ and a source matrix $Y\in\mathbb R^{F\times r}$, put
+\begin{equation*}
+ W:=Q_{AF}Y,
+ \qquad
+ \mathsf H(\Pi,Y)
+ :=\Pi D_U^{-1/2}Q_{UA}Q_{AA}^{-1}W.
+\end{equation*}
+The old-face term in every column of
+\cref{eq:transposed-response-sketch} has the two exactly equal realizations
+\begin{equation}
+ \mathsf H(\Pi,Y)
+ =\left(Q_{AA}^{-1}Q_{AU}D_U^{-1/2}\Pi^T\right)^TW
+ =\Pi D_U^{-1/2}Q_{UA}X,
+ \qquad Q_{AA}X=W.
+ \label{eq:bidirectional-harmonic-identity}
+\end{equation}
+Thus the target orientation solves $p$ anchor right-hand sides once and
+stores their harmonic extensions, whereas the source orientation solves the
+$r$ current right-hand sides and stores no target harmonic extension.
+
+Suppose now that $\Pi$ is one signed hash-and-bit bank from
+\cref{thm:coded-bucket-row-locator}, and let $\sigma$ be the number of its
+nonzeros in one identifier column.  The source orientation can form
+$\mathsf H(\Pi,Y)$ exactly, after solving for $X$, by one scan of the
+anchor--exterior cut in
+\begin{equation}
+ O\!\left(pr+\sigma r\,\operatorname{cvol}(A)\right)
+ \label{eq:source-oriented-coded-bank-work}
+\end{equation}
+arithmetic and hash operations.  Including the direct term and the known
+frontier subtraction in
+\cref{eq:transposed-response-sketch,eq:frontier-contamination-subtraction}
+adds
+$O(\sigma r\,\operatorname{cvol}(F))$ work.  The transient arrays use
+$O(|A|r+pr)$ cells in addition to the exact multi-right-hand-side solve
+state.  All degree reads are those of the exposed-incidence record in
+\cref{prop:exposed-incidence-sufficiency}.  In particular, this realization
+has no harmonic-bank build or hidden scan of the exterior, but it pays one
+old-face cut scan and one anchor solve for every source block.
+\end{theorem}
+
+\begin{proof}
+Symmetry of $Q_{AA}$ gives
+\begin{align*}
+ \left(Q_{AA}^{-1}Q_{AU}D_U^{-1/2}\Pi^T\right)^TW
+ &=\Pi D_U^{-1/2}Q_{UA}Q_{AA}^{-1}W\\
+ &=\Pi D_U^{-1/2}Q_{UA}X,
+\end{align*}
+which proves \cref{eq:bidirectional-harmonic-identity}.
+
+For the work claim, initialize the $p\times r$ accumulator to zero.  While
+scanning a cut incidence $(a,v)$ with $a\in A$ and $v\in U$, its contribution
+to source column $t$ is
+\begin{equation*}
+ \frac{Q_{va}X_{a,t}}{\sqrt{d_v}}\,\Pi_{:,v}.
+\end{equation*}
+The identifier $v$ determines the $\sigma$ nonzero coordinates and signs of
+$\Pi_{:,v}$, so the incidence costs $O(\sigma r)$.  There are at most
+$\sum_{a\in A}d_a$ such incidences.  Initializing the accumulator costs
+$O(pr)$, proving \cref{eq:source-oriented-coded-bank-work}.  Scanning $F$
+and applying the same column rule forms the direct exterior term and the
+frontier subtraction at the stated additional charge.  No other exterior
+coordinate is read.
+\end{proof}

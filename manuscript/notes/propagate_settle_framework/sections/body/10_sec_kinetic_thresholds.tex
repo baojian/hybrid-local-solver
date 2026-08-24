@@ -1,0 +1,215 @@
+\subsection{Kinetic thresholds beyond repeated signatures}
+\label{sec:kinetic-thresholds}
+
+Exact equality of response rows is sufficient but not necessary.  A second
+mechanism is that arbitrarily many distinct boundary demands may cross zero
+in one stable total order.
+
+\begin{theorem}[Kinetic scalar gate]
+\label{thm:kinetic-scalar-gate}
+Suppose an exact incremental Schur representation of a zero-exterior gate
+trace has the following data.
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item At stage $k$ it computes an exact scalar $t_k$, with
+ $t_{k+1}\geq t_k$.
+ \item Every current frontier vertex has an exact key
+ $(a_v,\theta_v)$, where $a_v>0$, such that
+ \begin{equation}
+  e_\ell(x^k)_v=a_v(t_k-\theta_v).
+  \label{eq:kinetic-affine-demand}
+ \end{equation}
+ \item A key stays fixed while its vertex remains on the frontier, except
+ for explicitly reported rekey events completed before the next query.
+\end{enumerate}
+Let $M$ be the number of distinct frontier vertices ever exposed, $H$ the
+number of rekeys, $A$ the work of the Schur updates and final recovery other
+than key handling, and $R$ the work of producing the keys and rekeys.  Then
+the identical exact batches and final solution can be generated in
+\begin{equation}
+ O\!\left(A+R+(M+H)\log(2+M+H)\right)
+ \label{eq:kinetic-gate-work}
+\end{equation}
+work, using $O(M+H)$ total heap records and at most $O(M)$ live records.  A
+monotone bucket queue removes the
+logarithm when the keys are supplied in total order or in an order-preserving
+integer universe of $O(M+H)$ buckets.
+\end{theorem}
+
+\begin{proof}
+Keep a minimum heap ordered by $\theta_v$ and use generation counters for
+rekeys.  At stage $k$, discard stale records and extract precisely the valid
+records with $\theta_v<t_k$.  By \cref{eq:kinetic-affine-demand}, these and
+only these vertices have positive exact demand; equality stays inactive, as
+required by the strict gate.  Insert newly exposed vertices and completed
+rekeys before the next query.  Monotonicity of $t_k$ means that an extracted
+live key never returns.  Every insertion, stale discard, and live extraction
+is charged to one exposure or rekey, proving the work and storage bounds.
+Induction on the stages gives the identical batches, and the assumed exact
+Schur representation gives the final solution.
+\end{proof}
+
+The scalar heap is the first member of a low-dimensional geometric family.
+The next statement isolates the data-structure obligation instead of hiding
+it in the algebra.
+
+\begin{theorem}[Low-dimensional kinetic halfspace gate]
+\label{thm:kinetic-halfspace-gate}
+Suppose an exact incremental trace has a state $t_k\in\mathbb R^r$ and every
+live frontier row has the stable form
+\begin{equation}
+ e_\ell(x^k)_v=b_v+a_v^Tt_k,
+ \qquad a_v\geq0,
+ \label{eq:kinetic-halfspace-demand}
+\end{equation}
+between explicitly reported rekeys.  Let $M,H,K$ denote exposures, rekeys,
+and nonempty batches, and let $A$ be the remaining algebra and recovery work.
+If $\mathcal T_j(N)$ is the cost of an exact dynamic extreme-point update or
+query for points in $\mathbb R^j$, then the identical batches are reported in
+\begin{equation}
+ O\!\left(
+  A+(M+H+|S|+r(K+1))
+  \max_{1\leq j\leq r}\mathcal T_j(M+H)
+ \right)
+ \label{eq:kinetic-halfspace-work}
+\end{equation}
+work.  In particular, a fixed retained separator $Z$ verifies
+\cref{eq:kinetic-halfspace-demand} with $t_k=x^k_Z$,
+$a_v=-Q_{vZ}\geq0$, and no rekeys for surviving frontier vertices.
+\end{theorem}
+
+\begin{proof}
+Rows with $a_v=0$ are constant.  Otherwise let $j$ be the largest index with
+$a_{v,j}>0$ and store
+\begin{equation}
+ p_v:=\left(
+  \frac{a_{v,1}}{a_{v,j}},\ldots,
+  \frac{a_{v,j-1}}{a_{v,j}},
+  \frac{b_v}{a_{v,j}}
+ \right)\in\mathbb R^j.
+ \label{eq:kinetic-lifted-point}
+\end{equation}
+For $q_j(t):=(t_1,\ldots,t_{j-1},1)$,
+\begin{equation}
+ e_\ell(x^k)_v>0
+ \quad\Longleftrightarrow\quad
+ p_v^Tq_j(t_k)>-t_{k,j}.
+ \label{eq:kinetic-extreme-query}
+\end{equation}
+Maintain one dynamic extreme-point structure for each stratum $j$.  Repeatedly
+query its maximum in direction $q_j(t_k)$, deleting and reporting a maximizer
+while \cref{eq:kinetic-extreme-query} holds.  One failed query certifies that
+the whole stratum is inactive.  There is one successful query per admitted
+vertex, at most $r$ failed queries per stage, one insertion per exposure, and
+one delete--insert pair per rekey, proving \cref{eq:kinetic-halfspace-work}.
+For a fixed separator, safe nested Stieltjes settlement makes $x^k_Z$
+coordinatewise nondecreasing, and separation makes every surviving row
+$(\ell_v,-Q_{vZ})$ stable.
+\end{proof}
+
+The following nontrivial graph class verifies all hypotheses with no rekeys
+and no bound on the number of distinct demands.
+
+\begin{theorem}[Exact kinetic solver on a rooted spider]
+\label{thm:rooted-spider-kinetic}
+Let $Q$ be SPD Stieltjes and let its off-diagonal graph consist of a hub $o$
+and $R$ internally disjoint path arms
+$(v_{i,1},\ldots,v_{i,m_i})$.  Start the exact gate at $U_0=\{o\}$, so every
+active region is the hub plus a prefix of each arm.  For any fixed load
+$\ell$, the exact batches and terminal Dirichlet solution can be generated
+online in
+\begin{equation}
+ O\!\left(\operatorname{cvol}(S)\log(2+R)\right)
+ \label{eq:spider-work}
+\end{equation}
+exact arithmetic, comparisons, and degree work.  Under the bucket condition
+of \cref{thm:kinetic-scalar-gate}, the bound is
+$O(\operatorname{cvol}(S))$.  All effective boundary demands may be distinct.
+\end{theorem}
+
+\begin{proof}
+Eliminate every active arm prefix while retaining the hub and the single
+current inactive tip $w_i$ of each unfinished arm.  The exact reduced system
+is arrowhead:
+\begin{equation}
+ \begin{bmatrix}h&c^T\\c&\operatorname{diag}(d_i)\end{bmatrix}
+ \begin{bmatrix}x_o\\x_w\end{bmatrix}
+ =\begin{bmatrix}g\\\gamma\end{bmatrix},
+ \qquad h,d_i>0,\quad c_i<0.
+ \label{eq:spider-arrowhead}
+\end{equation}
+The inactive tips are held at zero, so the hub state and exact tip demands are
+\begin{equation}
+ t=\frac gh,
+ \qquad
+ \eta_i=\gamma_i-c_it=(-c_i)(t-\theta_i),
+ \qquad
+ \theta_i=\frac{\gamma_i}{c_i}.
+ \label{eq:spider-threshold}
+\end{equation}
+
+Let $B$ be the exact positive-tip batch.  If an admitted $w_i$ has successor
+$u$, write $q_i=Q_{w_i u}<0$, $D_i=Q_{uu}$, and $L_i=\ell_u$.  Ordinary
+scalar Schur complementation gives
+\begin{align}
+ h^+&=h-\sum_{i\in B}\frac{c_i^2}{d_i},
+ &g^+&=g-\sum_{i\in B}\frac{c_i\gamma_i}{d_i},
+ \label{eq:spider-hub-update}\\
+ d_i^+&=D_i-\frac{q_i^2}{d_i},
+ &\gamma_i^+&=L_i-\frac{q_i\gamma_i}{d_i},
+ &c_i^+&=-\frac{c_iq_i}{d_i}<0.
+ \label{eq:spider-tip-update}
+\end{align}
+For a terminal tip only \cref{eq:spider-hub-update} is needed.  Other arms'
+tip triples do not change, while SPD and Stieltjes signs persist.  Moreover,
+\begin{equation}
+ t^+-t
+ =\frac{\sum_{i\in B}(-c_i)\eta_i/d_i}{h^+}>0
+ \label{eq:spider-strict-monotonicity}
+\end{equation}
+at every nonterminal gate step.  Thus the stable thresholds in
+\cref{eq:spider-threshold} and a minimum heap report exactly the strict gate
+events.  There are no rekeys: activating another arm changes only $(h,g)$;
+when a tip activates, its record is removed and its successor is inserted
+once with the new triple from \cref{eq:spider-tip-update}.
+
+For reverse recovery, save for every eliminated tip the equation
+\begin{equation}
+ x_{w_i}=\frac{\gamma_i-c_ix_o-q_ix_u}{d_i},
+ \label{eq:spider-recovery}
+\end{equation}
+with the last term absent at an arm endpoint.  At termination $x_o=g/h$, and
+reverse substitution recovers every active prefix exactly.  The root scan
+costs $R$, each admitted arm vertex has constant arm degree, and each exposed
+tip is inserted and extracted at most once from a heap of size at most $R$.
+The number of such records is $O(\operatorname{cvol}(S))$, proving
+\cref{eq:spider-work}.
+\end{proof}
+
+This theorem strictly extends repeated signatures: a spider may have
+$\nu=R$ and $K=\Theta(|S|)$, so representative testing can cost
+$\Theta(RK)$ while the kinetic gate remains nearly output-linear.  Its sharp
+limitation is also informative.  With a separator of dimension at least two,
+gate events become moving halfspace queries rather than scalar thresholds;
+\cref{thm:kinetic-halfspace-gate} handles a stable low-dimensional state, but
+if one update changes all affine rows, the rekey count can be
+$\Theta(|\Gamma|K)$.  Stability is a real structural condition: if persistent
+frontier demands change by columns $a^{(k)}\lambda_k$ and admit a fixed
+$q$-dimensional representation $b+At_k$, then every response column lies in
+$\operatorname{col}(A)$ and hence
+\begin{equation}
+ \operatorname{rank}[a^{(0)},\ldots,a^{(K-1)}]\leq q.
+ \label{eq:kinetic-response-rank}
+\end{equation}
+Even a sparse path core can have full response rank: attach candidate $b_j$
+and persistent probe $c_j$ to each path vertex $p_j$.  After earlier
+candidates are eliminated, the response to $b_j$ is a positive multiple of
+$\operatorname{diag}(\gamma)A_j^{-1}e_j$.  For sufficiently small candidate
+couplings, the matrix of these columns converges after column scaling to
+$\operatorname{diag}(\gamma)A^{-1}$ and is nonsingular.  Thus no fixed
+$q<m$ stable kinetic state represents all $m$ updates, despite linear graph
+volume.  The singleton order can be realized by choosing each candidate load
+inductively: every earlier activation strictly increases every later demand,
+so the interval that is nonpositive before the preceding event and positive
+after it is nonempty; sufficiently negative probe loads keep all probes
+inactive.  This is a representation obstruction for general fixed loads, not
+an unconditional algorithmic lower bound or an RPPR-specific construction.

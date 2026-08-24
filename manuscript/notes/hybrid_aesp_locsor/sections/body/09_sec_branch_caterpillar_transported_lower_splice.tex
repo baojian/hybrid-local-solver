@@ -1,0 +1,340 @@
+\subsection{Transporting a lower anchor through every canonical face}
+\label{sec:branch-caterpillar-transported-lower-splice}
+
+The zero resets in
+\Cref{def:branch-caterpillar-two-face-lower-policy} are not required for
+correctness.  What survives an admission is weaker than Catalyst energy but
+stronger than a fresh zero start: one coordinatewise lower point.  We state
+that invariant separately so that it cannot be confused with a transported
+momentum or estimate-sequence certificate.
+
+Put $x_m:=x^\star(\rho)$, and let
+$\iota_k:\mathbb R^{\widehat U_k}\to
+\mathbb R^{\widehat U_{k+1}}$ denote zero padding on
+$\mathcal F_k$.  For vectors on the same face, $\vee$ denotes coordinatewise
+maximum.
+
+\begin{lemma}[Canonical-face order and anchored lower transport]
+\label{lem:branch-caterpillar-anchored-lower-transport}
+Under \cref{eq:branch-caterpillar-composite-range}, for every $0\leq k<m$,
+\begin{equation}
+ x_{k+1}\big|_{\widehat U_k}\geq x_k,
+ \qquad
+ 0\leq y\leq x_k
+ \ \Longrightarrow\
+ 0\leq\iota_k y\leq x_{k+1}.
+ \label{eq:branch-caterpillar-padded-lower-transport}
+\end{equation}
+More generally, if $a$ is any charged anchor with $0\leq a\leq x_k$, define
+\begin{equation}
+ \mathcal T_{k,a}(z):=
+ a\vee\mathcal L_{\widehat U_k}(z).
+ \label{eq:branch-caterpillar-anchored-lower-map}
+\end{equation}
+For every signed $z$ supported on $\widehat U_k$,
+\begin{align}
+ 0\leq a\leq\mathcal T_{k,a}(z)&\leq x_k,
+ \notag\\
+ (\ell_\rho-Q\mathcal T_{k,a}(z))_v
+ &\leq g_{k,v}
+ \qquad(v\in\mathcal F_k).
+ \label{eq:branch-caterpillar-anchored-lower-invariant}
+\end{align}
+Thus strict positivity of every displayed anchored demand is a conservative
+certificate for the complete canonical batch.
+
+If $y_k$ is such a certified anchored point and the batch
+$\mathcal F_k$ is committed, the update
+\begin{equation}
+ a_{k+1}:=\iota_k y_k
+ \label{eq:branch-caterpillar-transported-anchor-update}
+\end{equation}
+preserves every old lower coordinate exactly and initializes only the newly
+admitted coordinates to zero.  Repeating
+\cref{eq:branch-caterpillar-anchored-lower-map} on the new face can only
+increase this anchor coordinatewise.  This statement holds through the last
+canonical admission; it uses no restricted response and no table of future
+margins.
+\end{lemma}
+
+\begin{proof}
+Every coordinate of $x_k$ and $x_{k+1}$ on their declared canonical supports
+is strictly positive.  Hence their restricted KKT equations are equalities.
+Writing $U=\widehat U_k$ and $F=\mathcal F_k$, the $U$ block gives
+\[
+ Q_{UU}\bigl(x_{k+1}|_U-x_k\bigr)
+ =-Q_{UF}x_{k+1}|_F\geq0.
+\]
+The principal Stieltjes inverse $Q_{UU}^{-1}$ is entrywise nonnegative, which
+proves the first inequality in
+\cref{eq:branch-caterpillar-padded-lower-transport}; positivity on $F$ proves
+the zero-padding conclusion.
+
+\Cref{lem:branch-caterpillar-local-lower-gate-certificate} applies at every
+canonical face and gives
+$0\leq\mathcal L_{\widehat U_k}(z)\leq x_k$.  Taking a coordinatewise maximum
+with another vector below $x_k$ proves the first line of
+\cref{eq:branch-caterpillar-anchored-lower-invariant}.  A tree-boundary row
+has only its parent entry in the current face, so
+\[
+ g_{k,v}-(\ell_\rho-Q\mathcal T_{k,a}(z))_v
+ =\beta_{k,v}\bigl((x_k)_{p_k(v)}
+   -\mathcal T_{k,a}(z)_{p_k(v)}\bigr)\geq0.
+\]
+The remaining assertions follow by induction from zero padding and
+coordinatewise maximum.
+\end{proof}
+
+This invariant preserves a numerical lower vector, not the AESP auxiliary
+state.  To make the distinction operational, fix a certificate horizon
+$q\in\{2,\ldots,m\}$.  The full canonical chronology still has $m$ batches;
+$q$ only determines how many consecutive batch signs are certified before
+the response handoff.
+
+\begin{definition}[Transported-lower canonical prefix]
+\label{def:branch-caterpillar-transported-lower-policy}
+The policy
+\texttt{TransportLower-BC-AESP}$_{0:q-1}$ proceeds as follows.
+\begin{enumerate}
+ \item Scan and retain the seed row, and set $a_0=0$ on
+       $\widehat U_0$.  For
+       $k=0,\ldots,q-1$, scan and retain every row in the current boundary
+       $\mathcal F_k$, validating its degree, unique active parent, and the
+       completeness of the promised tree boundary.
+ \item On $\widehat U_k$, initialize a \emph{fresh} relative-accuracy
+       AESP--CD run at the explicitly materialized point
+       $z_k^{(0)}=a_k$.  Its momentum, proximal, center, and
+       estimate-sequence records are new and charged; no such record is
+       transported from $\widehat U_{k-1}$.  After every endpoint, including
+       $t=0$, make one full stored-row sweep of $\widehat U_k$, compute
+       \[
+       y_k^{(t)}:=\mathcal T_{k,a_k}(z_k^{(t)}),
+       \]
+       and test all three anchored boundary demands.  Stop at the first
+       all-strict-positive test.
+ \item If $k<q-1$, make one delta/certificate interaction, emit and commit
+       precisely $\mathcal F_k$, retire the current AESP auxiliary arena, and
+       append that batch to the paid common support/layer record.  Then
+       materialize the charged warm start
+       $a_{k+1}=\iota_k y_k^{(T_k^{\rm tr})}$.  The old coordinates are copied
+       unchanged and the three new coordinates are written as zero.  Continue
+       on the next face.
+ \item Stop on $\widehat U_{q-1}$ after certifying
+       $\mathcal F_{q-1}$ and before the $q$th interaction.  In the post phase,
+       emit and commit that batch, build and settle the native response
+       directly on the retained rows of $\widehat U_q$, retire the lower/AESP
+       arena, and continue
+       \emph{CaterpillarCanonicalLayerDelta}.  When $q=m$, this direct build is
+       on the full support and is followed only by terminal validation and
+       return.
+\end{enumerate}
+Candidate rows are certificate-only until their batch is committed.  At the
+pre-handoff endpoint,
+\begin{equation}
+ U_{\rm adm}=U_{\rm num}=\widehat U_{q-1},
+ \qquad E_{\rm row}=\widehat U_q,
+ \qquad
+ E_{\rm lab}=\widehat U_{\min\{q+1,m\}}.
+ \label{eq:branch-caterpillar-transported-lower-arenas}
+\end{equation}
+The last set includes labels revealed while scanning $\mathcal F_{q-1}$, not
+rows or numerical coordinates outside $\widehat U_q$.
+\end{definition}
+
+For the observed execution, put
+\begin{align}
+ T_k^{\rm tr}
+ &:=
+ \min\left\{t\geq0:
+  (\ell_\rho-Qy_k^{(t)})_v>0
+  \text{ for every }v\in\mathcal F_k\right\},
+ \notag\\
+ \Delta_{k,0}^{\rm tr}
+ &:=
+ F_{\rho,\widehat U_k}(a_k)
+ -F_{\rho,\widehat U_k}(x_k).
+ \label{eq:branch-caterpillar-transported-lower-stopping-time}
+\end{align}
+These stopping times are online and use only observed strict signs.  They are
+also finitely capped in the analysis.  If $\Delta_{k,0}^{\rm tr}=0$, then
+$T_k^{\rm tr}=0$.  Otherwise
+\begin{equation}
+ T_k^{\rm tr}\leq
+ 1+\left\lfloor\frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(
+ \frac{4(\alpha+\sqrt3)^2\Delta_{k,0}^{\rm tr}}
+      {\alpha^3\mu_k^2}
+           \right)\right\rfloor.
+ \label{eq:branch-caterpillar-transported-lower-stage-bound}
+\end{equation}
+Indeed, the unanchored lower retraction passes under the sufficient
+neighborhood in
+\cref{eq:branch-caterpillar-local-lower-neighborhood}, and the anchored
+maximum can only increase every tree-boundary demand.  The values $\mu_k$ in
+\cref{eq:branch-caterpillar-transported-lower-stage-bound}, and the gaps
+$\Delta_{k,0}^{\rm tr}$ that contain $x_k$, are analysis-only: the policy
+neither computes nor retains either quantity.
+
+For $0\leq k<m$ and for the full support define
+\begin{align}
+ \mathcal V_k^{\rm can}
+ &:=\vol(\widehat U_k)=6k+3,
+ &
+ \mathcal C_k^{\rm can}
+ &:=C(\widehat U_k)=9k+4,
+ \notag\\
+ \mathcal V_m^{\rm can}&:=6m,
+ &
+ \mathcal C_m^{\rm can}&:=9m+1,
+ \notag\\
+ \nu_k^{\rm can}
+ &:=\vol(\mathcal F_k)
+ =\begin{cases}6,&k<m-1,\\3,&k=m-1,\end{cases}
+ \label{eq:branch-caterpillar-transported-lower-face-counts}\\
+ \Lambda_k^{\rm tr}
+ &:=2+\frac34\log_+\!\left(
+  \frac{16(1-\alpha)^2\mathcal V_k^{\rm can}}
+       {\delta_{\rm A}(1-2\alpha)(1-\alpha)}
+                         \right),
+ \notag\\
+ \mathfrak A_k^{\rm tr}
+ &:=(T_k^{\rm tr}+1)\mathcal V_k^{\rm can}\Lambda_k^{\rm tr},
+ &
+ \mathfrak A_{<q}^{\rm tr}
+ &:=\sum_{k=0}^{q-1}\mathfrak A_k^{\rm tr},
+ \notag\\
+ \mathfrak D_{<q}^{\rm tr}
+ &:=\mathcal C_q^{\rm can}+\mathfrak A_{<q}^{\rm tr},
+ &
+ \mathfrak H_{<q}^{\rm tr}
+ &:=\mathcal C_q^{\rm can}
+  +\sum_{k=0}^{q-1}
+   (1+\log(2+\mathcal C_k^{\rm can}))\mathfrak A_k^{\rm tr}.
+ \label{eq:branch-caterpillar-transported-lower-budgets}
+\end{align}
+The added one pays the initial/terminal anchored-retraction sweep even when
+the observed stopping time is zero.  In particular, these budgets charge a
+full old-face scan at every test; they are not a sublinear diagnostic.
+
+\begin{theorem}[All-layer transported-lower response-free prefix]
+\label{thm:branch-caterpillar-transported-lower-handoff}
+Fix $m\geq2$, $0<\alpha<1/2$,
+$0<\rho<\rho_{\rm can}(m,\alpha)$, and $2\leq q\leq m$.
+The policy
+\texttt{TransportLower-BC-AESP}$_{0:q-1}$ certifies the first $q$
+canonical batches, commits the first $q-1$ without exact settlement, and
+preserves its charged lower anchor across every one of those admissions.
+Every transported start $a_k$, $1\leq k<q$, is nonzero: the first strict
+boundary test forces a positive seed coordinate, and
+\cref{eq:branch-caterpillar-transported-anchor-update} copies that coordinate
+unchanged at every later admission.
+Before the $q$th interaction its complete vector is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm TL,q}^{\rm pref})=\bigl(&
+ \mathcal V_q^{\rm can}+O(\mathfrak A_{<q}^{\rm tr}),
+ q+1+O(\mathfrak A_{<q}^{\rm tr}),q-1,0,
+ O(\mathfrak H_{<q}^{\rm tr}),
+ O(\mathfrak A_{<q}^{\rm tr}),0,\\
+ &O(\mathcal C_q^{\rm can}),
+ O(\mathcal C_{q-1}^{\rm can}),
+ O(\mathfrak D_{<q}^{\rm tr}),\Theta(q)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-transported-lower-prefix-eleven-vector}
+\end{equation}
+Thus $C_{\rm resp}=0$ exactly through the response-free prefix.  Its
+$q-1$ interactions emit the $3(q-1)$ labels in
+$\mathcal F_0,\ldots,\mathcal F_{q-2}$ and one constant-size reply apiece.
+All failed sign tests, lower maps, anchors, and AESP states are internal and
+emit nothing.
+
+After the handoff, the rows through $\widehat U_q$ are reused rather than
+rescanned.  The paid direct response build on $\widehat U_q$ and remaining
+canonical continuation have vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm TL,q}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_q),m-q,m-q+2,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-q+1)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),
+ \Theta(\card{S^\star}),\\
+ &\card{S^\star\setminus\widehat U_{q-1}}
+  +\card{S^\star}+\Theta(m-q+2)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-transported-lower-post-eleven-vector}
+\end{equation}
+The post interaction count consists of the already certified $q$th batch,
+the $m-q$ later batches, and the terminal return.  Hence the total interaction
+count remains exactly $m+1$.  Additive and round coordinates sum; after the
+lower/AESP arena is released, both total memory peaks are
+$O(C(S^\star))$.  The exact total work is
+\begin{equation}
+ O\!\left(\mathfrak H_{<q}^{\rm tr}
+       +C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-transported-lower-total-work}
+\end{equation}
+
+This is an exact-real, fixed-$m$, branch-seeded, strict-range,
+delta/certificate comparison theorem.  For $q\geq3$ it extends the
+lower-point certificate through actual growing faces $k\geq2$ without a
+whole-vector zero reset.  It does not transport AESP momentum or
+estimate-sequence energy, avoid candidate-row pre-exposure, avoid the
+analysis-side margin logarithms, or prove a speedup.  Its full-face repeated
+sweeps are explicitly present in $\mathfrak A_{<q}^{\rm tr}$, and the suffix
+explicitly pays the response build.  It proves no sublinear diagnostic,
+margin-uniform or graph-uniform work, other range, seed, graph, or policy,
+finite-precision or bit bound, PPR statement, or RPPR-to-PPR conversion.
+\end{theorem}
+
+\begin{proof}
+Start with $a_0=0\leq x_0$.  At face $k$,
+\Cref{lem:branch-caterpillar-anchored-lower-transport} makes every observed
+anchored demand a valid lower bound on its exact demand.  Fixed-face AESP
+converges to $x_k$; the local lower map is continuous there and satisfies
+$\mathcal L_{\widehat U_k}(x_k)=x_k$.  Since every exact canonical demand is
+strict, the observed test eventually passes.  The sufficient neighborhood
+and strict integer argument used in
+\cref{eq:branch-caterpillar-local-lower-stage-bound} give
+\cref{eq:branch-caterpillar-transported-lower-stage-bound}.  After each of the
+first $q-1$ replies,
+\cref{eq:branch-caterpillar-padded-lower-transport} makes the padded endpoint
+a valid lower anchor on the next face.  Induction proves the chronology and
+the nondecreasing common-coordinate invariant.  Every member of
+$\mathcal F_0$ has negative shifted load and positive coupling to $b_1$, so
+the first strict lower-demand test forces $(y_0)_{b_1}>0$; the padding update
+therefore gives the stated nonzero starts.  No response equation is solved in
+this induction.
+
+The seed row and the $q$ successively live boundary batches expose exactly
+the rows of $\widehat U_q$, of degree volume
+$\mathcal V_q^{\rm can}$, in $q+1$ first-exposure rounds.  Every AESP
+oracle call, repeated old-row read, lower residual, positive part, anchored
+maximum, and failed or successful sign sweep is covered by
+$O(\mathfrak A_{<q}^{\rm tr})$ adjacency/recurrence work.  Fresh-stage,
+heap, boundary-completeness, strict-sign, certificate, and restart logic is
+covered by $O(\mathfrak H_{<q}^{\rm tr})$ control work.  The retained rows,
+admitted records, current face, transported anchor, and transcripts give the
+displayed persistent peak; only the current numerical face and AESP
+auxiliaries are temporary.  All explicit vector copies, zero padding, stage
+states, and lower points are covered by
+$O(\mathfrak D_{<q}^{\rm tr})$ materialization.  This proves every prefix
+coordinate, including exact zero response work and the stated emissions.
+
+At the $q$th interaction, consume the retained
+$\mathcal F_{q-1}$ certificate, commit that batch, and append its paid common
+layer record.  Build the balanced
+native response directly from the current rows of $\widehat U_q$, settle the
+face exactly, initialize the reporter's already-emitted membership directly
+as $\widehat U_q\setminus\{b_1\}$, and retire the numerical epoch.  Schur
+associativity makes this the reporter state at the actual checkpoint without
+reconstructing any earlier face.  The remaining first-exposure rows are precisely
+$S^\star\setminus\widehat U_q$; the un-emitted labels begin one layer earlier,
+at $S^\star\setminus\widehat U_{q-1}$.  Applying the reviewed canonical
+ledger from that state gives
+\cref{eq:branch-caterpillar-transported-lower-post-eleven-vector}, including
+the direct response build, remaining updates, replies, terminal
+materialization, validation, and exact output.  Summation and peak
+composition prove
+\cref{eq:branch-caterpillar-transported-lower-total-work}.
+\end{proof}

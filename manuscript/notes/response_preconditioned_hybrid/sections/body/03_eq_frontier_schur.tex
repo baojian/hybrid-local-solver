@@ -1,0 +1,333 @@
+\subsection{Exact bordered correction}
+
+Let $S^+=S\cup T$ with $S\cap T=\emptyset$, and order the enlarged principal
+matrix by $(S,T)$.  Put
+\begin{equation}
+ K_T:=Q_{TT}-Q_{TS}Q_{SS}^{-1}Q_{ST}.
+ \label{eq:frontier-schur}
+\end{equation}
+
+\begin{proposition}[Exact response correction]
+\label{prop:correction}
+Let $x^-=x[S]$ and $x^+=x[S^+]$ solve the same fixed quadratic on their
+respective faces, and put $\Delta=x^+-x^-$.  If
+\begin{equation}
+ h_T:=c_T-Q_{TS}x^-_S,
+ \label{eq:frontier-demand}
+\end{equation}
+then $K_T$ is positive definite and
+\begin{equation}
+ \Delta_T=K_T^{-1}h_T,
+ \qquad
+ \Delta_S=-Q_{SS}^{-1}Q_{ST}\Delta_T.
+ \label{eq:correction}
+\end{equation}
+Moreover, for
+$\phi(x):=x^\top Qx/2-c^\top x$,
+\begin{equation}
+ \phi(x^-)-\phi(x^+)
+ =\frac12\|\Delta\|_{Q_{S^+S^+}}^2
+ =\frac12h_T^\top K_T^{-1}h_T.
+ \label{eq:correction-energy}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Restricted optimality gives
+$(Qx^--c)_S=0$ and
+$(Qx^--c)_T=-h_T$.  Subtracting the enlarged optimality equations gives
+\[
+ \begin{bmatrix}Q_{SS}&Q_{ST}\\Q_{TS}&Q_{TT}\end{bmatrix}
+ \begin{bmatrix}\Delta_S\\\Delta_T\end{bmatrix}
+ =\begin{bmatrix}0\\h_T\end{bmatrix}.
+\]
+Eliminating the first block proves \cref{eq:correction}.  Positive
+definiteness of the principal matrix implies positive definiteness of its
+Schur complement.  Completing the square around $x^+$ and substituting the
+block solution proves \cref{eq:correction-energy}.
+\end{proof}
+
+The formula identifies the two costs that a literal warm start hides.  The
+frontier solve uses $K_T^{-1}$, while the old-face correction uses the response
+$Q_{SS}^{-1}Q_{ST}$.  Either action can be dense even when $T$ contains one
+vertex.
+
+The next result closes the numerical no-restart question whenever those
+old-face responses can be applied at charged cost.  The orthogonality is not
+limited to the exact correction vector: it holds between the entire lifted
+Schur-frontier spaces.
+
+\begin{theorem}[No-restart orthogonal lifted-frontier repair]
+\label{thm:orthogonal-frontier-lifts}
+Let $S_0\subsetneq\cdots\subsetneq S_J$ be nested faces and put
+$B_j:=S_{j+1}\setminus S_j$.  Define
+\begin{align}
+ Z_j&:=Q_{S_jS_j}^{-1}Q_{S_jB_j},
+ &K_j&:=Q_{B_jB_j}-Q_{B_jS_j}Z_j,
+ \label{eq:frontier-lift-blocks}
+\end{align}
+and the ambient lift $\mathcal L_j:\mathbb R^{B_j}\to\mathbb R^V$ by
+\begin{equation}
+ (\mathcal L_jy)_{S_j}:=-Z_jy,
+ \qquad
+ (\mathcal L_jy)_{B_j}:=y,
+ \qquad
+ (\mathcal L_jy)_{V\setminus S_{j+1}}:=0.
+ \label{eq:frontier-lift}
+\end{equation}
+Then, for arbitrary frontier vectors $u$ and $v$,
+\begin{align}
+ (Q\mathcal L_jv)_{S_j}&=0,
+ &\|\mathcal L_jv\|_Q^2&=v^TK_jv,
+ \label{eq:frontier-lift-isometry}\\
+ \inner{\mathcal L_i u}{Q\mathcal L_j v}&=0
+ &&(0\leq i<j<J).
+ \label{eq:frontier-lift-orthogonality}
+\end{align}
+
+Let $z^j:=x[S_j]$ be the exact restricted solutions, extended by zero, and
+let $y_j^*:=(z^{j+1}-z^j)_{B_j}$.  For arbitrary approximations
+$\widetilde y_j\in\mathbb R^{B_j}$, set
+\begin{equation}
+ \widetilde z^J
+ :=z^0+\sum_{j=0}^{J-1}\mathcal L_j\widetilde y_j.
+ \label{eq:approximate-lifted-trajectory}
+\end{equation}
+Then
+\begin{align}
+ z^J&=z^0+\sum_{j=0}^{J-1}\mathcal L_jy_j^*,
+ \label{eq:exact-lifted-trajectory}\\
+ \|\widetilde z^J-z^J\|_Q^2
+ &=\sum_{j=0}^{J-1}
+   \|\widetilde y_j-y_j^*\|_{K_j}^2,
+ \label{eq:lifted-error-pythagoras}\\
+ \phi(\widetilde z^J)-\phi(z^J)
+ &=\frac12\sum_{j=0}^{J-1}
+   \|\widetilde y_j-y_j^*\|_{K_j}^2.
+ \label{eq:lifted-objective-pythagoras}
+\end{align}
+If $Q$ is Stieltjes, $z^0\geq0$, and every $\widetilde y_j\geq0$, then
+$\widetilde z^J\geq0$ as well.
+\end{theorem}
+
+\begin{proof}
+Multiplying \cref{eq:frontier-lift} by the $S_j$ block row gives
+$-Q_{S_jS_j}Z_jv+Q_{S_jB_j}v=0$.  Substitution into the block quadratic gives
+\begin{equation*}
+ \begin{bmatrix}-Z_jv\\v\end{bmatrix}^{\!T}
+ Q_{S_{j+1}S_{j+1}}
+ \begin{bmatrix}-Z_jv\\v\end{bmatrix}
+ =v^TK_jv,
+\end{equation*}
+which proves \cref{eq:frontier-lift-isometry}.  If $i<j$, then
+$\mathcal L_i u$ is supported on $S_{i+1}\subseteq S_j$, while
+$(Q\mathcal L_jv)_{S_j}=0$.  This proves
+\cref{eq:frontier-lift-orthogonality} for the whole pair of subspaces.
+
+Applying \cref{prop:correction} at stage $j$ gives
+$z^{j+1}-z^j=\mathcal L_jy_j^*$, proving
+\cref{eq:exact-lifted-trajectory}.  Subtract the two lifted trajectories,
+apply pairwise orthogonality, and then use the isometry to obtain
+\cref{eq:lifted-error-pythagoras}.  Both trajectories are supported on
+$S_J$, and $z^J$ is stationary on that face.  Completing the square around
+$z^J$ proves \cref{eq:lifted-objective-pythagoras}.
+
+Finally, a principal inverse of a Stieltjes matrix is nonnegative and
+$Q_{S_jB_j}\leq0$, so $-Z_j\geq0$.  Thus a nonnegative frontier vector has a
+nonnegative lift, proving the feasibility statement.
+\end{proof}
+
+\begin{corollary}[Charged frontier solves need no old-face restart]
+\label{cor:no-restart-frontier-work}
+Suppose the approximations in \cref{thm:orthogonal-frontier-lifts} satisfy
+\begin{equation}
+ \frac12\|\widetilde y_j-y_j^*\|_{K_j}^2\leq E_j,
+ \qquad
+ \sum_{j=0}^{J-1}E_j\leq E.
+ \label{eq:frontier-error-budget}
+\end{equation}
+Then $\phi(\widetilde z^J)-\phi(z^J)\leq E$ without any numerical repair of a
+previous face.  More quantitatively, suppose the $j$th preconditioned
+frontier solve takes
+$\widetilde O(\sqrt{\kappa_j})$ iterations; its frontier-local part costs
+$O(\operatorname{cvol}(B_j))$ per iteration; and the exhaustive charge for
+all response applications, old-face reads, reduced-right-hand-side
+construction, boundary reporting, and lift maintenance is $U_{\rm lift}(V)$,
+where $V:=\operatorname{cvol}(S_J)$.  Then all frontier repairs cost
+\begin{equation}
+ \widetilde O\!\left(
+ U_{\rm lift}(V)+V\sqrt{\kappa_{\max}}
+ \right),
+ \qquad
+ \kappa_{\max}:=\max_j\kappa_j.
+ \label{eq:no-restart-frontier-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The error claim is \cref{eq:lifted-objective-pythagoras}.  The batches are
+disjoint, so
+$\sum_j\operatorname{cvol}(B_j)\leq V$.  Sum the frontier-local iteration
+charges, bound every $\sqrt{\kappa_j}$ by
+$\sqrt{\kappa_{\max}}$, and add the disjoint exhaustive response charge.
+Tolerance logarithms are absorbed by $\widetilde O$.
+\end{proof}
+
+This result removes repeated old-face numerical optimization from the mixed
+program.  It deliberately does not make response application free:
+$U_{\rm lift}$ must include every action of
+$Q_{S_jS_j}^{-1}Q_{S_jB_j}$ and every sign-reporting query.  The remaining
+graph-uniform problem is therefore response representation and finite-band
+crossing discovery, not accumulation of frontier-solve error.
+
+\begin{proposition}[Dual-local orthogonal correction family]
+\label{prop:dual-local-orthogonal-corrections}
+Let $S_0\subsetneq\cdots\subsetneq S_J$ be nested faces, let
+$z^j:=x[S_j]$ be their exact restricted solutions extended by zero, and put
+\begin{equation}
+ B_j:=S_{j+1}\setminus S_j,
+ \qquad
+ \Delta^j:=z^{j+1}-z^j,
+ \qquad
+ q^j:=Q\Delta^j.
+ \label{eq:dual-local-corrections}
+\end{equation}
+Then
+\begin{align}
+ q^j_{S_j}&=0,
+ &\supp(q^j)&\subseteq B_j\cup\partial S_{j+1},
+ \label{eq:dual-frontier-support}\\
+ \inner{\Delta^i}{Q\Delta^j}&=0
+ &&(0\leq i<j<J).
+ \label{eq:nested-correction-orthogonality}
+\end{align}
+Consequently
+\begin{equation}
+ \sum_{j=0}^{J-1}\norm{\Delta^j}_Q^2
+ =\norm{z^J-z^0}_Q^2
+ =2\bigl(\phi(z^0)-\phi(z^J)\bigr).
+ \label{eq:orthogonal-correction-telescope}
+\end{equation}
+If the trace is monotone, then $q^j_v\leq0$ for
+$v\notin S_{j+1}$, and the normalized boundary-demand increment there is
+$-q^j_v/\sqrt{d_v}\geq0$.
+\end{proposition}
+
+\begin{proof}
+Both $z^j$ and $z^{j+1}$ satisfy the restricted optimality equations on
+$S_j$, so subtraction gives $q^j_{S_j}=0$.  The correction is supported on
+$S_{j+1}$; sparsity of $Q$, followed by the old-face cancellation, proves
+the support statement.  If $i<j$, then $\Delta^i$ is supported on
+$S_{i+1}\subseteq S_j$, where $q^j$ vanishes.  This proves
+\cref{eq:nested-correction-orthogonality}.  The increments sum to
+$z^J-z^0$, so Pythagoras in the $Q$ inner product proves the first equality
+in \cref{eq:orthogonal-correction-telescope}; summing
+\cref{eq:correction-energy} proves the second.  Under monotonicity,
+$\Delta^j\geq0$, and every row outside $S_{j+1}$ contains only nonpositive
+off-diagonal coefficients against its support.  Hence $q_v^j\leq0$ and the
+last claim follows by subtracting the two boundary demands.
+\end{proof}
+
+This proposition answers the basic orthogonality--locality question at the
+algebraic level.  Orthogonality survives nested support growth, and the dual
+signature $q^j$ is frontier-local even when the primal vector $\Delta^j$ is
+dense.  The unresolved algorithmic step is to produce or query that signature
+from the implicit response without first materializing the dense primal
+correction.
+
+\begin{corollary}[Positive dual response transfer]
+\label{cor:positive-dual-transfer}
+In \cref{prop:correction}, put $R:=V\setminus(S\cup T)$ and define the
+post-elimination cross block
+\begin{equation}
+ C_{RT}^{(S)}
+ :=Q_{RT}-Q_{RS}Q_{SS}^{-1}Q_{ST}.
+ \label{eq:post-elimination-cross-block}
+\end{equation}
+Then the increase in exterior demand caused by the exact expansion is
+\begin{equation}
+ y_R
+ :=-Q_{R,S\cup T}\Delta_{S\cup T}
+ =-C_{RT}^{(S)}K_T^{-1}h_T.
+ \label{eq:positive-dual-transfer}
+\end{equation}
+The Schur complement obtained by eliminating $S$ is Stieltjes, so
+$C_{RT}^{(S)}\leq0$ and $K_T^{-1}\geq0$.  Hence the transfer operator
+\begin{equation}
+ \mathcal R_{R\leftarrow T}^{(S)}
+ :=-C_{RT}^{(S)}K_T^{-1}
+ \label{eq:dual-response-operator}
+\end{equation}
+is entrywise nonnegative.  In particular, $h_T\geq0$ implies $y_R\geq0$.
+\end{corollary}
+
+\begin{proof}
+Substitute
+$\Delta_S=-Q_{SS}^{-1}Q_{ST}\Delta_T$ and
+$\Delta_T=K_T^{-1}h_T$ from \cref{eq:correction} into
+$-Q_{RS}\Delta_S-Q_{RT}\Delta_T$.  Principal Schur complements of a
+positive-definite Stieltjes matrix are positive-definite Stieltjes matrices;
+their off-diagonal blocks are nonpositive and their inverses are
+nonnegative.
+\end{proof}
+
+Thus a nested exact-face algorithm can be written entirely as positive dual
+transport: the current violating demand $h_T$ is sent through
+$\mathcal R_{R\leftarrow T}^{(S)}$, the resulting threshold crossings form
+the next batch, and the dense primal correction is postponed.  The
+graph-uniform finite-band problem is precisely to apply this positive transfer
+implicitly and report all crossings at output-sensitive cost.
+
+\begin{corollary}[Associative batching of dual transfers]
+\label{cor:associative-dual-batching}
+Under the hypotheses and notation of
+\cref{prop:dual-local-orthogonal-corrections}, fix
+$0\leq a<b\leq J$ and put
+\begin{equation*}
+ \Delta^{[a,b)}:=z^b-z^a,
+ \qquad
+ q^{[a,b)}:=Q\Delta^{[a,b)}.
+\end{equation*}
+Then
+\begin{align}
+ q^{[a,b)}
+ &=\sum_{j=a}^{b-1}q^j,
+ &q^{[a,b)}_{S_a}&=0,
+ &\supp(q^{[a,b)})
+ &\subseteq(S_b\setminus S_a)\cup\partial S_b.
+ \label{eq:batched-dual-signature}
+\end{align}
+For $R:=V\setminus S_b$, the cumulative exterior-demand increase is
+\begin{equation}
+ -q_R^{[a,b)}
+ =\sum_{j=a}^{b-1}(-q_R^j)\geq0.
+ \label{eq:batched-exterior-demand}
+\end{equation}
+Moreover, writing $Q/U$ for the Schur complement after eliminating $U$,
+\begin{equation}
+ (Q/S_a)/(S_b\setminus S_a)=Q/S_b.
+ \label{eq:schur-quotient-associativity}
+\end{equation}
+Thus replacing any consecutive interval of exact light events by its single
+aggregate transfer preserves the endpoint solution, every exterior demand,
+and the Schur operator seen by all future events.
+\end{corollary}
+
+\begin{proof}
+The primal corrections telescope, and multiplication by $Q$ gives the first
+identity.  Both endpoint solutions satisfy the restricted equations on
+$S_a$, so the same old-face cancellation used in
+\cref{prop:dual-local-orthogonal-corrections} proves the zero and support
+statements.  Restricting the telescoping identity to $R$ proves
+\cref{eq:batched-exterior-demand}; monotonicity gives its sign.  Finally,
+block Gaussian elimination is associative: eliminating the variables in
+$S_a$ and then those in $S_b\setminus S_a$ produces the same block factorization
+and residual quadratic as eliminating $S_b$ at once.  This proves
+\cref{eq:schur-quotient-associativity} and the endpoint claims.
+\end{proof}
+
+The corollary removes a possible logical obstruction to a heavy/light
+hierarchy: delayed light transfers may be merged exactly, rather than
+approximating a different active-set trajectory.  What remains is the data
+structural question of representing the aggregate positive transfer and
+finding its finite-band crossings without replaying all constituent events.

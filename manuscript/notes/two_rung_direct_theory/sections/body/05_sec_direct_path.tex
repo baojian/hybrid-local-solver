@@ -1,0 +1,581 @@
+\section{Exact endpoint-path parity waves}
+\label{sec:direct-path}
+
+The one-edge transient is not the only exactly solvable case. Consider the
+path with vertices $0,1,\ldots,n-1$, seeded at endpoint $0$, and suppose the
+far endpoint is not reached in the argument below. Thus $d_0=1$ and
+$d_i=2$ on every displayed vertex $i\geq1$. Define the normalized residual
+and two scalar coefficients
+\begin{equation}
+ y_i:=\frac{r_i}{\sqrt{d_i}},
+ \qquad
+ \lambda:=\lambda_\alpha,
+ \qquad
+ \eta:=\frac{\lambda}{1+\lambda^2}.
+ \label{eq:direct-path-normalization}
+\end{equation}
+The endpoint seed gives $y^{(0)}_0=\alpha$. An optimal-SOR push at $u$ has
+the particularly simple form
+\begin{equation}
+ y_u^+=-\lambda^2y_u,
+ \qquad
+ y_v^+=y_v+\frac{2\lambda}{d_v}y_u
+ \quad(v\sim u).
+ \label{eq:direct-path-sor-update}
+\end{equation}
+Thus an interior target receives $\lambda y_u$, whereas endpoint $0$
+receives $2\lambda y_u$. In these coordinates the empirical rank is
+\begin{equation}
+ p_u(y)=\frac{d_u}{1+d_u}|y_u|
+ =\begin{cases}|y_0|/2,&u=0,\\2|y_u|/3,&u\geq1.
+ \end{cases}
+ \label{eq:direct-path-rank}
+\end{equation}
+
+Put $A_m:=\alpha\lambda^m$. For $m\geq0$, define the signed plateau
+\begin{equation}
+ S_m:\qquad
+ y_i=\begin{cases}
+  A_m,&0\leq i\leq m\text{ and }i\equiv m\pmod2,\\
+  -A_{m+1},&0\leq i\leq m\text{ and }i\not\equiv m\pmod2,\\
+  0,&i>m.
+ \end{cases}
+ \label{eq:direct-path-plateau}
+\end{equation}
+The first state is exactly $S_0$.
+
+\begin{lemma}[One parity sweep advances one layer]
+\label{lem:direct-path-sweep}
+Starting from $S_m$, push once every coordinate
+\begin{equation*}
+ H_m:=\{i:0\leq i\leq m,\ i\equiv m\pmod2\}
+\end{equation*}
+with optimal SOR. The pushes commute, and the resulting state is $S_{m+1}$.
+\end{lemma}
+
+\begin{proof}
+The vertices in $H_m$ are nonadjacent. A pushed value $A_m$ becomes
+$-\lambda^2A_m=-A_{m+2}$. Every old low-parity interior coordinate receives
+two packets $\lambda A_m$, so its value changes as
+\begin{equation*}
+ -\lambda A_m+2\lambda A_m=A_{m+1}.
+\end{equation*}
+When endpoint $0$ is low parity it has only one pushed neighbor, but the
+endpoint coefficient is $2\lambda$, giving the same identity. Finally,
+vertex $m+1$ receives one packet $\lambda A_m=A_{m+1}$. These are precisely
+the entries of $S_{m+1}$.
+\end{proof}
+
+The sweeps need not be executed level by level. Introduce the event set
+\begin{equation}
+ \mathcal E:=\{(m,u):m\geq0,\ 0\leq u\leq m,\ u\equiv m\pmod2\},
+ \label{eq:direct-path-events}
+\end{equation}
+where event $(m,u)$ means pushing coordinate $u$ at positive value $A_m$.
+The event's dependencies are
+\begin{equation}
+\begin{aligned}
+ \operatorname{pred}(m,m)&=\{(m-1,m-1)\},
+ &&m\geq1,\\
+ \operatorname{pred}(m,0)&=\{(m-1,1)\},
+ &&m\geq2\text{ even},\\
+ \operatorname{pred}(m,u)&=\{(m-1,u-1),(m-1,u+1)\},
+ &&0<u<m.
+\end{aligned}
+\label{eq:direct-path-predecessors}
+\end{equation}
+
+\begin{lemma}[Corner-flip representation]
+\label{lem:direct-path-corner-flip}
+After any dependency-respecting finite event prefix, let $K_u$ be the number
+of executed events at coordinate $u$ and define its next-event height
+\begin{equation}
+ m_u:=u+2K_u.
+ \label{eq:direct-path-height}
+\end{equation}
+Then
+\begin{equation}
+ |m_{u+1}-m_u|=1
+ \label{eq:direct-path-one-lipschitz}
+\end{equation}
+and, for every interior coordinate,
+\begin{equation}
+ y_u=\begin{cases}
+  +A_{m_u},&m_{u-1}=m_u+1=m_{u+1},\\
+  -A_{m_u},&m_{u-1}=m_u-1=m_{u+1},\\
+  0,&m_{u-1}\neq m_{u+1}.
+ \end{cases}
+ \label{eq:direct-path-corner-residual}
+\end{equation}
+At endpoint $0$, the first case means $m_1=m_0+1$ and the second means
+$m_1=m_0-1$. Thus positive residuals are exactly local minima of the height
+interface, negative residuals are local maxima, and a legal push is the
+corner flip $m_u\leftarrow m_u+2$.
+\end{lemma}
+
+\begin{proof}
+Initially $K_u=0$ and $m_u=u$, so adjacent heights differ by one. The next
+event at $u$ is $(m_u,u)$. The predecessor rules
+\cref{eq:direct-path-predecessors} say exactly that it is enabled when $m_u$
+is a local minimum. Executing it increments $K_u$, hence raises $m_u$ by
+two and turns that minimum into a maximum while preserving
+\cref{eq:direct-path-one-lipschitz}. The three residual values follow from
+the packet accounting used in \cref{lem:direct-path-sweep}: zero, one, or two
+executed interior predecessors leave respectively
+$-A_{m_u},0,+A_{m_u}$, while the endpoint's single doubled predecessor gives
+the two endpoint cases. Induction proves the claim.
+\end{proof}
+
+\begin{lemma}[Every negative packet has a larger positive certificate]
+\label{lem:direct-path-positive-certificate}
+After any dependency-respecting prefix of events, each coordinate's next
+event has one of three states:
+\begin{equation}
+ +A_m\ \text{(enabled)},\qquad
+ -A_m\ \text{(waiting)},\qquad
+ 0\ \text{(one interior predecessor received)}.
+ \label{eq:direct-path-three-states}
+\end{equation}
+If $y_u=-A_m$, then for some
+\begin{equation*}
+ 1\leq j\leq\frac{m-u}{2}
+\end{equation*}
+the northeast event $(m-j,u+j)$ is enabled, is at an interior coordinate,
+and has positive residual $A_{m-j}>A_m$.
+\end{lemma}
+
+\begin{proof}
+The three states are the three cases of
+\cref{eq:direct-path-corner-residual}. If $y_u=-A_m$, then $m_u=m$ is a local
+maximum and $m_{u+1}=m-1$. Walk right along the height interface. The height
+cannot decrease forever: the event prefix is finite, so $K_v=0$ and $m_v=v$
+for all sufficiently large $v$. Let $u+j$ be the first coordinate where the
+slope changes from $-1$ to $+1$. It is a local minimum with height $m-j$ and
+hence, by \cref{lem:direct-path-corner-flip}, has positive residual
+$A_{m-j}$. Also $m_{u+j}=m-j\geq u+j$ by
+\cref{eq:direct-path-height}, so $j\leq(m-u)/2$. Finally $j\geq1$ and
+$u+j>0$, making the certificate interior. Since $0<\lambda<1$, its amplitude
+$A_{m-j}$ is strictly larger than $A_m$.
+\end{proof}
+
+\begin{lemma}[Refreshed absolute ranking is an event schedule]
+\label{lem:direct-path-ranked-events}
+Start from $S_0$ and, after every operation, choose a live coordinate of
+maximum empirical rank \cref{eq:direct-path-rank}, using absolute residuals
+exactly as in the measured policy. Every selected residual is positive and
+equals $A_m$ for a unique event $(m,u)$. Moreover, before the first inactive
+event level, the executed events form a dependency-respecting ordering of
+\cref{eq:direct-path-events}; the conclusion is independent of tie breaking.
+\end{lemma}
+
+\begin{proof}
+By \cref{lem:direct-path-positive-certificate}, a negative interior entry
+$-A_m$ has score $2A_m/3$ and is accompanied by a positive interior entry
+with score $2A_{m-j}/3>2A_m/3$. A negative endpoint entry has the still
+smaller score $A_m/2$ and the same type of interior certificate. If the
+negative entry is active, its larger certificate is active as well.
+Therefore an absolute-rank maximizer can never be negative.
+
+By \cref{eq:direct-path-three-states}, a positive entry is exactly an enabled
+event and has its prescribed amplitude. The selected operation is therefore
+legal. Induction from $S_0$ proves the dependency-respecting event statement.
+There are finitely many active event levels, so the maximizer executes every
+event above the gate.
+\end{proof}
+
+\begin{theorem}[Exact refreshed two-rung theorem on an endpoint path]
+\label{thm:direct-path-two-rung}
+Assume $0<\alpha<1$, $1<B<B_{\rm edge}$, and $B\epsppr<1$. Let
+\begin{equation}
+ L:=\min\{m\geq0:\lambda^m\leq B\epsppr\}
+ =\left\lceil\frac{\log(B\epsppr)}{\log\lambda}\right\rceil,
+ \label{eq:direct-path-depth}
+\end{equation}
+and take $n\geq L+4$. The fully refreshed absolute-score-maximizing spreading
+phase ends exactly at plateau $S_L$ and performs
+\begin{equation}
+ N_{\rm spread}
+ =\sum_{m=0}^{L-1}\left(\left\lfloor\frac m2\right\rfloor+1\right)
+ =\left\lfloor\frac{(L+1)^2}{4}\right\rfloor
+ \label{eq:direct-path-push-count}
+\end{equation}
+coordinate pushes. Its exact charged work is
+\begin{equation}
+ \Work_{\rm spread}
+ =3N_{\rm spread}-\left\lceil\frac L2\right\rceil.
+ \label{eq:direct-path-spread-work}
+\end{equation}
+
+The fully refreshed terminal exact phase pushes every active coordinate in
+the high-parity set $H_L$ at most once and possibly pushes coordinate $L+1$
+once. It then certifies the terminal gate. In particular,
+\begin{equation}
+ \Work_{\rm exact}
+ \leq3\left(\left\lfloor\frac L2\right\rfloor+2\right).
+ \label{eq:direct-path-exact-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The spreading gate is $B\tau=B\alpha\epsppr$. By
+\cref{lem:direct-path-ranked-events}, precisely the events with $A_m$ above
+that gate execute. These are the levels $0,\ldots,L-1$. Completing those
+events in any dependency-respecting order gives $S_L$ by
+\cref{lem:direct-path-sweep} and linearity. Level $m$ contains
+$\lfloor m/2\rfloor+1$ events, proving
+\cref{eq:direct-path-push-count}. Every interior push costs three and there
+is one cost-two endpoint event at each even level, proving
+\cref{eq:direct-path-spread-work}.
+
+It remains to analyze the exact rung. Write $A:=A_L$. If $A\leq\tau$, it is
+already finished. Otherwise every coordinate in $H_L$ is active. Under an
+exact push, an interior target receives $\eta y_u$ and endpoint $0$ receives
+$2\eta y_u$. The high-parity coordinates are nonadjacent and retain value
+$A$ until pushed. While an unpushed high-parity interior coordinate remains,
+its score $2A/3$ exceeds every low-parity score. If endpoint $0$ is the last
+high-parity coordinate, its score $A/2$ still exceeds all remaining scores:
+the only adjacent partially canceled value has magnitude
+$A\lambda^3/(1+\lambda^2)$, and
+\begin{equation*}
+ \frac23\frac{\lambda^3}{1+\lambda^2}A\leq\frac A3<\frac A2.
+\end{equation*}
+Thus refreshed ranking pushes each member of $H_L$ once before any low
+coordinate.
+
+After these pushes, every old low-parity coordinate has magnitude
+\begin{equation}
+ R(\lambda)A,
+ \qquad
+ R(\lambda):=\frac{\lambda(1-\lambda^2)}{1+\lambda^2}
+ \leq R_\star,
+ \label{eq:direct-path-terminal-ratio}
+\end{equation}
+where the endpoint receives one doubled packet and hence has the same value
+as an interior coordinate receiving two packets. The new outer coordinate
+$L+1$ has value $\eta A$. Since $BR_\star<1$, all old low-parity entries are
+below $\tau$. If $\eta A>\tau$, coordinate $L+1$ is the only active entry
+and is pushed once. It leaves packets of magnitude $\eta^2A$ at $L$ and
+$L+2$. Finally,
+\begin{equation*}
+ B\eta^2\leq B/4<1
+\end{equation*}
+because $B<B_{\rm edge}<4$. Hence those packets are also below $\tau$.
+There are $\lfloor L/2\rfloor+1$ high-parity vertices, all charges in this
+part are at most three, and \cref{eq:direct-path-exact-work} follows.
+\end{proof}
+
+The explored prefix has degree volume
+$\mathcal V_{\rm exp}=1+2L$ and charge volume $2+3L$. Since
+\begin{equation}
+ -\log\lambda=2\operatorname{arctanh}(\sqrt\alpha)
+ \geq2\sqrt\alpha,
+ \label{eq:direct-path-log-lambda}
+\end{equation}
+the theorem immediately gives
+\begin{equation}
+ \Work
+ =O\!\left(\mathcal V_{\rm exp}
+ \left[1+\frac{\log(1/(B\epsppr))}{\sqrt\alpha}\right]\right).
+ \label{eq:direct-path-explored-volume-bound}
+\end{equation}
+The exact count is $\Theta(L^2)=\Theta(\mathcal V_{\rm exp}L)$ for this
+trajectory. Thus the bound has the desired accelerated propagation length
+$1/\sqrt\alpha$ per exposed volume, with the logarithm needed to attenuate
+from the seed scale to the chosen gate. It is an algorithm-specific path
+identity, not a graph-uniform oracle lower bound.
+
+\begin{corollary}[Sign-guarded literal batches preserve the path theorem]
+\label{cor:direct-path-sign-guarded-batches}
+Under the assumptions of \cref{thm:direct-path-two-rung}, use the literal
+top-fraction snapshots and arbitrary sequential batch size,
+but strengthen each live guard on the endpoint path to require both the
+current threshold and $r_u>0$. Keep the same empirical absolute-residual
+snapshot ordering. Then every charged spreading operation is a legal event,
+every nonempty spreading batch executes at least one event, and the spreading
+phase has exactly \cref{eq:direct-path-push-count,eq:direct-path-spread-work}.
+If the same sign guard is used in the exact rung, its charged sequence obeys
+\cref{eq:direct-path-exact-work} and certifies the terminal gate.
+\end{corollary}
+
+\begin{proof}
+At the start of any spreading batch, the largest snapshot score is positive
+by \cref{lem:direct-path-positive-certificate}; it is the first operation and
+therefore passes the live sign guard. Every later charged coordinate also has
+positive live residual, so \cref{eq:direct-path-three-states} identifies it
+as an enabled event. Skipped negative or zero entries cost no coordinate work.
+Thus every batch extends a legal event prefix and makes progress. There are
+finitely many events above the gate, proving the spreading claims.
+
+At plateau $S_L$, the ranking comparison in the proof of
+\cref{thm:direct-path-two-rung} places an unpushed positive high-parity entry
+before every negative low-parity entry. High-parity entries are nonadjacent,
+so each batch executes at least one and all charged high-parity operations are
+unchanged legal exact pushes. Selected negative entries are skipped. After
+the high parity is settled, all old low-parity entries are below the gate;
+the only possible active entry is the positive outer coordinate $L+1$, which
+is pushed once. The previous terminal bound applies.
+\end{proof}
+
+Under the declared coordinate-operation meter, the extra sign test adds no
+charged work. It can increase the number of frontier snapshots or service
+round trips, which is a separate engineering cost and is not hidden in the
+corollary.
+
+For the two values used in the measured study, the sign guard can in fact be
+removed.  The essential fact is that the endpoint's smaller charge weight
+cannot make it fall behind the next amplitude level.
+
+\begin{theorem}[Literal top-$1/32$ path theorem in the measured regime]
+\label{thm:direct-path-literal-measured-regime}
+Under the endpoint-path assumptions of
+\cref{thm:direct-path-two-rung}, suppose additionally that
+\begin{equation}
+ \lambda<\frac34,
+ \qquad\text{equivalently}\qquad
+ \alpha>\frac1{49}.
+ \label{eq:direct-path-literal-alpha-window}
+\end{equation}
+Run the original unguarded absolute-residual policy with literal batch size
+\begin{equation*}
+ k=\min\{8192,\lceil|\mathcal F_\theta|/32\rceil\}.
+\end{equation*}
+Then every charged operation in both rungs is positive and legal,
+independently of tie breaking among equal-rank entries.  The literal method
+has exactly the spreading event multiset and work
+\cref{eq:direct-path-push-count,eq:direct-path-spread-work}, and its terminal
+rung obeys \cref{eq:direct-path-exact-work}.  In particular, the theorem
+covers the measured values $\alpha=0.025$ and $0.04$ without adding a sign
+guard.
+\end{theorem}
+
+\begin{proof}
+First consider the spreading rung.  Induct on batches using the following
+invariant: for some event level $m$, every earlier level is complete and an
+arbitrary subset $X\subseteq H_m$ has executed.  Let
+$U:=|H_m\setminus X|$ and let $C$ be the number of nonzero low-parity
+coordinates between the sites of $H_m$.  The unexecuted high sites have
+value $+A_m$, the executed high sites have value $-A_{m+2}$, and a low site
+has value $-A_{m+1}$, $0$, or $+A_{m+1}$ according as zero, one, or all of
+its level-$m$ predecessors have executed.
+
+Encode $X$ as a binary word on the ordered sites of $H_m$.  A maximal run of
+$r$ executed sites creates $r-1$ active internal low sites.  Charge the one
+remaining site of the run to the following unexecuted high site, or, if the
+run reaches the outermost high site, to the new active outer low site.  The
+charges are disjoint, so
+\begin{equation}
+ |X|\leq U+C.
+ \label{eq:direct-path-partial-layer-count}
+\end{equation}
+If height $m+2$ is inactive, the frontier has at most $U+C$ entries.  If it
+is active, every lower nonzero stratum is active and
+\begin{equation*}
+ |\mathcal F_\theta|=U+|X|+C\leq2(U+C).
+\end{equation*}
+In either case, whenever the frontier is nonempty,
+\begin{equation}
+ k\leq U+C.
+ \label{eq:direct-path-batch-does-not-reach-self-negative}
+\end{equation}
+Thus a snapshot cannot reach the self-negative height-$m+2$ stratum.
+
+For any height $h$, \cref{eq:direct-path-literal-alpha-window} gives
+\begin{equation}
+ \frac12A_h>\frac23A_{h+1}.
+ \label{eq:direct-path-cross-height-rank}
+\end{equation}
+Hence every height-$h$ entry, even the endpoint, strictly outranks every
+height-$(h+1)$ entry.  If the batch reaches height $m+1$, every remaining
+height-$m$ positive occurs earlier in its sequential list.  A selected
+positive height-$(m+1)$ entry was already enabled.  A selected negative one
+had none of its predecessors at the snapshot; all of those height-$m$
+predecessors execute earlier, changing it to zero or to the positive legal
+event before its turn.  Therefore every charged operation is legal.  The
+batch ends either at another partial level $m$ or at a partial level $m+1$,
+closing the induction.  Gate truncation only deletes a suffix of amplitude
+levels and the cap can only decrease $k$.
+
+For the exact rung, write $A=A_L$.  After $s=0,1,2$ predecessor pushes, an
+old low-parity entry has respectively the values
+\begin{equation}
+ -\lambda A,
+ \qquad
+ -\frac{\lambda^3}{1+\lambda^2}A,
+ \qquad
+ R(\lambda)A>0,
+ \label{eq:direct-path-exact-partial-values}
+\end{equation}
+where the endpoint's one doubled predecessor corresponds directly to the
+last case.  An unpushed high entry remains $+A$ and a pushed high entry is
+zero.  By \cref{eq:direct-path-cross-height-rank}, even an endpoint high
+entry outranks an untouched interior low entry; the one-packet magnitude in
+\cref{eq:direct-path-exact-partial-values} is smaller still.  Thus if a
+snapshot reaches a negative low entry, all of its remaining high
+predecessors occur earlier and make it positive or inactive.  No negative
+exact push is charged.
+
+After every high site has been pushed, all old lows have magnitude at most
+$R_\star A<\tau$ because $BR_\star<1$.  The only possible live coordinate
+is the positive outer site with value $\eta A$.  Its one exact push leaves
+packets bounded by $\eta^2A<\tau$, since $B\eta^2<1$.  This is precisely the
+terminal count and certificate of \cref{thm:direct-path-two-rung}.
+\end{proof}
+
+\begin{proposition}[Unguarded full-frontier batching fails on the path]
+\label{prop:direct-path-full-batch-fails}
+Use the original live absolute-threshold guard, but select the complete
+frontier in every spreading batch.  If the gate is below $A_4$, then on the
+endpoint path the third batch executes a negative-residual push.  Hence the
+unguarded analogue of
+\cref{cor:direct-path-sign-guarded-batches} is false for arbitrary batch
+sizes.
+\end{proposition}
+
+\begin{proof}
+Represent the state by the corner heights from
+\cref{lem:direct-path-corner-flip}.  The first batch pushes endpoint $0$ and
+changes the initial heights near the endpoint from
+\begin{equation*}
+ (0,1,2,3,4)\quad\hbox{to}\quad(2,1,2,3,4).
+\end{equation*}
+The second snapshot contains the positive minimum $1$ at height one and the
+negative endpoint $0$ at height two.  Their ranks satisfy
+\begin{equation*}
+ \frac23A_1>\frac12A_2,
+\end{equation*}
+so the batch pushes coordinate $1$ first.  This enables coordinate $0$,
+which then also executes legally.  The resulting heights are
+\begin{equation*}
+ (4,3,2,3,4).
+\end{equation*}
+The third snapshot contains the positive minimum $2$ at height two and the
+negative endpoint $0$ at height four, ordered as
+\begin{equation*}
+ \frac23A_2>\frac12A_4.
+\end{equation*}
+Pushing coordinate $2$ does not change the nonadjacent endpoint.  Because
+$A_4$ remains above the gate, the live absolute-threshold guard accepts
+coordinate $0$ next and applies optimal SOR to its negative residual.  This
+is not a legal corner-flip event.
+\end{proof}
+
+Thus the measured fraction $1/32$ is not an inessential implementation
+constant in this proof program.  A sufficiently small snapshot must prevent
+a negative maximum from outrunning the chain of positive minima that enables
+it.  The next proposition isolates the exact closure property needed from
+that fraction.
+
+\begin{proposition}[Parent-closed batch coupling]
+\label{prop:direct-path-parent-closed-batch}
+Consider a top-$k$ snapshot taken from a legal path event-frontier state.
+Suppose every selected negative waiting coordinate has at least one of its
+direct positive predecessor events selected earlier in the sequential batch.
+Then every selected coordinate is either skipped by the live guard or
+executes a legal positive event. Consequently, a sequence of parent-closed
+batches has exactly the refreshed event multiset of
+\cref{lem:direct-path-ranked-events}.
+\end{proposition}
+
+\begin{proof}
+A negative interior entry waiting for event $(m,u)$ equals $-A_m$. Each
+selected direct predecessor executes earlier at amplitude $A_{m-1}$ and
+contributes $A_m$. One such predecessor changes the entry to zero, so it is
+skipped unless the other predecessor also executes first; two change it to
+$+A_m$, enabling precisely event $(m,u)$. At endpoint $0$, its single
+predecessor contributes $2A_m$ and changes $-A_m$ directly to $+A_m$. Direct
+interior predecessors have strictly larger rank than the waiting entry; the
+hypothesis explicitly requires the relevant predecessor to occur earlier in
+the declared order. Positive enabled events are nonadjacent and do not stale
+one another. Induction down the selected list proves the first statement, and
+induction over batches proves the second.
+\end{proof}
+
+The parent-closure hypothesis cannot be proved from the geometry of an
+arbitrary legal corner interface alone.  The next exact construction is
+reachable by positive legal events but its top-$1/32$ snapshot is not
+parent-closed.  Thus the history invariant in
+\cref{thm:direct-path-literal-measured-regime} is essential.
+
+\begin{proposition}[Static top-$1/32$ parent closure is false]
+\label{prop:direct-path-static-parent-closure-fails}
+Take $\lambda=1/2$, equivalently $\alpha=1/9$, and use spreading gate
+$\theta=A_{39}$.  There is a dependency-respecting legal event prefix whose
+frontier has $34$ coordinates and whose top-two snapshot first selects the
+positive coordinate $2$ and then charges a still-negative endpoint.
+\end{proposition}
+
+\begin{proof}
+Define the event counts
+\begin{equation*}
+ K_0=18,
+ \qquad K_1=17,
+ \qquad K_i=16\quad(2\leq i\leq6),
+\end{equation*}
+and, for $0\leq s\leq15$, define
+\begin{equation*}
+ K_{7+2s}=K_{8+2s}=15-s,
+ \qquad K_i=0\quad(i\geq39).
+\end{equation*}
+This sequence is finitely supported and nonincreasing, with every adjacent
+drop equal to zero or one.  Its event ideal
+\begin{equation*}
+ \mathcal I(K):=\{(u+2t,u):0\leq t<K_u\}
+\end{equation*}
+is predecessor-closed: a left predecessor uses
+$K_{u-1}\geq K_u$, while a right predecessor uses
+$K_{u+1}\geq K_u-1$.  Executing the ideal in increasing event height
+therefore reaches the interface using only positive legal events.
+
+The heights $m_u=u+2K_u$ begin
+\begin{equation*}
+ (36,35,34,35,36,37,38),
+\end{equation*}
+followed by alternating corners of heights $37,38$ and then the increasing
+tail $39,40,\ldots$.  The $34$ active corners are exactly
+\begin{equation*}
+ y_0=-A_{36},
+ \qquad y_2=+A_{34},
+\end{equation*}
+together with sixteen negative entries $-A_{38}$ at
+$u=6,8,\ldots,36$ and sixteen positive entries $+A_{37}$ at
+$u=7,9,\ldots,37$.  Hence the literal batch size is two, and its ranks obey
+\begin{equation*}
+ \frac23A_{34}>\frac12A_{36}>\frac23A_{37}
+ =\frac13A_{36}.
+\end{equation*}
+The snapshot uniquely orders coordinate $2$ before endpoint $0$.  The first
+push changes only coordinates $1$ and $3$, so the endpoint remains
+$-A_{36}$, is still strictly above $\theta$, and is charged negatively.
+\end{proof}
+
+This proposition does not say that the literal trajectory from $S_0$
+reaches this particular interface.  It says that no static theorem over all
+legal reachable interfaces can prove the desired coupling.  For
+$\alpha>1/49$, the partial-layer history invariant supplies the missing
+restriction.  For smaller $\alpha$, the endpoint can lag multiple interior
+amplitude levels and an all-parameter literal path theorem remains open.
+
+\paragraph{Computed diagnostic (not theorem).}
+Across $28$ path instances with four gate scales and
+\begin{equation*}
+ \alpha\in\{0.2,0.1,0.04,0.01,0.0025,0.000625,10^{-4}\},
+\end{equation*}
+the literal $1/32$ batches selected $4{,}603$ negative snapshot entries.
+Every one satisfied the parent-closure condition and no negative entry was
+charged.  This is consistent with the proved partial-layer invariant in the
+measured regime and with, but does not prove, its all-$\alpha$ extension.
+
+\begin{remark}[What remains literal]
+The measured implementation selects a top fraction from one snapshot and
+then applies live guards. Direct simulations of the path recurrence produce
+the same event multiset and terminal plateau: selected negative waiting
+coordinates are either canceled and skipped or enabled before their turn.
+The refreshed theorem removes snapshot staleness, while
+\cref{thm:direct-path-literal-measured-regime} handles it exactly for
+$\alpha>1/49$.  The static counterexample
+\cref{prop:direct-path-static-parent-closure-fails} shows why the same proof
+cannot be extended merely by considering arbitrary legal corner interfaces.
+For $\alpha\leq1/49$, simulations still produce the refreshed event multiset,
+but a stronger trajectory-history invariant or an actual-run counterexample
+is needed.
+\end{remark}

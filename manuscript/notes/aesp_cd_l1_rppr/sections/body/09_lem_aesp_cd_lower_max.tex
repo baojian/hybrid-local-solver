@@ -1,0 +1,741 @@
+\subsection{Safeguarded outer continuation and a telescoping start-mass ledger}
+
+The lower retraction can be combined with extrapolation without losing the
+safe support invariant.  The following exact construction isolates what this
+does, and does not, yet prove about acceleration.  For vectors, $a\vee b$
+denotes the componentwise maximum, and
+$\mathfrak m(a):=\norm{D^{1/2}a}_1$ when $a\geq0$.
+
+\begin{lemma}[Lattice closure of lower certificates]
+\label{lem:aesp-cd-lower-max}
+If $a$ and $c$ are lower certificates, then $a\vee c$ is a lower
+certificate and satisfies $a\vee c\leq x^\star(\rho)$.
+\end{lemma}
+
+\begin{proof}
+Put $q=a\vee c$.  If $q_i>0$, choose $h\in\{a,c\}$ with $q_i=h_i$.
+Since $q_j\geq h_j$ for every $j$ and $Q_{ij}\leq0$ for $i\neq j$,
+$(Qq)_i\leq(Qh)_i$.  Therefore
+$\zeta_{\rho,i}^{\mathrm{low}}(q)\geq
+\zeta_{\rho,i}^{\mathrm{low}}(h)\geq0$.  The comparison conclusion in
+\cref{lem:aesp-cd-lower-retraction} gives $q\leq x^\star(\rho)$.
+\end{proof}
+
+Initialize $x_{-1}=x_0=0$ and $\ell_{-1}=0$.  For $t\geq0$, define the
+exact safeguarded recurrence
+\begin{align}
+ d_t&:=x_t-x_{t-1},
+ &y_t&:=x_t+\beta_{\mathrm A}d_t,\notag\\
+ \ell_t&:=x_t\vee\mathcal L(y_t),
+ &x_{t+1}&:=p(\ell_t),
+ \label{eq:aesp-cd-safe-outer}
+\end{align}
+where $p(\ell_t)$ is the exact shifted minimizer from
+\cref{thm:aesp-cd-safe-center}.  Write
+\begin{equation}
+ r_t:=y_t-\ell_t,
+ \qquad
+ s_t:=x_t-\ell_{t-1} \quad(t\geq1),
+ \qquad s_0:=0.
+ \label{eq:aesp-cd-safe-defects}
+\end{equation}
+
+\begin{theorem}[Safe outer ledger]
+\label{thm:aesp-cd-safe-outer-ledger}
+The recurrence \cref{eq:aesp-cd-safe-outer} is graph-local and satisfies
+\begin{equation}
+ 0\leq x_{t-1}\leq\ell_{t-1}\leq x_t\leq\ell_t
+ \leq x_{t+1}\leq x^\star(\rho).
+ \label{eq:aesp-cd-safe-chain}
+\end{equation}
+Consequently every support in the recurrence is contained in
+$S^\star(\rho)$ and has volume at most $1/\rho$.
+
+More strongly, let $C_{t+1}(x_t)$ denote the minimum KKT mass at $x_t$ for
+the shifted subproblem centered at $\ell_t$.  Then
+\begin{equation}
+ C_{t+1}(x_t)
+ =\kappa_{\mathrm A}\mathfrak m(\ell_t-\ell_{t-1}),
+ \qquad t\geq1,
+ \label{eq:aesp-cd-safe-start-exact}
+\end{equation}
+while $C_1(x_0)\leq\alpha$.  Hence, for every $T\geq1$,
+\begin{equation}
+ \sum_{t=0}^T C_{t+1}(x_t)
+ \leq\alpha+\kappa_{\mathrm A}=1-\alpha,
+ \qquad
+ \sum_{t=0}^T C_{t+1}(x_t)^2\leq(1-\alpha)^2.
+ \label{eq:aesp-cd-safe-start-ledger}
+\end{equation}
+Thus the cumulative stage-start mass itself has no volume factor and no
+$1/\alpha$ penalty.
+
+Finally, if $\Delta_t:=\Delta(y_t)$ is the retraction magnitude in
+\cref{eq:aesp-cd-lower-retraction}, then
+\begin{align}
+ r_t
+ &=\min\{\beta_{\mathrm A}d_t,\Delta_tD^{1/2}\one\}
+ \quad\text{componentwise},
+ \label{eq:aesp-cd-safe-correction}\\
+ \sum_{t=0}^T \mathfrak m(r_t)&\leq\beta_{\mathrm A},
+ \label{eq:aesp-cd-safe-correction-ledger}\\
+ \alpha\Delta_t
+ &=\kappa_{\mathrm A}
+ \norm{D_{A_t}^{-1/2}
+ \bigl[\beta_{\mathrm A}s_{t-1}
+       -(1+\beta_{\mathrm A})s_t\bigr]_+}_\infty,
+ \qquad A_t:=\supp(x_t),\quad t\geq2.
+ \label{eq:aesp-cd-safe-collapse}
+\end{align}
+In particular, after the first extrapolation a correction can be triggered
+only where the current proximal displacement has fallen below
+$\beta_{\mathrm A}/(1+\beta_{\mathrm A})<1/2$ of the preceding one.
+\end{theorem}
+
+\begin{proof}
+For $t=0$, one has $x_{-1}=\ell_{-1}=x_0=\ell_0=0$, and
+\cref{thm:aesp-cd-safe-center} gives $0\leq x_1\leq x^\star(\rho)$.
+Now let $t\geq1$ and suppose inductively that $\ell_{t-1}$ is a lower
+certificate.  By
+\cref{thm:aesp-cd-safe-center},
+$\ell_{t-1}\leq x_t\leq x^\star(\rho)$.  On every positive coordinate of
+$x_t$, shifted optimality gives
+\begin{equation}
+ \zeta_{\rho,i}^{\mathrm{low}}(x_t)
+ =\kappa_{\mathrm A}(x_{t,i}-\ell_{t-1,i})\geq0.
+ \label{eq:aesp-cd-safe-prox-slack}
+\end{equation}
+Thus $x_t$ is a lower certificate.  Both $\mathcal L(y_t)$ and $x_t$ are
+lower certificates, so \cref{lem:aesp-cd-lower-max} proves the same statement
+for $\ell_t$.  A second application of
+\cref{thm:aesp-cd-safe-center} yields \cref{eq:aesp-cd-safe-chain}.
+The support-volume conclusion follows from
+$\vol(S^\star(\rho))\leq1/\rho$.  All operations used to construct
+$\mathcal L(y_t)$ scan only the current support and its incident edges, and
+the shifted solve is local by \cref{thm:aesp-cd-safe-center}.
+
+The formula for $\ell_t$ and $d_t\geq0$ give
+\begin{equation*}
+ \ell_t=x_t+
+ [\beta_{\mathrm A}d_t-\Delta_tD^{1/2}\one]_+.
+\end{equation*}
+In particular, $\supp(\ell_t)=\supp(x_t)$.  At a positive coordinate of
+$x_t$, subtracting the two shifted centers in
+\cref{eq:aesp-cd-safe-prox-slack} shows that the KKT vector for the next
+subproblem at $x_t$ is
+$\kappa_{\mathrm A}(\ell_{t-1}-\ell_t)$.  At a zero coordinate,
+$\ell_{t-1,i}=\ell_{t,i}=0$.  Shifted obstacle optimality gives
+$Qx_t-b+\alpha\rho D^{1/2}\one\geq0$ there, while the Stieltjes signs and
+$b\geq0$ give $Qx_t-b\leq0$; hence the signed $\ell_1$ KKT key is zero.
+This proves \cref{eq:aesp-cd-safe-start-exact} for $t\geq1$.  At the initial
+point the shift cancels and the seed normalization gives
+$C_1(x_0)=C_\rho(0)\leq\alpha$.
+
+The center increments are nonnegative and telescope.  Moreover
+$\mathfrak m(x^\star(\rho))\leq1$: multiplying its active KKT equations by
+$D^{1/2}\one$ and using
+$Q_{AA}D_A^{1/2}\one\geq\alpha D_A^{1/2}\one$ gives
+$\alpha\mathfrak m(x^\star(\rho))
+\leq(D_A^{1/2}\one)^Tb_A\leq\alpha$.
+It follows that
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(\ell_t-\ell_{t-1})
+ =\mathfrak m(\ell_T)\leq1.
+\end{equation*}
+Together with the initial mass bound, this proves the first inequality in
+\cref{eq:aesp-cd-safe-start-ledger}; the second follows from
+$\sum_t a_t^2\leq(\sum_t a_t)^2$ for $a_t\geq0$.
+
+Subtracting the displayed formula for $\ell_t$ from
+$y_t=x_t+\beta_{\mathrm A}d_t$ proves
+\cref{eq:aesp-cd-safe-correction}.  Therefore
+\begin{equation*}
+ \sum_{t=0}^T \mathfrak m(r_t)
+ \leq\beta_{\mathrm A}\sum_{t=0}^T\mathfrak m(d_t)
+ =\beta_{\mathrm A}\mathfrak m(x_T)\leq\beta_{\mathrm A},
+\end{equation*}
+which is \cref{eq:aesp-cd-safe-correction-ledger}.
+
+It remains to identify when a correction occurs after the initial shifted
+solve.  Since the residual map is affine and the coefficients of $y_t$ sum
+to one,
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(y_t)
+ =(1+\beta_{\mathrm A})
+     \zeta_\rho^{\mathrm{low}}(x_t)
+  -\beta_{\mathrm A}
+     \zeta_\rho^{\mathrm{low}}(x_{t-1}).
+\end{equation*}
+On a coordinate positive in both iterates,
+\cref{eq:aesp-cd-safe-prox-slack} identifies the two residuals with
+$\kappa_{\mathrm A}s_t$ and $\kappa_{\mathrm A}s_{t-1}$.  If the coordinate
+is new at time $t\geq2$, shifted obstacle optimality at time $t-1$ gives a
+nonpositive old residual, so neither side of the corresponding negative-part
+identity is positive.  Hence, on $A_t$,
+\begin{equation*}
+ [\zeta_\rho^{\mathrm{low}}(y_t)]_-
+ =\kappa_{\mathrm A}
+   [\beta_{\mathrm A}s_{t-1}
+     -(1+\beta_{\mathrm A})s_t]_+.
+\end{equation*}
+Substitution in the definition of $\Delta_t$ proves
+\cref{eq:aesp-cd-safe-collapse} and the final claim.
+\end{proof}
+
+The theorem removes the cumulative start-mass obstruction in a stronger
+form than a per-stage volume estimate: the exact warm-start masses telescope
+over an arbitrarily long run.  It also suppresses the tree-wave mechanism,
+because supports cannot deactivate.  What it does not prove is that replacing
+the Catalyst center $y_t$ by $\ell_t=y_t-r_t$ preserves the classical
+accelerated estimate.  Exact shifted optimality can be written as
+\begin{equation}
+ 0\in\partial F_\rho(x_{t+1})
+   +\kappa_{\mathrm A}(x_{t+1}-y_t)
+   +\kappa_{\mathrm A}r_t.
+ \label{eq:aesp-cd-safe-perturbed-app}
+\end{equation}
+
+The exact effect on the accelerated potential can be exposed through the
+Moreau envelope
+\begin{equation}
+ \mathcal E(a):=\min_z\left\{
+ F_\rho(z)+\frac{\kappa_{\mathrm A}}2\norm{z-a}_2^2
+ \right\}.
+ \label{eq:aesp-cd-moreau-envelope}
+\end{equation}
+Write $p(a)$ for the unique minimizer in
+\cref{eq:aesp-cd-moreau-envelope}.  Put
+\begin{equation*}
+ q:=\sqrt{\chi_{\mathrm A}},
+ \qquad
+ \mu_{\mathcal E}:=\kappa_{\mathrm A}\chi_{\mathrm A}
+                  =\kappa_{\mathrm A}q^2.
+\end{equation*}
+The envelope is $\kappa_{\mathrm A}$-smooth and
+$\mu_{\mathcal E}$-strongly convex, with minimizer $x^\star(\rho)$.
+
+\begin{lemma}[Exact estimate-sequence correction defect]
+\label{lem:aesp-cd-estimate-defect}
+For the exact safeguarded recurrence, define
+\begin{align}
+ z_t&:=x_t+\left(\frac1q-1\right)d_t,
+ &\widetilde z_t
+ &:=z_t-\frac{1+q}{q}r_t,
+ \label{eq:aesp-cd-momentum-states}\\
+ \Phi_t&:=\mathcal E(x_t)-\mathcal E(x^\star)
+       +\frac{\mu_{\mathcal E}}2
+        \norm{z_t-x^\star}_2^2,
+ &\mathfrak D_t
+ &:=\norm{\widetilde z_t-x^\star}_2^2
+   -\norm{z_t-x^\star}_2^2.
+ \label{eq:aesp-cd-potential-defect}
+\end{align}
+Then the safe center and the next momentum state obey the exact Nesterov
+relations
+\begin{align}
+ \ell_t&=\frac{x_t+q\widetilde z_t}{1+q},
+ \qquad
+ x_{t+1}=\ell_t-\frac1{\kappa_{\mathrm A}}
+                    \nabla\mathcal E(\ell_t),
+ \label{eq:aesp-cd-corrected-nesterov}\\
+ z_{t+1}
+ &=(1-q)\widetilde z_t+q\ell_t
+   -\frac q{\mu_{\mathcal E}}\nabla\mathcal E(\ell_t).
+ \label{eq:aesp-cd-corrected-estimate-state}
+\end{align}
+Consequently,
+\begin{equation}
+ \Phi_{t+1}
+ \leq(1-q)\Phi_t
+   +\frac{(1-q)\mu_{\mathcal E}}2\mathfrak D_t.
+ \label{eq:aesp-cd-defective-contraction}
+\end{equation}
+Moreover, for $t\geq1$, with $e_t:=x^\star-x_t$,
+\begin{equation}
+ \mathfrak D_t
+ \leq\frac{1-q}{q}
+ \left(\norm{e_{t-1}}_2^2-\norm{e_t}_2^2\right).
+ \label{eq:aesp-cd-defect-telescope}
+\end{equation}
+Thus the correction defect is paid by monotone Euclidean progress, but the
+black-box payment carries one factor $1/q=\Theta(1/\sqrt\alpha)$ too many for
+an immediate accelerated contraction.
+\end{lemma}
+
+\begin{proof}
+The standard resolvent identities for an $\alpha$-strongly convex function
+give
+\begin{equation*}
+ \nabla\mathcal E(a)
+ =\kappa_{\mathrm A}(a-p(a)),
+ \qquad
+ L_{\mathcal E}\leq\kappa_{\mathrm A},
+ \qquad
+ \mu_{\mathcal E}
+ =\frac{\alpha\kappa_{\mathrm A}}
+        {\alpha+\kappa_{\mathrm A}}.
+\end{equation*}
+Since
+$\beta_{\mathrm A}=(1-q)/(1+q)$, substitution of
+\cref{eq:aesp-cd-momentum-states} gives the first identity in
+\cref{eq:aesp-cd-corrected-nesterov}.  The second is the definition of the
+exact shifted minimizer.  Using
+$d_{t+1}=\beta_{\mathrm A}d_t-r_t
+-\nabla\mathcal E(\ell_t)/\kappa_{\mathrm A}$ in the definition of
+$z_{t+1}$ gives \cref{eq:aesp-cd-corrected-estimate-state}.
+
+Equations
+\cref{eq:aesp-cd-corrected-nesterov,eq:aesp-cd-corrected-estimate-state}
+are exactly one strongly convex Nesterov step initialized by
+$(x_t,\widetilde z_t)$.  Combining smooth descent from $\ell_t$, convexity
+between $\ell_t$ and $x_t$, and strong convexity between $\ell_t$ and
+$x^\star$ gives
+\begin{equation*}
+ \mathcal E(x_{t+1})-\mathcal E(x^\star)
+ +\frac{\mu_{\mathcal E}}2\norm{z_{t+1}-x^\star}_2^2
+ \leq(1-q)\left[
+ \mathcal E(x_t)-\mathcal E(x^\star)
+ +\frac{\mu_{\mathcal E}}2
+       \norm{\widetilde z_t-x^\star}_2^2
+ \right].
+\end{equation*}
+Adding and subtracting the uncorrected momentum distance proves
+\cref{eq:aesp-cd-defective-contraction}.
+
+For the defect bound, put
+\begin{equation*}
+ a:=\frac{1-q}{q},
+ \qquad
+ h_t:=\frac{1+q}{q}r_t.
+\end{equation*}
+By \cref{eq:aesp-cd-safe-correction},
+$0\leq h_t\leq a d_t$ coordinatewise.  Since
+$z_t-x^\star=-e_t+ad_t$, direct expansion gives
+\begin{align*}
+ \mathfrak D_t
+ &=\norm{h_t}_2^2+2\ip{e_t}{h_t}
+    -2a\ip{d_t}{h_t}\\
+ &\leq2a\ip{e_t}{d_t}\\
+ &\leq a\left(\norm{e_{t-1}}_2^2-\norm{e_t}_2^2\right),
+\end{align*}
+where the first inequality uses $0\leq h_t\leq ad_t$ and $e_t\geq0$, and the
+second uses $e_{t-1}=e_t+d_t$.  This is
+\cref{eq:aesp-cd-defect-telescope}.
+\end{proof}
+
+The additive form \cref{eq:aesp-cd-defective-contraction} is not the only
+useful ledger.  Because the safeguard moves each momentum coordinate toward
+the current monotone iterate, its loss can also be recorded multiplicatively.
+
+\begin{lemma}[Multiplicative correction ledger]
+\label{lem:aesp-cd-multiplicative-ledger}
+Whenever $\Phi_t>0$, define
+\begin{equation}
+ \gamma_t
+ :=1+\frac{\mu_{\mathcal E}\mathfrak D_t}{2\Phi_t}
+ =\frac{
+   \mathcal E(x_t)-\mathcal E(x^\star)
+   +\frac{\mu_{\mathcal E}}2
+      \norm{\widetilde z_t-x^\star}_2^2}
+  {\Phi_t}.
+ \label{eq:aesp-cd-correction-inflation}
+\end{equation}
+Then $0\leq\gamma_t\leq2$, and $\gamma_t=1$ whenever $r_t=0$.
+Consequently, for every $T\geq1$ before termination,
+\begin{align}
+ \Phi_T
+ &\leq(1-q)^T\Phi_0\prod_{t=0}^{T-1}\gamma_t,
+ \label{eq:aesp-cd-product-ledger}\\
+ &\leq2^{N_T}(1-q)^T\Phi_0,
+ \qquad
+ N_T:=\card{\{0\leq t<T:r_t\neq0\}}.
+ \label{eq:aesp-cd-count-ledger}
+\end{align}
+More precisely, with
+\begin{equation}
+ \mathcal I_T:=\sum_{t=0}^{T-1}\log\max\{1,\gamma_t\},
+ \label{eq:aesp-cd-log-inflation}
+\end{equation}
+one has
+\begin{equation}
+ \Phi_T\leq\exp(-qT+\mathcal I_T)\Phi_0.
+ \label{eq:aesp-cd-log-ledger}
+\end{equation}
+Thus any graph-uniform estimate
+$\mathcal I_T=\softO(\log(\Phi_0/\epsobj))$ retains an
+$\softO(q^{-1}\log(\Phi_0/\epsobj))$ outer iteration bound.  The cruder
+correction count $N_T$ may replace $\mathcal I_T$ when it has the same type of
+bound.
+\end{lemma}
+
+\begin{proof}
+The safe chain and \cref{eq:aesp-cd-safe-correction} imply
+\begin{equation*}
+ x_t\leq\widetilde z_t\leq z_t
+ \qquad\text{coordinatewise}.
+\end{equation*}
+For a scalar, the squared distance to $x_i^\star$ is convex, so its maximum
+on the interval $[x_{t,i},z_{t,i}]$ occurs at an endpoint.  Therefore
+\begin{equation*}
+ \norm{\widetilde z_t-x^\star}_2^2
+ \leq\norm{x_t-x^\star}_2^2
+     +\norm{z_t-x^\star}_2^2.
+\end{equation*}
+Strong convexity of $\mathcal E$ gives
+\begin{equation*}
+ \frac{\mu_{\mathcal E}}2
+ \norm{x_t-x^\star}_2^2
+ \leq\mathcal E(x_t)-\mathcal E(x^\star).
+\end{equation*}
+Substitution in \cref{eq:aesp-cd-correction-inflation} proves
+$0\leq\gamma_t\leq2$.  If $r_t=0$, then
+$\widetilde z_t=z_t$ and $\gamma_t=1$.  Rewriting
+\cref{eq:aesp-cd-defective-contraction} as
+\begin{equation*}
+ \Phi_{t+1}\leq(1-q)\gamma_t\Phi_t
+\end{equation*}
+and iterating proves
+\cref{eq:aesp-cd-product-ledger,eq:aesp-cd-count-ledger}.  Finally,
+$\log(1-q)\leq-q$ and
+$\log\gamma_t\leq\log\max\{1,\gamma_t\}$ give
+\cref{eq:aesp-cd-log-ledger}.  If some $\gamma_t=0$, the one-step inequality
+already gives $\Phi_{t+1}=0$, so the subsequent claims are immediate.
+\end{proof}
+
+The positive part of this ledger admits a sharper localization.  A correction
+is called \emph{collateral} at coordinate $i$ when the common retraction clips
+that coordinate even though its extrapolate is still below the optimum.
+
+\begin{lemma}[Positive inflation is charged only to collateral clipping]
+\label{lem:aesp-cd-collateral-charge}
+For $t\geq1$ before termination, put
+\begin{equation*}
+ e_t:=x^\star-x_t,
+ \qquad
+ a_q:=\frac{1-q}{q},
+ \qquad
+ c_q:=\frac{1+q}{q},
+ \qquad
+ h_t:=c_qr_t,
+\end{equation*}
+and define the collaterally clipped set
+\begin{equation}
+ \mathcal B_t^{\mathrm{col}}
+ :=\{i:r_{t,i}>0\ \text{and}\ y_{t,i}<x_i^\star\}.
+ \label{eq:aesp-cd-collateral-set}
+\end{equation}
+The note-scoped normalized collateral charge is
+\begin{equation}
+ \mathfrak C_t^{\mathrm{col}}
+ :=\frac{
+  \displaystyle\sum_{i\in\mathcal B_t^{\mathrm{col}}}
+  \min\{e_{t,i}^2,\,2e_{t,i}h_{t,i}\}}
+ {\norm{e_t}_2^2+\norm{z_t-x^\star}_2^2}.
+ \label{eq:aesp-cd-collateral-charge}
+\end{equation}
+Then
+\begin{equation}
+ \log\max\{1,\gamma_t\}
+ \leq\mathfrak C_t^{\mathrm{col}}
+ \leq
+ \frac{\displaystyle\sum_{i\in\mathcal B_t^{\mathrm{col}}}e_{t,i}^2}
+      {\norm{e_t}_2^2+\norm{z_t-x^\star}_2^2}
+ \leq1.
+ \label{eq:aesp-cd-positive-only-charge}
+\end{equation}
+Consequently,
+\begin{equation}
+ \mathcal I_T
+ \leq\sum_{t=1}^{T-1}\mathfrak C_t^{\mathrm{col}}.
+ \label{eq:aesp-cd-collateral-cumulative}
+\end{equation}
+For $t\geq2$, every quantity $h_{t,i}$ in the numerator has the exact
+collapse representation
+\begin{equation}
+ h_{t,i}
+ =\min\left\{
+ a_qd_{t,i},
+ \frac{c_q\kappa_{\mathrm A}}{\alpha}\sqrt{d_i}
+ \norm{D_{A_t}^{-1/2}
+ [\beta_{\mathrm A}s_{t-1}-(1+\beta_{\mathrm A})s_t]_+}_\infty
+ \right\}.
+ \label{eq:aesp-cd-collateral-collapse}
+\end{equation}
+Thus \cref{eq:aesp-cd-collateral-cumulative} upper-bounds only the positive
+log term using collateral coordinates, rather than counting all nonzero
+corrections.  The analytical charge can nevertheless be positive on a benign
+collateral round; for $t\geq2$ its clipping amplitude has the exact
+sharp-collapse form.
+\end{lemma}
+
+\begin{proof}
+The definitions of $z_t$ and $\widetilde z_t$ give the coordinate
+decomposition
+\begin{equation}
+ \mathfrak D_t
+ =\sum_i\mathfrak D_{t,i},
+ \qquad
+ \mathfrak D_{t,i}
+ =h_{t,i}^2+2e_{t,i}h_{t,i}
+   -2a_qd_{t,i}h_{t,i}.
+ \label{eq:aesp-cd-coordinate-defect}
+\end{equation}
+By \cref{eq:aesp-cd-safe-correction},
+$0\leq h_{t,i}\leq a_qd_{t,i}$.  If $h_{t,i}>0$ and
+$y_{t,i}\geq x_i^\star$, then
+$\beta_{\mathrm A}d_{t,i}\geq e_{t,i}$ and
+\begin{equation*}
+ a_qd_{t,i}
+ =c_q\beta_{\mathrm A}d_{t,i}
+ \geq c_qe_{t,i}\geq2e_{t,i}.
+\end{equation*}
+The last comparison is strict when $e_{t,i}>0$; when $e_{t,i}=0$,
+$h_{t,i}>0$ implies $a_qd_{t,i}>0$, so in either case
+$a_qd_{t,i}>2e_{t,i}$.  It follows from
+$h_{t,i}\leq a_qd_{t,i}$ that
+$\mathfrak D_{t,i}<0$.  Hence only indices in
+$\mathcal B_t^{\mathrm{col}}$ can contribute positively.  On every such
+index, again using $h_{t,i}\leq a_qd_{t,i}$,
+\begin{equation*}
+ \mathfrak D_{t,i}
+ \leq2e_{t,i}h_{t,i}-h_{t,i}^2
+ \leq\min\{e_{t,i}^2,2e_{t,i}h_{t,i}\}.
+\end{equation*}
+The second inequality uses
+$e_{t,i}^2-(2e_{t,i}h_{t,i}-h_{t,i}^2)
+=(e_{t,i}-h_{t,i})^2\geq0$.
+
+Strong convexity of the Moreau envelope gives
+\begin{equation*}
+ 2\Phi_t
+ \geq\mu_{\mathcal E}
+ \left(\norm{e_t}_2^2+\norm{z_t-x^\star}_2^2\right).
+\end{equation*}
+If $\gamma_t\leq1$, the first inequality in
+\cref{eq:aesp-cd-positive-only-charge} is immediate.  Otherwise,
+$\mathfrak D_t>0$, and $\log\gamma_t\leq\gamma_t-1$ together with the
+preceding coordinate and strong-convexity bounds proves it.  The other two
+inequalities follow directly from the numerator in
+\cref{eq:aesp-cd-collateral-charge}.  Since $r_0=0$, summing proves
+\cref{eq:aesp-cd-collateral-cumulative}.
+
+Finally,
+\cref{eq:aesp-cd-safe-correction,eq:aesp-cd-safe-collapse} and
+$c_q\beta_{\mathrm A}=a_q$ give
+\cref{eq:aesp-cd-collateral-collapse}.
+\end{proof}
+
+This is an a posteriori proof charge, not a locally computable certificate:
+the set \cref{eq:aesp-cd-collateral-set} uses the unknown optimum.  It removes
+the need to count every correction uniformly, but it may overcharge a benign
+collateral round and does not yet bound the cumulative collateral fraction in
+\cref{eq:aesp-cd-collateral-cumulative}.  That packing problem is the
+remaining outer lemma.
+
+A first attempt to pack the charge is to divide the Euclidean progress
+telescope in \cref{eq:aesp-cd-defect-telescope} by the current squared error.
+This would suggest an estimate of the form
+\begin{equation}
+ \sum_{t=1}^m \mathfrak C_t^{\mathrm{col}}
+ \leq K\log\frac{\norm{e_0}_2^2}{\norm{e_m}_2^2}
+ \label{eq:aesp-cd-euclidean-packing-candidate}
+\end{equation}
+with an absolute, $\alpha$-independent constant $K$.  The next exact family
+rules out this particular normalization, already on the first two nontrivial
+stages.
+
+\begin{proposition}[Euclidean log-error does not pack the collateral charge]
+\label{prop:aesp-cd-euclidean-packing-fails}
+Let $G$ consist of one edge, seed vertex $1$, fix $\rho=9/20$, and choose
+\begin{equation}
+ 0<q\leq\frac1{100},
+ \qquad
+ \alpha:=\frac{q^2}{1+q^2}.
+ \label{eq:aesp-cd-euclidean-family-parameters}
+\end{equation}
+For the exact safeguarded recurrence
+\cref{eq:aesp-cd-safe-outer}, the RPPR optimum has full support, while the
+first two shifted solutions have the form
+\begin{align}
+ x^\star
+ &=\left(\frac1{20}+\frac\alpha2,
+          \frac1{20}-\frac\alpha2\right),
+ \label{eq:aesp-cd-euclidean-family-optimum}\\
+ x_1&=(u_1,0),
+ &u_1&=\frac{11q^2}{30},\notag\\
+ x_2&=(u_2,0),
+ &u_2&=\frac{11q^2(7-4q)}{90}.
+ \label{eq:aesp-cd-euclidean-family-iterates}
+\end{align}
+There is no correction at stage $1$, whereas stage $2$ is a full correction:
+\begin{equation}
+ r_1=0,
+ \qquad
+ r_2=\beta_{\mathrm A}d_2,
+ \qquad
+ d_2=(\delta,0),
+ \qquad
+ \delta:=\frac{22q^2(1-q)}{45}.
+ \label{eq:aesp-cd-euclidean-family-correction}
+\end{equation}
+Moreover, this second correction is collateral and harmful.  More precisely,
+put
+\begin{equation*}
+ e:=x_1^\star-u_2,
+ \qquad
+ h:=a_q\delta=\frac{22q(1-q)^2}{45},
+ \qquad
+ E_j:=\norm{x^\star-x_j}_2^2.
+\end{equation*}
+Then $\mathcal B_2^{\mathrm{col}}=\{1\}$, $e>2h$, and
+\begin{align}
+ \mathfrak D_2&=h(2e-h)>0,
+ &\gamma_2&>1,
+ \label{eq:aesp-cd-euclidean-family-defect}\\
+ \mathfrak C_2^{\mathrm{col}}
+ &=\frac{2eh}
+ {E_2+(e-h)^2+(x_2^\star)^2}.
+ \label{eq:aesp-cd-euclidean-family-charge}
+\end{align}
+As $q\downarrow0$ through the admissible interval,
+\begin{align}
+ \lim_{q\downarrow0}
+ \frac{\mathfrak C_2^{\mathrm{col}}}{q}
+ &=\frac{44}{9},
+ &
+ \lim_{q\downarrow0}
+ \frac1{q^2}\log\frac{E_1}{E_2}
+ &=\frac{88}{9},
+ \label{eq:aesp-cd-euclidean-family-local-limits}\\
+ \lim_{q\downarrow0}
+ q\frac{\mathfrak C_2^{\mathrm{col}}}
+         {\log(E_1/E_2)}
+ &=\frac12,
+ &
+ \lim_{q\downarrow0}
+ q\frac{\mathfrak C_1^{\mathrm{col}}+
+         \mathfrak C_2^{\mathrm{col}}}
+        {\log(E_0/E_2)}
+ &=\frac27.
+ \label{eq:aesp-cd-euclidean-family-packing-limits}
+\end{align}
+Consequently no $\alpha$-independent constant $K$ can make either the
+pointwise charge by $\log(E_1/E_2)$ or the cumulative candidate
+\cref{eq:aesp-cd-euclidean-packing-candidate} valid for all admissible runs.
+More generally, any coefficient $K(q)=o(1/q)$ fails, including every
+polylogarithmic dependence on $1/\alpha$.
+This refutes only packing by the monotone Euclidean log-error.  It does not
+refute a cumulative accelerated-scale bound using the collapse history, a
+different potential, or a locally checkable surrogate.
+\end{proposition}
+
+\begin{proof}
+For this graph, with
+$\lambda:=(1+\alpha)/2$ and $m:=(1-\alpha)/2$, the obstacle system is
+\begin{equation*}
+ Q=\begin{pmatrix}\lambda&-m\\-m&\lambda\end{pmatrix},
+ \qquad
+ c_\rho=\alpha\begin{pmatrix}11/20\\-9/20\end{pmatrix}.
+\end{equation*}
+The sum and difference eigenvectors of $Q$ have eigenvalues $\alpha$ and
+$1$, respectively.  Solving the two active KKT equations gives
+\cref{eq:aesp-cd-euclidean-family-optimum}; both coordinates are positive
+because $q<1/3$.
+
+In terms of $q$,
+\begin{equation*}
+ \lambda=\frac{1+2q^2}{2(1+q^2)},
+ \qquad
+ m=\frac1{2(1+q^2)},
+ \qquad
+ \kappa_{\mathrm A}=\frac{1-q^2}{1+q^2},
+ \qquad
+ \lambda+\kappa_{\mathrm A}=\frac3{2(1+q^2)}.
+\end{equation*}
+Solving the seed coordinate of the first two shifted obstacle problems gives
+\cref{eq:aesp-cd-euclidean-family-iterates}.  These are the full shifted
+solutions, because their inactive-coordinate obstacle residuals are
+\begin{equation*}
+ -\alpha\rho+m u_1
+ =-\frac{4q^2}{15(1+q^2)}<0,
+ \qquad
+ -\alpha\rho+m u_2
+ =-\frac{q^2(11q+1)}{45(1+q^2)}<0.
+\end{equation*}
+Here the first center is zero and the second center is
+\begin{equation*}
+ y_1=(1+\beta_{\mathrm A})x_1
+ =\left(\frac{11q^2}{15(1+q)},0\right).
+\end{equation*}
+Its seed-coordinate lower residual equals
+\begin{equation*}
+ \frac{11q^2(1-q)(4q+1)}
+ {60(1+q)(1+q^2)}>0,
+\end{equation*}
+so $\ell_1=y_1$ and $r_1=0$.  Substituting this center in the next shifted
+solve gives $u_2$ and $\delta=u_2-u_1$ in
+\cref{eq:aesp-cd-euclidean-family-iterates,eq:aesp-cd-euclidean-family-correction}.
+
+At stage $2$ the extrapolated seed coordinate is
+\begin{equation*}
+ y_{2,1}=\frac{11q^2(11-5q)}{90(1+q)}.
+\end{equation*}
+Its lower residual is
+\begin{equation*}
+ \zeta_{\rho,1}^{\mathrm{low}}(y_2)
+ =\frac{11q^2(1-q)^2(5q-1)}
+ {90(1+q)(1+q^2)}<0.
+\end{equation*}
+Thus the retraction magnitude is
+\begin{equation*}
+ \Delta_2
+ =\frac{11(1-q)^2(1-5q)}{90(1+q)},
+\end{equation*}
+and direct subtraction gives
+\begin{equation*}
+ \Delta_2-\beta_{\mathrm A}\delta
+ =\frac{11(1-q)^2(1-5q-4q^2)}{90(1+q)}>0.
+\end{equation*}
+The last sign holds throughout \cref{eq:aesp-cd-euclidean-family-parameters}.
+Therefore $\ell_2=x_2$ and the correction is full.
+
+The exact collateral inequality follows from
+\begin{equation*}
+ 180(1+q)(1+q^2)(x_1^\star-y_{2,1})
+ =9+9q-143q^2+209q^3-242q^4+110q^5>0.
+\end{equation*}
+Indeed, on $q\leq1/100$ the right-hand side is at least
+$9-143/10^4-242/10^8>0$.  Likewise,
+\begin{equation*}
+ 180(1+q^2)(e-2h)
+ =9-176q+297q^2-264q^3+198q^4-88q^5>0,
+\end{equation*}
+because it is at least
+$9-176/100-264/10^6-88/10^{10}>0$ on the same interval.
+Thus $\mathcal B_2^{\mathrm{col}}=\{1\}$ and the minimum in
+\cref{eq:aesp-cd-collateral-charge} is $2eh$.  A full correction has
+$h_2=(h,0)$ and $\widetilde z_2=x_2$, which proves
+\cref{eq:aesp-cd-euclidean-family-defect,eq:aesp-cd-euclidean-family-charge}.
+Since $x_2\neq x^\star$, one has $\Phi_2>0$, and the positive defect gives
+$\gamma_2>1$.
+
+Finally,
+\begin{equation*}
+ e\longrightarrow\frac1{20},
+ \qquad
+ \frac hq\longrightarrow\frac{22}{45},
+ \qquad
+ E_0,E_1,E_2\longrightarrow\frac1{200}.
+\end{equation*}
+Since $E_1-E_2=2e\delta+\delta^2$,
+$\delta/q^2\to22/45$, and
+$E_0-E_2=2eu_2+u_2^2$ with $u_2/q^2\to77/90$, the elementary limit
+$\log(1+v)/v\to1$ proves
+\cref{eq:aesp-cd-euclidean-family-local-limits,eq:aesp-cd-euclidean-family-packing-limits}.
+\end{proof}
+
+The correction count and normalized inflation are genuinely different
+objects.  The next source-aligned family shows why the raw count cannot be
+charged to support additions or bounded independently of terminal accuracy.
+It simultaneously confirms that such a count is too coarse for the
+multiplicative ledger: every correction in the family is benign.

@@ -46,7 +46,7 @@ One missing lemma.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** none.
+- **Formal registry dependencies:** none.
 - **Source/shared prerequisites:** `source_only`.
 - **Context/provenance:** `provenance_only`.
 - **Supplies to:** one output.
@@ -80,11 +80,29 @@ def test_note_inventory_audit_passes() -> None:
     assert tool.audit_inventory(REPOSITORY) == []
 
 
+def test_note_sources_stay_within_reviewable_size_limits() -> None:
+    tool = _load_tool()
+    for record in tool.load_registry(REPOSITORY):
+        note = REPOSITORY / "manuscript" / "notes" / record["id"]
+        assert len((note / "main.tex").read_text(encoding="utf-8").splitlines()) <= (
+            tool.MAX_ENTRYPOINT_LINES
+        )
+        for section in (note / "sections" / "body").glob("*.tex"):
+            assert len(section.read_text(encoding="utf-8").splitlines()) <= (
+                tool.MAX_EXTRACTED_SECTION_LINES
+            )
+
+
+def test_round_named_proof_programs_do_not_live_inside_notes() -> None:
+    notes = REPOSITORY / "manuscript" / "notes"
+    assert list(notes.glob("*/check_round*.py")) == []
+
+
 def test_every_note_has_a_complete_status_handoff() -> None:
     tool = _load_tool()
-    manifest, _ = tool.load_inventory(REPOSITORY)
+    registry = tool.load_registry(REPOSITORY)
 
-    for record in manifest:
+    for record in registry:
         status = REPOSITORY / "manuscript" / "notes" / record["id"] / "STATUS.md"
         text = status.read_text(encoding="utf-8")
         assert tool.audit_status_handoff(record["id"], text) == []
@@ -121,26 +139,26 @@ def test_status_handoff_rejects_an_empty_heading_skeleton() -> None:
     assert "example: STATUS.md central blocker must not be empty" in errors
 
 
-def test_status_taxonomy_dependencies_match_wrapped_code_quoted_ids() -> None:
+def test_status_registry_dependencies_match_wrapped_code_quoted_ids() -> None:
     tool = _load_tool()
     text = _valid_status_text().replace(
-        "- **Formal taxonomy dependencies:** none.",
-        "- **Formal taxonomy dependencies:** `parent_one` and\n  `parent_two`.",
+        "- **Formal registry dependencies:** none.",
+        "- **Formal registry dependencies:** `parent_one` and\n  `parent_two`.",
     )
 
     assert (
-        tool.audit_status_taxonomy_dependencies("example", text, ["parent_one", "parent_two"]) == []
+        tool.audit_status_registry_dependencies("example", text, ["parent_one", "parent_two"]) == []
     )
 
 
-def test_status_taxonomy_dependencies_report_missing_and_extra_edges() -> None:
+def test_status_registry_dependencies_report_missing_and_extra_edges() -> None:
     tool = _load_tool()
     text = _valid_status_text().replace(
-        "- **Formal taxonomy dependencies:** none.",
-        "- **Formal taxonomy dependencies:** `present_parent` and `extra_parent`.",
+        "- **Formal registry dependencies:** none.",
+        "- **Formal registry dependencies:** `present_parent` and `extra_parent`.",
     )
 
-    errors = tool.audit_status_taxonomy_dependencies(
+    errors = tool.audit_status_registry_dependencies(
         "example", text, ["present_parent", "missing_parent"]
     )
 
@@ -149,35 +167,35 @@ def test_status_taxonomy_dependencies_report_missing_and_extra_edges() -> None:
     assert "extra in STATUS.md: ['extra_parent']" in errors[0]
 
 
-def test_status_taxonomy_dependencies_accept_none() -> None:
+def test_status_registry_dependencies_accept_none() -> None:
     tool = _load_tool()
 
-    assert tool.audit_status_taxonomy_dependencies("example", _valid_status_text(), []) == []
+    assert tool.audit_status_registry_dependencies("example", _valid_status_text(), []) == []
 
 
-def test_status_taxonomy_dependencies_ignore_provenance_and_prerequisites() -> None:
+def test_status_registry_dependencies_ignore_provenance_and_prerequisites() -> None:
     tool = _load_tool()
     text = _valid_status_text()
 
     assert "`source_only`" in text
     assert "`provenance_only`" in text
-    assert tool.audit_status_taxonomy_dependencies("example", text, []) == []
+    assert tool.audit_status_registry_dependencies("example", text, []) == []
 
 
-def test_status_taxonomy_dependencies_require_exactly_one_formal_field() -> None:
+def test_status_registry_dependencies_require_exactly_one_formal_field() -> None:
     tool = _load_tool()
     valid = _valid_status_text()
-    missing = valid.replace("- **Formal taxonomy dependencies:** none.\n", "")
+    missing = valid.replace("- **Formal registry dependencies:** none.\n", "")
     repeated = valid.replace(
-        "- **Formal taxonomy dependencies:** none.",
-        "- **Formal taxonomy dependencies:** none.\n- Formal taxonomy dependencies: none.",
+        "- **Formal registry dependencies:** none.",
+        "- **Formal registry dependencies:** none.\n- Formal registry dependencies: none.",
     )
 
-    assert tool.audit_status_taxonomy_dependencies("example", missing, []) == [
-        "example: STATUS.md missing required field 'Formal taxonomy dependencies'"
+    assert tool.audit_status_registry_dependencies("example", missing, []) == [
+        "example: STATUS.md missing required field 'Formal registry dependencies'"
     ]
-    assert tool.audit_status_taxonomy_dependencies("example", repeated, []) == [
-        "example: STATUS.md repeats required field 'Formal taxonomy dependencies'"
+    assert tool.audit_status_registry_dependencies("example", repeated, []) == [
+        "example: STATUS.md repeats required field 'Formal registry dependencies'"
     ]
 
 
@@ -236,7 +254,11 @@ def test_every_round_record_is_valid_and_indexed_once() -> None:
 
 def test_readme_note_rows_are_counted_exactly() -> None:
     tool = _load_tool()
-    readme = "| `one` | iterative |\n| `two` | response |\n| `one` | duplicate |\n"
+    readme = (
+        "| [`one`](one/) | iterative |\n"
+        "| [`two`](two/) | response |\n"
+        "| [`one`](one/) | duplicate |\n"
+    )
 
     assert tool._readme_note_row_count(readme, "one") == 2
     assert tool._readme_note_row_count(readme, "two") == 1
@@ -245,10 +267,10 @@ def test_readme_note_rows_are_counted_exactly() -> None:
 
 def test_note_inventory_reports_the_two_organized_research_targets() -> None:
     tool = _load_tool()
-    _, taxonomy = tool.load_inventory(REPOSITORY)
-    report = tool.markdown_report(taxonomy)
-    targets = tool.markdown_targets(taxonomy)
-    graph = tool.mermaid_graph(taxonomy)
+    registry = tool.load_registry(REPOSITORY)
+    report = tool.markdown_report(registry)
+    targets = tool.markdown_targets(registry)
+    graph = tool.mermaid_graph(registry)
 
     assert "`response_preconditioned_hybrid`" in report
     assert "`local_solver_oracle_hierarchy`" in report

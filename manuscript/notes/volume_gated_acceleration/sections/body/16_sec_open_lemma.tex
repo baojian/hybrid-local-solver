@@ -1,0 +1,158 @@
+\section{The correct open lemma: one-sided expanding-subspace acceleration}
+\label{sec:open-lemma}
+
+The path in \cref{sec:path} shows that support may expand on nearly every
+accelerated-scale propagation step.  The desired algorithm must therefore
+continue through expansions, or charge each expansion only to newly exposed
+edges.
+
+A concrete candidate zero-pads its history when $U_t$ expands and otherwise
+uses the standard strongly convex momentum
+\begin{align}
+ y^{(t)}
+ &=x^{(t)}+\beta_{\mathrm F}\bigl(x^{(t)}-x^{(t-1)}\bigr),
+ \qquad
+ \beta_{\mathrm F}:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \label{eq:dynamic-y}\\
+ z^{(t+1)}
+ &=\Pi_{\R_+^{U_t}}
+   \bigl(y^{(t)}-(Qy^{(t)}-c_\rho)\bigr),
+ \label{eq:dynamic-step}
+\end{align}
+where vectors are zero outside $U_t$.  Construct $\ell^{(t+1)}$ from
+$z^{(t+1)}$ by \cref{eq:envelope-delta,eq:safe-envelope}, set
+$x^{(t+1)}:=z^{(t+1)}$, and then set
+\begin{equation}
+ U_{t+1}:=U_t\cup
+ \left\{i:
+ \kappa_{\rho,i}(\ell^{(t+1)})
+ <-\alpha\tau\sqrt{d_i}
+ \right\}.
+ \label{eq:dynamic-gate}
+\end{equation}
+The proved gate invariants hold regardless of whether the following
+conjecture is true:
+\begin{equation}
+ \ell^{(t)}\leq x_\rho^\star,
+ \qquad
+ U_t\subseteq S_\rho,
+ \qquad
+ \vol(U_t)\leq\frac1\rho.
+ \label{eq:dynamic-invariants}
+\end{equation}
+
+The next exact calculation rules out the first, shock-free way of importing a
+fixed-subspace estimate sequence.  Let an energy on a face be
+\emph{fixed-face exact} if it is nonnegative, dominates the restricted
+objective gap, and vanishes at an exact restricted minimizer with zero
+momentum.  Standard strongly convex estimate-sequence energies have these
+three properties.
+
+\begin{proposition}[One edge forbids zero-shock continuation]
+\label{prop:one-edge-zero-shock-fails}
+Fix $0<\alpha<1$, let
+\begin{equation}
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ \eta:=\frac{1-\alpha}{2},
+ \qquad
+ 0<r<\frac{1-\alpha}{3+\alpha},
+ \qquad
+ \rho=\tau=r.
+ \label{eq:one-edge-parameters}
+\end{equation}
+On the endpoint-source edge $P_1=(v_0,v_1)$ with $s=e_{v_0}$, initialize one
+stage of \cref{eq:dynamic-y,eq:dynamic-step,eq:dynamic-gate} at
+\begin{equation}
+ U_t=\{v_0\},
+ \qquad
+ x^{(t-1)}=x^{(t)}=(u,0),
+ \qquad
+ u:=\frac{\alpha(1-r)}{a}.
+ \label{eq:one-edge-old-state}
+\end{equation}
+This is the exact restricted minimizer with zero momentum.  The safe gate
+admits precisely $B=\{v_1\}$, and the first subsequent enlarged-face step has
+strictly positive objective error
+\begin{equation}
+ G_\rho(x^{(t+2)})-G_\rho(x_{\{v_0,v_1\}}^\star)
+ =\alpha\eta^2m^2
+ =\frac{2\eta^2}{a}\,\Delta_B>0,
+ \qquad
+ m:=\frac{\eta(1-r)}a-r,
+ \label{eq:one-edge-positive-remainder}
+\end{equation}
+where
+$\Delta_B=\alpha a m^2/2$ is the exact expansion gain.  Consequently no
+shock-free one-expansion inequality
+\begin{equation}
+ \mathcal E_{t+2}^{U_t\cup B}
+ \leq\theta\mathcal E_{t+1}^{U_t}
+ \label{eq:zero-shock-inequality}
+\end{equation}
+can hold universally: for every fixed-face exact energy and every finite
+$\theta$, this run violates \cref{eq:zero-shock-inequality}.  Any valid
+continuation inequality must include an explicit optimum-shift/shock term (or
+an equivalent transported-state term).
+\end{proposition}
+
+\begin{proof}
+Both path degrees equal one and
+\begin{equation}
+ Q=\begin{pmatrix}a&-\eta\\-\eta&a\end{pmatrix},
+ \qquad
+ c_\rho=\alpha\begin{pmatrix}1-r\\-r\end{pmatrix}.
+\end{equation}
+The point in \cref{eq:one-edge-old-state} solves the one-coordinate
+restricted problem.  Its envelope correction is zero, while its outside KKT
+value is
+\begin{equation}
+ h:=\kappa_{\rho,1}(u,0)
+ =-\eta u+\alpha r=-\alpha m.
+\end{equation}
+The parameter range in \cref{eq:one-edge-parameters} is exactly the strict
+inequality $m>r$, so $h<-\alpha\tau$ and the gate admits $v_1$.  There is no
+other outside vertex.  In particular $m>0$, and the full restricted optimum
+is interior.  Its Schur complement and correction from $(u,0)$ are
+\begin{equation}
+ S=a-\frac{\eta^2}{a}=\frac\alpha a,
+ \qquad
+ x_{\{v_0,v_1\}}^\star-(u,0)=(\eta m,am).
+ \label{eq:one-edge-optimum-shift}
+\end{equation}
+Hence \cref{prop:shock} gives
+$\Delta_B=h^2/(2S)=\alpha a m^2/2$.
+
+The restricted step preceding admission leaves the exact old-face point
+unchanged, so $x^{(t+1)}=(u,0)$.  Zero-padding also leaves the next momentum
+point equal to $(u,0)$.  On the enlarged face,
+\begin{equation}
+ Q(u,0)-c_\rho=(0,-\alpha m),
+ \qquad
+ x^{(t+2)}=(u,\alpha m),
+\end{equation}
+and the projection is inactive.  Since $a-\alpha=\eta$, the oriented error is
+$x_{\{v_0,v_1\}}^\star-x^{(t+2)}=\eta m(1,1)$.  Finally
+$Q(1,1)^\top=\alpha(1,1)^\top$, so its quadratic objective gap is
+$\alpha\eta^2m^2$, proving \cref{eq:one-edge-positive-remainder}.  Every
+fixed-face exact old energy is zero at \cref{eq:one-edge-old-state}, whereas
+the enlarged energy dominates this positive gap.  Thus
+\cref{eq:zero-shock-inequality} is impossible.
+\end{proof}
+
+\paragraph{Exact scope and charged work.}
+The proposition refutes only a pointwise carryover with no shock term.  It
+does not refute an inequality containing $\Delta_B$, the telescoping identity
+\cref{eq:shock-telescope}, a multistep transported potential, or the
+cumulative newly admitted-volume target \cref{eq:new-volume-charge}.  On this
+single edge, a direct materialized implementation charges constant work for
+the old-face residual/envelope check, the cut-edge gate evaluation and
+admission, two zero-padding state writes, the two-coordinate enlarged
+recurrence, and its two-coordinate persistent state; both old and new degree
+volumes are one.  This prefix requires no terminal output, and materializing
+one would cost two coordinate writes.  Thus the example gives no asymptotic
+work lower bound.  On a longer prefix,
+the displayed full restricted recurrence, envelope maximum, and boundary
+test must still charge every old-face read they actually perform; an
+incremental residual or response representation may avoid such reads, but
+must name and charge its update, state, query, validation, and output costs.

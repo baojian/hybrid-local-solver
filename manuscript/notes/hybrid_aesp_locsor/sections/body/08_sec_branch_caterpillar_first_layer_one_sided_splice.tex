@@ -1,0 +1,392 @@
+\subsection{A response-free one-sided certificate and its exposure limit}
+\label{sec:branch-caterpillar-first-layer-one-sided-splice}
+
+The sharp scalar $\mu_1$ is useful for prescribing a stage count, but it is
+not necessary for certifying a gate sign.  The alternative below separates
+three operations that were coupled in the preceding construction:
+constructing a lower point from a signed numerical iterate, exposing and
+checking the live boundary, and exploring a new admitted face.  Only the
+second operation is the gate certificate itself.
+
+For a canonical face $U=\widehat U_k$, put
+$w_U:=D_U^{1/2}\one$, and write $[q]_-:=\max\{-q,0\}$ coordinatewise.
+Define the restricted lower residual and local lower map
+\begin{align}
+ \zeta_{\rho,U}^{\rm low}(z)
+  &:=\ell_{\rho,U}-Q_{UU}z,
+ &
+ \Delta_U^{\rm low}(z)
+  &:=\frac1\alpha
+    \left\lVert D_U^{-1/2}
+       [\zeta_{\rho,U}^{\rm low}(z)]_-\right\rVert_\infty,
+ \notag\\
+ \mathcal L_U(z)
+  &:=\left[z-\Delta_U^{\rm low}(z)w_U\right]_+.
+ \label{eq:branch-caterpillar-local-lower-map}
+\end{align}
+This is the principal-face version of the imported local lower retraction.
+It is computed from the rows in $U$ and does not query a restricted optimum.
+
+\begin{lemma}[Response-free lower-point gate certificate]
+\label{lem:branch-caterpillar-local-lower-gate-certificate}
+Fix $0\leq k<m$ under
+\cref{eq:branch-caterpillar-composite-range}, and let $z$ be any signed point
+supported on $\widehat U_k$.  Then
+\begin{equation}
+ 0\leq\mathcal L_{\widehat U_k}(z)\leq x_k
+ \quad\hbox{coordinatewise}.
+ \label{eq:branch-caterpillar-local-lower-order}
+\end{equation}
+For $v\in\mathcal F_k$, with active parent $p_k(v)$, put
+\begin{equation}
+ \underline g_{k,v}(z):=
+  (\ell_\rho-Q\mathcal L_{\widehat U_k}(z))_v.
+ \label{eq:branch-caterpillar-local-lower-demand}
+\end{equation}
+Every strict comparison $\underline g_{k,v}(z)>0$ is a one-sided exact
+certificate that $g_{k,v}>0$.  Consequently, if all current boundary rows
+have been validated and all displayed lower demands are positive, their
+complete set is exactly the canonical all-violations batch.  No coordinate of
+$x_k$, restricted optimum-value scalar, $\mu_k$, response factor, or future
+margin table is used.
+
+At the actual first-layer checkpoint, assume the four face rows and the lower
+point have already been charged.  Scanning and retaining the three rows in
+$\mathcal F_1$, validating their degrees and unique parents, evaluating the
+three quantities in
+\cref{eq:branch-caterpillar-local-lower-demand}, and storing the strict-sign
+transcript has incremental vector
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_{\rm LowGate,1})
+ =\bigl(\nu_1,1,0,0,O(1),0,0,
+         O(1),O(1),O(1),0\bigr).
+ \label{eq:branch-caterpillar-local-lower-certificate-vector}
+\end{equation}
+Thus, relative to
+\cref{eq:branch-caterpillar-first-layer-margin-certificate-vector}, the same
+boundary exposure and all nonresponse operation classes remain constant,
+while $C_{\rm resp}$ is exactly zero rather than a positive constant.  This
+is a strict response-coordinate improvement.  It is not a claim that an
+arbitrary signed trial point or the work needed to construct its lower
+retraction is free.
+\end{lemma}
+
+\begin{proof}
+Write $U=\widehat U_k$, $\Delta=\Delta_U^{\rm low}(z)$, and
+$\ell=\mathcal L_U(z)$.  A principal normalized PageRank matrix is Stieltjes,
+and
+\begin{equation*}
+ Q_{UU}w_U\geq\alpha w_U
+\end{equation*}
+because deleting the nonpositive off-face entries can only increase the
+principal row product.  If $\ell_i>0$, then
+$\ell_i=z_i-\Delta(w_U)_i$, while
+$\ell_j\geq z_j-\Delta(w_U)_j$ for every $j$.  The off-diagonal signs give
+\begin{equation*}
+ (Q_{UU}\ell)_i
+ \leq(Q_{UU}(z-\Delta w_U))_i
+ \leq(Q_{UU}z)_i-\alpha\Delta(w_U)_i.
+\end{equation*}
+Hence
+$\zeta_{\rho,U,i}^{\rm low}(\ell)\geq0$ on $\supp(\ell)$.
+Restricted Stieltjes obstacle comparison with the strictly positive
+restricted solution $x_k$ proves
+\cref{eq:branch-caterpillar-local-lower-order}.
+
+The row of a tree-boundary vertex has only one entry in $U$, namely
+$Q_{v,p_k(v)}=-\beta_{k,v}$.  Therefore
+\begin{equation}
+ g_{k,v}-\underline g_{k,v}(z)
+ =\beta_{k,v}
+   \bigl((x_k)_{p_k(v)}-
+    \mathcal L_U(z)_{p_k(v)}\bigr)\geq0.
+ \label{eq:branch-caterpillar-local-lower-demand-order}
+\end{equation}
+Strict positivity of the lower quantity certifies strict positivity of the
+exact demand.  Enumerating the complete tree boundary and testing every row
+therefore certifies the canonical batch.  At $k=1$ those rows have total
+degree $\nu_1$ and are returned in one batch; all other work and storage is
+constant.  No restricted-system solve occurs, proving both the vector and
+the strict response-coordinate comparison.
+\end{proof}
+
+The certificate is online: it can stop on the observed lower demands without
+knowing a margin.  The following quantitative statement is only an
+analysis-side termination bound.  Since $\lVert Q_{UU}\rVert_2\leq1$ and all
+branch-caterpillar degrees are at most three, for
+$e=z-x_k$ one has
+\begin{align}
+ \Delta_U^{\rm low}(z)
+ &\leq\frac{\lVert e\rVert_2}{\alpha},
+ \notag\\
+ 0\leq (x_k)_p-\mathcal L_U(z)_p
+ &\leq\left(1+\frac{\sqrt3}{\alpha}\right)
+        \lVert e\rVert_2
+ \qquad(p\in U).
+ \label{eq:branch-caterpillar-local-lower-error}
+\end{align}
+It follows from
+\cref{eq:branch-caterpillar-signed-gate-margin,eq:branch-caterpillar-local-lower-demand-order}
+that every lower demand is positive whenever
+\begin{equation}
+ \lVert z-x_k\rVert_2
+ <\frac{\alpha\mu_k}{\alpha+\sqrt3}.
+ \label{eq:branch-caterpillar-local-lower-neighborhood}
+\end{equation}
+Strong convexity makes the sufficient objective-gap threshold
+\begin{equation}
+ F_{\rho,U}(z)-F_{\rho,U}(x_k)
+ <\frac{\alpha^3\mu_k^2}
+         {2(\alpha+\sqrt3)^2}.
+ \label{eq:branch-caterpillar-local-lower-gap}
+\end{equation}
+Thus the lower test terminates along every convergent fixed-face AESP
+sequence, even though the online execution computes neither side of
+\cref{eq:branch-caterpillar-local-lower-gap}.
+
+For completeness, let $z_k^{(t)}$ be the endpoint after $t$ relative-accuracy
+AESP--CD stages on $\widehat U_k$, starting from an explicitly materialized
+$z_k^{(0)}$, and put
+\begin{equation}
+ T_k^{\rm low}:=\min\left\{t\geq0:
+  \underline g_{k,v}(z_k^{(t)})>0
+  \text{ for every }v\in\mathcal F_k\right\}.
+ \label{eq:branch-caterpillar-local-lower-stopping-time}
+\end{equation}
+In the strict range this stopping time is finite.  If the initial restricted
+gap $\Delta_{k,0}$ is zero, strong convexity gives
+$z_k^{(0)}=x_k$, so $T_k^{\rm low}=0$ and no numerical stage is run.  If
+$\Delta_{k,0}>0$, the imported outer estimate gives the explicit
+analysis-side bound
+\begin{equation}
+ T_k^{\rm low}\leq
+ 1+\left\lfloor\frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(
+  \frac{4(\alpha+\sqrt3)^2\Delta_{k,0}}
+       {\alpha^3\mu_k^2}
+            \right)\right\rfloor.
+ \label{eq:branch-caterpillar-local-lower-stage-bound}
+\end{equation}
+Positive gap need not imply positive stage count: a sufficiently good initial
+lower interval can already pass.  Conversely, for the named zero start on
+either $k=0$ or $k=1$, the lower point is zero and every unseeded boundary
+load is negative, so the initial test fails and at least one genuine stage is
+run.  Equation
+\cref{eq:branch-caterpillar-local-lower-stage-bound} is not an online cap:
+it exposes the same analysis margin dependence that the observed sign test
+avoids computing.
+
+We now test whether the response-free certificate also constructs the first
+checkpoint.  The answer separates numerical exposure from row exposure.
+
+\begin{definition}[Two-gate response-free prefix]
+\label{def:branch-caterpillar-two-face-lower-policy}
+The policy \texttt{LowerGate-BC-AESP}$_{0:1}$ uses the promised
+$\mathsf{BC}_m$ labels but validates every row, degree, parent, $\alpha$, and
+$\rho$ value that it reads.
+\begin{enumerate}
+ \item Start at $\widehat U_0=\{b_1\}$ with numerical point zero.  Scan the
+       seed row, then scan and retain all three rows in $\mathcal F_0$ in one
+       batch.  Run fixed-face relative-accuracy AESP--CD, construct
+       \cref{eq:branch-caterpillar-local-lower-map} after every stage, and
+       stop at the first strict lower-demand certificate for all of
+       $\mathcal F_0$.
+ \item Make one external delta/certificate interaction, emit and commit the
+       three labels in $\mathcal F_0$, and record the actual admitted face
+       $\widehat U_1$.  Perform no exact settlement and build no response.
+       Reset the signed numerical face to the explicitly materialized zero
+       vector on $\widehat U_1$; this reset deliberately discards the first
+       face's numerical value and is charged.
+ \item Scan and retain all rows in $\mathcal F_1$.  Repeat the fixed-face
+       AESP, lower-retraction, and strict lower-demand test on
+       $\widehat U_1$.  Stop after the certificate and before the second
+       external interaction.
+ \item In the post phase, emit and commit $\mathcal F_1$, build and settle the
+       native response directly on $\widehat U_2$ from the retained current
+       rows, retire the numerical arena, and continue
+       \emph{CaterpillarCanonicalLayerDelta}.  No earlier exact face is
+       reconstructed or queried.
+\end{enumerate}
+This is a sign-certified canonical chronology, but the state after step 2 is
+not the older response-native checkpoint: its exact restricted point has not
+been materialized.  The direct post proof below therefore does not invoke
+\cref{thm:branch-caterpillar-composite-response-handoff} at that intermediate
+state.
+\end{definition}
+
+Immediately before the first interaction, the arenas are
+\begin{equation}
+ U_{\rm adm}=U_{\rm num}=\widehat U_0,
+ \qquad E_{\rm row}=\widehat U_1,
+ \qquad E_{\rm lab}=\widehat U_2.
+ \label{eq:branch-caterpillar-lower-first-gate-arenas}
+\end{equation}
+The rows in $\mathcal F_0$ are certificate-only lookahead: their numerical
+coordinates are zero and they are not admitted.  Immediately before the
+second interaction the arenas are the same as
+\cref{eq:branch-caterpillar-first-layer-numerical-arenas}.  Thus the policy
+does reach the admitted face $\widehat U_1$ before any exact response, but it
+does not reach it with $E_{\rm row}=\widehat U_0$.
+
+\begin{proposition}[Charged row-validation obstruction at the first layer]
+\label{prop:branch-caterpillar-first-layer-row-preexposure-obstruction}
+Under the row-validation contract of
+\cref{def:branch-caterpillar-two-face-lower-policy}, no certificate that
+commits the complete first canonical batch can both validate the three
+candidate degrees/local incidences and keep
+$E_{\rm row}=\widehat U_0$ until after that commitment.  It must pay the rows
+of $b_2,a_1,r_1$, of total degree six, before its certificate reply; hence
+$E_{\rm row}=\widehat U_1$ at the preinteraction endpoint.
+
+This is a scoped access obstruction, not an information-theoretic lower bound
+for an oracle that supplies trusted neighbor degrees or a globally trusted
+template for free.  Such metadata would instead have to be named and charged
+in its own access model.
+\end{proposition}
+
+\begin{proof}
+The three exact lower demands use the candidate load
+$-\alpha\rho\sqrt{d_v}$ and coupling
+$h_0/\sqrt{d_vd_{b_1}}$, and the complete-boundary certificate also validates
+the promised local incidences that define the next restricted face.  Under
+the stated contract, each $d_v$ and incidence list is obtained by its charged
+row return.  All three values are needed before the complete-batch reply, so
+their returned-row union with the seed is exactly $\widehat U_1$.  The degree
+sum is $3+2+1=6$.  Calling these facts ``known from the caterpillar
+template'' without validating their input rows would change the contract and
+does not evade the charge.
+\end{proof}
+
+Put
+\begin{align}
+ \mathcal V_0&:=3,\quad C_0:=4,
+ &\qquad \mathcal V_1:=9,\quad C_1:=13,
+ \notag\\
+ L_k^{\rm rel}
+ &:=2+\frac34\log_+\!\left(
+  \frac{16(1-\alpha)^2\mathcal V_k}
+       {\delta_{\rm A}(1-2\alpha)(1-\alpha)}
+                           \right),\qquad k\in\{0,1\},
+ \notag\\
+ \mathfrak A_k^{\rm low}
+ &:=(T_k^{\rm low}+1)\mathcal V_kL_k^{\rm rel},
+ \notag\\
+ \mathfrak A_{<2}^{\rm low}
+ &:=\mathfrak A_0^{\rm low}+\mathfrak A_1^{\rm low},
+ \notag\\
+ \mathfrak D_{<2}^{\rm low}
+ &:=C_2+\mathfrak A_{<2}^{\rm low},
+ \notag\\
+ \mathfrak H_{<2}^{\rm low}
+ &:=C_2+
+  (1+\log(2+C_0))\mathfrak A_0^{\rm low}
+  +(1+\log(2+C_1))\mathfrak A_1^{\rm low}.
+ \label{eq:branch-caterpillar-two-face-lower-budgets}
+\end{align}
+The added one in $T_k^{\rm low}+1$ pays the initial/terminal lower-retraction
+and sign-check sweep even in the zero-stage branch.  These are conservative
+fully charged budgets: repeated stored-row reads, KKT/lower-residual
+formation, positive-part materialization, and every failed sign test are
+included.  The online execution uses the observed stopping times, not the
+analysis-side values $\mu_0$ or $\mu_1$.
+
+\begin{theorem}[Two-gate response-free-prefix numerical handoff]
+\label{thm:branch-caterpillar-two-face-lower-handoff}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  The policy
+\texttt{LowerGate-BC-AESP}$_{0:1}$ commits the actual first canonical batch,
+certifies the complete second batch, and returns the exact RPPR minimizer.
+Before the second interaction its complete prefix vector is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm LG01}^{\rm pref})=\bigl(&
+ 9+\nu_1+O(\mathfrak A_{<2}^{\rm low}),
+ 3+O(\mathfrak A_{<2}^{\rm low}),1,0,
+ O(\mathfrak H_{<2}^{\rm low}),
+ O(\mathfrak A_{<2}^{\rm low}),0,\\
+ &O(C_2),O(C_1),O(\mathfrak D_{<2}^{\rm low}),\Theta(1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-two-face-lower-prefix-eleven-vector}
+\end{equation}
+The response coordinate is exactly zero.  The sole prefix interaction emits
+the three labels in $\mathcal F_0$ and one constant-size certificate reply;
+all retractions and failed/internal sign tests emit nothing.
+
+After the handoff, the stored rows in $\mathcal F_1$ are not rescanned.  A
+direct continuation has vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm LG01}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_2),m-2,m,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-1)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),
+ \Theta(\card{S^\star}),\\
+ &\card{S^\star\setminus\widehat U_1}
+  +\card{S^\star}+\Theta(m)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-two-face-lower-post-eleven-vector}
+\end{equation}
+Here the $m$ interactions are the certified $\mathcal F_1$ batch, the
+remaining $m-2$ batches, and the terminal return.  Additive and round
+coordinates sum.  Releasing the signed/lower-certificate arena after the
+direct $\widehat U_2$ response build gives total persistent and scratch peaks
+$\Theta(C(S^\star))$ and $O(C(S^\star))$.  The exact total work is
+\begin{equation}
+ O\!\left(\mathfrak H_{<2}^{\rm low}
+       +C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-two-face-lower-total-work}
+\end{equation}
+
+The construction is exact-real, fixed-$m$, branch-seeded, strict-range, and
+delta/certificate scoped.  It proves that an exact four-coordinate response
+is unnecessary for the first-layer sign certificate.  It does not prove a
+speedup: its stopping-time bounds retain $\mu_0,\mu_1$ in analysis and every
+stage retains the explicit $\log(1/(1-2\alpha))$ oracle factor.  The named
+zero resets make both face solves genuine numerical comparisons and discard
+cross-face acceleration.  The policy pre-exposes the candidate rows required
+by validation, and no monotone cumulative potential or correction-debt bank
+is asserted.  It proves nothing for $k\geq2$, a uniform margin, another
+range, seed, graph, policy, repeated complete-positive-list interface,
+finite precision, bit complexity, PPR conversion, or graph-uniform work.
+\end{theorem}
+
+\begin{proof}
+At $k=0$ and $k=1$, relative-accuracy AESP converges to the unique restricted
+minimizer.  Equations
+\cref{eq:branch-caterpillar-local-lower-error,eq:branch-caterpillar-local-lower-neighborhood}
+and the imported strict chronology therefore make both observed stopping
+times finite.  The lower-point lemma certifies every exact sign before its
+interaction, so the committed batches are precisely $\mathcal F_0$ and
+$\mathcal F_1$.  For either zero reset, the restricted minimizer is strictly
+positive while the start is zero; hence the gap is positive.  Its initial
+lower boundary demands are the negative unseeded loads, so at least one stage
+is actually run on each face.  The general zero-gap and already-safe
+positive-gap branches are handled exactly as stated after
+\cref{eq:branch-caterpillar-local-lower-stopping-time}.
+
+The first exposures are the four rows in $\widehat U_1$ of total degree nine
+and the three rows in $\mathcal F_1$ of total degree $\nu_1$, in three
+adaptive adjacency rounds.  The relative-oracle stages and all lower-map
+checks are covered by $O(\mathfrak A_{<2}^{\rm low})$ adjacency and recurrence
+work.  Heap, outer-stage, lower-residual, strict-sign, boundary-completeness,
+and certificate logic are covered by
+$O(\mathfrak H_{<2}^{\rm low})$.  The stored rows through $\widehat U_2$,
+common admitted record, signed stages, lower points, and certificate
+transcripts give the displayed memory and materialization coordinates.  No
+restricted system is solved and no response factor is read or written before
+the second interaction, so $C_{\rm resp}=0$ exactly.  This proves
+\cref{eq:branch-caterpillar-two-face-lower-prefix-eleven-vector}.
+
+After committing $\mathcal F_1$, make one direct constant-size Schur build on
+the current seven-vertex face $\widehat U_2$ and settle it exactly.  This uses
+the actual retained support and rows and reconstructs no earlier gate state.
+It is now exactly the native reporter state after two canonical batches.
+The remaining live rows partition $S^\star\setminus\widehat U_2$; removing
+the two already exposed layers from the reviewed canonical ledger gives
+every coordinate in
+\cref{eq:branch-caterpillar-two-face-lower-post-eleven-vector}, including all
+remaining labels, replies, terminal materialization, and exact output.  The
+sum and peak rules prove
+\cref{eq:branch-caterpillar-two-face-lower-total-work}.
+\end{proof}

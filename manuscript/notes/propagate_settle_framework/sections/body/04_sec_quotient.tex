@@ -1,0 +1,67 @@
+\section{The propagate--settle quotient principle}
+\label{sec:quotient}
+
+Let
+\begin{equation}
+ U_0\subseteq U_1\subseteq\cdots\subseteq U_K
+ \label{eq:nested-regions}
+\end{equation}
+be regions discovered online.  Starting from $x^{-1}$, a general exact
+propagate--settle process forms an arbitrary provisional point $y^k$ with
+\begin{equation}
+ \supp(y^k-x^{k-1})\subseteq U_k,
+ \qquad
+ x^k:=\mathcal E_{U_k}^\ell(y^k).
+ \label{eq:propagate-settle-epoch}
+\end{equation}
+The provisional update may include many coordinate pushes and any residual
+split used only for scheduling.
+
+\begin{theorem}[Region-sequence quotient]
+\label{thm:region-sequence-quotient}
+Every process satisfying
+\cref{eq:nested-regions,eq:propagate-settle-epoch} obeys
+\begin{equation}
+ x^k=\mathcal E_{U_k}^\ell(x^{-1})
+ \qquad(0\leq k\leq K).
+ \label{eq:canonical-settled-trajectory}
+\end{equation}
+Consequently, two exact propagate--settle algorithms with the same initial
+outside state and the same region sequence have identical settled iterates
+and identical post-settlement boundary residuals.
+\end{theorem}
+
+\begin{proof}
+Induct on $k$.  The update from $x^{k-1}$ to $y^k$ is supported in $U_k$, so
+trajectory erasure gives
+$x^k=\mathcal E_{U_k}^\ell(x^{k-1})$.  For $k=0$, $x^{-1}$ and $x^0$ agree
+outside $U_0$, giving the display.  For $k>0$, the induction hypothesis and
+nested absorption give
+\[
+ x^k
+ =\mathcal E_{U_k}^\ell
+  \mathcal E_{U_{k-1}}^\ell(x^{-1})
+ =\mathcal E_{U_k}^\ell(x^{-1}).
+\]
+The boundary residual is a deterministic function of the settled point.
+\end{proof}
+
+\begin{corollary}[Where acceleration can enter]
+\label{cor:discovery-only-acceleration}
+For an exactly settled algorithm, changing $\omega$, ranking, batching, or
+the fresh/debt representation while preserving the same discovered regions
+cannot improve the settled objective values or terminal point.  A genuine
+gain must change at least one of:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item which regions are discovered;
+ \item how soon they are discovered;
+ \item the charged work of discovering them; or
+ \item the accuracy and work of an inexact settlement.
+\end{enumerate}
+\end{corollary}
+
+This corollary explains both the empirical success and the theoretical
+limit of two rungs.  The over-relaxed phase is useful only because it changes
+the frontier seen before delivery.  If delivery were placed immediately
+after every spread update on the same coordinate or fixed region, the
+absorption law would reduce the method to ordinary exact updates.

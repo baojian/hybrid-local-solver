@@ -23,9 +23,9 @@ def _publication_tex_sources() -> list[Path]:
     return sources
 
 
-def test_research_note_manifest_matches_standalone_documents() -> None:
-    manifest = tomllib.loads(_read(NOTES / "manifest.toml"))
-    records = manifest["note"]
+def test_research_note_registry_matches_standalone_documents() -> None:
+    registry = tomllib.loads(_read(NOTES / "registry.toml"))
+    records = registry["note"]
 
     ids = [record["id"] for record in records]
     assert len(ids) == len(set(ids)), "note ids must be unique"
@@ -45,8 +45,8 @@ def test_research_note_manifest_matches_standalone_documents() -> None:
 
 
 def test_every_note_uses_the_shared_shell_and_problem_model_once() -> None:
-    manifest = tomllib.loads(_read(NOTES / "manifest.toml"))
-    for record in manifest["note"]:
+    registry = tomllib.loads(_read(NOTES / "registry.toml"))
+    for record in registry["note"]:
         entrypoint = NOTES / record["entrypoint"]
         assert r"\input{../../tex/shared/research_note_preamble}" in _read(entrypoint)
 

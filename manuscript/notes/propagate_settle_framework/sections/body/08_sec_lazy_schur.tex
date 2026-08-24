@@ -1,0 +1,202 @@
+\section{Activation age and lazy Schur settlement}
+\label{sec:lazy-schur}
+
+The revisit factor admits a dual expression that makes the fan obstruction
+transparent.  For a nested trace
+$U_0\subseteq\cdots\subseteq U_K$, define the activation time
+\begin{equation}
+ \tau(v):=\min\{k:v\in U_k\}
+ \qquad(v\in U_K).
+ \label{eq:activation-time}
+\end{equation}
+
+\begin{proposition}[Activation-age identity]
+\label{prop:activation-age}
+Every nested trace satisfies
+\begin{align}
+ \sum_{k=0}^K\operatorname{cvol}(U_k)
+ &=
+ \sum_{v\in U_K}(1+d_v)\bigl(K-\tau(v)+1\bigr),
+ \label{eq:activation-age-sum}\\
+ \mathfrak R_{\rm set}
+ &=
+ \sum_{v\in U_K}
+ \frac{1+d_v}{\operatorname{cvol}(U_K)}
+ \bigl(K-\tau(v)+1\bigr).
+ \label{eq:activation-age-mean}
+\end{align}
+Thus $\mathfrak R_{\rm set}$ is the final-charge-weighted mean number of
+fresh settlements paid after activation.
+\end{proposition}
+
+\begin{proof}
+A fixed $v\in U_K$ appears in exactly the regions
+$U_{\tau(v)},\ldots,U_K$.  Exchange the order of summation in
+$\sum_k\sum_{v\in U_k}(1+d_v)$ and divide by
+$\operatorname{cvol}(U_K)$.
+\end{proof}
+
+For the fan, the root has activation time zero and charge $m+1$, a constant
+fraction of the full graph charge.  Its long lifetime alone yields
+\cref{eq:fan-revisit-lower}.  An incremental method should therefore avoid
+charging persistent coordinates merely because a new coordinate entered.
+The exact algebraic interface is the following block update.
+
+\begin{lemma}[Lazy block-Schur settlement]
+\label{lem:lazy-block-schur}
+Let $x$ be the shifted Dirichlet solution on $U$, with $x_{U^c}=0$, and let
+$B\subseteq U^c$ be a nonempty block.  Put
+\begin{equation}
+ A:=Q_{UU},
+ \qquad E:=Q_{UB},
+ \qquad
+ \mathcal S_B:=Q_{BB}-E^TA^{-1}E,
+ \qquad
+ q_B:=e_\ell(x)_B.
+ \label{eq:lazy-schur-data}
+\end{equation}
+The exact shifted Dirichlet solution $x^+$ on $U\cup B$ is
+\begin{align}
+ x_B^+&=\mathcal S_B^{-1}q_B,
+ \label{eq:lazy-schur-new-block}\\
+ x_U^+&=x_U-A^{-1}Ex_B^+.
+ \label{eq:lazy-schur-old-block}
+\end{align}
+For every remaining inactive block
+$C\subseteq V\setminus(U\cup B)$,
+\begin{align}
+ e_\ell(x^+)_C
+ &=e_\ell(x)_C-\mathcal S_{CB}x_B^+,
+ \label{eq:lazy-schur-demand-update}\\
+ \mathcal S_{CB}
+ &:=Q_{CB}-Q_{CU}A^{-1}E\leq0.
+ \label{eq:lazy-schur-cross-block}
+\end{align}
+Moreover, $\mathcal S_B$ is Stieltjes,
+$\mathcal S_B^{-1}\geq0$, and $-A^{-1}E\geq0$.  In particular, if
+$q_B>0$, then the new block is positive, the old coordinates only increase,
+and every remaining violation demand can only increase.
+\end{lemma}
+
+\begin{proof}
+The enlarged active equations are
+\begin{equation*}
+ \begin{bmatrix}A&E\\E^T&Q_{BB}\end{bmatrix}
+ \begin{bmatrix}x_U^+\\x_B^+\end{bmatrix}
+ =
+ \begin{bmatrix}\ell_U\\\ell_B\end{bmatrix}.
+\end{equation*}
+The first row and $Ax_U=\ell_U$ give
+\cref{eq:lazy-schur-old-block}.  Substitution in the second row gives
+\cref{eq:lazy-schur-new-block}.  For an inactive block $C$,
+\begin{align*}
+ e_\ell(x^+)_C
+ &=\ell_C-Q_{CU}x_U^+-Q_{CB}x_B^+\\
+ &=e_\ell(x)_C-
+   \bigl(Q_{CB}-Q_{CU}A^{-1}E\bigr)x_B^+,
+\end{align*}
+which is \cref{eq:lazy-schur-demand-update}.  Principal Schur complements of
+a Stieltjes matrix are Stieltjes.  Their off-diagonal blocks are
+nonpositive, and inverse positivity gives all remaining signs.  Since the
+diagonal of $\mathcal S_B^{-1}$ is positive, $q_B>0$ also gives
+$x_B^+>0$ coordinatewise.
+\end{proof}
+
+The dense response $-A^{-1}E$ need not be written into every old coordinate.
+It may be stored as an elimination response, while
+\cref{eq:lazy-schur-demand-update} updates only the boundary event
+representation.  Old coordinates are recovered by one reverse substitution
+after the final event.  This changes the implementation question from
+\emph{how many old regions were settled?} to \emph{how compactly can the
+signed Schur block-columns be represented and queried?}
+
+\begin{theorem}[The fan cascade has an output-linear exact Schur trace]
+\label{thm:fan-lazy-trace}
+Use the parameters of \cref{thm:fan-cascade}, and consider its first $L$
+singleton batches.  There is an exact implementation that
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item produces the identical batches
+ $B_0=\{v_1\},\ldots,B_{L-1}=\{v_L\}$;
+ \item represents every intermediate shifted Dirichlet solution exactly; and
+ \item recovers $x^L$ on $U_L=\{o,v_1,\ldots,v_L\}$ exactly
+\end{enumerate}
+using $O(m+L)=O(\operatorname{cvol}(U_L))$ degree work and arithmetic.
+In contrast, materializing and rescanning every fresh settlement through
+$U_L$ costs $\Omega(mL)$.
+\end{theorem}
+
+\begin{proof}
+Scan the degree-$m$ root list once.  Its degree metadata identifies the unique
+degree-two neighbor $v_1$; thereafter one scan of each admitted $v_j$
+identifies the next path neighbor $v_{j+1}$.  At stage $j\geq1$, retain the
+separator
+\begin{equation}
+ Z_j:=\{o,v_j\},
+ \qquad
+ I_j:=U_j\setminus Z_j,
+ \label{eq:fan-separator}
+\end{equation}
+and the exact reduced system obtained after eliminating $I_j$:
+\begin{align}
+ \widehat Q_j
+ &:=
+ Q_{Z_jZ_j}
+ -Q_{Z_jI_j}Q_{I_jI_j}^{-1}Q_{I_jZ_j},
+ \label{eq:fan-reduced-matrix}\\
+ \widehat\ell_j
+ &:=
+ (\ell_\rho)_{Z_j}
+ -Q_{Z_jI_j}Q_{I_jI_j}^{-1}(\ell_\rho)_{I_j}.
+ \label{eq:fan-reduced-load}
+\end{align}
+Then
+\begin{equation}
+ x^j_{Z_j}=\widehat Q_j^{-1}\widehat\ell_j.
+ \label{eq:fan-separator-solution}
+\end{equation}
+For $j=0$, the retained system is the scalar root equation.
+
+The next vertex $v_{j+1}$ is adjacent to the old active region only through
+$Z_j$.  Append it to the reduced system, producing a matrix of order at most
+three, and eliminate $v_j$ to obtain
+$(\widehat Q_{j+1},\widehat\ell_{j+1})$.  Store the eliminated pivot and its
+two multipliers for the final reverse pass.  Each append, elimination, and
+separator solve uses $O(1)$ arithmetic, and scanning the newly exposed fan
+vertex costs at most three.
+
+It remains to show that no repeated root scan is needed to reproduce the
+gate.  For a degree-$d$ root neighbor with no active path neighbor, define
+\begin{equation}
+ \eta_d^{(j)}
+ :=
+ -\alpha\rho\sqrt d
+ +\frac{1-\alpha}{2\sqrt{dm}}\,x_o^j.
+ \label{eq:fan-live-remote-demand}
+\end{equation}
+Every remote $v_i$ with $i\geq j+2$ has the identical exact violation demand
+$\eta_3^{(j)}$.  The unique next path vertex has exact demand
+\begin{equation}
+ e_{\ell_\rho}(x^j)_{v_{j+1}}
+ =
+ \begin{cases}
+  \eta_2^{(0)},&j=0,\\
+  \eta_3^{(1)}+h_1x_{v_1}^1,&j=1,\\
+  \eta_3^{(j)}+hx_{v_j}^j,&j\geq2,
+ \end{cases}
+ \label{eq:fan-live-next-demand}
+\end{equation}
+where $h_1$ and $h$ are from
+\cref{eq:fan-first-coupling,eq:fan-core-coupling}.  Hence the exact gate
+decision at each of the first $L$ stages uses only the two separator
+coordinates and two scalar comparisons.  The strict inequalities proved in
+\cref{thm:fan-cascade} therefore reproduce the same singleton batches.
+
+The initial root scan costs $m$.  The $L$ local scans, constant-size Schur
+updates, and final reverse recovery cost $O(L)$.  Since $m>L$ and
+\begin{equation*}
+ \operatorname{cvol}(U_L)=m+4L,
+\end{equation*}
+this is output-linear.  Fresh settlement, by contrast, charges at least the
+root's $m+1$ work units at each of the $L+1$ stages, giving
+$\Omega(mL)$.
+\end{proof}

@@ -1,0 +1,737 @@
+\begin{theorem}[A scale-certified delta reporter on the frozen notched sun]
+\label{thm:notched-sun-scale-delta-reporter}
+Use exactly the fixed face, exposed cut, complete shifted ladder, first-rung
+matrix $M$, unit-fragment order, logical output columns, gate $g$, and band
+$m=g/2$ of
+\cref{prop:notched-sun-eager-slack-vector-obstruction}.  Thus $n\geq5$,
+$\eta\in(0,1/8)$, $\vartheta=(1-\alpha)/2$, and
+$c_\eta=(1+\eta)^2\eta^2$.  Impose the explicit near-one regime
+\begin{equation}
+ 0<\vartheta\leq\frac1{1296n^2}.
+ \label{eq:notched-sun-scale-regime}
+\end{equation}
+Then, for every event $k$,
+\begin{align}
+ h_k^{(k)}
+ &\geq\frac{\vartheta^2}{d_{u_k}(1+c_\eta)}
+ >\vartheta^{5/2}=g,
+ \label{eq:notched-sun-scale-matching}\\
+ \sum_{\ell=1}^k h_i^{(\ell)}
+ &\leq\frac{9k\vartheta^3}{1-3\vartheta}
+ \leq\frac12\vartheta^{5/2}=g-m,
+ \qquad i>k.
+ \label{eq:notched-sun-scale-future-tail}
+\end{align}
+
+Name the following promised-template partial reporter
+\textsc{NotchedSunScaleDelta}.  Its preprocessing scans the frozen face,
+queries the report degrees in a second adjacency round, verifies the complete
+cycle--chord--petal--report template and label pairing, constructs the fixed
+ladder, and checks \cref{eq:notched-sun-scale-regime}.  Its persistent state
+after event $k$ is only
+\begin{equation}
+ \mathsf{State}_k
+ =(\text{verified template and label map},\text{fixed ladder},k,
+   \text{logical-column/sign metadata});
+ \label{eq:notched-sun-scale-state}
+\end{equation}
+it contains no entry of $h^{(\ell)}$, no cumulative response $y^{[k]}$, and
+no exterior slack cell.  At event $k+1$, it reads and verifies every supplied
+first-rung fragment coordinate and its declared amplitude.  It then emits,
+for each logical output column $q$, the delta record $(q,w_{k+1})$ and one
+certificate asserting the universal statement
+\begin{equation*}
+ y_{q,i}^{[k+1]}\leq g-m
+ \qquad\text{for every still-unreported }i>k+1.
+\end{equation*}
+The certificate is computationally available from the exact scalar right side
+of \cref{eq:notched-sun-scale-future-tail} and the verified label order; it is
+one record per logical column, not one scan or record per future label.
+
+For $r$ nonnegative logical columns, event $k$ supplies $e_{f_k}$ in each of
+the $p=r$ streams.  For a signed logical column, it supplies $2e_{f_k}$ in
+its positive stream and $e_{f_k}$ in its negative stream, so $p=2r$ and the
+exact logical response is $2y^{[k]}-y^{[k]}=y^{[k]}$.  The reporter checks
+both signed-stream coordinates and amplitudes before combining their exact
+template certificates; neither stream read is omitted.  Hence in the two
+cases respectively
+\begin{equation*}
+ \mathcal C_{\rm frag}^{\Sigma}=pn=rn
+ \qquad\text{and}\qquad
+ \mathcal C_{\rm frag}^{\Sigma}=pn=2rn.
+\end{equation*}
+
+Generate and retain the complete $J$-rung ladder once, process the $p$ stream
+records sequentially, and stream the $r$ logical replies.  In the shared
+resource order, the complete epoch vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,n,\Theta(n+J+p),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+rn+n),0,0,\\
+ &\Theta(n+J+p),O(1),0,\Theta(rn)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-scale-delta-eleven-vector}
+\end{equation}
+Here preprocessing includes structural validation, label dictionaries,
+ladder coefficients, gate/band generation, and stream-mode initialization.
+Control includes every fragment read/check, event-order check, scalar tail
+comparison, membership update, and construction of all delta and certificate
+records.  There is no response application and no numerical response/slack
+materialization.  Thus total additive exact-cell work is
+$\Theta(n+J+p+\mathcal C_{\rm frag}^{\Sigma}+rn)$, which is output-sensitive
+on this trace and strictly replaces the quadratic
+\textsc{EagerExactSlack} state.
+
+This GO is exact-real, fixed-face, fixed-cut, fixed-ladder, fixed-order, and
+template-aware.  It is not an RPPR load or KKT chronology, a terminal
+PPR/RPPR solver, a uniform fixed-$\alpha$ family as $n$ grows, a reporter for
+arbitrary fragment amplitudes or orders, or an arbitrary high-cut-rank cyclic
+partial flush.  It gives no coefficient-bit, word-RAM, rounding-stability, or
+finite-precision guarantee.  In particular, it does not close the general
+slack-normalized bank application problem: its future-safe certificate comes
+from the proved template scale separation, not from a dynamic response query.
+\end{theorem}
+
+\begin{proof}
+Let $N_T:=D_T^{-1/2}A_{TT}D_T^{-1/2}$ use the ambient graph degrees, and put
+\begin{equation}
+ B_0:=\operatorname{diag}(I_A,(1+c_\eta)I_F),
+ \qquad
+ R:=\operatorname{diag}(I_A,(1+2c_\eta)I_F)+N_T.
+ \label{eq:notched-sun-scale-blocks}
+\end{equation}
+The identities $\alpha=1-2\vartheta$ and
+$Q_{TT}=(1-\vartheta)I_T-\vartheta N_T$ give the exact decomposition
+\begin{equation}
+ M=B_0-\vartheta R
+ =B_0^{1/2}(I-\vartheta\mathsf K)B_0^{1/2},
+ \qquad
+ \mathsf K:=B_0^{-1/2}RB_0^{-1/2}.
+ \label{eq:notched-sun-scale-neumann-decomposition}
+\end{equation}
+Every entry of $\mathsf K$ is nonnegative; no positive-semidefinite order is
+claimed.  The full normalized adjacency has operator norm at most one, hence
+so does its principal block $N_T$.  Since $B_0^{-1/2}$ is a contraction and
+$(1+2c_\eta)/(1+c_\eta)<2$,
+\begin{equation*}
+ \norm{\mathsf K}_2\leq3.
+\end{equation*}
+Therefore \cref{eq:notched-sun-scale-regime} permits the entrywise
+nonnegative Neumann expansion
+\begin{equation}
+ M^{-1}
+ =B_0^{-1/2}\sum_{t=0}^{\infty}
+   \vartheta^t\mathsf K^tB_0^{-1/2}.
+ \label{eq:notched-sun-scale-neumann-series}
+\end{equation}
+
+The length-one term from $f_k$ to its unique anchor neighbor $u_k$ is
+$\vartheta/[\sqrt{d_{u_k}}(1+c_\eta)]$.  All later terms are nonnegative, so
+\cref{eq:notched-sun-frozen-response-entry} proves the first weak inequality
+in \cref{eq:notched-sun-scale-matching}.  Moreover
+$c_\eta<1/50$, $d_{u_k}\leq5$, and
+$\sqrt\vartheta\leq1/(36n)\leq1/180<10/51$.  Hence
+\begin{equation*}
+ \frac1{d_{u_k}(1+c_\eta)}>\sqrt\vartheta,
+\end{equation*}
+which proves the strict gate inequality.
+
+If $i\neq\ell$, the length-zero and length-one terms between $f_\ell$ and
+$u_i$ vanish.  Using only the operator-norm bound on each remaining
+entry---not a spectral sign claim---gives
+\begin{equation*}
+ (M^{-1})_{u_if_\ell}
+ \leq\sum_{t=2}^{\infty}(3\vartheta)^t
+ =\frac{9\vartheta^2}{1-3\vartheta}.
+\end{equation*}
+Equation~\eqref{eq:notched-sun-frozen-response-entry} and
+$1/\sqrt{d_{u_i}}\leq1$ therefore give
+$h_i^{(\ell)}\leq9\vartheta^3/(1-3\vartheta)$.  Sum over
+$\ell\leq k$.  Because \cref{eq:notched-sun-scale-regime} implies
+$1-3\vartheta\geq1/2$ and
+$\sqrt\vartheta\leq1/(36n)$,
+\begin{equation*}
+ \frac{9k\vartheta^3}{1-3\vartheta}
+ \leq18n\sqrt\vartheta\,\vartheta^{5/2}
+ \leq\frac12\vartheta^{5/2},
+\end{equation*}
+proving \cref{eq:notched-sun-scale-future-tail}.  Positivity preserves every
+earlier crossing, so the unique delta at event $k$ is $w_k$.
+
+The verified template makes the two scalar inequalities uniform over exactly
+the stored future-label range.  Consequently an event counter plus the
+checked fragment label/amplitude is sufficient to instantiate both the delta
+and the universal future-safe certificate; no exterior response coordinate
+is queried.  In the signed case the two checked exact template multiples
+combine only after both stream inputs have been processed.  Counting the
+declared scans, scalar checks, retained structural cells, and streamed replies
+proves \cref{eq:notched-sun-scale-delta-eleven-vector} coordinate by
+coordinate.  The final exclusions follow from the reporter's promised
+template, event order, scale, and exact-real certificate.
+\end{proof}
+
+\begin{theorem}[The scale reporter is invariant under verified permutations]
+\label{thm:notched-sun-permutation-delta-reporter}
+Keep every graph, cut, ladder, scale, gate, band, logical-column, and stream
+hypothesis of \cref{thm:notched-sun-scale-delta-reporter}, but remove its
+prescribed event order.  At interaction $t$, let all streams declare one
+common label $\pi_t\in\{1,\ldots,n\}$ and supply the checked fragment on
+$f_{\pi_t}$ with exactly the same nonnegative unit or signed $2$-minus-$1$
+amplitudes as in that theorem.  Name the resulting online reporter
+\textsc{NotchedSunPermutationDelta}.  It accepts the interaction exactly
+when the declared petal belongs to the verified template, every stream uses
+that petal and its required amplitude, and
+\begin{equation}
+ \pi_t\notin\mathsf{Seen}_{t-1},
+ \qquad
+ \mathsf{Seen}_t:=\mathsf{Seen}_{t-1}\cup\{\pi_t\},
+ \qquad
+ \mathsf{Seen}_0:=\varnothing.
+ \label{eq:notched-sun-permutation-prefix}
+\end{equation}
+It rejects an invalid interaction before changing its state or emitting a
+record.  Thus every accepted length-$n$ trace is a permutation, verified
+online rather than promised in preprocessing.
+
+Write
+$y_q^{[t]}:=\sum_{s=1}^t h^{(\pi_s)}$ for each exact logical response, after
+the verified signed combination when applicable.  For every accepted prefix
+and every logical column $q$, the unique new delta at interaction $t$ is
+$(q,w_{\pi_t})$, and the reporter emits one universal certificate with the
+exact scalar payload
+\begin{equation}
+ y_{q,i}^{[t]}
+ \leq \frac{9t\vartheta^3}{1-3\vartheta}
+ \leq g-m
+ \qquad
+ \text{for every }i\notin\mathsf{Seen}_t.
+ \label{eq:notched-sun-permutation-certificate}
+\end{equation}
+Its persistent state is
+\begin{equation}
+ \mathsf{PState}_t
+ =(
+   \text{verified template and label map},\text{fixed ladder},t,
+   \mathsf{Seen}_t,\text{logical-column/sign metadata}),
+ \label{eq:notched-sun-permutation-state}
+\end{equation}
+with no response entry, cumulative response coordinate, or exterior slack
+cell.  A bit or dictionary entry for each template label implements
+$\mathsf{Seen}_t$ and is already linear in the validated template size.
+
+For $r$ nonnegative logical columns, $p=r$ and
+$\mathcal C_{\rm frag}^{\Sigma}=rn$.  For the separately checked signed
+$2$-minus-$1$ streams, $p=2r$ and
+$\mathcal C_{\rm frag}^{\Sigma}=2rn$.  Processing the $p$ records of one
+interaction sequentially and streaming the $r$ replies gives the complete
+epoch ledger
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,n,\Theta(n+J+p),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+rn+n),0,0,\\
+ &\Theta(n+J+p),O(1),0,\Theta(rn)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-permutation-eleven-vector}
+\end{equation}
+Control charges every fragment-coordinate read, cross-stream label and
+amplitude comparison, label-dictionary lookup, unused-bit test and update,
+scalar-tail comparison, membership change, and reply construction.  The
+extra permutation validation is $\Theta(pn+n)$ and is absorbed by the
+displayed fragment/control and persistent-state coordinates.  There is no
+response application, future-label scan, or numerical materialization.
+
+This GO relaxes exactly the prescribed common event order of
+\cref{thm:notched-sun-scale-delta-reporter}.  The face, exposed cut, label
+pairing, complete ladder, fixed $n$, explicit near-one scale, gate and band,
+one distinct unit logical fragment per petal, common cross-stream order, and
+exact-real model remain fixed.  It does not cover repeated petals, missing
+petals, different per-column orders, simultaneous fragment batches,
+arbitrary amplitudes or fragments, template mutation, RPPR chronology,
+fixed-$\alpha$ uniformity, a terminal solver, finite precision, or a general
+reporter lower or upper bound.
+\end{theorem}
+
+\begin{proof}
+The pointwise estimates in
+\cref{eq:notched-sun-scale-matching,eq:notched-sun-scale-future-tail} do not
+use the numerical order of the petal labels.  At accepted interaction $t$,
+entrywise positivity and the matching term give
+\begin{equation*}
+ y_{q,\pi_t}^{[t]}
+ =\sum_{s<t}h_{\pi_t}^{(\pi_s)}+h_{\pi_t}^{(\pi_t)}
+ \geq h_{\pi_t}^{(\pi_t)}>g.
+\end{equation*}
+If $i\notin\mathsf{Seen}_t$, then $i\neq\pi_s$ for every $s\leq t$.
+Consequently every summand is off-matching, and the same operator-norm tail
+used in \cref{thm:notched-sun-scale-delta-reporter} gives
+\begin{equation*}
+ y_{q,i}^{[t]}
+ =\sum_{s=1}^t h_i^{(\pi_s)}
+ \leq\frac{9t\vartheta^3}{1-3\vartheta}
+ \leq\frac12\vartheta^{5/2}=g-m.
+\end{equation*}
+Thus every unreported label was outside the band before the interaction,
+only $w_{\pi_t}$ crosses now, and
+\cref{eq:notched-sun-permutation-certificate} is available from the prefix
+length and verified complement.  At $t=n$ the complement is empty and the
+same certificate record is vacuously valid.
+
+In the signed mode, checking both declared fragments first makes their exact
+logical combination $2e_{f_{\pi_t}}-e_{f_{\pi_t}}=e_{f_{\pi_t}}$; no stream
+read is credited away.  An array or dictionary indexed by the already
+validated label map implements \cref{eq:notched-sun-permutation-prefix} with
+one lookup and update per interaction.  Adding those operations to the
+coordinate-by-coordinate ledger of
+\cref{eq:notched-sun-scale-delta-eleven-vector} proves
+\cref{eq:notched-sun-permutation-eleven-vector}; none of its asymptotic
+coordinates changes.  The rejection rule and final exclusions retain every
+other promised-template axis.
+\end{proof}
+
+\begin{theorem}[Verified bounded repetitions need no response state]
+\label{thm:notched-sun-multiplicity-delta-reporter}
+Keep every hypothesis of
+\cref{thm:notched-sun-permutation-delta-reporter} except the requirement that
+each petal occur exactly once and the resulting $n$-event scale bound.  Replace
+those two linked clauses by the following repetition contract and its exact
+tail scale.  Before the epoch, declare and validate an exact multiplicity
+vector
+\begin{equation}
+ \boldsymbol\mu=(\mu_1,\ldots,\mu_n)\in\mathbb N_{\geq1}^{n},
+ \qquad
+ L:=\sum_{i=1}^{n}\mu_i,
+ \qquad
+ H:=L-\min_i\mu_i.
+ \label{eq:notched-sun-multiplicity-contract}
+\end{equation}
+Thus $L$ is the authoritative total number of accepted interactions, while
+the entries $\mu_i$ are exact final multiplicities and online per-label caps.
+In particular, a standalone maximum multiplicity is not used as a surrogate
+for the total length.  Impose the exact scalar-envelope scale condition
+\begin{equation}
+ 0<\vartheta
+ \leq
+ \frac{1}{\bigl(\sqrt{81H^2+3}+9H\bigr)^2},
+ \quad\text{equivalently}\quad
+ 18H\sqrt\vartheta+3\vartheta\leq1.
+ \label{eq:notched-sun-multiplicity-scale}
+\end{equation}
+
+Name the reporter \textsc{NotchedSunMultiplicityDelta}.  At interaction $t$
+all streams must still name one common verified petal $\pi_t$ and carry the
+same checked nonnegative-unit or signed $2$-minus-$1$ amplitudes as before.
+With
+\begin{equation}
+ c_i(t):=\#\{s\leq t:\pi_s=i\},
+ \qquad
+ \mathsf{Seen}_t:=\{i:c_i(t)>0\},
+ \label{eq:notched-sun-multiplicity-prefix}
+\end{equation}
+the reporter accepts only if $t\leq L$ and
+$c_{\pi_t}(t-1)<\mu_{\pi_t}$.  It checks the interaction completely before
+incrementing the counter or emitting anything.  Hence invalid labels,
+cross-stream label or amplitude disagreements, exhausted multiplicities, and
+events after $L$ are rejected atomically.  Every accepted length-$L$ trace
+automatically satisfies $c_i(L)=\mu_i$ for all $i$, so it is a permutation of
+the declared multiset and no petal is missing.
+
+At the first occurrence of $j$, the reporter emits the unique new delta
+$(q,w_j)$ for every logical column $q$.  At a repeated occurrence it emits no
+delta: $w_j$ was already reported, and no unseen label crosses.  After every
+accepted interaction it emits one universal future-safe certificate per
+logical column.  If the unseen complement is nonempty, its exact scalar
+payload is
+\begin{equation}
+ y_{q,i}^{[t]}
+ \leq\frac{9t\vartheta^3}{1-3\vartheta}
+ \leq\frac{9H\vartheta^3}{1-3\vartheta}
+ \leq g-m
+ \qquad(i\notin\mathsf{Seen}_t).
+ \label{eq:notched-sun-multiplicity-certificate}
+\end{equation}
+If the complement is empty, the certificate instead records that verified
+fact and the scalar comparison is unnecessary.  Thus already-reported
+matching labels are never incorrectly subjected to the unseen-tail bound;
+their later matching repeats may only increase their exact responses.
+
+The persistent state is
+\begin{equation}
+ \mathsf{MState}_t
+ =\left(
+  \begin{gathered}
+   \text{verified template and label map},\text{fixed ladder},t,\\
+   \boldsymbol\mu,(c_i(t))_{i=1}^{n},
+   \text{logical-column/sign metadata}
+  \end{gathered}
+ \right),
+ \label{eq:notched-sun-multiplicity-state}
+\end{equation}
+where $\mathsf{Seen}_t$ is the predicate $c_i(t)>0$.  Replacing one seen bit
+by one exact-cell counter per template label does not change the linear state
+order.  No response entry, cumulative response coordinate, or slack cell is
+stored.
+
+For $r$ nonnegative logical columns, $p=r$ and every one of the $L$
+interactions supplies one coordinate in each stream.  For signed logical
+columns the positive and negative streams are separately read and checked,
+so $p=2r$.  Respectively,
+\begin{equation}
+ \mathcal C_{\rm frag}^{\Sigma}=pL=rL
+ \qquad\text{or}\qquad
+ \mathcal C_{\rm frag}^{\Sigma}=pL=2rL.
+ \label{eq:notched-sun-multiplicity-fragments}
+\end{equation}
+Streaming the $p$ records and $r$ replies gives the complete epoch ledger
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,L,\Theta(n+J+p),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+rL+n),0,0,\\
+ &\Theta(n+J+p),O(1),0,\Theta(rL)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-multiplicity-eleven-vector}
+\end{equation}
+Preprocessing charges validation and summation of all $n$ multiplicities.
+Control charges all fragment reads, cross-stream comparisons, total-event and
+per-label-cap tests, counter and seen-status updates, scalar comparisons,
+first-occurrence tests, and reply construction.  Emission consists of $rL$
+certificate records and exactly $rn$ delta records; since $L\geq n$, this is
+$\Theta(rL)$.  There is no response application, future-label scan, response
+state, slack materialization, or numerical materialization.
+
+This GO relaxes exactly the no-repetition axis.  The frozen face, cut, label
+pairing, complete ladder, fixed $n$, unit logical amplitudes, one common
+cross-stream schedule, exact declared multiset, explicit multiplicity-
+dependent near-one scale, and exact-real model remain promised.  It does not
+cover unbounded repetitions, omitted petals in a completed epoch, arbitrary
+amplitudes or fragments, batches, different per-column orders, template
+mutation, RPPR chronology, fixed-$\alpha$ uniformity as $L$ grows, a terminal
+solver, or coefficient-bit, word-RAM, rounding, or finite-precision costs.
+\end{theorem}
+
+\begin{proof}
+The Neumann matching and off-matching estimates in
+\cref{thm:notched-sun-scale-delta-reporter} are pointwise and tolerate
+repetition.  If $i\notin\mathsf{Seen}_t$, then every one of the first $t$
+events is off-matching for $i$.  Moreover the online caps imply
+\begin{equation*}
+ t=\sum_{j\ne i}c_j(t)
+ \leq\sum_{j\ne i}\mu_j
+ =L-\mu_i\leq H.
+\end{equation*}
+Summing the pointwise bound
+$h_i^{(j)}\leq9\vartheta^3/(1-3\vartheta)$ therefore gives the first two
+inequalities in
+\cref{eq:notched-sun-multiplicity-certificate}.  Writing
+$x=\sqrt\vartheta$, the last one is exactly
+\begin{equation*}
+ \frac{9H\vartheta^3}{1-3\vartheta}
+ \leq\frac12\vartheta^{5/2}
+ \quad\Longleftrightarrow\quad
+ 3x^2+18Hx\leq1.
+\end{equation*}
+The positive root is
+$x=(\sqrt{81H^2+3}+9H)^{-1}$, which proves that
+\cref{eq:notched-sun-multiplicity-scale} is the unrelaxed, and hence sharp,
+condition for this uniform scalar Neumann envelope.  This sharpness statement
+is about the displayed envelope, not a lower bound on every possible
+reporter.
+
+Because $n\geq5$ and every $\mu_i\geq1$, $H\geq4$.  The scale condition gives
+$\sqrt\vartheta<1/(18H)\leq1/72<10/51$.  Together with $d_{u_i}\leq5$ and
+$c_\eta<1/50$, the same length-one Neumann term as in
+\cref{eq:notched-sun-scale-matching} is strictly greater than
+$g=\vartheta^{5/2}$.  Immediately before the first occurrence of $j$, its
+response contains only off-matching terms and is at most $g-m$; adding the
+positive matching term puts it strictly above $g$.  Every other unseen label
+continues to satisfy
+\cref{eq:notched-sun-multiplicity-certificate}, so precisely $w_j$ is new.
+On a repeat, the matching label is already in $\mathsf{Seen}$ and all labels
+outside $\mathsf{Seen}$ still satisfy the same certificate, so no delta is
+new.  Once the complement is empty, the certificate is vacuous regardless of
+the remaining repeats.
+
+The signed streams again combine only after both exact fragments pass their
+common-label, amplitude, and multiplicity checks.  The count vector both
+implements seen membership and makes exhaustion atomic.  Finally, summing
+the declared template scan, ladder and multiplicity preprocessing, $pL$
+fragment reads, $rL$ certificates, $rn$ first-occurrence deltas, and
+linear-size persistent cells proves
+\cref{eq:notched-sun-multiplicity-eleven-vector} coordinate by coordinate.
+The state and scope claims follow directly from the named interface.
+\end{proof}
+
+\begin{theorem}[Declared positive amplitudes have a mass-capacity reporter]
+\label{thm:notched-sun-amplitude-delta-reporter}
+Keep the frozen face, exposed cut, label pairing, complete ladder, fixed
+$n\geq5$, gate $g=\vartheta^{5/2}$, exact-real model, and common
+cross-stream label order of
+\cref{thm:notched-sun-multiplicity-delta-reporter}.  Replace only its unit
+logical amplitudes, and consequently its unit-specific half-gate band and
+event-count scale, by the following declared common amplitude contract.
+For every label $i$, declare one occurrence-indexed schedule
+\begin{equation}
+ \mu_i\in\mathbb N_{\geq1},
+ \qquad
+ a_{i,1},\ldots,a_{i,\mu_i}\in\mathbb R_{>0},
+ \qquad
+ A_{i,k}:=\sum_{s=1}^{k}a_{i,s},
+ \qquad A_{i,0}:=0.
+ \label{eq:notched-sun-amplitude-schedule}
+\end{equation}
+The same schedule is used by every logical column.  Put
+\begin{equation}
+ L:=\sum_{i=1}^{n}\mu_i,
+ \qquad A_i:=A_{i,\mu_i},
+ \qquad \mathcal A:=\sum_{i=1}^{n}A_i.
+ \label{eq:notched-sun-amplitude-total-mass}
+\end{equation}
+Thus $L$ is the total event count, $A_i$ is the final logical mass on label
+$i$, and $\mathcal A$ is the total positive logical amplitude mass.  These
+are distinct from the exact-cell fragment count below.
+
+Assume $0<\vartheta<1/3$ and define the exact scalar matching coefficient,
+Neumann remainder envelope, and response-mass capacity
+\begin{equation}
+ \lambda_i:=\frac{\vartheta^2}{d_{u_i}(1+c_\eta)},
+ \qquad
+ \epsilon_\vartheta:=\frac{9\vartheta^3}{1-3\vartheta},
+ \qquad
+ \kappa_i:=\frac{g}{\lambda_i}
+ =d_{u_i}(1+c_\eta)\sqrt\vartheta.
+ \label{eq:notched-sun-amplitude-capacity}
+\end{equation}
+The first \emph{certified} occurrence index is
+\begin{equation}
+ k_i^*:=\min\{k\in\{1,\ldots,\mu_i\}:A_{i,k}>\kappa_i\}.
+ \label{eq:notched-sun-amplitude-crossing-index}
+\end{equation}
+Require this set to be nonempty for every $i$.  Do not identify $k_i^*$ with
+one: small first amplitudes are legal.  Define its positive pre-crossing mass
+gap, and the maximum event count and logical mass that can have arrived while
+label $i$ is still unreported, by
+\begin{align}
+ \gamma_i
+ &:=\kappa_i-A_{i,k_i^*-1}>0,
+ \label{eq:notched-sun-amplitude-capacity-gap}\\
+ H_i
+ &:=L-\mu_i+k_i^*-1,
+ &
+ F_i
+ &:=\mathcal A-A_i+A_{i,k_i^*-1}.
+ \label{eq:notched-sun-amplitude-future-capacities}
+\end{align}
+Finally impose the exact schedule-dependent scale/certificate test
+\begin{equation}
+ m_{\mathcal A}
+ :=\min_{1\leq i\leq n}
+   \{\lambda_i\gamma_i-\epsilon_\vartheta F_i\}>0.
+ \label{eq:notched-sun-amplitude-margin}
+\end{equation}
+It automatically gives $0<m_{\mathcal A}<g$, so use
+$[g-m_{\mathcal A},g]$ as the declared transition band.  For every fixed
+finite positive schedule, all of
+\cref{eq:notched-sun-amplitude-crossing-index,eq:notched-sun-amplitude-margin}
+hold for all sufficiently small positive $\vartheta$: then $k_i^*=1$,
+$\lambda_i\gamma_i=g$, and
+$\epsilon_\vartheta F_i/g\to0$.  The theorem also covers validated scales at
+which some $k_i^*>1$.
+
+Name the resulting reporter \textsc{NotchedSunAmplitudeDelta}.  At
+interaction $t$, all streams first name one common verified label $\pi_t$.
+If $c_i(t-1)$ is the number of earlier accepted occurrences of $i$, the
+required logical amplitude is
+\begin{equation}
+ a_t:=a_{\pi_t,c_{\pi_t}(t-1)+1}.
+ \label{eq:notched-sun-amplitude-event}
+\end{equation}
+The reporter atomically checks the common label, the exact required stream
+amplitudes, the per-label cap $c_{\pi_t}(t-1)<\mu_{\pi_t}$, and the total
+cap $t\leq L$ before changing state.  Let
+\begin{equation}
+ S_i(t):=A_{i,c_i(t)},
+ \qquad
+ \mathcal A(t):=\sum_{i=1}^{n}S_i(t)=\sum_{s=1}^{t}a_s,
+ \qquad
+ \mathsf{Reported}_t:=\{i:c_i(t)\geq k_i^*\}.
+ \label{eq:notched-sun-amplitude-prefix-state}
+\end{equation}
+Every accepted length-$L$ trace has $c_i(L)=\mu_i$ for every $i$, because
+the counts are capped coordinatewise and their sum is $L=\sum_i\mu_i$.
+Unseen labels have $c_i(t)=0$; seen but unreported labels have
+$0<c_i(t)<k_i^*$; later occurrences of a reported label have
+$c_i(t)>k_i^*$.  These three cases are not conflated.
+
+For each logical column $q$, let the exact combined logical response be
+\begin{equation*}
+ y_q^{[t]}:=\sum_{s=1}^{t}a_sh^{(\pi_s)}.
+\end{equation*}
+If interaction $t$ changes $c_j$ from $k_j^*-1$ to $k_j^*$, the reporter
+emits the single new delta $(q,w_j)$.  At every other occurrence it emits no
+delta.  After every accepted interaction it also emits one universal
+certificate per logical column asserting
+\begin{equation}
+ y_{q,i}^{[t]}\leq g-m_{\mathcal A}
+ \qquad(i\notin\mathsf{Reported}_t).
+ \label{eq:notched-sun-amplitude-certificate}
+\end{equation}
+The certificate remains valid simultaneously for unseen and seen-but-
+unreported labels and already accounts for the largest possible future mass
+from every other label.  If every label has been reported, it records the
+verified empty complement.  Consequently the event at which count $k_i^*$
+arrives is both the first certified crossing and the first exact strict
+crossing of $g$ by label $i$, for every accepted interleaving of the declared
+occurrence schedules.
+
+The reporter retains one common copy of the declared schedules or their
+prefix arrays.  Before the epoch it reads every one of the $L$ exact
+amplitude cells, verifies positivity and the multiplicities, constructs all
+prefix sums, and rejects unless the capacities, crossing indices, horizons,
+and margin above pass.  Its persistent state is
+\begin{equation}
+ \mathsf{AState}_t=\left(
+ \begin{gathered}
+  \text{verified template and label map},\text{fixed ladder},t,\mathcal A(t),\\
+  (\mu_i),(A_{i,k}),(k_i^*),(c_i(t)),
+  \text{logical-column/sign metadata}
+ \end{gathered}
+ \right).
+ \label{eq:notched-sun-amplitude-reporter-state}
+\end{equation}
+Reported membership is the count comparison in
+\cref{eq:notched-sun-amplitude-prefix-state}.  No response coordinate,
+cumulative response coordinate, exterior slack, or future-label scan is
+stored or performed.
+
+For $r$ nonnegative logical columns, event $t$ supplies
+$a_te_{f_{\pi_t}}$ in each of the $p=r$ streams.  For the existing signed
+$2$-minus-$1$ interface, each logical column supplies
+$2a_te_{f_{\pi_t}}$ and $a_te_{f_{\pi_t}}$ in separately checked positive
+and negative streams, so $p=2r$ and their exact logical difference is again
+$a_te_{f_{\pi_t}}$.  Hence the exact-cell counts and total absolute supplied
+coefficient masses are respectively
+\begin{align}
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=pL=rL,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}&=r\mathcal A,
+ &&\text{nonnegative},
+ \notag\\
+ \mathcal C_{\rm frag}^{\Sigma}
+ &=pL=2rL,
+ &
+ \mathcal A_{\rm frag}^{\Sigma}&=3r\mathcal A,
+ &&\text{signed $2$-minus-$1$}.
+ \label{eq:notched-sun-amplitude-fragments}
+\end{align}
+No cancellation is credited before both signed fragments are read and
+checked.
+
+Preprocess the $L$ amplitude cells and their prefixes once, process the $p$
+stream records sequentially, and stream the $r$ replies.  The complete epoch
+vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(n),2,L,\Theta(n+J+p+L),
+ \Theta(\mathcal C_{\rm frag}^{\Sigma}+rL+L+n),0,0,\\
+ &\Theta(n+J+p+L),O(1),0,\Theta(rL)\bigr).
+ \end{aligned}
+ \label{eq:notched-sun-amplitude-eleven-vector}
+\end{equation}
+The $\Theta(rL)$ emission contains one certificate per column and event plus
+exactly $rn$ delta records.  Control charges every fragment read, exact
+amplitude and cross-stream comparison, count/capacity update, first-crossing
+test, membership change, and reply construction.  There is no factor
+application, numerical recurrence, response-state write, or numerical
+materialization.
+
+This GO relaxes the unit-logical-amplitude clause to a finite declared
+positive common occurrence schedule and recalibrates only the scale-derived
+band needed by that relaxation.  It keeps the frozen face, cut, ladder,
+pairing, fixed $n$, common cross-stream label interleaving, exact
+multiplicities, complete label coverage, and exact-real arithmetic.  It does
+not cover undeclared or unbounded amplitude mass, arbitrary signed logical
+amplitudes beyond the checked $2$-minus-$1$ encoding, different per-column
+schedules, batches, arbitrary fragment support, template mutation, RPPR
+chronology, fixed-$\alpha$ uniformity, a terminal solver, or coefficient-bit,
+word-RAM, rounding, or finite-precision costs.  Failure of
+\cref{eq:notched-sun-amplitude-margin} only rejects this scalar-envelope
+certificate; it is not a lower bound requiring a response query.
+\end{theorem}
+
+\begin{proof}
+The entrywise nonnegative Neumann series in
+\cref{eq:notched-sun-scale-neumann-series} is valid when
+$0<\vartheta<1/3$.  For a matching pair $(u_i,f_i)$, its length-one term and
+the norm bound on all later terms give
+\begin{equation}
+ \lambda_i\leq h_i^{(i)}\leq\lambda_i+\epsilon_\vartheta.
+ \label{eq:notched-sun-amplitude-pointwise-matching}
+\end{equation}
+For $j\ne i$, the length-zero and length-one terms vanish, so
+\begin{equation}
+ 0<h_i^{(j)}\leq\epsilon_\vartheta.
+ \label{eq:notched-sun-amplitude-pointwise-off}
+\end{equation}
+Linearity and positivity therefore imply, at every accepted prefix,
+\begin{equation}
+ \lambda_iS_i(t)
+ \leq y_{q,i}^{[t]}
+ \leq \lambda_iS_i(t)+\epsilon_\vartheta\mathcal A(t).
+ \label{eq:notched-sun-amplitude-prefix-envelope}
+\end{equation}
+
+If $i\notin\mathsf{Reported}_t$, then $c_i(t)\leq k_i^*-1$.  Positivity of
+the schedule and the other per-label caps give, without any assumption on
+the interleaving,
+\begin{equation*}
+ S_i(t)\leq A_{i,k_i^*-1}=\kappa_i-\gamma_i,
+ \qquad
+ t\leq H_i,
+ \qquad
+ \mathcal A(t)\leq F_i.
+\end{equation*}
+Substitute these bounds into
+\cref{eq:notched-sun-amplitude-prefix-envelope}:
+\begin{equation*}
+ y_{q,i}^{[t]}
+ \leq\lambda_i(\kappa_i-\gamma_i)
+      +\epsilon_\vartheta F_i
+ =g-(\lambda_i\gamma_i-\epsilon_\vartheta F_i)
+ \leq g-m_{\mathcal A}.
+\end{equation*}
+This proves the universal certificate for unseen and seen-but-unreported
+labels, including all mass that may already have arrived from future events
+in other label schedules.
+
+When the $k_i^*$th occurrence of $i$ is accepted,
+$S_i(t)=A_{i,k_i^*}>\kappa_i$.  The lower half of
+\cref{eq:notched-sun-amplitude-prefix-envelope} gives
+\begin{equation*}
+ y_{q,i}^{[t]}>\lambda_i\kappa_i=g.
+\end{equation*}
+Immediately before that event, the same bound puts the label at most
+$g-m_{\mathcal A}$; for a first interaction this is simply the initialized
+zero response.  Thus no small earlier occurrence or
+off-matching future mass caused an unreported crossing, and precisely this
+event is its first exact and certified crossing.  Other unreported labels
+continue to satisfy the certificate.  Once a label is reported, positivity
+may increase it further but creates no second delta.
+
+All quantities on the right side of the certificate are computed by one
+preprocessing pass over the declared schedules.  Online operation needs only
+the current label's count, next amplitude, and the global prefix mass; the
+proof, not an online scan, quantifies over the complement.  The signed
+streams combine to the same positive logical increment only after their
+separate exact checks.  Summing the structural scan, ladder, schedule cells,
+fragment records, constant-cell count updates, certificates, and deltas
+proves \cref{eq:notched-sun-amplitude-eleven-vector} coordinate by
+coordinate.  The state and exclusions follow from the named interface.
+\end{proof}

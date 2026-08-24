@@ -3,7 +3,9 @@
 MAIN ?= main
 LATEXMK ?= latexmk
 LATEXMKFLAGS ?= -pdf -interaction=nonstopmode -halt-on-error -file-line-error
-SOURCES := $(MAIN).tex $(wildcard sections/*.tex) $(wildcard *.bib) \
+SOURCES := $(MAIN).tex \
+           $(wildcard sections/*.tex sections/*/*.tex) \
+           $(wildcard *.bib) \
            $(wildcard ../../tex/shared/*.tex)
 
 .PHONY: all pdf clean distclean

@@ -1,0 +1,162 @@
+\subsection{A weaker exact-algebraic materialization analogue}
+\label{sec:online-path-separation}
+
+The following auxiliary theorem isolates one representation restriction.  It
+does not close a version of \cref{prob:separation}.  Fix $0<\alpha<1$ and an
+endpoint-seeded unweighted path $P_K=(v_1,\ldots,v_K)$.  Degrees are the fixed
+ambient degrees in $P_K$, $S_k:=\{v_1,\ldots,v_k\}$, and
+\begin{equation}
+ T_k:=Q_{S_kS_k},\qquad
+ h^{(k)}:=b_{S_k},\qquad
+ z^{(k)}:=T_k^{-1}h^{(k)}.
+ \label{eq:online-prefix-system}
+\end{equation}
+At interaction stage $k$, the solver obtains the next path coefficients
+through adjacency access and must emit the exact boundary scalar
+$z_k^{(k)}$.  An external controller requests the next stage only after that
+reply and may stop at a realized time
+\[
+ \tau_{\rm stop}\in\{1,\ldots,K\}.
+\]
+On stopping, the solver emits the complete current vector
+$z^{(\tau_{\rm stop})}$.  This protocol imposes
+$R_{\rm int}=\tau_{\rm stop}$.  It neither forbids graph prefetching nor proves
+a lower bound on $R_{\rm adj}$; those are separate ledger coordinates.
+
+This subsection uses unit-cost exact real-RAM, equivalently exact
+algebraic-cell, arithmetic.  An exact coordinate occupies one algebraic cell
+and every arithmetic operation or cell read/write is charged once.  The
+theorem below is not a word-RAM or bit-complexity result and supplies no
+finite-precision or precision-robust separation.
+
+Call a representation \emph{exact materialized} if, after every boundary
+reply, it retains a distinct coordinate-addressed current algebraic cell equal
+to $z_i^{(k)}$ for every $i\leq k$.  In-place updates are allowed.  A
+stage-indexed table prepared
+early does not evade the definition: its explicit stage--coordinate cells are
+charged to $C_{\rm mat}$ when written, while the arithmetic used to prepare
+them is also reported in $C_{\rm pre}$.
+
+\begin{theorem}[Stopping-time path materialization analogue; \ProvedStatus]
+\label{thm:online-path-resource-separation}
+For every realized stopping time $\tau_{\rm stop}\leq K$ in the task
+\cref{eq:online-prefix-system}:
+\begin{enumerate}[label=(\roman*)]
+\item every exact-materialized implementation performs at least
+      \begin{equation}
+       C_{\rm mat}\geq
+       \frac{\tau_{\rm stop}(\tau_{\rm stop}+1)}2
+       =\Omega(\tau_{\rm stop}^2)
+       \label{eq:path-materialization-lower}
+      \end{equation}
+      necessary algebraic-cell writes;
+\item this materialization-coordinate bound is tight: once each exact prefix
+      solution has been computed, directly writing its current cells uses
+      $C_{\rm mat}=O(\tau_{\rm stop}^2)$.  No bound on that implementation's
+      other resource coordinates is asserted;
+\item one specified non-prefetching append-only tridiagonal response returns
+      the same exact boundary replies and stopping-time vector with
+      \begin{equation}
+       \begin{aligned}
+       (&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+         C_{\rm rec})\\
+         &\hspace{2em}=(\Theta(\tau_{\rm stop}),\tau_{\rm stop},
+             \tau_{\rm stop},0,\Theta(\tau_{\rm stop}),0),\\
+       (&C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+         &\hspace{2em}=(\Theta(\tau_{\rm stop}),\Theta(\tau_{\rm stop}),
+             O(1),0,\Theta(\tau_{\rm stop})).
+       \end{aligned}
+       \label{eq:path-response-resource-vector}
+      \end{equation}
+\end{enumerate}
+The worst allowed stopping time is $\tau_{\rm stop}=K$.  The theorem isolates
+only intermediate exact materialization.  It proves no
+$1/\sqrt\alpha$ row-recurrence lower bound, no precision-robust separation,
+and no lower bound for an implicit tree or path response.
+\end{theorem}
+
+\begin{proof}
+Every $T_k$ is an irreducible positive-definite Stieltjes tridiagonal matrix.
+Write the next bordered system as
+\[
+ T_{k+1}=
+ \begin{bmatrix}T_k&c_ke_k\\c_ke_k^\top&a_{k+1}\end{bmatrix},
+ \qquad c_k<0,
+ \qquad h^{(k+1)}=\begin{bmatrix}h^{(k)}\\0\end{bmatrix}.
+\]
+The inverse of $T_k$ is entrywise positive, and the positive load at $v_1$
+implies $z_{k+1}^{(k+1)}>0$.  The first block row gives
+\begin{equation}
+ z_{1:k}^{(k+1)}
+ =z^{(k)}-c_k z_{k+1}^{(k+1)}T_k^{-1}e_k
+ >z^{(k)}
+ \quad\hbox{coordinatewise}.
+ \label{eq:every-old-path-coordinate-changes}
+\end{equation}
+Thus all $k$ old materialized values change and one new value is added at
+stage $k+1$.  An in-place representation must rewrite all of them.  A
+precomputed stage-indexed representation instead stores a distinct explicit
+cell for every stage--coordinate pair.  In either case, summing through the
+realized stopping time gives \cref{eq:path-materialization-lower}.  Conversely,
+writing one length-$k$ exact array at each completed stage uses the matching
+number of materialization writes.  This upper statement concerns
+$C_{\rm mat}$ only.
+
+For the response implementation, factor the nested tridiagonal matrices as
+$T_k=L_k\Delta_kL_k^\top$.  Put
+\[
+ \delta_1=(T_1)_{11},\qquad u_1=h_1,
+\]
+and, when row $k$ is appended, compute
+\begin{equation}
+ \ell_{k-1}:=\frac{(T_k)_{k,k-1}}{\delta_{k-1}},\qquad
+ \delta_k:=(T_k)_{kk}
+             -\frac{(T_k)_{k,k-1}^2}{\delta_{k-1}},\qquad
+ u_k:=h_k-\ell_{k-1}u_{k-1}.
+ \label{eq:append-only-ldl-messages}
+\end{equation}
+These are respectively the new elimination multiplier, Schur pivot, and
+forward-substitution message.  If $w_i:=u_i/\delta_i$, then the last equation
+of $L_k^\top z^{(k)}=w$ computes the response-query value
+$z_k^{(k)}=w_k$; writing that scalar is charged separately to
+$C_{\rm emit}$.  At the stopping time, one reverse response application
+\begin{equation}
+ z_{\tau_{\rm stop}}=w_{\tau_{\rm stop}},\qquad
+ z_i=w_i-\ell_i z_{i+1}
+ \quad(i=\tau_{\rm stop}-1,\ldots,1)
+ \label{eq:single-final-path-materialization}
+\end{equation}
+computes the complete vector, whose cell writes are final emissions rather
+than intermediate materialization.
+
+The specified implementation deliberately queries only the next path
+incidence at each interaction stage.  It therefore uses
+$C_{\rm adj}=\Theta(\tau_{\rm stop})$ and
+$R_{\rm adj}=\tau_{\rm stop}$, but these are its actual costs, not
+adaptivity lower bounds for the task.  Exact factor/message updates, boundary
+query computations, and the one reverse application use
+$C_{\rm resp}=\Theta(\tau_{\rm stop})$.  Loop, adjacency-orchestration, and
+reply bookkeeping use $C_{\rm ctl}=\Theta(\tau_{\rm stop})$; no vector
+row-recurrence is invoked.  Stored factors/messages take
+$M_{\rm pers}=\Theta(\tau_{\rm stop})$ cells and the update/reverse sweep needs
+only $M_{\rm tmp}=O(1)$ additional cells when final values are streamed.
+There are $\tau_{\rm stop}$ scalar replies and $\tau_{\rm stop}$ final vector
+cells, so $C_{\rm emit}=\Theta(\tau_{\rm stop})$.
+\end{proof}
+
+Although \cref{eq:append-only-ldl-messages} is syntactically a scalar
+recurrence, it is response state in the semantic ledger: the pivots and
+multipliers persistently encode the Schur response and later apply the inverse
+in \cref{eq:single-final-path-materialization}.  Calling every scalar update a
+row recurrence would erase the capability the model is intended to measure.
+
+\paragraph{Independent memory/rank stress test.}
+The companion \texttt{response\_preconditioned\_hybrid} note proves, in its
+Proposition \emph{A comb tree obstructs a universal low-rank bank}, that a
+linear-volume comb has full anchor--boundary cut rank $n$, a dense harmonic
+bank, and energy-operator error at least
+$(1-\alpha)/(2\sqrt3)$ for every rank-below-$n$ bank.  Explicitly storing the
+full bank takes $\Theta(n^2)$ nonzero values.  The same proposition explicitly
+does \emph{not} lower-bound an implicit tree recurrence.  This is a
+memory/rank representation obstruction: it forbids a universal low-rank bank,
+not all response algorithms and not all local solvers.

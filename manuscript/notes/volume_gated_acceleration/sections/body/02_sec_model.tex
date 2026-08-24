@@ -1,0 +1,61 @@
+\section{PageRank and RPPR as a Stieltjes quadratic}
+\label{sec:model}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\paragraph{Note specialization.}
+This note additionally assumes that \(G\) is connected and
+\(0<\alpha<1\). The shared matrix \(Q\) is then a symmetric nonsingular
+Stieltjes matrix:
+\begin{equation}
+  \alpha I\preceq Q\preceq I,
+  \qquad Q_{ij}\leq0\ (i\neq j),
+  \qquad Q^{-1}\geq0,
+  \qquad QD^{1/2}\one=\alpha D^{1/2}\one.
+  \label{eq:Q-properties}
+\end{equation}
+The shared unregularized point \(x^0\) is nonnegative. The last identity in
+\cref{eq:Q-properties} gives
+\begin{equation}
+  \one^\top\pi=1.
+  \label{eq:ppr-mass}
+\end{equation}
+It is useful to expose the one-sided obstacle structure of the shared RPPR
+objective in \cref{eq:shared-rppr-objective}.
+
+\begin{lemma}[Equivalent nonnegative quadratic program]
+\label{lem:nonnegative-equivalence}
+The unique minimizer \(x^\star(\rho)\), abbreviated here by
+\(x_\rho^\star\), is nonnegative and is
+equivalently the unique minimizer of
+\begin{equation}
+  \min_{x\geq0}G_\rho(x),
+  \qquad
+  G_\rho(x):=\frac12x^\top Qx-c_\rho^\top x,
+  \qquad
+  c_\rho:=b-\alpha\rho D^{1/2}\one.
+  \label{eq:obstacle-QP}
+\end{equation}
+It satisfies the complementarity system
+\begin{equation}
+ x_\rho^\star\geq0,
+ \qquad
+ \kappa_\rho(x_\rho^\star):=Qx_\rho^\star-c_\rho\geq0,
+ \qquad
+ x_{\rho,i}^\star \kappa_{\rho,i}(x_\rho^\star)=0.
+ \label{eq:KKT}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Because the off-diagonal entries of $Q$ are nonpositive,
+$\abs{x}^\top Q\abs{x}\leq x^\top Qx$.  Moreover
+$b^\top\abs{x}\geq b^\top x$ and the weighted $\ell_1$ term is unchanged.
+Thus $F_\rho(\abs{x})\leq F_\rho(x)$.  Strong convexity makes the minimizer
+unique, hence nonnegative.  On the nonnegative orthant the weighted
+$\ell_1$ term is linear, giving \cref{eq:obstacle-QP};
+\cref{eq:KKT} is its KKT system.
+\end{proof}
+
+For a vector $v$, write $(v_-)_i:=\max\{-v_i,0\}$.  All componentwise
+inequalities below use the ordinary coordinate order.

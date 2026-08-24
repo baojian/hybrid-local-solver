@@ -1,0 +1,182 @@
+\subsection{Budget, task, and candidate family}
+
+For an endpoint-seeded path $P_n$ with $n\geq2$, let
+\[
+ S_{\rm fin}=V(P_n),
+ \qquad
+ \nu_n:=\vol(S_{\rm fin})=2(n-1).
+\]
+Fix the exact-algebraic budget
+\begin{equation}
+ \mathcal B_n:=
+ (B_{\rm pre},B_{\rm resp},B_{\rm mem})
+ :=
+ \left(0,\left\lfloor\sqrt{\nu_n}\right\rfloor,32\nu_n\right),
+ \label{eq:concrete-rowrec-budget}
+\end{equation}
+and consider
+$\mathsf{RowRec}[\mathcal B_n]$ with the following allowed actions:
+
+\begin{itemize}
+\item exact applications of exposed rows of $Q_n$, scalar linear
+      combinations, inner products, conjugate directions, momentum, restarts,
+      and fixed diagonal maps;
+\item graph-dependent response or preconditioner construction, application,
+      and query computation only within the total
+      $B_{\rm resp}=\lfloor\sqrt{\nu_n}\rfloor$ charge;
+\item persistent plus transient graph-dependent state at most $32\nu_n$
+      algebraic cells;
+\item no graph-dependent preprocessing before the seeded online execution.
+\end{itemize}
+
+The common task is stronger than approximate PPR: starting from the endpoint
+seed, expose the path, then emit the complete exact source-aligned solution
+\begin{equation}
+ x_n^0:=Q_n^{-1}b_n
+ \label{eq:path-exact-output-task}
+\end{equation}
+as $\Theta(n)$ labeled algebraic cells.  There is one solve/output interaction after
+exposure.  Exact output satisfies every positive value of the note-scoped
+$\epsppr$, but this section makes no word-RAM, bit-complexity, or
+finite-precision claim.
+
+The path initially looks like a candidate separation.  A fully charged
+append-only tridiagonal response solves
+\cref{eq:path-exact-output-task} in $\Theta(\nu_n)$ exact-cell work, whereas a
+condition-number argument puts the
+$\nu_n/\sqrt\alpha$ recurrent scale in view.  That scale cannot be a uniform
+lower bound because the recurrent space has finite dimension.
+
+\begin{lemma}[Finite-dimensional exact Krylov cap; \ProvedStatus]
+\label{lem:finite-krylov-cap}
+Let $T\succ0$ be an exposed $m$-dimensional system whose matrix--vector product
+cost is $O(\nu)$ and whose stored representation uses $O(\nu)$ cells, with
+$m\leq\nu$.  Exact unpreconditioned conjugate gradients from zero returns
+$T^{-1}h$ after at most $m$ matrix--vector products.  It uses no
+graph-dependent preprocessing or response object and has
+\begin{equation}
+ C_{\rm rec}=O(m\nu),\qquad
+ C_{\rm ctl}=O(m),\qquad
+ C_{\rm mat}=O(m^2),\qquad
+ M_{\rm pers}=O(\nu),\qquad M_{\rm tmp}=O(\nu).
+ \label{eq:finite-krylov-resource-cap}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $\lambda_1,\ldots,\lambda_s$ be the distinct eigenvalues of $T$ that have
+nonzero spectral weight in $h$, so $s\leq m$.  Interpolation supplies a
+polynomial $q$ of degree at most $s-1$ with
+$q(\lambda_j)=1/\lambda_j$ for every such eigenvalue.  Hence
+\[
+ T^{-1}h=q(T)h\in\mathcal K_s(T,h).
+\]
+In exact arithmetic, conjugate gradients minimizes the $T$-energy error over
+this Krylov affine space and therefore reaches zero error by iteration
+$s\leq m$.
+
+Each iteration performs one matrix--vector product and $O(m)$ scalar/vector
+work, all charged to the recurrence coordinate because it generates the next
+Krylov direction.  Thus $C_{\rm rec}=O(m\nu)$; loop and stopping bookkeeping
+use $C_{\rm ctl}=O(m)$.
+Writing the current full iterate at most once per iteration gives
+$C_{\rm mat}=O(m^2)$.  A stored sparse matrix, a constant number of persistent
+Krylov vectors, and one temporary product vector give
+$M_{\rm pers}=O(\nu)$ and $M_{\rm tmp}=O(\nu)$.  No
+factor, Schur map, inverse, or graph-dependent preconditioner is constructed
+or applied, so $C_{\rm pre}=C_{\rm resp}=0$.
+\end{proof}
+
+\begin{theorem}[The small-dimension path defeats the uniform product
+candidate; \ProvedStatus]
+\label{thm:path-krylov-counteralgorithm}
+Run the common task \cref{eq:path-exact-output-task} under
+$\mathsf{RowRec}[\mathcal B_n]$ with
+\begin{equation}
+ \alpha_n:=n^{-4}.
+ \label{eq:krylov-counter-alpha}
+\end{equation}
+Then exact unpreconditioned conjugate gradients is an admissible algorithm
+with total charged nonmemory work
+$O(n\nu_n)=O(n^2)$, $C_{\rm resp}=0$, and memory below $32\nu_n$.
+Nevertheless,
+\begin{equation}
+ \frac{\nu_n}{\sqrt{\alpha_n}}=\Theta(n^3).
+ \label{eq:krylov-product-contradiction}
+\end{equation}
+Thus the endpoint-path family cannot establish a uniform-in-$(n,\alpha)$
+$\widetilde\Omega(\nu_{\rm fin}/\sqrt\alpha)$ lower bound for this budgeted
+class.  On the identical path task, a fully charged response algorithm uses
+$\Theta(\nu_n)$ work.
+\end{theorem}
+
+\begin{proof}
+The path matrix $Q_n$ is SPD and tridiagonal.  The path-exposure phase is part
+of the seeded execution, not preprocessing.  Store its exposed diagonal and
+subdiagonal and run the algorithm of \cref{lem:finite-krylov-cap} with
+$m=n$ and $\nu=\nu_n=\Theta(n)$.  Store the iterate, residual, and direction
+persistently, and one product vector transiently.  Including scalar state,
+this uses at most $7n$ algebraic cells, which is below $32\nu_n$ for $n\geq2$.
+It uses the identity preconditioner, so its
+positive response allowance is unused and
+$C_{\rm resp}=0\leq\lfloor\sqrt{\nu_n}\rfloor$.
+
+Both the recurrent and response implementations expose the same path from the
+endpoint.  The sequential exposure used by these two implementations has
+$C_{\rm adj}=\Theta(\nu_n)$ and $R_{\rm adj}=n$; the latter is an actual
+implementation cost rather than a lower bound on prefetching.  Both have
+$R_{\rm int}=1$ and emit the same $\Theta(n)$ labeled solution cells.  In the coordinate
+order of \cref{eq:resource-vector}, the conjugate-gradient implementation has
+\begin{equation}
+ \mathcal C_{\rm CG}=\bigl(
+ \Theta(\nu_n),n,1,0,O(n),O(n\nu_n),0,
+ O(\nu_n),O(\nu_n),O(n^2),\Theta(n)\bigr).
+ \label{eq:path-cg-resource-vector}
+\end{equation}
+Here the two memory coordinates jointly obey the explicit $32\nu_n$ bound;
+the displayed asymptotic bounds do not replace the preceding cell count.
+
+For the response comparator, build the tridiagonal $LDL^\top$ factors after
+exposure and charge every pivot, message, reverse application, and emitted
+cell.  Its exhaustive vector is
+\begin{equation}
+ \mathcal C_{\rm LDL}=\bigl(
+ \Theta(\nu_n),n,1,0,\Theta(\nu_n),0,\Theta(\nu_n),
+ \Theta(\nu_n),O(1),0,\Theta(n)\bigr).
+ \label{eq:path-ldl-resource-vector}
+\end{equation}
+No inverse construction or application is hidden.  This fully charged
+response comparator is the other arm of the same task; it is not asserted to
+fit the row-recurrence response budget $B_{\rm resp}$.  Finally,
+$\sqrt{\alpha_n}=n^{-2}$ gives
+\cref{eq:krylov-product-contradiction}.  Since
+$n^2=o(n^3/\log^c n)$ for every fixed $c$, the contradiction also survives
+the usual polylogarithmic slack in $\widetilde\Omega$.
+\end{proof}
+
+\paragraph{What the stress tests actually show.}
+The counteralgorithm already uses the strongest standard Krylov action allowed
+by the budget.  Momentum and restart only enlarge the class and cannot restore
+a lower bound contradicted by one admissible member.  The diagonal of $Q_n$ is
+the scalar $(1+\alpha_n)/2$, so Jacobi scaling is a scalar rescaling and leaves
+the Krylov spaces unchanged.  The positive response/preconditioner budget in
+\cref{eq:concrete-rowrec-budget} is also harmless to the counterexample:
+conjugate gradients uses none of it, while any permitted extra action only
+enlarges the algorithm class.  This logical defeat does not claim a separate
+lower bound on what those budgeted response actions can accomplish.
+
+For a fully exposed, fixed-support exact SPD task with
+$O(\nu)$ representation and matrix--vector cost and enough memory for a
+constant number of full vectors, the reusable narrowing is
+\begin{equation}
+ \text{a product-scale exact-algebraic lower bound requires}\qquad
+ n=\widetilde\Omega(1/\sqrt\alpha).
+ \label{eq:krylov-required-dimension}
+\end{equation}
+The iteration factor of a class containing exact conjugate gradients cannot
+be forced above $n$ on such an $n$-dimensional exact SPD task without an
+additional restriction.  This does not impose a dimension condition on an
+approximate local task whose relevant fixed system is not exposed within its
+final-active-volume budget.
+Condition \cref{eq:krylov-required-dimension} is necessary, not sufficient:
+the note still has no recurrence lower bound in that regime.

@@ -1,0 +1,171 @@
+\section{Scope and claim status}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+This note uses two note-scoped loads.  The unregularized problem has
+$\ell=b$.  For RPPR, positivity turns the active KKT equations into a shifted
+linear system with
+\begin{equation}
+ \ell_\rho:=b-\alpha\rho D^{1/2}\one.
+ \label{eq:shifted-load}
+\end{equation}
+No conversion between $\rho$ and $\epsppr$ is asserted.  The repository-wide
+residual convention remains open.  All residual displays in this note state
+their sign explicitly.
+
+The empirical benchmark charges $1+d_u$ per executed row operation, whereas
+the shared theoretical convention charges $d_u$ per adjacency scan.  Define
+\begin{equation}
+ \operatorname{cvol}(U):=\sum_{u\in U}(1+d_u).
+ \label{eq:charged-volume}
+\end{equation}
+Because the graph has no isolated vertices,
+\begin{equation}
+ \vol(U)\leq\operatorname{cvol}(U)\leq2\vol(U).
+ \label{eq:charged-volume-equivalence}
+\end{equation}
+Thus the two work units agree up to an absolute factor, while
+$\operatorname{cvol}$ makes the empirical mapping literal.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statusproved & Exact Dirichlet settlement is an affine idempotent map.
+For nested regions its maps satisfy a two-sided absorption law. \\
+\statusproved & Any propagation trajectory supported inside the next settled
+region is erased by settlement.  Exactly settled iterates depend only on the
+nested region sequence and fixed outside coordinates. \\
+\statusproved & The objective defect of an inexact delivery phase is exactly
+$e_U^TQ_{UU}^{-1}e_U/2$ and is at most $\|e_U\|_2^2/(2\alpha)$. \\
+\statusproved & Under bounded scans and width-sensitive exact settlement,
+work is controlled by the cumulative settled volume, equivalently by
+$\mathfrak R_{\rm set}$, rather than by batch count alone. \\
+\statusproved & The condition-free RPPR boundary gate admits only true-support
+vertices and has the sharper work bound
+$O((w+1)^2\sum_k\vol(U_k))$; hence
+$\widetilde O((w+1)^2/(\rho\sqrt\alpha))$ follows from
+$\mathfrak R_{\rm set}=\widetilde O(1/\sqrt\alpha)$. \\
+\statusproved & A tailed triangle refutes activation by root-distance layer.
+A width-two fan gives arbitrarily many singleton batches inside the first
+distance shell and forces $\mathfrak R_{\rm set}>(L+1)/5$. \\
+\statusrefuted & The literal fresh-settlement gate has no revisit bound that
+depends only on $\alpha$.  The fan family gives an intrinsic logarithmic
+dynamic-range overhead even at constant width and radius. \\
+\statusproved & Settled-volume revisit equals a charge-weighted activation
+age exactly.  Lazy block-Schur settlement updates the old solution and every
+remaining violation demand without algebraically resettling the old region. \\
+\statusproved & The fan cascade has an exact two-coordinate separator trace:
+the same first $L$ batches and settled state cost $O(m+L)$ incrementally,
+although fresh settlement costs $\Omega(mL)$. \\
+\statusproved & An online activation-aligned separator trace with frontal
+size $\zeta$ and at most $\nu$ exact boundary-demand signatures can be
+executed lazily in
+$O((1+\zeta^2+\nu\zeta)\operatorname{cvol}(U_K)+\mathcal T_{\rm sep})$
+work in the stated metadata/exact-real model, independently of
+$\mathfrak R_{\rm set}$. \\
+\statusproved & Kinetic scalar threshold reporting removes the $\nu$ factor
+when exact demands have stable one-dimensional crossings.  Rooted spiders
+therefore admit an exact
+$O(\operatorname{cvol}(S)\log(2+R))$ online solver with arbitrary distinct
+frontier responses. \\
+\statusproved & Certified low-rank response trees reproduce every exact gate
+batch; their work is controlled by visited nodes, ambiguous exact leaves,
+factor maintenance, frontal algebra, and charged separator updates. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\newpage
+\vspace*{1cm}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement (continued) \\
+\midrule
+\statusrefuted & The flat separator/signature criterion is not graph-uniform.
+Constant-degree expanders with full RPPR support force
+$\zeta,\nu=\Omega(n)$ for every activation-aligned presentation. \\
+\statusproved & The cutoff $\zeta_0=\lceil\alpha^{-1/4}\rceil$ limits all
+pre-overflow dense Schur algebra to
+$O(\operatorname{cvol}(S)/\sqrt\alpha)$. \\
+\statusrefuted & Over-relaxation cannot improve the terminal point of an
+exactly settled fixed region.  Its only possible benefit is discovery or
+reduced discovery work. \\
+\statusrefuted & A per-event repair bound proportional only to
+$\log(1+\Delta/E)$ is false: an explicit RPPR tree has a tiny singleton shock
+followed by linear output, and full-sweep Krylov repair still needs one old-
+face pass as $\Delta/E\to0$. \\
+\statusproved & Given an exhaustively charged exact-response oracle, all
+numerical repair in an epoch is deferred to one final accelerated solve.
+With one charged exact response certificate per group, heavy shocks bound the
+number of numerical repairs at the product scale. \\
+\statusproved & Lazy subtree-response recursion bypasses the literal gate and
+computes the exact RPPR support and solution on arbitrary rooted trees in
+$\widetilde O((1+\operatorname{cvol}(S^\star))/\sqrt\alpha)$ work. \\
+\statusrefuted & Exact original-basis multifrontal factors are not a universal
+response hierarchy: bounded-degree expanders force $\Omega(n^2)$ explicit
+fill.  Eager exact-demand arrays likewise require $\Omega(n^2)$ updates on a
+sparse cyclic light cascade. \\
+\statusproved & Relative to a stable exposed block--cut presentation, blocks
+of size $b$ admit an exact response-generated solver with the route charge in
+\cref{eq:stable-bounded-block-work}; polylogarithmic $b$ reaches the product
+scale when presentation work does. \\
+\statusproved & The causal merge theorem in
+\texttt{delayed\_reflection\_ladder} removes stable block metadata for bounded
+blocks: a newly relevant cycle is incident on an activating zero coordinate,
+so consumed prefixes remain exact and future-only iterator rebuilds preserve
+the product bound under ordinary adjacency access. \\
+\statusproved & Finite-resolution continuation is support-safe and loses at
+most $\tau_{\rm gate}$ in degree-normalized error when certified demand error
+is $\alpha\tau_{\rm gate}/4$.  One final accelerated solve gives the total
+error and work in \cref{eq:finite-response-total-error,eq:finite-response-work}.
+\\
+\statusproved & The uniform pointwise certificate can be replaced by
+one-sided intervals refined only near the transition band.  An exact nested
+face correction changes exterior demands by at most its energy norm, so
+degree volume moving by normalized margin $\theta$ is at most
+$2\Delta/\theta^2$. \\
+\statusrefuted & The prescribed notched-double-sun petal-only epoch is not a
+canonical single-seed RPPR trace.  Apart from at most the seed petal, each
+frontier petal and its matching report leaf have identical exact normalized
+demands and are admitted together by the all-violations gate. \\
+\statusrefuted & On the degree-asymmetric matched-report sun, the report cut
+has rank $n$, but a report-free exact gate batch can add a frontier petal only
+at the seed anchor.  Hence every report-free canonical prefix contains at most
+one frontier petal, for every $\alpha\in(0,1)$ and $\rho>0$. \\
+\statusrefuted & On the active-relay matched sun, the degree-one petal crosses
+its exact KKT gate strictly before the internal degree-two relay.  Every
+nonseed relay is therefore preceded or co-admitted by its petal in every
+report-free canonical all-violations batch.  A face containing all relays already contains
+at least $n-1$ petals, so no linear petal epoch can follow. \\
+\statusrefuted & On the threshold-reversed petal-cycle repair, the isolated
+relay-only KKT window is genuine, but every report-quiet canonical face
+containing all relays already contains at least $n-1$ petals.  Exact
+relay/report bounds and the nonseed anchor equation contradict any other
+inactive petal.  Thus no linear later petal epoch or reporter trace follows.
+\\
+\statusrefuted & On the independently fed double cycle with a seed on its
+backbone, every report-free canonical prefix is petal-free.  Report quietness
+and exact anchor--relay balance cap every active anchor at the petal threshold,
+while a newly violating anchor's relay is already active or is co-admitted in
+the same canonical batch.  Hence the first petal batch, if any, contains a
+report.  In the anchor-seed counterrange the first petal is report-free, but
+the full canonical trace has at most three report-free petals: the first
+$j\pm2$ petal batch co-admits $w_j$.  A relay seed either has no positive
+initial face, terminates on its singleton face, or admits $w_j$ in its first
+propagating batch (possibly together with $b_j$), for every parameter and
+site.  Thus this graph family is retired for the prescribed long report-free
+later-petal witness.  This does not cover arbitrary positive-subset batching,
+other cyclic graph families, or the trace after a report enters. \\
+\statusopen & On large nonequitable cyclic cores, prove either exact
+light-shock response \cref{prob:light-shock-response}, or the strictly weaker
+certified band-response bound \cref{prob:finite-resolution-response}.
+\\
+\bottomrule
+\end{tabularx}
+\end{center}

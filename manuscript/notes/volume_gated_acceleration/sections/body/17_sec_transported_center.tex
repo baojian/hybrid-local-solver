@@ -1,0 +1,423 @@
+\subsection{A transported estimate center gives an exact Schur ledger on paths}
+\label{sec:transported-center}
+
+There is a first positive continuation statement if the estimate-sequence
+center, rather than only the primal iterates, is transported by the exact
+restricted-optimum displacement.  This is a modified recurrence at an
+expansion: it is not a proof for the literal zero-padded momentum in
+\cref{eq:dynamic-y}.  The distinction is visible in an exact face-change
+identity below.
+
+Put $q:=\sqrt\alpha$.  On a fixed face $U$, let
+$x_U^\star$ be its interior restricted optimum and define
+\begin{equation}
+ \mathcal E_U(x,v)
+ :=G_\rho(x)-G_\rho(x_U^\star)
+   +\frac{\alpha}{2}\norm{v-x_U^\star}_2^2,
+ \qquad x\in\R_+^U,\quad v\in\R^U.
+ \label{eq:transported-energy}
+\end{equation}
+The estimate center corresponding to two consecutive primal iterates is
+\begin{equation}
+ v=x+\frac{1-q}{q}(x-x^-),
+ \qquad
+ y=\frac{x+qv}{1+q}
+   =x+\frac{1-q}{1+q}(x-x^-).
+ \label{eq:estimate-center}
+\end{equation}
+
+\begin{lemma}[Fixed-face estimate-center contraction]
+\label{lem:fixed-face-estimate-center}
+Let
+\begin{align}
+ x^+&=\Pi_{\R_+^U}\bigl(y-(Q_{UU}y-c_{\rho,U})\bigr),
+ \label{eq:center-prox-step}\\
+ v^+&=x^++\frac{1-q}{q}(x^+-x).
+ \label{eq:center-update}
+\end{align}
+Then
+\begin{equation}
+ \mathcal E_U(x^+,v^+)\leq(1-q)\mathcal E_U(x,v).
+ \label{eq:fixed-face-center-contraction}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $p=x^+$ and $g=y-p$.  Smoothness, $\alpha$-strong convexity, and the
+projection optimality condition give, for every $z\in\R_+^U$,
+\begin{equation}
+ G_\rho(p)-G_\rho(z)
+ \leq \langle g,y-z\rangle-\frac12\norm{g}_2^2
+      -\frac{\alpha}{2}\norm{y-z}_2^2.
+ \label{eq:prox-three-point}
+\end{equation}
+Take the convex combination of \cref{eq:prox-three-point} with weight
+$1-q$ at $z=x$ and weight $q$ at $z=x_U^\star$.  If
+$w:=x-x_U^\star$, $u:=v-x_U^\star$, and
+\begin{equation*}
+ A:=(1-q)u+q(y-x_U^\star),
+\end{equation*}
+then \cref{eq:center-update} is
+$v^+-x_U^\star=A-g/q$.  After adding its squared norm, all terms containing
+$g$ cancel and the remaining norm identity is
+\begin{align*}
+ &\norm{A}_2^2
+ -(1-q)\norm{y-x}_2^2-q\norm{y-x_U^\star}_2^2\\
+ &\qquad=(1-q)\norm{u}_2^2
+ -\frac{q(1-q)}{1+q}\norm{u-w}_2^2
+ \leq(1-q)\norm{u}_2^2.
+\end{align*}
+Since $q^2=\alpha$, this proves
+\cref{eq:fixed-face-center-contraction}.
+\end{proof}
+
+Now let $U^+:=U\cup B$ be one safe interior expansion, zero-pad old-face
+vectors into $U^+$, and put
+\begin{equation}
+ d:=x_{U^+}^\star-x_U^\star.
+ \label{eq:face-optimum-shift}
+\end{equation}
+The block optimality equations imply
+$Q_{U^+U^+}d=-(0,h_B)$ and
+$\Delta_B=\frac12d^\top Q_{U^+U^+}d$.
+
+\begin{proposition}[Exact zero-padding defect and transported cancellation]
+\label{prop:transported-schur-ledger}
+For every $x\in\R_+^U$ and $v\in\R^U$,
+\begin{align}
+ \mathcal E_{U^+}(x,v)
+ &=\mathcal E_U(x,v)+\Delta_B
+   +\frac\alpha2\norm{d}_2^2
+   -\alpha\langle v-x_U^\star,d\rangle,
+ \label{eq:zero-padded-center-defect}\\
+ \mathcal E_{U^+}(x,v+d)
+ &=\mathcal E_U(x,v)+\Delta_B.
+ \label{eq:transported-center-identity}
+\end{align}
+Consequently, if a fixed-face step is followed by a safe expansion and the
+estimate center is changed from $v^+$ to $v^++d$, then
+\begin{equation}
+ \mathcal E_{U^+}(x^+,v^++d)
+ \leq(1-q)\mathcal E_U(x,v)+\Delta_B.
+ \label{eq:one-expansion-transported-energy}
+\end{equation}
+For a nested execution, with $\Delta_t=0$ on a nonexpanding step,
+\begin{align}
+ \mathcal E_{U_T}(x_T,v_T)
+ &\leq(1-q)^T\mathcal E_{U_0}(x_0,v_0)
+   +\sum_{t=0}^{T-1}(1-q)^{T-1-t}\Delta_t,
+ \label{eq:weighted-schur-ledger}\\
+ \sum_{t=0}^{T-1}\Delta_t
+ &=G_\rho(x_{U_0}^\star)-G_\rho(x_{U_T}^\star).
+ \label{eq:transported-shock-telescope}
+\end{align}
+\end{proposition}
+
+\begin{proof}
+Let $e:=x-x_U^\star$, zero-padded on $B$.  Since
+$Q_{U^+U^+}d=-(0,h_B)$, one has $e^\top Q_{U^+U^+}d=0$.  Expanding the
+quadratic gap about $x_{U^+}^\star=x_U^\star+d$ therefore gives
+\begin{equation*}
+ G_\rho(x)-G_\rho(x_{U^+}^\star)
+ =G_\rho(x)-G_\rho(x_U^\star)+\Delta_B.
+\end{equation*}
+Expanding the center norm gives \cref{eq:zero-padded-center-defect}; replacing
+$v$ by $v+d$ gives \cref{eq:transported-center-identity}.  Apply
+\cref{lem:fixed-face-estimate-center} before the expansion to obtain
+\cref{eq:one-expansion-transported-energy}, then iterate.  Finally, each
+$\Delta_t$ is exactly the drop between two consecutive restricted optimal
+values, proving \cref{eq:transported-shock-telescope}.
+\end{proof}
+
+The unweighted telescope in \cref{eq:transported-shock-telescope} does not
+by itself give the factor $q$ needed to absorb every late shock into one
+accelerated contraction.  The exact summation-by-parts formula identifies the
+missing quantity.  Put $\vartheta:=1-q$ and, for a fixed terminal face
+$U_T$, define the remaining face-optimum gain
+\begin{equation}
+ H_t:=G_\rho(x_{U_t}^\star)-G_\rho(x_{U_T}^\star)
+     =\sum_{s=t}^{T-1}\Delta_s.
+ \label{eq:remaining-face-gain}
+\end{equation}
+
+\begin{lemma}[Weighted-shock occupancy identity]
+\label{lem:weighted-shock-occupation}
+For every nested transported-center execution,
+\begin{equation}
+ \sum_{t=0}^{T-1}\vartheta^{T-1-t}\Delta_t
+ =\vartheta^{T-1}H_0
+  +q\sum_{t=1}^{T-1}\vartheta^{T-1-t}H_t.
+ \label{eq:weighted-shock-occupation}
+\end{equation}
+Consequently the weighted shock tail is not, in general, bounded by
+$Cq\sum_t\Delta_t$ for a universal constant $C$.
+\end{lemma}
+
+\begin{proof}
+Since $\Delta_t=H_t-H_{t+1}$ and $H_T=0$, summation by parts gives
+\begin{align*}
+ \sum_{t=0}^{T-1}\vartheta^{T-1-t}(H_t-H_{t+1})
+ &=\vartheta^{T-1}H_0
+   +\sum_{t=1}^{T-1}
+     \bigl(\vartheta^{T-1-t}-\vartheta^{T-t}\bigr)H_t,
+\end{align*}
+which is \cref{eq:weighted-shock-occupation} because
+$1-\vartheta=q$.  The failure of the proposed universal collapse is made
+gate-compatible and terminal in \cref{prop:terminal-edge-no-q-packing}.
+\end{proof}
+
+\begin{proposition}[A terminal edge has no universal $q$-scaled shock packing]
+\label{prop:terminal-edge-no-q-packing}
+For $0<q<1$, set
+\begin{equation}
+ \alpha=q^2,
+ \qquad
+ \beta_{\rm edge}:=\frac{1-q^2}{1+q^2},
+ \qquad
+ \rho=\tau:=\frac{2\beta_{\rm edge}}{2\beta_{\rm edge}+5}.
+ \label{eq:terminal-edge-parameters}
+\end{equation}
+On the endpoint edge of \cref{prop:one-edge-zero-shock-fails}, start at the
+exact singleton optimum with its exact estimate center.  Apply the exact
+all-violations gate after a stationary old-face step, transport the center
+on admission, and apply one enlarged-face step.  This is a terminal
+exact-real execution with
+\begin{equation}
+ T=2,\qquad J=1,\qquad \nu_{\rm fin}=2,\qquad
+ \mathfrak V_T=1+2=3.
+ \label{eq:terminal-edge-stage-ledger}
+\end{equation}
+Its only shock is $\Delta_0>0$, and hence
+\begin{equation}
+ \frac{\sum_{t=0}^{T-1}(1-q)^{T-1-t}\Delta_t}
+      {q\sum_{t=0}^{T-1}\Delta_t}
+ =\frac{1-q}{q}.
+ \label{eq:no-q-shock-packing}
+\end{equation}
+Thus no constant independent of $\alpha$ proves the proposed
+$Cq$-scaled collapse, even after requiring a terminal one-sided certificate.
+This does not refute a bound with the occupancy term in
+\cref{eq:weighted-shock-occupation}, an explicit terminal-accuracy floor, or
+a different potential.
+\end{proposition}
+
+\begin{proof}
+Use $a=(1+q^2)/2$ and $\eta=(1-q^2)/2$, and let $m$ be the quantity in
+\cref{eq:one-edge-positive-remainder}.  Since
+$\beta_{\rm edge}=\eta/a$,
+\cref{eq:terminal-edge-parameters} gives
+\begin{equation}
+ m=\beta_{\rm edge}(1-\rho)-\rho=\frac32\rho.
+ \label{eq:terminal-edge-m}
+\end{equation}
+The singleton optimum is $u=\alpha(1-\rho)/a$, and the outside KKT value is
+$h=-\alpha m< -\alpha\tau$.  The exact gate therefore admits the other
+endpoint.  The Schur gain and optimum displacement are
+\begin{equation*}
+ \Delta_0=\frac{\alpha a m^2}{2}>0,
+ \qquad
+ d=(\eta m,am).
+\end{equation*}
+After transporting the center, the enlarged-face state is
+$x=(u,0)$ and $v=x_{\{v_0,v_1\}}^\star=x+d$.  Thus
+$y=x+qd/(1+q)$, while
+\begin{equation*}
+ Qy-c_\rho=\left(0,\frac{h}{1+q}\right)^\top.
+\end{equation*}
+The projection is inactive.  At the resulting $x^+$, both KKT coordinates
+are exactly
+\begin{equation}
+ \kappa_{\rho,0}(x^+)=\kappa_{\rho,1}(x^+)
+ =\frac{\eta h}{1+q}
+ =-\frac{\eta\alpha m}{1+q}.
+ \label{eq:terminal-edge-final-kkt}
+\end{equation}
+They are negative, so the envelope correction is zero and $\ell=x^+$.
+Moreover,
+$\eta m/(1+q)=3(1-q)\rho/4<\rho$.  Hence
+\cref{eq:global-certificate} holds strictly after this
+one enlarged-face step.  There is one singleton sweep before admission and
+one two-vertex sweep afterward, proving
+\cref{eq:terminal-edge-stage-ledger}.  With
+$\Delta_1=0$, the weighted ledger is $(1-q)\Delta_0$, which proves
+\cref{eq:no-q-shock-packing}.
+
+For the implicit endpoint-path implementation, this finite execution has
+the following fully charged eleven-coordinate vector in the shared order:
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &\qquad=(O(2),O(2),1,0,O(5),O(5),O(6),
+             O(2),O(2),O(5),\Theta(3)).
+ \end{aligned}
+ \label{eq:terminal-edge-eleven-vector}
+\end{equation}
+Here the one terminal certificate and two-coordinate sparse vector share the
+single external return stage.  In particular, this constant execution is an
+analytical packing obstruction, not an asymptotic work lower bound.
+\end{proof}
+
+Equation \cref{eq:zero-padded-center-defect} isolates what remains open for
+the literal recurrence \cref{eq:dynamic-y}: the signed cross term has no
+proved cumulative packing.  Transporting the center cancels that term, but a
+literal coordinate update by the displacement $d$ would touch every old
+coordinate even for one endpoint-path admission, because the inverse of an
+irreducible path principal matrix is strictly positive.  The next proposition shows
+that this dense write is avoidable on a path, provided the response work is
+reported rather than declared free.
+
+As an exact rational check, take the edge parameters
+$\alpha=1/4$ and $\rho=\tau=1/10$ from
+\cref{prop:one-edge-zero-shock-fails}.  Then
+\begin{equation*}
+ q=\frac12,\quad
+ u=\frac9{25},\quad
+ m=\frac{11}{25},\quad
+ d=\left(\frac{33}{200},\frac{11}{40}\right),\quad
+ \Delta_B=\frac{121}{8000}.
+\end{equation*}
+The transported pre-step energy is exactly $\Delta_B$, and the next
+fixed-face energy is $121/32000$, below
+$(1-q)\Delta_B=121/16000$.  By contrast, zero-padding the center gives
+$4477/160000=\Delta_B+2057/160000$, exactly the additional displacement term
+in \cref{eq:zero-padded-center-defect}.
+
+Let $U_j=\{v_0,\ldots,v_j\}$ be a prefix of an ambient endpoint path and put
+$\gamma_i:=\eta/\sqrt{d_{i-1}d_i}$ for the edge
+$(v_{i-1},v_i)$, where $\eta=(1-\alpha)/2$.  The append-only
+$LDL^\top$ response stores
+\begin{align}
+ \sigma_0&=a,& z_0&=c_{\rho,0},
+ \notag\\
+ \lambda_i&=-\frac{\gamma_i}{\sigma_{i-1}},&
+ \sigma_i&=a-\frac{\gamma_i^2}{\sigma_{i-1}},&
+ z_i&=c_{\rho,i}-\lambda_i z_{i-1},
+ \label{eq:path-append-ldl}
+\end{align}
+where $a=(1+\alpha)/2$.  Positivity of every principal matrix gives
+$\sigma_i>0$.  The current boundary value, next Schur pivot, and shock are
+\begin{equation}
+ x_{U_j,j}^\star=\frac{z_j}{\sigma_j},
+ \qquad
+ h_{j+1}=-\gamma_{j+1}\frac{z_j}{\sigma_j}-c_{\rho,j+1},
+ \qquad
+ S_{j+1}=\sigma_{j+1},
+ \qquad
+ \Delta_{j+1}=\frac{h_{j+1}^2}{2\sigma_{j+1}}.
+ \label{eq:path-schur-query}
+\end{equation}
+One reverse pass recovers the current restricted optimum via
+\begin{equation}
+ x_{U_j,j}^\star=\frac{z_j}{\sigma_j},
+ \qquad
+ x_{U_j,i}^\star=\frac{z_i}{\sigma_i}
+                         -\lambda_{i+1}x_{U_j,i+1}^\star.
+ \label{eq:path-response-apply}
+\end{equation}
+
+\begin{proposition}[Fully charged implicit transport on an endpoint path]
+\label{prop:path-implicit-transport-ledger}
+Consider any finite exact-real execution of
+\cref{eq:center-prox-step,eq:center-update} on endpoint prefixes, with at most
+one safe next-vertex admission after each step.  The latter is automatic:
+outside a prefix, only its immediate successor can have a negative KKT value.
+Store the centered momentum
+$w:=v-x_U^\star$ and the response records in
+\cref{eq:path-append-ldl}.  During a fixed-face sweep, apply
+\cref{eq:path-response-apply}, form $v=x_U^\star+w$ and the point $y$ in
+\cref{eq:estimate-center}, and after the proximal step store
+$w^+:=v^+-x_U^\star$.  At an admission, append the new factor record,
+one zero primal coordinate, and one zero coordinate to $w$.  This represents
+exactly $v\leftarrow v+d$:
+the old entries of $w$ are unchanged and the new entry is zero.  Thus no
+dense optimum-shift vector is materialized.
+
+Let $J$ be the number of admissions,
+$\nu_{\rm fin}:=\vol(U_T)$, $n_{\rm fin}:=|U_T|$, and
+\begin{equation}
+ \mathfrak V_T:=\sum_{t=0}^{T-1}\vol(U_t).
+ \label{eq:path-transport-swept-volume}
+\end{equation}
+Cache each exposed path incidence once, perform every response application by
+\cref{eq:path-response-apply}, and emit only one terminal certificate and the
+terminal safe-envelope sparse vector in one external return stage.  In the
+shared eleven-coordinate order, this
+implementation has
+\begin{equation}
+ \begin{aligned}
+ (&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&O(\nu_{\rm fin}),O(J+1),1,0,
+ O(\mathfrak V_T+\nu_{\rm fin}),
+ O(\mathfrak V_T+\nu_{\rm fin}),
+ O(\mathfrak V_T+J+\nu_{\rm fin}),\\
+ &O(\nu_{\rm fin}),O(\nu_{\rm fin}),
+ O(\mathfrak V_T+n_{\rm fin}),
+ \Theta(n_{\rm fin}+1)\bigr).
+ \end{aligned}
+ \label{eq:path-transport-eleven-vector}
+\end{equation}
+In particular, the work specific to support expansion---new incidence
+exposure, the factor/Schur append and query, admission control, and the two
+zero state appends---obeys
+\begin{equation}
+ C_{\rm exp}^{\rm inc}
+ =O\!\left(\sum_t\vol(U_{t+1}\setminus U_t)\right).
+ \label{eq:path-transport-new-volume-charge}
+\end{equation}
+Every old-face recurrence read, response application, envelope maximum,
+state write, and terminal validation remains present in the
+$\mathfrak V_T$ or $\nu_{\rm fin}$ coordinates of
+\cref{eq:path-transport-eleven-vector}.
+\end{proposition}
+
+\begin{proof}
+For $i\geq j+2$, a safe envelope supported on $U_j$ has no incident active
+neighbor and no source load, so its outside KKT value is
+$\alpha\rho\sqrt{d_i}>0$.  Hence only $v_{j+1}$ can be admitted.  Moreover,
+if its KKT value at the safe envelope is negative, then its value at
+$x_{U_j}^\star$ is no larger, because
+$x_{U_j}^\star$ dominates the envelope and the cut row is nonpositive.
+The Stieltjes correction is therefore positive, so the restricted optima
+remain interior by induction.
+
+Appending one row and column to a tridiagonal $LDL^\top$ factorization gives
+\cref{eq:path-append-ldl}.  The last component of the triangular solve is
+$z_j/\sigma_j$, and the Schur complement of the old prefix is
+$\sigma_{j+1}$, proving \cref{eq:path-schur-query}; back substitution gives
+\cref{eq:path-response-apply}.  If $v$ is transported to $v+d$ while the
+response optimum changes from $x_U^\star$ to $x_U^\star+d$, then
+$(v+d)-(x_U^\star+d)=w$ on the old prefix.  Both transported vectors have new
+coordinate $d_{j+1}$, so the new centered coordinate is zero.
+
+Each factor append, Schur query, state append, and boundary-gate decision uses
+constant exact-cell work.  The new adjacency list costs its ambient degree.
+Summing those charges proves \cref{eq:path-transport-new-volume-charge}.
+Each fixed-face step scans the current prefix for the proximal recurrence and
+the lower-envelope residual, applies the response in one reverse pass, and
+writes the current primal and centered-momentum state; these operations sum
+to $O(\mathfrak V_T)$.  A final cached-row validation and materialization cost
+$O(\nu_{\rm fin})$, and the sparse output contains $n_{\rm fin}$ cells.
+The terminal certificate and vector share the one reported external
+interaction stage; their $n_{\rm fin}+1$ emitted cells are separate from the
+candidate-state materialization already charged in $C_{\rm mat}$.
+The stored path, factors, and two active vectors use $O(\nu_{\rm fin})$
+persistent cells; a full streamed-response scratch buffer gives the stated
+transient bound.  This accounts for every coordinate in
+\cref{eq:path-transport-eleven-vector}.
+\end{proof}
+
+\paragraph{Exact scope.}
+The new statements are exact-real, endpoint-path results for the RPPR
+restricted quadratic.  They neither pack the signed defect in
+\cref{eq:zero-padded-center-defect} for the original zero-padded recurrence
+nor bound $T$: a Schur shock occurring late in
+\cref{eq:weighted-schur-ledger} need not have decayed.  Consequently they do
+not prove \cref{eq:desired-continuation} or a graph-uniform work theorem.
+They do show that on a path the analytical Schur term telescopes and that its
+transport need not add an old-prefix materialization charge beyond the fully
+reported recurrence/response sweeps.  No floating-point or bit-complexity
+claim is made.  Only after a terminal one-sided certificate, with
+$\rho=\tau=\epsppr/2$, does \cref{cor:accuracy-volume} convert the RPPR output
+to the note-scoped PPR guarantee.

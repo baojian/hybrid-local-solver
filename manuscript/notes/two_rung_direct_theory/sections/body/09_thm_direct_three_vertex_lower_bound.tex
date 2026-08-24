@@ -1,0 +1,199 @@
+\begin{theorem}[The literal method is not graph-uniformly accelerated]
+\label{thm:direct-three-vertex-lower-bound}
+Fix $B=5/2$ and $\epsppr=10^{-2}$.  Let $P_3$ be the three-vertex path,
+seeded at its degree-two center, and run the literal top-$1/32$ spreading
+phase with optimal SOR.  For every $0<\alpha\leq10^{-4}$,
+\begin{equation}
+ \Work_{\rm spread}\geq\frac1{1408}\alpha^{-3/2}.
+ \label{eq:direct-three-vertex-lower-bound}
+\end{equation}
+Here $\mathcal V_{\rm exp}=4$.  Therefore a graph-uniform bound
+$\widetilde O(\mathcal V_{\rm exp}/\sqrt\alpha)$ for the literal two-rung
+method is false, even on one fixed graph and before the exact rung begins.
+\end{theorem}
+
+\begin{proof}
+Put
+\begin{equation*}
+ h:=\sqrt\alpha,
+ \quad \lambda:=\frac{1-h}{1+h},
+ \quad \eta:=\frac{\lambda}{1+\lambda^2},
+ \quad e:=2\eta,
+ \quad \zeta:=\frac\alpha2.
+\end{equation*}
+At a radial state let $X=y_{\rm root}/\zeta$ and let
+$Y=y_{\rm leaf}/\zeta$ be the common normalized residual at either leaf.
+The scaled spreading gate is
+\begin{equation*}
+ \beta:=\frac{B\alpha\epsppr}{\zeta}
+ =2B\epsppr=\frac1{20}.
+\end{equation*}
+There are at most three live coordinates, so every literal batch has size
+$\lceil|\mathcal F|/32\rceil=1$.  A center push is
+\begin{equation}
+ R(X,Y)=(-\lambda^2X,Y+2\lambda X).
+ \label{eq:direct-three-vertex-root-map}
+\end{equation}
+Two consecutive leaf pushes commute, restore equality of the leaves, and
+have the combined map
+\begin{equation}
+ L(X,Y)=(X+2\lambda Y,-\lambda^2Y).
+ \label{eq:direct-three-vertex-leaf-map}
+\end{equation}
+
+We first justify that the literal coordinate order realizes every such $L$.
+Immediately before a leaf pair, suppose the center value is $X<0$, the
+common leaf value is $Y>0$, and put $u=Y/(-X)$.  After pushing one leaf, the
+untouched leaf remains $Y$, the pushed leaf is $-\lambda^2Y$, and the center
+is $X+\lambda Y$.  The pushed leaf has smaller rank than the untouched one,
+and
+\begin{equation}
+ \frac{|X+\lambda Y|}{Y}
+ =\left|\lambda-\frac1u\right|.
+ \label{eq:direct-three-vertex-between-leaves}
+\end{equation}
+At the first leaf pair $u=2/\lambda$, so this ratio is $\lambda/2<3/4$.
+At the second initial pair, direct multiplication gives
+$u=4/(3\lambda)$; at every subsequent pair the crossing bounds below give
+$4/3<u<1.362$.  In both cases the ratio is less than $0.267<3/4$.  Since the center and
+leaf rank weights are $2/3$ and $1/2$, respectively, the untouched leaf
+strictly outranks both other vertices and is the next singleton batch.
+Thus \cref{eq:direct-three-vertex-leaf-map} is the exact literal map.
+
+Starting from $(X,Y)=(1,0)$, the first two restored cycles are
+$R,L,R,L$.  Direct multiplication gives
+\begin{equation}
+ (X,Y)=(5\lambda^4,-4\lambda^5),
+ \qquad t:=\frac YX=-\frac{4\lambda}{5}.
+ \label{eq:direct-three-vertex-entry-state}
+\end{equation}
+For $h\leq10^{-2}$, $t$ belongs to $I=[-0.82,-0.77]$ and $X>0$.
+
+Consider any restored state with $X>0$ and $t\in I$.  After $k$ consecutive
+center pushes,
+\begin{equation*}
+ X_k=(-\lambda^2)^kX,
+ \qquad Y_k=Y+e[1-(-\lambda^2)^k]X.
+\end{equation*}
+Write $a_k=\lambda^{2k}$.  The live ratio is
+\begin{equation}
+ \frac{Y_k}{X_k}
+ =\begin{cases}
+  -e-(t+e)/a_k,&k\text{ odd},\\
+  -e+(t+e)/a_k,&k\text{ even}.
+ \end{cases}
+ \label{eq:direct-three-vertex-root-run-ratio}
+\end{equation}
+The root is ranked first exactly while the absolute ratio is at most
+$c:=4/3$.  Define $A(t):=(t+e)/(c-e)$.  For $\lambda\geq0.98$ and
+$t\in I$, direct interval arithmetic gives
+\begin{equation}
+ 0.53<A(t)<0.70.
+ \label{eq:direct-three-vertex-A-interval}
+\end{equation}
+Every even ratio before the crossing has magnitude below $0.83<c$; the odd
+ratios increase in magnitude as $a_k$ decreases.  Hence the first leaf wins
+after the first odd integer $m$ satisfying $a_m<A(t)$.  The preceding odd
+iterate gives
+\begin{equation}
+ \lambda^4A(t)\leq a_m<A(t),
+ \qquad 0.48<a_m<0.70.
+ \label{eq:direct-three-vertex-crossing-window}
+\end{equation}
+At the crossing write $Y_m=u a_mX$ and $X_m=-a_mX$.  Then
+\begin{equation}
+ \frac43<u\leq e+(c-e)\lambda^{-4}<1.362.
+ \label{eq:direct-three-vertex-u-window}
+\end{equation}
+The two singleton leaf batches therefore execute consecutively.  Their
+restored output ratio is
+\begin{equation}
+ t^+=-\frac{\lambda^2u}{2\lambda u-1}
+ \in[-0.800,-0.783]\subset I.
+ \label{eq:direct-three-vertex-invariant-interval}
+\end{equation}
+Thus $I$ is invariant and every subsequent macrocycle is exactly $LR^m$
+with odd $m$.  Moreover, $a_m<0.70$ and
+$\log(1/\lambda)=2\operatorname{arctanh}(h)\leq2h/(1-h^2)$ imply
+\begin{equation}
+ m>\frac{\log(10/7)}{2\log(1/\lambda)}
+ \geq\frac1{12h}.
+ \label{eq:direct-three-vertex-root-run-lower}
+\end{equation}
+
+It remains to show that many macrocycles occur above the gate.  At restored
+states put $S=X+Y$.  A center push at value $V$ changes $S$ by
+$-(1-\lambda)^2V$.  Each individual leaf push changes
+$X+(Y_1+Y_2)/2$ by one half of the same expression, so the two-leaf block
+has the same identity with common value $Y$.  Put
+$\delta=(1-\lambda)^2$.  Over one odd center run,
+\begin{equation*}
+ \sum_{j=0}^{m-1}X_j=X\frac{1+a_m}{1+\lambda^2}>0,
+ \qquad Y_m=u a_mX>0.
+\end{equation*}
+Consequently one macrocycle satisfies
+\begin{equation}
+ S^+=S-\delta X\left[
+  \frac{1+a_m}{1+\lambda^2}+u a_m
+ \right]
+ \geq(1-11\delta)S.
+ \label{eq:direct-three-vertex-slow-sum}
+\end{equation}
+Indeed $t\in I$ gives $S=X(1+t)>0$ and $X\leq S/0.18$, while the crossing
+bounds control the bracket.  Every partial center run has a positive
+geometric partial sum at most $2X/(1+\lambda^2)$, so within a macrocycle
+$S_k\geq(1-6\delta)S$.
+
+After \cref{eq:direct-three-vertex-entry-state},
+$S_0=\lambda^4(5-4\lambda)\geq0.92$.  Let
+$M=\lfloor1/(44\delta)\rfloor$.  Bernoulli's inequality gives, at the first
+$M$ restored boundaries,
+\begin{equation*}
+ S_j\geq(1-11\delta)^jS_0\geq\frac34S_0,
+\end{equation*}
+and the partial-run bound keeps $S>0.68$ between them.  If all three
+coordinates were below the spreading gate, then
+$|S|\leq|X|+(|Y_1|+|Y_2|)/2\leq2\beta=0.1$, a contradiction.  Thus all $M$
+macrocycles execute and every selected coordinate is live.  Since
+$\delta=(2h/(1+h))^2\leq4h^2$ and $h\leq10^{-2}$,
+\begin{equation*}
+ M\geq\frac1{352h^2}.
+\end{equation*}
+Each macrocycle has at least $1/(12h)$ center pushes of charge three.
+Therefore
+\begin{equation*}
+ \Work_{\rm spread}
+ \geq\frac{3}{12h}\frac1{352h^2}
+ =\frac1{1408h^3},
+\end{equation*}
+which proves \cref{eq:direct-three-vertex-lower-bound}.
+\end{proof}
+
+For odd $m$ and $a=\lambda^{2m}$, the exact macro matrix is
+\begin{equation}
+ K_m:=LR^m
+ =\begin{pmatrix}
+ -a+\dfrac{4\lambda^2(1+a)}{1+\lambda^2}&2\lambda\\[5pt]
+ -\dfrac{2\lambda^3(1+a)}{1+\lambda^2}&-\lambda^2
+ \end{pmatrix},
+ \label{eq:direct-three-vertex-macro-matrix}
+\end{equation}
+with
+\begin{equation}
+ \det K_m=a\lambda^2,
+ \qquad
+ \det(I-K_m)=
+ \frac{(1+a)(1-\lambda^2)^2}{1+\lambda^2}.
+ \label{eq:direct-three-vertex-macro-spectrum}
+\end{equation}
+The greedy crossing keeps $a\in(0.48,0.70)$.  As $\alpha\downarrow0$ the
+macro eigenvalues tend to $1$ and $a$: the slow mode contracts only by
+$\Theta(\alpha)$ while a macrocycle costs
+$\Theta(1/\sqrt\alpha)$ center pushes.  The slow-sum proof remains valid
+when the odd run length changes between cycles.
+
+The positive results and this lower bound now give a sharp structural split.
+Uniform expansion is accelerated by a final-region gap; the gapless endpoint
+path is accelerated by its causal event wave; but a reached reflecting leaf
+can combine $\Theta(1/\sqrt\alpha)$ greedy echoes with a
+$1-\Theta(\alpha)$ slow macro mode.

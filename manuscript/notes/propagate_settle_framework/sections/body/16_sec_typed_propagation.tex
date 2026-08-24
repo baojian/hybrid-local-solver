@@ -1,0 +1,43 @@
+\section{Typed propagation and debt aggregation}
+\label{sec:typed-propagation}
+
+An implementation can realize one propagation epoch with three logical
+states: unseen, forward-fresh, and processed.  An arrival from processed to
+unseen may expose new frontier; an arrival into a processed coordinate is
+stored as backward debt; and non-tree traffic is assigned to the current
+cyclic settlement block.  These labels affect scheduling, not the residual
+identity.
+
+\begin{lemma}[One-scan causal epoch]
+\label{lem:one-scan-causal-epoch}
+Suppose an epoch discovers $U$ and satisfies:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item each adjacency list in $U$ is scanned at most $C$ times during
+ propagation;
+ \item every deferred packet is added algebraically to the net residual on
+ $U\cup\partial U$ rather than executed as a separate row operation; and
+ \item settlement is performed once on the net interior residual.
+\end{enumerate}
+Then propagation costs $O(C\vol(U))$.  If $G[U]$ is a forest, propagation
+plus exact settlement and boundary update cost $O((C+1)\vol(U))$; under a
+width-$w$ ordering the cost is
+$O((C+(w+1)^2)\vol(U))$.  The bound is independent of the number of forward
+and backward causal paths contributing to a residual entry.
+\end{lemma}
+
+\begin{proof}
+The first claim is direct adjacency-list accounting.  Residual updates are
+linear, so accumulating packets and applying their sum produces the same
+right-hand side as applying them separately.  One forest elimination scans
+each induced and boundary edge only constantly many times.  General sparse
+elimination costs $O(\vol(U)+w^2|U|)$, which is
+$O((w+1)^2\vol(U))$ because the graph has no isolated vertices.
+\end{proof}
+
+The lemma closes the \emph{accounting} half of the causal idea.  The remaining
+mathematical obligation is threshold progress: the labels must discover a
+region whose exact settlement either certifies the current target or exposes
+the next admissible frontier without rescanning processed adjacency lists.
+On trees and bounded articulation blocks, directed Schur responses provide
+that mechanism.  In a thick cyclic core, the corresponding compressed
+interface is still open.

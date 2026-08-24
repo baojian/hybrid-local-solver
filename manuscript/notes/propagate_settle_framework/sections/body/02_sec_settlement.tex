@@ -1,0 +1,114 @@
+\section{Exact settlement on a fixed region}
+\label{sec:settlement}
+
+Fix a load $\ell\in\mathbb R^V$ and define the quadratic
+\begin{equation}
+ \Psi_\ell(x):=\frac12x^TQx-\ell^Tx,
+ \qquad
+ e_\ell(x):=\ell-Qx.
+ \label{eq:load-quadratic}
+\end{equation}
+For $U\subseteq V$, let $\iota_U$ denote zero extension from
+$\mathbb R^U$ to $\mathbb R^V$.
+
+\begin{definition}[Dirichlet settlement]
+\label{def:dirichlet-settlement}
+The exact settlement of $x$ on $U$ is
+\begin{equation}
+ \mathcal E_U^\ell(x)
+ :=x+\iota_UQ_{UU}^{-1}e_\ell(x)_U.
+ \label{eq:dirichlet-settlement}
+\end{equation}
+Equivalently, it is the unique minimizer of $\Psi_\ell$ over all $z$ with
+$z_{U^c}=x_{U^c}$.
+\end{definition}
+
+The definition is always valid because $Q\succeq\alpha I$ makes every
+principal block positive definite.
+
+\begin{lemma}[Canonical form and exact energy drop]
+\label{lem:canonical-settlement}
+For every $x$ and $U$,
+\begin{align}
+ \mathcal E_U^\ell(x)_{U^c}&=x_{U^c},
+ \label{eq:settlement-outside}\\
+ \mathcal E_U^\ell(x)_U
+ &=Q_{UU}^{-1}\bigl(\ell_U-Q_{UU^c}x_{U^c}\bigr),
+ \label{eq:settlement-canonical}\\
+ e_\ell(\mathcal E_U^\ell(x))_U&=0,
+ \label{eq:settlement-residual-zero}\\
+ \Psi_\ell(x)-\Psi_\ell(\mathcal E_U^\ell(x))
+ &=\frac12 e_\ell(x)_U^TQ_{UU}^{-1}e_\ell(x)_U.
+ \label{eq:settlement-energy-drop}
+\end{align}
+In particular, the settled point depends on $x$ only through the outside
+coordinates $x_{U^c}$.
+\end{lemma}
+
+\begin{proof}
+Put $z_U=Q_{UU}^{-1}e_\ell(x)_U$.  The definition changes no outside
+coordinate, and
+\[
+ x_U+z_U
+ =x_U+Q_{UU}^{-1}
+   (\ell_U-Q_{UU}x_U-Q_{UU^c}x_{U^c}),
+\]
+which proves \cref{eq:settlement-canonical}.  Multiplying that identity by
+$Q_{UU}$ proves \cref{eq:settlement-residual-zero}.  Finally, the exact
+quadratic expansion along $\iota_Uz_U$ gives
+\[
+ \Psi_\ell(x+\iota_Uz_U)-\Psi_\ell(x)
+ =-e_\ell(x)_U^Tz_U+\frac12z_U^TQ_{UU}z_U,
+\]
+which is minus the right side of \cref{eq:settlement-energy-drop}.
+\end{proof}
+
+\begin{theorem}[Settlement absorption law]
+\label{thm:settlement-absorption}
+For every fixed load $\ell$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item $\mathcal E_U^\ell\mathcal E_U^\ell=\mathcal E_U^\ell$.
+ \item If $U\subseteq T$, then
+ \begin{equation}
+  \mathcal E_T^\ell\mathcal E_U^\ell
+  =\mathcal E_U^\ell\mathcal E_T^\ell
+  =\mathcal E_T^\ell.
+  \label{eq:nested-absorption}
+ \end{equation}
+ \item If $y-x$ is supported in $U$, then
+ \begin{equation}
+  \mathcal E_U^\ell(y)=\mathcal E_U^\ell(x).
+  \label{eq:trajectory-erasure}
+ \end{equation}
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+After one settlement the residual on $U$ is zero, so applying the same map
+again changes nothing.  If $U\subseteq T$, settling $U$ changes no coordinate
+outside $T$.  The canonical formula \cref{eq:settlement-canonical} says that
+settlement on $T$ depends only on those unchanged outside coordinates, which
+proves $\mathcal E_T^\ell\mathcal E_U^\ell=\mathcal E_T^\ell$.
+Conversely, the $T$-settled point has zero residual throughout $T$, hence
+also on $U$, so the later $U$-settlement does nothing.  The last statement is
+the same canonical-form argument: $x$ and $y$ agree on $U^c$.
+\end{proof}
+
+The theorem is the precise sense in which settlement forgets propagation.
+The propagation may be over-relaxed, ranked, asynchronous, or represented as
+signed directed packets.  If all its coordinate changes remain inside the
+region that is subsequently settled, none of those choices changes the
+settled point.
+
+\begin{corollary}[Immediate and block cleanup are one phenomenon]
+\label{cor:cleanup-unification}
+An over-relaxed coordinate push at $u$ followed immediately by exact
+settlement on $\{u\}$ equals one unit-relaxation push.  More generally, every
+finite sequence of coordinate updates supported in $U$, followed by exact
+settlement on $U$, equals direct settlement of the pre-sequence iterate.
+\end{corollary}
+
+\begin{proof}
+Apply \cref{eq:trajectory-erasure} with $U=\{u\}$ or with the full update
+support $U$.
+\end{proof}

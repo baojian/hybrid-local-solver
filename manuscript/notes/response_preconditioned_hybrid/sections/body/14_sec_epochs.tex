@@ -1,0 +1,60 @@
+\section{Geometric anchors and aggregate repair}
+\label{sec:epochs}
+
+Rebuilding after every support addition recreates repeated-prefix work.  A
+minimal remedy is to rebuild only after geometric growth.
+
+\begin{lemma}[Geometric rebuild amortization]
+\label{lem:geometric-rebuild}
+Let $V_j$ be the charged anchor volume after rebuild $j$, with
+$V_{j+1}\geq(1+\gamma)V_j$ for a fixed $\gamma>0$.  If rebuild $j$ costs at
+most $cV_j$, then all rebuilds through final volume $V$ cost at most
+\begin{equation}
+ c\sum_jV_j\leq c\frac{1+\gamma}{\gamma}V.
+ \label{eq:rebuild-sum}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Read the geometrically increasing sequence backward from its final term and
+sum the resulting geometric series.
+\end{proof}
+
+\begin{lemma}[Probe before rebuild]
+\label{lem:probe-before-rebuild}
+Fix a settled anchor $A$, frontier $F$, and face $S=A\cup F$.  Suppose a
+frontier repair returns an iterate whose declared error certificate is strong
+enough to evaluate the terminal and boundary predicates.  Then:
+\begin{enumerate}[label=(\roman*)]
+\item if the terminal predicate passes, the algorithm may return without
+      constructing a response representation for $Q_{SS}^{-1}$;
+\item if it fails, constructing the exact response after the probe produces
+      the same state $Q_{SS}^{-1}$ as constructing it before the probe;
+\item for a fixed support-event trace and fixed heavy-frontier decisions, the
+      probe-first schedule performs no more response rebuilds than the
+      rebuild-first schedule and adds at most one certified repair per
+      scheduled rebuild, plus a possible terminal probe.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+The terminal certificate concerns the returned iterate, not whether an unused
+factor was built, proving (i).  The exact response is a function only of the
+principal matrix $Q_{SS}$, so its value is independent of every preceding
+iterate and repair, proving (ii).  On the fixed event trace, each heavy
+frontier that requires further propagation triggers the same rebuild after its
+probe; a terminally certified frontier triggers none.  Charging the one probe
+to the corresponding rebuild, with one unmatched terminal probe, proves (iii).
+\end{proof}
+
+The lemma pays only the rebuild.  Between rebuilds, small face shocks still
+need a lazy response representation; explicitly applying every old-face
+correction is not covered.
+
+Aggregate repair avoids a second unnecessary repetition.  Within an epoch,
+the response mechanism may update support and boundary certificates while the
+numerical iterate remains at its anchor value.  The accumulated block demands
+form one final right-hand side.  One preconditioned solve at the end of the
+epoch repairs their sum.  Linearity makes this final repair identical to the
+sum of exact corrections on the fixed terminal face, while avoiding one old-
+face iteration pass per event.

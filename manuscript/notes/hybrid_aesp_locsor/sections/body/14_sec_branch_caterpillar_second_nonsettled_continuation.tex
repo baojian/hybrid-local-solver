@@ -1,0 +1,378 @@
+\subsection{A second nonsettled admission and two-stage continuation}
+\label{sec:branch-caterpillar-second-nonsettled-continuation}
+
+Round~020 stopped after proving that one nonsettled face transition can be
+followed by one relative-accuracy stage.  We now use the order structure of
+the \emph{greedy} imported AESP--CD oracle to certify the next canonical
+batch from that stage's actual output.  This order argument is specific to
+the safe-center sandwich for the greedy normalized-KKT rule in
+\path{thm:aesp-cd-safe-center}; an arbitrary point satisfying only the
+relative stopping inequality is not an admissible substitute.
+
+Keep the parameters in
+\cref{eq:branch-caterpillar-auxiliary-parameters} and put
+\begin{equation}
+ \rho_2(m,\alpha):=
+ \begin{cases}
+ \dfrac{1+\beta_{\rm A}}{138+3\beta_{\rm A}},&m=2,\\[7pt]
+ \dfrac{1+\beta_{\rm A}}{354+3\beta_{\rm A}},&m>2,
+ \end{cases}
+ \qquad
+ \beta_{\rm A}=
+ \frac{1-\sqrt{\chi_{\rm A}}}{1+\sqrt{\chi_{\rm A}}},
+ \quad
+ \sqrt{\chi_{\rm A}}=\sqrt{\frac{\alpha}{1-\alpha}}.
+ \label{eq:branch-caterpillar-second-nonsettled-threshold}
+\end{equation}
+Throughout this subsection
+\begin{equation}
+ m\geq2,
+ \qquad 0<\alpha<\frac12,
+ \qquad
+ 0<\rho<\min\{\rho_{\rm can}(m,\alpha),\rho_2(m,\alpha)\}.
+ \label{eq:branch-caterpillar-second-nonsettled-range}
+\end{equation}
+This range implies the Round--020 condition $\rho<1/30$.
+
+Let $\widehat x^{\rm ns}$, $y^{\rm ns}$, and $y^+=\iota_0y^{\rm ns}$ be
+the first nonsettled endpoint and its zero-padded extrapolated center from
+\cref{eq:branch-caterpillar-first-nonsettled-state,%
+eq:branch-caterpillar-first-nonsettled-auxiliary-state,%
+eq:branch-caterpillar-nonsettled-auxiliary-append}.  Although $y^+$ is a
+strict lower center on $\widehat U_1$, it is zero on
+$b_2,a_1,r_1$.  Hence its three demands toward $\mathcal F_1$ are all
+$-\alpha\rho\sqrt{d_v}<0$: the center itself does \emph{not} certify the
+second batch.
+
+\begin{lemma}[Safe first-face center and strict greedy endpoint]
+\label{lem:branch-caterpillar-second-nonsettled-safe-center}
+Let $x_0$ and $x_1$ be the exact restricted RPPR points on
+$\widehat U_0$ and $\widehat U_1$.  Then
+\begin{equation}
+ \frac{(y^+)_{b_1}}{(x_0)_{b_1}}
+ =\frac{2(1+2\chi_{\rm A})}
+        {3(1+\sqrt{\chi_{\rm A}})}<1,
+ \qquad 0\leq y^+<x_1.
+ \label{eq:branch-caterpillar-second-nonsettled-center-ratio}
+\end{equation}
+The point $y^+$ is a lower certificate for the principal face
+$\widehat U_1$.  If $z_1$ is the output obtained by initializing at the
+standard proximal warm start $u_{\widehat U_1}(y^+)$ and applying the exact
+greedy normalized-KKT coordinate updates until the imported relative rule
+holds, then
+\begin{equation}
+ y^+\leq u_{\widehat U_1}(y^+)\leq z_1
+ \leq p_1(y^+)<x_1
+ \quad\hbox{coordinatewise}.
+ \label{eq:branch-caterpillar-second-nonsettled-safe-order}
+\end{equation}
+Here $p_1(y^+)$ is the exact shifted minimizer on $\widehat U_1$.
+In particular, $z_1$ is strictly nonsettled.
+\end{lemma}
+
+\begin{proof}
+The first exact seed-face point has denominator $a_0$, whereas
+$\widehat x^{\rm ns}$ has denominator $a_0+\kappa_{\rm A}=3h_0$.
+Using $1+\beta_{\rm A}=2/(1+\sqrt{\chi_{\rm A}})$ and
+$\alpha=\chi_{\rm A}/(1+\chi_{\rm A})$ gives the displayed ratio.  Its
+strict inequality is equivalent to
+$(4\sqrt{\chi_{\rm A}}+1)(\sqrt{\chi_{\rm A}}-1)<0$.
+Principal-face monotonicity gives $x_0\leq x_1|_{\widehat U_0}$, and the
+three new coordinates of $x_1$ are positive, proving $y^+<x_1$.
+
+The only positive coordinate of $y^+$ is $b_1$.  Its lower residual is
+strictly positive because $(y^+)_{b_1}<(x_0)_{b_1}$ and $x_0$ satisfies the
+one-coordinate KKT equality.  Thus $y^+$ is a principal-face lower
+certificate.  The imported safe-center theorem now gives
+$y^+\leq u\leq z_1\leq p_1(y^+)\leq x_1$ for the exact greedy trajectory.
+Strictness at the last comparison follows from
+\begin{equation*}
+ x_1-p_1(y^+)
+ =(Q_{\widehat U_1\widehat U_1}+\kappa_{\rm A}I)^{-1}
+   \kappa_{\rm A}(x_1-y^+)>0.
+\end{equation*}
+The inverse is entrywise positive because the principal Stieltjes graph is
+connected and the right-hand side is strictly positive.  This proves every
+claim.
+\end{proof}
+
+The useful point is that the proximal warm start, rather than the center,
+already contains enough first-layer mass to open the next batch.
+
+\begin{lemma}[Greedy first-face output certifies the second batch]
+\label{lem:branch-caterpillar-second-nonsettled-admission}
+Let $u_1:=u_{\widehat U_1}(y^+)$.  If $m>2$, its normalized demands toward
+$\mathcal F_1=\{b_3,a_2,r_2\}$ are
+\begin{align}
+ \frac{(\ell_\rho-Qu_1)_{b_3}}{\sqrt{d_{b_3}}}
+ &=\alpha\left[
+   \frac{(1+\beta_{\rm A})(1-3\rho)}{324}
+   -\frac{13\rho}{12}\right]>0,
+ \notag\\
+ \frac{(\ell_\rho-Qu_1)_{a_2}}{\sqrt{d_{a_2}}}
+ &=\alpha\left[
+   \frac{(1+\beta_{\rm A})(1-3\rho)}{144}
+   -\frac{9\rho}{8}\right]>0,
+ \notag\\
+ \frac{(\ell_\rho-Qu_1)_{r_2}}{\sqrt{d_{r_2}}}
+ &=\alpha\left[
+   \frac{(1+\beta_{\rm A})(1-3\rho)}{108}
+   -\frac{5\rho}{4}\right]>0.
+ \label{eq:branch-caterpillar-second-nonsettled-margins}
+\end{align}
+If $m=2$, then $\mathcal F_1=\{a_2,r_2,r_3\}$ and
+\begin{align}
+ \frac{(\ell_\rho-Qu_1)_{a_2}}{\sqrt{d_{a_2}}}
+ &=\alpha\left[
+   \frac{(1+\beta_{\rm A})(1-3\rho)}{72}
+   -\frac{5\rho}{4}\right]>0,
+ \notag\\
+ \frac{(\ell_\rho-Qu_1)_{r_2}}{\sqrt{d_{r_2}}}
+ =\frac{(\ell_\rho-Qu_1)_{r_3}}{\sqrt{d_{r_3}}}
+ &=\alpha\left[
+   \frac{(1+\beta_{\rm A})(1-3\rho)}{108}
+   -\frac{5\rho}{4}\right]>0.
+ \label{eq:branch-caterpillar-second-nonsettled-terminal-margins}
+\end{align}
+Every boundary demand is increasing in its unique parent coordinate.
+Therefore the greedy order
+\cref{eq:branch-caterpillar-second-nonsettled-safe-order} implies that the
+same three demands at $z_1$ are strictly positive.  One paid complete-batch
+interaction consequently commits exactly $\mathcal F_1$.
+\end{lemma}
+
+\begin{proof}
+In degree-scaled coordinates, write
+\begin{equation*}
+ t:=\frac{(y^+)_{b_1}}{\sqrt{d_{b_1}}}
+ =\frac{(1+\beta_{\rm A})\alpha(1-3\rho)}{9h_0}.
+\end{equation*}
+Because the shift cancels at its center and $L_{\rm A}=4h_0$, the three new
+warm-start coordinates are
+\begin{equation*}
+ \frac{(u_1)_{b_2}}{\sqrt{d_{b_2}}}
+ =-\frac{\alpha\rho}{4h_0}+\frac{t}{12},\quad
+ \frac{(u_1)_{a_1}}{\sqrt{d_{a_1}}}
+ =-\frac{\alpha\rho}{4h_0}+\frac{t}{8},\quad
+ \frac{(u_1)_{r_1}}{\sqrt{d_{r_1}}}
+ =-\frac{\alpha\rho}{4h_0}+\frac{t}{4}.
+\end{equation*}
+Substitution into the unique-parent boundary rows gives the displayed
+formulas.  For $m>2$, the $b_3$ inequality is restrictive and is equivalent
+to $\rho<\rho_2(m,\alpha)$; for $m=2$, either terminal-leaf inequality is
+restrictive and has the same equivalence.  The other expressions are then
+strictly positive.  Finally, a tree-boundary demand is affine increasing in
+its one parent, so $z_1\geq u_1$ preserves all three strict signs.
+\end{proof}
+
+Put
+\begin{equation}
+ d_1:=z_1-\iota_0\widehat x^{\rm ns}>0,
+ \qquad
+ y_1:=z_1+\beta_{\rm A}d_1,
+ \qquad
+ v_1^{\rm es}:=z_1+
+   \left(\frac1{\sqrt{\chi_{\rm A}}}-1\right)d_1.
+ \label{eq:branch-caterpillar-second-nonsettled-momentum}
+\end{equation}
+The inequality is coordinatewise: on $b_1$ it follows from
+$z_1\geq y^+>\iota_0\widehat x^{\rm ns}$, while the three other coordinates
+of $z_1$ are positive.  Thus $y_1$ is a genuinely extrapolated center.
+
+After the second interaction, zero-pad $z_1,d_1,y_1,v_1^{\rm es}$ to
+$\widehat U_2$.  Compute and charge the old-face proximal array at $y_1$
+before the interaction.  Since the padded new coordinates make no
+contribution to an old row, the enlarged-face proximal array retains those
+old cells and satisfies
+\begin{equation}
+ u_{\widehat U_2}(\iota_1y_1)_v
+ =\frac{(\ell_\rho-Q\iota_1y_1)_v}{L_{\rm A}}>0
+ \qquad(v\in\mathcal F_1).
+ \label{eq:branch-caterpillar-second-nonsettled-auxiliary-append}
+\end{equation}
+Indeed $y_1\geq z_1$ and the certified boundary demands at $z_1$ are
+strict.  Hence the center, momentum, and estimate arrays each append three
+zeros and the proximal array appends three positive cells: exactly twelve
+new coordinate records.
+
+The second enlarged-face estimate proof is again restarted explicitly.  Put
+\begin{align}
+ K_2^2
+ &:=\norm{\kappa_{\rho,\widehat U_2}(\iota_1z_1)}_2^2,
+ &D_2^2
+ &:=\norm{\iota_1v_1^{\rm es}-\iota_1z_1}_2^2,
+ \notag\\
+ B_2
+ &:=\frac{K_2^2}{2\alpha}
+   +\mu_{\rm E}D_2^2
+   +\frac{\mu_{\rm E}}{\alpha^2}K_2^2.
+ \label{eq:branch-caterpillar-second-nonsettled-shock-budget}
+\end{align}
+
+\begin{lemma}[Computable reset at the second nonsettled admission]
+\label{lem:branch-caterpillar-second-nonsettled-shock-reset}
+The two stored-row products at the padded primal and extrapolated center,
+together with exact norm accumulators, compute the warm start above and the
+observable scalars $K_2^2,D_2^2,B_2$.  They satisfy
+\begin{equation}
+ 0<\Psi_2(\iota_1z_1,\iota_1v_1^{\rm es})\leq B_2.
+ \label{eq:branch-caterpillar-second-nonsettled-shock-bound}
+\end{equation}
+Incremental to the paid candidate rows and ordinary stage-state writes, this
+second reset operation has vector
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_{1\to2}^{\rm NS})=
+ \bigl(2\mathcal V_2,2,0,0,O(1),\Theta(\mathcal V_2),0,
+ \Theta(C_2),O(C_2),12+\Theta(1),0\bigr),
+ \label{eq:branch-caterpillar-second-nonsettled-transition-vector}
+\end{equation}
+where
+\begin{equation*}
+ \mathcal V_2:=\vol(\widehat U_2)
+ =\begin{cases}12,&m=2,\\15,&m>2,\end{cases}
+ \qquad
+ C_2=C(\widehat U_2)
+ =\begin{cases}19,&m=2,\\22,&m>2.\end{cases}
+\end{equation*}
+No response, optimum query, or external emission is included.
+\end{lemma}
+
+\begin{proof}
+The proof of
+\Cref{lem:branch-caterpillar-nonsettled-shock-reset} applies verbatim with
+$\bar x=\iota_1z_1$, $\bar v=\iota_1v_1^{\rm es}$, and the restricted
+optimum $x_2$.  Strict positivity follows because $\bar v$ is zero on
+$\mathcal F_1$ whereas $x_2$ is strictly positive there.  Strong convexity
+gives
+$F_{\rho,\widehat U_2}(\bar x)-F_{\rho,\widehat U_2}(x_2)
+ \leq K_2^2/(2\alpha)$ and
+$\norm{\bar x-x_2}_2\leq K_2/\alpha$; the triangle inequality then yields
+the displayed upper bound.  One product forms the minimum-norm KKT vector at
+$\bar x$, and the other forms the proximal start at $\iota_1y_1$.  Three
+appends in each of four arrays plus the norm/reset scalars give the
+materialization coordinate.  The retained-face counts give the stated
+$\mathcal V_2$ and $C_2$.
+\end{proof}
+
+Define \texttt{SecondNonsettled-BC-AESP}$_{0\to2}^{+2}$ to perform the
+Round--020 first shifted stage and admission, but to lock both subsequent
+fixed-face oracles to the exact greedy normalized-KKT AESP--CD rule.  Its
+first greedy output is $z_1$ above; it scans the live rows in $\mathcal F_1$,
+certifies and commits that exact batch, executes the second reset, and then
+runs exactly one relative-accuracy greedy stage on $\widehat U_2$ from the
+carried extrapolated center $\iota_1y_1$.  It then retires the accelerated
+arena and builds the native response directly on the retained rows of
+$\widehat U_2$.
+
+For the second stage put
+\begin{equation}
+ L_2^{\rm rel}:=2+\frac34\log_+\!\left(
+ \frac{16(1-\alpha)\mathcal V_2}
+      {\delta_{\rm A}(1-2\alpha)}\right).
+ \label{eq:branch-caterpillar-two-nonsettled-oracle-log}
+\end{equation}
+Together with $L_1^{\rm rel}$ from
+\cref{eq:branch-caterpillar-nonsettled-oracle-log}, define
+\begin{align}
+ \mathfrak A_{\rm 2NS}
+ &:=\mathcal V_0+2\mathcal V_1+\mathcal V_1L_1^{\rm rel}
+    +2\mathcal V_2+\mathcal V_2L_2^{\rm rel},
+ \notag\\
+ \mathfrak D_{\rm 2NS}&:=C_2+\mathfrak A_{\rm 2NS},
+ &\mathfrak H_{\rm 2NS}
+ &:=C_2+(1+\log(2+C_2))\mathfrak A_{\rm 2NS}.
+ \label{eq:branch-caterpillar-two-nonsettled-budgets}
+\end{align}
+Every warm start, stored-row product, greedy coordinate row, KKT update,
+stopping test, state access, and oracle logarithm is included.
+
+\begin{theorem}[Two nonsettled admissions, two continuations, and rate STOP]
+\label{thm:branch-caterpillar-two-nonsettled-continuation}
+Under \cref{eq:branch-caterpillar-second-nonsettled-range}, the named greedy
+policy commits $\mathcal F_0$ and $\mathcal F_1$ from two strictly nonsettled
+points, performs a genuine extrapolated relative-accuracy stage after each
+admission, and reaches the native handoff at $\widehat U_2$.  Immediately
+before the native response build its complete prefix vector is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm 2NS}^{\rm pref})=\bigl(&
+ \mathcal V_2+O(\mathfrak A_{\rm 2NS}),
+ 3+O(\mathfrak A_{\rm 2NS}),2,0,O(\mathfrak H_{\rm 2NS}),
+ O(\mathfrak A_{\rm 2NS}),0,\\
+ &O(C_2),O(C_2),O(\mathfrak D_{\rm 2NS}),6+\Theta(2)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-two-nonsettled-prefix-eleven-vector}
+\end{equation}
+The exposed, numerical, and admitted arenas are exactly $\widehat U_2$;
+only the labels of $\mathcal F_2$ are known when $m>2$.  No row beyond the
+two live certificate batches is exposed.
+
+The paid native suffix has vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm 2NS}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_2),m-2,m-1,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-2)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),\Theta(\card{S^\star}),\\
+ &\card{S^\star\setminus\widehat U_2}
+  +\card{S^\star}+\Theta(m-1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-two-nonsettled-post-eleven-vector}
+\end{equation}
+Consequently
+\begin{equation}
+ R_{\rm int}^{\rm total}=m+1,
+ \qquad
+ R_{\rm adj}^{\rm total}=m+1+O(\mathfrak A_{\rm 2NS}),
+ \qquad
+ W_{\rm total}=O\!\left(
+  \mathfrak H_{\rm 2NS}+C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-two-nonsettled-total-work}
+\end{equation}
+The structural first-exposure part of $R_{\rm adj}$ is exactly $m+1$.
+
+This is a finite two-admission/two-continuation GO, not an accelerated-rate
+theorem.  In particular, $B_2$ is a fresh observable reset with no proved
+inequality against $B_{\rm ns}$, and the first greedy stage is used only for
+its safe order and gate signs.  The argument neither amortizes the two
+estimate shocks nor proves a multi-face contraction or speedup.  The exact
+$\rho_2$ margin, greedy-policy restriction, live-row exposures, four charged
+transition products, both oracle logarithms, and native suffix remain
+visible.  All fixed-family, strict-$\rho_{\rm can}$, exact-real, branch-seed,
+delta/certificate, non-PPR, non-finite-precision, and non-bit restrictions
+remain in force.
+\end{theorem}
+
+\begin{proof}
+The first admission, reset, and continued stage are the Round--020
+construction.  The additional greedy restriction invokes
+\Cref{lem:branch-caterpillar-second-nonsettled-safe-center}; its warm start
+and every later greedy iterate stay ordered below $p_1(y^+)$.
+\Cref{lem:branch-caterpillar-second-nonsettled-admission} therefore supplies
+the paid second certificate from the actual nonsettled output $z_1$.  The
+seed row and the two live boundary batches expose exactly $\widehat U_2$ in
+three structural rounds and degree volume $\mathcal V_2$.  The two resets
+and two fixed-face relative stages are bounded by
+$\mathfrak A_{\rm 2NS}$; their recurrence, heap/control, state, and memory
+charges give
+\cref{eq:branch-caterpillar-two-nonsettled-prefix-eleven-vector}.  The strict
+momentum in \cref{eq:branch-caterpillar-second-nonsettled-momentum} makes the
+second carried center genuinely extrapolated.
+
+After the second reply, every row of $\widehat U_2$ is retained and no native
+response on that face has been credited.  The reviewed direct suffix at
+$q=2$ therefore gives
+\cref{eq:branch-caterpillar-two-nonsettled-post-eleven-vector}.  The
+structural and interaction partitions are
+\begin{equation*}
+ 3+(m-2)=m+1,
+ \qquad
+ 2+(m-1)=m+1.
+\end{equation*}
+Adding the explicit numerical adjacency rounds, summing additive work, and
+taking sequential memory peaks proves
+\cref{eq:branch-caterpillar-two-nonsettled-total-work}.  Since neither the
+safe-order argument nor the second KKT reset compares $B_2$ with
+$B_{\rm ns}$, the stated rate STOP is exact.
+\end{proof}

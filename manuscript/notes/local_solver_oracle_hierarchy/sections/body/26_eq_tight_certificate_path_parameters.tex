@@ -1,0 +1,279 @@
+\subsection{A tighter certificate forces full support but not product work}
+
+Keep the path, exact-cell model, and every generation rule of
+\cref{def:cert-prefix-poly}, but tighten only the common task to
+\begin{equation}
+ q:=\frac1n,
+ \qquad
+ \alpha_n=q^2,
+ \qquad
+ \epsppr^{\rm tight}:=\frac{q}{10}=\frac1{10n}.
+ \label{eq:tight-certificate-path-parameters}
+\end{equation}
+Thus the task $\mathcal T_n^{\rm tight}$ accepts an explicit sparse list only
+after an exact final verifier confirms
+\begin{equation}
+ \norm{D^{-1/2}(b-Q_n\widehat x)}_\infty
+ \leq \alpha_n\epsppr^{\rm tight}=\frac{q^3}{10}.
+ \label{eq:tight-sparse-path-residual-task}
+\end{equation}
+Unlisted coordinates are zero, there is one solve/output interaction, and the
+verifier recomputes the residual from exposed path rows.  Write
+$\mathsf{CertPrefixPoly}^{\rm tight}$ for the same executions as in
+\cref{def:cert-prefix-poly} with this stricter task.  In particular, this
+notation changes neither the allowed recurrence actions nor the exclusions.
+
+Define the fixed spatial polynomial
+\begin{equation}
+ P(s):=\frac5{18}+\frac59s^2+\frac5{27}s^4+\frac2{81}s^6,
+ \qquad 0\leq s\leq1.
+ \label{eq:tight-profile-polynomial}
+\end{equation}
+Put $a:=(1+q^2)/2$, $\eta:=(1-q^2)/2$, and
+\begin{equation}
+ \gamma_n:=
+ \frac{q}{aP(1-q)-\eta P(1-2q)},
+ \qquad
+ s_i:=\frac{n-i}{n}.
+ \label{eq:tight-profile-normalizer}
+\end{equation}
+The candidate is specified in normalized coordinates by
+\begin{equation}
+ \widehat y_i:=\gamma_n qP(s_i),
+ \qquad
+ \widehat x_i:=\sqrt{d_i}\,\widehat y_i
+ \quad(1\leq i\leq n).
+ \label{eq:tight-profile-candidate}
+\end{equation}
+The degree six in \cref{eq:tight-profile-polynomial} is a spatial profile
+degree.  As a polynomial in $Q_n$ applied to $b$, the final vector may have
+degree $n-1$.
+
+\begin{theorem}[A full-support sparse-basis recurrence beats the product
+scale; \ProvedStatus]
+\label{thm:tight-certificate-sparse-basis-counteralgorithm}
+For every $n\geq8$:
+\begin{enumerate}[label=(\roman*)]
+\item every output accepted by $\mathcal T_n^{\rm tight}$ has all $n$
+      coordinates nonzero, so its final support is $V(P_n)$ and
+      $\nu_{\rm fin}=\nu_n=2(n-1)$;
+\item the vector in \cref{eq:tight-profile-candidate} satisfies the strict
+      version of \cref{eq:tight-sparse-path-residual-task} and is generated
+      by an admissible $\mathsf{CertPrefixPoly}^{\rm tight}$ execution with
+      \begin{equation}
+       \mathcal C_{\rm sparse\text{-}basis}=\bigl(
+       \Theta(n),n,1,0,\Theta(n),\Theta(n),0,
+       \Theta(n),O(1),0,n\bigr);
+       \label{eq:tight-sparse-basis-resource-vector}
+      \end{equation}
+\item on the identical task and chosen sequential adjacency interface, a
+      fully charged append-only $LDL^\top$ response emits the exact solution
+      and has
+      \begin{equation}
+       \mathcal C_{\rm tight\text{-}LDL}=\bigl(
+       \Theta(n),n,1,0,\Theta(n),0,\Theta(n),
+       \Theta(n),O(1),0,n\bigr).
+       \label{eq:tight-path-response-resource-vector}
+      \end{equation}
+\end{enumerate}
+Both executions are deterministic exact-algebraic-cell algorithms, with no
+preprocessing, randomness, or failure probability.  Thus their charged
+nonmemory work is
+$\Theta(n)=\Theta(\nu_{\rm fin})$, whereas
+\begin{equation}
+ \frac{\nu_{\rm fin}}{\sqrt{\alpha_n}}=\Theta(n^2).
+ \label{eq:tight-path-product-refutation}
+\end{equation}
+The stricter accuracy therefore does not restore a product lower bound for
+the broad supported-prefix polynomial semantics.
+\end{theorem}
+
+\begin{proof}
+We first prove the full-support assertion.  Let
+$y^0:=D^{-1/2}x^0$ and
+\begin{equation*}
+ \chi:=\frac{1-q}{1+q}.
+\end{equation*}
+Solving the second-order path recurrence with its two ambient endpoint rows
+gives
+\begin{equation}
+ y_i^0
+ =q\frac{\chi^{i-1}+\chi^{2n-i-1}}
+          {1-\chi^{2n-2}}
+ \quad(1\leq i\leq n).
+ \label{eq:tight-path-exact-profile}
+\end{equation}
+The numerator decreases through $i=n$.  The companion exact-CG calibration
+proves $\chi^{-n}\leq8$ for $n\geq3$, and hence
+\begin{equation}
+ y_i^0\geq y_n^0
+ =\frac{2q\chi^{n-1}}{1-\chi^{2n-2}}
+ >2q\chi^{n-1}\geq\frac q4.
+ \label{eq:tight-path-minimum-solution}
+\end{equation}
+For any residual $r=b-Q_n\widehat x$, the matrix
+$D^{-1/2}Q_n^{-1}D^{1/2}$ is nonnegative and has every row sum equal to
+$1/\alpha_n$: this follows from the nonsingular $M$-matrix property and
+$Q_n\sqrt d=\alpha_n\sqrt d$.  Therefore the certificate implies
+\begin{equation*}
+ \norm{D^{-1/2}(x^0-\widehat x)}_\infty
+ \leq\alpha_n^{-1}\norm{D^{-1/2}r}_\infty
+ \leq\frac q{10}.
+\end{equation*}
+If any coordinate were unlisted, its normalized error would be
+$y_i^0>q/4$, a contradiction.  This proves (i), including the value of
+$\nu_{\rm fin}$.
+
+We next check the candidate residual exactly.  Since $P$ is increasing and
+\begin{equation*}
+ P'(3/4)=\frac{907}{768},
+\end{equation*}
+the denominator in \cref{eq:tight-profile-normalizer} obeys, for $q\leq1/8$,
+\begin{align*}
+ aP(1-q)-\eta P(1-2q)
+ &=\frac{P(1-q)-P(1-2q)}2
+   +\frac{q^2}{2}\bigl(P(1-q)+P(1-2q)\bigr)\\
+ &\geq\frac q2P'(3/4)=\frac{907}{1536}q.
+\end{align*}
+Thus $\gamma_n$ is positive and
+\begin{equation}
+ 0<\gamma_n\leq\frac{1536}{907}.
+ \label{eq:tight-profile-normalizer-bound}
+\end{equation}
+Let $h:=D^{-1/2}(b-Q_n\widehat x)$.  The choice of $\gamma_n$ gives
+$h_1=0$.  For $2\leq i\leq n-1$, the exact centered-difference identity for
+the degree-six polynomial gives
+\begin{equation}
+ h_i=\gamma_n q^3R_q(s_i),
+ \label{eq:tight-profile-interior-residual}
+\end{equation}
+where
+\begin{equation}
+ R_q(s):=-P(s)+\frac{1-q^2}{4}P''(s)
+       +\frac{(1-q^2)q^2}{48}P^{(4)}(s)
+       +\frac{(1-q^2)q^4}{1440}P^{(6)}(s).
+ \label{eq:tight-profile-residual-polynomial}
+\end{equation}
+The coefficients in \cref{eq:tight-profile-polynomial} were chosen so that
+\begin{equation*}
+ \frac14P''(s)-P(s)=-\frac2{81}s^6.
+\end{equation*}
+Moreover,
+$P''(1)=110/27$, $P^{(4)}(1)=40/3$, and $P^{(6)}=160/9$;
+these derivatives are nonnegative and increasing where applicable on
+$[0,1]$.  Rewriting \cref{eq:tight-profile-residual-polynomial} around the
+preceding cancellation gives
+\begin{equation*}
+ R_q(s)=\left(\frac14P''(s)-P(s)\right)
+       -\frac{q^2}{4}P''(s)
+       +\frac{(1-q^2)q^2}{48}P^{(4)}(s)
+       +\frac{(1-q^2)q^4}{1440}P^{(6)}(s).
+\end{equation*}
+Therefore the triangle inequality, $1-q^2\leq1$, and the displayed
+derivative maxima give, for $q\leq1/8$,
+\begin{align}
+ |R_q(s)|
+ &\leq\frac2{81}
+   +\left(\frac{55}{54}+\frac5{18}\right)q^2
+   +\frac1{81}q^4
+ \nonumber\\
+ &=\frac2{81}+\frac{35}{27}q^2+\frac1{81}q^4
+ \leq\frac{1657}{36864},
+ \nonumber\\
+ \frac{|h_i|}{q^3}
+ &\leq\frac{1536}{907}\frac{1657}{36864}
+ =\frac{1657}{21768}<\frac1{10}.
+ \label{eq:tight-profile-interior-bound}
+\end{align}
+At the far endpoint, direct substitution gives
+\begin{equation}
+ h_n=-\gamma_n q^5
+ \left(\frac5{27}+\frac{13}{162}q^2+\frac1{81}q^4\right),
+ \label{eq:tight-profile-endpoint-residual}
+\end{equation}
+and therefore
+\begin{equation}
+ \frac{|h_n|}{q^3}
+ \leq\frac{2291}{464384}<\frac1{10}.
+ \label{eq:tight-profile-endpoint-bound}
+\end{equation}
+Together with $h_1=0$, this proves the strict certificate.
+
+It remains to realize the candidate without a hidden response.  Put
+$c_j:=-(Q_n)_{j,j+1}>0$.  Start with
+$u_1:=b/\alpha_n=e_1$.  After exposing the next path row, use one charged
+sparse row action and the exact scalar combination
+\begin{equation}
+ u_{j+1}:=
+ \frac{a u_j-c_{j-1}u_{j-1}-Q_nu_j}{c_j}=e_{j+1}
+ \quad(1\leq j<n),
+ \label{eq:tight-coordinate-basis-recurrence}
+\end{equation}
+where the $c_0u_0$ term is omitted.  Inductively, $u_j=e_j$ is a polynomial
+of degree $j-1$ in $Q_n$ applied to $b$, stored on a singleton inside its
+allowed reached prefix.  The cancellations in
+\cref{eq:tight-coordinate-basis-recurrence} are exact scalar linear
+combinations, not interior masks.  Every row action touches only a constant
+number of path entries.  Once the far endpoint reveals $n$, evaluate the
+fixed formula
+$\sqrt{d_i}\gamma_nqP(s_i)$ and combine it with $u_i$ for each coordinate.
+Each exposed $\sqrt{d_i}$ is merely the scalar coefficient of one singleton
+direction; no non-scalar diagonal map is applied.
+This delayed synthesis uses $\Theta(n)$ charged recurrence arithmetic.
+
+The chosen implementation exposes and caches the path in $n$ sequential
+adjacency batches, stores its rows and the singleton directions, and uses a
+constant-size rolling workspace.  A first streamed profile pass recomputes
+the exact residual from cached rows; after it succeeds, a second streamed pass
+emits the $n$ cells.  Coefficient evaluation and scalar combinations belong
+to $C_{\rm rec}$, while loop, stopping, and verifier arithmetic belong to
+$C_{\rm ctl}$.  No complete current active vector is maintained, so
+$C_{\rm mat}=0$.  This proves every coordinate of
+\cref{eq:tight-sparse-basis-resource-vector}; $R_{\rm adj}=n$ is the cost of
+this nonprefetching realization, not an adaptivity lower bound.
+
+For the response arm, use the same sequential exposure to append every
+tridiagonal pivot, multiplier, and forward message.  Two linear reverse
+passes suffice to recompute and verify the exact solution and then emit its
+$n$ nonzero cells, using constant rolling workspace and no intermediate
+complete vector.  Every factor/message construction and reverse application
+is charged to $C_{\rm resp}$, and the residual scan is charged to
+$C_{\rm ctl}$.  This proves
+\cref{eq:tight-path-response-resource-vector}.  The work comparison and
+\cref{eq:tight-path-product-refutation} now follow from
+$\nu_{\rm fin}=2(n-1)$ and $\sqrt{\alpha_n}=1/n$.
+\end{proof}
+
+\paragraph{Classification of sparse propagation and delayed synthesis.}
+The coordinate-basis construction is sparse Lanczos propagation specialized
+to an unreduced path: exposed-row actions and scalar cancellations generate
+its directions, so their arithmetic is $C_{\rm rec}$.  Finite propagation
+still forces $n-1$ such actions before the far coordinate is available, but
+each generated direction is a singleton rather than a full prefix.  The fixed
+profile in
+\cref{eq:tight-profile-polynomial} is evaluated only after $n$ is exposed;
+its numerical combinations remain $C_{\rm rec}$ and its scheduling is
+$C_{\rm ctl}$.  Its universal rational coefficients are not graph-dependent
+preprocessing, and no inverse coefficients are precomputed.  Any
+graph-dependent coefficient table prepared before the online phase would be
+reported in $C_{\rm pre}$ and its response representation.  By contrast, if an
+implementation builds a projected tridiagonal system and computes its
+coefficients with Thomas pivots, a factor, a Green formula, or another
+graph-dependent inverse map, that construction and application are
+$C_{\rm resp}$, with its state and scratch charged to the two memory
+coordinates.  Calling such a scalar solve ``coefficient synthesis'' would
+not make it free recurrence work.  Conversely, the class does not require
+full-prefix scans when exact cancellations leave singleton directions; an
+implementation that chooses to maintain a complete current prefix would pay
+the corresponding $C_{\rm mat}$ charge.
+
+\paragraph{Exact scope of the tighter refutation.}
+The tighter task removes the constant-prefix escape: every certified output
+has full support and therefore pays the optimal $\Theta(n)$ exposure and
+emission scale.  It still leaves a linear-work supported recurrence because
+the broad semantics permit sparse coordinate directions and delayed scalar
+combinations.  The result is exact-cell and path-specific.  It neither
+shortens ordinary CG, supplies a finite-precision implementation, refutes the
+exact full-vector $\mathsf{DiagSpecPoly}(r)$ theorem, nor rules out a product
+lower bound for a narrower independently motivated materialization or
+trajectory class or for a different graph family.

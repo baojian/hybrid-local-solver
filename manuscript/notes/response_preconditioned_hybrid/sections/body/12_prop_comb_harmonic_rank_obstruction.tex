@@ -1,0 +1,800 @@
+\begin{proposition}[A comb tree obstructs a universal low-rank bank]
+\label{prop:comb-harmonic-rank-obstruction}
+Fix $\alpha\in(0,1)$ and $n\geq2$.  Form an unweighted tree whose active
+anchor is the path $A=\{u_1,\ldots,u_n\}$ and attach one exterior leaf $v_i$
+to every $u_i$.  Put $U:=\{v_1,\ldots,v_n\}$ and
+$q_{\rm off}:=(1-\alpha)/2$.  Then
+\begin{equation}
+ \mathsf C_A
+ =-q_{\rm off}\operatorname{diag}
+   \left(d_{u_1}^{-1/2},\ldots,d_{u_n}^{-1/2}\right),
+ \label{eq:comb-cut-matrix}
+\end{equation}
+so the exact harmonic bank has rank $n$.  It is also entrywise nonzero.
+Furthermore,
+\begin{equation}
+ \sigma_n\!\left(Q_{AA}^{-1/2}\mathsf C_A\right)
+ \geq\frac{q_{\rm off}}{\sqrt3}.
+ \label{eq:comb-harmonic-singular-lower-bound}
+\end{equation}
+Consequently every bank of rank below $n$ has energy-operator error at least
+$q_{\rm off}/\sqrt3$, even though
+$\operatorname{cvol}(A)=4n-2$.  Explicitly materializing all leaf harmonic
+extensions stores $\Theta(n^2)$ nonzero values on a linear-volume tree.
+\end{proposition}
+
+\begin{proof}
+Every $v_i$ has degree one and its only anchor neighbor is $u_i$, proving
+\cref{eq:comb-cut-matrix}; the anchor degrees are at most three.  The
+principal path matrix $Q_{AA}$ is irreducible Stieltjes, so
+$Q_{AA}^{-1}$ is strictly positive.  Multiplication by the nonsingular
+diagonal matrix in \cref{eq:comb-cut-matrix} proves both full rank and the
+entrywise-nonzero claim.
+
+Since $Q\preceq I$, also $Q_{AA}\preceq I$ and
+$\sigma_{\min}(Q_{AA}^{-1/2})\geq1$.  The least diagonal magnitude in
+\cref{eq:comb-cut-matrix} is at least $q_{\rm off}/\sqrt3$, which proves
+\cref{eq:comb-harmonic-singular-lower-bound}.  Now apply
+\cref{eq:harmonic-bank-numerical-rank}.  Finally, two path endpoints have
+degree two and the other anchor vertices have degree three, so
+$\operatorname{cvol}(A)=n+(3n-2)=4n-2$.
+\end{proof}
+
+\begin{proposition}[Full-rank exact losses in a nonequitable cyclic structural
+epoch]
+\label{prop:notched-double-sun-loss-rank}
+Fix $n\geq5$.  Form an unweighted graph with anchor
+$A=\{u_1,\ldots,u_n\}$ by taking the cycle
+$u_1u_2\cdots u_nu_1$, adding the chord $u_1u_3$, and attaching two leaves
+$f_i,w_i$ to every $u_i$.  Put
+\begin{equation*}
+ F:=\{f_1,\ldots,f_n\},
+ \qquad
+ W:=\{w_1,\ldots,w_n\},
+ \qquad
+ S_k:=A\cup\{f_1,\ldots,f_k\}.
+\end{equation*}
+The $f_i$ are frontier petals and the $w_i$ remain exterior report labels.
+We prescribe the singleton face additions in the displayed order.  This is a
+structural response-interface trace; no RPPR load, KKT gate, or unit-seed
+instance generating that admission order is asserted.  For
+$1\leq i,k\leq n$, define the exact normalized diagonal-loss increment
+\begin{equation}
+ z_i^{(k)}
+ :=(Q/S_{k-1})_{w_iw_i}-(Q/S_k)_{w_iw_i}.
+ \label{eq:notched-sun-loss-increment}
+\end{equation}
+Then the following statements hold.
+
+\begin{enumerate}[label=(\roman*)]
+\item The anchor has
+      $\operatorname{cvol}(A)=5n+2$.  The natural partition $(A,F,W)$ is
+      not equitable, because $u_1,u_3$ have three anchor neighbors and the
+      other anchor vertices have two.  The normalized anchor--petal cut has
+      rank $n$.
+\item For every $\alpha\in(0,1)$, every entry $z_i^{(k)}$ is strictly
+      positive.  Hence each exact singleton loss update is dense on all $n$
+      report labels.
+\item For each fixed $n$ there is an $\alpha_n<1$ such that, whenever
+      $\alpha\in(\alpha_n,1)$, the matrix
+      \begin{equation*}
+       \mathsf Z_n:=\bigl[z_i^{(k)}\bigr]_{i,k=1}^n
+      \end{equation*}
+      is nonsingular.  More precisely, with
+      $\vartheta:=(1-\alpha)/2$ and
+      $\delta_i:=d_{u_i}\in\{4,5\}$,
+      \begin{align}
+       z_k^{(k)}
+       &=\frac{\vartheta^4}{\delta_k^2}
+         +O_n(\vartheta^5),
+       \label{eq:notched-sun-loss-diagonal}\\
+       z_i^{(k)}&=O_n(\vartheta^6),
+       \qquad i\neq k.
+       \label{eq:notched-sun-loss-offdiagonal}
+      \end{align}
+      The first $K$ loss vectors are linearly independent for every
+      $1\leq K\leq n$.
+\item If the next checkpoint is scheduled at
+      $\operatorname{cvol}(S_k)\geq
+       (1+\gamma)\operatorname{cvol}(A)$ for fixed $\gamma>0$, then the
+      number of singleton events through the next checkpoint or exhaustion
+      is
+      \begin{equation}
+       K_\gamma
+       =\min\!\left\{n,
+          \left\lceil\frac{\gamma(5n+2)}2\right\rceil
+        \right\}
+       =\Theta_\gamma(n).
+       \label{eq:notched-sun-light-epoch-length}
+      \end{equation}
+      Thus a prescribed charged-volume-$\Theta(n)$ structural epoch contains
+      $\Theta(n)$ dense independent exact loss updates even though exposing
+      each frontier petal costs only $\operatorname{cvol}(\{f_k\})=2$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+Let $\mathsf D_A:=\operatorname{diag}(\delta_1,\ldots,\delta_n)$ and let
+$N_A$ be the normalized adjacency of the cycle plus chord, using the degrees
+in the full graph.  The two chord endpoints have degree five and every other
+anchor vertex has degree four, so
+\begin{equation*}
+ \sum_{u\in A}(1+d_u)=n+(4n+2)=5n+2.
+\end{equation*}
+The nonequitability claim follows from the declared anchor-neighbor counts.
+Since every petal has degree one, the normalized cut matrix, with the $F$
+and $W$ columns in cyclic order, is
+\begin{equation}
+ Q_{A,F\cup W}D_{F\cup W}^{-1/2}
+ =\begin{bmatrix}-C&-C\end{bmatrix},
+ \qquad
+ C:=\vartheta\mathsf D_A^{-1/2}.
+ \label{eq:notched-sun-cut}
+\end{equation}
+The diagonal matrix $C$ is nonsingular, proving cut rank $n$.
+
+Put
+\begin{equation}
+ G:=Q_{AA}^{-1},
+ \qquad
+ H:=CGC,
+ \qquad
+ K:=(1-\vartheta)I-H.
+ \label{eq:notched-sun-green-blocks}
+\end{equation}
+Eliminating the anchor gives, on the two petal copies,
+\begin{equation}
+ (Q/A)_{FF}=(Q/A)_{WW}=K,
+ \qquad
+ (Q/A)_{WF}=-H.
+ \label{eq:notched-sun-petal-schur}
+\end{equation}
+The matrix $Q_{AA}$ is irreducible Stieltjes, hence $G$ is strictly positive
+entrywise.  Thus $H$ is strictly positive.  The matrix $K$ is a principal
+Schur complement of $Q$ and is Stieltjes.  For
+$P_k:=\{1,\ldots,k-1\}$, one more Schur-complement step gives
+\begin{align}
+ r^{(k)}
+ &:=- (Q/S_{k-1})_{Wf_k}
+   =H_{:k}+H_{:P_k}K_{P_kP_k}^{-1}H_{P_kk}>0,
+ \label{eq:notched-sun-conditional-response}\\
+ \kappa_k
+ &:=(Q/S_{k-1})_{f_kf_k}
+   =K_{kk}-K_{kP_k}K_{P_kP_k}^{-1}K_{P_kk}>0.
+ \label{eq:notched-sun-conditional-pivot}
+\end{align}
+Here an empty product is omitted when $k=1$.  Applying the scalar Schur
+diagonal-loss identity yields
+\begin{equation}
+ z_i^{(k)}=\frac{(r_i^{(k)})^2}{\kappa_k}>0,
+ \label{eq:notched-sun-loss-factor}
+\end{equation}
+which proves density.
+
+It remains to prove independence.  As $\vartheta\downarrow0$,
+\begin{equation*}
+ Q_{AA}
+ =(1-\vartheta)I-\vartheta N_A,
+ \qquad
+ G=I+O_n(\vartheta).
+\end{equation*}
+Consequently
+\begin{align*}
+ H_{ii}&=\frac{\vartheta^2}{\delta_i}
+          +O_n(\vartheta^3),
+ &H_{ik}&=O_n(\vartheta^3)\quad(i\neq k),
+ &K_{P_kP_k}^{-1}&=I+O_n(\vartheta).
+\end{align*}
+Substitution in
+\cref{eq:notched-sun-conditional-response,eq:notched-sun-conditional-pivot}
+gives
+\begin{align*}
+ r_k^{(k)}
+ &=\frac{\vartheta^2}{\delta_k}+O_n(\vartheta^3),
+ &r_i^{(k)}&=O_n(\vartheta^3)\quad(i\neq k),
+ &\kappa_k&=1+O_n(\vartheta).
+\end{align*}
+Equation~\eqref{eq:notched-sun-loss-factor} proves
+\cref{eq:notched-sun-loss-diagonal,eq:notched-sun-loss-offdiagonal}.  The
+leading term of the determinant is therefore
+\begin{equation*}
+ \det(\mathsf Z_n)
+ =\vartheta^{4n}\prod_{k=1}^n\delta_k^{-2}
+  +O_n(\vartheta^{4n+1}),
+\end{equation*}
+which is nonzero for all sufficiently small positive $\vartheta$.  The same
+argument on the first $K$ rows and columns proves independence of every
+prefix.
+
+Finally, every admitted source leaf adds two units of charged volume, so
+$\operatorname{cvol}(S_k)=5n+2+2k$.  Solving the geometric checkpoint
+inequality proves
+\cref{eq:notched-sun-light-epoch-length}.
+\end{proof}
+
+\begin{corollary}[Exact fixed-linear target tags require linear dimension]
+\label{cor:notched-sun-exact-tag-obstruction}
+Use the first $K\leq n$ events of
+\cref{prop:notched-double-sun-loss-rank} with
+$\alpha\in(\alpha_n,1)$.  Suppose an epoch-internal target state lies in
+$\mathbb R^s$, has a fixed linear decoder
+$R:\mathbb R^s\to\mathbb R^W$, and represents every exact loss increment by
+some state increment $a_k$, so that
+\begin{equation}
+ Ra_k=z^{(k)},
+ \qquad 1\leq k\leq K.
+ \label{eq:notched-sun-linear-tag}
+\end{equation}
+Then $s\geq K$.  Taking $K=K_\gamma$ from
+\cref{eq:notched-sun-light-epoch-length}, for any fixed $\gamma>0$, gives
+$s\geq K_\gamma=\Theta_\gamma(n)$.  Hence no
+$s=\operatorname{polylog}(n)$ exact fixed-linear loss tag represents the
+prescribed epoch.
+
+The literal work ledger exposes two failed implementations.  Materializing
+the dense vector $z^{(k)}$ at all leaves writes $n$ words per event and costs
+$nK$ leaf updates before any hierarchy-node query, exact leaf validation, or
+output.  Alternatively, every nonzero same-sign target vector on the petals
+has a dense harmonic extension through $A$; returning one such extension as
+an explicit old-face row writes $n$ words.  If $H_{\rm row}$ distinct rows are
+constructed on demand, their construction alone costs at least
+$nH_{\rm row}$ words.  Their later applications must additionally charge
+every touched stored-row read; every reached hierarchy query, exact leaf
+validation, and reported crossing remains a separate unit of work.
+
+This is an exact-representation obstruction only.  The off-diagonal losses in
+\cref{eq:notched-sun-loss-offdiagonal} can lie below a finite reporting
+margin.  The result does not rule out the scale-matched additive oracle of
+\cref{cor:additive-group-locator}, nor any scale-truncated, nonlinear,
+adaptive, sparse-recovery, or cyclic transfer/separator representation.
+\end{corollary}
+
+\begin{proof}
+The $K$ loss vectors are linearly independent and all lie in
+$\operatorname{range}(R)$, so
+$s\geq\operatorname{rank}(R)\geq K$.
+The first literal charge follows from strict density.  For the second, a
+nonzero same-sign petal vector has right-hand side $-Ca$ on the anchor.
+Since $G=Q_{AA}^{-1}$ is strictly positive, $-GCa$ has no zero coordinate.
+An explicitly returned row therefore has $n$ words.  The remaining charges
+are distinct operations by the response-interface work contract.  The final
+paragraph limits the claim to the exact decoder in
+\cref{eq:notched-sun-linear-tag}.
+\end{proof}
+
+\begin{corollary}[The exact-rank stress test is easy at its separated finite
+band]
+\label{cor:notched-sun-finite-band-separation}
+Fix $n\geq5$ and an additive-oracle parameter $\beta\in(0,1)$.  There is
+$\overline\alpha_{n,\beta}\in[\alpha_n,1)$ such that the structural trace of
+\cref{prop:notched-double-sun-loss-rank}, for every
+$\alpha\in(\overline\alpha_{n,\beta},1)$, has the following property.  With
+$\vartheta=(1-\alpha)/2$ and pruning threshold
+\begin{equation}
+ \tau_{\rm fb}:=\vartheta^5,
+ \label{eq:notched-sun-finite-band-threshold}
+\end{equation}
+the $k$th exact loss increment obeys
+\begin{equation}
+ \left\{i:z_i^{(k)}\geq\tau_{\rm fb}\right\}=\{k\}.
+ \label{eq:notched-sun-single-heavy-loss}
+\end{equation}
+Moreover, for every report group $C\subseteq W$, the explicit scalar
+\begin{equation}
+ \widehat Z_k(C)
+ :=\begin{cases}
+    \vartheta^4/8+\beta\tau_{\rm fb},&w_k\in C,\\
+    \beta\tau_{\rm fb},&w_k\notin C,
+   \end{cases}
+ \label{eq:notched-sun-separated-oracle}
+\end{equation}
+satisfies the certified one-sided additive bounds
+\begin{equation}
+ Z_k(C):=\sum_{w_i\in C}z_i^{(k)}
+ \leq\widehat Z_k(C)
+ \leq\frac{25}{4}Z_k(C)+\beta\tau_{\rm fb}.
+ \label{eq:notched-sun-separated-oracle-bound}
+\end{equation}
+Consequently the search of
+\cref{cor:additive-group-locator} follows only the hierarchy path containing
+$w_k$, uses $O(bL)$ group queries in an arity-$b$, depth-$L$ hierarchy, and
+performs one exact leaf validation.  The path is identified from the exposed
+matching incidences $f_k-u_k-w_k$; no dense loss update is published.
+This is a query-count statement: constructing or updating the hierarchy and
+its path-membership state, and the arithmetic cost of exact validation, remain
+separate charged operations.
+
+Thus the notched double sun is a sharp exact-representation obstruction but
+cannot support a finite-band lower bound at
+\cref{eq:notched-sun-finite-band-threshold} in this fixed-$n$,
+$\alpha>\overline\alpha_{n,\beta}$ regime.  This remains a statement about the
+prescribed structural trace, not an RPPR KKT trajectory or a uniform
+fixed-$\alpha$ family as $n$ grows.
+\end{corollary}
+
+\begin{proof}
+The asymptotics
+\cref{eq:notched-sun-loss-diagonal,eq:notched-sun-loss-offdiagonal} hold for
+the finite set of pairs $(i,k)$.  Hence, after increasing the lower bound on
+$\alpha$ if necessary, simultaneously for every event,
+\begin{equation}
+ \frac{\vartheta^4}{50}
+ \leq z_k^{(k)}\leq\frac{\vartheta^4}{8},
+ \qquad
+ \sum_{i\neq k}z_i^{(k)}\leq\beta\vartheta^5,
+ \qquad
+ \vartheta<\frac1{50}.
+ \label{eq:notched-sun-separated-scales}
+\end{equation}
+The first and third inequalities put the matching entry above
+$\vartheta^5$, while the second puts every off-matching entry below it,
+proving \cref{eq:notched-sun-single-heavy-loss}.
+
+If $w_k\notin C$, then
+$Z_k(C)\leq\beta\tau_{\rm fb}=\widehat Z_k(C)$, and the upper side of
+\cref{eq:notched-sun-separated-oracle-bound} is immediate.  If $w_k\in C$,
+then \cref{eq:notched-sun-separated-scales} gives
+\begin{equation*}
+ Z_k(C)\leq\frac{\vartheta^4}{8}+\beta\tau_{\rm fb}
+ =\widehat Z_k(C)
+ \leq\frac{25}{4}Z_k(C)+\beta\tau_{\rm fb}.
+\end{equation*}
+This proves the oracle bounds.  A group not containing $w_k$ has estimate
+strictly below $\tau_{\rm fb}$ because $\beta<1$; a group containing $w_k$
+has estimate above the threshold because $\vartheta<1/8$.  Therefore exactly
+one branch survives at every level.  The graph construction exposes the
+matched report label through the common anchor neighbor, proving the final
+work statement.
+\end{proof}
+
+\begin{proposition}[Fresh explicit coded tables fail the epoch target]
+\label{prop:notched-sun-fresh-dense-coded-table-charge}
+Fix constants $\gamma>0$, $\beta,\delta\in(0,1)$, and
+$\xi,\zeta\in(0,1/2)$.  For every $n\geq5$, let
+$\overline\alpha_{n,\beta}$ be as in
+\cref{cor:notched-sun-finite-band-separation}, and choose
+\begin{equation}
+ \alpha_n^\star\in
+ \left(\max\{\overline\alpha_{n,\beta},3/4\},1\right).
+ \label{eq:notched-sun-fresh-table-alpha-sequence}
+\end{equation}
+This is an $n$-dependent sequence; no fixed value of $\alpha$ is asserted to
+work uniformly as $n$ grows.  Put
+\begin{equation*}
+ \vartheta_n:=\frac{1-\alpha_n^\star}{2},
+ \qquad
+ \tau_n:=\vartheta_n^5,
+ \qquad
+ K:=K_\gamma.
+\end{equation*}
+At event $1\leq k\leq K$, use the settled anchor, singleton frontier, and
+remaining exterior
+\begin{equation}
+ A_k:=S_{k-1},
+ \qquad F_k:=\{f_k\},
+ \qquad U_k:=V\setminus A_k,
+ \qquad
+ \mathcal W_k:=W\mathbin{\dot\cup}\{f_{k+1},\ldots,f_n\}.
+ \label{eq:notched-sun-fresh-table-event}
+\end{equation}
+Thus $U_k=F_k\mathbin{\dot\cup}\mathcal W_k$.  Use a global identifier
+universe of size $N_n:=3n$, put
+\begin{equation*}
+ L_n:=\left\lceil\log_2N_n\right\rceil,
+ \qquad M_n:=4n,
+ \qquad
+ \delta_k:=\frac{\delta}{k(k+1)},
+\end{equation*}
+and use the exact frontier representation, so that $\upsilon=0$ and
+$a_\pm=(1\pm\zeta)^2$ in
+\cref{eq:frontier-whitening-sandwich}.  Let $p_{q_n}$ be the corresponding
+Chebyshev polynomial from
+\cref{thm:chebyshev-frontier-whitening}.  For the public choice
+$E_k:=1$, $m_k:=\sqrt{\tau_n}$, define
+\begin{align}
+ r_k
+ &:=\left\lceil
+      c_{\rm sk}\xi^{-2}\log\frac{4M_n}{\delta_k}
+    \right\rceil,
+ &
+ R_k
+ &:=\left\lceil\log_4\frac{2N_n}{\delta_k}\right\rceil,
+ \label{eq:notched-sun-fresh-table-probe-counts}\\
+ \mathsf h_n
+ &:=\max\!\left\{1,
+      \frac{(1+\xi)a_+}{(1-\xi)a_-\tau_n}
+    \right\},
+ &
+ B_n
+ &:=\left\lceil128\mathsf h_nL_n\right\rceil,
+ \label{eq:notched-sun-fresh-table-buckets}\\
+ \mathsf c_k&:=B_nR_k,
+ &
+ p_k&:=B_n(L_n+1)R_k=(L_n+1)\mathsf c_k.
+ \label{eq:notched-sun-fresh-table-dimensions}
+\end{align}
+
+After the complete history has fixed
+$(A_k,F_k,K_{F_k},E_k,m_k)$, draw an independent fresh block consisting of
+the Gaussian source matrix
+\begin{equation*}
+ G_k=[g_{k,1}\ \cdots\ g_{k,r_k}]
+ \in\mathbb R^{F_k\times r_k},
+ \qquad
+ Y_k:=p_{q_n}(K_{F_k})G_k,
+\end{equation*}
+and the hash/sign target bank
+$\Pi_k\in\mathbb R^{p_k\times U_k}$.  Neither layer may have been observed by
+the history, and the two layers are mutually independent.  The literal dense
+table implementation forms and stores every coordinate of
+\begin{equation}
+ \mathsf T_k
+ :=Q_{A_kA_k}^{-1}Q_{A_kU_k}D_{U_k}^{-1/2}\Pi_k^T
+ \in\mathbb R^{A_k\times p_k},
+ \label{eq:notched-sun-fresh-dense-harmonic-table}
+\end{equation}
+applies this table to all $r_k$ prepared source columns, decodes the candidate
+set $\mathcal C_k$, performs current-boundary and report-membership lookups
+followed by exact validation, emits accepted report labels, and then discards
+the block.
+
+With probability at least $1-\delta$, simultaneously for all $k\leq K$,
+\begin{equation}
+ w_k\in\mathcal C_k,
+ \qquad
+ |\mathcal C_k|\leq\mathsf c_k,
+ \qquad
+ \operatorname{Validate}(\mathcal C_k\cap W)=\{w_k\}.
+ \label{eq:notched-sun-fresh-table-correctness}
+\end{equation}
+Nevertheless, if $\mathcal C_{{\rm harm},k}^{\rm dense}$ charges the
+right-hand-side construction, all anchor solves, and every table-cell write,
+then
+\begin{equation}
+ \sum_{k=1}^K\mathcal C_{{\rm harm},k}^{\rm dense}
+ \geq\sum_{k=1}^K|A_k|p_k
+ \geq n(L_n+1)\sum_{k=1}^K\mathsf c_k.
+ \label{eq:notched-sun-fresh-table-write-lower-bound}
+\end{equation}
+In contrast,
+\begin{equation}
+ \frac{\operatorname{cvol}(S_K)}{\sqrt{\alpha_n^\star}}
+ +\sum_{k=1}^K|\mathcal C_k|
+ =O_\gamma\!\left(\sum_{k=1}^K\mathsf c_k\right).
+ \label{eq:notched-sun-fresh-table-target-upper-bound}
+\end{equation}
+Thus the explicit table cells alone introduce a factor
+$\Omega_\gamma(n(L_n+1))$ relative to the displayed target quantity.  Even
+after treating the locator's $L_n+1$ factor as logarithmic, an unsuppressed
+$\Omega(n)$ anchor-size overhead remains.  Hence this particular per-event
+fresh dense-table realization cannot establish
+\cref{eq:desired-epoch-harmonic-charge}.
+\end{proposition}
+
+\begin{proof}
+The restriction of $Q_{A_kW}$ to the original anchor rows $A$ is the
+nonsingular diagonal block $-C$ from
+\cref{eq:notched-sun-cut}.  Therefore every event still has normalized
+anchor--report cut rank $n$, even though $|F_k|=1$.  By
+\cref{thm:source-leverage-diagonal-loss} and $d_{w_i}=1$,
+\begin{equation}
+ Z_{F_k\mid A_k}(\{w_i\})=z_i^{(k)}.
+ \label{eq:notched-sun-fresh-table-loss-identity}
+\end{equation}
+The unadmitted petal $f_i$, $i>k$, has the same conditional response to
+$f_k$ as $w_i$: in the two-copy block
+\cref{eq:notched-sun-petal-schur}, both rows have off-diagonal block $-H$,
+and eliminating $f_1,\ldots,f_{k-1}$ adds the same Schur term.  Its normalized
+mass is therefore also $z_i^{(k)}$.  The finite-band separation
+\cref{eq:notched-sun-single-heavy-loss} consequently says that $w_k$ is the
+only member of $\mathcal W_k$ at mass at least $\tau_n$.
+
+Condition on the history immediately before the $k$th block.  The event tuple
+and the capacities in
+\cref{eq:notched-sun-fresh-table-probe-counts,eq:notched-sun-fresh-table-buckets}
+are then fixed before either random layer is drawn.  Apply
+\cref{cor:shared-coded-harmonic-bank} with event failure budget $\delta_k$.
+Its Gaussian source event uses at most $\delta_k/2$, and the independent coded
+locator uses at most $\delta_k/2$; the factor $2$ is the reason for the
+$R_k$ in \cref{eq:notched-sun-fresh-table-probe-counts}.  Conditional failure
+at event $k$ is at most $\delta_k$, regardless of earlier answers.  Hence
+\begin{equation*}
+ \Pr\{\text{some event fails}\}
+ \leq\sum_{k=1}^K\delta_k
+ \leq\delta\sum_{k=1}^{\infty}\frac1{k(k+1)}
+ =\delta.
+\end{equation*}
+The coded theorem gives $|\mathcal C_k|\leq B_nR_k$.  Current-boundary lookup
+implements the theorem's retention test, report-membership lookup rejects
+unadmitted petals, and exact validation plus the preceding uniqueness proves
+\cref{eq:notched-sun-fresh-table-correctness}.  This is a structural response
+query, not a claim that the face sequence is an RPPR trajectory.
+
+For completeness, the rest of the implementation ledger is as follows.  The
+Chebyshev degree $q_n$ is given by
+\cref{eq:frontier-whitening-degree}; let $T_{{\rm mv},k}$ charge one
+frontier multiplication, including its anchor-response application.  The
+fresh source preparation is charged as
+\begin{equation*}
+ \mathcal C_{\rm src}
+ =O\!\left(\sum_{k=1}^Kr_kq_nT_{{\rm mv},k}\right).
+\end{equation*}
+The $p_k$ anchor right-hand sides and $p_k$ anchor solves at event $k$ are
+charged as separate nonnegative terms
+$\mathcal C_{{\rm rhs},k}$ and $\mathcal C_{{\rm solve},k}$.  The former
+includes every exposed cut-record read and hash/sign evaluation used to form
+the right-hand sides.  The table's output representation then writes exactly
+the cells
+\begin{equation*}
+ \{\mathsf T_k[a,\ell]:a\in A_k,\ 1\leq\ell\leq p_k\},
+\end{equation*}
+so its write count is $|A_k|p_k$; these are the cells forcing
+\cref{eq:notched-sun-fresh-table-write-lower-bound}.  Moreover
+$Q_{A_kF_k}y$ is supported only at $u_k$.  A source-by-source application
+therefore charges $r_kp_k$ stored old-face cell reads at event $k$.  If all
+sources are fused into one matrix application, the more favorable ledger still
+charges at least the $p_k$ distinct cells in row $u_k$.  Because $F_k$ is a
+singleton, all $r_k$ source columns are collinear: after reading that row, an
+optimized implementation can factor the common $r_k$-vector and perform the
+table application and vector-norm comparisons in $O(p_k+r_k)$ arithmetic.
+An entrywise implementation that instead materializes all $p_kr_k$
+measurement cells pays $\Theta(p_kr_k)$ arithmetic and cell writes.  Thus the
+unconditional batched-read charge and the two alternative application charges
+are
+\begin{equation*}
+ \mathcal C_{\rm read}^{\rm batch}\geq\sum_{k=1}^Kp_k,
+ \qquad
+ \mathcal C_{\rm app}^{\rm factored}
+ =O\!\left(\sum_{k=1}^K(p_k+r_k)\right),
+ \qquad
+ \mathcal C_{\rm app}^{\rm entrywise}
+ =\Theta\!\left(\sum_{k=1}^Kr_kp_k\right).
+\end{equation*}
+For the generic entrywise path, the direct frontier contribution, decoder,
+and random seeds/samples are charged respectively by
+\begin{equation*}
+ O\!\left(\sum_{k=1}^Kr_kR_k(L_n+1)
+                  \operatorname{cvol}(F_k)\right),
+ \qquad
+ O\!\left(\sum_{k=1}^Kr_kp_k\right),
+ \qquad
+ O\!\left(\sum_{k=1}^K(r_k+R_k)\right).
+\end{equation*}
+The factored singleton path replaces the first two of these bounds by the
+preceding $O(\sum_k(p_k+r_k))$ application/decoder bound.  This optimization
+does not change a single $|A_k|p_k$ harmonic-table cell counted below.
+One global label dictionary records report type, petal index, and current
+boundary eligibility.  It costs $\Theta(n)$ construction work and cells.
+Eligibility can be tested from the stored petal index and current $k$ in
+$O(1)$ time; an implementation that mutates flags instead performs and charges
+$O(K)$ one-time eligibility updates.
+Testing the one decoded label from every bucket/repetition costs
+$O(\sum_k\mathsf c_k)$ current-boundary lookups; testing the retained
+candidates for report membership costs a further
+$O(\sum_k|\mathcal C_k|)$.  The peak resident workspace is at least
+\begin{equation*}
+ \max_{k\leq K}|A_k|p_k
+\end{equation*}
+table cells, in addition to $O(r_kp_k+\mathsf c_k+n)$ measurement, candidate,
+and dictionary cells at event $k$ for the entrywise path.  The factored path
+uses $O(p_k+r_k+\mathsf c_k+n)$ additional cells instead.  Exact leaf
+evaluation remains the explicit
+charge
+$\sum_k\mathcal C_{{\rm val},k}(\mathcal C_k\cap W)$; it is not declared
+constant or free.  The coded decoder uses no partition-hierarchy query, so
+that coordinate is zero here, while adjacency exposure is
+$\Theta(\operatorname{cvol}(S_K))=\Theta_\gamma(n)$ and emitting the one
+accepted report label per event costs $K$ output operations.  Discarding a
+block does not erase any of these construction, application, read, or peak
+workspace charges.
+
+Finally, $|A_k|=n+k-1\geq n$ and
+$p_k=(L_n+1)\mathsf c_k$, which proves
+\cref{eq:notched-sun-fresh-table-write-lower-bound}.  Also
+\begin{equation*}
+ \operatorname{cvol}(S_K)=5n+2+2K=\Theta_\gamma(n),
+ \qquad
+ \frac1{\sqrt{\alpha_n^\star}}\leq\frac2{\sqrt3},
+\end{equation*}
+and $\sum_k\mathsf c_k\geq K=\Theta_\gamma(n)$.  Together with
+$|\mathcal C_k|\leq\mathsf c_k$, these facts prove
+\cref{eq:notched-sun-fresh-table-target-upper-bound}.  The lower bound used
+only the explicit table writes; every other charged coordinate can only
+increase the implementation cost.
+\end{proof}
+
+Both obstructions are representation-specific.  The comb does not lower-bound
+an implicit tree recurrence, which can exploit path order without storing a
+low-rank bank.  In the fixed-$n$, $\alpha>\overline\alpha_{n,\beta}$ regime,
+the notched double sun cannot lower-bound a finite-band cyclic reporter at the
+separated scale $\tau_{\rm fb}=\vartheta^5$:
+\cref{cor:notched-sun-finite-band-separation} gives an explicit additive
+oracle there.  Together the negative results prove only that the remaining arbitrary-core
+theorem cannot be obtained by precomputing all exact harmonic target rows, by
+a uniform constant-accuracy low-rank factorization when $\alpha<1$ is fixed,
+or by assuming that squared diagonal-loss updates have an exact
+polylogarithmic linear dimension.  The useful positive regime is now
+explicit: low cut rank, equitable quotients, and bounded interfaces are
+closed by \cref{thm:low-cut-rank-harmonic-bank}; high-rank nonequitable cores
+still require scale-aware shifted-debt propagation, a cyclic transfer or
+separator representation, on-demand dynamic sparsification, or sparse
+recovery.
+
+\Cref{prop:notched-sun-fresh-dense-coded-table-charge} adds a work audit, not a
+new reporter lower bound.  The same separated-scale family has a one-path
+deterministic oracle, yet the literal policy of rebuilding a fresh explicit
+dense harmonic table at every event pays a factor proportional to the anchor
+size.  \Cref{thm:certified-adaptive-coded-bank-reuse} removes the target-bank
+rebuild multiplier entirely under exact validation.  What remains is an
+implicit or compressed build once per doubling capacity and cheap repeated
+application, as well as dynamic terminal sparsifiers, cyclic transfer states,
+and sparse recovery.
+
+For one fixed event, this supplies an explicit output-sensitive measurement
+family from shared
+global Gaussian targets restricted to the hierarchy nodes reached by the
+packed search.  It no longer assumes exact source whitening: an approximate
+spectral frontier and its matrix-vector product suffice, and the exact
+response backend implements that product through one already charged anchor
+application.  The positive resolvent route avoids constructing that target
+row: it emits response during sparse shifted-face propagation and retains the
+unfinished part as exact nonnegative debt.  The one-edge obstruction proves
+that literal exact-push cleanup cannot match the Schur-coordinate ledger.  The
+remaining theorem is therefore to aggregate that debt through a stronger
+block/transfer primitive, or maintain an equivalent shared sparse-recovery
+family within the same charge.
+
+This embedding identifies concrete prior machinery, but does not silently
+import its runtime.  Van den Brand, Gao, Jambulapati, Lee, Liu, Peng, and Sidford,
+``Faster Maxflow via Improved Dynamic Spectral Vertex Sparsifiers,''
+arXiv:2112.00722v1, construct a dynamic spectral Schur complement in
+Section~4, especially Theorems~4.1 and~4.10, and an operator $\ell_2$
+heavy-hitter locator for electrical-flow coordinates in Section~5.4,
+Theorem~5.10 and Algorithm~5.  Its blueprint is directly relevant:
+
+\begin{enumerate}
+\item precompute sparse heavy-hitter projections of a harmonic-response
+      operator;
+\item maintain those projected responses through a dynamic terminal Schur
+      complement;
+\item recover a small candidate set and evaluate only those coordinates.
+\end{enumerate}
+
+The source theorem is not the missing local PageRank theorem.  It starts from
+the full $m$-edge graph, has initialization
+$\widetilde O(m\beta^{-2}\xi^{-2})$, update
+$\widetilde O(\beta^{-2}\xi^{-2})$, and locator-query
+$\widetilde O(\beta m\xi^{-2})$ in its notation, permits only
+$O(\beta m)$ updates before rebuilding, reports edge coordinates relative to
+a global $\ell_2$ norm, and initially assumes an oblivious adversary.  The
+adaptive reduction in its Section~6 is substantial.  None of these charges is
+automatically $\widetilde O(V/\sqrt\alpha)$ or
+$\widetilde O(V)$, and \cref{eq:boundary-response-grounded} is a
+degree-scaled vertex divergence rather than one edge current.
+
+Nevertheless, this is now the most concrete construction route for the open
+oracle.  The new task is not to invent a generic hierarchy from scratch.
+\Cref{prop:exposed-incidence-sufficiency} already replaces full-graph input by
+an exposure-sized record and makes static geometric rebuilding local.  What
+remains is to specialize the operator-heavy-hitter architecture to the
+grounded PageRank graph, obtain exposure-charged updates and queries within an
+epoch, use \cref{lem:two-ledger-square-root-wakeup} to schedule those queries,
+and evaluate only finite-band vertex candidates.  Failure at one of these
+named steps becomes an explicit obstruction rather than a vague ``dynamic
+SDD'' difficulty.
+
+\Cref{lem:transposed-anchor-response-sketch} gives the corresponding concrete
+fixed-anchor interface.  Candidate CountSketch, sparse-recovery, or
+hierarchical measurement rows may be placed in $\Pi$.  A geometric rebuild
+precomputes their harmonic extensions on the anchor; every aggregate frontier
+solve then updates the measured dual signature without forming the old-face
+primal correction.  \Cref{thm:coded-bucket-row-locator,cor:shared-coded-harmonic-bank}
+close the first quantitative question: one
+bank with $\widetilde O(1+|F|E^2/m^2)$ rows suffices for a complete packed
+query.  Exact validation permits one such bank per doubling capacity to be
+reused across the adaptive trace.  Moreover,
+\cref{thm:bidirectional-harmonic-application,cor:online-harmonic-rent-or-buy}
+choose online between target extensions and source-side cut scans and bound
+the anchor right-hand-side count by the smaller aggregate dimension, up to a
+factor two.  The unresolved question is now only whether the resulting
+repeated cut scans or stored-response applications fit the target ledger.
+
+The causal-sketch theorem removes three possible sources of repeated work: old numerical
+faces are never re-optimized, past random source probes are never replayed,
+and a newly exposed boundary label needs no retrospective initialization.
+There are now two equivalent remaining operations.  One may apply the $r_j$
+signed normalized responses in
+\cref{eq:append-only-group-mass-increment} and add their squared mass to the
+live hierarchy, or directly maintain the monotone aggregate Schur-diagonal
+loss in \cref{eq:cumulative-sketch-diagonal-loss}.  The second formulation
+removes the random source dimension and permits scale-matched additive error.
+Proving a local bound for either dynamic operation without visiting every leaf
+is still open.
+
+The sketch oracle is Monte Carlo.  It gives the displayed simultaneous
+one-sided upper estimates only on the probability-$1-\delta$ event.  A
+deterministic theorem, or a Las Vegas implementation, additionally needs a
+charged validation mechanism for every discarded hierarchy node; no such
+general cyclic-core mechanism is claimed here.
+
+\begin{proposition}[Uniform energy intervals do not locate the changed row]
+\label{prop:uniform-interval-obstruction}
+For every $m\geq1$, there is a PageRank Stieltjes matrix on $m$ disjoint
+edges, a fixed active side $S=\{u_1,\ldots,u_m\}$, and exterior side
+$W=\{v_1,\ldots,v_m\}$ with the following property.  There are $m$
+singleton-source corrections of equal energy such that correction $k$ changes
+only exterior coordinate $v_k$.  Nevertheless, the graph-universal or exact
+source-oblivious leverage interval marks every not-yet-changed exterior
+coordinate ambiguous at every round when all base demands lie half an update
+below the reporting threshold.  Refreshing all such ambiguous coordinates
+costs $\Omega(m^2)$ queries, whereas the source-aware leverages identify one
+possible changed row per round.
+\end{proposition}
+
+\begin{proof}
+Put $q_0=(1+\alpha)/2$ and $q_1=(1-\alpha)/2$.  On each edge
+$u_i v_i$, the shared normalized PageRank block is
+\begin{equation*}
+ \begin{bmatrix}q_0&-q_1\\-q_1&q_0\end{bmatrix}.
+\end{equation*}
+Hence $Q_{SS}=q_0I$ and $Q_{WS}=-q_1I$.  For a fixed $h>0$, take correction
+$\Delta^k=he_k$.  Its energy radius is $h\sqrt{q_0}$, while its exterior
+demand change is $q_1he_k$.  Every source-oblivious leverage equals
+$q_1/\sqrt{q_0}$, so the corresponding interval half-width is $q_1h$ at
+every exterior coordinate.  If every unchanged demand equals
+$\vartheta-q_1h/2$ for a threshold $\vartheta$, all $m-k+1$ unchanged
+coordinates have intervals intersecting $\vartheta$ at round $k$ even though
+only $v_k$ moves.  Their complete refresh cost sums to
+$m+(m-1)+\cdots+1=\Omega(m^2)$.
+
+For the declared source $B_k=\{u_k\}$,
+\cref{eq:source-aware-leverage} gives
+$\chi_{v_k}^{B_k}=q_1/\sqrt{q_0}$ and
+$\chi_{v_j}^{B_k}=0$ for $j\neq k$.  Thus the source-aware intervals isolate
+the only coordinate that can change.  On any balanced hierarchy, the exact
+group masses in \cref{eq:source-aware-group-mass} also locate that coordinate
+with $O(\log m)$ group queries.  This fixed-face construction is a
+certificate limitation, not a single-seed RPPR lower bound and not a lower
+bound against reporters that exploit the source structure.
+\end{proof}
+
+\begin{lemma}[Energy packing of exterior response changes]
+\label{lem:response-energy-packing}
+Let $S\subseteq T\subseteq S^\star$ be positive exact restricted faces,
+extend $x[S]$ by zero on $T\setminus S$, and let $W\subseteq V\setminus T$.
+For the exterior demand change
+\begin{equation*}
+ y_W:=\bigl(c_W-Q_{WT}x[T]_T\bigr)
+      -\bigl(c_W-Q_{WT}x[S]_T\bigr),
+\end{equation*}
+one has $y_W\geq0$ and
+\begin{equation}
+ \|y_W\|_2^2
+ \leq\|x[T]-x[S]\|_{Q_{TT}}^2
+ =2\bigl(\phi(x[S])-\phi(x[T])\bigr).
+ \label{eq:response-energy-packing}
+\end{equation}
+If $H_\theta:=\{v\in W:y_v/\sqrt{d_v}\geq\theta\}$, then
+\begin{equation}
+ \vol(H_\theta)
+ \leq\frac{2}{\theta^2}
+ \bigl(\phi(x[S])-\phi(x[T])\bigr).
+ \label{eq:response-volume-packing}
+\end{equation}
+The same inequality with the sum of objective shocks holds over disjoint
+nested response epochs.
+\end{lemma}
+
+\begin{proof}
+Put $\Delta:=x[T]_T-x[S]_T\geq0$.  Then
+$y_W=-Q_{WT}\Delta\geq0$.  Schur complementation and $Q\preceq I$ give
+\begin{equation*}
+ Q_{WT}Q_{TT}^{-1}Q_{TW}\preceq Q_{WW}\preceq I.
+\end{equation*}
+Thus $Q_{WT}Q_{TT}^{-1/2}$ is a contraction and
+$\|y_W\|_2\leq\|\Delta\|_{Q_{TT}}$.  Completing the square around the exact
+face solution $x[T]$ proves the equality.  Each $v\in H_\theta$ contributes
+$y_v^2\geq\theta^2d_v$; summing proves
+\cref{eq:response-volume-packing}.  Objective drops telescope over disjoint
+nested index intervals.
+\end{proof}

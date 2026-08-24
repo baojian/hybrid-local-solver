@@ -6,7 +6,7 @@ directions and makes cross-direction communication explicit.
 ## Roles
 
 - The **controller** maintains the shared problem, literature map, accumulated
-  results, broadcast, manifest, taxonomy, and dependency graph. It verifies
+  results, broadcast, registry, and dependency graph. It verifies
   before propagating.
 - A **direction agent** works in exactly one note directory per assignment,
   keeps that note self-contained, and returns a structured handoff.
@@ -29,7 +29,7 @@ shared contract + broadcast
           -> independent proof/experiment/audit
           -> local STATUS.md + controller handoff
           -> controller verification
-          -> results/literature/taxonomy update
+          -> results/literature/registry update
           -> new BROADCAST.md read by all directions
 ```
 
@@ -53,7 +53,7 @@ Every handoff uses [`STATUS_TEMPLATE.md`](STATUS_TEMPLATE.md) and includes:
 - the single next falsifiable target;
 - commands run and remaining verification gaps.
 
-Only direct formal proof or construction imports change `taxonomy.toml`'s
+Only direct formal proof or construction imports change `registry.toml`'s
 dependency graph. Source prerequisites, empirical ancestry, sibling
 comparisons, and companion-note provenance are still redistributed, but they
 remain separately labeled and do not create graph edges.
@@ -64,7 +64,7 @@ result.
 
 ## Collision avoidance
 
-- Direction agents do not edit `_shared/`, `manifest.toml`, `taxonomy.toml`, or
+- Direction agents do not edit `_shared/`, `registry.toml`, or
   the root note `README.md` unless assigned as controller.
 - The controller does not rewrite a dirty direction file while its worker is
   active; it communicates a requested change instead.
@@ -76,7 +76,7 @@ result.
 ## Suggested research cadence
 
 1. Controller selects a small set of independent, high-value targets from the
-   taxonomy and broadcast.
+   registry and broadcast.
 2. Direction agents work in parallel and report even negative results.
 3. Controller performs a claim and dependency audit.
 4. Verified shared results and refutations are broadcast.

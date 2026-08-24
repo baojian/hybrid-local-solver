@@ -1,0 +1,117 @@
+\subsection{Square-root wake-ups from the two telescopes}
+\label{sec:square-root-wakeups}
+
+The diagonal-loss and correction-energy ledgers should not be charged
+separately.  Their product is the actual uncertainty radius of a delayed
+response.  This gives a square-root scheduling law before any particular
+dynamic Schur representation is chosen.
+
+\begin{lemma}[Two-ledger square-root wake-up bound]
+\label{lem:two-ledger-square-root-wakeup}
+Use the exact nested corrections and normalized frontier bases of
+\cref{thm:causal-orthogonal-response-sketches}.  Fix a vertex $v$ throughout
+an interval of events on which it remains exterior.  Partition those events
+into disjoint consecutive epochs $I_1,\ldots,I_K$, and put
+\begin{equation}
+ A_r(v):=\sum_{j\in I_r}\lambda_{jv}^2,
+ \qquad
+ E_r:=\sum_{j\in I_r}\norm{\Delta^j}_Q^2.
+ \label{eq:wakeup-two-ledgers}
+\end{equation}
+Then the normalized exterior-demand change accumulated at $v$ in epoch $r$
+satisfies
+\begin{equation}
+ \frac{1}{\sqrt{d_v}}
+ \left|e_v^TQ\sum_{j\in I_r}\Delta^j\right|
+ \leq\sqrt{A_r(v)E_r}.
+ \label{eq:wakeup-product-interval}
+\end{equation}
+Suppose epoch $r$ ends with a certified wake-up only after this product
+radius reaches a declared positive margin $\mu_r$, so that
+$\sqrt{A_r(v)E_r}\geq\mu_r$.  If
+\begin{equation*}
+ \mathcal E:=\sum_j\norm{\Delta^j}_Q^2,
+ \qquad
+ q_{\rm off}:=\frac{1-\alpha}{2},
+\end{equation*}
+then
+\begin{equation}
+ \sum_{r=1}^K\mu_r
+ \leq
+ \sqrt{\frac{q_{\rm off}}{d_v}\,\mathcal E}.
+ \label{eq:wakeup-margin-budget}
+\end{equation}
+In particular, if every completed epoch uses margin at least $\mu>0$, then
+\begin{equation}
+ K\leq
+ \frac{1}{\mu}
+ \sqrt{\frac{q_{\rm off}}{d_v}\,\mathcal E}.
+ \label{eq:wakeup-count}
+\end{equation}
+
+For a unit-mass seed and a trace starting from the zero face, the RPPR
+objective gives $\mathcal E\leq\alpha$.  Hence at the finite-band scale
+$\mu=c\alpha\tau$ for any fixed $c>0$,
+\begin{equation}
+ K=O\!\left(\frac{1}{\tau\sqrt{\alpha d_v}}\right).
+ \label{eq:wakeup-product-scale}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For each $j$, write $\Delta^j=U_ja_j$.  The normalized bases are mutually
+$Q$-orthonormal, so
+$\norm{a_j}_2=\norm{\Delta^j}_Q$.  Stack the row vectors
+$e_v^TQU_j/\sqrt{d_v}$ and the coefficient vectors $a_j$ over
+$j\in I_r$.  Ordinary Cauchy--Schwarz gives
+\cref{eq:wakeup-product-interval}.
+
+The epochs are disjoint.  A second Cauchy--Schwarz inequality and the wake-up
+rule give
+\begin{equation*}
+ \sum_{r=1}^K\mu_r
+ \leq\sum_{r=1}^K\sqrt{A_r(v)E_r}
+ \leq
+ \sqrt{\left(\sum_rA_r(v)\right)
+             \left(\sum_rE_r\right)}.
+\end{equation*}
+By \cref{thm:source-leverage-diagonal-loss}, the first factor is the
+normalized terminal-Schur diagonal loss over a subinterval of the exterior
+lifetime of $v$ and is at most $q_{\rm off}/d_v$.  The second factor is at
+most $\mathcal E$.  This proves
+\cref{eq:wakeup-margin-budget,eq:wakeup-count}.
+
+It remains to record the unit-seed energy budget.  The unregularized smooth
+quadratic has minimum value
+$-\tfrac12 b^TQ^{-1}b$.  Since
+$Q^{-1}\preceq\alpha^{-1}I$ and
+$b=\alpha D^{-1/2}s$ with $s\geq0$, $\one^Ts=1$, and $d_v\geq1$,
+\begin{equation*}
+ b^TQ^{-1}b
+ \leq\alpha^{-1}\norm{b}_2^2
+ \leq\alpha.
+\end{equation*}
+The nonnegative $\ell_1$ term can only raise the RPPR objective.  Therefore
+the total objective drop from zero is at most $\alpha/2$, while
+\cref{eq:orthogonal-correction-telescope} identifies twice that drop with
+$\mathcal E$.  Thus $\mathcal E\leq\alpha$, and substituting
+$\mu=c\alpha\tau$ proves \cref{eq:wakeup-product-scale}.
+\end{proof}
+
+The same argument applies to a fixed hierarchy node $C$ that remains
+exterior: replace $A_r(v)$ by
+$A_r(C):=\sum_{v\in C}\sum_{j\in I_r}\lambda_{jv}^2$ and the scalar response
+by its $D_C^{-1/2}$-normalized vector.  The total first ledger is exactly the
+aggregate Schur-diagonal loss in
+\cref{eq:cumulative-sketch-diagonal-loss}.  Thus a hierarchy should not be
+updated after every batch.  Each node should sleep while both its accumulated
+diagonal loss and its accumulated orthogonal energy remain small, and wake
+only when their product reaches the node's current pruning margin.
+
+This lemma is a genuine square-root gain, but not yet the desired global work
+theorem.  Summing the per-label bound naively can still pay for too many live
+boundary labels, and maintaining the diagonal-loss ledger itself is the open
+operation.  The useful conclusion is narrower: an implementation that
+publishes every additive $\alpha\tau$ change discards an available
+Cauchy--Schwarz gain.  The correct scheduler is multiplicative in response
+leverage and correction energy.

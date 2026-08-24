@@ -41,15 +41,22 @@ not a first-order restriction.
    normalization or redefine reserved notation.
 3. Give the note its own directory containing `main.tex`, `README.md`,
    `STATUS.md`, and a `Makefile` that includes `../note.mk`. Use the shared
-   coordination status template and keep proof details in `main.tex`.
-4. Register the note in `manifest.toml`, `taxonomy.toml`, this directory's
-   `README.md`, and `Makefile`. The taxonomy entry must state its primitive,
+   coordination status template. A compact note may remain inline; once an
+   entrypoint grows beyond 1,200 lines, keep it as the document shell and put
+   ordered proof units under `sections/body/`, each below 1,000 lines. The
+   one-time `tools/split_note_sections.py` migration helper preserves the body
+   byte-for-byte while extracting it at semantic boundaries.
+4. Register the note only in `registry.toml`; the note table in this
+   directory's `README.md` and the aggregate Make targets are derived from it.
+   The registry entry must state its primitive,
    support evolution, evidence level, dependencies, and next target.
-   A taxonomy dependency is a direct theorem/construction import. Record
+   A registry dependency is a direct theorem/construction import. Record
    empirical ancestry, sibling comparisons, and companion-note provenance in
    `STATUS.md` instead of turning them into formal graph edges.
 5. Add focused automated tests for executable tools or implementations. Keep
    experiment orchestration in `experiments/` and reusable logic in `src/`.
+   Proof-audit programs belong under `experiments/proof_audits/` and must be
+   registered there; round numbers are provenance, not program identities.
 6. Run the inventory audit, tests, lint, and the changed note build.
 
 ```bash

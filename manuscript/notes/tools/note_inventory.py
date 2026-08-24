@@ -1,10 +1,10 @@
-"""Audit and report the standalone research-note inventory and handoffs.
+"""Audit and report the standalone research-note registry and handoffs.
 
-The manifest records buildable documents. The taxonomy records research roles,
-backend families, dependencies, and next proof targets. Each direction also
-has a concise operational status card, while the controller-owned shared layer
-holds the common problem, literature, results, and broadcast. This tool keeps
-those views synchronized without generating or rewriting their source files.
+``registry.toml`` is the single source for buildable documents, research
+roles, backend families, dependencies, and concise next targets. Each
+direction keeps its detailed current state in ``STATUS.md``; immutable round
+records retain history. This tool validates those sources and renders the
+small derived navigation views used by Make and CI.
 """
 
 from __future__ import annotations
@@ -19,13 +19,13 @@ from pathlib import Path
 from typing import Any
 
 
-TRACKS = {"iterative", "response", "mixed", "synthesis", "models"}
 SUPPORT_EVOLUTION = {"fixed-or-nested", "nested", "not-applicable", "trajectory-dependent"}
 EVIDENCE = {"conditional", "measured", "model-proposal", "proved-open", "synthesis"}
 STATUS_STATES = {"source", "proved-open", "conditional", "measured", "synthesis", "refuted"}
 ROUND_STATES = {"active", "reviewed", "redistributed"}
-REQUIRED_TAXONOMY_FIELDS = {
+REQUIRED_NOTE_FIELDS = {
     "id",
+    "entrypoint",
     "track",
     "primitive",
     "support_evolution",
@@ -83,7 +83,11 @@ REQUIRED_SHARED_FILES = {
 MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]+\]\((?P<target><[^>]+>|[^)\s]+)(?:\s+[^)]*)?\)")
 ROUND_FILENAME = re.compile(r"(?P<date>\d{4}-\d{2}-\d{2})-round-(?P<number>\d{3})\.md")
 NOTE_ID = re.compile(r"[a-z][a-z0-9_]*")
-FORMAL_TAXONOMY_DEPENDENCIES = "Formal taxonomy dependencies"
+FORMAL_REGISTRY_DEPENDENCIES = "Formal registry dependencies"
+GENERATED_TABLE_START = "<!-- BEGIN GENERATED NOTE TABLE -->"
+GENERATED_TABLE_END = "<!-- END GENERATED NOTE TABLE -->"
+MAX_ENTRYPOINT_LINES = 1200
+MAX_EXTRACTED_SECTION_LINES = 1000
 
 
 def repository_root() -> Path:
@@ -95,12 +99,20 @@ def _load_toml(path: Path) -> dict[str, Any]:
         return tomllib.load(stream)
 
 
-def load_inventory(root: Path | None = None) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def load_registry(root: Path | None = None) -> list[dict[str, Any]]:
     root = root or repository_root()
     notes = root / "manuscript" / "notes"
-    manifest = _load_toml(notes / "manifest.toml")
-    taxonomy = _load_toml(notes / "taxonomy.toml")
-    return manifest.get("note", []), taxonomy.get("entry", [])
+    registry = _load_toml(notes / "registry.toml")
+    return registry.get("note", [])
+
+
+def load_tracks(root: Path | None = None) -> dict[str, str]:
+    """Load track identifiers and descriptions from the central registry."""
+
+    root = root or repository_root()
+    notes = root / "manuscript" / "notes"
+    registry = _load_toml(notes / "registry.toml")
+    return registry.get("tracks", {})
 
 
 def _duplicate_values(values: list[str]) -> set[str]:
@@ -111,21 +123,6 @@ def _duplicate_values(values: list[str]) -> set[str]:
             duplicates.add(value)
         seen.add(value)
     return duplicates
-
-
-def _makefile_note_ids(path: Path) -> set[str]:
-    text = path.read_text(encoding="utf-8")
-    match = re.search(
-        r"^NOTES\s*:=\s*\\\n(?P<body>.*?)(?:\n\n|\n\.PHONY:)", text, re.MULTILINE | re.DOTALL
-    )
-    if match is None:
-        return set()
-    ids: set[str] = set()
-    for line in match.group("body").splitlines():
-        token = line.strip().removesuffix("\\").strip()
-        if token:
-            ids.add(token)
-    return ids
 
 
 def _dependency_cycles(entries: dict[str, dict[str, Any]]) -> list[list[str]]:
@@ -200,17 +197,17 @@ def _labeled_blocks(section: str, label: str) -> list[str]:
     return blocks
 
 
-def audit_status_taxonomy_dependencies(
+def audit_status_registry_dependencies(
     note_id: str, text: str, expected_dependencies: list[str]
 ) -> list[str]:
-    """Require the STATUS formal dependency field to mirror taxonomy exactly."""
+    """Require the STATUS formal dependency field to mirror the registry."""
 
     section = _section_text(text, "## Dependencies and reusable outputs")
-    declarations = _labeled_blocks(section, FORMAL_TAXONOMY_DEPENDENCIES)
+    declarations = _labeled_blocks(section, FORMAL_REGISTRY_DEPENDENCIES)
     if not declarations:
-        return [f"{note_id}: STATUS.md missing required field {FORMAL_TAXONOMY_DEPENDENCIES!r}"]
+        return [f"{note_id}: STATUS.md missing required field {FORMAL_REGISTRY_DEPENDENCIES!r}"]
     if len(declarations) > 1:
-        return [f"{note_id}: STATUS.md repeats required field {FORMAL_TAXONOMY_DEPENDENCIES!r}"]
+        return [f"{note_id}: STATUS.md repeats required field {FORMAL_REGISTRY_DEPENDENCIES!r}"]
 
     declaration = declarations[0]
     if re.fullmatch(r"none\.?", declaration, re.IGNORECASE):
@@ -221,7 +218,7 @@ def audit_status_taxonomy_dependencies(
         }
         if not declared_dependencies:
             return [
-                f"{note_id}: STATUS.md field {FORMAL_TAXONOMY_DEPENDENCIES!r} "
+                f"{note_id}: STATUS.md field {FORMAL_REGISTRY_DEPENDENCIES!r} "
                 "must contain code-quoted note ids or 'none'"
             ]
 
@@ -237,8 +234,8 @@ def audit_status_taxonomy_dependencies(
     if extra:
         differences.append(f"extra in STATUS.md: {extra}")
     return [
-        f"{note_id}: STATUS.md formal taxonomy dependencies must exactly match "
-        f"taxonomy depends_on ({'; '.join(differences)})"
+        f"{note_id}: STATUS.md formal registry dependencies must exactly match "
+        f"registry depends_on ({'; '.join(differences)})"
     ]
 
 
@@ -346,7 +343,15 @@ def broken_local_markdown_links(path: Path) -> list[str]:
 
 
 def _readme_note_row_count(text: str, note_id: str) -> int:
-    return text.count(f"| `{note_id}` |")
+    return text.count(f"| [`{note_id}`]({note_id}/) |")
+
+
+def _generated_readme_table(text: str) -> str | None:
+    if text.count(GENERATED_TABLE_START) != 1 or text.count(GENERATED_TABLE_END) != 1:
+        return None
+    start = text.index(GENERATED_TABLE_START) + len(GENERATED_TABLE_START)
+    end = text.index(GENERATED_TABLE_END)
+    return text[start:end].strip()
 
 
 def audit_inventory(root: Path | None = None) -> list[str]:
@@ -354,12 +359,19 @@ def audit_inventory(root: Path | None = None) -> list[str]:
     notes = root / "manuscript" / "notes"
     errors: list[str] = []
 
-    manifest_data = _load_toml(notes / "manifest.toml")
-    taxonomy_data = _load_toml(notes / "taxonomy.toml")
-    if manifest_data.get("schema_version") != 1:
-        errors.append("manifest.toml must use schema_version = 1")
-    if taxonomy_data.get("schema_version") != 1:
-        errors.append("taxonomy.toml must use schema_version = 1")
+    registry_data = _load_toml(notes / "registry.toml")
+    if registry_data.get("schema_version") != 2:
+        errors.append("registry.toml must use schema_version = 2")
+    tracks = registry_data.get("tracks", {})
+    if not isinstance(tracks, dict) or not tracks:
+        errors.append("registry.toml tracks must be a nonempty table")
+        tracks = {}
+    else:
+        for track, description in sorted(tracks.items()):
+            if not NOTE_ID.fullmatch(track):
+                errors.append(f"invalid registry track id: {track!r}")
+            if not isinstance(description, str) or not description.strip():
+                errors.append(f"registry track {track!r} must have a nonempty description")
 
     for relative_path in sorted(REQUIRED_SHARED_FILES):
         control_file = notes / relative_path
@@ -394,18 +406,13 @@ def audit_inventory(root: Path | None = None) -> list[str]:
                     f"found {index_occurrences}"
                 )
 
-    manifest = manifest_data.get("note", [])
-    taxonomy = taxonomy_data.get("entry", [])
-    manifest_ids = [record.get("id", "") for record in manifest]
-    taxonomy_ids = [record.get("id", "") for record in taxonomy]
+    registry = registry_data.get("note", [])
+    registry_ids = [record.get("id", "") for record in registry]
 
-    for duplicate in sorted(_duplicate_values(manifest_ids)):
-        errors.append(f"duplicate manifest id: {duplicate}")
-    for duplicate in sorted(_duplicate_values(taxonomy_ids)):
-        errors.append(f"duplicate taxonomy id: {duplicate}")
+    for duplicate in sorted(_duplicate_values(registry_ids)):
+        errors.append(f"duplicate registry id: {duplicate}")
 
-    manifest_set = set(manifest_ids)
-    taxonomy_set = set(taxonomy_ids)
+    registry_set = set(registry_ids)
     disk_note_ids = {
         directory.name
         for directory in notes.iterdir()
@@ -413,21 +420,26 @@ def audit_inventory(root: Path | None = None) -> list[str]:
         and not directory.name.startswith("_")
         and (directory / "main.tex").is_file()
     }
-    for note_id in sorted(manifest_set - taxonomy_set):
-        errors.append(f"manifest note missing from taxonomy: {note_id}")
-    for note_id in sorted(taxonomy_set - manifest_set):
-        errors.append(f"taxonomy note missing from manifest: {note_id}")
-    for note_id in sorted(disk_note_ids - manifest_set):
-        errors.append(f"direction directory missing from manifest: {note_id}")
-    for note_id in sorted(manifest_set - disk_note_ids):
-        errors.append(f"manifest note missing direction directory: {note_id}")
+    for note_id in sorted(disk_note_ids - registry_set):
+        errors.append(f"direction directory missing from registry: {note_id}")
+    for note_id in sorted(registry_set - disk_note_ids):
+        errors.append(f"registry note missing direction directory: {note_id}")
 
-    manifest_by_id = {record["id"]: record for record in manifest if record.get("id")}
-    taxonomy_by_id = {record["id"]: record for record in taxonomy if record.get("id")}
+    registry_by_id = {record["id"]: record for record in registry if record.get("id")}
 
     readme_file = notes / "README.md"
     readme = readme_file.read_text(encoding="utf-8") if readme_file.is_file() else ""
-    for note_id, record in sorted(manifest_by_id.items()):
+    expected_table = markdown_index(registry)
+    actual_table = _generated_readme_table(readme)
+    if actual_table is None:
+        errors.append("manuscript/notes/README.md must contain one generated note table block")
+    elif actual_table != expected_table:
+        errors.append("manuscript/notes/README.md generated note table is stale")
+
+    for note_id, record in sorted(registry_by_id.items()):
+        missing = REQUIRED_NOTE_FIELDS - set(record)
+        if missing:
+            errors.append(f"{note_id}: missing registry fields {sorted(missing)}")
         entrypoint = record.get("entrypoint")
         expected_entrypoint = f"{note_id}/main.tex"
         if entrypoint != expected_entrypoint:
@@ -438,6 +450,21 @@ def audit_inventory(root: Path | None = None) -> list[str]:
         for filename in ("main.tex", "README.md", "STATUS.md", "Makefile"):
             if not (note_directory / filename).is_file():
                 errors.append(f"{note_id}: missing {filename}")
+        main_file = note_directory / "main.tex"
+        if main_file.is_file():
+            line_count = len(main_file.read_text(encoding="utf-8").splitlines())
+            if line_count > MAX_ENTRYPOINT_LINES:
+                errors.append(
+                    f"{note_id}: main.tex has {line_count} lines; extract large bodies "
+                    f"under sections/body (limit {MAX_ENTRYPOINT_LINES})"
+                )
+        for section_file in sorted((note_directory / "sections" / "body").glob("*.tex")):
+            line_count = len(section_file.read_text(encoding="utf-8").splitlines())
+            if line_count > MAX_EXTRACTED_SECTION_LINES:
+                errors.append(
+                    f"{section_file.relative_to(notes)} has {line_count} lines; "
+                    f"split it at a semantic boundary (limit {MAX_EXTRACTED_SECTION_LINES})"
+                )
         status_file = note_directory / "STATUS.md"
         if status_file.is_file():
             status_text = status_file.read_text(encoding="utf-8")
@@ -454,11 +481,8 @@ def audit_inventory(root: Path | None = None) -> list[str]:
                 f"found {readme_occurrences}"
             )
 
-    for note_id, record in sorted(taxonomy_by_id.items()):
-        missing = REQUIRED_TAXONOMY_FIELDS - set(record)
-        if missing:
-            errors.append(f"{note_id}: missing taxonomy fields {sorted(missing)}")
-        if record.get("track") not in TRACKS:
+    for note_id, record in sorted(registry_by_id.items()):
+        if record.get("track") not in tracks:
             errors.append(f"{note_id}: invalid track {record.get('track')!r}")
         if record.get("support_evolution") not in SUPPORT_EVOLUTION:
             errors.append(
@@ -475,26 +499,30 @@ def audit_inventory(root: Path | None = None) -> list[str]:
         if note_id in dependencies:
             errors.append(f"{note_id}: a note cannot depend on itself")
         for dependency in dependencies:
-            if dependency not in taxonomy_by_id:
+            if dependency not in registry_by_id:
                 errors.append(f"{note_id}: unknown dependency {dependency}")
         status_file = notes / note_id / "STATUS.md"
         if status_file.is_file():
             errors.extend(
-                audit_status_taxonomy_dependencies(
+                audit_status_registry_dependencies(
                     note_id,
                     status_file.read_text(encoding="utf-8"),
                     dependencies,
                 )
             )
 
-    for cycle in _dependency_cycles(taxonomy_by_id):
-        errors.append(f"taxonomy dependency cycle: {' -> '.join(cycle)}")
+    for cycle in _dependency_cycles(registry_by_id):
+        errors.append(f"registry dependency cycle: {' -> '.join(cycle)}")
 
-    makefile_ids = _makefile_note_ids(notes / "Makefile")
-    for note_id in sorted(manifest_set - makefile_ids):
-        errors.append(f"manifest note missing from manuscript/notes/Makefile: {note_id}")
-    for note_id in sorted(makefile_ids - manifest_set):
-        errors.append(f"Makefile note missing from manifest: {note_id}")
+    makefile = (notes / "Makefile").read_text(encoding="utf-8")
+    if "note_inventory.py ids --format plain" not in makefile:
+        errors.append("manuscript/notes/Makefile must derive NOTES from registry.toml")
+
+    for legacy_script in sorted(notes.glob("*/check_round*.py")):
+        errors.append(
+            f"legacy proof audit inside note directory: {legacy_script.relative_to(root)}; "
+            "move it to experiments/proof_audits and register it there"
+        )
 
     return errors
 
@@ -512,6 +540,22 @@ def markdown_report(entries: list[dict[str, Any]]) -> str:
             record["support_evolution"],
             record["evidence"],
             record["next_target"],
+        ]
+        lines.append("| " + " | ".join(field.replace("|", "\\|") for field in fields) + " |")
+    return "\n".join(lines)
+
+
+def markdown_index(entries: list[dict[str, Any]]) -> str:
+    lines = [
+        "| Note | Track | Evidence | Role |",
+        "| --- | --- | --- | --- |",
+    ]
+    for record in sorted(entries, key=lambda item: (item["track"], item["id"])):
+        fields = [
+            f"[`{record['id']}`]({record['id']}/)",
+            record["track"],
+            record["evidence"],
+            record["role"],
         ]
         lines.append("| " + " | ".join(field.replace("|", "\\|") for field in fields) + " |")
     return "\n".join(lines)
@@ -551,9 +595,14 @@ def mermaid_graph(entries: list[dict[str, Any]]) -> str:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("check", help="validate manifest, taxonomy, files, and dependencies")
+    subparsers.add_parser("check", help="validate registry, files, handoffs, and dependencies")
 
-    report = subparsers.add_parser("report", help="print the current taxonomy")
+    ids = subparsers.add_parser("ids", help="print registered note ids")
+    ids.add_argument("--format", choices=("json", "plain"), default="plain")
+
+    subparsers.add_parser("index", help="print the generated concise README table")
+
+    report = subparsers.add_parser("report", help="print the current registry")
     report.add_argument("--format", choices=("json", "markdown"), default="markdown")
 
     targets = subparsers.add_parser("targets", help="print the next target for every note")
@@ -566,7 +615,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    manifest, taxonomy = load_inventory()
+    registry = load_registry()
 
     if args.command == "check":
         errors = audit_inventory()
@@ -574,14 +623,28 @@ def main(argv: list[str] | None = None) -> int:
             for error in errors:
                 print(f"ERROR: {error}", file=sys.stderr)
             return 1
-        print(f"note inventory is consistent: {len(manifest)} notes across {len(TRACKS)} tracks")
+        print(
+            f"note registry is consistent: {len(registry)} notes across {len(load_tracks())} tracks"
+        )
+        return 0
+
+    if args.command == "ids":
+        note_ids = [record["id"] for record in registry]
+        if args.format == "json":
+            print(json.dumps(note_ids))
+        else:
+            print(" ".join(note_ids))
+        return 0
+
+    if args.command == "index":
+        print(markdown_index(registry))
         return 0
 
     if args.command == "report":
         if args.format == "json":
-            print(json.dumps(taxonomy, indent=2, sort_keys=True))
+            print(json.dumps(registry, indent=2, sort_keys=True))
         else:
-            print(markdown_report(taxonomy))
+            print(markdown_report(registry))
         return 0
 
     if args.command == "targets":
@@ -593,19 +656,19 @@ def main(argv: list[str] | None = None) -> int:
                     "evidence": record["evidence"],
                     "next_target": record["next_target"],
                 }
-                for record in taxonomy
+                for record in registry
             ]
             print(json.dumps(targets, indent=2, sort_keys=True))
         else:
-            print(markdown_targets(taxonomy))
+            print(markdown_targets(registry))
         return 0
 
     if args.command == "graph":
         if args.format == "json":
-            graph = {record["id"]: sorted(record["depends_on"]) for record in taxonomy}
+            graph = {record["id"]: sorted(record["depends_on"]) for record in registry}
             print(json.dumps(graph, indent=2, sort_keys=True))
         else:
-            print(mermaid_graph(taxonomy))
+            print(mermaid_graph(registry))
         return 0
 
     raise AssertionError(f"unhandled command: {args.command}")

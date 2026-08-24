@@ -1,0 +1,709 @@
+\subsection{A ledger-only obstruction and fixed-operator finite traces}
+
+The safe-chain and collapse identities are necessary consequences of the
+exact safeguarded recurrence, but they do not encode all of its dynamics.  The
+next proposition makes that logical boundary explicit.
+
+\begin{proposition}[The scalar safeguard ledgers alone do not pack inflation]
+\label{prop:aesp-cd-ledger-only-insufficient}
+Fix $0<q\leq1/10$ and put
+\begin{equation}
+ \alpha:=\frac{q^2}{1+q^2},\qquad
+ \kappa:=\frac{1-q^2}{1+q^2}=1-2\alpha,\qquad
+ \beta:=\frac{1-q}{1+q},
+ \label{eq:aesp-cd-ledger-countermodel-parameters}
+\end{equation}
+\begin{equation*}
+ \tau:=\frac52q^2,\qquad
+ R:=1-\tau\left(1+\frac32\beta\right),\qquad
+ x^\star:=1.
+\end{equation*}
+For any $N\geq1$, there is a scalar sequence consisting of $N$ two-step
+cycles.  At the start of cycle $j$, let $E_j:=R^{j-1}$ and
+$x_{2j-2}=\ell_{2j-2}:=1-E_j$.  Define
+\begin{align}
+ d_{2j-1}&:=\tau E_j,
+ &s_{2j-1}&:=d_{2j-1},
+ &r_{2j-1}&:=0,\notag\\
+ d_{2j}&:=\frac32\beta d_{2j-1},
+ &s_{2j}&:=\frac12\beta d_{2j-1},
+ &r_{2j}&:=\beta d_{2j},
+ \label{eq:aesp-cd-ledger-countermodel-cycle}
+\end{align}
+with $x_t=x_{t-1}+d_t$ and
+$\ell_t=x_t+\beta d_t-r_t$.  If $s_0:=0$ and
+\begin{equation}
+ \Delta_{2j-1}:=0,
+ \qquad
+ \Delta_{2j}:=\frac{\kappa}{\alpha}
+       \frac{\beta(1-\beta)}2d_{2j-1},
+ \label{eq:aesp-cd-ledger-countermodel-collapse}
+\end{equation}
+then the sequence satisfies all of the following scalar ledgers:
+\begin{enumerate}
+ \item the full safe chain between every pair of constructed consecutive
+       stages;
+ \item $s_t=d_t-\beta d_{t-1}+r_{t-1}$ and
+       $r_t=\min\{\beta d_t,\Delta_t\}$;
+ \item for every $t\geq2$,
+       $\alpha\Delta_t=\kappa
+       [\beta s_{t-1}-(1+\beta)s_t]_+$;
+ \item $\sum_{t=1}^{2N}r_t\leq
+       \beta\sum_{t=1}^{2N}d_t<\beta$, and, if
+       $C_1:=\alpha$ and, for $1\leq t\leq2N$,
+       $C_{t+1}:=\kappa(\ell_t-\ell_{t-1})$, then
+       $\sum_{t=0}^{2N}C_{t+1}<\alpha+\kappa=1-\alpha$.
+\end{enumerate}
+
+Nevertheless these ledgers permit accelerated-scale packing to fail.  For
+any $\mu>0$, put $e_t:=1-x_t$, $a:=(1-q)/q$, and define the saturated
+quadratic ledger
+\begin{equation}
+ \Phi_t:=\frac\mu2\left(e_t^2+(e_t-ad_t)^2\right),
+ \qquad d_0:=0.
+ \label{eq:aesp-cd-ledger-countermodel-potential}
+\end{equation}
+With $h_t:=((1+q)/q)r_t$ and
+$\mathfrak D_t:=h_t^2+2e_th_t-2ad_th_t$, it obeys
+\begin{equation}
+ \Phi_{t+1}\leq(1-q)\left(
+    \Phi_t+\frac\mu2\mathfrak D_t\right),
+ \qquad 0\leq t<2N.
+ \label{eq:aesp-cd-ledger-countermodel-defective-contraction}
+\end{equation}
+Every odd correction is zero, whereas every even correction is full,
+collateral, and harmful.  More precisely, at an even stage let
+$u:=h_{2j}/e_{2j}$.  Then
+\begin{equation}
+ \frac52q\leq u\leq\frac25,
+ \qquad
+ \mathfrak D_{2j}=h_{2j}(2e_{2j}-h_{2j})>0,
+ \qquad
+ \gamma_{2j}=\frac{2}{1+(1-u)^2},
+ \label{eq:aesp-cd-ledger-countermodel-inflation}
+\end{equation}
+and $\log\gamma_{2j}\geq q$.  Hence
+\begin{equation}
+ \mathcal I_{2N}\geq Nq.
+ \label{eq:aesp-cd-ledger-countermodel-linear-inflation}
+\end{equation}
+Taking $N=\lceil q^{-2}\rceil$ gives
+\begin{equation}
+ \mathcal I_{2N}=\Omega(q^{-1}),
+ \qquad
+ \log\frac{\Phi_0}{\Phi_{2N}}=O(1).
+ \label{eq:aesp-cd-ledger-countermodel-stop}
+\end{equation}
+Thus the listed scalar ledgers alone cannot imply a bound of the form
+$\mathcal I_T=O(q^2T+\log(\Phi_0/\Phi_T))$, nor the desired soft-logarithmic
+packing.
+
+This is an abstract ledger countermodel, not an RPPR instance, not an exact
+proximal trajectory, and not an algorithmic lower bound.  In particular, no
+fixed Stieltjes operator $Q$ or boundary multipliers are supplied.
+\end{proposition}
+
+\begin{proof}
+The choice of $R$ gives $15/16\leq R<1$.  Direct substitution in
+\cref{eq:aesp-cd-ledger-countermodel-cycle} gives
+\begin{equation*}
+ x_{2j-2}\leq x_{2j-1}\leq\ell_{2j-1}
+ \leq x_{2j}=\ell_{2j}\leq x^\star,
+ \qquad
+ x^\star-x_{2j}=RE_j.
+\end{equation*}
+At an even stage,
+\begin{equation*}
+ \beta s_{2j-1}-(1+\beta)s_{2j}
+ =\frac{\beta(1-\beta)}2d_{2j-1}>0.
+\end{equation*}
+At a later odd stage the corresponding bracket is nonpositive because
+$\beta^2/2\leq(1+\beta)R$.  Moreover,
+$(\kappa/\alpha)(1-\beta)\geq3\beta$, so the even value of
+$\Delta_t$ is at least $\beta d_t$.  These observations prove the chain,
+collapse, and correction identities.  Their two sums telescope because the
+$d_t$ and the $\ell_t-\ell_{t-1}$ are nonnegative and their endpoints are
+strictly below one.
+
+For the potential calculation, define
+\begin{align}
+ P_{\rm o}&:=\left(1-\frac52q^2\right)^2
+             +\left(1-\frac52q\right)^2,\notag\\
+ H&:=\frac{15}{4}\frac{q(1-q)^2}{1+q},
+ &P_{\rm e}&:=R^2+(R-H)^2.
+ \label{eq:aesp-cd-ledger-countermodel-polynomials}
+\end{align}
+The odd and even potentials in cycle $j$ are respectively
+$(\mu/2)E_j^2P_{\rm o}$ and $(\mu/2)E_j^2P_{\rm e}$.  Exact expansion gives
+\begin{align}
+ (1-q)P_{\rm o}-P_{\rm e}
+ &=\frac{q}{16(1+q)^2}
+ \left(8-69q+418q^2-750q^3+430q^4-225q^5-100q^6\right)>0,
+ \notag\\
+ 2(1-q)-P_{\rm o}
+ &=\frac q4(12-5q-25q^3)>0.
+ \label{eq:aesp-cd-ledger-countermodel-differences}
+\end{align}
+The first line pays the uncorrected odd-to-even step; the second pays the
+even-to-next-odd step after adding the even defect.  It also pays the initial
+zero-to-odd step.  This proves
+\cref{eq:aesp-cd-ledger-countermodel-defective-contraction}.
+
+At an even stage, $h_{2j}=ad_{2j}=HE_j$ and $e_{2j}=RE_j$.
+The elementary bounds $H\geq(5/2)q$, $H\leq(15/4)q$, and
+$R\geq15/16$ yield the interval for $u$.  Full correction changes the second
+squared term in \cref{eq:aesp-cd-ledger-countermodel-potential} from
+$(e_{2j}-h_{2j})^2$ to $e_{2j}^2$, which proves the formulas for
+$\mathfrak D_{2j}$ and $\gamma_{2j}$.  Since
+$\log v\geq1-1/v$ for $v\geq1$,
+\begin{equation*}
+ \log\gamma_{2j}\geq u-\frac{u^2}{2}
+ \geq\frac45u\geq2q\geq q.
+\end{equation*}
+Finally,
+$\Phi_{2N}=(\mu/2)R^{2(N-1)}P_{\rm e}$.  Because
+$1-R=\Theta(q^2)$ uniformly on $0<q\leq1/10$, choosing
+$N=\lceil q^{-2}\rceil$ proves
+\cref{eq:aesp-cd-ledger-countermodel-stop}.
+\end{proof}
+
+What is missing from the countermodel is exactly a fixed-operator dynamical
+constraint.  On every active row of an actual exact shifted RPPR minimizer,
+subtracting the shifted and terminal KKT equations gives
+\begin{equation}
+ (Qe_t)_i=\kappa_{\mathrm A}s_{t,i},
+ \qquad i\in\supp(x_t),
+ \label{eq:aesp-cd-fixed-operator-relation}
+\end{equation}
+while the inactive rows satisfy the corresponding complementarity
+inequalities and are coupled through the same fixed Stieltjes matrix.  A
+successful next proof must exploit this spectral/boundary relation across
+several stages; replaying only the scalar ledgers cannot suffice.
+
+The fixed-operator recurrence itself does exhibit positive inflation long
+after its support has stabilized.  The following statement is a finite exact
+trace, not an asymptotic counterexample.
+
+\begin{proposition}[A fixed-support $P_4$ trace has late positive inflation]
+\label{prop:aesp-cd-p4-late-inflation}
+Let $G=P_4=(0,1,2,3)$, seed endpoint $0$, and run the exact safeguarded
+recurrence through $T=500$ with
+\begin{equation}
+ q=\frac18,\qquad \alpha=\frac1{65},\qquad
+ \rho=\frac7{40}.
+ \label{eq:aesp-cd-p4-parameters}
+\end{equation}
+In degree-scaled coordinates $\widehat x=D^{-1/2}x$, the degree and optimum
+vectors are
+\begin{equation}
+ d=(1,2,2,1),\qquad
+ \widehat x^\star=\left(
+ \frac{16513}{423720},\frac{37}{2568},
+ \frac{713}{423720},0\right).
+ \label{eq:aesp-cd-p4-vectors}
+\end{equation}
+The iterate supports are exactly
+\begin{equation}
+ \begin{aligned}
+ \supp(\widehat x_0)&=\varnothing,
+ &\supp(\widehat x_1)&=\{0\},\\
+ \supp(\widehat x_t)&=\{0,1\}\quad(2\leq t\leq6),
+ &\supp(\widehat x_t)&=\{0,1,2\}\quad(7\leq t\leq500).
+ \end{aligned}
+ \label{eq:aesp-cd-p4-support-schedule}
+\end{equation}
+There are $135$ nonzero correction stages, exactly
+\begin{equation}
+ \{3,7,14\}\cup
+ \bigcup_{j=0}^{43}\{21+11j,22+11j,25+11j\},
+ \label{eq:aesp-cd-p4-correction-schedule}
+\end{equation}
+and the $44$ stages with $\gamma_t>1$ are exactly
+\begin{equation}
+ \{25+11j:0\leq j\leq43\}.
+ \label{eq:aesp-cd-p4-positive-schedule}
+\end{equation}
+High-precision evaluation of the logarithms of the exact rational quantities
+gives
+\begin{align}
+ \mathcal I_{500}&\simeq1.0236455928394953,
+ &\log\frac{\Phi_0}{\Phi_{500}}
+ &\simeq348.2581722210201408,\notag\\
+ \frac{\mathcal I_{500}}{\log(\Phi_0/\Phi_{500})}
+ &\simeq0.0029393297113782,
+ &\frac{\mathcal I_{500}}{qT}
+ &\simeq0.0163783294854319.
+ \label{eq:aesp-cd-p4-metrics}
+\end{align}
+Thus positive inflation is not confined to support-addition stages and need
+not vanish after the final support discovery.  This does not prove infinite
+periodicity, an exponent or polylogarithmic packing obstruction, or any
+finite-inner or end-to-end work lower bound.
+\end{proposition}
+
+\begin{proof}
+The companion checker works entirely in degree-scaled rational coordinates.
+At every stage it solves the shifted Stieltjes obstacle system by exact active
+sets, verifies primal feasibility, dual feasibility, and complementarity,
+then checks the safeguard, safe chain, support, correction, and exact rational
+sign of $\gamma_t-1$.  It asserts
+\cref{eq:aesp-cd-p4-vectors,eq:aesp-cd-p4-support-schedule,eq:aesp-cd-p4-correction-schedule,eq:aesp-cd-p4-positive-schedule}
+directly.  The displayed decimal values are evaluated only after all exact
+sign and schedule checks have passed.
+\end{proof}
+
+As corroborating proof scaffolding, the same exact recurrence on endpoint-
+seeded $P_7$ with $q=1/5$, $\alpha=1/26$, $\rho=1/20$, and $T=800$ has
+degree-scaled optimal support $\{0,1,2,3,4\}$.  Its support changes only at
+stages $1,2,5,9$ and is fixed thereafter; it has $122$ correction stages and
+$39$ positive-inflation stages, the last at stage $796$, with
+\begin{equation}
+ \mathcal I_{800}\simeq7.2945227043682557,
+ \qquad
+ \log\frac{\Phi_0}{\Phi_{800}}
+ \simeq521.4681823472578688.
+ \label{eq:aesp-cd-p7-scaffolding}
+\end{equation}
+This is a second finite trace only.  It supplies neither an infinite
+recurrence theorem nor a scaling obstruction.  No new eleven-resource vector
+is attached to either trace: both use idealized exact shifted minimizers and
+establish no finite-inner implementation or end-to-end work theorem.
+
+The $P_4$ trace can in fact be continued rigorously for every horizon.  The
+proof below is a finite exact-rational cone certificate for a homogeneous
+piecewise-linear tail.  It upgrades the finite observation above, but it also
+shows why a horizon-uniform bound on $\mathcal I_T$ is the wrong remaining
+target: positive inflation persists with positive density even though the
+actual error contracts rapidly.
+
+\begin{proposition}[The fixed-operator $P_4$ tail has linear inflation]
+\label{prop:aesp-cd-p4-infinite-inflation}
+Retain the graph, seed, and parameters of
+\cref{prop:aesp-cd-p4-late-inflation}.  Let
+$A=\{0,1,2\}$ be the optimal support and write
+$\widehat e_t=D_A^{-1/2}(x^\star-x_t)_A$.  From stage $44$ onward, the
+exact recurrence has the periodic phase word
+\begin{equation}
+ \mathsf F\,\mathsf N\,\mathsf N\,\mathsf F\,
+ \mathsf N^6\,\mathsf P_0
+ \label{eq:aesp-cd-p4-infinite-word}
+\end{equation}
+of length eleven.  Here $\mathsf N$ means no correction, $\mathsf F$ means
+that all three active coordinates receive the full correction
+$r_t=\beta_{\mathrm A}d_t$, and $\mathsf P_0$ means that row zero uniquely
+sets a positive common retraction magnitude strictly below
+$\beta_{\mathrm A}d_{t,i}$ on every $i\in A$.  The second full phase in each
+word, at stages
+\begin{equation}
+ 47+11j,\qquad j\geq0,
+ \label{eq:aesp-cd-p4-infinite-positive-stages}
+\end{equation}
+has positive potential defect and obeys
+\begin{equation}
+ \log\gamma_{47+11j}\geq\frac{315}{33280}.
+ \label{eq:aesp-cd-p4-infinite-gamma-floor}
+\end{equation}
+Consequently, for every integer $N\geq1$,
+\begin{equation}
+ \mathcal I_{44+11N}\geq\frac{315}{33280}N,
+ \qquad
+ \mathcal I_T=\Theta(T)
+ \quad\text{along this one fixed RPPR instance.}
+ \label{eq:aesp-cd-p4-infinite-inflation-floor}
+\end{equation}
+
+This is not a convergence obstruction.  At the word boundaries,
+\begin{equation}
+ \norm{\widehat e_{55+11j}}_\infty
+ \leq\frac{11}{500}
+       \norm{\widehat e_{44+11j}}_\infty,
+ \qquad j\geq0.
+ \label{eq:aesp-cd-p4-infinite-error-contraction}
+\end{equation}
+Thus the exact primal error still converges geometrically.  The proposition
+rules out a bound on $\mathcal I_T$ that depends only on the fixed support and
+fixed parameters and is uniform in the horizon.  It does not refute an
+accuracy-logarithmic allowance, a rate-sensitive estimate such as
+\begin{equation}
+ \mathcal I_T\leq(1-c)qT+\operatorname{polylog}
+        (q^{-1},\rho^{-1},\epsobj^{-1}),
+ \label{eq:aesp-cd-net-packing-target}
+\end{equation}
+or any equivalent net exponent $-\Omega(qT)$.  Since $q=1/8$ is fixed, it
+also gives no $q\downarrow0$ scaling obstruction.  The shifted solves remain
+ideal exact minimizers, so no finite-inner work theorem or eleven-resource
+vector follows.
+\end{proposition}
+
+\begin{proof}
+All calculations in this proof use degree-scaled active coordinates.  Put
+$\beta=7/9$.  Once the support is $A$, the exact shifted map sends a
+safe-center error $g$ to $Mg$, where
+\begin{equation}
+ M=
+ \begin{pmatrix}
+ 245/352&21/88&7/176\\
+ 21/176&63/88&21/176\\
+ 7/352&21/176&119/176
+ \end{pmatrix}.
+ \label{eq:aesp-cd-p4-fixed-map}
+\end{equation}
+For the candidate error
+$v=(1+\beta)\widehat e_t-\beta\widehat e_{t-1}$, the three phase maps are
+\begin{equation}
+ g=
+ \begin{cases}
+ v,&\mathsf N,\\
+ \widehat e_t,&\mathsf F,\\
+ R_0v,&\mathsf P_0,
+ \end{cases}
+ \qquad
+ R_0=
+ \begin{pmatrix}
+ -32&32&0\\
+ -33&33&0\\
+ -33&32&1
+ \end{pmatrix}.
+ \label{eq:aesp-cd-p4-phase-maps}
+\end{equation}
+Indeed, row zero of the active degree-scaled $Q$ is
+$(33,-32,0)/65$ and $\alpha d_0=1/65$, so $R_0v$ adds the unique common
+amount that makes that row tight.
+
+The finite cone certificate is
+\begin{equation}
+ \mathcal K:=\left\{e>0:
+ \frac{997}{1000}\leq\frac{e_1}{e_0}\leq\frac{998}{1000},
+ \quad
+ \frac{856}{1000}\leq\frac{e_2}{e_0}\leq\frac{857}{1000}
+ \right\}.
+ \label{eq:aesp-cd-p4-invariant-cone}
+\end{equation}
+An exact replay of the finite prefix gives $\widehat e_{44}\in\mathcal K$
+and verifies the full correction at stage $44$.
+
+For completeness, define the exact word map without printing its large
+rational entries.  Let $A_0=I$, $A_1=M$, and
+\begin{equation*}
+ A_{j+1}=M\bigl((1+\beta)A_j-\beta A_{j-1}\bigr),
+ \qquad j=1,2.
+\end{equation*}
+Put $B_0=A_3$, $B_1=MA_3$, and
+\begin{equation*}
+ B_{j+1}=M\bigl((1+\beta)B_j-\beta B_{j-1}\bigr),
+ \qquad 1\leq j\leq6.
+\end{equation*}
+Then the boundary-to-boundary map is
+\begin{equation}
+ T:=MR_0\bigl((1+\beta)B_7-\beta B_6\bigr).
+ \label{eq:aesp-cd-p4-word-map}
+\end{equation}
+The four extreme rays of $\mathcal K$ give a finite exact-rational
+certificate.  Every monotonicity, residual-sign, unique-row, and full- or
+partial-cap inequality needed for the eleven intervening decisions has
+strict margin at least $e_0/200$.  The same four-ray calculation gives
+\begin{align}
+ \frac1{48}
+ &<\frac{(Te)_0}{e_0}<\frac{11}{500},
+ \notag\\
+ \frac{1247}{1250}
+ &<\frac{(Te)_1}{(Te)_0}<\frac{9977}{10000},
+ &
+ \frac{107}{125}
+ &<\frac{(Te)_2}{(Te)_0}<\frac{2141}{2500}.
+ \label{eq:aesp-cd-p4-cone-images}
+\end{align}
+All phase tests and the inequalities in
+\cref{eq:aesp-cd-p4-cone-images} are linear after denominators of known
+positive sign are cleared, so checking the four extreme rays proves them on
+the whole cone.  In particular, $T\mathcal K\subset\mathcal K$, the phase
+word repeats forever, and
+\cref{eq:aesp-cd-p4-infinite-error-contraction} follows.  The inactive row
+remains dual feasible because every active iterate stays below the RPPR
+optimum and its boundary slack is the optimum slack plus a nonnegative
+Stieltjes term.
+
+It remains to certify a uniformly harmful phase.  Let $E=e_0$ at a word
+boundary, let $\mathfrak D_{\mathsf F,2}$ and
+$\Phi_{\mathsf F,2}$ denote the defect and potential at the second full phase
+of that word, and use $D_A=\operatorname{diag}(1,2,2)$.  Substitution of the matrices above
+gives quadratic forms in $(1,e_1/e_0,e_2/e_0)$.  Exact interval evaluation of
+their six monomials on the rectangle in
+\cref{eq:aesp-cd-p4-invariant-cone} gives
+\begin{equation}
+ \mathfrak D_{\mathsf F,2}\geq\frac15E^2,
+ \qquad
+ \Phi_{\mathsf F,2}\leq\frac2{25}E^2.
+ \label{eq:aesp-cd-p4-defect-potential-box}
+\end{equation}
+Here the envelope part of the second form uses the exact active-face Hessian
+\begin{equation*}
+ \widehat B
+ =\kappa_{\mathrm A}D_A
+  -\kappa_{\mathrm A}^2D_A
+   \widehat H_A^{-1}D_A.
+\end{equation*}
+Since $\mu_{\mathcal E}=\kappa_{\mathrm A}q^2=63/4160$,
+\cref{eq:aesp-cd-p4-defect-potential-box} yields
+\begin{equation*}
+ \gamma-1
+ =\frac{\mu_{\mathcal E}\mathfrak D}{2\Phi}
+ \geq\frac{315}{16640}.
+\end{equation*}
+The already proved bound $1\leq\gamma\leq2$ and
+$\log\gamma\geq(\gamma-1)/\gamma$ now prove
+\cref{eq:aesp-cd-p4-infinite-gamma-floor}.  Summing one such term per word
+proves the lower bound in
+\cref{eq:aesp-cd-p4-infinite-inflation-floor}; the matching upper order is
+the general bound $\log\max\{1,\gamma_t\}\leq\log2$.
+
+The companion Round-023 checker constructs $M,R_0,T$, replays the prefix,
+and verifies every corner, phase, interval, and indexing assertion using
+\texttt{Fraction}.  Thus the computation is checker-assisted but contains no
+floating-point sign decision.
+\end{proof}
+
+The fixed-operator certificate above uses exact shifted minimizers.  For an
+implementable finite inner solve, the exact active-row relation, collapse,
+and start-mass telescope acquire residual terms.  The following identities
+locate every one of those terms before any packing claim is attempted.
+
+\begin{lemma}[Finite-inner residual identities]
+\label{lem:aesp-cd-finite-inner-identities}
+Replace each exact shifted minimizer in
+\cref{eq:aesp-cd-safe-outer} by the finite output $x_t$, $t\geq1$, obtained from the
+proximal warm start at center $\ell_{t-1}$ followed by increasing greedy exact
+coordinate updates.  Put
+\begin{equation}
+ w:=D^{1/2}\one,
+ \quad c_\rho:=b-\alpha\rho w,
+ \quad H:=Q+\kappa_{\mathrm A}I,
+ \quad s_t:=x_t-\ell_{t-1},
+ \label{eq:aesp-cd-finite-inner-notation}
+\end{equation}
+and define the shifted obstacle residual and its two parts by
+\begin{equation}
+ \varpi_t:=c_\rho+\kappa_{\mathrm A}\ell_{t-1}-Hx_t,
+ \qquad
+ a_t:=[\varpi_t]_+,
+ \qquad
+ \lambda_t:=[-\varpi_t]_+.
+ \label{eq:aesp-cd-finite-inner-residuals}
+\end{equation}
+Let $\lambda^\star:=Qx^\star-c_\rho\geq0$.  Then the finite recurrence still
+satisfies the safe chain
+\begin{equation}
+ 0\leq x_{t-1}\leq\ell_{t-1}\leq x_t\leq\ell_t
+ \leq x_{t+1}\leq x^\star.
+ \label{eq:aesp-cd-finite-inner-chain}
+\end{equation}
+The minimum shifted KKT vector at the end of stage $t$ is $-a_t$, and hence
+$C_{\mathrm{end},t}=\langle w,a_t\rangle$.  Moreover,
+\begin{align}
+ \zeta_\rho^{\mathrm{low}}(x_t)
+ &=\kappa_{\mathrm A}s_t+a_t-\lambda_t,
+ \notag\\
+ Q(x^\star-x_t)
+ &=\kappa_{\mathrm A}s_t+a_t-\lambda_t+\lambda^\star,
+ \label{eq:aesp-cd-finite-inner-fixed-row}\\
+ [Q(x^\star-x_t)]_{A_t}
+ &=\kappa_{\mathrm A}s_{t,A_t}+a_{t,A_t},
+ \qquad A_t:=\supp(x_t).
+ \notag
+\end{align}
+The next shifted start mass has the exact perturbed telescope
+\begin{equation}
+ C_{\mathrm{start},t+1}
+ =\kappa_{\mathrm A}\mathfrak m(\ell_t-\ell_{t-1})
+  +C_{\mathrm{end},t}.
+ \label{eq:aesp-cd-finite-inner-start-mass}
+\end{equation}
+Finally, for $t\geq2$, on $A_t$ the extrapolate has the exact negative-part
+identity
+\begin{align}
+ [\zeta_\rho^{\mathrm{low}}(y_t)]_{-,A_t}
+ =\bigl[&\kappa_{\mathrm A}
+       (\beta_{\mathrm A}s_{t-1}-(1+\beta_{\mathrm A})s_t)
+       +\beta_{\mathrm A}a_{t-1}-(1+\beta_{\mathrm A})a_t
+       -\beta_{\mathrm A}\lambda_{t-1}\bigr]_{+,A_t}.
+ \label{eq:aesp-cd-finite-inner-collapse}
+\end{align}
+Consequently, for $t\geq2$, the retraction remains exactly
+\begin{equation}
+ r_t=\min\{\beta_{\mathrm A}d_t,\Delta_t w\},
+ \qquad
+ \alpha\Delta_t
+ =\norm{D_{A_t}^{-1/2}
+ [\zeta_\rho^{\mathrm{low}}(y_t)]_{-,A_t}}_\infty,
+ \label{eq:aesp-cd-finite-inner-retraction}
+\end{equation}
+and it obeys the residual-robust upper bound
+\begin{align}
+ \alpha\Delta_t
+ \leq{}&\kappa_{\mathrm A}
+ \norm{D_{A_t}^{-1/2}
+ [\beta_{\mathrm A}s_{t-1}-(1+\beta_{\mathrm A})s_t]_+}_\infty
+ \notag\\
+ &+\beta_{\mathrm A}
+ \norm{D_{A_t}^{-1/2}a_{t-1,A_t}}_\infty.
+ \label{eq:aesp-cd-finite-inner-collapse-upper}
+\end{align}
+Thus every failed exact solve is charged once in the next start mass and once
+in the next collapse; the exact identities cannot simply be reused with
+$a_t$ deleted.
+\end{lemma}
+
+\begin{proof}
+The proximal warm start is a lower subsolution above $\ell_{t-1}$, and every
+subsequent increasing coordinate update remains between that center and the
+exact shifted minimizer.  The comparison argument in
+\cref{thm:aesp-cd-safe-center}, followed by the same lower retraction as in
+\cref{thm:aesp-cd-safe-outer-ledger}, proves
+\cref{eq:aesp-cd-finite-inner-chain}.
+
+At a positive coordinate of $x_t$, lower-subsolution feasibility gives
+$\varpi_{t,i}\geq0$; at a zero coordinate, the minimum obstacle KKT vector is
+the negative part of the smooth derivative, namely
+$-[\varpi_{t,i}]_+$.  Thus the full minimum KKT vector is $-a_t$.  The
+definition of $\varpi_t$ also gives
+\begin{equation*}
+ c_\rho-Qx_t
+ =\kappa_{\mathrm A}(x_t-\ell_{t-1})
+   +a_t-\lambda_t.
+\end{equation*}
+Adding the terminal obstacle equation
+$Qx^\star=c_\rho+\lambda^\star$ proves the first two relations in
+\cref{eq:aesp-cd-finite-inner-fixed-row}.  If $i\in A_t$, then both $x_{t,i}$
+and $x_i^\star$ are positive, so $\lambda_{t,i}=\lambda_i^\star=0$; this
+proves the active-row relation.
+
+For the next shifted subproblem, the obstacle residual at $x_t$ is
+\begin{equation*}
+ \varpi_t+\kappa_{\mathrm A}(\ell_t-\ell_{t-1}).
+\end{equation*}
+On $A_t$ both summands are nonnegative.  Outside $A_t$, both centers vanish,
+so its positive part is just $a_t$.  Taking the $w$-weighted mass proves
+\cref{eq:aesp-cd-finite-inner-start-mass}.
+
+Because the coefficients of $y_t=(1+\beta_{\mathrm A})x_t-
+\beta_{\mathrm A}x_{t-1}$ sum to one,
+\begin{equation*}
+ \zeta_\rho^{\mathrm{low}}(y_t)
+ =(1+\beta_{\mathrm A})
+     \zeta_\rho^{\mathrm{low}}(x_t)
+  -\beta_{\mathrm A}
+     \zeta_\rho^{\mathrm{low}}(x_{t-1}).
+\end{equation*}
+Substitute the first line of
+\cref{eq:aesp-cd-finite-inner-fixed-row} and use $\lambda_{t,A_t}=0$.
+Taking the negative part gives
+\cref{eq:aesp-cd-finite-inner-collapse}.  The definition of the lower
+retraction proves \cref{eq:aesp-cd-finite-inner-retraction}.  Finally the
+two terms involving $a_t$ and $\lambda_{t-1}$ in
+\cref{eq:aesp-cd-finite-inner-collapse} have nonpositive sign, while
+$a_{t-1}\geq0$.  Coordinatewise subadditivity of the positive part and the
+weighted maximum norm prove
+\cref{eq:aesp-cd-finite-inner-collapse-upper}.
+\end{proof}
+
+The ordinary relative inner stopping rule does not make the new residual
+terms vanish, even in one dimension.
+
+\begin{proposition}[Relative C2 stopping does not imply exact residuals]
+\label{prop:aesp-cd-c2-residual-stop}
+Let
+\begin{equation*}
+ h(z)=h^\star+\frac{\mu}{2}(z-p)^2,
+ \qquad p>0,\quad \mu>0,
+\end{equation*}
+be a scalar shifted objective with center zero.  For any $\delta,\kappa>0$,
+put
+\begin{equation*}
+ A:=\sqrt{\frac{\delta\kappa}{\mu}},
+ \qquad z:=\frac{p}{1+A},
+ \qquad v:=p-z=Az.
+\end{equation*}
+Then the relative condition holds at equality,
+\begin{equation}
+ h(z)-h^\star=\frac{\delta\kappa}{2}z^2,
+ \label{eq:aesp-cd-c2-residual-equality}
+\end{equation}
+but the lower-subsolution residual is
+\begin{equation}
+ a=\mu(p-z)=\sqrt{\mu\delta\kappa}\,z>0.
+ \label{eq:aesp-cd-c2-residual-size}
+\end{equation}
+For the AESP choice $\delta=\delta_{\mathrm A}=q/(2-q)$ with
+$\mu,\kappa=\Theta(1)$, one has $a/z=\Theta(\sqrt q)$.  Therefore C2 alone
+cannot justify the exact fixed-row, collapse, or start-mass identities.  This
+is a logical interface obstruction, not a fixed-objective RPPR rate lower
+bound.
+\end{proposition}
+
+\begin{proof}
+The definition of $A$ gives
+$\mu v^2/2=\delta\kappa z^2/2$, while differentiation gives
+$-h'(z)=\mu v$.  These are exactly
+\cref{eq:aesp-cd-c2-residual-equality,eq:aesp-cd-c2-residual-size}.
+\end{proof}
+
+There is nevertheless a local way to make the finite residual absolutely
+small.  It costs only an additional soft logarithm on the already explored
+envelope; what remains open is how small it must be over the complete outer
+run.
+
+\begin{corollary}[Dual absolute inner polish]
+\label{cor:aesp-cd-dual-inner-stop}
+Let $p=p(\ell)$ be the exact shifted minimizer and suppose its support has
+volume at most $V$.  Continue the increasing greedy inner solve until both
+the relative condition \cref{eq:aesp-cd-relative-stop} and
+\begin{equation}
+ C_{\mathrm{end}}=\langle w,a\rangle
+ \leq\frac{\mu_t\xi}{\sqrt V}.
+ \label{eq:aesp-cd-dual-inner-stop}
+\end{equation}
+Then its finite output $x$ satisfies
+\begin{equation}
+ \norm{x-p}_2\leq\xi.
+ \label{eq:aesp-cd-dual-inner-error}
+\end{equation}
+Starting from the proximal warm start, the degree work needed for the
+absolute stop alone is at most
+\begin{equation}
+ V\left[3+\frac1{\tau_{\mathrm{cd}}}
+       \log_+\left(\frac{2V}{\xi}\right)\right].
+ \label{eq:aesp-cd-dual-inner-work}
+\end{equation}
+Enforcing both conditions has degree work at most the sum of this bound and
+the right-hand side of \cref{eq:aesp-cd-relative-work}.  For the safeguarded
+RPPR envelope one may take $V=1/\rho$.
+\end{corollary}
+
+\begin{proof}
+Put $v=p-x\geq0$ and choose a coordinate maximizing
+$v_i/\sqrt{d_i}$.  If the maximum is positive, then $p_i>0$, so the exact
+shifted obstacle residual vanishes at $p_i$.  The normalized Stieltjes
+maximum principle therefore gives
+\begin{equation*}
+ \mu_t\norm{D^{-1/2}v}_\infty
+ \leq\norm{D^{-1/2}a}_\infty
+ \leq C_{\mathrm{end}}.
+\end{equation*}
+Since $\supp(v)\subseteq\supp(p)$,
+$\norm{v}_2\leq\sqrt V\norm{D^{-1/2}v}_\infty$; the stopping condition proves
+\cref{eq:aesp-cd-dual-inner-error}.
+
+By \cref{lem:aesp-cd-smoothed-mass}, the proximal warm-start mass is at most
+$2(1-\alpha)\sqrt V\norm{\ell-p}_2$.  The safe sandwich and
+$\mathfrak m(x^\star)\leq1$ give
+$\norm{\ell-p}_2\leq1$, while $\mu_t=1-\alpha$.  Hence the ratio of the
+warm-start mass to the target in
+\cref{eq:aesp-cd-dual-inner-stop} is at most $2V/\xi$.
+Apply \cref{lem:aesp-cd-greedy-linear}.  Two cached envelope passes initialize
+the warm start and every positive heap key, and the final update can overshoot
+the mass target by at most one coordinate cost.  These give the three
+additive copies of $V$ in \cref{eq:aesp-cd-dual-inner-work}.  If the relative
+stop takes longer, adding the right-hand side of
+\cref{eq:aesp-cd-relative-work} is a valid combined bound; equivalently, a
+single greedy run stops when both conditions hold.
+\end{proof}

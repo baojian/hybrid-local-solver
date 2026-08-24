@@ -1,0 +1,228 @@
+\subsection{A full-envelope capped comparison witness}
+\label{sec:branch-caterpillar-envelope-aesp-prefix}
+
+The preceding corollary cannot be discharged from the phrase ``any finite
+valid composite Catalyst burn-in.''  That phrase specifies correctness of
+each stage but neither a stopping time nor an execution budget.
+
+\begin{proposition}[Uncapped finite burn-in does not imply a prefix bound]
+\label{prop:branch-caterpillar-uncapped-prefix-obstruction}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  There is no upper bound on
+$B_J^{\rm full}$, in terms of only $m,\alpha$, and $\rho$, that holds for
+every finite valid composite Catalyst burn-in admitted by
+\cref{alg:rppr-hybrid}.  This remains true while the common canonical state
+is held at $\widehat U_0=\{b_1\}$ and no gate is queried.
+\end{proposition}
+
+\begin{proof}
+Take any reachable valid prefix before the first canonical gate query.  At
+each subsequent outer center, solve the strongly convex composite Catalyst
+subproblem exactly.  Its exact minimizer satisfies every permitted inner
+correctness condition, so the resulting Catalyst stage is valid; repeat this
+construction for any prescribed finite number $N$ of stages.  Keep every
+numerical or exposed nonseed label outside the common admission arena, so the
+canonical checkpoint remains $\widehat U_0$ throughout.  Independently of the
+inner solve's other nonnegative charges, each declared stage performs at least
+one outer-stage advance and correctness-control operation.  Hence the appended
+suffix has $\Delta C_{\rm ctl}=\Omega(N)$ and therefore increases
+$B_J^{\rm full}$ by $\Omega(N)$.  Since $N$ is arbitrary, validity plus
+finiteness is not a work bound.  This is an algorithm-specification
+obstruction, not a lower bound for a capped policy.
+\end{proof}
+
+We next give one capped policy for which the missing premise is provable.  It
+uses the reviewed certified-envelope AESP--CD result in the project note
+\texttt{aesp\_cd\_l1\_rppr}, stable labels
+\texttt{thm:aesp-cd-relative-oracle} and
+\texttt{cor:aesp-cd-certified-envelope}.  We restate the execution details
+needed by the present ledger.
+
+Put
+\begin{align}
+ C_\star&:=C(S^\star)=9m+1,
+ &\mathcal V_\star&:=\vol(S^\star)=6m,
+ \notag\\
+ \chi_{\rm A}&:=\frac{\alpha}{1-\alpha},
+ &\delta_{\rm A}&:=
+   \frac{\sqrt{\chi_{\rm A}}}{2-\sqrt{\chi_{\rm A}}},
+ \notag\\
+ T_\star&:=\left\lceil
+   \frac{2\log 4}{\sqrt{\chi_{\rm A}}}\right\rceil,
+ &L_\star&:=2+\frac34\log_+\!\left(
+   \frac{16(1-\alpha)^2\mathcal V_\star}
+        {\delta_{\rm A}(1-2\alpha)(1-\alpha)}
+                         \right),
+ \label{eq:branch-caterpillar-envelope-aesp-parameters}\\
+ \mathfrak D_\star&:=C_\star+T_\star\mathcal V_\star L_\star,
+ &\mathfrak H_\star&:=
+  \bigl(1+\log(2+C_\star)\bigr)\mathfrak D_\star.
+ \label{eq:branch-caterpillar-envelope-aesp-budgets}
+\end{align}
+Here $\log_+(z):=\max\{0,\log z\}$.  The quantities are finite precisely in
+the present composite range $0<\alpha<1/2$.
+
+\begin{definition}[Capped full-envelope policy]
+\label{def:branch-caterpillar-envelope-aesp-zero-policy}
+The policy \texttt{Full-BC-AESP}$_0$ acts on the promised
+$\mathsf{BC}_m$ instance as follows.
+\begin{enumerate}
+ \item Read the sparse seed and make one paid outward traversal from $b_1$.
+       Verify the fixed-family incidences, expose and index every vertex and
+       row of $U:=V(\mathsf{BC}_m)$, and store its labels and degrees.  Do not
+       treat the first returned incidences as a free row cache: every later
+       AESP row scan is queried and charged again.  In the common
+       canonical arena retain only the paid checkpoint record
+       $\widehat U_0=\{b_1\}$.  All other exposed labels belong to a
+       distinguishable numerical-envelope arena and are not admissions.
+ \item From zero, run exactly $T_\star$ strongly convex composite Catalyst/AESP
+       stages on the restricted objective over $U$, with
+       $\kappa_{\rm A}=1-2\alpha$ and
+       $\beta_{\rm A}=(\sqrt{1-\alpha}-\sqrt\alpha)/
+       (\sqrt{1-\alpha}+\sqrt\alpha)$.  At each center $y$, materialize the
+       proximal warm start
+       \[
+        u_U(y)=\prox_{g_{\rho,U}/[2(1-\alpha)]}\!\left(
+          y-\frac{\nabla f_{t,U}(y)}{2(1-\alpha)}\right),
+       \]
+       and repeatedly update an exact maximizer of
+       $|\kappa_{t,U,i}(z)|/\sqrt{d_i}$.  Rekey the updated row and its
+       neighbors until the locally maintained
+       relative certificate
+       \[
+        C_{t,U}(z)^2\leq
+        \delta_{\rm A}(1-2\alpha)(1-\alpha)\norm{z-y}_2^2
+       \]
+       holds.  Here $C_{t,U}$ is the degree-weighted minimum shifted KKT mass.
+       Maintain both sides of this test incrementally; no uncharged global
+       certificate scan is permitted.
+ \item Invoke no canonical gate, restricted settlement, Schur response, or
+       external reply.  After stage $T_\star$, retire the numerical envelope,
+       iterates, momentum, heap, and certificates by one epoch pointer, retain
+       only the common seed checkpoint, and hand off before the first canonical
+       gate query.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Fully charged capped AESP prefix on the caterpillar]
+\label{thm:branch-caterpillar-envelope-aesp-prefix}
+Fix $m\geq2$, $0<\alpha<1/2$, and
+$0<\rho<\rho_{\rm can}(m,\alpha)$.  The execution in
+\Cref{def:branch-caterpillar-envelope-aesp-zero-policy} is a
+canonical-checkpoint prefix in the sense of
+\Cref{def:branch-caterpillar-canonical-checkpoint-prefix}, with $k=0$.  In the
+shared exhaustive order it obeys
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm env}^{\rm pref})
+ =\bigl(&O(\mathfrak D_\star),O(\mathfrak D_\star),0,O(C_\star),
+ O(\mathfrak H_\star),O(\mathfrak D_\star),0,\\
+ &O(C_\star),O(C_\star),O(\mathfrak D_\star),0\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-envelope-aesp-prefix-eleven-vector}
+\end{equation}
+Consequently,
+\begin{equation}
+ B_{\rm env}^{\rm full}
+ =O(\mathfrak H_\star)
+ =\softO\!\left(\frac{C(S^\star)}{\sqrt\alpha}\right).
+ \label{eq:branch-caterpillar-envelope-aesp-prefix-work}
+\end{equation}
+The soft order hides only the displayed logarithms in $2+C_\star$,
+$1/\alpha$, and $1/(1-2\alpha)$.  It is pointwise over
+$0<\alpha<1/2$, not uniform as $\alpha\uparrow1/2$; the exact multivariate
+bound $O(\mathfrak H_\star)$ is authoritative.  The numerical endpoint
+additionally obeys
+\begin{equation}
+ F_\rho(x^{(T_\star)})-F_\rho(x^\star)
+ \leq\frac12\bigl(F_\rho(0)-F_\rho(x^\star)\bigr),
+ \label{eq:branch-caterpillar-envelope-aesp-half-gap}
+\end{equation}
+but the handoff neither uses nor transports this progress.
+\end{theorem}
+
+\begin{proof}
+The imported strict-range canonical theorem gives
+$S^\star=V(\mathsf{BC}_m)$, $\mathcal V_\star=6m$, and $C_\star=9m+1$.
+Therefore the initial traversal constructs a certified envelope without an
+optimal-support oracle.  It is nevertheless a full final-support exposure:
+every returned adjacency incidence is charged in $C_{\rm adj}$, graph-family
+validation and index construction before the online AESP continuation are
+charged in $C_{\rm pre}$, seed reads and traversal scheduling are charged in
+$C_{\rm ctl}$, label/degree index writes are charged in $C_{\rm pre}$ and the
+memory peaks, and the explicit common seed checkpoint is charged in
+$C_{\rm mat}$.
+
+For one relative-accuracy stage, the reviewed local-oracle theorem bounds the
+sum of degrees of all warm-start and repeated coordinate-row scans by
+$\mathcal V_\star L_\star$; its PageRank contraction parameter is exactly
+$2/3$, which gives the factor $3/4$ in
+\cref{eq:branch-caterpillar-envelope-aesp-parameters}.  Repeated reads of an
+old row are counted again.  One adjacency-query round per row scan gives
+$R_{\rm adj}=O(\mathfrak D_\star)$.  Exact proximal-coordinate arithmetic,
+neighbor-gradient arithmetic, and the outer momentum recurrence cost
+$O(\mathfrak D_\star)$ and are assigned to $C_{\rm rec}$.
+Heap, queue, stopping-test, family, and outer-stage control cost
+$O(\mathfrak H_\star)$ after charging a logarithm per touched key.  The
+proximal warm start, stage iterate, center, momentum, and checkpoint vectors
+are each materialized at most a constant number of times per stage, so
+$C_{\rm mat}=O(C_\star+T_\star\card{S^\star})
+ =O(\mathfrak D_\star)$.  Every explicit iterate and gradient state-cell read
+or write made by a coordinate update is separately charged within this same
+$O(\mathfrak D_\star)$ materialization bound; recurrence arithmetic
+remains in $C_{\rm rec}$ and heap/key state and logic in $C_{\rm ctl}$.  All
+exact KKT mass and displacement norms are updated with those charged local
+changes.
+
+There is no Phase-I response primitive or row settlement, so $C_{\rm resp}=0$;
+there is no canonical gate or external stage, so $R_{\rm int}=C_{\rm emit}=0$.
+The fixed envelope, a constant number of full vectors, their KKT keys, and the
+heap require $O(C_\star)$ persistent and temporary cells.  This accounts for
+every coordinate in
+\cref{eq:branch-caterpillar-envelope-aesp-prefix-eleven-vector}, including
+all excess exposure (there is none beyond $S^\star$), every internal
+certificate, and both memory peaks.  Summing the seven additive coordinates
+gives the first equality in
+\cref{eq:branch-caterpillar-envelope-aesp-prefix-work}.  Since
+$T_\star=O(1/\sqrt\alpha)$ and $C_\star=\Theta(\mathcal V_\star)$, the second
+follows.
+
+Every exposed nonseed label remains in the numerical arena, so the common
+canonical state is still exactly $\widehat U_0$ and no earlier face exists to
+replay.  Thus the policy meets the existing checkpoint interface.  Finally,
+the reviewed relative Catalyst estimate is
+\[
+ F_\rho(x^{(T)})-F_\rho(x^\star)
+ \leq2\left(1-\frac{\sqrt{\chi_{\rm A}}}{2}\right)^T
+       \bigl(F_\rho(0)-F_\rho(x^\star)\bigr).
+\]
+The definition of $T_\star$ and $1-u\leq e^{-u}$ prove
+\cref{eq:branch-caterpillar-envelope-aesp-half-gap}.
+\end{proof}
+
+\begin{corollary}[Product work for the named capped policy]
+\label{cor:branch-caterpillar-envelope-aesp-product}
+Run \texttt{Full-BC-AESP}$_0$ and then the response in
+\Cref{thm:branch-caterpillar-composite-response-handoff} at $k=0$.  The
+concatenated exact-real execution returns $x^\star(\rho)$ and has
+\begin{equation}
+ W_{\rm total}
+ =O\!\left(\mathfrak H_\star
+      +C_\star\log(2+C_\star)\right)
+ =\softO\!\left(\frac{C(S^\star)}{\sqrt\alpha}\right)
+ =\softO\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:branch-caterpillar-envelope-aesp-total-work}
+\end{equation}
+This soft-order conclusion has the same
+$\log(1/(1-2\alpha))$ nonuniformity as
+\cref{eq:branch-caterpillar-envelope-aesp-prefix-work}; it is not uniform as
+$\alpha\uparrow1/2$.
+Its additive and round coordinates sum exactly at the existing interface,
+$R_{\rm int}^{\rm total}=m+1$, and releasing the numerical prefix arena gives
+total persistent and temporary peaks $O(C(S^\star))$.  This is a
+fixed-family, full-envelope, zero-checkpoint witness.  It proves no bound for
+an uncapped or automatically exploring Catalyst/AESP prefix, commits no
+Phase-I canonical batch, uses no numerical-energy carryover, and supplies no
+claim for another seed, policy, range, graph, precision model, or PPR
+accuracy.
+\end{corollary}

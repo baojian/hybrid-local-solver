@@ -1,8 +1,9 @@
 name: Research project checks
 
-# Intentionally manual-only: the full reproduction job installs Python and
-# TeX Live, so running it on every push or PR update is unnecessarily costly.
 on:
+  pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,8 +14,44 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fast-checks:
+    name: Registry, lint, and unit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.7"
+          python-version: "3.14"
+          enable-cache: true
+
+      - name: Install Python 3.14
+        run: uv python install 3.14
+
+      - name: Synchronize locked environment
+        run: uv sync --locked --all-groups
+
+      - name: Check note registry
+        run: make note-audit
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+
+      - name: Run representative research audits
+        run: make research-audit-fast
+
   reproduction:
     name: Python, synthetic reproduction, figures, and manuscript
+    if: github.event_name == 'workflow_dispatch'
+    needs: fast-checks
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -35,12 +72,6 @@ jobs:
       - name: Synchronize locked environment
         run: uv sync --locked --all-groups
 
-      - name: Lint
-        run: make lint
-
-      - name: Test
-        run: make test
-
       - name: Run synthetic reproduction smoke test
         run: make experiments
 
@@ -55,32 +86,31 @@ jobs:
           texlive_version: "2022"
           args: -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 
+  note-matrix:
+    name: Read note registry
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    outputs:
+      notes: ${{ steps.registry.outputs.notes }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Read registered note ids
+        id: registry
+        run: echo "notes=$(python3 manuscript/notes/tools/note_inventory.py ids --format json)" >> "$GITHUB_OUTPUT"
+
   research-notes:
     name: Research note (${{ matrix.note }})
+    if: github.event_name == 'workflow_dispatch'
+    needs: note-matrix
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        note:
-          - aspr23_bound_audit
-          - aesp_cd_l1_rppr
-          - aesp_locgd_star_lower_bound
-          - adaptive_revisit_control
-          - hybrid_aesp_locsor
-          - hybrid_local_solver_complete_note
-          - hybrid_local_solver_synthesis
-          - volume_gated_acceleration
-          - rlsor_terminal_exact_rung
-          - delayed_reflection_ladder
-          - propagate_settle_framework
-          - evolving_support_cg
-          - incremental_active_set_sdd
-          - frontier_adaptive_ladder
-          - two_rung_sor
-          - two_rung_direct_theory
-          - response_preconditioned_hybrid
-          - local_solver_oracle_hierarchy
+        note: ${{ fromJSON(needs.note-matrix.outputs.notes) }}
 
     steps:
       - name: Check out repository

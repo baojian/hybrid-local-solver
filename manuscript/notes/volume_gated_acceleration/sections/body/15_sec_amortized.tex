@@ -1,0 +1,122 @@
+\section{What telescopes: an amortized re-solving lemma}
+\label{sec:amortized}
+
+Although the number of expansions can be large, the continuous optimization
+work needed to adapt to them admits a clean amortization.
+
+For a safe point $0\leq x\leq x_\rho^\star$, define the one-sided violation
+\begin{equation}
+  \nu(x):=\norm{D^{-1/2}(\kappa_\rho(x))_-}_\infty.
+  \label{eq:nu}
+\end{equation}
+
+\begin{lemma}[Violation to objective gap]
+\label{lem:violation-gap}
+For every safe point,
+\begin{align}
+ \norm{D^{-1/2}(x_\rho^\star-x)}_\infty
+ &\leq\frac{\nu(x)}\alpha,
+ \label{eq:nu-error}\\
+ \nu(x)\leq\alpha\sigma
+ \quad&\Longrightarrow\quad
+ G_\rho(x)-G_\rho(x_\rho^\star)
+ \leq\frac{\sigma^2}{2\rho}.
+ \label{eq:nu-gap}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The proof of \cref{lem:one-sided-certificate} with
+$\tau=\nu(x)/\alpha$ gives \cref{eq:nu-error}.  Put
+$e=x_\rho^\star-x$.  Because $e$ is supported on $S_\rho$ and complementarity
+annihilates the linear term,
+\begin{equation}
+ G_\rho(x)-G_\rho(x_\rho^\star)=\frac12e^\top Qe
+ \leq\frac12\norm{e}_2^2.
+\end{equation}
+If $\nu(x)\leq\alpha\sigma$, then $e_i\leq\sigma\sqrt{d_i}$ by
+\cref{eq:nu-error}.  Hence
+\[
+ \norm{e}_2^2
+ \leq\sigma^2\vol(S_\rho)
+ \leq\frac{\sigma^2}\rho,
+\]
+using \cref{eq:rppr-volume}.
+\end{proof}
+
+\begin{assumption}[Restricted accelerated contraction]
+\label{ass:contraction}
+On every fixed restricted QP, $k$ full restricted iterations reduce objective
+error by a factor at most $\exp(-k/H)$, where
+$H=C/\sqrt\alpha$ and $C$ is universal.
+\end{assumption}
+
+Strongly convex accelerated proximal gradient has this fixed-subspace
+property.  The assumption says nothing about continuing momentum across a
+subspace change.
+
+\begin{theorem}[Amortized re-solving]
+\label{thm:amortized}
+Let $\sigma_{j-1}=2\sigma_j$ be geometric accuracy epochs and put
+\begin{equation}
+  E_j:=\frac{\sigma_j^2}{2\rho}.
+\end{equation}
+Suppose epoch $j$ begins at a safe point with
+$\nu(x)\leq\alpha\sigma_{j-1}$, and restore restricted objective error to
+$E_j$ after every support expansion.  Under \cref{ass:contraction}, the total
+number of restricted iterations over all epochs down to $\sigma_J=\tau$ is
+\begin{equation}
+ K
+ \leq\bigO\!\left(
+       \frac1{\sqrt\alpha}\log\frac{\sigma_0}{\tau}
+      \right)+N_{\mathrm{exp}},
+ \label{eq:amortized-iterations}
+\end{equation}
+where $N_{\mathrm{exp}}$ is the number of nonempty expansion events.  Since
+$\vol(U)\leq1/\rho$, full-sweep work obeys
+\begin{equation}
+ \mathcal W
+ \leq\bigO\!\left(
+       \frac1{\rho\sqrt\alpha}\log\frac{\sigma_0}{\tau}
+      \right)
+      +\bigO\!\left(\frac{N_{\mathrm{exp}}}{\rho}\right).
+ \label{eq:amortized-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \cref{lem:violation-gap}, the global objective gap at the start of epoch
+$j$ is at most $4E_j$.  Restricted optimal values decrease monotonically
+toward the global value, so all expansion gains $\Delta_{j,\ell}$ in that
+epoch telescope:
+\begin{equation}
+  \sum_\ell\Delta_{j,\ell}\leq4E_j.
+  \label{eq:shock-telescope}
+\end{equation}
+If the pre-expansion restricted error is at most $E_j$, then immediately after
+an optimum shift of size $\Delta_{j,\ell}$ it is at most
+$E_j+\Delta_{j,\ell}$.  By \cref{ass:contraction}, restoring it to $E_j$
+takes at most
+\begin{equation}
+ k_{j,\ell}
+ =\left\lceil H\log\left(1+\frac{\Delta_{j,\ell}}{E_j}\right)\right\rceil.
+\end{equation}
+Therefore
+\begin{align*}
+ \sum_\ell k_{j,\ell}
+ &\leq H\sum_\ell
+       \log\left(1+\frac{\Delta_{j,\ell}}{E_j}\right)
+       +N_{\mathrm{exp},j}\\
+ &\leq\frac{H}{E_j}\sum_\ell\Delta_{j,\ell}
+       +N_{\mathrm{exp},j}
+ \leq4H+N_{\mathrm{exp},j}.
+\end{align*}
+Summing over $\bigO(\log(\sigma_0/\tau))$ epochs proves
+\cref{eq:amortized-iterations}.  Multiplying full iterations by the uniform
+volume cap proves \cref{eq:amortized-work}.
+\end{proof}
+
+This theorem improves over independently re-solving every enlarged subspace:
+all continuous shock sizes telescope.  The unresolved term is discrete.  In
+the worst case $N_{\mathrm{exp}}$ may be as large as the support size, and the
+proof above charges a full current-support scan to every such event.

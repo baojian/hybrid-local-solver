@@ -131,7 +131,7 @@ beyond this test.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** `propagate_settle_framework` and
+- **Formal registry dependencies:** `propagate_settle_framework` and
   `delayed_reflection_ladder`.
 - **Context/provenance:** `frontier_adaptive_ladder` and `two_rung_sor`
   provide the measured policy ancestry and comparison arms; they are not

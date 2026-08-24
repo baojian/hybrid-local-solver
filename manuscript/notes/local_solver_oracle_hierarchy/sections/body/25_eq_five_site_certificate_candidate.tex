@@ -1,0 +1,132 @@
+\subsection{A five-coordinate counteralgorithm}
+
+Let $\widehat y:=D^{-1/2}\widehat x$ and define
+\begin{equation}
+ z_i:=\frac{2(6-i)(7-i)}{11}
+ \quad(1\leq i\leq5),
+ \qquad
+ \widehat y_i:=
+ \begin{cases}
+  \alpha_n z_i,&1\leq i\leq5,\\
+  0,&i\geq6.
+ \end{cases}
+ \label{eq:five-site-certificate-candidate}
+\end{equation}
+Thus
+$(z_1,z_2,z_3,z_4,z_5)=(60,40,24,12,4)/11$ and
+$\widehat x=D^{1/2}\widehat y$ has exactly five nonzero coordinates.
+
+\begin{theorem}[A degree-four supported polynomial beats the product scale;
+\ProvedStatus]
+\label{thm:five-site-supported-prefix-counteralgorithm}
+For every $n\geq8$, the vector in
+\cref{eq:five-site-certificate-candidate} satisfies the strict version of
+\cref{eq:sparse-path-residual-task}.  It belongs to
+$\mathcal K_5(Q_n,b)$ and hence is returned by an admissible degree-four
+$\mathsf{CertPrefixPoly}$ execution with resource vector
+\begin{equation}
+ \mathcal C_{\rm CPP}=\bigl(
+ \Theta(1),\Theta(1),1,0,\Theta(1),\Theta(1),0,
+ \Theta(1),\Theta(1),\Theta(1),5\bigr).
+ \label{eq:certificate-prefix-poly-resource-vector}
+\end{equation}
+On the identical task and adjacency interface, a fully charged five-row
+append-only $LDL^\top$ response emits the same vector with
+\begin{equation}
+ \mathcal C_{\rm cert\text{-}LDL}=\bigl(
+ \Theta(1),\Theta(1),1,0,\Theta(1),0,\Theta(1),
+ \Theta(1),\Theta(1),0,5\bigr).
+ \label{eq:certificate-path-response-resource-vector}
+\end{equation}
+Both algorithms are deterministic and use only exact algebraic cells.
+Their realized final exposed set may be taken as $[6]$, of degree volume
+$\nu_{\rm fin}=11$.  Consequently neither
+$\Omega(\nu_{\rm fin}/\sqrt{\alpha_n})=\Omega(n)$ nor
+$\Omega(\nu_n/\sqrt{\alpha_n})=\Omega(n^2)$ lower-bounds the charged work of
+this named sparse-certificate recurrence class on the endpoint path.
+\end{theorem}
+
+\begin{proof}
+Put $a=(1+\alpha_n)/2$ and $\eta=(1-\alpha_n)/2$.  Because the first six
+vertices are not the far endpoint when $n\geq8$, direct substitution in the
+ambient-degree path rows gives
+\begin{equation}
+ \frac{1}{\alpha_n}
+ \bigl[D^{-1/2}(b-Q_n\widehat x)\bigr]_i
+ =
+ \begin{cases}
+  (1-50\alpha_n)/11,&i=1,\\
+  (1-41\alpha_n)/11,&i=2,\\
+  (1-25\alpha_n)/11,&i=3,\\
+  (1-13\alpha_n)/11,&i=4,\\
+  (1-5\alpha_n)/11,&i=5,\\
+  (1-\alpha_n)/11,&i=6,\\
+  0,&i\geq7.
+ \end{cases}
+ \label{eq:five-site-exact-residual}
+\end{equation}
+For example, at $\alpha_n=0$ the scaled row equations reduce to
+\[
+ 1-\frac{z_1-z_2}{2}
+ =\frac{z_{i-1}-2z_i+z_{i+1}}4
+ =\frac{z_5}{4}=\frac1{11},
+\]
+where the middle identity uses $2\leq i\leq5$ and $z_6=0$.
+The $\alpha_n$ terms give the coefficients displayed in
+\cref{eq:five-site-exact-residual}.  Since
+$\alpha_n\leq1/64$, all six displayed values are positive and at most
+$1/11<1/10$.  This proves the strict certificate.
+
+The endpoint Krylov triangularity established in the companion exact-CG
+theorem gives
+\[
+ \mathcal K_5(Q_n,b)
+ =\operatorname{span}\{e_1,\ldots,e_5\}.
+\]
+Hence there is a polynomial $p$ of degree at most four with
+$\widehat x=p(Q_n)b$.  A concrete supported realization forms
+$w_0=b$ and $w_{j+1}=Q_nw_j$ for $0\leq j<4$, then solves the resulting
+constant $5\times5$ lower-triangular Krylov coordinate system and emits the
+linear combination equal to $\widehat x$.  The four row actions scan prefixes
+$[1],[2],[3],[4]$, of total ambient degree volume
+$1+3+5+7=16$.  The coefficient solve and vector combination are constant
+exact recurrence arithmetic, not an uncharged response.  Exposing and caching
+the first six path rows, the four supported products, intermediate cells, and
+the exact final support-plus-boundary verifier all use constant work and
+space.  There is no preprocessing or response object, and exactly five final
+cells are emitted.  This proves every coordinate in
+\cref{eq:certificate-prefix-poly-resource-vector}; its constant adjacency
+round count is an implementation charge, not an adaptivity lower bound.
+
+For the response arm, append the first five tridiagonal pivots, multipliers,
+and forward messages.  Equivalently, solve the leading five-row system with
+right-hand side equal to the first five coordinates of
+$b-D^{1/2}g$, where
+$g:=D^{-1/2}(b-Q_n\widehat x)$ is given by
+\cref{eq:five-site-exact-residual}.  One reverse pass gives exactly
+$\widehat x_{1:5}$; row six supplies the boundary residual.  Charge every
+adjacency reply and verifier operation to $C_{\rm adj}$ or $C_{\rm ctl}$,
+every pivot, message, and reverse application to $C_{\rm resp}$, every stored
+or scratch cell to its memory coordinate, and the five output cells to
+$C_{\rm emit}$.  No intermediate full vector is maintained, so
+$C_{\rm mat}=0$.  All quantities are constant, proving
+\cref{eq:certificate-path-response-resource-vector} on the same task and
+interface.
+
+Finally, $\nu_n=2(n-1)$, $\nu_{\rm fin}=\vol([6])=11$, and
+$1/\sqrt{\alpha_n}=n$, whereas both charged executions have constant
+nonmemory work.
+\end{proof}
+
+\paragraph{Exact scope of the refutation.}
+The theorem refutes a product lower bound based only on supported-prefix
+polynomial generation plus the actual sparse residual certificate.  It does
+not refute the full-vector exact
+$\mathsf{DiagSpecPoly}(r)$ obstruction in
+\cref{thm:surviving-path-polynomial-obstruction}: the two results have
+different output tasks.  It also does not shorten the ordinary-CG trajectory
+proved in the companion note.  Ordinary CG annihilates the old-prefix
+residual and leaves a frontier value just above the threshold; the
+counteralgorithm instead spends the permitted residual slack across six local
+rows.  The result is path-specific, tied to $\alpha=n^{-2}$ and
+$\epsppr=1/10$, and has no finite-precision or graph-uniform consequence.

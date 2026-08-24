@@ -1,0 +1,777 @@
+\section{Level-regular trees: shell impedance and expansion credit}
+\label{sec:direct-level-regular}
+
+The spider theorem is not an isolated symmetry trick.  Radial aggregation
+gives an exact one-dimensional quotient on every rooted tree whose offspring
+count is constant within each level.  The quotient is no longer the endpoint
+path: its variable edge coefficient records precisely how branching changes
+the cancellation algebra.
+
+Let $\mathcal L_i$ be level $i$, let $n_i:=|\mathcal L_i|$, and suppose every
+vertex in $\mathcal L_i$ has $\phi_i$ children.  Thus
+$n_{i+1}=n_i\phi_i$.  Write $d_i$ for the common degree on
+$\mathcal L_i$; away from the root and a terminal leaf level,
+$d_i=1+\phi_i$.  A radial state has a common normalized residual
+$y_i=r_u/\sqrt{d_i}$ on every $u\in\mathcal L_i$.  Define the shell-energy
+coordinate and edge impedance
+\begin{equation}
+ z_i:=\sqrt{n_i d_i}\,y_i,
+ \qquad
+ \varpi_i:=2\sqrt{\frac{\phi_i}{d_i d_{i+1}}}.
+ \label{eq:direct-shell-energy-impedance}
+\end{equation}
+
+\begin{theorem}[Exact symmetric quotient for level-regular trees]
+\label{thm:direct-level-regular-quotient}
+A block operation on $\mathcal L_i$ pushes each vertex of that level once.
+The coordinate pushes commute and preserve radial states.  In the coordinates
+\cref{eq:direct-shell-energy-impedance}, an optimal-SOR block operation is
+exactly
+\begin{align}
+ z_i^+&=-\lambda^2z_i,
+ \label{eq:direct-shell-sor-self}\\
+ z_{i-1}^+&=z_{i-1}+\lambda\varpi_{i-1}z_i,
+ \qquad
+ z_{i+1}^+=z_{i+1}+\lambda\varpi_i z_i,
+ \label{eq:direct-shell-sor-neighbors}
+\end{align}
+with nonexistent boundary terms omitted.  An exact block operation instead
+obeys
+\begin{equation}
+ z_i^+=0,
+ \qquad
+ z_{i-1}^+=z_{i-1}+\eta\varpi_{i-1}z_i,
+ \qquad
+ z_{i+1}^+=z_{i+1}+\eta\varpi_i z_i.
+ \label{eq:direct-shell-exact}
+\end{equation}
+Consequently both rungs are symmetric tridiagonal chains in shell-energy
+coordinates.  Moreover,
+\begin{equation}
+ \sum_{u\in\mathcal L_i}r_u^2=z_i^2,
+ \qquad
+ \frac{\sum_{u\in\mathcal L_i}r_u^2}
+      {\sum_{u\in\mathcal L_i}(1+d_u)}
+ =\frac{z_i^2}{n_i(1+d_i)},
+ \label{eq:direct-shell-score}
+\end{equation}
+so the same coordinate system records the exact block decrease numerator and
+the charged block score.
+\end{theorem}
+
+\begin{proof}
+There are no edges inside one level, so its coordinate pushes commute.  Each
+child at level $i+1$ has one parent and receives
+$(2\lambda/d_{i+1})y_i$ from an optimal-SOR push.  Multiplication by the
+shell-energy scale gives
+\begin{equation*}
+ \sqrt{n_{i+1}d_{i+1}}\frac{2\lambda}{d_{i+1}}y_i
+ =2\lambda\sqrt{\frac{\phi_i}{d_i d_{i+1}}}\,z_i
+ =\lambda\varpi_i z_i.
+\end{equation*}
+In the reverse direction, every parent at level $i$ receives one packet from
+each of its $\phi_i$ children, so a block push on level $i+1$ adds
+$(2\lambda\phi_i/d_i)y_{i+1}$ to $y_i$.  The same rescaling gives
+\begin{equation*}
+ \sqrt{n_i d_i}\frac{2\lambda\phi_i}{d_i}y_{i+1}
+ =2\lambda\sqrt{\frac{\phi_i}{d_i d_{i+1}}}\,z_{i+1}.
+\end{equation*}
+Thus the two directed aggregate coefficients become the same symmetric
+coefficient.  The pushed shell is multiplied by $-\lambda^2$, proving
+\cref{eq:direct-shell-sor-self,eq:direct-shell-sor-neighbors}.  For an exact
+push, replace $2\lambda$ by
+$c_\alpha=2\lambda/(1+\lambda^2)=2\eta$ and set the pushed residual to zero,
+which proves \cref{eq:direct-shell-exact}.  Finally,
+$r_u^2=d_i y_i^2$ on the level, so summing gives
+\cref{eq:direct-shell-score}.  The objective-decrease factor from
+\cref{lem:direct-coordinate-decrease} is common to all vertices of the block.
+\end{proof}
+
+The impedance $\varpi_i$ is the missing branch variable.  It may be below or
+above one when offspring counts change abruptly.  The edge is
+\emph{critically matched} when
+\begin{equation}
+ 4\phi_i=d_i d_{i+1},
+ \label{eq:direct-critical-impedance}
+\end{equation}
+because then its optimal-SOR coupling is exactly $\lambda$, the bulk path
+coefficient.  Thus maximum degree alone cannot describe the radial dynamics;
+the relation between consecutive shell sizes and degrees is the relevant
+quantity.
+
+\begin{proposition}[The path is the unique homogeneous critical bulk]
+\label{prop:direct-homogeneous-criticality}
+Consider an interior homogeneous $g$-ary bulk, $g\geq1$, so
+$\phi_i=g$ and $d_i=g+1$.  Its shell coupling is
+\begin{equation}
+ \mu_g:=\lambda\varpi_g
+ =\lambda\frac{2\sqrt g}{g+1}.
+ \label{eq:direct-homogeneous-coupling}
+\end{equation}
+A translation-invariant two-level shell-energy plateau that advances by
+pushing one parity exists only when $g=1$.  For $g>1$, the uncancelled
+self-reflection relative to that plateau is exactly
+\begin{equation}
+ \lambda^2-\mu_g^2
+ =\lambda^2\left(\frac{g-1}{g+1}\right)^2.
+ \label{eq:direct-branch-mismatch-debt}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Suppose the active parity has shell-energy value $A$, the inactive parity
+has value $-cA$, and pushing the active parity produces the same form with
+new positive amplitude $A'$.  A new frontier shell receives one packet, so
+$A'=\mu_gA$.  An old inactive interior shell receives two packets, hence
+\begin{equation*}
+ -cA+2\mu_gA=A'=\mu_gA,
+\end{equation*}
+which forces $c=\mu_g$.  A pushed shell becomes $-\lambda^2A$, whereas the
+new plateau requires
+$-cA'=-\mu_g^2A$.  Therefore $\lambda^2=\mu_g^2$, equivalently
+$2\sqrt g=g+1$.  This holds exactly when $g=1$.  Subtracting the two squared
+coefficients gives \cref{eq:direct-branch-mismatch-debt}.
+\end{proof}
+
+Equation \cref{eq:direct-branch-mismatch-debt} is a sharp explanation of why
+the path wave does not extend by merely replacing vertices with growing
+shells.  Unary propagation is critically matched: one round-trip neighbor
+coupling equals the SOR self-reflection.  Persistent branching is
+undercoupled and leaves a negative shell-energy debt.  An abrupt narrowing
+can instead have $\varpi_i>1$ and create an overshoot.  These two signs should
+be treated separately in a general revisit ledger.
+
+The mismatch already forces an accelerated number of shallow revisits.  The
+following level-regular version of the spider echo rules out a uniform
+$O(L-i+1)$ visit count.
+
+\begin{proposition}[Root echo on a homogeneous tree]
+\label{prop:direct-homogeneous-root-echo}
+Let the root and every displayed internal vertex have $g\geq2$ children.
+Start at the root and use refreshed measured per-coordinate rank to choose a
+radial block.  Let $T_g$ be the number of consecutive root pushes before the
+first level-one block is selected.  For every fixed $g$ and sufficiently
+small $\alpha$,
+\begin{equation}
+ T_g=\Theta_g\!\left(\frac1{\sqrt\alpha}\right),
+ \qquad
+ \Work_{\rm root}=(g+1)T_g
+ =\Theta_g\!\left(\frac1{\sqrt\alpha}\right).
+ \label{eq:direct-homogeneous-root-echo}
+\end{equation}
+In fact,
+\begin{equation}
+ \lim_{\alpha\downarrow0}T_g\sqrt\alpha
+ =\frac14\log\!\left(\frac{g^2+g-1}{g+1}\right).
+ \label{eq:direct-homogeneous-root-limit}
+\end{equation}
+More precisely, with $\zeta:=\alpha/g$, after $t$ root pushes and before any
+level-one push,
+\begin{align}
+ y_0^{(t)}&=(-\lambda^2)^t\zeta,
+ \label{eq:direct-homogeneous-root-residual}\\
+ y_1^{(t)}&=\frac{2\eta}{g+1}
+ \bigl(1-(-\lambda^2)^t\bigr)\zeta,
+ \label{eq:direct-homogeneous-child-residual}
+\end{align}
+and the root remains selected exactly while
+\begin{equation}
+ \frac{g}{g+1}\lambda^{2t}
+ >\frac{2\eta}{g+2}
+ \left|1-(-\lambda^2)^t\right|.
+ \label{eq:direct-homogeneous-root-rank}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Each root push multiplies its normalized residual by $-\lambda^2$ and sends
+$2\lambda y_0/(g+1)$ to every child.  Summing the geometric series gives
+\cref{eq:direct-homogeneous-root-residual,eq:direct-homogeneous-child-residual}.
+The measured rank weights are $g/(g+1)$ at the root and
+$(g+1)/(g+2)$ at a child, which gives
+\cref{eq:direct-homogeneous-root-rank}.
+
+For fixed $g\geq2$ and small $\alpha$, the two prefactors in
+\cref{eq:direct-homogeneous-root-rank} are positive constants bounded away
+from zero, while
+$|1-(-\lambda^2)^t|$ lies between $1-\lambda^{2t}$ and
+$1+\lambda^{2t}$.  Hence the first rank crossing occurs when
+$\lambda^{2t}$ lies between two constants depending only on $g$.  Since
+$-\log\lambda=\Theta(\sqrt\alpha)$, this is equivalent to
+$T_g=\Theta_g(1/\sqrt\alpha)$.
+
+For the exact limit, put
+$a_g:=g/(g+1)$ and $\beta_{g,\alpha}:=2\eta/(g+2)$.  At odd $t$, the root wins
+exactly when
+\begin{equation*}
+ \lambda^{2t}>\frac{\beta_{g,\alpha}}
+ {a_g-\beta_{g,\alpha}},
+\end{equation*}
+whereas at even $t$ the right-hand side is
+$\beta_{g,\alpha}/(a_g+\beta_{g,\alpha})$.  The even threshold is strictly smaller.  Since
+$\lambda^2\to1$, for all sufficiently small $\alpha$ an even crossing cannot
+precede the neighboring odd crossing.  Consecutive odd values of
+$\lambda^{2t}$ differ by the factor $\lambda^4\to1$, so at the first crossing
+\begin{equation*}
+ \lambda^{2T_g}\longrightarrow
+ \frac{1/(g+2)}{g/(g+1)-1/(g+2)}
+ =\frac{g+1}{g^2+g-1}.
+\end{equation*}
+Using $-\log\lambda\sim2\sqrt\alpha$ gives
+\cref{eq:direct-homogeneous-root-limit}.  Every root push has charge $g+1$.
+\end{proof}
+
+There is nevertheless a compensating fact: persistent branching creates
+enough new volume to pay for a triangular number of shallow revisits.
+
+\begin{lemma}[Geometric expansion absorbs triangular shell revisits]
+\label{lem:direct-expansion-credit}
+Fix $g>1$ and consider levels $0,\ldots,L$ of a homogeneous $g$-ary tree.
+Suppose a block schedule visits level $i$ at most $K(L-i+1)$ times.  Then its
+total charged work is
+\begin{equation}
+ \Work
+ \leq K(g+2)g^L\sum_{j=0}^{L}\frac{j+1}{g^j}
+ \leq K(g+2)\frac{g^{L+2}}{(g-1)^2}
+ =O_g(K\mathcal V_L),
+ \label{eq:direct-expansion-credit}
+\end{equation}
+where
+$\mathcal V_L:=\sum_{i=0}^{L}\sum_{u\in\mathcal L_i}d_u$
+is the explored degree volume.
+\end{lemma}
+
+\begin{proof}
+A level-$i$ block has at most $g^i(g+2)$ charged operations, including the
+root and frontier boundary slack.  Sum this quantity against the assumed
+visit count and put $j=L-i$.  The infinite power series satisfies
+$\sum_{j\geq0}(j+1)g^{-j}=(1-g^{-1})^{-2}$.  Finally
+$\mathcal V_L=\Theta_g(g^L)$.
+\end{proof}
+
+The lemma is an amortization theorem rather than a dynamic visit theorem.
+\Cref{prop:direct-homogeneous-root-echo} shows that its factor $K$ cannot be
+uniformly constant: even the root needs $\Theta_g(1/\sqrt\alpha)$ visits.
+Fortunately, persistent expansion has a stronger property.  Its finite
+explored balls have a depth-independent Dirichlet gap, which lets objective
+contraction pay all shell revisits at once.
+
+\begin{lemma}[Uniform Dirichlet gap on a homogeneous expanding tree]
+\label{lem:direct-homogeneous-dirichlet-gap}
+Let $g>1$, let $\mathcal B_L$ contain levels $0,\ldots,L$ of the infinite
+rooted $g$-ary tree, and retain the degrees of the infinite tree in the
+principal matrix $Q_{\mathcal B_L\mathcal B_L}$.  Then
+\begin{equation}
+ \lambda_{\min}(Q_{\mathcal B_L\mathcal B_L})
+ \geq
+ \delta_g
+ :=\frac12-\frac{\sqrt g}{g+1}
+ =\frac{(\sqrt g-1)^2}{2(g+1)}>0,
+ \label{eq:direct-homogeneous-dirichlet-gap}
+\end{equation}
+uniformly in $L$ and $0<\alpha<1$.  Also
+$\lambda_{\max}(Q_{\mathcal B_L\mathcal B_L})\leq1$.
+\end{lemma}
+
+\begin{proof}
+Write
+\begin{equation*}
+ P_L:=\left(D^{-1/2}AD^{-1/2}\right)_{\mathcal B_L\mathcal B_L},
+ \qquad
+ Q_{\mathcal B_L\mathcal B_L}
+ =\frac{1+\alpha}{2}I-\frac{1-\alpha}{2}P_L.
+\end{equation*}
+The Perron vector of the nonnegative irreducible matrix $P_L$ is invariant
+under every rooted-tree automorphism, hence is radial.  In the orthonormal
+shell basis, the resulting Jacobi matrix has first off-diagonal coefficient
+\begin{equation*}
+ a_0=\frac1{\sqrt{g+1}}
+\end{equation*}
+and every subsequent coefficient
+\begin{equation*}
+ a=\frac{\sqrt g}{g+1}.
+\end{equation*}
+To see directly that its Perron root is at most $2a$, put
+$c:=(g+1)/(g-1)$, set $v_i=i+c$ for $i\geq1$, and choose
+$v_0:=ac/a_0$.  Then $v$ is positive,
+\begin{equation*}
+ a_0v_1=2av_0,
+ \qquad
+ a_0v_0+av_2=2av_1,
+ \qquad
+ a(v_{i-1}+v_{i+1})=2av_i\quad(1<i<L),
+\end{equation*}
+while the missing outward term makes the last inequality no larger than
+$2av_L$.  The Collatz--Wielandt bound therefore gives
+\begin{equation*}
+ \lambda_{\max}(P_L)\leq2a=\frac{2\sqrt g}{g+1}.
+\end{equation*}
+Consequently
+\begin{align*}
+ \lambda_{\min}(Q_{\mathcal B_L\mathcal B_L})
+ &\geq\frac{1+\alpha}{2}
+ -\frac{1-\alpha}{2}\frac{2\sqrt g}{g+1}\\
+ &\geq\frac12-\frac{\sqrt g}{g+1}=\delta_g.
+\end{align*}
+The global normalized adjacency has spectrum in $[-1,1]$, so every
+principal submatrix of $Q$ has largest eigenvalue at most one.
+\end{proof}
+
+For a radial shell $\mathcal L_i$, recall its charge
+$C_i:=n_i(1+d_i)$ and define its exact decrease-per-charge numerator
+\begin{equation}
+ H_i:=\frac{z_i^2}{C_i}
+ =\frac{d_i}{1+d_i}y_i^2.
+ \label{eq:direct-radial-block-score}
+\end{equation}
+The measured per-coordinate rank on that shell satisfies
+\begin{equation}
+ p_i^2
+ =\left(\frac{d_i}{1+d_i}|y_i|\right)^2
+ =\frac{d_i}{1+d_i}H_i,
+ \label{eq:direct-radial-score-comparison}
+\end{equation}
+and is therefore again a factor-two proxy for $H_i$.
+
+\begin{lemma}[Retrospective final-region contraction for radial blocks]
+\label{lem:direct-radial-final-region}
+Fix a threshold $\theta>0$ and relaxation $0<\omega<2$.  Consider a
+refreshed radial phase that repeatedly chooses an active level maximizing
+$p_i$, then pushes its complete shell block.  Let $S$ be any homogeneous
+prefix containing every block pushed during the phase, put
+\begin{equation*}
+ C_S:=\sum_{u\in S}(1+d_u),
+ \qquad
+ \delta_S:=\lambda_{\min}(Q_{SS}),
+\end{equation*}
+and let
+\begin{equation*}
+ \Delta_S(x):=f(x)-\min\{f(x+h):\supp(h)\subseteq S\}.
+\end{equation*}
+If $\Delta_0$ is the value at the start of the phase, then the phase
+terminates and its charged work satisfies
+\begin{equation}
+ \Work_\theta
+ \leq C_S+
+ \frac{4C_S}{\kappa_\omega\delta_S}
+ \log_+\!\left(\frac{2\Delta_0}{\theta^2}\right),
+ \qquad
+ \log_+(t):=\max\{0,\log t\}.
+ \label{eq:direct-radial-final-region-work}
+\end{equation}
+The prefix $S$ may be chosen retrospectively as the final set of pushed
+levels.
+\end{lemma}
+
+\begin{proof}
+Because no coordinate outside $S$ is pushed, the restricted gap is
+\begin{equation*}
+ \Delta_S(x)=\frac12r_S^\mathsf TQ_{SS}^{-1}r_S
+ \leq\frac{\norm{r_S}_2^2}{2\delta_S}.
+\end{equation*}
+Let $H_{\max}:=\max_{i:\mathcal L_i\subseteq S}H_i$.  By
+\cref{eq:direct-shell-score},
+\begin{equation*}
+ H_{\max}\geq\frac{\norm{r_S}_2^2}{C_S}
+ \geq\frac{2\delta_S\Delta_S(x)}{C_S}.
+\end{equation*}
+An inactive level has $p_i\leq\theta$, whereas the selected active level has
+$p_i>\theta/2$.  Since it maximizes $p_i$ among active levels,
+\cref{eq:direct-radial-score-comparison} gives
+\begin{equation*}
+ H_i\geq\frac18H_{\max}.
+\end{equation*}
+The coordinates in a shell are nonadjacent, so their pushes commute and
+\cref{lem:direct-coordinate-decrease} adds over the block.  One selected
+block therefore satisfies
+\begin{equation*}
+ \Delta_S(x)-\Delta_S(x^+)
+ =\kappa_\omega C_iH_i
+ \geq\frac{\kappa_\omega\delta_SC_i}{4C_S}\Delta_S(x).
+\end{equation*}
+Multiplying this contraction over blocks gives
+\begin{equation*}
+ \Delta_S(x^{(k)})
+ \leq\Delta_0
+ \exp\!\left(-\frac{\kappa_\omega\delta_S W_k}{4C_S}\right).
+\end{equation*}
+
+Before any executed block, some shell satisfies $|y_i|>\theta$.  Since
+$\lambda_{\max}(Q_{SS})\leq1$,
+\begin{equation*}
+ \Delta_S(x)
+ \geq\frac12\norm{r_S}_2^2
+ \geq\frac12z_i^2
+ >\frac12\theta^2.
+\end{equation*}
+Apply this lower bound just before the last block and solve the preceding
+exponential inequality for the work already spent.  The last block costs at
+most $C_S$, proving \cref{eq:direct-radial-final-region-work}.  The same
+argument rules out an infinite phase.  Nothing in the proof requires knowing
+$S$ online; it only requires that all executed blocks lie in $S$.
+\end{proof}
+
+\begin{theorem}[Accelerated radial two-rung theorem on homogeneous trees]
+\label{thm:direct-homogeneous-radial-two-rung}
+Fix $g>1$, $B>1$, and $0<\alpha<1$.  Consider the infinite rooted $g$-ary
+tree, or a finite tree whose leaves are not reached.  Run the radial block
+method that uses refreshed measured rank, optimal SOR above $B\tau$, and
+exact pushes above $\tau$, where $\tau=\alpha\epsppr$.  Let $S$ be the final
+prefix of pushed vertices and define
+\begin{equation*}
+ \mathcal V_{\rm exp}:=\sum_{u\in S}d_u,
+ \qquad
+ C_{\rm exp}:=\sum_{u\in S}(1+d_u).
+\end{equation*}
+Then both phases terminate, the terminal gate is certified, and
+\begin{align}
+ \Work_{\rm spread}
+ &\leq C_{\rm exp}\left[
+  1+\frac{8}{\delta_g\sqrt\alpha}
+  \log_+\!\left(
+   \frac1{g\delta_g B^2\epsppr^2}
+  \right)\right],
+ \label{eq:direct-homogeneous-spread-work}\\
+ \Work_{\rm exact}
+ &\leq C_{\rm exp}\left[
+  1+\frac8{\delta_g}
+  \log_+\!\left(
+   \frac{B^2\mathcal V_{\rm exp}}{\delta_g}
+  \right)\right].
+ \label{eq:direct-homogeneous-exact-work}
+\end{align}
+In particular, because $C_{\rm exp}\leq2\mathcal V_{\rm exp}$,
+\begin{equation}
+ \Work
+ =O_g\!\left(
+  \mathcal V_{\rm exp}\left[
+   1+\frac{\log_+(1/(B\epsppr))}{\sqrt\alpha}
+   +\log_+\mathcal V_{\rm exp}
+  \right]
+ \right)
+ =\widetilde O_g\!\left(
+  \frac{\mathcal V_{\rm exp}}{\sqrt\alpha}
+ \right).
+ \label{eq:direct-homogeneous-total-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+First apply the block form of \cref{prop:direct-fallback}.  An active shell
+has $z_i^2>n_id_i\theta^2\geq C_i\theta^2/2$, so its commuting coordinate
+pushes decrease the globally lower-bounded objective by more than
+$\kappa_\omega C_i\theta^2/2$.  The initial source has finite objective gap;
+hence each phase has finite work even on the infinite tree.  Thus only
+finitely many blocks are pushed.  Every generated radial level is adjacent
+to an earlier pushed level, so their union is a finite prefix.  Use this
+final prefix as $S$ in \cref{lem:direct-radial-final-region}; by
+\cref{lem:direct-homogeneous-dirichlet-gap}, $\delta_S\geq\delta_g$.
+
+Initially, the only residual entry is $r_0=\alpha/\sqrt g$.  Therefore the
+initial restricted gap satisfies
+\begin{equation*}
+ \Delta_S(x^{(0)})
+ \leq\frac{\alpha^2}{2g\delta_g}.
+\end{equation*}
+For optimal SOR,
+\begin{equation*}
+ \kappa_{\omega_\star}
+ =\frac{1-\lambda^4}{1+\alpha}
+ =\frac{8\sqrt\alpha}{(1+\sqrt\alpha)^4}
+ \geq\frac{\sqrt\alpha}{2}.
+\end{equation*}
+Apply \cref{eq:direct-radial-final-region-work} with
+$\theta=B\alpha\epsppr$ to obtain
+\cref{eq:direct-homogeneous-spread-work}.
+
+At the switch, every level obeys $|y_i|\leq B\tau$.  Consequently,
+\begin{equation*}
+ \norm{r_S}_2^2
+ =\sum_{\mathcal L_i\subseteq S}n_id_i y_i^2
+ \leq B^2\tau^2\mathcal V_{\rm exp},
+ \qquad
+ \Delta_S(x^{\rm sw})
+ \leq\frac{B^2\tau^2\mathcal V_{\rm exp}}{2\delta_g}.
+\end{equation*}
+For the exact rung,
+$\kappa_1=1/(1+\alpha)\geq1/2$.  Apply
+\cref{eq:direct-radial-final-region-work} with $\theta=\tau$ to obtain
+\cref{eq:direct-homogeneous-exact-work}.  Termination means that no level
+violates the terminal gate.  Finally, $1+d_u\leq2d_u$ gives
+$C_{\rm exp}\leq2\mathcal V_{\rm exp}$ and proves
+\cref{eq:direct-homogeneous-total-work}.
+\end{proof}
+
+\begin{corollary}[All homogeneous radial tree geometries]
+\label{cor:direct-all-homogeneous-radial}
+For every fixed integer $g\geq1$ with $B\epsppr<1$, the refreshed radial
+block two-rung method has
+\begin{equation*}
+ \Work=\widetilde O_g(\mathcal V_{\rm exp}/\sqrt\alpha)
+\end{equation*}
+on a root-seeded homogeneous $g$-ary tree before the far leaves are reached.
+For $g=1$, take $1<B<B_{\rm edge}$ and apply the endpoint-path theorem.  For
+$g>1$, every fixed $B>1$ is covered by
+\cref{thm:direct-homogeneous-radial-two-rung}.
+\end{corollary}
+
+The gap argument is not restricted to homogeneous quotients.  The following
+form records the exact hypothesis needed for a variable level profile.
+
+\begin{theorem}[Variable level-regular expansion from a supersolution]
+\label{thm:direct-variable-radial-supersolution}
+Let $\phi_i\geq1$ be the offspring count at level $i$, let
+$d_0=\phi_0$ and $d_i=1+\phi_i$ for $i\geq1$, and put
+\begin{equation}
+ a_i:=\sqrt{\frac{\phi_i}{d_i d_{i+1}}}.
+ \label{eq:direct-variable-jacobi-edge}
+\end{equation}
+Suppose there are $w_i>0$ and $0\leq\rho<1$ such that
+\begin{align}
+ a_0w_1&\leq\rho w_0,
+ \label{eq:direct-variable-supersolution-root}\\
+ a_{i-1}w_{i-1}+a_iw_{i+1}&\leq\rho w_i
+ \qquad(i\geq1).
+ \label{eq:direct-variable-supersolution-bulk}
+\end{align}
+Then every retained prefix $S_L$ satisfies
+\begin{equation}
+ \lambda_{\max}(P_{S_LS_L})\leq\rho,
+ \qquad
+ \lambda_{\min}(Q_{S_LS_L})\geq
+ \delta_{\rho,\alpha}
+ :=\alpha+\frac{1-\alpha}{2}(1-\rho).
+ \label{eq:direct-variable-gap}
+\end{equation}
+Consequently the refreshed radial block two-rung method terminates and, on
+its retrospective final prefix, obeys
+\begin{align}
+ \Work_{\rm spread}
+ &\leq C_{\rm exp}\left[1+
+ \frac{8}{\delta_{\rho,\alpha}\sqrt\alpha}
+ \log_+\!\left(
+ \frac1{d_0\delta_{\rho,\alpha}B^2\epsppr^2}
+ \right)\right],
+ \label{eq:direct-variable-spread-work}\\
+ \Work_{\rm exact}
+ &\leq C_{\rm exp}\left[1+
+ \frac8{\delta_{\rho,\alpha}}
+ \log_+\!\left(
+ \frac{B^2\mathcal V_{\rm exp}}{\delta_{\rho,\alpha}}
+ \right)\right].
+ \label{eq:direct-variable-exact-work}
+\end{align}
+In particular, a fixed $\rho<1$ gives
+$\Work=\widetilde O(\mathcal V_{\rm exp}/\sqrt\alpha)$.
+\end{theorem}
+
+\begin{proof}
+The radial compression of
+$P=D^{-1/2}AD^{-1/2}$ in the orthonormal shell basis is the nonnegative
+Jacobi matrix with off-diagonal entries $a_i$.  The displayed hypothesis is
+$Jw\leq\rho w$.  On a finite prefix the missing outward term only decreases
+the last component, so Collatz--Wielandt gives
+$\lambda_{\max}(J_L)\leq\rho$.  The Perron vector of the full principal
+matrix is radial by level transitivity, hence its Perron root is that of
+$J_L$.  Therefore
+\begin{equation*}
+ \lambda_{\min}(Q_{S_LS_L})
+ \geq\frac{1+\alpha-(1-\alpha)\rho}{2}
+ =\delta_{\rho,\alpha}.
+\end{equation*}
+Apply \cref{lem:direct-radial-final-region}.  Initially
+$\norm{r}_2^2=\alpha^2/d_0$, while at the switch
+$\norm{r}_2^2\leq B^2\tau^2\mathcal V_{\rm exp}$.  Thus the two restricted
+gaps are at most
+$\alpha^2/(2d_0\delta_{\rho,\alpha})$ and
+$B^2\tau^2\mathcal V_{\rm exp}/(2\delta_{\rho,\alpha})$, respectively.
+Substitute these bounds together with
+$\kappa_{\omega_\star}\geq\sqrt\alpha/2$ and
+$\kappa_1\geq1/2$ in
+\cref{eq:direct-radial-final-region-work}.
+\end{proof}
+
+\begin{corollary}[Arbitrary persistent level branching]
+\label{cor:direct-variable-minimum-branching}
+If $\phi_i\geq g>1$ at every internal level, then every retained prefix has
+the same lower gap $\delta_g$ as the homogeneous $g$-ary tree.  Hence
+\cref{eq:direct-homogeneous-spread-work,eq:direct-homogeneous-exact-work}
+hold verbatim for an arbitrary
+nonhomogeneous level profile, with $d_0$ replacing $g$ in the first
+logarithm.
+\end{corollary}
+
+\begin{proof}
+Put $t=g^{-1/2}$ and lift the positive full-tree vector
+$v_u=\sqrt{d_u}t^{\operatorname{depth}(u)}$.  At a nonroot internal vertex
+with $s=\phi_i$ children,
+\begin{equation*}
+ \frac{(Pv)_u}{v_u}
+ =\frac{t^{-1}+st}{1+s}.
+\end{equation*}
+This expression decreases in $s$ because $t<1$, so for $s\geq g$ it is at
+most
+\begin{equation*}
+ \rho_g:=\frac{2\sqrt g}{g+1}.
+\end{equation*}
+The root ratio is $t\leq\rho_g$, and deleting outward neighbors at the last
+retained level only decreases the ratio.  Collatz--Wielandt gives
+$\lambda_{\max}(P_{S_LS_L})\leq\rho_g$.  Finally
+$(1-\rho_g)/2=\delta_g$ and
+$\delta_{\rho_g,\alpha}\geq\delta_g$.
+\end{proof}
+
+The persistent-expansion condition cannot simply be deleted from a spectral
+proof.  Its obstruction is exactly the corridor already solved by the path
+event theorem.
+
+\begin{lemma}[Sharp unary-corridor obstruction to a uniform gap]
+\label{lem:direct-unary-corridor-gap-obstruction}
+If a retained level-regular prefix contains $\ell$ consecutive internal
+unary levels, then
+\begin{equation}
+ \lambda_{\max}(P_{SS})\geq\cos\!\left(\frac{\pi}{\ell+1}\right),
+ \qquad
+ \lambda_{\min}(Q_{SS})
+ \leq\alpha+\frac{\pi^2}{4(\ell+1)^2}.
+ \label{eq:direct-unary-corridor-gap-obstruction}
+\end{equation}
+For the endpoint unary-ray prefix $0,\ldots,L$, the exact values are
+\begin{align}
+ \lambda_{\max}(P_L)
+ &=\cos\!\left(\frac{\pi}{2(L+1)}\right),
+ \label{eq:direct-unary-ray-perron}\\
+ \lambda_{\min}(Q_L)
+ &=\alpha+\frac{1-\alpha}{2}
+ \left[1-\cos\!\left(\frac{\pi}{2(L+1)}\right)\right].
+ \label{eq:direct-unary-ray-gap}
+\end{align}
+Thus unbounded unary corridors admit no depth-independent
+$\rho<1$ certificate.
+\end{lemma}
+
+\begin{proof}
+On the $\ell$ unary shell coordinates every internal Jacobi edge has weight
+$1/2$.  Extend the Dirichlet path vector
+$s_k=\sin(k\pi/(\ell+1))$ by zero.  Its Rayleigh quotient is
+$\cos(\pi/(\ell+1))$, proving the first inequality.  The relation between
+$Q$ and $P$, followed by $1-\cos x\leq x^2/2$, proves the second.
+
+On the endpoint ray the Jacobi coefficients are $a_0=1/\sqrt2$ and
+$a_i=1/2$ thereafter.  With
+$\vartheta=\pi/[2(L+1)]$, the vector
+$v_0=1$ and $v_i=\sqrt2\cos(i\vartheta)$ is its Perron eigenvector with
+eigenvalue $\cos\vartheta$.  Substitution in
+$Q=(1+\alpha)I/2-(1-\alpha)P/2$ proves the exact formulas.
+\end{proof}
+
+This lemma is not an algorithmic lower bound: the endpoint path theorem
+accelerates precisely despite this vanishing gap.  It proves instead that a
+condition-free variable-profile theory must splice a corridor event ledger
+with the persistent-expansion theorem, rather than trying to remove the
+condition inside the same spectral argument.
+
+We next remove level symmetry while retaining persistent forward expansion.
+The price is only that the literal snapshot batch is replaced by a refresh
+after each charged operation.
+
+\begin{lemma}[Retrospective contraction for refreshed individual pushes]
+\label{lem:direct-individual-final-region}
+Fix a threshold $\theta>0$ and $0<\omega<2$.  Suppose a phase refreshes after
+every operation and pushes an active coordinate maximizing $p_u$.  Let $S$
+be any finite set containing every pushed coordinate, put
+$C_S=\sum_{u\in S}(1+d_u)$ and
+$\delta_S=\lambda_{\min}(Q_{SS})$, and let $\Delta_0$ be the initial
+restricted objective gap on $S$.  Then
+\begin{equation}
+ \Work_\theta
+ \leq C_S+
+ \frac{4C_S}{\kappa_\omega\delta_S}
+ \log_+\!\left(\frac{2\Delta_0}{\theta^2}\right).
+ \label{eq:direct-individual-final-region-work}
+\end{equation}
+The set $S$ may be chosen retrospectively as the final pushed set.
+\end{lemma}
+
+\begin{proof}
+Put $h_u=r_u^2/(1+d_u)$ and $h_{\max}=\max_{u\in S}h_u$.  Then
+\begin{equation*}
+ h_{\max}\geq\frac{\norm{r_S}_2^2}{C_S}
+ \geq\frac{2\delta_S\Delta_S(x)}{C_S}.
+\end{equation*}
+Exactly as in the frontier part of
+\cref{thm:direct-refreshed-contraction}, the selected coordinate satisfies
+$h_u\geq h_{\max}/8$.  Hence one push contracts the restricted gap by at
+least
+\begin{equation*}
+ \Delta_S(x)-\Delta_S(x^+)
+ \geq\frac{\kappa_\omega\delta_S(1+d_u)}{4C_S}\Delta_S(x).
+\end{equation*}
+Multiplication over pushes gives the corresponding exponential in charged
+work.  Immediately before any executed push,
+$r_u^2>d_u\theta^2\geq\theta^2$; since
+$\lambda_{\max}(Q_{SS})\leq1$, the current restricted gap is larger than
+$\theta^2/2$.  Apply this fact before the last push and add its charge, at
+most $C_S$, to obtain \cref{eq:direct-individual-final-region-work}.
+\end{proof}
+
+\begin{theorem}[Nonsymmetric persistent-expansion theorem]
+\label{thm:direct-nonsymmetric-expanding-tree}
+Let $T$ be an infinite rooted tree, with no level symmetry assumed, and
+suppose every vertex has at least $g>1$ children and finite degree.  Use the
+ambient degrees and a source at the root.  Run the individual-coordinate
+two-rung method with a refreshed measured-rank maximizer after every charged
+operation.  If $S$ is its final pushed set, define
+$\mathcal V_{\rm exp}=\sum_{u\in S}d_u$ and
+$C_{\rm exp}=\sum_{u\in S}(1+d_u)$.  Then both phases terminate, certify the
+terminal gate, and satisfy
+\begin{align}
+ \Work_{\rm spread}
+ &\leq C_{\rm exp}\left[1+
+ \frac{8}{\delta_g\sqrt\alpha}
+ \log_+\!\left(
+ \frac1{d_{\rm root}\delta_gB^2\epsppr^2}
+ \right)\right],
+ \label{eq:direct-nonsymmetric-spread-work}\\
+ \Work_{\rm exact}
+ &\leq C_{\rm exp}\left[1+
+ \frac8{\delta_g}
+ \log_+\!\left(
+ \frac{B^2\mathcal V_{\rm exp}}{\delta_g}
+ \right)\right].
+ \label{eq:direct-nonsymmetric-exact-work}
+\end{align}
+Consequently
+$\Work=\widetilde O_g(\mathcal V_{\rm exp}/\sqrt\alpha)$.
+\end{theorem}
+
+\begin{proof}
+The unconditional fallback first proves that each phase performs finite work,
+so $S$ is finite.  Because the root is the only source and residual reaches a
+new tree vertex only across an edge from a pushed neighbor, $S$ is
+ancestor-closed.  Put $t=g^{-1/2}$ and
+$v_u=\sqrt{d_u}t^{\operatorname{depth}(u)}$.  If a nonroot $u$ has $k_u$
+children in the ambient tree and $m_u\leq k_u$ of them in $S$, then
+\begin{equation*}
+ \frac{(P_Sv)_u}{v_u}
+ =\frac{\sqrt g+m_u/\sqrt g}{1+k_u}
+ \leq\frac{g+k_u}{\sqrt g(1+k_u)}
+ \leq\frac{2\sqrt g}{g+1}=:\rho_g.
+\end{equation*}
+The root ratio is at most $1/\sqrt g\leq\rho_g$.  Thus
+Collatz--Wielandt gives
+$\lambda_{\max}(P_S)\leq\rho_g$ and
+$\lambda_{\min}(Q_{SS})\geq\delta_g$.
+
+Now apply \cref{lem:direct-individual-final-region}.  The initial and switch
+gap estimates are exactly those used in
+\cref{thm:direct-variable-radial-supersolution}, with $d_{\rm root}$ in
+place of $d_0$.  The same two values of $\kappa$ give the displayed work
+bounds.  Finally $C_{\rm exp}\leq2\mathcal V_{\rm exp}$.
+\end{proof}
+
+Uniform forward expansion is a real condition, not merely a convenient one.
+When a spreading wave reaches true leaves, even the smallest branched graph
+can lose the accelerated scale.  The next theorem is an exact counterexample
+for the literal measured policy; because its batches are singletons, no
+staleness issue is involved.

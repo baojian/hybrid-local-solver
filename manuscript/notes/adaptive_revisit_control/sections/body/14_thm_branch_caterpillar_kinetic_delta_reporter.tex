@@ -1,0 +1,424 @@
+\begin{theorem}[A kinetic delta reporter for the backbone-first caterpillar]
+\label{thm:branch-caterpillar-kinetic-delta-reporter}
+Fix $\alpha\in(0,1)$ and $m\geq2$, use the branch seed $s=e_{b_1}$ on
+$\mathsf{BC}_m$, and assume
+\begin{equation*}
+ 0<\rho<\rho_{\rm cat}(m,\alpha)\leq\frac13.
+\end{equation*}
+Consider the following exact KKT positive-subset policy class
+$\mathfrak P_m^{\rm bf}$.  Starting from $B_1=\{b_1\}$, its first $m-1$
+committed batches are the singletons
+$\{b_2\},\ldots,\{b_m\}$.  Once $B_m$ has been reached, every committed batch
+may be an arbitrary nonempty subset of the currently known strict positive
+boundary tips.  In particular, the side leaves may be interleaved arbitrarily
+with the sequentially exposed long-arm frontier.  This is not the canonical
+all-violations policy: during the backbone phase it deliberately defers any
+positive off-backbone tip.
+
+There is a named exact-real reporter, \emph{CaterpillarKineticDelta}, with the
+following interface at every exact restricted checkpoint $U$ of every order in
+$\mathfrak P_m^{\rm bf}$:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item it retains the exact set
+ \begin{equation*}
+  \mathcal K(U):=
+  \{v\in\partial U:(\ell_\rho-Qx[U])_v>0\};
+ \end{equation*}
+ \item it returns only the delta labels that became strict positive since the
+ preceding checkpoint, and supports an exact membership query for every live
+ tip; and
+ \item it accepts a proposed batch only after checking that every proposed
+ label is a live member of $\mathcal K(U)$, then returns one charged
+ certificate reply for that committed batch.
+\end{enumerate}
+The reporter never re-emits a still-live positive label merely because its
+exact demand changed.  Violation persistence is the proof carried by its
+positive flag.  At initialization its delta is $\mathcal K(B_1)$.  The
+displayed interface tests membership once for every label in the next
+proposed committed batch.  If a caller requests $q_{\rm spec}$ additional or
+repeated speculative membership tests, they add $q_{\rm spec}$ to
+$C_{\rm ctl}$ and add the corresponding separately requested interaction and
+reply cells to $R_{\rm int}$ and $C_{\rm emit}$; none is free in the vector
+below.
+
+It uses the balanced tridiagonal transfer state from
+\Cref{rem:branch-caterpillar-implicit-transfer-comparator}, one exact kinetic
+minimum heap, and $O(m)$ retained cells.  If $J$ is the number of committed
+batches after seed initialization, then
+\begin{equation*}
+ 2m-1\leq J\leq3m.
+\end{equation*}
+With one external delta/certificate interaction per committed batch and one
+terminal return, its exhaustive resource vector is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_m^{\rm kin})
+ :=\bigl(&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+ C_{\rm rec},C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit}
+ \bigr)\\
+ =\bigl(&\Theta(m),\Theta(m),J+1,0,
+ O(m\log(2+m)),0,O(m\log(2+m)),\\
+ &\Theta(m),O(m),\Theta(m),\Theta(m)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-kinetic-eleven-vector}
+\end{equation}
+Consequently its additive exact-cell work is
+\begin{equation}
+ O(m\log(2+m))
+ =O\!\left(C(S^\star)\log(2+C(S^\star))\right),
+ \qquad C(S^\star)=9m+1.
+ \label{eq:branch-caterpillar-kinetic-total}
+\end{equation}
+
+This is an output-delta theorem.  If the external task instead requests the
+complete current positive-tip list at every checkpoint, then the prescribed
+witness can require $\Theta(m^2)$ emitted labels, independently of the
+reporter's internal work.  The theorem does not cover the canonical
+all-violations policy, an arbitrary interleaving before $B_m$, another seed,
+an $m$-uniform positive range of $\rho$, finite precision, bit complexity,
+or transfer-product conditioning.  It supplies neither a $\kappa=1$ linear
+activation countdown nor a graph-uniform accelerated arm.
+\end{theorem}
+
+\begin{proof}
+Put $a=(1+\alpha)/2$, $h=(1-\alpha)/2$, and
+$\beta=h/3$.  During the backbone phase the active set is exactly $B_i$.
+Every branch vertex has ambient degree three, so $Q_{B_iB_i}$ is the leading
+$i$-by-$i$ tridiagonal matrix with diagonal $a$ and off-diagonal $-\beta$.
+Define its leading continuants by
+\begin{equation*}
+ \mathcal D_0=1,\qquad \mathcal D_1=a,\qquad
+ \mathcal D_i=a\mathcal D_{i-1}-\beta^2\mathcal D_{i-2}.
+\end{equation*}
+Every $\mathcal D_i$ is positive because $Q_{B_iB_i}$ is SPD.  The last
+Green column has the exact separable form
+\begin{equation}
+ (Q_{B_iB_i}^{-1})_{b_jb_i}=u_j\upsilon_i,qquad
+ u_j:=\frac{\mathcal D_{j-1}}{\beta^{j-1}},qquad
+ \upsilon_i:=\frac{\beta^{i-1}}{\mathcal D_i}
+ \quad(1\leq j\leq i).
+ \label{eq:branch-prefix-green-factorization}
+\end{equation}
+This follows directly by expanding the corresponding tridiagonal cofactor.
+
+Write $x^{(i)}:=x[B_i]$.  Appending the strict positive backbone tip
+$b_{i+1}$ and using block elimination gives
+\begin{equation}
+ x^{(i+1)}_{B_i}-x^{(i)}_{B_i}
+ =\beta x^{(i+1)}_{b_{i+1}}Q_{B_iB_i}^{-1}e_{b_i}
+ =\Delta\theta_i\,(u_1,\ldots,u_i)^\top,
+ \qquad
+ \Delta\theta_i:=\beta\upsilon_i x^{(i+1)}_{b_{i+1}}>0.
+ \label{eq:branch-prefix-one-parameter-update}
+\end{equation}
+Let $\theta_1=0$ and
+$\theta_{i+1}=\theta_i+\Delta\theta_i$.  For every $j\leq i$,
+\begin{equation}
+ x^{(i)}_{b_j}=\xi_j+u_j\theta_i,
+ \qquad
+ \xi_j:=x^{(j)}_{b_j}-u_j\theta_j.
+ \label{eq:branch-prefix-affine-coordinate}
+\end{equation}
+
+Every boundary tip $v$ exposed during this phase has one active parent
+$b_j$.  Put $\gamma_v:=-Q_{vb_j}>0$ and store the exact crossing key
+\begin{equation}
+ \theta_v^\times
+ :=\frac{-(\ell_\rho)_v/\gamma_v-\xi_j}{u_j}.
+ \label{eq:branch-tip-crossing-key}
+\end{equation}
+For every later backbone prefix at which $v$ is still outside,
+\begin{equation}
+ (\ell_\rho-Qx[B_i])_v
+ =\gamma_vu_j(\theta_i-\theta_v^\times).
+ \label{eq:branch-tip-kinetic-demand}
+\end{equation}
+Thus $v$ is a strict violation exactly when
+$\theta_v^\times<\theta_i$.  CaterpillarKineticDelta inserts the pair
+$(\theta_v^\times,v)$ when $v$ is first exposed.  At $B_1$ it performs the
+same strict minimum drain at $\theta_1$, producing the declared initialization
+delta.  After each backbone append it updates $\theta_i$ and repeatedly
+removes the minimum key while
+that strict inequality holds, inserting each removed label into the
+persistent positive set.  Equality is retained in the heap because the gate
+requires a strict positive demand.  Hence the heap reports every and only
+new strict positive tip during the entire backbone phase.  The certified
+backbone tip is among those labels and is removed from the positive set when
+its singleton is committed.
+
+At $B_m$, the definition of $\rho_{\rm cat}(m,\alpha)$ includes the pairs
+$(B_m,a_1)$ and $(B_m,r_i)$ for every $1\leq i\leq m+1$.  Therefore every
+remaining boundary tip is already in the persistent positive set.  After
+this checkpoint a committed side leaf has no child, while committing $a_t$
+exposes only $a_{t+1}$.  Its demand at the base face
+$B_m\cup A_t$ is strict positive by the same definition of
+$\rho_{\rm cat}$.  Any side leaves already committed were themselves strict
+positive expansions, so the Schur positivity and violation-persistence
+identity \eqref{eq:rppr-violation-persistence} can only increase the new arm
+tip's demand.  If $a_t$ and side leaves occur in one allowed batch, compute the
+same final restricted point by sequentializing $a_t$ first and those
+already-positive leaves afterward; this is an equality of the final support,
+not a replay used by the online reporter.  One exact named transfer query
+therefore certifies and flags
+$a_{t+1}$.  Every older positive flag remains valid until its vertex is
+committed.  This proves that the retained set is exactly $\mathcal K(U)$ for
+every allowed suffix order, and it also proves legality and finite
+termination.  The long arm forces at least $m$ suffix batches, while at most
+all $3m$ nonseed vertices are committed separately, giving the claimed range
+for $J$.
+
+It remains to account for the implementation.  Every bounded-degree row is
+exposed and retained once; recognizing its branch, arm, or leaf role is
+charged with that scan and with control membership, not preprocessing.  The
+backbone and long-arm fronts force $\Theta(m)$ adaptive adjacency rounds.
+There are $O(m)$ transfer-cell appends or attachment updates and $O(m)$ named
+tip/endpoint queries.  Each touches $O(\log(2+m))$ stored product-tree cells
+and is charged to $C_{\rm resp}$.  A multi-vertex batch applies these updates
+only to its actual committed members; it neither replays an unchosen order nor
+materializes an intermediate full response.  There is no hidden bulk subtree
+query.
+The kinetic heap inserts and removes each tip at most once; every root test,
+child comparison, exact crossing comparison, membership lookup, committed
+batch check, and final stored-row validation is charged to $C_{\rm ctl}$.
+These operations total $O(m\log(2+m))$.
+
+The retained graph records, transfer products, continuants, heap, positive
+flags, and batch membership use $\Theta(m)$ cells.  Heap paths need only
+$O(\log(2+m))$ scratch, while one terminal response recovery and validation
+buffer is allowed $O(m)$ scratch.  The terminal tridiagonal/pendant recovery
+arithmetic is included in $C_{\rm resp}$; writing its exact candidate is
+charged separately as $C_{\rm mat}=\Theta(m)$.  Each nonseed label is emitted
+at most once as a new-positive delta and once in a committed-batch
+certificate; the $J+1$ constant-size reply headers and the final
+$3m+1$-coordinate exact output are all charged to
+$C_{\rm emit}=\Theta(m)$.  No iterative recurrence is used.  These charges
+prove \eqref{eq:branch-caterpillar-kinetic-eleven-vector} and
+\eqref{eq:branch-caterpillar-kinetic-total}.
+\end{proof}
+
+The canonical all-violations policy does not preserve the backbone-only
+prefixes used in the preceding theorem: sufficiently light side tips enter
+as soon as their parents are reached.  On an explicit fixed-family parameter
+range, however, that interleaving is simpler rather than harder.  Every live
+boundary is the next graph-distance layer, so no negative key survives from
+one checkpoint to the next.
+
+For $0\leq k<m$, put
+\begin{equation}
+ \begin{split}
+ R_k&:=\{r_1,\ldots,r_k\},\qquad R_0:=\varnothing,\\
+ U_k^{\rm can}&:=B_{k+1}\cup A_k\cup R_k,\\
+ \mathcal F_k^{\rm can}
+ &:={}
+ \begin{cases}
+  \{b_{k+2},a_{k+1},r_{k+1}\},&0\leq k<m-1,\\
+  \{a_m,r_m,r_{m+1}\},&k=m-1.
+ \end{cases}
+ \end{split}
+ \label{eq:branch-caterpillar-canonical-layers}
+\end{equation}
+Thus $U_0^{\rm can}=\{b_1\}$,
+$\partial U_k^{\rm can}=\mathcal F_k^{\rm can}$, and
+$U_k^{\rm can}\cup\mathcal F_k^{\rm can}=U_{k+1}^{\rm can}$ for
+$k<m-1$, while the last union is $V(\mathsf{BC}_m)$.  Let
+\begin{equation}
+ \mathcal P_m^{\rm can}:=
+ \{(U_k^{\rm can},v):0\leq k<m,\ v\in\mathcal F_k^{\rm can}\}
+ \label{eq:branch-caterpillar-canonical-pairs}
+\end{equation}
+and, using \eqref{eq:branch-caterpillar-affine-demand}, define the
+analysis-side threshold
+\begin{equation}
+ \rho_{\rm can}(m,\alpha)
+ :=\min\left\{
+  \rho_{\rm cat}(m,\alpha),
+  \min_{(U,v)\in\mathcal P_m^{\rm can}}
+  \frac{\Gamma_{U,v}}{\alpha H_{U,v}}
+ \right\}>0.
+ \label{eq:branch-caterpillar-canonical-threshold}
+\end{equation}
+This finite threshold is a reach condition, not a table built or queried by
+the online execution.  It may shrink with $m$.
+
+\begin{theorem}[Canonical layer-delta reporting on the branch caterpillar]
+\label{thm:branch-caterpillar-canonical-layer-reporter}
+Fix $m\geq2$, $\alpha\in(0,1)$, branch seed $s=e_{b_1}$, and
+\begin{equation*}
+ 0<\rho<\rho_{\rm can}(m,\alpha)
+ \leq\rho_{\rm cat}(m,\alpha)\leq\frac13.
+\end{equation*}
+The exact canonical all-violations RPPR gate on $\mathsf{BC}_m$ has precisely
+the faces $U_0^{\rm can},\ldots,U_{m-1}^{\rm can}$ and the $m$ committed
+batches $\mathcal F_0^{\rm can},\ldots,\mathcal F_{m-1}^{\rm can}$ in
+\eqref{eq:branch-caterpillar-canonical-layers}, followed by the full support.
+
+There is a named exact-real reporter,
+\emph{CaterpillarCanonicalLayerDelta}, that at every canonical checkpoint
+enumerates the entire current boundary, computes and strictly tests every
+exact demand, emits every and only newly strict-positive label, and returns
+one charged certificate reply for the canonical batch.  Positive ties are
+all emitted in the same batch; equality is nonpositive and remains outside.
+In the stated strict parameter range equality never occurs on the displayed
+trace.  Every emitted label is consumed immediately, so no old boundary key
+or positive label survives a checkpoint.
+
+With one external delta/certificate interaction per committed batch and one
+terminal return, its exhaustive resource vector in the shared order is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_m^{\rm can})
+ :=\bigl(&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},
+ C_{\rm rec},C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit}
+ \bigr)\\
+ =\bigl(&\Theta(m),\Theta(m),m+1,0,\Theta(m),0,
+ O(m\log(2+m)),\\
+ &\Theta(m),O(m),\Theta(m),\Theta(m)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-canonical-eleven-vector}
+\end{equation}
+Consequently its additive exact-cell work is
+\begin{equation}
+ O(m\log(2+m))
+ =O\!\left(C(S^\star)\log(2+C(S^\star))\right),
+ \qquad C(S^\star)=9m+1.
+ \label{eq:branch-caterpillar-canonical-total}
+\end{equation}
+
+This is a fixed-$m$, branch-seeded, family-$\rho$, exact-real canonical
+all-violations and delta-interface theorem.  It makes no claim for
+$\rho_{\rm can}\leq\rho<\rho_{\rm cat}$, another seed, arbitrary
+positive-subset or pre-backbone orders, a positive $m$-uniform range of
+$\rho$, finite precision, bit complexity, transfer-product conditioning,
+$\kappa=1$, RPPR-to-PPR conversion, or product-scale or graph-uniform
+accelerated work.
+\end{theorem}
+
+\begin{proof}
+For every $(U,v)\in\mathcal P_m^{\rm can}$, the set $U$ is connected,
+contains the seed, and $v$ has an edge into $U$.  The Stieltjes argument in
+\eqref{eq:branch-caterpillar-affine-demand} therefore gives
+$\Gamma_{U,v}>0$ and $H_{U,v}>0$.  By
+\cref{eq:branch-caterpillar-demand-line,eq:branch-caterpillar-canonical-threshold},
+every $v\in\mathcal F_k^{\rm can}$ is a strict boundary violation at
+$x[U_k^{\rm can}]$.
+
+Now induct on $k$.  The seed load is positive because
+$\rho<\rho_{\rm can}\leq1/3$, so the initialized canonical face is
+$U_0^{\rm can}=\{b_1\}$.  The tree boundary of this face is exactly
+$\mathcal F_0^{\rm can}$, and every member is strict positive, so the
+canonical all-violations gate admits the whole set.  If the current face is
+$U_k^{\rm can}$, its full boundary is exactly
+$\mathcal F_k^{\rm can}$ and the same threshold argument makes every member
+strict positive.  The next canonical batch is therefore that entire set.
+Equation \eqref{eq:branch-caterpillar-canonical-layers} gives the next face,
+and the final batch gives the whole graph.  This proves the exact chronology,
+$S^\star=V(\mathsf{BC}_m)$, and the assertion that every boundary vertex is
+newly live at its checkpoint.  Its label may have been revealed by the
+preceding layer's row scan, but its own boundary row is first scanned and
+charged only when it becomes live.  Strict comparison handles the zero
+convention, while the all-violations rule includes every positive tie.
+
+It remains to implement the exact tests and response without dense rewrites.
+At $U_k^{\rm can}$, eliminate the active long-arm prefix $A_k$ into one
+diagonal/load absorption pair at $b_1$, and eliminate each closed side leaf
+$r_i$, $i\leq k$, into the cell at $b_i$.  The surviving system on
+$B_{k+1}$ is SPD and tridiagonal.  Store its affine transfer cells in the
+balanced product tree of
+\Cref{rem:branch-caterpillar-implicit-transfer-comparator}, together with one
+affine product for the active long-arm prefix.
+
+Every vertex of $\mathcal F_k^{\rm can}$ has one active parent.  One named
+branch query gives the last branch value used by the next branch and its side
+leaf, and one named arm query gives the active arm-tip value; at $k=0$ both
+reduce to the seed value.  The branch endpoint solve also recovers $x_{b_1}$,
+which is the input to the arm-product readout, so no third core query is
+hidden.  Hence at most two charged transfer queries compute
+all three exact demands at a checkpoint.  The reporter scans the at-most-three
+charged boundary rows, retains each row after its first exposure, performs
+strict sign comparisons, and emits the three positive labels.
+
+After commitment, the side leaf changes only the diagonal/load cell at its
+branch, the long-arm vertex appends one arm-transfer cell and changes only the
+induced branch-core absorption cell at $b_1$, and,
+except in the last batch, the new branch vertex appends one tridiagonal cell.
+The final batch instead contributes two leaf absorptions at $b_m$.  Thus a
+batch performs only $O(1)$ product-tree appends or point updates, each costing
+$O(\log(2+m))$ exact response operations.  Applying these constant-size
+updates in a fixed internal order is Schur-complement associativity for the
+one committed support; it neither replays another gate order nor emits an
+intermediate face.  The side-leaf absorption changes the fixed-prefix
+continuants and Green factors used in
+\eqref{eq:branch-prefix-green-factorization}, but the balanced product tree
+localizes that change to one point update.  Since the complete boundary is
+consumed, the kinetic heap
+from \Cref{thm:branch-caterpillar-kinetic-delta-reporter} is empty after every
+checkpoint and requires no repair.
+
+Every bounded-degree row is exposed and retained once, over $\Theta(m)$
+adaptive adjacency work and rounds.  There are exactly $m$ committed batches,
+so the specified external interface has $R_{\rm int}=m+1$.  Boundary
+enumeration, membership, strict comparisons, tie handling, batch checks, and
+the final stored-row validation use $\Theta(m)$ control operations.  The
+$O(1)$ transfer updates and named queries per batch give
+$O(m\log(2+m))$ response work, including $O(m)$ terminal recovery.  No
+preprocessing or iterative recurrence is used.
+
+Stored rows, arm/core products, absorption cells, and membership records use
+$\Theta(m)$ persistent cells.  Forward queries need logarithmic scratch; one
+terminal recovery and validation buffer gives the reported $O(m)$ peak.
+Writing the terminal candidate costs $C_{\rm mat}=\Theta(m)$.  The $3m$
+delta labels, $m$ constant-size certificate replies, one terminal header, and
+the exact $(3m+1)$-coordinate output give
+$C_{\rm emit}=\Theta(m)$.  These charges prove
+\eqref{eq:branch-caterpillar-canonical-eleven-vector} and
+\eqref{eq:branch-caterpillar-canonical-total}.
+\end{proof}
+
+\begin{proposition}[Continuous numerical countdowns cannot pay activation]
+\label{prop:no-continuous-activation-countdown}
+Fix $\alpha\in(0,1)$.  On the one-edge graph there are legal exact RPPR
+activations of fixed charge two whose before-and-after canonical states
+converge to one another.  Hence no countdown jointly continuous in
+$(\rho,x)$ can decrease by the full activation charge uniformly over RPPR
+instances.  In particular, an exact obstacle-energy countdown needs an
+unbounded multiplier near the activation breakpoint.
+\end{proposition}
+
+\begin{proof}
+Retain $a=(1+\alpha)/2$ and $h=(1-\alpha)/2$.  For $0<\rho<h$, the shifted
+load is $\ell_\rho=(\alpha(1-\rho),-\alpha\rho)$ and the root checkpoint is
+\[
+ x^-=(\alpha(1-\rho)/a,0).
+\]
+Its boundary demand at $v$ is
+\[
+ g_v=(\ell_\rho-Qx^-)_v=\frac{\alpha(h-\rho)}a>0.
+\]
+The Schur complement is $a-h^2/a=\alpha/a$, so the legal exact expansion
+satisfies
+\begin{equation}
+ x_v^+=h-\rho,
+ \qquad
+ x_o^+-x_o^-=\frac{h(h-\rho)}a.
+ \label{eq:vanishing-activation-jump}
+\end{equation}
+Thus $\|x^+-x^-\|\to0$ as $\rho\uparrow h$, although scanning and activating
+$v$ always costs $c(v)=2$.  Joint continuity would force
+$\Phi(\rho,x^-)-\Phi(\rho,x^+)\to0$, contradicting a uniform own-service
+decrease of two.  The exact obstacle-energy drop is
+\[
+ \frac12\frac{g_v^2}{\alpha/a}
+ =\frac{\alpha(h-\rho)^2}{2a}.
+\]
+An energy scaling that pays charge two must therefore be at least
+$4a/[\alpha(h-\rho)^2]$, which diverges.
+\end{proof}
+
+The discontinuous support tokens in
+\Cref{thm:path-token-countdown,thm:three-arm-spider-token-countdown} are not a
+technical convenience; the proposition shows why a support jump must be
+recorded explicitly.  Raw causal debts do not repair this issue either: an
+exact neighbor push can create new exact-after-exact backflow from zero, and
+a fresh over-relaxed push can create delayed-reflection magnitude from zero.
+Neither raw magnitude is interference monotone without additional transport
+aggregation.

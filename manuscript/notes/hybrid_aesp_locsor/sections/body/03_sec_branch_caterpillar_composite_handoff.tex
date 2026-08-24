@@ -1,0 +1,270 @@
+\section{A canonical-checkpoint handoff on the branch caterpillar}
+\label{sec:branch-caterpillar-composite-handoff}
+
+We finally import the reviewed exact response theorem in the
+adaptive-revisit-control note under its stable label
+\texttt{thm:branch-caterpillar-canonical-layer-reporter}.  Fix the unweighted
+branch caterpillar $\mathsf{BC}_m$ from that theorem: the degree-three branch
+vertices $b_1,\ldots,b_m$ form a path, $b_1$ has the pendant paths
+$b_1-a_1-\cdots-a_m$ and $b_1-r_1$, every internal $b_i$ has the leaf $r_i$,
+and $b_m$ has the two leaves $r_m,r_{m+1}$.  The single seed is
+$s=e_{b_1}$.  Throughout this section
+\begin{equation}
+ m\geq2,
+ \qquad \alpha\in(0,1),
+ \qquad
+ 0<\rho<\rho_{\rm can}(m,\alpha)
+ \leq\rho_{\rm cat}(m,\alpha)\leq\frac13,
+ \label{eq:branch-caterpillar-composite-range}
+\end{equation}
+the gate is the exact canonical all-violations RPPR gate, the external
+interface is delta/certificate reporting, and arithmetic uses exact real
+cells.  These are the imported theorem's hypotheses.  In particular, its
+analysis-side reach threshold need not be uniform in $m$.
+
+For $t\geq0$, put
+$B_t:=\{b_1,\ldots,b_t\}$,
+$A_t:=\{a_1,\ldots,a_t\}$, and
+$R_t:=\{r_1,\ldots,r_t\}$, with all three sets empty at $t=0$.  The actual
+canonical checkpoint after $k$ committed batches is
+\begin{equation}
+ \widehat U_k:=
+ \begin{cases}
+  B_{k+1}\cup A_k\cup R_k,&0\leq k<m,\\
+  V(\mathsf{BC}_m),&k=m.
+ \end{cases}
+ \qquad
+ \card{\widehat U_k}=3k+1,
+ \qquad
+ \card{S^\star\setminus\widehat U_k}=3(m-k).
+ \label{eq:branch-caterpillar-composite-checkpoints}
+\end{equation}
+Here the last two identities use the imported conclusion
+$S^\star=V(\mathsf{BC}_m)$ and
+$C(S^\star)=9m+1$.  We record the checkpoints only to define the handoff;
+we do not reprove the canonical chronology.
+
+\begin{definition}[Fully charged canonical-checkpoint prefix]
+\label{def:branch-caterpillar-canonical-checkpoint-prefix}
+Let a finite Phase-I execution $\mathcal E_{J,k}^{\rm pref}$ stop at
+$\widehat U_k$ for some $0\leq k\leq m$.  It may have arbitrary signed
+numerical iterates, momentum, queues, and other auxiliary state.  It is a
+\emph{canonical-checkpoint prefix} if all of the following common records are
+present and paid:
+\begin{enumerate}
+ \item the integer $k$ and one labeled support/layer record for every vertex
+       of $\widehat U_k$;
+ \item for every $i<k$, the committed support increment is the actual
+       canonical layer $\widehat U_{i+1}\setminus\widehat U_i$, with no
+       numerical or merely exposed label treated as admitted; and
+ \item after each such batch, the restricted RPPR state is exactly settled,
+       its canonical all-violations certificate is checked, and the declared
+       delta/certificate reply is charged.  The prefix ends after the reply
+       for its last completed batch and before querying the boundary of
+       $\widehat U_k$; for
+       $k=0$ it has paid seed initialization, performs no gate interaction,
+       and ends before the first gate query.  Arbitrary fully charged
+       numerical Phase-I work may occur between initialization and that
+       endpoint; labels exposed by such work remain nonadmitted.
+\end{enumerate}
+The common layer records occupy an arena distinguishable from the numerical
+arena.  No response factors, old boundary keys, or numerical coordinates are
+assumed to survive the switch.
+
+In the shared exhaustive order, the prefix reports its actual vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{J,k}^{\rm pref}):=\bigl(&
+ C_{\rm adj}^J,R_{\rm adj}^J,k,C_{\rm pre}^J,C_{\rm ctl}^J,
+ C_{\rm rec}^J,C_{\rm resp}^J,\\
+ &M_{\rm pers}^J,M_{\rm tmp}^J,C_{\rm mat}^J,C_{\rm emit}^J\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-composite-prefix-eleven-vector}
+\end{equation}
+Thus its declared interface has $R_{\rm int}^J=k$.  The emission coordinate
+includes all $3k$ admitted delta labels and the $k$ constant-size certificate
+replies, together with any additional Phase-I emissions.  Any extra
+speculative external stage must instead be added to both $R_{\rm int}^J$ and
+$C_{\rm emit}^J$; it is not covered by the displayed canonical interface.
+Under the fixed exact-cell convention, define
+\begin{equation}
+ B_J^{\rm full}:=
+ C_{\rm adj}^J+C_{\rm pre}^J+C_{\rm ctl}^J+C_{\rm rec}^J
+ +C_{\rm resp}^J+C_{\rm mat}^J+C_{\rm emit}^J.
+ \label{eq:branch-caterpillar-composite-prefix-full-work}
+\end{equation}
+This sum charges seed/input reads, every first or repeated adjacency return,
+old-row and recurrence work, outer/queue/gate/certificate control, exact
+settlement or response work, checkpoint materialization, state reads and
+writes, and every emitted cell.  The two round coordinates and two peak-memory
+coordinates remain separate rather than being hidden in $B_J^{\rm full}$.
+\end{definition}
+
+\begin{theorem}[Paid canonical-checkpoint-to-balanced-response handoff]
+\label{thm:branch-caterpillar-composite-response-handoff}
+Under \cref{eq:branch-caterpillar-composite-range}, let any finite Phase-I
+prefix satisfy
+\Cref{def:branch-caterpillar-canonical-checkpoint-prefix}.  There is one
+deterministic paid support-only conversion that retires every signed numerical
+and momentum cell, directly constructs the exact arm absorptions,
+tridiagonal-core cells, and balanced transfer state at $\widehat U_k$, and
+then invokes \emph{CaterpillarCanonicalLayerDelta} at that checkpoint.  The
+conversion neither reconstructs nor queries any earlier canonical face.  In a
+fixed exact-cell convention,
+\begin{align}
+ W_{\rm post}
+ &=O\!\left(C(S^\star)\log(2+C(S^\star))\right),
+ \notag\\
+ W_{\rm total}
+ &\leq B_J^{\rm full}
+   +O\!\left(C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-composite-work}
+\end{align}
+
+Put $J_{\rm post}:=m-k$.  One chosen batched-row realization has the complete
+post-handoff vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm post})=\bigl(&
+ O(\vol(S^\star)),O(J_{\rm post}+2),J_{\rm post}+1,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+J_{\rm post}\log(2+m)),
+ O(C(S^\star)),O(C(S^\star)),\\
+ &\Theta(\card{S^\star}),
+ \card{S^\star\setminus\widehat U_k}
+ +\card{S^\star}+\Theta(J_{\rm post}+1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-composite-eleven-vector}
+\end{equation}
+The last coordinate consists respectively of each remaining new-positive
+delta label once, the exact terminal vector once, and one constant-size reply
+per remaining committed batch plus the terminal return.  Certificate
+arithmetic is in $C_{\rm ctl}$, not $C_{\rm emit}$.  There is no post-handoff
+ambient preprocessing and no row-recurrence direction.  Transfer-tree
+construction, update, application, exact settlement, and terminal recovery
+are in $C_{\rm resp}$; membership, structural checks, gate logic, tie handling,
+and final KKT validation are in $C_{\rm ctl}$.  The terminal candidate is
+materialized once before the separate exact output pass.
+
+For the concatenated execution, every additive-work coordinate and both round
+coordinates compose by summation:
+\begin{align*}
+ C_\xi^{\rm total}&=C_\xi^J+C_\xi^{\rm post}
+ &&(\xi\in\{\mathrm{adj},\mathrm{pre},\mathrm{ctl},\mathrm{rec},
+               \mathrm{resp},\mathrm{mat},\mathrm{emit}\}),\\
+ R_{\rm adj}^{\rm total}&=R_{\rm adj}^J+R_{\rm adj}^{\rm post},
+ &R_{\rm int}^{\rm total}&=k+(m-k+1)=m+1.
+\end{align*}
+Peak memory composes as
+\begin{align}
+ M_{\rm pers}^{\rm total}&\leq
+ \begin{cases}
+  M_{\rm pers}^J+O(C(S^\star)),&\text{retired prefix arena retained},\\
+  \max\{M_{\rm pers}^J,O(C(S^\star))\},
+      &\text{numerical arena released by its epoch pointer},
+ \end{cases}
+ \notag\\
+ M_{\rm tmp}^{\rm total}
+ &=\max\{M_{\rm tmp}^J,O(C(S^\star))\}.
+ \label{eq:branch-caterpillar-composite-memory-composition}
+\end{align}
+In the released case, the paid common support/layer arena remains available
+until conversion consumes it; no cell-by-cell clearing is performed.
+
+The returned vector is the exact RPPR minimizer, so
+\begin{equation}
+ R_{\mathrm{fp},\alpha,\rho}(x^\star(\rho))=0.
+ \label{eq:branch-caterpillar-composite-terminal-proximal}
+\end{equation}
+The theorem is fixed-family, branch-seeded, canonical, delta-interface, and
+exact-real.  It makes no claim for $\rho_{\rm can}\leq\rho<\rho_{\rm cat}$,
+another seed or policy, repeated complete-positive-list output, a positive
+$m$-uniform range of $\rho$, $\kappa=1$, finite precision, bit complexity,
+transfer conditioning, RPPR-to-PPR conversion, arbitrary graphs, or
+graph-uniform accelerated work.  The particular Catalyst/AESP Phase I in
+\cref{sec:composite-hybrid} separately requires $\alpha\in(0,1/2)$.
+\end{theorem}
+
+\begin{proof}
+The imported theorem states that the actual canonical support after $k$
+batches is exactly $\widehat U_k$; when $k<m$, its next batch is the full
+three-vertex boundary layer, while $k=m$ is already terminal.  Hence the
+common records in
+\Cref{def:branch-caterpillar-canonical-checkpoint-prefix} describe an actual
+reachable checkpoint, independently of the signed Phase-I trajectory between
+certificates.
+
+Flip one phase/epoch pointer so that the Phase-I numerical arena, momentum,
+queues, and uncommitted caches can no longer be read.  Their work and peak
+residence are already present in the prefix vector.  Retain only $k$ and the
+common labeled support/layer records.
+
+Make one direct traversal of $\widehat U_k$.  Query every required support row
+again, with every returned incidence charged; the conversion relies on no
+retained Phase-I row or response cache.  Check that the stored support has the
+branch, arm, and leaf incidences prescribed by
+\eqref{eq:branch-caterpillar-composite-checkpoints}.  Multiply the active
+long-arm transfer cells once, retain their affine product, and obtain its
+single absorption pair at $b_1$;
+eliminate each active side leaf once into the cell at its own branch; then
+form the $\min\{k+1,m\}$ surviving tridiagonal branch cells and build their
+balanced product tree bottom-up.  Initialize the reporter's committed/previously
+emitted membership set directly as $\widehat U_k\setminus\{b_1\}$.  The
+imported canonical reporter retains no old boundary key across a checkpoint,
+so no other historical reporting state is needed.  This takes
+$O(C(\widehat U_k))$ adjacency, control, response, and state-write work,
+$O(C(\widehat U_k))$ retained cells, and $O(C(\widehat U_k))$ scratch in the
+deliberately simple bottom-up build.
+
+This is a static construction from the current support, not a replay.  It
+does not rebuild $\widehat U_0,\ldots,\widehat U_{k-1}$, apply their historical
+point updates, test their old boundaries, or emit their labels again.  Schur
+associativity makes the directly built absorption and tridiagonal cells equal
+to the state that \emph{CaterpillarCanonicalLayerDelta} retains at
+$\widehat U_k$.  Mark every conversion row, response cell, and state write
+consumed only after paying it, so no unperformed Phase-I response update is
+credited to the suffix.
+
+Invoke the imported reporter from this exact checkpoint state.  Its next
+$J_{\rm post}=m-k$ layers are the unique remaining canonical batches.  It
+scans and tests each newly live three-row boundary, performs only constant-many
+balanced-tree updates and named queries per batch, emits each new-positive
+label once, and makes one terminal recovery, materialization, stored-row KKT
+validation, and exact output pass.  Its reviewed ledger therefore gives
+$O(J_{\rm post}\log(2+m)+C(S^\star))$ response work and linear work in every
+other additive coordinate.  A batched scan of the known converted support,
+followed by the adaptively revealed layer scans, gives
+$R_{\rm adj}=O(J_{\rm post}+2)$; the declared gate interface gives exactly
+$J_{\rm post}+1$ post interactions.  This proves every coordinate in
+\cref{eq:branch-caterpillar-composite-eleven-vector} and the sum/peak
+composition rules.
+
+Finally, $C(S^\star)=9m+1$ and the shared RPPR support bound gives
+$C(S^\star)\leq2\vol(S^\star)\leq2/\rho$.  Summing the seven post additive
+coordinates proves \cref{eq:branch-caterpillar-composite-work}.  Exact
+terminal optimality proves
+\cref{eq:branch-caterpillar-composite-terminal-proximal}.  No numerical
+estimate-sequence energy is transported.
+\end{proof}
+
+\begin{corollary}[Caterpillar product work only from an independent prefix bound]
+\label{cor:branch-caterpillar-composite-product-conditional}
+Under \Cref{thm:branch-caterpillar-composite-response-handoff}, if an
+independent theorem proves the fully charged prefix bound
+\begin{equation}
+ B_J^{\rm full}=\softO\!\left(
+  \frac{C(S^\star(\rho))}{\sqrt\alpha}
+ \right),
+ \label{eq:branch-caterpillar-composite-independent-prefix-bound}
+\end{equation}
+then
+\begin{equation}
+ W_{\rm total}
+ =\softO\!\left(\frac{C(S^\star(\rho))}{\sqrt\alpha}\right)
+ =\softO\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:branch-caterpillar-composite-conditional-product-work}
+\end{equation}
+Without that premise, the proved total is only
+$B_J^{\rm full}+O(C(S^\star)\log(2+C(S^\star)))$.  The corollary supplies no
+bound on the Phase-I prefix itself.
+\end{corollary}

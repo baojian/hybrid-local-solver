@@ -1,0 +1,425 @@
+\subsection{Incremental face transitions without old-face rebuilds}
+\label{sec:branch-caterpillar-incremental-face-transition}
+
+The preceding policy deliberately rebuilt the raw product and copied the
+lower anchor at every admission.  Neither operation is required by the lower
+certificate.  The signed numerical endpoint itself may be zero-padded onto
+the enlarged face: because every new coordinate is zero, every old residual
+and heap key is then unchanged.  The lower anchor can be retained by lazy
+successful-epoch tags.  This transports no AESP auxiliary or
+estimate-sequence energy; a fresh numerical epoch is still initialized on
+every face.
+
+We first give an exact representation of the anchor.  Suppose the current
+face is $\widehat U_k$.  For each successful earlier face $t<k$, let
+$\delta_t$ be the heap maximum $\Delta(z_t)$ at the successful query.  The
+state stores an append-only exact range-minimum structure for
+$\delta_0,\ldots,\delta_{k-1}$.  For each $i\in\widehat U_k$, it also stores a
+resolved lower value $\bar a_i$, a marker
+$\sigma_i\in\{-1,0,\ldots,k-1\}$, and the current numerical value $z_i$.
+Define
+\begin{equation}
+ \Phi_i(s,k):=
+ \begin{cases}
+  [z_i-\sqrt{d_i}\min_{s<t<k}\delta_t]_+,&
+      \{t:s<t<k\}\ne\varnothing,\\
+  0,&\{t:s<t<k\}=\varnothing,
+ \end{cases}
+ \qquad
+ a_i^{\rm lazy}:=\max\{\bar a_i,\Phi_i(\sigma_i,k)\}.
+ \label{eq:branch-caterpillar-lazy-anchor-state}
+\end{equation}
+Before the numerical host changes coordinate $i$, it \emph{flushes} that
+coordinate: replace $\bar a_i$ by $a_i^{\rm lazy}$ and set
+$\sigma_i=k-1$.  The numerical value has not changed since the preceding
+flush, so all pending successful tags use the same $z_i$ and their
+coordinatewise maximum is exactly the single range minimum in
+\cref{eq:branch-caterpillar-lazy-anchor-state}.  Multiple writes during the
+same face need no further range query.  A dynamically balanced append-only
+range-minimum tree uses $O(k+1)$ cells on face $k$ and
+$O(\log(2+k))$ exact control/state work per tag or nonempty flush.  Its
+allocation is charged prefix state, not ambient preprocessing.
+
+\begin{lemma}[Exact lazy lower anchor]
+\label{lem:branch-caterpillar-lazy-anchor}
+Initialize $\bar a_{b_1}=0$ and $\sigma_{b_1}=-1$.  At a successful query on
+$\widehat U_k$, first freeze the current scalar $\delta_k=\Delta(z_k)$ and
+append it to the range-minimum structure.  For every newly admitted
+$v\in\mathcal F_k$, append the records
+\begin{equation}
+ z_v=0,
+ \qquad \bar a_v=0,
+ \qquad \sigma_v=k.
+ \label{eq:branch-caterpillar-lazy-anchor-new-records}
+\end{equation}
+Then, without visiting any old coordinate, the state on
+$\widehat U_{k+1}$ represents exactly
+\begin{equation}
+ a_{k+1}=\iota_k\!\left(
+   a_k\vee\mathcal L_{\widehat U_k}(z_k)
+                         \right).
+ \label{eq:branch-caterpillar-lazy-anchor-transition}
+\end{equation}
+In particular $0\leq a_{k+1}\leq x_{k+1}$.  Every boundary parent queried on
+face $k$ has lazy-anchor value zero: it is $b_1$ when $k=0$, and for $k>0$
+it belongs to the immediately preceding batch $\mathcal F_{k-1}$ and has no
+pending applicable tag.  Thus the named caterpillar gate never traverses an
+old anchor chain.  The range-minimum representation nevertheless remains an
+exact point-query representation of every interior anchor coordinate.
+\end{lemma}
+
+\begin{proof}
+Assume the representation is exact on face $k$.  If coordinate $i$ has not
+been flushed since marker $\sigma_i$, its numerical value is constant over
+all pending successful epochs.  Hence
+\[
+ \max_{\sigma_i<t<k}
+ [z_i-\delta_t\sqrt{d_i}]_+
+ =[z_i-\sqrt{d_i}\min_{\sigma_i<t<k}\delta_t]_+.
+\]
+Flushing therefore preserves the represented value before changing $z_i$.
+Appending $\delta_k$ adds precisely the coordinate
+$[z_i-\delta_k\sqrt{d_i}]_+$ to the old maximum for every old $i$, while
+\cref{eq:branch-caterpillar-lazy-anchor-new-records} gives zero on the new
+batch.  This is exactly
+\cref{eq:branch-caterpillar-lazy-anchor-transition}.  Its lowerness follows
+from \Cref{lem:branch-caterpillar-anchored-lower-transport}.  The parent claim
+is the explicit caterpillar chronology: the two distinct parents of
+$\mathcal F_k$ are $b_1$ at $k=0$, or newly admitted members of
+$\mathcal F_{k-1}$ at $k>0$.
+\end{proof}
+
+The raw lower state has an equally local transition.  Let $r,h$ be the
+residual and keys in
+\cref{eq:branch-caterpillar-implicit-lower-state}, freeze the successful
+endpoint $z_k$, and put $z^+:=\iota_kz_k$.  Candidate-row validation has
+already retained, for each $v\in\mathcal F_k$, its unique active parent
+$p_k(v)$ and coupling $\beta_{k,v}=-Q_{v,p_k(v)}>0$.
+
+\begin{lemma}[Three-key exact face expansion]
+\label{lem:branch-caterpillar-incremental-face-transition}
+For every $0\leq k<m$, the exact raw residual on
+$\widehat U_{k+1}$ at $z^+$ is
+\begin{equation}
+ r_i^+=r_i\quad(i\in\widehat U_k),
+ \qquad
+ r_v^+=\ell_{\rho,v}+\beta_{k,v}z_{p_k(v)}
+       \quad(v\in\mathcal F_k).
+ \label{eq:branch-caterpillar-incremental-face-residual}
+\end{equation}
+Thus all old heap entries are retained verbatim and exactly three new keys
+$[-r_v^+]_+/(\alpha\sqrt{d_v})$ are inserted.  Combined with
+\Cref{lem:branch-caterpillar-lazy-anchor}, this operation, called
+\texttt{FaceCarryLowerHeap}, represents the exact anchored lower map on the
+new face without an old-row read, an old residual rekey, or an old anchor
+copy.  Given the already retained candidate rows, one transition has
+\begin{equation}
+ \mathcal C_{11}(\mathcal E_{k\to k+1}^{\rm FC})=
+ \bigl(0,0,0,0,O(\log(2+\mathcal C_{k+1}^{\rm can})),O(1),0,
+ \Theta(\mathcal C_{k+1}^{\rm can}),O(1),
+ O(\log(2+\mathcal C_{k+1}^{\rm can})),0\bigr).
+ \label{eq:branch-caterpillar-incremental-face-transition-vector}
+\end{equation}
+The memory coordinate is the peak exact state after the transition, not an
+additional allocation of that size.  The materialization term charges the
+three numerical/residual/key records, the anchor markers, and heap/range-tree
+state writes.  If the three candidate rows have not yet been exposed, their
+separate first-exposure increment is
+$(\nu_k^{\rm can},1,0,0,O(1),0,0,O(1),O(1),O(1),0)$.
+\end{lemma}
+
+\begin{proof}
+The new numerical coordinates are zero.  Consequently the new columns make
+no contribution to an old row, and its principal-block product and residual
+are unchanged.  A new boundary row has exactly one neighbor in the old face;
+all its other in-face coordinates are newly zero.  This gives
+\cref{eq:branch-caterpillar-incremental-face-residual}.  Three exact heap
+insertions and one range-minimum append have logarithmic control/state-write
+cost, while the residual arithmetic and new scalar records are constant.
+No adjacency cell is read because the candidate records were already paid.
+The anchor statement is
+\cref{eq:branch-caterpillar-lazy-anchor-transition}.
+\end{proof}
+
+This transition removes two representation shocks but not a third one.  To
+make that distinction auditable, define \texttt{DenseFreshAESP} to be the
+specific host interface that creates at least one explicit momentum,
+proximal, center, and estimate-sequence record for every coordinate at the
+start of every face epoch.  Retiring an old arena by an epoch pointer is
+constant work, but populating the new arrays is not.
+
+\begin{proposition}[Representation-specific fresh-auxiliary shock]
+\label{prop:branch-caterpillar-fresh-auxiliary-shock}
+Across the $q$ numerical faces $k=0,\ldots,q-1$, the declared
+\texttt{DenseFreshAESP} interface writes
+\begin{equation}
+ \mathfrak X_{<q}^{\rm aux}
+ :=\sum_{k=0}^{q-1}\mathcal N_k^{\rm can}
+ =\frac{q(3q-1)}2
+ \label{eq:branch-caterpillar-fresh-auxiliary-shock}
+\end{equation}
+coordinate records, up to the fixed constant number of named arrays.  This
+is a definition-level accounting identity for that dense fresh interface,
+not a lower bound for a lazy or different accelerated method.  By contrast,
+$q$ applications of \texttt{FaceCarryLowerHeap} add only $3q$ raw
+residual/key records, $3q$ zero numerical/anchor records, and $q$ successful
+scalar tags, with $O(\sum_{k<q}\log(2+\mathcal C_{k+1}^{\rm can}))$ transition
+control/state writes.  They perform no fresh old-face raw product and no
+eager old-anchor materialization.  Nevertheless
+$\mathfrak X_{<m}^{\rm aux}=\Theta(m^2)$, so this comparison alone proves no
+subquadratic prefix.
+\end{proposition}
+
+We now compose the transition with fresh fixed-face numerical epochs.  The
+endpoint $z_k$ rather than $a_{k+1}$ is the numerical warm start: it is
+zero-padded and remains a permitted finite signed start.  This choice is what
+makes the residual literally transportable.  It does not claim that any
+accelerated energy survives.
+
+\begin{definition}[Face-carried lower-heap canonical prefix]
+\label{def:branch-caterpillar-incremental-face-policy}
+For $2\leq q\leq m$, define the policy
+\[
+ \texttt{FaceCarryLowerHeap-BC-AESP}_{0:q}.
+\]
+It proceeds as follows.
+\begin{enumerate}
+ \item Start with $z_0=a_0=0$ on $\widehat U_0$, initialize its one raw
+       residual/key directly from the known shifted load, and create fresh
+       dense AESP auxiliaries.  For $k=0,\ldots,q-1$, expose and validate
+       exactly the live candidate rows $\mathcal F_k$.
+ \item On $\widehat U_k$, run a fresh relative-accuracy AESP--CD epoch from
+       the carried signed point $z_k$.  No momentum, proximal, center, or
+       estimate-sequence record is reused.  Before the first write to a
+       coordinate in that epoch, flush its lazy anchor.  Every local write
+       applies
+       \cref{eq:branch-caterpillar-implicit-lower-update}; every sign test
+       uses the exact heap maximum and the three boundary-parent queries.
+ \item A bulk endpoint replacement first flushes every coordinate it
+       overwrites.  If the numerical stage supplies its charged product
+       $Q_{\widehat U_k\widehat U_k}z$, rebuild the residual keys during that
+       same paid pass.  If it does not supply the product, make and charge one
+       additional full stored-row product for that endpoint.  This extra work
+       is included in the stage budget below because
+       $\Lambda_k^{\rm tr}\geq2$; no product sharing is assumed for free.
+ \item At the first all-positive query, emit and commit precisely
+       $\mathcal F_k$ and its certificate reply.  Apply
+       \texttt{FaceCarryLowerHeap}: append the successful scalar tag, append
+       the three zero numerical/anchor entries, compute and insert the three
+       new residual keys, and retire the old AESP auxiliary arena.  If
+       $k<q-1$, allocate and initialize a fresh dense auxiliary arena on
+       $\widehat U_{k+1}$.  If $k=q-1$, stop after the exact lower/heap state
+       has reached $\widehat U_q$; no unused AESP arena is created there.
+ \item The post phase retires the numerical/lower arena by its epoch pointer,
+       directly builds and settles the native response from the retained rows
+       of $\widehat U_q$, and resumes
+       \emph{CaterpillarCanonicalLayerDelta}.  For $q=m$, the carried state is
+       on the full support and the response build is followed only by
+       terminal validation and return.
+\end{enumerate}
+At the response handoff,
+\begin{equation}
+ U_{\rm adm}=U_{\rm num}=E_{\rm row}=\widehat U_q,
+ \qquad
+ E_{\rm lab}=\widehat U_{\min\{q+1,m\}}.
+ \label{eq:branch-caterpillar-incremental-face-arenas}
+\end{equation}
+The policy has committed all $q$ certified batches, unlike the preceding
+pre-$q$th-interaction ledgers.  Candidate rows are still exposed before their
+certificates; labels outside $\widehat U_q$ have no exposed row or numerical
+coordinate.
+\end{definition}
+
+Let $T_k^{\rm fc}$ be the number of positive-gap AESP stages observed on face
+$k$, with the initial query counted separately, and put
+\begin{align}
+ T_k^{\rm fc}
+ &:=
+ \min\{t\geq0:\widehat g_{k,v}(a_k,z_k^{(t)})>0
+       \text{ for every }v\in\mathcal F_k\},
+ \notag\\[-1.5ex]
+ \Delta_{k,0}^{\rm fc}
+ &:=F_{\rho,\widehat U_k}(z_k^{(0)})
+       -F_{\rho,\widehat U_k}(x_k).
+ \label{eq:branch-caterpillar-incremental-face-stopping-time}
+\end{align}
+If $\Delta_{k,0}^{\rm fc}=0$, then $T_k^{\rm fc}=0$.  For positive initial
+gap, the same lower-neighborhood argument gives
+\begin{equation}
+ T_k^{\rm fc}\leq
+ 1+\left\lfloor\frac{2}{\sqrt{\chi_{\rm A}}}
+ \log_+\!\left(
+ \frac{4(\alpha+\sqrt3)^2\Delta_{k,0}^{\rm fc}}
+      {\alpha^3\mu_k^2}
+             \right)\right\rfloor.
+ \label{eq:branch-caterpillar-incremental-face-stage-bound}
+\end{equation}
+The gap and $\mu_k$ remain analysis-only.  Define
+\begin{align}
+ \mathfrak A_k^{\rm fc}
+ &:=T_k^{\rm fc}\mathcal V_k^{\rm can}\Lambda_k^{\rm tr},
+ &
+ \mathfrak A_{<q}^{\rm fc}
+ &:=\sum_{k=0}^{q-1}\mathfrak A_k^{\rm fc},
+ \notag\\
+ \mathfrak Q_{<q}^{\rm fc}
+ &:=\sum_{k=0}^{q-1}(T_k^{\rm fc}+1),
+ &
+ \mathfrak K_q^{\rm fc}
+ &:=\sum_{k=0}^{q-1}
+       \log(2+\mathcal C_{k+1}^{\rm can}),
+ \notag\\
+ \mathfrak D_{<q}^{\rm fc}
+ &:=\mathcal C_q^{\rm can}+\mathfrak A_{<q}^{\rm fc}
+   +\mathfrak X_{<q}^{\rm aux}+\mathfrak Q_{<q}^{\rm fc}
+   +\mathfrak K_q^{\rm fc},
+ \notag\\
+ \mathfrak H_{<q}^{\rm fc}
+ &:=\mathcal C_q^{\rm can}+\mathfrak X_{<q}^{\rm aux}
+   +\mathfrak Q_{<q}^{\rm fc}+\mathfrak K_q^{\rm fc}
+   +\sum_{k=0}^{q-1}
+    (1+\log(2+\mathcal C_k^{\rm can}))\mathfrak A_k^{\rm fc}.
+ \label{eq:branch-caterpillar-incremental-face-budgets}
+\end{align}
+The $\mathfrak A$ terms charge all numerical row work, local residual
+updates, anchor flushes, and every missing bulk endpoint product.  The
+$\mathfrak X$ term separately charges fresh dense auxiliary initialization;
+it is present even when every $T_k^{\rm fc}$ is zero.  The $\mathfrak K$ term
+charges all three-key heap insertions and range-minimum tag updates.
+
+\begin{theorem}[All-expansion face-carried response-free prefix]
+\label{thm:branch-caterpillar-incremental-face-handoff}
+Fix $m\geq2$, $0<\alpha<1/2$,
+$0<\rho<\rho_{\rm can}(m,\alpha)$, and $2\leq q\leq m$.
+Then \texttt{FaceCarry}\allowbreak\texttt{LowerHeap-}\allowbreak
+\texttt{BC-AESP}$_{0:q}$ commits the first $q$
+canonical batches without an exact response, carries the exact raw residual,
+heap, signed numerical vector, and coordinatewise lower anchor across all
+$q$ expansions $\widehat U_k\to\widehat U_{k+1}$, and reaches
+$\widehat U_q$.  No face transition reads an old row, reinitializes an old
+residual/key, or copies an old anchor coordinate.  Its complete prefix vector
+is
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm FC,q}^{\rm pref})=\bigl(&
+ \mathcal V_q^{\rm can}+O(\mathfrak A_{<q}^{\rm fc}),
+ q+1+O(\mathfrak A_{<q}^{\rm fc}),q,0,
+ O(\mathfrak H_{<q}^{\rm fc}),\\
+ &O(\mathfrak A_{<q}^{\rm fc}+\mathfrak Q_{<q}^{\rm fc}+q),0,
+ O(\mathcal C_q^{\rm can}),O(\mathcal C_{q-1}^{\rm can}),
+ O(\mathfrak D_{<q}^{\rm fc}),3q+\Theta(q)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-incremental-face-prefix-eleven-vector}
+\end{equation}
+Here $C_{\rm resp}=0$ exactly.  The emission coordinate contains the $3q$
+distinct delta labels and one constant-size certificate reply for each of the
+$q$ interactions.  The first $q+1$ adjacency rounds expose the seed and the
+$q$ candidate batches; numerical endpoint products not supplied by the host
+are charged as additional stage rounds inside the displayed bound.  There is
+no admission-time old-face adjacency round.
+
+After the handoff, the retained rows through $\widehat U_q$ are reused.  The
+direct native response build and remaining canonical execution have vector
+\begin{equation}
+ \begin{aligned}
+ \mathcal C_{11}(\mathcal E_{\rm FC,q}^{\rm post})=\bigl(&
+ \vol(S^\star\setminus\widehat U_q),m-q,m-q+1,0,
+ O(C(S^\star)),0,\\
+ &O(C(S^\star)+(m-q)\log(2+m)),
+ \Theta(C(S^\star)),O(C(S^\star)),
+ \Theta(\card{S^\star}),\\
+ &\card{S^\star\setminus\widehat U_q}
+   +\card{S^\star}+\Theta(m-q+1)\bigr).
+ \end{aligned}
+ \label{eq:branch-caterpillar-incremental-face-post-eleven-vector}
+\end{equation}
+Consequently the total interaction count is exact, whereas charged numerical
+row touches and missing endpoint products remain in the adjacency-round
+coordinate:
+\begin{equation}
+ R_{\rm int}^{\rm total}=m+1,
+ \qquad
+ R_{\rm adj}^{\rm total}
+ =m+1+O(\mathfrak A_{<q}^{\rm fc}).
+ \label{eq:branch-caterpillar-incremental-face-total-rounds}
+\end{equation}
+The first-exposure contribution to $R_{\rm adj}^{\rm total}$ is exactly
+$m+1$; the displayed additive term is not silently discarded.  Additive
+coordinates sum, and after the numerical epoch is released both total memory
+peaks are $O(C(S^\star))$.  The exact total work is
+\begin{equation}
+ O\!\left(\mathfrak H_{<q}^{\rm fc}
+       +C(S^\star)\log(2+C(S^\star))\right).
+ \label{eq:branch-caterpillar-incremental-face-total-work}
+\end{equation}
+
+The construction removes the Round-017 raw-product and explicit-anchor-copy
+transition shocks.  It does not remove candidate-row pre-exposure, fresh
+dense AESP allocation, any numerical stage, missing bulk endpoint product,
+analysis-side margin, or the relative-oracle
+$\log(1/(1-2\alpha))$ factor.  In particular
+$\mathfrak X_{<m}^{\rm aux}=\Theta(m^2)$, so the theorem proves neither a
+speedup nor a subquadratic growing-face prefix.  No AESP momentum, proximal,
+center, estimate-sequence energy, or objective-gap certificate crosses an
+admission.  Coordinatewise order of the represented lower anchor is not a
+scalar stagewise-energy or potential-monotonicity statement and gives no
+reserve for a later production/reset chain.  The result is exact-real,
+fixed-$m$, branch-seeded, strict-range,
+RPPR, and delta/certificate specific.  It makes no finite-precision, bit,
+PPR, RPPR-to-PPR, other-seed, other-policy, other-graph, graph-uniform, or
+margin-uniform claim.
+\end{theorem}
+
+\begin{proof}
+At face zero the one residual/key is exact and the zero anchor is lower.  On
+face $k$, \Cref{lem:branch-caterpillar-implicit-lower-heap} makes every query
+the exact anchored lower query.  Fixed-face AESP from the finite signed
+carried point converges to $x_k$; continuity of the lower map and strictness
+of the exact canonical demands imply a finite successful query.  The same
+sufficient neighborhood as before proves
+\cref{eq:branch-caterpillar-incremental-face-stage-bound}.  The successful
+lower point is below $x_k$, and
+\Cref{lem:branch-caterpillar-lazy-anchor} represents its zero padding exactly
+below $x_{k+1}$.  Simultaneously,
+\Cref{lem:branch-caterpillar-incremental-face-transition} makes the padded
+signed point's residual and heap exact on the enlarged face.  Induction for
+$k=0,\ldots,q-1$ proves all $q$ certifications, interactions, and exact
+transitions, including the terminal $k=m-1$ expansion when $q=m$.  No
+restricted response equation is solved.
+
+The seed and $q$ candidate batches expose exactly $\widehat U_q$, with degree
+volume $\mathcal V_q^{\rm can}$.  Numerical stages, local recurrence, anchor
+flushes, heap rekeys, and any unshared bulk product are covered by
+$\mathfrak A_{<q}^{\rm fc}$ and its logarithmic control multiplier.  Initial
+queries and endpoint queries contribute $\mathfrak Q_{<q}^{\rm fc}$.
+The exact $q$ three-key/tag transitions contribute
+$\mathfrak K_q^{\rm fc}$ but no old-row or old-anchor pass.  Fresh dense
+auxiliary arrays contribute $\mathfrak X_{<q}^{\rm aux}$ and are retired at
+each interaction.  The lazy anchor uses one resolved value and marker per
+coordinate plus an $O(q)$ range-minimum tree, so together with current
+$z,r$, the indexed heap, retained rows, and common records its persistent
+peak is $O(\mathcal C_q^{\rm can})$; only one face's fresh AESP arena is live,
+giving the stated temporary peak.  This proves every prefix coordinate in
+\cref{eq:branch-caterpillar-incremental-face-prefix-eleven-vector}.
+
+After the $q$th reply the common support is $\widehat U_q$, all of its rows
+are retained, and none of its response cells has been credited.  A direct
+paid response build therefore starts at that actual checkpoint, settles it,
+and retires the lower/numerical arena.  There remain $m-q$ canonical batches
+and one terminal return, exactly the rows and labels in
+$S^\star\setminus\widehat U_q$.  The reviewed response ledger gives
+\cref{eq:branch-caterpillar-incremental-face-post-eleven-vector}.  Its exact
+first-exposure, interaction, and delta-label partitions combine with the
+prefix as
+\[
+ (q+1)+(m-q)=m+1,
+ \qquad q+(m-q+1)=m+1,
+ \qquad 3q+3(m-q)=3m.
+\]
+The first equality counts only first-exposure adjacency rounds.  Adding the
+explicit numerical-stage term from the prefix vector gives
+\cref{eq:branch-caterpillar-incremental-face-total-rounds}; only the second
+equality is an exact statement about the full interaction-round coordinate.
+Summing additive work and taking sequential memory peaks proves the remaining
+claims.
+\end{proof}

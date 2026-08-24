@@ -1,0 +1,782 @@
+\section{Certified finite-band boundary intervals}
+\label{sec:intervals}
+
+Fix a current face $S$ and a boundary vertex $v$.  Let
+\begin{equation}
+ a_v:=Q_{Sv},
+ \qquad
+ \chi_v^2:=a_v^\top Q_{SS}^{-1}a_v.
+ \label{eq:boundary-leverage}
+\end{equation}
+The scalar $\chi_v$ is a response leverage.  It is closely related to the
+energy needed to transmit a unit boundary demand through the active face.
+
+\begin{lemma}[Energy-to-boundary interval]
+\label{lem:boundary-interval}
+Suppose $x_S$ is the exact restricted solution and $\widetilde x_S$ satisfies
+\begin{equation}
+ \|\widetilde x_S-x_S\|_{Q_{SS}}\leq\delta.
+ \label{eq:energy-error}
+\end{equation}
+For every queried boundary vertex $v$,
+\begin{equation}
+ \left|
+ Q_{vS}(\widetilde x_S-x_S)
+ \right|
+ \leq \chi_v\delta.
+ \label{eq:boundary-error}
+\end{equation}
+Consequently a point estimate of any boundary demand affine in $Q_{vS}x_S$
+becomes a certified interval after adding and subtracting $\chi_v\delta$.
+\end{lemma}
+
+\begin{proof}
+Write the left side as
+\[
+ \left|
+ (Q_{SS}^{-1/2}a_v)^\top
+ Q_{SS}^{1/2}(\widetilde x_S-x_S)
+ \right|.
+\]
+Cauchy--Schwarz and \cref{eq:boundary-leverage,eq:energy-error} prove the
+claim.
+\end{proof}
+
+\begin{corollary}[Graph-universal leverage bound]
+\label{cor:boundary-leverage-one}
+Every response leverage in \cref{eq:boundary-leverage} satisfies
+\begin{equation}
+ \chi_v^2\leq Q_{vv}-\alpha=\frac{1-\alpha}{2}<1.
+ \label{eq:boundary-leverage-one}
+\end{equation}
+Consequently
+\begin{equation}
+ \frac{\left|Q_{vS}(\widetilde x_S-x_S)\right|}{\sqrt{d_v}}
+ \leq\delta
+ \label{eq:normalized-boundary-error}
+\end{equation}
+under \cref{eq:energy-error}, without estimating a coordinate-specific
+leverage.
+\end{corollary}
+
+\begin{proof}
+The scalar Schur complement is
+$K_v:=Q_{vv}-Q_{vS}Q_{SS}^{-1}Q_{Sv}$.  Its variational characterization and
+$Q\succeq\alpha I$ give
+\begin{equation*}
+ K_v
+ =\min_y\begin{bmatrix}y\\1\end{bmatrix}^{\!T}
+ Q_{S\cup\{v\},S\cup\{v\}}
+ \begin{bmatrix}y\\1\end{bmatrix}
+ \geq\alpha.
+\end{equation*}
+The shared normalized matrix has $Q_{vv}=(1+\alpha)/2$, proving the first
+claim.  Apply \cref{lem:boundary-interval} and $d_v\geq1$ for the displayed
+normalized error bound.
+\end{proof}
+
+If the lower endpoint exceeds the gate, admission is safe.  If the upper
+endpoint is below the gate, rejection is safe.  Only intervals intersecting
+the transition band require refinement.  The lemma proves correctness of one
+queried interval; it does not bound the work needed to find all ambiguous or
+violating vertices.  That reporting problem is the main open response theorem.
+
+The graph-universal leverage is intentionally oblivious to where a correction
+was generated.  A frontier correction has much more structure: its dual
+source is supported on the newly admitted batch.  The next lemma converts that
+support into a trace bound on all boundary sensitivities.
+
+\begin{lemma}[Source-aware leverage packing]
+\label{lem:source-aware-leverage-packing}
+Fix a face $S$, an exterior set $W\subseteq V\setminus S$, and a nonempty
+source set $B\subseteq S$.  Let $E_B$ be the coordinate embedding from
+$\mathbb R^B$ into $\mathbb R^S$ and put
+\begin{equation}
+ H_B:=E_B^TQ_{SS}^{-1}E_B.
+ \label{eq:source-green-block}
+\end{equation}
+For $v\in W$, define the source-aware leverage
+\begin{equation}
+ (\chi_v^{B})^2
+ :=Q_{vS}Q_{SS}^{-1}E_BH_B^{-1}
+       E_B^TQ_{SS}^{-1}Q_{Sv}.
+ \label{eq:source-aware-leverage}
+\end{equation}
+Then every correction of the form
+\begin{equation}
+ \Delta=Q_{SS}^{-1}E_Bh
+ \label{eq:source-supported-correction}
+\end{equation}
+satisfies
+\begin{equation}
+ |Q_{vS}\Delta|
+ \leq\chi_v^B\|\Delta\|_{Q_{SS}},
+ \qquad v\in W,
+ \label{eq:source-aware-interval}
+\end{equation}
+and the complete exterior leverage ledger obeys
+\begin{equation}
+ \sum_{v\in W}(\chi_v^B)^2\leq |B|.
+ \label{eq:source-aware-leverage-sum}
+\end{equation}
+Consequently, for arbitrary positive normalized interval margins $m_v$, the
+set
+\begin{equation*}
+ \mathcal A
+ :=\left\{v\in W:
+   \frac{\chi_v^B\|\Delta\|_{Q_{SS}}}{\sqrt{d_v}}
+   \geq m_v
+ \right\}
+\end{equation*}
+has the a priori packing bound
+\begin{equation}
+ \sum_{v\in\mathcal A}d_vm_v^2
+ \leq |B|\,\|\Delta\|_{Q_{SS}}^2.
+ \label{eq:source-aware-ambiguous-packing}
+\end{equation}
+For a common margin $m$, this gives
+$\vol(\mathcal A)\leq |B|\|\Delta\|_{Q_{SS}}^2/m^2$.
+Every nested exact correction in
+\cref{prop:dual-local-orthogonal-corrections} has
+\cref{eq:source-supported-correction} on $S=S_{j+1}$ with $B=B_j$.
+\end{lemma}
+
+\begin{proof}
+The Green block $H_B$ is positive definite.  Define
+\begin{equation*}
+ P_B:=Q_{SS}^{-1/2}E_BH_B^{-1}E_B^TQ_{SS}^{-1/2}.
+\end{equation*}
+It is the orthogonal projector onto
+$\operatorname{range}(Q_{SS}^{-1/2}E_B)$ and has trace $|B|$.
+Also put $R:=Q_{WS}Q_{SS}^{-1/2}$.  Schur complementation of the principal
+matrix on $S\cup W$, followed by $Q\preceq I$, gives
+\begin{equation}
+ RR^T=Q_{WS}Q_{SS}^{-1}Q_{SW}\preceq Q_{WW}\preceq I.
+ \label{eq:exterior-response-contraction}
+\end{equation}
+Thus $R^TR\preceq I$ as well.  The definition
+\cref{eq:source-aware-leverage} is the $v$th diagonal of $RP_BR^T$, so
+\begin{equation*}
+ \sum_{v\in W}(\chi_v^B)^2
+ =\operatorname{tr}(P_BR^TR)
+ \leq\operatorname{tr}(P_B)=|B|,
+\end{equation*}
+proving \cref{eq:source-aware-leverage-sum}.
+
+For \cref{eq:source-supported-correction}, let
+$w_v:=E_B^TQ_{SS}^{-1}Q_{Sv}$.  Then
+\begin{equation*}
+ Q_{vS}\Delta=w_v^Th,
+ \qquad
+ \|\Delta\|_{Q_{SS}}^2=h^TH_Bh.
+\end{equation*}
+Cauchy--Schwarz in the $H_B$ inner product gives
+$|w_v^Th|^2\leq(w_v^TH_B^{-1}w_v)(h^TH_Bh)$, which is exactly
+\cref{eq:source-aware-interval}.  Every $v\in\mathcal A$ satisfies
+$d_vm_v^2\leq(\chi_v^B)^2\|\Delta\|_{Q_{SS}}^2$; summing and applying
+\cref{eq:source-aware-leverage-sum} proves
+\cref{eq:source-aware-ambiguous-packing}.  Finally,
+\cref{eq:dual-frontier-support} says that
+$Q_{S_{j+1}S_{j+1}}\Delta^j$ is supported on $B_j$, which gives the last
+claim by solving the enlarged principal system.
+\end{proof}
+
+The source-aware ledger is an a priori statement: it bounds the volume whose
+certified interval can be wide at a declared margin before the actual exterior
+change is computed.  The following identity shows that its masses are not new
+matrix objects.  They are exactly the diagonal loss of the terminal Schur
+operator across the corresponding elimination.
+
+\begin{theorem}[Source-aware leverage equals Schur-diagonal loss]
+\label{thm:source-leverage-diagonal-loss}
+Let $A\subsetneq T=A\mathbin{\dot\cup}B$ and
+$W\subseteq V\setminus T$.  Write
+\begin{equation*}
+ L^A:=Q/A,
+ \qquad
+ L^T:=Q/T
+\end{equation*}
+for the terminal Schur complements, restricted to their surviving
+coordinates.  On the enlarged face $T$, let $E_B$ embed $\mathbb R^B$ into
+$\mathbb R^T$, put $H_B:=E_B^TQ_{TT}^{-1}E_B$, and define
+\begin{equation}
+ (\chi_v^{B\mid A})^2
+ :=Q_{vT}Q_{TT}^{-1}E_BH_B^{-1}
+      E_B^TQ_{TT}^{-1}Q_{Tv},
+ \qquad v\in W.
+ \label{eq:conditional-source-leverage}
+\end{equation}
+Then
+\begin{equation}
+ (\chi_v^{B\mid A})^2
+ =L^A_{vB}(L^A_{BB})^{-1}L^A_{Bv}
+ =L^A_{vv}-L^T_{vv}.
+ \label{eq:source-leverage-diagonal-loss}
+\end{equation}
+Consequently every group $C\subseteq W$ has the exact additive mass
+\begin{equation}
+ Z_{B\mid A}(C)
+ :=\sum_{v\in C}\frac{(\chi_v^{B\mid A})^2}{d_v}
+ =\operatorname{tr}\!\left[
+  D_C^{-1}\bigl(L^A_{CC}-L^T_{CC}\bigr)
+ \right].
+ \label{eq:group-diagonal-loss}
+\end{equation}
+
+More generally, let
+$S_0\subsetneq\cdots\subsetneq S_J$ and
+$B_j:=S_{j+1}\setminus S_j$.  If $v\notin S_k$, then its source-aware
+sensitivity has the temporal telescope
+\begin{equation}
+ \sum_{j=0}^{k-1}(\chi_v^{B_j\mid S_j})^2
+ =(Q/S_0)_{vv}-(Q/S_k)_{vv}
+ \leq Q_{vv}-\alpha
+ =\frac{1-\alpha}{2}.
+ \label{eq:source-leverage-temporal-telescope}
+\end{equation}
+For every fixed $C\subseteq V\setminus S_k$, the normalized group masses
+telescope as well:
+\begin{equation}
+ \sum_{j=0}^{k-1}Z_{B_j\mid S_j}(C)
+ =\operatorname{tr}\!\left[
+ D_C^{-1}\bigl((Q/S_0)_{CC}-(Q/S_k)_{CC}\bigr)
+ \right].
+ \label{eq:group-diagonal-temporal-telescope}
+\end{equation}
+Thus every still-exterior label has a graph-universal total squared
+source-aware sensitivity budget, independent of the number of preceding
+expansions.
+\end{theorem}
+
+\begin{proof}
+Order $T$ as $(A,B)$ and put $K_B:=L^A_{BB}$.  The block inverse formula gives
+\begin{equation*}
+ H_B=K_B^{-1},
+ \qquad
+ Q_{vT}Q_{TT}^{-1}E_B=L^A_{vB}K_B^{-1}.
+\end{equation*}
+Substitution in \cref{eq:conditional-source-leverage} proves the first
+equality in \cref{eq:source-leverage-diagonal-loss}.  Schur associativity
+gives
+\begin{equation*}
+ L^T_{WW}
+ =L^A_{WW}-L^A_{WB}K_B^{-1}L^A_{BW},
+\end{equation*}
+whose $v$th diagonal proves the second equality.  Summing these diagonal
+identities with weights $1/d_v$ proves \cref{eq:group-diagonal-loss}.
+
+Apply the same identity at every consecutive pair $(S_j,S_{j+1})$ and
+telescope.  Since $Q\succeq\alpha I$, the variational characterization of a
+Schur complement gives $Q/S_k\succeq\alpha I$.  Also
+$(Q/S_0)_{vv}\leq Q_{vv}$.  The shared PageRank matrix has
+$Q_{vv}=(1+\alpha)/2$, proving
+\cref{eq:source-leverage-temporal-telescope}.  Summing the same termwise
+diagonal telescope over $v\in C$ with weights $1/d_v$ proves
+\cref{eq:group-diagonal-temporal-telescope}.
+\end{proof}
+
+The identity replaces source-conditioned response matrices by one monotone
+scalar field: terminal Schur diagonals.  It does not make those diagonals
+free, but a dynamic implementation may now obtain every group mass by a
+before--after aggregate diagonal query.  In particular, no multiplicative
+accuracy is needed when the true decrement is far below the current search
+scale.  The next lemma first states the clean multiplicative hierarchy, and
+the following corollary weakens its oracle to a one-sided additive guarantee.
+
+\begin{lemma}[Rank-sensitive hierarchical locator]
+\label{lem:source-aware-hierarchical-locator}
+Under the hypotheses of
+\cref{lem:source-aware-leverage-packing}, let $\mathcal H$ be a rooted
+partition hierarchy whose leaves are the vertices of $W$, whose arity is at
+most $b$, and whose depth is $L$.  For every node $C\subseteq W$, define its
+degree-normalized source-aware mass by
+\begin{equation}
+ Z_B(C):=\sum_{v\in C}\frac{(\chi_v^B)^2}{d_v}.
+ \label{eq:source-aware-group-mass}
+\end{equation}
+Suppose a group query returns a certified multiplicative upper estimate
+\begin{equation}
+ Z_B(C)\leq\widehat Z_B(C)\leq\gamma Z_B(C)
+ \label{eq:source-aware-group-oracle}
+\end{equation}
+for some $\gamma\geq1$.  Fix a correction
+$\Delta=Q_{SS}^{-1}E_Bh$ with energy radius
+$E:=\|\Delta\|_{Q_{SS}}>0$ and a common normalized margin $m>0$.
+
+Starting at the root, discard a queried node $C$ when
+$\widehat Z_B(C)<m^2/E^2$ and otherwise query its children.  At every reached
+leaf, evaluate the exact leaf predicate.  This search returns precisely the
+potentially ambiguous set
+\begin{equation*}
+ \mathcal A_m
+ :=\left\{v\in W:
+     \frac{\chi_v^B E}{\sqrt{d_v}}\geq m
+   \right\},
+\end{equation*}
+uses at most
+\begin{equation}
+ 1+bL\left(1+\gamma|B|\frac{E^2}{m^2}\right)
+ \label{eq:source-aware-group-query-count}
+\end{equation}
+group queries, and has output charge
+\begin{equation}
+ \vol(\mathcal A_m)\leq |B|\frac{E^2}{m^2}.
+ \label{eq:source-aware-locator-output}
+\end{equation}
+Thus, if group queries and exact reached-leaf tests cost polylogarithmic work,
+the search is sensitive to the packed ambiguity budget rather than to the
+ambient boundary size, up to the hierarchy depth and approximation factor.
+\end{lemma}
+
+\begin{proof}
+The masses in \cref{eq:source-aware-group-mass} are nonnegative and additive
+over the children of every hierarchy node.  Since $d_v\geq1$,
+\cref{eq:source-aware-leverage-sum} gives
+\begin{equation}
+ Z_B(W)\leq\sum_{v\in W}(\chi_v^B)^2\leq |B|.
+ \label{eq:source-aware-normalized-mass-total}
+\end{equation}
+If $v\in\mathcal A_m$, then every ancestor $C$ of $v$ satisfies
+$Z_B(C)\geq Z_B(\{v\})\geq m^2/E^2$, and therefore cannot be discarded by
+the upper estimate in \cref{eq:source-aware-group-oracle}.  Conversely, the
+exact predicate at a reached leaf removes every false candidate, proving
+correctness.
+
+At any fixed depth the retained nodes are disjoint.  A retained node satisfies
+$\widehat Z_B(C)\geq m^2/E^2$, and the upper side of
+\cref{eq:source-aware-group-oracle} implies
+$Z_B(C)\geq m^2/(\gamma E^2)$.  Hence
+\cref{eq:source-aware-normalized-mass-total} bounds the number of retained
+nodes at that depth by $\gamma|B|E^2/m^2$.  Querying at most $b$ children per
+retained node over $L$ levels, together with the root and harmless integer
+rounding, proves \cref{eq:source-aware-group-query-count}.  The output-volume
+claim is the common-margin case of
+\cref{eq:source-aware-ambiguous-packing}.
+\end{proof}
+
+\begin{corollary}[Margin-adaptive additive group oracle]
+\label{cor:additive-group-locator}
+In \cref{lem:source-aware-hierarchical-locator}, put
+$\tau:=m^2/E^2$ and replace the multiplicative oracle by certified estimates
+satisfying
+\begin{equation}
+ Z_B(C)\leq\widehat Z_B(C)
+ \leq\gamma Z_B(C)+\beta\tau,
+ \qquad 0\leq\beta<1.
+ \label{eq:additive-group-oracle}
+\end{equation}
+Use the same rule: discard $C$ when $\widehat Z_B(C)<\tau$, and otherwise
+descend.  The search still returns exactly $\mathcal A_m$, and it uses at
+most
+\begin{equation}
+ 1+bL\left(
+  1+\frac{\gamma}{1-\beta}|B|\frac{E^2}{m^2}
+ \right)
+ \label{eq:additive-group-query-count}
+\end{equation}
+group queries.  The oracle may therefore have additive error proportional to
+the current pruning threshold; it need not resolve arbitrarily small group
+masses multiplicatively.  By
+\cref{thm:source-leverage-diagonal-loss}, the same statement holds when each
+$Z_B(C)$ is supplied as the weighted terminal-Schur diagonal decrement in
+\cref{eq:group-diagonal-loss}.
+\end{corollary}
+
+\begin{proof}
+If $v\in\mathcal A_m$, every ancestor has
+$Z_B(C)\geq Z_B(\{v\})\geq\tau$, so the certified upper estimate cannot
+discard it.  Exact leaf tests again remove all false candidates.  Conversely,
+every retained node satisfies
+\begin{equation*}
+ \tau\leq\widehat Z_B(C)
+ \leq\gamma Z_B(C)+\beta\tau,
+\end{equation*}
+and hence $Z_B(C)\geq(1-\beta)\tau/\gamma$.  Retained nodes at one depth are
+disjoint, while $Z_B(W)\leq|B|$.  The level count and the child-query charge
+are therefore the same as in
+\cref{lem:source-aware-hierarchical-locator}, with the factor
+$\gamma/(1-\beta)$, proving
+\cref{eq:additive-group-query-count}.
+\end{proof}
+
+The group mass has the exact trace form
+\begin{equation*}
+ Z_B(C)
+ =\operatorname{tr}\!\left(
+ P_BR_C^TD_C^{-1}R_C
+ \right),
+ \qquad
+ R_C:=Q_{CS}Q_{SS}^{-1/2},
+\end{equation*}
+where $D_C:=\operatorname{diag}(d_v:v\in C)$.  Thus the remaining P0
+primitive is no longer an unspecified boundary scan: it is a dynamic,
+constant-factor group-trace oracle for these source-conditioned response
+rows, together with exact evaluation only at the reached leaves.  The lemma
+does not construct that oracle on a general nonequitable cyclic core.
+
+The next reduction shows that the trace oracle does not require one response
+query per hierarchy node.  A logarithmic batch of source-normalized random
+responses estimates every fixed node simultaneously, including nodes chosen
+adaptively by the subsequent branch-and-bound search.
+
+\begin{lemma}[Group traces from logarithmically many response sketches]
+\label{lem:group-trace-response-sketch}
+Under the hypotheses of
+\cref{lem:source-aware-hierarchical-locator}, let $\mathcal C$ be the set of
+$M$ nodes of the fixed hierarchy.  Fix $\xi,\delta\in(0,1)$, draw
+$r$ independent standard Gaussian vectors
+$g_1,\ldots,g_r\in\mathbb R^B$, and define the exterior response sketches
+\begin{equation}
+ s^{(t)}
+ :=D_W^{-1/2}Q_{WS}Q_{SS}^{-1}E_BH_B^{-1/2}g_t,
+ \qquad 1\leq t\leq r.
+ \label{eq:source-normalized-response-sketch}
+\end{equation}
+For every hierarchy node $C$, put
+\begin{equation}
+ \overline Z_B(C)
+ :=\frac1r\sum_{t=1}^r\|s_C^{(t)}\|_2^2,
+ \qquad
+ \widehat Z_B(C):=\frac{\overline Z_B(C)}{1-\xi}.
+ \label{eq:sketched-group-trace}
+\end{equation}
+There is a universal constant $c_{\rm sk}>0$ such that, if
+\begin{equation}
+ r\geq c_{\rm sk}\xi^{-2}\log(2M/\delta),
+ \label{eq:group-trace-sketch-count}
+\end{equation}
+then, with probability at least $1-\delta$, simultaneously for every
+$C\in\mathcal C$,
+\begin{equation}
+ Z_B(C)\leq\widehat Z_B(C)
+ \leq\frac{1+\xi}{1-\xi}Z_B(C).
+ \label{eq:sketched-group-oracle}
+\end{equation}
+In particular, $\xi=1/3$ supplies the oracle in
+\cref{eq:source-aware-group-oracle} with $\gamma=2$ using
+$r=O(\log(M/\delta))$ response sketches.
+\end{lemma}
+
+\begin{proof}
+For a node $C$, define
+\begin{equation*}
+ T_C:=D_C^{-1/2}Q_{CS}Q_{SS}^{-1}E_BH_B^{-1/2}.
+\end{equation*}
+Cyclicity of trace and the definition of $P_B$ give
+\begin{equation*}
+ \|T_C\|_F^2
+ =\operatorname{tr}\!\left(P_BR_C^TD_C^{-1}R_C\right)
+ =Z_B(C).
+\end{equation*}
+Moreover, $s_C^{(t)}=T_Cg_t$, so
+$\overline Z_B(C)=r^{-1}\sum_tg_t^T(T_C^TT_C)g_t$.  The standard Gaussian
+quadratic-form moment-generating-function bound gives, for every positive
+semidefinite matrix $A$ and $0<\xi<1$,
+\begin{equation*}
+ \Pr\!\left[
+  \left|\frac1r\sum_{t=1}^rg_t^TAg_t-\operatorname{tr}(A)\right|
+  >\xi\operatorname{tr}(A)
+ \right]
+ \leq2\exp(-c r\xi^2)
+\end{equation*}
+for a universal $c>0$.  Apply this with $A=T_C^TT_C$ and take a union bound
+over all $M$ hierarchy nodes.  On the resulting event,
+$(1-\xi)Z_B(C)\leq\overline Z_B(C)\leq
+(1+\xi)Z_B(C)$ simultaneously.  Rescaling the estimate proves
+\cref{eq:sketched-group-oracle}.  Nodes of zero mass have $T_C=0$ and obey
+the same statement deterministically.
+\end{proof}
+
+Once the leaf values of the sketches are available, all quantities in
+\cref{eq:sketched-group-trace} are additive and can be aggregated bottom-up.
+The remaining challenge is therefore narrower still: maintain a polylogarithmic
+batch of the signed response vectors in
+\cref{eq:source-normalized-response-sketch}, and their squared subtree sums,
+under terminal additions without materializing every exterior coordinate.
+The lemma is a static randomized reduction and does not claim that dynamic
+maintenance has local work.
+
+Orthogonal frontier lifts make the sketches causal and mergeable across an
+adaptive support trace.  The important choice is to accumulate the
+nonnegative per-batch squared masses, rather than squaring one signed sketch
+that has been reused to choose later batches.  Fresh randomness after each
+batch avoids an adaptive-sketching gap.
+
+\begin{theorem}[Causal append-only orthogonal response sketches]
+\label{thm:causal-orthogonal-response-sketches}
+Use the nested faces, Schur complements, and lifts of
+\cref{thm:orthogonal-frontier-lifts}, and define the normalized lifted basis
+\begin{equation}
+ U_j:=\mathcal L_jK_j^{-1/2}\in\mathbb R^{V\times B_j}.
+ \label{eq:normalized-frontier-basis}
+\end{equation}
+The bordered inverse identity also gives
+\begin{equation}
+ E_{B_j}^TQ_{S_{j+1}S_{j+1}}^{-1}E_{B_j}=K_j^{-1},
+ \qquad
+ U_j
+ =Q_{S_{j+1}S_{j+1}}^{-1}E_{B_j}K_j^{1/2},
+ \label{eq:normalized-frontier-source-identity}
+\end{equation}
+where the second identity is extended by zero outside $S_{j+1}$.  Thus its
+exterior row norms are exactly the source-aware leverages of
+\cref{eq:source-aware-leverage}.
+Then
+\begin{equation}
+ U_i^TQU_j=
+ \begin{cases}
+ I_{B_j},&i=j,\\
+ 0,&i\neq j.
+ \end{cases}
+ \label{eq:orthonormal-frontier-bases}
+\end{equation}
+For an exterior vertex $v\notin S_{k+1}$, put
+\begin{equation}
+ \lambda_{jv}^2
+ :=\frac{\|e_v^TQU_j\|_2^2}{d_v},
+ \qquad
+ \Lambda_{kv}^2:=\sum_{j=0}^k\lambda_{jv}^2.
+ \label{eq:cumulative-frontier-leverage}
+\end{equation}
+If $Q\preceq I$ and $R_k:=\sum_{j=0}^k|B_j|$, then
+\begin{equation}
+ \sum_{v\notin S_{k+1}}\Lambda_{kv}^2\leq R_k.
+ \label{eq:cumulative-frontier-leverage-packing}
+\end{equation}
+Moreover, every accumulated lifted error
+$e=\sum_{j=0}^kU_ja_j$ satisfies
+\begin{equation}
+ \frac{|(Qe)_v|}{\sqrt{d_v}}
+ \leq\Lambda_{kv}\|e\|_Q.
+ \label{eq:cumulative-frontier-interval}
+\end{equation}
+
+Now allow the exact support batches and current boundary hierarchy to depend
+on every earlier random choice.  After $B_j$, $K_j$, and the current hierarchy
+are fixed, draw fresh independent standard Gaussian vectors
+$g_{j,1},\ldots,g_{j,r_j}\in\mathbb R^{B_j}$ and define the per-batch group
+increment
+\begin{equation}
+ \overline Z_j(C)
+ :=\frac1{r_j}\sum_{t=1}^{r_j}
+ \left\|D_C^{-1/2}Q_{CV}U_jg_{j,t}\right\|_2^2.
+ \label{eq:append-only-group-mass-increment}
+\end{equation}
+Let $M_j$ bound the number of live hierarchy nodes and leaves at event $j$,
+fix $\xi,\delta\in(0,1)$, and set
+\begin{equation}
+ \delta_j:=\frac{6\delta}{\pi^2(j+1)^2}.
+ \label{eq:adaptive-sketch-failure-budget}
+\end{equation}
+For
+\begin{equation}
+ r_j\geq c_{\rm sk}\xi^{-2}\log(2M_j/\delta_j),
+ \label{eq:adaptive-sketch-count}
+\end{equation}
+with probability at least $1-\delta$, simultaneously at every event, every
+stored leaf and every current group has cumulative estimate
+\begin{equation}
+ \sum_{i\leq j}Z_i(C)
+ \leq
+ \frac1{1-\xi}\sum_{i\leq j}\overline Z_i(C)
+ \leq
+ \frac{1+\xi}{1-\xi}\sum_{i\leq j}Z_i(C),
+ \label{eq:adaptive-cumulative-group-oracle}
+\end{equation}
+where
+$Z_i(C):=\|D_C^{-1/2}Q_{CV}U_i\|_F^2$ and contributions are retained only
+while their leaf remains exterior.  If a vertex $v$ first enters the boundary
+after batch $B_j$, then $\lambda_{iv}=0$ for every $i<j$.  Its accumulator
+therefore starts at zero and no earlier response sketch is replayed.  Put
+$N:=1+\operatorname{cvol}(S_J)$.  Since every batch is nonempty,
+$J\leq |S_J|$; if $M_j\leq N^{O(1)}$, the total number of sampled response
+right-hand sides is $O_\xi(J\log(NJ/\delta))$.
+\end{theorem}
+
+\begin{proof}
+The bottom-right block of the bordered inverse is $K_j^{-1}$, proving the
+first identity in \cref{eq:normalized-frontier-source-identity}.  Also,
+$Q_{S_{j+1}S_{j+1}}\mathcal L_jy=E_{B_j}K_jy$; substitute
+$y=K_j^{-1/2}a$ and solve the principal system to obtain the second identity.
+The isometry and cross-space orthogonality in
+\cref{eq:frontier-lift-isometry,eq:frontier-lift-orthogonality} give
+\cref{eq:orthonormal-frontier-bases}.  Let
+$U_{\leq k}:=[U_0\ \cdots\ U_k]$.  Then
+$Q^{1/2}U_{\leq k}$ has $R_k$ orthonormal columns.  For
+$W:=V\setminus S_{k+1}$,
+\begin{align*}
+ \sum_{v\in W}\Lambda_{kv}^2
+ &=\|D_W^{-1/2}Q_{WV}U_{\leq k}\|_F^2\\
+ &\leq\|Q_{WV}U_{\leq k}\|_F^2
+ \leq R_k,
+\end{align*}
+because $d_v\geq1$ and
+$\|E_W^TQ^{1/2}\|_2\leq\|Q^{1/2}\|_2\leq1$.  Writing
+$a:=(a_0,\ldots,a_k)$, orthonormality gives
+$\|e\|_Q=\|a\|_2$; rowwise Cauchy--Schwarz proves
+\cref{eq:cumulative-frontier-interval}.
+
+At event $j$, condition on the complete history through the choice of
+$U_j$ and the current hierarchy.  They are fixed before the fresh Gaussian
+vectors are drawn.  Apply the quadratic-form concentration argument from
+\cref{lem:group-trace-response-sketch} with failure probability $\delta_j$
+to all current nodes and leaves.  Thus, conditionally on every possible
+history, the event-$j$ estimates lie between
+$(1-\xi)Z_j(C)$ and $(1+\xi)Z_j(C)$ except with probability $\delta_j$.
+Since $\sum_{j\geq0}\delta_j=\delta$, a conditional union bound proves the
+simultaneous claim despite adaptive future batches.  Summing nonnegative
+per-batch estimates preserves both multiplicative inequalities; group
+estimates are sums of their retained leaf estimates.
+
+Finally, suppose $v$ first becomes adjacent to the active face after $B_j$.
+For $i<j$, the support of $U_i$ lies in
+$S_{i+1}\subseteq S_j$, while $v$ has no edge to $S_j$.  Hence
+$e_v^TQU_i=0$, proving causal zero initialization.
+Finally, $J\leq|S_J|$ follows from disjoint nonempty batches.  Under the
+polynomial hierarchy-size assumption,
+\cref{eq:adaptive-sketch-count,eq:adaptive-sketch-failure-budget} gives
+$r_j=O_\xi(\log(NJ/\delta))$ uniformly; summing over the events proves the
+sample count.
+\end{proof}
+
+\begin{corollary}[Cumulative sketches collapse to diagonal loss]
+\label{cor:cumulative-sketch-diagonal-loss}
+In \cref{thm:causal-orthogonal-response-sketches}, fix $k$ and a hierarchy
+node $C\subseteq V\setminus S_{k+1}$.  The exact cumulative mass being
+estimated has the deterministic representation
+\begin{equation}
+ \sum_{j=0}^k Z_j(C)
+ =\operatorname{tr}\!\left[
+ D_C^{-1}\bigl((Q/S_0)_{CC}-(Q/S_{k+1})_{CC}\bigr)
+ \right].
+ \label{eq:cumulative-sketch-diagonal-loss}
+\end{equation}
+Therefore a dynamic oracle that directly supplies the one-sided additive
+estimates in \cref{eq:additive-group-oracle} for these diagonal losses can
+replace all per-batch Gaussian response sketches.  Combined with
+\cref{cor:additive-group-locator}, it gives the same no-false-negative
+branch-and-bound search with output-sensitive query count.  No source vector,
+old sketch, or past batch must be replayed.
+\end{corollary}
+
+\begin{proof}
+The normalized lifted basis $U_j$ is the source-normalized response basis for
+$B_j$ by \cref{eq:normalized-frontier-source-identity}.  Hence
+\begin{equation*}
+ Z_j(C)
+ =\sum_{v\in C}\frac{(\chi_v^{B_j\mid S_j})^2}{d_v}.
+\end{equation*}
+Apply \cref{eq:group-diagonal-temporal-telescope} with $k+1$ in place of
+$k$.  The oracle and search claim is then exactly
+\cref{cor:additive-group-locator}.
+\end{proof}
+
+\begin{theorem}[Static all-boundary checkpoint at accelerated cost]
+\label{thm:static-diagonal-loss-checkpoint}
+For an exposed face $S$, let
+$W_S:=\{v\notin S:Q_{vS}\neq0\}$ and define
+\begin{equation}
+ h_v(S):=\frac{Q_{vS}Q_{SS}^{-1}Q_{Sv}}{d_v}
+ =\frac{Q_{vv}-(Q/S)_{vv}}{d_v},
+ \qquad v\in W_S.
+ \label{eq:static-checkpoint-loss}
+\end{equation}
+Fix $\zeta,\xi,\delta\in(0,1/2)$.  A degree
+\begin{equation*}
+ m=O\!\left(\alpha^{-1/2}\log\frac1{\alpha\zeta}\right)
+\end{equation*}
+Chebyshev polynomial $p_m$ and
+\begin{equation*}
+ r=O\!\left(\xi^{-2}\log\frac{2\max\{1,|W_S|\}}{\delta}\right)
+\end{equation*}
+independent standard Gaussian vectors $g_t\in\mathbb R^S$ give the estimates
+\begin{equation}
+ \overline h_v:=\frac1r\sum_{t=1}^r
+  \frac{\bigl(Q_{vS}p_m(Q_{SS})g_t\bigr)^2}{d_v},
+ \qquad
+ \widehat h_v:=\frac{\overline h_v}
+ {(1-\xi)(1-\zeta)^2}.
+ \label{eq:static-checkpoint-estimator}
+\end{equation}
+With probability at least $1-\delta$, simultaneously for every $v\in W_S$,
+\begin{equation}
+ h_v(S)\leq\widehat h_v
+ \leq
+ \frac{(1+\xi)(1+\zeta)^2}
+ {(1-\xi)(1-\zeta)^2}h_v(S).
+ \label{eq:static-checkpoint-guarantee}
+\end{equation}
+The coordinate estimates, and therefore every group sum in a fixed boundary
+hierarchy, are constructed in
+\begin{equation}
+ \widetilde O_{\zeta,\xi,\delta}\!\left(
+  \frac{\operatorname{cvol}(S)}{\sqrt\alpha}
+ \right)
+ \label{eq:static-checkpoint-work}
+\end{equation}
+work from the rows of $S$ and the degrees of their incident boundary labels.
+\end{theorem}
+
+\begin{proof}
+The spectrum of the principal matrix $Q_{SS}$ lies in $[\alpha,1]$.
+Chebyshev approximation on this interval supplies $p_m$ with
+\begin{equation*}
+ |p_m(x)-x^{-1/2}|\leq\zeta x^{-1/2},
+ \qquad x\in[\alpha,1],
+\end{equation*}
+at the stated degree.  Indeed, after mapping the interval to $[-1,1]$, the
+nearest singularity has limiting Bernstein-ellipse parameter
+$(1+\sqrt\alpha)/(1-\sqrt\alpha)$.  Therefore
+\begin{equation*}
+ (1-\zeta)^2Q_{SS}^{-1}
+ \preceq p_m(Q_{SS})^2
+ \preceq(1+\zeta)^2Q_{SS}^{-1}.
+\end{equation*}
+For each $v$, the summand before squaring in
+\cref{eq:static-checkpoint-estimator} is centered Gaussian with variance
+\begin{equation*}
+ \mu_v:=d_v^{-1}Q_{vS}p_m(Q_{SS})^2Q_{Sv},
+\end{equation*}
+which lies between $(1-\zeta)^2h_v(S)$ and
+$(1+\zeta)^2h_v(S)$.  Moreover
+$\overline h_v/\mu_v\sim\chi_r^2/r$ when $\mu_v>0$, while a zero row is
+exactly zero.  Chi-square concentration and a union bound prove
+\cref{eq:static-checkpoint-guarantee}.  Summing the coordinate inequalities
+gives all group inequalities.
+
+A Chebyshev recurrence applies $p_m(Q_{SS})$ to one vector using $m$ row
+scans of $S$.  One additional cut-incidence scan forms all
+$Q_{W_S,S}p_m(Q_{SS})g_t$ simultaneously.  Repeating for the $r$ probes proves
+\cref{eq:static-checkpoint-work}.
+\end{proof}
+
+\begin{corollary}[Geometric checkpoint amortization]
+\label{cor:static-diagonal-geometric-amortization}
+If checkpoint faces satisfy
+$\operatorname{cvol}(S_{i+1})\geq
+(1+\gamma)\operatorname{cvol}(S_i)$ for fixed $\gamma>0$, then independent
+instances of \cref{thm:static-diagonal-loss-checkpoint}, with summable failure
+budgets, construct every full boundary snapshot in total work
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{\operatorname{cvol}(S_K)}{\sqrt\alpha}
+ \right)
+ \label{eq:static-diagonal-geometric-work}
+\end{equation}
+and fail with at most the sum of their budgets.
+\end{corollary}
+
+\begin{proof}
+Sum \cref{eq:static-checkpoint-work} and use
+$\sum_i\operatorname{cvol}(S_i)\leq
+(1+1/\gamma)\operatorname{cvol}(S_K)$.  A union bound gives the failure
+claim.
+\end{proof}
+
+This closes the Monte Carlo work bound for full-boundary state at anchor
+checkpoints; deterministic or Las Vegas certification is separate.  It does
+not close the epoch-internal problem: subtracting two noisy cumulative
+snapshots cannot certify a much smaller intervening loss.  The remaining
+oracle must therefore maintain the incremental post-checkpoint loss with
+scale-matched additive error, or obtain the equivalent scalar harmonic
+measurements only for the nodes reached by the packed search.

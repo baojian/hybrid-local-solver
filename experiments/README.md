@@ -4,6 +4,15 @@ Experiment drivers live here rather than under `src/baselines/`. They may
 download graph data, trigger Numba compilation, and run for a long time, so
 they are not collected by pytest.
 
+## Research-note proof audits
+
+Exact-arithmetic and seeded numerical claim checks live under
+[`proof_audits/`](proof_audits/). They use durable mechanism-based names and a
+registry that records the historical round in which each check originated.
+Run the representative CI tier with `make research-audit-fast`, all registered
+checks with `make research-audit`, or inspect the inventory with
+`make research-audit-list`.
+
 ## Offline reproduction smoke
 
 Run the lightweight reproduction path with:

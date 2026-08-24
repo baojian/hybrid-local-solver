@@ -1,0 +1,84 @@
+\subsection{The alpha-scaled regularization path has a geometric work ledger}
+
+The residual ladder in \cref{sec:ladder} counts a fixed volume once per rung
+and therefore carries a dynamic-range logarithm.  The RPPR path has a sharper
+ledger because its certified volume grows geometrically with decreasing
+regularization.
+
+\begin{theorem}[Exact-rung continuation on supplied supports]
+\label{thm:support-path-ledger}
+Fix $s\in\{1,2\}$ and a path
+\begin{equation}
+ 1\geq\rho_0>\rho_1>\cdots>\rho_K>0,
+ \qquad
+ \rho_{k+1}=\lambda_\alpha^s\rho_k.
+ \label{eq:regularization-ladder}
+\end{equation}
+Suppose each exact support $S_k:=S^\star(\rho_k)$ and a width-$w$
+elimination ordering of $G[S_k]$ are supplied.  For a single seed, solving
+every shifted Dirichlet system from scratch and checking every boundary KKT
+certificate costs
+\begin{equation}
+ \Work_{0:K}
+ =O\!\left(
+  \frac{(w+1)^2}{\rho_K(1-\lambda_\alpha^s)}
+ \right)
+ =O\!\left(
+  \frac{(w+1)^2}{\rho_K\sqrt\alpha}
+ \right).
+ \label{eq:support-path-work}
+\end{equation}
+For forest supports, the factor $(w+1)^2$ is an absolute constant.
+\end{theorem}
+
+\begin{proof}
+Support monotonicity gives $S_0\subseteq\cdots\subseteq S_K$, although only
+the volume bound is needed.  By \cref{thm:width-resolution} and
+$\vol(S_k)\leq1/\rho_k$, the solve and boundary check at rung $k$ cost
+$O((w+1)^2/\rho_k)$.  Reverse the geometric sum from the last rung:
+\begin{equation}
+ \sum_{k=0}^K\frac1{\rho_k}
+ =\frac1{\rho_K}\sum_{j=0}^K\lambda_\alpha^{sj}
+ \leq\frac1{\rho_K(1-\lambda_\alpha^s)}.
+ \label{eq:regularization-volume-sum}
+\end{equation}
+The constant-time single-seed checks contribute $O(K)$, which is dominated
+by the displayed bound when $\rho_0\leq1$.  Finally,
+\begin{equation}
+ \frac1{1-\lambda_\alpha}
+ =\frac{1+\sqrt\alpha}{2\sqrt\alpha},
+ \qquad
+ \frac1{1-\lambda_\alpha^2}
+ =\frac{(1+\sqrt\alpha)^2}{4\sqrt\alpha},
+ \label{eq:path-ledger-factor}
+\end{equation}
+which proves the final order for both allowed values of $s$.
+\end{proof}
+
+\begin{corollary}[End-to-end target reduced to support discovery]
+\label{cor:discovery-reduction}
+If, at each rung of \cref{eq:regularization-ladder}, an online procedure
+discovers $S_k$ and a width-$w$ ordering using
+$O((w+1)^2\vol(S_k))$ additional work, then the complete continuation method
+has
+\begin{equation}
+ \Work
+ =O\!\left(\frac{(w+1)^2}{\rho_K\sqrt\alpha}\right).
+ \label{eq:end-to-end-support-target}
+\end{equation}
+On forest instances this matches the repository's
+$1/(\rho\sqrt\alpha)$ persistent-support product scale, up to constants,
+under a different, explicitly elimination-aware algorithm.
+\end{corollary}
+
+\begin{proof}
+Add the assumed discovery cost to the exact-solve cost rung by rung and reuse
+the geometric sum \cref{eq:regularization-volume-sum}.
+\end{proof}
+
+The support-oracle qualifier is essential.  This theorem does not contradict
+the repository's persistent-support one-hop lower bound: it is a direct
+elimination result after the free boundary has been supplied, whereas that
+lower bound charges the history needed to expose the boundary.  The theorem
+therefore localizes the remaining difficulty to \emph{discovery}, not the
+linear algebra of terminal cleanup.

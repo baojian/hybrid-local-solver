@@ -1,0 +1,129 @@
+\section{Absorption-safe causal switching}
+\label{sec:absorption-switching}
+
+Exact settlement supplies a canonical checkpoint at which changing policies
+requires neither cloning nor restart.  The cleanest theorem is for RPPR,
+whose support gate is already compatible with the shared source model.
+Define the shifted load
+\begin{equation}
+ \ell_\rho:=b-\alpha\rho D^{1/2}\one.
+ \label{eq:adaptive-shifted-load}
+\end{equation}
+For a nonempty region $U$, its canonical restricted point is
+\begin{equation}
+ x[U]_U:=Q_{UU}^{-1}(\ell_\rho)_U,
+ \qquad
+ x[U]_{U^c}:=0.
+ \label{eq:adaptive-canonical-point}
+\end{equation}
+At this checkpoint, define the boundary-violation set
+\begin{equation}
+ \mathcal B(U):=
+ \left\{v\in\partial U:
+  (\ell_\rho-Qx[U])_v>0
+ \right\}.
+ \label{eq:adaptive-boundary-violations}
+\end{equation}
+
+\begin{theorem}[Absorption-safe adaptive boundary gate]
+\label{thm:absorption-safe-switch}
+Assume a single seed $o$ and $(\ell_\rho)_o>0$.  Start with $U_0=\{o\}$.
+At checkpoint $k$, a causal controller may use the entire work and revisit
+history to choose any nonempty subset
+\begin{equation}
+ \varnothing\neq B_k\subseteq\mathcal B(U_k)
+ \label{eq:adaptive-subset}
+\end{equation}
+when $\mathcal B(U_k)$ is nonempty, and set
+$U_{k+1}:=U_k\cup B_k$.  It may change its ranking, relaxation, batching, or
+proposal policy arbitrarily between checkpoints.  After every expansion,
+replace the current iterate by the canonical point $x[U_{k+1}]$.
+
+Then:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+ \item every $U_k$ lies in the true support $S^\star(\rho)$;
+ \item every newly added coordinate is positive at the next checkpoint;
+ \item the checkpoint $x[U_k]$ depends only on $U_k$, so every earlier
+ propagation and policy choice is absorbed exactly;
+ \item the process terminates after at most
+ $|S^\star(\rho)|-|U_0|$ expansions; and
+ \item at termination, $x[U_K]=x^\star(\rho)$.
+\end{enumerate}
+Thus policy switching at exact checkpoints is correct on one irreversible
+state and needs no cross-policy state-transfer assumption.
+\end{theorem}
+
+\begin{proof}
+The matrix $Q$ is a symmetric positive-definite Stieltjes matrix, so every
+principal inverse and every principal Schur-complement inverse is
+entrywise nonnegative.  At $U_0$, the positive seed load gives
+$x[U_0]_o>0$.  It also forces $o\in S^\star(\rho)$: otherwise the inactive
+KKT inequality would contradict $(\ell_\rho)_o>0$.  Suppose
+$x[U_k]_{U_k}>0$ and choose
+$B_k$ as in \eqref{eq:adaptive-subset}.  Block elimination gives
+\begin{equation}
+ x[U_{k+1}]_{B_k}
+ =
+ \left(
+  Q_{B_kB_k}
+  -Q_{B_kU_k}Q_{U_kU_k}^{-1}Q_{U_kB_k}
+ \right)^{-1}
+ (\ell_\rho-Qx[U_k])_{B_k}>0.
+ \label{eq:adaptive-schur-positive}
+\end{equation}
+The old coordinates receive
+$-Q_{U_kU_k}^{-1}Q_{U_kB_k}x[U_{k+1}]_{B_k}\geq0$, so positivity persists.
+
+For support containment, assume inductively $U_k\subseteq S^\star(\rho)$.
+Order comparison gives
+$x[U_k]_{U_k}\leq x^\star_{U_k}$.  If
+$v\in\mathcal B(U_k)$ but $x_v^\star=0$, then the Stieltjes off-diagonal
+signs and $x^\star\geq0$ imply
+\[
+ (\ell_\rho-Qx^\star)_v
+ \geq(\ell_\rho-Qx[U_k])_v>0,
+\]
+contradicting the inactive RPPR KKT inequality.  Hence every boundary
+violation lies in $S^\star(\rho)$.
+
+The formula \eqref{eq:adaptive-canonical-point} is unique, proving absorption
+and policy independence at a fixed $U_k$.  Each nonterminal checkpoint adds
+at least one new true-support vertex, so the number of expansions is finite.
+If $\mathcal B(U_K)$ is empty, the restricted equations give the active KKT
+equalities.  On a boundary coordinate, the stopping test gives
+$\ell_\rho-Qx[U_K]\leq0$; also $b_v=0$ and the Stieltjes signs give
+$b_v-(Qx[U_K])_v\geq0$.  These are exactly the lower and upper inactive RPPR
+KKT inequalities.  A nonseed coordinate outside
+$U_K\cup\partial U_K$ has no edge to $U_K$, so $Qx[U_K]=b_v=0$ there and its
+inactive KKT interval holds as well.  The seed already lies in $U_K$.
+The global KKT conditions and uniqueness imply
+$x[U_K]=x^\star(\rho)$.
+\end{proof}
+
+\begin{corollary}[Revisit-controlled no-reset switching]
+\label{cor:no-reset-switching}
+In \Cref{thm:absorption-safe-switch}, let any number of proposal or
+propagation policies run between checkpoints, but charge all of their work
+to the bank of \Cref{thm:revisit-bank}.  Require charged row operations to
+remain inside the current certified region together with coordinates already
+admitted by the exact boundary certificate.  If an operation would overdraw
+the bank, settle that certified region and switch policy at the canonical
+checkpoint.  At every nonterminal checkpoint, still admit a nonempty subset
+of the exact boundary violations as in \eqref{eq:adaptive-subset}.
+Correctness is independent of the switch sequence, and the work obeys
+\eqref{eq:banked-propagate-work} whenever the stated settlement-cost bound
+holds.
+\end{corollary}
+
+\begin{proof}
+The bank supplies the per-epoch propagation bound.  Exact settlement absorbs
+the policy history, while \Cref{thm:absorption-safe-switch} supplies support
+containment and correctness.  Apply
+\Cref{cor:banked-propagate-settle}.
+\end{proof}
+
+This is a genuine no-reset switch theorem, but not yet a best-arm competitive
+one.  It proves that revisit-triggered switching is state-compatible and
+work-capped.  Matching the fastest arm still requires bounding
+$\mathfrak R_{\rm set}$, maintaining incremental Schur state, or proving that
+pre-switch work is useful to the arm chosen next.

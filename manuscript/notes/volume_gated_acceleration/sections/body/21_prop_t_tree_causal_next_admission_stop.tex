@@ -1,0 +1,606 @@
+\begin{proposition}[An asymmetric T tree defeats recovery before the next admission]
+\label{prop:t-tree-causal-next-admission-stop}
+Let $G$ be the six-vertex tree with seed $0$, edge set
+\begin{equation}
+ \{(0,1),(1,2),(2,3),(2,4),(4,5)\},
+ \qquad
+ (d_0,d_1,d_2,d_3,d_4,d_5)=(1,2,3,1,2,1),
+ \label{eq:t-tree-witness}
+\end{equation}
+and use the exact transported-center recurrence and complete all-boundary gate
+with
+\[
+ q=\frac15,
+ \qquad
+ \alpha=\rho=\tau=\frac1{25}.
+\]
+Every proximal candidate in the resulting execution is strictly positive, so
+no displayed event is caused by projection clipping.  The exact chronology is
+\begin{center}
+\small
+\begin{tabular}{@{}ccl@{}}
+\toprule
+Stage & Action & New vertex, when present \\
+\midrule
+$1,2$ & admit & $1,2$ \\
+$3$ & hold & --- \\
+$4$ & admit & $3$ \\
+$5$--$8$ & hold & --- \\
+$9$ & admit & $4$ \\
+$10$--$14$ & hold & --- \\
+$15$ & admit & $5$ \\
+$16$ & hold & --- \\
+$17$ & certify & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+In particular, at stage $4$ the two exposed branch vertices satisfy
+\begin{align}
+ \frac{\kappa_3}{\sqrt{d_3}}
+ &=-\frac{734335307}{179791015625}< -\frac1{625},
+ &
+ \frac{\kappa_4}{\sqrt{d_4}}
+ &=-\frac{223334841}{179791015625}> -\frac1{625},
+ \label{eq:t-tree-stage-four-gates}
+\end{align}
+so only vertex $3$ is admitted.  Vertex $4$ is first admitted at stage $9$,
+when
+\begin{equation}
+ \frac{\kappa_4}{\sqrt{d_4}}
+ =-\frac{8110851051223533}{4315546221923828125}
+ <-\frac1{625}.
+ \label{eq:t-tree-stage-nine-gate}
+\end{equation}
+The symmetric one-cell Schur load and pivot at the two admissions are
+\begin{align}
+ (r_4,S_4)&=\left(\frac{167}{23725},\frac{7681}{23725}\right),
+ &
+ \Delta_4=\frac{r_4^2}{2S_4}
+ &=\frac{27889}{364463450},
+ \notag\\
+ (r_9,S_9)&=\left(\frac{46594}{4800625},\frac{139178}{192025}\right),
+ &
+ \Delta_9=\frac{r_9^2}{2S_9}
+ &=\frac{542750209}{8351767328125}.
+ \label{eq:t-tree-schur-drops}
+\end{align}
+
+Restart the causal score ledger of
+\cref{eq:causal-face-score,eq:causal-recovery-update} at the held stage-$3$
+checkpoint with $\mathcal C_3=0$.  It becomes negative after the first
+admission's follow-up:
+\begin{equation}
+ \mathcal C_5
+ =-\frac{8829125916972234811}
+ {272095189292297363281250}<0.
+ \label{eq:t-tree-stage-five-stop}
+\end{equation}
+That debt does not close before the next admission.  Immediately before its
+stage-$9$ Schur credit,
+\begin{equation}
+ \mathcal C_{9^-}
+ =-\frac{68219046926175800933507563}
+ {310358575286526679992675781250}<0,
+ \label{eq:t-tree-stage-nine-pre-stop}
+\end{equation}
+and even after the exact drop $\Delta_9$ is realized,
+\begin{equation}
+ \mathcal C_{9^+}
+ =-\frac{33486740471411901479718569}
+ {216293380225071907043457031250}<0.
+ \label{eq:t-tree-stage-nine-post-stop}
+\end{equation}
+Every reviewed endpoint from stage $5$ through stage $13$ remains negative;
+in particular,
+\begin{equation*}
+ \mathcal C_{13}
+ =-\frac{220753636757299555076490300790138006712609}
+ {3633844350039167829883681610226631164550781250}<0.
+\end{equation*}
+The next held endpoint is the first local GO:
+\begin{equation}
+ \mathcal C_{14}
+ =\frac{1413547795978281227785235568281109142219549159}
+ {20440374468970319043095709057524800300598144531250}>0.
+ \label{eq:t-tree-stage-fourteen-go}
+\end{equation}
+Thus stage $13$ is the last local ledger STOP and stage $14$ the first local
+ledger GO.  In particular, the assertion that every restarted negative block
+recovers before its next safe admission is false for this named exact
+recurrence and gate.
+
+The complete finite execution has
+\begin{equation}
+ J=5,
+ \qquad T=17,
+ \qquad \nu_{\rm fin}=10,
+ \qquad n_{\rm fin}=6,
+ \qquad \mathfrak V_T=125.
+ \label{eq:t-tree-finite-ledger}
+\end{equation}
+The scalar audit adds one persistent exact cell and constant control arithmetic
+per checkpoint only after the complete gate has materialized $\delta$ and an
+admission backend has materialized $\Delta$.  No eleven-coordinate resource
+vector is asserted here: the append-only path response and its path-specific
+read/write accounting do not automatically extend through the branch in
+\cref{eq:t-tree-witness}.
+\end{proposition}
+
+\begin{proof}
+Use normalized coordinates $z=D^{-1/2}x$.  On every active set $U$, exact
+Gaussian elimination solves the restricted stationarity system
+\[
+ \left(D^{-1/2}QD^{1/2}\right)_{UU}z_U
+ =\alpha(\mathbf 1_{\{0\}}-\rho\mathbf 1)_U.
+\]
+Substitution in the transported-center update, followed by the complete
+active and boundary gate, gives the displayed chronology.  Direct exact
+evaluation of the two stage-$4$ boundary rows proves
+\cref{eq:t-tree-stage-four-gates}; the same calculation at stage $9$ proves
+\cref{eq:t-tree-stage-nine-gate}.  The strict positivity of every candidate
+checks that these are the literal unprojected recurrence values.
+
+For either one-vertex admission, pad the old restricted optimum by zero and
+write the symmetric normalized objective matrix in old/new block form.  Its
+new-cell gradient magnitude and Schur pivot are $(r_j,S_j)$, so exact block
+elimination gives $\Delta_j=r_j^2/(2S_j)$.  This yields
+\cref{eq:t-tree-schur-drops} independently of subtracting the two restricted
+objective values.
+
+Here $\Xi_3=0$.  Therefore the causal identity
+\cref{eq:causal-recovery-invariant} reads
+\[
+ \mathcal C_k=\sum_{j\leq k:\,j\text{ admitted}}\Delta_j-\Xi_k,
+\]
+with the current admission omitted at a pre-reset checkpoint.  Exact squaring
+and substitution give
+\cref{eq:t-tree-stage-five-stop,eq:t-tree-stage-nine-pre-stop,%
+eq:t-tree-stage-nine-post-stop,eq:t-tree-stage-fourteen-go}.  Positive-
+denominator comparisons show that every stage-$5$--$13$ balance is negative,
+whereas stage $14$ is positive.  Summing the ambient active volumes along the
+displayed chronology gives $125$, proving
+\cref{eq:t-tree-finite-ledger}.
+\end{proof}
+
+\paragraph{Exact scope and computational scaffolding.}
+This is a finite exact-real counterexample for the named graph, seed, phase
+origin, recurrence, complete gate, and canonical simultaneous boundary-batch
+rule.  It refutes only a uniform per-block recovery-before-the-next-admission
+claim.  It does not refute the all-history balance, which may contain credits
+from stages before the chosen restart; it proves no convergence failure,
+objective lower bound, asymptotic chronology or work bound, alternate-order
+claim, finite-precision result, or nonpath response complexity.  The exact
+checker also exhausts all $3806$ connected labeled rooted graphs on two
+through five vertices under this same test and finds no smaller witness.  A
+separate reviewed graph-atlas sweep found its first six-vertex witnesses
+isomorphic to \cref{eq:t-tree-witness} and edge-minimal among connected
+six-vertex witnesses.  Because those finite searches are computational
+minimality evidence rather than proof ingredients, none of these minimality
+claims is part of the proposition.
+
+The maximizer may keep moving, but its value can be controlled without
+locating it.  The next theorem gives the first uniform chronology upper bound
+for this exact constant-ratio execution.  It preserves one logarithm and
+therefore does not prove the sampled power laws.
+
+\begin{theorem}[Moving-maximum soft chronology upper bound]
+\label{thm:path-moving-max-soft-upper}
+Under the hypotheses and for the exact execution of
+\cref{prop:path-constant-ratio-floor}, define
+\begin{equation}
+ \mathcal E_{\rm gate}(q)
+ :=\frac{q^{12}}{50(1+q^2)^2},
+ \qquad
+ K_q:=\left\lceil
+ \frac{\log\!\left(50(1+q^2)^2q^{-10}\right)}
+      {-\log(1-q)}
+ \right\rceil.
+ \label{eq:path-moving-max-block-length}
+\end{equation}
+Every visited prefix face undergoes at most $K_q$ consecutive fixed-face
+steps before either the complete all-violations gate admits its immediate
+successor or the global one-sided certificate holds.  Consequently,
+\begin{align}
+ T_q
+ &\leq (J_q+1)K_q
+ \leq\left(\frac5q+1\right)K_q
+ =\bigO\!\left(q^{-2}\log\frac1q\right),
+ \label{eq:path-moving-max-stage-upper}\\
+ \mathfrak V_{T_q}
+ &\leq\frac5qT_q
+ =\bigO\!\left(q^{-3}\log\frac1q\right).
+ \label{eq:path-moving-max-volume-upper}
+\end{align}
+For the named literal full-prefix exact-cell implementation with one terminal
+external certificate/output return, the resulting eleven-coordinate upper
+ledger is
+\begin{equation}
+ \begin{aligned}
+ (&C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ =\bigl(&\Theta(q^{-1}),\Theta(q^{-1}),1,0,
+ O(q^{-3}\log(1/q)),O(q^{-3}\log(1/q)),
+ O(q^{-3}\log(1/q)),\\
+ &\Theta(q^{-1}),O(q^{-1}),O(q^{-3}\log(1/q)),
+ \Theta(q^{-1})\bigr).
+ \end{aligned}
+ \label{eq:path-moving-max-eleven-upper}
+\end{equation}
+The bounds hold regardless of how often or where the correction maximizer
+switches.  They do not prove $T_q=\Theta(q^{-2})$ or
+$\mathfrak V_{T_q}=\Theta(q^{-3})$.  Removal of the logarithm, whether by a
+uniform fixed-face argument or by an aggregate potential, and matching global
+lower powers remain open.
+\end{theorem}
+
+\begin{proof}
+Write $x_{U}^{\star}$ for the interior restricted optimum on a visited path
+prefix $U$.  Interiority holds at the seed face and is preserved by every
+strong path admission, as in the proof of
+\cref{prop:path-implicit-transport-ledger}.  At every post-transport state,
+the weighted Schur ledger and its unweighted telescope imply
+\begin{align}
+ \mathcal E_U(x,v)
+ &\leq \mathcal E_{U_0}(0,0)
+       +G_\rho(x_{U_0}^{\star})-G_\rho(x_U^{\star})\notag\\
+ &=G_\rho(0)-G_\rho(x_U^{\star})
+   +\frac{\alpha}{2}\norm{x_{U_0}^{\star}}_2^2
+ \leq q^2.
+ \label{eq:path-moving-max-energy-cap}
+\end{align}
+Indeed, on this endpoint-seeded path the positive part of $c_\rho$ consists
+only of the seed entry and has Euclidean norm at most $\alpha$.  Since
+$Q\succeq\alpha I$ and feasible vectors are nonnegative,
+\begin{equation*}
+ G_\rho(0)-G_\rho(x_\rho^\star)
+ \leq\frac{\norm{(c_\rho)_+}_2^2}{2\alpha}
+ \leq\frac{q^2}{2}.
+\end{equation*}
+Moreover
+$x_{U_0}^{\star}=\alpha(1-\rho)/a$ with $a=(1+q^2)/2$, so its center term is
+at most $2q^6\leq q^2/2$ for $q\leq1/4$.  Restricted optimality and
+$G_\rho(x_U^\star)\geq G_\rho(x_\rho^\star)$ prove the last inequality in
+\cref{eq:path-moving-max-energy-cap}.
+
+Now put
+\begin{equation*}
+ p:=D_U^{-1/2}x,
+ \qquad p^\star:=D_U^{-1/2}x_U^\star,
+ \qquad e:=\norm{p-p^\star}_\infty.
+\end{equation*}
+The normalized active KKT operator is
+\begin{equation*}
+ \widehat Q_U:=D_U^{-1/2}Q_{UU}D_U^{1/2}.
+\end{equation*}
+Every row of $\widehat Q_U$ has diagonal magnitude
+$a=(1+q^2)/2$ and off-diagonal absolute row sum at most
+$\eta=(1-q^2)/2$.  Hence
+$\norm{\widehat Q_U}_{\infty\to\infty}\leq a+\eta=1$.  Because
+$\kappa_{\rho,U}(x_U^\star)=0$, the moving correction obeys the pointwise
+bound
+\begin{equation}
+ \delta(x)
+ \leq\frac{e}{q^2}.
+ \label{eq:path-moving-max-delta-energy-a}
+\end{equation}
+The normalized safe envelope is $[p-\delta(x)\one]_+$, and $p^\star\geq0$;
+therefore
+\begin{equation}
+ \norm{D_U^{-1/2}(\ell-x_U^\star)}_\infty
+ \leq (1+q^{-2})e.
+ \label{eq:path-moving-max-envelope-error}
+\end{equation}
+Finally, the quadratic gap in $\mathcal E_U$ is at least
+$\alpha\norm{x-x_U^\star}_2^2/2$.  Since every path degree is at least one,
+\begin{equation}
+ e\leq\frac{\sqrt{2\mathcal E_U(x,v)}}q.
+ \label{eq:path-moving-max-delta-energy-b}
+\end{equation}
+
+If $\mathcal E_U(x,v)\leq\mathcal E_{\rm gate}(q)$, then
+\cref{eq:path-moving-max-envelope-error,eq:path-moving-max-delta-energy-b}
+give
+\begin{equation*}
+ \norm{D_U^{-1/2}(\ell-x_U^\star)}_\infty
+ \leq\frac{q^3}{5}=\alpha\tau.
+\end{equation*}
+Applying the same unit row-sum bound to the active KKT vector shows that every
+active row satisfies
+$\kappa_{\rho,i}(\ell)/\sqrt{d_i}\geq-\alpha\tau$.
+On a path prefix, every exterior row beyond the immediate successor has
+normalized KKT value $\alpha\rho>0$.  The immediate successor is therefore
+either a strong violation and is admitted by the complete gate, or it too
+satisfies the one-sided threshold, in which case
+\cref{eq:global-certificate} holds.  This conclusion uses the maximum over
+the whole old face through \cref{eq:path-moving-max-delta-energy-a}; it never
+assumes that its maximizer is the frontier or the seed.
+
+During $k$ consecutive steps on one fixed face,
+\cref{lem:fixed-face-estimate-center} and
+\cref{eq:path-moving-max-energy-cap} give
+\begin{equation*}
+ \mathcal E_U(x_k,v_k)\leq(1-q)^kq^2.
+\end{equation*}
+The definition of $K_q$ makes the right-hand side at most
+$\mathcal E_{\rm gate}(q)$.  Hence a face cannot survive more than $K_q$
+steps without admission or termination.  There are $J_q+1$ visited faces and
+$J_q\leq1/\rho=5/q$, proving
+\cref{eq:path-moving-max-stage-upper}.  Safe support also gives
+$\vol(U_t)\leq1/\rho=5/q$ at every stage, which proves
+\cref{eq:path-moving-max-volume-upper}.  Since
+$-\log(1-q)\geq q$, one has
+$K_q=\bigO(q^{-1}\log(1/q))$ uniformly for $0<q\leq1/4$.
+Substitution into \cref{eq:path-constant-ratio-eleven-vector}, together with
+$J_q,\nu_{\rm fin}=\Theta(q^{-1})$, proves
+\cref{eq:path-moving-max-eleven-upper}.
+\end{proof}
+
+\paragraph{Exact scope of the upper bound.}
+The theorem concerns only the named zero-start, internally gated,
+transported-center exact-real execution on finite endpoint paths and its
+literal full-prefix implementation.  It retains one terminal external return
+and the note-scoped PPR error $\rho+\tau=2q/5$ from
+\cref{prop:path-constant-ratio-floor}.  It neither proves a lower bound at
+the displayed upper powers nor applies to the literal zero-padded recurrence,
+branching or cyclic graphs, intermediate external emissions, finite-precision
+arithmetic, numerical stability, or bit complexity.
+
+\paragraph{Audited terminal-face candidate: exact roots and finite scaffolding.}
+Fix an integer $m\geq2$ and put
+\begin{equation}
+ q_m:=\frac1{16m},
+ \qquad
+ \alpha_m:=q_m^2,
+ \qquad
+ \rho_m=\tau_m:=\frac{q_m}{5}.
+ \label{eq:path-terminal-candidate-parameters}
+\end{equation}
+The candidate uses the zero-start, internally gated, transported-center
+algorithm and parameter ratio studied in \cref{sec:path-constant-ratio}, but
+runs it on the complete endpoint-seeded path
+$P_m=(v_0,\ldots,v_m)$, with ambient degrees, the complete all-violations
+gate, and one terminal external certificate/output return.  It is not an
+instance of \cref{prop:path-constant-ratio-floor}, whose path-length premise
+is longer; the finite trajectory is replayed directly below.
+The open question is whether its final full-path face can require
+$\Omega(q_m^{-1}\log(1/q_m))$ consecutive steps.  The following conditional
+calculation is rigorous, but it does not answer that question.
+
+\begin{lemma}[Conditional characteristic roots on a full path face]
+\label{lem:path-full-face-linearized-roots}
+Let the current face be all of $P_m$, and consider consecutive fixed-face
+steps of \cref{eq:center-prox-step,eq:center-update} on which the
+nonnegativity projection is inactive.  Set
+\begin{equation*}
+ \begin{aligned}
+ a&:=\frac{1+q^2}{2},
+ &\eta&:=\frac{1-q^2}{2},
+ &P_{\mathrm{row},m}&:=D^{-1}A=P^\top,\\
+ \widehat Q&:=D^{-1/2}QD^{1/2}
+             =aI-\eta P_{\mathrm{row},m},
+ &B&:=I-\widehat Q.
+ \end{aligned}
+\end{equation*}
+For the affine normalized residual states
+\[
+ r_k^x:=D^{-1/2}(Qx_k-c_\rho),
+ \qquad
+ r_k^v:=D^{-1/2}(Qv_k-c_\rho),
+\]
+one fixed-face step obeys
+\begin{equation}
+ r_{k+1}^x
+ =\frac{B}{1+q}(r_k^x+q r_k^v),
+ \qquad
+ q r_{k+1}^v=r_{k+1}^x-(1-q)r_k^x.
+ \label{eq:path-full-face-two-state}
+\end{equation}
+Consequently, for $k\geq1$,
+\begin{equation}
+ r_{k+1}^x
+ =B\left(
+   \frac{2}{1+q}r_k^x
+   -\frac{1-q}{1+q}r_{k-1}^x
+ \right).
+ \label{eq:path-full-face-residual-recurrence}
+\end{equation}
+Here $P=AD^{-1}$ is the shared column-walk convention.  The eigenvalues of
+$P_{\mathrm{row},m}$ are
+$\mu_h=\cos(h\pi/m)$, $0\leq h\leq m$.  On the $h$th cosine mode, the two
+characteristic roots of \cref{eq:path-full-face-residual-recurrence} are
+\begin{equation}
+ \zeta_h^\pm
+ =(1-q)\cos\!\left(\frac{h\pi}{2m}\right)
+  \exp\!\left(\pm\frac{\mathrm i h\pi}{2m}\right).
+ \label{eq:path-full-face-linearized-roots}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Inactivity of the projection gives
+$x_{k+1}=y_k-(Qy_k-c_\rho)$.  Since
+$y_k=(x_k+qv_k)/(1+q)$ and the affine coefficients sum to one,
+normalization yields the first identity in
+\cref{eq:path-full-face-two-state}.  Multiplying the center update by $q$
+gives $qv_{k+1}=x_{k+1}-(1-q)x_k$, which yields its second identity.
+Eliminating $r_k^v$ proves
+\cref{eq:path-full-face-residual-recurrence}.
+
+For $\theta_h=h\pi/m$, the $h$th eigenvalue of $B$ is
+\[
+ b_h=\eta(1+\cos\theta_h)
+     =(1-q^2)\cos^2(\theta_h/2).
+\]
+The scalar characteristic polynomial is therefore
+\[
+ z^2-2(1-q)\cos^2(\theta_h/2)z
+ +(1-q)^2\cos^2(\theta_h/2),
+\]
+whose roots are exactly
+\cref{eq:path-full-face-linearized-roots}.
+\end{proof}
+
+\paragraph{Finite exact scaffolding.}
+The direction-local script \texttt{check\_round013.py} uses rational
+arithmetic for
+\[
+ (m,q_m)\in\{(2,1/32),(4,1/64),(8,1/128)\}.
+\]
+For those three individual instances it replays the actual zero-start
+complete all-violations gate, verifies respectively $m$ successive singleton
+admissions, checks \cref{eq:path-full-face-two-state} exactly on the terminal
+face, and verifies inactive projection, an unclipped moving global envelope,
+and non-certification for respectively $16$, $32$, and $64$ terminal steps.
+The checker inspects these internal prefixes and makes no intermediate
+external return.  These are finite exact witnesses only: the tested terminal
+length is $1/(2q_m)$, not the conjectured
+$\Theta(q_m^{-1}\log(1/q_m))$ range, and three sizes supply no asymptotic
+inequality.
+
+\paragraph{Failed lower-bound audit and rigorous GO/STOP.}
+An earlier draft promoted the candidate to a logarithmic lower theorem.  Two
+independent audits rejected that promotion.  The characteristic roots specify
+conditional propagation but not the cosine coefficients of the actual state
+upon entry to the full face.  No uniform lower bound on a surviving mode or
+anti-cancellation estimate for the moving residual range was derived.
+In particular, deleting nonpositive packet fragments is not monotone for
+oscillation.  The proposed rapid-front Pascal induction also omitted explicit
+base and endpoint-row derivations, and neither projection inactivity nor the
+unclipped-envelope margin was proved uniformly through
+$k_0=\Theta(q_m^{-1}\log(1/q_m))$.
+
+Thus there is no proved terminal logarithmic block, no asymptotic lower
+eleven-vector, and no refutation of a uniform
+$K_{\rm face}=O(q^{-1})$ bound.  The existing upper ledger
+\cref{eq:path-moving-max-eleven-upper} remains the only rigorous
+constant-ratio chronology ledger.  A valid lower-bound GO must derive the
+literal full-face entry coefficients, prove the actual zero-start
+all-violations trajectory remains in the conditional regime through $k_0$,
+and establish a moving-global-residual range lower bound with explicit
+anti-cancellation.  The alternative GO is an admission-specific energy,
+normalized-error, or space--time potential proving
+$K_{\rm face}=O(q^{-1})$, $T=O(q^{-2})$, and
+$\mathfrak V_T=O(q^{-3})$.  Either route must retain the full moving global
+correction; a frontier or seed surrogate is not admissible.
+
+The exact STOP in
+\cref{prop:path-monotone-correction-potential-fails} additionally rules out
+treating the correction itself as monotone held-face debt or replacing the
+reviewed pointwise factor $q^{-2}$ by the displayed coefficient-one
+$q^{-1}$ factor.  It does not rule out a nonmonotone or phase-aware aggregate
+argument.  The next explicit attempt
+$\Phi_t^{\rm bank}=\delta_t+q^{-1}e_t$ does absorb the stage-$6$--$7$ spike,
+but \cref{prop:path-correction-error-bank-potential-fails} refutes its
+held-pair monotonicity at stages $9$--$10$.  That finite STOP leaves longer
+blocks and cross-face amortization open.  Moreover,
+\cref{prop:path-no-constant-coefficient-bank} derives the exact local
+coefficient constraints from both pairs and proves that no fixed
+$c\geq0$ makes $\delta_t+cq^{-1}e_t$ nonincreasing on both.  This pairwise
+incompatibility does not define a global block horizon or exclude a
+time-varying, face-dependent, or signed-phase rule.  The canonical endpoint
+test in \cref{prop:path-tight-pair-schur-bank} gives one finite positive
+reset identity: after squaring the bank, the exact stage-$8$ coefficient
+switch and optimum reset are paid by the restricted-optimum drop.  Its raw
+linear version fails the same unit-shock comparison.  This keeps held-face
+evolution and the frozen-candidate reset separate.  The extension in
+\cref{prop:path-tight-pair-local-chain-stop} now evaluates both adjacent
+fixed-face steps: the squared-bank-plus-reserve account already rises on the
+candidate-producing step $7\to8^-$, falls across the paid reset, rises again
+from $8^+$ to $9$, and has positive net stage-$7$--$9$ change.  Both
+adjacent-step failures persist throughout the held-pair-feasible coefficient
+rectangle.  This closes that pointwise local-chain attempt, not longer
+aggregate blocks or a multi-face telescope.  The first tested longer account
+in \cref{prop:path-tight-pair-recovery-block} is positive but finite: it
+accumulates only the subsequent fixed-$U_4$ squared-bank decreases.  The
+reserve is insufficient through stage $12$ and first pays at stage $13$,
+giving a rectangle-uniform $7\to13$ endpoint decrease.  This stage-$7$--$13$
+single-admission block neither supplies a face-general closing time nor
+iterates across admissions.
+The causal condition in
+\cref{prop:path-causal-two-admission-recovery} supplies the next exact
+interface without claiming such a time bound.  Its score $\Xi=\delta^2$ is
+observable on every face, and its balance credits only already computed score
+decreases and already realized restricted-optimum drops while debiting every
+increase.  On the same trace, unused stage-$4$ credit remains solvent through
+the next canonical admission at stage $8$; without that cross-state carry, the
+stage-$8$ account first recovers at stage $12$.  This is a finite conditional
+scalar-ledger GO and an exact cross-state cancellation, not a convergence or
+work certificate and not a proof that another graph,
+face, order, or admission sequence has nonnegative balance.  The asymmetric
+T-tree calculation in
+\cref{prop:t-tree-causal-next-admission-stop} closes precisely that next
+falsification target: after restarting at stage $3$, its debt is still
+negative before and after the next admission.  It retires uniform
+recovery-before-the-next-admission for this recurrence, while leaving an
+all-history ledger and graph-structural solvency conditions open.
+
+\paragraph{Numerical scaffolding, not a theorem.}
+An independent floating-point implementation of the same recurrence returned
+\begin{center}
+\begin{tabular}{@{}c|rrrr@{}}
+$q$ & $J$ & $T$ & $\mathfrak V_T$ &
+$(qJ,q^2T,q^3\mathfrak V_T)$\\
+\midrule
+$1/8$  & $7$  & $39$   & $423$    & $(0.875,0.609,0.826)$\\
+$1/16$ & $16$ & $168$  & $3978$   & $(1.000,0.656,0.971)$\\
+$1/32$ & $34$ & $772$  & $42106$  & $(1.063,0.754,1.285)$\\
+$1/64$ & $71$ & $3257$ & $363001$ & $(1.109,0.795,1.385)$
+\end{tabular}
+\end{center}
+These values motivate the open matching global lower bounds and a possible
+aggregate removal of the logarithm in
+\cref{thm:path-moving-max-soft-upper}.  They are not used in any theorem and
+do not prove that the sampled constants or exact power laws persist as
+$q\downarrow0$.  The audited short-path candidate above likewise supplies no
+asymptotic terminal-face lower bound.
+
+\begin{conjecture}[One-sided expanding-subspace acceleration]
+\label{conj:one-sided-continuation}
+For the recurrence \cref{eq:dynamic-y,eq:dynamic-step,eq:dynamic-gate}, or for
+a closely related projected Chebyshev recurrence, universal constants $C,c>0$
+exist such that
+\begin{equation}
+ \norm{D^{-1/2}(x_\rho^\star-\ell^{(t)})}_\infty
+ \leq C\exp(-c\sqrt\alpha\,t)+\tau.
+ \label{eq:desired-continuation}
+\end{equation}
+\end{conjecture}
+
+If \cref{conj:one-sided-continuation} holds, then
+\begin{equation}
+ t=\bigO\!\left(\frac1{\sqrt\alpha}\log\frac1\tau\right),
+ \qquad
+ \mathcal W
+ =\bigO\!\left(
+   \frac1{\rho\sqrt\alpha}\log\frac1\tau
+ \right).
+ \label{eq:conditional-final}
+\end{equation}
+With $\rho=\tau=\epsppr/2$, this is the sought
+$\softO(1/(\sqrt\alpha\epsppr))$ bound.
+
+\paragraph{Why existing analyses do not immediately prove it.}
+The nonhomogeneous \LOCCH{} formula of \citet{zhou2024} controls a full signed
+inactive residual.  The safe gate controls only the negative part of the KKT
+residual at a corrected lower envelope.  Outside the optimal support, positive
+KKT slack can be dense and is harmless for the obstacle problem, but it enters
+a two-sided residual norm.  Energy contraction alone also does not imply the
+uniform active-volume invariant.  Finally, \cref{prop:shock} supplies an
+upper perturbation bound only with a possible $1/\alpha$ loss.
+
+\paragraph{A weaker sufficient target.}
+It is enough to strengthen \cref{thm:amortized} so that discrete expansion
+overhead is charged to newly admitted volume:
+\begin{equation}
+  \mathcal W_{\mathrm{exp}}
+  \leq C\sum_t\vol(U_{t+1}\setminus U_t)
+  \leq\frac{C}{\rho},
+  \label{eq:new-volume-charge}
+\end{equation}
+rather than $N_{\mathrm{exp}}/\rho$.  Combining
+\cref{eq:new-volume-charge} with the continuous telescoping term already gives
+the target up to a logarithm once the number and placement of recurrence
+sweeps are controlled.  Proposition
+\cref{prop:path-implicit-transport-ledger} proves this charge for the
+incremental transport overhead on endpoint paths, but leaves every old-face
+recurrence/response sweep in $\mathfrak V_T$ and does not bound $T$.

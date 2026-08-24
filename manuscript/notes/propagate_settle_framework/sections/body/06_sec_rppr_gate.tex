@@ -1,0 +1,118 @@
+\section{Condition-free RPPR gate with the sharper ledger}
+\label{sec:rppr-gate}
+
+For the single-seed RPPR problem, assume the seed is $o$.  If
+$(\ell_\rho)_o\leq0$, zero satisfies the KKT conditions.  Otherwise start
+$U_0=\{o\}$.  At stage $k$, compute the shifted Dirichlet settlement
+\begin{equation}
+ Q_{U_kU_k}x^k_{U_k}=(\ell_\rho)_{U_k},
+ \qquad x^k_{U_k^c}=0,
+ \label{eq:restricted-rppr-settlement}
+\end{equation}
+and add every boundary violation
+\begin{equation}
+ B_k:=\left\{
+  v\in\partial U_k:
+  b_v-(Qx^k)_v>\alpha\rho\sqrt{d_v}
+ \right\},
+ \qquad U_{k+1}:=U_k\cup B_k.
+ \label{eq:boundary-violation-gate}
+\end{equation}
+Stop when $B_k$ is empty.
+
+\begin{theorem}[Safe exact boundary expansion]
+\label{thm:safe-boundary-expansion}
+Every nonempty batch in \cref{eq:boundary-violation-gate} contains only
+vertices of $S^\star(\rho)$.  The restricted minimizers are coordinatewise
+nondecreasing and bounded above by $x^\star(\rho)$.  The process terminates
+at $x^\star(\rho)$ after finitely many batches.
+\end{theorem}
+
+\begin{proof}
+We first prove inductively that $U_k\subseteq S^\star$,
+$x^k_{U_k}>0$, and $0\leq x^k\leq x^\star$.  At
+$U_0=\{o\}$, the inequality $(\ell_\rho)_o>0$ makes $x_o^0>0$; it also
+forces $o\in S^\star$, since an inactive root would have optimum KKT gradient
+at most $-(\ell_\rho)_o<0$.  Suppose the claims hold at stage $k$ and
+write $B=B_k$.  The Schur complement of $Q_{U_kU_k}$ in
+$Q_{U_k\cup B,U_k\cup B}$ is a positive-definite Stieltjes matrix.  The
+right-hand side obtained after eliminating $U_k$ is
+\[
+ (\ell_\rho)_B-Q_{BU_k}x^k_{U_k}>0
+\]
+coordinatewise by the definition of $B$.  Inverse positivity therefore makes
+every new coordinate strictly positive, and back-substitution can only
+increase the old coordinates.  Thus $x^{k+1}\geq x^k\geq0$.
+
+Since $U_k\subseteq S^\star$ by the induction proved below, the active optimum
+equations and $Q_{U_k,U_k^c}\leq0$ give
+\[
+ Q_{U_kU_k}x^\star_{U_k}
+ =(\ell_\rho)_{U_k}-Q_{U_k,U_k^c}x^\star_{U_k^c}
+ \geq(\ell_\rho)_{U_k}.
+\]
+Multiplication by $Q_{U_kU_k}^{-1}\geq0$ proves
+$x^k\leq x^\star$ on $U_k$, and both sides are nonnegative outside it.
+
+Now consider a violating $v\notin U_k$.  If $x_v^\star=0$, then, using
+nonpositive off-diagonal entries and $x^k\leq x^\star$,
+\[
+ (Qx^\star-\ell_\rho)_v
+ \leq (Qx^k-\ell_\rho)_v<0,
+\]
+contradicting the inactive KKT inequality at $x^\star$.  Hence every added
+vertex belongs to the true support.
+
+If no boundary vertex violates, the active KKT equalities hold on $U_k$ by
+\cref{eq:restricted-rppr-settlement}, and the inactive inequalities hold on
+its boundary: the upper residual bound is the stopping test, while
+$b_v-(Qx^k)_v\geq0$ follows from $b_v=0$, $Q_{vU_k}\leq0$, and
+$x^k_{U_k}>0$.  Every nonseed coordinate outside
+$U_k\cup\partial U_k$ has no edge to $U_k$, value zero, and load
+$(\ell_\rho)_v=-\alpha\rho\sqrt{d_v}<0$, so its inactive KKT inequality also
+holds.  The seed already lies in $U_k$.  Thus the global KKT conditions hold
+and uniqueness gives $x^k=x^\star$.  Otherwise at least one new true-support
+vertex is added, so finiteness follows.
+\end{proof}
+
+\begin{theorem}[Revisit-volume RPPR bound]
+\label{thm:rppr-revisit-bound}
+Let $U_0,\ldots,U_K=S^\star(\rho)$ be the realized regions of exact boundary
+expansion.  If each restricted settlement and boundary update is computed
+with a supplied width-$w$ elimination ordering, then
+\begin{align}
+ \Work_{\rm gate}
+ &=O\!\left((w+1)^2
+   \sum_{k=0}^K\vol(U_k)\right)
+ \notag\\
+ &=O\!\left(
+  \frac{(w+1)^2\mathfrak R_{\rm set}}{\rho}
+ \right).
+ \label{eq:rppr-revisit-work}
+\end{align}
+Consequently the sufficient target for the intended product scale is
+\begin{equation}
+ \mathfrak R_{\rm set}
+ =\widetilde O(1/\sqrt\alpha),
+ \label{eq:accelerated-revisit-target}
+\end{equation}
+which is strictly weaker than requiring only
+$\widetilde O(1/\sqrt\alpha)$ nonempty batches.
+\end{theorem}
+
+\begin{proof}
+A width-$w$ factorization, solve, and boundary update on $U_k$ costs
+$O((w+1)^2\vol(U_k))$.  Sum this actual stage cost rather than replacing each
+volume by the final one.  By
+\cref{eq:charged-volume-equivalence}, the charged-volume and degree-volume
+versions of $\mathfrak R_{\rm set}$ differ only by an absolute factor.  The
+source support bound $\vol(S^\star(\rho))\leq1/\rho$ gives the second line.
+Substituting \cref{eq:accelerated-revisit-target} proves the product scale.
+Since $\mathfrak R_{\rm set}\leq K+1$, a batch-count bound implies the revisit
+bound, while the converse need not hold when early volumes are small.
+\end{proof}
+
+This theorem does not assume thin radial support and does not claim that
+\cref{eq:accelerated-revisit-target} is already graph-universal.  It replaces
+the open raw batch-count conjecture by a weaker amortized statement that is
+closer to what the empirical algorithms measure.

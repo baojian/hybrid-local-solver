@@ -1,0 +1,79 @@
+\subsection{A condition-free safety theorem}
+
+The energy ledger proves that adaptive relaxation itself does not endanger
+termination if it is clamped away from two.
+
+\begin{theorem}[Safe causal variable relaxation]
+\label{thm:safe-adaptive}
+Fix $\delta\in(0,1]$.  Start from $\widehat x_0=0$.  At every paid step,
+choose any coordinate satisfying the live guard
+\begin{equation}
+ \frac{\abs{r_{t,u_t}}}{\sqrt{d_{u_t}}}>g
+ \label{eq:live}
+\end{equation}
+and choose $\omega_t\in[1,2-\delta]$ by any causal function of the entire
+past, including the causal revisit ledger.  Require the controller to execute
+such a live coordinate whenever \eqref{eq:note-gate} fails.  Then only
+finitely much charged row work can occur before \eqref{eq:note-gate} holds,
+and
+\begin{equation}
+ W\leq
+ \frac{1+\alpha}
+ {\delta(2-\delta)\,\alpha\epsppr^{2}}.
+ \label{eq:safety-work}
+\end{equation}
+The statement is ordering independent and allows signed residuals.
+\end{theorem}
+
+\begin{proof}
+Let $m_\delta:=\delta(2-\delta)$.  On $[1,2-\delta]$,
+$\omega(2-\omega)\geq m_\delta$.  A paid live operation satisfies
+$r_{t,u_t}^2>g^2d_{u_t}$.  Since $d_u\geq1$,
+$c(u)=1+d_u\leq2d_u$.  By \Cref{lem:energy}, its objective decrease is at
+least
+\begin{equation}
+ \frac{m_\delta g^2}{2(1+\alpha)}c(u_t).
+ \label{eq:progress-charge}
+\end{equation}
+
+The minimum objective is $f(x^0)$, and the zero-start energy is
+\[
+ f(0)-f(x^0)=\tfrac12 b^\mathsf TQ^{-1}b
+ \leq\frac{\norm{b}_2^2}{2\alpha}
+ \leq\frac{\alpha}{2}.
+\]
+The last inequality follows from
+$b_i=\alpha s_i/\sqrt{d_i}$, $d_i\geq1$, $s\geq0$, and
+$\sum_i s_i=1$, which give $\norm{b}_2^2\leq\alpha^2$.  Sum
+\eqref{eq:progress-charge}, use $g=\alpha\epsppr$, and solve for $W$ to
+obtain \eqref{eq:safety-work}.  Infinite charged work would force more
+objective decrease than the zero-start energy, so the paid process is finite.
+If a live coordinate remained, the rule could make another paid step;
+therefore exhaustion is exactly the note-scoped gate.
+\end{proof}
+
+The theorem permits the literal clipping interval $[1.10,1.68]$ used by the
+frontier artifact, as well as a controller that raises or lowers $\omega$
+after every operation.  It does not prove acceleration: the
+$\epsppr^{-2}$ and $\alpha^{-1}$ scale is weaker than the intended
+$\widetilde O(\mathsf V_{\rm loc}/\sqrt\alpha)$ target.  Its value is modular.  A learned rule
+may be experimentally aggressive without carrying the correctness proof; the
+clamp and live guard carry it.
+
+This energy argument is also one unconditional but nonaccelerated instance
+of \Cref{thm:mergeable-countdown}.  With
+$m_\delta:=\delta(2-\delta)$, define
+\begin{equation}
+ \Phi_{\rm en}(\widehat x)
+ :=\frac{2(1+\alpha)}{m_\delta g^2}\mathcal E(\widehat x).
+ \label{eq:energy-countdown}
+\end{equation}
+Every live update with relaxation in $[1,2-\delta]$ decreases this same
+countdown by at least its charge, regardless of which policy requested the
+update.  Hence it is interference monotone and recovers the safety theorem on
+a genuinely shared state.  It does not distinguish the arms and has the
+nonaccelerated scale.  The exact missing object for a lower-bound-matching
+adaptive theorem is a $\kappa=\widetilde O(1)$ transport-block countdown for
+at least one accelerated arm that other support-safe blocks cannot increase.
+The delayed-reflection debt and the exact-after-exact backflow ledger are
+concrete candidates for constructing such a countdown.

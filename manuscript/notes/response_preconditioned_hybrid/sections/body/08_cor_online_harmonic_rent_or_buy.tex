@@ -1,0 +1,753 @@
+\begin{corollary}[Online rent-or-buy orientation]
+\label{cor:online-harmonic-rent-or-buy}
+Use the certified adaptive banks of
+\cref{thm:certified-adaptive-coded-bank-reuse}.  At level $\ell$, let
+$p_\ell$ be its target-row count, let $\mathcal J_\ell$ be the queries
+assigned to that level, and put
+\begin{equation*}
+ R_\ell^{\rm src}:=\sum_{j\in\mathcal J_\ell}r_j.
+\end{equation*}
+There is an online exact orientation rule, requiring neither the future query
+count nor $K_{\max}$, whose total number of anchor right-hand sides at this
+level is at most
+\begin{equation}
+ 2\min\{p_\ell,R_\ell^{\rm src}\}.
+ \label{eq:online-orientation-rhs-count}
+\end{equation}
+Consequently the epoch-wide number is
+\begin{equation}
+ O\!\left(
+   \sum_\ell\min\{p_\ell,R_\ell^{\rm src}\}
+ \right)
+ \leq
+ O\!\left(\min\left\{
+   P_{\rm epoch},\sum_jr_j
+ \right\}\right).
+ \label{eq:epoch-orientation-rhs-count}
+\end{equation}
+
+The rule initially rents: it applies each query by the source orientation of
+\cref{thm:bidirectional-harmonic-application}.  Immediately before the next
+source block would make the cumulative rented width reach $p_\ell$, it buys:
+it builds the $p_\ell$ target harmonic extensions and uses the target
+orientation thereafter.  Measurements, decoded candidates, and exact
+validation are unchanged, so the adaptive coupling of
+\cref{thm:certified-adaptive-coded-bank-reuse} is preserved.
+
+This closes the anchor-right-hand-side count, not the graph-local work bound.
+Every rental still pays
+\cref{eq:source-oriented-coded-bank-work}; after a purchase, every use still
+pays the stored-response reads and multiplication in
+\cref{eq:certified-harmonic-build-apply-split}.  These are the two remaining
+implementation charges.
+\end{corollary}
+
+\begin{proof}
+If the threshold is never reached, the rule rents
+$R_\ell^{\rm src}<p_\ell$ right-hand sides.  Otherwise it rents fewer than
+$p_\ell$ right-hand sides and then buys exactly $p_\ell$ target right-hand
+sides.  In the latter case
+$R_\ell^{\rm src}\geq p_\ell$, so both cases prove
+\cref{eq:online-orientation-rhs-count}.  Summing over levels and using
+$\sum_\ell p_\ell=P_{\rm epoch}$ gives
+\cref{eq:epoch-orientation-rhs-count}.  Exactness is
+\cref{eq:bidirectional-harmonic-identity}; the rent-or-buy decision depends
+only on declared dimensions, never on bank contents.
+\end{proof}
+
+\begin{theorem}[Slack-normalized partial-gate packing]
+\label{thm:slack-normalized-partial-gate-packing}
+Let
+$S_0\subsetneq\cdots\subsetneq S_J$ be a monotone nested exact-face trace,
+put $B_j:=S_{j+1}\setminus S_j$, and let
+$z^j:=x[S_j]$.  Fix an exterior set $W\subseteq V\setminus S_J$ and define
+its normalized exact demand at stage $j$ by
+\begin{equation*}
+ r_v^j:=\frac{c_v-Q_{vS_j}z^j_{S_j}}{\sqrt{d_v}},
+ \qquad v\in W.
+\end{equation*}
+Fix a gate $g\in\mathbb R$ and a finite-band width $m>0$.  Retain separately
+the checkpoint band $\{v:r_v^0>g-m\}$, and on the remaining labels put
+\begin{equation*}
+ W_-:=\{v\in W:r_v^0\leq g-m\},
+ \qquad s_v:=g-r_v^0\geq m.
+\end{equation*}
+
+For each $j$, let $E_{B_j}$ embed $\mathbb R^{B_j}$ into
+$\mathbb R^{S_{j+1}}$, and define
+\begin{align*}
+ H_j&:=E_{B_j}^TQ_{S_{j+1}S_{j+1}}^{-1}E_{B_j},\\
+ u_j&:=E_{B_j}^TQ_{S_{j+1}S_{j+1}}
+               (z^{j+1}-z^j)_{S_{j+1}},\\
+ R_j&:=-D_{W_-}^{-1/2}Q_{W_-,S_{j+1}}
+       Q_{S_{j+1}S_{j+1}}^{-1}E_{B_j}H_j^{-1/2},\\
+ a_j&:=H_j^{1/2}u_j.
+\end{align*}
+Horizontally concatenate the $R_j$, vertically stack the $a_j$, and put
+\begin{equation}
+ R:=[R_0\ \cdots\ R_{J-1}],
+ \qquad
+ a:=(a_0^T,\ldots,a_{J-1}^T)^T,
+ \qquad
+ \mathcal E:=\|a\|_2^2
+ =\sum_{j=0}^{J-1}\|z^{j+1}-z^j\|_Q^2,
+ \label{eq:slack-packed-response-factor}
+\end{equation}
+and $b:=\sum_j|B_j|$.  With
+$D_s:=\operatorname{diag}(s_v:v\in W_-)$, the slack-normalized response
+matrix
+\begin{equation*}
+ X:=D_s^{-1}R
+\end{equation*}
+satisfies
+\begin{equation}
+ \|X\|_F^2\leq\frac{b}{m^2}.
+ \label{eq:slack-packed-mass}
+\end{equation}
+If $\mathcal E>0$, every far label that crosses the gate belongs to one heavy
+row set:
+\begin{equation}
+ \{v\in W_-:r_v^J>g\}
+ \subseteq
+ \left\{v\in W_-:\|X_{v,:}\|_2^2>\frac1{\mathcal E}\right\}.
+ \label{eq:slack-crossing-heavy-containment}
+\end{equation}
+Moreover its charged degree volume obeys
+\begin{equation}
+ \vol\{v\in W_-:r_v^J>g\}
+ \leq\frac{b\mathcal E}{m^2}.
+ \label{eq:slack-crossing-volume}
+\end{equation}
+
+When $\mathcal E>0$, consequently applying
+\cref{thm:coded-bucket-row-locator} to $X$ with
+\begin{equation*}
+ \theta:=\mathcal E^{-1},
+ \qquad
+ K:=\max\{1,b\mathcal E/m^2\}
+\end{equation*}
+produces, with its declared failure probability, a candidate superset of
+every far-to-violating crossing using
+\begin{equation}
+ O\!\left(
+  K\log^2N\log(N/\delta)
+ \right)
+ \label{eq:slack-packed-target-rows}
+\end{equation}
+target rows and
+$O(K\log N\log(N/\delta))$ candidates.  The checkpoint transition band is
+not claimed empty or free; its maintenance, every target-row application,
+and exact candidate validation remain charged separately.
+\end{theorem}
+
+\begin{proof}
+By \cref{eq:dual-frontier-support},
+$Q_{S_{j+1}S_{j+1}}(z^{j+1}-z^j)_{S_{j+1}}$ is supported on $B_j$.
+Hence
+\begin{equation*}
+ (z^{j+1}-z^j)_{S_{j+1}}
+ =Q_{S_{j+1}S_{j+1}}^{-1}E_{B_j}u_j,
+ \qquad
+ \|a_j\|_2^2=\|z^{j+1}-z^j\|_Q^2.
+\end{equation*}
+The exterior demand increments therefore factor as
+\begin{equation}
+ (r^J-r^0)_{W_-}
+ =\sum_{j=0}^{J-1}R_ja_j
+ =Ra.
+ \label{eq:slack-packed-demand-factor}
+\end{equation}
+Monotonicity makes every coordinate of this vector nonnegative.
+
+The squared norm of row $v$ of $R_j$ is
+$(\chi_v^{B_j})^2/d_v$ in the notation of
+\cref{lem:source-aware-leverage-packing}.  Therefore
+\begin{equation*}
+ \|X\|_F^2
+ =\sum_{v\in W_-}\frac1{s_v^2d_v}
+   \sum_j(\chi_v^{B_j})^2
+ \leq\frac1{m^2}\sum_j|B_j|,
+\end{equation*}
+which proves \cref{eq:slack-packed-mass}.
+
+If $r_v^J>g$, then
+$(Ra)_v>s_v$.  Cauchy--Schwarz gives
+\begin{equation*}
+ 1<\frac{|(Ra)_v|^2}{s_v^2}
+ \leq\|X_{v,:}\|_2^2\|a\|_2^2,
+\end{equation*}
+proving \cref{eq:slack-crossing-heavy-containment}.  The same inequality and
+$s_v\geq m$ imply
+\begin{equation*}
+ d_vm^2
+ <\mathcal E\sum_j(\chi_v^{B_j})^2.
+\end{equation*}
+Sum over crossing labels and apply
+\cref{eq:source-aware-leverage-sum} separately to every $j$ to obtain
+\cref{eq:slack-crossing-volume}.  Finally,
+\cref{eq:slack-packed-mass} is precisely the mass cap
+$\|X\|_F^2\leq K\theta$; the coded-locator bounds follow directly.
+\end{proof}
+
+\begin{corollary}[Realized directional slack bank]
+\label{cor:realized-directional-slack-bank}
+Under the hypotheses of
+\cref{thm:slack-normalized-partial-gate-packing}, define the single realized
+normalized-change column
+\begin{equation}
+ y:=D_s^{-1}(r^J-r^0)_{W_-}=Xa.
+ \label{eq:realized-slack-direction}
+\end{equation}
+Then
+\begin{equation}
+ \|y\|_2^2\leq\frac{b\mathcal E}{m^2},
+ \qquad
+ \{v\in W_-:r_v^J>g\}\subseteq\{v:y_v>1\}.
+ \label{eq:realized-slack-mass-crossing}
+\end{equation}
+Consequently the coded locator applied to the one-column matrix $y$, with
+$\theta=1$ and
+\begin{equation*}
+ K:=\max\{1,b\mathcal E/m^2\},
+\end{equation*}
+contains every far crossing with its declared probability and uses
+$\widetilde O(1+b\mathcal E/m^2)$ target rows and candidates.
+
+This state is causal and append-only for a fixed target bank and fixed
+checkpoint slacks.  At prefix $t$, put
+\begin{equation*}
+ y^{[t]}:=D_s^{-1}(r^t-r^0)_{W_-}.
+\end{equation*}
+Every scalar total/bit bucket measurement satisfies
+\begin{equation}
+ M(y^{[t+1]})=M(y^{[t]})
+   +M\!\left(D_s^{-1}(r^{t+1}-r^t)_{W_-}\right).
+ \label{eq:directional-bucket-append}
+\end{equation}
+Thus the decoder retains one scalar per bucket record and never stores or
+replays an earlier correction direction.  In a harmonic implementation, the
+target row again multiplies the column for $v$ by $1/s_v$, and each exact
+correction supplies one new directional response update through
+\cref{thm:bidirectional-harmonic-application}.  The online rent-or-buy rule
+remains applicable.  Target-row installation and application, capacity
+growth, checkpoint-slack refresh, transition-band state, and exact validation
+remain charged.
+
+Unlike \cref{cor:gaussian-compressed-slack-bank}, this corollary has no
+Gaussian source layer: it locates crossings for the realized accumulated
+correction rather than preserving correction-independent row energies for all
+possible directions.
+\end{corollary}
+
+\begin{proof}
+By \cref{eq:slack-packed-mass,eq:slack-packed-response-factor},
+\begin{equation*}
+ \|y\|_2^2=\|Xa\|_2^2
+ \leq\|X\|_F^2\|a\|_2^2
+ \leq\frac{b\mathcal E}{m^2}.
+\end{equation*}
+If $r_v^J>g$, then
+$y_v=(r_v^J-r_v^0)/s_v>1$, proving
+\cref{eq:realized-slack-mass-crossing}.  The coded-locator conclusion follows
+from \cref{thm:coded-bucket-row-locator}.  Finally, every bucket measurement
+is linear in its input column, so
+\cref{eq:directional-bucket-append} follows from
+$y^{[t+1]}-y^{[t]}=D_s^{-1}(r^{t+1}-r^t)_{W_-}$.
+\end{proof}
+
+\begin{corollary}[Gaussian-compressed slack bank]
+\label{cor:gaussian-compressed-slack-bank}
+Under the hypotheses of
+\cref{thm:slack-normalized-partial-gate-packing}, assume
+$\mathcal E>0$ and let
+$G\in\mathbb R^{b\times r}$ have independent standard Gaussian entries and
+put
+\begin{equation*}
+ \widetilde X:=\frac1{\sqrt r}XG.
+\end{equation*}
+There is an absolute constant $c>0$ such that, for
+$r\geq c\log(4N/\delta)$, with probability at least $1-\delta$ a coded bank
+applied to $\widetilde X$ contains every crossing in
+\cref{eq:slack-crossing-heavy-containment}, uses
+\begin{equation*}
+ \widetilde O\!\left(1+\frac{b\mathcal E}{m^2}\right)
+\end{equation*}
+target rows and candidates, and has only $r=O(\log(N/\delta))$ source
+columns.  More explicitly one may take row threshold
+$1/(2\mathcal E)$ and mass parameter
+$K=\max\{1,3b\mathcal E/m^2\}$, with the coded-bank failure budget included
+in the displayed probability.
+
+In the harmonic realization, the target measurement matrix is the usual
+hash-and-bit bank with its column for $v$ multiplied by $1/s_v$; the existing
+transposed harmonic identity applies without change.  The Chebyshev source
+whitening in \cref{thm:chebyshev-frontier-whitening} supplies the corresponding
+Gaussian response columns up to its explicit constant sandwich.  Those
+constant factors only rescale the declared threshold and capacity.  This
+corollary bounds measurement dimension, not harmonic construction or
+application work.
+\end{corollary}
+
+\begin{proof}
+Standard Gaussian norm concentration and a union bound over at most $N$ rows
+give, simultaneously,
+\begin{equation*}
+ \tfrac12\|X_{v,:}\|_2^2
+ \leq\|\widetilde X_{v,:}\|_2^2
+ \leq\tfrac32\|X_{v,:}\|_2^2
+ \qquad(v\in W_-)
+\end{equation*}
+with failure probability at most $\delta/2$.  On this event every crossing
+row has sampled energy greater than $1/(2\mathcal E)$, while
+\begin{equation*}
+ \|\widetilde X\|_F^2
+ \leq\tfrac32\|X\|_F^2
+ \leq\frac{3b}{2m^2}.
+\end{equation*}
+Apply \cref{thm:coded-bucket-row-locator} with the remaining failure budget
+$\delta/2$.  The harmonic statement is linear substitution of the diagonal
+slack scaling into
+\cref{eq:transposed-harmonic-sketch,eq:transposed-response-sketch}.
+\end{proof}
+
+\begin{lemma}[Append-only bucket-norm accumulation]
+\label{lem:append-only-bucket-norm-accumulation}
+Fix one hash-and-bit target bank and fixed row weights, and let source blocks
+$X^{(1)},X^{(2)},\ldots$ arrive as new column blocks.  Put
+$X^{[t]}:=[X^{(1)}\ \cdots\ X^{(t)}]$.  The exact decoder of
+\cref{thm:coded-bucket-row-locator} for every prefix $X^{[t]}$ can be
+maintained without retaining or replaying any earlier source column.
+
+For every bucket/bit record, retain the two scalars
+\begin{equation*}
+ A_{s,b,\ell}^{[t]}:=\|M_{s,b,\ell}^{[t]}\|_2^2,
+ \qquad
+ C_{s,b,\ell}^{[t]}
+ :=\|M_{s,b,0}^{[t]}-M_{s,b,\ell}^{[t]}\|_2^2.
+\end{equation*}
+On arrival of block $t+1$, add the squared norms of its two corresponding
+bucket vectors.  This uses $O(p)$ retained scalar cells and
+$O(pr_{t+1})$ transient arithmetic after the new $p\times r_{t+1}$
+measurements have been supplied.  At any prefix, comparing
+$A_{s,b,\ell}^{[t]}$ and $C_{s,b,\ell}^{[t]}$ gives exactly the batched bit
+test \cref{eq:coded-locator-bit-test}.
+
+Thus fresh causal source blocks do not themselves force source-history
+storage or replay.  The claim requires a fixed bank and fixed slack weights.
+Allocating a larger bank after old blocks have been discarded, changing an
+old row weight, constructing its harmonic representation, and supplying each
+new measurement block are not free and are not covered by this lemma.  A new
+label whose past row is identically zero may be installed prospectively
+without source replay, but its response-state update remains charged.
+\end{lemma}
+
+\begin{proof}
+For every bucket record, column concatenation gives
+\begin{align*}
+ \|M_{s,b,\ell}^{[t+1]}\|_2^2
+ &=\|M_{s,b,\ell}^{[t]}\|_2^2
+   +\|M_{s,b,\ell}^{(t+1)}\|_2^2,\\
+ \|M_{s,b,0}^{[t+1]}-M_{s,b,\ell}^{[t+1]}\|_2^2
+ &=\|M_{s,b,0}^{[t]}-M_{s,b,\ell}^{[t]}\|_2^2\\
+ &\quad+
+   \|M_{s,b,0}^{(t+1)}-M_{s,b,\ell}^{(t+1)}\|_2^2.
+\end{align*}
+The summands occupy disjoint source coordinates, so there are no cross terms.
+Induction proves that the retained scalars are the exact prefix norms used by
+the decoder.  The work and storage bounds follow by counting the $p$ records
+and the new source width.
+\end{proof}
+
+\begin{proposition}[Three-label slack reweighting obstructs norm-only partial
+refresh]
+\label{prop:three-label-norm-only-reweight-obstruction}
+Consider one fixed repetition and one bucket of the hash-and-bit bank in
+\cref{thm:coded-bucket-row-locator}.  Three colliding labels
+$v_0,v_1,v_2$ have binary identifiers $00,01,10$ and realized signs $+1$.
+Before a checkpoint-slack change, give every row weight one and let the old
+source prefix have one scalar column.  The two possible row histories
+\begin{equation}
+ X=(-4,1,1)^T,
+ \qquad
+ X'=(-2,-1,-1)^T
+ \label{eq:three-label-reweight-histories}
+\end{equation}
+produce exactly the same complete append-only bucket-norm state from
+\cref{lem:append-only-bucket-norm-accumulation}:
+\begin{equation}
+ \mathsf N(X)=\mathsf N(X')
+ :=(A_1,C_1,A_2,C_2)=(1,9,1,9).
+ \label{eq:three-label-old-norm-state}
+\end{equation}
+Here bit one isolates $v_1$ and has complement $v_0+v_2$, while bit two
+isolates $v_2$ and has complement $v_0+v_1$.
+
+Now refresh the positive inverse-slack row weights from $(1,1,1)$ to
+\begin{equation}
+ w^+=(1,3,2),
+ \qquad
+ s^+=(1,1/3,1/2),
+ \label{eq:three-label-new-slack-weights}
+\end{equation}
+where $s^+$ is the corresponding new slack vector.  In the first bit test,
+the reweighted bit-bucket norm squared is $9$ for both histories, whereas the
+reweighted complement norm squared is
+\begin{equation}
+ \|X_{v_0}+2X_{v_2}\|_2^2=4,
+ \qquad
+ \|X'_{v_0}+2X'_{v_2}\|_2^2=16.
+ \label{eq:three-label-reweight-flip}
+\end{equation}
+Thus \cref{eq:coded-locator-bit-test} decodes that bit as one for $X$ and
+zero for $X'$.  No deterministic function of the retained state
+\cref{eq:three-label-old-norm-state}, the fixed bank metadata, and the new
+weights can refresh the exact decoder for both histories.
+
+This obstruction does not rely on negative row entries.  With two source
+columns, the nonnegative histories
+\begin{equation*}
+ \begin{pmatrix}0&2\\1&0\\1&0\end{pmatrix},
+ \qquad
+ \begin{pmatrix}1&1\\0&1\\0&1\end{pmatrix}
+\end{equation*}
+have common old state $(1,5,1,5)$, while the same new weights make the first
+comparison $9>8$ in the first history and $9<10$ in the second.
+
+Three colliding labels are minimal for this exact state obstruction.  With at
+most two labels, injective identifiers have a separating bit, whose two sides
+give the two individual squared row norms.  Whenever another bit groups the
+two rows, its old grouped norm also gives their inner product; when no bit
+groups them, that inner product is not needed.  Hence every reweighted bit and
+complement norm is reconstructible for one or two labels.
+
+Name the attempted no-replay interface \textsc{NormOnlyWeightRefresh}.  It
+stages one version/capacity header and the three positive weights, validates
+the header, identifiers, weight positivity, and fixed-bank identity, and is
+forbidden to read an old source cell, scan the anchor cut, apply a response,
+or retain any prechange state beyond \cref{eq:three-label-old-norm-state}.
+Universal exactness therefore forces it to reject before persistent mutation.
+One such valid-but-unrefreshable request has the complete vector
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &=\bigl(0,0,1,0,\Theta(1),0,0,\Theta(1),\Theta(1),0,1\bigr).
+ \end{aligned}
+ \label{eq:three-label-reweight-rejection-eleven-vector}
+\end{equation}
+The control coordinate charges the capacity/weight header, all three weight
+reads, and validation; the sole emission is an explicit rejection record.
+Repeated rejected attempts add this vector attempt by attempt.
+
+For comparison, \textsc{ReplayThreeWeightRefresh} is an exact accepted
+micro-implementation when the three old row values in each of the two
+nonnegative source columns above are available as six stored response cells.
+It reads all six cells, forms the four reweighted two-cell bucket/complement
+vectors, overwrites the four retained norms, performs the exact bit tests,
+and emits one refreshed decoder record.  Charging the twelve numerical writes
+(eight measurement cells and four norms), its complete vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &=\bigl(0,0,1,0,\Theta(1),0,6,\Theta(1),\Theta(1),12,1\bigr).
+ \end{aligned}
+ \label{eq:three-label-reweight-replay-eleven-vector}
+\end{equation}
+If those six old cells are not stored, a source-oriented reconstruction must
+instead add its actual anchor-cut scan and anchor-response application to
+$C_{\rm resp}$ (and any newly exposed adjacency to $C_{\rm adj}$ and
+$R_{\rm adj}$); neither cost is hidden in
+\cref{eq:three-label-reweight-replay-eleven-vector}.
+
+This is an exact-real, one-bucket, named-state STOP.  It proves neither that
+every weight refresh costs six response reads nor that arbitrary bank
+reweighting needs quadratic state.  Retaining a richer Gram sketch, replaying
+old source blocks, rebuilding from the exposed cut, using a collision-free
+bank, changing the decoder, or proving a different support-safe trace all
+remain possible.  It also says nothing about template mutation, an RPPR/KKT
+chronology, terminal PPR/RPPR output, finite precision, coefficient bits, or
+word-RAM complexity.
+\end{proposition}
+
+\begin{proof}
+For $X$, both isolated entries equal one and both complements equal $-3$;
+for $X'$, both isolated entries equal $-1$ and both complements again equal
+$-3$.  Squaring proves \cref{eq:three-label-old-norm-state}.  Under
+$w^+$, the first isolated entry has magnitude three in either history, while
+the two complements are $-2$ and $-4$, proving
+\cref{eq:three-label-reweight-flip} and the indistinguishability claim.  The
+two nonnegative matrix products are direct and give the displayed $8$ and
+$10$ complement norms.
+
+For minimality, absorb the known hash signs into the at-most-two row vectors.
+An injective binary encoding supplies a bit separating them, so the retained
+norms on that bit are their individual squared norms.  If a second bit groups
+them on one side, the retained squared norm of the sum determines twice their
+inner product after subtracting the two individual norms.  Positive diagonal
+reweighting then evaluates every grouped norm by the polarization identity.
+If no bit groups them, every measured side is empty or a singleton and
+reweighting is immediate.  This also covers a one-label bucket.
+
+Finally, a deterministic no-replay interface receives identical retained
+inputs on the two histories but owes opposite exact first-bit replies, so it
+cannot accept both.  The two resource vectors follow by counting the named
+validation/rejection interface and the explicit six-read, twelve-write replay
+schedule coordinate by coordinate.
+\end{proof}
+
+\begin{theorem}[Three-label pivot-Gram refresh]
+\label{thm:three-label-pivot-gram-refresh}
+Fix one repetition and one bucket containing exactly the three sign-absorbed
+rows $z_0,z_1,z_2\in\mathbb R^r$ with identifiers $00,01,10$.  Retain the
+canonical unweighted five-scalar state
+\begin{equation}
+ \mathsf S
+ :=(P_0,A_1,C_1,A_2,C_2)
+ :=\bigl(
+ \|z_0\|_2^2,
+ \|z_1\|_2^2,
+ \|z_0+z_2\|_2^2,
+ \|z_2\|_2^2,
+ \|z_0+z_1\|_2^2
+ \bigr).
+ \label{eq:three-label-pivot-gram-state}
+\end{equation}
+Then the two needed pivot Gram entries are
+\begin{equation}
+ g_{02}:=\langle z_0,z_2\rangle
+ =\frac{C_1-P_0-A_2}{2},
+ \qquad
+ g_{01}:=\langle z_0,z_1\rangle
+ =\frac{C_2-P_0-A_1}{2}.
+ \label{eq:three-label-pivot-recovery}
+\end{equation}
+Consequently every positive weight triple $w=(w_0,w_1,w_2)$ has exact
+refreshed decoder norms
+\begin{align}
+ A_1(w)&=w_1^2A_1,
+ &C_1(w)&=w_0^2P_0+w_2^2A_2+2w_0w_2g_{02},
+ \notag\\
+ A_2(w)&=w_2^2A_2,
+ &C_2(w)&=w_0^2P_0+w_1^2A_1+2w_0w_1g_{01}.
+ \label{eq:three-label-pivot-refresh}
+\end{align}
+
+The state in \cref{eq:three-label-pivot-gram-state} remains canonical and
+unweighted.  In particular, after any refresh at current weights $w$, let a
+new source block of width $r_{\rm new}$ have sign-absorbed unweighted rows
+$\widehat z_0,\widehat z_1,\widehat z_2$.  The ordinary total and two bit
+measurements arrive as
+\begin{equation}
+ M_1=w_1\widehat z_1,
+ \qquad
+ M_2=w_2\widehat z_2,
+ \qquad
+ M_0=w_0\widehat z_0+w_1\widehat z_1+w_2\widehat z_2.
+ \label{eq:three-label-weighted-append-measurements}
+\end{equation}
+Before changing the canonical state, recover
+\begin{equation}
+ \widehat z_1=M_1/w_1,
+ \qquad
+ \widehat z_2=M_2/w_2,
+ \qquad
+ \widehat z_0=(M_0-M_1-M_2)/w_0,
+ \label{eq:three-label-unweighted-append-recovery}
+\end{equation}
+and add the five increments defined by
+\cref{eq:three-label-pivot-gram-state} with $z_i$ replaced by
+$\widehat z_i$.  Thus arbitrary interleavings of source-block appends and
+positive weight refreshes are exact; no old source block is replayed.
+Supplying the three measurements remains charged to the underlying harmonic
+or response implementation.
+
+Name the refresh operation
+\begin{equation*}
+ \textsc{ThreeLabelPivotGramRefresh}.
+\end{equation*}
+It validates one fixed-bucket/version header and three positive weights, evaluates
+\cref{eq:three-label-pivot-recovery,eq:three-label-pivot-refresh}, materializes
+the four refreshed decoder norms, and emits one decoder record.  The canonical
+state uses one additional persistent scalar compared with the four-norm state
+in \cref{prop:three-label-norm-only-reweight-obstruction}.  Its complete
+per-refresh vector is
+\begin{equation}
+ \begin{aligned}
+ &(C_{\rm adj},R_{\rm adj},R_{\rm int},C_{\rm pre},C_{\rm ctl},C_{\rm rec},
+ C_{\rm resp},M_{\rm pers},M_{\rm tmp},C_{\rm mat},C_{\rm emit})\\
+ &=\bigl(0,0,1,0,\Theta(1),0,0,\Theta(1),\Theta(1),4,1\bigr).
+ \end{aligned}
+ \label{eq:three-label-pivot-refresh-eleven-vector}
+\end{equation}
+Repeated refreshes add this vector request by request; source-block append
+arithmetic and measurement supply are separate from it.
+\end{theorem}
+
+\begin{proof}
+Expanding $C_1$ and $C_2$ in
+\cref{eq:three-label-pivot-gram-state} gives
+\cref{eq:three-label-pivot-recovery}.  In the first bit, $z_1$ is alone and
+$z_0,z_2$ share the complementary side; in the second bit, $z_2$ is alone and
+$z_0,z_1$ share the complementary side.  Expanding the corresponding weighted
+squared norms proves \cref{eq:three-label-pivot-refresh}.
+
+Positivity of the current weights makes
+\cref{eq:three-label-unweighted-append-recovery} exact.  Column concatenation
+adds squared norms and inner products across disjoint old and new source
+coordinates, so the five recovered increments produce exactly the canonical
+state of the concatenated unweighted rows.  Induction over an arbitrary
+append/refresh sequence proves repeated exactness.  Counting the one extra
+canonical scalar, four materialized decoder norms, validation workspace, and
+one emitted record gives
+\cref{eq:three-label-pivot-refresh-eleven-vector}.
+\end{proof}
+
+\begin{proposition}[Four-label obstruction to one-pivot refresh]
+\label{prop:four-label-one-pivot-refresh-obstruction}
+The five-scalar state of
+\cref{thm:three-label-pivot-gram-refresh} is not a universal state after a
+fourth collision.  Give the codes $00,01,10,11$ realized signs $+1$ and unit
+old weights.  The scalar histories
+\begin{equation}
+ X=(-6,-5,-5,4)^T,
+ \qquad
+ X'=(-6,-5,-5,6)^T
+ \label{eq:four-label-pivot-histories}
+\end{equation}
+have the common pivot $P_0=36$ and common four decoder norms
+\begin{equation}
+ (A_1,C_1,A_2,C_2)=(1,121,1,121).
+ \label{eq:four-label-pivot-common-state}
+\end{equation}
+After the positive refresh $w=(1,1,1,3)$, the first-bit isolated-side norm is
+$49$ for $X$ and $169$ for $X'$, while its complement norm remains $121$.
+Hence the exact first-bit comparison is $49<121$ in the first history and
+$169>121$ in the second.  No deterministic refresh from this named
+five-scalar state can be exact on both histories.
+
+This is a sharp STOP for extending the one-pivot three-label state unchanged
+to four labels.  It is not a lower bound on richer Gram state, nonlinear
+encodings into unrestricted real cells, source replay, or another decoder.
+\end{proposition}
+
+\begin{proof}
+For either history, the first bit has sides $z_1+z_3=\mp1$ and
+$z_0+z_2=-11$; the second has sides $z_2+z_3=\mp1$ and
+$z_0+z_1=-11$.  This proves
+\cref{eq:four-label-pivot-common-state}.  Reweighting the first isolated side
+gives $-5+3\cdot4=7$ and $-5+3\cdot6=13$, while the complement is unchanged.
+Squaring proves the two opposite comparisons and the indistinguishability
+claim.
+\end{proof}
+
+\begin{theorem}[Co-side Gram refresh]
+\label{thm:co-side-gram-refresh}
+Fix one bucket containing $k$ sign-absorbed rows
+$z_1,\ldots,z_k\in\mathbb R^r$ with distinct codes in $\{0,1\}^L$.  Call an
+unordered pair $\{i,j\}$ \emph{co-side} when the two codes agree in at least
+one bit, and let $c$ be the number of pairs whose codes are bitwise
+complements.  Retain the canonical state
+\begin{equation}
+ \mathsf G_{\rm side}
+ :=\{G_{ii}:1\leq i\leq k\}
+ \mathbin{\cup}
+ \{G_{ij}:i<j,\ \{i,j\}\text{ is co-side}\},
+ \qquad
+ G_{ij}:=\langle z_i,z_j\rangle.
+ \label{eq:co-side-gram-state}
+\end{equation}
+For every positive weight vector $w\in\mathbb R_{>0}^k$, every bit
+$\ell$, and side $a\in\{0,1\}$, its exact weighted decoder norm is
+\begin{equation}
+ \left\|\sum_{i:\operatorname{bit}_\ell(i)=a}w_i z_i\right\|_2^2
+ =\sum_{i:\operatorname{bit}_\ell(i)=a}w_i^2G_{ii}
+ +2\!\sum_{\substack{i<j:\operatorname{bit}_\ell(i)=
+                     \operatorname{bit}_\ell(j)=a}}
+       w_iw_jG_{ij}.
+ \label{eq:co-side-gram-refresh}
+\end{equation}
+Thus the named \textsc{CoSideGramRefresh} state is sufficient for arbitrary
+repeated positive reweights.  Complementarity is a matching on the distinct
+codes, so $c\leq\lfloor k/2\rfloor$ and its exact dimension is
+\begin{equation}
+ d_{\rm side}=k+\binom{k}{2}-c=\Theta(k^2).
+ \label{eq:co-side-gram-dimension}
+\end{equation}
+
+The dimension in \cref{eq:co-side-gram-dimension} is also necessary only in
+the following explicit model: the retained cells are linear statistics of
+the Gram matrix, $r\geq k$, and from them one must reconstruct every exact
+side norm in \cref{eq:co-side-gram-refresh} for all positive weights on an
+open set.  No unrestricted real-cell information lower bound is claimed.
+
+Maintenance is not free.  If a new width-$r_{\rm new}$ block supplies every
+individual unweighted row $\widehat z_i$, then updating
+\cref{eq:co-side-gram-state} costs
+\begin{equation*}
+ \Theta(d_{\rm side}r_{\rm new})
+ =\Theta((k^2-c)r_{\rm new})
+\end{equation*}
+inner-product arithmetic and $\Theta(k^2)$ persistent scalar cells.  When
+$k>L+1$, the ordinary total-plus-$L$-bit measurement block has fewer vector
+rows than labels and does not in general determine these individual rows or
+all of their co-side Gram increments.  The implementation must therefore pay
+for richer measurements or per-label reads, together with their response,
+materialization, and validation costs.  This theorem proves no generic
+product-scale graph-work bound, RPPR/KKT chronology, terminal solver result,
+finite-precision guarantee, or word/bit complexity.
+\end{theorem}
+
+\begin{proof}
+Two distinct binary codes fail to share a bit side exactly when they differ
+in every bit, that is, when they are bitwise complements.  Every code has at
+most one complement, so the omitted pairs form a matching of size $c$.
+Expanding each squared side sum gives
+\cref{eq:co-side-gram-refresh}; every off-diagonal term appearing there is
+co-side, and no complementary-pair entry can appear.  Counting the retained
+diagonals and all noncomplementary pairs proves
+\cref{eq:co-side-gram-dimension} and sufficiency.
+
+For the qualified necessity statement, positive-definite $k\times k$ Gram
+matrices form an open subset of the symmetric matrices when $r\geq k$.
+Viewed as a polynomial in the positive weights, a side norm has coefficient
+$G_{ii}$ on $w_i^2$ and coefficient $2G_{ij}$ on $w_iw_j$ exactly when
+$i,j$ share that side.  Exact reconstruction on an open weight set therefore
+recovers all $d_{\rm side}$ displayed Gram coordinate functionals.  Any
+linear Gram-statistic state from which they are recovered must have them in
+its row span and hence have dimension at least $d_{\rm side}$.
+
+For an appended block, each retained entry increases by the corresponding
+width-$r_{\rm new}$ inner product, proving the stated update count.  Finally,
+the ordinary coded measurements are only $L+1$ linear combinations of the
+$k$ row vectors.  If $k>L+1$, their coefficient map has a nontrivial kernel,
+so those measurements do not identify the individual rows and, in general,
+do not identify every required Gram increment.
+\end{proof}
+
+Together,
+\cref{thm:slack-normalized-partial-gate-packing,cor:realized-directional-slack-bank,cor:gaussian-compressed-slack-bank,lem:append-only-bucket-norm-accumulation,prop:three-label-norm-only-reweight-obstruction,thm:three-label-pivot-gram-refresh,prop:four-label-one-pivot-refresh-obstruction,thm:co-side-gram-refresh}
+close the information-level parts of an epoch-internal partial query.
+Checkpoint slack normalization handles heterogeneous far-label margins with
+one heavy-row threshold.  For the realized gate, one accumulated directional
+column suffices and its scalar bucket measurements update linearly with no
+source history.  If correction-independent row energies are needed instead,
+Gaussian compression reduces the concatenated batch source dimension to
+logarithmic size and a fixed coded bank retains exact prefix decoder norms
+without storing old source columns.  That fixed-weight state has an exact
+boundary: a three-label collision cannot be refreshed after a genuine slack
+reweight from its retained norms alone.  One additional pivot norm repairs
+that exact three-label bucket across arbitrary repeated positive refreshes,
+provided weighted append measurements are first converted back to canonical
+unweighted rows.  Four labels already obstruct the same one-pivot state.  A
+general exact repair retains precisely the co-side Gram entries, but this is
+quadratic bucket state and its append maintenance needs richer measurements
+or per-label reads once the occupancy exceeds $L+1$.  A correct scalable
+implementation must exploit sparser collision structure, replay old
+response/source cells geometrically, rebuild from the cut, use a different
+bank/decoder, or reject.  These results do not yet
+bound installation or application of the slack-weighted harmonic target rows,
+growth beyond a bank's declared capacity, a paid strategy for checkpoint
+slack-weight changes, maintenance of the transition band, or exact
+validation.  Those are now the entire response-side implementation ledger for
+this route.

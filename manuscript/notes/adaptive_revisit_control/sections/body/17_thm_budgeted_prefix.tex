@@ -1,0 +1,53 @@
+\subsection{A no-reset experimental prefix with exact fallback}
+
+Even on one irreversible state, an adaptive policy can be tried for a
+controlled budget and then handed to exact Gauss--Seidel.  The prefix's
+energy decrease is not discarded.
+
+\begin{theorem}[Budgeted adaptive prefix]
+\label{thm:budgeted-prefix}
+Under the hypotheses of \Cref{thm:safe-adaptive}, run an arbitrary causal
+prefix of charged work $W_{\rm pre}$ with
+$\omega_t\in[1,2-\delta]$.  From the resulting iterate, switch irreversibly
+to live unit-relaxation updates until \eqref{eq:note-gate} holds.  Define
+\begin{equation}
+ H_0:=\frac{2(1+\alpha)\mathcal E(0)}{g^2}
+ \leq\frac{1+\alpha}{\alpha\epsppr^2},
+ \qquad m_\delta:=\delta(2-\delta).
+ \label{eq:fallback-budget}
+\end{equation}
+Then
+\begin{equation}
+ W_{\rm total}
+ \leq H_0+(1-m_\delta)W_{\rm pre}.
+ \label{eq:fallback-total}
+\end{equation}
+In particular, imposing the hard cap $W_{\rm pre}\leq\theta H_0$ gives
+\begin{equation}
+ W_{\rm total}
+ \leq[1+(1-m_\delta)\theta]H_0
+ \leq(1+\theta)H_0.
+ \label{eq:fallback-cap}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+By \eqref{eq:progress-charge}, the prefix decreases $\mathcal E$ by at
+least $m_\delta g^2W_{\rm pre}/(2(1+\alpha))$.  If
+$\mathcal E_{\rm hand}$ is the energy at handoff, the same live-update
+argument with $\omega=1$ bounds the exact tail by
+\[
+ W_{\rm tail}
+ \leq\frac{2(1+\alpha)\mathcal E_{\rm hand}}{g^2}
+ \leq H_0-m_\delta W_{\rm pre}.
+\]
+Add $W_{\rm pre}$ and apply its cap.  The upper bound on $H_0$ is the
+zero-start calculation in \Cref{thm:safe-adaptive}.
+\end{proof}
+
+The theorem allows a revisit-based switch trigger on the actual single
+state, with a work cap as its independent safety certificate.  It is not a
+best-arm oracle inequality: the fallback ceiling is still the weak
+energy-based exact-Gauss--Seidel scale.  A lower-bound-matching result would
+need to replace $H_0$ by an accelerated local tail or show that a losing
+prefix is chargeable to such a tail.

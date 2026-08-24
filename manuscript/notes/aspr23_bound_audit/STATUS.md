@@ -28,7 +28,7 @@ The audit itself is closed. The successor falsifiable target is an expanding-fac
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: none.
+- Formal registry dependencies: none.
 - Source/shared prerequisites: the shared RPPR/Stieltjes model and the cited
   COLT-2023 source.
 - Supplies to: local_solver_oracle_hierarchy (algorithm-specific lower-bound rung), and the repeated-prefix warnings used by volume_gated_acceleration and aesp_cd_l1_rppr.
@@ -41,6 +41,6 @@ The audit itself is closed. The successor falsifiable target is an expanding-fac
 
 ## Verification
 
-- Source pointers checked: README.md, taxonomy.toml, main.tex status table/proofs, shared problem/results ledgers, and docs/literature/acceleration.md were cross-read on 2026-08-20.
+- Source pointers checked: README.md, registry.toml, main.tex status table/proofs, shared problem/results ledgers, and docs/literature/acceleration.md were cross-read on 2026-08-20.
 - Focused build/checks run: Manual claim and line-pointer audit completed; make note-audit passed on 2026-08-20 (18 notes across 5 tracks).
 - Known gaps: No material README/main claim-status inconsistency was found. Do not propagate the endpoint-path bound as a lower bound for all local solvers, or the source plots as evidence that ASPR is universally slow.

@@ -28,7 +28,7 @@ The present lower bound is algorithm-specific and already tight at the product s
 
 ## Dependencies and reusable outputs
 
-- Formal taxonomy dependencies: none.
+- Formal registry dependencies: none.
 - Source/shared prerequisites: the exact source AESP schedule and shared PPR
   certificate.
 - Supplies to: local_solver_oracle_hierarchy as an iterative-method lower-bound rung, and stress tests for hybrid_aesp_locsor and other early-locality conjectures.
@@ -41,6 +41,6 @@ The present lower bound is algorithm-specific and already tight at the product s
 
 ## Verification
 
-- Source pointers checked: README.md, taxonomy.toml, main.tex proof branches, AESP literature notes, and shared ledgers were cross-read on 2026-08-20.
+- Source pointers checked: README.md, registry.toml, main.tex proof branches, AESP literature notes, and shared ledgers were cross-read on 2026-08-20.
 - Focused build/checks run: Manual claim and line-pointer audit completed; make note-audit passed on 2026-08-20 (18 notes across 5 tracks).
-- Known gaps: No material README/main claim-status inconsistency was found. taxonomy.toml's next_target is a scope guard rather than the current constructive target. Never generalize this result from literal batched LocGD to arbitrary AESP inners, hybrids, or persistent-response solvers.
+- Known gaps: No material README/main claim-status inconsistency was found. `registry.toml`'s `next_target` is a scope guard rather than the current constructive target. Never generalize this result from literal batched LocGD to arbitrary AESP inners, hybrids, or persistent-response solvers.

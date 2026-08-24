@@ -18,8 +18,8 @@ Read in this order:
 6. [`coordination/rounds/README.md`](coordination/rounds/README.md) — the
    durable assignment, adjudication, and redistribution history.
 
-The build inventory remains `../manifest.toml`; the machine-readable research
-map remains `../taxonomy.toml`; and every ordinary sibling directory remains
+The build inventory and machine-readable research map are unified in
+`../registry.toml`; every ordinary sibling directory remains
 an independently buildable direction note. Files here are deliberately not
 registered as standalone LaTeX notes.
 

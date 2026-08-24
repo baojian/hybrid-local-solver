@@ -1,22 +1,4 @@
-NOTES := \
-	aspr23_bound_audit \
-	aesp_cd_l1_rppr \
-	aesp_locgd_star_lower_bound \
-	adaptive_revisit_control \
-	hybrid_aesp_locsor \
-	hybrid_local_solver_complete_note \
-	hybrid_local_solver_synthesis \
-	volume_gated_acceleration \
-	rlsor_terminal_exact_rung \
-	delayed_reflection_ladder \
-	propagate_settle_framework \
-	evolving_support_cg \
-	incremental_active_set_sdd \
-	frontier_adaptive_ladder \
-	two_rung_sor \
-	two_rung_direct_theory \
-	response_preconditioned_hybrid \
-	local_solver_oracle_hierarchy
+NOTES := $(shell python3 tools/note_inventory.py ids --format plain)
 
 .PHONY: all audit report targets graph clean distclean $(NOTES)
 

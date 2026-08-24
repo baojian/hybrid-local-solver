@@ -46,7 +46,7 @@ that sweep and independent validation exist.
 
 ## Dependencies and reusable outputs
 
-- **Formal taxonomy dependencies:** none.
+- **Formal registry dependencies:** none.
 - **Context/provenance:** `rlsor_terminal_exact_rung` and
   `frontier_adaptive_ladder` supply the chassis, history, and comparators; they
   are not proof-import edges.
@@ -70,7 +70,7 @@ that sweep and independent validation exist.
   notes, README, algorithm, valley, variants, and provenance sections.
 - **Checks last run:** `make note-audit` passed on 2026-08-20; focused LaTeX
   build not rerun because no theorem source was changed.
-- **Known gaps:** The manifest now says `measured-best-tested-b2p5`, matching
+- **Known gaps:** The registry evidence remains `measured`, matching
   the six-point campaign. The former contradictory bracketing sentence in
   `rlsor_terminal_exact_rung` has also been corrected; this note's
   `main.tex:130-135` remains the precise interpretation.

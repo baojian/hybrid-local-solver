@@ -1,0 +1,269 @@
+\section{A same-shell cascade obstruction}
+\label{sec:fan-obstruction}
+
+The first tempting route to \cref{eq:accelerated-revisit-target} is to charge
+one gate batch to one new root-distance shell.  That statement is false on the
+smallest nontrivial cyclic example.
+
+\begin{proposition}[A tailed triangle activates twice in one shell]
+\label{prop:tailed-triangle}
+Let the vertices be $o,u,v,z$, with edges
+\begin{equation}
+ \{o,u\},\quad\{o,v\},\quad\{u,v\},\quad\{v,z\},
+ \label{eq:tailed-triangle-edges}
+\end{equation}
+and seed $o$.  At
+\begin{equation}
+ \alpha=\frac3{20},
+ \qquad
+ \rho=\frac1{10},
+ \label{eq:tailed-triangle-parameters}
+\end{equation}
+the exact boundary gate first admits $u$ and then admits $v$, although
+\begin{equation}
+ \operatorname{dist}(o,u)=\operatorname{dist}(o,v)=1.
+ \label{eq:tailed-triangle-same-shell}
+\end{equation}
+Hence activation time is not bounded by root distance.
+\end{proposition}
+
+\begin{proof}
+The degrees in the order $(o,u,v,z)$ are $(2,2,3,1)$.  Write
+$g(x):=Qx-\ell_\rho$, so a boundary coordinate violates exactly when its
+slack is negative.  On $U_0=\{o\}$, direct settlement gives
+\begin{equation}
+ x_o^0=\frac{24}{115\sqrt2}.
+ \label{eq:tailed-triangle-first-value}
+\end{equation}
+Substitution into the two boundary slacks gives
+\begin{equation}
+ g_u(x^0)=-\frac{33\sqrt2}{4600}<0,
+ \qquad
+ g_v(x^0)=\frac{\sqrt3}{4600}>0.
+ \label{eq:tailed-triangle-first-slacks}
+\end{equation}
+Thus $B_0=\{u\}$.  Settlement on $U_1=\{o,u\}$ gives
+\begin{equation}
+ x_o^1=\frac{334\sqrt2}{3045},
+ \qquad
+ x_u^1=\frac{44\sqrt2}{3045},
+ \label{eq:tailed-triangle-second-values}
+\end{equation}
+and now
+\begin{equation}
+ g_v(x^1)=-\frac{21\sqrt3}{8120}<0.
+ \label{eq:tailed-triangle-second-slack}
+\end{equation}
+Therefore $B_1=\{v\}$, proving the claim.
+\end{proof}
+
+The phenomenon is not bounded by a constant.  Define the tailed fan
+$\mathcal F_m$ on
+\begin{equation}
+ V_m:=\{o,v_1,\ldots,v_m,z\}
+ \label{eq:fan-vertices}
+\end{equation}
+by joining $o$ to every $v_i$, joining $v_i$ to $v_{i+1}$ for
+$1\leq i<m$, and joining $v_m$ to $z$.  Thus
+\begin{equation}
+ d_o=m,\qquad d_{v_1}=2,\qquad
+ d_{v_i}=3\ (2\leq i\leq m),\qquad d_z=1.
+ \label{eq:fan-degrees}
+\end{equation}
+Every $v_i$ lies in the first root-distance shell.  The pendant $z$ removes
+the second degree-two endpoint that would otherwise start a symmetric cascade.
+
+\begin{theorem}[Arbitrarily long same-shell fan cascade]
+\label{thm:fan-cascade}
+Fix $\alpha\in(0,1)$.  For every integer $L\geq1$, there exist
+$m>L$ and $\rho>0$ such that the exact boundary gate on $\mathcal F_m$ has
+the first $L$ nonempty batches
+\begin{equation}
+ B_0=\{v_1\},\quad B_1=\{v_2\},\quad\ldots,\quad
+ B_{L-1}=\{v_L\}.
+ \label{eq:fan-singleton-batches}
+\end{equation}
+Every intermediate region has elimination width at most two, the entire graph
+has root radius two, and the realized revisit factor satisfies
+\begin{equation}
+\mathfrak R_{\rm set}>\frac{L+1}{5}.
+ \label{eq:fan-revisit-lower}
+\end{equation}
+Consequently, no bound on the literal gate's revisit factor can depend on
+$\alpha$ alone.
+\end{theorem}
+
+\begin{proof}
+Use the scaling
+\begin{equation}
+ \rho=\frac{\vartheta}{m},
+ \qquad
+ \vartheta_0:=\frac{1-\alpha}{4+2\alpha},
+ \label{eq:fan-critical-scaling}
+\end{equation}
+and consider a fixed prefix length while $m\to\infty$.  Write
+$x_o=X/\sqrt m$ and $x_{v_i}=Y_i/m$.  The settled root equation converges to
+\begin{equation}
+ X=\frac{2\alpha(1-\vartheta)}{1+\alpha}.
+ \label{eq:fan-limit-root}
+\end{equation}
+For a root neighbor of degree $d$, the scaled shifted demand after the root
+contribution is
+\begin{equation}
+ \psi_d(\vartheta)
+ :=\alpha\left[
+  \frac{(1-\alpha)(1-\vartheta)}{(1+\alpha)\sqrt d}
+  -\vartheta\sqrt d
+ \right].
+ \label{eq:fan-limit-demand}
+\end{equation}
+The critical value in \cref{eq:fan-critical-scaling} is chosen so that
+\begin{equation}
+ \psi_3(\vartheta_0)=0,
+ \qquad
+ \psi_2(\vartheta_0)
+ =\frac{\alpha\vartheta_0}{\sqrt2}>0.
+ \label{eq:fan-critical-demands}
+\end{equation}
+
+Suppose the active fan prefix is $v_1,\ldots,v_j$.  In the same limit, its
+scaled coordinates solve a tridiagonal Stieltjes system $T_jY=p$, with
+diagonal
+\begin{equation}
+ a:=\frac{1+\alpha}{2},
+ \label{eq:fan-core-diagonal}
+\end{equation}
+first off-diagonal magnitude
+\begin{equation}
+ h_1:=\frac{1-\alpha}{2\sqrt6},
+ \label{eq:fan-first-coupling}
+\end{equation}
+all later off-diagonal magnitudes
+\begin{equation}
+ h:=\frac{1-\alpha}{6},
+ \label{eq:fan-core-coupling}
+\end{equation}
+and right-hand side
+\begin{equation}
+ p=\bigl(\psi_2(\vartheta),
+          \psi_3(\vartheta),\ldots,
+          \psi_3(\vartheta)\bigr)^T.
+ \label{eq:fan-core-load}
+\end{equation}
+At $\vartheta=\vartheta_0$, this is a positive multiple of $e_1$.
+The irreducible Stieltjes inverse $T_j^{-1}$ is strictly positive, so the
+last coordinate $Y_j^{(j)}$ is positive for every fixed $j$.
+
+Here $\psi_d$ is the scaled violation demand
+$m(\ell_\rho-Qx)$ before contributions from active path neighbors.  At the
+critical value, a remote inactive degree-three vertex therefore has limiting
+violation demand zero, whereas the next path vertex has limiting violation
+demand
+\begin{equation}
+ \begin{cases}
+  h_1Y_1^{(1)},&j=1,\\
+  hY_j^{(j)},&j\geq2,
+ \end{cases}
+ \label{eq:fan-next-margin}
+\end{equation}
+which is strictly positive.  There are only finitely many margins for
+$j<L$.  By continuity, one may choose
+$\vartheta>\vartheta_0$ sufficiently close that
+\begin{equation}
+ \psi_3(\vartheta)<0,
+ \qquad
+ \psi_3(\vartheta)+h_jY_j^{(j)}(\vartheta)>0
+ \quad(1\leq j<L),
+ \label{eq:fan-separated-signs}
+\end{equation}
+where $h_j=h_1$ for $j=1$ and $h_j=h$ otherwise; also
+$\psi_2(\vartheta)>0$.  Thus the degree-two endpoint wants to enter, every
+remote degree-three coordinate does not, and precisely the next path vertex
+wants to enter.
+
+For every fixed $j$, the finite-$m$ scaled restricted system converges
+entrywise to the displayed root equation and $T_j$ system.  All inequalities
+in \cref{eq:fan-separated-signs} are strict, so one sufficiently large
+$m>L$ preserves them simultaneously for $j=0,\ldots,L-1$.  Induction then
+gives \cref{eq:fan-singleton-batches}.
+
+Eliminating $z,v_m,v_{m-1},\ldots,v_1$ leaves at most the root and one path
+neighbor after every pivot, so the fan and every active prefix have width at
+most two.  All $v_i$ have root distance one and $z$ has distance two.
+Finally, every region $U_0,\ldots,U_L$ contains the root and hence has
+\begin{equation*}
+ \operatorname{cvol}(U_j)\geq m+1.
+\end{equation*}
+The final support is contained in $V_m$, while
+\begin{equation*}
+ \operatorname{cvol}(V_m)
+ =|V_m|+2|E_m|=(m+2)+4m=5m+2.
+\end{equation*}
+Therefore
+\begin{equation*}
+ \mathfrak R_{\rm set}
+ \geq\frac{(L+1)(m+1)}{5m+2}
+ >\frac{L+1}{5}.
+\end{equation*}
+\end{proof}
+
+\begin{corollary}[A logarithmic dynamic-range loss is intrinsic]
+\label{cor:fan-logarithmic-loss}
+For every fixed $\alpha\in(0,1)$, the construction in
+\cref{thm:fan-cascade} can be chosen so that
+\begin{equation}
+ \mathfrak R_{\rm set}
+ =\Omega_\alpha\!\left(\log\frac1\rho\right).
+ \label{eq:fan-log-revisit}
+\end{equation}
+Hence a fresh-refactor-and-rescan implementation of the exact gate can require
+\begin{equation}
+ \Omega_\alpha\!\left(
+  \frac1\rho\log\frac1\rho
+ \right)
+ \label{eq:fan-log-work}
+\end{equation}
+degree work even on width-two, radius-two instances.  The statement does not
+refute a $\widetilde O(1/(\rho\sqrt\alpha))$ theorem; it proves that a hidden
+dynamic-range logarithm or an incremental settlement interface is necessary.
+\end{corollary}
+
+\begin{proof}
+At $\vartheta_0$, forward elimination of
+$T_jY=\psi_2(\vartheta_0)e_1$ has positive pivots at most $a$.
+Consequently the endpoint margin in
+\cref{eq:fan-next-margin} is bounded below by
+\begin{equation}
+ C_\alpha\left(\frac h a\right)^j
+ \label{eq:fan-margin-decay}
+\end{equation}
+for a constant $C_\alpha>0$.  Choose
+$\vartheta-\vartheta_0$ as a sufficiently small constant multiple of the
+minimum margin through $L$.  The $T_j$ are uniformly strictly diagonally
+dominant, so their inverse norms and the $\vartheta$-derivatives of all the
+displayed demands are bounded in terms of $\alpha$ alone.  The finite-$m$
+scaled root feedback and coefficient perturbation for a prefix of length at
+most $L$ are $O_\alpha(L/m)$.  It is therefore sufficient to take
+\begin{equation}
+ m=O_\alpha\!\left(
+  L\left(\frac a h\right)^L
+ \right).
+ \label{eq:fan-size-choice}
+\end{equation}
+Since $\rho=\vartheta/m$ and $\vartheta$ remains bounded away from zero,
+\cref{eq:fan-size-choice} gives
+$\log(1/\rho)=O_\alpha(L)$.  Combine this with
+\cref{eq:fan-revisit-lower}.
+
+For the work statement, each fresh stage scans or refactors a region
+containing the degree-$m$ root and therefore costs $\Omega(m)$.  The chosen
+$\rho$ satisfies $m=\Theta_\alpha(1/\rho)$ up to the harmless variation of
+$\vartheta$, so the first $L$ stages give \cref{eq:fan-log-work}.
+\end{proof}
+
+The fan separates three statements that should not be conflated.  Support
+radius can be constant while gate time is unbounded; constant elimination
+width does not help if the same region is freshly settled after every event;
+and the polylogarithmic target remains viable precisely because the cascade
+margin decays geometrically.  This points away from a log-free batch theorem
+and toward either a margin-aware amortization or retained Schur state.
