@@ -64,6 +64,7 @@ This table is generated from `registry.toml` by
 | [`response_preconditioned_hybrid`](response_preconditioned_hybrid/) | mixed | proved-open | Combine charged Schur responses, frontier repair, and fixed-face reporting. |
 | [`two_rung_direct_theory`](two_rung_direct_theory/) | mixed | proved-open | Explain measured waves, obstructions, and the value of elimination. |
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
+| [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
 | [`hybrid_local_solver_synthesis`](hybrid_local_solver_synthesis/) | synthesis | synthesis | Connect the active manuscript, solver families, and experiments. |
