@@ -90,6 +90,22 @@ State: proved-open
   removes the hold logarithm from the dense fallback, whose factor/solve work
   becomes `O(q^-3)`.  This is an exact active-set comparator, not a log-free
   chronology theorem for the named fixed-step recurrence.
+  A fresh exact leaf-elimination solve, full materialization, and complete
+  scan on every face implement this comparator in `O(q^-2)` work on every
+  tree.  Fresh block--cut decomposition and exact dense leaf-block
+  elimination give `O(b^3q^-2)` work and `O(b^2q^-1)` peak response storage
+  when every ambient biconnected block has at most `b` vertices.
+  On endpoint paths, every such face is a prefix and every complete-gate
+  admission is a singleton.  The note's append-only tridiagonal response,
+  with a full reverse solve, complete scan, and all intermediate writes
+  charged on every face, therefore implements this exact comparator in
+  `O(q^-2)` work and `O(q^-1)` storage/output.  The formally imported
+  activation-once path solver realizes the identical gate under the exact
+  shared/source KKT map and reduces the charge to output-linear `O(q^-1)` by
+  delaying reverse materialization until termination.  Formally imported
+  lazy tree and bounded-block responses also solve the same terminal RPPR
+  task in `O_tilde(q^-2)` on their structural classes, but generate their own
+  support traces rather than reproducing the comparator's batches.
 - **Conditional:** The named complete gate preserves `Xi` exactly across
   admissions. For interior visited restricted optima, the baseline coefficient
   `(1+q^2)(1-q)/q^5` remains valid, and the exact projection-normal identity
@@ -100,9 +116,14 @@ State: proved-open
   chronology may differ and clipped-zero rows remain in admission and terminal
   scans. Under the declared low-frequency residual condition
   `||r||_D^2 <= 2 c_low q^2 P`, coefficient
-  `2 c_low(1-q)/q^3` suffices. Full product-scale work still requires a
-  structural or stronger-potential continuation/amortization theorem that
-  bounds expansion debt and repeated restricted work.
+  `2 c_low(1-q)/q^3` suffices. Full product-scale work for the named
+  fixed-step recurrence still requires a structural or stronger-potential
+  continuation/amortization theorem that bounds expansion debt and repeated
+  restricted work.
+  Separately, any exact nested backend that fully charges all per-face solve,
+  complete-boundary query, materialization, scan, write, validation, and
+  output work by `O(sum_U vol(U))` composes with the exact-optimum comparator
+  to give `O(q^-2)` work.  This ledger is not an arbitrary-graph backend.
 - **Measured:** Floating-point path scaling tables are scaffolding only. The
   graph-atlas reserve sweep is exact finite evidence at `q=1/5`, not a
   graph-uniform extrapolation; all promoted witness values use exact rational
@@ -138,10 +159,13 @@ State: proved-open
   necessary.
 - **Open:** Identify useful narrower classes where the low-frequency condition
   holds; remove the logarithm for the named candidate-envelope recurrence or
-  prove it necessary; and bypass explicit scalar Cholesky with a charged
-  response that improves the `O(q^-3)` exact-optimum comparator to desired product-scale
-  `O_tilde(q^-2)` work. Finite precision, bit complexity, stability, and
-  non-Cholesky response costs remain open.
+  prove it necessary; and construct a charged complete-violation response that
+  improves the `O(q^-3)` exact-optimum comparator to product-scale
+  `O_tilde(q^-2)` work on arbitrary cores.  The literal comparator is closed
+  on trees and polylogarithmic-size biconnected blocks; response-generated
+  solvers separately close their stated terminal tasks. Finite precision,
+  bit complexity, stability, and arbitrary-core
+  response costs remain open.
 
 ## Central blocker
 
@@ -157,15 +181,20 @@ diagnostics, but their ratio no longer blocks scalar all-history solvency.
 The scalar quartic statement itself still may not be promoted into a
 convergence conclusion. The separate total-energy argument now supplies a
 graph-uniform terminal horizon and a dense exact-real fallback, but not the
-desired product-scale work theorem.  The expander STOP now shows that sparse
-ordering cannot repair the explicit scalar Cholesky fallback; the remaining
-representation target must be compressed, matrix-free, iterative,
-approximate, or otherwise outside that class.  The per-face logarithm remains
-independently open.
+desired arbitrary-graph product-scale work theorem.  The exact-optimum
+comparator is now product-scale on trees and polylogarithmic-size
+biconnected blocks; endpoint paths additionally have an output-linear
+activation-once implementation, while imported tree/bounded-block solvers
+close the same terminal task through their own traces.  The expander STOP
+still shows that sparse ordering cannot repair the explicit scalar Cholesky
+fallback; the arbitrary cyclic-core representation target must be compressed,
+matrix-free, iterative, approximate, or otherwise outside that class.  The
+per-face logarithm for the named recurrence remains independently open.
 
 ## Dependencies and reusable outputs
 
-- Formal registry dependencies: `aesp_cd_l1_rppr`.
+- Formal registry dependencies: `aesp_cd_l1_rppr`,
+  `incremental_active_set_sdd`, and `delayed_reflection_ladder`.
 - Source/shared prerequisites: RPPR support/KKT facts, FISTA/AESP scaffold,
   and the common charged-work convention.
 - Context/provenance: the companion `propagate_settle_framework` note proves
@@ -173,9 +202,11 @@ independently open.
   responses at a different parameter scaling.  The local expander STOP
   includes its own support-margin, separator, strict-fill, and scalar-work
   proof and therefore adds no formal registry dependency.
-  The companion `incremental_active_set_sdd` note develops the general exact
-  solve-and-boundary interface and a linear path realization.  It is likewise
-  comparator context rather than a formal dependency of the local proofs.
+  The companion `incremental_active_set_sdd` note supplies the formally
+  imported activation-once path implementation and the exact conditional
+  solve-and-boundary interface.  The companion `delayed_reflection_ladder`
+  note supplies the formally imported response-generated tree and bounded-
+  block terminal-task bounds.
 - Supplies to: Safe support/volume gates, exact path response ledgers,
   correction-bank counterexamples, and the causal cross-admission credit
   identity used by mixed-response directions.
@@ -190,15 +221,16 @@ independently open.
   `cor:complete-gate-dense-fallback` and
   `cor:complete-gate-exact-optimum-comparator` and
   `prop:complete-gate-explicit-cholesky-expander-stop` and
+  `prop:complete-gate-structured-response-composition` and
   `prop:original-score-normal-anchor` and
   `prop:reachable-positive-residual-projection`, then
   `prop:consumed-energy-quartic-lower` and
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
 - Next concrete action: sharpen the graph-uniform soft horizon by removing
-  its per-face logarithm or replace explicit scalar Cholesky transport with a
-  compressed, matrix-free, iterative, approximate, or otherwise non-Cholesky
-  charged response whose total work is `O_tilde(q^-2)`. The scalar reserve and
+  its per-face logarithm or construct an arbitrary-cyclic-graph compressed,
+  matrix-free, iterative, approximate, or otherwise non-Cholesky complete-
+  violation response whose total work is `O_tilde(q^-2)`. The scalar reserve and
   normal-anchor diagnostics are not needed for the proved horizon.
 - Stop/go test: Go only if the replacement survives the reachable quartic
   family, star asymptotic, and three-admission all-history trace without future
@@ -211,8 +243,8 @@ independently open.
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Fourteen exact `volume_gated_acceleration.*` audits cover the
-  Round-013--026 mechanisms. Run them with `uv run python -m
+- Focused checks: Fifteen exact `volume_gated_acceleration.*` audits cover the
+  Round-013--027 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
   volume_gated_acceleration`; the full tier includes both optional small-graph
   enumerations.
@@ -227,12 +259,14 @@ independently open.
   scope qualifications.  The expander audit checks the exact resolvent
   normalization, RPPR margin, product-scale conversion, clique-storage count,
   and scalar Schur-update sum; expansion and treewidth remain theorem proof,
-  not finite computational evidence.
+  not finite computational evidence.  The structured-response audit checks
+  the exact parameter/KKT map, strict gate equivalence, and face/product
+  constants; the algorithms and response traces remain theorem proof.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
   geometry. Exact support tests require finite-precision margins in an
-  implementation. There is no product-scale nonpath eleven-resource vector,
-  sparse-response theorem, finite-precision guarantee, or bit-complexity
+  implementation. There is no arbitrary-cyclic-graph product-scale
+  complete-violation response, finite-precision guarantee, or bit-complexity
   bound.  The named candidate-envelope fallback is exact-real and
   `O(q^-3 log(1/q))`; the changed-policy exact-optimum comparator is
   `O(q^-3)`.

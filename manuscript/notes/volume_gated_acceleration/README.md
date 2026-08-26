@@ -84,12 +84,35 @@ Cholesky/LDL response class.  It does not prove the per-face logarithm
 necessary and leaves compressed, matrix-free, iterative, approximate, and
 other non-Cholesky responses open.
 
+On structured graphs that remaining factor can be removed without hiding
+response materialization.  A fresh leaf-elimination solve, full materialized
+state, and complete scan on every comparator face cost `O(q^-2)` in total on
+every tree.  Fresh block--cut decomposition and dense leaf-block elimination
+cost `O(b^3 q^-2)` when every biconnected block has size at most `b`, hence
+product scale up to polylogarithms for polylogarithmic `b`.  On endpoint
+paths, the append-only tridiagonal records already proved in this note give
+the same fully charged `O(q^-2)` bound; all faces are prefixes and every batch
+is a singleton.  Under the exact
+shared/source KKT map, the companion activation-once path solver implements
+the identical gate trace with one final reverse materialization in only
+`O(q^-1)` charged work.  Companion lazy-response results separately solve the
+same terminal RPPR task in `O_tilde(q^-2)` work on arbitrary trees and on
+polylogarithmic-size biconnected blocks.  Those latter algorithms generate
+their own response traces and therefore are not complexity theorems for this
+note's literal comparator batches.  No cited backend supplies the complete
+changing-face violation interface on arbitrary cyclic graphs, so that
+graph-uniform composition remains open.
+
 The finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. By themselves they prove no convergence
 failure or uniform recovery horizon; the separate transported-energy theorem
 above supplies the graph-uniform soft horizon without turning any finite
-witness into an asymptotic claim.  The target product-scale work and every
-finite-precision result remain open.
+witness into an asymptotic claim.  Product-scale work is now closed for the
+exact-optimum comparator on trees and polylogarithmic-size biconnected blocks,
+and for the response-generated terminal task on the imported structured
+classes, but remains open for the named recurrence and for the exact
+comparator on arbitrary cores.  Every finite-precision
+result remains open.
 The support-aware and original all-coordinate scalar coefficient orders are
 now closed at `Theta(q^-4)`, including arbitrary projection in the theorem's
 interior point-seed scope. The
@@ -121,8 +144,8 @@ uv run python -m experiments.proof_audits.runner \
   --tier full --note volume_gated_acceleration
 ```
 
-The fourteen mechanism-based exact-audit IDs are listed by
-`make research-audit-list`; their provenance spans Rounds 013--026. The full
+The fifteen mechanism-based exact-audit IDs are listed by
+`make research-audit-list`; their provenance spans Rounds 013--027. The full
 tier includes exhaustive connected labeled rooted graphs on two through five
 vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
 of every connected NetworkX graph-atlas representative through order seven
@@ -133,6 +156,8 @@ projection-normal identities, the first-admission quartic constants, and
 three finite critical-path gate failures.  The Round-026 exact scalar audit
 checks the expander normalization and RPPR margin constants together with the
 filled-clique storage and scalar pivot-update identities.
-The new reachable-projection audit verifies the 32-stage chronology, strict
+The Round-027 structured-response audit checks the exact shared/source
+parameter and KKT map, strict gate equivalence, and face/product constants.
+The reachable-projection audit verifies the 32-stage chronology, strict
 gate margins, clipped positive-residual row, positive debt, and optional
 finite rational `q` screen.
