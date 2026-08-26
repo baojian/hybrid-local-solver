@@ -1015,6 +1015,91 @@ def position_profile_asymptotic_checks() -> None:
     print("position_profile_asymptotic_checks=rational_constants=pass constant_U_Chebyshev=pass")
 
 
+def velocity_profile_asymptotic_checks() -> None:
+    """Audit the rational velocity ledger and its continuum normalization."""
+    t_edge = Fraction(7, 8)
+    a_value = t_edge**4 - 30 * t_edge**3 + 12 * t_edge**2 + 10 * t_edge + 3
+    a_derivative = 4 * t_edge**3 - 90 * t_edge**2 + 24 * t_edge + 10
+    assert 0 < a_value == Fraction(5841, 4096) < Fraction(3, 2)
+    assert a_derivative < 0
+
+    h_variation_bound = Fraction(1, 8) * 4 / (80 * Fraction(49, 60) * Fraction(113, 64) ** 2)
+    assert h_variation_bound == Fraction(1536, 625681)
+    assert h_variation_bound < Fraction(1, 400)
+
+    g_bernstein = (
+        Fraction(16854209, 262144),
+        Fraction(565377, 8192),
+        Fraction(94677, 1280),
+        Fraction(202609, 2560),
+        Fraction(20291, 240),
+        Fraction(541, 6),
+        Fraction(96),
+    )
+    assert min(g_bernstein) > 0
+
+    velocity_ledger = Fraction(1, 5) + Fraction(2, 75) + Fraction(43, 2880)
+    assert velocity_ledger == Fraction(3479, 14400)
+    assert Fraction(1, 4) - velocity_ledger == Fraction(121, 14400)
+
+    sample_count = 20000
+    step = 1.0 / sample_count
+    mode_index = 1
+
+    def p_limit(position: float) -> float:
+        t_value = math.exp(-position / 8.0)
+        return (
+            2.0 * (2.0 * t_value + t_value * t_value / 5.0 - 1.0 / 5.0) / (1.0 + t_value * t_value)
+        )
+
+    def u_limit(position: float) -> float:
+        return (p_limit(position) - 4.0 / 5.0) / 16.0
+
+    def mass_limit(position: float) -> float:
+        t_value = math.exp(-position / 8.0)
+        return (
+            p_limit(position) * (1.0 - t_value * t_value) / (2.0 * (1.0 + t_value * t_value))
+            + 2.0 / 5.0
+        )
+
+    derivative_integral = 0.0
+    mass_integral = 0.0
+    for index in range(sample_count + 1):
+        position = index * step
+        weight = 0.5 if index in (0, sample_count) else 1.0
+        damping = math.exp(-(1.0 - position) / 16.0)
+        derivative_integral += (
+            weight
+            * damping
+            * u_limit(position)
+            * math.sin(2.0 * math.pi * mode_index * position)
+            * math.cos(math.pi * mode_index * position)
+        )
+        mass_integral += (
+            weight
+            * damping
+            * mass_limit(position)
+            * math.cos(2.0 * math.pi * mode_index * position)
+            * math.cos(math.pi * mode_index * position)
+        )
+    derivative_integral *= step
+    mass_integral *= step
+    p_star = p_limit(1.0)
+    assert 0.0 < p_star < 2.0
+    continuum_value = (
+        4.0 * math.exp(-1.0 / 16.0) / 5.0
+        + p_star / 2.0
+        - 2.0 / 5.0
+        - 16.0 * math.pi * derivative_integral
+        - mass_integral / 8.0
+    )
+    assert math.isclose(continuum_value, -0.190520165, abs_tol=2.0e-8)
+
+    print(
+        "velocity_profile_asymptotic_checks=rational_TV=pass ledger=3479/14400 float_limit_s1=pass"
+    )
+
+
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
     """Apply D^(-1/2) Q D^(1/2) in normalized path coordinates."""
     a = (1.0 + q * q) / 2.0
@@ -1499,6 +1584,7 @@ def main() -> None:
     exact_boundary_source_checks()
     exact_directional_packet_checks()
     position_profile_asymptotic_checks()
+    velocity_profile_asymptotic_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")
