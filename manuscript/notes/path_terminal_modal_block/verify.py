@@ -127,11 +127,13 @@ def screen(edge_count: int, max_qk: float) -> None:
     assert raw_one.min() > 0.0
     coefficient_zero = cosine_coefficients(r_zero, degrees)
     coefficient_one = cosine_coefficients(residual(p_one, degrees, q), degrees)
-    band = max(
-        1,
-        int(math.sqrt(edge_count / max(1.0, math.log(edge_count)))),
+    band = min(
+        (edge_count - 1) // 2,
+        max(1, int(math.sqrt(edge_count / max(1.0, math.log(edge_count))))),
     )
+    lemma_band = int(math.sqrt(edge_count / (64.0 * math.log(16.0 * edge_count))))
     relative_defects = []
+    combined_lemma_defects = []
     for index in range(1, band + 1):
         mode = 2 * index
         phi = mode * math.pi / (2.0 * edge_count)
@@ -153,6 +155,17 @@ def screen(edge_count: int, max_qk: float) -> None:
             )
             / ideal_amplitude
         )
+        if index <= lemma_band:
+            combined_lemma_defects.append(
+                (abs(coefficient_zero[mode] - signed_ideal) + abs(quadrature)) / ideal_amplitude
+            )
+
+    if combined_lemma_defects:
+        maximum_combined_lemma_defect = max(combined_lemma_defects)
+        assert maximum_combined_lemma_defect <= 1.0 / 64.0
+        lemma_check = f"{maximum_combined_lemma_defect:.6g}<=1/64"
+    else:
+        lemma_check = "vacuous(H_m=0)"
 
     first_range_crossing = None
     first_certificate = None
@@ -197,6 +210,7 @@ def screen(edge_count: int, max_qk: float) -> None:
     print(
         f"  modal_band={band} "
         f"max_even_modal_defect={max(relative_defects):.6g} "
+        f"lemma_band={lemma_band} combined_lemma_check={lemma_check} "
         f"first_range_k={first_range_crossing} "
         f"qk_range={q * first_range_crossing:.9f} "
         f"first_certificate_k={first_certificate} "
@@ -223,8 +237,8 @@ def main() -> None:
     )
     arguments = parser.parse_args()
     for edge_count in arguments.m:
-        if edge_count < 2:
-            raise ValueError("every screened path needs at least two edges")
+        if edge_count < 3:
+            raise ValueError("every screened path needs at least three edges")
         screen(edge_count, arguments.max_qk)
 
 

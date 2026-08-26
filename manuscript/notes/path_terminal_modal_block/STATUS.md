@@ -45,8 +45,9 @@ Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
   through the stated horizon, then every sufficiently large member requires
   at least `(1/8) q^-1 log(1/q)` terminal steps.
 - **Measured:** For `m=128,256,512,1024,2048`, the actual floating trajectory
-  has entry weighted residual mass tending to `0.972986 q^2`, entry range
-  about `1.49939 q^(5/2)`, modal defects below `0.009` on the screened
+  has entry weighted residual mass between `0.972971 q^2` and
+  `0.972986 q^2`, entry range about `1.49939 q^(5/2)`, modal defects below
+  `0.009` on the screened
   `sqrt(m/log m)` band, positive projection/envelope margins, and first range
   crossing `q*k=3.1235,3.8711,4.3666,4.7131,5.0172`. For `m=128,256`, those
   crossings are not literal certificates because all residuals are still too
@@ -100,6 +101,9 @@ constants is permitted only with a corresponding proof.
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
   `q*k=3.733886719,3.985839844,4.366577148,4.713073730,5.017150879`.
+  It also checks the exact combined entry-quadrature defect against `1/64`
+  on `H_m`, labeling the check vacuous when `H_m=0`; the wider-band modal
+  statistic remains a separate diagnostic.
 - **Build:** A clean `latexmk` rebuild produced an eight-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,

@@ -58,6 +58,12 @@ the full path until the first one-sided certificate and makes one terminal
 external return.  These are the exact semantics imported from the sibling
 \texttt{volume\_gated\_acceleration} note.
 
+At full-face entry the newly admitted coordinate is still zero-padded.  The
+safe-envelope subtraction cannot make it positive, and the same strict
+outside-row violation that triggered its admission remains at that row.
+Thus entry itself is not an instantaneous terminal certificate; the first
+terminal step genuinely occurs after the full face has been entered.
+
 In normalized path coordinates $p=D^{-1/2}x$, put
 \begin{equation}
  \widehat Q=D^{-1/2}QD^{1/2}
@@ -264,7 +270,8 @@ In particular, for $h=2s$,
  \left[(-1)^s\cos^m\frac{s\pi}{m}-2^{-m}\right].
  \label{eq:terminal-modal-even-packet}
 \end{equation}
-For $s=o(\sqrt m)$, $|G_{2s}|\sim\alpha/m=16q^3$.
+For $s=o(\sqrt m)$,
+$|G_{2s}|\sim e^{-1/16}\alpha/m=16e^{-1/16}q^3$.
 \end{lemma}
 
 \begin{proof}
@@ -291,8 +298,7 @@ For every integer $H\ge8$ and every real $x$,
 \end{lemma}
 
 \begin{proof}
-If $\sin x=0$, the sum equals $H$.  Otherwise,
-The finite sum identity gives
+If $\sin x=0$, the sum equals $H$.  Otherwise, the finite sum identity gives
 \[
  \sum_{s=1}^H\cos^2(sx)
  =\frac H2+\frac{\sin(Hx)\cos((H+1)x)}{2\sin x}.
@@ -441,6 +447,13 @@ global crossing $R_k\le q^3/5$ and the first literal corrected test
 $\min r_k-\max(0,\max r_k)\ge-q^3/5$.  It separately checks the minimum raw
 projection and $p_k-\delta_k\one$ margins.  It uses deterministic float64
 arithmetic and therefore supplies measurements, not exact or asymptotic proof.
+On the exact band $1\le s\le H_m$, it also reports and checks the combined
+quantity
+\[
+ \max_s\frac{|C_{2s}-G_{2s}|+|D_{2s}|}{|G_{2s}|}\le\frac1{64},
+\]
+with a vacuous label when $H_m=0$.  The separately displayed ``modal defect''
+uses the wider diagnostic band described below and is not that direct check.
 
 \begin{center}
 \begin{tabular}{@{}r|rrrrrrr@{}}

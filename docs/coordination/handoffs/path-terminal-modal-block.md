@@ -50,7 +50,9 @@
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
 - Results: The note built to eight pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
-  screen passed all five sizes.  The 19-note registry, note targets,
+  screen passed all five sizes.  It checks the exact combined
+  `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
+  finite sizes with `H_m=0` as vacuous.  The 19-note registry, note targets,
   coordination audit, focused Ruff checks, diff check, and 210 tests passed.
   The test command emitted 15 temporary-directory cleanup warnings.  The full
   repository lint command remains red on 1,345 pre-existing findings under
@@ -68,6 +70,11 @@
   certificates.  Because the residual maximum is then negative, the literal
   certificates occur later at `q*k=3.733886719,3.985839844`.  For
   `m=512,1024,2048`, the two events coincide at the displayed precision.
+- Promotion-audit correction: The low-mode packet asymptotic is
+  `|G_(2s)| ~ exp(-1/16) alpha/m = 16 exp(-1/16) q^3`; the earlier omission
+  of `exp(-1/16)` was a constant typo and did not affect the theorem's
+  conservative amplitude bounds.  The note also records why zero-padding the
+  newly admitted endpoint rules out an instantaneous certificate at entry.
 - Open decisions or follow-up: Prove the entry quadrature lemma uniformly in
   `m`, including the sine-divided velocity quadrature, and prove projection
   inactivity plus unclipped global correction through
