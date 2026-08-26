@@ -59,7 +59,7 @@
 - Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
   `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The note built to eight pages with no LaTeX, package,
+- Results: The note built to 12 pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
   screen passed all five sizes.  It checks the exact combined
   `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
