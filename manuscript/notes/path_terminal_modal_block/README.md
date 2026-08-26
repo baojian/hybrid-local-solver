@@ -27,15 +27,24 @@ response preserve margin `179/14400` from prefix six onward; a separate
 analytic perturbation handles prefixes two through five. The remaining
 entry-profile problem also contains the final
 degree-one endpoint term.
-It also gives exact nonnegative position/velocity propagators, isolating the
-remaining factor-`k` velocity-cancellation obstruction. It then proves a conditional
+It also gives exact nonnegative position/velocity propagators.  A directed
+half-endpoint split of the ideal packet now retains the literal outward entry
+momentum: the two directed binomial waves remain nonpositive for all time.
+The actual entry position correction is proved coordinatewise nonpositive,
+and the folded velocity kernel has exact maximum coefficient at most
+`1+(k-1)/(2m)`.  Consequently all positive residual is reduced to the
+degree-weighted positive mass of one static directed-velocity remainder; the
+damping makes the apparent factor-`k` and repeated-reflection losses uniformly
+bounded. It then proves a conditional
 anti-cancellation theorem: two quantified entry
 position/velocity profile bounds plus projection/envelope regime preservation
 would force `Omega(q^-1 log(1/q))` terminal steps for the named
 transported-center execution.
 
 The two entry profiles and the terminal projection/envelope regime are not
-proved. A deterministic NumPy screen reconstructs
+proved. On the regime side, the remaining tasks are a uniform static bound on
+the directed-velocity remainder and an early/late lower position margin. A
+deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
 velocity identity, and reports both the first range crossing and the first
@@ -48,7 +57,9 @@ identity, and finite shared-sign replay at `m=8,12`. A third exact preflight che
 recurrence and signed source triplet, the positive Green identity, and the
 exact leading-order correction formulas through prefix 256. A fourth exact
 preflight checks the finite-`q` source constants, stopped derivative-prefix
-bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. The remaining
+bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
+exact preflight checks the directed packet identity, the folded `J_k` alias
+bound, and the entry-correction sign at `m=8,12`. The remaining
 entry-profile problem is a sharp signed summation of the source traces, not
 their support calculation. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other

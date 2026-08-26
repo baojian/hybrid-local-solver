@@ -70,7 +70,14 @@ Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
   ambient-degree-one endpoint term), its even-extension transform
   `U_n(1-z)(1+3z)+M_n*z^2`, the bounds
   `0<U_n<=3q^3/40`, `|M_n|<=3q^4/2`, and the scalar position/velocity reduction
-  then follow algebraically.
+  then follow algebraically. On the full face, splitting the even ideal packet
+  into two half-endpoint packets with opposite directed velocities proves that
+  their complete `K/J` evolution is coordinatewise nonpositive. The literal
+  entry correction `c=r_0-g` is also coordinatewise nonpositive for every
+  `m>=64`. The infinite-line coefficient of `J_k` is the binomial tail
+  `Pr(Bin(k-1,1/2)>=|r|)`; after cycle folding its maximum is at most
+  `1+(k-1)/(2m)`. Hence positive residual is bounded exactly by this factor
+  times the positive weighted mass of one static directed-velocity remainder.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -90,7 +97,9 @@ Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
   `V+G/5` errors remain below `0.195`, and `D_2/G_2` ranges from `-0.008138`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
-  near `+/-3.64 q^3`. These are finite measurements and assert no limit.
+  near `+/-3.64 q^3`. The directed cancellation reduces the measured positive
+  weighted remainder mass from that moving-packet scale to about
+  `0.258 q^3`--`0.260 q^3`. These are finite measurements and assert no limit.
 - **Open:** Prove the two entry profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
   endpoint pieces, and prove the uniform
@@ -117,7 +126,10 @@ Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
    five-piece decomposition.
 2. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
-   and every safe subtraction is strictly unclipped.
+   and every safe subtraction is strictly unclipped. The positive-residual
+   part is now reduced to proving a uniform static bound on
+   `||(w-w_dir)_+||_(1,D)/q^3`; a separate early/late position lower bound must
+   exploit the exact first-step margin, which is only order `q^2`.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
@@ -137,7 +149,8 @@ constants is permitted only with a corresponding proof.
   generating-series cancellation, and the all-prefix leading correction
   generating function with sharp shared-coordinate `1/80` margin, the
   finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
-  six onward,
+  six onward, the directed two-wave ideal packet, the exact entry-correction
+  sign, and the no-loss folded `J_k` alias bound,
   weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
   transported-center semantics.
@@ -151,11 +164,10 @@ constants is permitted only with a corresponding proof.
   packet/base discrepancy, the constant-`U` response, the total-variation
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
-  enough to prove the displayed `C` and `V` profiles. Separately, use the ideal packet's
-  proved nonpositive evolution and the exact `K/J` decomposition to replace
-  the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
-  variation estimate, plus a global supremum/variation bound on the literal
-  remainder, to attack the projection/envelope regime.
+  enough to prove the displayed `C` and `V` profiles. Separately,
+  prove a uniform bound on the positive weighted mass of the directed
+  velocity remainder and combine the resulting residual bound with an
+  early/late lower bound for the literal position candidate.
 - **Stop/go test:** Promote the logarithmic block only after both missing
   lemmas are proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
@@ -176,7 +188,9 @@ constants is permitted only with a corresponding proof.
   shared-coordinate theorem and recover its exact minimum `1/80`. A fourth
   exact preflight checks the early-source mass identity, analytic small-prefix
   ledger, stopped derivative prefixes through length 128, point-source fold,
-  and final `179/14400` arithmetic. The floating screen
+  and final `179/14400` arithmetic. A fifth exact preflight checks the
+  half-endpoint cycle split, directed evolution, folded `J_k` alias bound, and
+  exact entry-correction sign at `m=8,12`. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -185,7 +199,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 26-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 28-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

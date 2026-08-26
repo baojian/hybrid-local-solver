@@ -710,6 +710,131 @@ def exact_boundary_source_checks() -> None:
     )
 
 
+def exact_directional_packet_checks() -> None:
+    """Audit the directed packet, entry sign, and folded J-kernel bound."""
+
+    def shift(values: list[Fraction], amount: int) -> list[Fraction]:
+        size = len(values)
+        return [values[(index - amount) % size] for index in range(size)]
+
+    def average_shift(values: list[Fraction], amount: int) -> list[Fraction]:
+        shifted = shift(values, amount)
+        return [(left + right) / 2 for left, right in zip(values, shifted, strict=True)]
+
+    def cycle_l(values: list[Fraction]) -> list[Fraction]:
+        plus = average_shift(values, 1)
+        minus = average_shift(values, -1)
+        return [(left + right) / 2 for left, right in zip(plus, minus, strict=True)]
+
+    for edge_count in (5, 8):
+        size = 2 * edge_count
+        packet = [
+            Fraction(math.comb(edge_count, index), 2**edge_count) for index in range(edge_count + 1)
+        ]
+        plus_packet = [Fraction(0) for _ in range(size)]
+        plus_packet[: edge_count + 1] = packet
+        plus_packet[0] /= 2
+        plus_packet[edge_count] /= 2
+        minus_packet = [plus_packet[-index % size] for index in range(size)]
+        even_packet = [
+            packet[index] if index <= edge_count else packet[size - index] for index in range(size)
+        ]
+        assert [
+            left + right for left, right in zip(plus_packet, minus_packet, strict=True)
+        ] == even_packet
+
+        directed_velocity = [
+            plus - middle + minus - middle_other
+            for plus, middle, minus, middle_other in zip(
+                average_shift(plus_packet, 1),
+                cycle_l(plus_packet),
+                average_shift(minus_packet, -1),
+                cycle_l(minus_packet),
+                strict=True,
+            )
+        ]
+        trajectory_previous = even_packet
+        trajectory = [
+            left + right
+            for left, right in zip(
+                cycle_l(even_packet),
+                directed_velocity,
+                strict=True,
+            )
+        ]
+        directed_plus = average_shift(plus_packet, 1)
+        directed_minus = average_shift(minus_packet, -1)
+        assert trajectory == [
+            left + right for left, right in zip(directed_plus, directed_minus, strict=True)
+        ]
+        for _step in range(1, 4 * edge_count):
+            directed_plus = average_shift(directed_plus, 1)
+            directed_minus = average_shift(directed_minus, -1)
+            expected = [
+                left + right for left, right in zip(directed_plus, directed_minus, strict=True)
+            ]
+            following = [
+                2 * middle - previous
+                for middle, previous in zip(
+                    cycle_l(trajectory),
+                    cycle_l(trajectory_previous),
+                    strict=True,
+                )
+            ]
+            assert following == expected
+            trajectory_previous, trajectory = trajectory, following
+
+    for edge_count in (3, 4, 5):
+        period = 2 * edge_count
+        for step in range(1, 8 * edge_count + 1):
+            tail = {
+                offset: sum(
+                    Fraction(math.comb(step - 1, count), 2 ** (step - 1))
+                    for count in range(abs(offset), step)
+                )
+                for offset in range(-(step - 1), step)
+            }
+            assert max(tail.values()) <= 1
+            aliases = [
+                sum(value for offset, value in tail.items() if offset % period == residue)
+                for residue in range(period)
+            ]
+            assert max(aliases) <= 1 + Fraction(step - 1, 2 * edge_count)
+
+    for edge_count in (8, 12):
+        q = Fraction(1, 16 * edge_count)
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        p = [Fraction(0)]
+        v = [Fraction(0)]
+        for length in range(1, edge_count + 1):
+            optimum = _fraction_optimum(length, degrees, q)
+            p_next, v_next = _fraction_step(p, v, degrees[:length], q)
+            new_optimum = _fraction_optimum(length + 1, degrees, q)
+            p = p_next + [Fraction(0)]
+            v = [
+                value + new_value - old_value
+                for value, new_value, old_value in zip(
+                    v_next + [Fraction(0)],
+                    new_optimum,
+                    optimum + [Fraction(0)],
+                    strict=True,
+                )
+            ]
+        entry_residual = _fraction_residual(p, degrees, q)
+        ideal = [
+            -(q * q)
+            * (1 - q) ** edge_count
+            * Fraction(math.comb(edge_count, index), 2 ** (edge_count + 1))
+            for index in range(edge_count + 1)
+        ]
+        assert all(left <= right for left, right in zip(entry_residual, ideal, strict=True))
+
+    print(
+        "exact_directional_packet_checks=cycle_split:pass directed_sign:pass "
+        "J_alias:pass exact_entry_c_sign=m=8,12"
+    )
+
+
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
     """Apply D^(-1/2) Q D^(1/2) in normalized path coordinates."""
     a = (1.0 + q * q) / 2.0
@@ -1078,6 +1203,30 @@ def screen(edge_count: int, max_qk: float) -> None:
     weighted_packet_error = float(np.dot(degrees, np.abs(packet_error)))
     l_r_zero = (r_zero - h_apply(r_zero, degrees, q)) / (1.0 - q * q)
     velocity_source = r_one / (1.0 - q) - l_r_zero
+    cycle_size = 2 * edge_count
+    directed_plus = np.zeros(cycle_size)
+    directed_plus[: edge_count + 1] = packet
+    directed_plus[0] /= 2.0
+    directed_plus[edge_count] /= 2.0
+    directed_minus = np.array([directed_plus[-index % cycle_size] for index in range(cycle_size)])
+
+    def average_cycle_shift(values: np.ndarray, amount: int) -> np.ndarray:
+        return (values + np.roll(values, amount)) / 2.0
+
+    directed_l_plus = (
+        average_cycle_shift(directed_plus, 1) + average_cycle_shift(directed_plus, -1)
+    ) / 2.0
+    directed_l_minus = (
+        average_cycle_shift(directed_minus, 1) + average_cycle_shift(directed_minus, -1)
+    ) / 2.0
+    directed_velocity = (
+        average_cycle_shift(directed_plus, 1)
+        - directed_l_plus
+        + average_cycle_shift(directed_minus, -1)
+        - directed_l_minus
+    )[: edge_count + 1]
+    directed_remainder = velocity_source - directed_velocity
+    directed_positive_mass = float(np.dot(degrees, np.maximum(directed_remainder, 0.0)))
     print(
         f"m={edge_count:5d} q={q:.9g} alpha={q * q:.9g} "
         f"rho=tau={q / 5.0:.9g} graph=P_m seed=v0 "
@@ -1113,7 +1262,9 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"{packet_error.max() / q**3:.6g}] "
         f"measured_w_over_q3=[{velocity_source.min() / q**3:.6g},"
         f"{velocity_source.max() / q**3:.6g}] "
-        f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g}"
+        f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g} "
+        f"directed_uplus_L1D/q3={directed_positive_mass / q**3:.6g} "
+        f"entry_c_max/q3={packet_error.max() / q**3:.6g}"
     )
     position_pieces, velocity_pieces = five_piece_decomposition(
         prefix_residuals,
@@ -1152,6 +1303,7 @@ def main() -> None:
     exact_chronology_correction_checks()
     exact_finite_q_correction_checks()
     exact_boundary_source_checks()
+    exact_directional_packet_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")
