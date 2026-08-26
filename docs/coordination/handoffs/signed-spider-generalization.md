@@ -19,8 +19,9 @@
   objective-gap conversion, so SOR and FISTA can be compared only under a
   matched objective/accuracy contract.
 - Proved the optimal red--black SOR spectral factor and a finite power bound
-  on every supplied bipartite face, plus one global relaxation parameter that
-  works on all such faces.
+  on every supplied bipartite face.  The sharp face-specific rate requires
+  supplied spectral tuning; one graph-global parameter gives the generic
+  fully charged rate without an eigenvalue computation.
 - Specialized the factor to depth-`L` spider prefixes, giving sweep scale
   `Theta(1 / sqrt(alpha + L^-2))` up to logarithms and fully charged repeated
   face scans; derived the exact hub-seeded radial PPR profile.
@@ -36,7 +37,7 @@
 
 ## Evidence
 
-- The 21-page note builds with no undefined references, citations, or
+- The 22-page note builds with no undefined references, citations, or
   overfull boxes, and every rendered page was visually inspected.
 - `verify_spider.py` passes 80 deterministic SOR-mode cells, 144 exact-formula
   spider cells, and 522 small-graph RPPR-bias cells.
@@ -52,3 +53,6 @@
   index only.
 - Scope boundary: fixed-face SOR does not discover or certify a changing face;
   imported response solvers use stronger, separately charged primitives.
+- Independent equation-level review restored the source hypotheses on the
+  imported radial two-rung theorem and separated oracle spectral tuning from
+  the generic globally tuned fixed-face bound.

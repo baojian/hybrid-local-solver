@@ -33,14 +33,17 @@ State: proved-open
   RPPR face, the problem is an ordinary shifted PageRank linear system.  For
   every fixed bipartite face, optimal red--black SOR has exact spectral factor
   `(1-t)/(1+t)` with `t=sqrt(1-rho_J^2)` and a finite Euclidean/semantic
-  convergence bound.
+  convergence bound when the face-specific tuning is supplied.  One
+  graph-global parameter gives the generic fully charged fixed-face bound
+  without computing `rho_J`.
 - **Imported:** The exact spider-prefix spectrum comes from
   `volume_gated_acceleration`.  Exact kinetic response on hub-rooted spiders and
   exact aggregate response on rooted trees come from
   `propagate_settle_framework`.  The representation-free bounded-block
   response theorem comes from `delayed_reflection_ladder`.  The accelerated
   radial two-rung and finite-spider deflation theorems come from
-  `two_rung_direct_theory` under their residual-gate namespace.
+  `two_rung_direct_theory` under their residual-gate namespace and parameter
+  hypotheses `1 < B_rung < B_edge`, `B_rung R eps_ppr < 1`.
 - **Conditional:** An SOR-only local theorem beyond a fixed face requires a
   charged support-discovery, state-transport, and semantic-stopping interface.
 - **Measured:** None of the main claims is inferred from measurement.  The
@@ -86,7 +89,7 @@ transient reports, state rewrites, or face changes.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 21-page PDF with no undefined
+- **Focused checks:** `make` produced a 22-page PDF with no undefined
   references, citations, or overfull boxes; all pages were rendered and
   visually inspected.  `verify_spider.py` passed 80 SOR-mode cells, 144
   spider-spectrum cells, and 522 small-graph RPPR-bias cells.

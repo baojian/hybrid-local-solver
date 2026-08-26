@@ -10,7 +10,9 @@ FISTA end to end.
 
 Second, the note develops a graph-family ladder.  It proves the optimal
 red--black SOR spectral factor on every fixed exposed bipartite face,
-specializes it to spider prefixes, and gives a finite fixed-face work bound.
+specializes it to spider prefixes, scopes the sharp rate to supplied spectral
+tuning, and gives a generic finite fixed-face work bound using one
+graph-global parameter.
 It then records the stronger existing response results: exact RPPR support and
 solution can already be found locally on hub-rooted spiders, arbitrary rooted
 trees, and graphs with bounded biconnected blocks.  Choosing the RPPR
