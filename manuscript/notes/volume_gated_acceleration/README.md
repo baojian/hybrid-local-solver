@@ -18,13 +18,30 @@ singleton admissions, and still becomes negative for two held checkpoints.
 It therefore refutes unconditional zero-balance all-history solvency for the
 named `delta^2` ledger.
 
+The note then tests the narrowest causal energy repair.  The reserve
+`R_k = E_0 + D_k - E_k` stores only transported-center energy already consumed
+by executed fixed-face contractions; exact transported admissions leave it
+unchanged.  A unit coefficient repairs the six-vertex trace, and coefficient
+`3` repairs every rooted connected graph-atlas trace through order seven at
+`q=1/5`.  An exact leaf-seeded `K_{1,4}` family nevertheless forces the
+minimum coefficient to grow as `1/(32 q^3)`, ruling out a constant or
+polylogarithmic multiplier uniformly in `q`.  The named complete gate
+preserves the score exactly across admission. On its interior traces, a coarse
+`O(q^-5)` coefficient and a low-frequency `O(q^-3)` coefficient are proved for
+the scalar account.  These do not imply convergence
+or a work bound, and
+reserve evaluation must be charged when the restricted optimum and energy are
+not cached.
+
 These finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. They do not prove a convergence failure,
 uniform recovery horizon, asymptotic work theorem, or finite-precision result.
-The live causal-ledger target is now a useful structural promised-class
-condition, an explicitly justified reserve, or a stronger observable; the
-unconditional zero-balance `delta^2` all-history route is closed for the named
-recurrence and gate.
+The live causal-ledger target is now to prove the stated low-frequency
+condition on a useful reachable promised class, close the gap between the
+`q^-3` star lower order and `q^-5` unconditional sufficient coefficient, or
+find a stronger exact obstruction.  The unconditional zero-balance
+`delta^2` all-history route and a small multiplier of this consumed-energy
+reserve are both closed for the named recurrence and gate.
 
 Build and audit from the repository root with:
 
@@ -34,7 +51,9 @@ uv run python -m experiments.proof_audits.runner \
   --tier full --note volume_gated_acceleration
 ```
 
-The ten mechanism-based exact-audit IDs are listed by
-`make research-audit-list`; their provenance spans Rounds 013--022. The full
+The eleven mechanism-based exact-audit IDs are listed by
+`make research-audit-list`; their provenance spans Rounds 013--023. The full
 tier includes exhaustive connected labeled rooted graphs on two through five
-vertices for `volume_gated_acceleration.nonpath_causal_stop`.
+vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
+of every connected NetworkX graph-atlas representative through order seven
+for `volume_gated_acceleration.consumed_energy_reserve`.

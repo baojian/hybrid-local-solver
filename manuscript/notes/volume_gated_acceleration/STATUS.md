@@ -38,32 +38,50 @@ State: proved-open
   through stage 13, and first goes at stage 14. On the second six-vertex
   graph, the account begins at the actual zero initialization, retains all
   credit from three consecutive singleton admissions, stops at held stages 7
-  and 8, and first goes at stage 9.
-- **Conditional:** Full product-scale work still requires a structural or
-  stronger-potential continuation/amortization theorem that bounds expansion
-  debt and repeated restricted work.
-- **Measured:** Floating-point path scaling tables are scaffolding only; the
-  promoted finite witnesses use exact rational arithmetic.
+  and 8, and first goes at stage 9. The causal reserve
+  `R_k=E_0+D_k-E_k` is exactly the transported-center energy consumed by
+  already executed fixed-face contractions and is unchanged across exact
+  transported admissions. Its exact finite-trace minimum coefficient repairs
+  the six-vertex witness with `lambda*=0.013014...`; coefficient `3` repairs
+  every rooted connected graph-atlas trace through order seven at `q=1/5`.
+- **Conditional:** The named complete gate preserves `Xi` exactly across
+  admissions. For interior visited restricted optima, coefficient
+  `(1+q^2)(1-q)/q^5` makes the consumed-energy scalar ledger solvent. Under
+  the declared low-frequency residual condition
+  `||r||_D^2 <= 2 c_low q^2 P`, coefficient
+  `2 c_low(1-q)/q^3` suffices. Full product-scale work still requires a
+  structural or stronger-potential continuation/amortization theorem that
+  bounds expansion debt and repeated restricted work.
+- **Measured:** Floating-point path scaling tables are scaffolding only. The
+  graph-atlas reserve sweep is exact finite evidence at `q=1/5`, not a
+  graph-uniform extrapolation; all promoted witness values use exact rational
+  arithmetic.
 - **Refuted:** Uniform logarithmic ordinary restarts, shock-free zero-padding,
   several pointwise or constant-coefficient correction banks, recovery of the
   restarted causal account before the next admission on every graph, and
   frontier-only admission logic. Unconditional zero-balance all-history
   solvency of the named `delta^2` account is also refuted after three
-  consecutive singleton admissions. These are scoped recurrence STOPs, not
-  class lower bounds.
-- **Open:** A useful structural solvency condition, justified reserve, or
-  stronger observable; a uniform recovery horizon if one exists; and
+  consecutive singleton admissions. On an actual zero-start leaf-seeded
+  `K_{1,4}` family, the consumed-energy repair needs
+  `lambda(q) ~ 1/(32q^3)`, so no constant or `O(polylog(1/q))` multiplier is
+  uniform. These are scoped recurrence/ledger STOPs, not class lower bounds.
+- **Open:** Prove the low-frequency condition with graph-independent constant
+  on a useful reachable promised class, close the `q^-3` versus `q^-5`
+  coefficient gap, or find a reachable `omega(q^-3)` family; a uniform
+  recovery horizon if one exists; and
   graph-uniform convergence/work beyond the finite named traces.
 
 ## Central blocker
 
 The causal score identity is face-general, but unconditional zero-balance
 all-history solvency of its `delta^2` account is false for the named recurrence
-and gate. The three-admission witness retains every credit from the actual
-zero initialization and still becomes transiently negative. The next argument
-must impose an explicit useful graph/face condition, justify additional
-reserve, or replace the observable; none may infer convergence or work from
-scalar solvency alone.
+and gate. The justified consumed-energy reserve repairs all finite `q=1/5`
+atlas traces with coefficient `3`, but the leaf-seeded star forces
+`Omega(q^-3)` and the baseline sufficient proof currently gives only
+`O(q^-5)`.
+The next argument must close that coefficient gap on an explicit useful
+graph/face class or strengthen the obstruction; none may infer convergence or
+work from scalar solvency alone.
 
 ## Dependencies and reusable outputs
 
@@ -77,29 +95,33 @@ scalar solvency alone.
 ## Resume here
 
 - Exact file/section/lemma: Start with
-  `prop:three-admission-all-history-stop`, then compare the causal
-  two-admission path GO and `prop:t-tree-causal-next-admission-stop`.
-- Next concrete action: Prove a nontrivial structural promised-class balance
-  condition, justify an explicit reserve from a stronger energy ledger, or
-  design and falsify a replacement observable on all three exact traces.
-- Stop/go test: Go only if the replacement survives the three-admission
-  all-history trace without future borrowing and charges all restricted-
-  optimum queries. Stop if a proof silently adds initial credit, conflates
-  scalar solvency with convergence, or extrapolates finite enumeration into
-  an asymptotic theorem.
+  `prop:consumed-energy-structural-solvency` and
+  `prop:consumed-energy-star-stop`, then compare
+  `prop:three-admission-all-history-stop`.
+- Next concrete action: Prove
+  `eq:consumed-reserve-low-frequency-condition` with graph-independent
+  `c_low` on a useful reachable promised class, derive a direct `O(q^-3)`
+  bound, or construct a reachable `omega(q^-3)` requirement.
+- Stop/go test: Go only if the replacement survives the star asymptotic and
+  three-admission all-history trace without future borrowing and charges all
+  restricted-optimum/energy queries. Stop if a proof silently adds initial
+  credit, conflates scalar solvency with convergence, or extrapolates finite
+  enumeration into an asymptotic theorem.
 
 ## Verification
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Ten exact `volume_gated_acceleration.*` audits cover the
-  Round-013--022 mechanisms. Run them with `uv run python -m
+- Focused checks: Eleven exact `volume_gated_acceleration.*` audits cover the
+  Round-013--023 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
-  volume_gated_acceleration`; the full tier includes the optional small-graph
-  enumeration.
+  volume_gated_acceleration`; the full tier includes both optional small-graph
+  enumerations.
 - Review status: Exact rational audits reproduce the named fractions,
-  chronologies, Schur drops, balances, and scope qualifications, including the
-  actual zero-start causal update through the three-admission STOP.
-- Known gaps: Small-graph minimality is computational scaffolding. There is no
-  nonpath eleven-resource vector, structural solvency theorem, asymptotic work
-  result, or finite-precision guarantee.
+  chronologies, Schur drops, balances, reserve identities, atlas maximum, star
+  rational functions/asymptotics, and scope qualifications.
+- Known gaps: Small-graph enumeration is computational scaffolding. The
+  low-frequency promised-class condition has not been derived from graph
+  geometry, and the coefficient gap remains. There is no nonpath
+  eleven-resource vector, asymptotic work result, or finite-precision
+  guarantee.
