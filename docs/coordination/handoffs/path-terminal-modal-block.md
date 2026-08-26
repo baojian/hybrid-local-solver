@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-regime-directional`
-- Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
+- Branch: `agent/codex/path-terminal-regime-static`
+- Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
 - Assignment state: ready for review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -32,8 +32,11 @@
   this factor times the positive weighted mass of one static directed-velocity
   remainder. Damping makes the whole time factor at most `8e^(-7/8)`.
 - Consequence: The former `k||w||_infinity` obstruction and repeated
-  reflection loss are removed exactly. The remaining regime work is a static
-  bound on the directed remainder and an early/late position lower bound.
+  reflection loss are removed exactly. The directed remainder is further
+  reduced exactly to `u=Ld`, with `d` explicit from the last prefix and a
+  lower binomial packet; the `J_kL` kernel is an exact binomial window. The
+  remaining regime work is a signed bulk/tail estimate and an early/late
+  position lower bound.
 - Deliberately unchanged: Those two estimates and both entry-profile
   inequalities remain open. The logarithmic terminal block remains
   conditional, and no lower bound is claimed for other algorithms or models.
@@ -41,14 +44,15 @@
 ## Evidence
 
 - A new exact preflight checks the half-endpoint cycle split, directed wave
-  identity, folded `J_k` alias bound, and entry-correction sign at `m=8,12`.
+  identity, folded `J_k` alias bound, `J_kL` window, entry-correction sign,
+  and static `u=Ld` identity at `m=8,12`.
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
 - The floating screen remains evidence only for the two open entry profiles
   and terminal regime.
 - Required commands and their final results are recorded in the direction
-  `STATUS.md`; the note builds to 28 pages.
+  `STATUS.md`; the note builds to 29 pages.
 
 ## Review notes
 
@@ -59,6 +63,6 @@
 - Main audit risks: half endpoint weights, opposite direction on the reflected
   packet, the old-row comparison proving `c<=0`, and the factor two in the
   `2m`-cycle alias count.
-- Next action: Prove a uniform upper bound on
-  `||(w-w_dir)_+||_(1,D)/q^3` from the changing-face source, then establish
-  an early/late lower bound for the literal position candidate.
+- Next action: Bound the positive bulk and alternating terminal tail in the
+  explicit `d` certificate sharply enough for `21/80`, then use the exact
+  folded binomial-window kernel for the early convolution margin.

@@ -285,9 +285,121 @@ Since $q=1/(16m)$, the time-dependent factor in
  \label{eq:terminal-modal-directed-damping}
 \end{equation}
 This removes both the apparent factor $k$ and all repeated-reflection losses.
-The remaining regime interface is now static plus one early-position
-estimate: prove a uniform bound on $\norm{u_+}_{1,D}/q^3$, and combine it
-with a lower bound on the projection-inactive position candidate strong
+The remaining regime interface has a further exact spatial reduction.
+
+\begin{lemma}[Static directed remainder certificate; proved here]
+\label{lem:terminal-modal-static-remainder}
+Put $\delta=1-q$ and $b=qr_0^v$.  In the notation of the last proper-prefix
+step, for $0\le j<m$ and at the new endpoint respectively,
+\begin{align}
+ b_j&=(B_mR_m)_j-\delta A_m(j),
+ &b_m&=\eta(qP_m-\sigma_m).
+ \label{eq:terminal-modal-static-b}
+\end{align}
+Define the lower binomial packet
+\begin{equation}
+ \gamma_j=-\frac{q^2}{2}\delta^m2^{-(m-2)}
+ \binom{m-2}{j-1}\quad(1\le j<m),
+ \qquad \gamma_j=0\quad(j\notin\{1,\ldots,m-1\}),
+ \label{eq:terminal-modal-lower-packet}
+\end{equation}
+and the path vector
+\begin{equation}
+ e_0=-\frac{\gamma_1}{2},\qquad
+ e_j=\frac{\gamma_{j-1}-\gamma_{j+1}}4\ (1\le j<m),
+ \qquad e_m=\frac{\gamma_{m-1}}2.
+ \label{eq:terminal-modal-directed-deconvolution}
+\end{equation}
+If $d=b-e$, then the directed remainder in
+\cref{lem:terminal-modal-directed-packet} is exactly
+\begin{equation}
+ u=w-w^{\rm dir}=Ld.
+ \label{eq:terminal-modal-static-remainder}
+\end{equation}
+Consequently the still-open static target
+$\norm{u_+}_{1,D}\le21q^3/80$ is exactly the finite inequality
+\begin{equation}
+ \left[\frac{d_0+d_1}{2}\right]_+
+ +2\sum_{j=1}^{m-1}
+ \left[\frac{d_{j-1}+2d_j+d_{j+1}}4\right]_+
+ +\left[\frac{d_{m-1}+d_m}{2}\right]_+
+ \le\frac{21}{80}q^3.
+ \label{eq:terminal-modal-static-finite-target}
+\end{equation}
+
+On the infinite line the coefficient of $J_kL$ at displacement $r$ is
+\begin{equation}
+ h_k(r)=2^{-(k+1)}\sum_{a=0}^{k-1}
+ \binom{k+1}{k+r-a}
+ =\Pr\{r+1\le Z\le k+r\},
+ \quad Z\sim\operatorname{Bin}(k+1,1/2),
+ \label{eq:terminal-modal-JL-kernel}
+\end{equation}
+where out-of-range binomial coefficients vanish.  On the $2m$-cycle these
+coefficients are folded modulo $2m$.  Thus every proposed early bound on
+$J_ku$ is also an explicit finite signed convolution inequality in $d$.
+\end{lemma}
+
+\begin{proof}
+Let $e_m^{\rm out}$ be the error after the last proper-prefix step and let
+$\iota$ denote zero extension to the full path.  The transported full-entry
+errors satisfy
+\[
+ e_0^x=\iota e_m^{\rm out}
+ -(p_{m+1}^\star-\iota p_m^\star),\qquad
+ e_0^v=\iota e_m^{\rm out}
+ +\frac\delta q(\iota e_m^{\rm out}-\iota e_m).
+\]
+Applying the full operator and using the endpoint displacement identity from
+\cref{lem:terminal-modal-source-scalar-reduction} gives
+$b_j=(B_mR_m)_j-\delta A_m(j)$ on the old rows.  At the new endpoint the
+same expression is
+\[
+ (q^3/5-\eta\sigma_m)+(\eta P_m-q^3/5)-\delta\eta P_m
+ =\eta(qP_m-\sigma_m),
+\]
+which proves \eqref{eq:terminal-modal-static-b}.
+
+For the packet identity, work on the $2m$-cycle and let $\gamma^+$ be
+\eqref{eq:terminal-modal-lower-packet} on the positive arc and zero on the
+other arc; let $\gamma^-$ be its reflection.  With
+$\mathcal D=(\mathcal S_+-\mathcal S_-)/4$, Pascal's identity gives
+\[
+ L\gamma^+=g^++a,\qquad L\gamma^-=g^-+a,
+\]
+where the same endpoint vector $a$ occurs in both equations.  Since
+$w^{\rm dir}=\mathcal Dg^+-\mathcal Dg^-$ and $L$ commutes with
+$\mathcal D$,
+\[
+ w^{\rm dir}=L(\mathcal D\gamma^+-\mathcal D\gamma^-)=Le.
+\]
+Restricting the cycle vector to the path gives exactly
+\eqref{eq:terminal-modal-directed-deconvolution}, including its two endpoint
+halves.  The first full-face step gives $w=qLr_0^v=Lb$, hence
+\eqref{eq:terminal-modal-static-remainder}.  Expanding the endpoint-path
+stencil of $L=(I+P_{\rm row})/2$ gives
+\eqref{eq:terminal-modal-static-finite-target}.
+
+Finally, factor $J_kL$ on the line as the sum of
+$\mathcal A_+^{k-a}\mathcal A_-^{a+1}$ over $0\le a<k$ and expand the two
+binomials.  Vandermonde's identity gives the first expression in
+\eqref{eq:terminal-modal-JL-kernel}; the second is the same finite binomial
+sum.  Even extension folds it modulo $2m$.
+\end{proof}
+
+This certificate isolates the remaining sign issue.  Positivity and
+$D$-stationarity alone give only
+$\norm{(Ld)_+}_{1,D}\le\norm{d_+}_{1,D}$; the deterministic screen measures
+the latter ratio near $0.437$, far above $21/80$.  The sharper measured
+$0.260$ value uses cancellation between a positive bulk and an alternating
+terminal tail of $d$.  The present chronology bounds do not yet control that
+signed spatial profile, so neither \eqref{eq:terminal-modal-static-finite-target}
+nor the corresponding early convolution inequality is promoted here.
+
+The remaining regime interface is now the static certificate, its early
+signed convolution bound, and the position estimate: prove the finite
+inequality above and its early-time counterpart, then combine them with a
+lower bound on the projection-inactive position candidate strong
 enough to show both raw positivity and
 \eqref{eq:terminal-modal-unclipped-target}.  The deterministic screen
 measures the former ratio near $0.26$, but that measurement is not used as a
