@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the consumed transported-energy reserve and its small-q STOP.
+"""Audit the consumed-energy reserve, quartic certificates, and small-q STOP.
 
 The fast path checks the committed six-vertex witness and exact rational
 specializations of the leaf-seeded ``K_{1,4}`` formulas.  ``--enumerate`` also
@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import argparse
 from fractions import Fraction
+from math import comb
 
 import networkx as nx
 
 from experiments.proof_audits.volume_gated_acceleration.nonpath_causal_stop import (
     ZERO,
+    apply_h,
     boundary,
     degrees_from_edges,
     neighbors_from_edges,
@@ -44,6 +46,87 @@ WITNESS_MINIMUM = Fraction(
     136208548497122966464402947962896,
 )
 ATLAS_MAXIMUM = Fraction(2786829024075210327, 1036704485947225385)
+
+BERNSTEIN_DETERMINANT = (
+    (
+        0,
+        0,
+        0,
+        0,
+        Fraction(1, 70),
+        Fraction(5, 63),
+        Fraction(9, 35),
+        Fraction(13, 20),
+        Fraction(13, 9),
+        Fraction(14, 5),
+        4,
+    ),
+    (
+        0,
+        0,
+        Fraction(4, 225),
+        Fraction(3, 50),
+        Fraction(149, 1050),
+        Fraction(187, 630),
+        Fraction(613, 1050),
+        Fraction(163, 150),
+        Fraction(17, 9),
+        Fraction(74, 25),
+        4,
+    ),
+    (
+        0,
+        Fraction(1, 50),
+        Fraction(11, 150),
+        Fraction(7, 40),
+        Fraction(29, 84),
+        Fraction(257, 420),
+        Fraction(353, 350),
+        Fraction(469, 300),
+        Fraction(57, 25),
+        Fraction(78, 25),
+        4,
+    ),
+    (
+        0,
+        Fraction(2, 25),
+        Fraction(16, 75),
+        Fraction(31, 75),
+        Fraction(29, 42),
+        Fraction(331, 315),
+        Fraction(157, 105),
+        Fraction(101, 50),
+        Fraction(589, 225),
+        Fraction(82, 25),
+        4,
+    ),
+    (
+        Fraction(1, 5),
+        Fraction(9, 25),
+        Fraction(128, 225),
+        Fraction(83, 100),
+        Fraction(601, 525),
+        Fraction(953, 630),
+        Fraction(338, 175),
+        Fraction(719, 300),
+        Fraction(653, 225),
+        Fraction(86, 25),
+        4,
+    ),
+    (
+        0,
+        Fraction(1, 5),
+        Fraction(7, 15),
+        Fraction(4, 5),
+        Fraction(251, 210),
+        Fraction(23, 14),
+        Fraction(149, 70),
+        Fraction(79, 30),
+        Fraction(47, 15),
+        Fraction(18, 5),
+        4,
+    ),
+)
 
 
 def transported_energy(
@@ -418,6 +501,243 @@ def star_formula_values(q):
     return score, credit, initial_energy, reserve, debt, coefficient
 
 
+def polynomial_add(*polynomials):
+    """Add sparse exact bivariate polynomials keyed by ``(q,t)`` degree."""
+    result = {}
+    for polynomial in polynomials:
+        for monomial, coefficient in polynomial.items():
+            result[monomial] = result.get(monomial, ZERO) + coefficient
+    return {monomial: coefficient for monomial, coefficient in result.items() if coefficient}
+
+
+def polynomial_scale(polynomial, scalar):
+    """Scale a sparse exact bivariate polynomial."""
+    return {monomial: scalar * coefficient for monomial, coefficient in polynomial.items()}
+
+
+def polynomial_multiply(left, right):
+    """Multiply sparse exact bivariate polynomials."""
+    result = {}
+    for (left_q, left_t), left_value in left.items():
+        for (right_q, right_t), right_value in right.items():
+            monomial = (left_q + right_q, left_t + right_t)
+            result[monomial] = result.get(monomial, ZERO) + left_value * right_value
+    return {monomial: coefficient for monomial, coefficient in result.items() if coefficient}
+
+
+def polynomial_power(polynomial, exponent):
+    """Raise a sparse exact bivariate polynomial to a nonnegative power."""
+    result = {(0, 0): Fraction(1)}
+    for _ in range(exponent):
+        result = polynomial_multiply(result, polynomial)
+    return result
+
+
+def bernstein_decrement_check():
+    """Verify the exact Bernstein certificate for the inactive q^-4 lemma."""
+    q_polynomial = {(1, 0): Fraction(1)}
+    t_polynomial = {(0, 1): Fraction(1)}
+    one = {(0, 0): Fraction(1)}
+    q_squared = polynomial_power(q_polynomial, 2)
+    eigenvalue = polynomial_add(
+        q_squared,
+        polynomial_multiply(
+            polynomial_add(one, polynomial_scale(q_squared, -1)),
+            t_polynomial,
+        ),
+    )
+
+    def term(coefficient, eigenvalue_power, q_power):
+        return polynomial_scale(
+            polynomial_multiply(
+                polynomial_power(eigenvalue, eigenvalue_power),
+                polynomial_power(q_polynomial, q_power),
+            ),
+            coefficient,
+        )
+
+    determinant = polynomial_add(
+        term(-1, 5, 0),
+        term(1, 4, 2),
+        term(-2, 4, 1),
+        term(1, 4, 0),
+        term(-1, 3, 2),
+        term(2, 3, 1),
+        term(-1, 2, 2),
+        term(2, 2, 1),
+        term(4, 1, 2),
+        term(-1, 0, 4),
+    )
+    quadratic_a = polynomial_add(eigenvalue, polynomial_scale(q_squared, -1), term(2, 0, 1))
+    quadratic_b = polynomial_add(
+        polynomial_multiply(eigenvalue, q_polynomial),
+        polynomial_scale(eigenvalue, -1),
+        term(-2, 0, 1),
+    )
+    quadratic_c = polynomial_add(
+        polynomial_scale(polynomial_power(eigenvalue, 4), -1),
+        polynomial_power(eigenvalue, 3),
+        eigenvalue,
+        q_squared,
+        term(2, 0, 1),
+    )
+    assert (
+        polynomial_add(
+            polynomial_multiply(quadratic_a, quadratic_c),
+            polynomial_scale(polynomial_power(quadratic_b, 2), -1),
+            polynomial_scale(determinant, -1),
+        )
+        == {}
+    )
+    assert max(q_degree for q_degree, _ in determinant) <= 10
+    assert max(t_degree for _, t_degree in determinant) <= 5
+
+    converted = []
+    for t_index in range(6):
+        row = []
+        for q_index in range(11):
+            coefficient = sum(
+                (
+                    value
+                    * Fraction(comb(q_index, q_degree), comb(10, q_degree))
+                    * Fraction(comb(t_index, t_degree), comb(5, t_degree))
+                    for (q_degree, t_degree), value in determinant.items()
+                    if q_degree <= q_index and t_degree <= t_index
+                ),
+                ZERO,
+            )
+            row.append(coefficient)
+        converted.append(tuple(row))
+    assert tuple(converted) == BERNSTEIN_DETERMINANT
+    assert all(coefficient >= 0 for row in converted for coefficient in row)
+
+
+def projection_active_stop_check():
+    """Verify the original-score projected q^-4 STOP and support repair."""
+    q = Fraction(1, 100)
+    alpha = q * q
+    active = [0, 1, 2]
+    edges = ((0, 1), (0, 2))
+    neighbors = neighbors_from_edges(3, edges)
+    degrees = degrees_from_edges(3, edges)
+    rho = Fraction(269947, 1080080)
+    seed_distribution = (
+        Fraction(1, 27002),
+        Fraction(1010067, 1080080),
+        Fraction(69973, 1080080),
+    )
+    assert sum(seed_distribution, ZERO) == 1
+    normalized_load = [
+        alpha * (mass / degree - rho) for mass, degree in zip(seed_distribution, degrees)
+    ]
+    optimum = [Fraction(1, 23480), Fraction(97, 540040), Fraction(3, 540040)]
+    assert apply_h(optimum, active, neighbors, degrees, alpha) == normalized_load
+
+    iterate = [Fraction(1, 270020), Fraction(29, 270020), ZERO]
+    center = [
+        Fraction(31, 54004),
+        Fraction(737, 540040),
+        Fraction(8, 67505),
+    ]
+    interpolation = [
+        (value + q * center_value) / (1 + q) for value, center_value in zip(iterate, center)
+    ]
+    assert interpolation == [
+        Fraction(51, 5454404),
+        Fraction(6537, 54544040),
+        Fraction(8, 6818005),
+    ]
+    interpolation_residual = [
+        image - load_value
+        for image, load_value in zip(
+            apply_h(interpolation, active, neighbors, degrees, alpha),
+            normalized_load,
+        )
+    ]
+    raw_candidate = [
+        value - derivative for value, derivative in zip(interpolation, interpolation_residual)
+    ]
+    assert raw_candidate == [
+        Fraction(1717, 172812800),
+        Fraction(1437773, 10800800000),
+        -Fraction(35787, 2700200000),
+    ]
+    candidate = [max(ZERO, value) for value in raw_candidate]
+    assert candidate[-1] == 0 and all(value > 0 for value in candidate[:-1])
+    center_next = [new + (1 - q) * (new - old) / q for new, old in zip(candidate, iterate)]
+    post_residual = [
+        image - load_value
+        for image, load_value in zip(
+            apply_h(candidate, active, neighbors, degrees, alpha),
+            normalized_load,
+        )
+    ]
+    assert post_residual == [
+        -Fraction(31146687, 9392000000000),
+        -Fraction(2992499829, 432032000000000),
+        Fraction(46823397, 3456256000000),
+    ]
+
+    def error_energy(point, point_center):
+        error = [value - optimum_value for value, optimum_value in zip(point, optimum)]
+        center_error = [
+            value - optimum_value for value, optimum_value in zip(point_center, optimum)
+        ]
+        image = apply_h(error, active, neighbors, degrees, alpha)
+        return sum(
+            (
+                Fraction(degree, 2) * left * right + Fraction(alpha * degree, 2) * center_value**2
+                for degree, left, right, center_value in zip(
+                    degrees,
+                    error,
+                    image,
+                    center_error,
+                )
+            ),
+            ZERO,
+        )
+
+    energy = error_energy(iterate, center)
+    energy_next = error_energy(candidate, center_next)
+    assert energy == Fraction(3820147, 5832864032000000)
+    assert energy_next == Fraction(
+        5396449315539933,
+        9332582451200000000000000,
+    )
+    original_score_numerator = max(ZERO, max(post_residual)) ** 2
+    twice_drop = 2 * (energy - energy_next)
+    assert original_score_numerator == Fraction(
+        2192430506619609,
+        11945705537536000000000000,
+    )
+    assert twice_drop == Fraction(
+        715785884460067,
+        4666291225600000000000000,
+    )
+    assert (
+        original_score_numerator - twice_drop
+        == Fraction(
+            9000466060045937,
+            298642638438400000000000000,
+        )
+        > 0
+    )
+    assert (
+        (1 - q) * energy - energy_next
+        == Fraction(
+            654663532460067,
+            9332582451200000000000000,
+        )
+        > 0
+    )
+
+    supported_residuals = [
+        derivative for value, derivative in zip(candidate, post_residual) if value > 0
+    ]
+    assert max(ZERO, max(supported_residuals)) == 0
+    assert all(value <= optimum_value for value, optimum_value in zip(candidate, optimum))
+
+
 def witness_check():
     """Reproduce the exact reserve and minimum on the committed witness."""
     run = replay_with_reserve(6, THREE_ADMISSION_EDGES, 0)
@@ -449,7 +769,7 @@ def star_check():
         assert snapshots[2]["admitted"] == (2, 3, 4)
         assert snapshots[3]["action"] == "hold"
         assert snapshots[3]["active"] == (0, 1, 2, 3, 4)
-        assert min(snapshots[3]["candidate"]) > 0
+        assert all(min(snapshots[stage]["candidate"]) > 0 for stage in (1, 2, 3))
         delta = snapshots[3]["delta"]
         assert all(max(ZERO, value - delta) == 0 for value in snapshots[3]["candidate"])
 
@@ -573,12 +893,15 @@ def main():
 
     witness_check()
     star_check()
+    bernstein_decrement_check()
+    projection_active_stop_check()
     if arguments.enumerate:
         atlas_check()
     suffix = "; atlas n<=7 verified" if arguments.enumerate else ""
     print(
         "consumed-energy reserve verified: exact witness lambda*=0.013..., "
-        "leaf-seeded K1,4 needs lambda(q)=Omega(q^-3) with limit 1/32"
+        "leaf-seeded K1,4 needs lambda(q)=Omega(q^-3) with limit 1/32; "
+        "q^-4 Bernstein GO and original-score projected STOP verified"
         f"{suffix}"
     )
 

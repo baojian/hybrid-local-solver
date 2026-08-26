@@ -55,6 +55,23 @@
     `(1+q^2)(1-q)/q^5`, and the sharper
     `2 c_low(1-q)/q^3` under the explicit low-frequency condition
     `||r||_D^2 <= 2 c_low q^2 P`.
+  - Sharpened the original-score upper coefficient to `2/q^4` whenever the
+    nonnegativity projection is inactive. The proof uses a one-mode quadratic
+    PSD certificate whose determinant has an exact nonnegative tensor
+    Bernstein expansion of degrees `(10,5)`.
+  - Added an exact projection-active three-vertex RPPR state where the
+    original all-coordinate residual violates the `2(E-E+)` decrement even
+    though the standard energy contraction is strict. This is an algebraic
+    state STOP, not a zero-start reachability claim.
+  - Added the safe positive-support envelope and score. A Stieltjes
+    subsolution comparison proves envelope safety, and the exact projected
+    prox slack gives sufficient coefficient `(1-q^2)/q^4` under arbitrary
+    projection. This modified gate can have a different chronology and still
+    must inspect clipped-zero rows for admission and termination.
+  - Verified that the six-vertex trace, all 6,780 atlas traces, and the
+    reviewed stages of the small-`q` `K_{1,4}` family have inactive candidate
+    projection. Hence the star's `Omega(q^-3)` lower requirement also applies
+    to the support-aware ledger, leaving a one-power `q^-3` versus `q^-4` gap.
 - Deliberately unchanged:
   - No convergence failure, objective or work lower bound, asymptotic family,
     finite-precision claim, nonpath eleven-resource vector, or class lower
@@ -74,8 +91,10 @@
   - Added `volume_gated_acceleration.consumed_energy_reserve`, an exact
     rational Round-023 audit. Its fast path checks the six-vertex minimum,
     actual star chronology, exact rational functions, and formal asymptotic
-    coefficients; its full path enumerates the rooted graph atlas through
-    order seven.
+    coefficients. It now also verifies the exact Bernstein determinant table,
+    strict candidate positivity through the star's reviewed stages, and the
+    projection-active original-score STOP. Its full path enumerates the rooted
+    graph atlas through order seven.
 - Commands run:
   - `uv run python -m experiments.proof_audits.runner --tier full --audit volume_gated_acceleration.all_history_three_admission_stop`
   - `uv run python -m experiments.proof_audits.runner --tier full --note volume_gated_acceleration`
@@ -88,6 +107,8 @@
   - `make test`
   - `uv run ruff check experiments/proof_audits/volume_gated_acceleration/all_history_three_admission_stop.py`
   - `uv run ruff format --check experiments/proof_audits/volume_gated_acceleration/all_history_three_admission_stop.py`
+  - `uv run ruff check experiments/proof_audits/volume_gated_acceleration/consumed_energy_reserve.py`
+  - `uv run ruff format --check experiments/proof_audits/volume_gated_acceleration/consumed_energy_reserve.py`
   - `make lint`
   - `git diff --check`
 - Results:
@@ -112,10 +133,13 @@
   - Decide whether to pursue a structural promised-class condition, an
     explicitly sourced reserve, or a stronger observable. The sharp next
     target is to prove the displayed low-frequency condition on a useful
-    reachable promised class, close the `q^-3` versus `q^-5` coefficient gap,
+    reachable promised class, close the `q^-3` versus `q^-4` coefficient gap,
     or find a reachable `omega(q^-3)` family.
   - The finite witness recovers at stage 9 and certifies at stage 12, so it
     must not be promoted into an asymptotic or convergence obstruction.
   - Maintaining the reserve needs the current restricted optimum and an
     active-face energy evaluation. Any uncached solve, scan, arithmetic,
     state, and validation costs must be charged.
+  - Exact support membership also needs a numerical margin and validation;
+    the support-aware scalar score does not remove clipped-zero rows from
+    boundary or terminal gate scans.

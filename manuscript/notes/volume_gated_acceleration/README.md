@@ -27,19 +27,25 @@ unchanged.  A unit coefficient repairs the six-vertex trace, and coefficient
 minimum coefficient to grow as `1/(32 q^3)`, ruling out a constant or
 polylogarithmic multiplier uniformly in `q`.  The named complete gate
 preserves the score exactly across admission. On its interior traces, a coarse
-`O(q^-5)` coefficient and a low-frequency `O(q^-3)` coefficient are proved for
-the scalar account.  These do not imply convergence
-or a work bound, and
-reserve evaluation must be charged when the restricted optimum and energy are
-not cached.
+`O(q^-5)` coefficient is proved for the original score under arbitrary
+projection. An exact modal certificate improves it to `2/q^4` when projection
+is inactive. A modified safe positive-support envelope has coefficient
+`(1-q^2)/q^4` under arbitrary projection; an exact three-vertex state explains
+why clipped-zero residuals obstruct the same claim for the original score.
+The star family is inactive through its reviewed stage, so it leaves a
+one-power `q^-3` versus `q^-4` gap for both quartic routes. A low-frequency
+condition gives `O(q^-3)`. These results do not imply convergence or a work
+bound, and reserve, support, and gate evaluation must be charged when not
+cached.
 
 These finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. They do not prove a convergence failure,
 uniform recovery horizon, asymptotic work theorem, or finite-precision result.
 The live causal-ledger target is now to prove the stated low-frequency
-condition on a useful reachable promised class, close the gap between the
-`q^-3` star lower order and `q^-5` unconditional sufficient coefficient, or
-find a stronger exact obstruction.  The unconditional zero-balance
+condition on a useful reachable promised class, close the `q^-3` versus
+`q^-4` gap, or find a stronger exact obstruction. The original
+all-coordinate score retains an `O(q^-5)` general projected bound. The
+unconditional zero-balance
 `delta^2` all-history route and a small multiplier of this consumed-energy
 reserve are both closed for the named recurrence and gate.
 

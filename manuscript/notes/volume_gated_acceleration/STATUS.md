@@ -46,8 +46,12 @@ State: proved-open
   every rooted connected graph-atlas trace through order seven at `q=1/5`.
 - **Conditional:** The named complete gate preserves `Xi` exactly across
   admissions. For interior visited restricted optima, coefficient
-  `(1+q^2)(1-q)/q^5` makes the consumed-energy scalar ledger solvent. Under
-  the declared low-frequency residual condition
+  `(1+q^2)(1-q)/q^5` makes the original-score consumed-energy scalar ledger
+  solvent under arbitrary projection. If projection is inactive, the exact
+  modal decrement improves this to `2/q^4`. A modified safe positive-support
+  envelope has coefficient `(1-q^2)/q^4` under arbitrary projection; its gate
+  chronology may differ and clipped-zero rows remain in admission and terminal
+  scans. Under the declared low-frequency residual condition
   `||r||_D^2 <= 2 c_low q^2 P`, coefficient
   `2 c_low(1-q)/q^3` suffices. Full product-scale work still requires a
   structural or stronger-potential continuation/amortization theorem that
@@ -64,9 +68,13 @@ State: proved-open
   consecutive singleton admissions. On an actual zero-start leaf-seeded
   `K_{1,4}` family, the consumed-energy repair needs
   `lambda(q) ~ 1/(32q^3)`, so no constant or `O(polylog(1/q))` multiplier is
-  uniform. These are scoped recurrence/ledger STOPs, not class lower bounds.
+  uniform. Its reviewed candidates are strictly positive, so this lower order
+  also applies to the support-aware modification. An exact projection-active
+  three-vertex state refutes extending the original-score `2/q^4` decrement
+  to arbitrary algebraic states; zero-start reachability is not claimed.
+  These are scoped recurrence/ledger STOPs, not class lower bounds.
 - **Open:** Prove the low-frequency condition with graph-independent constant
-  on a useful reachable promised class, close the `q^-3` versus `q^-5`
+  on a useful reachable promised class, close the `q^-3` versus `q^-4`
   coefficient gap, or find a reachable `omega(q^-3)` family; a uniform
   recovery horizon if one exists; and
   graph-uniform convergence/work beyond the finite named traces.
@@ -77,9 +85,11 @@ The causal score identity is face-general, but unconditional zero-balance
 all-history solvency of its `delta^2` account is false for the named recurrence
 and gate. The justified consumed-energy reserve repairs all finite `q=1/5`
 atlas traces with coefficient `3`, but the leaf-seeded star forces
-`Omega(q^-3)` and the baseline sufficient proof currently gives only
-`O(q^-5)`.
-The next argument must close that coefficient gap on an explicit useful
+`Omega(q^-3)`. The original score has a `2/q^4` inactive-projection upper
+coefficient, and the support-aware safe modification has
+`(1-q^2)/q^4` under arbitrary projection; the original score's projected
+general upper coefficient remains `O(q^-5)`.
+The next argument must close the one-power coefficient gap on an explicit useful
 graph/face class or strengthen the obstruction; none may infer convergence or
 work from scalar solvency alone.
 
@@ -96,12 +106,13 @@ work from scalar solvency alone.
 
 - Exact file/section/lemma: Start with
   `prop:consumed-energy-structural-solvency` and
+  `prop:consumed-reserve-quartic-projection`, then
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
 - Next concrete action: Prove
   `eq:consumed-reserve-low-frequency-condition` with graph-independent
-  `c_low` on a useful reachable promised class, derive a direct `O(q^-3)`
-  bound, or construct a reachable `omega(q^-3)` requirement.
+  `c_low` on a useful reachable promised class, close the `q^-3` versus
+  `q^-4` gap, or construct a reachable `omega(q^-3)` requirement.
 - Stop/go test: Go only if the replacement survives the star asymptotic and
   three-admission all-history trace without future borrowing and charges all
   restricted-optimum/energy queries. Stop if a proof silently adds initial
@@ -119,9 +130,12 @@ work from scalar solvency alone.
   enumerations.
 - Review status: Exact rational audits reproduce the named fractions,
   chronologies, Schur drops, balances, reserve identities, atlas maximum, star
-  rational functions/asymptotics, and scope qualifications.
+  rational functions/asymptotics, tensor Bernstein determinant certificate,
+  projection-active STOP, candidate inactivity checks, and scope
+  qualifications.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
-  geometry, and the coefficient gap remains. There is no nonpath
+  geometry, and the one-power coefficient gap remains. Exact support tests
+  require finite-precision margins in an implementation. There is no nonpath
   eleven-resource vector, asymptotic work result, or finite-precision
   guarantee.
