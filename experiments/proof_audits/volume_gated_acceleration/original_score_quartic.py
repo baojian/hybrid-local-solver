@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""Exact scalar audit for the projected original-score quartic theorem.
+"""Exact scalar audit for the projected quartic and terminal-horizon theorems.
 
-The proof is symbolic.  This audit checks its rational identities, the
-first-admission energy minimization, and the clipped-row reserve comparison on
-a deterministic grid.  It is a regression check, not the source of the
-graph-uniform theorem.
+The proofs are symbolic.  This audit checks the quartic rational identities,
+the first-admission energy minimization, the clipped-row reserve comparison,
+and the terminal cap/threshold identities on a deterministic grid.  It is a
+regression check, not the source of either graph-uniform theorem.
 """
 
 from __future__ import annotations
 
 from fractions import Fraction
+from math import ceil, log
 
 
 def constants(q: Fraction) -> tuple[Fraction, Fraction, Fraction]:
@@ -58,6 +59,36 @@ def audit_q(q: Fraction) -> int:
     return checked
 
 
+def audit_terminal_horizon(q: Fraction) -> int:
+    """Check the exact scalar identities behind the complete-gate horizon."""
+    assert 0 < q < 1
+    q2 = q * q
+    a_q = (1 + q2) / 2
+    eta_q = (1 - q2) / 2
+    assert a_q + eta_q == 1
+
+    # The full-obstacle objective and singleton-center contributions are each
+    # at most q^2/2.  The exact slack factorization is positive for q<1.
+    energy_cap = q2 / 2 + 2 * q**6 / (1 + q2) ** 2
+    scaled_slack = 2 * (1 + q2) ** 2 * (q2 - energy_cap) / q2
+    assert scaled_slack == (1 - q2) * (1 + 3 * q2) > 0
+    assert energy_cap < q2
+
+    # At this energy threshold the envelope error is exactly at most
+    # q^2 tau=q^3/5.
+    gate_energy = q**12 / (50 * (1 + q2) ** 2)
+    coordinate_error_squared = 2 * gate_energy / q2
+    envelope_error_squared = (1 + 1 / q2) ** 2 * coordinate_error_squared
+    assert envelope_error_squared == q**6 / 25
+
+    ratio = float(q2 / gate_energy)
+    hold_bound = ceil(log(ratio) / -log(float(1 - q)))
+    assert float((1 - q) ** hold_bound * q2) <= float(gate_energy) * (1 + 1e-14)
+    if hold_bound:
+        assert float((1 - q) ** (hold_bound - 1) * q2) > float(gate_energy) * (1 - 1e-14)
+    return 1
+
+
 def main() -> None:
     q_values = (
         Fraction(1, 2),
@@ -70,7 +101,11 @@ def main() -> None:
         Fraction(1, 1000),
     )
     cells = sum(audit_q(q) for q in q_values)
-    print(f"original-score quartic scalar audit: PASS ({cells} degree cells)")
+    horizon_cells = sum(audit_terminal_horizon(q) for q in q_values)
+    print(
+        "original-score quartic and terminal-horizon scalar audit: "
+        f"PASS ({cells} degree cells, {horizon_cells} horizon cells)"
+    )
 
 
 if __name__ == "__main__":

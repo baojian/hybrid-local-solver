@@ -45,9 +45,27 @@ graph-uniform leading
 lower constant to `1/15`. These results do not imply convergence or a work bound, and reserve,
 support, and gate evaluation must be charged when not cached.
 
-These finite witnesses establish scoped GO/STOP statements for named
-recurrences and event orders. They do not prove a convergence failure,
-uniform recovery horizon, asymptotic work theorem, or finite-precision result.
+For the same exact-real point-seed recurrence, the transported shock budget
+does yield a separate convergence result.  At `rho=tau=q/5`, the exact
+identity for `E_0+D_k` is at most `q^2` on every graph.  Once a fixed face has
+contracted below `q^12/(50(1+q^2)^2)`, the original safe envelope makes every
+active row certificate-safe, so the complete gate must either admit a
+nonempty violating batch or certify globally.  Thus each face is held for at
+most `O(q^-1 log(1/q))` steps, the whole finite execution has
+`T=O(q^-2 log(1/q))` and swept active volume
+`O(q^-3 log(1/q))`, and its terminal PPR error is at most `2q/5`.  A fully
+charged dense-response exact-real fallback has the same
+`O(q^-3 log(1/q))` arithmetic order and `O(q^-2)` persistent storage.  This
+is graph-uniform finite convergence and an honest fallback work bound, but it
+remains a factor `O_tilde(q^-1)` above the desired product-scale work and
+supplies no finite-precision or bit-complexity guarantee.
+
+The finite witnesses establish scoped GO/STOP statements for named
+recurrences and event orders. By themselves they prove no convergence
+failure or uniform recovery horizon; the separate transported-energy theorem
+above supplies the graph-uniform soft horizon without turning any finite
+witness into an asymptotic claim.  The target product-scale work and every
+finite-precision result remain open.
 The support-aware and original all-coordinate scalar coefficient orders are
 now closed at `Theta(q^-4)`, including arbitrary projection in the theorem's
 interior point-seed scope. The

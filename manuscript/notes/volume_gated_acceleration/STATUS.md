@@ -68,7 +68,14 @@ State: proved-open
   while the projected decrement pays the positive-support rows. Therefore
   the original all-coordinate score, with arbitrary projection, is solvent
   with `(1-q^2)/q^4`. Together with the `K_{2,r}` family, this closes its
-  graph-uniform coefficient order at `Theta(q^-4)` as well.
+  graph-uniform coefficient order at `Theta(q^-4)` as well. Separately, the
+  same transported recurrence has the graph-uniform total-energy cap
+  `E_0+D_k <= q^2`. Residual-to-energy control then forces the complete gate
+  to admit or certify within `O(q^-1 log(1/q))` consecutive steps per face.
+  Hence every finite execution terminates with PPR error at most `2q/5`,
+  `T=O(q^-2 log(1/q))`, and swept active volume
+  `O(q^-3 log(1/q))`. A dense incremental exact-real response charges all
+  optimum shifts in the same arithmetic order with `O(q^-2)` storage.
 - **Conditional:** The named complete gate preserves `Xi` exactly across
   admissions. For interior visited restricted optima, the baseline coefficient
   `(1+q^2)(1-q)/q^5` remains valid, and the exact projection-normal identity
@@ -108,9 +115,10 @@ State: proved-open
   also stops on the registered finite instances: the gate certifies two
   vertices before the intended full face and projection remains inactive.
 - **Open:** Identify useful narrower classes where the low-frequency condition
-  holds; a uniform recovery horizon if one
-  exists; and
-  graph-uniform convergence/work beyond the finite named traces.
+  holds; remove the logarithm or prove it necessary; and improve the charged
+  `O(q^-3 log(1/q))` exact-real fallback to the desired product-scale
+  `O_tilde(q^-2)` work. Finite precision, bit complexity, stability, and
+  sparse response costs also remain open.
 
 ## Central blocker
 
@@ -123,8 +131,10 @@ support-aware and original all-coordinate coefficient orders at
   `Theta(q^-4)`, including arbitrary projection in the theorem's interior
   point-seed scope. The exact normal identity and 30-vertex trace remain useful local
 diagnostics, but their ratio no longer blocks scalar all-history solvency.
-None of these scalar statements may be promoted into convergence
-or work conclusions.
+The scalar quartic statement itself still may not be promoted into a
+convergence conclusion. The separate total-energy argument now supplies a
+graph-uniform terminal horizon and a dense exact-real fallback, but not the
+desired product-scale work theorem.
 
 ## Dependencies and reusable outputs
 
@@ -141,15 +151,17 @@ or work conclusions.
   `prop:consumed-energy-structural-solvency` and
   `prop:consumed-reserve-quartic-projection` and
   `thm:original-score-projected-quartic` and
+  `thm:complete-gate-soft-horizon` and
+  `cor:complete-gate-dense-fallback` and
   `prop:original-score-normal-anchor` and
   `prop:reachable-positive-residual-projection`, then
   `prop:consumed-energy-quartic-lower` and
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
-- Next concrete action: Use the now-sharp scalar reserve inside a genuine
-  convergence/recovery argument, or derive the low-frequency condition on a
-  useful narrower promised class. Neither scalar solvency nor the exact
-  normal-anchor diagnostics supply a recovery horizon by themselves.
+- Next concrete action: sharpen the graph-uniform soft horizon by removing
+  its per-face logarithm or replace dense optimum transport with a charged
+  response whose total work is `O_tilde(q^-2)`. The scalar reserve and
+  normal-anchor diagnostics are not needed for the proved horizon.
 - Stop/go test: Go only if the replacement survives the reachable quartic
   family, star asymptotic, and three-admission all-history trace without future
   borrowing and charges all
@@ -173,10 +185,12 @@ or work conclusions.
   grid, exact leading `K_{2,r}` formulas, projection-normal identities, finite
   critical-path gate failures, candidate inactivity checks, the reachable
   positive-residual projection chronology and debt, the exact first-admission
-  quartic constants, and scope qualifications.
+  quartic constants, the terminal-energy cap and envelope threshold, and
+  scope qualifications.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
   geometry. Exact support tests require finite-precision margins in an
-  implementation. There is no nonpath
-  eleven-resource vector, asymptotic work result, or finite-precision
-  guarantee.
+  implementation. There is no product-scale nonpath eleven-resource vector,
+  sparse-response theorem, finite-precision guarantee, or bit-complexity
+  bound; the proved dense fallback is exact-real and
+  `O(q^-3 log(1/q))`.
