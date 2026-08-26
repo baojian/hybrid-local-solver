@@ -32,7 +32,7 @@
     solve work is `O(q^-3)`, storage is `O(q^-2)`, and row/output charges are
     `O(q^-1)`.
   - Proved a representation-specific dense-response STOP.  For any fixed-gap
-    family of connected 3-regular spectral expanders, set `q=1/(2n)` and
+    family of connected 3-regular `n`-vertex spectral expanders, set `q=1/(2n)` and
     `rho=tau=q/5`.  The exact PPR resolvent gives
     `||pi-1/n||_2 <= 2q^2/gamma`, so every normalized RPPR coordinate exceeds
     `tau` for large `n`.  Terminal certification therefore forces the named

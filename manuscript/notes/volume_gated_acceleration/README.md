@@ -72,8 +72,8 @@ the extra polynomial response factor.  It is a different control policy, not
 a sharper chronology theorem for the named recurrence.
 
 The dense-response factor is intrinsic to the fallback's explicit scalar
-Cholesky representation.  On any fixed-gap family of 3-regular spectral
-expanders, take `q=1/(2n)`.  A resolvent estimate puts every normalized RPPR
+Cholesky representation.  On any fixed-gap family of 3-regular `n`-vertex
+spectral expanders, take `q=1/(2n)`.  A resolvent estimate puts every normalized RPPR
 coordinate strictly more than `tau=q/5` above zero, so the same terminal
 certificate forces the active face to become all `n` vertices.  Linear
 treewidth and strict Stieltjes fill then require `Omega(n^2)=Omega(q^-2)`

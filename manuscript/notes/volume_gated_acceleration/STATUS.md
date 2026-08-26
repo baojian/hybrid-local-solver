@@ -77,7 +77,7 @@ State: proved-open
   `T=O(q^-2 log(1/q))`, and swept active volume
   `O(q^-3 log(1/q))`. A dense incremental exact-real response charges all
   optimum shifts in the same arithmetic order with `O(q^-2)` storage.
-  On any fixed-gap 3-regular spectral-expander family at `q=1/(2n)`, the
+  On any fixed-gap 3-regular `n`-vertex spectral-expander family at `q=1/(2n)`, the
   normalized RPPR optimum is strictly above `tau=q/5` at every vertex.
   Terminal certification therefore forces the named execution to reach the
   full face.  Linear treewidth and strict Stieltjes fill force every explicit

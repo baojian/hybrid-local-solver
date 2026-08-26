@@ -14,7 +14,7 @@ from math import comb
 
 
 def audit_scale(n: int, gamma: Fraction) -> int:
-    """Check one exact ``q=1/(2n)`` specialization."""
+    """Check one exact specialization where ``n`` is the graph order."""
     assert n >= 2
     assert 0 < gamma <= 1
     q = Fraction(1, 2 * n)
