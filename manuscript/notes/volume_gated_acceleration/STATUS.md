@@ -54,8 +54,9 @@ State: proved-open
 - **Conditional:** The named complete gate preserves `Xi` exactly across
   admissions. For interior visited restricted optima, coefficient
   `(1+q^2)(1-q)/q^5` makes the original-score consumed-energy scalar ledger
-  solvent under arbitrary projection. If projection is inactive, the exact
-  modal decrement improves this to `2/q^4`. A modified safe positive-support
+  solvent under arbitrary projection. The exact projection-normal identity
+  improves this to `(C_n+1-q^2)/q^4` when every clipped positive-residual row
+  obeys `n_i <= C_n((1-q)z_i+qz_i*)`; inactivity has `C_n=0`. A modified safe positive-support
   envelope has coefficient `(1-q^2)/q^4` under arbitrary projection; its gate
   chronology may differ and clipped-zero rows remain in admission and terminal
   scans. Under the declared low-frequency residual condition
@@ -81,9 +82,12 @@ State: proved-open
   to arbitrary algebraic states; zero-start reachability is not claimed.
   The stronger reachable quartic family refutes every `o(q^-4)` coefficient
   for both reviewed ledgers. These are scoped recurrence/ledger STOPs, not
-  convergence or work lower bounds.
+  convergence or work lower bounds. The threshold-tuned endpoint-path route
+  also stops on the registered finite instances: the gate certifies two
+  vertices before the intended full face and projection remains inactive.
 - **Open:** Close the original all-coordinate score's arbitrary-projection
-  `q^-4` lower versus `q^-5` upper gap; identify useful narrower classes where
+  `q^-4` lower versus `q^-5` upper gap by bounding the normal-anchor ratio or
+  constructing reachable superquartic debt; identify useful narrower classes where
   the low-frequency condition holds; a uniform recovery horizon if one
   exists; and
   graph-uniform convergence/work beyond the finite named traces.
@@ -97,7 +101,8 @@ atlas traces with coefficient `3`, and the reachable quartic family closes
 the support-aware and inactive-original coefficient order at `Theta(q^-4)`.
 The remaining scalar blocker is the original score under arbitrary projection:
 its reachable lower order is `q^-4`, while its proved general upper coefficient
-is `O(q^-5)`. None of these scalar statements may be promoted into convergence
+is `O(q^-5)`. The exact normal identity isolates this gap in the ratio
+`n_i/((1-q)z_i+qz_i*)` on clipped positive-residual rows. None of these scalar statements may be promoted into convergence
 or work conclusions.
 
 ## Dependencies and reusable outputs
@@ -113,14 +118,14 @@ or work conclusions.
 
 - Exact file/section/lemma: Start with
   `prop:consumed-energy-structural-solvency` and
-  `prop:consumed-reserve-quartic-projection`, then
+  `prop:consumed-reserve-quartic-projection` and
+  `prop:original-score-normal-anchor`, then
   `prop:consumed-energy-quartic-lower` and
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
-- Next concrete action: Either sharpen the original all-coordinate
-  arbitrary-projection upper coefficient from `O(q^-5)` toward `O(q^-4)`, or
-  construct a reachable projection-active family requiring more than
-  `Theta(q^-4)`. The low-frequency condition can now only target a narrower
+- Next concrete action: Either prove a graph-uniform `O(1)` bound on the
+  normal-anchor ratio, or construct a reachable projection-active family on
+  which that ratio creates more than `Theta(q^-4)` debt. The low-frequency condition can now only target a narrower
   promised class, not all reachable traces.
 - Stop/go test: Go only if the replacement survives the reachable quartic
   family, star asymptotic, and three-admission all-history trace without future
@@ -142,8 +147,9 @@ or work conclusions.
   chronologies, Schur drops, balances, reserve identities, atlas maximum, star
   rational functions/asymptotics, tensor Bernstein determinant certificate,
   projection-active STOP, reachable quartic formal series and exact replay
-  grid, exact leading `K_{2,r}` formulas, candidate inactivity checks, and
-  scope qualifications.
+  grid, exact leading `K_{2,r}` formulas, projection-normal identities, finite
+  critical-path gate failures, candidate inactivity checks, and scope
+  qualifications.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
   geometry, and the original-score arbitrary-projection coefficient gap

@@ -731,6 +731,14 @@ def projection_active_stop_check():
     ]
     candidate = [max(ZERO, value) for value in raw_candidate]
     assert candidate[-1] == 0 and all(value > 0 for value in candidate[:-1])
+    prox_displacement = [value - projected for value, projected in zip(interpolation, candidate)]
+    projection_normal = [
+        derivative - displacement
+        for derivative, displacement in zip(interpolation_residual, prox_displacement)
+    ]
+    assert projection_normal == [ZERO, ZERO, -raw_candidate[-1]]
+    assert all(value >= 0 for value in projection_normal)
+    assert all(normal * projected == 0 for normal, projected in zip(projection_normal, candidate))
     center_next = [new + (1 - q) * (new - old) / q for new, old in zip(candidate, iterate)]
     post_residual = [
         image - load_value
@@ -744,6 +752,103 @@ def projection_active_stop_check():
         -Fraction(2992499829, 432032000000000),
         Fraction(46823397, 3456256000000),
     ]
+    applied_displacement = apply_h(
+        prox_displacement,
+        active,
+        neighbors,
+        degrees,
+        alpha,
+    )
+    m_displacement = [left - right for left, right in zip(prox_displacement, applied_displacement)]
+    assert post_residual == [
+        normal + correction for normal, correction in zip(projection_normal, m_displacement)
+    ]
+
+    def normalized_objective(point):
+        image = apply_h(point, active, neighbors, degrees, alpha)
+        return sum(
+            (
+                degree * (Fraction(value * applied, 2) - load_value * value)
+                for degree, value, applied, load_value in zip(
+                    degrees,
+                    point,
+                    image,
+                    normalized_load,
+                )
+            ),
+            ZERO,
+        )
+
+    for comparison in (iterate, optimum):
+        interpolation_error = [
+            value - comparison_value for value, comparison_value in zip(interpolation, comparison)
+        ]
+        applied_error = apply_h(
+            interpolation_error,
+            active,
+            neighbors,
+            degrees,
+            alpha,
+        )
+        three_point_right = (
+            sum(
+                (
+                    degree * displacement * error
+                    for degree, displacement, error in zip(
+                        degrees,
+                        prox_displacement,
+                        interpolation_error,
+                    )
+                ),
+                ZERO,
+            )
+            - Fraction(1, 2)
+            * sum(
+                (
+                    degree * displacement**2
+                    for degree, displacement in zip(degrees, prox_displacement)
+                ),
+                ZERO,
+            )
+            - Fraction(1, 2)
+            * sum(
+                (
+                    degree * displacement * correction
+                    for degree, displacement, correction in zip(
+                        degrees,
+                        prox_displacement,
+                        m_displacement,
+                    )
+                ),
+                ZERO,
+            )
+            - Fraction(1, 2)
+            * sum(
+                (
+                    degree * error * applied
+                    for degree, error, applied in zip(
+                        degrees,
+                        interpolation_error,
+                        applied_error,
+                    )
+                ),
+                ZERO,
+            )
+            - sum(
+                (
+                    degree * normal * comparison_value
+                    for degree, normal, comparison_value in zip(
+                        degrees,
+                        projection_normal,
+                        comparison,
+                    )
+                ),
+                ZERO,
+            )
+        )
+        assert (
+            normalized_objective(candidate) - normalized_objective(comparison) == three_point_right
+        )
 
     def error_energy(point, point_center):
         error = [value - optimum_value for value, optimum_value in zip(point, optimum)]
@@ -789,6 +894,38 @@ def projection_active_stop_check():
         )
         > 0
     )
+
+    normal_anchor = [
+        (1 - q) * value + q * optimum_value for value, optimum_value in zip(iterate, optimum)
+    ]
+    assert projection_normal[-1] / normal_anchor[-1] == Fraction(11929, 50)
+    m_slack = Fraction(1, 2) * sum(
+        (
+            degree * displacement * correction
+            for degree, displacement, correction in zip(
+                degrees,
+                prox_displacement,
+                m_displacement,
+            )
+        ),
+        ZERO,
+    )
+    normal_slack = sum(
+        (
+            degree * normal * anchor
+            for degree, normal, anchor in zip(
+                degrees,
+                projection_normal,
+                normal_anchor,
+            )
+        ),
+        ZERO,
+    )
+    assert energy - energy_next >= m_slack + normal_slack
+    normal_constant = Fraction(11929, 50)
+    assert max(ZERO, max(post_residual)) ** 2 <= (normal_constant + 1 - q * q) * (
+        energy - energy_next
+    )
     assert (
         (1 - q) * energy - energy_next
         == Fraction(
@@ -803,6 +940,134 @@ def projection_active_stop_check():
     ]
     assert max(ZERO, max(supported_residuals)) == 0
     assert all(value <= optimum_value for value, optimum_value in zip(candidate, optimum))
+
+
+def critical_path_gate_check():
+    """Check that finite threshold-tuned paths certify two vertices early."""
+
+    def path_apply(values, degrees, alpha):
+        eta = (1 - alpha) / 2
+        diagonal = (1 + alpha) / 2
+        result = []
+        for index, value in enumerate(values):
+            neighbor_sum = ZERO
+            if index:
+                neighbor_sum += values[index - 1]
+            if index + 1 < len(values):
+                neighbor_sum += values[index + 1]
+            result.append(diagonal * value - eta * neighbor_sum / degrees[index])
+        return result
+
+    def path_load(length, alpha, rho):
+        return [alpha * ((Fraction(1) if index == 0 else ZERO) - rho) for index in range(length)]
+
+    def path_residual(values, degrees, alpha, rho):
+        return [
+            left - right
+            for left, right in zip(
+                path_apply(values, degrees, alpha),
+                path_load(len(values), alpha, rho),
+            )
+        ]
+
+    def path_optimum(length, degrees, alpha, rho):
+        eta = (1 - alpha) / 2
+        diagonal = (1 + alpha) / 2
+        right_hand_side = path_load(length, alpha, rho)
+        diagonal_values = [diagonal] * length
+        upper = [-eta / degrees[index] for index in range(length - 1)]
+        lower = [-eta / degrees[index] for index in range(1, length)]
+        for index in range(1, length):
+            multiplier = lower[index - 1] / diagonal_values[index - 1]
+            diagonal_values[index] -= multiplier * upper[index - 1]
+            right_hand_side[index] -= multiplier * right_hand_side[index - 1]
+        result = [ZERO] * length
+        result[-1] = right_hand_side[-1] / diagonal_values[-1]
+        for index in range(length - 2, -1, -1):
+            result[index] = (
+                right_hand_side[index] - upper[index] * result[index + 1]
+            ) / diagonal_values[index]
+        return result
+
+    expected = {
+        8: (10, 8, 39),
+        12: (14, 12, 106),
+        16: (19, 17, 168),
+    }
+    for denominator, target in expected.items():
+        q = Fraction(1, denominator)
+        alpha = q * q
+        rho = tau = q / 5
+        ratio = (1 - q) / (1 + q)
+        edge_count = 0
+        while 2 * ratio ** (edge_count + 1) / (1 - ratio ** (2 * (edge_count + 1))) > Fraction(
+            1, 5
+        ):
+            edge_count += 1
+        assert 2 * ratio**edge_count / (1 - ratio ** (2 * edge_count)) > Fraction(1, 5)
+        assert 2 * ratio ** (edge_count + 1) / (1 - ratio ** (2 * (edge_count + 1))) <= Fraction(
+            1, 5
+        )
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        full_optimum = path_optimum(edge_count + 1, degrees, alpha, rho)
+        terminal_formula = q * (
+            2 * ratio**edge_count / (1 - ratio ** (2 * edge_count)) - Fraction(1, 5)
+        )
+        assert full_optimum[-1] == terminal_formula > 0
+
+        active_length = 1
+        iterate = [ZERO]
+        center = [ZERO]
+        for stage in range(1, 60 * denominator + 1):
+            active_degrees = degrees[:active_length]
+            interpolation = [
+                (value + q * center_value) / (1 + q) for value, center_value in zip(iterate, center)
+            ]
+            interpolation_residual = path_residual(
+                interpolation,
+                active_degrees,
+                alpha,
+                rho,
+            )
+            raw_candidate = [
+                value - derivative
+                for value, derivative in zip(interpolation, interpolation_residual)
+            ]
+            assert min(raw_candidate) > 0
+            candidate = raw_candidate
+            center_next = [new + (1 - q) * (new - old) / q for new, old in zip(candidate, iterate)]
+            post_residual = path_residual(candidate, active_degrees, alpha, rho)
+            delta = max(ZERO, max(post_residual) / alpha)
+            envelope = [max(ZERO, value - delta) for value in candidate]
+            envelope_residual = path_residual(envelope, active_degrees, alpha, rho)
+            if active_length <= edge_count:
+                boundary_residual = (
+                    -(1 - alpha) * envelope[-1] / (2 * degrees[active_length]) + alpha * rho
+                )
+                admitted = boundary_residual < -alpha * tau
+            else:
+                admitted = False
+
+            if admitted:
+                old_optimum = path_optimum(active_length, degrees, alpha, rho)
+                new_optimum = path_optimum(active_length + 1, degrees, alpha, rho)
+                iterate = [*candidate, ZERO]
+                center = [
+                    old_center + new_value - old_value
+                    for old_center, new_value, old_value in zip(
+                        [*center_next, ZERO],
+                        new_optimum,
+                        [*old_optimum, ZERO],
+                    )
+                ]
+                active_length += 1
+            elif min(envelope_residual) >= -alpha * tau:
+                assert (edge_count + 1, active_length, stage) == target
+                break
+            else:
+                iterate, center = candidate, center_next
+        else:
+            raise AssertionError("threshold-tuned path did not certify")
 
 
 def witness_check():
@@ -1373,6 +1638,7 @@ def main():
     bipartite_family_leading_check()
     bernstein_decrement_check()
     projection_active_stop_check()
+    critical_path_gate_check()
     if arguments.enumerate:
         atlas_check()
     suffix = "; atlas n<=7 verified" if arguments.enumerate else ""
@@ -1381,6 +1647,7 @@ def main():
         "leaf-seeded K1,4 needs lambda(q)=Omega(q^-3) with limit 1/32; "
         "reachable K2,3-plus-leaf needs lambda(q)=Omega(q^-4) with limit 49/3884; "
         "K2,r-plus-leaf leading constants tend to 1/15; "
+        "normal-slack criterion and critical-path gate STOP verified; "
         "q^-4 Bernstein GO and original-score projected STOP verified"
         f"{suffix}"
     )

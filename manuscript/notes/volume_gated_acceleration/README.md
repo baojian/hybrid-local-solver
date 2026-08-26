@@ -28,8 +28,10 @@ minimum coefficient to grow as `1/(32 q^3)`, ruling out a constant or
 polylogarithmic multiplier uniformly in `q`.  The named complete gate
 preserves the score exactly across admission. On its interior traces, a coarse
 `O(q^-5)` coefficient is proved for the original score under arbitrary
-projection. An exact modal certificate improves it to `2/q^4` when projection
-is inactive. A modified safe positive-support envelope has coefficient
+projection. The exact projection-normal identity improves it to
+`(C_n+1-q^2)/q^4` under the causal condition `n_i <= C_n b_i` on clipped
+positive-residual rows; inactivity has `C_n=0`. A modified safe
+positive-support envelope has coefficient
 `(1-q^2)/q^4` under arbitrary projection; an exact three-vertex state explains
 why clipped-zero residuals obstruct the same claim for the original score.
 A reachable zero-start `K_{2,3}`-plus-seed-leaf family stays
@@ -50,6 +52,11 @@ general `O(q^-5)` upper bound. The
 unconditional zero-balance
 `delta^2` all-history route and a small multiplier of this consumed-energy
 reserve are both closed for the named recurrence and gate.
+The direct critical endpoint-path attempt does not reach active projection:
+exact threshold-tuned instances at `q=1/8,1/12,1/16` certify two vertices
+before the intended full face. Bounding the normal-anchor ratio uniformly,
+or finding a reachable family where it produces larger debt, is the remaining
+scalar target.
 
 Build and audit from the repository root with:
 
@@ -65,5 +72,6 @@ tier includes exhaustive connected labeled rooted graphs on two through five
 vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
 of every connected NetworkX graph-atlas representative through order seven
 for `volume_gated_acceleration.consumed_energy_reserve`. The latter also
-checks the quartic family's exact formal series, rational replay grid, and
-the leading `K_{2,r}` formulas at six exact integer specializations.
+checks the quartic family's exact formal series, rational replay grid, the
+leading `K_{2,r}` formulas at six exact integer specializations, the
+projection-normal identities, and three finite critical-path gate failures.

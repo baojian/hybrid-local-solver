@@ -87,6 +87,22 @@
     {s(15s^4-15s^3+2s^2+s-3)}`, where `s=r+1`, and tends to `1/15` as
     `r` grows. Thus every graph-uniform coefficient has
     `liminf q^4 lambda(q) >= 1/15` along this family.
+  - Retained the exact projection normal
+    `n=r(y)-(y-p)` instead of dropping it. With
+    `b=(1-q)z+qz*`, the fixed-step decrement contains
+    `<n,b>_D` and the post residual is `n+(I-H)g`. Therefore the original
+    all-coordinate ledger has coefficient `(C_n+1-q^2)/q^4` whenever every
+    clipped positive-residual row obeys `n_i <= C_n b_i`; inactive projection
+    is the exact case `C_n=0`.
+  - Proved the point-seed clipped-row dichotomy: a clipped seed row has
+    negative post residual, while a clipped nonseed row has post residual at
+    most `q^3/5`. If the interpolation is nonnegative, its projection normal
+    is also at most `q^3/5`. These bounds alone do not supply a consumed-reserve
+    baseline, so the unconditional `q^-4` conclusion remains open.
+  - Stopped the direct critical endpoint-path construction. For the longest
+    full path with positive terminal restricted optimum, exact zero-start
+    replays at `q=1/8,1/12,1/16` certify on prefixes of sizes `8,12,17`
+    instead of the intended sizes `10,14,19`; every raw candidate is positive.
 - Deliberately unchanged:
   - No convergence failure, objective or work lower bound, finite-precision
     claim, nonpath eleven-resource vector, or solver-class lower bound is
@@ -115,6 +131,9 @@
     through order seven. The fast path also checks the exact leading scaled
     recurrence and closed-form debt/reserve constant for
     `r=3,4,5,7,10,30` in the `K_{2,r}` extension.
+    It now also checks the projection-normal decomposition, exact normal
+    slack, the algebraic ratio `11929/50`, and the three finite critical-path
+    gate failures.
 - Commands run:
   - `uv run python -m experiments.proof_audits.runner --tier full --audit volume_gated_acceleration.all_history_three_admission_stop`
   - `uv run python -m experiments.proof_audits.runner --tier full --note volume_gated_acceleration`
@@ -154,7 +173,9 @@
     explicitly sourced reserve, or a stronger observable. The sharp next
     scalar target is now only the original all-coordinate score under
     arbitrary projection: its reachable lower order is `q^-4` and its general
-    upper coefficient remains `O(q^-5)`. The displayed low-frequency condition
+    upper coefficient remains `O(q^-5)`. The exact next target is now a
+    graph-uniform bound on the normal-anchor ratio, or a reachable family on
+    which that ratio creates superquartic debt. The displayed low-frequency condition
     can apply only on a narrower promised class, not all reachable traces.
   - The finite witness recovers at stage 9 and certifies at stage 12, so it
     must not be promoted into an asymptotic or convergence obstruction.
