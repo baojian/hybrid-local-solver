@@ -1,8 +1,9 @@
 # bounded_seed_return
 
 This note proves a graph-uniform upper bound on the seed diagonal of the
-discounted PageRank Green kernel.  If `d_v` is the ordinary degree of the
-seed, `gamma_alpha = 2 alpha / (1 + alpha)`, and `V_G = vol(G)`, then
+discounted PageRank Green kernel.  For `0 < alpha < 1`, if `d_v` is the
+ordinary degree of the seed, `gamma_alpha = 2 alpha / (1 + alpha)`, and
+`V_G = vol(G)`, then
 
 ```text
 pi_v / gamma_alpha
@@ -10,6 +11,9 @@ pi_v / gamma_alpha
      + 1 / (1 + c_alpha)
      + 2 pi d_v / sqrt(c_alpha gamma_alpha).
 ```
+
+The endpoint `alpha = 1` is separate and trivial: `c_alpha = 0`,
+`gamma_alpha = 1`, `H = I`, `pi = e_v`, and `pi_v / gamma_alpha = 1`.
 
 Consequently, along any joint limit with `alpha -> 0`, `eps_ppr -> 0`,
 bounded `d_v`, and `vol(S_eps_ppr) = Theta(1 / eps_ppr)`, one has

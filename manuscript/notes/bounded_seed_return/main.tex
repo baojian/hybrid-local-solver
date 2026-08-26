@@ -18,7 +18,8 @@ Self-Return Amplification}
 \maketitle
 
 \begin{abstract}
-For source-aligned personalized PageRank seeded at $v$, put
+For source-aligned personalized PageRank seeded at $v$ and
+$0<\alpha<1$, put
 $c_{\alpha}=(1-\alpha)/(1+\alpha)$ and
 $\gamma_{\alpha}=1-c_{\alpha}$.  We prove the graph-uniform bound
 \[
@@ -68,6 +69,11 @@ Specialize the shared PageRank definition to $s=e_v$ and write
  H:=I-cAD^{-1}.
  \label{eq:bounded-return-parameters}
 \end{equation}
+Unless the endpoint is mentioned explicitly, all return bounds and
+corollaries below assume $0<\alpha<1$, so $0<c<1$.  At $\alpha=1$ the
+system is instead trivial: $c=0$, $\gamma=1$, $H=I$, $\pi=e_v$, and
+$\mathcal A_v=1$.  In particular, expressions below containing
+$1/\sqrt{c\gamma}$ are not intended as endpoint bounds.
 Then $H\pi=\gamma e_v$.  The scalar screened in this note is
 \begin{equation}
  \mathcal A_v:=\frac{\pi_v}{\gamma}=(H^{-1})_{vv}.
@@ -197,7 +203,8 @@ claimed.
 
 \begin{theorem}[Universal seed-return bound; \statusproved]
 \label{thm:bounded-return-diagonal}
-For every graph and seed in the scope of \cref{sec:bounded-return-scope},
+For every graph and seed in the scope of \cref{sec:bounded-return-scope} and
+every $0<\alpha<1$,
 \begin{equation}
  \boxed{
  \mathcal A_v
@@ -251,12 +258,14 @@ the bounded endpoint term; no aperiodicity assumption is used.
 \begin{corollary}[Bounded degree forbids simultaneous star scaling;
 \statusproved]
 \label{cor:bounded-return-support}
-Suppose
+Let $0<\alpha<1$, and suppose
 \begin{equation}
  \vol(S_{\epsppr})\ge\frac{\sigma}{\epsppr}
  \label{eq:bounded-return-support-lower}
 \end{equation}
-for some $\sigma>0$.  Then
+for a fixed $\sigma>0$.  In every asymptotic assertion below, $\sigma$ is
+independent of the graph and of the joint parameters
+$(\alpha,\epsppr)$.  Then
 \begin{equation}
  \boxed{
  \alpha\mathcal A_v
@@ -297,7 +306,9 @@ the stated joint limit.
 
 \begin{corollary}[Necessary ordinary seed degree; \statusproved]
 \label{cor:bounded-return-degree}
-Under \eqref{eq:bounded-return-support-lower}, if
+Let $0<\alpha<1$, and let $K,\sigma>0$ be fixed independently of the graph
+and of any joint limit in $(\alpha,\epsppr)$.  Under
+\eqref{eq:bounded-return-support-lower}, if
 $\mathcal A_v\ge K/\alpha$, then, whenever the numerator is positive,
 \begin{equation}
  \boxed{
@@ -457,12 +468,13 @@ so only its finite-graph stationary term can scale as $1/\alpha$.
 \subsection{Deterministic numerical screen}
 
 The companion \texttt{verify.py} solves $(D-cA)q=\gamma e_v$ to relative
-residual at most $10^{-11}$.  At every cell it selects a coordinate
-breakpoint maximizing
-$\epsppr\vol(S_{\epsppr})$, so the support column tests the most favorable
-semantic threshold rather than a fixed arbitrary one.  Representative output
-is shown in \cref{tab:bounded-return-screen}; it is \statusempirical{} and is
-not used in the proof.
+residual at most $10^{-11}$.  At every cell it computes
+$\sup_{\epsppr>0}\epsppr\vol(S_{\epsppr})$ from the left limits at coordinate
+breakpoints.  The supremum language is necessary because
+$S_{\epsppr}$ uses a strict inequality.  Thus the support column tests the
+most favorable semantic threshold rather than a fixed arbitrary one.
+Representative output is shown in \cref{tab:bounded-return-screen}; it is
+\statusempirical{} and is not used in the proof.
 
 \begin{table}[t]
 \centering
@@ -471,7 +483,7 @@ not used in the proof.
 \toprule
 Family ($d_v$) & $\alpha$ & $\alpha\mathcal A_v$
 & $\sqrt\alpha\mathcal A_v$
-& $\max_{\epsppr}\epsppr\vol(S_{\epsppr})$ \\
+& $\sup_{\epsppr>0}\epsppr\vol(S_{\epsppr})$ \\
 \midrule
 Path (1) & $2^{-12}$ & $0.00781$ & $0.500$ & $0.374$ \\
 Caterpillar (2) & $2^{-12}$ & $0.0109$ & $0.700$ & $0.376$ \\
@@ -502,10 +514,10 @@ quantity excluded by \cref{cor:bounded-return-support}.
 \paragraph{Closed.}
 No family with bounded ordinary seed degree can simultaneously have
 $\vol(S_{\epsppr})=\Theta(1/\epsppr)$ and
-$\pi_v/\gamma_{\alpha}=\Theta(1/\alpha)$ in the joint local limit.  Hence a
-signed-relaxation seed-operation lower bound whose only large instance
-parameter is $\pi_v/\gamma_{\alpha}$ cannot reproduce the star's
-$\Theta(\alpha^{-1/2})$ number of seed operations on such a family.
+$\pi_v/\gamma_{\alpha}=\Theta(1/\alpha)$ in the joint local limit.  This
+excludes exactly the proposed bounded-degree, support-saturated,
+star-scale-self-return witness.  It makes no inference about the number of
+operations performed by an algorithm.
 
 \paragraph{Not closed.}
 An upper bound on one Green diagonal is not an algorithmic upper bound.  A

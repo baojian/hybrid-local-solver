@@ -30,7 +30,11 @@
   lower bound `Omega(1/(eps_ppr + sqrt(alpha)))`.  The note records that the
   stronger `Omega(1/eps_ppr)` conclusion needs
   `alpha = O(eps_ppr^2)`, supplies exact formulas for paths, caterpillars, hub
-  ladders, and regular trees, and includes a deterministic verifier.
+  ladders, and regular trees, and includes a deterministic verifier.  The
+  theorem and corollaries are scoped to `0 < alpha < 1`; the separate endpoint
+  `alpha = 1` is recorded exactly as `H = I`, `gamma = 1`, `pi = e_v`, and
+  amplification one.  The constants in the joint-limit hypotheses are fixed
+  independently of the limit.
 - Deliberately unchanged: the dirty main worktree, the separately owned
   `class_separation_ladder` direction, shared mathematical conventions, and
   every solver implementation.  The note does not claim an algorithmic upper
@@ -51,11 +55,12 @@
   - `make lint`
   - `uv run ruff check manuscript/notes/bounded_seed_return/verify.py`
 - Results: eight-page warning-free PDF; 20-note inventory consistent; 4,176
-  rooted spectral/resolvent cells and all family/formula checks pass;
-  coordination audit passes; 210 repository tests pass with 15 temporary-file
-  cleanup warnings; focused Ruff passes.  Repository-wide lint reports 1,345
-  pre-existing findings under `manuscript/claude-overnight-2026-08-24/`, all
-  outside the assignment scope.
+  rooted spectral/resolvent cells, the exact `alpha=1` endpoint, and all
+  family/formula and support-supremum checks pass; coordination audit passes;
+  210 repository tests pass with 15 temporary-file cleanup warnings; focused
+  Ruff passes.  Repository-wide lint reports 1,345 pre-existing findings
+  under `manuscript/claude-overnight-2026-08-24/`, all outside the assignment
+  scope.
 
 ## Review notes
 
@@ -67,4 +72,6 @@
 - Open decisions or follow-up: integrate the theorem into the separately
   owned class-separation ladder after review.  Any continued lower-bound
   search should target distributed charged work rather than another
-  bounded-degree seed-return witness.
+  bounded-degree seed-return witness.  The result excludes exactly the
+  bounded-degree, support-saturated, star-scale-self-return witness and makes
+  no operation-count inference.

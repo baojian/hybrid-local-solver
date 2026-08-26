@@ -74,9 +74,7 @@ def cycle_antipode(n: int) -> Graph:
 
 
 def matvec(graph: Graph, c: float, vector: np.ndarray) -> np.ndarray:
-    adjacent_sum = np.bincount(
-        graph.src, weights=vector[graph.dst], minlength=graph.n
-    )
+    adjacent_sum = np.bincount(graph.src, weights=vector[graph.dst], minlength=graph.n)
     return graph.degree * vector - c * adjacent_sum
 
 
@@ -115,9 +113,9 @@ def statistics(graph: Graph, alpha: float) -> tuple[float, float, float, float]:
     amplification = float(pi[0] / gamma)
     order = np.argsort(-q)
     cumulative_volume = np.cumsum(graph.degree[order])
-    saturation = q[order] * cumulative_volume
-    best = float(np.max(saturation))
-    return amplification, best, relative, float(pi.sum())
+    saturation_left_limits = q[order] * cumulative_volume
+    support_supremum = float(np.max(saturation_left_limits))
+    return amplification, support_supremum, relative, float(pi.sum())
 
 
 def path_formula(alpha: float) -> float:
@@ -188,15 +186,25 @@ def check_spectral_theorem() -> None:
                         + 2.0 * math.pi * graph.degree[seed] / math.sqrt(c * gamma)
                     )
                     assert amplification <= bound + 2.0e-10
-                    worst_resolvent_ratio = max(
-                        worst_resolvent_ratio, amplification / bound
-                    )
+                    worst_resolvent_ratio = max(worst_resolvent_ratio, amplification / bound)
                     cells += 1
     print(
         f"spectral battery: {cells} rooted parameter cells; "
         f"max measure/bound={worst_measure_ratio:.6f}; "
         f"max resolvent/bound={worst_resolvent_ratio:.6f}"
     )
+
+
+def check_alpha_one_endpoint() -> None:
+    graph = cycle_antipode(32)
+    q, relative = solve_q(graph, 1.0)
+    pi = graph.degree * q
+    expected = np.zeros(graph.n)
+    expected[0] = 1.0
+    assert relative <= 1.0e-12
+    assert np.array_equal(pi, expected)
+    assert pi[0] == 1.0
+    print("alpha=1 endpoint: H=I, gamma=1, pi=e_v, A=1 passed")
 
 
 def check_closed_forms() -> None:
@@ -227,7 +235,7 @@ def print_screen() -> None:
         ("binary-tree", binary_tree(11)),
         ("cycle-antipode", cycle_antipode(4_000)),
     )
-    print("family             alpha   dv   alpha*A   sqrt(alpha)*A   max eps*vol(S)")
+    print("family             alpha   dv   alpha*A   sqrt(alpha)*A   sup eps*vol(S)")
     for name, graph in families:
         for exponent in (6, 9, 12):
             alpha = 2.0 ** (-exponent)
@@ -244,6 +252,7 @@ def print_screen() -> None:
 
 def main() -> None:
     check_spectral_theorem()
+    check_alpha_one_endpoint()
     check_closed_forms()
     print_screen()
     print("all bounded-seed-return checks passed")

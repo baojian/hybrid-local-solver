@@ -16,8 +16,11 @@ registered controller files.
   seed self-return amplification `pi_v / gamma_alpha = Theta(1 / alpha)`?
 - **Model:** The shared source-aligned single-seed PPR system on finite simple
   undirected unweighted connected graphs without isolated vertices, with
+  `0 < alpha < 1`,
   `c_alpha = (1-alpha)/(1+alpha)` and
   `gamma_alpha = 2 alpha/(1+alpha)`.
+  At the separate endpoint `alpha = 1`, `c_alpha = 0`, `gamma_alpha = 1`,
+  `H = I`, `pi = e_v`, and the amplification is exactly one.
 - **Accuracy namespace:** `S_eps_ppr = {u : pi_u/d_u > eps_ppr}` uses the
   semantic degree-normalized PPR threshold.  No identification with
   `eps_appr`, objective gap, a KKT tolerance, or a residual certificate.
@@ -40,6 +43,8 @@ registered controller files.
   `Theta(1/alpha)` self-return in the joint local limit; the exact necessary
   degree `Omega(1/(eps_ppr + sqrt(alpha)))`; and its
   `Omega(1/eps_ppr)` specialization when `alpha = O(eps_ppr^2)`.
+  Constants `K` and `sigma` in the necessary-degree and support hypotheses
+  are fixed independently of the graph and the joint limit.
 - **Conditional:** The upper delimiter `d_v = O(1/eps_ppr)` uses the separate
   semantic-nontriviality assumption `eps_ppr d_v <= pi_v/2`; combining it
   with the preceding specialization gives `Theta(1/eps_ppr)` seed degree.
@@ -48,7 +53,7 @@ registered controller files.
   cycle-plus-antipode gadget.  Every family has vanishing
   `alpha pi_v/gamma_alpha`; the one-dimensional families have
   `Theta(alpha^{-1/2})` amplification while their best semantic thresholds
-  keep `eps_ppr vol(S_eps_ppr)` bounded away from zero.
+  keep `sup_{eps_ppr>0} eps_ppr vol(S_eps_ppr)` bounded away from zero.
 - **Refuted:** Bounded seed degree cannot realize the star's simultaneous
   support and self-return scalings.  The stronger unqualified inference
   "self-return amplification forces `Theta(1/eps_ppr)` seed degree" is not
@@ -96,10 +101,11 @@ work is large even though no single bounded-degree seed operation is forced
   and lower-bound scope discipline.
 - Focused checks: the note builds to an eight-page PDF with no LaTeX warnings;
   the registry reports 20 consistent notes; `verify.py` passes 4,176 rooted
-  spectral/resolvent cells, all nine closed-form truncation cells, and the
-  five-family support screen; all 210 repository tests pass; the coordination
-  audit passes; and focused Ruff lint passes.  Repository-wide `make lint`
-  remains red only on 1,345 pre-existing findings under
+  spectral/resolvent cells, the exact `alpha=1` endpoint check, all nine
+  closed-form truncation cells, and the five-family support-supremum screen;
+  all 210 repository tests pass; the coordination audit passes; and focused
+  Ruff lint passes.  Repository-wide `make lint` remains red only on 1,345
+  pre-existing findings under
   `manuscript/claude-overnight-2026-08-24/`, outside this assignment.
 - Known gaps: no finite-precision claim, no weighted-graph extension, no
   directed-graph extension, and no theorem for the total work of signed
