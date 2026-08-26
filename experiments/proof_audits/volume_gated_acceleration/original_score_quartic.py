@@ -74,12 +74,18 @@ def audit_terminal_horizon(q: Fraction) -> int:
     assert scaled_slack == (1 - q2) * (1 + 3 * q2) > 0
     assert energy_cap < q2
 
-    # At this energy threshold the envelope error is exactly at most
-    # q^2 tau=q^3/5.
-    gate_energy = q**12 / (50 * (1 + q2) ** 2)
-    coordinate_error_squared = 2 * gate_energy / q2
-    envelope_error_squared = (1 + 1 / q2) ** 2 * coordinate_error_squared
-    assert envelope_error_squared == q**6 / 25
+    # At the sharpened threshold, B-Cauchy bounds the largest normalized
+    # residual by the exact value needed after the envelope subtraction.
+    gate_energy = 4 * q**10 / (25 * (1 + q2) * (1 + 3 * q2) ** 2)
+    residual_bound_squared = (1 + q2) * gate_energy
+    residual_target = 2 * q**5 / (5 * (1 + 3 * q2))
+    assert residual_bound_squared == residual_target * residual_target
+    diagonal = (1 + q2) / 2
+    assert residual_target * (1 + diagonal / q2) == q**3 / 5
+
+    # It strictly improves the previous coordinate-error threshold for q<1.
+    old_gate_energy = q**12 / (50 * (1 + q2) ** 2)
+    assert gate_energy > old_gate_energy
 
     ratio = float(q2 / gate_energy)
     hold_bound = ceil(log(ratio) / -log(float(1 - q)))

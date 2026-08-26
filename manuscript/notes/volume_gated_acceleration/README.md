@@ -48,9 +48,10 @@ support, and gate evaluation must be charged when not cached.
 For the same exact-real point-seed recurrence, the transported shock budget
 does yield a separate convergence result.  At `rho=tau=q/5`, the exact
 identity for `E_0+D_k` is at most `q^2` on every graph.  Once a fixed face has
-contracted below `q^12/(50(1+q^2)^2)`, the original safe envelope makes every
-active row certificate-safe, so the complete gate must either admit a
-nonempty violating batch or certify globally.  Thus each face is held for at
+contracted below `4q^10/(25(1+q^2)(1+3q^2)^2)`, a direct residual bound makes
+the original safe envelope certificate-safe on every active row.  The
+complete gate must then either admit a nonempty violating batch or certify
+globally.  Thus each face is held for at
 most `O(q^-1 log(1/q))` steps, the whole finite execution has
 `T=O(q^-2 log(1/q))` and swept active volume
 `O(q^-3 log(1/q))`, and its terminal PPR error is at most `2q/5`.  A fully
@@ -59,6 +60,29 @@ charged dense-response exact-real fallback has the same
 is graph-uniform finite convergence and an honest fallback work bound, but it
 remains a factor `O_tilde(q^-1)` above the desired product-scale work and
 supplies no finite-precision or bit-complexity guarantee.
+
+That logarithm belongs to the named fixed-step candidate-envelope policy, not
+to a dense exact-response implementation per se.  If a policy is allowed to
+gate directly on the fully materialized exact restricted optimum that dense
+center transport already computes, its safe-envelope correction is zero and
+it can run the same complete gate immediately on every face.  This exact
+active-set comparator uses `O(q^-2)` cumulative gate scans and
+`O(q^-3)` dense factor/solve arithmetic, removing the hold logarithm but not
+the extra polynomial response factor.  It is a different control policy, not
+a sharper chronology theorem for the named recurrence.
+
+The dense-response factor is intrinsic to the fallback's explicit scalar
+Cholesky representation.  On any fixed-gap family of 3-regular spectral
+expanders, take `q=1/(2n)`.  A resolvent estimate puts every normalized RPPR
+coordinate strictly more than `tau=q/5` above zero, so the same terminal
+certificate forces the active face to become all `n` vertices.  Linear
+treewidth and strict Stieltjes fill then require `Omega(n^2)=Omega(q^-2)`
+explicit factor cells and `Omega(n^3)=Omega(q^-3)` ordinary scalar pivot
+arithmetic even with the best offline ordering.  This rules out a
+product-scale implementation only in the exact original-basis explicit
+Cholesky/LDL response class.  It does not prove the per-face logarithm
+necessary and leaves compressed, matrix-free, iterative, approximate, and
+other non-Cholesky responses open.
 
 The finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. By themselves they prove no convergence
@@ -97,8 +121,8 @@ uv run python -m experiments.proof_audits.runner \
   --tier full --note volume_gated_acceleration
 ```
 
-The thirteen mechanism-based exact-audit IDs are listed by
-`make research-audit-list`; their provenance spans Rounds 013--025. The full
+The fourteen mechanism-based exact-audit IDs are listed by
+`make research-audit-list`; their provenance spans Rounds 013--026. The full
 tier includes exhaustive connected labeled rooted graphs on two through five
 vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
 of every connected NetworkX graph-atlas representative through order seven
@@ -106,7 +130,9 @@ for `volume_gated_acceleration.consumed_energy_reserve`. The latter also
 checks the quartic family's exact formal series, rational replay grid, the
 leading `K_{2,r}` formulas at six exact integer specializations, the
 projection-normal identities, the first-admission quartic constants, and
-three finite critical-path gate failures.
+three finite critical-path gate failures.  The Round-026 exact scalar audit
+checks the expander normalization and RPPR margin constants together with the
+filled-clique storage and scalar pivot-update identities.
 The new reachable-projection audit verifies the 32-stage chronology, strict
 gate margins, clipped positive-residual row, positive debt, and optional
 finite rational `q` screen.

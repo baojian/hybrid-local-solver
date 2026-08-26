@@ -21,11 +21,12 @@ fixed-face step is followed immediately by the complete gate, and admissions
 contain exactly all genuinely violating boundary rows.  Define
 \begin{align}
  E_{\rm gate}(q)
- &:=\frac{q^{12}}{50(1+q^2)^2},
+ &:=\frac{4q^{10}}{25(1+q^2)(1+3q^2)^2},
  \label{eq:complete-gate-energy-threshold}\\
  K_q
  &:=\left\lceil
- \frac{\log\!\left(50(1+q^2)^2q^{-10}\right)}
+ \frac{\log\!\left(
+       25(1+q^2)(1+3q^2)^2/(4q^8)\right)}
       {-\log(1-q)}
  \right\rceil.
  \label{eq:complete-gate-hold-bound}
@@ -128,37 +129,49 @@ $(3q^2+1)(q^2-1)\leq0$.  Therefore
 at every checkpoint.  The first inequality is exactly nonnegativity of the
 consumed reserve; it retains rather than discards every admission shock.
 
-We next turn small energy into a gate decision.  On a current interior face
-put
+We next turn small energy into a gate decision without first converting to a
+coordinate-error bound.  On a current interior face put
 \begin{equation*}
- e:=\norm{z-z_U^\star}_\infty.
+ P:=\Phi_U(z)-\Phi_U(z_U^\star),
+ \qquad r:=H_Uz-h_U=H_U(z-z_U^\star),
+ \qquad R_{\max}:=\norm r_\infty.
 \end{equation*}
-The objective-gap part of $E$ and $B_U\succeq q^2D_U$ imply
+The $B_U$-Cauchy--Schwarz estimate already used in
+\cref{prop:consumed-energy-structural-solvency}, together with
+$(B_U)_{ii}=d_i(1+q^2)/2$, gives
 \begin{equation}
- e\leq\frac{\sqrt{2E}}q.
- \label{eq:complete-gate-energy-to-coordinate}
+ r_i^2
+ \leq\frac{(1+q^2)P}{d_i}
+ \leq(1+q^2)E,
+ \qquad
+ R_{\max}\leq\sqrt{(1+q^2)E}.
+ \label{eq:complete-gate-energy-to-residual}
 \end{equation}
-Every row of $H_U$ has diagonal magnitude $(1+q^2)/2$ and off-diagonal
-absolute row sum at most $(1-q^2)/2$, hence
-$\norm{H_U}_{\infty\to\infty}\leq1$.  Interiority gives
-$r_U(z)=H_U(z-z_U^\star)$, so the original correction and envelope obey
-\begin{align}
- \delta(z)&\leq\frac e{q^2},
-&\norm{\bar\ell-z_U^\star}_\infty
- &\leq(1+q^{-2})e.
- \label{eq:complete-gate-envelope-distance}
-\end{align}
-Here the second inequality also uses nonexpansiveness of the coordinatewise
-positive part and $z_U^\star\geq0$; it does not assume inactive projection.
-If $E\leq E_{\rm gate}(q)$, then
-\cref{eq:complete-gate-energy-to-coordinate,eq:complete-gate-envelope-distance}
-give
+In normalized coordinates the original correction is
+$\delta=q^{-2}[\max_i r_i]_+\leq R_{\max}/q^2$.  Put
+$w:=z-\bar\ell$.  Since the post-step point is nonnegative and
+$\bar\ell=[z-\delta\one]_+$,
 \begin{equation*}
- \norm{\bar\ell-z_U^\star}_\infty
- \leq\frac{q^3}{5}=q^2\tau.
+ 0\leq w\leq\delta\one.
 \end{equation*}
-Applying the same row-sum bound to $H_U(\bar\ell-z_U^\star)$ shows that every
-active row is at least $-q^2\tau$.  The complete gate explicitly checks every
+Write $a=(1+q^2)/2$.  The off-diagonals of $H_U$ are nonpositive, so
+$(H_Uw)_i\leq aw_i\leq a\delta$.  Therefore every active envelope row obeys
+\begin{align}
+ r_i(\bar\ell)
+ &=r_i(z)-(H_Uw)_i\notag\\
+ &\geq-R_{\max}-a\delta
+ \geq-R_{\max}\left(1+\frac a{q^2}\right).
+ \label{eq:complete-gate-envelope-residual}
+\end{align}
+If $E\leq E_{\rm gate}(q)$, then
+\cref{eq:complete-gate-energy-to-residual} yields
+\begin{equation*}
+ R_{\max}
+ \leq\frac{2q^5}{5(1+3q^2)}.
+\end{equation*}
+Since $1+a/q^2=(1+3q^2)/(2q^2)$,
+\cref{eq:complete-gate-envelope-residual} is exactly
+$r_i(\bar\ell)\geq-q^3/5=-q^2\tau$.  The complete gate explicitly checks every
 boundary row.  Every nonseed vertex outside $U\cup N(U)$ has normalized KKT
 value $q^2\rho>0$, while the seed belongs to $U_0$.  Thus the gate either
 finds and admits a nonempty genuinely violating boundary batch or all rows
@@ -221,6 +234,11 @@ or intermediate-emission guarantee.  In particular,
 \cref{eq:complete-gate-dense-work} is a factor
 $\widetilde O(q^{-1})$ above the desired constant-ratio product target
 $\widetilde O(1/(\rho q))=\widetilde O(q^{-2})$.
+Because it fully materializes every exact restricted optimum, it is also
+algorithmically dominated by the exact-optimum gate policy in
+\cref{cor:complete-gate-exact-optimum-comparator}; the present corollary is a
+charged existence fallback for the named fixed-step candidate chronology,
+not a claim that this is the best use of its dense factor.
 \end{corollary}
 
 \begin{proof}
