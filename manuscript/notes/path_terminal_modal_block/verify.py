@@ -674,6 +674,13 @@ def exact_boundary_source_checks() -> None:
                 - delta * eta**2 / (1 + q) * (f(prefix - 1) + f(prefix - 2) / 2)
                 + q**3 / 5
             )
+            simplified_endpoint = (
+                c1 * residuals[prefix][-1]
+                - q * (1 - q) * p_frontier / 2
+                + q * eta * (1 - q) * previous_frontier / 4
+                + q**3 * (1 + q) / 10
+            )
+            assert w_value == simplified_endpoint
         expected[prefix] = w_value
         assert all(value == expected.get(index, Fraction(0)) for index, value in enumerate(defect))
 
@@ -948,6 +955,64 @@ def exact_directional_packet_checks() -> None:
         "J_alias:pass JL_kernel:pass exact_entry_c_sign=m=8,12 "
         "static_u=Ld:pass"
     )
+def position_profile_asymptotic_checks() -> None:
+    """Audit exact constants and the finite constant-U Chebyshev formula."""
+    t_lower = Fraction(2711, 3072)
+    p_lower = 2 * (2 * t_lower + t_lower * t_lower / 5 - Fraction(1, 5)) / (1 + t_lower * t_lower)
+    variation_numerator = 2 - p_lower
+    assert variation_numerator == Fraction(5478536, 83933525)
+    assert variation_numerator < Fraction(1, 15)
+
+    rational_ledger = Fraction(1, 2160) + Fraction(1, 1080) + Fraction(43, 30720)
+    assert rational_ledger == Fraction(257, 92160)
+    assert Fraction(1, 256) - rational_ledger == Fraction(103, 92160)
+
+    for edge_count in (64, 128, 256):
+        q = 1.0 / (16.0 * edge_count)
+        constant_u = 3.0 * q**3 / 40.0
+        for mode_index in (1, 2, 3):
+            phi = mode_index * math.pi / edge_count
+            z = complex(math.cos(2.0 * phi), math.sin(2.0 * phi))
+            cosine = math.cos(phi)
+            radius = (1.0 - q) * cosine
+            first = 2.0 * radius * cosine
+            second = radius * radius
+
+            values = [0.0] * (edge_count + 2)
+            for prefix in range(2, edge_count + 1):
+                source = 0.0
+                if 4 <= prefix < edge_count:
+                    source = (
+                        2.0
+                        * constant_u
+                        * (
+                            math.cos((prefix - 2) * 2.0 * phi)
+                            + 2.0 * math.cos((prefix - 1) * 2.0 * phi)
+                            - 3.0 * math.cos(prefix * 2.0 * phi)
+                        )
+                    )
+                values[prefix + 1] = first * values[prefix] - second * values[prefix - 1] + source
+
+            cutoff = edge_count - 4
+            chebyshev_previous = 1.0
+            chebyshev_current = 2.0 * cosine
+            direct_sum = chebyshev_current * (radius / z)
+            for index in range(2, cutoff + 1):
+                chebyshev_next = 2.0 * cosine * chebyshev_current - chebyshev_previous
+                direct_sum += chebyshev_next * (radius / z) ** index
+                chebyshev_previous = chebyshev_current
+                chebyshev_current = chebyshev_next
+            closed_response = (
+                2.0 * constant_u * (z**-2 * (1.0 - z) * (1.0 + 3.0 * z) * direct_sum).real
+            )
+            assert math.isclose(
+                values[edge_count + 1],
+                closed_response,
+                rel_tol=2.0e-10,
+                abs_tol=2.0e-18,
+            )
+
+    print("position_profile_asymptotic_checks=rational_constants=pass constant_U_Chebyshev=pass")
 
 
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
@@ -1433,6 +1498,7 @@ def main() -> None:
     exact_finite_q_correction_checks()
     exact_boundary_source_checks()
     exact_directional_packet_checks()
+    position_profile_asymptotic_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")
