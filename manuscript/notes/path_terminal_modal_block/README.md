@@ -23,8 +23,9 @@ coefficientwise and has sharp uniform shared-coordinate half-difference margin
 `1/80`. The
 remaining gap is preserving a positive margin in the joint finite-`q`,
 `n <= m=1/(16q)` regime after the finite cutoff, base/reflection matching,
-varying source trace, and endpoint are combined; it is not temporal
-oscillation.
+and varying proper-prefix source trace are combined; it is not temporal
+oscillation. The separate entry-profile problem also contains the final
+degree-one endpoint term.
 It also gives exact nonnegative position/velocity propagators, isolating the
 remaining factor-`k` velocity-cancellation obstruction. It then proves a conditional
 anti-cancellation theorem: two quantified entry

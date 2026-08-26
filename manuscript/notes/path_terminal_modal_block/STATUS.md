@@ -94,7 +94,7 @@ Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
   `K_n` to dominate the negative of the nonnegative ideal term). The exact
   temporal kernel is positive, but
   the early packets, finite time cutoff, base/reflection matching, varying
-  `U_n`, `M_n=O(q^4)`, and endpoint term still require a uniform signed
+  `U_n`, and `M_n=O(q^4)` still require a uniform signed
   spatial anti-cancellation bound in the joint regime `n<=m=1/(16q)`, or a
   uniform finite-`q` perturbation preserving part of the proved `1/80`
   leading margin. The exact reduction then supplies the full
@@ -125,8 +125,8 @@ Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
    remaining correction, each fixed source enters `K_n` through the proved
    positive temporal kernel, but the source triplet is signed and has a
    derivative factor. Prove its finite-cutoff/base/reflection spatial
-   anti-cancellation, including varying `U_n`, small mass, and endpoint
-   pieces, sharply enough to preserve the proved leading `1/80` margin for
+   anti-cancellation, including varying `U_n` and the small mass term, sharply
+   enough to preserve the proved leading `1/80` margin for
    `nq<=1/16`. A bare maximum principle and the refuted undamped `q=0` Pascal
    domination do not close it; the finite-`q` damped-Pascal route remains
    open. Finite floating and rational replays do not supply the
@@ -174,7 +174,7 @@ constants is permitted only with a corresponding proof.
 - **Next action:** First prove `K_n>=0` in the reflected ideal/correction split.
   Use the positive `L_k` kernel to sum the signed derivative triplet over the
   finite moving-source history, then bound the early/base/reflection mismatch,
-  variation of `U_n`, `M_n`, and the endpoint term uniformly under
+  variation of `U_n`, and `M_n` uniformly under
   `mq=1/16`. The other proper-prefix clauses are already reduced to the
   resulting `D_n>=0` sign. Otherwise retain
   chronology as an explicit hypothesis. Conditional on it, split the explicit transform into
