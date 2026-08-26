@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-chronology-correction`
-- Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
+- Branch: `agent/codex/path-terminal-chronology-finite-q`
+- Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -19,123 +19,53 @@
 
 ## Outcome
 
-- Requested result: Continue the literal full-path terminal logarithmic-block
-  analysis, prove every uniform inequality currently available, and preserve
-  any remaining gap as exact, falsifiable lemmas rather than promoting
-  floating evidence to a theorem.
-- Implemented result: Extended the standalone note to 22 pages, deriving the exact
-  degree-weighted path-cosine basis, damped modal roots and quadratures, safe
-  global-correction/range semantics, the ideal binomial packet transform, a
-  uniform phase-energy bound, and a conditional
-  `Omega(q^-1 log(1/q))` theorem.  The note isolates three sufficient missing
-  lemmas: proper-prefix projection/correction/admission chronology,
-  low-even-mode entry position/velocity profiles, and a
-  projection/unclipped-envelope invariant through the logarithmic horizon.
-  A follow-up derives the exact identity `D_h=q*cot(phi_h)*V_h`, all proper-
-  prefix and full-path restricted optima, the rank-one proper-prefix transport
-  with `0<b_n-b_(n-1)<=q*artanh(q)`, the fixed-face directional factorization,
-  and pointwise nonpositivity of the ideal packet evolution. A second
-  follow-up proves, conditional on that open proper-prefix chronology, the
-  exact changing-face defect at the seed and last three
-  frontier rows, including the final ambient-degree-one endpoint. Even
-  reflection removes the seed term, and the remaining source transform
-  factors as `U_n(1-z)(1+3z)+M_n*z^2`, with exact uniform bounds
-  `0<U_n<=3q^3/40` and `|M_n|<=3q^4/2`. It also reduces the open `C/V`
-  profiles to two scalar signed-sum inequalities. The
-  full-face `K/J` propagators are nonnegative with row sums `1` and `k`, so the
-  source algebra and scalar profile reduction are therefore exact under the
-  chronology hypothesis, not unconditional claims about the projected
-  admission execution. The regime-side obstruction is now the factor-`k` loss without signed/variation
-  control of the velocity remainder. The profile constants rigorously imply
-  the earlier combined `1/64` target. A
-  deterministic screen reconstructs the literal admission and terminal
-  recurrence and tests all three hypotheses at finite sizes. This follow-up
-  additionally proves uniform prefix-frontier bounds and reduces the entire
-  proper-prefix chronology to the single shared-coordinate sign `D_n(j)>=0`.
-  Conditional on that sign, raw positivity, nonpositive post-step residual,
-  zero correction, and strict outside admission follow with exact rational
-  margins. The note preserves the remaining `D` sign as open and records why
-  its exact recurrence is not a positivity-preserving maximum-principle
-  induction. This follow-up splits `D_n` into a nonnegative reflected-binomial
-  ideal term and a correction difference, derives the correction's exact
-  old/new-row recurrence and signed moving-frontier triplet, and proves the
-  correction-difference Green identity
-  `L_k=R_+^(k-1)+((1-q)/2)S_-J_(k-1)` with nonnegative coefficients and exact
-  row mass. It also proves that the stationary infinite-past constant-source
-  derivative response is coefficientwise nonnegative, while explicitly
-  excluding finite-cutoff and pre-start effects from that claim. Finally, an
-  exact bivariate generating function proves the all-prefix `q -> 0`
-  correction half-difference is at least `1/80` on every shared coordinate,
-  sharply at `(n,j)=(4,2)`. Preserving any positive margin uniformly when
-  `nq<=1/16` remains open. The undamped `q=0` Pascal comparator is refuted at
-  `(5,2)`, but the correctly damped finite-`q` comparator remains open.
-- Deliberately unchanged: The dirty main worktree, the source
-  `volume_gated_acceleration` note, its historical verifier, and all solver
-  implementations.  This branch does not claim an unconditional terminal
-  theorem, a class lower bound, or a lower bound for implicit-response or
-  other accelerated local algorithms.
+- Requested result: Prove the finite-`q` shared-coordinate correction sign for
+  the named terminal path, or preserve the sharpest exact obstruction.
+- Implemented result: Proved `K_n(j)>0` on every shared proper-prefix
+  coordinate for every `m>=64`. The exact rescaling
+  `C_n/q^3=(1-q)^(n-2) bar(c)_n` makes the homogeneous recurrence identical to
+  its solved `q=0` limit. The finite perturbation splits into a moving
+  derivative packet and a newest-row point mass. Exact binomial coefficients
+  show every stopped reflected derivative response lies in `[-4,4]`;
+  total-variation control gives derivative loss at most `1/90`. The point
+  mass lies in `[-43q/75,0]` and its folded response is at most one. The
+  exact initial response costs at most `3q/5`. From prefix six onward the
+  sharper leading margin `19/320` therefore leaves
+  `19/320-43/1200-1/90=179/14400`. Prefix two is direct; prefixes three
+  through five use a self-contained perturbation loss below `3q<1/80`.
+- Consequence: The earlier exact reduction now proves raw positivity,
+  nonpositive post-step residual, zero safe correction, and exactly the next
+  singleton admission at every proper prefix for `m>=64`. The changing-face
+  source, its factored transform, and scalar position/velocity reduction are
+  unconditional in that range.
+- Deliberately unchanged: The two entry-profile inequalities and the terminal
+  projection/unclipped-envelope regime remain open. Hence the logarithmic
+  terminal block remains conditional, and no lower bound is claimed for other
+  algorithms, implicit-response implementations, or a broader oracle class.
 
 ## Evidence
 
-- Tests added or changed: Extended `verify.py`, which replays exact algorithmic
-  semantics in deterministic float64 arithmetic, checks admission projection,
-  correction, and gating, measures entry packet/quadrature defects, checks the
-  full-face projection and envelope margins, and reports both the first raw
-  range crossing and the first literal safe-envelope certificate. Before that
-  screen it now performs an exact rational replay at `m=8,12` that checks
-  every chronology-reduction constant and identity, finite strict shared
-  signs, and exact gate behavior while labeling the uniform sign open. It
-  separately replays `m=8` and verifies the
-  boundary entries and formal Laurent-polynomial recurrence at representative
-  proper and final prefixes. A new exact preflight checks the ideal/correction
-  recurrence and source triplet at `m=12`, the positive Green identity through
-  `k=12`, the leading recurrence through prefix 256, and the sharp shared
-  minimum `1/80`; it also verifies the exact positive-only polynomial bound
-  used to refute the undamped Pascal comparator.
-- Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
-  `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
-  focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The chronology-correction follow-up built to 22 pages with no LaTeX, package,
-  overfull/underfull, or unresolved-reference warnings.  The deterministic
-  screen passed all five sizes.  It checks the exact combined
-  `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
-  finite sizes with `H_m=0` as vacuous. It now also directly checks
-  `m|C-G|/alpha<=1/256`, `m|V+G/5|/alpha<=1/4`, and the exact velocity
-  identity; wider-band profile and `K/J` remainder values remain explicitly
-  measured. The
-  19-note registry, note targets, coordination audit, focused Ruff checks,
-  diff check, and 210 tests passed.
-  The test command emitted 15 temporary-directory cleanup warnings.  The full
-  repository lint command remains red on 1,345 pre-existing findings under
-  `manuscript/claude-overnight-2026-08-24/`; the newly added verifier has no
-  Ruff findings.
+- The exact preflight checks the positive Green coefficient formula, the
+  stopped derivative-prefix bound through final length 128, folded point-mass
+  response, the early `n=2,3` mass identity, the small-prefix perturbation
+  ledger, and the final `179/14400` arithmetic.
+- The existing rational preflights still check chronology identities at
+  `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
+  leading correction recurrence through prefix 256.
+- The floating screen remains evidence only for the two open entry profiles
+  and terminal regime.
+- Required commands and their final results are recorded in the direction
+  `STATUS.md`; the note builds to 26 pages.
 
 ## Review notes
 
-- Provider-owned paths changed: Existing scoped note directory
-  `manuscript/notes/path_terminal_modal_block/` only.
-- Shared paths changed: Note registry/README and this scoped coordination
+- Provider-owned paths changed: only
+  `manuscript/notes/path_terminal_modal_block/`.
+- Shared paths changed: note registry/README and this scoped coordination
   assignment/handoff.
-- Semantic correction: At `m=128,256`, the measured values
-  `q*k=3.123535156,3.871093750` are first raw-range crossings, not literal
-  certificates.  Because the residual maximum is then negative, the literal
-  certificates occur later at `q*k=3.733886719,3.985839844`.  For
-  `m=512,1024,2048`, the two events coincide at the displayed precision.
-- Promotion-audit correction: The low-mode packet asymptotic is
-  `|G_(2s)| ~ exp(-1/16) alpha/m = 16 exp(-1/16) q^3`; the earlier omission
-  of `exp(-1/16)` was a constant typo and did not affect the theorem's
-  conservative amplitude bounds.  The note also records why zero-padding the
-  newly admitted endpoint rules out an instantaneous certificate at entry.
-- Open decisions or follow-up: First prove the uniform shared-coordinate
-  `D_n(j)>=0` sign; the exact reduction then supplies proper-prefix raw
-  positivity, zero safe correction, and strict next-row admission. Otherwise
-  retain chronology as an explicit hypothesis. Conditional on it, decompose the frontier transform
-  into the homogeneous packet/base discrepancy, the constant-`U` response,
-  the small total variation of `U_n`, the `M_n=O(q^4)` trace, and the single
-  final endpoint term, then prove the two
-  entry profile bounds uniformly in `m` by controlling their signed Green
-  sums; also prove projection inactivity plus
-  unclipped global correction through
-  `floor((1/8)q^-1 log(1/q))`.  Until all three statements hold in exact arithmetic,
-  retain evidence `proved-open` and every asymptotic terminal claim as
-  conditional.
+- Main audit risks: verify the early reflected overlap at source times two and
+  three, chronological reversal `k=N-n`, the `3q/5` initial response, and the
+  `43/1200+1/90` loss ledger.
+- Next action: Prove the two exact entry-profile bounds by signed summation of
+  the five source pieces, then prove projection inactivity and unclipped safe
+  subtraction through `floor((1/8)q^-1 log(1/q))`.

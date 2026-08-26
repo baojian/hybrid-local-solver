@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import math
 from fractions import Fraction
+from functools import lru_cache
 
 import numpy as np
 
@@ -254,7 +255,7 @@ def exact_chronology_reduction_checks() -> None:
 
     print(
         "exact_chronology_reduction_checks=m=8,12 constants=pass "
-        "identities=pass finite_shared_sign=pass uniform_shared_sign=open"
+        "identities=pass finite_shared_sign=pass analytic_followup=m>=64"
     )
 
 
@@ -464,7 +465,118 @@ def exact_chronology_correction_checks() -> None:
     print(
         "exact_chronology_correction_checks=m=12 recurrence=pass source=pass "
         "positive_green=k<=12 leading_formula_audit=n<=256:min=1/80@(4,2) "
-        "uniform_correction_sign=open"
+        "finite_q_followup=separate"
+    )
+
+
+def exact_finite_q_correction_checks() -> None:
+    """Audit the exact constants in the finite-q correction theorem."""
+
+    @lru_cache(maxsize=None)
+    def ell(step: int, offset: int) -> Fraction:
+        if step == 1:
+            return Fraction(int(offset == 0))
+        lower = max(abs(offset) - 1, 0)
+        if lower > step - 2:
+            return Fraction(0)
+        return Fraction(
+            sum(math.comb(step - 2, index) for index in range(lower, step - 1)),
+            2 ** (step - 1),
+        )
+
+    @lru_cache(maxsize=None)
+    def derivative_weight(step: int, distance: int) -> Fraction:
+        return (
+            ell(step, step - distance)
+            + 2 * ell(step, step - distance - 1)
+            - 3 * ell(step, step - distance - 2)
+        )
+
+    for distance in range(129):
+        positive_lobe = sum(derivative_weight(step, distance) for step in range(1, distance + 2))
+        assert positive_lobe == Fraction(4, 3) + Fraction(2, 3) * Fraction(-1, 2) ** distance
+        assert 0 <= positive_lobe <= 2
+        for step in range(max(distance + 2, 2), distance + 66):
+            trials = step - 2
+            expected = -Fraction(1, 2) * (
+                Fraction(math.comb(trials, distance), 2**trials)
+                + 3
+                * (
+                    Fraction(math.comb(trials, distance + 1), 2**trials)
+                    if distance + 1 <= trials
+                    else 0
+                )
+            )
+            assert derivative_weight(step, distance) == expected <= 0
+    assert -Fraction(1, 2) * (2 + 3 * 2) == -4
+
+    for final_length in range(6, 129):
+        for coordinate in range(final_length - 1):
+            distance = final_length - 2 - coordinate
+            reflected_distance = final_length - 2 + coordinate
+            running = Fraction(0)
+            for source_time in range(2, final_length):
+                step = final_length - source_time
+                running += derivative_weight(step, distance)
+                running += derivative_weight(step, reflected_distance)
+                assert -4 <= running <= 4
+                folded_mass = ell(step, coordinate - source_time) + ell(
+                    step, coordinate + source_time
+                )
+                assert 0 <= folded_mass <= 1
+
+    assert Fraction(19, 320) - Fraction(43, 1200) - Fraction(1, 90) == Fraction(179, 14400)
+    for final_length in range(6, 129):
+        assert (Fraction(3, 5) + Fraction(43 * (final_length - 2), 75)) / (
+            16 * final_length
+        ) < Fraction(43, 1200)
+    assert Fraction(1, 375) + Fraction(16, 15 * 1024 * 10) == Fraction(133, 48000)
+    assert Fraction(133, 48000) < Fraction(1, 360)
+    assert Fraction(9707, 18080) < Fraction(43, 80)
+    q_max = Fraction(1, 1024)
+    epsilon_2 = q_max * (1 + 10 * q_max - q_max**2) / (10 * (1 + q_max**2))
+    assert 0 < epsilon_2 < q_max / 8
+    low_derivative_loss = q_max / 8 + 2 * Fraction(4, 15) * q_max
+    assert low_derivative_loss == Fraction(79, 120) * q_max
+    low_total_loss = (Fraction(3, 5) + Fraction(43, 25) + Fraction(79, 120)) * q_max
+    assert low_total_loss == Fraction(1787, 600) * q_max
+    assert low_total_loss < 3 * q_max < Fraction(1, 80)
+
+    delta = 1 - q_max
+    eta = (1 - q_max**2) / 2
+    chi = delta / (1 + q_max)
+
+    def scaled_frontier(index: int) -> Fraction:
+        t_value = chi**index
+        return (
+            Fraction(2, 1)
+            / (1 + q_max)
+            * (t_value * (1 + t_value / 5) / chi + t_value - Fraction(1, 5))
+            / (1 + t_value**2)
+        )
+
+    for source_time in (2, 3):
+        p_previous = scaled_frontier(source_time - 1)
+        p_current = scaled_frontier(source_time)
+        source_e = Fraction(1, 5) - eta * p_previous / 2
+        source_E = delta ** (-(source_time - 2)) * source_e
+        source_F = delta ** (-(source_time - 2)) * (source_e + p_current) / 4 - Fraction(
+            1, 5
+        ) * delta ** (-(source_time - 1))
+        source_mu = source_F + 3 * source_E / 4
+        s_value = (chi ** (source_time - 1) + chi ** (-(source_time - 1))) / (
+            chi**source_time + chi ** (-source_time)
+        )
+        normalized_mass = delta * p_previous * (2 * eta - s_value) / (4 * q_max) + (
+            delta * s_value + 2 * eta
+        ) / (10 * eta)
+        assert source_mu == -(delta ** (-(source_time - 1))) * q_max * normalized_mass
+        assert -Fraction(43, 75) * q_max < source_mu < 0
+
+    print(
+        "exact_finite_q_correction_checks=low_n_perturbation:pass "
+        "stopped_derivative_prefix=[-4,4]:pass ledger=179/14400:pass "
+        "analytic_theorem=m>=64"
     )
 
 
@@ -1038,6 +1150,7 @@ def main() -> None:
     arguments = parser.parse_args()
     exact_chronology_reduction_checks()
     exact_chronology_correction_checks()
+    exact_finite_q_correction_checks()
     exact_boundary_source_checks()
     for edge_count in arguments.m:
         if edge_count < 3:

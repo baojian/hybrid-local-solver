@@ -4,8 +4,8 @@ Last reviewed: 2026-08-27
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-chronology-correction`
-Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
+Branch: `agent/codex/path-terminal-chronology-finite-q`
+Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
 
 ## Exact question and contract
 
@@ -60,15 +60,18 @@ Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
   generating series. The exact all-prefix leading correction generating
   function proves
   `c_n(j)-c_(n-1)(j)/2 >= 1/80` on every shared coordinate, sharply at
-  `(n,j)=(4,2)`.
-- **Conditional:** Under projection-inactive, zero-safe-correction,
-  one-next-singleton proper-prefix chronology, the exact
+  `(n,j)=(4,2)`. The finite-`q` rescaling, stopped derivative-kernel bound,
+  source total-variation and mass estimates, and exact initial response prove
+  `K_n(j)>0` for every shared coordinate when `m>=64`, with rescaled margin
+  `179/14400` for `n>=6`; an analytic perturbation handles `n<=5`. Hence the
+  proper-prefix projection-inactive, zero-correction, exactly-next-singleton
+  chronology is proved in the asymptotic range. The exact
   seed/last-three-frontier changing-face defect (including the final
   ambient-degree-one endpoint term), its even-extension transform
   `U_n(1-z)(1+3z)+M_n*z^2`, the bounds
   `0<U_n<=3q^3/40`, `|M_n|<=3q^4/2`, and the scalar position/velocity reduction
-  follow algebraically. If that chronology holds, if the actual entry
-  position/velocity profiles satisfy the
+  then follow algebraically.
+- **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
   sufficiently large member requires at least
@@ -88,20 +91,7 @@ Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
   near `+/-3.64 q^3`. These are finite measurements and assert no limit.
-- **Open:** Prove the uniform shared-coordinate sign `D_n(j)>=0` on the linear
-  candidate replay. After the proved ideal split, a sufficient route is to
-  prove the correction difference `K_n>=0` (the exact target only requires
-  `K_n` to dominate the negative of the nonnegative ideal term). The exact
-  temporal kernel is positive, but
-  the early packets, finite time cutoff, base/reflection matching, varying
-  `U_n`, and `M_n=O(q^4)` still require a uniform signed
-  spatial anti-cancellation bound in the joint regime `n<=m=1/(16q)`, or a
-  uniform finite-`q` perturbation preserving part of the proved `1/80`
-  leading margin. The exact reduction then supplies the full
-  proper-prefix projection-inactive, zero-correction, one-next-singleton
-  chronology.
-  Conditional on it, prove the two entry
-  profile inequalities by uniform signed bounds
+- **Open:** Prove the two entry profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
   endpoint pieces, and prove the uniform
   projection/unclipped-envelope invariant in exact arithmetic.
@@ -117,30 +107,15 @@ Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
 
 ## Central blocker
 
-1. **Proper-prefix chronology:** Prove
-   `D_n(j)=-r_n(p_n)(j)+(1-q)r_(n-1)(p_(n-1))(j)/2>=0` on every coordinate
-   shared by consecutive proper prefixes. The raw-frontier, correction, and
-   strict-gate clauses then follow from the proved reduction. The exact
-   reflected ideal packet already contributes a nonnegative term. For the
-   remaining correction, each fixed source enters `K_n` through the proved
-   positive temporal kernel, but the source triplet is signed and has a
-   derivative factor. Prove its finite-cutoff/base/reflection spatial
-   anti-cancellation, including varying `U_n` and the small mass term, sharply
-   enough to preserve the proved leading `1/80` margin for
-   `nq<=1/16`. A bare maximum principle and the refuted undamped `q=0` Pascal
-   domination do not close it; the finite-`q` damped-Pascal route remains
-   open. Finite floating and rational replays do not supply the
-   positive-`q` uniform proof.
-2. **Entry profile lemma:** Conditional on that chronology, for
+1. **Entry profile lemma:** For
    `H_m=floor(sqrt(m/(64 log(16m))))`, prove
    `m*|C_(2s)-G_(2s)|/alpha <= 1/256` and
    `m*|V_(2s)+G_(2s)/5|/alpha <= 1/4` for all `1<=s<=H_m`.
    The exact velocity identity then gives the previous combined `1/64`
-   quadrature inequality. The source identity follows under the chronology;
-   the remaining
+   quadrature inequality. The source identity is proved; the remaining
    concrete subproblem is a uniform signed Green-kernel estimate for its
    five-piece decomposition.
-3. **Conditional-regime lemma:** Through
+2. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
    and every safe subtraction is strictly unclipped.
 
@@ -154,31 +129,25 @@ constants is permitted only with a corresponding proof.
   direction; historical finite traces are not proof imports.
 - **Reusable outputs:** Exact modal formulas, explicit optimum transports,
   the fixed-face directional factorization, the changing-face source entries,
-  factored transform, and scalar `C/V` target reduction conditional on the
-  named proper-prefix chronology, the
+  factored transform, and scalar `C/V` target reduction for the proved
+  `m>=64` proper-prefix chronology, the
   exact `K/J` remainder decomposition, the ideal folded-shift sign lemma, the
   reflected prefix ideal/correction split, its exact residual-only recurrence,
   the positive correction-difference Green kernel and constant-source
   generating-series cancellation, and the all-prefix leading correction
-  generating function with sharp shared-coordinate `1/80` margin,
+  generating function with sharp shared-coordinate `1/80` margin, the
+  finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
+  six onward,
   weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
   transported-center semantics.
 
 ## Resume here
 
-- **Exact pointer:** `main.tex`, Lemmas
-  `lem:terminal-modal-admission-chronology`, `lem:terminal-modal-packet`, and
-  `lem:terminal-modal-regime` are the three missing statements; Theorem
+- **Exact pointer:** `main.tex`, Lemmas `lem:terminal-modal-packet` and
+  `lem:terminal-modal-regime` are the two missing statements; Theorem
   `thm:terminal-modal-conditional-log` is ready to consume them.
-- **Next action:** First prove `K_n>=0` in the reflected ideal/correction split.
-  Use the positive `L_k` kernel to sum the signed derivative triplet over the
-  finite moving-source history, then bound the early/base/reflection mismatch,
-  variation of `U_n`, and `M_n` uniformly under
-  `mq=1/16`. The other proper-prefix clauses are already reduced to the
-  resulting `D_n>=0` sign. Otherwise retain
-  chronology as an explicit hypothesis. Conditional on it, split the explicit transform into
-  the homogeneous
+- **Next action:** Split the explicit changing-face transform into the homogeneous
   packet/base discrepancy, the constant-`U` response, the total-variation
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
@@ -187,7 +156,7 @@ constants is permitted only with a corresponding proof.
   the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
   variation estimate, plus a global supremum/variation bound on the literal
   remainder, to attack the projection/envelope regime.
-- **Stop/go test:** Promote the logarithmic block only after all three missing
+- **Stop/go test:** Promote the logarithmic block only after both missing
   lemmas are proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
 
@@ -197,14 +166,17 @@ constants is permitted only with a corresponding proof.
   passed. Before the floating screen, it now uses exact
   `Fraction` arithmetic at `m=8,12` to check all chronology-reduction
   constants and identities, finite strict `D_n>0`, raw positivity,
-  post-residual sign, and exact gate behavior while labeling the uniform sign
-  open. It also uses exact arithmetic at `m=8`, prefixes `n=4,6,7,8`, to check source support, every displayed
+  post-residual sign, and exact gate behavior. It also uses exact arithmetic
+  at `m=8`, prefixes `n=4,6,7,8`, to check source support, every displayed
   entry (including the final degree change), and the formal transformed
-  recurrence, conditional on the replayed chronology. A separate exact
+  recurrence along the exact replay. A separate exact
   correction preflight checks the residual-only recurrence and signed source
   at `m=12`, the positive Green identity through `k=12`, and the leading
   correction formulas through prefix 256; the latter audit the all-prefix
-  shared-coordinate theorem and recover its exact minimum `1/80`. The floating screen
+  shared-coordinate theorem and recover its exact minimum `1/80`. A fourth
+  exact preflight checks the early-source mass identity, analytic small-prefix
+  ledger, stopped derivative prefixes through length 128, point-source fold,
+  and final `179/14400` arithmetic. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -213,7 +185,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 22-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 26-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
