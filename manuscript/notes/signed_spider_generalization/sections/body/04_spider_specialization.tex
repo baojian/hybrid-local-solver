@@ -1,0 +1,244 @@
+\section{Spiders: what is proved, what is stronger, and what remains}
+\label{sec:spider-specialization}
+
+Let $G_{B,N}$ have a hub $o$ and $B$ internally disjoint arms of length $N$.
+For a prefix depth $1\leq L<N$, let $U_L$ contain the hub and the first $L$
+vertices of every arm; degrees are the ambient degrees of $G_{B,N}$.  This is
+the first nontrivial family after a star: the quotient dimension grows with
+$L$, the support can propagate along long arms, but the graph remains
+bipartite and has a scalar articulation at the hub.
+
+\subsection{Exact prefix spectrum and the SOR consequence}
+
+The proof-owning \texttt{volume\_gated\_acceleration} note establishes
+\begin{equation}
+ \sigma_{U_L}=\cos\!\left(\frac{\pi}{2(L+1)}\right)
+ \label{eq:spider-prefix-cross-singular}
+\end{equation}
+for the largest singular value in \eqref{eq:bipartite-cross-block}.  Combining
+that proved spectrum with \Cref{thm:fixed-bipartite-sor} gives the following
+new SOR specialization.
+
+\begin{corollary}[Optimal SOR on an exposed spider prefix]
+\label{cor:spider-prefix-sor}
+On $U_L$, put
+\begin{equation}
+ t_L:=\sqrt{
+  1-c_\alpha^2
+  \cos^2\!\left(\frac{\pi}{2(L+1)}\right)
+ }.
+ \label{eq:spider-prefix-t}
+\end{equation}
+Then the optimal red--black SOR factor is
+$\zeta_L=(1-t_L)/(1+t_L)$, and
+\begin{equation}
+ t_L=\Theta\!\left(\sqrt{\alpha+L^{-2}}\right).
+ \label{eq:spider-prefix-t-asymptotic}
+\end{equation}
+Since
+$\operatorname{vol}(U_L)=B(2L+1)$, a known-face semantic solve to tolerance
+$\tau$ costs
+\begin{equation}
+ W_{B,L}=O\!\left(
+  \frac{B(2L+1)}{\sqrt{\alpha+L^{-2}}}
+  \log\frac{2}{\tau\sqrt{\alpha+L^{-2}}}
+ \right).
+ \label{eq:spider-prefix-sor-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Substitute \eqref{eq:spider-prefix-cross-singular} into
+\eqref{eq:fixed-face-optimal-sor}.  Moreover,
+\begin{equation*}
+ t_L^2=(1-c_\alpha^2)
+ +c_\alpha^2\sin^2\!\left(\frac{\pi}{2(L+1)}\right).
+\end{equation*}
+Here $1-c_\alpha^2=4\alpha/(1+\alpha)^2$ and the sine term is
+$\Theta(L^{-2})$, proving \eqref{eq:spider-prefix-t-asymptotic}.  Every
+selected arm vertex has ambient degree two because $L<N$, while the hub has
+degree $B$, giving $B+2BL=B(2L+1)$ and then
+\eqref{eq:spider-prefix-sor-work}.
+\end{proof}
+
+This formula has a useful interpretation:
+\begin{equation}
+ \frac1{t_L}
+ =\Theta\!\left(\min\{L,\alpha^{-1/2}\}\right).
+ \label{eq:spider-two-regimes}
+\end{equation}
+Before the arm reaches the diffusion length $\alpha^{-1/2}$, its length is
+the condition scale; afterward, teleportation caps the condition number and
+the square-root PageRank scale takes over.  The spider does not create an
+$\alpha^{-2}$ condition number.  Its difficulty is repeated volume and
+support evolution, not worse fixed-face conditioning.
+
+For the complete finite spider rather than a proper Dirichlet prefix,
+$\sigma_U=1$ because every connected graph's normalized adjacency has the
+degree eigenvector.  Thus
+\begin{equation}
+ t_{\rm full}=\frac{2\sqrt\alpha}{1+\alpha},
+ \qquad
+ W_{B,N}=O\!\left(
+  \frac{BN}{\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:full-spider-sor-work}
+\end{equation}
+
+\subsection{Exact radial PPR profile and the log-free question}
+
+For a hub seed, symmetry makes the degree-normalized PPR value
+\begin{equation}
+ y_j:=\frac{\pi_v}{d_v}
+ \qquad (v\text{ at depth }j)
+ \label{eq:spider-radial-y}
+\end{equation}
+constant on each level.  Put
+\begin{equation}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:spider-lambda}
+\end{equation}
+Solving the one-dimensional recurrence gives
+\begin{align}
+ y_0&=\frac{\sqrt\alpha}{B}
+       \frac{1+\lambda_\alpha^{2N}}
+            {1-\lambda_\alpha^{2N}},
+ \label{eq:spider-center-profile}\\
+ y_j&=y_0
+ \frac{\lambda_\alpha^j+\lambda_\alpha^{2N-j}}
+      {1+\lambda_\alpha^{2N}},
+ \qquad 1\leq j\leq N.
+ \label{eq:spider-arm-profile}
+\end{align}
+In particular, $0<y_j\leq y_0$.
+
+\begin{proof}[Derivation]
+The mass PageRank equation divided by degree is
+\begin{equation*}
+ y_v=\frac{2\alpha}{1+\alpha}\frac{s_v}{d_v}
+ +c_\alpha\frac1{d_v}\sum_{u\sim v}y_u.
+\end{equation*}
+Away from the hub this is
+$y_j=(c_\alpha/2)(y_{j-1}+y_{j+1})$, whose characteristic roots are
+$\lambda_\alpha$ and $\lambda_\alpha^{-1}$.  The endpoint condition
+$y_N=c_\alpha y_{N-1}$ selects a reflected profile proportional to
+$\lambda_\alpha^j+\lambda_\alpha^{2N-j}$.  The hub condition
+$y_0=2\alpha/((1+\alpha)B)+c_\alpha y_1$ yields
+\eqref{eq:spider-center-profile}.  Finally,
+$\lambda^j+\lambda^{2N-j}\leq1+\lambda^{2N}$ for $0<\lambda<1$.
+\end{proof}
+
+Equations \eqref{eq:spider-center-profile}--\eqref{eq:spider-arm-profile}
+identify a natural output-scale family.  Take
+\begin{equation}
+ N=\Theta(\alpha^{-1/2}),
+ \qquad
+ B=\Theta(\sqrt\alpha/\varepsilon_{\rm ppr}).
+ \label{eq:spider-output-scale-family}
+\end{equation}
+in the nontrivial regime
+$\varepsilon_{\rm ppr}=O(\sqrt\alpha)$, with integer rounding.
+Then $\max_j y_j=\Theta(\varepsilon_{\rm ppr})$ and
+$BN=\Theta(1/\varepsilon_{\rm ppr})$.  A constant-factor reduction of the
+zero-start semantic error in $O(1/\sqrt\alpha)$ sweeps would therefore give
+the desired log-free work
+\begin{equation}
+ O\!\left(\frac1{\sqrt\alpha\,\varepsilon_{\rm ppr}}\right).
+ \label{eq:spider-desired-log-free}
+\end{equation}
+
+The fixed-face two-norm theorem proves the same expression with a logarithm,
+but it does not prove the constant-factor semantic statement because the
+two-norm conversion can lose a factor depending on the number of arms.  The
+correct next SOR-specific lemma is therefore explicit.
+
+\begin{conjecture}[Radial semantic damping]
+\label{conj:radial-semantic-damping}
+There are absolute constants $C,c>0$ such that optimal red--black SOR on every
+complete hub-seeded spider satisfies
+\begin{equation}
+ \max_v\frac{|x_v^{(k)}-x_v^0|}{\sqrt{d_v}}
+ \leq C(1+k\sqrt\alpha)e^{-ck\sqrt\alpha}
+ \max_v\frac{x_v^0}{\sqrt{d_v}}.
+ \label{eq:radial-semantic-conjecture}
+\end{equation}
+\end{conjecture}
+
+This is \textbf{Open}, not inferred from the spectral-radius theorem.  It is
+the precise spider analogue of the star's exact cancellation.  It is also
+falsifiable: unequal arms, a leaf seed, or a near-top nonradial mode may
+invalidate a uniform maximum-norm envelope even though the two-norm rate
+remains accelerated.
+
+\subsection{A different accelerated radial spider algorithm is already proved}
+
+The open conjecture above is narrower than ``does any local acceleration work
+on a spider?''  The proof-owning \texttt{two\_rung\_direct\_theory} note
+already answers that broader question positively for a radial block
+two-rung method.  On a symmetric spider with $R$ arms, it groups every depth
+shell into one commuting block, uses optimal SOR while the normalized
+residual is above a coarse threshold, and finishes with unit relaxation.  If
+$B_{\rm rung}>1$ is its threshold multiplier, the imported theorem gives
+\begin{equation}
+ W_{\rm radial\text{-}two\text{-}rung}
+ =O\!\left(
+  \mathcal V_{\rm exp}
+  \left[1+
+   \frac{\log(1/(B_{\rm rung}R\varepsilon_{\rm ppr}))}
+        {\sqrt\alpha}
+  \right]
+ \right)
+ \label{eq:imported-radial-two-rung}
+\end{equation}
+when the arms are not yet exhausted.  A second imported theorem handles
+finite arms: if the wave reaches the far leaves, it certifies the closed
+pendant paths, Schur-deflates them, solves the remaining center scalar, and
+reverse-recovers all arms within the same asymptotic bound.
+
+This result and \Cref{conj:radial-semantic-damping} should not be merged.
+The imported method uses the note-scoped residual gate
+$\tau=\alpha\varepsilon_{\rm ppr}$, a two-rung schedule, refreshed radial
+selection, and possibly exact Schur deflation.  The conjecture asks whether
+plain optimal red--black SOR has a log-free semantic constant-factor bound on
+the output-scale family.  The existing theorem proves accelerated spider
+behavior; the conjecture asks for the sharper pure-SOR semantic mechanism.
+
+\subsection{A stronger end-to-end spider algorithm already exists}
+
+For RPPR, forcing SOR to perform support discovery is unnecessary on a
+spider.  The proof-owning \texttt{propagate\_settle\_framework} note gives an
+exact kinetic response algorithm for a rooted spider with arbitrary arm
+lengths.  Eliminating each active arm prefix leaves an arrowhead system.  Its
+hub value is one monotone scalar, and every next arm event has a stable
+threshold.  A heap reports each event once and reverse substitution recovers
+the exact solution.
+
+The imported charged bound is
+\begin{equation}
+ W_{\rm kinetic}
+ =O\!\left(\operatorname{cvol}(S^\rho)
+            \log(2+B)\right),
+ \label{eq:kinetic-spider-import}
+\end{equation}
+where $S^\rho=\operatorname{supp}(x^\rho)$ and
+$\operatorname{cvol}(S)=\sum_{v\in S}(1+d_v)$.  Since
+$\operatorname{vol}(S^\rho)\leq1/\rho$ and
+$\operatorname{cvol}(S^\rho)\leq2/\rho$ for a nonempty support, choosing
+$\rho=\varepsilon_{\rm ppr}$ and applying
+\Cref{thm:rppr-ppr-bias} gives
+\begin{equation}
+ W_{\rm kinetic}
+ =O\!\left(
+  \frac{\log(2+B)}{\varepsilon_{\rm ppr}}
+ \right)
+ \label{eq:kinetic-spider-ppr-work}
+\end{equation}
+for semantic PPR output in exact arithmetic.
+
+This is stronger than \eqref{eq:spider-desired-log-free} in its
+$\alpha$-dependence.  It is not evidence that the SOR analysis is wrong; it
+uses a stronger persistent-response primitive that exploits the spider's
+one-articulation geometry.  The algorithmic lesson is to use the response
+solver on spiders and use SOR as a benchmark or a numerical tail, rather than
+insist that one primitive be universal.

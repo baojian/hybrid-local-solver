@@ -1,0 +1,99 @@
+\section{The short answer and the exact scope}
+\label{sec:scope-and-answer}
+
+There are two meanings of ``comparable,'' and only one is currently valid.
+
+\begin{enumerate}[leftmargin=*]
+\item Two examples are \emph{mechanism-comparable} when they use enough common
+      structure that they isolate different failure mechanisms.  The signed
+      SOR and FISTA star examples qualify: both use the same PageRank matrix
+      family and degree-weighted adjacency work, and both ask whether a
+      spectrally accelerated trajectory remains local.
+\item Two algorithms are \emph{performance-comparable} only after the graph,
+      seed, mathematical objective, output accuracy, initialization, stopping
+      rule, and charged operations have been matched or connected by a proved
+      reduction.  The two existing star examples do not qualify.
+\end{enumerate}
+
+Consequently, the statement supported by the present evidence is
+\begin{quote}
+Signed SOR proves that acceleration and local coordinate work are compatible
+on one unregularized center-star, while the FISTA leaf-star proves that one
+standard momentum mechanism can destroy locality on one regularized problem.
+\end{quote}
+It is \emph{not} valid to conclude that SOR is generally faster than FISTA,
+or that the signed-star complexity dominates the FISTA lower bound.
+
+\subsection{What differs in the two star theorems}
+
+The comparison table makes every mismatch explicit.
+
+\begin{center}
+\begin{tabular}{p{0.19\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+Axis & Signed-SOR star theorem & Standard-FISTA star obstruction \\
+\midrule
+Optimization problem & Unregularized PageRank quadratic $f$; equivalently
+$Qx=b$ & Composite RPPR objective $F_\rho=f+\alpha\rho
+\|D^{1/2}x\|_1$ \\
+Graph and seed & Center-seeded $K_{1,m}$ & Leaf-seeded $K_{1,m}$ \\
+Output target & Degree-normalized semantic PPR error
+$\varepsilon_{\rm ppr}$ & RPPR objective gap
+$\varepsilon_{\rm obj}$ in the source theorem \\
+Locality event & Repeated signed center/leaf coordinate relaxations & A
+momentum overshoot activates the degree-$m$ center outside the optimal support
+\\
+Positive result & Exact
+$O(1/(\sqrt\alpha\,\varepsilon_{\rm ppr}))$ charged work & Global
+accelerated rate remains true; a conditional local bound requires confinement
+\\
+Negative result & Nonnegative-residual one-hop methods lose the square-root
+scale on the same center-star & FISTA may pay $\Omega(m)$ although the RPPR
+optimum has one-coordinate support \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Changing any one of these axes can change the answer.  In particular, the
+leaf-star obstruction deliberately tunes $\rho$ to a tight KKT breakpoint;
+the center-star SOR theorem deliberately chooses $m$ at the semantic output
+scale.  These are different adversarial constructions.
+
+\subsection{What this note adds}
+
+This note supplies three layers, and labels them separately.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Proved here: an accuracy and objective bridge.}  RPPR has at
+      most $\rho$ regularization bias in the project's semantic norm.  An
+      objective gap has an explicit semantic conversion.  On a known positive
+      face, RPPR is an ordinary PageRank principal system with a shifted
+      right-hand side.
+\item \textbf{Proved here: a fixed-face SOR generalization.}  Optimal
+      red--black SOR has an exact singular-mode rate on every bipartite
+      principal face.  Spider prefixes are an explicit specialization.
+\item \textbf{Imported structural results: discovery beyond the star.}
+      Exact response methods already discover and solve RPPR on spiders,
+      trees, and bounded-block graphs at or below the desired product scale.
+      These are not relabeled as SOR theorems.
+\end{enumerate}
+
+The graph-uniform objective remains open.  The fixed-face theorem does not
+make support discovery free, and the response theorems do not cover arbitrary
+large biconnected cores.
+
+\subsection{Model and work contract}
+
+Throughout, $Q,b,x^0$, and $F_\rho$ are the shared source-aligned objects.
+The graph is finite, simple, undirected, and unweighted, with no isolated
+vertices.  A row operation at $u$ costs $d_u$; a full sweep over $U$ costs
+$\operatorname{vol}(U)=\sum_{u\in U}d_u$.  Repeated sweeps, support discovery,
+boundary checks, state movement, and explicit output are charged whenever a
+theorem claims them.  Put
+\begin{equation}
+ \|z\|_{D,\infty}:=\|D^{-1/2}z\|_\infty.
+ \label{eq:semantic-x-norm}
+\end{equation}
+Then $\|\widehat x-x^0\|_{D,\infty}\leq\varepsilon_{\rm ppr}$ is exactly the
+project's degree-normalized semantic PPR target after the map
+$\widehat\pi=D^{1/2}\widehat x$.

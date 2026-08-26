@@ -1,0 +1,227 @@
+\section{A proved SOR extension to every fixed bipartite face}
+\label{sec:fixed-face-sor}
+
+The exact star proof uses a two-cell bipartition.  On a general bipartite
+face, the same algebra survives mode by mode after a singular-value
+decomposition.  This yields a genuine extension of the accelerated spectral
+mechanism, with an important qualifier: the face is already exposed and is
+held fixed.
+
+Let $U=R\mathbin{\dot\cup}B$ induce a bipartite subgraph.  The shared matrix
+restricted to $U$ is
+\begin{equation}
+ Q_{UU}=\frac{1+\alpha}{2}
+ \left(I-c_\alpha S_{UU}\right),
+ \qquad
+ c_\alpha:=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ S:=D^{-1/2}AD^{-1/2}.
+ \label{eq:scaled-fixed-face}
+\end{equation}
+The degrees in $D$ remain ambient graph degrees.  In the red--blue order,
+write
+\begin{equation}
+ S_{UU}=\begin{bmatrix}0&C\\C^T&0\end{bmatrix},
+ \qquad
+ \sigma_U:=\|C\|_2,
+ \qquad
+ \rho_U:=c_\alpha\sigma_U.
+ \label{eq:bipartite-cross-block}
+\end{equation}
+Since $S$ has spectrum in $[-1,1]$, $0\leq\rho_U<1$.
+
+One red--black SOR sweep first relaxes every coordinate in $R$ and then every
+coordinate in $B$, using a common $\omega\in(0,2)$.  Coordinates inside one
+color have no edges, so their updates commute and constitute one exact block
+relaxation.
+
+\begin{theorem}[Exact optimal red--black SOR factor]
+\label{thm:fixed-bipartite-sor}
+Suppose $\rho_U>0$ and put
+\begin{equation}
+ t_U:=\sqrt{1-\rho_U^2},
+ \qquad
+ \omega_U^\star:=\frac{2}{1+t_U},
+ \qquad
+ \zeta_U:=\omega_U^\star-1
+ =\frac{1-t_U}{1+t_U}.
+ \label{eq:fixed-face-optimal-sor}
+\end{equation}
+For the scaled system $(I-c_\alpha S_{UU})x=h$, the red--black SOR error
+matrix $T_U$ at $\omega_U^\star$ satisfies
+\begin{equation}
+ \rho(T_U)=\zeta_U.
+ \label{eq:fixed-face-spectral-radius}
+\end{equation}
+More precisely, for every integer $k\geq1$,
+\begin{equation}
+ \|T_U^k\|_2\leq6k\zeta_U^{k-1}.
+ \label{eq:fixed-face-power-bound}
+\end{equation}
+When $\rho_U=0$, one sweep with $\omega=1$ solves the decoupled system.
+\end{theorem}
+
+\begin{proof}
+Take a singular pair of $C$ with singular value $\sigma$.  In its two scalar
+amplitudes $(a,b)$, the homogeneous error update is
+\begin{align}
+ a^+&=(1-\omega)a+\omega c_\alpha\sigma b,
+ \notag\\
+ b^+&=(1-\omega)b+\omega c_\alpha\sigma a^+.
+ \label{eq:sor-singular-mode-update}
+\end{align}
+Thus the mode matrix is
+\begin{equation}
+ T_\sigma(\omega)=
+ \begin{bmatrix}
+ 1-\omega&\omega c_\alpha\sigma\\
+ \omega c_\alpha\sigma(1-\omega)&
+ (1-\omega)+\omega^2c_\alpha^2\sigma^2
+ \end{bmatrix}.
+ \label{eq:sor-mode-matrix}
+\end{equation}
+It has determinant $(1-\omega)^2$ and trace
+\begin{equation}
+ 2(1-\omega)+\omega^2c_\alpha^2\sigma^2.
+ \label{eq:sor-mode-trace}
+\end{equation}
+
+At $\omega=\omega_U^\star$, one has
+$1-\omega=-\zeta_U$ and
+\begin{equation}
+ (\omega_U^\star)^2\rho_U^2=4\zeta_U.
+ \label{eq:sor-optimal-identity}
+\end{equation}
+As $0\leq c_\alpha\sigma\leq\rho_U$, the trace in
+\eqref{eq:sor-mode-trace} ranges from $-2\zeta_U$ to $2\zeta_U$, while the
+determinant is $\zeta_U^2$.  The two eigenvalues therefore either form a
+complex-conjugate pair of modulus $\zeta_U$ or meet at
+$\pm\zeta_U$.  The largest singular mode meets at $+\zeta_U$.
+Null singular directions have the scalar factor $-\zeta_U$.  Orthogonal
+singular-vector changes of basis block-diagonalize the full error map, proving
+\eqref{eq:fixed-face-spectral-radius}.
+
+It remains to justify optimality.  On the largest singular mode the
+characteristic discriminant factors as
+\begin{equation*}
+ \omega^2\rho_U^2
+ \left(4(1-\omega)+\omega^2\rho_U^2\right).
+\end{equation*}
+The nonzero factor first vanishes in $(1,2)$ exactly at
+$\omega=2/(1+t_U)$.  Before this double-root point the larger real root
+decreases; after it, the determinant lower bound
+$\rho(T_\sigma)\geq|1-\omega|$ increases.  Values $\omega\leq1$ have a
+larger top-mode root.  Hence no common relaxation parameter has a smaller
+worst-modal spectral radius.
+
+For the finite bound, the entries of every $T_\sigma(\omega_U^\star)$ are
+bounded in magnitude by constants and
+$\|T_\sigma\|_2\leq5$.  If its eigenvalues are $\lambda_1,\lambda_2$, the
+Cayley--Hamilton identity gives
+\begin{equation*}
+ T_\sigma^k=s_kT_\sigma-\zeta_U^2s_{k-1}I,
+ \qquad
+ s_k:=\sum_{j=0}^{k-1}\lambda_1^{k-1-j}\lambda_2^j.
+\end{equation*}
+The same formula holds by continuity at a repeated root, and
+$|s_k|\leq k\zeta_U^{k-1}$.  Hence
+$\|T_\sigma^k\|_2\leq6k\zeta_U^{k-1}$.  Taking the maximum over the
+orthogonal mode blocks proves \eqref{eq:fixed-face-power-bound}.
+\end{proof}
+
+The factor is accelerated because
+\begin{equation}
+ \zeta_U=\frac{1-t_U}{1+t_U}\leq e^{-2t_U},
+ \qquad
+ t_U\geq\sqrt{1-c_\alpha^2}
+ =\frac{2\sqrt\alpha}{1+\alpha}.
+ \label{eq:fixed-face-universal-t}
+\end{equation}
+The first inequality is elementary, and the second uses $\sigma_U\leq1$.
+
+\begin{corollary}[Finite fixed-face semantic solve]
+\label{cor:fixed-face-semantic-sor}
+Let $x^\dagger\geq0$ solve either the unregularized problem on $U$ or the
+correct positive RPPR face system \eqref{eq:rppr-active-face-system}, and
+suppose $\|x^\dagger\|_2\leq1$.  Starting from zero, optimal red--black SOR
+produces $x^{(k)}$ with
+\begin{equation}
+ \|x^{(k)}-x^\dagger\|_{D,\infty}\leq\tau
+ \label{eq:fixed-face-semantic-target}
+\end{equation}
+after
+\begin{equation}
+ k=O\!\left(
+  \frac1{t_U}\log\frac{2}{t_U\tau}
+ \right)
+ \label{eq:fixed-face-sweep-count}
+\end{equation}
+full red--black sweeps.  Including repeated row scans and output, the charged
+work is
+\begin{equation}
+ W_U=O\!\left(
+  \frac{\operatorname{vol}(U)}{t_U}
+  \log\frac{2}{t_U\tau}
+ \right)
+ =O\!\left(
+  \frac{\operatorname{vol}(U)}{\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:fixed-face-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+All degrees are at least one, so
+$\|z\|_{D,\infty}\leq\|z\|_2$.  Apply
+\eqref{eq:fixed-face-power-bound} to the zero-start error and use
+$\zeta_U\leq e^{-2t_U}$.  If $t_U\leq1/2$, the polynomial factor $k$ is
+absorbed by choosing a sufficiently large absolute constant in
+\eqref{eq:fixed-face-sweep-count}; if $t_U>1/2$, geometric convergence needs
+only $O(\log(2/\tau))$ sweeps.  Each sweep scans every row in $U$ once and
+costs $\operatorname{vol}(U)$.  Since $|U|\leq\operatorname{vol}(U)$, the
+explicit output is absorbed.  Finally use \eqref{eq:fixed-face-universal-t}.
+\end{proof}
+
+The norm assumption is automatic for the shared single-seed or probability-
+seed PPR problem.  Indeed,
+\begin{equation}
+ \|b\|_2=\alpha\|D^{-1/2}s\|_2\leq\alpha,
+ \qquad
+ \|x^0\|_2\leq\|Q^{-1}\|_2\|b\|_2\leq1.
+ \label{eq:ppr-unit-two-norm}
+\end{equation}
+Moreover, \Cref{thm:rppr-ppr-bias} gives
+$0\leq x^\rho\leq x^0$, so $\|x^\rho\|_2\leq1$ as well.
+
+\subsection{What has and has not generalized}
+
+The theorem generalizes three star ingredients:
+
+\begin{itemize}[leftmargin=*]
+\item the relaxation parameter is determined by an exact Jacobi spectral
+      radius;
+\item every seed-visible mode is accelerated at the factor $\zeta_U$;
+\item actual degree work, rather than only iteration count, is charged for a
+      fixed face.
+\end{itemize}
+
+It does not generalize the star's log-free semantic cancellation.  The safe
+finite bound carries a logarithm and an absolute norm conversion.  It also
+does not find $U$, verify exterior KKT signs, transport momentum to a larger
+face, or compute $\sigma_U$ locally.  These are the next layers of the graph
+problem, not details hidden inside the spectral theorem.
+
+For a known RPPR support $A$, the source volume bound
+$\operatorname{vol}(A)\leq1/\rho$ turns
+\eqref{eq:fixed-face-work} into
+\begin{equation}
+ W_A=O\!\left(
+  \frac1{\rho\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:oracle-face-rppr-work}
+\end{equation}
+This is a useful oracle benchmark.  Calling it an end-to-end local algorithm
+would be incorrect because the support and its boundary certificate were
+supplied for free.
