@@ -134,6 +134,16 @@ def _polynomial_product(
     return {exponent: coefficient for exponent, coefficient in out.items() if coefficient}
 
 
+def _polynomial_power(
+    polynomial: dict[int, Fraction],
+    exponent: int,
+) -> dict[int, Fraction]:
+    out = {0: Fraction(1)}
+    for _ in range(exponent):
+        out = _polynomial_product(out, polynomial)
+    return out
+
+
 def _even_polynomial(values: list[Fraction]) -> dict[int, Fraction]:
     out = {0: values[0]}
     for index, value in enumerate(values[1:], start=1):
@@ -245,6 +255,216 @@ def exact_chronology_reduction_checks() -> None:
     print(
         "exact_chronology_reduction_checks=m=8,12 constants=pass "
         "identities=pass finite_shared_sign=pass uniform_shared_sign=open"
+    )
+
+
+def _fraction_ideal_prefix_packet(
+    length: int,
+    q: Fraction,
+) -> list[Fraction]:
+    """Return the reflected ideal prefix packet used in the correction split."""
+    scale = q * q * (1 - q) ** (length - 1) / (2**length)
+    return [scale * (2 if index == 0 else math.comb(length - 1, index)) for index in range(length)]
+
+
+def exact_chronology_correction_checks() -> None:
+    """Check the exact correction recurrence and positive Green reduction."""
+    edge_count = 12
+    q = Fraction(1, 16 * edge_count)
+    eta = (1 - q * q) / 2
+    c1 = (1 - q) / 2
+    degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+    entries: dict[int, list[Fraction]] = {}
+    corrections: dict[int, list[Fraction]] = {}
+    optima: dict[int, list[Fraction]] = {}
+    p = [Fraction(0)]
+    v = [Fraction(0)]
+    for length in range(1, edge_count + 1):
+        optimum = _fraction_optimum(length, degrees, q)
+        entry_x = [-value for value in _fraction_residual(p, degrees[:length], q)]
+        ideal = _fraction_ideal_prefix_packet(length, q)
+        entries[length] = entry_x
+        corrections[length] = [left - right for left, right in zip(entry_x, ideal, strict=True)]
+        optima[length] = optimum
+        p_next, v_next = _fraction_step(p, v, degrees[:length], q)
+        new_optimum = _fraction_optimum(length + 1, degrees, q)
+        p = p_next + [Fraction(0)]
+        v = [
+            value + new_value - old_value
+            for value, new_value, old_value in zip(
+                v_next + [Fraction(0)],
+                new_optimum,
+                optimum + [Fraction(0)],
+                strict=True,
+            )
+        ]
+
+    r_plus = {0: c1, 1: c1}
+    r_minus = {0: c1, -1: c1}
+    first_operator = _polynomial_add(r_plus, r_minus)
+    second_operator = _polynomial_product(r_plus, r_minus)
+    for length in range(2, edge_count):
+        correction = corrections[length]
+        previous = corrections[length - 1]
+        frontier_z = (2 * correction[-1] + q**3 / 5 - q * eta * optima[length - 1][-1] / 2) / (
+            1 + q
+        )
+        correction_z = [
+            (2 * correction[index] - (1 - q) * previous[index]) / (1 + q)
+            for index in range(length - 1)
+        ] + [frontier_z]
+        b_correction_z = [
+            left - right
+            for left, right in zip(
+                correction_z,
+                _fraction_h_apply(correction_z, degrees[:length], q),
+                strict=True,
+            )
+        ]
+        assert corrections[length + 1][:-1] == b_correction_z
+        new_row = eta * (frontier_z + q * optima[length][-1] / (1 + q)) / 2 - q**3 / 5
+        assert corrections[length + 1][-1] == new_row
+
+        ideal = _fraction_ideal_prefix_packet(length, q)
+        previous_ideal = _fraction_ideal_prefix_packet(length - 1, q)
+        for index in range(length - 1):
+            ideal_sign = ideal[index] - c1 * previous_ideal[index]
+            if index == 0:
+                assert ideal_sign == 0
+            else:
+                assert ideal_sign == (
+                    c1 * previous_ideal[index] * Fraction(index, length - 1 - index)
+                )
+            full_sign = entries[length][index] - c1 * entries[length - 1][index]
+            correction_sign = correction[index] - c1 * previous[index]
+            assert full_sign == ideal_sign + correction_sign
+
+    for length in range(4, edge_count):
+        current = _even_polynomial(corrections[length])
+        previous = _even_polynomial(corrections[length - 1])
+        following = _even_polynomial(corrections[length + 1])
+        source = _polynomial_add(
+            following,
+            _polynomial_product(first_operator, current),
+            Fraction(-1),
+        )
+        source = _polynomial_add(
+            source,
+            _polynomial_product(second_operator, previous),
+        )
+        source_error = q**3 / 5 - q * eta * optima[length - 1][-1] / 2
+        source_u = (1 - q) * source_error / 4
+        source_w = source_u + (1 - q) * q * optima[length][-1] / 4 - q**3 / 5
+        expected: dict[int, Fraction] = {}
+        for position, value in (
+            (length - 2, source_u),
+            (length - 1, 2 * source_u),
+            (length, source_w),
+        ):
+            expected[position] = value
+            expected[-position] = value
+        assert source == expected
+        assert source_error < 0
+
+    green_previous: dict[int, Fraction] = {}
+    green = {0: Fraction(1)}
+    for step in range(1, 13):
+        explicit: dict[int, Fraction] = {}
+        for exponent in range(step):
+            term = _polynomial_product(
+                _polynomial_power(r_plus, exponent),
+                _polynomial_power(r_minus, step - 1 - exponent),
+            )
+            explicit = _polynomial_add(explicit, term)
+        assert green == explicit
+        difference = _polynomial_add(green, green_previous, -c1)
+        positive_form = _polynomial_add(
+            _polynomial_power(r_plus, step - 1),
+            _polynomial_product({-1: c1}, green_previous),
+        )
+        assert difference == positive_form
+        assert min(difference.values()) >= 0
+        assert sum(difference.values()) == Fraction(step + 1, 2) * (1 - q) ** (step - 1)
+        green_previous, green = (
+            green,
+            _polynomial_add(
+                _polynomial_product(first_operator, green),
+                _polynomial_product(second_operator, green_previous),
+                Fraction(-1),
+            ),
+        )
+    positive_series = [
+        Fraction(1, 3) + Fraction(2, 3) * Fraction(-1, 2) ** exponent for exponent in range(13)
+    ]
+    assert positive_series[0] == 1
+    assert positive_series[1] == 0
+    assert min(positive_series[2:]) > 0
+
+    leading_previous = [Fraction(-1, 5)]
+    leading = [Fraction(2, 5), Fraction(0)]
+    leading_minimum: tuple[Fraction, int, int] | None = None
+    for length in range(2, 257):
+        differences = [leading[index] - leading_previous[index] / 2 for index in range(length - 1)]
+        if length == 2:
+            assert differences[0] == Fraction(1, 2)
+        elif length % 2 == 0:
+            half_length = length // 2
+            assert differences[0] == (
+                Fraction(1, 10) - Fraction(1, 10) * Fraction(1, 4) ** (half_length - 1)
+            )
+            if length >= 4:
+                assert differences[1] == Fraction(1, 10) + Fraction(1, 4) ** half_length
+        else:
+            half_length = (length - 1) // 2
+            assert differences[0] == (
+                Fraction(1, 10) + Fraction(1, 20) * Fraction(1, 4) ** (half_length - 1)
+            )
+            if length >= 3:
+                assert differences[1] == Fraction(1, 10)
+        for index, value in enumerate(differences):
+            candidate = (value, length, index)
+            if leading_minimum is None or candidate < leading_minimum:
+                leading_minimum = candidate
+        if length == 256:
+            break
+        leading_z = [
+            2 * leading[index] - leading_previous[index] for index in range(length - 1)
+        ] + [2 * leading[-1] - Fraction(3, 10)]
+        next_leading = [
+            (leading_z[0] + leading_z[1]) / 2,
+            *[
+                (
+                    leading_z[index]
+                    + leading_z[index - 1] / 2
+                    + (leading_z[index + 1] / 2 if index + 1 < length else 0)
+                )
+                / 2
+                for index in range(1, length)
+            ],
+            leading_z[-1] / 4 + Fraction(3, 10),
+        ]
+        leading_previous, leading = leading, next_leading
+    assert leading_minimum == (Fraction(1, 80), 4, 2)
+
+    pascal_q = Fraction(1, 80)
+    # This is the positive-only upper bound used in the written certificate:
+    # discard every negative nonconstant monomial, then put q=1/80 in each
+    # remaining positive monomial.
+    pascal_positive_upper_bound = (
+        -27
+        + 226 * pascal_q**3
+        + 602 * pascal_q**5
+        + 7392 * pascal_q**6
+        + 18855 * pascal_q**8
+        + 5844 * pascal_q**10
+        + 547 * pascal_q**12
+        + 16 * pascal_q**14
+    )
+    assert pascal_positive_upper_bound < Fraction(-26999, 1000)
+    print(
+        "exact_chronology_correction_checks=m=12 recurrence=pass source=pass "
+        "positive_green=k<=12 leading_formula_audit=n<=256:min=1/80@(4,2) "
+        "uniform_correction_sign=open"
     )
 
 
@@ -817,6 +1037,7 @@ def main() -> None:
     )
     arguments = parser.parse_args()
     exact_chronology_reduction_checks()
+    exact_chronology_correction_checks()
     exact_boundary_source_checks()
     for edge_count in arguments.m:
         if edge_count < 3:

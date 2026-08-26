@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-chronology-reduction`
-- Base commit: `f1f049e566375207733204bde0c4c82229e018c9`
+- Branch: `agent/codex/path-terminal-chronology-correction`
+- Base commit: `5260f73b1525ffda8b9499562867af69e9d3196f`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -23,7 +23,7 @@
   analysis, prove every uniform inequality currently available, and preserve
   any remaining gap as exact, falsifiable lemmas rather than promoting
   floating evidence to a theorem.
-- Implemented result: Added a standalone eighteen-page note deriving the exact
+- Implemented result: Extended the standalone note to 22 pages, deriving the exact
   degree-weighted path-cosine basis, damped modal roots and quadratures, safe
   global-correction/range semantics, the ideal binomial packet transform, a
   uniform phase-energy bound, and a conditional
@@ -56,7 +56,19 @@
   zero correction, and strict outside admission follow with exact rational
   margins. The note preserves the remaining `D` sign as open and records why
   its exact recurrence is not a positivity-preserving maximum-principle
-  induction.
+  induction. This follow-up splits `D_n` into a nonnegative reflected-binomial
+  ideal term and a correction difference, derives the correction's exact
+  old/new-row recurrence and signed moving-frontier triplet, and proves the
+  correction-difference Green identity
+  `L_k=R_+^(k-1)+((1-q)/2)S_-J_(k-1)` with nonnegative coefficients and exact
+  row mass. It also proves that the stationary infinite-past constant-source
+  derivative response is coefficientwise nonnegative, while explicitly
+  excluding finite-cutoff and pre-start effects from that claim. Finally, an
+  exact bivariate generating function proves the all-prefix `q -> 0`
+  correction half-difference is at least `1/80` on every shared coordinate,
+  sharply at `(n,j)=(4,2)`. Preserving any positive margin uniformly when
+  `nq<=1/16` remains open. The undamped `q=0` Pascal comparator is refuted at
+  `(5,2)`, but the correctly damped finite-`q` comparator remains open.
 - Deliberately unchanged: The dirty main worktree, the source
   `volume_gated_acceleration` note, its historical verifier, and all solver
   implementations.  This branch does not claim an unconditional terminal
@@ -75,11 +87,15 @@
   signs, and exact gate behavior while labeling the uniform sign open. It
   separately replays `m=8` and verifies the
   boundary entries and formal Laurent-polynomial recurrence at representative
-  proper and final prefixes.
+  proper and final prefixes. A new exact preflight checks the ideal/correction
+  recurrence and source triplet at `m=12`, the positive Green identity through
+  `k=12`, the leading recurrence through prefix 256, and the sharp shared
+  minimum `1/80`; it also verifies the exact positive-only polynomial bound
+  used to refute the undamped Pascal comparator.
 - Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
   `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The chronology-reduction follow-up built to 18 pages with no LaTeX, package,
+- Results: The chronology-correction follow-up built to 22 pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
   screen passed all five sizes.  It checks the exact combined
   `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
@@ -96,7 +112,7 @@
 
 ## Review notes
 
-- Provider-owned paths changed: New note directory
+- Provider-owned paths changed: Existing scoped note directory
   `manuscript/notes/path_terminal_modal_block/` only.
 - Shared paths changed: Note registry/README and this scoped coordination
   assignment/handoff.

@@ -13,7 +13,18 @@ The chronology itself is now reduced exactly to one shared-coordinate sign:
 if `D_n(j)=-r_n(p_n)(j)+(1-q)r_(n-1)(p_(n-1))(j)/2 >= 0`, then raw
 positivity, nonpositive post-step residual, zero correction, and strict next
 admission all follow with explicit rational slack. The uniform proof of this
-sign remains open.
+sign remains open. A reflected ideal-packet split further writes `D_n` as an
+explicit nonnegative binomial contribution plus one correction difference.
+The correction obeys a closed residual-only moving-frontier recurrence. Its
+temporal Green kernel is exactly coefficientwise nonnegative, and the
+constant-source derivative trace has a positive infinite-sum generating
+series. The all-prefix `q -> 0` correction generating function is also solved
+coefficientwise and has sharp uniform shared-coordinate half-difference margin
+`1/80`. The
+remaining gap is preserving a positive margin in the joint finite-`q`,
+`n <= m=1/(16q)` regime after the finite cutoff, base/reflection matching,
+varying source trace, and endpoint are combined; it is not temporal
+oscillation.
 It also gives exact nonnegative position/velocity propagators, isolating the
 remaining factor-`k` velocity-cancellation obstruction. It then proves a conditional
 anti-cancellation theorem: two quantified entry
@@ -33,7 +44,11 @@ Laurent-polynomial transform identity at representative prefixes, conditional
 on the replayed chronology. A second rational preflight checks the new
 frontier constants, shared/frontier residual identities, post-residual
 identity, and finite shared-sign replay at `m=8,12`, while explicitly printing
-`uniform_shared_sign=open`. Subject to the open chronology, the remaining
+`uniform_shared_sign=open`. A third exact preflight checks the ideal/correction
+recurrence and signed source triplet, the positive Green identity, and the
+exact leading-order correction formulas through prefix 256, while explicitly
+printing `uniform_correction_sign=open` for positive `q`. Subject to the open
+chronology, the remaining
 entry-profile problem is a sharp signed summation of those source traces, not
 their support calculation. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
