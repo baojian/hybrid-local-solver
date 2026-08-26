@@ -1,0 +1,499 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{A Conditional Modal Route to a Terminal Logarithmic Block on Short Paths}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We revisit one quarantined terminal-face candidate for a transported-center
+accelerated RPPR execution on the endpoint path $P_m$.  Its parameters are
+$q=1/(16m)$, $\alpha=q^2$, and $\rho=\tau=q/5$.  On a projection-inactive
+full face, the normalized residual is an exactly solvable damped cosine wave.
+We give the literal degree-weighted cosine coefficients, keep the stationary
+mode separate from residual range, and prove a phase-uniform
+anti-cancellation bound over a band of even modes.
+
+The measured full-face entry is close to the binomial packet
+\[
+ g_j=-\frac{q^2}{2}(1-q)^m2^{-m}\binom mj.
+\]
+This packet has about $\sqrt m$ even cosine coefficients of order $q^3$.
+We prove that a quantified entry approximation on only
+$H_m=\Theta(\sqrt{m/\log m})$ modes, together with uniform projection
+inactivity and an unclipped global safe-envelope subtraction, forces at least
+$\frac18q^{-1}\log(1/q)$ terminal steps for all sufficiently large $m$.
+The two hypotheses are explicit missing lemmas, not conclusions.  A
+deterministic floating screen through $m=2048$ supports both, but establishes
+no asymptotic result.  Thus this note supplies a rigorous conditional route
+and a falsification interface; it does not prove that the logarithm is
+necessary, and it gives no lower bound for other recurrences or implicit
+response algorithms.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Named execution and claim boundary}
+\label{sec:terminal-modal-scope}
+
+\paragraph{Algorithmic scope.}
+Let $P_m=(v_0,\ldots,v_m)$ be the complete endpoint path with ambient degrees
+$d_0=d_m=1$ and $d_j=2$ for $0<j<m$.  Put
+\begin{equation}
+ q=\frac1{16m},\qquad \alpha=q^2,\qquad \rho=\tau=\frac q5.
+ \label{eq:terminal-modal-parameters}
+\end{equation}
+The named execution starts at zero on $\{v_0\}$, applies one projected
+transported-center step per visited prefix, uses the complete all-violations
+gate to admit the next singleton, and transports the estimate center by the
+exact restricted-optimum displacement.  After admitting $v_m$, it stays on
+the full path until the first one-sided certificate and makes one terminal
+external return.  These are the exact semantics imported from the sibling
+\texttt{volume\_gated\_acceleration} note.
+
+In normalized path coordinates $p=D^{-1/2}x$, put
+\begin{equation}
+ \widehat Q=D^{-1/2}QD^{1/2}
+ =aI-\eta P_{\rm row},
+ \quad
+ a=\frac{1+q^2}{2},\quad
+ \eta=\frac{1-q^2}{2},\quad
+ P_{\rm row}=D^{-1}A.
+ \label{eq:terminal-modal-operator}
+\end{equation}
+The normalized affine load has
+$\bar c_0=\alpha(1-\rho)$ and
+$\bar c_j=-\alpha\rho$ for $j>0$.  Write
+\begin{equation}
+ r(p):=\widehat Qp-\bar c.
+ \label{eq:terminal-modal-residual}
+\end{equation}
+On a fixed face the step is
+\begin{equation}
+ y_k=\frac{p_k+qv_k}{1+q},\qquad
+ p_{k+1}=\left[y_k-r(y_k)\right]_+,qquad
+ v_{k+1}=p_{k+1}+\frac{1-q}{q}(p_{k+1}-p_k).
+ \label{eq:terminal-modal-step}
+\end{equation}
+
+\subsection*{Claim classification}
+The spectral identities, range implication, packet transform,
+anti-cancellation lemma, and conditional theorem below are \emph{proved
+here}.  The actual entry comparison in
+\cref{lem:terminal-modal-packet} and regime preservation in
+\cref{lem:terminal-modal-regime} are \emph{open}.  The table in
+\cref{sec:terminal-modal-screen} is \emph{measured}.  In particular, no
+unconditional terminal logarithmic block or algorithm lower bound is claimed.
+
+\section{Exact full-face modes and the global correction}
+\label{sec:terminal-modal-exact}
+
+Let $r_k^x=r(p_k)$ and $r_k^v=r(v_k)$ after entry to the full face, with entry
+indexed by $k=0$.  Whenever the projection in
+\cref{eq:terminal-modal-step} is inactive, the sibling note proves
+\begin{align}
+ r_{k+1}^x&=\frac{B}{1+q}(r_k^x+q r_k^v),
+ &q r_{k+1}^v&=r_{k+1}^x-(1-q)r_k^x,
+ \label{eq:terminal-modal-two-state}\\
+ r_{k+1}^x&=B\left(\frac2{1+q}r_k^x
+ -\frac{1-q}{1+q}r_{k-1}^x\right),
+ &B&=I-\widehat Q.
+ \label{eq:terminal-modal-second-order}
+\end{align}
+
+For $0\le h\le m$, define
+\begin{equation}
+ u_h(j)=\cos\frac{h\pi j}{m},\qquad 0\le j\le m.
+ \label{eq:terminal-modal-cosines}
+\end{equation}
+Use the reversible inner product
+$\langle z,w\rangle_D=\sum_{j=0}^m d_jz_jw_j$.
+
+\begin{lemma}[Weighted path cosines; proved here]
+\label{lem:terminal-modal-cosines}
+The vectors $u_h$ are an orthogonal eigenbasis of $P_{\rm row}$ with
+eigenvalues $\mu_h=\cos(h\pi/m)$.  Their squared norms are
+\begin{equation}
+ N_h:=\norm{u_h}_{D}^{2}
+ =\begin{cases}
+ 2m,&h\in\{0,m\},\\
+ m,&1\le h\le m-1.
+ \end{cases}
+ \label{eq:terminal-modal-norms}
+\end{equation}
+Consequently every vector $z$ has coefficients
+$\widehat z_h=\langle z,u_h\rangle_D/N_h$, and
+\begin{equation}
+ \norm{z-\widehat z_0\one}_D^2
+ =m\sum_{h=1}^{m-1}\widehat z_h^2+2m\widehat z_m^2.
+ \label{eq:terminal-modal-parseval}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The endpoint equations are
+$(P_{\rm row}u_h)_0=u_h(1)=\mu_hu_h(0)$ and similarly at $m$.
+At an interior point, the cosine addition formula gives
+$(u_h(j-1)+u_h(j+1))/2=\mu_hu_h(j)$.  Reversibility,
+$DP_{\rm row}=A=A^\top$, makes distinct modes $D$-orthogonal.  Finally,
+the standard discrete-cosine sums with endpoint weights one and interior
+weights two give \eqref{eq:terminal-modal-norms}; Parseval follows.
+\end{proof}
+
+Let $a_{h,k}=\langle r_k^x,u_h\rangle_D/N_h$ and set
+\begin{equation}
+ \phi_h=\frac{h\pi}{2m},\qquad
+ \varrho_h=(1-q)\cos\phi_h.
+ \label{eq:terminal-modal-phase-radius}
+\end{equation}
+
+\begin{lemma}[Literal modal solution; proved here]
+\label{lem:terminal-modal-solution}
+For $1\le h\le m-1$, every projection-inactive full-face trajectory obeys
+\begin{equation}
+ a_{h,k}=\varrho_h^k
+ \left(C_h\cos(k\phi_h)+D_h\sin(k\phi_h)\right),
+ \label{eq:terminal-modal-solution}
+\end{equation}
+where
+\begin{equation}
+ C_h=a_{h,0},\qquad
+ D_h=\frac{a_{h,1}/\varrho_h-C_h\cos\phi_h}{\sin\phi_h}.
+ \label{eq:terminal-modal-quadratures}
+\end{equation}
+The constant mode has a repeated root $1-q$ and is irrelevant to residual
+range.  The $h=m$ mode is killed after one application of $B$.
+\end{lemma}
+
+\begin{proof}
+On mode $h$, the eigenvalue of $B$ is
+$(1-q^2)\cos^2\phi_h$.  Thus
+\cref{eq:terminal-modal-second-order} has characteristic polynomial
+\[
+ z^2-2(1-q)\cos^2\phi_h\,z
+ +(1-q)^2\cos^2\phi_h,
+\]
+whose roots are $\varrho_he^{\pm i\phi_h}$.  Matching $k=0,1$ gives
+\eqref{eq:terminal-modal-quadratures}.  The two endpoint cases follow by
+direct substitution.
+\end{proof}
+
+The safe-envelope correction on the full face is
+\begin{equation}
+ \delta_k=\max\left(0,\frac{\max_j r_{k,j}^x}{\alpha}\right),
+ \qquad
+ \ell_k=[p_k-\delta_k\one]_+.
+ \label{eq:terminal-modal-correction}
+\end{equation}
+This maximum is global; it is not a seed or frontier surrogate.
+
+\begin{lemma}[Literal range implication; proved here]
+\label{lem:terminal-modal-range}
+Suppose $p_k-\delta_k\one>0$ coordinatewise.  Put
+$R_k=\max_jr_{k,j}^x-\min_jr_{k,j}^x$.  If
+\begin{equation}
+ R_k>\alpha\tau=\frac{q^3}{5},
+ \label{eq:terminal-modal-range-threshold}
+\end{equation}
+then the one-sided certificate fails at step $k$.
+\end{lemma}
+
+\begin{proof}
+Because $P_{\rm row}\one=\one$, one has $\widehat Q\one=\alpha\one$.
+Unclipping therefore gives
+\[
+ r(\ell_k)=r_k^x-M_k\one,
+ \qquad M_k=\max(0,\max_jr_{k,j}^x).
+\]
+If $\max_jr_{k,j}^x\ge0$, the minimum corrected residual is exactly $-R_k$.
+If the maximum is negative, the correction is zero and
+$\min_jr_{k,j}^x< -R_k$.  In either case
+\eqref{eq:terminal-modal-range-threshold} leaves an active row below
+$-\alpha\tau$.
+\end{proof}
+
+Let $\bar r_k=\langle r_k^x,\one\rangle_D/(2m)$ and
+$s_k=r_k^x-\bar r_k\one$.  Weighted Popoviciu gives
+\begin{equation}
+ R_k\ge\frac{2\norm{s_k}_D}{\sqrt{2m}}.
+ \label{eq:terminal-modal-popoviciu}
+\end{equation}
+Indeed, the degree weights divided by $2m$ define a probability distribution,
+and the variance of a variable in an interval of length $R_k$ is at most
+$R_k^2/4$.  This is why modal $\ell_2$ energy prevents spatial cancellation
+without selecting a particular vertex.
+
+\section{The binomial packet and phase-uniform anti-cancellation}
+\label{sec:terminal-modal-packet}
+
+Define the ideal entry packet
+\begin{equation}
+ g_j=-\frac{\alpha}{2}(1-q)^m b_{m,j},
+ \qquad b_{m,j}=2^{-m}\binom mj.
+ \label{eq:terminal-modal-packet}
+\end{equation}
+Its center height is
+\begin{equation}
+ \frac{\max_j|g_j|}{q^{5/2}}
+ \longrightarrow 2e^{-1/16}\sqrt{\frac2\pi}.
+ \label{eq:terminal-modal-packet-height}
+\end{equation}
+
+\begin{lemma}[Exact packet coefficients; proved here]
+\label{lem:terminal-modal-packet-transform}
+For $1\le h\le m-1$, the weighted cosine coefficient of $g$ is
+\begin{equation}
+ \widehat g_h=-\frac{\alpha(1-q)^m}{m}
+ \left[
+  \cos^m\phi_h\cos\frac{h\pi}{2}
+  -2^{-m-1}(1+(-1)^h)
+ \right].
+ \label{eq:terminal-modal-packet-transform}
+\end{equation}
+In particular, for $h=2s$,
+\begin{equation}
+ G_{2s}:=\widehat g_{2s}
+ =-\frac{\alpha(1-q)^m}{m}
+ \left[(-1)^s\cos^m\frac{s\pi}{m}-2^{-m}\right].
+ \label{eq:terminal-modal-even-packet}
+\end{equation}
+For $s=o(\sqrt m)$, $|G_{2s}|\sim\alpha/m=16q^3$.
+\end{lemma}
+
+\begin{proof}
+If $J\sim\operatorname{Binomial}(m,1/2)$, then
+\[
+ \mathbb E e^{itJ}=e^{imt/2}\cos^m(t/2),
+ \qquad
+ \mathbb E\cos(tJ)=\cos(mt/2)\cos^m(t/2).
+\]
+The degree weights double every interior binomial mass and leave the two
+endpoint masses single.  Taking $t=h\pi/m$, subtracting those endpoint
+copies, multiplying by $-\alpha(1-q)^m/2$, and dividing by $N_h=m$ gives
+\eqref{eq:terminal-modal-packet-transform}.  The even-mode specialization and
+asymptotic follow immediately.
+\end{proof}
+
+\begin{lemma}[Uniform cosine-square floor; proved here]
+\label{lem:terminal-modal-cosine-square}
+For every integer $H\ge8$ and every real $x$,
+\begin{equation}
+ \sum_{s=1}^{H}\cos^2(sx)\ge\frac{H}{16}.
+ \label{eq:terminal-modal-cosine-square}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+If $\sin x=0$, the sum equals $H$.  Otherwise,
+The finite sum identity gives
+\[
+ \sum_{s=1}^H\cos^2(sx)
+ =\frac H2+\frac{\sin(Hx)\cos((H+1)x)}{2\sin x}.
+\]
+If $|\sin x|\ge2/H$, the right side is at least $H/4$.  Otherwise let
+$\xi$ be the distance from $x$ to $\pi\mathbb Z$.  Since
+$\sin(\pi/H)\ge2/H$, one has $\xi<\pi/H$.  For
+$1\le s\le\lfloor H/4\rfloor$, $s\xi\le\pi/4$, so each corresponding
+square is at least $1/2$.  Since
+$\lfloor H/4\rfloor\ge H/8$ for $H\ge8$, the result follows.
+\end{proof}
+
+The next two statements are the exact open interfaces.  They are displayed as
+lemmas to freeze the needed inequalities, but are not asserted as proved.
+
+\begin{lemma}[Entry packet quadratures; open]
+\label{lem:terminal-modal-packet}
+Put
+\begin{equation}
+ H_m=\left\lfloor\sqrt{\frac{m}{64\log(16m)}}\right\rfloor.
+ \label{eq:terminal-modal-bandwidth}
+\end{equation}
+For all sufficiently large $m$, the literal full-face entry coefficients from
+\cref{eq:terminal-modal-quadratures} satisfy, for $1\le s\le H_m$,
+\begin{equation}
+ |C_{2s}-G_{2s}|+|D_{2s}|\le\frac{|G_{2s}|}{64}.
+ \label{eq:terminal-modal-entry-target}
+\end{equation}
+\end{lemma}
+
+The sine denominator in $D_{2s}$ is essential.  A bound only on
+$r_0^x-g$ does not imply \eqref{eq:terminal-modal-entry-target}; one must also
+control the entry velocity to order $\sin(s\pi/m)$.
+
+\begin{lemma}[Projection and global-envelope regime; open]
+\label{lem:terminal-modal-regime}
+Put
+\begin{equation}
+ K_m=\left\lfloor\frac1{8q}\log\frac1q\right\rfloor.
+ \label{eq:terminal-modal-horizon}
+\end{equation}
+For every $1\le k\le K_m$, the raw point
+$y_{k-1}-r(y_{k-1})$ is strictly positive, and the resulting full-face state
+satisfies
+\begin{equation}
+ \min_j p_{k,j}>\delta_k.
+ \label{eq:terminal-modal-unclipped-target}
+\end{equation}
+\end{lemma}
+
+This statement preserves both nonlinearities that the linear recurrence omits:
+the coordinate projection and the moving global correction.
+
+\begin{theorem}[Conditional terminal logarithmic block; proved here]
+\label{thm:terminal-modal-conditional-log}
+Assume \cref{lem:terminal-modal-packet,lem:terminal-modal-regime}.  Then, for
+all sufficiently large $m$, the named execution has no terminal one-sided
+certificate during its first $K_m$ full-face steps.  Hence its terminal block
+has length
+\begin{equation}
+ \Omega\!\left(q^{-1}\log\frac1q\right).
+ \label{eq:terminal-modal-conditional-log}
+\end{equation}
+This conclusion is for the named literal recurrence only.
+\end{theorem}
+
+\begin{proof}
+For $1\le s\le H_m$, let $A_s=|G_{2s}|$.  Uniformly on this band and for all
+sufficiently large $m$,
+\begin{equation}
+ \frac{\alpha}{3m}\le A_s\le\frac{2\alpha}{m}.
+ \label{eq:terminal-modal-amplitude-bounds}
+\end{equation}
+Indeed, $(1-q)^m\ge1-mq=15/16$, while
+$m(s\pi/m)^2\le\pi^2/(64\log(16m))$ and
+$\log\cos z\ge-z^2$ for sufficiently small $z$.
+
+Fix $1\le k\le K_m$.  For $h=2s$, the phase in
+\cref{eq:terminal-modal-solution} is $\phi_{2s}=s\pi/m$.  Moreover,
+\begin{equation}
+ \cos^{k}\frac{H_m\pi}{m}
+ \ge \exp\!\left(-\frac{\pi^2}{32}\right)>\frac12.
+ \label{eq:terminal-modal-spatial-damping}
+\end{equation}
+Apply \cref{lem:terminal-modal-cosine-square} at
+$x=k\pi/m$.  The ideal part of the band coefficient vector has Euclidean norm
+at least
+\[
+ (1-q)^k\cdot\frac{\alpha}{3m}\cdot\frac12
+ \sqrt{\frac{H_m}{16}}
+ =\frac{\alpha(1-q)^k\sqrt{H_m}}{24m}.
+\]
+By \eqref{eq:terminal-modal-entry-target}, its perturbation has norm at most
+\[
+ (1-q)^k\cdot\frac{2\alpha}{m}\cdot
+ \frac{\sqrt{H_m}}{64}
+ =\frac{\alpha(1-q)^k\sqrt{H_m}}{32m}.
+\]
+The reverse triangle inequality therefore gives
+\begin{equation}
+ \left(\sum_{s=1}^{H_m}a_{2s,k}^2\right)^{1/2}
+ \ge\frac{\alpha(1-q)^k\sqrt{H_m}}{96m}.
+ \label{eq:terminal-modal-band-energy}
+\end{equation}
+Parseval and \cref{eq:terminal-modal-popoviciu} imply
+\begin{equation}
+ R_k\ge
+ \frac{\sqrt2\alpha(1-q)^k\sqrt{H_m}}{96m}
+ =\frac{\sqrt2}{6}q^3(1-q)^k\sqrt{H_m}.
+ \label{eq:terminal-modal-range-lower}
+\end{equation}
+
+Because $q\le1/32$,
+\[
+ (1-q)^{K_m}
+ \ge \exp\!\left(-\frac{qK_m}{1-q}\right)
+ \ge q^{4/31}.
+\]
+Also
+$\sqrt{H_m}=\Omega(q^{-1/4}(\log(1/q))^{-1/4})$.  Consequently the ratio of
+the right side of \eqref{eq:terminal-modal-range-lower} to $q^3$ diverges
+like a positive constant times
+$q^{-15/124}(\log(1/q))^{-1/4}$.  It is therefore greater than $1/5$ for all
+sufficiently small $q$.  The open regime lemma permits
+\cref{lem:terminal-modal-range}, which proves non-certification through
+$K_m$.
+\end{proof}
+
+\begin{remark}[Why one mode is insufficient]
+For each fixed $h$, the ideal coefficient is only $\Theta(q^3)$, exactly the
+certificate scale, and it can pass through zero.  The gain comes from a band
+of $H_m$ orthogonal modes and the phase-uniform
+\cref{lem:terminal-modal-cosine-square}; it is not a surviving-mode argument.
+The conservative proof constant $1/8$ is not intended to predict the measured
+first-certificate constant, which is closer to
+$\frac12\log(1/q)$ over the screened sizes.
+\end{remark}
+
+\section{Deterministic screen}
+\label{sec:terminal-modal-screen}
+
+The note-local script \texttt{verify.py} reconstructs every singleton
+admission using a Thomas solve for each transported restricted optimum, then
+runs the literal projected full-face recurrence.  It records both the first
+global crossing $R_k\le q^3/5$ and the first literal corrected test
+$\min r_k-\max(0,\max r_k)\ge-q^3/5$.  It separately checks the minimum raw
+projection and $p_k-\delta_k\one$ margins.  It uses deterministic float64
+arithmetic and therefore supplies measurements, not exact or asymptotic proof.
+
+\begin{center}
+\begin{tabular}{@{}r|rrrrrrr@{}}
+$m$ & $\norm{r_0}_{1,D}/q^2$ & $R_0/q^{5/2}$
+& $\norm{r_0-g}_{1,D}/q^2$ & modal defect & $qk_{\rm range}$
+& $qk_{\rm cert}$
+& margin$/q^2$\\
+\hline
+128  & .972971 & 1.497735 & .033572 & .00814 & 3.123535 & 3.733887 & 7.7761\\
+256  & .972979 & 1.498840 & .033573 & .00808 & 3.871094 & 3.985840 & 7.7776\\
+512  & .972983 & 1.499267 & .033574 & .00805 & 4.366577 & 4.366577 & 7.7784\\
+1024 & .972985 & 1.499392 & .033574 & .00803 & 4.713074 & 4.713074 & 7.7788\\
+2048 & .972986 & 1.499391 & .033574 & .00802 & 5.017151 & 5.017151 & 7.7790\\
+\end{tabular}
+\end{center}
+
+Here ``modal defect'' is the maximum of
+$|C_{2s}-G_{2s}|/|G_{2s}|$ and $|D_{2s}|/|G_{2s}|$ over
+$1\le s\le\lfloor\sqrt{m/\log m}\rfloor$, a wider band than the conditional
+theorem needs.  The final margin is the smaller of the raw-projection and
+unclipped-envelope margins through the literal certificate.  For $m=128,256$,
+the first range crossing has a negative residual maximum and the minimum
+remains below $-q^3/5$; it is therefore not a literal certificate.  For the
+other displayed sizes, the two events coincide.  This distinction is why the
+script evaluates both tests rather than silently identifying them.
+
+The entry constants are explained by the ideal packet:
+$\norm{g}_{1,D}/q^2\to e^{-1/16}$ and
+$\operatorname{range}(g)/q^{5/2}\to
+2e^{-1/16}\sqrt{2/\pi}$.  The measured residual has a small, spatially smooth
+remainder.  This is evidence for
+\cref{lem:terminal-modal-packet}, not a bound on that remainder's entry
+velocity.
+
+\section{Falsifiable conclusion and next proof step}
+\label{sec:terminal-modal-conclusion}
+
+The root calculation is no longer the blocker.  Exact orthogonality removes
+spatial cancellation in weighted $\ell_2$, and a consecutive even-mode band
+removes temporal phase cancellation.  A theorem-quality logarithmic block now
+reduces to precisely two uniform statements:
+\begin{enumerate}
+ \item derive \eqref{eq:terminal-modal-entry-target} from the literal
+ admission/transport chronology, including the sine-scaled entry velocity;
+ \item prove \eqref{eq:terminal-modal-unclipped-target} and raw positivity
+ through \eqref{eq:terminal-modal-horizon}.
+\end{enumerate}
+
+Failure of either displayed inequality for an unbounded subsequence of $m$
+falsifies this route.  Success proves only a lower block for the named
+transported-center, full-prefix, exact-real recurrence.  It would not imply a
+lower bound for distributed residual mechanisms, response data structures,
+different projection rules, intermediate external returns, finite precision,
+or the broad class of local accelerated algorithms.
+
+\end{document}

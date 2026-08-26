@@ -1,0 +1,76 @@
+# Handoff: path-terminal-modal-block
+
+- Agent family: codex
+- Role: direction
+- Branch: `agent/codex/path-terminal-modal-block`
+- Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
+- Assignment state: ready_for_review
+- Write scope:
+  - `docs/coordination/active_assignments.toml`
+  - `docs/coordination/handoffs/path-terminal-modal-block.md`
+  - `manuscript/notes/README.md`
+  - `manuscript/notes/registry.toml`
+  - `manuscript/notes/path_terminal_modal_block/`
+- Permitted shared files:
+  - `docs/coordination/active_assignments.toml`
+  - `docs/coordination/handoffs/path-terminal-modal-block.md`
+  - `manuscript/notes/README.md`
+  - `manuscript/notes/registry.toml`
+
+## Outcome
+
+- Requested result: Continue the literal full-path terminal logarithmic-block
+  analysis, prove every uniform inequality currently available, and preserve
+  any remaining gap as exact, falsifiable lemmas rather than promoting
+  floating evidence to a theorem.
+- Implemented result: Added a standalone eight-page note deriving the exact
+  degree-weighted path-cosine basis, damped modal roots and quadratures, safe
+  global-correction/range semantics, the ideal binomial packet transform, a
+  uniform phase-energy bound, and a conditional
+  `Omega(q^-1 log(1/q))` theorem.  The note isolates two sufficient missing
+  lemmas: a low-even-mode entry-quadrature estimate (including entry velocity)
+  and a projection/unclipped-envelope invariant through the logarithmic
+  horizon.  A deterministic screen reconstructs the literal admission and
+  terminal recurrence and tests both hypotheses.
+- Deliberately unchanged: The dirty main worktree, the source
+  `volume_gated_acceleration` note, its historical verifier, and all solver
+  implementations.  This branch does not claim an unconditional terminal
+  theorem, a class lower bound, or a lower bound for implicit-response or
+  other accelerated local algorithms.
+
+## Evidence
+
+- Tests added or changed: Added `verify.py`, which replays exact algorithmic
+  semantics in deterministic float64 arithmetic, checks admission projection,
+  correction, and gating, measures entry packet/quadrature defects, checks the
+  full-face projection and envelope margins, and reports both the first raw
+  range crossing and the first literal safe-envelope certificate.
+- Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
+  `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
+  focused Ruff lint and format checks; `git diff --check`; and `make lint`.
+- Results: The note built to eight pages with no LaTeX, package,
+  overfull/underfull, or unresolved-reference warnings.  The deterministic
+  screen passed all five sizes.  The 19-note registry, note targets,
+  coordination audit, focused Ruff checks, diff check, and 210 tests passed.
+  The test command emitted 15 temporary-directory cleanup warnings.  The full
+  repository lint command remains red on 1,345 pre-existing findings under
+  `manuscript/claude-overnight-2026-08-24/`; the newly added verifier has no
+  Ruff findings.
+
+## Review notes
+
+- Provider-owned paths changed: New note directory
+  `manuscript/notes/path_terminal_modal_block/` only.
+- Shared paths changed: Note registry/README and this scoped coordination
+  assignment/handoff.
+- Semantic correction: At `m=128,256`, the measured values
+  `q*k=3.123535156,3.871093750` are first raw-range crossings, not literal
+  certificates.  Because the residual maximum is then negative, the literal
+  certificates occur later at `q*k=3.733886719,3.985839844`.  For
+  `m=512,1024,2048`, the two events coincide at the displayed precision.
+- Open decisions or follow-up: Prove the entry quadrature lemma uniformly in
+  `m`, including the sine-divided velocity quadrature, and prove projection
+  inactivity plus unclipped global correction through
+  `floor((1/8)q^-1 log(1/q))`.  Until both statements hold in exact arithmetic,
+  retain evidence `proved-open` and every asymptotic terminal claim as
+  conditional.
