@@ -63,6 +63,7 @@ This table is generated from `registry.toml` by
 | [`propagate_settle_framework`](propagate_settle_framework/) | mixed | proved-open | Unify settlement absorption, response maintenance, revisit work, and trace legality. |
 | [`response_preconditioned_hybrid`](response_preconditioned_hybrid/) | mixed | proved-open | Combine charged Schur responses, frontier repair, and fixed-face reporting. |
 | [`two_rung_direct_theory`](two_rung_direct_theory/) | mixed | proved-open | Explain measured waves, obstructions, and the value of elimination. |
+| [`bounded_seed_return`](bounded_seed_return/) | models | proved-open | Rule out star-scale self-return amplification at bounded-degree seeds with saturated semantic support. |
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |

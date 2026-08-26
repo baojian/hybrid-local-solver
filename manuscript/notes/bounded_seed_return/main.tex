@@ -1,0 +1,520 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% This note bounds the seed diagonal of the discounted PageRank Green kernel
+% in terms of ordinary seed degree and graph volume, then applies the bound to
+% the bounded-seed-degree question behind signed one-hop class lower bounds.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Bounded Seed Degree Forbids Star-Scale\
+Self-Return Amplification}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For source-aligned personalized PageRank seeded at $v$, put
+$c_{\alpha}=(1-\alpha)/(1+\alpha)$ and
+$\gamma_{\alpha}=1-c_{\alpha}$.  We prove the graph-uniform bound
+\[
+ \frac{\pi_v}{\gamma_{\alpha}}
+ \le
+ \frac{d_v}{\vol(G)\gamma_{\alpha}}
+ +\frac{1}{1+c_{\alpha}}
+ +\frac{2\pi d_v}{\sqrt{c_{\alpha}\gamma_{\alpha}}}.
+\]
+The proof is a local normalized-Laplacian spectral estimate: the mass at $v$
+of nonstationary eigenvectors below frequency $t$ is at most
+$4d_v\sqrt t$.  A Stieltjes integral then separates finite-graph stationarity
+from the universal one-dimensional return envelope.
+
+If the semantic support
+$S_{\epsppr}=\{u:\pi_u/d_u>\epsppr\}$ has volume
+$\Omega(1/\epsppr)$, the bound implies
+$\alpha\pi_v/\gamma_{\alpha}\to0$ along every joint limit
+$\alpha,\epsppr\to0$ with bounded ordinary seed degree.  Thus no such family
+has the star's $\Theta(1/\alpha)$ seed self-return amplification.  More
+quantitatively, retaining that amplification requires
+$d_v=\Omega(1/(\epsppr+\sqrt\alpha))$, and the stronger
+$\Omega(1/\epsppr)$ conclusion needs the regime
+$\alpha=O(\epsppr^2)$.  This closes only the self-return mechanism: it neither
+rules out a distributed signed-relaxation lower bound nor proves an
+algorithmic upper bound.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Scope and the diagonal return quantity}
+\label{sec:bounded-return-scope}
+
+\paragraph{Claim status.}
+All lemmas, theorems, and corollaries are \statusproved{} in the shared finite,
+simple, connected, undirected, unweighted exact-arithmetic model.  The family
+screen in \cref{sec:bounded-return-families} combines proved formulas with a
+separately labeled numerical check.  No algorithmic lower bound is inferred
+from a large or small Green diagonal.
+
+Specialize the shared PageRank definition to $s=e_v$ and write
+\begin{equation}
+ c:=c_{\alpha}:=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ \gamma:=\gamma_{\alpha}:=1-c=\frac{2\alpha}{1+\alpha},
+ \qquad
+ H:=I-cAD^{-1}.
+ \label{eq:bounded-return-parameters}
+\end{equation}
+Then $H\pi=\gamma e_v$.  The scalar screened in this note is
+\begin{equation}
+ \mathcal A_v:=\frac{\pi_v}{\gamma}=(H^{-1})_{vv}.
+ \label{eq:bounded-return-amplification}
+\end{equation}
+It is the geometrically discounted expected number of visits to $v$ by the
+ordinary random walk started at $v$.  The desired star scaling is
+$\mathcal A_v=\Theta(1/\alpha)$.  Throughout, $d_v$ means the ordinary
+combinatorial degree, equivalently the adjacency-list scan cost.  It is not
+normalized by the minimum or average degree.
+
+Define the semantic level set
+\begin{equation}
+ S_{\epsppr}:=\left\{u\in V:\frac{\pi_u}{d_u}>\epsppr\right\}.
+ \label{eq:bounded-return-semantic-support}
+\end{equation}
+The asymptotic question is joint: both $\alpha\to0$ and $\epsppr\to0$ while
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$.  At fixed accuracy on a fixed finite
+graph, the stationary mode can yield $\mathcal A_v=\Theta(1/\alpha)$ even at
+bounded degree; that different limit is not ruled out.
+
+\section{A local low-frequency spectral bound}
+\label{sec:bounded-return-spectral}
+
+Let the shared normalized Laplacian $L$ have orthonormal eigenpairs
+$(\lambda_k,\varphi_k)$ ordered as
+\[
+ 0=\lambda_1<\lambda_2\le\cdots\le\lambda_n\le2.
+\]
+Connectedness gives
+\begin{equation}
+ \varphi_1=\frac{D^{1/2}\one}{\sqrt{\vol(G)}},
+ \qquad
+ \varphi_1(v)^2=\frac{d_v}{\vol(G)}.
+ \label{eq:bounded-return-stationary-mode}
+\end{equation}
+For $t>0$, define the nonstationary local spectral mass
+\begin{equation}
+ F_v(t):=\sum_{\substack{k\ge2\\\lambda_k\le t}}\varphi_k(v)^2.
+ \label{eq:bounded-return-spectral-mass}
+\end{equation}
+
+\begin{lemma}[Local spectral-measure envelope; \statusproved]
+\label{lem:bounded-return-spectral-measure}
+For every $v\in V$ and every $t\in(0,2]$,
+\begin{equation}
+ F_v(t)\le4d_v\sqrt t.
+ \label{eq:bounded-return-spectral-envelope}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+It suffices to consider $t\le1$, since for $t>1$ one has
+$F_v(t)\le1\le4d_v\sqrt t$.  Let $P_t$ be the orthogonal projector onto the
+span of eigenvectors with eigenvalues in $(0,t]$, and put
+\[
+ f:=P_te_v,
+ \qquad F:=\|f\|_2^2=F_v(t),
+ \qquad g:=D^{-1/2}f.
+\]
+If $F=0$ there is nothing to prove.  Since $P_t$ is a projector,
+\begin{equation}
+ f_v=\langle e_v,P_te_v\rangle=\|P_te_v\|_2^2=F,
+ \qquad
+ g_v=\frac{F}{\sqrt{d_v}}.
+ \label{eq:bounded-return-projector-at-v}
+\end{equation}
+The projector excludes the stationary eigenvector, so
+\begin{equation}
+ \sum_xd_xg_x=\langle D^{1/2}\one,f\rangle=0.
+ \label{eq:bounded-return-mean-zero}
+\end{equation}
+Moreover,
+\begin{equation}
+ \sum_xd_xg_x^2=\|f\|_2^2=F,
+ \qquad
+ \sum_{\{x,y\}\in E}(g_x-g_y)^2
+ =f^\top Lf\le tF.
+ \label{eq:bounded-return-norm-energy}
+\end{equation}
+
+By \eqref{eq:bounded-return-mean-zero} and $g_v>0$, some vertex $z$ has
+$g_z\le0$.  Take a shortest path
+$v=x_0,x_1,\ldots,x_{\ell}=z$ and set
+$R:=\lfloor t^{-1/2}\rfloor\ge1$.
+
+If $\ell\le R$, Cauchy--Schwarz along the path gives
+\[
+ \frac{g_v^2}{R}
+ \le\frac{(g_v-g_z)^2}{\ell}
+ \le\sum_{i=0}^{\ell-1}(g_{x_i}-g_{x_{i+1}})^2
+ \le tF.
+\]
+Using \eqref{eq:bounded-return-projector-at-v} yields
+$F\le d_vtR\le d_v\sqrt t$.
+
+Suppose next that $\ell>R$.  If some $j\le R$ satisfies
+$g_{x_j}\le g_v/2$, the same path argument on the prefix gives
+\[
+ \frac{g_v^2}{4R}\le tF,
+\]
+and hence $F\le4d_vtR\le4d_v\sqrt t$.  Otherwise
+$g_{x_j}>g_v/2$ for every $0\le j\le R$.  Because the graph is unweighted
+and has no isolated vertices, $d_{x_j}\ge1$, and therefore
+\[
+ F=\sum_xd_xg_x^2
+ \ge\sum_{j=0}^{R}g_{x_j}^2
+ >\frac{R+1}{4}g_v^2
+ =\frac{R+1}{4}\frac{F^2}{d_v}.
+\]
+Thus $F<4d_v/(R+1)<4d_v\sqrt t$.  These cases prove
+\eqref{eq:bounded-return-spectral-envelope}.
+\end{proof}
+
+\begin{remark}[Why the degree is absolute]
+\label{rem:bounded-return-absolute-degree}
+The factor $d_v$ enters through
+$g_v=F_v(t)/\sqrt{d_v}$.  The proof also uses $d_x\ge1$ along a path.  Thus
+\cref{lem:bounded-return-spectral-measure} is stated for ordinary degrees on
+simple unweighted graphs.  A weighted extension would require explicit lower
+control on path conductances and vertex measures; no such extension is
+claimed.
+\end{remark}
+
+\section{The discounted diagonal and semantic support}
+\label{sec:bounded-return-diagonal}
+
+\begin{theorem}[Universal seed-return bound; \statusproved]
+\label{thm:bounded-return-diagonal}
+For every graph and seed in the scope of \cref{sec:bounded-return-scope},
+\begin{equation}
+ \boxed{
+ \mathcal A_v
+ \le
+ \frac{d_v}{\vol(G)\gamma}
+ +\frac{1}{1+c}
+ +\frac{2\pi d_v}{\sqrt{c\gamma}}.}
+ \label{eq:bounded-return-diagonal-bound}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The matrices $H$ and $\gamma I+cL$ are diagonally similar, so their
+inverse diagonal entries agree.  Hence
+\begin{equation}
+ \mathcal A_v
+ =\sum_{k=1}^n\frac{\varphi_k(v)^2}{\gamma+c\lambda_k}
+ =\frac{d_v}{\vol(G)\gamma}
+  +\int_{(0,2]}\frac{1}{\gamma+ct}\,dF_v(t).
+ \label{eq:bounded-return-spectral-representation}
+\end{equation}
+The first term is exactly the finite-graph stationary mode, not an error term.
+Stieltjes integration by parts gives
+\begin{equation}
+ \int_{(0,2]}\frac{1}{\gamma+ct}\,dF_v(t)
+ =\frac{F_v(2)}{\gamma+2c}
+  +\int_0^2\frac{cF_v(t)}{(\gamma+ct)^2}\,dt.
+ \label{eq:bounded-return-stieltjes}
+\end{equation}
+Here $F_v(0)=0$ by connectedness, $F_v(2)\le1$, and
+$\gamma+2c=1+c$.  Applying
+\cref{lem:bounded-return-spectral-measure} and enlarging the integral domain,
+\[
+ \int_0^2\frac{cF_v(t)}{(\gamma+ct)^2}\,dt
+ \le4d_v\int_0^\infty\frac{c\sqrt t}{(\gamma+ct)^2}\,dt.
+\]
+With $t=\gamma x/c$,
+\begin{equation}
+ \int_0^\infty\frac{c\sqrt t}{(\gamma+ct)^2}\,dt
+ =\frac{1}{\sqrt{c\gamma}}
+   \int_0^\infty\frac{\sqrt x}{(1+x)^2}\,dx
+ =\frac{\pi}{2\sqrt{c\gamma}}.
+ \label{eq:bounded-return-beta-integral}
+\end{equation}
+Substitution into \eqref{eq:bounded-return-spectral-representation} proves
+\eqref{eq:bounded-return-diagonal-bound}.  Eigenvalues near $-1$ for the
+nonlazy random walk correspond to $\lambda_k$ near $2$ and are covered by
+the bounded endpoint term; no aperiodicity assumption is used.
+\end{proof}
+
+\begin{corollary}[Bounded degree forbids simultaneous star scaling;
+\statusproved]
+\label{cor:bounded-return-support}
+Suppose
+\begin{equation}
+ \vol(S_{\epsppr})\ge\frac{\sigma}{\epsppr}
+ \label{eq:bounded-return-support-lower}
+\end{equation}
+for some $\sigma>0$.  Then
+\begin{equation}
+ \boxed{
+ \alpha\mathcal A_v
+ \le
+ \frac{d_v(1+\alpha)\epsppr}{2\sigma}
+ +\frac{\alpha(1+\alpha)}{2}
+ +\frac{2\pi d_v(1+\alpha)\sqrt\alpha}
+        {\sqrt{2(1-\alpha)}}.}
+ \label{eq:bounded-return-support-bound}
+\end{equation}
+Consequently, for every joint sequence with
+$\alpha\to0$, $\epsppr\to0$, $d_v\le D$, and
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$,
+\begin{equation}
+ \alpha\frac{\pi_v}{\gamma_{\alpha}}\longrightarrow0.
+ \label{eq:bounded-return-impossibility}
+\end{equation}
+In particular, such a family cannot have
+$\pi_v/\gamma_{\alpha}=\Theta(1/\alpha)$.
+\end{corollary}
+
+\begin{proof}
+The graph volume is at least the level-set volume, so
+\eqref{eq:bounded-return-support-lower} implies
+$1/\vol(G)\le\epsppr/\sigma$.  Substitute this into
+\eqref{eq:bounded-return-diagonal-bound}, use
+\[
+ \gamma=\frac{2\alpha}{1+\alpha},
+ \qquad
+ c\gamma=\frac{2\alpha(1-\alpha)}{(1+\alpha)^2},
+ \qquad
+ \frac{1}{1+c}=\frac{1+\alpha}{2},
+\]
+and multiply by $\alpha$.  The resulting expression is
+\eqref{eq:bounded-return-support-bound}, whose right side tends to zero under
+the stated joint limit.
+\end{proof}
+
+\begin{corollary}[Necessary ordinary seed degree; \statusproved]
+\label{cor:bounded-return-degree}
+Under \eqref{eq:bounded-return-support-lower}, if
+$\mathcal A_v\ge K/\alpha$, then, whenever the numerator is positive,
+\begin{equation}
+ \boxed{
+ d_v\ge
+ \frac{K-\alpha(1+\alpha)/2}
+ {(1+\alpha)\epsppr/(2\sigma)
+  +2\pi(1+\alpha)\sqrt\alpha/\sqrt{2(1-\alpha)}}.}
+ \label{eq:bounded-return-degree-exact}
+\end{equation}
+Thus
+\begin{equation}
+ d_v=\Omega\!\left(\frac{1}{\epsppr+\sqrt\alpha}\right).
+ \label{eq:bounded-return-degree-order}
+\end{equation}
+If $\alpha=O(\epsppr^2)$, this strengthens to
+$d_v=\Omega(1/\epsppr)$.  If one also requires semantic nontriviality at the
+seed, $\epsppr d_v\le\pi_v/2$, then $d_v=O(1/\epsppr)$, so in that parameter
+regime $d_v=\Theta(1/\epsppr)$.
+\end{corollary}
+
+\begin{proof}
+Rearrange \eqref{eq:bounded-return-support-bound} using
+$\alpha\mathcal A_v\ge K$.  For fixed positive $K$ and sufficiently small
+$\alpha$, the numerator is bounded below by a positive constant, giving
+\eqref{eq:bounded-return-degree-order}.  When
+$\sqrt\alpha=O(\epsppr)$, its denominator is $O(\epsppr)$.  Finally,
+$\epsppr d_v\le\pi_v/2\le1/2$ gives the stated upper delimiter.
+\end{proof}
+
+\begin{remark}[The regime qualification is essential]
+\label{rem:bounded-return-regime}
+When $\epsppr=o(\sqrt\alpha)$,
+\cref{cor:bounded-return-degree} yields only
+$d_v=\Omega(1/\sqrt\alpha)$.  Therefore the unqualified chain
+``$\Theta(1/\alpha)$ amplification, hence
+$\Theta(1/\epsppr)$ seed degree'' is not established.  The latter conclusion
+is correct from this argument only after imposing
+$\alpha=O(\epsppr^2)$ and the seed nontriviality upper delimiter.
+\end{remark}
+
+\section{Closed-form family screen}
+\label{sec:bounded-return-families}
+
+The following formulas concern infinite rooted graphs.  Truncating beyond the
+displayed $S_{\epsppr}$ scale gives finite graph families with the same
+asymptotics and avoids any use of an infinite graph in the theorem.
+
+\subsection{Endpoint path}
+
+Put
+\begin{equation}
+ \lambda:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:bounded-return-path-decay}
+\end{equation}
+On the endpoint-seeded half-line, direct solution of
+$(D-cA)q=\gamma e_v$, $q=D^{-1}\pi$, gives
+\begin{equation}
+ q_j=\sqrt\alpha\,\lambda^j,
+ \qquad
+ \mathcal A_v=\frac{1}{\sqrt{1-c^2}}
+ =\frac{1+\alpha}{2\sqrt\alpha}.
+ \label{eq:bounded-return-path-formula}
+\end{equation}
+For fixed $\theta\in(0,1)$, take
+$\epsppr=\theta\sqrt\alpha$.  If
+$J=\max\{j:\lambda^j>\theta\}$, then
+\[
+ \vol(S_{\epsppr})=1+2J
+ \sim\frac{\log(1/\theta)}{\sqrt\alpha}
+ =\Theta(1/\epsppr).
+\]
+Thus the path saturates semantic support volume while amplifying only
+$\Theta(\alpha^{-1/2})$.
+
+\subsection{Caterpillar}
+
+Consider a half-line backbone with one pendant leaf at every backbone vertex,
+seeded at the endpoint.  Eliminating the leaves gives backbone decay
+$q_j=q_0r^j$, where
+\begin{equation}
+ r=\frac{3-c^2-\sqrt{(3-c^2)^2-4c^2}}{2c},
+ \qquad
+ \mathcal A_v=\frac{2}{2-c^2-cr}.
+ \label{eq:bounded-return-caterpillar-formula}
+\end{equation}
+As $\gamma\to0$,
+\begin{equation}
+ r=1-2\sqrt\gamma+O(\gamma),
+ \qquad
+ \mathcal A_v\sim\gamma^{-1/2}\sim(2\alpha)^{-1/2},
+ \qquad
+ q_0\sim\frac{\sqrt\gamma}{2}.
+ \label{eq:bounded-return-caterpillar-asymptotic}
+\end{equation}
+A threshold equal to a fixed fraction of $q_0$ again gives
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$.
+
+\subsection{Hub ladder with bounded seed degree}
+
+Let every backbone vertex carry one hub of degree $D$, with the remaining
+$D-1$ hub neighbors pendant leaves.  The seed is the backbone endpoint and
+has ordinary degree two, independent of $D$.  Eliminating the hub and its
+leaves gives
+\begin{equation}
+ t:=\frac{c}{D-(D-1)c^2},
+ \qquad
+ r+r^{-1}=\frac{3-ct}{c},
+ \qquad
+ \mathcal A_v=\frac{2}{2-c(t+r)},
+ \label{eq:bounded-return-hub-ladder-formula}
+\end{equation}
+where $r<1$ is the smaller root.  For fixed $D$,
+\begin{equation}
+ \mathcal A_v\sim\sqrt{\frac{2}{(D+1)\gamma}}
+ \sim\frac{1}{\sqrt{(D+1)\alpha}},
+ \qquad
+ q_0\sim\sqrt{\frac{\gamma}{2(D+1)}}.
+ \label{eq:bounded-return-hub-ladder-asymptotic}
+\end{equation}
+The active backbone length at a fixed-fraction threshold is
+$\Theta((D\gamma)^{-1/2})$, while each module has volume $\Theta(D)$.
+Therefore its semantic support still satisfies
+\[
+ \vol(S_{\epsppr})=\Theta(\sqrt{D/\gamma})
+ =\Theta(1/\epsppr),
+\]
+but the hidden hub suppresses rather than enhances seed return.
+
+\subsection{Trees and regular gadgets}
+
+On the infinite $d$-regular tree,
+\begin{equation}
+ \mathcal A_v
+ =\frac{2(d-1)}
+ {d-2+\sqrt{d^2-4(d-1)c^2}}.
+ \label{eq:bounded-return-regular-tree}
+\end{equation}
+For $d\ge3$, this tends to $(d-1)/(d-2)$; for $d=2$, it reduces to the path
+formula.  On the infinite binary tree whose root has degree two and whose
+other internal vertices have degree three,
+\begin{equation}
+ \mathcal A_v=\frac{4}{1+\sqrt{9-8c^2}}\longrightarrow2.
+ \label{eq:bounded-return-binary-tree}
+\end{equation}
+Thus transient regular trees have bounded amplification.  Bounded-width
+periodic ladders retain the one-dimensional $\Theta(\alpha^{-1/2})$ scale.
+For a finite regular gadget with normalized spectral gap
+$\lambda_2\ge\delta>0$, the exact spectral representation directly yields
+\begin{equation}
+ \mathcal A_v
+ \le\frac{d_v}{\vol(G)\gamma}
+ +\frac{1-d_v/\vol(G)}{\gamma+c\delta},
+ \label{eq:bounded-return-expander}
+\end{equation}
+so only its finite-graph stationary term can scale as $1/\alpha$.
+
+\subsection{Deterministic numerical screen}
+
+The companion \texttt{verify.py} solves $(D-cA)q=\gamma e_v$ to relative
+residual at most $10^{-11}$.  At every cell it selects a coordinate
+breakpoint maximizing
+$\epsppr\vol(S_{\epsppr})$, so the support column tests the most favorable
+semantic threshold rather than a fixed arbitrary one.  Representative output
+is shown in \cref{tab:bounded-return-screen}; it is \statusempirical{} and is
+not used in the proof.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+Family ($d_v$) & $\alpha$ & $\alpha\mathcal A_v$
+& $\sqrt\alpha\mathcal A_v$
+& $\max_{\epsppr}\epsppr\vol(S_{\epsppr})$ \\
+\midrule
+Path (1) & $2^{-12}$ & $0.00781$ & $0.500$ & $0.374$ \\
+Caterpillar (2) & $2^{-12}$ & $0.0109$ & $0.700$ & $0.376$ \\
+Hub ladder, $D=32$ (2) & $2^{-12}$ & $0.00253$ & $0.162$ & $0.401$ \\
+Finite binary tree (2) & $2^{-12}$ & $0.00061$ & $0.0388$ & $0.988$ \\
+Three-regular cycle--antipode (3) & $2^{-12}$ & $0.00489$ & $0.313$ & $0.375$ \\
+\bottomrule
+\end{tabular}
+\caption{Every screened bounded-degree family has vanishing
+$\alpha\mathcal A_v$.  The one-dimensional families simultaneously keep the
+semantic support-saturation score bounded away from zero.}
+\label{tab:bounded-return-screen}
+\end{table}
+
+For comparison, on the centre-seeded star $K_{1,m}$,
+\begin{equation}
+ \mathcal A_v=\frac{(1+\alpha)^2}{4\alpha}.
+ \label{eq:bounded-return-star}
+\end{equation}
+Taking $m=\Theta(1/\epsppr)$ makes every star vertex lie above a constant
+multiple of $\epsppr$, so
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$; its seed degree is exactly the large
+quantity excluded by \cref{cor:bounded-return-support}.
+
+\section{What is and is not closed}
+\label{sec:bounded-return-scope-limit}
+
+\paragraph{Closed.}
+No family with bounded ordinary seed degree can simultaneously have
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$ and
+$\pi_v/\gamma_{\alpha}=\Theta(1/\alpha)$ in the joint local limit.  Hence a
+signed-relaxation seed-operation lower bound whose only large instance
+parameter is $\pi_v/\gamma_{\alpha}$ cannot reproduce the star's
+$\Theta(\alpha^{-1/2})$ number of seed operations on such a family.
+
+\paragraph{Not closed.}
+An upper bound on one Green diagonal is not an algorithmic upper bound.  A
+different graph may force work at many vertices, or couple several modes so
+that no single seed-travel certificate captures the total charged work.
+Therefore this note does not rule out
+$\Omega(1/(\sqrt\alpha\,\epsppr))$ work for every member of a signed one-hop
+class on a bounded-degree family.  It also says nothing about stronger block,
+elimination, or response primitives.  The next valid lower-bound target is a
+distributed obstruction, not another bounded-degree self-return search.
+
+\end{document}
