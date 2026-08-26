@@ -59,14 +59,22 @@ State: proved-open
   `q^4 lambda=1.178144...e-8`, and the run later certifies at stage 32. An
   exact nine-point rational screen of the same fixed graph is finite evidence
   only: the relevant row appears for `q=0.0188,...,0.0194` and disappears at
-  both adjacent screened endpoints.
+  both adjacent screened endpoints. For the declared point-seed parameters
+  `rho=tau=q/5`, the first boundary admission forces
+  `E_0>c_0(q)q^5`, where
+  `c_0(q)=4(1+q^2)/(5(1-q^2)(3+q^2))`; hence the consumed reserve is already
+  larger than `c_0(q)q^6`. This floor pays every later clipped-zero residual,
+  while the projected decrement pays the positive-support rows. Therefore
+  the original all-coordinate score, with arbitrary projection, is solvent
+  with `(1-q^2)/q^4`. Together with the `K_{2,r}` family, this closes its
+  graph-uniform coefficient order at `Theta(q^-4)` as well.
 - **Conditional:** The named complete gate preserves `Xi` exactly across
-  admissions. For interior visited restricted optima, coefficient
-  `(1+q^2)(1-q)/q^5` makes the original-score consumed-energy scalar ledger
-  solvent under arbitrary projection. The exact projection-normal identity
-  improves this to `(C_n+1-q^2)/q^4` when every clipped positive-residual row
-  obeys `n_i <= C_n((1-q)z_i+qz_i*)`; inactivity has `C_n=0`. A modified safe positive-support
-  envelope has coefficient `(1-q^2)/q^4` under arbitrary projection; its gate
+  admissions. For interior visited restricted optima, the baseline coefficient
+  `(1+q^2)(1-q)/q^5` remains valid, and the exact projection-normal identity
+  gives the step-local refinement `(C_n+1-q^2)/q^4` when every clipped
+  positive-residual row obeys `n_i <= C_n((1-q)z_i+qz_i*)`; inactivity has
+  `C_n=0`. A modified safe positive-support envelope has coefficient
+  `(1-q^2)/q^4` under arbitrary projection; its gate
   chronology may differ and clipped-zero rows remain in admission and terminal
   scans. Under the declared low-frequency residual condition
   `||r||_D^2 <= 2 c_low q^2 P`, coefficient
@@ -98,10 +106,8 @@ State: proved-open
   threshold-tuned endpoint-path route
   also stops on the registered finite instances: the gate certifies two
   vertices before the intended full face and projection remains inactive.
-- **Open:** Close the original all-coordinate score's arbitrary-projection
-  `q^-4` lower versus `q^-5` upper gap by bounding the normal-anchor ratio or
-  constructing reachable superquartic debt; identify useful narrower classes where
-  the low-frequency condition holds; a uniform recovery horizon if one
+- **Open:** Identify useful narrower classes where the low-frequency condition
+  holds; a uniform recovery horizon if one
   exists; and
   graph-uniform convergence/work beyond the finite named traces.
 
@@ -110,15 +116,13 @@ State: proved-open
 The causal score identity is face-general, but unconditional zero-balance
 all-history solvency of its `delta^2` account is false for the named recurrence
 and gate. The justified consumed-energy reserve repairs all finite `q=1/5`
-atlas traces with coefficient `3`, and the reachable quartic family closes
-the support-aware and inactive-original coefficient order at `Theta(q^-4)`.
-The remaining scalar blocker is the original score under arbitrary projection:
-its reachable lower order is `q^-4`, while its proved general upper coefficient
-is `O(q^-5)`. The exact normal identity isolates this gap in the ratio
-`n_i/((1-q)z_i+qz_i*)` on clipped positive-residual rows. The exact finite
-30-vertex trace proves that such a row and positive debt are reachable, but
-its coefficient is far below the quartic scale and its narrow finite `q`
-screen does not establish unbounded normal-anchor scaling. None of these scalar statements may be promoted into convergence
+atlas traces with coefficient `3`, and the reachable quartic family supplies
+the matching lower order. The first-admission energy floor closes both the
+support-aware and original all-coordinate coefficient orders at
+`Theta(q^-4)`, including arbitrary projection for the declared point-seed
+gate. The exact normal identity and 30-vertex trace remain useful local
+diagnostics, but their ratio no longer blocks scalar all-history solvency.
+None of these scalar statements may be promoted into convergence
 or work conclusions.
 
 ## Dependencies and reusable outputs
@@ -135,15 +139,16 @@ or work conclusions.
 - Exact file/section/lemma: Start with
   `prop:consumed-energy-structural-solvency` and
   `prop:consumed-reserve-quartic-projection` and
+  `thm:original-score-projected-quartic` and
   `prop:original-score-normal-anchor` and
   `prop:reachable-positive-residual-projection`, then
   `prop:consumed-energy-quartic-lower` and
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
-- Next concrete action: Either prove a graph-uniform `O(1)` bound on the
-  normal-anchor ratio, or construct a reachable projection-active family on
-  which that ratio creates more than `Theta(q^-4)` debt. The low-frequency condition can now only target a narrower
-  promised class, not all reachable traces.
+- Next concrete action: Use the now-sharp scalar reserve inside a genuine
+  convergence/recovery argument, or derive the low-frequency condition on a
+  useful narrower promised class. Neither scalar solvency nor the exact
+  normal-anchor diagnostics supply a recovery horizon by themselves.
 - Stop/go test: Go only if the replacement survives the reachable quartic
   family, star asymptotic, and three-admission all-history trace without future
   borrowing and charges all
@@ -155,8 +160,8 @@ or work conclusions.
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Twelve exact `volume_gated_acceleration.*` audits cover the
-  Round-013--024 mechanisms. Run them with `uv run python -m
+- Focused checks: Thirteen exact `volume_gated_acceleration.*` audits cover the
+  Round-013--025 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
   volume_gated_acceleration`; the full tier includes both optional small-graph
   enumerations.
@@ -166,11 +171,11 @@ or work conclusions.
   projection-active STOP, reachable quartic formal series and exact replay
   grid, exact leading `K_{2,r}` formulas, projection-normal identities, finite
   critical-path gate failures, candidate inactivity checks, the reachable
-  positive-residual projection chronology and debt, and scope qualifications.
+  positive-residual projection chronology and debt, the exact first-admission
+  quartic constants, and scope qualifications.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
-  geometry, and the original-score arbitrary-projection coefficient gap
-  remains. Exact support tests require finite-precision margins in an
+  geometry. Exact support tests require finite-precision margins in an
   implementation. There is no nonpath
   eleven-resource vector, asymptotic work result, or finite-precision
   guarantee.
