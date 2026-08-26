@@ -1,0 +1,112 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% A three-rung class-complexity ladder on a single instance (the centre-seeded
+% star). Monotone one-hop push pays Theta(1/(alpha eps_ppr)); signed one-hop
+% relaxation pays Theta(1/(sqrt(alpha) eps_ppr)); elimination pays
+% Theta(1/eps_ppr). Each rung drops exactly one axiom of the one-hop push
+% primitive and buys exactly one factor of sqrt(alpha).
+%
+% Provenance: this note transcribes, into the repository proof medium, the
+% overnight-campaign packages W1 (monotone lower bound), I2-D (separation and
+% output maps), I4-C (signed-residual class lower bound) and I5-D (ladder
+% consolidation), which live as markdown under
+% manuscript/claude-overnight-2026-08-24/findings/. Nothing here has passed the
+% repository promotion gate; see the status conventions in Section 1 and the
+% honesty pass in the final section.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+% ---- Note-scoped notation ------------------------------------------------
+% Push-scale constants. These are note-scoped abbreviations for quantities
+% already fixed by the shared source-aligned model; they redefine nothing.
+\newcommand{\galpha}{\gamma_{\alpha}}
+\newcommand{\calpha}{c_{\alpha}}
+\newcommand{\Hsym}{H_{\mathrm{sym}}}
+\newcommand{\Mpos}{\mathcal{M}_{+}}
+\newcommand{\Mpm}{\mathcal{M}_{\pm}}
+\newcommand{\Rpm}{\mathcal{R}_{\pm}}
+\newcommand{\OB}{\mathcal{O}_{B}}
+\DeclareMathOperator{\errop}{err}
+
+% Source-path citations. \path (from url, loaded by hyperref in the shared
+% preamble) keeps underscores as ordinary typewriter characters -- avoiding a
+% bitmap TS1 font under the preamble's OT1 encoding -- and breaks long paths
+% at directory separators.
+\newcommand{\file}[1]{\path{#1}}
+
+% Claim status used in this note. "Proved-draft" is weaker than the
+% repository's \statusproved: the argument is complete and written out here,
+% but it has not been independently audited and no promotion is asserted.
+\newcommand{\statusproveddraft}{\textbf{Proved-draft}}
+\newcommand{\statusimported}{\textbf{Proved-draft (imported)}}
+\newcommand{\statusmeasured}{\textbf{Measured}}
+
+\title{A Three-Rung Class Ladder for Local PageRank:\\
+Monotone Push, Signed Relaxation, and Elimination on One Instance}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note proves three complexity statements for local personalized PageRank
+on a single instance --- the centre-seeded star $K_{1,m}$ with
+$m=\floor{1/(8\epsppr)}$ --- under one primitive, one work charge, one output
+map, and one semantic guarantee. Monotone one-hop push, the class that keeps
+the residual nonnegative, requires $\Theta(1/(\alpha\epsppr))$ charged work;
+allowing signed \emph{steps} while keeping the residual nonnegative buys
+nothing. Signed one-hop relaxation, which drops residual nonnegativity but
+keeps dissipativity $\omega\in(0,2)$, requires
+$\Omega(1/(\sqrt\alpha\,\epsppr))$, matched by a member up to a factor
+$\log(1/\alpha)$ that measurement, but not yet proof, removes. Elimination, which drops dissipativity,
+solves the instance exactly in $\Theta(1/\epsppr)$. Each rung therefore drops
+exactly one axiom and buys exactly one factor of $\sqrt\alpha$.
+
+The monotone bound rests on a single potential, the relative unsettled value
+at the seed, whose two properties are exact and graph-free: it moves only at
+seed-based operations, for either sign of the step, and nonnegativity of the
+residual caps each seed step multiplicatively. This yields a general-graph
+statement with no instance constant. The signed bound replaces the order
+argument by energy: dissipativity caps the fast spectral mode, a centre
+relaxation moves the slow and fast modes by equal magnitudes, and the seed
+coordinate must travel a constant distance, so each operation can advance it
+by at most $2\sqrt{\alpha(1+\alpha)}$ --- pathwise, so randomization is not
+exempt. Output post-processing is handled symmetrically for both bounds
+through one-hop output maps of bounded column mass, and a universal
+zero-work escape threshold delimits the range in which any lower bound can
+live.
+
+The note also records what the ladder does \emph{not} say. The signed bound
+is a class statement, not an information barrier: elimination beats every
+member of that class on the same instance by $\Theta(1/\sqrt\alpha)$, so the
+result gives no support to $1/(\sqrt\alpha\,\epsppr)$ as a necessary cost of
+the semantic problem. Two items are stated as open: the general-graph
+terminal bound for output maps near the escape threshold, and whether any
+bounded-seed-degree family forces the signed bound. Provenance, per-statement
+status, a verification appendix, and an auditor's checklist are in the final
+section.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\input{sections/body/01_sec_ladder_scope}
+
+\input{sections/body/02_sec_ladder_classes}
+
+\input{sections/body/03_thm_ladder_monotone_lower_bound}
+
+\input{sections/body/04_thm_ladder_signed_lower_bound}
+
+\input{sections/body/05_prop_ladder_elimination}
+
+\input{sections/body/06_sec_ladder_ladder}
+
+\input{sections/body/07_sec_ladder_manuscript_relation}
+
+\input{sections/body/08_sec_ladder_verification}
+
+\end{document}
