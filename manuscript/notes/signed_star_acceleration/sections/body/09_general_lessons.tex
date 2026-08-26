@@ -1,0 +1,155 @@
+\section{What the special cases teach a general local solver}
+\label{sec:signed-star-general-lessons}
+
+The special cases support a design principle more precise than ``momentum is
+good'' or ``momentum is bad.''  A proved accelerated local solver needs four
+separate ledgers.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Spectral progress.}  The numerical state must contract the
+      $\alpha$-slow modes in $O(1/\sqrt\alpha)$ stages.
+\item \textbf{Trajectory locality.}  The total degree volume touched by all
+      intermediate states must be bounded, not only the final support.
+\item \textbf{State continuation.}  When the active face changes, useful
+      accelerated state must be transported or its reset must be amortized.
+\item \textbf{Semantic certification.}  The stopping interface must imply the
+      requested PPR error without imposing a substantially stronger condition
+      that erases the speedup.
+\end{enumerate}
+
+Optimal SOR closes all four on the promised star: the parameter is spectrally
+optimal, the support is the output-scale star, there are no face changes, and
+\Cref{lem:signed-star-semantic-identity} replaces a conservative certificate.
+Each negative example deletes one of these properties while retaining some of
+the others.
+
+\subsection{Why the exact cancellation is special}
+
+On the star, the normalized adjacency has only two seed-visible eigenmodes.
+A center update moves them by equal magnitudes, and the PPR error combines the
+two residual layers through the exact Green-function weights
+$(1,c_\alpha)$.  At optimal relaxation these weights produce
+\begin{equation}
+  1-c_\alpha\lambda
+  =\frac{2\sqrt\alpha}{1+\alpha},
+  \label{eq:signed-star-special-cancellation}
+\end{equation}
+which cancels the critically damped block index.
+
+On a general fixed support, the semantic error at coordinate $u$ is the dual
+quantity
+\begin{equation}
+  \frac{(\pi-p)_u}{d_u}
+  =\left\langle
+      r,\,H^{-T}\frac{e_u}{d_u}
+    \right\rangle.
+  \label{eq:signed-star-dual-semantic-error}
+\end{equation}
+The relevant Green vector depends on $u$ and need not align with a
+two-dimensional invariant subspace.  Absolute-value residual certification
+replaces this signed inner product by a worst-case positive envelope and can
+therefore lose cancellation.  Computing every exact Green vector, however,
+is itself an inverse primitive and cannot be treated as a free local test.
+
+This identifies a concrete generalization target:
+\begin{quote}
+Construct a locally maintainable upper bound on the dual quantities
+\eqref{eq:signed-star-dual-semantic-error} that preserves enough signed
+low/high-mode cancellation to stop after $\widetilde O(1/\sqrt\alpha)$ local
+stages, while charging every response update and query.
+\end{quote}
+
+\subsection{A plausible fixed-face proof route}
+
+For a fixed principal subproblem on an exposed face $S$, let
+\(\overline H_S=D_S^{-1/2}H_{SS}D_S^{1/2}\), let $e_S$ be its
+principal-subproblem error, and split the spectral space at a threshold
+$\tau$ into low and high bands.  The fixed-face energy identity already gives
+a pathwise high-mode budget:
+\begin{equation}
+  \|P_{\ge\tau}D_S^{-1/2}e_S\|_2^2
+  \le\frac{2\Phi_S(e_S)}{\tau}.
+  \label{eq:signed-star-high-mode-budget}
+\end{equation}
+The star proof is the two-eigenvalue endpoint of this inequality.  A general
+fixed-face theorem would need two additional lemmas:
+
+\begin{enumerate}[leftmargin=*]
+\item a local or structurally bounded representation of the low-band dual
+      response in \eqref{eq:signed-star-dual-semantic-error};
+\item a summable charge showing that any safeguard correction caused by the
+      high band is paid by the decrease of
+      \eqref{eq:signed-star-high-mode-budget}.
+\end{enumerate}
+
+This is more promising than asking for momentum never to trigger a safeguard.
+FISTA's leaf-star demonstrates why a universal no-overshoot statement is
+implausible near zero complementarity margin.  The goal should instead be a
+bounded transient-debt theorem.
+
+\subsection{A plausible changing-face algorithmic route}
+
+The FISTA and ASPR examples together suggest the following requirements for a
+purely local accelerated method:
+
+\begin{enumerate}[leftmargin=*]
+\item Use a conservative lower iterate for support discovery, so a transient
+      extrapolation cannot expose a high-degree boundary row merely because a
+      KKT margin is zero.
+\item Retain a signed accelerated state inside the already exposed face rather
+      than restarting a high-accuracy inner solve after every single
+      admission.
+\item When a face grows, zero-pad or transport the state through an exact
+      algebraic identity, and charge any retraction to a decrease in a
+      declared energy or margin bank.
+\item Stop using either a proved dual-response surrogate or a final paid
+      conversion to a safe semantic certificate.  Do not apply a strong
+      residual test at every intermediate stage unless its extra work is
+      included.
+\end{enumerate}
+
+This is a design program, not a completed theorem.  In particular, a
+convergence rate for the accelerated state does not bound the volume of the
+conservative discovery state, and a safe discovery state does not by itself
+amortize the transported momentum.
+
+\subsection{Where the project-wide proof still stops}
+
+The current graph-uniform AESP--LOCSOR promotion gate requires a
+graph-independent early-locality or alternative burn-in bound.  The star
+result does not control that quantity: its entire graph already has
+$\Theta(1/\varepsilon_{\rm ppr})$ volume, and its face never changes.  Nor
+does it settle long-spider behavior, hub-rich transient exploration, or the
+cost of maintaining a general response.
+
+The correct promotion boundary is therefore:
+\begin{equation}
+  \boxed{
+  \begin{array}{l}
+  \text{Proved: accelerated semantic SOR and matching signed-class scale on
+  the center-star.}\\[2pt]
+  \text{Open: a fully charged graph-uniform algorithm with the same product
+  scale.}
+  \end{array}}
+  \label{eq:signed-star-promotion-boundary}
+\end{equation}
+
+\subsection{Further special families worth testing}
+
+The exact proof should extend whenever the seed-visible dynamics close on a
+constant-dimensional equitable quotient and block scans cost the quotient
+cell volumes.  Natural next cases are complete bipartite graphs with a
+cell-uniform seed, double stars with a small hub quotient, and spiders with a
+fixed number of identical arms.  For each family the falsifiable test is the
+same:
+\begin{enumerate}[leftmargin=*]
+\item derive the exact quotient recurrence;
+\item compute semantic error, rather than only residual magnitude;
+\item check whether the polynomial transient carries a compensating factor of
+      $\sqrt\alpha$;
+\item charge the expansion of the quotient state back to actual vertex-degree
+      work and explicit output.
+\end{enumerate}
+Failure of the third step would identify a genuine family-specific
+obstruction; success without the fourth would be only a small-dimensional
+algebraic observation, not a local-work theorem.

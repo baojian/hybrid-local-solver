@@ -1,0 +1,206 @@
+\section{Failure mode II: FISTA accelerates iterations but can destroy locality}
+\label{sec:signed-star-fista-failure}
+
+The previous failure was caused by too much order: residual nonnegativity
+prevents accelerated motion.  Standard FISTA exhibits the opposite problem.
+Its global iteration rate is accelerated, but its extrapolated trajectory can
+touch a vertex whose degree is arbitrarily larger than the optimal support.
+
+This section concerns the regularized RPPR objective
+\begin{equation}
+  F_\rho(x)
+  =\frac12x^TQx-\alpha\langle D^{-1/2}s,x\rangle
+   +\alpha\rho\|D^{1/2}x\|_1,
+  \label{eq:signed-star-rppr-objective}
+\end{equation}
+and objective-gap target
+$F_\rho(x_N)-F_\rho(x^\star)\le\varepsilon_{\rm obj}$.  It is therefore a
+separate accuracy namespace from the semantic PPR theorem above.  The result
+is the source-proved leaf-star obstruction of
+\citet{fountoulakis2026complexity}, restated here with its decisive algebra.
+
+\subsection{Standard strongly-convex FISTA}
+
+For the source scaling, $Q$ has smoothness $L=1$ and
+\eqref{eq:signed-star-rppr-objective} is $\alpha$-strongly convex.  Standard
+fixed-momentum FISTA starts with $x_{-1}=x_0=0$ and uses
+\begin{equation}
+  \beta:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+  \qquad
+  y_k=x_k+\beta(x_k-x_{k-1}),
+  \qquad
+  x_{k+1}=\operatorname{prox}_{g_\rho}
+      \bigl(y_k-\nabla f(y_k)\bigr).
+  \label{eq:signed-star-fista}
+\end{equation}
+The proximal map soft-thresholds coordinate $i$ at
+$\alpha\rho\sqrt{d_i}$.  The degree-weighted work model charges
+\begin{equation}
+  \operatorname{work}_k
+  :=\operatorname{vol}(\operatorname{supp}y_k)
+   +\operatorname{vol}(\operatorname{supp}x_{k+1}).
+  \label{eq:signed-star-fista-work}
+\end{equation}
+Thus activating a single degree-$m$ coordinate costs at least $m$, even when
+the number of active coordinates is only one.
+
+\subsection{Leaf-seeded star with a one-vertex optimum}
+
+Let $G(m)$ be a star with center $w$ of degree $m\ge2$, seed leaf $v$, and
+$m-1$ other leaves.  Set
+\begin{equation}
+  \rho_0
+  :=\frac{1-\alpha}{m(1+\alpha)+(1-\alpha)}.
+  \label{eq:signed-star-fista-rho0}
+\end{equation}
+At this breakpoint, the unique RPPR optimizer is
+\begin{equation}
+  x^\star=x_v^\star e_v,
+  \qquad
+  x_v^\star=\frac{2\alpha(1-\rho_0)}{1+\alpha},
+  \qquad
+  \operatorname{supp}(x^\star)=\{v\}.
+  \label{eq:signed-star-fista-optimum}
+\end{equation}
+To check this, the active KKT equation at $v$ yields the displayed value.
+At the center,
+\begin{equation}
+  |\nabla_w f(x^\star)|
+  =\frac{\alpha(1-\alpha)(1-\rho_0)}
+          {(1+\alpha)\sqrt m}
+  =\alpha\rho_0\sqrt m,
+  \label{eq:signed-star-fista-tight-margin}
+\end{equation}
+so the center is inactive but has zero complementarity margin.  All other
+leaves have zero smooth gradient.  Strong convexity makes the KKT point
+unique.  Notice the geometry:
+\begin{equation}
+  \operatorname{vol}(\operatorname{supp}x^\star)=1,
+  \qquad
+  \operatorname{vol}(\partial\operatorname{supp}x^\star)=m.
+  \label{eq:signed-star-fista-core-boundary}
+\end{equation}
+The optimizer is maximally local, while its one-vertex boundary is maximally
+expensive.
+
+\subsection{The exact overshoot}
+
+For any extrapolated point supported on $\{v,w\}$, the center coordinate of
+the forward point $u(y):=y-\nabla f(y)$ is
+\begin{equation}
+  u(y)_w
+  =\frac{1-\alpha}{2}
+      \left(y_w+\frac{y_v}{\sqrt m}\right).
+  \label{eq:signed-star-fista-forward-center}
+\end{equation}
+Using the tight breakpoint identity
+\eqref{eq:signed-star-fista-tight-margin}, the center becomes positive after
+soft thresholding exactly when
+\begin{equation}
+  y_w\sqrt m+y_v>x_v^\star
+  \label{eq:signed-star-fista-activation-criterion}
+\end{equation}
+for nonnegative $y_w,y_v$.  Before the center activates, $y_w=0$, so a seed
+overshoot $y_v>x_v^\star$ is enough.
+
+The preactivation dynamics are one-dimensional.  Put
+\begin{equation}
+  a:=\frac{1-\alpha}{2},
+  \qquad
+  e_k:=x_{k,v}-x_v^\star,
+  \qquad
+  \widetilde e_k:=y_{k,v}-x_v^\star.
+  \label{eq:signed-star-fista-errors}
+\end{equation}
+As long as $w$ remains inactive, the soft threshold at the seed acts
+affinely, giving
+\begin{equation}
+  e_{k+1}=a\bigl((1+\beta)e_k-\beta e_{k-1}\bigr).
+  \label{eq:signed-star-fista-scalar-recurrence}
+\end{equation}
+The first errors are $e_0=-x_v^\star$ and $e_1=ae_0$.  Since
+\begin{equation}
+  a(1+\beta)=1-\sqrt\alpha,
+  \qquad
+  a(1+\beta)-\beta=\sqrt\alpha\,\beta,
+  \label{eq:signed-star-fista-parameter-identities}
+\end{equation}
+we obtain
+\begin{equation}
+  \widetilde e_1=\sqrt\alpha\,\beta e_0<0,
+  \qquad
+  e_2=a\sqrt\alpha\,\beta e_0.
+  \label{eq:signed-star-fista-first-errors}
+\end{equation}
+The second extrapolation reverses the sign:
+\begin{align}
+  \widetilde e_2
+  &=(1+\beta)e_2-\beta e_1 \notag\\
+  &=a\beta e_0\bigl((1+\beta)\sqrt\alpha-1\bigr)
+    =-a\beta^2e_0
+    =a\beta^2x_v^\star>0.
+  \label{eq:signed-star-fista-exact-overshoot}
+\end{align}
+Thus $y_{2,v}>x_v^\star$, and
+\eqref{eq:signed-star-fista-activation-criterion} forces
+$x_{3,w}>0$.  Momentum has activated the degree-$m$ center after two
+extrapolated steps, even though that coordinate is zero at the optimum.
+
+\subsection{Work separation from ISTA}
+
+The source turns this activation into an objective-gap lower bound.  Define
+\begin{equation}
+  \varepsilon_0(\alpha)
+  :=\frac{\alpha^3(1-\alpha)^4\beta^4}
+          {2(3+\alpha)^2}>0.
+  \label{eq:signed-star-fista-epsilon0}
+\end{equation}
+For every
+$0<\varepsilon_{\rm obj}\le\varepsilon_0(\alpha)$, the first four FISTA
+iterates have not yet reached the target.  The verification uses the exact
+one-dimensional gaps before activation and strong convexity afterward:
+\begin{equation}
+  F_{\rho_0}(x_ke_v)-F_{\rho_0}(x^\star)
+  =\frac{1+\alpha}{4}e_k^2
+  \quad(k=0,1,2),
+  \label{eq:signed-star-fista-preactivation-gap}
+\end{equation}
+while $x_{3,w}>0$ and
+$x_{3,v}-x_v^\star=a^2\beta^2x_v^\star$ imply a strictly positive
+strong-convexity lower bound at $k=3$.  The choice
+\eqref{eq:signed-star-fista-epsilon0} lies below all four quantities.
+
+Iteration $k=2$ charges the support of $x_3$, which contains $w$; iteration
+$k=3$ charges the support of
+$y_3=x_3+\beta(x_3-x_2)$, which also contains $w$.  Consequently,
+\begin{equation}
+  W_{\rm FISTA}\ge2m.
+  \label{eq:signed-star-fista-work-lower}
+\end{equation}
+By the source's imported ISTA support-containment result, ISTA remains inside
+$\operatorname{supp}(x^\star)=\{v\}$ and reaches the same objective gap in
+\begin{equation}
+  W_{\rm ISTA}
+  =O\!\left(
+      \frac1\alpha\log\frac1{\varepsilon_{\rm obj}}
+    \right),
+  \label{eq:signed-star-ista-work-upper}
+\end{equation}
+independently of $m$.  Holding $\alpha$ and the permitted objective tolerance
+fixed while sending $m\to\infty$ makes the FISTA/ISTA work ratio unbounded.
+
+\subsection{What this failure does and does not say}
+
+The obstruction does \emph{not} contradict FISTA's accelerated global
+function-gap rate.  It says that iteration count does not control local work
+when support volume varies along the trajectory.  Nor does it prove that all
+momentum or all local acceleration fails: signed SOR on the center-star has
+just succeeded, and the source also proves a conditional FISTA upper bound
+when every spurious activation is confined to a controlled boundary set.
+
+The exact lesson is narrower and more useful:
+\begin{quote}
+Small optimal support does not bound an accelerated method's transient
+degree volume.  Any local FISTA theorem needs either confinement, a summable
+spurious-work charge, or a safeguard that prevents expensive overshoot.
+\end{quote}

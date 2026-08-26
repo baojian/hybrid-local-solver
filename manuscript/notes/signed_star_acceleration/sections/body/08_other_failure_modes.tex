@@ -1,0 +1,188 @@
+\section{Other pure-local acceleration failures and limitations}
+\label{sec:signed-star-other-failures}
+
+The FISTA star is not the only way an accelerated local method can lose.  Two
+other proof-owned examples in this repository expose complementary costs.
+They are included here as imports, with their original accuracy and algorithm
+contracts preserved.
+
+\subsection{Safe nested acceleration can pay a repeated-prefix tax}
+
+Literal ASPR repeatedly solves an accelerated principal subproblem on a safe
+active set, retracts to a lower solution, discovers new negative-gradient
+coordinates, and restarts on the enlarged set.  This prevents the FISTA-type
+spurious activation: every active set stays inside the true RPPR support.
+Safety, however, does not prevent re-reading and re-solving the old prefix.
+
+The standalone audit
+\texttt{manuscript/notes/aspr23\_bound\_audit/} proves an endpoint-path
+family on which exactly one new support coordinate is discovered per stage.
+If the final support has $s$ vertices, stage $r$ solves a prefix of volume
+$\Theta(r)$, and sufficiently accurate inner solves require
+$\Omega(1/\sqrt\alpha)$ restricted-gradient iterations per stage.  Thus
+\begin{equation}
+  W_{\rm ASPR}
+  =\Omega\!\left(
+      \frac{s^2}{\sqrt\alpha}
+    \right)
+  \label{eq:signed-star-aspr-structural-lower}
+\end{equation}
+before the prescribed accuracy logarithm; fresh full-gradient discovery also
+costs $\Omega(s^2)$.
+
+The audit gives a literal same-tolerance separation by choosing
+\begin{equation}
+  \alpha=s^{-2},
+  \qquad
+  \rho=\frac\alpha{100},
+  \qquad
+  \varepsilon_{\rm obj}=10^{-4}\alpha^2.
+  \label{eq:signed-star-aspr-quantitative-family}
+\end{equation}
+On this RPPR path,
+\begin{equation}
+  W_{\rm ASPR}=\Omega(s^3\log s),
+  \qquad
+  W_{\rm FISTA}=O(s^2\log s).
+  \label{eq:signed-star-aspr-fista-separation}
+\end{equation}
+So FISTA can be a factor $\Omega(s)$ faster on a full-support path, even
+though FISTA loses arbitrarily badly on the tiny-support leaf-star of
+\Cref{sec:signed-star-fista-failure}.  The two examples establish
+incomparability:
+\begin{itemize}[leftmargin=*]
+\item the leaf-star punishes unsafe momentum and rewards support containment;
+\item the path punishes nested restarts and rewards continuation of the
+      accelerated state.
+\end{itemize}
+The path theorem is about literal ASPR, not every safe active-set method.  A
+method that transports an estimate sequence across support expansions is
+outside that lower bound.
+
+\subsection{Accelerated outer stages do not by themselves bound local work}
+
+The source AESP schedule performs $\widetilde O(1/\sqrt\alpha)$ accelerated
+outer stages, each calling a local inner procedure.  The proof-owning note
+\texttt{manuscript/notes/aesp\_locgd\_star\_lower\_bound/} specializes the
+literal batched LocGD inner method to a center-seeded star.  Symmetry makes
+every nonempty batch scan the entire active star.  Its source-compatible
+theorem assumes
+\begin{equation*}
+ 0<\alpha<\frac12,
+ \qquad 0<\varepsilon_{\rm AESP}\leq\frac18,
+ \qquad B=\left\lfloor\frac1{4\varepsilon_{\rm AESP}}\right\rfloor,
+\end{equation*}
+and gives
+\begin{equation}
+  W_{\rm AESP\text{-}LocGD}
+  =\Omega\!\left(
+      \frac{1}{\sqrt\alpha\,\varepsilon_{\rm AESP}}
+    \right)
+  \label{eq:signed-star-aesp-locgd-lower}
+\end{equation}
+in the note's AESP accuracy and active-volume work model.
+
+This is not a lower bound above the desired product scale and therefore does
+not refute acceleration.  Its role is diagnostic: multiplying an accelerated
+outer-stage count by an unproved notion of ``local inner work'' is invalid.
+One must charge the volume of every actual inner batch.  The result also does
+not cover the sequential LocAPPR inner method or arbitrary local inner
+oracles.
+
+\subsection{Classical monotone baselines fail for a different reason}
+
+Under their own namespaces, the active manuscript proves two closely related
+tightness results:
+\begin{itemize}[leftmargin=*]
+\item lazy APPR has worst-case degree work
+      $\Theta(1/(\alpha\varepsilon_{\rm appr}))$;
+\item fixed-relative-accuracy residual-thresholded coordinate ISTA has
+      worst-case work $\Theta(1/(\alpha\rho))$ for RPPR.
+\end{itemize}
+These results are consistent with
+\Cref{thm:signed-star-monotone-lower}, but their tolerances are not identified
+with $\varepsilon_{\rm ppr}$.  They show algorithm-specific tightness for
+standard conservative propagation; they are not lower bounds against signed
+relaxation, FISTA, block solves, or response methods.
+
+\subsection{A strong certificate can fail even when the algorithm succeeds}
+
+The residual-certificate behavior in
+\eqref{eq:signed-star-certificate-log} deserves to be listed as a failure mode
+in its own right.  If one defines the algorithm to continue until
+$|r|\le\gamma_\alpha\varepsilon_{\rm ppr}d$, then optimal SOR really does
+perform
+\begin{equation}
+  \Theta\!\left(
+    \frac{\log(1/\alpha)}
+         {\sqrt\alpha\,\varepsilon_{\rm ppr}}
+  \right)
+  \label{eq:signed-star-certificate-work}
+\end{equation}
+work on this star.  The semantic theorem does not invalidate that statement;
+it analyzes a different, predetermined stopping policy.  What is refuted is
+the inference that certificate-stopped work is a lower bound on semantic
+accuracy.  In signed dynamics, cancellation can make the solution error small
+while coordinate residual magnitudes remain comparatively large.
+
+\subsection{Why elimination is a distinct rung}
+
+The star also prevents an overbroad lower-bound interpretation.  Once the
+entire star has been exposed, its two-by-two aggregate system can be solved
+exactly and materialized in $O(m)=O(1/\varepsilon_{\rm ppr})$ work,
+independent of $\alpha$.  This does not contradict
+\Cref{thm:signed-star-signed-lower}: an exact aggregate response is not a
+one-coordinate relaxation.  It uses a stronger primitive whose cost must be
+charged separately.
+
+The three separately defined special-case regimes are therefore
+\begin{equation}
+  \underbrace{\Theta(1/(\alpha\varepsilon))}_{
+      \text{nonnegative one-hop}}
+  \quad\text{vs.}\quad
+  \underbrace{\Theta(1/(\sqrt\alpha\varepsilon))}_{
+      \text{signed dissipative one-hop}}
+  \quad\text{vs.}\quad
+  \underbrace{\Theta(1/\varepsilon)}_{
+      \text{full-star aggregate solve}}.
+  \label{eq:signed-star-three-rungs}
+\end{equation}
+The comparison symbols are not class-containment arrows:
+$\mathcal M_+$ and $\mathcal R_\pm$ are incomparable as defined, while the
+aggregate solver uses a stronger primitive.  The genuinely nested signed
+comparison is $\mathcal R_\pm^{\rm nn}\subset\mathcal R_\pm$ from
+\Cref{sec:signed-star-monotone-failure}.  Passing to the aggregate solve is
+not ``more momentum'' but a change in inverse primitive from local recurrence
+to output-scale elimination.
+
+\subsection{Compact comparison}
+
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.16\textwidth}p{0.23\textwidth}p{0.34\textwidth}}
+\toprule
+Method or class & Witness & Charged conclusion & Exact failure or success
+mechanism \\
+\midrule
+$\mathcal M_+$ & center-star &
+$\Omega(1/(\alpha\varepsilon_{\rm ppr}))$ & Nonnegative residual permits only
+$O(\alpha)$ fractional center-deficit reduction per paid center scan. \\
+$\mathcal R_\pm$ / SOR & center-star &
+$\Theta(1/(\sqrt\alpha\varepsilon_{\rm ppr}))$ & Signed reflection permits
+acceleration; fast-mode energy prevents anything asymptotically faster inside
+the class. \\
+FISTA & leaf-star RPPR & $\Omega(m)$ versus ISTA independent of $m$ &
+Extrapolation overshoots a zero-margin seed coordinate and activates a
+degree-$m$ boundary center. \\
+Literal ASPR & endpoint RPPR path & factor-$s$ loss versus FISTA on a concrete
+same-tolerance scaling & Safe support expansion restarts and re-solves every
+old prefix. \\
+AESP--LocGD & center-star, $\alpha<1/2$, $\varepsilon_{\rm AESP}\leq1/8$ &
+$\Omega(1/(\sqrt\alpha\varepsilon_{\rm AESP}))$ & Every nonempty batched inner
+call scans the symmetric active star. \\
+Certificate-stopped SOR & center-star & extra $\log(1/\alpha)$ & Sufficient
+coordinate residual bound misses two-mode semantic cancellation. \\
+Aggregate exact solve & center-star & $O(1/\varepsilon_{\rm ppr})$ & Stronger
+output-scale inverse primitive solves the two-state system directly. \\
+\bottomrule
+\end{tabular}
+\end{center}

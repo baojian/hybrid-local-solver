@@ -1,0 +1,141 @@
+\section{Failure mode I: nonnegative residuals lose acceleration}
+\label{sec:signed-star-monotone-failure}
+
+Signed SOR succeeds because its over-relaxed step creates a controlled
+opposite-sign reflection.  We now show, on exactly the same PPR instance and
+under exactly the same semantic error, that preserving residual nonnegativity
+forces the classical $1/\alpha$ scale.
+
+\paragraph{Nonnegative-residual one-hop class $\mathcal M_+$.}
+A member maintains the same exact invariant
+$r=\gamma_\alpha e_o-Hp$, starts from $p=0$, and uses coordinate operations
+\eqref{eq:signed-star-coordinate-primitive}.  Step sizes and coordinate order
+may be adaptive, signed, or randomized, but every intermediate residual must
+satisfy
+\begin{equation}
+  r\ge0.
+  \label{eq:signed-star-nonnegative-residual}
+\end{equation}
+The output is $p$ and every operation is charged by the updated coordinate's
+degree.  This class abstracts the order structure used by conservative local
+push and monotone coordinate schemes.  It does not include SOR with
+$\omega>1$ or FISTA extrapolation.
+
+\subsection{A multiplicative center-deficit barrier}
+
+Let
+\begin{equation}
+  q:=\pi_o-p_o=(H^{-1}r)_o
+  \label{eq:signed-star-center-deficit}
+\end{equation}
+be the remaining center deficit.  Since $H^{-1}\ge0$ and $r\ge0$, we have
+$q\ge0$.  On the star,
+\begin{equation}
+  (H^{-1})_{oo}=\frac{1}{1-c_\alpha^2},
+  \qquad
+  \kappa_\alpha:=1-c_\alpha^2
+     =\frac{4\alpha}{(1+\alpha)^2}.
+  \label{eq:signed-star-kappa}
+\end{equation}
+Dropping every noncenter contribution in $(H^{-1}r)_o$ gives
+\begin{equation}
+  q\ge\frac{r_o}{\kappa_\alpha},
+  \qquad\text{hence}\qquad
+  r_o\le\kappa_\alpha q.
+  \label{eq:signed-star-center-residual-deficit}
+\end{equation}
+
+Consider a positive center update $p_o^+=p_o+\delta$ with $\delta>0$.
+Because $H_{oo}=1$, its new center residual is $r_o^+=r_o-\delta$.
+Nonnegativity forces $\delta\le r_o$, and therefore
+\begin{equation}
+  q^+=q-\delta
+  \ge(1-\kappa_\alpha)q.
+  \label{eq:signed-star-deficit-contraction-limit}
+\end{equation}
+A leaf operation does not change $p_o$ and hence does not change $q$; a
+negative center operation only increases $q$.  Thus after $N_o^+$ positive
+center operations, regardless of all intervening work,
+\begin{equation}
+  q_T\ge(1-\kappa_\alpha)^{N_o^+}\pi_o.
+  \label{eq:signed-star-deficit-product}
+\end{equation}
+
+\begin{theorem}[Nonnegative-residual lower bound]
+\label{thm:signed-star-monotone-lower}
+Let $0<\alpha\le1/16$ and choose $m$ by
+\eqref{eq:signed-star-size}.  Every successful path of every
+$\mathcal M_+$ member satisfies
+\begin{equation}
+  N_o^+
+  \ge
+  \frac{\log\bigl(\pi_o/(\varepsilon_{\rm ppr}m)\bigr)}
+       {-\log(1-\kappa_\alpha)}
+  \ge\frac{3\log4}{16\alpha},
+  \label{eq:signed-star-monotone-center-count}
+\end{equation}
+and hence
+\begin{equation}
+  W
+  \ge mN_o^+
+  \ge\frac{3\log4}
+           {256\alpha\varepsilon_{\rm ppr}}
+  =\Omega\!\left(
+      \frac{1}{\alpha\varepsilon_{\rm ppr}}
+    \right).
+  \label{eq:signed-star-monotone-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Semantic accuracy and $q_T\ge0$ imply
+$q_T\le\varepsilon_{\rm ppr}m$.  Combine this with
+\eqref{eq:signed-star-deficit-product}.  Since
+$\pi_o\ge1/2$ and $\varepsilon_{\rm ppr}m\le1/8$, the logarithm in the
+numerator is at least $\log4$.
+
+For $\alpha\le1/16$,
+$\kappa_\alpha\le64/289<1/4$.  Using
+$-\log(1-x)\le x/(1-x)$ for $x\in(0,1)$ and
+$\kappa_\alpha\le4\alpha$ gives
+\begin{equation*}
+  -\log(1-\kappa_\alpha)
+  \le\frac43\kappa_\alpha
+  \le\frac{16}{3}\alpha.
+\end{equation*}
+This proves the count bound.  Each positive center operation costs
+$d_o=m\ge1/(16\varepsilon_{\rm ppr})$.
+\end{proof}
+
+The conclusion is a clean same-instance separation:
+\begin{equation}
+  \mathcal M_+:
+  \Omega\!\left(\frac1{\alpha\varepsilon_{\rm ppr}}\right),
+  \qquad
+  \mathcal R_\pm:
+  \Theta\!\left(\frac1{\sqrt\alpha\varepsilon_{\rm ppr}}\right).
+  \label{eq:signed-star-sign-separation}
+\end{equation}
+These two displayed bounds concern the separately defined classes
+$\mathcal M_+$ and $\mathcal R_\pm$; neither class contains the other.
+Indeed, $\mathcal M_+$ permits arbitrary signed step sizes subject to the
+residual constraint, whereas $\mathcal R_\pm$ requires
+$\delta=\omega r_u$ with $0<\omega<2$ but permits signed residuals.
+There is nevertheless a genuinely nested corollary.  Let
+\begin{equation*}
+ \mathcal R_\pm^{\rm nn}
+ :=\{\text{runs in $\mathcal R_\pm$ with $r^t\geq0$ at every step}\}.
+\end{equation*}
+Then $\mathcal R_\pm^{\rm nn}\subset\mathcal M_+$, so
+\Cref{thm:signed-star-monotone-lower} gives the
+$\Omega(1/(\alpha\varepsilon_{\rm ppr}))$ lower bound for this subclass,
+while optimal over-relaxed SOR in $\mathcal R_\pm$ attains the signed
+$\Theta(1/(\sqrt\alpha\varepsilon_{\rm ppr}))$ scale.  In that nested
+comparison, the decisive extra permission is a controlled signed reflection.
+
+The theorem should not be broadened into an information-theoretic lower
+bound for local PPR.  Exact block elimination, response methods, or an output
+postprocessor with a charged stronger primitive are outside
+$\mathcal M_+$.  Even within coordinate algorithms, the theorem assumes the
+exact nonnegative residual invariant and output $p$; it does not classify
+every conceivable nonlinear sparse representation.
