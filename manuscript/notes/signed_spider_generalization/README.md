@@ -13,16 +13,22 @@ red--black SOR spectral factor on every fixed exposed bipartite face,
 specializes it to spider prefixes, scopes the sharp rate to supplied spectral
 tuning, and gives a generic finite fixed-face work bound using one
 graph-global parameter.
-It then records the stronger existing response results: exact RPPR support and
-solution can already be found locally on hub-rooted spiders, arbitrary rooted
-trees, and graphs with bounded biconnected blocks.  Choosing the RPPR
-regularization at the PPR accuracy scale converts those results into semantic
-PPR guarantees.  It also distinguishes the already-proved radial two-rung
-finite-spider theorem from the sharper open question of log-free semantic
-damping for plain optimal SOR.  The remaining graph-uniform obstacle is not
-tree geometry;
-it is changing signed state and output-sensitive boundary reporting inside
-large biconnected cyclic cores.
+On complete equal-arm hub-seeded spiders, it proves a new dimension-free
+maximum-norm theorem: plain optimal SOR reduces semantic error by
+`lambda^(2k) (1 + 2k(1-lambda^2))`, giving log-free
+`O(1/(sqrt(alpha) eps_ppr))` output-scale work.  An exact two-vertex witness
+shows why the source color must be swept first.
+
+For nested bipartite faces, the note also proves exact nonsettled
+face-shock Pythagoras and a conditional continuation theorem under supplied
+geometric volume growth.  It then records the stronger existing response
+results: exact RPPR support and solution can already be found locally on
+hub-rooted spiders, arbitrary rooted trees, and graphs with bounded
+biconnected blocks.  Choosing the RPPR regularization at the PPR accuracy
+scale converts those results into semantic PPR guarantees.  The remaining
+graph-uniform obstacle is not tree geometry or numerical state transport;
+it is avoiding repeated face scans and maintaining an output-sensitive
+boundary reporter inside large biconnected cyclic cores.
 
 Build from this directory with:
 

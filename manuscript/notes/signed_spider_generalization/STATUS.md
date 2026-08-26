@@ -19,9 +19,10 @@ State: proved-open
 - **Access and charged work:** Every active adjacency scan costs degree, repeated sweeps
   are charged, support discovery and certification are charged when claimed,
   and final output writes are included.
-- **Intended result:** Establish the exact comparison bridge and fixed-face
-  bipartite SOR theorem, identify the strongest already-proved spider/tree/
-  bounded-block algorithms, and leave large cyclic cores explicitly open.
+- **Intended result:** Establish the exact comparison bridge, prove log-free
+  plain SOR on the symmetric spider, carry its signed numerical state across
+  a controlled sequence of bipartite faces, identify the strongest imported
+  structural algorithms, and leave only the unpaid large-core interface open.
 
 ## Claim ledger
 
@@ -35,7 +36,13 @@ State: proved-open
   `(1-t)/(1+t)` with `t=sqrt(1-rho_J^2)` and a finite Euclidean/semantic
   convergence bound when the face-specific tuning is supplied.  One
   graph-global parameter gives the generic fully charged fixed-face bound
-  without computing `rho_J`.
+  without computing `rho_J`.  On every finite equal-arm hub-seeded spider,
+  source-color-first plain SOR obeys the exact dimension-free envelope
+  `zeta^k(1+2k(1-zeta))`, yielding log-free output-scale work.  For nested
+  fixed-load faces, zero-padding any nonsettled old iterate gives exact
+  Pythagorean error splitting.  Combining this identity with the fixed-face
+  power bound proves a supplied geometrically-growing-face continuation
+  theorem at soft product scale.
 - **Imported:** The exact spider-prefix spectrum comes from
   `volume_gated_acceleration`.  Exact kinetic response on hub-rooted spiders and
   exact aggregate response on rooted trees come from
@@ -44,24 +51,31 @@ State: proved-open
   radial two-rung and finite-spider deflation theorems come from
   `two_rung_direct_theory` under their residual-gate namespace and parameter
   hypotheses `1 < B_rung < B_edge`, `B_rung R eps_ppr < 1`.
-- **Conditional:** An SOR-only local theorem beyond a fixed face requires a
-  charged support-discovery, state-transport, and semantic-stopping interface.
+- **Conditional:** The continuation theorem assumes supplied nested bipartite
+  faces and geometric volume growth.  An end-to-end SOR-only local theorem
+  still requires a charged support-discovery, finite-band reporting, and
+  semantic-stopping interface without repeated-prefix scans.
 - **Measured:** None of the main claims is inferred from measurement.  The
-  verifier checks the block-SOR algebra and spectral formulas numerically.
+  verifier audits the block-SOR algebra, radial wave recurrence, semantic
+  envelope, bias bridge, and face-shock identity numerically.
 - **Refuted:** The existing SOR and FISTA star examples cannot be used as a
   direct performance ranking.  A small final support does not control FISTA's
   transient work, and a favorable fixed-face SOR rate does not pay for finding
-  or changing that face.
+  or changing that face.  The sharp radial envelope fails on `P2` after one
+  unswapped sweep when the source lies on the second color; swapping the color
+  order restores the theorem.
 - **Open:** A graph-uniform signed iterative solver on large biconnected cyclic
   cores with product-scale work and a local semantic certificate.
 
 ## Central blocker
 
 Trees and bounded articulation blocks have scalar or bounded-dimensional
-responses that can be maintained and charged.  A large nonequitable cyclic
-core can change many boundary demands after one local update.  Neither a
+responses that can be maintained and charged.  Numerical SOR state can also
+be transported across supplied geometrically growing bipartite faces.  What
+remains is a large nonequitable cyclic core where singleton admissions can
+force repeated old-face scans and change many boundary demands.  Neither a
 fixed-face spectral rate nor exact final-support volume controls those
-transient reports, state rewrites, or face changes.
+transient reports and state writes.
 
 ## Dependencies and reusable outputs
 
@@ -71,28 +85,32 @@ transient reports, state rewrites, or face changes.
 - **Context/provenance:** The user's SOR--FISTA comparability question and
   requested spider-first generalization motivate this note.
 - **Reusable outputs:** The accuracy bridge, fixed-face equivalence, exact
-  bipartite SOR factor, spider specialization, graph-family ladder, and staged
-  falsification plan.
+  bipartite SOR factor, log-free radial Chebyshev theorem, sweep-order witness,
+  nonsettled face-shock Pythagoras, conditional continuation theorem,
+  graph-family ladder, and staged falsification plan.
 
 ## Resume here
 
 - **Exact pointer:** `sec:comparison-bridge` for the objective/accuracy bridge;
-  `thm:fixed-bipartite-sor` for the new SOR theorem; and
-  `sec:beyond-bounded-blocks` for the open general-graph interface.
-- **Next action:** Prove or refute a windowed state-transport lemma on the
-  smallest large-block family where one admitted coordinate changes many
-  boundary demands, while retaining the fixed-face SOR energy bank.
-- **Stop/go test:** Continue the SOR route only if face-change work is charged
-  to new support, a telescoping energy shock, or a compressed response event;
-  stop any proof that treats the next face as free or silently replaces
-  semantic accuracy by a residual certificate.
+  `thm:radial-semantic-damping` for the log-free spider theorem;
+  `prop:windowed-sor-continuation` for supplied-face transport; and
+  `sec:beyond-bounded-blocks` for the remaining interface.
+- **Next action:** Build a finite-band KKT reporter on the smallest large
+  bipartite core and prove that its events remove the geometric-volume gate,
+  or preserve the first exact repeated-scan counterexample.
+- **Stop/go test:** Continue the SOR route only if singleton face-change work
+  is charged to new support, a packed finite-band crossing, or a compressed
+  response event; stop any proof that treats boundary reports or repeated old
+  rows as free.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 22-page PDF with no undefined
-  references, citations, or overfull boxes; all pages were rendered and
-  visually inspected.  `verify_spider.py` passed 80 SOR-mode cells, 144
-  spider-spectrum cells, and 522 small-graph RPPR-bias cells.
+- **Focused checks:** `make` produced a 24-page PDF with no undefined
+  references, citations, or overfull boxes, and all pages were rendered and
+  visually inspected.  `verify_spider.py` passed 80
+  SOR-mode cells, 144 spider-spectrum cells, 14,616 radial-semantic cells, one
+  exact sweep-order witness, 522 small-graph RPPR-bias cells, and 132
+  face-shock cells.
   `verify_fixed_face.py` passed 570 cells: 60 exact rational parameter
   cells, 480 finite-power cells, and 30 spider-prefix cells.  Focused Ruff
   checking passed.
@@ -101,7 +119,9 @@ transient reports, state rewrites, or face changes.
   lint` remains red on 1,345 pre-existing Ruff findings in checked-in
   `manuscript/claude-overnight-2026-08-24/` scripts; no reported finding is in
   this note or its verifier.
-- **Known gaps:** Log-free radial semantic damping for plain optimal SOR is
-  conjectural.  The end-to-end tree and bounded-block corollaries inherit the
-  exact-real arithmetic and single-seed scopes of their proof-owning response
-  theorems.  Large biconnected cyclic cores remain open.
+- **Known gaps:** The sharp radial theorem does not cover unequal arms,
+  nonradial seeds, or online face discovery.  The end-to-end tree and
+  bounded-block corollaries inherit the exact-real arithmetic and single-seed
+  scopes of their proof-owning response theorems.  Arbitrary singleton
+  admissions, their finite-band reporter, and large biconnected cyclic cores
+  remain open.

@@ -86,7 +86,7 @@ degree eigenvector.  Thus
  \label{eq:full-spider-sor-work}
 \end{equation}
 
-\subsection{Exact radial PPR profile and the log-free question}
+\subsection{Exact radial PPR profile}
 
 For a hub seed, symmetry makes the degree-normalized PPR value
 \begin{equation}
@@ -151,34 +151,244 @@ the desired log-free work
 The fixed-face two-norm theorem proves the same expression with a logarithm,
 but it does not prove the constant-factor semantic statement because the
 two-norm conversion can lose a factor depending on the number of arms.  The
-correct next SOR-specific lemma is therefore explicit.
+following maximum-norm wave argument removes that loss.
 
-\begin{conjecture}[Radial semantic damping]
-\label{conj:radial-semantic-damping}
-There are absolute constants $C,c>0$ such that optimal red--black SOR on every
-complete hub-seeded spider satisfies
+\subsection{Exact log-free semantic damping for plain SOR}
+
+Let $x^{(k)}$ be the zero-start iterate after $k$ complete red--black sweeps,
+where every even-depth shell is relaxed first and every odd-depth shell
+second.  On the complete spider use the graph-global parameter
 \begin{equation}
- \max_v\frac{|x_v^{(k)}-x_v^0|}{\sqrt{d_v}}
- \leq C(1+k\sqrt\alpha)e^{-ck\sqrt\alpha}
- \max_v\frac{x_v^0}{\sqrt{d_v}}.
- \label{eq:radial-semantic-conjecture}
+ \omega_\alpha=1+\lambda_\alpha^2,
+ \qquad
+ \zeta_\alpha:=\lambda_\alpha^2.
+ \label{eq:radial-sor-parameters}
 \end{equation}
-\end{conjecture}
 
-This is \textbf{Open}, not inferred from the spectral-radius theorem.  It is
-the precise spider analogue of the star's exact cancellation.  It is also
-falsifiable: unequal arms, a leaf seed, or a near-top nonradial mode may
-invalidate a uniform maximum-norm envelope even though the two-norm rate
-remains accelerated.
+\begin{theorem}[Log-free semantic damping on every finite symmetric spider]
+\label{thm:radial-semantic-damping}
+For every $0<\alpha<1$, every number of arms $B\geq1$, every arm length
+$N\geq1$, and every integer $k\geq0$,
+\begin{align}
+ \max_v\frac{|x_v^{(k)}-x_v^0|}{\sqrt{d_v}}
+ &\leq
+ \zeta_\alpha^k
+ \left(1+2k(1-\zeta_\alpha)\right)
+ \max_v\frac{x_v^0}{\sqrt{d_v}}
+ \label{eq:radial-semantic-exact-envelope}\\
+ &\leq
+ 8(1+k\sqrt\alpha)e^{-4k\sqrt\alpha}
+ \max_v\frac{x_v^0}{\sqrt{d_v}}.
+ \label{eq:radial-semantic-exponential-envelope}
+\end{align}
+The constants are independent of both $B$ and $N$.
+\end{theorem}
 
-\subsection{A different accelerated radial spider algorithm is already proved}
+\begin{proof}
+Write
+\begin{equation*}
+ e_v^{(k)}:=
+ \frac{x_v^0-x_v^{(k)}}{\sqrt{d_v}}.
+\end{equation*}
+Dividing the homogeneous coordinate-SOR error equation by $\sqrt{d_v}$
+gives the semantic update
+\begin{equation}
+ e_v^+=(1-\omega_\alpha)e_v
+ +\frac{\omega_\alpha c_\alpha}{d_v}
+   \sum_{u\sim v}e_u
+ =-\zeta_\alpha e_v
+ +\frac{2\lambda_\alpha}{d_v}
+   \sum_{u\sim v}e_u.
+ \label{eq:radial-semantic-coordinate-update}
+\end{equation}
+Hub seeding and equal arm lengths preserve radial symmetry.  Denote the
+common depth-$j$ value by $e_j^{(k)}$.
 
-The open conjecture above is narrower than ``does any local acceleration work
-on a spider?''  The proof-owning \texttt{two\_rung\_direct\_theory} note
-already answers that broader question positively for a radial block
-two-rung method.  On a symmetric spider with $R$ arms, it groups every depth
-shell into one commuting block, uses optimal SOR while the normalized
-residual is above a coarse threshold, and finishes with unit relaxation.  If
+Reflect the depth sequence evenly at $0$ and $N$ and then extend it with
+period $2N$.  This extension turns the endpoint averages into ordinary
+nearest-neighbor averages on a cycle.  For indices modulo $N$, put
+\begin{equation*}
+ E_i^{(k)}:=e_{2i}^{(k)},
+ \qquad
+ O_i^{(k)}:=e_{2i+1}^{(k)},
+\end{equation*}
+and let $L$ be the cyclic shift on these $N$ cells.  Equation
+\eqref{eq:radial-semantic-coordinate-update} becomes
+\begin{align}
+ E^{(k+1)}
+ &=-\zeta_\alpha E^{(k)}
+   +\lambda_\alpha(I+L^{-1})O^{(k)},
+ \label{eq:radial-even-update}\\
+ O^{(k+1)}
+ &=-\zeta_\alpha O^{(k)}
+   +\lambda_\alpha(I+L)E^{(k+1)}.
+ \label{eq:radial-odd-update}
+\end{align}
+Eliminating the opposite color shows that either
+$Z^{(k)}=E^{(k)}$ or $Z^{(k)}=O^{(k)}$ satisfies
+\begin{equation}
+ Z^{(k+1)}
+ =2\zeta_\alpha MZ^{(k)}
+  -\zeta_\alpha^2Z^{(k-1)},
+ \qquad
+ M:=\frac{L+L^{-1}}2.
+ \label{eq:radial-chebyshev-recurrence}
+\end{equation}
+After dividing by $\zeta_\alpha^k$, the recurrence is the Chebyshev wave
+equation.  For $k\geq1$ its exact solution is
+\begin{equation}
+ \frac{Z^{(k)}}{\zeta_\alpha^k}
+ =T_k(M)Z^{(0)}
+ +U_{k-1}(M)
+   \left(\frac{Z^{(1)}}{\zeta_\alpha}-MZ^{(0)}\right).
+ \label{eq:radial-chebyshev-solution}
+\end{equation}
+Because $M=(L+L^{-1})/2$,
+\begin{align}
+ T_k(M)&=\frac{L^k+L^{-k}}2,
+ \label{eq:radial-chebyshev-first-kind}\\
+ U_{k-1}(M)&=
+ \sum_{q=0}^{k-1}L^{k-1-2q}.
+ \label{eq:radial-chebyshev-second-kind}
+\end{align}
+Every shift is an isometry in maximum norm.  Therefore the two operator norms
+in \eqref{eq:radial-chebyshev-first-kind}--%
+\eqref{eq:radial-chebyshev-second-kind} are at most $1$ and $k$,
+respectively.  This is the dimension-free step that an Euclidean spectral
+bound misses.
+
+It remains to bound the two initial wave mismatches.  At zero start,
+$e_j^{(0)}=y_j$, so \eqref{eq:spider-arm-profile} gives
+\begin{equation}
+ \|E^{(0)}\|_\infty=y_0,
+ \qquad
+ \|O^{(0)}\|_\infty\leq y_0.
+ \label{eq:radial-initial-color-norms}
+\end{equation}
+The source lies on the even color.  The odd PPR equations give
+\begin{equation*}
+ O^{(0)}=\frac{c_\alpha}{2}(I+L)E^{(0)}.
+\end{equation*}
+Using $c_\alpha/\lambda_\alpha=2/(1+\zeta_\alpha)$ in
+\eqref{eq:radial-even-update} yields
+\begin{equation}
+ \frac{E^{(1)}}{\zeta_\alpha}-ME^{(0)}
+ =s_\alpha(I+M)E^{(0)},
+ \qquad
+ s_\alpha:=\frac{1-\zeta_\alpha}{1+\zeta_\alpha}.
+ \label{eq:radial-even-wave-mismatch}
+\end{equation}
+Hence its maximum norm is at most
+$2(1-\zeta_\alpha)y_0$.
+
+For the odd color, direct substitution of
+\eqref{eq:radial-even-update} into
+\eqref{eq:radial-odd-update} gives
+\begin{equation}
+ \frac{O^{(1)}}{\zeta_\alpha}-MO^{(0)}
+ =(M-\zeta_\alpha I)O^{(0)}.
+ \label{eq:radial-odd-wave-mismatch}
+\end{equation}
+The explicit profile is decreasing from either reflected endpoint and, for
+$0\leq j\leq N-2$, satisfies
+\begin{equation}
+ 0\leq y_j-y_{j+2}
+ =\frac{(1-\zeta_\alpha)y_0}
+        {1+\lambda_\alpha^{2N}}
+   \left(
+    \lambda_\alpha^j
+    -\lambda_\alpha^{2N-j-2}
+   \right)
+ \leq(1-\zeta_\alpha)y_0.
+ \label{eq:radial-profile-two-step-difference}
+\end{equation}
+The reflected boundary differences obey the same bound.  Consequently,
+$\|(M-I)O^{(0)}\|_\infty\leq
+(1-\zeta_\alpha)y_0$, and
+\eqref{eq:radial-odd-wave-mismatch} also has norm at most
+$2(1-\zeta_\alpha)y_0$.
+
+Applying \eqref{eq:radial-chebyshev-solution} to both colors proves
+\eqref{eq:radial-semantic-exact-envelope}.  Finally,
+\begin{equation*}
+ 1-\zeta_\alpha
+ =\frac{4\sqrt\alpha}{(1+\sqrt\alpha)^2}
+ \leq4\sqrt\alpha,
+ \qquad
+ \zeta_\alpha^k=\lambda_\alpha^{2k}
+ \leq e^{-4k\sqrt\alpha}.
+\end{equation*}
+Since $1+8z\leq8(1+z)$ for $z\geq0$, the exponential envelope follows.
+\end{proof}
+
+\begin{proposition}[The source-first sweep order is necessary]
+\label{prop:radial-sweep-order-witness}
+The sharp envelope
+\eqref{eq:radial-semantic-exact-envelope} does not hold unchanged when the
+source is on the second color and the original even--odd sweep order is kept.
+Already on the two-vertex path, take $\alpha=1/9$, start from zero, put the
+source on the odd vertex, and relax the even vertex first.  After one full
+sweep the maximum semantic error has fallen by only $4/5$, whereas the
+right-hand-side factor in
+\eqref{eq:radial-semantic-exact-envelope} is $5/8$.
+\end{proposition}
+
+\begin{proof}
+Here $\lambda_\alpha=1/2$ and $\zeta_\alpha=1/4$.  The exact semantic PPR
+error at zero start is $(4/9,5/9)$, ordered as even then odd.  The two
+coordinate updates from
+\eqref{eq:radial-semantic-coordinate-update} give
+\begin{equation*}
+ e_{\rm even}^{(1)}
+ =-\frac14\frac49+\frac59=\frac49,
+ \qquad
+ e_{\rm odd}^{(1)}
+ =-\frac14\frac59+\frac49=\frac{11}{36}.
+\end{equation*}
+Thus the maximum-error ratio is $(4/9)/(5/9)=4/5$.  In contrast, the claimed
+one-sweep factor would be
+$\zeta_\alpha(1+2(1-\zeta_\alpha))=5/8$.  Swapping the two colors puts the
+source first and restores the theorem by symmetry.
+\end{proof}
+
+\begin{corollary}[Log-free output-scale plain SOR]
+\label{cor:radial-output-scale-sor}
+On the family \eqref{eq:spider-output-scale-family}, choose the hidden
+constants so that the zero-start semantic error is a fixed constant multiple
+of $\varepsilon_{\rm ppr}$.  A predetermined
+$k=O(1/\sqrt\alpha)$ full-sweep count reaches semantic error
+$\varepsilon_{\rm ppr}$ in
+\begin{equation}
+ W_{\rm radial\text{-}SOR}
+ =O\!\left(
+  \frac1{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+ \right)
+ \label{eq:radial-output-scale-sor-work}
+\end{equation}
+charged degree work, including every sweep and explicit output.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:radial-semantic-damping} reduces any fixed initial-to-target
+ratio in $O(1/\sqrt\alpha)$ sweeps.  A full spider sweep costs its degree
+volume $2BN=\Theta(1/\varepsilon_{\rm ppr})$, and the output has
+$1+BN=O(1/\varepsilon_{\rm ppr})$ coordinates.
+\end{proof}
+
+This closes the former plain-SOR radial conjecture, but only for a complete
+equal-arm spider, a hub seed, zero start, full red--black sweeps, and the
+predetermined semantic schedule, with the hub color relaxed first.
+Proposition~\ref{prop:radial-sweep-order-witness} shows that the order clause
+cannot simply be deleted.  Unequal arms, nonradial seeds, support discovery,
+and changing faces are not consequences of the theorem.
+
+\subsection{How the radial two-rung theorem differs}
+
+The proof-owning \texttt{two\_rung\_direct\_theory} note gives a different
+accelerated radial algorithm.  On a symmetric spider with $R$ arms, it groups
+every depth shell into one commuting block, uses optimal SOR while the
+normalized residual is above a coarse threshold, and finishes with unit
+relaxation.  If
 $B_{\rm edge}>1$ denotes the source theorem's admissibility constant, the
 imported theorem assumes
 \begin{equation*}
@@ -204,13 +414,14 @@ the far leaves, it certifies the closed pendant paths, Schur-deflates them,
 solves the remaining center scalar, and reverse-recovers all arms within the
 same asymptotic bound.
 
-This result and \Cref{conj:radial-semantic-damping} should not be merged.
-The imported method uses the note-scoped residual gate
+This imported result and
+\Cref{thm:radial-semantic-damping} should not be merged.  The imported method
+uses the note-scoped residual gate
 $\tau=\alpha\varepsilon_{\rm ppr}$, a two-rung schedule, refreshed radial
-selection, and possibly exact Schur deflation.  The conjecture asks whether
-plain optimal red--black SOR has a log-free semantic constant-factor bound on
-the output-scale family.  The existing theorem proves accelerated spider
-behavior; the conjecture asks for the sharper pure-SOR semantic mechanism.
+selection, and possibly exact Schur deflation; it can explore only the needed
+prefix.  The new theorem instead scans the complete spider every sweep and
+uses a predetermined semantic count.  Both are accelerated, but their
+locality and stopping contracts differ.
 
 \subsection{A stronger end-to-end spider algorithm already exists}
 

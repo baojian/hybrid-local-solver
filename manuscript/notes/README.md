@@ -55,7 +55,7 @@ This table is generated from `registry.toml` by
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
-| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Extend signed-star spectral algebra to bipartite faces and map the remaining graph frontier. |
+| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove log-free radial SOR on symmetric spiders and isolate the paid continuation frontier. |
 | [`signed_star_acceleration`](signed_star_acceleration/) | iterative | proved-open | Prove the exact signed-star accelerated rung and separate locality failure modes. |
 | [`two_rung_sor`](two_rung_sor/) | iterative | measured | Record the best measured two-rung SOR schedule. |
 | [`volume_gated_acceleration`](volume_gated_acceleration/) | iterative | proved-open | Develop support-volume safety and charged cross-face acceleration ledgers. |

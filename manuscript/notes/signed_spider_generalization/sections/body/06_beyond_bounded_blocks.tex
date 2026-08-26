@@ -71,7 +71,7 @@ Thus spectral tuning is not the main obstacle on an evolving bipartite
 support.  The difficulty is that $T_U$ acts on a different state space after
 an admission, while the new restricted optimum has moved.
 
-\subsection{The exact face shock at a settled checkpoint}
+\subsection{Face-shock orthogonality at a nonsettled iterate}
 
 The simplest face-change identity shows what must be paid.  Fix a load
 $\ell$; for RPPR on a positive face it is
@@ -83,7 +83,7 @@ demand
  \label{eq:new-face-demand}
 \end{equation}
 
-\begin{lemma}[Settled face-shock identity]
+\begin{lemma}[Exact nonsettled face-shock Pythagoras]
 \label{lem:settled-face-shock}
 If $z'=Q_{U'U'}^{-1}\ell_{U'}$, then
 \begin{align}
@@ -94,7 +94,16 @@ If $z'=Q_{U'U'}^{-1}\ell_{U'}$, then
  &=g_E^T(z'_E-z_E)=g_E^Tz'_E.
  \label{eq:face-shock-energy}
 \end{align}
-If $g_E\geq0$, then $z'-z\geq0$.
+If $g_E\geq0$, then $z'-z\geq0$.  Moreover, for every possibly
+nonsettled vector $x$ supported on $U$ and zero-padded to $U'$,
+\begin{equation}
+ \boxed{
+ \|z'-x\|_{Q_{U'U'}}^2
+ =
+ \|z-x\|_{Q_{UU}}^2
+ +\|z'-z\|_{Q_{U'U'}}^2.}
+ \label{eq:nonsettled-face-pythagoras}
+\end{equation}
 \end{lemma}
 
 \begin{proof}
@@ -103,15 +112,94 @@ $\ell_{U'}-Q_{U'U'}z=(0,g_E)^T$.  Apply the inverse to obtain
 \eqref{eq:face-shift-resolvent}; multiply by $(z'-z)^TQ_{U'U'}$ to obtain
 \eqref{eq:face-shock-energy}.  The final assertion follows because a
 principal SPD Stieltjes matrix has a nonnegative inverse.
+
+For the last identity, put $s=z'-z$.  The old-face error $z-x$ is supported
+on $U$, while
+\begin{equation*}
+ Q_{U'U'}s=\begin{bmatrix}0\\g_E\end{bmatrix}.
+\end{equation*}
+Therefore
+$\langle z-x,s\rangle_{Q_{U'U'}}=0$.  Expanding
+$z'-x=(z-x)+s$ proves \eqref{eq:nonsettled-face-pythagoras}.
 \end{proof}
 
-This identity supports an energy ledger when the old face is exactly settled.
-But settling every old face before admitting one more coordinate recreates
-the repeated-prefix tax.  A continuing accelerated method is generally not
-at $z_U$ when $E$ arrives.  Its enlarged residual then has both old-face and
-new-face components, and signed momentum may amplify or cancel them.  The
-missing theorem must analyze that actual state, not repeatedly replace it by
-the exact restricted optimum.
+Thus the current numerical error itself needs no restart and no settled-face
+assumption: zero-padding adds exactly the optimum-shift energy and no cross
+term.  This is the same Galerkin orthogonality that underlies the project's
+lifted-response results.  It does not make the dense correction $z'-z$
+available to the algorithm, and it does not control auxiliary estimate
+centers used by other accelerated methods.
+
+\begin{proposition}[Conditional windowed SOR continuation]
+\label{prop:windowed-sor-continuation}
+Let
+$U_0\subsetneq U_1\subsetneq\cdots\subsetneq U_J$
+be supplied bipartite faces for one fixed load, let
+$z^j=Q_{U_jU_j}^{-1}\ell_{U_j}$, start from any supplied iterate $x^0$
+supported on $U_0$, and define
+\begin{equation*}
+ \Delta_j:=
+ \|z^j-z^{j-1}\|_{Q_{U_jU_j}}^2
+ \qquad (1\leq j\leq J),
+\end{equation*}
+with zero-padding understood.  At stage $j$, zero-pad the preceding SOR
+iterate and run $H$ complete red--black sweeps with the global
+$\omega_\alpha$.  For every fixed $0<\theta<1$, one may choose
+\begin{equation}
+ H=O\!\left(
+  \frac1{\sqrt\alpha}\log\frac2\alpha
+ \right)
+ \label{eq:generic-face-window-length}
+\end{equation}
+independently of the faces so that the terminal energy errors
+$\mathcal E_j:=\|z^j-x^j\|_{Q_{U_jU_j}}^2$ satisfy
+\begin{align}
+ \mathcal E_j
+ &\leq\theta(\mathcal E_{j-1}+\Delta_j),
+ \label{eq:windowed-energy-recursion}\\
+ \mathcal E_J
+ &\leq\theta^J\mathcal E_0
+ +\sum_{j=1}^J\theta^{J-j+1}\Delta_j.
+ \label{eq:windowed-energy-telescope}
+\end{align}
+The charged numerical work is
+\begin{equation}
+ O\!\left(
+  H\sum_{j=1}^J\operatorname{vol}(U_j)
+ \right).
+ \label{eq:windowed-face-scan-work}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For one fixed face, \Cref{lem:one-omega-all-bipartite-faces} gives
+$\|T_U^H\|_2\leq6H\zeta_\alpha^{H-1}$.  Since
+$\alpha I\preceq Q_{UU}\preceq I$,
+\begin{equation*}
+ \|T_U^He\|_{Q_{UU}}^2
+ \leq
+ \frac{\|T_U^H\|_2^2}{\alpha}
+ \|e\|_{Q_{UU}}^2.
+\end{equation*}
+The choice \eqref{eq:generic-face-window-length}, together with
+$\zeta_\alpha\leq e^{-4\sqrt\alpha}$, makes the displayed factor at most
+$\theta$ uniformly in $U$.  At the admission,
+\eqref{eq:nonsettled-face-pythagoras} says that the pre-window energy is
+exactly $\mathcal E_{j-1}+\Delta_j$.  This proves the first recurrence;
+iteration proves the second.  Every sweep scans the current face once, giving
+\eqref{eq:windowed-face-scan-work}.
+\end{proof}
+
+If the exposed volumes grow geometrically, then
+$\sum_j\operatorname{vol}(U_j)=
+O(\operatorname{vol}(U_J))$, and
+\Cref{prop:windowed-sor-continuation} gives a fully charged
+$\widetilde O(\operatorname{vol}(U_J)/\sqrt\alpha)$ numerical
+continuation bound.  This closes the state-transport part under a volume gate.
+It does \emph{not} close arbitrary singleton admissions: in that chronology
+the sum in \eqref{eq:windowed-face-scan-work} can still be quadratic in the
+final volume.  Discovery and boundary-report maintenance also remain outside
+the proposition.
 
 \subsection{Four distinct costs on a changing cyclic face}
 

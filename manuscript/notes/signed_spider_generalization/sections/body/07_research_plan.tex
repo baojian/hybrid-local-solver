@@ -22,60 +22,47 @@ Reject any ranking that compares the center-SOR semantic theorem directly to
 the leaf-FISTA objective-gap obstruction.
 \end{description}
 
-\subsection{Stage 1: close or refute log-free SOR on radial spiders}
+\subsection{Stage 1: log-free SOR on radial spiders---completed here}
 
-The exact fixed-face spectral theorem is complete; the missing point is the
-maximum-norm response to the special hub source.
+The exact fixed-face spectral theorem leaves a maximum-norm gap.  Theorem
+\ref{thm:radial-semantic-damping} closes it for the complete equal-arm,
+hub-seeded spider.
 
 \begin{description}[leftmargin=2.7cm,style=nextline]
-\item[Analytical task]
-Eliminate one color from \eqref{eq:sor-singular-mode-update}.  On the radial
-red levels this gives a second-order polynomial recurrence in the two-step
-birth--death kernel.  Derive its exact scalar polynomials and use the Green
-profile \eqref{eq:spider-arm-profile} as the initial state.
-\item[Target lemma]
-Prove \Cref{conj:radial-semantic-damping}, or a weaker constant-factor version
-at $k=C/\sqrt\alpha$ sufficient for the family
-\eqref{eq:spider-output-scale-family}.
-\item[Falsification sweep]
-Check hub and leaf seeds, equal and unequal arms, $N$ below/at/above
-$\alpha^{-1/2}$, and the first nonradial arm-difference modes.  Exact rational
-cells should be used when $\alpha$ is a rational square; floating-point scans
-are only candidate generation.
-\item[Go condition]
-A bound uniform in $B,N$, with actual degree-normalized semantic error and
-explicit constants or a declared soft factor.
-\item[Stop condition]
-A family for which $k=\Theta(1/\sqrt\alpha)$ leaves an unbounded multiple of
-the initial semantic scale.  Preserve that family as an SOR-specific
-counterexample and use the kinetic response algorithm instead.
+\item[Deliverable]
+The reflected-cycle recurrence
+\eqref{eq:radial-chebyshev-recurrence}, exact shift formulas
+\eqref{eq:radial-chebyshev-first-kind}--%
+\eqref{eq:radial-chebyshev-second-kind}, and semantic envelope
+\eqref{eq:radial-semantic-exact-envelope}.
+\item[Result]
+The constants are uniform in both the arm count and arm length, and
+\Cref{cor:radial-output-scale-sor} gives the desired log-free output-scale
+work.
+\item[Scope guard]
+The source must be on the first color, the arms must be equal, and complete
+full-graph sweeps are charged.  With the source on the second color, the sharp
+envelope already fails after one unswapped sweep on $P_2$; swapping the color
+order restores the symmetric statement.  Unequal-arm numerical cells pass,
+but no theorem is inferred from them.
 \end{description}
 
 \subsection{Stage 2: carry SOR across nested bipartite faces}
 
 The global parameter in \Cref{lem:one-omega-all-bipartite-faces} removes
-retuning.  The state-transfer question should be asked on the actual
-nonsettled recurrence.
+retuning.  Lemma~\ref{lem:settled-face-shock} and
+\Cref{prop:windowed-sor-continuation} now close numerical state transfer
+under a supplied geometric volume gate.  The remaining task is to remove
+that gate or charge its reporter.
 
 \begin{description}[leftmargin=2.7cm,style=nextline]
 \item[Algorithm candidate]
 Maintain a safe nested RPPR face, use $\omega_\alpha$ on its bipartition,
-zero-pad newly admitted coordinates, retain the signed SOR iterate and one
-previous block state, and query a finite-band KKT reporter only at declared
-checkpoints.
-\item[Target window]
-For $H=\lceil C/\sqrt\alpha\rceil$, seek a potential $\Phi$ and charged face
-shocks $\Delta_j$ such that
-\begin{equation}
- \Phi_{t+H}
- \leq\theta\Phi_t+C_0\sum_{j=t}^{t+H-1}\Delta_j,
- \qquad 0<\theta<1,
- \label{eq:windowed-face-target}
-\end{equation}
-where a settled event reduces to
-$\Delta_j=g_{E_j}^Tz'_{E_j}$ from
-\eqref{eq:face-shock-energy}.  The actual formula must retain old residuals
-and cannot substitute exact restricted optima at intermediate stages.
+zero-pad newly admitted coordinates, retain the signed SOR iterate, and query
+a finite-band KKT reporter only at declared checkpoints.
+\item[Proved window]
+With $H=\widetilde O(1/\sqrt\alpha)$, the actual nonsettled iterate obeys
+\eqref{eq:windowed-energy-recursion}; no exact old-face reset is inserted.
 \item[Work obligation]
 Over the same window, charge row reads, state writes, admissions, and reporter
 events by
@@ -89,11 +76,13 @@ events by
 \end{equation}
 without rescanning the whole prefix after every singleton event.
 \item[Go condition]
-Both \eqref{eq:windowed-face-target} and
-\eqref{eq:windowed-work-target} hold on arbitrary nested bipartite faces.
+Replace the geometric-volume hypothesis by an output-sensitive admission and
+reporter ledger while retaining \eqref{eq:windowed-energy-recursion} and
+\eqref{eq:windowed-work-target}.
 \item[Stop condition]
-An explicit path, T tree, or bipartite core accumulates unpaid state-reset or
-boundary-refresh work across more than one acceleration window.
+An explicit path, T tree, or bipartite core accumulates unpaid
+boundary-refresh or repeated-face-scan work across more than one acceleration
+window.  Numerical state-reset energy alone is no longer a valid blocker.
 \end{description}
 
 \subsection{Stage 3: move from bipartite to nearly bipartite cores}
@@ -173,7 +162,7 @@ all repeated state operations are charged, and one terminal semantic
 certificate is proved.
 \end{description}
 
-\subsection{Immediate six-hour work package}
+\subsection{Immediate continuation work package}
 
 The following ordering maximizes useful progress in one uninterrupted pass.
 
@@ -183,18 +172,18 @@ The following ordering maximizes useful progress in one uninterrupted pass.
 \item Implement the radial spider recurrence without constructing all $B$
       arms; scan the parameter grid in Stage~1 and preserve the first worst
       cell, not only averages.
-\item Attempt the polynomial/Green-profile proof of
-      \eqref{eq:radial-semantic-conjecture}.  If it fails, record the exact
-      inequality where coefficient signs prevent a maximum principle.
+\item Reuse the proved Chebyshev/Green-profile theorem
+      \eqref{eq:radial-semantic-exact-envelope} as the radial baseline.
 \item Test the global-$\omega_\alpha$ zero-padded recurrence on endpoint paths,
       unequal spiders, and the asymmetric T-tree witness.  Measure semantic
       error, face-shock energy, repeated volume, and state writes separately.
-\item Formulate the smallest credible windowed potential for
-      \eqref{eq:windowed-face-target}; do not start with arbitrary cyclic
+\item Build the smallest output-sensitive reporter ledger compatible with
+      \eqref{eq:windowed-energy-recursion}; do not start with arbitrary cyclic
       graphs until it survives the bipartite tests.
 \end{enumerate}
 
-The main expected outcome is either a proved radial semantic lemma and a
-well-scoped bipartite continuation conjecture, or a small reproducible
-counterexample that redirects the SOR route toward response composition.
-Both outcomes are scientifically valuable.
+The radial semantic lemma and the geometrically gated continuation theorem
+are now proved.  The next useful outcome is either a paid finite-band reporter
+that removes the geometric-volume hypothesis, or a small reproducible
+counterexample showing that repeated singleton reporting defeats this SOR
+route and should be replaced by response composition.
