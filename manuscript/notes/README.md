@@ -54,7 +54,7 @@ This table is generated from `registry.toml` by
 | [`aspr23_bound_audit`](aspr23_bound_audit/) | iterative | proved-open | Audit literal ASPR correctness and repeated-prefix tightness. |
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
-| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Isolate the modal anti-cancellation route for the short-path terminal block. |
+| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Reduce short-path chronology to one sign and isolate the terminal modal route. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
 | [`two_rung_sor`](two_rung_sor/) | iterative | measured | Record the best measured two-rung SOR schedule. |
 | [`volume_gated_acceleration`](volume_gated_acceleration/) | iterative | proved-open | Develop support-volume safety and charged cross-face acceleration ledgers. |

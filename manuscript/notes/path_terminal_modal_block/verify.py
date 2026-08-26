@@ -143,6 +143,111 @@ def _even_polynomial(values: list[Fraction]) -> dict[int, Fraction]:
     return {exponent: coefficient for exponent, coefficient in out.items() if coefficient}
 
 
+def exact_chronology_reduction_checks() -> None:
+    """Check the proved reduction identities and finite shared-sign evidence."""
+    p_lower = Fraction(3488, 1921)
+    p_upper = Fraction(33, 16)
+    eta_lower = Fraction(255, 512)
+    raw_lower = Fraction(1215, 1088) * p_lower - Fraction(1, 5)
+    gate_upper = Fraction(2048, 1275)
+    frontier_residual_upper = eta_lower * (-raw_lower + p_upper / 2) + Fraction(1, 5)
+    assert raw_lower == Fraction(596861, 326570)
+    assert raw_lower - gate_upper == Fraction(1084499, 4898550)
+    assert frontier_residual_upper == -Fraction(30946901, 157368320)
+
+    for edge_count in (8, 12):
+        q = Fraction(1, 16 * edge_count)
+        eta = (1 - q * q) / 2
+        chi = (1 - q) / (1 + q)
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        p = [Fraction(0)]
+        v = [Fraction(0)]
+        previous_x: list[Fraction] | None = None
+        previous_optimum: list[Fraction] | None = None
+        previous_frontier_raw: Fraction | None = None
+
+        for length in range(1, edge_count + 1):
+            optimum = _fraction_optimum(length, degrees, q)
+            p_frontier = optimum[-1]
+            t = chi**length
+            formula_frontier = (
+                Fraction(2, 1)
+                / (1 + q)
+                * (t * (1 + t / 5) / chi + t - Fraction(1, 5))
+                / (1 + t * t)
+                * q**2
+            )
+            assert p_frontier == formula_frontier
+            assert p_lower * q**2 <= p_frontier <= p_upper * q**2
+
+            y = [(left + q * right) / (1 + q) for left, right in zip(p, v, strict=True)]
+            average_residual = _fraction_residual(y, degrees[:length], q)
+            entry_residual = _fraction_residual(p, degrees[:length], q)
+            x_value = [-value for value in entry_residual]
+
+            if length > 1:
+                assert previous_x is not None
+                assert previous_optimum is not None
+                assert previous_frontier_raw is not None
+                shared_sign = [
+                    x_value[index] - (1 - q) * previous_x[index] / 2 for index in range(length - 1)
+                ]
+                assert min(shared_sign) > 0
+                assert all(
+                    average_residual[index] == -2 * shared_sign[index] / (1 + q)
+                    for index in range(length - 1)
+                )
+                frontier_identity = (
+                    -eta * previous_frontier_raw + q * eta * previous_optimum[-1] / 2 + q**3 / 5
+                ) / (1 + q)
+                assert average_residual[-1] == frontier_identity
+                assert average_residual[-1] < 0
+                frontier_ratio = y[-2] / y[-1]
+                assert frontier_ratio >= (3 - q) / (1 + q)
+
+            raw = [left - right for left, right in zip(y, average_residual, strict=True)]
+            assert min(raw) > 0
+            assert raw[-1] > raw_lower * q**3
+            post_residual = _fraction_residual(raw, degrees[:length], q)
+            b_average_residual = [
+                left - right
+                for left, right in zip(
+                    average_residual,
+                    _fraction_h_apply(average_residual, degrees[:length], q),
+                    strict=True,
+                )
+            ]
+            assert post_residual == b_average_residual
+            assert max(post_residual) < 0
+
+            outside_residual = q**3 / 5 - eta * raw[-1] / degrees[length]
+            assert outside_residual < -(q**3) / 5
+
+            v_out = [
+                current + (1 - q) * (current - previous) / q
+                for current, previous in zip(raw, p, strict=True)
+            ]
+            new_optimum = _fraction_optimum(length + 1, degrees, q)
+            p = raw + [Fraction(0)]
+            v = [
+                value + new_value - old_value
+                for value, new_value, old_value in zip(
+                    v_out + [Fraction(0)],
+                    new_optimum,
+                    optimum + [Fraction(0)],
+                    strict=True,
+                )
+            ]
+            previous_x = x_value
+            previous_optimum = optimum
+            previous_frontier_raw = raw[-1]
+
+    print(
+        "exact_chronology_reduction_checks=m=8,12 constants=pass "
+        "identities=pass finite_shared_sign=pass uniform_shared_sign=open"
+    )
+
+
 def exact_boundary_source_checks() -> None:
     """Check the sparse source and its formal transform over the rationals."""
     edge_count = 8
@@ -711,6 +816,7 @@ def main() -> None:
         help="maximum normalized terminal horizon",
     )
     arguments = parser.parse_args()
+    exact_chronology_reduction_checks()
     exact_boundary_source_checks()
     for edge_count in arguments.m:
         if edge_count < 3:

@@ -4,8 +4,8 @@ Last reviewed: 2026-08-27
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-boundary-source`
-Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
+Branch: `agent/codex/path-terminal-chronology-reduction`
+Base commit: `f1f049e566375207733204bde0c4c82229e018c9`
 
 ## Exact question and contract
 
@@ -45,7 +45,12 @@ Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
   binomial packet's literal cosine coefficients; exact nonnegative full-face
   position/velocity kernels with row sums `1` and `k`; pointwise nonpositive
   ideal evolution; a uniform cosine-square inequality; and the conditional
-  logarithmic block theorem.
+  logarithmic block theorem. Also proved are the uniform prefix-frontier
+  bounds `3488 q^2/1921 <= P_n <= 33q^2/16` and an exact chronology reduction:
+  the shared-coordinate sign `D_n(j)>=0` implies raw positivity, nonpositive
+  post-step residual, zero correction, and strict next-singleton admission,
+  with raw-frontier lower constant `596861/326570` and strict rational gate
+  slack.
 - **Conditional:** Under projection-inactive, zero-safe-correction,
   one-next-singleton proper-prefix chronology, the exact
   seed/last-three-frontier changing-face defect (including the final
@@ -73,8 +78,10 @@ Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
   near `+/-3.64 q^3`. These are finite measurements and assert no limit.
-- **Open:** Prove the proper-prefix projection-inactive, zero-correction,
-  one-next-singleton chronology. Conditional on it, prove the two entry
+- **Open:** Prove the uniform shared-coordinate sign `D_n(j)>=0` on the linear
+  candidate replay; the exact reduction then supplies the full proper-prefix
+  projection-inactive, zero-correction, one-next-singleton chronology.
+  Conditional on it, prove the two entry
   profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
   endpoint pieces, and prove the uniform
@@ -87,9 +94,14 @@ Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
 
 ## Central blocker
 
-1. **Proper-prefix chronology:** Prove projection inactivity, zero global
-   correction, and the strict next-row violation at every proper prefix.
-   Finite floating and rational replays do not supply a uniform proof.
+1. **Proper-prefix chronology:** Prove
+   `D_n(j)=-r_n(p_n)(j)+(1-q)r_(n-1)(p_(n-1))(j)/2>=0` on every coordinate
+   shared by consecutive proper prefixes. The raw-frontier, correction, and
+   strict-gate clauses then follow from the proved reduction. The exact
+   recurrence for `D` has both a global negative term and negative
+   contributions from the positive frontier source, so a bare maximum
+   principle does not close it. Finite floating and rational replays do not
+   supply a uniform proof.
 2. **Entry profile lemma:** Conditional on that chronology, for
    `H_m=floor(sqrt(m/(64 log(16m))))`, prove
    `m*|C_(2s)-G_(2s)|/alpha <= 1/256` and
@@ -126,8 +138,10 @@ constants is permitted only with a corresponding proof.
   `lem:terminal-modal-admission-chronology`, `lem:terminal-modal-packet`, and
   `lem:terminal-modal-regime` are the three missing statements; Theorem
   `thm:terminal-modal-conditional-log` is ready to consume them.
-- **Next action:** First prove the proper-prefix chronology or retain it as an
-  explicit hypothesis. Conditional on it, split the explicit transform into
+- **Next action:** First prove the shared-coordinate `D_n>=0` sign, for example
+  with a quantitative spatial cone or a signed moving-frontier Green sum; the
+  other proper-prefix clauses are already reduced to it. Otherwise retain
+  chronology as an explicit hypothesis. Conditional on it, split the explicit transform into
   the homogeneous
   packet/base discrepancy, the constant-`U` response, the total-variation
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
@@ -144,8 +158,11 @@ constants is permitted only with a corresponding proof.
 ## Verification
 
 - **Deterministic screen:** `python3 verify.py 128 256 512 1024 2048`
-  passed. Before the floating screen, it now uses exact `Fraction` arithmetic
-  at `m=8`, prefixes `n=4,6,7,8`, to check source support, every displayed
+  passed. Before the floating screen, it now uses exact
+  `Fraction` arithmetic at `m=8,12` to check all chronology-reduction
+  constants and identities, finite strict `D_n>0`, raw positivity,
+  post-residual sign, and exact gate behavior while labeling the uniform sign
+  open. It also uses exact arithmetic at `m=8`, prefixes `n=4,6,7,8`, to check source support, every displayed
   entry (including the final degree change), and the formal transformed
   recurrence, conditional on the replayed chronology. The floating screen
   reported first range crossings
@@ -156,7 +173,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a fifteen-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced an eighteen-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

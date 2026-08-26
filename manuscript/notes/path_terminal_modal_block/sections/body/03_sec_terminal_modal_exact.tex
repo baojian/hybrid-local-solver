@@ -1,0 +1,168 @@
+\section{Exact full-face modes and the global correction}
+\label{sec:terminal-modal-exact}
+
+Let $r_k^x=r(p_k)$ and $r_k^v=r(v_k)$ after entry to the full face, with entry
+indexed by $k=0$.  Whenever the projection in
+\cref{eq:terminal-modal-step} is inactive, the sibling note proves
+\begin{align}
+ r_{k+1}^x&=\frac{B}{1+q}(r_k^x+q r_k^v),
+ &q r_{k+1}^v&=r_{k+1}^x-(1-q)r_k^x,
+ \label{eq:terminal-modal-two-state}\\
+ r_{k+1}^x&=B\left(\frac2{1+q}r_k^x
+ -\frac{1-q}{1+q}r_{k-1}^x\right),
+ &B&=I-\widehat Q.
+ \label{eq:terminal-modal-second-order}
+\end{align}
+
+For $0\le h\le m$, define
+\begin{equation}
+ u_h(j)=\cos\frac{h\pi j}{m},\qquad 0\le j\le m.
+ \label{eq:terminal-modal-cosines}
+\end{equation}
+Use the reversible inner product
+$\langle z,w\rangle_D=\sum_{j=0}^m d_jz_jw_j$.
+
+\begin{lemma}[Weighted path cosines; proved here]
+\label{lem:terminal-modal-cosines}
+The vectors $u_h$ are an orthogonal eigenbasis of $P_{\rm row}$ with
+eigenvalues $\mu_h=\cos(h\pi/m)$.  Their squared norms are
+\begin{equation}
+ N_h:=\norm{u_h}_{D}^{2}
+ =\begin{cases}
+ 2m,&h\in\{0,m\},\\
+ m,&1\le h\le m-1.
+ \end{cases}
+ \label{eq:terminal-modal-norms}
+\end{equation}
+Consequently every vector $z$ has coefficients
+$\widehat z_h=\langle z,u_h\rangle_D/N_h$, and
+\begin{equation}
+ \norm{z-\widehat z_0\one}_D^2
+ =m\sum_{h=1}^{m-1}\widehat z_h^2+2m\widehat z_m^2.
+ \label{eq:terminal-modal-parseval}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The endpoint equations are
+$(P_{\rm row}u_h)_0=u_h(1)=\mu_hu_h(0)$ and similarly at $m$.
+At an interior point, the cosine addition formula gives
+$(u_h(j-1)+u_h(j+1))/2=\mu_hu_h(j)$.  Reversibility,
+$DP_{\rm row}=A=A^\top$, makes distinct modes $D$-orthogonal.  Finally,
+the standard discrete-cosine sums with endpoint weights one and interior
+weights two give \eqref{eq:terminal-modal-norms}; Parseval follows.
+\end{proof}
+
+Let $a_{h,k}=\langle r_k^x,u_h\rangle_D/N_h$ and set
+\begin{equation}
+ \phi_h=\frac{h\pi}{2m},\qquad
+ \varrho_h=(1-q)\cos\phi_h.
+ \label{eq:terminal-modal-phase-radius}
+\end{equation}
+
+\begin{lemma}[Literal modal solution; proved here]
+\label{lem:terminal-modal-solution}
+For $1\le h\le m-1$, every projection-inactive full-face trajectory obeys
+\begin{equation}
+ a_{h,k}=\varrho_h^k
+ \left(C_h\cos(k\phi_h)+D_h\sin(k\phi_h)\right),
+ \label{eq:terminal-modal-solution}
+\end{equation}
+where
+\begin{equation}
+ C_h=a_{h,0},\qquad
+ D_h=\frac{a_{h,1}/\varrho_h-C_h\cos\phi_h}{\sin\phi_h}.
+ \label{eq:terminal-modal-quadratures}
+\end{equation}
+The constant mode has a repeated root $1-q$ and is irrelevant to residual
+range.  The $h=m$ mode is killed after one application of $B$.
+\end{lemma}
+
+\begin{proof}
+On mode $h$, the eigenvalue of $B$ is
+$(1-q^2)\cos^2\phi_h$.  Thus
+\cref{eq:terminal-modal-second-order} has characteristic polynomial
+\[
+ z^2-2(1-q)\cos^2\phi_h\,z
+ +(1-q)^2\cos^2\phi_h,
+\]
+whose roots are $\varrho_he^{\pm i\phi_h}$.  Matching $k=0,1$ gives
+\eqref{eq:terminal-modal-quadratures}.  The two endpoint cases follow by
+direct substitution.
+\end{proof}
+
+The apparent sine loss in \eqref{eq:terminal-modal-quadratures} can be
+removed exactly at entry.  Define the entry centered-residual coefficient
+\begin{equation}
+ V_h:=\frac{\langle r_0^v,u_h\rangle_D}{N_h}.
+ \label{eq:terminal-modal-entry-velocity}
+\end{equation}
+
+\begin{lemma}[Exact entry-velocity quadrature; proved here]
+\label{lem:terminal-modal-entry-velocity}
+If the first full-face projection is inactive, then, for
+$1\le h\le m-1$,
+\begin{equation}
+ D_h=q\cot(\phi_h)V_h.
+ \label{eq:terminal-modal-entry-velocity-quadrature}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The eigenvalue of $B$ on $u_h$ is
+$\beta_h=(1-q^2)\cos^2\phi_h$.  The first equation in
+\eqref{eq:terminal-modal-two-state} therefore gives
+\[
+ a_{h,1}
+ =\frac{\beta_h}{1+q}(C_h+qV_h)
+ =(1-q)\cos^2\phi_h(C_h+qV_h).
+\]
+Because $\varrho_h=(1-q)\cos\phi_h$, substitution in
+\eqref{eq:terminal-modal-quadratures} leaves exactly
+$qV_h\cos\phi_h/\sin\phi_h$.
+\end{proof}
+
+The safe-envelope correction on the full face is
+\begin{equation}
+ \delta_k=\max\left(0,\frac{\max_j r_{k,j}^x}{\alpha}\right),
+ \qquad
+ \ell_k=[p_k-\delta_k\one]_+.
+ \label{eq:terminal-modal-correction}
+\end{equation}
+This maximum is global; it is not a seed or frontier surrogate.
+
+\begin{lemma}[Literal range implication; proved here]
+\label{lem:terminal-modal-range}
+Suppose $p_k-\delta_k\one>0$ coordinatewise.  Put
+$R_k=\max_jr_{k,j}^x-\min_jr_{k,j}^x$.  If
+\begin{equation}
+ R_k>\alpha\tau=\frac{q^3}{5},
+ \label{eq:terminal-modal-range-threshold}
+\end{equation}
+then the one-sided certificate fails at step $k$.
+\end{lemma}
+
+\begin{proof}
+Because $P_{\rm row}\one=\one$, one has $\widehat Q\one=\alpha\one$.
+Unclipping therefore gives
+\[
+ r(\ell_k)=r_k^x-M_k\one,
+ \qquad M_k=\max(0,\max_jr_{k,j}^x).
+\]
+If $\max_jr_{k,j}^x\ge0$, the minimum corrected residual is exactly $-R_k$.
+If the maximum is negative, the correction is zero and
+$\min_jr_{k,j}^x< -R_k$.  In either case
+\eqref{eq:terminal-modal-range-threshold} leaves an active row below
+$-\alpha\tau$.
+\end{proof}
+
+Let $\bar r_k=\langle r_k^x,\one\rangle_D/(2m)$ and
+$s_k=r_k^x-\bar r_k\one$.  Weighted Popoviciu gives
+\begin{equation}
+ R_k\ge\frac{2\norm{s_k}_D}{\sqrt{2m}}.
+ \label{eq:terminal-modal-popoviciu}
+\end{equation}
+Indeed, the degree weights divided by $2m$ define a probability distribution,
+and the variance of a variable in an interval of length $R_k$ is at most
+$R_k^2/4$.  This is why modal $\ell_2$ energy prevents spatial cancellation
+without selecting a particular vertex.

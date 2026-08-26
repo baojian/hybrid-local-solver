@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-boundary-source`
-- Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
+- Branch: `agent/codex/path-terminal-chronology-reduction`
+- Base commit: `f1f049e566375207733204bde0c4c82229e018c9`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -23,7 +23,7 @@
   analysis, prove every uniform inequality currently available, and preserve
   any remaining gap as exact, falsifiable lemmas rather than promoting
   floating evidence to a theorem.
-- Implemented result: Added a standalone fifteen-page note deriving the exact
+- Implemented result: Added a standalone eighteen-page note deriving the exact
   degree-weighted path-cosine basis, damped modal roots and quadratures, safe
   global-correction/range semantics, the ideal binomial packet transform, a
   uniform phase-energy bound, and a conditional
@@ -49,7 +49,14 @@
   control of the velocity remainder. The profile constants rigorously imply
   the earlier combined `1/64` target. A
   deterministic screen reconstructs the literal admission and terminal
-  recurrence and tests all three hypotheses at finite sizes.
+  recurrence and tests all three hypotheses at finite sizes. This follow-up
+  additionally proves uniform prefix-frontier bounds and reduces the entire
+  proper-prefix chronology to the single shared-coordinate sign `D_n(j)>=0`.
+  Conditional on that sign, raw positivity, nonpositive post-step residual,
+  zero correction, and strict outside admission follow with exact rational
+  margins. The note preserves the remaining `D` sign as open and records why
+  its exact recurrence is not a positivity-preserving maximum-principle
+  induction.
 - Deliberately unchanged: The dirty main worktree, the source
   `volume_gated_acceleration` note, its historical verifier, and all solver
   implementations.  This branch does not claim an unconditional terminal
@@ -63,13 +70,16 @@
   correction, and gating, measures entry packet/quadrature defects, checks the
   full-face projection and envelope margins, and reports both the first raw
   range crossing and the first literal safe-envelope certificate. Before that
-  screen it now performs an exact rational replay at `m=8` and verifies the
+  screen it now performs an exact rational replay at `m=8,12` that checks
+  every chronology-reduction constant and identity, finite strict shared
+  signs, and exact gate behavior while labeling the uniform sign open. It
+  separately replays `m=8` and verifies the
   boundary entries and formal Laurent-polynomial recurrence at representative
   proper and final prefixes.
 - Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
   `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The note built to 15 pages with no LaTeX, package,
+- Results: The chronology-reduction follow-up built to 18 pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
   screen passed all five sizes.  It checks the exact combined
   `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
@@ -100,9 +110,10 @@
   of `exp(-1/16)` was a constant typo and did not affect the theorem's
   conservative amplitude bounds.  The note also records why zero-padding the
   newly admitted endpoint rules out an instantaneous certificate at entry.
-- Open decisions or follow-up: First prove the proper-prefix raw-positivity,
-  zero-safe-correction, and next-row-violation chronology, or retain it as an
-  explicit hypothesis. Conditional on it, decompose the frontier transform
+- Open decisions or follow-up: First prove the uniform shared-coordinate
+  `D_n(j)>=0` sign; the exact reduction then supplies proper-prefix raw
+  positivity, zero safe correction, and strict next-row admission. Otherwise
+  retain chronology as an explicit hypothesis. Conditional on it, decompose the frontier transform
   into the homogeneous packet/base discrepancy, the constant-`U` response,
   the small total variation of `U_n`, the `M_n=O(q^4)` trace, and the single
   final endpoint term, then prove the two
