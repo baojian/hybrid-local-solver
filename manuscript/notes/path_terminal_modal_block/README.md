@@ -8,7 +8,10 @@ quadrature, and pointwise nonpositivity of the ideal packet evolution.
 Conditional on an explicit proper-prefix chronology---inactive projection,
 zero safe correction, and one next-singleton admission at every prefix---it
 also proves the exact three-frontier changing-face source and its factored
-Fourier transform.
+Fourier transform. Within that conditional algebra, finite geometric sums give
+the exact constant-trace response, its fixed-mode position and velocity
+limits, the early-base velocity limit, and an exact reduction of the final
+endpoint limit to one scalar remainder.
 It also gives exact nonnegative position/velocity propagators, isolating the
 remaining factor-`k` velocity-cancellation obstruction. It then proves a conditional
 anti-cancellation theorem: two quantified entry
@@ -25,8 +28,9 @@ literal safe-envelope certificate. A rational-arithmetic preflight separately
 checks the source support, every displayed boundary entry, and the formal
 Laurent-polynomial transform identity at representative prefixes, conditional
 on the replayed chronology. Subject to the open chronology, the remaining
-entry-profile problem is a sharp signed summation of those source traces, not
-their support calculation. Numerical observations are labeled
+entry-profile problem is to uniformize these fixed-mode formulas over the
+growing band and control the varying trace, small mass, and endpoint scalar.
+Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
 

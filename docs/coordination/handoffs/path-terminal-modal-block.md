@@ -45,7 +45,10 @@
   full-face `K/J` propagators are nonnegative with row sums `1` and `k`, so the
   source algebra and scalar profile reduction are therefore exact under the
   chronology hypothesis, not unconditional claims about the projected
-  admission execution. The regime-side obstruction is now the factor-`k` loss without signed/variation
+  admission execution. A further conditional addendum exactly sums the
+  constant-`U` response, derives its fixed-mode position/velocity limits and
+  the early-base velocity limit, and reduces the final endpoint velocity to
+  one position scalar. The regime-side obstruction is now the factor-`k` loss without signed/variation
   control of the velocity remainder. The profile constants rigorously imply
   the earlier combined `1/64` target. A
   deterministic screen reconstructs the literal admission and terminal
@@ -65,11 +68,13 @@
   range crossing and the first literal safe-envelope certificate. Before that
   screen it now performs an exact rational replay at `m=8` and verifies the
   boundary entries and formal Laurent-polynomial recurrence at representative
-  proper and final prefixes.
+  proper and final prefixes. It also checks six total-variation cells,
+  15 finite geometric-sum cells, and three fixed-mode limit cells for the
+  constant-`U` response.
 - Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
   `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The note built to 15 pages with no LaTeX, package,
+- Results: The note built to 18 pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
   screen passed all five sizes.  It checks the exact combined
   `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
@@ -103,11 +108,11 @@
 - Open decisions or follow-up: First prove the proper-prefix raw-positivity,
   zero-safe-correction, and next-row-violation chronology, or retain it as an
   explicit hypothesis. Conditional on it, decompose the frontier transform
-  into the homogeneous packet/base discrepancy, the constant-`U` response,
+  into the homogeneous packet/base discrepancy, the now-exact constant-`U` response,
   the small total variation of `U_n`, the `M_n=O(q^4)` trace, and the single
   final endpoint term, then prove the two
-  entry profile bounds uniformly in `m` by controlling their signed Green
-  sums; also prove projection inactivity plus
+  entry profile bounds uniformly in `m` by uniformizing the fixed-mode limits
+  and controlling the remaining signed Green sums; also prove projection inactivity plus
   unclipped global correction through
   `floor((1/8)q^-1 log(1/q))`.  Until all three statements hold in exact arithmetic,
   retain evidence `proved-open` and every asymptotic terminal claim as

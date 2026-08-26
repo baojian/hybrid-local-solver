@@ -52,7 +52,11 @@ Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
   ambient-degree-one endpoint term), its even-extension transform
   `U_n(1-z)(1+3z)+M_n*z^2`, the bounds
   `0<U_n<=3q^3/40`, `|M_n|<=3q^4/2`, and the scalar position/velocity reduction
-  follow algebraically. If that chronology holds, if the actual entry
+  follow algebraically. The constant-`U` response has exact finite geometric
+  sums and fixed-mode position/velocity limits; the early-base velocity has an
+  exact fixed-mode limit; and the final endpoint velocity reduces exactly to
+  its position scalar and the explicit frontier optimum. If that chronology
+  holds, if the actual entry
   position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -114,7 +118,8 @@ constants is permitted only with a corresponding proof.
 - **Reusable outputs:** Exact modal formulas, explicit optimum transports,
   the fixed-face directional factorization, the changing-face source entries,
   factored transform, and scalar `C/V` target reduction conditional on the
-  named proper-prefix chronology, the
+  named proper-prefix chronology; exact constant-trace geometric sums and
+  fixed-mode leading cancellations; the
   exact `K/J` remainder decomposition, the ideal folded-shift sign lemma, the
   weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
@@ -128,10 +133,10 @@ constants is permitted only with a corresponding proof.
   `thm:terminal-modal-conditional-log` is ready to consume them.
 - **Next action:** First prove the proper-prefix chronology or retain it as an
   explicit hypothesis. Conditional on it, split the explicit transform into
-  the homogeneous
-  packet/base discrepancy, the constant-`U` response, the total-variation
-  correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
-  endpoint term; bound their signed Green-kernel sums strongly
+  the homogeneous packet/base discrepancy, the now-exact constant-`U`
+  response, the total-variation correction `U_n-U_(n-1)`, the `M_n=O(q^4)`
+  trace, and the final endpoint scalar; uniformize the fixed-mode formulas
+  over `s<=H_m` and bound the remaining signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately, use the ideal packet's
   proved nonpositive evolution and the exact `K/J` decomposition to replace
   the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
@@ -155,8 +160,10 @@ constants is permitted only with a corresponding proof.
   It also checks the two entry profiles and the exact combined
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
-  agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a fifteen-page PDF with no
+  agree, and keeps wider-band modal/profile statistics separate. It also
+  checks six total-variation cells, 15 finite constant-`U` geometric-sum
+  cells, and three fixed-mode limit cells.
+- **Build:** A clean `latexmk` rebuild produced an eighteen-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
