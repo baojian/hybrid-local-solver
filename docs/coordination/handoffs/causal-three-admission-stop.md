@@ -71,11 +71,26 @@
   - Verified that the six-vertex trace, all 6,780 atlas traces, and the
     reviewed stages of the small-`q` `K_{1,4}` family have inactive candidate
     projection. Hence the star's `Omega(q^-3)` lower requirement also applies
-    to the support-aware ledger, leaving a one-power `q^-3` versus `q^-4` gap.
+    to the support-aware ledger.
+  - Closed that gap with an actual zero-start reachable family on a
+    `K_{2,3}` plus one seed leaf. Stages 1 and 2 admit the first hub and all
+    three middle vertices; stages 3 and 4 hold with strictly positive
+    candidates. At stage 4,
+    `Xi=49/4096-1141q/10240+O(q^2)` and
+    `R=(971/1024)q^4+(52493/15360)q^5+O(q^6)`, so every solvent coefficient
+    satisfies `lambda(q) >= 49/(3884q^4)+O(q^-3)`. This proves sharp
+    graph-uniform `Theta(q^-4)` order for the support-aware ledger and the
+    inactive original-score subclass.
+  - Extended the leading-order replay to every fixed `K_{2,r}` plus seed leaf,
+    `r >= 3`. Its exact scaled lower constant is
+    `(s-1)(s^2-2s-1)^2 /
+    {s(15s^4-15s^3+2s^2+s-3)}`, where `s=r+1`, and tends to `1/15` as
+    `r` grows. Thus every graph-uniform coefficient has
+    `liminf q^4 lambda(q) >= 1/15` along this family.
 - Deliberately unchanged:
-  - No convergence failure, objective or work lower bound, asymptotic family,
-    finite-precision claim, nonpath eleven-resource vector, or class lower
-    bound is asserted.
+  - No convergence failure, objective or work lower bound, finite-precision
+    claim, nonpath eleven-resource vector, or solver-class lower bound is
+    asserted.
   - Structural promised-class ledgers, justified extra reserve, stronger
     observables, and different recurrences or gates remain open. In
     particular, the low-frequency condition is not claimed graph-uniform.
@@ -93,8 +108,13 @@
     actual star chronology, exact rational functions, and formal asymptotic
     coefficients. It now also verifies the exact Bernstein determinant table,
     strict candidate positivity through the star's reviewed stages, and the
-    projection-active original-score STOP. Its full path enumerates the rooted
-    graph atlas through order seven.
+    projection-active original-score STOP. It additionally performs a formal
+    exact first-order series replay of the quartic family and exact rational
+    replays at `q=1/20,...,1/640`, including the later stage-15 admission and
+    stage-4 worst checkpoint. Its full path enumerates the rooted graph atlas
+    through order seven. The fast path also checks the exact leading scaled
+    recurrence and closed-form debt/reserve constant for
+    `r=3,4,5,7,10,30` in the `K_{2,r}` extension.
 - Commands run:
   - `uv run python -m experiments.proof_audits.runner --tier full --audit volume_gated_acceleration.all_history_three_admission_stop`
   - `uv run python -m experiments.proof_audits.runner --tier full --note volume_gated_acceleration`
@@ -132,9 +152,10 @@
 - Open decisions or follow-up:
   - Decide whether to pursue a structural promised-class condition, an
     explicitly sourced reserve, or a stronger observable. The sharp next
-    target is to prove the displayed low-frequency condition on a useful
-    reachable promised class, close the `q^-3` versus `q^-4` coefficient gap,
-    or find a reachable `omega(q^-3)` family.
+    scalar target is now only the original all-coordinate score under
+    arbitrary projection: its reachable lower order is `q^-4` and its general
+    upper coefficient remains `O(q^-5)`. The displayed low-frequency condition
+    can apply only on a narrower promised class, not all reachable traces.
   - The finite witness recovers at stage 9 and certifies at stage 12, so it
     must not be promoted into an asymptotic or convergence obstruction.
   - Maintaining the reserve needs the current restricted optimum and an

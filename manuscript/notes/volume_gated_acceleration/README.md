@@ -32,19 +32,21 @@ projection. An exact modal certificate improves it to `2/q^4` when projection
 is inactive. A modified safe positive-support envelope has coefficient
 `(1-q^2)/q^4` under arbitrary projection; an exact three-vertex state explains
 why clipped-zero residuals obstruct the same claim for the original score.
-The star family is inactive through its reviewed stage, so it leaves a
-one-power `q^-3` versus `q^-4` gap for both quartic routes. A low-frequency
-condition gives `O(q^-3)`. These results do not imply convergence or a work
-bound, and reserve, support, and gate evaluation must be charged when not
-cached.
+A reachable zero-start `K_{2,3}`-plus-seed-leaf family stays
+projection-inactive through stage 4 and requires
+`lambda(q) ~ 49/(3884 q^4)`. Hence the graph-uniform coefficient order is
+exactly `Theta(q^-4)` for the support-aware ledger and the inactive original
+subclass; the fixed-`r` `K_{2,r}` extension drives the graph-uniform leading
+lower constant to `1/15`. These results do not imply convergence or a work bound, and reserve,
+support, and gate evaluation must be charged when not cached.
 
 These finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. They do not prove a convergence failure,
 uniform recovery horizon, asymptotic work theorem, or finite-precision result.
-The live causal-ledger target is now to prove the stated low-frequency
-condition on a useful reachable promised class, close the `q^-3` versus
-`q^-4` gap, or find a stronger exact obstruction. The original
-all-coordinate score retains an `O(q^-5)` general projected bound. The
+The support-aware and inactive-original scalar coefficient order is now
+closed. The remaining scalar gap is for the original all-coordinate score
+under arbitrary projection: a reachable `Omega(q^-4)` lower order versus the
+general `O(q^-5)` upper bound. The
 unconditional zero-balance
 `delta^2` all-history route and a small multiplier of this consumed-energy
 reserve are both closed for the named recurrence and gate.
@@ -62,4 +64,6 @@ The eleven mechanism-based exact-audit IDs are listed by
 tier includes exhaustive connected labeled rooted graphs on two through five
 vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
 of every connected NetworkX graph-atlas representative through order seven
-for `volume_gated_acceleration.consumed_energy_reserve`.
+for `volume_gated_acceleration.consumed_energy_reserve`. The latter also
+checks the quartic family's exact formal series, rational replay grid, and
+the leading `K_{2,r}` formulas at six exact integer specializations.

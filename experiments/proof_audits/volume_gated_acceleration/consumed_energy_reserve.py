@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Audit the consumed-energy reserve, quartic certificates, and small-q STOP.
 
-The fast path checks the committed six-vertex witness and exact rational
-specializations of the leaf-seeded ``K_{1,4}`` formulas.  ``--enumerate`` also
-checks every seed of every connected NetworkX graph-atlas representative on
-two through seven vertices at ``q=1/5``.  The atlas is finite evidence, not an
-asymptotic or graph-uniform theorem.
+The fast path checks the committed six-vertex witness, exact rational
+specializations of the leaf-seeded ``K_{1,4}`` formulas, and the reachable
+quartic ``K_{2,r}``-plus-leaf family.  ``--enumerate`` also checks every seed
+of every connected NetworkX graph-atlas representative on two through seven
+vertices at ``q=1/5``.  The atlas is finite evidence, not an asymptotic or
+graph-uniform theorem.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from experiments.proof_audits.volume_gated_acceleration.nonpath_causal_stop impo
     one_step,
     residual,
     restricted_optimum,
+    solve_fraction,
 )
 
 
@@ -40,6 +42,15 @@ THREE_ADMISSION_EDGES = (
 )
 STAR_FOUR_EDGES = ((0, 1), (1, 2), (1, 3), (1, 4))
 STAR_FIVE_EDGES = ((0, 5), (1, 5), (2, 5), (3, 5), (4, 5))
+QUARTIC_EDGES = (
+    (0, 2),
+    (1, 2),
+    (1, 4),
+    (2, 3),
+    (2, 5),
+    (3, 4),
+    (4, 5),
+)
 
 WITNESS_MINIMUM = Fraction(
     1772625800261634289972166085525,
@@ -435,6 +446,62 @@ def series_inverse(series, order):
 def series_divide(numerator, denominator, order):
     """Return the exact truncated series of one polynomial quotient."""
     return series_multiply(numerator, series_inverse(denominator, order), order)
+
+
+def series_add_values(left, right, order):
+    """Add two exact truncated power series."""
+    return [
+        (left[index] if index < len(left) else ZERO)
+        + (right[index] if index < len(right) else ZERO)
+        for index in range(order)
+    ]
+
+
+def series_subtract(left, right, order):
+    """Subtract two exact truncated power series."""
+    return [
+        (left[index] if index < len(left) else ZERO)
+        - (right[index] if index < len(right) else ZERO)
+        for index in range(order)
+    ]
+
+
+def series_scale(series, scalar, order):
+    """Scale an exact truncated power series."""
+    return [scalar * (series[index] if index < len(series) else ZERO) for index in range(order)]
+
+
+def series_shift(series, order):
+    """Multiply an exact truncated power series by its variable."""
+    return [ZERO, *series[: order - 1]]
+
+
+def series_matrix_solve(matrix, right_hand_side, order):
+    """Solve a square system over exact truncated power series."""
+    size = len(right_hand_side)
+    augmented = [
+        [[*entry[:order], *([ZERO] * (order - len(entry)))] for entry in row]
+        + [[*value[:order], *([ZERO] * (order - len(value)))]]
+        for row, value in zip(matrix, right_hand_side)
+    ]
+    for column in range(size):
+        pivot = next(row for row in range(column, size) if augmented[row][column][0])
+        augmented[column], augmented[pivot] = augmented[pivot], augmented[column]
+        inverse = series_inverse(augmented[column][column], order)
+        augmented[column] = [series_multiply(entry, inverse, order) for entry in augmented[column]]
+        for row in range(size):
+            if row == column or not any(augmented[row][column]):
+                continue
+            multiplier = augmented[row][column]
+            augmented[row] = [
+                series_subtract(
+                    entry,
+                    series_multiply(multiplier, pivot_entry, order),
+                    order,
+                )
+                for entry, pivot_entry in zip(augmented[row], augmented[column])
+            ]
+    return [augmented[row][-1] for row in range(size)]
 
 
 P = (-5, 23, -56, 72, -59, 9)
@@ -849,6 +916,415 @@ def star_check():
     ]
 
 
+def quartic_lower_check():
+    """Verify the reachable q^-4 lower family and its exact leading series."""
+    order = 2
+    graph_order = 6
+    degrees = degrees_from_edges(graph_order, QUARTIC_EDGES)
+    neighbors = neighbors_from_edges(graph_order, QUARTIC_EDGES)
+    assert degrees == [1, 2, 4, 2, 3, 2]
+    faces = ([0], [0, 2], [0, 2, 1, 3, 5])
+
+    def formal_matrix(active):
+        position = {vertex: index for index, vertex in enumerate(active)}
+        matrix = [[[ZERO] * order for _ in active] for _ in active]
+        for row, vertex in enumerate(active):
+            matrix[row][row] = [Fraction(1, 2), ZERO]
+            for other in neighbors[vertex]:
+                if other in position:
+                    matrix[row][position[other]] = [
+                        -Fraction(1, 2 * degrees[vertex]),
+                        ZERO,
+                    ]
+        return matrix
+
+    def formal_load(active):
+        return [[Fraction(1) if vertex == 0 else ZERO, -Fraction(1, 5)] for vertex in active]
+
+    def formal_apply(matrix, vector):
+        result = []
+        for row in matrix:
+            value = [ZERO] * order
+            for entry, coordinate in zip(row, vector):
+                value = series_add_values(
+                    value,
+                    series_multiply(entry, coordinate, order),
+                    order,
+                )
+            result.append(value)
+        return result
+
+    def formal_optimum(active):
+        return series_matrix_solve(formal_matrix(active), formal_load(active), order)
+
+    def formal_pad(vector, old, new):
+        values = dict(zip(old, vector))
+        return [values.get(vertex, [ZERO] * order) for vertex in new]
+
+    def formal_step(active, iterate, center):
+        interpolation = [
+            series_divide(
+                series_add_values(value, center_value, order),
+                [Fraction(1), Fraction(1)],
+                order,
+            )
+            for value, center_value in zip(iterate, center)
+        ]
+        gradient = [
+            series_subtract(image, load_value, order)
+            for image, load_value in zip(
+                formal_apply(formal_matrix(active), interpolation),
+                formal_load(active),
+            )
+        ]
+        candidate = [
+            series_subtract(value, derivative, order)
+            for value, derivative in zip(interpolation, gradient)
+        ]
+        center_next = [
+            series_add_values(
+                series_shift(new, order),
+                series_multiply(
+                    [Fraction(1), -Fraction(1)],
+                    series_subtract(new, old, order),
+                    order,
+                ),
+                order,
+            )
+            for new, old in zip(candidate, iterate)
+        ]
+        return candidate, center_next
+
+    def formal_transport(iterate, center, old, new):
+        old_optimum = formal_optimum(old)
+        new_optimum = formal_optimum(new)
+        padded_optimum = formal_pad(old_optimum, old, new)
+        displacement = [
+            series_subtract(new_value, old_value, order)
+            for new_value, old_value in zip(new_optimum, padded_optimum)
+        ]
+        return (
+            formal_pad(iterate, old, new),
+            [
+                series_add_values(value, series_shift(shift, order), order)
+                for value, shift in zip(formal_pad(center, old, new), displacement)
+            ],
+        )
+
+    def formal_objective(active, point):
+        image = formal_apply(formal_matrix(active), point)
+        value = [ZERO] * order
+        for vertex, coordinate, applied, load_value in zip(
+            active,
+            point,
+            image,
+            formal_load(active),
+        ):
+            quadratic = series_scale(
+                series_multiply(coordinate, applied, order),
+                Fraction(degrees[vertex], 2),
+                order,
+            )
+            linear = series_scale(
+                series_multiply(load_value, coordinate, order),
+                degrees[vertex],
+                order,
+            )
+            value = series_add_values(value, series_subtract(quadratic, linear, order), order)
+        return value
+
+    def formal_energy(active, iterate, center):
+        optimum = formal_optimum(active)
+        error = [
+            series_subtract(value, optimum_value, order)
+            for value, optimum_value in zip(iterate, optimum)
+        ]
+        image = formal_apply(formal_matrix(active), error)
+        value = [ZERO] * order
+        for vertex, coordinate, applied, center_value, optimum_value in zip(
+            active,
+            error,
+            image,
+            center,
+            optimum,
+        ):
+            primal = series_scale(
+                series_multiply(coordinate, applied, order),
+                Fraction(degrees[vertex], 2),
+                order,
+            )
+            center_error = series_subtract(
+                center_value,
+                series_shift(optimum_value, order),
+                order,
+            )
+            center_term = series_scale(
+                series_multiply(center_error, center_error, order),
+                Fraction(degrees[vertex], 2),
+                order,
+            )
+            value = series_add_values(value, series_add_values(primal, center_term, order), order)
+        return value
+
+    iterate = [[ZERO] * order]
+    center = [[ZERO] * order]
+    initial_energy = formal_energy(faces[0], iterate, center)
+    formal_states = []
+    iterate, center = formal_step(faces[0], iterate, center)
+    formal_states.append((faces[0], iterate, center))
+    iterate, center = formal_transport(iterate, center, faces[0], faces[1])
+    iterate, center = formal_step(faces[1], iterate, center)
+    formal_states.append((faces[1], iterate, center))
+    iterate, center = formal_transport(iterate, center, faces[1], faces[2])
+    iterate, center = formal_step(faces[2], iterate, center)
+    formal_states.append((faces[2], iterate, center))
+    iterate, center = formal_step(faces[2], iterate, center)
+    formal_states.append((faces[2], iterate, center))
+
+    expected_candidates = (
+        ((1, -Fraction(1, 5)),),
+        ((2, -Fraction(11, 15)), (Fraction(1, 4), -Fraction(1, 12))),
+        (
+            (Fraction(11, 4), -Fraction(3, 2)),
+            (Fraction(5, 8), -Fraction(11, 40)),
+            (Fraction(1, 8), Fraction(2, 15)),
+            (Fraction(1, 8), Fraction(2, 15)),
+            (Fraction(1, 8), Fraction(2, 15)),
+        ),
+        (
+            (Fraction(13, 4), -Fraction(323, 120)),
+            (Fraction(33, 32), -Fraction(611, 480)),
+            (Fraction(3, 8), -Fraction(119, 240)),
+            (Fraction(3, 8), -Fraction(119, 240)),
+            (Fraction(3, 8), -Fraction(119, 240)),
+        ),
+    )
+    expected_residuals = (
+        ((-Fraction(1, 2), Fraction(1, 10)),),
+        (
+            (-Fraction(1, 8), -Fraction(1, 8)),
+            (-Fraction(1, 8), Fraction(1, 4)),
+        ),
+        (
+            (Fraction(1, 16), -Fraction(33, 80)),
+            (-Fraction(5, 64), Fraction(1, 5)),
+            (-Fraction(3, 32), Fraction(161, 480)),
+            (-Fraction(3, 32), Fraction(161, 480)),
+            (-Fraction(3, 32), Fraction(161, 480)),
+        ),
+        (
+            (Fraction(7, 64), -Fraction(163, 320)),
+            (-Fraction(1, 32), Fraction(11, 128)),
+            (-Fraction(9, 128), Fraction(173, 640)),
+            (-Fraction(9, 128), Fraction(173, 640)),
+            (-Fraction(9, 128), Fraction(173, 640)),
+        ),
+    )
+    for (active, candidate, _), expected_candidate, expected_residual in zip(
+        formal_states,
+        expected_candidates,
+        expected_residuals,
+    ):
+        post_residual = [
+            series_subtract(image, load_value, order)
+            for image, load_value in zip(
+                formal_apply(formal_matrix(active), candidate),
+                formal_load(active),
+            )
+        ]
+        assert tuple(map(tuple, candidate)) == expected_candidate
+        assert tuple(map(tuple, post_residual)) == expected_residual
+
+    stage_four_seed_residual = list(expected_residuals[3][0])
+    stage_four_score = series_multiply(stage_four_seed_residual, stage_four_seed_residual, order)
+    assert stage_four_score == [Fraction(49, 4096), -Fraction(1141, 10240)]
+    credit = series_subtract(
+        formal_objective(faces[0], formal_optimum(faces[0])),
+        formal_objective(faces[2], formal_optimum(faces[2])),
+        order,
+    )
+    assert credit == [Fraction(2, 3), -Fraction(32, 15)]
+    energy_four = formal_energy(faces[2], formal_states[3][1], formal_states[3][2])
+    assert initial_energy == [Fraction(1), -Fraction(2, 5)]
+    assert energy_four == [Fraction(2207, 3072), -Fraction(18281, 3072)]
+    reserve = series_subtract(series_add_values(initial_energy, credit, order), energy_four, order)
+    assert reserve == [Fraction(971, 1024), Fraction(52493, 15360)]
+    limiting_constant = stage_four_score[0] / reserve[0]
+    assert limiting_constant == Fraction(49, 3884)
+
+    previous_scaled_requirement = ZERO
+    for denominator in (20, 40, 80, 160, 320, 640):
+        q = Fraction(1, denominator)
+        run = replay_with_reserve(graph_order, QUARTIC_EDGES, 0, q=q, max_stages=16)
+        assert run is not None
+        assert run["admissions"] == [(1, (2,)), (2, (1, 3, 5)), (15, (4,))]
+        assert [run["snapshots"][stage]["action"] for stage in range(1, 5)] == [
+            "admit",
+            "admit",
+            "hold",
+            "hold",
+        ]
+        assert all(min(run["snapshots"][stage]["candidate"]) > 0 for stage in range(1, 5))
+        requirement = required_coefficient(run)
+        assert requirement[1] == "4-"
+        scaled_requirement = q**4 * requirement[0]
+        assert previous_scaled_requirement < scaled_requirement < limiting_constant
+        previous_scaled_requirement = scaled_requirement
+
+        snapshot = run["snapshots"][4]
+        active = list(snapshot["active"])
+        post_residual = residual(
+            snapshot["candidate"],
+            active,
+            0,
+            neighbors,
+            degrees,
+            q * q,
+            q / 5,
+        )
+        support_delta = max(
+            ZERO,
+            max(
+                value
+                for coordinate, value in zip(snapshot["candidate"], post_residual)
+                if coordinate > 0
+            )
+            / (q * q),
+        )
+        assert support_delta == snapshot["delta"]
+
+
+def bipartite_family_leading_check():
+    """Check the exact q=0 scaled algebra for several K_{2,r}-plus-leaf graphs."""
+    for middle_count in (3, 4, 5, 7, 10, 30):
+        middle = list(range(3, 3 + middle_count))
+        graph_order = 3 + middle_count
+        edges = (
+            ((0, 1),)
+            + tuple((1, vertex) for vertex in middle)
+            + tuple((2, vertex) for vertex in middle)
+        )
+        degrees = degrees_from_edges(graph_order, edges)
+        neighbors = neighbors_from_edges(graph_order, edges)
+        faces = ([0], [0, 1], [0, 1, *middle])
+
+        def leading_apply(active, vector):
+            position = {vertex: index for index, vertex in enumerate(active)}
+            return [
+                Fraction(value, 2)
+                - sum(
+                    (vector[position[other]] for other in neighbors[vertex] if other in position),
+                    ZERO,
+                )
+                / (2 * degrees[vertex])
+                for vertex, value in zip(active, vector)
+            ]
+
+        def leading_optimum(active):
+            columns = []
+            for column in range(len(active)):
+                basis = [ZERO] * len(active)
+                basis[column] = Fraction(1)
+                columns.append(leading_apply(active, basis))
+            matrix = [list(row) for row in zip(*columns)]
+            right_hand_side = [Fraction(1) if vertex == 0 else ZERO for vertex in active]
+            return solve_fraction(matrix, right_hand_side)
+
+        def leading_objective(active, vector):
+            image = leading_apply(active, vector)
+            return sum(
+                (
+                    degrees[vertex]
+                    * (Fraction(value * applied, 2) - (value if vertex == 0 else ZERO))
+                    for vertex, value, applied in zip(active, vector, image)
+                ),
+                ZERO,
+            )
+
+        def leading_energy(active, iterate, center):
+            optimum = leading_optimum(active)
+            error = [value - optimum_value for value, optimum_value in zip(iterate, optimum)]
+            image = leading_apply(active, error)
+            return sum(
+                (
+                    Fraction(degrees[vertex], 2) * (coordinate * applied + center_value**2)
+                    for vertex, coordinate, applied, center_value in zip(
+                        active,
+                        error,
+                        image,
+                        center,
+                    )
+                ),
+                ZERO,
+            )
+
+        def leading_step(active, iterate, center):
+            interpolation = [left + right for left, right in zip(iterate, center)]
+            gradient = [
+                image - (Fraction(1) if vertex == 0 else ZERO)
+                for vertex, image in zip(active, leading_apply(active, interpolation))
+            ]
+            candidate = [value - derivative for value, derivative in zip(interpolation, gradient)]
+            center_next = [new - old for new, old in zip(candidate, iterate)]
+            return candidate, center_next
+
+        initial_energy = leading_energy(faces[0], [ZERO], [ZERO])
+        stage_one, center_one = leading_step(faces[0], [ZERO], [ZERO])
+        stage_two, center_two = leading_step(faces[1], [stage_one[0], ZERO], [center_one[0], ZERO])
+        padded_two = [stage_two[0], stage_two[1], *([ZERO] * middle_count)]
+        padded_center = [center_two[0], center_two[1], *([ZERO] * middle_count)]
+        stage_three, center_three = leading_step(faces[2], padded_two, padded_center)
+        stage_four, center_four = leading_step(faces[2], stage_three, center_three)
+        stage_four_residual = leading_apply(faces[2], stage_four)
+        stage_four_residual[0] -= 1
+
+        size_parameter = middle_count + 1
+        assert stage_two == [Fraction(2), Fraction(1, size_parameter)]
+        assert stage_three == [
+            Fraction(5, 2) + Fraction(1, size_parameter),
+            Fraction(5, 2 * size_parameter),
+            *([Fraction(1, 2 * size_parameter)] * middle_count),
+        ]
+        assert stage_four == [
+            Fraction(5, 2) + Fraction(3, size_parameter),
+            Fraction(4, size_parameter) + Fraction(1, 2 * size_parameter**2),
+            *([Fraction(3, 2 * size_parameter)] * middle_count),
+        ]
+        assert stage_four_residual == [
+            Fraction(size_parameter**2 - 2 * size_parameter - 1, 4 * size_parameter**2),
+            -Fraction(1, 2 * size_parameter**2),
+            *([-Fraction(2 * size_parameter + 1, 8 * size_parameter**2)] * middle_count),
+        ]
+
+        credit = leading_objective(faces[0], leading_optimum(faces[0])) - leading_objective(
+            faces[2],
+            leading_optimum(faces[2]),
+        )
+        reserve = initial_energy + credit - leading_energy(faces[2], stage_four, center_four)
+        reserve_formula = Fraction(
+            15 * size_parameter**4
+            - 15 * size_parameter**3
+            + 2 * size_parameter**2
+            + size_parameter
+            - 3,
+            16 * size_parameter**3 * (size_parameter - 1),
+        )
+        constant_formula = Fraction(
+            (size_parameter - 1) * (size_parameter**2 - 2 * size_parameter - 1) ** 2,
+            size_parameter
+            * (
+                15 * size_parameter**4
+                - 15 * size_parameter**3
+                + 2 * size_parameter**2
+                + size_parameter
+                - 3
+            ),
+        )
+        assert credit == Fraction(2, size_parameter - 1)
+        assert reserve == reserve_formula
+        assert stage_four_residual[0] ** 2 / reserve == constant_formula
+
+
 def atlas_check():
     """Enumerate every rooted connected graph-atlas representative through n=7."""
     rooted_counts = {}
@@ -893,6 +1369,8 @@ def main():
 
     witness_check()
     star_check()
+    quartic_lower_check()
+    bipartite_family_leading_check()
     bernstein_decrement_check()
     projection_active_stop_check()
     if arguments.enumerate:
@@ -901,6 +1379,8 @@ def main():
     print(
         "consumed-energy reserve verified: exact witness lambda*=0.013..., "
         "leaf-seeded K1,4 needs lambda(q)=Omega(q^-3) with limit 1/32; "
+        "reachable K2,3-plus-leaf needs lambda(q)=Omega(q^-4) with limit 49/3884; "
+        "K2,r-plus-leaf leading constants tend to 1/15; "
         "q^-4 Bernstein GO and original-score projected STOP verified"
         f"{suffix}"
     )
