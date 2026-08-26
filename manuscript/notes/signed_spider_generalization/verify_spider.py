@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from fractions import Fraction
 from itertools import combinations
 from math import cos, pi, sqrt
 
@@ -10,6 +11,67 @@ from numpy.typing import NDArray
 
 
 Array = NDArray[np.float64]
+RationalMatrix = list[list[Fraction]]
+
+
+def fraction_solve(matrix: RationalMatrix, right_hand_side: list[Fraction]) -> list[Fraction]:
+    """Solve a nonsingular rational system by exact Gauss--Jordan elimination."""
+    size = len(matrix)
+    augmented = [row.copy() + [value] for row, value in zip(matrix, right_hand_side)]
+    for column in range(size):
+        pivot = next(row for row in range(column, size) if augmented[row][column])
+        augmented[column], augmented[pivot] = augmented[pivot], augmented[column]
+        pivot_value = augmented[column][column]
+        augmented[column] = [value / pivot_value for value in augmented[column]]
+        for row in range(size):
+            if row == column:
+                continue
+            multiplier = augmented[row][column]
+            if multiplier:
+                augmented[row] = [
+                    value - multiplier * pivot_entry
+                    for value, pivot_entry in zip(augmented[row], augmented[column])
+                ]
+    return [row[-1] for row in augmented]
+
+
+def rational_matvec(matrix: RationalMatrix, vector: list[Fraction]) -> list[Fraction]:
+    """Multiply a rational matrix and vector exactly."""
+    return [
+        sum((value * vector[column] for column, value in enumerate(row)), Fraction())
+        for row in matrix
+    ]
+
+
+def funnel_blocks(depth: int) -> tuple[RationalMatrix, RationalMatrix, RationalMatrix, list[int]]:
+    """Return exact A, C, K=AC and red degrees for the layered funnel graph."""
+    weights = [3 ** (depth - 1 - channel) for channel in range(depth)]
+    degrees = [weights[0]]
+    degrees.extend(weights[index - 1] + weights[index] for index in range(1, depth))
+    degrees.append(weights[-1])
+
+    red_to_blue = [[Fraction() for _ in range(depth)] for _ in range(depth + 1)]
+    blue_to_red = [[Fraction() for _ in range(depth + 1)] for _ in range(depth)]
+    for channel, weight in enumerate(weights):
+        red_to_blue[channel][channel] = Fraction(weight, degrees[channel])
+        red_to_blue[channel + 1][channel] = Fraction(weight, degrees[channel + 1])
+        blue_to_red[channel][channel] = Fraction(1, 2)
+        blue_to_red[channel][channel + 1] = Fraction(1, 2)
+
+    two_step = [
+        [
+            sum(
+                (
+                    red_to_blue[row][channel] * blue_to_red[channel][column]
+                    for channel in range(depth)
+                ),
+                Fraction(),
+            )
+            for column in range(depth + 1)
+        ]
+        for row in range(depth + 1)
+    ]
+    return red_to_blue, blue_to_red, two_step, degrees
 
 
 def mode_matrix(alpha: float, sigma: float, omega: float) -> Array:
@@ -211,6 +273,119 @@ def check_sweep_order_witness() -> int:
     return 1
 
 
+def check_funnel_counterfamily() -> int:
+    """Check the layered global-envelope stop with exact rational arithmetic."""
+    cells = 0
+    for depth in range(2, 9):
+        red_to_blue, blue_to_red, two_step, degrees = funnel_blocks(depth)
+        weights = [3 ** (depth - 1 - channel) for channel in range(depth)]
+        assert all(sum(row, Fraction()) == 1 for row in red_to_blue)
+        assert all(sum(row, Fraction()) == 1 for row in blue_to_red)
+        assert all(sum(row, Fraction()) == 1 for row in two_step)
+        assert two_step[0][:2] == [Fraction(1, 2), Fraction(1, 2)]
+        assert two_step[-1][-2:] == [Fraction(1, 2), Fraction(1, 2)]
+        for row in range(1, depth):
+            assert two_step[row][row - 1 : row + 2] == [
+                Fraction(3, 8),
+                Fraction(1, 2),
+                Fraction(1, 8),
+            ]
+
+        # D_R K is exactly the incidence Gram sum
+        # sum_b d_b^{-1} H[:,b] H[:,b]^T, so the reversible K is PSD.
+        weighted_chain = [
+            [Fraction(degrees[row]) * two_step[row][column] for column in range(depth + 1)]
+            for row in range(depth + 1)
+        ]
+        incidence_gram = [[Fraction() for _ in range(depth + 1)] for _ in range(depth + 1)]
+        for channel, weight in enumerate(weights):
+            for row in (channel, channel + 1):
+                for column in (channel, channel + 1):
+                    incidence_gram[row][column] += Fraction(weight, 2)
+        assert weighted_chain == incidence_gram
+
+        # Solve the hitting-time equations and check the closed-form increments.
+        hitting_matrix = [
+            [Fraction(row == column) - two_step[row][column] for column in range(1, depth + 1)]
+            for row in range(1, depth + 1)
+        ]
+        hitting = [Fraction()] + fraction_solve(hitting_matrix, [Fraction(1)] * depth)
+        for index in range(1, depth + 1):
+            assert hitting[index] - hitting[index - 1] == Fraction(4) - Fraction(
+                2, 3 ** (depth - index)
+            )
+        assert hitting[-1] <= 4 * depth
+
+        alpha = Fraction(1, depth**2)
+        c_alpha = (1 - alpha) / (1 + alpha)
+        discount = c_alpha**2
+        resolvent_matrix = [
+            [
+                Fraction(row == column) - discount * two_step[row][column]
+                for column in range(depth + 1)
+            ]
+            for row in range(depth + 1)
+        ]
+        green_column = fraction_solve(
+            resolvent_matrix,
+            [Fraction(1)] + [Fraction()] * depth,
+        )
+
+        # The discounted hitting system gives the exact Green-column ratio.
+        discounted_hitting_matrix = [
+            [
+                Fraction(row == column) - discount * two_step[row][column]
+                for column in range(1, depth + 1)
+            ]
+            for row in range(1, depth + 1)
+        ]
+        discounted_hitting = [Fraction(1)] + fraction_solve(
+            discounted_hitting_matrix,
+            [discount * two_step[row][0] for row in range(1, depth + 1)],
+        )
+        assert green_column[-1] / green_column[0] == discounted_hitting[-1]
+        assert discounted_hitting[-1] >= discount ** (4 * depth)
+
+        total_red_degree = sum(degrees)
+        assert total_red_degree == 3**depth - 1
+        stationary_seed = Fraction(degrees[0], total_red_degree)
+        assert green_column[0] >= stationary_seed / (1 - discount)
+        assert green_column[0] <= 1 / (1 - discount)
+
+        source = (1 - c_alpha) / degrees[0]
+        red_profile = [source * value for value in green_column]
+        blue_profile = [c_alpha * value for value in rational_matvec(blue_to_red, red_profile)]
+        seed_value = red_profile[0]
+        assert max(red_profile + blue_profile) == seed_value
+        assert seed_value >= 1 / ((1 + c_alpha) * total_red_degree)
+        assert seed_value <= 1 / ((1 + c_alpha) * degrees[0])
+        assert 2 * total_red_degree * seed_value > 1
+
+        # Source-first SOR changes only one new channel layer per full sweep.
+        omega = 1 + ((1 - Fraction(1, depth)) / (1 + Fraction(1, depth))) ** 2
+        zeta = omega - 1
+        red_error = red_profile.copy()
+        blue_error = blue_profile.copy()
+        for sweep in range(1, depth + 1):
+            old_red = red_error.copy()
+            old_blue = blue_error.copy()
+            red_average = rational_matvec(red_to_blue, blue_error)
+            red_error = [
+                -zeta * value + omega * c_alpha * red_average[index]
+                for index, value in enumerate(red_error)
+            ]
+            blue_average = rational_matvec(blue_to_red, red_error)
+            blue_error = [
+                -zeta * value + omega * c_alpha * blue_average[index]
+                for index, value in enumerate(blue_error)
+            ]
+            assert red_error[sweep:] == old_red[sweep:]
+            assert blue_error[sweep:] == old_blue[sweep:]
+            assert red_error[-1] == red_profile[-1]
+        cells += 1
+    return cells
+
+
 def pagerank_matrix(adjacency: Array, alpha: float) -> tuple[Array, Array]:
     """Return Q and the degree vector for one graph."""
     degrees = adjacency.sum(axis=1)
@@ -339,6 +514,7 @@ def main() -> None:
     spider_cells = check_spider_spectrum()
     radial_cells = check_radial_semantic_damping()
     order_cells = check_sweep_order_witness()
+    funnel_cells = check_funnel_counterfamily()
     bias_cells = check_bias_bridge()
     shock_cells = check_face_shock_pythagoras()
     print(
@@ -346,6 +522,7 @@ def main() -> None:
         f"{mode_cells} SOR modes, {spider_cells} spider cells, "
         f"{radial_cells} radial semantic cells, "
         f"{order_cells} sweep-order witness, "
+        f"{funnel_cells} exact funnel cells, "
         f"{bias_cells} RPPR bias cells, {shock_cells} face-shock cells"
     )
 

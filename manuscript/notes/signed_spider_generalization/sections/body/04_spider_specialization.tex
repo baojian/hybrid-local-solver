@@ -382,6 +382,226 @@ Proposition~\ref{prop:radial-sweep-order-witness} shows that the order clause
 cannot simply be deleted.  Unequal arms, nonradial seeds, support discovery,
 and changing faces are not consequences of the theorem.
 
+\subsection{A graph-uniform maximum-norm extension is impossible}
+
+The fixed-face spectral theorem remains valid on every bipartite graph, but
+its Euclidean bound cannot be converted into a graph-independent relative
+maximum-semantic contraction.  The obstruction is finite propagation across
+a degree-skewed sequence of two-step channels.
+
+For an integer $n\geq1$, define a finite simple connected bipartite graph
+$G_n=R\mathbin{\dot\cup}B$ as follows.  Put
+\begin{equation*}
+ R=\{r_0,\ldots,r_n\},
+ \qquad
+ B=\mathbin{\dot\bigcup}_{i=0}^{n-1}B_i,
+ \qquad
+ |B_i|=w_i:=3^{n-1-i}.
+\end{equation*}
+Every vertex in $B_i$ is adjacent to exactly $r_i$ and $r_{i+1}$, and there
+are no other edges.  Seed $r_0$, start SOR from zero on the entire graph,
+relax $R$ first, and use the graph-global parameter
+$\omega_\alpha=1+\zeta_\alpha$ from
+\eqref{eq:radial-sor-parameters}.
+
+\begin{theorem}[No graph-uniform relative semantic SOR envelope]
+\label{thm:global-semantic-sor-stop}
+Let $0<\alpha<1$, and let $x^{(k)}$ be the iterate on $G_n$ after $k$ complete
+source-first red--black sweeps.  Then, for every $0\leq k\leq n$,
+\begin{equation}
+ \frac{\|x^{(k)}-x^0\|_{D,\infty}}
+      {\|x^0\|_{D,\infty}}
+ \geq c_\alpha^{8n},
+ \qquad
+ c_\alpha=\frac{1-\alpha}{1+\alpha}.
+ \label{eq:global-semantic-sor-stop-lower}
+\end{equation}
+Consequently there is no finite graph-independent constant $C$ for which
+every finite connected bipartite graph, single seed on the first color, and
+integer $k\geq0$ obey
+\begin{equation}
+ \frac{\|x^{(k)}-x^0\|_{D,\infty}}
+      {\|x^0\|_{D,\infty}}
+ \leq C(1+k\sqrt\alpha)e^{-4k\sqrt\alpha}.
+ \label{eq:global-semantic-sor-envelope-refuted}
+\end{equation}
+More strongly, for every fixed $T>0$ there is no graph-uniform fixed-factor
+semantic reduction guaranteed at any time through $T/\sqrt\alpha$ full
+sweeps.
+\end{theorem}
+
+\begin{proof}
+Put $y=D^{-1/2}x^0$.  In semantic coordinates the PPR equations have the form
+\begin{equation}
+ y_R=c_\alpha Ay_B+h e_{r_0},
+ \qquad
+ y_B=c_\alpha Cy_R,
+ \qquad h>0,
+ \label{eq:funnel-semantic-ppr}
+\end{equation}
+where $A:R\leftarrow B$ and $C:B\leftarrow R$ are row-stochastic neighbor
+averages.  Thus, with $K=AC$ and $r=c_\alpha^2$,
+\begin{equation}
+ y_R=h(I-rK)^{-1}e_{r_0}.
+ \label{eq:funnel-even-green}
+\end{equation}
+The semantic maximum principle puts the maximum of $y$ at $r_0$: at every
+other vertex $y_v=c_\alpha(P_{\rm row}y)_v$ is strictly below the maximum of
+its neighbors.
+
+The two-step chain $K$ is a lazy birth--death chain on
+$r_0,\ldots,r_n$.  Its endpoint rows split equally between staying and the
+unique inward neighbor, while every internal row satisfies
+\begin{equation}
+ K(i,i)=\frac12,
+ \qquad
+ K(i,i-1)=\frac38,
+ \qquad
+ K(i,i+1)=\frac18.
+ \label{eq:funnel-two-step-chain}
+\end{equation}
+Indeed, a first step chooses one of the $w_{i-1}+w_i$ incident channel
+vertices and the second step returns to either endpoint with probability
+$1/2$; here $w_{i-1}=3w_i$.
+
+Let $\tau_0$ be the first hitting time of $r_0$ for $K$ started at $r_n$.
+At every positive internal state the expected one-step decrease in the index
+is $3/8-1/8=1/4$, and at $r_n$ it is $1/2$.  The additive drift bound gives
+\begin{equation}
+ \mathbb E_{r_n}\tau_0\leq4n.
+ \label{eq:funnel-hitting-time}
+\end{equation}
+The discounted Green identity and the strong Markov property give
+\begin{equation}
+ \frac{y_{r_n}}{y_{r_0}}
+ =\frac{[(I-rK)^{-1}]_{n0}}{[(I-rK)^{-1}]_{00}}
+ =\mathbb E_{r_n}r^{\tau_0}.
+ \label{eq:funnel-discounted-hitting}
+\end{equation}
+Since $t\mapsto r^t$ is convex and decreasing, Jensen's inequality and
+\eqref{eq:funnel-hitting-time} imply
+\begin{equation}
+ \frac{y_{r_n}}{y_{r_0}}
+ \geq r^{\mathbb E\tau_0}
+ \geq r^{4n}=c_\alpha^{8n}.
+ \label{eq:funnel-green-ratio-lower}
+\end{equation}
+
+It remains to connect this static ratio to literal SOR.  Let
+$e^{(k)}=D^{-1/2}(x^0-x^{(k)})$.  At zero start $e^{(0)}=y$.  The semantic
+coordinate update is
+\eqref{eq:radial-semantic-coordinate-update}, and
+$2\lambda_\alpha=(1+\zeta_\alpha)c_\alpha$.  Therefore an updated nonseed
+coordinate remains exactly equal to $y_v$ whenever its current value and all
+neighbor values still equal the corresponding entries of $y$.  Only the seed
+can change in the first $R$ block.  Induction over the two color blocks shows
+that after $k\geq1$ sweeps the changed coordinates lie within graph distance
+$2k-1$ of $r_0$.  Since $r_n$ has distance $2n$, it is unchanged for every
+$k\leq n$.  Hence
+\begin{equation*}
+ \frac{\|e^{(k)}\|_\infty}{\|e^{(0)}\|_\infty}
+ \geq\frac{y_{r_n}}{y_{r_0}}
+ \geq c_\alpha^{8n},
+\end{equation*}
+which proves \eqref{eq:global-semantic-sor-stop-lower}.
+
+For the two impossibility statements, fix $T>0$ and set
+$\alpha_n=(T/n)^2$ for integers $n>T$.  Then
+$n=T/\sqrt{\alpha_n}$ and
+\begin{equation*}
+ c_{\alpha_n}^{8n}
+ =\left(\frac{1-T^2/n^2}{1+T^2/n^2}\right)^{8n}
+ \longrightarrow1.
+\end{equation*}
+Thus no fixed reduction occurs through that entire horizon.  Given a proposed
+$C$, choose $T$ so that $C(1+T)e^{-4T}<1/2$ and then take $n$ large enough
+that the left side at $k=n$ exceeds $1/2$.  This contradicts
+\eqref{eq:global-semantic-sor-envelope-refuted}.
+\end{proof}
+
+The relative stop also has a narrowly scoped absolute-work consequence for
+this literal full-sweep primitive.  It uses the fact that the seed scale is
+not smaller than inverse graph volume.
+
+\begin{corollary}[Complete-face plain-SOR product-work stop]
+\label{cor:global-semantic-sor-work-stop}
+There is no graph-independent constant $C_W$ such that zero-start,
+source-color-first plain SOR with the graph-global $\omega_\alpha$, output
+only after complete red--black sweeps, always reaches
+\begin{equation*}
+ \|x^{(k)}-x^0\|_{D,\infty}\leq\varepsilon_{\rm ppr}
+\end{equation*}
+on every finite connected bipartite graph in charged degree work at most
+$C_W/(\sqrt\alpha\,\varepsilon_{\rm ppr})$.  This remains false when the
+entire graph and its bipartition are supplied for free.
+\end{corollary}
+
+\begin{proof}
+For $G_n$, put $d_i=d_{r_i}$ and let $H$ be the $R$-by-$B$ incidence matrix.
+Then
+\begin{equation*}
+ K=D_R^{-1}H D_B^{-1}H^\top,
+ \qquad
+ D_R^{1/2}KD_R^{-1/2}
+ =D_R^{-1/2}H D_B^{-1}H^\top D_R^{-1/2}\succeq0.
+\end{equation*}
+Thus $K$ is a reversible positive-semidefinite Markov chain, with stationary
+law
+\begin{equation*}
+ \pi_i=\frac{d_i}{\sum_{j=0}^n d_j},
+ \qquad
+ d_0=3^{n-1},
+ \qquad
+ \sum_{j=0}^n d_j=|E(G_n)|=3^n-1.
+\end{equation*}
+Write $G_r(0,0)=[(I-rK)^{-1}]_{00}$.  The stationary eigenvector's
+contribution to the reversible spectral expansion, positivity of all the
+remaining resolvent terms, and the elementary return-probability upper bound
+give
+\begin{equation}
+ \frac{\pi_0}{1-r}\leq G_r(0,0)\leq\frac1{1-r}.
+ \label{eq:funnel-green-diagonal-bounds}
+\end{equation}
+Here the exact single-seed source in
+\eqref{eq:funnel-semantic-ppr} is
+$h=(1-c_\alpha)/d_0$.  Combining
+\eqref{eq:funnel-even-green} and
+\eqref{eq:funnel-green-diagonal-bounds} yields
+\begin{equation}
+ \frac1{(1+c_\alpha)(3^n-1)}
+ \leq y_{r_0}
+ \leq\frac1{(1+c_\alpha)3^{n-1}}.
+ \label{eq:funnel-seed-output-scale}
+\end{equation}
+In particular, since
+$\operatorname{vol}(G_n)=2(3^n-1)$,
+\begin{equation*}
+ \operatorname{vol}(G_n)y_{r_0}\geq\frac2{1+c_\alpha}>1.
+\end{equation*}
+
+Fix $T>0$, take $\alpha_n=(T/n)^2$ as in the theorem, and set
+$\varepsilon_n=y_{r_0}/2$.  For all sufficiently large $n$, the semantic
+error at every completed sweep through $n$ is strictly larger than
+$\varepsilon_n$.  Those $n$ sweeps alone cost
+$n\operatorname{vol}(G_n)$.  With $q_n=\sqrt{\alpha_n}=T/n$,
+\begin{equation*}
+ \frac{n\operatorname{vol}(G_n)}{1/(q_n\varepsilon_n)}
+ =\frac{T\operatorname{vol}(G_n)y_{r_0}}2
+ \geq\frac{T}{1+c_{\alpha_n}}>\frac T2.
+\end{equation*}
+Since $T$ is arbitrary, no constant $C_W$ can give the claimed product-work
+bound.
+\end{proof}
+
+The scope is deliberately algorithm-specific.  The theorem and corollary do
+not contradict the Euclidean fixed-face spectral theorem or its supplied-face
+logarithmic solve, whose conversion to maximum semantic norm can depend on
+graph geometry.  They do not lower-bound other algorithms, local discovery,
+or response composition; indeed the graph is supplied for free above.  They
+refute only a graph-uniform relative maximum-semantic envelope and the target
+product work for the named complete-face full-sweep plain-SOR schedule.  The
+symmetric-spider theorem and response-based tree algorithms remain intact.
+
 \subsection{How the radial two-rung theorem differs}
 
 The proof-owning \texttt{two\_rung\_direct\_theory} note gives a different

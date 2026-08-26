@@ -19,6 +19,16 @@ maximum-norm theorem: plain optimal SOR reduces semantic error by
 `O(1/(sqrt(alpha) eps_ppr))` output-scale work.  An exact two-vertex witness
 shows why the source color must be swept first.
 
+The radial maximum-norm result cannot be promoted to all bipartite graphs.
+An exact layered counterfamily with geometrically decreasing channel
+multiplicities keeps a far semantic error almost unchanged through any fixed
+multiple of `1/sqrt(alpha)` source-first full sweeps.  It rules out every
+graph-universal constant exponential envelope and, because the seed output is
+at inverse-volume scale, rules out graph-uniform
+`O(1/(sqrt(alpha) eps_ppr))` work for this literal complete-face full-sweep
+plain-SOR primitive.  This does not lower-bound other local or response-based
+algorithms.
+
 For nested bipartite faces, the note also proves exact nonsettled
 face-shock Pythagoras and a conditional continuation theorem under supplied
 geometric volume growth.  It then records the stronger existing response

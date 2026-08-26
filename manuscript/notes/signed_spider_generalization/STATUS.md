@@ -38,7 +38,13 @@ State: proved-open
   graph-global parameter gives the generic fully charged fixed-face bound
   without computing `rho_J`.  On every finite equal-arm hub-seeded spider,
   source-color-first plain SOR obeys the exact dimension-free envelope
-  `zeta^k(1+2k(1-zeta))`, yielding log-free output-scale work.  For nested
+  `zeta^k(1+2k(1-zeta))`, yielding log-free output-scale work.  A layered
+  bipartite funnel proves that no graph-independent constant extends the
+  corresponding exponential maximum-semantic envelope to all bipartite
+  graphs.  Its seed output is
+  `Theta(1/vol(G))`, so it also rules out graph-uniform
+  `O(1/(sqrt(alpha) eps_ppr))` charged work for the literal complete-face
+  source-first full-sweep plain-SOR schedule.  For nested
   fixed-load faces, zero-padding any nonsettled old iterate gives exact
   Pythagorean error splitting.  Combining this identity with the fixed-face
   power bound proves a supplied geometrically-growing-face continuation
@@ -57,13 +63,20 @@ State: proved-open
   semantic-stopping interface without repeated-prefix scans.
 - **Measured:** None of the main claims is inferred from measurement.  The
   verifier audits the block-SOR algebra, radial wave recurrence, semantic
-  envelope, bias bridge, and face-shock identity numerically.
+  envelope, bias bridge, and face-shock identity numerically, and audits the
+  layered funnel transition, hitting time, discounted Green ratio,
+  inverse-volume seed scale, and finite propagation in exact rational
+  arithmetic.
 - **Refuted:** The existing SOR and FISTA star examples cannot be used as a
   direct performance ranking.  A small final support does not control FISTA's
   transient work, and a favorable fixed-face SOR rate does not pay for finding
   or changing that face.  The sharp radial envelope fails on `P2` after one
   unswapped sweep when the source lies on the second color; swapping the color
-  order restores the theorem.
+  order restores the theorem.  Even with source-first order, the layered
+  funnel refutes every graph-universal constant version of the radial
+  maximum-semantic exponential envelope and stops product work for literal
+  complete-face full-sweep plain SOR.  It does not lower-bound other local
+  algorithms or response methods.
 - **Open:** A graph-uniform signed iterative solver on large biconnected cyclic
   cores with product-scale work and a local semantic certificate.
 
@@ -75,7 +88,9 @@ be transported across supplied geometrically growing bipartite faces.  What
 remains is a large nonequitable cyclic core where singleton admissions can
 force repeated old-face scans and change many boundary demands.  Neither a
 fixed-face spectral rate nor exact final-support volume controls those
-transient reports and state writes.
+transient reports and state writes.  The layered funnel additionally closes
+the simpler route that would repeatedly sweep the entire complete face and
+hope for a graph-uniform maximum-semantic product bound.
 
 ## Dependencies and reusable outputs
 
@@ -86,13 +101,16 @@ transient reports and state writes.
   requested spider-first generalization motivate this note.
 - **Reusable outputs:** The accuracy bridge, fixed-face equivalence, exact
   bipartite SOR factor, log-free radial Chebyshev theorem, sweep-order witness,
-  nonsettled face-shock Pythagoras, conditional continuation theorem,
-  graph-family ladder, and staged falsification plan.
+  layered graph-uniform envelope and full-sweep work stop, nonsettled
+  face-shock Pythagoras, conditional continuation theorem, graph-family
+  ladder, and staged falsification plan.
 
 ## Resume here
 
 - **Exact pointer:** `sec:comparison-bridge` for the objective/accuracy bridge;
   `thm:radial-semantic-damping` for the log-free spider theorem;
+  `thm:global-semantic-sor-stop` and
+  `cor:global-semantic-sor-work-stop` for the graph-uniform full-sweep stop;
   `prop:windowed-sor-continuation` for supplied-face transport; and
   `sec:beyond-bounded-blocks` for the remaining interface.
 - **Next action:** Build a finite-band KKT reporter on the smallest large
@@ -105,12 +123,12 @@ transient reports and state writes.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 24-page PDF with no undefined
-  references, citations, or overfull boxes, and all pages were rendered and
-  visually inspected.  `verify_spider.py` passed 80
+- **Focused checks:** `make` produced a 28-page PDF with no undefined
+  references, citations, or overfull boxes; the four new theorem pages were
+  rendered and visually inspected.  `verify_spider.py` passed 80
   SOR-mode cells, 144 spider-spectrum cells, 14,616 radial-semantic cells, one
-  exact sweep-order witness, 522 small-graph RPPR-bias cells, and 132
-  face-shock cells.
+  exact sweep-order witness, seven exact layered-funnel cells, 522 small-graph
+  RPPR-bias cells, and 132 face-shock cells.
   `verify_fixed_face.py` passed 570 cells: 60 exact rational parameter
   cells, 480 finite-power cells, and 30 spider-prefix cells.  Focused Ruff
   checking passed.
@@ -120,7 +138,9 @@ transient reports and state writes.
   `manuscript/claude-overnight-2026-08-24/` scripts; no reported finding is in
   this note or its verifier.
 - **Known gaps:** The sharp radial theorem does not cover unequal arms,
-  nonradial seeds, or online face discovery.  The end-to-end tree and
+  nonradial seeds, or online face discovery; the layered stop shows that no
+  graph-universal constant-envelope extension can cover all bipartite graphs.
+  The end-to-end tree and
   bounded-block corollaries inherit the exact-real arithmetic and single-seed
   scopes of their proof-owning response theorems.  Arbitrary singleton
   admissions, their finite-band reporter, and large biconnected cyclic cores
