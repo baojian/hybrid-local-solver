@@ -27,25 +27,29 @@
   degree-weighted path-cosine basis, damped modal roots and quadratures, safe
   global-correction/range semantics, the ideal binomial packet transform, a
   uniform phase-energy bound, and a conditional
-  `Omega(q^-1 log(1/q))` theorem.  The note isolates two sufficient missing
-  lemmas: low-even-mode entry position/velocity profiles and a
+  `Omega(q^-1 log(1/q))` theorem.  The note isolates three sufficient missing
+  lemmas: proper-prefix projection/correction/admission chronology,
+  low-even-mode entry position/velocity profiles, and a
   projection/unclipped-envelope invariant through the logarithmic horizon.
   A follow-up derives the exact identity `D_h=q*cot(phi_h)*V_h`, all proper-
   prefix and full-path restricted optima, the rank-one proper-prefix transport
   with `0<b_n-b_(n-1)<=q*artanh(q)`, the fixed-face directional factorization,
   and pointwise nonpositivity of the ideal packet evolution. A second
-  follow-up proves the exact changing-face defect at the seed and last three
+  follow-up proves, conditional on that open proper-prefix chronology, the
+  exact changing-face defect at the seed and last three
   frontier rows, including the final ambient-degree-one endpoint. Even
   reflection removes the seed term, and the remaining source transform
   factors as `U_n(1-z)(1+3z)+M_n*z^2`, with exact uniform bounds
   `0<U_n<=3q^3/40` and `|M_n|<=3q^4/2`. It also reduces the open `C/V`
   profiles to two scalar signed-sum inequalities. The
   full-face `K/J` propagators are nonnegative with row sums `1` and `k`, so the
-  regime-side obstruction is now the factor-`k` loss without signed/variation
+  source algebra and scalar profile reduction are therefore exact under the
+  chronology hypothesis, not unconditional claims about the projected
+  admission execution. The regime-side obstruction is now the factor-`k` loss without signed/variation
   control of the velocity remainder. The profile constants rigorously imply
   the earlier combined `1/64` target. A
   deterministic screen reconstructs the literal admission and terminal
-  recurrence and tests both hypotheses.
+  recurrence and tests all three hypotheses at finite sizes.
 - Deliberately unchanged: The dirty main worktree, the source
   `volume_gated_acceleration` note, its historical verifier, and all solver
   implementations.  This branch does not claim an unconditional terminal
@@ -96,13 +100,15 @@
   of `exp(-1/16)` was a constant typo and did not affect the theorem's
   conservative amplitude bounds.  The note also records why zero-padding the
   newly admitted endpoint rules out an instantaneous certificate at entry.
-- Open decisions or follow-up: Decompose the now-proved frontier transform
+- Open decisions or follow-up: First prove the proper-prefix raw-positivity,
+  zero-safe-correction, and next-row-violation chronology, or retain it as an
+  explicit hypothesis. Conditional on it, decompose the frontier transform
   into the homogeneous packet/base discrepancy, the constant-`U` response,
   the small total variation of `U_n`, the `M_n=O(q^4)` trace, and the single
   final endpoint term, then prove the two
   entry profile bounds uniformly in `m` by controlling their signed Green
   sums; also prove projection inactivity plus
   unclipped global correction through
-  `floor((1/8)q^-1 log(1/q))`.  Until both statements hold in exact arithmetic,
+  `floor((1/8)q^-1 log(1/q))`.  Until all three statements hold in exact arithmetic,
   retain evidence `proved-open` and every asymptotic terminal claim as
   conditional.
