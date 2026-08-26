@@ -125,22 +125,33 @@ def screen(edge_count: int, max_qk: float) -> None:
 
     p_one, _, raw_one = one_step(p, v, degrees, q)
     assert raw_one.min() > 0.0
+    r_one = residual(p_one, degrees, q)
     coefficient_zero = cosine_coefficients(r_zero, degrees)
-    coefficient_one = cosine_coefficients(residual(p_one, degrees, q), degrees)
+    coefficient_velocity = cosine_coefficients(residual(v, degrees, q), degrees)
+    coefficient_one = cosine_coefficients(r_one, degrees)
     band = min(
         (edge_count - 1) // 2,
         max(1, int(math.sqrt(edge_count / max(1.0, math.log(edge_count))))),
     )
     lemma_band = int(math.sqrt(edge_count / (64.0 * math.log(16.0 * edge_count))))
     relative_defects = []
+    position_profiles = []
+    velocity_correction_profiles = []
     combined_lemma_defects = []
+    lemma_position_profiles = []
+    lemma_velocity_correction_profiles = []
+    quadrature_consistency = []
+    first_position_signed = None
+    first_velocity_correction_signed = None
+    first_quadrature_relative = None
     for index in range(1, band + 1):
         mode = 2 * index
         phi = mode * math.pi / (2.0 * edge_count)
         radius = (1.0 - q) * math.cos(phi)
-        quadrature = (
+        quadrature_from_first_step = (
             coefficient_one[mode] / radius - coefficient_zero[mode] * math.cos(phi)
         ) / math.sin(phi)
+        quadrature = q * coefficient_velocity[mode] / math.tan(phi)
         endpoint_mass = math.ldexp(1.0, -edge_count)
         signed_ideal = (
             -(q * q / edge_count)
@@ -148,6 +159,21 @@ def screen(edge_count: int, max_qk: float) -> None:
             * ((-1.0) ** index * math.cos(phi) ** edge_count - endpoint_mass)
         )
         ideal_amplitude = abs(signed_ideal)
+        position_profile = edge_count * abs(coefficient_zero[mode] - signed_ideal) / q**2
+        velocity_correction_profile = (
+            edge_count * abs(coefficient_velocity[mode] + signed_ideal / 5.0) / q**2
+        )
+        position_profiles.append(position_profile)
+        velocity_correction_profiles.append(velocity_correction_profile)
+        quadrature_consistency.append(
+            abs(quadrature - quadrature_from_first_step) / ideal_amplitude
+        )
+        if index == 1:
+            first_position_signed = edge_count * (coefficient_zero[mode] - signed_ideal) / q**2
+            first_velocity_correction_signed = (
+                edge_count * (coefficient_velocity[mode] + signed_ideal / 5.0) / q**2
+            )
+            first_quadrature_relative = quadrature / signed_ideal
         relative_defects.append(
             max(
                 abs(coefficient_zero[mode] - signed_ideal),
@@ -156,6 +182,8 @@ def screen(edge_count: int, max_qk: float) -> None:
             / ideal_amplitude
         )
         if index <= lemma_band:
+            lemma_position_profiles.append(position_profile)
+            lemma_velocity_correction_profiles.append(velocity_correction_profile)
             combined_lemma_defects.append(
                 (abs(coefficient_zero[mode] - signed_ideal) + abs(quadrature)) / ideal_amplitude
             )
@@ -164,8 +192,20 @@ def screen(edge_count: int, max_qk: float) -> None:
         maximum_combined_lemma_defect = max(combined_lemma_defects)
         assert maximum_combined_lemma_defect <= 1.0 / 64.0
         lemma_check = f"{maximum_combined_lemma_defect:.6g}<=1/64"
+        maximum_lemma_position_profile = max(lemma_position_profiles)
+        maximum_lemma_velocity_profile = max(lemma_velocity_correction_profiles)
+        assert maximum_lemma_position_profile <= 1.0 / 256.0
+        assert maximum_lemma_velocity_profile <= 1.0 / 4.0
+        profile_check = (
+            f"C={maximum_lemma_position_profile:.6g}<=1/256 "
+            f"V={maximum_lemma_velocity_profile:.6g}<=1/4"
+        )
     else:
         lemma_check = "vacuous(H_m=0)"
+        profile_check = "vacuous(H_m=0)"
+
+    maximum_quadrature_consistency = max(quadrature_consistency)
+    assert maximum_quadrature_consistency <= 1.0e-6
 
     first_range_crossing = None
     first_certificate = None
@@ -197,6 +237,8 @@ def screen(edge_count: int, max_qk: float) -> None:
 
     weighted_l1 = float(np.dot(degrees, np.abs(r_zero)))
     weighted_packet_error = float(np.dot(degrees, np.abs(packet_error)))
+    l_r_zero = (r_zero - h_apply(r_zero, degrees, q)) / (1.0 - q * q)
+    velocity_source = r_one / (1.0 - q) - l_r_zero
     print(
         f"m={edge_count:5d} q={q:.9g} alpha={q * q:.9g} "
         f"rho=tau={q / 5.0:.9g} graph=P_m seed=v0 "
@@ -217,6 +259,22 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"qk_certificate={q * first_certificate:.9f} "
         f"raw_margin/q2={min_raw_margin / q**2:.6g} "
         f"envelope_margin/q2={min_envelope_margin / q**2:.6g}"
+    )
+    print(
+        f"  wider_profile_C={max(position_profiles):.6g} "
+        f"wider_profile_VplusG5={max(velocity_correction_profiles):.6g} "
+        f"profile_lemma_check={profile_check} "
+        f"first_signed_C={first_position_signed:.6g} "
+        f"first_signed_VplusG5={first_velocity_correction_signed:.6g} "
+        f"first_D_over_G={first_quadrature_relative:.6g} "
+        f"velocity_identity_relerr={maximum_quadrature_consistency:.3g}"
+    )
+    print(
+        f"  measured_c_over_q3=[{packet_error.min() / q**3:.6g},"
+        f"{packet_error.max() / q**3:.6g}] "
+        f"measured_w_over_q3=[{velocity_source.min() / q**3:.6g},"
+        f"{velocity_source.max() / q**3:.6g}] "
+        f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g}"
     )
 
 
