@@ -25,20 +25,23 @@ to the `q=0` recurrence. A stopped-binomial-kernel bound, total-variation
 control of the derivative source, a sharp mass bound, and the exact initial
 response preserve margin `179/14400` from prefix six onward; a separate
 analytic perturbation handles prefixes two through five. The growing-band
-position profile is now proved for all sufficiently large `m`. Its exact
+position profile is proved for all sufficiently large `m`. Its exact
 five-piece decomposition has uniform base and endpoint remainders `o(q^2)`;
 the three limiting absolute constants admit the rational upper ledger
 `257/92160<1/256`. The proof includes the finite constant-`U` Chebyshev sum
 and the cancellation that makes the final degree-one endpoint term `O(q^3)`.
-It also gives exact nonnegative position/velocity propagators, isolating the
-remaining factor-`k` velocity-cancellation obstruction. It then proves a
-conditional anti-cancellation theorem: the proved position profile, one open
-velocity profile bound, and projection/envelope regime preservation
-would force `Omega(q^-1 log(1/q))` terminal steps for the named
-transported-center execution.
+It also gives exact nonnegative position/velocity propagators. A uniform
+continuum limit for the velocity trace retains the cancellation among the
+homogeneous base, derivative sources, and final endpoint. Rational
+total-variation bounds give the strict ledger
+`3479/14400<1/4`, proving the growing-band velocity profile as well. It then
+proves a conditional anti-cancellation theorem: the two proved entry profiles
+and projection/envelope regime preservation would force
+`Omega(q^-1 log(1/q))` terminal steps for the named transported-center
+execution.
 
-The velocity entry profile and the terminal projection/envelope regime are not
-proved. A deterministic NumPy screen reconstructs
+The terminal projection/envelope regime is not proved. A deterministic NumPy
+screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
 velocity identity, and reports both the first range crossing and the first
@@ -53,8 +56,9 @@ exact leading-order correction formulas through prefix 256. A fourth exact
 preflight checks the finite-`q` source constants, stopped derivative-prefix
 bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
 preflight checks the exact rational position ledger and the finite
-constant-`U` Chebyshev response. The remaining velocity-profile problem is a
-sharp signed summation of the source traces, not their support calculation.
+constant-`U` Chebyshev response. A sixth preflight checks the rational
+velocity total-variation ledger and the continuum normalization. The sole
+remaining theorem interface is the nonlinear terminal regime.
 Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.

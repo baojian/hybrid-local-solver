@@ -4,8 +4,8 @@ Last reviewed: 2026-08-27
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-position-profile`
-Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
+Branch: `agent/codex/path-terminal-velocity-profile`
+Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
 
 ## Exact question and contract
 
@@ -76,9 +76,14 @@ Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
   and mass pieces by `1/(240*pi^2)`, `1/(360*pi)`, and
   `43/(10240*pi)`, respectively. Using `pi>3`, their rational upper ledger is
   `257/92160<1/256`, with slack `103/92160`.
-- **Conditional:** If the actual entry velocity profile satisfies its
-  displayed absolute bound on the even-mode band and projection plus
-  envelope subtraction remain inactive through the stated horizon, then every
+- **Velocity theorem:** The growing-band velocity profile is also proved for all
+  sufficiently large `m`. The exact source velocity kernel removes the
+  small-sine loss. Its uniform continuum limit retains the cancellation among
+  the homogeneous base, derivative-source boundary trace, and final endpoint.
+  Rational variation bounds `TV(h)<1/400` and `TV(g)<43/80` give the strict
+  uniform ledger `3479/14400<1/4`, with slack `121/14400`.
+- **Conditional:** If projection plus envelope subtraction remain inactive
+  through the stated horizon, then every
   sufficiently large member requires at least
   `(1/8) q^-1 log(1/q)` terminal steps. The profile bounds rigorously imply
   the former combined `1/64` quadrature target.
@@ -96,10 +101,8 @@ Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
   near `+/-3.64 q^3`. These are finite measurements and assert no limit.
-- **Open:** Prove the entry velocity profile by a uniform signed bound retaining
-  the leading cancellation among the homogeneous/base, constant-`U`,
-  varying-`U`, `M_n`, and final endpoint pieces, and prove the uniform
-  projection/unclipped-envelope invariant in exact arithmetic.
+- **Open:** Prove the uniform projection/unclipped-envelope invariant in exact
+  arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
@@ -112,19 +115,11 @@ Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
 
 ## Central blocker
 
-1. **Entry velocity lemma:** For
-   `H_m=floor(sqrt(m/(64 log(16m))))`, prove
-   `m*|V_(2s)+G_(2s)/5|/alpha <= 1/4` for all `1<=s<=H_m`.
-   The exact velocity identity then gives the previous combined `1/64`
-   quadrature inequality together with the proved position theorem. The
-   source identity is proved; the remaining
-   concrete subproblem is a uniform signed Green-kernel estimate for its
-   five-piece decomposition.
-2. **Conditional-regime lemma:** Through
+1. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
    and every safe subtraction is strictly unclipped.
 
-Each lemma is independently falsifiable by `verify.py`; changing the
+The lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
 
 ## Dependencies and reusable outputs
@@ -144,25 +139,24 @@ constants is permitted only with a corresponding proof.
   finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
   six onward, the uniform position source-to-continuum lemma, exact
   constant-`U` Chebyshev response, and strict `257/92160<1/256` position
-  ledger,
+  ledger, the exact velocity source kernel, its uniform continuum limit, and
+  the strict `3479/14400<1/4` velocity ledger,
   weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
   transported-center semantics.
 
 ## Resume here
 
-- **Exact pointer:** `main.tex`, Lemmas `lem:terminal-modal-packet` (velocity
-  only) and `lem:terminal-modal-regime` are the two missing statements; Theorem
-  `thm:terminal-modal-conditional-log` is ready to consume them.
-- **Next action:** Use the exact five-piece split to retain the leading
-  cancellation strongly enough to prove the displayed `V` profile. Separately,
-  use the ideal packet's
+- **Exact pointer:** `main.tex`, Lemma `lem:terminal-modal-regime` is the sole
+  missing statement; Theorem `thm:terminal-modal-conditional-log` is ready to
+  consume it.
+- **Next action:** Use the ideal packet's
   proved nonpositive evolution and the exact `K/J` decomposition to replace
   the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
   variation estimate, plus a global supremum/variation bound on the literal
   remainder, to attack the projection/envelope regime.
-- **Stop/go test:** Promote the logarithmic block only after both missing
-  lemmas are proved uniformly in `m`; a larger floating screen is evidence but
+- **Stop/go test:** Promote the logarithmic block only after the remaining
+  lemma is proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
 
 ## Verification
@@ -182,17 +176,20 @@ constants is permitted only with a corresponding proof.
   exact preflight checks the early-source mass identity, analytic small-prefix
   ledger, stopped derivative prefixes through length 128, point-source fold,
   and final `179/14400` arithmetic. A fifth preflight checks the rational
-  position constant ledger and the finite constant-`U` Chebyshev identity.
+  position constant ledger and the finite constant-`U` Chebyshev identity. A
+  sixth preflight checks the rational velocity variation ledger, the positive
+  Bernstein certificate for the mass amplitude, and the continuum
+  normalization.
   The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
   `q*k=3.733886719,3.985839844,4.366577148,4.713073730,5.017150879`.
-  It also checks the proved position profile, the open velocity profile, and the exact combined
+  It also checks both proved entry profiles and the exact combined
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 30-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 32-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
