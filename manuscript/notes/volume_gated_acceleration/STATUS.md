@@ -1,6 +1,6 @@
 # Direction status: volume_gated_acceleration
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-27
 State: proved-open
 
 ## Exact question and contract
@@ -10,8 +10,8 @@ State: proved-open
   per admission?
 - **Model:** Shared PPR plus RPPR safe-support gates. Exact path audits use the
   declared zero-start transported-center recurrence and complete
-  all-violations gate; the nonpath audit uses the named asymmetric six-vertex
-  T tree and the same causal scalar ledger.
+  all-violations gate; the nonpath audits use two named six-vertex graphs and
+  the same causal scalar ledger.
 - **Accuracy namespace:** The final PPR target is
   `||D^-1/2(x_hat-x0)||_infinity <= eps_ppr`; `rho` is RPPR regularization and
   `tau` the one-sided gate, with the main conversion
@@ -35,29 +35,35 @@ State: proved-open
   the `q=1/5` path, old credit survives two admissions; restarting at stage 7
   stops through stage 11 and first goes at stage 12. On the asymmetric T tree,
   the restarted balance remains negative through the next admission, stops
-  through stage 13, and first goes at stage 14.
-- **Conditional:** Full product-scale work still requires an all-history
-  continuation/amortization theorem or a structural condition that bounds
-  expansion debt and repeated restricted work.
+  through stage 13, and first goes at stage 14. On the second six-vertex
+  graph, the account begins at the actual zero initialization, retains all
+  credit from three consecutive singleton admissions, stops at held stages 7
+  and 8, and first goes at stage 9.
+- **Conditional:** Full product-scale work still requires a structural or
+  stronger-potential continuation/amortization theorem that bounds expansion
+  debt and repeated restricted work.
 - **Measured:** Floating-point path scaling tables are scaffolding only; the
   promoted finite witnesses use exact rational arithmetic.
 - **Refuted:** Uniform logarithmic ordinary restarts, shock-free zero-padding,
   several pointwise or constant-coefficient correction banks, recovery of the
   restarted causal account before the next admission on every graph, and
-  frontier-only admission logic. These are scoped recurrence STOPs, not class
-  lower bounds.
-- **Open:** All-history causal solvency or a useful weaker structural
-  condition, a uniform recovery horizon if one exists, and graph-uniform
-  convergence/work beyond the finite named traces.
+  frontier-only admission logic. Unconditional zero-balance all-history
+  solvency of the named `delta^2` account is also refuted after three
+  consecutive singleton admissions. These are scoped recurrence STOPs, not
+  class lower bounds.
+- **Open:** A useful structural solvency condition, justified reserve, or
+  stronger observable; a uniform recovery horizon if one exists; and
+  graph-uniform convergence/work beyond the finite named traces.
 
 ## Central blocker
 
-The causal score identity is face-general, but the available solvency proofs
-are finite and trajectory-specific. The nonpath witness rules out a
-recovery-before-next-admission invariant for the named recurrence and gate;
-it does not refute carrying older credit indefinitely. The next argument must
-either prove all-history solvency under an explicit structure condition or
-exhibit debt that survives enough admissions to invalidate that route.
+The causal score identity is face-general, but unconditional zero-balance
+all-history solvency of its `delta^2` account is false for the named recurrence
+and gate. The three-admission witness retains every credit from the actual
+zero initialization and still becomes transiently negative. The next argument
+must impose an explicit useful graph/face condition, justify additional
+reserve, or replace the observable; none may infer convergence or work from
+scalar solvency alone.
 
 ## Dependencies and reusable outputs
 
@@ -70,29 +76,30 @@ exhibit debt that survives enough admissions to invalidate that route.
 
 ## Resume here
 
-- Exact file/section/lemma: Start with the causal two-admission path result and
-  `prop:t-tree-causal-next-admission-stop`, together with their exact gate and
-  Schur-drop definitions.
-- Next concrete action: Search a family with three or more relevant
-  admissions, or prove a structural all-history balance bound that survives
-  the asymmetric-T chronology.
-- Stop/go test: Go if the declared causal ledger remains nonnegative without
-  future borrowing and all restricted-optimum queries are charged. Stop if a
-  proof resets credit silently, conflates scalar solvency with convergence, or
-  extrapolates finite enumeration into an asymptotic theorem.
+- Exact file/section/lemma: Start with
+  `prop:three-admission-all-history-stop`, then compare the causal
+  two-admission path GO and `prop:t-tree-causal-next-admission-stop`.
+- Next concrete action: Prove a nontrivial structural promised-class balance
+  condition, justify an explicit reserve from a stronger energy ledger, or
+  design and falsify a replacement observable on all three exact traces.
+- Stop/go test: Go only if the replacement survives the three-admission
+  all-history trace without future borrowing and charges all restricted-
+  optimum queries. Stop if a proof silently adds initial credit, conflates
+  scalar solvency with convergence, or extrapolates finite enumeration into
+  an asymptotic theorem.
 
 ## Verification
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Nine exact `volume_gated_acceleration.*` audits cover the
-  Round-013--021 mechanisms. Run them with `uv run python -m
+- Focused checks: Ten exact `volume_gated_acceleration.*` audits cover the
+  Round-013--022 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
   volume_gated_acceleration`; the full tier includes the optional small-graph
   enumeration.
-- Review status: Prior independent audits reproduced the named fractions,
-  chronology, Schur drops, balances, and scope qualifications. This
-  reorganization changes no theorem, equation, or evidence classification.
+- Review status: Exact rational audits reproduce the named fractions,
+  chronologies, Schur drops, balances, and scope qualifications, including the
+  actual zero-start causal update through the three-admission STOP.
 - Known gaps: Small-graph minimality is computational scaffolding. There is no
-  nonpath eleven-resource vector, all-admission theorem, asymptotic work
+  nonpath eleven-resource vector, structural solvency theorem, asymptotic work
   result, or finite-precision guarantee.
