@@ -51,6 +51,15 @@ State: proved-open
   and the inactive-original subclass. More generally, the exact leading
   `K_{2,r}`-plus-seed-leaf coefficient tends to `1/15`, so every
   graph-uniform repair has `liminf q^4 lambda(q) >= 1/15` along that family.
+  On a separate explicit 30-vertex point-seed graph at `q=12/625`, the exact
+  zero-start complete-gate trace first clips vertex 23 benignly at stage 11,
+  then reaches `p_23=0<r_23(p)` at stage 12 with
+  `n_23/b_23=5.530040...` and positive causal debt. The exact required
+  coefficient is `0.086694...`, with
+  `q^4 lambda=1.178144...e-8`, and the run later certifies at stage 32. An
+  exact nine-point rational screen of the same fixed graph is finite evidence
+  only: the relevant row appears for `q=0.0188,...,0.0194` and disappears at
+  both adjacent screened endpoints.
 - **Conditional:** The named complete gate preserves `Xi` exactly across
   admissions. For interior visited restricted optima, coefficient
   `(1+q^2)(1-q)/q^5` makes the original-score consumed-energy scalar ledger
@@ -79,10 +88,14 @@ State: proved-open
   uniform. Its reviewed candidates are strictly positive, so this lower order
   also applies to the support-aware modification. An exact projection-active
   three-vertex state refutes extending the original-score `2/q^4` decrement
-  to arbitrary algebraic states; zero-start reachability is not claimed.
+  to arbitrary algebraic states; that three-vertex state itself has no
+  zero-start reachability claim.
   The stronger reachable quartic family refutes every `o(q^-4)` coefficient
   for both reviewed ledgers. These are scoped recurrence/ledger STOPs, not
-  convergence or work lower bounds. The threshold-tuned endpoint-path route
+  convergence or work lower bounds. The 30-vertex trace also refutes the
+  possible shortcut that every reachable clipped row has nonpositive
+  post-step residual, but it gives no asymptotic coefficient lower bound. The
+  threshold-tuned endpoint-path route
   also stops on the registered finite instances: the gate certifies two
   vertices before the intended full face and projection remains inactive.
 - **Open:** Close the original all-coordinate score's arbitrary-projection
@@ -102,7 +115,10 @@ the support-aware and inactive-original coefficient order at `Theta(q^-4)`.
 The remaining scalar blocker is the original score under arbitrary projection:
 its reachable lower order is `q^-4`, while its proved general upper coefficient
 is `O(q^-5)`. The exact normal identity isolates this gap in the ratio
-`n_i/((1-q)z_i+qz_i*)` on clipped positive-residual rows. None of these scalar statements may be promoted into convergence
+`n_i/((1-q)z_i+qz_i*)` on clipped positive-residual rows. The exact finite
+30-vertex trace proves that such a row and positive debt are reachable, but
+its coefficient is far below the quartic scale and its narrow finite `q`
+screen does not establish unbounded normal-anchor scaling. None of these scalar statements may be promoted into convergence
 or work conclusions.
 
 ## Dependencies and reusable outputs
@@ -119,7 +135,8 @@ or work conclusions.
 - Exact file/section/lemma: Start with
   `prop:consumed-energy-structural-solvency` and
   `prop:consumed-reserve-quartic-projection` and
-  `prop:original-score-normal-anchor`, then
+  `prop:original-score-normal-anchor` and
+  `prop:reachable-positive-residual-projection`, then
   `prop:consumed-energy-quartic-lower` and
   `prop:consumed-energy-star-stop`, then compare
   `prop:three-admission-all-history-stop`.
@@ -138,8 +155,8 @@ or work conclusions.
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Eleven exact `volume_gated_acceleration.*` audits cover the
-  Round-013--023 mechanisms. Run them with `uv run python -m
+- Focused checks: Twelve exact `volume_gated_acceleration.*` audits cover the
+  Round-013--024 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
   volume_gated_acceleration`; the full tier includes both optional small-graph
   enumerations.
@@ -148,8 +165,8 @@ or work conclusions.
   rational functions/asymptotics, tensor Bernstein determinant certificate,
   projection-active STOP, reachable quartic formal series and exact replay
   grid, exact leading `K_{2,r}` formulas, projection-normal identities, finite
-  critical-path gate failures, candidate inactivity checks, and scope
-  qualifications.
+  critical-path gate failures, candidate inactivity checks, the reachable
+  positive-residual projection chronology and debt, and scope qualifications.
 - Known gaps: Small-graph enumeration is computational scaffolding. The
   low-frequency promised-class condition has not been derived from graph
   geometry, and the original-score arbitrary-projection coefficient gap

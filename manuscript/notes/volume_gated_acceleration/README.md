@@ -58,6 +58,16 @@ before the intended full face. Bounding the normal-anchor ratio uniformly,
 or finding a reachable family where it produces larger debt, is the remaining
 scalar target.
 
+The arbitrary-projection issue is now known to be genuinely reachable, not
+merely algebraic. On one explicit 30-vertex point-seed graph at `q=12/625`,
+the exact zero-start complete-gate trace reaches a clipped row whose post-step
+residual is the positive all-coordinate maximum, with
+`n_i/b_i=5.530040...` and strictly positive causal debt. Its actual required
+coefficient is only `0.086694...`, or
+`q^4 lambda=1.17814...e-8`; it therefore does not improve the existing
+`Omega(q^-4)` lower order. An exact nine-point nearby-`q` screen is finite
+only and supplies no asymptotic normal-anchor or debt scaling.
+
 Build and audit from the repository root with:
 
 ```bash
@@ -66,8 +76,8 @@ uv run python -m experiments.proof_audits.runner \
   --tier full --note volume_gated_acceleration
 ```
 
-The eleven mechanism-based exact-audit IDs are listed by
-`make research-audit-list`; their provenance spans Rounds 013--023. The full
+The twelve mechanism-based exact-audit IDs are listed by
+`make research-audit-list`; their provenance spans Rounds 013--024. The full
 tier includes exhaustive connected labeled rooted graphs on two through five
 vertices for `volume_gated_acceleration.nonpath_causal_stop`, plus every seed
 of every connected NetworkX graph-atlas representative through order seven
@@ -75,3 +85,6 @@ for `volume_gated_acceleration.consumed_energy_reserve`. The latter also
 checks the quartic family's exact formal series, rational replay grid, the
 leading `K_{2,r}` formulas at six exact integer specializations, the
 projection-normal identities, and three finite critical-path gate failures.
+The new reachable-projection audit verifies the 32-stage chronology, strict
+gate margins, clipped positive-residual row, positive debt, and optional
+finite rational `q` screen.
