@@ -24,17 +24,20 @@ coefficientwise and has sharp uniform shared-coordinate half-difference margin
 to the `q=0` recurrence. A stopped-binomial-kernel bound, total-variation
 control of the derivative source, a sharp mass bound, and the exact initial
 response preserve margin `179/14400` from prefix six onward; a separate
-analytic perturbation handles prefixes two through five. The remaining
-entry-profile problem also contains the final
-degree-one endpoint term.
+analytic perturbation handles prefixes two through five. The growing-band
+position profile is now proved for all sufficiently large `m`. Its exact
+five-piece decomposition has uniform base and endpoint remainders `o(q^2)`;
+the three limiting absolute constants admit the rational upper ledger
+`257/92160<1/256`. The proof includes the finite constant-`U` Chebyshev sum
+and the cancellation that makes the final degree-one endpoint term `O(q^3)`.
 It also gives exact nonnegative position/velocity propagators, isolating the
-remaining factor-`k` velocity-cancellation obstruction. It then proves a conditional
-anti-cancellation theorem: two quantified entry
-position/velocity profile bounds plus projection/envelope regime preservation
+remaining factor-`k` velocity-cancellation obstruction. It then proves a
+conditional anti-cancellation theorem: the proved position profile, one open
+velocity profile bound, and projection/envelope regime preservation
 would force `Omega(q^-1 log(1/q))` terminal steps for the named
 transported-center execution.
 
-The two entry profiles and the terminal projection/envelope regime are not
+The velocity entry profile and the terminal projection/envelope regime are not
 proved. A deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
@@ -48,9 +51,11 @@ identity, and finite shared-sign replay at `m=8,12`. A third exact preflight che
 recurrence and signed source triplet, the positive Green identity, and the
 exact leading-order correction formulas through prefix 256. A fourth exact
 preflight checks the finite-`q` source constants, stopped derivative-prefix
-bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. The remaining
-entry-profile problem is a sharp signed summation of the source traces, not
-their support calculation. Numerical observations are labeled
+bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
+preflight checks the exact rational position ledger and the finite
+constant-`U` Chebyshev response. The remaining velocity-profile problem is a
+sharp signed summation of the source traces, not their support calculation.
+Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
 

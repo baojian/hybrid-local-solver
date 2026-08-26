@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-chronology-finite-q`
-- Base commit: `b28ed46c0a734aa017ced47e3bbbcf0b167935da`
+- Branch: `agent/codex/path-terminal-position-profile`
+- Base commit: `469758e8c14e3b4c3ed162fb4479dc3e5d7c3eb5`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -19,43 +19,36 @@
 
 ## Outcome
 
-- Requested result: Prove the finite-`q` shared-coordinate correction sign for
-  the named terminal path, or preserve the sharpest exact obstruction.
-- Implemented result: Proved `K_n(j)>0` on every shared proper-prefix
-  coordinate for every `m>=64`. The exact rescaling
-  `C_n/q^3=(1-q)^(n-2) bar(c)_n` makes the homogeneous recurrence identical to
-  its solved `q=0` limit. The finite perturbation splits into a moving
-  derivative packet and a newest-row point mass. Exact binomial coefficients
-  show every stopped reflected derivative response lies in `[-4,4]`;
-  total-variation control gives derivative loss at most `1/90`. The point
-  mass lies in `[-43q/75,0]` and its folded response is at most one. The
-  exact initial response costs at most `3q/5`. From prefix six onward the
-  sharper leading margin `19/320` therefore leaves
-  `19/320-43/1200-1/90=179/14400`. Prefix two is direct; prefixes three
-  through five use a self-contained perturbation loss below `3q<1/80`.
-- Consequence: The earlier exact reduction now proves raw positivity,
-  nonpositive post-step residual, zero safe correction, and exactly the next
-  singleton admission at every proper prefix for `m>=64`. The changing-face
-  source, its factored transform, and scalar position/velocity reduction are
-  unconditional in that range.
-- Deliberately unchanged: The two entry-profile inequalities and the terminal
-  projection/unclipped-envelope regime remain open. Hence the logarithmic
+- Requested result: Close the first, position-only entry profile
+  asymptotically on the growing even-mode band, without importing the open
+  velocity or terminal-regime claims.
+- Implemented result: Proved
+  `m*abs(C_(2s)-G_(2s))/alpha<=1/256` uniformly for
+  `1<=s<=floor(sqrt(m/(64 log(16m))))` and all sufficiently large `m`.
+  The exact five-piece split has base and final degree/endpoint terms
+  `o(q^2)`. The constant-`U` trace has an exact finite Chebyshev sum and
+  limiting absolute bound `1/(240*pi^2)`; total variation of the limiting
+  `U-U0` profile gives `1/(360*pi)`; the sharp positive mass bound gives
+  `43/(10240*pi)`. Using `pi>3`, their upper ledger is
+  `257/92160<1/256`, with rational slack `103/92160`.
+- Consequence: Only the entry velocity profile and the terminal
+  projection/unclipped-envelope regime remain as assumptions in the
+  conditional logarithmic-block theorem.
+- Deliberately unchanged: Those two remaining statements are open. Hence the logarithmic
   terminal block remains conditional, and no lower bound is claimed for other
   algorithms, implicit-response implementations, or a broader oracle class.
 
 ## Evidence
 
-- The exact preflight checks the positive Green coefficient formula, the
-  stopped derivative-prefix bound through final length 128, folded point-mass
-  response, the early `n=2,3` mass identity, the small-prefix perturbation
-  ledger, and the final `179/14400` arithmetic.
+- A new preflight checks the exact rational position ledger, the strict slack,
+  and the finite constant-`U` Chebyshev response against direct recurrence.
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
-- The floating screen remains evidence only for the two open entry profiles
-  and terminal regime.
+- The floating screen agrees with the proved position profile and remains
+  evidence only for the open velocity profile and terminal regime.
 - Required commands and their final results are recorded in the direction
-  `STATUS.md`; the note builds to 26 pages.
+  `STATUS.md`; the note builds to 30 pages.
 
 ## Review notes
 
@@ -63,9 +56,9 @@
   `manuscript/notes/path_terminal_modal_block/`.
 - Shared paths changed: note registry/README and this scoped coordination
   assignment/handoff.
-- Main audit risks: verify the early reflected overlap at source times two and
-  three, chronological reversal `k=N-n`, the `3q/5` initial response, and the
-  `43/1200+1/90` loss ledger.
-- Next action: Prove the two exact entry-profile bounds by signed summation of
-  the five source pieces, then prove projection inactivity and unclipped safe
+- Main audit risks: verify the uniform source-to-Riemann remainder, the
+  `16*phi` derivative-source normalization, the exact endpoint cancellation,
+  and the strict three-constant ledger.
+- Next action: Prove the entry velocity bound by signed summation of the five
+  source pieces, then prove projection inactivity and unclipped safe
   subtraction through `floor((1/8)q^-1 log(1/q))`.
