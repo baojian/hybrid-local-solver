@@ -32,7 +32,8 @@ projection-normal identity improves it to `(C_n+1-q^2)/q^4` under the causal
 condition `n_i <= C_n b_i` on clipped positive-residual rows; inactivity has
 `C_n=0`. A modified safe positive-support envelope has coefficient
 `(1-q^2)/q^4` under arbitrary projection. For the declared point-seed
-parameters `rho=tau=q/5`, a first-admission energy floor pays every
+parameters `rho=tau=q/5` with an interior initial singleton, a first-admission
+energy floor pays every
 clipped-zero residual and proves the same `(1-q^2)/q^4` coefficient for the
 original all-coordinate score under arbitrary projection.
 A reachable zero-start `K_{2,3}`-plus-seed-leaf family stays
@@ -48,8 +49,8 @@ These finite witnesses establish scoped GO/STOP statements for named
 recurrences and event orders. They do not prove a convergence failure,
 uniform recovery horizon, asymptotic work theorem, or finite-precision result.
 The support-aware and original all-coordinate scalar coefficient orders are
-now closed at `Theta(q^-4)`, including arbitrary projection for the declared
-point-seed gate. The
+now closed at `Theta(q^-4)`, including arbitrary projection in the theorem's
+interior point-seed scope. The
 unconditional zero-balance
 `delta^2` all-history route and a small multiplier of this consumed-energy
 reserve are both closed for the named recurrence and gate.
@@ -67,7 +68,7 @@ residual is the positive all-coordinate maximum, with
 coefficient is only `0.086694...`, or
 `q^4 lambda=1.17814...e-8`; it therefore does not improve the existing
 `Omega(q^-4)` lower order. An exact nine-point nearby-`q` screen is finite
-only and supplies no asymptotic normal-anchor or debt scaling; the universal
+only and supplies no asymptotic normal-anchor or debt scaling; the scoped
 quartic theorem pays this event through the consumed first-admission reserve.
 
 Build and audit from the repository root with:

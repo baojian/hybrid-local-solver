@@ -60,7 +60,8 @@ State: proved-open
   exact nine-point rational screen of the same fixed graph is finite evidence
   only: the relevant row appears for `q=0.0188,...,0.0194` and disappears at
   both adjacent screened endpoints. For the declared point-seed parameters
-  `rho=tau=q/5`, the first boundary admission forces
+  `rho=tau=q/5` with an interior initial singleton, the first boundary
+  admission forces
   `E_0>c_0(q)q^5`, where
   `c_0(q)=4(1+q^2)/(5(1-q^2)(3+q^2))`; hence the consumed reserve is already
   larger than `c_0(q)q^6`. This floor pays every later clipped-zero residual,
@@ -119,8 +120,8 @@ and gate. The justified consumed-energy reserve repairs all finite `q=1/5`
 atlas traces with coefficient `3`, and the reachable quartic family supplies
 the matching lower order. The first-admission energy floor closes both the
 support-aware and original all-coordinate coefficient orders at
-`Theta(q^-4)`, including arbitrary projection for the declared point-seed
-gate. The exact normal identity and 30-vertex trace remain useful local
+  `Theta(q^-4)`, including arbitrary projection in the theorem's interior
+  point-seed scope. The exact normal identity and 30-vertex trace remain useful local
 diagnostics, but their ratio no longer blocks scalar all-history solvency.
 None of these scalar statements may be promoted into convergence
 or work conclusions.
