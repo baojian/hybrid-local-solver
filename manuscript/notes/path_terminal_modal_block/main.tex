@@ -84,16 +84,17 @@ $\bar c_j=-\alpha\rho$ for $j>0$.  Write
 On a fixed face the step is
 \begin{equation}
  y_k=\frac{p_k+qv_k}{1+q},\qquad
- p_{k+1}=\left[y_k-r(y_k)\right]_+,qquad
+ p_{k+1}=\left[y_k-r(y_k)\right]_+,\qquad
  v_{k+1}=p_{k+1}+\frac{1-q}{q}(p_{k+1}-p_k).
  \label{eq:terminal-modal-step}
 \end{equation}
 
 \subsection*{Claim classification}
 The spectral identities, range implication, packet transform,
-entry-velocity identity, exact restricted optima, ideal-sign lemma,
-anti-cancellation lemma, and conditional theorem below are \emph{proved
-here}.  The actual entry profiles in
+entry-velocity identity, exact restricted optima, changing-face boundary
+source and its factored transform, ideal-sign lemma, anti-cancellation lemma,
+and conditional theorem below are \emph{proved here}.  The actual entry
+profiles in
 \cref{lem:terminal-modal-packet} and regime preservation in
 \cref{lem:terminal-modal-regime} are \emph{open}.  The table in
 \cref{sec:terminal-modal-screen} is \emph{measured}.  In particular, no
@@ -194,9 +195,9 @@ subtracting the proper-prefix formula, including its zero ghost value at
 $j=m$, proves \eqref{eq:terminal-modal-final-displacement}.
 \end{proof}
 
-There is also an exact local factorization behind a candidate admission
-analysis.  On a two-sided interior stencil let $\mathcal S_\pm$ be the two
-unit shifts and
+There is also an exact local factorization behind the admission analysis.
+On a two-sided interior stencil let $\mathcal S_\pm$ be the two unit shifts
+and
 \begin{equation}
  \mathcal R_\pm=\frac{1-q}{2}(I+\mathcal S_\pm).
  \label{eq:terminal-modal-directional-operators}
@@ -214,21 +215,335 @@ $\mathcal R_+\mathcal R_-$ is its second-order coefficient.  Thus
 $E_{n+1}:=A_{n+1}-\mathcal R_+A_n$ obeys
 $E_{n+1}=\mathcal R_-E_n$ away from boundaries.
 
-The following changing-face reduction is a concrete open sublemma, not a
-proved identity in this note.  Zero-extend the literal entry residual $A_n$
-on prefix $n$ and define its recurrence defect by
+We now compute the changing-face defect exactly.  Write $p_n^{\rm in}$ for
+the literal state immediately after prefix $n$ is admitted, and define
+\begin{equation}
+ e_n=p_n^{\rm in}-p_n^\star,\qquad
+ A_n=\widehat Q_ne_n=r_n(p_n^{\rm in}),\qquad
+ \Delta_n=b_n-b_{n-1}.
+ \label{eq:terminal-modal-entry-error}
+\end{equation}
+Vectors on shorter prefixes are zero-extended whenever they occur in a
+longer-prefix formula.  If $B_n=I-\widehat Q_n$, the literal step and exact
+center transport give
+\begin{equation}
+ e_{n+1}
+ =\left[\frac{B_n}{1+q}
+ \left(2e_n-(1-q)e_{n-1}+\Delta_nf\right);0\right]
+ -\Delta_{n+1}f,
+ \qquad 2\le n\le m-1.
+ \label{eq:terminal-modal-changing-face-error}
+\end{equation}
+Indeed, if $e_n^v=v_n^{\rm in}-p_n^\star$, transport gives
+$e_n^v=e_n+(1-q)(e_n-e_{n-1})/q+\Delta_nf/q$; substituting this in the
+accelerated average and then zero-padding the new primal coordinate proves
+\eqref{eq:terminal-modal-changing-face-error}.
+
+Zero-extend each $A_n$ on the nonnegative half-line and define
 \begin{equation}
  F_{n+1}:=E_{n+1}-\mathcal R_-E_n.
  \label{eq:terminal-modal-boundary-source}
 \end{equation}
-The target sparse-source statement is that, after substituting
-\eqref{eq:terminal-modal-prefix-displacement} row by row, $F_{n+1}$ is
-supported at the seed boundary and the last three frontier-stencil
-coordinates, with one additional far-endpoint-stencil term at the final
-ambient-degree change.  A proof must display those boundary entries and then
-bound their signed cosine transforms.  Both the support calculation and the
-uniform transform bound remain open here; no asymptotic size or cancellation
-of $F_{n+1}$ is asserted.
+
+\begin{lemma}[Exact changing-face boundary source; proved here]
+\label{lem:terminal-modal-boundary-source}
+Put
+\begin{equation}
+ c_1=\frac{1-q}{2},\qquad c_2=\frac{(1-q)^2}{4},\qquad
+ P_n=p_n^\star(n-1),
+ \label{eq:terminal-modal-source-constants}
+\end{equation}
+and, for $4\le n\le m-1$, define
+\begin{align}
+ U_n&=\frac{q\eta^2}{4(1+q)}
+ \left(P_{n-1}-\frac{2q\rho}{\eta}\right),
+ \label{eq:terminal-modal-source-U}\\
+ W_n&=U_n+c_1P_n-
+ \frac{a\Delta_n}{1+q}f_n
+ +\frac\eta2\left(\frac{\Delta_n}{1+q}-\Delta_{n+1}\right)f_{n+1}.
+ \label{eq:terminal-modal-source-W}
+\end{align}
+Then
+\begin{equation}
+ \operatorname{supp}F_{n+1}\subseteq\{0,n-2,n-1,n\},
+ \label{eq:terminal-modal-source-support}
+\end{equation}
+and its possibly nonzero entries are exactly
+\begin{align}
+ F_{n+1}(0)&=c_1A_n(1)-c_2A_{n-1}(1),
+ \label{eq:terminal-modal-source-seed}\\
+ F_{n+1}(n-2)&=U_n,
+ &F_{n+1}(n-1)&=2U_n,
+ &F_{n+1}(n)&=W_n.
+ \label{eq:terminal-modal-source-frontier}
+\end{align}
+The cases $n<4$ have overlapping seed and frontier stencils and are obtained
+by direct substitution in
+\eqref{eq:terminal-modal-changing-face-error}.
+
+At the final transition $n=m$, the support statement remains valid and the
+first three displayed entries are unchanged.  Only the last entry changes.
+Writing $A_m^{\rm fr}=A_m(m-1)$, it is
+\begin{equation}
+ \begin{split}
+ W_m^{\rm end}={}&c_1A_m^{\rm fr}
+ +\frac{(1-q)^2}{2}P_m
+ -\frac{\eta(1-q)^2}{4}P_{m-1}\\
+ &-\frac{\Delta_m\eta^2}{1+q}
+ \left(f_{m-1}+\frac12f_{m-2}\right)+\frac{q^3}{5}.
+ \end{split}
+ \label{eq:terminal-modal-source-final-endpoint}
+\end{equation}
+This is the sole extra term caused by changing the new vertex's ambient
+degree from two to one.
+\end{lemma}
+
+\begin{proof}
+On rows $j\ge1$, let
+\[
+ H_0=aI-\frac\eta2(\mathcal S_++\mathcal S_-),
+ \qquad
+ B_0=\eta I+\frac\eta2(\mathcal S_++\mathcal S_-).
+\]
+The actual seed row differs only in that its right-neighbor coefficient is
+doubled.  Substitute
+\eqref{eq:terminal-modal-changing-face-error} into
+$A_{n+1}=\widehat Q_{n+1}e_{n+1}$ and subtract the two fixed-face stencil
+terms in \eqref{eq:terminal-modal-boundary-source}.  The $e_n$ and
+$e_{n-1}$ coefficients cancel on every row outside the displayed stencils.
+At the seed, the remaining expression is
+\[
+ -\frac{\eta}{2(1+q)}
+  (\eta e_n(0)-2ae_n(1)+\eta e_n(2))
+ +\frac{(1-q)\eta}{4(1+q)}
+  (\eta e_{n-1}(0)-2ae_{n-1}(1)+\eta e_{n-1}(2)).
+\]
+The two parenthesized quantities are $-2A_n(1)$ and
+$-2A_{n-1}(1)$, respectively, which proves
+\eqref{eq:terminal-modal-source-seed}.
+
+At entry, the newest primal coordinate is zero, so
+$e_n(n-1)=-P_n$ and $e_{n-1}(n-2)=-P_{n-1}$.  Direct evaluation of the last
+three rows first gives
+\[
+ \begin{split}
+ \widetilde U_n={}&
+ -\frac{(1-q)\eta^2}{4(1+q)}P_{n-1}
+ +\frac{\Delta_n\eta^2}{4(1+q)}f_n,\\
+ F_{n+1}(n-2)={}&\widetilde U_n,\qquad
+ F_{n+1}(n-1)=2\widetilde U_n,\\
+ F_{n+1}(n)={}&\widetilde U_n+c_1P_n
+ -\frac{a\Delta_n}{1+q}f_n
+ +\frac\eta2\left(\frac{\Delta_n}{1+q}-\Delta_{n+1}\right)f_{n+1}.
+ \end{split}
+\]
+The old optimum has ghost value zero one coordinate before the new
+frontier.  Applying its affine recurrence at the next ghost coordinate gives
+\begin{equation}
+ \Delta_nf_n=P_{n-1}-\frac{2q^2\rho}{\eta}.
+ \label{eq:terminal-modal-source-ghost-identity}
+\end{equation}
+Consequently $\widetilde U_n=U_n$, proving
+\eqref{eq:terminal-modal-source-frontier}.
+
+On the last transition the old face still has the same degree-two frontier,
+whereas the new endpoint row is $az_m-\eta z_{m-1}$.  Repeating only this
+last-row calculation and using
+$\widehat Q_{m+1}(p_{m+1}^\star-[p_m^\star;0])
+=(\eta P_m-q^3/5)e_m$ yields
+\eqref{eq:terminal-modal-source-final-endpoint}; all earlier rows are
+unchanged.
+\end{proof}
+
+The seed source is an artifact of zero extension.  It disappears under the
+even extension
+\begin{equation}
+ A_n^{\rm ev}(j)=
+ \begin{cases}
+  A_n(|j|),& |j|<n,\\
+  0,& |j|\ge n.
+ \end{cases}
+ \label{eq:terminal-modal-even-extension}
+\end{equation}
+Indeed, the reflected neighbor supplies precisely the two terms in
+\eqref{eq:terminal-modal-source-seed}.  Thus the defect of
+$A_n^{\rm ev}$ on $\mathbb Z$ consists only of the three positive-frontier
+entries in \eqref{eq:terminal-modal-source-frontier} and their reflections.
+
+This representation exposes a second cancellation.  Put
+\begin{equation}
+ s_n=\frac{f_{n-1}}{f_n},\qquad
+ D=\frac{2q^2\rho}{\eta},\qquad M_n=W_n+3U_n.
+ \label{eq:terminal-modal-source-mass-parameters}
+\end{equation}
+
+\begin{lemma}[Factored frontier transform and source bounds; proved here]
+\label{lem:terminal-modal-source-transform}
+For $4\le n\le m-1$ and $z=e^{i\theta}$, the Fourier transform of the even
+source is
+\begin{equation}
+ \widehat F_{n+1}^{\rm ev}(\theta)
+ =2\Re\left[z^{n-2}
+ \left\{U_n(1-z)(1+3z)+M_nz^2\right\}\right].
+ \label{eq:terminal-modal-source-transform}
+\end{equation}
+Moreover
+\begin{equation}
+ M_n=\frac{q(1-q)}4(2\eta-s_n)P_{n-1}
+ +\frac q4\bigl((1-q)s_n+2\eta\bigr)D.
+ \label{eq:terminal-modal-source-mass}
+\end{equation}
+For the named parameters, $U_n$ is nonincreasing in $n$ and, uniformly in
+these $n$,
+\begin{equation}
+ 0<U_n\le\frac{3}{40}q^3,\qquad
+ |M_n|\le\frac32q^4.
+ \label{eq:terminal-modal-source-bounds}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The three positive-frontier entries have polynomial
+$z^{n-2}(U_n+2U_nz+W_nz^2)$.  Reflection takes twice its real part, and
+$1+2z-3z^2=(1-z)(1+3z)$, proving
+\eqref{eq:terminal-modal-source-transform}.
+
+The identities
+\[
+ \Delta_nf_n=P_{n-1}-D,\qquad
+ P_n=\Delta_nf_{n-1}=s_n(P_{n-1}-D),\qquad
+ s_n+\frac{f_{n+1}}{f_n}=\frac{2a}{\eta}
+\]
+reduce $W_n+3U_n$ exactly to
+\eqref{eq:terminal-modal-source-mass}.
+
+For completeness, if $t=\chi^k$, direct substitution in the prefix optimum
+gives
+\begin{equation}
+ \frac{P_k}{q^2}=\frac{2}{1+q}
+ \frac{t(1+t/5)/\chi+t-1/5}{1+t^2}.
+ \label{eq:terminal-modal-frontier-optimum}
+\end{equation}
+The fraction on the right is increasing in $t$: after differentiation its
+numerator is
+$(1+\chi^{-1})(1-t^2+2t/5)>0$.  Using $7/8\le t\le1$ in
+\eqref{eq:terminal-modal-frontier-optimum}, and observing that
+$t=\chi^{n-1}$ decreases with $n$, proves monotonicity and positivity in
+\eqref{eq:terminal-modal-source-bounds}; its value at $t=1$ and
+\eqref{eq:terminal-modal-source-U} give
+\[
+ \frac{U_n}{q^3}
+ \le\frac{\eta^2}{4(1+q)}
+ \left(\frac{6/5}{1-q}+\frac{4/5}{1+q}-\frac{2}{5\eta}\right)
+ =\frac{(1-q)(6/5+2q/5)}{16}\le\frac3{40}.
+\]
+Finally $\chi<s_n\le1$,
+$|2\eta-s_n|\le2q$, $P_{n-1}\le33q^2/16$, and
+$D\le13q^3/16$ for $q\le1/16$.  Substitution in
+\eqref{eq:terminal-modal-source-mass} gives
+$|M_n|\le(33/32+13/32)q^4<3q^4/2$.
+\end{proof}
+
+Let $\mathcal A_n(\theta)$ be the Fourier transform of
+$A_n^{\rm ev}$.  With $\phi=\theta/2$ and
+$r=(1-q)\cos\phi$, the exact scalar recurrence is
+\begin{equation}
+ \mathcal A_{n+1}=2r\cos\phi\,\mathcal A_n-r^2\mathcal A_{n-1}
+ +\widehat F_{n+1}^{\rm ev}.
+ \label{eq:terminal-modal-driven-transform}
+\end{equation}
+Consequently a source injected at time $t$ reaches time $N$ with multiplier
+\begin{equation}
+ r^{N-t}\frac{\sin((N-t+1)\phi)}{\sin\phi}.
+ \label{eq:terminal-modal-source-green}
+\end{equation}
+The factor $1-z$ in
+\eqref{eq:terminal-modal-source-transform} cancels the apparent small-sine
+loss in this Green kernel.  What remains open is a uniform signed
+summation-by-parts estimate for the slowly varying trace $U_n$, together with
+the $M_n$ and final-endpoint contributions, sharp enough to prove
+\eqref{eq:terminal-modal-entry-profiles}.  Absolute-value summation discards
+the moving-frontier phase and does not deliver the stated constants.
+
+For reference, this signed estimate can be stated as two exact scalar
+targets.  At an even full-path mode put
+$\theta=2s\pi/m$, let
+\begin{equation}
+ Y_{m+1}(\theta)
+ =\mathcal A_{m+1}(\theta)-A_{m+1}(m),
+ \qquad
+ \kappa_m=\eta P_m-\frac{q^3}{5}.
+ \label{eq:terminal-modal-source-scalar-data}
+\end{equation}
+The endpoint subtraction in $Y_{m+1}$ changes the reflected weight two to
+the full path's ambient endpoint weight one.
+
+\begin{lemma}[Exact scalar position/velocity reduction; proved here]
+\label{lem:terminal-modal-source-scalar-reduction}
+For every even internal mode $h=2s$,
+\begin{align}
+ mC_{2s}&=Y_{m+1}(\theta),
+ \label{eq:terminal-modal-source-position-scalar}\\
+ mV_{2s}&=\frac1q\left[
+ Y_{m+1}(\theta)+\kappa_m
+ -(1-q)\bigl(\mathcal A_m(\theta)-\eta e_m(m-1)\bigr)
+ \right].
+ \label{eq:terminal-modal-source-velocity-scalar}
+\end{align}
+Hence the two open profile inequalities are equivalent to
+\begin{align}
+ \left|Y_{m+1}(\theta)-mG_{2s}\right|&\le\frac{q^2}{256},
+ \label{eq:terminal-modal-source-position-target}\\
+ \left|Y_{m+1}(\theta)+\kappa_m
+ -(1-q)\bigl(\mathcal A_m(\theta)-\eta e_m(m-1)\bigr)
+ +\frac q5mG_{2s}\right|&\le\frac{q^3}{4}.
+ \label{eq:terminal-modal-source-velocity-target}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The first identity is the definition of the degree-weighted cosine
+coefficient, using even extension and correcting the far-endpoint weight.
+For the second, let $e_m^{\rm out}$ be the centered error after the last
+proper-prefix step.  At full-face entry,
+\[
+ e_{m+1}=[e_m^{\rm out};0]
+ -(p_{m+1}^\star-[p_m^\star;0]),
+ \qquad
+ e_{m+1}^v=[e_m^{\rm out};0]
+ +\frac{1-q}{q}([e_m^{\rm out};0]-e_m).
+\]
+The full operator applied to the final optimum displacement is
+$\kappa_m$ at the far endpoint and zero elsewhere.  Its application to the
+zero extension of $e_m$ equals $A_m$ on the old prefix and
+$-\eta e_m(m-1)$ at the far endpoint.  Taking the degree-weighted even-mode
+coefficient gives
+\eqref{eq:terminal-modal-source-velocity-scalar}.  Multiplying the profile
+inequalities by $q^2$ and then, in the velocity case, by $q$ proves the two
+equivalences.
+\end{proof}
+
+The scalar target has a useful five-piece linear decomposition.  Let
+$U_0=3q^3/40$.  The pieces are: (i) the homogeneous and overlapping
+$n<4$ source response, with the ideal packet subtracted; (ii) the response
+obtained by replacing every proper-prefix $U_n$ by $U_0$ and setting $M_n=0$;
+(iii) the response of $U_n-U_0$; (iv) the response of $M_n$; and (v) the final
+degree-change source and endpoint-weight correction.  In the velocity target,
+assign $qmG_{2s}/5$ to the first piece and
+$\kappa_m+(1-q)\eta e_m(m-1)$ to the fifth.  Linearity of
+\eqref{eq:terminal-modal-driven-transform} makes the sum of the five position
+pieces exactly the left side of
+\eqref{eq:terminal-modal-source-position-target}, and the sum of the five
+velocity pieces exactly the expression inside the absolute value in
+\eqref{eq:terminal-modal-source-velocity-target}.
+
+The next open lemma is therefore a uniform signed bound on these five sums.
+The components cannot be bounded by a triangle inequality at the velocity
+scale: the constant-$U$ response has a nonzero order-$q^3$ limit and cancels
+against the homogeneous and final-endpoint pieces.  A proof must evaluate
+that signed leading response, use summation by parts for the monotone trace
+$U_n-U_0$, and then control the $M_n=O(q^4)$ and endpoint remainders.  This is
+a restatement of the open profile lemma, not an additional proved claim.
 
 \section{Exact full-face modes and the global correction}
 \label{sec:terminal-modal-exact}
@@ -789,6 +1104,41 @@ $D_2/G_2$ remains near $-.008$.  These finite observations suggest a
 nonzero continuum correction rather than an $o(1)$ quadrature error, but they
 do not assert existence or value of any limit.
 
+For the single mode $s=1$, the same float64 replay gives the following
+five-piece decomposition from the end of
+\cref{sec:terminal-modal-admission}.  Here $B$ is the homogeneous/early base
+with the ideal packet removed, $U_0$ is the constant-$3q^3/40$ response,
+$\Delta U$ is the remaining monotone-trace response, $M$ is the small-mass
+response, and $E$ is the final degree/endpoint correction.  The first table
+is normalized by $q^2$ and sums to $m(C_2-G_2)/q^2$.
+\begin{center}
+\begin{tabular}{@{}r|rrrrrr@{}}
+$m$ & $B$ & $U_0$ & $\Delta U$ & $M$ & $E$ & sum\\
+\hline
+128  & -.000084 & -.000838 & .000371 & -.000230 & -.000098 & -.000880\\
+256  & -.000044 & -.000625 & .000369 & -.000233 & -.000049 & -.000582\\
+512  & -.000023 & -.000517 & .000368 & -.000234 & -.000024 & -.000431\\
+1024 & -.000011 & -.000463 & .000367 & -.000235 & -.000012 & -.000355\\
+\end{tabular}
+\end{center}
+The corresponding velocity-numerator pieces are normalized by $q^3$ and sum
+to $m(V_2+G_2/5)/q^2$:
+\begin{center}
+\begin{tabular}{@{}r|rrrrrr@{}}
+$m$ & $B$ & $U_0$ & $\Delta U$ & $M$ & $E$ & sum\\
+\hline
+128  & .717775 & -1.516549 & .039311 & .003499 & .566947 & -.189017\\
+256  & .735571 & -1.535123 & .039470 & .002783 & .567414 & -.189885\\
+512  & .743789 & -1.543427 & .039539 & .002413 & .567455 & -.190233\\
+1024 & .747720 & -1.547326 & .039570 & .002225 & .567427 & -.190384\\
+\end{tabular}
+\end{center}
+These are measured decompositions, not asymptotic limits.  In particular,
+the ideal packet lies in the homogeneous base; the constant-$U$ term is a
+signed correction and does not generate $g$.  The velocity table also shows
+why separate absolute bounds on all five pieces cannot prove the profile
+constant: the leading cancellation must be retained.
+
 The same finite screen also finds $c=r_0^x-g$ coordinatewise negative for
 every displayed size: over $m=128,\ldots,2048$, $c/q^3$ lies between about
 $-1.052$ and $-0.168$.  The velocity source $w$ from
@@ -816,15 +1166,17 @@ route.
 The root calculation is no longer the blocker.  Exact orthogonality removes
 spatial cancellation in weighted $\ell_2$, and a consecutive even-mode band
 removes temporal phase cancellation.  The exact optimum formula and
-directional factorization suggest a boundary-source reduction of the entry
-calculation, while the ideal-sign lemma separates the nonpositive packet from
-its literal correction.  A theorem-quality logarithmic block now reduces to
-precisely two uniform statements:
+directional factorization now give the proved three-frontier-source reduction
+\eqref{eq:terminal-modal-source-transform}, while the ideal-sign lemma
+separates the nonpositive packet from its literal correction.  A
+theorem-quality logarithmic block now reduces to precisely two uniform
+statements:
 \begin{enumerate}
- \item prove the sparse support statement following
- \eqref{eq:terminal-modal-boundary-source}, display its boundary entries, and
- derive the two profile bounds \eqref{eq:terminal-modal-entry-profiles} from
- uniform signed cosine-transform estimates for those source traces;
+ \item prove the two scalar bounds
+ \eqref{eq:terminal-modal-source-position-target} and
+ \eqref{eq:terminal-modal-source-velocity-target}
+ by signed summation of the explicit $U_n$, $M_n$, and final-endpoint source
+ traces;
  \item prove \eqref{eq:terminal-modal-unclipped-target} and raw positivity
  through \eqref{eq:terminal-modal-horizon}.
 \end{enumerate}

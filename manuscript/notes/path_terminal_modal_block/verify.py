@@ -10,8 +10,267 @@ from __future__ import annotations
 
 import argparse
 import math
+from fractions import Fraction
 
 import numpy as np
+
+
+def _fraction_h_apply(
+    z: list[Fraction],
+    degrees: list[Fraction],
+    q: Fraction,
+) -> list[Fraction]:
+    """Apply the normalized path operator in exact rational arithmetic."""
+    a = (1 + q * q) / 2
+    eta = (1 - q * q) / 2
+    out = [a * value for value in z]
+    for index in range(1, len(z)):
+        out[index] -= eta * z[index - 1] / degrees[index]
+    for index in range(len(z) - 1):
+        out[index] -= eta * z[index + 1] / degrees[index]
+    return out
+
+
+def _fraction_load(length: int, q: Fraction) -> list[Fraction]:
+    out = [-(q**3) / 5 for _ in range(length)]
+    out[0] += q * q
+    return out
+
+
+def _fraction_residual(
+    z: list[Fraction],
+    degrees: list[Fraction],
+    q: Fraction,
+) -> list[Fraction]:
+    return [
+        left - right
+        for left, right in zip(
+            _fraction_h_apply(z, degrees, q),
+            _fraction_load(len(z), q),
+            strict=True,
+        )
+    ]
+
+
+def _fraction_optimum(
+    length: int,
+    degrees: list[Fraction],
+    q: Fraction,
+) -> list[Fraction]:
+    """Exact Thomas solve for a restricted optimum."""
+    a = (1 + q * q) / 2
+    eta = (1 - q * q) / 2
+    right = _fraction_load(length, q)
+    diagonal = [a for _ in range(length)]
+    upper = [-eta / degrees[index] for index in range(length - 1)]
+    lower = [-eta / degrees[index] for index in range(1, length)]
+    for index in range(1, length):
+        multiplier = lower[index - 1] / diagonal[index - 1]
+        diagonal[index] -= multiplier * upper[index - 1]
+        right[index] -= multiplier * right[index - 1]
+    answer = [Fraction(0) for _ in range(length)]
+    answer[-1] = right[-1] / diagonal[-1]
+    for index in range(length - 2, -1, -1):
+        answer[index] = (right[index] - upper[index] * answer[index + 1]) / diagonal[index]
+    return answer
+
+
+def _fraction_step(
+    p: list[Fraction],
+    v: list[Fraction],
+    degrees: list[Fraction],
+    q: Fraction,
+) -> tuple[list[Fraction], list[Fraction]]:
+    y = [(left + q * right) / (1 + q) for left, right in zip(p, v, strict=True)]
+    residual_y = _fraction_residual(y, degrees, q)
+    raw = [left - right for left, right in zip(y, residual_y, strict=True)]
+    assert min(raw) >= 0
+    v_next = [
+        current + (1 - q) * (current - previous) / q
+        for current, previous in zip(raw, p, strict=True)
+    ]
+    return raw, v_next
+
+
+def _fraction_stencil(
+    values: list[Fraction],
+    length: int,
+    coefficient: Fraction,
+) -> list[Fraction]:
+    padded = values + [Fraction(0) for _ in range(length - len(values))]
+    return [
+        coefficient
+        * (
+            2 * padded[index]
+            + (padded[index - 1] if index else 0)
+            + (padded[index + 1] if index + 1 < length else 0)
+        )
+        for index in range(length)
+    ]
+
+
+def _polynomial_add(
+    left: dict[int, Fraction],
+    right: dict[int, Fraction],
+    right_scale: Fraction = Fraction(1),
+) -> dict[int, Fraction]:
+    out = dict(left)
+    for exponent, coefficient in right.items():
+        out[exponent] = out.get(exponent, Fraction(0)) + right_scale * coefficient
+        if out[exponent] == 0:
+            del out[exponent]
+    return out
+
+
+def _polynomial_product(
+    left: dict[int, Fraction],
+    right: dict[int, Fraction],
+) -> dict[int, Fraction]:
+    out: dict[int, Fraction] = {}
+    for left_exponent, left_coefficient in left.items():
+        for right_exponent, right_coefficient in right.items():
+            exponent = left_exponent + right_exponent
+            out[exponent] = out.get(exponent, Fraction(0)) + left_coefficient * right_coefficient
+    return {exponent: coefficient for exponent, coefficient in out.items() if coefficient}
+
+
+def _even_polynomial(values: list[Fraction]) -> dict[int, Fraction]:
+    out = {0: values[0]}
+    for index, value in enumerate(values[1:], start=1):
+        if value:
+            out[index] = value
+            out[-index] = value
+    return {exponent: coefficient for exponent, coefficient in out.items() if coefficient}
+
+
+def exact_boundary_source_checks() -> None:
+    """Check the sparse source and its formal transform over the rationals."""
+    edge_count = 8
+    q = Fraction(1, 16 * edge_count)
+    rho = q / 5
+    eta = (1 - q * q) / 2
+    a = (1 + q * q) / 2
+    chi = (1 - q) / (1 + q)
+    degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+
+    def f(index: int) -> Fraction:
+        return chi**index + chi ** (-index)
+
+    def b(index: int) -> Fraction:
+        if index == 0:
+            return (rho - q) / 2
+        return (rho - q * chi**index) / (chi**index + chi ** (-index))
+
+    entries: dict[int, list[Fraction]] = {}
+    optima: dict[int, list[Fraction]] = {}
+    residuals: dict[int, list[Fraction]] = {}
+    p = [Fraction(0)]
+    v = [Fraction(0)]
+    for length in range(1, edge_count + 1):
+        optimum = _fraction_optimum(length, degrees, q)
+        entries[length] = p
+        optima[length] = optimum
+        residuals[length] = _fraction_residual(p, degrees[:length], q)
+        p_next, v_next = _fraction_step(p, v, degrees[:length], q)
+        new_optimum = _fraction_optimum(length + 1, degrees, q)
+        p = p_next + [Fraction(0)]
+        v = v_next + [Fraction(0)]
+        v = [
+            value + new_value - old_value
+            for value, new_value, old_value in zip(
+                v,
+                new_optimum,
+                optimum + [Fraction(0)],
+                strict=True,
+            )
+        ]
+    entries[edge_count + 1] = p
+    optima[edge_count + 1] = _fraction_optimum(edge_count + 1, degrees, q)
+    residuals[edge_count + 1] = _fraction_residual(p, degrees, q)
+
+    c1 = (1 - q) / 2
+    c2 = (1 - q) ** 2 / 4
+    r_plus = {0: c1, 1: c1}
+    r_minus = {0: c1, -1: c1}
+    first_operator = _polynomial_add(r_plus, r_minus)
+    second_operator = _polynomial_product(r_plus, r_minus)
+
+    for prefix in (4, 6, 7, edge_count):
+        length = prefix + 1
+        first = _fraction_stencil(residuals[prefix], length, c1)
+        second = _fraction_stencil(residuals[prefix - 1], length, c2)
+        defect = [
+            residuals[length][index] - first[index] + second[index] for index in range(length)
+        ]
+        delta = b(prefix) - b(prefix - 1)
+        p_frontier = optima[prefix][-1]
+        previous_frontier = optima[prefix - 1][-1]
+        u_value = q * eta**2 / (4 * (1 + q)) * (previous_frontier - 2 * q * rho / eta)
+        assert 0 < u_value <= Fraction(3, 40) * q**3
+        expected: dict[int, Fraction] = {
+            0: c1 * residuals[prefix][1] - c2 * residuals[prefix - 1][1],
+            prefix - 2: u_value,
+            prefix - 1: 2 * u_value,
+        }
+        if prefix < edge_count:
+            next_delta = b(prefix + 1) - b(prefix)
+            w_value = (
+                u_value
+                + c1 * p_frontier
+                - a * delta * f(prefix) / (1 + q)
+                + eta / 2 * (delta / (1 + q) - next_delta) * f(prefix + 1)
+            )
+            s_value = f(prefix - 1) / f(prefix)
+            d_value = 2 * q * q * rho / eta
+            mass = w_value + 3 * u_value
+            exact_mass = (
+                q * (1 - q) / 4 * (2 * eta - s_value) * previous_frontier
+                + q / 4 * ((1 - q) * s_value + 2 * eta) * d_value
+            )
+            assert mass == exact_mass
+            assert abs(mass) <= Fraction(3, 2) * q**4
+        else:
+            w_value = (
+                c1 * residuals[prefix][-1]
+                + (1 - q) ** 2 / 2 * p_frontier
+                - eta * (1 - q) ** 2 / 4 * previous_frontier
+                - delta * eta**2 / (1 + q) * (f(prefix - 1) + f(prefix - 2) / 2)
+                + q**3 / 5
+            )
+        expected[prefix] = w_value
+        assert all(value == expected.get(index, Fraction(0)) for index, value in enumerate(defect))
+
+        formal_defect = _even_polynomial(residuals[length])
+        formal_defect = _polynomial_add(
+            formal_defect,
+            _polynomial_product(first_operator, _even_polynomial(residuals[prefix])),
+            Fraction(-1),
+        )
+        formal_defect = _polynomial_add(
+            formal_defect,
+            _polynomial_product(
+                second_operator,
+                _even_polynomial(residuals[prefix - 1]),
+            ),
+        )
+        expected_even: dict[int, Fraction] = {}
+        for index in (prefix - 2, prefix - 1, prefix):
+            expected_even[index] = expected[index]
+            expected_even[-index] = expected[index]
+        assert formal_defect == expected_even
+
+        if prefix < edge_count:
+            factored_positive = {
+                prefix - 2: u_value,
+                prefix - 1: 2 * u_value,
+                prefix: mass - 3 * u_value,
+            }
+            assert factored_positive[prefix] == w_value
+
+    print(
+        "exact_boundary_source_checks=m=8 n=4,6,7,8 "
+        "support=pass entries=pass formal_transform=pass arithmetic=Fraction"
+    )
 
 
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
@@ -69,13 +328,25 @@ def one_step(
 
 def full_face_entry(
     edge_count: int,
-) -> tuple[float, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[
+    float,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    list[np.ndarray],
+    float,
+    float,
+]:
     """Replay one fixed-face step and one transported singleton per prefix."""
     q = 1.0 / (16.0 * edge_count)
     degrees = np.r_[1.0, np.full(edge_count - 1, 2.0), 1.0]
     p = np.zeros(1)
     v = np.zeros(1)
+    prefix_residuals = []
+    last_proper_error = None
+    last_proper_frontier = None
     for length in range(1, edge_count + 1):
+        prefix_residuals.append(residual(p, degrees[:length], q))
         p_next, v_next, raw = one_step(p, v, degrees[:length], q)
         assert raw.min() >= -1.0e-14, f"projection active during admission {length}"
         r_next = residual(p_next, degrees[:length], q)
@@ -85,9 +356,23 @@ def full_face_entry(
         assert outside < -(q**3) / 5.0, f"next vertex not strongly admitted at prefix {length}"
         old_optimum = restricted_optimum(length, degrees, q)
         new_optimum = restricted_optimum(length + 1, degrees, q)
+        if length == edge_count:
+            last_proper_error = float(p[-1] - old_optimum[-1])
+            last_proper_frontier = float(old_optimum[-1])
         p = np.r_[p_next, 0.0]
         v = np.r_[v_next, 0.0] + new_optimum - np.r_[old_optimum, 0.0]
-    return q, degrees, p, v
+    prefix_residuals.append(residual(p, degrees, q))
+    assert last_proper_error is not None
+    assert last_proper_frontier is not None
+    return (
+        q,
+        degrees,
+        p,
+        v,
+        prefix_residuals,
+        last_proper_error,
+        last_proper_frontier,
+    )
 
 
 def cosine_coefficients(r: np.ndarray, degrees: np.ndarray) -> np.ndarray:
@@ -117,8 +402,125 @@ def binomial_probabilities(edge_count: int) -> np.ndarray:
     )
 
 
+def five_piece_decomposition(
+    prefix_residuals: list[np.ndarray],
+    proper_error_last: float,
+    proper_frontier: float,
+    q: float,
+) -> tuple[dict[str, float], dict[str, float]]:
+    """Measure the exact linear five-piece split at the first even mode."""
+    edge_count = len(prefix_residuals) - 1
+    theta = 2.0 * math.pi / edge_count
+    phi = theta / 2.0
+    first_coefficient = 2.0 * (1.0 - q) * math.cos(phi) ** 2
+    second_coefficient = (1.0 - q) ** 2 * math.cos(phi) ** 2
+    transforms: list[float | None] = [None]
+    for values in prefix_residuals:
+        transforms.append(
+            float(values[0])
+            + 2.0
+            * sum(float(values[index]) * math.cos(theta * index) for index in range(1, len(values)))
+        )
+
+    names = ("base", "constant_u", "delta_u", "mass", "endpoint")
+    components = {name: [0.0, 0.0, 0.0] for name in names}
+    components["base"][1] = float(transforms[1])
+    components["base"][2] = float(transforms[2])
+    constant_u = 3.0 * q**3 / 40.0
+
+    def stencil(values: np.ndarray, length: int, coefficient: float) -> np.ndarray:
+        padded = np.zeros(length)
+        padded[: len(values)] = values
+        return coefficient * (2.0 * padded + np.r_[0.0, padded[:-1]] + np.r_[padded[1:], 0.0])
+
+    for prefix in range(2, edge_count + 1):
+        source = {
+            "base": 0.0,
+            "constant_u": 0.0,
+            "delta_u": 0.0,
+            "mass": 0.0,
+            "endpoint": 0.0,
+        }
+        full_source = (
+            float(transforms[prefix + 1])
+            - first_coefficient * float(transforms[prefix])
+            + second_coefficient * float(transforms[prefix - 1])
+        )
+        if prefix <= 3:
+            source["base"] = full_source
+        elif prefix < edge_count:
+            defect = (
+                prefix_residuals[prefix]
+                - stencil(
+                    prefix_residuals[prefix - 1],
+                    prefix + 1,
+                    (1.0 - q) / 2.0,
+                )
+                + stencil(
+                    prefix_residuals[prefix - 2],
+                    prefix + 1,
+                    (1.0 - q) ** 2 / 4.0,
+                )
+            )
+            u_value = float(defect[prefix - 2])
+            mass = float(defect[prefix] + 3.0 * u_value)
+
+            def u_transform(value: float) -> float:
+                return (
+                    2.0
+                    * value
+                    * (
+                        math.cos((prefix - 2) * theta)
+                        + 2.0 * math.cos((prefix - 1) * theta)
+                        - 3.0 * math.cos(prefix * theta)
+                    )
+                )
+
+            source["constant_u"] = u_transform(constant_u)
+            source["delta_u"] = u_transform(u_value - constant_u)
+            source["mass"] = 2.0 * mass * math.cos(prefix * theta)
+            assert abs(full_source - sum(source.values())) <= 1.0e-12
+        else:
+            source["endpoint"] = full_source
+
+        for name in names:
+            components[name].append(
+                first_coefficient * components[name][prefix]
+                - second_coefficient * components[name][prefix - 1]
+                + source[name]
+            )
+
+    ideal = (
+        -(q * q)
+        * (1.0 - q) ** edge_count
+        * (-(math.cos(phi) ** edge_count) - math.ldexp(1.0, -edge_count))
+    )
+    final_endpoint = float(prefix_residuals[-1][-1])
+    position = {name: components[name][edge_count + 1] / q**2 for name in names}
+    position["base"] -= ideal / q**2
+    position["endpoint"] -= final_endpoint / q**2
+
+    velocity = {
+        name: (components[name][edge_count + 1] - (1.0 - q) * components[name][edge_count]) / q**3
+        for name in names
+    }
+    velocity["base"] += ideal / (5.0 * q**2)
+    eta = (1.0 - q * q) / 2.0
+    kappa = eta * proper_frontier - q**3 / 5.0
+    velocity["endpoint"] += (-final_endpoint + kappa + (1.0 - q) * eta * proper_error_last) / q**3
+    return position, velocity
+
+
 def screen(edge_count: int, max_qk: float) -> None:
-    q, degrees, p, v = full_face_entry(edge_count)
+    (
+        q,
+        degrees,
+        p,
+        v,
+        prefix_residuals,
+        proper_error_last,
+        proper_frontier,
+    ) = full_face_entry(edge_count)
     r_zero = residual(p, degrees, q)
     packet = -(q * q / 2.0) * (1.0 - q) ** edge_count * binomial_probabilities(edge_count)
     packet_error = r_zero - packet
@@ -276,6 +678,21 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"{velocity_source.max() / q**3:.6g}] "
         f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g}"
     )
+    position_pieces, velocity_pieces = five_piece_decomposition(
+        prefix_residuals,
+        proper_error_last,
+        proper_frontier,
+        q,
+    )
+    piece_names = ("base", "constant_u", "delta_u", "mass", "endpoint")
+    position_text = ",".join(f"{name}:{position_pieces[name]:.6g}" for name in piece_names)
+    velocity_text = ",".join(f"{name}:{velocity_pieces[name]:.6g}" for name in piece_names)
+    print(
+        f"  measured_five_piece_C=[{position_text}] "
+        f"sum={sum(position_pieces.values()):.6g} "
+        f"measured_five_piece_V=[{velocity_text}] "
+        f"sum={sum(velocity_pieces.values()):.6g}"
+    )
 
 
 def main() -> None:
@@ -294,6 +711,7 @@ def main() -> None:
         help="maximum normalized terminal horizon",
     )
     arguments = parser.parse_args()
+    exact_boundary_source_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")

@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-modal-block`
-- Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
+- Branch: `agent/codex/path-terminal-boundary-source`
+- Base commit: `8e039042f4325be6b6640587cba753c8967ee28b`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -23,7 +23,7 @@
   analysis, prove every uniform inequality currently available, and preserve
   any remaining gap as exact, falsifiable lemmas rather than promoting
   floating evidence to a theorem.
-- Implemented result: Added a standalone twelve-page note deriving the exact
+- Implemented result: Added a standalone fifteen-page note deriving the exact
   degree-weighted path-cosine basis, damped modal roots and quadratures, safe
   global-correction/range semantics, the ideal binomial packet transform, a
   uniform phase-energy bound, and a conditional
@@ -33,10 +33,13 @@
   A follow-up derives the exact identity `D_h=q*cot(phi_h)*V_h`, all proper-
   prefix and full-path restricted optima, the rank-one proper-prefix transport
   with `0<b_n-b_(n-1)<=q*artanh(q)`, the fixed-face directional factorization,
-  an open changing-face boundary-source interface, and pointwise
-  nonpositivity of the ideal packet evolution. The proposed changing-face
-  sparse-source support is explicitly retained as an open row-by-row
-  sublemma. The
+  and pointwise nonpositivity of the ideal packet evolution. A second
+  follow-up proves the exact changing-face defect at the seed and last three
+  frontier rows, including the final ambient-degree-one endpoint. Even
+  reflection removes the seed term, and the remaining source transform
+  factors as `U_n(1-z)(1+3z)+M_n*z^2`, with exact uniform bounds
+  `0<U_n<=3q^3/40` and `|M_n|<=3q^4/2`. It also reduces the open `C/V`
+  profiles to two scalar signed-sum inequalities. The
   full-face `K/J` propagators are nonnegative with row sums `1` and `k`, so the
   regime-side obstruction is now the factor-`k` loss without signed/variation
   control of the velocity remainder. The profile constants rigorously imply
@@ -51,15 +54,18 @@
 
 ## Evidence
 
-- Tests added or changed: Added `verify.py`, which replays exact algorithmic
+- Tests added or changed: Extended `verify.py`, which replays exact algorithmic
   semantics in deterministic float64 arithmetic, checks admission projection,
   correction, and gating, measures entry packet/quadrature defects, checks the
   full-face projection and envelope margins, and reports both the first raw
-  range crossing and the first literal safe-envelope certificate.
+  range crossing and the first literal safe-envelope certificate. Before that
+  screen it now performs an exact rational replay at `m=8` and verifies the
+  boundary entries and formal Laurent-polynomial recurrence at representative
+  proper and final prefixes.
 - Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
   `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
   focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The note built to 12 pages with no LaTeX, package,
+- Results: The note built to 15 pages with no LaTeX, package,
   overfull/underfull, or unresolved-reference warnings.  The deterministic
   screen passed all five sizes.  It checks the exact combined
   `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
@@ -90,10 +96,12 @@
   of `exp(-1/16)` was a constant typo and did not affect the theorem's
   conservative amplitude bounds.  The note also records why zero-padding the
   newly admitted endpoint rules out an instantaneous certificate at entry.
-- Open decisions or follow-up: First prove and display the proposed seed and
-  last-three-frontier source entries row by row, then prove the two entry
-  profile bounds uniformly in `m` by controlling their signed transforms; also
-  prove projection inactivity plus
+- Open decisions or follow-up: Decompose the now-proved frontier transform
+  into the homogeneous packet/base discrepancy, the constant-`U` response,
+  the small total variation of `U_n`, the `M_n=O(q^4)` trace, and the single
+  final endpoint term, then prove the two
+  entry profile bounds uniformly in `m` by controlling their signed Green
+  sums; also prove projection inactivity plus
   unclipped global correction through
   `floor((1/8)q^-1 log(1/q))`.  Until both statements hold in exact arithmetic,
   retain evidence `proved-open` and every asymptotic terminal claim as
