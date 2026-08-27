@@ -4,8 +4,8 @@ Last reviewed: 2026-08-27
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-velocity-profile`
-Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
+Branch: `agent/codex/path-terminal-regime-static`
+Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
 
 ## Exact question and contract
 
@@ -82,6 +82,18 @@ Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
   the homogeneous base, derivative-source boundary trace, and final endpoint.
   Rational variation bounds `TV(h)<1/400` and `TV(g)<43/80` give the strict
   uniform ledger `3479/14400<1/4`, with slack `121/14400`.
+- **Directed packet theorem:** On the full face, splitting the even ideal packet
+  into two half-endpoint packets with opposite directed velocities proves that
+  their complete `K/J` evolution is coordinatewise nonpositive. The literal
+  entry correction `c=r_0-g` is also coordinatewise nonpositive for every
+  `m>=64`. The infinite-line coefficient of `J_k` is the binomial tail
+  `Pr(Bin(k-1,1/2)>=|r|)`; after cycle folding its maximum is at most
+  `1+(k-1)/(2m)`. Hence positive residual is bounded exactly by this factor
+  times the positive weighted mass of one static directed-velocity remainder.
+  That remainder is now deconvolved exactly as `u=Ld`, where `d` is given
+  coordinatewise by the last proper-prefix residuals and a lower binomial
+  packet. The coefficient of `J_k L` is an explicit finite binomial window,
+  so both remaining regime targets are finite signed convolution inequalities.
 - **Conditional:** If projection plus envelope subtraction remain inactive
   through the stated horizon, then every
   sufficiently large member requires at least
@@ -100,9 +112,14 @@ Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
   `V+G/5` errors remain below `0.195`, and `D_2/G_2` ranges from `-0.008138`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
-  near `+/-3.64 q^3`. These are finite measurements and assert no limit.
-- **Open:** Prove the uniform projection/unclipped-envelope invariant in exact
-  arithmetic.
+  near `+/-3.64 q^3`. The directed cancellation reduces the measured positive
+  weighted remainder mass from that moving-packet scale to about
+  `0.258 q^3`--`0.260 q^3`. The corresponding pre-averaging positive mass
+  `||d_+||_(1,D)` is about `0.43 q^3`, showing why Markov contractivity alone
+  misses `21q^3/80`. These are finite measurements and assert no limit.
+- **Open:** Prove the uniform finite signed static inequality, its early
+  `J_kL` convolution counterpart, and the projection/unclipped-envelope
+  invariant in exact arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
@@ -117,7 +134,10 @@ Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
 
 1. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
-   and every safe subtraction is strictly unclipped.
+   and every safe subtraction is strictly unclipped. The positive-residual
+   part is now reduced to proving a uniform static bound on
+   `||(w-w_dir)_+||_(1,D)/q^3`; a separate early/late position lower bound must
+   exploit the exact first-step margin, which is only order `q^2`.
 
 The lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
@@ -140,7 +160,9 @@ constants is permitted only with a corresponding proof.
   six onward, the uniform position source-to-continuum lemma, exact
   constant-`U` Chebyshev response, and strict `257/92160<1/256` position
   ledger, the exact velocity source kernel, its uniform continuum limit, and
-  the strict `3479/14400<1/4` velocity ledger,
+  the strict `3479/14400<1/4` velocity ledger, the directed two-wave ideal
+  packet, the exact entry-correction sign, and the no-loss folded `J_k` alias
+  bound,
   weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
   transported-center semantics.
@@ -150,11 +172,11 @@ constants is permitted only with a corresponding proof.
 - **Exact pointer:** `main.tex`, Lemma `lem:terminal-modal-regime` is the sole
   missing statement; Theorem `thm:terminal-modal-conditional-log` is ready to
   consume it.
-- **Next action:** Use the ideal packet's
-  proved nonpositive evolution and the exact `K/J` decomposition to replace
-  the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
-  variation estimate, plus a global supremum/variation bound on the literal
-  remainder, to attack the projection/envelope regime.
+- **Next action:** Prove the explicit local-average inequality
+  `eq:terminal-modal-static-finite-target` by controlling the positive bulk
+  and alternating terminal tail of `d`; use the displayed binomial-window
+  kernel for the early signed convolution, and combine these bounds with an
+  early/late lower bound for the literal position candidate.
 - **Stop/go test:** Promote the logarithmic block only after the remaining
   lemma is proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
@@ -179,8 +201,10 @@ constants is permitted only with a corresponding proof.
   position constant ledger and the finite constant-`U` Chebyshev identity. A
   sixth preflight checks the rational velocity variation ledger, the positive
   Bernstein certificate for the mass amplitude, and the continuum
-  normalization.
-  The floating screen
+  normalization. A seventh exact preflight checks the half-endpoint cycle
+  split, directed evolution, folded `J_k` alias bound, the exact `J_kL`
+  binomial window, entry-correction sign, and `u=Ld` deconvolution at
+  `m=8,12`. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -189,7 +213,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 32-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 35-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

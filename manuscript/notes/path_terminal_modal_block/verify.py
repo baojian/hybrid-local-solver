@@ -862,6 +862,246 @@ def velocity_profile_asymptotic_checks() -> None:
     )
 
 
+def exact_directional_packet_checks() -> None:
+    """Audit the directed packet, entry sign, and folded J-kernel bound."""
+
+    def shift(values: list[Fraction], amount: int) -> list[Fraction]:
+        size = len(values)
+        return [values[(index - amount) % size] for index in range(size)]
+
+    def average_shift(values: list[Fraction], amount: int) -> list[Fraction]:
+        shifted = shift(values, amount)
+        return [(left + right) / 2 for left, right in zip(values, shifted, strict=True)]
+
+    def cycle_l(values: list[Fraction]) -> list[Fraction]:
+        plus = average_shift(values, 1)
+        minus = average_shift(values, -1)
+        return [(left + right) / 2 for left, right in zip(plus, minus, strict=True)]
+
+    for edge_count in (5, 8):
+        size = 2 * edge_count
+        packet = [
+            Fraction(math.comb(edge_count, index), 2**edge_count) for index in range(edge_count + 1)
+        ]
+        plus_packet = [Fraction(0) for _ in range(size)]
+        plus_packet[: edge_count + 1] = packet
+        plus_packet[0] /= 2
+        plus_packet[edge_count] /= 2
+        minus_packet = [plus_packet[-index % size] for index in range(size)]
+        even_packet = [
+            packet[index] if index <= edge_count else packet[size - index] for index in range(size)
+        ]
+        assert [
+            left + right for left, right in zip(plus_packet, minus_packet, strict=True)
+        ] == even_packet
+
+        directed_velocity = [
+            plus - middle + minus - middle_other
+            for plus, middle, minus, middle_other in zip(
+                average_shift(plus_packet, 1),
+                cycle_l(plus_packet),
+                average_shift(minus_packet, -1),
+                cycle_l(minus_packet),
+                strict=True,
+            )
+        ]
+        lower_plus = [Fraction(0) for _ in range(size)]
+        lower_plus[1:edge_count] = [
+            Fraction(math.comb(edge_count - 2, index - 1), 2 ** (edge_count - 2))
+            for index in range(1, edge_count)
+        ]
+        lower_minus = [lower_plus[-index % size] for index in range(size)]
+        cycle_d = [
+            (plus_forward - plus_backward - minus_forward + minus_backward) / 4
+            for plus_forward, plus_backward, minus_forward, minus_backward in zip(
+                shift(lower_plus, 1),
+                shift(lower_plus, -1),
+                shift(lower_minus, 1),
+                shift(lower_minus, -1),
+                strict=True,
+            )
+        ]
+        assert cycle_l(cycle_d) == directed_velocity
+        assert cycle_d[0] == -lower_plus[1] / 2
+        assert cycle_d[edge_count] == lower_plus[edge_count - 1] / 2
+        trajectory_previous = even_packet
+        trajectory = [
+            left + right
+            for left, right in zip(
+                cycle_l(even_packet),
+                directed_velocity,
+                strict=True,
+            )
+        ]
+        directed_plus = average_shift(plus_packet, 1)
+        directed_minus = average_shift(minus_packet, -1)
+        assert trajectory == [
+            left + right for left, right in zip(directed_plus, directed_minus, strict=True)
+        ]
+        for _step in range(1, 4 * edge_count):
+            directed_plus = average_shift(directed_plus, 1)
+            directed_minus = average_shift(directed_minus, -1)
+            expected = [
+                left + right for left, right in zip(directed_plus, directed_minus, strict=True)
+            ]
+            following = [
+                2 * middle - previous
+                for middle, previous in zip(
+                    cycle_l(trajectory),
+                    cycle_l(trajectory_previous),
+                    strict=True,
+                )
+            ]
+            assert following == expected
+            trajectory_previous, trajectory = trajectory, following
+
+    for edge_count in (3, 4, 5):
+        period = 2 * edge_count
+        for step in range(1, 8 * edge_count + 1):
+            tail = {
+                offset: sum(
+                    Fraction(math.comb(step - 1, count), 2 ** (step - 1))
+                    for count in range(abs(offset), step)
+                )
+                for offset in range(-(step - 1), step)
+            }
+            assert max(tail.values()) <= 1
+            aliases = [
+                sum(value for offset, value in tail.items() if offset % period == residue)
+                for residue in range(period)
+            ]
+            assert max(aliases) <= 1 + Fraction(step - 1, 2 * edge_count)
+            for offset in range(-step, step + 1):
+                jl_direct = (
+                    tail.get(offset - 1, Fraction(0))
+                    + 2 * tail.get(offset, Fraction(0))
+                    + tail.get(offset + 1, Fraction(0))
+                ) / 4
+                jl_window = sum(
+                    Fraction(math.comb(step + 1, step + offset - count), 2 ** (step + 1))
+                    for count in range(step)
+                    if 0 <= step + offset - count <= step + 1
+                )
+                assert jl_direct == jl_window
+
+    for edge_count in (8, 12):
+        q = Fraction(1, 16 * edge_count)
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        p = [Fraction(0)]
+        v = [Fraction(0)]
+        proper_residual = None
+        proper_average_residual = None
+        proper_post_residual = None
+        proper_sigma = None
+        proper_frontier = None
+        for length in range(1, edge_count + 1):
+            optimum = _fraction_optimum(length, degrees, q)
+            if length == edge_count:
+                proper_residual = _fraction_residual(p, degrees[:length], q)
+                average = [(left + q * right) / (1 + q) for left, right in zip(p, v, strict=True)]
+                proper_average_residual = _fraction_residual(average, degrees[:length], q)
+            p_next, v_next = _fraction_step(p, v, degrees[:length], q)
+            if length == edge_count:
+                proper_post_residual = _fraction_residual(p_next, degrees[:length], q)
+                proper_sigma = p_next[-1]
+                proper_frontier = optimum[-1]
+            new_optimum = _fraction_optimum(length + 1, degrees, q)
+            p = p_next + [Fraction(0)]
+            v = [
+                value + new_value - old_value
+                for value, new_value, old_value in zip(
+                    v_next + [Fraction(0)],
+                    new_optimum,
+                    optimum + [Fraction(0)],
+                    strict=True,
+                )
+            ]
+        entry_residual = _fraction_residual(p, degrees, q)
+        ideal = [
+            -(q * q)
+            * (1 - q) ** edge_count
+            * Fraction(math.comb(edge_count, index), 2 ** (edge_count + 1))
+            for index in range(edge_count + 1)
+        ]
+        assert all(left <= right for left, right in zip(entry_residual, ideal, strict=True))
+
+        assert proper_residual is not None
+        assert proper_average_residual is not None
+        assert proper_post_residual is not None
+        assert proper_sigma is not None
+        assert proper_frontier is not None
+        velocity_residual = _fraction_residual(v, degrees, q)
+        entry_b = [q * value for value in velocity_residual]
+        delta = 1 - q
+        assert entry_b[:-1] == [
+            post - delta * old
+            for post, old in zip(
+                proper_post_residual,
+                proper_residual,
+                strict=True,
+            )
+        ]
+        eta = (1 - q * q) / 2
+        assert entry_b[-1] == eta * (q * proper_frontier - proper_sigma)
+
+        gamma = [Fraction(0) for _ in range(edge_count + 1)]
+        gamma[1:edge_count] = [
+            -(q * q)
+            * delta**edge_count
+            * Fraction(math.comb(edge_count - 2, index - 1), 2 ** (edge_count - 1))
+            for index in range(1, edge_count)
+        ]
+        deconvolution = [Fraction(0) for _ in range(edge_count + 1)]
+        deconvolution[0] = -gamma[1] / 2
+        deconvolution[-1] = gamma[-2] / 2
+        deconvolution[1:-1] = [
+            (gamma[index - 1] - gamma[index + 1]) / 4 for index in range(1, edge_count)
+        ]
+        static_data = [left - right for left, right in zip(entry_b, deconvolution, strict=True)]
+        path_l_static = [
+            (static_data[0] + static_data[1]) / 2,
+            *[
+                (static_data[index - 1] + 2 * static_data[index] + static_data[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (static_data[-2] + static_data[-1]) / 2,
+        ]
+
+        signed_ideal = ideal
+        plus_ideal = [Fraction(0) for _ in range(2 * edge_count)]
+        plus_ideal[: edge_count + 1] = signed_ideal
+        plus_ideal[0] /= 2
+        plus_ideal[edge_count] /= 2
+        minus_ideal = [plus_ideal[-index % (2 * edge_count)] for index in range(2 * edge_count)]
+        directed_signed = [
+            plus - middle + minus - middle_other
+            for plus, middle, minus, middle_other in zip(
+                average_shift(plus_ideal, 1),
+                cycle_l(plus_ideal),
+                average_shift(minus_ideal, -1),
+                cycle_l(minus_ideal),
+                strict=True,
+            )
+        ][: edge_count + 1]
+        path_l_b = [
+            (entry_b[0] + entry_b[1]) / 2,
+            *[
+                (entry_b[index - 1] + 2 * entry_b[index] + entry_b[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (entry_b[-2] + entry_b[-1]) / 2,
+        ]
+        assert path_l_static == [
+            left - right for left, right in zip(path_l_b, directed_signed, strict=True)
+        ]
+
+    print(
+        "exact_directional_packet_checks=cycle_split:pass directed_sign:pass "
+        "J_alias:pass JL_kernel:pass exact_entry_c_sign=m=8,12 "
+        "static_u=Ld:pass"
+    )
+
+
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
     """Apply D^(-1/2) Q D^(1/2) in normalized path coordinates."""
     a = (1.0 + q * q) / 2.0
@@ -1111,6 +1351,7 @@ def screen(edge_count: int, max_qk: float) -> None:
         proper_frontier,
     ) = full_face_entry(edge_count)
     r_zero = residual(p, degrees, q)
+    r_velocity_zero = residual(v, degrees, q)
     packet = -(q * q / 2.0) * (1.0 - q) ** edge_count * binomial_probabilities(edge_count)
     packet_error = r_zero - packet
 
@@ -1118,7 +1359,7 @@ def screen(edge_count: int, max_qk: float) -> None:
     assert raw_one.min() > 0.0
     r_one = residual(p_one, degrees, q)
     coefficient_zero = cosine_coefficients(r_zero, degrees)
-    coefficient_velocity = cosine_coefficients(residual(v, degrees, q), degrees)
+    coefficient_velocity = cosine_coefficients(r_velocity_zero, degrees)
     coefficient_one = cosine_coefficients(r_one, degrees)
     band = min(
         (edge_count - 1) // 2,
@@ -1230,6 +1471,42 @@ def screen(edge_count: int, max_qk: float) -> None:
     weighted_packet_error = float(np.dot(degrees, np.abs(packet_error)))
     l_r_zero = (r_zero - h_apply(r_zero, degrees, q)) / (1.0 - q * q)
     velocity_source = r_one / (1.0 - q) - l_r_zero
+    cycle_size = 2 * edge_count
+    directed_plus = np.zeros(cycle_size)
+    directed_plus[: edge_count + 1] = packet
+    directed_plus[0] /= 2.0
+    directed_plus[edge_count] /= 2.0
+    directed_minus = np.array([directed_plus[-index % cycle_size] for index in range(cycle_size)])
+
+    def average_cycle_shift(values: np.ndarray, amount: int) -> np.ndarray:
+        return (values + np.roll(values, amount)) / 2.0
+
+    directed_l_plus = (
+        average_cycle_shift(directed_plus, 1) + average_cycle_shift(directed_plus, -1)
+    ) / 2.0
+    directed_l_minus = (
+        average_cycle_shift(directed_minus, 1) + average_cycle_shift(directed_minus, -1)
+    ) / 2.0
+    directed_velocity = (
+        average_cycle_shift(directed_plus, 1)
+        - directed_l_plus
+        + average_cycle_shift(directed_minus, -1)
+        - directed_l_minus
+    )[: edge_count + 1]
+    directed_remainder = velocity_source - directed_velocity
+    directed_positive_mass = float(np.dot(degrees, np.maximum(directed_remainder, 0.0)))
+    lower_packet = np.zeros(edge_count + 1)
+    lower_packet[1:edge_count] = (
+        -0.5 * q**2 * (1.0 - q) ** edge_count * binomial_probabilities(edge_count - 2)
+    )
+    deconvolution = np.zeros(edge_count + 1)
+    deconvolution[0] = -lower_packet[1] / 2.0
+    deconvolution[-1] = lower_packet[-2] / 2.0
+    deconvolution[1:-1] = (lower_packet[:-2] - lower_packet[2:]) / 4.0
+    static_data = q * r_velocity_zero - deconvolution
+    static_remainder = (static_data - h_apply(static_data, degrees, q)) / (1.0 - q * q)
+    assert np.max(np.abs(static_remainder - directed_remainder)) <= 1.0e-7 * q**3
+    static_positive_mass = float(np.dot(degrees, np.maximum(static_data, 0.0)))
     print(
         f"m={edge_count:5d} q={q:.9g} alpha={q * q:.9g} "
         f"rho=tau={q / 5.0:.9g} graph=P_m seed=v0 "
@@ -1265,7 +1542,10 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"{packet_error.max() / q**3:.6g}] "
         f"measured_w_over_q3=[{velocity_source.min() / q**3:.6g},"
         f"{velocity_source.max() / q**3:.6g}] "
-        f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g}"
+        f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g} "
+        f"directed_uplus_L1D/q3={directed_positive_mass / q**3:.6g} "
+        f"static_dplus_L1D/q3={static_positive_mass / q**3:.6g} "
+        f"entry_c_max/q3={packet_error.max() / q**3:.6g}"
     )
     position_pieces, velocity_pieces = five_piece_decomposition(
         prefix_residuals,
@@ -1306,6 +1586,7 @@ def main() -> None:
     exact_boundary_source_checks()
     position_profile_asymptotic_checks()
     velocity_profile_asymptotic_checks()
+    exact_directional_packet_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")

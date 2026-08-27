@@ -34,14 +34,26 @@ It also gives exact nonnegative position/velocity propagators. A uniform
 continuum limit for the velocity trace retains the cancellation among the
 homogeneous base, derivative sources, and final endpoint. Rational
 total-variation bounds give the strict ledger
-`3479/14400<1/4`, proving the growing-band velocity profile as well. It then
-proves a conditional anti-cancellation theorem: the two proved entry profiles
-and projection/envelope regime preservation would force
+`3479/14400<1/4`, proving the growing-band velocity profile as well. A
+directed half-endpoint split of the ideal packet retains the literal outward
+entry momentum: the two directed binomial waves remain nonpositive for all
+time. The actual entry position correction is proved coordinatewise
+nonpositive, and the folded velocity kernel has exact maximum coefficient at
+most `1+(k-1)/(2m)`. Consequently all positive residual is reduced to the
+degree-weighted positive mass of one static directed-velocity remainder; the
+damping makes the apparent factor-`k` and repeated-reflection losses uniformly
+bounded. The remainder is further deconvolved exactly as `u=Ld`, with `d`
+given directly by the final proper-prefix state and a lower binomial packet;
+the early `J_kL` kernel is an explicit binomial window. It then proves a
+conditional anti-cancellation theorem: the two proved entry profiles and
+projection/envelope regime preservation would force
 `Omega(q^-1 log(1/q))` terminal steps for the named transported-center
 execution.
 
-The terminal projection/envelope regime is not proved. A deterministic NumPy
-screen reconstructs
+The terminal projection/envelope regime is not proved. On the regime side, the
+remaining tasks are the displayed finite signed local-average bound for `d`,
+its early convolution analogue, and an early/late lower position margin. A
+deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
 velocity identity, and reports both the first range crossing and the first
@@ -57,9 +69,11 @@ preflight checks the finite-`q` source constants, stopped derivative-prefix
 bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
 preflight checks the exact rational position ledger and the finite
 constant-`U` Chebyshev response. A sixth preflight checks the rational
-velocity total-variation ledger and the continuum normalization. The sole
-remaining theorem interface is the nonlinear terminal regime.
-Numerical observations are labeled
+velocity total-variation ledger and the continuum normalization. A further
+exact preflight checks the directed packet identity, the folded `J_k` alias
+bound, the `J_kL` binomial-window identity, the entry-correction sign, and the
+static `u=Ld` reduction at `m=8,12`. The sole remaining theorem interface is
+the nonlinear terminal regime. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
 
