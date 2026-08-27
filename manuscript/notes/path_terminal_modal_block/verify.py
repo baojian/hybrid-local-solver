@@ -1289,6 +1289,44 @@ def exact_static_tail_reduction_checks() -> None:
     assert Fraction(9, 512) + Fraction(1, 2048) < Fraction(1, 50)
     assert Fraction(113, 1024) + Fraction(1, 2048) < Fraction(9, 80)
 
+    # Exact moments behind the asymptotic STOP for the proposed 1/16
+    # derivative constant.
+    def correction_atom_zero_moment(distance: int) -> Fraction:
+        return -Fraction(2, 3) - Fraction(1, 12) * Fraction(-1, 2) ** (distance - 2)
+
+    def correction_atom_first_moment(distance: int) -> Fraction:
+        return (
+            -Fraction(30 * distance + 26, 27)
+            - Fraction(3 * distance + 1, 27) * Fraction(-1, 2) ** distance
+        )
+
+    derivative_coefficients = (-3, 2, 1)
+    for distance in range(6, 20):
+        zero_moment = 2 * sum(
+            coefficient
+            * (
+                correction_atom_zero_moment(distance - shift)
+                - correction_atom_zero_moment(distance - shift - 2) / 4
+            )
+            for shift, coefficient in enumerate(derivative_coefficients)
+        )
+        first_moment = 2 * sum(
+            coefficient
+            * (
+                correction_atom_first_moment(distance - shift)
+                - correction_atom_first_moment(distance - shift - 2) / 4
+            )
+            for shift, coefficient in enumerate(derivative_coefficients)
+        )
+        assert zero_moment == 0
+        assert first_moment == Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** distance
+    assert Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** 6 == Fraction(107, 16)
+    t_cap = Fraction(113, 128)
+    polynomial_at_cap = t_cap**4 - 30 * t_cap**3 + 12 * t_cap**2 + 10 * t_cap + 3
+    derivative_lower = polynomial_at_cap / (10 * Fraction(47, 50) * (1 + t_cap**2) ** 2)
+    assert derivative_lower == Fraction(1539492805, 39945178223)
+    assert derivative_lower > Fraction(4, 107)
+
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
     for edge_count in (8, 12):
@@ -1478,7 +1516,7 @@ def exact_static_tail_reduction_checks() -> None:
         "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
         "two_step_equivalence:pass mass_window=(2/5,43/75) "
-        "mass_kernel:proved base_derivative_frontier=open"
+        "mass_kernel:proved derivative_1/16=STOP base_replacement_derivative_frontier=open"
     )
 
 
