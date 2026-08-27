@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/supplied-face-dispatch`
-- Base commit: `b708d141b7b051a43cee4c3ebfa4308ad0dd6f3b`
+- Branch: `agent/codex/supplied-face-portfolio`
+- Base commit: `bba7f4128b5c6b63c706dac280cebd0ec6e1e124`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -15,6 +15,12 @@
 
 ## Outcome
 
+- Added a constant-competitive supplied-face portfolio.  It round-robins
+  exact CG, interval Chebyshev, and the charged Collatz-to-frozen-SOR route,
+  returns only after their common two-sided residual certificate, and costs
+  a constant times the first worker's complete face-pass count.  It retains
+  the proved dimension--spectral fallback even when spectral certification
+  is slow, and it does not license arbitrary per-sweep relaxation changes.
 - Added a general supplied-face solver theorem, independent of bipartiteness.
   The normalized two-sided residual stop
   `||D_U^(-1/2)(c_U-Q_UU x)||_infinity <= alpha tau` implies semantic error
@@ -90,7 +96,11 @@
 
 - `verify_supplied_face_dispatch.py` uses exact rational arithmetic to audit
   the Chebyshev closed form, shifted-load norm, principal M-matrix semantic
-  conversion, and CG annihilator off-by-one.
+  conversion, CG annihilator off-by-one, and three-worker round-robin pass
+  count.
+- Independent read-only promotion audit passed after checking the nonbipartite
+  disabled-worker scope, positive Collatz auxiliary initialization, common
+  certificate, round-robin constant, and charged face-pass ledger.
 - `verify_adaptive_spectral.py` passes 244 exact-rational cells: 120 certified
   tuning cells, 98 componentwise Collatz/certification cells, 11 adaptive
   scalar-SOR funnel cells including the interleaved witness, and 15

@@ -165,16 +165,41 @@ def check_annihilator_off_by_one() -> int:
     return 2
 
 
+def check_round_robin_portfolio() -> int:
+    """Lock the three-worker constant-competitive pass count."""
+    cells = 0
+    for cg_count in range(1, 18):
+        for chebyshev_count in range(1, 18):
+            for collatz_sor_count in range(1, 18):
+                counts = (cg_count, chebyshev_count, collatz_sor_count)
+                progress = [0, 0, 0]
+                passes = 0
+                winner = None
+                while winner is None:
+                    for worker in range(3):
+                        progress[worker] += 1
+                        passes += 1
+                        if progress[worker] >= counts[worker]:
+                            winner = worker
+                            break
+                assert passes <= 3 * min(counts)
+                assert counts[winner] == min(counts)
+                cells += 1
+    return cells
+
+
 def main() -> None:
     """Run all exact supplied-face audits."""
     chebyshev_cells = check_chebyshev_identity()
     load_cells = check_load_bound()
     semantic_cells = check_semantic_inverse_bound()
     annihilator_cells = check_annihilator_off_by_one()
+    portfolio_cells = check_round_robin_portfolio()
     print(
         "supplied_face_dispatch=pass "
         f"chebyshev_cells={chebyshev_cells} load_cells={load_cells} "
-        f"semantic_cells={semantic_cells} annihilator_cells={annihilator_cells}"
+        f"semantic_cells={semantic_cells} annihilator_cells={annihilator_cells} "
+        f"portfolio_cells={portfolio_cells}"
     )
 
 

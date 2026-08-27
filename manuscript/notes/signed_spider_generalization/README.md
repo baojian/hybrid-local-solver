@@ -32,6 +32,10 @@ two-sided normalized-residual stop in
 `O(vol(U) min{|U|, alpha^(-1/2) log(2/tau)})` real-arithmetic work and implies
 degree-normalized semantic error at most `tau`.  This is a terminal fixed-face
 rule: it neither discovers the face nor amortizes restarts after admissions.
+Running CG, interval Chebyshev, and the charged Collatz-to-frozen-SOR route as
+a three-worker round-robin portfolio is constant-competitive with whichever
+route certifies first.  It preserves the CG/Chebyshev fallback and treats
+face-specific spectral tuning as an optional, fully charged improvement.
 On complete equal-arm hub-seeded spiders, it proves a new dimension-free
 maximum-norm theorem: plain optimal SOR reduces semantic error by
 `lambda^(2k) (1 + 2k(1-lambda^2))`, giving log-free

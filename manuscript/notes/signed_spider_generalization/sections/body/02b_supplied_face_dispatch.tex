@@ -257,6 +257,68 @@ two interval-Chebyshev factors, modulo the two primitives' scan conventions.
 The new small-face escape is CG's finite dimension cap, not a better interval
 condition-number exponent.
 
+The spectral estimator need not be chosen in advance.  The following
+portfolio statement turns it into a safe optional worker while retaining the
+dimension--spectral fallback above.
+
+\begin{proposition}[A constant-competitive supplied-face portfolio]
+\label{prop:supplied-face-portfolio}
+Fix $0<\gamma<1$.  On the supplied face, consider three exact-arithmetic
+workers whose linear-solver iterates start from zero (the Collatz worker uses
+the strictly positive auxiliary start required by
+\cref{prop:collatz-face-certificate}):
+\begin{enumerate}
+\item CG, with its maintained residual checked against
+  \eqref{eq:supplied-face-two-sided-certificate};
+\item interval Chebyshev semi-iteration with the same check; and
+\item when the supplied face is bipartite, the componentwise Collatz estimator of
+  \cref{prop:collatz-face-certificate}, followed after its relative-gap
+  certificate by SOR with the resulting parameter frozen, again using the
+  two-sided residual check.
+\end{enumerate}
+On a nonbipartite face the third worker is disabled.  In that case define
+$T_{\rm CS}(U,\gamma,\tau)=+\infty$ and round-robin only the first two
+workers.
+Advance the enabled workers in round-robin order and return the first certified
+iterate.  Let $T_{\rm CS}(U,\gamma,\tau)$ be the number of complete face
+passes used by the third worker before it certifies, including estimator,
+SOR, and residual-validation passes.  Then the portfolio is correct and has
+charged work
+\begin{equation}
+ O\!\left(\operatorname{vol}(U)
+ \min\{n_U,k_{\rm Ch}(\tau),T_{\rm CS}(U,\gamma,\tau)\}\right).
+ \label{eq:supplied-face-portfolio-work}
+\end{equation}
+In particular it retains the unconditional bound
+\eqref{eq:supplied-face-dispatch-work}, while exploiting certified
+face-specific SOR whenever that complete charged route finishes first.
+There is no graph-uniform upper bound on $T_{\rm CS}$.
+\end{proposition}
+
+\begin{proof}
+Every worker returns only after the same computable two-sided certificate, so
+\cref{lem:supplied-face-two-sided-stop} proves correctness independently of
+which worker wins.  One worker pass consists of a constant number of sparse
+face scans, vector passes, and, when needed, residual materialization, hence
+costs $O(\operatorname{vol}(U))$.  If a worker would finish after $T$ of its
+own passes, round robin advances it $T$ times after at most $3T+O(1)$ total
+worker passes (and at most $2T+O(1)$ when the third worker is disabled).
+Exact CG has $T\le n_U$, Chebyshev has
+$T\le k_{\rm Ch}(\tau)$, and the third route has the displayed actual count.
+Taking the first finisher proves \eqref{eq:supplied-face-portfolio-work}.
+Only a constant number of face-sized vector states are stored.  On every
+bipartite fixed face, eventual Collatz certification and fixed-parameter SOR
+convergence make $T_{\rm CS}$ finite, but the Perron-gap discussion after
+\cref{prop:collatz-face-certificate} rules out a uniform family bound.
+\end{proof}
+
+This portfolio is the rigorous meaning of ``adaptive spectral SOR'' used
+here: spectral work is charged, the upper radius is certified, and the
+selected relaxation is then frozen.  Arbitrarily changing $\omega$ after
+each row or sweep is not covered by the fixed-parameter power theorem.  On
+the complete layered funnel, scalar adaptation still obeys the proved light
+cone, and the exact face radius gives the global parameter anyway.
+
 \paragraph{Scope boundary.}
 This theorem is a supplied, fixed-face linear-solver result.  It assumes that
 the correct positive RPPR face is already known (or that an unregularized

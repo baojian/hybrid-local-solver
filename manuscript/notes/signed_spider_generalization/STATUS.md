@@ -37,7 +37,11 @@ State: proved-open
   Chebyshev therefore give the charged dispatch
   `O(vol(U) min{|U|, alpha^(-1/2) log(2/tau)})` under the stated single-seed
   load normalization.  Exact CG's dimension cap is an exact-real-arithmetic
-  statement; the theorem does not discover or amortize changing faces.  For
+  statement; the theorem does not discover or amortize changing faces.  A
+  three-worker round-robin portfolio with the charged Collatz-to-frozen-SOR
+  route is constant-competitive with the first route to pass the same
+  two-sided residual certificate, while retaining the dimension--spectral
+  fallback.  For
   every fixed bipartite face, optimal red--black SOR has exact spectral factor
   `(1-t)/(1+t)` with `t=sqrt(1-rho_J^2)` and a finite Euclidean/semantic
   convergence bound when the face-specific tuning is supplied.  One
@@ -146,7 +150,8 @@ hope for a graph-uniform maximum-semantic product bound.
   `prop:certified-face-spectral-cost` for paid face tuning and
   `prop:collatz-face-certificate` for its charged a-posteriori realization;
   `thm:supplied-face-dispatch` for the fixed-face CG/Chebyshev dimension--spectral
-  rule and `lem:supplied-face-two-sided-stop` for its semantic certificate;
+  rule, `lem:supplied-face-two-sided-stop` for its semantic certificate, and
+  `prop:supplied-face-portfolio` for the charged adaptive portfolio;
   `thm:adaptive-polynomial-propagation-stop` and
   `cor:adaptive-polynomial-work-stop` for the scalar-adaptive and
   Chebyshev/Krylov scope;
