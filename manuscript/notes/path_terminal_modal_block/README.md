@@ -4,8 +4,10 @@ This note proves an asymptotic logarithmic terminal block for one named
 transported-center endpoint-path execution.  The model is the path `P_m` with
 `q=1/(16m)`, `alpha=q^2`, `rho=tau=q/5`, exact-real zero start, complete
 all-violations admission, ambient degrees, and the literal projected and
-safe-envelope recurrence.  The result is unconditional for all sufficiently
-large `m`, but it gives no explicit cutoff.
+safe-envelope recurrence.  The terminal-block result is unconditional for all
+sufficiently large `m`.  Its static and nonlinear regime subtheorems have the
+conservative explicit cutoff `m>=8192`; uniformity on `64<=m<8192` remains
+open, and the separate modal-band theorem retains asymptotic scope.
 
 The proof has four layers.
 
@@ -21,8 +23,9 @@ The proof has four layers.
 3. The static directed remainder is deconvolved exactly as `u=Ld`.  A uniform
    folded-source theorem proves the two-step cone on rows `0<=j<=m-6` for
    every `m>=64`.  Exact first-order formulas give positive limits on the
-   five frontier rows.  Hence all local half-ratios, `d>=h`, and
-   `||(Ld)_+||_(1,D)<21q^3/80` hold for all sufficiently large `m`.
+   five frontier rows.  An exact causal-transfer and transient ledger makes
+   their common cutoff explicit at `m>=8192`.  Hence all local half-ratios,
+   `d>=h`, and `||(Ld)_+||_(1,D)<21q^3/80` hold in that range.
 4. A correlated finite-`q` stopped ledger closes the early interval
    `qk<3/50` with margin `1807/115200`.  The static bound and an exact
    position comparison close `qk>=3/50`.  The integer handoff has no gap, so
@@ -69,6 +72,7 @@ Run the consolidated and focused checks with:
 ```bash
 python3 verify.py 128 256 512 1024
 python3 verify_static_frontier.py
+python3 verify_static_frontier_cutoff.py
 python3 verify_finite_stopped_ledger.py
 python3 verify_asymptotic_closure.py
 ```

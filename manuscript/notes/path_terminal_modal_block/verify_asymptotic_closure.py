@@ -64,7 +64,10 @@ def main() -> None:
     check_static_chain()
     check_early_late_handoff()
     check_charged_work_ledger()
-    print("terminal_asymptotic_closure=PASS theorem=eventual explicit_frontier_cutoff=NOT_CLAIMED")
+    print(
+        "terminal_asymptotic_closure=PASS theorem=eventual "
+        "explicit_frontier_cutoff=PROVED_SEPARATELY_M_GE_8192"
+    )
 
 
 if __name__ == "__main__":

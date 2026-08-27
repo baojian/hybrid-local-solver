@@ -4,8 +4,8 @@ Last reviewed: 2026-08-28
 State: synthesis
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-asymptotic-regime`
-Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
+Branch: `agent/codex/path-terminal-explicit-cutoff`
+Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
 
 ## Exact question and contract
 
@@ -27,9 +27,12 @@ Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
 - **Result:** For every sufficiently large `m`, the named execution has no
   terminal certificate during its first
   `K_m=floor((8q)^-1 log(1/q))` full-face steps.
-- **Threshold:** Existence is proved; no explicit cutoff is asserted.  The
-  proper-prefix and interior static theorems are uniform from `m=64`, while
-  the five frontier signs use positive joint first-order limits.
+- **Threshold:** The proper-prefix and interior static theorems are uniform
+  from `m=64`.  An exact causal-transfer, endpoint, and transient ledger
+  proves all five frontier signs, the full static certificate, and the
+  nonlinear regime for `m>=8192`; the interval `64<=m<8192` is not claimed
+  uniformly.  The modal-band terminal step still retains its sufficiently-
+  large-`m` scope.
 - **Scope exclusions:** No claim is made for other algorithms, alternate face
   schedules, nonlocal response primitives, exact-spectrum polynomials, or an
   eleven-resource class.  Exact CG can terminate on the `(m+1)`-dimensional
@@ -50,8 +53,9 @@ Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
   are not proof inputs.
 - **Refuted:** The stronger separate early `q^3/16` bound through `17/200`, a
   global folded quarter-mass shortcut, and coordinate-error monotonicity.
-- **Open:** An explicit common frontier cutoff and the unnecessary stronger
-  separate `L_k u<=13q^3/200` inequality.
+- **Open:** A sharper common frontier cutoff, in particular uniformity from
+  `m=64`, and the unnecessary stronger separate
+  `L_k u<=13q^3/200` inequality.
 
 1. Exact prefix optima, transports, and the correction recurrence reduce
    chronology to a shared sign.  A finite-`q` stopped ledger proves the sign
@@ -65,7 +69,8 @@ Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
 3. The static remainder satisfies `u=Ld`.  The folded derivative/base/mass
    theorem proves the two-step cone on `0<=j<=m-6` for every `m>=64`.
    Exact joint first-order formulas give positive limits on the five frontier
-   rows.  Hence, for all sufficiently large `m`, the local half-ratios hold,
+   rows.  A finite transfer ledger proves a common cutoff `m>=8192`; hence in
+   that range the local half-ratios hold,
    `d>=h`, and `||u_+||_(1,D)<21q^3/80`.
 4. The finite stopped ledger proves scaled half-retention, raw positivity,
    projection inactivity, and zero safe subtraction for `qk<3/50`, with
@@ -95,8 +100,8 @@ does not extend beyond the named sweep-linked implementation resources.
 
 ## Open or refuted stronger statements
 
-- **Optional open:** An explicit common cutoff for the five frontier signs,
-  in particular a theorem uniform from `m=64`.
+- **Optional open:** Improve the proved cutoff `m>=8192`, in particular to a
+  theorem uniform from `m=64`.
 - **Optional open:** The stronger separate convolution
   `L_k u<=13q^3/200`.  The correlated early theorem makes it unnecessary.
 - **Refuted:** The separate `q^3/16` estimate through `17/200`.
@@ -109,9 +114,8 @@ block.
 
 ## Central blocker
 
-There is no remaining blocker for the core asymptotic theorem.  The only
-unresolved quantitative refinement is an explicit common cutoff for the five
-frontier limits; it is not needed for a sufficiently-large-`m` result.
+There is no remaining blocker for the core theorem.  The explicit common
+cutoff is `m>=8192`; improving it to `m>=64` is optional.
 
 ## Dependencies and reusable outputs
 
@@ -136,14 +140,17 @@ frontier limits; it is not needed for a sufficiently-large-`m` result.
   early margin.
 - `verify_regime_reduction.py` checks the late rational constants.
 - `verify_asymptotic_closure.py` checks the implication-chain arithmetic and
-  the integer early/late handoff without claiming an explicit frontier
-  cutoff.
+  the integer early/late handoff; the explicit threshold is checked by the
+  separate cutoff verifier.
+- `verify_static_frontier_cutoff.py` reconstructs the exact five causal
+  transfer kernels, their coefficient masses and moments, all fourteen
+  homogeneous transient transfers, and the rational `m>=8192` ledger.
 - Final build, repository note/target/agent audits, focused Ruff/format,
   control-byte/conflict-marker scans, and diff checks are required before
   promotion.
 
 ## Resume here
 
-Promote the asymptotic synthesis.  Further work may seek an explicit frontier
-cutoff or a sharper named-recurrence constant, but neither is part of the
-proved theorem.
+Promote the synthesis with its explicit static/nonlinear cutoff.  Further
+work may improve `m>=8192` toward `m>=64` or sharpen the named-recurrence
+constant; neither is needed for the asymptotic terminal theorem.
