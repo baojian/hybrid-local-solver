@@ -4,8 +4,8 @@ Last reviewed: 2026-08-28
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-regime-nonlinear`
-Base commit: `71bf22f`
+Branch: `agent/codex/path-terminal-correction-margin`
+Base commit: `2b4439c`
 
 ## Exact question and contract
 
@@ -92,7 +92,12 @@ Base commit: `71bf22f`
   growing modal band. The first full-face average residual is strictly
   negative. Conditional on the static `21/80` target, the exact position
   lower bound dominates the global envelope for `qk>=17/200`; the earlier
-  nonlinear range is reduced exactly to scaled residual half-retention.
+  nonlinear range is reduced exactly to scaled residual half-retention. At
+  the final proper prefix the shared correction margin improves to
+  `15497/230400`, while its moving-frontier value exceeds `2/5`. Keeping the
+  exact two-row frontier defect then proves `c(j)<-q^3/8` on every full-face
+  row. This strengthens only the correlated half-retention interface; it does
+  not prove a separate `L_k u<=q^3/16` bound over the full early window.
 - **Conditional:** If projection plus envelope subtraction remain inactive
   through the stated horizon, then every
   sufficiently large member requires at least
@@ -120,7 +125,8 @@ Base commit: `71bf22f`
   this is evidence only. These are finite measurements and assert no limit.
 - **Open:** For the static inequality, prove the displayed local endpoint
   half-ratios (or otherwise prove `d>=h`). Then prove the exact early
-  half-retention convolution through `qk<17/200`. These two signed spatial
+  half-retention convolution through `qk<17/200`, retaining the correlation
+  between `-H_k c` and `-L_k u`. These two signed spatial
   estimates are the remaining interfaces to the projection/unclipped-envelope
   invariant.
 - **Refuted:** A range crossing is not always a certificate when
@@ -165,7 +171,8 @@ constants is permitted only with a corresponding proof.
   generating function with sharp shared-coordinate `1/80` margin, the
   finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
   six onward, the directed two-wave ideal packet, the exact entry-correction
-  sign, and the no-loss folded `J_k` alias bound, the two proved entry-profile
+  sign and sharpened uniform margin `c<-q^3/8` with its exact two-row
+  frontier defect, and the no-loss folded `J_k` alias bound, the two proved entry-profile
   estimates, the negative first full-face average residual, the exact late
   position/envelope comparison, the early half-retention kernel reduction,
   the weighted Popoviciu bridge from centered energy to residual range, and a
