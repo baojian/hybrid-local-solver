@@ -56,7 +56,9 @@
   individual summands. The proposed derivative constant `-q/16` is now an
   exact asymptotic STOP (already false at fixed endpoint distance seven), while
   the weaker sufficient replacement `-q/8` is reduced to three exact folded
-  prefix-lobe estimates; its scalar variation and Abel ledger are proved. The
+  prefix-lobe estimates; its scalar variation and Abel ledger are proved. An
+  exact rational prefix generating function proves all three estimates at
+  `D=6,7`, leaving only `D>=8`. The
   base proof exposes an exact five-point binomial stencil, alternating endpoint
   atom, and nonnegative-kernel initial perturbation.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
@@ -91,7 +93,7 @@
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
 - Next action: Prove the replacement `-q/8` derivative estimate's three
-  prefix-lobe bounds and five
+  prefix-lobe bounds for `D>=8` and five
   direct frontier rows, or otherwise prove the explicit local
   half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.

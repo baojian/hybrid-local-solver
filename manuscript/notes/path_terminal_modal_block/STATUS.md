@@ -113,7 +113,9 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   gives a fixed-distance limit below `-1/16` at distance seven. The weaker
   sufficient replacement `-q/8` remains open, but its scalar source derivative
   and exact Abel reduction are proved; only three displayed folded prefix-lobe
-  bounds remain at that interface. The base proof starts from its exact
+  bounds remain at that interface. An exact rational prefix generating
+  function proves all three bounds for the two endpoint distances `D=6,7`
+  and reduces the remaining range to `D>=8`. The base proof starts from its exact
   five-point binomial stencil, alternating endpoint atom, and explicit
   nonnegative-kernel initial perturbation.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
@@ -182,7 +184,7 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    has closed the mass kernel, disproved the original `-q/16` derivative
    constant, proves the weakened base kernel needed by the replacement
    ledger, and isolates a replacement `-q/8` derivative
-   bound (now reduced to three folded prefix-lobe estimates) and five direct
+   bound (now reduced to three folded prefix-lobe estimates on `D>=8`) and five direct
    frontier rows. A
    separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
@@ -222,7 +224,7 @@ constants is permitted only with a corresponding proof.
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
   replace the disproved `eq:terminal-modal-static-derivative-kernel-target` by the sufficient
-  `-q/8` bound, and prove the five direct frontier
+  `-q/8` bound on `D>=8`, and prove the five direct frontier
   rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality

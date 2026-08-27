@@ -72,6 +72,9 @@ original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. The scalar source derivative and exact Abel step for that
 replacement are proved, leaving three explicit folded prefix-lobe estimates.
+An exact rational generating function now proves all three of those estimates
+at the two endpoint distances `D=6,7`; its fixed binomial coefficient formula
+isolates the remaining range `D>=8`.
 The base proof keeps the five-point binomial stencil, alternating endpoint
 atom, and nonnegative-kernel initial perturbation separate. A
 deterministic NumPy screen reconstructs

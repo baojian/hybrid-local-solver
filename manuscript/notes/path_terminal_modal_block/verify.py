@@ -1253,6 +1253,157 @@ def exact_static_tail_reduction_checks() -> None:
         assert abs(prefix) <= Fraction(1, 2)
     assert Fraction(1421, 14400) < Fraction(1, 8)
 
+    # Exact direct-prefix generating function and the D=6,7 folded proof.
+    prefix_polynomial = (12, 16, -11, -20, -2, 4, 1)
+
+    def prefix_walk_polynomial(prefix_time: int) -> list[Fraction]:
+        if prefix_time < 0:
+            return []
+        output = [Fraction(0) for _ in range(2 * prefix_time + 1)]
+        for left_steps in range(prefix_time + 1):
+            for right_steps in range(prefix_time - left_steps + 1):
+                total_steps = left_steps + right_steps
+                for binomial_index in range(total_steps + 1):
+                    output[right_steps + binomial_index] += Fraction(
+                        math.comb(total_steps, binomial_index), 2**total_steps
+                    )
+        return output
+
+    def direct_prefix_gf_coefficient(distance: int, prefix_time: int) -> Fraction:
+        walk_stencil: list[Fraction] = []
+        for multiplier, shift, time in (
+            (2, 0, prefix_time - 1),
+            (-3, 1, prefix_time - 2),
+            (1, 2, prefix_time - 3),
+        ):
+            for index, coefficient in enumerate(prefix_walk_polynomial(time)):
+                while len(walk_stencil) <= index + shift:
+                    walk_stencil.append(Fraction(0))
+                walk_stencil[index + shift] += multiplier * coefficient
+        return (
+            sum(
+                (
+                    polynomial_coefficient * walk_stencil[distance - degree]
+                    for degree, polynomial_coefficient in enumerate(prefix_polynomial)
+                    if 0 <= distance - degree < len(walk_stencil)
+                ),
+                Fraction(0),
+            )
+            / 16
+        )
+
+    for distance in range(1, 14):
+        direct_prefix = Fraction(0)
+        for prefix_time in range(1, 20):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            assert direct_prefix == direct_prefix_gf_coefficient(distance, prefix_time)
+
+    direct_lobes = {}
+    for distance in (6, 7):
+        direct_prefix = Fraction(0)
+        positive_area = Fraction(0)
+        negative_area = Fraction(0)
+        for prefix_time in range(1, 200):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            positive_area += max(direct_prefix, 0)
+            negative_area += max(-direct_prefix, 0)
+        if distance == 6:
+            assert positive_area == Fraction(107, 256)
+            assert negative_area < Fraction(1819, 256)
+            direct_lobes[distance] = (Fraction(107, 256), Fraction(1819, 256))
+        else:
+            assert positive_area == Fraction(235, 512)
+            assert negative_area < Fraction(3643, 512)
+            direct_lobes[distance] = (Fraction(235, 512), Fraction(3643, 512))
+
+    def direct_tail_prefix(distance: int, prefix_time: int) -> Fraction:
+        if distance == 6:
+            return -Fraction(
+                prefix_time
+                * (prefix_time - 1)
+                * (prefix_time - 2)
+                * (2 * prefix_time**3 - 20 * prefix_time**2 + 51 * prefix_time - 47),
+                480 * 2**prefix_time,
+            )
+        return -Fraction(
+            prefix_time
+            * (prefix_time - 1)
+            * (prefix_time - 2)
+            * (prefix_time - 3)
+            * (6 * prefix_time**3 - 76 * prefix_time**2 + 255 * prefix_time - 293),
+            10080 * 2**prefix_time,
+        )
+
+    for distance, start_time in ((6, 6), (7, 7)):
+        direct_prefix = sum(
+            (folded_derivative_atom(10**4, distance, step) for step in range(1, start_time + 1)),
+            Fraction(0),
+        )
+        assert direct_prefix == direct_tail_prefix(distance, start_time)
+        for prefix_time in range(start_time + 1, 100):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            assert direct_prefix == direct_tail_prefix(distance, prefix_time)
+
+    def reflected_derivative_atom(edge_count: int, distance: int, step: int) -> Fraction:
+        coefficients = (-3, 2, 1)
+        return 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, 2 * edge_count - distance - step - shift)
+                - correction_atom(step, 2 * edge_count - distance - step - shift + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+
+    def reflected_derivative_atom_absolute_bound(
+        edge_count: int, distance: int, step: int
+    ) -> Fraction:
+        coefficients = (-3, 2, 1)
+        return 2 * sum(
+            abs(coefficient)
+            * (
+                abs(correction_atom(step, 2 * edge_count - distance - step - shift))
+                + abs(correction_atom(step, 2 * edge_count - distance - step - shift + 2)) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+
+    for distance, area_bound, endpoint_bound in (
+        (6, Fraction(7589, 2**63), Fraction(2414417, 2**64)),
+        (7, Fraction(76399, 2**62), Fraction(28747761, 2**64)),
+    ):
+        nonzero_steps = [
+            step
+            for step in range(1, edge_count - 1)
+            if reflected_derivative_atom(edge_count, distance, step)
+        ]
+        assert nonzero_steps == [edge_count - 4, edge_count - 3, edge_count - 2]
+        assert all(
+            reflected_derivative_atom(edge_count, distance, step) < 0 for step in nonzero_steps
+        )
+        assert (
+            sum(
+                (edge_count - 2 - step)
+                * reflected_derivative_atom_absolute_bound(edge_count, distance, step)
+                for step in range(1, edge_count - 1)
+            )
+            == area_bound
+        )
+        assert (
+            sum(
+                (
+                    reflected_derivative_atom_absolute_bound(edge_count, distance, step)
+                    for step in range(1, edge_count - 1)
+                ),
+                Fraction(0),
+            )
+            == endpoint_bound
+        )
+        positive_area, negative_area = direct_lobes[distance]
+        assert positive_area + area_bound < Fraction(1, 2)
+        assert negative_area + area_bound < Fraction(57, 8)
+        assert abs(direct_tail_prefix(distance, edge_count - 2)) + endpoint_bound < Fraction(1, 2)
+
     # Exact coefficient audit for the source-free base interface.
     def constant_input_base(edge_count: int, q_value: Fraction) -> list[Fraction]:
         def reflected_b0(values: list[Fraction]) -> list[Fraction]:
