@@ -106,7 +106,10 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   window `2/5<nu_n<43/75` is proved. The mass folded-kernel estimate is also
   proved by an exact binomial smoothing maximum principle, finite dyadic
   lobe certificate, and entropy tail. The base/derivative estimates and five
-  direct frontier rows remain OPEN.
+  direct frontier rows remain OPEN. The original derivative target with
+  constant `1/16` is rigorously false: an exact zero/first-moment calculation
+  gives a fixed-distance limit below `-1/16` at distance six. The weaker
+  sufficient replacement `-q/8` remains open.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -170,8 +173,9 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    proved, so the static bound now needs only the explicit local half-ratios
    for `d-h`, or the exact sufficient interior temporal-preimage comparison
    plus the four direct boundary checks. The sharper source-ledger route
-   has closed the mass kernel and isolates two remaining folded-kernel
-   estimates and five direct frontier rows. A
+   has closed the mass kernel, disproved the original `-q/16` derivative
+   constant, and isolates the base kernel, a replacement `-q/8` derivative
+   bound, and five direct frontier rows. A
    separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
 
@@ -209,9 +213,9 @@ constants is permitted only with a corresponding proof.
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
-  prove the two targets
-  `eq:terminal-modal-static-base-kernel-target` and
-  `eq:terminal-modal-static-derivative-kernel-target` and the five direct frontier
+  prove `eq:terminal-modal-static-base-kernel-target`, replace the disproved
+  `eq:terminal-modal-static-derivative-kernel-target` by the sufficient
+  `-q/8` bound, and prove the five direct frontier
   rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality

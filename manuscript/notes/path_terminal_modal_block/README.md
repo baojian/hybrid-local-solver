@@ -64,7 +64,10 @@ simplification makes the half-ratios the two-step spatial cone
 `mu_n=-q nu_n`; the scalar window `2/5<nu_n<43/75` is proved. The mass
 folded-kernel estimate is also proved by an exact binomial maximum principle,
 finite dyadic certificate, and entropy tail. The base and derivative
-folded-kernel estimates and five direct frontier rows remain open. A
+folded-kernel estimates and five direct frontier rows remain open. The
+original proposed derivative constant `-q/16` is now rigorously ruled out by
+an exact fixed-distance asymptotic; the weaker sufficient target `-q/8`
+replaces it. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
