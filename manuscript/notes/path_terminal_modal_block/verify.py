@@ -1170,9 +1170,11 @@ def exact_static_tail_reduction_checks() -> None:
         p = [Fraction(0)]
         velocity = [Fraction(0)]
         frontier_values: list[Fraction] = []
+        entry_residuals: list[list[Fraction]] = []
         for length in range(1, edge_count + 1):
             optimum = _fraction_optimum(length, degrees, q)
             frontier_values.append(optimum[-1])
+            entry_residuals.append(_fraction_residual(p, degrees[:length], q))
             p_next, velocity_next = _fraction_step(p, velocity, degrees[:length], q)
             new_optimum = _fraction_optimum(length + 1, degrees, q)
             p = p_next + [Fraction(0)]
@@ -1185,6 +1187,7 @@ def exact_static_tail_reduction_checks() -> None:
                     strict=True,
                 )
             ]
+        entry_residuals.append(_fraction_residual(p, degrees, q))
 
         entry_b = [q * value for value in _fraction_residual(velocity, degrees, q)]
         gamma = [Fraction(0) for _ in range(edge_count + 1)]
@@ -1216,6 +1219,72 @@ def exact_static_tail_reduction_checks() -> None:
         )
         assert signed_mass == signed_formula
 
+        corrections: dict[int, list[Fraction]] = {}
+        for length in (edge_count - 2, edge_count - 1, edge_count):
+            ideal = _fraction_ideal_prefix_packet(length, q)
+            corrections[length] = [
+                -actual - ideal_value
+                for actual, ideal_value in zip(
+                    entry_residuals[length - 1],
+                    ideal,
+                    strict=True,
+                )
+            ]
+        full_ideal = [
+            q**2 * delta**edge_count * Fraction(math.comb(edge_count, index), 2 ** (edge_count + 1))
+            for index in range(edge_count + 1)
+        ]
+        full_correction = [
+            -actual - ideal_value
+            for actual, ideal_value in zip(entry_residuals[-1], full_ideal, strict=True)
+        ]
+        correction_k = [
+            corrections[edge_count][index] - delta * corrections[edge_count - 1][index] / 2
+            for index in range(edge_count - 1)
+        ]
+        previous_k = [
+            corrections[edge_count - 1][index] - delta * corrections[edge_count - 2][index] / 2
+            for index in range(edge_count - 2)
+        ]
+        temporal_cone = [
+            delta * (previous_k[index] if index < len(previous_k) else 0) - correction_k[index]
+            for index in range(edge_count - 1)
+        ]
+        l_temporal = [
+            (temporal_cone[0] + temporal_cone[1]) / 2,
+            *[
+                (temporal_cone[index - 1] + 2 * temporal_cone[index] + temporal_cone[index + 1]) / 4
+                for index in range(1, edge_count - 2)
+            ],
+        ]
+        assert static_data[0] == 2 * delta * l_temporal[0]
+        assert static_data[1 : edge_count - 3] == [
+            2 * delta * value for value in l_temporal[1 : edge_count - 3]
+        ]
+        assert static_data[1:edge_count] == [
+            delta * corrections[edge_count][index] - full_correction[index]
+            for index in range(1, edge_count)
+        ]
+
+        beta = static_data[-1] / q**3
+        tail = [
+            q**3 * (beta if distance == 0 else -beta * Fraction(-1, 2) ** (distance - 1) / 4)
+            for distance in range(edge_count, -1, -1)
+        ]
+        tail_preimage = [-4 * value / delta for value in tail]
+        l_tail_preimage = [
+            (tail_preimage[0] + tail_preimage[1]) / 2,
+            *[
+                (tail_preimage[index - 1] + 2 * tail_preimage[index] + tail_preimage[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (tail_preimage[-2] + tail_preimage[-1]) / 2,
+        ]
+        assert 2 * delta * l_tail_preimage[0] == 4 * tail[0]
+        assert tail[1 : edge_count - 3] == [
+            2 * delta * value for value in l_tail_preimage[1 : edge_count - 3]
+        ]
+
     # Check the endpoint half-stencil and the finite alternating-tail correction
     # independently of the still-open comparison d >= h.
     for edge_count in (8, 9):
@@ -1242,7 +1311,8 @@ def exact_static_tail_reduction_checks() -> None:
 
     print(
         "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
-        "geometric_tail_ledger:pass local_half_ratios=open"
+        "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
+        "local_half_ratios=open"
     )
 
 
