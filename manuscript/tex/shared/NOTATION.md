@@ -24,6 +24,7 @@ the active paper or notes.
 | Symbol | Reserved meaning |
 | --- | --- |
 | \(G=(V,E)\), \(A,D,I,\mathcal L,Q\) | Source-aligned graph and PageRank matrices. |
+| \(P=AD^{-1}\), \(P_{\rm L}=(I+P)/2\) | Non-lazy column walk and its lazy version in the active manuscript. |
 | \(s\in\mathbb R_+^n\) | Unit-mass seed distribution; a single seed is \(s=e_v\). |
 | \(b=\alpha D^{-1/2}s\) | PageRank right-hand side. |
 | \(f\), \(g_\rho\), \(F_\rho=f+g_\rho\) | Smooth quadratic, weighted l1 regularizer, and RPPR objective. |
@@ -33,12 +34,14 @@ the active paper or notes.
 | \(\eta\) | FISTA/ISTA proximal-gradient step size. |
 | \(q=1-\sqrt{\mu/L}=1-\sqrt{\alpha}\) | FISTA contraction factor in source-aligned comparisons. |
 | \(R\) | Source FISTA iterate-distance bound; AESP run-dependent ratios explicitly map to this same role. |
-| \(\varepsilon_{\rm appr},\varepsilon_{\rm obj},\varepsilon_{\rm pg},\varepsilon_{\rm ppr}\) | Distinct accuracy namespaces; no implicit conversions. |
+| \(\varepsilon_{\rm appr},\varepsilon_{\rm obj},\varepsilon_{\rm pg},\varepsilon_{\rm ppr}\) | Distinct accuracy namespaces; \(\varepsilon_{\rm ppr}\) is the active manuscript's degree-normalized semantic output target, with no implicit conversion to the other three. |
 
 ## Registered scoped notation
 
 | Symbol | Scope and meaning |
 | --- | --- |
+| \(Q_{\rm rs},b_{\rm rs}\) | Rescaled lazy system used only in the prior-work convention dictionary: \((Q_{\rm rs},b_{\rm rs})=2(Q,b)/(1+\alpha)\). |
+| \(\alpha_{\rm nl},M_{\rm nl},L_{\alpha_{\rm nl}},y\) | Non-lazy convention dictionary: \(\alpha_{\rm nl}=2\alpha/(1+\alpha)\), \(M_{\rm nl}=I-(1-\alpha_{\rm nl})P\), \(L_{\alpha_{\rm nl}}=D-(1-\alpha_{\rm nl})A\), and \(y=D^{-1}\pi\). |
 | \(\kappa_{\rm A}=1-2\alpha\) | AESP/Catalyst quadratic shift; never written as \(\eta\). |
 | \(\beta_{\rm A}\) | AESP outer momentum; distinct from source FISTA \(\beta\). |
 | \(\vartheta_{\rm A}=\alpha/(\alpha+\kappa_{\rm A})\) | Effective strong-convexity ratio for the AESP proximal subproblem. |
