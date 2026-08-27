@@ -53,7 +53,8 @@
   direct frontier rows remain OPEN; the note does not infer signs of
   individual summands. The proposed derivative constant `-q/16` is now an
   exact asymptotic STOP (already false at fixed endpoint distance seven), while
-  the weaker sufficient replacement `-q/8` remains open.
+  the weaker sufficient replacement `-q/8` is reduced to three exact folded
+  prefix-lobe estimates; its scalar variation and Abel ledger are proved.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
   entry profiles, and full projection/envelope regime remain open. The
   logarithmic terminal block remains conditional, and no lower bound is
@@ -86,7 +87,7 @@
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
 - Next action: Prove the folded base kernel, the replacement `-q/8`
-  derivative estimate, and five
+  derivative estimate's three prefix-lobe bounds, and five
   direct frontier rows, or otherwise prove the explicit local
   half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.
