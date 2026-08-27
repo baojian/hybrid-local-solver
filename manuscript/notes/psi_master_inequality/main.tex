@@ -11,20 +11,225 @@
 \maketitle
 
 \begin{abstract}
-This note independently reconstructs and studies the exact one-step Lyapunov
-master form for a clipped accelerated proximal recurrence.  It separates
-proved identities, finite exact decisions, structural sufficient conditions,
-and open graph-family claims.  At registration time no general nonpositivity
-theorem is asserted.
+This note independently reconstructs the exact one-step Lyapunov master form
+for a clipped accelerated proximal recurrence.  The identity is a statement
+about an exact shifted solve on one positive face; it is not a convergence or
+local-work theorem.  The reconstruction exposes two sign-visible channels,
+leaving only mixed clipping as the analytic obstruction.  Fable's finite
+exact decisions are retained as source evidence rather than promoted here.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
 
-\section{Question and claim boundary}
+\section{Scope, coordinates, and evidence labels}
 
-The target is a proof that the master form is nonpositive on a nontrivial
-infinite graph family, or a precise structural condition or counterexample.
-Finite enumeration and floating sampling remain measured evidence unless
-converted into exact arguments.
+The shared RPPR objective uses the normalized variable in the imported
+definition above.  This note temporarily uses degree-scaled coordinates
+$u=D^{-1/2}x$, because clipping by a common degree-normalized threshold then
+acts as $(u-c\one)_+$.  In these coordinates the quadratic matrix is
+\begin{equation}
+ \widetilde Q
+ :=D^{1/2}QD^{1/2}
+ =\frac{1+\alpha}{2}D-\frac{1-\alpha}{2}A.
+ \label{eq:psi-scaled-q}
+\end{equation}
+This is a note-scoped change of coordinates, not a change to the shared RPPR
+convention.
+
+\paragraph{Source.}
+Fable's iteration-7 files propose the master form and report exact finite
+decisions.  They are exploratory evidence, not proof authority for this note.
+\paragraph{Proved here.}
+The recurrence, admissible functional domain, master identity, and the two
+unmixed-sign inequalities below are derived independently.
+\paragraph{Open.}
+Nonpositivity for mixed clipping on general graphs, proper-face transport,
+finite shifted solves, and every end-to-end work conclusion remain open at
+this point in the note.
+
+\section{Exact recurrence and admissible functional domain}
+
+Fix $0<q\leq1/2$ and put
+\begin{equation}
+ \alpha=\frac{q^2}{1+q^2},\qquad
+ \kappa=1-2\alpha,\qquad
+ \beta=\frac{1-q}{1+q},\qquad
+ \nu=\frac{q}{1+q}=\frac{1-\beta}{2}.
+ \label{eq:psi-parameters}
+\end{equation}
+Let $\langle u,v\rangle_D=u^TDv$, let
+$\mathsf v_G=\one^TD\one$, and let
+\begin{equation}
+ P=I-\frac{\one\one^TD}{\mathsf v_G}
+ \label{eq:psi-projection}
+\end{equation}
+be the $D$-orthogonal projection onto $\one^{\perp_D}$.  Define the exact
+shifted-resolvent operator
+\begin{equation}
+ M:=\kappa(\widetilde Q+\kappa D)^{-1}D,
+ \qquad
+ m_0:=\frac{\kappa}{\kappa+\alpha}=1-q^2.
+ \label{eq:psi-resolvent}
+\end{equation}
+The matrix $M$ is $D$-self-adjoint, positive definite, entrywise
+nonnegative, commutes with $P$, and satisfies $M\one=m_0\one$.  The last
+display and \cref{eq:psi-parameters} give the two scalar identities
+\begin{equation}
+ \beta m_0=(1-q)^2,
+ \qquad
+ m_0(1+\beta)^2=4\beta.
+ \label{eq:psi-scalar-identities}
+\end{equation}
+
+Consider one exact positive-face shifted step.  With
+$e_t=x^\star-x_t$, $d_t=x_t-x_{t-1}=e_{t-1}-e_t\geq0$, and an arbitrary
+cap $\Delta_t\geq0$, put
+\begin{equation}
+ y_t=\beta d_t-\Delta_t\one,
+ \qquad
+ \phi_t=(y_t)_+,
+ \qquad
+ \ell_t=x_t+\phi_t.
+ \label{eq:psi-clip}
+\end{equation}
+Exact minimization of the shifted quadratic centered at $\ell_t$ is
+equivalent to
+\begin{equation}
+ e_{t+1}=M(e_t-\phi_t).
+ \label{eq:psi-error-recurrence}
+\end{equation}
+This reconstruction assumes that the obstacle solve stays on the stated
+positive face.  It does not silently extend to a proper face.
+
+Write
+\begin{equation}
+ h_{t-1}=Pe_{t-1},\quad h_t=Pe_t,\quad
+ z_t=Py_t=\beta(h_{t-1}-h_t),\quad
+ w_t=P(y_t)_-,\quad b_t=z_t-\nu h_t.
+ \label{eq:psi-high-variables}
+\end{equation}
+Since $(y_t)_+=y_t+(y_t)_-$, one has
+$P\phi_t=z_t+w_t$ and therefore
+\begin{equation}
+ h_{t+1}=M(h_t-z_t-w_t).
+ \label{eq:psi-high-recurrence}
+\end{equation}
+
+The trajectory-free functional below is defined for every
+$y\in\mathbb R^V$ and $h\in\one^{\perp_D}$.  This really is the full
+algebraic cap domain: given any $y$, choosing
+$\Delta\geq\max_i(-y_i)$ and $d=(y+\Delta\one)/\beta$ gives
+$d\geq0$ and $y=\beta d-\Delta\one$.  The functional domain is nevertheless
+stronger than reachability by a single fixed RPPR trajectory, because it
+forgets the preceding history and the positive-face inequalities.
+
+\section{Independent master-identity reconstruction}
+
+For $u,v\in\one^{\perp_D}$ define
+\begin{equation}
+ \mathcal V(u,v)
+ :=\norm{u}_D^2-(1+\beta)\langle u,Mv\rangle_D
+     +\beta\langle v,Mv\rangle_D.
+ \label{eq:psi-lyapunov}
+\end{equation}
+Also put
+\begin{equation}
+ G:=m_0I-2M+M^2.
+ \label{eq:psi-g-operator}
+\end{equation}
+
+\begin{lemma}[Exact clipped master identity]
+\label{lem:psi-master-identity}
+For every step satisfying \cref{eq:psi-error-recurrence},
+\begin{equation}
+ \mathcal V(h_{t+1},h_t)-(1-q)^2\mathcal V(h_t,h_{t-1})
+ =\Psi(y_t,h_t),
+ \label{eq:psi-master-identity}
+\end{equation}
+where, for arbitrary $y$ and $h\in\one^{\perp_D}$,
+\begin{align}
+ z&:=Py,& w&:=P(y_-),& b&:=z-\nu h,\notag\\
+ \Psi(y,h)
+ &:=\norm{M(b+w)}_D^2-m_0\langle b,Mb\rangle_D
+       -\nu^2\norm{Mh}_D^2-\beta\langle h,Gh\rangle_D.
+ \label{eq:psi-master-form}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Put $\bar\phi=P\phi=z+w$ and $c=b/\beta$.  From
+$z=\beta(h_{t-1}-h_t)$ one has
+$h_{t-1}=h_t+z/\beta$ and $z=\beta c+\nu h_t$.
+Substitute these two relations and
+$h_{t+1}=M(h_t-\bar\phi)$ into \cref{eq:psi-lyapunov}.  Using
+$D$-self-adjointness of $M$ and the two scalar identities in
+\cref{eq:psi-scalar-identities}, direct collection gives
+\begin{align}
+ &\mathcal V(h_{t+1},h_t)-(1-q)^2\mathcal V(h_t,h_{t-1})\notag\\
+ &\quad=\norm{M\bar\phi}_D^2
+ -(1-\beta)\langle Mh_t,M\bar\phi\rangle_D
+ -\beta^2m_0\langle c,Mc\rangle_D
+ -\beta\langle h_t,Gh_t\rangle_D.
+ \label{eq:psi-collected-form}
+\end{align}
+Finally, $b=\beta c=z-\nu h_t$ and
+$M(b+w)=M(\bar\phi-\nu h_t)$.  Expanding its squared norm and using
+$1-\beta=2\nu$ turns \cref{eq:psi-collected-form} exactly into
+\cref{eq:psi-master-form}.
+\end{proof}
+
+The calculation uses neither the trigger that selected $\Delta_t$ nor a
+stage-type case split.  Conversely, it uses exact shifted minimization and a
+fixed positive face; it is not an identity for a finite inner solve without
+additional residual terms.
+
+\section{A sign-visible decomposition}
+
+Expanding only the first square in \cref{eq:psi-master-form} gives
+\begin{align}
+ \Psi(y,h)
+ &=\norm{Mw}_D^2+2\langle M^2w,b\rangle_D
+   -\langle b,M(m_0I-M)b\rangle_D\notag\\
+ &\qquad-\nu^2\norm{Mh}_D^2-\beta\langle h,Gh\rangle_D.
+ \label{eq:psi-slack-decomposition}
+\end{align}
+This representation keeps the complementarity $y_+y_-=0$ visible; replacing
+$y_+$ and $y_-$ by independent vectors would discard the main structure.
+
+Let $\mu_2$ be the first nonzero normalized-Laplacian eigenvalue.  On a mode
+with normalized-Laplacian eigenvalue $\mu$, the generalized eigenvalue of
+$\widetilde Q$ is
+$\lambda(\mu)=\alpha+(1-\alpha)\mu/2$, and the eigenvalue of $M$ is
+$m(\mu)=\kappa/(\kappa+\lambda(\mu))$.  If
+\begin{equation}
+ \mu_2\geq2q,
+ \label{eq:psi-hgap}
+\end{equation}
+then $0<m(\mu)\leq1-q<m_0$ on $\one^{\perp_D}$.  Since
+$m_0-2m+m^2\geq0$ for $0<m\leq1-q$, both
+$M(m_0I-M)$ and $G$ are positive semidefinite on the high space.
+
+Two entire channels now have a visible sign:
+\begin{itemize}
+ \item If $y\geq0$, then $w=0$, and every term in
+ \cref{eq:psi-slack-decomposition} is nonpositive.
+ \item If $y\leq0$, then $w=-z$ and $b+w=-\nu h$, so
+ \begin{equation}
+  \Psi(y,h)=-m_0\langle b,Mb\rangle_D
+            -\beta\langle h,Gh\rangle_D\leq0.
+ \end{equation}
+\end{itemize}
+Thus only a genuinely mixed sign pattern can violate the master inequality.
+This conclusion is analytic and family-independent under
+\cref{eq:psi-hgap}; it does not rely on finite enumeration.
+
+\section{Current boundary}
+
+The next falsifiable target is to control the mixed term by a graph-structural
+positive-association inequality, and then verify that condition analytically
+on an infinite graph family.  A successful one-step inequality implies
+Lyapunov absorption only for the exact positive-face recurrence above.  It
+does not by itself charge graph discovery, clipping, shifted inverse work,
+proper-face changes, finite precision, or final PPR output.
 
 \end{document}
