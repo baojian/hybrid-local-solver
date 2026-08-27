@@ -45,7 +45,7 @@ def check_leading_coefficient_ledger() -> None:
     ]
     for step in range(cutoff + 1):
         numerator = (
-            -(-1) ** step
+            -((-1) ** step)
             - 129
             - 66 * (step + 1)
             + 124 * math.comb(step + 2, 2)
@@ -67,17 +67,15 @@ def check_leading_coefficient_ledger() -> None:
     current = [Fraction(2, 5), Fraction(0)]
     final_minima: dict[int, Fraction] = {}
     for length in range(2, 257):
-        differences = [
-            current[index] - previous[index] / 2 for index in range(length - 1)
-        ]
+        differences = [current[index] - previous[index] / 2 for index in range(length - 1)]
         if length >= 64:
             final_minima[length] = min(differences)
             assert final_minima[length] >= Fraction(31, 320)
         if length == 256:
             break
-        z_value = [
-            2 * current[index] - previous[index] for index in range(length - 1)
-        ] + [2 * current[-1] - Fraction(3, 10)]
+        z_value = [2 * current[index] - previous[index] for index in range(length - 1)] + [
+            2 * current[-1] - Fraction(3, 10)
+        ]
         following = [
             (z_value[0] + z_value[1]) / 2,
             *[
@@ -94,8 +92,7 @@ def check_leading_coefficient_ledger() -> None:
         previous, current = current, following
 
     print(
-        "leading_coefficient_ledger=PASS "
-        f"min_m64={final_minima[64]} min_m256={final_minima[256]}"
+        f"leading_coefficient_ledger=PASS min_m64={final_minima[64]} min_m256={final_minima[256]}"
     )
 
 
@@ -167,9 +164,7 @@ def check_two_row_defect_identity() -> None:
         for length in range(1, edge_count + 1):
             optimum = _fraction_optimum(length, degrees, q)
             optima[length] = optimum
-            negative_residual = [
-                -value for value in _fraction_residual(p, degrees[:length], q)
-            ]
+            negative_residual = [-value for value in _fraction_residual(p, degrees[:length], q)]
             ideal = _fraction_ideal_prefix_packet(length, q)
             corrections[length] = [
                 left - right for left, right in zip(negative_residual, ideal, strict=True)
@@ -192,20 +187,17 @@ def check_two_row_defect_identity() -> None:
         assert last_sigma is not None
         full_residual = _fraction_residual(p, degrees, q)
         g = [
-            -q**2
+            -(q**2)
             * delta**edge_count
             * Fraction(math.comb(edge_count, index), 2 ** (edge_count + 1))
             for index in range(edge_count + 1)
         ]
-        entry_correction = [
-            left - right for left, right in zip(full_residual, g, strict=True)
-        ]
+        entry_correction = [left - right for left, right in zip(full_residual, g, strict=True)]
 
         current = corrections[edge_count]
         previous = corrections[edge_count - 1]
         correction_difference = [
-            current[index] - delta * previous[index] / 2
-            for index in range(edge_count - 1)
+            current[index] - delta * previous[index] / 2 for index in range(edge_count - 1)
         ] + [current[-1]]
         lazy_k = lazy_prefix(correction_difference, degrees[:edge_count])
         endpoint_basis = [Fraction(0)] * (edge_count - 1) + [Fraction(1)]
@@ -225,26 +217,59 @@ def check_two_row_defect_identity() -> None:
     print("two_row_defect_identity=PASS m=8,12 old_rows=exact endpoint=exact")
 
 
+def check_sharpened_variation() -> None:
+    """Check the sixteen-cell TV certificate and its parameter remainder."""
+
+    def variation_function(value: Fraction) -> Fraction:
+        return (value**4 - 30 * value**3 + 12 * value**2 + 10 * value + 3) / (
+            10 * (1 + value**2) ** 2
+        )
+
+    left_endpoint = Fraction(7, 8)
+    cell_width = Fraction(1, 128)
+    cell_sum = Fraction(0)
+    for index in range(16):
+        left = left_endpoint + index * cell_width
+        right = left + cell_width
+        cell_sum += (
+            cell_width / left * max(abs(variation_function(left)), abs(variation_function(right)))
+        )
+    assert cell_sum < Fraction(77, 12500)
+
+    q_max = Fraction(1, 1024)
+    parameter_error = 2 * q_max / (5 * (1 - q_max)) + 2 * q_max**2 / (5 * (1 - q_max**2))
+    assert parameter_error == Fraction(684, 1747625) < Fraction(1, 2500)
+    variation_bound = Fraction(8, 15) * (Fraction(77, 12500) + Fraction(1, 17500))
+    assert variation_bound == Fraction(1088, 328125) < Fraction(1, 300)
+    derivative_loss = Fraction(1, 360) + Fraction(1, 300)
+    assert derivative_loss == Fraction(11, 1800)
+    print(
+        "sharpened_final_variation=PASS "
+        f"cell_sum={cell_sum} variation_bound={variation_bound} "
+        f"derivative_loss={derivative_loss}"
+    )
+
+
 def check_rational_constants() -> None:
-    shared = Fraction(31, 320) - Fraction(1, 90) - Fraction(3, 5120) - Fraction(43, 2400)
-    assert shared == Fraction(15497, 230400) > Fraction(1, 15)
+    shared = Fraction(31, 320) - Fraction(11, 1800) - Fraction(3, 5120) - Fraction(43, 2400)
+    assert shared == Fraction(16649, 230400) > Fraction(7, 100)
     frontier_source_slack = Fraction(9, 40) - Fraction(479, 600 * 1024) - Fraction(7, 32)
     assert frontier_source_slack == Fraction(3361, 614400) > 0
     frontier_recurrence_slack = Fraction(105, 256) - Fraction(1, 65536) - Fraction(2, 5)
     assert frontier_recurrence_slack == Fraction(3323, 327680) > 0
 
     interior = 2 * Fraction(15, 16) * shared
-    penultimate = 2 * Fraction(15, 16) * (
-        Fraction(3, 4) * shared + Fraction(1, 10)
-    ) - Fraction(101, 1280)
-    frontier = 2 * Fraction(15, 16) * (
-        Fraction(1, 5) + Fraction(1, 4) * shared
-    ) - Fraction(101, 640)
+    penultimate = 2 * Fraction(15, 16) * (Fraction(3, 4) * shared + Fraction(1, 10)) - Fraction(
+        101, 1280
+    )
+    frontier = 2 * Fraction(15, 16) * (Fraction(1, 5) + Fraction(1, 4) * shared) - Fraction(
+        101, 640
+    )
     endpoint = Fraction(6985811, 9835520) - Fraction(1, 8)
-    assert interior == Fraction(15497, 122880) > Fraction(1, 8)
-    assert penultimate == Fraction(33289, 163840) > Fraction(1, 8)
-    assert frontier == Fraction(122249, 491520) > Fraction(1, 8)
-    assert endpoint == Fraction(5756371, 9835520) > Fraction(1, 8)
+    assert interior == Fraction(16649, 122880) > Fraction(13, 100)
+    assert penultimate == Fraction(34441, 163840) > Fraction(13, 100)
+    assert frontier == Fraction(123401, 491520) > Fraction(13, 100)
+    assert endpoint == Fraction(5756371, 9835520) > Fraction(13, 100)
     print(
         "rational_constants=PASS "
         f"shared={shared} interior={interior} penultimate={penultimate} "
@@ -256,8 +281,9 @@ def main() -> None:
     check_leading_coefficient_ledger()
     check_folded_mass_support()
     check_two_row_defect_identity()
+    check_sharpened_variation()
     check_rational_constants()
-    print("scope=c_entry_margin_only combined_early_half_retention=OPEN separate_Lu_bound=NOT_CLAIMED")
+    print("scope=c_entry_margin_only combined_early_half_retention=OPEN T_d_bound_13/200=OPEN")
 
 
 if __name__ == "__main__":

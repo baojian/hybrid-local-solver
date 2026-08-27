@@ -280,7 +280,7 @@ def finite_screen(edge_count: int) -> float:
             maximum_row = row
         following = 2.0 * lazy(current) - lazy(previous)
         previous, current = current, following
-    assert maximum < 1.0 / 16.0
+    assert maximum < 13.0 / 200.0
     print(
         f"finite_early_screen=m={edge_count} max/q3={maximum:.9f} "
         f"k={maximum_step} row={maximum_row} qk={q * maximum_step:.9f} "
@@ -296,7 +296,7 @@ def main() -> None:
     for edge_count in sizes:
         assert edge_count >= 8
         finite_screen(edge_count)
-    print("terminal_early_kernel=PASS theorem=exact_reduction short_window_1/16=OPEN")
+    print("terminal_early_kernel=PASS theorem=exact_reduction short_window_13/200=OPEN")
 
 
 if __name__ == "__main__":

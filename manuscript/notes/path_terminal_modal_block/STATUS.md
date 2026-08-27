@@ -94,11 +94,11 @@ Base commit: `9f52462`
   lower bound dominates the global envelope for `qk>=3/50`; the earlier
   nonlinear range is reduced exactly to scaled residual half-retention. At
   the final proper prefix the shared correction margin improves to
-  `15497/230400`, while its moving-frontier value exceeds `2/5`. Keeping the
-  exact two-row frontier defect then proves `c(j)<-q^3/8` on every full-face
+  `16649/230400`, while its moving-frontier value exceeds `2/5`. Keeping the
+  exact two-row frontier defect then proves `c(j)<-13q^3/100` on every full-face
   row. This strengthens only the correlated half-retention interface; it does
-  reduce to the still-open separate `L_k u<=q^3/16` bound only through
-  `qk<3/50`. The analogous bound through `17/200` is false. The shorter
+  reduce to the still-open separate `L_k u<=13q^3/200` bound only through
+  `qk<3/50`. The former `q^3/16` bound through `17/200` is false. The shorter
   operator `(J_k-J_(k-1)/2)L` is now explicit: its line coefficient is
   `(1/2)Pr(Bin(k,1/2)>=|r|)`, and its exact path action is the corresponding
   `2m`-cycle fold. The standard moving derivative source retains an exact
@@ -131,11 +131,11 @@ Base commit: `9f52462`
   the `m=64` floating screen (with equality at the defining endpoint), but
   this is evidence only. The finite short-window maxima of
   `(J_k-J_(k-1)/2)u/q^3` are `0.059654,0.060267,0.060726,0.061044,0.061268`
-  at `m=64,128,256,512,1024`; they are below `1/16` but are not a uniform
+  at `m=64,128,256,512,1024`; they are below `13/200` but are not a uniform
   proof. These are finite measurements and assert no limit.
 - **Open:** For the static inequality, prove the displayed local endpoint
   half-ratios (or otherwise prove `d>=h`). Then prove the exact early
-  short convolution `L_k u<=q^3/16` through `qk<3/50`. These two signed spatial
+  short convolution `L_k u<=13q^3/200` through `qk<3/50`. These two signed spatial
   estimates are the remaining interfaces to the projection/unclipped-envelope
   invariant.
 - **Refuted:** A range crossing is not always a certificate when
@@ -180,7 +180,7 @@ constants is permitted only with a corresponding proof.
   generating function with sharp shared-coordinate `1/80` margin, the
   finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
   six onward, the directed two-wave ideal packet, the exact entry-correction
-  sign and sharpened uniform margin `c<-q^3/8` with its exact two-row
+  sign and sharpened uniform margin `c<-13q^3/100` with its exact two-row
   frontier defect, the no-loss folded `J_k` alias bound, the exact
   half-velocity binomial-tail kernel and standard-source cancellation, the
   reflected `3/8` obstruction, the two proved entry-profile estimates, the
@@ -199,7 +199,7 @@ constants is permitted only with a corresponding proof.
   implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
-  kernel to prove `L_k u<=q^3/16` through `qk<3/50`. The
+  kernel to prove `L_k u<=13q^3/200` through `qk<3/50`. The
   proved late comparison then closes the rest of the horizon.
 - **Stop/go test:** Promote the logarithmic block only after the missing
   regime lemma is proved uniformly in `m`; a larger floating screen is evidence but
@@ -240,7 +240,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 48-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 49-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
@@ -255,5 +255,5 @@ constants is permitted only with a corresponding proof.
 - **Early-kernel preflight:** `verify_early_kernel.py 64 128` checks the exact
   Laurent/tail formula, moving-source identities, folded-cycle replay at
   `m=8,12`, and the `3/8` reflection obstruction. Its larger short-window
-  checks are labeled finite measurements; the uniform `1/16` inequality
+  checks are labeled finite measurements; the uniform `13/200` inequality
   remains open.

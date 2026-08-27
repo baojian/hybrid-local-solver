@@ -42,6 +42,12 @@
   standard moving-source response. A global quarter-mass bound is impossible:
   at `k=2`, reflection gives degree-normalized coefficient `3/8` for path
   target zero and source one.
+- Sharpened the final derivative-source variation to `TV(epsilon)<1/300` by
+  an exact sixteen-cell rational certificate. This raises the shared final
+  correction margin to `16649/230400` and proves the literal entry bound
+  `c(j)<-13q^3/100` on every full-face row. Consequently the separate
+  sufficient early convolution target is now `T_k d<=13q^3/200` for
+  `qk<3/50`; that finite inequality remains open.
 - The logarithmic terminal block remains conditional. No claim is made for
   other algorithms, recurrences, or implicit response primitives.
 
@@ -63,6 +69,9 @@ It is not used anywhere in the package.
 - `verify_early_kernel.py` checks the exact Laurent/tail formula, moving-source
   identities, folded-cycle replay, and the `3/8` reflection obstruction. Its
   larger short-window checks are labeled finite measurements.
+- `verify_correction_margin.py` checks the sixteen-cell variation certificate,
+  the improved final-prefix ledger, the exact two-row entry defect, and every
+  rational constant in the `c<-13q^3/100` theorem.
 - The consolidated `verify.py` retains the exact chronology, changing-face,
   directional packet, position-profile, velocity-profile, and static-tail
   preflights.

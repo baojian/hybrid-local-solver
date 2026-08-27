@@ -31,7 +31,8 @@ It also gives exact nonnegative position/velocity propagators.  A directed
 half-endpoint split of the ideal packet now retains the literal outward entry
 momentum: the two directed binomial waves remain nonpositive for all time.
 The actual entry position correction is proved coordinatewise nonpositive.
-A final-prefix refinement proves the quantitative bound `c(j)<-q^3/8` on
+A final-prefix refinement and a sharper final source-variation ledger prove
+the quantitative bound `c(j)<-13q^3/100` on
 every full-face row for `m>=64`, retaining both rows of the frontier defect
 and the separate degree-one endpoint. This strengthens the correlated early
 half-retention expression; it does not separately control `L_k u` through the
@@ -57,8 +58,8 @@ is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
 half-retention convolution. The first full-face average residual is proved
 strictly negative, and a rational position/envelope comparison closes the
 late range `qk>=3/50`; only the shorter early convolution
-`L_k u<=q^3/16` remains on the nonlinear side. The analogous separate
-estimate through `17/200` is false and is not used. A further exact reduction
+`L_k u<=13q^3/200` remains on the nonlinear side. The former separate
+`q^3/16` estimate through `17/200` is false and is not used. A further exact reduction
 identifies `(J_k-J_(k-1)/2)L` with the line kernel
 `(1/2) Pr(Bin(k,1/2)>=|r|)`, gives its exact `2m`-cycle fold, and retains the
 derivative cancellation in every standard moving-frontier source. It also
@@ -91,14 +92,15 @@ algorithms.
 An additional exact preflight, `verify_correction_margin.py`, checks the
 sharpened `31/320` leading ledger, the folded final-time source count including
 reflection and the one-step edge, the exact two-row defect and endpoint on
-rational replays, and every rational constant in the `c<-q^3/8` theorem. It
+rational replays, the sharpened sixteen-cell variation bound, and every
+rational constant in the `c<-13q^3/100` theorem. It
 explicitly reports the correlated early inequality as open.
 
 `verify_early_kernel.py` checks the exact half-velocity Laurent and
 binomial-tail formulas, the standard derivative/mass source responses, the
 `3/8` reflection obstruction, and the folded-cycle identity against exact
 replays at `m=8,12`. Its larger short-window runs are explicitly finite
-measurements and do not certify the uniform `1/16` inequality.
+measurements and do not certify the uniform `13/200` inequality.
 
 Build with `make`. Run the screen with:
 
