@@ -52,7 +52,7 @@
   lobe certificate, and an entropy tail. The base/derivative kernels and five
   direct frontier rows remain OPEN; the note does not infer signs of
   individual summands. The proposed derivative constant `-q/16` is now an
-  exact asymptotic STOP (already false at fixed endpoint distance six), while
+  exact asymptotic STOP (already false at fixed endpoint distance seven), while
   the weaker sufficient replacement `-q/8` remains open.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
   entry profiles, and full projection/envelope regime remain open. The

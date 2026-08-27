@@ -66,7 +66,7 @@ folded-kernel estimate is also proved by an exact binomial maximum principle,
 finite dyadic certificate, and entropy tail. The base and derivative
 folded-kernel estimates and five direct frontier rows remain open. The
 original proposed derivative constant `-q/16` is now rigorously ruled out by
-an exact fixed-distance asymptotic; the weaker sufficient target `-q/8`
+an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks

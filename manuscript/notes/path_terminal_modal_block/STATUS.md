@@ -108,7 +108,7 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   lobe certificate, and entropy tail. The base/derivative estimates and five
   direct frontier rows remain OPEN. The original derivative target with
   constant `1/16` is rigorously false: an exact zero/first-moment calculation
-  gives a fixed-distance limit below `-1/16` at distance six. The weaker
+  gives a fixed-distance limit below `-1/16` at distance seven. The weaker
   sufficient replacement `-q/8` remains open.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus

@@ -1148,32 +1148,51 @@ def exact_static_tail_reduction_checks() -> None:
             - Fraction(3 * distance + 1, 27) * Fraction(-1, 2) ** distance
         )
 
+    def raw_correction_atom_moments(distance: int) -> tuple[Fraction, Fraction]:
+        # Sum the finite pre-central part from the displayed atom itself.
+        # The post-central negative-binomial tail has mass -1/2 and first
+        # moment -(distance+1).
+        finite_zero = sum(
+            (correction_atom(step, step - distance) for step in range(1, distance)),
+            Fraction(0),
+        )
+        finite_first = sum(
+            (step * correction_atom(step, step - distance) for step in range(1, distance)),
+            Fraction(0),
+        )
+        return finite_zero - Fraction(1, 2), finite_first - (distance + 1)
+
+    for distance in range(3, 10):
+        raw_zero, raw_first = raw_correction_atom_moments(distance)
+        assert raw_zero == correction_atom_zero_moment(distance)
+        assert raw_first == correction_atom_first_moment(distance)
+
     derivative_coefficients = (-3, 2, 1)
-    for distance in range(6, 20):
+    for distance in range(7, 20):
         zero_moment = 2 * sum(
             coefficient
             * (
-                correction_atom_zero_moment(distance - shift)
-                - correction_atom_zero_moment(distance - shift - 2) / 4
+                raw_correction_atom_moments(distance - shift)[0]
+                - raw_correction_atom_moments(distance - shift - 2)[0] / 4
             )
             for shift, coefficient in enumerate(derivative_coefficients)
         )
         first_moment = 2 * sum(
             coefficient
             * (
-                correction_atom_first_moment(distance - shift)
-                - correction_atom_first_moment(distance - shift - 2) / 4
+                raw_correction_atom_moments(distance - shift)[1]
+                - raw_correction_atom_moments(distance - shift - 2)[1] / 4
             )
             for shift, coefficient in enumerate(derivative_coefficients)
         )
         assert zero_moment == 0
         assert first_moment == Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** distance
-    assert Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** 6 == Fraction(107, 16)
+    assert Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** 7 == Fraction(213, 32)
     t_cap = Fraction(113, 128)
     polynomial_at_cap = t_cap**4 - 30 * t_cap**3 + 12 * t_cap**2 + 10 * t_cap + 3
     derivative_lower = polynomial_at_cap / (10 * Fraction(47, 50) * (1 + t_cap**2) ** 2)
     assert derivative_lower == Fraction(1539492805, 39945178223)
-    assert derivative_lower > Fraction(4, 107)
+    assert derivative_lower > Fraction(8, 213)
 
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
