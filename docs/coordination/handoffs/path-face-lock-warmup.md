@@ -14,12 +14,19 @@ residual variables. On a fixed face, `y_(t+1)=M u_t` with
 The existing transported-center path profile uses a different recurrence, so
 its estimates cannot be imported without a new entry calculation.
 
+A graph-uniform Neumann-series lemma now proves a narrower positive result:
+for `alpha<=1/5`, one stable-face prox solve certifies the immediately next
+momentum trigger on every face. It does not certify the tail. Alternating a
+prox reset with one safe momentum stage has exact full-face Perron multiplier
+`(1-q)^2(1+2q)=1-Theta(q^2)`, so that fallback loses acceleration.
+
 The note-local rational screen gives two proved route stops. On full `P4`
 at `q=1/8`, one stable-face prox solve has endpoint trigger
 `(U_2)_(00)=-541/48000`. On full `P8` at `q=1/16`, two solves have the exact
 negative endpoint fraction in Proposition `prop:path-lock-cone-witnesses`.
-Thus neither one nor two solves is sufficient uniformly over every
-nonnegative entrance residual. These basis-column witnesses are not claimed
+An additional exact `P46,q=1/92` witness has
+`(U_4^(3))_(00)<0`, so neither one, two, nor three solves is sufficient
+uniformly over every nonnegative entrance residual. These basis-column witnesses are not claimed
 reachable by the changing-face endpoint-seeded RPPR trajectory.
 
 ## Claim routing
@@ -38,4 +45,5 @@ reachable by the changing-face endpoint-seeded RPPR trajectory.
 
 - Exact: `python3 verify_warmup.py --sizes 4 6 8 10 12 --horizon 32`
 - Exact: `python3 verify_warmup.py --sizes 14 16 20 --horizon 64`
+- Exact: `python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3`
 - Remaining checks are recorded in `STATUS.md` as they are run.

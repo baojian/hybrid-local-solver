@@ -7,8 +7,8 @@ is a spider obtained by coupling path arms through its center.
 
 The exact Fable trigger has been reconstructed in the project's normalized
 variables.  An exact rational finite-horizon screen also separates arbitrary
-nonnegative entrance states from the realized RPPR face-entry profile: one
-and two pure-prox warmups are not cone-uniformly sufficient on full endpoint
+nonnegative entrance states from the realized RPPR face-entry profile: one,
+two, and three pure-prox warmups are not cone-uniformly sufficient on full endpoint
 paths.  This does not yet refute a constant warmup for the actual
 endpoint-seeded chronology.
 
@@ -17,4 +17,5 @@ Build with `make`.  Run the exact screen with:
 ```bash
 python3 verify_warmup.py --sizes 4 6 8 10 12 --horizon 32
 python3 verify_warmup.py --sizes 14 16 20 --horizon 64
+python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3
 ```

@@ -90,6 +90,89 @@ The absolute values make
 \(u_t\geq0\).  The conservative certified warmup controls it by one global
 norm; the present target is the true componentwise condition.
 
+\subsection{One prox solve certifies the first momentum stage}
+\label{sec:first-momentum-safe}
+
+There is a useful graph-uniform fact hidden by the conservative modal norm.
+It certifies entrance to momentum, but not the whole momentum tail.
+
+\begin{proposition}[First-momentum entrance; proved here]
+\label{prop:first-momentum-safe}
+Let \(0<\alpha\leq1/5\), let \(S\) be any supplied face, and let
+\(0\leq\beta\leq1\).  Suppose a stable-face pure proximal solve starts from
+a state residual \(Y\geq0\) and produces \(Y^+=\mathcal M_SY\).  Then the
+immediately following momentum trigger is nonnegative:
+\begin{equation}
+ (1+\beta)Y^+-\beta Y\geq0
+ \quad\hbox{componentwise}.
+ \label{eq:first-momentum-safe}
+\end{equation}
+Consequently that first momentum stage has no retraction.  The claim applies
+to every endpoint-path prefix and every spider face, without a spectral-gap
+or Perron-spread constant.
+\end{proposition}
+
+\begin{proof}
+Write \(S_S=D_S^{-1/2}A_{SS}D_S^{-1/2}\geq0\).  Direct substitution gives
+\begin{equation}
+ \overline{\mathcal M}_S
+ :=D_S^{-1/2}\mathcal M_SD_S^{1/2}
+ =\frac{2(1-2\alpha)}{1-\alpha}(3I-S_S)^{-1}.
+ \label{eq:first-momentum-neumann-map}
+\end{equation}
+Since \(\lVert S_S\rVert_2\leq1\), the Neumann series
+\begin{equation}
+ (3I-S_S)^{-1}=\frac13\sum_{r\geq0}(S_S/3)^r
+ \label{eq:first-momentum-neumann-series}
+\end{equation}
+is entrywise nonnegative and has diagonal at least \(1/3\).  The scalar
+coefficient in \eqref{eq:first-momentum-neumann-map} is at least \(3/2\)
+exactly when \(\alpha\leq1/5\).  Hence
+\(\overline{\mathcal M}_S\geq\frac12I\) entrywise.  With
+\(\sigma=\beta/(1+\beta)\leq1/2\), this gives
+\(\overline{\mathcal M}_S-\sigma I\geq0\).  Positive diagonal conjugation
+preserves entrywise signs, so
+\[
+ (1+\beta)Y^+-\beta Y
+ =(1+\beta)(\mathcal M_S-\sigma I)Y\geq0.
+\]
+The exact trigger equivalence in
+\eqref{eq:path-lock-trigger-recurrence} completes the proof.
+\end{proof}
+
+This proposition reduces the actual entrance warmup from Fable's large
+norm-certified \(J_S\) to one solve if the goal is only to launch one safe
+momentum stage.  It does not establish
+\eqref{eq:path-lock-sharp-entrance}, and
+\cref{prop:path-lock-cone-witnesses} shows why the conclusion cannot simply
+be iterated forever.
+
+\begin{proposition}[Alternating reset loses acceleration; proved here]
+\label{prop:alternating-reset-slow}
+Consider the full connected face and repeat one pure proximal stage followed
+by one momentum stage, resetting momentum after every such pair.  On the
+Perron residual mode, one two-stage cycle has exact multiplier
+\begin{equation}
+ \eta_q=(1-q)^2(1+2q)=1-3q^2+2q^3.
+ \label{eq:alternating-reset-multiplier}
+\end{equation}
+Thus for \(0<q\leq1/2\), a constant-factor reduction of a nonzero Perron
+component needs \(\Theta(q^{-2})=\Theta(\alpha^{-1})\) cycles.  Alternating
+the proved safe entrance with a reset is not an accelerated algorithm.
+\end{proposition}
+
+\begin{proof}
+On the full face the Perron eigenvalue of \(\mathcal M\) is
+\(m_0=1-q^2\), and the global momentum is
+\(\beta=(1-q)/(1+q)\).  One prox--momentum pair maps a residual by
+\(\mathcal M((1+\beta)\mathcal M-\beta I)\).  Its Perron multiplier is
+\[
+ m_0((1+\beta)m_0-\beta)=(1-q)^2(1+2q).
+\]
+Finally, \(1-\eta_q=q^2(3-2q)\) lies between \(2q^2\) and \(3q^2\) on the
+stated interval.
+\end{proof}
+
 \subsection{A cone-uniform shortcut is already false}
 \label{sec:cone-screen}
 
@@ -130,6 +213,17 @@ The analogous two-solve assertion is also false: on \(P_8\), with
 \end{equation}
 In each case the nonnegative entrance column \(y=e_0\) realizes the negative
 trigger coordinate.
+
+Three solves are not cone-uniform either.  On \(P_{46}\), with
+\(q=1/92\), exact rational elimination gives
+\begin{equation}
+ (U_4^{(3)})_{00}<0.
+ \label{eq:path-lock-three-warmup-witness}
+\end{equation}
+The verifier prints the full reduced fraction; its decimal value is about
+\(-1.0542862762\times10^{-5}\).  The smaller sizes through \(P_{44}\) do not
+replace this witness: finite endpoint effects delay the first negative
+diagonal until size 46 in the screened family.
 \end{proposition}
 
 \begin{proof}
@@ -138,9 +232,10 @@ For a full endpoint path all entries of \(\widetilde Q\), \(D\),
 elimination followed by
 \eqref{eq:path-lock-trigger-kernel-initial} and
 \eqref{eq:path-lock-trigger-kernel-recurrence}
-gives the two displayed fractions.  Multiplication by \(e_0\) selects the
-first column, so its endpoint is negative and the exact trigger condition
-fails.
+gives the two displayed fractions and the exact negative sign in
+\eqref{eq:path-lock-three-warmup-witness}.  Multiplication by \(e_0\)
+selects the first column, so its endpoint is negative and the exact trigger
+condition fails.
 \end{proof}
 
 The witnesses are deliberately scoped.  They refute a proof that forgets the
@@ -178,6 +273,7 @@ The note-local script \texttt{verify\_warmup.py} constructs
 \begin{verbatim}
 python3 verify_warmup.py --sizes 4 6 8 10 12 --horizon 32
 python3 verify_warmup.py --sizes 14 16 20 --horizon 64
+python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3
 \end{verbatim}
 The script's first negative entry is a proof witness.  A horizon pass remains
 a finite screen and is printed with that name.

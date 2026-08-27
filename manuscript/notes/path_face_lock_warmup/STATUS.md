@@ -31,16 +31,23 @@ Allowed write scope: `manuscript/notes/path_face_lock_warmup/` and `docs/coordin
   `y_(t+1)=M u_t`, `u_t=(1+beta)y_t-beta*y_(t-1)`, with
   `M=kappa(Q_S+kappa I)^(-1)`. The Fable sharp componentwise condition is a
   sufficient absolute high-mode bound, stronger than `u_t>=0`. Exact cone
-  witnesses refute one stable-face prox solve on `P4,q=1/8` and two on
-  `P8,q=1/16`: the endpoint trigger entries are respectively `-541/48000`
-  at momentum time 2 and the exact negative fraction displayed in
-  Proposition `prop:path-lock-cone-witnesses` at time 3.
+  witnesses refute one stable-face prox solve on `P4,q=1/8`, two on
+  `P8,q=1/16`, and three on `P46,q=1/92`. The endpoint trigger entries are
+  respectively `-541/48000` at momentum time 2, the exact negative fraction
+  displayed in Proposition `prop:path-lock-cone-witnesses` at time 3, and an
+  exact negative rational at time 4 whose full reduced value is printed by
+  the verifier. For every graph face and `alpha<=1/5`, one stable-face prox
+  solve nevertheless certifies the immediately following first momentum
+  trigger; this follows from the entrywise Neumann bound
+  `M>=I/2`. Repeating one prox and one momentum stage is safe but has full-face
+  Perron multiplier `(1-q)^2(1+2q)=1-Theta(q^2)`, hence needs
+  `Theta(q^-2)` pairs for constant contraction and is not accelerated.
 - **Conditional:** None yet.
 - **Measured:** The exact finite screen at `q=1/(2n)` finds first
   horizon-passing values `J=2` on `P4,P6` and `J=3` on
   `P8,P10,P12,P14,P16,P20`, through 32 or 64 momentum stages. A finite exact
   pass is not an all-time theorem.
-- **Refuted:** Any proof that claims one or two pure-prox solves make every
+- **Refuted:** Any proof that claims one, two, or three pure-prox solves make every
   nonnegative path-face residual permanently safe. This is a cone-uniform
   proof-route stop, not a reachability or actual-trajectory counterexample.
 - **Open:** A graph-size-independent warmup bound on the realized
@@ -78,7 +85,7 @@ cannot be imported directly.
 - Source pointers checked: Fable I6-A2 Sections 1--4 and I7-A Sections 1--2;
   sibling path modal note exact recurrence and claim boundary.
 - Focused exact checks: `verify_warmup.py` passed its P4--P20 screens and
-  reproduced both displayed negative fractions.
+  reproduced the P4/P8 fractions and the P46 exact negative sign.
 - Known gaps: finite horizon passes are not all-time proofs; the basis-column
   cone witnesses are not claimed reachable; spider coupling has not yet been
   analyzed.
