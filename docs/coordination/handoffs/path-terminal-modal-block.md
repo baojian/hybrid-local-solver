@@ -51,14 +51,15 @@
   The mass kernel is now proved by exact binomial smoothing, a finite dyadic
   lobe certificate, and an entropy tail. The weakened base kernel `B>-q/16`
   needed by the replacement ledger is also proved by two binomial sign
-  regimes, a finite exact certificate, and a Hoeffding tail. The derivative
-  kernel and five direct frontier rows remain OPEN; the note does not infer signs of
-  individual summands. The proposed derivative constant `-q/16` is now an
+  regimes, a finite exact certificate, and a Hoeffding tail, with a separate
+  exact seed formula. The replacement derivative kernel is proved for every
+  row through `m-6`; five direct frontier inequalities remain OPEN. The note
+  does not infer signs of individual summands. The proposed derivative constant
+  `-q/16` is now an
   exact asymptotic STOP (already false at fixed endpoint distance seven), while
-  the weaker sufficient replacement `-q/8` is reduced to three exact folded
-  prefix-lobe estimates; its scalar variation and Abel ledger are proved. An
-  exact rational prefix generating function proves all three estimates at
-  `D=6,7`, leaving only `D>=8`. The
+  the weaker sufficient replacement `-q/8` is proved by exact direct and
+  reflected prefix recurrences, folded weighted-tail positivity, a terminal
+  coefficient bound, and the central alias correction. The
   base proof exposes an exact five-point binomial stencil, alternating endpoint
   atom, and nonnegative-kernel initial perturbation.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
@@ -72,16 +73,16 @@
   `57/200` endpoint ledger, finite alternating-tail endpoint stencil, and
   exact signed-mass formula and temporal smoothing identity at `m=8,12`. It
   also checks the two-step equivalence, mass window, signed smoothing base,
-  and one-dimensional lobe certificate. It labels the base/derivative
-  folded-kernel ledger, local half-ratios, and temporal preimage comparison
-  open.
+  direct/reflected derivative prefixes, terminal coefficient, weighted tail,
+  central alias, and seed base. It labels only the five frontier inequalities
+  and temporal preimage comparison open.
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
 - The floating screen remains evidence only for the two open entry profiles
   and terminal regime.
 - Required commands and their final results are recorded in the direction
-  `STATUS.md`; the note builds to 32 pages.
+  `STATUS.md`; the note builds to 50 pages.
 
 ## Review notes
 
@@ -92,8 +93,7 @@
 - Main audit risks: the weighted telescoping identity for the signed mass,
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
-- Next action: Prove the replacement `-q/8` derivative estimate's three
-  prefix-lobe bounds for `D>=8` and five
-  direct frontier rows, or otherwise prove the explicit local
-  half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
-  binomial-window kernel for the early convolution margin.
+- Next action: Prove the five direct frontier inequalities and combine them
+  with the now-unconditional interior two-step cone; then lift the endpoint
+  comparator through the exact folded binomial-window kernel for the early
+  convolution margin.

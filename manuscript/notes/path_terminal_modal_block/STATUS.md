@@ -107,15 +107,16 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   proved by an exact binomial smoothing maximum principle, finite dyadic
   lobe certificate, and entropy tail. The weakened base estimate `B>-q/16`
   needed by the replacement ledger is also proved, using exact binomial sign
-  regimes, a finite rational certificate, and a Hoeffding tail. The derivative
-  estimate and five direct frontier rows remain OPEN. The original derivative target with
+  regimes, a finite rational certificate, and a Hoeffding tail, including an
+  exact seed formula. The replacement derivative estimate is proved on every
+  row `0<=j<=m-6`; only five direct frontier inequalities remain OPEN. The
+  original derivative target with
   constant `1/16` is rigorously false: an exact zero/first-moment calculation
   gives a fixed-distance limit below `-1/16` at distance seven. The weaker
-  sufficient replacement `-q/8` remains open, but its scalar source derivative
-  and exact Abel reduction are proved; only three displayed folded prefix-lobe
-  bounds remain at that interface. An exact rational prefix generating
-  function proves all three bounds for the two endpoint distances `D=6,7`
-  and reduces the remaining range to `D>=8`. The base proof starts from its exact
+  sufficient replacement `-q/8` is proved by the scalar source derivative,
+  exact Abel reduction, direct/reflected prefix recurrences, weighted-tail
+  positivity, terminal bound, and central-alias correction. The base proof
+  starts from its exact
   five-point binomial stencil, alternating endpoint atom, and explicit
   nonnegative-kernel initial perturbation.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
@@ -182,10 +183,9 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    for `d-h`, or the exact sufficient interior temporal-preimage comparison
    plus the four direct boundary checks. The sharper source-ledger route
    has closed the mass kernel, disproved the original `-q/16` derivative
-   constant, proves the weakened base kernel needed by the replacement
-   ledger, and isolates a replacement `-q/8` derivative
-   bound (now reduced to three folded prefix-lobe estimates on `D>=8`) and five direct
-   frontier rows. A
+   constant, and proved both the weakened base kernel and replacement `-q/8`
+   derivative bound on every row through `m-6`. Only five direct frontier
+   inequalities remain. A
    separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
 
@@ -222,10 +222,9 @@ constants is permitted only with a corresponding proof.
   packet/base discrepancy, the constant-`U` response, the total-variation
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
-  enough to prove the displayed `C` and `V` profiles. Separately,
-  replace the disproved `eq:terminal-modal-static-derivative-kernel-target` by the sufficient
-  `-q/8` bound on `D>=8`, and prove the five direct frontier
-  rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
+  enough to prove the displayed `C` and `V` profiles. Separately, prove the
+  five direct frontier rows (the interior and seed two-step cone are now
+  unconditional), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window

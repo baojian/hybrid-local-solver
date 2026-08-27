@@ -55,8 +55,8 @@ with the endpoint atom cancelled. Thus another sufficient route is an
 interior temporal preimage comparison plus three direct frontier rows and
 the seed. Positivity of that preimage is neither claimed nor necessary, and
 fixed-prefix `q->0` asymptotics do not settle the joint family `mq=1/16`.
-Those local inequalities remain open, as do the early
-convolution analogue and an early/late lower position margin. A further exact
+The five direct frontier inequalities remain open, as do the early convolution
+analogue and an early/late lower position margin. A further exact
 simplification makes the half-ratios the two-step spatial cone
 `d_j>=d_(j+2)/4`, with two endpoint initial conditions. On rows through
 `m-6`, the cone has an exact folded-source ledger with a base term, the
@@ -66,15 +66,15 @@ folded-kernel estimate is also proved by an exact binomial maximum principle,
 finite dyadic certificate, and entropy tail. A weakened base estimate
 `B>-q/16`, sufficient for the replacement ledger, is proved by two exact
 binomial sign regimes, a finite rational certificate, and a Hoeffding tail.
-The derivative folded-kernel estimate and five direct frontier rows remain
-open. The
+The replacement derivative folded-kernel estimate is now proved uniformly,
+including the reflected cutoff, terminal prefix, and central seed alias. The
+source-free seed base is also exact, so the two-step cone holds on every row
+through `m-6`; only its five direct frontier inequalities remain open. The
 original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
-replaces it. The scalar source derivative and exact Abel step for that
-replacement are proved, leaving three explicit folded prefix-lobe estimates.
-An exact rational generating function now proves all three of those estimates
-at the two endpoint distances `D=6,7`; its fixed binomial coefficient formula
-isolates the remaining range `D>=8`.
+replaces it. The scalar source derivative, exact Abel step, direct and reflected
+prefix recurrences, weighted-tail positivity, and terminal coefficient prove
+that replacement for every `m>=64` and `0<=j<=m-6`.
 The base proof keeps the five-point binomial stencil, alternating endpoint
 atom, and nonnegative-kernel initial perturbation separate. A
 deterministic NumPy screen reconstructs
