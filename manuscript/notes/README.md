@@ -55,7 +55,7 @@ This table is generated from `registry.toml` by
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
 | [`path_face_lock_warmup`](path_face_lock_warmup/) | iterative | proved-open | Determine whether a sharp componentwise entrance certificate yields a constant or logarithmic safe warmup on paths and spiders. |
-| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Isolate the modal anti-cancellation route for the short-path terminal block. |
+| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Prove short-path admission chronology and isolate the remaining terminal modal route. |
 | [`psi_master_inequality`](psi_master_inequality/) | iterative | proved-open | Turn the exact Psi master identity into analytic absorption theorems or precise graph-family counterexamples. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
 | [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove log-free radial SOR on symmetric spiders and isolate the paid continuation frontier. |
@@ -69,6 +69,7 @@ This table is generated from `registry.toml` by
 | [`response_preconditioned_hybrid`](response_preconditioned_hybrid/) | mixed | proved-open | Combine charged Schur responses, frontier repair, and fixed-face reporting. |
 | [`two_rung_direct_theory`](two_rung_direct_theory/) | mixed | proved-open | Explain measured waves, obstructions, and the value of elimination. |
 | [`bounded_seed_return`](bounded_seed_return/) | models | proved-open | Rule out star-scale self-return amplification at bounded-degree seeds with saturated semantic support. |
+| [`class_separation_ladder`](class_separation_ladder/) | models | proved-open | Separate local PageRank class restrictions on one center-seeded star. |
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |

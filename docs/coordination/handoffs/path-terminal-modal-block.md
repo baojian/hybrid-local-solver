@@ -2,8 +2,11 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-modal-block`
-- Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
+- Branch: `agent/codex/path-terminal-velocity-profile`
+- Base commit: `e68835281f0bb594bff97c37c36915c14d84180e`
+- Assignment state: ready_for_review
+- Branch: `agent/codex/path-terminal-regime-static`
+- Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -19,82 +22,73 @@
 
 ## Outcome
 
-- Requested result: Continue the literal full-path terminal logarithmic-block
-  analysis, prove every uniform inequality currently available, and preserve
-  any remaining gap as exact, falsifiable lemmas rather than promoting
-  floating evidence to a theorem.
-- Implemented result: Added a standalone twelve-page note deriving the exact
-  degree-weighted path-cosine basis, damped modal roots and quadratures, safe
-  global-correction/range semantics, the ideal binomial packet transform, a
-  uniform phase-energy bound, and a conditional
-  `Omega(q^-1 log(1/q))` theorem.  The note isolates two sufficient missing
-  lemmas: low-even-mode entry position/velocity profiles and a
-  projection/unclipped-envelope invariant through the logarithmic horizon.
-  A follow-up derives the exact identity `D_h=q*cot(phi_h)*V_h`, all proper-
-  prefix and full-path restricted optima, the rank-one proper-prefix transport
-  with `0<b_n-b_(n-1)<=q*artanh(q)`, the fixed-face directional factorization,
-  an open changing-face boundary-source interface, and pointwise
-  nonpositivity of the ideal packet evolution. The proposed changing-face
-  sparse-source support is explicitly retained as an open row-by-row
-  sublemma. The
-  full-face `K/J` propagators are nonnegative with row sums `1` and `k`, so the
-  regime-side obstruction is now the factor-`k` loss without signed/variation
-  control of the velocity remainder. The profile constants rigorously imply
-  the earlier combined `1/64` target. A
-  deterministic screen reconstructs the literal admission and terminal
-  recurrence and tests both hypotheses.
-- Deliberately unchanged: The dirty main worktree, the source
-  `volume_gated_acceleration` note, its historical verifier, and all solver
-  implementations.  This branch does not claim an unconditional terminal
-  theorem, a class lower bound, or a lower bound for implicit-response or
-  other accelerated local algorithms.
+### From `agent/codex/path-terminal-velocity-profile`
+
+- Requested result: Close the velocity entry profile asymptotically on the
+  growing even-mode band, without importing the open terminal-regime claim.
+- Implemented result: Proved
+  `m*abs(V_(2s)+G_(2s)/5)/alpha<=1/4` uniformly for
+  `1<=s<=floor(sqrt(m/(64 log(16m))))` and all sufficiently large `m`.
+  The exact source kernel removes the apparent small-sine loss. A uniform
+  continuum limit retains the boundary cancellation among the homogeneous
+  base, derivative source, and final endpoint. Rational total-variation bounds
+  give `3479/14400<1/4`, with slack `121/14400`.
+- Consequence: Only the terminal projection/unclipped-envelope regime remains
+  as an assumption in the conditional logarithmic-block theorem.
+- Deliberately unchanged: That remaining statement is open. Hence the logarithmic
+  terminal block remains conditional, and no lower bound is claimed for other
+  algorithms, implicit-response implementations, or a broader oracle class.
+
+### From `agent/codex/path-terminal-regime-static`
+
+- Requested result: Attack terminal projection and unclipped-envelope
+  preservation through `floor((1/8)q^-1 log(1/q))`, preserving the sharpest
+  exact reduction if the full regime does not close.
+- Implemented result: Split the even ideal binomial packet exactly into two
+  half-endpoint packets with opposite directed velocities. Their complete
+  `K/J` evolution is two nonpositive Markov waves at every time. Proved the
+  literal entry correction `c=r_0-g` is coordinatewise nonpositive for every
+  `m>=64`. Derived the infinite-line `J_k` coefficient as a binomial
+  tail and proved that all cycle aliases have maximum coefficient at most
+  `1+(k-1)/(2m)`. Thus every positive terminal residual is bounded by
+  this factor times the positive weighted mass of one static directed-velocity
+  remainder. Damping makes the whole time factor at most `8e^(-7/8)`.
+- Consequence: The former `k||w||_infinity` obstruction and repeated
+  reflection loss are removed exactly. The directed remainder is further
+  reduced exactly to `u=Ld`, with `d` explicit from the last prefix and a
+  lower binomial packet; the `J_kL` kernel is an exact binomial window. The
+  remaining regime work is a signed bulk/tail estimate and an early/late
+  position lower bound.
+- Deliberately unchanged: Those two estimates remain open. The logarithmic
+  terminal block remains conditional, and no lower bound is claimed for other
+  algorithms or models.
 
 ## Evidence
 
-- Tests added or changed: Added `verify.py`, which replays exact algorithmic
-  semantics in deterministic float64 arithmetic, checks admission projection,
-  correction, and gating, measures entry packet/quadrature defects, checks the
-  full-face projection and envelope margins, and reports both the first raw
-  range crossing and the first literal safe-envelope certificate.
-- Commands run: clean note build; `python3 verify.py 128 256 512 1024 2048`;
-  `make note-audit`; `make note-targets`; `make agent-audit`; `make test`;
-  focused Ruff lint and format checks; `git diff --check`; and `make lint`.
-- Results: The note built to 12 pages with no LaTeX, package,
-  overfull/underfull, or unresolved-reference warnings.  The deterministic
-  screen passed all five sizes.  It checks the exact combined
-  `(|C-G|+|D|)/|G| <= 1/64` condition on the literal `H_m` band and labels
-  finite sizes with `H_m=0` as vacuous. It now also directly checks
-  `m|C-G|/alpha<=1/256`, `m|V+G/5|/alpha<=1/4`, and the exact velocity
-  identity; wider-band profile and `K/J` remainder values remain explicitly
-  measured. The
-  19-note registry, note targets, coordination audit, focused Ruff checks,
-  diff check, and 210 tests passed.
-  The test command emitted 15 temporary-directory cleanup warnings.  The full
-  repository lint command remains red on 1,345 pre-existing findings under
-  `manuscript/claude-overnight-2026-08-24/`; the newly added verifier has no
-  Ruff findings.
+- A new preflight checks the exact rational velocity ledger, its strict slack,
+  the positive Bernstein certificate, and the continuum normalization.
+- A new exact preflight checks the half-endpoint cycle split, directed wave
+  identity, folded `J_k` alias bound, `J_kL` window, entry-correction sign,
+  and static `u=Ld` identity at `m=8,12`.
+- The existing rational preflights still check chronology identities at
+  `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
+  leading correction recurrence through prefix 256.
+- The floating screen agrees with both proved entry profiles and remains
+  evidence only for the open terminal regime.
+- Required commands and their final results are recorded in the direction
+  `STATUS.md`; the note builds to 38 pages.
 
 ## Review notes
 
-- Provider-owned paths changed: New note directory
-  `manuscript/notes/path_terminal_modal_block/` only.
-- Shared paths changed: Note registry/README and this scoped coordination
+- Provider-owned paths changed: only
+  `manuscript/notes/path_terminal_modal_block/`.
+- Shared paths changed: note registry/README and this scoped coordination
   assignment/handoff.
-- Semantic correction: At `m=128,256`, the measured values
-  `q*k=3.123535156,3.871093750` are first raw-range crossings, not literal
-  certificates.  Because the residual maximum is then negative, the literal
-  certificates occur later at `q*k=3.733886719,3.985839844`.  For
-  `m=512,1024,2048`, the two events coincide at the displayed precision.
-- Promotion-audit correction: The low-mode packet asymptotic is
-  `|G_(2s)| ~ exp(-1/16) alpha/m = 16 exp(-1/16) q^3`; the earlier omission
-  of `exp(-1/16)` was a constant typo and did not affect the theorem's
-  conservative amplitude bounds.  The note also records why zero-padding the
-  newly admitted endpoint rules out an instantaneous certificate at entry.
-- Open decisions or follow-up: First prove and display the proposed seed and
-  last-three-frontier source entries row by row, then prove the two entry
-  profile bounds uniformly in `m` by controlling their signed transforms; also
-  prove projection inactivity plus
-  unclipped global correction through
-  `floor((1/8)q^-1 log(1/q))`.  Until both statements hold in exact arithmetic,
-  retain evidence `proved-open` and every asymptotic terminal claim as
-  conditional.
+- Main audit risks: verify the exact velocity source kernel, the uniform
+  source-to-Riemann remainder, base/endpoint cancellation, and both rational
+  variation bounds; and the half endpoint weights, opposite direction on the
+  reflected packet, the old-row comparison proving `c<=0`, and the factor two
+  in the `2m`-cycle alias count.
+- Next action: Bound the positive bulk and alternating terminal tail in the
+  explicit `d` certificate sharply enough for `21/80`, then use the exact
+  folded binomial-window kernel for the early convolution margin.

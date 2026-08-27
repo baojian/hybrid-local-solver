@@ -4,8 +4,8 @@ Last reviewed: 2026-08-27
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-modal-block`
-Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
+Branch: `agent/codex/path-terminal-regime-static`
+Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
 
 ## Exact question and contract
 
@@ -27,7 +27,8 @@ Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
   terminal step chronology only. It makes no unconditional eleven-resource
   lower bound and no lower bound for implicit response implementations or
   other algorithms.
-- **Intended result:** Isolate a sufficient, falsifiable pair of lemmas for a
+- **Intended result:** Isolate sufficient, falsifiable chronology,
+  entry-profile, and terminal-regime lemmas for a
   logarithmic terminal block without promoting measured entry coefficients or
   conditional linear dynamics to an unconditional theorem.
 
@@ -44,10 +45,57 @@ Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
   binomial packet's literal cosine coefficients; exact nonnegative full-face
   position/velocity kernels with row sums `1` and `k`; pointwise nonpositive
   ideal evolution; a uniform cosine-square inequality; and the conditional
-  logarithmic block theorem.
-- **Conditional:** If the actual entry position/velocity profiles satisfy the
-  two displayed absolute bounds on a band of even modes and projection plus
-  envelope subtraction remain inactive through the stated horizon, then every
+  logarithmic block theorem. Also proved are the uniform prefix-frontier
+  bounds `3488 q^2/1921 <= P_n <= 33q^2/16` and an exact chronology reduction:
+  the shared-coordinate sign `D_n(j)>=0` implies raw positivity, nonpositive
+  post-step residual, zero correction, and strict next-singleton admission,
+  with raw-frontier lower constant `596861/326570` and strict rational gate
+  slack. The reflected ideal packet splits `D_n` into an explicit nonnegative
+  Pascal term and a correction difference `K_n`; the correction has a closed
+  residual-only old/new-row recurrence and exact signed frontier triplet.
+  Its correction-difference Green kernel satisfies
+  `L_k=R_+^(k-1)+((1-q)/2) S_- J_(k-1)`, hence is coefficientwise
+  nonnegative with row mass `((k+1)/2)(1-q)^(k-1)`. At `q=0`, the infinite
+  constant-`U` derivative response also has a coefficientwise nonnegative
+  generating series. The exact all-prefix leading correction generating
+  function proves
+  `c_n(j)-c_(n-1)(j)/2 >= 1/80` on every shared coordinate, sharply at
+  `(n,j)=(4,2)`. The finite-`q` rescaling, stopped derivative-kernel bound,
+  source total-variation and mass estimates, and exact initial response prove
+  `K_n(j)>0` for every shared coordinate when `m>=64`, with rescaled margin
+  `179/14400` for `n>=6`; an analytic perturbation handles `n<=5`. Hence the
+  proper-prefix projection-inactive, zero-correction, exactly-next-singleton
+  chronology is proved in the asymptotic range. The exact
+  seed/last-three-frontier changing-face defect (including the final
+  ambient-degree-one endpoint term), its even-extension transform
+  `U_n(1-z)(1+3z)+M_n*z^2`, the bounds
+  `0<U_n<=3q^3/40`, `|M_n|<=3q^4/2`, and the scalar position/velocity reduction
+  then follow algebraically. The growing-band position profile is proved for
+  all sufficiently large `m`. Uniform source-to-continuum estimates make the
+  base and endpoint pieces `o(q^2)` and bound the constant-`U`, varying-`U`,
+  and mass pieces by `1/(240*pi^2)`, `1/(360*pi)`, and
+  `43/(10240*pi)`, respectively. Using `pi>3`, their rational upper ledger is
+  `257/92160<1/256`, with slack `103/92160`.
+- **Velocity theorem:** The growing-band velocity profile is also proved for all
+  sufficiently large `m`. The exact source velocity kernel removes the
+  small-sine loss. Its uniform continuum limit retains the cancellation among
+  the homogeneous base, derivative-source boundary trace, and final endpoint.
+  Rational variation bounds `TV(h)<1/400` and `TV(g)<43/80` give the strict
+  uniform ledger `3479/14400<1/4`, with slack `121/14400`.
+- **Directed packet theorem:** On the full face, splitting the even ideal packet
+  into two half-endpoint packets with opposite directed velocities proves that
+  their complete `K/J` evolution is coordinatewise nonpositive. The literal
+  entry correction `c=r_0-g` is also coordinatewise nonpositive for every
+  `m>=64`. The infinite-line coefficient of `J_k` is the binomial tail
+  `Pr(Bin(k-1,1/2)>=|r|)`; after cycle folding its maximum is at most
+  `1+(k-1)/(2m)`. Hence positive residual is bounded exactly by this factor
+  times the positive weighted mass of one static directed-velocity remainder.
+  That remainder is now deconvolved exactly as `u=Ld`, where `d` is given
+  coordinatewise by the last proper-prefix residuals and a lower binomial
+  packet. The coefficient of `J_k L` is an explicit finite binomial window,
+  so both remaining regime targets are finite signed convolution inequalities.
+- **Conditional:** If projection plus envelope subtraction remain inactive
+  through the stated horizon, then every
   sufficiently large member requires at least
   `(1/8) q^-1 log(1/q)` terminal steps. The profile bounds rigorously imply
   the former combined `1/64` quadrature target.
@@ -64,32 +112,34 @@ Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
   `V+G/5` errors remain below `0.195`, and `D_2/G_2` ranges from `-0.008138`
   to `-0.008022`. The packet remainder `c/q^3` is coordinatewise between
   about `-1.052` and `-0.168`, while the signed velocity source has extrema
-  near `+/-3.64 q^3`. These are finite measurements and assert no limit.
-- **Open:** Prove the two entry profile inequalities through a row-by-row
-  sparse-source identity and signed cosine-transform bounds on its
-  seed/frontier boundary entries, and prove the uniform
-  projection/unclipped-envelope invariant in exact arithmetic.
+  near `+/-3.64 q^3`. The directed cancellation reduces the measured positive
+  weighted remainder mass from that moving-packet scale to about
+  `0.258 q^3`--`0.260 q^3`. The corresponding pre-averaging positive mass
+  `||d_+||_(1,D)` is about `0.43 q^3`, showing why Markov contractivity alone
+  misses `21q^3/80`. These are finite measurements and assert no limit.
+- **Open:** Prove the uniform finite signed static inequality, its early
+  `J_kL` convolution counterpart, and the projection/unclipped-envelope
+  invariant in exact arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
-  replaces the moving global correction, and no general accelerated-local
-  lower bound is claimed.
+  replaces the moving global correction. Domination by the undamped `q=0`
+  Pascal arithmetic average is also false: at `(n,j)=(5,2)`,
+  `X_5(2)<(X_4(2)+X_4(1))/2` for every `0<q<=1/80`, with scaled limiting
+  defect `-27/160`. This does not refute the finite-`q` comparator damped by
+  `(1-q)/2`, which remains open. No general accelerated-local lower bound is
+  claimed.
 
 ## Central blocker
 
-1. **Entry profile lemma:** For
-   `H_m=floor(sqrt(m/(64 log(16m))))`, prove
-   `m*|C_(2s)-G_(2s)|/alpha <= 1/256` and
-   `m*|V_(2s)+G_(2s)/5|/alpha <= 1/4` for all `1<=s<=H_m`.
-   The exact velocity identity then gives the previous combined `1/64`
-   quadrature inequality. The remaining concrete subproblem is first to prove
-   and display the proposed seed/last-three-frontier source identity, then to
-   obtain a uniform signed cosine-transform estimate for those traces.
-2. **Conditional-regime lemma:** Through
+1. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
-   and every safe subtraction is strictly unclipped.
+   and every safe subtraction is strictly unclipped. The positive-residual
+   part is now reduced to proving a uniform static bound on
+   `||(w-w_dir)_+||_(1,D)/q^3`; a separate early/late position lower bound must
+   exploit the exact first-step margin, which is only order `q^2`.
 
-Either lemma is independently falsifiable by `verify.py`; changing the
+The lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
 
 ## Dependencies and reusable outputs
@@ -98,40 +148,74 @@ constants is permitted only with a corresponding proof.
 - **Context/provenance:** The Round-013 terminal candidate motivated the
   direction; historical finite traces are not proof imports.
 - **Reusable outputs:** Exact modal formulas, explicit optimum transports,
-  the fixed-face directional factorization, an explicit open sparse-source
-  interface, the exact `K/J` remainder decomposition, the ideal folded-shift sign
-  lemma, the weighted Popoviciu bridge from centered energy to residual
-  range, and a deterministic screen that retains the literal global
-  correction and transported-center semantics.
+  the fixed-face directional factorization, the changing-face source entries,
+  factored transform, and scalar `C/V` target reduction for the proved
+  `m>=64` proper-prefix chronology, the exact constant-trace geometric
+  sums and fixed-mode leading cancellations, the
+  exact `K/J` remainder decomposition, the ideal folded-shift sign lemma, the
+  reflected prefix ideal/correction split, its exact residual-only recurrence,
+  the positive correction-difference Green kernel and constant-source
+  generating-series cancellation, and the all-prefix leading correction
+  generating function with sharp shared-coordinate `1/80` margin, the
+  finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
+  six onward, the uniform position source-to-continuum lemma, exact
+  constant-`U` Chebyshev response, and strict `257/92160<1/256` position
+  ledger, the exact velocity source kernel, its uniform continuum limit, and
+  the strict `3479/14400<1/4` velocity ledger, the directed two-wave ideal
+  packet, the exact entry-correction sign, and the no-loss folded `J_k` alias
+  bound,
+  weighted Popoviciu bridge from centered energy to residual range, and a
+  deterministic screen that retains the literal global correction and
+  transported-center semantics.
 
 ## Resume here
 
-- **Exact pointer:** `main.tex`, Lemmas `lem:terminal-modal-packet` and
-  `lem:terminal-modal-regime` are the two missing statements; Theorem
-  `thm:terminal-modal-conditional-log` is ready to consume them.
-- **Next action:** Derive the four boundary-source entries row by row from the
-  explicit transport, then bound their transforms strongly enough to prove
-  the displayed `C` and `V` profiles. Separately, use the ideal packet's
-  proved nonpositive evolution and the exact `K/J` decomposition to replace
-  the crude `||J_k w||_infinity <= k ||w||_infinity` loss by a signed or
-  variation estimate, plus a global supremum/variation bound on the literal
-  remainder, to attack the projection/envelope regime.
-- **Stop/go test:** Promote the logarithmic block only after both missing
-  lemmas are proved uniformly in `m`; a larger floating screen is evidence but
+- **Exact pointer:** `main.tex`, Lemma `lem:terminal-modal-regime` is the sole
+  missing statement; Theorem `thm:terminal-modal-conditional-log` is ready to
+  consume it.
+- **Next action:** Prove the explicit local-average inequality
+  `eq:terminal-modal-static-finite-target` by controlling the positive bulk
+  and alternating terminal tail of `d`; use the displayed binomial-window
+  kernel for the early signed convolution, and combine these bounds with an
+  early/late lower bound for the literal position candidate.
+- **Stop/go test:** Promote the logarithmic block only after the remaining
+  lemma is proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
 
 ## Verification
 
 - **Deterministic screen:** `python3 verify.py 128 256 512 1024 2048`
-  passed.  It reported first range crossings
+  passed. Before the floating screen, it now uses exact
+  `Fraction` arithmetic at `m=8,12` to check all chronology-reduction
+  constants and identities, finite strict `D_n>0`, raw positivity,
+  post-residual sign, and exact gate behavior. It also uses exact arithmetic
+  at `m=8`, prefixes `n=4,6,7,8`, to check source support, every displayed
+  entry (including the final degree change), and the formal transformed
+  recurrence along the exact replay. A separate exact
+  correction preflight checks the residual-only recurrence and signed source
+  at `m=12`, the positive Green identity through `k=12`, and the leading
+  correction formulas through prefix 256; the latter audit the all-prefix
+  shared-coordinate theorem and recover its exact minimum `1/80`. A fourth
+  exact preflight checks the early-source mass identity, analytic small-prefix
+  ledger, stopped derivative prefixes through length 128, point-source fold,
+  and final `179/14400` arithmetic. A fifth preflight checks the rational
+  position constant ledger and the finite constant-`U` Chebyshev identity. A
+  sixth preflight checks the rational velocity variation ledger, the positive
+  Bernstein certificate for the mass amplitude, and the continuum
+  normalization. A seventh exact preflight checks the half-endpoint cycle
+  split, directed evolution, folded `J_k` alias bound, the exact `J_kL`
+  binomial window, entry-correction sign, and `u=Ld` deconvolution at
+  `m=8,12`. An eighth preflight checks the signed Green leading-sum
+  formulas. The floating screen
+  reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
   `q*k=3.733886719,3.985839844,4.366577148,4.713073730,5.017150879`.
-  It also checks the two entry profiles and the exact combined
+  It also checks both proved entry profiles and the exact combined
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a twelve-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 38-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

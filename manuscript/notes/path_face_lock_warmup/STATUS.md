@@ -77,6 +77,18 @@ and one stable-face prox solve. The full nonnegative cone is too broad, while
 the existing transported-center path profiles concern a different recurrence
 and cannot be imported directly. For spiders, the first reachable special
 case now fails through five warmups; no growing family is proved.
+  to accelerate the full-face Perron mode. These are proof-route stops, not
+  reachability or actual-trajectory counterexamples.
+- **Open:** A graph-size-independent warmup bound on the realized
+  endpoint-seeded changing-face path trajectory; the all-time kernel question
+  for larger constants; and the actual spider admission profile.
+
+## Central blocker
+
+Characterize the actual residual profile after a prefix admission and one
+stable-face prox solve. The full nonnegative cone is too broad, while the
+existing transported-center path profiles concern a different recurrence and
+cannot be imported directly.
 
 ## Dependencies and reusable outputs
 
@@ -96,7 +108,7 @@ case now fails through five warmups; no growing family is proved.
   `sec:path-spider-targets`.
 - Next concrete action: derive the actual endpoint-prefix admission residual
   row by row, then test/prove its one-warmup trigger sequence; separately
-  vary star arm count and `q,rho` to seek a growing reachable warmup family.
+  derive the center/arm residual for an actual spider admission.
 - Stop/go test: prove an all-time constant for the realized profile, or give
   an exact reachable family whose minimal safe warmup grows.
 
@@ -112,6 +124,9 @@ case now fails through five warmups; no growing family is proved.
 - Known gaps: finite horizon passes are not all-time proofs; the path
   basis-column cone witnesses are not claimed reachable; one star does not
   prove asymptotic growth.
+- Known gaps: finite horizon passes are not all-time proofs; the basis-column
+  cone witnesses are not claimed reachable; actual spider admission has not
+  been analyzed.
 
 ## Repository handoff
 

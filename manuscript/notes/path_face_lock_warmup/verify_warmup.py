@@ -207,7 +207,8 @@ def main() -> None:
         q = Rat(1, args.q_scale * n)
         m = symmetric_spider_map(args.spider_arms, args.spider_length, q)
         records = [
-            audit_map(m, q, warmup, args.horizon) for warmup in range(1, args.max_warmup + 1)
+            audit_map(m, q, warmup, args.horizon)
+            for warmup in range(1, args.max_warmup + 1)
         ]
         print(
             {

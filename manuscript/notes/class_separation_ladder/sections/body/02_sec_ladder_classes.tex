@@ -1,0 +1,138 @@
+\section{The three classes, output maps, and the hard instance}
+\label{sec:ladder-classes}
+
+\subsection*{The classes}
+
+\begin{definition}[Monotone, signed-step, and signed-relaxation classes]
+\label{def:ladder-classes}
+All three classes share the state \eqref{eq:ladder-state}, the primitive
+\eqref{eq:ladder-primitive}, the charge $d_{u}$, the instance, and the
+guarantee \eqref{eq:ladder-guarantee}. They differ in one constraint each.
+\begin{itemize}[leftmargin=2.2em]
+    \item $\Mpos$ (\emph{monotone push}): $0<\delta\le r_{u}$ at every
+        operation. Equivalently, steps are positive and $r\ge0$ is preserved.
+        This class contains lazy and non-lazy \APPR{} under every ordering,
+        damped push with $\omega\le1$, Jacobi sweeps, and partial or
+        below-threshold pushes.
+    \item $\Mpm$ (\emph{signed step}): $\delta\in\R$ arbitrary, subject only
+        to $r\ge0$ after every operation. This class contains $\Mpos$ together
+        with anti-pushes (``pumping'').
+    \item $\Rpm$ (\emph{signed relaxation}): $\delta=\omega r_{u}$ with
+        $\omega\in(0,2)$, and $r$ otherwise unrestricted. This class contains
+        Gauss--Seidel ($\omega=1$), SOR and CF-Push phase II including
+        $\omega^{\star}$, Gauss--Southwell, and adaptive, per-vertex or
+        randomized $\omega$.
+\end{itemize}
+\end{definition}
+
+The three sit in a lattice: $\Mpos=\Mpm\cap\Rpm$, because a positive step
+keeping $r_{u}\ge0$ is exactly $\omega\in(0,1]$; and neither of $\Mpm$,
+$\Rpm$ contains the other, since anti-pushes have $\delta/r_{u}\le0$ while
+over-relaxation violates $r\ge0$. By \Cref{lem:ladder-energy} the constraint
+$\omega\in(0,2)$ is precisely pathwise energy dissipation, so $\Rpm$ is the
+class of one-hop updates that never increase the error energy. Dropping that
+axiom too leaves the unrestricted one-hop writer, which is
+\Cref{sec:ladder-elimination}.
+
+\begin{definition}[One-hop output maps]
+\label{def:ladder-output-maps}
+For $B\ge0$, let $\OB$ be the set of matrices $M$ with $M\ge0$,
+$M_{uw}=0$ unless $w\in\mathcal N(u)\cup\{u\}$, and column mass
+$\sum_{u}M_{uw}\le B$ for every $w$. The reported output is
+$\widehat z=z+Mr$. The choice $B=0$ is $\widehat z=z$.
+\end{definition}
+
+\paragraph{Why the comparison is fair.}
+Both lower bounds below are stated primarily for the plain output
+$\widehat z=z$: the same output map, on the same instance, under the same
+guarantee and the same work charge, so that the \emph{only} difference between
+the classes compared in \Cref{sec:ladder-ladder} is the class axiom. Output
+post-processing is then handled symmetrically as an extension of each bound.
+\Cref{thm:ladder-monotone-lower-bound} tolerates every $M\in\OB$ up to the
+escape threshold $B<(1-\epsppr\vol(V))/\galpha$, and
+\Cref{prop:ladder-residual-mass-cap} tolerates
+$B\le\tfrac{1}{16}\sqrt{(1+\alpha)/\alpha}$. The thresholds differ because
+the classes do. What bounds the admissible range from above is the same for
+every class:
+
+\begin{proposition}[Universal zero-work escape; \statusimported]
+\label{prop:ladder-escape}
+On the centre-seeded star of \eqref{eq:ladder-hard-instance} with
+$\alpha<3/4$, for every $B\ge1-\epsppr\vol(V)$ in the mass scale --- that is,
+every $\galpha B\ge1-\epsppr\vol(V)$ in the scale of
+\Cref{def:ladder-output-maps} --- there is an $M\in\OB$ with
+$\errop(Me_{c})\le\epsppr$ at $\Work=0$.
+\end{proposition}
+
+\noindent
+This is Proposition~1.3 of the source package \texttt{i2d}, whose proof runs
+through the transport characterization recalled next; it is used here, not
+re-derived. Its role is to delimit the range in which any lower bound of any
+kind can live, which is why every $B$-dependent statement below is scoped
+strictly below the threshold.
+
+\begin{proposition}[Transport characterization; \statusimported]
+\label{prop:ladder-transport}
+Fix a state $(z,r)$ with $r\ge0$. There is an $M\in\OB$ with
+$\errop(z+Mr)\le\epsppr$ if and only if for every $S\subseteq V$,
+\begin{equation}
+    \sum_{u\in S}\pos{\pr(r)_{u}-\epsppr d_{u}}
+    \;\le\;
+    B\cdot r\bigl(\mathcal N(S)\cup S\bigr).
+    \label{eq:ladder-transport-cut}
+\end{equation}
+\end{proposition}
+
+\noindent
+Again \texttt{i2d} (Lemma~1.2), by Gale--Hoffman feasibility for the
+bipartite transportation problem with row demands
+$\pr(r)_{u}-\epsppr d_{u}$ and column capacities $Br_{w}$. The consequence
+that matters here is structural: on a graph of radius one around the seed,
+$r(\mathcal N(S)\cup S)=\norm{r}_{1}$ for every nonempty $S$, so $S=V$ is the
+only binding cut and \emph{the entire output-map question collapses to the
+single scalar $B$}. That is why the star can carry a clean class comparison
+in which output post-processing is a one-parameter family rather than a
+confounder.
+
+\subsection*{The hard instance}
+
+\begin{equation}
+    G=K_{1,m}\ \text{with centre }c\text{ and leaf set }L,
+    \qquad
+    v=c,
+    \qquad
+    m=\floor{\frac{1}{8\epsppr}},
+    \qquad
+    \epsppr\le\frac{1}{16},
+    \label{eq:ladder-hard-instance}
+\end{equation}
+so that $1/(16\epsppr)\le m\le1/(8\epsppr)$, $\vol(V)=2m$,
+$\epsppr\vol(V)\le1/4$ and $\epsppr m\le1/8$. This is the instance of
+\texttt{eq:hard-star-size} in the active manuscript. Eliminating the leaves
+from $H\pi=\galpha e_{c}$ gives the closed forms
+\begin{equation}
+    \pi_{c}=\frac{\galpha}{1-\calpha^{2}}=\frac{1+\alpha}{2},
+    \qquad
+    \pi_{l}=\frac{\calpha\pi_{c}}{m}=\frac{1-\alpha}{2m}
+    \quad(l\in L).
+    \label{eq:ladder-star-closed-forms}
+\end{equation}
+
+\begin{observation}[The instance is semantically nontrivial]
+\label{obs:ladder-nontrivial}
+For $\alpha<3/4$ one has $\pi_{u}/d_{u}>\epsppr$ at every vertex, since
+$\pi_{l}=(1-\alpha)/(2m)\ge4(1-\alpha)\epsppr>\epsppr$. Hence
+$S_{\epsppr}=V$: every correct output must write $m+1$ nonzero coordinates,
+which gives the universal floor
+\begin{equation}
+    \Work\ \ge\ m\ \ge\ \frac{1}{16\epsppr}
+    \label{eq:ladder-output-floor}
+\end{equation}
+for \emph{any} algorithm whatsoever.
+\end{observation}
+
+\noindent
+\Cref{obs:ladder-nontrivial} is worth isolating, because it is exactly what
+the long-spider construction of \texttt{thm:cf-spider-lower} does not have:
+there $S_{\epsppr}=\emptyset$ in the relevant regime, so the all-zero vector
+is a valid output. See \Cref{sec:ladder-manuscript-relation}.

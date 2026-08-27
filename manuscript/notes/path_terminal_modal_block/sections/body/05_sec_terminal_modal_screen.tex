@@ -1,0 +1,125 @@
+\section{Deterministic screen}
+\label{sec:terminal-modal-screen}
+
+The note-local script \texttt{verify.py} reconstructs every singleton
+admission using a Thomas solve for each transported restricted optimum, then
+runs the literal projected full-face recurrence.  It records both the first
+global crossing $R_k\le q^3/5$ and the first literal corrected test
+$\min r_k-\max(0,\max r_k)\ge-q^3/5$.  It separately checks the minimum raw
+projection and $p_k-\delta_k\one$ margins.  It uses deterministic float64
+arithmetic and therefore supplies measurements, not exact or asymptotic proof.
+On the exact band $1\le s\le H_m$, it also reports and checks the combined
+quantity
+\[
+ \max_s\frac{|C_{2s}-G_{2s}|+|D_{2s}|}{|G_{2s}|}\le\frac1{64},
+\]
+with a vacuous label when $H_m=0$.  The separately displayed ``modal defect''
+uses the wider diagnostic band described below and is not that direct check.
+The script independently computes $D_h$ from both the first-step formula and
+the exact identity $q\cot(\phi_h)V_h$.  It also directly checks the proved
+position and velocity bounds
+\eqref{eq:terminal-modal-entry-position-profile}--
+\eqref{eq:terminal-modal-entry-velocity-profile} on $H_m$.
+
+\begin{center}
+\begin{tabular}{@{}r|rrrrrrr@{}}
+$m$ & $\norm{r_0}_{1,D}/q^2$ & $R_0/q^{5/2}$
+& $\norm{r_0-g}_{1,D}/q^2$ & modal defect & $qk_{\rm range}$
+& $qk_{\rm cert}$
+& margin$/q^2$\\
+\hline
+128  & .972971 & 1.497735 & .033572 & .00814 & 3.123535 & 3.733887 & 7.7761\\
+256  & .972979 & 1.498840 & .033573 & .00808 & 3.871094 & 3.985840 & 7.7776\\
+512  & .972983 & 1.499267 & .033574 & .00805 & 4.366577 & 4.366577 & 7.7784\\
+1024 & .972985 & 1.499392 & .033574 & .00803 & 4.713074 & 4.713074 & 7.7788\\
+2048 & .972986 & 1.499391 & .033574 & .00802 & 5.017151 & 5.017151 & 7.7790\\
+\end{tabular}
+\end{center}
+
+Here ``modal defect'' is the maximum of
+$|C_{2s}-G_{2s}|/|G_{2s}|$ and $|D_{2s}|/|G_{2s}|$ over
+$1\le s\le\lfloor\sqrt{m/\log m}\rfloor$, a wider band than the conditional
+theorem needs.  The final margin is the smaller of the raw-projection and
+unclipped-envelope margins through the literal certificate.  For $m=128,256$,
+the first range crossing has a negative residual maximum and the minimum
+remains below $-q^3/5$; it is therefore not a literal certificate.  For the
+other displayed sizes, the two events coincide.  This distinction is why the
+script evaluates both tests rather than silently identifying them.
+
+The following additional quantities are measured on the same wider band;
+they are not asymptotic claims.
+\begin{center}
+\begin{tabular}{@{}r|rrr@{}}
+$m$ & $\max m|C_{2s}-G_{2s}|/\alpha$
+& $\max m|V_{2s}+G_{2s}/5|/\alpha$ & $D_2/G_2$\\
+\hline
+128  & .000880 & .194057 & -.008138\\
+256  & .000582 & .191695 & -.008078\\
+512  & .000431 & .190351 & -.008046\\
+1024 & .000355 & .190384 & -.008030\\
+2048 & .000317 & .190454 & -.008022\\
+\end{tabular}
+\end{center}
+Thus every nonvacuous finite $H_m$ check agrees with the proved asymptotic
+position constant $1/256$ and the proved velocity constant $1/4$.
+At fixed $s=1$, the signed velocity
+correction $m(V_2+G_2/5)/\alpha$ ranges from $-.189017$ to $-.190454$, and
+$D_2/G_2$ remains near $-.008$.  These finite observations suggest a
+nonzero continuum correction rather than an $o(1)$ quadrature error, but they
+do not assert existence or value of any limit.
+
+For the single mode $s=1$, the same float64 replay gives the following
+five-piece decomposition from the end of
+\cref{sec:terminal-modal-admission}.  Here $B$ is the homogeneous/early base
+with the ideal packet removed, $U_0$ is the constant-$3q^3/40$ response,
+$\Delta U$ is the remaining monotone-trace response, $M$ is the small-mass
+response, and $E$ is the final degree/endpoint correction.  The first table
+is normalized by $q^2$ and sums to $m(C_2-G_2)/q^2$.
+\begin{center}
+\begin{tabular}{@{}r|rrrrrr@{}}
+$m$ & $B$ & $U_0$ & $\Delta U$ & $M$ & $E$ & sum\\
+\hline
+128  & -.000084 & -.000838 & .000371 & -.000230 & -.000098 & -.000880\\
+256  & -.000044 & -.000625 & .000369 & -.000233 & -.000049 & -.000582\\
+512  & -.000023 & -.000517 & .000368 & -.000234 & -.000024 & -.000431\\
+1024 & -.000011 & -.000463 & .000367 & -.000235 & -.000012 & -.000355\\
+\end{tabular}
+\end{center}
+The corresponding velocity-numerator pieces are normalized by $q^3$ and sum
+to $m(V_2+G_2/5)/q^2$:
+\begin{center}
+\begin{tabular}{@{}r|rrrrrr@{}}
+$m$ & $B$ & $U_0$ & $\Delta U$ & $M$ & $E$ & sum\\
+\hline
+128  & .717775 & -1.516549 & .039311 & .003499 & .566947 & -.189017\\
+256  & .735571 & -1.535123 & .039470 & .002783 & .567414 & -.189885\\
+512  & .743789 & -1.543427 & .039539 & .002413 & .567455 & -.190233\\
+1024 & .747720 & -1.547326 & .039570 & .002225 & .567427 & -.190384\\
+\end{tabular}
+\end{center}
+These are measured decompositions, not asymptotic limits.  In particular,
+the ideal packet lies in the homogeneous base; the constant-$U$ term is a
+signed correction and does not generate $g$.  The velocity table also shows
+why separate absolute bounds on all five pieces cannot prove the profile
+constant: the leading cancellation must be retained.
+
+The same finite screen also finds $c=r_0^x-g$ coordinatewise negative for
+every displayed size: over $m=128,\ldots,2048$, $c/q^3$ lies between about
+$-1.052$ and $-0.168$.  The velocity source $w$ from
+\eqref{eq:terminal-modal-propagator-data} is signed, with extrema near
+$\pm3.64q^3$ and weighted mean about $.060q^3$.  These are measured facts at
+the five displayed sizes only.  They suggest an early/late proof split:
+retain one-sided cancellation before diffusion, then use damping and the
+low-mode profiles later.  No such uniform split is proved here.
+
+The entry constants are explained by the ideal packet:
+$\norm{g}_{1,D}/q^2\to e^{-1/16}$ and
+$\operatorname{range}(g)/q^{5/2}\to
+2e^{-1/16}\sqrt{2/\pi}$.  The measured residual has a small, spatially smooth
+remainder.  This is evidence for the measured packet approximation, not a
+separate proof of the entry profiles.  By
+\cref{lem:terminal-modal-ideal-sign}, the ideal evolution never
+creates a positive residual maximum.  A possible route to the regime lemma is
+therefore a global supremum or variation bound on the propagated literal
+remainder; the present screen supplies only finite measured evidence for that
+route.

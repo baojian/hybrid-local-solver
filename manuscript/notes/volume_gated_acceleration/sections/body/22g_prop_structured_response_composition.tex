@@ -1,0 +1,206 @@
+\subsection{Structured exact responses close the comparator ledger}
+\label{sec:structured-response-composition}
+
+The exact-optimum comparator in
+\cref{cor:complete-gate-exact-optimum-comparator} removes fixed-face holds,
+but its dense implementation still pays a cubic response bill.  The next
+result separates that representation cost from the already-closed gate
+chronology.  Throughout this subsection the arithmetic is exact-real and
+\begin{equation*}
+  \alpha=q^2,
+  \qquad \rho=\tau=\frac q5,
+  \qquad 0<q<1.
+\end{equation*}
+
+\begin{proposition}[Charged structured-response composition]
+\label{prop:complete-gate-structured-response-composition}
+Retain the finite-graph point-seed hypotheses and the changed control policy
+of \cref{cor:complete-gate-exact-optimum-comparator}.
+
+\begin{enumerate}[label=(\roman*)]
+\item Suppose a response backend realizes the actual nested trace of this
+  comparator and, on every visited face $U$, exactly materializes
+  $z_U^\star$, returns the complete set of genuinely violating boundary
+  rows, and charges all response arithmetic, old-face and boundary reads,
+  degree queries, materialized-state writes, and gate control.  If its
+  cumulative response, materialization, and gate work is
+  \begin{equation}
+    O\!\left(\sum_{U\ \text{ visited}}\vol(U)\right),
+    \label{eq:structured-response-conditional-charge}
+  \end{equation}
+  its persistent and transient state is $O(\max_U\vol(U))$, and final
+  validation and output are charged once, then the comparator terminates
+  with PPR error at most $2q/5$ in total work $O(q^{-2})$, using
+  $O(q^{-1})$ persistent and transient cells and emitting $O(q^{-1})$
+  cells.  This clause is a conditional ledger, not a construction of such a
+  backend on arbitrary graphs.
+
+\item On an endpoint-seeded path, the append-only tridiagonal response
+  \cref{eq:path-append-ldl,eq:path-response-apply} satisfies (i)
+  unconditionally.  Even if the implementation performs a complete reverse
+  solve, writes every coordinate of the exact restricted optimum (including
+  the coordinatewise map to $z_U^\star$), and scans the whole active
+  prefix and boundary on every face, its total exact-real work is
+  $O(q^{-2})$ and its storage and terminal output are $O(q^{-1})$.
+  No response, scan, or intermediate state write is hidden in this bound.
+
+\item On every finite tree, a fresh leaf-elimination solve on each comparator
+  face, followed by full materialization and the complete gate scan, satisfies
+  (i) unconditionally.  Its total exact-real work is $O(q^{-2})$ and its peak
+  storage and terminal output are $O(q^{-1})$.
+
+\item More generally, suppose every biconnected block of the ambient graph
+  has at most $b$ vertices.  Recomputing the block--cut forest on every face
+  and eliminating leaf blocks by dense exact arithmetic gives comparator work
+  $O(b^3q^{-2})$ and peak response storage $O(b^2q^{-1})$, with
+  $O(q^{-1})$ terminal output.  Thus the literal comparator is
+  product-scale up to polylogarithms whenever
+  $b=\operatorname{polylog}(1/q)$; no supplied block decomposition is
+  assumed.
+
+\item The activation-once endpoint-path solver of the companion
+  \texttt{incremental\_active\_set\_sdd} note realizes the same exact gate
+  trace more strongly: it appends one constant-size forward record per
+  admission, queries the only boundary row from the endpoint record, and
+  performs one terminal reverse substitution.  Under the exact variable and
+  parameter map below, its total charged work is $O(q^{-1})$, including
+  adjacency exposure, terminal validation, materialization, and output.
+\end{enumerate}
+In particular, trees and polylogarithmic-size biconnected blocks admit an
+unconditional product-scale implementation of the exact-optimum comparator;
+on endpoint paths clause (v) is output-linear.  None of the five clauses
+changes or closes the logarithmic
+hold question for the named fixed-step candidate-envelope recurrence.
+\end{proposition}
+
+\begin{proof}
+The comparator visits exactly one initial face and one new face after every
+nonempty admission batch.  Its batches are disjoint subsets of
+$S_\rho\setminus U_0$, and every visited face is contained in $S_\rho$.
+Hence
+\begin{equation}
+ N_{\rm face}\leq\frac5q+1,
+ \qquad
+ \max_U\vol(U)\leq\frac5q,
+ \qquad
+ \sum_{U\ \text{ visited}}\vol(U)
+ \leq\left(\frac5q+1\right)\frac5q
+ \leq\frac{30}{q^2}.
+ \label{eq:structured-response-face-sum}
+\end{equation}
+The last quantity is at most six times the product target
+$1/(\rho\sqrt\alpha)=5/q^2$.  Reading each finally admitted adjacency row
+once, the terminal certificate, and the terminal sparse-vector output cost
+$O(q^{-1})$.  The assumptions in (i), together with
+\cref{eq:structured-response-face-sum}, therefore charge every remaining
+operation and prove the stated work and memory bounds.  Correctness and the
+$2q/5$ semantic error are exactly
+\cref{cor:complete-gate-exact-optimum-comparator}.
+
+On an endpoint path every active set is a prefix.  Indeed, outside a prefix
+only its immediate successor has an incident active neighbor; every more
+distant nonseed row has positive KKT value $\alpha\rho\sqrt{d_i}$.  Thus a
+complete all-violations gate admits either that one successor or nobody, so
+there are no nonprefix or multirow batches.  Appending
+\cref{eq:path-append-ldl} costs constant work.  On each face,
+\cref{eq:path-response-apply} is one complete reverse pass and hence costs
+$O(|U|)\leq O(\vol(U))$, including the writes that materialize
+the exact optimum and map it coordinatewise to $z_U^\star$.  A deliberately
+literal active-prefix and boundary scan has the
+same bound.  Summing with \cref{eq:structured-response-face-sum}, while
+charging factor records, scratch state, final validation, and output as in
+\cref{prop:path-implicit-transport-ledger}, proves (ii).  Notice that this
+changed policy performs no fixed-face recurrence step and no estimate-center
+transport; its repeated writes are exactly the per-face optimum
+materializations just charged.
+
+For (iii), the point-seed trace starts from a connected singleton, and adding
+boundary vertices preserves a connected induced subtree.  On a tree,
+eliminate the leaves of $Q_{UU}$ toward the seed in the symmetric $x$
+coordinates.  Every leaf pivot updates
+only its parent diagonal and right-hand side, so the forward elimination and
+reverse substitution each cost $O(|U|)$ exact operations and cells.  The
+reverse pass writes $x_U^\star$ and the coordinatewise conversion
+$z_U^\star=D_U^{-1/2}x_U^\star$ costs one more charged pass.  Scanning the active incidences
+finds every boundary row in $O(\vol(U))$ work.  Summing over faces by
+\cref{eq:structured-response-face-sum} proves (iii), including materialized
+state and gate writes.
+
+For (iv), first find the block--cut forest of the current induced graph by a
+charged linear adjacency scan.  Every current biconnected block lies inside
+an ambient biconnected block and hence has at most $b$ vertices.  Eliminate a
+leaf block's nonarticulation vertices by dense exact Gaussian elimination,
+leaving its scalar Schur contribution and transformed load at the parent
+articulation; then continue toward the root and reverse the process to
+materialize the solution.  There are at most $|U|$ blocks, each costs
+$O(b^3)$ arithmetic and $O(b^2)$ factor cells, and the block forest and gate
+scans cost $O(\vol(U))$.  Rebuilding the response on the next face releases
+the previous one, so the peak response storage is
+$O(b^2|U|)=O(b^2q^{-1})$.  Summing the arithmetic over faces gives
+$O(b^3q^{-2})$ and proves (iv).
+
+For (v), put
+\begin{equation}
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ \bar\alpha:=\frac{\alpha}{a}=\frac{2\alpha}{1+\alpha},
+ \qquad
+ M:=D-(1-\bar\alpha)A,
+ \qquad x=D^{1/2}z.
+ \label{eq:structured-response-source-map}
+\end{equation}
+If $r(z):=s-\bar\alpha^{-1}Mz$ is the source-note residue, then the shared
+RPPR KKT vector obeys the exact coordinate identity
+\begin{equation}
+ D^{1/2}\kappa_\rho(D^{1/2}z)
+ =\alpha\bigl(\rho d-r(z)\bigr).
+ \label{eq:structured-response-kkt-map}
+\end{equation}
+The shared exact gate condition
+$\kappa_{\rho,i}< -\alpha\tau\sqrt{d_i}$ is consequently equivalent to
+\begin{equation}
+ r_i(z)>(\rho+\tau)d_i,
+ \label{eq:structured-response-gate-map}
+\end{equation}
+which is the source exact gate with its parameters
+$\lambda=\rho$ and $\kappa=\tau$.  Restricted stationarity maps in the same
+way, so both algorithms visit the same prefixes and make the same terminal
+decision.  The activation-once theorem in
+\texttt{incremental\_active\_set\_sdd} charges
+$O(\operatorname{cvol}(U_T)+d_{\rm next})$, including one final reverse
+materialization and certificate.  Here
+$\operatorname{cvol}(U_T)\leq2\vol(U_T)\leq10/q$ and
+$d_{\rm next}\leq2$, which proves (v).
+\end{proof}
+
+There are also structured product-scale solvers that solve the same terminal
+RPPR task without reproducing the exact-optimum comparator's intermediate
+faces.  The condition-free lazy-response theorem in the companion
+\texttt{delayed\_reflection\_ladder} note finds the exact one-seed RPPR
+solution on every finite tree in
+\begin{equation*}
+ \widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right)
+ =\widetilde O(q^{-2})
+\end{equation*}
+degree work and $O(\vol(S_\rho))=O(q^{-1})$ storage.  It scans every active
+adjacency list once, charges every lazy event through its ancestors, and
+charges one final forest solve and boundary certificate.  The causal
+bounded-block theorem in the same note gives
+$\widetilde O(b^3/(\rho\sqrt\alpha))$ work and
+$O(b\vol(S_\rho))$ storage when every biconnected block has at most $b$
+vertices, without requiring the block decomposition as input.  It is
+product-scale when $b$ is polylogarithmic in $1/q$.
+
+These two response-generated algorithms are unconditional terminal-task
+results on their stated graph classes, but they do not prove a work bound for
+the literal comparator chronology: their support traces are generated by
+their own response events and need not equal its admission batches.  On
+arbitrary cyclic graphs the companion
+\texttt{incremental\_active\_set\_sdd} result is only conditional on an
+implicit interface that reports all violations, updates the exact nested
+state, and materializes the terminal vector within its declared total
+charge.  A dynamic solve or a Schur-energy telescope alone does not maintain
+complete changing-face boundary violations.  Consequently no existing
+result cited here composes into an arbitrary-graph
+$\widetilde O(q^{-2})$ implementation; compressed, matrix-free, iterative,
+approximate, and other non-Cholesky responses remain open there.

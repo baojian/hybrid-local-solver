@@ -6,7 +6,7 @@
 - Shared files changed: this handoff only, as explicitly permitted.
 - Readiness: ready for parent audit and integration; asymptotic questions are
   explicitly left open rather than blocking this direction handoff.
-
+  
 ## Current result
 
 The exact Fable entrance gate has been mapped into source-aligned normalized
@@ -53,7 +53,6 @@ retraction changes the trajectory before the witness. The admission residual
 is not the basis column: it has three strictly positive center/seeded/ordinary
 leaf values. Thus a genuine three-orbit admission profile, rather than `e_1`,
 still carries the obstruction.
-
 ## Claim routing
 
 - Ledger candidate: exact trigger reconstruction, graph-uniform first-stage
@@ -62,12 +61,15 @@ still carries the obstruction.
   from `Y>=0` alone after a fixed small number of prox solves. The star stop
   is now an actual-trajectory result through five warmups; the path basis
   columns are still only cone witnesses.
+  from `Y>=0` alone after a fixed small number of prox solves.
 - Formal dependencies remain `aesp_cd_l1_rppr` and
   `path_terminal_modal_block`; no registry edit is requested.
 - Next falsifiable target: calculate the realized prefix-admission residual
   profile and prove or refute an all-time constant warmup on that narrower
   path state class. For spiders, seek a growing reachable family or prove a
   larger absolute bound; the single 16-arm star does not decide asymptotics.
+  state class; derive the realized center/arm profile after a spider
+  admission.
 
 ## Verification
 
