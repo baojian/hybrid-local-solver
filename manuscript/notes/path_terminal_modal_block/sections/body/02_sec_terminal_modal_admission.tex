@@ -1,0 +1,938 @@
+\section{Exact admission transport}
+\label{sec:terminal-modal-admission}
+
+The optimum transport can be written without a linear solve.  This exposes
+the one scalar increment that remains to be controlled in the admission
+recurrence.  Let $p_n^\star$ denote the normalized restricted optimum on the
+proper prefix $\{v_0,\ldots,v_{n-1}\}$, where $1\le n\le m$, and put
+\begin{equation}
+ \chi=\frac{1-q}{1+q},\qquad
+ f_j=\chi^j+\chi^{-j},\qquad
+ b_n=\frac{\rho-q\chi^n}{\chi^n+\chi^{-n}},\qquad
+ b_0=\frac{\rho-q}{2}.
+ \label{eq:terminal-modal-prefix-parameters}
+\end{equation}
+
+\begin{lemma}[Exact prefix optima and transport; proved here]
+\label{lem:terminal-modal-prefix-optima}
+For $1\le n\le m$ and $0\le j<n$,
+\begin{equation}
+ p_n^\star(j)=q\chi^j-\rho+b_nf_j.
+ \label{eq:terminal-modal-prefix-optimum}
+\end{equation}
+If the formula on the right is evaluated at the ghost coordinate $j=n$,
+its value is zero.  Consequently, for $1\le n\le m$,
+\begin{equation}
+ p_n^\star-[p_{n-1}^\star;0]
+ =(b_n-b_{n-1})f\big|_{\{0,\ldots,n-1\}},
+ \label{eq:terminal-modal-prefix-displacement}
+\end{equation}
+where $p_0^\star$ is empty.  Moreover,
+\begin{equation}
+ 0<b_n-b_{n-1}
+ \le q\operatorname{artanh}q
+ \le\frac{q^2}{1-q^2}.
+ \label{eq:terminal-modal-prefix-increment}
+\end{equation}
+
+The full-path optimum, whose far endpoint has ambient degree one, is
+\begin{equation}
+ p_{m+1}^\star(j)
+ =\frac{q(\chi^j+\chi^{2m-j})}{1-\chi^{2m}}-\rho,
+ \qquad 0\le j\le m.
+ \label{eq:terminal-modal-full-optimum}
+\end{equation}
+Thus the final displacement from the last proper prefix is also explicit: if
+$A_\star=q/(1-\chi^{2m})$ and
+$B_\star=q\chi^{2m}/(1-\chi^{2m})$, then
+\begin{equation}
+ p_{m+1}^\star-[p_m^\star;0]
+ =(A_\star-q-b_m)\chi^j+(B_\star-b_m)\chi^{-j},
+ \quad 0\le j\le m.
+ \label{eq:terminal-modal-final-displacement}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Set $y_j=p_n^\star(j)+\rho$.  On every two-sided interior row, the
+restricted-optimum equation is homogeneous and has characteristic roots
+$\chi$ and $\chi^{-1}$, so $y_j=A\chi^j+B\chi^{-j}$.  The seed row gives
+$A-B=q$.  The missing edge at the moving frontier is exactly the ghost
+condition $y_n=\rho$.  Hence $B=b_n$, $A=b_n+q$, which proves
+\eqref{eq:terminal-modal-prefix-optimum}.  The preceding prefix formula has
+ghost value zero at the newly admitted coordinate, so subtraction proves
+\eqref{eq:terminal-modal-prefix-displacement}.
+
+For the increment, write $b_n=q\beta(\chi^n)$ with
+\[
+ \beta(u)=\frac{u(1/5-u)}{1+u^2}.
+\]
+Because $\chi\ge1-2q$ and $n\le m$,
+$\chi^n\ge\chi^m\ge1-2mq=7/8$.  On $[7/8,1]$, $\beta'<0$ and
+\[
+ -u\beta'(u)=\frac{u(2u+(u^2-1)/5)}{(1+u^2)^2}\le\frac12.
+\]
+Indeed, after clearing the positive denominator, the last inequality is
+equivalent to
+\[
+ (1+u^2)^2-2u\left(2u+\frac{u^2-1}{5}\right)
+ =(1-u^2)\left(1-u^2+\frac{2u}{5}\right)\ge0.
+\]
+Integration from $\chi^n$ to $\chi^{n-1}$ gives
+\[
+ 0<b_n-b_{n-1}\le\frac q2\log\frac1\chi
+ =q\operatorname{artanh}q.
+\]
+The final inequality follows by integrating
+$(1-t^2)^{-1}\le(1-q^2)^{-1}$ for $0\le t\le q$.
+
+On the full path the far-endpoint equation gives
+$B\chi^{-m}=A\chi^m$, while the seed equation still gives $A-B=q$.
+Solving these two equations proves \eqref{eq:terminal-modal-full-optimum};
+subtracting the proper-prefix formula, including its zero ghost value at
+$j=m$, proves \eqref{eq:terminal-modal-final-displacement}.
+\end{proof}
+
+The frontier value of the prefix optimum has uniform bounds that will also
+be used in the admission reduction.
+
+\begin{lemma}[Proper-prefix frontier bounds; proved here]
+\label{lem:terminal-modal-frontier-bounds}
+Put $P_n=p_n^\star(n-1)$.  For $1\le n\le m$, $P_n$ is nonincreasing in $n$
+and
+\begin{equation}
+ \frac{3488}{1921}q^2\le P_n\le\frac{33}{16}q^2.
+ \label{eq:terminal-modal-frontier-bounds}
+\end{equation}
+More precisely, if $t=\chi^n$, then
+\begin{equation}
+ \frac{P_n}{q^2}=\frac{2}{1+q}
+ \frac{t(1+t/5)/\chi+t-1/5}{1+t^2}.
+ \label{eq:terminal-modal-frontier-optimum}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Direct substitution in \eqref{eq:terminal-modal-prefix-optimum} proves
+\eqref{eq:terminal-modal-frontier-optimum}.  The fraction there is increasing
+in $t$: after differentiation its numerator is
+$(1+\chi^{-1})(1-t^2+2t/5)>0$.  Because $t=\chi^n$ decreases with $n$, this
+also proves monotonicity.
+
+For the lower bound, Bernoulli's inequality and $mq=1/16$ give
+$t\ge\chi^m\ge(1-2q)^m\ge7/8$.  Dropping the favorable factor
+$\chi^{-1}\ge1$, using that
+\[
+ \frac{2t+t^2/5-1/5}{1+t^2}
+\]
+is increasing on $[7/8,1]$, and using $q\le1/16$ yield
+\[
+ \frac{P_n}{q^2}
+ \ge\frac{32}{17}\frac{109}{113}
+ =\frac{3488}{1921}.
+\]
+For the upper bound, evaluate the increasing fraction at $t=1$.  The result
+is
+\[
+ \frac6{5(1-q)}+\frac4{5(1+q)}
+ \le\frac{864}{425}<\frac{33}{16},
+\]
+where the middle expression is increasing on $0\le q\le1/16$.
+\end{proof}
+
+There is also an exact local factorization behind the admission analysis.
+On a two-sided interior stencil let $\mathcal S_\pm$ be the two unit shifts
+and
+\begin{equation}
+ \mathcal R_\pm=\frac{1-q}{2}(I+\mathcal S_\pm).
+ \label{eq:terminal-modal-directional-operators}
+\end{equation}
+If $A_n$ denotes any projection-inactive fixed-face residual sequence, its
+two-sided interior recurrence factors as
+\begin{equation}
+ A_{n+1}=(\mathcal R_++\mathcal R_-)A_n
+ -\mathcal R_+\mathcal R_-A_{n-1}.
+ \label{eq:terminal-modal-directional-factorization}
+\end{equation}
+Indeed, expanding the shifts gives the two coefficients in the fixed-face
+recurrence: $\mathcal R_++\mathcal R_-$ is its first-order coefficient and
+$\mathcal R_+\mathcal R_-$ is its second-order coefficient.  Thus
+$E_{n+1}:=A_{n+1}-\mathcal R_+A_n$ obeys
+$E_{n+1}=\mathcal R_-E_n$ away from boundaries.
+
+\begin{lemma}[Proper-prefix one-step chronology; proved here]
+\label{lem:terminal-modal-admission-chronology}
+For every $m\ge64$, at every proper prefix
+$\{v_0,\ldots,v_{n-1}\}$, $1\le n\le m$, the raw proximal point is strictly
+positive, the post-step active residual has nonpositive maximum, and the
+unique exterior row $v_n$ has normalized residual below $-q^3/5$.  Thus
+projection is inactive, the safe correction is zero, and the complete gate
+admits exactly the next singleton.
+\end{lemma}
+
+We first give an exact reduction of the statement.  Define the
+\emph{linear candidate replay} by starting from the same zero state, using
+the raw point
+\[
+ \widetilde p_n=y_n-r_n(y_n),\qquad
+ y_n=\frac{p_n^{\rm in}+qv_n^{\rm in}}{1+q},
+\]
+at every proper prefix, zero-padding $\widetilde p_n$, and applying the stated
+center update and exact optimum transport when the next singleton is
+admitted.  This is a recursive algebraic trajectory; it does not assume that
+the projected algorithm follows it.  On this candidate put
+\begin{equation}
+ R_n=r_n(y_n),\qquad A_n=r_n(p_n^{\rm in}),\qquad X_n=-A_n,
+ \qquad c_1=\frac{1-q}{2},
+ \label{eq:terminal-modal-chronology-residuals}
+\end{equation}
+and, on coordinates shared by two consecutive prefixes,
+\begin{equation}
+ D_n(j)=X_n(j)-c_1X_{n-1}(j),\qquad
+ 2\le n\le m,\quad 0\le j\le n-2.
+ \label{eq:terminal-modal-shared-sign}
+\end{equation}
+
+\begin{lemma}[Exact chronology reduction; proved here]
+\label{lem:terminal-modal-chronology-reduction}
+For the named parameters, if
+$D_n(j)\ge0$ throughout the range in
+\eqref{eq:terminal-modal-shared-sign}, then the projected execution agrees
+with the linear candidate at every proper prefix and satisfies
+\cref{lem:terminal-modal-admission-chronology}.  Thus the only remaining
+proper-prefix sign target is the uniform shared-coordinate inequality
+\eqref{eq:terminal-modal-shared-sign}; the raw-frontier, post-residual, and
+outside-gate implications require no additional asymptotic hypothesis.
+\end{lemma}
+
+\begin{proof}
+Write $\sigma_n=\widetilde p_n(n-1)$ for the raw frontier value.  Suppose the
+candidate has agreed with the projected execution through prefix $n-1$ and
+$R_{n-1}\le0$.  At entry to prefix $n\ge2$, exact center transport gives
+\[
+ y_n(n-1)=\frac{qP_n}{1+q},\qquad
+ y_n(n-2)=\frac{2\sigma_{n-1}
+                 +q(b_n-b_{n-1})f_{n-2}}{1+q}.
+\]
+Since $\sigma_{n-1}\ge y_{n-1}(n-2)=qP_{n-1}/(1+q)$,
+\cref{lem:terminal-modal-frontier-bounds} and
+$f_{n-2}/f_{n-1}\ge\chi$ imply
+\begin{equation}
+ \frac{y_n(n-2)}{y_n(n-1)}
+ \ge\frac2{1+q}+\chi=\frac{3-q}{1+q}.
+ \label{eq:terminal-modal-frontier-ratio}
+\end{equation}
+The degree-two frontier row of $B_n=I-\widehat Q_n$ therefore gives
+\begin{align}
+ \frac{\sigma_n}{q^3}
+ &\ge \frac{(1-q)(5+q)}{4(1+q)}\frac{P_n}{q^2}-\frac15
+ \notag\\
+ &\ge \frac{1215}{1088}\frac{3488}{1921}-\frac15
+ =:L=\frac{596861}{326570}.
+ \label{eq:terminal-modal-raw-frontier-lower}
+\end{align}
+Here $(1-q)(5+q)/(4(1+q))$ is decreasing on this parameter interval, so its
+minimum is the displayed $1215/1088$.
+The base value $\sigma_1=q^2-q^3/5$ satisfies the same lower bound.  Since
+\[
+ L-\frac{2048}{1275}
+ =\frac{1084499}{4898550}>0,
+ \qquad
+ \frac4{5\eta}\le\frac{2048}{1275},
+\]
+the next degree-two outside residual
+$q^3/5-\eta\sigma_n/2$ is strictly below $-q^3/5$.  At $n=m$ the next row is
+the degree-one endpoint, whose threshold is only $2/(5\eta)$, so the same
+bound is more than sufficient.
+
+It remains to prove that $R_n\le0$.  On every shared coordinate, the exact
+transport identity and the fact that the optimum displacement is harmonic on
+old rows give
+\begin{equation}
+ R_n(j)=\frac{2A_n(j)-(1-q)A_{n-1}(j)}{1+q}
+       =-\frac{2D_n(j)}{1+q}\le0.
+ \label{eq:terminal-modal-shared-average-residual}
+\end{equation}
+At the new frontier, direct evaluation of the padded old error and the
+optimum displacement instead gives
+\begin{equation}
+ R_n(n-1)=\frac{-\eta\sigma_{n-1}
+                 +q\eta P_{n-1}/2+q^3/5}{1+q}.
+ \label{eq:terminal-modal-frontier-average-residual}
+\end{equation}
+Using \eqref{eq:terminal-modal-raw-frontier-lower},
+$P_{n-1}/q^2\le33/16$, and $\eta\ge255/512$ shows that the numerator divided
+by $q^3$ is at most
+\[
+ \frac{255}{512}\left(-L+\frac{33}{32}\right)+\frac15
+ =-\frac{30946901}{157368320}<0.
+\]
+The base residual is $R_1=-q^2+q^3/5<0$, completing the induction for the
+average residual.
+
+Finally, $B_n$ is entrywise nonnegative and the affine residual identity is
+\[
+ r_n(\widetilde p_n)=B_nR_n\le0.
+\]
+Hence the safe correction is exactly zero.  The invariant
+$v_n^{\rm in}\ge p_n^{\rm in}$ starts at equality and propagates: from
+$R_n\le0$ one has
+$\widetilde p_n\ge y_n\ge p_n^{\rm in}$, the center update is at least
+$\widetilde p_n$, and the optimum displacement is strictly positive.
+Thus $y_n$ and the raw point are strictly positive for $n\ge2$; the base raw
+point is positive directly.  Projection is inactive, the strict outside
+test admits the unique adjacent singleton, and the projected execution
+continues to agree with the candidate.
+\end{proof}
+
+The shared sign does not follow from a bare positivity-preserving
+recurrence.  Indeed, on the even extension and in the linear regime,
+\eqref{eq:terminal-modal-directional-factorization} gives exactly, with the
+boundary defect $F_{n+1}$ defined in
+\eqref{eq:terminal-modal-boundary-source} below,
+\begin{equation}
+ D_{n+1}^{\rm ev}
+ =c_1(I+\mathcal S_++\mathcal S_-)D_n^{\rm ev}
+  -c_1^2X_{n-1}^{\rm ev}-F_{n+1}^{\rm ev}.
+ \label{eq:terminal-modal-shared-sign-recurrence}
+\end{equation}
+Both the global negative term and the positive $U_n,2U_n$ entries of
+$F_{n+1}^{\rm ev}$ obstruct a direct maximum-principle induction.  A proof of
+\eqref{eq:terminal-modal-shared-sign} therefore requires the quantitative
+signed moving-frontier cancellation proved below; the finite screen alone
+would not be such a proof.
+
+\subsection{Reflected ideal correction and a positive temporal kernel}
+\label{sec:terminal-modal-chronology-correction}
+
+The shared sign admits a sharper exact reduction.  Define the reflected ideal
+packet on the nonnegative half-line by
+\begin{equation}
+ G_n^{\rm id}(0)=q^2(1-q)^{n-1}2^{1-n},\qquad
+ G_n^{\rm id}(j)=q^2(1-q)^{n-1}2^{-n}\binom{n-1}{j}
+ \quad(1\le j<n),
+ \label{eq:terminal-modal-ideal-prefix-packet}
+\end{equation}
+and put
+\begin{equation}
+ C_n=X_n-G_n^{\rm id},\qquad
+ K_n=C_n-c_1C_{n-1}.
+ \label{eq:terminal-modal-prefix-correction}
+\end{equation}
+The value at zero in \eqref{eq:terminal-modal-ideal-prefix-packet} is doubled
+because it is the restriction of an even packet to the reflected endpoint.
+For $1\le j\le n-2$ Pascal's identity gives
+\begin{equation}
+ G_n^{\rm id}(j)-c_1G_{n-1}^{\rm id}(j)
+ =c_1G_{n-1}^{\rm id}(j)\frac{j}{n-1-j}\ge0,
+ \label{eq:terminal-modal-ideal-prefix-sign}
+\end{equation}
+while the same difference is zero at $j=0$.  Consequently
+\begin{equation}
+ D_n=\bigl(G_n^{\rm id}-c_1G_{n-1}^{\rm id}\bigr)+K_n,
+ \label{eq:terminal-modal-prefix-sign-split}
+\end{equation}
+so $K_n\ge0$ on shared coordinates is sufficient for the target chronology
+sign.  This is a sufficient reduction, not a proof that $K_n$ has that sign.
+
+Here is a residual-only recurrence that makes the remaining interface exact.
+Let $Z_n=-R_n$, let $P_n=p_n^\star(n-1)$, and let
+$Z_n^C$ denote the part left after subtracting the ideal packet.  For
+$2\le n\le m-1$,
+\begin{align}
+ Z_n^C(j)&=\frac{2C_n(j)-(1-q)C_{n-1}(j)}{1+q},
+ &&0\le j\le n-2,
+ \label{eq:terminal-modal-correction-shared-z}\\
+ Z_n^C(n-1)&=\frac{2C_n(n-1)+q^3/5-q\eta P_{n-1}/2}{1+q}.
+ \label{eq:terminal-modal-correction-frontier-z}
+\end{align}
+Writing $B_n=I-\widehat Q_n$, the next correction is exactly
+\begin{align}
+ C_{n+1}(j)&=(B_nZ_n^C)(j),&&0\le j<n,
+ \label{eq:terminal-modal-correction-old-rows}\\
+ C_{n+1}(n)&=\frac\eta2
+ \left(Z_n^C(n-1)+\frac{qP_n}{1+q}\right)-\frac{q^3}{5}.
+ \label{eq:terminal-modal-correction-new-row}
+\end{align}
+These identities concern the algebraic linear candidate and therefore do not
+assume the projected chronology.  To prove them, use
+\eqref{eq:terminal-modal-shared-average-residual} without its sign conclusion
+on old rows and the exact frontier identity
+\eqref{eq:terminal-modal-frontier-average-residual}.  The old post-step
+residual is $B_nR_n$.  At the newly padded row,
+$X_{n+1}(n)=\eta\{Z_n(n-1)+qP_n/(1+q)\}/2-q^3/5$.
+Subtracting \eqref{eq:terminal-modal-ideal-prefix-packet} and using Pascal's
+identity proves \eqref{eq:terminal-modal-correction-shared-z}--
+\eqref{eq:terminal-modal-correction-new-row}.  The transition $1\to2$ is the
+direct base case because no transported center precedes the singleton face.
+
+The correction source is signed, so
+\eqref{eq:terminal-modal-correction-old-rows} is not by itself a positive-
+source proof.  On the reflected line set
+\begin{equation}
+ e_n=\frac{q^3}{5}-\frac{q\eta P_{n-1}}2<0,\qquad
+ u_n=\frac{1-q}{4}e_n,
+ \label{eq:terminal-modal-correction-source-data}
+\end{equation}
+and
+\begin{equation}
+ w_n=u_n+\frac{(1-q)qP_n}{4}-\frac{q^3}{5}.
+ \label{eq:terminal-modal-correction-source-last}
+\end{equation}
+For $4\le n\le m-1$, define the defect from the homogeneous reflected-line
+recurrence by
+\begin{equation}
+ S_{n+1}^C=C_{n+1}^{\rm ev}
+ -(\mathcal R_++\mathcal R_-)C_n^{\rm ev}
+ +\mathcal R_+\mathcal R_-C_{n-1}^{\rm ev}.
+ \label{eq:terminal-modal-correction-source-definition}
+\end{equation}
+Then its positive-side entries are exactly
+\begin{equation}
+ S_{n+1}^C(n-2)=u_n,\qquad
+ S_{n+1}^C(n-1)=2u_n,\qquad
+ S_{n+1}^C(n)=w_n,
+ \label{eq:terminal-modal-correction-source-triplet}
+\end{equation}
+with the reflected triplet at the negative positions and zero elsewhere.
+Indeed, substitute
+\eqref{eq:terminal-modal-correction-shared-z}--
+\eqref{eq:terminal-modal-correction-new-row} into
+\eqref{eq:terminal-modal-correction-source-definition}.  On every row before
+$n-2$ the two old-row stencils cancel the displayed homogeneous recurrence;
+at zero the missing negative neighbor is supplied by even reflection.  The
+last three old/new-row stencils leave, respectively,
+\[
+ \frac{1-q}{4}\left(\frac{q^3}{5}-\frac{q\eta P_{n-1}}2\right),\quad
+ \frac{1-q}{2}\left(\frac{q^3}{5}-\frac{q\eta P_{n-1}}2\right),\quad
+ u_n+\frac{(1-q)qP_n}{4}-\frac{q^3}{5},
+\]
+which are exactly \eqref{eq:terminal-modal-correction-source-triplet}.
+The inequality in
+\eqref{eq:terminal-modal-correction-source-data} follows already from the
+proved lower bound on $P_{n-1}$.  Moreover $u_n=-U_n$ and $w_n=-W_n$ in the
+notation of \eqref{eq:terminal-modal-source-U}--
+\eqref{eq:terminal-modal-source-W}.  Thus at first order as $q\downarrow0$
+the positive-side triplet divided by $q^3$ is
+\begin{equation}
+ \left(-\frac3{40},-\frac3{20},\frac9{40}\right),
+ \label{eq:terminal-modal-correction-leading-triplet}
+\end{equation}
+which has zero mass and polynomial
+$-(3/40)(1-z)(1+3z)$.  The two negative entries rule out a bare
+positivity-preserving source induction.
+
+There is nevertheless no temporal sign loss in passing from a source to the
+desired correction difference.  On the two-sided line define
+\begin{equation}
+ J_0=0,\quad J_1=I,\quad
+ J_k=\sum_{a=0}^{k-1}\mathcal R_+^a\mathcal R_-^{k-1-a}
+ \quad(k\ge1),
+ \label{eq:terminal-modal-correction-green}
+\end{equation}
+and $L_k=J_k-c_1J_{k-1}$.  These are the fundamental Green kernel and its
+contribution to $K_n$, respectively.
+
+\begin{lemma}[Positive correction-difference Green kernel; proved here]
+\label{lem:terminal-modal-correction-positive-green}
+For every $k\ge1$,
+\begin{equation}
+ L_k=\mathcal R_+^{k-1}+c_1\mathcal S_-J_{k-1}.
+ \label{eq:terminal-modal-correction-positive-green}
+\end{equation}
+In particular, $L_k$ has nonnegative Laurent coefficients, its reflected-path
+fold is entrywise nonnegative, and its line-row mass is
+\begin{equation}
+ \frac{k+1}{2}(1-q)^{k-1}.
+ \label{eq:terminal-modal-correction-green-mass}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Commutativity of $\mathcal R_+$ and $\mathcal R_-$ gives
+\[
+ J_k=\mathcal R_+^{k-1}+\mathcal R_-J_{k-1}.
+\]
+Since $\mathcal R_-=c_1(I+\mathcal S_-)$, subtraction of
+$c_1J_{k-1}$ proves
+\eqref{eq:terminal-modal-correction-positive-green}.  Both terms on the
+right have nonnegative Laurent coefficients.  Folding identifies equal
+coefficients and hence preserves nonnegativity.  Finally each
+$\mathcal R_\pm$ has row mass $1-q$, so
+$J_k$ has mass $k(1-q)^{k-1}$; subtracting the mass of
+$c_1J_{k-1}$ gives \eqref{eq:terminal-modal-correction-green-mass}.
+\end{proof}
+
+The leading constant-$U$ derivative trace has an additional exact
+coefficientwise cancellation.  At $q=0$, put $x=z^{-1}$.  The formal
+infinite-past moving-source Green sum---which includes sources before the
+literal trajectory starts---satisfies
+\begin{equation}
+ \sum_{k\ge1}x^kL_k
+ =\frac{x(1-x/2)}{(1-\mathcal R_+x)(1-\mathcal R_-x)}.
+ \label{eq:terminal-modal-correction-green-generating}
+\end{equation}
+Multiplication by the source factor $-(3/40)(1-z)(1+3z)$ cancels one
+$1-x$ factor.  Apart from the monomial locating the final frontier and the
+positive factor $1+3z$, the remaining series is
+\begin{equation}
+ \frac{1-x/2}{(1-x)(1+x/2)}
+ =\frac1{3(1-x)}+\frac2{3(1+x/2)}.
+ \label{eq:terminal-modal-correction-positive-series}
+\end{equation}
+Its coefficient at $x^0$ is one, at $x^1$ is zero, and at $x^r$ for
+$r\ge2$ is
+$1/3+(2/3)(-1/2)^r>0$.  Thus this stationary infinite-past constant-source
+response to the correction difference is coefficientwise nonnegative.  This does
+\emph{not} settle the finite candidate: the early overlapping packets, the
+finite temporal cutoff, reflection/base matching, variation of $U_n$, the
+$M_n=O(q^4)$ mass must still be combined with uniform sign control.  The
+degree-one final endpoint is not part of this proper-prefix $K_n$ target; it
+enters only the later full-face entry-profile decomposition.
+
+The exact $q\downarrow0$ correction recurrence can in fact be solved at every
+prefix.  If $C_n=q^3c_n+O(q^4)$, then, after the direct initialization,
+\begin{align}
+ z_n(j)&=2c_n(j)-c_{n-1}(j),&&0\le j\le n-2,\notag\\
+ z_n(n-1)&=2c_n(n-1)-\frac3{10},
+ \label{eq:terminal-modal-leading-correction-recurrence}\\
+ c_{n+1}|_{[0,n-1]}&=B_0z_n,\qquad
+ c_{n+1}(n)=\frac14z_n(n-1)+\frac3{10},\notag
+\end{align}
+where $B_0$ is the $q=0$ reflected path stencil.  Zero-extend $c_{n-1}$ at its
+new coordinate and put
+$d_n(j)=c_n(j)-c_{n-1}(j)/2$.
+
+\begin{lemma}[Uniform leading correction sign; proved here]
+\label{lem:terminal-modal-leading-correction-sign}
+For every $n\ge2$ and every shared coordinate $0\le j\le n-2$,
+\begin{equation}
+ d_n(j)\ge\frac1{80}.
+ \label{eq:terminal-modal-leading-correction-sign}
+\end{equation}
+Equality holds at $(n,j)=(4,2)$.  In particular the leading correction has a
+strict uniform margin on every coordinate shared by two consecutive
+prefixes.
+\end{lemma}
+
+\begin{proof}
+Multiplying \eqref{eq:terminal-modal-leading-correction-recurrence} by the
+time and space markers $t,x$, and inserting the direct first two prefixes,
+gives
+\begin{equation}
+ \mathcal D(t,x):=\sum_{n\ge1}\sum_{j=0}^{n-1}d_n(j)t^nx^j
+ =\frac{t\mathcal N(t,x)}
+ {20(t-1)(t+2)(tx-1)(t(x+1)-2)},
+ \label{eq:terminal-modal-leading-correction-bivariate}
+\end{equation}
+where $d_1(0):=c_1(0)=-1/5$ and
+\begin{align*}
+ \mathcal N(t,x)={}&10t^5x+5t^4x^2-23t^4x-10t^4
+ +5t^3x^2-29t^3x+20t^3\\
+ &-10t^2x^2+72t^2x+24t^2-24tx-56t+16.
+\end{align*}
+This identity is formal: multiplying by the four denominator factors and
+comparing coefficients is exactly the interior stencil, reflected seed row,
+moving frontier row, and the two direct initial values in
+\eqref{eq:terminal-modal-leading-correction-recurrence}.
+
+The seed coefficients extracted from
+\eqref{eq:terminal-modal-leading-correction-bivariate} are, for $k\ge2$,
+\[
+ d_{2k}(0)=\frac1{10}-\frac1{10}4^{-(k-1)},\qquad
+ d_{2k+1}(0)=\frac1{10}+\frac1{20}4^{-(k-1)}.
+\]
+The omitted direct values are positive.  At $j=1$, the shared-coordinate
+coefficients are $d_{2k+1}(1)=1/10$ for $k\ge1$ and
+$d_{2k}(1)=1/10+4^{-k}$ for $k\ge2$.  Hence the claim holds at $j=0,1$.
+
+For fixed $j\ge2$, coefficient extraction gives
+\begin{equation}
+ \sum_{n\ge j+1}d_n(j)t^{n-j-1}
+ =\frac{3(2-t)(t+3)-2A(t)/(2-t)^j}
+ {40(1-t)(1+t/2)},
+ \qquad
+ A(t)=5t^3-4t^2-16t+18.
+ \label{eq:terminal-modal-leading-correction-fixed-j}
+\end{equation}
+Let $b_k=[t^k]{(1-t)^{-1}(1+t/2)^{-1}}$ and
+\[
+ h_{j,k}=[t^k]\frac{A(t)}{(2-t)^j(1-t)(1+t/2)}.
+\]
+The coefficient of the first term in the numerator of
+\eqref{eq:terminal-modal-leading-correction-fixed-j} is
+\[
+ p_0=18,\qquad p_1=6,\qquad
+ p_k=8+4(-1/2)^k\ge\frac{15}{2}\quad(k\ge2).
+\]
+For $j=2$, partial fractions give
+\[
+ h_{2,k}=2-\frac18(-1/2)^k+\frac{21-10k}{8\,2^k}.
+\]
+Thus $h_{2,0}=9/2$, $h_{2,1}=11/4$, and $h_{2,k}\le2$ for $k\ge2$.
+The identity $(2-t)H_{j+1}=H_j$ gives
+\[
+ h_{j+1,k}=\frac{h_{j,k}+h_{j+1,k-1}}2.
+\]
+Indeed $h_{3,0}=9/4$, $h_{3,1}=5/2$, and for $k\ge2$ the geometric
+convolution with the displayed $j=2$ bounds gives
+$h_{3,k}\le2+2^{-k}\le9/4$.  It follows inductively from the same averaging
+identity that $h_{j,k}\le5/2$ for every $j\ge3$.  Therefore the coefficient
+$(p_k-2h_{j,k})/40$ in
+\eqref{eq:terminal-modal-leading-correction-fixed-j} is at least $9/40$ for
+$k=0$, at least $1/80$ for $k=1$, and at least $1/16$ for $k\ge2$.
+The $k=1,j=2$ coefficient is exactly $1/80$, completing the proof.
+\end{proof}
+
+\input{sections/body/02b_sec_terminal_modal_finite_correction}
+
+A tempting undamped strengthening is already refuted.  The $q=0$ packet obeys
+a one-step Pascal transport, but the literal candidate does not dominate the
+undamped arithmetic-average transport at positive $q$.  At $(n,j)=(5,2)$,
+\begin{equation}
+ X_5(2)-\frac{X_4(2)+X_4(1)}2<0
+ \qquad(0<q\le1/80),
+ \label{eq:terminal-modal-pascal-dominance-refuted}
+\end{equation}
+and the left side divided by $q^3$ tends to $-27/160$.  Thus coefficientwise
+domination by this undamped $q=0$ Pascal comparator is false even though the
+weaker half-retention inequality remains consistent with every finite screen.
+This calculation does not refute domination by the finite-$q$ comparator
+$((1-q)/2)(X_4(2)+X_4(1))$; that stronger damped-Pascal statement is not
+needed for the correction sign just proved.  For completeness, exact elimination of
+the first five prefix optima gives the left side divided by $q^3$ as
+\[
+ \frac{(1-q)\mathcal P(q)}
+ {160(1+q^2)(1+6q^2+q^4)(1+14q^2+q^4)},
+\]
+where
+\[
+\begin{split}
+ \mathcal P(q)={}&-27-28q-580q^2+226q^3-303q^4+602q^5
+ +7392q^6-16012q^7\\
+ &+18855q^8-12904q^9+5844q^{10}-2486q^{11}
+ +547q^{12}-118q^{13}+16q^{14}.
+\end{split}
+\]
+For $q\le1/80$, discarding every negative nonconstant term and evaluating
+the remaining positive terms at $1/80$ gives
+$\mathcal P(q)<-26.999$, proving
+\eqref{eq:terminal-modal-pascal-dominance-refuted} without floating
+arithmetic.
+
+For the remainder of this section take $m\ge64$, so
+\cref{lem:terminal-modal-admission-chronology} applies.  Compute the
+changing-face defect exactly.  Write $p_n^{\rm in}$ for
+the literal state immediately after prefix $n$ is admitted, and define
+\begin{equation}
+ e_n=p_n^{\rm in}-p_n^\star,\qquad
+ A_n=\widehat Q_ne_n=r_n(p_n^{\rm in}),\qquad
+ \Delta_n=b_n-b_{n-1}.
+ \label{eq:terminal-modal-entry-error}
+\end{equation}
+Vectors on shorter prefixes are zero-extended whenever they occur in a
+longer-prefix formula.  If $B_n=I-\widehat Q_n$, projection inactivity, zero
+correction, and exact center transport give
+\begin{equation}
+ e_{n+1}
+ =\left[\frac{B_n}{1+q}
+ \left(2e_n-(1-q)e_{n-1}+\Delta_nf\right);0\right]
+ -\Delta_{n+1}f,
+ \qquad 2\le n\le m-1.
+ \label{eq:terminal-modal-changing-face-error}
+\end{equation}
+Indeed, if $e_n^v=v_n^{\rm in}-p_n^\star$, transport gives
+$e_n^v=e_n+(1-q)(e_n-e_{n-1})/q+\Delta_nf/q$; substituting this in the
+accelerated average and then zero-padding the new primal coordinate proves
+\eqref{eq:terminal-modal-changing-face-error}.
+
+Zero-extend each $A_n$ on the nonnegative half-line and define
+\begin{equation}
+ F_{n+1}:=E_{n+1}-\mathcal R_-E_n.
+ \label{eq:terminal-modal-boundary-source}
+\end{equation}
+
+\begin{lemma}[Exact changing-face boundary source; proved here]
+\label{lem:terminal-modal-boundary-source}
+Put
+\begin{equation}
+ c_1=\frac{1-q}{2},\qquad c_2=\frac{(1-q)^2}{4},\qquad
+ P_n=p_n^\star(n-1),
+ \label{eq:terminal-modal-source-constants}
+\end{equation}
+and, for $4\le n\le m-1$, define
+\begin{align}
+ U_n&=\frac{q\eta^2}{4(1+q)}
+ \left(P_{n-1}-\frac{2q\rho}{\eta}\right),
+ \label{eq:terminal-modal-source-U}\\
+ W_n&=U_n+c_1P_n-
+ \frac{a\Delta_n}{1+q}f_n
+ +\frac\eta2\left(\frac{\Delta_n}{1+q}-\Delta_{n+1}\right)f_{n+1}.
+ \label{eq:terminal-modal-source-W}
+\end{align}
+Then
+\begin{equation}
+ \operatorname{supp}F_{n+1}\subseteq\{0,n-2,n-1,n\},
+ \label{eq:terminal-modal-source-support}
+\end{equation}
+and its possibly nonzero entries are exactly
+\begin{align}
+ F_{n+1}(0)&=c_1A_n(1)-c_2A_{n-1}(1),
+ \label{eq:terminal-modal-source-seed}\\
+ F_{n+1}(n-2)&=U_n,
+ &F_{n+1}(n-1)&=2U_n,
+ &F_{n+1}(n)&=W_n.
+ \label{eq:terminal-modal-source-frontier}
+\end{align}
+The cases $n<4$ have overlapping seed and frontier stencils and are obtained
+by direct substitution in
+\eqref{eq:terminal-modal-changing-face-error}.
+
+At the final transition $n=m$, the support statement remains valid and the
+first three displayed entries are unchanged.  Only the last entry changes.
+Writing $A_m^{\rm fr}=A_m(m-1)$, it is
+\begin{equation}
+ \begin{split}
+ W_m^{\rm end}={}&c_1A_m^{\rm fr}
+ +\frac{(1-q)^2}{2}P_m
+ -\frac{\eta(1-q)^2}{4}P_{m-1}\\
+ &-\frac{\Delta_m\eta^2}{1+q}
+ \left(f_{m-1}+\frac12f_{m-2}\right)+\frac{q^3}{5}.
+ \end{split}
+ \label{eq:terminal-modal-source-final-endpoint}
+\end{equation}
+This is the sole extra term caused by changing the new vertex's ambient
+degree from two to one.
+\end{lemma}
+
+\begin{proof}
+On rows $j\ge1$, let
+\[
+ H_0=aI-\frac\eta2(\mathcal S_++\mathcal S_-),
+ \qquad
+ B_0=\eta I+\frac\eta2(\mathcal S_++\mathcal S_-).
+\]
+The actual seed row differs only in that its right-neighbor coefficient is
+doubled.  Substitute
+\eqref{eq:terminal-modal-changing-face-error} into
+$A_{n+1}=\widehat Q_{n+1}e_{n+1}$ and subtract the two fixed-face stencil
+terms in \eqref{eq:terminal-modal-boundary-source}.  The $e_n$ and
+$e_{n-1}$ coefficients cancel on every row outside the displayed stencils.
+At the seed, the remaining expression is
+\[
+ -\frac{\eta}{2(1+q)}
+  (\eta e_n(0)-2ae_n(1)+\eta e_n(2))
+ +\frac{(1-q)\eta}{4(1+q)}
+  (\eta e_{n-1}(0)-2ae_{n-1}(1)+\eta e_{n-1}(2)).
+\]
+The two parenthesized quantities are $-2A_n(1)$ and
+$-2A_{n-1}(1)$, respectively, which proves
+\eqref{eq:terminal-modal-source-seed}.
+
+At entry, the newest primal coordinate is zero, so
+$e_n(n-1)=-P_n$ and $e_{n-1}(n-2)=-P_{n-1}$.  Direct evaluation of the last
+three rows first gives
+\[
+ \begin{split}
+ \widetilde U_n={}&
+ -\frac{(1-q)\eta^2}{4(1+q)}P_{n-1}
+ +\frac{\Delta_n\eta^2}{4(1+q)}f_n,\\
+ F_{n+1}(n-2)={}&\widetilde U_n,\qquad
+ F_{n+1}(n-1)=2\widetilde U_n,\\
+ F_{n+1}(n)={}&\widetilde U_n+c_1P_n
+ -\frac{a\Delta_n}{1+q}f_n
+ +\frac\eta2\left(\frac{\Delta_n}{1+q}-\Delta_{n+1}\right)f_{n+1}.
+ \end{split}
+\]
+The old optimum has ghost value zero one coordinate before the new
+frontier.  Applying its affine recurrence at the next ghost coordinate gives
+\begin{equation}
+ \Delta_nf_n=P_{n-1}-\frac{2q^2\rho}{\eta}.
+ \label{eq:terminal-modal-source-ghost-identity}
+\end{equation}
+Consequently $\widetilde U_n=U_n$, proving
+\eqref{eq:terminal-modal-source-frontier}.
+
+On the last transition the old face still has the same degree-two frontier,
+whereas the new endpoint row is $az_m-\eta z_{m-1}$.  Repeating only this
+last-row calculation and using
+$\widehat Q_{m+1}(p_{m+1}^\star-[p_m^\star;0])
+=(\eta P_m-q^3/5)e_m$ yields
+\eqref{eq:terminal-modal-source-final-endpoint}; all earlier rows are
+unchanged.
+\end{proof}
+
+The seed source is an artifact of zero extension.  It disappears under the
+even extension
+\begin{equation}
+ A_n^{\rm ev}(j)=
+ \begin{cases}
+  A_n(|j|),& |j|<n,\\
+  0,& |j|\ge n.
+ \end{cases}
+ \label{eq:terminal-modal-even-extension}
+\end{equation}
+Indeed, the reflected neighbor supplies precisely the two terms in
+\eqref{eq:terminal-modal-source-seed}.  Thus the defect of
+$A_n^{\rm ev}$ on $\mathbb Z$ consists only of the three positive-frontier
+entries in \eqref{eq:terminal-modal-source-frontier} and their reflections.
+
+This representation exposes a second cancellation.  Put
+\begin{equation}
+ s_n=\frac{f_{n-1}}{f_n},\qquad
+ D=\frac{2q^2\rho}{\eta},\qquad M_n=W_n+3U_n.
+ \label{eq:terminal-modal-source-mass-parameters}
+\end{equation}
+
+\begin{lemma}[Factored frontier transform; proved here]
+\label{lem:terminal-modal-source-transform}
+For $4\le n\le m-1$ and $z=e^{i\theta}$, the Fourier transform of the even
+source is
+\begin{equation}
+ \widehat F_{n+1}^{\rm ev}(\theta)
+ =2\Re\left[z^{n-2}
+ \left\{U_n(1-z)(1+3z)+M_nz^2\right\}\right].
+ \label{eq:terminal-modal-source-transform}
+\end{equation}
+Moreover
+\begin{equation}
+ M_n=\frac{q(1-q)}4(2\eta-s_n)P_{n-1}
+ +\frac q4\bigl((1-q)s_n+2\eta\bigr)D.
+ \label{eq:terminal-modal-source-mass}
+\end{equation}
+For the named parameters, $U_n$ is nonincreasing in $n$ and, uniformly in
+these $n$,
+\begin{equation}
+ 0<U_n\le\frac{3}{40}q^3,\qquad
+ |M_n|\le\frac32q^4.
+ \label{eq:terminal-modal-source-bounds}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The three positive-frontier entries have polynomial
+$z^{n-2}(U_n+2U_nz+W_nz^2)$.  Reflection takes twice its real part, and
+$1+2z-3z^2=(1-z)(1+3z)$, proving
+\eqref{eq:terminal-modal-source-transform}.
+
+The identities
+\[
+ \Delta_nf_n=P_{n-1}-D,\qquad
+ P_n=\Delta_nf_{n-1}=s_n(P_{n-1}-D),\qquad
+ s_n+\frac{f_{n+1}}{f_n}=\frac{2a}{\eta}
+\]
+reduce $W_n+3U_n$ exactly to
+\eqref{eq:terminal-modal-source-mass}.
+
+The monotonicity and positivity needed here follow from
+\cref{lem:terminal-modal-frontier-bounds}.  Evaluating
+\eqref{eq:terminal-modal-frontier-optimum} at $t=1$ and using
+\eqref{eq:terminal-modal-source-U} give
+\[
+ \frac{U_n}{q^3}
+ \le\frac{\eta^2}{4(1+q)}
+ \left(\frac{6/5}{1-q}+\frac{4/5}{1+q}-\frac{2}{5\eta}\right)
+ =\frac{(1-q)(6/5+2q/5)}{16}\le\frac3{40}.
+\]
+Finally $\chi<s_n\le1$,
+$|2\eta-s_n|\le2q$, $P_{n-1}\le33q^2/16$, and
+$D\le13q^3/16$ for $q\le1/16$.  Substitution in
+\eqref{eq:terminal-modal-source-mass} gives
+$|M_n|\le(33/32+13/32)q^4<3q^4/2$.
+\end{proof}
+
+Let $\mathcal A_n(\theta)$ be the Fourier transform of
+$A_n^{\rm ev}$.  With $\phi=\theta/2$ and
+$r=(1-q)\cos\phi$, the exact scalar recurrence is
+\begin{equation}
+ \mathcal A_{n+1}=2r\cos\phi\,\mathcal A_n-r^2\mathcal A_{n-1}
+ +\widehat F_{n+1}^{\rm ev}.
+ \label{eq:terminal-modal-driven-transform}
+\end{equation}
+Consequently a source injected at time $t$ reaches time $N$ with multiplier
+\begin{equation}
+ r^{N-t}\frac{\sin((N-t+1)\phi)}{\sin\phi}.
+ \label{eq:terminal-modal-source-green}
+\end{equation}
+The factor $1-z$ in
+\eqref{eq:terminal-modal-source-transform} cancels the apparent small-sine
+loss in this Green kernel.  The uniform signed position and velocity estimates
+are proved in
+\cref{sec:terminal-modal-position-profile,sec:terminal-modal-velocity-profile}.
+For velocity, absolute-value summation would discard the required cancellation
+between the moving-frontier trace and the boundary pieces.
+
+For reference, this signed estimate can be stated as two exact scalar
+targets.  At an even full-path mode put
+$\theta=2s\pi/m$, let
+\begin{equation}
+ Y_{m+1}(\theta)
+ =\mathcal A_{m+1}(\theta)-A_{m+1}(m),
+ \qquad
+ \kappa_m=\eta P_m-\frac{q^3}{5}.
+ \label{eq:terminal-modal-source-scalar-data}
+\end{equation}
+The endpoint subtraction in $Y_{m+1}$ changes the reflected weight two to
+the full path's ambient endpoint weight one.
+
+\begin{lemma}[Exact scalar position/velocity reduction; proved here]
+\label{lem:terminal-modal-source-scalar-reduction}
+For every even internal mode $h=2s$,
+\begin{align}
+ mC_{2s}&=Y_{m+1}(\theta),
+ \label{eq:terminal-modal-source-position-scalar}\\
+ mV_{2s}&=\frac1q\left[
+ Y_{m+1}(\theta)+\kappa_m
+ -(1-q)\bigl(\mathcal A_m(\theta)-\eta e_m(m-1)\bigr)
+ \right].
+ \label{eq:terminal-modal-source-velocity-scalar}
+\end{align}
+Hence the position and velocity profile inequalities are respectively
+equivalent to
+\begin{align}
+ \left|Y_{m+1}(\theta)-mG_{2s}\right|&\le\frac{q^2}{256},
+ \label{eq:terminal-modal-source-position-target}\\
+ \left|Y_{m+1}(\theta)+\kappa_m
+ -(1-q)\bigl(\mathcal A_m(\theta)-\eta e_m(m-1)\bigr)
+ +\frac q5mG_{2s}\right|&\le\frac{q^3}{4}.
+ \label{eq:terminal-modal-source-velocity-target}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The first identity is the definition of the degree-weighted cosine
+coefficient, using even extension and correcting the far-endpoint weight.
+For the second, let $e_m^{\rm out}$ be the centered error after the last
+proper-prefix step.  At full-face entry,
+\[
+ e_{m+1}=[e_m^{\rm out};0]
+ -(p_{m+1}^\star-[p_m^\star;0]),
+ \qquad
+ e_{m+1}^v=[e_m^{\rm out};0]
+ +\frac{1-q}{q}([e_m^{\rm out};0]-e_m).
+\]
+The full operator applied to the final optimum displacement is
+$\kappa_m$ at the far endpoint and zero elsewhere.  Its application to the
+zero extension of $e_m$ equals $A_m$ on the old prefix and
+$-\eta e_m(m-1)$ at the far endpoint.  Taking the degree-weighted even-mode
+coefficient gives
+\eqref{eq:terminal-modal-source-velocity-scalar}.  Multiplying the profile
+inequalities by $q^2$ and then, in the velocity case, by $q$ proves the two
+equivalences.
+\end{proof}
+
+For $U_0=3q^3/40$, split the scalar target into: (i) the homogeneous and
+$n<4$ response minus the ideal packet; (ii) constant-$U_0$ response with
+$M_n=0$; (iii) $U_n-U_0$ response; (iv) $M_n$ response; and (v) final
+degree/endpoint correction.  Assign $qmG_{2s}/5$ to the first velocity piece
+and $\kappa_m+(1-q)\eta e_m(m-1)$ to the fifth.  Linearity makes the five sums
+exactly \eqref{eq:terminal-modal-source-position-target} and the expression
+inside \eqref{eq:terminal-modal-source-velocity-target}, respectively.
+
+The position and velocity sums are bounded in
+\cref{sec:terminal-modal-position-profile,sec:terminal-modal-velocity-profile}.
+At velocity scale the
+constant-$U$ term has a nonzero order-$q^3$ limit that cancels against the
+base and endpoint terms, so a triangle inequality cannot suffice.  One needs
+that leading response, summation by parts for $U_n-U_0$, and bounds on the
+$M_n=O(q^4)$ and endpoint remainders.

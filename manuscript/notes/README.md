@@ -54,7 +54,7 @@ This table is generated from `registry.toml` by
 | [`aspr23_bound_audit`](aspr23_bound_audit/) | iterative | proved-open | Audit literal ASPR correctness and repeated-prefix tightness. |
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
-| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Isolate the modal anti-cancellation route for the short-path terminal block. |
+| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Prove short-path admission chronology and isolate the remaining terminal modal route. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
 | [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove log-free radial SOR on symmetric spiders and isolate the paid continuation frontier. |
 | [`signed_star_acceleration`](signed_star_acceleration/) | iterative | proved-open | Prove the exact signed-star accelerated rung and separate locality failure modes. |
