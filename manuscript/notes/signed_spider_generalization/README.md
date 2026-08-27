@@ -24,6 +24,14 @@ relative-gap inequality licenses a frozen SOR parameter.  There is no uniform
 bound on the number of estimator scans: a fixed scan budget falls back to the
 graph-global parameter, and a complete face receives exactly that global
 advice with no sweep improvement.
+On a genuinely supplied fixed face, the note now gives an independent
+dimension--spectral dispatch.  Exact-arithmetic CG terminates in at most
+`|U|` principal products, while interval Chebyshev reaches the stronger
+two-sided normalized-residual stop in
+`O(alpha^(-1/2) log(2/tau))` products.  Selecting the smaller count costs
+`O(vol(U) min{|U|, alpha^(-1/2) log(2/tau)})` real-arithmetic work and implies
+degree-normalized semantic error at most `tau`.  This is a terminal fixed-face
+rule: it neither discovers the face nor amortizes restarts after admissions.
 On complete equal-arm hub-seeded spiders, it proves a new dimension-free
 maximum-norm theorem: plain optimal SOR reduces semantic error by
 `lambda^(2k) (1 + 2k(1-lambda^2))`, giving log-free
@@ -64,4 +72,5 @@ make
 python3 verify_spider.py
 python3 verify_fixed_face.py
 python3 verify_adaptive_spectral.py
+python3 verify_supplied_face_dispatch.py
 ```

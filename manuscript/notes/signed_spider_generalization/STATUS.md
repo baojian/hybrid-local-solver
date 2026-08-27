@@ -31,7 +31,13 @@ State: proved-open
   RPPR support-volume bound is part of the shared source-aligned formulation.
 - **Proved here:** RPPR bias is at most `rho` in semantic PPR norm; objective
   gap `delta` contributes at most `sqrt(2 delta / alpha)`; on a known positive
-  RPPR face, the problem is an ordinary shifted PageRank linear system.  For
+  RPPR face, the problem is an ordinary shifted PageRank linear system.  On
+  any supplied fixed face, a two-sided normalized residual at most
+  `alpha*tau` implies semantic error at most `tau`; exact CG and interval
+  Chebyshev therefore give the charged dispatch
+  `O(vol(U) min{|U|, alpha^(-1/2) log(2/tau)})` under the stated single-seed
+  load normalization.  Exact CG's dimension cap is an exact-real-arithmetic
+  statement; the theorem does not discover or amortize changing faces.  For
   every fixed bipartite face, optimal red--black SOR has exact spectral factor
   `(1-t)/(1+t)` with `t=sqrt(1-rho_J^2)` and a finite Euclidean/semantic
   convergence bound when the face-specific tuning is supplied.  One
@@ -122,7 +128,9 @@ hope for a graph-uniform maximum-semantic product bound.
 - **Context/provenance:** The user's SOR--FISTA comparability question and
   requested spider-first generalization motivate this note.
 - **Reusable outputs:** The accuracy bridge, fixed-face equivalence, exact
-  bipartite SOR factor, log-free radial Chebyshev theorem, sweep-order witness,
+  supplied-face CG/Chebyshev dimension--spectral dispatch with a two-sided
+  semantic residual stop, bipartite SOR factor, log-free radial Chebyshev
+  theorem, sweep-order witness,
   certified face-spectral cost and accuracy rule, charged a-posteriori
   Collatz certificate with safe fallback, layered graph-uniform
   envelope, adaptive scalar and source-polynomial work stops, nonsettled
@@ -137,6 +145,8 @@ hope for a graph-uniform maximum-semantic product bound.
   `cor:global-semantic-sor-work-stop` for the graph-uniform full-sweep stop;
   `prop:certified-face-spectral-cost` for paid face tuning and
   `prop:collatz-face-certificate` for its charged a-posteriori realization;
+  `thm:supplied-face-dispatch` for the fixed-face CG/Chebyshev dimension--spectral
+  rule and `lem:supplied-face-two-sided-stop` for its semantic certificate;
   `thm:adaptive-polynomial-propagation-stop` and
   `cor:adaptive-polynomial-work-stop` for the scalar-adaptive and
   Chebyshev/Krylov scope;
@@ -152,7 +162,7 @@ hope for a graph-uniform maximum-semantic product bound.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 33-page PDF with no undefined
+- **Focused checks:** `make` produced a 36-page PDF with no undefined
   references, citations, or overfull boxes.  `verify_spider.py` passed 80
   SOR-mode cells, 144 spider-spectrum cells, 14,616 radial-semantic cells, one
   exact sweep-order witness, seven exact layered-funnel cells, 522 small-graph
@@ -161,7 +171,9 @@ hope for a graph-uniform maximum-semantic product bound.
   cells, 480 finite-power cells, and 30 spider-prefix cells.
   `verify_adaptive_spectral.py` passed 244 exact cells: 120 certified-tuning,
   98 componentwise Collatz/certification, 11 adaptive scalar-SOR, and 15
-  Krylov/polynomial.  Focused Ruff checking passed.
+  Krylov/polynomial.  `verify_supplied_face_dispatch.py` passed 2,254 exact
+  cells auditing the Chebyshev factor, shifted-load norm, M-matrix semantic
+  conversion, and Krylov annihilator off-by-one.  Focused Ruff checking passed.
 - **Repository checks:** `make note-audit`, `make agent-audit`, `git diff
   --check`, and all 210 tests passed on 2026-08-28.  Repository-wide `make
   lint` remains red on 1,345 pre-existing Ruff findings in checked-in

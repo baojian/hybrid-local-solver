@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/signed-spider-collatz-certificate`
-- Base commit: `b3eaa361e2b6db5963ceb442f4921785af362609`
+- Branch: `agent/codex/supplied-face-dispatch`
+- Base commit: `b708d141b7b051a43cee4c3ebfa4308ad0dd6f3b`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -15,6 +15,29 @@
 
 ## Outcome
 
+- Added a general supplied-face solver theorem, independent of bipartiteness.
+  The normalized two-sided residual stop
+  `||D_U^(-1/2)(c_U-Q_UU x)||_infinity <= alpha tau` implies semantic error
+  at most `tau` by an exact principal M-matrix row-sum bound.
+- Proved the exact interval Chebyshev residual factor
+  `2 chi^k/(1+chi^(2k))`, with
+  `chi=(1-sqrt(alpha))/(1+sqrt(alpha))`, and the safe single-seed shifted-load
+  bound `||c_U||_2 <= sqrt(2) alpha`.  This gives the explicit product count
+  `ceil(log(2 sqrt(2)/tau)/(-log chi))`.
+- Proved the exact CG dimension cap with the degree-`s` error annihilator and
+  degree-`s-1` solution polynomial.  Selecting exact CG or interval
+  Chebyshev gives
+  `O(vol(U) min{|U|, alpha^(-1/2) log(2/tau)})` charged real-arithmetic work,
+  including sparse products, vector passes, and output.
+- Added the supplied-correct-face PPR corollary: choosing
+  `rho=tau=eps_ppr/2` and zero-padding the restricted iterate gives semantic
+  PPR error at most `eps_ppr`.  Supplying or independently validating the
+  exact RPPR support remains excluded.
+- Kept the scope strict.  Polynomial iterates need not preserve the safe
+  lower-envelope/admission invariants; changing faces invalidate the fixed
+  operator and leave the unamortized restart sum.  Distributed reduction
+  latency, finite-precision exact-termination loss, bit complexity, boundary
+  discovery, and separate response/reporting resources are not claimed.
 - Proved a fully charged face-specific tuning proposition. A certified upper
   Jacobi-radius bound gives the same finite SOR power estimate, with total cost
   `C_spec(U) + O(vol(U)/(gamma t_U) log(2/(gamma t_U tau)))` when the certified
@@ -65,13 +88,19 @@
 
 ## Evidence
 
+- `verify_supplied_face_dispatch.py` uses exact rational arithmetic to audit
+  the Chebyshev closed form, shifted-load norm, principal M-matrix semantic
+  conversion, and CG annihilator off-by-one.
 - `verify_adaptive_spectral.py` passes 244 exact-rational cells: 120 certified
   tuning cells, 98 componentwise Collatz/certification cells, 11 adaptive
   scalar-SOR funnel cells including the interleaved witness, and 15
   red/full-operator Krylov propagation cells.
 - `verify_spider.py` and `verify_fixed_face.py` retain all prior exact and
   deterministic checks.
-- The note builds to 33 pages with no undefined references, citations, or
+- Independent read-only promotion audit passed the spectrum, Chebyshev count,
+  load norm, two-sided semantic conversion, CG off-by-one, empty-face branch,
+  PPR bridge, SOR-factor comparison, and changing-face scope.
+- The note builds to 36 pages with no undefined references, citations, or
   overfull boxes. Focused Ruff/format, note inventory and target audits,
   coordination/scope audits, diff checking, and the repository tests pass.
 
