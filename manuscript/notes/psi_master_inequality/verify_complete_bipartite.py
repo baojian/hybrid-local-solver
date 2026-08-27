@@ -8,8 +8,13 @@ from verify_master_identity import inverse
 
 
 def matmul(left, right):
-    return [[sum((left[i][k] * right[k][j] for k in range(len(right))), F(0))
-             for j in range(len(right[0]))] for i in range(len(left))]
+    return [
+        [
+            sum((left[i][k] * right[k][j] for k in range(len(right))), F(0))
+            for j in range(len(right[0]))
+        ]
+        for i in range(len(left))
+    ]
 
 
 def direct_n(a, b):
@@ -22,8 +27,7 @@ def direct_n(a, b):
         for j in range(a, n):
             matrix[i][j] = matrix[j][i] = -1
     matrix_inv = inverse(matrix)
-    return [[matrix_inv[i][j] * degree[j] for j in range(n)]
-            for i in range(n)], degree
+    return [[matrix_inv[i][j] * degree[j] for j in range(n)] for i in range(n)], degree
 
 
 def closed_n(a, b):

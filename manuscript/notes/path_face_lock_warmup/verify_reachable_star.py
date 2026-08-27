@@ -30,8 +30,7 @@ def solve(a: Matrix, b: Vector) -> Vector:
                 continue
             factor = aug[row][column]
             aug[row] = [
-                value - factor * pivot_value
-                for value, pivot_value in zip(aug[row], aug[column])
+                value - factor * pivot_value for value, pivot_value in zip(aug[row], aug[column])
             ]
     return [row[-1] for row in aug]
 
@@ -68,22 +67,13 @@ def obstacle_solve(
 ) -> Vector:
     """Solve the shifted nonnegative quadratic by an exact active-set LCP."""
     n = len(degrees)
-    rhs = [
-        ct[i] + kappa * degrees[i] * lower_center[i]
-        for i in range(n)
-    ]
+    rhs = [ct[i] + kappa * degrees[i] * lower_center[i] for i in range(n)]
     active = set(warm) if warm else {i for i, value in enumerate(rhs) if value > 0}
     if not active:
         active = {i for i, value in enumerate(rhs) if value > 0}
     for _ in range(4 * n + 8):
         index = sorted(active)
-        matrix = [
-            [
-                qt[i][j] + (kappa * degrees[i] if i == j else 0)
-                for j in index
-            ]
-            for i in index
-        ]
+        matrix = [[qt[i][j] + (kappa * degrees[i] if i == j else 0) for j in index] for i in index]
         values = solve(matrix, [rhs[i] for i in index])
         negative = [i for i, value in zip(index, values) if value < 0]
         if negative:
@@ -117,10 +107,7 @@ def run(warmup: int = 4) -> dict[str, object]:
         velocity = [current[i] - previous[i] for i in range(n)]
         trial = [current[i] + beta * velocity[i] for i in range(n)]
         face = [i for i, value in enumerate(trial) if value > 0]
-        trigger = [
-            ct[i] - sum(qt[i][j] * trial[j] for j in range(n))
-            for i in face
-        ]
+        trigger = [ct[i] - sum(qt[i][j] * trial[j] for j in range(n)) for i in face]
         negative = [(i, value) for i, value in zip(face, trigger) if value < 0]
         records.append(
             {

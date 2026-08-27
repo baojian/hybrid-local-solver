@@ -19,19 +19,25 @@
 - Requested result: launch two disjoint parallel proof explorations based on
   the latest Fable material.
 - Implemented result: registered both assignments and their independent notes
-  on a common clean base.
+  on a common clean base; audited and merged both completed directions into
+  this integration branch; synchronized the shared result ledger and
+  controller broadcast.
 - Deliberately unchanged: the dirty Fable worktree and all provider-owned code.
 
 ## Evidence
 
-- Tests added or changed: none.
-- Commands run: note inventory, agent-boundary audit, and focused note builds.
-- Results: recorded in the controller commit.
+- Tests added or changed: four exact `Psi` verifiers and two exact warmup/star
+  verifiers are committed inside their proof-owning note directories.
+- Commands run: both focused note builds; all six exact verifiers;
+  `make note-audit`; `make agent-audit`; `git diff --check`; independent
+  formula and proof-scope review.
+- Results: all focused builds, exact checks, and coordination audits pass.
 
 ## Review notes
 
 - Provider-owned paths changed: none.
 - Shared paths changed: assignment registry, note registry, generated note
   index, and this handoff.
-- Open decisions or follow-up: integrate the two direction branches only after
-  their proofs and exact experiments are audited.
+- Open decisions or follow-up: review or merge this integration branch.  The
+  asymptotic reachable warmup question and `C_10` beyond-`(CL)` master-form
+  question remain explicitly open.

@@ -1,6 +1,6 @@
 # Controller broadcast
 
-**Verified snapshot:** 2026-08-24. **Active dispatch:** none. Do not open a new
+**Verified snapshot:** 2026-08-27. **Active dispatch:** none. Do not open a new
 research round automatically.
 
 This file contains only what every direction needs now. Immutable review and
@@ -54,6 +54,29 @@ index repairs, and independent review are preserved in
 [`Round 027`](rounds/2026-08-23-round-027.md) and the current
 [`AESP-CD handoff`](../../aesp_cd_l1_rppr/STATUS.md).
 
+## Verified Fable-parallel update
+
+Two independent directions have now separated safe momentum entrance from a
+safe momentum tail.  For `alpha<=1/5`, one pure-prox solve launches one safe
+momentum stage on every supplied face, but any fixed-length safe burst followed
+by reset has only `1-Theta_L(q^2)` Perron contraction.  Cone-uniform permanent
+safety after one, two, or three warmups fails on paths.  On a reachable
+leaf-seeded 16-arm star, exact obstacle-prox traces fail after each of one
+through five full-face warmups.  Do not replace Fable's large certified
+warmup by a small universal constant using only residual nonnegativity.  The
+remaining path/spider question is the asymptotic minimal warmup on actual
+admission profiles.
+
+The clipped Lyapunov master identity is now independently reconstructed.  A
+kernel positive-association theorem proves `sup Psi=0` on every complete
+multipartite graph, including unequal parts.  Exact elimination of the high
+variable gives a second `(CL)` route that proves the same conclusion on every
+balanced independent-set blow-up of `C_6` even though `(HK)` fails there with
+ratio `5211/4900`.  `(CL)` fails on `C_10,q=1/20`; this stops that sufficient
+condition, not `Psi<=0`.  These are exact positive-face statements, not
+proper-face, finite-inner, locality, work, or terminal-PPR theorems.  Import
+only from the two proof-owning notes.
+
 ## Cross-direction priorities
 
 | Owner | Next falsifiable target |
@@ -64,6 +87,8 @@ index repairs, and independent review are preserved in
 | `response_preconditioned_hybrid` | Sparse collision-sensitive refresh state or a geometrically paid replay theorem. |
 | `propagate_settle_framework` | A new cyclic coupling or bounded-degree settlement gadget with seed chronology proved before reporter analysis. |
 | `local_solver_oracle_hierarchy` | A lower-bound model that defeats residual-slack spreading and sparse-basis delayed synthesis, or a justified narrower class. |
+| `path_face_lock_warmup` | Determine the asymptotic minimal safe warmup on reachable endpoint-path and spider admission profiles; a fixed small universal constant is already stopped through five on a reachable star. |
+| `psi_master_inequality` | On `C_10`, pay the positive `(CL)` cross entries with the two negative eliminated energies, or produce an exact sign-feasible positive witness. |
 
 ## Reuse and routing rules
 

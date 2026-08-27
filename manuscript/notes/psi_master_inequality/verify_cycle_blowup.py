@@ -47,9 +47,10 @@ class Rat:
 
     def __add__(self, other):
         other = other if isinstance(other, Rat) else Rat.constant(other)
-        return Rat(padd(pmul(self.numerator, other.denominator),
-                        pmul(other.numerator, self.denominator)),
-                   pmul(self.denominator, other.denominator))
+        return Rat(
+            padd(pmul(self.numerator, other.denominator), pmul(other.numerator, self.denominator)),
+            pmul(self.denominator, other.denominator),
+        )
 
     __radd__ = __add__
 
@@ -57,37 +58,35 @@ class Rat:
         return Rat(pscale(-1, self.numerator), self.denominator)
 
     def __sub__(self, other):
-        return self + (-other if isinstance(other, Rat)
-                       else Rat.constant(-other))
+        return self + (-other if isinstance(other, Rat) else Rat.constant(-other))
 
     def __rsub__(self, other):
         return Rat.constant(other) - self
 
     def __mul__(self, other):
         other = other if isinstance(other, Rat) else Rat.constant(other)
-        return Rat(pmul(self.numerator, other.numerator),
-                   pmul(self.denominator, other.denominator))
+        return Rat(pmul(self.numerator, other.numerator), pmul(self.denominator, other.denominator))
 
     __rmul__ = __mul__
 
     def __truediv__(self, other):
         other = other if isinstance(other, Rat) else Rat.constant(other)
-        return Rat(pmul(self.numerator, other.denominator),
-                   pmul(self.denominator, other.numerator))
+        return Rat(pmul(self.numerator, other.denominator), pmul(self.denominator, other.numerator))
 
     def __rtruediv__(self, other):
         return Rat.constant(other) / self
 
     def __eq__(self, other):
         other = other if isinstance(other, Rat) else Rat.constant(other)
-        return pmul(self.numerator, other.denominator) == pmul(
-            other.numerator, self.denominator)
+        return pmul(self.numerator, other.denominator) == pmul(other.numerator, self.denominator)
 
     def evaluate(self, value):
-        numerator = sum((coefficient * value ** degree
-                         for degree, coefficient in self.numerator.items()), F(0))
-        denominator = sum((coefficient * value ** degree
-                           for degree, coefficient in self.denominator.items()), F(0))
+        numerator = sum(
+            (coefficient * value**degree for degree, coefficient in self.numerator.items()), F(0)
+        )
+        denominator = sum(
+            (coefficient * value**degree for degree, coefficient in self.denominator.items()), F(0)
+        )
         return numerator / denominator
 
 
@@ -99,8 +98,7 @@ def chi(high_eigenvalue):
     """Kernel eigenvalue m0^2 h(1-h)/(1-m0 h), with m0=1-r."""
     high_eigenvalue = Rat.constant(high_eigenvalue)
     m0 = ONE - R
-    return m0 * m0 * high_eigenvalue * (1 - high_eigenvalue) / (
-        1 - m0 * high_eigenvalue)
+    return m0 * m0 * high_eigenvalue * (1 - high_eigenvalue) / (1 - m0 * high_eigenvalue)
 
 
 def claimed_cycle_entries():
@@ -115,8 +113,7 @@ def claimed_cycle_entries():
         {0: F(-61), 1: F(-144), 2: F(-48)},
         {0: F(-19), 1: F(-256), 2: F(-272)},
     ]
-    return [Rat(pmul(one_minus_r_squared, numerator), common)
-            for numerator in numerators]
+    return [Rat(pmul(one_minus_r_squared, numerator), common) for numerator in numerators]
 
 
 def cycle_rational_functions():
@@ -125,47 +122,56 @@ def cycle_rational_functions():
     eig_12 = chi(F(1, 2))
     cos_one = [F(1), F(1, 2), F(-1, 2), F(-1), F(-1, 2), F(1, 2)]
     cos_two = [F(1), F(-1, 2), F(-1, 2), F(1), F(-1, 2), F(-1, 2)]
-    spectral = [(2 * eig_45 * cos_one[d]
-                 + 2 * eig_47 * cos_two[d]
-                 + eig_12 * (-1 if d % 2 else 1)) / 6
-                for d in range(6)]
+    spectral = [
+        (2 * eig_45 * cos_one[d] + 2 * eig_47 * cos_two[d] + eig_12 * (-1 if d % 2 else 1)) / 6
+        for d in range(6)
+    ]
     claimed = claimed_cycle_entries()
     assert all(left == right for left, right in zip(spectral, claimed))
 
     within = chi(F(2, 3))
-    claimed_within = Rat(
-        pmul({0: F(2, 3)}, {0: F(1), 1: F(-2), 2: F(1)}),
-        {0: F(1), 1: F(2)})
+    claimed_within = Rat(pmul({0: F(2, 3)}, {0: F(1), 1: F(-2), 2: F(1)}), {0: F(1), 1: F(2)})
     assert within == claimed_within
     margin = within - claimed[0]
     claimed_margin = Rat(
-        pmul({0: F(1), 1: F(-2), 2: F(1)},
-             {0: F(159), 1: F(1414), 2: F(1904), 3: F(544)}),
-        {0: F(1260), 1: F(10500), 2: F(29400), 3: F(33600),
-         4: F(13440)})
+        pmul({0: F(1), 1: F(-2), 2: F(1)}, {0: F(159), 1: F(1414), 2: F(1904), 3: F(544)}),
+        {0: F(1260), 1: F(10500), 2: F(29400), 3: F(33600), 4: F(13440)},
+    )
     assert margin == claimed_margin
-    return spectral, within, {
-        "cycle_entries_matched": 6,
-        "strictly_negative_offdiagonal_formulas": 5,
-        "strictly_positive_within_margin_formula": True,
-    }
+    return (
+        spectral,
+        within,
+        {
+            "cycle_entries_matched": 6,
+            "strictly_negative_offdiagonal_formulas": 5,
+            "strictly_positive_within_margin_formula": True,
+        },
+    )
 
 
 def matmul(left, right):
-    return [[sum((left[i][k] * right[k][j] for k in range(len(right))), F(0))
-             for j in range(len(right[0]))] for i in range(len(left))]
+    return [
+        [
+            sum((left[i][k] * right[k][j] for k in range(len(right))), F(0))
+            for j in range(len(right[0]))
+        ]
+        for i in range(len(left))
+    ]
 
 
 def matrix_linear(left, right, left_scale=F(1), right_scale=F(1)):
-    return [[left_scale * left[i][j] + right_scale * right[i][j]
-             for j in range(len(left[0]))] for i in range(len(left))]
+    return [
+        [left_scale * left[i][j] + right_scale * right[i][j] for j in range(len(left[0]))]
+        for i in range(len(left))
+    ]
 
 
 def hk_failure():
     size = 6
-    matrix = [[3 * F(i == j)
-               - (F(1, 2) if (i - j) % size in (1, size - 1) else 0)
-               for j in range(size)] for i in range(size)]
+    matrix = [
+        [3 * F(i == j) - (F(1, 2) if (i - j) % size in (1, size - 1) else 0) for j in range(size)]
+        for i in range(size)
+    ]
     n_resolvent = inverse(matrix)
     square = matmul(n_resolvent, n_resolvent)
     adjacent_ratio = 24 * square[0][1]
@@ -177,18 +183,21 @@ def hk_failure():
 def longer_cycle_cl_obstruction():
     size = 10
     identity = [[F(i == j) for j in range(size)] for i in range(size)]
-    transition = [[F(1, 2) if (i - j) % size in (1, size - 1) else F(0)
-                   for j in range(size)] for i in range(size)]
-    high_kernel = [[2 * entry for entry in row] for row in inverse(
-        matrix_linear(identity, transition, left_scale=3, right_scale=-1))]
+    transition = [
+        [F(1, 2) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+        for i in range(size)
+    ]
+    high_kernel = [
+        [2 * entry for entry in row]
+        for row in inverse(matrix_linear(identity, transition, left_scale=3, right_scale=-1))
+    ]
     q = F(1, 20)
     m0 = 1 - q * q
     m_operator = [[m0 * entry for entry in row] for row in high_kernel]
     clipped_laplacian = matmul(
-        matmul(m_operator,
-               matrix_linear(identity, m_operator,
-                             left_scale=m0, right_scale=-1)),
-        inverse(matrix_linear(identity, m_operator, right_scale=-1)))
+        matmul(m_operator, matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)),
+        inverse(matrix_linear(identity, m_operator, right_scale=-1)),
+    )
     adjacent = clipped_laplacian[0][1]
     assert adjacent == F(6998345705403423, 396849260156782400)
     assert adjacent > 0
