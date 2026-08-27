@@ -30,17 +30,28 @@ Allowed write scope: `manuscript/notes/psi_master_inequality/` and `docs/coordin
   domain; the exact identity
   `V(h_(t+1),h_t)-(1-q)^2 V(h_t,h_(t-1))=Psi(y_t,h_t)`; the equivalent
   clip/slack decomposition; and nonpositivity for the two unmixed channels
-  `y>=0` and `y<=0` under `mu_2>=2q`.
+  `y>=0` and `y<=0` under `mu_2>=2q`.  A kernel positive-association lemma
+  proves `Psi<=0` under the entrywise `(HK)` condition.  The closed
+  `(3D-A)^-1 D` blocks prove `(HK)` with ratios `13/36` within a part and
+  `3/4` across the cut on every complete bipartite graph.  Consequently
+  `sup Psi=0` on every `K_{a,b}`, `a,b>=1`, for `0<q<=1/2`.  More generally,
+  a rank-one lumped-resolvent formula and an exact nonnegative
+  simplex-Bernstein certificate prove `(HK)` and `sup Psi=0` on every
+  complete multipartite graph `K_{n_1,...,n_k}`, with arbitrary positive
+  unequal part sizes and no balance threshold.
 - **Conditional:** None yet.
 - **Measured:** None yet.
 - **Refuted:** None yet.
-- **Open:** Analytic nonpositivity beyond finitely enumerated examples.
+- **Open:** Analytic nonpositivity on general graphs and on graph families
+  lying beyond the sufficient `(HK)` condition.
 
 ## Central blocker
 
-Control the mixed-sign clipping term without exponential enumeration.  The
-identity itself is now reconstructed; the live route is a covariance or
-positive-association condition that can be proved on an infinite family.
+The entrywise positive-association route is closed on all complete
+multipartite graphs but is known from Fable's evidence to fail on graphs
+such as cycles, hypercubes, and Petersen.  The next advance must enlarge the
+analytic `(HK)` class beyond complete multipartite graphs or attack a graph
+beyond `(HK)` without erasing clipping complementarity.
 
 ## Dependencies and reusable outputs
 
@@ -51,10 +62,12 @@ positive-association condition that can be proved on an infinite family.
 
 ## Resume here
 
-- Exact file/section/lemma: `lem:psi-master-identity` and
-  `eq:psi-slack-decomposition` in `main.tex`.
-- Next concrete action: derive the mixed-clipping kernel condition and prove
-  it analytically on complete bipartite graphs.
+- Exact file/section/lemma: `lem:psi-master-identity`,
+  `thm:psi-hk-nonpositivity`, and `thm:psi-complete-multipartite` in
+  `main.tex`.
+- Next concrete action: seek a larger equitable or distance-regular family
+  satisfying `(HK)`, or derive a different sign payment for a cycle where
+  `(HK)` itself fails.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
   admissible positive witness.
 
@@ -65,7 +78,12 @@ positive-association condition that can be proved on an infinite family.
   literature notes, and Fable iteration-6/7 evidence.
 - Focused build/checks run: `make -C
   manuscript/notes/psi_master_inequality`, the independent exact-rational
-  `verify_master_identity.py` audit (21/21), and `git diff --check` pass.
+  `verify_master_identity.py` audit (21/21), the exact
+  `verify_complete_bipartite.py` audit (64 graphs and 5280 off-diagonal
+  formulas), the exact `verify_complete_multipartite.py` certificate (45/45
+  nonnegative degree-eight numerator coefficients, 10/10 nonnegative
+  denominator coefficients, 493 part vectors, and 64094 off-diagonal
+  checks), and `git diff --check` pass.
 - Known gaps: mixed clipping, proper faces, finite inner residuals, and all
   algorithm/work consequences.
 

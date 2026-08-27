@@ -14,18 +14,40 @@ Under `mu_2>=2q`, the all-positive and all-negative sign channels are
 analytically nonpositive.  Mixed clipping is the only remaining functional
 obstruction.
 
+The mixed obstruction is now also closed under the entrywise `(HK)` kernel
+condition by a symmetric-coupling positive-association lemma.  A closed-form
+calculation of `N=(3D-A)^-1D` proves `(HK)` on every `K_{a,b}`: the normalized
+off-diagonal ratios are exactly `13/36` within a part and `3/4` across the
+cut.  Since `mu_2>=1`, `sup Psi=0` for all `a,b>=1` and `0<q<=1/2`.  This is
+an infinite non-scalar-high-space family and includes every star.  Fable's
+source evidence already listed `K_{a,b}` as an `(HK)` subclass, so that
+calculation is recorded as an independent analytic closure rather than a new
+class discovery.
+
+The strict extension is now proved for every complete multipartite graph
+`K_{n_1,...,n_k}` with arbitrary positive, unequal part sizes.  The part
+chain has a rank-one resolvent, and its cross-part squared-kernel ratio
+reduces to a two-variable inequality.  An exact degree-eight
+simplex-Bernstein certificate has 45/45 nonnegative coefficients; same-part
+pairs are controlled by the nonpositive nontrivial spectrum.  There is no
+part-size threshold: `(HK)` and therefore `sup Psi=0` hold universally in
+this family for `0<q<=1/2`.
+
 ## Evidence boundary
 
 - **Source:** Fable iteration-6/7 files are read-only exploratory evidence.
-- **Proved here:** recurrence, master identity, slack decomposition, and the
-  two unmixed sign channels.
-- **Open:** mixed-sign nonpositivity, proper faces, finite shifted solves,
-  work, locality, and terminal accuracy.
+- **Proved here:** recurrence, master identity, slack decomposition, the two
+  unmixed sign channels, structural `(HK)` nonpositivity, and the complete
+  bipartite and complete-multipartite family theorems.
+- **Open:** mixed-sign nonpositivity beyond `(HK)`, proper faces, finite
+  shifted solves, work, locality, and terminal accuracy.
 
 ## Resume target
 
-Derive the mixed-clipping positive-association condition and prove it on an
-infinite graph family, beginning with complete bipartite graphs.
+Seek a larger equitable or distance-regular family satisfying `(HK)`.  The
+complementary target is an analytic family beyond `(HK)`, starting with a
+cycle where clipping complementarity rather than entrywise domination must
+supply the sign.
 
 ## Checks
 
@@ -33,4 +55,15 @@ infinite graph family, beginning with complete bipartite graphs.
 - `python3 manuscript/notes/psi_master_inequality/verify_master_identity.py`:
   21/21 exact-rational trials pass on `C5`, `K2,3`, and `K3,4`; committed
   output is `verify_master_identity.json`.
+- `python3 manuscript/notes/psi_master_inequality/verify_complete_bipartite.py`:
+  64/64 closed resolvents and 5280/5280 off-diagonal squared-kernel formulas
+  pass exactly; maximum `(HK)` ratio is `3/4`; committed output is
+  `verify_complete_bipartite.json`.
+- `python3 manuscript/notes/psi_master_inequality/verify_complete_multipartite.py`:
+  exact continuous rational identity; 45/45 nonnegative degree-eight
+  numerator Bernstein coefficients and 10/10 nonnegative degree-three
+  denominator coefficients; 87 direct block-inverse comparisons, 493 part
+  vectors through 14 vertices, and 64094 off-diagonal `(HK)` checks pass.
+  The maximum census ratio is `2981/3969<1`; committed output is
+  `verify_complete_multipartite.json`.
 - `git diff --check`: pass.

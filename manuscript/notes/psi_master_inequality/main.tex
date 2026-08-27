@@ -17,6 +17,8 @@ about an exact shifted solve on one positive face; it is not a convergence or
 local-work theorem.  The reconstruction exposes two sign-visible channels,
 leaving only mixed clipping as the analytic obstruction.  Fable's finite
 exact decisions are retained as source evidence rather than promoted here.
+An entrywise positive-association condition closes that obstruction on every
+complete multipartite graph, including all unequal part vectors.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -40,12 +42,13 @@ convention.
 Fable's iteration-7 files propose the master form and report exact finite
 decisions.  They are exploratory evidence, not proof authority for this note.
 \paragraph{Proved here.}
-The recurrence, admissible functional domain, master identity, and the two
-unmixed-sign inequalities below are derived independently.
+The recurrence, admissible functional domain, master identity, the two
+unmixed-sign inequalities, and the complete-multipartite theorem below are
+derived independently.
 \paragraph{Open.}
-Nonpositivity for mixed clipping on general graphs, proper-face transport,
-finite shifted solves, and every end-to-end work conclusion remain open at
-this point in the note.
+Nonpositivity for mixed clipping beyond the stated structural condition,
+proper-face transport, finite shifted solves, and every end-to-end work
+conclusion remain open at this point in the note.
 
 \section{Exact recurrence and admissible functional domain}
 
@@ -223,13 +226,372 @@ Thus only a genuinely mixed sign pattern can violate the master inequality.
 This conclusion is analytic and family-independent under
 \cref{eq:psi-hgap}; it does not rely on finite enumeration.
 
+\section{A structural mixed-clipping theorem}
+
+The remaining mixed term admits a sufficient condition with a probabilistic
+sign interpretation.  Assume
+\begin{equation}
+ (M^2)_{ij}\leq \frac{m_0^2d_j}{\mathsf v_G}
+ \qquad(i\neq j).
+ \label{eq:psi-hk}
+\end{equation}
+This condition is entrywise and stronger than the desired conclusion, but it
+can be checked analytically on graph families.
+
+\begin{lemma}[Kernel positive association]
+\label{lem:psi-kernel-positive-association}
+Under \cref{eq:psi-hk}, for every $a\in\mathbb R^V$ and threshold
+$\Delta\in\mathbb R$, if
+\begin{equation*}
+ f=(a-\Delta\one)_+,
+ \qquad
+ g=a-f=\min\{a,\Delta\one\},
+\end{equation*}
+then
+\begin{equation}
+ \langle MPf,MPg\rangle_D\geq0.
+ \label{eq:psi-positive-association}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $\pi_i=d_i/\mathsf v_G$ and define
+\begin{equation*}
+ K_{ij}:=\frac{d_i(M^2)_{ij}}{m_0^2\mathsf v_G}.
+\end{equation*}
+Entrywise nonnegativity of $M$, $D$-self-adjointness, and
+$M^2\one=m_0^2\one$ show that $K$ is a symmetric probability coupling with
+both marginals $\pi$.  Condition \cref{eq:psi-hk} is precisely
+$K_{ij}\leq\pi_i\pi_j$ off the diagonal.  Centering by $P$ and using the
+marginals gives the exact two-point identity
+\begin{align}
+ \langle MPf,MPg\rangle_D
+ &=m_0^2\mathsf v_G
+   \left(\sum_{i,j}K_{ij}f_ig_j
+        -\sum_i\pi_if_i\sum_j\pi_jg_j\right)\notag\\
+ &=\frac{m_0^2\mathsf v_G}{2}
+   \sum_{i,j}(\pi_i\pi_j-K_{ij})(f_i-f_j)(g_i-g_j).
+ \label{eq:psi-two-point-kernel}
+\end{align}
+Both $f$ and $g$ are nondecreasing functions of the same scalar $a_i$, so
+the difference product is nonnegative.  Its diagonal value is zero, and
+every off-diagonal coefficient is nonnegative by \cref{eq:psi-hk}.  This
+proves the claim.
+\end{proof}
+
+\begin{theorem}[Structural nonpositivity of the master form]
+\label{thm:psi-hk-nonpositivity}
+If $\mu_2\geq2q$ and \cref{eq:psi-hk} holds, then
+\begin{equation}
+ \Psi(y,h)\leq0
+ \qquad
+ \text{for every }y\in\mathbb R^V,
+ \quad h\in\one^{\perp_D}.
+ \label{eq:psi-hk-conclusion}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Given $y$, choose $\Delta\geq\max_i(-y_i)$ and put
+$a=y+\Delta\one$.  Then $f=y_+$, $z=Py=Pa$, and
+$Pg=z-Pf$.  Hence \cref{lem:psi-kernel-positive-association} says
+\begin{equation}
+ \langle MPf,M(z-Pf)\rangle_D\geq0,
+ \quad\text{or equivalently}\quad
+ \langle MPf,Mz\rangle_D\geq\norm{MPf}_D^2.
+ \label{eq:psi-kernel-payment}
+\end{equation}
+In \cref{eq:psi-collected-form}, write $c=b/\beta$ and note
+$z=\beta c+\nu h$.  The first two terms of that form satisfy
+\begin{align*}
+ L
+ &:=\norm{MPf}_D^2-2\nu\langle Mh,MPf\rangle_D\\
+ &=\norm{MPf}_D^2-2\langle M(z-\beta c),MPf\rangle_D\\
+ &\leq-\norm{MPf}_D^2+2\beta\langle Mc,MPf\rangle_D\\
+ &\leq\beta^2\norm{Mc}_D^2
+ \leq\beta^2m_0\langle c,Mc\rangle_D.
+\end{align*}
+The first inequality uses \cref{eq:psi-kernel-payment}, the second completes
+the square, and the third uses $0\prec M\preceq m_0I$ in the
+$D$-inner product.  This pays the $c$-term of
+\cref{eq:psi-collected-form}.  The remaining term
+$-\beta\langle h,Gh\rangle_D$ is nonpositive under
+$\mu_2\geq2q$, proving \cref{eq:psi-hk-conclusion}.
+\end{proof}
+
+\section{An infinite non-scalar family: complete bipartite graphs}
+
+Condition \cref{eq:psi-hk} has a $q$-independent graph form.  Indeed,
+\begin{equation}
+ \widetilde Q+\kappa D
+ =\frac{1-\alpha}{2}(3D-A),
+ \qquad
+ M=\frac{2(1-2\alpha)}{1-\alpha}N,
+ \qquad
+ N:=(3D-A)^{-1}D.
+ \label{eq:psi-n-resolvent}
+\end{equation}
+Since $N\one=\one/2$, condition \cref{eq:psi-hk} is equivalent to
+\begin{equation}
+ 4\mathsf v_G(N^2)_{ij}\leq d_j
+ \qquad(i\neq j).
+ \label{eq:psi-hk-n}
+\end{equation}
+
+\begin{theorem}[Master nonpositivity on every complete bipartite graph]
+\label{thm:psi-complete-bipartite}
+Let $G=K_{a,b}$ with integers $a,b\geq1$.  For every $0<q\leq1/2$,
+condition \cref{eq:psi-hgap} holds and
+\begin{equation}
+ \sup_{y\in\mathbb R^{a+b},\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-complete-bipartite-sup}
+\end{equation}
+In particular, the exact positive-face recurrence satisfies the one-step
+contraction \cref{eq:psi-master-identity} on the entire infinite family.
+\end{theorem}
+
+\begin{proof}
+Let $L$ and $R$ be the two parts, with $|L|=a$ and $|R|=b$; degrees are $b$
+on $L$ and $a$ on $R$, and $\mathsf v_G=2ab$.  Solving
+$(3D-A)z=Dx$ by the two part sums gives
+\begin{equation}
+ N=
+ \begin{pmatrix}
+ \frac13I_a+\frac1{24a}J_a&\frac1{8b}J_{a\times b}\\[2mm]
+ \frac1{8a}J_{b\times a}&\frac13I_b+\frac1{24b}J_b
+ \end{pmatrix}.
+ \label{eq:psi-kab-n}
+\end{equation}
+Squaring the four blocks shows, for distinct vertices,
+\begin{equation}
+ (N^2)_{ij}=
+ \begin{cases}
+  13/(288a),&i,j\in L,\\
+  13/(288b),&i,j\in R,\\
+  3/(32b),&i\in L,\ j\in R,\\
+  3/(32a),&i\in R,\ j\in L.
+ \end{cases}
+ \label{eq:psi-kab-n2}
+\end{equation}
+The corresponding left-to-right ratios in \cref{eq:psi-hk-n} are
+$13/36$ within either part and $3/4$ across the cut.  Thus
+\cref{eq:psi-hk-n} holds strictly.
+
+The normalized-Laplacian spectrum of $K_{a,b}$ is
+$\{0,1^{(a+b-2)},2\}$ when $a+b\geq3$, while $K_{1,1}$ has spectrum
+$\{0,2\}$.  Hence $\mu_2\geq1\geq2q$.  The structural theorem
+\cref{thm:psi-hk-nonpositivity} gives $\Psi\leq0$.  Equality is attained at
+$y=0,h=0$, so the supremum is zero.
+\end{proof}
+
+This family is not a disguised scalar-high-space case: when $a+b\geq3$, the
+normalized Laplacian has the two distinct high eigenvalues $1$ and $2$.
+Thus the theorem goes beyond the complete-graph truncation-covariance proof.
+It includes every star $K_{1,b}$, but it remains a positive-face Lyapunov
+statement rather than a locality or work theorem.
+
+\paragraph{Novelty boundary.}
+The read-only Fable evidence already lists $K_{a,b}$ inside its proposed
+\textup{(HK)} subclass.  The calculation above is therefore an independent
+analytic closure and normalization of that listed family, not a new family
+discovery.  The unequal-part complete-multipartite closure below is the
+strict extension pursued here.
+
+\section{Unequal complete multipartite graphs}
+
+Let $G=K_{n_1,\ldots,n_k}$, where $k\geq2$ and every $n_r\geq1$.  Put
+$n=\sum_r n_r$, $d_r=n-n_r$, and let $r(i)$ denote the part containing
+vertex $i$.  The direct block inverse already shows that unequal part sizes
+do not create a singular threshold.  With
+\begin{equation}
+ c_r=3n-2n_r,
+ \qquad
+ C=1-\sum_{r=1}^k\frac{n_r}{c_r},
+ \label{eq:psi-kmultipartite-block-parameters}
+\end{equation}
+one obtains
+\begin{equation}
+ N_{ij}
+ =\frac13\mathbf1_{\{i=j\}}
+  +\frac{d_{r(j)}}{c_{r(i)}C c_{r(j)}}
+  -\frac{\mathbf1_{\{r(i)=r(j)\}}}{3c_{r(i)}}.
+ \label{eq:psi-kmultipartite-block-inverse}
+\end{equation}
+The following result proves that the favorable kernel sign persists for
+every part vector.
+
+\begin{theorem}[Master nonpositivity on every complete multipartite graph]
+\label{thm:psi-complete-multipartite}
+For every $G=K_{n_1,\ldots,n_k}$ with $k\geq2$, every $n_r\geq1$, and every
+$0<q\leq1/2$, condition \cref{eq:psi-hk-n} holds.  Consequently,
+\begin{equation}
+ \sup_{y\in\mathbb R^n,\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-complete-multipartite-sup}
+\end{equation}
+This assertion is for the exact positive-face recurrence and carries no
+local-work conclusion.
+\end{theorem}
+
+\begin{proof}
+Write
+\begin{equation}
+ p_r=\frac{n_r}{n},\qquad
+ \delta=\sum_u p_u(1-p_u),\qquad
+ \Pi_r=\frac{p_r(1-p_r)}{\delta}.
+ \label{eq:psi-kmultipartite-masses}
+\end{equation}
+Thus $\Pi_r$ is the stationary mass of part $r$ and the stationary mass of
+one vertex in that part is $\pi_j=\Pi_r/n_r$.  Let
+$R$ be the random-walk chain lumped by parts:
+\begin{equation}
+ R_{rs}=\begin{cases}
+ p_s/(1-p_r),&r\neq s,\\
+ 0,&r=s.
+ \end{cases}
+ \label{eq:psi-kmultipartite-part-chain}
+\end{equation}
+Since $N=(3I-D^{-1}A)^{-1}$, the stochastic kernel
+$\widehat N:=2N$ lumps to
+$\widehat R:=2(3I-R)^{-1}$.  Define
+\begin{equation}
+ x_r=\frac{2}{3-2p_r},\qquad
+ m=\sum_u\Pi_u x_u,\qquad
+ t=\frac{\sum_u\Pi_u x_u^2}{m}.
+ \label{eq:psi-kmultipartite-xmt}
+\end{equation}
+A rank-one inversion of \cref{eq:psi-kmultipartite-part-chain} gives the
+exact formula
+\begin{equation}
+ \widehat R_{rs}
+ =\left(1-\frac{x_r}{2}\right)\mathbf1_{\{r=s\}}
+   +\frac{x_rx_s}{2m}\Pi_s.
+ \label{eq:psi-kmultipartite-rhat}
+\end{equation}
+In particular, for $r\neq s$,
+\begin{equation}
+ \frac{(\widehat R^2)_{rs}}{\Pi_s}
+ =\frac{x_rx_s}{4m}(4-x_r-x_s+t).
+ \label{eq:psi-kmultipartite-cross-ratio}
+\end{equation}
+
+We prove that the last ratio is at most one.  The interval
+$2/3\leq x_u\leq2$ gives
+\begin{equation}
+ x_u^2\leq\frac83x_u-\frac43,
+ \qquad
+ t\leq\frac83-\frac{4}{3m}.
+ \label{eq:psi-kmultipartite-t-bound}
+\end{equation}
+Fix the two distinct parts and abbreviate $p=p_r$, $s=p_s$, $x=x_r$,
+$y=x_s$, and $r_0=1-p-s$.  Since $p+s\leq1$,
+$(3-2p)(3-2s)\geq3$, hence $xy\leq4/3$.  Also $m\geq2/3$, so
+$xy\leq3m^2$.  Therefore
+\begin{equation}
+ F(m):=4m-xy\left(\frac{20}{3}-x-y-\frac{4}{3m}\right)
+ \label{eq:psi-kmultipartite-f}
+\end{equation}
+is nondecreasing in $m$.  If $w(u)=u(1-u)$, the remaining parts have total
+weight $W=\sum_{u\neq r,s}w(p_u)\leq r_0$ and contribute at least
+$2W/3$ to the numerator of $m$.  Hence
+\begin{equation}
+ m\geq m_L
+ :=\frac{w(p)x+w(s)y+(2/3)r_0}{w(p)+w(s)+r_0}.
+ \label{eq:psi-kmultipartite-ml}
+\end{equation}
+Here the last replacement $W\mapsto r_0$ is valid because
+$(A+(2/3)W)/(B+W)$ is nonincreasing when $A/B\geq2/3$, with
+$A=w(p)x+w(s)y$ and $B=w(p)+w(s)$.
+The monotonicity of $F$ reduces the claim to one exact bivariate polynomial
+certificate.  For degree $d$, define the simplex Bernstein polynomial
+\begin{equation}
+ \mathcal B_d[c](p,s)
+ :=\sum_{i+j\leq d}c_{ij}\frac{d!}{i!j!(d-i-j)!}
+ p^is^j(1-p-s)^{d-i-j}.
+ \label{eq:psi-simplex-bernstein}
+\end{equation}
+Let $\mathcal P=\mathcal B_8[c]$, where row $i$ below lists
+$c_{i0},\ldots,c_{i,8-i}$:
+{\scriptsize
+\begin{equation}
+\begin{array}{c|l}
+0&(81,54,459/14,243/14,54/7,81/28,27/28,0,0)\\
+1&(54,2025/56,1247/56,3399/280,1587/280,65/28,27/28,0)\\
+2&(459/14,1247/56,2977/210,4581/560,869/210,13/7,27/28)\\
+3&(243/14,3399/280,4581/560,1457/280,85/28,3/2)\\
+4&(54/7,1587/280,869/210,85/28,81/35)\\
+5&(81/28,65/28,13/7,3/2)\\
+6&(27/28,27/28,27/28)\\
+7&(0,0)\\
+8&(0)
+\end{array}
+\label{eq:psi-kmultipartite-p-coefficients}
+\end{equation}
+}
+Also let
+\begin{equation}
+ \mathcal L(p,s)
+ =2p^2s-3p^2+2ps^2+4ps-6p-3s^2-6s+9.
+ \label{eq:psi-kmultipartite-l}
+\end{equation}
+Its degree-three Bernstein coefficient rows are
+$(9,7,4,0)$, $(7,17/3,4)$, $(4,4)$, and $(0)$.
+Direct rational simplification gives
+\begin{equation}
+ F(m_L)=
+ \frac{32\mathcal P(p,s)}
+ {3(3-2p)^2(3-2s)^2(1-p^2-s^2)\mathcal L(p,s)}.
+ \label{eq:psi-kmultipartite-bernstein-certificate}
+\end{equation}
+Every displayed Bernstein coefficient is nonnegative.  Since $p,s>0$ and
+$p+s\leq1$, the denominator is positive; hence $F(m_L)\geq0$.
+Together with \cref{eq:psi-kmultipartite-t-bound,eq:psi-kmultipartite-f},
+this proves $(\widehat R^2)_{rs}\leq\Pi_s$ for $r\neq s$.
+
+It remains to check distinct vertices in the same part.  The normalized
+adjacency is congruent to the adjacency matrix and has one positive eigenvalue,
+$k-1$ negative eigenvalues, and $n-k$ zero eigenvalues.  One elementary way
+to see this is to restrict the adjacency quadratic form to part-constant
+vectors: it has one positive direction and is negative definite on the
+codimension-one subspace whose weighted part sum is zero; every within-part
+zero-sum vector lies in the kernel.  Thus every nonconstant eigenvalue of
+$R$ lies in $[-1,0)$, and every nonconstant eigenvalue of
+$\widehat R^2$ is at most $4/9$.  Reversibility then gives
+\begin{equation}
+ (\widehat R^2)_{rr}
+ \leq\Pi_r+\frac49(1-\Pi_r).
+ \label{eq:psi-kmultipartite-diagonal-covariance}
+\end{equation}
+On a within-part zero-sum vector, $\widehat N^2$ has eigenvalue $4/9$.
+Consequently, for distinct $i,j$ in part $r$,
+\begin{equation}
+ (\widehat N^2)_{ij}
+ =\frac{(\widehat R^2)_{rr}-4/9}{n_r}
+ \leq\frac{5\Pi_r}{9n_r}
+ \leq\pi_j.
+ \label{eq:psi-kmultipartite-same-part}
+\end{equation}
+For vertices in different parts, block constancy and the cross-part result
+give $(\widehat N^2)_{ij}=(\widehat R^2)_{rs}/n_s\leq\pi_j$.
+Because $\widehat N^2=4N^2$, these two bounds are exactly
+\cref{eq:psi-hk-n}.
+
+Finally, the nontrivial normalized-adjacency spectrum is nonpositive apart
+from the Perron eigenvalue, with possible zero modes.  Hence the first
+nonzero normalized-Laplacian eigenvalue is at least one, so
+$\mu_2\geq1\geq2q$.  The structural theorem gives $\Psi\leq0$, and
+$y=h=0$ attains equality.
+\end{proof}
+
 \section{Current boundary}
 
-The next falsifiable target is to control the mixed term by a graph-structural
-positive-association inequality, and then verify that condition analytically
-on an infinite graph family.  A successful one-step inequality implies
-Lyapunov absorption only for the exact positive-face recurrence above.  It
-does not by itself charge graph discovery, clipping, shifted inverse work,
-proper-face changes, finite precision, or final PPR output.
+The positive-association route is now closed on every complete multipartite
+graph, with no balance or part-size threshold.  The next falsifiable target
+must leave this dense equitable class: find a larger analytic family
+satisfying \cref{eq:psi-hk}, or analyze mixed clipping beyond \textup{(HK)}
+on a graph such as a cycle, hypercube, or Petersen graph where the entrywise
+condition itself fails.  A one-step inequality implies Lyapunov absorption
+only for the exact positive-face recurrence above.  It does not by itself
+charge graph discovery, clipping, shifted inverse work, proper-face changes,
+finite precision, or final PPR output.
 
 \end{document}
