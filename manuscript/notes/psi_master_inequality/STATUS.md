@@ -34,19 +34,24 @@ Allowed write scope: `manuscript/notes/psi_master_inequality/` and `docs/coordin
   proves `Psi<=0` under the entrywise `(HK)` condition.  The closed
   `(3D-A)^-1 D` blocks prove `(HK)` with ratios `13/36` within a part and
   `3/4` across the cut on every complete bipartite graph.  Consequently
-  `sup Psi=0` on every `K_{a,b}`, `a,b>=1`, for `0<q<=1/2`.
+  `sup Psi=0` on every `K_{a,b}`, `a,b>=1`, for `0<q<=1/2`.  More generally,
+  a rank-one lumped-resolvent formula and an exact nonnegative
+  simplex-Bernstein certificate prove `(HK)` and `sup Psi=0` on every
+  complete multipartite graph `K_{n_1,...,n_k}`, with arbitrary positive
+  unequal part sizes and no balance threshold.
 - **Conditional:** None yet.
 - **Measured:** None yet.
 - **Refuted:** None yet.
-- **Open:** Analytic nonpositivity beyond finitely enumerated examples.
+- **Open:** Analytic nonpositivity on general graphs and on graph families
+  lying beyond the sufficient `(HK)` condition.
 
 ## Central blocker
 
-The entrywise positive-association route is closed on complete bipartite
-graphs but is known from Fable's evidence to fail on graphs such as cycles,
-hypercubes, and Petersen.  Extend the analytic block calculation to a larger
-equitable family, or attack a graph beyond `(HK)` without erasing clipping
-complementarity.
+The entrywise positive-association route is closed on all complete
+multipartite graphs but is known from Fable's evidence to fail on graphs
+such as cycles, hypercubes, and Petersen.  The next advance must enlarge the
+analytic `(HK)` class beyond complete multipartite graphs or attack a graph
+beyond `(HK)` without erasing clipping complementarity.
 
 ## Dependencies and reusable outputs
 
@@ -58,10 +63,11 @@ complementarity.
 ## Resume here
 
 - Exact file/section/lemma: `lem:psi-master-identity`,
-  `thm:psi-hk-nonpositivity`, and `thm:psi-complete-bipartite` in `main.tex`.
-- Next concrete action: test and, if valid, prove the analogous block-kernel
-  condition for complete multipartite graphs; otherwise preserve the exact
-  failing parameter tuple and move to an equitable subclass.
+  `thm:psi-hk-nonpositivity`, and `thm:psi-complete-multipartite` in
+  `main.tex`.
+- Next concrete action: seek a larger equitable or distance-regular family
+  satisfying `(HK)`, or derive a different sign payment for a cycle where
+  `(HK)` itself fails.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
   admissible positive witness.
 
@@ -74,7 +80,10 @@ complementarity.
   manuscript/notes/psi_master_inequality`, the independent exact-rational
   `verify_master_identity.py` audit (21/21), the exact
   `verify_complete_bipartite.py` audit (64 graphs and 5280 off-diagonal
-  formulas), and `git diff --check` pass.
+  formulas), the exact `verify_complete_multipartite.py` certificate (45/45
+  nonnegative degree-eight numerator coefficients, 10/10 nonnegative
+  denominator coefficients, 493 part vectors, and 64094 off-diagonal
+  checks), and `git diff --check` pass.
 - Known gaps: mixed clipping, proper faces, finite inner residuals, and all
   algorithm/work consequences.
 
