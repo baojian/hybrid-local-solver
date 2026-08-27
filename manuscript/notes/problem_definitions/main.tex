@@ -1,0 +1,328 @@
+% Standalone reference note for the hybrid-local-solver project.
+%
+% This document contains only canonical definitions, equivalent formulations,
+% and source-backed standard properties. It deliberately contains no
+% algorithm, new theorem, experiment, or open conjecture.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Problem Definitions and Standard Properties\\
+for Local PageRank and Regularized PageRank}
+\author{Baojian Zhou\\
+\small Working reference note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note fixes a compact reference for the two optimization problems used in
+the project: personalized PageRank (PPR) and regularized personalized PageRank
+(RPPR).  It records the exact graph, seed, parameter, output, and local-access
+models; translates the lazy symmetric system into lazy fixed-point, rescaled,
+non-lazy mass, and non-lazy degree coordinates; and collects standard
+spectral, positivity, normalization, optimality, sparsity, bias, and residual
+properties.  Every substantive property is either a cited source result or an
+elementary consequence of the displayed definitions.  No algorithm,
+complexity claim, experiment, or new research statement is included, and the
+repository-wide residual decision remains open.
+\end{abstract}
+
+\section{Scope and status}
+\label{sec:problem-definitions-scope}
+
+\paragraph{Claim status.}
+This is a \statussource{} reference document.  The shared block below is the
+canonical manuscript definition; this note does not replace or redefine it.
+Statements labeled ``standard consequence'' are included only to make the
+reference self-contained.  They are direct linear-algebra or convex-analysis
+consequences of the cited source facts, not claims of novelty.
+
+\paragraph{Included objects.}
+The note covers the PPR linear system and fixed point, the RPPR convex
+surrogate, semantic output accuracy, a sufficient residual-to-error
+implication, and the adjacency-list input and work unit.  It excludes every
+specific solver, activation rule, momentum scheme, convergence rate,
+complexity target, experiment, and open conjecture.
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Exact computational problems}
+\label{sec:problem-definitions-problems}
+
+\begin{problem}[Personalized PageRank]
+\label{prob:problem-definitions-ppr}
+The input is the graph $G$ and sparse seed distribution $s$ from the shared
+model, together with $\alpha\in(0,1]$.  The exact target is
+$x^0=Q^{-1}b$, equivalently $\pi=D^{1/2}x^0$.  A sparse approximate output is
+a list representing $\widehat x\in\R^n$; unlisted coordinates are zero and
+$\widehat\pi:=D^{1/2}\widehat x$.  For a document-scoped tolerance
+$\epsppr>0$, the semantic accuracy requirement is
+\begin{equation}
+    \norm{D^{-1}(\widehat\pi-\pi)}_\infty
+    =
+    \norm{D^{-1/2}(\widehat x-x^0)}_\infty
+    \leq \epsppr.
+    \label{eq:problem-definitions-semantic-ppr}
+\end{equation}
+This is an output property, not an activation rule or an adopted
+implementation-wide stopping test.
+\end{problem}
+
+\begin{problem}[Regularized personalized PageRank]
+\label{prob:problem-definitions-rppr}
+For the same $G,s,\alpha$ and a regularization parameter $\rho>0$, the exact
+target is the unique minimizer $x^\star(\rho)$ of $F_\rho$ in
+\cref{eq:shared-rppr-objective}.  Its mass-coordinate representation is
+\begin{equation}
+    \pi_\rho:=D^{1/2}x^\star(\rho),
+    \qquad
+    S^\star(\rho)=\supp(x^\star(\rho)).
+    \label{eq:problem-definitions-rppr-output}
+\end{equation}
+The scale $\rho$ is part of the objective and is not silently identified with
+$\epsppr$, an objective-gap tolerance, or an algorithmic KKT diagnostic.
+\end{problem}
+
+The input graph is accessed through adjacency lists and the seed through its
+sparse nonzero list.  Scanning vertex $i$ costs $d_i$ and scanning
+$S\subseteq V$ costs $\vol(S)$.  This defines the common local-work unit; it
+does not prescribe an algorithm or assert a work bound.
+
+\section{Equivalent PPR formulations}
+\label{sec:problem-definitions-equivalences}
+
+Put
+\begin{equation}
+    P:=AD^{-1},
+    \qquad
+    P_{\rm L}:=\frac{I+P}{2},
+    \qquad
+    \alpha_{\rm nl}:=\frac{2\alpha}{1+\alpha}.
+    \label{eq:problem-definitions-walks}
+\end{equation}
+Both $P$ and $P_{\rm L}$ act on column vectors, and both are column
+stochastic.  Direct multiplication of $Qx^0=b$ by $D^{1/2}$ gives the exact
+dictionary below.  The lazy forms agree with the PPR formulations used by
+\citet{zhou2024iterative} and \citet{huang2025accelerated}; the non-lazy mass
+and degree forms are the undirected specializations used by
+\citet{chen2023accelerating} and \citet{wei2026simple}.
+
+\begin{center}
+\begin{tabularx}{0.97\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.22\textwidth}
+    >{\raggedright\arraybackslash}X@{}}
+\toprule
+Form & Exact equation and conversion \\
+\midrule
+Lazy fixed point
+& $\pi=\alpha s+(1-\alpha)P_{\rm L}\pi$. \\
+Lazy symmetric
+& $Qx^0=b$ and $\pi=D^{1/2}x^0$. \\
+Rescaled lazy symmetric
+& $Q_{\rm rs}x^0=b_{\rm rs}$, where
+  $Q_{\rm rs}=2Q/(1+\alpha)$ and $b_{\rm rs}=2b/(1+\alpha)$. \\
+Non-lazy mass
+& $[I-(1-\alpha_{\rm nl})P]\pi=\alpha_{\rm nl}s$, where
+  $\alpha_{\rm nl}=2\alpha/(1+\alpha)$ and
+  $\alpha=\alpha_{\rm nl}/(2-\alpha_{\rm nl})$. \\
+Non-lazy degree
+& $[D-(1-\alpha_{\rm nl})A]y=\alpha_{\rm nl}s$, where
+  $y=D^{-1}\pi=D^{-1/2}x^0$. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The rescaled system changes neither $\alpha$ nor its solution.  Removing the
+lazy self-loop changes the numerical teleportation parameter to
+$\alpha_{\rm nl}$.  Therefore a dependence on ``$\alpha$'' can be compared
+across sources only after applying this conversion.
+
+\section{Standard properties of PPR}
+\label{sec:problem-definitions-ppr-properties}
+
+The following facts are standard for the normalized Laplacian and the
+discounted PageRank system; see the source formulations and spectral bounds
+in \citet{fountoulakis2019variational,fountoulakis2026complexity,
+zhou2024iterative,huang2025accelerated}.
+
+\begin{proposition}[Spectrum, convexity, and uniqueness; standard]
+\label{prop:problem-definitions-spectrum}
+The normalized Laplacian and PageRank matrix satisfy
+\begin{equation}
+    0\preceq\mathcal L\preceq2I,
+    \qquad
+    \alpha I\preceq Q\preceq I.
+    \label{eq:problem-definitions-spectrum}
+\end{equation}
+Consequently, $Q$ is symmetric positive definite,
+$\kappa_2(Q)\leq1/\alpha$, $f$ is $\alpha$-strongly convex with
+$1$-Lipschitz gradient, and $x^0$ is unique.  Moreover,
+\begin{equation}
+    f(x)-f(x^0)=\frac12\norm{x-x^0}_Q^2
+    \qquad(x\in\R^n).
+    \label{eq:problem-definitions-quadratic-gap}
+\end{equation}
+\end{proposition}
+
+\begin{proposition}[Inverse positivity and probability mass; standard]
+\label{prop:problem-definitions-positivity}
+The matrix $Q$ is a nonsingular symmetric $M$-matrix (a Stieltjes matrix), so
+$Q^{-1}\geq0$ coordinatewise.  Hence $x^0\geq0$ and $\pi\geq0$.  In
+addition,
+\begin{equation}
+    \inner{\one}{\pi}=1.
+    \label{eq:problem-definitions-unit-mass}
+\end{equation}
+If $0<\alpha<1$, then $\pi$ is strictly positive on every connected component
+that intersects $\supp(s)$.  At $\alpha=1$, one simply has $\pi=s$.
+\end{proposition}
+
+\begin{proof}[Standard verification]
+The off-diagonal entries of $Q$ are nonpositive, and
+\cref{eq:problem-definitions-spectrum} gives positive definiteness; this is
+the Stieltjes characterization.  The lazy fixed point and column
+stochasticity of $P_{\rm L}$ give
+$\one^T\pi=\alpha+(1-\alpha)\one^T\pi$.  Strict positivity on a seeded
+component follows from the Neumann series for the discounted walk.
+\end{proof}
+
+\begin{proposition}[A sufficient degree-normalized certificate; standard]
+\label{prop:problem-definitions-residual-certificate}
+For every $\widehat x\in\R^n$,
+\begin{equation}
+    \norm{D^{-1}(\widehat\pi-\pi)}_\infty
+    \leq
+    \frac{1}{\alpha}
+    \norm{D^{-1/2}(Q\widehat x-b)}_\infty.
+    \label{eq:problem-definitions-residual-certificate}
+\end{equation}
+Thus
+$\norm{D^{-1/2}(Q\widehat x-b)}_\infty\leq\alpha\epsppr$
+is sufficient for \cref{eq:problem-definitions-semantic-ppr}.  This is the
+scaling used in the source-aligned local certificate of
+\citet{zhou2024iterative}; it does not select the sign, strictness, or
+evaluation schedule of a repository-wide residual.
+\end{proposition}
+
+\begin{proof}[Standard verification]
+Let $B:=D^{-1/2}QD^{1/2}$.  It is a nonsingular $M$-matrix,
+$B^{-1}\geq0$, and $B\one=\alpha\one$.  Therefore
+$\norm{B^{-1}}_\infty=1/\alpha$.  Applying $B^{-1}$ to the scaled residual
+gives \cref{eq:problem-definitions-residual-certificate}.
+\end{proof}
+
+\section{Standard properties of RPPR}
+\label{sec:problem-definitions-rppr-properties}
+
+The source variational formulation, KKT system, nonnegative minimizer, and
+support-volume result are given in \citet[Section~4 and
+Theorems~1--2]{fountoulakis2019variational}; the shared normalization follows
+\citet[Section~3]{fountoulakis2026complexity}.
+
+\begin{proposition}[Existence, optimality, and locality; source]
+\label{prop:problem-definitions-rppr-source}
+For every $\rho>0$, $F_\rho$ is $\alpha$-strongly convex and has one minimizer
+$x^\star(\rho)$.  This minimizer is nonnegative, obeys the coordinatewise KKT
+conditions in \cref{eq:shared-rppr-kkt}, and satisfies
+\begin{equation}
+    \vol(S^\star(\rho))\leq\frac{1}{\rho}.
+    \label{eq:problem-definitions-support-volume}
+\end{equation}
+In particular,
+$F_\rho(x)-F_\rho(x^\star)\geq
+\frac{\alpha}{2}\norm{x-x^\star}_2^2$ for all $x$.
+\end{proposition}
+
+\begin{proposition}[Regularization bias; standard consequence]
+\label{prop:problem-definitions-rppr-bias}
+Let $\pi_\rho=D^{1/2}x^\star(\rho)$.  Then
+\begin{equation}
+    0
+    \leq D^{-1}(\pi-\pi_\rho)
+    \leq \rho\one,
+    \qquad
+    \norm{D^{-1}(\pi-\pi_\rho)}_\infty\leq\rho.
+    \label{eq:problem-definitions-rppr-bias}
+\end{equation}
+Consequently, any approximation $\widehat x$ satisfying
+\begin{equation}
+    \norm{D^{-1/2}(\widehat x-x^\star(\rho))}_\infty\leq\tau
+    \label{eq:problem-definitions-rppr-optimization-error}
+\end{equation}
+obeys the PPR error bound
+\begin{equation}
+    \norm{D^{-1}(D^{1/2}\widehat x-\pi)}_\infty
+    \leq\rho+\tau.
+    \label{eq:problem-definitions-rppr-total-error}
+\end{equation}
+\end{proposition}
+
+\begin{proof}[Standard verification]
+The KKT conditions provide a vector $z\in[0,1]^n$ such that
+$Qx^\star-b=-\alpha\rho D^{1/2}z$.  Since $Qx^0=b$,
+\[
+    x^0-x^\star=\alpha\rho Q^{-1}D^{1/2}z.
+\]
+Inverse positivity and $QD^{1/2}\one=\alpha D^{1/2}\one$ give
+$0\leq x^0-x^\star\leq\rho D^{1/2}\one$, which is
+\cref{eq:problem-definitions-rppr-bias}.  The last bound is the triangle
+inequality.
+\end{proof}
+
+Thus $\rho$ has two separate, standard consequences: it bounds the exact
+degree-normalized bias and it bounds the optimal support volume.  For example,
+choosing $\rho=\epsppr/2$ leaves an error budget $\tau=\epsppr/2$ for an
+inexact RPPR solve and gives
+$\vol(S^\star)\leq2/\epsppr$.  This is only a problem-level implication; it
+does not supply an algorithm for attaining $\tau$.
+
+\section{Notation and source boundary}
+\label{sec:problem-definitions-source-boundary}
+
+The symbols below are intentionally noninterchangeable.
+
+\begin{center}
+\begin{tabularx}{0.97\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.17\textwidth}
+    >{\raggedright\arraybackslash}X@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$\epsppr$ & Semantic degree-normalized PPR output error in
+\cref{eq:problem-definitions-semantic-ppr}. \\
+$\epsappr$ & APPR residual activation threshold, defined only in the APPR
+algorithm; it is not $\epsppr$. \\
+$\rho$ & RPPR regularization and locality scale. \\
+$\epsobj$ & Additive RPPR objective-gap target. \\
+$\epspg$ & Proximal fixed-point diagnostic used by source experiments. \\
+$\tau$ & A local symbol for the RPPR-to-PPR optimization-error allowance in
+\cref{eq:problem-definitions-rppr-optimization-error}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The exact source audit trail is maintained in the literature notes:
+Fountoulakis et al.\ (2019), PDF pages 8--18 for the variational objective,
+KKT system, nonnegativity, support bound, and relative stopping rule;
+Fountoulakis and Mart\'inez-Rubio (2026), PDF page 3, Section 3 for the shared
+RPPR normalization; Zhou et al.\ (2024), PDF pages 1--3 and supplemental PDF
+page 17 for the lazy PPR systems and residual certificate; Huang et al.\
+(2025), PDF pages 1--3 for the lazy PPR and symmetric quadratic; Chen et al.\
+(2023), PDF page 3 for the non-lazy mass system; and Wei and Yang (2026), PDF
+pages 2--4 and 8--10 for the non-lazy degree-coordinate system and active-set
+RPPR properties.  These pointers are recorded in
+\texttt{docs/literature/local-solvers.md} and
+\texttt{docs/literature/acceleration.md}.
+
+\paragraph{Boundary of the note.}
+Nothing here chooses a solver, claims graph-uniform locality, identifies two
+accuracy namespaces, or resolves the implementation-wide residual convention.
+Those choices require their own definitions, decisions, and proofs.
+
+\bibliographystyle{plainnat}
+\bibliography{../../references}
+
+\end{document}

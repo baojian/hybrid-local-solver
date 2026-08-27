@@ -71,6 +71,7 @@ This table is generated from `registry.toml` by
 | [`bounded_seed_return`](bounded_seed_return/) | models | proved-open | Rule out star-scale self-return amplification at bounded-degree seeds with saturated semantic support. |
 | [`class_separation_ladder`](class_separation_ladder/) | models | proved-open | Separate local PageRank class restrictions on one center-seeded star. |
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
+| [`problem_definitions`](problem_definitions/) | models | synthesis | Collect the exact problem definitions and source-backed standard properties used across the project. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
