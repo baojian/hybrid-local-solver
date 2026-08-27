@@ -25,11 +25,11 @@
   **replaces** the old Open 2.
 
 **Verification.** Three scripts, all pass:
-`/home/claude/work/overnight/i6c/open1_maxprinciple.py` (18 instances x 5
+`i6c/open1_maxprinciple.py` (18 instances x 5
 alphas x {P1,P2,P3,P5} + 3 exact-rational cells: **0 failures**),
-`/home/claude/work/overnight/i6c/open2_scope.py` (envelope/ceiling battery,
+`i6c/open2_scope.py` (envelope/ceiling battery,
 lollipop family, 60-run member battery: **0 failures**), and the extended
-`/home/claude/work/overnight/i5d/verify_ladder.py` with the new check **C14**:
+`i5d/verify_ladder.py` with the new check **C14**:
 **45 cells x 14 checks, 0 failures** (rerun ~2 min). Logs in `i6c/out/`.
 Conventions as I5-D: `H = I - c_a A D^{-1}`, `H pi = gamma_a e_v`,
 `c_a = (1-alpha)/(1+alpha)`, `gamma_a = 2 alpha/(1+alpha)`, work `d_u` per op,
