@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-static-inequality`
-- Base commit: `71bf22f8ab78ebdeb750f953eced410365eec8ed`
+- Branch: `agent/codex/path-terminal-static-cone`
+- Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -33,6 +33,16 @@
   `E_1=T_1+beta/4>=0`, `F_2>=E_1/2`, and
   `F_r>=F_(r-1)/2`, where `F_r=T_r+T_(r-1)/2`. This replaces the former
   undifferentiated signed bulk/tail problem.
+- Exact follow-up reduction: With prefix correction
+  `K_n=C_n-(1-q)C_(n-1)/2`, the temporal decrement
+  `mathcal T_m=(1-q)K_(m-1)-K_m` obeys
+  `d_j=2(1-q)(L mathcal T_m)_j` on `1<=j<=m-4`, and the same identity at
+  the seed after exact cancellation of the ideal endpoint atom. The
+  comparator `h` has preimage `-4h/(1-q)` on the interior. An interior
+  preimage comparison plus the seed and three direct frontier inequalities
+  is therefore sufficient. It remains OPEN, is not necessary, and is not
+  inferred from a fixed-prefix `q->0` limit because the named family has
+  `mq=1/16`.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
   entry profiles, and full projection/envelope regime remain open. The
   logarithmic terminal block remains conditional, and no lower bound is
@@ -42,8 +52,9 @@
 
 - A new exact preflight checks the rational `3/50` signed-mass ledger,
   `57/200` endpoint ledger, finite alternating-tail endpoint stencil, and
-  exact signed-mass formula at `m=8,12`. It explicitly labels the local
-  half-ratios open.
+  exact signed-mass formula and temporal smoothing identity at `m=8,12`. It
+  explicitly labels the local half-ratios and temporal preimage comparison
+  open.
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
@@ -61,6 +72,7 @@
 - Main audit risks: the weighted telescoping identity for the signed mass,
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
-- Next action: Prove the explicit local half-ratios uniformly for `m>=64`,
-  then lift the same endpoint comparator through the exact folded
+- Next action: Prove the explicit local half-ratios uniformly for `m>=64`, or
+  prove the sufficient temporal preimage cone and the seed/three frontier
+  inequalities; then lift the same endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.

@@ -4,8 +4,8 @@ Last reviewed: 2026-08-28
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-static-inequality`
-Base commit: `71bf22f`
+Branch: `agent/codex/path-terminal-static-cone`
+Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
 
 ## Exact question and contract
 
@@ -88,7 +88,16 @@ Base commit: `71bf22f`
   then proves the desired `21q^3/80` positive-mass bound conditional only on
   `d>=h`, including the finite seed-endpoint correction. A local sufficient
   interface is explicit: `E_1>=0`, `F_2>=E_1/2`, and
-  `F_r>=F_(r-1)/2`.
+  `F_r>=F_(r-1)/2`. Independently, if `C_n` is the prefix correction and
+  `K_n=C_n-(1-q)C_(n-1)/2`, the exact temporal decrement
+  `T_m=(1-q)K_(m-1)-K_m` satisfies
+  `d_j=2(1-q)(L T_m)_j` on every interior row `1<=j<=m-4`, with the same
+  identity at the seed after exact cancellation of the ideal endpoint atom.
+  The geometric comparator has the analogous interior preimage
+  `tilde h=-4h/(1-q)`. Hence an interior preimage comparison plus the three
+  direct frontier rows and seed is another sufficient route to `d>=h`.
+  The preimage comparison is not claimed necessary, and the fixed-prefix
+  `q->0` limit is not substituted for the joint family `mq=1/16`.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -118,7 +127,9 @@ Base commit: `71bf22f`
 - **Open:** Prove the two entry profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
   endpoint pieces. For the static inequality, prove the displayed local
-  endpoint half-ratios (or otherwise prove `d>=h`); then prove its early
+  endpoint half-ratios, or the sufficient interior temporal preimage cone
+  together with the seed and three direct frontier rows (or otherwise prove
+  `d>=h`); then prove its early
   `J_kL` convolution counterpart and the projection/unclipped-envelope
   invariant in exact arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
@@ -147,7 +158,8 @@ Base commit: `71bf22f`
    part is now reduced to proving a uniform static bound on
    `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
    proved, so the static bound now needs only the explicit local half-ratios
-   for `d-h`. A separate early/late position lower bound must exploit the
+   for `d-h`, or the exact sufficient interior temporal-preimage comparison
+   plus the four direct boundary checks. A separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
@@ -184,7 +196,8 @@ constants is permitted only with a corresponding proof.
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
-  prove `eq:terminal-modal-static-local-half-ratios`, which now implies the
+  prove `eq:terminal-modal-static-local-half-ratios`, or the exact sufficient
+  temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
   kernel for the early signed convolution, and combine these bounds with an
@@ -214,8 +227,9 @@ constants is permitted only with a corresponding proof.
   the exact `J_kL` binomial window, entry-correction sign, and `u=Ld`
   deconvolution at `m=8,12`. A sixth exact preflight checks the rational
   `3/50` signed-mass ledger, the `57/200` endpoint ledger, the finite
-  alternating-tail stencil, and the exact signed-mass formula at `m=8,12`;
-  it labels the uniform local half-ratios open. The floating screen
+  alternating-tail stencil, the exact signed-mass formula, and the temporal
+  correction/smoothing identity at `m=8,12`; it labels the uniform local
+  half-ratios and temporal preimage comparison open. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times

@@ -49,7 +49,13 @@ proved. On the regime side, the signed static mass is now bounded by
 geometric endpoint comparator reduces the full `21q^3/80` static target to
 coordinatewise tail dominance `d>=h`, and a concrete local sufficient route
 is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
-`F_r>=F_(r-1)/2`. Those local inequalities remain open, as do the early
+`F_r>=F_(r-1)/2`. An exact correction identity also writes the interior
+tail difference as `d=2(1-q)L((1-q)K_(m-1)-K_m)` and gives the seed identity
+with the endpoint atom cancelled. Thus another sufficient route is an
+interior temporal preimage comparison plus three direct frontier rows and
+the seed. Positivity of that preimage is neither claimed nor necessary, and
+fixed-prefix `q->0` asymptotics do not settle the joint family `mq=1/16`.
+Those local inequalities remain open, as do the early
 convolution analogue and an early/late lower position margin. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
