@@ -12,7 +12,11 @@ Second, the note develops a graph-family ladder.  It proves the optimal
 red--black SOR spectral factor on every fixed exposed bipartite face,
 specializes it to spider prefixes, scopes the sharp rate to supplied spectral
 tuning, and gives a generic finite fixed-face work bound using one
-graph-global parameter.
+graph-global parameter.  A certified face-specific upper spectral bound also
+gives a fully charged tuning formula: its estimation cost is added explicitly,
+and constant-relative tuning needs squared-radius accuracy at the
+`1-rho_J^2` scale.  A raw Rayleigh estimate from below is not a safe
+certificate.
 On complete equal-arm hub-seeded spiders, it proves a new dimension-free
 maximum-norm theorem: plain optimal SOR reduces semantic error by
 `lambda^(2k) (1 + 2k(1-lambda^2))`, giving log-free
@@ -27,7 +31,13 @@ graph-universal constant exponential envelope and, because the seed output is
 at inverse-volume scale, rules out graph-uniform
 `O(1/(sqrt(alpha) eps_ppr))` work for this literal complete-face full-sweep
 plain-SOR primitive.  This does not lower-bound other local or response-based
-algorithms.
+algorithms.  The finite-propagation stop does, however, survive arbitrary
+finite scalar relaxation schedules that retain source-first color blocks, and
+it survives zero-start Chebyshev, CG/Krylov, heavy-ball, and Richardson
+recurrences built only from scalar combinations and complete sparse PageRank
+matvecs.  Exact eigenvalues used as scalars do not break locality; eigenvector
+transforms, inverse/Green responses, global warm starts, and nonlocal
+preconditioners are explicitly outside the theorem.
 
 For nested bipartite faces, the note also proves exact nonsettled
 face-shock Pythagoras and a conditional continuation theorem under supplied
@@ -46,4 +56,5 @@ Build from this directory with:
 make
 python3 verify_spider.py
 python3 verify_fixed_face.py
+python3 verify_adaptive_spectral.py
 ```

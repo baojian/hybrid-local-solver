@@ -184,8 +184,110 @@ costs $\operatorname{vol}(U)$.  Since $|U|\leq\operatorname{vol}(U)$, the
 explicit output is absorbed.  Finally use \eqref{eq:fixed-face-universal-t}.
 \end{proof}
 
-The qualifier ``supplied'' matters: the sharp $t_U$ bound does not include a
-local computation of $\sigma_U$.  Without spectral advice,
+\begin{proposition}[Certified face tuning with spectral cost]
+\label{prop:certified-face-spectral-cost}
+Suppose a charged spectral routine returns a certified upper bound
+\begin{equation}
+ \rho_U\le \bar\rho_U<1,
+ \qquad
+ \bar t_U:=\sqrt{1-\bar\rho_U^2},
+ \qquad
+ \bar\omega_U:=\frac2{1+\bar t_U},
+ \qquad
+ \bar\zeta_U:=\bar\omega_U-1.
+ \label{eq:certified-face-advice}
+\end{equation}
+Then red--black SOR with the scalar $\bar\omega_U$ has
+\begin{equation}
+ \rho(T_U)\le\bar\zeta_U,
+ \qquad
+ \|T_U^k\|_2\le6k\bar\zeta_U^{k-1}.
+ \label{eq:certified-face-power}
+\end{equation}
+If producing the certificate costs $\mathsf C_{\rm spec}(U)$ and, for some
+$0<\gamma\le1$, it also certifies $\bar t_U\ge\gamma t_U$, the fully charged
+semantic solve costs
+\begin{equation}
+ \boxed{
+ \mathsf C_{\rm spec}(U)
+ +O\!\left(
+  \frac{\operatorname{vol}(U)}{\gamma t_U}
+  \log\frac{2}{\gamma t_U\tau}
+ \right).}
+ \label{eq:certified-face-total-work}
+\end{equation}
+The relative-gap guarantee follows, in particular, from the squared-radius
+certificate
+\begin{equation}
+ 0\le\bar\rho_U^2-\rho_U^2
+ \le(1-\gamma^2)t_U^2.
+ \label{eq:certified-face-required-accuracy}
+\end{equation}
+Thus, within this certified-upper tuning rule, a constant-factor realization
+of the face-optimal sweep count requires additive accuracy on the scale
+$t_U^2$ in the squared Jacobi radius.  This scale can be as small as
+$\Theta(\alpha)$.
+\end{proposition}
+
+\begin{proof}
+At $\bar\omega_U$, one has
+$1-\bar\omega_U=-\bar\zeta_U$ and
+$\bar\omega_U^2\bar\rho_U^2=4\bar\zeta_U$.  Every true modal squared coupling
+is at most $\rho_U^2\le\bar\rho_U^2$, so its trace lies in
+$[-2\bar\zeta_U,2\bar\zeta_U]$ and its determinant is
+$\bar\zeta_U^2$.  The singular-mode and Cayley--Hamilton proof of
+\Cref{thm:fixed-bipartite-sor} gives
+\eqref{eq:certified-face-power}.  Applying that bound as in
+\Cref{cor:fixed-face-semantic-sor} and adding the spectral routine's work
+proves \eqref{eq:certified-face-total-work}.  Finally,
+\eqref{eq:certified-face-required-accuracy} gives
+\[
+ \bar t_U^2=1-\bar\rho_U^2
+ \ge 1-\rho_U^2-(1-\gamma^2)t_U^2
+ =\gamma^2t_U^2.
+\]
+The universal lower bound $t_U^2\ge1-c_\alpha^2=\Theta(\alpha)$ gives the
+last statement.
+
+The upper-certificate direction is essential.  If a lower estimate
+$\widetilde\rho_U<\rho_U$ is inserted into the same formula, its tuned top-mode
+trace is
+\[
+ 2\widetilde\zeta_U
+ +\widetilde\omega_U^2
+   (\rho_U^2-\widetilde\rho_U^2)
+ >2\widetilde\zeta_U,
+\]
+while the determinant remains $\widetilde\zeta_U^2$.  The larger real root is
+then strictly greater than the advertised factor.  A raw Rayleigh quotient
+cannot silently serve as safe face advice.
+\end{proof}
+
+This proposition makes the formerly hidden oracle cost explicit.  On one
+supplied face, materializing the cross block costs
+$O(\operatorname{vol}(U))$.  A dense SVD to the required certified precision
+uses $O(|U|^3)$ real-arithmetic work and $O(|U|^2)$ workspace, so it gives the
+valid but generally nonlocal bound
+\begin{equation}
+ O\!\left(
+  \operatorname{vol}(U)+|U|^3
+  +\frac{\operatorname{vol}(U)}{t_U}
+   \log\frac{2}{t_U\tau}
+ \right).
+ \label{eq:dense-face-spectral-work}
+\end{equation}
+The bit cost needed to certify a requested eigenvalue interval is additional
+and depends on the input encoding.  Alternatively, an iterative estimator
+using $s$ sparse products costs $O(s\operatorname{vol}(U))$ plus vector
+operations.  The value of $s$ is not graph-uniform without an estimator
+theorem: ordinary power/Rayleigh estimates approach $\rho_U$ from below and
+are not the upper certificate required in
+\eqref{eq:certified-face-advice}; their rate also depends on the top singular
+gap.  On changing faces, every recomputation is charged, so the spectral term
+is $\sum_j\mathsf C_{\rm spec}(U_j)$ rather than one free scalar.
+
+The qualifier ``supplied'' therefore matters: the sharp $t_U$ bound does not
+include a local computation of $\sigma_U$.  Without spectral advice,
 \Cref{lem:one-omega-all-bipartite-faces} uses the graph-global parameter
 $\omega_\alpha$ and gives the fully charged generic
 $O(\operatorname{vol}(U)\alpha^{-1/2}

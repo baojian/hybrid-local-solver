@@ -1,6 +1,6 @@
 # Direction status: signed_spider_generalization
 
-Last reviewed: 2026-08-27
+Last reviewed: 2026-08-28
 State: proved-open
 
 ## Exact question and contract
@@ -36,7 +36,11 @@ State: proved-open
   `(1-t)/(1+t)` with `t=sqrt(1-rho_J^2)` and a finite Euclidean/semantic
   convergence bound when the face-specific tuning is supplied.  One
   graph-global parameter gives the generic fully charged fixed-face bound
-  without computing `rho_J`.  On every finite equal-arm hub-seeded spider,
+  without computing `rho_J`.  A certified upper bound on `rho_J` gives a
+  fully charged face-specific bound after adding `C_spec(U)`; constant-relative
+  tuning through this rule needs squared-radius accuracy on the `t^2` scale,
+  which can be `Theta(alpha)`.  A raw lower Rayleigh estimate is not a safe
+  substitute.  On every finite equal-arm hub-seeded spider,
   source-color-first plain SOR obeys the exact dimension-free envelope
   `zeta^k(1+2k(1-zeta))`, yielding log-free output-scale work.  A layered
   bipartite funnel proves that no graph-independent constant extends the
@@ -44,7 +48,14 @@ State: proved-open
   graphs.  Its seed output is
   `Theta(1/vol(G))`, so it also rules out graph-uniform
   `O(1/(sqrt(alpha) eps_ppr))` charged work for the literal complete-face
-  source-first full-sweep plain-SOR schedule.  For nested
+  source-first full-sweep plain-SOR schedule.  The propagation and work stop
+  is uniform over arbitrary finite adaptive scalar relaxations that preserve
+  the source-first color blocks, including exact eigenvalue advice.  A second
+  source-distance theorem covers zero-start Chebyshev, CG/Krylov, heavy-ball,
+  and variable Richardson recurrences whose vector operations are scalar
+  combinations and complete sparse PageRank matvecs.  Dense eigenvector,
+  inverse, Green-response, global-warm-start, and nonlocal-preconditioner
+  operations are outside that theorem.  For nested
   fixed-load faces, zero-padding any nonsettled old iterate gives exact
   Pythagorean error splitting.  Combining this identity with the fixed-face
   power bound proves a supplied geometrically-growing-face continuation
@@ -75,8 +86,11 @@ State: proved-open
   order restores the theorem.  Even with source-first order, the layered
   funnel refutes every graph-universal constant version of the radial
   maximum-semantic exponential envelope and stops product work for literal
-  complete-face full-sweep plain SOR.  It does not lower-bound other local
-  algorithms or response methods.
+  complete-face scalar-adaptive color-block SOR and source-polynomial
+  complete-matvec recurrences.  An interleaved Gauss--Seidel permutation can
+  reach the far layer in one coordinate pass, so the theorem counts color
+  blocks or sparse-matvec dependency depth rather than an order-free word
+  “sweep.”  It does not lower-bound nonlocal response methods.
 - **Open:** A graph-uniform signed iterative solver on large biconnected cyclic
   cores with product-scale work and a local semantic certificate.
 
@@ -101,7 +115,8 @@ hope for a graph-uniform maximum-semantic product bound.
   requested spider-first generalization motivate this note.
 - **Reusable outputs:** The accuracy bridge, fixed-face equivalence, exact
   bipartite SOR factor, log-free radial Chebyshev theorem, sweep-order witness,
-  layered graph-uniform envelope and full-sweep work stop, nonsettled
+  certified face-spectral cost and accuracy rule, layered graph-uniform
+  envelope, adaptive scalar and source-polynomial work stops, nonsettled
   face-shock Pythagoras, conditional continuation theorem, graph-family
   ladder, and staged falsification plan.
 
@@ -111,6 +126,10 @@ hope for a graph-uniform maximum-semantic product bound.
   `thm:radial-semantic-damping` for the log-free spider theorem;
   `thm:global-semantic-sor-stop` and
   `cor:global-semantic-sor-work-stop` for the graph-uniform full-sweep stop;
+  `prop:certified-face-spectral-cost` for paid face tuning;
+  `thm:adaptive-polynomial-propagation-stop` and
+  `cor:adaptive-polynomial-work-stop` for the scalar-adaptive and
+  Chebyshev/Krylov scope;
   `prop:windowed-sor-continuation` for supplied-face transport; and
   `sec:beyond-bounded-blocks` for the remaining interface.
 - **Next action:** Build a finite-band KKT reporter on the smallest large
@@ -123,17 +142,18 @@ hope for a graph-uniform maximum-semantic product bound.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 28-page PDF with no undefined
-  references, citations, or overfull boxes; the four new theorem pages were
-  rendered and visually inspected.  `verify_spider.py` passed 80
+- **Focused checks:** `make` produced a 31-page PDF with no undefined
+  references, citations, or overfull boxes.  `verify_spider.py` passed 80
   SOR-mode cells, 144 spider-spectrum cells, 14,616 radial-semantic cells, one
   exact sweep-order witness, seven exact layered-funnel cells, 522 small-graph
   RPPR-bias cells, and 132 face-shock cells.
   `verify_fixed_face.py` passed 570 cells: 60 exact rational parameter
-  cells, 480 finite-power cells, and 30 spider-prefix cells.  Focused Ruff
-  checking passed.
+  cells, 480 finite-power cells, and 30 spider-prefix cells.
+  `verify_adaptive_spectral.py` passed 146 exact cells: 120 certified-tuning,
+  11 adaptive scalar-SOR, and 15 Krylov/polynomial.  Focused Ruff checking
+  passed.
 - **Repository checks:** `make note-audit`, `make agent-audit`, `git diff
-  --check`, and all 210 tests passed on 2026-08-27.  Repository-wide `make
+  --check`, and all 210 tests passed on 2026-08-28.  Repository-wide `make
   lint` remains red on 1,345 pre-existing Ruff findings in checked-in
   `manuscript/claude-overnight-2026-08-24/` scripts; no reported finding is in
   this note or its verifier.
