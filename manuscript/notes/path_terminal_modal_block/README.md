@@ -30,8 +30,12 @@ entry profiles on the required growing modal band.
 It also gives exact nonnegative position/velocity propagators.  A directed
 half-endpoint split of the ideal packet now retains the literal outward entry
 momentum: the two directed binomial waves remain nonpositive for all time.
-The actual entry position correction is proved coordinatewise nonpositive,
-and the folded velocity kernel has exact maximum coefficient at most
+The actual entry position correction is proved coordinatewise nonpositive.
+A final-prefix refinement proves the quantitative bound `c(j)<-q^3/8` on
+every full-face row for `m>=64`, retaining both rows of the frontier defect
+and the separate degree-one endpoint. This strengthens the correlated early
+half-retention expression; it does not separately control `L_k u` through the
+whole early window. The folded velocity kernel has exact maximum coefficient at most
 `1+(k-1)/(2m)`.  Consequently all positive residual is reduced to the
 degree-weighted positive mass of one static directed-velocity remainder; the
 damping makes the apparent factor-`k` and repeated-reflection losses uniformly
@@ -75,6 +79,12 @@ full-entry and late-regime rational margins while explicitly labeling the
 early half-retention inequality open. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
+
+An additional exact preflight, `verify_correction_margin.py`, checks the
+sharpened `31/320` leading ledger, the folded final-time source count including
+reflection and the one-step edge, the exact two-row defect and endpoint on
+rational replays, and every rational constant in the `c<-q^3/8` theorem. It
+explicitly reports the correlated early inequality as open.
 
 Build with `make`. Run the screen with:
 
