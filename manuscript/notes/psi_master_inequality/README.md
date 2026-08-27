@@ -14,6 +14,7 @@ make -C manuscript/notes/psi_master_inequality
 python3 manuscript/notes/psi_master_inequality/verify_master_identity.py
 python3 manuscript/notes/psi_master_inequality/verify_complete_bipartite.py
 python3 manuscript/notes/psi_master_inequality/verify_complete_multipartite.py
+python3 manuscript/notes/psi_master_inequality/verify_cycle_blowup.py
 ```
 
 The second command is an independent exact-rational audit of the master
@@ -28,3 +29,8 @@ inverse, the continuous simplex-Bernstein certificate used in the analytic
 theorem, and all 493 unordered part vectors through 14 vertices.  Its
 committed output is
 [`verify_complete_multipartite.json`](verify_complete_multipartite.json).
+The fifth command audits the exact eliminated-high-variable identity, the
+rational-function kernel signs for every balanced independent-set blow-up of
+`C6`, the strict `(HK)` failure, and the precise `(CL)` obstruction on
+`C10`; its committed output is
+[`verify_cycle_blowup.json`](verify_cycle_blowup.json).

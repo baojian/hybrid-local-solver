@@ -38,20 +38,28 @@ Allowed write scope: `manuscript/notes/psi_master_inequality/` and `docs/coordin
   a rank-one lumped-resolvent formula and an exact nonnegative
   simplex-Bernstein certificate prove `(HK)` and `sup Psi=0` on every
   complete multipartite graph `K_{n_1,...,n_k}`, with arbitrary positive
-  unequal part sizes and no balance threshold.
+  unequal part sizes and no balance threshold.  Exact elimination of `h`
+  gives a second sufficient condition `(CL)`: a zero-row-sum cross kernel
+  has nonpositive off-diagonal entries.  This proves `sup Psi=0` for every
+  balanced independent-set blow-up `C6[Kbar_a]`, all `a>=1` and
+  `0<q<=1/4`, even though `(HK)` fails there with exact ratio
+  `5211/4900>1`.
 - **Conditional:** None yet.
 - **Measured:** None yet.
-- **Refuted:** None yet.
+- **Refuted:** `(CL)` does not cover all cycles: on `C10` at `q=1/20`, its
+  adjacent kernel entry is the exact positive rational
+  `6998345705403423/396849260156782400`.  This refutes the sufficient proof
+  route, not `Psi<=0` itself.
 - **Open:** Analytic nonpositivity on general graphs and on graph families
-  lying beyond the sufficient `(HK)` condition.
+  lying beyond both sufficient `(HK)` and `(CL)` conditions.
 
 ## Central blocker
 
-The entrywise positive-association route is closed on all complete
-multipartite graphs but is known from Fable's evidence to fail on graphs
-such as cycles, hypercubes, and Petersen.  The next advance must enlarge the
-analytic `(HK)` class beyond complete multipartite graphs or attack a graph
-beyond `(HK)` without erasing clipping complementarity.
+The eliminated-`h` form retains clipping complementarity and closes an
+infinite `(HK)`-failing cycle-blow-up family.  However, on longer cycles the
+cross kernel develops positive off-diagonal entries.  The next advance must
+pay those positive cross terms using the two negative diagonal forms, or
+produce an exact admissible positive witness.
 
 ## Dependencies and reusable outputs
 
@@ -63,11 +71,11 @@ beyond `(HK)` without erasing clipping complementarity.
 ## Resume here
 
 - Exact file/section/lemma: `lem:psi-master-identity`,
-  `thm:psi-hk-nonpositivity`, and `thm:psi-complete-multipartite` in
-  `main.tex`.
-- Next concrete action: seek a larger equitable or distance-regular family
-  satisfying `(HK)`, or derive a different sign payment for a cycle where
-  `(HK)` itself fails.
+  `thm:psi-hk-nonpositivity`, `lem:psi-eliminate-h`, and
+  `thm:psi-c6-blowup` in `main.tex`.
+- Next concrete action: start from `eq:psi-eliminated-form` on `C10` and
+  control its positive adjacent cross entries with the `A_q` and `B_q`
+  energies, or find an exact sign-feasible positive direction.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
   admissible positive witness.
 
@@ -83,9 +91,11 @@ beyond `(HK)` without erasing clipping complementarity.
   formulas), the exact `verify_complete_multipartite.py` certificate (45/45
   nonnegative degree-eight numerator coefficients, 10/10 nonnegative
   denominator coefficients, 493 part vectors, and 64094 off-diagonal
-  checks), and `git diff --check` pass.
-- Known gaps: mixed clipping, proper faces, finite inner residuals, and all
-  algorithm/work consequences.
+  checks), the exact `verify_cycle_blowup.py` audit (six rational-function
+  identities, 24 eliminated-`h` checks, 36 blow-up matrices and 68796 strict
+  off-diagonal checks), and `git diff --check` pass.
+- Known gaps: mixed clipping beyond `(HK)`/`(CL)`, proper faces, finite inner
+  residuals, and all algorithm/work consequences.
 
 ## Repository handoff
 
