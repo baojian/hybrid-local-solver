@@ -94,9 +94,10 @@ def main() -> None:
     # The uniform upper bound on x=2m*atanh(q), q=1/(16m).
     assert Fraction(1, 8) / (1 - q_max**2) <= x_zero < Fraction(1, 7)
 
-    # Full-optimum extrema: coth(x)-1/5<8 and csch(x)-1/5>1243/160.
+    # Full-optimum extrema: coth(x)-1/5<157/20 and csch(x)-1/5>1243/160.
     tanh_lower = Fraction(1, 8) - Fraction(1, 8) ** 3 / 3
-    assert tanh_lower > Fraction(5, 41)
+    assert tanh_lower - Fraction(20, 161) == Fraction(31, 247296)
+    assert Fraction(161, 20) - Fraction(1, 5) == Fraction(157, 20)
     sinh_upper = x_zero + x_zero**3 / 5
     sinh_slack = Fraction(32, 255) - sinh_upper
     assert sinh_slack == Fraction(
@@ -129,16 +130,16 @@ def main() -> None:
     assert endpoint_residual_upper == -Fraction(46683733, 78684160)
     assert endpoint_residual_upper < 0
 
-    # Late position minus safe-envelope comparison at s=17/200.
-    time = Fraction(17, 200)
-    position_constant = Fraction(661, 80)
+    # Late position minus safe-envelope comparison at s=3/50.
+    time = Fraction(3, 50)
+    position_constant = Fraction(649, 80)
     position_slope = Fraction(89, 40)
     assert position_slope < position_constant
     exponential_upper = 1 - time + time**2 / 2
     late_slack = Fraction(1243, 160) - exponential_upper * (
         position_constant + position_slope * time
     )
-    assert late_slack == Fraction(3188243, 640000000)
+    assert late_slack == Fraction(1667, 625000)
     assert late_slack > 0
 
     exact_full_entry_replay_checks()
