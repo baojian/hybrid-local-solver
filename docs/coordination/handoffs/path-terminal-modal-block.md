@@ -76,7 +76,7 @@
 - The floating screen agrees with both proved entry profiles and remains
   evidence only for the open terminal regime.
 - Required commands and their final results are recorded in the direction
-  `STATUS.md`; the note builds to 35 pages.
+  `STATUS.md`; the note builds to 38 pages.
 
 ## Review notes
 

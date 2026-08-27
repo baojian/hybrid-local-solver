@@ -1340,6 +1340,129 @@ def five_piece_decomposition(
     return position, velocity
 
 
+def check_signed_green_formula() -> None:
+    """Check the closed constant-U Green sums and their fixed-mode limits."""
+
+    for edge_count in (5, 8, 17, 32, 65, 257):
+        q = 1.0 / (16.0 * edge_count)
+        eta = (1.0 - q**2) / 2.0
+        chi = (1.0 - q) / (1.0 + q)
+        constant_u = 3.0 * q**3 / 40.0
+        u_values = []
+        for prefix in range(4, edge_count):
+            t_value = chi ** (prefix - 1)
+            previous_frontier = (
+                q**2
+                * 2.0
+                / (1.0 + q)
+                * (t_value * (1.0 + t_value / 5.0) / chi + t_value - 1.0 / 5.0)
+                / (1.0 + t_value**2)
+            )
+            u_values.append(
+                q * eta**2 / (4.0 * (1.0 + q)) * (previous_frontier - 2.0 * q**2 / (5.0 * eta))
+            )
+        assert all(left >= right for left, right in zip(u_values, u_values[1:]))
+        assert max(constant_u - value for value in u_values) <= q**3 / 150.0
+        total_variation = sum(abs(right - left) for left, right in zip(u_values, u_values[1:]))
+        assert total_variation <= q**3 / 150.0
+
+    def finite_sums(edge_count: int, mode_index: int) -> tuple[float, float, float, float]:
+        q = 1.0 / (16.0 * edge_count)
+        gamma = 1.0 - q
+        theta = 2.0 * math.pi * mode_index / edge_count
+        phi = theta / 2.0
+        z_value = complex(math.cos(theta), math.sin(theta))
+        root = gamma * (1.0 + z_value) / 2.0
+        constant_u = 3.0 * q**3 / 40.0
+
+        def sigma_sum(value: complex, length: int) -> complex:
+            return value * (1.0 - value**length) / (1.0 - value)
+
+        def gamma_sum(value: complex, length: int) -> complex:
+            return (1.0 - value ** (length + 1)) / (1.0 - value)
+
+        closed_position = (
+            2.0
+            * constant_u
+            * (
+                (1.0 + 3.0 * z_value)
+                * (
+                    z_value**-2 * sigma_sum(root * z_value**-2, edge_count - 4)
+                    - z_value**-1 * sigma_sum(root * z_value**-1, edge_count - 4)
+                )
+            ).real
+        )
+        closed_previous = (
+            2.0
+            * constant_u
+            * (
+                (1.0 + 3.0 * z_value)
+                * (
+                    z_value**-3 * gamma_sum(root * z_value**-2, edge_count - 5)
+                    - z_value**-2 * gamma_sum(root * z_value**-1, edge_count - 5)
+                )
+            ).real
+        )
+
+        radius = gamma * math.cos(phi)
+        direct_position = 0.0
+        direct_previous = 0.0
+        for prefix in range(4, edge_count):
+            source = (
+                2.0
+                * constant_u
+                * (z_value ** (prefix - 2) * (1.0 - z_value) * (1.0 + 3.0 * z_value)).real
+            )
+            lag = edge_count - prefix
+            direct_position += source * radius**lag * math.sin((lag + 1) * phi) / math.sin(phi)
+            direct_previous += source * radius ** (lag - 1) * math.sin(lag * phi) / math.sin(phi)
+        return closed_position, closed_previous, direct_position, direct_previous
+
+    cells = 0
+    for edge_count in (8, 17, 32, 65):
+        for mode_index in range(1, min(4, (edge_count - 1) // 2) + 1):
+            closed_position, closed_previous, direct_position, direct_previous = finite_sums(
+                edge_count, mode_index
+            )
+            scale = (1.0 / (16.0 * edge_count)) ** 3
+            assert abs(closed_position - direct_position) <= 2.0e-11 * scale
+            assert abs(closed_previous - direct_previous) <= 2.0e-11 * scale
+            cells += 1
+
+    edge_count = 262_144
+    a_value = 1.0 / 16.0
+    exponential = math.exp(-a_value)
+    for mode_index in (1, 2, 3):
+        closed_position, closed_previous, _, _ = finite_sums(edge_count, mode_index)
+        q = 1.0 / (16.0 * edge_count)
+        sigma = (-1.0) ** mode_index
+        b_value = math.pi * mode_index
+        position_limit = (
+            3.0
+            * a_value
+            * (sigma * exponential - 1.0)
+            / 80.0
+            * (1.0 / (a_value**2 + b_value**2) - 1.0 / (a_value**2 + 9.0 * b_value**2))
+        )
+        velocity_limit = (
+            3.0
+            * sigma
+            * b_value**2
+            * (exponential - sigma)
+            / 5.0
+            * (1.0 / (a_value**2 + b_value**2) + 3.0 / (a_value**2 + 9.0 * b_value**2))
+        )
+        observed_position = closed_position / q**2
+        observed_velocity = (closed_position - (1.0 - q) * closed_previous) / q**3
+        assert abs(observed_position - position_limit) <= 3.0e-7
+        assert abs(observed_velocity - velocity_limit) <= 2.0e-4
+
+    print(
+        f"signed_green_formula_checks=6 variation cells + {cells} finite cells "
+        "+ 3 fixed-mode limits"
+    )
+
+
 def screen(edge_count: int, max_qk: float) -> None:
     (
         q,
@@ -1587,6 +1710,7 @@ def main() -> None:
     position_profile_asymptotic_checks()
     velocity_profile_asymptotic_checks()
     exact_directional_packet_checks()
+    check_signed_green_formula()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")

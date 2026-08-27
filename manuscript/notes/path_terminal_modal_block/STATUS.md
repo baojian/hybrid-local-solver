@@ -150,7 +150,8 @@ constants is permitted only with a corresponding proof.
 - **Reusable outputs:** Exact modal formulas, explicit optimum transports,
   the fixed-face directional factorization, the changing-face source entries,
   factored transform, and scalar `C/V` target reduction for the proved
-  `m>=64` proper-prefix chronology, the
+  `m>=64` proper-prefix chronology, the exact constant-trace geometric
+  sums and fixed-mode leading cancellations, the
   exact `K/J` remainder decomposition, the ideal folded-shift sign lemma, the
   reflected prefix ideal/correction split, its exact residual-only recurrence,
   the positive correction-difference Green kernel and constant-source
@@ -204,7 +205,8 @@ constants is permitted only with a corresponding proof.
   normalization. A seventh exact preflight checks the half-endpoint cycle
   split, directed evolution, folded `J_k` alias bound, the exact `J_kL`
   binomial window, entry-correction sign, and `u=Ld` deconvolution at
-  `m=8,12`. The floating screen
+  `m=8,12`. An eighth preflight checks the signed Green leading-sum
+  formulas. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -213,7 +215,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 35-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 38-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

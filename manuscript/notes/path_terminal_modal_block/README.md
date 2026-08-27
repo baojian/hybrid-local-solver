@@ -30,7 +30,11 @@ five-piece decomposition has uniform base and endpoint remainders `o(q^2)`;
 the three limiting absolute constants admit the rational upper ledger
 `257/92160<1/256`. The proof includes the finite constant-`U` Chebyshev sum
 and the cancellation that makes the final degree-one endpoint term `O(q^3)`.
-It also gives exact nonnegative position/velocity propagators. A uniform
+It also gives exact nonnegative position/velocity propagators. A signed
+Green addendum derives the exact constant-trace response by finite
+geometric sums, its fixed-mode position and velocity limits, the
+early-base velocity limit, and an exact reduction of the final endpoint
+limit to one scalar remainder. A uniform
 continuum limit for the velocity trace retains the cancellation among the
 homogeneous base, derivative sources, and final endpoint. Rational
 total-variation bounds give the strict ledger
