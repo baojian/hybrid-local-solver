@@ -674,7 +674,10 @@ def check_transient_and_cutoff() -> None:
     )
     assert delta_and_terminal_loss < 24
 
-    cutoff = 8192
+    # The displayed ledger first closes at m=2774; retain a dyadic cutoff.
+    assert Fraction(3654, 16 * 2773) + Fraction(1, 1000) >= Fraction(1, 12)
+    assert Fraction(3654, 16 * 2774) + Fraction(1, 1000) < Fraction(1, 12)
+    cutoff = 4096
     total_error = Fraction(3654, 16 * cutoff) + Fraction(1, 1000)
     assert total_error < Fraction(1, 12)
     assert Fraction(1, 3) - total_error > 0
@@ -687,7 +690,7 @@ def main() -> None:
     check_input_and_endpoint_constants()
     check_homogeneous_transient()
     check_transient_and_cutoff()
-    print("terminal_static_frontier_cutoff=PASS m_ge_8192=PROVED")
+    print("terminal_static_frontier_cutoff=PASS m_ge_4096=PROVED")
 
 
 if __name__ == "__main__":

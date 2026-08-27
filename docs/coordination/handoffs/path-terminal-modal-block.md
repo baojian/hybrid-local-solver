@@ -3,7 +3,7 @@
 - Agent family: codex
 - Role: direction
 - Branch: `agent/codex/path-terminal-semantic-explicit-synthesis`
-- Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
+- Base commit: `d9ea923c2753117fa8187200c429bb2066995654`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -20,23 +20,25 @@
 - The interior two-step cone holds for every `m>=64` on `0<=j<=m-6`.
   Each of the five remaining frontier expressions has an exact positive joint
   first-order limit.  An exact finite transfer ledger proves their common
-  cutoff `m>=8192`.  Therefore the full cone, local half-ratios, `d>=h`, and
-  `||u_+||_(1,D)<21q^3/80` hold throughout that range.
+  cutoff `m>=4096`.  Therefore the full cone, local half-ratios, `d>=h`, and
+  `||u_+||_(1,D)<21q^3/80` hold throughout that range.  The final error ledger
+  first closes at `m=2774`; `4096` is retained as a conservative dyadic
+  theorem threshold.
 - The early theorem closes `qk<3/50` with margin `1807/115200`; the static
   bound and late position theorem close `qk>=3/50` with transition slack
   `1667/625000`.  The first late integer follows an already-covered early
-  integer.  For `m>=8192`, projection inactivity and zero safe subtraction
+  integer.  For `m>=4096`, projection inactivity and zero safe subtraction
   persist at every full-face time in the continued named recurrence.
 - The modal-band range theorem now gives an unconditional asymptotic
   `Omega(q^-1 log(1/q))` terminal block for the named exact-real recurrence.
-  The named nonlinear regime has the explicit cutoff `m>=8192`; the modal
+  The named nonlinear regime has the explicit cutoff `m>=4096`; the modal
   terminal theorem separately retains its sufficiently-large-`m` scope.
 - For the named implementation's prescribed certificate runtime, a full-face
   step costs `vol(P_m)=1/(8q)`.  Thus the terminal ledger is at least
   `(64q^2)^-1 log(1/q)-(8q)^-1`, or
   `Omega(eps_ppr^-2 log(1/eps_ppr))` at `eps_ppr=2q/5`.  This is not a
   semantic-error, general-algorithm, or eleven-resource lower bound.
-- For every `m>=8192`, the continued state satisfies
+- For every `m>=4096`, the continued state satisfies
   `||p_k-p*||_inf<q/5` by `k=ceil(15/(4q))`.  Running until the earlier of
   that theorem time and the prescribed certificate returns PPR error below
   `2q/5` with total charged work at most
@@ -52,7 +54,7 @@
 - The stronger separate convolution `L_k u<=13q^3/200` remains unproved but
   is unnecessary.  The broader `q^3/16`-through-`17/200` claim is false.
 - Uniform frontier signs beginning exactly at `m=64` remain optional; the
-  proved explicit threshold is `m>=8192`.
+  proved explicit threshold is `m>=4096`.
 
 ## Verification
 
@@ -64,7 +66,7 @@
 - `verify_asymptotic_closure.py` checks the exact constant chain and integer
   early/late handoff; the explicit threshold is checked separately.
 - `verify_static_frontier_cutoff.py` reconstructs the causal and homogeneous
-  transfer certificates and proves the rational `m>=8192` cutoff ledger.
+  transfer certificates and proves the rational `m>=4096` cutoff ledger.
 - `verify_semantic_stop.py` checks the exact `15/4` Taylor certificate,
   rational slacks, and charged-work constants, then reports measured crossing
   times separately.

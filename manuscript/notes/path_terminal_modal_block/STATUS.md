@@ -27,15 +27,16 @@ Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
 - **Result:** For every sufficiently large `m`, the named execution has no
   terminal certificate during its first
   `K_m=floor((8q)^-1 log(1/q))` full-face steps.
-- **Semantic result:** For every `m>=8192`, the continued named recurrence has
+- **Semantic result:** For every `m>=4096`, the continued named recurrence has
   `||p_k-p*||_inf<q/5` by `k=ceil(15/(4q))`.  Returning at the earlier of this
   theorem time and the prescribed certificate gives PPR error below `2q/5`.
 - **Threshold:** The proper-prefix and interior static theorems are uniform
   from `m=64`.  An exact causal-transfer, endpoint, and transient ledger
   proves all five frontier signs, the full static certificate, and the
-  nonlinear regime for `m>=8192`; the interval `64<=m<8192` is not claimed
-  uniformly.  The modal-band terminal step still retains its sufficiently-
-  large-`m` scope.
+  nonlinear regime for `m>=4096`; the interval `64<=m<4096` is not claimed
+  uniformly.  The final displayed error ledger already closes at `m=2774`,
+  but the theorem retains the conservative dyadic cutoff.  The modal-band
+  terminal step still retains its sufficiently-large-`m` scope.
 - **Scope exclusions:** No claim is made for other algorithms, alternate face
   schedules, nonlocal response primitives, exact-spectrum polynomials, or an
   eleven-resource class.  Exact CG can terminate on the `(m+1)`-dimensional
@@ -72,7 +73,7 @@ Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
 3. The static remainder satisfies `u=Ld`.  The folded derivative/base/mass
    theorem proves the two-step cone on `0<=j<=m-6` for every `m>=64`.
    Exact joint first-order formulas give positive limits on the five frontier
-   rows.  A finite transfer ledger proves a common cutoff `m>=8192`; hence in
+   rows.  A finite transfer ledger proves a common cutoff `m>=4096`; hence in
    that range the local half-ratios hold,
    `d>=h`, and `||u_+||_(1,D)<21q^3/80`.
 4. The finite stopped ledger proves scaled half-retention, raw positivity,
@@ -81,7 +82,7 @@ Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
    prove strict raw positivity and envelope dominance for `qk>=3/50`, with
    rational transition slack `1667/625000`.  The first late integer follows
    an already-proved early integer, so there is no induction gap.  For
-   `m>=8192`, this induction has no upper-time restriction.
+   `m>=4096`, this induction has no upper-time restriction.
 5. The proved modal-band energy and range bridge exclude the one-sided
    certificate through `K_m`, yielding the unconditional asymptotic terminal
    block for the named recurrence.
@@ -105,13 +106,13 @@ At `eps_ppr=rho+tau=2q/5`, this is
 `Omega(eps_ppr^-2 log(1/eps_ppr))`.  Relative to the log-free scale
 `1/(sqrt(alpha)*eps_ppr)=5/(2q^2)`, the prescribed certification runtime has
 a logarithmic overhead.  This is not a semantic-error lower bound: the
-iterate is proved accurate by `ceil(15/(4q))` full-face steps for `m>=8192`.
+iterate is proved accurate by `ceil(15/(4q))` full-face steps for `m>=4096`.
 It does not refute a soft-O work target and does not extend beyond the named
 sweep-linked implementation resources.
 
 ## Open or refuted stronger statements
 
-- **Optional open:** Improve the proved cutoff `m>=8192`, in particular to a
+- **Optional open:** Improve the proved cutoff `m>=4096`, in particular to a
   theorem uniform from `m=64`.
 - **Optional open:** The stronger separate convolution
   `L_k u<=13q^3/200`.  The correlated early theorem makes it unnecessary.
@@ -126,7 +127,7 @@ block.
 ## Central blocker
 
 There is no remaining blocker for the core theorem.  The explicit common
-cutoff is `m>=8192`; improving it to `m>=64` is optional.
+cutoff is `m>=4096`; improving it to `m>=64` is optional.
 
 ## Dependencies and reusable outputs
 
@@ -155,7 +156,7 @@ cutoff is `m>=8192`; improving it to `m>=64` is optional.
   separate cutoff verifier.
 - `verify_static_frontier_cutoff.py` reconstructs the exact five causal
   transfer kernels, their coefficient masses and moments, all fourteen
-  homogeneous transient transfers, and the rational `m>=8192` ledger.
+  homogeneous transient transfers, and the rational `m>=4096` ledger.
 - `verify_semantic_stop.py` checks the exact `s=15/4` Taylor certificate,
   rational slacks, and work constants, then reports the semantic/certificate
   crossing separation as labeled float64 evidence.
@@ -166,6 +167,6 @@ cutoff is `m>=8192`; improving it to `m>=64` is optional.
 ## Resume here
 
 Promote the synthesis with its explicit static/nonlinear cutoff and
-semantic/certificate separation.  Further work may improve `m>=8192` toward
+semantic/certificate separation.  Further work may improve `m>=4096` toward
 `m>=64` or sharpen the proved semantic constant `15/4` toward the measured
 crossing near `3.43`; neither is needed for the present theorems.

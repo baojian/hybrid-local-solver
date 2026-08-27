@@ -66,7 +66,7 @@ def main() -> None:
     check_charged_work_ledger()
     print(
         "terminal_asymptotic_closure=PASS theorem=eventual "
-        "explicit_frontier_cutoff=PROVED_SEPARATELY_M_GE_8192"
+        "explicit_frontier_cutoff=PROVED_SEPARATELY_M_GE_4096"
     )
 
 

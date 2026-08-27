@@ -6,7 +6,7 @@ transported-center endpoint-path execution.  The model is the path `P_m` with
 all-violations admission, ambient degrees, and the literal projected and
 safe-envelope recurrence.  The terminal-block result is unconditional for all
 sufficiently large `m`.  Its static and nonlinear regime subtheorems have the
-conservative explicit cutoff `m>=8192`; uniformity on `64<=m<8192` remains
+conservative explicit cutoff `m>=4096`; uniformity on `64<=m<4096` remains
 open, and the separate modal-band theorem retains asymptotic scope.
 
 The proof has four layers.
@@ -24,13 +24,13 @@ The proof has four layers.
    folded-source theorem proves the two-step cone on rows `0<=j<=m-6` for
    every `m>=64`.  Exact first-order formulas give positive limits on the
    five frontier rows.  An exact causal-transfer and transient ledger makes
-   their common cutoff explicit at `m>=8192`.  Hence all local half-ratios,
+   their common cutoff explicit at `m>=4096`.  Hence all local half-ratios,
    `d>=h`, and `||(Ld)_+||_(1,D)<21q^3/80` hold in that range.
 4. A correlated finite-`q` stopped ledger closes the early interval
    `qk<3/50` with margin `1807/115200`.  The static bound and an exact
    position comparison close `qk>=3/50`.  The integer handoff has no gap, so
    the continued literal nonlinear regime persists for every full-face time
-   when `m>=8192`.  For all sufficiently large `m`, the proved modal band
+   when `m>=4096`.  For all sufficiently large `m`, the proved modal band
    separately excludes the note-scoped terminal certificate through
    `K_m=floor((8q)^-1 log(1/q))`.
 
@@ -57,7 +57,7 @@ therefore yields
 not a semantic-error lower bound, an eleven-resource lower bound, or a claim
 that the iterate cannot already be accurate.
 
-That final caveat is quantitative.  For every `m>=8192`, the continued named
+That final caveat is quantitative.  For every `m>=4096`, the continued named
 recurrence satisfies
 `||p_k-p*||_inf<tau=q/5` by `k=ceil(15/(4q))`.  Running until the earlier of
 that theorem time and the prescribed certificate therefore uses total charged
