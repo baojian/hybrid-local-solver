@@ -1261,12 +1261,48 @@ def exact_static_tail_reduction_checks() -> None:
         assert static_data[1 : edge_count - 3] == [
             2 * delta * value for value in l_temporal[1 : edge_count - 3]
         ]
+        assert [
+            static_data[index] - static_data[index + 2] / 4 for index in range(edge_count - 5)
+        ] == [
+            2 * delta * (l_temporal[index] - l_temporal[index + 2] / 4)
+            for index in range(edge_count - 5)
+        ]
         assert static_data[1:edge_count] == [
             delta * corrections[edge_count][index] - full_correction[index]
             for index in range(1, edge_count)
         ]
 
         beta = static_data[-1] / q**3
+        tail_coordinates = [
+            static_data[edge_count - distance] / q**3 for distance in range(edge_count + 1)
+        ]
+        first_margin = tail_coordinates[1] + beta / 4
+        half_combinations = [
+            tail_coordinates[distance] + tail_coordinates[distance - 1] / 2
+            for distance in range(1, edge_count + 1)
+        ]
+        assert first_margin == (static_data[-2] + static_data[-1] / 4) / q**3
+        assert (
+            half_combinations[1] - first_margin / 2
+            == (static_data[-3] - static_data[-1] / 8) / q**3
+        )
+        assert [
+            half_combinations[distance - 1] - half_combinations[distance - 2] / 2
+            for distance in range(3, edge_count + 1)
+        ] == [
+            (static_data[index] - static_data[index + 2] / 4) / q**3
+            for index in range(edge_count - 3, -1, -1)
+        ]
+
+        for length in range(2, edge_count):
+            source_e = delta ** (-(length - 2)) * (Fraction(1, 5) - eta * p_scaled[length - 2] / 2)
+            source_f = delta ** (-(length - 2)) * (
+                Fraction(1, 5) - eta * p_scaled[length - 2] / 2 + p_scaled[length - 1]
+            ) / 4 - Fraction(1, 5) * delta ** (-(length - 1))
+            source_mu = source_f + 3 * source_e / 4
+            source_nu = -source_mu / q
+            assert Fraction(2, 5) < source_nu < Fraction(43, 75)
+
         tail = [
             q**3 * (beta if distance == 0 else -beta * Fraction(-1, 2) ** (distance - 1) / 4)
             for distance in range(edge_count, -1, -1)
@@ -1312,7 +1348,8 @@ def exact_static_tail_reduction_checks() -> None:
     print(
         "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
-        "local_half_ratios=open"
+        "two_step_equivalence:pass mass_window=(2/5,43/75) "
+        "folded_kernel_ledger=open"
     )
 
 
