@@ -97,7 +97,14 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   `tilde h=-4h/(1-q)`. Hence an interior preimage comparison plus the three
   direct frontier rows and seed is another sufficient route to `d>=h`.
   The preimage comparison is not claimed necessary, and the fixed-prefix
-  `q->0` limit is not substituted for the joint family `mq=1/16`.
+  `q->0` limit is not substituted for the joint family `mq=1/16`. The local
+  half-ratios are also exactly equivalent to
+  `d_(m-1)+d_m/4>=0`, `d_(m-2)-d_m/8>=0`, and
+  `d_j-d_(j+2)/4>=0`. On `j<=m-6`, the last cone has an exact folded-source
+  ledger consisting of a source-free base, derivative packets
+  `epsilon_n(1,2,-3)/4`, and point masses `mu_n=-q nu_n`. The sharp scalar
+  window `2/5<nu_n<43/75` is proved. The three displayed folded-kernel
+  estimates and five direct frontier rows remain OPEN.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -129,7 +136,8 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   endpoint pieces. For the static inequality, prove the displayed local
   endpoint half-ratios, or the sufficient interior temporal preimage cone
   together with the seed and three direct frontier rows (or otherwise prove
-  `d>=h`); then prove its early
+  `d>=h`). Equivalently, close the explicit base/derivative/mass folded-kernel
+  ledger for the two-step cone and its five frontier rows; then prove its early
   `J_kL` convolution counterpart and the projection/unclipped-envelope
   invariant in exact arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
@@ -159,7 +167,9 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
    proved, so the static bound now needs only the explicit local half-ratios
    for `d-h`, or the exact sufficient interior temporal-preimage comparison
-   plus the four direct boundary checks. A separate early/late position lower bound must exploit the
+   plus the four direct boundary checks. The sharper source-ledger route
+   isolates three folded-kernel estimates and five direct frontier rows. A
+   separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
@@ -196,7 +206,10 @@ constants is permitted only with a corresponding proof.
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
-  prove `eq:terminal-modal-static-local-half-ratios`, or the exact sufficient
+  prove the three targets
+  `eq:terminal-modal-static-base-kernel-target`--
+  `eq:terminal-modal-static-mass-kernel-target` and the five direct frontier
+  rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
@@ -228,8 +241,10 @@ constants is permitted only with a corresponding proof.
   deconvolution at `m=8,12`. A sixth exact preflight checks the rational
   `3/50` signed-mass ledger, the `57/200` endpoint ledger, the finite
   alternating-tail stencil, the exact signed-mass formula, and the temporal
-  correction/smoothing identity at `m=8,12`; it labels the uniform local
-  half-ratios and temporal preimage comparison open. The floating screen
+  correction/smoothing identity, two-step equivalence, and exact
+  `2/5<nu_n<43/75` mass window at `m=8,12`; it labels the folded-kernel
+  ledger, uniform local half-ratios, and temporal preimage comparison open.
+  The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times

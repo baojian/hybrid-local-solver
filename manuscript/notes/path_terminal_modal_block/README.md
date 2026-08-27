@@ -56,7 +56,13 @@ interior temporal preimage comparison plus three direct frontier rows and
 the seed. Positivity of that preimage is neither claimed nor necessary, and
 fixed-prefix `q->0` asymptotics do not settle the joint family `mq=1/16`.
 Those local inequalities remain open, as do the early
-convolution analogue and an early/late lower position margin. A
+convolution analogue and an early/late lower position margin. A further exact
+simplification makes the half-ratios the two-step spatial cone
+`d_j>=d_(j+2)/4`, with two endpoint initial conditions. On rows through
+`m-6`, the cone has an exact folded-source ledger with a base term, the
+`epsilon_n(1,2,-3)/4` derivative packets, and newest-row masses
+`mu_n=-q nu_n`; the scalar window `2/5<nu_n<43/75` is proved. Three explicit
+uniform folded-kernel estimates and five direct frontier rows remain open. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
