@@ -49,15 +49,16 @@
   derivative packets `epsilon_n(1,2,-3)/4`, and newest-row masses
   `mu_n=-q nu_n`. The scalar window `2/5<nu_n<43/75` is proved uniformly.
   The mass kernel is now proved by exact binomial smoothing, a finite dyadic
-  lobe certificate, and an entropy tail. The base/derivative kernels and five
-  direct frontier rows remain OPEN; the note does not infer signs of
+  lobe certificate, and an entropy tail. The weakened base kernel `B>-q/16`
+  needed by the replacement ledger is also proved by two binomial sign
+  regimes, a finite exact certificate, and a Hoeffding tail. The derivative
+  kernel and five direct frontier rows remain OPEN; the note does not infer signs of
   individual summands. The proposed derivative constant `-q/16` is now an
   exact asymptotic STOP (already false at fixed endpoint distance seven), while
   the weaker sufficient replacement `-q/8` is reduced to three exact folded
   prefix-lobe estimates; its scalar variation and Abel ledger are proved. The
-  base is reduced to an exact five-point binomial stencil, alternating endpoint
-  atom, and nonnegative-kernel initial perturbation, with its uniform lower
-  bound still open.
+  base proof exposes an exact five-point binomial stencil, alternating endpoint
+  atom, and nonnegative-kernel initial perturbation.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
   entry profiles, and full projection/envelope regime remain open. The
   logarithmic terminal block remains conditional, and no lower bound is
@@ -89,8 +90,8 @@
 - Main audit risks: the weighted telescoping identity for the signed mass,
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
-- Next action: Bound the exact binomial base interface, prove the replacement `-q/8`
-  derivative estimate's three prefix-lobe bounds, and five
+- Next action: Prove the replacement `-q/8` derivative estimate's three
+  prefix-lobe bounds and five
   direct frontier rows, or otherwise prove the explicit local
   half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.

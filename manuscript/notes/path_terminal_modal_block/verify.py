@@ -1353,6 +1353,39 @@ def exact_static_tail_reduction_checks() -> None:
         )
         assert finite_base[coordinate] - leading_base[coordinate] == initial_formula
 
+    # Exact finite certificate and rational tail checks for the uniform
+    # weakened base bound.  T obeys 2 T_k + T_{k-1} = binom(n,k).
+    for order in range(62, 1024):
+        binomial_row = [1]
+        for index in range(order):
+            binomial_row.append(binomial_row[-1] * (order - index) // (index + 1))
+        # If U_k=2^(k+1)T_k, then U_k=2^k binom(n,k)-U_(k-1).
+        alternating_numerator = 0
+        for coefficient_index, binomial in enumerate(binomial_row):
+            alternating_numerator = 2**coefficient_index * binomial - alternating_numerator
+            if not 3 <= coefficient_index <= order - 2:
+                continue
+            polynomial_part = (
+                36 * (binomial_row[coefficient_index - 4] if coefficient_index >= 4 else 0)
+                - 28 * (binomial_row[coefficient_index - 3] if coefficient_index >= 3 else 0)
+                - 5 * (binomial_row[coefficient_index - 2] if coefficient_index >= 2 else 0)
+                + 19 * binomial_row[coefficient_index - 1]
+                - 25 * binomial
+            )
+            scaled_leading = (
+                2 ** (coefficient_index + 1) * polynomial_part
+                + 45 * alternating_numerator
+                - 45 * (-1) ** (order + coefficient_index)
+            )
+            assert (
+                1024 * (order + 2) * scaled_leading + 480 * 2 ** (order + coefficient_index + 1)
+                >= 0
+            )
+
+    assert Fraction(29 * 1026, 80 * 2**20) + Fraction(9 * 1026, 2**1033) < Fraction(3, 1024)
+    assert Fraction(math.comb(61, 30), 2**61) < Fraction(5, 48)
+    assert Fraction(3, 16) - Fraction(1421, 14400) - Fraction(1, 16) == Fraction(379, 14400)
+
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
     for edge_count in (8, 12):
@@ -1543,7 +1576,7 @@ def exact_static_tail_reduction_checks() -> None:
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
         "two_step_equivalence:pass mass_window=(2/5,43/75) "
         "mass_kernel:proved derivative_1/16=STOP base_interface:proved "
-        "base_bound_replacement_derivative_frontier=open"
+        "base_bound:proved replacement_derivative_frontier=open"
     )
 
 

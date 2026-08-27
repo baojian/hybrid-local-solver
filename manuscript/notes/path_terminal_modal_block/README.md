@@ -63,15 +63,17 @@ simplification makes the half-ratios the two-step spatial cone
 `epsilon_n(1,2,-3)/4` derivative packets, and newest-row masses
 `mu_n=-q nu_n`; the scalar window `2/5<nu_n<43/75` is proved. The mass
 folded-kernel estimate is also proved by an exact binomial maximum principle,
-finite dyadic certificate, and entropy tail. The base and derivative
-folded-kernel estimates and five direct frontier rows remain open. The
+finite dyadic certificate, and entropy tail. A weakened base estimate
+`B>-q/16`, sufficient for the replacement ledger, is proved by two exact
+binomial sign regimes, a finite rational certificate, and a Hoeffding tail.
+The derivative folded-kernel estimate and five direct frontier rows remain
+open. The
 original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. The scalar source derivative and exact Abel step for that
 replacement are proved, leaving three explicit folded prefix-lobe estimates.
-The base term is also reduced exactly to a five-point binomial stencil, one
-alternating endpoint atom, and a nonnegative-kernel initial perturbation; its
-uniform lower bound remains open. A
+The base proof keeps the five-point binomial stencil, alternating endpoint
+atom, and nonnegative-kernel initial perturbation separate. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
