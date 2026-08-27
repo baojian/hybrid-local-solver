@@ -296,7 +296,7 @@ def main() -> None:
     check_h_axis_certificate()
     check_stopped_comparison()
     check_frontier_bound()
-    print("terminal_stopped_baseline=PASS leading_margin=31/320 finite_q_ledger=OPEN")
+    print("terminal_stopped_baseline=PASS leading_margin=31/320 finite_q_ledger=PROVED_SEPARATELY")
 
 
 if __name__ == "__main__":

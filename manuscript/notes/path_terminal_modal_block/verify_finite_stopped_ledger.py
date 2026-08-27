@@ -281,7 +281,10 @@ def main() -> None:
     check_base_response()
     check_endpoint_ledger()
     check_rational_ledger()
-    print("terminal_finite_stopped_ledger=PASS static_late_target=OPEN")
+    print(
+        "terminal_finite_stopped_ledger=PASS "
+        "static_late_target=EVENTUALLY_PROVED_BY_STATIC_SYNTHESIS"
+    )
 
 
 if __name__ == "__main__":

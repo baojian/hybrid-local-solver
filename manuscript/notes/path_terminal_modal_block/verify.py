@@ -1945,8 +1945,9 @@ def exact_static_tail_reduction_checks() -> None:
     assert Fraction(math.comb(61, 30), 2**61) < Fraction(5, 48)
     assert Fraction(3, 16) - Fraction(1421, 14400) - Fraction(1, 16) == Fraction(379, 14400)
 
-    # This finite exact replay is evidence for the still-open local half-ratios,
-    # not part of the uniform proof above.
+    # This finite exact replay is not part of the asymptotic local-half-ratio
+    # proof, which combines the uniform interior theorem with eventual
+    # frontier positivity.
     for edge_count in (8, 12):
         q = Fraction(1, 16 * edge_count)
         eta = (1 - q * q) / 2
@@ -2107,7 +2108,8 @@ def exact_static_tail_reduction_checks() -> None:
         ]
 
     # Check the endpoint half-stencil and the finite alternating-tail correction
-    # independently of the still-open comparison d >= h.
+    # independently of the comparison d >= h, proved asymptotically by the
+    # separate interior/frontier synthesis.
     for edge_count in (8, 9):
         beta = Fraction(-1)
         tail = [Fraction(0) for _ in range(edge_count + 1)]
@@ -2135,7 +2137,8 @@ def exact_static_tail_reduction_checks() -> None:
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
         "two_step_equivalence:pass mass_window=(2/5,43/75) "
         "mass_kernel:proved derivative_1/16=STOP base_interface:proved "
-        "base_bound:proved replacement_derivative:proved frontier_five=open"
+        "base_bound:proved replacement_derivative:proved "
+        "frontier_five=eventually_proved_separate uniform_from_m64=open"
     )
 
 

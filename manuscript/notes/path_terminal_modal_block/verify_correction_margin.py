@@ -283,7 +283,11 @@ def main() -> None:
     check_two_row_defect_identity()
     check_sharpened_variation()
     check_rational_constants()
-    print("scope=c_entry_margin_only combined_early_half_retention=OPEN T_d_bound_13/200=OPEN")
+    print(
+        "scope=c_entry_margin_only "
+        "combined_early_half_retention=PROVED_BY_FINITE_STOPPED_LEDGER "
+        "T_d_bound_13/200=OPEN_UNNEEDED"
+    )
 
 
 if __name__ == "__main__":
