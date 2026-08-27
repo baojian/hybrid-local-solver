@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-explicit-cutoff`
-- Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
+- Branch: `agent/codex/path-terminal-semantic-explicit-synthesis`
+- Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -25,17 +25,23 @@
 - The early theorem closes `qk<3/50` with margin `1807/115200`; the static
   bound and late position theorem close `qk>=3/50` with transition slack
   `1667/625000`.  The first late integer follows an already-covered early
-  integer, so projection inactivity and zero safe subtraction persist through
-  `K_m=floor((8q)^-1 log(1/q))`.
+  integer.  For `m>=8192`, projection inactivity and zero safe subtraction
+  persist at every full-face time in the continued named recurrence.
 - The modal-band range theorem now gives an unconditional asymptotic
   `Omega(q^-1 log(1/q))` terminal block for the named exact-real recurrence.
   The named nonlinear regime has the explicit cutoff `m>=8192`; the modal
-  terminal theorem retains its stated named-family scope.
+  terminal theorem separately retains its sufficiently-large-`m` scope.
 - For the named implementation's prescribed certificate runtime, a full-face
   step costs `vol(P_m)=1/(8q)`.  Thus the terminal ledger is at least
   `(64q^2)^-1 log(1/q)-(8q)^-1`, or
   `Omega(eps_ppr^-2 log(1/eps_ppr))` at `eps_ppr=2q/5`.  This is not a
   semantic-error, general-algorithm, or eleven-resource lower bound.
+- For every `m>=8192`, the continued state satisfies
+  `||p_k-p*||_inf<q/5` by `k=ceil(15/(4q))`.  Running until the earlier of
+  that theorem time and the prescribed certificate returns PPR error below
+  `2q/5` with total charged work at most
+  `121/(256q^2)+1/(8q)=O(q^-2)`.  The measured crossing near `qk=3.43` is
+  labeled float64 evidence only.
 
 ## Scope boundaries
 
@@ -59,11 +65,15 @@
   early/late handoff; the explicit threshold is checked separately.
 - `verify_static_frontier_cutoff.py` reconstructs the causal and homogeneous
   transfer certificates and proves the rational `m>=8192` cutoff ledger.
+- `verify_semantic_stop.py` checks the exact `15/4` Taylor certificate,
+  rational slacks, and charged-work constants, then reports measured crossing
+  times separately.
 - The note builds warning-free; note, target, and agent audits, focused
   Ruff/format, diff, control-byte, and conflict-marker checks pass before
   promotion.
 
 ## Optional next work
 
-Improve the explicit frontier cutoff toward `m>=64` or sharpen the named
-recurrence's constant.  The core theorem has no remaining proof interface.
+Improve the explicit cutoff toward `m>=64` or sharpen the semantic constant
+`15/4` toward the measured crossing near `3.43`.  The core theorems have no
+remaining proof interface.

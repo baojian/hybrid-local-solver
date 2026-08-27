@@ -29,9 +29,10 @@ The proof has four layers.
 4. A correlated finite-`q` stopped ledger closes the early interval
    `qk<3/50` with margin `1807/115200`.  The static bound and an exact
    position comparison close `qk>=3/50`.  The integer handoff has no gap, so
-   the literal nonlinear regime persists through
-   `K_m=floor((8q)^-1 log(1/q))`; the proved modal band then excludes the
-   note-scoped terminal certificate through those steps.
+   the continued literal nonlinear regime persists for every full-face time
+   when `m>=8192`.  For all sufficiently large `m`, the proved modal band
+   separately excludes the note-scoped terminal certificate through
+   `K_m=floor((8q)^-1 log(1/q))`.
 
 The stronger separate inequality `L_k u<=13q^3/200` is still unproved and is
 not needed.  The former `q^3/16` claim through `17/200` is false.  A global
@@ -56,6 +57,16 @@ therefore yields
 not a semantic-error lower bound, an eleven-resource lower bound, or a claim
 that the iterate cannot already be accurate.
 
+That final caveat is quantitative.  For every `m>=8192`, the continued named
+recurrence satisfies
+`||p_k-p*||_inf<tau=q/5` by `k=ceil(15/(4q))`.  Running until the earlier of
+that theorem time and the prescribed certificate therefore uses total charged
+work at most `121/(256q^2)+1/(8q)=O(q^-2)`, including all proper-prefix
+discovery sweeps.  The logarithmic delay is a separation between semantic
+accuracy and the prescribed one-sided certificate on this family; it is not
+an accuracy lower bound.  Float64 replay places the first semantic crossing
+near `qk=3.43`, but this measurement is not a proof input.
+
 Exact preflights cover chronology, source identities, entry profiles,
 directed kernels, the static cone, the five frontier limits, the stopped
 baseline, the finite-`q` early ledger, and the early/late implication chain.
@@ -75,4 +86,5 @@ python3 verify_static_frontier.py
 python3 verify_static_frontier_cutoff.py
 python3 verify_finite_stopped_ledger.py
 python3 verify_asymptotic_closure.py
+python3 verify_semantic_stop.py
 ```

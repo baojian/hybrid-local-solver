@@ -4,8 +4,8 @@ Last reviewed: 2026-08-28
 State: synthesis
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-explicit-cutoff`
-Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
+Branch: `agent/codex/path-terminal-semantic-explicit-synthesis`
+Base commit: `f76db2e58193954cd8f8da25c8e5e4b05b3aec88`
 
 ## Exact question and contract
 
@@ -16,9 +16,9 @@ Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
   `alpha=q^2`, `rho=tau=q/5`, ambient degrees, exact-real zero start,
   complete all-violations admission, transported estimate center, and the
   literal projected/safe-envelope recurrence.
-- **Accuracy namespace:** The note-scoped one-sided normalized KKT
-  certificate.  It
-  is not the repository-wide stopping decision.
+- **Accuracy namespace:** The note distinguishes its one-sided normalized KKT
+  certificate from degree-normalized RPPR semantic error.  Neither is the
+  repository-wide stopping decision.
 - **Access and charged work:** Adjacency-list access; one restricted sweep is
   charged by active volume.  The named terminal phase scans the full path.
 - **Intended result:** Prove an asymptotic logarithmic terminal block for the
@@ -27,6 +27,9 @@ Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
 - **Result:** For every sufficiently large `m`, the named execution has no
   terminal certificate during its first
   `K_m=floor((8q)^-1 log(1/q))` full-face steps.
+- **Semantic result:** For every `m>=8192`, the continued named recurrence has
+  `||p_k-p*||_inf<q/5` by `k=ceil(15/(4q))`.  Returning at the earlier of this
+  theorem time and the prescribed certificate gives PPR error below `2q/5`.
 - **Threshold:** The proper-prefix and interior static theorems are uniform
   from `m=64`.  An exact causal-transfer, endpoint, and transient ledger
   proves all five frontier signs, the full static certificate, and the
@@ -77,10 +80,17 @@ Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
    exact margin `1807/115200`.  The static bound and the late position ledger
    prove strict raw positivity and envelope dominance for `qk>=3/50`, with
    rational transition slack `1667/625000`.  The first late integer follows
-   an already-proved early integer, so there is no induction gap.
+   an already-proved early integer, so there is no induction gap.  For
+   `m>=8192`, this induction has no upper-time restriction.
 5. The proved modal-band energy and range bridge exclude the one-sided
    certificate through `K_m`, yielding the unconditional asymptotic terminal
    block for the named recurrence.
+6. Positivity of the full-face propagators, the entry lower bounds, and the
+   explicit all-time unclipped safe envelope give the two-sided semantic
+   estimate `||p_k-p*||_inf<q/5` once `qk>=15/4`.  Thus the theorem-timed
+   semantic return uses at most
+   `121/(256q^2)+1/(8q)=O(q^-2)` charged work even though the prescribed
+   certificate retains its logarithmic delay.
 
 ## Charged implementation ledger
 
@@ -95,8 +105,9 @@ At `eps_ppr=rho+tau=2q/5`, this is
 `Omega(eps_ppr^-2 log(1/eps_ppr))`.  Relative to the log-free scale
 `1/(sqrt(alpha)*eps_ppr)=5/(2q^2)`, the prescribed certification runtime has
 a logarithmic overhead.  This is not a semantic-error lower bound: the
-iterate may be accurate earlier.  It does not refute a soft-O work target and
-does not extend beyond the named sweep-linked implementation resources.
+iterate is proved accurate by `ceil(15/(4q))` full-face steps for `m>=8192`.
+It does not refute a soft-O work target and does not extend beyond the named
+sweep-linked implementation resources.
 
 ## Open or refuted stronger statements
 
@@ -145,12 +156,16 @@ cutoff is `m>=8192`; improving it to `m>=64` is optional.
 - `verify_static_frontier_cutoff.py` reconstructs the exact five causal
   transfer kernels, their coefficient masses and moments, all fourteen
   homogeneous transient transfers, and the rational `m>=8192` ledger.
+- `verify_semantic_stop.py` checks the exact `s=15/4` Taylor certificate,
+  rational slacks, and work constants, then reports the semantic/certificate
+  crossing separation as labeled float64 evidence.
 - Final build, repository note/target/agent audits, focused Ruff/format,
   control-byte/conflict-marker scans, and diff checks are required before
   promotion.
 
 ## Resume here
 
-Promote the synthesis with its explicit static/nonlinear cutoff.  Further
-work may improve `m>=8192` toward `m>=64` or sharpen the named-recurrence
-constant; neither is needed for the asymptotic terminal theorem.
+Promote the synthesis with its explicit static/nonlinear cutoff and
+semantic/certificate separation.  Further work may improve `m>=8192` toward
+`m>=64` or sharpen the proved semantic constant `15/4` toward the measured
+crossing near `3.43`; neither is needed for the present theorems.
