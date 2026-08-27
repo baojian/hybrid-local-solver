@@ -66,14 +66,18 @@ folded-kernel estimate is also proved by an exact binomial maximum principle,
 finite dyadic certificate, and entropy tail. A weakened base estimate
 `B>-q/16`, sufficient for the replacement ledger, is proved by two exact
 binomial sign regimes, a finite rational certificate, and a Hoeffding tail.
-The derivative folded-kernel estimate and five direct frontier rows remain
-open.  The five rows now have an exact six-coordinate moving-frame reduction:
+The derivative folded-kernel estimate and the uniform five direct frontier
+rows remain open.  The five rows have an exact six-coordinate moving-frame reduction:
 the old-row terms use only $x_m(1),\ldots,x_m(6)$, their previous-time
 counterparts, and $E_m$, while the endpoint uses the exact scalar
 $\eta(p_m-S_m)+\delta^m/(q2^m)$.  Exact rational replay checks the identities
-and the signs at `m=64`; larger screens are explicitly measured.  The second
-endpoint condition is the tightest observed row, but no uniform sign is
-inferred. The
+and the signs at `m=64`; larger screens are explicitly measured.  A proved
+joint first-order theorem now gives the five limits after division by $q^4$:
+approximately `0.921603,0.456225,0.460802,0.458513,0.459658`, with exact
+lower bounds `2/3,1/3,1/3,1/3,1/3`.  Thus all five rows are eventually
+positive.  No explicit cutoff is obtained, so this does not prove their
+uniform signs for every `m>=64`; the second endpoint condition remains the
+tightest observed row. The
 original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. The scalar source derivative and exact Abel step for that

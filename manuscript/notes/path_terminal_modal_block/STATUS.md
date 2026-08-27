@@ -108,13 +108,18 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   lobe certificate, and entropy tail. The weakened base estimate `B>-q/16`
   needed by the replacement ledger is also proved, using exact binomial sign
   regimes, a finite rational certificate, and a Hoeffding tail. The derivative
-  estimate and five direct frontier rows remain OPEN.  The five rows are now
+  estimate and the uniform five direct frontier rows remain OPEN.  The five rows are
   exactly equivalent to five scalar expressions in the first six
   moving-frontier correction coordinates and the endpoint scalar
   `beta=eta(p_m-S_m)+delta^m/(q2^m)`.  A focused rational replay checks every
   identity and the finite `m=64` signs; the observed margins are only
   `Theta(q)` after division by `q^3`, so correction positivity alone does not
-  prove them. The original derivative target with
+  prove them.  The exact first-order moving-frame expansion is now proved:
+  after division by `q^4`, the five joint limits are approximately
+  `0.921603,0.456225,0.460802,0.458513,0.459658`, and exact polynomial
+  certificates bound them below by `2/3,1/3,1/3,1/3,1/3`.  Hence the five
+  rows are positive for all sufficiently large `m`, but no explicit cutoff
+  proving every `m>=64` is claimed. The original derivative target with
   constant `1/16` is rigorously false: an exact zero/first-moment calculation
   gives a fixed-distance limit below `-1/16` at distance seven. The weaker
   sufficient replacement `-q/8` remains open, but its scalar source derivative
@@ -270,9 +275,11 @@ constants is permitted only with a corresponding proof.
   comparison open.
   A focused frontier preflight independently reconstructs the literal rational
   replay, verifies the six-coordinate moving-frame recurrence and all five
-  margin identities at `m=8,12,16,64`, and checks the finite `m=64` signs. Its
-  larger `m=64,...,1024` output is labeled measured and leaves the uniform
-  signs open.
+  margin identities at `m=8,12,16,64`, and checks the finite `m=64` signs. It
+  also checks the exact finite first-order interface, rational triangular
+  limit tables, and four positive polynomial certificates. Its larger
+  `m=64,...,1024` output is labeled measured and leaves the uniform
+  `m>=64` signs open.
   The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`

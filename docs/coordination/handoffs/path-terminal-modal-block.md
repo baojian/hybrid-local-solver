@@ -66,7 +66,11 @@
 - Frontier follow-up: The five omitted two-step rows are now exactly reduced
   to a six-coordinate moving-frame correction system and one endpoint scalar.
   The focused exact replay checks all identities and the finite `m=64` signs;
-  the uniform signs remain OPEN because the margins are only order `q^4`.
+  a proved joint first-order expansion gives their five `q^-4` limits as
+  approximately `0.921603,0.456225,0.460802,0.458513,0.459658`, each with a
+  positive rational lower certificate.  Thus they are eventually positive,
+  but the uniform signs for every `m>=64` remain OPEN because the theorem has
+  no explicit cutoff.
 
 ## Evidence
 
@@ -81,8 +85,9 @@
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
 - `verify_static_frontier.py` checks the exact moving-frame identities at
-  `m=8,12,16,64`, the finite in-scope signs at `m=64`, and clearly labels all
-  larger screens measured rather than uniform proof.
+  `m=8,12,16,64`, the exact finite first-order interface and rational limit
+  algebra, the finite in-scope signs at `m=64`, and clearly labels all larger
+  screens measured rather than uniform proof.
 - The floating screen remains evidence only for the two open entry profiles
   and terminal regime.
 - Required commands and their final results are recorded in the direction
