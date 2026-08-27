@@ -46,17 +46,13 @@ def check_cell(t: Fraction, eps: Fraction) -> None:
         center_error = (center + c_alpha * leaves) / denom
         leaf_error_sum = (leaves + c_alpha * center) / denom
         semantic_error = max(abs(center_error), abs(leaf_error_sum)) / m
-        closed_form = (
-            lam**k * (1 + t * t + 2 * t * k) / (2 * m)
-        )
+        closed_form = lam**k * (1 + t * t + 2 * t * k) / (2 * m)
         assert semantic_error == closed_form
 
         if k >= 1:
             positive_layer = gamma_alpha * (k + 1) * lam**k
             negative_layer = -gamma_alpha * k * lam ** (k + 1)
-            assert sorted((center, leaves)) == sorted(
-                (positive_layer, negative_layer)
-            )
+            assert sorted((center, leaves)) == sorted((positive_layer, negative_layer))
 
         if k == k_stop:
             assert semantic_error <= eps
