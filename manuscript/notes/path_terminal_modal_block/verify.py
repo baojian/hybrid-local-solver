@@ -1160,6 +1160,135 @@ def exact_static_tail_reduction_checks() -> None:
     assert Fraction(3, 50) + Fraction(57, 200) * Fraction(17, 24) == Fraction(419, 1600)
     assert Fraction(57, 200 * 48 * 2**62) < Fraction(1, 1600)
 
+    # Exact computer-assisted certificate for the folded mass-kernel lemma.
+    # Every quantity below is a dyadic integer comparison; no float enters.
+    def correction_atom(step: int, offset: int) -> Fraction:
+        absolute = abs(offset)
+        if absolute > step:
+            return Fraction(0)
+        if absolute == 0:
+            return Fraction(-1, 2) if step == 1 else Fraction(0)
+        return -Fraction(math.comb(step - 1, absolute - 1), 2 ** (step + 1))
+
+    def folded_point_coefficient(edge_count: int, coordinate: int, step: int) -> Fraction:
+        source = edge_count - step
+        return 2 * (
+            correction_atom(step, coordinate - source)
+            + correction_atom(step, coordinate + source)
+            - correction_atom(step, coordinate + 2 - source) / 4
+            - correction_atom(step, coordinate + 2 + source) / 4
+        )
+
+    def signed_gap(edge_count: int, coordinate: int) -> Fraction:
+        return Fraction(1, 2) + sum(
+            (
+                folded_point_coefficient(edge_count, coordinate, step)
+                for step in range(1, edge_count - 1)
+            ),
+            Fraction(0),
+        )
+
+    base_gaps = [(signed_gap(64, coordinate), coordinate) for coordinate in range(61)]
+    assert max(base_gaps) == (
+        Fraction(102332589933520061, 2**62),
+        28,
+    )
+    assert max(base_gaps)[0] < Fraction(1, 45)
+    assert all(signed_gap(64, 64 - distance) < Fraction(-1, 10) for distance in range(3, 20))
+    binomial_mass = [Fraction(math.comb(61, index), 2**61) for index in range(62)]
+    binomial_cdf = []
+    running_mass = Fraction(0)
+    alternating_mass = []
+    running_alternating = Fraction(0)
+    for index, mass in enumerate(binomial_mass):
+        running_mass += mass
+        binomial_cdf.append(running_mass)
+        running_alternating = mass - running_alternating / 2
+        alternating_mass.append(running_alternating)
+
+    def base_binomial_mass(index: int) -> Fraction:
+        return binomial_mass[index] if 0 <= index <= 61 else Fraction(0)
+
+    for coordinate in range(1, 61):
+        cdf = binomial_cdf[coordinate - 4] if coordinate >= 4 else Fraction(0)
+        formula = (
+            -cdf / 2
+            + base_binomial_mass(coordinate - 2) / 2
+            + 3 * base_binomial_mass(coordinate - 1) / 8
+            + base_binomial_mass(coordinate) / 4
+            - 3 * base_binomial_mass(coordinate + 1) / 32
+            - base_binomial_mass(coordinate + 2) / 16
+            - 5 * alternating_mass[coordinate] / 64
+            - 5 * Fraction(-1, 2) ** (64 + coordinate) / 8
+        )
+        assert formula == signed_gap(64, coordinate)
+    boundary_polynomial = (
+        Fraction(math.comb(61, 3), 2) + math.comb(61, 2) + Fraction(7 * 61, 8) + Fraction(3, 4)
+    )
+    assert boundary_polynomial < 2**58
+    assert signed_gap(64, 61) == -Fraction(1, 4) + boundary_polynomial / 2**61
+    assert signed_gap(65, 1) == (signed_gap(64, 1) + signed_gap(64, 0)) / 2 - Fraction(1, 2**64)
+    for coordinate in range(2, 61):
+        assert (
+            signed_gap(65, coordinate)
+            == (signed_gap(64, coordinate) + signed_gap(64, coordinate - 1)) / 2
+        )
+    assert signed_gap(65, 61) == (signed_gap(64, 61) + signed_gap(64, 60)) / 2 - Fraction(1, 8)
+
+    def binomial(n_value: int, index: int) -> int:
+        return math.comb(n_value, index) if 0 <= index <= n_value else 0
+
+    def branch_atom_numerator(distance: int, step: int, orientation: int) -> int:
+        horizon = step - 1
+        raw_offset = step - distance
+        raw_index = abs(raw_offset) - 1 if raw_offset else -1
+        shifted_offset = raw_offset + 2 * orientation
+        shifted_index = abs(shifted_offset) - 1 if shifted_offset else -1
+        return binomial(horizon, shifted_index) - 4 * binomial(horizon, raw_index)
+
+    def positive_branch_scaled(distance: int) -> tuple[int, int]:
+        common_step = 2 * distance
+        numerator = 0
+        for step in range(1, common_step + 1):
+            atom = branch_atom_numerator(distance, step, 1)
+            if atom > 0:
+                numerator += atom << (common_step - step)
+        return numerator, common_step + 2
+
+    def negative_branch_scaled(distance: int) -> tuple[int, int]:
+        # The persistent late lobe starts exactly at step 3D+5.
+        first_tail_step = 3 * distance + 5
+        horizon = first_tail_step - 1
+        numerator = 0
+        for step in range(1, first_tail_step):
+            atom = branch_atom_numerator(distance, step, -1)
+            if atom > 0:
+                numerator += atom << (horizon - step)
+        cdf_distance = sum(math.comb(horizon, index) for index in range(distance + 1))
+        numerator += (
+            binomial(horizon, distance + 1) + binomial(horizon, distance + 2) - 3 * cdf_distance
+        )
+        return numerator, horizon + 2
+
+    for distance in range(6, 512):
+        numerator, exponent = positive_branch_scaled(distance)
+        assert numerator * 1024 <= 113 * 2**exponent
+        if distance >= 20:
+            assert numerator * 512 < 9 * 2**exponent
+        if distance >= 64:
+            numerator, exponent = negative_branch_scaled(distance)
+            assert numerator * 2048 < 2**exponent
+
+    assert 80**80 < 2**75 * 27**27 * 53**53
+    assert 513**32 < 2 * 512**32
+    assert 513**64 < 8 * 512**64
+    assert Fraction(128, 2**15) < Fraction(9, 512)
+    assert Fraction(64, 2**23) + Fraction(1, 4 * 2**96) < Fraction(1, 2048)
+    assert Fraction(1, 45) + Fraction(13, 1500) == Fraction(139, 4500)
+    assert Fraction(139, 4500) < Fraction(1, 32)
+    assert Fraction(9, 512) + Fraction(1, 2048) < Fraction(1, 50)
+    assert Fraction(113, 1024) + Fraction(1, 2048) < Fraction(9, 80)
+
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
     for edge_count in (8, 12):
@@ -1349,7 +1478,7 @@ def exact_static_tail_reduction_checks() -> None:
         "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
         "two_step_equivalence:pass mass_window=(2/5,43/75) "
-        "folded_kernel_ledger=open"
+        "mass_kernel:proved base_derivative_frontier=open"
     )
 
 

@@ -65,8 +65,8 @@ margin:
   \mathcal R_{m,j,n}e_n^{\rm ev}&\ge\frac3{16}.
  \label{eq:terminal-modal-static-mass-kernel-target}
 \end{align}
-These three uniform kernel bounds and the five direct frontier rows left by
-$j>m-6$ remain open.  The formula
+The first two uniform kernel bounds and the five direct frontier rows left by
+$j>m-6$ remain open; the mass bound is proved below.  The formula
 \eqref{eq:terminal-modal-static-folded-source-ledger} is an exact reduction,
 not evidence that any summand has a pointwise sign.
 \end{lemma}
@@ -137,4 +137,238 @@ If the three displayed kernel targets hold, the right side of
 \eqref{eq:terminal-modal-static-folded-source-ledger} is at least
 $-q/64-q/16+3q/16=7q/64>0$.  This proves the stated conditional
 implication while leaving the kernel estimates themselves open.
+\end{proof}
+
+\begin{lemma}[Folded mass kernel; proved with an exact finite certificate]
+\label{lem:terminal-modal-static-mass-kernel}
+For every $m\ge64$ and $0\le j\le m-6$, the mass term in
+\eqref{eq:terminal-modal-static-folded-source-ledger} obeys
+\begin{equation}
+ -\sum_{n=2}^{m-1}\nu_n
+  \mathcal R_{m,j,n}e_n^{\rm ev}>\frac3{16}.
+ \label{eq:terminal-modal-static-mass-kernel}
+\end{equation}
+Thus \eqref{eq:terminal-modal-static-mass-kernel-target} is unconditional.
+\end{lemma}
+
+\begin{proof}
+We first expose the exact one-dimensional atoms.  Write
+\[
+ a_k(r)=\bigl[B_0(L_{k-1}^\circ-L_k^\circ)\bigr](r).
+\]
+Pascal's identity applied to
+\eqref{eq:terminal-modal-finite-l-coefficients} gives
+\begin{equation}
+ a_k(r)=-2^{-(k+1)}\binom{k-1}{|r|-1}
+ \quad(1\le |r|\le k),
+ \label{eq:terminal-modal-static-a-atom}
+\end{equation}
+with $a_k(0)=0$ for $k\ge2$ and $a_1(0)=-1/2$.  We use the convention that a
+binomial coefficient is zero outside its natural range.  The exceptional
+central atom is never encountered below because $D:=m-j\ge6$.
+
+Reindex the source time by $k=m-n$.  Reflection and
+\eqref{eq:terminal-modal-static-a-atom} give the exact split
+\begin{align}
+ \mathcal R_{m,j,m-k}e_{m-k}^{\rm ev}
+ &=R_D^+(k)+R_{2m-D}^-(k),
+ \label{eq:terminal-modal-static-R-split}\\
+ R_D^\pm(k)
+ &=2^{-k}\left[
+ -\binom{k-1}{|k-D|-1}
+ +\frac14\binom{k-1}{|k-D\pm2|-1}
+ \right].
+ \label{eq:terminal-modal-static-R-atoms}
+\end{align}
+Put
+\[
+ S_{m,j}=\sum_{n=2}^{m-1}\mathcal R_{m,j,n}e_n^{\rm ev},
+ \qquad
+ P_{m,j}=\sum_{n=2}^{m-1}
+ \left(\mathcal R_{m,j,n}e_n^{\rm ev}\right)_+,
+ \qquad
+ E_{m,j}=S_{m,j}+\frac12.
+\]
+
+The signed sum has a useful maximum principle.  Let $M=m-3$,
+$p_a=2^{-M}\binom Ma$, $F_t=\sum_{a\le t}p_a$, and
+\[
+ A_j=\sum_{a=0}^jp_a(-1/2)^{j-a}.
+\]
+Direct summation of \eqref{eq:terminal-modal-static-R-atoms} gives, for
+$1\le j\le m-4$,
+\begin{align}
+ E_{m,j}={}&-\frac12F_{j-4}
+ +\frac12p_{j-2}+\frac38p_{j-1}+\frac14p_j
+ -\frac3{32}p_{j+1}-\frac1{16}p_{j+2}\notag\\
+ &-\frac5{64}A_j-\frac58(-1/2)^{m+j}.
+ \label{eq:terminal-modal-static-E-binomial}
+\end{align}
+Here $F_t=0$ and $p_t=0$ for negative indices.  The binomial recurrences for
+$p$ and $F$, together with
+$A_j^{(M+1)}=(A_j^{(M)}+A_{j-1}^{(M)})/2$, make every term telescope to
+\begin{align}
+ E_{m+1,j}&=\frac12(E_{m,j}+E_{m,j-1}),
+ &&2\le j\le m-4,\notag\\
+ E_{m+1,1}&=\frac12(E_{m,1}+E_{m,0})-2^{-m},\qquad
+ E_{m+1,m-3}
+ =\frac12(E_{m,m-3}+E_{m,m-4})-\frac18.
+ \label{eq:terminal-modal-static-E-smoothing}
+\end{align}
+The parity term is essential here: its values at $(M+1,j)$, $(M,j)$, and
+$(M,j-1)$ satisfy the same identity.  At the seed, direct substitution gives
+\[
+ E_{m,0}
+ =-\frac{3M}{32\,2^M}
+  -\frac{\binom M2}{16\,2^M}
+  -\frac5{64\,2^M}
+  -\frac58(-1/2)^m+\frac1{2^{m-2}}<0
+ \qquad(m\ge64).
+\]
+
+The exact dyadic certificate in \texttt{verify.py} checks at $m=64$ that
+\begin{equation}
+ \max_{\substack{0\le j\le m-6\\\text{or }m-j\in\{4,5\}}}E_{64,j}
+ =\frac{102332589933520061}{2^{62}}<\frac1{45},
+ \label{eq:terminal-modal-static-E-base}
+\end{equation}
+attained at $j=28$.  The two auxiliary rows $D=4,5$ and the favorable
+$-1/8$ boundary defect in
+\eqref{eq:terminal-modal-static-E-smoothing} propagate the moving upper
+boundary.  To anchor that defect, direct substitution in
+\eqref{eq:terminal-modal-static-R-atoms}, including the exceptional central
+atom in \eqref{eq:terminal-modal-static-a-atom}, gives
+\[
+ E_{m,m-3}
+ =-\frac14+\frac1{2^M}
+ \left\{\frac12\binom M3+\binom M2+\frac78M+\frac34\right\}
+ <-\frac18.
+\]
+The last inequality holds at $M=61$, and every term in braces grows by a
+factor less than two when $M$ increases.  Induction therefore proves
+\begin{equation}
+ E_{m,j}<\frac1{45}
+ \qquad(m\ge64,\ 0\le j\le m-6).
+ \label{eq:terminal-modal-static-E-uniform}
+\end{equation}
+The same exact base check gives $E_{64,64-D}<-1/10$ for $3\le D\le19$.
+Equation \eqref{eq:terminal-modal-static-E-smoothing}, now read at fixed
+$D\ge5$, averages the old $D-1$ and $D$ rows.  The explicit $D=3$ bound and
+the favorable $D=4$ defect anchor the induction, so
+\begin{equation}
+ E_{m,m-D}<-\frac1{10}
+ \qquad(m\ge64,\ 6\le D\le19).
+ \label{eq:terminal-modal-static-E-frontier}
+\end{equation}
+
+It remains to control the positive lobe.  Define the infinite one-branch
+lobe masses
+\[
+ P_D^\pm=\sum_{k\ge1}(R_D^\pm(k))_+.
+\]
+Since $(x+y)_+\le x_++y_+$, truncating the two branches in
+\eqref{eq:terminal-modal-static-R-split} gives
+\begin{equation}
+ P_{m,j}\le P_D^++P_{2m-D}^-.
+ \label{eq:terminal-modal-static-P-branches}
+\end{equation}
+The atom ratio in \eqref{eq:terminal-modal-static-R-atoms} identifies each
+positive lobe exactly.  An integer-only dyadic enumeration for
+$6\le D\le511$, included in \texttt{verify.py}, proves
+\begin{align}
+ P_D^+&\le\frac{113}{1024} &&(D\ge6),\notag\\
+ P_D^+&<\frac9{512} &&(D\ge20),\notag\\
+ P_D^-&<\frac1{2048} &&(D\ge64)
+ \label{eq:terminal-modal-static-P-one-branch}
+\end{align}
+through that finite range.  This is an exact certificate over the closed
+binomial atoms, not a floating screen.
+
+For completeness, a short analytic tail covers every $D\ge512$.  If a
+positive atom in \eqref{eq:terminal-modal-static-R-atoms} uses the shifted
+binomial index $a$ at horizon $N=k-1$, then its coefficient exceeds four
+times the unshifted coefficient.  The adjacent-binomial ratio (and the same
+conclusion when the unshifted coefficient vanishes) implies
+\[
+ \min\{a,N-a\}\le\frac{N+2}{3}.
+\]
+For the plus branch, shifted support gives
+$N\ge(D-4)/2\ge254$.  For the early minus lobe, the ratio inequality forces
+$N\ge(3D-2)/4\ge383$.  Thus every finite-lobe horizon is at least $160$ and
+the smaller index is at most $27N/80$.  The standard entropy bound and the
+exact integer inequality
+\[
+ 80^{80}<2^{75}27^{27}53^{53}
+\]
+give
+\begin{equation}
+ \Pr[\operatorname{Bin}(N,1/2)\le27N/80]
+ \le2^{-N/16}.
+ \label{eq:terminal-modal-static-entropy-tail}
+\end{equation}
+For $P_D^+$ there are fewer than $2D$ candidates: shifted support excludes
+$k<(D-2)/2$, while the adjacent ratio excludes $k\ge2D$.  Therefore
+\[
+ P_D^+\le\frac D4\,2^{-(D-4)/32}<\frac9{512}.
+\]
+For $R_D^-$, all positive atoms before its persistent tail have $k\le D$;
+their ratio forces $N\ge(3D-2)/4$, so their sum is at most
+$D2^{-(3D-2)/64}/8$.  For $k\ge D+3$, the two binomial indices become
+$D$ and $D+2$.  Writing $u=N-D$, positivity is exactly
+\[
+ u(u-1)>4(D+1)(D+2).
+\]
+It fails at $u=2D+3$ and holds at $u=2D+4$, so the persistent tail starts
+at $K=3D+5$ and has $N=K-1=3D+4$.  The negative-binomial identity
+\[
+ \sum_{k=K}^{\infty}2^{-k}\binom{k-1}{D+2}
+ =\Pr[\operatorname{Bin}(K-1,1/2)\le D+2]
+\]
+bounds its positive part by $2^{-(3D+4)/16}/4$.  Thus
+\[
+ P_D^-\le\frac D8\,2^{-(3D-2)/64}
+ +\frac14\,2^{-(3D+4)/16}<\frac1{2048}.
+\]
+The displayed right sides decrease for $D\ge512$: their successive ratios
+are bounded using
+$(513/512)^{32}<2$ and $(513/512)^{64}<8$.  At $D=512$, the plus bound is
+less than $128/2^{15}=1/256$, while the two minus terms sum to less than
+$64/2^{23}+1/(4\cdot2^{96})<1/2048$.  These are exact powers-of-two
+comparisons.  This proves
+\eqref{eq:terminal-modal-static-P-one-branch} for every $D$.
+
+Because $2m-D=m+j\ge m\ge64$, the one-branch bounds imply
+\begin{align}
+ P_{m,j}&<\frac1{50},&&D\ge20,\label{eq:terminal-modal-static-P-bulk}\\
+ P_{m,j}&<\frac9{80},&&6\le D\le19.
+ \label{eq:terminal-modal-static-P-frontier}
+\end{align}
+Indeed $9/512+1/2048=37/2048<1/50$, while
+$113/1024+1/2048=227/2048<9/80$.
+Combining \eqref{eq:terminal-modal-static-E-uniform} and
+\eqref{eq:terminal-modal-static-P-bulk} yields
+\[
+ E_{m,j}+\frac{13}{30}P_{m,j}
+ <\frac1{45}+\frac{13}{1500}
+ =\frac{139}{4500}<\frac1{32}
+ \qquad(D\ge20).
+\]
+For $6\le D\le19$,
+\eqref{eq:terminal-modal-static-E-frontier} and
+\eqref{eq:terminal-modal-static-P-frontier} make the left side negative.
+Consequently
+\begin{equation}
+ -S_{m,j}-\frac{13}{30}P_{m,j}>\frac{15}{32}.
+ \label{eq:terminal-modal-static-combined-kernel}
+\end{equation}
+
+Finally write $\nu_n=2/5+\theta_n$.  The proved mass window gives
+$0<\theta_n<13/75$, so
+\[
+ -\sum_n\nu_nR_n
+ \ge-\frac25S_{m,j}-\frac{13}{75}P_{m,j}
+ =\frac25\left(-S_{m,j}-\frac{13}{30}P_{m,j}\right)
+ >\frac3{16}.
+\]
+This is exactly \eqref{eq:terminal-modal-static-mass-kernel}.
 \end{proof}
