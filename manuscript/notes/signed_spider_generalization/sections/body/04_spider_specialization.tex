@@ -1,0 +1,685 @@
+\section{Spiders: what is proved, what is stronger, and what remains}
+\label{sec:spider-specialization}
+
+Let $G_{B,N}$ have a hub $o$ and $B$ internally disjoint arms of length $N$.
+For a prefix depth $1\leq L<N$, let $U_L$ contain the hub and the first $L$
+vertices of every arm; degrees are the ambient degrees of $G_{B,N}$.  This is
+the first nontrivial family after a star: the quotient dimension grows with
+$L$, the support can propagate along long arms, but the graph remains
+bipartite and has a scalar articulation at the hub.
+
+\subsection{Exact prefix spectrum and the SOR consequence}
+
+The proof-owning \texttt{volume\_gated\_acceleration} note establishes
+\begin{equation}
+ \sigma_{U_L}=\cos\!\left(\frac{\pi}{2(L+1)}\right)
+ \label{eq:spider-prefix-cross-singular}
+\end{equation}
+for the largest singular value in \eqref{eq:bipartite-cross-block}.  Combining
+that proved spectrum with \Cref{thm:fixed-bipartite-sor} gives the following
+new SOR specialization.
+
+\begin{corollary}[Optimal SOR on an exposed spider prefix]
+\label{cor:spider-prefix-sor}
+On $U_L$, put
+\begin{equation}
+ t_L:=\sqrt{
+  1-c_\alpha^2
+  \cos^2\!\left(\frac{\pi}{2(L+1)}\right)
+ }.
+ \label{eq:spider-prefix-t}
+\end{equation}
+Then the optimal red--black SOR factor is
+$\zeta_L=(1-t_L)/(1+t_L)$, and
+\begin{equation}
+ t_L=\Theta\!\left(\sqrt{\alpha+L^{-2}}\right).
+ \label{eq:spider-prefix-t-asymptotic}
+\end{equation}
+Since
+$\operatorname{vol}(U_L)=B(2L+1)$, a known-face semantic solve to tolerance
+$\tau$ costs
+\begin{equation}
+ W_{B,L}=O\!\left(
+  \frac{B(2L+1)}{\sqrt{\alpha+L^{-2}}}
+  \log\frac{2}{\tau\sqrt{\alpha+L^{-2}}}
+ \right).
+ \label{eq:spider-prefix-sor-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Substitute \eqref{eq:spider-prefix-cross-singular} into
+\eqref{eq:fixed-face-optimal-sor}.  Moreover,
+\begin{equation*}
+ t_L^2=(1-c_\alpha^2)
+ +c_\alpha^2\sin^2\!\left(\frac{\pi}{2(L+1)}\right).
+\end{equation*}
+Here $1-c_\alpha^2=4\alpha/(1+\alpha)^2$ and the sine term is
+$\Theta(L^{-2})$, proving \eqref{eq:spider-prefix-t-asymptotic}.  Every
+selected arm vertex has ambient degree two because $L<N$, while the hub has
+degree $B$, giving $B+2BL=B(2L+1)$ and then
+\eqref{eq:spider-prefix-sor-work}.
+\end{proof}
+
+This formula has a useful interpretation:
+\begin{equation}
+ \frac1{t_L}
+ =\Theta\!\left(\min\{L,\alpha^{-1/2}\}\right).
+ \label{eq:spider-two-regimes}
+\end{equation}
+Before the arm reaches the diffusion length $\alpha^{-1/2}$, its length is
+the condition scale; afterward, teleportation caps the condition number and
+the square-root PageRank scale takes over.  The spider does not create an
+$\alpha^{-2}$ condition number.  Its difficulty is repeated volume and
+support evolution, not worse fixed-face conditioning.
+
+For the complete finite spider rather than a proper Dirichlet prefix,
+$\sigma_U=1$ because every connected graph's normalized adjacency has the
+degree eigenvector.  Thus
+\begin{equation}
+ t_{\rm full}=\frac{2\sqrt\alpha}{1+\alpha},
+ \qquad
+ W_{B,N}=O\!\left(
+  \frac{BN}{\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:full-spider-sor-work}
+\end{equation}
+
+\subsection{Exact radial PPR profile}
+
+For a hub seed, symmetry makes the degree-normalized PPR value
+\begin{equation}
+ y_j:=\frac{\pi_v}{d_v}
+ \qquad (v\text{ at depth }j)
+ \label{eq:spider-radial-y}
+\end{equation}
+constant on each level.  Put
+\begin{equation}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+ \label{eq:spider-lambda}
+\end{equation}
+Solving the one-dimensional recurrence gives
+\begin{align}
+ y_0&=\frac{\sqrt\alpha}{B}
+       \frac{1+\lambda_\alpha^{2N}}
+            {1-\lambda_\alpha^{2N}},
+ \label{eq:spider-center-profile}\\
+ y_j&=y_0
+ \frac{\lambda_\alpha^j+\lambda_\alpha^{2N-j}}
+      {1+\lambda_\alpha^{2N}},
+ \qquad 1\leq j\leq N.
+ \label{eq:spider-arm-profile}
+\end{align}
+In particular, $0<y_j\leq y_0$.
+
+\begin{proof}[Derivation]
+The mass PageRank equation divided by degree is
+\begin{equation*}
+ y_v=\frac{2\alpha}{1+\alpha}\frac{s_v}{d_v}
+ +c_\alpha\frac1{d_v}\sum_{u\sim v}y_u.
+\end{equation*}
+Away from the hub this is
+$y_j=(c_\alpha/2)(y_{j-1}+y_{j+1})$, whose characteristic roots are
+$\lambda_\alpha$ and $\lambda_\alpha^{-1}$.  The endpoint condition
+$y_N=c_\alpha y_{N-1}$ selects a reflected profile proportional to
+$\lambda_\alpha^j+\lambda_\alpha^{2N-j}$.  The hub condition
+$y_0=2\alpha/((1+\alpha)B)+c_\alpha y_1$ yields
+\eqref{eq:spider-center-profile}.  Finally,
+$\lambda^j+\lambda^{2N-j}\leq1+\lambda^{2N}$ for $0<\lambda<1$.
+\end{proof}
+
+Equations \eqref{eq:spider-center-profile}--\eqref{eq:spider-arm-profile}
+identify a natural output-scale family.  Take
+\begin{equation}
+ N=\Theta(\alpha^{-1/2}),
+ \qquad
+ B=\Theta(\sqrt\alpha/\varepsilon_{\rm ppr}).
+ \label{eq:spider-output-scale-family}
+\end{equation}
+in the nontrivial regime
+$\varepsilon_{\rm ppr}=O(\sqrt\alpha)$, with integer rounding.
+Then $\max_j y_j=\Theta(\varepsilon_{\rm ppr})$ and
+$BN=\Theta(1/\varepsilon_{\rm ppr})$.  A constant-factor reduction of the
+zero-start semantic error in $O(1/\sqrt\alpha)$ sweeps would therefore give
+the desired log-free work
+\begin{equation}
+ O\!\left(\frac1{\sqrt\alpha\,\varepsilon_{\rm ppr}}\right).
+ \label{eq:spider-desired-log-free}
+\end{equation}
+
+The fixed-face two-norm theorem proves the same expression with a logarithm,
+but it does not prove the constant-factor semantic statement because the
+two-norm conversion can lose a factor depending on the number of arms.  The
+following maximum-norm wave argument removes that loss.
+
+\subsection{Exact log-free semantic damping for plain SOR}
+
+Let $x^{(k)}$ be the zero-start iterate after $k$ complete red--black sweeps,
+where every even-depth shell is relaxed first and every odd-depth shell
+second.  On the complete spider use the graph-global parameter
+\begin{equation}
+ \omega_\alpha=1+\lambda_\alpha^2,
+ \qquad
+ \zeta_\alpha:=\lambda_\alpha^2.
+ \label{eq:radial-sor-parameters}
+\end{equation}
+
+\begin{theorem}[Log-free semantic damping on every finite symmetric spider]
+\label{thm:radial-semantic-damping}
+For every $0<\alpha<1$, every number of arms $B\geq1$, every arm length
+$N\geq1$, and every integer $k\geq0$,
+\begin{align}
+ \max_v\frac{|x_v^{(k)}-x_v^0|}{\sqrt{d_v}}
+ &\leq
+ \zeta_\alpha^k
+ \left(1+2k(1-\zeta_\alpha)\right)
+ \max_v\frac{x_v^0}{\sqrt{d_v}}
+ \label{eq:radial-semantic-exact-envelope}\\
+ &\leq
+ 8(1+k\sqrt\alpha)e^{-4k\sqrt\alpha}
+ \max_v\frac{x_v^0}{\sqrt{d_v}}.
+ \label{eq:radial-semantic-exponential-envelope}
+\end{align}
+The constants are independent of both $B$ and $N$.
+\end{theorem}
+
+\begin{proof}
+Write
+\begin{equation*}
+ e_v^{(k)}:=
+ \frac{x_v^0-x_v^{(k)}}{\sqrt{d_v}}.
+\end{equation*}
+Dividing the homogeneous coordinate-SOR error equation by $\sqrt{d_v}$
+gives the semantic update
+\begin{equation}
+ e_v^+=(1-\omega_\alpha)e_v
+ +\frac{\omega_\alpha c_\alpha}{d_v}
+   \sum_{u\sim v}e_u
+ =-\zeta_\alpha e_v
+ +\frac{2\lambda_\alpha}{d_v}
+   \sum_{u\sim v}e_u.
+ \label{eq:radial-semantic-coordinate-update}
+\end{equation}
+Hub seeding and equal arm lengths preserve radial symmetry.  Denote the
+common depth-$j$ value by $e_j^{(k)}$.
+
+Reflect the depth sequence evenly at $0$ and $N$ and then extend it with
+period $2N$.  This extension turns the endpoint averages into ordinary
+nearest-neighbor averages on a cycle.  For indices modulo $N$, put
+\begin{equation*}
+ E_i^{(k)}:=e_{2i}^{(k)},
+ \qquad
+ O_i^{(k)}:=e_{2i+1}^{(k)},
+\end{equation*}
+and let $L$ be the cyclic shift on these $N$ cells.  Equation
+\eqref{eq:radial-semantic-coordinate-update} becomes
+\begin{align}
+ E^{(k+1)}
+ &=-\zeta_\alpha E^{(k)}
+   +\lambda_\alpha(I+L^{-1})O^{(k)},
+ \label{eq:radial-even-update}\\
+ O^{(k+1)}
+ &=-\zeta_\alpha O^{(k)}
+   +\lambda_\alpha(I+L)E^{(k+1)}.
+ \label{eq:radial-odd-update}
+\end{align}
+Eliminating the opposite color shows that either
+$Z^{(k)}=E^{(k)}$ or $Z^{(k)}=O^{(k)}$ satisfies
+\begin{equation}
+ Z^{(k+1)}
+ =2\zeta_\alpha MZ^{(k)}
+  -\zeta_\alpha^2Z^{(k-1)},
+ \qquad
+ M:=\frac{L+L^{-1}}2.
+ \label{eq:radial-chebyshev-recurrence}
+\end{equation}
+After dividing by $\zeta_\alpha^k$, the recurrence is the Chebyshev wave
+equation.  For $k\geq1$ its exact solution is
+\begin{equation}
+ \frac{Z^{(k)}}{\zeta_\alpha^k}
+ =T_k(M)Z^{(0)}
+ +U_{k-1}(M)
+   \left(\frac{Z^{(1)}}{\zeta_\alpha}-MZ^{(0)}\right).
+ \label{eq:radial-chebyshev-solution}
+\end{equation}
+Because $M=(L+L^{-1})/2$,
+\begin{align}
+ T_k(M)&=\frac{L^k+L^{-k}}2,
+ \label{eq:radial-chebyshev-first-kind}\\
+ U_{k-1}(M)&=
+ \sum_{q=0}^{k-1}L^{k-1-2q}.
+ \label{eq:radial-chebyshev-second-kind}
+\end{align}
+Every shift is an isometry in maximum norm.  Therefore the two operator norms
+in \eqref{eq:radial-chebyshev-first-kind}--%
+\eqref{eq:radial-chebyshev-second-kind} are at most $1$ and $k$,
+respectively.  This is the dimension-free step that an Euclidean spectral
+bound misses.
+
+It remains to bound the two initial wave mismatches.  At zero start,
+$e_j^{(0)}=y_j$, so \eqref{eq:spider-arm-profile} gives
+\begin{equation}
+ \|E^{(0)}\|_\infty=y_0,
+ \qquad
+ \|O^{(0)}\|_\infty\leq y_0.
+ \label{eq:radial-initial-color-norms}
+\end{equation}
+The source lies on the even color.  The odd PPR equations give
+\begin{equation*}
+ O^{(0)}=\frac{c_\alpha}{2}(I+L)E^{(0)}.
+\end{equation*}
+Using $c_\alpha/\lambda_\alpha=2/(1+\zeta_\alpha)$ in
+\eqref{eq:radial-even-update} yields
+\begin{equation}
+ \frac{E^{(1)}}{\zeta_\alpha}-ME^{(0)}
+ =s_\alpha(I+M)E^{(0)},
+ \qquad
+ s_\alpha:=\frac{1-\zeta_\alpha}{1+\zeta_\alpha}.
+ \label{eq:radial-even-wave-mismatch}
+\end{equation}
+Hence its maximum norm is at most
+$2(1-\zeta_\alpha)y_0$.
+
+For the odd color, direct substitution of
+\eqref{eq:radial-even-update} into
+\eqref{eq:radial-odd-update} gives
+\begin{equation}
+ \frac{O^{(1)}}{\zeta_\alpha}-MO^{(0)}
+ =(M-\zeta_\alpha I)O^{(0)}.
+ \label{eq:radial-odd-wave-mismatch}
+\end{equation}
+The explicit profile is decreasing from either reflected endpoint and, for
+$0\leq j\leq N-2$, satisfies
+\begin{equation}
+ 0\leq y_j-y_{j+2}
+ =\frac{(1-\zeta_\alpha)y_0}
+        {1+\lambda_\alpha^{2N}}
+   \left(
+    \lambda_\alpha^j
+    -\lambda_\alpha^{2N-j-2}
+   \right)
+ \leq(1-\zeta_\alpha)y_0.
+ \label{eq:radial-profile-two-step-difference}
+\end{equation}
+The reflected boundary differences obey the same bound.  Consequently,
+$\|(M-I)O^{(0)}\|_\infty\leq
+(1-\zeta_\alpha)y_0$, and
+\eqref{eq:radial-odd-wave-mismatch} also has norm at most
+$2(1-\zeta_\alpha)y_0$.
+
+Applying \eqref{eq:radial-chebyshev-solution} to both colors proves
+\eqref{eq:radial-semantic-exact-envelope}.  Finally,
+\begin{equation*}
+ 1-\zeta_\alpha
+ =\frac{4\sqrt\alpha}{(1+\sqrt\alpha)^2}
+ \leq4\sqrt\alpha,
+ \qquad
+ \zeta_\alpha^k=\lambda_\alpha^{2k}
+ \leq e^{-4k\sqrt\alpha}.
+\end{equation*}
+Since $1+8z\leq8(1+z)$ for $z\geq0$, the exponential envelope follows.
+\end{proof}
+
+\begin{proposition}[The source-first sweep order is necessary]
+\label{prop:radial-sweep-order-witness}
+The sharp envelope
+\eqref{eq:radial-semantic-exact-envelope} does not hold unchanged when the
+source is on the second color and the original even--odd sweep order is kept.
+Already on the two-vertex path, take $\alpha=1/9$, start from zero, put the
+source on the odd vertex, and relax the even vertex first.  After one full
+sweep the maximum semantic error has fallen by only $4/5$, whereas the
+right-hand-side factor in
+\eqref{eq:radial-semantic-exact-envelope} is $5/8$.
+\end{proposition}
+
+\begin{proof}
+Here $\lambda_\alpha=1/2$ and $\zeta_\alpha=1/4$.  The exact semantic PPR
+error at zero start is $(4/9,5/9)$, ordered as even then odd.  The two
+coordinate updates from
+\eqref{eq:radial-semantic-coordinate-update} give
+\begin{equation*}
+ e_{\rm even}^{(1)}
+ =-\frac14\frac49+\frac59=\frac49,
+ \qquad
+ e_{\rm odd}^{(1)}
+ =-\frac14\frac59+\frac49=\frac{11}{36}.
+\end{equation*}
+Thus the maximum-error ratio is $(4/9)/(5/9)=4/5$.  In contrast, the claimed
+one-sweep factor would be
+$\zeta_\alpha(1+2(1-\zeta_\alpha))=5/8$.  Swapping the two colors puts the
+source first and restores the theorem by symmetry.
+\end{proof}
+
+\begin{corollary}[Log-free output-scale plain SOR]
+\label{cor:radial-output-scale-sor}
+On the family \eqref{eq:spider-output-scale-family}, choose the hidden
+constants so that the zero-start semantic error is a fixed constant multiple
+of $\varepsilon_{\rm ppr}$.  A predetermined
+$k=O(1/\sqrt\alpha)$ full-sweep count reaches semantic error
+$\varepsilon_{\rm ppr}$ in
+\begin{equation}
+ W_{\rm radial\text{-}SOR}
+ =O\!\left(
+  \frac1{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+ \right)
+ \label{eq:radial-output-scale-sor-work}
+\end{equation}
+charged degree work, including every sweep and explicit output.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:radial-semantic-damping} reduces any fixed initial-to-target
+ratio in $O(1/\sqrt\alpha)$ sweeps.  A full spider sweep costs its degree
+volume $2BN=\Theta(1/\varepsilon_{\rm ppr})$, and the output has
+$1+BN=O(1/\varepsilon_{\rm ppr})$ coordinates.
+\end{proof}
+
+This closes the former plain-SOR radial conjecture, but only for a complete
+equal-arm spider, a hub seed, zero start, full red--black sweeps, and the
+predetermined semantic schedule, with the hub color relaxed first.
+Proposition~\ref{prop:radial-sweep-order-witness} shows that the order clause
+cannot simply be deleted.  Unequal arms, nonradial seeds, support discovery,
+and changing faces are not consequences of the theorem.
+
+\subsection{A graph-uniform maximum-norm extension is impossible}
+
+The fixed-face spectral theorem remains valid on every bipartite graph, but
+its Euclidean bound cannot be converted into a graph-independent relative
+maximum-semantic contraction.  The obstruction is finite propagation across
+a degree-skewed sequence of two-step channels.
+
+For an integer $n\geq1$, define a finite simple connected bipartite graph
+$G_n=R\mathbin{\dot\cup}B$ as follows.  Put
+\begin{equation*}
+ R=\{r_0,\ldots,r_n\},
+ \qquad
+ B=\mathbin{\dot\bigcup}_{i=0}^{n-1}B_i,
+ \qquad
+ |B_i|=w_i:=3^{n-1-i}.
+\end{equation*}
+Every vertex in $B_i$ is adjacent to exactly $r_i$ and $r_{i+1}$, and there
+are no other edges.  Seed $r_0$, start SOR from zero on the entire graph,
+relax $R$ first, and use the graph-global parameter
+$\omega_\alpha=1+\zeta_\alpha$ from
+\eqref{eq:radial-sor-parameters}.
+
+\begin{theorem}[No graph-uniform relative semantic SOR envelope]
+\label{thm:global-semantic-sor-stop}
+Let $0<\alpha<1$, and let $x^{(k)}$ be the iterate on $G_n$ after $k$ complete
+source-first red--black sweeps.  Then, for every $0\leq k\leq n$,
+\begin{equation}
+ \frac{\|x^{(k)}-x^0\|_{D,\infty}}
+      {\|x^0\|_{D,\infty}}
+ \geq c_\alpha^{8n},
+ \qquad
+ c_\alpha=\frac{1-\alpha}{1+\alpha}.
+ \label{eq:global-semantic-sor-stop-lower}
+\end{equation}
+Consequently there is no finite graph-independent constant $C$ for which
+every finite connected bipartite graph, single seed on the first color, and
+integer $k\geq0$ obey
+\begin{equation}
+ \frac{\|x^{(k)}-x^0\|_{D,\infty}}
+      {\|x^0\|_{D,\infty}}
+ \leq C(1+k\sqrt\alpha)e^{-4k\sqrt\alpha}.
+ \label{eq:global-semantic-sor-envelope-refuted}
+\end{equation}
+More strongly, for every fixed $T>0$ there is no graph-uniform fixed-factor
+semantic reduction guaranteed at any time through $T/\sqrt\alpha$ full
+sweeps.
+\end{theorem}
+
+\begin{proof}
+Put $y=D^{-1/2}x^0$.  In semantic coordinates the PPR equations have the form
+\begin{equation}
+ y_R=c_\alpha Ay_B+h e_{r_0},
+ \qquad
+ y_B=c_\alpha Cy_R,
+ \qquad h>0,
+ \label{eq:funnel-semantic-ppr}
+\end{equation}
+where $A:R\leftarrow B$ and $C:B\leftarrow R$ are row-stochastic neighbor
+averages.  Thus, with $K=AC$ and $r=c_\alpha^2$,
+\begin{equation}
+ y_R=h(I-rK)^{-1}e_{r_0}.
+ \label{eq:funnel-even-green}
+\end{equation}
+The semantic maximum principle puts the maximum of $y$ at $r_0$: at every
+other vertex $y_v=c_\alpha(P_{\rm row}y)_v$ is strictly below the maximum of
+its neighbors.
+
+The two-step chain $K$ is a lazy birth--death chain on
+$r_0,\ldots,r_n$.  Its endpoint rows split equally between staying and the
+unique inward neighbor, while every internal row satisfies
+\begin{equation}
+ K(i,i)=\frac12,
+ \qquad
+ K(i,i-1)=\frac38,
+ \qquad
+ K(i,i+1)=\frac18.
+ \label{eq:funnel-two-step-chain}
+\end{equation}
+Indeed, a first step chooses one of the $w_{i-1}+w_i$ incident channel
+vertices and the second step returns to either endpoint with probability
+$1/2$; here $w_{i-1}=3w_i$.
+
+Let $\tau_0$ be the first hitting time of $r_0$ for $K$ started at $r_n$.
+At every positive internal state the expected one-step decrease in the index
+is $3/8-1/8=1/4$, and at $r_n$ it is $1/2$.  The additive drift bound gives
+\begin{equation}
+ \mathbb E_{r_n}\tau_0\leq4n.
+ \label{eq:funnel-hitting-time}
+\end{equation}
+The discounted Green identity and the strong Markov property give
+\begin{equation}
+ \frac{y_{r_n}}{y_{r_0}}
+ =\frac{[(I-rK)^{-1}]_{n0}}{[(I-rK)^{-1}]_{00}}
+ =\mathbb E_{r_n}r^{\tau_0}.
+ \label{eq:funnel-discounted-hitting}
+\end{equation}
+Since $t\mapsto r^t$ is convex and decreasing, Jensen's inequality and
+\eqref{eq:funnel-hitting-time} imply
+\begin{equation}
+ \frac{y_{r_n}}{y_{r_0}}
+ \geq r^{\mathbb E\tau_0}
+ \geq r^{4n}=c_\alpha^{8n}.
+ \label{eq:funnel-green-ratio-lower}
+\end{equation}
+
+It remains to connect this static ratio to literal SOR.  Let
+$e^{(k)}=D^{-1/2}(x^0-x^{(k)})$.  At zero start $e^{(0)}=y$.  The semantic
+coordinate update is
+\eqref{eq:radial-semantic-coordinate-update}, and
+$2\lambda_\alpha=(1+\zeta_\alpha)c_\alpha$.  Therefore an updated nonseed
+coordinate remains exactly equal to $y_v$ whenever its current value and all
+neighbor values still equal the corresponding entries of $y$.  Only the seed
+can change in the first $R$ block.  Induction over the two color blocks shows
+that after $k\geq1$ sweeps the changed coordinates lie within graph distance
+$2k-1$ of $r_0$.  Since $r_n$ has distance $2n$, it is unchanged for every
+$k\leq n$.  Hence
+\begin{equation*}
+ \frac{\|e^{(k)}\|_\infty}{\|e^{(0)}\|_\infty}
+ \geq\frac{y_{r_n}}{y_{r_0}}
+ \geq c_\alpha^{8n},
+\end{equation*}
+which proves \eqref{eq:global-semantic-sor-stop-lower}.
+
+For the two impossibility statements, fix $T>0$ and set
+$\alpha_n=(T/n)^2$ for integers $n>T$.  Then
+$n=T/\sqrt{\alpha_n}$ and
+\begin{equation*}
+ c_{\alpha_n}^{8n}
+ =\left(\frac{1-T^2/n^2}{1+T^2/n^2}\right)^{8n}
+ \longrightarrow1.
+\end{equation*}
+Thus no fixed reduction occurs through that entire horizon.  Given a proposed
+$C$, choose $T$ so that $C(1+T)e^{-4T}<1/2$ and then take $n$ large enough
+that the left side at $k=n$ exceeds $1/2$.  This contradicts
+\eqref{eq:global-semantic-sor-envelope-refuted}.
+\end{proof}
+
+The relative stop also has a narrowly scoped absolute-work consequence for
+this literal full-sweep primitive.  It uses the fact that the seed scale is
+not smaller than inverse graph volume.
+
+\begin{corollary}[Complete-face plain-SOR product-work stop]
+\label{cor:global-semantic-sor-work-stop}
+There is no graph-independent constant $C_W$ such that zero-start,
+source-color-first plain SOR with the graph-global $\omega_\alpha$, output
+only after complete red--black sweeps, always reaches
+\begin{equation*}
+ \|x^{(k)}-x^0\|_{D,\infty}\leq\varepsilon_{\rm ppr}
+\end{equation*}
+on every finite connected bipartite graph in charged degree work at most
+$C_W/(\sqrt\alpha\,\varepsilon_{\rm ppr})$.  This remains false when the
+entire graph and its bipartition are supplied for free.
+\end{corollary}
+
+\begin{proof}
+For $G_n$, put $d_i=d_{r_i}$ and let $H$ be the $R$-by-$B$ incidence matrix.
+Then
+\begin{equation*}
+ K=D_R^{-1}H D_B^{-1}H^\top,
+ \qquad
+ D_R^{1/2}KD_R^{-1/2}
+ =D_R^{-1/2}H D_B^{-1}H^\top D_R^{-1/2}\succeq0.
+\end{equation*}
+Thus $K$ is a reversible positive-semidefinite Markov chain, with stationary
+law
+\begin{equation*}
+ \pi_i=\frac{d_i}{\sum_{j=0}^n d_j},
+ \qquad
+ d_0=3^{n-1},
+ \qquad
+ \sum_{j=0}^n d_j=|E(G_n)|=3^n-1.
+\end{equation*}
+Write $G_r(0,0)=[(I-rK)^{-1}]_{00}$.  The stationary eigenvector's
+contribution to the reversible spectral expansion, positivity of all the
+remaining resolvent terms, and the elementary return-probability upper bound
+give
+\begin{equation}
+ \frac{\pi_0}{1-r}\leq G_r(0,0)\leq\frac1{1-r}.
+ \label{eq:funnel-green-diagonal-bounds}
+\end{equation}
+Here the exact single-seed source in
+\eqref{eq:funnel-semantic-ppr} is
+$h=(1-c_\alpha)/d_0$.  Combining
+\eqref{eq:funnel-even-green} and
+\eqref{eq:funnel-green-diagonal-bounds} yields
+\begin{equation}
+ \frac1{(1+c_\alpha)(3^n-1)}
+ \leq y_{r_0}
+ \leq\frac1{(1+c_\alpha)3^{n-1}}.
+ \label{eq:funnel-seed-output-scale}
+\end{equation}
+In particular, since
+$\operatorname{vol}(G_n)=2(3^n-1)$,
+\begin{equation*}
+ \operatorname{vol}(G_n)y_{r_0}\geq\frac2{1+c_\alpha}>1.
+\end{equation*}
+
+Fix $T>0$, take $\alpha_n=(T/n)^2$ as in the theorem, and set
+$\varepsilon_n=y_{r_0}/2$.  For all sufficiently large $n$, the semantic
+error at every completed sweep through $n$ is strictly larger than
+$\varepsilon_n$.  Those $n$ sweeps alone cost
+$n\operatorname{vol}(G_n)$.  With $q_n=\sqrt{\alpha_n}=T/n$,
+\begin{equation*}
+ \frac{n\operatorname{vol}(G_n)}{1/(q_n\varepsilon_n)}
+ =\frac{T\operatorname{vol}(G_n)y_{r_0}}2
+ \geq\frac{T}{1+c_{\alpha_n}}>\frac T2.
+\end{equation*}
+Since $T$ is arbitrary, no constant $C_W$ can give the claimed product-work
+bound.
+\end{proof}
+
+The scope is deliberately algorithm-specific.  The theorem and corollary do
+not contradict the Euclidean fixed-face spectral theorem or its supplied-face
+logarithmic solve, whose conversion to maximum semantic norm can depend on
+graph geometry.  They do not lower-bound other algorithms, local discovery,
+or response composition; indeed the graph is supplied for free above.  They
+refute only a graph-uniform relative maximum-semantic envelope and the target
+product work for the named complete-face full-sweep plain-SOR schedule.  The
+symmetric-spider theorem and response-based tree algorithms remain intact.
+
+\subsection{How the radial two-rung theorem differs}
+
+The proof-owning \texttt{two\_rung\_direct\_theory} note gives a different
+accelerated radial algorithm.  On a symmetric spider with $R$ arms, it groups
+every depth shell into one commuting block, uses optimal SOR while the
+normalized residual is above a coarse threshold, and finishes with unit
+relaxation.  If
+$B_{\rm edge}>1$ denotes the source theorem's admissibility constant, the
+imported theorem assumes
+\begin{equation*}
+ 1<B_{\rm rung}<B_{\rm edge},
+ \qquad
+ B_{\rm rung}R\varepsilon_{\rm ppr}<1,
+\end{equation*}
+and gives
+\begin{equation}
+ W_{\rm radial\text{-}two\text{-}rung}
+ =O\!\left(
+  \mathcal V_{\rm exp}
+  \left[1+
+   \frac{\log(1/(B_{\rm rung}R\varepsilon_{\rm ppr}))}
+        {\sqrt\alpha}
+  \right]
+ \right)
+ \label{eq:imported-radial-two-rung}
+\end{equation}
+when the arms are not yet exhausted.  Under the same two parameter
+hypotheses, a second imported theorem handles finite arms: if the wave reaches
+the far leaves, it certifies the closed pendant paths, Schur-deflates them,
+solves the remaining center scalar, and reverse-recovers all arms within the
+same asymptotic bound.
+
+This imported result and
+\Cref{thm:radial-semantic-damping} should not be merged.  The imported method
+uses the note-scoped residual gate
+$\tau=\alpha\varepsilon_{\rm ppr}$, a two-rung schedule, refreshed radial
+selection, and possibly exact Schur deflation; it can explore only the needed
+prefix.  The new theorem instead scans the complete spider every sweep and
+uses a predetermined semantic count.  Both are accelerated, but their
+locality and stopping contracts differ.
+
+\subsection{A stronger end-to-end spider algorithm already exists}
+
+For RPPR, forcing SOR to perform support discovery is unnecessary on a
+spider.  The proof-owning \texttt{propagate\_settle\_framework} note gives an
+exact kinetic response algorithm for a rooted spider with arbitrary arm
+lengths.  Eliminating each active arm prefix leaves an arrowhead system.  Its
+hub value is one monotone scalar, and every next arm event has a stable
+threshold.  A heap reports each event once and reverse substitution recovers
+the exact solution.
+
+The imported charged bound is
+\begin{equation}
+ W_{\rm kinetic}
+ =O\!\left(\operatorname{cvol}(S^\rho)
+            \log(2+B)\right),
+ \label{eq:kinetic-spider-import}
+\end{equation}
+where $S^\rho=\operatorname{supp}(x^\rho)$ and
+$\operatorname{cvol}(S)=\sum_{v\in S}(1+d_v)$.  Since
+$\operatorname{vol}(S^\rho)\leq1/\rho$ and
+$\operatorname{cvol}(S^\rho)\leq2/\rho$ for a nonempty support, choosing
+$\rho=\varepsilon_{\rm ppr}$ and applying
+\Cref{thm:rppr-ppr-bias} gives
+\begin{equation}
+ W_{\rm kinetic}
+ =O\!\left(
+  \frac{\log(2+B)}{\varepsilon_{\rm ppr}}
+ \right)
+ \label{eq:kinetic-spider-ppr-work}
+\end{equation}
+for semantic PPR output in exact arithmetic.
+If $S^\rho$ is empty, the source algorithm instead returns the zero vector
+after its constant-work initial test.
+
+This is stronger than \eqref{eq:spider-desired-log-free} in its
+$\alpha$-dependence.  It is not evidence that the SOR analysis is wrong; it
+uses a stronger persistent-response primitive that exploits the spider's
+one-articulation geometry.  The algorithmic lesson is to use the response
+solver on spiders and use SOR as a benchmark or a numerical tail, rather than
+insist that one primitive be universal.
