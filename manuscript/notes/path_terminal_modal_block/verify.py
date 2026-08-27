@@ -1100,6 +1100,150 @@ def velocity_profile_asymptotic_checks() -> None:
     )
 
 
+def exact_static_tail_reduction_checks() -> None:
+    """Audit the proved mass/tail ledger and finite local-tail evidence."""
+    q_max = Fraction(1, 1024)
+
+    def frontier_function(t_value: Fraction, q_value: Fraction) -> Fraction:
+        return (
+            Fraction(2, 1)
+            / (1 + t_value * t_value)
+            * (
+                t_value * (1 + t_value / 5) / (1 - q_value)
+                + (t_value - Fraction(1, 5)) / (1 + q_value)
+            )
+        )
+
+    block_t = (Fraction(1), Fraction(32, 33), Fraction(16, 17), Fraction(32, 35))
+    block_p = tuple(frontier_function(t_value, q_max) for t_value in block_t)
+    assert block_p == (
+        Fraction(3495936, 1747625),
+        Fraction(22013937664, 11078194875),
+        Fraction(5636163584, 2857366875),
+        Fraction(307615744, 157216345),
+    )
+    x_value = Fraction(1, 16)
+    delta_lower = (
+        1
+        - x_value
+        + (x_value**2 - x_value * q_max) / 2
+        - (x_value**3 - 3 * x_value**2 * q_max + 2 * x_value * q_max**2) / 6
+    )
+    assert delta_lower == Fraction(15760245, 16777216)
+    signed_upper = Fraction(1, 2) * (
+        block_p[3]
+        - block_p[0] * delta_lower
+        + (block_p[0] - block_p[1]) * Fraction(64, 67)
+        + (block_p[1] - block_p[2]) * Fraction(32, 33)
+        + (block_p[2] - block_p[3]) * Fraction(64, 65)
+    )
+    assert signed_upper == Fraction(
+        213106150684112952120801,
+        3552503277561938585600000,
+    )
+    assert signed_upper < Fraction(3, 50)
+
+    endpoint_p_upper = frontier_function(Fraction(8, 9), q_max)
+    assert endpoint_p_upper == Fraction(1474594816, 760216875)
+    endpoint_upper = Fraction(1, 2) * (endpoint_p_upper / 2 - Fraction(2, 5)) + Fraction(512, 2**63)
+    assert endpoint_upper < Fraction(57, 200)
+    raw_endpoint_gap = (
+        (1 - q_max) * (5 + q_max) / (4 * (1 + q_max)) * Fraction(3488, 1921)
+        - Fraction(1, 5)
+        - Fraction(33, 16)
+    )
+    assert raw_endpoint_gap == Fraction(797707, 252035200)
+    assert Fraction(1024, 2**64) < raw_endpoint_gap / 3
+    assert (Fraction(12, 5) + Fraction(1, 5120) - Fraction(5232, 1921)) < 0
+    assert Fraction(3, 50) + Fraction(57, 200) * Fraction(17, 24) == Fraction(419, 1600)
+    assert Fraction(57, 200 * 48 * 2**62) < Fraction(1, 1600)
+
+    # This finite exact replay is evidence for the still-open local half-ratios,
+    # not part of the uniform proof above.
+    for edge_count in (8, 12):
+        q = Fraction(1, 16 * edge_count)
+        eta = (1 - q * q) / 2
+        delta = 1 - q
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        p = [Fraction(0)]
+        velocity = [Fraction(0)]
+        frontier_values: list[Fraction] = []
+        for length in range(1, edge_count + 1):
+            optimum = _fraction_optimum(length, degrees, q)
+            frontier_values.append(optimum[-1])
+            p_next, velocity_next = _fraction_step(p, velocity, degrees[:length], q)
+            new_optimum = _fraction_optimum(length + 1, degrees, q)
+            p = p_next + [Fraction(0)]
+            velocity = [
+                value + new_value - old_value
+                for value, new_value, old_value in zip(
+                    velocity_next + [Fraction(0)],
+                    new_optimum,
+                    optimum + [Fraction(0)],
+                    strict=True,
+                )
+            ]
+
+        entry_b = [q * value for value in _fraction_residual(velocity, degrees, q)]
+        gamma = [Fraction(0) for _ in range(edge_count + 1)]
+        gamma[1:edge_count] = [
+            -(q * q)
+            * delta**edge_count
+            * Fraction(math.comb(edge_count - 2, index - 1), 2 ** (edge_count - 1))
+            for index in range(1, edge_count)
+        ]
+        deconvolution = [Fraction(0) for _ in range(edge_count + 1)]
+        deconvolution[0] = -gamma[1] / 2
+        deconvolution[-1] = gamma[-2] / 2
+        deconvolution[1:-1] = [
+            (gamma[index - 1] - gamma[index + 1]) / 4 for index in range(1, edge_count)
+        ]
+        static_data = [left - right for left, right in zip(entry_b, deconvolution, strict=True)]
+        signed_mass = sum(
+            degree * value for degree, value in zip(degrees, static_data, strict=True)
+        )
+        p_scaled = [value / q**2 for value in frontier_values]
+        signed_formula = q**3 * (
+            -(delta**edge_count) * q**2 * (5 - q) / (5 * (1 + q * q))
+            + eta
+            / (1 + q)
+            * sum(
+                q * delta ** (edge_count - index) * p_scaled[index - 1]
+                for index in range(1, edge_count + 1)
+            )
+        )
+        assert signed_mass == signed_formula
+
+    # Check the endpoint half-stencil and the finite alternating-tail correction
+    # independently of the still-open comparison d >= h.
+    for edge_count in (8, 9):
+        beta = Fraction(-1)
+        tail = [Fraction(0) for _ in range(edge_count + 1)]
+        for distance in range(edge_count + 1):
+            tail[edge_count - distance] = (
+                beta if distance == 0 else -beta * Fraction(-1, 2) ** (distance - 1) / 4
+            )
+        path_l_tail = [
+            (tail[0] + tail[1]) / 2,
+            *[
+                (tail[index - 1] + 2 * tail[index] + tail[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (tail[-2] + tail[-1]) / 2,
+        ]
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        negative_mass = sum(
+            degree * max(Fraction(0), -value)
+            for degree, value in zip(degrees, path_l_tail, strict=True)
+        )
+        assert negative_mass <= -beta * (Fraction(17, 24) + Fraction(1, 48 * 2 ** (edge_count - 2)))
+
+    print(
+        "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
+        "geometric_tail_ledger:pass local_half_ratios=open"
+    )
+
+
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
     """Apply D^(-1/2) Q D^(1/2) in normalized path coordinates."""
     a = (1.0 + q * q) / 2.0
@@ -1505,6 +1649,14 @@ def screen(edge_count: int, max_qk: float) -> None:
     static_remainder = (static_data - h_apply(static_data, degrees, q)) / (1.0 - q * q)
     assert np.max(np.abs(static_remainder - directed_remainder)) <= 1.0e-7 * q**3
     static_positive_mass = float(np.dot(degrees, np.maximum(static_data, 0.0)))
+    static_signed_mass = float(np.dot(degrees, static_remainder))
+    static_beta = float(static_data[-1] / q**3)
+    static_tail = np.zeros(edge_count + 1)
+    for distance in range(edge_count + 1):
+        static_tail[edge_count - distance] = (
+            static_beta if distance == 0 else -static_beta * (-0.5) ** (distance - 1) / 4.0
+        )
+    static_tail_margin = float(np.min(static_data[:-1] / q**3 - static_tail[:-1]))
     print(
         f"m={edge_count:5d} q={q:.9g} alpha={q * q:.9g} "
         f"rho=tau={q / 5.0:.9g} graph=P_m seed=v0 "
@@ -1542,6 +1694,9 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"{velocity_source.max() / q**3:.6g}] "
         f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g} "
         f"directed_uplus_L1D/q3={directed_positive_mass / q**3:.6g} "
+        f"directed_signed_mass/q3={static_signed_mass / q**3:.6g} "
+        f"static_beta={static_beta:.6g} "
+        f"tail_dominance_nonendpoint_margin={static_tail_margin:.6g} "
         f"static_dplus_L1D/q3={static_positive_mass / q**3:.6g} "
         f"entry_c_max/q3={packet_error.max() / q**3:.6g}"
     )
@@ -1585,6 +1740,7 @@ def main() -> None:
     exact_directional_packet_checks()
     position_profile_asymptotic_checks()
     velocity_profile_asymptotic_checks()
+    exact_static_tail_reduction_checks()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")
