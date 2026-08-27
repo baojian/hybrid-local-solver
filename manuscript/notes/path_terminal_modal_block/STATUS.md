@@ -4,7 +4,7 @@ Last reviewed: 2026-08-28
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-static-inequality`
+Branch: `agent/codex/path-terminal-regime-nonlinear`
 Base commit: `71bf22f`
 
 ## Exact question and contract
@@ -88,10 +88,13 @@ Base commit: `71bf22f`
   then proves the desired `21q^3/80` positive-mass bound conditional only on
   `d>=h`, including the finite seed-endpoint correction. A local sufficient
   interface is explicit: `E_1>=0`, `F_2>=E_1/2`, and
-  `F_r>=F_(r-1)/2`.
-- **Conditional:** If the actual entry position/velocity profiles satisfy the
-  two displayed absolute bounds on a band of even modes and projection plus
-  envelope subtraction remain inactive through the stated horizon, then every
+  `F_r>=F_(r-1)/2`. Both entry profiles are proved uniformly on the required
+  growing modal band. The first full-face average residual is strictly
+  negative. Conditional on the static `21/80` target, the exact position
+  lower bound dominates the global envelope for `qk>=17/200`; the earlier
+  nonlinear range is reduced exactly to scaled residual half-retention.
+- **Conditional:** If projection plus envelope subtraction remain inactive
+  through the stated horizon, then every
   sufficiently large member requires at least
   `(1/8) q^-1 log(1/q)` terminal steps. The profile bounds rigorously imply
   the former combined `1/64` quadrature target.
@@ -115,12 +118,11 @@ Base commit: `71bf22f`
   misses `21q^3/80`. The new endpoint-tail comparison is coordinatewise on
   the `m=64` floating screen (with equality at the defining endpoint), but
   this is evidence only. These are finite measurements and assert no limit.
-- **Open:** Prove the two entry profile inequalities by uniform signed bounds
-  for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
-  endpoint pieces. For the static inequality, prove the displayed local
-  endpoint half-ratios (or otherwise prove `d>=h`); then prove its early
-  `J_kL` convolution counterpart and the projection/unclipped-envelope
-  invariant in exact arithmetic.
+- **Open:** For the static inequality, prove the displayed local endpoint
+  half-ratios (or otherwise prove `d>=h`). Then prove the exact early
+  half-retention convolution through `qk<17/200`. These two signed spatial
+  estimates are the remaining interfaces to the projection/unclipped-envelope
+  invariant.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
@@ -133,22 +135,16 @@ Base commit: `71bf22f`
 
 ## Central blocker
 
-1. **Entry profile lemma:** For
-   `H_m=floor(sqrt(m/(64 log(16m))))`, prove
-   `m*|C_(2s)-G_(2s)|/alpha <= 1/256` and
-   `m*|V_(2s)+G_(2s)/5|/alpha <= 1/4` for all `1<=s<=H_m`.
-   The exact velocity identity then gives the previous combined `1/64`
-   quadrature inequality. The source identity is proved; the remaining
-   concrete subproblem is a uniform signed Green-kernel estimate for its
-   five-piece decomposition.
-2. **Conditional-regime lemma:** Through
+1. **Conditional-regime lemma:** Through
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
    and every safe subtraction is strictly unclipped. The positive-residual
    part is now reduced to proving a uniform static bound on
    `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
    proved, so the static bound now needs only the explicit local half-ratios
-   for `d-h`. A separate early/late position lower bound must exploit the
-   exact first-step margin, which is only order `q^2`.
+   for `d-h`. The first average residual is already strictly negative and the
+   late position comparison is proved for `qk>=17/200`; the remaining early
+   window is exactly the signed linear-candidate half-retention inequality
+   `X_k^lin-X_(k-1)^lin/2>=0`.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
@@ -169,28 +165,26 @@ constants is permitted only with a corresponding proof.
   generating function with sharp shared-coordinate `1/80` margin, the
   finite-`q` stopped-kernel perturbation preserving `179/14400` from prefix
   six onward, the directed two-wave ideal packet, the exact entry-correction
-  sign, and the no-loss folded `J_k` alias bound,
-  weighted Popoviciu bridge from centered energy to residual range, and a
+  sign, and the no-loss folded `J_k` alias bound, the two proved entry-profile
+  estimates, the negative first full-face average residual, the exact late
+  position/envelope comparison, the early half-retention kernel reduction,
+  the weighted Popoviciu bridge from centered energy to residual range, and a
   deterministic screen that retains the literal global correction and
   transported-center semantics.
 
 ## Resume here
 
-- **Exact pointer:** `main.tex`, Lemmas `lem:terminal-modal-packet` and
-  `lem:terminal-modal-regime` are the two missing statements; Theorem
-  `thm:terminal-modal-conditional-log` is ready to consume them.
-- **Next action:** Split the explicit changing-face transform into the homogeneous
-  packet/base discrepancy, the constant-`U` response, the total-variation
-  correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
-  endpoint term; bound their signed Green-kernel sums strongly
-  enough to prove the displayed `C` and `V` profiles. Separately,
-  prove `eq:terminal-modal-static-local-half-ratios`, which now implies the
+- **Exact pointer:** `main.tex`, Lemma `lem:terminal-modal-regime` is the sole
+  missing statement; Theorem `thm:terminal-modal-conditional-log` is ready to
+  consume it.
+- **Next action:** Prove `eq:terminal-modal-static-local-half-ratios`, which
+  implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
-  kernel for the early signed convolution, and combine these bounds with an
-  early/late lower bound for the literal position candidate.
-- **Stop/go test:** Promote the logarithmic block only after both missing
-  lemmas are proved uniformly in `m`; a larger floating screen is evidence but
+  kernel to prove the early half-retention target through `qk<17/200`. The
+  proved late comparison then closes the rest of the horizon.
+- **Stop/go test:** Promote the logarithmic block only after the missing
+  regime lemma is proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
 
 ## Verification
@@ -215,7 +209,10 @@ constants is permitted only with a corresponding proof.
   deconvolution at `m=8,12`. A sixth exact preflight checks the rational
   `3/50` signed-mass ledger, the `57/200` endpoint ledger, the finite
   alternating-tail stencil, and the exact signed-mass formula at `m=8,12`;
-  it labels the uniform local half-ratios open. The floating screen
+  it labels the uniform local half-ratios open. A separate exact regime
+  preflight checks the `N=m+1` old-row replay, the actual degree-one endpoint,
+  the margins `1429/115200` and `-46683733/78684160`, and the late scalar
+  slack `3188243/640000000`; it labels early half-retention open. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -224,7 +221,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 32-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 42-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

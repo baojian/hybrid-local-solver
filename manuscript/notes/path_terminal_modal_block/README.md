@@ -24,9 +24,9 @@ coefficientwise and has sharp uniform shared-coordinate half-difference margin
 to the `q=0` recurrence. A stopped-binomial-kernel bound, total-variation
 control of the derivative source, a sharp mass bound, and the exact initial
 response preserve margin `179/14400` from prefix six onward; a separate
-analytic perturbation handles prefixes two through five. The remaining
-entry-profile problem also contains the final
-degree-one endpoint term.
+analytic perturbation handles prefixes two through five. Uniform signed
+source estimates, including the final degree-one endpoint term, prove both
+entry profiles on the required growing modal band.
 It also gives exact nonnegative position/velocity propagators.  A directed
 half-endpoint split of the ideal packet now retains the literal outward entry
 momentum: the two directed binomial waves remain nonpositive for all time.
@@ -37,20 +37,23 @@ degree-weighted positive mass of one static directed-velocity remainder; the
 damping makes the apparent factor-`k` and repeated-reflection losses uniformly
 bounded. The remainder is further deconvolved exactly as `u=Ld`, with `d`
 given directly by the final proper-prefix state and a lower binomial packet;
-the early `J_kL` kernel is an explicit binomial window. It then proves a conditional
-anti-cancellation theorem: two quantified entry
-position/velocity profile bounds plus projection/envelope regime preservation
-would force `Omega(q^-1 log(1/q))` terminal steps for the named
+the early `J_kL` kernel is an explicit binomial window. It then proves a
+conditional anti-cancellation theorem: the proved entry profiles plus
+projection/envelope regime preservation would force
+`Omega(q^-1 log(1/q))` terminal steps for the named
 transported-center execution.
 
-The two entry profiles and the terminal projection/envelope regime are not
-proved. On the regime side, the signed static mass is now bounded by
+The terminal projection/envelope regime is not proved. On the regime side,
+the signed static mass is now bounded by
 `3q^3/50`, while the endpoint coefficient lies in `(-57/200,0)`. An exact
 geometric endpoint comparator reduces the full `21q^3/80` static target to
 coordinatewise tail dominance `d>=h`, and a concrete local sufficient route
 is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
-`F_r>=F_(r-1)/2`. Those local inequalities remain open, as do the early
-convolution analogue and an early/late lower position margin. A
+`F_r>=F_(r-1)/2`. Those local inequalities remain open, as does the early
+half-retention convolution. The first full-face average residual is proved
+strictly negative, and a rational position/envelope comparison closes the
+late range `qk>=17/200`; only the intervening early signed convolution remains
+on the nonlinear side. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
@@ -67,9 +70,9 @@ preflight checks the finite-`q` source constants, stopped derivative-prefix
 bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
 exact preflight checks the directed packet identity, the folded `J_k` alias
 bound, the `J_kL` binomial-window identity, the entry-correction sign, and the
-static `u=Ld` reduction at `m=8,12`. The remaining
-entry-profile problem is a sharp signed summation of the source traces, not
-their support calculation. Numerical observations are labeled
+static `u=Ld` reduction at `m=8,12`. A separate exact preflight checks the
+full-entry and late-regime rational margins while explicitly labeling the
+early half-retention inequality open. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
 

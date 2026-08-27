@@ -955,6 +955,8 @@ def exact_directional_packet_checks() -> None:
         "J_alias:pass JL_kernel:pass exact_entry_c_sign=m=8,12 "
         "static_u=Ld:pass"
     )
+
+
 def position_profile_asymptotic_checks() -> None:
     """Audit exact constants and the finite constant-U Chebyshev formula."""
     t_lower = Fraction(2711, 3072)
