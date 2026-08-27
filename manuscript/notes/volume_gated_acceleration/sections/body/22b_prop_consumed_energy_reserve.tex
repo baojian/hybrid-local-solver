@@ -1,0 +1,949 @@
+\subsection{Consumed transported energy is a causal reserve with a sharp
+quartic graph-uniform coefficient}
+\label{sec:consumed-energy-reserve}
+
+The all-history STOP in
+\cref{prop:three-admission-all-history-stop} leaves one particularly narrow
+repair: retain the transported energy already consumed by fixed-face steps.
+This reserve is not an arbitrary initial endowment.  It starts from zero,
+increases only after an executed contraction, and is unchanged by an exact
+transported admission.
+
+Work in the normalized coordinates of
+\cref{prop:three-admission-all-history-stop}.  Thus
+$H_U=D_U^{-1/2}Q_{UU}D_U^{1/2}$, $B_U:=D_UH_U$ is symmetric positive
+definite, and
+\begin{equation*}
+ \Phi_U(z):=\frac12z^\top B_Uz-h_U^\top D_Uz.
+\end{equation*}
+When the restricted optimum $z_U^\star$ is interior, define the normalized
+form of \cref{eq:transported-energy} by
+\begin{equation}
+ E_U(z,v):=\Phi_U(z)-\Phi_U(z_U^\star)
+       +\frac{q^2}{2}\norm{v-z_U^\star}_{D_U}^2.
+ \label{eq:consumed-reserve-energy}
+\end{equation}
+At a checkpoint $k$, let $E_k$ be this energy, let
+\begin{equation*}
+ D_k:=\sum_{j\leq k:\,j\ \mathrm{admitted}}\Delta_j
+\end{equation*}
+contain only already realized Schur drops, and put
+\begin{equation}
+ R_k:=E_0+D_k-E_k,
+ \qquad
+ \mathcal B_k(\lambda):=D_k-\Xi_k+\lambda R_k,
+ \qquad \Xi_k:=\delta_k^2.
+ \label{eq:consumed-reserve-ledger}
+\end{equation}
+
+\begin{proposition}[Exact consumed-energy identities and structural solvency]
+\label{prop:consumed-energy-structural-solvency}
+Consider the exact transported-center recurrence on nested faces whose
+restricted optima are interior, started at the actual zero initialization so
+that $\Xi_0=0$.  Then $R_0=0$, and:
+\begin{enumerate}
+ \item across a fixed-face step from energy $E$ to $E^+$,
+ \begin{equation}
+  R^+-R=E-E^+\geq qE\geq0;
+  \label{eq:consumed-reserve-fixed-step}
+ \end{equation}
+ \item across an exact frozen-candidate admission with Schur drop $\Delta$,
+ \begin{equation}
+  E^+=E+\Delta,\qquad D^+=D+\Delta,\qquad R^+=R;
+  \label{eq:consumed-reserve-admission}
+ \end{equation}
+ \item if that admission contains exactly the rows selected by the named
+ complete violating-boundary gate, then
+ \begin{equation}
+  \Xi_{k^+}=\Xi_{k^-},
+  \qquad
+  \mathcal B_{k^+}(\lambda)-\mathcal B_{k^-}(\lambda)=\Delta_k.
+  \label{eq:consumed-reserve-admission-score}
+ \end{equation}
+ \item on any finite trace, provided no checkpoint has $R_k=0$ and
+ $\Xi_k>D_k$, the least nonnegative coefficient making every reviewed
+ checkpoint solvent is exactly
+ \begin{equation}
+  \lambda_\star
+  =\max_{k:R_k>0}\frac{[\Xi_k-D_k]_+}{R_k}.
+  \label{eq:consumed-reserve-minimum-coefficient}
+ \end{equation}
+\end{enumerate}
+
+The following are sufficient at every initial, post-step, and
+post-admission checkpoint:
+\begin{align}
+ \lambda_{\rm en}(q)
+ &:=\frac{(1+q^2)(1-q)}{q^5},
+ \label{eq:consumed-reserve-universal-coefficient}\\
+ \lambda_{\rm low}(q)
+ &:=\frac{2c_{\rm low}(1-q)}{q^3},
+ \label{eq:consumed-reserve-low-frequency-coefficient}
+\end{align}
+where the second coefficient replaces the first if every post-step residual
+$r_k=H_{U_k}z_k-h_{U_k}$ obeys the structural low-frequency condition
+\begin{equation}
+ \norm{r_k}_{D_{U_k}}^2
+ \leq 2c_{\rm low}q^2
+ \bigl(\Phi_{U_k}(z_k)-\Phi_{U_k}(z_{U_k}^\star)\bigr).
+ \label{eq:consumed-reserve-low-frequency-condition}
+\end{equation}
+That is, either declared coefficient makes
+$\mathcal B_k(\lambda)\geq0$ causally, without future score recovery.
+\end{proposition}
+
+\begin{proof}
+The fixed-face estimate-center contraction gives
+$E^+\leq(1-q)E$; substituting in
+\cref{eq:consumed-reserve-ledger} proves
+\cref{eq:consumed-reserve-fixed-step}.  The transported-center identity
+\cref{eq:transported-center-identity} and the realized-credit update give
+\cref{eq:consumed-reserve-admission}.  Hence $R_k$ is exactly the sum of
+energy drops on already executed fixed-face steps.  Its nonnegativity and
+\cref{eq:consumed-reserve-minimum-coefficient} follow immediately.
+
+It remains to check the score across admission.  Let $\ell\leq z$ be the safe
+envelope at the frozen candidate.  For every admitted boundary row $j$, the
+complete gate and the nonpositive off-diagonal entries of $H$ give
+\begin{equation*}
+ r_j(z)\leq r_j(\ell)<-q^2\tau<0.
+\end{equation*}
+After zero-padding $z$, every old active residual row is unchanged because the
+old principal block is unchanged and every new coordinate is zero.  Every new
+active row equals the just displayed frozen-candidate boundary residual and is
+strictly negative.  The positive residual maximum, hence $\delta$ and $\Xi$,
+is therefore unchanged.  Together with
+\cref{eq:consumed-reserve-admission}, this proves
+\cref{eq:consumed-reserve-admission-score}.  If an implementation adds
+nonviolating closure vertices to the same batch, their frozen-candidate
+residuals must be checked separately; the named complete gate adds none.
+
+For the sufficient coefficients, let $e=z-z_U^\star$ and
+$P:=\Phi_U(z)-\Phi_U(z_U^\star)=e^\top B_Ue/2$.  Interiority gives
+$r=H_Ue$.  Cauchy--Schwarz in the $B_U$ inner product and
+$(B_U)_{ii}=d_i(1+q^2)/2$ imply
+\begin{equation*}
+ r_i^2=\frac{(e_i^\top B_Ue)^2}{d_i^2}
+ \leq\frac{(1+q^2)P}{d_i}
+ \leq(1+q^2)P.
+\end{equation*}
+Consequently $\Xi\leq(1+q^2)E/q^4$.  At a post-step checkpoint,
+\cref{eq:consumed-reserve-fixed-step} also gives
+$E^+\leq(1-q)R^+/q$.  Therefore
+$\Xi^+\leq\lambda_{\rm en}(q)R^+$, which is stronger than
+$D^+-\Xi^++\lambda_{\rm en}R^+\geq0$.
+
+Under \cref{eq:consumed-reserve-low-frequency-condition}, instead use
+$\max_i r_i^2\leq\norm r_D^2$ to obtain
+$\Xi\leq2c_{\rm low}P/q^2\leq2c_{\rm low}E/q^2$ and then
+\cref{eq:consumed-reserve-low-frequency-coefficient}.  Finally,
+\cref{eq:consumed-reserve-admission-score} preserves the bound across every
+named admission.
+\end{proof}
+
+\begin{proposition}[Quartic reserve GO, support-aware repair, and projected
+STOP]
+\label{prop:consumed-reserve-quartic-projection}
+Retain the fixed $\rho$ and load, the actual zero initialization
+$\Xi_0=0$, frozen zero-padding of the primal candidate at admission, and exact
+transport by the new restricted optimum displacement.  All visited restricted
+optima are interior; the proof below shows that the complete genuinely
+violating gate preserves this property inductively.
+
+On an interior fixed face, suppose first that the nonnegativity projection in
+\cref{eq:center-prox-step} is inactive.  Then the original all-coordinate
+score satisfies
+\begin{equation}
+ \Xi^+\leq \frac{2}{q^4}(E-E^+)
+          \leq \frac{2}{q^4}R^+.
+ \label{eq:inactive-projection-quartic-reserve}
+\end{equation}
+Consequently coefficient
+\begin{equation}
+ \lambda_{\rm inact}(q):=\frac{2}{q^4}
+ \label{eq:inactive-projection-quartic-coefficient}
+\end{equation}
+makes the original ledger solvent on every trace with inactive projection at
+each fixed-face step.  The named complete gate carries this bound across
+admissions by exact score equality.
+
+There is also a safe modification that removes the inactivity condition.  For
+a nonnegative projected candidate $z$ in normalized coordinates, put
+\begin{equation}
+ S(z):=\{i:z_i>0\},\qquad
+ \delta_{\rm supp}(z)
+ :=\frac1{q^2}\left[\max_{i\in S(z)}r_i(z)\right]_+,
+ \qquad
+ \ell_{\rm supp}:=[z-\delta_{\rm supp}\one]_+,
+ \label{eq:support-aware-envelope}
+\end{equation}
+where the maximum over the empty set is zero, and let
+$\Xi_{\rm supp}:=\delta_{\rm supp}^2$.  Then
+$0\leq\ell_{\rm supp}\leq z_U^\star$.  For the corresponding complete gate,
+whose chronology may differ from that of the original envelope,
+\begin{equation}
+ \Xi_{\rm supp}^+
+ \leq\frac{1-q^2}{q^4}(E-E^+)
+ \leq\frac{1-q^2}{q^4}R^+
+ \label{eq:support-aware-quartic-reserve}
+\end{equation}
+holds for arbitrary projected fixed-face steps, and the support-aware score is
+unchanged by exact frozen-candidate admissions.  Thus
+\begin{equation}
+ \lambda_{\rm supp}(q):=\frac{1-q^2}{q^4}<\frac1{q^4}
+ \label{eq:support-aware-quartic-coefficient}
+\end{equation}
+is a projection-unconditional sufficient reserve coefficient for this
+modified score and gate under the declared interior/exact assumptions, still
+only as a scalar solvency statement.
+
+The inactivity qualifier for the \emph{original} score is necessary for the
+displayed decrement proof.  There is an exact projection-active full-face
+RPPR state at $q=1/100$ for which
+\begin{equation}
+ \left[\max_i r_i(z^+)\right]_+^2>2(E-E^+),
+ \label{eq:original-score-projected-stop}
+\end{equation}
+although the standard estimate-center contraction remains strict.  This
+state is not asserted to be reached from the zero initialization.
+\end{proposition}
+
+\begin{proof}
+For the inactive step, diagonalize $H_U$ in the $D_U$ inner product.  In one
+eigenmode $\lambda\in[q^2,1]$, write $e=z-z_U^\star$,
+$w=v-z_U^\star$, and
+\begin{equation*}
+ y=\frac{e+qw}{1+q},\qquad
+ e^+=(1-\lambda)y,\qquad
+ qw^+=e^+-(1-q)e,qquad
+ E_\lambda=\frac{\lambda e^2+q^2w^2}{2}.
+\end{equation*}
+The post-step residual in this mode is $\lambda(1-\lambda)y$.  Direct
+expansion gives
+\begin{align*}
+ F&:=2(E_\lambda-E_\lambda^+)
+       -[\lambda(1-\lambda)y]^2\\
+  &=Ae^2+2Bey+Cy^2,
+\end{align*}
+where
+\begin{align*}
+ A&=\lambda-q^2+2q>0,\\
+ B&=\lambda q-\lambda-2q,\\
+ C&=-\lambda^4+\lambda^3+\lambda+q^2+2q.
+\end{align*}
+The determinant of this quadratic form is
+\begin{align*}
+ d(q,\lambda)
+ &=-\lambda^5+\lambda^4q^2-2\lambda^4q+\lambda^4
+   -\lambda^3q^2+2\lambda^3q\\
+ &\quad-\lambda^2q^2+2\lambda^2q+4\lambda q^2-q^4.
+\end{align*}
+Put $\lambda=q^2+(1-q^2)t$ and
+$B_i^m(u):=\binom miu^i(1-u)^{m-i}$.  The exact tensor Bernstein expansion
+\begin{equation*}
+ d\bigl(q,q^2+(1-q^2)t\bigr)
+ =\sum_{i=0}^{10}\sum_{j=0}^{5}c_{ij}B_i^{10}(q)B_j^5(t)
+\end{equation*}
+has the following nonnegative coefficient matrix; rows are $j=0,\ldots,5$,
+columns are $i=0,\ldots,10$, and the displayed entries are $12600c_{ij}$:
+\begin{equation*}
+\left(
+\begin{array}{rrrrrrrrrrr}
+0&0&0&0&180&1000&3240&8190&18200&35280&50400\\
+0&0&224&756&1788&3740&7356&13692&23800&37296&50400\\
+0&252&924&2205&4350&7710&12708&19698&28728&39312&50400\\
+0&1008&2688&5208&8700&13240&18840&25452&32984&41328&50400\\
+2520&4536&7168&10458&14424&19060&24336&30198&36568&43344&50400\\
+0&2520&5880&10080&15060&20700&26820&33180&39480&45360&50400
+\end{array}
+\right).
+\end{equation*}
+Thus $d\geq0$, the quadratic form is positive semidefinite, and summing modes
+proves
+\begin{equation}
+ \norm{r^+}_{D_U}^2\leq2(E-E^+).
+ \label{eq:inactive-mode-residual-decrement}
+\end{equation}
+Since every graph degree is at least one,
+$q^4\Xi^+\leq\norm{r^+}_{D_U}^2$.  The newest energy drop is one summand of
+$R^+$, which proves
+\cref{eq:inactive-projection-quartic-reserve}.
+
+We next prove safety of the support-aware envelope.  We use the elementary
+Stieltjes subsolution fact
+\begin{equation}
+ \bar\ell\geq0,\qquad (Q_{UU}\bar\ell-c_U)_i\leq0
+ \quad\hbox{whenever }\bar\ell_i>0
+ \quad\Longrightarrow\quad \bar\ell\leq x_U^\star.
+ \label{eq:stieltjes-support-subsolution}
+\end{equation}
+Indeed, if $I:=\{i:\bar\ell_i>x_{U,i}^\star\}$ were nonempty, then on $I$ the
+KKT inequalities and the nonpositive off-diagonal block give
+$Q_{II}(\bar\ell-x_U^\star)_I\leq0$.  Since $Q_{II}^{-1}\geq0$, this
+contradicts $(\bar\ell-x_U^\star)_I>0$.
+
+Return to unnormalized coordinates, put $x:=D_U^{1/2}z$ and
+$\bar\ell:=D_U^{1/2}\ell_{\rm supp}$, and set $h:=x-\bar\ell$.  Then
+$0\leq h\leq\delta_{\rm supp}D_U^{1/2}\one$, with equality in coordinate
+$i$ whenever $\bar\ell_i>0$.  The off-diagonal signs and
+$Q_{UU}D_U^{1/2}\one\geq q^2D_U^{1/2}\one$ imply on that support
+\begin{equation*}
+ (Q_{UU}h)_i
+ \geq q^2\delta_{\rm supp}\sqrt{d_i}
+ \geq(Q_{UU}x-c_U)_i.
+\end{equation*}
+Thus $Q_{UU}\bar\ell-c_U\leq0$ on the positive support, and
+\cref{eq:stieltjes-support-subsolution} gives $\bar\ell\leq x_U^\star$, or
+equivalently $\ell_{\rm supp}\leq z_U^\star$.
+
+It remains to prove the projected decrement.  Let $p=z^+$ and $g=y-p$ in
+normalized coordinates.  Exact quadratic Taylor expansion and projection
+optimality strengthen the three-point inequality used in
+\cref{lem:fixed-face-estimate-center} to
+\begin{align}
+ \Phi_U(p)-\Phi_U(a)
+ &\leq \langle g,y-a\rangle_{D_U}
+ -\frac12\norm{g}_{D_U}^2
+ -\frac12\norm{g}_{D_U(I-H_U)}^2
+ -\frac12\norm{y-a}_{B_U}^2
+ \label{eq:projected-prox-exact-slack}
+\end{align}
+for every $a\geq0$.  Convex-combining this inequality at $a=z$ and
+$a=z_U^\star$ and repeating the estimate-center cancellation gives
+\begin{equation}
+ E^+\leq(1-q)E-\frac12\norm{g}_{D_U(I-H_U)}^2.
+ \label{eq:projected-energy-extra-slack}
+\end{equation}
+On each coordinate with $p_i>0$, projection optimality is an equality, so
+\begin{equation*}
+ r_i(p)=\bigl[(I-H_U)g\bigr]_i.
+\end{equation*}
+Put $M:=I-H_U$.  It is positive semidefinite in the $D_U$ inner product and
+$M_{ii}=(1-q^2)/2$.  Coordinate Cauchy--Schwarz in this quadratic form gives
+\begin{align*}
+ [(Mg)_i]_+^2
+ &\leq\frac{M_{ii}}{d_i}\norm{g}_{D_UM}^2
+ \leq\frac{1-q^2}{2}\norm{g}_{D_UM}^2,\\
+ q^4\Xi_{\rm supp}^+
+ &\leq(1-q^2)(E-E^+),
+\end{align*}
+where the last line uses \cref{eq:projected-energy-extra-slack}.
+This proves \cref{eq:support-aware-quartic-reserve}.  Under zero-padding,
+the old positive support and all its residual rows are unchanged, while every
+newly admitted coordinate is zero.  Hence the support-aware score is exactly
+unchanged at admission.  Notice that its larger safe envelope can alter which
+boundary rows the complete gate admits or when it certifies; this proposition
+does not identify its trajectory with the original one.
+
+For completeness, interiority is preserved by the named admissions.  The
+padded old optimum has zero residual on its positive old support and strictly
+negative residual on every genuinely violating new row.  Applying
+\cref{eq:stieltjes-support-subsolution} first shows that the enlarged optimum
+dominates the padded old optimum, so all old coordinates remain positive.  If
+an admitted new coordinate were zero at the enlarged optimum, the
+nonpositive off-diagonal signs and this domination would leave its KKT
+residual strictly negative, a contradiction.  Thus every new coordinate is
+positive as well.
+
+For the exact STOP, take the three-vertex star with edges
+$\{(0,1),(0,2)\}$, degrees $(2,1,1)$,
+\begin{equation*}
+ q=\frac1{100},\quad \alpha=\frac1{10000},\quad
+ \rho=\frac{269947}{1080080},\quad
+ s=\left(\frac1{27002},\frac{1010067}{1080080},
+          \frac{69973}{1080080}\right).
+\end{equation*}
+For the normalized load $h_i=\alpha(s_i/d_i-\rho)$, the positive full-face
+optimum and one nonnegative state are
+\begin{align*}
+ z^\star&=\left(\frac1{23480},\frac{97}{540040},
+                  \frac3{540040}\right),\\
+ z&=\left(\frac1{270020},\frac{29}{270020},0\right),\\
+ v&=\left(\frac{31}{54004},\frac{737}{540040},
+           \frac8{67505}\right).
+\end{align*}
+The unprojected and projected candidates are respectively
+\begin{align*}
+ z^{\rm raw}
+ &=\left(\frac{1717}{172812800},
+          \frac{1437773}{10800800000},
+          -\frac{35787}{2700200000}\right),\\
+ z^+
+ &=\left(\frac{1717}{172812800},
+          \frac{1437773}{10800800000},0\right),
+\end{align*}
+and exact substitution gives
+\begin{align*}
+ r(z^+)&=\left(-\frac{31146687}{9392000000000},
+ -\frac{2992499829}{432032000000000},
+ \frac{46823397}{3456256000000}\right),\\
+ E&=\frac{3820147}{5832864032000000},\qquad
+ E^+=\frac{5396449315539933}{9332582451200000000000000},\\
+ \left[\max_i r_i(z^+)\right]_+^2-2(E-E^+)
+ &=\frac{9000466060045937}{298642638438400000000000000}>0,\\
+ (1-q)E-E^+
+ &=\frac{654663532460067}{9332582451200000000000000}>0.
+\end{align*}
+The offending positive residual is exactly at the coordinate clipped to
+zero, so $\delta_{\rm supp}=0$ here.  This is an algebraic STOP to extending
+\cref{eq:inactive-mode-residual-decrement} to the original all-coordinate
+score under arbitrary projection, not a zero-start reachability result.
+\end{proof}
+
+\begin{proposition}[Projection-normal identity and a quartic original-score
+criterion]
+\label{prop:original-score-normal-anchor}
+Retain the original all-coordinate score and complete gate, together with the
+interior restricted optima, exact transported admissions, fixed load, and
+zero initialization of
+\cref{prop:consumed-energy-structural-solvency}.  On a fixed-face step put
+\begin{equation}
+ p:=\Pi_{\R_+^U}\bigl(y-r(y)\bigr),\qquad
+ g:=y-p,\qquad n:=r(y)-g,\qquad M:=I-H_U,
+ \label{eq:projection-normal-definition}
+\end{equation}
+and define the positive anchor
+\begin{equation*}
+ b:=(1-q)z+qz_U^\star>0.
+\end{equation*}
+Then $n\geq0$, $n_ip_i=0$, and, for every $a\geq0$,
+\begin{align}
+ \Phi_U(p)-\Phi_U(a)
+ &=\langle g,y-a\rangle_{D_U}
+   -\frac12\norm{g}_{D_U}^2
+   -\frac12\norm{g}_{D_UM}^2
+   -\frac12\norm{y-a}_{B_U}^2
+   -\langle n,a\rangle_{D_U}.
+ \label{eq:projection-normal-three-point}
+\end{align}
+Consequently
+\begin{align}
+ E-E^+
+ &\geq\frac12\norm{g}_{D_UM}^2+\langle n,b\rangle_{D_U},
+ \label{eq:projection-normal-energy}\\
+ r(p)&=n+Mg.
+ \label{eq:projection-normal-residual}
+\end{align}
+
+Suppose a constant $C_{\rm n}\geq0$ satisfies the causal normal--anchor
+condition
+\begin{equation}
+ n_i\leq C_{\rm n}b_i
+ \quad\hbox{whenever}\quad p_i=0\ \hbox{and}\ r_i(p)>0
+ \label{eq:projection-normal-anchor}
+\end{equation}
+at every fixed-face step.  The stronger but simpler condition
+$n_i\leq C_{\rm n}qz_{U,i}^\star$ is sufficient.  Then
+\begin{equation}
+ \Xi^+
+ \leq\frac{C_{\rm n}+1-q^2}{q^4}(E-E^+)
+ \leq\frac{C_{\rm n}+1-q^2}{q^4}R^+,
+ \label{eq:projection-normal-quartic}
+\end{equation}
+and coefficient
+\begin{equation*}
+ \lambda_{\rm n}(q):=\frac{C_{\rm n}+1-q^2}{q^4}
+\end{equation*}
+makes the original-score ledger solvent causally.  Exact score equality
+carries the statement across named admissions.  In particular, inactive
+projection has $C_{\rm n}=0$ and improves the original-score coefficient in
+\cref{eq:inactive-projection-quartic-coefficient} to
+$(1-q^2)/q^4$.
+
+There is also an unconditional clipped-row dichotomy for the nonempty,
+interior point-seed RPPR instances with declared load $\rho=q/5$.  If
+$p_i=0$, then
+\begin{equation}
+ r_i(p)\leq
+ \begin{cases}
+  -q^2(1/d_s-\rho)<0,&i=s,\\
+  q^2\rho=q^3/5,&i\neq s.
+ \end{cases}
+ \label{eq:clipped-row-post-residual-bound}
+\end{equation}
+If in addition $y\geq0$, then $M\geq0$ entrywise,
+$n_i=-[My+h]_i\leq q^3/5$ on every clipped nonseed row, while the seed
+cannot clip.  These pointwise bounds do not by themselves lower-bound the
+already consumed reserve and therefore do not prove an unconditional
+quartic coefficient.
+\end{proposition}
+
+\begin{proof}
+Let $w:=y-r(y)$ be the raw candidate.  Coordinate projection gives
+$p=[w]_+$ and
+\[
+ n=r(y)-(y-p)=p-w=[-w]_+,
+\]
+so $n\geq0$ and $\langle n,p\rangle_{D_U}=0$.  Exact quadratic expansion
+about $y$, followed by $p-y=-g$ and
+$r(y)=g+n$, gives
+\begin{align*}
+ \Phi_U(p)-\Phi_U(a)
+ &=\langle r(y),p-a\rangle_{D_U}
+   +\frac12\norm{g}_{B_U}^2
+   -\frac12\norm{y-a}_{B_U}^2\\
+ &=\langle g,y-a\rangle_{D_U}
+   -\norm{g}_{D_U}^2
+   -\langle n,a\rangle_{D_U}
+   +\frac12\norm{g}_{B_U}^2
+   -\frac12\norm{y-a}_{B_U}^2,
+\end{align*}
+which is \cref{eq:projection-normal-three-point} because
+$B_U=D_UH_U$ and $M=I-H_U$.
+
+Convex-combine the identity at $a=z$ with weight $1-q$ and at
+$a=z_U^\star$ with weight $q$.  The estimate-center cancellation in
+\cref{lem:fixed-face-estimate-center} is unchanged, while the retained normal
+term is exactly $-\langle n,b\rangle_{D_U}$.  Dropping the other nonnegative
+slack and the term $qE$ proves
+\cref{eq:projection-normal-energy}.  Also,
+\[
+ r(p)=r(y)-H_Ug=g+n-H_Ug=n+Mg,
+\]
+which proves \cref{eq:projection-normal-residual}.
+
+Put
+\[
+ A:=\frac12\norm{g}_{D_UM}^2,\qquad
+ B:=\langle n,b\rangle_{D_U}.
+\]
+Coordinate Cauchy--Schwarz in the positive semidefinite $D_UM$ form gives
+\[
+ [(Mg)_i]^2
+ \leq\frac{M_{ii}}{d_i}\norm{g}_{D_UM}^2
+ \leq(1-q^2)A.
+\]
+If $p_i>0$, then $n_i=0$.  If $p_i=0$ and $r_i(p)>0$,
+\cref{eq:projection-normal-anchor} and $d_i\geq1$ give
+$n_i^2\leq C_{\rm n}n_ib_i\leq C_{\rm n}B$.  Thus in either case
+\begin{align*}
+ [r_i(p)]_+^2
+ &\leq
+ \left(\sqrt{C_{\rm n}B}
+       +\sqrt{(1-q^2)A}\right)^2\\
+ &\leq(C_{\rm n}+1-q^2)(A+B)
+ \leq(C_{\rm n}+1-q^2)(E-E^+).
+\end{align*}
+Maximizing over $i$, dividing by $q^4$, and using that the newest fixed-step
+drop is one summand of $R^+$ proves
+\cref{eq:projection-normal-quartic}.  Admission score equality then completes
+the ledger induction.
+
+Finally, if $p_i=0$, the nonpositive off-diagonal entries of $H_U$ and
+$p\geq0$ give $(H_Up)_i\leq0$.  In the nonempty, interior point-seed RPPR
+recurrence the seed load is $h_s=q^2(1/d_s-\rho)>0$: otherwise all loads
+would be nonpositive and zero would be the obstacle optimum.  Off the seed,
+$h_i=-q^2\rho$.  This proves
+\cref{eq:clipped-row-post-residual-bound}.  When $y\geq0$,
+$w=My+h$ and $M\geq0$ entrywise give the stated normal bound.
+\end{proof}
+
+In the exact projection-active algebraic state used in
+\cref{prop:consumed-reserve-quartic-projection}, the clipped coordinate has
+$z_i=0$ and therefore $b_i=qz_i^\star$.  Exact substitution gives
+\begin{equation}
+ \frac{n_i}{b_i}=\frac{11929}{50}=238.58.
+ \label{eq:projection-normal-algebraic-ratio}
+\end{equation}
+Thus the normal--anchor criterion is not an identity with a small universal
+constant on arbitrary algebraic states.  This remains separate from
+zero-start reachability.
+
+\paragraph{The critical endpoint-path projection search stops at the gate.}
+For the full endpoint-seeded path $P_m=(0,\ldots,m)$, let
+\[
+ \chi:=\frac{1-q}{1+q}.
+\]
+The exact full-face terminal optimum is
+\begin{equation}
+ z_m^\star
+ =q\left(\frac{2\chi^m}{1-\chi^{2m}}-\frac15\right).
+ \label{eq:critical-path-terminal-optimum}
+\end{equation}
+Thus choosing the largest integer $m$ with $z_m^\star>0$ tunes the terminal
+margin to the interior side of the RPPR support threshold.  Nevertheless,
+exact zero-start complete-gate replay gives
+\begin{equation*}
+\begin{array}{c|c|c|c}
+q& m+1&\hbox{active vertices at certification}&\hbox{certificate stage}\\
+\hline
+1/8&10&8&39\\
+1/12&14&12&106\\
+1/16&19&17&168.
+\end{array}
+\end{equation*}
+Every raw candidate in these three replays is strictly positive.  The gate
+therefore certifies two vertices before the tuned full face and never reaches
+the proposed tiny terminal coordinate or active projection.  This is exact
+finite falsification evidence for that construction, not a uniform
+all-$q$ path theorem.
+
+Every trajectory used by the two finite reserve audits lies in the inactive
+subclass.  The six-vertex witness has minimum candidate coordinate
+$122521790117/27766447109375>0$.  The exact atlas enumerator rejects a run as
+soon as any candidate coordinate is nonpositive, so completion of all $6780$
+rooted runs certifies inactivity at every enumerated step.  The small-$q$
+$K_{1,4}$ lower family is also inactive through its reviewed stages $1$--$3$
+for all sufficiently small $q$: its stage-$1$ candidate is
+$q^2(1-q/5)$, the two stage-$2$ coordinates have leading terms $2q^2$ and
+$q^2/4$, and all five stage-$3$ coordinates have leading term $q/8$.  Hence
+the original and support-aware scores, envelopes, and gate decisions coincide
+through this reviewed chronology.  In particular, the $q^{-3}$ lower bound
+below applies to the support-aware ledger as well as to the original one.
+
+The original-score coefficient in
+\cref{eq:consumed-reserve-universal-coefficient} remains the projected general
+bound and is deliberately coarse.  The exact inactive-projection theorem
+improves it by one power of $q$, while the support-aware modification gives
+an even smaller quartic coefficient for arbitrary projection at the price of
+changing the envelope and possibly the gate chronology.  A finite atlas suggests a small
+constant at one fixed $q$, but the following exact family shows that no
+constant or polylogarithmic coefficient is uniform as $q\downarrow0$.
+
+\begin{proposition}[Finite atlas GO and a small-$q$ star STOP]
+\label{prop:consumed-energy-star-stop}
+For the exact six-vertex execution in
+\cref{prop:three-admission-all-history-stop},
+\begin{align}
+ E_0&=\frac{3703}{5281250},\notag\\
+ R_7&=
+ \frac{5238790326812421787092421075496}
+ {5629419085753779695034027099609375},
+ \label{eq:three-admission-consumed-reserve}\\
+ \lambda_\star
+ &=\frac{1772625800261634289972166085525}
+ {136208548497122966464402947962896}
+ =0.0130140568989\ldots,
+ \label{eq:three-admission-reserve-minimum}
+\end{align}
+and the maximum in
+\cref{eq:consumed-reserve-minimum-coefficient} occurs at held stage $7$.
+Thus a unit reserve coefficient repairs that witness.
+
+At $q=1/5$, exact enumeration of every seed of every connected graph in the
+NetworkX graph atlas on two through seven vertices gives $6780$ rooted runs.
+The raw $D_k-\Xi_k$ account is negative in $2847$ runs.  The largest exact
+required coefficient is
+\begin{equation}
+ \lambda_{\rm atlas}
+ =\frac{2786829024075210327}{1036704485947225385}
+ =2.688161440267\ldots<3.
+ \label{eq:consumed-reserve-atlas-maximum}
+\end{equation}
+It is already attained at stage $4$ on the leaf-seeded star $K_{1,5}$, and
+\begin{equation*}
+ 3-\lambda_{\rm atlas}
+ =\frac{323284433766465828}{1036704485947225385}>0.
+\end{equation*}
+Hence coefficient $3$ repairs this finite atlas at $q=1/5$.
+
+In contrast, let $G=K_{1,4}$ have edges
+$\{(0,1),(1,2),(1,3),(1,4)\}$ and seed the leaf $0$.  Take
+$\alpha=q^2$ and $\rho=\tau=q/5$.  For every sufficiently small positive
+$q$, the actual zero-start recurrence admits the hub $1$ at stage $1$, admits
+the other three leaves simultaneously at stage $2$, and holds on the full
+face at stage $3$.  Put
+\begin{align*}
+ p(q)&:=9q^5-59q^4+72q^3-56q^2+23q-5,\\
+ p_D(q)&:=81q^{14}-1386q^{13}+9511q^{12}-35308q^{11}
+ +83213q^{10}-136886q^9\\
+ &\quad+165371q^8-156264q^7+110787q^6-63382q^5
+ +27077q^4-7852q^3\\
+ &\quad+1759q^2-330q+25,
+\end{align*}
+and
+\begin{align*}
+ A(q)&:=-351q^{21}+5886q^{20}-41832q^{19}+180450q^{18}
+ -575637q^{17}+1452888q^{16}\\
+ &\quad-2980028q^{15}+5080528q^{14}-7264518q^{13}
+ +8711380q^{12}-8729164q^{11}\\
+ &\quad+7379436q^{10}-5015994q^9+3155456q^8-1158068q^7
+ +834896q^6+11221q^5\\
+ &\quad+156238q^4+47652q^3+17298q^2+8415q+1800.
+\end{align*}
+At the held stage-$3$ checkpoint, exact substitution gives
+\begin{align}
+ \Xi_3
+ &=\frac{(1-q)^4p(q)^2}{6400(1+q^2)^2}
+ =\frac1{256}-\frac{33}{640}q+\frac{2109}{6400}q^2
+   -\frac{1059}{800}q^3+\bigO(q^4),
+ \label{eq:star-reserve-score}\\
+ D_3
+ &=\frac{q^2(73q^4+80q^3+14q^2-80q+25)}{400(1+q^2)}
+ =\frac{q^2}{16}-\frac{q^3}{5}-\frac{11q^4}{400}
+   +\bigO(q^5),
+ \label{eq:star-reserve-credit}\\
+ E_0
+ &=\frac{q^4(q-5)^2(3q^2+1)}{25(1+q^2)^2},
+ \label{eq:star-reserve-initial-energy}\\
+ R_3
+ &=\frac{q^3A(q)}
+ {1600(1+q^2)^2(q^2+3)^2(3q^2+1)^2}
+ =\frac{q^3}{8}+\frac{187q^4}{320}
+   +\frac{283q^5}{2400}+\bigO(q^6),
+ \label{eq:star-reserve-consumed-energy}\\
+ \Xi_3-D_3
+ &=\frac{p_D(q)}{6400(1+q^2)^2}
+ =\frac1{256}-\frac{33}{640}q+\frac{1709}{6400}q^2
+   -\frac{899}{800}q^3+\bigO(q^4).
+ \label{eq:star-reserve-debt}
+\end{align}
+Therefore every solvent coefficient for this trace satisfies
+\begin{align}
+ \lambda(q)&\geq\lambda_3(q)
+ :=\frac{(q^2+3)^2(3q^2+1)^2p_D(q)}{4q^3A(q)},
+ \label{eq:star-reserve-required-coefficient}\\
+ \lambda_3(q)
+ &=\frac1{32q^3}-\frac{143}{256q^2}
+   +\frac{144943}{30720q}+\bigO(1),
+ \qquad
+ \lim_{q\downarrow0}q^3\lambda_3(q)=\frac1{32}.
+ \label{eq:star-reserve-q-cubed-stop}
+\end{align}
+No constant or $\bigO(\log^{O(1)}(1/q))$ multiple of the consumed-energy
+reserve can consequently make the named ledger uniformly solvent.
+\end{proposition}
+
+\begin{proof}
+The six-vertex fractions follow by evaluating
+\cref{eq:consumed-reserve-ledger} along the exact trace; dividing the stage-$7$
+debt in \cref{eq:three-admission-stage-seven-stop} by $R_7$ gives
+\cref{eq:three-admission-reserve-minimum}.  Exact comparison with every other
+checkpoint proves its maximality.  The atlas statement repeats the same
+calculation with rational arithmetic for every listed root.  It is finite
+evidence, not an extrapolation beyond order seven or away from $q=1/5$.
+
+For the star chronology, the stage-$1$ seed candidate is
+$z_{1,0}=q^2(1-q/5)$.  The active residual divided by $q^2$ tends to
+$-1/2$, while the hub boundary residual divided by $q^2$ tends to $-1/8$;
+the divided gate threshold is $-q/5$.  Hence the hub is admitted.  At stage
+$2$, both active residuals divided by $q^2$ tend to $-1/8$, so the correction
+is zero, while each exterior leaf residual divided by $q^2$ tends to
+$-1/8$.  Hence all three leaves are admitted.  At stage $3$, every candidate
+coordinate divided by $q$ tends to $1/8$, and the active residual divided by
+$q^2$, in vertex order $(0,1,2,3,4)$, tends to
+\begin{equation*}
+ \left(\frac1{16},-\frac18,-\frac3{16},-\frac3{16},-\frac3{16}\right).
+\end{equation*}
+The seed is therefore the strict correction maximizer and
+$\delta_3\to1/16$.  The safe envelope clips to zero for sufficiently small
+$q$; at zero the seed row is strictly below the threshold, so the full-face
+gate holds rather than certifies.  All comparisons are strict in the limit,
+and continuity proves the claimed chronology on a punctured interval.
+
+Solving the seed, two-vertex, and full-star restricted systems and substituting
+the three fixed-face steps and two center transports gives
+\cref{eq:star-reserve-score,eq:star-reserve-credit,eq:star-reserve-initial-energy,eq:star-reserve-consumed-energy}.
+Subtracting gives \cref{eq:star-reserve-debt}.  Since
+$A(0)=1800$ and $p_D(0)=25$, division proves
+\cref{eq:star-reserve-required-coefficient,eq:star-reserve-q-cubed-stop}.
+\end{proof}
+
+\begin{proposition}[A reachable quartic lower family]
+\label{prop:consumed-energy-quartic-lower}
+Let $G$ be obtained from $K_{2,3}$ with hub side $\{2,4\}$ and middle side
+$\{1,3,5\}$ by attaching the seed leaf $0$ to hub $2$.  Equivalently,
+\begin{equation*}
+ E(G)=\{(0,2),(1,2),(1,4),(2,3),(2,5),(3,4),(4,5)\},
+\end{equation*}
+with degrees $(1,2,4,2,3,2)$.  Set
+$\alpha=q^2$ and $\rho=\tau=q/5$.  For all sufficiently small $q>0$, the
+actual zero-start transported-center recurrence admits vertex $2$ at stage
+$1$, admits $(1,3,5)$ simultaneously at stage $2$, and holds at stages $3$
+and $4$ on
+\begin{equation*}
+ U=(0,2,1,3,5).
+\end{equation*}
+Every candidate through stage $4$ is strictly positive on its current face,
+so the original and support-aware scores, envelopes, and gate decisions
+coincide through this chronology.
+
+At the stage-$4$ checkpoint, exact rational expansion gives
+\begin{align}
+ \Xi_4
+ &=\frac{49}{4096}-\frac{1141}{10240}q+\bigO(q^2),
+ \label{eq:quartic-family-score}\\
+ D_4
+ &=\frac23q^4-\frac{32}{15}q^5+\bigO(q^6),
+ \label{eq:quartic-family-credit}\\
+ R_4
+ &=\frac{971}{1024}q^4+\frac{52493}{15360}q^5+\bigO(q^6).
+ \label{eq:quartic-family-reserve}
+\end{align}
+Consequently every coefficient that makes either reviewed ledger solvent must
+satisfy
+\begin{align}
+ \lambda(q)
+ &\geq\lambda_4(q):=\frac{\Xi_4-D_4}{R_4}
+  =\frac{49}{3884q^4}+\bigO(q^{-3}),
+ \label{eq:quartic-family-required-coefficient}\\
+ \lim_{q\downarrow0}q^4\lambda_4(q)
+ &=\frac{49}{3884}=0.0126158599\ldots.
+ \label{eq:quartic-family-limit}
+\end{align}
+Together with
+\cref{eq:inactive-projection-quartic-coefficient,eq:support-aware-quartic-coefficient},
+this proves that the sharp graph-uniform coefficient order is
+$\Theta(q^{-4})$ for the support-aware ledger and for the original ledger on
+the inactive-projection subclass.
+\end{proposition}
+
+\begin{proof}
+All quantities below are rational functions of $q$ whose denominators are
+nonzero at $q=0$: the three limiting principal matrices are positive
+definite.  It is therefore enough to establish strict leading limits.  In
+each current face, scale the candidate and center as
+$Z:=z/q^2$ and $W:=v/q$.  Exact substitution in the recurrence gives the
+following limits; residuals are post-step active residuals divided by $q^2$:
+\begin{equation*}
+\begin{array}{c|c|c|c}
+k & U_k & \displaystyle\lim_{q\downarrow0}Z_k
+& \displaystyle\lim_{q\downarrow0}\frac{r(z_k)}{q^2}\\ \hline
+1 &(0) &(1) &(-1/2)\\
+2 &(0,2) &(2,1/4) &(-1/8,-1/8)\\
+3 &(0,2,1,3,5) &(11/4,5/8,1/8,1/8,1/8)
+ &(1/16,-5/64,-3/32,-3/32,-3/32)\\
+4 &(0,2,1,3,5) &(13/4,33/32,3/8,3/8,3/8)
+ &(7/64,-1/32,-9/128,-9/128,-9/128).
+\end{array}
+\end{equation*}
+All candidate limits are strictly positive.  At stage $1$, the boundary row
+$2$, divided by $q^2$, tends to $-1/8$; at stage $2$, each of the boundary
+rows $1,3,5$ tends to $-1/16$.  The divided admission threshold is
+$-q/5\to0$, so both admissions are strict for small positive $q$.
+
+At stages $3$ and $4$, the seed is the strict positive residual maximizer,
+with $\delta_3\to1/16$ and $\delta_4\to7/64$.  Since every candidate is
+$O(q^2)$, the safe envelope is identically zero for sufficiently small $q$.
+At zero, the seed residual divided by $q^2$ is
+$-(1-\rho)=-1+O(q)$, preventing certification, while the sole boundary row
+$4$, after the same division by $q^2$, equals
+$\rho=q/5>-q/5$, preventing admission.  Thus both stages hold.
+Continuity supplies one punctured interval on which all of these strict
+comparisons and candidate inequalities hold simultaneously.
+
+For the exact ledger expansion, the first-order scaled recurrence is
+\begin{equation*}
+ \frac{y}{q^2}=\frac{Z+W}{1+q},\qquad
+ Z^+=\frac{y}{q^2}-\frac{r(y)}{q^2},\qquad
+ W^+=qZ^++(1-q)(Z^+-Z),
+\end{equation*}
+and exact optimum transport adds
+$q(X_{U^+}^\star-X_U^\star)$ to $W$, where
+$X_U^\star:=z_U^\star/q^2$.  This gives the stage-$4$ seed residual
+\begin{equation*}
+ \frac{r_0(z_4)}{q^2}=\frac7{64}-\frac{163}{320}q+\bigO(q^2),
+\end{equation*}
+whose square is \cref{eq:quartic-family-score}.  Direct restricted-optimum
+substitution gives \cref{eq:quartic-family-credit}.  Finally,
+\begin{align*}
+ \frac{E_0}{q^4}
+ &=1-\frac25q+\bigO(q^2),\\
+ \frac{E_4}{q^4}
+ &=\frac{2207}{3072}-\frac{18281}{3072}q+\bigO(q^2).
+\end{align*}
+Using $R_4=E_0+D_4-E_4$ proves
+\cref{eq:quartic-family-reserve}; division proves
+\cref{eq:quartic-family-required-coefficient,eq:quartic-family-limit}.
+\end{proof}
+
+\begin{corollary}[The bipartite family approaches a $1/15$ lower constant]
+\label{cor:consumed-energy-bipartite-quartic-family}
+For every fixed integer $r\geq3$, let $G_r$ be $K_{2,r}$ with hubs $A,B$ and
+$r$ middle vertices, plus a seed leaf $0$ attached to $A$.  Put $s:=r+1$ and
+again take $\alpha=q^2$ and $\rho=\tau=q/5$.  The same zero-start chronology
+admits $A$ at stage $1$, admits all $r$ middle vertices at stage $2$, and
+holds with $B$ absent at stages $3$ and $4$ for all sufficiently small $q$.
+Projection is inactive through stage $4$, and
+\begin{align}
+ \lim_{q\downarrow0}q^4\lambda_{4,r}(q)
+ &=
+ \frac{(s-1)(s^2-2s-1)^2}
+ {s(15s^4-15s^3+2s^2+s-3)},\label{eq:bipartite-quartic-constant}\\
+ \lim_{r\to\infty}\lim_{q\downarrow0}q^4\lambda_{4,r}(q)
+ &=\frac1{15}.\label{eq:bipartite-quartic-limit}
+\end{align}
+Consequently every graph-uniform coefficient for either the support-aware
+ledger or the inactive-original subclass obeys
+\begin{equation}
+ \liminf_{q\downarrow0}q^4\lambda(q)\geq\frac1{15}.
+ \label{eq:graph-uniform-quartic-liminf}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The leading candidates, in the order seed, entered hub, and one representative
+middle coordinate, are
+\begin{align*}
+ Z_2&=(2,1/s),\\
+ Z_3&=\left(\frac52+\frac1s,\frac5{2s},\frac1{2s}\right),\\
+ Z_4&=\left(\frac52+\frac3s,\frac4s+\frac1{2s^2},\frac3{2s}\right).
+\end{align*}
+They are positive.  The stage-$3$ seed residual divided by $q^2$ tends to
+$(s-3)/(4s)>0$, while the stage-$4$ active residual types tend to
+\begin{equation*}
+ \left(\frac{s^2-2s-1}{4s^2},
+       -\frac1{2s^2},
+       -\frac{2s+1}{8s^2}\right).
+\end{equation*}
+The seed is therefore the strict positive maximizer.  The stage-$1$ boundary
+row tends to $-1/(2s)$ after division by $q^2$, and every stage-$2$ middle
+boundary row tends to $-1/(4s)$; the same zero-envelope argument as in the
+preceding proof gives the two admissions and two holds.
+
+The leading exact optimum and energy calculation gives
+\begin{align*}
+ \frac{D_4}{q^4}
+ &\longrightarrow\frac2{s-1},\\
+ \frac{R_4}{q^4}
+ &\longrightarrow
+ \frac{15s^4-15s^3+2s^2+s-3}{16s^3(s-1)},\\
+ \Xi_4
+ &\longrightarrow\frac{(s^2-2s-1)^2}{16s^4}.
+\end{align*}
+Their quotient is \cref{eq:bipartite-quartic-constant}; its limit as
+$s\to\infty$ is $1/15$.  A graph-uniform coefficient must dominate the
+requirement of every fixed $G_r$ on a sufficiently small punctured interval.
+Taking the lower limit in $q$ and then the supremum over fixed $r$ proves
+\cref{eq:graph-uniform-quartic-liminf}.
+\end{proof}
+
+\paragraph{Exact scope and next theorem target.}
+The atlas GO is only a finite exact-real audit at $q=1/5$.  The star is an
+asymptotic STOP for the named zero-start transported-center recurrence,
+complete gate, score $\Xi=\delta^2$, and the particular causal reserve
+$R=E_0+D-E$.  Because its reviewed candidates are strictly positive, the same
+$\Omega(q^{-3})$ requirement applies to the support-aware score and gate.
+The fixed graph's one-parameter quartic family is a stronger asymptotic STOP for exactly
+those two reviewed ledgers and closes their graph-uniform coefficient order at
+$\Theta(q^{-4})$.
+The projected three-vertex STOP concerns only the original all-coordinate
+score at an algebraically valid state and proves no zero-start reachability.
+The separate 30-vertex witness in
+\cref{prop:reachable-positive-residual-projection} proves finite zero-start
+reachability of a clipped positive-residual row and positive causal debt, but
+its fixed-$q$ coefficient and nearby finite screen give no asymptotic lower
+order.
+None of these statements refutes solver convergence, objective accuracy, or
+a work bound.  Maintaining $E_k$ requires the current restricted optimum and
+a $D_U$-energy evaluation; if these are not already cached by the transported
+recurrence, their response solve, active scan, arithmetic, state, and
+validation costs must be charged.  The low-frequency condition
+\cref{eq:consumed-reserve-low-frequency-condition} therefore cannot hold with
+graph-independent $c_{\rm low}$ on all reachable traces, though it can still
+define a narrower promised class.  For the original all-coordinate score
+under arbitrary projection, the remaining scalar gap is the reachable
+$\Omega(q^{-4})$ family versus the general $O(q^{-5})$ upper coefficient.
+By \cref{prop:original-score-normal-anchor}, it is enough to prove a
+graph-uniform bound on $n_i/((1-q)z_i+qz_i^\star)$ at clipped
+positive-residual rows; conversely, a superquartic reachable STOP must evade
+that bound and make the resulting normal create actual ledger debt.  The
+finite critical paths above do neither because their gate certifies first.
+Every admission scan, exact optimum displacement, Schur drop,
+transported write, support test, and energy evaluation must be charged.  The
+support-aware correction omits clipped-zero rows only from its scalar score:
+the boundary admission and terminal certificate must still inspect those rows
+against the declared gate threshold.  Finally, exact support membership is an
+exact-real statement; a numerical implementation needs explicit margins and
+finite-precision validation.  If the initial score is not zero, it must be
+carried as separate initial debt rather than silently discarded.

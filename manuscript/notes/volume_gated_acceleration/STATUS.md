@@ -1,6 +1,6 @@
 # Direction status: volume_gated_acceleration
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-27
 State: proved-open
 
 ## Exact question and contract
@@ -10,8 +10,8 @@ State: proved-open
   per admission?
 - **Model:** Shared PPR plus RPPR safe-support gates. Exact path audits use the
   declared zero-start transported-center recurrence and complete
-  all-violations gate; the nonpath audit uses the named asymmetric six-vertex
-  T tree and the same causal scalar ledger.
+  all-violations gate; the nonpath audits use two named six-vertex graphs and
+  the same causal scalar ledger.
 - **Accuracy namespace:** The final PPR target is
   `||D^-1/2(x_hat-x0)||_infinity <= eps_ppr`; `rho` is RPPR regularization and
   `tau` the one-sided gate, with the main conversion
@@ -35,29 +35,91 @@ State: proved-open
   the `q=1/5` path, old credit survives two admissions; restarting at stage 7
   stops through stage 11 and first goes at stage 12. On the asymmetric T tree,
   the restarted balance remains negative through the next admission, stops
-  through stage 13, and first goes at stage 14.
-- **Conditional:** Full product-scale work still requires an all-history
-  continuation/amortization theorem or a structural condition that bounds
-  expansion debt and repeated restricted work.
-- **Measured:** Floating-point path scaling tables are scaffolding only; the
-  promoted finite witnesses use exact rational arithmetic.
+  through stage 13, and first goes at stage 14. On the second six-vertex
+  graph, the account begins at the actual zero initialization, retains all
+  credit from three consecutive singleton admissions, stops at held stages 7
+  and 8, and first goes at stage 9. The causal reserve
+  `R_k=E_0+D_k-E_k` is exactly the transported-center energy consumed by
+  already executed fixed-face contractions and is unchanged across exact
+  transported admissions. Its exact finite-trace minimum coefficient repairs
+  the six-vertex witness with `lambda*=0.013014...`; coefficient `3` repairs
+  every rooted connected graph-atlas trace through order seven at `q=1/5`.
+  A reachable zero-start `K_{2,3}`-plus-seed-leaf family requires
+  `lambda(q) ~ 49/(3884q^4)` while remaining projection-inactive through the
+  reviewed stage. Together with the proved quartic upper coefficients, this
+  closes the graph-uniform order at `Theta(q^-4)` for the support-aware ledger
+  and the inactive-original subclass. More generally, the exact leading
+  `K_{2,r}`-plus-seed-leaf coefficient tends to `1/15`, so every
+  graph-uniform repair has `liminf q^4 lambda(q) >= 1/15` along that family.
+  On a separate explicit 30-vertex point-seed graph at `q=12/625`, the exact
+  zero-start complete-gate trace first clips vertex 23 benignly at stage 11,
+  then reaches `p_23=0<r_23(p)` at stage 12 with
+  `n_23/b_23=5.530040...` and positive causal debt. The exact required
+  coefficient is `0.086694...`, with
+  `q^4 lambda=1.178144...e-8`, and the run later certifies at stage 32. An
+  exact nine-point rational screen of the same fixed graph is finite evidence
+  only: the relevant row appears for `q=0.0188,...,0.0194` and disappears at
+  both adjacent screened endpoints.
+- **Conditional:** The named complete gate preserves `Xi` exactly across
+  admissions. For interior visited restricted optima, coefficient
+  `(1+q^2)(1-q)/q^5` makes the original-score consumed-energy scalar ledger
+  solvent under arbitrary projection. The exact projection-normal identity
+  improves this to `(C_n+1-q^2)/q^4` when every clipped positive-residual row
+  obeys `n_i <= C_n((1-q)z_i+qz_i*)`; inactivity has `C_n=0`. A modified safe positive-support
+  envelope has coefficient `(1-q^2)/q^4` under arbitrary projection; its gate
+  chronology may differ and clipped-zero rows remain in admission and terminal
+  scans. Under the declared low-frequency residual condition
+  `||r||_D^2 <= 2 c_low q^2 P`, coefficient
+  `2 c_low(1-q)/q^3` suffices. Full product-scale work still requires a
+  structural or stronger-potential continuation/amortization theorem that
+  bounds expansion debt and repeated restricted work.
+- **Measured:** Floating-point path scaling tables are scaffolding only. The
+  graph-atlas reserve sweep is exact finite evidence at `q=1/5`, not a
+  graph-uniform extrapolation; all promoted witness values use exact rational
+  arithmetic.
 - **Refuted:** Uniform logarithmic ordinary restarts, shock-free zero-padding,
   several pointwise or constant-coefficient correction banks, recovery of the
   restarted causal account before the next admission on every graph, and
-  frontier-only admission logic. These are scoped recurrence STOPs, not class
-  lower bounds.
-- **Open:** All-history causal solvency or a useful weaker structural
-  condition, a uniform recovery horizon if one exists, and graph-uniform
-  convergence/work beyond the finite named traces.
+  frontier-only admission logic. Unconditional zero-balance all-history
+  solvency of the named `delta^2` account is also refuted after three
+  consecutive singleton admissions. On an actual zero-start leaf-seeded
+  `K_{1,4}` family, the consumed-energy repair needs
+  `lambda(q) ~ 1/(32q^3)`, so no constant or `O(polylog(1/q))` multiplier is
+  uniform. Its reviewed candidates are strictly positive, so this lower order
+  also applies to the support-aware modification. An exact projection-active
+  three-vertex state refutes extending the original-score `2/q^4` decrement
+  to arbitrary algebraic states; that three-vertex state itself has no
+  zero-start reachability claim.
+  The stronger reachable quartic family refutes every `o(q^-4)` coefficient
+  for both reviewed ledgers. These are scoped recurrence/ledger STOPs, not
+  convergence or work lower bounds. The 30-vertex trace also refutes the
+  possible shortcut that every reachable clipped row has nonpositive
+  post-step residual, but it gives no asymptotic coefficient lower bound. The
+  threshold-tuned endpoint-path route
+  also stops on the registered finite instances: the gate certifies two
+  vertices before the intended full face and projection remains inactive.
+- **Open:** Close the original all-coordinate score's arbitrary-projection
+  `q^-4` lower versus `q^-5` upper gap by bounding the normal-anchor ratio or
+  constructing reachable superquartic debt; identify useful narrower classes where
+  the low-frequency condition holds; a uniform recovery horizon if one
+  exists; and
+  graph-uniform convergence/work beyond the finite named traces.
 
 ## Central blocker
 
-The causal score identity is face-general, but the available solvency proofs
-are finite and trajectory-specific. The nonpath witness rules out a
-recovery-before-next-admission invariant for the named recurrence and gate;
-it does not refute carrying older credit indefinitely. The next argument must
-either prove all-history solvency under an explicit structure condition or
-exhibit debt that survives enough admissions to invalidate that route.
+The causal score identity is face-general, but unconditional zero-balance
+all-history solvency of its `delta^2` account is false for the named recurrence
+and gate. The justified consumed-energy reserve repairs all finite `q=1/5`
+atlas traces with coefficient `3`, and the reachable quartic family closes
+the support-aware and inactive-original coefficient order at `Theta(q^-4)`.
+The remaining scalar blocker is the original score under arbitrary projection:
+its reachable lower order is `q^-4`, while its proved general upper coefficient
+is `O(q^-5)`. The exact normal identity isolates this gap in the ratio
+`n_i/((1-q)z_i+qz_i*)` on clipped positive-residual rows. The exact finite
+30-vertex trace proves that such a row and positive debt are reachable, but
+its coefficient is far below the quartic scale and its narrow finite `q`
+screen does not establish unbounded normal-anchor scaling. None of these scalar statements may be promoted into convergence
+or work conclusions.
 
 ## Dependencies and reusable outputs
 
@@ -70,29 +132,45 @@ exhibit debt that survives enough admissions to invalidate that route.
 
 ## Resume here
 
-- Exact file/section/lemma: Start with the causal two-admission path result and
-  `prop:t-tree-causal-next-admission-stop`, together with their exact gate and
-  Schur-drop definitions.
-- Next concrete action: Search a family with three or more relevant
-  admissions, or prove a structural all-history balance bound that survives
-  the asymmetric-T chronology.
-- Stop/go test: Go if the declared causal ledger remains nonnegative without
-  future borrowing and all restricted-optimum queries are charged. Stop if a
-  proof resets credit silently, conflates scalar solvency with convergence, or
-  extrapolates finite enumeration into an asymptotic theorem.
+- Exact file/section/lemma: Start with
+  `prop:consumed-energy-structural-solvency` and
+  `prop:consumed-reserve-quartic-projection` and
+  `prop:original-score-normal-anchor` and
+  `prop:reachable-positive-residual-projection`, then
+  `prop:consumed-energy-quartic-lower` and
+  `prop:consumed-energy-star-stop`, then compare
+  `prop:three-admission-all-history-stop`.
+- Next concrete action: Either prove a graph-uniform `O(1)` bound on the
+  normal-anchor ratio, or construct a reachable projection-active family on
+  which that ratio creates more than `Theta(q^-4)` debt. The low-frequency condition can now only target a narrower
+  promised class, not all reachable traces.
+- Stop/go test: Go only if the replacement survives the reachable quartic
+  family, star asymptotic, and three-admission all-history trace without future
+  borrowing and charges all
+  restricted-optimum/energy queries. Stop if a proof silently adds initial
+  credit, conflates scalar solvency with convergence, or extrapolates finite
+  enumeration into an asymptotic theorem.
 
 ## Verification
 
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, and shared problem/results ledgers.
-- Focused checks: Nine exact `volume_gated_acceleration.*` audits cover the
-  Round-013--021 mechanisms. Run them with `uv run python -m
+- Focused checks: Twelve exact `volume_gated_acceleration.*` audits cover the
+  Round-013--024 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note
-  volume_gated_acceleration`; the full tier includes the optional small-graph
-  enumeration.
-- Review status: Prior independent audits reproduced the named fractions,
-  chronology, Schur drops, balances, and scope qualifications. This
-  reorganization changes no theorem, equation, or evidence classification.
-- Known gaps: Small-graph minimality is computational scaffolding. There is no
-  nonpath eleven-resource vector, all-admission theorem, asymptotic work
-  result, or finite-precision guarantee.
+  volume_gated_acceleration`; the full tier includes both optional small-graph
+  enumerations.
+- Review status: Exact rational audits reproduce the named fractions,
+  chronologies, Schur drops, balances, reserve identities, atlas maximum, star
+  rational functions/asymptotics, tensor Bernstein determinant certificate,
+  projection-active STOP, reachable quartic formal series and exact replay
+  grid, exact leading `K_{2,r}` formulas, projection-normal identities, finite
+  critical-path gate failures, candidate inactivity checks, the reachable
+  positive-residual projection chronology and debt, and scope qualifications.
+- Known gaps: Small-graph enumeration is computational scaffolding. The
+  low-frequency promised-class condition has not been derived from graph
+  geometry, and the original-score arbitrary-projection coefficient gap
+  remains. Exact support tests require finite-precision margins in an
+  implementation. There is no nonpath
+  eleven-resource vector, asymptotic work result, or finite-precision
+  guarantee.
