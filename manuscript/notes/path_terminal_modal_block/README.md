@@ -69,7 +69,9 @@ original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. The scalar source derivative and exact Abel step for that
 replacement are proved, leaving three explicit folded prefix-lobe estimates.
-A
+The base term is also reduced exactly to a five-point binomial stencil, one
+alternating endpoint atom, and a nonnegative-kernel initial perturbation; its
+uniform lower bound remains open. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact

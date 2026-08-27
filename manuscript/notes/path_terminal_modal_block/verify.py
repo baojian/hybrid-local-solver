@@ -1253,6 +1253,106 @@ def exact_static_tail_reduction_checks() -> None:
         assert abs(prefix) <= Fraction(1, 2)
     assert Fraction(1421, 14400) < Fraction(1, 8)
 
+    # Exact coefficient audit for the source-free base interface.
+    def constant_input_base(edge_count: int, q_value: Fraction) -> list[Fraction]:
+        def reflected_b0(values: list[Fraction]) -> list[Fraction]:
+            output = [Fraction(0) for _ in values]
+            output[0] = (values[0] + values[1]) / 2
+            for index in range(1, len(values) - 1):
+                output[index] = (values[index - 1] + 2 * values[index] + values[index + 1]) / 4
+            output[-1] = (values[-2] + 2 * values[-1]) / 4
+            return output
+
+        delta_value = 1 - q_value
+        corrections: dict[int, list[Fraction]] = {
+            1: [-delta_value / 5],
+            2: [
+                Fraction(2, 5) - q_value / 2 + q_value**2 / 10,
+                -q_value / 4 + q_value**2 / 20,
+            ],
+        }
+        for length in range(2, edge_count):
+            current = corrections[length]
+            previous = corrections[length - 1]
+            source = [
+                2 * current[index] - (previous[index] if index < len(previous) else 0)
+                for index in range(length - 1)
+            ] + [2 * current[-1] - Fraction(3, 10)]
+            corrections[length + 1] = reflected_b0(source) + [current[-1] / 2 + Fraction(9, 40)]
+        current_difference = [
+            corrections[edge_count][index]
+            - (corrections[edge_count - 1][index] / 2 if index < edge_count - 1 else 0)
+            for index in range(edge_count)
+        ]
+        previous_difference = [
+            corrections[edge_count - 1][index]
+            - (corrections[edge_count - 2][index] / 2 if index < edge_count - 2 else 0)
+            for index in range(edge_count - 1)
+        ] + [Fraction(0)]
+        smoothed = reflected_b0(
+            [
+                previous_value - current_value
+                for previous_value, current_value in zip(
+                    previous_difference, current_difference, strict=True
+                )
+            ]
+        )
+        return [2 * (smoothed[index] - smoothed[index + 2] / 4) for index in range(edge_count - 2)]
+
+    def alternating_binomial_coefficient(order: int, index: int) -> Fraction:
+        return sum(
+            (
+                Fraction(
+                    math.comb(order, source) * (-1) ** (index - source),
+                    2 ** (index - source + 1),
+                )
+                for source in range(0, min(index, order) + 1)
+            ),
+            Fraction(0),
+        )
+
+    edge_count = 12
+    leading_base = constant_input_base(edge_count, Fraction(0))
+    polynomial_coefficients = (-25, 19, -5, -28, 36)
+    for coordinate in range(1, edge_count - 5):
+        coefficient_index = coordinate + 2
+        ordinary = sum(
+            coefficient
+            * (
+                math.comb(edge_count - 2, coefficient_index - degree)
+                if 0 <= coefficient_index - degree <= edge_count - 2
+                else 0
+            )
+            for degree, coefficient in enumerate(polynomial_coefficients)
+        )
+        ordinary += 45 * alternating_binomial_coefficient(edge_count - 2, coefficient_index)
+        formula = Fraction(ordinary, 40 * 2**edge_count) - Fraction(
+            9 * (-1) ** (edge_count + coordinate + 2),
+            2 ** (edge_count + coordinate + 6),
+        )
+        assert formula == leading_base[coordinate]
+
+    q_base = Fraction(1, 16 * edge_count)
+    finite_base = constant_input_base(edge_count, q_base)
+
+    def initial_kernel_raw(offset: int) -> Fraction:
+        return (1 - q_base / 5) * correction_atom(edge_count - 1, offset) + correction_atom(
+            edge_count - 2, offset
+        ) / 5
+
+    def initial_kernel(offset: int) -> Fraction:
+        return (
+            initial_kernel_raw(offset - 1)
+            + 2 * initial_kernel_raw(offset)
+            + initial_kernel_raw(offset + 1)
+        ) / 4
+
+    for coordinate in range(edge_count - 5):
+        initial_formula = (
+            -2 * q_base * (initial_kernel(coordinate) - initial_kernel(coordinate + 2) / 4)
+        )
+        assert finite_base[coordinate] - leading_base[coordinate] == initial_formula
+
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
     for edge_count in (8, 12):
@@ -1442,7 +1542,8 @@ def exact_static_tail_reduction_checks() -> None:
         "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
         "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
         "two_step_equivalence:pass mass_window=(2/5,43/75) "
-        "mass_kernel:proved derivative_1/16=STOP base_replacement_derivative_frontier=open"
+        "mass_kernel:proved derivative_1/16=STOP base_interface:proved "
+        "base_bound_replacement_derivative_frontier=open"
     )
 
 

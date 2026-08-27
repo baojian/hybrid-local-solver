@@ -111,7 +111,10 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   gives a fixed-distance limit below `-1/16` at distance seven. The weaker
   sufficient replacement `-q/8` remains open, but its scalar source derivative
   and exact Abel reduction are proved; only three displayed folded prefix-lobe
-  bounds remain at that interface.
+  bounds remain at that interface. The base term now has an exact coefficient
+  formula: a five-point binomial stencil plus an alternating endpoint atom and
+  an explicit nonnegative-kernel initial perturbation. Its combined uniform
+  lower bound remains open.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -177,7 +180,8 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    plus the four direct boundary checks. The sharper source-ledger route
    has closed the mass kernel, disproved the original `-q/16` derivative
    constant, and isolates the base kernel, a replacement `-q/8` derivative
-   bound (now reduced to three folded prefix-lobe estimates), and five direct
+   bound (now reduced to three folded prefix-lobe estimates), the exact
+   binomial base interface, and five direct
    frontier rows. A
    separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
