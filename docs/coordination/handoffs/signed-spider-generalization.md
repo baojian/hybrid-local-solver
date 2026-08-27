@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/signed-spider-adaptive-spectral`
-- Base commit: `a52f70e607d69d9674d1ef50da38e384c3440906`
+- Branch: `agent/codex/signed-spider-collatz-certificate`
+- Base commit: `b3eaa361e2b6db5963ceb442f4921785af362609`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -29,6 +29,21 @@
   quadratic workspace, plus encoding-dependent bit certification. A sparse
   estimator costs its actual number of face passes, with no graph-uniform pass
   count asserted without an estimator theorem.
+- Realized the safe sparse route with a componentwise Collatz certificate.
+  For `M_a=(I+J_a)/2` and any positive start, the coordinate-ratio lower
+  bounds increase and the upper bounds decrease to `rho(M_a)`. Aggregating
+  the resulting singular-value intervals and checking
+  `1-rho_bar^2 >= gamma^2(1-rho_under^2)` certifies the required relative
+  gap. The scalar relaxation is frozen only after this check.
+- Charged component discovery and every Collatz product as complete face
+  scans. Each fixed face eventually certifies for `gamma<1`, but the Perron
+  gap can vanish across a family, so there is no uniform scan count. A scan
+  budget expires into the safe graph-global parameter with all failed passes
+  charged.
+- Audited the complete-face boundary: `sigma_U=1` forces the certified upper
+  advice to equal the graph-global parameter, so the layered funnel receives
+  no sweep improvement. The estimator vectors remain separate from the solver
+  state, preserving the adaptive color-block light-cone scope.
 - Extended the layered finite-propagation stop to every arbitrary finite
   scalar relaxation schedule whose literal local row updates remain grouped
   as one complete source-color block followed by the other color. Scalars may
@@ -50,12 +65,13 @@
 
 ## Evidence
 
-- `verify_adaptive_spectral.py` passes 146 exact-rational cells: 120 certified
-  tuning cells, 11 adaptive scalar-SOR funnel cells including the interleaved
-  witness, and 15 red/full-operator Krylov propagation cells.
+- `verify_adaptive_spectral.py` passes 244 exact-rational cells: 120 certified
+  tuning cells, 98 componentwise Collatz/certification cells, 11 adaptive
+  scalar-SOR funnel cells including the interleaved witness, and 15
+  red/full-operator Krylov propagation cells.
 - `verify_spider.py` and `verify_fixed_face.py` retain all prior exact and
   deterministic checks.
-- The note builds to 31 pages with no undefined references, citations, or
+- The note builds to 33 pages with no undefined references, citations, or
   overfull boxes. Focused Ruff/format, note inventory and target audits,
   coordination/scope audits, diff checking, and the repository tests pass.
 
@@ -65,6 +81,10 @@
 - The fixed-face cost result is conditional on an actual certified upper
   radius; it does not treat a lower Rayleigh estimate or spectral
   preprocessing as free.
+- The Collatz routine is a posteriori and exact/outward-rounded: unchecked
+  floating ratios are not certificates, and bit certification remains an
+  additional implementation cost. Its power vectors supply scalar bounds
+  only and are never used as a warm start.
 - The adaptive SOR theorem counts source-first color-block depth. It is not a
   theorem for arbitrary coordinate interleavings.
 - The polynomial theorem counts sparse operator dependency layers from a

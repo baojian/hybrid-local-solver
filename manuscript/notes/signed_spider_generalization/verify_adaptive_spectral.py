@@ -89,6 +89,109 @@ def check_certified_upper_tuning() -> int:
     return cells
 
 
+def collatz_component_bounds(
+    cross: RationalMatrix,
+    initial: list[Fraction],
+    steps: int,
+) -> list[tuple[Fraction, Fraction]]:
+    """Return exact Collatz bounds for M=(I+J)/2 on one component."""
+    red_size = len(cross)
+    blue_size = len(cross[0])
+    size = red_size + blue_size
+    matrix = [[Fraction(row == column, 2) for column in range(size)] for row in range(size)]
+    for red in range(red_size):
+        for blue in range(blue_size):
+            value = cross[red][blue] / 2
+            matrix[red][red_size + blue] = value
+            matrix[red_size + blue][red] = value
+
+    current = initial
+    bounds: list[tuple[Fraction, Fraction]] = []
+    for _ in range(steps):
+        following = matvec(matrix, current)
+        ratios = [next_value / value for next_value, value in zip(following, current, strict=True)]
+        bounds.append((min(ratios), max(ratios)))
+        current = following
+    return bounds
+
+
+def check_collatz_face_certificate() -> int:
+    """Audit component bounds, aggregation, certification, and full-face scope."""
+    pythagorean_red = (Fraction(3, 5), Fraction(4, 5))
+    pythagorean_blue = (Fraction(5, 13), Fraction(12, 13))
+
+    def rank_one_cross(singular: Fraction) -> RationalMatrix:
+        return [[singular * red * blue for blue in pythagorean_blue] for red in pythagorean_red]
+
+    components = (
+        ([[Fraction(3, 5)]], [Fraction(1), Fraction(3)], Fraction(3, 5)),
+        (
+            rank_one_cross(Fraction(4, 5)),
+            [Fraction(1), Fraction(2), Fraction(3), Fraction(5)],
+            Fraction(4, 5),
+        ),
+    )
+    component_bounds: list[list[tuple[Fraction, Fraction]]] = []
+    cells = 0
+    for cross, initial, singular in components:
+        bounds = collatz_component_bounds(cross, initial, 48)
+        perron = (1 + singular) / 2
+        for index, (lower, upper) in enumerate(bounds):
+            assert lower <= perron <= upper
+            if index:
+                assert bounds[index - 1][0] <= lower
+                assert upper <= bounds[index - 1][1]
+            sigma_lower = max(Fraction(), 2 * lower - 1)
+            sigma_upper = min(Fraction(1), 2 * upper - 1)
+            assert sigma_lower <= singular <= sigma_upper
+            cells += 1
+        component_bounds.append(bounds)
+
+    coupling = Fraction(9, 10)
+    true_sigma = Fraction(4, 5)
+    true_radius = coupling * true_sigma
+    gamma = Fraction(1, 2)
+    certified_step = None
+    for step in range(48):
+        sigma_lower = max(max(Fraction(), 2 * bounds[step][0] - 1) for bounds in component_bounds)
+        sigma_upper = max(min(Fraction(1), 2 * bounds[step][1] - 1) for bounds in component_bounds)
+        assert sigma_lower <= true_sigma <= sigma_upper
+        radius_lower = coupling * sigma_lower
+        radius_upper = coupling * sigma_upper
+        if 1 - radius_upper**2 >= gamma**2 * (1 - radius_lower**2):
+            assert 1 - radius_upper**2 >= gamma**2 * (1 - true_radius**2)
+            certified_step = step + 1
+            break
+    assert certified_step is not None
+
+    # On a complete connected face sigma=1.  Clipping every valid Collatz
+    # upper bound gives exactly the graph-global scaled radius.
+    full_bounds = collatz_component_bounds(
+        rank_one_cross(Fraction(1)),
+        [Fraction(1), Fraction(2), Fraction(3), Fraction(5)],
+        48,
+    )
+    full_certified = None
+    for step, (lower, upper) in enumerate(full_bounds, start=1):
+        sigma_lower = max(Fraction(), 2 * lower - 1)
+        sigma_upper = min(Fraction(1), 2 * upper - 1)
+        assert sigma_upper == 1
+        radius_lower = coupling * sigma_lower
+        radius_upper = coupling * sigma_upper
+        assert radius_upper == coupling
+        if 1 - radius_upper**2 >= gamma**2 * (1 - radius_lower**2):
+            full_certified = step
+            break
+    assert full_certified is not None
+
+    print(
+        "collatz_face_certificate=component_monotonicity:pass aggregation:pass "
+        f"certified_step={certified_step} full_face_step={full_certified} "
+        "full_face_advice=global"
+    )
+    return cells + 2
+
+
 def relaxation(sweep: int, coordinate: int, color: int) -> Fraction:
     """One deterministic nonconstant relaxation schedule in (0,2)."""
     return Fraction(2 + ((3 * sweep + coordinate + color) % 4), 3)
@@ -217,12 +320,14 @@ def check_source_krylov_support() -> int:
 
 def main() -> None:
     tuning = check_certified_upper_tuning()
+    collatz = check_collatz_face_certificate()
     adaptive = check_scalar_adaptive_sor_support()
     krylov = check_source_krylov_support()
     print(
         "adaptive spectral checks passed: "
-        f"{tuning + adaptive + krylov} cells "
-        f"({tuning} certified-tuning, {adaptive} scalar-SOR, {krylov} Krylov)"
+        f"{tuning + collatz + adaptive + krylov} cells "
+        f"({tuning} certified-tuning, {collatz} Collatz, "
+        f"{adaptive} scalar-SOR, {krylov} Krylov)"
     )
 
 

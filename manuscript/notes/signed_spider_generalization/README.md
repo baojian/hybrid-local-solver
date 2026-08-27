@@ -17,6 +17,13 @@ gives a fully charged tuning formula: its estimation cost is added explicitly,
 and constant-relative tuning needs squared-radius accuracy at the
 `1-rho_J^2` scale.  A raw Rayleigh estimate from below is not a safe
 certificate.
+The note also gives a concrete a-posteriori implementation of that safe
+upper certificate.  Componentwise Collatz bounds are aggregated and scaled,
+one full face scan is charged per estimator product, and a checkable
+relative-gap inequality licenses a frozen SOR parameter.  There is no uniform
+bound on the number of estimator scans: a fixed scan budget falls back to the
+graph-global parameter, and a complete face receives exactly that global
+advice with no sweep improvement.
 On complete equal-arm hub-seeded spiders, it proves a new dimension-free
 maximum-norm theorem: plain optimal SOR reduces semantic error by
 `lambda^(2k) (1 + 2k(1-lambda^2))`, giving log-free

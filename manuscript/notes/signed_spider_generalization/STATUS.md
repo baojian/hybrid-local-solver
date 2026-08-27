@@ -40,7 +40,15 @@ State: proved-open
   fully charged face-specific bound after adding `C_spec(U)`; constant-relative
   tuning through this rule needs squared-radius accuracy on the `t^2` scale,
   which can be `Theta(alpha)`.  A raw lower Rayleigh estimate is not a safe
-  substitute.  On every finite equal-arm hub-seeded spider,
+  substitute.  Componentwise Collatz iterations provide a concrete safe
+  upper certificate: their lower bounds rise and upper bounds fall, the
+  aggregate relative-gap check licenses a frozen face parameter, and every
+  iteration is charged as a full face scan.  Each fixed face eventually
+  certifies for every fixed relative factor below one, but there is no
+  graph-uniform scan count; a budget expiry safely falls back to the global
+  parameter.  A complete face has spectral value one, so this estimator gives
+  exactly the global parameter and no sweep benefit.  On every finite
+  equal-arm hub-seeded spider,
   source-color-first plain SOR obeys the exact dimension-free envelope
   `zeta^k(1+2k(1-zeta))`, yielding log-free output-scale work.  A layered
   bipartite funnel proves that no graph-independent constant extends the
@@ -115,7 +123,8 @@ hope for a graph-uniform maximum-semantic product bound.
   requested spider-first generalization motivate this note.
 - **Reusable outputs:** The accuracy bridge, fixed-face equivalence, exact
   bipartite SOR factor, log-free radial Chebyshev theorem, sweep-order witness,
-  certified face-spectral cost and accuracy rule, layered graph-uniform
+  certified face-spectral cost and accuracy rule, charged a-posteriori
+  Collatz certificate with safe fallback, layered graph-uniform
   envelope, adaptive scalar and source-polynomial work stops, nonsettled
   face-shock Pythagoras, conditional continuation theorem, graph-family
   ladder, and staged falsification plan.
@@ -126,7 +135,8 @@ hope for a graph-uniform maximum-semantic product bound.
   `thm:radial-semantic-damping` for the log-free spider theorem;
   `thm:global-semantic-sor-stop` and
   `cor:global-semantic-sor-work-stop` for the graph-uniform full-sweep stop;
-  `prop:certified-face-spectral-cost` for paid face tuning;
+  `prop:certified-face-spectral-cost` for paid face tuning and
+  `prop:collatz-face-certificate` for its charged a-posteriori realization;
   `thm:adaptive-polynomial-propagation-stop` and
   `cor:adaptive-polynomial-work-stop` for the scalar-adaptive and
   Chebyshev/Krylov scope;
@@ -142,16 +152,16 @@ hope for a graph-uniform maximum-semantic product bound.
 
 ## Verification
 
-- **Focused checks:** `make` produced a 31-page PDF with no undefined
+- **Focused checks:** `make` produced a 33-page PDF with no undefined
   references, citations, or overfull boxes.  `verify_spider.py` passed 80
   SOR-mode cells, 144 spider-spectrum cells, 14,616 radial-semantic cells, one
   exact sweep-order witness, seven exact layered-funnel cells, 522 small-graph
   RPPR-bias cells, and 132 face-shock cells.
   `verify_fixed_face.py` passed 570 cells: 60 exact rational parameter
   cells, 480 finite-power cells, and 30 spider-prefix cells.
-  `verify_adaptive_spectral.py` passed 146 exact cells: 120 certified-tuning,
-  11 adaptive scalar-SOR, and 15 Krylov/polynomial.  Focused Ruff checking
-  passed.
+  `verify_adaptive_spectral.py` passed 244 exact cells: 120 certified-tuning,
+  98 componentwise Collatz/certification, 11 adaptive scalar-SOR, and 15
+  Krylov/polynomial.  Focused Ruff checking passed.
 - **Repository checks:** `make note-audit`, `make agent-audit`, `git diff
   --check`, and all 210 tests passed on 2026-08-28.  Repository-wide `make
   lint` remains red on 1,345 pre-existing Ruff findings in checked-in
