@@ -48,8 +48,10 @@
   equals a folded Green-kernel sum of an exact source-free base, the
   derivative packets `epsilon_n(1,2,-3)/4`, and newest-row masses
   `mu_n=-q nu_n`. The scalar window `2/5<nu_n<43/75` is proved uniformly.
-  The three displayed kernel bounds and five direct frontier rows remain
-  OPEN; the note does not infer signs of individual summands.
+  The mass kernel is now proved by exact binomial smoothing, a finite dyadic
+  lobe certificate, and an entropy tail. The base/derivative kernels and five
+  direct frontier rows remain OPEN; the note does not infer signs of
+  individual summands.
 - Deliberately unchanged: The local half-ratios, the early `J_kL` convolution,
   entry profiles, and full projection/envelope regime remain open. The
   logarithmic terminal block remains conditional, and no lower bound is
@@ -60,8 +62,9 @@
 - A new exact preflight checks the rational `3/50` signed-mass ledger,
   `57/200` endpoint ledger, finite alternating-tail endpoint stencil, and
   exact signed-mass formula and temporal smoothing identity at `m=8,12`. It
-  also checks the two-step equivalence and mass window, and explicitly labels
-  the folded-kernel ledger, local half-ratios, and temporal preimage comparison
+  also checks the two-step equivalence, mass window, signed smoothing base,
+  and one-dimensional lobe certificate. It labels the base/derivative
+  folded-kernel ledger, local half-ratios, and temporal preimage comparison
   open.
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
@@ -80,7 +83,7 @@
 - Main audit risks: the weighted telescoping identity for the signed mass,
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
-- Next action: Prove the three folded base/derivative/mass kernel estimates
-  and five direct frontier rows, or otherwise prove the explicit local
+- Next action: Prove the folded base/derivative kernel estimates and five
+  direct frontier rows, or otherwise prove the explicit local
   half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.

@@ -103,8 +103,10 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   `d_j-d_(j+2)/4>=0`. On `j<=m-6`, the last cone has an exact folded-source
   ledger consisting of a source-free base, derivative packets
   `epsilon_n(1,2,-3)/4`, and point masses `mu_n=-q nu_n`. The sharp scalar
-  window `2/5<nu_n<43/75` is proved. The three displayed folded-kernel
-  estimates and five direct frontier rows remain OPEN.
+  window `2/5<nu_n<43/75` is proved. The mass folded-kernel estimate is also
+  proved by an exact binomial smoothing maximum principle, finite dyadic
+  lobe certificate, and entropy tail. The base/derivative estimates and five
+  direct frontier rows remain OPEN.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -136,7 +138,7 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   endpoint pieces. For the static inequality, prove the displayed local
   endpoint half-ratios, or the sufficient interior temporal preimage cone
   together with the seed and three direct frontier rows (or otherwise prove
-  `d>=h`). Equivalently, close the explicit base/derivative/mass folded-kernel
+  `d>=h`). Equivalently, close the explicit base/derivative folded-kernel
   ledger for the two-step cone and its five frontier rows; then prove its early
   `J_kL` convolution counterpart and the projection/unclipped-envelope
   invariant in exact arithmetic.
@@ -168,7 +170,8 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
    proved, so the static bound now needs only the explicit local half-ratios
    for `d-h`, or the exact sufficient interior temporal-preimage comparison
    plus the four direct boundary checks. The sharper source-ledger route
-   isolates three folded-kernel estimates and five direct frontier rows. A
+   has closed the mass kernel and isolates two remaining folded-kernel
+   estimates and five direct frontier rows. A
    separate early/late position lower bound must exploit the
    exact first-step margin, which is only order `q^2`.
 
@@ -206,9 +209,9 @@ constants is permitted only with a corresponding proof.
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
-  prove the three targets
-  `eq:terminal-modal-static-base-kernel-target`--
-  `eq:terminal-modal-static-mass-kernel-target` and the five direct frontier
+  prove the two targets
+  `eq:terminal-modal-static-base-kernel-target` and
+  `eq:terminal-modal-static-derivative-kernel-target` and the five direct frontier
   rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality
@@ -241,9 +244,11 @@ constants is permitted only with a corresponding proof.
   deconvolution at `m=8,12`. A sixth exact preflight checks the rational
   `3/50` signed-mass ledger, the `57/200` endpoint ledger, the finite
   alternating-tail stencil, the exact signed-mass formula, and the temporal
-  correction/smoothing identity, two-step equivalence, and exact
-  `2/5<nu_n<43/75` mass window at `m=8,12`; it labels the folded-kernel
-  ledger, uniform local half-ratios, and temporal preimage comparison open.
+  correction/smoothing identity, two-step equivalence, exact
+  `2/5<nu_n<43/75` mass window, signed smoothing base, and dyadic
+  one-dimensional lobe certificate; it labels the base/derivative
+  folded-kernel ledger, uniform local half-ratios, and temporal preimage
+  comparison open.
   The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`

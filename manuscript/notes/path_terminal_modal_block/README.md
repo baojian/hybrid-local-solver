@@ -61,8 +61,10 @@ simplification makes the half-ratios the two-step spatial cone
 `d_j>=d_(j+2)/4`, with two endpoint initial conditions. On rows through
 `m-6`, the cone has an exact folded-source ledger with a base term, the
 `epsilon_n(1,2,-3)/4` derivative packets, and newest-row masses
-`mu_n=-q nu_n`; the scalar window `2/5<nu_n<43/75` is proved. Three explicit
-uniform folded-kernel estimates and five direct frontier rows remain open. A
+`mu_n=-q nu_n`; the scalar window `2/5<nu_n<43/75` is proved. The mass
+folded-kernel estimate is also proved by an exact binomial maximum principle,
+finite dyadic certificate, and entropy tail. The base and derivative
+folded-kernel estimates and five direct frontier rows remain open. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
