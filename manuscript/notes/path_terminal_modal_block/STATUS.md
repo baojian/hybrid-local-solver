@@ -91,13 +91,14 @@ Base commit: `2b4439c`
   `F_r>=F_(r-1)/2`. Both entry profiles are proved uniformly on the required
   growing modal band. The first full-face average residual is strictly
   negative. Conditional on the static `21/80` target, the exact position
-  lower bound dominates the global envelope for `qk>=17/200`; the earlier
+  lower bound dominates the global envelope for `qk>=3/50`; the earlier
   nonlinear range is reduced exactly to scaled residual half-retention. At
   the final proper prefix the shared correction margin improves to
   `15497/230400`, while its moving-frontier value exceeds `2/5`. Keeping the
   exact two-row frontier defect then proves `c(j)<-q^3/8` on every full-face
   row. This strengthens only the correlated half-retention interface; it does
-  not prove a separate `L_k u<=q^3/16` bound over the full early window.
+  reduces to the still-open separate `L_k u<=q^3/16` bound only through
+  `qk<3/50`. The analogous bound through `17/200` is false.
 - **Conditional:** If projection plus envelope subtraction remain inactive
   through the stated horizon, then every
   sufficiently large member requires at least
@@ -125,8 +126,7 @@ Base commit: `2b4439c`
   this is evidence only. These are finite measurements and assert no limit.
 - **Open:** For the static inequality, prove the displayed local endpoint
   half-ratios (or otherwise prove `d>=h`). Then prove the exact early
-  half-retention convolution through `qk<17/200`, retaining the correlation
-  between `-H_k c` and `-L_k u`. These two signed spatial
+  short convolution `L_k u<=q^3/16` through `qk<3/50`. These two signed spatial
   estimates are the remaining interfaces to the projection/unclipped-envelope
   invariant.
 - **Refuted:** A range crossing is not always a certificate when
@@ -148,7 +148,7 @@ Base commit: `2b4439c`
    `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
    proved, so the static bound now needs only the explicit local half-ratios
    for `d-h`. The first average residual is already strictly negative and the
-   late position comparison is proved for `qk>=17/200`; the remaining early
+   late position comparison is proved for `qk>=3/50`; the remaining early
    window is exactly the signed linear-candidate half-retention inequality
    `X_k^lin-X_(k-1)^lin/2>=0`.
 
@@ -188,7 +188,7 @@ constants is permitted only with a corresponding proof.
   implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
-  kernel to prove the early half-retention target through `qk<17/200`. The
+  kernel to prove `L_k u<=q^3/16` through `qk<3/50`. The
   proved late comparison then closes the rest of the horizon.
 - **Stop/go test:** Promote the logarithmic block only after the missing
   regime lemma is proved uniformly in `m`; a larger floating screen is evidence but
@@ -219,7 +219,8 @@ constants is permitted only with a corresponding proof.
   it labels the uniform local half-ratios open. A separate exact regime
   preflight checks the `N=m+1` old-row replay, the actual degree-one endpoint,
   the margins `1429/115200` and `-46683733/78684160`, and the late scalar
-  slack `3188243/640000000`; it labels early half-retention open. The floating screen
+  sharpened full-optimum upper bound `157q/20`, and the late scalar slack
+  `1667/625000`; it labels the short convolution open. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times

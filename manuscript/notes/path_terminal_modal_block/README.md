@@ -56,8 +56,9 @@ is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
 `F_r>=F_(r-1)/2`. Those local inequalities remain open, as does the early
 half-retention convolution. The first full-face average residual is proved
 strictly negative, and a rational position/envelope comparison closes the
-late range `qk>=17/200`; only the intervening early signed convolution remains
-on the nonlinear side. A
+late range `qk>=3/50`; only the shorter early convolution
+`L_k u<=q^3/16` remains on the nonlinear side. The analogous separate
+estimate through `17/200` is false and is not used. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
