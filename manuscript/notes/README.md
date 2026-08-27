@@ -63,6 +63,7 @@ This table is generated from `registry.toml` by
 | [`propagate_settle_framework`](propagate_settle_framework/) | mixed | proved-open | Unify settlement absorption, response maintenance, revisit work, and trace legality. |
 | [`response_preconditioned_hybrid`](response_preconditioned_hybrid/) | mixed | proved-open | Combine charged Schur responses, frontier repair, and fixed-face reporting. |
 | [`two_rung_direct_theory`](two_rung_direct_theory/) | mixed | proved-open | Explain measured waves, obstructions, and the value of elimination. |
+| [`class_separation_ladder`](class_separation_ladder/) | models | proved-open | Separate local PageRank class restrictions on one center-seeded star. |
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |

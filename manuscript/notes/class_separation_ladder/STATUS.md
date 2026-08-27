@@ -5,8 +5,9 @@ State: proved-open
 Agent family: claude
 Role: direction
 Branch: `agent/claude/class-separation-ladder`
-Base commit: `706459558b2d6540a102f36fdd68980e3caaf7e9`
-Allowed write scope: `manuscript/notes/class_separation_ladder/`
+Base commit: `71764c15c5bc2bb92f01d9d807942acf61e4be85`
+Allowed write scope: the note directory plus its exact registry, generated
+index, shared-command, coordination-record, and handoff integration files.
 
 ## Exact question and contract
 
@@ -88,9 +89,10 @@ shape for one-hop relaxation.
 
 ## Dependencies and reusable outputs
 
-- Formal registry dependencies: none yet; this note is not registered.
+- Formal registry dependencies: none.
 - Source/shared prerequisites: `tex/shared/source_aligned_problem.tex`,
-  `tex/shared/research_note_preamble.tex`.
+  `tex/shared/research_note_preamble.tex`, and the note-scoped declarations in
+  `tex/shared/class_separation_ladder_commands.tex`.
 - Context/provenance: transcribed from the campaign packages
   `w1_monotone_lb.md`, `i2d_separation_package.md`, `i4c_signed_class_lb.md`
   and `i5d_ladder_paper.md` under
@@ -131,12 +133,13 @@ shape for one-hop relaxation.
 - Known gaps: the verification grid is dyadic only, so the general-`eps_ppr`
   constants are proved but not numerically exercised. The multi-base extension
   of the primitive-characterization lemma is proved only on the star. The
-  device used for the rerun lacks `scipy`, so the checker was executed in a
-  separate Python environment; no result depends on that choice.
+  checker was rerun in the repository's project environment; no result depends
+  on the environment choice.
 
 ## Repository handoff
 
-- Provider-owned paths changed: `manuscript/notes/class_separation_ladder/`
-  (new directory).
-- Shared paths changed: none.
+- Provider-owned paths changed: none.
+- Shared paths changed: `manuscript/notes/registry.toml`, the generated note
+  table in `manuscript/notes/README.md`, and
+  `manuscript/tex/shared/class_separation_ladder_commands.tex`.
 - Assignment state: ready_for_review
