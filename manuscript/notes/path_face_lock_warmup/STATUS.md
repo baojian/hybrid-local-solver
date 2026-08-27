@@ -41,18 +41,27 @@ Allowed write scope: `manuscript/notes/path_face_lock_warmup/` and `docs/coordin
   trigger; this follows from the entrywise Neumann bound
   `M>=I/2`. Repeating one prox and one momentum stage is safe but has full-face
   Perron multiplier `(1-q)^2(1+2q)=1-Theta(q^2)`, hence needs
-  `Theta(q^-2)` pairs for constant contraction and is not accelerated.
+  `Theta(q^-2)` pairs for constant contraction and is not accelerated. More
+  generally, one prox plus any fixed safe burst of `L` momentum stages has
+  exact Perron multiplier `(1+(L+1)q)(1-q)^(L+1)=1-Theta_L(q^2)`, so a
+  fixed-burst/reset safeguard cannot recover acceleration. The normalized
+  spider center and arm equations are explicit in
+  Proposition `prop:spider-center-and-star`. On the 16-arm unit star at
+  `q=1/34`, even four warmup solves have the exact negative second-trigger
+  leaf diagonal `-17140927690425/914326479306752`.
 - **Conditional:** None yet.
 - **Measured:** The exact finite screen at `q=1/(2n)` finds first
   horizon-passing values `J=2` on `P4,P6` and `J=3` on
   `P8,P10,P12,P14,P16,P20`, through 32 or 64 momentum stages. A finite exact
   pass is not an all-time theorem.
-- **Refuted:** Any proof that claims one, two, or three pure-prox solves make every
-  nonnegative path-face residual permanently safe. This is a cone-uniform
-  proof-route stop, not a reachability or actual-trajectory counterexample.
+- **Refuted:** Any proof that claims one, two, or three pure-prox solves make
+  every nonnegative path-face residual permanently safe, or that four solves
+  do so uniformly on spiders. A reset after any fixed safe burst also fails
+  to accelerate the full-face Perron mode. These are proof-route stops, not
+  reachability or actual-trajectory counterexamples.
 - **Open:** A graph-size-independent warmup bound on the realized
   endpoint-seeded changing-face path trajectory; the all-time kernel question
-  for larger constants; and the spider junction extension.
+  for larger constants; and the actual spider admission profile.
 
 ## Central blocker
 
@@ -67,16 +76,18 @@ cannot be imported directly.
 - Source/shared prerequisites: source-aligned RPPR definition.
 - Context/provenance: Fable iteration-7 notes are read-only exploratory evidence.
 - Reusable outputs: exact trigger-kernel recurrence and a note-local rational
-  falsification screen with explicit basis-column witnesses.
+  falsification screen with explicit basis-column witnesses; exact spider
+  junction equations and prefix-volume charge.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
 
 - Exact file/section/lemma: `main.tex`, Sections
-  `sec:gate-reconstruction`, `sec:cone-screen`, and `sec:path-spider-targets`.
+  `sec:gate-reconstruction`, `sec:cone-screen`, `sec:spider-junction`, and
+  `sec:path-spider-targets`.
 - Next concrete action: derive the actual endpoint-prefix admission residual
-  row by row, then test/prove its one-warmup trigger sequence; separately test
-  whether the full-cone first-pass constant remains bounded at larger sizes.
+  row by row, then test/prove its one-warmup trigger sequence; separately
+  derive the center/arm residual for an actual spider admission.
 - Stop/go test: prove an all-time constant for the realized profile, or give
   an exact reachable family whose minimal safe warmup grows.
 
@@ -84,11 +95,12 @@ cannot be imported directly.
 
 - Source pointers checked: Fable I6-A2 Sections 1--4 and I7-A Sections 1--2;
   sibling path modal note exact recurrence and claim boundary.
-- Focused exact checks: `verify_warmup.py` passed its P4--P20 screens and
-  reproduced the P4/P8 fractions and the P46 exact negative sign.
+- Focused exact checks: `verify_warmup.py` passed its P4--P20 screens,
+  reproduced the P4/P8 fractions and the P46 exact negative sign, and
+  reproduced all four exact star leaf witnesses.
 - Known gaps: finite horizon passes are not all-time proofs; the basis-column
-  cone witnesses are not claimed reachable; spider coupling has not yet been
-  analyzed.
+  cone witnesses are not claimed reachable; actual spider admission has not
+  been analyzed.
 
 ## Repository handoff
 
