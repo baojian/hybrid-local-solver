@@ -44,9 +44,13 @@ would force `Omega(q^-1 log(1/q))` terminal steps for the named
 transported-center execution.
 
 The two entry profiles and the terminal projection/envelope regime are not
-proved. On the regime side, the remaining tasks are the displayed finite
-signed local-average bound for `d`, its early convolution analogue, and an
-early/late lower position margin. A
+proved. On the regime side, the signed static mass is now bounded by
+`3q^3/50`, while the endpoint coefficient lies in `(-57/200,0)`. An exact
+geometric endpoint comparator reduces the full `21q^3/80` static target to
+coordinatewise tail dominance `d>=h`, and a concrete local sufficient route
+is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
+`F_r>=F_(r-1)/2`. Those local inequalities remain open, as do the early
+convolution analogue and an early/late lower position margin. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact

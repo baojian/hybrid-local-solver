@@ -1,11 +1,11 @@
 # Direction status: path_terminal_modal_block
 
-Last reviewed: 2026-08-27
+Last reviewed: 2026-08-28
 State: proved-open
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-regime-static`
-Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
+Branch: `agent/codex/path-terminal-static-inequality`
+Base commit: `71bf22f`
 
 ## Exact question and contract
 
@@ -82,6 +82,13 @@ Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
   coordinatewise by the last proper-prefix residuals and a lower binomial
   packet. The coefficient of `J_k L` is an explicit finite binomial window,
   so both remaining regime targets are finite signed convolution inequalities.
+  For every `m>=64`, the signed static mass is now proved below `3q^3/50`,
+  and the normalized endpoint value `beta=d_m/q^3` is proved to lie in
+  `(-57/200,0)`. Comparing `d` with its exact endpoint geometric tail `h`
+  then proves the desired `21q^3/80` positive-mass bound conditional only on
+  `d>=h`, including the finite seed-endpoint correction. A local sufficient
+  interface is explicit: `E_1>=0`, `F_2>=E_1/2`, and
+  `F_r>=F_(r-1)/2`.
 - **Conditional:** If the actual entry position/velocity profiles satisfy the
   two displayed absolute bounds on a band of even modes and projection plus
   envelope subtraction remain inactive through the stated horizon, then every
@@ -105,12 +112,15 @@ Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
   weighted remainder mass from that moving-packet scale to about
   `0.258 q^3`--`0.260 q^3`. The corresponding pre-averaging positive mass
   `||d_+||_(1,D)` is about `0.43 q^3`, showing why Markov contractivity alone
-  misses `21q^3/80`. These are finite measurements and assert no limit.
+  misses `21q^3/80`. The new endpoint-tail comparison is coordinatewise on
+  the `m=64` floating screen (with equality at the defining endpoint), but
+  this is evidence only. These are finite measurements and assert no limit.
 - **Open:** Prove the two entry profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
-  endpoint pieces, and prove the uniform
-  finite signed static inequality, its early `J_kL` convolution counterpart,
-  and the projection/unclipped-envelope invariant in exact arithmetic.
+  endpoint pieces. For the static inequality, prove the displayed local
+  endpoint half-ratios (or otherwise prove `d>=h`); then prove its early
+  `J_kL` convolution counterpart and the projection/unclipped-envelope
+  invariant in exact arithmetic.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
@@ -135,8 +145,10 @@ Base commit: `b93b85312a9c06265959f082bbe5102aed44d0c9`
    `K_m=floor((1/8)q^-1 log(1/q))`, prove every raw proximal point is positive
    and every safe subtraction is strictly unclipped. The positive-residual
    part is now reduced to proving a uniform static bound on
-   `||(w-w_dir)_+||_(1,D)/q^3`; a separate early/late position lower bound must
-   exploit the exact first-step margin, which is only order `q^2`.
+   `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
+   proved, so the static bound now needs only the explicit local half-ratios
+   for `d-h`. A separate early/late position lower bound must exploit the
+   exact first-step margin, which is only order `q^2`.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
@@ -172,9 +184,9 @@ constants is permitted only with a corresponding proof.
   correction `U_n-U_{n-1}`, the `M_n=O(q^4)` trace, and the single final
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
-  prove the explicit local-average inequality
-  `eq:terminal-modal-static-finite-target` by controlling the positive bulk
-  and alternating terminal tail of `d`; use the displayed binomial-window
+  prove `eq:terminal-modal-static-local-half-ratios`, which now implies the
+  explicit local-average inequality
+  `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
   kernel for the early signed convolution, and combine these bounds with an
   early/late lower bound for the literal position candidate.
 - **Stop/go test:** Promote the logarithmic block only after both missing
@@ -200,7 +212,10 @@ constants is permitted only with a corresponding proof.
   and final `179/14400` arithmetic. A fifth exact preflight checks the
   half-endpoint cycle split, directed evolution, folded `J_k` alias bound,
   the exact `J_kL` binomial window, entry-correction sign, and `u=Ld`
-  deconvolution at `m=8,12`. The floating screen
+  deconvolution at `m=8,12`. A sixth exact preflight checks the rational
+  `3/50` signed-mass ledger, the `57/200` endpoint ledger, the finite
+  alternating-tail stencil, and the exact signed-mass formula at `m=8,12`;
+  it labels the uniform local half-ratios open. The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
   and literal certificate times
@@ -209,7 +224,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 29-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 32-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
@@ -218,3 +233,6 @@ constants is permitted only with a corresponding proof.
   `manuscript/claude-overnight-2026-08-24/`; the new verifier is Ruff-clean.
 - **Known numerical boundary:** The screen is float64. The sibling note's
   rational checks for `m=2,4,8` cover only finite `1/(2q)` terminal prefixes.
+  The focused post-change command `python3 verify.py 64` passed and measured
+  static positive mass `0.255090q^3` with nonendpoint tail-dominance margin
+  `0.00029775q^3`; this finite measurement is not used in the proof.
