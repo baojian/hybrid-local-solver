@@ -58,7 +58,14 @@ half-retention convolution. The first full-face average residual is proved
 strictly negative, and a rational position/envelope comparison closes the
 late range `qk>=3/50`; only the shorter early convolution
 `L_k u<=q^3/16` remains on the nonlinear side. The analogous separate
-estimate through `17/200` is false and is not used. A
+estimate through `17/200` is false and is not used. A further exact reduction
+identifies `(J_k-J_(k-1)/2)L` with the line kernel
+`(1/2) Pr(Bin(k,1/2)>=|r|)`, gives its exact `2m`-cycle fold, and retains the
+derivative cancellation in every standard moving-frontier source. It also
+records the exact obstruction to a global quarter-mass shortcut: at `k=2`,
+path target zero sees an interior source at one with degree-normalized
+coefficient `3/8>1/4`. Thus the open short-window bound must retain source
+location and the signed endpoint group. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
@@ -86,6 +93,12 @@ sharpened `31/320` leading ledger, the folded final-time source count including
 reflection and the one-step edge, the exact two-row defect and endpoint on
 rational replays, and every rational constant in the `c<-q^3/8` theorem. It
 explicitly reports the correlated early inequality as open.
+
+`verify_early_kernel.py` checks the exact half-velocity Laurent and
+binomial-tail formulas, the standard derivative/mass source responses, the
+`3/8` reflection obstruction, and the folded-cycle identity against exact
+replays at `m=8,12`. Its larger short-window runs are explicitly finite
+measurements and do not certify the uniform `1/16` inequality.
 
 Build with `make`. Run the screen with:
 
