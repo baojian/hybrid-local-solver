@@ -1346,6 +1346,65 @@ def exact_static_tail_reduction_checks() -> None:
     assert derivative_lower == Fraction(1539492805, 39945178223)
     assert derivative_lower > Fraction(8, 213)
 
+    # Exact scalar part and finite evidence for the replacement -q/8 ledger.
+    q_maximum = Fraction(1, 1024)
+    exponential_argument = Fraction(1, 8 * (1 - q_maximum**2))
+    exponential_lower = (
+        1 - exponential_argument + exponential_argument**2 / 2 - exponential_argument**3 / 6
+    )
+    assert exponential_lower > Fraction(15, 17)
+    t_floor = Fraction(15, 17)
+    leading_source_derivative = (
+        t_floor**4 - 30 * t_floor**3 + 12 * t_floor**2 + 10 * t_floor + 3
+    ) / (10 * (1 + t_floor**2) ** 2)
+    derivative_numerator = 15 * t_floor**4 - 10 * t_floor**3 - 60 * t_floor**2 + 6 * t_floor + 5
+    derivative_numerator_slope = 60 * t_floor**3 - 30 * t_floor**2 - 120 * t_floor + 6
+    finite_q_source_error = 2 * q_maximum / (5 * (1 - q_maximum)) + 2 * q_maximum**2 / (
+        5 * (1 - q_maximum**2)
+    )
+    assert leading_source_derivative == Fraction(24297, 660490)
+    assert derivative_numerator < 0
+    assert derivative_numerator_slope < 0
+    assert finite_q_source_error == Fraction(684, 1747625)
+    assert leading_source_derivative + finite_q_source_error < Fraction(3, 80)
+    assert Fraction(1, 10) + finite_q_source_error < Fraction(13, 128)
+    assert 90 * q_maximum - 19 * q_maximum**2 < 1
+
+    def folded_derivative_atom(edge_count: int, distance: int, step: int) -> Fraction:
+        coefficients = (-3, 2, 1)
+        direct = 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, step + shift - distance)
+                - correction_atom(step, step + shift - distance + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+        reflected = 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, 2 * edge_count - distance - step - shift)
+                - correction_atom(step, 2 * edge_count - distance - step - shift + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+        return direct + reflected
+
+    edge_count = 64
+    for distance in range(6, edge_count + 1):
+        prefix = Fraction(0)
+        positive_prefix_mass = Fraction(0)
+        negative_prefix_mass = Fraction(0)
+        for step in range(1, edge_count - 1):
+            prefix += folded_derivative_atom(edge_count, distance, step)
+            if step < edge_count - 2:
+                positive_prefix_mass += max(prefix, 0)
+                negative_prefix_mass += max(-prefix, 0)
+        assert positive_prefix_mass <= Fraction(1, 2)
+        assert negative_prefix_mass <= Fraction(57, 8)
+        assert abs(prefix) <= Fraction(1, 2)
+    assert Fraction(1421, 14400) < Fraction(1, 8)
+
     # This finite exact replay is evidence for the still-open local half-ratios,
     # not part of the uniform proof above.
     for edge_count in (8, 12):
