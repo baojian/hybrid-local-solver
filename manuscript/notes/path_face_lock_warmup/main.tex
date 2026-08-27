@@ -19,10 +19,10 @@ source-aligned variables.  An exact rational screen then separates two
 questions that had been conflated: one stable-face proximal solve can be safe
 on the realized path traces while still being insufficient uniformly over the
 whole nonnegative residual cone.  In fact, supplied full paths give exact
-cone witnesses against one, two, and three proximal solves, while a 16-arm
-star gives an exact witness against four.  These witnesses do not refute a
-constant warmup for the realized endpoint-seeded RPPR chronology; that
-sharper reachability question remains open.
+cone witnesses against one, two, and three proximal solves.  A leaf-seeded
+16-arm star then gives a reachable exact failure after each of one through
+five warmup solves.  This does not yet determine the asymptotic minimal
+warmup, but it closes the first spider reachability test negatively.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -336,6 +336,70 @@ Positive diagonal conjugation leaves diagonal entries unchanged, so these
 are also the hat-coordinate trigger entries printed by the verifier.
 \end{proof}
 
+\begin{proposition}[Reachable leaf-seeded obstruction; proved here]
+\label{prop:reachable-star}
+Consider the 16-arm unit star, leaf seed \(s=e_1\), \(q=1/34\), and
+\(\rho=1/64\).  Start from \(x_{-1}=x_0=0\), use pure proximal stages before
+the full-face lock, run \(J\) pure proximal warmups on the full face, and then
+use the full-face momentum \(\beta=33/35\).  For every
+\(J\in\{1,2,3,4,5\}\), the exact obstacle-prox trajectory reaches the full
+face and later has a negative trigger at the seeded leaf.  The momentum-start
+and first-bad stages are
+\begin{center}
+\begin{tabular}{c@{\qquad}ccccc}
+\toprule
+\(J\) & 1 & 2 & 3 & 4 & 5\\
+\midrule
+momentum starts & 5 & 6 & 7 & 8 & 9\\
+first bad stage & 6 & 7 & 9 & 10 & 11\\
+\bottomrule
+\end{tabular}
+\end{center}
+In particular, at \(J=4\) the bad seeded-leaf trigger is
+\begin{equation}
+ -\frac{282800935773229957572471819375}
+ {35278895119339184187289463871766528}<0,
+ \label{eq:reachable-star-four}
+\end{equation}
+and at \(J=5\) it is
+\begin{equation}
+ -\frac{73180414680744870318398270278125}
+ {81564805515912193841013240471524212736}<0.
+ \label{eq:reachable-star-five}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The note-local script \texttt{verify\_reachable\_star.py} constructs
+\(\widetilde Q\), \(\widetilde c\), and every shifted obstacle LCP with
+reduced rational arithmetic.  Each active-set return checks nonnegative
+active values and nonnegative inactive gradients; active gradients vanish by
+the exact linear solve.  The generated support sizes are \(0,2,2,2,17\), so
+the full face first appears at stage four.  Every trigger before the displayed
+bad stage is nonnegative, hence no safeguard correction occurs and the
+computed states are the literal scheduled trajectory.  Exact substitution
+then gives the five first-bad stages and, in particular,
+\eqref{eq:reachable-star-four}--\eqref{eq:reachable-star-five}.
+\end{proof}
+
+This is a finite exact certificate on a supplied graph, not a local-work
+upper bound.  The verifier uses dense rational active-set solves.  Executing
+the scheduled method must still charge every star sweep, state write, and
+shifted solve under the access contract stated above.
+
+The arbitrary basis column in \cref{prop:spider-center-and-star} is not itself
+the admission residual.  At the actual full-face admission (stage four), the
+center, seeded-leaf, and each ordinary-leaf residual are, respectively,
+\[
+ \frac{921057109107975}{4539361314878384384},\qquad
+ \frac{752298172021725}{4272340061062008832},\qquad
+ \frac{248895193419565}{72629781038054150144},
+\]
+all strictly positive.  Thus reachability does not select \(e_1\); instead,
+the genuine three-orbit profile still carries enough leaf-difference content
+to trigger.  This refutes the hoped-for invariant excluding the star
+obstruction from actual leaf-seeded admissions, at least for \(J\leq5\).
+
 The center creates no extra factor in the one-stage entrance theorem of
 \cref{prop:first-momentum-safe}; that theorem already includes every arm
 count.  It does create charged work.  For a center-containing prefix face
@@ -363,12 +427,12 @@ for the whole segment after a graph-size-independent number of solves.  A
 constant must be proved on the realized profile, not on the full nonnegative
 cone unless the latter is genuinely true.
 
-The graph-uniform first-stage result has now survived the spider junction,
-but the full-cone permanent-tail statement has failed even on a star.  The
-remaining spider target is therefore reachability-scoped: characterize the
-actual center/arm residual created by endpoint-seeded admissions and decide
-whether that narrower family avoids the leaf-difference obstruction in
-\eqref{eq:star-leaf-mixture}.
+The graph-uniform first-stage result survives the spider junction, but the
+permanent-tail statement fails even on a reachable leaf-seeded star
+trajectory through five warmups.  The remaining spider target is asymptotic:
+determine whether the minimal safe warmup is bounded by some larger absolute
+constant, grows logarithmically, or grows polynomially with arm count or
+length.
 
 \section{Reproducibility}
 
@@ -380,6 +444,7 @@ python3 verify_warmup.py --sizes 14 16 20 --horizon 64
 python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3
 python3 verify_warmup.py --spider-arms 16 --spider-length 1 \
   --horizon 2 --max-warmup 4
+python3 verify_reachable_star.py
 \end{verbatim}
 The script's first negative entry is a proof witness.  A horizon pass remains
 a finite screen and is printed with that name.
