@@ -1,0 +1,101 @@
+\section{Relation to the active manuscript, and two open items}
+\label{sec:ladder-manuscript-relation}
+
+Each of the three manuscript results below is \emph{cited}, not subsumed. In
+every case the manuscript statement fixes an instance, a literal method, or a
+stopping rule, and the corresponding statement here is about a class under the
+semantic stop. The namespaces $\epsappr$ and $\epsppr$ remain distinct
+throughout; the single bridge used is the one stated in the first paragraph.
+
+\paragraph{The APPR star theorem (\texttt{thm:appr-star-lower-bound}).}
+Lazy \APPR{} is the $\Mpos$ member $\push(u,\tfrac{1+\alpha}{2}r_{u})$ under
+the dictionary \eqref{eq:ladder-mass-dictionary}, and its termination rule
+implies $\errop\le\epsappr$ by \ref{it:ladder-f4} along the route of
+\texttt{eq:appr-accuracy}. Applying
+\Cref{thm:ladder-monotone-lower-bound} with $\epsppr:=\epsappr$ reproduces the
+$\Theta(1/(\alpha\epsappr))$ conclusion with constant $0.0397$ to $0.0433$
+against the manuscript's $3/128$, while extending it to arbitrary step sizes,
+signed steps, batching, output maps in $\OB$, and arbitrary stopping rules.
+The manuscript theorem should be cited as the special case that fixed the
+instance and the mechanism: its Steps~1--2 are the mass-scale ancestors of
+\Cref{lem:ladder-kappa-step,lem:ladder-terminal}, and
+\texttt{prop:appr-upper-bound} supplies the matching member upper bound that
+makes rung one a $\Theta$.
+
+\paragraph{The CF-Push and SOR star bound.}
+The manuscript proves, for certificate-stopped CF-Push at $\omega^{\star}$,
+a star result of order
+\[
+    \Theta\bigl(\log(1/\alpha)/(\sqrt\alpha\,\epsppr)\bigr)
+\]
+in \texttt{subsec:cf-star-lower} and \texttt{eq:cf-opt-sor-identities}. That
+is a statement about one member of $\Rpm$ under one stopping rule. \Cref{thm:ladder-signed-lower-bound} supplies the
+missing \emph{class} lower bound $\Omega(1/(\sqrt\alpha\,\epsppr))$, and the
+$\log(1/\alpha)$ between them is exactly the certificate artifact: the same
+member under the semantic stop runs in $\Theta(1/\sqrt\alpha)$ blocks
+(\statusmeasured). Cite, do not subsume: the manuscript statement is about the
+method together with its certificate; the statement here is about the class
+together with the semantics.
+
+\paragraph{The CF-Push long spider.}
+The $\Omega(1/(\alpha\epsppr))$ obstruction of \texttt{thm:cf-spider-lower} concerns a specific $\Rpm$ member
+under the $\galpha\epsppr d$-activation certificate on a \emph{different}
+instance, one whose semantic content is empty in the relevant regime:
+$S_{\epsppr}=\emptyset$ for the admissible dyadic $\alpha$ at
+$\theta_{\mathrm{sp}}=1/8$, so the all-zero vector is a valid output at
+$\Work=0$. It is therefore a certificate lower bound, fully compatible with
+\Cref{thm:ladder-signed-upper-bound}, and it is the reason the hard instance
+of this note is the star, which by \Cref{obs:ladder-nontrivial} is
+semantically nontrivial. A dedicated audit of that theorem's scope, including
+a pendant-seed repair that restores a nonempty $S_{\epsppr}$ while preserving
+the triangular wave, is in the source package \texttt{i5a}; it is a separate
+piece of work from this note and is not asserted here.
+
+\begin{problem}[General-graph terminal bound for output maps; \statusopen]
+\label{open:ladder-phi}
+\Cref{rem:ladder-phi-eliminated} removed the instance constant
+$\Phi=\max_{u}d_{u}\pi_{u}/(d_{v}\pi_{v})$ from every main statement. What
+remains open is the general-graph analogue of
+\Cref{lem:ladder-terminal}\ref{it:ladder-terminal-star}: the terminal bound on
+$\Psi$ for outputs $z+Mr$ with $B$ near the escape threshold of
+\Cref{prop:ladder-escape}, where the route
+$\Psi_{T}\le\Phi\norm{r_{\mathrm{mass}}}_{1}$ re-enters and is sharp only if
+$\Phi=1$. Conjecturally $\Phi=1$ whenever the seed maximizes $d_{u}\pi_{u}$,
+equivalently $\pr(\eunit{u})_{v}\le\pr(\eunit{v})_{v}$ for all $u$; this is
+\statusmeasured{} on ten zoo graphs at three values of $\alpha$. Until it is
+proved or refuted, general-graph statements should use
+\Cref{thm:ladder-monotone-general} or
+\Cref{lem:ladder-terminal}\ref{it:ladder-terminal-general}, which are
+$\Phi$-free but cover a smaller range of $B$.
+\end{problem}
+
+\begin{problem}[Does anything besides the star force the signed bound?;
+\statusopen]
+\label{open:ladder-beyond-star}
+\Cref{thm:ladder-signed-lower-bound} is star-specific through exactly one
+number, the seed's self-return amplification $\pi_{v}/\galpha$, which is
+$\Theta(1/\alpha)$ only because a degree-$\Theta(1/\epsppr)$ seed reflects its
+mass back in one step. \Cref{prop:ladder-signed-general} shows that
+bounded-degree, one-dimensional-like families amplify only
+$\Theta(1/\sqrt\alpha)$ and yield merely $\Omega(\alpha^{-1/4})$ seed
+operations. In falsifiable form: exhibit a family with
+$\vol(S_{\epsppr})=\Theta(1/\epsppr)$ and \emph{bounded} seed degree on which
+every $\Rpm$ member needs $\Omega(1/(\sqrt\alpha\,\epsppr))$ work; or prove
+that $\pi_{v}/\galpha=\Theta(1/\alpha)$ --- hence a
+$\Theta(1/\epsppr)$-degree seed, hence essentially the star --- is necessary,
+making the star the unique hard instance shape for one-hop relaxation.
+Either branch decides whether the class barrier is a local anomaly of
+reflecting seeds or a graph-uniform phenomenon.
+\end{problem}
+
+\begin{remark}[A known scope limit that is not an open problem]
+\label{rem:ladder-block-scope}
+One-hop \emph{block} relaxations lie outside $\Rpm$ and defeat
+\Cref{lem:ladder-displacement} by construction: the centre-plus-leaves block
+solves the star in $\bigO(m)$. That is a statement about the cheapest
+implementable primitive that is spectrally aligned with the slow mode, and it
+is a design question rather than part of \Cref{open:ladder-beyond-star}. Two
+further scope limits: the $\Mpm$ bounds assume the invariant-exact primitive
+\eqref{eq:ladder-primitive}, so inexact or rounded arithmetic is outside the
+model, and no finite-precision claim is made anywhere in this note.
+\end{remark}

@@ -1,0 +1,168 @@
+\section{Scope, claim status, and the push-scale setting}
+\label{sec:ladder-scope}
+
+\subsection*{What this note does and does not claim}
+
+This note fixes one instance, one state, one primitive, one work charge, one
+output map, and one accuracy guarantee, and then proves how much charged work
+is needed by each of three algorithm classes that differ from one another by
+exactly one axiom. It is a \emph{class} comparison. It is not an information
+lower bound, and \Cref{sec:ladder-elimination} exhibits, on the same instance,
+an algorithm outside the classes that beats every member of the strongest one
+by $\Theta(1/\sqrt{\alpha})$. Nothing in this note argues that
+$1/(\sqrt\alpha\,\epsppr)$ is a necessary cost of the semantic problem.
+
+\paragraph{Accuracy namespace.}
+Throughout, $\epsppr$ is the degree-normalized solution accuracy of the shared
+model in \Cref{subsec:shared-source-aligned-problem}. It is never identified
+with the \APPR{} activation threshold $\epsappr$, with an objective gap
+$\epsobj$, or with a proximal fixed-point tolerance $\epspg$. The one place
+where a bridge to $\epsappr$ is used is
+\Cref{sec:ladder-manuscript-relation}, and it is stated there explicitly.
+
+\paragraph{Claim status.}
+Statements carry one of the following labels.
+\statusproveddraft{} means a complete argument is written out in this note but
+has not been independently audited; it asserts no repository promotion.
+\statusimported{} means the argument is complete in a named source package and
+is used here without being re-derived. \statusmeasured{} means numerics only.
+\statusopen{} means open. Provenance for every statement, together with an
+auditor's checklist, is in \Cref{sec:ladder-verification}.
+
+\subsection*{Push-scale notation}
+
+The shared model of \Cref{subsec:shared-source-aligned-problem} is used
+verbatim; this subsection only introduces note-scoped abbreviations for
+objects it already defines, and redefines nothing. Put
+\begin{equation}
+    \calpha:=\frac{1-\alpha}{1+\alpha},
+    \qquad
+    \galpha:=\frac{2\alpha}{1+\alpha},
+    \qquad
+    H:=I-\calpha AD^{-1},
+    \label{eq:ladder-push-scale-constants}
+\end{equation}
+so that $1-\calpha=\galpha$ and $1+\calpha=2/(1+\alpha)$. Conjugating the
+shared operator $Q$ of \eqref{eq:shared-pagerank-matrices} gives
+\begin{equation}
+    D^{1/2}QD^{-1/2}=\frac{1+\alpha}{2}\,H,
+    \qquad\text{hence}\qquad
+    H\pi=\galpha\,e_{v}
+    \label{eq:ladder-H-conjugation}
+\end{equation}
+for the single-seed specialization $s=e_{v}$ of \eqref{eq:shared-seed}. Write
+\begin{equation}
+    \pr(h):=\galpha H^{-1}h,
+    \qquad\text{so}\qquad
+    \pr(e_{v})=\pi .
+    \label{eq:ladder-pr-operator}
+\end{equation}
+The symmetric form used in \Cref{sec:ladder-signed-lower-bound} is
+\begin{equation}
+    \Hsym:=I-\calpha D^{-1/2}AD^{-1/2}=\frac{2}{1+\alpha}\,Q,
+    \qquad
+    \galpha I\preceq\Hsym\preceq\frac{2}{1+\alpha}I,
+    \label{eq:ladder-Hsym}
+\end{equation}
+the spectral bracket following from $\alpha I\preceq Q\preceq I$.
+
+\subsection*{State, primitive, and charged work}
+
+An algorithm maintains a pair $(z,r)$ with
+\begin{equation}
+    z^{0}=0,
+    \qquad
+    r:=\galpha e_{v}-Hz,
+    \qquad\text{so}\qquad
+    r^{0}=\galpha e_{v},
+    \qquad
+    e:=\pi-z=H^{-1}r .
+    \label{eq:ladder-state}
+\end{equation}
+The one-hop primitive is, for $u\in V$ and $\delta\in\R$,
+\begin{equation}
+    \push(u,\delta):\quad
+    z_{u}\mathrel{+}=\delta,
+    \qquad
+    r_{u}\mathrel{-}=\delta,
+    \qquad
+    r_{w}\mathrel{+}=\frac{\calpha\,\delta}{d_{u}}\ \ (w\in\mathcal N(u)),
+    \label{eq:ladder-primitive}
+\end{equation}
+charged $\work=d_{u}$: one adjacency-list scan of $u$, the manuscript's unit.
+By construction $\push(u,\delta)$ preserves the invariant
+$z+H^{-1}r=\pi$ exactly and changes $z$ only at its base vertex; the
+neighbour split in \eqref{eq:ladder-primitive} is forced and the scalar
+$\delta$ is the only freedom. Total charged work of a run is
+$\Work=\sum_{t}d_{u_{t}}$ plus the output writes accounted in
+\Cref{sec:ladder-classes}. The policy choosing $(u_{t},\delta_{t})$ is
+arbitrary --- adaptive, randomized, or batched. Every bound below is
+\emph{pathwise}, so a randomized policy obeys it with probability one.
+
+\subsection*{Semantic guarantee}
+
+The output is a finite-support vector $\widehat z$, coordinates not listed
+being zero, and must satisfy the shared degree-normalized error target
+\begin{equation}
+    \errop(\widehat z)
+    :=\max_{u\in V}\frac{\abs{\pi_{u}-\widehat z_{u}}}{d_{u}}
+    \le\epsppr .
+    \label{eq:ladder-guarantee}
+\end{equation}
+
+\subsection*{Dictionary to the mass scale}
+
+The monotone results were first proved in the mass scale of
+\file{sections/appr_lower_bound.tex}, where the state is the \APPR{} pair
+$(p,r_{\mathrm{mass}})$. The translation is
+\begin{equation}
+    z=p,
+    \qquad
+    r=\galpha\,r_{\mathrm{mass}},
+    \qquad
+    \delta=\alpha\,\eta,
+    \qquad
+    \pi-z=H^{-1}r=\pr(r_{\mathrm{mass}}).
+    \label{eq:ladder-mass-dictionary}
+\end{equation}
+Under it, lazy \APPR{} push at $u$ (mass amount $\xi=(r_{\mathrm{mass}})_{u}$)
+is $\push(u,\omega r_{u})$ with $\omega=(1+\alpha)/2$; full non-lazy push is
+$\omega=1$; and Gauss--Seidel SOR with $\omega>1$ overshoots $r_{u}$ past
+zero. Feasibility of the monotone class, $\eta\le
+2(r_{\mathrm{mass}})_{u}/(1+\alpha)$, is exactly $\delta\le r_{u}$.
+
+\subsection*{Five facts used throughout}
+
+\begin{lemma}[Elementary facts; \statusproveddraft]
+\label{lem:ladder-facts}
+For every connected $G$, every $\alpha\in(0,1)$ and every $h\in\R^{n}$:
+\begin{enumerate}[label=\textup{(F\arabic*)},leftmargin=3em]
+    \item\label{it:ladder-f1}
+        $H^{\trans}\one=\galpha\one$, hence
+        $\sum_{u}(H^{-1}r)_{u}=\norm{r}_{1}/\galpha$ whenever $r\ge0$;
+    \item\label{it:ladder-f2}
+        $H^{-1}\ge0$ entrywise;
+    \item\label{it:ladder-f3}
+        $(H^{-1})_{vv}=\pi_{v}/\galpha$;
+    \item\label{it:ladder-f4}
+        $\max_{u}\pr(h)_{u}/d_{u}\le\max_{u}h_{u}/d_{u}$ for $h\ge0$;
+    \item\label{it:ladder-f5}
+        $\abs{H^{-1}h}\le H^{-1}\abs{h}$ entrywise.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+\ref{it:ladder-f1}: $H^{\trans}\one=\one-\calpha D^{-1}A\one
+=\one-\calpha D^{-1}d=(1-\calpha)\one=\galpha\one$, and then
+$\sum_{u}(H^{-1}r)_{u}=\inner{H^{-\trans}\one}{r}=\norm{r}_{1}/\galpha$ for
+$r\ge0$.
+\ref{it:ladder-f2}: $\calpha AD^{-1}\ge0$ has column sums $\calpha<1$, so the
+Neumann series $\sum_{k\ge0}(\calpha AD^{-1})^{k}$ converges to $H^{-1}$ and
+is nonnegative.
+\ref{it:ladder-f3}: take the $v$-coordinate of
+$\pi=\galpha H^{-1}e_{v}$, which is \eqref{eq:ladder-H-conjugation}.
+\ref{it:ladder-f4}: $Hd=d-\calpha A\one=d-\calpha d=\galpha d$, so
+$\pr(d)=d$; if $h\le td$ coordinatewise then $\pr(h)\le t\,\pr(d)=td$
+by \ref{it:ladder-f2}.
+\ref{it:ladder-f5}: immediate from \ref{it:ladder-f2}.
+\end{proof}
