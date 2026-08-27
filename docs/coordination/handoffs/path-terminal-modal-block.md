@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-static-cone`
-- Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
+- Branch: `agent/codex/path-terminal-static-frontier`
+- Base commit: `3c25496b58c428fb17f6f3b76778403b6eb988de`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -63,6 +63,10 @@
   entry profiles, and full projection/envelope regime remain open. The
   logarithmic terminal block remains conditional, and no lower bound is
   claimed for other algorithms or models.
+- Frontier follow-up: The five omitted two-step rows are now exactly reduced
+  to a six-coordinate moving-frame correction system and one endpoint scalar.
+  The focused exact replay checks all identities and the finite `m=64` signs;
+  the uniform signs remain OPEN because the margins are only order `q^4`.
 
 ## Evidence
 
@@ -76,10 +80,13 @@
 - The existing rational preflights still check chronology identities at
   `m=8,12`, the changing-face entries/final endpoint at `m=8`, and the exact
   leading correction recurrence through prefix 256.
+- `verify_static_frontier.py` checks the exact moving-frame identities at
+  `m=8,12,16,64`, the finite in-scope signs at `m=64`, and clearly labels all
+  larger screens measured rather than uniform proof.
 - The floating screen remains evidence only for the two open entry profiles
   and terminal regime.
 - Required commands and their final results are recorded in the direction
-  `STATUS.md`; the note builds to 32 pages.
+  `STATUS.md`; the note builds to 46 pages.
 
 ## Review notes
 
@@ -91,7 +98,7 @@
   the monotonic block bounds at floor endpoints, the endpoint
   `e_m=-q^2(1-q)^m/2^m` correction, and the finite half-stencil tail parity.
 - Next action: Prove the replacement `-q/8` derivative estimate's three
-  prefix-lobe bounds and five
-  direct frontier rows, or otherwise prove the explicit local
+  prefix-lobe bounds and the five explicit moving-frontier scalar signs, or
+  otherwise prove the explicit local
   half-ratios uniformly for `m>=64`; then lift the endpoint comparator through the exact folded
   binomial-window kernel for the early convolution margin.

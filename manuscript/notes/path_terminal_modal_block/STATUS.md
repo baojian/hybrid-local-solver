@@ -108,7 +108,13 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
   lobe certificate, and entropy tail. The weakened base estimate `B>-q/16`
   needed by the replacement ledger is also proved, using exact binomial sign
   regimes, a finite rational certificate, and a Hoeffding tail. The derivative
-  estimate and five direct frontier rows remain OPEN. The original derivative target with
+  estimate and five direct frontier rows remain OPEN.  The five rows are now
+  exactly equivalent to five scalar expressions in the first six
+  moving-frontier correction coordinates and the endpoint scalar
+  `beta=eta(p_m-S_m)+delta^m/(q2^m)`.  A focused rational replay checks every
+  identity and the finite `m=64` signs; the observed margins are only
+  `Theta(q)` after division by `q^3`, so correction positivity alone does not
+  prove them. The original derivative target with
   constant `1/16` is rigorously false: an exact zero/first-moment calculation
   gives a fixed-distance limit below `-1/16` at distance seven. The weaker
   sufficient replacement `-q/8` remains open, but its scalar source derivative
@@ -145,7 +151,8 @@ Base commit: `0d6ed658be4aa9bee01e6d520e066d83e3797936`
 - **Open:** Prove the two entry profile inequalities by uniform signed bounds
   for the homogeneous/base, constant-`U`, varying-`U`, `M_n`, and final
   endpoint pieces. For the static inequality, prove the displayed local
-  endpoint half-ratios, or the sufficient interior temporal preimage cone
+  endpoint half-ratios (equivalently, the five exact moving-frontier scalar
+  expressions), or the sufficient interior temporal preimage cone
   together with the seed and three direct frontier rows (or otherwise prove
   `d>=h`). Equivalently, close the explicit base/derivative folded-kernel
   ledger for the two-step cone and its five frontier rows; then prove its early
@@ -222,8 +229,9 @@ constants is permitted only with a corresponding proof.
   endpoint term; bound their signed Green-kernel sums strongly
   enough to prove the displayed `C` and `V` profiles. Separately,
   replace the disproved `eq:terminal-modal-static-derivative-kernel-target` by the sufficient
-  `-q/8` bound, and prove the five direct frontier
-  rows (equivalently, prove `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
+  `-q/8` bound, and prove the five direct frontier rows via
+  `lem:terminal-modal-static-five-frontier-reduction` (equivalently, prove
+  `eq:terminal-modal-static-local-half-ratios`), or the exact sufficient
   temporal-preimage and boundary comparison, which implies the
   explicit local-average inequality
   `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
@@ -260,6 +268,11 @@ constants is permitted only with a corresponding proof.
   one-dimensional lobe certificate; it labels the base/derivative
   folded-kernel ledger, uniform local half-ratios, and temporal preimage
   comparison open.
+  A focused frontier preflight independently reconstructs the literal rational
+  replay, verifies the six-coordinate moving-frame recurrence and all five
+  margin identities at `m=8,12,16,64`, and checks the finite `m=64` signs. Its
+  larger `m=64,...,1024` output is labeled measured and leaves the uniform
+  signs open.
   The floating screen
   reported first range crossings
   `q*k=3.123535156,3.871093750,4.366577148,4.713073730,5.017150879`
@@ -269,7 +282,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 32-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 46-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and

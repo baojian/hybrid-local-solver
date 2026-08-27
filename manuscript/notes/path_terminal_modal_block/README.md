@@ -67,7 +67,13 @@ finite dyadic certificate, and entropy tail. A weakened base estimate
 `B>-q/16`, sufficient for the replacement ledger, is proved by two exact
 binomial sign regimes, a finite rational certificate, and a Hoeffding tail.
 The derivative folded-kernel estimate and five direct frontier rows remain
-open. The
+open.  The five rows now have an exact six-coordinate moving-frame reduction:
+the old-row terms use only $x_m(1),\ldots,x_m(6)$, their previous-time
+counterparts, and $E_m$, while the endpoint uses the exact scalar
+$\eta(p_m-S_m)+\delta^m/(q2^m)$.  Exact rational replay checks the identities
+and the signs at `m=64`; larger screens are explicitly measured.  The second
+endpoint condition is the tightest observed row, but no uniform sign is
+inferred. The
 original proposed derivative constant `-q/16` is now rigorously ruled out by
 an exact fixed-distance asymptotic at distance seven; the weaker sufficient target `-q/8`
 replaces it. The scalar source derivative and exact Abel step for that
