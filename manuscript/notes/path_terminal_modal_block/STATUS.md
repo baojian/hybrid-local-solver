@@ -137,13 +137,17 @@ Base commit: `9f52462`
   `(J_k-J_(k-1)/2)u/q^3` are `0.059654,0.060267,0.060726,0.061044,0.061268`
   at `m=64,128,256,512,1024`; they are below `13/200` but are not a uniform
   proof. These are finite measurements and assert no limit.
+- **Proved:** The correlated finite-`q` stopped ledger includes the source
+  `n=m`, uses a rigorous folded derivative Abel gain ten, and bounds the
+  base, mass, and literal endpoint losses by `3/5120`, `43/1200`, and
+  `3/128`. After damping the leading `31/320` baseline by `15/16`, the
+  remaining margin is `1807/115200>0`. Hence early half-retention,
+  projection inactivity, and zero safe subtraction hold for `qk<3/50`.
 - **Open:** For the static inequality, prove the displayed local endpoint
-  half-ratios (or otherwise prove `d>=h`). Then absorb the finite-`q` source
-  variation, mass, and endpoint remainder into the correlated `31/320`
-  stopped baseline through `qk<3/50` (or prove the stronger separate
-  convolution `L_k u<=13q^3/200`). These two signed spatial
-  estimates are the remaining interfaces to the projection/unclipped-envelope
-  invariant.
+  half-ratios (or otherwise prove `d>=h`). This is the sole remaining
+  interface to the late projection/unclipped-envelope invariant. The
+  stronger separate convolution `L_k u<=13q^3/200` remains unproved but is
+  no longer needed.
 - **Refuted:** A range crossing is not always a certificate when
   the residual maximum is negative. Characteristic roots or the measured
   table alone do not prove a logarithmic block. No frontier/seed surrogate
@@ -163,9 +167,9 @@ Base commit: `9f52462`
    `||(w-w_dir)_+||_(1,D)/q^3`. The signed-mass and endpoint-tail ledger is
    proved, so the static bound now needs only the explicit local half-ratios
    for `d-h`. The first average residual is already strictly negative and the
-   late position comparison is proved for `qk>=3/50`; the remaining early
-   window is exactly the signed linear-candidate half-retention inequality
-   `X_k^lin-X_(k-1)^lin/2>=0`.
+   late position comparison is proved for `qk>=3/50`; the earlier window's
+   signed linear-candidate half-retention is now proved by the correlated
+   stopped ledger.
 
 Each lemma is independently falsifiable by `verify.py`; changing the
 constants is permitted only with a corresponding proof.
@@ -202,11 +206,10 @@ constants is permitted only with a corresponding proof.
   missing statement; Theorem `thm:terminal-modal-conditional-log` is ready to
   consume it.
 - **Next action:** Prove `eq:terminal-modal-static-local-half-ratios`, which
-  implies the
-  explicit local-average inequality
-  `eq:terminal-modal-static-finite-target`; use the displayed binomial-window
-  kernel to prove `L_k u<=13q^3/200` through `qk<3/50`. The
-  proved late comparison then closes the rest of the horizon.
+  implies the explicit local-average inequality
+  `eq:terminal-modal-static-finite-target`. The correlated stopped ledger
+  already closes the early window, and the proved late comparison then closes
+  the rest of the horizon.
 - **Stop/go test:** Promote the logarithmic block only after the missing
   regime lemma is proved uniformly in `m`; a larger floating screen is evidence but
   never a substitute.
@@ -246,7 +249,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 53-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 57-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
@@ -268,4 +271,9 @@ constants is permitted only with a corresponding proof.
   the exact folded-axis/Pascal identities at `m=8,12,16,64`, the monotone
   fixed-row coefficient and central-binomial certificate at
   `m=64,65,96,128`, and the stopped-versus-continued leading comparison.
-  The finite-`q` perturbation is explicitly open.
+  Its finite-`q` continuation is checked by the next preflight.
+- **Finite stopped-ledger preflight:** `verify_finite_stopped_ledger.py`
+  reconstructs the literal folded source packets, the Abel-ten prefix
+  range, folded mass/base gains, frontier recurrence and endpoint atoms, and
+  the damped rational margin `1807/115200`. It keeps the late static target
+  explicitly open.

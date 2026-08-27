@@ -52,15 +52,19 @@
   coefficient obeys an axis-plus-Pascal inequality
   `Shat_(m,k,r)>=2t_k(r)`; retaining the single antipodal endpoint group gives
   `Q_k^circ>=31/320` on every row for `1<=k<m`.
+- Proved the finite-`q` correlated continuation. The folded derivative,
+  base, mass, and endpoint losses are respectively below `11/720`,
+  `3/5120`, `43/1200`, and `3/128`; after the `15/16` damping of the leading
+  baseline, `Q_k/q^3>1807/115200`. Thus the entire early window
+  `qk<3/50` is projection-inactive with zero safe subtraction.
 - The logarithmic terminal block remains conditional. No claim is made for
   other algorithms, recurrences, or implicit response primitives.
 
 ## Remaining interfaces
 
 1. Prove the local endpoint half-ratios for `d-h` (or another proof of the
-   static `21/80` target).
-2. Absorb the finite-`q` source variation, mass, and endpoint remainder into
-   the proved correlated `31/320` stopped baseline through `qk<3/50`.
+   static `21/80` target). This is now the sole remaining nonlinear
+   interface.
 
 The coordinate-error monotonicity shortcut was checked and refuted: a newly
 enlarged restricted optimum can make an old coordinate error more negative.
@@ -68,8 +72,9 @@ It is not used anywhere in the package.
 
 ## Verification
 
-- `verify_regime_reduction.py` checks every new rational constant with exact
-  `Fraction` arithmetic and labels early half-retention open.
+- `verify_regime_reduction.py` checks every late-regime rational constant with
+  exact `Fraction` arithmetic; the downstream finite stopped-ledger verifier
+  closes the correlated early half-retention interface.
 - `verify_early_kernel.py` checks the exact Laurent/tail formula, moving-source
   identities, folded-cycle replay, and the `3/8` reflection obstruction. Its
   larger short-window checks are labeled finite measurements.
@@ -79,6 +84,9 @@ It is not used anywhere in the package.
 - `verify_stopped_baseline.py` checks the exact folded axis and Pascal
   propagation, the central-binomial coefficient bound, endpoint scalar
   bounds, and stopped-versus-continued leading comparison.
+- `verify_finite_stopped_ledger.py` reconstructs literal cycle packets and
+  checks the folded Abel-ten, mass/base gains, frontier endpoint atoms, and
+  final `1807/115200` margin in exact arithmetic.
 - The consolidated `verify.py` retains the exact chronology, changing-face,
   directional packet, position-profile, velocity-profile, and static-tail
   preflights.
@@ -87,5 +95,5 @@ It is not used anywhere in the package.
 
 ## Next action
 
-Prove the local static comparator and the early half-retention convolution.
+Prove the local static comparator.
 The proved late comparison then closes the remainder of the stated horizon.

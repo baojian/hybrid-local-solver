@@ -54,23 +54,25 @@ the signed static mass is now bounded by
 geometric endpoint comparator reduces the full `21q^3/80` static target to
 coordinatewise tail dominance `d>=h`, and a concrete local sufficient route
 is the half-ratio family `E_1>=0`, `F_2>=E_1/2`,
-`F_r>=F_(r-1)/2`. Those local inequalities remain open, as does the early
-half-retention convolution. The first full-face average residual is proved
-strictly negative, and a rational position/envelope comparison closes the
-late range `qk>=3/50`; only the shorter early convolution
-`L_k u<=13q^3/200` remains on the nonlinear side. The former separate
+`F_r>=F_(r-1)/2`. Those local inequalities remain open. The first full-face
+average residual is proved strictly negative, and a rational
+position/envelope comparison closes the late range `qk>=3/50`. The earlier
+interval is now closed by a correlated finite-`q` stopped ledger: after
+damping the `31/320` leading baseline, the derivative, base, mass, and
+literal endpoint losses leave the exact positive margin `1807/115200`.
+The former separate
 `q^3/16` estimate through `17/200` is false and is not used. A further exact reduction
 identifies `(J_k-J_(k-1)/2)L` with the line kernel
 `(1/2) Pr(Bin(k,1/2)>=|r|)`, gives its exact `2m`-cycle fold, and retains the
 derivative cancellation in every standard moving-frontier source. It also
 records the exact obstruction to a global quarter-mass shortcut: at `k=2`,
 path target zero sees an interior source at one with degree-normalized
-coefficient `3/8>1/4`. Thus the open short-window bound must retain source
-location and the signed endpoint group. At leading order this correlation is
-now quantified exactly: the exact folded stopped-deletion coefficient
-dominates twice the endpoint tail, so the literal stopped combined baseline
-is at least `31/320` on every row. Its finite-`q` source variation, mass, and
-endpoint remainder remain open. A
+coefficient `3/8>1/4`. The successful proof therefore retains source
+location and the signed endpoint group. At leading order the exact folded
+stopped-deletion coefficient gives `31/320`; at finite `q`, the folded
+Abel-ten, mass, base, and endpoint ledgers preserve strict positivity. The
+separate inequality `L_k u<=13q^3/200` remains unproved but is no longer
+needed. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact
@@ -88,8 +90,9 @@ bound `[-4,4]`, early-prefix ledger, and final `179/14400` margin. A fifth
 exact preflight checks the directed packet identity, the folded `J_k` alias
 bound, the `J_kL` binomial-window identity, the entry-correction sign, and the
 static `u=Ld` reduction at `m=8,12`. A separate exact preflight checks the
-full-entry and late-regime rational margins while explicitly labeling the
-early half-retention inequality open. Numerical observations are labeled
+full-entry and late-regime rational margins; at that intermediate stage it
+labels early half-retention open, while the later finite stopped-ledger
+preflight closes the correlated inequality. Numerical observations are labeled
 **Measured**, not promoted to an asymptotic theorem or a lower bound for other
 algorithms.
 
@@ -97,14 +100,18 @@ An additional exact preflight, `verify_correction_margin.py`, checks the
 sharpened `31/320` leading ledger, the folded final-time source count including
 reflection and the one-step edge, the exact two-row defect and endpoint on
 rational replays, the sharpened sixteen-cell variation bound, and every
-rational constant in the `c<-13q^3/100` theorem. It
-explicitly reports the correlated early inequality as open.
+rational constant in the `c<-13q^3/100` theorem. It treats the correlated
+early inequality as a downstream interface; the finite stopped-ledger theorem
+now proves that interface without requiring the stronger separate convolution
+bound.
 
 `verify_early_kernel.py` checks the exact half-velocity Laurent and
 binomial-tail formulas, the standard derivative/mass source responses, the
 `3/8` reflection obstruction, and the folded-cycle identity against exact
 replays at `m=8,12`. Its larger short-window runs are explicitly finite
-measurements and do not certify the uniform `13/200` inequality.
+measurements and do not certify the stronger uniform `13/200` inequality.
+The needed correlated early inequality is proved and checked separately in
+exact arithmetic by `verify_finite_stopped_ledger.py`.
 
 Build with `make`. Run the screen with:
 
