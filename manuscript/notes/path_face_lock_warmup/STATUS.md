@@ -25,37 +25,63 @@ Allowed write scope: `manuscript/notes/path_face_lock_warmup/` and `docs/coordin
 ## Claim ledger
 
 - **Source:** The Fable face-lock construction and the project path
-  position/velocity profiles motivate the question.
-- **Proved here:** No new claim yet; the direction has just been registered.
+  position/velocity profiles motivate the question. Fable's `Proved-draft`
+  labels are treated as pending independent audit rather than imported proof.
+- **Proved here:** The exact normalized fixed-face residual/trigger mapping is
+  `y_(t+1)=M u_t`, `u_t=(1+beta)y_t-beta*y_(t-1)`, with
+  `M=kappa(Q_S+kappa I)^(-1)`. The Fable sharp componentwise condition is a
+  sufficient absolute high-mode bound, stronger than `u_t>=0`. Exact cone
+  witnesses refute one stable-face prox solve on `P4,q=1/8` and two on
+  `P8,q=1/16`: the endpoint trigger entries are respectively `-541/48000`
+  at momentum time 2 and the exact negative fraction displayed in
+  Proposition `prop:path-lock-cone-witnesses` at time 3.
 - **Conditional:** None yet.
-- **Measured:** None yet.
-- **Refuted:** None yet.
-- **Open:** The post-lock warmup bound and its spider extension.
+- **Measured:** The exact finite screen at `q=1/(2n)` finds first
+  horizon-passing values `J=2` on `P4,P6` and `J=3` on
+  `P8,P10,P12,P14,P16,P20`, through 32 or 64 momentum stages. A finite exact
+  pass is not an all-time theorem.
+- **Refuted:** Any proof that claims one or two pure-prox solves make every
+  nonnegative path-face residual permanently safe. This is a cone-uniform
+  proof-route stop, not a reachability or actual-trajectory counterexample.
+- **Open:** A graph-size-independent warmup bound on the realized
+  endpoint-seeded changing-face path trajectory; the all-time kernel question
+  for larger constants; and the spider junction extension.
 
 ## Central blocker
 
-Express the Fable componentwise entrance gate in the exact path variables and
-determine whether the existing position/velocity estimates imply it.
+Characterize the actual residual profile after a prefix admission and one
+stable-face prox solve. The full nonnegative cone is too broad, while the
+existing transported-center path profiles concern a different recurrence and
+cannot be imported directly.
 
 ## Dependencies and reusable outputs
 
 - Formal registry dependencies: `aesp_cd_l1_rppr`, `path_terminal_modal_block`.
 - Source/shared prerequisites: source-aligned RPPR definition.
 - Context/provenance: Fable iteration-7 notes are read-only exploratory evidence.
+- Reusable outputs: exact trigger-kernel recurrence and a note-local rational
+  falsification screen with explicit basis-column witnesses.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
 
-- Exact file/section/lemma: `main.tex`, opening proof-obligation section.
-- Next concrete action: derive the gate in normalized path coordinates.
-- Stop/go test: prove a uniform bound or record the first exact family that
-  forces the warmup to grow.
+- Exact file/section/lemma: `main.tex`, Sections
+  `sec:gate-reconstruction`, `sec:cone-screen`, and `sec:path-spider-targets`.
+- Next concrete action: derive the actual endpoint-prefix admission residual
+  row by row, then test/prove its one-warmup trigger sequence; separately test
+  whether the full-cone first-pass constant remains bounded at larger sizes.
+- Stop/go test: prove an all-time constant for the realized profile, or give
+  an exact reachable family whose minimal safe warmup grows.
 
 ## Verification
 
-- Source pointers checked: pending.
-- Focused build/checks run: pending.
-- Known gaps: all substantive claims are open.
+- Source pointers checked: Fable I6-A2 Sections 1--4 and I7-A Sections 1--2;
+  sibling path modal note exact recurrence and claim boundary.
+- Focused exact checks: `verify_warmup.py` passed its P4--P20 screens and
+  reproduced both displayed negative fractions.
+- Known gaps: finite horizon passes are not all-time proofs; the basis-column
+  cone witnesses are not claimed reachable; spider coupling has not yet been
+  analyzed.
 
 ## Repository handoff
 
