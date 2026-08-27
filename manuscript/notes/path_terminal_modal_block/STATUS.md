@@ -105,6 +105,10 @@ Base commit: `9f52462`
   cancellation of its `(1-z)` factor. A global quarter-mass shortcut is
   refuted exactly at `k=2`, where reflection makes the degree-normalized
   target-zero/source-one coefficient `3/8`.
+  For the correlated leading expression, an exact folded-axis identity and
+  Pascal recurrence prove `Shat_(m,k,r)>=2t_k(r)`. Retaining the literal
+  endpoint group then gives the stopped baseline
+  `Q_k^circ>=d_(m+k+1)^circ>=31/320` for every `1<=k<m`.
 - **Conditional:** If projection plus envelope subtraction remain inactive
   through the stated horizon, then every
   sufficiently large member requires at least
@@ -134,8 +138,10 @@ Base commit: `9f52462`
   at `m=64,128,256,512,1024`; they are below `13/200` but are not a uniform
   proof. These are finite measurements and assert no limit.
 - **Open:** For the static inequality, prove the displayed local endpoint
-  half-ratios (or otherwise prove `d>=h`). Then prove the exact early
-  short convolution `L_k u<=13q^3/200` through `qk<3/50`. These two signed spatial
+  half-ratios (or otherwise prove `d>=h`). Then absorb the finite-`q` source
+  variation, mass, and endpoint remainder into the correlated `31/320`
+  stopped baseline through `qk<3/50` (or prove the stronger separate
+  convolution `L_k u<=13q^3/200`). These two signed spatial
   estimates are the remaining interfaces to the projection/unclipped-envelope
   invariant.
 - **Refuted:** A range crossing is not always a certificate when
@@ -240,7 +246,7 @@ constants is permitted only with a corresponding proof.
   entry-quadrature defect against their stated constants on `H_m`, labeling
   the checks vacuous when `H_m=0`; it verifies the two formulas for `D_h`
   agree, and keeps wider-band modal/profile statistics separate.
-- **Build:** A clean `latexmk` rebuild produced a 49-page PDF with no
+- **Build:** A clean `latexmk` rebuild produced a 53-page PDF with no
   LaTeX, package, overfull/underfull, or undefined-reference warning.
 - **Audits/tests:** `make note-audit`, `make note-targets`,
   `make agent-audit`, `git diff --check`, focused Ruff lint/format checks, and
@@ -257,3 +263,9 @@ constants is permitted only with a corresponding proof.
   `m=8,12`, and the `3/8` reflection obstruction. Its larger short-window
   checks are labeled finite measurements; the uniform `13/200` inequality
   remains open.
+- **Stopped-baseline preflight:** `verify_stopped_baseline.py` checks the exact
+  `S-2t` Pascal triangle through `k=128`, the endpoint scalar interval, and
+  the exact folded-axis/Pascal identities at `m=8,12,16,64`, the monotone
+  fixed-row coefficient and central-binomial certificate at
+  `m=64,65,96,128`, and the stopped-versus-continued leading comparison.
+  The finite-`q` perturbation is explicitly open.

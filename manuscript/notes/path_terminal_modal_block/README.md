@@ -66,7 +66,11 @@ derivative cancellation in every standard moving-frontier source. It also
 records the exact obstruction to a global quarter-mass shortcut: at `k=2`,
 path target zero sees an interior source at one with degree-normalized
 coefficient `3/8>1/4`. Thus the open short-window bound must retain source
-location and the signed endpoint group. A
+location and the signed endpoint group. At leading order this correlation is
+now quantified exactly: the exact folded stopped-deletion coefficient
+dominates twice the endpoint tail, so the literal stopped combined baseline
+is at least `31/320` on every row. Its finite-`q` source variation, mass, and
+endpoint remainder remain open. A
 deterministic NumPy screen reconstructs
 the actual admission trajectory, measures the packet and modal defects, checks
 the sharpened profiles and projection/envelope margins, verifies the exact

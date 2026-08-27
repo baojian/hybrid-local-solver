@@ -48,6 +48,10 @@
   `c(j)<-13q^3/100` on every full-face row. Consequently the separate
   sufficient early convolution target is now `T_k d<=13q^3/200` for
   `qk<3/50`; that finite inequality remains open.
+- Proved the correlated stopped leading baseline. The exact folded deletion
+  coefficient obeys an axis-plus-Pascal inequality
+  `Shat_(m,k,r)>=2t_k(r)`; retaining the single antipodal endpoint group gives
+  `Q_k^circ>=31/320` on every row for `1<=k<m`.
 - The logarithmic terminal block remains conditional. No claim is made for
   other algorithms, recurrences, or implicit response primitives.
 
@@ -55,8 +59,8 @@
 
 1. Prove the local endpoint half-ratios for `d-h` (or another proof of the
    static `21/80` target).
-2. Prove the exact folded half-velocity convolution through `qk<3/50`,
-   retaining the source locations and signed final endpoint group.
+2. Absorb the finite-`q` source variation, mass, and endpoint remainder into
+   the proved correlated `31/320` stopped baseline through `qk<3/50`.
 
 The coordinate-error monotonicity shortcut was checked and refuted: a newly
 enlarged restricted optimum can make an old coordinate error more negative.
@@ -72,6 +76,9 @@ It is not used anywhere in the package.
 - `verify_correction_margin.py` checks the sixteen-cell variation certificate,
   the improved final-prefix ledger, the exact two-row entry defect, and every
   rational constant in the `c<-13q^3/100` theorem.
+- `verify_stopped_baseline.py` checks the exact folded axis and Pascal
+  propagation, the central-binomial coefficient bound, endpoint scalar
+  bounds, and stopped-versus-continued leading comparison.
 - The consolidated `verify.py` retains the exact chronology, changing-face,
   directional packet, position-profile, velocity-profile, and static-tail
   preflights.
