@@ -13,8 +13,7 @@ import json
 
 def inverse(matrix):
     n = len(matrix)
-    aug = [row[:] + [F(int(i == j)) for j in range(n)]
-           for i, row in enumerate(matrix)]
+    aug = [row[:] + [F(int(i == j)) for j in range(n)] for i, row in enumerate(matrix)]
     for col in range(n):
         pivot = next(row for row in range(col, n) if aug[row][col])
         aug[col], aug[pivot] = aug[pivot], aug[col]
@@ -24,14 +23,12 @@ def inverse(matrix):
             if row == col or not aug[row][col]:
                 continue
             scale = aug[row][col]
-            aug[row] = [aug[row][j] - scale * aug[col][j]
-                        for j in range(2 * n)]
+            aug[row] = [aug[row][j] - scale * aug[col][j] for j in range(2 * n)]
     return [row[n:] for row in aug]
 
 
 def matvec(matrix, vector):
-    return [sum((entry * vector[j] for j, entry in enumerate(row)), F(0))
-            for row in matrix]
+    return [sum((entry * vector[j] for j, entry in enumerate(row)), F(0)) for row in matrix]
 
 
 def cycle(n):
@@ -39,8 +36,7 @@ def cycle(n):
 
 
 def complete_bipartite(a, b):
-    return ([set(range(a, a + b)) for _ in range(a)]
-            + [set(range(a)) for _ in range(b)])
+    return [set(range(a, a + b)) for _ in range(a)] + [set(range(a)) for _ in range(b)]
 
 
 def build(adj, q):
@@ -55,17 +51,16 @@ def build(adj, q):
         qt[i][i] = (1 + alpha) * degree[i] / 2
         for j in adj[i]:
             qt[i][j] = -(1 - alpha) / 2
-    shifted = [[qt[i][j] + (kappa * degree[i] if i == j else 0)
-                for j in range(n)] for i in range(n)]
+    shifted = [
+        [qt[i][j] + (kappa * degree[i] if i == j else 0) for j in range(n)] for i in range(n)
+    ]
     shifted_inv = inverse(shifted)
-    resolvent = [[kappa * shifted_inv[i][j] * degree[j]
-                  for j in range(n)] for i in range(n)]
+    resolvent = [[kappa * shifted_inv[i][j] * degree[j] for j in range(n)] for i in range(n)]
     return degree, resolvent, beta, nu, 1 - q * q
 
 
 def dot_d(degree, left, right):
-    return sum((degree[i] * left[i] * right[i]
-                for i in range(len(degree))), F(0))
+    return sum((degree[i] * left[i] * right[i] for i in range(len(degree))), F(0))
 
 
 def project(degree, vector):
@@ -83,9 +78,11 @@ def scale(c, vector):
 
 def lyapunov(degree, resolvent, beta, current, previous):
     m_previous = matvec(resolvent, previous)
-    return (dot_d(degree, current, current)
-            - (1 + beta) * dot_d(degree, current, m_previous)
-            + beta * dot_d(degree, previous, m_previous))
+    return (
+        dot_d(degree, current, current)
+        - (1 + beta) * dot_d(degree, current, m_previous)
+        + beta * dot_d(degree, previous, m_previous)
+    )
 
 
 def audit_case(name, adj, q, trials=7):
@@ -93,10 +90,8 @@ def audit_case(name, adj, q, trials=7):
     n = len(adj)
     passed = 0
     for trial in range(trials):
-        y = [F(((i + 2) * (trial + 3)) % 13 - 6, trial + 4)
-             for i in range(n)]
-        raw_h = [F(((i + 5) * (trial + 2)) % 17 - 8, trial + 5)
-                 for i in range(n)]
+        y = [F(((i + 2) * (trial + 3)) % 13 - 6, trial + 4) for i in range(n)]
+        raw_h = [F(((i + 5) * (trial + 2)) % 17 - 8, trial + 5) for i in range(n)]
         h = project(degree, raw_h)
         z = project(degree, y)
         y_minus = [max(-entry, F(0)) for entry in y]
@@ -105,19 +100,21 @@ def audit_case(name, adj, q, trials=7):
 
         previous = add(h, scale(1 / beta, z))
         following = matvec(resolvent, add(h, scale(-1, z), scale(-1, w)))
-        lhs = (lyapunov(degree, resolvent, beta, following, h)
-               - (1 - q) ** 2
-               * lyapunov(degree, resolvent, beta, h, previous))
+        lhs = lyapunov(degree, resolvent, beta, following, h) - (1 - q) ** 2 * lyapunov(
+            degree, resolvent, beta, h, previous
+        )
 
         mbw = matvec(resolvent, add(bvec, w))
         mb = matvec(resolvent, bvec)
         mh = matvec(resolvent, h)
         m2h = matvec(resolvent, mh)
         gh = add(scale(m0, h), scale(-2, mh), m2h)
-        psi = (dot_d(degree, mbw, mbw)
-               - m0 * dot_d(degree, bvec, mb)
-               - nu * nu * dot_d(degree, mh, mh)
-               - beta * dot_d(degree, h, gh))
+        psi = (
+            dot_d(degree, mbw, mbw)
+            - m0 * dot_d(degree, bvec, mb)
+            - nu * nu * dot_d(degree, mh, mh)
+            - beta * dot_d(degree, h, gh)
+        )
 
         delta = max([F(0)] + [-entry for entry in y])
         displacement = [(entry + delta) / beta for entry in y]

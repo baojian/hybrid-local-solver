@@ -48,7 +48,13 @@ Allowed write scope: `manuscript/notes/path_face_lock_warmup/` and `docs/coordin
   spider center and arm equations are explicit in
   Proposition `prop:spider-center-and-star`. On the 16-arm unit star at
   `q=1/34`, even four warmup solves have the exact negative second-trigger
-  leaf diagonal `-17140927690425/914326479306752`.
+  leaf diagonal `-17140927690425/914326479306752`. The stronger reachable
+  check uses leaf seed `s=e_1`, `rho=1/64`, and the literal exact obstacle
+  trajectory. Its full face appears at stage 4, and each of `J=1,...,5`
+  full-face warmups is followed by an exact seeded-leaf trigger; for `J=4`
+  the trigger is
+  `-282800935773229957572471819375/35278895119339184187289463871766528`
+  at stage 10, and for `J=5` it is negative at stage 11.
 - **Conditional:** None yet.
 - **Measured:** The exact finite screen at `q=1/(2n)` finds first
   horizon-passing values `J=2` on `P4,P6` and `J=3` on
@@ -57,6 +63,20 @@ Allowed write scope: `manuscript/notes/path_face_lock_warmup/` and `docs/coordin
 - **Refuted:** Any proof that claims one, two, or three pure-prox solves make
   every nonnegative path-face residual permanently safe, or that four solves
   do so uniformly on spiders. A reset after any fixed safe burst also fails
+  to accelerate the full-face Perron mode. On the leaf-seeded 16-arm star,
+  one through five warmups are also refuted on an exact reachable trajectory.
+  The path cone witnesses remain non-reachability claims.
+- **Open:** A graph-size-independent warmup bound on the realized
+  endpoint-seeded changing-face path trajectory; the all-time kernel question
+  for larger constants; and the asymptotic spider warmup above five.
+
+## Central blocker
+
+For paths, characterize the actual residual profile after a prefix admission
+and one stable-face prox solve. The full nonnegative cone is too broad, while
+the existing transported-center path profiles concern a different recurrence
+and cannot be imported directly. For spiders, the first reachable special
+case now fails through five warmups; no growing family is proved.
   to accelerate the full-face Perron mode. These are proof-route stops, not
   reachability or actual-trajectory counterexamples.
 - **Open:** A graph-size-independent warmup bound on the realized
@@ -77,7 +97,8 @@ cannot be imported directly.
 - Context/provenance: Fable iteration-7 notes are read-only exploratory evidence.
 - Reusable outputs: exact trigger-kernel recurrence and a note-local rational
   falsification screen with explicit basis-column witnesses; exact spider
-  junction equations and prefix-volume charge.
+  junction equations and prefix-volume charge; exact reachable star LCP
+  verifier through five warmups.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
@@ -98,6 +119,11 @@ cannot be imported directly.
 - Focused exact checks: `verify_warmup.py` passed its P4--P20 screens,
   reproduced the P4/P8 fractions and the P46 exact negative sign, and
   reproduced all four exact star leaf witnesses.
+- Focused reachable check: `verify_reachable_star.py` exactly reproduces the
+  face sequence and first negative seeded-leaf trigger for `J=1,...,5`.
+- Known gaps: finite horizon passes are not all-time proofs; the path
+  basis-column cone witnesses are not claimed reachable; one star does not
+  prove asymptotic growth.
 - Known gaps: finite horizon passes are not all-time proofs; the basis-column
   cone witnesses are not claimed reachable; actual spider admission has not
   been analyzed.
