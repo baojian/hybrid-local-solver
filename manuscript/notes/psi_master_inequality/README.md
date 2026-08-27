@@ -11,4 +11,9 @@ Build from the repository root with:
 
 ```bash
 make -C manuscript/notes/psi_master_inequality
+python3 manuscript/notes/psi_master_inequality/verify_master_identity.py
 ```
+
+The second command is an independent exact-rational audit of the master
+identity and the full algebraic cap representation.  Its committed output is
+[`verify_master_identity.json`](verify_master_identity.json).

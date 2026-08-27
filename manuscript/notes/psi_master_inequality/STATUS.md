@@ -64,7 +64,8 @@ positive-association condition that can be proved on an infinite family.
   `aesp_cd_l1_rppr`, `volume_gated_acceleration`, the acceleration/local-solver
   literature notes, and Fable iteration-6/7 evidence.
 - Focused build/checks run: `make -C
-  manuscript/notes/psi_master_inequality` and `git diff --check` pass.
+  manuscript/notes/psi_master_inequality`, the independent exact-rational
+  `verify_master_identity.py` audit (21/21), and `git diff --check` pass.
 - Known gaps: mixed clipping, proper faces, finite inner residuals, and all
   algorithm/work consequences.
 

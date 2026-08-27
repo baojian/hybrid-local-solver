@@ -30,4 +30,7 @@ infinite graph family, beginning with complete bipartite graphs.
 ## Checks
 
 - `make -C manuscript/notes/psi_master_inequality`: pass.
+- `python3 manuscript/notes/psi_master_inequality/verify_master_identity.py`:
+  21/21 exact-rational trials pass on `C5`, `K2,3`, and `K3,4`; committed
+  output is `verify_master_identity.json`.
 - `git diff --check`: pass.
