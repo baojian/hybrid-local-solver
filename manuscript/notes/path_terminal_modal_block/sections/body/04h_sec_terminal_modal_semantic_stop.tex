@@ -1,0 +1,137 @@
+\section{Semantic accuracy before the prescribed certificate}
+\label{sec:terminal-modal-semantic-stop}
+
+The logarithmic block in \cref{thm:terminal-modal-log-unconditional} is a
+certificate statement.  The same proved nonlinear regime gives a much
+earlier semantic upper bound for the literal iterate.  This section keeps
+those two stopping notions separate.
+
+\begin{theorem}[A constant-time-scale semantic stop for the named recurrence]
+\label{thm:terminal-modal-semantic-stop}
+Set
+\begin{equation}
+ k_{\rm sem}=\left\lceil\frac4q\right\rceil.
+ \label{eq:terminal-modal-semantic-stop-time}
+\end{equation}
+For all sufficiently large $m$, the named literal full-face recurrence agrees
+with its linear candidate through time $k_{\rm sem}$ and satisfies
+\begin{equation}
+ \norm{p_{k_{\rm sem}}-p^\star}_\infty<\frac q5=\tau.
+ \label{eq:terminal-modal-semantic-stop}
+\end{equation}
+Consequently the returned vector has degree-normalized PPR error less than
+$\rho+\tau=2q/5$ under the standard RPPR bias bridge.
+No explicit threshold for ``sufficiently large'' is asserted.
+\end{theorem}
+
+\begin{proof}
+Let $k=k_{\rm sem}$ and $s=qk$, so $s\ge4$.  Because
+\[
+ qK_m\ge\frac18\log\frac1q-q
+ \qquad\hbox{and}\qquad
+ qk\le4+q,
+\]
+one has $k\le K_m$ for all sufficiently large $m$.  Therefore
+\cref{thm:terminal-modal-regime-asymptotic} identifies the literal state with
+the full-face linear candidate and makes its safe envelope strictly
+unclipped through time $k$.
+
+The exact error formula
+\eqref{eq:terminal-modal-position-candidate-kernel}, the lower entry bounds
+\eqref{eq:terminal-modal-entry-position-bounds}, and positivity of $K_k,L,J_k$
+with row masses $1,1,k$ give
+\begin{equation}
+ p_k-p^\star
+ \ge-q\delta^k\left(\frac{157}{20}+\frac{s}{8}\right)\one
+ \ge-qe^{-s}\left(\frac{157}{20}+\frac{s}{8}\right)\one.
+ \label{eq:terminal-modal-semantic-error-lower}
+\end{equation}
+
+For the other side, write
+\[
+ M_k=\max(0,\max_j r_j(p_k)),
+ \qquad
+ \delta_k=M_k/q^2.
+\]
+The unclipped safe envelope is $\ell_k=p_k-\delta_k\one$.  Since the
+normalized full-face operator sends $\one$ to $q^2\one$,
+$r(\ell_k)=r(p_k)-M_k\one\le0$.  The full-face operator is a nonsingular
+$M$-matrix, so its inverse is entrywise nonnegative; comparison with
+$r(p^\star)=0$ yields $\ell_k\le p^\star$.  Hence
+\begin{equation}
+ p_k-p^\star\le\delta_k\one
+ \le\frac{21}{80}qe^{-s}(1+8s)\one,
+ \label{eq:terminal-modal-semantic-error-upper}
+\end{equation}
+where the final inequality is
+\eqref{eq:terminal-modal-late-envelope-upper} with the asymptotically proved
+static target.
+
+Both scalar factors on the right of
+\eqref{eq:terminal-modal-semantic-error-lower}--
+\eqref{eq:terminal-modal-semantic-error-upper} decrease for $s\ge4$.
+The positive exponential series gives the exact lower bound
+\begin{equation}
+ e^4>\sum_{n=0}^6\frac{4^n}{n!}=\frac{437}{9}.
+ \label{eq:terminal-modal-semantic-exp-four}
+\end{equation}
+At $s=4$, the two required comparisons reduce to
+\begin{equation}
+ \frac{437}{9}-\frac{167}{4}=\frac{245}{36}>0,
+ \qquad
+ \frac{437}{9}-\frac{693}{16}=\frac{755}{144}>0.
+ \label{eq:terminal-modal-semantic-rational-slacks}
+\end{equation}
+The first proves that the magnitude of the lower bound is less than $q/5$;
+the second proves $(21/80)e^{-4}(1+32)<1/5$.  Thus every coordinate lies
+strictly between $-q/5$ and $q/5$, proving
+\eqref{eq:terminal-modal-semantic-stop}.  Adding the RPPR bias $\rho=q/5$
+gives the PPR statement.
+\end{proof}
+
+\begin{corollary}[Semantic-return swept-volume ledger; named family]
+\label{cor:terminal-modal-semantic-work}
+If the named execution is returned at the theorem-timed semantic stop rather
+than waiting for its prescribed one-sided certificate, the aggregate face
+volume of its terminal proximal scans is at most
+\begin{equation}
+ \vol(P_m)k_{\rm sem}
+ \le\frac1{8q}\left(\frac4q+1\right)
+ =\frac1{2q^2}+\frac1{8q}.
+ \label{eq:terminal-modal-semantic-terminal-work}
+\end{equation}
+Including the aggregate face volume of the proper-prefix proximal scans gives
+\begin{equation}
+ \sum_{j=0}^{m-1}(1+2j)+\vol(P_m)k_{\rm sem}
+ \le\frac{129}{256q^2}+\frac1{8q}=O(q^{-2}).
+ \label{eq:terminal-modal-semantic-total-work}
+\end{equation}
+Every named fixed-face step uses only a constant number of passes over its
+face.  Hence the complete charged work through this return, including output
+and final residual validation, is $O(q^{-2})$.  In the note's PPR namespace
+$\epsppr=\rho+\tau=2q/5$, this is $O(\epsppr^{-2})$.
+\end{corollary}
+
+\begin{proof}
+Use $\vol(P_m)=2m=1/(8q)$ and
+$k_{\rm sem}\le4/q+1$.  The prefix volumes sum to
+$\sum_{j=0}^{m-1}(1+2j)=m^2=1/(256q^2)$.
+As in the proof of the exact-CG escape proposition above, the explicit prefix
+optimum and rank-one displacement formulas are materialized by generating
+$\chi^i,\chi^{-i}$ sequentially.  Thus response/transport state writes, the
+gate, and the prefix update are all absorbed in $O(\vol(U_j))$ work rather
+than requiring an uncharged restricted solve.
+The named constant-pass implementation charges $O(\vol(U))$ per fixed-face
+step, while output and final validation add $O(m)=O(q^{-1})$.
+\end{proof}
+
+\begin{remark}[What the semantic theorem does and does not change]
+The stopping time in \cref{thm:terminal-modal-semantic-stop} is a
+family-specific theorem schedule; it is not the literal implementation's
+prescribed one-sided certificate.  If that implementation is required to
+wait for its certificate, \cref{cor:terminal-modal-charged-work} still gives
+the logarithmically larger charged ledger.  Conversely, the semantic theorem
+shows that this delay cannot be interpreted as an RPPR accuracy lower bound.
+It gives neither an eleven-resource class lower bound nor a result for other
+graphs, schedules, or algorithms.
+\end{remark}

@@ -4,8 +4,8 @@ Last reviewed: 2026-08-28
 State: synthesis
 Agent family: codex
 Role: direction
-Branch: `agent/codex/path-terminal-asymptotic-regime`
-Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
+Branch: `agent/codex/path-terminal-semantic-stop`
+Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
 
 ## Exact question and contract
 
@@ -16,9 +16,9 @@ Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
   `alpha=q^2`, `rho=tau=q/5`, ambient degrees, exact-real zero start,
   complete all-violations admission, transported estimate center, and the
   literal projected/safe-envelope recurrence.
-- **Accuracy namespace:** The note-scoped one-sided normalized KKT
-  certificate.  It
-  is not the repository-wide stopping decision.
+- **Accuracy namespace:** The note distinguishes its one-sided normalized KKT
+  certificate from degree-normalized RPPR semantic error.  Neither is the
+  repository-wide stopping decision.
 - **Access and charged work:** Adjacency-list access; one restricted sweep is
   charged by active volume.  The named terminal phase scans the full path.
 - **Intended result:** Prove an asymptotic logarithmic terminal block for the
@@ -76,6 +76,11 @@ Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
 5. The proved modal-band energy and range bridge exclude the one-sided
    certificate through `K_m`, yielding the unconditional asymptotic terminal
    block for the named recurrence.
+6. Positivity of the full-face propagators, the entry lower bounds, and the
+   proved unclipped safe envelope give the two-sided semantic estimate
+   `||p_k-p*||_inf<q/5` once `qk>=4`.  Thus a theorem-timed semantic return
+   uses `O(q^-2)` charged work even though the prescribed certificate retains
+   its logarithmic delay.
 
 ## Charged implementation ledger
 
@@ -90,7 +95,8 @@ At `eps_ppr=rho+tau=2q/5`, this is
 `Omega(eps_ppr^-2 log(1/eps_ppr))`.  Relative to the log-free scale
 `1/(sqrt(alpha)*eps_ppr)=5/(2q^2)`, the prescribed certification runtime has
 a logarithmic overhead.  This is not a semantic-error lower bound: the
-iterate may be accurate earlier.  It does not refute a soft-O work target and
+iterate is proved accurate by `ceil(4/q)` full-face steps.  It does not
+refute a soft-O work target and
 does not extend beyond the named sweep-linked implementation resources.
 
 ## Open or refuted stronger statements
@@ -138,12 +144,15 @@ frontier limits; it is not needed for a sufficiently-large-`m` result.
 - `verify_asymptotic_closure.py` checks the implication-chain arithmetic and
   the integer early/late handoff without claiming an explicit frontier
   cutoff.
+- `verify_semantic_stop.py` checks the exact `s=4` rational constants and
+  reports the semantic/certificate crossing separation as labeled float64
+  evidence.
 - Final build, repository note/target/agent audits, focused Ruff/format,
   control-byte/conflict-marker scans, and diff checks are required before
   promotion.
 
 ## Resume here
 
-Promote the asymptotic synthesis.  Further work may seek an explicit frontier
-cutoff or a sharper named-recurrence constant, but neither is part of the
-proved theorem.
+Promote the asymptotic synthesis together with its semantic/certificate
+separation.  Further work may seek an explicit frontier cutoff or sharpen the
+proved semantic constant `4` toward the measured value near `3.43`.

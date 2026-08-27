@@ -53,6 +53,15 @@ therefore yields
 not a semantic-error lower bound, an eleven-resource lower bound, or a claim
 that the iterate cannot already be accurate.
 
+That final caveat is now quantitative.  For all sufficiently large `m`, the
+same literal recurrence satisfies
+`||p_k-p*||_inf<tau=q/5` by `k=ceil(4/q)`.  A theorem-timed semantic return
+therefore uses `O(q^-2)` total charged work, including all proper-prefix
+discovery sweeps.  The logarithmic delay is a separation between semantic
+accuracy and the prescribed one-sided certificate on this family; it is not
+an accuracy lower bound.  Float64 replay places the first semantic crossing
+near `qk=3.43`, but this measurement is not a proof input.
+
 Exact preflights cover chronology, source identities, entry profiles,
 directed kernels, the static cone, the five frontier limits, the stopped
 baseline, the finite-`q` early ledger, and the early/late implication chain.
@@ -71,4 +80,5 @@ python3 verify.py 128 256 512 1024
 python3 verify_static_frontier.py
 python3 verify_finite_stopped_ledger.py
 python3 verify_asymptotic_closure.py
+python3 verify_semantic_stop.py
 ```

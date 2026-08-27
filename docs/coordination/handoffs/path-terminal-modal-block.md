@@ -2,8 +2,8 @@
 
 - Agent family: codex
 - Role: direction
-- Branch: `agent/codex/path-terminal-asymptotic-regime`
-- Base commit: `90d8af7f19297cba8914bd1c207a69401c3738fe`
+- Branch: `agent/codex/path-terminal-semantic-stop`
+- Base commit: `f4bf4299c52ec171bf49f6f7040ec674004c8fdd`
 - Assignment state: ready_for_review
 - Write scope:
   - `docs/coordination/active_assignments.toml`
@@ -34,6 +34,12 @@
   `(64q^2)^-1 log(1/q)-(8q)^-1`, or
   `Omega(eps_ppr^-2 log(1/eps_ppr))` at `eps_ppr=2q/5`.  This is not a
   semantic-error, general-algorithm, or eleven-resource lower bound.
+- The semantic gap is now closed quantitatively: for all sufficiently large
+  `m`, the same literal iterate satisfies `||p_k-p*||_inf<q/5` at
+  `k=ceil(4/q)`.  A theorem-timed semantic return costs `O(q^-2)` including
+  prefix discovery, while the prescribed certificate remains logarithmically
+  delayed.  The measured first crossing near `qk=3.43` is labeled float64
+  evidence only.
 
 ## Scope boundaries
 
@@ -55,6 +61,8 @@
   `verify_regime_reduction.py` check the early and late nonlinear pieces.
 - `verify_asymptotic_closure.py` checks the exact constant chain and integer
   early/late handoff while explicitly not asserting a frontier cutoff.
+- `verify_semantic_stop.py` checks the exact semantic-stop constants and
+  separately reports measured semantic/certificate crossing times.
 - The note builds warning-free; note, target, and agent audits, focused
   Ruff/format, diff, control-byte, and conflict-marker checks pass before
   promotion.
