@@ -78,6 +78,17 @@ scratch residual to remain nonnegative provably loses this acceleration, and
 fixed-rank low-mode deflation is blocked by arbitrarily high multiplicity
 near-ground clusters. The remaining end-to-end issue is face discovery,
 certification, and replay rather than the terminal linear solve.
+That boundary is now sharper. Full-graph Chebyshev scratch can carry constant
+`l2` mass on an exponentially large regular-tree frontier at degree
+`Theta(1/sqrt(alpha))`, so unrestricted signed scratch is not automatically
+local even when the final obstacle support is one vertex. Conversely, if
+every restricted face exposes a margin-certified boundary batch of volume at
+least `gamma*vol(A)`, safe restricted solves and scans geometrically sum to
+`O_tilde(vol(S*)/(gamma*sqrt(alpha)))`. Endpoint paths give the matching
+structural STOP: a boundary-only protocol may expose one vertex per batch and
+pay quadratic cumulative face volume. Across an explicit same-point face
+replay, the sharp graph-uniform Moreau root-shock coefficient is `2` (energy
+coefficient `4`), so the existing root convolution has optimal scale.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -111,7 +122,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all eleven exact audits with:
+Run all twelve exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -131,6 +142,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.signed_event_stop` (Round 030);
 - `aesp_cd_l1_rppr.adjacent_signed_event_stop` (Round 031).
 - `aesp_cd_l1_rppr.p96_full_face_window_stop` (Round 032).
+- `aesp_cd_l1_rppr.safe_chebyshev_face` (Round 034).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

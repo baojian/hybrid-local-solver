@@ -176,6 +176,17 @@ def check_positive_polynomial_obstruction() -> None:
         assert all(entry >= 0 for entry in coefficients)
         assert sum(coefficients) == 1
         degree = len(coefficients) - 1
+        # The nilpotent forward-shift witness used in the manuscript exposes
+        # the coefficients themselves as coordinates of P(S)e_0.
+        shift_image = [F(0)] * (degree + 1)
+        basis = [F(1), *([F(0)] * degree)]
+        for coefficient in coefficients:
+            shift_image = [
+                shift_image[index] + coefficient * basis[index]
+                for index in range(degree + 1)
+            ]
+            basis = [F(0), *basis[:-1]]
+        assert shift_image == coefficients
         for condition in (4, 8, 16, 32, 64):
             slow = F(condition - 1, condition)
             value = sum(entry * slow**power for power, entry in enumerate(coefficients))

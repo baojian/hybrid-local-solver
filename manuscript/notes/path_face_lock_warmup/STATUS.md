@@ -126,6 +126,7 @@ alignment/payment certificate the observable gate can also keep restarting.
   `prop:proper-face-perron-split-window`,
   `cor:proper-face-perron-accepted-paid`,
   `cor:proper-face-finite-perron-gate`,
+  `prop:proper-face-componentwise-perron`,
   `prop:p3-proper-perron-cap-stop`, and
   `thm:face-tuned-permanent-safety`, `thm:collatz-gated-window`, and
   `prop:collatz-projective-hitting`, `lem:boundary-admission-gain`, and

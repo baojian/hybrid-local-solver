@@ -119,6 +119,18 @@ State: proved-open
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
 
+The active-set boundary is now explicit. A margin-certified batch of at
+least `gamma*vol(A)` per restricted face yields total
+`O_tilde(vol(S*)/(gamma*sqrt(alpha)))` work, but endpoint paths can expose
+only one certified vertex at a time and force quadratic cumulative face
+volume. Unrestricted full-graph Chebyshev scratch is not a workaround: a
+regular-tree frontier can retain constant `l2` mass on exponentially many
+coordinates. Same-point nested replay has sharp Moreau root-shock constant
+`2` (energy constant `4`). Thus the remaining universal ingredient must
+either reuse state across serial admissions, grow a certified speculative
+envelope, or provide an incremental propagation primitive between doubling
+checkpoints.
+
 ## Central blocker
 
 Entry-dominated corrections and finite-created one-sided excess are charged,
@@ -186,6 +198,10 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-fixed-face-gate-align`,
   `thm:aesp-cd-safe-chebyshev-face`,
   `cor:aesp-cd-final-face-chebyshev`, and
+  `prop:aesp-cd-polynomial-scratch-spill-stop`,
+  `prop:aesp-cd-face-by-face-volume-stop`,
+  `prop:aesp-cd-geometric-face-batches`,
+  `prop:aesp-cd-moreau-face-shock-sharp`, and
   `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: use the safe accelerated face primitive inside a
@@ -202,7 +218,7 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Eleven exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+- Focused checks: Twelve exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
   the Round-022--032 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,

@@ -403,6 +403,189 @@ it does not charge support discovery or prove that a provisional face is
 final.
 \end{corollary}
 
+\begin{proposition}[Unrestricted polynomial scratch can spill exponentially]
+\label{prop:aesp-cd-polynomial-scratch-spill-stop}
+Let $T_d$ be a rooted $d$-regular tree, $d\geq3$, with adjacency matrix
+$A_d$.  If
+$p_k(t)=a_kt^k+\cdots+a_0$ has $a_k\neq0$, then for every vertex $v$ at
+distance $k$ from the root $o$,
+\begin{equation}
+ [p_k(A_d)e_o]_v=a_k\neq0.
+ \label{eq:aesp-cd-polynomial-scratch-spill}
+\end{equation}
+Hence the scratch support contains at least
+$d(d-1)^{k-1}$ coordinates.  The same conclusion holds for normalized
+adjacency and Stieltjes operators with nonzero edge weights, with the right
+side multiplied by the unique path-weight product.
+
+This spill is not merely a nonzero-support artifact.  Put
+\begin{equation*}
+ B:=\frac{A_d}{2\sqrt{d-1}},\qquad
+ c_\alpha:=\frac{1+\alpha}{2},\qquad
+ r_\alpha:=\frac{1-\alpha}{2},\qquad
+ H:=c_\alpha I-r_\alpha B.
+\end{equation*}
+Then $\operatorname{spec}(H)\subseteq[\alpha,1]$, and the degree-$k$ Chebyshev residual
+polynomial applied to $e_o$ is
+\begin{equation*}
+ \frac{T_k(B)e_o}{T_k(c_\alpha/r_\alpha)}.
+\end{equation*}
+Its squared $\ell_2$ mass on the distance-$k$ frontier is exactly
+\begin{equation}
+ \frac{d}{4(d-1)T_k(c_\alpha/r_\alpha)^2}.
+ \label{eq:aesp-cd-chebyshev-frontier-mass}
+\end{equation}
+For $k=\Theta(1/\sqrt\alpha)$ the denominator is constant-order.  Thus even
+a constant-relative-error representation can require
+$\exp(\Theta(1/\sqrt\alpha))$ scratch coordinates, while a compatible
+obstacle instance can have published optimum support consisting only of the
+root.  Its raw exploration therefore cannot be charged only to
+$\vol(S^\star)/\sqrt\alpha$.
+\end{proposition}
+
+\begin{proof}
+For $j<k$, no length-$j$ walk reaches a vertex at distance $k$.  At length
+$k$ the shortest root--vertex path is unique, so
+$(A_d^ke_o)_v=1$.  This proves
+\cref{eq:aesp-cd-polynomial-scratch-spill}; weighted edges multiply the
+unique path contributions.  More precisely, the leading term
+$2^{k-1}B^k$ gives value $1/[2(d-1)^{k/2}]$ at every distance-$k$ vertex.
+There are $d(d-1)^{k-1}$ such vertices, proving
+\cref{eq:aesp-cd-chebyshev-frontier-mass}.  Moreover
+$T_k(c_\alpha/r_\alpha)
+=\cosh(k\operatorname{arcosh}((1+\alpha)/(1-\alpha)))$ is constant-order
+when $k=\Theta(1/\sqrt\alpha)$.  Choosing the exterior obstacle right-hand
+side sufficiently negative keeps every nonroot coordinate inactive while
+the signed linear scratch propagation remains unchanged.  This last step is
+a generic Stieltjes obstacle construction; it is not asserted to preserve
+the special RPPR right-hand side.
+\end{proof}
+
+This is a STOP for exact untruncated full-graph scratch, not for a thresholded
+polynomial equipped with a certified truncation-error budget.  Such a budget
+is an additional locality mechanism, not a consequence of the terminal
+support bound.
+
+\begin{proposition}[Certified-boundary face-by-face restart has quadratic volume]
+\label{prop:aesp-cd-face-by-face-volume-stop}
+For every $n$ there is an endpoint-seeded RPPR instance on the path $P_n$
+whose final support is all of $V(P_n)$.  Consider any nested active-set
+protocol which starts at the endpoint, admits only vertices on the currently
+exposed graph boundary, and performs a full scan or matrix application on
+the current face after every admission.  Before reaching the final face it
+must expose the prefixes
+\begin{equation*}
+ A_1\subset A_2\subset\cdots\subset A_n=V(P_n),
+ \qquad |A_j|=j,
+\end{equation*}
+and therefore pays
+\begin{equation}
+ \sum_{j=1}^n\Omega(\vol(A_j))=\Omega(n^2).
+ \label{eq:aesp-cd-face-by-face-volume-stop}
+\end{equation}
+In particular, invoking a fresh accelerated restricted solve after every
+single admission does not give a linear-volume local solver, even though the
+terminal solve on $A_n$ is accelerated.
+\end{proposition}
+
+\begin{proof}
+Let $x^{(0)}=Q^{-1}b$ be the zero-threshold endpoint solution.  It is strictly
+positive on the connected path.  Since
+$Q^{-1}(\alpha\rho D^{1/2}\one)=\rho D^{1/2}\one$, choosing
+\begin{equation*}
+ 0<\rho<\min_i\frac{x_i^{(0)}}{\sqrt{d_i}}
+\end{equation*}
+makes the RPPR optimum
+$x^\star=x^{(0)}-\rho D^{1/2}\one$ strictly positive, hence its support is
+all of $P_n$.  The graph boundary of a connected endpoint prefix $A_j$ is the
+single next vertex.  A boundary-only nested protocol cannot skip it, so it
+visits every prefix.  Path volume is $\Theta(j)$, which proves
+\cref{eq:aesp-cd-face-by-face-volume-stop}.
+\end{proof}
+
+The proposition does not rule out speculative certified envelopes, dynamic
+reuse of a Krylov/factorization state, or full-face solves only at
+volume-doubling checkpoints.  It shows that at least one such mechanism is
+necessary.
+
+The next result records a sufficient condition under which restricted-face
+scratch and boundary discovery do have the desired geometric accounting.
+
+\begin{proposition}[Margin-certified geometric face batches]
+\label{prop:aesp-cd-geometric-face-batches}
+Let $A_0\subset A_1\subset\cdots\subset S^\star$ be nested certified faces,
+and let $p_A>0$ denote the exact restricted solution on $A$.  For
+$v\in\partial A$ define
+\begin{equation*}
+ g_v(A):=c_v-Q_{vA}p_A,
+ \qquad
+ L_v^\partial:=\sum_{i\in A}(-Q_{vi}).
+\end{equation*}
+Suppose the safe Chebyshev publication $z_A$ satisfies
+$0\leq z_A\leq p_A$ and
+$\norm{p_A-z_A}_\infty\leq\varepsilon_A$.  Then
+\begin{equation}
+ g_v(z_A)\leq g_v(A)
+ \leq g_v(z_A)+L_v^\partial\varepsilon_A.
+ \label{eq:aesp-cd-boundary-key-interval}
+\end{equation}
+In particular, $g_v(z_A)>0$ certifies $v\in S^\star$.
+
+Assume that for every proper face $A_j$ there is a batch
+$B_j\subseteq\partial A_j$ such that, for fixed $\gamma>0$,
+\begin{equation}
+ \vol(B_j)\geq\gamma\vol(A_j),
+ \qquad
+ g_v(A_j)\geq\tau_jL_v^\partial\quad(v\in B_j),
+ \qquad
+ \varepsilon_j\leq\frac{\tau_j}{2}.
+ \label{eq:aesp-cd-geometric-face-batch-hypothesis}
+\end{equation}
+Admit every vertex certified positive by the boundary scan.  Then
+$\vol(A_{j+1})\geq(1+\gamma)\vol(A_j)$.  If the final face additionally
+satisfies
+\begin{equation*}
+ g_v(z_{S^\star})+L_v^\partial\varepsilon_\star\leq0
+ \qquad(v\in\partial S^\star),
+\end{equation*}
+one final scan certifies termination.  Restricted safe-Chebyshev work and
+boundary scans therefore total
+\begin{equation}
+ \widetilde O\!\left(
+   \frac{\vol(S^\star)}{\gamma\sqrt\alpha}\right),
+ \label{eq:aesp-cd-geometric-face-batch-work}
+\end{equation}
+where the logarithms include the certified margins $\tau_j$.
+\end{proposition}
+
+\begin{proof}
+Because $Q_{vA}\leq0$ entrywise,
+\begin{equation*}
+ g_v(A)-g_v(z_A)
+ =\sum_{i\in A}(-Q_{vi})(p_{A,i}-z_{A,i})
+ \in[0,L_v^\partial\varepsilon_A],
+\end{equation*}
+which proves \cref{eq:aesp-cd-boundary-key-interval}.  If $x_v^\star=0$,
+the global obstacle KKT condition and $z_A\leq x_A^\star$ imply
+$g_v(z_A)\leq0$; hence a positive lower key is a genuine support
+certificate.  Under
+\cref{eq:aesp-cd-geometric-face-batch-hypothesis}, every $v\in B_j$ has
+$g_v(z_{A_j})\geq\tau_jL_v^\partial/2>0$ and is admitted.  The face volumes
+therefore grow geometrically.  Since one restricted solve and scan at face
+$A_j$ costs
+$\widetilde O(\vol(A_j)/\sqrt\alpha)$, summing the geometric series gives
+\cref{eq:aesp-cd-geometric-face-batch-work}.  The displayed upper boundary
+certificate at the final face is the complementary KKT condition.
+\end{proof}
+
+The growth and margin hypotheses are substantive.  On a path prefix only
+the next vertex is visible; an arbitrarily small positive key may neither
+double volume nor meet a fixed work-normalized margin, while the following
+vertex cannot be certified before that admission.  Thus delayed batching
+can merge many already exposed frontier events, but it does not by itself
+remove the serial-frontier obstruction in
+\cref{prop:aesp-cd-face-by-face-volume-stop}.
+
 \begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
 \label{prop:aesp-cd-positive-polynomial-stop}
 Let $P_k(t)=\sum_{j=0}^k a_jt^j$ be a residual polynomial with

@@ -954,6 +954,70 @@ proves
 \cref{eq:proper-face-finite-perron-inner-budget}.
 \end{proof}
 
+\begin{proposition}[Disconnected faces require componentwise Perron accounts]
+\label{prop:proper-face-componentwise-perron}
+Suppose a fixed face is the disjoint union of connected components
+$A=\bigsqcup_c A_c$.  On each component form its own Perron data
+$(\phi_c,\mu_{1,c},q_c,\beta_c)$ and the split bank $Z_c=H_c+a_c$ from
+\cref{prop:proper-face-perron-split-window}.  A block-diagonal controller
+which uses $\beta_c$ on $A_c$ and records the realized component correction
+$r_{t,c}$ satisfies the exact Perron gate and finite error-bar gate on every
+component separately.  Its accepted fixed-face work is the sum of the
+component works,
+\begin{equation*}
+ \sum_c\widetilde O\!\left(
+   \frac{\vol(A_c)}{\sqrt{\lambda_{1,c}}}\right),
+\end{equation*}
+plus one connected-component scan.
+
+A single Perron vector and a single critical momentum parameter do not give
+such a theorem in general.  If the values $\mu_{1,c}$ are unequal, a Perron
+vector for the spectral radius vanishes on every faster component, so its
+minimum coordinate is zero.  Tuning $\beta$ to the slowest component makes
+the Perron recurrence on a faster component underdamped; no finite
+pure-prox warmup changes its phase, and a later trigger is negative.
+
+Under nested active-set additions, components can only remain separate or
+merge.  If a set $G$ of old components merges into a connected face $B$,
+same-point restart gives the conditional bridge
+\begin{equation}
+ Z_B^{\rm rst}
+ \leq\sqrt2\left(\sum_{c\in G}C_c^2Z_c^2\right)^{1/2}
+ +2\sqrt{\frac{\Delta_{G\to B}}{\lambda_{1,B}}},
+ \qquad
+ C_c:=\min\{\delta_c^{-1/2},\gamma_c^{-1}\},
+ \label{eq:proper-face-component-merge}
+\end{equation}
+where
+$\delta_c=1-\mu_{2,c}/\mu_{1,c}$ and
+$\gamma_c=\min_i(\phi_c)_i$.  Thus componentwise accounting repairs the
+zero-coordinate obstruction, but a merge still carries explicit spectral
+gap, Perron-spread, and $1/\sqrt{\lambda_{1,B}}$ costs.
+\end{proposition}
+
+\begin{proof}
+Both $Q_A$ and $M_A$ are block diagonal, so projecting the recurrence onto
+each component reproduces the proof of
+\cref{prop:proper-face-perron-split-window} with that component's parameters.
+For a single global $\beta$, the characteristic roots on any component whose
+Perron resolvent eigenvalue is below the critical one are a nonzero damped
+complex-conjugate pair; multiplying the entrance state by any finite power
+of $M_A$ changes only its amplitude.  This proves the STOP.
+
+For the merge bridge, the old split bank controls its component error by
+$\norm{e_c}_D\leq C_cZ_c$.  The new restarted bank is at most
+$\sqrt2$ times the embedded Euclidean error norm.  The optimum displacement
+$h=x_B^\star-(x_G^\star,0)$ obeys
+$\norm h_D\leq\sqrt{2\Delta_{G\to B}/\lambda_{1,B}}$.
+The triangle inequality proves
+\cref{eq:proper-face-component-merge}.
+\end{proof}
+
+This proposition assumes monotone nested additions.  A genuine deletion
+that splits a previously connected face is a nonnested change: the restricted
+optimum gain need not be nonnegative or telescope, so the old histories must
+be discarded and a separate two-sided transfer certificate supplied.
+
 The Perron split does not make the actual coordinatewise common cap into a
 common cap in ground-state coordinates.  This is already visible on a
 three-vertex reachable trajectory.

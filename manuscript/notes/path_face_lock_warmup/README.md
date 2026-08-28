@@ -35,6 +35,12 @@ its two observable event charges certify a half-contraction in
 trajectory proves that ground-state coordinates do not preserve the common
 cap, so the full-face clipped-master theorem cannot simply be transported to
 a proper face.
+For a disconnected proper face, one Perron vector and one critical momentum
+parameter also fail in general: the global Perron vector vanishes on faster
+components and those components become underdamped. Componentwise Perron
+accounts and componentwise momentum repair the fixed-face theorem; an
+admission that merges components incurs explicit gap, Perron-spread, and
+`1/sqrt(lambda_1)` transfer costs.
 Every rejected Perron-split window now has an exact alternative payment from
 the Perron mean, but the payment is only of order
 `1/(1/q_face+1/phi_min)` and therefore still allows quadratic-in-`1/q_face`
