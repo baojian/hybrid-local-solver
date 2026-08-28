@@ -1,0 +1,96 @@
+\begin{corollary}[Strict margins instantiate the obstacle primitive]
+\label{cor:aesp-cd-margin-obstacle-primitive}
+On a fixed envelope $U$, let
+\begin{equation*}
+ F_U(x)=\tfrac12\langle x,H_Ux\rangle-\langle b_U,x\rangle
+       +I_{x\geq0},
+ \qquad \mu I\preceq H_U\preceq LI,
+\end{equation*}
+and let $p_U$ have support $S$.  Suppose certified margins satisfy
+\begin{equation*}
+ \min_{i\in S}p_{U,i}\geq m_x>0,\qquad
+ \max_{i\in U\setminus S}(b_U-H_Up_U)_i\leq-m_g<0.
+\end{equation*}
+When $S=U$, omit the dual-margin condition and interpret
+$m_g/R_\infty=+\infty$ below.
+Assume also that the old padded checkpoint $y_U$ is an obstacle subsolution,
+$0\leq y_U\leq p_U$, with $\supp(y_U)\subseteq S$.
+Assume $H_U$ is Stieltjes and the certified face $S$ has a known vector
+$v_S>0$ and scalar $\mu_v>0$ such that
+$H_{SS}v_S\geq\mu_vv_S$ coordinatewise, as required by
+\cref{thm:aesp-cd-safe-chebyshev-face}.
+Put $R_\infty=\max_i\sum_j|(H_U)_{ij}|$.  Accelerated projected-gradient
+scratch to
+\begin{equation*}
+ \norm{a-p_U}_\infty
+ \leq\frac13\min\{m_x,m_g/R_\infty\}
+\end{equation*}
+identifies $S$: active coordinates exceed $m_x/2$, while inactive
+coordinates are below $m_x/2$ and have dual residual below $-m_g/2$.
+Running
+\cref{thm:aesp-cd-safe-chebyshev-face} only on this certified linear face,
+from the old padded lower checkpoint, publishes a safe approximation to
+$p_U$.  The combined work is
+\begin{equation*}
+ \widetilde O\!\left(
+   \vol(U)\sqrt{L/\mu}\right),
+\end{equation*}
+where $m_x,m_g$ enter only logarithmically.  Hence
+\cref{prop:aesp-cd-speculative-envelope-doubling} is implementable under
+uniform strict active/dual margins.
+\end{corollary}
+
+\begin{proof}
+Strongly convex accelerated projected gradient reaches the displayed distance
+in
+\begin{equation*}
+ O\!\left(\sqrt{L/\mu}\,
+ \log\!\frac{E_0}{\min\{m_x,m_g/R_\infty\}}\right)
+\end{equation*}
+iterations.  Every
+active coordinate is then at least $2m_x/3$.  On an inactive coordinate,
+$a_i\leq m_x/3$ and
+\begin{equation*}
+ (b_U-H_Ua)_i
+ \leq-m_g+R_\infty\norm{a-p_U}_\infty\leq-2m_g/3.
+\end{equation*}
+Thus the exact support is certified before the signed linear-face scratch is
+published.  The maximum-with-old-checkpoint retraction preserves the lower
+certificate, as in \cref{thm:aesp-cd-safe-chebyshev-face}.
+\end{proof}
+
+Without strict margins, projected acceleration may leave arbitrarily small
+positive inactive coordinates and cannot certify the face at a uniform
+accuracy.  This corollary is therefore a nondegenerate conditional GO, not a
+resolution of the universal active-set problem.
+
+\begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
+\label{prop:aesp-cd-positive-polynomial-stop}
+Let $P_k(t)=\sum_{j=0}^k a_jt^j$ be a residual polynomial with
+$P_k(1)=1$.  Suppose that $P_k(T)r\geq0$ for every entrywise nonnegative
+matrix $T$ of every finite dimension and every $r\geq0$.  Then
+$a_j\geq0$ for every $j$, and for $0\leq t\leq1$,
+\begin{equation}
+ P_k(t)\geq t^k.
+ \label{eq:aesp-cd-positive-polynomial-stop}
+\end{equation}
+Consequently, at $t=1-1/\mathcal K$, reducing the residual by a factor
+$\varepsilon$ requires
+$k=\Omega(\mathcal K\log(1/\varepsilon))$.  The same lower bound holds for
+any product of such cone-preserving restart polynomials.  Thus a
+square-root-rate inner solver must permit signed intermediate residuals; the
+safe publication map in
+\cref{thm:aesp-cd-safe-chebyshev-face} is not merely cosmetic.
+\end{proposition}
+
+\begin{proof}
+Apply the hypothesis to the nilpotent forward shift $S$ in dimension
+$k+1$ and its first basis vector.  The coordinates of
+$P_k(S)e_1$ are exactly $a_0,\ldots,a_k$, so all coefficients are
+nonnegative.  Since they sum to one and $t^j\geq t^k$ for $j\leq k$,
+\cref{eq:aesp-cd-positive-polynomial-stop} follows.  Products preserve
+nonnegative coefficients and add total degree.
+\end{proof}
+
+Thus the composite analogue of the ordinary-PPR residual-mass contraction is
+valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
