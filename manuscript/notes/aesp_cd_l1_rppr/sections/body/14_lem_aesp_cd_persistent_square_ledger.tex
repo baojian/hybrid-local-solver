@@ -569,9 +569,33 @@ Now put $v_{t+1}:=p(\ell_t)-x_{t+1}$ and
  \bar z_{t+1}:=p(\ell_t)
    +(q^{-1}-1)(p(\ell_t)-x_t).
 \end{equation*}
-Then $z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$.  If
-$\norm{v_{t+1}}_2\leq\xi_t\leq1$, the exact virtual step followed by this
-comparison gives
+Then $z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$.  Define the virtual
+exact-output potential
+\begin{equation*}
+ \bar\Phi_{t+1}
+ :=\mathcal E(p(\ell_t))-\mathcal E(x^\star)
+   +\frac{\mu_{\mathcal E}}2
+      \norm{\bar z_{t+1}-x^\star}_2^2.
+\end{equation*}
+The exact virtual Nesterov step, evaluated from the actual finite state at
+time $t$, gives
+\begin{equation}
+ \bar\Phi_{t+1}
+ \leq(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}.
+ \label{eq:aesp-cd-virtual-inner-potential}
+\end{equation}
+If $\norm{v_{t+1}}_2\leq\xi_t$, then the finite comparison has the sharper
+square-root form
+\begin{equation}
+ \sqrt{\Phi_{t+1}^{\mathrm{fin}}}
+ \leq\sqrt{\bar\Phi_{t+1}}+\sqrt{\kappa_{\mathrm A}}\,\xi_t
+ \leq
+ \sqrt{(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}}
+ +\sqrt{\kappa_{\mathrm A}}\,\xi_t.
+ \label{eq:aesp-cd-finite-inner-root-potential}
+\end{equation}
+In particular, the previous additive interface remains valid, without the
+restriction $\xi_t\leq1$:
 \begin{equation}
  \Phi_{t+1}^{\mathrm{fin}}
  \leq(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}
@@ -579,12 +603,40 @@ comparison gives
       +\kappa_{\mathrm A}\xi_t^2.
  \label{eq:aesp-cd-finite-inner-potential}
 \end{equation}
-Indeed, $0\leq\bar z_{t+1}\leq x^\star/q$ and
-$\norm{x^\star}_2\leq1$.  The momentum-square comparison costs at most
-$\kappa_{\mathrm A}\xi_t+
-\kappa_{\mathrm A}\xi_t^2/2$.  Also
-$\norm{\nabla\mathcal E(a)}_2\leq\kappa_{\mathrm A}$ for
-$0\leq a\leq x^\star$.  Envelope smoothness therefore shows that replacing
-$p(\ell_t)$ by $x_{t+1}$ costs at most
-$\kappa_{\mathrm A}\xi_t+\kappa_{\mathrm A}\xi_t^2/2$.
-Adding the two comparisons proves the displayed constants.
+
+To prove \cref{eq:aesp-cd-finite-inner-root-potential}, write
+\begin{equation*}
+ A:=\mathcal E(p(\ell_t))-\mathcal E(x^\star),\qquad
+ B:=\frac{\mu_{\mathcal E}}2
+       \norm{\bar z_{t+1}-x^\star}_2^2,
+\end{equation*}
+so $A,B\geq0$ and $\bar\Phi_{t+1}=A+B$.  The Moreau envelope of the proper
+closed convex obstacle objective is globally $\kappa_{\mathrm A}$-smooth.
+Its self-bounding inequality and smoothness therefore give
+\begin{equation*}
+ \mathcal E(p(\ell_t)-v_{t+1})-\mathcal E(x^\star)
+ \leq A+\sqrt{2\kappa_{\mathrm A}A}\,\xi_t
+       +\frac{\kappa_{\mathrm A}}2\xi_t^2.
+\end{equation*}
+Using $\mu_{\mathcal E}=\kappa_{\mathrm A}q^2$ and
+$z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$, the momentum square is at
+most
+\begin{equation*}
+ B+\sqrt{2\kappa_{\mathrm A}B}\,\xi_t
+  +\frac{\kappa_{\mathrm A}}2\xi_t^2.
+\end{equation*}
+Add the two bounds and use
+$\sqrt A+\sqrt B\leq\sqrt{2(A+B)}$ to obtain
+\begin{equation*}
+ \Phi_{t+1}^{\mathrm{fin}}
+ \leq\left(\sqrt{\bar\Phi_{t+1}}
+              +\sqrt{\kappa_{\mathrm A}}\,\xi_t\right)^2.
+\end{equation*}
+This proves the root recursion.  Finally, the finite safe chain gives
+$0\leq p(\ell_t)\leq x^\star$, $0\leq\bar z_{t+1}\leq x^\star/q$, and
+$\norm{x^\star}_2\leq1$.  Smoothness at the minimizer bounds $A\leq
+\kappa_{\mathrm A}/2$, while the momentum term has $B\leq
+\kappa_{\mathrm A}/2$.  Thus $\bar\Phi_{t+1}\leq\kappa_{\mathrm A}$;
+squaring the first inequality in
+\cref{eq:aesp-cd-finite-inner-root-potential} and then applying
+\cref{eq:aesp-cd-virtual-inner-potential} proves the coarser additive display.

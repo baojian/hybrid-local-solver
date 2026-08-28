@@ -11,6 +11,11 @@ several exact trajectory calibrations, and an unconditional accelerated result
 on the a-posteriori high-Dirichlet class. It also records sharp failures of
 raw correction counting, Euclidean-only collateral packing, black-box
 shadowing, and the simplest unsplit lagged energy bank.
+The finite-inner comparison is now sharp at the root-potential level:
+`sqrt(Phi_(t+1)) <= sqrt((1-q) gamma_t Phi_t) + sqrt(kappa_A) xi_t`.
+This removes the artificial `xi_t <= 1` restriction and improves the
+conditional absolute polish from a `theta` scale to a `sqrt(theta)` scale;
+it does not prove the missing net packing inequality.
 
 The live target is a windowed, spectrally split, nonlinear, or differently
 normalized low-Dirichlet Lyapunov for the actual finite safeguarded sequence.

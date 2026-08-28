@@ -1,6 +1,6 @@
 # Direction status: aesp_cd_l1_rppr
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-29
 State: proved-open
 
 ## Exact question and contract
@@ -32,9 +32,12 @@ State: proved-open
   bounds; and finite residual interfaces. Exact trajectory results include the
   fixed-P4 infinite inflation cone, support-entry shielding, persistent-row
   square-energy and truncation-energy ledgers, a reachable K8 pulse, the
-  actual-finite lagged Euclidean reserve, and the K2/K8 boundary for the
-  simplest lagged unsplit bank. A direct accelerated terminal result holds on
-  the a-posteriori high-Dirichlet class.
+  actual-finite lagged Euclidean reserve, the K2/K8 boundary for the simplest
+  lagged unsplit bank, and a root-potential finite-inner recursion with exact
+  additive error `sqrt(kappa_A)*xi_t`. The latter strengthens the conditional
+  polish from a `theta` scale to a `sqrt(theta)` scale without a support or
+  fixed-face assumption. A direct accelerated terminal result holds on the
+  a-posteriori high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -78,6 +81,7 @@ transfer, so there is no graph-uniform exact accelerated solver yet.
   `lem:aesp-cd-persistent-square-ledger`,
   `lem:aesp-cd-truncation-q-energy`, `prop:aesp-cd-k8-q-bank-stop`,
   `lem:aesp-cd-q-weighted-euclidean-reserve`,
+  `eq:aesp-cd-finite-inner-root-potential`,
   `prop:aesp-cd-unsplit-q-energy-stagewise-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: Construct a spectrally split, windowed, nonlinear, or
