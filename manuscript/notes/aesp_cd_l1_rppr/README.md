@@ -110,6 +110,26 @@ finite-precision implementation under a nonzero KKT gap. Exact rational
 messages do not have polylogarithmic bit size in general: a constant-condition
 tridiagonal family already produces endpoint fractions with linearly many
 bits.
+For one positive root load on a promised tree, the query interface closes
+completely: scalar child responses propagate the next exact activation
+threshold to the root, so every emitted singleton has a currently positive
+boundary key and the first failed root comparison is the global obstacle KKT
+certificate.  The same exact-real argument extends to single-source
+unicyclic graphs by paying for explicit scans of the unique cycle, whose
+length is bounded by the support radius.  The total literal-admission work is
+`O_tilde((1+vol(S*))/sqrt(alpha))`, hence
+`O_tilde(1/(rho*sqrt(alpha)))` for RPPR.  Independent rational audits cover
+negative internal intercepts, competing branches, threshold ties, and exact
+zero.  The smallest still-open structural reporter is therefore not a tree
+or one cycle: it already appears on a cactus with an unbounded chain of
+unbounded cycle blocks, and more generally on variable-port series--parallel
+graphs.  A three-vertex two-source example shows why running
+independent single-root copies does not handle component mergers.
+A separate quantitative result reduces uniformly separated RPPR boundary
+keys to monotone coordinate-level events.  This is soft-linear only when the
+level-event source is itself charged; ordinary point-query Schur messages do
+not reveal those crossings automatically.  An exact RPPR P4 witness rules
+out fixed factor-two bins.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
@@ -161,7 +181,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all seventeen exact audits with:
+Run all nineteen exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -187,6 +207,8 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.rppr_speculative_decoy` (Round 037).
 - `aesp_cd_l1_rppr.dynamic_schur_forest` (Round 038).
 - `aesp_cd_l1_rppr.bounded_degree_speculative_stop` (Round 039).
+- `aesp_cd_l1_rppr.tree_singleton_threshold` (Round 040).
+- `aesp_cd_l1_rppr.separated_level_reporter` (Round 041).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the
