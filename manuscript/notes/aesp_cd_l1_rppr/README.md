@@ -25,6 +25,11 @@ that forcing from net high-band decrease alone: the required ratio is
 `>(N-1)/23`. The surviving exact fixed-face interface is instead a
 contract-or-spend window: after `Theta(1/q)` stages the bank contracts by a
 constant unless it spends a telescoping low Euclidean endpoint drop.
+A fully rational-interval `P24` trajectory additionally proves that paying
+the low forcing by net high-band drop plus `6/5` times the starting low bank
+still fails; its certified required coefficient is greater than
+`1.206959416`. This narrows the viable interface to the unsplit endpoint
+spend or an adaptive event allowance.
 An alternative Moreau-Hessian bank has a correction-event forcing metric with
 condition number below `4(1+q^2)`.  For an explicit nested-face epoch protocol
 that expands only at boundaries and restarts momentum at the unchanged primal
@@ -32,6 +37,13 @@ point, it gives a geometric root-potential ledger: face-optimum gains and
 correction masses are injected once and earlier events are automatically
 discounted.  This is not yet an event-packing theorem for the automatic
 per-stage admission trajectory.
+Keeping the correction cross term gives a sharper signed increment `Xi_t`.
+Only `[Xi_t]_+` enters the refined epoch ledger, and its fixed-face sum has a
+telescoping Stieltjes payment without the former geometric `1/q` loss. A
+reachable `P3` event proves that `Xi_t` can nevertheless be positive and can
+increase the bank, while the reachable `K8` family makes the telescoping
+payment asymptotically tight. Thus a controller-specific quiet-window or
+positive-event clustering theorem is still needed.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -61,7 +73,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all seven exact audits with:
+Run all nine exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -76,7 +88,9 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.boundary_shielding_filter` (Round 025);
 - `aesp_cd_l1_rppr.persistent_q_energy` (Round 026);
 - `aesp_cd_l1_rppr.weighted_reserve_boundary` (Round 027);
-- `aesp_cd_l1_rppr.windowed_cross_normalized` (Round 028).
+- `aesp_cd_l1_rppr.windowed_cross_normalized` (Round 028);
+- `aesp_cd_l1_rppr.p24_low_start_stop` (Round 029);
+- `aesp_cd_l1_rppr.signed_event_stop` (Round 030).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

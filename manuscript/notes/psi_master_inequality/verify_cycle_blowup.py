@@ -418,6 +418,94 @@ def c10_edgewise_payment():
     }
 
 
+def neighboring_cycle_edgewise_payments():
+    """Check the fixed-q edgewise certificate on C9, C10, and C11."""
+    q = F(1, 20)
+    m0 = 1 - q * q
+    records = {}
+    for size in (9, 10, 11):
+        identity = [[F(i == j) for j in range(size)] for i in range(size)]
+        adjacency = [
+            [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+            for i in range(size)
+        ]
+        stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+        high_projection = matrix_linear(identity, stationary, right_scale=-1)
+        high_resolvent = [
+            [4 * entry for entry in row]
+            for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+        ]
+        m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+        one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+        m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+        g_operator = matrix_linear(
+            matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+            matmul(m_operator, m_operator),
+        )
+        a_operator = [
+            [entry / m0 for entry in row]
+            for row in matmul(
+                matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+                inverse(one_minus_m),
+            )
+        ]
+        b_operator = [
+            [m0 * entry for entry in row]
+            for row in matmul(
+                matmul(
+                    matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                    inverse(matrix_linear(m0_minus_m, stationary)),
+                ),
+                high_projection,
+            )
+        ]
+        c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+
+        for operator in (a_operator, b_operator, c_operator):
+            assert all(sum(row, F(0)) == 0 for row in operator)
+            assert all(operator[i][j] == operator[j][i] for i in range(size) for j in range(size))
+        assert all(a_operator[0][j] < 0 for j in range(1, size))
+        assert all(b_operator[0][j] < 0 for j in range(1, size))
+        positive_distances = [j for j in range(1, size) if c_operator[0][j] > 0]
+        assert positive_distances == [1, size - 1]
+        ratios = [
+            c_operator[0][j] ** 2 / ((-a_operator[0][j]) * (-b_operator[0][j]))
+            for j in positive_distances
+        ]
+        assert ratios[0] == ratios[1] < 1
+
+        within_m = m0 * F(2, 3)
+        within_g = m0 - 2 * within_m + within_m * within_m
+        within = (
+            a_operator[0][0] - within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m)),
+            b_operator[0][0] - m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m)),
+            c_operator[0][0] - within_m * (m0 - within_m) / (1 - within_m),
+        )
+        assert all(entry < 0 for entry in within)
+
+        # Since 3 < pi < 22/7 and sin(x) >= x-x^3/6 on this range,
+        # the base normalized-Laplacian gap 2 sin^2(pi/size) exceeds 2q.
+        sine_lower = F(3, size) - F(1, 6) * F(22, 7 * size) ** 3
+        assert 2 * sine_lower * sine_lower > 2 * q
+
+        for part_size in range(1, 13):
+            assert all(entry / part_size < 0 for entry in within)
+            assert ratios[0] < 1
+        records[f"C{size}"] = {
+            "positive_cross_distances": positive_distances,
+            "adjacent_Young_ratio": str(ratios[0]),
+            "A_offdiagonal_max": str(max(a_operator[0][1:])),
+            "B_offdiagonal_max": str(max(b_operator[0][1:])),
+            "within_part_entries": [str(entry) for entry in within],
+        }
+    return {
+        "q": str(q),
+        "cycle_sizes": [9, 10, 11],
+        "balanced_blowups": "all integer part sizes",
+        "records": records,
+    }
+
+
 def c10_interval_entries():
     """Return exact C10 kernel rows over Q(sqrt(5))(r), simplified to Q(r)."""
     radical = QuadRat(0, 1)
@@ -581,6 +669,7 @@ def main():
         },
         "C10_edgewise_payment": c10_edgewise_payment(),
         "C10_edgewise_interval_payment": c10_edgewise_interval_payment(),
+        "neighboring_cycle_edgewise_payments": neighboring_cycle_edgewise_payments(),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
 

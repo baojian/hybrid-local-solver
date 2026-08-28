@@ -48,6 +48,9 @@ Role: direction
   every exact trigger-kernel entry strictly positive. A conditional
   one-admission final-full-star theorem gives explicit finite-inner residual
   tolerances for any fixed momentum horizon and an observable primal guard.
+  Alternatively, monotone Collatz brackets from pure-prox probes plus an
+  observable error-bar gate give a conditional accepted fixed-face window
+  with accelerated root rate, without computing lower eigendata.
 - **Conditional:** None.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
@@ -67,7 +70,10 @@ strict proper faces oscillate under global momentum. The resolvent cost is not
 local merely because the face is exposed: the literal full-star policy costs
 `Theta(B log B)`. Face tuning gives permanent exact safety, but its spectral
 ratio and Perron-spread certificate may be costly and nongraph-uniform. A
-finite-inner changing-face theorem must retain those costs.
+finite-inner changing-face theorem must retain those costs. Collatz probes
+remove the need for full eigendata after their bracket is tight, but there is
+still no graph-uniform bound on the bracket hitting time or admission replay
+count; without an alignment payment the observable gate can keep restarting.
 
 ## Dependencies and reusable outputs
 
@@ -77,7 +83,8 @@ finite-inner changing-face theorem must retain those costs.
   witnesses; exact spider junction and volume formulas; a three-class exact
   reachable-star LCP verifier; matching logarithmic bounds for the exact star
   policy; a strict finite-horizon kernel margin; and a proper-face oscillation
-  obstruction with a face-tuned exact repair.
+  obstruction with a face-tuned exact repair; and a Collatz-bracketed gated
+  fixed-face accelerated window.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
@@ -86,10 +93,10 @@ finite-inner changing-face theorem must retain those costs.
   `sec:reachable-star-family`, `thm:reachable-star-logarithmic-lower`,
   `cor:star-logarithmic-kernel-margin`, and
   `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`, and
-  `thm:face-tuned-permanent-safety`.
-- Next concrete action: turn the face-tuned theorem and observable trigger
-  gate into a charged changing-face restart/window protocol; separately derive
-  the actual endpoint-prefix admission profile.
+  `thm:face-tuned-permanent-safety`, and `thm:collatz-gated-window`.
+- Next concrete action: bound the Collatz bracket hitting time and amortize
+  same-point admission replays; separately derive the actual endpoint-prefix
+  admission profile.
 - Stop/go test: go if a finite-horizon relative tolerance and charged restart
   retain acceleration; stop if repeated resolvents or state materialism exceed
   the target local budget.

@@ -160,6 +160,99 @@ def check_moreau_event_kernel() -> None:
     assert full_diagonal / singleton_diagonal == F(9, 8)
 
 
+def check_moreau_signed_event() -> None:
+    """Verify the signed correction identity, payment, and K8 sharpness."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        theta = 1 - q
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        beta = theta / (1 + q)
+        c = kappa + alpha
+        for s in (F(0), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = kappa * mode * mode + alpha * mode**3
+            signed = kernel - c * theta * mode * mode
+            assert signed == c * q * mode * mode * (theta + q * mode)
+            assert 0 <= signed <= q * kernel
+            assert q * signed <= lam * mode
+
+            error = F(3, 5)
+            displacement = F(2, 11)
+            uncorrected = beta * displacement
+            correction = uncorrected * F(4, 7)
+            retained = uncorrected - correction
+            velocity = q * error - theta * displacement
+
+            def next_bank(advance: F) -> F:
+                next_error = mode * (error - advance)
+                next_velocity = next_error - theta * error
+                return (
+                    lam * mode * next_error * next_error + c * mode * next_velocity * next_velocity
+                )
+
+            xi = next_bank(retained) - next_bank(uncorrected)
+            claimed = -correction * kernel * (retained + uncorrected)
+            claimed += 2 * correction * signed * error
+            assert xi == claimed
+            current_bank = lam * mode * error * error + c * mode * velocity * velocity
+            assert next_bank(retained) <= theta * current_bank + xi
+            positive = max(F(0), xi)
+            previous_error = error + displacement
+            spend = signed * (previous_error * previous_error - error * error)
+            assert positive <= beta * spend
+
+    q = F(1, 100)
+    alpha = q * q / (1 + q * q)
+    kappa = (1 - q * q) / (1 + q * q)
+    beta = (1 - q) / (1 + q)
+    c = kappa + alpha
+    a0 = F(1, 112)
+    m0 = 1 - q * q
+    mh = 7 * (1 - q * q) / 11
+    lam0 = alpha
+    lamh = (4 + 7 * q * q) / (7 * (1 + q * q))
+    s0 = (1 - q) * (1 + 2 * q) / (1 + q)
+    sh = (1 - q) * (3 + 14 * q) / (11 * (1 + q))
+    modal = []
+    for weight, lam, mode, e1, e2 in (
+        (F(8), lam0, m0, a0 * m0, a0 * m0 * s0),
+        (F(8, 7), lamh, mh, 12 * a0 * q * q * mh, 12 * a0 * q * q * mh * sh),
+    ):
+        velocity = e2 - (1 - q) * e1
+        advance = beta * (e1 - e2)
+        b_value = lam * mode
+        k_value = kappa * mode * mode + alpha * mode**3
+        j_value = c * q * mode * mode * ((1 - q) + q * mode)
+        modal.append((weight, b_value, mode, e1, e2, velocity, advance, k_value, j_value))
+    bank = sum(
+        weight * (b * e2 * e2 + c * mode * velocity * velocity)
+        for weight, b, mode, _e1, e2, velocity, _advance, _k, _j in modal
+    )
+    xi = sum(
+        weight * (2 * advance * j * e2 - advance * advance * k_value)
+        for weight, _b, _mode, _e1, e2, _velocity, advance, k_value, j in modal
+    )
+    spend = sum(
+        weight * j * (e1 * e1 - e2 * e2)
+        for weight, _b, _mode, e1, e2, _velocity, _advance, _k, j in modal
+    )
+    assert bank == F(30_626_486_222_415_897_317_841, 245_024_500_000_000_000_000_000_000_000)
+    assert xi == F(
+        59_770_569_685_031_497_483_379_631_729,
+        24_502_450_000_000_000_000_000_000_000_000_000_000,
+    )
+    assert spend == F(
+        8_836_441_711_657_968_424_790_649_753,
+        3_500_350_000_000_000_000_000_000_000_000_000_000,
+    )
+    assert xi / (q * bank) == F(
+        10_021_978_673_028_809_851_221,
+        5_135_269_638_022_709_000_000,
+    )
+    assert xi / (beta * spend) == F(223_470_436_663_072_443, 226_684_570_401_383_843)
+
+
 def kn_cross_data(n: int) -> tuple[F, F, F]:
     """Return the exact K_N full/preceding and low/initial-high ratios."""
     q = F(1, 100)
@@ -252,6 +345,9 @@ def check_source_scope() -> None:
     assert "eq:aesp-cd-cross-normalized-low-spend" in main
     assert "prop:aesp-cd-moreau-epoch-restart" in main
     assert "eq:aesp-cd-moreau-epoch-net" in main
+    assert "prop:aesp-cd-moreau-signed-event" in main
+    assert "eq:aesp-cd-moreau-signed-net" in main
+    assert "eq:aesp-cd-k8-signed-sharpness" in main
     assert "nonoptimal proper face" in main
     assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
@@ -266,6 +362,7 @@ def main() -> None:
     check_forced_state_identity()
     check_contract_or_spend_endpoint()
     check_moreau_event_kernel()
+    check_moreau_signed_event()
     check_kn_high_drop_stop()
     check_source_scope()
     print("Round-028 exact cross-normalized window audit passed")
@@ -274,6 +371,7 @@ def main() -> None:
     print("  K_N: high-drop-only correction payment has Omega(N) loss")
     print("  contract-or-spend: exact low Euclidean endpoint normalizer")
     print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
+    print("  signed Moreau events: exact telescope and reachable K8 sharpness")
     print("  scope: changing-face finite-inner restart transfer remains open")
 
 

@@ -51,6 +51,9 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
   are positive, the within-part entries are negative, and at `q=1/20` the
   exact payment ratio is
   `9190540374100260057432724000/35964609239043602890432954263<1`.
+  At `q=1/20`, exact rational inversion also closes every balanced blow-up of
+  `C9` and `C11`; their adjacent Young ratios are approximately `0.0490` and
+  `0.4137`, respectively.
 - **Conditional:** None yet.
 - **Measured:** None yet.
 - **Refuted:** `(CL)` does not cover all cycles: on `C10` at `q=1/20`, its
@@ -65,7 +68,8 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
 
 The eliminated-`h` form retains clipping complementarity.  Edgewise Young
 payment shows that a positive cross entry need not be an obstruction, and the
-ten-cycle application now has a nontrivial exact parameter interval.  The next
+cycle applications now include three neighboring infinite blow-up families,
+while the ten-cycle application has a nontrivial exact parameter interval. The next
 advance must prove a quotient-varying family, pay positive cross terms when either diagonal
 kernel is not a weighted Laplacian or the edgewise ratio exceeds one, or
 produce an exact admissible positive witness.
@@ -82,7 +86,8 @@ produce an exact admissible positive witness.
 - Exact file/section/lemma: `lem:psi-master-identity`,
   `thm:psi-hk-nonpositivity`, `lem:psi-eliminate-h`, and
   `thm:psi-edgewise-young`, `thm:psi-c6-blowup`, and
-  `thm:psi-c10-edgewise` in `main.tex`.
+  `thm:psi-c10-edgewise`, and `thm:psi-neighboring-cycle-edgewise` in
+  `main.tex`.
 - Next concrete action: vary the cycle quotient or find the first exact
   admissible state beyond all three sufficient routes.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
@@ -103,7 +108,8 @@ produce an exact admissible positive witness.
   checks), the exact `verify_cycle_blowup.py` audit (six rational-function
   identities, 24 eliminated-`h` checks, 36 blow-up matrices, 68796 strict
   off-diagonal checks, the exact `C10` point certificate, and 19 exact
-  interval Bernstein certificates),
+  interval Bernstein certificates, plus fixed-`q` exact edgewise certificates
+  for `C9`, `C10`, and `C11`),
   and `git diff --check` pass.  The edgewise theorem and its weighted
   double-counting were also independently rederived before promotion.
 - Known gaps: mixed clipping beyond all three sufficient conditions, proper

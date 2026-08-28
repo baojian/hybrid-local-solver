@@ -45,12 +45,20 @@ State: proved-open
   pay its low forcing. In the positive direction, an exact contract-or-spend
   window pays every correction pattern from a telescoping Stieltjes bank, and
   after multiplication by `mu_E` from the low Euclidean endpoint drop. A
+  rational-interval `P24` certificate proves that a split payment using net
+  high-band drop plus `6/5` times the starting low bank is still insufficient.
+  The certified necessary coefficient exceeds `1.206959416`. A
   Moreau-Hessian event bank has uniformly conditioned forcing and gives an
   exact nested-face epoch-restart ledger: boundary face gains and disjoint
   correction masses enter additively in root potential with geometric epoch
   weights. The protocol expands only at epoch boundaries, keeps the primal
   point fixed, and explicitly restarts momentum; it is not the unchanged
-  automatic-admission trajectory. A
+  automatic-admission trajectory. Retaining the correction cross term gives
+  an exact signed increment whose positive part has a telescoping Stieltjes
+  payment without the geometric `1/q` loss. This refines the epoch ledger to
+  count only harmful signed events. A reachable `P3` event makes the signed
+  increment positive and increases the bank, while the reachable `K8` family
+  makes the signed payment asymptotically tight. A
   direct accelerated terminal result holds on the a-posteriori
   high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -65,7 +73,8 @@ State: proved-open
   the fixed P4 objective, black-box shadowing through retraction, and uniform
   one-step `1-cq` contraction of the simplest lagged unsplit bank, and every
   graph-uniform constant payment of cross-normalized low forcing using only
-  signed/net high-band decrease.
+  signed/net high-band decrease, as well as the coefficient-`6/5` split
+  payment using the starting low bank on a settled path window.
 - **Open:** A graph-uniform net exponent for low-Dirichlet optimal faces using
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
@@ -87,7 +96,10 @@ spends this resource only at correction events and survives face changes and
 finite residuals. Equivalently, the remaining transfer must be windowed or nonlinear
 rather than a fixed additive reserve. The Moreau epoch ledger removes the
 `q^-2` face shock and avoids double counting, but still requires a bound on its
-geometrically weighted face-gain and correction-mass injections. There is
+geometrically weighted face-gain and harmful signed-event injections. The
+generic signed Stieltjes account improves the correction convolution but can
+still permit `O(1/q)` bad windows; the missing extra factor must use the actual
+controller or quiet gaps rather than only `0<=r_t<=beta*d_t`. There is
 still no graph-uniform exact accelerated solver.
 
 ## Dependencies and reusable outputs
@@ -110,7 +122,10 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-cross-normalized-bank`,
   `prop:aesp-cd-kn-cross-bank-stop`,
   `prop:aesp-cd-cross-normalized-contract-spend`, and
+  `prop:aesp-cd-p24-low-start-stop`,
   `prop:aesp-cd-moreau-epoch-restart`, and
+  `prop:aesp-cd-moreau-signed-event`,
+  `prop:aesp-cd-p3-positive-signed-event`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: Pack the weighted event terms in the Moreau epoch
   ledger or find a reachable obstruction, then transfer the boundary restart
@@ -126,8 +141,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Seven exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--028 mechanisms. Run them with `uv run python -m
+- Focused checks: Nine exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--030 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

@@ -28,12 +28,18 @@ face: its Perron trigger is a damped oscillation, independent of how many
 finite pure-prox warmups precede it.  This obstruction is repaired exactly by
 a face-tuned momentum parameter plus a spectral-gap/Perron-spread warmup; the
 result has an explicit positive kernel margin but is not graph-uniform.
+Pure-prox Collatz probes give a cheaper conditional alternative: once their
+Perron bracket has relative width at most `1/16`, an observable error-bar gate
+certifies a fixed-face momentum window with root rate
+`1-(3/8)*sqrt(1-U)`, without computing lower eigenvalues or eigenvectors.
+The bracket hitting time and admission replay count remain charged open terms.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is
 settled at a matching logarithmic scale for this exact full-face policy.  The
 live route is a restart/window implementation of the face-tuned rule on
-changing faces.  A one-admission final-full-star theorem already supplies
+changing faces, using same-point replay whenever an admission is detected. A
+one-admission final-full-star theorem already supplies
 explicit finite-inner warmup and momentum tolerances on a finite horizon.  On
 a full star, the literal repeated-solve warmup costs `Theta(B log B)`; the
 three-class verifier's constant arithmetic is only a symmetry reduction.

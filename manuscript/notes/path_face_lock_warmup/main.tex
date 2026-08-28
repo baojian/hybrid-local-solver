@@ -828,27 +828,67 @@ rank-one entry is at least $\gamma^2u_k(\mu_1)$, so
 \end{proof}
 
 All quantities in \cref{thm:face-tuned-permanent-safety} belong to the current
-face, but computing or certifying them must be charged.  A cheaper conservative
-Perron parameter can be obtained from one positive test vector $v$.  Namely,
-Collatz gives
-\[
- L:=\min_i\frac{(\overline{\mathcal M}_Av)_i}{v_i}\leq\mu_1,
- \qquad
- q_L:=\sqrt{1-L},
- \qquad
- \beta_L:=\frac{1-q_L}{1+q_L}.
-\]
-Using $\beta_L$ prevents Perron underdamping but does not control lower
-oscillatory modes.  Independently of spectral tuning, approximate residuals
-with coordinate error bars
-$|\widehat y_t-y_t|\leq\eta_t$ admit the safe observable gate
-\[
+face, but computing or certifying them must be charged.  Full eigendata are
+not necessary for a conditional accelerated window: pure-prox probes and an
+observable trigger gate suffice.
+
+\begin{theorem}[Collatz-bracketed gated accelerated window]
+\label{thm:collatz-gated-window}
+Let $\overline{\mathcal M}_A$ be the positive symmetric normalized residual
+map of a fixed connected face, with $0<\mu_i\leq\mu_1<1$.  From an anchor
+$z^0>0$, form pure-prox probes $z^{s+1}=\overline{\mathcal M}_Az^s$ and
+\begin{equation*}
+ L_s:=\min_i\frac{z_i^{s+1}}{z_i^s},
+ \qquad U_s:=\max_i\frac{z_i^{s+1}}{z_i^s}.
+\end{equation*}
+Then $L_s\uparrow$, $U_s\downarrow$, and $L_s\leq\mu_1\leq U_s$.  Suppose a
+probe gives $0<L\leq\mu_1\leq U<1$ and
+\begin{equation*}
+ U-L\leq\frac{1-U}{16}.
+\end{equation*}
+Put $q_U=\sqrt{1-U}$, $Q=\sqrt{1-L}$, and
+$\beta_L=(1-Q)/(1+Q)$.  If the coordinatewise residual gate accepts every
+stage of the following fixed-face momentum window, then its exact residuals
+satisfy
+\begin{equation}
+ \norm{y_n}_2
+ \leq3(n+1)\left(1-\frac{3q_U}{8}\right)^n\norm{z}_2.
+ \label{eq:collatz-gated-window-rate}
+\end{equation}
+Thus, after the bracket is certified, the accepted window is face-accelerated
+without computing $\mu_2$ or any eigenvector.
+\end{theorem}
+
+\begin{proof}
+Collatz gives the bracket, while applying the positive map once more proves
+its monotonicity.  The bracket condition gives
+$q_U\leq Q\leq\sqrt{17/16}\,q_U$.  On an eigenmode $\mu\leq L$, the momentum
+roots have modulus at most $1-Q$.  For $L\leq\mu\leq U$, the larger root is
+at most
+\begin{equation*}
+ \frac{U+\sqrt{U(U-L)}}{1+Q}
+ \leq1-\frac{3q_U}{8}.
+\end{equation*}
+The divided-difference bound for the restarted scalar recurrence is
+$3(n+1)$ times this common root modulus to power $n$.  Orthogonal spectral
+decomposition proves \cref{eq:collatz-gated-window-rate}.
+\end{proof}
+
+With coordinate error bars $|\widehat y_t-y_t|\leq\eta_t$, certify the probe
+ratios by replacing each numerator with $\widehat y_{t+1,i}\mp\eta_{t+1,i}$
+and each positive denominator with $\widehat y_{t,i}\pm\eta_{t,i}$.  Accept
+momentum only when
+\begin{equation*}
  (1+\beta)\widehat y_t-\beta\widehat y_{t-1}
- \geq\bigl((1+\beta)\eta_t+\beta\eta_{t-1}\bigr)\one.
-\]
-Accept momentum only when this holds coordinatewise; otherwise set $\beta=0$
-and restart.  The gate prevents false-safe acceptance, but by itself proves
-no accelerated rate.
+ \geq((1+\beta)\eta_t+\beta\eta_{t-1})\one;
+\end{equation*}
+otherwise restart.  A boundary admission must abort the old trial, return to
+the unchanged checkpoint $x$, set $x_{\rm prev}=x$, certify the same-point
+boundary residual, and replay a $\beta=0$ solve on the enlarged face.  Only
+after a primal/error certificate places that output in the relative interior
+may the protocol clear its history and rebuild the Collatz bracket.  The
+probe hitting time and number of admission replays remain explicit work terms;
+the theorem bounds only a fully accepted window.
 
 The center creates no extra factor in the one-stage entrance theorem of
 \cref{prop:first-momentum-safe}; that theorem already includes every arm

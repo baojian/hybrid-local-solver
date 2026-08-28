@@ -80,6 +80,61 @@ $\mu_{\mathcal E}k_I(\alpha)=m_0^3$.  Therefore
 The same unrolling proves \eqref{eq:aesp-cd-cross-normalized-low-spend}.
 \end{proof}
 
+A natural split variant would pay the low part of the forcing with the high
+energy drop and a fixed multiple of the starting low bank.  Even the
+coefficient $6/5$ is too small on an actual full-support path trajectory.
+
+\begin{proposition}[$P_{24}$ stops the $6/5$ low-start payment]
+\label{prop:aesp-cd-p24-low-start-stop}
+Take the endpoint-seeded path $P_{24}$ with $q=1/24$ and $\rho=1/92$.  Let
+\begin{equation*}
+ \lambda_c:=\frac{\kappa_{\mathrm A}}
+ {\beta_{\mathrm A}(2+\beta_{\mathrm A})},
+ \qquad
+ P_\ell:=\one_{Q\leq\lambda_c},
+ \qquad P_h:=I-P_\ell,
+\end{equation*}
+and let $\mathcal B_t^\ell$ and $\mathcal R_t^\ell$ be the restrictions of
+\cref{eq:aesp-cd-cross-normalized-bank,eq:aesp-cd-cross-normalized-forcing}
+to $P_\ell$.  Put
+$\mathfrak E_t^h:=\langle P_he_t,QP_he_t\rangle$.  The exact safeguarded
+trajectory has full support throughout the window $[57,93)$ and correction
+word $P N^{35}$.  It satisfies the rigorous rational-interval certificate
+\begin{equation}
+ \frac{
+   \mu_{\mathcal E}\sum_{t=57}^{92}\mathcal R_t^\ell
+   -(\mathfrak E_{56}^h-\mathfrak E_{92}^h)}
+  {\mu_{\mathcal E}\mathcal B_{56}^\ell}
+ \geq\frac{3628783833}{3006550000}
+ >\frac65.
+ \label{eq:aesp-cd-p24-low-start-stop}
+\end{equation}
+Consequently, the coefficient-$6/5$ inequality obtained by reversing
+\cref{eq:aesp-cd-p24-low-start-stop} fails even on a settled path face.  This
+does not stop the unsplit endpoint payment in
+\cref{eq:aesp-cd-cross-normalized-low-spend} or a larger/adaptive event
+allowance.
+\end{proposition}
+
+\begin{proof}
+The registered checker uses exact rational obstacle-prox iterates.  It encloses
+the explicit normalized-path cosine basis using Machin's formula for $\pi$,
+alternating rational remainders, and outward rounding to a $10^{-28}$ rational
+grid.  In particular, it certifies that exactly ten modes lie below
+$\lambda_c$, and proves the deliberately looser rational bounds
+\begin{align*}
+ \mu_{\mathcal E}\sum_{t=57}^{92}\mathcal R_t^\ell
+ &>\frac{181459359}{10^{15}},\\
+ \mathfrak E_{56}^h-\mathfrak E_{92}^h
+ &<\frac{2016735}{10^{17}},\\
+ \mu_{\mathcal E}\mathcal B_{56}^\ell
+ &<\frac{1503275}{10^{13}}.
+\end{align*}
+Their quotient gives the first inequality in
+\cref{eq:aesp-cd-p24-low-start-stop}; its exact excess over $6/5$ is
+$20923833/3006550000>0$.
+\end{proof}
+
 The preceding endpoint payment is exact but should not be frozen into a
 static reserve.  A Moreau-Hessian weighting instead records only correction
 events and admits a clean explicit epoch restart across nested faces.  The
@@ -201,6 +256,236 @@ gives the geometric convolution.  Finally, $\sum_jw_j<2$ and
 Cauchy--Schwarz separately on the two event sequences give
 \eqref{eq:aesp-cd-moreau-epoch-net}.
 \end{proof}
+
+The correction-square term in \cref{eq:aesp-cd-moreau-event-forcing} is a
+safe but potentially very loose envelope.  Keeping the cross term gives an
+exact signed event increment and removes the geometric $1/q$ loss from the
+fixed-face convolution.
+
+\begin{proposition}[Signed correction increment and refined epoch ledger]
+\label{prop:aesp-cd-moreau-signed-event}
+Under the exact fixed-settled-face safe-chain hypotheses, put
+$\vartheta=1-q$, $d_t=x_t-x_{t-1}$, and define the uncorrected and retained
+center advances
+\begin{equation*}
+ s_t^0:=\beta_{\mathrm A}d_t,
+ \qquad s_t:=s_t^0-r_t=\ell_t-x_t.
+\end{equation*}
+Let
+\begin{align}
+ \mathcal K_A
+ &:=M_A^3(Q_A+cI)
+   =\kappa_{\mathrm A}M_A^2+\alpha M_A^3,\notag\\
+ \mathcal J_A
+ &:=\mathcal K_A-c\vartheta M_A^2
+   =cqM_A^2(\vartheta I+qM_A),
+ \label{eq:aesp-cd-moreau-signed-kernels}
+\end{align}
+and
+\begin{equation}
+ \Xi_t:=-\langle r_t,\mathcal K_A(s_t+s_t^0)\rangle
+       +2\langle r_t,\mathcal J_Ae_t\rangle.
+ \label{eq:aesp-cd-moreau-signed-increment}
+\end{equation}
+Then the actual exact next state satisfies
+\begin{equation}
+ \mathcal C_{t+1}\leq\vartheta\mathcal C_t+\Xi_t.
+ \label{eq:aesp-cd-moreau-signed-recursion}
+\end{equation}
+Both kernels in \cref{eq:aesp-cd-moreau-signed-kernels} are positive
+semidefinite and entrywise nonnegative.  With
+$\mathcal S_t^{\mathcal J}:=\langle e_t,\mathcal J_Ae_t\rangle$,
+\begin{equation}
+ [\Xi_t]_+
+ \leq\beta_{\mathrm A}
+   (\mathcal S_{t-1}^{\mathcal J}-\mathcal S_t^{\mathcal J}).
+ \label{eq:aesp-cd-moreau-signed-payment}
+\end{equation}
+Consequently, for $L=\ell-k+1$,
+\begin{equation}
+ \mathcal C_{\ell+1}
+ \leq\vartheta^L\mathcal C_k
+ +\sum_{t=k}^{\ell}\vartheta^{\ell-t}[\Xi_t]_+,
+ \qquad
+ \sum_{t=k}^{\ell}[\Xi_t]_+
+ \leq\beta_{\mathrm A}
+ (\mathcal S_{k-1}^{\mathcal J}-\mathcal S_\ell^{\mathcal J}).
+ \label{eq:aesp-cd-moreau-signed-window}
+\end{equation}
+
+For the explicit epoch-restart protocol of
+\cref{prop:aesp-cd-moreau-epoch-restart}, replace $Y_j$ by the within-epoch
+discounted signed mass
+\begin{equation*}
+ X_j:=\sum_{t\text{ in epoch }j}
+ \vartheta^{b_{j+1}-1-t}[\Xi_t]_+,
+\end{equation*}
+where $b_{j+1}$ is the next epoch boundary.  Then
+\begin{align}
+ \sqrt{\mathcal C_{j+1}}
+ &\leq\frac12\sqrt{\mathcal C_j}
+   +\frac1{\sqrt2}\sqrt{\Delta_j}+\sqrt{X_j},
+ \label{eq:aesp-cd-moreau-signed-epoch}\\
+ \sqrt{\mathcal C_J}
+ &\leq2^{-J}\sqrt{\mathcal C_0}
+   +\sqrt{\sum_{j<J}w_j\Delta_j}
+   +\sqrt{2\sum_{j<J}w_jX_j}.
+ \label{eq:aesp-cd-moreau-signed-net}
+\end{align}
+Thus only harmful signed correction increments, rather than every correction
+square, enter the refined ledger.
+\end{proposition}
+
+\begin{proof}
+For fixed $e_t$, let $F_t(s)$ be the next Moreau bank generated by center
+advance $s$.  Exact solution gives
+$e_{t+1}=M_A(e_t-s)$ and $u_{t+1}=e_{t+1}-\vartheta e_t$.
+Expanding the two quadratic terms in \cref{eq:aesp-cd-moreau-event-bank}
+gives
+\begin{equation*}
+ F_t(s)=F_t(0)+\langle s,\mathcal K_As\rangle
+ -2\langle s,\mathcal J_Ae_t\rangle.
+\end{equation*}
+Subtract $F_t(s_t^0)$ from $F_t(s_t^0-r_t)$ to obtain
+\cref{eq:aesp-cd-moreau-signed-increment}.  The correction-free modal theorem
+gives $F_t(s_t^0)\leq\vartheta\mathcal C_t$, proving
+\cref{eq:aesp-cd-moreau-signed-recursion}.
+
+The displayed factorizations show that $\mathcal K_A,\mathcal J_A$ are
+positive semidefinite and entrywise nonnegative.  Since
+$0\leq r_t\leq\beta_{\mathrm A}d_t$ and $e_t,d_t\geq0$ coordinatewise,
+\begin{align*}
+ [\Xi_t]_+
+ &\leq2\langle r_t,\mathcal J_Ae_t\rangle
+ \leq2\beta_{\mathrm A}\langle d_t,\mathcal J_Ae_t\rangle\\
+ &\leq\beta_{\mathrm A}
+ \left(\langle e_t+d_t,\mathcal J_A(e_t+d_t)\rangle
+       -\langle e_t,\mathcal J_Ae_t\rangle\right),
+\end{align*}
+which is \cref{eq:aesp-cd-moreau-signed-payment}.  Linear iteration proves
+\cref{eq:aesp-cd-moreau-signed-window}.  Combining its first inequality with
+the same-point restart transfer and
+$\vartheta^{L_j/2}\leq1/\sqrt8$ proves
+\cref{eq:aesp-cd-moreau-signed-epoch}.  The weighted net inequality follows
+from Cauchy--Schwarz and $\sum_jw_j<2$.
+\end{proof}
+
+\begin{corollary}[Any isolated correction is absorbed by a quiet window]
+\label{cor:aesp-cd-moreau-pulse-reset}
+Under the same exact fixed-face hypotheses, every partial or full correction
+obeys
+\begin{equation*}
+ \mathcal C_{t+1}<8\mathcal C_t.
+\end{equation*}
+If the following $L$ stages have no correction, then
+\begin{equation}
+ \mathcal C_{t+L+1}<8(1-q)^L\mathcal C_t.
+ \label{eq:aesp-cd-moreau-pulse-reset}
+\end{equation}
+In particular, $L=\lceil\log(16)/q\rceil$ gives strict one-half contraction.
+\end{corollary}
+
+\begin{proof}
+Entrywise nonnegativity of $\mathcal J_A$ and $e_t,s_t\geq0$ give
+\begin{equation*}
+ F_t(s_t)\leq F_t(0)+\langle s_t,\mathcal K_As_t\rangle.
+\end{equation*}
+The full-reset modal bound gives $F_t(0)<2\mathcal C_t$, while
+$\mathcal K_A\preceq m_0^3I$.  Since $s_t\leq\beta_{\mathrm A}d_t$ and
+$u_t=qe_t-(1-q)d_t$, the lower modal weights in $\mathcal C_t$ imply
+\begin{equation*}
+ m_0^3\norm{s_t}_2^2
+ \leq6(1-q)^2(1+q^2)\mathcal C_t<6\mathcal C_t.
+\end{equation*}
+This proves the factor eight.  Apply the correction-free factor $1-q$ for the
+following stages and use $(1-q)^L\leq e^{-qL}$.
+\end{proof}
+
+The signed increment is substantially sharper than correction-square mass,
+but it can still be positive on a legal reachable trajectory and its
+Stieltjes payment is asymptotically tight.
+
+\begin{proposition}[Reachable positive signed events and tight payment]
+\label{prop:aesp-cd-p3-positive-signed-event}
+On the endpoint-seeded path $P_3$ with $q=1/8$ and $\rho=1/16$, the exact
+support sequence through stage four is
+\begin{equation*}
+ \varnothing,\quad\{0,1\},\quad\{0,1,2\},\quad
+ \{0,1,2\},\quad\{0,1,2\},
+\end{equation*}
+and the stage word is $\mathsf N\mathsf N\mathsf N\mathsf F\mathsf N$.
+The full correction at $t=3$ has
+\begin{equation}
+ \frac{\Xi_3}{\mathcal C_3}
+ =\frac{938073510129372371755}{3462704548150418915328}
+ >\frac14,
+ \qquad
+ \frac{\Xi_3}{q\mathcal C_3}>2,
+ \qquad
+ \mathcal C_4>\mathcal C_3.
+ \label{eq:aesp-cd-p3-positive-signed-event}
+\end{equation}
+
+On the reachable $K_8$ family of
+\cref{prop:aesp-cd-k8-q-bank-stop}, the stage-two full correction satisfies
+\begin{equation}
+ \lim_{q\downarrow0}\frac{\Xi_2}{q\mathcal C_2}=2,
+ \qquad
+ \lim_{q\downarrow0}
+ \frac{\Xi_2}{\beta_{\mathrm A}
+ (\mathcal S_1^{\mathcal J}-\mathcal S_2^{\mathcal J})}=1.
+ \label{eq:aesp-cd-k8-signed-sharpness}
+\end{equation}
+At $q=1/100$, the first ratio is exactly
+\begin{equation*}
+ \frac{10021978673028809851221}{5135269638022709000000}
+ \approx1.95160,
+\end{equation*}
+while the second is approximately $0.98582$.  Hence neither signed
+nonpositivity nor an extra graph-uniform factor $q$ in
+\cref{eq:aesp-cd-moreau-signed-payment} follows from the actual common-cap
+controller.
+\end{proposition}
+
+\begin{proof}
+The registered $P_3$ audit replays the legal exact obstacle-prox trajectory
+and evaluates all four terms of the Moreau bank as rational numbers.  Its
+full-correction cap ratio is $134592/34351>1$, and direct subtraction gives
+\cref{eq:aesp-cd-p3-positive-signed-event}.
+
+For the $K_8$ family, use its constant and source-orthogonal modal weights
+$8$ and $8/7$.  The low-mode stage-one and stage-two errors obey
+$E_{1,0}=a_0m_0$, $E_{2,0}=E_{1,0}s_0$, with $a_0=1/112$, while the high
+amplitudes carry an additional $q^2$ factor.  As $q\downarrow0$,
+\begin{equation*}
+ \frac{\mathcal C_2}{a_0^2q^2}\longrightarrow16,
+ \qquad
+ \frac{\Xi_2}{a_0^2q^3}\longrightarrow32,
+ \qquad
+ \frac{\mathcal S_1^{\mathcal J}-\mathcal S_2^{\mathcal J}}
+ {a_0^2q^3}\longrightarrow32.
+\end{equation*}
+The high-mode contributions are lower order.  These limits prove
+\cref{eq:aesp-cd-k8-signed-sharpness}; exact substitution at $q=1/100$ gives
+the displayed rational calibration.
+\end{proof}
+
+This refinement is not yet a complete event-packing theorem.  If
+$L=\lceil\log(2)/q\rceil$ and a block fails to contract from
+$\mathcal C_k$ to $3\mathcal C_k/4$, then
+\cref{eq:aesp-cd-moreau-signed-window} forces
+\begin{equation*}
+ \mathcal S_{k-1}^{\mathcal J}-\mathcal S_\ell^{\mathcal J}
+ >\frac{\mathcal C_k}{4\beta_{\mathrm A}}.
+\end{equation*}
+However, the exact modal comparison
+$q\mathcal J_A\preceq W_A$ permits
+$\mathcal S^{\mathcal J}/\mathcal C=\Theta(1/q)$ on the lowest mode.  The
+generic two-account argument therefore allows $O(1/q)$ bad blocks, or
+$O(1/q^2)$ stages.  Closing the accelerated exponent now requires a
+controller-specific theorem showing that positive $\Xi_t$ events are sparse,
+followed by quiet reset windows, or spectrally separated; the common-cap
+inequality $0\leq r_t\leq\beta_{\mathrm A}d_t$ alone is insufficient.
 
 The event ledger avoids both registered normalization traps.  On the
 full-support $K_2$ tail, $\Delta_j=Y_j=0$, so every
