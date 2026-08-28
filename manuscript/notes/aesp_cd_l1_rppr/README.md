@@ -167,6 +167,19 @@ missing object as a persistent affine hull supporting bulk pullback and meld.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.
+The closest dynamic-data-structure results do not currently supply that
+combined interface.  [Top trees](https://arxiv.org/abs/cs/0310065) give
+logarithmic structural updates once a composable cluster summary is provided,
+and [dynamic treewidth](https://arxiv.org/abs/2504.02790) maintains a bounded-
+width decomposition and declared dynamic-programming state.  The
+[dynamic planar convex hull](https://arxiv.org/abs/1902.11169) supports
+insert/delete and extreme-point queries in one global coordinate frame, while
+[dynamic hulls for simple paths](https://doi.org/10.4230/LIPIcs.SoCG.2024.24)
+add restricted deque/concatenate structure.  Their stated operation sets do
+not yield arbitrary hierarchical affine pullback together with persistent
+hull meld/split and strict labeled argmax.  Thus these papers validate the
+neighboring ingredients, but using them here still requires a new reduction
+or a stronger reporter theorem.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive

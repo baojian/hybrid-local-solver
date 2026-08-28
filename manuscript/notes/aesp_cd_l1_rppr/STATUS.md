@@ -137,6 +137,11 @@ State: proved-open
   interface. Under a uniform relative KKT margin,
   charged coordinate-level events give another soft-linear reporter; the
   event source remains an explicit interface cost.
+  A primary-source interface check found logarithmic top-tree/dynamic-
+  treewidth structural updates and global-frame dynamic convex-hull queries,
+  including restricted simple-path concatenation, but no stated primitive
+  combining hierarchical affine pullback, persistent hull meld/split, and
+  strict labeled argmax.  This is a literature boundary, not a lower bound.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
