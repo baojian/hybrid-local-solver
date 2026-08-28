@@ -9,9 +9,10 @@ object and central proof obligation.
 The shared entry point is [`_shared/`](_shared/). Direction agents read its
 problem definition, related-work map, accumulated-results ledger, and current
 broadcast before resuming a note. They work in one direction directory and
-return a structured `STATUS.md` handoff; the controller verifies and
-redistributes cross-direction results. The detailed ownership and collision
-rules are in [`AGENTS.md`](AGENTS.md).
+return a structured status handoff, either separate as `STATUS.md` or combined
+into `README.md`; the controller verifies and redistributes cross-direction
+results. The detailed ownership and collision rules are in
+[`AGENTS.md`](AGENTS.md).
 
 ## Claim discipline
 
@@ -39,9 +40,10 @@ not a first-order restriction.
 2. Use `tex/shared/research_note_preamble.tex` and
    `tex/shared/source_aligned_problem.tex`; do not create a private PageRank
    normalization or redefine reserved notation.
-3. Give the note its own directory containing `main.tex`, `README.md`,
-   `STATUS.md`, and a `Makefile` that includes `../note.mk`. Use the shared
-   coordination status template. A compact note may remain inline; once an
+3. Give the note its own directory containing `main.tex`, `README.md`, and a
+   `Makefile` that includes `../note.mk`. Put the structured status handoff in
+   `STATUS.md` or combine it into `README.md`, using the shared coordination
+   status template. A compact note may remain inline; once an
    entrypoint grows beyond 1,200 lines, keep it as the document shell and put
    ordered proof units under `sections/body/`, each below 1,000 lines. The
    one-time `tools/split_note_sections.py` migration helper preserves the body
@@ -52,7 +54,7 @@ not a first-order restriction.
    support evolution, evidence level, dependencies, and next target.
    A registry dependency is a direct theorem/construction import. Record
    empirical ancestry, sibling comparisons, and companion-note provenance in
-   `STATUS.md` instead of turning them into formal graph edges.
+   the status handoff instead of turning them into formal graph edges.
 5. Add focused automated tests for executable tools or implementations. Keep
    experiment orchestration in `experiments/` and reusable logic in `src/`.
    Proof-audit programs belong under `experiments/proof_audits/` and must be

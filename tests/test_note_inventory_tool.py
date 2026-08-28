@@ -103,9 +103,25 @@ def test_every_note_has_a_complete_status_handoff() -> None:
     registry = tool.load_registry(REPOSITORY)
 
     for record in registry:
-        status = REPOSITORY / "manuscript" / "notes" / record["id"] / "STATUS.md"
+        note = REPOSITORY / "manuscript" / "notes" / record["id"]
+        status = tool.status_handoff_file(note, record["id"])
+        assert status is not None
         text = status.read_text(encoding="utf-8")
-        assert tool.audit_status_handoff(record["id"], text) == []
+        assert (
+            tool.audit_status_handoff(
+                record["id"],
+                text,
+                embedded=status.name == "README.md",
+            )
+            == []
+        )
+
+
+def test_status_handoff_can_be_embedded_in_readme() -> None:
+    tool = _load_tool()
+    text = "# Example note\n\nOverview.\n\n" + _valid_status_text()
+
+    assert tool.audit_status_handoff("example", text, embedded=True) == []
 
 
 def test_status_handoff_rejects_empty_fields_and_non_enum_state() -> None:

@@ -2,9 +2,10 @@
 
 ``registry.toml`` is the single source for buildable documents, research
 roles, backend families, dependencies, and concise next targets. Each
-direction keeps its detailed current state in ``STATUS.md``; immutable round
-records retain history. This tool validates those sources and renders the
-small derived navigation views used by Make and CI.
+direction keeps its detailed current state either in ``STATUS.md`` or in a
+combined ``README.md`` status section; immutable round records retain history.
+This tool validates those sources and renders the small derived navigation
+views used by Make and CI.
 """
 
 from __future__ import annotations
@@ -113,6 +114,20 @@ def load_tracks(root: Path | None = None) -> dict[str, str]:
     notes = root / "manuscript" / "notes"
     registry = _load_toml(notes / "registry.toml")
     return registry.get("tracks", {})
+
+
+def status_handoff_file(note_directory: Path, note_id: str) -> Path | None:
+    """Return the separate or README-embedded status handoff for a note."""
+
+    status_file = note_directory / "STATUS.md"
+    if status_file.is_file():
+        return status_file
+    readme_file = note_directory / "README.md"
+    if readme_file.is_file():
+        expected_title = f"# Direction status: {note_id}"
+        if expected_title in readme_file.read_text(encoding="utf-8").splitlines():
+            return readme_file
+    return None
 
 
 def _duplicate_values(values: list[str]) -> set[str]:
@@ -239,11 +254,13 @@ def audit_status_registry_dependencies(
     ]
 
 
-def audit_status_handoff(note_id: str, text: str) -> list[str]:
+def audit_status_handoff(note_id: str, text: str, *, embedded: bool = False) -> list[str]:
     errors: list[str] = []
     lines = text.splitlines()
     expected_title = f"# Direction status: {note_id}"
-    if not lines or lines[0] != expected_title:
+    if embedded and expected_title not in lines:
+        errors.append(f"{note_id}: README.md must contain {expected_title!r}")
+    elif not embedded and (not lines or lines[0] != expected_title):
         errors.append(f"{note_id}: STATUS.md must start with {expected_title!r}")
 
     reviewed_matches = re.findall(r"^Last reviewed:[ \t]*(.*)$", text, re.MULTILINE)
@@ -447,7 +464,7 @@ def audit_inventory(root: Path | None = None) -> list[str]:
                 f"{note_id}: entrypoint must be {expected_entrypoint}, found {entrypoint!r}"
             )
         note_directory = notes / note_id
-        for filename in ("main.tex", "README.md", "STATUS.md", "Makefile"):
+        for filename in ("main.tex", "README.md", "Makefile"):
             if not (note_directory / filename).is_file():
                 errors.append(f"{note_id}: missing {filename}")
         main_file = note_directory / "main.tex"
@@ -465,10 +482,18 @@ def audit_inventory(root: Path | None = None) -> list[str]:
                     f"{section_file.relative_to(notes)} has {line_count} lines; "
                     f"split it at a semantic boundary (limit {MAX_EXTRACTED_SECTION_LINES})"
                 )
-        status_file = note_directory / "STATUS.md"
-        if status_file.is_file():
+        status_file = status_handoff_file(note_directory, note_id)
+        if status_file is None:
+            errors.append(f"{note_id}: missing status handoff in STATUS.md or README.md")
+        else:
             status_text = status_file.read_text(encoding="utf-8")
-            errors.extend(audit_status_handoff(note_id, status_text))
+            errors.extend(
+                audit_status_handoff(
+                    note_id,
+                    status_text,
+                    embedded=status_file.name == "README.md",
+                )
+            )
         makefile = note_directory / "Makefile"
         if makefile.is_file() and "include ../note.mk" not in makefile.read_text(encoding="utf-8"):
             errors.append(f"{note_id}: Makefile must include ../note.mk")
@@ -501,8 +526,8 @@ def audit_inventory(root: Path | None = None) -> list[str]:
         for dependency in dependencies:
             if dependency not in registry_by_id:
                 errors.append(f"{note_id}: unknown dependency {dependency}")
-        status_file = notes / note_id / "STATUS.md"
-        if status_file.is_file():
+        status_file = status_handoff_file(notes / note_id, note_id)
+        if status_file is not None:
             errors.extend(
                 audit_status_registry_dependencies(
                     note_id,

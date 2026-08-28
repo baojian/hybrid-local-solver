@@ -12,8 +12,8 @@ Every direction agent reads, in order:
 2. [`_shared/related_work/README.md`](_shared/related_work/README.md);
 3. [`_shared/results/README.md`](_shared/results/README.md);
 4. [`_shared/coordination/BROADCAST.md`](_shared/coordination/BROADCAST.md);
-5. the target direction's `README.md`, `STATUS.md`, registry entry, and relevant
-   parts of `main.tex`;
+5. the target direction's `README.md`, status handoff (`STATUS.md` when kept
+   separately), registry entry, and relevant parts of `main.tex`;
 6. the required project context and literature files named by the root
    `AGENTS.md`.
 
@@ -37,15 +37,16 @@ paper or proof file.
   graph**: add an edge only when the consuming direction invokes a result from
   the provider as part of a claim or construction.  Empirical ancestry,
   motivating siblings, comparison baselines, and companion notes belong in
-  `STATUS.md` under a separate **Context/provenance** label; they are not
+  status handoff under a separate **Context/provenance** label; they are not
   missing registry edges and must not be added when doing so would merely
   encode narrative history or create a provenance cycle.
 
 ## Independent-direction contract
 
 Each direction must remain resumable without reading chat history. Its
-`README.md` explains the mathematical idea and build command. Its `STATUS.md`
-is the operational handoff and must state:
+`README.md` explains the mathematical idea and build command. The operational
+status handoff may be a separate `STATUS.md` or may be combined into
+`README.md`; it must state:
 
 - the exact question, model, accuracy namespace, and charged work;
 - source, proved, conditional, measured, open, and refuted claims separately;
@@ -53,7 +54,7 @@ is the operational handoff and must state:
 - formal registry dependencies, context/provenance, and reusable outputs;
 - where a new agent should resume and which checks were last run.
 
-`STATUS.md` is a navigation aid, not proof authority. `main.tex` and cited
+The status handoff is a navigation aid, not proof authority. `main.tex` and cited
 sources remain authoritative for mathematical statements. Resume pointers use
 stable LaTeX labels, section names, test names, or source anchors whenever
 possible; a bare line range is too fragile under concurrent edits.
@@ -63,7 +64,7 @@ possible; a bare line range is too fragile under concurrent edits.
 At the end of a direction task:
 
 1. reconcile the note with project notation and claim labels;
-2. update that direction's `STATUS.md`;
+2. update that direction's status handoff;
 3. send the controller a compact handoff using
    [`_shared/coordination/STATUS_TEMPLATE.md`](_shared/coordination/STATUS_TEMPLATE.md);
 4. identify any result that should enter the cumulative ledger, any refuted

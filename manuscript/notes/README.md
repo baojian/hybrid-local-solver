@@ -9,7 +9,8 @@ Three files have distinct responsibilities:
 
 - [`registry.toml`](registry.toml) is the single machine-readable inventory of
   buildable notes, research tracks, formal dependencies, and next targets.
-- Each note's `STATUS.md` is the current operational handoff and claim ledger.
+- Each note's status handoff is the current operational claim ledger. It may
+  live in `STATUS.md` or be combined into the note's `README.md`.
 - Each note's `main.tex` and included section files are the proof authority.
 
 Compact notes may keep their bodies in `main.tex`. Large notes use an ordered
@@ -31,8 +32,9 @@ All notes use the common mathematical language in
 [`../../docs/mathematical-conventions.md`](../../docs/mathematical-conventions.md),
 accepted decisions, and the shared LaTeX shell under `../tex/shared/`. A formal
 dependency means a direct proof or construction import. Motivation,
-comparisons, and historical ancestry belong in `STATUS.md` rather than the
-dependency graph. See [`WORKFLOW.md`](WORKFLOW.md) for the contribution flow.
+comparisons, and historical ancestry belong in the status handoff rather than
+the dependency graph. See [`WORKFLOW.md`](WORKFLOW.md) for the contribution
+flow.
 
 The frozen end-to-end audit target remains an exact-real local RPPR solver with
 the full charged-work contract recorded in the shared
