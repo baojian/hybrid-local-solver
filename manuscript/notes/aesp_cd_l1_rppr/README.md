@@ -25,11 +25,19 @@ that forcing from net high-band decrease alone: the required ratio is
 `>(N-1)/23`. The surviving exact fixed-face interface is instead a
 contract-or-spend window: after `Theta(1/q)` stages the bank contracts by a
 constant unless it spends a telescoping low Euclidean endpoint drop.
+An alternative Moreau-Hessian bank has a correction-event forcing metric with
+condition number below `4(1+q^2)`.  For an explicit nested-face epoch protocol
+that expands only at boundaries and restarts momentum at the unchanged primal
+point, it gives a geometric root-potential ledger: face-optimum gains and
+correction masses are injected once and earlier events are automatically
+discounted.  This is not yet an event-packing theorem for the automatic
+per-stage admission trajectory.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
-The live target is a windowed, spectrally split, nonlinear, or differently
-normalized low-Dirichlet Lyapunov for the actual finite safeguarded sequence.
+The live target is to pack the weighted face-gain and correction-event terms
+in the epoch ledger, then transfer the explicit restart protocol to the actual
+finite safeguarded sequence.
 No graph-uniform exact accelerated solver or unconditional
 `O_tilde(1/(rho*sqrt(alpha)))` end-to-end theorem is claimed. In particular:
 

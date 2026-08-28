@@ -75,9 +75,7 @@ def exact_residual_margin_certificate() -> None:
     each assertion to a polynomial with nonnegative coefficients and a
     positive constant term.
     """
-    pc = _poly_desc(
-        [22032, 124208, 264196, 256084, 99850, -1354, -8271, -710, -33, -2]
-    )
+    pc = _poly_desc([22032, 124208, 264196, 256084, 99850, -1354, -8271, -710, -33, -2])
     ps = _poly_desc(
         [
             55296,
@@ -93,12 +91,8 @@ def exact_residual_margin_certificate() -> None:
             -2,
         ]
     )
-    po = _poly_desc(
-        [18576, 94512, 144036, 1172, -189830, -171434, -52207, -3238, -17, -2]
-    )
-    pt = _poly_desc(
-        [24624, 140176, 300428, 299772, 142142, 39778, 18459, 6510, 117, -6]
-    )
+    po = _poly_desc([18576, 94512, 144036, 1172, -189830, -171434, -52207, -3238, -17, -2])
+    pt = _poly_desc([24624, 140176, 300428, 299772, 142142, 39778, 18459, 6510, 117, -6])
     b_poly = [0, 1]
     factor = [3, 8, 4]  # (2B+1)(2B+3)
     d0 = _poly_mul(_poly_pow([1, 1], 8), _poly_pow([-1, 9], 3))
@@ -113,9 +107,7 @@ def exact_residual_margin_certificate() -> None:
         "S": _poly_mul(factor, ps),
         "O": _poly_mul(factor, po),
         "leaf mean": _poly_mul(factor, pt),
-        "1-leaf mean": _poly_add(
-            _poly_mul([512], d0), _poly_mul(factor, pt), -1
-        ),
+        "1-leaf mean": _poly_add(_poly_mul([512], d0), _poly_mul(factor, pt), -1),
         "S-O-3/20": _poly_add(
             _poly_mul([20], _poly_mul(factor, _poly_add(ps, po, -1))),
             _poly_mul([4608], _poly_mul(b_poly, d0)),
@@ -212,8 +204,7 @@ def solve(a: Matrix, b: Vector) -> Vector:
                 continue
             factor = aug[row][column]
             aug[row] = [
-                value - factor * pivot_value
-                for value, pivot_value in zip(aug[row], aug[column])
+                value - factor * pivot_value for value, pivot_value in zip(aug[row], aug[column])
             ]
     return [row[-1] for row in aug]
 
@@ -257,8 +248,7 @@ def obstacle_solve(
     """Solve the three-class shifted obstacle problem by mask enumeration."""
     rhs = [ct[i] + kappa * degrees[i] * lower_center[i] for i in range(3)]
     hessian = [
-        [qt[i][j] + (kappa * degrees[i] if i == j else 0) for j in range(3)]
-        for i in range(3)
+        [qt[i][j] + (kappa * degrees[i] if i == j else 0) for j in range(3)] for i in range(3)
     ]
     candidates: list[Vector] = []
     for size in range(4):

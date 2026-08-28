@@ -29,7 +29,9 @@ reachable lower bound to logarithmic order, so this repeated-solve policy has
 matching $\Theta(\log B)$ warmup scale.  A strict entrywise upper margin is
 available on finite horizons, whereas every strict connected proper face has
 an oscillatory Perron obstruction to permanent safety under the same global
-momentum.  These results still do not supply an end-to-end local-work theorem.
+momentum.  Tuning momentum to the face Perron mode repairs that obstruction
+under an explicit spectral-ratio and Perron-spread warmup.  These results still
+do not supply an end-to-end local-work theorem.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -428,7 +430,7 @@ $Y_4=\widetilde c-\widetilde Qx_4$.  Exact shifted optimality gives
 $Y_4=\kappa D(x_4-x_3)$.  Hence, in normalized coordinates,
 \begin{equation}
  \alpha_B^{-1}D^{-1/2}Y_4
- \longrightarrow \frac{16}{81}e_s
+ \longrightarrow \frac{16}{81}e_{\mathrm{seed}}
  \quad\hbox{in }\ell_2.
  \label{eq:reachable-star-residual-limit}
 \end{equation}
@@ -664,6 +666,74 @@ an absolute finite-inner schedule can compare its accumulated trigger error
 with $\min_{k\leq T}a_k\lVert y\rVert_1/(4B)$.  Permanent finite-inner safety
 instead requires a relative tolerance, a finite window, or a restart rule.
 
+\begin{proposition}[Conditional finite-inner full-star window; proved here]
+\label{prop:star-finite-inner-window}
+Let $B\geq2$, $0<q\leq1/2$, and let a reset admit the final full unit $B$-star from a normalized trigger
+$g\geq0$, and put $G=\lVert g\rVert_1>0$ and $m_0=1-q^2$.  Suppose the
+shifted solve returns normalized right-hand-side residual $\bar a_t$.
+Choose $J$ as in \eqref{eq:star-strict-margin-condition}, fix a momentum
+horizon $0\leq k\leq T$, and set
+\begin{equation*}
+ a_{\min}:=\min_{0\leq k\leq T}u_k(m_0),
+ \qquad
+ h:=\frac{a_{\min}m_0G}{96B}.
+\end{equation*}
+If the admission and $J$ warmup solves have
+$\lVert\bar a_t\rVert_2\leq\xi_{\rm w}$, the momentum-window solves have
+$\lVert\bar a_t\rVert_2\leq\xi_{\rm m}$, and
+\begin{align}
+ \xi_{\rm w}&\leq
+ \min\left\{
+  \frac{m_0G}{24B},
+  \frac{hq}{16(J+1)},
+  \frac{m_0G}{24B(J+1)}\left(\frac{3m_0}{4}\right)^J
+ \right\},
+ \label{eq:star-finite-warm-tolerance}\\
+ \xi_{\rm m}&\leq\frac{hq^2}{8},
+ \label{eq:star-finite-momentum-tolerance}
+\end{align}
+then every trigger through the stated window is strictly positive.  To keep
+the approximate primal state on the full face, it is additionally sufficient
+to enforce the observable per-stage guard
+\begin{equation}
+ \lVert\bar a_t\rVert_2\leq\frac{\lVert u_t\rVert_1}{24B}.
+ \label{eq:star-finite-primal-guard}
+\end{equation}
+This is a one-admission, final-full-face finite-window theorem, not a
+changing-proper-face convergence result.
+\end{proposition}
+
+\begin{proof}
+The four exact entry types of the normalized full-star map are
+\[
+ M_{cc}=\frac{3m_0}{4},\quad
+ M_{c\ell}=\frac{m_0}{4\sqrt B},\quad
+ M_{\ell\ell}=m_0\left(\frac23+\frac{1}{12B}\right),\quad
+ M_{\ell\ell'}=\frac{m_0}{12B}.
+\]
+Thus the exact admission output $y_0=Mg$ obeys
+$\min_i(y_0)_i\geq m_0G/(12B)$ and
+$\lVert y_0\rVert_1\geq m_0G/12$.  A finite solve instead gives
+$y_0^{\rm fin}=Mg+(I-M)\bar a_0$, and
+$\lVert(I-M)\bar a_0\rVert_2\leq\lVert\bar a_0\rVert_2$.  The first and
+third bounds in \eqref{eq:star-finite-warm-tolerance} preserve positivity
+through admission and pure warmup; the minimum row sum of $M$ is at least
+$3m_0/4$.
+
+By \cref{cor:star-logarithmic-kernel-margin}, the ideal $k$th momentum
+trigger is at least $a_km_0G/(48B)$ in every coordinate.  The scalar Green
+kernel satisfies $|g_r|\leq(r+1)(1-q)^r$, so the accumulated trigger error is
+at most
+\[
+ \frac{8(J+1)}q\xi_{\rm w}+\frac4{q^2}\xi_{\rm m}\leq h.
+\]
+This leaves at least half the ideal minimum margin.  Finally, the exact primal
+increment is $M u_t/\kappa$, whose minimum coordinate is at least
+$m_0\lVert u_t\rVert_1/(12B\kappa)$, while the solve error is at most
+$m_0\lVert\bar a_t\rVert_2/\kappa$.  This proves
+\eqref{eq:star-finite-primal-guard} and the claim.
+\end{proof}
+
 \begin{proposition}[Strict proper faces defeat permanent global momentum]
 \label{prop:proper-face-global-momentum-stop}
 Let the ambient graph be connected and let $A\subsetneq V$ be a nonempty
@@ -694,6 +764,91 @@ and the second factor is positive, that trigger cannot be componentwise
 nonnegative.  The negative time may diverge as $\lambda_1\uparrow1$, so the
 claim does not exclude finite windows or face-adapted momentum.
 \end{proof}
+
+The preceding obstruction is specific to using the full-graph momentum
+parameter on a Dirichlet face.  Tuning momentum to the current face restores
+permanent exact cone safety, at the cost of face spectral information.
+
+\begin{theorem}[Face-tuned permanent cone safety; proved here]
+\label{thm:face-tuned-permanent-safety}
+Let $A$ be a finite connected fixed face.  Write the eigenvalues of its
+normalized residual map as $1>\mu_1$, and, in dimension at least two,
+$\mu_1>\mu_2\geq\cdots>0$.  Let $\phi_1>0$ be its unit Perron vector, and put
+\begin{equation*}
+ \gamma:=\min_i(\phi_1)_i,\qquad
+ q_{\mathrm{face}}:=\sqrt{1-\mu_1},\qquad
+ \beta_{\mathrm{face}}:=\frac{1-q_{\mathrm{face}}}{1+q_{\mathrm{face}}},\qquad
+ \delta_i:=\frac{\mu_i}{\mu_1}.
+\end{equation*}
+For $i\geq2$, define
+\begin{equation*}
+ A_i:=\frac{\delta_i(1+q_{\mathrm{face}})-1}
+ {(1+q_{\mathrm{face}})\sqrt{\delta_i(1-\delta_i)}},\qquad
+ C_\star:=\max_{i\geq2}\sqrt{1+A_i^2},\qquad
+ \delta_\star:=\delta_2,
+\end{equation*}
+In dimension one, omit $C_\star,\delta_\star$ and regard the following
+condition as vacuous.  For an integer $J\geq1$, if
+\begin{equation}
+ C_\star\delta_\star^{J-1}\leq\frac{\gamma^2}{2},
+ \label{eq:face-tuned-warmup-condition}
+\end{equation}
+then $J$ pure-prox solves followed by $\beta_{\mathrm{face}}$ give, for every
+$k\geq-1$,
+\begin{equation}
+ [u_k(\overline{\mathcal M}_A)]_{ij}
+ \geq\frac12u_k(\mu_1)(\phi_1)_i(\phi_1)_j
+ \geq\frac{\gamma^2}{2}u_k(\mu_1)>0.
+ \label{eq:face-tuned-kernel-margin}
+\end{equation}
+Hence every nonzero entrance residual $y\geq0$ has a permanently positive
+exact trigger tail.  The warmup depends on the face spectral ratio and Perron
+spread; it is not graph-uniform.
+\end{theorem}
+
+\begin{proof}
+The Perron scalar is
+\[
+ u_k(\mu_1)=\mu_1^{J-1}(1-q_{\mathrm{face}})^{k+1}
+ \left(1+\frac{q_{\mathrm{face}}(k+1)}{1+q_{\mathrm{face}}}\right)>0.
+\]
+For a lower mode, the same calculation as
+\eqref{eq:star-oscillatory-trigger} gives
+\[
+ \frac{|u_k(\mu_i)|}{u_k(\mu_1)}
+ \leq\sqrt{1+A_i^2}\,
+ \delta_i^{J-1+(k+1)/2}
+ \leq C_\star\delta_\star^{J-1}.
+\]
+By Cauchy--Schwarz, the absolute value of each entry of the lower-mode
+spectral remainder is at most the last ratio times $u_k(\mu_1)$.  The Perron
+rank-one entry is at least $\gamma^2u_k(\mu_1)$, so
+\eqref{eq:face-tuned-warmup-condition} proves
+\eqref{eq:face-tuned-kernel-margin}.
+\end{proof}
+
+All quantities in \cref{thm:face-tuned-permanent-safety} belong to the current
+face, but computing or certifying them must be charged.  A cheaper conservative
+Perron parameter can be obtained from one positive test vector $v$.  Namely,
+Collatz gives
+\[
+ L:=\min_i\frac{(\overline{\mathcal M}_Av)_i}{v_i}\leq\mu_1,
+ \qquad
+ q_L:=\sqrt{1-L},
+ \qquad
+ \beta_L:=\frac{1-q_L}{1+q_L}.
+\]
+Using $\beta_L$ prevents Perron underdamping but does not control lower
+oscillatory modes.  Independently of spectral tuning, approximate residuals
+with coordinate error bars
+$|\widehat y_t-y_t|\leq\eta_t$ admit the safe observable gate
+\[
+ (1+\beta)\widehat y_t-\beta\widehat y_{t-1}
+ \geq\bigl((1+\beta)\eta_t+\beta\eta_{t-1}\bigr)\one.
+\]
+Accept momentum only when this holds coordinatewise; otherwise set $\beta=0$
+and restart.  The gate prevents false-safe acceptance, but by itself proves
+no accelerated rate.
 
 The center creates no extra factor in the one-stage entrance theorem of
 \cref{prop:first-momentum-safe}; that theorem already includes every arm
@@ -740,9 +895,11 @@ reachable leaf-seeded star family, and
 \cref{thm:reachable-star-logarithmic-lower,thm:star-logarithmic-warmup}
 identify its matching logarithmic scale.  The strict-margin corollary supports
 finite horizons, while \cref{prop:proper-face-global-momentum-stop} rules out
-permanent global-momentum safety on strict proper faces.  The live route is
-therefore a restart/window or face-tuned momentum theorem with finite-inner
-margins and locally charged resolvent applications.
+permanent global-momentum safety on strict proper faces.
+\Cref{thm:face-tuned-permanent-safety} repairs the exact tail, and
+\cref{prop:star-finite-inner-window} supplies a finite-inner final-face window.
+The live route is therefore a charged changing-face implementation of the
+face-tuned restart gate, rather than another global warmup constant.
 
 \section{Reproducibility}
 

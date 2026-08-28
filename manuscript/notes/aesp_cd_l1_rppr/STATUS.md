@@ -45,6 +45,12 @@ State: proved-open
   pay its low forcing. In the positive direction, an exact contract-or-spend
   window pays every correction pattern from a telescoping Stieltjes bank, and
   after multiplication by `mu_E` from the low Euclidean endpoint drop. A
+  Moreau-Hessian event bank has uniformly conditioned forcing and gives an
+  exact nested-face epoch-restart ledger: boundary face gains and disjoint
+  correction masses enter additively in root potential with geometric epoch
+  weights. The protocol expands only at epoch boundaries, keeps the primal
+  point fixed, and explicitly restarts momentum; it is not the unchanged
+  automatic-admission trajectory. A
   direct accelerated terminal result holds on the a-posteriori
   high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -79,8 +85,10 @@ but freezing that endpoint resource into a static `q^-1` reserve would restore
 the K2 slow drift. The missing object is a restart/window accounting that
 spends this resource only at correction events and survives face changes and
 finite residuals. Equivalently, the remaining transfer must be windowed or nonlinear
-rather than a fixed additive reserve. There is still no graph-uniform exact
-accelerated solver.
+rather than a fixed additive reserve. The Moreau epoch ledger removes the
+`q^-2` face shock and avoids double counting, but still requires a bound on its
+geometrically weighted face-gain and correction-mass injections. There is
+still no graph-uniform exact accelerated solver.
 
 ## Dependencies and reusable outputs
 
@@ -102,10 +110,11 @@ accelerated solver.
   `prop:aesp-cd-cross-normalized-bank`,
   `prop:aesp-cd-kn-cross-bank-stop`,
   `prop:aesp-cd-cross-normalized-contract-spend`, and
+  `prop:aesp-cd-moreau-epoch-restart`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: Turn the low-progress contract-or-spend endpoint into
-  a restart/window ledger that is not retained as a static `q^-1` bank, then
-  transfer it across face changes and finite inner residuals.
+- Next concrete action: Pack the weighted event terms in the Moreau epoch
+  ledger or find a reachable obstruction, then transfer the boundary restart
+  protocol across finite inner residuals.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -125,5 +134,6 @@ accelerated solver.
   equation, or evidence classification.
 - Known gaps: The P4 theorem has no finite-inner work conclusion. The
   contract-or-spend theorem is exact and restricted to the settled optimal
-  face; it is not a static Lyapunov closure and does not cross admissions.
+  face. The Moreau theorem crosses only explicit epoch-boundary admissions and
+  still lacks event packing and finite-inner transfer.
   No graph-uniform exact accelerated solver or finite-precision result follows.

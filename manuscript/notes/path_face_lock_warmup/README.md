@@ -25,13 +25,16 @@ warmup scale.  Under a slightly longer logarithmic warmup, every exact kernel
 entry has an explicit positive finite-horizon margin.  In contrast, the same
 global momentum is never permanently cone-safe on a strict connected proper
 face: its Perron trigger is a damped oscillation, independent of how many
-finite pure-prox warmups precede it.
+finite pure-prox warmups precede it.  This obstruction is repaired exactly by
+a face-tuned momentum parameter plus a spectral-gap/Perron-spread warmup; the
+result has an explicit positive kernel margin but is not graph-uniform.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is
 settled at a matching logarithmic scale for this exact full-face policy.  The
-live route is a restart/window or face-tuned momentum rule on proper changing
-faces, with finite-inner margins and locally charged repeated resolvents.  On
+live route is a restart/window implementation of the face-tuned rule on
+changing faces.  A one-admission final-full-star theorem already supplies
+explicit finite-inner warmup and momentum tolerances on a finite horizon.  On
 a full star, the literal repeated-solve warmup costs `Theta(B log B)`; the
 three-class verifier's constant arithmetic is only a symmetry reduction.
 

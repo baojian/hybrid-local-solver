@@ -176,10 +176,8 @@ class QuadRat:
         other = other if isinstance(other, QuadRat) else QuadRat(other)
         denominator = other.rational * other.rational - 5 * other.radical * other.radical
         return QuadRat(
-            (self.rational * other.rational - 5 * self.radical * other.radical)
-            / denominator,
-            (self.radical * other.rational - self.rational * other.radical)
-            / denominator,
+            (self.rational * other.rational - 5 * self.radical * other.radical) / denominator,
+            (self.radical * other.rational - self.rational * other.radical) / denominator,
         )
 
     def __rtruediv__(self, other):
@@ -497,9 +495,7 @@ def c10_edgewise_interval_payment():
             -1,
         )
 
-    young_margin = (
-        rows[0][1] * rows[1][1] - rows[2][1] * rows[2][1]
-    )
+    young_margin = rows[0][1] * rows[1][1] - rows[2][1] * rows[2][1]
     certify("adjacent-Young-margin", young_margin, 1)
     return {
         "q_interval": ["1/25", "7/100"],

@@ -43,7 +43,11 @@ Role: direction
   policy has matching `Theta(log B)` warmup scale. A stronger upper condition
   gives every kernel entry margin `a_k/(4B)` on finite horizons. On every
   strict connected proper face, the global-beta Perron trigger is a damped
-  oscillation, so no finite warmup makes the permanent tail cone-safe.
+  oscillation, so no finite warmup makes the permanent tail cone-safe. A
+  face-tuned beta repairs this: a spectral-ratio/Perron-spread warmup makes
+  every exact trigger-kernel entry strictly positive. A conditional
+  one-admission final-full-star theorem gives explicit finite-inner residual
+  tolerances for any fixed momentum horizon and an observable primal guard.
 - **Conditional:** None.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
@@ -51,8 +55,8 @@ Role: direction
   policy; cone-uniform one-to-three warmups on the registered paths; four on
   full stars; and fixed-burst/reset acceleration of the Perron mode.
 - **Open:** A graph-size-independent statement for the realized endpoint-path
-  chronology; a finite-inner restart/window or face-tuned theorem on unequal
-  arms and proper changing faces; and a locally charged implementation.
+  chronology; a finite-inner restart/window implementation of face tuning on
+  unequal arms and changing proper faces; and charged spectral certificates.
 
 ## Central blocker
 
@@ -61,8 +65,9 @@ characterized. For spiders, the exact full-star scale is logarithmic and its
 finite-horizon entrywise margin is known, but that margin decays in time and
 strict proper faces oscillate under global momentum. The resolvent cost is not
 local merely because the face is exposed: the literal full-star policy costs
-`Theta(B log B)`. A finite-inner changing-face theorem must use a window,
-restart, relative tolerance, or face-tuned momentum and retain those costs.
+`Theta(B log B)`. Face tuning gives permanent exact safety, but its spectral
+ratio and Perron-spread certificate may be costly and nongraph-uniform. A
+finite-inner changing-face theorem must retain those costs.
 
 ## Dependencies and reusable outputs
 
@@ -72,7 +77,7 @@ restart, relative tolerance, or face-tuned momentum and retain those costs.
   witnesses; exact spider junction and volume formulas; a three-class exact
   reachable-star LCP verifier; matching logarithmic bounds for the exact star
   policy; a strict finite-horizon kernel margin; and a proper-face oscillation
-  obstruction.
+  obstruction with a face-tuned exact repair.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
@@ -80,10 +85,11 @@ restart, relative tolerance, or face-tuned momentum and retain those costs.
 - Exact file/section/lemma: `main.tex`, especially
   `sec:reachable-star-family`, `thm:reachable-star-logarithmic-lower`,
   `cor:star-logarithmic-kernel-margin`, and
-  `prop:proper-face-global-momentum-stop`.
-- Next concrete action: prove a finite-inner restart/window or face-tuned
-  momentum theorem on changing proper faces; separately derive the actual
-  endpoint-prefix admission profile.
+  `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`, and
+  `thm:face-tuned-permanent-safety`.
+- Next concrete action: turn the face-tuned theorem and observable trigger
+  gate into a charged changing-face restart/window protocol; separately derive
+  the actual endpoint-prefix admission profile.
 - Stop/go test: go if a finite-horizon relative tolerance and charged restart
   retain acceleration; stop if repeated resolvents or state materialism exceed
   the target local budget.

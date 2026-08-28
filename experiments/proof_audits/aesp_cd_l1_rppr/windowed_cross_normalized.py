@@ -38,18 +38,18 @@ def check_modal_psd_remainder() -> None:
         for s in (F(0), F(1, 13), F(1, 2), F(1)):
             r11, r12, r22, determinant = modal_data(q, s)
             denominator = (q * q + s) * (1 + s) ** 2
-            wanted_11 = (1 - q) * (
-                q**3 + q * q * s * s + 2 * q * q * s + q * s * s
-                + q * s + s**3 + s * s
-            ) / denominator
+            wanted_11 = (
+                (1 - q)
+                * (q**3 + q * q * s * s + 2 * q * q * s + q * s * s + q * s + s**3 + s * s)
+                / denominator
+            )
             wanted_12 = -(q * q * (1 - q) ** 2) / denominator
-            wanted_22 = (1 - q) * (
-                q**3 - q * q + q * s + q + s * s + s
-            ) / denominator
-            wanted_det = (1 - q) ** 2 * (
-                q**5 + 2 * q**3 * s + q * q * s * s + q * q * s
-                + 2 * q * s * s + s**3
-            ) / ((q * q + s) ** 2 * (1 + s) ** 2)
+            wanted_22 = (1 - q) * (q**3 - q * q + q * s + q + s * s + s) / denominator
+            wanted_det = (
+                (1 - q) ** 2
+                * (q**5 + 2 * q**3 * s + q * q * s * s + q * q * s + 2 * q * s * s + s**3)
+                / ((q * q + s) ** 2 * (1 + s) ** 2)
+            )
             assert (r11, r12, r22, determinant) == (
                 wanted_11,
                 wanted_12,
@@ -88,9 +88,7 @@ def check_k2_critical_mode() -> None:
             error = amplitude * (1 + stage * q) * theta**stage
             velocity = amplitude * q * theta**stage
             bank = error * error + velocity * velocity / (q * q)
-            displayed = amplitude * amplitude * theta ** (2 * stage) * (
-                (1 + stage * q) ** 2 + 1
-            )
+            displayed = amplitude * amplitude * theta ** (2 * stage) * ((1 + stage * q) ** 2 + 1)
             assert bank == displayed
             if previous_bank is not None:
                 assert bank <= theta * previous_bank
@@ -133,6 +131,35 @@ def check_contract_or_spend_endpoint() -> None:
                 assert mu * kernel == m0**3
 
 
+def check_moreau_event_kernel() -> None:
+    """Verify the bounded Moreau forcing metric and the raw face shock."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        m0 = 1 - q * q
+        previous = None
+        endpoint = None
+        for s in (F(0), F(1, 100), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = kappa * mode * mode + alpha * mode**3
+            assert kernel <= m0**3
+            if previous is not None:
+                assert kernel < previous
+            previous = kernel
+            if s == 1:
+                endpoint = kernel
+        assert endpoint == m0**3 * (2 + q * q) / (8 * (1 + q * q))
+
+    q = F(1, 100)
+    m0 = 1 - q * q
+    singleton_diagonal = F(2, 3) * m0
+    full_diagonal = F(3, 4) * m0
+    assert singleton_diagonal == F(3333, 5000)
+    assert full_diagonal == F(29997, 40000)
+    assert full_diagonal / singleton_diagonal == F(9, 8)
+
+
 def kn_cross_data(n: int) -> tuple[F, F, F]:
     """Return the exact K_N full/preceding and low/initial-high ratios."""
     q = F(1, 100)
@@ -164,14 +191,23 @@ def kn_cross_data(n: int) -> tuple[F, F, F]:
     cap = a0 * m0 * (amplitude * fh - l0)
     assert cap > F(79, 1000) * a0
 
+    e1_low = a0 * m0
+    e2_low = e1_low * s0
+    u2_low = e2_low - (1 - q) * e1_low
+    e1_high = a0 * amplitude * q * q * mh
+    e2_high = e1_high * sh
+    u2_high = e2_high - (1 - q) * e1_high
+    moreau_bank_2 = n * (alpha * m0 * e2_low * e2_low + c * m0 * u2_low * u2_low)
+    moreau_bank_2 += F(n, k) * (lam * mh * e2_high * e2_high + c * mh * u2_high * u2_high)
+
     r_low = beta * m0 * (1 - s0) * a0
     r_high = beta * amplitude * q * q * mh * (1 - sh) * a0
     assert r_low + r_high < a0 * q * q * (2 + amplitude)
+    correction_norm = n * r_low * r_low + F(n, k) * r_high * r_high
+    assert m0**3 * correction_norm / (q * moreau_bank_2) < F(1, 16)
     forcing = n * m0 * m0 * (1 + c / alpha) * r_low * r_low
     forcing += F(n, k) * mh * mh * (1 + c / lam) * r_high * r_high
-    preceding_high_drop = (
-        F(n, k) * lam * (amplitude * q * q * mh * a0) ** 2 * (1 - sh * sh)
-    )
+    preceding_high_drop = F(n, k) * lam * (amplitude * q * q * mh * a0) ** 2 * (1 - sh * sh)
     full_ratio = mu * forcing / preceding_high_drop
 
     low_forcing = 4 * n * a0 * a0 * q**4 * m0 * (1 - q) ** 6
@@ -214,6 +250,8 @@ def check_source_scope() -> None:
     assert "prop:aesp-cd-kn-cross-bank-stop" in main
     assert "prop:aesp-cd-cross-normalized-contract-spend" in main
     assert "eq:aesp-cd-cross-normalized-low-spend" in main
+    assert "prop:aesp-cd-moreau-epoch-restart" in main
+    assert "eq:aesp-cd-moreau-epoch-net" in main
     assert "nonoptimal proper face" in main
     assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
@@ -227,6 +265,7 @@ def main() -> None:
     check_k2_critical_mode()
     check_forced_state_identity()
     check_contract_or_spend_endpoint()
+    check_moreau_event_kernel()
     check_kn_high_drop_stop()
     check_source_scope()
     print("Round-028 exact cross-normalized window audit passed")
@@ -234,6 +273,7 @@ def main() -> None:
     print("  full reset: exact C0(q)<2 and Theta(1/q) window")
     print("  K_N: high-drop-only correction payment has Omega(N) loss")
     print("  contract-or-spend: exact low Euclidean endpoint normalizer")
+    print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
     print("  scope: changing-face finite-inner restart transfer remains open")
 
 
