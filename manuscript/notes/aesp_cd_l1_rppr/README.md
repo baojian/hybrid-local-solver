@@ -145,12 +145,17 @@ algorithmic lower bound.
 Even the exact Schur objective decrease cannot pay a fixed amount per
 admission: an exact two-vertex RPPR family has a strict admission whose gain
 tends quadratically to zero.  Thus gain-only charging needs an explicit
-relative margin or a different potential.
+relative margin or a different potential.  With a declared batch-density
+gate, the repair is exact: `||g_W||^2 >= 2 eta L work(W)` makes the Schur gain
+at least `eta work(W)`, so accepted batch costs telescope.
 If the final closed block tree, its weighted heavy--light decomposition, and
 balanced series--parallel parses are supplied offline, whole heavy paths can
 instead be rebuilt as chain-cactus superblocks and the full post-closure
 cactus reporter meets the radius--volume product.  Making those decompositions
-local and online again requires the unresolved bulk pullback/meld interface.
+online is already possible for an immutable core revealed as one contiguous
+prefix by binary-counter SP merges.  Interleaved closure and response updates,
+and dynamic heavy-path changes, still require the unresolved persistent
+cut/concatenate and bulk pullback/meld interface.
 A separate quantitative result reduces uniformly separated RPPR boundary
 keys to monotone coordinate-level events.  This is soft-linear only when the
 level-event source is itself charged; ordinary point-query Schur messages do

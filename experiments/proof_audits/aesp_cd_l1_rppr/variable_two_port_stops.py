@@ -176,11 +176,58 @@ def objective_gain_charge_stop():
         assert key == alpha * epsilon / diagonal > 0
         assert pivot == alpha / diagonal > 0
         assert gain == alpha * epsilon * epsilon / (2 * diagonal)
+        assert gain >= key * key / 2  # Here lambda_max(H)=1.
         gains.append(gain)
     assert gains[0] > gains[1] > gains[2] > 0
     assert gains[1] * 100 == gains[0]
     assert gains[2] * 100 == gains[1]
     return gains
+
+
+def static_cluster_and_prefix_merge_ledgers():
+    """Audit the flat sqrt ledger and online immutable-prefix merge charge."""
+    flat_rows = []
+    for root in range(2, 33):
+        length = root * root
+        touched = root
+        repeated = length // touched
+        phase_work = min(length, touched * repeated)
+        phase_events = touched + repeated
+        assert phase_work == length
+        assert phase_events == 2 * root
+        assert 2 * phase_work == root * phase_events
+        flat_rows.append((length, phase_events, phase_work))
+
+    # Binary-counter merging of consecutive immutable factors.  A singleton
+    # build costs one; merging two equal adjacent chunks costs their total size.
+    stack = []
+    total_work = 0
+    power_rows = []
+    for factor_count in range(1, 257):
+        chunk = 1
+        total_work += 1
+        while stack and stack[-1] == chunk:
+            stack.pop()
+            chunk *= 2
+            total_work += chunk
+        stack.append(chunk)
+        assert sum(stack) == factor_count
+        assert len(stack) == factor_count.bit_count()
+        assert total_work <= factor_count * (1 + factor_count.bit_length())
+        if factor_count & (factor_count - 1) == 0:
+            level = factor_count.bit_length() - 1
+            assert total_work == factor_count * (1 + level)
+            assert stack == [factor_count]
+            power_rows.append((factor_count, total_work))
+
+    # A heavy superblock with b structural blocks and maximum cycle length L
+    # has S=O(bL); b and L/2 are separately radius-paid.
+    for block_count in range(1, 65):
+        for longest_cycle in range(1, 65):
+            structural_size = block_count * longest_cycle
+            radius_lower = max(block_count, longest_cycle // 2)
+            assert structural_size <= 4 * (1 + radius_lower) ** 2
+    return flat_rows[-1], power_rows[-1]
 
 
 def productive_site_numeric_key_pressure():
@@ -669,13 +716,17 @@ def main():
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
     assert r"\label{lem:aesp-cd-connected-order-small-rho}" in productive_source
     assert r"\label{prop:aesp-cd-objective-gain-charge-stop}" in productive_source
+    assert r"\label{cor:aesp-cd-schur-gain-batch-payment}" in productive_source
     assert r"\label{prop:aesp-cd-cactus-static-cluster-stop}" in productive_source
+    assert r"\label{prop:aesp-cd-cactus-offline-hld}" in productive_source
+    assert "binary-counter stack" in productive_source
     assert "not their pulled-back" in productive_source
 
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
+    interface_ledgers = static_cluster_and_prefix_merge_ledgers()
     productive_keys = productive_site_numeric_key_pressure()
     epoch_ledgers = productive_epoch_integer_ledgers()
     connected_order = connected_order_small_rho_certificate()
@@ -696,6 +747,7 @@ def main():
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
     print("  virtual top forget catches pinned root-port keys", root_keys)
     print("  K2 strict-admission objective gains", objective_gains)
+    print("  flat sqrt / immutable-prefix ledgers", interface_ledgers)
     print("  legal productive-site numerical-key pressure", productive_keys)
     print("  productive epoch integer ledgers", epoch_ledgers)
     print("  connected-order small-rho phase minima / p / J", connected_order)
