@@ -706,6 +706,68 @@ top-tree accounting proves
 \cref{eq:aesp-cd-dynamic-schur-treewidth-work}.
 \end{proof}
 
+\begin{proposition}[Finite-margin forest messages and exact-bit boundary]
+\label{prop:aesp-cd-dynamic-schur-precision}
+In the scalar-port forest setting, suppose $\mu I\preceq H\preceq LI$, put
+$\kappa=L/\mu$, and let a balanced Schur-message tree have height $h$.
+Assume leaf data have scale at most $R_\star$, every queried nonzero KKT key
+has magnitude at least $\eta_g$, exact zero ties are handled symbolically, and
+the recovered-coordinate target is $\varepsilon$.  There are absolute
+constants $C,C_0$ such that outward interval arithmetic with
+\begin{equation}
+ p\geq C_0+
+ \left\lceil\max\!\left\{0,\log_2\frac{CR_\star}
+ {\min\{\eta_g,\mu\varepsilon,\mu\}}\right\}\right\rceil
+ +
+ \left\lceil h\log_2(C(1+\kappa)^2)\right\rceil
+ \label{eq:aesp-cd-dynamic-schur-precision}
+\end{equation}
+bits after the binary point certifies every pivot, reproduces the exact
+nonzero admission chronology, and recovers the solution within
+$\varepsilon$.  Rebuilding the affected summaries from their base records
+prevents error from accumulating with the number of updates.  For a
+top-tree, $h=O(\log N)$, so the precision overhead is logarithmic in
+$N,1/\eta_g,1/\varepsilon$, and $\kappa$.
+Here $R_\star$ bounds the normalized leaf data and exact backsolve scale, the
+arithmetic model rounds every elementary operation outwards, and symbolic
+zero-tie handling is an additional exact oracle rather than a consequence of
+the intervals.
+
+This margin statement cannot be replaced by a polylogarithmic
+\emph{exact-rational} bit bound.  Let $H_n$ be tridiagonal with diagonal $3$
+and off-diagonal $-1$, and take $b=e_1$.  If
+\begin{equation*}
+ D_0=1,\qquad D_1=3,\qquad D_j=3D_{j-1}-D_{j-2},
+\end{equation*}
+then an endpoint Schur pivot is $D_n/D_{n-1}$ and the opposite endpoint
+solution is $1/D_n$.  Consecutive determinants are coprime and
+$D_n=\exp(\Theta(n))$, although $\operatorname{cond}(H_n)<5$.
+Thus explicit exact fractions require $\Theta(n)$ bits.
+\end{proposition}
+
+\begin{proof}
+Every principal elimination Schur complement $S$ obeys
+\begin{equation*}
+ z^{\mathsf T}Sz
+ =\min_y (y,z)^{\mathsf T}H(y,z)
+ \in[\mu\norm z_2^2,L\norm z_2^2].
+\end{equation*}
+Hence every true pivot lies in $[\mu,L]$.  On intervals whose pivot lower
+endpoint is at least $\mu/2$, the scalar Schur formulas in the preceding
+proof have per-level Lipschitz factor at most
+$C(1+\kappa)^2$.  Induction over height bounds every root marginal and
+backsolve enclosure by
+$CR_\star2^{-p}[C(1+\kappa)^2]^h$.  The displayed precision makes this
+smaller than both the sign gap and $\mu\varepsilon$, closing the same
+induction and proving the finite-margin claim.
+
+For the tridiagonal family, cofactor expansion gives the determinant
+recurrence and the two displayed ratios.  Euclid's algorithm gives
+$\gcd(D_j,D_{j-1})=1$, while the dominant characteristic root is
+$(3+\sqrt5)/2>1$.  The spectrum lies in $(1,5)$, proving the claimed
+separation between field-operation and explicit-bit complexity.
+\end{proof}
+
 The explicit $Q$ term is essential.  Dynamic Schur messages answer a named
 frontier query for the currently revealed quadratic but do not automatically
 report every positive frontier key; a future factor reveal may change it.
@@ -718,6 +780,62 @@ not a constant-size quadratic summary.  Therefore
 primitive.  An end-to-end forest solver still needs a lazy/kinetic frontier
 reporter ensuring $Q=\widetilde O(\vol(S^\star))$; rescanning a persistent
 frontier after every admission can make $Q$ quadratic.
+
+\begin{corollary}[Stable fixed-port kinetic reporters]
+\label{cor:aesp-cd-stable-port-reporter}
+Suppose every surviving frontier key factors through one fixed port
+$t\in\mathbb R^r$ as
+\begin{equation*}
+ g_v(t)=a_v^{\mathsf T}t-b_v,\qquad a_v\geq0,
+\end{equation*}
+the safe trace makes $t$ coordinatewise nondecreasing, and each row is stable
+between explicitly charged rekeys.  For $r=1$, a threshold heap reports every
+positive row exactly.  For $r=2$, split the rows according to whether
+$a_{v,2}>0$, $a_{v,2}=0<a_{v,1}$, or $a_v=0$.  The first stratum reduces to
+dynamic planar extreme-point queries, the second to a threshold heap, and the
+last to constants; hence every operation has logarithmic amortized cost.
+For general fixed $r$, assign every nonconstant row to a stratum indexed by
+one nonzero coefficient and let $\mathcal T_r(M)$ denote the cost of a
+dynamic extreme-point operation in $\mathbb R^r$.  One stratum query either
+returns a positive row or certifies that stratum empty; delete returned rows
+after activation and repeat.  With $M$ row
+exposures, $H$ charged rekeys, $K$ nonempty state updates/batches, and strict
+equality left inactive, the reporter uses
+\begin{equation*}
+ O\!\left((M+H+|S^\star|+rK)\mathcal T_r(M)\right)
+\end{equation*}
+operations and asks the constrained Schur oracle only for the named
+activations and batch validations.  In particular, when
+$\mathcal T_r(M)=\operatorname{polylog}(2+M)$ and
+$M+H+K=\widetilde O(\vol(S^\star))$, the query term in
+\cref{eq:aesp-cd-dynamic-schur-forest-work} is
+$\widetilde O(\vol(S^\star))$.
+\end{corollary}
+
+\begin{proof}
+For $r=1$, divide by the positive slope and store the activation threshold
+$b_v/a_v$ in a heap.  Monotonicity means that a row, once extracted, never
+returns.  In general, choose a canonical $j$ with $a_{v,j}>0$ and put
+\begin{equation*}
+ p_v=\bigl((a_{v,i}/a_{v,j})_{i\neq j},-b_v/a_{v,j}\bigr)
+ \in\mathbb R^r,\qquad
+ q_j(t)=\bigl((t_i)_{i\neq j},1\bigr).
+\end{equation*}
+Then $g_v(t)>0$ exactly when
+$p_v^{\mathsf T}q_j(t)>-t_j$.  One dynamic extreme-point query per stratum
+therefore either emits a positive row or certifies that stratum nonpositive.
+For $r=2$
+these are planar hull queries; zero-slope rows are the one-dimensional and
+constant cases stated above.  Repeat until every stratum is nonpositive.
+Every exposure, rekey, emitted label, and batch incurs only a constant number
+of declared operations for fixed $r$.
+\end{proof}
+
+The fixed-port hypothesis is substantive.  It holds on paths, rooted spiders,
+and stable separator interfaces, but a general bag hierarchy changes the
+separator response seen by a frontier row.  The star breakpoint example
+already prevents replacing its whole kinetic hull by one constant-size
+quadratic cluster field.
 
 The next result records a sufficient condition under which restricted-face
 scratch and boundary discovery do have the desired geometric accounting.
@@ -945,6 +1063,88 @@ Implementations therefore need a hard degree-volume guard and a fallback;
 without an independent bound on $\vol(U_J)$,
 \cref{eq:aesp-cd-speculative-envelope-work} is not the desired universal
 local theorem.
+
+The RPPR support cap nevertheless yields a graph-uniform retained-volume
+theorem.  It does not by itself bound the dynamic response work.
+
+\begin{theorem}[Hard-capped discovery under a dynamic obstacle oracle]
+\label{thm:aesp-cd-hard-cap-dynamic-oracle}
+Put $V_\rho:=1/\rho$.  Suppose an exact dynamic obstacle oracle, on every
+nested retained envelope $U$, returns its restricted minimizer $p_U$, the
+exact key of every named boundary vertex, and a terminal recovery.  Let
+$A_U:=\supp(p_U)$.  Its charged work $W_{\rm DS}(2V_\rho)$ must include all
+factor reveals, active/pinned changes, named boundary reports, and recovery
+while $\vol(U)\leq2V_\rho$.
+
+Start from exactly the positive-load sources; their restricted minimizer has
+full support.  At each
+iteration, admit every boundary vertex with positive exact key.  Optionally
+add speculative halo vertices.  Maintain a conservative ledger $h_U$ with
+$\vol(U\setminus A_U)\leq h_U$, initially zero.  Before scanning any proposed
+speculative row $W$, its degree metadata must certify the pessimistic guard
+\begin{equation}
+ h_U+\vol(W)\leq V_\rho.
+ \label{eq:aesp-cd-inactive-halo-guard}
+\end{equation}
+After the next restricted solve, release every newly active coordinate from
+the ledger and retain any conservative overestimate.  If a speculative
+candidate would violate the pessimistic guard, omit it and continue with the
+certified positive anchors only.  Then, on every finite graph:
+\begin{enumerate}[label=(\roman*)]
+\item $A_U\subseteq S^\star(\rho)$ throughout and
+      $\vol(U)\leq2/\rho$;
+\item every nonterminal iteration activates at least one new vertex of
+      $S^\star(\rho)$;
+\item a boundary with no positive key is the global RPPR KKT certificate.
+\end{enumerate}
+Consequently the protocol terminates exactly and has total charged work
+\begin{equation}
+ W_{\rm DS}(2/\rho)+O(1/\rho).
+ \label{eq:aesp-cd-hard-cap-dynamic-work}
+\end{equation}
+In particular, an exposure-local oracle satisfying
+$W_{\rm DS}(B)=\widetilde O(B/\sqrt\alpha)$ would give the intended universal
+$\widetilde O(1/(\rho\sqrt\alpha))$ RPPR solve.  If the oracle, key
+certificate, or finite-precision guard fails, retaining the last certified
+lower checkpoint and switching to monotone RPPR coordinate descent preserves
+correctness, but only the slower fallback bound remains.
+\end{theorem}
+
+\begin{proof}
+Restricted Stieltjes comparison gives $0\leq p_U\leq x^\star$, hence
+$A_U\subseteq S^\star$ and $\vol(A_U)\leq V_\rho$.  A positive boundary key
+cannot belong to an inactive global coordinate: padding $p_U$ by zero and
+using $p_U\leq x^\star$ would contradict the global inactive KKT inequality.
+After that vertex is inserted into the envelope it must be positive in the
+new restricted minimizer; otherwise monotonicity of the old coordinates
+would leave its already positive key positive.  Thus certified anchors are
+charged to $A_U$, not to the inactive-halo budget.
+
+Every positive-load source is active in its restricted obstacle minimizer;
+otherwise its positive key would violate restricted KKT.  Hence the initial
+ledger is zero.  Pessimistic charging before a speculative row is scanned and
+releasing only certified active coordinates inductively preserve
+$\vol(U\setminus A_U)\leq h_U\leq V_\rho$.  The guard and the support cap give
+$\vol(U)\leq\vol(A_U)+\vol(U\setminus A_U)\leq2V_\rho$.
+Every nonterminal iteration has a positive boundary key and hence grows the
+finite true support.  If there is none, restricted active equalities,
+nonpositive boundary keys, inclusion of every positive-load source, and
+nonpositive loads away from the boundary are exactly the global obstacle KKT
+conditions.
+Each retained adjacency record is scanned once, giving the additive
+$O(V_\rho)$ term; all response and reporting work is, by contract, inside
+$W_{\rm DS}$.
+\end{proof}
+
+This theorem answers one part of the universal-bound question affirmatively:
+an RPPR retained envelope of volume at most $2/\rho$ is always sufficient.
+It does
+\emph{not} manufacture a universal accelerated algorithm, because assuming
+$W_{\rm DS}(B)=\widetilde O(B/\sqrt\alpha)$ is precisely the
+serial-admission and frontier-reporting interface left open on general
+graphs.  A degree lookup that itself scans a rejected high-degree row must
+also be charged; the guard is useful only when the degree or row size is
+known before materialization.
 
 \begin{corollary}[Strict margins instantiate the obstacle primitive]
 \label{cor:aesp-cd-margin-obstacle-primitive}

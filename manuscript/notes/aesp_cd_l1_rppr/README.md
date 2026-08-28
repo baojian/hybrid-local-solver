@@ -102,6 +102,14 @@ many two-port quadratic messages.  A supplied width-`w` junction tree gives
 the analogous `O((w+1)^3 log B)` update.  This is not yet an end-to-end
 frontier oracle: the number `Q` of named pinned-coordinate queries remains an
 explicit charge and can be quadratic under repeated full-frontier rescans.
+For a stable fixed separator of dimension one or two, a kinetic threshold
+heap or planar extreme-point reporter closes this query term in near-linear
+work; the general fixed-dimensional statement is an explicit dynamic
+extreme-point interface. Balanced forest messages also have a certified
+finite-precision implementation under a nonzero KKT gap. Exact rational
+messages do not have polylogarithmic bit size in general: a constant-condition
+tridiagonal family already produces endpoint fractions with linearly many
+bits.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
@@ -109,6 +117,17 @@ halo and need not be controlled by `vol(S*)`.  Under strict primal/dual active
 margins, accelerated projected-gradient scratch identifies the face and the
 safe Chebyshev publisher implements the required obstacle primitive.  Without
 those margins, support discontinuity and high-degree inactive decoys remain.
+The RPPR support cap nevertheless gives a universal retained-volume result:
+by keeping at most `1/rho` inactive halo volume in addition to the true active
+support, an exact dynamic obstacle protocol never retains more than `2/rho`
+volume. This is a partial affirmative answer, not an accelerated solver: all
+serial updates and frontier reports remain charged to the explicit quantity
+`W_DS(2/rho)`. A subcubic exact audit shows that naive factor-two speculation
+can already explore `26/9` times the final support volume. Once discovery has
+certified the final positive face, carrying no momentum through admissions
+and restarting only once gives the q-free bridge
+`C_rst <= 4(F(z)-F(x*))`; the accelerated fixed-face tail can then start from
+this certified root budget.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -142,7 +161,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all fifteen exact audits with:
+Run all seventeen exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -166,6 +185,8 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.singleton_face_batches_stop` (Round 035).
 - `aesp_cd_l1_rppr.s5_face_shock_sharp` (Round 036).
 - `aesp_cd_l1_rppr.rppr_speculative_decoy` (Round 037).
+- `aesp_cd_l1_rppr.dynamic_schur_forest` (Round 038).
+- `aesp_cd_l1_rppr.bounded_degree_speculative_stop` (Round 039).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

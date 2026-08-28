@@ -96,7 +96,19 @@ State: proved-open
   coordinatewise nonnegative reverts to condition-number rather than
   square-root dependence. A high-multiplicity Stieltjes cluster also stops
   every graph-independent fixed-rank low-mode deflation of the master-gap
-  condition; a two-node exact witness has `Psi=2/25>0`.
+  condition; a two-node exact witness has `Psi=2/25>0`. Forest dynamic-Schur
+  messages now have an exact pinned/free audit and a finite-margin interval
+  implementation whose precision is logarithmic in the KKT gap, output
+  tolerance, message height, and condition number. A constant-condition
+  tridiagonal family proves that explicit exact-rational messages can still
+  require linearly many bits. Stable one- and two-port frontier responses
+  admit near-linear kinetic reporters. Separately, the RPPR support cap yields
+  a graph-uniform retained-envelope bound `2/rho` under an exact dynamic
+  obstacle interface; the unresolved work is exposed as `W_DS(2/rho)`,
+  including all serial updates and frontier reports. After final support
+  closure, one same-point restart satisfies
+  `C_rst <= 4(F(z)-F(x*))`, so discovery need not transport momentum or pay a
+  `q^(-1)` face shock.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -138,7 +150,11 @@ operation is the old-face inverse response `H^(-1)C` plus incremental boundary
 refresh.  On forests and supplied bounded-treewidth decompositions, dynamic
 top-tree Schur summaries implement each named update/query in polylogarithmic
 time, but a condition-free kinetic reporter bounding the total query count is
-still missing.  A speculative coordinate envelope supplies the second option only
+still missing on general interfaces. Stable fixed ports of dimension at most
+two are closed by threshold/planar-hull reporters. A hard inactive-halo guard
+proves that retained RPPR volume `2/rho` always suffices, but a universal
+accelerated theorem still requires
+`W_DS(B)=O_tilde(B/sqrt(alpha))`. A speculative coordinate envelope supplies the second option only
 in explored-volume form; strict active/dual margins make its obstacle solve
 accelerated, while inactive high-degree halo prevents replacing explored
 volume by final support volume without another guard or oracle.
@@ -215,10 +231,14 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-geometric-face-batches`,
   `prop:aesp-cd-incremental-schur-response`,
   `prop:aesp-cd-dynamic-schur-forest`,
+  `prop:aesp-cd-dynamic-schur-precision`,
+  `cor:aesp-cd-stable-port-reporter`,
   `prop:aesp-cd-speculative-envelope-doubling`,
   `prop:aesp-cd-rppr-speculative-decoy`,
+  `thm:aesp-cd-hard-cap-dynamic-oracle`,
   `cor:aesp-cd-margin-obstacle-primitive`,
   `prop:aesp-cd-moreau-face-shock-sharp`, and
+  `cor:aesp-cd-discover-then-restart`,
   `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: use the safe accelerated face primitive inside a
@@ -235,8 +255,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Fifteen exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--037 mechanisms. Run them with `uv run python -m
+- Focused checks: Seventeen exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--039 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
