@@ -20,9 +20,14 @@ questions that had been conflated: one stable-face proximal solve can be safe
 on the realized path traces while still being insufficient uniformly over the
 whole nonnegative residual cone.  In fact, supplied full paths give exact
 cone witnesses against one, two, and three proximal solves, while a 16-arm
-star gives an exact witness against four.  These witnesses do not refute a
-constant warmup for the realized endpoint-seeded RPPR chronology; that
-sharper reachability question remains open.
+star gives an exact witness against four.  A leaf-seeded family then turns the
+star obstruction into a literal reachable trajectory: every fixed number of
+post-lock pure-prox solves fails for all sufficiently large stars.  Conversely,
+an explicit logarithmic warmup makes every later trigger kernel entrywise
+nonnegative on the full star.  These statements place this exact star policy
+strictly above every constant and at most logarithmic; they do not yet prove a
+matching logarithmic lower bound or supply a finite-inner or end-to-end
+local-work theorem.
 \end{abstract}
 
 \input{../../tex/shared/source_aligned_problem}
@@ -336,6 +341,209 @@ Positive diagonal conjugation leaves diagonal entries unchanged, so these
 are also the hat-coordinate trigger entries printed by the verifier.
 \end{proof}
 
+\subsection{A reachable family and a logarithmic repair}
+\label{sec:reachable-star-family}
+
+The preceding diagonal witness used an arbitrary nonnegative entrance
+column.  The next theorem closes that reachability gap for a concrete
+leaf-seeded schedule.  A second theorem gives a logarithmic upper mechanism
+at the level of full-face trigger kernels.
+
+\begin{theorem}[No universal constant warmup on reachable stars; proved here]
+\label{thm:reachable-star-no-constant}
+For every fixed integer $J\geq1$, there is an arm count $B_J$ with the
+following property.  Let $G_B$ be the unit $B$-star, seed leaf one, and set
+\begin{equation}
+ q_B=\frac{1}{2(B+1)},\qquad
+ \alpha_B=\frac{q_B^2}{1+q_B^2},\qquad
+ \rho_B=\frac{1}{4B}.
+ \label{eq:reachable-star-parameters}
+\end{equation}
+Starting from zero, run exact obstacle-prox stages with $\beta=0$ until the
+full face first appears, run exactly $J$ further full-face pure-prox stages,
+and then use $\beta_B=(1-q_B)/(1+q_B)$.  For every sufficiently large
+$B\geq B_J$, a subsequent trigger is strictly negative; in fact the seeded
+leaf of the second momentum trigger is negative.  Consequently no
+graph-size-independent constant $J$ can certify this exact policy.
+
+This is not a solver lower bound.  It does not exclude a $q$-dependent or
+adaptive warmup, a different momentum rule, or a finite-inner method with
+explicit margins.
+\end{theorem}
+
+\begin{proof}
+Put $t=(1-\alpha_B)/2$, $\kappa=1-2\alpha_B$, and
+$R_B=\kappa/t=2-1/[2(B+1)^2]$.  By symmetry, retain three coordinates:
+the center $c$, the seeded leaf $s$, and one common value $o$ for every
+other leaf.  In the scaled variable $X=(t/\alpha_B)x$, the shifted Hessian is
+$tK_B$, where
+\begin{equation}
+ K_B=
+ \begin{pmatrix}
+  3B&-1&-(B-1)\\
+  -1&3&0\\
+  -1&0&3
+ \end{pmatrix},
+ \qquad
+ \frac{\widetilde c}{\alpha_B}
+ =\left(-\frac14,1-\frac{1}{4B},-\frac{1}{4B}\right)^{\!\top}.
+ \label{eq:reachable-star-three-class}
+\end{equation}
+
+While only $c,s$ are positive, write $Z_n=BX_{n,c}$ and $S_n=X_{n,s}$.
+The exact two-class recurrence is
+\begin{align}
+ r_{c,n}&=-\frac14+R_BZ_{n-1},&
+ r_{s,n}&=1-\frac{1}{4B}+R_BS_{n-1},
+ \label{eq:reachable-star-rhs}\\
+ Z_n&=\frac{B(3r_{c,n}+r_{s,n})}{9B-1},&
+ S_n&=\frac{r_{c,n}+3Br_{s,n}}{9B-1},
+ \label{eq:reachable-star-restricted-recurrence}
+\end{align}
+starting at zero.  The inactive-other KKT condition is exactly $Z_n\leq1/4$.
+Taking $B\to\infty$ in these rational functions gives
+\begin{equation}
+ (Z_1,Z_2,Z_3)\longrightarrow
+ \left(\frac1{36},\frac{13}{108},\frac{25}{108}\right),
+ \qquad
+ Z_4^{\rm res}\longrightarrow\frac{329}{972}>\frac14.
+ \label{eq:reachable-star-admission-limits}
+\end{equation}
+All inequalities are strict.  Rational continuity therefore implies that,
+for every sufficiently large $B$, the first three outputs have support
+$\{c,s\}$ and the fourth output admits all other leaves.
+
+For the fourth, full-face solve put $W_4=BX_{4,o}$.  The limiting three
+equations give
+\begin{equation}
+ Z_4\longrightarrow\frac{151}{432},\qquad
+ S_4\longrightarrow\frac{65}{81},\qquad
+ W_4\longrightarrow\frac{43}{1296},
+ \label{eq:reachable-star-full-state}
+\end{equation}
+so all three classes are strictly positive.  Let
+$Y_4=\widetilde c-\widetilde Qx_4$.  Exact shifted optimality gives
+$Y_4=\kappa D(x_4-x_3)$.  Hence, in normalized coordinates,
+\begin{equation}
+ \alpha_B^{-1}D^{-1/2}Y_4
+ \longrightarrow \frac{16}{81}e_s
+ \quad\hbox{in }\ell_2.
+ \label{eq:reachable-star-residual-limit}
+\end{equation}
+Indeed the seeded entry tends to
+$R_B(S_4-S_3)\to16/81$, the center is $O(B^{-1/2})$, and the combined norm
+of the other leaves is $O(B^{-1/2})$.  The residual is strictly positive for
+all sufficiently large $B$; subsequent pure-prox stages preserve positivity.
+
+The normalized full-face residual map has eigenvalues
+\begin{equation}
+ m_+=1-q_B^2,\qquad m_z=\frac23(1-q_B^2),\qquad
+ m_- =\frac12(1-q_B^2),
+ \label{eq:reachable-star-three-modes}
+\end{equation}
+where the leaf-contrast eigenspace for $m_z$ has multiplicity $B-1$.  After
+$J$ pure-prox stages, the scalar polynomial of the second momentum trigger is
+\begin{equation}
+ F_J(m)=m^J\left((1+\beta_B)^2m-\beta_B(2+\beta_B)\right).
+ \label{eq:reachable-star-second-trigger-polynomial}
+\end{equation}
+The first trigger is nonnegative by \cref{prop:first-momentum-safe}, since
+$\alpha_B\leq1/5$.  The seeded coordinate in
+\eqref{eq:reachable-star-residual-limit} is asymptotically entirely leaf
+contrast.  Therefore, for every fixed $J$,
+\begin{equation}
+ \alpha_B^{-1}(U_1^{(J)}Y_4)_s
+ \longrightarrow
+ \frac{16}{81}F_J(2/3)
+ =-\frac{16}{243}\left(\frac23\right)^J<0.
+ \label{eq:reachable-star-negative-limit}
+\end{equation}
+Strict convergence proves the claimed threshold $B_J$.
+\end{proof}
+
+The exact three-class verifier supplies a finite guard for the asymptotic
+argument.  At $B=50$, $J=6$, $q=1/102$, and $\rho=1/200$, the first negative
+trigger is the seeded leaf at stage $11=J+5$, with value
+\begin{equation}
+ -\frac{147824969167474143070830622648108443644686306420711}
+ {5876713986025144219355264603664195883039449023398155386880}.
+ \label{eq:reachable-star-b50-witness}
+\end{equation}
+
+\begin{theorem}[Logarithmic cone-uniform star warmup; proved here]
+\label{thm:star-logarithmic-warmup}
+Let $0<q\leq1/2$ and let a supplied full $B$-star face receive any
+nonnegative residual $y$.  If
+\begin{equation}
+ J\geq3,qquad
+ \left(\frac23\right)^{J-1}\leq\frac{1}{8(B-1)},
+ \label{eq:star-logarithmic-condition}
+\end{equation}
+then $J$ exact pure-prox solves followed by
+$\beta=(1-q)/(1+q)$ make every later trigger nonnegative.  In particular one
+may take
+\begin{equation}
+ J_B=\max\left\{3,
+ 1+\left\lceil\log_{3/2}(8(B-1))\right\rceil\right\}.
+ \label{eq:star-logarithmic-warmup}
+\end{equation}
+This is an exact fixed-full-face theorem, not a finite-inner margin theorem.
+\end{theorem}
+
+\begin{proof}
+Let $m_0=1-q^2$, $\theta=1-q$, and let $u_k(m)$ be the scalar trigger
+kernel, with
+\begin{align*}
+ u_{-1}(m)&=m^{J-1},\\
+ u_0(m)&=m^{J-1}((1+\beta)m-\beta),\\
+ u_{k+1}(m)&=m((1+\beta)u_k(m)-\beta u_{k-1}(m)).
+\end{align*}
+On the Perron mode,
+\begin{equation}
+ u_k(m_0)=m_0^{J-1}\theta^{k+1}
+ \left(1+\frac{q(k+1)}{1+q}\right)>0.
+ \label{eq:star-perron-trigger}
+\end{equation}
+For $m=\delta m_0$, $\delta\in\{2/3,1/2\}$, the characteristic roots are
+$\theta\sqrt\delta\,e^{\pm i\phi_\delta}$ with
+$\cos\phi_\delta=\sqrt\delta$.  Direct solution gives
+\begin{equation}
+ u_k(\delta m_0)=(\delta m_0)^{J-1}
+ (\theta\sqrt\delta)^{k+1}
+ \left(\cos((k+1)\phi_\delta)
+ +A_\delta(q)\sin((k+1)\phi_\delta)\right),
+ \label{eq:star-oscillatory-trigger}
+\end{equation}
+where
+\[
+ A_\delta(q)=
+ \frac{\delta(1+q)-1}{(1+q)\sqrt{\delta(1-\delta)}}.
+\]
+For the two displayed values of $\delta$ and $q\leq1/2$,
+$|A_\delta(q)|\leq1$.  Thus, for every $k\geq-1$,
+\begin{equation}
+ \frac{|u_k(\delta m_0)|}{u_k(m_0)}
+ \leq2\delta^{J-1+(k+1)/2}
+ \leq2\delta^{J-1}.
+ \label{eq:star-mode-domination}
+\end{equation}
+
+Write $F_+=u_k(m_+)$, $F_z=u_k(m_z)$, and $F_-=u_k(m_-)$.  Conditions
+\eqref{eq:star-logarithmic-condition} and $J\geq3$ imply
+$|F_-|\leq F_+/2$ and
+$|F_z|\leq F_+/[4(B-1)]$.  The four entry types of
+$u_k(\overline{\mathcal M})$ are
+\begin{align*}
+ cc &: (F_++F_-)/2,\\
+ c\ell &: (F_+-F_-)/(2\sqrt B),\\
+ \ell\ell &: (1-1/B)F_z+(F_++F_-)/(2B),\\
+ \ell\ell' &: -F_z/B+(F_++F_-)/(2B).
+\end{align*}
+The two bounds make each expression nonnegative.  Hence every trigger kernel
+is entrywise nonnegative, and multiplication by $y\geq0$ proves permanent
+full-face safety.
+\end{proof}
+
 The center creates no extra factor in the one-stage entrance theorem of
 \cref{prop:first-momentum-safe}; that theorem already includes every arm
 count.  It does create charged work.  For a center-containing prefix face
@@ -363,12 +571,13 @@ for the whole segment after a graph-size-independent number of solves.  A
 constant must be proved on the realized profile, not on the full nonnegative
 cone unless the latter is genuinely true.
 
-The graph-uniform first-stage result survives the spider junction, but the
-permanent-tail statement fails even on a reachable leaf-seeded star
-trajectory through five warmups.  The remaining spider target is asymptotic:
-determine whether the minimal safe warmup is bounded by some larger absolute
-constant, grows logarithmically, or grows polynomially with arm count or
-length.
+The graph-uniform first-stage result survives the spider junction, but
+\cref{thm:reachable-star-no-constant} rules out every fixed warmup on a
+reachable leaf-seeded star family.  The logarithmic cone-uniform upper bound
+in \cref{thm:star-logarithmic-warmup} shows that this is not a polynomial
+star obstruction.  The live questions are to obtain a robust finite-inner
+margin, extend the logarithmic mechanism to unequal-arm spiders and changing
+proper faces, and charge the repeated resolvent applications locally.
 
 \section{Reproducibility}
 
@@ -380,8 +589,12 @@ python3 verify_warmup.py --sizes 14 16 20 --horizon 64
 python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3
 python3 verify_warmup.py --spider-arms 16 --spider-length 1 \
   --horizon 2 --max-warmup 4
+python3 verify_reachable_star.py
+python3 verify_reachable_star.py --arms 22 --warmup 6
 \end{verbatim}
-The script's first negative entry is a proof witness.  A horizon pass remains
+The first script's negative entries are cone witnesses.  The second uses an
+exact three-class LCP reduction and replays literal reachable trajectories;
+its default $B=50,J=6$ fraction is asserted exactly.  A horizon pass remains
 a finite screen and is printed with that name.
 
 \end{document}
