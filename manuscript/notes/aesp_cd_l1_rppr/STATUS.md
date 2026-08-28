@@ -58,7 +58,12 @@ State: proved-open
   payment without the geometric `1/q` loss. This refines the epoch ledger to
   count only harmful signed events. A reachable `P3` event makes the signed
   increment positive and increases the bank, while the reachable `K8` family
-  makes the signed payment asymptotically tight. A
+  makes the signed payment asymptotically tight. A settled `S5` trajectory
+  has adjacent positive partial/full events and a strict two-stage bank
+  increase, refuting a universal one-step quiet gap.  Conversely, on every
+  graph family with a proved clipped-master inequality the mean-free Moreau
+  bank contracts by a factor at most `3/8` in `ceil(log(2)/q)` exact
+  fixed-face stages, regardless of event density. A
   direct accelerated terminal result holds on the a-posteriori
   high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -126,10 +131,11 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-moreau-epoch-restart`, and
   `prop:aesp-cd-moreau-signed-event`,
   `prop:aesp-cd-p3-positive-signed-event`, and
+  `prop:aesp-cd-psi-high-window`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: Pack the weighted event terms in the Moreau epoch
-  ledger or find a reachable obstruction, then transfer the boundary restart
-  protocol across finite inner residuals.
+- Next concrete action: exploit the new high-bank contraction to isolate and
+  pack constant-mode pulse transfer, then move the resulting split ledger
+  across boundary restarts and finite inner residuals.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -141,8 +147,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Nine exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--030 mechanisms. Run them with `uv run python -m
+- Focused checks: Ten exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--031 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

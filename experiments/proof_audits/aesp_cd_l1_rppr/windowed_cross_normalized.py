@@ -332,6 +332,32 @@ def check_kn_high_drop_stop() -> None:
     assert expected[8] < 1 < expected[12]
 
 
+def check_psi_high_bridge() -> None:
+    """Check the exact modal identity linking Psi and the high Moreau bank."""
+    for q in (F(1, 20), F(1, 8), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        c = kappa + alpha
+        theta = 1 - q
+        beta = theta / (1 + q)
+        m0 = 1 - q * q
+        assert (1 + beta) ** 2 / (4 * beta) == 1 / m0
+        for lam in (2 * q, (1 + 2 * q) / 2, F(1)):
+            m = kappa / (kappa + lam)
+            assert lam * m == kappa * (1 - m)
+            assert 0 < m <= theta
+            minimum_v = 1 - m / m0
+            assert minimum_v >= q * m / m0
+            for h, v in ((F(2, 7), F(-3, 8)), (F(5, 9), F(4, 11))):
+                u = h - theta * v
+                master = h * h - (1 + beta) * m * h * v + beta * m * v * v
+                high_bank = lam * m * h * h + c * m * u * u
+                assert high_bank == kappa * master + alpha * m * h * h
+                assert master >= minimum_v * h * h
+                assert kappa * master <= high_bank <= kappa * (1 + q) * master
+        assert (1 + q) / 4 <= F(3, 8)
+
+
 def check_source_scope() -> None:
     """Guard theorem labels and the explicit non-overclaim boundary."""
     base = note_directory("aesp_cd_l1_rppr")
@@ -348,6 +374,8 @@ def check_source_scope() -> None:
     assert "prop:aesp-cd-moreau-signed-event" in main
     assert "eq:aesp-cd-moreau-signed-net" in main
     assert "eq:aesp-cd-k8-signed-sharpness" in main
+    assert "prop:aesp-cd-psi-high-window" in main
+    assert "eq:aesp-cd-psi-high-identity" in main
     assert "nonoptimal proper face" in main
     assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
@@ -364,6 +392,7 @@ def main() -> None:
     check_moreau_event_kernel()
     check_moreau_signed_event()
     check_kn_high_drop_stop()
+    check_psi_high_bridge()
     check_source_scope()
     print("Round-028 exact cross-normalized window audit passed")
     print("  modal bank: one-step (1-q) contraction")
@@ -372,6 +401,7 @@ def main() -> None:
     print("  contract-or-spend: exact low Euclidean endpoint normalizer")
     print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
     print("  signed Moreau events: exact telescope and reachable K8 sharpness")
+    print("  Psi bridge: exact high-bank identity and 3/8 master-certified window")
     print("  scope: changing-face finite-inner restart transfer remains open")
 
 

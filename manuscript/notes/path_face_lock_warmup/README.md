@@ -32,7 +32,15 @@ Pure-prox Collatz probes give a cheaper conditional alternative: once their
 Perron bracket has relative width at most `1/16`, an observable error-bar gate
 certifies a fixed-face momentum window with root rate
 `1-(3/8)*sqrt(1-U)`, without computing lower eigenvalues or eigenvectors.
-The bracket hitting time and admission replay count remain charged open terms.
+The bracket hitting time is now bounded exactly by either Birkhoff projective
+contraction or a proof-only spectral-ratio/Perron-spread estimate.  A path
+family shows this probe phase can require `Omega(n^2 log n)` solves, so it is
+not graph-uniform; admission replay count remains a charged open term.
+For replays launched from a maintained coordinatewise lower checkpoint, a
+new Schur-complement lemma pays the squared certified boundary residual from
+the telescoping restricted-optimum gain.  This bounds all margin-separated
+admission batches, but does not apply to transient momentum shocks or remove
+the need to charge small-margin admissions.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is

@@ -847,8 +847,9 @@ probe gives $0<L\leq\mu_1\leq U<1$ and
  U-L\leq\frac{1-U}{16}.
 \end{equation*}
 Put $q_U=\sqrt{1-U}$, $Q=\sqrt{1-L}$, and
-$\beta_L=(1-Q)/(1+Q)$.  If the coordinatewise residual gate accepts every
-stage of the following fixed-face momentum window, then its exact residuals
+$\beta_L=(1-Q)/(1+Q)$.  Restart at the same anchor, so the momentum-window
+initial history is $y_{-1}=y_0=z$.  If the coordinatewise residual gate
+accepts every stage of the following fixed-face momentum window, then its exact residuals
 satisfy
 \begin{equation}
  \norm{y_n}_2
@@ -874,9 +875,13 @@ $3(n+1)$ times this common root modulus to power $n$.  Orthogonal spectral
 decomposition proves \cref{eq:collatz-gated-window-rate}.
 \end{proof}
 
-With coordinate error bars $|\widehat y_t-y_t|\leq\eta_t$, certify the probe
+With coordinate observation error bars
+$|\widehat y_t-y_t|\leq\eta_t$, first require every denominator lower bound
+$\widehat y_{t,i}-\eta_{t,i}$ to be strictly positive.  Certify the probe
 ratios by replacing each numerator with $\widehat y_{t+1,i}\mp\eta_{t+1,i}$
-and each positive denominator with $\widehat y_{t,i}\pm\eta_{t,i}$.  Accept
+and each denominator with $\widehat y_{t,i}\pm\eta_{t,i}$, and intersect all
+certified brackets accumulated so far; the raw inexact ratios need not be
+monotone.  Accept
 momentum only when
 \begin{equation*}
  (1+\beta)\widehat y_t-\beta\widehat y_{t-1}
@@ -888,7 +893,13 @@ boundary residual, and replay a $\beta=0$ solve on the enlarged face.  Only
 after a primal/error certificate places that output in the relative interior
 may the protocol clear its history and rebuild the Collatz bracket.  The
 probe hitting time and number of admission replays remain explicit work terms;
-the theorem bounds only a fully accepted window.
+the theorem bounds only a fully accepted exact window.  If the error also
+perturbs the shifted solve, a forced-recurrence/Green-convolution tolerance
+schedule is additionally required; the gate alone proves safety, not a
+finite-inner accelerated rate.
+
+\input{sections/collatz_hitting}
+\input{sections/admission_gain}
 
 The center creates no extra factor in the one-stage entrance theorem of
 \cref{prop:first-momentum-safe}; that theorem already includes every arm

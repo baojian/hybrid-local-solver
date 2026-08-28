@@ -42,8 +42,14 @@ Only `[Xi_t]_+` enters the refined epoch ledger, and its fixed-face sum has a
 telescoping Stieltjes payment without the former geometric `1/q` loss. A
 reachable `P3` event proves that `Xi_t` can nevertheless be positive and can
 increase the bank, while the reachable `K8` family makes the telescoping
-payment asymptotically tight. Thus a controller-specific quiet-window or
-positive-event clustering theorem is still needed.
+payment asymptotically tight.  An exact settled `S5` trajectory has adjacent
+positive partial/full events and grows the bank across the pair, so even a
+mandatory one-step quiet gap is false.  On the positive side, every graph
+family with a proved clipped-master inequality has a mean-free Moreau bank
+that contracts by at least `3/8` in `ceil(log(2)/q)` exact fixed-face stages,
+independently of event density.  The remaining pulse obstruction is therefore
+concentrated in the constant low mode. Thus a controller-specific low-mode
+clustering theorem is still needed.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -73,7 +79,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all nine exact audits with:
+Run all ten exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -91,6 +97,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.windowed_cross_normalized` (Round 028);
 - `aesp_cd_l1_rppr.p24_low_start_stop` (Round 029);
 - `aesp_cd_l1_rppr.signed_event_stop` (Round 030).
+- `aesp_cd_l1_rppr.adjacent_signed_event_stop` (Round 031).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

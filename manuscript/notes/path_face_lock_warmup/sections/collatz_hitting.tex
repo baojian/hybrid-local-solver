@@ -1,0 +1,81 @@
+\subsection{How long the Collatz probes can take}
+
+The bracket is observable, but its hitting time necessarily depends on
+projective mixing of the current face.
+
+\begin{proposition}[Projective Collatz hitting time]
+\label{prop:collatz-projective-hitting}
+Let $M>0$ be the normalized residual map in
+\cref{thm:collatz-gated-window}, let $\phi>0$ be its unit Perron vector, and
+write $d_H$ for Hilbert's projective metric.  Define
+\begin{equation*}
+ \Delta(M):=\log\max_{i,j,k,l}
+ \frac{M_{ik}M_{jl}}{M_{il}M_{jk}},
+ \qquad
+ \tau(M):=\tanh\!\left(\frac{\Delta(M)}4\right)<1.
+\end{equation*}
+For $z_s=M^sz_0$,
+\begin{equation}
+ \log\frac{U_s}{L_s}
+ \leq(1+\tau)\tau^s d_H(z_0,\phi).
+ \label{eq:collatz-hilbert-width}
+\end{equation}
+Consequently the bracket condition in
+\cref{thm:collatz-gated-window} is reached after
+\begin{equation}
+ O\!\left(
+ \frac{\log(d_H(z_0,\phi)/q_{\rm face}^2)}{-\log\tau(M)}
+ \right)
+ \label{eq:collatz-hilbert-hitting}
+\end{equation}
+probes.
+
+Alternatively, let $\delta=\mu_2/\mu_1<1$ and
+$\gamma=\min_i\phi_i$.  For every $z_0\geq0$, $z_0\neq0$, the observable
+stop is reached by
+\begin{equation}
+ P\leq
+ \left\lceil
+ \frac{\log(128/(\gamma^2q_{\rm face}^2))}{-\log\delta}
+ \right\rceil.
+ \label{eq:collatz-spectral-hitting}
+\end{equation}
+The algorithm need not know $\delta$ or $\gamma$; they occur only in this
+proof-only work bound.
+\end{proposition}
+
+\begin{proof}
+Birkhoff contraction gives
+$d_H(z_s,\phi)\leq\tau^sd_H(z_0,\phi)$.  Since
+\begin{equation*}
+ \log(U_s/L_s)=d_H(Mz_s,z_s),
+\end{equation*}
+the triangle inequality and one further contraction prove
+\cref{eq:collatz-hilbert-width}.  Once its right-hand side is at most
+$q_{\rm face}^2/128$, elementary exponential bounds and
+$L_s\leq\mu_1\leq U_s$ imply
+$U_s-L_s\leq(1-U_s)/16$.
+
+For the second statement, write
+$z_0=c_1\phi+z_\perp$.  Positivity gives
+$c_1=\langle\phi,z_0\rangle\geq\gamma\norm{z_0}_2$, while
+\begin{equation*}
+ \norm{\mu_1^{-s}M^sz_\perp}_2
+ \leq\delta^s\norm{z_0}_2.
+\end{equation*}
+Thus every coordinate has relative Perron error at most
+$\delta^s/\gamma^2$.  Making this at most
+$q_{\rm face}^2/128$ proves \cref{eq:collatz-spectral-hitting} and the same
+bracket stop.
+\end{proof}
+
+There is no graph-uniform $\widetilde O(1/q_{\rm face})$ bound for this probe
+phase.  On full paths one can have
+$q_{\rm face}=\Theta(n^{-1})$,
+$\delta=1-\Theta(n^{-2})$, and $\gamma^2=\Theta(n^{-1})$.
+A positive start with a nonzero second-mode component then needs
+$\Omega(n^2\log n)$ pure-prox probes before the bracket has width
+$\Theta(q_{\rm face}^2)$.  Explicitly scanning and applying the face map
+costs $\Omega(n)$ per probe.  The observable stop remains a correct
+conditional accelerator, but without a face mixing certificate its
+pre-window work can be $\Omega(n^3\log n)$.

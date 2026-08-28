@@ -53,7 +53,13 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
   `9190540374100260057432724000/35964609239043602890432954263<1`.
   At `q=1/20`, exact rational inversion also closes every balanced blow-up of
   `C9` and `C11`; their adjacent Young ratios are approximately `0.0490` and
-  `0.4137`, respectively.
+  `0.4137`, respectively.  A fourth sufficient condition clips the positive
+  off-diagonal cross kernel, chooses its otherwise invisible diagonal, and
+  requires the resulting two-by-two operator block to be positive
+  semidefinite.  Exact rational LDL certificates prove this diagonal
+  completion on every balanced blow-up of `C12` and `C13` at `q=1/20`, even
+  though positive off-diagonal entries in both energy kernels rule out the
+  edgewise weighted-Laplacian theorem.
 - **Conditional:** None yet.
 - **Measured:** None yet.
 - **Refuted:** `(CL)` does not cover all cycles: on `C10` at `q=1/20`, its
@@ -62,17 +68,16 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
   route, not `Psi<=0` itself; edgewise Young payment now closes that exact
   infinite blow-up family by a different sufficient condition.
 - **Open:** Analytic nonpositivity on general graphs and on graph families
-  lying beyond `(HK)`, `(CL)`, and the new edgewise payment condition.
+  lying beyond `(HK)`, `(CL)`, edgewise payment, and diagonal completion.
 
 ## Central blocker
 
-The eliminated-`h` form retains clipping complementarity.  Edgewise Young
-payment shows that a positive cross entry need not be an obstruction, and the
-cycle applications now include three neighboring infinite blow-up families,
-while the ten-cycle application has a nontrivial exact parameter interval. The next
-advance must prove a quotient-varying family, pay positive cross terms when either diagonal
-kernel is not a weighted Laplacian or the edgewise ratio exceeds one, or
-produce an exact admissible positive witness.
+The eliminated-`h` form retains clipping complementarity.  Diagonal
+completion now pays positive cross entries even after the energy kernels stop
+being weighted Laplacians, but only on the two additional fixed cycle
+quotients currently certified.  The next advance must prove a
+graph-uniform/quotient-varying completion or produce an exact admissible
+positive witness.
 
 ## Dependencies and reusable outputs
 
@@ -86,8 +91,9 @@ produce an exact admissible positive witness.
 - Exact file/section/lemma: `lem:psi-master-identity`,
   `thm:psi-hk-nonpositivity`, `lem:psi-eliminate-h`, and
   `thm:psi-edgewise-young`, `thm:psi-c6-blowup`, and
-  `thm:psi-c10-edgewise`, and `thm:psi-neighboring-cycle-edgewise` in
-  `main.tex`.
+  `thm:psi-c10-edgewise`, `thm:psi-neighboring-cycle-edgewise`, and
+  `thm:psi-c12-c13-diagonal-completion` in `main.tex` and
+  `sections/diagonal_completion.tex`.
 - Next concrete action: vary the cycle quotient or find the first exact
   admissible state beyond all three sufficient routes.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
@@ -109,10 +115,11 @@ produce an exact admissible positive witness.
   identities, 24 eliminated-`h` checks, 36 blow-up matrices, 68796 strict
   off-diagonal checks, the exact `C10` point certificate, and 19 exact
   interval Bernstein certificates, plus fixed-`q` exact edgewise certificates
-  for `C9`, `C10`, and `C11`),
+  for `C9`, `C10`, and `C11`, and exact diagonal-completion certificates with
+  22/24 positive quotient LDL pivots for `C12`/`C13`),
   and `git diff --check` pass.  The edgewise theorem and its weighted
   double-counting were also independently rederived before promotion.
-- Known gaps: mixed clipping beyond all three sufficient conditions, proper
+- Known gaps: mixed clipping beyond all four sufficient conditions, proper
   faces, finite inner residuals, and all algorithm/work consequences.
 
 ## Repository handoff

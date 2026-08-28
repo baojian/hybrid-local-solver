@@ -506,6 +506,122 @@ def neighboring_cycle_edgewise_payments():
     }
 
 
+def diagonal_completion_payments():
+    """Certify the clipped-cross diagonal completion on C12 and C13."""
+
+    def transpose(matrix):
+        return [list(row) for row in zip(*matrix)]
+
+    def positive_ldl_pivots(matrix):
+        size = len(matrix)
+        lower = [[F(0) for _ in range(size)] for _ in range(size)]
+        diagonal = []
+        for i in range(size):
+            pivot = matrix[i][i] - sum(lower[i][k] * lower[i][k] * diagonal[k] for k in range(i))
+            assert pivot > 0
+            diagonal.append(pivot)
+            lower[i][i] = F(1)
+            for j in range(i + 1, size):
+                lower[j][i] = (
+                    matrix[j][i] - sum(lower[j][k] * lower[i][k] * diagonal[k] for k in range(i))
+                ) / pivot
+        return diagonal
+
+    q = F(1, 20)
+    m0 = 1 - q * q
+    records = {}
+    for size in (12, 13):
+        identity = [[F(i == j) for j in range(size)] for i in range(size)]
+        adjacency = [
+            [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+            for i in range(size)
+        ]
+        stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+        high_projection = matrix_linear(identity, stationary, right_scale=-1)
+        high_resolvent = [
+            [4 * entry for entry in row]
+            for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+        ]
+        m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+        one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+        m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+        g_operator = matrix_linear(
+            matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+            matmul(m_operator, m_operator),
+        )
+        a_operator = [
+            [entry / m0 for entry in row]
+            for row in matmul(
+                matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+                inverse(one_minus_m),
+            )
+        ]
+        b_operator = [
+            [m0 * entry for entry in row]
+            for row in matmul(
+                matmul(
+                    matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                    inverse(matrix_linear(m0_minus_m, stationary)),
+                ),
+                high_projection,
+            )
+        ]
+        c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+        positive_distances = [j for j in range(1, size) if c_operator[0][j] > 0]
+        assert positive_distances == [1, size - 1]
+        assert any(a_operator[0][j] > 0 for j in range(1, size))
+        assert any(b_operator[0][j] > 0 for j in range(1, size))
+        adjacent = c_operator[0][1]
+
+        # Replace the clipped positive cross row by its zero-row-sum
+        # completion: adjacent entries c and diagonal -2c.
+        completed_cross = [[F(0) for _ in range(size)] for _ in range(size)]
+        for i in range(size):
+            completed_cross[i][i] = -2 * adjacent
+            completed_cross[i][(i - 1) % size] = adjacent
+            completed_cross[i][(i + 1) % size] = adjacent
+        block = [
+            a_operator[i] + [-completed_cross[i][j] for j in range(size)] for i in range(size)
+        ] + [[-completed_cross[i][j] for j in range(size)] + b_operator[i] for i in range(size)]
+
+        # Each block has one constant null direction.  The columns below are
+        # e_i-e_{n-1} in the two blocks, so exact positive LDL pivots prove
+        # positivity on their orthogonal quotient.
+        basis = [[F(0) for _ in range(2 * (size - 1))] for _ in range(2 * size)]
+        for block_index in range(2):
+            for j in range(size - 1):
+                basis[block_index * size + j][block_index * (size - 1) + j] = F(1)
+                basis[block_index * size + size - 1][block_index * (size - 1) + j] = -F(1)
+        reduced = matmul(matmul(transpose(basis), block), basis)
+        pivots = positive_ldl_pivots(reduced)
+
+        within_m = m0 * F(2, 3)
+        within_g = m0 - 2 * within_m + within_m * within_m
+        within_a = within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m))
+        within_b = m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m))
+        within_c = within_m * (m0 - within_m) / (1 - within_m)
+        assert c_operator[0][0] - within_c < 0
+        within_determinant = within_a * within_b - (2 * adjacent) ** 2
+        assert within_a > 0 and within_b > 0 and within_determinant > 0
+
+        sine_lower = F(3, size) - F(1, 6) * F(22, 7 * size) ** 3
+        assert 2 * sine_lower * sine_lower > 2 * q
+        records[f"C{size}"] = {
+            "positive_cross_distances": positive_distances,
+            "edgewise_M_matrix_hypothesis_fails": True,
+            "base_completion_positive_pivots": len(pivots),
+            "smallest_base_pivot": str(min(pivots)),
+            "within_completion_determinant": str(within_determinant),
+            "gap_lower_bound": str(2 * sine_lower * sine_lower),
+        }
+    return {
+        "q": str(q),
+        "cycle_sizes": [12, 13],
+        "balanced_blowups": "all integer part sizes",
+        "records": records,
+    }
+
+
 def c10_interval_entries():
     """Return exact C10 kernel rows over Q(sqrt(5))(r), simplified to Q(r)."""
     radical = QuadRat(0, 1)
@@ -670,6 +786,7 @@ def main():
         "C10_edgewise_payment": c10_edgewise_payment(),
         "C10_edgewise_interval_payment": c10_edgewise_interval_payment(),
         "neighboring_cycle_edgewise_payments": neighboring_cycle_edgewise_payments(),
+        "diagonal_completion_payments": diagonal_completion_payments(),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
 
