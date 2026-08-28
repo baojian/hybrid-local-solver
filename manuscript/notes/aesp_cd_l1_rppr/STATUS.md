@@ -113,10 +113,16 @@ State: proved-open
   radius-paid cycle scans in the latter case) and reproduces a legal
   singleton positive-subset trace in
   `O_tilde((1+vol(S*))/sqrt(alpha))` work. The first structural reporter still
-  open after the known tree, single-cycle, bounded-live-site cactus, and
+  open after the known tree, single-cycle, bounded-productive-site cactus, and
   bounded-block solvers occurs when unbounded ancestor cycles have unbounded
-  live descendant sites, and more generally on variable-port
-  series--parallel graphs. Under a uniform relative KKT margin,
+  productive descendant sites, and more generally on variable-port
+  series--parallel graphs. Epoch rebuilding nevertheless gives the exact
+  adaptive block tradeoff
+  `O_tilde(L_B+J_B*min{p_B+1,sqrt(L_B)})`; its remaining
+  square-root block factor is the current cactus gap, while the alternative
+  route promise
+  `max_v sum_{B in P(v)} min{p_B+1,sqrt(L_B)}=O_tilde(R*)` closes another
+  strict subclass. Under a uniform relative KKT margin,
   charged coordinate-level events give another soft-linear reporter; the
   event source remains an explicit interface cost.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -246,6 +252,8 @@ still no graph-uniform exact accelerated solver.
   `thm:aesp-cd-tree-singleton-threshold`,
   `cor:aesp-cd-unicyclic-singleton`,
   `cor:aesp-cd-cactus-live-sites`,
+  `cor:aesp-cd-cactus-productive-sites`,
+  `cor:aesp-cd-cactus-productive-epochs`,
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `prop:aesp-cd-separated-level-reporter`,
@@ -258,9 +266,18 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-discover-then-restart`,
   `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: use the safe accelerated face primitive inside a
-  batched active-set discovery protocol, pack proper-face event charges, and
-  charge spectral certification and boundary restarts.
+- Next concrete action: attack one of the two explicit remaining interfaces.
+  On discovery, either implement the persistent bulk-affine
+  `MeldAffineHull` reporter on variable two-port blocks, or prove that its
+  cactus productive-site specialization cannot meet the support-radius budget; all
+  dynamic obstacle updates, level notifications, and rejected frontier rows
+  must remain charged.  On the final certified face, bound the number of
+  rejected observable windows and maintain the absolute finite-inner budget,
+  then compose this with the proved discover-then-restart bridge when the
+  required full-face identities are separately certified.  On a generic
+  proper final face, use the safe Chebyshev terminal composition instead.  Do not
+  transport momentum through serial admissions merely to obtain this
+  composition.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -283,5 +300,14 @@ still no graph-uniform exact accelerated solver.
   face. The Moreau theorem crosses only explicit epoch-boundary admissions and
   still lacks event packing. The high half of the master/mean split has a
   finite-inner transfer; the forced mean and changing-face parts do not yet
-  form an end-to-end finite solver theorem.
+  form an end-to-end finite solver theorem.  The two-phase alternative avoids
+  changing-face momentum transfer, but its discovery phase still assumes an
+  accelerated dynamic-obstacle/reporter interface.  That interface is closed
+  on trees, unicyclic graphs, stable ports, and bounded-productive-site cactus
+  traces; unrestricted productive cactus has the square-root epoch tradeoff,
+  not the target product.  General variable-port series--parallel graphs remain
+  open.  The final
+  face still needs a graph-uniform accounting of failed observable gates (or
+  a finite relative alignment schedule) before its accelerated accepted
+  windows become an unconditional terminal complexity bound.
   No graph-uniform exact accelerated solver or finite-precision result follows.

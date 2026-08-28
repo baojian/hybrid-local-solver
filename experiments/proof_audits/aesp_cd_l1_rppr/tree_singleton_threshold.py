@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06_lem_aesp_cd_kkt_error.tex"
+SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06b_prop_aesp_cd_dynamic_reporters.tex"
 
 
 def solve(a, b):

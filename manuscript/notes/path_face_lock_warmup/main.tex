@@ -775,9 +775,9 @@ Let $M_A$ be the $D$-self-adjoint positive residual map on a fixed connected
 face.  Let $M_A\phi=\mu_1\phi$, where
 $\phi>0$, $\lVert\phi\rVert_D=1$, and put
 \begin{equation*}
- q_A:=\sqrt{1-\mu_1},\qquad
- \theta_A:=1-q_A,\qquad
- \beta_A:=\frac{1-q_A}{1+q_A},\qquad
+ q_{\mathrm{face}}:=\sqrt{1-\mu_1},\qquad
+ \theta_A:=1-q_{\mathrm{face}},\qquad
+ \beta_A:=\frac{1-q_{\mathrm{face}}}{1+q_{\mathrm{face}}},\qquad
  P_\phi:=I-\phi\phi^{\mathsf T}D.
 \end{equation*}
 Run the exact fixed-face safeguarded recurrence with this $\beta_A$.  For its
@@ -794,8 +794,8 @@ and
  -(1+\beta_A)\langle u,M_Av\rangle_D
  +\beta_A\langle v,M_Av\rangle_D.
 \end{equation*}
-After a same-point restart, let $T=\lceil2/q_A\rceil$ and
-$\rho_T=(1+q_AT)\theta_A^T<1/2$.  Then
+After a same-point restart, let $T=\lceil2/q_{\mathrm{face}}\rceil$ and
+$\rho_T=(1+q_{\mathrm{face}}T)\theta_A^T<1/2$.  Then
 \begin{align}
  H_T+a_T
  &\leq\rho_T(H_0+a_0)+\mathcal G_T,\notag\\
@@ -834,7 +834,7 @@ The triangle inequality in the pair norm therefore gives
 The Perron scalar has the critical repeated root $\theta_A$.  Its Green
 formula after a same-point restart is
 \begin{equation*}
- a_T=(1+q_AT)\theta_A^Ta_0
+ a_T=(1+q_{\mathrm{face}}T)\theta_A^Ta_0
  +\mu_1\sum_{t=0}^{T-1}(T-t)\theta_A^{T-1-t}\bar r_t.
 \end{equation*}
 Unroll the high root and add the two identities.
@@ -852,7 +852,7 @@ monotone and put
  \qquad
  \eta_A:=\frac12-\rho_T,
  \qquad
- B_A:=\frac{\mu_2}{\gamma_A}+\frac{\mu_1}{q_A}.
+ B_A:=\frac{\mu_2}{\gamma_A}+\frac{\mu_1}{q_{\mathrm{face}}}.
 \end{equation*}
 Every length-$T$ macro satisfies the dichotomy
 \begin{align*}
@@ -864,9 +864,9 @@ Every length-$T$ macro satisfies the dichotomy
 \end{align*}
 Thus every rejected window spends a definite fraction of the Perron mean,
 but that fraction is only
-$\Theta((q_A^{-1}+\gamma_A^{-1})^{-1})$.  This direct common-cap telescope
-can therefore allow $\Theta(1/q_A)$ rejected macros, or
-$\Theta(1/q_A^2)$ stages, even when $\gamma_A\gtrsim q_A$; by itself it is
+$\Theta((q_{\mathrm{face}}^{-1}+\gamma_A^{-1})^{-1})$.  This direct common-cap telescope
+can therefore allow $\Theta(1/q_{\mathrm{face}})$ rejected macros, or
+$\Theta(1/q_{\mathrm{face}}^2)$ stages, even when $\gamma_A\gtrsim q_{\mathrm{face}}$; by itself it is
 not an accelerated packing theorem.
 \end{corollary}
 
@@ -878,7 +878,7 @@ Because $r_t\geq0$, $d_i\geq1$, and $\phi_i\geq\gamma_A$,
  \leq\frac{\mu_2}{\gamma_A}\bar r_t.
 \end{equation*}
 Moreover
-$\max_{k\geq1}k\theta_A^{k-1}\leq q_A^{-1}$ and
+$\max_{k\geq1}k\theta_A^{k-1}\leq q_{\mathrm{face}}^{-1}$ and
 $0\leq r_t\leq\beta_Ad_t$.  Telescoping
 $\langle d_t,\phi\rangle_D=a_{t-1}-a_t$ gives
 \begin{equation*}
@@ -931,8 +931,8 @@ $\norm{\varepsilon_t}_D\leq(\mu_1/\kappa)\xi$.  Allocating half of the gate
 margin to finite error is ensured by
 \begin{equation}
  \xi\leq
- \frac{\kappa q_A^2(1/2-\rho_T)a_0^-}
-      {2\mu_1(1+q_A)}.
+ \frac{\kappa q_{\mathrm{face}}^2(1/2-\rho_T)a_0^-}
+      {2\mu_1(1+q_{\mathrm{face}})}.
  \label{eq:proper-face-finite-perron-inner-budget}
 \end{equation}
 All statements are conditional on the finite outputs remaining in the same
@@ -948,7 +948,7 @@ high root once and the Perron repeated-root Green kernel with weight $T-t$,
 giving $\mathcal E_T$.  Apply the triangle inequality and the exact window
 bound.  Finally,
 \begin{equation*}
- \sum_{j\geq0}(j+2)\theta_A^j=\frac{1+q_A}{q_A^2}
+ \sum_{j\geq0}(j+2)\theta_A^j=\frac{1+q_{\mathrm{face}}}{q_{\mathrm{face}}^2}
 \end{equation*}
 proves
 \cref{eq:proper-face-finite-perron-inner-budget}.
@@ -1121,151 +1121,7 @@ rank-one entry is at least $\gamma^2u_k(\mu_1)$, so
 \eqref{eq:face-tuned-kernel-margin}.
 \end{proof}
 
-All quantities in \cref{thm:face-tuned-permanent-safety} belong to the current
-face, but computing or certifying them must be charged.  Full eigendata are
-not necessary for a conditional accelerated window: pure-prox probes and an
-observable trigger gate suffice.
 
-\begin{theorem}[Collatz-bracketed gated accelerated window]
-\label{thm:collatz-gated-window}
-Let $\overline{\mathcal M}_A$ be the positive symmetric normalized residual
-map of a fixed connected face, with $0<\mu_i\leq\mu_1<1$.  From an anchor
-$z^0>0$, form pure-prox probes $z^{s+1}=\overline{\mathcal M}_Az^s$ and
-\begin{equation*}
- L_s:=\min_i\frac{z_i^{s+1}}{z_i^s},
- \qquad U_s:=\max_i\frac{z_i^{s+1}}{z_i^s}.
-\end{equation*}
-Then $L_s\uparrow$, $U_s\downarrow$, and $L_s\leq\mu_1\leq U_s$.  Suppose a
-probe gives $0<L\leq\mu_1\leq U<1$ and
-\begin{equation*}
- U-L\leq\frac{1-U}{16}.
-\end{equation*}
-Put $q_U=\sqrt{1-U}$, $Q=\sqrt{1-L}$, and
-$\beta_L=(1-Q)/(1+Q)$.  Restart at the same anchor, so the momentum-window
-initial history is $y_{-1}=y_0=z$.  If the coordinatewise residual gate
-accepts every stage of the following fixed-face momentum window, then its exact residuals
-satisfy
-\begin{equation}
- \norm{y_n}_2
- \leq3(n+1)\left(1-\frac{3q_U}{8}\right)^n\norm{z}_2.
- \label{eq:collatz-gated-window-rate}
-\end{equation}
-Thus, after the bracket is certified, the accepted window is face-accelerated
-without computing $\mu_2$ or any eigenvector.
-\end{theorem}
-
-\begin{proof}
-Collatz gives the bracket, while applying the positive map once more proves
-its monotonicity.  The bracket condition gives
-$q_U\leq Q\leq\sqrt{17/16}\,q_U$.  On an eigenmode $\mu\leq L$, the momentum
-roots have modulus at most $1-Q$.  For $L\leq\mu\leq U$, the larger root is
-at most
-\begin{equation*}
- \frac{U+\sqrt{U(U-L)}}{1+Q}
- \leq1-\frac{3q_U}{8}.
-\end{equation*}
-The divided-difference bound for the restarted scalar recurrence is
-$3(n+1)$ times this common root modulus to power $n$.  Orthogonal spectral
-decomposition proves \cref{eq:collatz-gated-window-rate}.
-\end{proof}
-
-With coordinate observation error bars
-$|\widehat y_t-y_t|\leq\eta_t$, first require every denominator lower bound
-$\widehat y_{t,i}-\eta_{t,i}$ to be strictly positive.  Certify the probe
-ratios by replacing each numerator with $\widehat y_{t+1,i}\mp\eta_{t+1,i}$
-and each denominator with $\widehat y_{t,i}\pm\eta_{t,i}$, and intersect all
-certified brackets accumulated so far; the raw inexact ratios need not be
-monotone.  Accept
-momentum only when
-\begin{equation*}
- (1+\beta)\widehat y_t-\beta\widehat y_{t-1}
- \geq((1+\beta)\eta_t+\beta\eta_{t-1})\one;
-\end{equation*}
-otherwise restart.  A boundary admission must abort the old trial, return to
-the unchanged checkpoint $x$, set $x_{\rm prev}=x$, certify the same-point
-boundary residual, and replay a $\beta=0$ solve on the enlarged face.  Only
-after a primal/error certificate places that output in the relative interior
-may the protocol clear its history and rebuild the Collatz bracket.  The
-probe hitting time and number of admission replays remain explicit work terms;
-the theorem bounds only a fully accepted exact window.  If the error also
-perturbs the shifted solve, a forced-recurrence/Green-convolution tolerance
-schedule is additionally required; the gate alone proves safety, not a
-finite-inner accelerated rate.
-
-\input{sections/collatz_hitting}
-\input{sections/admission_gain}
-
-The center creates no extra factor in the one-stage entrance theorem of
-\cref{prop:first-momentum-safe}; that theorem already includes every arm
-count.  It does create charged work.  For a center-containing prefix face
-with retained length \(r_a\in\{0,\ldots,\ell_a\}\) on arm \(a\), its exact
-ambient-degree volume is
-\begin{equation}
- \vol(S)=B+\sum_{a:r_a>0}
- \left(2r_a-\mathbf 1_{\{r_a=\ell_a\}}\right).
- \label{eq:spider-prefix-volume}
-\end{equation}
-Thus the center row alone scans \(B\) neighbors, and a full spider sweep
-costs \(2\sum_a\ell_a\).  These are adjacency-list sweep charges only.  Each
-warmup or momentum stage additionally applies a resolvent; factorization,
-inverse-oracle, state-write, and repeated-solve costs cannot be replaced by
-the sweep count and must be charged by any algorithmic theorem.
-
-For the full unit star this cost is explicit.  If $f_c,f_1,\ldots,f_B$ are
-normalized coordinates and $z=(3I-S)^{-1}f$, then
-\[
- z_c=\frac{3f_c}{8}+\frac{\sum_i f_i}{8\sqrt B},\qquad
- z_i=\frac{f_i}{3}+\frac{f_c}{8\sqrt B}
-       +\frac{\sum_j f_j}{24B}.
-\]
-One application and its explicit output cost $\Theta(B)$.  Therefore the
-literal repeated-resolvent policy certified above costs
-$\Theta(B\log B)$ on the full star.  The $O(1)$ three-class verifier exploits
-symmetry and is not an implementation-cost bound for arbitrary residuals.
-
-\section{Open path and spider targets}
-\label{sec:path-spider-targets}
-
-The first live path target is now sharper: characterize the residual produced
-by one stable-face proximal solve after an actual endpoint-prefix admission,
-then prove or refute that
-\eqref{eq:path-lock-sharp-entrance} or the weaker exact trigger remains valid
-for the whole segment after a graph-size-independent number of solves.  A
-constant must be proved on the realized profile, not on the full nonnegative
-cone unless the latter is genuinely true.
-
-The graph-uniform first-stage result survives the spider junction, but
-\cref{thm:reachable-star-no-constant} rules out every fixed warmup on a
-reachable leaf-seeded star family, and
-\cref{thm:reachable-star-logarithmic-lower,thm:star-logarithmic-warmup}
-identify its matching logarithmic scale.  The strict-margin corollary supports
-finite horizons, while \cref{prop:proper-face-global-momentum-stop} rules out
-permanent global-momentum safety on strict proper faces.
-\Cref{thm:face-tuned-permanent-safety} repairs the exact tail, and
-\cref{prop:star-finite-inner-window} supplies a finite-inner final-face window.
-The live route is therefore a charged changing-face implementation of the
-face-tuned restart gate, rather than another global warmup constant.
-
-\section{Reproducibility}
-
-The note-local script \texttt{verify\_warmup.py} constructs
-\(\mathcal M\) and every trigger matrix with exact rational arithmetic.  Run
-\begin{verbatim}
-python3 verify_warmup.py --sizes 4 6 8 10 12 --horizon 32
-python3 verify_warmup.py --sizes 14 16 20 --horizon 64
-python3 verify_warmup.py --sizes 46 --horizon 4 --max-warmup 3
-python3 verify_warmup.py --spider-arms 16 --spider-length 1 \
-  --horizon 2 --max-warmup 4
-python3 verify_reachable_star.py
-python3 verify_reachable_star.py --arms 22 --warmup 6
-\end{verbatim}
-The first script's negative entries are cone witnesses.  The second uses an
-exact three-class LCP reduction and replays literal reachable trajectories;
-its default $B=50,J=6$ fraction is asserted exactly.  It also clears the
-denominators in \eqref{eq:reachable-star-residual-margins}, shifts $B=b+2$,
-and asserts the nonnegative-coefficient certificates, plus a nonvacuous
-$B=10000,J=6$ instance of
-\eqref{eq:reachable-star-logarithmic-lower-margin}.  A horizon pass remains a
-finite screen and is printed with that name.
+\input{sections/body/fixed_face_tail}
 
 \end{document}

@@ -7,7 +7,7 @@ import random
 
 
 ROOT = Path(__file__).resolve().parents[3]
-SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06_lem_aesp_cd_kkt_error.tex"
+SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06b_prop_aesp_cd_dynamic_reporters.tex"
 
 
 def solve(a, b):
@@ -155,7 +155,7 @@ def audit_row(
 def main():
     source = SOURCE.read_text()
     assert r"\label{prop:aesp-cd-separated-level-reporter}" in source
-    assert r"\epsilon=\gamma/8" in source
+    assert r"\eta_{\rm lev}=\gamma/8" in source
     assert r"\delta=\gamma\alpha\rho/(8c)" in source
 
     rng = random.Random(20260829)

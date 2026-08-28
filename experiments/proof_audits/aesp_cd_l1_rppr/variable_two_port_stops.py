@@ -12,7 +12,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06_lem_aesp_cd_kkt_error.tex"
+SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06b_prop_aesp_cd_dynamic_reporters.tex"
+PRODUCTIVE_SOURCE = (
+    ROOT
+    / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06c_prop_aesp_cd_productive_cactus.tex"
+)
 
 
 def solve(matrix, rhs):
@@ -137,6 +141,87 @@ def weighted_direction_stop():
     assert directions == [(F(1, 4), F(1, 2)), (F(1, 2), F(1, 4))]
     assert determinant == -F(3, 16)
     return determinant
+
+
+def root_port_forget_stop():
+    """Check that excluding both pinned root ports would miss a positive key."""
+    matrix = [[F(2), -F(1)], [-F(1), F(2)]]
+    load = [F(1), -F(1)]
+    pinned_state = [F(0), F(0)]
+    keys = [
+        load[i] - sum(matrix[i][j] * pinned_state[j] for j in range(2))
+        for i in range(2)
+    ]
+    # A handle containing only rows forgotten strictly below the root is empty
+    # on this one-edge decomposition, but the first root-port key is positive.
+    forgotten_handle = []
+    assert not forgotten_handle
+    assert keys == [F(1), -F(1)]
+    assert max(keys) > 0
+    return keys
+
+
+def productive_site_numeric_key_pressure():
+    """Show why dormant runs store homogeneous rows, not numerical keys."""
+    # Cut a four-cycle at parent site zero and set its value to one.  Sites
+    # 1,2,3 form the interior path.  Attach a child y at site 1 with diagonal
+    # 2, coupling -1, and load -1/4.  Its positive key makes the admission
+    # legal.  Eliminating y contributes s=1/2 and r=-1/8 at site 1, changing
+    # the numerical key at still-dormant site 2 without touching its local
+    # aggregate response.
+    old_matrix = [
+        [F(3), -F(1), F(0)],
+        [-F(1), F(3), -F(1)],
+        [F(0), -F(1), F(3)],
+    ]
+    touched_matrix = [
+        [F(5, 2), -F(1), F(0)],
+        [-F(1), F(3), -F(1)],
+        [F(0), -F(1), F(3)],
+    ]
+    old_value = solve(old_matrix, [F(1), F(0), F(1)])
+    child_key = -F(1, 4) + old_value[0]
+    touched_value = solve(touched_matrix, [F(7, 8), F(0), F(1)])
+    threshold = F(7, 24)
+    old_key = old_value[1] - threshold
+    touched_key = touched_value[1] - threshold
+    assert old_value == [F(3, 7), F(2, 7), F(3, 7)]
+    assert child_key == F(5, 28) > 0
+    assert touched_value == [F(8, 17), F(41, 136), F(59, 136)]
+    assert old_key == -F(1, 168) < 0
+    assert touched_key == F(1, 102) > 0
+    return child_key, old_key, touched_key
+
+
+def productive_epoch_integer_ledgers():
+    """Check repeated-site and maximal-reset productive epoch charges."""
+
+    def ledger(event_sites, cap):
+        touched = set()
+        scans = 0
+        resets = 0
+        for site in event_sites:
+            touched.add(site)
+            scans += len(touched) + 1
+            if len(touched) == cap:
+                resets += 1
+                touched.clear()
+        assert scans <= len(event_sites) * (cap + 1)
+        assert resets <= len(event_sites) // cap
+        return scans, resets
+
+    event_count, cap = 100, 10
+    # Fill an epoch to k-1 distinct sites, then mutate one of them repeatedly:
+    # there is no rebuild, but every scan is paid by the J*k term.
+    repeated = list(range(cap - 1)) + [0] * (event_count - cap + 1)
+    # Touch k distinct sites in every epoch, attaining the reset upper bound.
+    reset_heavy = [event % cap for event in range(event_count)]
+    repeated_result = ledger(repeated, cap)
+    reset_result = ledger(reset_heavy, cap)
+    assert repeated_result == (964, 0)
+    assert repeated_result[0] <= event_count * (len(set(repeated)) + 1)
+    assert reset_result == (650, 10)
+    return repeated_result, reset_result
 
 
 def cycle_chain(block_count, length):
@@ -467,12 +552,20 @@ def assert_cycle_named_response_go():
 
 def main():
     source = SOURCE.read_text()
+    productive_source = PRODUCTIVE_SOURCE.read_text()
     assert r"\label{cor:aesp-cd-cactus-live-sites}" in source
     assert r"\label{prob:aesp-cd-variable-two-port-reporter}" in source
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
+    assert "virtual top forget" in source
+    assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
+    assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
+    assert "not their pulled-back" in productive_source
 
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
+    root_keys = root_port_forget_stop()
+    productive_keys = productive_site_numeric_key_pressure()
+    epoch_ledgers = productive_epoch_integer_ledgers()
     cactus_rows = [
         cactus_case(block_count, length)
         for block_count, length in ((2, 3), (3, 4), (4, 4), (5, 5), (6, 6))
@@ -488,6 +581,9 @@ def main():
     )
     print("  cactus literal-rescan ledgers", cactus_rows)
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
+    print("  virtual top forget catches pinned root-port keys", root_keys)
+    print("  legal productive-site numerical-key pressure", productive_keys)
+    print("  productive epoch integer ledgers", epoch_ledgers)
     print("  final exact positive site slopes", slopes)
     print("  scope: representation STOP plus restricted named-response GO only")
 

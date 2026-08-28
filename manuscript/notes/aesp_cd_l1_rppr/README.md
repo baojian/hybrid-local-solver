@@ -120,10 +120,18 @@ length is bounded by the support radius.  The total literal-admission work is
 `O_tilde((1+vol(S*))/sqrt(alpha))`, hence
 `O_tilde(1/(rho*sqrt(alpha)))` for RPPR.  Independent rational audits cover
 negative internal intercepts, competing branches, threshold ties, and exact
-zero.  Persistent transfer products further close cactus traces having only
-polylogarithmically many live descendant sites per cycle, including chains of
-arbitrarily long cycles.  The smallest still-open structural reporter is a
-cactus trace with unbounded live sites in unbounded ancestor cycles, and more
+zero.  Persistent transfer products and static dormant-run hulls further
+close cactus traces having only polylogarithmically many productive descendant
+sites per cycle, even when arbitrarily many immutable live thresholds remain.
+Epoch rebuilding removes that hypothesis with the unconditional
+instance-sensitive block charge
+`O_tilde(L_B + J_B*min{p_B+1,sqrt(L_B)})`, strictly improving a full block scan but not
+yet reaching the radius--volume target on every cactus; it does reach that
+target whenever every root route has
+`sum_B min{p_B+1,sqrt(L_B)}=O_tilde(R*)`.  The
+bounded-productive result includes chains of arbitrarily long cycles.  The smallest still-open
+structural reporter is a cactus trace with unbounded productive sites in
+unbounded ancestor cycles, and more
 generally a variable-port series--parallel graph.  A three-vertex two-source
 example shows why running
 independent single-root copies does not handle component mergers.
@@ -154,8 +162,10 @@ serial updates and frontier reports remain charged to the explicit quantity
 can already explore `26/9` times the final support volume. Once discovery has
 certified the final positive face, carrying no momentum through admissions
 and restarting only once gives the q-free bridge
-`C_rst <= 4(F(z)-F(x*))`; the accelerated fixed-face tail can then start from
-this certified root budget.
+`C_rst <= 4(F(z)-F(x*))`.  On a general proper final face this composes
+directly with the safe Chebyshev terminal solve.  The master/mean accepted
+windows and alignment tail require their additional constant-mode, spectral,
+and face-stability certificates; the bridge does not manufacture them.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
