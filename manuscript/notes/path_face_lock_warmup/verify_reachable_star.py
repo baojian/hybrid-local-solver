@@ -16,12 +16,186 @@ from __future__ import annotations
 import argparse
 from fractions import Fraction
 from itertools import combinations
+from math import comb
 
 Rat = Fraction
 Vector = list[Rat]
 Matrix = list[list[Rat]]
 
 CENTER, SEED, OTHER = range(3)
+
+
+def _poly_desc(coefficients: list[int]) -> list[int]:
+    """Convert displayed descending coefficients to ascending order."""
+    return list(reversed(coefficients))
+
+
+def _poly_add(left: list[int], right: list[int], scale: int = 1) -> list[int]:
+    size = max(len(left), len(right))
+    result = [0] * size
+    for index, value in enumerate(left):
+        result[index] += value
+    for index, value in enumerate(right):
+        result[index] += scale * value
+    while len(result) > 1 and result[-1] == 0:
+        result.pop()
+    return result
+
+
+def _poly_mul(left: list[int], right: list[int]) -> list[int]:
+    result = [0] * (len(left) + len(right) - 1)
+    for i, left_value in enumerate(left):
+        for j, right_value in enumerate(right):
+            result[i + j] += left_value * right_value
+    return result
+
+
+def _poly_pow(base: list[int], exponent: int) -> list[int]:
+    result = [1]
+    for _ in range(exponent):
+        result = _poly_mul(result, base)
+    return result
+
+
+def _shift_by_two(poly: list[int]) -> list[int]:
+    """Return coefficients of ``poly(b+2)`` in ascending powers of b."""
+    result = [0] * len(poly)
+    for power, value in enumerate(poly):
+        for shifted_power in range(power + 1):
+            result[shifted_power] += (
+                value * comb(power, shifted_power) * 2 ** (power - shifted_power)
+            )
+    return result
+
+
+def exact_residual_margin_certificate() -> None:
+    """Prove the rational margins for all integer ``B>=2``.
+
+    Clearing the positive denominators and substituting ``B=b+2`` reduces
+    each assertion to a polynomial with nonnegative coefficients and a
+    positive constant term.
+    """
+    pc = _poly_desc(
+        [22032, 124208, 264196, 256084, 99850, -1354, -8271, -710, -33, -2]
+    )
+    ps = _poly_desc(
+        [
+            55296,
+            344592,
+            851760,
+            1042180,
+            617428,
+            100938,
+            -63850,
+            -29439,
+            -2870,
+            -33,
+            -2,
+        ]
+    )
+    po = _poly_desc(
+        [18576, 94512, 144036, 1172, -189830, -171434, -52207, -3238, -17, -2]
+    )
+    pt = _poly_desc(
+        [24624, 140176, 300428, 299772, 142142, 39778, 18459, 6510, 117, -6]
+    )
+    b_poly = [0, 1]
+    factor = [3, 8, 4]  # (2B+1)(2B+3)
+    d0 = _poly_mul(_poly_pow([1, 1], 8), _poly_pow([-1, 9], 3))
+
+    # The displayed leaf-mean formula equals S+(B-1)O identically.
+    leaf_sum = _poly_add(ps, _poly_mul([-1, 1], po))
+    assert leaf_sum == _poly_mul(_poly_mul([3], b_poly), pt)
+
+    numerators = {
+        "C": _poly_mul(factor, pc),
+        "1-C": _poly_add(_poly_mul([512], d0), _poly_mul(factor, pc), -1),
+        "S": _poly_mul(factor, ps),
+        "O": _poly_mul(factor, po),
+        "leaf mean": _poly_mul(factor, pt),
+        "1-leaf mean": _poly_add(
+            _poly_mul([512], d0), _poly_mul(factor, pt), -1
+        ),
+        "S-O-3/20": _poly_add(
+            _poly_mul([20], _poly_mul(factor, _poly_add(ps, po, -1))),
+            _poly_mul([4608], _poly_mul(b_poly, d0)),
+            -1,
+        ),
+    }
+    for name, numerator in numerators.items():
+        shifted = _shift_by_two(numerator)
+        assert shifted[0] > 0, name
+        assert all(coefficient >= 0 for coefficient in shifted), name
+
+
+def residual_parameters(arms: int) -> tuple[Rat, Rat, Rat]:
+    """Return exact ``(C_B,S_B,O_B)`` for alpha^-1 D^-1/2 Y_4."""
+    b = arms
+    d0 = (b + 1) ** 8 * (9 * b - 1) ** 3
+    factor = (2 * b + 1) * (2 * b + 3)
+    pc = (
+        22032 * b**9
+        + 124208 * b**8
+        + 264196 * b**7
+        + 256084 * b**6
+        + 99850 * b**5
+        - 1354 * b**4
+        - 8271 * b**3
+        - 710 * b**2
+        - 33 * b
+        - 2
+    )
+    ps = (
+        55296 * b**10
+        + 344592 * b**9
+        + 851760 * b**8
+        + 1042180 * b**7
+        + 617428 * b**6
+        + 100938 * b**5
+        - 63850 * b**4
+        - 29439 * b**3
+        - 2870 * b**2
+        - 33 * b
+        - 2
+    )
+    po = (
+        18576 * b**9
+        + 94512 * b**8
+        + 144036 * b**7
+        + 1172 * b**6
+        - 189830 * b**5
+        - 171434 * b**4
+        - 52207 * b**3
+        - 3238 * b**2
+        - 17 * b
+        - 2
+    )
+    return (
+        Rat(factor * pc, 512 * d0),
+        Rat(factor * ps, 1536 * b * d0),
+        Rat(factor * po, 1536 * b * d0),
+    )
+
+
+def second_trigger_margin(arms: int, warmup: int) -> Rat:
+    """Return the seeded second-trigger value divided by alpha_B."""
+    q = Rat(1, 2 * (arms + 1))
+    beta = (1 - q) / (1 + q)
+    m0 = 1 - q * q
+
+    def trigger_polynomial(mode: Rat) -> Rat:
+        return mode**warmup * ((1 + beta) ** 2 * mode - beta * (2 + beta))
+
+    f_plus = trigger_polynomial(m0)
+    f_zero = trigger_polynomial(Rat(2, 3) * m0)
+    f_minus = trigger_polynomial(Rat(1, 2) * m0)
+    center, seed, other = residual_parameters(arms)
+    leaf_mean = seed + (arms - 1) * other
+    return (
+        (f_plus - f_minus) * center / (2 * arms)
+        + (f_plus + f_minus) * leaf_mean / (2 * arms)
+        + Rat(arms - 1, arms) * (seed - other) * f_zero
+    )
 
 
 def solve(a: Matrix, b: Vector) -> Vector:
@@ -116,6 +290,26 @@ def expanded_face_size(x: Vector, arms: int) -> int:
     return int(x[CENTER] > 0) + int(x[SEED] > 0) + (arms - 1) * int(x[OTHER] > 0)
 
 
+def check_residual_parameters(arms: int) -> None:
+    """Match the closed residual formulas to the literal four-stage LCP."""
+    degrees, qt, ct, kappa, _, q_text, _ = star_instance(arms)
+    current = [Rat(0)] * 3
+    supports = []
+    for _ in range(4):
+        current = obstacle_solve(degrees, qt, ct, kappa, current)
+        supports.append(support(current))
+    assert supports == [
+        (CENTER, SEED),
+        (CENTER, SEED),
+        (CENTER, SEED),
+        (CENTER, SEED, OTHER),
+    ]
+    residual = [ct[i] - value for i, value in enumerate(matvec(qt, current))]
+    q = Rat(q_text)
+    alpha = q * q / (1 + q * q)
+    assert tuple(value / alpha for value in residual) == residual_parameters(arms)
+
+
 def run(arms: int = 50, warmup: int = 6) -> dict[str, object]:
     """Replay one exact reachable star schedule through its first bad trigger."""
     degrees, qt, ct, kappa, full_beta, q, rho = star_instance(arms)
@@ -170,6 +364,8 @@ def main() -> None:
     parser.add_argument("--arms", type=int, default=50)
     parser.add_argument("--warmup", type=int, default=6)
     args = parser.parse_args()
+    exact_residual_margin_certificate()
+    check_residual_parameters(args.arms)
     result = run(args.arms, args.warmup)
     expected = Rat(
         -147824969167474143070830622648108443644686306420711,
@@ -179,6 +375,8 @@ def main() -> None:
         assert result["first_bad_stage"] == 11
         assert result["row_type"] == "seed"
         assert Rat(result["value"]) == expected
+        # A non-vacuous exact instance of the matching logarithmic lower bound.
+        assert second_trigger_margin(10_000, 6) <= Rat(-2, 10_000)
     print(result)
 
 

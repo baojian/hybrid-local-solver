@@ -20,15 +20,20 @@ J_B = max{3, 1 + ceil(log_(3/2)(8(B-1)))}
 ```
 
 makes every subsequent full-star trigger kernel entrywise nonnegative.  Thus
-the fixed-policy star mechanism is unbounded but at most logarithmic; a
-matching logarithmic lower bound, finite-inner margins, proper faces, and
-unequal-arm spiders remain open.
+the fixed-policy star mechanism has matching `Theta(log B)` upper and lower
+warmup scale.  Under a slightly longer logarithmic warmup, every exact kernel
+entry has an explicit positive finite-horizon margin.  In contrast, the same
+global momentum is never permanently cone-safe on a strict connected proper
+face: its Perron trigger is a damped oscillation, independent of how many
+finite pure-prox warmups precede it.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is
-settled negatively for constant warmup and positively at a logarithmic
-cone-uniform scale.  The live questions are the actual endpoint-path profile
-and a finite-inner, locally charged extension of the star mechanism.
+settled at a matching logarithmic scale for this exact full-face policy.  The
+live route is a restart/window or face-tuned momentum rule on proper changing
+faces, with finite-inner margins and locally charged repeated resolvents.  On
+a full star, the literal repeated-solve warmup costs `Theta(B log B)`; the
+three-class verifier's constant arithmetic is only a symmetry reduction.
 
 Build with `make`.  Run the exact screen with:
 

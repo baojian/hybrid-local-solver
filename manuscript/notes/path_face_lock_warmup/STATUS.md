@@ -37,7 +37,13 @@ Role: direction
   `B`. Thus there is no universal constant warmup for this reachable policy.
   Conversely, on any supplied full `B`-star face, the cone-uniform choice
   `J_B=max{3,1+ceil(log_(3/2)(8(B-1)))}` makes every later trigger kernel
-  entrywise nonnegative. This is an exact logarithmic full-face theorem.
+  entrywise nonnegative. The same reachable family has the quantitative lower
+  bound `J >= log_(3/2)(B)-O(1)` for this policy: below that scale the seeded
+  second trigger is at most `-2 alpha_B/B`. Hence the exact repeated-solve
+  policy has matching `Theta(log B)` warmup scale. A stronger upper condition
+  gives every kernel entry margin `a_k/(4B)` on finite horizons. On every
+  strict connected proper face, the global-beta Perron trigger is a damped
+  oscillation, so no finite warmup makes the permanent tail cone-safe.
 - **Conditional:** None.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
@@ -45,16 +51,18 @@ Role: direction
   policy; cone-uniform one-to-three warmups on the registered paths; four on
   full stars; and fixed-burst/reset acceleration of the Perron mode.
 - **Open:** A graph-size-independent statement for the realized endpoint-path
-  chronology; finite-inner margins for the logarithmic star theorem; unequal
-  arms, proper changing faces, and a locally charged resolvent implementation.
+  chronology; a finite-inner restart/window or face-tuned theorem on unequal
+  arms and proper changing faces; and a locally charged implementation.
 
 ## Central blocker
 
 For paths, the actual residual profile after prefix admission is not yet
-characterized. For spiders, the exact full-star scale is now logarithmic, but
-the entrywise margin may shrink and the resolvent cost is not local merely
-because the face is exposed. A finite-inner changing-face theorem must retain
-both effects.
+characterized. For spiders, the exact full-star scale is logarithmic and its
+finite-horizon entrywise margin is known, but that margin decays in time and
+strict proper faces oscillate under global momentum. The resolvent cost is not
+local merely because the face is exposed: the literal full-star policy costs
+`Theta(B log B)`. A finite-inner changing-face theorem must use a window,
+restart, relative tolerance, or face-tuned momentum and retain those costs.
 
 ## Dependencies and reusable outputs
 
@@ -62,21 +70,23 @@ both effects.
 - Source/shared prerequisites: source-aligned RPPR definition.
 - Reusable outputs: exact trigger-kernel recurrence; rational path/star cone
   witnesses; exact spider junction and volume formulas; a three-class exact
-  reachable-star LCP verifier; a no-constant reachable family; and a
-  cone-uniform logarithmic star warmup.
+  reachable-star LCP verifier; matching logarithmic bounds for the exact star
+  policy; a strict finite-horizon kernel margin; and a proper-face oscillation
+  obstruction.
 - Supplies to: safeguarded acceleration and spider-generalization directions.
 
 ## Resume here
 
 - Exact file/section/lemma: `main.tex`, especially
-  `sec:reachable-star-family`, `thm:reachable-star-no-constant`, and
-  `thm:star-logarithmic-warmup`.
-- Next concrete action: quantify the minimum entrywise margin under the
-  logarithmic warmup and compare it with the finite inner residual; separately
-  derive the actual endpoint-prefix admission profile.
-- Stop/go test: go if a finite-inner margin and charged repeated solve retain
-  the logarithmic safeguard; stop if the required margin or state materialism
-  costs more than the target local budget.
+  `sec:reachable-star-family`, `thm:reachable-star-logarithmic-lower`,
+  `cor:star-logarithmic-kernel-margin`, and
+  `prop:proper-face-global-momentum-stop`.
+- Next concrete action: prove a finite-inner restart/window or face-tuned
+  momentum theorem on changing proper faces; separately derive the actual
+  endpoint-prefix admission profile.
+- Stop/go test: go if a finite-horizon relative tolerance and charged restart
+  retain acceleration; stop if repeated resolvents or state materialism exceed
+  the target local budget.
 
 ## Verification
 
@@ -85,12 +95,14 @@ both effects.
 - `verify_reachable_star.py` uses exact `Fraction` arithmetic and a three-class
   LCP mask enumeration. Its default `B=50,J=6` case reaches full state four,
   has a nonnegative first momentum trigger, and reproduces the exact negative
-  seeded-leaf fraction at stage 11. `B=22,J=6` independently fails at stage 12.
+  seeded-leaf fraction at stage 11. It also proves the residual-margin
+  inequalities by nonnegative coefficients after substituting `B=b+2`, and
+  checks a nonvacuous `B=10000,J=6` logarithmic-lower instance.
 - The reachable-family derivation and default exact fraction were independently
   rederived from the three-class recurrence and spectral polynomial.
-- Known gaps: the fixed-`J` limit is not a uniform lower bound for `J(B)`;
-  finite path horizon passes are not all-time; and the logarithmic theorem is
-  exact, full-face, and inverse-cost agnostic.
+- Known gaps: finite path horizon passes are not all-time; the strict kernel
+  margin decays with the horizon; and all star bounds are exact, face-specific,
+  and do not hide the repeated inverse cost.
 
 ## Repository handoff
 
