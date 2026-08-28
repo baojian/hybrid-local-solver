@@ -34,6 +34,8 @@ rational-function kernel signs for every balanced independent-set blow-up of
 `C6`, the strict `(HK)` failure, and the precise `(CL)` obstruction on
 `C10`.  It also checks the edgewise Young certificate that pays the positive
 adjacent entries on every balanced `C10` independent-set blow-up at
-`q=1/20` and proves master nonpositivity there despite `(CL)` failure; its
+every `1/25<=q<=7/100` and proves master nonpositivity there despite `(CL)`
+failure.  The interval proof uses exact arithmetic in `Q(sqrt(5))(q^2)` and
+19 strict Bernstein-coefficient certificates; its
 committed output is
 [`verify_cycle_blowup.json`](verify_cycle_blowup.json).

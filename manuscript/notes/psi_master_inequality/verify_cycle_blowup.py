@@ -9,6 +9,7 @@ blow-up matrices as a guardrail.
 
 from fractions import Fraction as F
 import json
+from math import comb
 
 from verify_master_identity import inverse
 
@@ -88,6 +89,125 @@ class Rat:
             (coefficient * value**degree for degree, coefficient in self.denominator.items()), F(0)
         )
         return numerator / denominator
+
+
+def pdivrem(dividend, divisor):
+    """Return the exact polynomial remainder in ascending dictionary form."""
+    remainder = dict(dividend)
+    divisor_degree = max(divisor)
+    divisor_lead = divisor[divisor_degree]
+    while remainder and max(remainder) >= divisor_degree:
+        shift = max(remainder) - divisor_degree
+        coefficient = remainder[max(remainder)] / divisor_lead
+        for degree, value in divisor.items():
+            target = degree + shift
+            remainder[target] = remainder.get(target, F(0)) - coefficient * value
+        remainder = clean(remainder)
+    return remainder
+
+
+def pgcd(left, right):
+    """Return the monic exact gcd of two nonzero rational polynomials."""
+    while right:
+        left, right = right, pdivrem(left, right)
+    leading = left[max(left)]
+    return {degree: value / leading for degree, value in left.items()}
+
+
+def pquotient(dividend, divisor):
+    """Divide exactly, asserting a zero remainder."""
+    remainder = dict(dividend)
+    quotient = {}
+    divisor_degree = max(divisor)
+    divisor_lead = divisor[divisor_degree]
+    while remainder:
+        shift = max(remainder) - divisor_degree
+        assert shift >= 0
+        coefficient = remainder[max(remainder)] / divisor_lead
+        quotient[shift] = coefficient
+        for degree, value in divisor.items():
+            target = degree + shift
+            remainder[target] = remainder.get(target, F(0)) - coefficient * value
+        remainder = clean(remainder)
+    return clean(quotient)
+
+
+def cancel(value):
+    """Cancel the exact polynomial gcd of a rational function."""
+    common = pgcd(value.numerator, value.denominator)
+    return Rat(
+        pquotient(value.numerator, common),
+        pquotient(value.denominator, common),
+    )
+
+
+class QuadRat:
+    """An element ``a+b*sqrt(5)`` over rational functions in r."""
+
+    def __init__(self, rational=0, radical=0):
+        self.rational = rational if isinstance(rational, Rat) else Rat.constant(rational)
+        self.radical = radical if isinstance(radical, Rat) else Rat.constant(radical)
+
+    def __add__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        return QuadRat(self.rational + other.rational, self.radical + other.radical)
+
+    __radd__ = __add__
+
+    def __neg__(self):
+        return QuadRat(-self.rational, -self.radical)
+
+    def __sub__(self, other):
+        return self + (-other if isinstance(other, QuadRat) else QuadRat(-other))
+
+    def __rsub__(self, other):
+        return QuadRat(other) - self
+
+    def __mul__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        return QuadRat(
+            self.rational * other.rational + 5 * self.radical * other.radical,
+            self.rational * other.radical + self.radical * other.rational,
+        )
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        denominator = other.rational * other.rational - 5 * other.radical * other.radical
+        return QuadRat(
+            (self.rational * other.rational - 5 * self.radical * other.radical)
+            / denominator,
+            (self.radical * other.rational - self.rational * other.radical)
+            / denominator,
+        )
+
+    def __rtruediv__(self, other):
+        return QuadRat(other) / self
+
+
+def bernstein_coefficients(poly, lower, upper):
+    """Convert ``poly(r)`` on [lower,upper] to exact Bernstein coefficients."""
+    degree = max(poly)
+    power = [F(0)] * (degree + 1)
+    for exponent, coefficient in poly.items():
+        for index in range(exponent + 1):
+            power[index] += (
+                coefficient
+                * comb(exponent, index)
+                * lower ** (exponent - index)
+                * (upper - lower) ** index
+            )
+    return [
+        sum(
+            (
+                power[index] * F(comb(bernstein_index, index), comb(degree, index))
+                for index in range(bernstein_index + 1)
+            ),
+            F(0),
+        )
+        for bernstein_index in range(degree + 1)
+    ]
 
 
 ONE = Rat.constant(1)
@@ -300,6 +420,101 @@ def c10_edgewise_payment():
     }
 
 
+def c10_interval_entries():
+    """Return exact C10 kernel rows over Q(sqrt(5))(r), simplified to Q(r)."""
+    radical = QuadRat(0, 1)
+    adjacency_eigenvalues = [
+        QuadRat(2),
+        (1 + radical) / 2,
+        (radical - 1) / 2,
+        (1 - radical) / 2,
+        -(1 + radical) / 2,
+        QuadRat(-2),
+    ]
+    high_eigenvalues = [4 / (6 - value) for value in adjacency_eigenvalues]
+    m0 = QuadRat(ONE - R)
+
+    def scalar_kernels(high_eigenvalue):
+        m_value = m0 * high_eigenvalue
+        difference = m0 - m_value
+        g_value = m0 - 2 * m_value + m_value * m_value
+        return (
+            m_value * difference * difference / (m0 * (1 - m_value)),
+            m0 * m_value * g_value / ((1 - m_value) * difference),
+            m_value * difference / (1 - m_value),
+        )
+
+    modal = [None] + [scalar_kernels(high_eigenvalues[index]) for index in range(1, 6)]
+    rows = []
+    for operator_index in range(3):
+        row = []
+        for distance in range(6):
+            entry = QuadRat(0)
+            for frequency in range(1, 5):
+                cosine_index = (frequency * distance) % 10
+                cosine_index = min(cosine_index, 10 - cosine_index)
+                entry += modal[frequency][operator_index] * adjacency_eigenvalues[cosine_index]
+            entry += modal[5][operator_index] * (1 if distance % 2 == 0 else -1)
+            entry /= 10
+            assert entry.radical == 0
+            row.append(cancel(entry.rational))
+        rows.append(row)
+    within = scalar_kernels(QuadRat(F(2, 3)))
+    assert all(value.radical == 0 for value in within)
+    return rows, [cancel(value.rational) for value in within]
+
+
+def c10_edgewise_interval_payment():
+    """Prove the edgewise certificate on 1/25 <= q <= 7/100."""
+    lower = F(1, 625)
+    upper = F(49, 10_000)
+    rows, within = c10_interval_entries()
+    certificates = []
+
+    def certify(name, value, sign):
+        value = cancel(value)
+        numerator = pscale(sign, value.numerator)
+        numerator_bernstein = bernstein_coefficients(numerator, lower, upper)
+        denominator_bernstein = bernstein_coefficients(value.denominator, lower, upper)
+        assert all(coefficient > 0 for coefficient in numerator_bernstein)
+        assert all(coefficient > 0 for coefficient in denominator_bernstein)
+        certificates.append(
+            {
+                "name": name,
+                "numerator_degree": max(value.numerator),
+                "denominator_degree": max(value.denominator),
+                "strict_bernstein_coefficients": len(numerator_bernstein),
+            }
+        )
+
+    for operator_index, name in enumerate(("A", "B", "C")):
+        for distance in range(1, 6):
+            sign = 1 if name == "C" and distance == 1 else -1
+            certify(f"{name}[0,{distance}]", rows[operator_index][distance], sign)
+        certify(
+            f"within-{name}",
+            rows[operator_index][0] - within[operator_index],
+            -1,
+        )
+
+    young_margin = (
+        rows[0][1] * rows[1][1] - rows[2][1] * rows[2][1]
+    )
+    certify("adjacent-Young-margin", young_margin, 1)
+    return {
+        "q_interval": ["1/25", "7/100"],
+        "r_interval": [str(lower), str(upper)],
+        "strict_exact_Bernstein_certificates": len(certificates),
+        "certificate_names": [certificate["name"] for certificate in certificates],
+        "degree_pairs": sorted(
+            {
+                (certificate["numerator_degree"], certificate["denominator_degree"])
+                for certificate in certificates
+            }
+        ),
+    }
+
+
 def eliminated_h_trials():
     checks = 0
     for q in (F(1, 20), F(1, 10), F(1, 4)):
@@ -369,6 +584,7 @@ def main():
             "positive_adjacent_entry": str(longer_cycle_cl_obstruction()),
         },
         "C10_edgewise_payment": c10_edgewise_payment(),
+        "C10_edgewise_interval_payment": c10_edgewise_interval_payment(),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
 

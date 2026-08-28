@@ -1,6 +1,6 @@
 # Direction status: psi_master_inequality
 
-Last reviewed: 2026-08-28
+Last reviewed: 2026-08-29
 State: proved-open
 Agent family: codex
 Role: controller
@@ -46,9 +46,10 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
   `5211/4900>1`.  A third structural theorem pays positive cross-kernel
   entries edge by edge when the two diagonal kernels are weighted
   Laplacians and `c_ij^2<=a_ij*b_ij`.  It proves `sup Psi=0` on every
-  balanced independent-set blow-up `C10[Kbar_a]` at `q=1/20`, where `(CL)`
-  fails, because only adjacent cross entries are positive, the within-part
-  entries are negative, and the exact payment ratio is
+  balanced independent-set blow-up `C10[Kbar_a]` throughout
+  `1/25<=q<=7/100`, where `(CL)` fails, because only adjacent cross entries
+  are positive, the within-part entries are negative, and at `q=1/20` the
+  exact payment ratio is
   `9190540374100260057432724000/35964609239043602890432954263<1`.
 - **Conditional:** None yet.
 - **Measured:** None yet.
@@ -63,10 +64,9 @@ Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
 ## Central blocker
 
 The eliminated-`h` form retains clipping complementarity.  Edgewise Young
-payment shows that a positive cross entry need not be an obstruction, but its
-current application fixes the ten-cycle quotient and `q=1/20`.  The next
-advance must prove a parameter-varying or quotient-varying family, pay
-positive cross terms when either diagonal
+payment shows that a positive cross entry need not be an obstruction, and the
+ten-cycle application now has a nontrivial exact parameter interval.  The next
+advance must prove a quotient-varying family, pay positive cross terms when either diagonal
 kernel is not a weighted Laplacian or the edgewise ratio exceeds one, or
 produce an exact admissible positive witness.
 
@@ -83,9 +83,8 @@ produce an exact admissible positive witness.
   `thm:psi-hk-nonpositivity`, `lem:psi-eliminate-h`, and
   `thm:psi-edgewise-young`, `thm:psi-c6-blowup`, and
   `thm:psi-c10-edgewise` in `main.tex`.
-- Next concrete action: determine a nontrivial cycle/graph family and
-  parameter interval on which the edgewise kernel signs and ratios hold, or
-  find the first exact admissible state beyond all three sufficient routes.
+- Next concrete action: vary the cycle quotient or find the first exact
+  admissible state beyond all three sufficient routes.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
   admissible positive witness.
 
@@ -103,7 +102,8 @@ produce an exact admissible positive witness.
   denominator coefficients, 493 part vectors, and 64094 off-diagonal
   checks), the exact `verify_cycle_blowup.py` audit (six rational-function
   identities, 24 eliminated-`h` checks, 36 blow-up matrices, 68796 strict
-  off-diagonal checks, and the exact `C10` edgewise sign/ratio certificate),
+  off-diagonal checks, the exact `C10` point certificate, and 19 exact
+  interval Bernstein certificates),
   and `git diff --check` pass.  The edgewise theorem and its weighted
   double-counting were also independently rederived before promotion.
 - Known gaps: mixed clipping beyond all three sufficient conditions, proper
