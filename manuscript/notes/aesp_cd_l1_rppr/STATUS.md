@@ -63,7 +63,18 @@ State: proved-open
   increase, refuting a universal one-step quiet gap.  Conversely, on every
   graph family with a proved clipped-master inequality the mean-free Moreau
   bank contracts by a factor at most `3/8` in `ceil(log(2)/q)` exact
-  fixed-face stages, regardless of event density. A
+  fixed-face stages, regardless of event density. This high-root recursion
+  survives finite inner solves under an explicit geometrically discounted
+  residual budget. The constant mode obeys an exact overshoot-or-high-trigger
+  dichotomy: the overshoot branch contracts its Moreau bank by `1-q`, and the
+  other branch can inject mean only when the mean-free trial residual is
+  large in infinity norm. A same-point-restart two-scale potential combining
+  the master high root and the forced mean contracts below `0.407` on a quiet
+  `ceil(2/q)` epoch, and by `3/4` whenever the observable weighted mean deficit
+  is at most one quarter of its starting value. The reachable `K_N` family
+  also gives the exact high-to-low STOP
+  `q*Xi_low/C_high>(N-1)/15`, so no graph-uniform high-bank coefficient can
+  pay that deficit. A
   direct accelerated terminal result holds on the a-posteriori
   high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -103,8 +114,13 @@ rather than a fixed additive reserve. The Moreau epoch ledger removes the
 `q^-2` face shock and avoids double counting, but still requires a bound on its
 geometrically weighted face-gain and harmful signed-event injections. The
 generic signed Stieltjes account improves the correction convolution but can
-still permit `O(1/q)` bad windows; the missing extra factor must use the actual
-controller or quiet gaps rather than only `0<=r_t<=beta*d_t`. There is
+still permit `O(1/q)` bad windows. The master/mean split removes the high
+component of this ambiguity and identifies one precise remaining term: the
+discounted mean deficit in the non-overshoot/high-trigger branch. The `K_N`
+family rules out paying it by a dimension-free high-energy reserve, so the
+missing extra factor must use an infinity/local/volume-sensitive controller
+certificate or an adaptive accepted-window rule rather than only
+`0<=r_t<=beta*d_t`. There is
 still no graph-uniform exact accelerated solver.
 
 ## Dependencies and reusable outputs
@@ -132,10 +148,13 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-moreau-signed-event`,
   `prop:aesp-cd-p3-positive-signed-event`, and
   `prop:aesp-cd-psi-high-window`, and
+  `cor:aesp-cd-psi-high-finite`,
+  `prop:aesp-cd-low-overshoot-trigger`, and
+  `prop:aesp-cd-master-mean-epoch`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: exploit the new high-bank contraction to isolate and
-  pack constant-mode pulse transfer, then move the resulting split ledger
-  across boundary restarts and finite inner residuals.
+- Next concrete action: pay or gate the observable weighted mean deficit in
+  the non-overshoot branch using a local infinity/volume certificate; then
+  move the resulting two-scale ledger across boundary restarts.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -156,5 +175,7 @@ still no graph-uniform exact accelerated solver.
 - Known gaps: The P4 theorem has no finite-inner work conclusion. The
   contract-or-spend theorem is exact and restricted to the settled optimal
   face. The Moreau theorem crosses only explicit epoch-boundary admissions and
-  still lacks event packing and finite-inner transfer.
+  still lacks event packing. The high half of the master/mean split has a
+  finite-inner transfer; the forced mean and changing-face parts do not yet
+  form an end-to-end finite solver theorem.
   No graph-uniform exact accelerated solver or finite-precision result follows.

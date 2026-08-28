@@ -593,3 +593,151 @@ admissions, proper faces, or finite-inner perturbations.  Its significance is
 that arbitrarily dense positive signed events cannot damage the certified
 high bank; all remaining obstruction is forced into the low/controller
 channel.
+
+\begin{corollary}[Finite-inner perturbation of the certified high root]
+\label{cor:aesp-cd-psi-high-finite}
+Under the hypotheses of \cref{prop:aesp-cd-psi-high-window}, put
+$H_t:=\sqrt{\mathcal V_t}$.  Suppose the finite shifted solve adds a high
+error $\varepsilon_t$ but stays on the same face.  Then
+\begin{equation}
+ H_{t+1}^{\rm fin}
+ \leq(1-q)H_t^{\rm fin}+\norm{\varepsilon_t}_D.
+ \label{eq:aesp-cd-psi-high-finite-root}
+\end{equation}
+If $\bar a_t=D^{-1/2}a_t$ is the normalized end residual of the inner solve,
+then
+\begin{equation*}
+ \norm{\varepsilon_t}_D
+ \leq\frac{m_0}{\kappa_{\mathrm A}}\norm{\bar a_t}_2.
+\end{equation*}
+Consequently, for $L\geq\lceil(\log 4)/q\rceil$, the condition
+\begin{equation}
+ \sum_{t=0}^{L-1}(1-q)^{L-1-t}
+ \frac{m_0}{\kappa_{\mathrm A}}\norm{\bar a_t}_2
+ \leq\frac18H_0
+ \label{eq:aesp-cd-psi-high-finite-budget}
+\end{equation}
+implies $H_L^{\rm fin}\leq3H_0/8$.  The uniform tolerance
+$\norm{\bar a_t}_2\leq\kappa_{\mathrm A}qH_0/(8m_0)$ is sufficient.
+\end{corollary}
+
+\begin{proof}
+Apply the structural master certificate to the actual finite input but its
+exact shifted output.  In the pair norm defined by $\mathcal V$, perturbing
+the new component by $\varepsilon_t$ has norm exactly
+$\norm{\varepsilon_t}_D$.  The triangle inequality proves
+\cref{eq:aesp-cd-psi-high-finite-root}.  The resolvent norm gives the residual
+bound.  Unroll, use $(1-q)^L\leq1/4$, and bound the geometric sum by $1/q$.
+No separate Lipschitz stability of the clipping decision is needed, although
+face stability remains an explicit hypothesis.
+\end{proof}
+
+The constant mode has an exact complementary dichotomy.  Let
+$\mathsf v_G=\langle\one,\one\rangle_D$ and write
+\begin{equation*}
+ a_t:=\frac{\langle e_t,\one\rangle_D}{\mathsf v_G},\qquad
+ \delta_t:=a_{t-1}-a_t\geq0,\qquad
+ \omega_t:=a_t-(1-q)a_{t-1}.
+\end{equation*}
+
+\begin{proposition}[Low-mode overshoot or high trigger]
+\label{prop:aesp-cd-low-overshoot-trigger}
+On an exact fixed full positive face, let
+$\widetilde a_t:=a_t-\beta_{\mathrm A}\delta_t$ be the trial mean.  The
+constant-mode Moreau bank is
+\begin{equation*}
+ \mathcal C_t^0
+ =\kappa_{\mathrm A}\mathsf v_G
+   (q^2a_t^2+\omega_t^2).
+\end{equation*}
+If $\widetilde a_t<0$, then for $q\leq1/2$ the actual corrected step obeys
+\begin{equation}
+ \mathcal C_{t+1}^0<(1-q)\mathcal C_t^0.
+ \label{eq:aesp-cd-low-overshoot-contract}
+\end{equation}
+If $\widetilde a_t\geq0$, write
+$\widetilde h_t=P(e_t-\beta_{\mathrm A}d_t)$ and let $\Delta_t$ be the common
+cap.  Then the mean correction
+$\bar r_t:=\langle r_t,\one\rangle_D/\mathsf v_G$ satisfies
+\begin{equation}
+ \alpha\bar r_t
+ \leq\alpha\Delta_t
+ =[-\alpha\widetilde a_t-min_i(Q_A\widetilde h_t)_i]_+
+ \leq\norm{Q_A\widetilde h_t}_\infty.
+ \label{eq:aesp-cd-low-high-trigger}
+\end{equation}
+Thus every low event not already giving one-step accelerated contraction is
+caused by a high coordinate trigger.
+\end{proposition}
+
+\begin{proof}
+Since $0\leq r_t\leq\beta_{\mathrm A}d_t$, the mean output is
+$a_{t+1}=m_0(\widetilde a_t+\bar r_t)$.  On the overshoot branch,
+$\delta_t>a_t/\beta_{\mathrm A}$, hence $\omega_t<-a_t$, while safety gives
+$0\leq a_{t+1}\leq m_0a_t$.  Therefore
+$-(1-q)a_t\leq\omega_{t+1}\leq(1-q)qa_t$ and
+\begin{equation*}
+ \mathcal C_{t+1}^0
+ \leq\kappa_{\mathrm A}\mathsf v_G
+ [q^2m_0^2+(1-q)^2]a_t^2
+ <(1-q)\kappa_{\mathrm A}\mathsf v_Ga_t^2
+ <(1-q)\mathcal C_t^0.
+\end{equation*}
+On the other branch, decompose the trial error as
+$\widetilde a_t\one+\widetilde h_t$.  The exact common-cap rule gives the
+middle equality in \cref{eq:aesp-cd-low-high-trigger}, and
+$\bar r_t\leq\Delta_t$ gives the first inequality.
+\end{proof}
+
+The high trigger is essential.  If one keeps only the scalar recurrence and
+$0\leq\bar r_t\leq\beta_{\mathrm A}\delta_t$, the artificial word
+$a_t=m_0^ta_0$, $\bar r_t=\beta_{\mathrm A}\delta_t$ satisfies every scalar
+constraint but contracts $\mathcal C_t^0$ only by $m_0^2=1-O(q^2)$ per
+stage.  It is not a reachable high-free controller word, because
+\cref{eq:aesp-cd-low-high-trigger} would force its correction to vanish.
+
+\begin{proposition}[Master-high plus forced-mean epoch]
+\label{prop:aesp-cd-master-mean-epoch}
+Under the master-certified exact fixed-face hypotheses, perform a same-point
+restart at the epoch boundary, so $e_{-1}=e_0$.  Put
+\begin{equation*}
+ H_t:=\sqrt{\mathcal V_t},\qquad
+ Z_t:=H_t+\sqrt{\mathsf v_G}\,a_t.
+\end{equation*}
+For $T=\lceil2/q\rceil$,
+\begin{equation}
+ Z_T
+ \leq3e^{-2}Z_0
+ +\sqrt{\mathsf v_G}\,m_0
+  \sum_{t=0}^{T-1}(T-t)(1-q)^{T-1-t}\bar r_t.
+ \label{eq:aesp-cd-master-mean-epoch}
+\end{equation}
+Hence a correction-free epoch contracts $Z$ by a factor below $0.407$, and
+if the displayed weighted deficit is at most $Z_0/4$, then
+$Z_T<3Z_0/4$.
+\end{proposition}
+
+\begin{proof}
+The master theorem gives $H_{t+1}\leq(1-q)H_t$.  Because
+$M_A\one=m_0\one$, the exact mean recurrence is
+\begin{equation*}
+ a_{t+1}=(1-q)(a_t+\omega_t)+g_t,qquad
+ \omega_{t+1}=(1-q)\omega_t+g_t,qquad
+ g_t=m_0\bar r_t.
+\end{equation*}
+The repeated-root Green formula and $a_{-1}=a_0$ give
+\begin{equation*}
+ a_T=(1+qT)(1-q)^Ta_0
+ +m_0\sum_{t=0}^{T-1}(T-t)(1-q)^{T-1-t}\bar r_t.
+\end{equation*}
+Since $qT\geq2$, both $(1-q)^T$ and
+$(1+qT)(1-q)^T$ are at most $3e^{-2}$.  Combine the two components.
+\end{proof}
+
+The remaining universal question is now precise: pay the observable weighted
+mean deficit in \cref{eq:aesp-cd-master-mean-epoch} using the high trigger in
+\cref{eq:aesp-cd-low-high-trigger} without a graph-size loss.  The complete-
+graph family in \cref{eq:aesp-cd-kn-high-to-low-stop} rules out payment from a
+plain global $L_2$/high-Moreau reserve, even with an extra factor $1/q$; a
+successful interface must be coordinate-local, volume-sensitive, or retain a
+low endpoint spend.

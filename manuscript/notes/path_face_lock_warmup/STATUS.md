@@ -1,6 +1,6 @@
 # Direction status: path_face_lock_warmup
 
-Last reviewed: 2026-08-28
+Last reviewed: 2026-08-29
 State: proved-open
 Agent family: codex
 Role: direction
@@ -56,7 +56,11 @@ Role: direction
   `Omega(n^2 log n)` probes and therefore cannot be graph-uniform.  A
   Schur-complement admission lemma pays squared same-point boundary residuals
   from telescoping restricted-optimum gains whenever replay starts at a
-  certified coordinatewise lower checkpoint.
+  certified coordinatewise lower checkpoint. Combining this with volume
+  doubling gives the conditional work bound
+  `W_adm <= 2*C_res*(V+Delta_tot/eta)` under a volume-normalized admission
+  margin; paying discarded `Theta(vol(A)/q)` windows needs the correspondingly
+  stronger `/q` margin.
 - **Conditional:** None.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
@@ -79,8 +83,10 @@ ratio and Perron-spread certificate may be costly and nongraph-uniform. A
   finite-inner changing-face theorem must retain those costs. Collatz probes
 remove the need for full eigendata after their bracket is tight, but the path
 STOP proves their hitting time is not graph-uniform, and admission replay
-count is still unamortized; without an alignment/payment certificate the
-observable gate can keep restarting.
+count is amortized only conditionally. Without a volume-normalized boundary
+margin, arbitrarily many tiny-gain admissions can create `Theta(V^2)` replay
+work (or `Theta(V^2/q)` including discarded windows); without an
+alignment/payment certificate the observable gate can also keep restarting.
 
 ## Dependencies and reusable outputs
 
@@ -101,7 +107,8 @@ observable gate can keep restarting.
   `cor:star-logarithmic-kernel-margin`, and
   `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`, and
   `thm:face-tuned-permanent-safety`, `thm:collatz-gated-window`, and
-  `prop:collatz-projective-hitting`, and `lem:boundary-admission-gain`.
+  `prop:collatz-projective-hitting`, `lem:boundary-admission-gain`, and
+  `cor:conditional-admission-work`.
 - Next concrete action: amortize same-point admission replays and seek a
   cheaper alignment certificate than raw pure-prox probes; separately derive
   the actual endpoint-prefix admission profile.

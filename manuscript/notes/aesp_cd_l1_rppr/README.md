@@ -48,8 +48,19 @@ mandatory one-step quiet gap is false.  On the positive side, every graph
 family with a proved clipped-master inequality has a mean-free Moreau bank
 that contracts by at least `3/8` in `ceil(log(2)/q)` exact fixed-face stages,
 independently of event density.  The remaining pulse obstruction is therefore
-concentrated in the constant low mode. Thus a controller-specific low-mode
-clustering theorem is still needed.
+concentrated in the constant low mode.  This high-bank estimate now has a
+finite-inner root perturbation with a discounted residual budget.  For the
+low mode there is an exact dichotomy: mean overshoot contracts its Moreau bank
+by `1-q` in one step, while every non-overshoot correction is forced by the
+infinity norm of the mean-free trial residual.  Combining the master high
+root with the exact forced mean recurrence gives a two-scale epoch potential:
+a quiet `ceil(2/q)` same-point-restart epoch contracts it below `0.407`, and
+an epoch whose observable weighted mean deficit is at most one quarter still
+contracts by `3/4`.  A reachable `K_N` family proves that this high-to-low
+transfer cannot be paid by a graph-uniform high-bank coefficient: even after
+a `1/q` rescaling the required coefficient is greater than `(N-1)/15`.
+Thus a local, infinity-norm, or volume-sensitive payment for the weighted
+mean deficit is still needed.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -96,7 +107,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.weighted_reserve_boundary` (Round 027);
 - `aesp_cd_l1_rppr.windowed_cross_normalized` (Round 028);
 - `aesp_cd_l1_rppr.p24_low_start_stop` (Round 029);
-- `aesp_cd_l1_rppr.signed_event_stop` (Round 030).
+- `aesp_cd_l1_rppr.signed_event_stop` (Round 030);
 - `aesp_cd_l1_rppr.adjacent_signed_event_stop` (Round 031).
 
 The full tier includes the optional P7 corroborating trace. These audits check

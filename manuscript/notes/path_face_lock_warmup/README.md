@@ -39,8 +39,13 @@ not graph-uniform; admission replay count remains a charged open term.
 For replays launched from a maintained coordinatewise lower checkpoint, a
 new Schur-complement lemma pays the squared certified boundary residual from
 the telescoping restricted-optimum gain.  This bounds all margin-separated
-admission batches, but does not apply to transient momentum shocks or remove
-the need to charge small-margin admissions.
+admission batches.  With volume doubling and a volume-normalized residual
+margin, total replay work is at most
+`2*C_res*(V+Delta_tot/eta)`; paying a discarded accelerated window requires
+the stronger margin `||g||^2 >= eta*vol(A)/q`.  The theorem does not apply to
+transient momentum shocks.  Without such a margin, tiny-gain admissions can
+force quadratic cumulative replay volume, so small-margin admissions remain
+a genuine charged obstruction.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is

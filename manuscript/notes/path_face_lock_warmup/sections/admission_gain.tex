@@ -54,3 +54,40 @@ accelerated epochs are restarted only when exposed volume doubles, the
 doubling restarts are at most logarithmic and their replay volumes sum to at
 most twice the final volume; smaller intervening admissions still need
 \cref{eq:boundary-admission-telescope} or remain in a monotone growth phase.
+
+\begin{corollary}[Conditional admission-work bound]
+\label{cor:conditional-admission-work}
+Let $V$ be the final exposed volume and suppose one replay scan/solve on a
+face of volume $W$ costs at most $C_{\rm res}W$.  Classify as doubling every
+batch with $\vol(A_{j+1})\geq2\vol(A_j)$.  Require every other batch to obey
+the observable volume-normalized margin
+\begin{equation*}
+ \norm{g_j(x_j)}_2^2\geq\eta\vol(A_{j+1}).
+\end{equation*}
+Under the lower-checkpoint hypotheses of
+\cref{lem:boundary-admission-gain}, total replay work satisfies
+\begin{equation}
+ W_{\rm adm}
+ \leq2C_{\rm res}\left(V+\frac{\Delta_{\rm tot}}\eta\right).
+ \label{eq:conditional-admission-work}
+\end{equation}
+If an admission can also discard $O(\bigl(\vol(A_j)/q\bigr))$ preceding
+accelerated work, the stronger margin
+$\norm{g_j}^2\geq\eta\vol(A_j)/q$ is required to pay that work by the same
+argument.
+\end{corollary}
+
+\begin{proof}
+The volumes of the doubling destinations form a geometric sequence and sum
+to at most $2V$.  For nondoubling batches,
+\cref{eq:boundary-admission-telescope} gives
+$\sum_j\vol(A_{j+1})\leq2\Delta_{\rm tot}/\eta$.  Multiply the two sums by
+$C_{\rm res}$.
+\end{proof}
+
+The margin is necessary for this interface.  Without it, one may attach
+arbitrarily many coordinates with geometrically tiny positive optimum gains.
+The gain sum stays finite while single-coordinate admissions make cumulative
+replay volume $\Theta(V^2)$, or $\Theta(V^2/q)$ if each admission discards a
+full accelerated window.  Volume doubling pays only its geometric
+subsequence; it cannot pay the small batches between doublings.

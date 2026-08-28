@@ -308,6 +308,24 @@ def kn_cross_data(n: int) -> tuple[F, F, F]:
     global_ratio = low_forcing / initial_high
     displayed = 4 * k * m0 * (1 - q) ** 6 / (lam * amplitude * amplitude)
     assert global_ratio == displayed > F(k, 23)
+
+    # The same pulse transfers a dimension-growing amount from high to the
+    # signed constant-mode event, even after granting a factor 1/q.
+    j0 = c * q * m0 * m0 * (1 - q**3)
+    k0 = m0**3
+    xi0 = 2 * (r_low / a0) * j0 * (e2_low / a0) - (r_low / a0) ** 2 * k0
+    assert xi0 / q**3 == F(9_604_970_786_001_983_020_299, 2_500_250_000_000_000_000_000)
+    initial_high_moreau = F(n, k) * mh * (lam + c * q * q) * (amplitude * q * q * a0) ** 2
+    low_signed = n * a0 * a0 * xi0
+    high_to_low_ratio = q * low_signed / initial_high_moreau
+    closed_high_to_low = (
+        k
+        * (3 * k + 1)
+        * (1 - q) ** 6
+        * (1 + 2 * q + 3 * q * q + q**3)
+        / (36 * (k + 1 + 4 * k * q * q))
+    )
+    assert high_to_low_ratio == closed_high_to_low > F(k, 15)
     return full_ratio, global_ratio, cap
 
 
@@ -358,6 +376,46 @@ def check_psi_high_bridge() -> None:
         assert (1 + q) / 4 <= F(3, 8)
 
 
+def check_forced_mean_epoch() -> None:
+    """Check the exact low-mode dichotomy and repeated-root Green formula."""
+    for q in (F(1, 20), F(1, 8), F(1, 2)):
+        theta = 1 - q
+        beta = theta / (1 + q)
+        m0 = 1 - q * q
+        kappa = (1 - q * q) / (1 + q * q)
+
+        # An overshooting trial, corrected just enough to keep a nonnegative
+        # mean output, obeys the claimed accelerated low-bank comparison.
+        mean = F(2, 7)
+        displacement = 2 * mean / beta
+        previous = mean + displacement
+        trial_mean = mean - beta * displacement
+        assert trial_mean < 0
+        mean_correction = -trial_mean
+        following = m0 * (trial_mean + mean_correction)
+        velocity = mean - theta * previous
+        following_velocity = following - theta * mean
+        bank = kappa * (q * q * mean * mean + velocity * velocity)
+        following_bank = kappa * (
+            q * q * following * following + following_velocity * following_velocity
+        )
+        assert 0 <= mean_correction <= beta * displacement
+        assert following_bank < theta * bank
+
+        # Same-point restart and arbitrary admissible mean corrections.
+        horizon = 7
+        corrections = [F(t + 1, 1000) for t in range(horizon)]
+        before = current = F(3, 11)
+        for correction in corrections:
+            following = m0 * ((1 + beta) * current - beta * before + correction)
+            before, current = current, following
+        closed = (1 + q * horizon) * theta**horizon * F(3, 11)
+        closed += m0 * sum(
+            (horizon - t) * theta ** (horizon - 1 - t) * corrections[t] for t in range(horizon)
+        )
+        assert current == closed
+
+
 def check_source_scope() -> None:
     """Guard theorem labels and the explicit non-overclaim boundary."""
     base = note_directory("aesp_cd_l1_rppr")
@@ -374,8 +432,11 @@ def check_source_scope() -> None:
     assert "prop:aesp-cd-moreau-signed-event" in main
     assert "eq:aesp-cd-moreau-signed-net" in main
     assert "eq:aesp-cd-k8-signed-sharpness" in main
+    assert "eq:aesp-cd-kn-high-to-low-stop" in main
     assert "prop:aesp-cd-psi-high-window" in main
     assert "eq:aesp-cd-psi-high-identity" in main
+    assert "prop:aesp-cd-low-overshoot-trigger" in main
+    assert "prop:aesp-cd-master-mean-epoch" in main
     assert "nonoptimal proper face" in main
     assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
@@ -393,6 +454,7 @@ def main() -> None:
     check_moreau_signed_event()
     check_kn_high_drop_stop()
     check_psi_high_bridge()
+    check_forced_mean_epoch()
     check_source_scope()
     print("Round-028 exact cross-normalized window audit passed")
     print("  modal bank: one-step (1-q) contraction")
@@ -402,6 +464,7 @@ def main() -> None:
     print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
     print("  signed Moreau events: exact telescope and reachable K8 sharpness")
     print("  Psi bridge: exact high-bank identity and 3/8 master-certified window")
+    print("  mean split: exact overshoot contraction and forced double-root epoch")
     print("  scope: changing-face finite-inner restart transfer remains open")
 
 
