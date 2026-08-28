@@ -89,6 +89,26 @@ structural STOP: a boundary-only protocol may expose one vertex per batch and
 pay quadratic cumulative face volume. Across an explicit same-point face
 replay, the sharp graph-uniform Moreau root-shock coefficient is `2` (energy
 coefficient `4`), so the existing root convolution has optimal scale.
+The singleton path STOP is not informational.  An append-only scalar
+`LDL^T` message evaluates each new boundary key in constant time and performs
+only one terminal back substitution, giving output-linear discovery work.
+The block Schur identity shows what must replace this message on a general
+graph: an implicit dynamic response applying the old inverse to every new
+coupling block and refreshing affected boundary queries.  Fixed-rank Krylov
+recycling does not suffice for arbitrary new coupling directions.
+On forests this interface can be realized by top-tree Schur summaries:
+each link, active/pinned toggle, or named KKT query changes only logarithmically
+many two-port quadratic messages.  A supplied width-`w` junction tree gives
+the analogous `O((w+1)^3 log B)` update.  This is not yet an end-to-end
+frontier oracle: the number `Q` of named pinned-coordinate queries remains an
+explicit charge and can be quadratic under repeated full-frontier rescans.
+Speculative coordinate-envelope doubling gives a second conditional route:
+its solves geometrically sum to
+`O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
+halo and need not be controlled by `vol(S*)`.  Under strict primal/dual active
+margins, accelerated projected-gradient scratch identifies the face and the
+safe Chebyshev publisher implements the required obstacle primitive.  Without
+those margins, support discontinuity and high-degree inactive decoys remain.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -122,7 +142,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twelve exact audits with:
+Run all fifteen exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -143,6 +163,9 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.adjacent_signed_event_stop` (Round 031).
 - `aesp_cd_l1_rppr.p96_full_face_window_stop` (Round 032).
 - `aesp_cd_l1_rppr.safe_chebyshev_face` (Round 034).
+- `aesp_cd_l1_rppr.singleton_face_batches_stop` (Round 035).
+- `aesp_cd_l1_rppr.s5_face_shock_sharp` (Round 036).
+- `aesp_cd_l1_rppr.rppr_speculative_decoy` (Round 037).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

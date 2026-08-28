@@ -131,6 +131,18 @@ either reuse state across serial admissions, grow a certified speculative
 envelope, or provide an incremental propagation primitive between doubling
 checkpoints.
 
+The path case now supplies the first option exactly: append-only scalar
+`LDL^T` messages process every singleton admission once and materialize only
+the final solution.  For a general block expansion, the precise missing
+operation is the old-face inverse response `H^(-1)C` plus incremental boundary
+refresh.  On forests and supplied bounded-treewidth decompositions, dynamic
+top-tree Schur summaries implement each named update/query in polylogarithmic
+time, but a condition-free kinetic reporter bounding the total query count is
+still missing.  A speculative coordinate envelope supplies the second option only
+in explored-volume form; strict active/dual margins make its obstacle solve
+accelerated, while inactive high-degree halo prevents replacing explored
+volume by final support volume without another guard or oracle.
+
 ## Central blocker
 
 Entry-dominated corrections and finite-created one-sided excess are charged,
@@ -201,6 +213,11 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-polynomial-scratch-spill-stop`,
   `prop:aesp-cd-face-by-face-volume-stop`,
   `prop:aesp-cd-geometric-face-batches`,
+  `prop:aesp-cd-incremental-schur-response`,
+  `prop:aesp-cd-dynamic-schur-forest`,
+  `prop:aesp-cd-speculative-envelope-doubling`,
+  `prop:aesp-cd-rppr-speculative-decoy`,
+  `cor:aesp-cd-margin-obstacle-primitive`,
   `prop:aesp-cd-moreau-face-shock-sharp`, and
   `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
@@ -218,8 +235,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Twelve exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--032 mechanisms. Run them with `uv run python -m
+- Focused checks: Fifteen exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--037 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
