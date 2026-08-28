@@ -32,5 +32,8 @@ committed output is
 The fifth command audits the exact eliminated-high-variable identity, the
 rational-function kernel signs for every balanced independent-set blow-up of
 `C6`, the strict `(HK)` failure, and the precise `(CL)` obstruction on
-`C10`; its committed output is
+`C10`.  It also checks the edgewise Young certificate that pays the positive
+adjacent entries on every balanced `C10` independent-set blow-up at
+`q=1/20` and proves master nonpositivity there despite `(CL)` failure; its
+committed output is
 [`verify_cycle_blowup.json`](verify_cycle_blowup.json).

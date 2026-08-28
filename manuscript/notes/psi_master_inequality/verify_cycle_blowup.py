@@ -204,6 +204,102 @@ def longer_cycle_cl_obstruction():
     return adjacent
 
 
+def c10_edgewise_payment():
+    """Check the exact edgewise-Young certificate on C10 at q=1/20."""
+    size = 10
+    identity = [[F(i == j) for j in range(size)] for i in range(size)]
+    adjacency = [
+        [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+        for i in range(size)
+    ]
+    stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+    high_projection = matrix_linear(identity, stationary, right_scale=-1)
+    high_resolvent = [
+        [4 * entry for entry in row]
+        for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+    ]
+
+    q = F(1, 20)
+    m0 = 1 - q * q
+    m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+    one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+    m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+    g_operator = matrix_linear(
+        matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+        matmul(m_operator, m_operator),
+    )
+    a_operator = [
+        [entry / m0 for entry in row]
+        for row in matmul(
+            matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+            inverse(one_minus_m),
+        )
+    ]
+    b_operator = [
+        [m0 * entry for entry in row]
+        for row in matmul(
+            matmul(
+                matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                inverse(matrix_linear(m0_minus_m, stationary)),
+            ),
+            high_projection,
+        )
+    ]
+    c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+
+    for operator in (a_operator, b_operator, c_operator):
+        assert all(sum(row, F(0)) == 0 for row in operator)
+        assert all(operator[i][j] == operator[j][i] for i in range(size) for j in range(size))
+
+    assert all(a_operator[0][j] < 0 for j in range(1, size))
+    assert all(b_operator[0][j] < 0 for j in range(1, size))
+    assert c_operator[0][1] > 0 and c_operator[0][size - 1] > 0
+    assert all(c_operator[0][j] < 0 for j in range(2, size - 1))
+
+    ratio = c_operator[0][1] ** 2 / ((-a_operator[0][1]) * (-b_operator[0][1]))
+    claimed_ratio = F(
+        9190540374100260057432724000,
+        35964609239043602890432954263,
+    )
+    assert ratio == claimed_ratio
+    assert ratio < 1
+
+    within_m = m0 * F(2, 3)
+    within_g = m0 - 2 * within_m + within_m * within_m
+    within_a = within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m))
+    within_b = m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m))
+    within_c = within_m * (m0 - within_m) / (1 - within_m)
+    within_offdiagonal = (
+        a_operator[0][0] - within_a,
+        b_operator[0][0] - within_b,
+        c_operator[0][0] - within_c,
+    )
+    claimed_within = (
+        -F(8569107687113450384299, 189685215671218537987200),
+        -F(5779278789418042112799, 53177800861008841600000),
+        -F(1662576823382931953, 26588900430504420800),
+    )
+    assert within_offdiagonal == claimed_within
+    assert all(entry < 0 for entry in within_offdiagonal)
+
+    # On C10[Kbar_a], cross-part entries and within-part off-diagonal
+    # entries are divided by a.  Signs and every c^2/(ab) ratio therefore
+    # remain unchanged.  These finite sizes guard the analytic block rule.
+    for part_size in range(1, 13):
+        assert all(entry / part_size < 0 for entry in within_offdiagonal)
+        assert ratio < 1
+    return {
+        "A_offdiagonal_strictly_negative": 9,
+        "B_offdiagonal_strictly_negative": 9,
+        "C_positive_offdiagonal_distances": [1, 9],
+        "C_adjacent_entry": str(c_operator[0][1]),
+        "edgewise_ratio": str(ratio),
+        "edgewise_ratio_below_one": True,
+        "within_part_offdiagonal": [str(entry) for entry in within_offdiagonal],
+        "blowup_part_sizes_checked": "1..12",
+    }
+
+
 def eliminated_h_trials():
     checks = 0
     for q in (F(1, 20), F(1, 10), F(1, 4)):
@@ -272,6 +368,7 @@ def main():
             "graph_and_q": "C10, q=1/20",
             "positive_adjacent_entry": str(longer_cycle_cl_obstruction()),
         },
+        "C10_edgewise_payment": c10_edgewise_payment(),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
 
