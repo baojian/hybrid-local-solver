@@ -171,6 +171,9 @@ $3\times3$ homogeneous matrices, so an entire series chain remains
 constant-size.  The unresolved operation is the
 meld and strict argmax across differently transformed, arbitrarily
 interleaving child hulls.
+If every sibling pair instead has disjoint pulled-back slope intervals, one
+bridge tangent gives a logarithmic persistent meld; this is a clean
+structural GO, but not a general reporter.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

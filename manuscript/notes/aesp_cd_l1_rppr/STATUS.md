@@ -282,6 +282,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `lem:aesp-cd-two-port-projective-pullback`,
+  `cor:aesp-cd-slope-separated-projective-meld`,
   `prop:aesp-cd-separated-level-reporter`,
   `prob:aesp-cd-variable-two-port-reporter`,
   `prop:aesp-cd-speculative-envelope-doubling`,

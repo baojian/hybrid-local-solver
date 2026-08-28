@@ -782,6 +782,7 @@ def main():
     assert r"\label{prob:aesp-cd-variable-two-port-reporter}" in source
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
     assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
+    assert r"\label{cor:aesp-cd-slope-separated-projective-meld}" in source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
