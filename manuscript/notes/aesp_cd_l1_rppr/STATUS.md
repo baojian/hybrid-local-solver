@@ -31,13 +31,17 @@ State: proved-open
   locality; exact safeguarded defect and inflation ledgers; collateral-clipping
   bounds; and finite residual interfaces. Exact trajectory results include the
   fixed-P4 infinite inflation cone, support-entry shielding, persistent-row
-  square-energy and truncation-energy ledgers, a reachable K8 pulse, the
+  square-energy and a joint correction/surviving-momentum truncation-energy
+  ledger, a reachable K8 pulse, the
   actual-finite lagged Euclidean reserve, the K2/K8 boundary for the simplest
   lagged unsplit bank, and a root-potential finite-inner recursion with exact
   additive error `sqrt(kappa_A)*xi_t`. The latter strengthens the conditional
   polish from a `theta` scale to a `sqrt(theta)` scale without a support or
-  fixed-face assumption. A direct accelerated terminal result holds on the
-  a-posteriori high-Dirichlet class.
+  fixed-face assumption. On the exact settled optimal face, the
+  cross-normalized bank `B_t=||e_t||^2+(kappa_A+alpha)<u_t,Q_A^-1 u_t>`
+  contracts by `1-q` at every correction-free stage and gives constant
+  contraction after a `Theta(1/q)` post-full window. A direct accelerated
+  terminal result holds on the a-posteriori high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -62,9 +66,11 @@ telescope. The exact Euclidean collateral reserve nevertheless has only
 pulse makes the corresponding unsplit lagged bank fail stagewise accelerated
 contraction on a reachable K2 low mode. This is not an additive-resistant
 obstruction and does not refute global accelerated decay; the K8 high band is
-compatible with payment. The missing object is a windowed or nonlinear
-low/high transfer. Existing local identities do not supply a bound on that
-transfer, so there is no graph-uniform exact accelerated solver yet.
+compatible with payment. The cross-normalized bank removes the low-mode
+one-step drift, but a mixed correction is measured in a `Q_A^-1` norm and can
+leak into low modes. The missing object is a windowed or nonlinear low/high
+transfer paying this forcing. Existing local identities do not supply that
+bound, so there is no graph-uniform exact accelerated solver yet.
 
 ## Dependencies and reusable outputs
 
@@ -83,6 +89,7 @@ transfer, so there is no graph-uniform exact accelerated solver yet.
   `lem:aesp-cd-q-weighted-euclidean-reserve`,
   `eq:aesp-cd-finite-inner-root-potential`,
   `prop:aesp-cd-unsplit-q-energy-stagewise-stop`, and
+  `prop:aesp-cd-cross-normalized-bank`,
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: Construct a spectrally split, windowed, nonlinear, or
   differently normalized `q^-1`-weighted Lyapunov that pairs persistent
@@ -99,8 +106,8 @@ transfer, so there is no graph-uniform exact accelerated solver yet.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Six exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--027 mechanisms. Run them with `uv run python -m
+- Focused checks: Seven exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--028 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

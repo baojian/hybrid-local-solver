@@ -16,6 +16,12 @@ The finite-inner comparison is now sharp at the root-potential level:
 This removes the artificial `xi_t <= 1` restriction and improves the
 conditional absolute polish from a `theta` scale to a `sqrt(theta)` scale;
 it does not prove the missing net packing inequality.
+On the exact settled optimal face, a new cross-normalized error/velocity bank
+contracts by `1-q` on every correction-free stage and by a constant after a
+`Theta(1/q)` post-full window. It passes the previous K2 low-mode STOP; its
+unpaid term is now the explicit correction forcing in a `Q_A^(-1)` norm.
+The common-cap truncation ledger is also joint: correction and surviving
+momentum `Q`-energies share one copy of the telescoping energy drop.
 
 The live target is a windowed, spectrally split, nonlinear, or differently
 normalized low-Dirichlet Lyapunov for the actual finite safeguarded sequence.
@@ -41,7 +47,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all six exact audits with:
+Run all seven exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -55,7 +61,8 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.retraction_and_fixed_face` (Round 024);
 - `aesp_cd_l1_rppr.boundary_shielding_filter` (Round 025);
 - `aesp_cd_l1_rppr.persistent_q_energy` (Round 026);
-- `aesp_cd_l1_rppr.weighted_reserve_boundary` (Round 027).
+- `aesp_cd_l1_rppr.weighted_reserve_boundary` (Round 027);
+- `aesp_cd_l1_rppr.windowed_cross_normalized` (Round 028).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

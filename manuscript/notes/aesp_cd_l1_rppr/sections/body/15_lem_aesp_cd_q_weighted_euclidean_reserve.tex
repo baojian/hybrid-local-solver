@@ -284,6 +284,122 @@ Consequently Round 027 stops the unsplit stagewise reserve and records an
 exact high-band compatibility check; it does not provide the windowed
 spectral/nonlinear transfer needed for \cref{eq:aesp-cd-actual-finite-net-packing}.
 
+There is nevertheless a different fixed-face bank that already contracts at
+the accelerated one-step scale on every mode.  It changes the remaining
+question from low-mode drift to correction forcing.
+
+\begin{proposition}[A cross-normalized bank contracts on every correction-free
+settled-face stage]
+\label{prop:aesp-cd-cross-normalized-bank}
+Use exact shifted solves on the settled positive optimal face
+$A=S^\star(\rho)$, and write $Q_A=Q_{AA}$,
+$M_A=\kappa_{\mathrm A}(Q_A+\kappa_{\mathrm A}I)^{-1}$,
+$\vartheta=1-q$, and $e_t=x_A^\star-x_{t,A}$.  Define
+\begin{equation}
+ u_t:=e_t-\vartheta e_{t-1},qquad
+ \mathcal B_t:=\norm{e_t}_2^2
+  +(\kappa_{\mathrm A}+\alpha)
+    \langle u_t,Q_A^{-1}u_t\rangle.
+ \label{eq:aesp-cd-cross-normalized-bank}
+\end{equation}
+This is an analysis quantity; no inverse certificate is requested from the
+algorithm.
+
+If stage $t$ has no correction, then
+\begin{equation}
+ \mathcal B_{t+1}\leq(1-q)\mathcal B_t.
+ \label{eq:aesp-cd-cross-normalized-contraction}
+\end{equation}
+For a general exact stage, its correction $r_t$ enters through
+\begin{equation}
+ \sqrt{\mathcal B_{t+1}}
+ \leq\sqrt{(1-q)\mathcal B_t}+\sqrt{\mathcal R_t},
+ \qquad
+ \mathcal R_t:=\norm{M_Ar_t}_2^2
+ +(\kappa_{\mathrm A}+\alpha)
+   \langle M_Ar_t,Q_A^{-1}M_Ar_t\rangle.
+ \label{eq:aesp-cd-cross-normalized-forcing}
+\end{equation}
+
+If stage $t$ is a full correction, then
+\begin{equation}
+ \mathcal B_{t+1}
+ \leq C_0(q)\norm{e_t}_2^2,qquad
+ C_0(q):=(1-q)^2(q^2+2q+2)<2.
+ \label{eq:aesp-cd-cross-normalized-full-reset}
+\end{equation}
+Consequently, if stages $t+1,\ldots,t+L$ have no correction, then
+\begin{equation}
+ \mathcal B_{t+L+1}
+ \leq2e^{-qL}\norm{e_t}_2^2.
+ \label{eq:aesp-cd-cross-normalized-window}
+\end{equation}
+Thus $L=\lceil\log(4)/q\rceil$ gives a strict factor $1/2$ relative to
+$\norm{e_t}_2^2$.  The statement requires the settled optimal face: on a
+nonoptimal proper face, boundary coordinates create an affine forcing, and a
+face change also changes $Q_A^{-1}$.
+\end{proposition}
+
+\begin{proof}
+On a $Q_A$ eigenmode of eigenvalue $\lambda\in[\alpha,1]$, put
+$c=\kappa_{\mathrm A}+\alpha=1/(1+q^2)$,
+$m=\kappa_{\mathrm A}/(\kappa_{\mathrm A}+\lambda)$, and
+$a=m/(1+q)$.  In the state $(e,u)$, a correction-free stage has matrix
+\begin{equation*}
+ T_\lambda=
+ \begin{pmatrix}a&a\\a-\vartheta&a\end{pmatrix},
+ \qquad
+ W_\lambda=\begin{pmatrix}1&0\\0&c/\lambda\end{pmatrix}.
+\end{equation*}
+It remains to check
+$R_\lambda:=\vartheta W_\lambda-T_\lambda^\top W_\lambda T_\lambda
+\succeq0$.  Parameterize
+$\lambda=(q^2+s)/(1+q^2)$, $0\leq s\leq1$.  Direct reduction gives
+\begin{align*}
+ (R_\lambda)_{11}
+ &=\frac{(1-q)(q^3+q^2s^2+2q^2s+qs^2+qs+s^3+s^2)}
+ {(q^2+s)(1+s)^2},\\
+ (R_\lambda)_{22}
+ &=\frac{(1-q)(q^3-q^2+qs+q+s^2+s)}
+ {(q^2+s)(1+s)^2},
+\end{align*}
+and
+\begin{equation*}
+ \det R_\lambda
+ =\frac{(1-q)^2
+ (q^5+2q^3s+q^2s^2+q^2s+2qs^2+s^3)}
+ {(q^2+s)^2(1+s)^2}.
+\end{equation*}
+All three quantities are nonnegative, proving
+\cref{eq:aesp-cd-cross-normalized-contraction}.
+
+Since $x^\star-\ell_t=(1+\beta_{\mathrm A})e_t
+-\beta_{\mathrm A}e_{t-1}+r_t$, the exact affine resolvent recurrence adds
+$(M_Ar_t,M_Ar_t)$ to the next $(e,u)$ state.  The triangle inequality in the
+$W$-norm proves \cref{eq:aesp-cd-cross-normalized-forcing}.
+
+After a full correction, $e_{t+1}=M_Ae_t$.  Substitution in the two terms of
+$\mathcal B_{t+1}$ and maximization over
+$\lambda\in[\alpha,1]$ gives
+\begin{equation*}
+ m^2+\frac c\lambda(m-\vartheta)^2
+ \leq(1-q)^2(q^2+2q+2)=C_0(q).
+\end{equation*}
+This proves \cref{eq:aesp-cd-cross-normalized-full-reset}.  Iterating
+\cref{eq:aesp-cd-cross-normalized-contraction} for the stated $L$ stages and
+using $(1-q)^L\leq e^{-qL}$ proves
+\cref{eq:aesp-cd-cross-normalized-window}.
+\end{proof}
+
+This bank passes the reachable $K_2$ boundary that stopped the unsplit
+$q^{-1}Q$ reserve: the low mode now contracts by $1-q$ from the first
+persistent stage.  Its exact remaining term is
+$\mathcal R_t$.  Low modes make $Q_A^{-1}$ expensive, so the Round-026
+unsplit $Q$-energy ledger does not pay this term directly.  The live transfer
+question is whether the low part of $\mu_{\mathcal E}\mathcal R_t$ created by
+mixed coordinate clipping can be charged to a high-band drop over a window,
+without commuting a spectral projector with positive part.
+
 \begin{corollary}[Conditional finite-inner acceptance]
 \label{cor:aesp-cd-conditional-finite-acceptance}
 Suppose the \emph{actual finite} trajectory satisfies, at a chosen horizon
