@@ -86,7 +86,17 @@ State: proved-open
   high-Dirichlet class. An exact full-face `P96` trajectory shows that the
   ungated total Moreau bank can retain more than `0.54` after `1/q`
   transitions, so a raw universal half-window cannot replace the accepted
-  gate.
+  gate. On a fixed certified face, signed-scratch Chebyshev iteration followed
+  by a Stieltjes retraction and maximum with the old lower checkpoint gives a
+  safe published point in
+  `O_tilde(vol(A)/sqrt(lambda_lower))` work. Once the final RPPR face is
+  certified, applying this directly to the unshifted restricted system gives
+  `O_tilde(1/(rho*sqrt(alpha)))` terminal work. A positive-coefficient
+  polynomial theorem proves that requiring all scratch residuals to remain
+  coordinatewise nonnegative reverts to condition-number rather than
+  square-root dependence. A high-multiplicity Stieltjes cluster also stops
+  every graph-independent fixed-rank low-mode deflation of the master-gap
+  condition; a two-node exact witness has `Psi=2/25>0`.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -101,7 +111,10 @@ State: proved-open
   graph-uniform constant payment of cross-normalized low forcing using only
   signed/net high-band decrease, as well as the coefficient-`6/5` split
   payment using the starting low bank on a settled path window, and raw
-  half-contraction of the total Moreau bank in every settled `1/q` window.
+  half-contraction of the total Moreau bank in every settled `1/q` window,
+  as well as square-root acceleration by residual polynomials whose every
+  scratch state preserves the nonnegative cone, and fixed-rank repair of the
+  clipped-master spectral gap.
 - **Open:** A graph-uniform net exponent for low-Dirichlet optimal faces using
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
@@ -170,11 +183,14 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-finite-two-scale-window`, and
   `prop:aesp-cd-observable-alignment-tail`, and
   `cor:aesp-cd-finite-alignment-tail`,
-  `cor:aesp-cd-fixed-face-gate-align`, and
+  `cor:aesp-cd-fixed-face-gate-align`,
+  `thm:aesp-cd-safe-chebyshev-face`,
+  `cor:aesp-cd-final-face-chebyshev`, and
+  `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: develop a safe accelerated inner primitive for the
-  small-shift proper-face fallback, pack proper-face event charges, and move
-  the two-scale ledger across boundary restarts.
+- Next concrete action: use the safe accelerated face primitive inside a
+  batched active-set discovery protocol, pack proper-face event charges, and
+  charge spectral certification and boundary restarts.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an

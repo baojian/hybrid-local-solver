@@ -51,8 +51,12 @@ Role: direction
   two-scale root whenever an explicit `ceil(2/q_face)` event gate passes. A
   reachable proper-face `P3` trajectory shows that the common cap becomes
   nonuniform in Perron coordinates, so the full-face master theorem cannot be
-  imported by a ground-state transform alone. A conditional
-  one-admission final-full-star theorem gives explicit finite-inner residual
+  imported by a ground-state transform alone. Every rejected face-tuned
+  window spends a fraction
+  `Theta((1/q_face+1/phi_min)^(-1))` of the Perron mean, which is exact but
+  does not close an accelerated packing. A finite error-bar version of the
+  gate retains half-contraction under an explicit inner residual budget. A
+  conditional one-admission final-full-star theorem gives explicit finite-inner residual
   tolerances for any fixed momentum horizon and an observable primal guard.
   Alternatively, monotone Collatz brackets from pure-prox probes plus an
   observable error-bar gate give a conditional accepted fixed-face window
@@ -69,7 +73,9 @@ Role: direction
   stronger `/q` margin.
 - **Conditional:** The proper-face Perron-split theorem gives accelerated
   contraction for a fixed face whenever its observable two-charge gate passes;
-  it does not bound failed windows or the cost of the face Perron certificate.
+  rejected windows have a Perron-mean payment, but that payment can still
+  permit `Theta(1/q_face^2)` stages. The finite gate is rigorous under supplied
+  Perron/error certificates; their construction remains charged.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
 - **Refuted:** Constant post-lock warmup for the specified reachable star
@@ -118,13 +124,15 @@ alignment/payment certificate the observable gate can also keep restarting.
   `cor:star-logarithmic-kernel-margin`, and
   `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`,
   `prop:proper-face-perron-split-window`,
+  `cor:proper-face-perron-accepted-paid`,
+  `cor:proper-face-finite-perron-gate`,
   `prop:p3-proper-perron-cap-stop`, and
   `thm:face-tuned-permanent-safety`, `thm:collatz-gated-window`, and
   `prop:collatz-projective-hitting`, `lem:boundary-admission-gain`, and
   `cor:conditional-admission-work`.
-- Next concrete action: amortize same-point admission replays and seek a
-  cheaper alignment certificate than raw pure-prox probes; separately derive
-  the actual endpoint-prefix admission profile.
+- Next concrete action: combine safe signed-scratch face solves with batched
+  same-point admissions, and seek a graph-local certificate for the Perron
+  data or a decomposition when the spectral cluster is wide.
 - Stop/go test: go if a finite-horizon relative tolerance and charged restart
   retain acceleration; stop if repeated resolvents or state materialism exceed
   the target local budget.

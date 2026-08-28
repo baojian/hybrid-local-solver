@@ -840,6 +840,120 @@ formula after a same-point restart is
 Unroll the high root and add the two identities.
 \end{proof}
 
+\begin{corollary}[Proper-face accepted-or-Perron-paid macro]
+\label{cor:proper-face-perron-accepted-paid}
+Under the hypotheses of
+\cref{prop:proper-face-perron-split-window}, assume the exact trajectory is
+monotone and put
+\begin{equation*}
+ \gamma_A:=\min_{i\in A}\phi_i>0,
+ \qquad
+ \mu_2:=\norm{M_A|_{\phi^\perp}}_D,
+ \qquad
+ \eta_A:=\frac12-\rho_T,
+ \qquad
+ B_A:=\frac{\mu_2}{\gamma_A}+\frac{\mu_1}{q_A}.
+\end{equation*}
+Every length-$T$ macro satisfies the dichotomy
+\begin{align*}
+ &\mathcal G_T\leq\eta_Aa_0
+   &&\Longrightarrow&H_T+a_T&\leq\frac12(H_0+a_0),\\
+ &\mathcal G_T>\eta_Aa_0
+   &&\Longrightarrow&a_T&<
+    \left(1-\frac{\eta_A}{\beta_AB_A}\right)a_0.
+\end{align*}
+Thus every rejected window spends a definite fraction of the Perron mean,
+but that fraction is only
+$\Theta((q_A^{-1}+\gamma_A^{-1})^{-1})$.  This direct common-cap telescope
+can therefore allow $\Theta(1/q_A)$ rejected macros, or
+$\Theta(1/q_A^2)$ stages, even when $\gamma_A\gtrsim q_A$; by itself it is
+not an accelerated packing theorem.
+\end{corollary}
+
+\begin{proof}
+Because $r_t\geq0$, $d_i\geq1$, and $\phi_i\geq\gamma_A$,
+\begin{equation*}
+ \norm{M_AP_\phi r_t}_D
+ \leq\mu_2\norm{r_t}_D
+ \leq\frac{\mu_2}{\gamma_A}\bar r_t.
+\end{equation*}
+Moreover
+$\max_{k\geq1}k\theta_A^{k-1}\leq q_A^{-1}$ and
+$0\leq r_t\leq\beta_Ad_t$.  Telescoping
+$\langle d_t,\phi\rangle_D=a_{t-1}-a_t$ gives
+\begin{equation*}
+ \mathcal G_T
+ \leq\beta_AB_A(a_0-a_T).
+\end{equation*}
+Combine this with
+\cref{eq:proper-face-perron-split-gate}.
+\end{proof}
+
+\begin{corollary}[Finite error-bar Perron gate]
+\label{cor:proper-face-finite-perron-gate}
+Retain the fixed-face data of
+\cref{prop:proper-face-perron-split-window}, including a certified unit
+Perron vector and certified bounds $\mu_1,\mu_2$.  Suppose
+\begin{equation*}
+ \norm{\widehat y_0-y_0}_D\leq\eta_0,
+ \qquad
+ \norm{\widehat r_t-r_t}_D\leq\eta_t^r,
+ \qquad
+ \lambda_1=\frac{\kappa(1-\mu_1)}{\mu_1},
+\end{equation*}
+and define the computable confidence bounds
+\begin{align*}
+ a_0^-&:=\frac{\langle\widehat y_0,\phi\rangle_D-\eta_0}{\lambda_1}>0,\\
+ \bar r_t^+&:=[\langle\widehat r_t,\phi\rangle_D+\eta_t^r]_+,\\
+ \chi_t^+&:=\mu_2
+   (\norm{P_\phi\widehat r_t}_D+\eta_t^r).
+\end{align*}
+Let the finite solve at stage $t$ differ from its exact fixed-face output by
+$\varepsilon_t$, and put
+\begin{align*}
+ \widehat{\mathcal G}_T
+ &:={\sum_{t=0}^{T-1}\theta_A^{T-1-t}\chi_t^+}
+  +\mu_1\sum_{t=0}^{T-1}(T-t)\theta_A^{T-1-t}\bar r_t^+,\\
+ \mathcal E_T
+ &:=\sum_{t=0}^{T-1}(T-t+1)\theta_A^{T-1-t}
+       \norm{\varepsilon_t}_D.
+\end{align*}
+Then the certified gate
+\begin{equation}
+ \widehat{\mathcal G}_T+\mathcal E_T
+ \leq(1/2-\rho_T)a_0^-
+ \label{eq:proper-face-finite-perron-gate}
+\end{equation}
+implies the actual finite inequality $H_T+a_T\leq(H_0+a_0)/2$.
+
+If every normalized inner end residual is at most $\xi$ in $D$-norm, then
+$\norm{\varepsilon_t}_D\leq(\mu_1/\kappa)\xi$.  Allocating half of the gate
+margin to finite error is ensured by
+\begin{equation}
+ \xi\leq
+ \frac{\kappa q_A^2(1/2-\rho_T)a_0^-}
+      {2\mu_1(1+q_A)}.
+ \label{eq:proper-face-finite-perron-inner-budget}
+\end{equation}
+All statements are conditional on the finite outputs remaining in the same
+relative interior.  Producing the Perron data and materializing $\phi$ are
+charged operations, not free certificates.
+\end{corollary}
+
+\begin{proof}
+Cauchy--Schwarz makes $a_0^-$ a lower confidence bound, while
+$\bar r_t^+$ and $\chi_t^+$ dominate the two exact cap charges in
+\cref{eq:proper-face-perron-split-window}.  The finite forcing enters the
+high root once and the Perron repeated-root Green kernel with weight $T-t$,
+giving $\mathcal E_T$.  Apply the triangle inequality and the exact window
+bound.  Finally,
+\begin{equation*}
+ \sum_{j\geq0}(j+2)\theta_A^j=\frac{1+q_A}{q_A^2}
+\end{equation*}
+proves
+\cref{eq:proper-face-finite-perron-inner-budget}.
+\end{proof}
+
 The Perron split does not make the actual coordinatewise common cap into a
 common cap in ground-state coordinates.  This is already visible on a
 three-vertex reachable trajectory.

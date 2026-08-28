@@ -194,5 +194,242 @@ RPPR subproblems and, more generally, to separable $\ell_1$ regularization of
 any Stieltjes quadratic admitting a positive supersolution.  It does not by
 itself control how an outer extrapolation chooses its successive starts.
 
+\begin{theorem}[Fixed-face Chebyshev solve with a safe Stieltjes output]
+\label{thm:aesp-cd-safe-chebyshev-face}
+Let $A$ be a fixed active face and consider the interior linear system
+\begin{equation*}
+ H_Ax=b_A,
+ \qquad
+ H_A=H_A^\top\succ0,
+ \qquad
+ (H_A)_{ij}\leq0\quad(i\neq j).
+\end{equation*}
+Suppose
+\begin{equation*}
+ \mu_{\rm sp}I\preceq H_A\preceq L_{\rm sp}I,
+ \qquad
+ H_A\upsilon\geq\mu_\upsilon\upsilon
+\end{equation*}
+for certified scalars $0<\mu_{\rm sp}\leq L_{\rm sp}$,
+$\mu_\upsilon>0$, and a certified vector $\upsilon>0$.  Assume the face
+solution $x_A^\star:=H_A^{-1}b_A$ is strictly positive.  Let $y_A\geq0$ be
+an optional published checkpoint satisfying
+$b_A-H_Ay_A\geq0$ on $\supp(y_A)$; take $y_A=0$ when no checkpoint is
+needed.  Starting from any
+$z_0$, let $\widehat x_k$ be the degree-$k$ Chebyshev semi-iterate and put
+$r_k=b_A-H_A\widehat x_k$.  Then
+\begin{equation}
+ \norm{r_k}_2
+ \leq2\zeta^k\norm{r_0}_2,
+ \qquad
+ \mathcal K:=\frac{L_{\rm sp}}{\mu_{\rm sp}},
+ \qquad
+ \zeta:=\frac{\sqrt{\mathcal K}-1}{\sqrt{\mathcal K}+1}.
+ \label{eq:aesp-cd-safe-chebyshev-rate}
+\end{equation}
+Define the a posteriori Stieltjes retraction
+\begin{equation}
+ \Delta_k:=\max_{i\in A}
+   \frac{[-r_{k,i}]_+}{\mu_\upsilon\upsilon_i},
+ \qquad
+ s_k:=[\widehat x_k-\Delta_k\upsilon]_+,
+ \qquad
+ \ell_k:=y_A\vee s_k.
+ \label{eq:aesp-cd-safe-chebyshev-retraction}
+\end{equation}
+Then $b_A-H_A\ell_k\geq0$ on $\supp(\ell_k)$ and
+$0\leq y_A\leq\ell_k\leq x_A^\star$.  Moreover, with
+$\upsilon_{\min}:=\min_i\upsilon_i$,
+\begin{equation}
+ \norm{x_A^\star-\ell_k}_2
+ \leq\left(
+  \frac1{\mu_{\rm sp}}
+  +\frac{\norm{\upsilon}_2}{\mu_\upsilon\upsilon_{\min}}
+ \right)\norm{r_k}_2.
+ \label{eq:aesp-cd-safe-chebyshev-output-error}
+\end{equation}
+If $y_A>0$, the output remains in the same relative interior.  The same is
+true without a positive checkpoint if
+\begin{equation}
+ \min_{i\in A}\frac{\widehat x_{k,i}}{\upsilon_i}>\Delta_k,
+ \label{eq:aesp-cd-safe-chebyshev-face-guard}
+\end{equation}
+holds.
+The computation uses $k$ applications of $H_A$ and one face scan.
+
+For $H_A=Q_A+\kappa'I$, with
+$\lambda_1(Q_A)\geq\underline\lambda>0$ and $Q_A\preceq I$, choosing
+$\kappa'=\Theta(\underline\lambda)$ gives
+\begin{equation}
+ k=O\!\left(
+  \underline\lambda^{-1/2}
+  \log\frac{\norm{r_0}_2}{\xi}
+ \right)
+ \label{eq:aesp-cd-safe-chebyshev-small-shift-work}
+\end{equation}
+applications to reach a prescribed residual scale $\xi$, up to the standard
+condition-number factor inside the logarithm.  If an $H_A$ application costs
+$O(\vol(A))$, the degree work is
+$\widetilde O(\vol(A)/\sqrt{\underline\lambda})$.
+For a principal RPPR face one may take
+$\upsilon=D_A^{1/2}\one$ and
+$\mu_\upsilon=\alpha+\kappa'$, because deleting exterior Stieltjes
+off-diagonal entries only increases $Q_A\upsilon$.
+More specifically, if
+$b_A=c_A+\kappa'y_A$, $y_A>0$, and
+$c_A-Q_Ay_A\geq0$, then the published output is also an original-system
+lower certificate:
+\begin{equation}
+ c_A-Q_A\ell_k
+ =(b_A-H_A\ell_k)+\kappa'(\ell_k-y_A)\geq0.
+ \label{eq:aesp-cd-safe-chebyshev-original-lower}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The Chebyshev estimate in
+\cref{eq:aesp-cd-safe-chebyshev-rate} is the standard minimax residual bound
+on $[\mu_{\rm sp},L_{\rm sp}]$.  It remains to verify that acceleration has
+not destroyed the order certificate.  If $s_{k,i}>0$, then
+$s_{k,i}=\widehat x_{k,i}-\Delta_k\upsilon_i$, whereas
+$s_{k,j}\geq\widehat x_{k,j}-\Delta_k\upsilon_j$ for every $j$.  The
+nonpositive off-diagonal entries therefore give
+\begin{align*}
+ (H_As_k)_i
+ &\leq[H_A(\widehat x_k-\Delta_k\upsilon)]_i\\
+ &\leq(H_A\widehat x_k)_i-\mu_\upsilon\Delta_k\upsilon_i
+ \leq b_{A,i}.
+\end{align*}
+Thus $s_k$ is an obstacle subsolution.  The coordinatewise maximum of two
+Stieltjes obstacle subsolutions is again a subsolution: at a coordinate
+selected from one input, increasing the other coordinates can only decrease
+that matrix row.  Hence $\ell_k=y_A\vee s_k$ is a subsolution.  The weighted
+maximum principle yields
+$0\leq y_A\leq\ell_k\leq x_A^\star$.
+
+The linear-system error obeys
+$\norm{x_A^\star-\widehat x_k}_2\leq
+\norm{r_k}_2/\mu_{\rm sp}$, while
+$\Delta_k\leq
+\norm{r_k}_2/(\mu_\upsilon\upsilon_{\min})$.
+For $t_k:=\widehat x_k-\Delta_k\upsilon$ one has
+\begin{equation*}
+ H_A(x_A^\star-t_k)=r_k+\Delta_kH_A\upsilon\geq0,
+\end{equation*}
+so inverse positivity gives $t_k\leq x_A^\star$.  Taking the positive part
+and then the maximum with $y_A$ can only move the point coordinatewise toward
+$x_A^\star$.  This proves
+\cref{eq:aesp-cd-safe-chebyshev-output-error}.  The strict guard prevents the
+positive-part operation from deleting a face coordinate when the checkpoint
+itself is not already positive.  The
+small-shift work statement follows from
+\begin{equation*}
+ \mathcal K
+ \leq\frac{1+\kappa'}{\underline\lambda+\kappa'}
+ =O(\underline\lambda^{-1}).
+\end{equation*}
+Every Chebyshev multiplication is restricted to the already exposed face;
+the theorem makes no claim about discovering that face or surviving an
+admission during the iteration.
+\end{proof}
+
+\begin{corollary}[Collatz-certified small shift]
+\label{cor:aesp-cd-collatz-small-shift}
+Let
+$M_{\bar\kappa}=\bar\kappa(Q_A+\bar\kappa I)^{-1}$ be entrywise positive
+on a connected fixed face, and let $z>0$.  A certified Collatz upper ratio
+\begin{equation*}
+ U\geq\max_{i\in A}\frac{(M_{\bar\kappa}z)_i}{z_i},
+ \qquad U<1,
+\end{equation*}
+gives the spectral lower bound
+\begin{equation}
+ \lambda_1(Q_A)\geq
+ \underline\lambda_U:=\bar\kappa(U^{-1}-1).
+ \label{eq:aesp-cd-collatz-small-shift}
+\end{equation}
+Consequently \cref{thm:aesp-cd-safe-chebyshev-face} may use
+$\kappa'=\Theta(\underline\lambda_U)$ without knowing the Perron eigenpair.
+If, for a constant $c>0$, the certificate also satisfies
+$1-U\geq c[1-m_1(M_{\bar\kappa})]$, then
+$\underline\lambda_U=\Theta(\lambda_1(Q_A))$ and the fixed-face work is
+$\widetilde O(\vol(A)/\sqrt{\lambda_1(Q_A)})$.
+For constant $\bar\kappa$, this is
+$\widetilde O(\vol(A)/q_A)$, where
+$q_A^2=\lambda_1/(\bar\kappa+\lambda_1)$.
+\end{corollary}
+
+\begin{proof}
+Collatz--Wielandt gives
+$m_1(M_{\bar\kappa})\leq U$.  Since
+$m_1=\bar\kappa/(\bar\kappa+\lambda_1(Q_A))$, inversion gives
+\cref{eq:aesp-cd-collatz-small-shift}.  The remaining statements follow from
+\cref{eq:aesp-cd-safe-chebyshev-small-shift-work}.
+Constructing the certified ratio requires its own resolvent solve and face
+scan; the corollary does not treat that work as free.
+\end{proof}
+
+\begin{corollary}[Direct accelerated solve after final-face certification]
+\label{cor:aesp-cd-final-face-chebyshev}
+Suppose the final RPPR support $S^\star$ has been exposed and certified, and
+the restricted optimum is in its relative interior.  Apply
+\cref{thm:aesp-cd-safe-chebyshev-face} directly to the unshifted system
+$Q_{S^\star}x=c_{S^\star}$, using
+\begin{equation*}
+ \alpha I\preceq Q_{S^\star}\preceq I,
+ \qquad
+ \upsilon=D_{S^\star}^{1/2}\one,
+ \qquad
+ Q_{S^\star}\upsilon\geq\alpha\upsilon.
+\end{equation*}
+Once the raw Chebyshev residual is at most $\xi$, the published safe output
+has the error bound in
+\cref{eq:aesp-cd-safe-chebyshev-output-error}; reaching that raw scale uses
+\begin{equation}
+ O\!\left(\frac1{\sqrt\alpha}
+   \log\frac{\norm{r_0}_2}{\xi}\right)
+ \label{eq:aesp-cd-final-face-chebyshev-work}
+\end{equation}
+restricted matrix applications and one final certificate scan.  Hence its
+degree work is
+\begin{equation*}
+ \widetilde O\!\left(
+   \frac{\vol(S^\star)}{\sqrt\alpha}\right)
+ \leq
+ \widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right).
+\end{equation*}
+This is an accelerated local terminal solver once the final face is known;
+it does not charge support discovery or prove that a provisional face is
+final.
+\end{corollary}
+
+\begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
+\label{prop:aesp-cd-positive-polynomial-stop}
+Let $P_k(t)=\sum_{j=0}^k a_jt^j$ be a residual polynomial with
+$P_k(1)=1$.  Suppose that $P_k(T)r\geq0$ for every entrywise nonnegative
+matrix $T$ of every finite dimension and every $r\geq0$.  Then
+$a_j\geq0$ for every $j$, and for $0\leq t\leq1$,
+\begin{equation}
+ P_k(t)\geq t^k.
+ \label{eq:aesp-cd-positive-polynomial-stop}
+\end{equation}
+Consequently, at $t=1-1/\mathcal K$, reducing the residual by a factor
+$\varepsilon$ requires
+$k=\Omega(\mathcal K\log(1/\varepsilon))$.  The same lower bound holds for
+any product of such cone-preserving restart polynomials.  Thus a
+square-root-rate inner solver must permit signed intermediate residuals; the
+safe publication map in
+\cref{thm:aesp-cd-safe-chebyshev-face} is not merely cosmetic.
+\end{proposition}
+
+\begin{proof}
+Apply the hypothesis to the nilpotent forward shift $S$ in dimension
+$k+1$ and its first basis vector.  The coordinates of
+$P_k(S)e_1$ are exactly $a_0,\ldots,a_k$, so all coefficients are
+nonnegative.  Since they sum to one and $t^j\geq t^k$ for $j\leq k$,
+\cref{eq:aesp-cd-positive-polynomial-stop} follows.  Products preserve
+nonnegative coefficients and add total degree.
+\end{proof}
+
 Thus the composite analogue of the ordinary-PPR residual-mass contraction is
 valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.

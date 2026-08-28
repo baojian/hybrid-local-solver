@@ -35,6 +35,12 @@ its two observable event charges certify a half-contraction in
 trajectory proves that ground-state coordinates do not preserve the common
 cap, so the full-face clipped-master theorem cannot simply be transported to
 a proper face.
+Every rejected Perron-split window now has an exact alternative payment from
+the Perron mean, but the payment is only of order
+`1/(1/q_face+1/phi_min)` and therefore still allows quadratic-in-`1/q_face`
+stage counts. A finite error-bar version of the accepted gate is proved;
+using the safe signed-scratch Chebyshev face solver makes one accepted macro
+cost `O_tilde(vol(A)/sqrt(lambda_1(A)))`, apart from charged Perron data.
 Pure-prox Collatz probes give a cheaper conditional alternative: once their
 Perron bracket has relative width at most `1/16`, an observable error-bar gate
 certifies a fixed-face momentum window with root rate
@@ -56,9 +62,9 @@ a genuine charged obstruction.
 
 The note gives the exact normalized center/arm coupling and the exact
 ambient-volume charge for unequal arm prefixes.  The star reachability test is
-settled at a matching logarithmic scale for this exact full-face policy.  The
-live route is a restart/window implementation of the face-tuned rule on
-changing faces, using same-point replay whenever an admission is detected. A
+settled at a matching logarithmic scale for this exact full-face policy. The
+live route is a batched active-set implementation on changing faces, using
+same-point replay whenever an admission is detected. A
 one-admission final-full-star theorem already supplies
 explicit finite-inner warmup and momentum tolerances on a finite horizon.  On
 a full star, the literal repeated-solve warmup costs `Theta(B log B)`; the

@@ -68,11 +68,21 @@ transfer cannot be paid by a graph-uniform high-bank coefficient: even after
 a `1/q` rescaling the required coefficient is greater than `(N-1)/15`.
 Thus a local, infinity-norm, or volume-sensitive payment for the weighted
 mean deficit is still needed.
+On a fixed certified face, the inner-work obstruction is now removed:
+Chebyshev semi-iteration may use signed scratch vectors, after which a
+Stieltjes retraction and coordinatewise maximum with the old safe checkpoint
+publish a monotone lower certificate. A small shift therefore costs
+`O_tilde(vol(A)/sqrt(lambda_lower))`, and a certified final RPPR face can be
+solved directly in `O_tilde(1/(rho*sqrt(alpha)))` work. Requiring every
+scratch residual to remain nonnegative provably loses this acceleration, and
+fixed-rank low-mode deflation is blocked by arbitrarily high multiplicity
+near-ground clusters. The remaining end-to-end issue is face discovery,
+certification, and replay rather than the terminal linear solve.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
-The live target is to pack failed observable windows and face changes, and to
-transfer the alignment tail to a relative finite-inner schedule.
+The live target is to batch and certify face discovery, pack failed
+proper-face windows, and charge changing-face replays.
 No graph-uniform exact accelerated solver or unconditional
 `O_tilde(1/(rho*sqrt(alpha)))` end-to-end theorem is claimed. In particular:
 
