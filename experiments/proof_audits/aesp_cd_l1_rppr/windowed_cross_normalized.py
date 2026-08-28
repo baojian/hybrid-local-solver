@@ -112,6 +112,97 @@ def check_forced_state_identity() -> None:
     assert next_velocity == homogeneous_velocity + m * correction
 
 
+def check_contract_or_spend_endpoint() -> None:
+    """Verify the exact low-endpoint normalizer in the spend corollary."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        mu = kappa * q * q
+        c = kappa + alpha
+        m0 = 1 - q * q
+        previous = None
+        for s in (F(0), F(1, 100), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = mode * mode * (1 + c / lam)
+            assert mu * kernel <= m0**3
+            if previous is not None:
+                assert kernel < previous
+            previous = kernel
+            if s == 0:
+                assert mu * kernel == m0**3
+
+
+def kn_cross_data(n: int) -> tuple[F, F, F]:
+    """Return the exact K_N full/preceding and low/initial-high ratios."""
+    q = F(1, 100)
+    alpha = q * q / (1 + q * q)
+    kappa = (1 - q * q) / (1 + q * q)
+    mu = kappa * q * q
+    beta = (1 - q) / (1 + q)
+    c = kappa + alpha
+    m0 = 1 - q * q
+    amplitude = F(12)
+    k = n - 1
+    a0 = F(1, 2 * n * k)
+    lam = F(n + (n - 2) * alpha, 2 * k)
+    mh = kappa / (kappa + lam)
+    s0 = (1 - q) * (1 + 2 * q) / (1 + q)
+    sh = (1 + beta) * mh - beta
+
+    # Exact positivity and chronology inequalities used in the proof.
+    assert amplitude * lam * (1 + q * q) < k
+    assert amplitude * lam / (kappa * k) < 1
+    assert 3 - 2 * q > amplitude / k
+    assert s0 / (1 + q * q) - amplitude * lam * sh / k > 0
+    t0 = (1 + beta) * s0 - beta
+    th = (1 + beta) * sh - beta
+    fh = -lam * mh * th
+    l0 = m0 * t0 / (1 + q * q)
+    assert th < 0 and fh > F(9, 100)
+    assert amplitude * fh - l0 > F(2, 25)
+    cap = a0 * m0 * (amplitude * fh - l0)
+    assert cap > F(79, 1000) * a0
+
+    r_low = beta * m0 * (1 - s0) * a0
+    r_high = beta * amplitude * q * q * mh * (1 - sh) * a0
+    assert r_low + r_high < a0 * q * q * (2 + amplitude)
+    forcing = n * m0 * m0 * (1 + c / alpha) * r_low * r_low
+    forcing += F(n, k) * mh * mh * (1 + c / lam) * r_high * r_high
+    preceding_high_drop = (
+        F(n, k) * lam * (amplitude * q * q * mh * a0) ** 2 * (1 - sh * sh)
+    )
+    full_ratio = mu * forcing / preceding_high_drop
+
+    low_forcing = 4 * n * a0 * a0 * q**4 * m0 * (1 - q) ** 6
+    initial_high = F(n, k) * lam * amplitude * amplitude * q**4 * a0 * a0
+    global_ratio = low_forcing / initial_high
+    displayed = 4 * k * m0 * (1 - q) ** 6 / (lam * amplitude * amplitude)
+    assert global_ratio == displayed > F(k, 23)
+    return full_ratio, global_ratio, cap
+
+
+def check_kn_high_drop_stop() -> None:
+    """Check the reachable complete-graph high-drop-only obstruction."""
+    expected = {
+        8: F(73_387_864_081_058_649_690_843, 85_491_071_047_000_000_000_000),
+        12: F(
+            161_030_072_622_852_958_763_160_029_349,
+            116_243_846_625_372_641_000_000_000_000,
+        ),
+        20: F(
+            3_968_141_818_754_077_651_395_627_573_501,
+            1_622_745_677_658_664_481_000_000_000_000,
+        ),
+    }
+    for n in [*range(8, 301), 1000]:
+        full_ratio, global_ratio, cap = kn_cross_data(n)
+        assert full_ratio > 0 and global_ratio > 0 and cap > 0
+        if n in expected:
+            assert full_ratio == expected[n]
+    assert expected[8] < 1 < expected[12]
+
+
 def check_source_scope() -> None:
     """Guard theorem labels and the explicit non-overclaim boundary."""
     base = note_directory("aesp_cd_l1_rppr")
@@ -120,8 +211,11 @@ def check_source_scope() -> None:
     status = (base / "STATUS.md").read_text()
     assert "prop:aesp-cd-cross-normalized-bank" in main
     assert "eq:aesp-cd-cross-normalized-forcing" in main
+    assert "prop:aesp-cd-kn-cross-bank-stop" in main
+    assert "prop:aesp-cd-cross-normalized-contract-spend" in main
+    assert "eq:aesp-cd-cross-normalized-low-spend" in main
     assert "nonoptimal proper face" in main
-    assert "mixed coordinate clipping" in main
+    assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
     assert "Q_A^-1" in status
     assert "No graph-uniform exact accelerated solver" in readme
@@ -132,11 +226,15 @@ def main() -> None:
     check_full_reset_constant()
     check_k2_critical_mode()
     check_forced_state_identity()
+    check_contract_or_spend_endpoint()
+    check_kn_high_drop_stop()
     check_source_scope()
     print("Round-028 exact cross-normalized window audit passed")
     print("  modal bank: one-step (1-q) contraction")
     print("  full reset: exact C0(q)<2 and Theta(1/q) window")
-    print("  scope: mixed correction transfer remains open")
+    print("  K_N: high-drop-only correction payment has Omega(N) loss")
+    print("  contract-or-spend: exact low Euclidean endpoint normalizer")
+    print("  scope: changing-face finite-inner restart transfer remains open")
 
 
 if __name__ == "__main__":

@@ -19,7 +19,12 @@ it does not prove the missing net packing inequality.
 On the exact settled optimal face, a new cross-normalized error/velocity bank
 contracts by `1-q` on every correction-free stage and by a constant after a
 `Theta(1/q)` post-full window. It passes the previous K2 low-mode STOP; its
-unpaid term is now the explicit correction forcing in a `Q_A^(-1)` norm.
+unpaid term is now the explicit correction forcing in a `Q_A^(-1)` norm. A
+reachable complete-graph family proves that no graph-uniform constant can pay
+that forcing from net high-band decrease alone: the required ratio is
+`>(N-1)/23`. The surviving exact fixed-face interface is instead a
+contract-or-spend window: after `Theta(1/q)` stages the bank contracts by a
+constant unless it spends a telescoping low Euclidean endpoint drop.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
@@ -39,7 +44,8 @@ No graph-uniform exact accelerated solver or unconditional
   counterexample to direct finite-sequence packing or a graph-uniform solver
   theorem;
 - entry-dominated stages and persistent-row energy now have explicit charges,
-  but the low-Dirichlet nonlinear transfer remains open.
+  but converting the event-level low-progress spend into a changing-face
+  accelerated net exponent remains open.
 
 Build the note from the repository root with:
 

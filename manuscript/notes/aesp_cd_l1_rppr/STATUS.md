@@ -40,8 +40,13 @@ State: proved-open
   fixed-face assumption. On the exact settled optimal face, the
   cross-normalized bank `B_t=||e_t||^2+(kappa_A+alpha)<u_t,Q_A^-1 u_t>`
   contracts by `1-q` at every correction-free stage and gives constant
-  contraction after a `Theta(1/q)` post-full window. A direct accelerated
-  terminal result holds on the a-posteriori high-Dirichlet class.
+  contraction after a `Theta(1/q)` post-full window. A reachable `K_N` family
+  proves that high-band net decrease alone needs coefficient `Omega(N)` to
+  pay its low forcing. In the positive direction, an exact contract-or-spend
+  window pays every correction pattern from a telescoping Stieltjes bank, and
+  after multiplication by `mu_E` from the low Euclidean endpoint drop. A
+  direct accelerated terminal result holds on the a-posteriori
+  high-Dirichlet class.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -52,7 +57,9 @@ State: proved-open
   nonexpansion, support-addition-only correction charging, Euclidean-only
   collateral packing with `o(1/q)` coefficient, horizon-uniform inflation on
   the fixed P4 objective, black-box shadowing through retraction, and uniform
-  one-step `1-cq` contraction of the simplest lagged unsplit bank.
+  one-step `1-cq` contraction of the simplest lagged unsplit bank, and every
+  graph-uniform constant payment of cross-normalized low forcing using only
+  signed/net high-band decrease.
 - **Open:** A graph-uniform net exponent for low-Dirichlet optimal faces using
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
@@ -64,13 +71,16 @@ and persistent-row controller, correction, and surviving-momentum energies
 telescope. The exact Euclidean collateral reserve nevertheless has only
 `q^2` graph-uniform drift. A coefficient large enough to pay the reachable K8
 pulse makes the corresponding unsplit lagged bank fail stagewise accelerated
-contraction on a reachable K2 low mode. This is not an additive-resistant
-obstruction and does not refute global accelerated decay; the K8 high band is
-compatible with payment. The cross-normalized bank removes the low-mode
-one-step drift, but a mixed correction is measured in a `Q_A^-1` norm and can
-leak into low modes. The missing object is a windowed or nonlinear low/high
-transfer paying this forcing. Existing local identities do not supply that
-bound, so there is no graph-uniform exact accelerated solver yet.
+contraction on a reachable K2 low mode. The cross-normalized bank removes that
+one-step drift, but the reachable `K_N` family shows that its low forcing
+cannot be paid by high-band net decrease with a dimension-free coefficient.
+The event-level contract-or-spend theorem pays it from low Euclidean progress,
+but freezing that endpoint resource into a static `q^-1` reserve would restore
+the K2 slow drift. The missing object is a restart/window accounting that
+spends this resource only at correction events and survives face changes and
+finite residuals. Equivalently, the remaining transfer must be windowed or nonlinear
+rather than a fixed additive reserve. There is still no graph-uniform exact
+accelerated solver.
 
 ## Dependencies and reusable outputs
 
@@ -90,11 +100,12 @@ bound, so there is no graph-uniform exact accelerated solver yet.
   `eq:aesp-cd-finite-inner-root-potential`,
   `prop:aesp-cd-unsplit-q-energy-stagewise-stop`, and
   `prop:aesp-cd-cross-normalized-bank`,
+  `prop:aesp-cd-kn-cross-bank-stop`,
+  `prop:aesp-cd-cross-normalized-contract-spend`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: Construct a spectrally split, windowed, nonlinear, or
-  differently normalized `q^-1`-weighted Lyapunov that pairs persistent
-  high-energy decay with Euclidean collateral while preserving accelerated
-  low modes.
+- Next concrete action: Turn the low-progress contract-or-spend endpoint into
+  a restart/window ledger that is not retained as a static `q^-1` bank, then
+  transfer it across face changes and finite inner residuals.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -112,8 +123,7 @@ bound, so there is no graph-uniform exact accelerated solver yet.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
   equation, or evidence classification.
-- Known gaps: The abstract countermodel is not a claimed reachable outer
-  state. The P4 theorem has no finite-inner work conclusion. The post-full
-  filter is not a graph-uniform two-step separation and does not prove finite
-  net packing. No graph-uniform exact accelerated solver or finite-precision
-  result follows.
+- Known gaps: The P4 theorem has no finite-inner work conclusion. The
+  contract-or-spend theorem is exact and restricted to the settled optimal
+  face; it is not a static Lyapunov closure and does not cross admissions.
+  No graph-uniform exact accelerated solver or finite-precision result follows.
