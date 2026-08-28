@@ -120,16 +120,24 @@ length is bounded by the support radius.  The total literal-admission work is
 `O_tilde((1+vol(S*))/sqrt(alpha))`, hence
 `O_tilde(1/(rho*sqrt(alpha)))` for RPPR.  Independent rational audits cover
 negative internal intercepts, competing branches, threshold ties, and exact
-zero.  The smallest still-open structural reporter is therefore not a tree
-or one cycle: it already appears on a cactus with an unbounded chain of
-unbounded cycle blocks, and more generally on variable-port series--parallel
-graphs.  A three-vertex two-source example shows why running
+zero.  Persistent transfer products further close cactus traces having only
+polylogarithmically many live descendant sites per cycle, including chains of
+arbitrarily long cycles.  The smallest still-open structural reporter is a
+cactus trace with unbounded live sites in unbounded ancestor cycles, and more
+generally a variable-port series--parallel graph.  A three-vertex two-source
+example shows why running
 independent single-root copies does not handle component mergers.
 A separate quantitative result reduces uniformly separated RPPR boundary
 keys to monotone coordinate-level events.  This is soft-linear only when the
 level-event source is itself charged; ordinary point-query Schur messages do
 not reveal those crossings automatically.  An exact RPPR P4 witness rules
 out fixed factor-two bins.
+For the remaining series--parallel interface, fixed-mark Schur updates and
+named cycle responses are logarithmic.  A conditional reduction isolates the
+missing object as a persistent affine hull supporting bulk pullback and meld.
+An exact RPPR theta core proves that one direction-free scalar threshold is
+insufficient, while a weighted fan has a quadratic-size explicit obstacle
+response table; neither statement is an algorithmic lower bound.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
@@ -181,7 +189,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all nineteen exact audits with:
+Run all twenty exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -209,6 +217,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.bounded_degree_speculative_stop` (Round 039).
 - `aesp_cd_l1_rppr.tree_singleton_threshold` (Round 040).
 - `aesp_cd_l1_rppr.separated_level_reporter` (Round 041).
+- `aesp_cd_l1_rppr.variable_two_port_stops` (Round 042).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

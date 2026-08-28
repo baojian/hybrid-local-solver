@@ -113,9 +113,10 @@ State: proved-open
   radius-paid cycle scans in the latter case) and reproduces a legal
   singleton positive-subset trace in
   `O_tilde((1+vol(S*))/sqrt(alpha))` work. The first structural reporter still
-  open after the known tree, single-cycle, and bounded-block solvers already
-  occurs on an unbounded chain of unbounded cycle blocks, and more generally
-  on variable-port series--parallel graphs. Under a uniform relative KKT margin,
+  open after the known tree, single-cycle, bounded-live-site cactus, and
+  bounded-block solvers occurs when unbounded ancestor cycles have unbounded
+  live descendant sites, and more generally on variable-port
+  series--parallel graphs. Under a uniform relative KKT margin,
   charged coordinate-level events give another soft-linear reporter; the
   event source remains an explicit interface cost.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -244,6 +245,9 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-stable-port-reporter`,
   `thm:aesp-cd-tree-singleton-threshold`,
   `cor:aesp-cd-unicyclic-singleton`,
+  `cor:aesp-cd-cactus-live-sites`,
+  `prop:aesp-cd-two-port-direction-stop`,
+  `prop:aesp-cd-sp-meld-hull-reduction`,
   `prop:aesp-cd-separated-level-reporter`,
   `prob:aesp-cd-variable-two-port-reporter`,
   `prop:aesp-cd-speculative-envelope-doubling`,
@@ -268,8 +272,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Nineteen exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--041 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--042 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

@@ -882,7 +882,7 @@ put
 \end{equation}
 and, for $u\neq o$,
 \begin{equation*}
- s_u:=\frac{\beta_u^2}{A_u},qquad
+ s_u:=\frac{\beta_u^2}{A_u},\qquad
  r_u:=\frac{\beta_uB_u}{A_u}.
 \end{equation*}
 At $u$, form a keyed multiset as follows.  An inactive child $w$ contributes
@@ -1044,6 +1044,76 @@ specialization now follows from the radius bound used in
 $\vol(S^\star)\leq1/\rho$.
 \end{proof}
 
+The full-cycle scan can itself be made persistent on a cactus.  What matters
+is not the cycle length but the number of distinct sites whose descendant
+response streams remain live.
+
+\begin{corollary}[Cactus cycles with bounded live articulation sites]
+\label{cor:aesp-cd-cactus-live-sites}
+Consider the single-positive-load problem of
+\cref{cor:aesp-cd-unicyclic-singleton} on a promised cactus.  Once a cycle
+block $B$ is fully active, let $L_B:=|B|$ and let $r_B$ be the maximum, over
+the post-closure trace, of the number of distinct cycle articulation sites
+simultaneously having at least one live descendant tree or block stream.
+There is an exact-real legal singleton trace with work
+\begin{equation}
+ O\!\left(\log(2+\Delta_\star)\left[
+   \vol(S^\star)+\sum_{v\in S^\star}\operatorname{dist}(o,v)
+ \right]\right)+
+ O\!\left(
+  \sum_{v\in S^\star}
+  \sum_{B\in\mathcal P(v)}(r_B+1)\log(2+L_B)
+ \right),
+ \label{eq:aesp-cd-cactus-live-sites-work}
+\end{equation}
+where $\mathcal P(v)$ is the set of post-closure cycle blocks on the block
+route from $v$ to the root; bridge and pre-closure route work is already in
+the first term.  In particular,
+if $\chi:=\max_B r_B=\operatorname{polylog}(2+\vol(S^\star))$, then single-seed
+RPPR is solved in
+\begin{equation*}
+ \widetilde O\!\left(
+  \frac{(1+\chi)(1+\vol(S^\star))}{\sqrt\alpha}
+ \right).
+\end{equation*}
+Thus a chain of arbitrarily long cycles, which has one downstream live site
+per ancestor block, meets the product scale.  For general cactus traces the
+same construction gives the unconditional instance-sensitive bound obtained
+by replacing each block factor by
+$\min\{L_B,(r_B+1)\log(2+L_B)\}$; no
+graph-uniform bound on unbounded $r_B$ is claimed.
+\end{corollary}
+
+\begin{proof}
+Aggregate all live child streams at one cycle site into one handled threshold
+record.  Cut the active cycle and store the $3\times3$ affine transfer
+matrices from the preceding proof in a balanced product tree.  A site
+diagonal or load change updates one matrix in $O(\log L_B)$ work.  Conditional
+on the parent articulation value $t$, inverse positivity gives every live site
+an affine value $x_j(t)=a_jt+b_j$ with $a_j\geq0$, obtainable by a named prefix
+query.  If $a_j>0$, its child threshold $\theta_j$ pulls back to
+$(\theta_j-b_j)/a_j$ in the parent coordinate.  If $a_j=0$, the record is
+immediate when $b_j>\theta_j$ and is otherwise infinite.  Scanning the $r_B$
+live sites therefore returns the exact next labeled breakpoint and parent
+response in $O((r_B+1)\log(2+L_B))$ work.
+
+Before a block becomes fully active, its active portion is a pair of path arms
+and uses the tree threshold messages plus the unique double-frontier check;
+these bridge, path-arm, and pre-closure route costs are the first term of
+\cref{eq:aesp-cd-cactus-live-sites-work}.
+At first closure, build the cycle product tree once from the cached path in
+$O(L_B)$ work; cactus structure guarantees that the block is never enlarged.
+All such builds and final back substitutions sum to
+$\widetilde O(\vol(S^\star))$.  Each emitted label updates exactly the blocks
+on its root route, proving \cref{eq:aesp-cd-cactus-live-sites-work}.  The number
+of blocks on that route is at most one plus the graph distance, so bounded
+$\chi$, the support-radius inequality, and
+$\sum_v\operatorname{dist}(o,v)\leq R_\star\vol(S^\star)$ prove the RPPR
+specialization.  On a root cycle, use the root site as the parent parameter
+and close its remaining scalar equation at the top.  A full scan gives the
+stated minimum for unbounded $r_B$.
+\end{proof}
+
 The single-positive-load hypothesis cannot be removed by merely running one
 copy per active component, even for RPPR.  On the three-vertex path take
 $\alpha=1/3$, $\rho=1/8$, and put source mass $1/2$ at each endpoint.  In
@@ -1068,31 +1138,152 @@ $\widetilde O(1+\vol(S^\star))$, without a KKT margin or a supplied final
 support.  Fixed ports are covered by
 \cref{cor:aesp-cd-stable-port-reporter}; trees by
 \cref{thm:aesp-cd-tree-singleton-threshold}; unicyclic graphs by
-\cref{cor:aesp-cd-unicyclic-singleton}; and bounded-size biconnected blocks by
-separate block-response solutions.  The next uncovered case already appears
-on a cactus containing an unbounded chain of unbounded cycle blocks.  Naively
-rescanning a length-$L$ cycle response and propagating it through every
-ancestor block can exceed the support-radius product budget when both the
-number and length of the blocks grow.  Concretely, chain $k$ length-$L$
-cycles by identifying adjacent exit and entry vertices.  Then
-$\vol(S^\star)=\Theta(kL)$ and $R_\star=\Theta(k+L)$ on the full-support
-trace.  An implementation that, for every one of the $\Theta(L)$ labels owned
-by block $j$, recomputes a $\Theta(L)$ cycle response in each of its $j$
-ancestor blocks uses
-\begin{equation*}
- \Theta\!\left(L^2\sum_{j=1}^k j\right)=\Theta(k^2L^2)
-\end{equation*}
-route work, whereas the radius-paid target is only
-$\Theta(kL(k+L))$; taking $k=L$ separates the two by a linear factor.  This
-only rules out the naive per-label ancestor-rescan proof, not a more persistent
-cycle data structure.  More general nonradial recursive
-diamond and $2$-tree cores have the same variable-separator issue.  Local
-Schur updates can change dense response columns across many bags, while the
-dynamic Schur structure answers only named queries.  This identifies a
-missing hierarchical reporter interface, not an algorithmic lower bound;
-sublinear cycle-response updates or a kinetic block hierarchy may still close
-the class.
+\cref{cor:aesp-cd-unicyclic-singleton}; bounded-live-site cactus traces by
+\cref{cor:aesp-cd-cactus-live-sites}; and bounded-size biconnected blocks by
+separate block-response solutions.  The next uncovered cactus case has
+unboundedly many live descendant sites in unbounded ancestor cycles.  The
+transfer hierarchy answers each named site in logarithmic time, but neither
+the full scan nor the sum of all named-site queries is presently bounded by
+the support-radius product on every such trace.  More general nonradial
+recursive diamond and $2$-tree cores have the same variable-separator issue.
+Local Schur updates can change dense response columns across many bags, while
+the dynamic Schur structure answers only named queries.  This identifies a
+missing hierarchical reporter interface, not an algorithmic lower bound; a
+kinetic block hierarchy may still close the class.
 \end{problem}
+
+The fixed-mark linear algebra is not the obstruction.  On a supplied balanced
+series--parallel decomposition, parallel composition adds two-port quadratic
+summaries, while series composition eliminates the shared scalar by the Schur
+formula in \cref{prop:aesp-cd-dynamic-schur-forest}.  Hence a named load,
+mark, or response query changes $O(\log N)$ constant-size summaries.  What is
+missing is an aggregate reporter under the changing two-coordinate port
+states.  Even an active length-$L$ cycle has a logarithmic named-response
+structure: cutting it to a path and writing
+\begin{equation*}
+ \begin{pmatrix}x_{i+1}\\x_i\\1\end{pmatrix}
+ =
+ \begin{pmatrix}
+  a_i/c_i&-c_{i-1}/c_i&-b_i/c_i\\
+  1&0&0\\0&0&1
+ \end{pmatrix}
+ \begin{pmatrix}x_i\\x_{i-1}\\1\end{pmatrix}
+\end{equation*}
+turns a site load or diagonal update, a prefix response, and a named
+coordinate query into $O(\log L)$ updates or products in a balanced transfer
+tree.  This avoids the full-cycle rescans in the naive block-chain accounting,
+but it still does not report which of all site thresholds is positive.  The
+following local RPPR core shows why the scalar threshold carried by a rooted
+tree is insufficient.
+
+\begin{proposition}[A two-port direction cannot be one scalar threshold]
+\label{prop:aesp-cd-two-port-direction-stop}
+Take $\alpha=1/2$ and the unweighted theta core with three internally disjoint
+paths
+\begin{equation*}
+ u_1-s-b-u_2,\qquad u_1-a-t-u_2,\qquad u_1-q-u_2.
+\end{equation*}
+Condition on nonnegative port values $s,t$, keep $a,b,s,t$ active, and pin
+$u_1,u_2,q$ at zero.  In the degree-unscaled RPPR system, the active equations
+give
+\begin{equation*}
+ a=t/6-2\rho/3,\qquad b=s/6-2\rho/3,
+\end{equation*}
+while the two pinned terminal keys are
+\begin{equation}
+ g_1=s/4+t/24-5\rho/3,\qquad
+ g_2=s/24+t/4-5\rho/3.
+ \label{eq:aesp-cd-two-port-direction-keys}
+\end{equation}
+At $(s,t)=(5\rho,5\rho)$, $a=b=\rho/6>0$ and
+$g_1=g_2=-5\rho/24$.  The nonnegative update to $(6\rho,5\rho)$ makes
+$(g_1,g_2)=(\rho/24,-\rho/6)$, whereas the update to
+$(5\rho,6\rho)$ reverses the pair.  The remaining row $q$ has key $-\rho$.
+Consequently a direction-free scalar next threshold with one fixed label
+cannot summarize this two-port separator; an exact reporter needs at least a
+two-dimensional envelope or normal-cone state.
+
+This is a local interface obstruction with externally supplied port changes,
+not a complete single-source trajectory or an algorithmic lower bound.  It
+does not rule out the planar hull in
+\cref{cor:aesp-cd-stable-port-reporter} or a hierarchical projective reporter.
+\end{proposition}
+
+\begin{proof}
+Here $p=(1+\alpha)/2=3/4$ and $c=(1-\alpha)/2=1/4$.  The four active
+degree-two equations immediately give the displayed values of $a,b$ after
+conditioning on $s,t$.  Each pinned terminal has degree three and load
+$-3\rho/2$; substituting its two nonzero active neighbors gives
+\cref{eq:aesp-cd-two-port-direction-keys}.  The three evaluations are exact
+rational arithmetic.  Since $q$ has degree two and both its neighbors are
+pinned, its key is $-\rho$.
+\end{proof}
+
+The exact missing primitive can be stated without hiding it inside the Schur
+solver.
+
+\begin{proposition}[Series--parallel reduction to a meldable affine hull]
+\label{prop:aesp-cd-sp-meld-hull-reduction}
+Let a height-$h$ series--parallel decomposition be supplied, expose all $M$
+pinned rows of the current graph, and perform $F_{\rm dyn}$ online factor
+changes and $J$ legal
+singleton admissions.  Suppose a persistent data structure
+$\mathsf{MeldAffineHull}$ stores affine functions on a two-coordinate port
+and supports, in $T(M)$ operations, bulk affine pullback, disjoint meld,
+insert/delete, and exact strict argmax, without expanding its members.  Then
+the exact obstacle trace can be maintained in
+\begin{equation}
+ O\!\left(MT(M)+(F_{\rm dyn}+J)hT(M)+M\right)
+ \label{eq:aesp-cd-sp-meld-hull-work}
+\end{equation}
+field operations.  A nonpositive root maximum is the global KKT certificate.
+Thus $h,T(M)=\operatorname{polylog}(2+M)$ and
+$M+F_{\rm dyn}+J=\widetilde O(\vol(S^\star))$ would close the reporter term.
+
+This is a conditional reduction, not an implementation claim.  Ordinary
+two-port Schur summaries provide the quadratic response but not the required
+bulk-transform-and-meld hull.
+\end{proposition}
+
+\begin{proof}
+For every cluster, store its two-port Schur energy and the handle containing
+the pinned-row affine keys whose coordinates have their unique home and are
+forgotten inside that cluster; cluster ports are excluded.  Parallel
+composition adds the quadratic summaries and melds the handles.  In a series
+composition, eliminating the shared free coordinate gives the Schur formulas
+from \cref{prop:aesp-cd-dynamic-schur-forest}; its value is affine in the
+parent port, so both child key sets undergo one bulk pullback before melding.
+If the shared coordinate is pinned when it is forgotten, substitute zero and
+insert its complete two-sided flux key exactly once; a shared parallel port
+remains deferred.  The bulk pullback is a persistent lazy view under an
+arbitrary, possibly rank-deficient affine map from child to parent ports.
+An admission changes only the home-to-root path.  At the root, solve the
+constant-dimensional response and ask for a strict argmax; a positive label
+is a legal admission, while a nonpositive maximum is exactly KKT.  Initial
+bottom-up construction and one final recovery give
+\cref{eq:aesp-cd-sp-meld-hull-work}.
+\end{proof}
+
+The hull cannot be replaced by a materialized constant-size obstacle response.
+For a weighted series--parallel fan $K_{2,m}$ with ports $s,t$, let the
+internal vertex $u_i$ have diagonal $i^2+2$, couplings $-i^2$ to $s$ and
+$-1$ to $t$, and load $-i/m$.  Give the two ports diagonals
+$1+\sum_i i^2$ and $m+1$.  The matrix is strictly diagonally dominant SPD
+Stieltjes.  Conditional on $(s,t)$, the pinned key is
+\begin{equation*}
+ g_i=i^2s+t-i/m,
+\end{equation*}
+and eliminating the nonnegative $u_i$ contributes
+$-(g_i)_+^2/[2(i^2+2)]$.  The break lines for $i\neq j$ meet at
+\begin{equation*}
+ (s,t)=\left(\frac1{m(i+j)},\frac{ij}{m(i+j)}\right)\in(0,1)^2,
+\end{equation*}
+and a third line $k$ passes through this point only if
+$(k-i)(k-j)=0$.  Hence the exact planar piecewise-quadratic response has
+$\Theta(m^2)$ cells: every line has a chord in the square, every pairwise
+crossing lies inside it, and no three lines concur.  This rules out explicitly materializing the full
+obstacle response at every composition node, but not the implicit hull oracle
+in \cref{prop:aesp-cd-sp-meld-hull-reduction}.
 
 A quantitative margin converts the reporter problem into monotone coordinate
 level events.  The latter events are an additional interface; ordinary
@@ -1353,7 +1544,7 @@ $s-a-u-h$, attach $M-1$ leaves to $h$, and seed $s$.  Thus
 For all $M$ above a $\rho,\alpha$ dependent threshold, the exact RPPR support
 is
 \begin{equation*}
- S^\star=\{s,a,u\},qquad \vol(S^\star)=5.
+ S^\star=\{s,a,u\},\qquad \vol(S^\star)=5.
 \end{equation*}
 Nevertheless, the factor-two rule in
 \cref{prop:aesp-cd-speculative-envelope-doubling}, even when graph search is
