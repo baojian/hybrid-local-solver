@@ -180,6 +180,11 @@ not yield arbitrary hierarchical affine pullback together with persistent
 hull meld/split and strict labeled argmax.  Thus these papers validate the
 neighboring ingredients, but using them here still requires a new reduction
 or a stronger reporter theorem.
+[Kinetic/dynamic hulls](https://doi.org/10.1016/j.comgeo.2006.01.002) also
+allow points with declared bounded-complexity trajectories and individual
+flight-plan changes.  A Schur update, however, changes the pulled-back
+trajectory of an entire dormant cluster at once; treating it as one flight-
+plan update per row reproduces the very materialization charge at issue.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive

@@ -141,7 +141,10 @@ State: proved-open
   treewidth structural updates and global-frame dynamic convex-hull queries,
   including restricted simple-path concatenation, but no stated primitive
   combining hierarchical affine pullback, persistent hull meld/split, and
-  strict labeled argmax.  This is a literature boundary, not a lower bound.
+  strict labeled argmax.  Kinetic hulls allow bounded-complexity per-row
+  trajectories and flight-plan changes, but not a single bulk update of all
+  pulled-back rows in a Schur cluster.  This is a literature boundary, not a
+  lower bound.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
