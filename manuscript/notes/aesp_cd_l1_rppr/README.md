@@ -46,7 +46,7 @@ payment asymptotically tight.  An exact settled `S5` trajectory has adjacent
 positive partial/full events and grows the bank across the pair, so even a
 mandatory one-step quiet gap is false.  On the positive side, every graph
 family with a proved clipped-master inequality has a mean-free Moreau bank
-that contracts by at least `3/8` in `ceil(log(2)/q)` exact fixed-face stages,
+that contracts by a factor at most `3/8` in `ceil(log(2)/q)` exact fixed-face stages,
 independently of event density.  The remaining pulse obstruction is therefore
 concentrated in the constant low mode.  This high-bank estimate now has a
 finite-inner root perturbation with a discounted residual budget.  For the
@@ -56,7 +56,14 @@ infinity norm of the mean-free trial residual.  Combining the master high
 root with the exact forced mean recurrence gives a two-scale epoch potential:
 a quiet `ceil(2/q)` same-point-restart epoch contracts it below `0.407`, and
 an epoch whose observable weighted mean deficit is at most one quarter still
-contracts by `3/4`.  A reachable `K_N` family proves that this high-to-low
+contracts by `3/4`.  A sharper arbitrary-history low-root gate halves the
+two-scale potential on every accepted `ceil(2/q)` window, and it retains an
+explicit finite-inner residual allowance.  Independently, an observable
+pure-prox alignment warmup reduces the high/mean residual ratio by
+`(1+q)^(-J)`; once its computable threshold is crossed, the entire exact
+global-momentum tail is permanently correction-free.  This gives a genuine
+fixed-full-face accelerated route with `O(1/q)` warmup up to logarithms,
+without lower eigendata.  A reachable `K_N` family proves that high-to-low
 transfer cannot be paid by a graph-uniform high-bank coefficient: even after
 a `1/q` rescaling the required coefficient is greater than `(N-1)/15`.
 Thus a local, infinity-norm, or volume-sensitive payment for the weighted
@@ -64,9 +71,8 @@ mean deficit is still needed.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
-The live target is to pack the weighted face-gain and correction-event terms
-in the epoch ledger, then transfer the explicit restart protocol to the actual
-finite safeguarded sequence.
+The live target is to pack failed observable windows and face changes, and to
+transfer the alignment tail to a relative finite-inner schedule.
 No graph-uniform exact accelerated solver or unconditional
 `O_tilde(1/(rho*sqrt(alpha)))` end-to-end theorem is claimed. In particular:
 
@@ -84,13 +90,18 @@ No graph-uniform exact accelerated solver or unconditional
   but converting the event-level low-progress spend into a changing-face
   accelerated net exponent remains open.
 
+An exact settled `P96` trajectory also shows why the new gate cannot be
+replaced by a raw half-contraction assertion: its total Moreau bank retains
+more than `0.54` after exactly `1/q` transitions, with the low component
+retaining more than `2/3`.
+
 Build the note from the repository root with:
 
 ```bash
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all ten exact audits with:
+Run all eleven exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -109,6 +120,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.p24_low_start_stop` (Round 029);
 - `aesp_cd_l1_rppr.signed_event_stop` (Round 030);
 - `aesp_cd_l1_rppr.adjacent_signed_event_stop` (Round 031).
+- `aesp_cd_l1_rppr.p96_full_face_window_stop` (Round 032).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

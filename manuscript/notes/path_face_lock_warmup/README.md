@@ -28,6 +28,13 @@ face: its Perron trigger is a damped oscillation, independent of how many
 finite pure-prox warmups precede it.  This obstruction is repaired exactly by
 a face-tuned momentum parameter plus a spectral-gap/Perron-spread warmup; the
 result has an explicit positive kernel margin but is not graph-uniform.
+Without requiring a permanent tail, a Perron-split window retains both
+components of the actual common-cap correction. With face-tuned momentum,
+its two observable event charges certify a half-contraction in
+`ceil(2/q_face)` stages on any fixed connected face. A reachable `P3`
+trajectory proves that ground-state coordinates do not preserve the common
+cap, so the full-face clipped-master theorem cannot simply be transported to
+a proper face.
 Pure-prox Collatz probes give a cheaper conditional alternative: once their
 Perron bracket has relative width at most `1/16`, an observable error-bar gate
 certifies a fixed-face momentum window with root rate
@@ -67,4 +74,6 @@ python3 verify_warmup.py --spider-arms 16 --spider-length 1 \
   --horizon 2 --max-warmup 4
 python3 verify_reachable_star.py
 python3 verify_reachable_star.py --arms 22 --warmup 6
+uv run python -m \
+  experiments.proof_audits.path_face_lock_warmup.proper_perron_cap_stop
 ```

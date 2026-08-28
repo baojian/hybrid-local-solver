@@ -71,12 +71,22 @@ State: proved-open
   large in infinity norm. A same-point-restart two-scale potential combining
   the master high root and the forced mean contracts below `0.407` on a quiet
   `ceil(2/q)` epoch, and by `3/4` whenever the observable weighted mean deficit
-  is at most one quarter of its starting value. The reachable `K_N` family
+  is at most one quarter of its starting value. A sharper low-root formulation
+  works from arbitrary history: its recorded correction-mean gate halves the
+  two-scale potential in `ceil(2/q)` transitions and has a finite-inner
+  version with an explicit residual budget. An observable pure-prox alignment
+  warmup contracts the high/mean residual ratio by `(1+q)^(-J)`; after a
+  computable threshold, a same-point restart launches a permanently
+  correction-free exact momentum tail. Its warmup is `O(1/q)` up to
+  logarithms and requires no lower eigendata. The reachable `K_N` family
   also gives the exact high-to-low STOP
   `q*Xi_low/C_high>(N-1)/15`, so no graph-uniform high-bank coefficient can
   pay that deficit. A
   direct accelerated terminal result holds on the a-posteriori
-  high-Dirichlet class.
+  high-Dirichlet class. An exact full-face `P96` trajectory shows that the
+  ungated total Moreau bank can retain more than `0.54` after `1/q`
+  transitions, so a raw universal half-window cannot replace the accepted
+  gate.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -90,7 +100,8 @@ State: proved-open
   one-step `1-cq` contraction of the simplest lagged unsplit bank, and every
   graph-uniform constant payment of cross-normalized low forcing using only
   signed/net high-band decrease, as well as the coefficient-`6/5` split
-  payment using the starting low bank on a settled path window.
+  payment using the starting low bank on a settled path window, and raw
+  half-contraction of the total Moreau bank in every settled `1/q` window.
 - **Open:** A graph-uniform net exponent for low-Dirichlet optimal faces using
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
@@ -120,7 +131,10 @@ discounted mean deficit in the non-overshoot/high-trigger branch. The `K_N`
 family rules out paying it by a dimension-free high-energy reserve, so the
 missing extra factor must use an infinity/local/volume-sensitive controller
 certificate or an adaptive accepted-window rule rather than only
-`0<=r_t<=beta*d_t`. There is
+`0<=r_t<=beta*d_t`. Accepted fixed-full-face windows and the exact alignment
+tail are now accelerated; what remains graph-uniformly open is the number and
+cost of failed gates, changing-face transfer, and relative finite-inner
+maintenance. There is
 still no graph-uniform exact accelerated solver.
 
 ## Dependencies and reusable outputs
@@ -151,10 +165,16 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-psi-high-finite`,
   `prop:aesp-cd-low-overshoot-trigger`, and
   `prop:aesp-cd-master-mean-epoch`, and
+  `prop:aesp-cd-p96-full-face-window-stop`,
+  `cor:aesp-cd-observable-two-scale-window`,
+  `cor:aesp-cd-finite-two-scale-window`, and
+  `prop:aesp-cd-observable-alignment-tail`, and
+  `cor:aesp-cd-finite-alignment-tail`,
+  `cor:aesp-cd-fixed-face-gate-align`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: pay or gate the observable weighted mean deficit in
-  the non-overshoot branch using a local infinity/volume certificate; then
-  move the resulting two-scale ledger across boundary restarts.
+- Next concrete action: develop a safe accelerated inner primitive for the
+  small-shift proper-face fallback, pack proper-face event charges, and move
+  the two-scale ledger across boundary restarts.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -166,8 +186,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Ten exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--031 mechanisms. Run them with `uv run python -m
+- Focused checks: Eleven exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--032 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

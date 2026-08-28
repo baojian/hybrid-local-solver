@@ -45,7 +45,13 @@ Role: direction
   strict connected proper face, the global-beta Perron trigger is a damped
   oscillation, so no finite warmup makes the permanent tail cone-safe. A
   face-tuned beta repairs this: a spectral-ratio/Perron-spread warmup makes
-  every exact trigger-kernel entry strictly positive. A conditional
+  every exact trigger-kernel entry strictly positive. A face-tuned
+  Perron-split window works without a spectral gap: it records the Perron and
+  orthogonal components of every actual common-cap correction and halves its
+  two-scale root whenever an explicit `ceil(2/q_face)` event gate passes. A
+  reachable proper-face `P3` trajectory shows that the common cap becomes
+  nonuniform in Perron coordinates, so the full-face master theorem cannot be
+  imported by a ground-state transform alone. A conditional
   one-admission final-full-star theorem gives explicit finite-inner residual
   tolerances for any fixed momentum horizon and an observable primal guard.
   Alternatively, monotone Collatz brackets from pure-prox probes plus an
@@ -61,12 +67,15 @@ Role: direction
   `W_adm <= 2*C_res*(V+Delta_tot/eta)` under a volume-normalized admission
   margin; paying discarded `Theta(vol(A)/q)` windows needs the correspondingly
   stronger `/q` margin.
-- **Conditional:** None.
+- **Conditional:** The proper-face Perron-split theorem gives accelerated
+  contraction for a fixed face whenever its observable two-charge gate passes;
+  it does not bound failed windows or the cost of the face Perron certificate.
 - **Measured:** The finite exact path screens record horizon passes only; they
   are not all-time theorems.
 - **Refuted:** Constant post-lock warmup for the specified reachable star
   policy; cone-uniform one-to-three warmups on the registered paths; four on
-  full stars; and fixed-burst/reset acceleration of the Perron mode.
+  full stars; fixed-burst/reset acceleration of the Perron mode; and direct
+  preservation of the actual common cap under a proper-face Perron transform.
 - **Open:** A graph-size-independent statement for the realized endpoint-path
   chronology; a finite-inner restart/window implementation of face tuning on
   unequal arms and changing proper faces; and charged spectral certificates.
@@ -80,7 +89,9 @@ strict proper faces oscillate under global momentum. The resolvent cost is not
 local merely because the face is exposed: the literal full-star policy costs
 `Theta(B log B)`. Face tuning gives permanent exact safety, but its spectral
 ratio and Perron-spread certificate may be costly and nongraph-uniform. A
-  finite-inner changing-face theorem must retain those costs. Collatz probes
+finite-inner changing-face theorem must retain those costs. The Perron-split
+gate removes the need for a permanent tail on an accepted fixed-face window,
+but failed-window packing and Perron-pair construction remain charged. Collatz probes
 remove the need for full eigendata after their bracket is tight, but the path
 STOP proves their hitting time is not graph-uniform, and admission replay
 count is amortized only conditionally. Without a volume-normalized boundary
@@ -105,7 +116,9 @@ alignment/payment certificate the observable gate can also keep restarting.
 - Exact file/section/lemma: `main.tex`, especially
   `sec:reachable-star-family`, `thm:reachable-star-logarithmic-lower`,
   `cor:star-logarithmic-kernel-margin`, and
-  `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`, and
+  `prop:star-finite-inner-window`, `prop:proper-face-global-momentum-stop`,
+  `prop:proper-face-perron-split-window`,
+  `prop:p3-proper-perron-cap-stop`, and
   `thm:face-tuned-permanent-safety`, `thm:collatz-gated-window`, and
   `prop:collatz-projective-hitting`, `lem:boundary-admission-gain`, and
   `cor:conditional-admission-work`.
@@ -128,6 +141,10 @@ alignment/payment certificate the observable gate can also keep restarting.
   checks a nonvacuous `B=10000,J=6` logarithmic-lower instance.
 - The reachable-family derivation and default exact fraction were independently
   rederived from the three-class recurrence and spectral polynomial.
+- The registered `path_face_lock_warmup.proper_perron_cap_stop` audit replays
+  the reachable settled `P3` face, checks its quadratic-surds Perron pair, and
+  certifies both the transformed-cap mismatch and the negative global Perron
+  trigger.
 - Known gaps: finite path horizon passes are not all-time; the strict kernel
   margin decays with the horizon; and all star bounds are exact, face-specific,
   and do not hide the repeated inverse cost.

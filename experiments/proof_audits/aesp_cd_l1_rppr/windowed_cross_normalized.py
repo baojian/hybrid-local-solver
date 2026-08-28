@@ -415,6 +415,39 @@ def check_forced_mean_epoch() -> None:
         )
         assert current == closed
 
+        # The arbitrary-history low root has an exact shear/impulse formula
+        # in coordinates (q*a, omega).  This checks the window indices used
+        # by the observable two-scale gate.
+        horizon = 5
+        previous = F(7, 13)
+        current = F(5, 13)
+        initial = current
+        initial_velocity = current - theta * previous
+        impulses = [m0 * F(t + 1, 997) for t in range(horizon)]
+        for impulse in impulses:
+            following = theta * (current + (current - theta * previous)) + impulse
+            previous, current = current, following
+        velocity = current - theta * previous
+        closed_q_mean = theta**horizon * (q * initial + horizon * q * initial_velocity)
+        closed_q_mean += sum(
+            theta ** (horizon - 1 - t) * q * (horizon - t) * impulses[t] for t in range(horizon)
+        )
+        closed_velocity = theta**horizon * initial_velocity
+        closed_velocity += sum(theta ** (horizon - 1 - t) * impulses[t] for t in range(horizon))
+        assert q * current == closed_q_mean
+        assert velocity == closed_velocity
+
+        # Dual trial bound behind the observable pure-prox alignment gate.
+        for m in (theta, (theta + F(1, 3)) / 2, F(1, 3)):
+            if not 0 < m <= theta:
+                continue
+            for high, old_high in ((F(2, 5), F(-1, 7)), (F(3, 11), F(4, 9))):
+                master = (
+                    high * high - (1 + beta) * m * high * old_high + beta * m * old_high * old_high
+                )
+                trial = (1 + beta) * high - beta * old_high
+                assert trial * trial * m * (1 - m / m0) <= beta * master
+
 
 def check_source_scope() -> None:
     """Guard theorem labels and the explicit non-overclaim boundary."""
@@ -437,6 +470,9 @@ def check_source_scope() -> None:
     assert "eq:aesp-cd-psi-high-identity" in main
     assert "prop:aesp-cd-low-overshoot-trigger" in main
     assert "prop:aesp-cd-master-mean-epoch" in main
+    assert "cor:aesp-cd-observable-two-scale-window" in main
+    assert "cor:aesp-cd-finite-two-scale-window" in main
+    assert "prop:aesp-cd-observable-alignment-tail" in main
     assert "nonoptimal proper face" in main
     assert "high-drop-only payment" in main
     assert "cross-normalized" in readme
@@ -464,7 +500,7 @@ def main() -> None:
     print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
     print("  signed Moreau events: exact telescope and reachable K8 sharpness")
     print("  Psi bridge: exact high-bank identity and 3/8 master-certified window")
-    print("  mean split: exact overshoot contraction and forced double-root epoch")
+    print("  mean split: exact root-window gate and observable alignment tail")
     print("  scope: changing-face finite-inner restart transfer remains open")
 
 
