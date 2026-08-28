@@ -471,6 +471,49 @@ cost $O(N)$ and give
 \cref{eq:aesp-cd-sp-meld-hull-work}.
 \end{proof}
 
+The pullback part of this interface has more structure than an arbitrary
+point update.
+
+\begin{lemma}[Two-port Schur pullback is an order-monotone projective view]
+\label{lem:aesp-cd-two-port-projective-pullback}
+Let a child port satisfy $z=P\widehat z+u$ with $P\geq0$ entrywise, as in a
+Stieltjes series elimination, and let a pinned key be
+$g(z)=a^{\mathsf T}z-b$ with $a\geq0$.  Its pulled-back normal is
+$\widehat a=P^{\mathsf T}a\geq0$.  On the stratum $a_2>0$, write
+\begin{equation*}
+ r:=a_1/a_2,\qquad c:=-b/a_2.
+\end{equation*}
+Whenever $P_{12}r+P_{22}>0$, the normalized dual row transforms as
+\begin{equation}
+ \widehat r=\frac{P_{11}r+P_{21}}{P_{12}r+P_{22}},
+ \qquad
+ \widehat c=\frac{c+r u_1+u_2}{P_{12}r+P_{22}}.
+ \label{eq:aesp-cd-two-port-projective-pullback}
+\end{equation}
+Thus $r\mapsto\widehat r$ is increasing, decreasing, or constant according
+to the sign of $\det P$; a whole ordered hull can retain the pullback as one
+lazy projective view, with at most an order reversal.  Zero denominators and
+$a_2=0$ form the usual endpoint strata.
+
+This removes row-by-row resorting from the pullback operation.  It does not
+implement the required meld: differently transformed child hulls can
+interleave arbitrarily, and a hierarchy of unresolved unions makes strict
+argmax branch into all descendants.
+\end{lemma}
+
+\begin{proof}
+Substitution gives
+$\widehat a=P^{\mathsf T}a$ and
+$\widehat b=b-a^{\mathsf T}u$.  Dividing its two normal coordinates and its
+intercept by $a_2(P_{12}r+P_{22})$ gives
+\cref{eq:aesp-cd-two-port-projective-pullback}.  Moreover
+\begin{equation*}
+ \frac{d\widehat r}{dr}
+ =\frac{\det P}{(P_{12}r+P_{22})^2},
+\end{equation*}
+whose sign is constant on the stratum.
+\end{proof}
+
 The hull cannot be replaced by a materialized constant-size obstacle response.
 For a weighted series--parallel fan $K_{2,m}$ with ports $s,t$, let the
 internal vertex $u_i$ have diagonal $i^2+2$, couplings $-i^2$ to $s$ and

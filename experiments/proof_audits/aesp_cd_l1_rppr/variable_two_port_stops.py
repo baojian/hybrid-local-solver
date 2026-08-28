@@ -143,6 +143,50 @@ def weighted_direction_stop():
     return determinant
 
 
+def projective_pullback_order_audit():
+    """Check the exact normalized two-port pullback and its order sign."""
+    translation = (F(2, 7), -F(1, 5))
+    matrices = (
+        ((F(3), F(1)), (F(1), F(2))),
+        ((F(1), F(3)), (F(2), F(1))),
+        ((F(1), F(2)), (F(2), F(4))),
+    )
+    rows = []
+    for matrix in matrices:
+        p11, p12 = matrix[0]
+        p21, p22 = matrix[1]
+        determinant = p11 * p22 - p12 * p21
+        images = []
+        for slope in (F(1, 5), F(2, 3), F(7, 4)):
+            intercept = F(3, 11) - slope / 13
+            normal = (slope, F(1))
+            offset = -intercept
+            pulled_normal = (
+                p11 * normal[0] + p21 * normal[1],
+                p12 * normal[0] + p22 * normal[1],
+            )
+            pulled_offset = offset - sum(
+                normal[i] * translation[i] for i in range(2)
+            )
+            denominator = p12 * slope + p22
+            formula_slope = (p11 * slope + p21) / denominator
+            formula_intercept = (
+                intercept + slope * translation[0] + translation[1]
+            ) / denominator
+            assert pulled_normal[1] == denominator > 0
+            assert pulled_normal[0] / pulled_normal[1] == formula_slope
+            assert -pulled_offset / pulled_normal[1] == formula_intercept
+            images.append(formula_slope)
+        if determinant > 0:
+            assert images == sorted(images)
+        elif determinant < 0:
+            assert images == sorted(images, reverse=True)
+        else:
+            assert len(set(images)) == 1
+        rows.append((determinant, images))
+    return rows
+
+
 def root_port_forget_stop():
     """Check that excluding both pinned root ports would miss a positive key."""
     matrix = [[F(2), -F(1)], [-F(1), F(2)]]
@@ -711,6 +755,7 @@ def main():
     assert r"\label{cor:aesp-cd-cactus-live-sites}" in source
     assert r"\label{prob:aesp-cd-variable-two-port-reporter}" in source
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
+    assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
@@ -724,6 +769,7 @@ def main():
 
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
+    projective_rows = projective_pullback_order_audit()
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
     interface_ledgers = static_cluster_and_prefix_merge_ledgers()
@@ -743,6 +789,7 @@ def main():
         rppr_determinant,
         weighted_determinant,
     )
+    print("  projective pullback determinants / slope images", projective_rows)
     print("  cactus literal-rescan ledgers", cactus_rows)
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
     print("  virtual top forget catches pinned root-port keys", root_keys)

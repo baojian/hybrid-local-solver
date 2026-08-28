@@ -164,6 +164,11 @@ out fixed factor-two bins.
 For the remaining series--parallel interface, fixed-mark Schur updates and
 named cycle responses are logarithmic.  A conditional reduction isolates the
 missing object as a persistent affine hull supporting bulk pullback and meld.
+The pullback alone is structured: nonnegative two-port Schur maps act on
+normalized row slopes by an order-preserving/reversing Möbius map, so one
+child hull can keep a lazy projective view.  The unresolved operation is the
+meld and strict argmax across differently transformed, arbitrarily
+interleaving child hulls.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.
