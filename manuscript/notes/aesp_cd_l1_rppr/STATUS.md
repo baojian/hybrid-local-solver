@@ -122,7 +122,14 @@ State: proved-open
   square-root block factor is the current cactus gap, while the alternative
   route promise
   `max_v sum_{B in P(v)} min{p_B+1,sqrt(L_B)}=O_tilde(R*)` closes another
-  strict subclass. Under a uniform relative KKT margin,
+  strict subclass.  A small-`rho` connected-order lemma realizes the
+  square-root gap on a strict legal RPPR singleton trace, so the flat
+  scan-all-cuts rebuild proof is genuinely insufficient; this is not a lower
+  bound against multilevel reporters or different batching.  Indeed, a
+  supplied final weighted HLD plus balanced SP parses closes the post-closure
+  cactus route conditionally by rebuilding whole heavy paths; online
+  cut/concatenate and asynchronous closure merging remain the exact missing
+  interface. Under a uniform relative KKT margin,
   charged coordinate-level events give another soft-linear reporter; the
   event source remains an explicit interface cost.
 - **Conditional:** A graph-uniform net packing inequality for the actual
@@ -254,6 +261,10 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-cactus-live-sites`,
   `cor:aesp-cd-cactus-productive-sites`,
   `cor:aesp-cd-cactus-productive-epochs`,
+  `lem:aesp-cd-connected-order-small-rho`,
+  `prop:aesp-cd-objective-gain-charge-stop`,
+  `prop:aesp-cd-cactus-static-cluster-stop`,
+  `prop:aesp-cd-cactus-offline-hld`,
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `prop:aesp-cd-separated-level-reporter`,

@@ -135,6 +135,22 @@ unbounded ancestor cycles, and more
 generally a variable-port series--parallel graph.  A three-vertex two-source
 example shows why running
 independent single-root copies does not handle component mergers.
+A small-`rho` connected-prefix realization lemma makes the square-root
+separation reachable by a legal RPPR singleton trace; it stops the literal
+flat rebuild-and-scan interface, not multilevel reporting or another legal
+batch order.  A matching static-cluster interface proposition makes this
+boundary explicit: without bulk affine pullback or hull meld, an adversarial
+`Theta(sqrt(L))`-event phase costs `Omega(L)` even though this is not an
+algorithmic lower bound.
+Even the exact Schur objective decrease cannot pay a fixed amount per
+admission: an exact two-vertex RPPR family has a strict admission whose gain
+tends quadratically to zero.  Thus gain-only charging needs an explicit
+relative margin or a different potential.
+If the final closed block tree, its weighted heavy--light decomposition, and
+balanced series--parallel parses are supplied offline, whole heavy paths can
+instead be rebuilt as chain-cactus superblocks and the full post-closure
+cactus reporter meets the radius--volume product.  Making those decompositions
+local and online again requires the unresolved bulk pullback/meld interface.
 A separate quantitative result reduces uniformly separated RPPR boundary
 keys to monotone coordinate-level events.  This is soft-linear only when the
 level-event source is itself charged; ordinary point-query Schur messages do

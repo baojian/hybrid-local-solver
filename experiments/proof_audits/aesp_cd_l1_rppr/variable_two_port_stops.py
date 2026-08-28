@@ -161,6 +161,28 @@ def root_port_forget_stop():
     return keys
 
 
+def objective_gain_charge_stop():
+    """Calibrate a strict K2 admission whose exact Schur gain tends to zero."""
+    alpha = F(1, 5)
+    diagonal = (1 + alpha) / 2
+    coupling = (1 - alpha) / 2
+    gains = []
+    for epsilon in (F(1, 10), F(1, 100), F(1, 1000)):
+        rho = coupling - epsilon
+        root_value = alpha * (1 - rho) / diagonal
+        key = -alpha * rho + coupling * root_value
+        pivot = diagonal - coupling * coupling / diagonal
+        gain = key * key / (2 * pivot)
+        assert key == alpha * epsilon / diagonal > 0
+        assert pivot == alpha / diagonal > 0
+        assert gain == alpha * epsilon * epsilon / (2 * diagonal)
+        gains.append(gain)
+    assert gains[0] > gains[1] > gains[2] > 0
+    assert gains[1] * 100 == gains[0]
+    assert gains[2] * 100 == gains[1]
+    return gains
+
+
 def productive_site_numeric_key_pressure():
     """Show why dormant runs store homogeneous rows, not numerical keys."""
     # Cut a four-cycle at parent site zero and set its value to one.  Sites
@@ -425,6 +447,92 @@ def cactus_case(block_count, length):
     return len(adjacency), len(admissions), volume, radius, naive_work, ratio
 
 
+def connected_order_small_rho_certificate():
+    """Replay an exact core--side--terminal connected order on three triangles."""
+    block_count = length = 3
+    terminal_count = 9
+    adjacency, blocks, owner, _ports = cycle_chain(block_count, length)
+    core_count = len(adjacency)
+    sites = [sorted({vertex for edge in block for vertex in edge}) for block in blocks]
+    branch_site = {}
+    side_order = []
+    # q=ceil(sqrt(3))-1=1: one side leaf at each exit articulation.
+    for block in range(1, block_count + 1):
+        exit_site = block
+        adjacency.append([exit_site])
+        leaf = len(adjacency) - 1
+        adjacency[exit_site].append(leaf)
+        owner[leaf] = block
+        branch_site[leaf] = (block, exit_site)
+        side_order.append(leaf)
+    terminal_order = []
+    for _ in range(terminal_count):
+        adjacency.append([block_count])
+        leaf = len(adjacency) - 1
+        adjacency[block_count].append(leaf)
+        owner[leaf] = block_count
+        branch_site[leaf] = (block_count, block_count)
+        terminal_order.append(leaf)
+    order = list(range(1, core_count)) + side_order + terminal_order
+
+    alpha, rho = F(1, 5), F(1, 10**75)
+    degree, _p, _c, matrix, load = rppr_system(adjacency, alpha, rho)
+    active = {0}
+    closed = [False] * (block_count + 1)
+    touched = [set() for _ in range(block_count + 1)]
+    visits = [0] * (block_count + 1)
+    phase_minimum = {"core": None, "side": None, "terminal": None}
+
+    for position, vertex in enumerate(order):
+        assert any(neighbor in active for neighbor in adjacency[vertex])
+        value = restricted_solution(matrix, load, active)
+        assert all(coordinate > 0 for coordinate in value.values())
+        state = [value.get(i, F(0)) for i in range(len(adjacency))]
+        key = load[vertex] - sum(
+            matrix[vertex][j] * state[j] for j in range(len(adjacency))
+        )
+        assert key > 0
+        if position < core_count - 1:
+            phase = "core"
+        elif position < core_count - 1 + block_count:
+            phase = "side"
+        else:
+            phase = "terminal"
+        old_minimum = phase_minimum[phase]
+        phase_minimum[phase] = key if old_minimum is None else min(old_minimum, key)
+
+        event_owner = owner[vertex]
+        for block in range(1, event_owner + 1):
+            if not closed[block]:
+                continue
+            visits[block] += 1
+            if block == event_owner and vertex in branch_site:
+                touched[block].add(branch_site[vertex][1])
+            elif block < event_owner:
+                touched[block].add(block)
+        active.add(vertex)
+        for block in range(1, block_count + 1):
+            if not closed[block] and set(sites[block - 1]) <= active:
+                closed[block] = True
+
+    assert active == set(range(len(adjacency)))
+    assert F(12, 10_000) < phase_minimum["core"] < F(13, 10_000)
+    assert F(31, 100_000) < phase_minimum["side"] < F(32, 100_000)
+    assert F(33, 100_000) < phase_minimum["terminal"] < F(34, 100_000)
+    productive_counts = tuple(
+        len(touched[block]) for block in range(1, block_count + 1)
+    )
+    visit_counts = tuple(visits[block] for block in range(1, block_count + 1))
+    assert productive_counts == (1, 1, 1)
+    assert visit_counts == (14, 12, 10)
+    assert graph_radius(adjacency) * sum(degree) == 168
+    return (
+        {phase: float(value) for phase, value in phase_minimum.items()},
+        productive_counts,
+        visit_counts,
+    )
+
+
 def matrix_multiply(left, right):
     return [
         [sum(left[i][k] * right[k][j] for k in range(3)) for j in range(3)]
@@ -559,13 +667,18 @@ def main():
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
+    assert r"\label{lem:aesp-cd-connected-order-small-rho}" in productive_source
+    assert r"\label{prop:aesp-cd-objective-gain-charge-stop}" in productive_source
+    assert r"\label{prop:aesp-cd-cactus-static-cluster-stop}" in productive_source
     assert "not their pulled-back" in productive_source
 
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
     root_keys = root_port_forget_stop()
+    objective_gains = objective_gain_charge_stop()
     productive_keys = productive_site_numeric_key_pressure()
     epoch_ledgers = productive_epoch_integer_ledgers()
+    connected_order = connected_order_small_rho_certificate()
     cactus_rows = [
         cactus_case(block_count, length)
         for block_count, length in ((2, 3), (3, 4), (4, 4), (5, 5), (6, 6))
@@ -582,8 +695,10 @@ def main():
     print("  cactus literal-rescan ledgers", cactus_rows)
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
     print("  virtual top forget catches pinned root-port keys", root_keys)
+    print("  K2 strict-admission objective gains", objective_gains)
     print("  legal productive-site numerical-key pressure", productive_keys)
     print("  productive epoch integer ledgers", epoch_ledgers)
+    print("  connected-order small-rho phase minima / p / J", connected_order)
     print("  final exact positive site slopes", slopes)
     print("  scope: representation STOP plus restricted named-response GO only")
 
