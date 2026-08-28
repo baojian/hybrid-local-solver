@@ -184,6 +184,32 @@ def projective_pullback_order_audit():
         else:
             assert len(set(images)) == 1
         rows.append((determinant, images))
+
+    def multiply(left, right):
+        return tuple(
+            tuple(sum(left[i][k] * right[k][j] for k in range(3)) for j in range(3))
+            for i in range(3)
+        )
+
+    def projective(matrix, shift):
+        return (
+            (matrix[0][0], F(0), matrix[1][0]),
+            (shift[0], F(1), shift[1]),
+            (matrix[0][1], F(0), matrix[1][1]),
+        )
+
+    p1, p2 = matrices[:2]
+    u1, u2 = translation, (F(1, 3), F(2, 9))
+    composite_p = tuple(
+        tuple(sum(p1[i][k] * p2[k][j] for k in range(2)) for j in range(2))
+        for i in range(2)
+    )
+    composite_u = tuple(
+        sum(p1[i][k] * u2[k] for k in range(2)) + u1[i] for i in range(2)
+    )
+    assert multiply(projective(p2, u2), projective(p1, u1)) == projective(
+        composite_p, composite_u
+    )
     return rows
 
 
