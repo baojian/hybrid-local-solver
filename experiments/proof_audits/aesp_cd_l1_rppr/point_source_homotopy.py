@@ -1072,6 +1072,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-unweighted-row-band}" in source
     assert r"\label{cor:aesp-cd-proper-face-gray-coupling-packing}" in source
     assert r"\label{cor:aesp-cd-proper-face-pivot-coupling-budget}" in source
+    assert r"\label{cor:aesp-cd-point-source-cumulative-gray-key}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source

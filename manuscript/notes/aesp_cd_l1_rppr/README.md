@@ -45,6 +45,11 @@ Its squared corrections also have an explicit local ledger proportional to
 Over all admissions, `sum_w s_w <= ((1-alpha)/4)*vol(S*)`; hence the squared
 pivot-side band coefficients are output-linear.  The row-side factors and
 response amounts are the remaining accumulation loss.
+Point-source unit mass nevertheless caps the complete key-side accumulation:
+for every row retained through the trace,
+`sum_j x_wj*|delta_vj| <= c^2*q*sqrt(d_v)/(alpha*(1+q))`, independently of
+the admission count.  The normalized radius decays as `1/sqrt(d_v)`, but it
+is still too large on arbitrary low-degree rows to close the target theorem.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

@@ -107,6 +107,15 @@ Across the whole nested trace, the selected pivot couplings themselves obey
 charged only when its later endpoint enters.  Thus the squared common
 gray-band coefficients are output-linear.  This still does not close the
 trace: the retained row factor `s_v` and the response amounts evolve.
+The point-source unit-mass normalization controls the latter more strongly
+than the edge ledger alone.  If `xi_j` is the new degree-unscaled obstacle
+coordinate at admission `w_j`, then `sum d_wj*xi_j<=1` and `sum xi_j<=1`.
+Consequently every row retained through the trace has cumulative high-mode
+key radius at most `c^2*q*sqrt(d_v)/(alpha*(1+q))`, independent of the
+admission count.  After degree normalization this falls as `1/sqrt(d_v)`.
+For low-degree rows at `q=Theta(sqrt(alpha))` it can still be
+`Theta(1/sqrt(alpha))`, so this is not yet the universal target-accuracy
+theorem.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active

@@ -143,6 +143,11 @@ State: proved-open
   giving `sum_j s_wj<=((1-alpha)/4)*vol(S*)`; the squared pivot-side band
   coefficients are therefore output-linear.  Retained row growth and
   response amounts remain outside that ledger.
+  Point-source unit PageRank mass also caps each retained row's complete
+  accumulated high-mode key radius by
+  `c^2*q*sqrt(d_v)/(alpha*(1+q))`, independent of admission count.  Its
+  normalized form decays as `1/sqrt(d_v)` but remains too large for arbitrary
+  low-degree rows at the target `q=Theta(sqrt(alpha))` scale.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -641,6 +646,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-unweighted-row-band`,
   `cor:aesp-cd-proper-face-gray-coupling-packing`,
   `cor:aesp-cd-proper-face-pivot-coupling-budget`,
+  `cor:aesp-cd-point-source-cumulative-gray-key`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
