@@ -89,10 +89,11 @@ See [`docs/research_protocol.md`](docs/research_protocol.md) and
 [`docs/mathematical-conventions.md`](docs/mathematical-conventions.md) for the
 project-wide protocol and conventions.
 
-Agent-family ownership, branch/worktree isolation, handoffs, and default
-context selection are defined in
-[`docs/coordination/`](docs/coordination/). Run `make agent-audit` to validate
-the active assignment ledger and provider-owned path declarations.
+Agent-family ownership, optional concurrent branch/worktree isolation,
+handoffs, and default context selection are defined in
+[`docs/coordination/`](docs/coordination/). Routine single-agent work uses the
+current branch directly. Run `make agent-audit` to validate the active
+assignment ledger and provider-owned path declarations.
 
 ## Research context and paper library
 
