@@ -97,8 +97,11 @@ Exact theorem/page pointers are in `docs/literature/lcp-solvers.md`.
 
 - `python3 verify_counterexample.py` uses only exact `Fraction` arithmetic and
   checks every iterate, step size, energy decrease, conjugacy, and overshoot.
-- Focused note build and repository audits are recorded in the coordination
-  handoff after completion.
+- The focused note build, note registry, coordination audit, and all 213 tests
+  pass.  The owned Python script passes Ruff lint and format checks.  The full
+  repository format check still reports nine pre-existing files in the
+  separately owned `aesp_cd_l1_rppr` proof-audit direction; exact details are
+  recorded in the coordination handoff.
 
 ## Resume here
 

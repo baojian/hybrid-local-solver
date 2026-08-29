@@ -169,7 +169,11 @@ downstream ranking requirements.
 
 | Year | Venue | Paper | BibTeX key | Primary area |
 | --- | --- | --- | --- | --- |
+| 1991 | SIOPT | *On the Solution of Large Quadratic Programming Problems with Bound Constraints* | `more1991solution` | Bound-constrained optimization |
+| 1994 | Numer. Math. | *Monotone Multigrid Methods for Elliptic Variational Inequalities I* | `kornhuber1994monotone` | Obstacle solvers |
+| 1994 | COR | *A Block Principal Pivoting Algorithm for Large-Scale Strictly Monotone Linear Complementarity Problems* | `judice1994block` | Complementarity solvers |
 | 2003 | STOC | *Evolving Sets and Mixing* | `morris2003evolving` | Evolving-set foundations |
+| 2003 | JOTA | *Augmented Lagrangian Active Set Methods for Obstacle Problems* | `karkkainen2003augmented` | Obstacle solvers |
 | 2004 | STOC | *Nearly-Linear Time Algorithms for Graph Partitioning, Graph Sparsification, and Solving Linear Systems* | `spielman2004nearly` | Spectral graph optimization |
 | 2006 | FOCS | *Local Graph Partitioning Using PageRank Vectors* | `andersen2006local` | PageRank foundations |
 | 2007 | PNAS | *The Heat Kernel as the PageRank of a Graph* | `chung2007heat` | Heat-kernel PageRank |
@@ -181,6 +185,7 @@ downstream ranking requirements.
 | 2009 | STOC | *Finding Sparse Cuts Locally Using Evolving Sets* | `andersen2009finding` | Evolving-set methods |
 | 2010 | ICM | *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices* | `spielman2010algorithms` | Spectral graph optimization |
 | 2011 | FOCS | *A Nearly-m log n Time Solver for SDD Linear Systems* | `koutis2011nearly` | Spectral graph optimization |
+| 2011 | COAP | *Superrelaxation and the Rate of Convergence in Minimizing Quadratic Functions Subject to Bound Constraints* | `dostal2011superrelaxation` | Bound-constrained optimization |
 | 2011 | SICOMP | *Spectral Sparsification of Graphs* | `spielman2011spectral` | Spectral graph optimization |
 | 2011 | SIDMA | [*Sublinear Time Algorithms*](../../papers/2011-sidma-rubinfeld-sublinear-time-algorithms.pdf) | `rubinfeld2011sublinear` | Sublinear algorithms |
 | 2012 | SODA | [*Space-Efficient Local Computation Algorithms*](../../papers/2012-soda-alon-space-efficient-local-computation-algorithms.pdf) | `alon2012space` | Local computation algorithms |

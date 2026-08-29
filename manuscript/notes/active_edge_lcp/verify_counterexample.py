@@ -53,10 +53,7 @@ def main():
         [0, 1, 1, 0],
     ]
     H = [
-        [
-            F(3, 5) * degree[i] if i == j else -F(2, 5) * adjacency[i][j]
-            for j in range(4)
-        ]
+        [F(3, 5) * degree[i] if i == j else -F(2, 5) * adjacency[i][j] for j in range(4)]
         for i in range(4)
     ]
 
@@ -84,7 +81,8 @@ def main():
     print("degree:", fmt(degree))
     print("exact optimum y*:", fmt(optimum))
     print("exact old-face y0:", fmt(old_face))
-    previous_energy = None
+    initial_error = add(old_face, optimum, F(-1))
+    previous_energy = dot(initial_error, matvec(H, initial_error))
     directions = []
     for iteration in range(4):
         dinv_direction = [value / degree[i] for i, value in enumerate(direction)]
@@ -99,8 +97,7 @@ def main():
 
         error = add(y, optimum, F(-1))
         energy = dot(error, matvec(H, error))
-        if previous_energy is not None:
-            assert energy < previous_energy
+        assert energy < previous_energy
         previous_energy = energy
         for old_direction in directions:
             old_dinv = [value / degree[i] for i, value in enumerate(old_direction)]

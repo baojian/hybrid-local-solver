@@ -4,12 +4,6 @@
 
 \input{../../tex/shared/research_note_preamble}
 
-\newcommand{\face}{\phi}
-\newcommand{\Sstar}{\mathcal S_\rho^*}
-\newcommand{\bdry}{\partial}
-\newcommand{\kappaQ}{\kappa(\mQ)}
-\newcommand{\ledger}[1]{C_{\mathrm{#1}}}
-
 \title{Active-Edge Linear Complementarity for Local RPPR:\\
 Exact Safe Pivots, a Fully Charged Continuation Contract,\\
 and a Projected-CG Obstruction}
@@ -25,7 +19,7 @@ This note audits an obstacle/linear-complementarity route to the project's
 second open problem (OP2).  In the shared normalization, regularized
 PageRank is exactly the nonnegative quadratic
 \[
- \min_{\vx\geq0}\ \face(\vx)
+ \min_{\vx\geq0}\ \phi(\vx)
  :=\tfrac12\vx^\trans\mQ\vx-\vc^\trans\vx,
  \qquad
  \vc=\vb-\alpha\rho\mD^{1/2}\one .
@@ -39,7 +33,7 @@ Starting from zero, solve the current principal face exactly and activate any
 outside coordinate with negative complementarity slack.  Every activated
 coordinate belongs to the unknown optimum support; after a batch activation,
 the new exact face solution is positive and increases coordinatewise.  Thus
-there are no false activations or deletions and at most $|\Sstar|$ pivots.
+there are no false activations or deletions and at most $|\mathcal S_\rho^*|$ pivots.
 Only graph-boundary coordinates can violate.  A local minimum-norm KKT
 subgradient gives an objective-gap certificate in one charged terminal scan.
 
@@ -49,8 +43,8 @@ quadratic cumulative volume although terminal volume is linear.  We isolate
 the missing theorem as an active-edge continuation contract: all discovery,
 changing-face numerical work, boundary rekeying and certification,
 materialization, state traffic, and output must be amortized within
-$\softO(\vol(\Sstar)\sqrt{\kappaQ})$.  Since
-$\kappaQ\leq1/\alpha$ and $\vol(\Sstar)\leq1/\rho$, that contract would imply
+$\softO(\vol(\mathcal S_\rho^*)\sqrt{\kappa(\mQ)})$.  Since
+$\kappa(\mQ)\leq1/\alpha$ and $\vol(\mathcal S_\rho^*)\leq1/\rho$, that contract would imply
 the desired $\softO(1/(\rho\sqrt\alpha))$ bound with logarithmic objective
 accuracy.  No audited primary source supplies the contract.  Wei--Yang's 2026
 local active-set method is closest, but explicitly solves each SDD face from
@@ -86,7 +80,7 @@ OP2 asks for a feasible returned vector $\widehat\vx$ satisfying
 \end{equation}
 in fully charged graph work
 $\softO(1/(\rho\sqrt\alpha))$, with only polylogarithmic dependence on
-$1/\epsobj$.  The algorithm receives neither $\Sstar$ nor free global
+$1/\epsobj$.  The algorithm receives neither $\mathcal S_\rho^*$ nor free global
 preprocessing.  Adjacency entries, degree queries, arithmetic, state
 reads/writes, boundary and certificate scans, materialization, and output all
 count.
@@ -98,17 +92,17 @@ count.
 Status & Statement \\
 \midrule
 \statussource & The canonical RPPR optimum is nonnegative and has
-$\vol(\Sstar)\leq1/\rho$.  Wei--Yang give a true-support growing active-set
+$\vol(\mathcal S_\rho^*)\leq1/\rho$.  Wei--Yang give a true-support growing active-set
 method but pay a repeated principal-system factor. \\
 \statusproved & RPPR is exactly a symmetric nonsingular M-matrix LCP with
 $\vc=\vb-\alpha\rho\mD^{1/2}\one$ and
 $\vw=\mQ\vx-\vc$. \\
 \statusproved & Exact negative-violation pivots from zero activate only
-$\Sstar$, require no deletions, and increase the exact face solution
+$\mathcal S_\rho^*$, require no deletions, and increase the exact face solution
 coordinatewise. \\
 \statusproved & On a supplied exact support, ordinary CG plus one final
 orthant projection has work
-$\bigO(\vol(\Sstar)\alpha^{-1/2}\log(1/\epsobj))$. \\
+$\bigO(\vol(\mathcal S_\rho^*)\alpha^{-1/2}\log(1/\epsobj))$. \\
 \statusproved & A locally computable minimum-norm KKT subgradient certifies
 objective gap at most $\norm{\vg}^2/(2\alpha)$. \\
 \statusconditional & A margin-free active-edge continuation primitive with
@@ -138,7 +132,7 @@ Define
 \begin{equation}
  \vc:=\vb-\alpha\rho\mD^{1/2}\one,
  \qquad
- \face(\vx):=\frac12\vx^\trans\mQ\vx-\vc^\trans\vx .
+ \phi(\vx):=\frac12\vx^\trans\mQ\vx-\vc^\trans\vx .
  \label{eq:c-and-phi}
 \end{equation}
 The off-diagonal entries of $\mQ$ are nonpositive, and
@@ -149,7 +143,7 @@ $\alpha\mI\preceq\mQ\preceq\mI$.
 The RPPR problem is equivalent, with the same optimum value and unique
 optimum, to
 \begin{equation}
- \min_{\vx\geq\vzero}\face(\vx).
+ \min_{\vx\geq\vzero}\phi(\vx).
  \label{eq:obstacle}
 \end{equation}
 Its KKT system is
@@ -163,7 +157,7 @@ Its KKT system is
 \end{equation}
 Moreover, $\mQ$ is a symmetric nonsingular M-matrix (a Stieltjes matrix) and
 a K-matrix, so \cref{eq:lcp} has a unique solution.  In the regime
-\cref{eq:nonzero-regime}, $v\in\Sstar$.
+\cref{eq:nonzero-regime}, $v\in\mathcal S_\rho^*$.
 \end{theorem}
 
 \begin{proof}
@@ -177,10 +171,10 @@ $\vx_\rho^*\geq\vzero$.  On the nonnegative orthant,
  \alpha\rho\norm{\mD^{1/2}\vx}_1
  =\alpha\rho\one^\trans\mD^{1/2}\vx,
 \]
-so $F_\rho(\vx)=\face(\vx)$ there.  This proves \cref{eq:obstacle}.
+so $F_\rho(\vx)=\phi(\vx)$ there.  This proves \cref{eq:obstacle}.
 
 At a lower bound $x_i\geq0$, stationarity and the normal cone give
-$w_i=(\nabla\face(\vx))_i\geq0$ when $x_i=0$ and $w_i=0$ when $x_i>0$.
+$w_i=(\nabla\phi(\vx))_i\geq0$ when $x_i=0$ and $w_i=0$ when $x_i>0$.
 These are exactly \cref{eq:lcp}; in particular the slack sign is positive,
 not negative.  The matrix $\mQ$ is symmetric positive definite and has
 nonpositive off-diagonals.  Hence it is Stieltjes.  Every principal minor is
@@ -193,7 +187,7 @@ Finally,
 \]
 If $(\vx_\rho^*)_v=0$, then
 $w_v=\sum_{j\neq v}Q_{vj}(\vx_\rho^*)_j-c_v<0$, contradicting
-\cref{eq:lcp}.  Thus $v\in\Sstar$.
+\cref{eq:lcp}.  Thus $v\in\mathcal S_\rho^*$.
 \end{proof}
 
 \begin{remark}[Degree-coordinate boundary key]
@@ -227,7 +221,7 @@ vectors on $S$ by zero outside $S$.  Principal interlacing gives
 
 \begin{theorem}[Supplied exact-support CG]
 \label{thm:supplied-cg}
-Suppose $S=\Sstar$ is supplied.  Run ordinary exact-arithmetic CG on
+Suppose $S=\mathcal S_\rho^*$ is supplied.  Run ordinary exact-arithmetic CG on
 \begin{equation}
  \mQ_{SS}\vy=\vc_S
  \label{eq:face-system}
@@ -245,7 +239,7 @@ $\Delta_S:=\tfrac12\norm{\vy_0-(\vx_\rho^*)_S}_{\mQ_{SS}}^2$, then
 Consequently a supported-row implementation has charged work
 \begin{equation}
  \bigO\!\left(
-   \frac{\vol(\Sstar)}{\sqrt\alpha}
+   \frac{\vol(\mathcal S_\rho^*)}{\sqrt\alpha}
    \log\frac{\Delta_S}{\alpha\epsobj}
  \right),
  \label{eq:supplied-work}
@@ -266,7 +260,7 @@ Euclidean orthant projection is nonexpansive relative to the positive vector
 $(\vx_\rho^*)_S$.  Since $\mQ_{SS}\preceq\mI$ and
 $\mQ_{SS}\succeq\alpha\mI$,
 \begin{align*}
- \face([\vy_k]_+)-\face((\vx_\rho^*)_S)
+ \phi([\vy_k]_+)-\phi((\vx_\rho^*)_S)
  &=\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_{\mQ_{SS}}^2\\
  &\leq\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_2^2\\
  &\leq\frac1{2\alpha}
@@ -308,13 +302,13 @@ adding only coordinates with strictly negative current slack.
 \label{thm:safe-pivots}
 Let $U$ be reachable.  Then
 \begin{equation}
- U\subseteq\Sstar,
+ U\subseteq\mathcal S_\rho^*,
  \qquad
  \vzero<\vx^U_U\leq(\vx_\rho^*)_U.
  \label{eq:reachable-invariant}
 \end{equation}
 Every coordinate $j\notin U$ with $w_j^U<0$ belongs to
-$\Sstar\setminus U$.  If $J$ is any nonempty collection of such coordinates,
+$\mathcal S_\rho^*\setminus U$.  If $J$ is any nonempty collection of such coordinates,
 then $U':=U\cup J$ is reachable and
 \begin{equation}
  \vx^{U'}_{U'}>\vzero,
@@ -323,19 +317,19 @@ then $U':=U\cup J$ is reachable and
  \label{eq:batch-monotonicity}
 \end{equation}
 If no outside slack is negative, $\vx^U=\vx_\rho^*$.  Consequently this exact
-outer loop makes at most $|\Sstar|$ pivots, has nested support, and never
+outer loop makes at most $|\mathcal S_\rho^*|$ pivots, has nested support, and never
 activates a false coordinate or deletes a coordinate.
 \end{theorem}
 
 \begin{proof}
 The empty-face slack at the seed is $w_v^\emptyset=-c_v<0$, so the first
-pivot admits $v\in\Sstar$.  Its scalar principal solve is positive.
+pivot admits $v\in\mathcal S_\rho^*$.  Its scalar principal solve is positive.
 
 Assume the invariant holds at a reachable $U$.  Restricted stationarity of
-$\vx^U$ and the optimum equations on $\Sstar$ give
+$\vx^U$ and the optimum equations on $\mathcal S_\rho^*$ give
 \begin{equation}
  \mQ_{UU}\bigl((\vx_\rho^*)_U-\vx^U_U\bigr)
- =-\mQ_{U,\Sstar\setminus U}(\vx_\rho^*)_{\Sstar\setminus U}
+ =-\mQ_{U,\mathcal S_\rho^*\setminus U}(\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}
  \geq\vzero.
  \label{eq:face-comparison}
 \end{equation}
@@ -343,17 +337,17 @@ The inverse of a principal Stieltjes matrix is nonnegative
 \citep[Chapter~6]{berman1994nonnegative}, so
 $\vx^U_U\leq(\vx_\rho^*)_U$.
 
-Now take $j\notin\Sstar$.  Since $(\vx_\rho^*)_j=0$ and $w_j^*\geq0$,
+Now take $j\notin\mathcal S_\rho^*$.  Since $(\vx_\rho^*)_j=0$ and $w_j^*\geq0$,
 \begin{align}
  w_j^U-w_j^*
  &=\mQ_{jU}\bigl(\vx^U_U-(\vx_\rho^*)_U\bigr)
-   -\mQ_{j,\Sstar\setminus U}(\vx_\rho^*)_{\Sstar\setminus U}
+   -\mQ_{j,\mathcal S_\rho^*\setminus U}(\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}
  \geq0.
  \label{eq:no-false-violation}
 \end{align}
 Both terms are nonnegative because the coordinate differences in the first
 are nonpositive and all displayed off-diagonal matrix entries are
-nonpositive.  Hence $w_j^U\geq0$; a negative violator must lie in $\Sstar$.
+nonpositive.  Hence $w_j^U\geq0$; a negative violator must lie in $\mathcal S_\rho^*$.
 
 For a batch $J$ of negative violators, block elimination in the enlarged
 principal equations gives
@@ -376,13 +370,13 @@ uniqueness in \cref{thm:reduction} identifies the optimum.
 \begin{corollary}[Boundary-only discovery]
 \label{cor:boundary-only}
 At every nonempty reachable face, a negative violation can occur only in
-$\bdry U$.  Exposing every newly admitted vertex's adjacency list once costs
+$\partial U$.  Exposing every newly admitted vertex's adjacency list once costs
 $\vol(U)$, and creates at most $\vol(U)$ boundary-candidate incidences.  No
 adjacency list of a false boundary candidate need be scanned.
 \end{corollary}
 
 \begin{proof}
-For $j\notin U\cup\bdry U$ with $j\neq v$, sparsity gives
+For $j\notin U\cup\partial U$ with $j\neq v$, sparsity gives
 $w_j^U=-c_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already in every nonempty
 reachable face.  The incidence counts follow by charging each exposed edge to
 its endpoint in $U$.
@@ -426,7 +420,7 @@ For a feasible $\vx\geq\vzero$, set $\vw=\mQ\vx-\vc$ and define
 \begin{theorem}[KKT subgradient certificate]
 \label{thm:kkt-certificate}
 The vector $\vg(\vx)$ is the minimum-Euclidean-norm element of the
-subdifferential of $\face+I_{\R_+^n}$ at $\vx$, and
+subdifferential of $\phi+I_{\R_+^n}$ at $\vx$, and
 \begin{equation}
  F_\rho(\vx)-F_\rho(\vx_\rho^*)
  \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
@@ -445,12 +439,12 @@ smallest magnitude in $w_i+(-\infty,0]$ is zero when $w_i\geq0$ and $w_i$
 when $w_i<0$.  This proves \cref{eq:minimal-subgradient}.  Strong convexity
 gives, for every subgradient $\vg$,
 \[
- (\face+I)(\vy)\geq(\face+I)(\vx)+\vg^\trans(\vy-\vx)
+ (\phi+I)(\vy)\geq(\phi+I)(\vx)+\vg^\trans(\vy-\vx)
        +\frac\alpha2\norm{\vy-\vx}_2^2.
 \]
 Minimizing the right side over $\vy\in\R^n$ and taking
 $\vy=\vx_\rho^*$ yields \cref{eq:gap-certificate}.  For locality, a sparse
-row scan accumulates $\mQ\vx$ on $U\cup\bdry U$.  Every farther nonseed
+row scan accumulates $\mQ\vx$ on $U\cup\partial U$.  Every farther nonseed
 coordinate has positive slack by \cref{rem:boundary-key}, so its minimum-norm
 subgradient entry is zero.
 \end{proof}
@@ -471,9 +465,9 @@ the boundary-candidate and degree words generated from them.  Let the work
 ledger be
 \begin{equation}
  \begin{split}
- W={}&\ledger{exp}+\ledger{false}+\ledger{upd}+\ledger{bnd}
-      +\ledger{num}\\
-    &+\ledger{state}+\ledger{mat}+\ledger{emit}.
+ W={}&C_{\mathrm{exp}}+C_{\mathrm{false}}+C_{\mathrm{upd}}+C_{\mathrm{bnd}}
+      +C_{\mathrm{num}}\\
+    &+C_{\mathrm{state}}+C_{\mathrm{mat}}+C_{\mathrm{emit}}.
  \end{split}
  \label{eq:resource-ledger}
 \end{equation}
@@ -487,21 +481,21 @@ oracle call.
 \toprule
 Charge & Included operations \\
 \midrule
-$\ledger{exp}$ & Seed access, degree queries, adjacency entries, candidate
+$C_{\mathrm{exp}}$ & Seed access, degree queries, adjacency entries, candidate
 creation, and distinct active-edge exposure. \\
-$\ledger{false}$ & False activations, deletions, halo scans, duplicate
+$C_{\mathrm{false}}$ & False activations, deletions, halo scans, duplicate
 candidate insertion, and any repair they cause. \\
-$\ledger{upd}$ & Face changes, warm-start transport, factor/preconditioner
+$C_{\mathrm{upd}}$ & Face changes, warm-start transport, factor/preconditioner
 updates, and response-state maintenance. \\
-$\ledger{bnd}$ & Boundary-key changes, violation location, repeated scans,
+$C_{\mathrm{bnd}}$ & Boundary-key changes, violation location, repeated scans,
 sign certification/refinement, and the terminal KKT scan. \\
-$\ledger{num}$ & Principal matrix-vector products, linear solves,
+$C_{\mathrm{num}}$ & Principal matrix-vector products, linear solves,
 preconditioner applications, dot products, and arithmetic. \\
-$\ledger{state}$ & Reads, writes, priority/dictionary operations, and stored
+$C_{\mathrm{state}}$ & Reads, writes, priority/dictionary operations, and stored
 words, including implicit representations. \\
-$\ledger{mat}$ & Materializing intermediate face values needed by another
+$C_{\mathrm{mat}}$ & Materializing intermediate face values needed by another
 operation and the final feasible vector. \\
-$\ledger{emit}$ & Writing the returned support and coordinate values. \\
+$C_{\mathrm{emit}}$ & Writing the returned support and coordinate values. \\
 \bottomrule
 \end{tabularx}
 \caption{The active-edge resource ledger.}
@@ -514,9 +508,9 @@ An active-edge primitive satisfies the contract if, for every canonical OP2
 instance and $0<\epsobj<\alpha/2$, when coupled to the safe outer skeleton it
 has the following properties.
 \begin{enumerate}[label=(C\arabic*)]
-\item \emph{Sound discovery.}  Every admitted coordinate lies in $\Sstar$.
+\item \emph{Sound discovery.}  Every admitted coordinate lies in $\mathcal S_\rho^*$.
 Any speculative activation is restored and its entire cost is included in
-$\ledger{false}$.
+$C_{\mathrm{false}}$.
 \item \emph{Complete reporting.}  It either returns a certified negative
 outside slack for the current face or returns a feasible $\widehat\vx$ with
 $\norm{\vg(\widehat\vx)}_2\leq\sqrt{2\alpha\epsobj}$.
@@ -524,14 +518,14 @@ No positive lower bound on an unknown complementarity margin is assumed;
 ambiguous signs are refined or bypassed within the ledger.
 \item \emph{Exploration bound.}  Counting candidate words as above,
 \begin{equation}
- E\leq\softO(\vol(\Sstar)).
+ E\leq\softO(\vol(\mathcal S_\rho^*)).
  \label{eq:exploration-contract}
 \end{equation}
 \item \emph{Aggregate continuation bound.}  Across the entire nested
 sequence, including all items in \cref{eq:resource-ledger},
 \begin{equation}
  W\leq\softO\!\left(
- E\sqrt{\kappaQ}\log\frac1{\epsobj}
+ E\sqrt{\kappa(\mQ)}\log\frac1{\epsobj}
  \right).
  \label{eq:aggregate-contract}
 \end{equation}
@@ -556,17 +550,17 @@ fully charged work
 
 \begin{proof}
 Soundness and \cref{thm:safe-pivots} keep every exact outer face in
-$\Sstar$.  Complete reporting and \cref{thm:kkt-certificate} give the
+$\mathcal S_\rho^*$.  Complete reporting and \cref{thm:kkt-certificate} give the
 objective gap.  The shared support-volume theorem gives
-$\vol(\Sstar)\leq1/\rho$, while
-$\kappaQ\leq1/\alpha$.  Substitution into
+$\vol(\mathcal S_\rho^*)\leq1/\rho$, while
+$\kappa(\mQ)\leq1/\alpha$.  Substitution into
 \cref{eq:exploration-contract,eq:aggregate-contract} proves
 \cref{eq:conditional-op2-work}.  Every access and output item appears in
 \cref{eq:resource-ledger}, so no boundary scan, preprocessing, or
 materialization is uncharged.
 \end{proof}
 
-The mathematical outer loop already makes $\ledger{false}=0$.  The central
+The mathematical outer loop already makes $C_{\mathrm{false}}=0$.  The central
 missing lemma is therefore \cref{eq:aggregate-contract}: maintain a changing
 Stieltjes principal response and locate all relevant decreases of
 \cref{eq:boundary-key} in aggregate active-volume times the fixed-face
@@ -591,7 +585,7 @@ Fix an endpoint-seeded path $P_n$ and any $\alpha\in(0,1)$.  At $\rho=0$,
 $\mQ^{-1}\vb$ is strictly positive because the inverse of the irreducible
 Stieltjes matrix is positive.  By continuity, for all sufficiently small
 $\rho>0$ the unconstrained shifted solution $\mQ^{-1}\vc$ remains positive,
-so it is the obstacle optimum and $\Sstar=[n]$.  On a proper prefix, the only
+so it is the obstacle optimum and $\mathcal S_\rho^*=[n]$.  On a proper prefix, the only
 outside graph-boundary vertex is the next path vertex.  The current face is
 not terminal, so \cref{thm:safe-pivots} implies that this unique boundary
 vertex has negative slack and is admitted next.  Hence every prefix occurs.
@@ -789,7 +783,7 @@ The required theorem can be weakened in useful ways without changing the
 proof of \cref{thm:conditional-op2}: a structural graph condition may replace
 graph-uniform \cref{eq:aggregate-contract}; a randomized reporter may fail
 with declared probability $\delta$; or a cumulative explored-volume bound
-may replace $\vol(\Sstar)$.  What cannot be replaced by terminal volume alone
+may replace $\vol(\mathcal S_\rho^*)$.  What cannot be replaced by terminal volume alone
 is cumulative continuation and boundary work.
 
 \section{Dependency and evidence map}
