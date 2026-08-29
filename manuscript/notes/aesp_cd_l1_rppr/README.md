@@ -203,18 +203,45 @@ must support nonuniform rank-one mixtures.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls
-below $ho$.  Its discovery work is
-$\widetilde O(\vol(S^\star)+\sum_w(1+\delta_w)^2)$, where $delta_w$ is the
+below $\rho$.  Its discovery work is
+$\widetilde O(\vol(S^\star)+\sum_w(1+\delta_w)^2)$, where $\delta_w$ is the
 actual Schur-fill degree at pivot $w$.  Bounded homotopy width therefore gives
 a genuine product-scale point-source solver after the final-face Chebyshev
 step.  Explicit fill can still be quadratic (already at a high-degree root),
 so this is a new structural GO rather than the universal theorem.
+Linear pivot-path length for K-matrix LCPs is classical
+([Foniok--Fukuda--G\"artner--L\"uthi](https://arxiv.org/abs/0807.1249)); the
+new role here is the point-source $\rho$-ratio parameterization, sparse-fill
+ledger, and finite-error contract, not the number of exact pivots alone.
+At a single requested $\rho$, this simplifies further: maintain only the
+scalar restricted residual $g_v=A_v-\rho B_v$, pivot any certified-positive
+row, and stop when all certified upper residuals meet the normalized KKT
+tolerance.  Point-source locality makes this row discovery complete because
+every nonroot row not yet adjacent to the support still has strictly negative
+load.  Thus the weakest missing universal interface is now a dynamic
+one-sided residual reporter; separate ratio vectors are needed only for the
+full $\rho$-homotopy.
 The same homotopy has a margin-free approximate stopping rule:
 $\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
 $\eta$ on the largest remaining critical ratio costs at most
 $(1+\alpha)\eta/2$ in the normalized KKT diagnostic.  Exact support and
 exact breakpoint separation are therefore unnecessary at the requested
 finite accuracy.
+A certified interval version makes the remaining approximation contract
+explicit: rowwise pair radii of order $\alpha\eta d_v$ suffice for additive
+ratio accuracy $\eta$, and the reporter may safely pivot, stop, or refine a
+gray row.  A two-by-two exact witness shows why a generic two-sided spectral
+Schur approximation is not already such a certificate: an
+$\varepsilon$-spectral perturbation can replace a positive updated breakpoint
+by zero.  Approximate elimination therefore still needs a rowwise one-sided
+error conversion; this is the present general-graph bridge.
+This distinction matters when importing near-linear
+[approximate Gaussian elimination](https://arxiv.org/abs/1605.02353),
+[spectral vertex sparsifiers](https://arxiv.org/abs/1506.08204), or their
+[dynamic variants](https://arxiv.org/abs/1906.10530): those papers certify
+spectral/energy behavior, while the ratio-pivot stop needs simultaneous
+one-sided row intervals.  Whether those tools can be augmented to supply the
+intervals at local cost is now the precise open interface.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

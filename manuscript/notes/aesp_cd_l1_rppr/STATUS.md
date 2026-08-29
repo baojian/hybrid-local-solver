@@ -122,10 +122,22 @@ State: proved-open
   Hence bounded homotopy width, followed by the certified final-face
   Chebyshev solve, meets the point-source product target.  This is not
   graph-uniform because explicit root/fill cliques can be quadratic.
+  At a fixed target `rho`, the implementation contract is strictly simpler:
+  a single exterior residual `g=A-rho*B` obeys the same nonnegative Schur
+  pivot update, any certified-positive row may enter, and a one-sided
+  `O(alpha*eps_kkt*d_v)` upper interval gives a finite KKT stop.  The
+  point-source negative off-root load makes row-on-first-pivot discovery
+  complete without a global scan.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
-  KKT stop.  Near-tied breakpoints need not be resolved exactly.
+  KKT stop.  Near-tied breakpoints need not be resolved exactly.  A rigorous
+  interval interface now reduces this to coordinatewise pair errors of scale
+  `O(alpha*eta*d_v)`.  Ordinary two-sided spectral Schur approximation alone
+  is insufficient: an exact two-row witness is spectrally close to the
+  identity but a literal approximate pivot erases a positive breakpoint.
+  The missing universal bridge is therefore a rowwise one-sided certificate,
+  not exact support or exact breakpoint ordering.
   A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
@@ -320,6 +332,9 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
   `cor:aesp-cd-ratio-pivot-finite-stop`,
+  `cor:aesp-cd-point-source-fixed-target-pivot`,
+  `cor:aesp-cd-ratio-pivot-interval-interface`,
+  `prop:aesp-cd-spectral-schur-ratio-stop`,
   `thm:aesp-cd-point-source-ratio-pivot`,
   `prop:aesp-cd-point-source-homotopy-reorder`,
   `prop:aesp-cd-point-source-superlevel-stop`,

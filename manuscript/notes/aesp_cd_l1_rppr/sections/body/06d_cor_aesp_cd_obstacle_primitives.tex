@@ -275,8 +275,8 @@ breakpoint, block elimination gives
 Therefore \(w\) becomes positive immediately below \(\tau_w\), and every
 old active coordinate is nondecreasing.  The Schur complement of a
 Stieltjes matrix is Stieltjes, so
-\(-K^S_{vw}/K^S_{ww}\geq0\).  Equations
-\cref{eq:aesp-cd-ratio-pivot-pair,eq:aesp-cd-ratio-pivot-schur} are precisely
+\(-K^S_{vw}/K^S_{ww}\geq0\).
+\Cref{eq:aesp-cd-ratio-pivot-pair,eq:aesp-cd-ratio-pivot-schur} are precisely
 the block-elimination identities.  At the first event below the target,
 every exterior key is
 \begin{equation*}
@@ -294,6 +294,75 @@ Summing gives
 \cref{eq:aesp-cd-ratio-pivot-work}; the stored elimination multipliers give a
 back-substitution with no larger charge.
 \end{proof}
+
+\begin{corollary}[Fixed-target scalar residual pivoting]
+\label{cor:aesp-cd-point-source-fixed-target-pivot}
+At one fixed target \(\rho<1/d_o\), the two breakpoint vectors are not
+needed.  On a current face define the exterior restricted residual
+\begin{equation*}
+ g^S_{\bar S}
+ :=c_{\rho,\bar S}-H_{\bar SS}H_{SS}^{-1}c_{\rho,S}
+ =A_{\bar S}-\rho B_{\bar S}.
+\end{equation*}
+Starting with \(S=\{o\}\), choose \emph{any} row \(w\notin S\) with
+\(g^S_w>0\), admit it, and update
+\begin{align*}
+ g^{S\cup\{w\}}_v
+ &=g^S_v-\frac{K^S_{vw}}{K^S_{ww}}g^S_w,\\
+ K^{S\cup\{w\}}_{uv}
+ &=K^S_{uv}-\frac{K^S_{uw}K^S_{wv}}{K^S_{ww}}.
+\end{align*}
+When every remaining residual is nonpositive, the restricted solution is the
+exact obstacle solution.  Every admitted coordinate stays strictly positive,
+so each final-support row is admitted at most once.  In the point-source
+problem, any unseen nonroot row with no original edge to \(S\) has
+\(g^S_v=c_{\rho,v}=-\alpha\rho d_v<0\).  Hence the same row-on-first-pivot
+discovery and explicit-fill work bound
+\cref{eq:aesp-cd-ratio-pivot-work} applies without a global initial scan.
+
+More generally, suppose a finite reporter gives certified intervals
+\begin{equation*}
+ g_v^-\leq g^S_v\leq g_v^+.
+\end{equation*}
+It may safely pivot any row with \(g_v^->0\).  If instead
+\begin{equation}
+ max_{v\notin S}\frac{[g_v^+]_+}{d_v}
+ \leq\alpha\epskkt,
+ \label{eq:aesp-cd-fixed-target-residual-stop}
+\end{equation}
+then the current restricted solution already meets the note's finite KKT
+target.  Otherwise it refines only the gray certificate.  Thus a fixed-target
+implementation needs one-sided row-residual accuracy
+\(O(\alpha\epskkt d_v)\), not exact support, exact breakpoint order, or even
+the separate vectors \(A\) and \(B\).
+\end{corollary}
+
+\begin{proof}
+Let \(x_S=H_{SS}^{-1}c_{\rho,S}\).  If \(g^S_w>0\), block elimination gives
+\begin{equation*}
+ x'_w=\frac{g^S_w}{K^S_{ww}}>0,
+ \qquad
+ x'_S=x_S-H_{SS}^{-1}H_{Sw}x'_w\geq x_S>0,
+\end{equation*}
+because every principal inverse is nonnegative and \(H_{Sw}\leq0\).  The
+displayed residual and Schur recurrences are the same block-elimination
+identity, and their multipliers are nonnegative.  Induction preserves strict
+interiority.  At termination, active equations and exterior nonpositive
+residuals are exactly the global obstacle KKT conditions.  The point-source
+load proves the locality claim.  Finally, active residuals vanish, so
+\cref{eq:aesp-cd-fixed-target-residual-stop} is precisely the normalized KKT
+diagnostic bound.
+\end{proof}
+
+\paragraph{Relation to principal-pivoting theory.}
+The linear number of exact support pivots is consistent with the broader
+K-matrix LCP theorem of
+\href{https://arxiv.org/abs/0807.1249}{Foniok, Fukuda, G\"artner, and
+L\"uthi}, which proves linear pivot-path length for K-matrix LCPs.  The
+point-source content used here is the explicit decreasing-\(\rho\) ratio
+parameterization, the sparse-fill locality ledger, and the finite KKT
+interface below; the note does not claim that linear pivot count itself is
+new.
 
 \begin{corollary}[Finite KKT stopping band for ratio homotopy]
 \label{cor:aesp-cd-ratio-pivot-finite-stop}
@@ -343,6 +412,139 @@ residual, while in the degree-unscaled coordinates an inactive positive key
 \(g_v=B_v(\tau_v-\rho)\) proves
 \cref{eq:aesp-cd-ratio-pivot-finite-kkt}.
 \end{proof}
+
+\begin{corollary}[Certified interval interface for finite ratio pivoting]
+\label{cor:aesp-cd-ratio-pivot-interval-interface}
+On a current point-source homotopy face, suppose a reporter returns rigorous
+coordinatewise intervals
+\begin{equation*}
+ 0\leq A_v^-\leq A_v\leq A_v^+,
+ \qquad
+ 0<B_v^-\leq B_v\leq B_v^+
+ \qquad(v\notin S).
+\end{equation*}
+Put
+\begin{equation*}
+ \tau_v^-:=A_v^-/B_v^+,
+ \qquad
+ \tau_v^+:=A_v^+/B_v^-.
+\end{equation*}
+Then the following three-way interface is safe.
+\begin{enumerate}
+\item If some \(\tau_v^->\rho\), that row has a strictly positive actual
+  exterior key at the target and may be pivoted.
+\item If \(\max_{v\notin S}\tau_v^+\leq\rho+\eta\), the current restricted
+  point satisfies the finite KKT guarantee
+  \begin{equation*}
+   R_{\mathrm{kkt},\rho}(x_S(\rho))
+   \leq\frac{1+\alpha}{2}\eta.
+  \end{equation*}
+\item Otherwise the reporter may refine the gray rows or rebuild its
+  certificate; no unsupported pivot or terminal declaration is made.
+\end{enumerate}
+Thus exact breakpoint ordering is not part of the required approximate
+Schur contract.
+
+For a concrete sufficient scale, suppose
+\begin{equation*}
+ |\widehat A_v-A_v|\leq\epsilon_A d_v,
+ \qquad
+ |\widehat B_v-B_v|\leq\epsilon_B d_v,
+ \qquad
+ \epsilon_B\leq\alpha/4,
+\end{equation*}
+and intersect the corresponding centered intervals with the universal bands
+\(A_v\geq0\) and \(B_v\geq\alpha d_v\).  Every homotopy breakpoint obeys
+\(0\leq\tau_v\leq1/d_o\leq1\), and hence
+\begin{equation}
+ 0\leq\tau_v^+-\tau_v
+ \leq\frac{4(\epsilon_A+\epsilon_B)}{\alpha}.
+ \label{eq:aesp-cd-ratio-pivot-interval-width}
+\end{equation}
+In particular, normalized pair radii
+\(\epsilon_A+\epsilon_B\leq\alpha\eta/4\) are sufficient for an additive
+\(\eta\) ratio upper certificate.
+\end{corollary}
+
+\begin{proof}
+The interval ratios enclose \(\tau_v=A_v/B_v\).  The first claim follows
+from
+\(g_v(\rho)=B_v(\tau_v-\rho)>0\), and adding any strictly violated row is a
+legal monotone obstacle pivot.  The second claim is
+\cref{cor:aesp-cd-ratio-pivot-finite-stop}.
+
+The root enters at \(1/d_o\).  Every later breakpoint is a nonnegative
+weighted average of an old breakpoint and the admitted breakpoint by
+\cref{eq:aesp-cd-point-source-homotopy-mix}; hence all are in
+\([0,1/d_o]\).  A centered certified interval can overshoot the true
+\(A_v\) and undershoot the true \(B_v\) by at most
+\(2\epsilon_A d_v\) and \(2\epsilon_Bd_v\), respectively.  Since
+\(A_v\leq B_v\), \(B_v\geq\alpha d_v\), and
+\(B_v-2\epsilon_Bd_v\geq\alpha d_v/2\), direct subtraction gives
+\begin{equation*}
+ \frac{A_v+2\epsilon_A d_v}{B_v-2\epsilon_Bd_v}
+ -\frac{A_v}{B_v}
+ \leq\frac{4(\epsilon_A+\epsilon_B)}{\alpha},
+\end{equation*}
+which proves \cref{eq:aesp-cd-ratio-pivot-interval-width}.
+\end{proof}
+
+\begin{proposition}[Two-sided spectral Schur approximation is not a ratio certificate]
+\label{prop:aesp-cd-spectral-schur-ratio-stop}
+For every \(0<\varepsilon<1\), the SPD Stieltjes matrices
+\begin{equation*}
+ K_\varepsilon=
+ \begin{pmatrix}1&-\varepsilon\\-\varepsilon&1\end{pmatrix},
+ \qquad
+ \widetilde K=I
+\end{equation*}
+satisfy
+\begin{equation*}
+ (1-\varepsilon)\widetilde K
+ \preceq K_\varepsilon
+ \preceq(1+\varepsilon)\widetilde K.
+\end{equation*}
+Nevertheless, take current breakpoint pairs
+\((A_w,B_w)=(1,1)\) and \((A_v,B_v)=(0,b)\), \(b>0\), and pivot \(w\).
+The exact Schur update gives
+\begin{equation*}
+ (A'_v,B'_v)=(\varepsilon,b+\varepsilon),
+ \qquad \tau'_v=\frac{\varepsilon}{b+\varepsilon}>0,
+\end{equation*}
+whereas using \(\widetilde K\) literally gives
+\((\widetilde A'_v,\widetilde B'_v)=(0,b)\) and
+\(\widetilde\tau'_v=0\).
+Therefore an ordinary two-sided spectral vertex sparsifier or approximate
+Schur complement cannot by itself be interpreted as the certified one-sided
+ratio envelope in
+\cref{cor:aesp-cd-ratio-pivot-interval-interface}.  It must be accompanied
+by a conversion to rowwise pair-error intervals (at scale
+\(O(\alpha\eta d_v)\)), or by another directly certified reporter.  This is
+an interface obstruction, not a lower bound against spectral sparsification
+or randomized approximate elimination.
+\end{proposition}
+
+\begin{proof}
+The two eigenvalues of \(K_\varepsilon\) are
+\(1-\varepsilon\) and \(1+\varepsilon\).  The exact elimination multiplier
+is \(-K_{vw}/K_{ww}=\varepsilon\), whereas the multiplier read from
+\(\widetilde K\) is zero.  Substitution into
+\cref{eq:aesp-cd-ratio-pivot-pair} gives the displayed pairs and ratios.
+\end{proof}
+
+\paragraph{Relation to spectral elimination.}
+Nearly-linear
+\href{https://arxiv.org/abs/1605.02353}{approximate Gaussian elimination}
+and
+\href{https://arxiv.org/abs/1506.08204}{spectral vertex sparsification}
+produce sparse energy approximations, while
+\href{https://arxiv.org/abs/1906.10530}{dynamic spectral vertex
+sparsifiers} additionally support terminal changes and energy/solution
+queries.  Their stated guarantees are spectral or energy-norm guarantees,
+not simultaneous one-sided intervals for every ratio \(A_v/B_v\).  The
+preceding proposition shows that such an interval conversion is a genuine
+additional proof obligation; it does not say that these techniques cannot be
+adapted to provide one.
 
 \begin{corollary}[Margin-free accelerated obstacle primitive]
 \label{cor:aesp-cd-margin-free-obstacle-primitive}
