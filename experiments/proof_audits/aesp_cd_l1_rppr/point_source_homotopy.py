@@ -128,6 +128,18 @@ def check_ground_state_normalization(
         )
         survival_lower = alpha / (alpha + coupling * leakage)
         assert min(response) >= survival_lower
+        diagonal = (1 + alpha) / 2
+        assert all(
+            response[position]
+            == alpha / diagonal
+            + coupling
+            / (diagonal * degree[vertex])
+            * sum(
+                adjacency[vertex][neighbor] * response[face.index(neighbor)]
+                for neighbor in face
+            )
+            for position, vertex in enumerate(face)
+        )
         mass = [F(degree[i], 1) / response[position] for position, i in enumerate(face)]
         assert all(
             sum(principal[row][column] * response[column] for column in range(len(face)))

@@ -87,8 +87,9 @@ State: proved-open
   `m>=ceil(1/alpha)` supplies an explicit nonvacuous family.  The exact
   killed-walk interpretation also yields the checkable survival bound
   `min h>=alpha/(alpha+((1-alpha)/2)eta_A)` from local exterior leakage and
-  converts ordinary induced-face conductance into the required ground
-  conductance.
+  converts ordinary induced-face conductance or Poincare gap into the
+  required ground geometry.  Under `eta_A=O(alpha)`, sufficient original
+  scales are `Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`, respectively.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -443,8 +444,11 @@ The older safeguarded-momentum route remains a valid secondary frontier:
 accepted fixed-face windows and aligned tails are accelerated, while failed
 gates, changing-face transfer, and permanent finite-inner accuracy are not
 graph-uniformly packed.  The new ground-state conjugacy removes the proper-face
-constant-mode mismatch for a modified shift/cap, but does not manufacture its
-high-gap or master-sign hypotheses.  Neither route currently yields a
+constant-mode mismatch for a modified shift/cap.  Local leakage plus ordinary
+conductance/Poincare data now supplies a concrete proper-face high-gap
+certificate and closes the corresponding aligned tail without a master-sign
+assumption.  It does not certify every final face, cross admissions, or solve
+the general dynamic event locator.  Neither route currently yields a
 graph-uniform end-to-end accelerated solver.
 
 ## Dependencies and reusable outputs

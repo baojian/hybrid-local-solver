@@ -201,7 +201,9 @@ explicit infinite nonvacuous family satisfying the certificate.  More
 generally, if every face vertex has exterior-degree fraction at most `eta`,
 then the killed-walk interpretation gives
 `min h >= alpha/(alpha+((1-alpha)/2)eta)` and converts ordinary induced-face
-conductance directly into ground conductance.  A
+conductance or Poincare gap directly into the ground geometry.  With
+`eta=O(alpha)`, ordinary conductance `Theta(alpha^(1/4))` or ordinary
+Poincare gap `Theta(sqrt(alpha))` is sufficient.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
 

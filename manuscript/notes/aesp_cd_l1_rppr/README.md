@@ -387,7 +387,9 @@ exterior leaf and `m>=ceil(1/alpha)` has `Phi_h>=27/256`.
 The ground coordinate `h_i` is exactly the probability of teleporting before
 leaving the face.  If every vertex leaks at most an `eta` fraction of its
 edges, then `min h>=alpha/(alpha+((1-alpha)/2)eta)`, giving a direct
-ordinary-conductance certificate without first diagonalizing the face.
+ordinary-conductance or Poincare certificate without first diagonalizing the
+face.  When `eta=O(alpha)`, the sufficient scales are respectively
+`Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls
