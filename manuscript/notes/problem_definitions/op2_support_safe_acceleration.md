@@ -1,4 +1,4 @@
-# OP2: support-safe acceleration and the remaining rate lemma
+# OP2: support-safe acceleration, a decoy obstruction, and remaining routes
 
 Date: 2026-08-29
 
@@ -6,15 +6,17 @@ Date: 2026-08-29
 
 This note records a focused attempt on OP2.  It uses `main.tex` in this
 directory as its only project-internal mathematical source.  The support and
-work lemmas below are proved.  The accelerated convergence rate is a sharply
-isolated conjectural lemma; it is **not** claimed as a theorem.
+work lemmas below are proved.  A graph-uniform accelerated convergence rate
+for the first candidate was initially isolated as a single lemma and is now
+**refuted** below by a graph-realizable decoy construction.
 
-The main new candidate is a maximal subsolution extrapolation.  Unlike
-standard FISTA, every vector whose adjacency lists are scanned is supported
-inside the exact RPPR support.  Consequently, a graph-uniform
-`O_tilde(1/sqrt(alpha))` iteration bound for this candidate would prove OP2
-immediately.  The ordinary `O_tilde(1/alpha)` bound follows already from the
-same invariants.
+The main candidate is a maximal subsolution extrapolation.  Unlike standard
+FISTA, every vector whose adjacency lists are scanned is supported inside the
+exact RPPR support.  These locality invariants remain useful.  However, one
+global scalar momentum can be controlled by arbitrarily low-energy active
+components, and the resulting worst-case rate is only the ordinary
+`O_tilde(1/alpha)` rate.  Any successful descendant must localize or weight
+its momentum decisions, not merely enforce the same global feasibility test.
 
 ## 1. Obstacle and fixed-point form
 
@@ -239,37 +241,227 @@ supported on `S*`, the KKT gradient at `x*` vanishes on their difference and
 The initial objective gap is at most `alpha/2`, and
 `alpha I <= Q <= I`; these facts and (3) give the displayed work bound.
 
-## 3. The single rate lemma that would prove OP2
+## 3. Accuracy transfer and a finite-precision buffer
 
-The following is the precise unresolved statement.
+There is a useful way to protect the exact subsolution inequalities from
+roundoff without paying polynomially for the objective accuracy.
 
-### Accelerated MSE lemma (open)
+### Proposition 6 (nearby regularization transfer)
 
-There are universal constants `C,c>0` such that (MSE) satisfies
+Let `delta>0`, let `x^*` minimize `F_rho`, and let `x_delta^*` minimize
+`F_{rho+delta}`.  If `x>=0` satisfies
+
+\[
+  F_{\rho+\delta}(x)-F_{\rho+\delta}(x_\delta^*)\leq\varepsilon',
+\]
+
+then
+
+\[
+  F_\rho(x)-F_\rho(x^*)\leq\varepsilon'+\alpha\delta.
+  \tag{5}
+\]
+
+Moreover,
+
+\[
+  x_\delta^*\leq x^*
+  \quad\hbox{and}\quad
+  S^*(\rho+\delta)\subseteq S^*(\rho).
+  \tag{6}
+\]
+
+#### Proof
+
+Write `M(x)=||D^{1/2}x||_1`.  The RPPR path-monotonicity theorem gives
+(6).  Optimality of `x_delta^*` for the more regularized objective gives
+
+\[
+  F_{\rho+\delta}(x_\delta^*)
+  \leq F_{\rho+\delta}(x^*).
+\]
+
+Using `F_{rho+delta}(u)=F_rho(u)+alpha delta M(u)`, we obtain
+
+\[
+\begin{aligned}
+  F_\rho(x)-F_\rho(x^*)
+  &\leq \varepsilon'
+      +\alpha\delta\bigl(M(x^*)-M(x)\bigr)\\
+  &\leq \varepsilon'+\alpha\delta M(x^*)
+  \leq \varepsilon'+\alpha\delta.
+\end{aligned}
+\]
+
+The last inequality follows from `0<=x^*<=x^0`, where `x^0` is the PPR
+solution, whose mass is one.
+
+Taking
+
+\[
+  \delta=\frac{\varepsilon_{\rm obj}}{2\alpha},
+  \qquad
+  \varepsilon'=\frac{\varepsilon_{\rm obj}}2
+\]
+
+therefore suffices for the original objective.  MSE can be run on
+`F_{rho+delta}` with conservative interval bounds in (1).  Any ambiguous
+ratio is rounded downward, so the exact subsolution inequality is retained.
+Because `1/(rho+delta) <= 1/rho` and the required arithmetic precision is
+logarithmic in `1/delta` and `1/epsilon'`, this buffer is compatible with the
+OP2 work target, conditional on the accelerated rate lemma below.  A complete
+bit-complexity implementation is not supplied here, but no polynomial
+objective-accuracy dependence is forced by the support certificate.
+
+## 4. The graph-uniform scalar rate is false
+
+The locality theorem would have proved OP2 if there were universal constants
+`C,c>0` for which
 
 \[
   \|x_k-x^*\|_Q^2
   \leq
-  C\exp(-c k\sqrt\alpha)\|x_0-x^*\|_Q^2
-  \tag{5}
-
+  C\exp(-c k\sqrt\alpha)\|x_0-x^*\|_Q^2.
+  \tag{7}
 \]
 
-for every finite simple undirected graph, seed distribution, `rho>0`, and
-`alpha in (0,1]`.
+The following construction rules out (7) for the scalar-momentum algorithm
+as stated.
 
-If (5) holds, Theorem 4, (4), and `vol(S*) <= 1/rho` give
+### Proposition 7 (vanishing-energy decoys force the unaccelerated scale)
+
+For arbitrarily small `alpha` and arbitrarily large even `k`, there are RPPR
+instances on finite simple undirected graphs for which scalar MSE satisfies
 
 \[
-  \widetilde O\!\left(\frac{1}{\rho\sqrt\alpha}\right)
-
+  \frac{F_\rho(x_k)-F_\rho(x^*)}
+       {F_\rho(x_0)-F_\rho(x^*)}
+  \geq (1-o(1))
+  \left(\frac{(1-\alpha)^2}{1+\alpha}\right)^k.
+  \tag{7a}
 \]
 
-fully charged work with only logarithmic dependence on the additive
-objective tolerance.  This is exactly OP2; the established OP2-to-OP1
-reduction then proves OP1 as well.
+The `o(1)` can be made arbitrarily small for each fixed `alpha,k` by the
+choice of graph degrees and seed weights.  In particular, taking
+`k=L/sqrt(alpha)` and then `alpha` to zero makes the right-hand side tend to
+one for every fixed `L`.  Hence (7) is false for every proposed universal
+pair `C,c>0`.
 
-## 4. Residual recurrence and why the rate is plausible
+#### Proof
+
+Put
+
+\[
+  c_\alpha:=\frac{1-\alpha}{2},
+  \qquad
+  \lambda_*:=1-\alpha=2c_\alpha.
+\]
+
+First consider invariant positive rays on which `R=I-Q` acts by scalar
+multiplication.  Use one target ray with eigenvalue `lambda_*`, and `m=k/2`
+decoy rays with distinct eigenvalues
+
+\[
+  \lambda_j=c_\alpha(1+\delta_j),
+  \qquad
+  0<\delta_1<\cdots<\delta_m,
+  \qquad
+  \max_j\delta_j\longrightarrow0.
+  \tag{7b}
+\]
+
+Give the target ray a fixed positive right-hand-side amplitude and give every
+decoy an arbitrarily small positive amplitude.  Amplitudes scale both
+successive residuals on one ray, so they cancel from the ratio defining the
+global `theta`.  They therefore do not weaken a decoy's feasibility
+constraint, although their contribution to the objective energy tends to
+zero.
+
+Let `a_t(lambda)` be the residual multiplier on a ray after `t` fixed-point
+steps.  Initially `a_0(lambda)=1` and `a_1(lambda)=lambda`.  The smallest
+decoy in (7b) forces
+
+\[
+  \theta_1\longrightarrow
+  \theta_c:=\frac{c_\alpha}{1-c_\alpha}
+           =\frac{1-\alpha}{1+\alpha}
+\]
+
+and is made exactly zero.  On the next iteration that zero coordinate forces
+`theta_2=0`.  After this recovery step it no longer constrains the momentum.
+Inductively, the next decoy forces `theta_{2j-1}->theta_c` and the newly zero
+coordinate forces `theta_{2j}=0`.  The induction follows from the identity
+
+\[
+  \frac{\lambda^2(\lambda-c_\alpha)^j}
+       {\lambda(\lambda-c_\alpha)^j
+        -\lambda^2(\lambda-c_\alpha)^j}
+  =\frac{\lambda}{1-\lambda}
+  \longrightarrow\theta_c
+\]
+
+as the next surviving decoy eigenvalue tends to `c_alpha`.  Equivalently,
+after `2j` steps the limiting residual polynomial is
+
+\[
+  a_{2j}(\lambda)
+  =\left[
+      \lambda\frac{\lambda-c_\alpha}{1-c_\alpha}
+    \right]^j.
+  \tag{7c}
+\]
+
+At the target eigenvalue, the bracket in (7c) is
+
+\[
+  \lambda_*\frac{\lambda_*-c_\alpha}{1-c_\alpha}
+  =\frac{(1-\alpha)^2}{1+\alpha}.
+\]
+
+The quadratic error on a scalar ray is the squared residual divided by
+`1-lambda`.  Sending all decoy amplitudes to zero makes the relative total
+energy converge to the squared target multiplier, which is exactly the main
+term in (7a).
+
+It remains to realize these rays by the allowed RPPR graphs.  For a decoy
+integer `d_j`, take two active vertices joined by an edge and attach
+`d_j-1` private leaves to each.  The active vertices have degree `d_j`.
+On their constant normalized vector, the active principal block of `R` has
+eigenvalue
+
+\[
+  c_\alpha\left(1+\frac1{d_j}\right).
+\]
+
+Taking distinct `d_j` to infinity realizes (7b).  A target consisting of one
+degree-one edge realizes `lambda_*`.  Put a constant positive `h` on each
+active pair and no seed mass on its private leaves.  A leaf has
+`h=-alpha rho`; its inactive KKT inequality holds whenever the corresponding
+decoy amplitude is sufficiently small.  Choose `rho` small enough that the
+base seed mass `rho d_i` on all active vertices is below one, and use the
+target amplitude to make the seed distribution have unit mass.  Thus the
+construction is an actual RPPR instance, all private leaves remain inactive,
+and MSE restricted to the positive support has exactly the scalar dynamics
+above.
+
+Finally, for any proposed `C,c>0`, choose `L` so that `C exp(-cL)<1/2`, set
+`k` to a nearby even integer of order `L/sqrt(alpha)`, and then take `alpha`
+small.  The lower bound (7a) tends to one, contradicting (7).  This proves the
+claim.
+
+The exact script `verify_mse_decoy_counterexample.py` checks a finite rational
+witness with `alpha=1/100`, five decoys, and ten steps.  Its energy ratio is
+greater than `0.74`.
+
+Theorem 4 and the finite-precision buffer remain reusable: any modified
+support-safe scheme that genuinely obtains (7) would still prove OP2 with
+fully charged work
+
+\[
+  \widetilde O\!\left(\frac{1}{\rho\sqrt\alpha}\right).
+\]
+
+## 5. Residual recurrence and the failure mechanism
 
 Once the positive support is fixed and no thresholding occurs, let
 
@@ -286,19 +478,24 @@ next residual satisfy
       =(1+\theta_k)r_k-\theta_kr_{k-1}\geq0,
   \qquad
   r_{k+1}=Rs_k.
-  \tag{6}
+  \tag{8}
+\]
 
 Maximality makes at least one active coordinate of `s_k` zero.  In one
 dimension this is Aitken's delta-squared extrapolation and solves the affine
-fixed point exactly.  In several dimensions, (6) repeatedly removes a
+fixed point exactly.  In several dimensions, (8) repeatedly removes a
 currently limiting component while `R` mixes the remainder.  This explains
-the observed Chebyshev-scale behavior, but it is not a proof of (5).
+the fast behavior on homogeneous examples.  Proposition 7 shows the precise
+failure of that intuition: feasibility treats every positive residual
+coordinate equally, whereas the objective weights their energies.  A tiny
+coordinate can therefore consume a contact step without paying for it in the
+energy potential.
 
 A simple per-step comparison with Nesterov momentum is false.  On paths and
 cycles, individual `theta_k` values can be arbitrarily close to zero, even
 though a very large extrapolation often follows shortly afterwards and the
-aggregate convergence remains fast.  Any proof of (5) therefore has to
-amortize contact steps and cannot assume
+aggregate convergence remains fast.  The decoy construction shows that this
+compensation is not graph-uniform, so one cannot assume
 
 \[
   \theta_k\geq\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
@@ -344,12 +541,41 @@ so this is not an artifact of a coordinate outside the optimal support.  The
 script `verify_mse_small_momentum.py` checks all these identities using
 rational arithmetic.
 
-The available unconditional energy argument only uses that the extrapolated
-point lies between `x_k` and `x*`; it recovers (3), not (5).  The missing
-inequality must extract quantitative progress from the maximal-contact
-condition in (1) or (6).
+At the opposite extreme, MSE completely removes the published seed-at-leaf
+star obstruction to standard FISTA.
 
-## 5. Computational stress tests (evidence only)
+### Proposition 8 (all one-coordinate optima are solved immediately)
+
+Suppose `S*={v}` and `x_1=T(0)` is nonzero.  Then the first maximal
+extrapolation followed by its fixed-point step returns `x*` exactly.
+
+#### Proof
+
+All diagonal entries of the lazy PageRank matrix equal
+
+\[
+  q:=Q_{vv}=\frac{1+\alpha}{2}.
+\]
+
+Since `x_1=h_v e_v` and `h_v>0`, formula (1) gives
+
+\[
+  \theta_1=\frac{h_v-qh_v}{qh_v}
+           =\frac{1-q}{q}
+           =\frac{1-\alpha}{1+\alpha}.
+\]
+
+Hence `z_1=(h_v/q)e_v`.  This is exactly the restricted stationary point on
+coordinate `v`.  The hypothesis `S*={v}` supplies all inactive KKT
+inequalities, so `z_1=T(z_1)=x*`.  In particular, on the FISTA lower-bound
+star family, the high-degree center is never activated or scanned.
+
+The available unconditional energy argument only uses that the extrapolated
+point lies between `x_k` and `x*`; it recovers (3).  Proposition 7 proves that
+no stronger graph-uniform accelerated inequality can follow from the same
+global maximal-contact rule alone.
+
+## 6. Computational stress tests (evidence only)
 
 The algorithm was tested in double precision against exact active-set solves
 on paths, cycles, stars, random trees, sparse random connected graphs, and
@@ -370,12 +596,87 @@ graphs with up to 120 vertices were approximately
 | `0.003` | `191` | `10.46` |
 | `0.001` | `337` | `10.66` |
 
-The near constancy of the last column is consistent with (5).  It does not
-exclude a larger adversarial graph family.
+The near constancy of the last column initially suggested (7), but these
+tests used homogeneous graph families and seed choices.  They missed the
+low-energy decoy mechanism of Proposition 7.
 
-## 6. Other OP2 routes examined
+The more precise empirical statement is a block contraction.  With
 
-### 6.1 Standard FISTA with over-regularization
+\[
+  m:=\left\lceil\frac1{\sqrt\alpha}\right\rceil,
+\]
+
+every tested window for which the gap was above numerical noise satisfied
+
+\[
+  F_\rho(x_{k+m})-F_\rho(x^*)
+  \leq 0.52\bigl(F_\rho(x_k)-F_\rho(x^*)\bigr).
+\]
+
+The constant `0.52` was only the largest value in that initial test suite.
+The exact five-decoy witness has ten-step ratio greater than `0.74` at
+`alpha=0.01`, and the asymptotic construction makes the ratio over
+`ceil(1/sqrt(alpha))` steps tend to one.  Thus the empirical block-contraction
+conjecture is also false.  This is a useful warning against treating random
+or single-component stress tests as worst-case evidence for a componentwise
+feasibility rule.
+
+## 7. Other OP2 routes examined
+
+### 7.1 OP3/APPR as a support-finding oracle
+
+There is a useful dependency that is easy to miss.  Let `p=Dy>=0` be an ACL
+`rho`-approximation, so
+
+\[
+  0\leq r:=s-\beta^{-1}L_\beta y\leq\rho d.
+\]
+
+Then
+
+\[
+  L_\beta y\geq\beta(s-\rho d),
+
+\]
+
+so `y` is a nonnegative supersolution of the RPPR obstacle problem.  The
+RPPR minimizer `y*` is the least such supersolution.  Equivalently, iterate
+the monotone contraction
+
+\[
+  T_\rho(z)
+  =\left[(1-\beta)D^{-1}Az
+          +\beta D^{-1}s-\beta\rho\mathbf 1\right]_+
+
+\]
+
+downward from `y`; its limit is `y*`.  Therefore
+
+\[
+  y\geq y^*,
+  \qquad
+  S^*(\rho)\subseteq\supp(y).
+
+\]
+
+Consequently, OP3 with its standard
+`vol(supp(y))=O_tilde(1/rho)` materialized-output guarantee implies OP2:
+first obtain this APPR supersolution, then solve RPPR restricted to its
+support by an ordinary accelerated method.  The work is
+
+\[
+  \widetilde O\!\left(\frac1\rho
+       +\frac{1}{\rho\sqrt\alpha}
+        \log\frac{\alpha}{\varepsilon_{\rm obj}}\right).
+
+\]
+
+Thus the logical chain is `OP3 => OP2 => OP1`.  This also explains why OP3
+is the harder target even though it mentions only APPR: its output can serve
+as a graph-uniform support-discovery certificate for arbitrary-accuracy
+RPPR.
+
+### 7.2 Standard FISTA with over-regularization
 
 Fountoulakis and Martinez-Rubio (2026) isolate the desired core term
 
@@ -402,7 +703,7 @@ false activation of the center can require graph-size work.  MSE removes
 this issue at the invariant level instead of attempting to charge it after
 the fact.
 
-### 6.2 Active-set plus SDD solves
+### 7.3 Active-set plus SDD solves
 
 The Wei--Yang active-set method already proves OP2 whenever
 
@@ -415,13 +716,116 @@ because its bound `O_tilde(|S*| vol(S*))` is then at most
 `O_tilde(1/(rho sqrt(alpha)))`.  This instance-sensitive regime is slightly
 stronger than the parameter-only regime `rho >= sqrt(alpha)`.
 
+There is an exact batch-progress estimate that may help amortize a modified
+active-set method.  Let `x^(S)` be the exact minimizer with support restricted
+to `S`, let
+
+\[
+  g:=Qx^{(S)}-h,
+  \qquad q:=Q_{ii}=\frac{1+\alpha}{2},
+\]
+
+and let `T` be a boundary batch for which
+
+\[
+  g_i\leq-\eta\sqrt{d_i}\qquad(i\in T).
+\]
+
+Then reoptimizing on `S union T` decreases the objective by at least
+
+\[
+  \Phi(x^{(S)})-\Phi(x^{(S\cup T)})
+  \geq\frac{\eta^2}{2q}\operatorname{vol}(T).
+  \tag{9}
+\]
+
+Indeed, from `x^(S)` take the feasible trial step
+`t_i=-g_i/q` on `T`.  Its diagonal quadratic terms give the decrease
+`sum_i g_i^2/(2q)`, and every off-diagonal term is nonpositive because
+`Q_ij<=0` and `t>=0`.  Exact reoptimization can only do better.  Since the
+total initial gap is at most `alpha/2`, batches selected at one fixed margin
+obey
+
+\[
+  \sum_j\operatorname{vol}(T_j)
+  \leq \frac{q\alpha}{\eta^2}.
+  \tag{10}
+\]
+
+This pays for the newly inserted adjacency lists.  It still does not pay for
+rescanning the whole old active set or its boundary after every small batch;
+that is the precise gap between (10) and OP2.
+
+There is a natural monotone lazy-propagation scheme, but its exact accounting
+recovers the classical `1/alpha` barrier.  In non-lazy degree coordinates the
+boundary residue at an inactive vertex is
+
+\[
+  r_S(v)=\frac{1-\beta}{\beta}
+          \sum_{u\in N(v)\cap S}y^{(S)}(u).
+  \tag{11}
+\]
+
+The restricted states increase coordinatewise as `S` grows.  Fix a quantum
+`Delta>0`; maintain
+
+\[
+  \bar y(u)=\Delta\left\lfloor\frac{y^{(S)}(u)}\Delta\right\rfloor,
+\]
+
+and rescan `u`'s adjacency list only when `bar y(u)` increases.  The reported
+boundary score never overestimates (11), and
+
+\[
+\begin{aligned}
+  0\leq r_S(v)-\bar r_S(v)
+  &<\frac{1-\beta}{\beta}\Delta
+       |N(v)\cap S|\\
+  &\leq\frac{1-\beta}{\beta}\Delta d_v.
+\end{aligned}
+\]
+
+Since RPPR mass satisfies `sum_u d_u y(u)<=1`, the total adjacency work is
+
+\[
+  O\!\left(
+     \operatorname{vol}(S_{\rm final})
+     +\frac1\Delta\sum_u d_u y^{(S_{\rm final})}(u)
+  \right)
+  =O\!\left(\operatorname{vol}(S_{\rm final})+\frac1\Delta\right).
+\]
+
+To obtain additive boundary error at most `kappa d_v/2`, one must take
+
+\[
+  \Delta=\frac{\beta\kappa}{2(1-\beta)},
+\]
+
+which gives
+
+\[
+  O\!\left(
+    \operatorname{vol}(S_{\rm final})
+    +\frac{1-\beta}{\beta\kappa}
+  \right)
+  \tag{12}
+\]
+
+work.  Even at the coarse choice `kappa=Theta(rho)`, the second term is
+`Theta(1/(alpha rho))`, a factor `1/sqrt(alpha)` above OP2.  At the
+accuracy-dependent margin used by the current active-set certificate it can
+also be polynomial in the objective tolerance.  Thus simple additive
+quantization correctly handles the six-vertex stale-boundary example, but it
+does not close OP2.  A successful reporting primitive must exploit more than
+coordinatewise monotonicity and total PageRank mass.
+
 For larger supports, solving every restricted SDD system from scratch may
 cost one near-linear solve per newly active vertex.  The exact telescoping
 energy identity in the companion proof-attempt note does not pay for all
 boundary reports.  A dynamic nested-SDD solver plus a boundary-heavy-hitter
 structure remains a sufficient alternative route.
 
-### 6.3 Grounded electrical LCP
+### 7.4 Grounded electrical LCP
 
 The grounded-flow dual from the companion note makes OP2 a symmetric
 `M`-matrix linear complementarity problem.  A solver that
@@ -436,21 +840,24 @@ convex-flow methods do not provide item 2 in the adjacency-list model.  They
 either assume the whole matrix is materialized or may inspect constraints
 outside the optimal active region.
 
-## 7. Current priority
+## 8. Current priority
 
-The shortest remaining proof obligation is (5).  Three concrete attacks are
-still viable:
+The scalar MSE branch is closed negatively, but Theorem 4 identifies a useful
+feasible cone.  The next OP2 attacks, in priority order, are:
 
-1. construct a Lyapunov function that amortizes a small `theta_k` against the
-   following large extrapolation;
-2. interpret (6) as a positivity-constrained residual polynomial and prove a
-   Chebyshev-type minimax bound; or
-3. find a graph family on which `k sqrt(alpha)` diverges, thereby refuting
-   this candidate before investing in implementation details.
+1. replace one global momentum by an energy-aware local or multiscale rule,
+   so a coordinate can constrain work only in proportion to a certified
+   objective contribution;
+2. combine the batch-progress bound in Section 7.3 with a dynamic nested-SDD
+   and boundary-reporting structure; or
+3. obtain a genuinely local separation oracle for the grounded-flow dual.
 
-Even if (5) is false, Theorem 4 is reusable: it gives a rigorous
-support-preserving acceleration framework and pinpoints the rate, rather than
-locality, as its only missing component.
+A componentwise-MSE variant immediately defeats the disconnected form of the
+decoy example, but no safe partition rule or accelerated rate is proved.
+Simply thresholding tiny coordinates is also insufficient without charging
+their accumulated coupling error.  The accuracy-transfer proposition offers
+room for such a charge, because an additive regularization buffer costs only
+`alpha delta` in the final objective.
 
 ## Public sources used for comparison
 

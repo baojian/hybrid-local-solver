@@ -13,7 +13,8 @@ No complete proof of OP1, OP2, or OP3 is claimed below.  The main concrete
 progress is:
 
 1. an exact normalization and residual-to-semantic-error reduction;
-2. a proof that OP2 implies OP1;
+2. a proof of the dependency chain `OP3 => OP2 => OP1` (with the standard
+   materialized support-volume guarantee for OP3);
 3. a single strengthened incremental active-set lemma that would imply all
    three desired bounds;
 4. affirmative proofs in the parameter regimes
@@ -21,7 +22,10 @@ progress is:
    Wei--Yang guarantee;
 5. a six-vertex counterexample to a tempting one-pass boundary-update lemma;
 6. an exact identification of the remaining dynamic linear-algebra and
-   boundary-reporting obstacle.
+   boundary-reporting obstacle;
+7. a support-safe maximal-extrapolation framework for OP2, together with a
+   graph-realizable low-energy-decoy counterexample that refutes its proposed
+   global scalar accelerated rate.
 
 Throughout, `alpha` denotes the lazy parameter in `main.tex` and
 
@@ -153,15 +157,68 @@ most `eps_ppr`.  The OP2 work becomes
 
 and the permitted dependence on the objective gap remains polylogarithmic.
 
-### Proposition 4 (OP3 implies OP1)
+### Proposition 4 (OP3 implies OP2 and OP1)
 
 If OP3 returns an ACL `eps_appr` approximation in
 `O_tilde(1/eps_appr)` fully charged work, then OP1 follows by choosing
 `eps_appr=eps_ppr` and applying Lemma 1.  In fact this gives the stronger
 bound `O_tilde(1/eps_ppr)`, since `alpha <= 1`.
 
-OP3 as written does not logically imply OP2, because it only promises an
-APPR solver.  The strengthened incremental lemma below does imply both.
+OP3 also implies OP2, provided its fully charged output guarantee includes
+the standard materialized support-volume bound
+`vol(supp(p))=O_tilde(1/eps_appr)`.
+
+To see this, call OP3 with `eps_appr=rho` and write its ACL output as
+`p=Dy`, with source residual
+
+\[
+  r=s-\beta^{-1}L_\beta y,
+  \qquad 0\leq r\leq\rho d.
+\]
+
+Then `y>=0` and
+
+\[
+  L_\beta y\geq\beta(s-\rho d).
+  \tag{A}
+\]
+
+The RPPR minimizer `y*` is the least nonnegative supersolution of (A).  One
+direct proof uses the monotone obstacle fixed-point map
+
+\[
+  T_\rho(z)
+  :=\left[(1-\beta)D^{-1}Az
+           +\beta D^{-1}s-\beta\rho\mathbf 1\right]_+.
+\]
+
+Inequality (A) is exactly `y>=T_rho(y)`.  Monotonicity gives a decreasing
+sequence `y>=T_rho(y)>=T_rho^2(y)>=...`; contraction in the `D`-norm makes
+it converge to the unique fixed point `y*`.  Hence
+
+\[
+  y\geq y^*,
+  \qquad
+  S^*(\rho)\subseteq U:=\supp(y).
+\]
+
+Restrict the RPPR objective to `U` and run a standard accelerated
+proximal-gradient method there.  The restricted optimum is the global
+optimum because `U` contains `S*(rho)`.  Each iteration costs
+`O(vol(U))=O_tilde(1/rho)`, and the spectrum remains in `[alpha,1]`, so
+`O(alpha^{-1/2} log(alpha/eps_obj))` iterations suffice.  Including the
+OP3 call, the total fully charged work is
+
+\[
+  \widetilde O\!\left(\frac1\rho
+  +\frac{1}{\rho\sqrt\alpha}
+     \log\frac{\alpha}{\mathrm{eps\_obj}}\right)
+  =\widetilde O\!\left(\frac{1}{\rho\sqrt\alpha}\right).
+\]
+
+Thus the dependency chain is `OP3 => OP2 => OP1`.  If OP3 were interpreted
+without a support-volume/materialization guarantee, the first implication
+would need that guarantee added explicitly.
 
 ## 3. A sufficient incremental active-set lemma
 
@@ -484,6 +541,23 @@ transiently activates the high-degree center and incurs graph-size-dependent
 work even though the optimum stays on the seed.  This refutes the proof
 strategy, not OP2.
 
+A companion attempt replaces FISTA momentum by the largest scalar
+extrapolation that preserves the subsolution order.  This succeeds completely
+at locality: all scanned coordinates remain inside the exact optimal support.
+It does not succeed at acceleration.  Active components of arbitrarily small
+objective energy can still determine the global scalar momentum.  A family
+of two-vertex active blocks with large private inactive neighborhoods forces
+alternating contact and recovery steps, while a dominant degree-one block
+contracts only as
+
+\[
+  \left(\frac{(1-\alpha)^2}{1+\alpha}\right)^k
+\]
+
+in relative energy after `k` steps.  For `k=Theta(1/sqrt(alpha))` this tends
+to one.  Thus the global scalar-MSE rate is false; an energy-aware local or
+multiscale momentum rule would be a genuinely new algorithmic requirement.
+
 ### OP3: solving each nested system from scratch
 
 The final active volume is `O(1/eps_appr)`, but there may be
@@ -562,13 +636,15 @@ matches this lower bound up to logarithmic factors.
 | Question | Status of this attempt | Exact remaining regime/blocker |
 |---|---|---|
 | OP1 | proved for `alpha=1` and for `eps_ppr >= sqrt(alpha)`; OP2 and OP3 each imply it | `eps_ppr < sqrt(alpha)`; localizing accelerated signed iterates, or proving the incremental lemma |
-| OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)` | `rho < sqrt(alpha)`; acceleration without graph-wide transient support, or the strengthened incremental lemma |
+| OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)`; OP3 would imply it | `rho < sqrt(alpha)`; global scalar support-safe momentum is refuted, leaving an energy-aware local rule or the strengthened incremental lemma |
 | OP3 | no arbitrary-graph proof | maintain nested SDD solutions and all boundary violations in total near-final-volume work |
 
-The most economical next target is the incremental active-set lemma, with
-the boundary-reporting component stated explicitly.  A proof of only an
+The most economical rigorous target is now the incremental active-set lemma,
+with the boundary-reporting component stated explicitly.  A proof of only an
 incremental linear solver, while recomputing all boundary scores, does not
-close any of the three conjectures.
+close any of the three conjectures.  On the acceleration branch, any repaired
+MSE must charge momentum blockers by objective energy; the scalar global rule
+cannot be repaired by a different Lyapunov analysis alone.
 
 ## Public sources consulted
 
