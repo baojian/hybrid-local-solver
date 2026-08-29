@@ -320,6 +320,50 @@ def static_cluster_and_prefix_merge_ledgers():
     return flat_rows[-1], power_rows[-1]
 
 
+def balanced_sp_epoch_ledgers():
+    """Audit canonical clean covers and sqrt-cap rebuild accounting."""
+
+    def cover_size(size, dirty):
+        def visit(left, right):
+            has_dirty = any(left <= leaf < right for leaf in dirty)
+            if not has_dirty or right - left == 1:
+                return 1
+            middle = (left + right) // 2
+            return visit(left, middle) + visit(middle, right)
+
+        return visit(0, size)
+
+    size = 64
+    height = int(math.log2(size))
+    cap = math.isqrt(size)
+    assert cap * cap == size
+    sequences = (
+        [0] * 19 + list(range(1, 33)) + [7] * 11,
+        [(17 * step + 3) % size for step in range(96)],
+    )
+    rows = []
+    for sequence in sequences:
+        dirty = set()
+        rebuilds = 0
+        query_work = 0
+        maximum_cover = 0
+        for leaf in sequence:
+            dirty.add(leaf)
+            if len(dirty) == cap:
+                rebuilds += 1
+                dirty.clear()
+            cover = cover_size(size, dirty)
+            maximum_cover = max(maximum_cover, cover)
+            assert cover <= 1 + max(1, len(dirty)) * height
+            query_work += cover
+        actual = size * (1 + rebuilds) + query_work
+        declared = size + len(sequence) * cap + (len(sequence) // cap) * size
+        assert rebuilds <= len(sequence) // cap
+        assert actual <= 2 * declared
+        rows.append((len(sequence), rebuilds, maximum_cover, actual, declared))
+    return rows
+
+
 def hysteretic_heavy_path_ledgers():
     """Stress the online 2-hysteretic HLD and its atom--node rebuild charge."""
 
@@ -908,6 +952,7 @@ def main():
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
     assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
     assert r"\label{cor:aesp-cd-slope-separated-projective-meld}" in source
+    assert r"\label{prop:aesp-cd-sp-static-epoch-reporter}" in source
     assert r"\label{cor:aesp-cd-projective-separation-guard}" in projective_guard_source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
@@ -927,6 +972,7 @@ def main():
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
     interface_ledgers = static_cluster_and_prefix_merge_ledgers()
+    sp_epoch_ledgers = balanced_sp_epoch_ledgers()
     hysteretic_ledgers = hysteretic_heavy_path_ledgers()
     productive_keys = productive_site_numeric_key_pressure()
     epoch_ledgers = productive_epoch_integer_ledgers()
@@ -950,6 +996,7 @@ def main():
     print("  virtual top forget catches pinned root-port keys", root_keys)
     print("  K2 strict-admission objective gains", objective_gains)
     print("  flat sqrt / immutable-prefix ledgers", interface_ledgers)
+    print("  balanced SP static-epoch ledgers", sp_epoch_ledgers)
     print("  online hysteretic HLD ledgers", hysteretic_ledgers)
     print("  legal productive-site numerical-key pressure", productive_keys)
     print("  productive epoch integer ledgers", epoch_ledgers)

@@ -140,6 +140,11 @@ without knowing the final support or final HLD.  For point-source RPPR this
 is `O_tilde((1+vol(S*))/sqrt(alpha))`.  The smallest structural class still
 open is therefore a genuinely variable two-port series--parallel block; the
 previous unbounded-productive cactus chain is no longer an open case.
+On a supplied balanced parse of such a block, static canonical-hull epochs
+already give an exact oracle-free fallback in
+`O_tilde(N+J sqrt(N))` work.  It is product-scale when the charged block
+radius is at least `sqrt(N)`; shallow variable-port blocks still require a
+true bulk-pullback/meld reporter or a new charge for this square-root loss.
 
 A point-source rho-homotopy still reveals useful extra structure.  On a fixed
 face every boundary key is affine in rho, and after admitting one vertex each

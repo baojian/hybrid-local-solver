@@ -95,7 +95,10 @@ heavy--light ledger now closes the exact single-source reporter on every
 cactus graph without a supplied final support or decomposition.  The
 smallest remaining graph family exposed by the current proof interfaces is a
 genuinely variable two-port series--parallel block: ordinary dynamic planar
-hulls do not support the required bulk projective pullback and meld.  On any
+hulls do not support the required bulk projective pullback and meld.  A
+supplied balanced parse has an exact `O_tilde(N+J sqrt(N))` static-hull epoch
+fallback and is product-scale when the charged block radius is at least
+`sqrt(N)`; the shallow variable-port case remains open.  On any
 certified connected proper face, the homotopy slope also gives a canonical
 diagonal normalization with a known ground eigenpair at `alpha`; this removes
 proper-face eigendata estimation, but not the clipping-direction hypothesis

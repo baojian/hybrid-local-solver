@@ -410,6 +410,11 @@ an arbitrarily interleaved meld.  Standard dynamic planar hulls do not provide
 that operation.  Spectral vertex sparsifiers and approximate elimination give
 energy control but not yet the simultaneous one-sided row intervals required
 by the finite ratio-pivot stop.
+A supplied balanced series--parallel parse has an exact static-hull epoch
+fallback with work `O_tilde(N+J sqrt(N))`, which is already product-scale for
+blocks with charged radius at least `sqrt(N)`.  The unresolved shallow-block
+case is therefore a square-root rebuild loss, not an absence of any exact
+reporter.
 
 The older safeguarded-momentum route remains a valid secondary frontier:
 accepted fixed-face windows and aligned tails are accelerated, while failed
@@ -475,6 +480,7 @@ graph-uniform end-to-end accelerated solver.
   `thm:aesp-cd-cactus-online-hysteretic-hld`,
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
+  `prop:aesp-cd-sp-static-epoch-reporter`,
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,

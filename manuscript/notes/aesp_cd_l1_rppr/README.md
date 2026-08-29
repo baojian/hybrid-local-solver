@@ -454,6 +454,14 @@ not yield arbitrary hierarchical affine pullback together with persistent
 hull meld/split and strict labeled argmax.  Thus these papers validate the
 neighboring ingredients, but using them here still requires a new reduction
 or a stronger reporter theorem.
+A supplied balanced series--parallel parse nevertheless has an unconditional
+exact fallback that avoids meld entirely.  Snapshot static hulls at all
+canonical clusters, mark the root paths of changed home leaves dirty, query
+the maximal clean sibling cover, and rebuild after `sqrt(N)` distinct
+touches.  This costs `O_tilde(N+J sqrt(N))`; it meets the product budget when
+the charged block radius is at least `sqrt(N)`.  The remaining variable-port
+gap is precisely to remove that square-root loss (or charge it) while also
+paying online parse discovery and inactive halo.
 [Kinetic/dynamic hulls](https://doi.org/10.1016/j.comgeo.2006.01.002) also
 allow points with declared bounded-complexity trajectories and individual
 flight-plan changes.  A Schur update, however, changes the pulled-back

@@ -478,6 +478,79 @@ Thus the classical dynamic-hull theorem supports
 \cref{cor:aesp-cd-stable-port-reporter}, where the row coordinates are stable,
 but does not close \cref{prop:aesp-cd-sp-meld-hull-reduction}.
 
+There is an unconditional exact fallback on a supplied balanced parse.  It
+does not meld changed hulls; instead it periodically rebuilds immutable
+canonical hulls and queries a cover of the changed parse paths.
+
+\begin{proposition}[Square-root epoch reporter on a balanced series--parallel parse]
+\label{prop:aesp-cd-sp-static-epoch-reporter}
+Let a size-\(N\), height-\(h=O(\log(2+N))\) two-terminal
+series--parallel parse be supplied for the currently exposed graph.  Assign
+every quadratic factor and pinned row to one home leaf, and suppose a trace
+performs \(J\) home-leaf factor, load, threshold, or active-mark changes.  In
+exact-real arithmetic, the current strict maximum pinned KKT key and a
+maximizing label can be maintained in
+\begin{equation}
+ \widetilde O\!\left(N+J\sqrt N\right)
+ \label{eq:aesp-cd-sp-static-epoch-work}
+\end{equation}
+field operations and \(\widetilde O(N)\) space.  Hence a positive label gives
+a legal singleton admission and a nonpositive maximum is the exact KKT
+certificate for the exposed obstacle problem.
+
+More generally, with a rebuild cap \(1\leq k\leq N\), the work is
+\begin{equation}
+ \widetilde O\!\left(N+Jk+\frac{JN}{k}\right).
+ \label{eq:aesp-cd-sp-static-epoch-tradeoff}
+\end{equation}
+In particular, on an admission-only point-source trace, a block of structural
+size \(N\) whose charged support radius satisfies
+\(R_\star\geq\sqrt N\) fits the product ledger
+\(\widetilde O(NR_\star)\), because \(J\leq |S^\star|\leq N\).
+
+The parse and its exposed factor universe are part of the input contract.
+Online discovery, parse splice/rebalancing, and inactive ambient halo are not
+paid by this proposition.  It is therefore an implementable fixed-envelope
+fallback and a square-root partial result for variable two-port blocks, not a
+universal local reporter.
+\end{proposition}
+
+\begin{proof}
+At an epoch boundary, build at every canonical parse cluster its exact
+two-port quadratic Schur summary and the static convex hull of all pinned-row
+affine keys homed and forgotten in that cluster.  Ports remain excluded, and
+a virtual top forget handles the root ports exactly as in
+\cref{prop:aesp-cd-sp-meld-hull-reduction}.  A row occurs in at most \(h+1\)
+canonical hulls, so this snapshot costs \(\widetilde O(N)\).
+
+After a home leaf changes, retire every cached hull on its leaf-to-root path
+and update the quadratic summaries on that path.  If \(p<k\) distinct leaves
+have changed since the snapshot, the union of their root paths has
+\(O((p+1)h)\) maximal clean sibling clusters and explicit dirty leaves.
+At every dirty series/forget node, also form explicitly the complete key of
+any pinned separator row forgotten there; there are only
+\(O((p+1)h)\) such rows.  These objects form a disjoint cover of all current
+pinned rows.  Solve the
+constant-dimensional root response, propagate the current two-port context
+top-down through the dirty skeleton, and issue one ordinary static support
+query to every clean-cluster hull; check each explicit dirty row directly.
+This returns the exact global maximum in \(\widetilde O(p+1)\subseteq
+\widetilde O(k)\) work.  Crucially, each clean hull stays in its own local
+port coordinates: no transformed sibling meld is performed.
+
+When the \(k\)-th distinct leaf is touched, rebuild all summaries and hulls
+from the current exact factors and clear the dirty set.  Repeated changes at
+one dirty leaf cost another query but do not earn rebuild credit.  There are
+at most \(J/k\) completed rebuilds, so the initial snapshot, all queries, and
+all rebuilds cost
+\begin{equation*}
+ \widetilde O\!\left(N+Jk+(J/k)N\right).
+\end{equation*}
+Taking \(k=\lceil\sqrt N\rceil\) proves
+\cref{eq:aesp-cd-sp-static-epoch-work}.  Exact Schur elimination and the
+home/forget invariant prove the KKT claim.
+\end{proof}
+
 The pullback part of this interface has more structure than an arbitrary
 point update.
 
