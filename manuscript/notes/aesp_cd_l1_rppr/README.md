@@ -18,6 +18,11 @@ ground mass, active coordinates share the same lazy transform, and one final
 materialization plus safe Chebyshev solve gives
 `O_tilde(vol(S*)/sqrt(alpha))`.  Complete-graph point-source traces satisfy
 the hypothesis exactly.
+In fact this exact hypothesis is characterized: a new vertex must be
+universal to the current face and all old face vertices must have the same
+ambient degree, giving `gamma=(1-alpha)/(2*alpha*d)`.  Hence a whole exact
+trace is clique-prefix-like; the broader sparse case is necessarily the
+finite-band rather than zero-band branch.
 
 The oracle-free end-to-end contract is the canonical point-source problem
 `s=e_v`.  The shared definitions remain general.  Linearity extends a proved

@@ -935,6 +935,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-exact-rank-one-trace-discovery}" in source
+    assert r"\label{prop:aesp-cd-exact-rank-one-admission-characterization}" in source
     assert r"\label{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}" in source
 
     size, alpha = 6, F(2, 7)

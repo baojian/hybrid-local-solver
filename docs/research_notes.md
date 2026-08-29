@@ -71,6 +71,13 @@ Candidate and incidence counts are output-linear, so discovery costs
 `O_tilde(vol(S*))` and the final safe Chebyshev solve gives
 `O_tilde(vol(S*)/sqrt(alpha))`.  Complete-graph point-source traces realize
 this theorem exactly.
+The exact hypothesis is completely characterized in the unweighted model:
+the new vertex must be adjacent to every current face vertex and those old
+vertices must share one ambient degree; then
+`gamma=(1-alpha)/(2*alpha*d)`.  Thus an entire exact-rank-one trace is
+necessarily an equal-degree clique-prefix type branch.  This explains both
+why the theorem is nonvacuous and why it does not settle general sparse
+graphs.
 
 The point-source restriction is a genuine simplification, but it does not by
 itself close dynamic support discovery.  A proved fan family has every graph
