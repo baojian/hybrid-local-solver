@@ -377,6 +377,51 @@ def audit_separated_source_decomposition() -> None:
     assert sum(degree[i] for i in general_support) <= 1 / rho
 
 
+def audit_sparse_source_route_threshold() -> None:
+    """Exact P3 audit of joint source records and a merge-row level pivot."""
+    alpha, rho = F(1, 3), F(1, 8)
+    diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    degree = [1, 2, 1]
+    adjacency = [
+        [F(abs(i - j) == 1) for j in range(3)] for i in range(3)
+    ]
+    hessian = [
+        [
+            diagonal * degree[i]
+            if i == j
+            else -coupling * adjacency[i][j]
+            for j in range(3)
+        ]
+        for i in range(3)
+    ]
+    source = [F(1, 2), F(0), F(1, 2)]
+    threshold = [alpha * (rho * degree[i] - source[i]) for i in range(3)]
+    assert threshold == [F(-1, 8), F(1, 12), F(-1, 8)]
+    active = [0, 2]
+    values = solve(
+        [[hessian[i][j] for j in active] for i in active],
+        [alpha * (source[i] - rho * degree[i]) for i in active],
+    )
+    assert values == [F(3, 16), F(3, 16)]
+    middle_response = coupling * sum(values, F(0))
+    middle_key = middle_response - threshold[1]
+    assert middle_key == F(1, 24) > 0
+
+    # The matched finite-level rounding still emits the shared merge row.
+    delta = alpha * rho / (2 * coupling)
+    ratio = F(3, 2)
+    rounded_values = []
+    for value in values:
+        level = delta
+        while level * ratio <= value:
+            level *= ratio
+        rounded_values.append(level)
+    rounded_response = coupling * sum(rounded_values, F(0))
+    assert delta == F(1, 16)
+    assert rounded_values == [F(9, 64), F(9, 64)]
+    assert rounded_response == F(3, 32) > threshold[1]
+
+
 def audit_response_residual_certificate(
     hessian: list[list[F]],
     degree: list[int],
@@ -780,6 +825,8 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-separated-source-decomposition}" in source
     assert r"\label{eq:aesp-cd-separated-source-decomposition}" in source
     assert r"\label{eq:aesp-cd-separated-source-volume}" in source
+    assert r"\label{cor:aesp-cd-sparse-source-route-output-interface}" in source
+    assert r"\label{eq:aesp-cd-sparse-source-route-output-interface}" in source
     assert r"\label{cor:aesp-cd-point-source-appr-envelope-oracle}" in source
     assert r"\label{cor:aesp-cd-appr-envelope-oracle}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-error}" in source
@@ -1076,6 +1123,7 @@ def main() -> None:
     assert approximate_updated_ratio == 0
     sharp_screening_ratio = audit_ppr_screening_sharpness()
     audit_separated_source_decomposition()
+    audit_sparse_source_route_threshold()
 
     print("PASS point-source ratio-pivot homotopy")
     print(f"  exact random connected instances={checked}, admitted events={event_count}")
@@ -1104,6 +1152,7 @@ def main() -> None:
         f"{sparse_radius_coordinates}/{sparse_appr_coordinates}"
     )
     print("  separated sparse-source RPPR decomposition: exact P5 witness")
+    print("  sparse-source route threshold: exact P3 merge-level witness")
     print(
         "  alpha-rho screening sharpness ratio="
         f"{float(sharp_screening_ratio):.12f}"

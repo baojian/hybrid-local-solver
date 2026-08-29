@@ -856,7 +856,7 @@ half of the terminal KKT band, which justifies the stated finite-hysteresis
 interface.
 \end{proof}
 
-\begin{lemma}[A point-source pivot has a square-root-scale response radius]
+\begin{lemma}[A support pivot has a square-root-scale response radius]
 \label{lem:aesp-cd-point-source-hitting-radius}
 In the setting of
 \cref{prop:aesp-cd-point-source-hitting-column}, put
@@ -870,7 +870,7 @@ For \(i\in S\), let
  \leq \frac2\alpha\lambda_\alpha^{r-1}.
  \label{eq:aesp-cd-point-source-hitting-radius}
 \end{equation}
-Moreover every legal point-source pivot satisfies
+Moreover every legal pivot for any source distribution satisfies
 \begin{equation}
  \Delta_w h_i^{S,w}
  \leq \frac2{\alpha\sqrt{d_id_w}}
@@ -930,8 +930,8 @@ Take \(k=r-2\).  Graph sparsity makes the \(i\)-th coordinate of
 
 The enlarged restricted value at \(w\) is \(\Delta_w\), and nested
 Stieltjes comparison gives
-\(\Delta_w\leq y_w^\star\leq y_w^0\), where \(y^0\) is ordinary
-point-source PPR in degree-unscaled coordinates.  Since
+\(\Delta_w\leq y_w^\star\leq y_w^0\), where \(y^0\) is ordinary PPR for
+the same source distribution in degree-unscaled coordinates.  Since
 \(d^\top y^0=1\), one has \(\Delta_w\leq1/d_w\).  Multiplying the first
 bound by \(\Delta_w\) proves
 \cref{eq:aesp-cd-point-source-hitting-event-radius}.  Solving its final
@@ -947,8 +947,9 @@ Use the standard finite reduction
 nested point-source pivot state and, on pivot \(w\), emits every coordinate
 level crossed by \(\Delta_w h^{S,w}\).  Assume its total charged work is
 \begin{equation}
- \widetilde O\!\left(
+\widetilde O\!\left(
   \sum_{w\in S^\star}d_w
+  +
   \sum_{(w,i,\ell)\in\mathcal E_{\rm lev}}
    \bigl\{1+\operatorname{dist}_{G[S\cup\{w\}]}(w,i)\bigr\}
  \right),
@@ -982,6 +983,69 @@ when \(\rho=\epskkt\).  Every such record has distance at most
 Substitution into
 \cref{eq:aesp-cd-point-source-route-output-interface}, followed by the
 support cap \(\vol(S^\star)\leq1/\rho\), proves the claim.
+\end{proof}
+
+\begin{corollary}[The same route-output locator closes sparse-source discovery]
+\label{cor:aesp-cd-sparse-source-route-output-interface}
+Let $s\geq0$, $\one^\top s=1$, and $T=\supp(s)$.  Under the standard
+finite reduction $\rho=\epskkt=\epsppr/2$, initialize one candidate record
+for every source row and use the exact nested positive-residual pivot state
+for the joint sparse-source objective.  Suppose the dynamic locator in
+\cref{cor:aesp-cd-point-source-route-output-interface} supplies the same
+exhaustive coordinate-level events and the same route-output charge, including
+empty reports and component mergers.  Then discovery and the final
+certified-envelope solve use
+\begin{equation}
+ |T|+\widetilde O\!\left(
+  \frac{\vol(S^\star)}{\sqrt\alpha}
+ \right)
+ \subseteq
+ |T|+\widetilde O\!\left(
+  \frac1{\rho\sqrt\alpha}
+ \right)
+ \label{eq:aesp-cd-sparse-source-route-output-interface}
+\end{equation}
+work.  Thus the unresolved locator interface is strong enough to recover the
+original additive sparse-source target; point-source specialization removes
+multi-root bookkeeping but does not weaken the value of a solution to that
+interface.
+\end{corollary}
+
+\begin{proof}
+In degree-unscaled coordinates a boundary row has key
+\begin{equation*}
+ g_v=P_v-T_v,
+ \qquad
+ P_v=c\sum_{i\in S\cap N(v)}y_i,
+ \qquad
+ T_v=\alpha(\rho d_v-s_v).
+\end{equation*}
+Reading the sparse source initializes all $T$-records in $O(|T|)$ work.
+Rows with $T_v<0$ are strict-positive pivots already at zero.  For every
+remaining row $0\leq T_v\leq\alpha\rho d_v$.  With the rounding parameters
+of \cref{cor:aesp-cd-finite-level-reporter}, a named row satisfies
+\begin{equation*}
+ \bar P_v\leq P_v
+ \leq(1+\eta_{\rm fin})\bar P_v+c d_v\delta_{\rm fin}.
+\end{equation*}
+Hence $\bar P_v>T_v$ is a safe pivot, while $\bar P_v\leq T_v$ gives
+\begin{equation*}
+ g_v
+ \leq\eta_{\rm fin}T_v+c d_v\delta_{\rm fin}
+ \leq\alpha\epskkt d_v.
+\end{equation*}
+This is the same exhaustive finite KKT dichotomy as in the point-source
+proof.  Ordinary PPR for any probability source obeys $d^\top y^0=1$, so
+every active coordinate is at most $1/d_i$; the number of geometric level
+records is unchanged.  The response column, its residual certificate, and
+its square-root event radius depend only on the current principal matrix and
+the pivot amount.  The generalized argument in
+\cref{lem:aesp-cd-point-source-hitting-radius} bounds that amount for any
+source distribution.  Finally
+\cref{prop:aesp-cd-sparse-source-radius} confines all components to the same
+source-set radius, while the support cap gives
+\(\vol(S^\star)\leq1/\rho\).  Applying the assumed route-output charge proves
+\cref{eq:aesp-cd-sparse-source-route-output-interface}.
 \end{proof}
 
 \paragraph{Dynamic-inverse scope.}

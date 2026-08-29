@@ -85,6 +85,12 @@ neighborhoods, they also decompose exactly at thresholds `rho/s_v`; their
 volumes sum to at most `1/rho`, so the additive sparse-source target follows.
 The remaining multi-source obstruction is therefore shared boundary rows and
 component merging, not the source weights themselves.
+The finite route-output locator reduction also extends verbatim after
+initializing the sparse source rows: its boundary threshold becomes
+`alpha*(rho*d_v-s_v)`, and its total work gains only `nnz(s)`.  Consequently
+the unresolved locator, if implemented at the stated output-sensitive rate,
+would recover the original additive sparse-source target rather than merely
+the point-source specialization.
 The ordering-independent APPR star already has envelope radius at most one
 and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
 gap is repeated state processing rather than distant or oversized output.

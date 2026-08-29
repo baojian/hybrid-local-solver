@@ -48,6 +48,9 @@ State: proved-open
   Well-separated source components nevertheless decompose exactly at scaled
   thresholds `rho/s_v` and retain total volume at most `1/rho`; only shared
   inactive rows and the mergers they trigger obstruct that additive result.
+  Conditional on the same exhaustive route-output locator, those mergers are
+  nevertheless handled with only additive source-read work, so this one
+  unresolved interface would close the general sparse-source target as well.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -452,6 +455,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-appr-envelope-oracle`,
   `cor:aesp-cd-appr-envelope-oracle`,
+  `cor:aesp-cd-sparse-source-route-output-interface`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
