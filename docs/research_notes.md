@@ -81,6 +81,12 @@ high-gap witness has two retained exterior rows with identical old
 high-mode corrections.  Therefore the planar two-state record cannot
 deterministically advance a nonzero gray band; an implementation must retain
 attachment geometry, an interval, or a stronger response oracle.
+There is nevertheless a finite safe replay: four scalars per row—the lower
+and upper endpoints for `s_v` and `g_v`—contain every update using the common
+`D*s+C*sqrt(s)` radius and coordinatewise monotonicity.  This removes the
+need to materialize the response for correctness.  Its bulk map is nonlinear,
+so the outstanding work bound is exactly a lazy transformed-meld/rebin
+problem rather than a missing safety invariant.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active

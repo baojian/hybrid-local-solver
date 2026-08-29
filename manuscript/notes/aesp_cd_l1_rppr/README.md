@@ -27,6 +27,10 @@ opposite signed high-mode corrections.  The two-state planar record is thus
 exact only in the zero-band branch; that interface needs finite intervals,
 additional attachment geometry, or a stronger response oracle for the gray
 branch.
+A four-scalar monotone box—lower and upper endpoints for both `s_v` and
+`g_v`—does safely replay every affine-plus-root gray update without a dense
+response.  The remaining obstacle is algorithmic: that box map contains a
+square root and a maximum, so it has no single cumulative planar transform.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

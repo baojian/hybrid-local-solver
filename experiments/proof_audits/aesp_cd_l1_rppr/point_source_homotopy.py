@@ -1007,6 +1007,27 @@ def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
         == coupling * balanced_ground[1]
         == F(4344, 15487)
     )
+    # Degenerate old boxes replay both opposite gray updates through the
+    # same four-scalar monotone interval.
+    scalar = coupling * balanced_ground[0]
+    key = F(1, 10)
+    ground_time, active_time = F(1, 3), F(2, 5)
+    gamma = balanced_mean / alpha
+    scale, shear = 1 + ground_time * gamma, active_time * gamma
+    delta_pair = [
+        coupling * same_vertex_error,
+        coupling * other_vertex_error,
+    ]
+    gray_radius = max(abs(value) for value in delta_pair)
+    lower_scalar = max(scalar, scale * scalar - ground_time * gray_radius)
+    upper_scalar = scale * scalar + ground_time * gray_radius
+    lower_key = max(key, key + shear * scalar - active_time * gray_radius)
+    upper_key = key + shear * scalar + active_time * gray_radius
+    for delta in delta_pair:
+        exact_scalar = scale * scalar + ground_time * delta
+        exact_key = key + shear * scalar + active_time * delta
+        assert lower_scalar <= exact_scalar <= upper_scalar
+        assert lower_key <= exact_key <= upper_key
     return (
         retained_leaf_error,
         diagonal,
@@ -1033,6 +1054,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
     assert r"\label{cor:aesp-cd-proper-face-unweighted-row-band}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
+    assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source

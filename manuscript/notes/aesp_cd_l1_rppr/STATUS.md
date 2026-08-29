@@ -127,6 +127,10 @@ State: proved-open
   old `(s_v,g_v)` states but opposite signed high-mode corrections under the
   same sparse pivot.  Thus the two-state record cannot exactly advance a gray
   update without row geometry, materialization, or a certified interval.
+  Four interval scalars do suffice for correctness: a monotone box recurrence
+  encloses both the ground coupling and key under every common
+  `D*s+C*sqrt(s)` response radius.  Its nonlinear bulk application, rather
+  than response safety, is the remaining dynamic reporter interface.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -624,6 +628,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-unweighted-row-band`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
+  `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
   `cor:aesp-cd-complete-prefix-rank-one-reporter`,
   `cor:aesp-cd-exact-rank-one-trace-discovery`,
