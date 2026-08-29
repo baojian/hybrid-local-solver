@@ -329,7 +329,13 @@ coordinates, put
  h_A:=H_A^{-1}\alpha d_A.
 \end{equation*}
 Here \(D_A\) retains the ambient graph degrees and \(d_A=D_A\one\).
-Then \(0<h_A\leq\one\) coordinatewise.  Define the diagonal mass
+Then \(0<h_A\leq\one\) coordinatewise.  It also has an exact killed-walk
+interpretation.  From \(i\in A\), declare success with probability
+\(\alpha/p\), and otherwise choose each ambient neighbor with probability
+\(c/(pd_i)\), where
+\(p=(1+\alpha)/2\) and \(c=(1-\alpha)/2\); an edge leaving \(A\) is failure.
+Then \(h_{A,i}\) is the probability of success before the first exit from
+\(A\).  Define the diagonal mass
 \begin{equation}
  W_A:=\operatorname{diag}\!\left(\frac{d_i}{h_{A,i}}:i\in A\right).
  \label{eq:aesp-cd-point-source-ground-mass}
@@ -380,6 +386,13 @@ observable alignment certificate remains an additional hypothesis.
 The inverse of the irreducible Stieltjes matrix \(H_A\) is strictly positive,
 so \(h_A>0\).  If \(b_A\) is the vector of ambient edges leaving \(A\) and
 \(c=(1-\alpha)/2\), then
+\begin{equation*}
+ h_{A,i}
+ =\frac{\alpha}{p}
+  +\sum_{j\in A\cap N(i)}\frac{c}{pd_i}h_{A,j}.
+\end{equation*}
+Because \(\alpha+c=p\), first-step conditioning proves the killed-walk
+interpretation.  Moreover,
 \begin{equation*}
  H_A\one=\alpha d_A+c b_A.
 \end{equation*}
@@ -612,6 +625,70 @@ so
  =\frac{\alpha(1+q)}q.
 \end{equation*}
 This is exactly the claimed bound.
+\end{proof}
+
+\begin{corollary}[A leakage-and-conductance certificate in the original graph]
+\label{cor:aesp-cd-proper-face-leakage-conductance}
+For \(i\in A\), let
+\begin{equation*}
+ b_i:=\abs{\{j\notin A:\{i,j\}\in E\}},
+ \qquad
+ \eta_A:=\max_{i\in A}\frac{b_i}{d_i},
+\end{equation*}
+and define ambient-volume conductance of the induced face by
+\begin{equation*}
+ \Phi_D(A)
+ :=\min_{\varnothing\neq B\subsetneq A}
+ \frac{\abs{E(B,A\setminus B)}}
+ {\min\{\sum_{i\in B}d_i,\sum_{i\in A\setminus B}d_i\}}.
+\end{equation*}
+Then
+\begin{equation}
+ \min_{i\in A}h_{A,i}
+ \geq\frac{\alpha}{\alpha+c\eta_A},
+ \qquad
+ \Phi_h(A)
+ \geq
+ c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2\Phi_D(A).
+ \label{eq:aesp-cd-proper-face-leakage-conductance}
+\end{equation}
+Hence the ordinary graph conditions
+\begin{equation}
+ c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2\Phi_D(A)
+ \geq\sqrt{\frac{2\alpha}{q}}
+ \label{eq:aesp-cd-proper-face-original-conductance-certificate}
+\end{equation}
+certify the transformed high gap and the correction-free aligned tail below.
+In particular, when \(\eta_A=O(\alpha)\), the survival factor is constant
+and the required original conductance scale is
+\(\Theta(\alpha^{1/4})\).
+\end{corollary}
+
+\begin{proof}
+The identity \(H_A(\one-h_A)=cb_A\) was proved in
+\cref{lem:aesp-cd-point-source-ground-state-normalization}.  Put
+\(r=\one-h_A\geq0\) and choose \(i\) with \(r_i=\norm r_\infty\).
+Writing \(d_i^A=d_i-b_i\), the Stieltjes signs give
+\begin{equation*}
+ c b_i=(H_Ar)_i
+ \geq(p d_i-cd_i^A)r_i
+ =(\alpha d_i+cb_i)r_i.
+\end{equation*}
+Thus
+\(r_i\leq c\eta_A/(\alpha+c\eta_A)\), proving the first bound.
+
+Let \(h_{\min}\) and \(h_{\max}\) be the extreme coordinates of \(h_A\).
+For every cut \(B\subset A\),
+\begin{equation*}
+ c\sum_{\{i,j\}\in E(B,A\setminus B)}h_{A,i}h_{A,j}
+ \geq c h_{\min}^2\abs{E(B,A\setminus B)},
+\end{equation*}
+whereas each of the two \(\bar D_A\)-masses is at most \(h_{\max}\)
+times its ambient \(D\)-mass.  Since \(h_{\max}\leq1\), minimizing over
+cuts gives the second inequality in
+\cref{eq:aesp-cd-proper-face-leakage-conductance}.  The final statement now
+follows from
+\cref{cor:aesp-cd-proper-face-conductance-gap}.
 \end{proof}
 
 \begin{corollary}[A conductance-certified correction-free proper-face tail]

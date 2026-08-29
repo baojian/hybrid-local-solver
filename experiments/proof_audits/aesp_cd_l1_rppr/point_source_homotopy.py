@@ -117,6 +117,17 @@ def check_ground_state_normalization(
         principal = [[hessian[i][j] for j in face] for i in face]
         response = solve(principal, [alpha * degree[i] for i in face])
         assert all(F(0) < value <= 1 for value in response)
+        coupling = (1 - alpha) / 2
+        internal_degree = [
+            sum(adjacency[vertex][neighbor] for neighbor in face)
+            for vertex in face
+        ]
+        leakage = max(
+            F(degree[vertex] - internal_degree[position], degree[vertex])
+            for position, vertex in enumerate(face)
+        )
+        survival_lower = alpha / (alpha + coupling * leakage)
+        assert min(response) >= survival_lower
         mass = [F(degree[i], 1) / response[position] for position, i in enumerate(face)]
         assert all(
             sum(principal[row][column] * response[column] for column in range(len(face)))
@@ -169,7 +180,6 @@ def check_ground_state_normalization(
             for i in range(len(face))
             for j in range(len(face))
         )
-        coupling = (1 - alpha) / 2
         edge_weight = [
             [
                 coupling * adjacency[face[i]][face[j]] * response[i] * response[j]
@@ -208,6 +218,44 @@ def check_ground_state_normalization(
             for j in range(len(face))
         )
         assert quadratic == dirichlet
+
+        if len(face) > 1:
+            phi_ground: F | None = None
+            phi_ambient: F | None = None
+            for cut_mask in range(1, (1 << len(face)) - 1):
+                left = [i for i in range(len(face)) if cut_mask & (1 << i)]
+                right = [i for i in range(len(face)) if not cut_mask & (1 << i)]
+                cut_edges = sum(adjacency[face[i]][face[j]] for i in left for j in right)
+                ambient_denominator = min(
+                    sum(degree[face[i]] for i in left),
+                    sum(degree[face[i]] for i in right),
+                )
+                ground_denominator = min(
+                    sum(dbar[i] for i in left),
+                    sum(dbar[i] for i in right),
+                )
+                ambient_ratio = cut_edges / ambient_denominator
+                ground_ratio = (
+                    coupling
+                    * sum(
+                        adjacency[face[i]][face[j]] * response[i] * response[j]
+                        for i in left
+                        for j in right
+                    )
+                    / ground_denominator
+                )
+                phi_ambient = (
+                    ambient_ratio
+                    if phi_ambient is None
+                    else min(phi_ambient, ambient_ratio)
+                )
+                phi_ground = (
+                    ground_ratio
+                    if phi_ground is None
+                    else min(phi_ground, ground_ratio)
+                )
+            assert phi_ground is not None and phi_ambient is not None
+            assert phi_ground >= coupling * survival_lower**2 * phi_ambient
 
         # The ground-state Laplacian induces an exact reversible Markov
         # kernel.  This is the premise needed by the weighted-conductance
@@ -309,6 +357,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-proper-face-ground-conjugacy}" in source
     assert r"\label{eq:aesp-cd-proper-face-doob-laplacian}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-gap}" in source
+    assert r"\label{cor:aesp-cd-proper-face-leakage-conductance}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
 
@@ -372,6 +421,7 @@ def main() -> None:
     print("  h-cap / W-shift conjugacy: exact on every connected face")
     print("  conjugated ground shift: exact weighted graph Laplacian")
     print("  ground walk: stochastic, nonnegative, and exactly reversible")
+    print("  leakage survival and ordinary-conductance comparison: exact on every face")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "

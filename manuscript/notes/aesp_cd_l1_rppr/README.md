@@ -384,6 +384,10 @@ zero and the exact proper-face tail costs only
 does not pass through the unresolved mixed-clipping master inequality.
 The certificate is nonvacuous: for `q<=1/256`, a proper `K_m` face with one
 exterior leaf and `m>=ceil(1/alpha)` has `Phi_h>=27/256`.
+The ground coordinate `h_i` is exactly the probability of teleporting before
+leaving the face.  If every vertex leaks at most an `eta` fraction of its
+edges, then `min h>=alpha/(alpha+((1-alpha)/2)eta)`, giving a direct
+ordinary-conductance certificate without first diagonalizing the face.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

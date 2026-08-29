@@ -84,7 +84,11 @@ State: proved-open
   proper-face alignment tail in `O_tilde(alpha^(-1/2))` exact resolvent
   applications: the clipped-master sign remains separate, but is not needed
   by this alternative tail.  A proper clique with one exterior leaf and
-  `m>=ceil(1/alpha)` supplies an explicit nonvacuous family.
+  `m>=ceil(1/alpha)` supplies an explicit nonvacuous family.  The exact
+  killed-walk interpretation also yields the checkable survival bound
+  `min h>=alpha/(alpha+((1-alpha)/2)eta_A)` from local exterior leakage and
+  converts ordinary induced-face conductance into the required ground
+  conductance.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -523,6 +527,7 @@ graph-uniform end-to-end accelerated solver.
   `lem:aesp-cd-point-source-ground-state-normalization`,
   `prop:aesp-cd-proper-face-ground-conjugacy`,
   `cor:aesp-cd-proper-face-conductance-gap`,
+  `cor:aesp-cd-proper-face-leakage-conductance`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `cor:aesp-cd-point-source-route-output-interface`,

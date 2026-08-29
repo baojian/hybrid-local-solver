@@ -197,7 +197,11 @@ observable-alignment route: pure prox aligns the transformed residual, a
 same-point restart then makes every later `h_A`-cap vanish, and the fixed-face
 tail uses only `O_tilde(1/sqrt(alpha))` exact resolvent applications.  A
 proper clique with one exterior leaf and size at least `1/alpha` gives an
-explicit infinite nonvacuous family satisfying the certificate.  A
+explicit infinite nonvacuous family satisfying the certificate.  More
+generally, if every face vertex has exterior-degree fraction at most `eta`,
+then the killed-walk interpretation gives
+`min h >= alpha/(alpha+((1-alpha)/2)eta)` and converts ordinary induced-face
+conductance directly into ground conductance.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
 
