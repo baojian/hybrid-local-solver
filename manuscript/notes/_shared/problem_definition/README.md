@@ -12,7 +12,7 @@ The canonical graph scope is fixed by
 
 Given adjacency-list access to a finite simple connected graph with unit edge
 weights and at least two vertices, one seed vertex `v` (equivalently
-`s=e_v`), a PageRank parameter `alpha`, and an accuracy
+`\bm{s}=\bm{e}_v`), a PageRank parameter `alpha`, and an accuracy
 `eps_ppr`, compute a sparse approximation to the corresponding personalized
 PageRank vector with degree-normalized coordinate error at most `eps_ppr`,
 while charging every graph exposure, repeated local operation, response
@@ -27,34 +27,35 @@ by this repository.
 
 The shared theoretical model is:
 
-- a finite, simple, undirected, connected graph `G = (V, E)` with
-  `|V| >= 2` and unit edge weights;
-- symmetric adjacency matrix `A`, degrees `d_i > 0`, and
-  `D = diag(d_1, ..., d_n)`;
-- one seed vertex `v`, with canonical source vector `s = e_v` and constant
+- a finite, simple, undirected, connected graph
+  `\mathcal{G} = (\mathcal{V}, \mathcal{E})` with
+  `|\mathcal{V}| >= 2` and unit edge weights;
+- symmetric adjacency matrix `\bm{A}`, degrees `d_i > 0`, and
+  `\bm{D} = diag(d_1, ..., d_n)`;
+- one seed vertex `v`, with canonical source vector `\bm{s} = \bm{e}_v` and constant
   seed-input cost;
 - `alpha in (0, 1]`.
 
 Define
 
 ```text
-L = I - D^(-1/2) A D^(-1/2)
-Q = alpha I + (1 - alpha) L / 2
-b = alpha D^(-1/2) s.
+\bm{\mathcal L} = \bm{I} - \bm{D}^(-1/2) \bm{A} \bm{D}^(-1/2)
+\bm{Q} = alpha \bm{I} + (1 - alpha) \bm{\mathcal L} / 2
+\bm{b} = alpha \bm{D}^(-1/2) \bm{s}.
 ```
 
 The unique source-aligned solution is
 
 ```text
-x^0 = Q^(-1) b,
-pi  = D^(1/2) x^0.
+\bm{x}_0^* = \bm{Q}^(-1) \bm{b},
+\bm{\pi}   = \bm{D}^(1/2) \bm{x}_0^*.
 ```
 
-Equivalently, with `P = A D^(-1)` acting on column vectors,
+Equivalently, with `\bm{P} = \bm{A} \bm{D}^(-1)` acting on column vectors,
 
 ```text
-pi = [2 alpha / (1 + alpha)] s
-     + [(1 - alpha) / (1 + alpha)] P pi.
+\bm{\pi} = [2 alpha / (1 + alpha)] \bm{s}
+           + [(1 - alpha) / (1 + alpha)] \bm{P} \bm{\pi}.
 ```
 
 This parameterization is intentional. A paper using a different teleportation
@@ -65,7 +66,7 @@ The canonical LaTeX definition is
 ### Seed-component reduction
 
 Connectedness loses no point-source solution behavior. If a larger
-positive-degree unit-weight graph is disconnected and `s=e_v`, then `Q` is
+positive-degree unit-weight graph is disconnected and `\bm{s}=\bm{e}_v`, then `\bm{Q}` is
 block diagonal after ordering by components and the load is supported only on
 the component `C(v)`. Consequently both the PPR solution and the RPPR
 minimizer are zero outside `C(v)`, while their restrictions are exactly the
@@ -79,11 +80,11 @@ necessary.
 ## General-distribution extension boundary
 
 The shared algebra also permits a nonnegative unit-mass distribution
-`s = sum_v s_v e_v`. For unregularized PPR the solution map is linear:
+`\bm{s} = sum_v s_v \bm{e}_v`. For unregularized PPR the solution map is linear:
 
 ```text
-x^0(s) = sum_v s_v x^0(e_v),
-pi(s)  = sum_v s_v pi(e_v).
+\bm{x}_0^*(\bm{s}) = sum_v s_v \bm{x}_0^*(\bm{e}_v),
+\bm{\pi}(\bm{s})   = sum_v s_v \bm{\pi}(\bm{e}_v).
 ```
 
 If point-source approximations have semantic errors `eps_v`, their weighted

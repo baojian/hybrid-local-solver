@@ -67,6 +67,24 @@ def test_active_manuscript_uses_the_shared_problem_model_once() -> None:
     assert ACTIVE_SHARED_PROBLEM_INPUT in _read(MANUSCRIPT / "sections/problem_formulation.tex")
 
 
+def test_shared_problem_keeps_author_bold_optimum_notation() -> None:
+    shared = _read(MANUSCRIPT / "tex/shared/source_aligned_problem.tex")
+    required = {
+        r"\bm{A}",
+        r"\bm{D}",
+        r"\bm{Q}",
+        r"\bm{x}",
+        r"\bm{s}",
+        r"\bm{x}^*",
+        r"\bm{x}_0^*",
+        r"\bm{x}_\rho^*",
+    }
+    assert all(symbol in shared for symbol in required)
+    assert "plain italic notation" not in shared
+    assert r"x^0" not in shared
+    assert r"x^\star(\rho)" not in shared
+
+
 def test_reusable_latex_declarations_are_confined_to_shared_files() -> None:
     declaration = re.compile(
         r"\\(?:newcommand|renewcommand|providecommand|DeclareMathOperator|"
@@ -134,7 +152,9 @@ def test_known_semantic_aliases_do_not_regress() -> None:
         "normalized adjacency must not be W": re.compile(
             r"W\s*:?=\s*D\^\{-1/2\}\s*A\s*D\^\{-1/2\}"
         ),
-        "unregularized optimum must be x0": re.compile(r"x\^\{?\\star\}?\s*:?=\s*Q\^\{-1\}\s*b"),
+        "unregularized optimum must be x_0^*": re.compile(
+            r"\\bm\{x\}\^\*\s*:?=\s*\\bm\{Q\}\^\{-1\}\\bm\{b\}"
+        ),
     }
     offenders: list[str] = []
     for path in _publication_tex_sources():

@@ -32,13 +32,15 @@ orientation, or any of the scientific choices listed below.
 
 ### Source-aligned manuscript and research-note notation
 
-The active manuscript and every standalone research note deliberately share a
-single reference RPPR formulation following the plain italic notation of
-Fountoulakis and Martínez-Rubio (2026):
-\(x,s,A,D,Q,I\), with \(x\) and \(s\) interpreted as column vectors. This is a
-scoped exception to the bold vector/matrix typography above, chosen so that
-the imported objective, KKT conditions, FISTA updates, and locality analysis
-can be compared symbol-for-symbol with arXiv `2602.21138v2`.
+The active manuscript and every standalone research note share one reference
+RPPR formulation. It preserves the mathematics of Fountoulakis and
+Martínez-Rubio (2026) while following the author's typography: vectors are
+bold lowercase, matrices are bold uppercase, and graphs and sets are
+calligraphic. Thus \(\bm{x},\bm{s}\) are column vectors and
+\(\bm{A},\bm{D},\bm{Q},\bm{I}\) are matrices. The generic optimum is
+\(\bm{x}^*\), the unregularized PPR optimum is \(\bm{x}_0^*\), and the RPPR
+optimum is \(\bm{x}_\rho^*\). These names must not be replaced by
+\(x^0\) or \(x^\star(\rho)\).
 
 The canonical reusable definition is
 [`manuscript/tex/shared/source_aligned_problem.tex`](../manuscript/tex/shared/source_aligned_problem.tex),
@@ -57,9 +59,9 @@ remaining decisions and tests below are completed.
 ### APPR baseline notation
 
 [`manuscript/sections/appr_lower_bound.tex`](../manuscript/sections/appr_lower_bound.tex)
-continues the same scoped plain-italic, column-vector convention so that the
-APPR push vectors \(p_t,r_t\) share the graph symbols \(G,V,E,A,D,d_u\) of the
-RPPR formulation. Andersen, Chung, and Lang (2007) state their algorithm with
+continues the same column-vector convention; its push vectors and graph
+matrices follow the bold typography above. Andersen, Chung, and Lang (2007)
+state their algorithm with
 row vectors acting on the right of the lazy walk matrix; the manuscript
 transposes it and records this explicitly. Two further scoped choices:
 
@@ -85,15 +87,16 @@ theorem verification.
 The project studies local PageRank as its initial graph problem. The canonical
 graph class and seed input are fixed: the graph is finite, simple, undirected,
 connected, has at least two vertices and unit edge weights, and the
-end-to-end input is one seed vertex `v` with `s=e_v`. See
+end-to-end input is one seed vertex `v` with `s=e_v`. All vectors are column
+vectors. In manuscript mathematics, vectors and matrices are bold; in
+particular, the generic optimum is `\bm{x}^*`, the PPR optimum is
+`\bm{x}_0^*`, and the RPPR optimum is `\bm{x}_\rho^*`. See
 [`decisions/graph-convention.md`](decisions/graph-convention.md) and
 [`decisions/seed-convention.md`](decisions/seed-convention.md).
 
 The following remaining definitions are not yet fixed and must not be
 inferred from a cited paper:
 
-- whether vectors are rows or columns;
-- adjacency and degree matrix notation;
 - transition-matrix orientation;
 - the exact linear system or fixed-point equation;
 - the role and admissible range of `alpha`;
@@ -105,20 +108,23 @@ the same change.
 The current source-grounded manuscript reference uses the accepted connected
 unit-weight graph and point-source conventions and defines
 \[
-\mathcal{L}=I-D^{-1/2}AD^{-1/2},
+\bm{\mathcal{L}}=\bm{I}-\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},
 \qquad
-Q=\alpha I+\frac{1-\alpha}{2}\mathcal{L},
+\bm{Q}=\alpha\bm{I}+\frac{1-\alpha}{2}\bm{\mathcal{L}},
 \]
 \[
-F_\rho(x)
+F_\rho(\bm{x})
 =
-\frac12\langle x,Qx\rangle
--\alpha\langle D^{-1/2}s,x\rangle
-+\alpha\rho\|D^{1/2}x\|_1.
+\frac12\langle \bm{x},\bm{Q}\bm{x}\rangle
+-\alpha\langle \bm{D}^{-1/2}\bm{s},\bm{x}\rangle
++\alpha\rho\|\bm{D}^{1/2}\bm{x}\|_1.
 \]
-Here \(s\geq0\), \(\langle\mathbf{1},s\rangle=1\). The canonical
+Here \(\bm{s}\geq\bm{0}\), \(\langle\mathbf{1},\bm{s}\rangle=1\). The canonical
 end-to-end computational problem takes one seed vertex `v`, hence
-\(s=e_v\). General unit-mass distributions remain available for
+\(\bm{s}=\bm{e}_v\). The exact optima are denoted by
+\(\bm{x}_0^*=\bm{Q}^{-1}\bm{b}\) and \(\bm{x}_\rho^*\), with
+\(\bm{x}^*\) reserved for an objective-generic optimum. General unit-mass
+distributions remain available for
 source-aligned algebra and explicitly scoped extensions, but they are not the
 input contract of the central complexity target. See
 Fountoulakis and Martínez-Rubio (2026), PDF page 3,

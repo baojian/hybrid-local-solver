@@ -10,51 +10,53 @@
 \label{subsec:shared-source-aligned-problem}
 
 All documents in this manuscript workspace use the following reference
-language. It follows the plain italic notation of the comparison paper:
-\(x,s,A,D,Q,I\) denote column vectors or matrices as determined by their
-displayed domains. This is the scoped exception to the project's usual
-bold-vector and bold-matrix typography. A note may impose a stronger
-assumption after this block, but it must not redefine these objects.
+language. Vectors and matrices are typeset in bold. The generic optimization
+variable is \(\bm{x}\); \(\bm{x}^*\) denotes an optimum when the objective is
+clear from context; \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\) denote respectively
+the unregularized PPR optimum and the RPPR optimum at regularization
+\(\rho\). A note may impose a stronger assumption after this block, but it
+must not redefine these objects or rename these three optimum vectors.
 
-Let \(G=(V,E)\) be a finite, simple, undirected, connected graph with
-\(n:=|V|\geq2\) and unit edge weights. Let
-\(V=[n]:=\{1,\ldots,n\}\), and let
-\(A\in\{0,1\}^{n\times n}\) be its symmetric adjacency matrix. For
-\(i\in V\), write
+Let \(\mathcal{G}=(\mathcal{V},\mathcal{E})\) be a finite, simple,
+undirected, connected graph with \(n:=|\mathcal{V}|\geq2\) and unit edge
+weights. Let \(\mathcal{V}=[n]:=\{1,\ldots,n\}\), and let
+\(\bm{A}\in\{0,1\}^{n\times n}\) be its symmetric adjacency matrix. For
+\(i\in\mathcal{V}\), write
 \[
-    \mathcal N(i):=\{j\in V:\{i,j\}\in E\},
+    \mathcal N(i):=\{j\in\mathcal{V}:\{i,j\}\in\mathcal{E}\},
     \qquad
     d_i:=|\mathcal N(i)|,
     \qquad
-    D:=\diag(d_1,\ldots,d_n).
+    \bm{D}:=\diag(d_1,\ldots,d_n).
 \]
 Connectedness and \(n\geq2\) imply \(d_i\geq1\) for every vertex, so all
-displayed powers of \(D\) are well defined.
-For \(S\subseteq V\), define
+displayed powers of \(\bm{D}\) are well defined.
+For \(\mathcal{S}\subseteq\mathcal{V}\), define
 \[
-    \mathcal N(S):=\bigcup_{i\in S}\mathcal N(i),
+    \mathcal N(\mathcal{S}):=\bigcup_{i\in\mathcal{S}}\mathcal N(i),
     \qquad
-    \partial S:=\mathcal N(S)\setminus S,
+    \partial\mathcal{S}:=\mathcal N(\mathcal{S})\setminus\mathcal{S},
     \qquad
-    \operatorname{Ext}(S):=V\setminus(S\cup\partial S),
+    \operatorname{Ext}(\mathcal{S}):=\mathcal{V}\setminus(\mathcal{S}\cup\partial\mathcal{S}),
 \]
 \begin{equation}
-    \vol(S):=\sum_{i\in S}d_i.
+    \vol(\mathcal{S}):=\sum_{i\in\mathcal{S}}d_i.
     \label{eq:shared-volume}
 \end{equation}
 The support of a vector is
-\(\supp(x):=\{i\in[n]:x_i\neq0\}\). Matrix inequalities use the Loewner
+\(\supp(\bm{x}):=\{i\in[n]:x_i\neq0\}\). Matrix inequalities use the Loewner
 order, and all unqualified vector inequalities are coordinatewise.
 
 The seed is a column distribution
 \begin{equation}
-    s\in\R_+^n,
+    \bm{s}\in\R_+^n,
     \qquad
-    \inner{\one}{s}=1.
+    \inner{\one}{\bm{s}}=1.
     \label{eq:shared-seed}
 \end{equation}
-The single-seed specialization is always written \(s=e_v\), where \(v\in V\)
-is the seed vertex. Thus \(s\) is never used as a vertex label.  The
+The single-seed specialization is always written \(\bm{s}=\bm{e}_v\), where
+\(v\in\mathcal{V}\) is the seed vertex. Thus \(\bm{s}\) is never used as a
+vertex label.  The
 project's canonical end-to-end computational problem uses this single-seed
 specialization.  The general unit-mass distribution above is retained as a
 source-aligned algebraic extension; a theorem for it must state its additional
@@ -62,62 +64,64 @@ input and work dependence explicitly. For
 \(\alpha\in(0,1]\), define
 \begin{equation}
 \begin{aligned}
-    \mathcal L&:=I-D^{-1/2}AD^{-1/2},\\
-    Q&:=\alpha I+\frac{1-\alpha}{2}\mathcal L
-      =\frac{1+\alpha}{2}I
-       -\frac{1-\alpha}{2}D^{-1/2}AD^{-1/2},\\
-    b&:=\alpha D^{-1/2}s.
+    \bm{\mathcal L}&:=\bm{I}-\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{Q}&:=\alpha\bm{I}+\frac{1-\alpha}{2}\bm{\mathcal L}
+      =\frac{1+\alpha}{2}\bm{I}
+       -\frac{1-\alpha}{2}\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{b}&:=\alpha\bm{D}^{-1/2}\bm{s}.
 \end{aligned}
     \label{eq:shared-pagerank-matrices}
 \end{equation}
-Since \(0\preceq\mathcal L\preceq2I\),
-\(\alpha I\preceq Q\preceq I\). The shared smooth PageRank quadratic is
+Since \(\bm{0}\preceq\bm{\mathcal L}\preceq2\bm{I}\),
+\(\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}\). The shared smooth PageRank
+quadratic is
 \begin{equation}
-    f(x):=\frac12\inner{x}{Qx}-\inner{b}{x},
+    f(\bm{x}):=\frac12\inner{\bm{x}}{\bm{Q}\bm{x}}-\inner{\bm{b}}{\bm{x}},
     \qquad
-    \nabla f(x)=Qx-b.
+    \nabla f(\bm{x})=\bm{Q}\bm{x}-\bm{b}.
     \label{eq:shared-pagerank-objective}
 \end{equation}
 Its unique unregularized minimizer and associated lazy personalized PageRank
 vector are
 \begin{equation}
-    x^0:=Q^{-1}b,
+    \bm{x}_0^*:=\bm{Q}^{-1}\bm{b},
     \qquad
-    \pi:=D^{1/2}x^0.
+    \bm{\pi}:=\bm{D}^{1/2}\bm{x}_0^*.
     \label{eq:shared-ppr-solution}
 \end{equation}
 
 For a regularization parameter \(\rho>0\), reserve \(g_\rho\) for the
 nonsmooth weighted \(\ell_1\) term and define
 \begin{equation}
-    g_\rho(x):=\alpha\rho\norm{D^{1/2}x}_1,
+    g_\rho(\bm{x}):=\alpha\rho\norm{\bm{D}^{1/2}\bm{x}}_1,
     \qquad
-    F_\rho(x):=f(x)+g_\rho(x),
+    F_\rho(\bm{x}):=f(\bm{x})+g_\rho(\bm{x}),
     \qquad
-    x^\star(\rho):=\argmin_{x\in\R^n}F_\rho(x).
+    \bm{x}_\rho^*:=\argmin_{\bm{x}\in\R^n}F_\rho(\bm{x}).
     \label{eq:shared-rppr-objective}
 \end{equation}
-When \(\rho\) is fixed, \(x^\star\) abbreviates \(x^\star(\rho)\), never the
-unregularized point \(x^0\). Write
+When the objective is clear, \(\bm{x}^*\) may abbreviate its unique optimum;
+the explicit symbols remain \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\). Write
 \[
-    S^\star(\rho):=\supp(x^\star(\rho)),
+    \mathcal{S}_\rho^*:=\supp(\bm{x}_\rho^*),
     \qquad
-    I^\star(\rho):=[n]\setminus S^\star(\rho).
+    \mathcal{I}_\rho^*:=[n]\setminus\mathcal{S}_\rho^*.
 \]
-The source records \(x^\star(\rho)\geq0\),
-\(\vol(S^\star(\rho))\leq1/\rho\), and the coordinatewise conditions
+The source records \(\bm{x}_\rho^*\geq\bm{0}\),
+\(\vol(\mathcal{S}_\rho^*)\leq1/\rho\), and the coordinatewise conditions
 \begin{equation}
-    \nabla_i f(x^\star(\rho))
+    \nabla_i f(\bm{x}_\rho^*)
     \in
     \begin{cases}
-        \{-\alpha\rho\sqrt{d_i}\}, & x_i^\star(\rho)>0,\\
-        [-\alpha\rho\sqrt{d_i},0], & x_i^\star(\rho)=0.
+        \{-\alpha\rho\sqrt{d_i}\}, & (\bm{x}_\rho^*)_i>0,\\
+        [-\alpha\rho\sqrt{d_i},0], & (\bm{x}_\rho^*)_i=0.
     \end{cases}
     \label{eq:shared-rppr-kkt}
 \end{equation}
 
 The common computational unit is one repeated adjacency-list scan: scanning
-coordinate \(i\) costs \(d_i\), and scanning a set \(S\) costs \(\vol(S)\).
+coordinate \(i\) costs \(d_i\), and scanning a set \(\mathcal{S}\) costs
+\(\vol(\mathcal{S})\).
 Iteration count and wall-clock time do not replace this degree-weighted work
 measure.
 

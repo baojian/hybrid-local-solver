@@ -1,9 +1,10 @@
 **Problem definitions**
 
-**Merged lineage.** This is the single promoted version obtained by merging
-the user-owned v2 baseline from `3b9e9ce` with the canonical point-source,
-connected-unit-graph additions and shared-shell synchronization from v1
-`8dd3e41`. The temporary v1/v2 split has been retired.
+**Merged lineage.** This is the corrected merge: the user-owned v2 notation
+baseline from `3b9e9ce` is authoritative, including bold vectors and matrices
+and the optimum symbols `\bm{x}^*`, `\bm{x}_0^*`, and `\bm{x}_\rho^*`. The
+point-source, connected-unit-graph additions from v1 are retained without
+renaming those objects. The temporary v1/v2 split has been retired.
 
 This standalone reference note collects the exact PageRank and regularized
 PageRank (RPPR) problems used by the project, their equivalent lazy,
@@ -110,7 +111,7 @@ must be reconciled here and in the shared source-aligned definition.
   pointers recorded there.
 - Focused checks: the note builds to a seven-page PDF with resolved citations
   and cross-references; the note inventory reports 27 consistent notes; all
-  212 tests and `make agent-audit` pass.
+  213 tests and `make agent-audit` pass.
 - Known gaps: the note intentionally does not resolve the implementation-wide
   residual sign, stopping schedule, finite-precision behavior, or a local
   solver complexity theorem.
