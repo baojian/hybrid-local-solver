@@ -648,6 +648,8 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-hitting-occupation}" in source
     assert r"\label{lem:aesp-cd-point-source-hitting-radius}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-event-locality}" in source
+    assert r"\label{cor:aesp-cd-point-source-route-output-interface}" in source
+    assert r"\label{eq:aesp-cd-point-source-route-output-interface}" in source
     assert r"\label{lem:aesp-cd-point-source-frontier-universe}" in source
     assert r"\label{prop:aesp-cd-point-source-orthogonal-pivots}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-bessel}" in source

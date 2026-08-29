@@ -209,6 +209,14 @@ State: proved-open
   `y0_i/rho -> alpha/p`.  Thus a `rho*sqrt(alpha)` ordinary-PPR superlevel
   envelope, which would have closed the desired volume bound immediately,
   is false on general graphs.
+  Combining the finite-level count with the hitting-radius lemma gives a
+  sharp conditional closure: a dynamic locator whose total charge is one
+  unit plus pivot-to-event distance per emitted level crossing has
+  `O_tilde(vol(S*)/sqrt(alpha))` work.  The contract explicitly includes
+  response-state maintenance, rejected queries, and empty outputs.  This is
+  the current minimal point-source interface; named-coordinate dynamic
+  solves and ordinary spectral vertex sparsifiers do not automatically
+  instantiate its exhaustive one-sided reporter.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -420,6 +428,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-point-source-frontier-universe`,
   `prop:aesp-cd-point-source-hitting-column`,
   `lem:aesp-cd-point-source-hitting-radius`,
+  `cor:aesp-cd-point-source-route-output-interface`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,
   `prop:aesp-cd-point-source-ppr-screening`,
   `cor:aesp-cd-fan-finite-stop`,

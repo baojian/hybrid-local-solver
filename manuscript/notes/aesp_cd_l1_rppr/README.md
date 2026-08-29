@@ -75,6 +75,16 @@ finite-level crossing can occur only within
 but not yet the work: those neighborhoods can have huge volume and can
 overlap.
 
+Consequently the remaining general-graph theorem now has a minimal explicit
+interface.  If a dynamic locator charges only once per crossed finite level,
+plus the graph distance from its pivot to that crossing (including all state
+maintenance and empty-output queries), then the event count and hitting-radius
+theorems immediately give `O_tilde(vol(S*)/sqrt(alpha))` discovery work.  This
+is stronger than a named-coordinate dynamic inverse: existing dynamic spectral
+solvers do not by themselves enumerate all one-sided level events.  Thus the
+single-source simplification has produced a genuine reduction, but not yet an
+implementation of the last reporter.
+
 A second exact comparison rules out a tempting shortcut.  If `y0` is
 ordinary point-source PPR, then every RPPR support coordinate satisfies
 `y0_i > alpha*rho/p`, so its `alpha*rho` superlevel is a valid containing
