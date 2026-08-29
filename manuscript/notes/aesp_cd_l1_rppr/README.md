@@ -446,6 +446,9 @@ plus dynamic planar extreme queries gives soft-linear reporter work.  The
 conductance-certified inexact version uses the same structure with propagated
 row bands; accumulated gray rows, not the common motion, are the remaining
 fallback set.
+Every prefix of an unweighted complete graph realizes the exact branch:
+`h` and each exterior response are constant and
+`u=(1-alpha)/(2*alpha*(n-1))*h`, so its gray band is identically zero.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

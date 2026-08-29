@@ -767,6 +767,33 @@ def check_lazy_rank_one_reporter() -> int:
     return checks
 
 
+def check_complete_prefix_rank_one() -> int:
+    """Audit exact rank-one pivot responses on every proper K7 prefix."""
+    size = 7
+    degree = size - 1
+    alpha = F(1, 17)
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    checks = 0
+    for face_size in range(1, size):
+        principal = [
+            [
+                p * degree if i == j else -coupling
+                for j in range(face_size)
+            ]
+            for i in range(face_size)
+        ]
+        eigenvalue = p * degree - coupling * (face_size - 1)
+        ground = solve(principal, [alpha * degree] * face_size)
+        response = solve(principal, [coupling] * face_size)
+        assert ground == [alpha * degree / eigenvalue] * face_size
+        assert response == [coupling / eigenvalue] * face_size
+        assert response == [
+            coupling / (alpha * degree) * value for value in ground
+        ]
+        checks += 1
+    return checks
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -785,6 +812,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
+    assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -842,6 +870,7 @@ def main() -> None:
         check_rank_one_inverse_certificate()
     )
     lazy_reporter_checks = check_lazy_rank_one_reporter()
+    complete_prefix_checks = check_complete_prefix_rank_one()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -862,6 +891,7 @@ def main() -> None:
         f"row_band={row_band}, finite_ground_eps={ground_eps}"
     )
     print(f"  lazy rank-one planar reporter checks: {lazy_reporter_checks}")
+    print(f"  exact complete-prefix rank-one faces: {complete_prefix_checks}")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "

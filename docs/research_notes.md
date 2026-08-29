@@ -281,6 +281,11 @@ query, giving soft-linear exact reporting when the response is truly rank one.
 For conductance-certified approximate rank one, the weighted dual error bands
 propagate through the same nonnegative maps; only rows whose accumulated bands
 overlap the KKT threshold require fallback.
+This branch is nonvacuous even before approximation: on every nested prefix of
+an unweighted complete graph, both the ground vector and every exterior pivot
+response are constant, with the exact identity
+`u=(1-alpha)/(2*alpha*(n-1))*h`.  Hence the gray band is zero and the planar
+lazy reporter applies literally.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

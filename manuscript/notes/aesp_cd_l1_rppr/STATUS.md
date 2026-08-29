@@ -141,6 +141,9 @@ State: proved-open
   A cumulative lazy matrix plus a dynamic planar extreme-point structure gives
   soft-linear reporting.  Under finite conductance bounds the same reduction
   propagates certified row intervals; only accumulated gray-band rows remain.
+  Complete-graph prefixes give an exact nonvacuous family: every pivot response
+  is the fixed multiple `(1-alpha)/(2*alpha*(n-1))` of the current ground, so
+  the gray band vanishes.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -594,6 +597,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
+  `cor:aesp-cd-complete-prefix-rank-one-reporter`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `prop:aesp-cd-point-source-literal-walk-sampling-stop`,
