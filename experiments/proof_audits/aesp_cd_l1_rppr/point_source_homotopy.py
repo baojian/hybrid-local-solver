@@ -886,7 +886,7 @@ def check_random_point_source_mass_clock() -> tuple[int, int, F]:
     admissions = 0
     largest_cauchy_ratio = F(0)
     for size in range(3, 8):
-        for _ in range(25):
+        for _ in range(200):
             edges = {(vertex, vertex + 1) for vertex in range(size - 1)}
             edges.update(
                 (left, right)
