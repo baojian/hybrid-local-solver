@@ -192,7 +192,12 @@ assumption is precisely a weighted conductance/Poincare assumption.  In
 particular, if `q=sqrt(alpha/(1-alpha))`, the explicit Cheeger certificate
 `Phi_h >= sqrt(2*alpha/q)=Theta(alpha^(1/4))` implies the required
 resolvent high gap.  It does not imply the separate clipped-master sign
-condition.  A
+condition.  Crucially, the sign condition is unnecessary for the alternative
+observable-alignment route: pure prox aligns the transformed residual, a
+same-point restart then makes every later `h_A`-cap vanish, and the fixed-face
+tail uses only `O_tilde(1/sqrt(alpha))` exact resolvent applications.  A
+proper clique with one exterior leaf and size at least `1/alpha` gives an
+explicit infinite nonvacuous family satisfying the certificate.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
 

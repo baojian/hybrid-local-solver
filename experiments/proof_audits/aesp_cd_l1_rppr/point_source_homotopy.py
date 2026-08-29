@@ -274,6 +274,33 @@ def check_ground_state_normalization(
     return checked
 
 
+def check_proper_clique_conductance_witness() -> tuple[F, F, F]:
+    """Audit the closed two-orbit proper-clique witness exactly."""
+    q = F(1, 256)
+    alpha = q * q / (1 + q * q)
+    # Here alpha=1/65537, so this is exactly ceil(1/alpha).
+    clique_size = (alpha.denominator + alpha.numerator - 1) // alpha.numerator
+    assert clique_size >= 1 / alpha
+    response_nondistinguished_numerator = (
+        2 * alpha * clique_size * ((1 + alpha) * clique_size - 2 * alpha)
+    )
+    response = response_nondistinguished_numerator / (
+        response_nondistinguished_numerator + (1 - alpha) ** 2
+    )
+    assert response >= F(3, 4)
+    conductance_lower = (
+        (1 - alpha)
+        / 2
+        * F(clique_size - 1, clique_size)
+        * response
+        / 2
+    )
+    assert conductance_lower >= F(27, 256)
+    threshold_squared = 2 * alpha / q
+    assert conductance_lower * conductance_lower > threshold_squared
+    return alpha, response, conductance_lower
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -282,6 +309,8 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-proper-face-ground-conjugacy}" in source
     assert r"\label{eq:aesp-cd-proper-face-doob-laplacian}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-gap}" in source
+    assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
+    assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -331,6 +360,9 @@ def main() -> None:
         alpha,
     )
     assert ground_faces == 25
+    witness_alpha, witness_response, witness_conductance = (
+        check_proper_clique_conductance_witness()
+    )
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -340,6 +372,11 @@ def main() -> None:
     print("  h-cap / W-shift conjugacy: exact on every connected face")
     print("  conjugated ground shift: exact weighted graph Laplacian")
     print("  ground walk: stochastic, nonnegative, and exactly reversible")
+    print(
+        "  proper-clique conductance witness: "
+        f"alpha={witness_alpha}, h_nondist={witness_response}, "
+        f"Phi_lower={witness_conductance}"
+    )
 
 
 if __name__ == "__main__":

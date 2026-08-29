@@ -377,6 +377,13 @@ The high gap now has an explicit graph certificate: with
 `Phi_h>=sqrt(2alpha/q)=Theta(alpha^(1/4))` implies every transformed high
 resolvent mode is at most `1-q`.  This is only a sufficient Cheeger
 condition; it does not establish the independent clipped-master sign.
+It nevertheless closes the alternative fixed-face alignment route: after an
+observable pure-prox warmup and same-point restart, all later `h_A`-caps are
+zero and the exact proper-face tail costs only
+`O_tilde(alpha^(-1/2))` resolvent applications.  Thus this positive theorem
+does not pass through the unresolved mixed-clipping master inequality.
+The certificate is nonvacuous: for `q<=1/256`, a proper `K_m` face with one
+exterior leaf and `m>=ceil(1/alpha)` has `Phi_h>=27/256`.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

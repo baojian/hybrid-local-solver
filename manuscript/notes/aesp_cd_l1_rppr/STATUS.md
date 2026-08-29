@@ -80,7 +80,11 @@ State: proved-open
   point-source connectedness makes its ground eigenspace one-dimensional.
   Quantitatively, `Phi_h>=sqrt(2alpha/q)` with
   `q=sqrt(alpha/(1-alpha))` is a checkable sufficient certificate for the
-  required high-resolvent bound.  The clipped-master sign remains separate.
+  required high-resolvent bound.  This already closes a correction-free
+  proper-face alignment tail in `O_tilde(alpha^(-1/2))` exact resolvent
+  applications: the clipped-master sign remains separate, but is not needed
+  by this alternative tail.  A proper clique with one exterior leaf and
+  `m>=ceil(1/alpha)` supplies an explicit nonvacuous family.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -519,6 +523,8 @@ graph-uniform end-to-end accelerated solver.
   `lem:aesp-cd-point-source-ground-state-normalization`,
   `prop:aesp-cd-proper-face-ground-conjugacy`,
   `cor:aesp-cd-proper-face-conductance-gap`,
+  `cor:aesp-cd-proper-face-conductance-alignment-tail`,
+  `prop:aesp-cd-proper-clique-conductance-witness`,
   `cor:aesp-cd-point-source-route-output-interface`,
   `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,
