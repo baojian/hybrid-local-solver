@@ -28,27 +28,33 @@
   obstacle/symmetric M-matrix LCP formulation, with a primary-source audit,
   support-discovery theorem, fully charged resource contract, projected-CG
   verdict, exact verification, and no manuscript promotion.
-- Implemented result: Proved the exact reduction; a nested, coordinatewise
-  increasing, true-support-only batched pivot theorem; supplied-support CG
-  work at the `sqrt(kappa)` scale; a local minimum-norm KKT objective
-  certificate; a path repeated-prefix obstruction; and an exact four-vertex
-  counterexample to coordinatewise monotone face/projected CG.  Formulated a
-  conditional OP2 theorem with one precise missing aggregate active-edge
-  continuation/reporter lemma.  Added a primary-source literature verdict map,
-  note registry/index entries, and exact rational verification artifacts.
+- Implemented result: In addition to the exact reduction, support-safe nested
+  pivots, supplied-support CG bound, and local KKT objective certificate,
+  proved a margin-free approximate-face dichotomy.  A residual-derived known
+  threshold either certifies a safe pivot or certifies the requested objective
+  gap; an overlapping-interval corollary removes finite-precision sign-margin
+  assumptions.  Proved a global exact-face energy/slack-motion telescope and
+  an exact-real `O(vol(S*))` append-only `LDL^T` solver for endpoint-seeded
+  paths.  Preserved the terminal-volume obstruction for naive repeated scans
+  and the exact four-vertex projected-CG overshoot.  The end-to-end OP2 result
+  is conditional on one fully charged arbitrary-graph changing-face response
+  and known-threshold reporter theorem.  Extended the primary-source map with
+  global Howard and dynamic Laplacian/matrix-inverse results.
 - Deliberately unchanged: The canonical problem-definition note, the active
   manuscript, `docs/literature/local-solvers.md`, every other research
   direction, source/experiment/provider code, and the paper library.
 
 ## Evidence
 
-- Tests added or changed: Added
-  `manuscript/notes/active_edge_lcp/verify_counterexample.py`; it uses exact
-  rational arithmetic and asserts the graph reduction, old-face and optimum
-  solves, four CG step sizes and iterates, positivity, energy decrease,
-  conjugacy, the exact overshoot, and terminal solve.
+- Tests added or changed: Retained the exact-rational projected-CG audit and
+  added `verify_threshold_dichotomy.py` and `verify_path_ldl.py`.  The former
+  checks 720 rational threshold cases and 36 exact energy/slack telescopes;
+  the latter checks 580 canonical path instances through length 30 against
+  direct principal solves and full KKT conditions.
 - Commands run:
   - `python3 manuscript/notes/active_edge_lcp/verify_counterexample.py`
+  - `python3 manuscript/notes/active_edge_lcp/verify_threshold_dichotomy.py`
+  - `python3 manuscript/notes/active_edge_lcp/verify_path_ldl.py`
   - `make -C manuscript/notes/active_edge_lcp`
   - `python3 manuscript/notes/tools/note_inventory.py check`
   - `git diff --check`
@@ -56,8 +62,9 @@
   - `make test`
   - `make lint`
 - Results:
-  - Exact rational audit passed and matched the checked output byte-for-byte.
-  - Focused note build passed: 14-page PDF, resolved citations/references, and
+  - All three exact rational audits passed and matched their checked outputs
+    byte-for-byte; all three scripts pass Ruff lint and format checks.
+  - Focused note build passed: 18-page PDF, resolved citations/references, and
     no undefined reference, fatal, or overfull-box diagnostics.
   - Every final PDF page was rendered to PNG and visually inspected; no
     clipping, overlap, broken table, or unreadable equation was found.
@@ -72,8 +79,9 @@
     simultaneous `windowed-spectral-lyapunov-7h` assignment and was left
     untouched.  The first lint run also found the owned script; it was
     formatted before the final run.
-  - A transient first test run rejected five note-local LaTeX aliases.  They
-    were expanded in place, and the final full test run passed.
+  - The resumed full test run initially had the expected active-assignment
+    overlap plus one note-local reserved notation failure.  The notation was
+    fixed before the final transition and the final full test run passed.
 
 ## Review notes
 
@@ -92,9 +100,10 @@
   handoff, before rerunning the audit so only one active writer owns that
   shared registry.
 - Open decision: whether to pursue an arbitrary-graph dynamic Schur response
-  with an all-negative boundary reporter, or first prove the aggregate
-  contract on a structural graph class.  Any continuation must be
-  margin-free or explicitly charge sign refinement.
+  with the proved known-threshold reporter, or first extend the exact path
+  recurrence to a broader structural graph class.  Exact-sign refinement is
+  no longer a legitimate missing assumption: the residual threshold already
+  removes it.
 
 ## Commits and checks
 
@@ -102,7 +111,9 @@
   `d433833c2ed8abe9f7b74db455c0e968c16ce692`.
 - Final research/check milestone:
   `465925f05d38b13b06c49ba04b047e76fb28b39c`.
-- Focused PDF: 14 pages, all pages rendered to PNG and visually inspected;
+- Strengthened threshold/path/literature milestone:
+  `3e8f38a43ff84e9b12848d8fb60490592b002817`.
+- Focused PDF: 18 pages, all pages rendered to PNG and visually inspected;
   no clipping, overlap, or unreadable table/equation was found.
 - Final repository checks: `make agent-audit` passed; `make test` passed
   213/213; `make lint` has the scoped external formatting failure recorded

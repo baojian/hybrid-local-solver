@@ -137,8 +137,8 @@ Exact theorem/page pointers are in `docs/literature/lcp-solvers.md`.
 - `python3 verify_path_ldl.py` checks 580 exact canonical path instances,
   including full 30-vertex support, against direct principal solves and KKT.
 - The focused note build, note registry, coordination audit, and all 213 tests
-  pass.  The owned Python script passes Ruff lint and format checks.  The full
-  repository format check still reports nine pre-existing files in the
+  pass.  All three owned Python scripts pass Ruff lint and format checks.  The
+  full repository format check still reports nine pre-existing files in the
   separately owned `aesp_cd_l1_rppr` proof-audit direction; exact details are
   recorded in the coordination handoff.
 
