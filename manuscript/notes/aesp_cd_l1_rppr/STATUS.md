@@ -144,8 +144,10 @@ State: proved-open
   point-source negative off-root load makes row-on-first-pivot discovery
   complete without a global scan.  Positive exterior residual mass is
   nonincreasing and starts below `alpha`, so at most `1/eps_kkt` rows are
-  simultaneously finite-significant; lifetime update/reporting cost remains
-  open.  In degree-unscaled coordinates the point-source obstacle is also
+  simultaneously finite-significant.  Its sharpened Schur-row-sum decrease
+  also bounds the sum of all admitted block-pivot residuals by
+  `(1-alpha)/2`; lifetime update/reporting cost remains open.  In
+  degree-unscaled coordinates the point-source obstacle is also
   exactly a dissipative divisible-sandpile odometer: its vector is the
   coordinatewise least stabilizer and every fair legal full-toppling order
   converges monotonically to it.  This provides a rooted Abelian process, but

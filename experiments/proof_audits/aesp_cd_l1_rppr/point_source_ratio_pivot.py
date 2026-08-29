@@ -171,7 +171,7 @@ def pivot_support(
 
 
 def residual_pivot_support(
-    hessian: list[list[F]], load: list[F], alpha: F
+    hessian: list[list[F]], load: list[F], degree: list[int], alpha: F
 ) -> tuple[set[int], list[tuple[int, F]]]:
     """Fixed-target principal pivots, deliberately not in ratio order."""
     size = len(load)
@@ -199,6 +199,10 @@ def residual_pivot_support(
         winner = max(positive)
         events.append((winner, residual[winner]))
         pivot = schur[winner, winner]
+        row_sum = sum((schur[vertex, winner] for vertex in exterior), F(0))
+        diagonal = (1 + alpha) / 2
+        assert row_sum >= alpha * degree[winner]
+        assert pivot <= diagonal * degree[winner]
         remaining = [v for v in exterior if v != winner]
         for vertex in remaining:
             gamma = -schur[vertex, winner] / pivot
@@ -207,7 +211,10 @@ def residual_pivot_support(
         next_positive_mass = sum(
             (max(residual[vertex], F(0)) for vertex in remaining), F(0)
         )
-        assert next_positive_mass <= positive_mass
+        assert (
+            next_positive_mass
+            <= positive_mass - (alpha / diagonal) * residual[winner]
+        )
         positive_mass = next_positive_mass
         schur = {
             (u, v): schur[u, v] - schur[u, winner] * schur[winner, v] / pivot
@@ -250,6 +257,7 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-fixed-target-residual-stop}" in source
     assert r"\label{lem:aesp-cd-point-source-residual-mass}" in source
     assert r"\label{eq:aesp-cd-point-source-residual-mass}" in source
+    assert r"\label{eq:aesp-cd-point-source-pivot-injection}" in source
     assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
     assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
@@ -279,13 +287,14 @@ def main() -> None:
             )
             actual, events = pivot_support(hessian, degree, alpha, rho)
             residual_actual, residual_events = residual_pivot_support(
-                hessian, load, alpha
+                hessian, load, degree, alpha
             )
             assert actual == expected
             assert residual_actual == expected
             assert all(events[index][1] >= events[index + 1][1] for index in range(len(events) - 1))
             event_count += len(events)
             residual_event_count += len(residual_events)
+            assert sum((value for _, value in residual_events), F(0)) <= coupling
             if [vertex for vertex, _ in events] != [
                 vertex for vertex, _ in residual_events
             ]:
@@ -376,6 +385,7 @@ def main() -> None:
     print(f"  traces using a different legal pivot order={order_difference_count}")
     assert order_difference_count > 0
     print("  positive exterior residual mass is nonincreasing and at most alpha")
+    print("  total exact block-pivot residual injection is at most (1-alpha)/2")
     print(f"  dissipative legal topplings audited={toppling_count}; least action exact")
     print("  finite KKT slope band: exact P3 calibration")
     print("  certified pair intervals: worst-centered exact width bound")

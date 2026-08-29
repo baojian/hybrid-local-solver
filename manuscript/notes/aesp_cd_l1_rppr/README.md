@@ -258,7 +258,10 @@ local topplings still have only the classical
 exact block toppling; acceleration must come from representing those block
 responses economically.
 The total positive exterior residual mass is also nonincreasing and starts
-below $\alpha$.  Hence at any one time at most
+below $\alpha$.  In fact each pivot removes at least
+$\alpha/p$ times its admitted residual from this mass, so the sum of all
+block-pivot residual injections over any legal order is at most
+$(1-\alpha)/2$.  Hence at any one time at most
 $1/\varepsilon_{\rm kkt}$ rows can exceed the finite KKT threshold.  This
 does not yet bound lifetime rekeys, but it is a genuine finite-accuracy
 sparsity invariant absent from exact support recovery.
