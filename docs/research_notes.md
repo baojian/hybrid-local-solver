@@ -91,6 +91,10 @@ initializing the sparse source rows: its boundary threshold becomes
 the unresolved locator, if implemented at the stated output-sensitive rate,
 would recover the original additive sparse-source target rather than merely
 the point-source specialization.
+The principal-pivot response increments are also source-independent:
+they are pairwise energy-orthogonal, have total energy at most `alpha/2`,
+and total degree-weighted variation at most one.  The point source only
+sharpens the energy constant to `alpha/(2d_o)`.
 The subsequent fixed-envelope proximal solve never needs to identify the
 final positive face, so it also bypasses the proper-face
 `Q_A 1 != alpha 1` obstruction in the separate momentum-window analysis.

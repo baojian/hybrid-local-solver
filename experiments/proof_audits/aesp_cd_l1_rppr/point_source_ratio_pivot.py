@@ -581,6 +581,81 @@ def audit_orthogonal_pivots(
     return len(increments)
 
 
+def generic_residual_pivots(
+    hessian: list[list[F]], load: list[F]
+) -> tuple[set[int], list[tuple[int, F]]]:
+    """Positive-residual principal pivots from an arbitrary source load."""
+    remaining = list(range(len(load)))
+    residual = {i: load[i] for i in remaining}
+    schur = {(i, j): hessian[i][j] for i in remaining for j in remaining}
+    support: set[int] = set()
+    events: list[tuple[int, F]] = []
+    while True:
+        positive = [i for i in remaining if residual[i] > 0]
+        if not positive:
+            return support, events
+        winner = max(positive)
+        events.append((winner, residual[winner]))
+        pivot = schur[winner, winner]
+        rest = [i for i in remaining if i != winner]
+        for i in rest:
+            residual[i] -= schur[i, winner] * residual[winner] / pivot
+        schur = {
+            (i, j): schur[i, j] - schur[i, winner] * schur[winner, j] / pivot
+            for i in rest
+            for j in rest
+        }
+        support.add(winner)
+        remaining = rest
+
+
+def audit_sparse_orthogonal_pivots(
+    hessian: list[list[F]],
+    load: list[F],
+    degree: list[int],
+    alpha: F,
+    expected: set[int],
+) -> int:
+    support, events = generic_residual_pivots(hessian, load)
+    assert support == expected
+    active: set[int] = set()
+    old_point = [F(0)] * len(load)
+    increments: list[list[F]] = []
+    energies: list[F] = []
+    for winner, residual in events:
+        active.add(winner)
+        new_point = obstacle_point(hessian, load, active)
+        increment = [new_point[i] - old_point[i] for i in range(len(load))]
+        assert all(value >= 0 for value in increment)
+        energy = sum(
+            increment[i] * hessian[i][j] * increment[j]
+            for i in range(len(load))
+            for j in range(len(load))
+        )
+        assert energy == residual * increment[winner] > 0
+        for prior in increments:
+            assert sum(
+                prior[i] * hessian[i][j] * increment[j]
+                for i in range(len(load))
+                for j in range(len(load))
+            ) == 0
+        increments.append(increment)
+        energies.append(energy)
+        old_point = new_point
+    assert active == expected
+    released_energy = sum(load[i] * old_point[i] for i in range(len(load)))
+    assert sum(energies, F(0)) == released_energy <= alpha
+    assert sum(degree[i] * old_point[i] for i in range(len(load))) <= 1
+    hessian_inverse = inverse(hessian)
+    for i in range(len(load)):
+        leverage = sum(
+            increment[i] ** 2 / energy
+            for increment, energy in zip(increments, energies, strict=True)
+        )
+        assert leverage <= hessian_inverse[i][i] <= F(1, alpha * degree[i])
+    return len(events)
+
+
 def audit_ppr_screening(
     hessian: list[list[F]],
     degree: list[int],
@@ -886,6 +961,7 @@ def main() -> None:
     appr_push_count = 0
     sparse_radius_coordinates = 0
     sparse_appr_coordinates = 0
+    sparse_orthogonal_directions = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -974,6 +1050,13 @@ def main() -> None:
                 for i in range(size)
             ]
             sparse_support = obstacle_support(sparse_hessian, sparse_load)
+            sparse_orthogonal_directions += audit_sparse_orthogonal_pivots(
+                sparse_hessian,
+                sparse_load,
+                degree,
+                sparse_alpha,
+                sparse_support,
+            )
             for component in support_components(adjacency, sparse_support):
                 assert component & source_indices
             distance = source_distances(adjacency, source_indices)
@@ -1150,6 +1233,10 @@ def main() -> None:
     print(
         "  sparse-source RPPR/APPR radius coordinates audited="
         f"{sparse_radius_coordinates}/{sparse_appr_coordinates}"
+    )
+    print(
+        "  sparse-source energy-orthogonal pivot directions audited="
+        f"{sparse_orthogonal_directions}"
     )
     print("  separated sparse-source RPPR decomposition: exact P5 witness")
     print("  sparse-source route threshold: exact P3 merge-level witness")

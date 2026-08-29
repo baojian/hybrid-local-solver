@@ -61,6 +61,9 @@ The finite route-output locator reduction itself also extends to a sparse
 source with only the additive source-read cost: source rows begin as explicit
 candidate records, joint merge rows use thresholds
 `alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
+Its exact pivot increments remain energy-orthogonal for every source
+distribution, with total energy at most `alpha/2` and total degree-weighted
+variation at most one.
 Thus solving the remaining locator interface would recover the original
 additive sparse-source target, not just its point-source restriction.
 The fixed-envelope terminal composition does not identify the final positive
