@@ -76,8 +76,10 @@ it.  If this envelope is supplied, accelerated proximal gradient on the
 fixed envelope reaches semantic PPR error `eps_ppr` for a general sparse
 source in
 `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` work, without an exact-support
-margin.  Point-source structure is needed only to accelerate construction of
-the envelope, not for this terminal oracle solve.
+margin.  The square-root radius itself extends to distance from a general
+source set; point-source structure makes the construction a single rooted
+trace, rather than a collection of components that can merge.  It is not
+needed for the terminal oracle solve.
 The ordering-independent APPR star already has envelope radius at most one
 and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
 gap is repeated state processing rather than distant or oversized output.

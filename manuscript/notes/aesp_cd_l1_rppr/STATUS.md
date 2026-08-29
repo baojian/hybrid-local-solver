@@ -43,7 +43,8 @@ State: proved-open
   Supplied as an oracle, that APPR envelope immediately supports a standard
   accelerated proximal solve for a general sparse source with semantic work
   `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual
-  margin.  Point-source structure is needed only for envelope construction.
+  margin.  The same square-root radius holds from a general source set;
+  point-source structure is needed to make discovery a single rooted trace.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -442,6 +443,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
   `cor:aesp-cd-ratio-pivot-finite-stop`,
+  `prop:aesp-cd-sparse-source-radius`,
   `cor:aesp-cd-point-source-coarse-regime`,
   `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-appr-envelope-oracle`,

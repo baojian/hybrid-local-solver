@@ -22,10 +22,68 @@ point-source specialization
  s=e_o.
 \end{equation*}
 Statements that use only the shared quadratic algebra may remain valid for a
-general distribution, but connected support, a rooted exploration order, and
-the support-radius bound are invoked only under this point-source contract.
-This is a genuine restriction of the main theorem target, not a notational
-normalization.
+general distribution.  Connected support and a single rooted exploration
+order are invoked only under this point-source contract.  The support-radius
+bound itself extends to distance from the whole source set, as the next
+proposition shows.  Thus the genuine restriction is a one-root dynamic
+discovery contract, not merely a notational normalization.
+
+\begin{proposition}[Sparse-source support geometry is multi-rooted but still local]
+\label{prop:aesp-cd-sparse-source-radius}
+Let $s\geq0$, $\one^\top s=1$, and $T=\supp(s)$.  Every connected
+component of the RPPR support $S^\star(\rho)$ intersects $T$, and
+\begin{equation}
+ \max_{v\in S^\star(\rho)}\operatorname{dist}(T,v)
+ \leq
+ 1+\frac{\log_+((1-\alpha)/(\alpha\rho))}
+ {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \leq
+ 1+\frac{\log_+((1-\alpha)/(\alpha\rho))}{2\sqrt\alpha}.
+ \label{eq:aesp-cd-sparse-source-radius}
+\end{equation}
+Consequently sparsity of $s$ creates at most $|T|$ source-rooted
+components, all within the same square-root-scale radius.  What is lost
+relative to $s=e_o$ is not spatial locality but the single rooted response
+order: distinct components can contribute jointly to a previously inactive
+row and then merge.
+\end{proposition}
+
+\begin{proof}
+Work first in the degree-unscaled congruence
+$\widehat H=((1+\alpha)/2)D-((1-\alpha)/2)A$.
+If an active connected component $C$ does not intersect $T$, its active
+equations give
+\begin{equation*}
+ y_C^\star=\widehat H_{CC}^{-1}(-\alpha\rho d_C)<0,
+\end{equation*}
+because every principal Stieltjes inverse is nonnegative.  This contradicts
+activity, so every component meets $T$.
+
+For the radius, return to the shared normalized matrix $Q$.  Put
+$b=\alpha D^{-1/2}s$ and
+$\lambda_\alpha=(1-\sqrt\alpha)/(1+\sqrt\alpha)$.  The degree-$k$
+Chebyshev inverse polynomial from the point-source proof satisfies
+\begin{equation*}
+ \norm{Q^{-1}-p_k(Q)}_2\leq\frac2\alpha\lambda_\alpha^{k+1}.
+\end{equation*}
+Moreover $\norm{b}_2\leq\alpha\norm{s}_1=\alpha$.  If
+$\operatorname{dist}(T,v)=\ell$, locality makes
+$(p_{\ell-1}(Q)b)_v=0$.  Obstacle comparison therefore gives exactly the
+same Green bound as for one source,
+\begin{equation*}
+ 0\leq x_v^\star\leq(Q^{-1}b)_v\leq2\lambda_\alpha^\ell.
+\end{equation*}
+Choose an active vertex at maximum source-set distance $R\geq1$.  It is
+not a source, every neighbor has source-set distance at least $R-1$, and
+its active KKT equality yields
+\begin{equation*}
+ \alpha\rho\sqrt{d_v}
+ <\sum_{u\sim v}\frac{1-\alpha}{2\sqrt{d_ud_v}}x_u^\star
+ \leq(1-\alpha)\sqrt{d_v}\lambda_\alpha^{R-1}.
+\end{equation*}
+Taking logarithms proves the first radius bound; the second uses
+$\log((1+t)/(1-t))\geq2t$.
+\end{proof}
 
 \begin{proposition}[Sparse linear PPR from point-source solvers]
 \label{prop:aesp-cd-point-source-linear-reduction}
@@ -179,9 +237,10 @@ Consequently
  \leq \frac{2}{(1-\alpha)\rho}.
  \label{eq:aesp-cd-point-source-appr-envelope-volume}
 \end{equation}
-Under the point source \(s=e_o\), the same envelope also obeys
+For an arbitrary source distribution with $T=\supp(s)$, the same envelope
+also obeys
 \begin{equation}
- \max_{i\in\supp(x^{\mathrm{APPR}}(\rho))}\operatorname{dist}(o,i)
+ \max_{i\in\supp(x^{\mathrm{APPR}}(\rho))}\operatorname{dist}(T,i)
  \leq1+
  \frac{\log_+(2/(\alpha\rho))}
  {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
@@ -214,15 +273,15 @@ shared variable by a positive diagonal congruence and hence has identical
 support.  Applying the shared support cap
 \(\vol(S^\star(\eta))\leq1/\eta\) to the right inclusion with
 \(\eta=(1-\alpha)\rho/2\) proves
-\cref{eq:aesp-cd-point-source-appr-envelope-volume}.  Under a point source,
-the same right inclusion and the point-source support-radius lemma at
+\cref{eq:aesp-cd-point-source-appr-envelope-volume}.  For a general source,
+the same right inclusion and \cref{prop:aesp-cd-sparse-source-radius} at
 parameter \(\eta\) give
 \cref{eq:aesp-cd-point-source-appr-envelope-radius}.  The classical APPR
 upper bound and the matching center-seeded-star lower bound proved in the
 parent manuscript give the final worst-case work statement.  Notice that
-the support sandwich itself holds for general source distributions; the
-point-source restriction is used by the accelerated discovery program, not
-by this comparison.  For the final display, the root belongs to every APPR
+both the support sandwich and the source-set radius hold for general source
+distributions; the point-source restriction makes the dynamic discovery
+trace singly rooted.  For the final display, the root belongs to every APPR
 support, so its degree gives \(\vol(E)\geq m\), while \(E\subseteq V\) gives
 \(\vol(E)\leq2m\).  The parent star theorem gives
 \(W_{\mathrm{APPR}}>3/(128\alpha\rho)\); since
@@ -258,9 +317,9 @@ using
 \end{equation}
 degree work in the accelerated range \(\alpha<1/2\).  No strict active or
 dual margin and no exact-face identification are required for this semantic
-PPR guarantee.  The point-source hypothesis is needed only when one invokes
-rooted connectivity and radius to construct the envelope, not for this
-oracle-supplied terminal solve.
+PPR guarantee.  The point-source hypothesis is needed to turn the local
+source-set geometry into one rooted discovery trace, not for the radius
+bound or this oracle-supplied terminal solve.
 \end{corollary}
 
 \begin{proof}

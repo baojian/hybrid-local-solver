@@ -46,8 +46,9 @@ Indeed, if the APPR support is supplied as an oracle, accelerated proximal
 gradient on that fixed envelope gives semantic PPR for a general sparse
 source in
 `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support
-margin.  The point-source hypothesis is needed only for constructing the
-envelope through rooted connectivity/radius.  The gap between this oracle
+margin.  Even the envelope radius extends to distance from a general source
+set.  The point-source hypothesis instead turns that multi-root geometry
+into one connected rooted discovery trace.  The gap between this oracle
 theorem and the desired algorithm is therefore only the accelerated
 envelope-construction interface.
 

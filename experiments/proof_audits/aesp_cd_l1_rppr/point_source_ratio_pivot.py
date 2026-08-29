@@ -76,12 +76,15 @@ def appr_support(
     degree: list[int],
     alpha: F,
     rho: F,
+    source: list[F] | None = None,
 ) -> tuple[set[int], int]:
     """Run exact lazy APPR with the smallest active label."""
     size = len(degree)
     coupling = (1 - alpha) / 2
     settled = [F(0)] * size
-    residual = [F(i == 0) for i in range(size)]
+    residual = source[:] if source is not None else [F(i == 0) for i in range(size)]
+    assert len(residual) == size and all(value >= 0 for value in residual)
+    assert sum(residual, F(0)) == 1
     pushes = 0
     while True:
         active = [i for i in range(size) if residual[i] >= rho * degree[i]]
@@ -289,6 +292,41 @@ def graph_distances(
                 distance[neighbor] = distance[vertex] + 1
                 frontier.append(neighbor)
     return distance
+
+
+def source_distances(
+    adjacency: list[list[F]], sources: set[int]
+) -> dict[int, int]:
+    distance = {source: 0 for source in sources}
+    frontier = sorted(sources)
+    while frontier:
+        vertex = frontier.pop(0)
+        for neighbor, edge in enumerate(adjacency[vertex]):
+            if edge and neighbor not in distance:
+                distance[neighbor] = distance[vertex] + 1
+                frontier.append(neighbor)
+    return distance
+
+
+def support_components(
+    adjacency: list[list[F]], support: set[int]
+) -> list[set[int]]:
+    unseen = set(support)
+    components: list[set[int]] = []
+    while unseen:
+        seed = min(unseen)
+        component = {seed}
+        frontier = [seed]
+        unseen.remove(seed)
+        while frontier:
+            vertex = frontier.pop()
+            for neighbor in tuple(unseen):
+                if adjacency[vertex][neighbor]:
+                    unseen.remove(neighbor)
+                    component.add(neighbor)
+                    frontier.append(neighbor)
+        components.append(component)
+    return components
 
 
 def audit_response_residual_certificate(
@@ -689,6 +727,8 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-volume}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-radius}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-reuse-gap}" in source
+    assert r"\label{prop:aesp-cd-sparse-source-radius}" in source
+    assert r"\label{eq:aesp-cd-sparse-source-radius}" in source
     assert r"\label{cor:aesp-cd-point-source-appr-envelope-oracle}" in source
     assert r"\label{cor:aesp-cd-appr-envelope-oracle}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-error}" in source
@@ -746,6 +786,8 @@ def main() -> None:
     screened_support_count = 0
     appr_envelope_count = 0
     appr_push_count = 0
+    sparse_radius_coordinates = 0
+    sparse_appr_coordinates = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -808,6 +850,68 @@ def main() -> None:
             )
             appr_envelope_count += len(appr_envelope)
             appr_push_count += pushes
+
+            # General sparse sources retain the same exact source-set radius.
+            sparse_alpha = F(1, 9)
+            sparse_coupling = (1 - sparse_alpha) / 2
+            sparse_diagonal = (1 + sparse_alpha) / 2
+            sparse_hessian = [
+                [
+                    sparse_diagonal * degree[i]
+                    if i == j
+                    else -sparse_coupling * adjacency[i][j]
+                    for j in range(size)
+                ]
+                for i in range(size)
+            ]
+            source_count = min(size, 2 + rng.randrange(2))
+            source_indices = set(rng.sample(range(size), source_count))
+            raw_weights = {i: 1 + rng.randrange(5) for i in source_indices}
+            total_weight = sum(raw_weights.values())
+            sparse_source = [
+                F(raw_weights.get(i, 0), total_weight) for i in range(size)
+            ]
+            sparse_load = [
+                sparse_alpha * (sparse_source[i] - rho * degree[i])
+                for i in range(size)
+            ]
+            sparse_support = obstacle_support(sparse_hessian, sparse_load)
+            for component in support_components(adjacency, sparse_support):
+                assert component & source_indices
+            distance = source_distances(adjacency, source_indices)
+            if sparse_support:
+                radius = max(distance[i] for i in sparse_support)
+                if radius:
+                    assert F(1, 2) ** (radius - 1) > (
+                        sparse_alpha * rho / (1 - sparse_alpha)
+                    )
+            sparse_radius_coordinates += len(sparse_support)
+
+            sparse_envelope, _ = appr_support(
+                adjacency,
+                degree,
+                sparse_alpha,
+                rho,
+                sparse_source,
+            )
+            sparse_eta = sparse_coupling * rho
+            sparse_enlarged_load = [
+                sparse_alpha * (sparse_source[i] - sparse_eta * degree[i])
+                for i in range(size)
+            ]
+            sparse_enlarged_support = obstacle_support(
+                sparse_hessian, sparse_enlarged_load
+            )
+            assert sparse_support <= sparse_envelope <= sparse_enlarged_support
+            for component in support_components(adjacency, sparse_envelope):
+                assert component & source_indices
+            if sparse_envelope:
+                envelope_radius = max(distance[i] for i in sparse_envelope)
+                if envelope_radius:
+                    assert F(1, 2) ** (envelope_radius - 1) > (
+                        sparse_alpha * rho / 2
+                    )
+            sparse_appr_coordinates += len(sparse_envelope)
             toppling_count += audit_legal_topplings(
                 hessian, load, degree, alpha, expected, rng
             )
@@ -942,6 +1046,10 @@ def main() -> None:
     print(
         "  APPR sandwich coordinates/pushes audited="
         f"{appr_envelope_count}/{appr_push_count}"
+    )
+    print(
+        "  sparse-source RPPR/APPR radius coordinates audited="
+        f"{sparse_radius_coordinates}/{sparse_appr_coordinates}"
     )
     print(
         "  alpha-rho screening sharpness ratio="
