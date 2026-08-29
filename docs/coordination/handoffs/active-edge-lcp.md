@@ -4,7 +4,7 @@
 - Role: direction
 - Branch: `agent/codex/active-edge-lcp`
 - Base commit: `df0725fcf68797c5bf53527eabb6ae2dd64b9f33`
-- Assignment state: ready_for_review
+- Assignment state: active (resumed to pursue a complete OP2 proof)
 - Write scope:
   - `docs/coordination/active_assignments.toml`
   - `docs/coordination/handoffs/active-edge-lcp.md`
