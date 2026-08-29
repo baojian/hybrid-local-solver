@@ -130,11 +130,18 @@ coefficient is a closed expression in `(s_tilde_v,s_tilde_w)` and the one
 global approximate-ground mass.  No per-pivot RHS moment scan remains.
 With a charged exact row-refresh primitive, the clock directly gives a
 priority-queue reporter of work
-`O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))` while keeping every normalized
-gray radius below `eta`.  At `eta=Theta(alpha*eps_ppr)` and
-`q=Theta(sqrt(alpha))`, this is `O_tilde(F/(alpha^(3/2)*eps_ppr))`: finite
-and admission-count independent, but still one factor `1/alpha` above the
-desired rate.  This is an upper bound for the natural reset scheme, not an
+`O_tilde(F+c^(3/2)*q*P_*F_1/2/(alpha*(1+q)*eta))`, where `P_*` is the actual
+final clock and `F_1/2=sum_v a_v/sqrt(d_v)`.  It keeps every normalized gray
+radius below `eta`.  At `eta=Theta(alpha*eps_ppr)` and
+`q=Theta(sqrt(alpha))`, the target rate follows whenever
+`sqrt(c)*P_*F_1/2=O(alpha*F)`.  In particular, either uniformly high-degree
+refreshed rows or uniformly high-degree admitted pivots (`d>=alpha^(-2)`)
+close this branch.  The mixed condition is observable, so this is an
+a-posteriori algorithm branch rather than terminal-solution advice.
+An exact `K2` trace has `P_*^2=c^3*alpha/(4a)`, proving that unit mass alone
+does not force a global `O(alpha)` clock.  Its pulse is terminal, however;
+the sharper per-row lifetime clock stopped at admission or safe rejection is
+still open.  Thus this is an upper-bound interface and a scope STOP, not an
 algorithmic lower bound.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
