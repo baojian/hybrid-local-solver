@@ -1618,13 +1618,17 @@ degree-unscaled response residual
 Then every old coordinate satisfies
 \begin{equation}
  \left|h_i^{S,w}-\widetilde h_i\right|
+ \leq
+ \frac{\sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}}
+      {\sqrt{\alpha d_i}}
  \leq\frac{\norm{D_S^{-1/2}r}_2}{\alpha\sqrt{d_i}},
  \qquad i\in S.
  \label{eq:aesp-cd-point-source-response-residual-certificate}
 \end{equation}
 Consequently, for a pivot amount \(\Delta_w>0\), the computable condition
 \begin{equation}
- \Delta_w\norm{D_S^{-1/2}r}_2\leq\alpha\eta
+ \Delta_w\sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}
+ \leq\sqrt\alpha\,\eta
  \label{eq:aesp-cd-point-source-response-residual-target}
 \end{equation}
 puts every exact increment in the simultaneous interval
@@ -1641,7 +1645,14 @@ response uncertainty is at most
 \(\eta_{\rm tot}/\sqrt{d_i}\).  A summable schedule such as
 \(\eta_t=\Theta(\delta_{\rm fin}/(t+1)^2)\) therefore costs only additional
 logarithmic solver accuracy and can be absorbed by the finite KKT hysteresis.
-It does not locate the coordinates whose intervals cross a retained level;
+The older, solve-free sufficient test
+\(\Delta_w\norm{D_S^{-1/2}r}_2\leq\alpha\eta\) follows from the second
+inequality above.  The sharper first test may instead use any certified upper
+bound on the linear-solve energy error
+\(r^{\mathsf T}\widehat H_{SS}^{-1}r\); this improves the explicit spectral
+loss from \(1/\alpha\) to \(1/\sqrt\alpha\), while changing iterative-solve
+work only logarithmically.  It does not locate the coordinates whose
+intervals cross a retained level;
 that exhaustive output-sensitive step remains the interface in
 \cref{cor:aesp-cd-point-source-route-output-interface}.
 \end{lemma}
@@ -1654,14 +1665,29 @@ Put \(e=h^{S,w}-\widetilde h\).  Since
  Q_{SS}z=D_S^{-1/2}r,
  \qquad Q_{SS}\succeq\alpha I.
 \end{equation*}
-Thus
+Thus, with \(\varrho=D_S^{-1/2}r=Q_{SS}z\),
+\begin{equation*}
+ |z_i|
+ \leq\sqrt{(Q_{SS}^{-1})_{ii}}\,
+       \sqrt{\varrho^{\mathsf T}Q_{SS}^{-1}\varrho}
+ \leq\frac1{\sqrt\alpha}
+       \sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}.
+\end{equation*}
+Also
+\begin{equation*}
+ r^{\mathsf T}\widehat H_{SS}^{-1}r
+ =\varrho^{\mathsf T}Q_{SS}^{-1}\varrho
+ \leq\alpha^{-1}\norm\varrho_2^2.
+\end{equation*}
+Since \(|e_i|=|z_i|/\sqrt{d_i}\), these displays prove both inequalities in
+\cref{eq:aesp-cd-point-source-response-residual-certificate}.  Alternatively,
+the last one recovers the original direct bound
 \begin{equation*}
  \norm{z}_2\leq\alpha^{-1}\norm{D_S^{-1/2}r}_2,
  \qquad
  |e_i|=|z_i|/\sqrt{d_i},
 \end{equation*}
-which proves
-\cref{eq:aesp-cd-point-source-response-residual-certificate}.  Multiply by
+but is not needed for the sharper claim.  Multiply by
 \(\Delta_w\), use
 \cref{eq:aesp-cd-point-source-response-residual-target}, and sum the interval
 radii over the pivot sequence.

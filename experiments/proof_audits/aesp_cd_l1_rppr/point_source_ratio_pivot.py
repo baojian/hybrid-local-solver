@@ -210,6 +210,31 @@ def audit_hitting_column(
         rhs = [-hessian[i][w] for i in active]
         hitting = solve(h_ss, rhs)
         assert all(0 <= value <= 1 for value in hitting)
+
+        # The dual residual energy gives the sharper simultaneous coordinate
+        # certificate: alpha*d_i*e_i^2 <= r^T H^-1 r, while replacing the
+        # dual norm by an ordinary normalized residual loses another 1/alpha.
+        synthetic_error = [F(row + 1, 101) for row in range(len(active))]
+        response_residual = [
+            sum(h_ss[i][j] * synthetic_error[j] for j in range(len(active)))
+            for i in range(len(active))
+        ]
+        recovered_error = solve(h_ss, response_residual)
+        assert recovered_error == synthetic_error
+        dual_energy = sum(
+            response_residual[i] * recovered_error[i]
+            for i in range(len(active))
+        )
+        normalized_residual_square = sum(
+            response_residual[i] ** 2 / degree[vertex]
+            for i, vertex in enumerate(active)
+        )
+        assert all(
+            alpha * degree[vertex] * synthetic_error[i] ** 2 <= dual_energy
+            for i, vertex in enumerate(active)
+        )
+        assert dual_energy <= normalized_residual_square / alpha
+
         for row, i in enumerate(active):
             expected = transition[i][w] + sum(
                 transition[i][j] * hitting[column]

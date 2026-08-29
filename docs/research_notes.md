@@ -259,7 +259,10 @@ Response accuracy itself is now separated from event location: a
 degree-weighted residual norm gives simultaneous certified intervals for all
 coordinates of an approximate killed-harmonic response. Choosing summable
 per-pivot residual budgets changes only logarithmic solve accuracy and fits
-inside the finite KKT hysteresis. The open operation is therefore exhaustive
+inside the finite KKT hysteresis.  A dual-energy residual certificate sharpens
+the coordinate bound from an explicit `1/alpha` loss to `1/sqrt(alpha)`;
+the older ordinary residual norm remains a solve-free sufficient bound.  The
+open operation is therefore exhaustive
 event-coordinate reporting, not exact response evaluation.
 
 An RPPR route must state its regularization conversion, such as

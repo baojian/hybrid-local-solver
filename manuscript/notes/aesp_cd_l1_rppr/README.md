@@ -129,7 +129,10 @@ overlap.
 Approximate response values are not an additional barrier: a computable
 degree-weighted response residual gives simultaneous rigorous intervals for
 every response coordinate, and a summable residual schedule is absorbed by
-the finite KKT band at only logarithmic accuracy cost.  What remains is
+the finite KKT band at only logarithmic accuracy cost.  A certified
+dual-residual energy bound improves the explicit coordinate loss from
+`1/alpha` to `1/sqrt(alpha)`; the plain residual norm is retained as the
+simpler solve-free sufficient test.  What remains is
 output-sensitive coordinate location, not exact response arithmetic.
 
 Consequently the remaining general-graph theorem now has a minimal explicit

@@ -282,7 +282,10 @@ State: proved-open
   Approximate response arithmetic is no longer a separate blocker: a
   degree-weighted response residual gives simultaneous certified intervals
   for every coordinate, and summable per-pivot residual budgets fit inside
-  the finite KKT hysteresis with only logarithmic accuracy overhead.  The
+  the finite KKT hysteresis with only logarithmic accuracy overhead.  Using
+  certified dual residual energy sharpens the explicit coordinate loss from
+  `1/alpha` to `1/sqrt(alpha)`; the plain residual norm remains a simpler
+  sufficient check.  The
   unresolved operation is exhaustive event-coordinate location.
   Simultaneously admitting every currently positive Schur row is always
   legal and contracts total positive exterior-key mass by the exact factor
