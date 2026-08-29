@@ -286,6 +286,12 @@ an unweighted complete graph, both the ground vector and every exterior pivot
 response are constant, with the exact identity
 `u=(1-alpha)/(2*alpha*(n-1))*h`.  Hence the gray band is zero and the planar
 lazy reporter applies literally.
+The zero-band conclusion does not follow from high gap alone.  An exact
+`K8` face with two exterior leaves has all seven high generalized eigenvalues
+above the required threshold at `alpha=1/17,q=1/4`, yet a leaf pivot has
+retained coordinate deviation `-281/20320` from its ground rank-one term.
+Thus conductance controls a finite interval but concentrated pivot loads can
+still force genuine gray rows.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

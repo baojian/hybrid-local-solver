@@ -449,6 +449,10 @@ fallback set.
 Every prefix of an unweighted complete graph realizes the exact branch:
 `h` and each exterior response are constant and
 `u=(1-alpha)/(2*alpha*(n-1))*h`, so its gray band is identically zero.
+Conversely, an exact `K8` face with two exterior leaves passes the required
+high-gap threshold at `alpha=1/17,q=1/4` but a sparse leaf pivot retains the
+nonzero high-mode coordinate `-281/20320`.  High gap therefore bounds gray
+rows; it does not make every sparse pivot exactly rank one.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

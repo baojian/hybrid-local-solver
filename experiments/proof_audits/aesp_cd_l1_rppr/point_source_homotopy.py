@@ -794,6 +794,66 @@ def check_complete_prefix_rank_one() -> int:
     return checks
 
 
+def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F]]:
+    """Certify that high gap alone does not make sparse pivots rank one."""
+    face_size = 8
+    q = F(1, 4)
+    alpha = q * q / (1 + q * q)
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    degree = [face_size, face_size, *([face_size - 1] * (face_size - 2))]
+    hessian = [
+        [
+            p * degree[i] if i == j else -coupling
+            for j in range(face_size)
+        ]
+        for i in range(face_size)
+    ]
+    ground = solve(hessian, [alpha * value for value in degree])
+    weight = [F(degree[i]) / ground[i] for i in range(face_size)]
+    threshold = alpha * (1 + q) / q
+    shifted = [
+        [
+            hessian[i][j] - threshold * weight[i] * F(i == j)
+            for j in range(face_size)
+        ]
+        for i in range(face_size)
+    ]
+
+    # Exact no-pivot LDL inertia: one negative direction (the ground) and
+    # seven positive directions certify that every high eigenvalue exceeds
+    # alpha*(1+q)/q.
+    lower = [[F(0)] * face_size for _ in range(face_size)]
+    diagonal: list[F] = []
+    for i in range(face_size):
+        pivot = shifted[i][i] - sum(
+            lower[i][k] ** 2 * diagonal[k] for k in range(i)
+        )
+        assert pivot
+        diagonal.append(pivot)
+        lower[i][i] = 1
+        for j in range(i + 1, face_size):
+            lower[j][i] = (
+                shifted[j][i]
+                - sum(
+                    lower[j][k] * lower[i][k] * diagonal[k]
+                    for k in range(i)
+                )
+            ) / pivot
+    assert sum(value < 0 for value in diagonal) == 1
+    assert sum(value > 0 for value in diagonal) == face_size - 1
+
+    rhs = [coupling, *([F(0)] * (face_size - 1))]
+    response = solve(hessian, rhs)
+    transformed_rhs = [rhs[i] / degree[i] for i in range(face_size)]
+    ground_weight = [degree[i] * ground[i] for i in range(face_size)]
+    mean = sum(
+        ground_weight[i] * transformed_rhs[i] for i in range(face_size)
+    ) / sum(ground_weight)
+    retained_leaf_error = response[1] - mean / alpha * ground[1]
+    assert retained_leaf_error < 0
+    return retained_leaf_error, diagonal
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -813,6 +873,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source
+    assert r"\label{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -871,6 +932,7 @@ def main() -> None:
     )
     lazy_reporter_checks = check_lazy_rank_one_reporter()
     complete_prefix_checks = check_complete_prefix_rank_one()
+    sparse_pivot_error, sparse_pivot_inertia = check_high_gap_sparse_pivot_gray_stop()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -892,6 +954,8 @@ def main() -> None:
     )
     print(f"  lazy rank-one planar reporter checks: {lazy_reporter_checks}")
     print(f"  exact complete-prefix rank-one faces: {complete_prefix_checks}")
+    print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
+    print(f"    exact shifted LDL pivots: {sparse_pivot_inertia}")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "
