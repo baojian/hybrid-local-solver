@@ -985,7 +985,7 @@ def check_random_point_source_mass_clock() -> tuple[int, int, F]:
     return traces, admissions, largest_cauchy_ratio
 
 
-def check_high_degree_refresh_algebra() -> tuple[F, F]:
+def check_high_degree_refresh_algebra() -> tuple[F, F, F]:
     """Exact square-degree calibration of the high-degree rate corollary."""
     alpha, q, epsilon = F(1, 9), F(1, 3), F(1, 10)
     coupling = (1 - alpha) / 2
@@ -1005,7 +1005,25 @@ def check_high_degree_refresh_algebra() -> tuple[F, F]:
     )
     target_term = total / (q * epsilon)
     assert refresh_term <= target_term
-    return half_weighted / total, refresh_term / target_term
+
+    # The symmetric sufficient condition puts the same square-degree lower
+    # bound on admitted pivots instead of refreshed rows.  Its exact Cauchy
+    # premise is sum xi <= alpha^2 sum d*xi.
+    pivot_coordinates = (F(1, 162), F(1, 288))
+    pivot_degree_mass = sum(
+        degree * coordinate
+        for degree, coordinate in zip(degrees, pivot_coordinates, strict=True)
+    )
+    pivot_coordinate_mass = sum(pivot_coordinates, F(0))
+    assert pivot_degree_mass <= 1
+    assert pivot_coordinate_mass <= alpha**2 * pivot_degree_mass
+    clock_square_upper = coupling * pivot_degree_mass * pivot_coordinate_mass
+    assert clock_square_upper <= alpha**2 * coupling
+    return (
+        half_weighted / total,
+        refresh_term / target_term,
+        clock_square_upper / coupling,
+    )
 
 
 def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
@@ -1300,7 +1318,11 @@ def main() -> None:
     mass_clock_traces, mass_clock_admissions, largest_clock_cauchy_ratio = (
         check_random_point_source_mass_clock()
     )
-    half_degree_ratio, high_degree_target_ratio = check_high_degree_refresh_algebra()
+    (
+        half_degree_ratio,
+        high_degree_target_ratio,
+        high_pivot_clock_square_ratio,
+    ) = check_high_degree_refresh_algebra()
     (
         sparse_pivot_error,
         sparse_pivot_inertia,
@@ -1336,7 +1358,8 @@ def main() -> None:
     )
     print(
         "  high-degree refresh calibration: "
-        f"F_1/2/F={half_degree_ratio}, refresh/target={high_degree_target_ratio}"
+        f"F_1/2/F={half_degree_ratio}, refresh/target={high_degree_target_ratio}, "
+        f"pivot clock^2/c={high_pivot_clock_square_ratio}"
     )
     print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
     print(

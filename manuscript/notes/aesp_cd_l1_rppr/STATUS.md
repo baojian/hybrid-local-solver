@@ -161,13 +161,15 @@ State: proved-open
   approximate-ground mass; there is no per-pivot moment scan.
   Conditional on an exact row refresh costing its charged active incidences,
   the global clock gives a priority-queue reporter with work
-  `O_tilde(F+c^2*q*F_1/2/(alpha*(1+q)*eta))`, where
-  `F_1/2=sum_v a_v/sqrt(d_v)`.  It is independent of admission count.  If
-  `F_1/2=O(alpha*F)`—in particular if every charged row has
-  `d_v>=alpha^(-2)`—then `eta=Theta(alpha*eps_ppr)` and
-  `q=Theta(sqrt(alpha))` give the target product rate.  Arbitrary low-degree
-  rows still lose one factor `1/alpha` under the coarse `F_1/2<=F` bound.
-  This is a scheme upper bound, not a general lower bound.
+  `O_tilde(F+c^(3/2)*q*P_*F_1/2/(alpha*(1+q)*eta))`, where
+  `F_1/2=sum_v a_v/sqrt(d_v)` and `P_*<=sqrt(c)` is the actual clock length.
+  It is independent of admission count.  If
+  `sqrt(c)*P_*F_1/2=O(alpha*F)`, then `eta=Theta(alpha*eps_ppr)` and
+  `q=Theta(sqrt(alpha))` give the target product rate.  This holds if every
+  charged row has `d_v>=alpha^(-2)`, or if every admitted pivot does.  Thus
+  only simultaneous low-degree rows and pivots retain one factor `1/alpha`
+  under the coarse bound.  This is a scheme upper bound, not a general lower
+  bound.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The

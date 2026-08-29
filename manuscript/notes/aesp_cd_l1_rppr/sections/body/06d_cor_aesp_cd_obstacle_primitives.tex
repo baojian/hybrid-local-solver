@@ -1774,8 +1774,15 @@ For an absolute degree-normalized interval target \(\eta>0\), reset row
 \end{equation*}
 since its last refresh.  A priority queue keyed by the next clock threshold
 names every due row.  Throughout the trace, its accumulated high-mode key
-radius is then at most \(\eta d_v\), and the total refresh work is
+radius is then at most \(\eta d_v\).  If \(\mathfrak p_\star\) is the final
+value of the observable clock, the total refresh work is
 \begin{equation}
+ \widetilde O\!\left[
+ F+
+ \frac{c^{3/2}q\,\mathfrak p_\star}
+      {\alpha(1+q)\eta}F_{1/2}
+ \right]
+ \subseteq
  \widetilde O\!\left[
  F+
  \frac{c^2q}{\alpha(1+q)\eta}F_{1/2}
@@ -1804,20 +1811,24 @@ at most
 \begin{equation*}
  K\sqrt{cd_v}\,\Delta_v=\eta d_v.
 \end{equation*}
-Since the whole clock has length at most \(\sqrt c\), row \(v\) is refreshed
+Since the whole clock has length \(\mathfrak p_\star\leq\sqrt c\), row \(v\)
+is refreshed
 at most
 \begin{equation*}
- 1+\frac{\sqrt c}{\Delta_v}
- =1+\frac{Kc}{\eta\sqrt{d_v}}
+ 1+\frac{\mathfrak p_\star}{\Delta_v}
+ =1+\frac{K\sqrt c\,\mathfrak p_\star}{\eta\sqrt{d_v}}
 \end{equation*}
 times.  Therefore the charged work is at most
 \begin{equation*}
  \widetilde O\!\left(
  \sum_va_v+
- \frac{Kc}{\eta}\sum_v\frac{a_v}{\sqrt{d_v}}
+ \frac{K\sqrt c\,\mathfrak p_\star}{\eta}
+ \sum_v\frac{a_v}{\sqrt{d_v}}
  \right)
  =
- \widetilde O\!\left(F+\frac{Kc}{\eta}F_{1/2}\right)
+ \widetilde O\!\left(
+ F+\frac{K\sqrt c\,\mathfrak p_\star}{\eta}F_{1/2}
+ \right)
  \leq
  \widetilde O\!\left(F\left(1+\frac{Kc}{\eta}\right)\right),
 \end{equation*}
@@ -1825,12 +1836,12 @@ because \(d_v\geq1\).  Substituting \(K\) proves
 \cref{eq:aesp-cd-point-source-clocked-gray-refresh-work}.
 \end{proof}
 
-\begin{corollary}[High-degree gray rows attain the target refresh rate]
+\begin{corollary}[High-degree gray rows or pivots attain the target rate]
 \label{cor:aesp-cd-point-source-high-degree-gray-refresh}
 In the setting of
 \cref{cor:aesp-cd-point-source-clocked-gray-refresh}, suppose
 \begin{equation*}
- F_{1/2}\leq C_d\alpha F,
+ \sqrt c\,\mathfrak p_\star F_{1/2}\leq C_m\alpha F,
  \qquad
  q\leq C_q\sqrt\alpha,
  \qquad
@@ -1843,23 +1854,38 @@ for absolute positive constants \(C_d,C_q,c_\eta\).  Then the refresh work is
  \right].
  \label{eq:aesp-cd-point-source-high-degree-gray-refresh}
 \end{equation}
-A sufficient rowwise condition is \(d_v\geq\alpha^{-2}\) for every row
-with \(a_v>0\).  Thus the clocked reporter reaches the target scale on the
-high-degree part of the boundary.  The unresolved universal branch is now
-the low-degree gray reporter (together with the charged exact-refresh
-primitive), rather than all proper-face row geometry.
+Either of the following is sufficient:
+\begin{enumerate}[label=(\alph*)]
+ \item \(d_v\geq\alpha^{-2}\) for every refreshed row with \(a_v>0\);
+ \item \(d_{w_j}\geq\alpha^{-2}\) for every admitted pivot in the trace.
+\end{enumerate}
+Thus the clocked reporter reaches the target scale if either side of the
+row--pivot interaction is uniformly high-degree.  The unresolved universal
+branch is the interaction of low-degree gray rows with low-degree pivots
+(together with the charged exact-refresh primitive), rather than all
+proper-face row geometry.
 \end{corollary}
 
 \begin{proof}
-Insert \(F_{1/2}\leq C_d\alpha F\) into
+Insert the assumed mixed clock--degree bound into
 \cref{eq:aesp-cd-point-source-clocked-gray-refresh-work}.  The second term is
 at most
 \begin{equation*}
- \frac{C_dc^2q}{(1+q)\eta}F
+ \frac{C_mcq}{(1+q)\eta}F
  =O\!\left(\frac{F}{\sqrt\alpha\,\varepsilon_{\rm ppr}}\right).
 \end{equation*}
-If \(d_v\geq\alpha^{-2}\), then
-\(a_v/\sqrt{d_v}\leq\alpha a_v\); summing gives the sufficient condition.
+Under (a), \(F_{1/2}\leq\alpha F\), while
+\(\mathfrak p_\star\leq\sqrt c\).  Under (b), the mass proof of
+\cref{eq:aesp-cd-point-source-pivot-mass-clock} gives
+\begin{equation*}
+ \sum_j\xi_j
+ \leq\alpha^2\sum_jd_{w_j}\xi_j
+ \leq\alpha^2,
+ \qquad
+ \mathfrak p_\star\leq\alpha\sqrt c.
+\end{equation*}
+Together with \(F_{1/2}\leq F\), either case implies the mixed condition
+with an absolute constant.
 \end{proof}
 
 \begin{corollary}[Dyadic square-root bands reduce to planar extreme queries]
