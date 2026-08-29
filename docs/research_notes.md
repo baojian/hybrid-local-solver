@@ -145,6 +145,11 @@ already give an exact oracle-free fallback in
 `O_tilde(N+J sqrt(N))` work.  It is product-scale when the charged block
 radius is at least `sqrt(N)`; shallow variable-port blocks still require a
 true bulk-pullback/meld reporter or a new charge for this square-root loss.
+An exact weighted-fan construction shows that a single bulk translation of
+one child can remove or reinsert linearly many alternating parent-envelope
+facets.  Hence constant-many bridge repairs do not remove the loss; the
+missing operation really is a lazy transformed meld (or a different global
+event representation).
 
 A point-source rho-homotopy still reveals useful extra structure.  On a fixed
 face every boundary key is affine in rho, and after admitting one vertex each

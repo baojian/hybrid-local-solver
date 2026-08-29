@@ -462,6 +462,11 @@ touches.  This costs `O_tilde(N+J sqrt(N))`; it meets the product budget when
 the charged block radius is at least `sqrt(N)`.  The remaining variable-port
 gap is precisely to remove that square-root loss (or charge it) while also
 paying online parse discovery and inactive halo.
+The overlap is genuinely unbounded for an explicitly merged chain: a
+weighted SP fan has even/odd child envelopes whose facets alternate, and one
+bulk child translation removes or reinserts linearly many parent facets.
+Thus constant-bridge repair cannot improve the epoch bound; a successful
+improvement must keep the transform/meld lazy or use a different reporter.
 [Kinetic/dynamic hulls](https://doi.org/10.1016/j.comgeo.2006.01.002) also
 allow points with declared bounded-complexity trajectories and individual
 flight-plan changes.  A Schur update, however, changes the pulled-back

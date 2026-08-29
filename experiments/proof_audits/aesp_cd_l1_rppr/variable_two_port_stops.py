@@ -233,6 +233,37 @@ def projective_pullback_order_audit():
     return rows
 
 
+def alternating_meld_facets():
+    """Exact alternating-facet STOP for an explicitly merged parent hull."""
+    half = 9
+    count = 2 * half
+    translation = 16 * half * half
+
+    def value(index, x, odd_shift):
+        return F(index * x - index * index - (odd_shift if index % 2 else 0))
+
+    winners = []
+    shifted_winners = []
+    for index in range(1, count + 1):
+        x = 2 * index
+        values = [value(row, x, 0) for row in range(1, count + 1)]
+        assert values[index - 1] == max(values)
+        assert values.count(max(values)) == 1
+        winners.append(index)
+
+        shifted = [
+            value(row, x, translation) for row in range(1, count + 1)
+        ]
+        shifted_winner = 1 + shifted.index(max(shifted))
+        assert shifted_winner % 2 == 0
+        shifted_winners.append(shifted_winner)
+
+    assert winners == list(range(1, count + 1))
+    assert sum(index % 2 for index in winners) == half
+    assert not any(index % 2 for index in shifted_winners)
+    return half, winners, shifted_winners
+
+
 def root_port_forget_stop():
     """Check that excluding both pinned root ports would miss a positive key."""
     matrix = [[F(2), -F(1)], [-F(1), F(2)]]
@@ -953,6 +984,7 @@ def main():
     assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
     assert r"\label{cor:aesp-cd-slope-separated-projective-meld}" in source
     assert r"\label{prop:aesp-cd-sp-static-epoch-reporter}" in source
+    assert r"\label{prop:aesp-cd-sp-alternating-meld-stop}" in source
     assert r"\label{cor:aesp-cd-projective-separation-guard}" in projective_guard_source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
@@ -969,6 +1001,7 @@ def main():
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
     projective_rows = projective_pullback_order_audit()
+    alternating_facets = alternating_meld_facets()
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
     interface_ledgers = static_cluster_and_prefix_merge_ledgers()
@@ -991,6 +1024,7 @@ def main():
         weighted_determinant,
     )
     print("  projective pullback determinants / slope images", projective_rows)
+    print("  alternating merged-hull facets", alternating_facets)
     print("  cactus literal-rescan ledgers", cactus_rows)
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
     print("  virtual top forget catches pinned root-port keys", root_keys)

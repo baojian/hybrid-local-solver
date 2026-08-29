@@ -481,6 +481,7 @@ graph-uniform end-to-end accelerated solver.
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `prop:aesp-cd-sp-static-epoch-reporter`,
+  `prop:aesp-cd-sp-alternating-meld-stop`,
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,

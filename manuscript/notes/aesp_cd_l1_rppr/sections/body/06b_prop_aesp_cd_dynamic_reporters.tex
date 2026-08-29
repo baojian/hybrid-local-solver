@@ -644,6 +644,56 @@ stated bounded-alternation extension.
 This is a genuine but restrictive GO: arbitrary transformed sibling slope
 intervals can interleave, so it does not implement the general meld oracle.
 
+\begin{proposition}[One child pullback can change linearly many parent facets]
+\label{prop:aesp-cd-sp-alternating-meld-stop}
+For every \(m\geq2\), there is a weighted two-terminal
+series--parallel fan whose pinned affine keys can be partitioned between two
+parallel children so that one common affine translation of the second child
+changes \(m\) facets of the exact parent upper envelope.
+
+Concretely, let the \(2m\) pinned keys be
+\begin{equation*}
+ \ell_k(x,y)=kx+y-k^2,qquad k=1,\ldots,2m,
+\end{equation*}
+put the even rows in one child and the odd rows in the other, and restrict
+\(x\) to \([0,4m+1]\).  With no translation, all \(2m\) rows occur on the
+upper envelope in alternating child order.  Replacing the odd child's port
+by \(y-C\), where \(C=16m^2\), removes every odd facet; restoring \(C=0\)
+inserts all \(m\) of them at once.
+
+Hence an interface that materializes the merged parent chain or maintains
+only a constant number of sibling bridges has \(\Omega(m)\) worst-case work
+for one legal bulk pullback.  This is a representation lower bound for that
+interface.  It does not rule out a lazy persistent
+\(\mathsf{MeldAffineHull}\), an amortized kinetic structure, or the static
+epoch fallback in
+\cref{prop:aesp-cd-sp-static-epoch-reporter}.
+\end{proposition}
+
+\begin{proof}
+The row \(k\) is the unique maximizer for
+\(x\in(2k-1,2k+1)\), because for every \(j\neq k\),
+\begin{equation*}
+ \ell_k(x,y)-\ell_j(x,y)=(k-j)(x-k-j).
+\end{equation*}
+Thus all rows are exposed facets and their child parity alternates.  For an
+odd \(k\), choose an adjacent even \(j\in\{k-1,k+1\}\cap[1,2m]\).  On the
+declared interval,
+\begin{equation*}
+ |\ell_k(x,y)-\ell_j(x,y)|<8m+1<16m^2=C.
+\end{equation*}
+After translating the odd child by \(-C\), that adjacent even row strictly
+dominates \(k\) everywhere, so no odd row remains on the parent envelope.
+
+To realize the rows by an SPD Stieltjes fan, give internal row \(k\)
+couplings \(-k\) and \(-1\) to the two ports, diagonal \(k+2\), and load
+\(-k^2\); give each port diagonal one plus the sum of its incident coupling
+magnitudes.  The matrix is strictly diagonally dominant, and the pinned KKT
+key is exactly \(\ell_k\).  Splitting the length-two paths by parity is a
+parallel series--parallel decomposition.  The child-port translation is the
+bulk affine pullback allowed by the reporter interface.
+\end{proof}
+
 \input{sections/body/06e_cor_aesp_cd_projective_guard.tex}
 
 The hull cannot be replaced by a materialized constant-size obstacle response.
