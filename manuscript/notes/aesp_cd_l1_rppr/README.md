@@ -5,6 +5,14 @@ coordinate descent for the shared regularized PageRank model. The proof source
 is `main.tex` and its included sections; [`STATUS.md`](STATUS.md) is the
 current claim ledger and handoff.
 
+The oracle-free end-to-end contract is the canonical point-source problem
+`s=e_v`.  The shared definitions remain general.  Linearity extends a proved
+point-source PPR solver to a sparse distribution with work
+`nnz(s)+O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha)*eps_ppr))`; it does not give
+the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions do
+not superpose.  Point-source lower publications are, however, automatically
+rooted and connected, so no multi-source component-merge reporter is needed.
+
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,
 several exact trajectory calibrations, and an unconditional accelerated result
@@ -258,7 +266,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twenty-two exact audits with:
+Run all twenty-four exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -289,6 +297,8 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.variable_two_port_stops` (Round 042).
 - `aesp_cd_l1_rppr.radius_batch_stop` (Round 043).
 - `aesp_cd_l1_rppr.obstacle_clip_retraction` (Round 044).
+- `aesp_cd_l1_rppr.accelerated_support_spill` (Round 045).
+- `aesp_cd_l1_rppr.point_source_scope` (Round 046).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

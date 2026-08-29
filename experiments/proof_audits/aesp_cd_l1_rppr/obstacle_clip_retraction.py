@@ -168,19 +168,49 @@ def check_clip_or_pay_witness() -> None:
     assert_certificate(hessian, rhs, exact, approximate, [F(1), F(1)])
 
 
+def check_point_source_connected() -> int:
+    """Check rooted connected support for exact and published subsolutions."""
+    rng = Random(1701)
+    cases = 0
+    for size in range(2, 10):
+        for _ in range(20):
+            hessian = [[F(0)] * size for _ in range(size)]
+            for i in range(size - 1):
+                weight = F(rng.randrange(1, 7), 10)
+                hessian[i][i + 1] = hessian[i + 1][i] = -weight
+            for i in range(size):
+                hessian[i][i] = sum(abs(value) for value in hessian[i]) + F(1, 2)
+            rhs = [F(rng.randrange(1, 8), 3)] + [
+                -F(rng.randrange(0, 6), 7) for _ in range(size - 1)
+            ]
+            exact = obstacle_solution(hessian, rhs)
+            approximate = [max(value + F(rng.randrange(-3, 4), 100), F(0)) for value in exact]
+            published = assert_certificate(hessian, rhs, exact, approximate, [F(1)] * size)
+            for vector in (exact, published):
+                support = [i for i, value in enumerate(vector) if value > 0]
+                if support:
+                    assert support[0] == 0
+                    assert support == list(range(support[-1] + 1))
+            cases += 1
+    return cases
+
+
 def check_source_scope() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{thm:aesp-cd-obstacle-clip-retraction}" in source
     assert r"\label{cor:aesp-cd-margin-free-obstacle-primitive}" in source
+    assert r"\label{lem:aesp-cd-point-source-subsolution-connected}" in source
     assert "clip-or-pay" in source
 
 
 def main() -> None:
     cases, mixed = check_random_exact_instances()
     check_clip_or_pay_witness()
+    rooted = check_point_source_connected()
     check_source_scope()
     print("PASS margin-free obstacle clip-or-pay retraction")
     print(f"  exact rational Stieltjes cases={cases}, mixed supports={mixed}")
+    print(f"  rooted point-source connected cases={rooted}")
     print("  inactive dual-residual overcharge ratio=10001")
 
 

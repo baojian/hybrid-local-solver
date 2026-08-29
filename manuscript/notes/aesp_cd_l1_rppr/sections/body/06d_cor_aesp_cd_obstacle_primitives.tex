@@ -86,6 +86,28 @@ $\norm{p-s}_\infty\leq\varepsilon+\Delta v_{\max}$, which proves
 \cref{eq:aesp-cd-obstacle-clip-pay-error}.
 \end{proof}
 
+\begin{lemma}[One positive load makes every subsolution rooted and connected]
+\label{lem:aesp-cd-point-source-subsolution-connected}
+Let the nonzero off-diagonal graph of the Stieltjes matrix $H$ be connected,
+and suppose $b_o>0$ while $b_i\leq0$ for $i\neq o$.  Every nonzero obstacle
+subsolution $z$ has connected support containing $o$.  In particular, both
+the obstacle minimizer and every nonzero clip-or-pay publication in
+\cref{thm:aesp-cd-obstacle-clip-retraction} have one rooted component.
+\end{lemma}
+
+\begin{proof}
+If a connected component $C$ of $\supp(z)$ does not contain $o$, then the
+subsolution inequalities on $C$ read
+\begin{equation*}
+ H_{CC}z_C\leq b_C\leq0;
+\end{equation*}
+coordinates outside $C$ make no contribution because they are zero or are
+separated from $C$ in the support graph.  Principal Stieltjes inverse
+positivity gives $z_C\leq0$, a contradiction.  Thus every positive component
+contains $o$, and there can be at most one.  The exact minimizer is nonzero
+because the directional derivative at zero along $e_o$ is $-b_o<0$.
+\end{proof}
+
 \begin{corollary}[Margin-free accelerated obstacle primitive]
 \label{cor:aesp-cd-margin-free-obstacle-primitive}
 In the setting of
@@ -193,6 +215,37 @@ uniform accuracy.  The clip-or-pay publication nevertheless deletes every
 unsafe coordinate without paying its entire dual residual.  Thus strict
 margins remain useful for face identification, not for lower-safe obstacle
 publication.
+
+\begin{proposition}[Projected acceleration can spill outside the true support]
+\label{prop:aesp-cd-accelerated-support-spill}
+Even for a two-coordinate Stieltjes obstacle problem, one exact critically
+tuned projected Nesterov step can activate a coordinate outside the support of
+the true minimizer.  Hence
+\cref{cor:aesp-cd-margin-free-obstacle-primitive} makes the published output
+local, but it does not make unrestricted accelerated scratch support-local.
+\end{proposition}
+
+\begin{proof}
+Take
+\begin{equation*}
+ H=\begin{pmatrix}601/676&-45/169\\-45/169&61/169\end{pmatrix},
+ \qquad b=\begin{pmatrix}1\\-1/3\end{pmatrix}.
+\end{equation*}
+The spectrum is $\{1,1/4\}$ and the obstacle minimizer is
+$p=(676/601,0)^\top$; its second KKT slack is $61/1803>0$.
+With unit step, $x_0=0$, and critical momentum
+$\beta=(1-\sqrt{1/4})/(1+\sqrt{1/4})=1/3$, the first projected-gradient
+point is $x_1=(1,0)^\top<p$ on its support.  Extrapolation gives
+$y_1=x_1+\beta(x_1-x_0)=(4/3,0)^\top$, and the next projected point is
+\begin{equation*}
+ x_2=[y_1-(Hy_1-b)]_+
+ =\begin{pmatrix}194/169\\11/507\end{pmatrix}.
+\end{equation*}
+Thus $(x_2)_2>0=p_2$.  This stops the simplest strategy of running the full
+accelerated scratch by exposing only the final support.  It is not a lower
+bound against restricted envelopes, implicit scratch, or a different
+localized acceleration.
+\end{proof}
 
 \begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
 \label{prop:aesp-cd-positive-polynomial-stop}

@@ -9,7 +9,8 @@ State: proved-open
   net accelerated exponent after every residual, retraction, rekey, and
   terminal-gate charge?
 - **Model:** Shared RPPR objective
-  `F_rho=f+alpha*rho*||D^(1/2)x||_1` for `0<alpha<=1`. Shifted
+  `F_rho=f+alpha*rho*||D^(1/2)x||_1` for `0<alpha<=1`, with the oracle-free
+  end-to-end target specialized to the point source `s=e_v`. Shifted
   Catalyst/AESP uses `alpha<1/2` and `kappa_A=1-2alpha`; the frozen
   accelerated arm uses `alpha<1/4`, while the unshifted fallback covers
   `1/4<=alpha<=1`.
@@ -19,7 +20,7 @@ State: proved-open
 - **Access and charged work:** A coordinate update and affected-neighbor
   rekey cost `d_i`; envelope growth, retractions, KKT scans, repeated updates,
   validation, state writes, materialization, and output are charged.
-- **Intended result:** An implementable oracle-free
+- **Intended result:** An implementable point-source oracle-free
   `O_tilde(1/(rho*sqrt(alpha)))` local-work theorem.
 
 ## Claim ledger
@@ -96,7 +97,14 @@ State: proved-open
   envelope's obstacle minimizer after accelerated projected-gradient scratch.
   This implements the speculative-envelope obstacle primitive in
   `O_tilde(vol(U)/sqrt(alpha))` work; explored volume, exact-zero boundary
-  decisions, and dynamic reporting remain separate. A positive-coefficient
+  decisions, scratch exposure, and dynamic reporting remain separate.  A
+  two-coordinate exact witness shows that standard critically tuned projected
+  acceleration can activate a coordinate outside the true obstacle support,
+  so safe publication does not make unrestricted scratch support-local.  For
+  the point-source load, every nonzero obstacle subsolution is nevertheless
+  connected and contains the root.  Linear PPR superposition gives a
+  general-seed corollary with the sharp allocation factor
+  `(sum_v sqrt(s_v))^2`, not the old additive `nnz(s)` target. A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
   square-root dependence. A high-multiplicity Stieltjes cluster also stops
@@ -323,8 +331,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Twenty-two exact audits with durable `aesp_cd_l1_rppr.*` IDs
-  cover the Round-022--044 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty-four exact audits with durable `aesp_cd_l1_rppr.*` IDs
+  cover the Round-022--046 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

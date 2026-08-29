@@ -13,9 +13,9 @@ organization audit.
 
 ## Fixed end-to-end target
 
-The audit target is an exact-real algorithm on a finite simple undirected
-unweighted graph with no isolated vertices and adjacency-list access. For a
-sparse nonnegative seed distribution `s`, let
+The primary audit target is an exact-real algorithm on a finite simple
+undirected unweighted graph with no isolated vertices and adjacency-list
+access. Its canonical source is one vertex, `s=e_v`. Let
 
 ```text
 x0     = Q^-1 b,
@@ -32,11 +32,26 @@ max_i |pi_hat_i-pi_i| / d_i <= eps_ppr,
 one complete terminal certificate, and one terminal return. The charged work
 includes seed input, discovery, every repeated row read, inner update,
 correction/rekey, response operation, certificate query, materialization,
-state read/write, and output write. The desired bound is
+state read/write, and output write. The desired point-source bound is
 
 ```text
-nnz(s) + O_tilde(1/(sqrt(alpha) eps_ppr)).
+O_tilde(1/(sqrt(alpha) eps_ppr)).
 ```
+
+The shared problem definition continues to allow a general sparse
+distribution. By linearity, a proved point-source PPR solver gives the
+general-seed corollary
+
+```text
+nnz(s) + O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha) eps_ppr)).
+```
+
+This is not the formerly requested additive `nnz(s)` bound: for a uniform
+`k`-point source the extra factor is `k`. RPPR obstacle solutions are
+nonlinear in `s`, so their point-source runs cannot be superposed before the
+final unregularized PPR approximation is formed. Claims that use connected
+support, rooted exploration, or the support-radius bound are therefore
+point-source claims.
 
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
