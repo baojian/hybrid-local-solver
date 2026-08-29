@@ -247,6 +247,16 @@ every nonroot row not yet adjacent to the support still has strictly negative
 load.  Thus the weakest missing universal interface is now a dynamic
 one-sided residual reporter; separate ratio vectors are needed only for the
 full $\rho$-homotopy.
+In degree-unscaled coordinates the same point-source obstacle is exactly a
+killed divisible-sandpile odometer: a legal push sends the fraction
+`(1-alpha)/(1+alpha)` of its removed residual to its neighbors and dissipates
+the rest.  The obstacle vector is the coordinatewise least stabilizer, so
+every fair full-toppling order converges to it.  This explains the rooted
+Abelian growth structure, but also calibrates its limitation: residual-cone
+local topplings still have only the classical
+`O(1/(alpha*eps_kkt))` work certificate.  The Schur residual pivot is an
+exact block toppling; acceleration must come from representing those block
+responses economically.
 The total positive exterior residual mass is also nonincreasing and starts
 below $\alpha$.  Hence at any one time at most
 $1/\varepsilon_{\rm kkt}$ rows can exceed the finite KKT threshold.  This

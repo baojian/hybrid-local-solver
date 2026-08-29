@@ -145,7 +145,12 @@ State: proved-open
   complete without a global scan.  Positive exterior residual mass is
   nonincreasing and starts below `alpha`, so at most `1/eps_kkt` rows are
   simultaneously finite-significant; lifetime update/reporting cost remains
-  open.
+  open.  In degree-unscaled coordinates the point-source obstacle is also
+  exactly a dissipative divisible-sandpile odometer: its vector is the
+  coordinatewise least stabilizer and every fair legal full-toppling order
+  converges monotonically to it.  This provides a rooted Abelian process, but
+  its direct work bound remains `O(1/(alpha*eps_kkt))`; the Schur pivot is the
+  block-toppling primitive whose compressed maintenance is still missing.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -352,6 +357,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-ratio-pivot-finite-stop`,
   `cor:aesp-cd-point-source-coarse-regime`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
+  `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
   `cor:aesp-cd-fan-finite-stop`,
   `prop:aesp-cd-fan-finite-linear-batches`,

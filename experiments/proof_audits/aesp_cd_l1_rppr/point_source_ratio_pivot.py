@@ -56,6 +56,72 @@ def obstacle_support(hessian: list[list[F]], load: list[F]) -> set[int]:
     raise AssertionError("obstacle support not found")
 
 
+def obstacle_point(
+    hessian: list[list[F]], load: list[F], support: set[int]
+) -> list[F]:
+    point = [F(0)] * len(load)
+    if support:
+        indices = sorted(support)
+        values = solve(
+            [[hessian[i][j] for j in indices] for i in indices],
+            [load[i] for i in indices],
+        )
+        for index, value in zip(indices, values, strict=True):
+            point[index] = value
+    return point
+
+
+def audit_legal_topplings(
+    hessian: list[list[F]],
+    load: list[F],
+    degree: list[int],
+    alpha: F,
+    support: set[int],
+    rng: Random,
+) -> int:
+    optimum = obstacle_point(hessian, load, support)
+    size = len(load)
+
+    # Least action: adding H^{-1}u for u>=0 produces exact stabilizers above
+    # the obstacle point.
+    extra_load = [F(rng.randrange(4), 17) for _ in range(size)]
+    extra = solve(hessian, extra_load)
+    stabilizer = [optimum[i] + extra[i] for i in range(size)]
+    assert all(stabilizer[i] >= optimum[i] for i in range(size))
+    assert all(
+        sum(hessian[i][j] * stabilizer[j] for j in range(size)) >= load[i]
+        for i in range(size)
+    )
+
+    state = [F(0)] * size
+    topplings = 0
+    diagonal = (1 + alpha) / 2
+    for _ in range(30):
+        residual = [
+            load[i] - sum(hessian[i][j] * state[j] for j in range(size))
+            for i in range(size)
+        ]
+        positive = [i for i in range(size) if residual[i] > 0]
+        if not positive:
+            break
+        row = max(positive, key=lambda i: (residual[i] / degree[i], -i))
+        assert row in support
+        old_mass = sum((max(value, F(0)) for value in residual), F(0))
+        amount = residual[row] / hessian[row][row]
+        assert hessian[row][row] == diagonal * degree[row]
+        state[row] += amount
+        assert all(state[i] <= optimum[i] for i in range(size))
+        next_residual = [
+            load[i] - sum(hessian[i][j] * state[j] for j in range(size))
+            for i in range(size)
+        ]
+        assert next_residual[row] == 0
+        next_mass = sum((max(value, F(0)) for value in next_residual), F(0))
+        assert next_mass - old_mass <= -(alpha / diagonal) * residual[row]
+        topplings += 1
+    return topplings
+
+
 def pivot_support(
     hessian: list[list[F]], degree: list[int], alpha: F, rho: F
 ) -> tuple[set[int], list[tuple[int, F]]]:
@@ -184,12 +250,15 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-fixed-target-residual-stop}" in source
     assert r"\label{lem:aesp-cd-point-source-residual-mass}" in source
     assert r"\label{eq:aesp-cd-point-source-residual-mass}" in source
+    assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
+    assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
     rng = Random(20260829)
     checked = 0
     event_count = 0
     residual_event_count = 0
     order_difference_count = 0
+    toppling_count = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -205,6 +274,9 @@ def main() -> None:
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
             expected = obstacle_support(hessian, load)
+            toppling_count += audit_legal_topplings(
+                hessian, load, degree, alpha, expected, rng
+            )
             actual, events = pivot_support(hessian, degree, alpha, rho)
             residual_actual, residual_events = residual_pivot_support(
                 hessian, load, alpha
@@ -304,6 +376,7 @@ def main() -> None:
     print(f"  traces using a different legal pivot order={order_difference_count}")
     assert order_difference_count > 0
     print("  positive exterior residual mass is nonincreasing and at most alpha")
+    print(f"  dissipative legal topplings audited={toppling_count}; least action exact")
     print("  finite KKT slope band: exact P3 calibration")
     print("  certified pair intervals: worst-centered exact width bound")
     print("  spectral-only STOP: positive ratio 1/3 is approximated by zero")
