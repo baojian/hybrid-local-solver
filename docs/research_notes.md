@@ -68,7 +68,9 @@ expected length `Theta(1/alpha)`.  Charging those graph moves changes the
 balance back to `O_tilde(1/(alpha*eps_ppr))`.  Thus randomization identifies
 the same missing accelerated endpoint/response primitive rather than
 removing it; this is an accounting result for the standard push--sample
-implementation, not a lower bound against shortcut data structures.
+implementation, not a lower bound against shortcut data structures.  The
+estimator is additionally a randomized semantic guarantee, not the primary
+deterministic terminal residual certificate.
 The canonical all-positive Schur batch does have a clean universal fallback:
 its total positive exterior-key mass contracts by at least
 `1-alpha/p`, where `p=(1+alpha)/2`.  This gives an
@@ -261,7 +263,9 @@ coordinates of an approximate killed-harmonic response. Choosing summable
 per-pivot residual budgets changes only logarithmic solve accuracy and fits
 inside the finite KKT hysteresis.  A dual-energy residual certificate sharpens
 the coordinate bound from an explicit `1/alpha` loss to `1/sqrt(alpha)`;
-the older ordinary residual norm remains a solve-free sufficient bound.  The
+the same energy is exactly twice the response-quadratic objective gap, so any
+certified lower objective bound makes the test observable.  The older
+ordinary residual norm remains a solve-free sufficient bound.  The
 open operation is therefore exhaustive
 event-coordinate reporting, not exact response evaluation.
 

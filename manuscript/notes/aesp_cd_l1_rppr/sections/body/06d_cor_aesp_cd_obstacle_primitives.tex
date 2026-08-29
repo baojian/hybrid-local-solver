@@ -1282,7 +1282,9 @@ random-walk correction identifies the same missing object as the deterministic
 analysis---an output-sensitive accelerated endpoint/response oracle---but a
 literal walk sampler is not that oracle.  This is an accounting STOP for this
 specific push--sample implementation, not a lower bound against other
-randomized algorithms, shortcut structures, or global preprocessing.
+randomized algorithms, shortcut structures, or global preprocessing.  It is
+also a high-probability semantic estimator; by itself it does not emit the
+primary deterministic terminal residual certificate required by this note.
 \end{proposition}
 
 \begin{proof}
@@ -1651,7 +1653,19 @@ inequality above.  The sharper first test may instead use any certified upper
 bound on the linear-solve energy error
 \(r^{\mathsf T}\widehat H_{SS}^{-1}r\); this improves the explicit spectral
 loss from \(1/\alpha\) to \(1/\sqrt\alpha\), while changing iterative-solve
-work only logarithmically.  It does not locate the coordinates whose
+work only logarithmically.  Concretely, for
+\begin{equation*}
+ \phi(z):=\tfrac12z^{\mathsf T}\widehat H_{SS}z
+          -(cA_{Sw})^{\mathsf T}z,
+\end{equation*}
+any certified lower bound \(L\leq\min_z\phi(z)\) gives the computable estimate
+\begin{equation}
+ r^{\mathsf T}\widehat H_{SS}^{-1}r
+ =2[\phi(\widetilde h)-\min_z\phi(z)]
+ \leq2[\phi(\widetilde h)-L].
+ \label{eq:aesp-cd-point-source-response-gap-certificate}
+\end{equation}
+It does not locate the coordinates whose
 intervals cross a retained level;
 that exhaustive output-sensitive step remains the interface in
 \cref{cor:aesp-cd-point-source-route-output-interface}.
@@ -1691,6 +1705,11 @@ but is not needed for the sharper claim.  Multiply by
 \(\Delta_w\), use
 \cref{eq:aesp-cd-point-source-response-residual-target}, and sum the interval
 radii over the pivot sequence.
+Completing the square in \(\phi\) gives
+\(\phi(\widetilde h)-\phi(h^{S,w})
+=\tfrac12e^{\mathsf T}\widehat H_{SS}e
+=\tfrac12r^{\mathsf T}\widehat H_{SS}^{-1}r\), proving
+\cref{eq:aesp-cd-point-source-response-gap-certificate}.
 For any boundary row \(v\), the resulting key uncertainty is at most
 \begin{equation*}
  c\sum_{\substack{i\in S\\i\sim v}}\frac{\eta_{\rm tot}}{\sqrt{d_i}}

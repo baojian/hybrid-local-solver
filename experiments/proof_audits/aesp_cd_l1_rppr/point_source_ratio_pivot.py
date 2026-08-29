@@ -225,6 +225,21 @@ def audit_hitting_column(
             response_residual[i] * recovered_error[i]
             for i in range(len(active))
         )
+        approximate_hitting = [
+            hitting[i] - synthetic_error[i] for i in range(len(active))
+        ]
+
+        def response_objective(vector: list[F]) -> F:
+            return F(1, 2) * sum(
+                vector[i] * h_ss[i][j] * vector[j]
+                for i in range(len(active))
+                for j in range(len(active))
+            ) - sum(rhs[i] * vector[i] for i in range(len(active)))
+
+        assert 2 * (
+            response_objective(approximate_hitting)
+            - response_objective(hitting)
+        ) == dual_energy
         normalized_residual_square = sum(
             response_residual[i] ** 2 / degree[vertex]
             for i, vertex in enumerate(active)
@@ -989,6 +1004,9 @@ def main() -> None:
     assert (
         r"\label{eq:aesp-cd-point-source-response-residual-certificate}"
         in source
+    )
+    assert (
+        r"\label{eq:aesp-cd-point-source-response-gap-certificate}" in source
     )
     assert r"\label{eq:aesp-cd-point-source-response-residual-target}" in source
     assert r"\label{lem:aesp-cd-point-source-hitting-radius}" in source
