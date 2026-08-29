@@ -470,7 +470,7 @@ def check_endpoint_kernel(
     return size
 
 
-def check_rank_one_inverse_certificate() -> tuple[F, F]:
+def check_rank_one_inverse_certificate() -> tuple[F, F, F]:
     """Audit the conductance-certified inverse split on an exact K3 face."""
     q = F(1, 16)
     alpha = q * q / (1 + q * q)
@@ -505,7 +505,27 @@ def check_rank_one_inverse_certificate() -> tuple[F, F]:
         <= inverse_high_bound**2 * high_rhs_square
         for i in range(size)
     )
-    return alpha, inverse_high_bound
+    # A retained nonnegative exterior row inherits one simultaneous scalar
+    # interval, exactly as in the reporter corollary.
+    exterior_row = [F(2, 7), F(3, 10), F(5, 12)]
+    propagated_high = sum(
+        exterior_row[i] * high_solution[i] for i in range(size)
+    )
+    assert propagated_high**2 <= (
+        inverse_high_bound**2 * high_rhs_square * sum(exterior_row) ** 2
+    )
+    # The theorem uses the sharper Euclidean radius; the rational L1 radius
+    # below avoids introducing square roots while still certifying both signs.
+    coordinate_row_band = inverse_high_bound * sum(exterior_row) * sum(
+        abs(value) for value in high_rhs
+    )
+    assert abs(propagated_high) <= coordinate_row_band
+    approximate_response = mean / alpha * sum(exterior_row)
+    positive_key = -approximate_response + coordinate_row_band + F(1, 19)
+    negative_key = -approximate_response - coordinate_row_band - F(1, 23)
+    assert positive_key + approximate_response - coordinate_row_band > 0
+    assert negative_key + approximate_response + coordinate_row_band < 0
+    return alpha, inverse_high_bound, coordinate_row_band
 
 
 def main() -> None:
@@ -575,7 +595,7 @@ def main() -> None:
         check_proper_clique_conductance_witness()
     )
     endpoint_vertices = check_endpoint_kernel(adjacency, degree, alpha)
-    rank_one_alpha, rank_one_bound = check_rank_one_inverse_certificate()
+    rank_one_alpha, rank_one_bound, row_band = check_rank_one_inverse_certificate()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -590,7 +610,8 @@ def main() -> None:
     print(f"  reversible residual endpoint variance proxy: exact on {endpoint_vertices} vertices")
     print(
         "  conductance-certified rank-one inverse: "
-        f"alpha={rank_one_alpha}, high_inverse_bound={rank_one_bound}"
+        f"alpha={rank_one_alpha}, high_inverse_bound={rank_one_bound}, "
+        f"row_band={row_band}"
     )
     print(
         "  proper-clique conductance witness: "

@@ -105,9 +105,9 @@ State: proved-open
   On every face passing this high-gap check, the inverse itself is an explicit
   ground rank-one operator plus a high-mode remainder of norm at most
   `q/(alpha*(1+q))`.  This gives a one-scalar pivot-response update and
-  simultaneous gray-band intervals; it closes the reporter when those
-  intervals fit finite KKT hysteresis, but concentrated loads may still need
-  the general locator.
+  simultaneous row intervals of radius `t*sum_i(-H_vi)*E_i`; it closes the
+  reporter when those intervals fit finite KKT hysteresis, but concentrated
+  loads may still need the general locator.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
