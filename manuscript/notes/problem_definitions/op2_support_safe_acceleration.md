@@ -1197,6 +1197,9 @@ Each successful phase scans and solves only inside a subset of `S*`, costing
 polynomial in `alpha`, `rho`, and `eps`, so a nearly-linear SDD solver pays
 only logarithmically for it.  Assigning failure probability `delta/K` to
 each solve and taking a union bound proves the high-probability work claim.
+The script `verify_thresholded_op2.py` injects random errors at the full
+allowed energy tolerance and regression-checks the support and objective
+claims on small weighted instances; it is not used as evidence in the proof.
 
 #### Audit of the conjugate-gradient LCP route
 
