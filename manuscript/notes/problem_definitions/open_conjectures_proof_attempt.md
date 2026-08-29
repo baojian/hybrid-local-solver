@@ -361,7 +361,46 @@ a plausible amortization potential for a warm-started solver.  It does not,
 by itself, pay for discovering boundary violations or materializing all
 changed coordinates.
 
-## 6. A counterexample to one-pass boundary updates
+## 6. Grounded electrical-flow formulation
+
+There is an exact obstacle-problem/flow interpretation that may be useful for
+a different proof route.  Form an augmented graph by adding a ground vertex
+`g`.  Give every original edge conductance `1-beta`, and connect each vertex
+`i` to `g` with conductance `beta d_i`.  If `B` is the grounded incidence
+matrix and `W` is the diagonal conductance matrix, then
+
+\[
+  B^TWB=L_\beta.
+\]
+
+Since the RPPR optimum is nonnegative, its degree-coordinate problem is
+
+\[
+  \min_{y\ge0}
+  \left\{
+    \frac12\|W^{1/2}By\|_2^2-h^Ty
+  \right\},
+  \qquad h:=\beta(s-\rho d).
+\]
+
+Fenchel duality gives the quadratic-flow problem
+
+\[
+  \min_f\ \frac12 f^TW^{-1}f
+  \quad\text{subject to}\quad
+  B^Tf\ge h.
+\]
+
+The dual slack is complementary to the positive primal support.  Thus RPPR
+is a grounded electrical obstacle problem, and finding a new active vertex is
+equivalent to finding a violated/slack-tightening vertex constraint.  Global
+near-linear convex-flow machinery does not by itself prove locality, because
+constructing its input or checking all inequalities scans the whole graph.
+But this formulation isolates the local requirement as a separation/reporting
+problem for the dual vertex inequalities, consistent with the boundary
+component of the incremental active-set lemma.
+
+## 7. A counterexample to one-pass boundary updates
 
 A tempting lemma is false: it is not enough to update a boundary score only
 when a newly activated vertex is adjacent to that boundary vertex.
@@ -422,7 +461,7 @@ incremental proof must propagate harmonic changes from old active
 coordinates, or answer boundary queries from an implicit representation; a
 one-time scan of each newly inserted adjacency list is insufficient.
 
-## 7. Why the most direct proof routes stop
+## 8. Why the most direct proof routes stop
 
 ### OP1: localized Chebyshev iteration
 
@@ -455,7 +494,7 @@ coordinates can change scores at boundary vertices that have no newly
 inserted neighbor.  The unresolved primitive is a combined dynamic SDD
 solve and dynamic boundary-heavy-hitter/reporting mechanism.
 
-## 8. Output lower bounds: the locality factors are necessary
+## 9. Output lower bounds: the locality factors are necessary
 
 The linear dependence on `1/eps_ppr` in OP1 and OP3, and on `1/rho` in
 OP2, cannot be improved even when the teleportation parameter is a fixed
@@ -518,7 +557,7 @@ its logarithm is permitted by OP2.  Hence some instances require
 `Omega(1/rho)` output work.  For constant `alpha`, the conjectured OP2 bound
 matches this lower bound up to logarithmic factors.
 
-## 9. Current verdict
+## 10. Current verdict
 
 | Question | Status of this attempt | Exact remaining regime/blocker |
 |---|---|---|
