@@ -834,6 +834,7 @@ def check_complete_rank_one_fixed_target() -> int:
     ]
     face = [0]
     admissions = 0
+    total_ground_coupling = F(0)
     while len(face) < size:
         principal = [[hessian[i][j] for j in face] for i in face]
         ground = solve(principal, [alpha * degree] * len(face))
@@ -846,6 +847,7 @@ def check_complete_rank_one_fixed_target() -> int:
             -hessian[new_vertex][face[i]] * ground[i]
             for i in range(len(face))
         )
+        total_ground_coupling += ground_coupling
         gamma = ground_coupling / (alpha * volume)
         assert response == [gamma * value for value in ground]
         pivot = hessian[new_vertex][new_vertex] - gamma * ground_coupling
@@ -872,6 +874,7 @@ def check_complete_rank_one_fixed_target() -> int:
         face = extended
         admissions += 1
     assert solve(hessian, load) == direct_active
+    assert total_ground_coupling <= coupling * size * (size - 1) / 2
     return admissions
 
 
@@ -1068,6 +1071,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
     assert r"\label{cor:aesp-cd-proper-face-unweighted-row-band}" in source
     assert r"\label{cor:aesp-cd-proper-face-gray-coupling-packing}" in source
+    assert r"\label{cor:aesp-cd-proper-face-pivot-coupling-budget}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source

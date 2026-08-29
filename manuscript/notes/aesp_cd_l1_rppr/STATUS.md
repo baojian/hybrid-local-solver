@@ -139,6 +139,10 @@ State: proved-open
   `|delta_v|<=c*q/(alpha*(1+q))*sqrt(s_v*s_w)`.  Hence the exact high-gap
   gray matrix has a fully observable rank-one product envelope in the lazy
   ground-coupling states.
+  Along the whole trace, every final-support edge pays a pivot coupling once,
+  giving `sum_j s_wj<=((1-alpha)/4)*vol(S*)`; the squared pivot-side band
+  coefficients are therefore output-linear.  Retained row growth and
+  response amounts remain outside that ledger.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -636,6 +640,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-unweighted-row-band`,
   `cor:aesp-cd-proper-face-gray-coupling-packing`,
+  `cor:aesp-cd-proper-face-pivot-coupling-budget`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,

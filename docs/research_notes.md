@@ -102,6 +102,11 @@ Summing its square yields an explicit per-pivot gray-energy ledger
 `sum_v delta_v^2 <= c^3*q^2*s_w*vol(A)/(alpha^2*(1+q)^2)`, and therefore an
 output-sensitive bound on rows whose correction exceeds any declared
 absolute threshold.
+Across the whole nested trace, the selected pivot couplings themselves obey
+`sum_j s_wj <= ((1-alpha)/4)*vol(S*)`, because each final-support edge is
+charged only when its later endpoint enters.  Thus the squared common
+gray-band coefficients are output-linear.  This still does not close the
+trace: the retained row factor `s_v` and the response amounts evolve.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active

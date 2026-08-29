@@ -42,6 +42,9 @@ matrix has a rank-one product envelope depending only on the selected
 pivot's ground coupling and each retained row's coupling.
 Its squared corrections also have an explicit local ledger proportional to
 `s_w*vol(A)`, giving an output-sensitive count above any absolute threshold.
+Over all admissions, `sum_w s_w <= ((1-alpha)/4)*vol(S*)`; hence the squared
+pivot-side band coefficients are output-linear.  The row-side factors and
+response amounts are the remaining accumulation loss.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final
