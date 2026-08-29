@@ -254,6 +254,18 @@ the relative upper residual certificate in
 `O_tilde(vol(A)/sqrt(alpha))` work.  Thus the ground preprocessing loss is
 closed; obtaining or verifying the conductance/Poincare lower bound remains a
 separate structural condition.
+Nested admissions do not require paying that ground solve repeatedly.  For
+`B=A union {w}`, the new ground vector is an exact block update by the same
+nonnegative pivot-response column `H_A^-1(-H_Aw)` already used by support
+discovery.  A one-sided approximate ground and a one-sided approximate
+response satisfy an exact residual replay identity: the old residual becomes
+`r_h+t*r_u` and the new row residual is zero.  Hence finite response budgets
+add across the trace, while exact ground geometry updates for free once the
+pivot response has been charged.
+For finite sparse pivot responses this reuse is conditional on the safe
+Chebyshev full-face guard: unlike the ground right-hand side, a pivot column
+does not have a universal explicit positive checkpoint.  Guard failure is
+still charged to the general response locator.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

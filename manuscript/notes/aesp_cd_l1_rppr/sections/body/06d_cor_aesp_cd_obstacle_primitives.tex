@@ -969,6 +969,102 @@ Finally the Chebyshev residual rate with condition number at most
 \cref{eq:aesp-cd-proper-face-accelerated-ground-work}.
 \end{proof}
 
+\begin{proposition}[Ground certificates reuse the admission response]
+\label{prop:aesp-cd-proper-face-ground-admission-replay}
+Let \(B=A\cup\{w\}\) be a one-coordinate principal-face extension and define
+the exact nonnegative response column and Schur pivot
+\begin{equation*}
+ u_A^{(w)}:=H_A^{-1}(-H_{Aw})\geq0,
+ \qquad
+ s_w:=H_{ww}+H_{wA}u_A^{(w)}>0.
+\end{equation*}
+Then the exact ground vectors satisfy
+\begin{equation}
+ t_w:=\frac{\alpha d_w-H_{wA}h_A}{s_w},
+ \qquad
+ h_B=
+ \begin{pmatrix}
+ h_A+t_wu_A^{(w)}\\ t_w
+ \end{pmatrix},
+ \qquad 0<t_w\leq1.
+ \label{eq:aesp-cd-proper-face-ground-admission-exact}
+\end{equation}
+Thus the response column already needed by an exact admission also updates
+the ground geometry; a separate ground solve on every nested face is
+unnecessary.
+
+The identity has a one-sided finite version.  Suppose
+\begin{align*}
+ 0&\leq r_h:=\alpha d_A-H_A\widetilde h_A
+       \leq\varepsilon_h\alpha d_A,\\
+ 0&\leq r_u:=-H_{Aw}-H_A\widetilde u_A^{(w)}
+       \leq\varepsilon_u\alpha d_A,
+\end{align*}
+with \(\widetilde h_A>0\) and \(\widetilde u_A^{(w)}\geq0\).  Put
+\begin{equation*}
+ \widetilde s_w:=H_{ww}+H_{wA}\widetilde u_A^{(w)},
+ \qquad
+ \widetilde t_w:=
+ \frac{\alpha d_w-H_{wA}\widetilde h_A}{\widetilde s_w},
+\end{equation*}
+and publish
+\begin{equation}
+ \widetilde h_B:=
+ \begin{pmatrix}
+ \widetilde h_A+\widetilde t_w\widetilde u_A^{(w)}\\
+ \widetilde t_w
+ \end{pmatrix}.
+ \label{eq:aesp-cd-proper-face-ground-admission-finite}
+\end{equation}
+Then \(\widetilde s_w>0\), \(0<\widetilde t_w\leq t_w\leq1\), and
+\begin{equation}
+ \alpha d_B-H_B\widetilde h_B
+ =
+ \begin{pmatrix}
+ r_h+\widetilde t_wr_u\\0
+ \end{pmatrix},
+ \qquad
+ 0\leq\alpha d_B-H_B\widetilde h_B
+ \leq(\varepsilon_h+\varepsilon_u)\alpha d_B.
+ \label{eq:aesp-cd-proper-face-ground-admission-residual}
+\end{equation}
+Across a nested trace, response residual budgets therefore add, rather than
+forcing repeated ground preprocessing.  Safe Chebyshev response solves can
+make their sum any declared \(\varepsilon_h\) at only logarithmic precision
+cost once their observable full-face guard succeeds; unlike the ground solve,
+a sparse pivot right-hand side has no universal explicit positive checkpoint.
+Face discovery, response emission, and a failed guard remain separately
+charged.
+\end{proposition}
+
+\begin{proof}
+The first block row of \(H_Bh_B=\alpha d_B\) gives
+\(h_{B,A}=h_A+u_A^{(w)}h_{B,w}\).  Substitution in the last row gives
+\cref{eq:aesp-cd-proper-face-ground-admission-exact}.  Positivity follows
+from the Stieltjes inverse, and \(t_w=h_{B,w}\leq1\) from
+\cref{lem:aesp-cd-point-source-ground-state-normalization}.
+
+For the finite statement, inverse positivity gives
+\(\widetilde h_A\leq h_A\) and
+\(\widetilde u_A^{(w)}\leq u_A^{(w)}\).  Since \(H_{wA}\leq0\),
+\begin{equation*}
+ 0<\alpha d_w-H_{wA}\widetilde h_A
+ \leq\alpha d_w-H_{wA}h_A,
+ \qquad
+ \widetilde s_w\geq s_w>0.
+\end{equation*}
+Hence \(0<\widetilde t_w\leq t_w\leq1\).  Direct block multiplication of
+\cref{eq:aesp-cd-proper-face-ground-admission-finite} gives
+\cref{eq:aesp-cd-proper-face-ground-admission-residual}: the last row vanishes
+by the definition of \(\widetilde t_w\), while the old rows equal
+\begin{equation*}
+ r_h-\widetilde t_w
+       (H_A\widetilde u_A^{(w)}+H_{Aw})
+ =r_h+\widetilde t_wr_u.
+\end{equation*}
+The upper bound uses \(\widetilde t_w\leq1\).
+\end{proof}
+
 \begin{corollary}[A conductance-certified correction-free proper-face tail]
 \label{cor:aesp-cd-proper-face-conductance-alignment-tail}
 Under the hypotheses of

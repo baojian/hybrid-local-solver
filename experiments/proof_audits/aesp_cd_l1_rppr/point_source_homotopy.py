@@ -96,10 +96,11 @@ def check_ground_state_normalization(
     degree: list[int],
     adjacency: list[list[F]],
     alpha: F,
-) -> int:
+) -> tuple[int, int]:
     """Audit every connected root-containing principal face exactly."""
     size = len(degree)
     checked = 0
+    admission_replays = 0
     for mask in range(1, 1 << size):
         if not mask & 1:
             continue
@@ -190,6 +191,92 @@ def check_ground_state_normalization(
             <= walk_ground[i] / (1 - theta_power)
             for i in range(len(face))
         )
+
+        # A one-coordinate face extension reuses the same nonnegative response
+        # column as the obstacle pivot.  Both exact and finite one-sided
+        # ground residuals replay by a block identity.
+        for new_vertex in range(size):
+            if new_vertex in face or not any(
+                adjacency[new_vertex][vertex] for vertex in face
+            ):
+                continue
+            response_rhs = [-hessian[vertex][new_vertex] for vertex in face]
+            pivot_response = solve(principal, response_rhs)
+            schur = hessian[new_vertex][new_vertex] + sum(
+                hessian[new_vertex][face[i]] * pivot_response[i]
+                for i in range(len(face))
+            )
+            numerator = alpha * degree[new_vertex] - sum(
+                hessian[new_vertex][face[i]] * response[i]
+                for i in range(len(face))
+            )
+            exact_time = numerator / schur
+            extended_face = [*face, new_vertex]
+            extended_matrix = [
+                [hessian[i][j] for j in extended_face] for i in extended_face
+            ]
+            extended_ground = solve(
+                extended_matrix,
+                [alpha * degree[i] for i in extended_face],
+            )
+            replayed_ground = [
+                response[i] + exact_time * pivot_response[i]
+                for i in range(len(face))
+            ] + [exact_time]
+            assert replayed_ground == extended_ground
+            assert F(0) < exact_time <= 1
+
+            eps_replay = F(1, 100)
+            response_eps = F(1, 200)
+            finite_ground = [(1 - eps_replay) * value for value in response]
+            finite_response = [
+                (1 - response_eps) * value for value in pivot_response
+            ]
+            finite_ground_residual = [
+                alpha * degree[face[i]]
+                - sum(
+                    principal[i][j] * finite_ground[j]
+                    for j in range(len(face))
+                )
+                for i in range(len(face))
+            ]
+            finite_response_residual = [
+                response_rhs[i]
+                - sum(
+                    principal[i][j] * finite_response[j]
+                    for j in range(len(face))
+                )
+                for i in range(len(face))
+            ]
+            finite_schur = hessian[new_vertex][new_vertex] + sum(
+                hessian[new_vertex][face[i]] * finite_response[i]
+                for i in range(len(face))
+            )
+            finite_numerator = alpha * degree[new_vertex] - sum(
+                hessian[new_vertex][face[i]] * finite_ground[i]
+                for i in range(len(face))
+            )
+            finite_time = finite_numerator / finite_schur
+            finite_extended_ground = [
+                finite_ground[i] + finite_time * finite_response[i]
+                for i in range(len(face))
+            ] + [finite_time]
+            extended_residual = [
+                alpha * degree[extended_face[i]]
+                - sum(
+                    extended_matrix[i][j] * finite_extended_ground[j]
+                    for j in range(len(extended_face))
+                )
+                for i in range(len(extended_face))
+            ]
+            assert extended_residual == [
+                finite_ground_residual[i]
+                + finite_time * finite_response_residual[i]
+                for i in range(len(face))
+            ] + [F(0)]
+            assert F(0) < finite_time <= exact_time
+            assert all(value >= 0 for value in extended_residual)
+            admission_replays += 1
         mass = [F(degree[i], 1) / response[position] for position, i in enumerate(face)]
         assert all(
             sum(principal[row][column] * response[column] for column in range(len(face)))
@@ -446,7 +533,7 @@ def check_ground_state_normalization(
         assert all(residual[i] >= 0 for i in range(len(face)) if published[i] > 0)
         assert all(published[i] <= target[i] for i in range(len(face)))
         checked += 1
-    return checked
+    return checked, admission_replays
 
 
 def check_proper_clique_conductance_witness() -> tuple[F, F, F]:
@@ -636,6 +723,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-leakage-conductance}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-ground-certificate}" in source
     assert r"\label{prop:aesp-cd-proper-face-walk-ground-certificate}" in source
+    assert r"\label{prop:aesp-cd-proper-face-ground-admission-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
@@ -683,7 +771,7 @@ def main() -> None:
         assert new_slope == old_slope + gamma * winner_slope
         assert old[vertex] <= new[vertex] <= old[winner]
 
-    ground_faces = check_ground_state_normalization(
+    ground_faces, admission_replays = check_ground_state_normalization(
         hessian,
         degree,
         adjacency,
@@ -703,6 +791,7 @@ def main() -> None:
     print("  exact nonnegative rank-one mixing for surviving rows {2,5}")
     print("  strict priority reversal: 5>2 before, 2>5 after")
     print(f"  canonical proper-face ground normalization: {ground_faces} connected faces")
+    print(f"  exact/finite ground admission replays: {admission_replays}")
     print("  h-cap / W-shift conjugacy: exact on every connected face")
     print("  conjugated ground shift: exact weighted graph Laplacian")
     print("  ground walk: stochastic, nonnegative, and exactly reversible")

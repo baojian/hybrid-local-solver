@@ -426,6 +426,14 @@ positive checkpoint `2*alpha/(1+alpha)*sqrt(d)` keeps the publication on the
 full face, while the output error bound controls every residual coordinate.
 Hence the ground preprocessing loss is closed; the conductance/Poincare lower
 certificate itself remains a separate structural hypothesis.
+Nor must this ground solve be repeated after every admission.  The new-face
+ground vector is the old one plus the newly admitted scalar times the same
+nonnegative pivot-response column already charged to discovery.  With
+one-sided finite inputs, the old residual becomes exactly `r_h+t*r_u` and the
+new coordinate residual is zero, so declared response residual budgets add
+without a new face solve.  The finite sparse-response version still requires
+the observable safe-Chebyshev full-face guard; there is no universal explicit
+positive checkpoint for an arbitrary pivot column.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

@@ -123,6 +123,13 @@ State: proved-open
   `O_tilde(vol(A)/sqrt(alpha))` work.  Thus, conditional on a finite
   conductance/Poincare lower check, the ground geometry, response intervals,
   alignment, and fixed-face tail are all at the target scale.
+  Ground preprocessing also reuses admissions: the exact new-face ground is
+  a block update by the already charged nonnegative pivot-response column.
+  For one-sided finite ground/response solves the residual replays exactly as
+  `(r_h+t*r_u,0)`, so response budgets add across nested faces rather than
+  forcing a fresh ground solve per admission.
+  Finite sparse pivot responses still require the observable full-face guard;
+  guard failure remains part of the general response-locator branch.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -572,6 +579,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
   `prop:aesp-cd-proper-face-walk-ground-certificate`,
   `cor:aesp-cd-proper-face-accelerated-ground-certificate`,
+  `prop:aesp-cd-proper-face-ground-admission-replay`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
