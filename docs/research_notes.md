@@ -69,6 +69,8 @@ The classical APPR support sandwich makes the surviving gap especially
 precise.  At threshold `rho`, every terminal APPR support contains
 `S*(rho)` and is contained in `S*((1-alpha)rho/2)`.  Hence for
 `alpha<1/2` it is a certified containing envelope of volume below `4/rho`,
+and the point-source radius lemma puts the same envelope within
+`O_tilde(1/sqrt(alpha))` hops of the root,
 although classical APPR takes tightly `Theta(1/(alpha*rho))` work to build
 it.  If this envelope is supplied, accelerated proximal gradient on the
 fixed envelope reaches semantic PPR error `eps_ppr` in

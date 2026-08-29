@@ -32,7 +32,8 @@ State: proved-open
   can genuinely take `Omega(1/eps_ppr^2)` work.  Dynamic reuse is still open.
   Classical APPR nevertheless returns an RPPR-support-containing envelope
   of volume at most `2/((1-alpha)rho)` by the
-  Ha--Fountoulakis--Mahoney support sandwich.  Its worst-case degree work is
+  Ha--Fountoulakis--Mahoney support sandwich.  Under a point source that
+  envelope also has `O_tilde(1/sqrt(alpha))` radius.  Its worst-case work is
   tightly `Theta(1/(alpha*rho))`.  This separates the remaining question:
   an output-sized envelope exists, while its accelerated construction or
   dynamic reuse is still missing.
