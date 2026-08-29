@@ -985,7 +985,7 @@ def check_random_point_source_mass_clock() -> tuple[int, int, F]:
     return traces, admissions, largest_cauchy_ratio
 
 
-def check_high_degree_refresh_algebra() -> tuple[F, F, F]:
+def check_high_degree_refresh_algebra() -> tuple[F, F, F, F]:
     """Exact square-degree calibration of the high-degree rate corollary."""
     alpha, q, epsilon = F(1, 9), F(1, 3), F(1, 10)
     coupling = (1 - alpha) / 2
@@ -1019,10 +1019,26 @@ def check_high_degree_refresh_algebra() -> tuple[F, F, F]:
     assert pivot_coordinate_mass <= alpha**2 * pivot_degree_mass
     clock_square_upper = coupling * pivot_degree_mass * pivot_coordinate_mass
     assert clock_square_upper <= alpha**2 * coupling
+
+    # Exact low-low K2 calibration: point-source mass alone gives only a
+    # Theta(sqrt(alpha)) clock, not the O(alpha) target condition.
+    diagonal = (1 + alpha) / 2
+    rho = coupling / 2
+    root_ground = alpha / diagonal
+    pivot_coupling = coupling * root_ground
+    root_active = alpha * (1 - rho) / diagonal
+    key = -alpha * rho + coupling * root_active
+    schur = diagonal - coupling**2 / diagonal
+    coordinate = key / schur
+    assert schur == alpha / diagonal
+    assert coordinate == coupling - rho == coupling / 2
+    low_clock_square = coordinate**2 * pivot_coupling
+    assert low_clock_square == coupling**3 * alpha / (4 * diagonal)
     return (
         half_weighted / total,
         refresh_term / target_term,
         clock_square_upper / coupling,
+        low_clock_square / alpha,
     )
 
 
@@ -1247,6 +1263,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-point-source-cumulative-gray-key}" in source
     assert r"\label{cor:aesp-cd-point-source-clocked-gray-refresh}" in source
     assert r"\label{cor:aesp-cd-point-source-high-degree-gray-refresh}" in source
+    assert r"\label{prop:aesp-cd-point-source-low-degree-clock-stop}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
@@ -1322,6 +1339,7 @@ def main() -> None:
         half_degree_ratio,
         high_degree_target_ratio,
         high_pivot_clock_square_ratio,
+        low_degree_clock_square_ratio,
     ) = check_high_degree_refresh_algebra()
     (
         sparse_pivot_error,
@@ -1359,7 +1377,8 @@ def main() -> None:
     print(
         "  high-degree refresh calibration: "
         f"F_1/2/F={half_degree_ratio}, refresh/target={high_degree_target_ratio}, "
-        f"pivot clock^2/c={high_pivot_clock_square_ratio}"
+        f"pivot clock^2/c={high_pivot_clock_square_ratio}, "
+        f"low-low K2 clock^2/alpha={low_degree_clock_square_ratio}"
     )
     print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
     print(

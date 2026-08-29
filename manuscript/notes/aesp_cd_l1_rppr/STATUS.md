@@ -169,7 +169,10 @@ State: proved-open
   charged row has `d_v>=alpha^(-2)`, or if every admitted pivot does.  Thus
   only simultaneous low-degree rows and pivots retain one factor `1/alpha`
   under the coarse bound.  This is a scheme upper bound, not a general lower
-  bound.
+  bound.  The distinction is real: an exact low-low `K2` trace has
+  `P_*^2=c^3*alpha/(4a)=Theta(alpha)`, so point-source unit mass alone cannot
+  force the `O(alpha)` clock needed by the mixed condition.  This only STOPs
+  the clock certificate, not a different transformed reporter.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -671,6 +674,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-point-source-cumulative-gray-key`,
   `cor:aesp-cd-point-source-clocked-gray-refresh`,
   `cor:aesp-cd-point-source-high-degree-gray-refresh`,
+  `prop:aesp-cd-point-source-low-degree-clock-stop`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
