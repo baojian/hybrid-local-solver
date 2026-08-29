@@ -122,6 +122,10 @@ State: proved-open
   Hence bounded homotopy width, followed by the certified final-face
   Chebyshev solve, meets the point-source product target.  This is not
   graph-uniform because explicit root/fill cliques can be quadratic.
+  Its breakpoint slope satisfies the graph-universal band
+  `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
+  upper envelope on the remaining critical ratios gives a margin-free finite
+  KKT stop.  Near-tied breakpoints need not be resolved exactly.
   A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
@@ -315,6 +319,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
+  `cor:aesp-cd-ratio-pivot-finite-stop`,
   `thm:aesp-cd-point-source-ratio-pivot`,
   `prop:aesp-cd-point-source-homotopy-reorder`,
   `prop:aesp-cd-point-source-superlevel-stop`,

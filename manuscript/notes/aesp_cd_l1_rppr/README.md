@@ -209,6 +209,12 @@ actual Schur-fill degree at pivot $w$.  Bounded homotopy width therefore gives
 a genuine product-scale point-source solver after the final-face Chebyshev
 step.  Explicit fill can still be quadratic (already at a high-degree root),
 so this is a new structural GO rather than the universal theorem.
+The same homotopy has a margin-free approximate stopping rule:
+$\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
+$\eta$ on the largest remaining critical ratio costs at most
+$(1+\alpha)\eta/2$ in the normalized KKT diagnostic.  Exact support and
+exact breakpoint separation are therefore unnecessary at the requested
+finite accuracy.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

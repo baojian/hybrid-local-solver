@@ -126,6 +126,8 @@ def main() -> None:
     assert r"\label{thm:aesp-cd-point-source-ratio-pivot}" in source
     assert r"\label{eq:aesp-cd-ratio-pivot-pair}" in source
     assert r"\label{eq:aesp-cd-ratio-pivot-schur}" in source
+    assert r"\label{cor:aesp-cd-ratio-pivot-finite-stop}" in source
+    assert r"\label{eq:aesp-cd-ratio-pivot-slope-band}" in source
 
     rng = Random(20260829)
     checked = 0
@@ -151,10 +153,37 @@ def main() -> None:
             event_count += len(events)
             checked += 1
 
+    # Exact finite stopping-band calibration on P3, face {0}.
+    alpha = F(1, 5)
+    diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    degree = [1, 2, 1]
+    hessian = [
+        [
+            diagonal * degree[i]
+            if i == j
+            else (-coupling if abs(i - j) == 1 else F(0))
+            for j in range(3)
+        ]
+        for i in range(3)
+    ]
+    root_source = alpha / hessian[0][0]
+    root_degree = alpha * degree[0] / hessian[0][0]
+    intercept = -hessian[1][0] * root_source
+    slope = alpha * degree[1] - hessian[1][0] * root_degree
+    assert slope == F(8, 15)
+    assert alpha * degree[1] <= slope <= diagonal * degree[1]
+    threshold = intercept / slope
+    rho = F(1, 5)
+    eta = threshold - rho
+    key = intercept - rho * slope
+    assert threshold == F(1, 4) and eta == F(1, 20)
+    assert key / degree[1] <= diagonal * eta
+
     print("PASS point-source ratio-pivot homotopy")
     print(f"  exact random connected instances={checked}, admitted events={event_count}")
     print("  pivot support equals exhaustive obstacle KKT support in every case")
     print("  event thresholds are nonincreasing; every coordinate enters once")
+    print("  finite KKT slope band: exact P3 calibration")
 
 
 if __name__ == "__main__":

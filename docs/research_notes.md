@@ -89,6 +89,12 @@ Thus bounded homotopy elimination width gives a genuine point-source
 product-scale solver after the existing final-face Chebyshev step.  This is a
 structural breakthrough, not yet a general-graph one: explicit fill can be
 quadratic even when an implicit tree or separator reporter would be linear.
+For finite accuracy, the homotopy does not require exact breakpoint
+separation: every exterior affine-key slope lies between `alpha*d_v` and
+`(1+alpha)*d_v/2`.  A certified additive upper error `eta` on the largest
+remaining ratio therefore contributes at most `(1+alpha)*eta/2` to the
+degree-normalized KKT diagnostic.  This is the correct interface for an
+approximate or sparsified Schur implementation.
 
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
