@@ -73,6 +73,11 @@ State: proved-open
   identity shift and constant cap.  Hence all algebraic fixed-face
   full-face interfaces transfer, while their high-gap and master-sign
   hypotheses still require independent certificates.
+  More precisely,
+  `diag(d_i h_i)*(Qbar_A-alpha I)` is the weighted combinatorial Laplacian
+  with conductances `((1-alpha)/2) h_i h_j`.  The proper-face high gap is
+  therefore exactly a weighted Poincare/conductance condition, and
+  point-source connectedness makes its ground eigenspace one-dimensional.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the

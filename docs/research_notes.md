@@ -184,6 +184,13 @@ full-face primitive: with `R=diag(h)`, the operator
 become the identity shift and constant cap.  This transfers the algebraic
 fixed-face interfaces without an eigensolve; it does not supply the separate
 high-gap or master-sign certificates those interfaces assume.
+The conjugate has a more concrete form:
+`diag(d_i h_i)*(Qbar-alpha I)` is exactly the weighted graph Laplacian on
+the active induced graph with conductance
+`((1-alpha)/2)*h_i*h_j` on edge `ij`.  Thus the extra proper-face high-gap
+assumption is precisely a weighted conductance/Poincare assumption.  A
+connected point-source support has one ground mode; disconnected multi-source
+faces have one ground mode per component and require componentwise handling.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

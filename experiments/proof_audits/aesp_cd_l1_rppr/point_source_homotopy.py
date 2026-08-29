@@ -169,6 +169,45 @@ def check_ground_state_normalization(
             for i in range(len(face))
             for j in range(len(face))
         )
+        coupling = (1 - alpha) / 2
+        edge_weight = [
+            [
+                coupling * adjacency[face[i]][face[j]] * response[i] * response[j]
+                for j in range(len(face))
+            ]
+            for i in range(len(face))
+        ]
+        laplacian = [
+            [
+                (
+                    sum(edge_weight[i])
+                    if i == j
+                    else -edge_weight[i][j]
+                )
+                for j in range(len(face))
+            ]
+            for i in range(len(face))
+        ]
+        conjugated_ground_shift = [
+            [
+                dbar[i] * (qbar[i][j] - alpha * F(i == j))
+                for j in range(len(face))
+            ]
+            for i in range(len(face))
+        ]
+        assert conjugated_ground_shift == laplacian
+        probe = [F(2 * i - 3, 7) for i in range(len(face))]
+        dirichlet = sum(
+            edge_weight[i][j] * (probe[i] - probe[j]) ** 2
+            for i in range(len(face))
+            for j in range(i + 1, len(face))
+        )
+        quadratic = sum(
+            probe[i] * laplacian[i][j] * probe[j]
+            for i in range(len(face))
+            for j in range(len(face))
+        )
+        assert quadratic == dirichlet
 
         # A generic shifted solve agrees in the two coordinate systems.
         target = [F(11 + 2 * i, 10) for i in range(len(face))]
@@ -221,6 +260,7 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-homotopy-mix}" in source
     assert r"\label{lem:aesp-cd-point-source-ground-state-normalization}" in source
     assert r"\label{prop:aesp-cd-proper-face-ground-conjugacy}" in source
+    assert r"\label{eq:aesp-cd-proper-face-doob-laplacian}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -277,6 +317,7 @@ def main() -> None:
     print("  strict priority reversal: 5>2 before, 2>5 after")
     print(f"  canonical proper-face ground normalization: {ground_faces} connected faces")
     print("  h-cap / W-shift conjugacy: exact on every connected face")
+    print("  conjugated ground shift: exact weighted graph Laplacian")
 
 
 if __name__ == "__main__":
