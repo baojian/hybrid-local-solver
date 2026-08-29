@@ -8,8 +8,8 @@ preserved in the immutable
 The machine-readable note map is
 [`registry.toml`](../manuscript/notes/registry.toml).
 
-Last synchronized: 2026-08-24, after the Round-027 review and repository
-organization audit.
+Last synchronized: 2026-08-29, after the point-source envelope and dynamic
+event-interface audit.
 
 ## Fixed end-to-end target
 
@@ -65,6 +65,21 @@ strictly active obstacle coordinate whose unconstrained shifted coordinate is
 negative.  Any successful reduction must retain nonlinear obstacle/Schur
 information.
 
+The classical APPR support sandwich makes the surviving gap especially
+precise.  At threshold `rho`, every terminal APPR support contains
+`S*(rho)` and is contained in `S*((1-alpha)rho/2)`.  Hence for
+`alpha<1/2` it is a certified containing envelope of volume below `4/rho`,
+although classical APPR takes tightly `Theta(1/(alpha*rho))` work to build
+it.  If this envelope is supplied, accelerated proximal gradient on the
+fixed envelope reaches semantic PPR error `eps_ppr` in
+`O_tilde(1/(sqrt(alpha)*eps_ppr))` work, without an exact-support margin.
+The ordering-independent APPR star already has envelope radius at most one
+and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
+gap is repeated state processing rather than distant or oversized output.
+The universal point-source problem is therefore exactly accelerated
+construction or dynamic reuse of an output-sized envelope, not an
+output-volume existence question.
+
 A point-source rho-homotopy still reveals useful extra structure.  On a fixed
 face every boundary key is affine in rho, and after admitting one vertex each
 surviving critical rho becomes a nonnegative weighted average of its previous
@@ -95,6 +110,18 @@ separation: every exterior affine-key slope lies between `alpha*d_v` and
 remaining ratio therefore contributes at most `(1+alpha)*eta/2` to the
 degree-normalized KKT diagnostic.  This is the correct interface for an
 approximate or sparsified Schur implementation.
+
+The finite reporter now has an alternative harmonic formulation.  Every
+exact singleton pivot adds a killed hitting-probability column; these columns
+are pairwise orthogonal in the principal Hessian energy, have a telescoping
+total-energy budget, and can trigger only logarithmically many finite
+coordinate levels.  Chebyshev decay confines each such level event to
+`O_tilde(1/sqrt(alpha))` graph distance from its pivot.  Consequently a
+dynamic locator charged once per emitted level plus its pivot-to-event route
+would close discovery in `O_tilde(vol(S*)/sqrt(alpha))` work.  Ball scans do
+not instantiate this interface because ball volume and repeated overlap are
+uncontrolled; existing named-coordinate dynamic inverse structures likewise
+do not enumerate all one-sided events.
 
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic

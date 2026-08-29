@@ -36,6 +36,9 @@ State: proved-open
   tightly `Theta(1/(alpha*rho))`.  This separates the remaining question:
   an output-sized envelope exists, while its accelerated construction or
   dynamic reuse is still missing.
+  The ordering-independent APPR star calibrates the distinction sharply:
+  its envelope has radius at most one and volume `Theta(1/rho)`, yet APPR
+  spends `Omega(vol(E)/alpha)` work on it.
   Supplied as an oracle, that APPR envelope immediately supports a standard
   accelerated proximal solve with semantic PPR work
   `O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual margin.

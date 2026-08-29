@@ -38,6 +38,9 @@ below `4/rho`.  Yet APPR has tight worst-case work
 `Theta(1/(alpha*rho))`.  Hence an output-sized envelope exists and can be
 found locally; the unresolved issue is exactly accelerated construction or
 dynamic reuse of that envelope, not an output-volume theorem.
+The tight APPR star already has envelope volume `Theta(1/rho)` and radius at
+most one while spending `Omega(vol(E)/alpha)` work, so this distinction is
+not caused by distant output or a loose volume estimate.
 Indeed, if the APPR support is supplied as an oracle, accelerated proximal
 gradient on that fixed envelope gives the semantic point-source PPR target in
 `O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support margin.  The
