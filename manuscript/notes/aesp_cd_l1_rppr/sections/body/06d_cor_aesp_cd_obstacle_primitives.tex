@@ -1,3 +1,131 @@
+\begin{theorem}[Margin-free clip-or-pay obstacle retraction]
+\label{thm:aesp-cd-obstacle-clip-retraction}
+Let
+\begin{equation*}
+ p=\argmin_{x\geq0}\left\{
+   \tfrac12\langle x,Hx\rangle-\langle b,x\rangle\right\},
+ \qquad
+ H=H^\top\succ0,
+ \qquad H_{ij}\leq0\quad(i\neq j).
+\end{equation*}
+Suppose a certified vector $v>0$ and scalar $\mu_v>0$ satisfy
+$Hv\geq\mu_vv$ coordinatewise.  Let $\widehat p\geq0$ be any feasible
+scratch approximation with
+$\norm{\widehat p-p}_\infty\leq\varepsilon$.  Define
+\begin{equation}
+ \tau_i:=\frac{\widehat p_i}{v_i},\qquad
+ R_i:=\frac{(H\widehat p-b)_i}{(Hv)_i},\qquad
+ \Delta:=\max_i\bigl[\min\{\tau_i,R_i\}\bigr]_+,
+ \qquad
+ s:=[\widehat p-\Delta v]_+.
+ \label{eq:aesp-cd-obstacle-clip-pay}
+\end{equation}
+Then $s$ is an obstacle subsolution and is order-safe:
+\begin{equation}
+ s\geq0,\qquad b_i-(Hs)_i\geq0\quad(i\in\supp(s)),
+ \qquad 0\leq s\leq p.
+ \label{eq:aesp-cd-obstacle-clip-pay-safe}
+\end{equation}
+If $y$ is any previously published obstacle subsolution with
+$0\leq y\leq p$, then $z:=y\vee s$ has the same properties and
+$\norm{p-z}_\infty\leq\norm{p-s}_\infty$.
+
+Put $v_{\min}:=\min_i v_i$, $v_{\max}:=\max_i v_i$, and
+$\norm{H}_\infty:=\max_i\sum_j|H_{ij}|$.  The retraction obeys the explicit
+margin-free bounds
+\begin{align}
+ \Delta
+ &\leq \frac{\varepsilon}{v_{\min}}
+   \max\left\{1,\frac{\norm{H}_\infty}{\mu_v}\right\},
+ \label{eq:aesp-cd-obstacle-clip-pay-delta}\\
+ \norm{p-z}_\infty
+ &\leq
+ \left[1+\frac{v_{\max}}{v_{\min}}
+   \max\left\{1,\frac{\norm{H}_\infty}{\mu_v}\right\}\right]\varepsilon.
+ \label{eq:aesp-cd-obstacle-clip-pay-error}
+\end{align}
+Thus large inactive dual residuals do not force a large common shift: an
+inactive coordinate may instead pay through its small primal ratio $\tau_i$.
+The publication costs one matrix application and one scan.
+\end{theorem}
+
+\begin{proof}
+Let $t=\widehat p-\Delta v$.  If $s_i>0$, then
+$s_i=t_i$ and $\Delta<\tau_i$.  Since
+$\Delta\geq\min\{\tau_i,R_i\}$, including when that minimum is negative,
+one must have $R_i\leq\Delta$.  Moreover $s\geq t$, and increasing
+coordinates other than $i$ can only decrease row $i$ of a Stieltjes matrix.
+Consequently
+\begin{equation*}
+ (Hs)_i\leq(Ht)_i=(H\widehat p)_i-\Delta(Hv)_i\leq b_i.
+\end{equation*}
+This proves the subsolution condition.
+
+For completeness, let $I=\{i:s_i>p_i\}$.  On $I$, the subsolution
+condition and obstacle KKT give $[H(s-p)]_I\leq0$.  On $I^c$ one has
+$s-p\leq0$, so $H_{I,I^c}(s-p)_{I^c}\geq0$.  Hence
+$H_{II}(s-p)_I\leq0$.  A principal Stieltjes inverse is nonnegative,
+contradicting $(s-p)_I>0$ unless $I=\varnothing$.  Thus $s\leq p$.
+The coordinatewise maximum of two obstacle subsolutions is again a
+subsolution: on a row selected from either input, increasing the other
+coordinates only decreases that row.  This proves the assertions for $z$.
+
+It remains to bound the shift without a complementarity margin.  If
+$p_i=0$, feasibility and the error bound give
+$\tau_i\leq\varepsilon/v_{\min}$.  If $p_i>0$, obstacle KKT gives
+$(Hp-b)_i=0$, and therefore
+\begin{equation*}
+ [R_i]_+
+ \leq\frac{|[H(\widehat p-p)]_i|}{\mu_vv_{\min}}
+ \leq\frac{\norm{H}_\infty\varepsilon}{\mu_vv_{\min}}.
+\end{equation*}
+Taking the maximum proves
+\cref{eq:aesp-cd-obstacle-clip-pay-delta}.  Finally
+$0\leq p-z\leq p-s$ coordinatewise and
+$\norm{p-s}_\infty\leq\varepsilon+\Delta v_{\max}$, which proves
+\cref{eq:aesp-cd-obstacle-clip-pay-error}.
+\end{proof}
+
+\begin{corollary}[Margin-free accelerated obstacle primitive]
+\label{cor:aesp-cd-margin-free-obstacle-primitive}
+In the setting of
+\cref{prop:aesp-cd-speculative-envelope-doubling}, suppose on every fixed
+envelope $U$ that
+\begin{equation*}
+ \mu I\preceq H_U\preceq LI,
+ \qquad H_Uv_U\geq\mu_vv_U>0,
+\end{equation*}
+with certified parameters.  Accelerated projected-gradient scratch, followed
+by the publication in
+\cref{thm:aesp-cd-obstacle-clip-retraction}, implements the assumed
+restricted obstacle primitive in
+\begin{equation*}
+ \widetilde O\!\left(\vol(U)\sqrt{L/\mu}\right)
+\end{equation*}
+work.  No active-coordinate or strict-complementarity margin is required.
+For a principal RPPR envelope, $L\leq1$, $\mu\geq\alpha$, and one may take
+$v_U=D_U^{1/2}\one$ with $H_Uv_U\geq\alpha v_U$, giving
+$\widetilde O(\vol(U)/\sqrt\alpha)$ work.
+
+This removes the active-set margin hypothesis from the obstacle solve in
+\cref{prop:aesp-cd-speculative-envelope-doubling}.  It does not control the
+final explored volume, nor does it by itself decide an exactly zero boundary
+key with finite precision; the boundary-interval fallback in that proposition
+remains explicit.
+\end{corollary}
+
+\begin{proof}
+Projected acceleration keeps every scratch iterate feasible and reaches a
+certified $\ell_\infty$ error $\varepsilon$ after
+$O(\sqrt{L/\mu}\log(E_0/\varepsilon))$ matrix applications, for example by
+driving the standard strongly-convex objective-gap bound below
+$\mu\varepsilon^2/2$.  The retraction error amplification in
+\cref{eq:aesp-cd-obstacle-clip-pay-error} changes only the logarithmic target.
+The RPPR specialization uses the principal Stieltjes spectral bounds and the
+same positive supersolution as
+\cref{thm:aesp-cd-safe-chebyshev-face}.
+\end{proof}
+
 \begin{corollary}[Strict margins instantiate the obstacle primitive]
 \label{cor:aesp-cd-margin-obstacle-primitive}
 On a fixed envelope $U$, let
@@ -36,8 +164,8 @@ $p_U$.  The combined work is
    \vol(U)\sqrt{L/\mu}\right),
 \end{equation*}
 where $m_x,m_g$ enter only logarithmically.  Hence
-\cref{prop:aesp-cd-speculative-envelope-doubling} is implementable under
-uniform strict active/dual margins.
+the exact face itself, rather than only a lower-safe approximation, is
+certified under uniform strict active/dual margins.
 \end{corollary}
 
 \begin{proof}
@@ -60,9 +188,11 @@ certificate, as in \cref{thm:aesp-cd-safe-chebyshev-face}.
 \end{proof}
 
 Without strict margins, projected acceleration may leave arbitrarily small
-positive inactive coordinates and cannot certify the face at a uniform
-accuracy.  This corollary is therefore a nondegenerate conditional GO, not a
-resolution of the universal active-set problem.
+positive inactive scratch coordinates and cannot certify the exact face at a
+uniform accuracy.  The clip-or-pay publication nevertheless deletes every
+unsafe coordinate without paying its entire dual residual.  Thus strict
+margins remain useful for face identification, not for lower-safe obstacle
+publication.
 
 \begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
 \label{prop:aesp-cd-positive-polynomial-stop}

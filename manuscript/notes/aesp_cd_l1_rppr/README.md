@@ -204,10 +204,14 @@ plan update per row reproduces the very materialization charge at issue.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
-halo and need not be controlled by `vol(S*)`.  Under strict primal/dual active
-margins, accelerated projected-gradient scratch identifies the face and the
-safe Chebyshev publisher implements the required obstacle primitive.  Without
-those margins, support discontinuity and high-degree inactive decoys remain.
+halo and need not be controlled by `vol(S*)`.  A margin-free clip-or-pay
+retraction now converts feasible accelerated projected-gradient scratch into
+an order-safe obstacle subsolution in the required
+`O_tilde(vol(U)/sqrt(alpha))` work.  It charges each unsafe coordinate either
+to its small primal value or to its residual, so strict complementarity is no
+longer needed for this fixed-envelope primitive.  Strict margins remain useful
+only when the exact active face itself must be identified.  High-degree
+inactive decoys and dynamic boundary reporting still remain.
 The RPPR support cap nevertheless gives a universal retained-volume result:
 by keeping at most `1/rho` inactive halo volume in addition to the true active
 support, an exact dynamic obstacle protocol never retains more than `2/rho`
@@ -254,7 +258,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twenty-one exact audits with:
+Run all twenty-two exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -284,6 +288,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.separated_level_reporter` (Round 041).
 - `aesp_cd_l1_rppr.variable_two_port_stops` (Round 042).
 - `aesp_cd_l1_rppr.radius_batch_stop` (Round 043).
+- `aesp_cd_l1_rppr.obstacle_clip_retraction` (Round 044).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

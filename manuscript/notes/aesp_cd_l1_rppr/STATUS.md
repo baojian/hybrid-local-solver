@@ -91,7 +91,12 @@ State: proved-open
   safe published point in
   `O_tilde(vol(A)/sqrt(lambda_lower))` work. Once the final RPPR face is
   certified, applying this directly to the unshifted restricted system gives
-  `O_tilde(1/(rho*sqrt(alpha)))` terminal work. A positive-coefficient
+  `O_tilde(1/(rho*sqrt(alpha)))` terminal work. More generally, a margin-free
+  clip-or-pay retraction publishes a lower-safe approximation to a fixed
+  envelope's obstacle minimizer after accelerated projected-gradient scratch.
+  This implements the speculative-envelope obstacle primitive in
+  `O_tilde(vol(U)/sqrt(alpha))` work; explored volume, exact-zero boundary
+  decisions, and dynamic reporting remain separate. A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
   square-root dependence. A high-multiplicity Stieltjes cluster also stops
@@ -318,8 +323,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Twenty-one exact audits with durable `aesp_cd_l1_rppr.*` IDs
-  cover the Round-022--043 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty-two exact audits with durable `aesp_cd_l1_rppr.*` IDs
+  cover the Round-022--044 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
@@ -330,8 +335,9 @@ still no graph-uniform exact accelerated solver.
   still lacks event packing. The high half of the master/mean split has a
   finite-inner transfer; the forced mean and changing-face parts do not yet
   form an end-to-end finite solver theorem.  The two-phase alternative avoids
-  changing-face momentum transfer, but its discovery phase still assumes an
-  accelerated dynamic-obstacle/reporter interface.  That interface is closed
+  changing-face momentum transfer.  Its fixed-envelope obstacle solve is now
+  closed without strict margins, but its discovery phase still assumes a
+  dynamic boundary-reporter interface.  That reporter interface is closed
   on trees, unicyclic graphs, stable ports, and bounded-productive-site cactus
   traces; unrestricted productive cactus has the square-root epoch tradeoff,
   not the target product.  General variable-port series--parallel graphs remain
