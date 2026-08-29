@@ -107,7 +107,10 @@ State: proved-open
   `(sum_v sqrt(s_v))^2`, not the old additive `nnz(s)` target.  This scope
   reduction does not make exact support discovery radius-bounded: a fan
   family whose entire graph has point-source radius one requires
-  `m/2-1` nonempty all-positive batches. A positive-coefficient
+  `m/2-1` nonempty all-positive batches.  A three-vertex point-source witness
+  also has an active obstacle coordinate where the unconstrained shifted-PPR
+  coordinate is strictly negative, stopping a direct superlevel-set recovery.
+  A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
   square-root dependence. A high-multiplicity Stieltjes cluster also stops
@@ -300,6 +303,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
+  `prop:aesp-cd-point-source-superlevel-stop`,
   `prop:aesp-cd-fan-linear-batches`,
   `prop:aesp-cd-all-positive-radius-stop`,
   `prop:aesp-cd-separated-level-reporter`,

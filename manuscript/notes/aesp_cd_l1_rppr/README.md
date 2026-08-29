@@ -191,6 +191,9 @@ one but needs at least $m/2-1$ nonempty simultaneous batches on $m$ path
 vertices; an eight-vertex exact instance additionally realizes five strict
 singleton batches.  Thus the point-source restriction removes component
 mergers, not serial boundary activation around one root.
+Nor can the nonlinear obstacle be replaced by one ordinary-PPR sweep: an
+exact point-source path has an active RPPR coordinate where the corresponding
+unconstrained shifted PPR coordinate is strictly negative.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

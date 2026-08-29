@@ -100,15 +100,34 @@ def check_rppr_nonlinearity() -> None:
     assert joint != superposed
 
 
+def check_superlevel_stop() -> None:
+    alpha, rho = F(1, 5), F(5, 21)
+    hessian, degree = path_hessian(alpha, 3)
+    load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(3)]
+    unconstrained = solve(hessian, load)
+    obstacle = obstacle_solution(hessian, load)
+    assert load == [F(16, 105), F(-2, 21), F(-1, 21)]
+    assert unconstrained == [F(8, 35), F(-4, 105), F(-11, 105)]
+    assert obstacle == [F(38, 147), F(1, 147), F(0)]
+    assert {i for i, value in enumerate(unconstrained) if value > 0} == {0}
+    assert {i for i, value in enumerate(obstacle) if value > 0} == {0, 1}
+    root = load[0] / hessian[0][0]
+    assert load[1] - hessian[1][0] * root == F(2, 315) > 0
+    assert hessian[2][1] * obstacle[1] - load[2] == F(11, 245) > 0
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-linear-reduction}" in source
     assert r"\label{lem:aesp-cd-point-source-subsolution-connected}" in source
+    assert r"\label{prop:aesp-cd-point-source-superlevel-stop}" in source
     check_linear_superposition()
     check_rppr_nonlinearity()
+    check_superlevel_stop()
     print("PASS point-source scope audit")
     print("  linear PPR: exact weighted point-source superposition")
     print("  RPPR P3: joint obstacle solution differs from weighted point solves")
+    print("  RPPR P3: obstacle support strictly exceeds shifted-PPR positive support")
     print("  scope: point-source theorem target, general-seed linear corollary only")
 
 

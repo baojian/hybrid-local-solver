@@ -59,6 +59,11 @@ vertex adjacent to the source while the exact rule that solves the current
 face and admits every positive exterior key still takes a linear number of
 nonempty batches.  Thus radius controls route length, not the number of
 response changes or restricted-face rebuilds around one root.
+The RPPR support is also not merely the positive connected component of the
+ordinary shifted PPR vector: a three-vertex exact point-source instance has a
+strictly active obstacle coordinate whose unconstrained shifted coordinate is
+negative.  Any successful reduction must retain nonlinear obstacle/Schur
+information.
 
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
