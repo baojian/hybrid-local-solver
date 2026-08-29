@@ -78,6 +78,33 @@ preconditioning, and fast solution of graph-structured linear systems.
   Brand et al., 2022) - dynamic Schur complements and operator heavy-hitter
   location for electrical flows.
 
+### Complementarity, obstacle, and active-set solvers
+
+The theorem-level OP2 audit, including exact PDF pointers and locality
+verdicts, is in [`lcp-solvers.md`](lcp-solvers.md).
+
+- *On the Solution of Large Quadratic Programming Problems with Bound
+  Constraints* (Moré and Toraldo, 1991) - projected-gradient identification
+  followed by reduced conjugate gradients.
+- *Monotone Multigrid Methods for Elliptic Variational Inequalities I*
+  (Kornhuber, 1994) - globally convergent monotone multigrid for finite-element
+  obstacle problems.
+- *A Block Principal Pivoting Algorithm for Large-Scale Strictly Monotone
+  Linear Complementarity Problems* (Júdice and Pires, 1994) - finite guarded
+  block pivots.
+- *Augmented Lagrangian Active Set Methods for Obstacle Problems*
+  (Kärkkäinen, Kunisch, and Tarvainen, 2003) - Stieltjes obstacle active sets
+  and multilevel implementations.
+- *Pivoting in Linear Complementarity: Two Polynomial-Time Cases* (Foniok et
+  al., 2009) - linear pivot-path bounds for K-matrix LCPs.
+- *A Nearly-m log n Time Solver for SDD Linear Systems* (Koutis, Miller, and
+  Peng, 2011) - nearly-linear solution of a supplied global SDD system.
+- *Superrelaxation and the Rate of Convergence in Minimizing Quadratic
+  Functions Subject to Bound Constraints* (Dostál, Domorádová, and Sadowská,
+  2011) - projected-gradient/CG working-set convergence rates.
+- *Non-Negative Conjugate Gradients* (Schmelzer and Stoll, 2026) - inexact
+  matrix-free CG inside a guarded active-set loop.
+
 ### Acceleration and sparse PageRank
 
 These papers study accelerated, sparse, or complexity-improved methods for
@@ -149,9 +176,11 @@ downstream ranking requirements.
 | 2007 | WAW | *Local Computation of PageRank Contributions* | `andersen2007localcontributions` | Local PageRank computation |
 | 2007 | IM | [*Using PageRank to Locally Partition a Graph*](../../papers/2007-im-andersen-using-pagerank-locally-partition-graph.pdf) | `andersen2007using` | Local graph clustering |
 | 2009 | MP | [*A Coordinate Gradient Descent Method for Nonsmooth Separable Minimization*](../../papers/2009-mp-tseng-coordinate-gradient-descent-nonsmooth-separable-minimization.pdf) | `tseng2009coordinate` | Coordinate optimization |
+| 2009 | DCG | *Pivoting in Linear Complementarity: Two Polynomial-Time Cases* | `foniok2009pivoting` | Complementarity solvers |
 | 2009 | IM | *A Local Graph Partitioning Algorithm Using Heat Kernel PageRank* | `chung2009local` | Heat-kernel PageRank |
 | 2009 | STOC | *Finding Sparse Cuts Locally Using Evolving Sets* | `andersen2009finding` | Evolving-set methods |
 | 2010 | ICM | *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices* | `spielman2010algorithms` | Spectral graph optimization |
+| 2011 | FOCS | *A Nearly-m log n Time Solver for SDD Linear Systems* | `koutis2011nearly` | Spectral graph optimization |
 | 2011 | SICOMP | *Spectral Sparsification of Graphs* | `spielman2011spectral` | Spectral graph optimization |
 | 2011 | SIDMA | [*Sublinear Time Algorithms*](../../papers/2011-sidma-rubinfeld-sublinear-time-algorithms.pdf) | `rubinfeld2011sublinear` | Sublinear algorithms |
 | 2012 | SODA | [*Space-Efficient Local Computation Algorithms*](../../papers/2012-soda-alon-space-efficient-local-computation-algorithms.pdf) | `alon2012space` | Local computation algorithms |
@@ -178,6 +207,8 @@ downstream ranking requirements.
 | 2025 | NeurIPS | [*Accelerated Evolving Set Processes for Local PageRank Computation*](../../papers/2025-neurips-huang-accelerated-evolving-set-processes-local-pagerank.pdf) | `huang2025accelerated` | Evolving sets and acceleration |
 | 2026 | ICML | [*FairRARI: A Plug and Play Framework for Fairness-Aware PageRank*](../../papers/2026-icml-kariotakis-fairrari-fairness-aware-pagerank.pdf) | `kariotakis2026fairrari` | PageRank applications and fairness |
 | 2026 | arXiv | [*Complexity of Classical Acceleration for ℓ1-Regularized PageRank*](../../papers/2026-arxiv-fountoulakis-complexity-classical-acceleration-l1-regularized-pagerank.pdf) | `fountoulakis2026complexity` | Acceleration |
+| 2026 | arXiv | *A Simple Active-Set Method for PageRank-Based Local Graph Clustering* | `wei2026simple` | Local graph solvers |
+| 2026 | arXiv | *Non-Negative Conjugate Gradients* | `schmelzer2026nonnegative` | Complementarity solvers |
 
 ## Suggested reading paths
 
@@ -228,6 +259,17 @@ downstream ranking requirements.
 3. Spielman and Teng (2013).
 4. Spielman and Teng (2011).
 5. van den Brand et al. (2022).
+
+### Obstacle/LCP route to OP2
+
+1. Moré and Toraldo (1991).
+2. Kornhuber (1994).
+3. Júdice and Pires (1994).
+4. Kärkkäinen, Kunisch, and Tarvainen (2003).
+5. Foniok et al. (2009).
+6. Koutis, Miller, and Peng (2011).
+7. Wei and Yang (2026).
+8. Schmelzer and Stoll (2026).
 
 ### PageRank applications
 

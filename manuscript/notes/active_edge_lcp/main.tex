@@ -1,0 +1,877 @@
+% Standalone research note for the active-edge LCP direction.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\newcommand{\face}{\phi}
+\newcommand{\Sstar}{\mathcal S_\rho^*}
+\newcommand{\bdry}{\partial}
+\newcommand{\kappaQ}{\kappa(\mQ)}
+\newcommand{\ledger}[1]{C_{\mathrm{#1}}}
+
+\title{Active-Edge Linear Complementarity for Local RPPR:\\
+Exact Safe Pivots, a Fully Charged Continuation Contract,\\
+and a Projected-CG Obstruction}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note audits an obstacle/linear-complementarity route to the project's
+second open problem (OP2).  In the shared normalization, regularized
+PageRank is exactly the nonnegative quadratic
+\[
+ \min_{\vx\geq0}\ \face(\vx)
+ :=\tfrac12\vx^\trans\mQ\vx-\vc^\trans\vx,
+ \qquad
+ \vc=\vb-\alpha\rho\mD^{1/2}\one .
+\]
+Its KKT system is the symmetric nonsingular M-matrix LCP
+$\vx\geq0$, $\vw=\mQ\vx-\vc\geq0$, and
+$x_iw_i=0$.  This reduction has no sign or scaling slack.
+
+The strongest positive result proved here is an exact safe-pivot theorem.
+Starting from zero, solve the current principal face exactly and activate any
+outside coordinate with negative complementarity slack.  Every activated
+coordinate belongs to the unknown optimum support; after a batch activation,
+the new exact face solution is positive and increases coordinatewise.  Thus
+there are no false activations or deletions and at most $|\Sstar|$ pivots.
+Only graph-boundary coordinates can violate.  A local minimum-norm KKT
+subgradient gives an objective-gap certificate in one charged terminal scan.
+
+These facts do not prove OP2.  On endpoint paths, the exact faces are nested
+prefixes and a solve or boundary refresh that scans every current face pays
+quadratic cumulative volume although terminal volume is linear.  We isolate
+the missing theorem as an active-edge continuation contract: all discovery,
+changing-face numerical work, boundary rekeying and certification,
+materialization, state traffic, and output must be amortized within
+$\softO(\vol(\Sstar)\sqrt{\kappaQ})$.  Since
+$\kappaQ\leq1/\alpha$ and $\vol(\Sstar)\leq1/\rho$, that contract would imply
+the desired $\softO(1/(\rho\sqrt\alpha))$ bound with logarithmic objective
+accuracy.  No audited primary source supplies the contract.  Wei--Yang's 2026
+local active-set method is closest, but explicitly solves each SDD face from
+scratch; global SDD, obstacle, block-pivot, and bound-QP solvers either require
+a supplied face or operate on the full problem.
+
+Finally, a four-vertex rational graph refutes the proposed invariant
+$0\leq\vx_k\leq\vx_\rho^*$ for ordinary or orthant-projected face CG.  CG
+started from an exact old face stays strictly feasible and decreases the
+quadratic, yet overshoots one optimum coordinate at iteration three.
+Projection is inactive, so it cannot repair the failure.  This is a precise
+algorithmic obstruction, not a lower bound for all accelerated active-set
+methods.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim status}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+This note specializes to the canonical point seed $\vs=\eunit{v}$ and the
+nonzero regime
+\begin{equation}
+ 0<\rho<1/d_v.
+ \label{eq:nonzero-regime}
+\end{equation}
+OP2 asks for a feasible returned vector $\widehat\vx$ satisfying
+\begin{equation}
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj
+ \label{eq:op2-gap}
+\end{equation}
+in fully charged graph work
+$\softO(1/(\rho\sqrt\alpha))$, with only polylogarithmic dependence on
+$1/\epsobj$.  The algorithm receives neither $\Sstar$ nor free global
+preprocessing.  Adjacency entries, degree queries, arithmetic, state
+reads/writes, boundary and certificate scans, materialization, and output all
+count.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The canonical RPPR optimum is nonnegative and has
+$\vol(\Sstar)\leq1/\rho$.  Wei--Yang give a true-support growing active-set
+method but pay a repeated principal-system factor. \\
+\statusproved & RPPR is exactly a symmetric nonsingular M-matrix LCP with
+$\vc=\vb-\alpha\rho\mD^{1/2}\one$ and
+$\vw=\mQ\vx-\vc$. \\
+\statusproved & Exact negative-violation pivots from zero activate only
+$\Sstar$, require no deletions, and increase the exact face solution
+coordinatewise. \\
+\statusproved & On a supplied exact support, ordinary CG plus one final
+orthant projection has work
+$\bigO(\vol(\Sstar)\alpha^{-1/2}\log(1/\epsobj))$. \\
+\statusproved & A locally computable minimum-norm KKT subgradient certifies
+objective gap at most $\norm{\vg}^2/(2\alpha)$. \\
+\statusconditional & A margin-free active-edge continuation primitive with
+the aggregate ledger in \cref{def:active-edge-contract} implies OP2 at the
+conjectured scale. \\
+\statusrefuted & Terminal support volume alone pays neither repeated face
+solves nor repeated boundary scans; endpoint paths give quadratic cumulative
+prefix volume. \\
+\statusrefuted & Ordinary face CG, and projected CG when its projection is
+inactive, does not maintain $\vzero\leq\vx_k\leq\vx_\rho^*$ even for a
+four-vertex graph M-matrix. \\
+\statusopen & Construct the aggregate continuation/reporter primitive on
+arbitrary graphs without a hidden complementarity margin. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+No theorem in this note is promoted to the active manuscript.  Exact-real
+arithmetic is the baseline.  Whenever finite precision affects a sign test,
+the contract below requires a certified interval or explicitly charged
+refinement; an unknown minimum decision margin is not free.
+
+\section{Exact obstacle and LCP reduction}
+\label{sec:reduction}
+
+Define
+\begin{equation}
+ \vc:=\vb-\alpha\rho\mD^{1/2}\one,
+ \qquad
+ \face(\vx):=\frac12\vx^\trans\mQ\vx-\vc^\trans\vx .
+ \label{eq:c-and-phi}
+\end{equation}
+The off-diagonal entries of $\mQ$ are nonpositive, and
+$\alpha\mI\preceq\mQ\preceq\mI$.
+
+\begin{theorem}[Exact obstacle reduction]
+\label{thm:reduction}
+The RPPR problem is equivalent, with the same optimum value and unique
+optimum, to
+\begin{equation}
+ \min_{\vx\geq\vzero}\face(\vx).
+ \label{eq:obstacle}
+\end{equation}
+Its KKT system is
+\begin{equation}
+ \vx\geq\vzero,
+ \qquad
+ \vw:=\mQ\vx-\vc\geq\vzero,
+ \qquad
+ x_iw_i=0\quad(i\in[n]).
+ \label{eq:lcp}
+\end{equation}
+Moreover, $\mQ$ is a symmetric nonsingular M-matrix (a Stieltjes matrix) and
+a K-matrix, so \cref{eq:lcp} has a unique solution.  In the regime
+\cref{eq:nonzero-regime}, $v\in\Sstar$.
+\end{theorem}
+
+\begin{proof}
+For any $\vx$, replacing it by $|\vx|$ leaves the diagonal quadratic and
+weighted $\ell_1$ terms unchanged.  Because $Q_{ij}\leq0$ for $i\neq j$,
+the off-diagonal quadratic contribution cannot increase, and because
+$\vb\geq\vzero$, $-\vb^\trans|\vx|\leq-\vb^\trans\vx$.  Thus
+$F_\rho(|\vx|)\leq F_\rho(\vx)$, and uniqueness from strong convexity makes
+$\vx_\rho^*\geq\vzero$.  On the nonnegative orthant,
+\[
+ \alpha\rho\norm{\mD^{1/2}\vx}_1
+ =\alpha\rho\one^\trans\mD^{1/2}\vx,
+\]
+so $F_\rho(\vx)=\face(\vx)$ there.  This proves \cref{eq:obstacle}.
+
+At a lower bound $x_i\geq0$, stationarity and the normal cone give
+$w_i=(\nabla\face(\vx))_i\geq0$ when $x_i=0$ and $w_i=0$ when $x_i>0$.
+These are exactly \cref{eq:lcp}; in particular the slack sign is positive,
+not negative.  The matrix $\mQ$ is symmetric positive definite and has
+nonpositive off-diagonals.  Hence it is Stieltjes.  Every principal minor is
+positive, so it is also a P-matrix; together with the Z-sign pattern this is a
+K-matrix.  Strict convexity, or the P-matrix LCP theorem, gives uniqueness.
+
+Finally,
+\[
+ c_v=\frac{\alpha}{\sqrt{d_v}}(1-\rho d_v)>0.
+\]
+If $(\vx_\rho^*)_v=0$, then
+$w_v=\sum_{j\neq v}Q_{vj}(\vx_\rho^*)_j-c_v<0$, contradicting
+\cref{eq:lcp}.  Thus $v\in\Sstar$.
+\end{proof}
+
+\begin{remark}[Degree-coordinate boundary key]
+\label{rem:boundary-key}
+Set $y_i=x_i/\sqrt{d_i}$.  Once the seed is active, every inactive
+$j\neq v$ satisfies
+\begin{equation}
+ \frac{w_j}{\sqrt{d_j}}
+ =\alpha\rho-\frac{1-\alpha}{2d_j}
+   \sum_{i\in\mathcal N(j)\cap\supp(\vx)}y_i.
+ \label{eq:boundary-key}
+\end{equation}
+If $j$ is not on the graph boundary of the support, the sum is empty and the
+slack is strictly positive.  Detecting violations is therefore a dynamic
+active-edge problem: admitted coordinates increase and monotonically lower
+the keys of their inactive neighbors, but a dense old-face correction may
+change every cut-edge contribution.
+\end{remark}
+
+\section{What a supplied active set gives}
+\label{sec:supplied}
+
+For $S\subseteq[n]$, let $\mQ_{SS}$ denote the principal matrix and extend
+vectors on $S$ by zero outside $S$.  Principal interlacing gives
+\begin{equation}
+ \alpha\mI\preceq\mQ_{SS}\preceq\mI,
+ \qquad
+ \kappa(\mQ_{SS})\leq1/\alpha.
+ \label{eq:principal-spectrum}
+\end{equation}
+
+\begin{theorem}[Supplied exact-support CG]
+\label{thm:supplied-cg}
+Suppose $S=\Sstar$ is supplied.  Run ordinary exact-arithmetic CG on
+\begin{equation}
+ \mQ_{SS}\vy=\vc_S
+ \label{eq:face-system}
+\end{equation}
+from any $\vy_0$, and after the last iteration return
+$\widehat\vx_S=[\vy_k]_+$ and zero outside $S$.  If
+$\Delta_S:=\tfrac12\norm{\vy_0-(\vx_\rho^*)_S}_{\mQ_{SS}}^2$, then
+\begin{equation}
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
+ \leq \frac{4\Delta_S}{\alpha}
+ \left(\frac{\sqrt\kappa-1}{\sqrt\kappa+1}\right)^{2k},
+ \qquad \kappa:=\kappa(\mQ_{SS}).
+ \label{eq:supplied-cg-rate}
+\end{equation}
+Consequently a supported-row implementation has charged work
+\begin{equation}
+ \bigO\!\left(
+   \frac{\vol(\Sstar)}{\sqrt\alpha}
+   \log\frac{\Delta_S}{\alpha\epsobj}
+ \right),
+ \label{eq:supplied-work}
+\end{equation}
+including one final projection and output scan.
+\end{theorem}
+
+\begin{proof}
+Every optimum coordinate on its exact support is positive, so
+$\mQ_{SS}(\vx_\rho^*)_S=\vc_S$.  The standard CG energy estimate
+\citep{hestenes1952methods} is
+\[
+ \norm{\vy_k-(\vx_\rho^*)_S}_{\mQ_{SS}}
+ \leq2q^k\norm{\vy_0-(\vx_\rho^*)_S}_{\mQ_{SS}},
+ \quad q=\frac{\sqrt\kappa-1}{\sqrt\kappa+1}.
+\]
+Euclidean orthant projection is nonexpansive relative to the positive vector
+$(\vx_\rho^*)_S$.  Since $\mQ_{SS}\preceq\mI$ and
+$\mQ_{SS}\succeq\alpha\mI$,
+\begin{align*}
+ \face([\vy_k]_+)-\face((\vx_\rho^*)_S)
+ &=\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_{\mQ_{SS}}^2\\
+ &\leq\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_2^2\\
+ &\leq\frac1{2\alpha}
+       \norm{\vy_k-(\vx_\rho^*)_S}_{\mQ_{SS}}^2.
+\end{align*}
+This proves \cref{eq:supplied-cg-rate}.  A principal matrix-vector product
+scans only rows in $S$ and costs $O(\vol(S))$.  The estimate
+$q\leq\exp(-2/(\sqrt\kappa+1))$ and \cref{eq:principal-spectrum} give the
+iteration and work bound.
+\end{proof}
+
+For the zero start, no graph-dependent polynomial is hidden in the logarithm:
+since $F_\rho(\vzero)=0$ and
+$\min f\geq-\norm{\vb}^2/(2\alpha)\geq-\alpha/2$, the initial RPPR gap is at
+most $\alpha/2$.  The ordinary $\sqrt\kappa=O(1/\sqrt\alpha)$ factor therefore
+enters exactly through the supplied principal solve.  What is hidden by
+\cref{eq:supplied-work} is the cost of finding and maintaining $S$.
+
+\section{Safe exact active-edge discovery}
+\label{sec:safe-discovery}
+
+For $U\subseteq[n]$ with $\mQ_{UU}$ nonempty, define the exact face-stationary
+vector
+\begin{equation}
+ x_i^U=
+ \begin{cases}
+  (\mQ_{UU}^{-1}\vc_U)_i,&i\in U,\\
+  0,&i\notin U,
+ \end{cases}
+ \qquad
+ \vw^U:=\mQ\vx^U-\vc.
+ \label{eq:face-vector}
+\end{equation}
+The empty face means $\vx^\emptyset=\vzero$ and $\vw^\emptyset=-\vc$.
+We call a face \emph{reachable} if it arises from the empty face by repeatedly
+adding only coordinates with strictly negative current slack.
+
+\begin{theorem}[Safe batched K-LCP pivots]
+\label{thm:safe-pivots}
+Let $U$ be reachable.  Then
+\begin{equation}
+ U\subseteq\Sstar,
+ \qquad
+ \vzero<\vx^U_U\leq(\vx_\rho^*)_U.
+ \label{eq:reachable-invariant}
+\end{equation}
+Every coordinate $j\notin U$ with $w_j^U<0$ belongs to
+$\Sstar\setminus U$.  If $J$ is any nonempty collection of such coordinates,
+then $U':=U\cup J$ is reachable and
+\begin{equation}
+ \vx^{U'}_{U'}>\vzero,
+ \qquad
+ \vx^{U'}_U\geq\vx^U_U.
+ \label{eq:batch-monotonicity}
+\end{equation}
+If no outside slack is negative, $\vx^U=\vx_\rho^*$.  Consequently this exact
+outer loop makes at most $|\Sstar|$ pivots, has nested support, and never
+activates a false coordinate or deletes a coordinate.
+\end{theorem}
+
+\begin{proof}
+The empty-face slack at the seed is $w_v^\emptyset=-c_v<0$, so the first
+pivot admits $v\in\Sstar$.  Its scalar principal solve is positive.
+
+Assume the invariant holds at a reachable $U$.  Restricted stationarity of
+$\vx^U$ and the optimum equations on $\Sstar$ give
+\begin{equation}
+ \mQ_{UU}\bigl((\vx_\rho^*)_U-\vx^U_U\bigr)
+ =-\mQ_{U,\Sstar\setminus U}(\vx_\rho^*)_{\Sstar\setminus U}
+ \geq\vzero.
+ \label{eq:face-comparison}
+\end{equation}
+The inverse of a principal Stieltjes matrix is nonnegative
+\citep[Chapter~6]{berman1994nonnegative}, so
+$\vx^U_U\leq(\vx_\rho^*)_U$.
+
+Now take $j\notin\Sstar$.  Since $(\vx_\rho^*)_j=0$ and $w_j^*\geq0$,
+\begin{align}
+ w_j^U-w_j^*
+ &=\mQ_{jU}\bigl(\vx^U_U-(\vx_\rho^*)_U\bigr)
+   -\mQ_{j,\Sstar\setminus U}(\vx_\rho^*)_{\Sstar\setminus U}
+ \geq0.
+ \label{eq:no-false-violation}
+\end{align}
+Both terms are nonnegative because the coordinate differences in the first
+are nonpositive and all displayed off-diagonal matrix entries are
+nonpositive.  Hence $w_j^U\geq0$; a negative violator must lie in $\Sstar$.
+
+For a batch $J$ of negative violators, block elimination in the enlarged
+principal equations gives
+\begin{align}
+ \mH_J\vx^{U'}_J&=-\vw^U_J,
+ &\mH_J&:=\mQ_{JJ}-\mQ_{JU}\mQ_{UU}^{-1}\mQ_{UJ},
+ \label{eq:schur-pivot}\\
+ \vx^{U'}_U-\vx^U_U&=-\mQ_{UU}^{-1}\mQ_{UJ}\vx^{U'}_J.
+ \label{eq:old-correction}
+\end{align}
+The Schur complement $\mH_J$ is again Stieltjes, so
+$\mH_J^{-1}\geq0$.  Since $-\vw_J^U>\vzero$,
+$\vx_J^{U'}>\vzero$; \cref{eq:old-correction} and the Z-sign pattern make the
+old correction nonnegative.  This proves \cref{eq:batch-monotonicity} and
+closes the induction.  If there is no negative outside slack, inside
+stationarity and positivity give complementarity and outside nonnegativity;
+uniqueness in \cref{thm:reduction} identifies the optimum.
+\end{proof}
+
+\begin{corollary}[Boundary-only discovery]
+\label{cor:boundary-only}
+At every nonempty reachable face, a negative violation can occur only in
+$\bdry U$.  Exposing every newly admitted vertex's adjacency list once costs
+$\vol(U)$, and creates at most $\vol(U)$ boundary-candidate incidences.  No
+adjacency list of a false boundary candidate need be scanned.
+\end{corollary}
+
+\begin{proof}
+For $j\notin U\cup\bdry U$ with $j\neq v$, sparsity gives
+$w_j^U=-c_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already in every nonempty
+reachable face.  The incidence counts follow by charging each exposed edge to
+its endpoint in $U$.
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Exact active-edge LCP skeleton (not yet an OP2 implementation)}
+\label{alg:skeleton}
+\begin{algorithmic}[1]
+\STATE $U\gets\emptyset$, $\vx^U\gets\vzero$.
+\WHILE{a certified reporter returns $j\notin U$ with $w_j^U<0$}
+  \STATE Choose a nonempty reported batch $J\subseteq\{j:w_j^U<0\}$.
+  \STATE Continue the principal state from $U$ to $U\cup J$ and obtain
+         $\vx^{U\cup J}$.
+  \STATE Expose the adjacency lists of newly admitted vertices and update
+         boundary keys.
+  \STATE $U\gets U\cup J$.
+\ENDWHILE
+\STATE Materialize a feasible approximation and certify \cref{eq:op2-gap}.
+\end{algorithmic}
+\end{algorithm}
+
+The theorem validates the outer logic of \cref{alg:skeleton}.  It says
+nothing about how cheaply an exact or sufficiently accurate principal state
+can be continued, how a negative boundary key is located after a dense old
+correction, or how ambiguous finite-precision signs are resolved.
+
+\section{A local objective-gap certificate}
+\label{sec:certificate}
+
+For a feasible $\vx\geq\vzero$, set $\vw=\mQ\vx-\vc$ and define
+\begin{equation}
+ g_i(\vx):=
+ \begin{cases}
+  w_i,&x_i>0,\\
+  \min\{w_i,0\},&x_i=0.
+ \end{cases}
+ \label{eq:minimal-subgradient}
+\end{equation}
+
+\begin{theorem}[KKT subgradient certificate]
+\label{thm:kkt-certificate}
+The vector $\vg(\vx)$ is the minimum-Euclidean-norm element of the
+subdifferential of $\face+I_{\R_+^n}$ at $\vx$, and
+\begin{equation}
+ F_\rho(\vx)-F_\rho(\vx_\rho^*)
+ \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
+ \label{eq:gap-certificate}
+\end{equation}
+Thus $\norm{\vg(\vx)}_2\leq\sqrt{2\alpha\epsobj}$ is a sufficient OP2
+stopping rule.  If $\vx$ is stored on $U$ containing the seed, one scan of
+the rows in $U$ computes all positive-support residuals and all possibly
+negative outside entries, at work $O(\vol(U))$ plus $O(|U|)$ state and output
+words.
+\end{theorem}
+
+\begin{proof}
+At $x_i>0$ the normal cone is zero.  At $x_i=0$ it is $(-\infty,0]$, so the
+smallest magnitude in $w_i+(-\infty,0]$ is zero when $w_i\geq0$ and $w_i$
+when $w_i<0$.  This proves \cref{eq:minimal-subgradient}.  Strong convexity
+gives, for every subgradient $\vg$,
+\[
+ (\face+I)(\vy)\geq(\face+I)(\vx)+\vg^\trans(\vy-\vx)
+       +\frac\alpha2\norm{\vy-\vx}_2^2.
+\]
+Minimizing the right side over $\vy\in\R^n$ and taking
+$\vy=\vx_\rho^*$ yields \cref{eq:gap-certificate}.  For locality, a sparse
+row scan accumulates $\mQ\vx$ on $U\cup\bdry U$.  Every farther nonseed
+coordinate has positive slack by \cref{rem:boundary-key}, so its minimum-norm
+subgradient entry is zero.
+\end{proof}
+
+The certificate explicitly charges the terminal scan.  It also avoids a
+minimum positive coordinate or strict-complementarity assumption.  Combined
+with the shared source conversion, objective gap $\epsobj$ yields the usual
+degree-normalized PageRank accuracy
+$\rho+\sqrt{2\epsobj/\alpha}$; this is a consequence, not a replacement for
+the OP2 objective target.
+
+\section{The fully charged active-edge contract}
+\label{sec:contract}
+
+We now isolate the weakest aggregate guarantee used by the end-to-end proof.
+Let $E$ be the total number of distinct active-row incidences exposed, plus
+the boundary-candidate and degree words generated from them.  Let the work
+ledger be
+\begin{equation}
+ \begin{split}
+ W={}&\ledger{exp}+\ledger{false}+\ledger{upd}+\ledger{bnd}
+      +\ledger{num}\\
+    &+\ledger{state}+\ledger{mat}+\ledger{emit}.
+ \end{split}
+ \label{eq:resource-ledger}
+\end{equation}
+The meanings are fixed in \cref{tab:ledger}; none may be suppressed as an
+oracle call.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.16\textwidth}X@{}}
+\toprule
+Charge & Included operations \\
+\midrule
+$\ledger{exp}$ & Seed access, degree queries, adjacency entries, candidate
+creation, and distinct active-edge exposure. \\
+$\ledger{false}$ & False activations, deletions, halo scans, duplicate
+candidate insertion, and any repair they cause. \\
+$\ledger{upd}$ & Face changes, warm-start transport, factor/preconditioner
+updates, and response-state maintenance. \\
+$\ledger{bnd}$ & Boundary-key changes, violation location, repeated scans,
+sign certification/refinement, and the terminal KKT scan. \\
+$\ledger{num}$ & Principal matrix-vector products, linear solves,
+preconditioner applications, dot products, and arithmetic. \\
+$\ledger{state}$ & Reads, writes, priority/dictionary operations, and stored
+words, including implicit representations. \\
+$\ledger{mat}$ & Materializing intermediate face values needed by another
+operation and the final feasible vector. \\
+$\ledger{emit}$ & Writing the returned support and coordinate values. \\
+\bottomrule
+\end{tabularx}
+\caption{The active-edge resource ledger.}
+\label{tab:ledger}
+\end{table}
+
+\begin{definition}[Margin-free active-edge continuation contract]
+\label{def:active-edge-contract}
+An active-edge primitive satisfies the contract if, for every canonical OP2
+instance and $0<\epsobj<\alpha/2$, when coupled to the safe outer skeleton it
+has the following properties.
+\begin{enumerate}[label=(C\arabic*)]
+\item \emph{Sound discovery.}  Every admitted coordinate lies in $\Sstar$.
+Any speculative activation is restored and its entire cost is included in
+$\ledger{false}$.
+\item \emph{Complete reporting.}  It either returns a certified negative
+outside slack for the current face or returns a feasible $\widehat\vx$ with
+$\norm{\vg(\widehat\vx)}_2\leq\sqrt{2\alpha\epsobj}$.
+No positive lower bound on an unknown complementarity margin is assumed;
+ambiguous signs are refined or bypassed within the ledger.
+\item \emph{Exploration bound.}  Counting candidate words as above,
+\begin{equation}
+ E\leq\softO(\vol(\Sstar)).
+ \label{eq:exploration-contract}
+\end{equation}
+\item \emph{Aggregate continuation bound.}  Across the entire nested
+sequence, including all items in \cref{eq:resource-ledger},
+\begin{equation}
+ W\leq\softO\!\left(
+ E\sqrt{\kappaQ}\log\frac1{\epsobj}
+ \right).
+ \label{eq:aggregate-contract}
+\end{equation}
+The soft factors may be polylogarithmic in $n$, $1/\alpha$, $1/\rho$, and a
+declared failure probability, but not polynomial in $1/\epsobj$ or in an
+unstated sign margin.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Conditional OP2 theorem]
+\label{thm:conditional-op2}
+If a primitive satisfying \cref{def:active-edge-contract} exists, then
+\cref{alg:skeleton} is a graph-uniform local algorithm satisfying OP2 with
+fully charged work
+\begin{equation}
+ W=\softO\!\left(
+   \frac{1}{\rho\sqrt\alpha}\log\frac1{\epsobj}
+ \right).
+ \label{eq:conditional-op2-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Soundness and \cref{thm:safe-pivots} keep every exact outer face in
+$\Sstar$.  Complete reporting and \cref{thm:kkt-certificate} give the
+objective gap.  The shared support-volume theorem gives
+$\vol(\Sstar)\leq1/\rho$, while
+$\kappaQ\leq1/\alpha$.  Substitution into
+\cref{eq:exploration-contract,eq:aggregate-contract} proves
+\cref{eq:conditional-op2-work}.  Every access and output item appears in
+\cref{eq:resource-ledger}, so no boundary scan, preprocessing, or
+materialization is uncharged.
+\end{proof}
+
+The mathematical outer loop already makes $\ledger{false}=0$.  The central
+missing lemma is therefore \cref{eq:aggregate-contract}: maintain a changing
+Stieltjes principal response and locate all relevant decreases of
+\cref{eq:boundary-key} in aggregate active-volume times the fixed-face
+$\sqrt\kappa$ scale.  It is acceptable for a construction to have logarithmic
+rekeying or rebuilding levels; it is not acceptable to rescan every prefix.
+
+\begin{proposition}[Terminal volume is insufficient]
+\label{prop:terminal-insufficient}
+There is a family of canonical endpoint-seeded path instances whose exact
+safe-pivot faces are all prefixes $U_t=\{1,\ldots,t\}$, whose terminal volume
+is $\Theta(n)$, and whose cumulative face volume is
+\begin{equation}
+ \sum_{t=1}^n\vol(U_t)=\Theta(n^2).
+ \label{eq:path-prefix-sum}
+\end{equation}
+Thus a method that scans or materializes every current face once per pivot is
+not controlled by terminal volume.
+\end{proposition}
+
+\begin{proof}
+Fix an endpoint-seeded path $P_n$ and any $\alpha\in(0,1)$.  At $\rho=0$,
+$\mQ^{-1}\vb$ is strictly positive because the inverse of the irreducible
+Stieltjes matrix is positive.  By continuity, for all sufficiently small
+$\rho>0$ the unconstrained shifted solution $\mQ^{-1}\vc$ remains positive,
+so it is the obstacle optimum and $\Sstar=[n]$.  On a proper prefix, the only
+outside graph-boundary vertex is the next path vertex.  The current face is
+not terminal, so \cref{thm:safe-pivots} implies that this unique boundary
+vertex has negative slack and is admitted next.  Hence every prefix occurs.
+For $t<n$, $\vol(U_t)=2t-1$, and $\vol(U_n)=2n-2$, proving
+\cref{eq:path-prefix-sum}.
+\end{proof}
+
+This is a representation/implementation obstruction, not a class lower
+bound.  A persistent elimination record solves the same issue on paths; the
+arbitrary-graph response and boundary interface is the unresolved part.
+
+\section{Literature verdict}
+\label{sec:literature}
+
+The primary-source audit is recorded in
+\texttt{docs/literature/lcp-solvers.md}.  \Cref{tab:literature} gives the
+theorem-level synopsis.
+
+\begin{table}[t]
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}p{0.19\textwidth}p{0.19\textwidth}X@{}}
+\toprule
+Source & Verdict & Exact reason \\
+\midrule
+\citet{wei2026simple} & Closest local; insufficient & PDF pp.~2--3 and 13--14:
+$\softO(|S^*|\vol(S^*))$ RPPR work, true-support activation, but every nested
+SDD face is solved from scratch and the boundary is rescanned. \\
+\citet{foniok2009pivoting} & Global pivot oracle & PDF pp.~15--17: at most $n$ K-LCP
+pivots from zero and $2n$ from any start; PDF p.~7: one vertex query returns
+all $n$ orientations through a principal basis solve. \\
+\citet{schmelzer2026nonnegative} & Support-oracle / global-only & PDF pp.~7--9 and 14:
+finite guarded pivots, $sO(\sqrt\kappa)$ CG iterations, full free-set products,
+and an unknown trajectory-wide sign margin. \\
+\citet{koutis2011nearly} & Supplied face & PDF p.~10, Theorem~4.6: nearly
+linear global work for one supplied SDD matrix; the preconditioning chain is
+not dynamic local discovery. \\
+\citet{judice1994block} & Global-only & Finite block principal pivoting; no local
+access or output-volume theorem. \\
+\citet{more1991solution}; \citet{dostal2011superrelaxation} & Global-only & Projected-gradient
+face identification and reduced CG have convergence/finite-termination
+results, but operate on full bound-QP vectors. \\
+\citet{kornhuber1994monotone}; \citet{karkkainen2003augmented} & Assumption mismatch & Stieltjes
+obstacle structure matches, but the theorems use full FEM hierarchies,
+shape-regular meshes, strict-complementarity asymptotics, or global active
+partitions. \\
+\bottomrule
+\end{tabularx}
+\caption{Primary-source verdicts for OP2.}
+\label{tab:literature}
+\end{table}
+
+The terminology ``nearly linear'' is not enough: it may mean nearly linear in
+the full input matrix, in every supplied principal matrix, or in the final
+local output.  Only the last interpretation could close OP2.  The audited
+sources establish the first two.
+
+\section{Projected and face CG: exact verdict}
+\label{sec:cg-verdict}
+
+Exact restricted solutions enjoy the one-sided invariant in
+\cref{thm:safe-pivots}.  It is tempting to replace each exact face solve by CG
+and assume its intermediate iterates inherit
+$\vzero\leq\vx_k\leq\vx_\rho^*$.  The following exact example disproves that
+assumption.
+
+\begin{theorem}[Four-vertex coordinatewise overshoot]
+\label{thm:cg-counterexample}
+Let the graph have vertices $\{0,1,2,3\}$ and edges
+\begin{equation}
+ \{01,12,13,23\},
+ \label{eq:counterexample-graph}
+\end{equation}
+with degrees $(1,3,2,2)$, seed $0$, $\alpha=1/5$, and $\rho=1/1000$.
+Let $U=\{0,1,2\}$ and start ordinary full-face CG from the exact
+$U$-restricted solution, extended by zero.  Then:
+\begin{enumerate}[label=(\roman*)]
+\item the obstacle optimum is strictly positive on all four coordinates;
+\item the first three CG iterates are strictly positive and the quadratic
+energy decreases at every iteration;
+\item the third iterate exceeds the optimum in coordinate $2$ by the exact
+positive amount
+\begin{equation}
+ \frac{30473}{32130000};
+ \label{eq:overshoot}
+\end{equation}
+\item orthant-projected CG follows the identical trajectory through this
+iteration because every projection is inactive.
+\end{enumerate}
+Therefore feasibility, support monotonicity, objective monotonicity, and
+within-face conjugacy do not imply coordinatewise monotonicity below the
+optimum.
+\end{theorem}
+
+\begin{proof}
+Use degree coordinates $\vy=\mD^{-1/2}\vx$.  Direct substitution into
+\cref{eq:c-and-phi} gives
+\begin{equation}
+ \mH:=\mD^{1/2}\mQ\mD^{1/2}=\frac35\mD-\frac25\mA,
+ \qquad
+ \vh:=\mD^{1/2}\vc=\frac15(\eunit{0}-\rho\vd).
+ \label{eq:H-h}
+\end{equation}
+Exact rational elimination gives
+\begin{align}
+ \vy^*&=
+ \left(\frac{6983}{17000},\frac{1983}{17000},
+       \frac{983}{17000},\frac{983}{17000}\right),
+ \label{eq:counter-optimum}\\
+ \vy_0&=
+ \left(\frac{24953}{63000},\frac{1987}{21000},
+       \frac{983}{31500},0\right).
+ \label{eq:counter-start}
+\end{align}
+The positivity of $\vy^*$ makes it the unconstrained and obstacle optimum.
+Running the ordinary Euclidean CG recurrence in the original $\vx$
+coordinates gives step sizes
+\begin{equation}
+ \frac53,\quad\frac{225}{74},\quad\frac{259}{120},\quad\frac{150}{119},
+ \label{eq:counter-steps}
+\end{equation}
+and the first three degree-coordinate iterates
+\begin{align*}
+ \vy_1={}&\left(\frac{24953}{63000},\frac{1987}{21000},
+  \frac{983}{31500},\frac{983}{23625}\right),\\
+ \vy_2={}&\left(\frac{24953}{63000},\frac{259877}{2331000},
+  \frac{65861}{1165500},\frac{10813}{194250}\right),\\
+ \vy_3={}&\left(\frac{388057}{945000},\frac{4363}{37800},
+  \frac{111079}{1890000},\frac{36371}{630000}\right).
+\end{align*}
+Every displayed entry is positive, while
+\[
+ (y_3)_2-(y^*)_2
+ =\frac{111079}{1890000}-\frac{983}{17000}
+ =\frac{30473}{32130000}>0.
+\]
+Positive diagonal scaling preserves coordinatewise order between $\vx$ and
+$\vy$.  Standard exact CG line minimization decreases the quadratic, and the
+verification script checks the corresponding rational energy values and
+$\mQ$-conjugacy.  The fourth step reaches $\vy^*$.  Since no coordinate is
+negative before the overshoot, orthant projection changes nothing.
+\end{proof}
+
+The exact script \texttt{verify\_counterexample.py} also prints transformed
+residual sign patterns
+\[
+ 0{+}{+}0,\qquad {+}{+}{-}0,\qquad {-}{+}{-}0,\qquad0000,
+\]
+so no fixed residual-sign invariant survives either.  The distinctions are:
+\begin{itemize}
+\item \emph{Objective monotonicity} holds in the example by exact line
+minimization.
+\item \emph{Coordinatewise monotonicity} fails at iteration three.
+\item \emph{Support monotonicity} holds in this example because all new-face
+iterates are positive; it is too weak to certify safe values.
+\item \emph{Residual-sign monotonicity} fails by the exact sign trace.
+\item \emph{Conjugacy} holds only while the fixed-face recurrence is
+unmodified.  If an orthant projection clips a coordinate, the actual
+displacement is no longer the CG step $a_k\vp_k$ and the short residual and
+conjugacy recurrences require a restart or reorthogonalization.
+\end{itemize}
+
+The theorem refutes only the ordinary/project-after-step route and any proof
+that assumes its one-sided invariant.  It does not rule out accelerated
+obstacle solvers with different estimate sequences, certified envelopes, or
+persistent response representations.
+
+\section{Algorithmic synthesis and exact blocker}
+\label{sec:synthesis}
+
+The route now separates cleanly into three layers.
+\begin{enumerate}
+\item \emph{Outer mathematical logic (proved):} the K-LCP pivot from zero is
+nested, support-safe, and boundary-local by \cref{thm:safe-pivots}.
+\item \emph{Fixed-face numerical acceleration (proved with supplied face):}
+CG contributes $\sqrt\kappa=O(1/\sqrt\alpha)$ and logarithmic accuracy by
+\cref{thm:supplied-cg}.
+\item \emph{Changing-face implementation (open):} compose the two without
+paying $\sum_t\vol(U_t)$, refreshing every affected boundary key, or assuming
+a minimum sign margin.  This is exactly \cref{def:active-edge-contract}.
+\end{enumerate}
+
+A plausible implementation maintains an implicit Schur response for the old
+face, a Krylov or multilevel correction space for the new block, and a
+monotone boundary-key data structure driven by \cref{eq:boundary-key}.
+However, a new block can cause a dense positive correction on old
+coordinates; every such change contributes to all incident cut keys.  Energy
+telescoping pays for correction magnitude, but no proved conversion currently
+pays for locating every newly negative key.  Conversely, a heap pays only if
+all key decrements can be generated without replaying the dense correction.
+This dense-response/all-negative-reporting interface is the central missing
+lemma.
+
+The required theorem can be weakened in useful ways without changing the
+proof of \cref{thm:conditional-op2}: a structural graph condition may replace
+graph-uniform \cref{eq:aggregate-contract}; a randomized reporter may fail
+with declared probability $\delta$; or a cumulative explored-volume bound
+may replace $\vol(\Sstar)$.  What cannot be replaced by terminal volume alone
+is cumulative continuation and boundary work.
+
+\section{Dependency and evidence map}
+\label{sec:dependency}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.23\textwidth}p{0.22\textwidth}X@{}}
+\toprule
+Input & Used by & Status \\
+\midrule
+Canonical problem definition and shared normalization &
+\Cref{thm:reduction,thm:kkt-certificate} & Authoritative project convention;
+read-only. \\
+Stieltjes/K-matrix inverse and Schur signs &
+\Cref{thm:safe-pivots} & Proved here from the sign pattern and principal
+inverse properties. \\
+Classical CG energy estimate & \Cref{thm:supplied-cg} & Source fact; local
+work conversion proved here. \\
+Wei--Yang safe active sets & Literature comparison & Source result independently
+rederived in the canonical variables here. \\
+Incremental active-set SDD note & Blocker cross-check & Read-only
+context: Schur telescope and path continuation; no formal proof import. \\
+Evolving-support CG and ASPR23 audit notes & Repeated-prefix
+scope & Read-only context; \cref{prop:terminal-insufficient} is proved here. \\
+Delayed-reflection, local-oracle hierarchy, and AESP--CD notes &
+Representation and ledger guardrails & Read-only contextual comparison; no
+formal dependency. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The formal registry dependency list is empty: every theorem used in the
+conditional chain is either proved in this note or part of the canonical
+shared model.  The other directions prevent rediscovering already refuted
+arguments and clarify what the active-edge primitive must charge.
+
+\section{Final claim ledger}
+\label{sec:final-ledger}
+
+\begin{description}[style=nextline,leftmargin=2.9cm]
+\item[\statussource]
+The canonical nonnegative optimum and support-volume bound; standard CG
+energy convergence; the primary-source results and limitations summarized in
+\cref{sec:literature}.
+
+\item[\statusproved]
+The exact LCP reduction; supplied-support CG work and final projection; safe
+batched true-support pivots; boundary-only violations; the local KKT
+objective certificate; endpoint-prefix insufficiency; and the exact
+four-vertex face-CG counterexample.
+
+\item[\statusconditional]
+\Cref{thm:conditional-op2}: the margin-free aggregate active-edge contract
+implies fully charged
+$\softO(1/(\rho\sqrt\alpha))$ work with logarithmic objective accuracy.
+
+\item[\statusempirical]
+None.  The counterexample audit is exact rational computation, not floating-
+point measurement.
+
+\item[\statusrefuted]
+Terminal volume as a standalone cumulative-work argument; and the invariant
+$\vzero\leq\vx_k\leq\vx_\rho^*$ for ordinary/orthant-projected face CG.
+Neither refutation is a lower bound for all local obstacle algorithms.
+
+\item[\statusopen]
+Prove \cref{eq:aggregate-contract}, or a weaker structural version sufficient
+for OP2: persistent changing-face solve state plus complete boundary
+violation reporting, with every update, scan, word, and sign refinement
+charged and no supplied support.
+\end{description}
+
+The next falsifiable target is a single-block expansion theorem: after adding
+$J$ to $U$, update an implicit representation of
+\cref{eq:schur-pivot,eq:old-correction} and report all newly negative keys in
+\cref{eq:boundary-key} at amortized
+$\softO((\vol(J)+\text{new boundary incidences})\sqrt\kappa)$ work.  A proof
+must survive a dense old-coordinate correction; a counterexample should show
+that even an implicit response must communicate with too many cut keys.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
