@@ -1007,6 +1007,13 @@ def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
         == coupling * balanced_ground[1]
         == F(4344, 15487)
     )
+    exterior_ground_couplings = [
+        coupling * balanced_ground[0],
+        coupling * balanced_ground[0],
+        coupling * balanced_ground[1],
+        coupling * balanced_ground[1],
+    ]
+    assert sum(exterior_ground_couplings) <= coupling * sum(balanced_degree)
     # Degenerate old boxes replay both opposite gray updates through the
     # same four-scalar monotone interval.
     scalar = coupling * balanced_ground[0]
@@ -1018,6 +1025,13 @@ def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
         coupling * same_vertex_error,
         coupling * other_vertex_error,
     ]
+    product_coefficient = q * coupling / (alpha * (1 + q))
+    pivot_coupling = scalar
+    assert all(
+        delta * delta
+        <= product_coefficient**2 * scalar * pivot_coupling
+        for delta in delta_pair
+    )
     gray_radius = max(abs(value) for value in delta_pair)
     lower_scalar = max(scalar, scale * scalar - ground_time * gray_radius)
     upper_scalar = scale * scalar + ground_time * gray_radius
@@ -1053,6 +1067,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
     assert r"\label{cor:aesp-cd-proper-face-unweighted-row-band}" in source
+    assert r"\label{cor:aesp-cd-proper-face-gray-coupling-packing}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source

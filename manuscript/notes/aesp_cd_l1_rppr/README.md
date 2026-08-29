@@ -31,6 +31,17 @@ A four-scalar monotone box—lower and upper endpoints for both `s_v` and
 `g_v`—does safely replay every affine-plus-root gray update without a dense
 response.  The remaining obstacle is algorithmic: that box map contains a
 square root and a maximum, so it has no single cumulative planar transform.
+There is nevertheless a useful packing account:
+`sum_boundary s_v <= ((1-alpha)/2)*vol(A)`.  With absolute KKT hysteresis
+`eta`, only `O(vol(A)*(D/eta+C^2/eta^2))` rows can have a larger
+affine-plus-root band and require fallback.  The no-margin universal case is
+still open.
+For a true pivot RHS the bound is fully two-state observable:
+`|delta_v| <= c*q/(alpha*(1+q))*sqrt(s_v*s_w)`.  Thus the entire exact gray
+matrix has a rank-one product envelope depending only on the selected
+pivot's ground coupling and each retained row's coupling.
+Its squared corrections also have an explicit local ledger proportional to
+`s_w*vol(A)`, giving an output-sensitive count above any absolute threshold.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

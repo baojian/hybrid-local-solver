@@ -1428,6 +1428,19 @@ on its two lazy reporter scalars \((g_v,s_v)\) only: the nominal update is
 affine in \(s_v\), while the entire high-mode uncertainty is at most a common
 constant times \(\sqrt{s_v}\).
 
+If the right-hand side is itself a pivot coupling
+\(b_A=k_w=-H_{Aw}\), then its centered transformed norm also collapses:
+\begin{equation}
+ \norm{f-\bar f\one}_{\bar D_A}^2\leq c s_w,
+ \qquad
+ |\delta_v|
+ \leq\frac{cq}{\alpha(1+q)}\sqrt{s_vs_w}.
+ \label{eq:aesp-cd-proper-face-pivot-product-band}
+\end{equation}
+Thus the whole exact sparse-pivot error matrix has an observable rank-one
+product envelope.  It needs only the pivot coupling \(s_w\) and each retained
+coupling \(s_v\), not a materialized right-hand side norm.
+
 The finite certificate has the same reduction.  With the notation of
 \cref{cor:aesp-cd-proper-face-finite-rank-one-inverse}, put
 \(\widetilde s_v=k_v^{\mathsf T}\widetilde h_A\).  Then one may replace its
@@ -1460,6 +1473,85 @@ with \(\widetilde h_A\) proves
 \(\sum_i k_{v,i}^2\widetilde h_{A,i}/d_i\leq c\widetilde s_v\), and
 substitution in the finite radius proves
 \cref{eq:aesp-cd-proper-face-finite-unweighted-row-band}.
+For a pivot right-hand side, \(f_i=k_{w,i}/d_i\).  Since the weighted mean
+minimizes squared error,
+\begin{equation*}
+ \norm{f-\bar f\one}_{\bar D_A}^2
+ \leq\norm{f}_{\bar D_A}^2
+ =\sum_i\frac{k_{w,i}^2h_{A,i}}{d_i}
+ \leq c s_w.
+\end{equation*}
+Combining this with
+\cref{eq:aesp-cd-proper-face-unweighted-row-band} proves
+\cref{eq:aesp-cd-proper-face-pivot-product-band}.
+\end{proof}
+
+\begin{corollary}[Ground coupling packs all large gray rows]
+\label{cor:aesp-cd-proper-face-gray-coupling-packing}
+Let \(E\subseteq\partial A\) be any retained exterior rows of an unweighted
+simple graph and let \(c=(1-\alpha)/2\).  Their ground couplings satisfy
+\begin{equation}
+ \sum_{v\in E}s_v
+ \leq c\sum_{i\in A}d_ih_{A,i}
+ \leq c\,\vol(A).
+ \label{eq:aesp-cd-proper-face-ground-coupling-budget}
+\end{equation}
+Consequently, for common \(D,C,\eta>0\),
+\begin{equation}
+ \#\{v\in E:D s_v+C\sqrt{s_v}>\eta\}
+ \leq
+ c\,\vol(A)
+ \left(\frac{2D}{\eta}+\frac{4C^2}{\eta^2}\right),
+ \label{eq:aesp-cd-proper-face-large-gray-count}
+\end{equation}
+with the corresponding term omitted when \(D=0\) or \(C=0\).
+
+For an actual pivot \(w\), the product envelope
+\cref{eq:aesp-cd-proper-face-pivot-product-band} further gives
+\begin{equation}
+ \sum_{v\in E}\delta_v^2
+ \leq
+ \frac{c^3q^2}{\alpha^2(1+q)^2}\,
+ s_w\vol(A),
+ \qquad
+ \#\{v\in E:|\delta_v|>\eta\}
+ \leq
+ \frac{c^3q^2s_w\vol(A)}
+      {\alpha^2(1+q)^2\eta^2}.
+ \label{eq:aesp-cd-proper-face-pivot-gray-square-budget}
+\end{equation}
+
+Thus, under an absolute KKT hysteresis \(\eta\), every row except the
+displayed output-sensitive fallback set has response uncertainty at most
+\(\eta\).  In the exact unweighted certificate
+\cref{eq:aesp-cd-proper-face-unweighted-row-band}, \(D=0\), so only
+\(O(\vol(A)C^2/\eta^2)\) rows can have a larger high-mode band.  This is a
+packing bound, not a universal target-scale theorem: without a quantitative
+KKT margin, arbitrarily many small-band rows may still overlap zero.
+\end{corollary}
+
+\begin{proof}
+Because \(s_v=c\sum_{i\in A:\,i\sim v}h_{A,i}\),
+changing the order of summation gives
+\begin{equation*}
+ \sum_{v\in E}s_v
+ \leq c\sum_{i\in A}h_{A,i}\deg_{\partial A}(i)
+ \leq c\sum_{i\in A}d_ih_{A,i}.
+\end{equation*}
+The full-graph ground is \(\one\).  On the principal face,
+\(H_A\one\geq\alpha d_A=H_Ah_A\); inverse positivity therefore gives
+\(0<h_A\leq\one\), proving the second inequality in
+\cref{eq:aesp-cd-proper-face-ground-coupling-budget}.
+
+If \(Ds_v+C\sqrt{s_v}>\eta\), then either
+\(s_v>\eta/(2D)\) or \(s_v>\eta^2/(4C^2)\).
+Markov's inequality applied to
+\cref{eq:aesp-cd-proper-face-ground-coupling-budget} and a union bound prove
+\cref{eq:aesp-cd-proper-face-large-gray-count}.  Squaring
+\cref{eq:aesp-cd-proper-face-pivot-product-band}, summing over \(v\), and
+using the same coupling budget proves the first part of
+\cref{eq:aesp-cd-proper-face-pivot-gray-square-budget}; Markov's inequality
+proves the second.
 \end{proof}
 
 \begin{corollary}[Dyadic square-root bands reduce to planar extreme queries]

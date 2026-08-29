@@ -131,6 +131,14 @@ State: proved-open
   encloses both the ground coupling and key under every common
   `D*s+C*sqrt(s)` response radius.  Its nonlinear bulk application, rather
   than response safety, is the remaining dynamic reporter interface.
+  Ground couplings satisfy the global local budget
+  `sum_boundary s_v<=((1-alpha)/2)*vol(A)`.  Therefore only
+  `O(vol(A)*(D/eta+C^2/eta^2))` rows can have radius above an absolute
+  hysteresis `eta`; this is a concrete margin-conditional fallback ledger.
+  For an actual pivot RHS the common norm also disappears:
+  `|delta_v|<=c*q/(alpha*(1+q))*sqrt(s_v*s_w)`.  Hence the exact high-gap
+  gray matrix has a fully observable rank-one product envelope in the lazy
+  ground-coupling states.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -627,6 +635,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-unweighted-row-band`,
+  `cor:aesp-cd-proper-face-gray-coupling-packing`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,

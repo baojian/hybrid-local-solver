@@ -87,6 +87,21 @@ and upper endpoints for `s_v` and `g_v`—contain every update using the common
 need to materialize the response for correctness.  Its bulk map is nonlinear,
 so the outstanding work bound is exactly a lazy transformed-meld/rebin
 problem rather than a missing safety invariant.
+The ground couplings also have an output-local budget:
+`sum_boundary s_v <= ((1-alpha)/2)*vol(A)`.  Hence rows whose common
+affine-plus-root radius exceeds an absolute margin `eta` number at most
+`O(vol(A)*(D/eta+C^2/eta^2))`.  This gives a concrete fallback ledger under
+finite KKT hysteresis; without such a margin, many tiny gray rows can still
+remain unresolved.
+For an actual pivot RHS, even the common coefficient is observable from the
+two-state data: `||f-fbar||^2 <= c*s_w`, and hence
+`|delta_v| <= c*q/(alpha*(1+q))*sqrt(s_v*s_w)`.  The entire exact sparse-pivot
+gray matrix therefore has a rank-one product envelope; the four-scalar replay
+needs no RHS-vector norm beyond the selected pivot's `s_w`.
+Summing its square yields an explicit per-pivot gray-energy ledger
+`sum_v delta_v^2 <= c^3*q^2*s_w*vol(A)/(alpha^2*(1+q)^2)`, and therefore an
+output-sensitive bound on rows whose correction exceeds any declared
+absolute threshold.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active
