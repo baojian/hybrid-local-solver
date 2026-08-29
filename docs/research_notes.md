@@ -115,6 +115,23 @@ The universal point-source problem is therefore exactly accelerated
 construction or dynamic reuse of an output-sized envelope, not an
 output-volume existence question.
 
+On promised cactus graphs the point-source rootedness now gives a complete
+online structural breakthrough.  Maintain current subtree structural volume
+and change a heavy child only when a competitor exceeds it by a factor of
+two.  Every light edge then shrinks volume by a `2/3` factor, every node
+changes heavy child only logarithmically often, and rebuilding the few
+affected chain-cactus paths can be charged to comparable atom--route pairs.
+Together with the exact per-path epoch reporter, this yields
+
+```text
+O_tilde((1+R*) (1+vol(S*)))
+```
+
+without knowing the final support or final HLD.  For point-source RPPR this
+is `O_tilde((1+vol(S*))/sqrt(alpha))`.  The smallest structural class still
+open is therefore a genuinely variable two-port series--parallel block; the
+previous unbounded-productive cactus chain is no longer an open case.
+
 A point-source rho-homotopy still reveals useful extra structure.  On a fixed
 face every boundary key is affine in rho, and after admitting one vertex each
 surviving critical rho becomes a nonnegative weighted average of its previous

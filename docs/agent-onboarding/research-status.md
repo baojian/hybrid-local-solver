@@ -1,6 +1,6 @@
 # Current research status and open problems
 
-Verified snapshot: 2026-08-24.
+Verified snapshot: 2026-08-29.
 
 This file is a routing summary. The current
 [controller broadcast](../../manuscript/notes/_shared/coordination/BROADCAST.md),
@@ -10,10 +10,10 @@ proof in the owning note is authoritative for a mathematical claim.
 
 ## Bottom line
 
-The desired graph-uniform sparse PPR solver with fully charged
+The desired graph-uniform canonical point-source PPR solver with fully charged
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 work is not proved. The project has useful local convergence results,
@@ -21,6 +21,15 @@ support and volume controls, exact structured handoffs, response identities,
 finite-trace counterexamples, and algorithm-specific lower bounds. The
 missing step is a graph-uniform composition that preserves accelerated
 progress while paying for every local and response operation.
+
+The shared problem remains defined for a sparse source distribution, but this
+is now a deliberately broader extension.  Linear point-source superposition
+gives the factor `(sum_v sqrt(s_v))^2`, and RPPR active supports do not
+superpose.  Claims must therefore be tagged `point-seed` or `general-seed`.
+On the positive side, rootedness has now closed the complete exact reporter on
+promised cactus graphs through an online two-hysteretic heavy--light rebuild
+ledger; the next structural gap is a genuinely variable two-port
+series--parallel block.
 
 The repository-wide residual convention also remains open. The controller
 contract supplies a precise semantic target and sufficient certificate for

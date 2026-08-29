@@ -269,10 +269,14 @@ instance-sensitive block charge
 yet reaching the radius--volume target on every cactus; it does reach that
 target whenever every root route has
 `sum_B min{p_B+1,sqrt(L_B)}=O_tilde(R*)`.  The
-bounded-productive result includes chains of arbitrarily long cycles.  The smallest still-open
-structural reporter is a cactus trace with unbounded productive sites in
-unbounded ancestor cycles, and more
-generally a variable-port series--parallel graph.  A three-vertex two-source
+bounded-productive result includes chains of arbitrarily long cycles.
+More strongly, a two-hysteretic online heavy--light decomposition removes the
+final-support oracle for every single-root cactus: every current light edge
+shrinks subtree size by at least a `2/3` factor, each node changes heavy child
+only logarithmically often, and conservative whole-path rebuilds have total
+`O_tilde(vol(S*)*R*)` work.  Thus the smallest still-open structural reporter
+is now a genuinely variable-port series--parallel block, rather than an
+unbounded cactus chain.  A three-vertex two-source
 example shows why running
 independent single-root copies does not handle component mergers.
 A small-`rho` connected-prefix realization lemma makes the square-root
@@ -288,14 +292,15 @@ tends quadratically to zero.  Thus gain-only charging needs an explicit
 relative margin or a different potential.  With a declared batch-density
 gate, the repair is exact: `||g_W||^2 >= 2 eta L work(W)` makes the Schur gain
 at least `eta work(W)`, so accepted batch costs telescope.
-If the final closed block tree, its weighted heavy--light decomposition, and
-balanced series--parallel parses are supplied offline, whole heavy paths can
-instead be rebuilt as chain-cactus superblocks and the full post-closure
-cactus reporter meets the radius--volume product.  Making those decompositions
-online is already possible for an immutable core revealed as one contiguous
-prefix by binary-counter SP merges.  Interleaved closure and response updates,
-and dynamic heavy-path changes, still require the unresolved persistent
-cut/concatenate and bulk pullback/meld interface.
+The earlier offline construction supplied the final closed block tree, its
+weighted heavy--light decomposition, and balanced series--parallel parses.
+The hysteretic theorem makes this online by allowing changed paths to be
+discarded and rebuilt, charging each structural atom to a comparable route
+node and at most logarithmically many heavy switches there.  Persistent
+cut/concatenate and bulk pullback/meld would improve this radius-paid rebuild
+to polylogarithmic maintenance, but is no longer needed for the cactus product
+bound.  It remains the missing interface for general variable-port
+series--parallel blocks.
 A separate quantitative result reduces uniformly separated RPPR boundary
 keys to monotone coordinate-level events.  This is soft-linear only when the
 level-event source is itself charged; ordinary point-query Schur messages do

@@ -1,6 +1,6 @@
 # New-agent research brief
 
-Last reconciled: 2026-08-24.
+Last reconciled: 2026-08-29.
 
 This is a numerical optimization repository. It studies local algorithms for
 personalized PageRank (PPR) and closely related regularized graph
@@ -32,13 +32,17 @@ accepted corrections.
 
 ## The project in one paragraph
 
-Given adjacency-list access to a large undirected graph, a sparse seed
-distribution, a PageRank parameter `alpha`, and a target degree-normalized
-error `eps_ppr`, return a sparse PPR approximation and a valid terminal
-certificate. Every graph read, repeated local operation, response update,
-state access, validation step, materialized value, and output write must be
-charged. The aspirational work bound is
-`nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))`. The central difficulty is
+Given adjacency-list access to a large undirected graph, a source vertex
+`s=e_v`, a PageRank parameter `alpha`, and a target degree-normalized error
+`eps_ppr`, return a sparse PPR approximation and a valid terminal certificate.
+Every graph read, repeated local operation, response update, state access,
+validation step, materialized value, and output write must be charged. The
+canonical aspirational work bound is
+`O_tilde(1 / (sqrt(alpha) * eps_ppr))`. The shared definitions still admit a
+general sparse distribution, but that is an explicitly broader extension:
+point-source superposition naturally costs
+`nnz(s)+O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha)*eps_ppr))`, and nonlinear
+RPPR discovery does not superpose. The central difficulty is
 that global acceleration can lose locality, while strictly local iterations
 can lose the accelerated dependence on `alpha`.
 

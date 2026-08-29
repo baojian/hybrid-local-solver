@@ -1,6 +1,6 @@
 # Standalone problem definition: fully charged accelerated local PageRank
 
-Last reconciled: 2026-08-24.
+Last reconciled: 2026-08-29.
 
 This is a numerical optimization research problem. This document is
 intentionally self-contained: all project-specific definitions, assumptions,
@@ -14,16 +14,31 @@ proved, conditional, measured, or refuted must retain those labels.
 
 ## 1. Research question
 
-Given only local adjacency-list access to a large undirected graph, a sparse
-seed distribution, a PageRank parameter `alpha`, and a target accuracy
-`eps_ppr`, can an algorithm return a sparse personalized PageRank vector with
-a valid terminal certificate in
+Given only local adjacency-list access to a large undirected graph, one source
+vertex `v`, a PageRank parameter `alpha`, and a target accuracy `eps_ppr`, can
+an algorithm return a sparse personalized PageRank vector with a valid
+terminal certificate in
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 fully charged work?
+
+This is the active, canonical theorem contract.  The shared algebra below
+continues to allow a sparse probability distribution `s`, but a statement for
+general `s` must be labeled `general-seed`.  Linearity of unregularized PPR
+turns point-source solvers into the valid corollary
+
+```text
+nnz(s) + O_tilde((sum_v sqrt(s_v))^2
+                  / (sqrt(alpha) * eps_ppr)),
+```
+
+not the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions
+are nonlinear in `s`, so their supports and discovery traces cannot be
+superposed.  The stronger additive sparse-source target remains an extension
+question; it is not part of the canonical theorem contract.
 
 “Fully charged” means that the bound includes seed input, graph discovery,
 repeated reads, numerical updates, support changes, maintained inverse or
@@ -90,7 +105,11 @@ s >= 0,    1^T s = 1,
 
 supplied as a sparse list of its `nnz(s)` nonzero entries. Reading and
 initializing this list costs `Theta(nnz(s))`. The standard local instance is
-a single seed vertex `v`, for which `s = e_v`.
+a single seed vertex `v`, for which `s = e_v`.  The active end-to-end target
+below uses exactly this point source.  General-source statements remain useful
+for linear algebra, support caps, terminal envelope solves, and separately
+labeled corollaries; rooted connected-support, single-root radius, and cactus
+reporter claims must not be silently applied to them.
 
 ### 2.3 PageRank parameter
 
@@ -314,21 +333,26 @@ and the cost of failed attempts or randomness-dependent rebuilding.
 
 ## 8. Desired complexity and comparison baselines
 
-For `eps_ppr in (0, 1)`, the main target is a deterministic exact-real
-algorithm with
+For `eps_ppr in (0, 1)`, the canonical main target is a deterministic
+exact-real point-source algorithm with
 
 ```text
-work = nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr)).
+work = O_tilde(1 / (sqrt(alpha) * eps_ppr)).
 ```
 
 The preferred target also uses
 
 ```text
-O(nnz(s) + 1 / eps_ppr)
+O(1 / eps_ppr)
 ```
 
 persistent memory and temporary workspace, up to declared logarithmic
 factors, and emits its terminal vector and certificate once.
+
+For a general sparse source, always state whether the result is the linear
+point-source superposition bound above, an exact separated-component RPPR
+decomposition, or a genuinely joint multi-root algorithm.  Only the last can
+possibly recover the old additive `nnz(s)` target on merging components.
 
 Three comparisons explain the target:
 

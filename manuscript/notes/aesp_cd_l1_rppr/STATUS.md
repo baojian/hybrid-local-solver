@@ -287,14 +287,19 @@ State: proved-open
   an exact scalar threshold hierarchy closes the named-query term (with
   radius-paid cycle scans in the latter case) and reproduces a legal
   singleton positive-subset trace in
-  `O_tilde((1+vol(S*))/sqrt(alpha))` work. The first structural reporter still
-  open after the known tree, single-cycle, bounded-productive-site cactus, and
-  bounded-block solvers occurs when unbounded ancestor cycles have unbounded
-  productive descendant sites, and more generally on variable-port
-  series--parallel graphs. Epoch rebuilding nevertheless gives the exact
+  `O_tilde((1+vol(S*))/sqrt(alpha))` work.  A two-hysteretic online
+  heavy--light decomposition now closes every single-root cactus without a
+  supplied final support: light edges shrink current subtree size by at least
+  `2/3`, each node switches heavy child logarithmically often, and even
+  discarding and rebuilding whole changed chain-cactus paths costs only
+  `O_tilde(vol(S*)*R*)`.  The first structural reporter still open after the
+  known tree, unicyclic, cactus, and bounded-block solvers is therefore a
+  genuinely variable-port series--parallel block.  The earlier per-block
+  epoch rebuilding gives the exact
   adaptive block tradeoff
   `O_tilde(L_B+J_B*min{p_B+1,sqrt(L_B)})`; its remaining
-  square-root block factor is the current cactus gap, while the alternative
+  square-root block factor is a limitation of that flat per-block interface,
+  while the alternative
   route promise
   `max_v sum_{B in P(v)} min{p_B+1,sqrt(L_B)}=O_tilde(R*)` closes another
   strict subclass.  A small-`rho` connected-order lemma realizes the
@@ -304,12 +309,12 @@ State: proved-open
   model makes its square-root interface cost rigorous.  Objective gain alone
   also cannot pay admissions, although a declared Schur-key density gate
   makes accepted batch costs telescope exactly.  Indeed, a
-  supplied final weighted HLD plus balanced SP parses closes the post-closure
-  cactus route conditionally by rebuilding whole heavy paths; online
-  construction is already soft-linear for an immutable contiguous core
-  prefix.  Interleaved closure and response mutation, dynamic HLD
-  cut/concatenate, and their bulk hull meld remain the exact missing
-  interface. Under a uniform relative KKT margin,
+  supplied final weighted HLD plus balanced SP parses is still a sharper
+  offline formulation, but final-support knowledge and persistent hull meld
+  are no longer needed for the cactus product bound.  Interleaved closure and
+  response mutation are paid by conservative radius-depth rebuilding.
+  Dynamic bulk hull meld remains the exact missing interface only beyond
+  cactus. Under a uniform relative KKT margin,
   charged coordinate-level events give another soft-linear reporter; the
   event source remains an explicit interface cost.
   A primary-source interface check found logarithmic top-tree/dynamic-
@@ -454,6 +459,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-schur-gain-batch-payment`,
   `prop:aesp-cd-cactus-static-cluster-stop`,
   `prop:aesp-cd-cactus-offline-hld`,
+  `thm:aesp-cd-cactus-online-hysteretic-hld`,
   `prop:aesp-cd-two-port-direction-stop`,
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `lem:aesp-cd-two-port-projective-pullback`,
@@ -498,8 +504,8 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-conditional-finite-acceptance`.
 - Next concrete action: attack one of the two explicit remaining interfaces.
   On discovery, either implement the persistent bulk-affine
-  `MeldAffineHull` reporter on variable two-port blocks, or prove that its
-  cactus productive-site specialization cannot meet the support-radius budget; all
+  `MeldAffineHull` reporter on genuinely variable two-port blocks, or prove
+  that no such route-output reporter can meet the support-radius budget; all
   dynamic obstacle updates, level notifications, and rejected frontier rows
   must remain charged.  On the final certified face, bound the number of
   rejected observable windows and maintain the absolute finite-inner budget,

@@ -273,7 +273,111 @@ $\widetilde O(\vol(S^\star))$.  This proves the second expression, and the
 known RPPR radius bound gives the final specialization.
 \end{proof}
 
-There is one online subcase hidden inside the offline hypothesis.  If the
+For a cactus, the final-support oracle in the preceding proposition can in
+fact be removed.  The key is to allow conservative whole-path rebuilding and
+charge it to rooted depth, rather than demanding a polylogarithmic dynamic
+hull meld.
+
+\begin{theorem}[Online hysteretic heavy-path cactus reporter]
+\label{thm:aesp-cd-cactus-online-hysteretic-hld}
+Retain the exact-real, single-positive-load, locally revealed cactus setting
+of \cref{cor:aesp-cd-cactus-live-sites}.  There is an online legal singleton
+reporter, requiring neither the final support nor its final block--cut tree,
+whose total work is
+\begin{equation}
+ \widetilde O\!\left(
+   (1+R_\star)(1+\vol(S^\star))
+ \right).
+ \label{eq:aesp-cd-cactus-online-hysteretic-hld-work}
+\end{equation}
+Consequently, on a promised single-source RPPR cactus it has
+$\widetilde O((1+\vol(S^\star))/\sqrt\alpha)$ work and hence
+$\widetilde O(1/(\rho\sqrt\alpha))$ work.
+
+The implementation may discard and rebuild the reporter state of a changed
+heavy path.  It does not assume a persistent bulk hull meld.  The theorem is
+specific to the rooted connected cactus trace: it does not cover multiple
+positive loads or a general series--parallel graph whose active block
+decomposition can merge through two independent ports.
+\end{theorem}
+
+\begin{proof}
+Maintain the currently closed rooted cactus block--cut core.  Give every
+block, bridge, articulation, and attached response record its positive
+structural size, so the final total size
+$W$ is $O(1+\vol(S^\star))$.  Unclosed cycle arms use the tree messages and
+the unique double-frontier check from
+\cref{cor:aesp-cd-unicyclic-singleton}; after a cycle closes, splice its
+cached factors into the closed core and build its exact two-port factor.
+
+For a core node $u$, let $w_u$ be its current active subtree size.  Choose an
+initial maximum-size child $h(u)$ as heavy.  Retain it until a maximum
+competitor $c$ satisfies
+\begin{equation*}
+ w_c>2w_{h(u)},
+\end{equation*}
+and then set $h(u):=c$.  If $(u,c)$ is light, either no switch is due and
+$w_c\leq2w_{h(u)}$, or it is the old heavy edge immediately after a switch.
+In both cases
+\begin{equation*}
+ w_c\leq\frac23 w_u.
+\end{equation*}
+Hence every current root route meets only $O(\log(2+W))$ heavy paths.  The
+weights of the successively selected heavy children at one node more than
+double, so that node switches at most $1+\lfloor\log_2 W\rfloor$ times over
+the whole monotone trace.
+
+Treat every current heavy path as the two-terminal chain-cactus superblock
+of \cref{prop:aesp-cd-cactus-offline-hld}.  A switch cuts and concatenates a
+constant number of such paths; rebuild their balanced series--parallel
+parses and epoch snapshots from the current exact factors.  This operation
+does not alter the represented restricted solution or any key.  Every
+structural atom rebuilt by a switch at $u$ lies on a heavy path containing
+$u$, an old heavy child, or a new heavy child, and is therefore comparable
+with $u$ in the rooted core.  For a fixed atom there are only
+$O(1+R_\star)$ comparable core nodes, each switching $O(\log(2+W))$ times.
+Charging a rebuild to the pair consisting of that atom and the switching
+node gives total switch-rebuild work
+\begin{equation*}
+ \widetilde O(W(1+R_\star)).
+\end{equation*}
+Updating subtree sizes by the explicit root route has the same, or smaller,
+bound.
+
+A cycle closure is a local contraction of its cached two active arms into
+one cactus block.  Rebuild the block factor and every heavy-path piece whose
+topology it changes.  An atom can be affected only when a distinct cycle
+comparable with it on one rooted block route closes, so the same
+atom--route charge contributes another
+$O(W(1+R_\star))$ term.  One-time adjacency scans, factor construction, and
+final recovery cost $\widetilde O(W)$; the pre-closure tree routes cost
+$\widetilde O(W(1+R_\star))$ by
+\cref{eq:aesp-cd-cactus-live-sites-work}.
+
+It remains to charge visits while the decomposition is unchanged.  A heavy
+path contains at most $O(1+R_\star)$ block factors.  Every fully active cycle
+on it has length at most $2R_\star+1$, because a farthest cycle vertex lies
+at distance at least half the cycle length from its entry.  Thus its
+structural size $S_{\mathcal H}$ is
+$O((1+R_\star)^2)$, and the epoch reporter used in
+\cref{prop:aesp-cd-cactus-offline-hld} charges
+\begin{equation*}
+ \widetilde O(\sqrt{S_{\mathcal H}})
+ =\widetilde O(1+R_\star)
+\end{equation*}
+per visited heavy path.  A singleton admission visits only logarithmically
+many current paths, and there are at most $|S^\star|\leq W$ admissions.
+Summing over all path lifetimes gives the bound in
+\cref{eq:aesp-cd-cactus-online-hysteretic-hld-work}; path snapshots discarded
+at a switch were already paid by the rebuild ledger.
+
+Every query and rebuild is an exact change of representation, so the strict
+positive-key and terminal KKT arguments of the tree, unicyclic, and static
+heavy-path reporters remain unchanged.  Finally apply the point-source RPPR
+radius and volume bounds.
+\end{proof}
+
+There is a cheaper online subcase hidden inside the offline construction.  If the
 structural factors of each supplied heavy superblock close in one contiguous
 root-to-leaf order and no descendant-response mutation occurs before that
 core is complete, keep the closed prefix as a binary-counter stack of
@@ -282,8 +386,11 @@ are rebuilt and merged.  Every factor participates in only
 $O(\log(2+S_{\mathcal H}))$ builds, and the prefix has only logarithmically
 many chunks, so the balanced snapshot required above is constructed in
 $\widetilde O(S_{\mathcal H})$ online work.  This observation does not pay for
-interleaved closure and point mutation, nor for changes of the heavy
-decomposition; those remain the stated persistent-meld interface.
+interleaved closure and point mutation.  The general cactus theorem above
+handles those events by the more conservative radius-paid rebuilding ledger;
+the persistent-meld interface is still needed to obtain polylogarithmic
+rather than radius-paid dynamic path maintenance, and remains open for
+general variable-port series--parallel blocks.
 
 The next elementary realization lemma separates a limitation of the reporter
 accounting from a merely formal bad ledger.

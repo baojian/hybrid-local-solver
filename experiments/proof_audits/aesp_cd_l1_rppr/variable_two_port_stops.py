@@ -8,7 +8,9 @@ named-response primitive used by the bounded-live-site cactus result.
 """
 
 from fractions import Fraction as F
+import math
 from pathlib import Path
+import random
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -316,6 +318,110 @@ def static_cluster_and_prefix_merge_ledgers():
             radius_lower = max(block_count, longest_cycle // 2)
             assert structural_size <= 4 * (1 + radius_lower) ** 2
     return flat_rows[-1], power_rows[-1]
+
+
+def hysteretic_heavy_path_ledgers():
+    """Stress the online 2-hysteretic HLD and its atom--node rebuild charge."""
+
+    def one_case(parent, atom_weight):
+        count = len(parent)
+        children = [[] for _ in range(count)]
+        depth = [0] * count
+        for vertex in range(1, count):
+            children[parent[vertex]].append(vertex)
+            depth[vertex] = depth[parent[vertex]] + 1
+        radius = max(depth)
+        active = [False] * count
+        subtree_weight = [0] * count
+        heavy = [None] * count
+        chosen_weights = [[] for _ in range(count)]
+        switch_count = [0] * count
+        conservative_rebuild = 0
+        largest_light_count = 0
+
+        def is_ancestor(ancestor, vertex):
+            while depth[vertex] > depth[ancestor]:
+                vertex = parent[vertex]
+            return ancestor == vertex
+
+        for inserted in range(count):
+            active[inserted] = True
+            route = []
+            cursor = inserted
+            while cursor != -1:
+                route.append(cursor)
+                subtree_weight[cursor] += atom_weight[inserted]
+                cursor = parent[cursor]
+
+            # Descendant weights change before ancestor decisions are tested.
+            for node in route:
+                live_children = [child for child in children[node] if active[child]]
+                if not live_children:
+                    continue
+                competitor = max(
+                    live_children,
+                    key=lambda child: (subtree_weight[child], -child),
+                )
+                old_heavy = heavy[node]
+                if old_heavy is None:
+                    heavy[node] = competitor
+                    chosen_weights[node].append(subtree_weight[competitor])
+                elif (
+                    competitor != old_heavy
+                    and subtree_weight[competitor] > 2 * subtree_weight[old_heavy]
+                ):
+                    assert subtree_weight[competitor] > 2 * chosen_weights[node][-1]
+                    heavy[node] = competitor
+                    chosen_weights[node].append(subtree_weight[competitor])
+                    switch_count[node] += 1
+                    comparable = [
+                        atom
+                        for atom in range(count)
+                        if active[atom]
+                        and (is_ancestor(atom, node) or is_ancestor(node, atom))
+                    ]
+                    conservative_rebuild += sum(atom_weight[atom] for atom in comparable)
+
+            current_weight = subtree_weight[0]
+            light_count = sum(
+                child != heavy[parent[child]] for child in route[:-1]
+            )
+            largest_light_count = max(largest_light_count, light_count)
+            assert light_count <= 1 + math.ceil(math.log(current_weight, 1.5))
+            for child in range(1, inserted + 1):
+                if child != heavy[parent[child]]:
+                    assert 3 * subtree_weight[child] <= 2 * subtree_weight[parent[child]]
+
+        total_weight = sum(atom_weight)
+        switch_cap = 1 + total_weight.bit_length()
+        assert all(count_at_node <= switch_cap for count_at_node in switch_count)
+        assert conservative_rebuild <= (
+            total_weight * (2 * radius + 1) * switch_cap
+        )
+        return (
+            count,
+            total_weight,
+            radius,
+            sum(switch_count),
+            largest_light_count,
+            conservative_rebuild,
+        )
+
+    cases = []
+    # A long spine with alternating side growth stresses ancestor updates.
+    parent = [-1]
+    for vertex in range(1, 96):
+        parent.append(max(0, vertex - 2) if vertex % 3 else 0)
+    cases.append(one_case(parent, [1 + (vertex % 5) for vertex in range(len(parent))]))
+
+    # Random topological leaf streams cover repeated heavy-child reversals.
+    generator = random.Random(20260829)
+    for count in (32, 64, 128, 192):
+        parent = [-1] + [generator.randrange(vertex) for vertex in range(1, count)]
+        weights = [generator.randrange(1, 8) for _ in range(count)]
+        cases.append(one_case(parent, weights))
+    assert any(row[3] > 0 for row in cases)
+    return cases
 
 
 def productive_site_numeric_key_pressure():
@@ -811,6 +917,7 @@ def main():
     assert r"\label{cor:aesp-cd-schur-gain-batch-payment}" in productive_source
     assert r"\label{prop:aesp-cd-cactus-static-cluster-stop}" in productive_source
     assert r"\label{prop:aesp-cd-cactus-offline-hld}" in productive_source
+    assert r"\label{thm:aesp-cd-cactus-online-hysteretic-hld}" in productive_source
     assert "binary-counter stack" in productive_source
     assert "not their pulled-back" in productive_source
 
@@ -820,6 +927,7 @@ def main():
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
     interface_ledgers = static_cluster_and_prefix_merge_ledgers()
+    hysteretic_ledgers = hysteretic_heavy_path_ledgers()
     productive_keys = productive_site_numeric_key_pressure()
     epoch_ledgers = productive_epoch_integer_ledgers()
     connected_order = connected_order_small_rho_certificate()
@@ -842,6 +950,7 @@ def main():
     print("  virtual top forget catches pinned root-port keys", root_keys)
     print("  K2 strict-admission objective gains", objective_gains)
     print("  flat sqrt / immutable-prefix ledgers", interface_ledgers)
+    print("  online hysteretic HLD ledgers", hysteretic_ledgers)
     print("  legal productive-site numerical-key pressure", productive_keys)
     print("  productive epoch integer ledgers", epoch_ledgers)
     print("  connected-order small-rho phase minima / p / J", connected_order)
