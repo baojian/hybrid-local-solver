@@ -284,6 +284,320 @@ Consequently Round 027 stops the unsplit stagewise reserve and records an
 exact high-band compatibility check; it does not provide the windowed
 spectral/nonlinear transfer needed for \cref{eq:aesp-cd-actual-finite-net-packing}.
 
+There is nevertheless a different fixed-face bank that already contracts at
+the accelerated one-step scale on every mode.  It changes the remaining
+question from low-mode drift to correction forcing.
+
+\begin{proposition}[A cross-normalized bank contracts on every correction-free
+settled-face stage]
+\label{prop:aesp-cd-cross-normalized-bank}
+Use exact shifted solves on the settled positive optimal face
+$A=S^\star(\rho)$, and write $Q_A=Q_{AA}$,
+$M_A=\kappa_{\mathrm A}(Q_A+\kappa_{\mathrm A}I)^{-1}$,
+$\vartheta=1-q$, and $e_t=x_A^\star-x_{t,A}$.  Define
+\begin{equation}
+ u_t:=e_t-\vartheta e_{t-1},\qquad
+ \mathcal B_t:=\norm{e_t}_2^2
+  +(\kappa_{\mathrm A}+\alpha)
+    \langle u_t,Q_A^{-1}u_t\rangle.
+ \label{eq:aesp-cd-cross-normalized-bank}
+\end{equation}
+This is an analysis quantity; no inverse certificate is requested from the
+algorithm.
+
+If stage $t$ has no correction, then
+\begin{equation}
+ \mathcal B_{t+1}\leq(1-q)\mathcal B_t.
+ \label{eq:aesp-cd-cross-normalized-contraction}
+\end{equation}
+For a general exact stage, its correction $r_t$ enters through
+\begin{equation}
+ \sqrt{\mathcal B_{t+1}}
+ \leq\sqrt{(1-q)\mathcal B_t}+\sqrt{\mathcal R_t},
+ \qquad
+ \mathcal R_t:=\norm{M_Ar_t}_2^2
+ +(\kappa_{\mathrm A}+\alpha)
+   \langle M_Ar_t,Q_A^{-1}M_Ar_t\rangle.
+ \label{eq:aesp-cd-cross-normalized-forcing}
+\end{equation}
+
+If stage $t$ is a full correction, then
+\begin{equation}
+ \mathcal B_{t+1}
+ \leq C_0(q)\norm{e_t}_2^2,\qquad
+ C_0(q):=(1-q)^2(q^2+2q+2)<2.
+ \label{eq:aesp-cd-cross-normalized-full-reset}
+\end{equation}
+Consequently, if stages $t+1,\ldots,t+L$ have no correction, then
+\begin{equation}
+ \mathcal B_{t+L+1}
+ \leq2e^{-qL}\norm{e_t}_2^2.
+ \label{eq:aesp-cd-cross-normalized-window}
+\end{equation}
+Thus $L=\lceil\log(4)/q\rceil$ gives a strict factor $1/2$ relative to
+$\norm{e_t}_2^2$.  The statement requires the settled optimal face: on a
+nonoptimal proper face, boundary coordinates create an affine forcing, and a
+face change also changes $Q_A^{-1}$.
+\end{proposition}
+
+\begin{proof}
+On a $Q_A$ eigenmode of eigenvalue $\lambda\in[\alpha,1]$, put
+$c=\kappa_{\mathrm A}+\alpha=1/(1+q^2)$,
+$m=\kappa_{\mathrm A}/(\kappa_{\mathrm A}+\lambda)$, and
+$a=m/(1+q)$.  In the state $(e,u)$, a correction-free stage has matrix
+\begin{equation*}
+ T_\lambda=
+ \begin{pmatrix}a&a\\a-\vartheta&a\end{pmatrix},
+ \qquad
+ W_\lambda=\begin{pmatrix}1&0\\0&c/\lambda\end{pmatrix}.
+\end{equation*}
+It remains to check
+$R_\lambda:=\vartheta W_\lambda-T_\lambda^\top W_\lambda T_\lambda
+\succeq0$.  Parameterize
+$\lambda=(q^2+s)/(1+q^2)$, $0\leq s\leq1$.  Direct reduction gives
+\begin{align*}
+ (R_\lambda)_{11}
+ &=\frac{(1-q)(q^3+q^2s^2+2q^2s+qs^2+qs+s^3+s^2)}
+ {(q^2+s)(1+s)^2},\\
+ (R_\lambda)_{22}
+ &=\frac{(1-q)(q^3-q^2+qs+q+s^2+s)}
+ {(q^2+s)(1+s)^2},
+\end{align*}
+and
+\begin{equation*}
+ \det R_\lambda
+ =\frac{(1-q)^2
+ (q^5+2q^3s+q^2s^2+q^2s+2qs^2+s^3)}
+ {(q^2+s)^2(1+s)^2}.
+\end{equation*}
+All three quantities are nonnegative, proving
+\cref{eq:aesp-cd-cross-normalized-contraction}.
+
+Since $x^\star-\ell_t=(1+\beta_{\mathrm A})e_t
+-\beta_{\mathrm A}e_{t-1}+r_t$, the exact affine resolvent recurrence adds
+$(M_Ar_t,M_Ar_t)$ to the next $(e,u)$ state.  The triangle inequality in the
+$W$-norm proves \cref{eq:aesp-cd-cross-normalized-forcing}.
+
+After a full correction, $e_{t+1}=M_Ae_t$.  Substitution in the two terms of
+$\mathcal B_{t+1}$ and maximization over
+$\lambda\in[\alpha,1]$ gives
+\begin{equation*}
+ m^2+\frac c\lambda(m-\vartheta)^2
+ \leq(1-q)^2(q^2+2q+2)=C_0(q).
+\end{equation*}
+This proves \cref{eq:aesp-cd-cross-normalized-full-reset}.  Iterating
+\cref{eq:aesp-cd-cross-normalized-contraction} for the stated $L$ stages and
+using $(1-q)^L\leq e^{-qL}$ proves
+\cref{eq:aesp-cd-cross-normalized-window}.
+\end{proof}
+
+This bank passes the reachable $K_2$ boundary that stopped the unsplit
+$q^{-1}Q$ reserve: the low mode now contracts by $1-q$ from the first
+persistent stage.  Its exact remaining term is
+$\mathcal R_t$.  Low modes make $Q_A^{-1}$ expensive, so the Round-026
+unsplit $Q$-energy ledger does not pay this term directly.  The tempting next
+step is to charge its low part only to a high-band drop.  The following
+reachable family rules out that dimension-free payment, even if the entire
+available high energy is spent.
+
+\begin{proposition}[Complete graphs stop high-drop-only payment of the
+cross-normalized forcing]
+\label{prop:aesp-cd-kn-cross-bank-stop}
+Fix $q=1/100$, and put
+\begin{equation*}
+ \alpha=\frac1{10001},\quad
+ \kappa_{\mathrm A}=\frac{9999}{10001},\quad
+ \beta_{\mathrm A}=\frac{99}{101},\quad
+ m_0=1-q^2,\quad A=12.
+\end{equation*}
+For every integer $N\geq8$, let $k=N-1$, use $K_N$ in degree-scaled
+coordinates, and define
+\begin{equation}
+ v_N=(1,-1/k,\ldots,-1/k)^\top,\qquad
+ a_0=\rho=\frac1{2Nk},\qquad
+ e^{(0)}=\one+Aq^2v_N,\qquad
+ \widehat x^\star=a_0e^{(0)},
+ \label{eq:aesp-cd-kn-cross-family}
+\end{equation}
+and the dense seed
+\begin{equation}
+ s=\frac1{2N}\left(\one+\frac{Qe^{(0)}}\alpha\right).
+ \label{eq:aesp-cd-kn-cross-seed}
+\end{equation}
+Then $s>0$, $\one^\top s=1$, and $\widehat x^\star$ is the full-support RPPR
+optimum.  The exact safeguarded recurrence has no correction at stages zero
+and one, has full support by stage one, and makes a full correction at stage
+two while the face remains full.
+
+Let $P_h$ project onto $v_N$, and let $\mathcal R_2^{\rm low}$ denote the
+constant-mode part of the forcing in
+\cref{eq:aesp-cd-cross-normalized-forcing}.  The entire initial high energy
+$\mathfrak E_0^h:=\langle P_h\widehat x^\star,
+ QP_h\widehat x^\star\rangle$ satisfies
+\begin{equation}
+ \frac{\mu_{\mathcal E}\mathcal R_2^{\rm low}}
+      {\mathfrak E_0^h}
+ =\frac{4(N-1)m_0(1-q)^6}{\lambda_hA^2}
+ >\frac{N-1}{23},
+ \qquad
+ \lambda_h:=\frac{N+(N-2)\alpha}{2(N-1)}.
+ \label{eq:aesp-cd-kn-global-high-stop}
+\end{equation}
+Since every cumulative high-band drop is at most its initial high energy, no
+graph-size-independent constant $C$ can prove
+\begin{equation*}
+ \mu_{\mathcal E}\mathcal R_2^{\rm low}
+ \leq C\sum_t(\mathfrak E_{t-1}^h-\mathfrak E_t^h)
+\end{equation*}
+on all actual exact trajectories.  This stops high-drop-only payment, not a
+window bank that also retains low endpoint progress, a mean/volume reserve,
+or a soft additive allowance.
+
+The same family also stops a graph-uniform transfer from the entire initial
+high Moreau bank into the harmful signed constant-mode event.  Put
+$c=\kappa_{\mathrm A}+\alpha$ and
+\begin{align*}
+ r_0&:=\beta_{\mathrm A}m_0(1-s_0),
+ &e_{2,0}&:=m_0s_0,\\
+ J_0&:=c q\,m_0^2(1-q^3),
+ &K_0&:=m_0^3,\\
+ \xi_0&:=2r_0J_0e_{2,0}-r_0^2K_0,
+ &\Xi_2^0&:=Na_0^2\xi_0.
+\end{align*}
+If
+\begin{equation*}
+ \mathcal C_0^h
+ :=\frac N{N-1}m_h(\lambda_h+cq^2)(Aq^2a_0)^2,
+\end{equation*}
+then
+\begin{equation}
+ \frac{q\Xi_2^0}{\mathcal C_0^h}
+ >\frac{N-1}{15}.
+ \label{eq:aesp-cd-kn-high-to-low-stop}
+\end{equation}
+Thus even allowing the whole initial high bank with an additional factor
+$1/q$ cannot pay the low signed pulse with a dimension-free coefficient.
+
+For calibration, the ratios of the full forcing to the immediately preceding
+high drop are exactly
+\begin{equation}
+ \frac{\mu_{\mathcal E}\mathcal R_2}
+      {\mathfrak E_1^h-\mathfrak E_2^h}
+ =\begin{cases}
+ \displaystyle
+ \frac{73387864081058649690843}{85491071047000000000000},&N=8,\\[2mm]
+ \displaystyle
+ \frac{161030072622852958763160029349}
+      {116243846625372641000000000000},&N=12.
+ \end{cases}
+ \label{eq:aesp-cd-kn-preceding-high-ratios}
+\end{equation}
+The first is less than one, whereas the second is greater than one.
+\end{proposition}
+
+\begin{proof}
+The constant and orthogonal eigenvalues of $Q$ on $K_N$ are $\alpha$ and
+$\lambda_h$ above.  The seed sum follows from
+$\one^\top Qe^{(0)}=N\alpha$.  Its nonsource positivity, and
+$Qe^{(0)}>0$, reduce to
+\begin{equation*}
+ A\lambda_h(1+q^2)<k.
+\end{equation*}
+The left-to-right ratio is largest at $N=8$, where this inequality is
+$48/7+12q^2<7$.  Moreover
+\begin{equation*}
+ Q\widehat x^\star
+ =\frac\alpha k(s-k\rho\one),
+\end{equation*}
+so the positive KKT equations identify the stated optimum.
+
+Put
+\begin{equation*}
+ m_h=\frac{\kappa_{\mathrm A}}{\kappa_{\mathrm A}+\lambda_h},\qquad
+ s_0=\frac{(1-q)(1+2q)}{1+q},\qquad
+ s_h=(1+\beta_{\mathrm A})m_h-\beta_{\mathrm A}.
+\end{equation*}
+The first two error states have modal pairs
+\begin{equation*}
+ a_0(m_0,Aq^2m_h),\qquad
+ a_0(m_0s_0,Aq^2m_hs_h).
+\end{equation*}
+Their nonsource coordinates are positive because
+$A\lambda_h/(\kappa_{\mathrm A}k)<1$ and
+$3-2q>A/k$.  The stage-one trial is a strict lower certificate: its
+nonsource $Q$-image is
+\begin{equation*}
+ a_0q^2\left(\frac{s_0}{1+q^2}
+                 -\frac{A\lambda_hs_h}{k}\right)>0,
+\end{equation*}
+using $s_0/(1+q^2)>99/100$ and
+$A\lambda_h/k<49/50$; its source row is larger.
+
+For the stage-two trial, put
+$t_0=(1+\beta_{\mathrm A})s_0-\beta_{\mathrm A}$,
+$t_h=(1+\beta_{\mathrm A})s_h-\beta_{\mathrm A}$, and
+$F_h=-\lambda_hm_ht_h$.  Here
+\begin{equation*}
+ \frac{1+\alpha}{2}\leq\lambda_h
+ \leq\frac{4+3\alpha}{7}.
+\end{equation*}
+Clearing the positive denominators in the one-variable rational expression
+shows $t_h<0$ and $F_h>9/100$ on this interval.  The constant contribution
+$L_0=m_0t_0/(1+q^2)$ is less than one, so
+$AF_h-L_0>2/25$.  The source row therefore violates the lower condition,
+while every nonsource row remains strict.  The resulting common cap obeys
+\begin{equation*}
+ \Delta_2=a_0m_0(AF_h-L_0)>\frac{79}{1000}a_0,
+\end{equation*}
+whereas
+$\norm{\beta_{\mathrm A}d_2}_\infty
+ <a_0q^2(2+A)<(14/10000)a_0$.  Hence the correction is full and persistent.
+
+Its constant and high modal amplitudes are
+\begin{equation*}
+ r_L=\beta_{\mathrm A}m_0(1-s_0)a_0,\qquad
+ r_H=\beta_{\mathrm A}Aq^2m_h(1-s_h)a_0.
+\end{equation*}
+With $c=\kappa_{\mathrm A}+\alpha$, direct spectral evaluation gives
+\begin{align*}
+ \mathcal R_2
+ &=Nm_0^2(1+c/\alpha)r_L^2
+  +\frac Nk m_h^2(1+c/\lambda_h)r_H^2,\\
+ \mathfrak E_1^h-\mathfrak E_2^h
+ &=\frac Nk\lambda_h(Aq^2m_ha_0)^2(1-s_h^2),\\
+ \mu_{\mathcal E}\mathcal R_2^{\rm low}
+ &=4Na_0^2q^4m_0(1-q)^6,\\
+ \mathfrak E_0^h
+ &=\frac Nk\lambda_hA^2q^4a_0^2.
+\end{align*}
+Their last ratio is the equality in
+\cref{eq:aesp-cd-kn-global-high-stop}.  Finally,
+$\lambda_h<29/50$ and the exact fixed values of $q,m_0$ give
+\[
+ \frac{4m_0(1-q)^6}{(29/50)A^2}
+ =\frac{1045984445984511}{23200000000000000}
+ >\frac1{23},
+\]
+which proves the displayed strict $(N-1)/23$ lower bound.
+For the signed low event, exact simplification gives
+\begin{equation*}
+ \frac{\xi_0}{q^3}
+ =\frac{9604970786001983020299}{2500250000000000000000}
+ >\frac{19}{5}.
+\end{equation*}
+Since $m_h\leq2/3$ and
+$\lambda_h\leq(4+3\alpha)/7$,
+\begin{equation*}
+ \frac{q\Xi_2^0}{(N-1)\mathcal C_0^h}
+ =\frac{\xi_0/q^3}{m_h(\lambda_h+cq^2)A^2}
+ >\frac{70007}{1010880}>\frac1{15},
+\end{equation*}
+proving \cref{eq:aesp-cd-kn-high-to-low-stop}.
+Substitution at $N=8,12$ gives
+\cref{eq:aesp-cd-kn-preceding-high-ratios}.
+\end{proof}
+
+
 \begin{corollary}[Conditional finite-inner acceptance]
 \label{cor:aesp-cd-conditional-finite-acceptance}
 Suppose the \emph{actual finite} trajectory satisfies, at a chosen horizon
@@ -295,23 +609,24 @@ $T$,
  \label{eq:aesp-cd-actual-finite-net-packing}
 \end{equation}
 for declared constants $0<c\leq1$ and $B\geq0$, and use a common absolute
-tolerance $\xi_t\leq\xi\leq1$.  Then
+tolerance $\xi_t\leq\xi$.  Then
 \begin{equation}
- \Phi_T^{\mathrm{fin}}
- \leq e^{-cqT+B}\Phi_0^{\mathrm{fin}}
-       +3\kappa_{\mathrm A}T\xi
-          e^{\mathcal J_T^{\mathrm{fin}}}.
+ \sqrt{\Phi_T^{\mathrm{fin}}}
+ \leq e^{-cqT/2+B/2}\sqrt{\Phi_0^{\mathrm{fin}}}
+       +\sqrt{\kappa_{\mathrm A}}T\xi
+          e^{((1-c)qT+B)/2}.
  \label{eq:aesp-cd-conditional-finite-bound}
 \end{equation}
 The zero start obeys $\Phi_0^{\mathrm{fin}}\leq\alpha$.  Hence, for a target
 $0<\theta\leq\alpha$, the following choices depend only on declared
 parameters and are sufficient:
 \begin{equation}
- T\geq\frac{B+\log(2\alpha/\theta)}{cq},
+ T\geq\frac{B+\log(4\alpha/\theta)}{cq},
  \qquad
  \xi\leq
- \frac{\theta\exp(-(1-c)qT-B)}
-      {6\kappa_{\mathrm A}T}.
+ \frac{\sqrt\theta\,
+       \exp(-((1-c)qT+B)/2)}
+      {2\sqrt{\kappa_{\mathrm A}}T}.
  \label{eq:aesp-cd-conditional-finite-choices}
 \end{equation}
 The extra absolute polish in
@@ -337,15 +652,22 @@ $\mathcal E(x^\star)=F_\rho(x^\star)$, and
 $\mu_{\mathcal E}\leq\alpha$, this proves
 $\Phi_0^{\mathrm{fin}}\leq\alpha$.
 
-Iterate \cref{eq:aesp-cd-finite-inner-potential}.  The unperturbed product is
-at most $\exp(-qT+\mathcal J_T^{\mathrm{fin}})$, and every suffix product
-following an additive error is at most
-$\exp(\mathcal J_T^{\mathrm{fin}})$.  Since
-$2\xi+\xi^2\leq3\xi$, this proves
-\cref{eq:aesp-cd-conditional-finite-bound}.  Use
-$\mathcal J_T^{\mathrm{fin}}\leq(1-c)qT+B$ and the initial bound above.
-The two choices in \cref{eq:aesp-cd-conditional-finite-choices} then make
-the two terms at most $\theta/2$ each.
+Iterate the root recursion
+\cref{eq:aesp-cd-finite-inner-root-potential}.  The unperturbed product is at
+most $\exp((-qT+\mathcal J_T^{\mathrm{fin}})/2)$, and every suffix product
+following an additive root error is at most
+$\exp(\mathcal J_T^{\mathrm{fin}}/2)$.  Therefore
+\begin{equation*}
+ \sqrt{\Phi_T^{\mathrm{fin}}}
+ \leq e^{(-qT+\mathcal J_T^{\mathrm{fin}})/2}
+       \sqrt{\Phi_0^{\mathrm{fin}}}
+   +\sqrt{\kappa_{\mathrm A}}T\xi
+       e^{\mathcal J_T^{\mathrm{fin}}/2}.
+\end{equation*}
+Use $\mathcal J_T^{\mathrm{fin}}\leq(1-c)qT+B$ to obtain
+\cref{eq:aesp-cd-conditional-finite-bound}.  The two choices in
+\cref{eq:aesp-cd-conditional-finite-choices} make its two terms at most
+$\sqrt\theta/2$ each.
 \end{proof}
 
 \begin{corollary}[Frozen conditional rate-to-gate contract]
@@ -361,11 +683,12 @@ $0<\tau\leq1$, put
 \end{equation}
 It is sufficient to take
 \begin{equation}
- T\geq\frac{B+\log(2\alpha/\theta_{\mathrm{gate}})}{cq},
+ T\geq\frac{B+\log(4\alpha/\theta_{\mathrm{gate}})}{cq},
  \qquad
  \xi\leq\min\left\{1,
- \frac{\theta_{\mathrm{gate}}
-       \exp(-(1-c)qT-B)}{6\kappa_{\mathrm A}T}\right\}.
+ \frac{\sqrt{\theta_{\mathrm{gate}}}
+       \exp(-((1-c)qT+B)/2)}
+      {2\sqrt{\kappa_{\mathrm A}}T}\right\}.
  \label{eq:aesp-cd-frozen-finite-parameters}
 \end{equation}
 Then $\Phi_T^{\mathrm{fin}}\leq\theta_{\mathrm{gate}}$, and the fresh

@@ -131,26 +131,27 @@ For every actual finite stage, put
 \end{equation*}
 Then
 \begin{equation}
- \langle r_t,Qr_t\rangle
- \leq\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle,
+ \langle r_t,Qp_t\rangle\geq0,
  \qquad
- \langle p_t,Qp_t\rangle
+ \langle r_t,Qr_t\rangle+\langle p_t,Qp_t\rangle
  \leq\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle.
  \label{eq:aesp-cd-truncation-q-energy}
 \end{equation}
 Consequently, for every $1\leq k\leq\ell$,
-\begin{align}
- \sum_{t=k}^{\ell}\langle r_t,Qr_t\rangle
- &\leq\beta_{\mathrm A}^2
-       (\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q),
- \notag\\
- \sum_{t=k}^{\ell}\langle p_t,Qp_t\rangle
- &\leq\beta_{\mathrm A}^2
+\begin{equation}
+ \sum_{t=k}^{\ell}
+ \left(\langle r_t,Qr_t\rangle+\langle p_t,Qp_t\rangle\right)
+ \leq\beta_{\mathrm A}^2
        (\mathfrak E_{k-1}^Q-\mathfrak E_\ell^Q).
  \label{eq:aesp-cd-truncation-q-window}
-\end{align}
-These are two separate bounds; their left-hand sides are not being added
-under a single copy of the right-hand side.
+\end{equation}
+The same realized-stage drop also pays both error cross terms under one copy:
+\begin{equation}
+ \langle e_t,Qr_t\rangle+\langle e_t,Qp_t\rangle
+ \leq\frac{\beta_{\mathrm A}}2
+       (\mathfrak E_{t-1}^Q-\mathfrak E_t^Q).
+ \label{eq:aesp-cd-truncation-q-cross-drop}
+\end{equation}
 \end{lemma}
 
 \begin{proof}
@@ -178,10 +179,36 @@ $v_i=\sqrt{d_i}F(z_i)$ with $F\in\{f,\bar f\}$,
  =\beta_{\mathrm A}^2\langle d_t,\mathcal Ld_t\rangle.
 \end{align*}
 Combining the two inequalities in
-$Q=\alpha I+(1-\alpha)\mathcal L/2$ proves
-\cref{eq:aesp-cd-truncation-q-energy}.  Summation and
+$Q=\alpha I+(1-\alpha)\mathcal L/2$ gives each separate energy bound.  For
+the stronger joint statement, the two scalar maps $f$ and $\bar f$ are both
+nondecreasing, so
+\begin{equation*}
+ \langle r_t,Qp_t\rangle
+ =\alpha\sum_i d_i f(z_i)\bar f(z_i)
+ +\frac{1-\alpha}{2}\sum_{\{i,j\}\in E}
+   (f(z_i)-f(z_j))(\bar f(z_i)-\bar f(z_j))\geq0.
+\end{equation*}
+Since $r_t+p_t=\beta_{\mathrm A}d_t$, expansion gives
+\begin{equation*}
+ \langle r_t,Qr_t\rangle+\langle p_t,Qp_t\rangle
+ \leq\langle r_t+p_t,Q(r_t+p_t)\rangle
+ =\beta_{\mathrm A}^2\langle d_t,Qd_t\rangle.
+\end{equation*}
+This proves \cref{eq:aesp-cd-truncation-q-energy}.  Summation and
 \cref{eq:aesp-cd-q-energy-drop} prove
-\cref{eq:aesp-cd-truncation-q-window}.
+\cref{eq:aesp-cd-truncation-q-window}.  Finally,
+$\supp(r_t)\cup\supp(p_t)\subseteq A_t$ and the finite active-row identity
+gives $[Qe_t]_{A_t}\geq0$.  Therefore both error cross terms are nonnegative,
+and the exact expansion
+\begin{equation*}
+ \mathfrak E_{t-1}^Q-\mathfrak E_t^Q
+ =\frac2{\beta_{\mathrm A}}
+   (\langle e_t,Qr_t\rangle+\langle e_t,Qp_t\rangle)
+  +\frac1{\beta_{\mathrm A}^2}
+   \left(\langle r_t,Qr_t\rangle+\langle p_t,Qp_t\rangle
+          +2\langle r_t,Qp_t\rangle\right)
+\end{equation*}
+proves \cref{eq:aesp-cd-truncation-q-cross-drop}.
 \end{proof}
 
 The square banks are scale-sensitive and horizon-independent, but they do
@@ -569,9 +596,33 @@ Now put $v_{t+1}:=p(\ell_t)-x_{t+1}$ and
  \bar z_{t+1}:=p(\ell_t)
    +(q^{-1}-1)(p(\ell_t)-x_t).
 \end{equation*}
-Then $z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$.  If
-$\norm{v_{t+1}}_2\leq\xi_t\leq1$, the exact virtual step followed by this
-comparison gives
+Then $z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$.  Define the virtual
+exact-output potential
+\begin{equation*}
+ \bar\Phi_{t+1}
+ :=\mathcal E(p(\ell_t))-\mathcal E(x^\star)
+   +\frac{\mu_{\mathcal E}}2
+      \norm{\bar z_{t+1}-x^\star}_2^2.
+\end{equation*}
+The exact virtual Nesterov step, evaluated from the actual finite state at
+time $t$, gives
+\begin{equation}
+ \bar\Phi_{t+1}
+ \leq(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}.
+ \label{eq:aesp-cd-virtual-inner-potential}
+\end{equation}
+If $\norm{v_{t+1}}_2\leq\xi_t$, then the finite comparison has the sharper
+square-root form
+\begin{equation}
+ \sqrt{\Phi_{t+1}^{\mathrm{fin}}}
+ \leq\sqrt{\bar\Phi_{t+1}}+\sqrt{\kappa_{\mathrm A}}\,\xi_t
+ \leq
+ \sqrt{(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}}
+ +\sqrt{\kappa_{\mathrm A}}\,\xi_t.
+ \label{eq:aesp-cd-finite-inner-root-potential}
+\end{equation}
+In particular, the previous additive interface remains valid, without the
+restriction $\xi_t\leq1$:
 \begin{equation}
  \Phi_{t+1}^{\mathrm{fin}}
  \leq(1-q)\gamma_t^{\mathrm{fin}}\Phi_t^{\mathrm{fin}}
@@ -579,12 +630,40 @@ comparison gives
       +\kappa_{\mathrm A}\xi_t^2.
  \label{eq:aesp-cd-finite-inner-potential}
 \end{equation}
-Indeed, $0\leq\bar z_{t+1}\leq x^\star/q$ and
-$\norm{x^\star}_2\leq1$.  The momentum-square comparison costs at most
-$\kappa_{\mathrm A}\xi_t+
-\kappa_{\mathrm A}\xi_t^2/2$.  Also
-$\norm{\nabla\mathcal E(a)}_2\leq\kappa_{\mathrm A}$ for
-$0\leq a\leq x^\star$.  Envelope smoothness therefore shows that replacing
-$p(\ell_t)$ by $x_{t+1}$ costs at most
-$\kappa_{\mathrm A}\xi_t+\kappa_{\mathrm A}\xi_t^2/2$.
-Adding the two comparisons proves the displayed constants.
+
+To prove \cref{eq:aesp-cd-finite-inner-root-potential}, write
+\begin{equation*}
+ A:=\mathcal E(p(\ell_t))-\mathcal E(x^\star),\qquad
+ B:=\frac{\mu_{\mathcal E}}2
+       \norm{\bar z_{t+1}-x^\star}_2^2,
+\end{equation*}
+so $A,B\geq0$ and $\bar\Phi_{t+1}=A+B$.  The Moreau envelope of the proper
+closed convex obstacle objective is globally $\kappa_{\mathrm A}$-smooth.
+Its self-bounding inequality and smoothness therefore give
+\begin{equation*}
+ \mathcal E(p(\ell_t)-v_{t+1})-\mathcal E(x^\star)
+ \leq A+\sqrt{2\kappa_{\mathrm A}A}\,\xi_t
+       +\frac{\kappa_{\mathrm A}}2\xi_t^2.
+\end{equation*}
+Using $\mu_{\mathcal E}=\kappa_{\mathrm A}q^2$ and
+$z_{t+1}^{\mathrm{fin}}=\bar z_{t+1}-v_{t+1}/q$, the momentum square is at
+most
+\begin{equation*}
+ B+\sqrt{2\kappa_{\mathrm A}B}\,\xi_t
+  +\frac{\kappa_{\mathrm A}}2\xi_t^2.
+\end{equation*}
+Add the two bounds and use
+$\sqrt A+\sqrt B\leq\sqrt{2(A+B)}$ to obtain
+\begin{equation*}
+ \Phi_{t+1}^{\mathrm{fin}}
+ \leq\left(\sqrt{\bar\Phi_{t+1}}
+              +\sqrt{\kappa_{\mathrm A}}\,\xi_t\right)^2.
+\end{equation*}
+This proves the root recursion.  Finally, the finite safe chain gives
+$0\leq p(\ell_t)\leq x^\star$, $0\leq\bar z_{t+1}\leq x^\star/q$, and
+$\norm{x^\star}_2\leq1$.  Smoothness at the minimizer bounds $A\leq
+\kappa_{\mathrm A}/2$, while the momentum term has $B\leq
+\kappa_{\mathrm A}/2$.  Thus $\bar\Phi_{t+1}\leq\kappa_{\mathrm A}$;
+squaring the first inequality in
+\cref{eq:aesp-cd-finite-inner-root-potential} and then applying
+\cref{eq:aesp-cd-virtual-inner-potential} proves the coarser additive display.

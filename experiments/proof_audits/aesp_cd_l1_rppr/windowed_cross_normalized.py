@@ -1,0 +1,508 @@
+#!/usr/bin/env python3
+"""Exact Round-028 audits for the cross-normalized window bank.
+
+The checker verifies the modal PSD remainder, the full-reset constant, the
+critical K2 trajectory, and the source claim boundary using exact rational
+arithmetic.  It does not claim payment of mixed correction forcing, a moving-
+face theorem, or an unconditional accelerated solver.
+"""
+
+from __future__ import annotations
+
+from fractions import Fraction as F
+
+from experiments.proof_audits import note_directory, note_tex_source
+
+
+def modal_data(q: F, s: F) -> tuple[F, F, F, F]:
+    """Return the direct PSD remainder entries and determinant."""
+    assert 0 < q < 1 and 0 <= s <= 1
+    theta = 1 - q
+    alpha = q * q / (1 + q * q)
+    kappa = (1 - q * q) / (1 + q * q)
+    c = kappa + alpha
+    lam = (q * q + s) / (1 + q * q)
+    m = kappa / (kappa + lam)
+    a = m / (1 + q)
+    weight = c / lam
+    r11 = theta - a * a - weight * (a - theta) ** 2
+    r12 = -(a * a + weight * a * (a - theta))
+    r22 = theta * weight - a * a - weight * a * a
+    determinant = r11 * r22 - r12 * r12
+    return r11, r12, r22, determinant
+
+
+def check_modal_psd_remainder() -> None:
+    """Match the displayed rational formulas and verify exact PSD signs."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2), F(4, 5)):
+        for s in (F(0), F(1, 13), F(1, 2), F(1)):
+            r11, r12, r22, determinant = modal_data(q, s)
+            denominator = (q * q + s) * (1 + s) ** 2
+            wanted_11 = (
+                (1 - q)
+                * (q**3 + q * q * s * s + 2 * q * q * s + q * s * s + q * s + s**3 + s * s)
+                / denominator
+            )
+            wanted_12 = -(q * q * (1 - q) ** 2) / denominator
+            wanted_22 = (1 - q) * (q**3 - q * q + q * s + q + s * s + s) / denominator
+            wanted_det = (
+                (1 - q) ** 2
+                * (q**5 + 2 * q**3 * s + q * q * s * s + q * q * s + 2 * q * s * s + s**3)
+                / ((q * q + s) ** 2 * (1 + s) ** 2)
+            )
+            assert (r11, r12, r22, determinant) == (
+                wanted_11,
+                wanted_12,
+                wanted_22,
+                wanted_det,
+            )
+            assert r11 >= 0 and r22 >= 0 and determinant >= 0
+
+
+def check_full_reset_constant() -> None:
+    """Verify the exact modal full-reset coefficient and its endpoint max."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        theta = 1 - q
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        c = kappa + alpha
+        bound = theta * theta * (q * q + 2 * q + 2)
+        endpoint = None
+        for s in (F(0), F(1, 100), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            m = kappa / (kappa + lam)
+            coefficient = m * m + c * (m - theta) ** 2 / lam
+            assert coefficient <= bound < 2
+            if s == 0:
+                endpoint = coefficient
+        assert endpoint == bound
+
+
+def check_k2_critical_mode() -> None:
+    """Check that the K2 critical mode contracts at the accelerated scale."""
+    amplitude = F(7, 16)
+    for q in (F(1, 100), F(1, 20), F(1, 5)):
+        theta = 1 - q
+        previous_bank = None
+        for stage in range(1, 30):
+            error = amplitude * (1 + stage * q) * theta**stage
+            velocity = amplitude * q * theta**stage
+            bank = error * error + velocity * velocity / (q * q)
+            displayed = amplitude * amplitude * theta ** (2 * stage) * ((1 + stage * q) ** 2 + 1)
+            assert bank == displayed
+            if previous_bank is not None:
+                assert bank <= theta * previous_bank
+            previous_bank = bank
+
+
+def check_forced_state_identity() -> None:
+    """Verify that one correction adds the same Mr to e and u."""
+    q = F(1, 7)
+    theta = 1 - q
+    m = F(5, 9)
+    error = F(3, 5)
+    velocity = F(2, 11)
+    correction = F(1, 13)
+    homogeneous_error = m * (error + velocity) / (1 + q)
+    next_error = homogeneous_error + m * correction
+    homogeneous_velocity = homogeneous_error - theta * error
+    next_velocity = next_error - theta * error
+    assert next_velocity == homogeneous_velocity + m * correction
+
+
+def check_contract_or_spend_endpoint() -> None:
+    """Verify the exact low-endpoint normalizer in the spend corollary."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        mu = kappa * q * q
+        c = kappa + alpha
+        m0 = 1 - q * q
+        previous = None
+        for s in (F(0), F(1, 100), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = mode * mode * (1 + c / lam)
+            assert mu * kernel <= m0**3
+            if previous is not None:
+                assert kernel < previous
+            previous = kernel
+            if s == 0:
+                assert mu * kernel == m0**3
+
+
+def check_moreau_event_kernel() -> None:
+    """Verify the bounded Moreau forcing metric and the raw face shock."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        m0 = 1 - q * q
+        previous = None
+        endpoint = None
+        for s in (F(0), F(1, 100), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = kappa * mode * mode + alpha * mode**3
+            assert kernel <= m0**3
+            if previous is not None:
+                assert kernel < previous
+            previous = kernel
+            if s == 1:
+                endpoint = kernel
+        assert endpoint == m0**3 * (2 + q * q) / (8 * (1 + q * q))
+
+    q = F(1, 100)
+    m0 = 1 - q * q
+    singleton_diagonal = F(2, 3) * m0
+    full_diagonal = F(3, 4) * m0
+    assert singleton_diagonal == F(3333, 5000)
+    assert full_diagonal == F(29997, 40000)
+    assert full_diagonal / singleton_diagonal == F(9, 8)
+
+
+def check_moreau_signed_event() -> None:
+    """Verify the signed correction identity, payment, and K8 sharpness."""
+    for q in (F(1, 100), F(1, 20), F(1, 5), F(1, 2)):
+        theta = 1 - q
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        beta = theta / (1 + q)
+        c = kappa + alpha
+        for s in (F(0), F(1, 13), F(1, 2), F(1)):
+            lam = (q * q + s) / (1 + q * q)
+            mode = kappa / (kappa + lam)
+            kernel = kappa * mode * mode + alpha * mode**3
+            signed = kernel - c * theta * mode * mode
+            assert signed == c * q * mode * mode * (theta + q * mode)
+            assert 0 <= signed <= q * kernel
+            assert q * signed <= lam * mode
+
+            error = F(3, 5)
+            displacement = F(2, 11)
+            uncorrected = beta * displacement
+            correction = uncorrected * F(4, 7)
+            retained = uncorrected - correction
+            velocity = q * error - theta * displacement
+
+            def next_bank(advance: F) -> F:
+                next_error = mode * (error - advance)
+                next_velocity = next_error - theta * error
+                return (
+                    lam * mode * next_error * next_error + c * mode * next_velocity * next_velocity
+                )
+
+            xi = next_bank(retained) - next_bank(uncorrected)
+            claimed = -correction * kernel * (retained + uncorrected)
+            claimed += 2 * correction * signed * error
+            assert xi == claimed
+            current_bank = lam * mode * error * error + c * mode * velocity * velocity
+            assert next_bank(retained) <= theta * current_bank + xi
+            positive = max(F(0), xi)
+            previous_error = error + displacement
+            spend = signed * (previous_error * previous_error - error * error)
+            assert positive <= beta * spend
+
+    q = F(1, 100)
+    alpha = q * q / (1 + q * q)
+    kappa = (1 - q * q) / (1 + q * q)
+    beta = (1 - q) / (1 + q)
+    c = kappa + alpha
+    a0 = F(1, 112)
+    m0 = 1 - q * q
+    mh = 7 * (1 - q * q) / 11
+    lam0 = alpha
+    lamh = (4 + 7 * q * q) / (7 * (1 + q * q))
+    s0 = (1 - q) * (1 + 2 * q) / (1 + q)
+    sh = (1 - q) * (3 + 14 * q) / (11 * (1 + q))
+    modal = []
+    for weight, lam, mode, e1, e2 in (
+        (F(8), lam0, m0, a0 * m0, a0 * m0 * s0),
+        (F(8, 7), lamh, mh, 12 * a0 * q * q * mh, 12 * a0 * q * q * mh * sh),
+    ):
+        velocity = e2 - (1 - q) * e1
+        advance = beta * (e1 - e2)
+        b_value = lam * mode
+        k_value = kappa * mode * mode + alpha * mode**3
+        j_value = c * q * mode * mode * ((1 - q) + q * mode)
+        modal.append((weight, b_value, mode, e1, e2, velocity, advance, k_value, j_value))
+    bank = sum(
+        weight * (b * e2 * e2 + c * mode * velocity * velocity)
+        for weight, b, mode, _e1, e2, velocity, _advance, _k, _j in modal
+    )
+    xi = sum(
+        weight * (2 * advance * j * e2 - advance * advance * k_value)
+        for weight, _b, _mode, _e1, e2, _velocity, advance, k_value, j in modal
+    )
+    spend = sum(
+        weight * j * (e1 * e1 - e2 * e2)
+        for weight, _b, _mode, e1, e2, _velocity, _advance, _k, j in modal
+    )
+    assert bank == F(30_626_486_222_415_897_317_841, 245_024_500_000_000_000_000_000_000_000)
+    assert xi == F(
+        59_770_569_685_031_497_483_379_631_729,
+        24_502_450_000_000_000_000_000_000_000_000_000_000,
+    )
+    assert spend == F(
+        8_836_441_711_657_968_424_790_649_753,
+        3_500_350_000_000_000_000_000_000_000_000_000_000,
+    )
+    assert xi / (q * bank) == F(
+        10_021_978_673_028_809_851_221,
+        5_135_269_638_022_709_000_000,
+    )
+    assert xi / (beta * spend) == F(223_470_436_663_072_443, 226_684_570_401_383_843)
+
+
+def kn_cross_data(n: int) -> tuple[F, F, F]:
+    """Return the exact K_N full/preceding and low/initial-high ratios."""
+    q = F(1, 100)
+    alpha = q * q / (1 + q * q)
+    kappa = (1 - q * q) / (1 + q * q)
+    mu = kappa * q * q
+    beta = (1 - q) / (1 + q)
+    c = kappa + alpha
+    m0 = 1 - q * q
+    amplitude = F(12)
+    k = n - 1
+    a0 = F(1, 2 * n * k)
+    lam = F(n + (n - 2) * alpha, 2 * k)
+    mh = kappa / (kappa + lam)
+    s0 = (1 - q) * (1 + 2 * q) / (1 + q)
+    sh = (1 + beta) * mh - beta
+
+    # Exact positivity and chronology inequalities used in the proof.
+    assert amplitude * lam * (1 + q * q) < k
+    assert amplitude * lam / (kappa * k) < 1
+    assert 3 - 2 * q > amplitude / k
+    assert s0 / (1 + q * q) - amplitude * lam * sh / k > 0
+    t0 = (1 + beta) * s0 - beta
+    th = (1 + beta) * sh - beta
+    fh = -lam * mh * th
+    l0 = m0 * t0 / (1 + q * q)
+    assert th < 0 and fh > F(9, 100)
+    assert amplitude * fh - l0 > F(2, 25)
+    cap = a0 * m0 * (amplitude * fh - l0)
+    assert cap > F(79, 1000) * a0
+
+    e1_low = a0 * m0
+    e2_low = e1_low * s0
+    u2_low = e2_low - (1 - q) * e1_low
+    e1_high = a0 * amplitude * q * q * mh
+    e2_high = e1_high * sh
+    u2_high = e2_high - (1 - q) * e1_high
+    moreau_bank_2 = n * (alpha * m0 * e2_low * e2_low + c * m0 * u2_low * u2_low)
+    moreau_bank_2 += F(n, k) * (lam * mh * e2_high * e2_high + c * mh * u2_high * u2_high)
+
+    r_low = beta * m0 * (1 - s0) * a0
+    r_high = beta * amplitude * q * q * mh * (1 - sh) * a0
+    assert r_low + r_high < a0 * q * q * (2 + amplitude)
+    correction_norm = n * r_low * r_low + F(n, k) * r_high * r_high
+    assert m0**3 * correction_norm / (q * moreau_bank_2) < F(1, 16)
+    forcing = n * m0 * m0 * (1 + c / alpha) * r_low * r_low
+    forcing += F(n, k) * mh * mh * (1 + c / lam) * r_high * r_high
+    preceding_high_drop = F(n, k) * lam * (amplitude * q * q * mh * a0) ** 2 * (1 - sh * sh)
+    full_ratio = mu * forcing / preceding_high_drop
+
+    low_forcing = 4 * n * a0 * a0 * q**4 * m0 * (1 - q) ** 6
+    initial_high = F(n, k) * lam * amplitude * amplitude * q**4 * a0 * a0
+    global_ratio = low_forcing / initial_high
+    displayed = 4 * k * m0 * (1 - q) ** 6 / (lam * amplitude * amplitude)
+    assert global_ratio == displayed > F(k, 23)
+
+    # The same pulse transfers a dimension-growing amount from high to the
+    # signed constant-mode event, even after granting a factor 1/q.
+    j0 = c * q * m0 * m0 * (1 - q**3)
+    k0 = m0**3
+    xi0 = 2 * (r_low / a0) * j0 * (e2_low / a0) - (r_low / a0) ** 2 * k0
+    assert xi0 / q**3 == F(9_604_970_786_001_983_020_299, 2_500_250_000_000_000_000_000)
+    initial_high_moreau = F(n, k) * mh * (lam + c * q * q) * (amplitude * q * q * a0) ** 2
+    low_signed = n * a0 * a0 * xi0
+    high_to_low_ratio = q * low_signed / initial_high_moreau
+    closed_high_to_low = (
+        k
+        * (3 * k + 1)
+        * (1 - q) ** 6
+        * (1 + 2 * q + 3 * q * q + q**3)
+        / (36 * (k + 1 + 4 * k * q * q))
+    )
+    assert high_to_low_ratio == closed_high_to_low > F(k, 15)
+    return full_ratio, global_ratio, cap
+
+
+def check_kn_high_drop_stop() -> None:
+    """Check the reachable complete-graph high-drop-only obstruction."""
+    expected = {
+        8: F(73_387_864_081_058_649_690_843, 85_491_071_047_000_000_000_000),
+        12: F(
+            161_030_072_622_852_958_763_160_029_349,
+            116_243_846_625_372_641_000_000_000_000,
+        ),
+        20: F(
+            3_968_141_818_754_077_651_395_627_573_501,
+            1_622_745_677_658_664_481_000_000_000_000,
+        ),
+    }
+    for n in [*range(8, 301), 1000]:
+        full_ratio, global_ratio, cap = kn_cross_data(n)
+        assert full_ratio > 0 and global_ratio > 0 and cap > 0
+        if n in expected:
+            assert full_ratio == expected[n]
+    assert expected[8] < 1 < expected[12]
+
+
+def check_psi_high_bridge() -> None:
+    """Check the exact modal identity linking Psi and the high Moreau bank."""
+    for q in (F(1, 20), F(1, 8), F(1, 2)):
+        alpha = q * q / (1 + q * q)
+        kappa = (1 - q * q) / (1 + q * q)
+        c = kappa + alpha
+        theta = 1 - q
+        beta = theta / (1 + q)
+        m0 = 1 - q * q
+        assert (1 + beta) ** 2 / (4 * beta) == 1 / m0
+        for lam in (2 * q, (1 + 2 * q) / 2, F(1)):
+            m = kappa / (kappa + lam)
+            assert lam * m == kappa * (1 - m)
+            assert 0 < m <= theta
+            minimum_v = 1 - m / m0
+            assert minimum_v >= q * m / m0
+            for h, v in ((F(2, 7), F(-3, 8)), (F(5, 9), F(4, 11))):
+                u = h - theta * v
+                master = h * h - (1 + beta) * m * h * v + beta * m * v * v
+                high_bank = lam * m * h * h + c * m * u * u
+                assert high_bank == kappa * master + alpha * m * h * h
+                assert master >= minimum_v * h * h
+                assert kappa * master <= high_bank <= kappa * (1 + q) * master
+        assert (1 + q) / 4 <= F(3, 8)
+
+
+def check_forced_mean_epoch() -> None:
+    """Check the exact low-mode dichotomy and repeated-root Green formula."""
+    for q in (F(1, 20), F(1, 8), F(1, 2)):
+        theta = 1 - q
+        beta = theta / (1 + q)
+        m0 = 1 - q * q
+        kappa = (1 - q * q) / (1 + q * q)
+
+        # An overshooting trial, corrected just enough to keep a nonnegative
+        # mean output, obeys the claimed accelerated low-bank comparison.
+        mean = F(2, 7)
+        displacement = 2 * mean / beta
+        previous = mean + displacement
+        trial_mean = mean - beta * displacement
+        assert trial_mean < 0
+        mean_correction = -trial_mean
+        following = m0 * (trial_mean + mean_correction)
+        velocity = mean - theta * previous
+        following_velocity = following - theta * mean
+        bank = kappa * (q * q * mean * mean + velocity * velocity)
+        following_bank = kappa * (
+            q * q * following * following + following_velocity * following_velocity
+        )
+        assert 0 <= mean_correction <= beta * displacement
+        assert following_bank < theta * bank
+
+        # Same-point restart and arbitrary admissible mean corrections.
+        horizon = 7
+        corrections = [F(t + 1, 1000) for t in range(horizon)]
+        before = current = F(3, 11)
+        for correction in corrections:
+            following = m0 * ((1 + beta) * current - beta * before + correction)
+            before, current = current, following
+        closed = (1 + q * horizon) * theta**horizon * F(3, 11)
+        closed += m0 * sum(
+            (horizon - t) * theta ** (horizon - 1 - t) * corrections[t] for t in range(horizon)
+        )
+        assert current == closed
+
+        # The arbitrary-history low root has an exact shear/impulse formula
+        # in coordinates (q*a, omega).  This checks the window indices used
+        # by the observable two-scale gate.
+        horizon = 5
+        previous = F(7, 13)
+        current = F(5, 13)
+        initial = current
+        initial_velocity = current - theta * previous
+        impulses = [m0 * F(t + 1, 997) for t in range(horizon)]
+        for impulse in impulses:
+            following = theta * (current + (current - theta * previous)) + impulse
+            previous, current = current, following
+        velocity = current - theta * previous
+        closed_q_mean = theta**horizon * (q * initial + horizon * q * initial_velocity)
+        closed_q_mean += sum(
+            theta ** (horizon - 1 - t) * q * (horizon - t) * impulses[t] for t in range(horizon)
+        )
+        closed_velocity = theta**horizon * initial_velocity
+        closed_velocity += sum(theta ** (horizon - 1 - t) * impulses[t] for t in range(horizon))
+        assert q * current == closed_q_mean
+        assert velocity == closed_velocity
+
+        # Dual trial bound behind the observable pure-prox alignment gate.
+        for m in (theta, (theta + F(1, 3)) / 2, F(1, 3)):
+            if not 0 < m <= theta:
+                continue
+            for high, old_high in ((F(2, 5), F(-1, 7)), (F(3, 11), F(4, 9))):
+                master = (
+                    high * high - (1 + beta) * m * high * old_high + beta * m * old_high * old_high
+                )
+                trial = (1 + beta) * high - beta * old_high
+                assert trial * trial * m * (1 - m / m0) <= beta * master
+
+
+def check_source_scope() -> None:
+    """Guard theorem labels and the explicit non-overclaim boundary."""
+    base = note_directory("aesp_cd_l1_rppr")
+    main = note_tex_source("aesp_cd_l1_rppr")
+    readme = (base / "README.md").read_text()
+    status = (base / "STATUS.md").read_text()
+    assert "prop:aesp-cd-cross-normalized-bank" in main
+    assert "eq:aesp-cd-cross-normalized-forcing" in main
+    assert "prop:aesp-cd-kn-cross-bank-stop" in main
+    assert "prop:aesp-cd-cross-normalized-contract-spend" in main
+    assert "eq:aesp-cd-cross-normalized-low-spend" in main
+    assert "prop:aesp-cd-moreau-epoch-restart" in main
+    assert "eq:aesp-cd-moreau-epoch-net" in main
+    assert "prop:aesp-cd-moreau-signed-event" in main
+    assert "eq:aesp-cd-moreau-signed-net" in main
+    assert "eq:aesp-cd-k8-signed-sharpness" in main
+    assert "eq:aesp-cd-kn-high-to-low-stop" in main
+    assert "prop:aesp-cd-psi-high-window" in main
+    assert "eq:aesp-cd-psi-high-identity" in main
+    assert "prop:aesp-cd-low-overshoot-trigger" in main
+    assert "prop:aesp-cd-master-mean-epoch" in main
+    assert "cor:aesp-cd-observable-two-scale-window" in main
+    assert "cor:aesp-cd-finite-two-scale-window" in main
+    assert "prop:aesp-cd-observable-alignment-tail" in main
+    assert "nonoptimal proper face" in main
+    assert "high-drop-only payment" in main
+    assert "cross-normalized" in readme
+    assert "Q_A^-1" in status
+    assert "No graph-uniform exact accelerated solver" in readme
+
+
+def main() -> None:
+    check_modal_psd_remainder()
+    check_full_reset_constant()
+    check_k2_critical_mode()
+    check_forced_state_identity()
+    check_contract_or_spend_endpoint()
+    check_moreau_event_kernel()
+    check_moreau_signed_event()
+    check_kn_high_drop_stop()
+    check_psi_high_bridge()
+    check_forced_mean_epoch()
+    check_source_scope()
+    print("Round-028 exact cross-normalized window audit passed")
+    print("  modal bank: one-step (1-q) contraction")
+    print("  full reset: exact C0(q)<2 and Theta(1/q) window")
+    print("  K_N: high-drop-only correction payment has Omega(N) loss")
+    print("  contract-or-spend: exact low Euclidean endpoint normalizer")
+    print("  Moreau epoch bank: bounded forcing metric and exact K2 face shock")
+    print("  signed Moreau events: exact telescope and reachable K8 sharpness")
+    print("  Psi bridge: exact high-bank identity and 3/8 master-certified window")
+    print("  mean split: exact root-window gate and observable alignment tail")
+    print("  scope: changing-face finite-inner restart transfer remains open")
+
+
+if __name__ == "__main__":
+    main()

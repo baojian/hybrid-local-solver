@@ -194,5 +194,608 @@ RPPR subproblems and, more generally, to separable $\ell_1$ regularization of
 any Stieltjes quadratic admitting a positive supersolution.  It does not by
 itself control how an outer extrapolation chooses its successive starts.
 
-Thus the composite analogue of the ordinary-PPR residual-mass contraction is
-valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
+\begin{theorem}[Fixed-face Chebyshev solve with a safe Stieltjes output]
+\label{thm:aesp-cd-safe-chebyshev-face}
+Let $A$ be a fixed active face and consider the interior linear system
+\begin{equation*}
+ H_Ax=b_A,
+ \qquad
+ H_A=H_A^\top\succ0,
+ \qquad
+ (H_A)_{ij}\leq0\quad(i\neq j).
+\end{equation*}
+Suppose
+\begin{equation*}
+ \mu_{\rm sp}I\preceq H_A\preceq L_{\rm sp}I,
+ \qquad
+ H_A\upsilon\geq\mu_\upsilon\upsilon
+\end{equation*}
+for certified scalars $0<\mu_{\rm sp}\leq L_{\rm sp}$,
+$\mu_\upsilon>0$, and a certified vector $\upsilon>0$.  Assume the face
+solution $x_A^\star:=H_A^{-1}b_A$ is strictly positive.  Let $y_A\geq0$ be
+an optional published checkpoint satisfying
+$b_A-H_Ay_A\geq0$ on $\supp(y_A)$; take $y_A=0$ when no checkpoint is
+needed.  Starting from any
+$z_0$, let $\widehat x_k$ be the degree-$k$ Chebyshev semi-iterate and put
+$r_k=b_A-H_A\widehat x_k$.  Then
+\begin{equation}
+ \norm{r_k}_2
+ \leq2\zeta^k\norm{r_0}_2,
+ \qquad
+ \mathcal K:=\frac{L_{\rm sp}}{\mu_{\rm sp}},
+ \qquad
+ \zeta:=\frac{\sqrt{\mathcal K}-1}{\sqrt{\mathcal K}+1}.
+ \label{eq:aesp-cd-safe-chebyshev-rate}
+\end{equation}
+Define the a posteriori Stieltjes retraction
+\begin{equation}
+ \Delta_k:=\max_{i\in A}
+   \frac{[-r_{k,i}]_+}{\mu_\upsilon\upsilon_i},
+ \qquad
+ s_k:=[\widehat x_k-\Delta_k\upsilon]_+,
+ \qquad
+ \ell_k:=y_A\vee s_k.
+ \label{eq:aesp-cd-safe-chebyshev-retraction}
+\end{equation}
+Then $b_A-H_A\ell_k\geq0$ on $\supp(\ell_k)$ and
+$0\leq y_A\leq\ell_k\leq x_A^\star$.  Moreover, with
+$\upsilon_{\min}:=\min_i\upsilon_i$,
+\begin{equation}
+ \norm{x_A^\star-\ell_k}_2
+ \leq\left(
+  \frac1{\mu_{\rm sp}}
+  +\frac{\norm{\upsilon}_2}{\mu_\upsilon\upsilon_{\min}}
+ \right)\norm{r_k}_2.
+ \label{eq:aesp-cd-safe-chebyshev-output-error}
+\end{equation}
+If $y_A>0$, the output remains in the same relative interior.  The same is
+true without a positive checkpoint if
+\begin{equation}
+ \min_{i\in A}\frac{\widehat x_{k,i}}{\upsilon_i}>\Delta_k,
+ \label{eq:aesp-cd-safe-chebyshev-face-guard}
+\end{equation}
+holds.
+The computation uses $k$ applications of $H_A$ and one face scan.
+
+For $H_A=Q_A+\kappa'I$, with
+$\lambda_1(Q_A)\geq\underline\lambda>0$ and $Q_A\preceq I$, choosing
+$\kappa'=\Theta(\underline\lambda)$ gives
+\begin{equation}
+ k=O\!\left(
+  \underline\lambda^{-1/2}
+  \log\frac{\norm{r_0}_2}{\xi}
+ \right)
+ \label{eq:aesp-cd-safe-chebyshev-small-shift-work}
+\end{equation}
+applications to reach a prescribed residual scale $\xi$, up to the standard
+condition-number factor inside the logarithm.  If an $H_A$ application costs
+$O(\vol(A))$, the degree work is
+$\widetilde O(\vol(A)/\sqrt{\underline\lambda})$.
+For a principal RPPR face one may take
+$\upsilon=D_A^{1/2}\one$ and
+$\mu_\upsilon=\alpha+\kappa'$, because deleting exterior Stieltjes
+off-diagonal entries only increases $Q_A\upsilon$.
+More specifically, if
+$b_A=c_A+\kappa'y_A$, $y_A>0$, and
+$c_A-Q_Ay_A\geq0$, then the published output is also an original-system
+lower certificate:
+\begin{equation}
+ c_A-Q_A\ell_k
+ =(b_A-H_A\ell_k)+\kappa'(\ell_k-y_A)\geq0.
+ \label{eq:aesp-cd-safe-chebyshev-original-lower}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The Chebyshev estimate in
+\cref{eq:aesp-cd-safe-chebyshev-rate} is the standard minimax residual bound
+on $[\mu_{\rm sp},L_{\rm sp}]$.  It remains to verify that acceleration has
+not destroyed the order certificate.  If $s_{k,i}>0$, then
+$s_{k,i}=\widehat x_{k,i}-\Delta_k\upsilon_i$, whereas
+$s_{k,j}\geq\widehat x_{k,j}-\Delta_k\upsilon_j$ for every $j$.  The
+nonpositive off-diagonal entries therefore give
+\begin{align*}
+ (H_As_k)_i
+ &\leq[H_A(\widehat x_k-\Delta_k\upsilon)]_i\\
+ &\leq(H_A\widehat x_k)_i-\mu_\upsilon\Delta_k\upsilon_i
+ \leq b_{A,i}.
+\end{align*}
+Thus $s_k$ is an obstacle subsolution.  The coordinatewise maximum of two
+Stieltjes obstacle subsolutions is again a subsolution: at a coordinate
+selected from one input, increasing the other coordinates can only decrease
+that matrix row.  Hence $\ell_k=y_A\vee s_k$ is a subsolution.  The weighted
+maximum principle yields
+$0\leq y_A\leq\ell_k\leq x_A^\star$.
+
+The linear-system error obeys
+$\norm{x_A^\star-\widehat x_k}_2\leq
+\norm{r_k}_2/\mu_{\rm sp}$, while
+$\Delta_k\leq
+\norm{r_k}_2/(\mu_\upsilon\upsilon_{\min})$.
+For $t_k:=\widehat x_k-\Delta_k\upsilon$ one has
+\begin{equation*}
+ H_A(x_A^\star-t_k)=r_k+\Delta_kH_A\upsilon\geq0,
+\end{equation*}
+so inverse positivity gives $t_k\leq x_A^\star$.  Taking the positive part
+and then the maximum with $y_A$ can only move the point coordinatewise toward
+$x_A^\star$.  This proves
+\cref{eq:aesp-cd-safe-chebyshev-output-error}.  The strict guard prevents the
+positive-part operation from deleting a face coordinate when the checkpoint
+itself is not already positive.  The
+small-shift work statement follows from
+\begin{equation*}
+ \mathcal K
+ \leq\frac{1+\kappa'}{\underline\lambda+\kappa'}
+ =O(\underline\lambda^{-1}).
+\end{equation*}
+Every Chebyshev multiplication is restricted to the already exposed face;
+the theorem makes no claim about discovering that face or surviving an
+admission during the iteration.
+\end{proof}
+
+\begin{corollary}[Collatz-certified small shift]
+\label{cor:aesp-cd-collatz-small-shift}
+Let
+$M_{\bar\kappa}=\bar\kappa(Q_A+\bar\kappa I)^{-1}$ be entrywise positive
+on a connected fixed face, and let $z>0$.  A certified Collatz upper ratio
+\begin{equation*}
+ U\geq\max_{i\in A}\frac{(M_{\bar\kappa}z)_i}{z_i},
+ \qquad U<1,
+\end{equation*}
+gives the spectral lower bound
+\begin{equation}
+ \lambda_1(Q_A)\geq
+ \underline\lambda_U:=\bar\kappa(U^{-1}-1).
+ \label{eq:aesp-cd-collatz-small-shift}
+\end{equation}
+Consequently \cref{thm:aesp-cd-safe-chebyshev-face} may use
+$\kappa'=\Theta(\underline\lambda_U)$ without knowing the Perron eigenpair.
+If, for a constant $c>0$, the certificate also satisfies
+$1-U\geq c[1-m_1(M_{\bar\kappa})]$, then
+$\underline\lambda_U=\Theta(\lambda_1(Q_A))$ and the fixed-face work is
+$\widetilde O(\vol(A)/\sqrt{\lambda_1(Q_A)})$.
+For constant $\bar\kappa$, this is
+$\widetilde O(\vol(A)/q_{\rm face})$, where
+$q_{\rm face}^2=\lambda_1/(\bar\kappa+\lambda_1)$.
+\end{corollary}
+
+\begin{proof}
+Collatz--Wielandt gives
+$m_1(M_{\bar\kappa})\leq U$.  Since
+$m_1=\bar\kappa/(\bar\kappa+\lambda_1(Q_A))$, inversion gives
+\cref{eq:aesp-cd-collatz-small-shift}.  The remaining statements follow from
+\cref{eq:aesp-cd-safe-chebyshev-small-shift-work}.
+Constructing the certified ratio requires its own resolvent solve and face
+scan; the corollary does not treat that work as free.
+\end{proof}
+
+\begin{corollary}[Direct accelerated solve after final-face certification]
+\label{cor:aesp-cd-final-face-chebyshev}
+Suppose the final RPPR support $S^\star$ has been exposed and certified, and
+the restricted optimum is in its relative interior.  Apply
+\cref{thm:aesp-cd-safe-chebyshev-face} directly to the unshifted system
+$Q_{S^\star}x=c_{S^\star}$, using
+\begin{equation*}
+ \alpha I\preceq Q_{S^\star}\preceq I,
+ \qquad
+ \upsilon=D_{S^\star}^{1/2}\one,
+ \qquad
+ Q_{S^\star}\upsilon\geq\alpha\upsilon.
+\end{equation*}
+Once the raw Chebyshev residual is at most $\xi$, the published safe output
+has the error bound in
+\cref{eq:aesp-cd-safe-chebyshev-output-error}; reaching that raw scale uses
+\begin{equation}
+ O\!\left(\frac1{\sqrt\alpha}
+   \log\frac{\norm{r_0}_2}{\xi}\right)
+ \label{eq:aesp-cd-final-face-chebyshev-work}
+\end{equation}
+restricted matrix applications and one final certificate scan.  Hence its
+degree work is
+\begin{equation*}
+ \widetilde O\!\left(
+   \frac{\vol(S^\star)}{\sqrt\alpha}\right)
+ \leq
+ \widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right).
+\end{equation*}
+This is an accelerated local terminal solver once the final face is known;
+it does not charge support discovery or prove that a provisional face is
+final.
+\end{corollary}
+
+\begin{proposition}[Unrestricted polynomial scratch can spill exponentially]
+\label{prop:aesp-cd-polynomial-scratch-spill-stop}
+Let $T_d$ be a rooted $d$-regular tree, $d\geq3$, with adjacency matrix
+$A_d$.  If
+$p_k(t)=a_kt^k+\cdots+a_0$ has $a_k\neq0$, then for every vertex $v$ at
+distance $k$ from the root $o$,
+\begin{equation}
+ [p_k(A_d)e_o]_v=a_k\neq0.
+ \label{eq:aesp-cd-polynomial-scratch-spill}
+\end{equation}
+Hence the scratch support contains at least
+$d(d-1)^{k-1}$ coordinates.  The same conclusion holds for normalized
+adjacency and Stieltjes operators with nonzero edge weights, with the right
+side multiplied by the unique path-weight product.
+
+This spill is not merely a nonzero-support artifact.  Put
+\begin{equation*}
+ B:=\frac{A_d}{2\sqrt{d-1}},\qquad
+ c_\alpha:=\frac{1+\alpha}{2},\qquad
+ r_\alpha:=\frac{1-\alpha}{2},\qquad
+ H:=c_\alpha I-r_\alpha B.
+\end{equation*}
+Then $\operatorname{spec}(H)\subseteq[\alpha,1]$, and the degree-$k$ Chebyshev residual
+polynomial applied to $e_o$ is
+\begin{equation*}
+ \frac{T_k(B)e_o}{T_k(c_\alpha/r_\alpha)}.
+\end{equation*}
+Its squared $\ell_2$ mass on the distance-$k$ frontier is exactly
+\begin{equation}
+ \frac{d}{4(d-1)T_k(c_\alpha/r_\alpha)^2}.
+ \label{eq:aesp-cd-chebyshev-frontier-mass}
+\end{equation}
+For $k=\Theta(1/\sqrt\alpha)$ the denominator is constant-order.  More
+sharply, the frontier has $N=d(d-1)^{k-1}$ equal-magnitude entries, while
+$\norm{T_k(B)e_o}_2\leq1$.  Any coordinate-sparse approximation retaining
+fewer than $N/2$ frontier coordinates therefore has relative error at least
+\begin{equation*}
+ \sqrt{\frac{d}{8(d-1)}}.
+\end{equation*}
+Thus every smaller fixed-relative-error representation retains
+$\exp(\Theta(1/\sqrt\alpha))$ coordinates.
+
+This wave is compatible with a root-only obstacle optimum.  For any
+$\delta>0$, take $x^\star=e_o$ and the sparse right-hand side
+\begin{equation*}
+ b:=He_o-\delta\sum_{v\sim o}e_v.
+\end{equation*}
+Then $Hx^\star-b$ is zero at the root and equals $\delta$ at its neighbors,
+so the obstacle KKT conditions hold and $\supp(x^\star)=\{o\}$.  The neighbor
+part of $b$ contributes zero to the distance-$k$ frontier of $T_k(B)b$ by
+tree parity, whereas its root part retains the wave above up to the constant
+$c_\alpha$.  Taking $\delta$ sufficiently small, constant-relative-error
+full-graph scratch therefore requires
+$\exp(\Theta(1/\sqrt\alpha))$ coordinates even for a one-vertex published
+support, and cannot be charged only to $\vol(S^\star)/\sqrt\alpha$.
+\end{proposition}
+
+\begin{proof}
+For $j<k$, no length-$j$ walk reaches a vertex at distance $k$.  At length
+$k$ the shortest root--vertex path is unique, so
+$(A_d^ke_o)_v=1$.  This proves
+\cref{eq:aesp-cd-polynomial-scratch-spill}; weighted edges multiply the
+unique path contributions.  More precisely, the leading term
+$2^{k-1}B^k$ gives value $1/[2(d-1)^{k/2}]$ at every distance-$k$ vertex.
+There are $d(d-1)^{k-1}$ such vertices, proving
+\cref{eq:aesp-cd-chebyshev-frontier-mass}.  Moreover
+$T_k(c_\alpha/r_\alpha)
+=\cosh(k\operatorname{arcosh}((1+\alpha)/(1-\alpha)))$ is constant-order
+when $k=\Theta(1/\sqrt\alpha)$.  Every power in $T_k$ has the parity of $k$;
+a neighbor of the root is at distance $k-1$ from a depth-$k$ vertex, so its
+contribution vanishes.  The displayed KKT residual proves the obstacle claim.
+This is a generic Stieltjes obstacle construction; it is not asserted to
+preserve the special RPPR right-hand side.
+\end{proof}
+
+This is a STOP for exact untruncated full-graph scratch, not for a thresholded
+polynomial equipped with a certified truncation-error budget.  Such a budget
+is an additional locality mechanism, not a consequence of the terminal
+support bound.
+
+\begin{proposition}[Certified-boundary face-by-face restart has quadratic volume]
+\label{prop:aesp-cd-face-by-face-volume-stop}
+For every $n$ there is an endpoint-seeded RPPR instance on the path $P_n$
+whose final support is all of $V(P_n)$.  Consider any nested active-set
+protocol which starts at the endpoint, admits only vertices on the currently
+exposed graph boundary, and performs a full scan or matrix application on
+the current face after every admission.  Before reaching the final face it
+must expose the prefixes
+\begin{equation*}
+ A_1\subset A_2\subset\cdots\subset A_n=V(P_n),
+ \qquad |A_j|=j,
+\end{equation*}
+and therefore pays
+\begin{equation}
+ \sum_{j=1}^n\Omega(\vol(A_j))=\Omega(n^2).
+ \label{eq:aesp-cd-face-by-face-volume-stop}
+\end{equation}
+In particular, invoking a fresh accelerated restricted solve after every
+single admission does not give a linear-volume local solver, even though the
+terminal solve on $A_n$ is accelerated.
+\end{proposition}
+
+\begin{proof}
+Let $x^{(0)}=Q^{-1}b$ be the zero-threshold endpoint solution.  It is strictly
+positive on the connected path.  Since
+$Q^{-1}(\alpha\rho D^{1/2}\one)=\rho D^{1/2}\one$, choosing
+\begin{equation*}
+ 0<\rho<\min_i\frac{x_i^{(0)}}{\sqrt{d_i}}
+\end{equation*}
+makes the RPPR optimum
+$x^\star=x^{(0)}-\rho D^{1/2}\one$ strictly positive, hence its support is
+all of $P_n$.  The graph boundary of a connected endpoint prefix $A_j$ is the
+single next vertex.  A boundary-only nested protocol cannot skip it, so it
+visits every prefix.  Path volume is $\Theta(j)$, which proves
+\cref{eq:aesp-cd-face-by-face-volume-stop}.
+\end{proof}
+
+The proposition does not rule out speculative certified envelopes, dynamic
+reuse of a Krylov or factorization state, or full-face solves only at
+volume-doubling checkpoints.  It shows that at least one such mechanism is
+necessary.
+
+The path obstruction is representation-specific rather than informational.
+The exact Schur update identifies both the escape on paths and the missing
+general-graph primitive.
+
+\begin{proposition}[Incremental Schur response and activation-once paths]
+\label{prop:aesp-cd-incremental-schur-response}
+Let an old restricted system be $Hx=b$, with $H$ symmetric positive definite
+and Stieltjes.  Add a block of coordinates so that
+\begin{equation*}
+ H_+=\begin{pmatrix}H&-C\\-C^{\mathsf T}&G\end{pmatrix},
+ \qquad b_+=\binom b d,
+ \qquad C\geq0,
+\end{equation*}
+and put
+\begin{equation*}
+ S:=G-C^{\mathsf T}H^{-1}C,
+ \qquad \delta:=d+C^{\mathsf T}x.
+\end{equation*}
+Then the new exact solution and restricted-optimum gain are
+\begin{equation}
+ t=S^{-1}\delta,\qquad
+ x_+=x+H^{-1}Ct,\qquad
+ \Delta=\frac12\langle\delta,S^{-1}\delta\rangle.
+ \label{eq:aesp-cd-incremental-schur-response}
+\end{equation}
+If $H_+$ is also Stieltjes and $\delta>0$, the update is coordinatewise
+nonnegative.  The only genuinely new old-face operation is therefore the
+response $H^{-1}C$; retaining the old solution vector alone does not provide
+an incremental algorithm.
+
+On an endpoint path with diagonal $a_i$, off-diagonal $-c_i$, and an
+endpoint-source right-hand side satisfying $b_i\leq0$ for $i\geq1$, define
+append-only messages
+\begin{align*}
+ D_0&:=a_0,& y_0&:=b_0,\\
+ D_i&:=a_i-\frac{c_{i-1}^2}{D_{i-1}},&
+ y_i&:=b_i+\frac{c_{i-1}}{D_{i-1}}y_{i-1}.
+\end{align*}
+The exact endpoint value on prefix $\{0,\ldots,i\}$ is $y_i/D_i$, so the
+next boundary key is
+\begin{equation*}
+ \delta_{i+1}=b_{i+1}+c_i\frac{y_i}{D_i}.
+\end{equation*}
+It is decided in $O(1)$ arithmetic per admitted vertex.  As long as the
+generated prefixes are interior, the first nonpositive key is the global
+obstacle KKT certificate; one reverse substitution then materializes the
+final solution in linear work.  Thus all singleton-prefix admissions on an
+endpoint-seeded RPPR path cost $O(\vol(S^\star))$, not the quadratic sum in
+\cref{prop:aesp-cd-face-by-face-volume-stop}.
+\end{proposition}
+
+\begin{proof}
+Block elimination gives the first two identities in
+\cref{eq:aesp-cd-incremental-schur-response}; completing the restricted
+quadratic square gives the gain identity.  Stieltjes inverse positivity and
+Schur-complement positivity prove monotonicity.  The path formulas are scalar
+$LDL^{\mathsf T}$ elimination.  The last eliminated coordinate has value
+$y_i/D_i$, and the unique outside row gives the displayed key.  Each message
+is appended once and each record is read once in the terminal reverse pass.
+\end{proof}
+
+This exact path algorithm is already developed as the activation-once solver
+in the companion incremental-active-set note.  For arbitrary graphs,
+\cref{eq:aesp-cd-incremental-schur-response} sharpens the open interface:
+one needs an implicit dynamic Schur/SDD representation that applies the old
+inverse to new coupling blocks and refreshes all affected boundary queries in
+near-linear total local work.  Fixed-rank recycling of old Krylov vectors is
+not such an interface, because successive coupling blocks can introduce new
+hard spectral directions.
+
+\begin{corollary}[Dynamic-Schur plus doubling checkpoint interface]
+\label{cor:aesp-cd-dynamic-schur-doubling-interface}
+Suppose a nested-face implementation maintains a compressed restricted
+solution and all boundary keys under admissions with total charged work
+$\mathcal I(S^\star)$, without materializing the old solution after every
+update.  This charge includes adjacency discovery, every affected
+boundary-key refresh, admissions after the last rebuild, and terminal
+materialization (or a terminal rebuild if the compressed oracle does not
+directly recover the exact solution).  Rebuild its accelerated
+restricted-solve state only when active
+volume has doubled, and assume each rebuild on $A$ costs
+$\widetilde O(\vol(A)/\sqrt\alpha)$.  Then support discovery, all rebuilds,
+and one final materialization cost
+\begin{equation*}
+ \mathcal I(S^\star)
+ +\widetilde O\!\left(\frac{\vol(S^\star)}{\sqrt\alpha}\right).
+\end{equation*}
+In particular, a near-linear dynamic Schur/boundary oracle would complete the
+support-sensitive accelerated accounting.  The path messages above realize
+$\mathcal I(S^\star)=O(\vol(S^\star))$ exactly.
+\end{corollary}
+
+\begin{proof}
+Between two rebuilds, charge every admission to the declared incremental
+oracle.  Rebuild volumes form a doubling sequence, whose sum is less than
+twice the final active volume.  Add the one-time final output scan.
+\end{proof}
+
+The dynamic response oracle is nonvacuous on forests, and more generally on
+a supplied bounded-treewidth decomposition.  The result below isolates its
+exact scope: it maintains a declared stream of candidate queries, but does
+not discover that stream for free.
+
+\begin{proposition}[Dynamic Schur messages on forests and bounded treewidth]
+\label{prop:aesp-cd-dynamic-schur-forest}
+Let a currently explored $N$-vertex forest carry an SPD Stieltjes quadratic
+on its revealed factors, with every coordinate marked either free or pinned
+at zero.  Given a stream consisting
+of $F$ factor/edge reveals, $J$ mark toggles, and $Q$ pinned-coordinate KKT
+queries, there is an exact dynamic Schur representation using $O(N)$ records
+and
+\begin{equation}
+ O\!\left((N+F+J+Q)\log(2+N)\right)
+ \label{eq:aesp-cd-dynamic-schur-forest-work}
+\end{equation}
+field operations, including one terminal recovery of all free coordinates.
+For a queried pinned vertex $v$, it returns the exact marginal
+\begin{equation*}
+ \frac12\sigma_vt^2-\delta_vt+\mathrm{const},
+ \qquad \sigma_v>0,
+\end{equation*}
+so $\delta_v=(b-Hx)_v$ is its exact admission key.  If $\delta_v>0$,
+unpinning $v$ gives $x_v=\delta_v/\sigma_v>0$ and makes all old free
+coordinates nondecreasing.  Coordinates in the irreducible free block
+coupled to $v$ increase strictly.
+
+More generally, suppose a width-$w$ running-intersection bag tree with $B$
+bags is supplied, and every unary/edge factor has a fixed home bag.  The same
+interface costs
+\begin{equation}
+ O\!\left((w+1)^3(F+J+Q)\log(2+B)+(w+1)^3B\right)
+ \label{eq:aesp-cd-dynamic-schur-treewidth-work}
+\end{equation}
+field operations and $O((w+1)^2B)$ records.  Thus, for fixed supplied
+treewidth and
+$B+F+J+Q=\widetilde O(\vol(S^\star))$, it realizes the
+incremental oracle required by
+\cref{cor:aesp-cd-dynamic-schur-doubling-interface}.
+\end{proposition}
+
+\begin{proof}
+Use a balanced top-tree contraction of the forest.  A cluster has at most two
+boundary vertices and stores the quadratic obtained after pinning its marked
+interior coordinates and Schur-eliminating its free interior coordinates.
+To avoid double counting, every edge factor has one edge-leaf record, while
+unary factors and pin marks at cluster-boundary vertices are excluded from
+that cluster and inserted at the unique lowest cluster where their home
+vertex becomes interior.  Ancestors only inherit the resulting summary.  A
+join therefore eliminates at most one scalar.
+If its assembled part is
+\begin{equation*}
+ \frac12z^{\mathsf T}Az+z^{\mathsf T}cy+\frac d2y^2
+ -f^{\mathsf T}z-gy+\gamma,
+\end{equation*}
+the updated summary is
+\begin{equation*}
+ K'=A-cc^{\mathsf T}/d,\qquad
+ f'=f-cg/d,\qquad
+ \gamma'=\gamma-g^2/(2d).
+\end{equation*}
+Every pivot is positive because it is a Schur complement of a principal free
+block of the SPD matrix.  Standard top-tree expose, link, cut, and mark
+updates change $O(\log(2+N))$ clusters.  At root closure, add each remaining
+root-boundary unary factor and apply each remaining root-boundary pin mark
+once.  Exposing $v$, omitting only the zero mark of the queried vertex, and
+eliminating all other free variables gives the displayed marginal.
+Inverse positivity proves the nonnegative update after a positive toggle.  A
+downward pass recovers all free coordinates once.
+
+For the bag-tree version, a cluster port is the union of its at most two
+boundary bags and has size at most $2(w+1)$.  Assign every factor and mark a
+home bag containing its full scope, exclude boundary-bag home factors from
+the child summary, and add the home factors and marks once when the bag
+becomes internal (or once at root closure if it remains a root-boundary bag).
+Running intersection guarantees
+that the eliminated block is exactly the global constrained principal block.
+Each dense join and Schur elimination uses $O((w+1)^3)$ operations; the same
+top-tree accounting proves
+\cref{eq:aesp-cd-dynamic-schur-treewidth-work}.
+\end{proof}
+
+\begin{proposition}[Finite-margin forest messages and exact-bit boundary]
+\label{prop:aesp-cd-dynamic-schur-precision}
+In the scalar-port forest setting, suppose $\mu I\preceq H\preceq LI$, put
+$\kappa=L/\mu$, and let a balanced Schur-message tree have height $h$.
+Assume every queried nonzero KKT key has magnitude at least $\eta_g$, exact
+zero ties are handled symbolically, and the recovered-coordinate target is
+$\varepsilon$.  There are absolute constants $c,C,C_0>0$ with the following
+property.  Put
+\begin{equation*}
+ R_\star:=C\max\{L,(1+\kappa)\norm\ell_2,1\},\qquad
+ \eta_\star:=c\min\!\left\{
+ \frac{\eta_g}{1+\norm\ell_2/\mu},
+ \frac{\mu\varepsilon}{1+\norm\ell_2/\mu},\mu
+ \right\}.
+\end{equation*}
+Then outward interval arithmetic with
+\begin{equation}
+ p\geq C_0+
+ \left\lceil\max\!\left\{0,\log_2\frac{R_\star}{\eta_\star}
+ \right\}\right\rceil
+ +
+ \left\lceil (h+1)\log_2(C(1+\kappa)^2)\right\rceil
+ \label{eq:aesp-cd-dynamic-schur-precision}
+\end{equation}
+bits after the binary point certifies every pivot, reproduces the exact
+nonzero admission chronology, and recovers the solution within
+$\varepsilon$.  Rebuilding the affected summaries from their base records
+prevents error from accumulating with the number of updates.  For a
+top-tree, $h=O(\log N)$, so the precision overhead is logarithmic in
+$N,1/\eta_g,1/\varepsilon$, and $\kappa$.
+The arithmetic model rounds every elementary operation outwards, and
+symbolic zero-tie handling is an additional exact oracle rather than a
+consequence of the intervals.
+
+This margin statement cannot be replaced by a polylogarithmic
+\emph{exact-rational} bit bound.  Let $H_n$ be tridiagonal with diagonal $3$
+and off-diagonal $-1$, and take $b=e_1$.  If
+\begin{equation*}
+ D_0=1,\qquad D_1=3,\qquad D_j=3D_{j-1}-D_{j-2},
+\end{equation*}
+then an endpoint Schur pivot is $D_n/D_{n-1}$ and the opposite endpoint
+solution is $1/D_n$.  Consecutive determinants are coprime and
+$D_n=\exp(\Theta(n))$, although $\operatorname{cond}(H_n)<5$.
+Thus explicit exact fractions require $\Theta(n)$ bits.
+\end{proposition}
+
+\begin{proof}
+Every principal elimination Schur complement $S$ obeys
+\begin{equation*}
+ z^{\mathsf T}Sz
+ =\min_y (y,z)^{\mathsf T}H(y,z)
+ \in[\mu\norm z_2^2,L\norm z_2^2].
+\end{equation*}
+Hence every true pivot lies in $[\mu,L]$.  On intervals whose pivot lower
+endpoint is at least $\mu/2$, the scalar Schur formulas in the preceding
+proof have per-level Lipschitz factor at most
+$C(1+\kappa)^2$.  Induction over height bounds every root marginal and
+backsolve enclosure by
+$CR_\star2^{-p}[C(1+\kappa)^2]^h$.  The displayed precision makes this
+smaller than $\eta_\star$, closing the same induction.  Finally, if the
+matrix and load perturbations are at most $\delta$, then
+\begin{equation*}
+ \norm{\widehat x-x}_2
+ \leq\frac2\mu\left(\delta+\delta\norm x_2\right),
+ \qquad \norm x_2\leq\frac{\norm\ell_2}{\mu}.
+\end{equation*}
+The definition of $\eta_\star$ therefore gives the requested output error.
+The same perturbation calculation for a pinned key
+$g_v=\ell_v-H_{vA}x_A$ contributes an additional factor
+$O((1+\kappa)(1+\norm\ell_2/\mu))$; the first term in $\eta_\star$ pays the
+solution scale, while the extra $(h+1)$ Lipschitz factor in
+\cref{eq:aesp-cd-dynamic-schur-precision} pays $1+\kappa$.  Thus every
+nonzero key enclosure is narrower than its promised gap.
+
+For the tridiagonal family, cofactor expansion gives the determinant
+recurrence and the two displayed ratios.  Euclid's algorithm gives
+$\gcd(D_j,D_{j-1})=1$, while the dominant characteristic root is
+$(3+\sqrt5)/2>1$.  The spectrum lies in $(1,5)$, proving the claimed
+separation between field-operation and explicit-bit complexity.
+\end{proof}
+
+The explicit $Q$ term is essential.  Dynamic Schur messages answer a named
+frontier query for the currently revealed quadratic but do not automatically
+report every positive frontier key; a future factor reveal may change it.
+Even on a star, pinned-leaf residuals can be affine functions
+$\delta_i(t)=\varepsilon(it-i^2)$ of the free center value; their maximum has
+linearly many breakpoints.  Likewise, eliminating all nonnegative leaves
+produces a piecewise-quadratic obstacle value with one breakpoint per leaf,
+not a constant-size quadratic summary.  Therefore
+\cref{prop:aesp-cd-dynamic-schur-forest} is a literal fixed-mark response
+primitive.  An end-to-end forest solver still needs a lazy/kinetic frontier
+reporter ensuring $Q=\widetilde O(\vol(S^\star))$; rescanning a persistent
+frontier after every admission can make $Q$ quadratic.

@@ -1,0 +1,93 @@
+\subsection{What a certified admission can pay}
+
+Same-point replay can be amortized when it is launched from a monotone lower
+checkpoint, rather than from an arbitrary momentum state.
+
+\begin{lemma}[Boundary-margin admission gain]
+\label{lem:boundary-admission-gain}
+Let $A$ be a locked face with positive restricted optimum $x_A^\star$, and
+let a batch $S$ enlarge it to $B=A\cup S$.  Assume the new restricted optimum
+is positive.  Write
+\begin{equation*}
+ g_S^\star:=c_S-Q_{SA}x_A^\star>0,
+ \qquad
+ R:=Q_{SS}-Q_{SA}Q_{AA}^{-1}Q_{AS}.
+\end{equation*}
+Then the restricted optimum gain is
+\begin{equation}
+ \Delta_{A\to B}
+ :=F_A^\star-F_B^\star
+ =\frac12\langle g_S^\star,R^{-1}g_S^\star\rangle
+ \geq\frac12\norm{g_S^\star}_2^2.
+ \label{eq:boundary-admission-gain}
+\end{equation}
+If the replay checkpoint satisfies $0\leq x\leq x_A^\star$ coordinatewise,
+then its observable same-point boundary residual
+$g_S(x)=c_S-Q_{SA}x$ obeys $0<g_S(x)\leq g_S^\star$.  Consequently, along
+nested admissions launched from such lower checkpoints,
+\begin{equation}
+ \sum_j\norm{g_j(x_j)}_2^2
+ \leq2\sum_j\Delta_j
+ =2(F_{A_0}^\star-F_{A_J}^\star).
+ \label{eq:boundary-admission-telescope}
+\end{equation}
+In particular, batches with certified residual norm at least $\zeta$ occur at
+most $2(F_{A_0}^\star-F_{A_J}^\star)/\zeta^2$ times.
+\end{lemma}
+
+\begin{proof}
+Block elimination of the restricted quadratic gives the Schur formula in
+\cref{eq:boundary-admission-gain}.  For the normalized Laplacian,
+$0\prec R\preceq Q_{SS}\preceq I$, hence $R^{-1}\succeq I$.  Since the
+off-diagonal block $Q_{SA}$ is nonpositive, $x\leq x_A^\star$ gives
+$g_S(x)\leq g_S^\star$.  Squaring, summing, and telescoping the nested
+restricted optimum values proves \cref{eq:boundary-admission-telescope}.
+\end{proof}
+
+This ledger does not apply to an arbitrary accelerated point: a momentum
+boundary shock can be large while the true restricted-optimum gain is
+arbitrarily small.  A safe protocol must therefore return to a maintained
+lower-shadow checkpoint before using this payment.  Without a residual
+margin, support monotonicity alone bounds only the number of batches by the
+final support size and can charge quadratic cumulative face volume.  If
+accelerated epochs are restarted only when exposed volume doubles, the
+doubling restarts are at most logarithmic and their replay volumes sum to at
+most twice the final volume; smaller intervening admissions still need
+\cref{eq:boundary-admission-telescope} or remain in a monotone growth phase.
+
+\begin{corollary}[Conditional admission-work bound]
+\label{cor:conditional-admission-work}
+Let $V$ be the final exposed volume and suppose one replay scan/solve on a
+face of volume $W$ costs at most $C_{\rm res}W$.  Classify as doubling every
+batch with $\vol(A_{j+1})\geq2\vol(A_j)$.  Require every other batch to obey
+the observable volume-normalized margin
+\begin{equation*}
+ \norm{g_j(x_j)}_2^2\geq\eta\vol(A_{j+1}).
+\end{equation*}
+Under the lower-checkpoint hypotheses of
+\cref{lem:boundary-admission-gain}, total replay work satisfies
+\begin{equation}
+ W_{\rm adm}
+ \leq2C_{\rm res}\left(V+\frac{\Delta_{\rm tot}}\eta\right).
+ \label{eq:conditional-admission-work}
+\end{equation}
+If an admission can also discard $O(\bigl(\vol(A_j)/q\bigr))$ preceding
+accelerated work, the stronger margin
+$\norm{g_j}^2\geq\eta\vol(A_j)/q$ is required to pay that work by the same
+argument.
+\end{corollary}
+
+\begin{proof}
+The volumes of the doubling destinations form a geometric sequence and sum
+to at most $2V$.  For nondoubling batches,
+\cref{eq:boundary-admission-telescope} gives
+$\sum_j\vol(A_{j+1})\leq2\Delta_{\rm tot}/\eta$.  Multiply the two sums by
+$C_{\rm res}$.
+\end{proof}
+
+The margin is necessary for this interface.  Without it, one may attach
+arbitrarily many coordinates with geometrically tiny positive optimum gains.
+The gain sum stays finite while single-coordinate admissions make cumulative
+replay volume $\Theta(V^2)$, or $\Theta(V^2/q)$ if each admission discards a
+full accelerated window.  Volume doubling pays only its geometric
+subsequence; it cannot pay the small batches between doublings.

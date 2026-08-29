@@ -9,6 +9,7 @@ blow-up matrices as a guardrail.
 
 from fractions import Fraction as F
 import json
+from math import comb
 
 from verify_master_identity import inverse
 
@@ -88,6 +89,123 @@ class Rat:
             (coefficient * value**degree for degree, coefficient in self.denominator.items()), F(0)
         )
         return numerator / denominator
+
+
+def pdivrem(dividend, divisor):
+    """Return the exact polynomial remainder in ascending dictionary form."""
+    remainder = dict(dividend)
+    divisor_degree = max(divisor)
+    divisor_lead = divisor[divisor_degree]
+    while remainder and max(remainder) >= divisor_degree:
+        shift = max(remainder) - divisor_degree
+        coefficient = remainder[max(remainder)] / divisor_lead
+        for degree, value in divisor.items():
+            target = degree + shift
+            remainder[target] = remainder.get(target, F(0)) - coefficient * value
+        remainder = clean(remainder)
+    return remainder
+
+
+def pgcd(left, right):
+    """Return the monic exact gcd of two nonzero rational polynomials."""
+    while right:
+        left, right = right, pdivrem(left, right)
+    leading = left[max(left)]
+    return {degree: value / leading for degree, value in left.items()}
+
+
+def pquotient(dividend, divisor):
+    """Divide exactly, asserting a zero remainder."""
+    remainder = dict(dividend)
+    quotient = {}
+    divisor_degree = max(divisor)
+    divisor_lead = divisor[divisor_degree]
+    while remainder:
+        shift = max(remainder) - divisor_degree
+        assert shift >= 0
+        coefficient = remainder[max(remainder)] / divisor_lead
+        quotient[shift] = coefficient
+        for degree, value in divisor.items():
+            target = degree + shift
+            remainder[target] = remainder.get(target, F(0)) - coefficient * value
+        remainder = clean(remainder)
+    return clean(quotient)
+
+
+def cancel(value):
+    """Cancel the exact polynomial gcd of a rational function."""
+    common = pgcd(value.numerator, value.denominator)
+    return Rat(
+        pquotient(value.numerator, common),
+        pquotient(value.denominator, common),
+    )
+
+
+class QuadRat:
+    """An element ``a+b*sqrt(5)`` over rational functions in r."""
+
+    def __init__(self, rational=0, radical=0):
+        self.rational = rational if isinstance(rational, Rat) else Rat.constant(rational)
+        self.radical = radical if isinstance(radical, Rat) else Rat.constant(radical)
+
+    def __add__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        return QuadRat(self.rational + other.rational, self.radical + other.radical)
+
+    __radd__ = __add__
+
+    def __neg__(self):
+        return QuadRat(-self.rational, -self.radical)
+
+    def __sub__(self, other):
+        return self + (-other if isinstance(other, QuadRat) else QuadRat(-other))
+
+    def __rsub__(self, other):
+        return QuadRat(other) - self
+
+    def __mul__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        return QuadRat(
+            self.rational * other.rational + 5 * self.radical * other.radical,
+            self.rational * other.radical + self.radical * other.rational,
+        )
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        other = other if isinstance(other, QuadRat) else QuadRat(other)
+        denominator = other.rational * other.rational - 5 * other.radical * other.radical
+        return QuadRat(
+            (self.rational * other.rational - 5 * self.radical * other.radical) / denominator,
+            (self.radical * other.rational - self.rational * other.radical) / denominator,
+        )
+
+    def __rtruediv__(self, other):
+        return QuadRat(other) / self
+
+
+def bernstein_coefficients(poly, lower, upper):
+    """Convert ``poly(r)`` on [lower,upper] to exact Bernstein coefficients."""
+    degree = max(poly)
+    power = [F(0)] * (degree + 1)
+    for exponent, coefficient in poly.items():
+        for index in range(exponent + 1):
+            power[index] += (
+                coefficient
+                * comb(exponent, index)
+                * lower ** (exponent - index)
+                * (upper - lower) ** index
+            )
+    return [
+        sum(
+            (
+                power[index] * F(comb(bernstein_index, index), comb(degree, index))
+                for index in range(bernstein_index + 1)
+            ),
+            F(0),
+        )
+        for bernstein_index in range(degree + 1)
+    ]
 
 
 ONE = Rat.constant(1)
@@ -204,6 +322,399 @@ def longer_cycle_cl_obstruction():
     return adjacent
 
 
+def c10_edgewise_payment():
+    """Check the exact edgewise-Young certificate on C10 at q=1/20."""
+    size = 10
+    identity = [[F(i == j) for j in range(size)] for i in range(size)]
+    adjacency = [
+        [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+        for i in range(size)
+    ]
+    stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+    high_projection = matrix_linear(identity, stationary, right_scale=-1)
+    high_resolvent = [
+        [4 * entry for entry in row]
+        for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+    ]
+
+    q = F(1, 20)
+    m0 = 1 - q * q
+    m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+    one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+    m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+    g_operator = matrix_linear(
+        matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+        matmul(m_operator, m_operator),
+    )
+    a_operator = [
+        [entry / m0 for entry in row]
+        for row in matmul(
+            matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+            inverse(one_minus_m),
+        )
+    ]
+    b_operator = [
+        [m0 * entry for entry in row]
+        for row in matmul(
+            matmul(
+                matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                inverse(matrix_linear(m0_minus_m, stationary)),
+            ),
+            high_projection,
+        )
+    ]
+    c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+
+    for operator in (a_operator, b_operator, c_operator):
+        assert all(sum(row, F(0)) == 0 for row in operator)
+        assert all(operator[i][j] == operator[j][i] for i in range(size) for j in range(size))
+
+    assert all(a_operator[0][j] < 0 for j in range(1, size))
+    assert all(b_operator[0][j] < 0 for j in range(1, size))
+    assert c_operator[0][1] > 0 and c_operator[0][size - 1] > 0
+    assert all(c_operator[0][j] < 0 for j in range(2, size - 1))
+
+    ratio = c_operator[0][1] ** 2 / ((-a_operator[0][1]) * (-b_operator[0][1]))
+    claimed_ratio = F(
+        9190540374100260057432724000,
+        35964609239043602890432954263,
+    )
+    assert ratio == claimed_ratio
+    assert ratio < 1
+
+    within_m = m0 * F(2, 3)
+    within_g = m0 - 2 * within_m + within_m * within_m
+    within_a = within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m))
+    within_b = m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m))
+    within_c = within_m * (m0 - within_m) / (1 - within_m)
+    within_offdiagonal = (
+        a_operator[0][0] - within_a,
+        b_operator[0][0] - within_b,
+        c_operator[0][0] - within_c,
+    )
+    claimed_within = (
+        -F(8569107687113450384299, 189685215671218537987200),
+        -F(5779278789418042112799, 53177800861008841600000),
+        -F(1662576823382931953, 26588900430504420800),
+    )
+    assert within_offdiagonal == claimed_within
+    assert all(entry < 0 for entry in within_offdiagonal)
+
+    # On C10[Kbar_a], cross-part entries and within-part off-diagonal
+    # entries are divided by a.  Signs and every c^2/(ab) ratio therefore
+    # remain unchanged.  These finite sizes guard the analytic block rule.
+    for part_size in range(1, 13):
+        assert all(entry / part_size < 0 for entry in within_offdiagonal)
+        assert ratio < 1
+    return {
+        "A_offdiagonal_strictly_negative": 9,
+        "B_offdiagonal_strictly_negative": 9,
+        "C_positive_offdiagonal_distances": [1, 9],
+        "C_adjacent_entry": str(c_operator[0][1]),
+        "edgewise_ratio": str(ratio),
+        "edgewise_ratio_below_one": True,
+        "within_part_offdiagonal": [str(entry) for entry in within_offdiagonal],
+        "blowup_part_sizes_checked": "1..12",
+    }
+
+
+def neighboring_cycle_edgewise_payments():
+    """Check the fixed-q edgewise certificate on C9, C10, and C11."""
+    q = F(1, 20)
+    m0 = 1 - q * q
+    records = {}
+    for size in (9, 10, 11):
+        identity = [[F(i == j) for j in range(size)] for i in range(size)]
+        adjacency = [
+            [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+            for i in range(size)
+        ]
+        stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+        high_projection = matrix_linear(identity, stationary, right_scale=-1)
+        high_resolvent = [
+            [4 * entry for entry in row]
+            for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+        ]
+        m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+        one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+        m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+        g_operator = matrix_linear(
+            matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+            matmul(m_operator, m_operator),
+        )
+        a_operator = [
+            [entry / m0 for entry in row]
+            for row in matmul(
+                matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+                inverse(one_minus_m),
+            )
+        ]
+        b_operator = [
+            [m0 * entry for entry in row]
+            for row in matmul(
+                matmul(
+                    matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                    inverse(matrix_linear(m0_minus_m, stationary)),
+                ),
+                high_projection,
+            )
+        ]
+        c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+
+        for operator in (a_operator, b_operator, c_operator):
+            assert all(sum(row, F(0)) == 0 for row in operator)
+            assert all(operator[i][j] == operator[j][i] for i in range(size) for j in range(size))
+        assert all(a_operator[0][j] < 0 for j in range(1, size))
+        assert all(b_operator[0][j] < 0 for j in range(1, size))
+        positive_distances = [j for j in range(1, size) if c_operator[0][j] > 0]
+        assert positive_distances == [1, size - 1]
+        ratios = [
+            c_operator[0][j] ** 2 / ((-a_operator[0][j]) * (-b_operator[0][j]))
+            for j in positive_distances
+        ]
+        assert ratios[0] == ratios[1] < 1
+
+        within_m = m0 * F(2, 3)
+        within_g = m0 - 2 * within_m + within_m * within_m
+        within = (
+            a_operator[0][0] - within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m)),
+            b_operator[0][0] - m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m)),
+            c_operator[0][0] - within_m * (m0 - within_m) / (1 - within_m),
+        )
+        assert all(entry < 0 for entry in within)
+
+        # Since 3 < pi < 22/7 and sin(x) >= x-x^3/6 on this range,
+        # the base normalized-Laplacian gap 2 sin^2(pi/size) exceeds 2q.
+        sine_lower = F(3, size) - F(1, 6) * F(22, 7 * size) ** 3
+        assert 2 * sine_lower * sine_lower > 2 * q
+
+        for part_size in range(1, 13):
+            assert all(entry / part_size < 0 for entry in within)
+            assert ratios[0] < 1
+        records[f"C{size}"] = {
+            "positive_cross_distances": positive_distances,
+            "adjacent_Young_ratio": str(ratios[0]),
+            "A_offdiagonal_max": str(max(a_operator[0][1:])),
+            "B_offdiagonal_max": str(max(b_operator[0][1:])),
+            "within_part_entries": [str(entry) for entry in within],
+        }
+    return {
+        "q": str(q),
+        "cycle_sizes": [9, 10, 11],
+        "balanced_blowups": "all integer part sizes",
+        "records": records,
+    }
+
+
+def diagonal_completion_payments():
+    """Certify the clipped-cross diagonal completion on C12 and C13."""
+
+    def transpose(matrix):
+        return [list(row) for row in zip(*matrix)]
+
+    def positive_ldl_pivots(matrix):
+        size = len(matrix)
+        lower = [[F(0) for _ in range(size)] for _ in range(size)]
+        diagonal = []
+        for i in range(size):
+            pivot = matrix[i][i] - sum(lower[i][k] * lower[i][k] * diagonal[k] for k in range(i))
+            assert pivot > 0
+            diagonal.append(pivot)
+            lower[i][i] = F(1)
+            for j in range(i + 1, size):
+                lower[j][i] = (
+                    matrix[j][i] - sum(lower[j][k] * lower[i][k] * diagonal[k] for k in range(i))
+                ) / pivot
+        return diagonal
+
+    q = F(1, 20)
+    m0 = 1 - q * q
+    records = {}
+    for size in (12, 13):
+        identity = [[F(i == j) for j in range(size)] for i in range(size)]
+        adjacency = [
+            [F(1) if (i - j) % size in (1, size - 1) else F(0) for j in range(size)]
+            for i in range(size)
+        ]
+        stationary = [[F(1, size) for _ in range(size)] for _ in range(size)]
+        high_projection = matrix_linear(identity, stationary, right_scale=-1)
+        high_resolvent = [
+            [4 * entry for entry in row]
+            for row in inverse(matrix_linear(identity, adjacency, left_scale=6, right_scale=-1))
+        ]
+        m_operator = [[m0 * entry for entry in row] for row in high_resolvent]
+        one_minus_m = matrix_linear(identity, m_operator, right_scale=-1)
+        m0_minus_m = matrix_linear(identity, m_operator, left_scale=m0, right_scale=-1)
+        g_operator = matrix_linear(
+            matrix_linear(identity, m_operator, left_scale=m0, right_scale=-2),
+            matmul(m_operator, m_operator),
+        )
+        a_operator = [
+            [entry / m0 for entry in row]
+            for row in matmul(
+                matmul(matmul(m_operator, m0_minus_m), m0_minus_m),
+                inverse(one_minus_m),
+            )
+        ]
+        b_operator = [
+            [m0 * entry for entry in row]
+            for row in matmul(
+                matmul(
+                    matmul(matmul(m_operator, g_operator), inverse(one_minus_m)),
+                    inverse(matrix_linear(m0_minus_m, stationary)),
+                ),
+                high_projection,
+            )
+        ]
+        c_operator = matmul(matmul(m_operator, m0_minus_m), inverse(one_minus_m))
+        positive_distances = [j for j in range(1, size) if c_operator[0][j] > 0]
+        assert positive_distances == [1, size - 1]
+        assert any(a_operator[0][j] > 0 for j in range(1, size))
+        assert any(b_operator[0][j] > 0 for j in range(1, size))
+        adjacent = c_operator[0][1]
+
+        # Replace the clipped positive cross row by its zero-row-sum
+        # completion: adjacent entries c and diagonal -2c.
+        completed_cross = [[F(0) for _ in range(size)] for _ in range(size)]
+        for i in range(size):
+            completed_cross[i][i] = -2 * adjacent
+            completed_cross[i][(i - 1) % size] = adjacent
+            completed_cross[i][(i + 1) % size] = adjacent
+        block = [
+            a_operator[i] + [-completed_cross[i][j] for j in range(size)] for i in range(size)
+        ] + [[-completed_cross[i][j] for j in range(size)] + b_operator[i] for i in range(size)]
+
+        # Each block has one constant null direction.  The columns below are
+        # e_i-e_{n-1} in the two blocks, so exact positive LDL pivots prove
+        # positivity on their orthogonal quotient.
+        basis = [[F(0) for _ in range(2 * (size - 1))] for _ in range(2 * size)]
+        for block_index in range(2):
+            for j in range(size - 1):
+                basis[block_index * size + j][block_index * (size - 1) + j] = F(1)
+                basis[block_index * size + size - 1][block_index * (size - 1) + j] = -F(1)
+        reduced = matmul(matmul(transpose(basis), block), basis)
+        pivots = positive_ldl_pivots(reduced)
+
+        within_m = m0 * F(2, 3)
+        within_g = m0 - 2 * within_m + within_m * within_m
+        within_a = within_m * (m0 - within_m) ** 2 / (m0 * (1 - within_m))
+        within_b = m0 * within_m * within_g / ((1 - within_m) * (m0 - within_m))
+        within_c = within_m * (m0 - within_m) / (1 - within_m)
+        assert c_operator[0][0] - within_c < 0
+        within_determinant = within_a * within_b - (2 * adjacent) ** 2
+        assert within_a > 0 and within_b > 0 and within_determinant > 0
+
+        sine_lower = F(3, size) - F(1, 6) * F(22, 7 * size) ** 3
+        assert 2 * sine_lower * sine_lower > 2 * q
+        records[f"C{size}"] = {
+            "positive_cross_distances": positive_distances,
+            "edgewise_M_matrix_hypothesis_fails": True,
+            "base_completion_positive_pivots": len(pivots),
+            "smallest_base_pivot": str(min(pivots)),
+            "within_completion_determinant": str(within_determinant),
+            "gap_lower_bound": str(2 * sine_lower * sine_lower),
+        }
+    return {
+        "q": str(q),
+        "cycle_sizes": [12, 13],
+        "balanced_blowups": "all integer part sizes",
+        "records": records,
+    }
+
+
+def c10_interval_entries():
+    """Return exact C10 kernel rows over Q(sqrt(5))(r), simplified to Q(r)."""
+    radical = QuadRat(0, 1)
+    adjacency_eigenvalues = [
+        QuadRat(2),
+        (1 + radical) / 2,
+        (radical - 1) / 2,
+        (1 - radical) / 2,
+        -(1 + radical) / 2,
+        QuadRat(-2),
+    ]
+    high_eigenvalues = [4 / (6 - value) for value in adjacency_eigenvalues]
+    m0 = QuadRat(ONE - R)
+
+    def scalar_kernels(high_eigenvalue):
+        m_value = m0 * high_eigenvalue
+        difference = m0 - m_value
+        g_value = m0 - 2 * m_value + m_value * m_value
+        return (
+            m_value * difference * difference / (m0 * (1 - m_value)),
+            m0 * m_value * g_value / ((1 - m_value) * difference),
+            m_value * difference / (1 - m_value),
+        )
+
+    modal = [None] + [scalar_kernels(high_eigenvalues[index]) for index in range(1, 6)]
+    rows = []
+    for operator_index in range(3):
+        row = []
+        for distance in range(6):
+            entry = QuadRat(0)
+            for frequency in range(1, 5):
+                cosine_index = (frequency * distance) % 10
+                cosine_index = min(cosine_index, 10 - cosine_index)
+                entry += modal[frequency][operator_index] * adjacency_eigenvalues[cosine_index]
+            entry += modal[5][operator_index] * (1 if distance % 2 == 0 else -1)
+            entry /= 10
+            assert entry.radical == 0
+            row.append(cancel(entry.rational))
+        rows.append(row)
+    within = scalar_kernels(QuadRat(F(2, 3)))
+    assert all(value.radical == 0 for value in within)
+    return rows, [cancel(value.rational) for value in within]
+
+
+def c10_edgewise_interval_payment():
+    """Prove the edgewise certificate on 1/25 <= q <= 7/100."""
+    lower = F(1, 625)
+    upper = F(49, 10_000)
+    rows, within = c10_interval_entries()
+    certificates = []
+
+    def certify(name, value, sign):
+        value = cancel(value)
+        numerator = pscale(sign, value.numerator)
+        numerator_bernstein = bernstein_coefficients(numerator, lower, upper)
+        denominator_bernstein = bernstein_coefficients(value.denominator, lower, upper)
+        assert all(coefficient > 0 for coefficient in numerator_bernstein)
+        assert all(coefficient > 0 for coefficient in denominator_bernstein)
+        certificates.append(
+            {
+                "name": name,
+                "numerator_degree": max(value.numerator),
+                "denominator_degree": max(value.denominator),
+                "strict_bernstein_coefficients": len(numerator_bernstein),
+            }
+        )
+
+    for operator_index, name in enumerate(("A", "B", "C")):
+        for distance in range(1, 6):
+            sign = 1 if name == "C" and distance == 1 else -1
+            certify(f"{name}[0,{distance}]", rows[operator_index][distance], sign)
+        certify(
+            f"within-{name}",
+            rows[operator_index][0] - within[operator_index],
+            -1,
+        )
+
+    young_margin = rows[0][1] * rows[1][1] - rows[2][1] * rows[2][1]
+    certify("adjacent-Young-margin", young_margin, 1)
+    return {
+        "q_interval": ["1/25", "7/100"],
+        "r_interval": [str(lower), str(upper)],
+        "strict_exact_Bernstein_certificates": len(certificates),
+        "certificate_names": [certificate["name"] for certificate in certificates],
+        "degree_pairs": sorted(
+            {
+                (certificate["numerator_degree"], certificate["denominator_degree"])
+                for certificate in certificates
+            }
+        ),
+    }
+
+
 def eliminated_h_trials():
     checks = 0
     for q in (F(1, 20), F(1, 10), F(1, 4)):
@@ -272,6 +783,10 @@ def main():
             "graph_and_q": "C10, q=1/20",
             "positive_adjacent_entry": str(longer_cycle_cl_obstruction()),
         },
+        "C10_edgewise_payment": c10_edgewise_payment(),
+        "C10_edgewise_interval_payment": c10_edgewise_interval_payment(),
+        "neighboring_cycle_edgewise_payments": neighboring_cycle_edgewise_payments(),
+        "diagonal_completion_payments": diagonal_completion_payments(),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
 

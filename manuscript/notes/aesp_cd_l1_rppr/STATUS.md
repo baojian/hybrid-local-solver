@@ -1,6 +1,6 @@
 # Direction status: aesp_cd_l1_rppr
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-29
 State: proved-open
 
 ## Exact question and contract
@@ -31,10 +31,120 @@ State: proved-open
   locality; exact safeguarded defect and inflation ledgers; collateral-clipping
   bounds; and finite residual interfaces. Exact trajectory results include the
   fixed-P4 infinite inflation cone, support-entry shielding, persistent-row
-  square-energy and truncation-energy ledgers, a reachable K8 pulse, the
-  actual-finite lagged Euclidean reserve, and the K2/K8 boundary for the
-  simplest lagged unsplit bank. A direct accelerated terminal result holds on
-  the a-posteriori high-Dirichlet class.
+  square-energy and a joint correction/surviving-momentum truncation-energy
+  ledger, a reachable K8 pulse, the
+  actual-finite lagged Euclidean reserve, the K2/K8 boundary for the simplest
+  lagged unsplit bank, and a root-potential finite-inner recursion with exact
+  additive error `sqrt(kappa_A)*xi_t`. The latter strengthens the conditional
+  polish from a `theta` scale to a `sqrt(theta)` scale without a support or
+  fixed-face assumption. On the exact settled optimal face, the
+  cross-normalized bank `B_t=||e_t||^2+(kappa_A+alpha)<u_t,Q_A^-1 u_t>`
+  contracts by `1-q` at every correction-free stage and gives constant
+  contraction after a `Theta(1/q)` post-full window. A reachable `K_N` family
+  proves that high-band net decrease alone needs coefficient `Omega(N)` to
+  pay its low forcing. In the positive direction, an exact contract-or-spend
+  window pays every correction pattern from a telescoping Stieltjes bank, and
+  after multiplication by `mu_E` from the low Euclidean endpoint drop. A
+  rational-interval `P24` certificate proves that a split payment using net
+  high-band drop plus `6/5` times the starting low bank is still insufficient.
+  The certified necessary coefficient exceeds `1.206959416`. A
+  Moreau-Hessian event bank has uniformly conditioned forcing and gives an
+  exact nested-face epoch-restart ledger: boundary face gains and disjoint
+  correction masses enter additively in root potential with geometric epoch
+  weights. The protocol expands only at epoch boundaries, keeps the primal
+  point fixed, and explicitly restarts momentum; it is not the unchanged
+  automatic-admission trajectory. Retaining the correction cross term gives
+  an exact signed increment whose positive part has a telescoping Stieltjes
+  payment without the geometric `1/q` loss. This refines the epoch ledger to
+  count only harmful signed events. A reachable `P3` event makes the signed
+  increment positive and increases the bank, while the reachable `K8` family
+  makes the signed payment asymptotically tight. A settled `S5` trajectory
+  has adjacent positive partial/full events and a strict two-stage bank
+  increase, refuting a universal one-step quiet gap.  Conversely, on every
+  graph family with a proved clipped-master inequality the mean-free Moreau
+  bank contracts by a factor at most `3/8` in `ceil(log(2)/q)` exact
+  fixed-face stages, regardless of event density. This high-root recursion
+  survives finite inner solves under an explicit geometrically discounted
+  residual budget. The constant mode obeys an exact overshoot-or-high-trigger
+  dichotomy: the overshoot branch contracts its Moreau bank by `1-q`, and the
+  other branch can inject mean only when the mean-free trial residual is
+  large in infinity norm. A same-point-restart two-scale potential combining
+  the master high root and the forced mean contracts below `0.407` on a quiet
+  `ceil(2/q)` epoch, and by `3/4` whenever the observable weighted mean deficit
+  is at most one quarter of its starting value. A sharper low-root formulation
+  works from arbitrary history: its recorded correction-mean gate halves the
+  two-scale potential in `ceil(2/q)` transitions and has a finite-inner
+  version with an explicit residual budget. An observable pure-prox alignment
+  warmup contracts the high/mean residual ratio by `(1+q)^(-J)`; after a
+  computable threshold, a same-point restart launches a permanently
+  correction-free exact momentum tail. Its warmup is `O(1/q)` up to
+  logarithms and requires no lower eigendata. The reachable `K_N` family
+  also gives the exact high-to-low STOP
+  `q*Xi_low/C_high>(N-1)/15`, so no graph-uniform high-bank coefficient can
+  pay that deficit. A
+  direct accelerated terminal result holds on the a-posteriori
+  high-Dirichlet class. An exact full-face `P96` trajectory shows that the
+  ungated total Moreau bank can retain more than `0.54` after `1/q`
+  transitions, so a raw universal half-window cannot replace the accepted
+  gate. On a fixed certified face, signed-scratch Chebyshev iteration followed
+  by a Stieltjes retraction and maximum with the old lower checkpoint gives a
+  safe published point in
+  `O_tilde(vol(A)/sqrt(lambda_lower))` work. Once the final RPPR face is
+  certified, applying this directly to the unshifted restricted system gives
+  `O_tilde(1/(rho*sqrt(alpha)))` terminal work. A positive-coefficient
+  polynomial theorem proves that requiring all scratch residuals to remain
+  coordinatewise nonnegative reverts to condition-number rather than
+  square-root dependence. A high-multiplicity Stieltjes cluster also stops
+  every graph-independent fixed-rank low-mode deflation of the master-gap
+  condition; a two-node exact witness has `Psi=2/25>0`. Forest dynamic-Schur
+  messages now have an exact pinned/free audit and a finite-margin interval
+  implementation whose precision is logarithmic in the KKT gap, output
+  tolerance, message height, and condition number. A constant-condition
+  tridiagonal family proves that explicit exact-rational messages can still
+  require linearly many bits. Stable one- and two-port frontier responses
+  admit near-linear kinetic reporters. Separately, the RPPR support cap yields
+  a graph-uniform retained-envelope bound `2/rho` under an exact dynamic
+  obstacle interface; the unresolved work is exposed as `W_DS(2/rho)`,
+  including all serial updates and frontier reports. After final support
+  closure, one same-point restart satisfies
+  `C_rst <= 4(F(z)-F(x*))`, so discovery need not transport momentum or pay a
+  `q^(-1)` face shock. On a promised single-source tree or unicyclic graph,
+  an exact scalar threshold hierarchy closes the named-query term (with
+  radius-paid cycle scans in the latter case) and reproduces a legal
+  singleton positive-subset trace in
+  `O_tilde((1+vol(S*))/sqrt(alpha))` work. The first structural reporter still
+  open after the known tree, single-cycle, bounded-productive-site cactus, and
+  bounded-block solvers occurs when unbounded ancestor cycles have unbounded
+  productive descendant sites, and more generally on variable-port
+  series--parallel graphs. Epoch rebuilding nevertheless gives the exact
+  adaptive block tradeoff
+  `O_tilde(L_B+J_B*min{p_B+1,sqrt(L_B)})`; its remaining
+  square-root block factor is the current cactus gap, while the alternative
+  route promise
+  `max_v sum_{B in P(v)} min{p_B+1,sqrt(L_B)}=O_tilde(R*)` closes another
+  strict subclass.  A small-`rho` connected-order lemma realizes the
+  square-root gap on a strict legal RPPR singleton trace, so the flat
+  scan-all-cuts rebuild proof is genuinely insufficient; this is not a lower
+  bound against multilevel reporters or different batching.  A static-cluster
+  model makes its square-root interface cost rigorous.  Objective gain alone
+  also cannot pay admissions, although a declared Schur-key density gate
+  makes accepted batch costs telescope exactly.  Indeed, a
+  supplied final weighted HLD plus balanced SP parses closes the post-closure
+  cactus route conditionally by rebuilding whole heavy paths; online
+  construction is already soft-linear for an immutable contiguous core
+  prefix.  Interleaved closure and response mutation, dynamic HLD
+  cut/concatenate, and their bulk hull meld remain the exact missing
+  interface. Under a uniform relative KKT margin,
+  charged coordinate-level events give another soft-linear reporter; the
+  event source remains an explicit interface cost.
+  A primary-source interface check found logarithmic top-tree/dynamic-
+  treewidth structural updates and global-frame dynamic convex-hull queries,
+  including restricted simple-path concatenation, but no stated primitive
+  combining hierarchical affine pullback, persistent hull meld/split, and
+  strict labeled argmax.  Kinetic hulls allow bounded-complexity per-row
+  trajectories and flight-plan changes, but not a single bulk update of all
+  pulled-back rows in a Schur cluster.  This is a literature boundary, not a
+  lower bound.
 - **Conditional:** A graph-uniform net packing inequality for the actual
   finite sequence supplies computable outer horizon, polish, terminal gate,
   and cached-row resource vector. The large-`alpha` fallback is unconditional;
@@ -45,10 +155,45 @@ State: proved-open
   nonexpansion, support-addition-only correction charging, Euclidean-only
   collateral packing with `o(1/q)` coefficient, horizon-uniform inflation on
   the fixed P4 objective, black-box shadowing through retraction, and uniform
-  one-step `1-cq` contraction of the simplest lagged unsplit bank.
+  one-step `1-cq` contraction of the simplest lagged unsplit bank, and every
+  graph-uniform constant payment of cross-normalized low forcing using only
+  signed/net high-band decrease, as well as the coefficient-`6/5` split
+  payment using the starting low bank on a settled path window, and raw
+  half-contraction of the total Moreau bank in every settled `1/q` window,
+  as well as square-root acceleration by residual polynomials whose every
+  scratch state preserves the nonnegative cone, and fixed-rank repair of the
+  clipped-master spectral gap.
 - **Open:** A graph-uniform net exponent for low-Dirichlet optimal faces using
   a windowed spectral, nonlinear, or differently normalized transfer that
   retains finite residuals and coordinatewise positive-part mixing.
+
+The active-set boundary is now explicit. A margin-certified batch of at
+least `gamma*vol(A)` per restricted face yields total
+`O_tilde(vol(S*)/(gamma*sqrt(alpha)))` work, but endpoint paths can expose
+only one certified vertex at a time and force quadratic cumulative face
+volume. Unrestricted full-graph Chebyshev scratch is not a workaround: a
+regular-tree frontier can retain constant `l2` mass on exponentially many
+coordinates. Same-point nested replay has sharp Moreau root-shock constant
+`2` (energy constant `4`). Thus the remaining universal ingredient must
+either reuse state across serial admissions, grow a certified speculative
+envelope, or provide an incremental propagation primitive between doubling
+checkpoints.
+
+The path case now supplies the first option exactly: append-only scalar
+`LDL^T` messages process every singleton admission once and materialize only
+the final solution.  For a general block expansion, the precise missing
+operation is the old-face inverse response `H^(-1)C` plus incremental boundary
+refresh.  On forests and supplied bounded-treewidth decompositions, dynamic
+top-tree Schur summaries implement each named update/query in polylogarithmic
+time, but a condition-free kinetic reporter bounding the total query count is
+still missing on general interfaces. Stable fixed ports of dimension at most
+two are closed by threshold/planar-hull reporters. A hard inactive-halo guard
+proves that retained RPPR volume `2/rho` always suffices, but a universal
+accelerated theorem still requires
+`W_DS(B)=O_tilde(B/sqrt(alpha))`. A speculative coordinate envelope supplies the second option only
+in explored-volume form; strict active/dual margins make its obstacle solve
+accelerated, while inactive high-degree halo prevents replacing explored
+volume by final support volume without another guard or oracle.
 
 ## Central blocker
 
@@ -57,11 +202,29 @@ and persistent-row controller, correction, and surviving-momentum energies
 telescope. The exact Euclidean collateral reserve nevertheless has only
 `q^2` graph-uniform drift. A coefficient large enough to pay the reachable K8
 pulse makes the corresponding unsplit lagged bank fail stagewise accelerated
-contraction on a reachable K2 low mode. This is not an additive-resistant
-obstruction and does not refute global accelerated decay; the K8 high band is
-compatible with payment. The missing object is a windowed or nonlinear
-low/high transfer. Existing local identities do not supply a bound on that
-transfer, so there is no graph-uniform exact accelerated solver yet.
+contraction on a reachable K2 low mode. The cross-normalized bank removes that
+one-step drift, but the reachable `K_N` family shows that its low forcing
+cannot be paid by high-band net decrease with a dimension-free coefficient.
+The event-level contract-or-spend theorem pays it from low Euclidean progress,
+but freezing that endpoint resource into a static `q^-1` reserve would restore
+the K2 slow drift. The missing object is a restart/window accounting that
+spends this resource only at correction events and survives face changes and
+finite residuals. Equivalently, the remaining transfer must be windowed or nonlinear
+rather than a fixed additive reserve. The Moreau epoch ledger removes the
+`q^-2` face shock and avoids double counting, but still requires a bound on its
+geometrically weighted face-gain and harmful signed-event injections. The
+generic signed Stieltjes account improves the correction convolution but can
+still permit `O(1/q)` bad windows. The master/mean split removes the high
+component of this ambiguity and identifies one precise remaining term: the
+discounted mean deficit in the non-overshoot/high-trigger branch. The `K_N`
+family rules out paying it by a dimension-free high-energy reserve, so the
+missing extra factor must use an infinity/local/volume-sensitive controller
+certificate or an adaptive accepted-window rule rather than only
+`0<=r_t<=beta*d_t`. Accepted fixed-full-face windows and the exact alignment
+tail are now accelerated; what remains graph-uniformly open is the number and
+cost of failed gates, changing-face transfer, and relative finite-inner
+maintenance. There is
+still no graph-uniform exact accelerated solver.
 
 ## Dependencies and reusable outputs
 
@@ -78,12 +241,70 @@ transfer, so there is no graph-uniform exact accelerated solver yet.
   `lem:aesp-cd-persistent-square-ledger`,
   `lem:aesp-cd-truncation-q-energy`, `prop:aesp-cd-k8-q-bank-stop`,
   `lem:aesp-cd-q-weighted-euclidean-reserve`,
+  `eq:aesp-cd-finite-inner-root-potential`,
   `prop:aesp-cd-unsplit-q-energy-stagewise-stop`, and
+  `prop:aesp-cd-cross-normalized-bank`,
+  `prop:aesp-cd-kn-cross-bank-stop`,
+  `prop:aesp-cd-cross-normalized-contract-spend`, and
+  `prop:aesp-cd-p24-low-start-stop`,
+  `prop:aesp-cd-moreau-epoch-restart`, and
+  `prop:aesp-cd-moreau-signed-event`,
+  `prop:aesp-cd-p3-positive-signed-event`, and
+  `prop:aesp-cd-psi-high-window`, and
+  `cor:aesp-cd-psi-high-finite`,
+  `prop:aesp-cd-low-overshoot-trigger`, and
+  `prop:aesp-cd-master-mean-epoch`, and
+  `prop:aesp-cd-p96-full-face-window-stop`,
+  `cor:aesp-cd-observable-two-scale-window`,
+  `cor:aesp-cd-finite-two-scale-window`, and
+  `prop:aesp-cd-observable-alignment-tail`, and
+  `cor:aesp-cd-finite-alignment-tail`,
+  `cor:aesp-cd-fixed-face-gate-align`,
+  `thm:aesp-cd-safe-chebyshev-face`,
+  `cor:aesp-cd-final-face-chebyshev`, and
+  `prop:aesp-cd-polynomial-scratch-spill-stop`,
+  `prop:aesp-cd-face-by-face-volume-stop`,
+  `prop:aesp-cd-geometric-face-batches`,
+  `prop:aesp-cd-incremental-schur-response`,
+  `prop:aesp-cd-dynamic-schur-forest`,
+  `prop:aesp-cd-dynamic-schur-precision`,
+  `cor:aesp-cd-stable-port-reporter`,
+  `thm:aesp-cd-tree-singleton-threshold`,
+  `cor:aesp-cd-unicyclic-singleton`,
+  `cor:aesp-cd-cactus-live-sites`,
+  `cor:aesp-cd-cactus-productive-sites`,
+  `cor:aesp-cd-cactus-productive-epochs`,
+  `lem:aesp-cd-connected-order-small-rho`,
+  `prop:aesp-cd-objective-gain-charge-stop`,
+  `cor:aesp-cd-schur-gain-batch-payment`,
+  `prop:aesp-cd-cactus-static-cluster-stop`,
+  `prop:aesp-cd-cactus-offline-hld`,
+  `prop:aesp-cd-two-port-direction-stop`,
+  `prop:aesp-cd-sp-meld-hull-reduction`,
+  `lem:aesp-cd-two-port-projective-pullback`,
+  `cor:aesp-cd-slope-separated-projective-meld`,
+  `prop:aesp-cd-separated-level-reporter`,
+  `prob:aesp-cd-variable-two-port-reporter`,
+  `prop:aesp-cd-speculative-envelope-doubling`,
+  `prop:aesp-cd-rppr-speculative-decoy`,
+  `thm:aesp-cd-hard-cap-dynamic-oracle`,
+  `cor:aesp-cd-margin-obstacle-primitive`,
+  `prop:aesp-cd-moreau-face-shock-sharp`, and
+  `cor:aesp-cd-discover-then-restart`,
+  `prop:aesp-cd-positive-polynomial-stop`, and
   `cor:aesp-cd-conditional-finite-acceptance`.
-- Next concrete action: Construct a spectrally split, windowed, nonlinear, or
-  differently normalized `q^-1`-weighted Lyapunov that pairs persistent
-  high-energy decay with Euclidean collateral while preserving accelerated
-  low modes.
+- Next concrete action: attack one of the two explicit remaining interfaces.
+  On discovery, either implement the persistent bulk-affine
+  `MeldAffineHull` reporter on variable two-port blocks, or prove that its
+  cactus productive-site specialization cannot meet the support-radius budget; all
+  dynamic obstacle updates, level notifications, and rejected frontier rows
+  must remain charged.  On the final certified face, bound the number of
+  rejected observable windows and maintain the absolute finite-inner budget,
+  then compose this with the proved discover-then-restart bridge when the
+  required full-face identities are separately certified.  On a generic
+  proper final face, use the safe Chebyshev terminal composition instead.  Do not
+  transport momentum through serial admissions merely to obtain this
+  composition.
 - Stop/go test: Go if the actual finite sequence has a declared
   graph-uniform net exponent and all residual charges fit the absolute polish.
   Stop if the proof erases the correction, treats the unknown optimum as an
@@ -95,14 +316,25 @@ transfer, so there is no graph-uniform exact accelerated solver yet.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Six exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--027 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
+  the Round-022--042 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
   equation, or evidence classification.
-- Known gaps: The abstract countermodel is not a claimed reachable outer
-  state. The P4 theorem has no finite-inner work conclusion. The post-full
-  filter is not a graph-uniform two-step separation and does not prove finite
-  net packing. No graph-uniform exact accelerated solver or finite-precision
-  result follows.
+- Known gaps: The P4 theorem has no finite-inner work conclusion. The
+  contract-or-spend theorem is exact and restricted to the settled optimal
+  face. The Moreau theorem crosses only explicit epoch-boundary admissions and
+  still lacks event packing. The high half of the master/mean split has a
+  finite-inner transfer; the forced mean and changing-face parts do not yet
+  form an end-to-end finite solver theorem.  The two-phase alternative avoids
+  changing-face momentum transfer, but its discovery phase still assumes an
+  accelerated dynamic-obstacle/reporter interface.  That interface is closed
+  on trees, unicyclic graphs, stable ports, and bounded-productive-site cactus
+  traces; unrestricted productive cactus has the square-root epoch tradeoff,
+  not the target product.  General variable-port series--parallel graphs remain
+  open.  The final
+  face still needs a graph-uniform accounting of failed observable gates (or
+  a finite relative alignment schedule) before its accelerated accepted
+  windows become an unconditional terminal complexity bound.
+  No graph-uniform exact accelerated solver or finite-precision result follows.
