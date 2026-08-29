@@ -404,8 +404,9 @@ The same high-gap certificate compresses every proper-face inverse response
 to an explicit ground rank-one term plus a high-mode remainder bounded by
 `q/(alpha*(1+q))` times the centered load.  A pivot can therefore update all
 retained rows through one scalar and classify them with simultaneous error
-intervals: row (v)'s radius is the response amount times the nonnegative
-coupling row applied to the coordinate error bounds.  Whenever those radii fit
+intervals: a row's radius uses the weighted dual norm
+`sqrt(sum_i H_vi^2*h_i/d_i)`, which is sharper than summing coordinate error
+bounds across that row.  Whenever those radii fit
 the finite KKT band, every retained row is classified without materializing
 the dense response.  Concentrated
 pivot loads can keep that band wide, so gray rows still fall back to the

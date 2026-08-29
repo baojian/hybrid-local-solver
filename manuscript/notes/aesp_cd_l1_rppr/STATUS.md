@@ -105,7 +105,8 @@ State: proved-open
   On every face passing this high-gap check, the inverse itself is an explicit
   ground rank-one operator plus a high-mode remainder of norm at most
   `q/(alpha*(1+q))`.  This gives a one-scalar pivot-response update and
-  simultaneous row intervals of radius `t*sum_i(-H_vi)*E_i`; it closes the
+  simultaneous row intervals controlled by the weighted dual norm
+  `sqrt(sum_i H_vi^2*h_i/d_i)`; it closes the
   reporter when those intervals fit finite KKT hysteresis, but concentrated
   loads may still need the general locator.
   Combining this split with the one-sided finite ground sandwich gives

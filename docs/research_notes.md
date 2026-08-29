@@ -227,9 +227,10 @@ for every face right-hand side, the exact response is its explicit ground
 multiple plus a high-mode remainder of norm at most
 `q/(alpha*(1+q))` times the centered right-hand side.  For pivot responses
 this updates every boundary record through one common scalar and leaves a
-simultaneous gray-band certificate: a retained row (v) gets radius
-`t*sum_i(-H_vi)*E_i`, where `E_i` is the certified coordinate response error.
-Rows whose approximate keys lie outside that interval are classified together.
+simultaneous gray-band certificate.  Its sharper row radius uses the weighted
+dual norm `sqrt(sum_i H_vi^2*h_i/d_i)`, rather than summing all coordinate
+error radii; this can be much smaller on a wide boundary row.  Rows whose
+approximate keys lie outside that interval are classified together.
 It closes reporter work when every such band fits inside finite KKT hysteresis;
 concentrated loads can still leave a large gray set, so this is a
 conductance-certified shortcut rather than a universal event locator.

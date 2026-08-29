@@ -562,7 +562,9 @@ def check_rank_one_inverse_certificate() -> tuple[F, F, F, F]:
         exterior_row[i] * high_solution[i] for i in range(size)
     )
     assert propagated_high**2 <= (
-        inverse_high_bound**2 * high_rhs_square * sum(exterior_row) ** 2
+        inverse_high_bound**2
+        * high_rhs_square
+        * sum(value * value for value in exterior_row)
     )
     # The theorem uses the sharper Euclidean radius; the rational L1 radius
     # below avoids introducing square roots while still certifying both signs.
