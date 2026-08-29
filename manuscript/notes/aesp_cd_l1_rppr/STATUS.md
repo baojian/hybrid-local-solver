@@ -391,34 +391,33 @@ volume by final support volume without another guard or oracle.
 
 ## Central blocker
 
-Entry-dominated corrections and finite-created one-sided excess are charged,
-and persistent-row controller, correction, and surviving-momentum energies
-telescope. The exact Euclidean collateral reserve nevertheless has only
-`q^2` graph-uniform drift. A coefficient large enough to pay the reachable K8
-pulse makes the corresponding unsplit lagged bank fail stagewise accelerated
-contraction on a reachable K2 low mode. The cross-normalized bank removes that
-one-step drift, but the reachable `K_N` family shows that its low forcing
-cannot be paid by high-band net decrease with a dimension-free coefficient.
-The event-level contract-or-spend theorem pays it from low Euclidean progress,
-but freezing that endpoint resource into a static `q^-1` reserve would restore
-the K2 slow drift. The missing object is a restart/window accounting that
-spends this resource only at correction events and survives face changes and
-finite residuals. Equivalently, the remaining transfer must be windowed or nonlinear
-rather than a fixed additive reserve. The Moreau epoch ledger removes the
-`q^-2` face shock and avoids double counting, but still requires a bound on its
-geometrically weighted face-gain and harmful signed-event injections. The
-generic signed Stieltjes account improves the correction convolution but can
-still permit `O(1/q)` bad windows. The master/mean split removes the high
-component of this ambiguity and identifies one precise remaining term: the
-discounted mean deficit in the non-overshoot/high-trigger branch. The `K_N`
-family rules out paying it by a dimension-free high-energy reserve, so the
-missing extra factor must use an infinity/local/volume-sensitive controller
-certificate or an adaptive accepted-window rule rather than only
-`0<=r_t<=beta*d_t`. Accepted fixed-full-face windows and the exact alignment
-tail are now accelerated; what remains graph-uniformly open is the number and
-cost of failed gates, changing-face transfer, and relative finite-inner
-maintenance. There is
-still no graph-uniform exact accelerated solver.
+For the canonical point source, terminal acceleration is no longer the main
+universal obstruction.  An APPR envelope of output-scale volume exists, its
+fixed-envelope obstacle problem has an accelerated safe primitive, exact
+Schur pivots admit each support row once, and the final principal inverse
+factors into orthogonal pivot responses.  The missing graph-uniform object is
+an online one-sided event locator that constructs or reuses those responses
+without materializing dense Schur fill or repeatedly scanning an output-sized
+frontier.  The candidate universe is itself output-linear; the difficulty is
+the lifetime number and cost of response rekeys.
+
+This locator is complete on trees, unicyclic graphs, and now all cactus graphs
+through the online hysteretic heavy--light reporter.  Stable fixed separators
+also reduce to ordinary low-dimensional hull queries.  The smallest current
+structural gap is a genuinely variable two-port series--parallel block, where
+one update applies a bulk projective pullback to a child response set before
+an arbitrarily interleaved meld.  Standard dynamic planar hulls do not provide
+that operation.  Spectral vertex sparsifiers and approximate elimination give
+energy control but not yet the simultaneous one-sided row intervals required
+by the finite ratio-pivot stop.
+
+The older safeguarded-momentum route remains a valid secondary frontier:
+accepted fixed-face windows and aligned tails are accelerated, while failed
+gates, changing-face transfer, and permanent finite-inner accuracy are not
+graph-uniformly packed.  The new ground-state conjugacy removes the proper-face
+constant-mode mismatch for a modified shift/cap, but does not manufacture its
+high-gap or master-sign hypotheses.  Neither route currently yields a
+graph-uniform end-to-end accelerated solver.
 
 ## Dependencies and reusable outputs
 
@@ -558,9 +557,9 @@ still no graph-uniform exact accelerated solver.
   closed without strict margins, but its discovery phase still assumes a
   dynamic boundary-reporter interface.  That reporter interface is closed
   on trees, unicyclic graphs, stable ports, and bounded-productive-site cactus
-  traces; unrestricted productive cactus has the square-root epoch tradeoff,
-  not the target product.  General variable-port series--parallel graphs remain
-  open.  The final
+  traces, and the online hysteretic heavy--light construction closes all
+  single-source cactus traces at the target product scale.  General
+  variable-port series--parallel graphs remain open.  The final
   face still needs a graph-uniform accounting of failed observable gates (or
   a finite relative alignment schedule) before its accelerated accepted
   windows become an unconditional terminal complexity bound.

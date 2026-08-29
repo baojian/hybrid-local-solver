@@ -486,8 +486,9 @@ and face-stability certificates; the bridge does not manufacture them.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
-The live target is to batch and certify face discovery, pack failed
-proper-face windows, and charge changing-face replays.
+The primary live target is the output-sensitive online one-sided event
+locator, beginning with variable two-port series--parallel blocks; a secondary
+route is to pack failed proper-face windows and finite changing-face replays.
 No graph-uniform exact accelerated solver or unconditional
 `O_tilde(1/(rho*sqrt(alpha)))` end-to-end theorem is claimed. In particular:
 
@@ -516,7 +517,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twenty-four exact audits with:
+Run all twenty-seven exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -549,6 +550,9 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.obstacle_clip_retraction` (Round 044).
 - `aesp_cd_l1_rppr.accelerated_support_spill` (Round 045).
 - `aesp_cd_l1_rppr.point_source_scope` (Round 046).
+- `aesp_cd_l1_rppr.fan_linear_batches` (Round 047).
+- `aesp_cd_l1_rppr.point_source_homotopy` (Round 048).
+- `aesp_cd_l1_rppr.point_source_ratio_pivot` (Round 049).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the
