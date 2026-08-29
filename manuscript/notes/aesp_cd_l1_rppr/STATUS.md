@@ -41,8 +41,9 @@ State: proved-open
   its envelope has radius at most one and volume `Theta(1/rho)`, yet APPR
   spends `Omega(vol(E)/alpha)` work on it.
   Supplied as an oracle, that APPR envelope immediately supports a standard
-  accelerated proximal solve with semantic PPR work
-  `O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual margin.
+  accelerated proximal solve for a general sparse source with semantic work
+  `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual
+  margin.  Point-source structure is needed only for envelope construction.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -444,6 +445,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-point-source-coarse-regime`,
   `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-appr-envelope-oracle`,
+  `cor:aesp-cd-appr-envelope-oracle`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
@@ -496,8 +498,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Twenty-four exact audits with durable `aesp_cd_l1_rppr.*` IDs
-  cover the Round-022--046 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty-seven exact audits with durable `aesp_cd_l1_rppr.*` IDs
+  cover the Round-022--049 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,

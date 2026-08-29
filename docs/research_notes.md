@@ -73,8 +73,11 @@ and the point-source radius lemma puts the same envelope within
 `O_tilde(1/sqrt(alpha))` hops of the root,
 although classical APPR takes tightly `Theta(1/(alpha*rho))` work to build
 it.  If this envelope is supplied, accelerated proximal gradient on the
-fixed envelope reaches semantic PPR error `eps_ppr` in
-`O_tilde(1/(sqrt(alpha)*eps_ppr))` work, without an exact-support margin.
+fixed envelope reaches semantic PPR error `eps_ppr` for a general sparse
+source in
+`nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` work, without an exact-support
+margin.  Point-source structure is needed only to accelerate construction of
+the envelope, not for this terminal oracle solve.
 The ordering-independent APPR star already has envelope radius at most one
 and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
 gap is repeated state processing rather than distant or oversized output.

@@ -43,10 +43,13 @@ The tight APPR star already has envelope volume `Theta(1/rho)` and radius at
 most one while spending `Omega(vol(E)/alpha)` work, so this distinction is
 not caused by distant output or a loose volume estimate.
 Indeed, if the APPR support is supplied as an oracle, accelerated proximal
-gradient on that fixed envelope gives the semantic point-source PPR target in
-`O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support margin.  The
-gap between this oracle theorem and the desired algorithm is therefore only
-the accelerated envelope-construction interface.
+gradient on that fixed envelope gives semantic PPR for a general sparse
+source in
+`nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support
+margin.  The point-source hypothesis is needed only for constructing the
+envelope through rooted connectivity/radius.  The gap between this oracle
+theorem and the desired algorithm is therefore only the accelerated
+envelope-construction interface.
 
 Three superficially stronger point-source results do not close that hard
 range after their hidden scope is restored.  The ICDT 2024

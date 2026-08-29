@@ -71,6 +71,34 @@ def obstacle_point(
     return point
 
 
+def appr_support(
+    adjacency: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    rho: F,
+) -> tuple[set[int], int]:
+    """Run exact lazy APPR with the smallest active label."""
+    size = len(degree)
+    coupling = (1 - alpha) / 2
+    settled = [F(0)] * size
+    residual = [F(i == 0) for i in range(size)]
+    pushes = 0
+    while True:
+        active = [i for i in range(size) if residual[i] >= rho * degree[i]]
+        if not active:
+            return {i for i, value in enumerate(settled) if value > 0}, pushes
+        vertex = min(active)
+        mass = residual[vertex]
+        settled[vertex] += alpha * mass
+        residual[vertex] = coupling * mass
+        for neighbor in range(size):
+            if adjacency[vertex][neighbor]:
+                residual[neighbor] += coupling * mass / degree[vertex]
+        pushes += 1
+        assert sum(settled, F(0)) + sum(residual, F(0)) == 1
+        assert pushes < 100_000
+
+
 def inverse(matrix: list[list[F]]) -> list[list[F]]:
     size = len(matrix)
     columns = [
@@ -662,6 +690,7 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-radius}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-reuse-gap}" in source
     assert r"\label{cor:aesp-cd-point-source-appr-envelope-oracle}" in source
+    assert r"\label{cor:aesp-cd-appr-envelope-oracle}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-error}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-work}" in source
     assert r"\label{thm:aesp-cd-point-source-ratio-pivot}" in source
@@ -715,6 +744,8 @@ def main() -> None:
     hitting_radius_count = 0
     residual_certificate_count = 0
     screened_support_count = 0
+    appr_envelope_count = 0
+    appr_push_count = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -759,6 +790,24 @@ def main() -> None:
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
             expected = obstacle_support(hessian, load)
+            appr_envelope, pushes = appr_support(
+                adjacency, degree, alpha, rho
+            )
+            enlarged_load = [
+                alpha
+                * (F(i == 0) - coupling * rho * degree[i])
+                for i in range(size)
+            ]
+            enlarged_support = obstacle_support(hessian, enlarged_load)
+            assert expected <= appr_envelope <= enlarged_support
+            assert sum(degree[i] for i in appr_envelope) <= 1 / (
+                coupling * rho
+            )
+            assert set(graph_distances(adjacency, appr_envelope, 0)) == (
+                appr_envelope
+            )
+            appr_envelope_count += len(appr_envelope)
+            appr_push_count += pushes
             toppling_count += audit_legal_topplings(
                 hessian, load, degree, alpha, expected, rng
             )
@@ -890,6 +939,10 @@ def main() -> None:
     print(f"  persistent original-frontier records audited={frontier_record_count}")
     print(f"  energy-orthogonal pivot directions audited={orthogonal_direction_count}")
     print(f"  ordinary-PPR screened support coordinates audited={screened_support_count}")
+    print(
+        "  APPR sandwich coordinates/pushes audited="
+        f"{appr_envelope_count}/{appr_push_count}"
+    )
     print(
         "  alpha-rho screening sharpness ratio="
         f"{float(sharp_screening_ratio):.12f}"
