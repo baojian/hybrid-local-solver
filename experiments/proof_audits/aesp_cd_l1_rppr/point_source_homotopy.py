@@ -875,7 +875,7 @@ def check_complete_rank_one_fixed_target() -> int:
     return admissions
 
 
-def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F]]:
+def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
     """Certify that high gap alone does not make sparse pivots rank one."""
     face_size = 8
     q = F(1, 4)
@@ -932,7 +932,87 @@ def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F]]:
     ) / sum(ground_weight)
     retained_leaf_error = response[1] - mean / alpha * ground[1]
     assert retained_leaf_error < 0
-    return retained_leaf_error, diagonal
+
+    # Balance two clique coordinates with two exterior leaves each.  A pivot
+    # leaf at coordinate zero then gives opposite high-mode corrections to
+    # two retained leaf rows whose old (ground-coupling,key) states coincide.
+    balanced_degree = [face_size + 1, face_size + 1, *([face_size - 1] * 6)]
+    balanced_hessian = [
+        [
+            p * balanced_degree[i] if i == j else -coupling
+            for j in range(face_size)
+        ]
+        for i in range(face_size)
+    ]
+    balanced_ground = solve(
+        balanced_hessian, [alpha * value for value in balanced_degree]
+    )
+    assert balanced_ground[0] == balanced_ground[1] == F(543, 911)
+    balanced_weight = [
+        F(balanced_degree[i]) / balanced_ground[i] for i in range(face_size)
+    ]
+    balanced_shifted = [
+        [
+            balanced_hessian[i][j]
+            - threshold * balanced_weight[i] * F(i == j)
+            for j in range(face_size)
+        ]
+        for i in range(face_size)
+    ]
+    balanced_lower = [[F(0)] * face_size for _ in range(face_size)]
+    balanced_diagonal: list[F] = []
+    for i in range(face_size):
+        pivot = balanced_shifted[i][i] - sum(
+            balanced_lower[i][k] ** 2 * balanced_diagonal[k]
+            for k in range(i)
+        )
+        assert pivot
+        balanced_diagonal.append(pivot)
+        balanced_lower[i][i] = 1
+        for j in range(i + 1, face_size):
+            balanced_lower[j][i] = (
+                balanced_shifted[j][i]
+                - sum(
+                    balanced_lower[j][k]
+                    * balanced_lower[i][k]
+                    * balanced_diagonal[k]
+                    for k in range(i)
+                )
+            ) / pivot
+    assert sum(value < 0 for value in balanced_diagonal) == 1
+    assert sum(value > 0 for value in balanced_diagonal) == face_size - 1
+
+    balanced_rhs = [coupling, *([F(0)] * (face_size - 1))]
+    balanced_response = solve(balanced_hessian, balanced_rhs)
+    balanced_transformed_rhs = [
+        balanced_rhs[i] / balanced_degree[i] for i in range(face_size)
+    ]
+    balanced_ground_weight = [
+        balanced_degree[i] * balanced_ground[i] for i in range(face_size)
+    ]
+    balanced_mean = sum(
+        balanced_ground_weight[i] * balanced_transformed_rhs[i]
+        for i in range(face_size)
+    ) / sum(balanced_ground_weight)
+    same_vertex_error = (
+        balanced_response[0] - balanced_mean / alpha * balanced_ground[0]
+    )
+    other_vertex_error = (
+        balanced_response[1] - balanced_mean / alpha * balanced_ground[1]
+    )
+    assert same_vertex_error == F(21150, 276523) > 0
+    assert other_vertex_error == F(-3706, 276523) < 0
+    assert (
+        coupling * balanced_ground[0]
+        == coupling * balanced_ground[1]
+        == F(4344, 15487)
+    )
+    return (
+        retained_leaf_error,
+        diagonal,
+        same_vertex_error,
+        other_vertex_error,
+    )
 
 
 def main() -> None:
@@ -959,6 +1039,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-exact-rank-one-trace-discovery}" in source
     assert r"\label{prop:aesp-cd-exact-rank-one-admission-characterization}" in source
     assert r"\label{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}" in source
+    assert r"\label{prop:aesp-cd-high-gap-two-state-gray-stop}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -1018,7 +1099,12 @@ def main() -> None:
     lazy_reporter_checks = check_lazy_rank_one_reporter()
     complete_prefix_checks = check_complete_prefix_rank_one()
     complete_trace_admissions = check_complete_rank_one_fixed_target()
-    sparse_pivot_error, sparse_pivot_inertia = check_high_gap_sparse_pivot_gray_stop()
+    (
+        sparse_pivot_error,
+        sparse_pivot_inertia,
+        same_state_positive_error,
+        same_state_negative_error,
+    ) = check_high_gap_sparse_pivot_gray_stop()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -1042,6 +1128,10 @@ def main() -> None:
     print(f"  exact complete-prefix rank-one faces: {complete_prefix_checks}")
     print(f"  output-linear complete-graph trace admissions: {complete_trace_admissions}")
     print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
+    print(
+        "  identical scalar row-state STOP: "
+        f"errors=({same_state_positive_error},{same_state_negative_error})"
+    )
     print(f"    exact shifted LDL pivots: {sparse_pivot_inertia}")
     print(
         "  proper-clique conductance witness: "

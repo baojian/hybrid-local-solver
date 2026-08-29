@@ -75,6 +75,12 @@ planar extreme queries: dyadic bins in `s_v` and the Young majorant for
 multiplicative inflation.  The unresolved online question is now whether
 many simultaneous bin crossings can be reported or charged without a dense
 refresh.
+That online loss is not a bookkeeping artifact.  A second exact `K8`
+high-gap witness has two retained exterior rows with identical old
+`(s_v,g_v)` states, yet the same sparse pivot gives them opposite signed
+high-mode corrections.  Therefore the planar two-state record cannot
+deterministically advance a nonzero gray band; an implementation must retain
+attachment geometry, an interval, or a stronger response oracle.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active

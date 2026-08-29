@@ -123,6 +123,10 @@ State: proved-open
   into planar affine maxima with less than `1.02` inflation.  What remains
   open is online rebinning: a common face transform may move many rows across
   bin boundaries without naming those events.
+  Moreover, a balanced `K8` high-gap face has two exterior rows with identical
+  old `(s_v,g_v)` states but opposite signed high-mode corrections under the
+  same sparse pivot.  Thus the two-state record cannot exactly advance a gray
+  update without row geometry, materialization, or a certified interval.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -625,6 +629,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-exact-rank-one-trace-discovery`,
   `prop:aesp-cd-exact-rank-one-admission-characterization`,
   `prop:aesp-cd-high-gap-sparse-pivot-gray-stop`,
+  `prop:aesp-cd-high-gap-two-state-gray-stop`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `prop:aesp-cd-point-source-literal-walk-sampling-stop`,

@@ -21,6 +21,12 @@ For one snapshot, dyadic ground-coupling bins and a Young majorant reduce
 those square-root bands back to planar affine extreme queries with less than
 1.02 inflation.  The remaining online problem is the amortization of rows
 that cross bins under a common face transform.
+An exact balanced-`K8` witness shows why this step cannot be skipped: two
+retained rows can have the same `(s_v,g_v)` state while one sparse pivot gives
+opposite signed high-mode corrections.  The two-state planar record is thus
+exact only in the zero-band branch; that interface needs finite intervals,
+additional attachment geometry, or a stronger response oracle for the gray
+branch.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final
