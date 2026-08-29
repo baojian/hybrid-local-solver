@@ -209,6 +209,26 @@ def check_ground_state_normalization(
         )
         assert quadratic == dirichlet
 
+        # The ground-state Laplacian induces an exact reversible Markov
+        # kernel.  This is the premise needed by the weighted-conductance
+        # certificate: row sums are one, every entry is nonnegative, and
+        # dbar is a reversible measure.
+        kernel = [
+            [F(i == j) - laplacian[i][j] / dbar[i] for j in range(len(face))]
+            for i in range(len(face))
+        ]
+        assert all(sum(row) == 1 for row in kernel)
+        assert all(entry >= 0 for row in kernel for entry in row)
+        assert all(
+            dbar[i] * kernel[i][j] == dbar[j] * kernel[j][i]
+            for i in range(len(face))
+            for j in range(len(face))
+        )
+        assert all(
+            sum(edge_weight[i]) <= dbar[i]
+            for i in range(len(face))
+        )
+
         # A generic shifted solve agrees in the two coordinate systems.
         target = [F(11 + 2 * i, 10) for i in range(len(face))]
         load = [
@@ -261,6 +281,7 @@ def main() -> None:
     assert r"\label{lem:aesp-cd-point-source-ground-state-normalization}" in source
     assert r"\label{prop:aesp-cd-proper-face-ground-conjugacy}" in source
     assert r"\label{eq:aesp-cd-proper-face-doob-laplacian}" in source
+    assert r"\label{cor:aesp-cd-proper-face-conductance-gap}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -318,6 +339,7 @@ def main() -> None:
     print(f"  canonical proper-face ground normalization: {ground_faces} connected faces")
     print("  h-cap / W-shift conjugacy: exact on every connected face")
     print("  conjugated ground shift: exact weighted graph Laplacian")
+    print("  ground walk: stochastic, nonnegative, and exactly reversible")
 
 
 if __name__ == "__main__":

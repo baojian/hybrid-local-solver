@@ -372,6 +372,11 @@ There is nevertheless an exact controller conjugacy.  With
 after the change of variables.  Thus the fixed-face full-face algebra
 transfers exactly to a modified proper-face controller; high-gap and master
 sign certificates remain separate hypotheses.
+The high gap now has an explicit graph certificate: with
+`q=sqrt(alpha/(1-alpha))`, weighted ground conductance
+`Phi_h>=sqrt(2alpha/q)=Theta(alpha^(1/4))` implies every transformed high
+resolvent mode is at most `1-q`.  This is only a sufficient Cheeger
+condition; it does not establish the independent clipped-master sign.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

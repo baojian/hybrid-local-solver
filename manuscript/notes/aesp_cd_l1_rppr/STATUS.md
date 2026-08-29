@@ -78,6 +78,9 @@ State: proved-open
   with conductances `((1-alpha)/2) h_i h_j`.  The proper-face high gap is
   therefore exactly a weighted Poincare/conductance condition, and
   point-source connectedness makes its ground eigenspace one-dimensional.
+  Quantitatively, `Phi_h>=sqrt(2alpha/q)` with
+  `q=sqrt(alpha/(1-alpha))` is a checkable sufficient certificate for the
+  required high-resolvent bound.  The clipped-master sign remains separate.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -515,6 +518,7 @@ graph-uniform end-to-end accelerated solver.
   `lem:aesp-cd-point-source-hitting-radius`,
   `lem:aesp-cd-point-source-ground-state-normalization`,
   `prop:aesp-cd-proper-face-ground-conjugacy`,
+  `cor:aesp-cd-proper-face-conductance-gap`,
   `cor:aesp-cd-point-source-route-output-interface`,
   `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,

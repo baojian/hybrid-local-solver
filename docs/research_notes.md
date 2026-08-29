@@ -188,7 +188,11 @@ The conjugate has a more concrete form:
 `diag(d_i h_i)*(Qbar-alpha I)` is exactly the weighted graph Laplacian on
 the active induced graph with conductance
 `((1-alpha)/2)*h_i*h_j` on edge `ij`.  Thus the extra proper-face high-gap
-assumption is precisely a weighted conductance/Poincare assumption.  A
+assumption is precisely a weighted conductance/Poincare assumption.  In
+particular, if `q=sqrt(alpha/(1-alpha))`, the explicit Cheeger certificate
+`Phi_h >= sqrt(2*alpha/q)=Theta(alpha^(1/4))` implies the required
+resolvent high gap.  It does not imply the separate clipped-master sign
+condition.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
 
