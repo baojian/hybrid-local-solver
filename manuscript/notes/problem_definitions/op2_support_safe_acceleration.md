@@ -475,6 +475,20 @@ construction is an actual RPPR instance, all private leaves remain inactive,
 and MSE restricted to the positive support has exactly the scalar dynamics
 above.
 
+If a connected input graph is desired, replace the target edge by an active
+clique whose vertices each have one private inactive neighbor.  Its active
+Perron eigenvalue is
+
+\[
+  c_\alpha\left(2-\frac1D\right)\longrightarrow\lambda_*
+\]
+
+when the total active degree `D` tends to infinity.  Join all private inactive
+vertices by additional edges.  This does not change the degrees or principal
+blocks of the active vertices, and the larger inactive degrees only make
+their KKT inequalities easier to satisfy.  Continuity over the fixed number
+of steps gives the same lower bound with an arbitrarily small further loss.
+
 Finally, for any proposed `C,c>0`, choose `L` so that `C exp(-cL)<1/2`, set
 `k` to a nearby even integer of order `L/sqrt(alpha)`, and then take `alpha`
 small.  The lower bound (7a) tends to one, contradicting (7).  This proves the
@@ -491,6 +505,47 @@ fully charged work
 \[
   \widetilde O\!\left(\frac{1}{\rho\sqrt\alpha}\right).
 \]
+
+There is a support-safe way to localize the momentum decision.  It removes
+the literal global-decoy example, although it does not yet restore a rate.
+At a subsolution `x`, let `r=h-Qx` on its positive support and let `d>=0` be
+the last increment.  Partition that support into arbitrary groups `G`.  Put
+`d_G=d` on `G` and zero elsewhere, and choose
+
+\[
+  \theta_G
+  :=\min_{i\in G:\,(Qd_G)_i>0}
+       \frac{r_i}{(Qd_G)_i},
+  \qquad
+  u:=\sum_G\theta_Gd_G.
+  \tag{7d}
+\]
+
+Then `z=x+u` is again a subsolution.  Indeed, if `i in G`, every increment
+from a different group enters row `i` only through nonpositive off-diagonal
+entries of `Q`.  Therefore
+
+\[
+  (Qu)_i
+  \leq (Q(\theta_Gd_G))_i
+  \leq r_i.
+\]
+
+At zero coordinates the subsolution inequality is automatic.  Thus all the
+order and support conclusions of Theorem 4 continue to hold.  Once the
+partition labels are known, all denominators in (7d) can be accumulated in
+one adjacency scan by retaining only same-group edge contributions.
+
+This partitioned MSE exposes a genuine design tradeoff.  Separating a tiny
+decoy from the dominant mode prevents it from clipping the latter's
+momentum.  At the opposite extreme, singleton groups reduce (7d) to a
+Jacobi-type correction and have the unaccelerated `1/alpha` scale.  Dyadic
+groups based only on residual magnitude or on the individual contact ratios
+`r_i/(Qd)_i` improved the finite decoy witnesses but still produced
+block-contraction ratios tending toward one on weighted bottleneck paths as
+`alpha` decreased.  This is computational evidence, not a lower bound for
+all partitions.  It indicates that a successful grouping rule needs a
+certified energy measure, not merely a coordinate scale.
 
 ## 5. Residual recurrence and the failure mechanism
 
