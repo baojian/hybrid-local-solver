@@ -174,6 +174,9 @@ interleaving child hulls.
 If every sibling pair instead has disjoint pulled-back slope intervals, one
 bridge tangent gives a logarithmic persistent meld; this is a clean
 structural GO, but not a general reporter.
+Separately, exact all-positive batching cannot be charged just to support
+radius: an eight-vertex radius-one RPPR instance needs five strict singleton
+batches.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.
@@ -248,7 +251,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twenty exact audits with:
+Run all twenty-one exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -277,6 +280,7 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.tree_singleton_threshold` (Round 040).
 - `aesp_cd_l1_rppr.separated_level_reporter` (Round 041).
 - `aesp_cd_l1_rppr.variable_two_port_stops` (Round 042).
+- `aesp_cd_l1_rppr.radius_batch_stop` (Round 043).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

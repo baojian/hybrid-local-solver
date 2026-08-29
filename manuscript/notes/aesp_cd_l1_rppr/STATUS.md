@@ -283,6 +283,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-sp-meld-hull-reduction`,
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
+  `prop:aesp-cd-all-positive-radius-stop`,
   `prop:aesp-cd-separated-level-reporter`,
   `prob:aesp-cd-variable-two-port-reporter`,
   `prop:aesp-cd-speculative-envelope-doubling`,
@@ -316,8 +317,8 @@ still no graph-uniform exact accelerated solver.
 - Source pointers checked: `README.md`, `main.tex` and included sections,
   `registry.toml`, `docs/research_notes.md`, the acceleration literature note,
   and shared ledgers.
-- Focused checks: Twenty exact audits with durable `aesp_cd_l1_rppr.*` IDs cover
-  the Round-022--042 mechanisms. Run them with `uv run python -m
+- Focused checks: Twenty-one exact audits with durable `aesp_cd_l1_rppr.*` IDs
+  cover the Round-022--043 mechanisms. Run them with `uv run python -m
   experiments.proof_audits.runner --tier full --note aesp_cd_l1_rppr`.
 - Review status: Previous independent audits rederived each exact recurrence,
   constant, gate, and scope boundary. This reorganization changes no theorem,
