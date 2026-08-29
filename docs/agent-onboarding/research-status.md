@@ -80,18 +80,31 @@ conditional confinement corollaries, but may not promote a universal
 
 ## Current frontier
 
-The latest accepted AESP-CD boundary is Round 027. The actual finite-inner
-recurrence now has a lagged Euclidean reserve, but its graph-uniform drift is
-only order `q^2`. The simplest lagged unsplit `q^(-1) Q` reserve cannot both
-contract uniformly in one step at the accelerated rate and carry enough
-coefficient for the reachable K8 pulse. This does not rule out accelerated
-decay over windows or with a different decomposition.
+The active endpoint is now the canonical point-source problem `s=e_v`.
+Several formerly separate obstructions have been reduced to one online
+discovery primitive.  The exact point-source homotopy admits every support
+row once by a Stieltjes Schur pivot, the candidate universe is output-linear,
+and an APPR envelope of volume `O(1 / rho)` exists within the proved support
+radius.  If such an envelope is supplied, fixed-envelope accelerated
+projected gradient closes the semantic PPR target.  What is not yet proved on
+an arbitrary graph is an output-sensitive online event locator that builds or
+reuses that envelope without materializing high-rank inverse responses.
 
-The live AESP route is therefore a windowed, spectrally split, nonlinear, or
-differently normalized low-Dirichlet transfer that retains every finite
-residual and correction. Round 027 does not provide a graph-uniform net
-exponent, end-to-end solver theorem, complete work vector, or
-finite-precision result.
+The structural boundary has moved as well.  A two-hysteretic online
+heavy--light ledger now closes the exact single-source reporter on every
+cactus graph without a supplied final support or decomposition.  The
+smallest remaining graph family exposed by the current proof interfaces is a
+genuinely variable two-port series--parallel block: ordinary dynamic planar
+hulls do not support the required bulk projective pullback and meld.  On any
+certified connected proper face, the homotopy slope also gives a canonical
+diagonal normalization with a known ground eigenpair at `alpha`; this removes
+proper-face eigendata estimation, but not the clipping-direction hypothesis
+of the separate full-face momentum master.
+
+Thus the project has a graph-uniform terminal solver and complete online
+reporters on several large structural classes, but still no graph-uniform
+end-to-end accelerated local PPR theorem, complete general event locator, or
+finite-precision realization of all exact-real response contracts.
 
 ## Active open directions
 
@@ -100,14 +113,14 @@ results and a central unresolved target.
 
 | Direction | Exact unresolved target | Resume source |
 | --- | --- | --- |
-| AESP coordinate descent for RPPR | Prove a finite windowed, spectral, nonlinear, or differently normalized low-Dirichlet net exponent that retains all residual and correction charges. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
+| AESP coordinate descent for RPPR | Build an output-sensitive online thresholded inverse-Cholesky/event locator on arbitrary point-source supports, or close the variable two-port series--parallel reporter that is the smallest present structural gap. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
 | AESP--LOCSOR hybrid | Build a nonadditive or logarithmic reset ledger across multiple actual nonsettled admissions, or prove another graph-independent prefix bound. | [`hybrid_aesp_locsor/STATUS.md`](../../manuscript/notes/hybrid_aesp_locsor/STATUS.md) |
 | Volume-gated acceleration | Establish all-history causal solvency under a declared structural condition, or exhibit debt that survives enough admissions to stop that route. | [`volume_gated_acceleration/STATUS.md`](../../manuscript/notes/volume_gated_acceleration/STATUS.md) |
 | Response-preconditioned hybrid | Find sparse collision-sensitive refresh state or a geometrically paid replay/rebuild theorem for changing high-rank cores. | [`response_preconditioned_hybrid/STATUS.md`](../../manuscript/notes/response_preconditioned_hybrid/STATUS.md) |
 | Propagate--settle framework | Construct a different legal cyclic coupling or bounded-degree settlement gadget with seed chronology proved before reporter analysis. | [`propagate_settle_framework/STATUS.md`](../../manuscript/notes/propagate_settle_framework/STATUS.md) |
 | Local-solver oracle hierarchy | Define and justify a same-task lower-bound model that defeats residual-slack spreading and sparse-basis delayed synthesis, or narrow the claimed class. | [`local_solver_oracle_hierarchy/STATUS.md`](../../manuscript/notes/local_solver_oracle_hierarchy/STATUS.md) |
 
-The full registry currently tracks 18 notes across iterative, mixed,
+The full registry currently tracks 27 notes across iterative, mixed,
 response, model, and synthesis tracks. A new idea should first be checked
 against the registry and shared result ledger so it does not recreate a
 settled failure under a new name.

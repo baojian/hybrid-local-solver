@@ -62,6 +62,12 @@ State: proved-open
   the missing locator as an online thresholded inverse-Cholesky reporter.
   The fixed-envelope terminal branch also bypasses the proper-face
   constant-vector identity that limits the separate Perron-window branch.
+  A new canonical normalization nevertheless recovers exact proper-face
+  ground data: for `h_A=H_A^{-1} alpha d_A` and
+  `W_A=diag(d_i/h_i)`, one has `alpha W_A <= H_A <= W_A` and ground pair
+  `(alpha,h_A)`.  This removes eigendata estimation for a separately proved
+  `W_A`-geometric no-correction tail, but does not by itself change the
+  clipping direction in the existing full-face master.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -483,6 +489,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-point-source-frontier-universe`,
   `prop:aesp-cd-point-source-hitting-column`,
   `lem:aesp-cd-point-source-hitting-radius`,
+  `lem:aesp-cd-point-source-ground-state-normalization`,
   `cor:aesp-cd-point-source-route-output-interface`,
   `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,

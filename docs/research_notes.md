@@ -115,6 +115,15 @@ The universal point-source problem is therefore exactly accelerated
 construction or dynamic reuse of an output-sized envelope, not an
 output-volume existence question.
 
+Two tempting external shortcuts are now ruled to the correct scope.  The
+2026 single-source estimation lower bound forces the `Omega(1/eps)` output
+scale but assumes constant teleportation, so it does not preclude the
+variable-`alpha` square-root target.  Conversely, ChebyPush's local work
+analysis assumes a graph-universal `l1` stability constant that fails already
+on cubic high-girth balls: the distance-`k` frontier gives
+`||T_k(P)||_1 >= (4/3)^(k-1)`.  Thus neither result settles the hard
+small-`alpha` regime.
+
 On promised cactus graphs the point-source rootedness now gives a complete
 online structural breakthrough.  Maintain current subtree structural volume
 and change a heavy child only when a competitor exceeds it by a factor of
@@ -140,6 +149,16 @@ weights differ by boundary row: a six-vertex rational instance reverses two
 candidates' order.  Homotopy therefore replaces the fully arbitrary rekey
 problem by dynamic maxima under row-dependent rank-one mixtures, not by an
 ordinary lazy heap.
+
+The same slope response removes a different proper-face obstruction.  Put
+`h_A=H_A^-1 alpha d_A` and `W_A=diag(d_i/h_i)`.  Exact Stieltjes comparison
+gives `0<h_A<=1`, while Perron--Frobenius gives
+`alpha W_A <= H_A <= W_A` and `H_A h_A=alpha W_A h_A`.  Every connected
+proper face therefore has a canonical known ground state at eigenvalue
+`alpha`; the homotopy elimination record already recovers it.  This is
+usable by a separately certified no-correction Perron tail, but it does not
+by itself transplant the original constant-direction clipping master to the
+new mass matrix.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

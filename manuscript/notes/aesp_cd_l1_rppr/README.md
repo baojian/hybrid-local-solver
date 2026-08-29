@@ -355,6 +355,14 @@ average of its old value and the admitted maximum.  The thresholds therefore
 move monotonically, but a six-vertex exact trace reverses two candidates'
 priority order.  A plain lazy heap is insufficient; the remaining reporter
 must support nonuniform rank-one mixtures.
+The same homotopy slope canonically normalizes every connected proper face.
+If `h_A=H_A^(-1) alpha d_A` and `W_A=diag(d_i/h_i)`, then
+`0<h_A<=1`, `H_A h_A=alpha W_A h_A`, and
+`alpha W_A<=H_A<=W_A`.  Thus the exact positive generalized ground state is
+known without an eigensolve; the elimination record already recovers it.
+This supplies Perron data for a separately proved `W_A`-geometric
+correction-free tail, but it does not automatically transplant the original
+constant-direction clipping master to the new mass matrix.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls
