@@ -128,8 +128,9 @@ State: proved-open
   For one-sided finite ground/response solves the residual replays exactly as
   `(r_h+t*r_u,0)`, so response budgets add across nested faces rather than
   forcing a fresh ground solve per admission.
-  Finite sparse pivot responses still require the observable full-face guard;
-  guard failure remains part of the general response-locator branch.
+  Finite sparse pivot responses require no full-face guard: their right-hand
+  side is nonnegative, so the safe Stieltjes publication has a nonnegative
+  residual even at every coordinate it leaves at zero.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the

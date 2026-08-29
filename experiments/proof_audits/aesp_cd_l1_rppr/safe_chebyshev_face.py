@@ -126,6 +126,8 @@ def check_literal_chebyshev_stop_and_safe_retraction() -> None:
     assert all(F(0) <= lower[i] <= exact[i] for i in range(4))
     lower_residual = [rhs[i] - matvec(hessian, lower)[i] for i in range(4)]
     assert all(lower_residual[i] >= 0 for i in range(4) if lower[i] > 0)
+    assert all(entry >= 0 for entry in lower_residual)
+    assert any(lower[i] == 0 and lower_residual[i] > 0 for i in range(4))
 
     # The strict relative-interior guard is nonvacuous.  A large positive
     # baseline preserves the same signed Chebyshev wave while leaving enough
@@ -259,6 +261,7 @@ def check_source_scope() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert "thm:aesp-cd-safe-chebyshev-face" in source
     assert "eq:aesp-cd-safe-chebyshev-retraction" in source
+    assert "eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual" in source
     assert "cor:aesp-cd-collatz-small-shift" in source
     assert "prop:aesp-cd-positive-polynomial-stop" in source
     assert "prop:aesp-cd-chebypush-stability-stop" in source
@@ -275,6 +278,7 @@ def main() -> None:
     print("Safe fixed-face Chebyshev audit passed")
     print("  cube proper S4: literal degree-two residual is negative and overshoots")
     print("  max Stieltjes checkpoint: order-safe, with a strict full-face witness")
+    print("  nonnegative RHS: sparse publication has a full-row residual certificate")
     print("  proper-face ground solve: accelerated signed scratch, finite safe residual")
     print("  positive coefficients/restarts: exact Omega(condition number) STOP")
     print("  high-girth cubic wave: ChebyPush l1 stability grows as (4/3)^(k-1)")
