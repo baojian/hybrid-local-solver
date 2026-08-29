@@ -249,6 +249,57 @@ def audit_hitting_column(
     return audited
 
 
+def graph_distances(
+    adjacency: list[list[F]], allowed: set[int], source: int
+) -> dict[int, int]:
+    distance = {source: 0}
+    frontier = [source]
+    while frontier:
+        vertex = frontier.pop(0)
+        for neighbor in allowed:
+            if adjacency[vertex][neighbor] and neighbor not in distance:
+                distance[neighbor] = distance[vertex] + 1
+                frontier.append(neighbor)
+    return distance
+
+
+def audit_hitting_radius(
+    hessian: list[list[F]],
+    adjacency: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    active: list[int],
+) -> int:
+    """Audit the rational Chebyshev tail when sqrt(alpha)=1/3."""
+    if alpha != F(1, 9):
+        return 0
+    lam = F(1, 2)
+    exterior = [vertex for vertex in range(len(degree)) if vertex not in active]
+    if not active or not exterior:
+        return 0
+    h_ss = [[hessian[i][j] for j in active] for i in active]
+    checked = 0
+    for w in exterior:
+        hitting = solve(h_ss, [-hessian[i][w] for i in active])
+        distance = graph_distances(adjacency, set(active) | {w}, w)
+        delta = F(1, 2 * degree[w])
+        for row, i in enumerate(active):
+            radius = distance.get(i)
+            if radius is None or radius < 2:
+                continue
+            normalized_square = hitting[row] ** 2 * F(degree[i], degree[w])
+            chebyshev_square = F(4, alpha**2) * lam ** (2 * (radius - 1))
+            assert normalized_square <= chebyshev_square
+            event_square = (delta * hitting[row]) ** 2
+            event_bound_square = (
+                F(4, alpha**2 * degree[i] * degree[w])
+                * lam ** (2 * (radius - 1))
+            )
+            assert event_square <= event_bound_square
+            checked += 1
+    return checked
+
+
 def audit_frontier_universe(
     adjacency: list[list[F]], degree: list[int], support: set[int], order: list[int]
 ) -> int:
@@ -342,6 +393,66 @@ def audit_orthogonal_pivots(
         assert leverage <= hessian_inverse[i][i]
         assert hessian_inverse[i][i] <= F(1, alpha * degree[i])
     return len(increments)
+
+
+def audit_ppr_screening(
+    hessian: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    rho: F,
+    support: set[int],
+) -> int:
+    size = len(degree)
+    ordinary_load = [alpha * F(i == 0) for i in range(size)]
+    ordinary = solve(hessian, ordinary_load)
+    p = (1 + alpha) / 2
+    threshold = alpha * rho / p
+    assert all(ordinary[i] > threshold for i in support)
+    superlevel = [i for i in range(size) if ordinary[i] > threshold]
+    assert sum(degree[i] for i in superlevel) < p / (alpha * rho)
+    return len(support)
+
+
+def audit_ppr_screening_sharpness() -> F:
+    """Exact equitable solve for the root--candidate--clique family."""
+    alpha = F(1, 100)
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    candidate_ratio = F(0)
+    for m, clique_size in ((10, 10_000), (25, 25_000), (50, 50_000)):
+        equitable = [
+            [p, -coupling, F(0), F(0)],
+            [-coupling, p * (m + 1), -coupling * m, F(0)],
+            [
+                F(0),
+                -coupling,
+                p * clique_size - coupling * (m - 1),
+                -coupling * (clique_size - m),
+            ],
+            [
+                F(0),
+                F(0),
+                -coupling * m,
+                p * (clique_size - 1)
+                - coupling * (clique_size - m - 1),
+            ],
+        ]
+        ordinary = solve(equitable, [alpha, F(0), F(0), F(0)])
+        threshold = coupling / (p * (m + 1) + coupling)
+        ratio = ordinary[1] / threshold
+        assert ratio > alpha / p
+        candidate_ratio = ratio
+
+        rho = threshold * (1 - F(1, 10**8))
+        restricted = solve(
+            [[p, -coupling], [-coupling, p * (m + 1)]],
+            [alpha * (1 - rho), -alpha * rho * (m + 1)],
+        )
+        assert restricted[0] > 0 and restricted[1] > 0
+        selected_clique_key = -alpha * rho * clique_size + coupling * restricted[1]
+        unselected_clique_key = -alpha * rho * (clique_size - 1)
+        assert selected_clique_key < 0 and unselected_clique_key < 0
+    assert candidate_ratio < 3 * alpha
+    return candidate_ratio
 
 
 def audit_legal_topplings(
@@ -535,10 +646,14 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-hitting-column}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-flux}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-occupation}" in source
+    assert r"\label{lem:aesp-cd-point-source-hitting-radius}" in source
+    assert r"\label{eq:aesp-cd-point-source-hitting-event-locality}" in source
     assert r"\label{lem:aesp-cd-point-source-frontier-universe}" in source
     assert r"\label{prop:aesp-cd-point-source-orthogonal-pivots}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-bessel}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-variation}" in source
+    assert r"\label{prop:aesp-cd-point-source-ppr-screening}" in source
+    assert r"\label{eq:aesp-cd-point-source-ppr-screening-sharp}" in source
     assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
     assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
@@ -551,10 +666,12 @@ def main() -> None:
     hitting_column_count = 0
     frontier_record_count = 0
     orthogonal_direction_count = 0
+    hitting_radius_count = 0
+    screened_support_count = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
-            alpha = rng.choice((F(1, 5), F(2, 7), F(1, 3), F(3, 7)))
+            alpha = rng.choice((F(1, 9), F(1, 5), F(2, 7), F(1, 3), F(3, 7)))
             diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
             hessian = [
                 [
@@ -577,6 +694,13 @@ def main() -> None:
                 alpha,
                 list(range(1 + rng.randrange(size - 1))),
                 rng,
+            )
+            hitting_radius_count += audit_hitting_radius(
+                hessian,
+                adjacency,
+                degree,
+                alpha,
+                list(range(1 + rng.randrange(size - 1))),
             )
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
@@ -611,6 +735,9 @@ def main() -> None:
                 alpha,
                 expected,
                 residual_events,
+            )
+            screened_support_count += audit_ppr_screening(
+                hessian, degree, alpha, rho, expected
             )
             checked += 1
 
@@ -689,6 +816,7 @@ def main() -> None:
     )
     assert exact_updated_ratio == F(1, 3)
     assert approximate_updated_ratio == 0
+    sharp_screening_ratio = audit_ppr_screening_sharpness()
 
     print("PASS point-source ratio-pivot homotopy")
     print(f"  exact random connected instances={checked}, admitted events={event_count}")
@@ -700,8 +828,14 @@ def main() -> None:
     print("  positive exterior residual mass is nonincreasing and at most alpha")
     print("  total exact block-pivot residual injection is at most (1-alpha)/2")
     print(f"  killed hitting-response columns audited={hitting_column_count}")
+    print(f"  square-root response-radius coordinates audited={hitting_radius_count}")
     print(f"  persistent original-frontier records audited={frontier_record_count}")
     print(f"  energy-orthogonal pivot directions audited={orthogonal_direction_count}")
+    print(f"  ordinary-PPR screened support coordinates audited={screened_support_count}")
+    print(
+        "  alpha-rho screening sharpness ratio="
+        f"{float(sharp_screening_ratio):.12f}"
+    )
     print(f"  dissipative legal topplings audited={toppling_count}; least action exact")
     print("  finite KKT slope band: exact P3 calibration")
     print("  certified pair intervals: worst-centered exact width bound")

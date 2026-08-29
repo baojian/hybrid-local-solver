@@ -194,7 +194,21 @@ State: proved-open
   This turns the remaining query into heavy-hitter reporting for an
   orthogonal harmonic stream.  It is a structural gain, not yet an
   implementation, because forming the next response vector is itself the
-  dynamic inverse problem.
+  dynamic inverse problem.  A Chebyshev inverse-polynomial argument further
+  shows that a pivot response decays as
+  `(2/alpha)*lambda_alpha^(distance-1)` after degree normalization.  Every
+  finite-level event is therefore confined to an
+  `O_tilde(1/sqrt(alpha))` graph radius, even though literal killed-walk
+  simulation has a `Theta(1/alpha)` horizon.  Ball volume and repeated
+  overlap are not controlled by this radius, so this is an information-radius
+  theorem rather than the missing work theorem.
+  Ordinary point-source PPR also gives a universal screen
+  `S*(rho) subset {i:y0_i>alpha*rho/p}` of volume below
+  `p/(alpha*rho)`.  This screen is sharp: on an explicit unweighted
+  root--candidate--clique family an active coordinate has
+  `y0_i/rho -> alpha/p`.  Thus a `rho*sqrt(alpha)` ordinary-PPR superlevel
+  envelope, which would have closed the desired volume bound immediately,
+  is false on general graphs.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -405,7 +419,9 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-point-source-residual-mass`,
   `lem:aesp-cd-point-source-frontier-universe`,
   `prop:aesp-cd-point-source-hitting-column`,
+  `lem:aesp-cd-point-source-hitting-radius`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,
+  `prop:aesp-cd-point-source-ppr-screening`,
   `cor:aesp-cd-fan-finite-stop`,
   `prop:aesp-cd-fan-finite-linear-batches`,
   `cor:aesp-cd-ratio-pivot-interval-interface`,

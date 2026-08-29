@@ -67,6 +67,21 @@ basis, with total energy at most `alpha/d_source` and a coordinatewise
 Bessel/leverage ledger.  This removes arbitrary directional repetition from
 the missing interface, but an algorithm must still construct or sketch each
 dense harmonic response without paying for the whole current face.
+Chebyshev locality gives each such response a deterministic tail
+`sqrt(d_i/d_w) h_i <= (2/alpha) lambda_alpha^(dist(i,w)-1)`.  Therefore a
+finite-level crossing can occur only within
+`O_tilde(1/sqrt(alpha))` distance of its pivot, despite the killed walk's
+`Theta(1/alpha)` mean horizon.  This identifies the right information radius,
+but not yet the work: those neighborhoods can have huge volume and can
+overlap.
+
+A second exact comparison rules out a tempting shortcut.  If `y0` is
+ordinary point-source PPR, then every RPPR support coordinate satisfies
+`y0_i > alpha*rho/p`, so its `alpha*rho` superlevel is a valid containing
+envelope of volume below `p/(alpha*rho)`.  A root--candidate--large-clique
+family makes the ratio `y0_i/rho` tend to `alpha/p`; hence no universal
+`rho*sqrt(alpha)` screening threshold exists.  Ordinary-PPR thresholding
+alone cannot discover the desired accelerated-size envelope.
 
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,
