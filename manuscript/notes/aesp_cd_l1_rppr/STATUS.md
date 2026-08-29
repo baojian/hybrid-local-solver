@@ -110,6 +110,11 @@ State: proved-open
   `m/2-1` nonempty all-positive batches.  A three-vertex point-source witness
   also has an active obstacle coordinate where the unconstrained shifted-PPR
   coordinate is strictly negative, stopping a direct superlevel-set recovery.
+  Point-source rho-homotopy constrains each face update to a nonnegative
+  rank-one mixture of boundary breakpoint pairs; all surviving breakpoints
+  move toward the admitted maximum.  Nevertheless an exact six-vertex trace
+  reverses two surviving candidates' order, so a stale scalar heap does not
+  close the reporter.
   A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
@@ -303,6 +308,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
+  `prop:aesp-cd-point-source-homotopy-reorder`,
   `prop:aesp-cd-point-source-superlevel-stop`,
   `prop:aesp-cd-fan-linear-batches`,
   `prop:aesp-cd-all-positive-radius-stop`,

@@ -194,6 +194,12 @@ mergers, not serial boundary activation around one root.
 Nor can the nonlinear obstacle be replaced by one ordinary-PPR sweep: an
 exact point-source path has an active RPPR coordinate where the corresponding
 unconstrained shifted PPR coordinate is strictly negative.
+Parametric point-source homotopy gives a sharper algebraic interface: after
+one admission, every surviving critical threshold is a nonnegative weighted
+average of its old value and the admitted maximum.  The thresholds therefore
+move monotonically, but a six-vertex exact trace reverses two candidates'
+priority order.  A plain lazy heap is insufficient; the remaining reporter
+must support nonuniform rank-one mixtures.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

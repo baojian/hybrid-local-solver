@@ -141,6 +141,77 @@ the extra obstacle coordinate is not an artifact of choosing an unreachable
 face.
 \end{proof}
 
+\begin{proposition}[Point-source homotopy breakpoints mix but can reorder]
+\label{prop:aesp-cd-point-source-homotopy-reorder}
+Fix a face $S\ni o$ and write its point-source parametric solve as
+\begin{equation*}
+ x_S(\rho)=a_S-\rho h_S,\qquad
+ a_S=H_{SS}^{-1}\alpha e_o,\qquad
+ h_S=H_{SS}^{-1}\alpha d_S.
+\end{equation*}
+For an exterior vertex $v$, put
+\begin{equation*}
+ A_v=-H_{vS}a_S\geq0,\qquad
+ B_v=\alpha d_v-H_{vS}h_S>0,\qquad
+ g_v(\rho)=A_v-\rho B_v,\qquad
+ \tau_v=A_v/B_v.
+\end{equation*}
+Suppose one exterior vertex $w$ is added.  Then for every remaining exterior
+vertex $v$ there is a scalar $\gamma_v\geq0$ such that
+\begin{equation}
+ (A'_v,B'_v)=(A_v,B_v)+\gamma_v(A_w,B_w),\qquad
+ \tau'_v=
+ \frac{B_v\tau_v+\gamma_vB_w\tau_w}{B_v+\gamma_vB_w}.
+ \label{eq:aesp-cd-point-source-homotopy-mix}
+\end{equation}
+Thus if $w$ is the current largest breakpoint, every surviving breakpoint
+moves monotonically toward, but never past, $\tau_w$.
+
+This one-dimensional structure does not make a stale priority queue exact:
+breakpoint order can reverse.  On the six-vertex graph with
+$\alpha=2/7$ and edges
+\begin{equation*}
+ 01,03,04,12,13,23,25,34,45,
+\end{equation*}
+the exact decreasing-$\rho$ point-source trace starts
+$\{0\}\to\{0,1,4\}\to\{0,1,3,4\}$.  Immediately before admitting $3$,
+\begin{equation*}
+ \tau_5=\frac{25}{1838}>\frac{25}{2517}=\tau_2,
+\end{equation*}
+whereas immediately afterwards
+\begin{equation*}
+ \tau'_2=\frac{975}{53696}>
+ \frac{1025}{64318}=\tau'_5.
+\end{equation*}
+Hence point-source homotopy compresses each update to a nonnegative
+rank-one mixture, but a reporter must still maintain a dynamic maximum under
+nonuniform mixtures rather than merely lazily validating one fixed heap
+order.
+\end{proposition}
+
+\begin{proof}
+Let
+\begin{equation*}
+ q=-H_{SS}^{-1}H_{Sw}\geq0,\qquad
+ \sigma=H_{ww}-H_{wS}H_{SS}^{-1}H_{Sw}>0.
+\end{equation*}
+Block elimination on the enlarged face gives
+\begin{equation*}
+ a'_w=A_w/\sigma,\quad a'_S=a_S+qa'_w,\qquad
+ h'_w=B_w/\sigma,\quad h'_S=h_S+qh'_w.
+\end{equation*}
+Therefore
+\cref{eq:aesp-cd-point-source-homotopy-mix} holds with
+\begin{equation*}
+ \gamma_v=\frac{-H_{vS}q-H_{vw}}{\sigma}\geq0.
+\end{equation*}
+The second identity in
+\cref{eq:aesp-cd-point-source-homotopy-mix} is then a weighted average.
+Direct rational elimination on the displayed graph gives first the tied
+breakpoints $\tau_1=\tau_4=5/96$, then the unique winner
+$\tau_3=185/4231$, and the four before/after values displayed above.
+\end{proof}
+
 \begin{corollary}[Margin-free accelerated obstacle primitive]
 \label{cor:aesp-cd-margin-free-obstacle-primitive}
 In the setting of

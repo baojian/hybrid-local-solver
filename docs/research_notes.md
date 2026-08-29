@@ -65,6 +65,15 @@ strictly active obstacle coordinate whose unconstrained shifted coordinate is
 negative.  Any successful reduction must retain nonlinear obstacle/Schur
 information.
 
+A point-source rho-homotopy still reveals useful extra structure.  On a fixed
+face every boundary key is affine in rho, and after admitting one vertex each
+surviving critical rho becomes a nonnegative weighted average of its previous
+value and the admitted maximum.  This monotone mixing is exact, but the
+weights differ by boundary row: a six-vertex rational instance reverses two
+candidates' order.  Homotopy therefore replaces the fully arbitrary rekey
+problem by dynamic maxima under row-dependent rank-one mixtures, not by an
+ordinary lazy heap.
+
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
 cell arithmetic, not exact-minimizer output or a floating-point/bit result.
