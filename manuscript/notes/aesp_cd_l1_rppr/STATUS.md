@@ -102,6 +102,12 @@ State: proved-open
   sandwich `h_tilde<=h<=h_tilde/(1-eps_h)` and rigorous finite conductance
   and Poincare lower certificates, so exact ground data are not needed for
   the spectral check itself.
+  On every face passing this high-gap check, the inverse itself is an explicit
+  ground rank-one operator plus a high-mode remainder of norm at most
+  `q/(alpha*(1+q))`.  This gives a one-scalar pivot-response update and
+  simultaneous gray-band intervals; it closes the reporter when those
+  intervals fit finite KKT hysteresis, but concentrated loads may still need
+  the general locator.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -549,6 +555,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-conductance-gap`,
   `cor:aesp-cd-proper-face-leakage-conductance`,
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
+  `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `prop:aesp-cd-point-source-literal-walk-sampling-stop`,

@@ -222,6 +222,15 @@ residual `0 <= alpha*d-H*h_tilde <= eps_h*alpha*d` satisfies
 Poincare gap, multiplied by `1-eps_h`, are rigorous lower certificates.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
+The same certified high gap also yields a rank-one inverse approximation:
+for every face right-hand side, the exact response is its explicit ground
+multiple plus a high-mode remainder of norm at most
+`q/(alpha*(1+q))` times the centered right-hand side.  For pivot responses
+this updates every boundary record through one common scalar and leaves a
+simultaneous gray-band certificate.  It closes reporter work when that band
+fits inside finite KKT hysteresis; concentrated loads can still leave a large
+gray set, so this is a conductance-certified shortcut rather than a universal
+event locator.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

@@ -400,6 +400,13 @@ residual `eps_h` multiplicatively sandwiches the exact ground vector and
 loses only the factor `1-eps_h` in the computed conductance/Poincare lower
 bound.  Exact ground coordinates are therefore not required merely to
 certify the tail hypothesis.
+The same high-gap certificate compresses every proper-face inverse response
+to an explicit ground rank-one term plus a high-mode remainder bounded by
+`q/(alpha*(1+q))` times the centered load.  A pivot can therefore update all
+retained rows through one scalar and classify them with simultaneous error
+intervals whenever the remainder fits the finite KKT band.  Concentrated
+pivot loads can keep that band wide, so gray rows still fall back to the
+general event locator.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

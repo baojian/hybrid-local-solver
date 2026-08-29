@@ -470,6 +470,44 @@ def check_endpoint_kernel(
     return size
 
 
+def check_rank_one_inverse_certificate() -> tuple[F, F]:
+    """Audit the conductance-certified inverse split on an exact K3 face."""
+    q = F(1, 16)
+    alpha = q * q / (1 + q * q)
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    size, degree = 3, 2
+    conductance = coupling
+    assert conductance * conductance >= 2 * alpha / q
+    high_eigenvalue = p + coupling / 2
+    assert high_eigenvalue >= alpha * (1 + q) / q
+    hessian = [
+        [p * degree if i == j else -coupling for j in range(size)]
+        for i in range(size)
+    ]
+    qbar = [[entry / degree for entry in row] for row in hessian]
+    rhs = [F(7, 11), F(-2, 13), F(5, 17)]
+    transformed_rhs = [value / degree for value in rhs]
+    solution = solve(qbar, transformed_rhs)
+    mean = sum(transformed_rhs) / size
+    high_rhs = [value - mean for value in transformed_rhs]
+    high_solution = [value - mean / alpha for value in solution]
+    assert sum(high_rhs) == 0 and sum(high_solution) == 0
+    inverse_high_bound = q / (alpha * (1 + q))
+    high_rhs_square = sum(value * value for value in high_rhs)
+    assert (
+        sum(value * value for value in high_solution)
+        <= inverse_high_bound**2 * high_rhs_square
+    )
+    # Avoid relying only on the square-root comparison above: its squared
+    # rational form is the exact certificate used by the theorem.
+    assert all(
+        high_solution[i] ** 2
+        <= inverse_high_bound**2 * high_rhs_square
+        for i in range(size)
+    )
+    return alpha, inverse_high_bound
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -483,6 +521,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
+    assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -536,6 +575,7 @@ def main() -> None:
         check_proper_clique_conductance_witness()
     )
     endpoint_vertices = check_endpoint_kernel(adjacency, degree, alpha)
+    rank_one_alpha, rank_one_bound = check_rank_one_inverse_certificate()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -548,6 +588,10 @@ def main() -> None:
     print("  leakage survival and ordinary-conductance comparison: exact on every face")
     print("  finite one-sided ground residual certificate: exact on every face")
     print(f"  reversible residual endpoint variance proxy: exact on {endpoint_vertices} vertices")
+    print(
+        "  conductance-certified rank-one inverse: "
+        f"alpha={rank_one_alpha}, high_inverse_bound={rank_one_bound}"
+    )
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "
