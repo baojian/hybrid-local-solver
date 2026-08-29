@@ -1,12 +1,5 @@
 **Problem definitions**
 
-**Version role.** This registered directory is the assistant-authored
-**v1** reference from commit `8dd3e41`. The user-owned **v2** working version
-is maintained independently at
-[`manuscript/versions/problem_definitions_v2/`](../../versions/problem_definitions_v2/).
-Do not merge v1 into v2 automatically. After v2 is complete, merge only the
-desired v1 changes into v2, promote v2, and delete v1.
-
 This standalone reference note collects the exact PageRank and regularized
 PageRank (RPPR) problems used by the project, their equivalent lazy,
 non-lazy, symmetric, mass-coordinate, and degree-coordinate formulations, and
@@ -17,6 +10,15 @@ complexity target, or open conjecture. In particular, it does not adopt a
 repository-wide residual or stopping rule. It distinguishes the semantic PPR
 output error, a sufficient document-scoped residual certificate, the RPPR
 regularization scale, objective error, and algorithm-specific diagnostics.
+
+**Version role**
+
+This is the user-owned **v2 working version**, restored byte-for-byte at its
+starting point from commit `3b9e9ce`. The registered note at
+`manuscript/notes/problem_definitions/` is the assistant-authored **v1**
+reference. Develop v2 here without importing v1 changes implicitly. Once v2 is
+complete, merge only the desired v1 material into this version, promote v2,
+and delete v1.
 
 **Build**
 
@@ -29,29 +31,27 @@ below.
 - Last reviewed: 2026-08-29
 - State: source
 - Agent family: codex
-- Role: reference
+- Role: unregistered working reference
 - Branch: `main`
-- Base commit: `5d4e0ffc54b5988fa2ca7aff65eef847a8b16cd0`
-- Allowed write scope: `manuscript/notes/problem_definitions/` plus the note
-  inventory, workflow, and validation files needed to maintain this reference.
+- Starting commit: `3b9e9ce`
+- Allowed write scope: `manuscript/versions/problem_definitions_v2/`. It does
+  not replace the registered note until explicit promotion.
 
 **Exact question and contract**
 
 - **Question:** What are the exact PPR and RPPR problem definitions used by
   the project, how do the common formulations translate, and which elementary
   or published properties can be used without importing an algorithmic claim?
-- **Model:** A finite simple undirected connected graph with unit edge weights
-  and at least two vertices, one seed vertex `v` with `s=e_v`,
-  `alpha in (0, 1]`, the shared
-  lazy symmetric PageRank system, and its RPPR surrogate for `rho > 0`. The
-  general unit-mass distribution remains an algebraic extension, not the
-  canonical computational input.
+- **Model:** A finite simple undirected unweighted graph without isolated
+  vertices, a sparse nonnegative column seed distribution of unit mass,
+  `alpha in (0, 1]`, the shared lazy symmetric PageRank system, and its RPPR
+  surrogate for `rho > 0`.
 - **Accuracy namespace:** `eps_ppr` is only the document-scoped
   degree-normalized semantic PPR error. It is distinct from `eps_appr`,
   `eps_obj`, `eps_pg`, `rho`, and any algorithm-specific KKT tolerance.
 - **Access and charged work:** The input is represented by adjacency lists and
-  one seed label. A scan of vertex `i` costs `d_i`, and a scan of a set costs
-  its degree volume. The note states no algorithm or work bound.
+  a sparse seed list. A scan of vertex `i` costs `d_i`, and a scan of a set
+  costs its degree volume. The note states no algorithm or work bound.
 - **Intended result:** A single buildable source reference containing only
   exact definitions, algebraically equivalent formulations, and standard
   properties with explicit provenance and scope.
@@ -62,14 +62,6 @@ below.
   facts, alternative scalings, and degree-normalized accuracy certificate are
   traced to the papers and exact literature-note pointers listed in
   `main.tex`.
-- **Standard consequence:** Unregularized PPR is linear in the source, so a
-  general distribution is a weighted sum of point-source PPR vectors and its
-  semantic errors compose by the triangle inequality. This is not a
-  same-complexity reduction, and no RPPR superposition is asserted.
-- **Standard consequence:** On a possibly disconnected positive-degree graph,
-  point-source PPR and RPPR vanish outside the seed component and restrict
-  exactly to the canonical connected problem. Active faces can still be
-  disconnected.
 - **Proved here:** None. Short calculations are included only to verify
   equivalence of conventions or to derive standard consequences of the
   displayed source facts.
@@ -89,12 +81,9 @@ must be reconciled here and in the shared source-aligned definition.
 
 - Formal registry dependencies: none.
 - Source/shared prerequisites: `docs/mathematical-conventions.md`,
-  `docs/decisions/graph-convention.md`,
-  `docs/decisions/seed-convention.md`,
   `docs/decisions/residual-convention.md`, and
   `manuscript/tex/shared/source_aligned_problem.tex`.
-- Supplies to: every research note or manuscript section that needs a compact
-  definition and source map for PPR or RPPR.
+- Supplies to: none until promotion; v1 remains the registered provider.
 
 **Resume here**
 
@@ -110,7 +99,7 @@ must be reconciled here and in the shared source-aligned definition.
   `docs/literature/local-solvers.md` and
   `docs/literature/acceleration.md`, including the source PDF page and section
   pointers recorded there.
-- Focused checks: the note builds to a seven-page PDF with resolved citations
+- Focused checks: the note builds to a six-page PDF with resolved citations
   and cross-references; the note inventory reports 27 consistent notes; all
   212 tests and `make agent-audit` pass.
 - Known gaps: the note intentionally does not resolve the implementation-wide

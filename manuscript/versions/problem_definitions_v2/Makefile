@@ -1,0 +1,2 @@
+include ../../notes/note.mk
+
