@@ -183,6 +183,18 @@ State: proved-open
   row.  This converts the finite reporter to a dynamic killed-harmonic level
   query.  The query is exhaustive and margin-free, but no graph-universal
   support-local implementation at square-root dependence is yet proved.
+  Reversibility identifies the degree-weighted response with a killed
+  excursion's expected occupation vector.  Pure nonnegative walk or push
+  representations therefore remain on the classical geometric horizon;
+  any square-root implementation must use a signed accelerated response
+  internally while retaining one-sided publication.
+  Successive exact face increments are pairwise orthogonal in the fixed
+  Hessian energy, their total energy is at most `alpha/d_source`, and every
+  coordinate obeys a Bessel bound `sum z_i^2/||z||_H^2 <= 1/(alpha*d_i)`.
+  This turns the remaining query into heavy-hitter reporting for an
+  orthogonal harmonic stream.  It is a structural gain, not yet an
+  implementation, because forming the next response vector is itself the
+  dynamic inverse problem.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -393,6 +405,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-point-source-residual-mass`,
   `lem:aesp-cd-point-source-frontier-universe`,
   `prop:aesp-cd-point-source-hitting-column`,
+  `prop:aesp-cd-point-source-orthogonal-pivots`,
   `cor:aesp-cd-fan-finite-stop`,
   `prop:aesp-cd-fan-finite-linear-batches`,
   `cor:aesp-cd-ratio-pivot-interval-interface`,

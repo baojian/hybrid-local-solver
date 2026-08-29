@@ -55,10 +55,18 @@ the old restricted solution by \(\Delta_w h^{S,w}\), where
 \(h^{S,w}_i\) is the killed PageRank walk's probability of reaching \(w\)
 before another exterior row or killing.  Thus the reporter need only emit
 the coordinates whose killed-harmonic increment crosses their next finite
-level.  The persistent original-frontier universe itself has at most
+level.  By reversibility, the degree-weighted hitting column is also the
+expected occupation distribution of a killed excursion from the pivot;
+this identifies the missing query as a dynamic degree-normalized
+significant-entry problem.  The persistent original-frontier universe itself has at most
 `2*vol(S*)` rows and all of its active incidences are exposed in
 `vol(S*)` work.  Candidate enumeration is therefore closed; compressed
 killed-harmonic level notification is the remaining general-graph primitive.
+The nested exact pivot increments also form an energy-orthogonal response
+basis, with total energy at most `alpha/d_source` and a coordinatewise
+Bessel/leverage ledger.  This removes arbitrary directional repetition from
+the missing interface, but an algorithm must still construct or sketch each
+dense harmonic response without paying for the whole current face.
 
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,

@@ -168,6 +168,12 @@ def audit_hitting_column(
         for i in range(size)
     ]
     h_ss = [[hessian[i][j] for j in active] for i in active]
+    killed_green = inverse(
+        [
+            [F(i == j) - transition[i][j] for j in active]
+            for i in active
+        ]
+    )
     audited = 0
     for w in exterior:
         rhs = [-hessian[i][w] for i in active]
@@ -179,6 +185,19 @@ def audit_hitting_column(
                 for column, j in enumerate(active)
             )
             assert hitting[row] == expected
+
+        occupation = [
+            sum(
+                transition[w][j] * killed_green[column][row]
+                for column, j in enumerate(active)
+            )
+            for row, i in enumerate(active)
+        ]
+        assert all(
+            occupation[row] == F(degree[i], degree[w]) * hitting[row]
+            for row, i in enumerate(active)
+        )
+        assert sum(occupation, F(0)) <= coupling / alpha
 
         cut_flux = sum(
             hitting[row]
@@ -258,6 +277,71 @@ def audit_frontier_universe(
     assert len(final_boundary) <= cut_edges
     assert len(support | final_boundary) <= 2 * sum(degree[u] for u in support)
     return len(seen_frontier)
+
+
+def audit_orthogonal_pivots(
+    hessian: list[list[F]],
+    load: list[F],
+    degree: list[int],
+    alpha: F,
+    support: set[int],
+    events: list[tuple[int, F]],
+) -> int:
+    size = len(load)
+    active: set[int] = set()
+    old_point = [F(0)] * size
+    increments: list[list[F]] = []
+    energies: list[F] = []
+    for winner, residual in [(0, load[0]), *events] if support else []:
+        active.add(winner)
+        new_point = obstacle_point(hessian, load, active)
+        increment = [new_point[i] - old_point[i] for i in range(size)]
+        energy = sum(
+            increment[i] * hessian[i][j] * increment[j]
+            for i in range(size)
+            for j in range(size)
+        )
+        assert energy == residual * increment[winner] > 0
+        for prior in increments:
+            assert (
+                sum(
+                    prior[i] * hessian[i][j] * increment[j]
+                    for i in range(size)
+                    for j in range(size)
+                )
+                == 0
+            )
+        increments.append(increment)
+        energies.append(energy)
+        old_point = new_point
+
+    assert active == support
+    objective = (
+        sum(
+            old_point[i] * hessian[i][j] * old_point[j]
+            for i in range(size)
+            for j in range(size)
+        )
+        / 2
+        - sum(load[i] * old_point[i] for i in range(size))
+    )
+    assert sum(energies, F(0)) / 2 == -objective
+    assert sum(load[i] * old_point[i] for i in range(size)) <= F(alpha, degree[0])
+    assert sum(
+        degree[i] * increment[i]
+        for increment in increments
+        for i in range(size)
+    ) == sum(degree[i] * old_point[i] for i in range(size)) <= 1
+
+    hessian_inverse = inverse(hessian)
+    for i in range(size):
+        leverage = sum(
+            increment[i] * increment[i] / energy
+            for increment, energy in zip(increments, energies, strict=True)
+        )
+        assert leverage <= hessian_inverse[i][i]
+        assert hessian_inverse[i][i] <= F(1, alpha * degree[i])
+    return len(increments)
 
 
 def audit_legal_topplings(
@@ -450,7 +534,11 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-harmonic-exit}" in source
     assert r"\label{prop:aesp-cd-point-source-hitting-column}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-flux}" in source
+    assert r"\label{eq:aesp-cd-point-source-hitting-occupation}" in source
     assert r"\label{lem:aesp-cd-point-source-frontier-universe}" in source
+    assert r"\label{prop:aesp-cd-point-source-orthogonal-pivots}" in source
+    assert r"\label{eq:aesp-cd-point-source-pivot-bessel}" in source
+    assert r"\label{eq:aesp-cd-point-source-pivot-variation}" in source
     assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
     assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
@@ -462,6 +550,7 @@ def main() -> None:
     toppling_count = 0
     hitting_column_count = 0
     frontier_record_count = 0
+    orthogonal_direction_count = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -514,6 +603,14 @@ def main() -> None:
                 degree,
                 expected,
                 [vertex for vertex, _ in residual_events],
+            )
+            orthogonal_direction_count += audit_orthogonal_pivots(
+                hessian,
+                load,
+                degree,
+                alpha,
+                expected,
+                residual_events,
             )
             checked += 1
 
@@ -604,6 +701,7 @@ def main() -> None:
     print("  total exact block-pivot residual injection is at most (1-alpha)/2")
     print(f"  killed hitting-response columns audited={hitting_column_count}")
     print(f"  persistent original-frontier records audited={frontier_record_count}")
+    print(f"  energy-orthogonal pivot directions audited={orthogonal_direction_count}")
     print(f"  dissipative legal topplings audited={toppling_count}; least action exact")
     print("  finite KKT slope band: exact P3 calibration")
     print("  certified pair intervals: worst-centered exact width bound")

@@ -615,6 +615,18 @@ obeys the exact killed-flux identity
  =c\,|E(S,\{w\})|.
  \label{eq:aesp-cd-point-source-hitting-flux}
 \end{equation}
+The time-reversed occupation vector
+\begin{equation}
+ q^{S,w}:=\mathsf P_{wS}(I-\mathsf P_{SS})^{-1}
+ \quad\text{satisfies}\quad
+ q^{S,w}_i=\frac{d_i}{d_w}h^{S,w}_i,
+ \qquad
+ \sum_{i\in S}q^{S,w}_i\leq\frac c\alpha.
+ \label{eq:aesp-cd-point-source-hitting-occupation}
+\end{equation}
+Thus \(q^{S,w}_i\) is the expected number of visits to \(i\) during the
+killed excursion that starts at \(w\), first steps into \(S\), and stops on
+killing or its next exterior visit.
 
 Consequently the finite-level reporter of
 \cref{cor:aesp-cd-finite-level-reporter} reduces to the following precise
@@ -631,8 +643,9 @@ support-linear number of boundary records.  What remains open on a general
 graph is an online, compressed implementation of
 \cref{eq:aesp-cd-point-source-hitting-event} at total
 \(\widetilde O(\vol(S^\star)/\sqrt\alpha)\) work.  Ordinary walk simulation
-does not supply that rate: its geometric killing time is
-\(\Theta(1/\alpha)\).
+does not supply that rate by itself: the geometric killing horizon has mean
+\(\Theta(1/\alpha)\), and cone-preserving walk polynomials are subject to
+\cref{prop:aesp-cd-positive-polynomial-stop}.
 \end{proposition}
 
 \begin{proof}
@@ -652,10 +665,106 @@ Finally use \(\widehat H=\alpha D+cL\), sum
 \(\widehat H_{SS}h=cA_{Sw}\) over \(S\), and cancel every internal edge.
 Each cut edge contributes \(c h_i\), while the right-hand side counts the
 edges from \(S\) to \(w\).  This is
-\cref{eq:aesp-cd-point-source-hitting-flux}.  The event-reduction statement
-then follows directly from
+\cref{eq:aesp-cd-point-source-hitting-flux}.  Reversibility gives
+\begin{equation*}
+ d_i[(I-\mathsf P_{SS})^{-1}]_{ij}
+ =d_j[(I-\mathsf P_{SS})^{-1}]_{ji},
+ \qquad
+ d_w\mathsf P_{wj}=d_j\mathsf P_{jw}.
+\end{equation*}
+Substitution proves the coordinate identity in
+\cref{eq:aesp-cd-point-source-hitting-occupation}; its mass bound follows
+from \cref{eq:aesp-cd-point-source-hitting-flux}.  The event-reduction
+statement then follows directly from
 \cref{eq:aesp-cd-point-source-hitting-update} and the exhaustive finite-level
 certificate.
+\end{proof}
+
+\begin{proposition}[Exact support pivots form an energy-orthogonal response basis]
+\label{prop:aesp-cd-point-source-orthogonal-pivots}
+Consider any exact nested fixed-target trace
+\(\varnothing=S_0\subset S_1\subset\cdots\subset S_J=S^\star\), with one
+positive-residual pivot \(w_j\) at a time.  Zero-pad every restricted
+solution and put
+\begin{equation*}
+ z_j:=y^{S_{j+1}}-y^{S_j}.
+\end{equation*}
+Then the nonzero increments are pairwise \(\widehat H\)-orthogonal:
+\begin{equation}
+ z_i^\top\widehat H z_j=0\quad(i\ne j),
+ \qquad
+ \|z_j\|_{\widehat H}^2
+ =K^{S_j}_{w_jw_j}\Delta_{w_j}^2
+ =g^{S_j}_{w_j}\Delta_{w_j}.
+ \label{eq:aesp-cd-point-source-pivot-orthogonality}
+\end{equation}
+Their energies telescope exactly through the restricted objective
+\(\widehat F(y)=\tfrac12y^\top\widehat Hy-\ell_\rho^\top y\):
+\begin{equation}
+ \frac12\sum_{j=0}^{J-1}\|z_j\|_{\widehat H}^2
+ =\widehat F(0)-\widehat F(y^\star)
+ =\frac12\ell_\rho^\top y^\star
+ \leq\frac{\alpha}{2d_o}.
+ \label{eq:aesp-cd-point-source-pivot-energy}
+\end{equation}
+Because every increment is coordinatewise nonnegative, its degree-weighted
+variation also telescopes without cancellation:
+\begin{equation}
+ \sum_{j=0}^{J-1}\sum_i d_i(z_j)_i
+ =d^\top y^\star\leq d^\top y^0=1.
+ \label{eq:aesp-cd-point-source-pivot-variation}
+\end{equation}
+Moreover, for every coordinate \(i\), Bessel's inequality gives the sharp
+leverage ledger
+\begin{equation}
+ \sum_{j:z_j\ne0}
+ \frac{(z_j)_i^2}{\|z_j\|_{\widehat H}^2}
+ \leq e_i^\top\widehat H^{-1}e_i
+ \leq\frac1{\alpha d_i}.
+ \label{eq:aesp-cd-point-source-pivot-bessel}
+\end{equation}
+
+Thus the changing-face response stream has bounded total energy and no
+energy-direction repetition.  The remaining finite-level task can be
+viewed as coordinate heavy-hitter reporting in this orthogonal stream.
+This ledger alone is not an algorithm: constructing or sketching a new
+dense response \(z_j\) without solving its killed-harmonic column is exactly
+the interface left by
+\cref{prop:aesp-cd-point-source-hitting-column}.
+\end{proposition}
+
+\begin{proof}
+The enlarged restricted equations give
+\begin{equation*}
+ [\widehat H z_j]_{S_j}=0.
+\end{equation*}
+Every earlier increment is supported on \(S_j\); symmetry therefore makes
+it orthogonal to \(z_j\).  The block formula from
+\cref{eq:aesp-cd-point-source-hitting-update} gives the norm identity in
+\cref{eq:aesp-cd-point-source-pivot-orthogonality}.  Completing the square
+on each nested restricted subspace gives
+\begin{equation*}
+ \widehat F(y^{S_j})-\widehat F(y^{S_{j+1}})
+ =\frac12\|z_j\|_{\widehat H}^2,
+\end{equation*}
+so the sum telescopes.  At the obstacle optimum,
+\(\widehat Hy^\star=\ell_\rho\) on its positive support, whence
+\(-\widehat F(y^\star)=\ell_\rho^\top y^\star/2\).
+Since the negative off-root loads can only decrease this dot product,
+\begin{equation*}
+ \ell_\rho^\top y^\star\leq\alpha y_o^\star
+ \leq\alpha y_o^0\leq\frac{\alpha}{d_o},
+\end{equation*}
+where \(y^0\) is ordinary point-source PPR in the same coordinates and
+\(d^\top y^0=1\).  Monotonicity of the nested restricted solves and
+\(y^\star\leq y^0\) also prove
+\cref{eq:aesp-cd-point-source-pivot-variation}.
+
+Finally normalize the nonzero \(z_j\)'s in the \(\widehat H\)-inner product.
+They are orthonormal, while coordinate evaluation has Riesz representer
+\(\widehat H^{-1}e_i\).  Bessel gives the first bound in
+\cref{eq:aesp-cd-point-source-pivot-bessel}; the second follows from
+\(\widehat H\succeq\alpha D\).
 \end{proof}
 
 \begin{proposition}[Schur pivot multipliers are killed first-exit laws]
