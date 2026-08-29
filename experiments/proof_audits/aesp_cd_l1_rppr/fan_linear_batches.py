@@ -133,17 +133,95 @@ def check_finite_instances() -> None:
         assert final_max_key < 0
         assert all(vertex == 0 or 1 <= vertex <= size for vertex in face)
 
+    # The exact-support batch STOP vanishes at the matched finite KKT scale.
+    for size in range(4, 22, 2):
+        rho = F(1, 4 * size - 2)
+        for alpha in (F(1, 10_000), F(1, 5), F(1, 2), F(9, 10)):
+            diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+            root_value = alpha * (1 - rho * size) / (diagonal * size)
+            endpoint_normalized_key = -alpha * rho + coupling * root_value / 2
+            assert max(endpoint_normalized_key, F(0)) / alpha < rho
+
+
+def finite_gap_trace(size: int) -> tuple[list[tuple[int, ...]], F]:
+    """Exact matched-rho=tau finite-significance batches at alpha=1/4."""
+    order = size + 1
+    alpha, rho, tau = F(1, 4), F(1, 10 * size), F(1, 10 * size)
+    edges = [(0, vertex) for vertex in range(1, order)]
+    edges += [(vertex, vertex + 1) for vertex in range(1, size)]
+    adjacency = [[F(0)] * order for _ in range(order)]
+    degree = [0] * order
+    for left, right in edges:
+        adjacency[left][right] = adjacency[right][left] = 1
+        degree[left] += 1
+        degree[right] += 1
+    diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    hessian = [
+        [
+            diagonal * degree[i] if i == j else -coupling * adjacency[i][j]
+            for j in range(order)
+        ]
+        for i in range(order)
+    ]
+    load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(order)]
+    face = {0}
+    batches: list[tuple[int, ...]] = []
+    minimum_margin: F | None = None
+    while True:
+        indices = sorted(face)
+        values = solve(
+            [[hessian[i][j] for j in indices] for i in indices],
+            [load[i] for i in indices],
+        )
+        assert all(value > 0 for value in values)
+        point = [F(0)] * order
+        for index, value in zip(indices, values, strict=True):
+            point[index] = value
+        keys = [
+            load[i] - sum(hessian[i][j] * point[j] for j in range(order))
+            for i in range(order)
+        ]
+        significant = tuple(
+            i
+            for i in range(order)
+            if i not in face and keys[i] > alpha * tau * degree[i]
+        )
+        if not significant:
+            break
+        margin = min(keys[i] - alpha * tau * degree[i] for i in significant)
+        minimum_margin = margin if minimum_margin is None else min(minimum_margin, margin)
+        batches.append(significant)
+        face.update(significant)
+    assert face == set(range(order))
+    assert minimum_margin is not None and minimum_margin > 0
+    return batches, minimum_margin
+
+
+def check_finite_gap_family() -> None:
+    for size in range(4, 32, 2):
+        batches, _ = finite_gap_trace(size)
+        expected = [
+            (layer, size - layer + 1) for layer in range(1, size // 2 + 1)
+        ]
+        assert batches == expected
+
 
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-fan-linear-batches}" in source
     assert r"\label{eq:aesp-cd-fan-linear-batch-keys}" in source
+    assert r"\label{cor:aesp-cd-fan-finite-stop}" in source
+    assert r"\label{prop:aesp-cd-fan-finite-linear-batches}" in source
+    assert r"\label{eq:aesp-cd-fan-finite-arm}" in source
     check_continuant_identities()
     check_finite_instances()
+    check_finite_gap_family()
     print("PASS point-source fan linear-batch family")
     print("  continuant identities: exact for arm lengths 1..20")
     print("  finite alpha=1/10000 traces: m=4,6,...,14")
     print("  batch count=m/2-1 while every graph vertex has source radius one")
+    print("  matched finite KKT target stops at the root-only face")
+    print("  finite-gap alpha=1/4 family: exactly m/2 paired batches for m<=30")
 
 
 if __name__ == "__main__":

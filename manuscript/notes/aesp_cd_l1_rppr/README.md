@@ -13,6 +13,19 @@ the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions do
 not superpose.  Point-source lower publications are, however, automatically
 rooted and connected, so no multi-source component-merge reporter is needed.
 
+There is now a sharp external regime split.  The August 2026 active-set
+algorithm of [Wei and Yang](https://arxiv.org/abs/2608.16339) computes a
+point-source ACL `eps_ppr` approximation in `O_tilde(1/eps_ppr^2)` work.
+It therefore already meets this note's target whenever
+`eps_ppr >= sqrt(alpha)`.  The unresolved point-source range is only
+`eps_ppr < sqrt(alpha)`, or `rho < sqrt(alpha)/2` under the standard
+`rho=eps_kkt=eps_ppr/2` reduction.  Their method supplies safe finite
+boundary certificates by repeatedly solving and scanning the current active
+SDD system; the radius-one finite-gap fan in this note proves that this
+particular repeated-full-solve implementation can still require
+`Omega(1/eps_ppr^2)` work.  The remaining opportunity is dynamic reuse of
+those one-sided residual certificates in the small-accuracy regime.
+
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,
 several exact trajectory calibrations, and an unconditional accelerated result
@@ -191,6 +204,19 @@ one but needs at least $m/2-1$ nonempty simultaneous batches on $m$ path
 vertices; an eight-vertex exact instance additionally realizes five strict
 singleton batches.  Thus the point-source restriction removes component
 mergers, not serial boundary activation around one root.
+This obstruction is exact-support-specific: on the fan family, the
+root-only restricted point already has normalized KKT residual below
+$\rho$.  It therefore stops immediately under the matched finite choice
+$\varepsilon_{\rm kkt}\geq\rho$ used in the PPR reduction.  Exact batch
+counts must not be reused as finite-accuracy lower bounds.
+The escape is not uniform over fan parameters.  A second exact family with
+$\alpha=1/4$ and
+$\rho=\varepsilon_{\rm kkt}=1/(10m)$ passes the finite-significance test at
+exactly the next two path vertices for $m/2$ rounds.  Consequently, the
+strategy that independently solves and scans the whole current face per
+round really costs $\Omega(m^2)=\Omega(1/\varepsilon^2)$ even at the matched
+finite target.  Dynamic reuse is essential; finite accuracy alone does not
+close the product-scale theorem.
 Nor can the nonlinear obstacle be replaced by one ordinary-PPR sweep: an
 exact point-source path has an active RPPR coordinate where the corresponding
 unconstrained shifted PPR coordinate is strictly negative.
@@ -210,7 +236,7 @@ a genuine product-scale point-source solver after the final-face Chebyshev
 step.  Explicit fill can still be quadratic (already at a high-degree root),
 so this is a new structural GO rather than the universal theorem.
 Linear pivot-path length for K-matrix LCPs is classical
-([Foniok--Fukuda--G\"artner--L\"uthi](https://arxiv.org/abs/0807.1249)); the
+([Foniok--Fukuda--Gärtner--Lüthi](https://arxiv.org/abs/0807.1249)); the
 new role here is the point-source $\rho$-ratio parameterization, sparse-fill
 ledger, and finite-error contract, not the number of exact pivots alone.
 At a single requested $\rho$, this simplifies further: maintain only the
@@ -221,6 +247,11 @@ every nonroot row not yet adjacent to the support still has strictly negative
 load.  Thus the weakest missing universal interface is now a dynamic
 one-sided residual reporter; separate ratio vectors are needed only for the
 full $\rho$-homotopy.
+The total positive exterior residual mass is also nonincreasing and starts
+below $\alpha$.  Hence at any one time at most
+$1/\varepsilon_{\rm kkt}$ rows can exceed the finite KKT threshold.  This
+does not yet bound lifetime rekeys, but it is a genuine finite-accuracy
+sparsity invariant absent from exact support recovery.
 The same homotopy has a margin-free approximate stopping rule:
 $\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
 $\eta$ on the largest remaining critical ratio costs at most

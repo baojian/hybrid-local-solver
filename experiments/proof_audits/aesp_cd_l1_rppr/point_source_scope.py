@@ -81,6 +81,38 @@ def check_linear_superposition() -> None:
     ]
 
 
+def check_lazy_nonlazy_conversion() -> None:
+    for alpha in (F(1, 100), F(1, 5), F(1, 2), F(9, 10)):
+        p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+        nonlazy_alpha = 2 * alpha / (1 + alpha)
+        assert p * nonlazy_alpha == alpha
+        assert p * (1 - nonlazy_alpha) == coupling
+
+        lazy, _ = path_hessian(alpha, 4)
+        nonlazy = [
+            [
+                F([1, 2, 2, 1][i])
+                if i == j
+                else (-(1 - nonlazy_alpha) if abs(i - j) == 1 else F(0))
+                for j in range(4)
+            ]
+            for i in range(4)
+        ]
+        assert lazy == [[p * value for value in row] for row in nonlazy]
+        lazy_solution = solve(lazy, [alpha * F(i == 0) for i in range(4)])
+        nonlazy_solution = solve(
+            nonlazy, [nonlazy_alpha * F(i == 0) for i in range(4)]
+        )
+        assert lazy_solution == nonlazy_solution
+
+    # The external O(1/eps^2) work is within the target exactly when
+    # eps^2 >= alpha; this rational form avoids an inexact square root.
+    for alpha, epsilon in ((F(1, 16), F(1, 4)), (F(1, 25), F(1, 3))):
+        assert epsilon * epsilon >= alpha
+    for alpha, epsilon in ((F(1, 4), F(1, 4)), (F(1, 9), F(1, 4))):
+        assert epsilon * epsilon < alpha
+
+
 def check_rppr_nonlinearity() -> None:
     alpha, rho = F(1, 3), F(1, 8)
     hessian, degree = path_hessian(alpha, 3)
@@ -119,13 +151,17 @@ def check_superlevel_stop() -> None:
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-linear-reduction}" in source
+    assert r"\label{cor:aesp-cd-point-source-coarse-regime}" in source
     assert r"\label{lem:aesp-cd-point-source-subsolution-connected}" in source
     assert r"\label{prop:aesp-cd-point-source-superlevel-stop}" in source
     check_linear_superposition()
+    check_lazy_nonlazy_conversion()
     check_rppr_nonlinearity()
     check_superlevel_stop()
     print("PASS point-source scope audit")
     print("  linear PPR: exact weighted point-source superposition")
+    print("  lazy/nonlazy PageRank parameter conversion: exact")
+    print("  external O(1/eps^2) regime split: eps^2 >= alpha")
     print("  RPPR P3: joint obstacle solution differs from weighted point solves")
     print("  RPPR P3: obstacle support strictly exceeds shifted-PPR positive support")
     print("  scope: point-source theorem target, general-seed linear corollary only")

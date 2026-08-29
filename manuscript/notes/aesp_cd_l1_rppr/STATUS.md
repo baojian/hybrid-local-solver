@@ -22,6 +22,14 @@ State: proved-open
   validation, state writes, materialization, and output are charged.
 - **Intended result:** An implementable point-source oracle-free
   `O_tilde(1/(rho*sqrt(alpha)))` local-work theorem.
+- **External regime reduction:** Wei--Yang (August 2026) gives a randomized
+  point-source ACL approximation in `O_tilde(1/eps_ppr^2)` work.  Hence the
+  intended target is already attained for `eps_ppr >= sqrt(alpha)`; the
+  unresolved range is `eps_ppr < sqrt(alpha)`, equivalently
+  `rho < sqrt(alpha)/2` under `rho=eps_kkt=eps_ppr/2`.  Their repeated
+  active-SDD-solve implementation supplies finite one-sided boundary
+  certificates, but the finite-gap radius-one fan proves that this strategy
+  can genuinely take `Omega(1/eps_ppr^2)` work.  Dynamic reuse is still open.
 
 ## Claim ledger
 
@@ -110,6 +118,13 @@ State: proved-open
   `m/2-1` nonempty all-positive batches.  A three-vertex point-source witness
   also has an active obstacle coordinate where the unconstrained shifted-PPR
   coordinate is strictly negative, stopping a direct superlevel-set recovery.
+  The fan STOP is only for exact support: its root-only point already meets
+  the matched finite diagnostic `eps_kkt >= rho`, so it does not obstruct the
+  standard finite PPR target at that tuning.  A second exact fan tuning,
+  `alpha=1/4` and `rho=eps_kkt=1/(10m)`, restores exactly `m/2` paired
+  finite-significance batches.  Re-solving/scanning every growing face then
+  costs `Omega(m^2)=Omega(1/epsilon^2)` despite radius one.  This strictly
+  stops the repeated-full-SDD-solve implementation, not dynamic reuse.
   Point-source rho-homotopy constrains each face update to a nonnegative
   rank-one mixture of boundary breakpoint pairs; all surviving breakpoints
   move toward the admitted maximum.  Nevertheless an exact six-vertex trace
@@ -127,7 +142,10 @@ State: proved-open
   pivot update, any certified-positive row may enter, and a one-sided
   `O(alpha*eps_kkt*d_v)` upper interval gives a finite KKT stop.  The
   point-source negative off-root load makes row-on-first-pivot discovery
-  complete without a global scan.
+  complete without a global scan.  Positive exterior residual mass is
+  nonincreasing and starts below `alpha`, so at most `1/eps_kkt` rows are
+  simultaneously finite-significant; lifetime update/reporting cost remains
+  open.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -332,7 +350,11 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
   `cor:aesp-cd-ratio-pivot-finite-stop`,
+  `cor:aesp-cd-point-source-coarse-regime`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
+  `lem:aesp-cd-point-source-residual-mass`,
+  `cor:aesp-cd-fan-finite-stop`,
+  `prop:aesp-cd-fan-finite-linear-batches`,
   `cor:aesp-cd-ratio-pivot-interval-interface`,
   `prop:aesp-cd-spectral-schur-ratio-stop`,
   `thm:aesp-cd-point-source-ratio-pivot`,

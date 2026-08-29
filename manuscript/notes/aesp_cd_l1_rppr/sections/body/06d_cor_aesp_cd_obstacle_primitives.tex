@@ -354,6 +354,61 @@ load proves the locality claim.  Finally, active residuals vanish, so
 diagnostic bound.
 \end{proof}
 
+\begin{lemma}[Point-source positive-residual mass is nonincreasing]
+\label{lem:aesp-cd-point-source-residual-mass}
+Along any exact fixed-target pivot trace from
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}, put
+\begin{equation*}
+ \mathcal P_S:=\sum_{v\notin S}[g^S_v]_+.
+\end{equation*}
+Then \(\mathcal P_S\) never increases and, immediately after the root
+enters,
+\begin{equation}
+ \mathcal P_{\{o\}}\leq\frac{1-\alpha}{1+\alpha}\alpha
+ \leq\alpha.
+ \label{eq:aesp-cd-point-source-residual-mass}
+\end{equation}
+Consequently, at every time the number of exterior rows violating the finite
+KKT threshold
+\begin{equation*}
+ g^S_v/d_v>\alpha\epskkt
+\end{equation*}
+is at most \(1/\epskkt\).  This is a simultaneous sparsity bound for
+finite-significant rows.  It does not by itself bound how often a compressed
+Schur reporter must update or rediscover those rows over the full trace.
+\end{lemma}
+
+\begin{proof}
+The Schur complement \(K^S\) is SDDM, so for a pivot \(w\),
+\begin{equation*}
+ \gamma_v:=-K^S_{vw}/K^S_{ww}\geq0,
+ \qquad
+ \sum_{v\notin S\cup\{w\}}\gamma_v\leq1.
+\end{equation*}
+Since \(g'_v=g_v+\gamma_vg_w\) and \(g_w>0\),
+\begin{equation*}
+ \sum_{v\ne w}[g'_v]_+
+ \leq\sum_{v\ne w}[g_v]_++g_w\sum_{v\ne w}\gamma_v
+ \leq\sum_v[g_v]_+.
+\end{equation*}
+At the root-only face, with
+\(p=(1+\alpha)/2\), \(c=(1-\alpha)/2\),
+\begin{equation*}
+ x_o=\frac{\alpha(1-\rho d_o)}{p d_o},
+ \qquad
+ g_v=-\alpha\rho d_v+cA_{vo}x_o.
+\end{equation*}
+Dropping the negative loads and summing the \(d_o\) root incidences gives
+\begin{equation*}
+ \mathcal P_{\{o\}}
+ \leq c d_ox_o
+ =\frac{c}{p}\alpha(1-\rho d_o)
+ \leq\frac{1-\alpha}{1+\alpha}\alpha.
+\end{equation*}
+Every finite-significant row contributes more than
+\(\alpha\epskkt d_v\geq\alpha\epskkt\) to this mass, proving the count.
+\end{proof}
+
 \paragraph{Relation to principal-pivoting theory.}
 The linear number of exact support pivots is consistent with the broader
 K-matrix LCP theorem of
@@ -804,6 +859,131 @@ $\alpha_m>0$ preserves the batches
 \end{equation*}
 There are $m/2-1$ of them, and whatever later support is selected remains
 inside the radius-one fan.
+\end{proof}
+
+\begin{corollary}[The fan batch stop disappears at the matched finite target]
+\label{cor:aesp-cd-fan-finite-stop}
+On the fan family in
+\cref{prop:aesp-cd-fan-linear-batches}, for every \(0<\alpha<1\) the
+root-only restricted point already satisfies
+\begin{equation*}
+ \frac{R_{\mathrm{kkt},\rho}(x_{\{0\}})}{\alpha}<\rho,
+ \qquad \rho=\frac1{4m-2}.
+\end{equation*}
+Hence the linear exact-support batch count is not a lower bound when the
+finite diagnostic is chosen at the matched scale
+\(\epskkt\geq\rho\), including the usual
+\(\rho=\epskkt=\varepsilon/2\) PPR reduction.  The fan remains a strict
+STOP for exact face recovery and exact-positive batch accounting, but not for
+the requested finite PPR approximation.
+\end{corollary}
+
+\begin{proof}
+Write \(p=(1+\alpha)/2\) and \(c=(1-\alpha)/2\).  The root-only value is
+\begin{equation*}
+ x_0=\frac{\alpha(1-\rho m)}{pm}.
+\end{equation*}
+Every exterior vertex is adjacent to the root, and the largest normalized
+key occurs at a path endpoint of degree two.  Therefore
+\begin{equation*}
+ \frac{R_{\mathrm{kkt},\rho}(x_{\{0\}})}{\alpha}
+ \leq
+ \left[-\rho+\frac{c(1-\rho m)}{2pm}\right]_+.
+\end{equation*}
+Since \(c(1-\rho m)<c\leq p<4pm\rho\) for
+\(\rho=1/(4m-2)\), the expression inside the positive part is strictly less
+than \(\rho\).
+\end{proof}
+
+\begin{proposition}[Matched finite-gap fan still forces linearly many re-solves]
+\label{prop:aesp-cd-fan-finite-linear-batches}
+For every even \(m\geq4\), take the same radius-one fan, but set
+\begin{equation*}
+ \alpha=\frac14,
+ \qquad
+ \rho=\tau=\frac1{10m}.
+\end{equation*}
+At each current face, solve the restricted system exactly and admit every
+exterior row satisfying the finite-significance test
+\begin{equation*}
+ g_v/d_v>\alpha\tau.
+\end{equation*}
+The admitted batches are exactly
+\begin{equation*}
+ \{1,m\},\{2,m-1\},\ldots,\{m/2,m/2+1\}.
+\end{equation*}
+Thus even the matched finite target
+\(\rho=\tau=\varepsilon/2\), with \(\varepsilon=1/(5m)\), can require
+\(m/2\) radius-one batches.  Any implementation that independently solves
+and scans the whole current face in every batch pays \(\Omega(m^2)\) work,
+whereas the desired point-source bound at this fixed \(\alpha\) is
+\(\widetilde O(m)\).  This is a lower bound for the repeated-full-solve
+implementation, not for dynamic factor reuse, principal pivoting, or another
+reporter.
+\end{proposition}
+
+\begin{proof}
+Put \(p=5/8\), \(c=3/8\), and \(t=m\rho=1/10\).  Scale a restricted
+solution by writing \(x=(\alpha/m)z\).  On the symmetric face
+\begin{equation*}
+ U_k=\{0,1,\ldots,k,m-k+1,\ldots,m\},
+\end{equation*}
+let \(z_0\) be the root coordinate and let \(u\in\mathbb R^k\) be either
+arm.  If \(T_k\) has first diagonal \(2p\), remaining diagonal \(3p\), and
+off-diagonal \(-c\), then
+\begin{equation}
+ T_ku=cz_0\one-t(2,3,\ldots,3)^\top,
+ \qquad
+ pz_0-\frac{2c}{m}\one^\top u=1-t.
+ \label{eq:aesp-cd-fan-finite-arm}
+\end{equation}
+At \(k=0\), \(z_0=(1-t)/p=36/25\).  Monotonicity of every strict-positive
+face extension therefore gives \(z_0\geq36/25\) inductively.
+
+We also have \(z_0<8/5\) on every proper \(U_k\).  To see this, fix the
+trial root value \(8/5\) and let \(\bar u\) solve the first equation in
+\cref{eq:aesp-cd-fan-finite-arm}.  Its right-hand side is \(2/5\) in the
+first row and \(3/10\) thereafter.  The constant vector \((4/5)\one\) is a
+strict supersolution, so \(0<\bar u_i<4/5\).  For \(k\geq2\), summing the
+arm rows gives
+\begin{equation*}
+ \one^\top\bar u
+ =\frac{4k}{15}+\frac4{45}+\frac2{9}\bar u_1
+   -\frac13\bar u_k
+ <\frac{4(k+1)}{15};
+\end{equation*}
+the case \(k=1\) follows directly from \(T_1=[5/4]\).  Since
+\(k\leq m/2-1\), this is less than \(2m/15\).  Hence at the trial value the
+left side of the root equation is
+\begin{equation*}
+ p\frac85-\frac{2c}{m}\one^\top\bar u
+ >1-\frac1{10}=1-t.
+\end{equation*}
+Its slope in \(z_0\) is the positive root Schur complement divided by \(m\),
+so the actual root value is strictly below \(8/5\).
+
+For an unseen path-interior vertex define the scaled residual
+\(\Gamma_v:=m g_v/\alpha\).  The finite test is
+\(\Gamma_v>t d_v\).  A vertex not immediately next to an arm has
+\begin{equation*}
+ \Gamma^{\rm far}=-3t+cz_0<3t,
+\end{equation*}
+because \(z_0<8/5\).  At \(k=0\), each path endpoint instead satisfies
+\begin{equation*}
+ \Gamma^{\rm end}=-2t+cz_0>2t.
+\end{equation*}
+For \(k\geq1\), the constant vector \((4/25)\one\) is a subsolution of the
+arm equation at every \(z_0\geq36/25\): its row images are at most the
+corresponding right-hand sides, with a strict inequality in at least one
+row.  Irreducibility gives \(u_k>4/25\).  Therefore each of the two next
+vertices has
+\begin{equation*}
+ \Gamma^{\rm next}=-3t+c(z_0+u_k)>3t.
+\end{equation*}
+Exactly those two rows pass the finite test.  Induction proves all \(m/2\)
+batches and strict interiority.  Finally every face contains the degree-\(m\)
+root, so \(m/2\) separate linear solves or boundary scans cost
+\(\Omega(m^2)\).
 \end{proof}
 
 \begin{proposition}[All-positive batches are not radius bounded]
