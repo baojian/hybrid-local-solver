@@ -1,11 +1,9 @@
 **Problem definitions**
 
-**Version role.** This registered directory is the assistant-authored
-**v1** reference from commit `8dd3e41`. The user-owned **v2** working version
-is maintained independently at
-[`manuscript/versions/problem_definitions_v2/`](../../versions/problem_definitions_v2/).
-Do not merge v1 into v2 automatically. After v2 is complete, merge only the
-desired v1 changes into v2, promote v2, and delete v1.
+**Merged lineage.** This is the single promoted version obtained by merging
+the user-owned v2 baseline from `3b9e9ce` with the canonical point-source,
+connected-unit-graph additions and shared-shell synchronization from v1
+`8dd3e41`. The temporary v1/v2 split has been retired.
 
 This standalone reference note collects the exact PageRank and regularized
 PageRank (RPPR) problems used by the project, their equivalent lazy,
