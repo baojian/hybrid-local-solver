@@ -202,23 +202,46 @@ def check_positive_polynomial_obstruction() -> None:
         assert extremal >= 1 - F(degree, condition) == F(1, 2)
 
 
+def check_chebypush_stability_stop() -> None:
+    """Audit the exact high-girth regular-tree column-mass obstruction.
+
+    At distance k, only the leading term 2^(k-1) P^k of T_k(P) can
+    contribute.  A d-regular tree has d(d-1)^(k-1) such vertices, and each
+    receives 2^(k-1)/d^k.  Their mass alone grows as
+    (2(d-1)/d)^(k-1).
+    """
+    for degree in (3, 4, 5, 8):
+        for order in range(1, 13):
+            frontier_size = degree * (degree - 1) ** (order - 1)
+            frontier_entry = F(2 ** (order - 1), degree**order)
+            frontier_mass = frontier_size * frontier_entry
+            expected = F(2 * (degree - 1), degree) ** (order - 1)
+            assert frontier_mass == expected
+            if degree >= 3 and order >= 2:
+                assert frontier_mass > 1
+    assert F(4, 3) ** 11 > 23
+
+
 def check_source_scope() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert "thm:aesp-cd-safe-chebyshev-face" in source
     assert "eq:aesp-cd-safe-chebyshev-retraction" in source
     assert "cor:aesp-cd-collatz-small-shift" in source
     assert "prop:aesp-cd-positive-polynomial-stop" in source
+    assert "prop:aesp-cd-chebypush-stability-stop" in source
     assert "signed intermediate residuals" in source
 
 
 def main() -> None:
     check_literal_chebyshev_stop_and_safe_retraction()
     check_positive_polynomial_obstruction()
+    check_chebypush_stability_stop()
     check_source_scope()
     print("Safe fixed-face Chebyshev audit passed")
     print("  cube proper S4: literal degree-two residual is negative and overshoots")
     print("  max Stieltjes checkpoint: order-safe, with a strict full-face witness")
     print("  positive coefficients/restarts: exact Omega(condition number) STOP")
+    print("  high-girth cubic wave: ChebyPush l1 stability grows as (4/3)^(k-1)")
 
 
 if __name__ == "__main__":

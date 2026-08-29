@@ -69,7 +69,10 @@ State: proved-open
   The apparent stronger point-source literature does not close this range:
   ICDT 2024 restores to linear `1/alpha` dependence and assumes global
   preprocessing; ChebyPush proves `K^2/eps_ppr` work under a stability
-  assumption; and the 2026 FISTA result has an accelerated core only under
+  assumption that already grows as `(4/3)^(k-1)` on cubic high-girth balls;
+  the 2026 single-source estimation lower bound fixes only the
+  `Omega(1/eps_ppr)` output scale because it treats teleportation as a
+  constant; and the 2026 FISTA result has an accelerated core only under
   confinement plus a `sqrt(vol(B))/(rho*alpha^(3/2))` boundary term.
   Finite KKT hysteresis nevertheless removes the unknown key-margin promise:
   when `rho=eps_kkt`, constant-ratio downward coordinate levels classify
@@ -469,6 +472,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-sparse-source-radius`,
   `prop:aesp-cd-separated-source-decomposition`,
   `cor:aesp-cd-point-source-coarse-regime`,
+  `prop:aesp-cd-chebypush-stability-stop`,
   `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-appr-envelope-oracle`,
   `cor:aesp-cd-appr-envelope-oracle`,

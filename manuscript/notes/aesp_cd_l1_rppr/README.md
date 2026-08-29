@@ -83,7 +83,12 @@ degree-normalized SSPPR method treats teleportation as a constant and uses
 global preprocessing; its variable-`alpha` work is still
 `O_tilde(1/(alpha eps_ppr))`.  ChebyPush has Chebyshev degree
 `K=O_tilde(1/sqrt(alpha))`, but its safe local theorem costs
-`O(K^2/eps_ppr)` under a stability assumption.  The 2026 FISTA locality
+`O(K^2/eps_ppr)` under a stability assumption; that assumption is not
+graph-universal, since on a cubic high-girth ball
+`||T_k(P)||_1 >= (4/3)^(k-1)`.  A 2026 single-source estimation lower bound
+does certify the unavoidable `Omega(1/eps_ppr)` output scale, but assumes
+constant teleportation and therefore does not rule out the desired
+variable-`alpha` acceleration.  The 2026 FISTA locality
 bound has the desired accelerated core term only under confinement and adds
 `sqrt(vol(B))/(rho alpha^(3/2))` boundary work.  Thus none supplies the
 missing graph-universal one-sided reporter.

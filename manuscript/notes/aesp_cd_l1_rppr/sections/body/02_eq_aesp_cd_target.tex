@@ -269,6 +269,17 @@ PageRank algorithms, but their published bounds do not already imply
   Their point-source star witness shows that standard FISTA can activate
   an arbitrarily high-volume off-support center, so this is not a
   graph-universal local bound.
+\item The 2026 single-source lower bound of
+  \href{https://arxiv.org/abs/2602.10843}{Bertram and Jensen} is
+  \(\widetilde\Omega(\min\{m,1/\delta\})\), even with their strongest
+  \textsc{Jump}, degree-sorted-neighbor, and adjacency queries (in their
+  average-over-sources formulation).  This confirms that the
+  \(1/\epsppr\) output scale cannot be removed.  It does not rule out the
+  present \(1/(\sqrt\alpha\epsppr)\) target: their paper explicitly treats
+  the teleportation probability as a constant, and its approximation model
+  asks for constant relative error only above a scalar threshold \(\delta\),
+  with additive \(O(\delta)\) error below it, rather than the shared
+  degree-normalized coordinatewise certificate with variable \(\alpha\).
 \end{enumerate}
 Consequently the comparison in
 \cref{cor:aesp-cd-point-source-coarse-regime} remains the strongest
@@ -276,6 +287,45 @@ unconditional external closure used by this note: existing point-source
 methods remove neither the small-\(\alpha\) factor nor the one-sided local
 reporter problem in the hard regime.
 \end{proposition}
+
+The stability qualification in the ChebyPush comparison is essential, even
+for the point source.
+
+\begin{proposition}[ChebyPush's \(\ell_1\)-stability assumption is not graph universal]
+\label{prop:aesp-cd-chebypush-stability-stop}
+Let \(P=A/d\) be the random-walk matrix on a rooted \(d\)-regular tree,
+\(d\geq3\), or on a finite \(d\)-regular graph whose radius-\(k\) ball about
+the root is a tree.  Then
+\begin{equation}
+ \norm{T_k(P)}_1\geq
+ \left(\frac{2(d-1)}d\right)^{k-1}.
+ \label{eq:aesp-cd-chebypush-stability-stop}
+\end{equation}
+In particular, already for cubic high-girth graphs this lower bound is
+\((4/3)^{k-1}\).  Thus the universal-constant hypothesis
+\(\norm{T_k(P)}_1=O(1)\) used in the published local Chebyshev work analysis
+fails exponentially, and its \(O(K^2/\epsppr)\) theorem cannot be specialized
+into an unconditional point-source result by setting
+\(K=\widetilde O(1/\sqrt\alpha)\).
+
+This is a STOP for that stability-based work proof, not for every truncated
+or adaptively compressed Chebyshev algorithm.  In particular it does not
+alter the safe fixed-final-face result, which charges matrix applications to
+an already certified envelope rather than asserting global \(\ell_1\)
+stability of the wave.
+\end{proposition}
+
+\begin{proof}
+The leading coefficient of \(T_k\) is \(2^{k-1}\).  No lower-degree monomial
+can reach a vertex at distance \(k\), while the unique length-\(k\) path gives
+\begin{equation*}
+ [T_k(P)e_o]_v=\frac{2^{k-1}}{d^k}
+ \qquad(\operatorname{dist}(o,v)=k).
+\end{equation*}
+There are \(d(d-1)^{k-1}\) such vertices.  Their absolute column mass is
+exactly \((2(d-1)/d)^{k-1}\), proving
+\cref{eq:aesp-cd-chebypush-stability-stop}.
+\end{proof}
 
 \begin{proposition}[APPR gives an optimal-volume envelope but not accelerated discovery]
 \label{prop:aesp-cd-point-source-appr-envelope}
