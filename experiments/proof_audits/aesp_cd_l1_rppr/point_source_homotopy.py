@@ -234,6 +234,40 @@ def check_ground_state_normalization(
         if len(face) > 1:
             phi_ground: F | None = None
             phi_ambient: F | None = None
+            epsilon_ground = F(1, 20)
+            ground_residual = [
+                epsilon_ground
+                * alpha
+                * degree[vertex]
+                * F(position + 1, len(face) + 1)
+                for position, vertex in enumerate(face)
+            ]
+            ground_error = solve(principal, ground_residual)
+            approximate_ground = [
+                response[i] - ground_error[i] for i in range(len(face))
+            ]
+            assert all(value > 0 for value in approximate_ground)
+            recovered_residual = [
+                alpha * degree[face[i]]
+                - sum(
+                    principal[i][j] * approximate_ground[j]
+                    for j in range(len(face))
+                )
+                for i in range(len(face))
+            ]
+            assert recovered_residual == ground_residual
+            assert all(
+                F(0) <= recovered_residual[i]
+                <= epsilon_ground * alpha * degree[face[i]]
+                for i in range(len(face))
+            )
+            assert all(
+                approximate_ground[i]
+                <= response[i]
+                <= approximate_ground[i] / (1 - epsilon_ground)
+                for i in range(len(face))
+            )
+            phi_approximate: F | None = None
             for cut_mask in range(1, (1 << len(face)) - 1):
                 left = [i for i in range(len(face)) if cut_mask & (1 << i)]
                 right = [i for i in range(len(face)) if not cut_mask & (1 << i)]
@@ -256,6 +290,27 @@ def check_ground_state_normalization(
                     )
                     / ground_denominator
                 )
+                approximate_denominator = min(
+                    sum(
+                        degree[face[i]] * approximate_ground[i]
+                        for i in left
+                    ),
+                    sum(
+                        degree[face[i]] * approximate_ground[i]
+                        for i in right
+                    ),
+                )
+                approximate_ratio = (
+                    coupling
+                    * sum(
+                        adjacency[face[i]][face[j]]
+                        * approximate_ground[i]
+                        * approximate_ground[j]
+                        for i in left
+                        for j in right
+                    )
+                    / approximate_denominator
+                )
                 phi_ambient = (
                     ambient_ratio
                     if phi_ambient is None
@@ -266,8 +321,18 @@ def check_ground_state_normalization(
                     if phi_ground is None
                     else min(phi_ground, ground_ratio)
                 )
-            assert phi_ground is not None and phi_ambient is not None
+                phi_approximate = (
+                    approximate_ratio
+                    if phi_approximate is None
+                    else min(phi_approximate, approximate_ratio)
+                )
+            assert (
+                phi_ground is not None
+                and phi_ambient is not None
+                and phi_approximate is not None
+            )
             assert phi_ground >= coupling * survival_lower**2 * phi_ambient
+            assert phi_ground >= (1 - epsilon_ground) * phi_approximate
 
         # The ground-state Laplacian induces an exact reversible Markov
         # kernel.  This is the premise needed by the weighted-conductance
@@ -370,6 +435,7 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-proper-face-doob-laplacian}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-gap}" in source
     assert r"\label{cor:aesp-cd-proper-face-leakage-conductance}" in source
+    assert r"\label{cor:aesp-cd-proper-face-finite-ground-certificate}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
 
@@ -434,6 +500,7 @@ def main() -> None:
     print("  conjugated ground shift: exact weighted graph Laplacian")
     print("  ground walk: stochastic, nonnegative, and exactly reversible")
     print("  leakage survival and ordinary-conductance comparison: exact on every face")
+    print("  finite one-sided ground residual certificate: exact on every face")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "

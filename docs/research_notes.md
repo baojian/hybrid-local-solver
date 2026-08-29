@@ -203,7 +203,11 @@ then the killed-walk interpretation gives
 `min h >= alpha/(alpha+((1-alpha)/2)eta)` and converts ordinary induced-face
 conductance or Poincare gap directly into the ground geometry.  With
 `eta=O(alpha)`, ordinary conductance `Theta(alpha^(1/4))` or ordinary
-Poincare gap `Theta(sqrt(alpha))` is sufficient.  A
+Poincare gap `Theta(sqrt(alpha))` is sufficient.  Exact ground data are not
+needed even for this certification: any positive `h_tilde` with one-sided
+residual `0 <= alpha*d-H*h_tilde <= eps_h*alpha*d` satisfies
+`h_tilde <= h <= h_tilde/(1-eps_h)`, so its computed conductance and
+Poincare gap, multiplied by `1-eps_h`, are rigorous lower certificates.  A
 connected point-source support has one ground mode; disconnected multi-source
 faces have one ground mode per component and require componentwise handling.
 

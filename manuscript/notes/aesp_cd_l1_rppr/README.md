@@ -389,7 +389,12 @@ leaving the face.  If every vertex leaks at most an `eta` fraction of its
 edges, then `min h>=alpha/(alpha+((1-alpha)/2)eta)`, giving a direct
 ordinary-conductance or Poincare certificate without first diagonalizing the
 face.  When `eta=O(alpha)`, the sufficient scales are respectively
-`Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`.
+`Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`.  This spectral check is also
+finite: a positive approximate ground vector with local one-sided relative
+residual `eps_h` multiplicatively sandwiches the exact ground vector and
+loses only the factor `1-eps_h` in the computed conductance/Poincare lower
+bound.  Exact ground coordinates are therefore not required merely to
+certify the tail hypothesis.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

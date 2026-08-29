@@ -90,6 +90,11 @@ State: proved-open
   converts ordinary induced-face conductance or Poincare gap into the
   required ground geometry.  Under `eta_A=O(alpha)`, sufficient original
   scales are `Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`, respectively.
+  A positive approximate ground solve with local residual enclosure
+  `0<=alpha*d-H*h_tilde<=eps_h*alpha*d` already gives the multiplicative
+  sandwich `h_tilde<=h<=h_tilde/(1-eps_h)` and rigorous finite conductance
+  and Poincare lower certificates, so exact ground data are not needed for
+  the spectral check itself.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -532,6 +537,7 @@ graph-uniform end-to-end accelerated solver.
   `prop:aesp-cd-proper-face-ground-conjugacy`,
   `cor:aesp-cd-proper-face-conductance-gap`,
   `cor:aesp-cd-proper-face-leakage-conductance`,
+  `cor:aesp-cd-proper-face-finite-ground-certificate`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `cor:aesp-cd-point-source-route-output-interface`,
