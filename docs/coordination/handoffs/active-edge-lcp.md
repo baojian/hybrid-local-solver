@@ -5,7 +5,7 @@
 - Branch: `agent/codex/active-edge-lcp`
 - Base commit: `df0725fcf68797c5bf53527eabb6ae2dd64b9f33`
 - Assignment state: ready for review
-- Proof milestone: `3fa84554b8f7599734db3e38447797e81f8cc8fc`
+- Proof milestone: `3fa84552e6582604a214021f20310df1c6290c9e`
 - Write scope:
   - `docs/coordination/active_assignments.toml`
   - `docs/coordination/handoffs/active-edge-lcp.md`
@@ -106,5 +106,5 @@
 ## Commits
 
 - Prior resumed-direction marker: `b7ffdfa040554c08cae9d0fc6d560e4fdce5297d`.
-- Complete OP2 proof and evidence: `3fa84554b8f7599734db3e38447797e81f8cc8fc`.
+- Complete OP2 proof and evidence: `3fa84552e6582604a214021f20310df1c6290c9e`.
 - Review-ready coordination/check state: the commit containing this handoff.
