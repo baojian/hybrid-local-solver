@@ -82,24 +82,28 @@ theorem verification.
 
 ## PageRank formulation
 
-The project studies local PageRank as its initial graph problem. The following
-definitions are not yet fixed and must not be inferred from a cited paper:
+The project studies local PageRank as its initial graph problem. The canonical
+graph class and seed input are fixed: the graph is finite, simple, undirected,
+connected, has at least two vertices and unit edge weights, and the
+end-to-end input is one seed vertex `v` with `s=e_v`. See
+[`decisions/graph-convention.md`](decisions/graph-convention.md) and
+[`decisions/seed-convention.md`](decisions/seed-convention.md).
+
+The following remaining definitions are not yet fixed and must not be
+inferred from a cited paper:
 
 - whether vectors are rows or columns;
-- graph directionality, weighting, and treatment of isolated vertices;
 - adjacency and degree matrix notation;
 - transition-matrix orientation;
 - the exact linear system or fixed-point equation;
-- seed-vector normalization;
 - the role and admissible range of `alpha`;
 - the error measure associated with `epsilon`.
 
 When these choices are adopted, update this document, the paper, and tests in
 the same change.
 
-The current source-grounded candidate, recorded for evaluation rather than
-adopted implementation-wide, assumes an undirected unweighted graph with no
-isolated vertices and uses
+The current source-grounded manuscript reference uses the accepted connected
+unit-weight graph and point-source conventions and defines
 \[
 \mathcal{L}=I-D^{-1/2}AD^{-1/2},
 \qquad
@@ -112,8 +116,12 @@ F_\rho(x)
 -\alpha\langle D^{-1/2}s,x\rangle
 +\alpha\rho\|D^{1/2}x\|_1.
 \]
-Here \(s\geq0\), \(\langle\mathbf{1},s\rangle=1\), and the single-seed case is
-\(s=e_v\). See Fountoulakis and Martínez-Rubio (2026), PDF page 3,
+Here \(s\geq0\), \(\langle\mathbf{1},s\rangle=1\). The canonical
+end-to-end computational problem takes one seed vertex `v`, hence
+\(s=e_v\). General unit-mass distributions remain available for
+source-aligned algebra and explicitly scoped extensions, but they are not the
+input contract of the central complexity target. See
+Fountoulakis and Martínez-Rubio (2026), PDF page 3,
 Section 3 and equation (RPPR). This candidate does not yet determine the
 hybrid solver's transition-matrix orientation, output transformation, or
 residual convention.

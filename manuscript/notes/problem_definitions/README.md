@@ -19,7 +19,7 @@ below.
 
 **Direction status: problem_definitions**
 
-- Last reviewed: 2026-08-28
+- Last reviewed: 2026-08-29
 - State: source
 - Agent family: codex
 - Role: reference
@@ -33,16 +33,18 @@ below.
 - **Question:** What are the exact PPR and RPPR problem definitions used by
   the project, how do the common formulations translate, and which elementary
   or published properties can be used without importing an algorithmic claim?
-- **Model:** A finite simple undirected unweighted graph without isolated
-  vertices, a sparse nonnegative column seed distribution of unit mass,
-  `alpha in (0, 1]`, the shared lazy symmetric PageRank system, and its RPPR
-  surrogate for `rho > 0`.
+- **Model:** A finite simple undirected connected graph with unit edge weights
+  and at least two vertices, one seed vertex `v` with `s=e_v`,
+  `alpha in (0, 1]`, the shared
+  lazy symmetric PageRank system, and its RPPR surrogate for `rho > 0`. The
+  general unit-mass distribution remains an algebraic extension, not the
+  canonical computational input.
 - **Accuracy namespace:** `eps_ppr` is only the document-scoped
   degree-normalized semantic PPR error. It is distinct from `eps_appr`,
   `eps_obj`, `eps_pg`, `rho`, and any algorithm-specific KKT tolerance.
 - **Access and charged work:** The input is represented by adjacency lists and
-  a sparse seed list. A scan of vertex `i` costs `d_i`, and a scan of a set
-  costs its degree volume. The note states no algorithm or work bound.
+  one seed label. A scan of vertex `i` costs `d_i`, and a scan of a set costs
+  its degree volume. The note states no algorithm or work bound.
 - **Intended result:** A single buildable source reference containing only
   exact definitions, algebraically equivalent formulations, and standard
   properties with explicit provenance and scope.
@@ -53,6 +55,14 @@ below.
   facts, alternative scalings, and degree-normalized accuracy certificate are
   traced to the papers and exact literature-note pointers listed in
   `main.tex`.
+- **Standard consequence:** Unregularized PPR is linear in the source, so a
+  general distribution is a weighted sum of point-source PPR vectors and its
+  semantic errors compose by the triangle inequality. This is not a
+  same-complexity reduction, and no RPPR superposition is asserted.
+- **Standard consequence:** On a possibly disconnected positive-degree graph,
+  point-source PPR and RPPR vanish outside the seed component and restrict
+  exactly to the canonical connected problem. Active faces can still be
+  disconnected.
 - **Proved here:** None. Short calculations are included only to verify
   equivalence of conventions or to derive standard consequences of the
   displayed source facts.
@@ -72,6 +82,8 @@ must be reconciled here and in the shared source-aligned definition.
 
 - Formal registry dependencies: none.
 - Source/shared prerequisites: `docs/mathematical-conventions.md`,
+  `docs/decisions/graph-convention.md`,
+  `docs/decisions/seed-convention.md`,
   `docs/decisions/residual-convention.md`, and
   `manuscript/tex/shared/source_aligned_problem.tex`.
 - Supplies to: every research note or manuscript section that needs a compact
@@ -91,9 +103,9 @@ must be reconciled here and in the shared source-aligned definition.
   `docs/literature/local-solvers.md` and
   `docs/literature/acceleration.md`, including the source PDF page and section
   pointers recorded there.
-- Focused checks: the note builds to a six-page PDF with resolved citations
+- Focused checks: the note builds to a seven-page PDF with resolved citations
   and cross-references; the note inventory reports 27 consistent notes; all
-  211 tests, `make agent-audit`, and `make lint` pass.
+  212 tests and `make agent-audit` pass.
 - Known gaps: the note intentionally does not resolve the implementation-wide
   residual sign, stopping schedule, finite-precision behavior, or a local
   solver complexity theorem.

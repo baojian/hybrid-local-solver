@@ -1,6 +1,6 @@
 # Standalone problem definition: fully charged accelerated local PageRank
 
-Last reconciled: 2026-08-24.
+Last reconciled: 2026-08-29.
 
 This is a numerical optimization research problem. This document is
 intentionally self-contained: all project-specific definitions, assumptions,
@@ -14,13 +14,14 @@ proved, conditional, measured, or refuted must retain those labels.
 
 ## 1. Research question
 
-Given only local adjacency-list access to a large undirected graph, a sparse
-seed distribution, a PageRank parameter `alpha`, and a target accuracy
+Given only local adjacency-list access to a finite simple connected graph
+with unit edge weights and at least two vertices, one seed vertex `v`
+(equivalently `s=e_v`), a PageRank parameter `alpha`, and a target accuracy
 `eps_ppr`, can an algorithm return a sparse personalized PageRank vector with
 a valid terminal certificate in
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 fully charged work?
@@ -51,7 +52,8 @@ Let
 G = (V, E),    V = {1, ..., n},
 ```
 
-be a finite, simple, undirected, unweighted graph with no isolated vertices.
+be a finite, simple, undirected, connected graph with unit edge weights and
+`n >= 2`.
 The graph need not be supplied as a global matrix. The algorithm receives an
 adjacency-list interface.
 
@@ -59,7 +61,7 @@ Let `A` be the symmetric adjacency matrix. For each vertex `i`, define
 
 ```text
 N(i) = {j : {i,j} is in E},
-d_i  = |N(i)| > 0,
+d_i  = |N(i)| >= 1,
 D    = diag(d_1, ..., d_n).
 ```
 
@@ -80,17 +82,35 @@ supp(x) = {i : x_i != 0}.
 All vectors in this document are column vectors. Unqualified vector
 inequalities are coordinatewise. Matrix inequalities use the Loewner order.
 
+For the canonical point source, connectedness is without loss: on a
+possibly disconnected positive-degree graph, the PPR and RPPR solutions
+vanish outside the component containing `v`, and restriction to that
+component preserves all degrees and equations. This does not promise that an
+intermediate active induced subgraph is connected.
+
 ### 2.2 Seed
 
-The seed is a nonnegative probability vector
+The canonical input is one seed vertex `v`. Its source vector is
 
 ```text
-s >= 0,    1^T s = 1,
+s = e_v,
 ```
 
-supplied as a sparse list of its `nnz(s)` nonzero entries. Reading and
-initializing this list costs `Theta(nnz(s))`. The standard local instance is
-a single seed vertex `v`, for which `s = e_v`.
+so seed input and initialization cost `O(1)`. The shared mathematical layer
+also permits a nonnegative probability vector `s`, but that is an explicitly
+stronger extension, not the central complexity contract.
+
+For unregularized PPR, linearity gives
+
+```text
+pi(s) = sum_v s_v pi(e_v).
+```
+
+This does not preserve the canonical work bound automatically. Independent
+point-source solves generally incur a mixture factor up to `nnz(s)`, together
+with input, merging, and output costs. RPPR is nonlinear in `s`: its threshold,
+support, and admission chronology cannot be obtained by point-source
+superposition.
 
 ### 2.3 PageRank parameter
 
@@ -229,7 +249,7 @@ and the normalized maximum principle gives
 For a sparse `x`, the residual can be nonzero only on
 
 ```text
-supp(x) union N(supp(x)) union supp(s).
+supp(x) union N(supp(x)) union {v}.
 ```
 
 This makes a local terminal check possible in principle, but every necessary
@@ -278,7 +298,7 @@ the storage and later reads are included in the ledger.
 
 A complete theorem reports all applicable categories:
 
-1. sparse seed input and initialization;
+1. seed-vertex input and initialization;
 2. first graph exposure and degree queries;
 3. repeated adjacency reads and active-row scans;
 4. coordinate, gradient, splitting, propagation, Krylov, or other numerical
@@ -318,13 +338,13 @@ For `eps_ppr in (0, 1)`, the main target is a deterministic exact-real
 algorithm with
 
 ```text
-work = nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr)).
+work = O_tilde(1 / (sqrt(alpha) * eps_ppr)).
 ```
 
 The preferred target also uses
 
 ```text
-O(nnz(s) + 1 / eps_ppr)
+O(1 / eps_ppr)
 ```
 
 persistent memory and temporary workspace, up to declared logarithmic

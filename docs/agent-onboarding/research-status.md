@@ -1,6 +1,6 @@
 # Current research status and open problems
 
-Verified snapshot: 2026-08-24.
+Verified snapshot: 2026-08-29.
 
 This file is a routing summary. The current
 [controller broadcast](../../manuscript/notes/_shared/coordination/BROADCAST.md),
@@ -10,10 +10,10 @@ proof in the owning note is authoritative for a mathematical claim.
 
 ## Bottom line
 
-The desired graph-uniform sparse PPR solver with fully charged
+The desired graph-uniform single-source sparse PPR solver with fully charged
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 work is not proved. The project has useful local convergence results,
@@ -21,6 +21,17 @@ support and volume controls, exact structured handoffs, response identities,
 finite-trace counterexamples, and algorithm-specific lower bounds. The
 missing step is a graph-uniform composition that preserves accelerated
 progress while paying for every local and response operation.
+
+The canonical input is one seed vertex `v`, equivalently `s=e_v`. General
+unit-mass distributions remain a stronger extension: linear PPR
+superposition can multiply work, and RPPR support discovery requires a
+separate merge-aware argument.
+
+The canonical graph is finite, simple, undirected, connected, has at least
+two vertices, and has unit edge weights. This is without loss for the
+point-source solution: on a disconnected positive-degree graph both PPR and
+RPPR restrict exactly to the seed component. Intermediate active faces may
+still be disconnected.
 
 The repository-wide residual convention also remains open. The controller
 contract supplies a precise semantic target and sufficient certificate for
@@ -33,7 +44,11 @@ The following facts can be reused with their recorded assumptions and source
 pointers:
 
 - The shared PPR matrix satisfies `alpha I <= Q <= I`.
+- The normalized Laplacian has a simple zero mode, and point-source PPR is
+  strictly positive everywhere when `0 < alpha < 1`.
 - The RPPR minimizer is nonnegative and has support volume at most `1 / rho`.
+- Every RPPR optimal-support component contains a source; with `s=e_v`, the
+  support is either empty or connected and contains `v`.
 - The degree-normalized gradient certificate in the problem contract implies
   its stated degree-normalized PPR solution bound.
 - Literal lazy single-seed APPR has a tight

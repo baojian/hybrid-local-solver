@@ -5,8 +5,10 @@
 There is no single scalar ranking of these methods: they solve different PPR,
 RPPR, local-clustering, point-query, or linear-system tasks and use different
 accuracy and access models. “State of the art” below therefore means the
-current comparison frontier for this project's full sparse-vector local PPR
-and RPPR questions, not a claim that one method dominates every regime.
+current comparison frontier for this project's canonical connected,
+unit-weight, single-source sparse-vector local PPR and RPPR questions. General
+seed distributions and broader graph classes are stronger extensions, not a
+claim that one method dominates every regime.
 
 Detailed theorem/page annotations live in
 [`../../../../docs/literature/`](../../../../docs/literature/). This page is a

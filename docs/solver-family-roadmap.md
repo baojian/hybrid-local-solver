@@ -105,10 +105,12 @@ naturally `O_tilde(V/sqrt(alpha))`. Near-linear response maintenance and
 constant/polylogarithmic effective conditioning would approach the explicit
 output scale. This is a proof template, not a general theorem.
 
-## Frozen acceptance contract
+## Canonical acceptance contract
 
-On a finite simple undirected unweighted graph with no isolates and
-adjacency-list access, the desired exact-real algorithm returns sparse
+On a finite simple undirected connected graph with unit edge weights,
+at least two vertices, adjacency-list access, and one seed vertex `v`
+(`s=e_v`), the desired
+exact-real algorithm returns sparse
 `x_hat` satisfying
 
 ```text
@@ -120,11 +122,13 @@ discovery, row read, numerical/response operation, rekey, query, state access,
 materialization, and output. The target is
 
 ```text
-nnz(s) + O_tilde(1/(sqrt(alpha) eps_ppr)).
+O_tilde(1/(sqrt(alpha) eps_ppr)).
 ```
 
 An RPPR route must state its bias conversion and terminal certificate. No
-current route satisfies this contract graph-uniformly.
+current route satisfies this contract graph-uniformly. A theorem for a
+general sparse seed distribution is a stronger extension and must charge its
+input, mixture or component work, merging, and output separately.
 
 ## Priority proof obligations
 

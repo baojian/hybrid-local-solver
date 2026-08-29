@@ -15,7 +15,7 @@ registered controller files.
   `vol(S_eps_ppr) = Theta(1 / eps_ppr)`, bounded ordinary seed degree, and
   seed self-return amplification `pi_v / gamma_alpha = Theta(1 / alpha)`?
 - **Model:** The shared source-aligned single-seed PPR system on finite simple
-  undirected unweighted connected graphs without isolated vertices, with
+  undirected connected unit-weight graphs with at least two vertices, with
   `0 < alpha < 1`,
   `c_alpha = (1-alpha)/(1+alpha)` and
   `gamma_alpha = 2 alpha/(1+alpha)`.
