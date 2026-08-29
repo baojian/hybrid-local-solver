@@ -415,6 +415,11 @@ the exact ground mean, ground multiplier, and high-mode norm all admit
 explicit enclosures in terms of the approximate ground vector.  Hence the
 row intervals are implementable without exact eigendata or an exact ground
 solve.
+A truncated killed-walk Neumann series constructs that one-sided ground
+certificate locally and monotonically, with residual factor
+`((1-alpha)/(1+alpha))^K`.  It closes correctness without an eigensolver, but
+its `O(vol(A)/alpha)` scale is not accelerated; a square-root-work one-sided
+ground certificate is now the precise preprocessing target.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

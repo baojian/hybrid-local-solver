@@ -140,6 +140,56 @@ def check_ground_state_normalization(
             )
             for position, vertex in enumerate(face)
         )
+
+        # A truncated killed-walk Neumann series is a positive, fully local
+        # finite ground certificate with an exact one-sided residual.
+        theta = (1 - alpha) / (1 + alpha)
+        walk_steps = 4
+        walk_power = [F(1) for _ in face]
+        walk_ground = [F(0) for _ in face]
+        theta_power = F(1)
+        killed_walk = [
+            [
+                F(adjacency[vertex][neighbor]) / degree[vertex]
+                for neighbor in face
+            ]
+            for vertex in face
+        ]
+        for _ in range(walk_steps):
+            walk_ground = [
+                walk_ground[i] + (1 - theta) * theta_power * walk_power[i]
+                for i in range(len(face))
+            ]
+            walk_power = [
+                sum(killed_walk[i][j] * walk_power[j] for j in range(len(face)))
+                for i in range(len(face))
+            ]
+            theta_power *= theta
+        walk_residual = [
+            alpha * degree[face[i]]
+            - sum(principal[i][j] * walk_ground[j] for j in range(len(face)))
+            for i in range(len(face))
+        ]
+        expected_walk_residual = [
+            alpha * degree[face[i]] * theta_power * walk_power[i]
+            for i in range(len(face))
+        ]
+        assert walk_residual == expected_walk_residual, (
+            face,
+            walk_residual,
+            expected_walk_residual,
+        )
+        assert all(value > 0 for value in walk_ground)
+        assert all(
+            F(0) <= walk_residual[i]
+            <= theta_power * alpha * degree[face[i]]
+            for i in range(len(face))
+        )
+        assert all(
+            walk_ground[i] <= response[i]
+            <= walk_ground[i] / (1 - theta_power)
+            for i in range(len(face))
+        )
         mass = [F(degree[i], 1) / response[position] for position, i in enumerate(face)]
         assert all(
             sum(principal[row][column] * response[column] for column in range(len(face)))
@@ -583,6 +633,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-conductance-gap}" in source
     assert r"\label{cor:aesp-cd-proper-face-leakage-conductance}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-ground-certificate}" in source
+    assert r"\label{prop:aesp-cd-proper-face-walk-ground-certificate}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
@@ -655,6 +706,7 @@ def main() -> None:
     print("  ground walk: stochastic, nonnegative, and exactly reversible")
     print("  leakage survival and ordinary-conductance comparison: exact on every face")
     print("  finite one-sided ground residual certificate: exact on every face")
+    print("  killed-walk finite ground construction: exact on every face")
     print(f"  reversible residual endpoint variance proxy: exact on {endpoint_vertices} vertices")
     print(
         "  conductance-certified rank-one inverse: "

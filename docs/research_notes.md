@@ -239,6 +239,13 @@ the ground rank-one coefficient and the high-mode norm.  Explicit coordinate
 radii then depend only on the approximate ground vector, its residual error,
 and the transformed right-hand side; applying a retained nonnegative coupling
 row gives the observable KKT interval directly.
+There is also a completely local way to produce the required one-sided
+ground certificate.  Truncating the killed-walk Neumann series after `K`
+terms gives an exact nonnegative residual bounded by
+`((1-alpha)/(1+alpha))^K * alpha*d`.  This removes the logical eigensolver
+oracle, but costs `O(vol(A)/alpha * log(1/eps_h))`; obtaining the same
+one-sided enclosure in accelerated `O_tilde(vol(A)/sqrt(alpha))` work remains
+the preprocessing gap on this branch.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

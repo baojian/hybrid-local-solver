@@ -113,6 +113,11 @@ State: proved-open
   its residual error, and the transformed right-hand side.  Exact ground data
   are therefore unnecessary for either the spectral test or the reporter
   interval.
+  A truncated killed-walk Neumann series supplies this one-sided certificate
+  with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
+  logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
+  remaining conductance-branch preprocessing gap is a square-root-work
+  one-sided residual construction, not the spectral algebra.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -560,6 +565,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-conductance-gap`,
   `cor:aesp-cd-proper-face-leakage-conductance`,
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
+  `prop:aesp-cd-proper-face-walk-ground-certificate`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
