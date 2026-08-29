@@ -309,9 +309,40 @@ therefore suffices for the original objective.  MSE can be run on
 ratio is rounded downward, so the exact subsolution inequality is retained.
 Because `1/(rho+delta) <= 1/rho` and the required arithmetic precision is
 logarithmic in `1/delta` and `1/epsilon'`, this buffer is compatible with the
-OP2 work target, conditional on the accelerated rate lemma below.  A complete
+OP2 work target for any successful support-safe descendant.  A complete
 bit-complexity implementation is not supplied here, but no polynomial
 objective-accuracy dependence is forced by the support certificate.
+
+The path also gives a one-sided margin when moving in the opposite direction.
+Write `y_rho` for the minimizer in non-lazy degree coordinates and take
+`0<delta<rho`.  Monotonicity gives
+
+\[
+  \Delta:=y_{\rho-\delta}-y_\rho\geq0.
+\]
+
+For every `v in S*(rho)`, both solutions are positive at `v`, so subtracting
+their KKT equalities gives
+
+\[
+  d_v\Delta(v)-(1-\beta)\sum_{u\sim v}\Delta(u)
+  =\beta\delta d_v.
+\]
+
+Consequently,
+
+\[
+  \Delta(v)\geq\beta\delta,
+  \qquad
+  S^*(\rho)\subseteq
+  \{v:y_{\rho-\delta}(v)\geq\beta\delta\}.
+  \tag{6a}
+\]
+
+Thus a less-regularized solve can provide a robust support superset.  The
+margin is only `beta delta`, however.  With the natural `delta=Theta(rho)`,
+plain push or additive boundary propagation costs `Theta(1/(alpha rho))`;
+so (6a) clarifies the support-oracle route but does not itself attain OP2.
 
 ## 4. The graph-uniform scalar rate is false
 
@@ -716,6 +747,76 @@ because its bound `O_tilde(|S*| vol(S*))` is then at most
 `O_tilde(1/(rho sqrt(alpha)))`.  This instance-sensitive regime is slightly
 stronger than the parameter-only regime `rho >= sqrt(alpha)`.
 
+There is a sharper independent target that does not require a fully dynamic
+SDD solver.  Consider the exact batch-Newton sequence.  Start with
+
+\[
+  S_0:=\{i:h_i>0\}.
+\]
+
+At phase `j`, solve the principal system
+
+\[
+  Q_{S_jS_j}x_j|_{S_j}=h|_{S_j},
+  \qquad x_j|_{V\setminus S_j}=0,
+\]
+
+and add every violated outside coordinate,
+
+\[
+  T_j:=\{v\notin S_j:h_v-(Qx_j)_v>0\},
+  \qquad S_{j+1}:=S_j\cup T_j.
+  \tag{8a}
+\]
+
+The generated principal solutions are positive.  Four exact properties
+follow from the `M`-matrix order:
+
+1. `S_j subseteq S*` and `0<=x_j<=x*` for every phase;
+2. if `T` denotes the obstacle fixed-point map, then
+   `x_{j+1}>=T(x_j)`, so the method dominates one ordinary fixed-point step;
+3. the increments `d_j:=x_j-x_{j-1}` are nonnegative and mutually
+   `Q`-orthogonal; and
+4. `F_rho(x_j)-F_rho(x*)=||x_j-x*||_Q^2/2`.
+
+For completeness, `x_j` is a global subsolution: it is fixed on `S_j` and
+the subsolution inequality is automatic at its zero coordinates.  Hence
+`x_j<=x*`, and monotonicity of `T` shows that the newly positive coordinates
+in `T(x_j)` lie in `S*`.  Iterating `T` on `S_{j+1}` from `T(x_j)` converges
+upward to the principal solution `x_{j+1}`, proving properties 1--2.  Finally,
+both principal systems have gradient zero on `S_{j-1}`, so
+
+\[
+  (Qd_j)|_{S_{j-1}}=0.
+\]
+
+Every earlier increment is supported on `S_{j-1}`, which proves property 3.
+
+One phase can be implemented with one nearly-linear SDD solve and one scan of
+`S_j`, for `O_tilde(vol(S*))` fully charged work.  Consequently the following
+single statement would prove OP2.
+
+#### Exact active-set depth lemma (open)
+
+There are universal constants `C,c>0` such that the sequence (8a) satisfies
+
+\[
+  F_\rho(x_j)-F_\rho(x^*)
+  \leq C\exp(-c j\sqrt\alpha)
+          \bigl(F_\rho(x_0)-F_\rho(x^*)\bigr)
+  \tag{8b}
+\]
+
+for every allowed RPPR instance.
+
+Unlike the refuted scalar-MSE statement, (8b) is insensitive to
+vanishing-energy disconnected decoys: every component expands in parallel,
+and exact reoptimization makes its own independent progress.  Weighted-path,
+tree, and sparse-graph searches have not produced a counterexample, but no
+proof is claimed.  The established domination `x_{j+1}>=T(x_j)` gives only
+the weaker factor `1-alpha`; the missing argument must use the exact
+reoptimization or the `Q`-orthogonality of the increments.
+
 There is an exact batch-progress estimate that may help amortize a modified
 active-set method.  Let `x^(S)` be the exact minimizer with support restricted
 to `S`, let
@@ -839,6 +940,49 @@ would also prove OP2.  Generic obstacle, interior-point, projected-CG, and
 convex-flow methods do not provide item 2 in the adjacency-list model.  They
 either assume the whole matrix is materialized or may inspect constraints
 outside the optimal active region.
+
+The desired flow algorithm does have a completely local feasible start.  Use
+the augmented incidence factorization
+
+\[
+  Q=B^TWB,
+\]
+
+with weight `(1-alpha)/2` on every normalized original edge and weight
+`alpha` on the ground edge at each vertex.  The dual is
+
+\[
+  \min_f\frac12 f^TW^{-1}f
+  \quad\text{subject to}\quad B^Tf\geq h.
+  \tag{13}
+\]
+
+Put `H={i:h_i>0}`.  Sending `h_i` units on the ground edge at each `i in H`
+and zero elsewhere gives a feasible flow `f_0`, because
+`B^Tf_0=h_+>=h`.  Moreover,
+
+\[
+  i\in H\quad\Longrightarrow\quad s_i>\rho d_i,
+  \qquad \operatorname{vol}(H)<\frac1\rho,
+\]
+
+and
+
+\[
+  f_0^TW^{-1}f_0
+  =\frac1\alpha\sum_i(h_i^+)^2
+  \leq\frac1\alpha\sum_i b_i^2
+  \leq\alpha.
+  \tag{14}
+\]
+
+Thus the initial primal--dual gap at `(x,f)=(0,f_0)` is at most `alpha/2`,
+and constructing `f_0` needs only the sparse seed list and degree queries.
+This removes initialization as a locality obstacle.  The unresolved issue is
+to expose improving original edges and violated/tight vertex constraints
+without materializing the rest of the graph.  Almost-linear convex-flow
+algorithms apply after the relevant augmented graph is known; their standard
+theorems do not supply this local exposure property.
 
 ## 8. Current priority
 

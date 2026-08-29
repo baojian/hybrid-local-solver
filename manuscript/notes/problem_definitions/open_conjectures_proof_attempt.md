@@ -25,7 +25,10 @@ progress is:
    boundary-reporting obstacle;
 7. a support-safe maximal-extrapolation framework for OP2, together with a
    graph-realizable low-energy-decoy counterexample that refutes its proposed
-   global scalar accelerated rate.
+   global scalar accelerated rate;
+8. a weaker exact-batch active-set depth lemma which would prove OP2 using
+   one ordinary SDD solve and boundary scan per phase, without requiring the
+   stronger fully dynamic primitive.
 
 Throughout, `alpha` denotes the lazy parameter in `main.tex` and
 
@@ -639,12 +642,14 @@ matches this lower bound up to logarithmic factors.
 | OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)`; OP3 would imply it | `rho < sqrt(alpha)`; global scalar support-safe momentum is refuted, leaving an energy-aware local rule or the strengthened incremental lemma |
 | OP3 | no arbitrary-graph proof | maintain nested SDD solutions and all boundary violations in total near-final-volume work |
 
-The most economical rigorous target is now the incremental active-set lemma,
-with the boundary-reporting component stated explicitly.  A proof of only an
-incremental linear solver, while recomputing all boundary scores, does not
-close any of the three conjectures.  On the acceleration branch, any repaired
-MSE must charge momentum blockers by objective energy; the scalar global rule
-cannot be repaired by a different Lyapunov analysis alone.
+The most economical OP2-specific target is now the exact active-set depth
+lemma in the companion note: if exact batch reoptimization contracts the
+objective by a constant every `Theta(1/sqrt(alpha))` phases, one ordinary SDD
+solve and full active-set scan per phase already meet OP2.  The stronger
+incremental lemma remains the common route to all three questions and still
+needs its boundary-reporting component.  On the acceleration branch, any
+repaired MSE must charge momentum blockers by objective energy; the scalar
+global rule cannot be repaired by a different Lyapunov analysis alone.
 
 ## Public sources consulted
 
