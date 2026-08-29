@@ -108,6 +108,11 @@ State: proved-open
   simultaneous row intervals of radius `t*sum_i(-H_vi)*E_i`; it closes the
   reporter when those intervals fit finite KKT hysteresis, but concentrated
   loads may still need the general locator.
+  Combining this split with the one-sided finite ground sandwich gives
+  explicit response and row radii using only the approximate ground vector,
+  its residual error, and the transformed right-hand side.  Exact ground data
+  are therefore unnecessary for either the spectral test or the reporter
+  interval.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -556,6 +561,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-leakage-conductance`,
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
+  `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `prop:aesp-cd-point-source-literal-walk-sampling-stop`,

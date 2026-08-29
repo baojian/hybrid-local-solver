@@ -470,7 +470,7 @@ def check_endpoint_kernel(
     return size
 
 
-def check_rank_one_inverse_certificate() -> tuple[F, F, F]:
+def check_rank_one_inverse_certificate() -> tuple[F, F, F, F]:
     """Audit the conductance-certified inverse split on an exact K3 face."""
     q = F(1, 16)
     alpha = q * q / (1 + q * q)
@@ -525,7 +525,52 @@ def check_rank_one_inverse_certificate() -> tuple[F, F, F]:
     negative_key = -approximate_response - coordinate_row_band - F(1, 23)
     assert positive_key + approximate_response - coordinate_row_band > 0
     assert negative_key + approximate_response + coordinate_row_band < 0
-    return alpha, inverse_high_bound, coordinate_row_band
+
+    # The finite ground certificate must suffice without exact h.  A uniform
+    # shrink realizes the extremal one-sided residual sandwich exactly.
+    eps_h = F(1, 5)
+    c_h = 1 / (1 - eps_h)
+    approximate_ground = [1 - eps_h] * size
+    approximate_weight = [degree * value for value in approximate_ground]
+    approximate_volume = sum(approximate_weight)
+    approximate_mean = (
+        sum(
+            approximate_weight[i] * transformed_rhs[i]
+            for i in range(size)
+        )
+        / approximate_volume
+    )
+    assert approximate_mean == mean
+    centered = [value - approximate_mean for value in transformed_rhs]
+    first_moment = (
+        sum(approximate_weight[i] * abs(centered[i]) for i in range(size))
+        / approximate_volume
+    )
+    sigma_square = sum(
+        approximate_weight[i] * centered[i] ** 2 for i in range(size)
+    )
+    ground_radius = [
+        approximate_ground[i]
+        / alpha
+        * (c_h - 1)
+        * (abs(approximate_mean) + c_h * first_moment)
+        for i in range(size)
+    ]
+    high_radius_square = [
+        (c_h * inverse_high_bound) ** 2
+        * approximate_ground[i]
+        / degree
+        * sigma_square
+        for i in range(size)
+    ]
+    finite_center = [
+        approximate_mean / alpha * approximate_ground[i]
+        for i in range(size)
+    ]
+    for i in range(size):
+        excess = max(abs(solution[i] - finite_center[i]) - ground_radius[i], 0)
+        assert excess**2 <= high_radius_square[i]
+    return alpha, inverse_high_bound, coordinate_row_band, eps_h
 
 
 def main() -> None:
@@ -542,6 +587,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
+    assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -595,7 +641,9 @@ def main() -> None:
         check_proper_clique_conductance_witness()
     )
     endpoint_vertices = check_endpoint_kernel(adjacency, degree, alpha)
-    rank_one_alpha, rank_one_bound, row_band = check_rank_one_inverse_certificate()
+    rank_one_alpha, rank_one_bound, row_band, ground_eps = (
+        check_rank_one_inverse_certificate()
+    )
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -611,7 +659,7 @@ def main() -> None:
     print(
         "  conductance-certified rank-one inverse: "
         f"alpha={rank_one_alpha}, high_inverse_bound={rank_one_bound}, "
-        f"row_band={row_band}"
+        f"row_band={row_band}, finite_ground_eps={ground_eps}"
     )
     print(
         "  proper-clique conductance witness: "

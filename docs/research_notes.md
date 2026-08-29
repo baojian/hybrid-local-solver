@@ -233,6 +233,12 @@ Rows whose approximate keys lie outside that interval are classified together.
 It closes reporter work when every such band fits inside finite KKT hysteresis;
 concentrated loads can still leave a large gray set, so this is a
 conductance-certified shortcut rather than a universal event locator.
+This interface is fully finite: if a positive approximate ground vector has
+the one-sided residual certificate above, its relative sandwich controls both
+the ground rank-one coefficient and the high-mode norm.  Explicit coordinate
+radii then depend only on the approximate ground vector, its residual error,
+and the transformed right-hand side; applying a retained nonnegative coupling
+row gives the observable KKT interval directly.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

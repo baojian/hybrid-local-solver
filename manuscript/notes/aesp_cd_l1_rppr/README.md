@@ -410,6 +410,11 @@ the finite KKT band, every retained row is classified without materializing
 the dense response.  Concentrated
 pivot loads can keep that band wide, so gray rows still fall back to the
 general event locator.
+The finite one-sided ground residual certificate is enough here as well:
+the exact ground mean, ground multiplier, and high-mode norm all admit
+explicit enclosures in terms of the approximate ground vector.  Hence the
+row intervals are implementable without exact eigendata or an exact ground
+solve.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls
