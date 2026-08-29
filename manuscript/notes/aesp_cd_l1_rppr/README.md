@@ -63,6 +63,9 @@ candidate records, joint merge rows use thresholds
 `alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
 Across the whole trace, all source and graph-frontier candidate records total
 at most `nnz(s)+2*vol(S*)`; candidate enumeration itself is not the gap.
+Ordinary PPR also screens the support for every source distribution, but the
+sharp guaranteed volume remains only `Theta(1/(alpha*rho))`, so this linear
+screen does not supply the accelerated envelope.
 Its exact pivot increments remain energy-orthogonal for every source
 distribution, with total energy at most `alpha/2` and total degree-weighted
 variation at most one.  On the final support they give an exact inverse

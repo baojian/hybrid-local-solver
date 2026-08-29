@@ -692,9 +692,13 @@ def audit_ppr_screening(
     alpha: F,
     rho: F,
     support: set[int],
+    source: list[F] | None = None,
 ) -> int:
     size = len(degree)
-    ordinary_load = [alpha * F(i == 0) for i in range(size)]
+    source_vector = (
+        [F(i == 0) for i in range(size)] if source is None else source
+    )
+    ordinary_load = [alpha * source_vector[i] for i in range(size)]
     ordinary = solve(hessian, ordinary_load)
     p = (1 + alpha) / 2
     threshold = alpha * rho / p
@@ -994,6 +998,7 @@ def main() -> None:
     sparse_appr_coordinates = 0
     sparse_orthogonal_directions = 0
     sparse_frontier_records = 0
+    sparse_screened_support = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -1100,6 +1105,14 @@ def main() -> None:
                 degree,
                 sparse_alpha,
                 sparse_support,
+            )
+            sparse_screened_support += audit_ppr_screening(
+                sparse_hessian,
+                degree,
+                sparse_alpha,
+                rho,
+                sparse_support,
+                sparse_source,
             )
             for component in support_components(adjacency, sparse_support):
                 assert component & source_indices
@@ -1285,6 +1298,10 @@ def main() -> None:
     print(
         "  sparse-source persistent candidate records audited="
         f"{sparse_frontier_records}"
+    )
+    print(
+        "  sparse-source ordinary-PPR screened coordinates audited="
+        f"{sparse_screened_support}"
     )
     print("  terminal principal inverse factorization: exact on every pivot trace")
     print("  separated sparse-source RPPR decomposition: exact P5 witness")

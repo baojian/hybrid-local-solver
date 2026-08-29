@@ -53,6 +53,8 @@ State: proved-open
   unresolved interface would close the general sparse-source target as well.
   The persistent source-plus-frontier candidate universe is bounded by
   `nnz(s)+2vol(S*)`; only implicit old-coordinate response updates remain.
+  Ordinary-PPR screening is likewise source-independent but sharp only at
+  the classical `alpha*rho` threshold and `1/(alpha*rho)` volume.
   The response stream remains energy-orthogonal with total energy at most
   `alpha/2` for every source distribution; only the sharper `alpha/(2d_o)`
   constant is point-source-specific.  The normalized response columns form

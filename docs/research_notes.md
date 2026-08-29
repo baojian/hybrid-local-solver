@@ -94,6 +94,9 @@ the point-source specialization.
 The complete persistent source-plus-frontier candidate universe has size at
 most `nnz(s)+2vol(S*)`, so the difficulty is updating old-coordinate
 responses rather than finding or storing candidate row identifiers.
+The ordinary-PPR superlevel screen also extends to every source distribution,
+but its sharp threshold is `alpha*rho` and hence its volume guarantee is only
+`Theta(1/(alpha*rho))`; it does not construct the accelerated envelope.
 The principal-pivot response increments are also source-independent:
 they are pairwise energy-orthogonal, have total energy at most `alpha/2`,
 and total degree-weighted variation at most one.  The point source only
