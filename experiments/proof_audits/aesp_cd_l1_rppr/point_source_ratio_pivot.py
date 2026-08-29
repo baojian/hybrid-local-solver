@@ -487,12 +487,18 @@ def audit_hitting_radius(
 
 
 def audit_frontier_universe(
-    adjacency: list[list[F]], degree: list[int], support: set[int], order: list[int]
+    adjacency: list[list[F]],
+    degree: list[int],
+    support: set[int],
+    order: list[int],
+    initial: set[int] | None = None,
+    source_records: set[int] | None = None,
 ) -> int:
+    sources = set() if source_records is None else set(source_records)
     if not support:
-        return 0
-    active = {0}
-    seen_frontier: set[int] = set()
+        return len(sources)
+    active = {0} if initial is None else set(initial)
+    seen_frontier: set[int] = set(sources)
     for vertex in [*order, -1]:
         seen_frontier.update(
             v
@@ -507,12 +513,14 @@ def audit_frontier_universe(
         for v in range(len(degree))
         if v not in support and any(adjacency[v][u] for u in support)
     }
-    assert seen_frontier <= support | final_boundary
+    assert seen_frontier <= sources | support | final_boundary
     cut_edges = sum(
         adjacency[u][v] for u in support for v in range(len(degree)) if v not in support
     )
     assert len(final_boundary) <= cut_edges
-    assert len(support | final_boundary) <= 2 * sum(degree[u] for u in support)
+    assert len(sources | support | final_boundary) <= len(sources) + 2 * sum(
+        degree[u] for u in support
+    )
     return len(seen_frontier)
 
 
@@ -985,6 +993,7 @@ def main() -> None:
     sparse_radius_coordinates = 0
     sparse_appr_coordinates = 0
     sparse_orthogonal_directions = 0
+    sparse_frontier_records = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -1073,6 +1082,18 @@ def main() -> None:
                 for i in range(size)
             ]
             sparse_support = obstacle_support(sparse_hessian, sparse_load)
+            sparse_pivot_support, sparse_pivot_events = generic_residual_pivots(
+                sparse_hessian, sparse_load
+            )
+            assert sparse_pivot_support == sparse_support
+            sparse_frontier_records += audit_frontier_universe(
+                adjacency,
+                degree,
+                sparse_support,
+                [winner for winner, _ in sparse_pivot_events],
+                initial=set(),
+                source_records=source_indices,
+            )
             sparse_orthogonal_directions += audit_sparse_orthogonal_pivots(
                 sparse_hessian,
                 sparse_load,
@@ -1260,6 +1281,10 @@ def main() -> None:
     print(
         "  sparse-source energy-orthogonal pivot directions audited="
         f"{sparse_orthogonal_directions}"
+    )
+    print(
+        "  sparse-source persistent candidate records audited="
+        f"{sparse_frontier_records}"
     )
     print("  terminal principal inverse factorization: exact on every pivot trace")
     print("  separated sparse-source RPPR decomposition: exact P5 witness")

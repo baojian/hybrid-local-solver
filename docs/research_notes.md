@@ -91,6 +91,9 @@ initializing the sparse source rows: its boundary threshold becomes
 the unresolved locator, if implemented at the stated output-sensitive rate,
 would recover the original additive sparse-source target rather than merely
 the point-source specialization.
+The complete persistent source-plus-frontier candidate universe has size at
+most `nnz(s)+2vol(S*)`, so the difficulty is updating old-coordinate
+responses rather than finding or storing candidate row identifiers.
 The principal-pivot response increments are also source-independent:
 they are pairwise energy-orthogonal, have total energy at most `alpha/2`,
 and total degree-weighted variation at most one.  The point source only

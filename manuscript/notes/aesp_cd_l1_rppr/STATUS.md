@@ -51,6 +51,8 @@ State: proved-open
   Conditional on the same exhaustive route-output locator, those mergers are
   nevertheless handled with only additive source-read work, so this one
   unresolved interface would close the general sparse-source target as well.
+  The persistent source-plus-frontier candidate universe is bounded by
+  `nnz(s)+2vol(S*)`; only implicit old-coordinate response updates remain.
   The response stream remains energy-orthogonal with total energy at most
   `alpha/2` for every source distribution; only the sharper `alpha/(2d_o)`
   constant is point-source-specific.  The normalized response columns form

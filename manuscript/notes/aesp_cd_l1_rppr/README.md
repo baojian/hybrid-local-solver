@@ -61,6 +61,8 @@ The finite route-output locator reduction itself also extends to a sparse
 source with only the additive source-read cost: source rows begin as explicit
 candidate records, joint merge rows use thresholds
 `alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
+Across the whole trace, all source and graph-frontier candidate records total
+at most `nnz(s)+2*vol(S*)`; candidate enumeration itself is not the gap.
 Its exact pivot increments remain energy-orthogonal for every source
 distribution, with total energy at most `alpha/2` and total degree-weighted
 variation at most one.  On the final support they give an exact inverse
