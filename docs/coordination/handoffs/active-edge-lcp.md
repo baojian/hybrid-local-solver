@@ -99,7 +99,8 @@
 
 - Research note and literature milestone:
   `d433833c2ed8abe9f7b74db455c0e968c16ce692`.
-- Final handoff/check milestone: pending this commit.
+- Final research/check milestone:
+  `465925f05d38b13b06c49ba04b047e76fb28b39c`.
 - Focused PDF: 14 pages, all pages rendered to PNG and visually inspected;
   no clipping, overlap, or unreadable table/equation was found.
 - Final repository checks: `make agent-audit` passed; `make test` passed
