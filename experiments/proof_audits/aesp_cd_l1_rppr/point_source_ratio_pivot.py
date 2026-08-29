@@ -632,6 +632,9 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-appr-envelope}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-volume}" in source
+    assert r"\label{cor:aesp-cd-point-source-appr-envelope-oracle}" in source
+    assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-error}" in source
+    assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-work}" in source
     assert r"\label{thm:aesp-cd-point-source-ratio-pivot}" in source
     assert r"\label{eq:aesp-cd-ratio-pivot-pair}" in source
     assert r"\label{eq:aesp-cd-ratio-pivot-schur}" in source

@@ -204,6 +204,60 @@ point-source restriction is used by the accelerated discovery program, not
 by this comparison.
 \end{proof}
 
+\begin{corollary}[An APPR-envelope oracle closes semantic point-source PPR]
+\label{cor:aesp-cd-point-source-appr-envelope-oracle}
+Fix \(0<\epsppr\leq1\), set \(\rho=\epsppr/2\), and suppose the set
+\begin{equation*}
+ E=\supp(x^{\mathrm{APPR}}(\rho))
+\end{equation*}
+is supplied without charging its construction.  Strongly-convex accelerated
+proximal gradient applied to \(F_\rho\) on the fixed coordinate envelope
+\(E\), followed by zero padding, returns \(\widehat x\) such that
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsppr
+ \label{eq:aesp-cd-point-source-appr-envelope-oracle-error}
+\end{equation}
+using
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{\vol(E)}{\sqrt\alpha}
+ \right)
+ \leq
+ \widetilde O\!\left(
+  \frac1{\epsppr\sqrt\alpha}
+ \right)
+ \label{eq:aesp-cd-point-source-appr-envelope-oracle-work}
+\end{equation}
+degree work in the accelerated range \(\alpha<1/2\).  No strict active or
+dual margin and no exact-face identification are required for this semantic
+PPR guarantee.
+\end{corollary}
+
+\begin{proof}
+By \cref{eq:aesp-cd-point-source-appr-envelope}, \(E\) contains
+\(S^\star(\rho)\).  Therefore restricting the obstacle objective to \(E\)
+does not change its minimizer.  The restricted Hessian still has spectrum in
+\([\alpha,1]\), so accelerated proximal gradient drives the objective gap
+below \(\alpha\epsppr^2/8\) in
+\(\widetilde O(1/\sqrt\alpha)\) iterations.  Strong convexity then gives
+\begin{equation*}
+ \norm{\widehat x-x^\star(\rho)}_2\leq\epsppr/2.
+\end{equation*}
+Since every degree is at least one,
+\begin{equation*}
+ \norm{D^{-1/2}(\widehat x-x^\star(\rho))}_\infty
+ \leq\epsppr/2.
+\end{equation*}
+The RPPR comparison inequality
+\(0\leq D^{-1/2}(x^0-x^\star(\rho))\leq\rho\one\), with
+\(\rho=\epsppr/2\), proves
+\cref{eq:aesp-cd-point-source-appr-envelope-oracle-error}.  Each restricted
+matrix application costs \(O(\vol(E))\), and
+\cref{eq:aesp-cd-point-source-appr-envelope-volume} bounds that volume by
+\(4/\rho=8/\epsppr\) when \(\alpha<1/2\).  Logarithmic accuracy factors are
+absorbed by \(\widetilde O\).
+\end{proof}
+
 \begin{proposition}[Point-source structure is not closed under residual recursion]
 \label{prop:aesp-cd-point-source-residual-recursion-stop}
 Even an exact lower solve on the first point-source face can leave a residual

@@ -38,6 +38,11 @@ below `4/rho`.  Yet APPR has tight worst-case work
 `Theta(1/(alpha*rho))`.  Hence an output-sized envelope exists and can be
 found locally; the unresolved issue is exactly accelerated construction or
 dynamic reuse of that envelope, not an output-volume theorem.
+Indeed, if the APPR support is supplied as an oracle, accelerated proximal
+gradient on that fixed envelope gives the semantic point-source PPR target in
+`O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support margin.  The
+gap between this oracle theorem and the desired algorithm is therefore only
+the accelerated envelope-construction interface.
 
 Three superficially stronger point-source results do not close that hard
 range after their hidden scope is restored.  The ICDT 2024

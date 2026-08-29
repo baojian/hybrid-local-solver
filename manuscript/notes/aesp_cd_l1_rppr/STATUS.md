@@ -36,6 +36,11 @@ State: proved-open
   tightly `Theta(1/(alpha*rho))`.  This separates the remaining question:
   an output-sized envelope exists, while its accelerated construction or
   dynamic reuse is still missing.
+  Supplied as an oracle, that APPR envelope immediately supports a standard
+  accelerated proximal solve with semantic PPR work
+  `O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual margin.
+  Thus the oracle-free theorem has been reduced exactly to accelerated
+  envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
   exact root-only solve on `P3` leaves two positive residual sources.
   The apparent stronger point-source literature does not close this range:
@@ -429,6 +434,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-ratio-pivot-finite-stop`,
   `cor:aesp-cd-point-source-coarse-regime`,
   `prop:aesp-cd-point-source-appr-envelope`,
+  `cor:aesp-cd-point-source-appr-envelope-oracle`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
