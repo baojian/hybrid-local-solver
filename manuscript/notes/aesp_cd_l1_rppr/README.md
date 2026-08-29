@@ -50,6 +50,21 @@ for every row retained through the trace,
 `sum_j x_wj*|delta_vj| <= c^2*q*sqrt(d_v)/(alpha*(1+q))`, independently of
 the admission count.  The normalized radius decays as `1/sqrt(d_v)`, but it
 is still too large on arbitrary low-degree rows to close the target theorem.
+The observable clock `P_J=sum xi_j*sqrt(s_wj)<=sqrt(c)` makes this resettable:
+after an exact row refresh, only the subsequent global clock increment enters
+its new interval.  Finding a target-work refresh schedule remains open.
+The product form also survives finite ground publication:
+`B_tilde_v <= D_h*s_tilde_v + c_h*c*q/(alpha*(1+q))*sqrt(s_tilde_v*s_tilde_w)`.
+It needs no exact ground vector or full RHS norm.
+Since `f_tilde=s_tilde_w/v_tilde` and `M1<=2*f_tilde`, its linear coefficient
+also uses only the two row couplings and one global ground mass; no RHS moment
+scan remains.
+A charged exact-row refresh primitive plus the global clock gives a concrete
+priority-queue reporter with work
+`O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))`.  It removes admission-count growth,
+but at `eta=alpha*eps_ppr` and `q=sqrt(alpha)` remains a factor `1/alpha`
+slower than the target.  This quantifies, rather than hides, the last rate
+gap.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

@@ -1452,6 +1452,46 @@ row radius by the completely observable upper bound
  +c_h\frac{q}{\alpha(1+q)}\sigma\sqrt{c\widetilde s_v}.
  \label{eq:aesp-cd-proper-face-finite-unweighted-row-band}
 \end{equation}
+For a pivot right-hand side \(b_A=k_w\), put
+\begin{equation*}
+ D_h:=
+ \frac{c_h-1}{\alpha}
+ \bigl(|\widetilde f|+c_hM_1\bigr).
+\end{equation*}
+Then the finite variance also satisfies
+\(\sigma^2\leq c\widetilde s_w\), so the whole observable radius reduces to
+\begin{equation}
+ \widetilde B_v
+ \leq
+ D_h\widetilde s_v+
+ c_h\frac{cq}{\alpha(1+q)}
+ \sqrt{\widetilde s_v\widetilde s_w}.
+ \label{eq:aesp-cd-proper-face-finite-pivot-product-band}
+\end{equation}
+Because a pivot has \(f\geq0\), its two remaining scalar moments satisfy
+\begin{equation*}
+ \widetilde f=\frac{\widetilde s_w}{\widetilde{\mathsf v}_A},
+ \qquad
+ M_1\leq2\widetilde f.
+\end{equation*}
+Consequently the fully state-observable form is
+\begin{equation}
+ \widetilde B_v
+ \leq
+ \frac{(c_h-1)(1+2c_h)}
+      {\alpha\widetilde{\mathsf v}_A}
+ \widetilde s_v\widetilde s_w
+ +c_h\frac{cq}{\alpha(1+q)}
+ \sqrt{\widetilde s_v\widetilde s_w}.
+ \label{eq:aesp-cd-proper-face-finite-pivot-state-band}
+\end{equation}
+Thus neither exact ground data, a row-specific dual norm, nor the full pivot
+RHS norm or moment scan is needed for the finite product envelope.
+For a fixed pivot, both coefficients multiplying
+\(\widetilde s_v\) and \(\sqrt{\widetilde s_v}\) are common across retained
+rows.  Hence
+\cref{cor:aesp-cd-proper-face-dyadic-gray-reporter} reduces its finite
+snapshot sign tests to planar affine maxima.
 Consequently the finite proper-face shortcut no longer needs to retain a
 row-specific high-dimensional dual norm.  This does not remove gray rows:
 the remaining square-root band is nonlinear and can dominate a small key.
@@ -1484,6 +1524,31 @@ minimizes squared error,
 Combining this with
 \cref{eq:aesp-cd-proper-face-unweighted-row-band} proves
 \cref{eq:aesp-cd-proper-face-pivot-product-band}.
+The same calculation with \(\widetilde h_A\) gives
+\begin{equation*}
+ \sigma^2
+ \leq\sum_i d_i\widetilde h_{A,i}f_i^2
+ =\sum_i\frac{k_{w,i}^2\widetilde h_{A,i}}{d_i}
+ \leq c\widetilde s_w.
+\end{equation*}
+Substitution in
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band} proves
+\cref{eq:aesp-cd-proper-face-finite-pivot-product-band}.
+Finally,
+\begin{equation*}
+ \widetilde f
+ =\frac{\sum_i d_i\widetilde h_{A,i}(k_{w,i}/d_i)}
+        {\widetilde{\mathsf v}_A}
+ =\frac{\widetilde s_w}{\widetilde{\mathsf v}_A},
+\end{equation*}
+and, since \(f_i,\widetilde f\geq0\),
+\begin{equation*}
+ M_1
+ \leq\sum_i\widetilde p_i(f_i+\widetilde f)
+ =2\widetilde f.
+\end{equation*}
+Substitution in \(D_h\) proves
+\cref{eq:aesp-cd-proper-face-finite-pivot-state-band}.
 \end{proof}
 
 \begin{corollary}[Ground coupling packs all large gray rows]
@@ -1620,6 +1685,28 @@ Equivalently, after degree normalization the cumulative radius is at most
 Direct incidences \(k_{v,w_j}\xi_j\) are exact and are not part of this
 radius.
 
+More precisely, the observable pivot-mass clock
+\begin{equation}
+ \mathfrak p_0:=0,\qquad
+ \mathfrak p_J:=\sum_{1\leq j\leq J}\xi_j\sqrt{s_{w_j}}
+ \leq\sqrt c
+ \label{eq:aesp-cd-point-source-pivot-mass-clock}
+\end{equation}
+is monotone.  For any interval \(r\leq j\leq J\), if
+\(\overline s_v:=\max_{r\leq j\leq J}s_v^{(A_j)}\), then
+\begin{equation}
+ \sum_{j=r}^J\xi_j|\delta_{v,j}|
+ \leq
+ \frac{cq}{\alpha(1+q)}
+ \sqrt{\overline s_v}\,
+ (\mathfrak p_J-\mathfrak p_{r-1}).
+ \label{eq:aesp-cd-point-source-clocked-gray-key}
+\end{equation}
+Thus an exact row refinement can reset its gray interval at the current
+global clock value; future uncertainty depends only on the subsequent clock
+increment.  Scheduling such resets at the target work remains an event
+problem, but no per-row admission counter is needed.
+
 Thus the exact high-gap gray interval does not grow linearly with the number
 of admissions.  This is genuinely point-source: it uses the unit PageRank
 mass.  It still does not close the target theorem for arbitrary low-degree
@@ -1641,6 +1728,9 @@ point-source unregularized PageRank vector has unit mass, and
  \qquad
  \sum_j\xi_j\leq1.
 \end{equation*}
+Indeed,
+\(\one^{\mathsf T}\widehat H=\alpha d^{\mathsf T}\) and
+\(\widehat Hy^0=\alpha e_o\), so \(d^{\mathsf T}y^0=1\).
 Also \(s_{w_j}\leq cd_{w_j}\) and, while \(v\) remains exterior,
 \(s_v^{(A_j)}\leq cd_v\).  Therefore
 \begin{align*}
@@ -1651,10 +1741,80 @@ Also \(s_{w_j}\leq cd_{w_j}\) and, while \(v\) remains exterior,
  \left(\sum_j\xi_j\right)^{1/2}
  \leq\sqrt c.
 \end{align*}
+This is
+\cref{eq:aesp-cd-point-source-pivot-mass-clock}.  Applying the product
+envelope only on \(r,\ldots,J\) and taking
+\(\sqrt{s_v^{(A_j)}}\leq\sqrt{\overline s_v}\) proves
+\cref{eq:aesp-cd-point-source-clocked-gray-key}.
 Multiplying the product envelope
 \cref{eq:aesp-cd-proper-face-pivot-product-band} by \(\xi_j\), summing,
 and using \(\sqrt{s_v^{(A_j)}}\leq\sqrt{cd_v}\) proves
 \cref{eq:aesp-cd-point-source-cumulative-gray-key}.
+\end{proof}
+
+\begin{corollary}[The pivot-mass clock gives a finite refresh reporter]
+\label{cor:aesp-cd-point-source-clocked-gray-refresh}
+Retain the hypotheses of
+\cref{cor:aesp-cd-point-source-cumulative-gray-key}.  Suppose an exact row
+refresh at \(v\) can evaluate its current key and ground coupling in
+\(\widetilde O(a_v)\) work, where the charged active-incidence sizes satisfy
+\begin{equation*}
+ \sum_v a_v\leq F.
+\end{equation*}
+For an absolute degree-normalized interval target \(\eta>0\), reset row
+\(v\)'s certificate whenever the global clock has advanced by
+\begin{equation*}
+ \Delta_v:=
+ \frac{\eta\sqrt{d_v}}
+      {K\sqrt c},
+ \qquad
+ K:=\frac{cq}{\alpha(1+q)}
+\end{equation*}
+since its last refresh.  A priority queue keyed by the next clock threshold
+names every due row.  Throughout the trace, its accumulated high-mode key
+radius is then at most \(\eta d_v\), and the total refresh work is
+\begin{equation}
+ \widetilde O\!\left[
+ F\left(
+ 1+\frac{c^2q}{\alpha(1+q)\eta}
+ \right)\right].
+ \label{eq:aesp-cd-point-source-clocked-gray-refresh-work}
+\end{equation}
+Thus the high-gap branch already has a finite reporter whose work is
+independent of the admission count.  It is not the desired universal rate:
+with the finite KKT choice \(\eta=\Theta(\alpha\varepsilon_{\rm ppr})\) and
+\(q=\Theta(\sqrt\alpha)\), the second factor is
+\(\Theta(\alpha^{-3/2}\varepsilon_{\rm ppr}^{-1})\), one factor
+\(1/\alpha\) worse than the target.  The conclusion is conditional on the
+charged row-refresh primitive and is an upper bound for this clock scheme,
+not a lower bound against a stronger transformed reporter.
+\end{corollary}
+
+\begin{proof}
+By
+\cref{eq:aesp-cd-point-source-clocked-gray-key} and
+\(\overline s_v\leq cd_v\), a clock increment below \(\Delta_v\) contributes
+at most
+\begin{equation*}
+ K\sqrt{cd_v}\,\Delta_v=\eta d_v.
+\end{equation*}
+Since the whole clock has length at most \(\sqrt c\), row \(v\) is refreshed
+at most
+\begin{equation*}
+ 1+\frac{\sqrt c}{\Delta_v}
+ =1+\frac{Kc}{\eta\sqrt{d_v}}
+\end{equation*}
+times.  Therefore the charged work is at most
+\begin{equation*}
+ \widetilde O\!\left(
+ \sum_va_v+
+ \frac{Kc}{\eta}\sum_v\frac{a_v}{\sqrt{d_v}}
+ \right)
+ \leq
+ \widetilde O\!\left(F\left(1+\frac{Kc}{\eta}\right)\right),
+\end{equation*}
+because \(d_v\geq1\).  Substituting \(K\) proves
+\cref{eq:aesp-cd-point-source-clocked-gray-refresh-work}.
 \end{proof}
 
 \begin{corollary}[Dyadic square-root bands reduce to planar extreme queries]

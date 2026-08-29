@@ -148,6 +148,23 @@ State: proved-open
   `c^2*q*sqrt(d_v)/(alpha*(1+q))`, independent of admission count.  Its
   normalized form decays as `1/sqrt(d_v)` but remains too large for arbitrary
   low-degree rows at the target `q=Theta(sqrt(alpha))` scale.
+  The same proof exposes one observable reset clock
+  `P_J=sum xi_j*sqrt(s_wj)<=sqrt(c)`: after a row refinement, only the later
+  clock increment enters its gray radius.  A target-work reset/event schedule
+  is not yet proved.
+  The finite approximate-ground radius has the same product form:
+  `D_h*s_tilde_v+c_h*c*q/(alpha*(1+q))*sqrt(s_tilde_v*s_tilde_w)`.
+  Exact ground data and materialized RHS norms are absent from this online
+  envelope.
+  In fact `f_tilde=s_tilde_w/v_tilde` and `M1<=2*f_tilde`, so the finite
+  linear coefficient also needs only the two coupling states and one global
+  approximate-ground mass; there is no per-pivot moment scan.
+  Conditional on an exact row refresh costing its charged active incidences,
+  the global clock gives a priority-queue reporter with work
+  `O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))`.  It is independent of admission
+  count but, at `eta=alpha*eps_ppr` and `q=sqrt(alpha)`, still loses one
+  factor `1/alpha` against the target.  This is a scheme upper bound, not a
+  general lower bound.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -647,6 +664,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-gray-coupling-packing`,
   `cor:aesp-cd-proper-face-pivot-coupling-budget`,
   `cor:aesp-cd-point-source-cumulative-gray-key`,
+  `cor:aesp-cd-point-source-clocked-gray-refresh`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,

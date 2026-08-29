@@ -1035,6 +1035,30 @@ def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
         <= product_coefficient**2 * scalar * pivot_coupling
         for delta in delta_pair
     )
+    finite_ground = [F(4, 5) * value for value in balanced_ground]
+    finite_weight = [
+        balanced_degree[i] * finite_ground[i] for i in range(face_size)
+    ]
+    finite_mean = sum(
+        finite_weight[i] * balanced_transformed_rhs[i]
+        for i in range(face_size)
+    ) / sum(finite_weight)
+    finite_sigma_square = sum(
+        finite_weight[i] * (balanced_transformed_rhs[i] - finite_mean) ** 2
+        for i in range(face_size)
+    )
+    finite_pivot_coupling = coupling * finite_ground[0]
+    finite_row_coupling = coupling * finite_ground[1]
+    finite_volume = sum(finite_weight)
+    finite_first_moment = sum(
+        finite_weight[i] * abs(balanced_transformed_rhs[i] - finite_mean)
+        for i in range(face_size)
+    ) / finite_volume
+    assert finite_mean == finite_pivot_coupling / finite_volume
+    assert finite_first_moment <= 2 * finite_mean
+    assert finite_sigma_square <= coupling * finite_pivot_coupling
+    finite_dual_square = coupling * coupling * finite_ground[1] / balanced_degree[1]
+    assert finite_dual_square <= coupling * finite_row_coupling
     gray_radius = max(abs(value) for value in delta_pair)
     lower_scalar = max(scalar, scale * scalar - ground_time * gray_radius)
     upper_scalar = scale * scalar + ground_time * gray_radius
@@ -1073,6 +1097,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-gray-coupling-packing}" in source
     assert r"\label{cor:aesp-cd-proper-face-pivot-coupling-budget}" in source
     assert r"\label{cor:aesp-cd-point-source-cumulative-gray-key}" in source
+    assert r"\label{cor:aesp-cd-point-source-clocked-gray-refresh}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source

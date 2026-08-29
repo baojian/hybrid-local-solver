@@ -116,6 +116,26 @@ admission count.  After degree normalization this falls as `1/sqrt(d_v)`.
 For low-degree rows at `q=Theta(sqrt(alpha))` it can still be
 `Theta(1/sqrt(alpha))`, so this is not yet the universal target-accuracy
 theorem.
+Equivalently, `P_J=sum_{j<=J} xi_j*sqrt(s_wj)` is one observable monotone
+clock bounded by `sqrt(c)`.  Resetting a row certificate at clock value
+`P_r` makes all later gray uncertainty proportional only to `P_J-P_r` and
+the row's maximum ground coupling, not to a list of intervening admissions.
+The same product reduction is now finite: the approximate-ground variance
+obeys `sigma^2<=c*s_tilde_w`, so the observable row radius is
+`D_h*s_tilde_v + c_h*c*q/(alpha*(1+q))*sqrt(s_tilde_v*s_tilde_w)`.
+Neither exact ground data nor a materialized RHS norm is needed for this
+envelope.
+Moreover `f_tilde=s_tilde_w/v_tilde` and `M1<=2*f_tilde`, so even the linear
+coefficient is a closed expression in `(s_tilde_v,s_tilde_w)` and the one
+global approximate-ground mass.  No per-pivot RHS moment scan remains.
+With a charged exact row-refresh primitive, the clock directly gives a
+priority-queue reporter of work
+`O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))` while keeping every normalized
+gray radius below `eta`.  At `eta=Theta(alpha*eps_ppr)` and
+`q=Theta(sqrt(alpha))`, this is `O_tilde(F/(alpha^(3/2)*eps_ppr))`: finite
+and admission-count independent, but still one factor `1/alpha` above the
+desired rate.  This is an upper bound for the natural reset scheme, not an
+algorithmic lower bound.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active
