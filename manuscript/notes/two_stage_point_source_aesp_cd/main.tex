@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\input{../../tex/shared/research_note_preamble}
+
+\title{An At-Most-Two-Stage Point-Source Hybrid for Local PageRank\\
+\large Screen, Complete, or Solve; Restart at Most Once}
+\author{Research Note}
+\date{August 2026}
+\hypersetup{
+  pdftitle={Screen, Complete, or Solve: An At-Most-Two-Stage Point-Source Hybrid for Local PageRank},
+  pdfauthor={Research Note},
+  pdfsubject={Certified support discovery followed by one fixed-envelope accelerated solve}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We isolate a short, modular alternative to transporting acceleration through
+the changing support of regularized personalized PageRank.  Stage~I returns
+either the exact RPPR support or any certified coordinate envelope containing
+it.  All momentum is then discarded.  Stage~II solves one fixed restricted
+ordinary-PPR linear system by Chebyshev, conjugate gradients, or accelerated
+gradient, but only when Stage~I returned a set without an already accurate
+numerical point.  A new envelope-linearization lemma shows that this restricted
+linear solution is already within the RPPR regularization scale of full PPR;
+Stage~II need not solve another obstacle problem or identify the zero
+coordinates inside the envelope.  If Stage~I uses work $W_{\rm disc}$ and
+returns an envelope of degree
+volume $V_E$, the complete point-source PPR work is
+\[
+ W_{\rm disc}+\widetilde O(V_E/\sqrt\alpha).
+\]
+Taking the RPPR regularization and terminal error both equal to half the PPR
+target gives $V_E=O(1/\varepsilon_{\rm ppr})$.  Thus all numerical work after
+discovery already has the desired
+$\widetilde O(1/(\varepsilon_{\rm ppr}\sqrt\alpha))$ scale.  More sharply,
+we prove that the numerical RPPR/APPR checkpoints returned by every concrete
+Stage~I engine considered here are already valid PPR outputs; on them the
+second stage is redundant.  A deterministic benchmark confirms that forcing
+the optional tail costs roughly five times direct APPR work at equal accuracy.
+We also give a complete set-only alternative: a hard-capped point-source
+Green-ball screen exposes one certified ball, solves one principal system,
+and races fairly against direct APPR.  Its successful branch has the target
+product scale; cap failure loses only a constant factor to APPR.  Across 90
+high-accuracy deterministic cases the standalone lane wins 22, including
+stars, binary trees, a grid, a path, and a cycle.  Charging the concurrent
+APPR lane preserves 15 strict wins.  The strongest non-star standalone ratio
+is $0.103$.
+On certified fixed-treewidth envelopes, one sparse factorization and
+backsolve improve the successful tail to $O(1/\varepsilon_{\rm ppr})$; this
+structural version wins 50 of 56 cap-successful large-graph cases standalone
+and 35 after charging the fair APPR race.  Tuning the exact tail to use the
+full truncation budget raises cap success to 56 of 75 cases.
+For literal support identification, coarse APPR snapshots and
+positive-residual SOR proposals are raced against the same direct lane.
+Returning the exact RPPR verifier point gives four and five fair-race wins.
+When a separate fresh ordinary-PPR face solve is charged to enforce a strict
+two-stage execution, two APPR-proposal and all five SOR-proposal wins remain;
+every failure stays within the factor-two fallback bound.
+On trees, the point-source threshold-message reporter closes Stage~I
+unconditionally.  A direct implementation certifies all $60$ large test
+instances; among $51$ nontrivial direct comparisons it wins $27$ standalone
+and $14$ after charging the APPR race.  A literal set-only then ordinary-PPR
+version has the same counts: its exact fixed-face solve replaces rather than
+duplicates RPPR recovery, and permits the tuned split $\rho=\varepsilon$.
+Classical APPR remains the universal numerical lane; exact response reporters
+attain the target on trees and several wider structural classes; and a
+hard-capped dynamic-obstacle interface states the remaining universal
+product-work requirement.  A fair certificate race combines these engines
+with two complementary numerical handoffs: signed AESP burn-in followed by
+SOR, and lower-safe AESP mass completion followed by APPR/SOR.  For the latter
+we prove that any local envelope whose principal PPR solution captures
+$1-O(\sqrt\alpha)$ mass yields the desired two-stage rate after a safe
+Stieltjes retraction; it needs neither $S^\star$ nor an exterior-amplitude
+certificate.  The observable trigger and unconditional fallback remain
+available.  At intermediate accuracy, the adaptive AESP--APPR lane also gives
+strict wins: on a source-centered 96-vertex star it uses
+$570$ charged degree work versus $3610$ for either direct APPR ordering at
+$(\alpha,\varepsilon)=(0.01,0.005)$, and $570$ versus $950$ at
+$(0.04,0.005)$.  This is structural rather than universal: after the star is
+exposed, its source lies in a two-dimensional invariant subspace and exact
+CG terminates in two matrix applications.  The simplification is therefore
+real but sharply located: a
+terminal fixed-face solve is useful only after a genuinely cheaper set-only
+screen, while the AESP--APPR mass lane is a safe instance-selective
+alternative.  A star barrier shows why it cannot replace numerical early
+return universally at coarser targets.
+\end{abstract}
+
+\tableofcontents
+
+\input{sections/01_scope}
+
+\section{Point-source RPPR and the two certificate types}
+\input{../../tex/shared/source_aligned_problem}
+\input{sections/02_problem_and_certificates}
+
+\input{sections/03_algorithm}
+\input{sections/04_composition}
+\input{sections/05_discovery_engines}
+\input{sections/06_certificate_race}
+\input{sections/07_sor_and_alternative_handoffs}
+\input{sections/08_reduced_paper_and_open_problem}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
