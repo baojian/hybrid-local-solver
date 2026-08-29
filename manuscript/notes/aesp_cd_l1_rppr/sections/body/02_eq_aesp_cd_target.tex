@@ -111,6 +111,56 @@ $1/\epsppr^2\leq1/(\sqrt\alpha\epsppr)$ is exactly
 \cref{eq:aesp-cd-point-source-coarse-regime}.
 \end{proof}
 
+\begin{proposition}[Existing point-source absolute-error methods do not close the hard regime]
+\label{prop:aesp-cd-point-source-existing-hard-regime}
+The point-source restriction aligns the note with several single-source
+PageRank algorithms, but their published bounds do not already imply
+\cref{eq:aesp-cd-point-source-hard-regime}.  More precisely:
+\begin{enumerate}
+\item The degree-normalized SSPPR algorithm of
+  \href{https://doi.org/10.4230/LIPIcs.ICDT.2024.9}{Wei, Wen, and Yang}
+  has expected work
+  \begin{equation*}
+   \widetilde O\!\left(
+    \frac1{\bar\alpha\epsppr}
+    \sqrt{\sum_t\frac{\pi(o,t)}{d_t}}
+   \right)
+   \leq \widetilde O\!\left(
+    \frac1{\bar\alpha\epsppr}
+   \right),
+  \end{equation*}
+  after restoring the teleportation parameter \(\bar\alpha\) that their
+  statement treats as a constant.  Their candidate-discovery subroutine
+  also assumes a \(\Theta(m)\)-time graph preprocessing.  With
+  \(\bar\alpha=2\alpha/(1+\alpha)\), this is the classical
+  \(\widetilde O(1/(\alpha\epsppr))\) dependence rather than the target.
+\item The local Chebyshev method of
+  \href{https://arxiv.org/abs/2412.10789}{Yang, Li, Liao, Lin, and Wang}
+  proves, under its stated stability assumption, work
+  \(O(K^2/\epsppr)\), where the PageRank Chebyshev truncation degree is
+  \(K=\widetilde O(1/\sqrt\alpha)\).  Thus its worst-case theorem again
+  gives \(\widetilde O(1/(\alpha\epsppr))\).  The second factor \(K\)
+  comes from distributing a safe truncation budget over all subset
+  recurrences, not from the polynomial approximation degree itself.
+\item The FISTA locality theorem of
+  \href{https://arxiv.org/abs/2602.21138}{Fountoulakis and
+  Mart\'inez-Rubio} does contain the accelerated core term
+  \(\widetilde O(1/(\rho\sqrt\alpha))\), but only under a confinement
+  hypothesis and with the additional boundary work
+  \begin{equation*}
+   O\!\left(\frac{\sqrt{\vol(B)}}{\rho\alpha^{3/2}}\right).
+  \end{equation*}
+  Their point-source star witness shows that standard FISTA can activate
+  an arbitrarily high-volume off-support center, so this is not a
+  graph-universal local bound.
+\end{enumerate}
+Consequently the comparison in
+\cref{cor:aesp-cd-point-source-coarse-regime} remains the strongest
+unconditional external closure used by this note: existing point-source
+methods remove neither the small-\(\alpha\) factor nor the one-sided local
+reporter problem in the hard regime.
+\end{proposition}
+
 \begin{proposition}[Point-source structure is not closed under residual recursion]
 \label{prop:aesp-cd-point-source-residual-recursion-stop}
 Even an exact lower solve on the first point-source face can leave a residual

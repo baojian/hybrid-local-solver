@@ -666,6 +666,97 @@ the displayed polylogarithm.  A positive row is emitted once by violation
 persistence.
 \end{proof}
 
+\begin{corollary}[Finite KKT hysteresis removes the key-margin promise]
+\label{cor:aesp-cd-finite-level-reporter}
+In the setting of
+\cref{prop:aesp-cd-separated-level-reporter}, fix a finite KKT tolerance
+\(\epskkt>0\).  No separation assumption on the actual boundary keys is
+needed.  For \(c>0\), put
+\begin{equation*}
+ \eta_{\rm fin}:=\min\!\left\{\frac12,
+                 \frac{\epskkt}{2\rho}\right\},
+ \qquad
+ \delta_{\rm fin}:=\frac{\alpha\epskkt}{2c},
+\end{equation*}
+and round every monotone active coordinate down to zero or a level
+\(\delta_{\rm fin}(1+\eta_{\rm fin})^k\).  Write \(\bar P_v\) for the
+boundary response computed from these rounded coordinates.  Then every
+named boundary row has the following exhaustive safe classification:
+\begin{equation}
+ \bar P_v>T_v
+ \quad\Longrightarrow\quad g_v>0
+ \qquad\text{(safe support pivot)}
+ \label{eq:aesp-cd-finite-level-pivot}
+\end{equation}
+and
+\begin{equation}
+ \bar P_v\leq T_v
+ \quad\Longrightarrow\quad
+ g_v/d_v\leq\alpha\epskkt
+ \qquad\text{(finite KKT certificate)}
+ \label{eq:aesp-cd-finite-level-stop}
+\end{equation}
+Thus an exhaustive charged coordinate-level event source gives a complete
+finite reporter in
+\begin{equation}
+ C_{\rm level}^{\rm fin}
+ +\widetilde O\!\left(
+  \vol(S^\star)
+  \left(1+\frac{\rho}{\epskkt}\right)
+  \log\!\left(2+\frac{c}{\alpha\epskkt}\right)
+ \right)
+ \label{eq:aesp-cd-finite-level-work}
+\end{equation}
+work.  Under the standard reduction
+\(\rho=\epskkt=\epsppr/2\), the explicit reporter work outside the event
+source is only
+\begin{equation*}
+ \widetilde O\!\left(
+  \vol(S^\star)\log\!\frac1{\alpha\epsppr}
+ \right).
+\end{equation*}
+The remaining missing primitive is therefore not a key-gap oracle: it is an
+online mechanism that emits the monotone coordinate level crossings from a
+compressed changing-face solve within the same bound.
+\end{corollary}
+
+\begin{proof}
+For the rounded state, exactly as in
+\cref{eq:aesp-cd-separated-level-envelope},
+\begin{equation*}
+ \bar P_v\leq P_v
+ \leq(1+\eta_{\rm fin})\bar P_v+c d_v\delta_{\rm fin}.
+\end{equation*}
+Hence \(\bar P_v>T_v\) implies \(P_v>T_v\), proving the safe-pivot
+branch.  On the complementary branch,
+\begin{align*}
+ P_v-T_v
+ &\leq\eta_{\rm fin}T_v+c d_v\delta_{\rm fin}\\
+ &=\alpha d_v\left(
+     \eta_{\rm fin}\rho+\frac{\epskkt}{2}
+   \right)
+ \leq\alpha\epskkt d_v,
+\end{align*}
+which is the finite KKT branch.  The two branches are exhaustive, including
+equality.
+
+Since \(0\leq y_i\leq1\), each coordinate crosses
+\begin{equation*}
+ O\!\left(
+  \eta_{\rm fin}^{-1}
+  \log\!\left(2+\frac{c}{\alpha\epskkt}\right)
+ \right)
+ =O\!\left(
+  \left(1+\frac\rho{\epskkt}\right)
+  \log\!\left(2+\frac{c}{\alpha\epskkt}\right)
+ \right)
+\end{equation*}
+levels.  Updating every exposed neighboring boundary accumulator at a
+crossing and summing degrees over \(S^\star\) proves
+\cref{eq:aesp-cd-finite-level-work}.  When \(c=0\), every off-root key is
+the static negative load and no level structure is required.
+\end{proof}
+
 The explicit $C_{\rm level}$ is indispensable.  Merely knowing that each
 finite run has some nonzero minimum key gap gives no uniform rate: the gap
 may shrink with the instance, while a literal eager-refresh trace can still

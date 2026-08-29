@@ -30,6 +30,27 @@ particular repeated-full-solve implementation can still require
 `Omega(1/eps_ppr^2)` work.  The remaining opportunity is dynamic reuse of
 those one-sided residual certificates in the small-accuracy regime.
 
+Three superficially stronger point-source results do not close that hard
+range after their hidden scope is restored.  The ICDT 2024
+degree-normalized SSPPR method treats teleportation as a constant and uses
+global preprocessing; its variable-`alpha` work is still
+`O_tilde(1/(alpha eps_ppr))`.  ChebyPush has Chebyshev degree
+`K=O_tilde(1/sqrt(alpha))`, but its safe local theorem costs
+`O(K^2/eps_ppr)` under a stability assumption.  The 2026 FISTA locality
+bound has the desired accelerated core term only under confinement and adds
+`sqrt(vol(B))/(rho alpha^(3/2))` boundary work.  Thus none supplies the
+missing graph-universal one-sided reporter.
+
+Finite accuracy does remove one previously apparent obstruction.  With
+`rho=eps_kkt`, round each monotone active coordinate down on a constant-ratio
+geometric grid whose floor is `Theta(alpha eps_kkt)`.  If a rounded boundary
+sum exceeds its load baseline, the true key is positive and the row is a
+safe admission; otherwise the rounding tail is already at most the allowed
+`alpha eps_kkt d_v` KKT error.  Hence no unknown strict key margin is needed,
+and every coordinate has only logarithmically many relevant levels.  The
+unclosed interface is now specifically an online source of those level
+crossings from compressed dynamic Schur state, not exact breakpoint order.
+
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,
 several exact trajectory calibrations, and an unconditional accelerated result

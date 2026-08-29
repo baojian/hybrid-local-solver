@@ -32,6 +32,16 @@ State: proved-open
   can genuinely take `Omega(1/eps_ppr^2)` work.  Dynamic reuse is still open.
   Point-source structure is not closed under residual recursion: even the
   exact root-only solve on `P3` leaves two positive residual sources.
+  The apparent stronger point-source literature does not close this range:
+  ICDT 2024 restores to linear `1/alpha` dependence and assumes global
+  preprocessing; ChebyPush proves `K^2/eps_ppr` work under a stability
+  assumption; and the 2026 FISTA result has an accelerated core only under
+  confinement plus a `sqrt(vol(B))/(rho*alpha^(3/2))` boundary term.
+  Finite KKT hysteresis nevertheless removes the unknown key-margin promise:
+  when `rho=eps_kkt`, constant-ratio downward coordinate levels classify
+  every boundary row as either a safe positive pivot or already within the
+  terminal KKT band.  The explicit event processing is soft-linear; emitting
+  those level crossings from compressed changing-face state remains open.
 
 ## Claim ledger
 
