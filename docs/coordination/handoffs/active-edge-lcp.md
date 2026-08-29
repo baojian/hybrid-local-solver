@@ -4,7 +4,8 @@
 - Role: direction
 - Branch: `agent/codex/active-edge-lcp`
 - Base commit: `df0725fcf68797c5bf53527eabb6ae2dd64b9f33`
-- Assignment state: active (resumed to pursue a complete OP2 proof)
+- Assignment state: ready for review
+- Proof milestone: `3fa84554b8f7599734db3e38447797e81f8cc8fc`
 - Write scope:
   - `docs/coordination/active_assignments.toml`
   - `docs/coordination/handoffs/active-edge-lcp.md`
@@ -13,108 +14,97 @@
   - `manuscript/notes/README.md`
   - `manuscript/notes/registry.toml`
   - `manuscript/notes/active_edge_lcp/`
-- Permitted shared files:
-  - `docs/coordination/active_assignments.toml`
-  - `docs/coordination/handoffs/active-edge-lcp.md`
-  - `docs/literature/index.md`
-  - `docs/literature/lcp-solvers.md`
-  - `manuscript/notes/README.md`
-  - `manuscript/notes/registry.toml`
-  - `manuscript/notes/active_edge_lcp/`
+- Permitted shared files: exactly the write scope above.
 
 ## Outcome
 
-- Requested result: Develop a new OP2 research direction through the exact
-  obstacle/symmetric M-matrix LCP formulation, with a primary-source audit,
-  support-discovery theorem, fully charged resource contract, projected-CG
-  verdict, exact verification, and no manuscript promotion.
-- Implemented result: In addition to the exact reduction, support-safe nested
-  pivots, supplied-support CG bound, and local KKT objective certificate,
-  proved a margin-free approximate-face dichotomy.  A residual-derived known
-  threshold either certifies a safe pivot or certifies the requested objective
-  gap; an overlapping-interval corollary removes finite-precision sign-margin
-  assumptions.  Proved a global exact-face energy/slack-motion telescope and
-  an exact-real `O(vol(S*))` append-only `LDL^T` solver for endpoint-seeded
-  paths.  Preserved the terminal-volume obstruction for naive repeated scans
-  and the exact four-vertex projected-CG overshoot.  The end-to-end OP2 result
-  is conditional on one fully charged arbitrary-graph changing-face response
-  and known-threshold reporter theorem.  Extended the primary-source map with
-  global Howard and dynamic Laplacian/matrix-inverse results.
-- Deliberately unchanged: The canonical problem-definition note, the active
-  manuscript, `docs/literature/local-solvers.md`, every other research
-  direction, source/experiment/provider code, and the paper library.
+- Requested result: pursue a complete proof of OP2 through the exact
+  obstacle/symmetric M-matrix LCP formulation, with primary-source auditing,
+  fully charged support discovery, a projected-CG verdict, reproducible proof
+  audits, and no automatic manuscript promotion.
+- Strongest proved result: Theorems `thm:batch-depth` and `thm:op2` prove OP2
+  in the canonical exact-real randomized word model.  Threshold-certified safe
+  admission batches satisfy
+  `face_gap(J) <= 8 q_alpha^(2J) + theta^2/(alpha rho)`, where
+  `q_alpha=(sqrt(2/alpha)-1)/(sqrt(2/alpha)+1)`.  Choosing
+  `theta=(1/8)sqrt(alpha rho eps_obj)` bounds the number of complete exposed
+  faces by `O(alpha^(-1/2) log(1/eps_obj))`.
+- Algorithmic result: each exposed degree-scaled SDD face is solved from
+  scratch in nearly-linear local work.  Exact active-residual certification
+  accepts only vectors with the required absolute energy error; capped
+  independent constant-success Koutis--Miller--Peng trials give declared
+  failure probability.  Only certified positive residual batches are exposed,
+  so every execution prefix stays inside the true support and has volume at
+  most `1/rho`.  All construction, state, retries, scans, batch exposure,
+  materialization, projection, and output are charged.  Expected work is
+  `O_tilde(1/(rho sqrt(alpha)))` with polylogarithmic dependence on
+  `1/eps_obj` and inverse failure probability.
+- Projected-CG verdict: the existing exact four-vertex rational example still
+  refutes coordinatewise one-sided monotonicity for ordinary/projected face
+  CG; this is not a lower bound for all obstacle algorithms.
+- Stronger open targets: deterministic coefficient-bit complexity and a
+  persistent changing-face response implementation.  Neither is an OP2
+  dependency in the repository baseline model.
+- Deliberately unchanged: the canonical problem-definition note, active
+  manuscript, `docs/literature/local-solvers.md`, every other direction,
+  source/experiment/provider code, and the paper library.
 
 ## Evidence
 
-- Tests added or changed: Retained the exact-rational projected-CG audit and
-  added `verify_threshold_dichotomy.py` and `verify_path_ldl.py`.  The former
-  checks 720 rational threshold cases and 36 exact energy/slack telescopes;
-  the latter checks 580 canonical path instances through length 30 against
-  direct principal solves and full KKT conditions.
-- Commands run:
-  - `python3 manuscript/notes/active_edge_lcp/verify_counterexample.py`
-  - `python3 manuscript/notes/active_edge_lcp/verify_threshold_dichotomy.py`
-  - `python3 manuscript/notes/active_edge_lcp/verify_path_ldl.py`
-  - `make -C manuscript/notes/active_edge_lcp`
-  - `python3 manuscript/notes/tools/note_inventory.py check`
-  - `git diff --check`
-  - `make agent-audit`
-  - `make test`
-  - `make lint`
-- Results:
-  - All three exact rational audits passed and matched their checked outputs
-    byte-for-byte; all three scripts pass Ruff lint and format checks.
-  - Focused note build passed: 18-page PDF, resolved citations/references, and
-    no undefined reference, fatal, or overfull-box diagnostics.
-  - Every final PDF page was rendered to PNG and visually inspected; no
-    clipping, overlap, broken table, or unreadable equation was found.
-  - Note registry and `git diff --check` passed.
-  - Final `make agent-audit` passed after the documented review transition.
-  - Final `make test` passed: 213 tests, with 15 temporary-directory cleanup
-    warnings from pytest.
-  - `ruff check .` and the owned script's format check passed.  Full
-    `make lint` remains red only because `ruff format --check .` reports nine
-    pre-existing files under
-    `experiments/proof_audits/aesp_cd_l1_rppr/`; that path belongs to the
-    simultaneous `windowed-spectral-lyapunov-7h` assignment and was left
-    untouched.  The first lint run also found the owned script; it was
-    formatted before the final run.
-  - The resumed full test run initially had the expected active-assignment
-    overlap plus one note-local reserved notation failure.  The notation was
-    fixed before the final transition and the final full test run passed.
+- Exact rational audits passed:
+  - `verify_counterexample.py` (four-vertex CG obstruction);
+  - `verify_threshold_dichotomy.py` (720 threshold cases and 36 telescopes);
+  - `verify_path_ldl.py` (580 endpoint-path instances).
+- New theorem audits passed:
+  - `verify_batch_depth.py`: 1,152 structured/random graph cases;
+  - `verify_batch_depth_high_precision.py`: 216 dependency-free 100-digit
+    Decimal path/star cases, including inverse ordering, singular values,
+    causal forcing, face-gap identity, and theorem bound.
+- Three independent hostile read-only audits found no fatal defect after
+  repairing the `J=0` Chebyshev base case, two-face batch indexing, explicit
+  Cholesky inverse ordering, degree-scaled SDD conversion, randomized source
+  interface, and unconditional exposure ledger.
+- Koutis--Miller--Peng was rechecked at arXiv:1102.4842v4, PDF p. 10,
+  Theorem 4.6, with BuildChain/Lemma 4.5 for constant success.  The note does
+  not attribute an arbitrary failure parameter to Theorem 4.6; it obtains one
+  by exact residual certification and capped retries.
+
+## Checks
+
+- Focused note build: passed; 24-page PDF, resolved references/citations, no
+  fatal, undefined-reference, or overfull-box diagnostics.
+- Visual PDF QA: all 24 pages rendered and inspected; no clipping, overlap,
+  broken equation, or unreadable table found.
+- Note inventory and `git diff --check`: passed.
+- Owned Python: `ruff check` and `ruff format --check` passed.
+- Full `make test`: passed 213/213, with 15 pytest temporary-directory cleanup
+  warnings.
+- Full `make lint`: `ruff check .` passed.  Format checking remains red only
+  for nine pre-existing files under
+  `experiments/proof_audits/aesp_cd_l1_rppr/`, owned by the simultaneous
+  `windowed-spectral-lyapunov-7h` assignment; those files were not touched.
 
 ## Review notes
 
 - Provider-owned paths changed: none.
-- Shared paths changed: only the explicitly permitted direction,
-  coordination, registry, and index paths listed above.
-- Branch/worktree exception: the Codex worktree manager kept the checkout on a
-  detached HEAD.  To avoid damaging manager state, the checkout was not
-  switched; the logical branch ref `agent/codex/active-edge-lcp` was created at
-  the actual base and advanced after each coherent detached-HEAD commit.
-- Coordination audit transition: an initial `make agent-audit` while this
-  assignment was `active` failed because the simultaneously active
-  `windowed-spectral-lyapunov-7h` controller also necessarily lists
-  `docs/coordination/active_assignments.toml`.  No other assignment was
-  modified.  This assignment was moved to `ready_for_review`, as required for
-  handoff, before rerunning the audit so only one active writer owns that
-  shared registry.
-- Open decision: whether to pursue an arbitrary-graph dynamic Schur response
-  with the proved known-threshold reporter, or first extend the exact path
-  recurrence to a broader structural graph class.  Exact-sign refinement is
-  no longer a legitimate missing assumption: the residual threshold already
-  removes it.
+- Shared paths changed: only the explicitly permitted coordination,
+  literature, registry, index, and owned note paths.
+- Worktree exception: the Codex worktree manager kept the checkout on a
+  detached HEAD.  The checkout was not switched or reset.  Coherent detached
+  commits are listed here for review; the logical branch label at the starting
+  point remains `agent/codex/active-edge-lcp`.
+- Coordination transition: while this assignment was active,
+  `make agent-audit` correctly reported overlap on the shared assignment file
+  with the simultaneous controller assignment.  This direction alone was
+  moved to `ready_for_review` before the final audit; no other assignment was
+  changed.  Final `make agent-audit` passed.
+- Promotion decision: no automatic promotion.  The controller should
+  independently review `thm:batch-depth`, the certified SDD retry wrapper, and
+  the fully charged work ledger before changing the active manuscript or
+  shared results ledger.
 
-## Commits and checks
+## Commits
 
-- Research note and literature milestone:
-  `d433833c2ed8abe9f7b74db455c0e968c16ce692`.
-- Final research/check milestone:
-  `465925f05d38b13b06c49ba04b047e76fb28b39c`.
-- Strengthened threshold/path/literature milestone:
-  `3e8f38a43ff84e9b12848d8fb60490592b002817`.
-- Focused PDF: 18 pages, all pages rendered to PNG and visually inspected;
-  no clipping, overlap, or unreadable table/equation was found.
-- Final repository checks: `make agent-audit` passed; `make test` passed
-  213/213; `make lint` has the scoped external formatting failure recorded
-  above, while all owned Python lint and format checks pass.
+- Prior resumed-direction marker: `b7ffdfa040554c08cae9d0fc6d560e4fdce5297d`.
+- Complete OP2 proof and evidence: `3fa84554b8f7599734db3e38447797e81f8cc8fc`.
+- Review-ready coordination/check state: the commit containing this handoff.

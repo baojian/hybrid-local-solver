@@ -134,7 +134,17 @@ Exact theorem and page pointers are in `docs/literature/lcp-solvers.md`.
 - `verify_batch_depth_high_precision.py`: dependency-free 100-digit Decimal
   audit on 216 canonical path/star instances, including singular-value and
   inverse-ordering checks.
-- Focused note build and repository audits must be rerun after this proof.
+- Focused note build passed: 24 pages with resolved references/citations and no
+  fatal, undefined-reference, or overfull-box diagnostics; all pages were
+  rendered and visually inspected without clipping, overlap, or broken
+  equations/tables.
+- Note inventory, `git diff --check`, `make agent-audit`, and the owned Python
+  lint/format checks passed.
+- Final `make test` passed 213/213, with 15 pytest temporary-directory cleanup
+  warnings.  Full `make lint` remains red only because format checking reports
+  nine pre-existing files in the simultaneous
+  `windowed-spectral-lyapunov-7h` assignment's owned experiment path; no such
+  file was modified here.
 
 ## Independent audit verdict
 
@@ -151,8 +161,8 @@ Exact theorem and page pointers are in `docs/literature/lcp-solvers.md`.
 
 ## Resume here
 
-- Proof authority: `sections/body/note.tex`, especially `thm:batch-depth`,
-  `alg:threshold-batch`, and `thm:op2`.
+- Proof authority: `sections/body/note_part1.tex` for `thm:batch-depth` and
+  `sections/body/note_part2.tex` for `alg:threshold-batch` and `thm:op2`.
 - For review, recheck the block-Cholesky inverse ordering, two-face causal
   forcing, certified SDD retry wrapper, and unconditional exposure ledger.
 - The only next research extension is deterministic finite precision or a
