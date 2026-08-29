@@ -46,11 +46,15 @@ The canonical reusable definition is
 [`manuscript/tex/shared/source_aligned_problem.tex`](../manuscript/tex/shared/source_aligned_problem.tex),
 and the reserved-symbol inventory is
 [`manuscript/tex/shared/NOTATION.md`](../manuscript/tex/shared/NOTATION.md).
-The active paper and each note input that definition rather than restating it.
-Reusable LaTeX commands are declared only under `manuscript/tex/shared/`;
-structural tests reject local declarations, missing imports, and duplicate core
-definitions. Proof-local indexed quantities remain permitted only when their
-scope is stated and they do not reuse a reserved symbol.
+The active paper and each research-direction note input that definition rather
+than restating it. The controller-owned `problem_definitions` note is the sole
+exception: it presents the same definitions in an expanded reference form and
+must keep every shared equation and symbol synchronized with the reusable
+fragment. Reusable LaTeX commands are declared only under
+`manuscript/tex/shared/`; structural tests reject local declarations, missing
+imports, and duplicate core definitions outside this explicit exception.
+Proof-local indexed quantities remain permitted only when their scope is
+stated and they do not reuse a reserved symbol.
 
 This shared layer is a source-grounded manuscript reference convention. It
 does not become an implementation or stopping-rule convention until the

@@ -22,7 +22,10 @@ in the active paper and standalone research notes.
 1. `math_commands.tex` defines generic typography, delimiters, operators, and
    named tolerances.
 2. `source_aligned_problem.tex` is the Tier 1 source-aligned PageRank and RPPR
-   reference model imported by the active paper and every note.
+   reference model imported by the active paper and every research-direction
+   note. The controller-owned `notes/problem_definitions/main.tex` is the sole
+   expanded-reference exception and must keep its shared equations and symbols
+   synchronized with this file.
 3. Algorithm-specific notation in Tier 2 is registered in `notation.tex` and
    introduced only in documents that use that algorithm. Proof-local indexed
    quantities form Tier 3: their scope must be stated where they first occur,

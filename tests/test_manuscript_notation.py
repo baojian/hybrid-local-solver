@@ -10,6 +10,17 @@ MANUSCRIPT = REPOSITORY / "manuscript"
 NOTES = MANUSCRIPT / "notes"
 SHARED_PROBLEM_INPUT = r"\input{../../tex/shared/source_aligned_problem}"
 ACTIVE_SHARED_PROBLEM_INPUT = r"\input{tex/shared/source_aligned_problem}"
+EXPANDED_PROBLEM_REFERENCE_ID = "problem_definitions"
+SHARED_PROBLEM_LABELS = (
+    "subsec:shared-source-aligned-problem",
+    "eq:shared-volume",
+    "eq:shared-seed",
+    "eq:shared-pagerank-matrices",
+    "eq:shared-pagerank-objective",
+    "eq:shared-ppr-solution",
+    "eq:shared-rppr-objective",
+    "eq:shared-rppr-kkt",
+)
 
 
 def _read(path: Path) -> str:
@@ -53,10 +64,18 @@ def test_every_note_uses_the_shared_shell_and_problem_model_once() -> None:
         problem_imports = sum(
             _read(path).count(SHARED_PROBLEM_INPUT) for path in entrypoint.parent.rglob("*.tex")
         )
-        assert problem_imports == 1, (
-            f"{record['id']} must import the common problem model exactly once; "
-            f"found {problem_imports} imports"
-        )
+        if record["id"] == EXPANDED_PROBLEM_REFERENCE_ID:
+            assert problem_imports == 0
+            expanded_reference = _read(entrypoint)
+            assert all(
+                expanded_reference.count(rf"\label{{{label}}}") == 1
+                for label in SHARED_PROBLEM_LABELS
+            )
+        else:
+            assert problem_imports == 1, (
+                f"{record['id']} must import the common problem model exactly once; "
+                f"found {problem_imports} imports"
+            )
 
 
 def test_active_manuscript_uses_the_shared_problem_model_once() -> None:

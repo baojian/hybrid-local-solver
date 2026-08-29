@@ -1,8 +1,9 @@
 % Standalone reference note for the hybrid-local-solver project.
 %
-% This document contains only canonical definitions, equivalent formulations,
-% and source-backed standard properties. It deliberately contains no
-% algorithm, new theorem, experiment, or open conjecture.
+% This document contains canonical definitions, equivalent formulations,
+% source-backed standard properties, and explicitly labeled root-level open
+% questions. It contains no algorithm, new theorem, experiment, or proved
+% complexity claim.
 
 \documentclass[11pt]{article}
 
@@ -26,19 +27,23 @@ lazy fixed-point, rescaled,
 non-lazy mass, and non-lazy degree coordinates; and collects standard
 spectral, positivity, normalization, optimality, sparsity, bias, and residual
 properties.  Every substantive property is either a cited source result or an
-elementary consequence of the displayed definitions.  No algorithm,
-complexity claim, experiment, or new research statement is included, and the
-repository-wide residual decision remains open.
+elementary consequence of the displayed definitions.  No algorithm, proved
+complexity claim, experiment, or new theorem is included.  The final section
+records three explicitly open complexity questions, and the repository-wide
+residual decision remains open.
 \end{abstract}
 
 \section{Scope and status}
 \label{sec:problem-definitions-scope}
 
 \paragraph{Claim status.}
-This is a \statussource{} reference document.  The shared block below is the
-canonical manuscript definition; this note does not replace or redefine it.
-Statements labeled ``standard consequence'' are included only to make the
-reference self-contained.  They are direct linear-algebra or convex-analysis
+This is a \statussource{} reference document.  The reusable canonical fragment
+is \texttt{manuscript/tex/shared/source\_aligned\_problem.tex}; the expanded
+presentation below preserves its mathematical definitions while adding
+explanation specific to this reference note.  Changes to a shared equation or
+symbol must be synchronized with that fragment.  Statements labeled
+``standard consequence'' are included only to make the reference
+self-contained.  They are direct linear-algebra or convex-analysis
 consequences of the cited source facts, not claims of novelty.
 
 \paragraph{Included objects.}
@@ -46,18 +51,190 @@ The note covers the PPR linear system and fixed point, the RPPR convex
 surrogate, the canonical point-source input and general-distribution
 algebraic boundary, semantic output accuracy, a sufficient residual-to-error
 implication, and the adjacency-list input and work unit.  It excludes every
-specific solver, activation rule, momentum scheme, convergence rate,
-complexity target, experiment, and open conjecture.
+specific solver, activation rule, momentum scheme, claimed convergence rate,
+and experiment.  It records only the root-level and source-level open
+complexity questions stated in
+\cref{sec:problem-definitions-open-questions}; route-specific blockers remain
+in their owning research notes.
 
-\input{../../tex/shared/source_aligned_problem}
+\paragraph{Terminology.}
+Personalized PageRank (PPR) denotes the exact linear-system problem in
+\cref{prob:problem-definitions-ppr} and its probability vector $\bm{\pi}$.
+Regularized personalized PageRank (RPPR) denotes the weighted
+$\ell_1$-regularized problem in \cref{prob:problem-definitions-rppr}.
+The running-time complexity of accelerated $\ell_1$-regularized PageRank was
+posed explicitly as an open problem at COLT 2022 by
+\citet{fountoulakis2022open}. That question motivates the RPPR research
+program but does not add a condition to the problem definition below.
+Approximate Personalized PageRank (APPR) denotes the classical local push
+algorithm of \citet{andersen2006local} for approximating PPR; it is an
+algorithm, not a third optimization problem.
+
+\subsection{Common source-aligned PageRank and RPPR model}
+\label{subsec:shared-source-aligned-problem}
+
+All documents in this manuscript workspace use the following reference
+language. Vectors and matrices are typeset in bold. The generic optimization
+variable is \(\bm{x}\); \(\bm{x}^*\) denotes an optimum when the objective is
+clear from context; \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\) denote respectively
+the unregularized PPR optimum and the RPPR optimum at regularization
+\(\rho\). A note may impose a stronger assumption after this block, but it
+must not redefine these objects or rename these three optimum vectors.
+
+Let \(\mathcal{G}=(\mathcal{V},\mathcal{E})\) be a finite, simple,
+undirected, connected graph with \(n:=|\mathcal{V}|\geq2\) and unit edge
+weights. Let \(\mathcal{V}=[n]:=\{1,\ldots,n\}\), and let
+\(\bm{A}\in\{0,1\}^{n\times n}\) be its symmetric adjacency matrix. For
+\(i\in\mathcal{V}\), write
+\[
+    \mathcal N(i):=\{j\in\mathcal{V}:\{i,j\}\in\mathcal{E}\},
+    \qquad
+    d_i:=|\mathcal N(i)|,
+    \qquad
+    \bm{D}:=\diag(d_1,\ldots,d_n).
+\]
+Connectedness and \(n\geq2\) imply \(d_i\geq1\) for every vertex, so all
+displayed powers of \(\bm{D}\) are well-defined.
+For \(\mathcal{S}\subseteq\mathcal{V}\), define
+\[
+    \mathcal N(\mathcal{S}):=\bigcup_{i\in\mathcal{S}}\mathcal N(i),
+    \quad
+    \partial\mathcal{S}:=\mathcal N(\mathcal{S})\setminus\mathcal{S},
+    \quad
+    \operatorname{Ext}(\mathcal{S}):=\mathcal{V}\setminus(\mathcal{S}\cup\partial\mathcal{S}),
+\]
+The volume of a vertex set is the sum of its degrees:
+\begin{equation}
+    \vol(\mathcal{S}):=\sum_{i\in\mathcal{S}}d_i.
+    \label{eq:shared-volume}
+\end{equation}
+The support of a vector is
+\(\supp(\bm{x}):=\{i\in[n]:x_i\neq0\}\). Matrix inequalities use the Loewner
+order, and all unqualified vector inequalities are coordinatewise. The seed is a column distribution
+\begin{equation}
+    \bm{s}\in\R_+^n,
+    \qquad
+    \inner{\one}{\bm{s}}=1.
+    \label{eq:shared-seed}
+\end{equation}
+The single-seed specialization is always written \(\bm{s}=\bm{e}_v\), where
+\(v\in\mathcal{V}\) is the seed vertex. Thus, \(\bm{s}\) is never used as a
+vertex label.  The project's canonical end-to-end computational problem uses this single-seed
+specialization.  The general unit-mass distribution above is retained as a
+source-aligned algebraic extension; a theorem for it must state its additional
+input and work dependence explicitly. For
+\(\alpha\in(0,1]\), define
+\begin{equation}
+\begin{aligned}
+    \bm{\mathcal L}&:=\bm{I}-\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{Q}&:=\alpha\bm{I}+\frac{1-\alpha}{2}\bm{\mathcal L}
+      =\frac{1+\alpha}{2}\bm{I}
+       -\frac{1-\alpha}{2}\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{b}&:=\alpha\bm{D}^{-1/2}\bm{s}.
+\end{aligned}
+    \label{eq:shared-pagerank-matrices}
+\end{equation}
+Since \(\bm{0}\preceq\bm{\mathcal L}\preceq2\bm{I}\),
+\(\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}\). The shared smooth PageRank
+quadratic is
+\begin{equation}
+    f(\bm{x}):=\frac12\inner{\bm{x}}{\bm{Q}\bm{x}}-\inner{\bm{b}}{\bm{x}},
+    \qquad
+    \nabla f(\bm{x})=\bm{Q}\bm{x}-\bm{b}.
+    \label{eq:shared-pagerank-objective}
+\end{equation}
+Its unique unregularized minimizer and associated lazy personalized PageRank
+vector are
+\begin{equation}
+    \bm{x}_0^*:=\bm{Q}^{-1}\bm{b},
+    \qquad
+    \bm{\pi}:=\bm{D}^{1/2}\bm{x}_0^*.
+    \label{eq:shared-ppr-solution}
+\end{equation}
+For a regularization parameter \(\rho>0\), reserve \(g_\rho\) for the
+nonsmooth weighted \(\ell_1\) term and define
+\begin{equation}
+    g_\rho(\bm{x}):=\alpha\rho\|\bm{D}^{1/2}\bm{x}\|_1,
+    \qquad
+    F_\rho(\bm{x}):=f(\bm{x})+g_\rho(\bm{x}),
+    \qquad
+    \bm{x}_\rho^*:=\argmin_{\bm{x}\in\R^n}F_\rho(\bm{x}).
+    \label{eq:shared-rppr-objective}
+\end{equation}
+When the objective is clear, \(\bm{x}^*\) may abbreviate its unique optimum;
+the explicit symbols remain \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\). Write
+\[
+    \mathcal{S}_\rho^*:=\supp(\bm{x}_\rho^*),
+    \qquad
+    \mathcal{I}_\rho^*:=[n]\setminus\mathcal{S}_\rho^*.
+\]
+The source records \(\bm{x}_\rho^*\geq\bm{0}\),
+\(\vol(\mathcal{S}_\rho^*)\leq1/\rho\), and the coordinatewise conditions
+\begin{equation}
+    \nabla_i f(\bm{x}_\rho^*)
+    \in
+    \begin{cases}
+        \{-\alpha\rho\sqrt{d_i}\}, & (\bm{x}_\rho^*)_i>0,\\
+        [-\alpha\rho\sqrt{d_i},0], & (\bm{x}_\rho^*)_i=0.
+    \end{cases}
+    \label{eq:shared-rppr-kkt}
+\end{equation}
+
+The work unit is one adjacency-list entry inspection. Scanning a vertex \(i\)
+means reading every neighbor \(j\in\mathcal N(i)\) from \(i\)'s adjacency
+list and costs \(d_i\). Scanning a set \(\mathcal{S}\) means doing this once
+for every \(i\in\mathcal{S}\), at total cost
+\(\sum_{i\in\mathcal{S}}d_i=\vol(\mathcal{S})\). Repeated appearances of a
+neighbor in different adjacency lists are charged separately; the cost is not
+\(|\mathcal N(\mathcal{S})|\), and adjacency lists of neighbors outside
+\(\mathcal{S}\) are not recursively scanned. Iteration count and wall-clock
+time do not replace this degree-weighted work measure.
+
+\paragraph{Computational model.}
+Unless a theorem explicitly states otherwise, the complexity questions use an
+exact-real algebraic word model: each scalar arithmetic operation, comparison,
+stored-state read or write, degree reply, and emitted output word has unit
+cost.  Every first or repeated adjacency-list entry inspection is charged as
+above.  Global preprocessing and storage are reported separately and cannot
+be hidden as free access to the graph.  A randomized result must state its
+success probability and whether its work guarantee is expected or
+high-probability.  Finite-precision stability, coefficient-bit complexity,
+and rounding error are outside this baseline and require separate statements.
+
+\subsection{Accuracy and regularization symbols}
+\label{subsec:problem-definitions-accuracy-symbols}
+
+The following symbols describe different mathematical or computational
+requirements and are intentionally noninterchangeable.
+
+\begin{center}
+\begin{tabularx}{0.97\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.17\textwidth}
+    >{\raggedright\arraybackslash}X@{}}
+\toprule
+Symbol & Meaning \\
+\midrule
+$\epsppr$ & Semantic degree-normalized PPR output error in
+\cref{eq:problem-definitions-semantic-ppr}. \\
+$\rho$ & RPPR regularization and locality scale. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+No equality or conversion among these quantities is built into the problem
+definitions.  Any conversion used by a theorem or algorithm must be stated
+and justified explicitly; one sufficient RPPR-to-PPR conversion is derived in
+\cref{prop:problem-definitions-rppr-bias}.  These definitions do not resolve
+the repository-wide residual decision.
 
 
 \section{Exact computational problems}
 \label{sec:problem-definitions-problems}
 
-\begin{problem}[Personalized PageRank]
+\begin{problem}[Personalized PageRank (PPR)]
 \label{prob:problem-definitions-ppr}
-The input is the graph $\mathcal{G}$, one seed vertex $v$ with
+The input is the graph $\mathcal{G}$, i.e., a finite, simple, undirected, connected graph with \(n:=|\mathcal{V}|\geq2\) and unit edge
+weights, one seed vertex $v$ with
 $\bm{s}=\bm{e}_v$, and $\alpha\in(0,1]$. The exact target is
 $\bm{x}_0^*=\bm{Q}^{-1}\bm{b}$, equivalently
 $\bm{\pi}=\bm{D}^{1/2}\bm{x}_0^*$. A sparse approximate output is a list
@@ -65,11 +242,11 @@ representing $\widehat{\bm{x}}\in\R^n$; unlisted coordinates are zero and
 $\widehat{\bm{\pi}}:=\bm{D}^{1/2}\widehat{\bm{x}}$. For a
 document-scoped tolerance $\epsppr>0$, the semantic accuracy requirement is
 \begin{equation}
-    \norm{\bm{D}^{-1}
-      (\widehat{\bm{\pi}}-\bm{\pi})}_\infty
+    \|\bm{D}^{-1}
+      (\widehat{\bm{\pi}}-\bm{\pi})\|_\infty
     =
-    \norm{\bm{D}^{-1/2}
-      (\widehat{\bm{x}}-\bm{x}_0^*)}_\infty
+    \|\bm{D}^{-1/2}
+      (\widehat{\bm{x}}-\bm{x}_0^*)\|_\infty
     \leq \epsppr.
     \label{eq:problem-definitions-semantic-ppr}
 \end{equation}
@@ -77,14 +254,19 @@ This is an output property, not an activation rule or an adopted
 implementation-wide stopping test.
 \end{problem}
 
-\begin{problem}[Regularized personalized PageRank]
+\begin{problem}[Regularized personalized PageRank (RPPR)]
 \label{prob:problem-definitions-rppr}
-For the same $\mathcal{G},v,\bm{s}=\bm{e}_v,\alpha$ and a regularization
+For the same connected graph $\mathcal{G}$, seed vertex $v$,
+$\bm{s}=\bm{e}_v$, and $\alpha\in(0,1]$, together with a regularization
 parameter $\rho>0$, the exact target is the unique minimizer
 $\bm{x}_\rho^*$ of
 $F_\rho$ in \cref{eq:shared-rppr-objective}. Its mass-coordinate
 representation is $\bm{\pi}_\rho:=\bm{D}^{1/2}\bm{x}_\rho^*$, with
 $\mathcal{S}_\rho^*=\supp(\bm{x}_\rho^*)$.
+When an approximate RPPR output is requested, it is likewise a sparse list
+representing $\widehat{\bm{x}}\in\R^n$, with every unlisted coordinate
+interpreted as zero; the applicable accuracy requirement must be stated
+separately.
 The scale $\rho$ is part of the objective and is not silently identified with
 $\epsppr$, an objective-gap tolerance, or an algorithmic KKT diagnostic.
 \end{problem}
@@ -95,40 +277,54 @@ $\mathcal{S}\subseteq \mathcal{V}$ costs $\vol(\mathcal{S})$. This defines
 the common local-work unit; it does not prescribe an algorithm or assert a
 work bound.
 
-\begin{proposition}[Point-source seed-component reduction; standard]
-\label{prop:problem-definitions-seed-component-reduction}
-Let $\widetilde{\mathcal{G}}$ be a finite, simple, undirected, unit-weight
-graph whose degrees are positive, but which may be disconnected. For
-$\bm{s}=\bm{e}_v$, let $C(v)$ be the connected component containing $v$.
-The PPR solution $\bm{x}_0^*$ and every RPPR minimizer $\bm{x}_\rho^*$
-vanish outside $C(v)$. Their restrictions to
-$C(v)$ are exactly the solutions obtained by applying the canonical
-definitions to the connected graph $\widetilde{\mathcal{G}}[C(v)]$.
-\end{proposition}
+\section{Equivalent PPR formulations}
+\label{sec:problem-definitions-equivalences}
 
-\begin{proof}[Standard verification]
-Order the vertices by connected components. Then
-$\bm{A},\bm{D},\bm{\mathcal L}$, and $\bm{Q}$ are block diagonal, while
-$\bm{b}=\alpha\bm{D}^{-1/2}\bm{e}_v$ is supported only on the $C(v)$ block.
-Since every block of $\bm{Q}$ is positive definite,
-$\bm{Q}\bm{x}_0^*=\bm{b}$ forces every unseeded block of $\bm{x}_0^*$ to be
-zero. The RPPR objective is also block separable. On an unseeded block $B$,
-its contribution is
-\[
- \frac12\inner{\bm{x}_B}{\bm{Q}_B\bm{x}_B}
- +\alpha\rho\norm{\bm{D}_B^{1/2}\bm{x}_B}_1,
-\]
-which is uniquely minimized at zero.  No edge leaves a connected component,
-so degrees and adjacency-list charges inside $C(v)$ are unchanged.
-\end{proof}
+Put $\bm{P}:=\bm{A}\bm{D}^{-1}$,
+$\bm{P}_{\rm L}:=(\bm{I}+\bm{P})/2$, and
+$\alpha_{\rm nl}:=2\alpha/(1+\alpha)$.
+Both $\bm{P}$ and $\bm{P}_{\rm L}$ act on column vectors, and both are
+column stochastic. Direct multiplication of
+$\bm{Q}\bm{x}_0^*=\bm{b}$ by $\bm{D}^{1/2}$ gives the exact dictionary below.
+The lazy forms agree with the PPR formulations used by
+\citet{zhou2024iterative} and \citet{huang2025accelerated}; the non-lazy mass
+and degree forms are the undirected specializations used by
+\citet{chen2023accelerating} and \citet{wei2026simple}.
 
-Thus the connected canonical graph loses no point-source solution behavior
-and requires no free global connectivity test: a local algorithm simply
-never encounters another component.  This reduction does not make an active
-or restricted induced face connected.
+\begin{center}
+\begin{tabularx}{0.97\textwidth}{@{}
+    >{\raggedright\arraybackslash}p{0.3\textwidth}
+    >{\raggedright\arraybackslash}X@{}}
+\toprule
+Form & Exact equation and conversion \\\midrule
+Lazy fixed point
+& $\bm{\pi}=\alpha \bm{s}
+   +(1-\alpha)\bm{P}_{\rm L}\bm{\pi}$. \\\midrule
+Lazy symmetric
+& $\bm{Q}\bm{x}_0^*=\bm{b}$ and
+  $\bm{\pi}=\bm{D}^{1/2}\bm{x}_0^*$. \\\midrule
+Rescaled lazy symmetric
+& $\bm{Q}_{\rm rs}\bm{x}_0^* = 2\bm{b}/(1+\alpha)$, where
+  $\bm{Q}_{\rm rs}=2\bm{Q}/(1+\alpha)$. \\\midrule
+Non-lazy mass
+& $[\bm{I}-(1-\alpha_{\rm nl})\bm{P}]\bm{\pi}
+   =\alpha_{\rm nl}\bm{s}$, where
+  $\alpha_{\rm nl}=2\alpha/(1+\alpha)$. \\\midrule
+Non-lazy degree
+& $[\bm{D}-(1-\alpha_{\rm nl})\bm{A}]\bm{y}
+   =\alpha_{\rm nl}\bm{s}$, where
+  $\bm{y}=\bm{D}^{-1}\bm{\pi}
+   =\bm{D}^{-1/2}\bm{x}_0^*$. \\\bottomrule
+\end{tabularx}
+\end{center}
 
-\subsection{General seed distributions are an extension}
-\label{subsec:problem-definitions-general-seed-extension}
+The rescaled system changes neither $\alpha$ nor its solution.  Removing the
+lazy self-loop changes the numerical teleportation parameter to
+$\alpha_{\rm nl}$.  Therefore, a dependence on ``$\alpha$'' can be compared
+across sources only after applying this conversion.
+
+\section{General seed distributions are an extension}
+\label{sec:problem-definitions-general-seed-extension}
 
 The general unit-mass distribution in the shared algebra is useful for source
 comparison, but it is not the canonical computational input.  To state its
@@ -175,56 +371,6 @@ ledger.  The project-owned three-vertex path example in
 \texttt{aesp\_cd\_l1\_rppr} makes this boundary exact: two independent
 source-component reporters stop, while their combined source activates
 the middle vertex.
-
-\section{Equivalent PPR formulations}
-\label{sec:problem-definitions-equivalences}
-
-Put $\bm{P}:=\bm{A}\bm{D}^{-1}$,
-$\bm{P}_{\rm L}:=(\bm{I}+\bm{P})/2$, and
-$\alpha_{\rm nl}:=2\alpha/(1+\alpha)$.
-Both $\bm{P}$ and $\bm{P}_{\rm L}$ act on column vectors, and both are
-column stochastic. Direct multiplication of
-$\bm{Q}\bm{x}_0^*=\bm{b}$ by $\bm{D}^{1/2}$ gives the exact dictionary below.
-The lazy forms agree with the PPR formulations used by
-\citet{zhou2024iterative} and \citet{huang2025accelerated}; the non-lazy mass
-and degree forms are the undirected specializations used by
-\citet{chen2023accelerating} and \citet{wei2026simple}.
-
-\begin{center}
-\begin{tabularx}{0.97\textwidth}{@{}
-    >{\raggedright\arraybackslash}p{0.22\textwidth}
-    >{\raggedright\arraybackslash}X@{}}
-\toprule
-Form & Exact equation and conversion \\
-\midrule
-Lazy fixed point
-& $\bm{\pi}=\alpha \bm{s}
-   +(1-\alpha)\bm{P}_{\rm L}\bm{\pi}$. \\
-Lazy symmetric
-& $\bm{Q}\bm{x}_0^*=\bm{b}$ and
-  $\bm{\pi}=\bm{D}^{1/2}\bm{x}_0^*$. \\
-Rescaled lazy symmetric
-& $\bm{Q}_{\rm rs}\bm{x}_0^*=\bm{b}_{\rm rs}$, where
-  $\bm{Q}_{\rm rs}=2\bm{Q}/(1+\alpha)$ and
-  $\bm{b}_{\rm rs}=2\bm{b}/(1+\alpha)$. \\
-Non-lazy mass
-& $[\bm{I}-(1-\alpha_{\rm nl})\bm{P}]\bm{\pi}
-   =\alpha_{\rm nl}\bm{s}$, where
-  $\alpha_{\rm nl}=2\alpha/(1+\alpha)$ and
-  $\alpha=\alpha_{\rm nl}/(2-\alpha_{\rm nl})$. \\
-Non-lazy degree
-& $[\bm{D}-(1-\alpha_{\rm nl})\bm{A}]\bm{y}
-   =\alpha_{\rm nl}\bm{s}$, where
-  $\bm{y}=\bm{D}^{-1}\bm{\pi}
-   =\bm{D}^{-1/2}\bm{x}_0^*$. \\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-The rescaled system changes neither $\alpha$ nor its solution.  Removing the
-lazy self-loop changes the numerical teleportation parameter to
-$\alpha_{\rm nl}$.  Therefore a dependence on ``$\alpha$'' can be compared
-across sources only after applying this conversion.
 
 \section{Standard properties of PPR}
 \label{sec:problem-definitions-ppr-properties}
@@ -329,6 +475,28 @@ $F_\rho(\bm{x})-F_\rho(\bm{x}_\rho^*)\geq
 \frac{\alpha}{2}\norm{\bm{x}-\bm{x}_\rho^*}_2^2$ for all $\bm{x}$.
 \end{proposition}
 
+\begin{proposition}[Trivial point-source regularization regime; standard
+consequence]
+\label{prop:problem-definitions-rppr-zero-regime}
+For the canonical source $\bm{s}=\bm{e}_v$,
+\begin{equation}
+    \bm{x}_\rho^*=\bm{0}
+    \quad\Longleftrightarrow\quad
+    \rho\geq\frac{1}{d_v}.
+    \label{eq:problem-definitions-rppr-zero-regime}
+\end{equation}
+Thus the nonzero point-source RPPR regime is $0<\rho<1/d_v$.
+\end{proposition}
+
+\begin{proof}[Standard verification]
+At $\bm{x}=\bm{0}$, $\nabla f(\bm{0})=-\bm{b}$ and the weighted
+$\ell_1$ subdifferential is
+$\alpha\rho\bm{D}^{1/2}[-1,1]^n$.  All nonseed coordinates satisfy the
+zero optimality condition automatically.  At the seed, that condition is
+$\alpha/\sqrt{d_v}\leq\alpha\rho\sqrt{d_v}$, equivalently
+$\rho\geq1/d_v$.  Strong convexity makes the minimizer unique.
+\end{proof}
+
 \begin{proposition}[Regularization bias; standard consequence]
 \label{prop:problem-definitions-rppr-bias}
 Let $\bm{\pi}_\rho=\bm{D}^{1/2}\bm{x}_\rho^*$. Then
@@ -340,17 +508,24 @@ Let $\bm{\pi}_\rho=\bm{D}^{1/2}\bm{x}_\rho^*$. Then
     \norm{\bm{D}^{-1}(\bm{\pi}-\bm{\pi}_\rho)}_\infty\leq\rho.
     \label{eq:problem-definitions-rppr-bias}
 \end{equation}
-Consequently, any approximation $\widehat{\bm{x}}$ satisfying
+Moreover, let $\epsobj\geq0$ denote an additive RPPR objective-gap target.
+Every $\widehat{\bm{x}}$ satisfying
+\begin{equation}
+    F_\rho(\widehat{\bm{x}})-F_\rho(\bm{x}_\rho^*)\leq\epsobj
+    \label{eq:problem-definitions-rppr-objective-gap}
+\end{equation}
+obeys
 \begin{equation}
     \norm{\bm{D}^{-1/2}
-      (\widehat{\bm{x}}-\bm{x}_\rho^*)}_\infty\leq\tau
-    \label{eq:problem-definitions-rppr-optimization-error}
+      (\widehat{\bm{x}}-\bm{x}_\rho^*)}_\infty
+    \leq\sqrt{\frac{2\epsobj}{\alpha}}
+    \label{eq:problem-definitions-rppr-objective-to-solution}
 \end{equation}
-obeys the PPR error bound
+and hence the semantic PPR error bound
 \begin{equation}
     \norm{\bm{D}^{-1}
       (\bm{D}^{1/2}\widehat{\bm{x}}-\bm{\pi})}_\infty
-    \leq\rho+\tau.
+    \leq\rho+\sqrt{\frac{2\epsobj}{\alpha}}.
     \label{eq:problem-definitions-rppr-total-error}
 \end{equation}
 \end{proposition}
@@ -368,58 +543,134 @@ Inverse positivity and
 $\bm{Q}\bm{D}^{1/2}\one=\alpha\bm{D}^{1/2}\one$ give
 $\bm{0}\leq \bm{x}_0^*-\bm{x}_\rho^*
 \leq\rho \bm{D}^{1/2}\one$, which is
-\cref{eq:problem-definitions-rppr-bias}.  The last bound is the triangle
-inequality.
+\cref{eq:problem-definitions-rppr-bias}.  Strong convexity and
+\cref{eq:problem-definitions-rppr-objective-gap} give
+$\norm{\widehat{\bm{x}}-\bm{x}_\rho^*}_2
+\leq\sqrt{2\epsobj/\alpha}$.  Since $d_i\geq1$ for every coordinate,
+this implies \cref{eq:problem-definitions-rppr-objective-to-solution}.
+Combining that estimate with the bias bound proves
+\cref{eq:problem-definitions-rppr-total-error}.
 \end{proof}
 
-Thus $\rho$ has two separate, standard consequences: it bounds the exact
+Thus, $\rho$ has two separate, standard consequences: it bounds the exact
 degree-normalized bias and it bounds the optimal support volume.  For example,
-choosing $\rho=\epsppr/2$ leaves an error budget $\tau=\epsppr/2$ for an
-inexact RPPR solve and gives
-$\vol(\mathcal{S}_\rho^*)\leq2/\epsppr$. This is only a problem-level
-implication; it does not supply an algorithm for attaining $\tau$.
+choosing
+\begin{equation}
+    \rho=\frac{\epsppr}{2},
+    \qquad
+    \epsobj\leq\frac{\alpha\epsppr^2}{8}
+    \label{eq:problem-definitions-rppr-to-ppr-parameters}
+\end{equation}
+is sufficient for \cref{eq:problem-definitions-semantic-ppr} and gives
+$\vol(\mathcal{S}_\rho^*)\leq2/\epsppr$.  This is only a problem-level
+conversion; it does not supply an algorithm for attaining the objective gap.
 
-\section{Notation and source boundary}
+\section{Root open complexity questions}
+\label{sec:problem-definitions-open-questions}
+
+The definitions and standard properties above do not establish any of the
+following bounds.  These are top-level research questions, not theorem
+claims.  Here a \emph{local} algorithm learns the graph from the seed through
+the charged degree and adjacency-list access described above; it is not given
+the final support or any other graph-wide summary.  A bound is
+\emph{graph-uniform} when its constants and omitted factors are independent
+of the particular graph and of $n$ and $|\mathcal E|$.
+
+In this section, $\widetilde O$ may hide factors polylogarithmic in the
+explicitly displayed inverse parameters, the number of exposed or emitted
+words, and the inverse failure probability.  It does not hide polynomial
+factors in those quantities or unrestricted dependence on $n$ or
+$|\mathcal E|$.  Any affirmative answer must charge adjacency-list work,
+repeated numerical or response operations, state maintenance, certificate
+evaluation, materialization, and output.  A negative answer requires a lower
+bound in an explicit access or oracle model; failure of one proposed
+algorithm is not such a lower bound.  Detailed route-specific missing lemmas
+and counterexamples remain in their owning notes.
+
+\begin{enumerate}[label=\textbf{OP\arabic*.},leftmargin=*]
+\item \textbf{Graph-uniform semantic PPR.}
+For \cref{prob:problem-definitions-ppr} in the nontrivial accuracy regime
+$0<\epsppr<1$, does there exist a graph-uniform local algorithm that returns a
+sparse output satisfying
+\cref{eq:problem-definitions-semantic-ppr} with fully charged work
+\begin{equation}
+    \widetilde O\!\left(
+      \frac{1}{\sqrt{\alpha}\,\epsppr}
+    \right)?
+    \label{eq:problem-definitions-open-ppr-work}
+\end{equation}
+The bound must not use free global preprocessing, a supplied final support, or
+an uncharged burn-in or terminal scan.  If $\epsppr\geq1$, the zero vector
+already satisfies the semantic requirement because $\bm{\pi}\geq\bm{0}$,
+$\inner{\one}{\bm{\pi}}=1$, and $d_i\geq1$.
+
+\item \textbf{Accelerated local RPPR.}
+For \cref{prob:problem-definitions-rppr}, it suffices to consider the nonzero
+point-source regime $0<\rho<1/d_v$ from
+\cref{prop:problem-definitions-rppr-zero-regime}.  Given an additive
+objective-gap target $\epsobj>0$, does there exist a graph-uniform local
+algorithm returning $\widehat{\bm{x}}$ with
+\begin{equation}
+    F_\rho(\widehat{\bm{x}})-F_\rho(\bm{x}_\rho^*)
+    \leq\epsobj
+    \label{eq:problem-definitions-open-rppr-accuracy}
+\end{equation}
+in fully charged work
+\begin{equation}
+    \widetilde O\!\left(
+      \frac{1}{\rho\sqrt{\alpha}}
+    \right),
+    \label{eq:problem-definitions-open-rppr-work}
+\end{equation}
+with at most polylogarithmic dependence on $1/\epsobj$?  Equivalently, can
+acceleration improve the $1/\alpha$ dependence while retaining
+graph-size-independent locality?  This is the source question posed by
+\citet[Section~3]{fountoulakis2022open}, stated here in the project work
+model.  The conversion in
+\cref{eq:problem-definitions-rppr-to-ppr-parameters} shows one precise way
+that an affirmative RPPR result would yield a semantic PPR guarantee.
+
+\item \textbf{Reuse of nested SDD systems.}
+In this item only, $\epsappr$ denotes the source-native ACL/APPR residual
+accuracy, not the semantic tolerance $\epsppr$.  The growing-active-set method
+of \citet[Theorem~1.2]{wei2026simple} has high-probability work
+$\widetilde O(1/\epsappr^2)$ with only polylogarithmic dependence on
+$1/\alpha$.  Can its successive nested SDD systems be reused to obtain
+\begin{equation}
+    \widetilde O\!\left(\frac{1}{\epsappr}\right)
+    \label{eq:problem-definitions-open-nested-sdd-work}
+\end{equation}
+on arbitrary graphs while charging every system update, boundary-violation
+query, materialized coordinate, and output word?  Wei and Yang identify this
+direction explicitly in their concluding remarks
+\citep[PDF p.~15]{wei2026simple}.  It is proved for paths in the project note
+\texttt{incremental\_active\_set\_sdd}, but remains open for arbitrary
+nonequitable cyclic graphs.  Without an accuracy-conversion theorem, this
+source-level question is not the same as OP1.
+\end{enumerate}
+
+\section{Source audit and scope boundary}
 \label{sec:problem-definitions-source-boundary}
 
-The symbols below are intentionally noninterchangeable.
-
-\begin{center}
-\begin{tabularx}{0.97\textwidth}{@{}
-    >{\raggedright\arraybackslash}p{0.17\textwidth}
-    >{\raggedright\arraybackslash}X@{}}
-\toprule
-Symbol & Meaning \\
-\midrule
-$\epsppr$ & Semantic degree-normalized PPR output error in
-\cref{eq:problem-definitions-semantic-ppr}. \\
-$\epsappr$ & APPR residual activation threshold, defined only in the APPR
-algorithm; it is not $\epsppr$. \\
-$\rho$ & RPPR regularization and locality scale. \\
-$\epsobj$ & Additive RPPR objective-gap target. \\
-$\epspg$ & Proximal fixed-point diagnostic used by source experiments. \\
-$\tau$ & A local symbol for the RPPR-to-PPR optimization-error allowance in
-\cref{eq:problem-definitions-rppr-optimization-error}. \\
-\bottomrule
-\end{tabularx}
-\end{center}
-
 The exact source audit trail is maintained in the literature notes:
-Fountoulakis et al.\ (2019), PDF pages 8--18 for the variational objective,
-KKT system, nonnegativity, support bound, and relative stopping rule;
-Fountoulakis and Mart\'inez-Rubio (2026), PDF page 3, Section 3 for the shared
-RPPR normalization; Zhou et al.\ (2024), PDF pages 1--3 and supplemental PDF
-page 17 for the lazy PPR systems and residual certificate; Huang et al.\
-(2025), PDF pages 1--3 for the lazy PPR and symmetric quadratic; Chen et al.\
-(2023), PDF page 3 for the non-lazy mass system; and Wei and Yang (2026), PDF
-pages 2--4 and 8--10 for the non-lazy degree-coordinate system and active-set
-RPPR properties.  These pointers are recorded in
+\citet[PDF pp.~8--18]{fountoulakis2019variational} for the variational
+objective, KKT system, nonnegativity, support bound, and relative stopping
+rule; \citet[PDF pp.~1--3]{fountoulakis2022open} for the COLT open problem on
+accelerated $\ell_1$-regularized PageRank;
+\citet[PDF p.~3, Section~3]{fountoulakis2026complexity} for the shared RPPR
+normalization; \citet[PDF pp.~1--3 and supplemental PDF
+p.~17]{zhou2024iterative} for the lazy PPR systems and residual certificate;
+\citet[PDF pp.~1--3]{huang2025accelerated} for the lazy PPR and symmetric
+quadratic; \citet[PDF p.~3]{chen2023accelerating} for the non-lazy mass
+system; and \citet[PDF pp.~2--4 and 8--10]{wei2026simple} for the non-lazy
+degree-coordinate system and active-set RPPR properties. These pointers are
+recorded in
 \texttt{docs/literature/local-solvers.md} and
 \texttt{docs/literature/acceleration.md}.
 
 \paragraph{Boundary of the note.}
-Nothing here chooses a solver, claims graph-uniform locality, identifies two
-accuracy namespaces, or resolves the implementation-wide residual convention.
+Nothing here chooses a solver, claims graph-uniform locality, equates distinct
+accuracy quantities, or resolves the implementation-wide residual convention.
 Those choices require their own definitions, decisions, and proofs.
 
 \bibliographystyle{plainnat}
