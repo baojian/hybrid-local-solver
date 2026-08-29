@@ -161,10 +161,13 @@ State: proved-open
   approximate-ground mass; there is no per-pivot moment scan.
   Conditional on an exact row refresh costing its charged active incidences,
   the global clock gives a priority-queue reporter with work
-  `O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))`.  It is independent of admission
-  count but, at `eta=alpha*eps_ppr` and `q=sqrt(alpha)`, still loses one
-  factor `1/alpha` against the target.  This is a scheme upper bound, not a
-  general lower bound.
+  `O_tilde(F+c^2*q*F_1/2/(alpha*(1+q)*eta))`, where
+  `F_1/2=sum_v a_v/sqrt(d_v)`.  It is independent of admission count.  If
+  `F_1/2=O(alpha*F)`—in particular if every charged row has
+  `d_v>=alpha^(-2)`—then `eta=Theta(alpha*eps_ppr)` and
+  `q=Theta(sqrt(alpha))` give the target product rate.  Arbitrary low-degree
+  rows still lose one factor `1/alpha` under the coarse `F_1/2<=F` bound.
+  This is a scheme upper bound, not a general lower bound.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -665,6 +668,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-pivot-coupling-budget`,
   `cor:aesp-cd-point-source-cumulative-gray-key`,
   `cor:aesp-cd-point-source-clocked-gray-refresh`,
+  `cor:aesp-cd-point-source-high-degree-gray-refresh`,
   `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-four-scalar-gray-replay`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,

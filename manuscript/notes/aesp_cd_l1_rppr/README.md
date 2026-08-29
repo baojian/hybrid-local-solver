@@ -61,10 +61,13 @@ also uses only the two row couplings and one global ground mass; no RHS moment
 scan remains.
 A charged exact-row refresh primitive plus the global clock gives a concrete
 priority-queue reporter with work
-`O_tilde(F*(1+c^2*q/(alpha*(1+q)*eta)))`.  It removes admission-count growth,
-but at `eta=alpha*eps_ppr` and `q=sqrt(alpha)` remains a factor `1/alpha`
-slower than the target.  This quantifies, rather than hides, the last rate
-gap.
+`O_tilde(F+c^2*q*F_1/2/(alpha*(1+q)*eta))`, where
+`F_1/2=sum_v a_v/sqrt(d_v)<=F`.  It removes admission-count growth and reaches
+the target rate whenever `F_1/2=O(alpha*F)`; in particular, it closes the
+charged high-degree branch `d_v>=alpha^(-2)`.  On arbitrary low-degree rows
+the coarse bound `F_1/2<=F` still leaves a factor `1/alpha` at
+`eta=alpha*eps_ppr` and `q=sqrt(alpha)`.  This isolates, rather than hides,
+the last universal rate gap.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

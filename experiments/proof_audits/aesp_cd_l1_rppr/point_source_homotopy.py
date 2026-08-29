@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from fractions import Fraction as F
 from itertools import combinations
+from random import Random
 
 from experiments.proof_audits import note_tex_source
 
@@ -878,6 +879,135 @@ def check_complete_rank_one_fixed_target() -> int:
     return admissions
 
 
+def check_random_point_source_mass_clock() -> tuple[int, int, F]:
+    """Audit the rational premises of the point-source pivot-mass clock."""
+    rng = Random(20260829)
+    traces = 0
+    admissions = 0
+    largest_cauchy_ratio = F(0)
+    for size in range(3, 8):
+        for _ in range(25):
+            edges = {(vertex, vertex + 1) for vertex in range(size - 1)}
+            edges.update(
+                (left, right)
+                for left in range(size)
+                for right in range(left + 2, size)
+                if rng.randrange(4) == 0
+            )
+            adjacency = [[F(0)] * size for _ in range(size)]
+            degree = [0] * size
+            for left, right in edges:
+                adjacency[left][right] = adjacency[right][left] = 1
+                degree[left] += 1
+                degree[right] += 1
+            alpha = rng.choice((F(1, 9), F(1, 5), F(2, 7), F(1, 3)))
+            rho = rng.choice((F(1, 40), F(1, 24), F(1, 16)))
+            diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+            hessian = [
+                [
+                    diagonal * degree[i]
+                    if i == j
+                    else -coupling * adjacency[i][j]
+                    for j in range(size)
+                ]
+                for i in range(size)
+            ]
+            load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
+            if load[0] <= 0:
+                continue
+
+            face = [0]
+            sum_degree_mass = F(0)
+            sum_coordinate_mass = F(0)
+            sum_pivot_weighted_mass = F(0)
+            sum_pivot_coupling = F(0)
+            while True:
+                principal = [[hessian[i][j] for j in face] for i in face]
+                active = solve(principal, [load[i] for i in face])
+                assert all(value > 0 for value in active)
+                exterior_keys = {
+                    vertex: load[vertex]
+                    - sum(
+                        hessian[vertex][face[i]] * active[i]
+                        for i in range(len(face))
+                    )
+                    for vertex in range(size)
+                    if vertex not in face
+                }
+                positive = [vertex for vertex, key in exterior_keys.items() if key > 0]
+                if not positive:
+                    terminal = [F(0)] * size
+                    for i, vertex in enumerate(face):
+                        terminal[vertex] = active[i]
+                    break
+
+                winner = max(positive, key=lambda vertex: (exterior_keys[vertex], -vertex))
+                ground = solve(principal, [alpha * degree[i] for i in face])
+                pivot_coupling = coupling * sum(
+                    adjacency[winner][face[i]] * ground[i]
+                    for i in range(len(face))
+                )
+                assert F(0) < pivot_coupling <= coupling * degree[winner]
+                extended = [*face, winner]
+                enlarged = solve(
+                    [[hessian[i][j] for j in extended] for i in extended],
+                    [load[i] for i in extended],
+                )
+                coordinate = enlarged[-1]
+                assert coordinate > 0
+                assert all(enlarged[i] >= active[i] for i in range(len(face)))
+                sum_degree_mass += degree[winner] * coordinate
+                sum_coordinate_mass += coordinate
+                sum_pivot_weighted_mass += coordinate * pivot_coupling
+                sum_pivot_coupling += pivot_coupling
+                face = extended
+                admissions += 1
+
+            unregularized = solve(hessian, [alpha * F(i == 0) for i in range(size)])
+            assert sum(degree[i] * unregularized[i] for i in range(size)) == 1
+            assert all(F(0) <= terminal[i] <= unregularized[i] for i in range(size))
+            assert sum_degree_mass <= sum(
+                degree[i] * terminal[i] for i in range(size)
+            ) <= 1
+            assert sum_coordinate_mass <= sum(terminal) <= 1
+            assert sum_pivot_weighted_mass <= coupling * sum_degree_mass <= coupling
+            induced_edges = sum(
+                adjacency[i][j]
+                for i in face
+                for j in face
+                if i < j
+            )
+            assert sum_pivot_coupling <= coupling * induced_edges
+            cauchy_ratio = sum_degree_mass * sum_coordinate_mass
+            assert cauchy_ratio <= 1
+            largest_cauchy_ratio = max(largest_cauchy_ratio, cauchy_ratio)
+            traces += 1
+    return traces, admissions, largest_cauchy_ratio
+
+
+def check_high_degree_refresh_algebra() -> tuple[F, F]:
+    """Exact square-degree calibration of the high-degree rate corollary."""
+    alpha, q, epsilon = F(1, 9), F(1, 3), F(1, 10)
+    coupling = (1 - alpha) / 2
+    degrees = (81, 144)
+    charges = (F(9), F(16))
+    square_roots = (9, 12)
+    total = sum(charges, F(0))
+    half_weighted = sum(
+        (charge / root for charge, root in zip(charges, square_roots, strict=True)),
+        F(0),
+    )
+    assert all(degree >= 1 / alpha**2 for degree in degrees)
+    assert half_weighted <= alpha * total
+    eta = alpha * epsilon
+    refresh_term = (
+        coupling**2 * q / (alpha * (1 + q) * eta) * half_weighted
+    )
+    target_term = total / (q * epsilon)
+    assert refresh_term <= target_term
+    return half_weighted / total, refresh_term / target_term
+
+
 def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F], F, F]:
     """Certify that high gap alone does not make sparse pivots rank one."""
     face_size = 8
@@ -1098,6 +1228,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-pivot-coupling-budget}" in source
     assert r"\label{cor:aesp-cd-point-source-cumulative-gray-key}" in source
     assert r"\label{cor:aesp-cd-point-source-clocked-gray-refresh}" in source
+    assert r"\label{cor:aesp-cd-point-source-high-degree-gray-refresh}" in source
     assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
@@ -1166,6 +1297,10 @@ def main() -> None:
     lazy_reporter_checks = check_lazy_rank_one_reporter()
     complete_prefix_checks = check_complete_prefix_rank_one()
     complete_trace_admissions = check_complete_rank_one_fixed_target()
+    mass_clock_traces, mass_clock_admissions, largest_clock_cauchy_ratio = (
+        check_random_point_source_mass_clock()
+    )
+    half_degree_ratio, high_degree_target_ratio = check_high_degree_refresh_algebra()
     (
         sparse_pivot_error,
         sparse_pivot_inertia,
@@ -1194,6 +1329,15 @@ def main() -> None:
     print(f"  lazy rank-one planar reporter checks: {lazy_reporter_checks}")
     print(f"  exact complete-prefix rank-one faces: {complete_prefix_checks}")
     print(f"  output-linear complete-graph trace admissions: {complete_trace_admissions}")
+    print(
+        "  exact random point-source mass clocks: "
+        f"traces={mass_clock_traces}, admissions={mass_clock_admissions}, "
+        f"largest rational Cauchy ratio={largest_clock_cauchy_ratio}"
+    )
+    print(
+        "  high-degree refresh calibration: "
+        f"F_1/2/F={half_degree_ratio}, refresh/target={high_degree_target_ratio}"
+    )
     print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
     print(
         "  identical scalar row-state STOP: "
