@@ -51,6 +51,8 @@ State: proved-open
   Conditional on the same exhaustive route-output locator, those mergers are
   nevertheless handled with only additive source-read work, so this one
   unresolved interface would close the general sparse-source target as well.
+  The fixed-envelope terminal branch also bypasses the proper-face
+  constant-vector identity that limits the separate Perron-window branch.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the

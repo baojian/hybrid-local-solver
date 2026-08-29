@@ -63,6 +63,9 @@ candidate records, joint merge rows use thresholds
 `alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
 Thus solving the remaining locator interface would recover the original
 additive sparse-source target, not just its point-source restriction.
+The fixed-envelope terminal composition does not identify the final positive
+face and therefore also avoids the proper-face constant-vector/Perron
+identity needed by the separate momentum-window route.
 
 Three superficially stronger point-source results do not close that hard
 range after their hidden scope is restored.  The ICDT 2024

@@ -91,6 +91,9 @@ initializing the sparse source rows: its boundary threshold becomes
 the unresolved locator, if implemented at the stated output-sensitive rate,
 would recover the original additive sparse-source target rather than merely
 the point-source specialization.
+The subsequent fixed-envelope proximal solve never needs to identify the
+final positive face, so it also bypasses the proper-face
+`Q_A 1 != alpha 1` obstruction in the separate momentum-window analysis.
 The ordering-independent APPR star already has envelope radius at most one
 and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
 gap is repeated state processing rather than distant or oversized output.
