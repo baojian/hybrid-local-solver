@@ -28,7 +28,15 @@ progress is:
    global scalar accelerated rate;
 8. a weaker exact-batch active-set depth lemma which would prove OP2 using
    one ordinary SDD solve and boundary scan per phase, without requiring the
-   stronger fully dynamic primitive.
+   stronger fully dynamic primitive;
+9. an exact reformulation of RPPR as a discounted optimal-stopping problem,
+   under which the exact-batch method is monotone Howard policy iteration for
+   a reversible random walk;
+10. a graph-uniform Chebyshev/CG proof of the desired exact-batch depth rate
+    in the `rho=0` limit; and
+11. an exact endpoint-path formula showing that
+    `Theta(1/sqrt(alpha))` batch phases are necessary for constant energy-gap
+    reduction.
 
 Throughout, `alpha` denotes the lazy parameter in `main.tex` and
 
@@ -639,7 +647,7 @@ matches this lower bound up to logarithmic factors.
 | Question | Status of this attempt | Exact remaining regime/blocker |
 |---|---|---|
 | OP1 | proved for `alpha=1` and for `eps_ppr >= sqrt(alpha)`; OP2 and OP3 each imply it | `eps_ppr < sqrt(alpha)`; localizing accelerated signed iterates, or proving the incremental lemma |
-| OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)`; OP3 would imply it | `rho < sqrt(alpha)`; global scalar support-safe momentum is refuted, leaving an energy-aware local rule or the strengthened incremental lemma |
+| OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)`; exact-batch acceleration is proved in the graph-uniform `rho=0` limit; OP3 would imply it | `0 < rho < sqrt(alpha)`; late stopping-state releases break Krylov containment, while global scalar support-safe momentum is refuted |
 | OP3 | no arbitrary-graph proof | maintain nested SDD solutions and all boundary violations in total near-final-volume work |
 
 The most economical OP2-specific target is now the exact active-set depth
@@ -650,6 +658,11 @@ incremental lemma remains the common route to all three questions and still
 needs its boundary-reporting component.  On the acceleration branch, any
 repaired MSE must charge momentum blockers by objective energy; the scalar
 global rule cannot be repaired by a different Lyapunov analysis alone.
+The optimal-stopping shift identifies the exact missing bridge: extend the
+Krylov/CG energy argument from the zero obstacle to positive obstacle levels
+despite delayed policy releases, or construct a reversible stopping instance
+whose unreleased continuation set retains constant energy beyond
+`Theta(1/sqrt(alpha))` phases.
 
 ## Public sources consulted
 

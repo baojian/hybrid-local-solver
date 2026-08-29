@@ -18,6 +18,15 @@ components, and the resulting worst-case rate is only the ordinary
 `O_tilde(1/alpha)` rate.  Any successful descendant must localize or weight
 its momentum decisions, not merely enforce the same global feasibility test.
 
+The strongest surviving route is exact batch reoptimization of the certified
+active set.  RPPR admits an exact discounted optimal-stopping reformulation,
+and the batch method is Howard policy iteration for the reversible random
+walk.  Its desired `exp(-Theta(j sqrt(alpha)))` energy-depth bound is proved
+here in the graph-uniform `rho=0` limit by Krylov containment, and an exact
+path calculation shows that this scale is sharp.  The corresponding bound
+for arbitrary positive `rho` remains open: stopping states can be released
+late, so the Krylov containment fails.
+
 ## 1. Obstacle and fixed-point form
 
 Put
@@ -871,6 +880,177 @@ tree, and sparse-graph searches have not produced a counterexample, but no
 proof is claimed.  The established domination `x_{j+1}>=T(x_j)` gives only
 the weaker factor `1-alpha`; the missing argument must use the exact
 reoptimization or the `Q`-orthogonality of the increments.
+
+#### Exact optimal-stopping reformulation
+
+There is a useful way to expose the extra structure that a proof of (8b)
+would have to use.  In non-lazy degree coordinates put
+
+\[
+  z:=y+\rho\mathbf 1.
+\]
+
+Because `L_beta 1=beta d`, completing the square gives, up to a constant
+independent of `z`,
+
+\[
+ \Psi_{\beta,\rho}(y)
+ =\frac12z^TL_\beta z-\beta s^Tz+\text{constant},
+ \qquad z\geq\rho\mathbf 1.                 \tag{8c}
+\]
+
+Thus RPPR is exactly the obstacle problem obtained by projecting the PPR
+potential onto the constant lower obstacle `rho`.  Its KKT system is the
+Bellman equation
+
+\[
+ z_v^*=\max\left\{
+   \rho,
+   \frac{\beta s_v}{d_v}
+     +(1-\beta)\frac1{d_v}\sum_{u\sim v}z_u^*
+ \right\}.                                  \tag{8d}
+\]
+
+This is a discounted optimal-stopping problem for the reversible random walk:
+stop for value `rho`, or continue for the seed reward and one discounted walk
+step.  The RPPR support is precisely the continuation set.
+
+Under this change of variables, (8a) is the monotone Howard iteration that
+starts with the stopping policy everywhere except at
+`{v:s_v>rho d_v}`.  A phase evaluates the current continuation policy exactly,
+setting `z_j=rho` off `S_j` and solving
+
+\[
+  (L_\beta z_j)|_{S_j}=\beta s|_{S_j},
+\]
+
+then releases every state whose continuation value is strictly larger than
+`rho`.  This proves that (8b) is not merely a generic condition-number claim
+for an `M`-matrix: it is a quantitative policy-iteration claim for a
+reversible, degree-normalized stopping problem.  Generic Bellman contraction
+still gives only the discount factor `1-beta=1-Theta(alpha)`.  Any
+`exp(-Theta(j sqrt(alpha)))` proof must therefore use reversibility and the
+Dirichlet energy, not Bellman contraction alone.
+
+The reformulation also explains why a ball-growth proof is insufficient.
+Policy evaluation can raise values on old continuation states, causing a
+previously inspected neighboring stopping state to be released in a later
+phase; the six-vertex example in the companion note exhibits exactly this
+effect.  On the other hand, exact searches on paths, weighted bottleneck
+paths, trees, cycles, and sparse random graphs continue to show
+`Theta(1/sqrt(alpha))`-scale energy decay.  The script
+`search_exact_batch_counterexample.py` performs a reproducible heuristic
+search over simple unweighted graphs.  These experiments are falsification
+tests only and are not evidence for (8b).
+
+There is one graph-uniform limiting case where the desired depth estimate is
+provable.  Set `rho=0`, so the obstacle disappears and the right-hand side in
+normalized coordinates is the sparse PPR source `b`.  Every graph-boundary
+neighbor of `S_j` then has a strictly negative gradient, and hence `S_j` is
+exactly the radius-`j` graph ball around `supp(b)` (within seeded components).
+The principal solution `x_j` is the `Q`-Galerkin minimizer on this ball.
+
+The Krylov space
+
+\[
+  \mathcal K_{j+1}(Q,b)
+  =\operatorname{span}\{b,Qb,\ldots,Q^jb\}
+\]
+
+is supported on the same ball and is therefore contained in the active-set
+trial space.  Comparing with the conjugate-gradient minimizer and using
+`alpha I <= Q <= I` gives
+
+\[
+ \frac12\|x_j-Q^{-1}b\|_Q^2
+ \leq
+ 4\left(\frac{1-\sqrt\alpha}{1+\sqrt\alpha}\right)^{2(j+1)}
+ \frac12\|Q^{-1}b\|_Q^2.                    \tag{8e}
+\]
+
+Thus the exact-batch depth lemma holds, with the desired exponent, in the
+unregularized limit on every graph.  For any fixed finite graph and fixed
+number of phases, the same behavior persists for all sufficiently small
+positive `rho` by strictness of the boundary violations and continuity.  The
+obstruction at general `rho` is now especially precise: the negative dense
+term `-rho alpha sqrt(d)` destroys the Krylov-space containment because a
+stopping vertex can remain unreleased even when it is adjacent to the current
+continuation set.
+
+#### Exact path calculation and sharpness of the scale
+
+The `sqrt(alpha)` scale in (8b), if the lemma is true, cannot be improved.
+This can be seen exactly rather than experimentally.  Consider longer and
+longer unweighted paths, put the seed at an endpoint, and let the positive
+regularization tend to zero slowly enough that the whole finite path remains
+active.  For every fixed phase index, the limit is the half-line PPR system.
+The exact-batch sets are
+
+\[
+  S_j=\{0,1,\ldots,j\}.
+\]
+
+Let
+
+\[
+  r:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+  \tag{8f}
+\]
+
+In non-lazy degree coordinates the half-line solution has the form
+`y_i=C r^i`.  Indeed, the interior recurrence is
+
+\[
+  2y_i-(1-\beta)(y_{i-1}+y_{i+1})=0,
+\]
+
+whose decaying characteristic root is exactly (8f).  The restricted solution
+on `S_j`, with `y_{j+1}=0`, has the form
+
+\[
+  y_i^{(j)}=A_j\bigl(r^i-r^{2j+2-i}\bigr).
+\]
+
+Writing `a=1-beta`, the seed equation gives
+
+\[
+ A_j=\frac{\beta}
+ {1-ar+r^{2j+1}(a-r)}.
+\]
+
+For the unregularized quadratic, Galerkin orthogonality gives
+
+\[
+  G_j:=\frac12\|y-y^{(j)}\|_{L_\beta}^2
+      =\frac\beta2(y_0-y_0^{(j)}).
+\]
+
+The identities
+
+\[
+  1-ar=\frac{2\sqrt\alpha}{1+\alpha},
+  \qquad a-r=r(1-ar)
+\]
+
+then reduce the relative gap to the exact expression
+
+\[
+  \frac{G_j}{G_0}
+  =\frac{r^{2j}(1+r^2)}{1+r^{2j+2}}.
+  \tag{8g}
+\]
+
+Every member of the limiting family can be approximated by allowed finite
+instances with `rho>0`, so (8g) is also a lower-bound limit for OP2 instances.
+If `j=t/sqrt(alpha)` and `alpha` tends to zero, (8g) tends to
+
+\[
+  \frac{2e^{-4t}}{1+e^{-4t}}.
+\]
+
+Thus a constant gap reduction needs `Theta(1/sqrt(alpha))` exact releases even
+on a path.  The formula also explains the approximately `0.03` ratios seen
+after `ceil(1/sqrt(alpha))` phases in the path experiments.
 
 There is an exact batch-progress estimate that may help amortize a modified
 active-set method.  Let `x^(S)` be the exact minimizer with support restricted
