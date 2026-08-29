@@ -1,55 +1,62 @@
 # active_edge_lcp
 
-This standalone note develops the obstacle/LCP route to OP2 in the canonical
-RPPR normalization.  It proves that exact negative-slack pivots from zero are
-nested, coordinatewise increasing, and support-safe for the PageRank
-Stieltjes matrix.  It also proves the supplied-support CG bound and a local
-minimum-norm KKT objective certificate.
+This standalone note proves OP2 through the obstacle/LCP formulation in the
+canonical RPPR normalization.  The reduction is exact:
+`c=b-alpha*rho*D^(1/2)1`, `x>=0`, `w=Qx-c>=0`, and `x_i w_i=0`.
 
-The numerical sign interface is now margin-free.  If an approximate solve on
-a reachable face has residual norm `delta`, a boundary key below
-`-delta/alpha` is provably negative for the exact face.  If no key crosses that
-known threshold and the residual is reduced to the explicit objective-derived
-target in Theorem `thm:threshold-dichotomy`, orthant projection already meets
-`eps_obj`.  The primitive never needs to resolve every arbitrarily small
-complementarity sign.
+The decisive result is a threshold-batch energy-depth theorem.  Order the
+unknown optimal support by its safe admission batches and block-factor its
+principal Stieltjes matrix.  Retaining only the diagonal and first block
+subdiagonal of the Cholesky factor gives a block-bidiagonal M-matrix with
+singular values in `[sqrt(alpha),sqrt(2)]`.  Chebyshev inverse decay on that
+block chain proves
 
-An overlapping-threshold corollary makes this robust to certified numerical
-intervals of a predetermined width.  Exact face changes also obey a global
-energy/slack-motion telescope bounded by `alpha`; this is useful potential,
-but it does not pay for explicit updates caused by a dense correction.
+```text
+face_gap(J) <= 8 q_alpha^(2J) + threshold^2/(alpha*rho),
+q_alpha = (sqrt(2/alpha)-1)/(sqrt(2/alpha)+1).
+```
 
-The end-to-end theorem is deliberately conditional.  The missing result is a
-margin-free active-edge continuation primitive that amortizes changing-face
-linear algebra and complete known-threshold boundary reporting within
-`O_tilde(vol(S*) sqrt(kappa(Q)))`, including discovery, repeated scans,
-updates, state traffic, materialization, certification, and output.  Terminal
-support volume alone is insufficient: exact path faces can be every nested
-prefix, giving quadratic cumulative scan volume.
+The distributed threshold term pays every delayed or numerically ambiguous
+release once.  It requires no strict-complementarity or sign-separation
+margin.
 
-On promised endpoint-seeded paths, that changing-face issue is closed in the
-exact-real model: an append-only scalar `LDL^T` recurrence tests the next
-boundary in constant arithmetic per admitted vertex and materializes the
-answer once, for total `O(vol(S*))` work.  This structural theorem shows why
-the repeated-prefix example is a warning about state reuse rather than a path
-lower bound.
+With `threshold=(1/8)*sqrt(alpha*rho*eps_obj)`, only
+`O(alpha^(-1/2) log(1/eps_obj))` batches are needed.  Each batch constructs
+and solves the currently exposed degree-coordinate SDD face from scratch in
+nearly-linear local work.  An exact active-row residual test certifies each
+randomized solve; capped independent retries supply the declared failure
+probability without attributing an unsupported probability interface to the
+SDD black box.  The accepted face is scanned once more and every certified
+boundary residual above threshold is admitted.  Every admitted row lies in the true
+support, so each phase has volume at most `1/rho`.  The resulting randomized
+high-probability algorithm has fully charged expected work
 
-The projected-CG route has an exact four-vertex obstruction.  Starting from
-an exact old face, ordinary CG stays feasible and energy-decreasing but
-overshoots one optimum coordinate at iteration three.  Orthant projection is
-inactive, so projected CG follows the same trajectory.  Run the rational
-audit with:
+```text
+O_tilde(1/(rho*sqrt(alpha)) * log(1/eps_obj)),
+```
+
+including discovery, degree and adjacency access, fresh solver state,
+candidate accumulation, repeated scans, numerical accuracy, materialization,
+orthant projection, and output.  There is no supplied support or global
+preprocessing.  The theorem is in the exact-real algebraic word model with a
+declared certified-retry failure probability; deterministic bit complexity and a
+specific floating-point stability theorem remain separate.
+
+The note retains earlier reusable results: safe batched pivots, the
+margin-free approximate-face dichotomy, the exact energy/slack telescope, an
+activation-once endpoint-path `LDL^T` solver, the fully charged resource
+ledger, and the exact four-vertex counterexample to coordinatewise-monotone
+ordinary/projected face CG.
+
+Run the focused audits with:
 
 ```bash
 python3 verify_counterexample.py
 python3 verify_threshold_dichotomy.py
 python3 verify_path_ldl.py
-```
-
-The checked outputs are stored beside the scripts.  Build the note with:
-
-```bash
+python3 verify_batch_depth.py
+python3 verify_batch_depth_high_precision.py
 make
 ```
 
-The full primary-source map is `docs/literature/lcp-solvers.md`.
+The primary-source map is `docs/literature/lcp-solvers.md`.

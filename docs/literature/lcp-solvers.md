@@ -1,6 +1,6 @@
 # LCP, obstacle, and active-set solvers for the OP2 route
 
-Last source audit: 2026-08-29
+Last source audit: 2026-08-30
 
 This map asks a narrow question: does a primary-source theorem already give
 the fully charged, graph-uniform, output-sensitive solver required by OP2 after
@@ -10,14 +10,22 @@ linked primary paper or author manuscript.  PDF page numbers count from the
 first page of the downloaded PDF; journal page numbers are stated separately
 when useful.
 
-The short answer is **no**.  The closest local result is Wei--Yang's growing
+The short answer for an existing published theorem is **no**.  The closest local result is Wei--Yang's growing
 active-set method, but its proof solves every principal SDD system from scratch
 and scans the current boundary in every outer iteration.  Fast SDD solvers
 remove the condition-number dependence on a *supplied* face, while classical
 LCP/obstacle methods give finite termination or global/asymptotic convergence.
-None of the audited theorems pays for local support discovery, cumulative
+None of the audited source theorems by itself pays for local support discovery, cumulative
 boundary maintenance, changing-face numerical state, and output within
 `O_tilde(vol(S*) / sqrt(alpha))`.
+
+The project note `manuscript/notes/active_edge_lcp/` now supplies the missing
+wrapper by a new threshold-batch Cholesky decay theorem.  It bounds the number
+of complete exposed-face rebuilds by
+`O(alpha^(-1/2) log(1/eps_obj))`, uses Koutis--Miller--Peng only on each
+already exposed degree-scaled SDD face, and certifies every randomized solve
+before any new adjacency list is exposed.  This is a proved-here result, not a
+claim attributed to the audited literature.
 
 ## Verdict table
 
@@ -154,11 +162,20 @@ FOCS 2011.
   `O_tilde(m log n log(1/eta))` work for an input SDD matrix with `m` nonzeros
   and relative energy error `eta`.
 
-**Audit.** Applied to `Q_UU`, this is nearly linear in the nonzeros of a
-*supplied* active face and has only logarithmic accuracy dependence.  Rebuilding
-the chain on every growing face repeats work; building it once on the full
-graph is forbidden global preprocessing.  The theorem neither discovers `U`
-nor maintains boundary violations.
+**Audit.** The normalized principal matrix `Q_UU` need not itself be
+diagonally dominant on an irregular graph.  The applicable supplied system is
+the degree-scaled matrix
+`H_UU = D_U^(1/2) Q_UU D_U^(1/2)
+      = ((1+alpha)/2) D_U - ((1-alpha)/2) A_UU`,
+which is SDD and has `O(vol(U))` nonzeros.  Thus the theorem is nearly linear
+in a *supplied* active face and has only logarithmic energy-accuracy
+dependence.  Rebuilding the chain on every growing face repeats work; building
+it once on the full graph is forbidden global preprocessing.  The theorem
+neither discovers `U` nor maintains boundary violations.  Theorem 4.6 states
+expected work but no arbitrary failure parameter.  BuildChain and Lemma 4.5
+provide a constant-success event; the OP2 note obtains a declared failure
+probability by exact local residual certification and capped independent
+retries, not by attributing a `zeta` interface to Theorem 4.6.
 
 ### Durfee et al., 2019: dynamic Schur complements require global initialization
 
@@ -315,10 +332,11 @@ paper does not state an output-sensitive theorem for an unknown support.
    complements and matrix inverse maintenance use ambient preprocessing and
    ambient-dimension update/query bounds.  They do not supply exposed-volume
    obstacle support discovery.
-6. **The remaining theorem is dynamic and local.**  It must amortize
-   changing-face solves, warm starts or response updates, threshold-key
-   changes, state materialization, and final certification over distinct
-   explored volume.
+6. **A dynamic response theorem is no longer necessary for OP2.**  The active-
+   edge note proves a threshold-batch depth bound and fully charges a bounded
+   number of fresh local face solves and complete active-row scans.  A
+   persistent changing-face response remains open only as a potentially
+   sharper implementation.
 
 The theorem-level formulation and the exact projected-CG obstruction are in
 `manuscript/notes/active_edge_lcp/`.

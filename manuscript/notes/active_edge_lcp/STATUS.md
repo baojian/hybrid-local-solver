@@ -1,154 +1,160 @@
 # Direction status: active_edge_lcp
 
-Last reviewed: 2026-08-29
+Last reviewed: 2026-08-30
 
 State: proved-open
 
 ## Exact question and contract
 
 - **Question:** Can the exact RPPR obstacle LCP be solved by a graph-uniform
-  local active-edge method without a supplied support or repeated-prefix work?
-- **Model:** `c=b-alpha rho D^(1/2)1`, `x>=0`, `w=Qx-c>=0`, and
-  `x_i w_i=0`, with `alpha I <= Q <= I`, point seed, and
+  local algorithm without a supplied support, global preprocessing, or
+  uncharged repeated-prefix work?
+- **Model:** `c=b-alpha*rho*D^(1/2)1`, `x>=0`, `w=Qx-c>=0`, and
+  `x_i w_i=0`, with `alpha I <= Q <= I`, a point seed, and
   `vol(S*)<=1/rho` in the canonical nonzero regime.
-- **Accuracy namespace:** Return feasible `xhat` with RPPR objective gap at
-  most `eps_obj`.  The sufficient local stop is
-  `||g_KKT(xhat)||_2 <= sqrt(2 alpha eps_obj)`; no residual namespace is
-  silently substituted.
-- **Access and charged work:** Charge seed and degree queries, adjacency
-  entries, false activations, repeated scans, changing-face updates, numerical
-  solves, boundary certificates, state traffic, materialization, and output.
-- **Intended result:** A margin-free aggregate continuation and known-threshold reporter with
-  total `O_tilde(vol(S*) sqrt(kappa(Q)) log(1/eps_obj))` work, implying
-  `O_tilde(1/(rho sqrt(alpha)))` for OP2.
+- **Accuracy namespace:** Return feasible `xhat` with RPPR objective gap at most
+  `eps_obj`; dependence on `1/eps_obj` is polylogarithmic.
+- **Access and charged work:** Seed and degree queries, adjacency entries,
+  candidate creation, false activations, repeated scans, face construction,
+  numerical solves, solver state, boundary accumulation and decisions,
+  materialization, projection, and output are all charged.
+- **Intended result:** Theorem `thm:op2` proves randomized high-probability correctness
+  with fully charged expected work
+  `O_tilde(1/(rho*sqrt(alpha)) log(1/eps_obj))` and no supplied support or
+  ambient preprocessing.
 
 ## Strongest proved result
 
-In the exact RPPR obstacle LCP, every negative outside slack of a reachable
-exact face belongs to the unknown optimum support.  Batched negative-slack
-pivots preserve strict positivity, increase all old coordinates, require no
-deletions, and terminate in at most `|S*|` activations.  Violations are
-boundary-only.  This closes support soundness at the mathematical outer-loop
-level without an oracle.
+The threshold-batch energy-depth theorem (`thm:batch-depth`) orders the true
+support by safe admission batches and block-factorizes `Q[S*,S*]`.  Removing
+all Cholesky blocks except the diagonal and first block subdiagonal produces a
+block-bidiagonal M-matrix `C_hat` satisfying
 
-A supplied exact support can be solved by ordinary CG plus one final orthant
-projection in
-`O(vol(S*) / sqrt(alpha) log(1 / eps_obj))` charged row work.  A one-scan
-minimum-norm KKT subgradient certifies objective gap.
+```text
+||C_hat^(-1)||_2 <= 1/sqrt(alpha),
+||C_hat||_2 <= sqrt(2).
+```
 
-The hidden sign-margin issue is closed.  For an approximate face solve with
-residual norm `delta`, any approximate boundary slack below
-`-delta/alpha` is negative on the exact face and is therefore support-safe.
-If no key crosses that threshold and
-`delta/alpha <= sqrt(2 alpha eps_obj)/(1+2 sqrt(|boundary U|))`, orthant
-projection already satisfies the objective target.  The reporter need not
-resolve all exact negative signs.
+Chebyshev inverse decay on `C_hat C_hat^T` and the batch-causality inequality
+give
 
-The finite-precision interface has overlapping thresholds: a certified slack
-interval of predetermined width below twice the residual error either proves
-a safe pivot or proves the projected objective stop.  Refinement therefore
-depends only on the requested objective tolerance, not on key separation.
+```text
+F(x^U_J)-F(x*) <= 8 q_alpha^(2J) + threshold^2/(alpha*rho),
+q_alpha = (sqrt(2/alpha)-1)/(sqrt(2/alpha)+1).
+```
 
-Across exact nested faces, the total squared correction energy and the total
-squared full-slack motion are at most `alpha`.  This is a rigorous heavy-change
-budget, but it does not pay for touching many small boundary-key changes or
-for applying an implicit dense correction.
+The distributed threshold term charges every delayed or ambiguous vertex
+once, when its eventual pivot block is eliminated.  It removes the earlier
+positive-`rho` Krylov-containment gap.
 
-On a promised endpoint-seeded path, append-only scalar `LDL^T` state tests
-each successive boundary in constant arithmetic and materializes once.  This
-gives an exact-real, fully charged `O(vol(S*))` structural solver with no
-global preprocessing.
+Algorithm `alg:threshold-batch` chooses
+`threshold=(1/8)*sqrt(alpha*rho*eps_obj)` and caps the number of phases at
+`O(alpha^(-1/2) log(1/eps_obj))`.  Each phase solves the exposed
+degree-coordinate SDD face to relative energy error
+`(1/32)*sqrt(alpha*rho*eps_obj)`.  An exact active residual test certifies
+absolute face-energy error, and capped independent retries give the requested
+success probability.  The accepted face is scanned and all boundary residuals
+above half the threshold are admitted.  Approximation error makes every pivot
+strictly safe and leaves every unreported exact residual below the declared
+threshold.  Orthant projection of the last face accounts for the remaining
+numerical error.
 
-## Central blocker
-
-Prove the threshold-certified aggregate continuation bound in Definition
-`def:active-edge-contract` of `main.tex`: over all nested true-support faces,
-charge changing-face solve
-state, warm starts, boundary-key updates and queries, interval error,
-materialization, and output within
-`O_tilde(E sqrt(kappa(Q)) log(1 / eps_obj))`, where explored incidence volume
-`E=O_tilde(vol(S*))`.  The difficult interface is a dense positive correction
-on the old face coupled to certifying whether any approximate active-edge key
-crossed the known residual-derived threshold.
-
-Terminal volume does not close this gap.  On endpoint paths the exact safe
-faces can be all prefixes, so a full face solve, materialization, or boundary
-refresh at every pivot costs `Theta(s^2)` for terminal volume `Theta(s)`.
+Every face is contained in `S*`, so its volume is at most `1/rho`.  Multiplying
+this by the proved phase bound yields OP2 while charging every item in the
+resource ledger.
 
 ## Claim ledger
 
-- **Source:** canonical nonnegative optimum/support-volume facts; standard CG
-  rate; Wei--Yang true-support activation and repeated-face work; the audited
-  global LCP, bound-QP, SDD, and obstacle theorems.
-- **Proved here:** exact obstacle/LCP signs and scaling; supplied-support CG
-  work; safe batched pivots; boundary-only discovery; objective certificate;
-  the margin-free approximate-face dichotomy and overlapping interval
-  thresholds; the exact energy/slack-motion telescope; path cumulative-volume
-  obstruction; exact linear-work endpoint-path continuation; four-vertex
-  rational CG overshoot.
-- **Conditional:** the fully charged active-edge contract implies OP2 work
-  `O_tilde(1 / (rho sqrt(alpha)))` with logarithmic objective accuracy.
-- **Measured:** none.
-- **Refuted:** terminal support volume as a cumulative ledger; the invariant
-  `0 <= x_k <= x*_rho` for ordinary or orthant-projected face CG.  Neither is
-  a class lower bound.
-- **Open:** arbitrary-graph dynamic principal response plus complete
-  known-threshold boundary reporting without a supplied support.
+- **Source:** Canonical nonnegative optimum/support-volume facts; standard CG
+  and Chebyshev estimates; Koutis--Miller--Peng's nearly-linear SDD solve on a
+  supplied exposed matrix; audited global LCP/obstacle/bound-QP comparisons.
+- **Proved here:** Exact obstacle/LCP scaling; safe batched pivots;
+  boundary-only discovery; supplied-support CG; local KKT certificate;
+  margin-free threshold and interval dichotomies; exact energy/slack
+  telescope; threshold-batch Cholesky decay; the fully charged graph-uniform
+  OP2 algorithm; path cumulative-volume obstruction; exact activation-once
+  endpoint-path continuation; and the four-vertex projected-CG obstruction.
+- **Conditional:** The persistent active-edge contract remains a stronger
+  changing-face implementation route, but it is not used by the proved OP2
+  theorem.
+- **Measured:** The new batch-depth theorem passed a 1,152-case floating-point
+  grid and an independent 216-case, 100-digit Decimal audit.  These are
+  falsification checks, not proof.  The older threshold, path, and CG scripts
+  use exact rational arithmetic where stated.
+- **Refuted:** Terminal support volume alone as a cumulative-work ledger; and
+  `0<=x_k<=x*_rho` for ordinary or orthant-projected face CG.  Neither is a
+  class lower bound.
+- **Open:** Deterministic finite-precision/bit-complexity guarantees and a
+  persistent response implementation sharper than the proved fresh-batch
+  solver.
+
+## Central blocker
+
+There is no remaining blocker for OP2 in the repository's exact-real
+randomized word model.  The note remains `proved-open` because deterministic
+coefficient-bit complexity and a persistent changing-face implementation are
+strictly stronger targets.  The next falsifiable target is a certified
+finite-precision realization whose bit and adjacency work remains
+polylogarithmic in the requested objective accuracy; this is not needed by
+`thm:op2`.
 
 ## Literature verdict
 
-- Wei--Yang 2026 is the closest local theorem, but solves every nested SDD
-  system from scratch and scans a current boundary per round.
-- Foniok et al. give at most `n` K-LCP pivots from zero, but their vertex
-  oracle evaluates a global principal basis and all `n` cube orientations.
-- Schmelzer--Stoll expose the `sqrt(kappa)` face-CG factor, but retain a global
-  free-set loop, an outer-step factor, and a trajectory-wide decision margin.
-- Koutis--Miller--Peng is usable for a supplied principal SDD matrix; its
-  preprocessing is global and not changing-face support discovery.
-- Durfee--Gao--Goranci--Peng support dynamic terminal additions and coordinate
-  Laplacian queries, but only after full-graph preprocessing, with ambient
-  sublinear time and polynomial accuracy dependence.
-- van den Brand--Nanongkai--Saranurak maintain dense inverses dynamically, but
-  use `O(n^omega)` preprocessing and ambient-polynomial update/query work.
-- Bokanowski--Maroso--Zidani give at most linearly many Howard obstacle
-  policies, but each iteration is a global system solve and policy test.
-- Classical projected-CG, MPRGP, block-pivot, and monotone-multigrid results
-  are global-only or rely on FEM hierarchy/strict-complementarity assumptions.
+- Koutis--Miller--Peng supplies the only algorithmic black box used by the new
+  theorem: a nearly-linear solve for each explicitly exposed SDD face.
+- Wei--Yang remains the closest prior local active-set theorem, but its stated
+  work retains an outer support factor; the batch-depth theorem is new here.
+- Foniok et al., Bokanowski--Maroso--Zidani, Schmelzer--Stoll, classical
+  block-pivot/bound-QP methods, and monotone multigrid do not state the OP2
+  local access and work theorem.
+- Dynamic Laplacian/inverse sources require global preprocessing or ambient
+  polynomial work and are not used.
 
-Exact theorem/page pointers are in `docs/literature/lcp-solvers.md`.
+Exact theorem and page pointers are in `docs/literature/lcp-solvers.md`.
 
 ## Dependencies and reusable outputs
 
 - Formal registry dependencies: none.
 - Canonical authority: `manuscript/notes/problem_definitions/` and shared
   mathematical conventions, read-only.
+- Algorithmic source primitive: the cited nearly-linear SDD theorem.
 - Read-only cross-checks: `evolving_support_cg`,
   `incremental_active_set_sdd`, `aspr23_bound_audit`, `aesp_cd_l1_rppr`,
   `delayed_reflection_ladder`, and `local_solver_oracle_hierarchy`.
-- No material is promoted to the active manuscript.
+- Nothing is promoted to the active manuscript.
 
 ## Verification
 
-- `python3 verify_counterexample.py` uses only exact `Fraction` arithmetic and
-  checks every iterate, step size, energy decrease, conjugacy, and overshoot.
-- `python3 verify_threshold_dichotomy.py` checks 720 exact rational cases and
-  exercises both the support-safe interval report and objective-stop branches,
-  plus 36 exact energy/slack telescopes.
-- `python3 verify_path_ldl.py` checks 580 exact canonical path instances,
-  including full 30-vertex support, against direct principal solves and KKT.
-- The focused note build, note registry, coordination audit, and all 213 tests
-  pass.  All three owned Python scripts pass Ruff lint and format checks.  The
-  full repository format check still reports nine pre-existing files in the
-  separately owned `aesp_cd_l1_rppr` proof-audit direction; exact details are
-  recorded in the coordination handoff.
+- `verify_counterexample.py`: exact rational CG overshoot audit.
+- `verify_threshold_dichotomy.py`: 720 exact rational threshold cases and 36
+  exact energy/slack telescopes.
+- `verify_path_ldl.py`: 580 exact canonical path cases.
+- `verify_batch_depth.py`: randomized structured falsification audit of the
+  block factor, inverse ordering, causal forcing, and stated tail bound.
+- `verify_batch_depth_high_precision.py`: dependency-free 100-digit Decimal
+  audit on 216 canonical path/star instances, including singular-value and
+  inverse-ordering checks.
+- Focused note build and repository audits must be rerun after this proof.
+
+## Independent audit verdict
+
+- A hostile proof audit found no fatal defect in the block Cholesky theorem
+  after the `J=0`, two-face chronology, inverse-ordering, and polynomial-tail
+  wording repairs.
+- A separate end-to-end audit found no fatal defect after adding exact
+  active-residual certification, capped constant-success SDD retries, and the
+  unconditional batch-exposure charge.
+- A source-contract audit verified the canonical signs/scaling and corrected
+  the degree-scaled SDD application and KMP probability interface.
+- Do not promote automatically; manuscript promotion remains a separate
+  controller decision.
 
 ## Resume here
 
-- Exact target: `main.tex`, Definition `def:active-edge-contract`, especially
-  the aggregate bound `eq:aggregate-contract`.
-- First test: a single block expansion `U -> U union J` with implicit Schur
-  response; return one approximate key below `-delta/alpha` or certify none,
-  while charging only new incidences and `sqrt(kappa)` numerical work.
-- Stop/qualify if a dense old-coordinate correction forces replay of all old
-  cut edges.  Do not reintroduce exact-sign refinement: the threshold theorem
-  has already removed that requirement.
+- Proof authority: `sections/body/note.tex`, especially `thm:batch-depth`,
+  `alg:threshold-batch`, and `thm:op2`.
+- For review, recheck the block-Cholesky inverse ordering, two-face causal
+  forcing, certified SDD retry wrapper, and unconditional exposure ledger.
+- The only next research extension is deterministic finite precision or a
+  sharper persistent-response backend; neither should weaken or relabel the
+  proved exact-real OP2 theorem.

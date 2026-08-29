@@ -81,7 +81,10 @@ preconditioning, and fast solution of graph-structured linear systems.
 ### Complementarity, obstacle, and active-set solvers
 
 The theorem-level OP2 audit, including exact PDF pointers and locality
-verdicts, is in [`lcp-solvers.md`](lcp-solvers.md).
+verdicts, is in [`lcp-solvers.md`](lcp-solvers.md).  No audited source states
+the full local theorem; the project note `manuscript/notes/active_edge_lcp/`
+now proves OP2 by combining a new threshold-batch Cholesky depth bound with
+certified supplied-face SDD solves.
 
 - *On the Solution of Large Quadratic Programming Problems with Bound
   Constraints* (Moré and Toraldo, 1991) - projected-gradient identification
