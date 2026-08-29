@@ -71,8 +71,10 @@ coarse factor `1/alpha` at
 `eta=alpha*eps_ppr` and `q=sqrt(alpha)`.  This isolates, rather than hides,
 the last universal rate gap.  An exact low-low `K2` trace has
 `P_*^2=c^3*alpha/(4a)=Theta(alpha)`, so unit point-source mass does not
-automatically improve the clock to the required `O(alpha)` scale.  This is a
-STOP for the clock certificate, not for a stronger reporter.
+automatically improve the global clock to the required `O(alpha)` scale.
+That pulse is terminal, however, so it is not a reporter lower bound: a
+smaller per-row lifetime clock, stopped when the row is admitted or safely
+discarded, remains a live route to closing the low-degree branch.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final

@@ -171,8 +171,10 @@ State: proved-open
   under the coarse bound.  This is a scheme upper bound, not a general lower
   bound.  The distinction is real: an exact low-low `K2` trace has
   `P_*^2=c^3*alpha/(4a)=Theta(alpha)`, so point-source unit mass alone cannot
-  force the `O(alpha)` clock needed by the mixed condition.  This only STOPs
-  the clock certificate, not a different transformed reporter.
+  force a global `O(alpha)` clock.  Its sole pulse is terminal, so this is not
+  a row-reporter lower bound.  A per-row lifetime clock stopped at that row's
+  admission or certified rejection remains open and could still sharpen the
+  simultaneous low-degree branch.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
