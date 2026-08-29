@@ -1,14 +1,15 @@
-# OP2: support-safe acceleration, a decoy obstruction, and remaining routes
+# OP2: a support-safe batched proof and failed scalar acceleration
 
-Date: 2026-08-29
+Date: 2026-08-30
 
 ## Status
 
-This note records a focused attempt on OP2.  It uses `main.tex` in this
-directory as its only project-internal mathematical source.  The support and
-work lemmas below are proved.  A graph-uniform accelerated convergence rate
-for the first candidate was initially isolated as a single lemma and is now
-**refuted** below by a graph-realizable decoy construction.
+This note records a focused proof attempt on OP2.  It uses `main.tex` in this
+directory as its only project-internal mathematical source.  Theorems 9 and
+10 now give an affirmative proof of OP2: exact batched active-set
+reoptimization has a graph-uniform `O(1/sqrt(alpha))` energy depth, and a
+degree-thresholded approximate-SDD implementation preserves both that rate
+and the exact-support work charge.
 
 The main candidate is a maximal subsolution extrapolation.  Unlike standard
 FISTA, every vector whose adjacency lists are scanned is supported inside the
@@ -18,14 +19,16 @@ components, and the resulting worst-case rate is only the ordinary
 `O_tilde(1/alpha)` rate.  Any successful descendant must localize or weight
 its momentum decisions, not merely enforce the same global feasibility test.
 
-The strongest surviving route is exact batch reoptimization of the certified
-active set.  RPPR admits an exact discounted optimal-stopping reformulation,
-and the batch method is Howard policy iteration for the reversible random
-walk.  Its desired `exp(-Theta(j sqrt(alpha)))` energy-depth bound is proved
-here in the graph-uniform `rho=0` limit by Krylov containment, and an exact
-path calculation shows that this scale is sharp.  The corresponding bound
-for arbitrary positive `rho` remains open: stopping states can be released
-late, so the Krylov containment fails.
+The successful route is exact batch reoptimization of the certified active
+set.  Ordering the final support by release batches converts its mutually
+orthogonal phase corrections into blocks of a Cholesky forward solve.
+First-crossing signs and inverse positivity give a weighted tail inequality;
+the spectral bound `||L^{-1}||<=1/sqrt(alpha)` then halves the energy every
+`O(1/sqrt(alpha))` phases.  A threshold
+`Theta(alpha sqrt(rho eps_obj))` absorbs approximate-solve and activation
+margins with only logarithmic accuracy cost.  RPPR's optimal-stopping form
+explains the algorithm, while an exact path calculation shows that the
+`1/sqrt(alpha)` scale is sharp.
 
 ## 1. Obstacle and fixed-point form
 
@@ -856,11 +859,11 @@ both principal systems have gradient zero on `S_{j-1}`, so
 
 Every earlier increment is supported on `S_{j-1}`, which proves property 3.
 
-One phase can be implemented with one nearly-linear SDD solve and one scan of
-`S_j`, for `O_tilde(vol(S*))` fully charged work.  Consequently the following
-single statement would prove OP2.
+One phase consists of one principal SDD solve and one scan of `S_j`.  The
+analytic question is whether only `O_tilde(1/sqrt(alpha))` such phases are
+needed.  The answer is affirmative in exact arithmetic.
 
-#### Exact active-set depth lemma (open)
+#### Theorem 9 (exact active-set depth bound)
 
 There are universal constants `C,c>0` such that the sequence (8a) satisfies
 
@@ -873,18 +876,411 @@ There are universal constants `C,c>0` such that the sequence (8a) satisfies
 
 for every allowed RPPR instance.
 
-Unlike the refuted scalar-MSE statement, (8b) is insensitive to
-vanishing-energy disconnected decoys: every component expands in parallel,
-and exact reoptimization makes its own independent progress.  Weighted-path,
-tree, and sparse-graph searches have not produced a counterexample, but no
-proof is claimed.  The established domination `x_{j+1}>=T(x_j)` gives only
-the weaker factor `1-alpha`; the missing argument must use the exact
-reoptimization or the `Q`-orthogonality of the increments.
+More precisely, if `G_j:=F_rho(x_j)-F_rho(x*)`, then for every `j,m>=0`,
+
+\[
+ G_{j+m}\leq\frac{1}{\alpha(m+1)^2}G_j.    \tag{8b-1}
+\]
+
+Thus every `ceil(sqrt(2/alpha))` further phases reduce the remaining gap by
+at least one half, which implies (8b).
+
+There is a sharper phase-to-phase identity.  Put
+
+\[
+ B_j:=S_j\setminus S_{j-1},\qquad
+ d_j:=x_j-x_{j-1},\qquad
+ r_j:=(h-Qx_{j-1})|_{B_j}>0,
+\]
+
+with `S_{-1}` empty.  Exact reoptimization gives
+
+\[
+ (Qd_j)|_{S_{j-1}}=0,qquad
+ (Qd_j)|_{B_j}=r_j,qquad
+ \|d_j\|_Q^2=d_{j,B_j}^Tr_j.
+\]
+
+Every vertex in `B_{j+1}` failed the preceding boundary test.  Hence its
+new positive violation is an overshoot caused by `d_j` alone:
+
+\[
+ 0<r_{j+1}\leq-(Qd_j)|_{B_{j+1}}.
+\]
+
+Using `Q`-orthogonality of consecutive increments to move this boundary
+flux back to `B_j` yields
+
+\[
+ \boxed{
+ \|d_{j+1}\|_Q^2
+ \leq d_{j+1,B_j}^Tr_j
+ \leq \theta_j\|d_j\|_Q^2,
+ \qquad
+ \theta_j:=\max_{i\in B_j}\frac{d_{j+1,i}}{d_{j,i}}.}
+\]
+
+The same `theta_j` controls the whole old active set, not just its frontier:
+
+\[
+ d_{j+1}\leq\theta_jd_j\quad\hbox{on }S_j.
+\]
+
+Indeed, both increments are `Q`-harmonic on `S_{j-1}` and the displayed
+inequality holds on its boundary `B_j`; inverse positivity of the principal
+`M`-matrix propagates it through `S_{j-1}`.  A gate whose threshold is crossed
+only by a tiny rise has a tiny `r_{j+1}` and is charged accordingly, which is
+the mechanism absent from the scalar-MSE rule.
+
+The same reduction has an exact block-Cholesky form.  Order `S*` by the
+release batches `B_0,B_1,...` and factor the resulting principal matrix as
+
+\[
+ Q_{S^*S^*}=LL^T
+\]
+
+with the same block order.  Cholesky elimination preserves the symmetric
+`M`-matrix property: the off-diagonal blocks of `L` are nonpositive and the
+inverse of each diagonal block is nonnegative.  Define the forward-solve
+blocks
+
+\[
+ z:=L^{-1}h|_{S^*},\qquad z=(z_0,z_1,\ldots).
+\]
+
+Then `z_j>=0`, the phase increment is precisely
+
+\[
+ d_j=L^{-T}(0,\ldots,0,z_j,0,\ldots)^T,
+\]
+
+and therefore
+
+\[
+ \|d_j\|_Q^2=\|z_j\|_2^2,qquad
+ F_\rho(x_j)-F_\rho(x^*)
+ =\frac12\sum_{k>j}\|z_k\|_2^2.
+\]
+
+To verify this, note that the leading block Cholesky factors do not change
+when later blocks are appended.  The restricted solve on the first `j`
+batches is the backward solve using exactly `z_0,...,z_j`; subtracting two
+successive restricted solves leaves the displayed single-block vector.
+Moreover the Schur right-hand side for block `j` is `L_{jj}z_j=r_j>0`, so
+inverse positivity gives `z_j>=0`.
+
+It remains to prove the tail estimate.  Write
+
+\[
+ D:=\operatorname{blockdiag}(L_{00},L_{11},\ldots),
+ \qquad L=D(I-C).
+\]
+
+The block Cholesky sign pattern gives `C>=0`, strictly block lower
+triangular.  The first-crossing rule supplies the crucial adjacent-block
+inequality.  Block `B_i` is positive after solving through `B_{i-1}`, but it
+was nonpositive after solving only through `B_{i-2}`.  In Cholesky
+coordinates these two residuals are respectively
+
+\[
+ L_{ii}z_i>0,
+ \qquad L_{i,i-1}z_{i-1}+L_{ii}z_i\leq0.
+\]
+
+Consequently
+
+\[
+ z_i\leq C_{i,i-1}z_{i-1}                \tag{8b-2}
+\]
+
+coordinatewise.  Fix a tail index `p` and define a block vector `v` by
+`v_i=L_{ii}z_i` for `i>=p` and `v_i=0` otherwise.  Since
+
+\[
+ L^{-1}v=(I-C)^{-1}D^{-1}v,
+\]
+
+the `i`th output block contains, for every `j=p,...,i`, the nonnegative
+adjacent-chain term
+
+\[
+ C_{i,i-1}C_{i-1,i-2}\cdots C_{j+1,j}z_j.
+\]
+
+Repeated use of (8b-2) shows that each such term dominates `z_i`.
+Therefore
+
+\[
+ (L^{-1}v)_i\geq(i-p+1)z_i
+\]
+
+coordinatewise.  On the other hand,
+`||L^{-1}||_2<=1/sqrt(alpha)`.  Also
+`||D||_2<=||L||_2<=1`, because each diagonal block is a submatrix of `L`.
+It follows that
+
+\[
+ \sum_{i\geq p}(i-p+1)^2\|z_i\|_2^2
+ \leq \|L^{-1}v\|_2^2
+ \leq \frac1\alpha\|v\|_2^2
+ \leq \frac1\alpha\sum_{i\geq p}\|z_i\|_2^2. \tag{8b-3}
+\]
+
+Taking `p=j+1` and discarding the first `m` blocks on the left proves
+(8b-1), hence (8b).  This completes the exact-arithmetic proof.
+
+The theorem settles the previously missing graph-uniform phase count and is
+consistent with the exact path lower bound below.  By itself it still uses
+exact principal solves and exact sign tests.  The following thresholded
+version supplies the required approximate-SDD implementation without paying
+for arbitrarily small activation margins.
+
+#### Theorem 10 (thresholded inexact batches prove OP2)
+
+The precision gap in the preceding paragraph can be closed by thresholding
+violations in the natural degree scale.  Let `w_i=sqrt(d_i)`, let
+`eps=eps_obj<alpha/2`, and choose
+
+\[
+ \tau=c_0\alpha\sqrt{\rho\,\mathrm{eps}}
+ \tag{8b-4}
+\]
+
+for a sufficiently small universal constant `c_0`.  Starting from
+`S_0={i:h_i>0}`, perform
+
+\[
+ K=O\!\left(\frac1{\sqrt\alpha}
+       \log\frac1{\mathrm{eps}}\right)
+ \tag{8b-5}
+\]
+
+phases, stopping early if a boundary scan adds nothing.  In a phase, let
+`x^(S)` denote the exact principal solution, and use a standard randomized
+SDD solver to obtain `x_tilde` satisfying
+
+\[
+ \|x_\mathrm{tilde}-x^{(S)}\|_Q
+ \leq\frac{\tau\sqrt\alpha}{4}.            \tag{8b-6}
+\]
+
+Scan the adjacency lists of `S` and add every outside boundary vertex whose
+estimated violation satisfies
+
+\[
+ h_v-(Qx_\mathrm{tilde})_v>2\tau w_v.      \tag{8b-7}
+\]
+
+After the last principal solve, return the certified lower vector
+
+\[
+ \widehat x=
+ \left[x_\mathrm{tilde}-\frac\tau4w|_S\right]_+,
+ \qquad \widehat x|_{V\setminus S}=0.      \tag{8b-8}
+\]
+
+If the solver guarantees (8b-6) in every phase, then
+
+\[
+ F_\rho(\widehat x)-F_\rho(x^*)\leq\mathrm{eps}.
+\]
+
+The work is
+
+\[
+ \widetilde O\!\left(
+   \frac{1}{\rho\sqrt\alpha}
+   \log\frac1{\mathrm{eps}}
+ \right),                                  \tag{8b-9}
+\]
+
+where the tilde hides the SDD accuracy and union-bound logarithms.  Thus OP2
+has an affirmative answer.
+
+##### Proof
+
+First, (8b-6) and `Q>=alpha I` imply the coordinatewise enclosure
+
+\[
+ |x_\mathrm{tilde}-x^{(S)}|\leq\frac\tau4w|_S,
+\]
+
+using `d_i>=1`.  Since `Qw=alpha w` and the off-diagonal entries of `Q` are
+nonpositive, an outside boundary residual is estimated to within
+`(tau/4)w_v`.  Consequently every vertex added by (8b-7) has a truly positive
+violation and therefore belongs to `S*`; every vertex not added has true
+violation at most
+
+\[
+ b\tau w_v,\qquad b:=\frac94.              \tag{8b-10}
+\]
+
+The order-certificate proof preceding Theorem 9 then gives
+`S subseteq S*` in every phase and hence `vol(S)<=1/rho`.
+
+For the convergence analysis, conceptually continue the thresholded exact
+principal process after phase `K` until no violation exceeds the right side
+of (8b-10), and call its final support `U`.  This continuation is only an
+analysis device.  Order `U` by its release batches, factor
+`Q_U=LL^T`, and use the block notation of Theorem 9.  For every block after
+the first, its residual one phase before release was at most
+`b tau w_{B_i}`.  Therefore the exact first-crossing inequality is replaced
+by
+
+\[
+ z_i\leq A_i z_{i-1}+s_i,
+ \quad
+ A_i:=-L_{ii}^{-1}L_{i,i-1}\geq0,
+ \quad
+ s_i:=b\tau L_{ii}^{-1}w_{B_i}\geq0.       \tag{8b-11}
+\]
+
+Every diagonal Schur complement `L_{ii}L_{ii}^T` is at least `alpha I`.
+Since the batches partition a subset of `S*`, (8b-11) gives
+
+\[
+ \|s\|_2^2
+ \leq\frac{b^2\tau^2}{\alpha}
+       \sum_i\|w_{B_i}\|_2^2
+ \leq\frac{b^2\tau^2}{\alpha\rho}.        \tag{8b-12}
+\]
+
+Let `A` be the strictly block-subdiagonal matrix with blocks `A_i`.  In the
+notation `L=D(I-C)` from Theorem 9, `0<=A<=C` entrywise.  Hence
+
+\[
+ \|(I-A)^{-1}\|_2
+ \leq\|(I-C)^{-1}\|_2
+ =\|L^{-1}D\|_2
+ \leq\frac1{\sqrt\alpha}.                 \tag{8b-13}
+\]
+
+Decompose the nonnegative forward coefficients as
+
+\[
+ z\leq y+t,qquad
+ y:=(I-A)^{-1}(z_0,0,\ldots)^T,qquad
+ t:=(I-A)^{-1}(0,s_1,s_2,\ldots)^T.        \tag{8b-14}
+\]
+
+Equations (8b-12)--(8b-14) and (8b-4) make `||t||_2^2` at most a sufficiently
+small constant times `eps`.  The sequence `y` obeys the exact adjacent
+recurrence `y_i=A_i y_{i-1}`.  Repeating the weighted-tail argument (8b-3),
+now with `(I-A)^{-1}`, shows that its squared tail halves every
+`O(1/sqrt(alpha))` blocks.  Moreover `||y||_2<=1`: indeed
+`||z_0||_2^2<=||x^{(U)}||_Q^2<=alpha` and (8b-13) applies.  The choice (8b-5)
+therefore makes the tail of `y` after phase `K` at most a sufficiently small
+constant times `eps`.  From (8b-14), the restricted-objective gap between the
+phase-`K` exact solution and `x^(U)` is at most `eps/2`, after fixing `c_0`
+and the constant in (8b-5).
+
+At `x^(U)`, every remaining positive outside KKT violation is bounded by
+`b tau w_v`.  Such a vertex belongs to `S*`, so their squared degree weights
+sum to at most `1/rho`.  Strong convexity, minimized over the nonnegative
+orthant, gives the standard projected-gradient certificate
+
+\[
+ F_\rho(x^{(U)})-F_\rho(x^*)
+ \leq\frac1{2\alpha}
+   \|[h-Qx^{(U)}]_+\|_2^2
+ \leq\frac{b^2\tau^2}{2\alpha\rho}.       \tag{8b-15}
+\]
+
+Finally (8b-6) makes (8b-8) coordinatewise no larger than the exact phase
+solution and at Euclidean distance at most `(tau/2)w|_S`.  Stationarity on
+`S` therefore bounds the extra output gap by `tau^2/(8rho)`.  Combining this
+with (8b-12)--(8b-15), and taking `c_0` small enough, proves the claimed
+objective accuracy.
+
+Each successful phase scans and solves only inside a subset of `S*`, costing
+`O_tilde(vol(S*))=O_tilde(1/rho)`.  The absolute accuracy in (8b-6) is
+polynomial in `alpha`, `rho`, and `eps`, so a nearly-linear SDD solver pays
+only logarithmically for it.  Assigning failure probability `delta/K` to
+each solve and taking a union bound proves the high-probability work claim.
+
+#### Audit of the conjugate-gradient LCP route
+
+Li, Nie, Zeng, and Li (2008) give a conjugate-direction algorithm for an LCP
+with a symmetric nonsingular `M`-matrix.  Their index sets are exactly the
+monotone sets above: start with `{i:h_i>0}`, solve on the current principal
+submatrix, and insert all negative-gradient inactive coordinates.  They reuse
+the conjugate directions of an old principal system after the index set grows.
+Their Theorem 3.1 states, in exact arithmetic, the CG estimate
+
+\[
+  \|z^{k+1}-x^*\|_Q
+  \leq
+  2\left(
+    \frac{\sqrt{\lambda_{\max}}-\sqrt{\lambda_{\min}}}
+         {\sqrt{\lambda_{\max}}+\sqrt{\lambda_{\min}}}
+  \right)^k
+  \|z^0-x^*\|_Q.                            \tag{8c}
+\]
+
+Here the eigenvalues are those of `Q_{S^*S^*}`, so RPPR gives
+`lambda_min>=alpha` and `lambda_max<=1`.  If the stated estimate is realized
+by the growing-support trajectory, it is exactly the numerical rate needed
+by OP2, and all direction supports lie in `S*`.
+
+Intermediate conjugate-direction iterates need not be nonnegative.  This does
+not invalidate an objective-gap output: put `p=[z]_+`.  Since both `z` and
+`p` are supported in `S*`, Euclidean projection and the spectral bounds give
+
+\[
+ F_\rho(p)-F_\rho(x^*)
+ =\frac12\|p-x^*\|_Q^2
+ \leq\frac1{2\alpha}\|z-x^*\|_Q^2.          \tag{8d}
+\]
+
+Together with `||x*||_Q^2<=alpha`, (8c)--(8d) would require only
+`O(alpha^{-1/2} log(1/eps_obj))` line searches.
+
+There are two gaps between this statement and OP2.  First, Algorithm 1 in
+the paper leaves construction of the new directions unspecified.  Merely
+being a `Q`-conjugate basis proves finite termination, but does not by itself
+give the standard Chebyshev estimate, whose proof uses the Krylov/minimal
+residual structure of ordinary linear CG.  A Fletcher--Reeves three-term
+update after a support expansion makes the new direction conjugate to the
+last old direction, but not automatically to every earlier zero-extended
+direction.  Thus (8c) is treated here as a valuable literature lead rather
+than a self-contained proof of (8b).
+
+Second, even enforcing the missing conjugacies directly does not meet the
+present work model.  When a principal set grows, zero-extending the old
+directions keeps them mutually `Q`-conjugate, but a new residual direction is
+not in general `Q`-conjugate to the entire old space.  Full
+reorthogonalization costs up to
+
+\[
+  \Theta(k|S|)
+\]
+
+coordinate arithmetic for the `k`th direction and
+`Theta(k^2|S^*|)` cumulatively.  At
+`k=Theta(1/sqrt(alpha))` this recovers an unwanted `1/alpha` factor on sparse
+graphs.  The usual three-term CG recurrence is justified for one fixed
+Krylov space; it does not automatically survive a principal-submatrix
+expansion, because residual entries on not-yet-certified coordinates were
+deliberately omitted.  The 2008 dense-arithmetic statement that the completed
+method costs no more than a full `|S*|`-step CG solve does not supply the
+sparse, truncated, degree-weighted implementation required here.
+
+Before Theorem 10, (8c) isolated another sufficient primitive for OP2:
+
+> maintain the growing-support conjugate-direction sequence through the first
+> `O_tilde(1/sqrt(alpha))` directions in total
+> `O_tilde(vol(S*)/sqrt(alpha))` work.
+
+This historical alternative is weaker than a fully dynamic exact inverse but
+stronger than ordinary fixed-system CG.  It is closely related to the
+nested-SDD route:
+constructing a new direction orthogonal to the old coordinate space is a
+harmonic-extension/Schur-complement operation.
 
 #### Exact optimal-stopping reformulation
 
-There is a useful way to expose the extra structure that a proof of (8b)
-would have to use.  In non-lazy degree coordinates put
+There is a useful way to interpret the extra structure used by Theorem 9.  In
+non-lazy degree coordinates put
 
 \[
   z:=y+\rho\mathbf 1.
@@ -896,7 +1292,7 @@ independent of `z`,
 \[
  \Psi_{\beta,\rho}(y)
  =\frac12z^TL_\beta z-\beta s^Tz+\text{constant},
- \qquad z\geq\rho\mathbf 1.                 \tag{8c}
+ \qquad z\geq\rho\mathbf 1.                 \tag{8e}
 \]
 
 Thus RPPR is exactly the obstacle problem obtained by projecting the PPR
@@ -908,7 +1304,7 @@ Bellman equation
    \rho,
    \frac{\beta s_v}{d_v}
      +(1-\beta)\frac1{d_v}\sum_{u\sim v}z_u^*
- \right\}.                                  \tag{8d}
+ \right\}.                                  \tag{8f}
 \]
 
 This is a discounted optimal-stopping problem for the reversible random walk:
@@ -925,12 +1321,12 @@ setting `z_j=rho` off `S_j` and solving
 \]
 
 then releases every state whose continuation value is strictly larger than
-`rho`.  This proves that (8b) is not merely a generic condition-number claim
+`rho`.  This shows that (8b) is not merely a generic condition-number claim
 for an `M`-matrix: it is a quantitative policy-iteration claim for a
 reversible, degree-normalized stopping problem.  Generic Bellman contraction
-still gives only the discount factor `1-beta=1-Theta(alpha)`.  Any
-`exp(-Theta(j sqrt(alpha)))` proof must therefore use reversibility and the
-Dirichlet energy, not Bellman contraction alone.
+still gives only the discount factor `1-beta=1-Theta(alpha)`.  The
+`exp(-Theta(j sqrt(alpha)))` proof enters through the symmetric `M`-matrix
+Cholesky energy, not Bellman contraction alone.
 
 The reformulation also explains why a ball-growth proof is insufficient.
 Policy evaluation can raise values on old continuation states, causing a
@@ -940,11 +1336,12 @@ effect.  On the other hand, exact searches on paths, weighted bottleneck
 paths, trees, cycles, and sparse random graphs continue to show
 `Theta(1/sqrt(alpha))`-scale energy decay.  The script
 `search_exact_batch_counterexample.py` performs a reproducible heuristic
-search over simple unweighted graphs.  These experiments are falsification
-tests only and are not evidence for (8b).
+search over simple unweighted graphs, and its weighted mode mutates edge
+conductances.  These experiments are retained only as regression and
+falsification tests; Theorem 9 is independent of them.
 
-There is one graph-uniform limiting case where the desired depth estimate is
-provable.  Set `rho=0`, so the obstacle disappears and the right-hand side in
+There is also an independent graph-uniform proof in the limiting case
+`rho=0`.  The obstacle then disappears and the right-hand side in
 normalized coordinates is the sparse PPR source `b`.  Every graph-boundary
 neighbor of `S_j` then has a strictly negative gradient, and hence `S_j` is
 exactly the radius-`j` graph ball around `supp(b)` (within seeded components).
@@ -965,21 +1362,22 @@ trial space.  Comparing with the conjugate-gradient minimizer and using
  \frac12\|x_j-Q^{-1}b\|_Q^2
  \leq
  4\left(\frac{1-\sqrt\alpha}{1+\sqrt\alpha}\right)^{2(j+1)}
- \frac12\|Q^{-1}b\|_Q^2.                    \tag{8e}
+ \frac12\|Q^{-1}b\|_Q^2.                    \tag{8g}
 \]
 
-Thus the exact-batch depth lemma holds, with the desired exponent, in the
-unregularized limit on every graph.  For any fixed finite graph and fixed
+Thus the desired exponent follows in the unregularized limit directly from
+ordinary Krylov containment.  For any fixed finite graph and fixed
 number of phases, the same behavior persists for all sufficiently small
 positive `rho` by strictness of the boundary violations and continuity.  The
-obstruction at general `rho` is now especially precise: the negative dense
-term `-rho alpha sqrt(d)` destroys the Krylov-space containment because a
-stopping vertex can remain unreleased even when it is adjacent to the current
-continuation set.
+obstruction to this particular Krylov proof at general `rho` is the negative
+dense term `-rho alpha sqrt(d)`, which destroys Krylov-space containment
+because a stopping vertex can remain unreleased even when it is adjacent to
+the current continuation set.  The block-Cholesky proof bypasses that
+obstruction.
 
 #### Exact path calculation and sharpness of the scale
 
-The `sqrt(alpha)` scale in (8b), if the lemma is true, cannot be improved.
+The `sqrt(alpha)` scale in Theorem 9 cannot be improved.
 This can be seen exactly rather than experimentally.  Consider longer and
 longer unweighted paths, put the seed at an endpoint, and let the positive
 regularization tend to zero slowly enough that the whole finite path remains
@@ -994,7 +1392,7 @@ Let
 
 \[
   r:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
-  \tag{8f}
+  \tag{8h}
 \]
 
 In non-lazy degree coordinates the half-line solution has the form
@@ -1004,7 +1402,7 @@ In non-lazy degree coordinates the half-line solution has the form
   2y_i-(1-\beta)(y_{i-1}+y_{i+1})=0,
 \]
 
-whose decaying characteristic root is exactly (8f).  The restricted solution
+whose decaying characteristic root is exactly (8h).  The restricted solution
 on `S_j`, with `y_{j+1}=0`, has the form
 
 \[
@@ -1037,12 +1435,12 @@ then reduce the relative gap to the exact expression
 \[
   \frac{G_j}{G_0}
   =\frac{r^{2j}(1+r^2)}{1+r^{2j+2}}.
-  \tag{8g}
+  \tag{8i}
 \]
 
 Every member of the limiting family can be approximated by allowed finite
-instances with `rho>0`, so (8g) is also a lower-bound limit for OP2 instances.
-If `j=t/sqrt(alpha)` and `alpha` tends to zero, (8g) tends to
+instances with `rho>0`, so (8i) is also a lower-bound limit for OP2 instances.
+If `j=t/sqrt(alpha)` and `alpha` tends to zero, (8i) tends to
 
 \[
   \frac{2e^{-4t}}{1+e^{-4t}}.
@@ -1221,22 +1619,19 @@ theorems do not supply this local exposure property.
 
 ## 8. Current priority
 
-The scalar MSE branch is closed negatively, but Theorem 4 identifies a useful
-feasible cone.  The next OP2 attacks, in priority order, are:
+The immediate priority is proof audit rather than another OP2 construction:
 
-1. replace one global momentum by an energy-aware local or multiscale rule,
-   so a coordinate can constrain work only in proportion to a certified
-   objective contribution;
-2. combine the batch-progress bound in Section 7.3 with a dynamic nested-SDD
-   and boundary-reporting structure; or
-3. obtain a genuinely local separation oracle for the grounded-flow dual.
+1. verify the block-Cholesky sign and first-crossing argument under arbitrary
+   simultaneous release batches;
+2. check every constant and norm conversion in the thresholded inexact
+   implementation; and
+3. state the resulting OP1 corollary using the already-proved reduction.
 
-A componentwise-MSE variant immediately defeats the disconnected form of the
-decoy example, but no safe partition rule or accelerated rate is proved.
-Simply thresholding tiny coordinates is also insufficient without charging
-their accumulated coupling error.  The accuracy-transfer proposition offers
-room for such a charge, because an additive regularization buffer costs only
-`alpha delta` in the final objective.
+The scalar MSE counterexample and the conjugate-gradient audit remain useful
+negative controls: the proof depends essentially on exact batch
+reoptimization, Cholesky inverse positivity, and degree-scaled thresholding.
+The grounded-flow and dynamic nested-SDD routes are now alternatives rather
+than prerequisites for OP2.  OP3 remains open.
 
 ## Public sources used for comparison
 
@@ -1249,3 +1644,7 @@ room for such a charge, because an additive regularization buffer costs only
 - D. Martinez-Rubio, E. Wirth, and S. Pokutta, *Accelerated and Sparse
   Algorithms for Approximate Personalized PageRank and Beyond*,
   [COLT 2023](https://proceedings.mlr.press/v195/martinez-rubio23b.html).
+- D.-H. Li, Y.-Y. Nie, J.-P. Zeng, and Q.-N. Li, *Conjugate Gradient Method
+  for the Linear Complementarity Problem with S-Matrix*, Mathematical and
+  Computer Modelling 48 (2008), 918--928,
+  [doi:10.1016/j.mcm.2007.10.017](https://doi.org/10.1016/j.mcm.2007.10.017).

@@ -1,6 +1,6 @@
 # Proof attempts for OP1--OP3
 
-Date: 2026-08-29
+Date: 2026-08-30
 
 ## Scope and status
 
@@ -9,8 +9,8 @@ mathematical source.  Public versions of the papers explicitly cited there
 are used only to identify the guarantees of the named algorithms.  The three
 questions are interpreted as affirmative conjectures.
 
-No complete proof of OP1, OP2, or OP3 is claimed below.  The main concrete
-progress is:
+The companion OP2 note now gives an affirmative proof of OP2 and, through
+Proposition 3 below, OP1.  OP3 remains open.  The main concrete progress is:
 
 1. an exact normalization and residual-to-semantic-error reduction;
 2. a proof of the dependency chain `OP3 => OP2 => OP1` (with the standard
@@ -26,9 +26,8 @@ progress is:
 7. a support-safe maximal-extrapolation framework for OP2, together with a
    graph-realizable low-energy-decoy counterexample that refutes its proposed
    global scalar accelerated rate;
-8. a weaker exact-batch active-set depth lemma which would prove OP2 using
-   one ordinary SDD solve and boundary scan per phase, without requiring the
-   stronger fully dynamic primitive;
+8. an exact-batch active-set route using one ordinary SDD solve and boundary
+   scan per phase, without requiring the stronger fully dynamic primitive;
 9. an exact reformulation of RPPR as a discounted optimal-stopping problem,
    under which the exact-batch method is monotone Howard policy iteration for
    a reversible random walk;
@@ -36,7 +35,13 @@ progress is:
     in the `rho=0` limit; and
 11. an exact endpoint-path formula showing that
     `Theta(1/sqrt(alpha))` batch phases are necessary for constant energy-gap
-    reduction.
+    reduction;
+12. a block-Cholesky proof that exact first-violation batches halve the
+    remaining RPPR energy every `O(1/sqrt(alpha))` phases on every graph and
+    at every positive regularization level; and
+13. a degree-thresholded approximate-SDD implementation whose activation and
+    solve errors cost only an additive `eps_obj`, while every scanned support
+    remains inside `S*(rho)`.
 
 Throughout, `alpha` denotes the lazy parameter in `main.tex` and
 
@@ -646,23 +651,22 @@ matches this lower bound up to logarithmic factors.
 
 | Question | Status of this attempt | Exact remaining regime/blocker |
 |---|---|---|
-| OP1 | proved for `alpha=1` and for `eps_ppr >= sqrt(alpha)`; OP2 and OP3 each imply it | `eps_ppr < sqrt(alpha)`; localizing accelerated signed iterates, or proving the incremental lemma |
-| OP2 | proved for `alpha=1` and for `rho >= sqrt(alpha)`; exact-batch acceleration is proved in the graph-uniform `rho=0` limit; OP3 would imply it | `0 < rho < sqrt(alpha)`; late stopping-state releases break Krylov containment, while global scalar support-safe momentum is refuted |
+| OP1 | affirmative, by Proposition 3 and the OP2 theorem in the companion note | no mathematical blocker remaining; implementation inherits the thresholded SDD solver from OP2 |
+| OP2 | affirmative: thresholded exact-batch reoptimization uses `O_tilde(1/(rho sqrt(alpha)))` fully charged work and only logarithmic objective-gap precision | independent proof audit of the block-Cholesky and inexact-threshold arguments |
 | OP3 | no arbitrary-graph proof | maintain nested SDD solutions and all boundary violations in total near-final-volume work |
 
-The most economical OP2-specific target is now the exact active-set depth
-lemma in the companion note: if exact batch reoptimization contracts the
-objective by a constant every `Theta(1/sqrt(alpha))` phases, one ordinary SDD
-solve and full active-set scan per phase already meet OP2.  The stronger
-incremental lemma remains the common route to all three questions and still
-needs its boundary-reporting component.  On the acceleration branch, any
-repaired MSE must charge momentum blockers by objective energy; the scalar
-global rule cannot be repaired by a different Lyapunov analysis alone.
-The optimal-stopping shift identifies the exact missing bridge: extend the
-Krylov/CG energy argument from the zero obstacle to positive obstacle levels
-despite delayed policy releases, or construct a reversible stopping instance
-whose unreleased continuation set retains constant energy beyond
-`Theta(1/sqrt(alpha))` phases.
+The OP2 proof orders the final active support by its release batches and
+factors the principal PageRank matrix as `LL^T`.  The phase corrections are
+the blocks of `L^{-1}h`; a block was nonviolating one phase earlier, so the
+nonnegative adjacent transfer dominates the next block.  Applying `L^{-1}`
+to the block residuals accumulates `1,2,...,m` copies, while
+`||L^{-1}||<=1/sqrt(alpha)`.  This gives a constant energy contraction every
+`Theta(1/sqrt(alpha))` phases.  Degree-scaled activation threshold
+`Theta(alpha sqrt(rho eps_obj))` absorbs approximate SDD solves and tiny
+activation margins without leaving `S*(rho)`.  The stronger incremental
+lemma is no longer needed for OP1 or OP2, but remains a possible route to
+OP3's near-final-volume work.  The scalar global momentum rule remains
+refuted and is not used by the proof.
 
 ## Public sources consulted
 
@@ -675,3 +679,7 @@ whose unreleased continuation set retains constant energy beyond
 - D. Martinez-Rubio, E. Wirth, and S. Pokutta, *Accelerated and Sparse
   Algorithms for Approximate Personalized PageRank and Beyond*,
   [COLT 2023](https://proceedings.mlr.press/v195/martinez-rubio23b.html).
+- D.-H. Li, Y.-Y. Nie, J.-P. Zeng, and Q.-N. Li, *Conjugate Gradient Method
+  for the Linear Complementarity Problem with S-Matrix*, Mathematical and
+  Computer Modelling 48 (2008), 918--928,
+  [doi:10.1016/j.mcm.2007.10.017](https://doi.org/10.1016/j.mcm.2007.10.017).

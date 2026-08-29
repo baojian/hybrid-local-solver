@@ -1,7 +1,8 @@
 """Heuristic search for slow exact-batch RPPR active-set instances.
 
-This is a falsification tool, not evidence for a theorem.  It searches simple
-connected unweighted graphs and one-sparse seeds.  The score is the fraction
+This is a falsification tool, not evidence for a theorem.  It searches
+connected graphs and one-sparse seeds; ``--weighted`` also mutates edge
+conductances over several orders of magnitude.  The score is the fraction
 of the initial Q-energy gap remaining after ceil(1/sqrt(alpha)) exact batch
 expansions.  A large score would challenge the depth lemma in
 op2_support_safe_acceleration.md.
@@ -126,6 +127,28 @@ def mutate(adjacency: np.ndarray, rng: random.Random) -> np.ndarray:
     return adjacency.copy()
 
 
+def mutate_weighted(adjacency: np.ndarray, rng: random.Random) -> np.ndarray:
+    candidate = adjacency.copy()
+    vertices = len(candidate)
+    for _ in range(30):
+        left, right = rng.sample(range(vertices), 2)
+        if left > right:
+            left, right = right, left
+        old_weight = candidate[left, right]
+        if old_weight == 0.0:
+            new_weight = math.exp(rng.uniform(-4.0, 4.0))
+        elif rng.random() < 0.08:
+            new_weight = 0.0
+        else:
+            new_weight = old_weight * math.exp(rng.gauss(0.0, 0.7))
+            new_weight = min(max(new_weight, 1.0e-6), 1.0e6)
+        candidate[left, right] = candidate[right, left] = new_weight
+        if candidate.sum(axis=1).min() > 0 and connected(candidate):
+            return candidate
+        candidate[left, right] = candidate[right, left] = old_weight
+    return adjacency.copy()
+
+
 def describe(adjacency: np.ndarray, rho: float, seed: int, history: list[np.ndarray]) -> None:
     edges = [
         (left, right)
@@ -152,12 +175,19 @@ def main() -> None:
     parser.add_argument("--restarts", type=int, default=12)
     parser.add_argument("--steps", type=int, default=3000)
     parser.add_argument("--seed", type=int, default=1729)
+    parser.add_argument("--weighted", action="store_true")
+    parser.add_argument(
+        "--min-relative-rho",
+        type=float,
+        default=1.0e-8,
+        help="lower bound on rho divided by its seed-activation upper bound",
+    )
     args = parser.parse_args()
     rng = random.Random(args.seed)
     best = (0.0, None, None, None, None)
 
     path = path_graph(args.vertices)
-    path_rho = 1.0e-8
+    path_rho = max(1.0e-8, 0.98 * args.min_relative_rho)
     path_value, path_history = score_instance(path, args.alpha, path_rho, 0)
     best = (path_value, path.copy(), path_rho, 0, path_history)
     print(f"path baseline: {path_value:.9f}")
@@ -171,15 +201,22 @@ def main() -> None:
             seed = rng.randrange(args.vertices)
         degree = adjacency[seed].sum()
         rho = 1.0e-8 if restart == 0 else (0.98 / degree) * 10.0 ** (-5.0 * rng.random())
+        rho = max(rho, (0.98 / degree) * args.min_relative_rho)
         value, history = score_instance(adjacency, args.alpha, rho, seed)
         temperature = 0.003
 
         for _ in range(args.steps):
-            proposal = mutate(adjacency, rng)
+            proposal = (
+                mutate_weighted(adjacency, rng)
+                if args.weighted
+                else mutate(adjacency, rng)
+            )
             proposal_seed = seed if rng.random() > 0.03 else rng.randrange(args.vertices)
             maximum_rho = 0.98 / proposal[proposal_seed].sum()
             proposal_rho = min(maximum_rho, rho * math.exp(rng.gauss(0.0, 0.35)))
-            proposal_rho = max(proposal_rho, maximum_rho * 1.0e-8)
+            proposal_rho = max(
+                proposal_rho, maximum_rho * args.min_relative_rho
+            )
             proposal_value, proposal_history = score_instance(
                 proposal, args.alpha, proposal_rho, proposal_seed
             )
