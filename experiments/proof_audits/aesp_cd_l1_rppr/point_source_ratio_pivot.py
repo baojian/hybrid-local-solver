@@ -263,6 +263,33 @@ def graph_distances(
     return distance
 
 
+def audit_response_residual_certificate(
+    hessian: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    active: list[int],
+    rng: Random,
+) -> int:
+    """Audit alpha^2 d_i e_i^2 <= ||D^-1/2 H e||_2^2 exactly."""
+    if not active:
+        return 0
+    error = [F(rng.randrange(-5, 6), 17) for _ in active]
+    residual = [
+        sum(
+            hessian[i][j] * error[column]
+            for column, j in enumerate(active)
+        )
+        for i in active
+    ]
+    dual_norm_squared = sum(
+        residual[row] ** 2 / degree[i]
+        for row, i in enumerate(active)
+    )
+    for row, i in enumerate(active):
+        assert alpha**2 * degree[i] * error[row] ** 2 <= dual_norm_squared
+    return len(active)
+
+
 def audit_hitting_radius(
     hessian: list[list[F]],
     adjacency: list[list[F]],
@@ -654,6 +681,15 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-hitting-column}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-flux}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-occupation}" in source
+    assert (
+        r"\label{lem:aesp-cd-point-source-response-residual-certificate}"
+        in source
+    )
+    assert (
+        r"\label{eq:aesp-cd-point-source-response-residual-certificate}"
+        in source
+    )
+    assert r"\label{eq:aesp-cd-point-source-response-residual-target}" in source
     assert r"\label{lem:aesp-cd-point-source-hitting-radius}" in source
     assert r"\label{eq:aesp-cd-point-source-hitting-event-locality}" in source
     assert r"\label{cor:aesp-cd-point-source-route-output-interface}" in source
@@ -677,6 +713,7 @@ def main() -> None:
     frontier_record_count = 0
     orthogonal_direction_count = 0
     hitting_radius_count = 0
+    residual_certificate_count = 0
     screened_support_count = 0
     for size in range(3, 8):
         for _ in range(40):
@@ -711,6 +748,13 @@ def main() -> None:
                 degree,
                 alpha,
                 list(range(1 + rng.randrange(size - 1))),
+            )
+            residual_certificate_count += audit_response_residual_certificate(
+                hessian,
+                degree,
+                alpha,
+                list(range(1 + rng.randrange(size - 1))),
+                rng,
             )
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
@@ -839,6 +883,10 @@ def main() -> None:
     print("  total exact block-pivot residual injection is at most (1-alpha)/2")
     print(f"  killed hitting-response columns audited={hitting_column_count}")
     print(f"  square-root response-radius coordinates audited={hitting_radius_count}")
+    print(
+        "  residual-certified response coordinates audited="
+        f"{residual_certificate_count}"
+    )
     print(f"  persistent original-frontier records audited={frontier_record_count}")
     print(f"  energy-orthogonal pivot directions audited={orthogonal_direction_count}")
     print(f"  ordinary-PPR screened support coordinates audited={screened_support_count}")

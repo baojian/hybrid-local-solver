@@ -217,6 +217,11 @@ State: proved-open
   simulation has a `Theta(1/alpha)` horizon.  Ball volume and repeated
   overlap are not controlled by this radius, so this is an information-radius
   theorem rather than the missing work theorem.
+  Approximate response arithmetic is no longer a separate blocker: a
+  degree-weighted response residual gives simultaneous certified intervals
+  for every coordinate, and summable per-pivot residual budgets fit inside
+  the finite KKT hysteresis with only logarithmic accuracy overhead.  The
+  unresolved operation is exhaustive event-coordinate location.
   Ordinary point-source PPR also gives a universal screen
   `S*(rho) subset {i:y0_i>alpha*rho/p}` of volume below
   `p/(alpha*rho)`.  This screen is sharp: on an explicit unweighted
@@ -446,6 +451,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-point-source-hitting-column`,
   `lem:aesp-cd-point-source-hitting-radius`,
   `cor:aesp-cd-point-source-route-output-interface`,
+  `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,
   `prop:aesp-cd-point-source-ppr-screening`,
   `cor:aesp-cd-fan-finite-stop`,

@@ -92,6 +92,11 @@ finite-level crossing can occur only within
 `Theta(1/alpha)` mean horizon.  This identifies the right information radius,
 but not yet the work: those neighborhoods can have huge volume and can
 overlap.
+Approximate response values are not an additional barrier: a computable
+degree-weighted response residual gives simultaneous rigorous intervals for
+every response coordinate, and a summable residual schedule is absorbed by
+the finite KKT band at only logarithmic accuracy cost.  What remains is
+output-sensitive coordinate location, not exact response arithmetic.
 
 Consequently the remaining general-graph theorem now has a minimal explicit
 interface.  If a dynamic locator charges only once per crossed finite level,

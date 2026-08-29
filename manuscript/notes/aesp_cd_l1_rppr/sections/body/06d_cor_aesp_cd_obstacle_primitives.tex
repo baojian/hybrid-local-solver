@@ -786,6 +786,76 @@ statement then follows directly from
 certificate.
 \end{proof}
 
+\begin{lemma}[A residual certificate gives simultaneous response intervals]
+\label{lem:aesp-cd-point-source-response-residual-certificate}
+In the setting of
+\cref{prop:aesp-cd-point-source-hitting-column}, let
+\(\widetilde h\in\mathbb R^S\) approximate \(h^{S,w}\), and define its
+degree-unscaled response residual
+\begin{equation*}
+ r:=cA_{Sw}-\widehat H_{SS}\widetilde h.
+\end{equation*}
+Then every old coordinate satisfies
+\begin{equation}
+ \left|h_i^{S,w}-\widetilde h_i\right|
+ \leq\frac{\norm{D_S^{-1/2}r}_2}{\alpha\sqrt{d_i}},
+ \qquad i\in S.
+ \label{eq:aesp-cd-point-source-response-residual-certificate}
+\end{equation}
+Consequently, for a pivot amount \(\Delta_w>0\), the computable condition
+\begin{equation}
+ \Delta_w\norm{D_S^{-1/2}r}_2\leq\alpha\eta
+ \label{eq:aesp-cd-point-source-response-residual-target}
+\end{equation}
+puts every exact increment in the simultaneous interval
+\begin{equation*}
+ \Delta_wh_i^{S,w}
+ \in\left[
+  \Delta_w\widetilde h_i-\frac{\eta}{\sqrt{d_i}},
+  \Delta_w\widetilde h_i+\frac{\eta}{\sqrt{d_i}}
+ \right].
+\end{equation*}
+If successive pivot solves use targets \(\eta_t\) with
+\(\sum_t\eta_t\leq\eta_{\rm tot}\), their accumulated coordinatewise
+response uncertainty is at most
+\(\eta_{\rm tot}/\sqrt{d_i}\).  A summable schedule such as
+\(\eta_t=\Theta(\delta_{\rm fin}/(t+1)^2)\) therefore costs only additional
+logarithmic solver accuracy and can be absorbed by the finite KKT hysteresis.
+It does not locate the coordinates whose intervals cross a retained level;
+that exhaustive output-sensitive step remains the interface in
+\cref{cor:aesp-cd-point-source-route-output-interface}.
+\end{lemma}
+
+\begin{proof}
+Put \(e=h^{S,w}-\widetilde h\).  Since
+\(\widehat H_{SS}e=r\), the degree-normalized vector
+\(z=D_S^{1/2}e\) obeys
+\begin{equation*}
+ Q_{SS}z=D_S^{-1/2}r,
+ \qquad Q_{SS}\succeq\alpha I.
+\end{equation*}
+Thus
+\begin{equation*}
+ \norm{z}_2\leq\alpha^{-1}\norm{D_S^{-1/2}r}_2,
+ \qquad
+ |e_i|=|z_i|/\sqrt{d_i},
+\end{equation*}
+which proves
+\cref{eq:aesp-cd-point-source-response-residual-certificate}.  Multiply by
+\(\Delta_w\), use
+\cref{eq:aesp-cd-point-source-response-residual-target}, and sum the interval
+radii over the pivot sequence.
+For any boundary row \(v\), the resulting key uncertainty is at most
+\begin{equation*}
+ c\sum_{\substack{i\in S\\i\sim v}}\frac{\eta_{\rm tot}}{\sqrt{d_i}}
+ \leq c\,d_v\eta_{\rm tot}.
+\end{equation*}
+Thus taking
+\(\eta_{\rm tot}\leq\delta_{\rm fin}=\alpha\epskkt/(2c)\) consumes at most
+half of the terminal KKT band, which justifies the stated finite-hysteresis
+interface.
+\end{proof}
+
 \begin{lemma}[A point-source pivot has a square-root-scale response radius]
 \label{lem:aesp-cd-point-source-hitting-radius}
 In the setting of

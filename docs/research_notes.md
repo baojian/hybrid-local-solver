@@ -125,6 +125,13 @@ not instantiate this interface because ball volume and repeated overlap are
 uncontrolled; existing named-coordinate dynamic inverse structures likewise
 do not enumerate all one-sided events.
 
+Response accuracy itself is now separated from event location: a
+degree-weighted residual norm gives simultaneous certified intervals for all
+coordinates of an approximate killed-harmonic response. Choosing summable
+per-pivot residual budgets changes only logarithmic solve accuracy and fits
+inside the finite KKT hysteresis. The open operation is therefore exhaustive
+event-coordinate reporting, not exact response evaluation.
+
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
 cell arithmetic, not exact-minimizer output or a floating-point/bit result.
