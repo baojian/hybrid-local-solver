@@ -80,6 +80,11 @@ margin.  The square-root radius itself extends to distance from a general
 source set; point-source structure makes the construction a single rooted
 trace, rather than a collection of components that can merge.  It is not
 needed for the terminal oracle solve.
+If the scaled point-source RPPR supports have pairwise disjoint closed
+neighborhoods, they also decompose exactly at thresholds `rho/s_v`; their
+volumes sum to at most `1/rho`, so the additive sparse-source target follows.
+The remaining multi-source obstruction is therefore shared boundary rows and
+component merging, not the source weights themselves.
 The ordering-independent APPR star already has envelope radius at most one
 and volume `Theta(1/rho)` while spending `Omega(vol(E)/alpha)` work, so the
 gap is repeated state processing rather than distant or oversized output.

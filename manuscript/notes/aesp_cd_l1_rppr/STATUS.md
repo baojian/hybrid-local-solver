@@ -45,6 +45,9 @@ State: proved-open
   `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))`, without any strict active/dual
   margin.  The same square-root radius holds from a general source set;
   point-source structure is needed to make discovery a single rooted trace.
+  Well-separated source components nevertheless decompose exactly at scaled
+  thresholds `rho/s_v` and retain total volume at most `1/rho`; only shared
+  inactive rows and the mergers they trigger obstruct that additive result.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -444,6 +447,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-projective-separation-guard`,
   `cor:aesp-cd-ratio-pivot-finite-stop`,
   `prop:aesp-cd-sparse-source-radius`,
+  `prop:aesp-cd-separated-source-decomposition`,
   `cor:aesp-cd-point-source-coarse-regime`,
   `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-appr-envelope-oracle`,

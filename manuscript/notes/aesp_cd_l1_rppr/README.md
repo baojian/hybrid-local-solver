@@ -51,6 +51,12 @@ set.  The point-source hypothesis instead turns that multi-root geometry
 into one connected rooted discovery trace.  The gap between this oracle
 theorem and the desired algorithm is therefore only the accelerated
 envelope-construction interface.
+For multiple sources, the same geometry is multi-rooted.  If the scaled
+point-source RPPR supports have disjoint closed neighborhoods, their exact
+solutions decompose at thresholds `rho/s_v`, their volumes sum to at most
+`1/rho`, and the additive sparse-source target is recovered.  Shared
+inactive rows are precisely what break this decomposition and force component
+mergers.
 
 Three superficially stronger point-source results do not close that hard
 range after their hidden scope is restored.  The ICDT 2024

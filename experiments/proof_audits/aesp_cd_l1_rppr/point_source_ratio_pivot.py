@@ -329,6 +329,54 @@ def support_components(
     return components
 
 
+def audit_separated_source_decomposition() -> None:
+    """Exact P5 witness for the scaled point-source RPPR decomposition."""
+    size = 5
+    adjacency = [
+        [F(abs(i - j) == 1) for j in range(size)] for i in range(size)
+    ]
+    degree = [1, 2, 2, 2, 1]
+    alpha, rho = F(1, 5), F(3, 20)
+    diagonal, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    hessian = [
+        [
+            diagonal * degree[i]
+            if i == j
+            else -coupling * adjacency[i][j]
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    weight = F(1, 2)
+    point_threshold = rho / weight
+    point_candidates: list[list[F]] = []
+    point_supports: list[set[int]] = []
+    for source in (0, 4):
+        load = [
+            alpha * (F(i == source) - point_threshold * degree[i])
+            for i in range(size)
+        ]
+        support = obstacle_support(hessian, load)
+        assert support == {source}
+        point_supports.append(support)
+        point_candidates.append(obstacle_point(hessian, load, support))
+    assert {0, 1}.isdisjoint({3, 4})
+
+    combined = [
+        weight * (point_candidates[0][i] + point_candidates[1][i])
+        for i in range(size)
+    ]
+    sparse_source = [weight, F(0), F(0), F(0), weight]
+    general_load = [
+        alpha * (sparse_source[i] - rho * degree[i]) for i in range(size)
+    ]
+    general_support = obstacle_support(hessian, general_load)
+    general_point = obstacle_point(hessian, general_load, general_support)
+    assert general_support == point_supports[0] | point_supports[1] == {0, 4}
+    assert combined == general_point
+    assert sum(degree[i] for i in general_support) <= 1 / rho
+
+
 def audit_response_residual_certificate(
     hessian: list[list[F]],
     degree: list[int],
@@ -729,6 +777,9 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-reuse-gap}" in source
     assert r"\label{prop:aesp-cd-sparse-source-radius}" in source
     assert r"\label{eq:aesp-cd-sparse-source-radius}" in source
+    assert r"\label{prop:aesp-cd-separated-source-decomposition}" in source
+    assert r"\label{eq:aesp-cd-separated-source-decomposition}" in source
+    assert r"\label{eq:aesp-cd-separated-source-volume}" in source
     assert r"\label{cor:aesp-cd-point-source-appr-envelope-oracle}" in source
     assert r"\label{cor:aesp-cd-appr-envelope-oracle}" in source
     assert r"\label{eq:aesp-cd-point-source-appr-envelope-oracle-error}" in source
@@ -1024,6 +1075,7 @@ def main() -> None:
     assert exact_updated_ratio == F(1, 3)
     assert approximate_updated_ratio == 0
     sharp_screening_ratio = audit_ppr_screening_sharpness()
+    audit_separated_source_decomposition()
 
     print("PASS point-source ratio-pivot homotopy")
     print(f"  exact random connected instances={checked}, admitted events={event_count}")
@@ -1051,6 +1103,7 @@ def main() -> None:
         "  sparse-source RPPR/APPR radius coordinates audited="
         f"{sparse_radius_coordinates}/{sparse_appr_coordinates}"
     )
+    print("  separated sparse-source RPPR decomposition: exact P5 witness")
     print(
         "  alpha-rho screening sharpness ratio="
         f"{float(sharp_screening_ratio):.12f}"

@@ -124,6 +124,64 @@ superposition; the exact three-vertex merge witness after
 RPPR reporters can all stop while their joint middle key is positive.
 \end{proof}
 
+\begin{proposition}[Well-separated source components recover the additive target]
+\label{prop:aesp-cd-separated-source-decomposition}
+Let $T=\supp(s)$, and for each $v\in T$ let $z^{(v)}$ be the
+point-source RPPR solution at threshold $\rho/s_v$, with support $S_v$.
+Assume every $S_v$ contains $v$, and that the closed graph neighborhoods
+\begin{equation*}
+ N[S_v]:=S_v\cup\{w:\text{$w$ is adjacent to some $u\in S_v$}\}
+\end{equation*}
+are pairwise disjoint.  Then the general-source RPPR solution decomposes
+exactly as
+\begin{equation}
+ x^\star_\rho(s)=\sum_{v\in T}s_vz^{(v)},
+ \qquad
+ \supp(x^\star_\rho(s))=\mathop{\dot\bigcup}_{v\in T}S_v.
+ \label{eq:aesp-cd-separated-source-decomposition}
+\end{equation}
+In particular,
+\begin{equation}
+ \sum_{v\in T}\vol(S_v)
+ \leq\sum_{v\in T}\frac{s_v}{\rho}
+ =\frac1\rho.
+ \label{eq:aesp-cd-separated-source-volume}
+\end{equation}
+Thus any point-source implementation whose work on $S_v$ is
+\(\widetilde O(\vol(S_v)/\sqrt\alpha)\) gives the general source the desired
+\begin{equation*}
+ |T|+\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right)
+\end{equation*}
+work on this separated class.  The loss in
+\cref{prop:aesp-cd-point-source-linear-reduction} is therefore not inherent
+to multiple source weights; it is caused by shared inactive rows and the
+component mergers they trigger.
+\end{proposition}
+
+\begin{proof}
+Put $x^{(v)}=s_vz^{(v)}$.  Scaling the point-source active equations at
+threshold $\rho/s_v$ gives, on $S_v$,
+\begin{equation*}
+ Q_{S_vS_v}x^{(v)}_{S_v}
+ =\alpha s_v(D^{-1/2}e_v)_{S_v}
+  -\alpha\rho(D^{1/2}\one)_{S_v}.
+\end{equation*}
+Pairwise disjoint closed neighborhoods imply that there are no edges between
+distinct supports and that $S_v$ contains no other source.  Hence the sum
+in \cref{eq:aesp-cd-separated-source-decomposition} satisfies every active
+equation of the general-source problem.
+
+Every inactive vertex is adjacent to at most one $S_v$, and no inactive
+vertex is a source.  If it is adjacent to $S_v$, its general-source KKT key
+is exactly $s_v$ times the corresponding inactive key of the point-source
+problem at threshold $\rho/s_v$, hence is nonpositive.  If it is adjacent
+to no support, its key is $-\alpha\rho\sqrt{d_w}<0$.  The summed point is
+therefore the unique global obstacle minimizer.  Finally the point-source
+support cap at threshold $\rho/s_v$ gives
+\(\vol(S_v)\leq s_v/\rho\); summing proves
+\cref{eq:aesp-cd-separated-source-volume} and the work claim.
+\end{proof}
+
 \begin{corollary}[The coarse-accuracy point-source regime is already closed]
 \label{cor:aesp-cd-point-source-coarse-regime}
 The active-set algorithm of
