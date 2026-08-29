@@ -794,6 +794,67 @@ def check_complete_prefix_rank_one() -> int:
     return checks
 
 
+def check_complete_rank_one_fixed_target() -> int:
+    """Replay a full K7 RPPR trace using only the rank-one scalar formulas."""
+    size = 7
+    degree = size - 1
+    alpha = F(1, 17)
+    rho = F(1, 1000)
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    hessian = [
+        [
+            p * degree if i == j else -coupling
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    load = [
+        alpha * F(i == 0) - alpha * rho * degree
+        for i in range(size)
+    ]
+    face = [0]
+    admissions = 0
+    while len(face) < size:
+        principal = [[hessian[i][j] for j in face] for i in face]
+        ground = solve(principal, [alpha * degree] * len(face))
+        active = solve(principal, [load[i] for i in face])
+        volume = degree * sum(ground)
+        new_vertex = min(set(range(size)) - set(face))
+        coupling_rhs = [-hessian[i][new_vertex] for i in face]
+        response = solve(principal, coupling_rhs)
+        ground_coupling = sum(
+            -hessian[new_vertex][face[i]] * ground[i]
+            for i in range(len(face))
+        )
+        gamma = ground_coupling / (alpha * volume)
+        assert response == [gamma * value for value in ground]
+        pivot = hessian[new_vertex][new_vertex] - gamma * ground_coupling
+        key = load[new_vertex] - sum(
+            hessian[new_vertex][face[i]] * active[i]
+            for i in range(len(face))
+        )
+        assert key > 0 and pivot > 0
+        active_time = key / pivot
+        ground_time = (alpha * degree + ground_coupling) / pivot
+        extended = [*face, new_vertex]
+        extended_matrix = [[hessian[i][j] for j in extended] for i in extended]
+        direct_active = solve(extended_matrix, [load[i] for i in extended])
+        direct_ground = solve(extended_matrix, [alpha * degree] * len(extended))
+        assert direct_active == [
+            active[i] + active_time * response[i] for i in range(len(face))
+        ] + [active_time]
+        assert direct_ground == [
+            ground[i] + ground_time * response[i] for i in range(len(face))
+        ] + [ground_time]
+        assert degree * sum(direct_ground) == (
+            (1 + ground_time * gamma) * volume + degree * ground_time
+        )
+        face = extended
+        admissions += 1
+    assert solve(hessian, load) == direct_active
+    return admissions
+
+
 def check_high_gap_sparse_pivot_gray_stop() -> tuple[F, list[F]]:
     """Certify that high gap alone does not make sparse pivots rank one."""
     face_size = 8
@@ -873,6 +934,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source
+    assert r"\label{cor:aesp-cd-exact-rank-one-trace-discovery}" in source
     assert r"\label{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}" in source
 
     size, alpha = 6, F(2, 7)
@@ -932,6 +994,7 @@ def main() -> None:
     )
     lazy_reporter_checks = check_lazy_rank_one_reporter()
     complete_prefix_checks = check_complete_prefix_rank_one()
+    complete_trace_admissions = check_complete_rank_one_fixed_target()
     sparse_pivot_error, sparse_pivot_inertia = check_high_gap_sparse_pivot_gray_stop()
 
     print("PASS point-source homotopy breakpoint audit")
@@ -954,6 +1017,7 @@ def main() -> None:
     )
     print(f"  lazy rank-one planar reporter checks: {lazy_reporter_checks}")
     print(f"  exact complete-prefix rank-one faces: {complete_prefix_checks}")
+    print(f"  output-linear complete-graph trace admissions: {complete_trace_admissions}")
     print(f"  high-gap sparse-pivot gray STOP: retained error={sparse_pivot_error}")
     print(f"    exact shifted LDL pivots: {sparse_pivot_inertia}")
     print(

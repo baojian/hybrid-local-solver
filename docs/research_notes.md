@@ -8,8 +8,8 @@ preserved in the immutable
 The machine-readable note map is
 [`registry.toml`](../manuscript/notes/registry.toml).
 
-Last synchronized: 2026-08-29, after the point-source envelope and dynamic
-event-interface audit.
+Last synchronized: 2026-08-29, after the point-source envelope, dynamic
+event-interface, and proper-face ground/reporter audit.
 
 ## Fixed end-to-end target
 
@@ -52,6 +52,25 @@ nonlinear in `s`, so their point-source runs cannot be superposed before the
 final unregularized PPR approximation is formed. Claims that use connected
 support, rooted exploration, or the support-radius bound are therefore
 point-source claims.
+
+The current verdict is a qualified breakthrough.  Point-source rootedness
+closes the full online cactus class and removes multi-source merge
+bookkeeping.  On arbitrary proper faces, a canonical positive ground
+conjugacy, accelerated finite ground publication, admission replay, and
+conductance-certified rank-one response split now close a second structural
+branch at the target square-root scale.  Exact rank-one responses reduce its
+dynamic reporter to lazy planar extreme queries.  The universal graph theorem
+is still open because sparse high-gap pivots can leave genuine gray rows and
+variable two-port blocks still require an amortized transformed-meld/event
+locator.
+The exact-rank-one trace is now an end-to-end structural theorem, not merely a
+reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
+value are computable from `(s_v,g_v)` and one global ground mass; active
+coordinates use the same lazy triangular transform and are materialized once.
+Candidate and incidence counts are output-linear, so discovery costs
+`O_tilde(vol(S*))` and the final safe Chebyshev solve gives
+`O_tilde(vol(S*)/sqrt(alpha))`.  Complete-graph point-source traces realize
+this theorem exactly.
 
 The point-source restriction is a genuine simplification, but it does not by
 itself close dynamic support discovery.  A proved fan family has every graph

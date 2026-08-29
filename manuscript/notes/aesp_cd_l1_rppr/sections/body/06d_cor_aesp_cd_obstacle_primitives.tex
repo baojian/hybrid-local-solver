@@ -1502,6 +1502,97 @@ extreme-query reduction.  The error statement follows by replacing
 arithmetic; every matrix entry is nonnegative.
 \end{proof}
 
+\begin{corollary}[Exact rank-one traces have output-linear point-source discovery]
+\label{cor:aesp-cd-exact-rank-one-trace-discovery}
+Consider the fixed-target point-source pivoting trace of
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}, and suppose that at every
+admission
+\begin{equation}
+ H_A^{-1}(-H_{Aw})=\gamma_wh_A
+ \label{eq:aesp-cd-exact-rank-one-trace-hypothesis}
+\end{equation}
+holds.  Then the exact RPPR support, restricted solution, and terminal KKT
+certificate can be found in
+\begin{equation}
+ \widetilde O(\vol(S^\star))
+ \label{eq:aesp-cd-exact-rank-one-trace-work}
+\end{equation}
+exact-real work and \(O(\vol(S^\star))\) memory.
+
+Indeed, retain the row pair \((s_v,g_v)\) from
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter} and the scalar ground
+mass
+\begin{equation*}
+ \mathsf v_A:=\sum_{i\in A}d_ih_{A,i}.
+\end{equation*}
+For the selected positive row \(w\),
+\begin{equation}
+ \gamma_w=\frac{s_w}{\alpha\mathsf v_A},
+ \qquad
+ K^A_{ww}=H_{ww}-\gamma_ws_w,
+ \qquad
+ x_w=\frac{g_w}{K^A_{ww}},
+ \qquad
+ t_w=\frac{\alpha d_w+s_w}{K^A_{ww}}.
+ \label{eq:aesp-cd-exact-rank-one-trace-scalars}
+\end{equation}
+The common triangular update
+\cref{eq:aesp-cd-proper-face-rank-one-two-state} advances every nonneighbor
+row lazily, the newly scanned neighbors are rewritten explicitly, and
+\begin{equation*}
+ \mathsf v_{A\cup\{w\}}
+ =(1+t_w\gamma_w)\mathsf v_A+d_wt_w.
+\end{equation*}
+The same common matrix applied to each active pair \((h_i,x_i)\), with the
+new pair \((t_w,x_w)\) inserted in current coordinates, permits one terminal
+materialization.
+
+Combining \cref{eq:aesp-cd-exact-rank-one-trace-work} with
+\cref{cor:aesp-cd-final-face-chebyshev} gives
+\begin{equation*}
+ \widetilde O\left(\frac{\vol(S^\star)}{\sqrt\alpha}\right)
+ \leq\widetilde O\left(\frac1{\rho\sqrt\alpha}\right)
+\end{equation*}
+end-to-end point-source RPPR work.  Under the standard
+\(\rho=\varepsilon_{\rm ppr}/2\) reduction, this is the desired
+\(\widetilde O(1/(\sqrt\alpha\varepsilon_{\rm ppr}))\) PPR scale.  The complete
+graph prefixes of
+\cref{cor:aesp-cd-complete-prefix-rank-one-reporter} satisfy the hypothesis.
+\end{corollary}
+
+\begin{proof}
+For a pivot right-hand side, the transformed load in
+\cref{cor:aesp-cd-proper-face-rank-one-inverse} is
+\(f_i=k_{w,i}/d_i\).  Hence
+\begin{equation*}
+ \bar f
+ =\frac{\sum_i d_ih_{A,i}(k_{w,i}/d_i)}
+        {\mathsf v_A}
+ =\frac{s_w}{\mathsf v_A}.
+\end{equation*}
+Under the exact rank-one hypothesis,
+\(\gamma_w=\bar f/\alpha\), proving the first identity in
+\cref{eq:aesp-cd-exact-rank-one-trace-scalars}.  Block elimination gives
+\begin{equation*}
+ K^A_{ww}
+ =H_{ww}+H_{wA}H_A^{-1}(-H_{Aw})
+ =H_{ww}-\gamma_ws_w.
+\end{equation*}
+The fixed-target Schur step gives \(x_w=g_w/K^A_{ww}\), while
+\cref{eq:aesp-cd-proper-face-ground-admission-exact} gives the formula for
+\(t_w\).  The two-state and ground-mass recurrences now follow by direct
+substitution.
+
+By \cref{lem:aesp-cd-point-source-frontier-universe}, the number of candidate
+records and the total newly scanned direct incidences are
+\(O(\vol(S^\star))\).  The planar lazy reporter from
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter} therefore proves the
+discovery work, and every support coordinate is inserted once.  The terminal
+KKT certificate is exactly the no-positive-key condition in
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}.  The support-volume cap
+\(\vol(S^\star)\leq1/\rho\) and the final-face solve prove the last claim.
+\end{proof}
+
 \begin{corollary}[Complete-graph prefixes realize the exact rank-one reporter]
 \label{cor:aesp-cd-complete-prefix-rank-one-reporter}
 Let the ambient graph be \(K_n\), let \(d=n-1\), and let \(A\) be any proper

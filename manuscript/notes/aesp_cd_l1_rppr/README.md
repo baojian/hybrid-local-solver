@@ -5,6 +5,20 @@ coordinate descent for the shared regularized PageRank model. The proof source
 is `main.tex` and its included sections; [`STATUS.md`](STATUS.md) is the
 current claim ledger and handoff.
 
+The point-source restriction has produced a real but qualified breakthrough.
+It closes the online cactus class, and it now closes a conductance-certified
+proper-face branch through accelerated finite ground publication, exact
+admission replay, low-rank response intervals, and a lazy planar reporter for
+the zero-band case.  It does not yet prove the universal graph theorem:
+sparse high-gap pivots can retain nonzero gray bands, while variable two-port
+blocks still need an amortized transformed-meld/event locator.
+For an exact-rank-one trace this is already end to end: the Schur pivot and
+both admission scalars are recovered from the two row states and one global
+ground mass, active coordinates share the same lazy transform, and one final
+materialization plus safe Chebyshev solve gives
+`O_tilde(vol(S*)/sqrt(alpha))`.  Complete-graph point-source traces satisfy
+the hypothesis exactly.
+
 The oracle-free end-to-end contract is the canonical point-source problem
 `s=e_v`.  The shared definitions remain general.  Linearity extends a proved
 point-source PPR solver to a sparse distribution with work

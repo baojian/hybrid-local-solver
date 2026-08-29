@@ -144,6 +144,11 @@ State: proved-open
   Complete-graph prefixes give an exact nonvacuous family: every pivot response
   is the fixed multiple `(1-alpha)/(2*alpha*(n-1))` of the current ground, so
   the gray band vanishes.
+  More generally, every trace whose pivot columns are exact ground multiples
+  has output-linear discovery: the Schur pivot and admission scalars use only
+  `(s_v,g_v)` plus global ground mass, active values share the same lazy
+  transform, and the final face solve yields
+  `O_tilde(vol(S*)/sqrt(alpha))` end-to-end work.
   The converse is false: an exact `K8` face with two exterior leaves passes
   the required high-gap threshold at `alpha=1/17,q=1/4`, while a sparse leaf
   pivot has retained high-mode coordinate `-281/20320`.  Hence high gap alone
@@ -602,6 +607,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
   `cor:aesp-cd-complete-prefix-rank-one-reporter`,
+  `cor:aesp-cd-exact-rank-one-trace-discovery`,
   `prop:aesp-cd-high-gap-sparse-pivot-gray-stop`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
