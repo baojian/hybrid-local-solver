@@ -418,8 +418,13 @@ solve.
 A truncated killed-walk Neumann series constructs that one-sided ground
 certificate locally and monotonically, with residual factor
 `((1-alpha)/(1+alpha))^K`.  It closes correctness without an eigensolver, but
-its `O(vol(A)/alpha)` scale is not accelerated; a square-root-work one-sided
-ground certificate is now the precise preprocessing target.
+its `O(vol(A)/alpha)` scale is not accelerated.  A signed Chebyshev scratch
+solve followed by the safe Stieltjes max-retraction does achieve the same
+one-sided certificate in `O_tilde(vol(A)/sqrt(alpha))` work: the explicit
+positive checkpoint `2*alpha/(1+alpha)*sqrt(d)` keeps the publication on the
+full face, while the output error bound controls every residual coordinate.
+Hence the ground preprocessing loss is closed; the conductance/Poincare lower
+certificate itself remains a separate structural hypothesis.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

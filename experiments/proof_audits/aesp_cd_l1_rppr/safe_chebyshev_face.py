@@ -150,6 +150,39 @@ def check_literal_chebyshev_stop_and_safe_retraction() -> None:
     assert all(entry >= 0 for entry in guarded_lower_residual)
 
 
+def check_accelerated_ground_publication() -> None:
+    """Audit the positive checkpoint and finite ground residual interface."""
+    alpha, hessian, walk, denominator = cube_star_face()
+    size = len(hessian)
+    rhs = [alpha] * size
+    exact = solve(hessian, rhs)
+    center = (1 + alpha) / 2
+    checkpoint = [alpha / center] * size
+    checkpoint_residual = [
+        rhs[i] - matvec(hessian, checkpoint)[i] for i in range(size)
+    ]
+    assert all(value > 0 for value in checkpoint)
+    assert all(value >= 0 for value in checkpoint_residual)
+    raw_residual = degree_two_residual(walk, denominator, checkpoint_residual)
+    raw_error = solve(hessian, raw_residual)
+    semi_iterate = [exact[i] - raw_error[i] for i in range(size)]
+    delta = max(max(-value, F(0)) / alpha for value in raw_residual)
+    candidate = [max(semi_iterate[i] - delta, F(0)) for i in range(size)]
+    published = [max(checkpoint[i], candidate[i]) for i in range(size)]
+    residual = [rhs[i] - matvec(hessian, published)[i] for i in range(size)]
+    assert all(published[i] >= checkpoint[i] > 0 for i in range(size))
+    assert all(value >= 0 for value in residual)
+
+    # Here v=one, d_min=1, vol=size, and C=(1+sqrt(size))/alpha=3/alpha.
+    c_ret = F(3) / alpha
+    raw_square = sum(value * value for value in raw_residual)
+    error_square = sum((exact[i] - published[i]) ** 2 for i in range(size))
+    residual_square = sum(value * value for value in residual)
+    assert error_square <= c_ret**2 * raw_square
+    assert residual_square <= error_square
+    assert all(value**2 <= c_ret**2 * raw_square for value in residual)
+
+
 def convolve(left: list[F], right: list[F]) -> list[F]:
     """Multiply two restart polynomials in coefficient form."""
     product = [F(0)] * (len(left) + len(right) - 1)
@@ -229,17 +262,20 @@ def check_source_scope() -> None:
     assert "cor:aesp-cd-collatz-small-shift" in source
     assert "prop:aesp-cd-positive-polynomial-stop" in source
     assert "prop:aesp-cd-chebypush-stability-stop" in source
+    assert "cor:aesp-cd-proper-face-accelerated-ground-certificate" in source
     assert "signed intermediate residuals" in source
 
 
 def main() -> None:
     check_literal_chebyshev_stop_and_safe_retraction()
+    check_accelerated_ground_publication()
     check_positive_polynomial_obstruction()
     check_chebypush_stability_stop()
     check_source_scope()
     print("Safe fixed-face Chebyshev audit passed")
     print("  cube proper S4: literal degree-two residual is negative and overshoots")
     print("  max Stieltjes checkpoint: order-safe, with a strict full-face witness")
+    print("  proper-face ground solve: accelerated signed scratch, finite safe residual")
     print("  positive coefficients/restarts: exact Omega(condition number) STOP")
     print("  high-girth cubic wave: ChebyPush l1 stability grows as (4/3)^(k-1)")
 

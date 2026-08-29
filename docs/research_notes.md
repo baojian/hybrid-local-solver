@@ -244,8 +244,15 @@ ground certificate.  Truncating the killed-walk Neumann series after `K`
 terms gives an exact nonnegative residual bounded by
 `((1-alpha)/(1+alpha))^K * alpha*d`.  This removes the logical eigensolver
 oracle, but costs `O(vol(A)/alpha * log(1/eps_h))`; obtaining the same
-one-sided enclosure in accelerated `O_tilde(vol(A)/sqrt(alpha))` work remains
-the preprocessing gap on this branch.
+one-sided enclosure in accelerated work is nevertheless possible.  Run
+ordinary signed Chebyshev scratch on the normalized face, then apply the safe
+Stieltjes max-retraction over the explicit positive checkpoint
+`2*alpha/(1+alpha)*sqrt(d)`.  The published residual is nonnegative on every
+coordinate, and driving the raw residual below its explicit norm target gives
+the relative upper residual certificate in
+`O_tilde(vol(A)/sqrt(alpha))` work.  Thus the ground preprocessing loss is
+closed; obtaining or verifying the conductance/Poincare lower bound remains a
+separate structural condition.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

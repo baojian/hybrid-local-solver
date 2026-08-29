@@ -848,11 +848,10 @@ uses
  \label{eq:aesp-cd-proper-face-walk-ground-work}
 \end{equation}
 work.  It is therefore a correctness closure, not yet an accelerated
-preprocessing bound.  Replacing it by a
-\(\widetilde O(\vol(A)/\sqrt\alpha)\) one-sided residual construction would
-remove the remaining preprocessing loss on the conductance branch; ordinary
-signed Chebyshev accuracy alone does not imply the required coordinatewise
-residual enclosure.
+preprocessing bound.  The next corollary removes this loss by combining
+signed Chebyshev scratch with a safe Stieltjes publication; the retraction,
+rather than ordinary signed accuracy alone, is what supplies the required
+coordinatewise residual enclosure.
 \end{proposition}
 
 \begin{proof}
@@ -873,6 +872,101 @@ Multiplication by \(pD_A\) proves
 \((1-\vartheta)\one>0\), and every later summand is nonnegative.
 Substochasticity gives \(0\leq P_A^K\one\leq\one\).
 Finally, \(-\log\vartheta=\Theta(\alpha)\), which proves the work estimate.
+\end{proof}
+
+\begin{corollary}[Safe Chebyshev acceleration closes the finite ground solve]
+\label{cor:aesp-cd-proper-face-accelerated-ground-certificate}
+Let \(A\) be a fixed principal face and put
+\begin{equation*}
+ Q_A:=D_A^{-1/2}H_AD_A^{-1/2},
+ \qquad
+ v_A:=D_A^{1/2}\one,
+ \qquad
+ b_A:=\alpha v_A.
+\end{equation*}
+The exact normalized ground solve \(g_A^\star=Q_A^{-1}b_A\) equals
+\(D_A^{1/2}h_A\).  Define the explicit positive lower checkpoint
+\begin{equation*}
+ y_A:=\frac{2\alpha}{1+\alpha}v_A
+\end{equation*}
+and
+\begin{equation*}
+ C_A:=
+ \frac1\alpha+
+ \frac{\sqrt{\vol(A)}}{\alpha\sqrt{d_{\min}(A)}}.
+\end{equation*}
+Run the Chebyshev semi-iteration for \(Q_Ag=b_A\), from any scratch start,
+until its raw residual \(\widehat r_k=b_A-Q_A\widehat g_k\) satisfies
+\begin{equation}
+ \norm{\widehat r_k}_2
+ \leq
+ \frac{\varepsilon_h\alpha\sqrt{d_{\min}(A)}}{C_A},
+ \label{eq:aesp-cd-proper-face-accelerated-ground-raw-target}
+\end{equation}
+and publish \(\widetilde g_A\) by the maximum-with-\(y_A\) Stieltjes
+retraction in \cref{thm:aesp-cd-safe-chebyshev-face}.  Then
+\(\widetilde g_A\geq y_A>0\) and
+\begin{equation}
+ 0\leq b_A-Q_A\widetilde g_A
+ \leq\varepsilon_h\alpha v_A
+ \qquad\text{coordinatewise}.
+ \label{eq:aesp-cd-proper-face-accelerated-ground-normalized-residual}
+\end{equation}
+Consequently
+\(\widetilde h_A:=D_A^{-1/2}\widetilde g_A\) satisfies the finite ground
+certificate
+\begin{equation*}
+ 0\leq\alpha d_A-H_A\widetilde h_A
+ \leq\varepsilon_h\alpha d_A.
+\end{equation*}
+
+Since \(\alpha I\preceq Q_A\preceq I\), the number of face products is
+\begin{equation}
+ O\left(
+ \alpha^{-1/2}
+ \log\frac{2C_A\norm{\widehat r_0}_2}
+               {\varepsilon_h\alpha\sqrt{d_{\min}(A)}}
+ \right).
+ \label{eq:aesp-cd-proper-face-accelerated-ground-work}
+\end{equation}
+Thus, once the conductance or Poincar\'e lower check itself is available,
+the finite ground geometry, rank-one response intervals, alignment warmup,
+and correction-free proper-face tail all have
+\(\widetilde O(\vol(A)/\sqrt\alpha)\) work.  No exact eigendata, exact ground
+solve, or positive-coefficient accelerated polynomial is being assumed.
+\end{corollary}
+
+\begin{proof}
+The principal normalized matrix satisfies
+\(\alpha I\preceq Q_A\preceq I\) and
+\(Q_Av_A\geq\alpha v_A\).  Moreover,
+\begin{equation*}
+ b_A-Q_Ay_A
+ =\alpha v_A-\frac{\alpha}{p}Q_Av_A\geq0,
+ \qquad p=\frac{1+\alpha}{2},
+\end{equation*}
+because \(Q_Av_A\leq pv_A\) coordinatewise.  Hence \(y_A>0\) is a valid
+published checkpoint for
+\cref{thm:aesp-cd-safe-chebyshev-face}, with
+\(\mu_{\rm sp}=\mu_\upsilon=\alpha\),
+\(L_{\rm sp}=1\), and \(\upsilon=v_A\).  Its output is therefore full-face
+and has nonnegative residual on every coordinate.  The theorem's error bound
+specializes to
+\begin{equation*}
+ \norm{g_A^\star-\widetilde g_A}_2
+ \leq C_A\norm{\widehat r_k}_2.
+\end{equation*}
+Since \(\norm{Q_A}_2\leq1\), the published residual has Euclidean norm at
+most the same right-hand side.  Under
+\cref{eq:aesp-cd-proper-face-accelerated-ground-raw-target}, each coordinate
+is therefore at most
+\(\varepsilon_h\alpha\sqrt{d_{\min}(A)}
+\leq\varepsilon_h\alpha\sqrt{d_i}\), proving
+\cref{eq:aesp-cd-proper-face-accelerated-ground-normalized-residual}.
+Multiplication by \(D_A^{1/2}\) gives the degree-unscaled certificate.
+Finally the Chebyshev residual rate with condition number at most
+\(\alpha^{-1}\) proves
+\cref{eq:aesp-cd-proper-face-accelerated-ground-work}.
 \end{proof}
 
 \begin{corollary}[A conductance-certified correction-free proper-face tail]

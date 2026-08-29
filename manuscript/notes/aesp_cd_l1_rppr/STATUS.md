@@ -116,8 +116,12 @@ State: proved-open
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
-  remaining conductance-branch preprocessing gap is a square-root-work
-  one-sided residual construction, not the spectral algebra.
+  apparent preprocessing loss is removed by signed Chebyshev scratch plus the
+  safe Stieltjes max-retraction over an explicit positive checkpoint.  It
+  publishes the same one-sided residual certificate in
+  `O_tilde(vol(A)/sqrt(alpha))` work.  Thus, conditional on a finite
+  conductance/Poincare lower check, the ground geometry, response intervals,
+  alignment, and fixed-face tail are all at the target scale.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -566,6 +570,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-leakage-conductance`,
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
   `prop:aesp-cd-proper-face-walk-ground-certificate`,
+  `cor:aesp-cd-proper-face-accelerated-ground-certificate`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
