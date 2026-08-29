@@ -1214,6 +1214,102 @@ paid by more than
 \cref{eq:aesp-cd-point-source-toppling-work}.
 \end{proof}
 
+\begin{proposition}[Literal walk sampling does not supply the missing square root]
+\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}
+Assume \(0<\alpha\leq1/2\), and put
+\begin{equation*}
+ \lambda:=\frac{2\alpha}{1+\alpha},
+ \qquad
+ \chi:=1-\lambda=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ \mathsf K:=\lambda(I-\chi AD^{-1})^{-1}.
+\end{equation*}
+Thus \(\mathsf K e_u\) is the endpoint distribution of the ordinary
+\(\lambda\)-terminated PageRank walk from \(u\).  Consider the tempting
+randomized hybrid that first runs nonnegative forward push until its residual
+distribution \(r\) satisfies
+\begin{equation*}
+ R:=\norm r_1\leq1,
+ \qquad
+ \max_i r_i/d_i\leq\vartheta,
+\end{equation*}
+and then estimates the remaining term \(\mathsf K r\) from independent walk
+endpoints whose initial vertex has distribution \(r/R\).
+
+Reversibility gives the simultaneous variance proxy
+\begin{equation}
+ \frac{(\mathsf K r)_v}{d_v}\leq\vartheta
+ \qquad(v\in V).
+ \label{eq:aesp-cd-forward-walk-variance-proxy}
+\end{equation}
+Consequently Bernstein's inequality needs only
+\begin{equation*}
+ N=O\!\left[
+  \left(\frac{\vartheta}{\epsppr^2}
+       +\frac1{\epsppr}\right)
+  \log\frac n\delta
+ \right]
+\end{equation*}
+endpoints for degree-normalized error \(\epsppr\) with failure probability
+at most \(\delta\).  Nevertheless, a literal endpoint costs expected
+\(\Theta(1/\lambda)=\Theta(1/\alpha)\) adjacency steps.  Together with the
+standard forward-push charge \(O(1/(\lambda\vartheta))\), the fully charged
+work is therefore
+\begin{equation}
+ \widetilde O\!\left(
+   \frac1{\lambda\vartheta}
+  +\frac{\vartheta}{\lambda\epsppr^2}
+  +\frac1{\lambda\epsppr}
+ \right),
+ \label{eq:aesp-cd-forward-literal-walk-work}
+\end{equation}
+whose best threshold is \(\vartheta=\Theta(\epsppr)\) and whose scale remains
+\(\widetilde O(1/(\alpha\epsppr))\).
+
+By contrast, if an already charged data structure could return an exact
+\(\mathsf K\)-endpoint in \(O(1)\) work, the same calculation would become
+\begin{equation*}
+ \widetilde O\!\left(
+   \frac1{\lambda\vartheta}
+  +\frac{\vartheta}{\epsppr^2}
+  +\frac1{\epsppr}
+ \right),
+\end{equation*}
+which is minimized at
+\(\vartheta=\Theta(\epsppr/\sqrt\lambda)\) and attains the desired
+\(\widetilde O(1/(\sqrt\alpha\epsppr))\) scale.  Thus point-source
+random-walk correction identifies the same missing object as the deterministic
+analysis---an output-sensitive accelerated endpoint/response oracle---but a
+literal walk sampler is not that oracle.  This is an accounting STOP for this
+specific push--sample implementation, not a lower bound against other
+randomized algorithms, shortcut structures, or global preprocessing.
+\end{proposition}
+
+\begin{proof}
+The symmetric normalization of \(\mathsf K\) gives detailed balance
+\begin{equation*}
+ \frac{\mathsf K_{vu}}{d_v}=\frac{\mathsf K_{uv}}{d_u},
+ \qquad
+ \sum_u\mathsf K_{uv}=1.
+\end{equation*}
+Hence
+\begin{equation*}
+ \frac{(\mathsf K r)_v}{d_v}
+ =\sum_u\frac{r_u}{d_u}\mathsf K_{uv}
+ \leq\vartheta,
+\end{equation*}
+which proves \cref{eq:aesp-cd-forward-walk-variance-proxy}.  For one sampled
+endpoint \(Z\), the normalized summand
+\(Y_v=R\mathbf1_{\{Z=v\}}/d_v\) has
+\(0\leq Y_v\leq1\) and
+\(\operatorname{Var}(Y_v)\leq\mathbb E Y_v\leq\vartheta\).
+Bernstein and a union bound give the displayed sample count.  A geometric
+\(\lambda\)-terminated walk has expected \(\chi/\lambda\) graph moves.
+Adding this cost to the usual forward-push mass telescope gives
+\cref{eq:aesp-cd-forward-literal-walk-work}; the two elementary balances
+prove the remaining claims.
+\end{proof}
+
 \begin{lemma}[Point-source positive-residual mass is nonincreasing]
 \label{lem:aesp-cd-point-source-residual-mass}
 Along any exact fixed-target pivot trace from

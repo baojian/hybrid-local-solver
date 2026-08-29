@@ -440,6 +440,15 @@ current active face.  This samples one dense fill column implicitly, but a
 literal walk still has (O(1/\alpha)) expected length.  The missing
 acceleration is therefore a one-sided threshold reporter for these harmonic
 transports, not merely an ordinary random-walk sampler.
+A separate forward-push/Monte-Carlo audit reaches the same boundary.  After
+pushing to normalized residual threshold `theta`, reversibility bounds every
+degree-normalized residual correction by `theta`, so an `O(1)` endpoint
+oracle would attain the target after balancing
+`theta=eps_ppr/sqrt(alpha)`.  Literal endpoints cost
+`Theta(1/alpha)` walk steps each; charging them moves the optimum back to
+`O_tilde(1/(alpha*eps_ppr))`.  This rules out only the literal push--walk
+implementation, not randomized shortcut preprocessing or a compressed
+endpoint oracle.
 The same homotopy has a margin-free approximate stopping rule:
 $\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
 $\eta$ on the largest remaining critical ratio costs at most

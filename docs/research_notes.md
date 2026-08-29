@@ -59,6 +59,16 @@ vertex adjacent to the source while the exact rule that solves the current
 face and admits every positive exterior key still takes a linear number of
 nonempty batches.  Thus radius controls route length, not the number of
 response changes or restricted-face rebuilds around one root.
+The analogous randomized shortcut has now been audited as well.  Forward
+push to normalized residual threshold `theta`, followed by residual-endpoint
+sampling, has variance only `theta`; with an `O(1)` PageRank-endpoint oracle,
+balancing at `theta=eps_ppr/sqrt(alpha)` would attain exactly the target
+`O_tilde(1/(sqrt(alpha)*eps_ppr))`.  A literal terminated walk, however, has
+expected length `Theta(1/alpha)`.  Charging those graph moves changes the
+balance back to `O_tilde(1/(alpha*eps_ppr))`.  Thus randomization identifies
+the same missing accelerated endpoint/response primitive rather than
+removing it; this is an accounting result for the standard push--sample
+implementation, not a lower bound against shortcut data structures.
 The canonical all-positive Schur batch does have a clean universal fallback:
 its total positive exterior-key mass contracts by at least
 `1-alpha/p`, where `p=(1+alpha)/2`.  This gives an

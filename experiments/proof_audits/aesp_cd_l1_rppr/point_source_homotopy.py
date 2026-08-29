@@ -426,6 +426,50 @@ def check_proper_clique_conductance_witness() -> tuple[F, F, F]:
     return alpha, response, conductance_lower
 
 
+def check_endpoint_kernel(
+    adjacency: list[list[F]], degree: list[int], alpha: F
+) -> int:
+    """Audit the reversible endpoint kernel and residual variance proxy."""
+    size = len(degree)
+    termination = 2 * alpha / (1 + alpha)
+    continuation = 1 - termination
+    walk_system = [
+        [
+            F(i == j) - continuation * adjacency[i][j] / degree[j]
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    columns = [
+        solve(walk_system, [F(i == source) for i in range(size)])
+        for source in range(size)
+    ]
+    kernel = [
+        [termination * columns[source][vertex] for source in range(size)]
+        for vertex in range(size)
+    ]
+    assert all(sum(kernel[vertex][source] for vertex in range(size)) == 1 for source in range(size))
+    assert all(entry >= 0 for row in kernel for entry in row)
+    assert all(
+        kernel[v][u] / degree[v] == kernel[u][v] / degree[u]
+        for u in range(size)
+        for v in range(size)
+    )
+
+    threshold = F(1, 20)
+    residual = [
+        threshold * degree[i] * F(i + 1, size + 1) for i in range(size)
+    ]
+    assert sum(residual) <= 1
+    assert all(residual[i] / degree[i] <= threshold for i in range(size))
+    correction = [
+        sum(kernel[v][u] * residual[u] for u in range(size))
+        for v in range(size)
+    ]
+    assert all(correction[v] / degree[v] <= threshold for v in range(size))
+    return size
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -438,6 +482,7 @@ def main() -> None:
     assert r"\label{cor:aesp-cd-proper-face-finite-ground-certificate}" in source
     assert r"\label{cor:aesp-cd-proper-face-conductance-alignment-tail}" in source
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
+    assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -490,6 +535,7 @@ def main() -> None:
     witness_alpha, witness_response, witness_conductance = (
         check_proper_clique_conductance_witness()
     )
+    endpoint_vertices = check_endpoint_kernel(adjacency, degree, alpha)
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -501,6 +547,7 @@ def main() -> None:
     print("  ground walk: stochastic, nonnegative, and exactly reversible")
     print("  leakage survival and ordinary-conductance comparison: exact on every face")
     print("  finite one-sided ground residual certificate: exact on every face")
+    print(f"  reversible residual endpoint variance proxy: exact on {endpoint_vertices} vertices")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "

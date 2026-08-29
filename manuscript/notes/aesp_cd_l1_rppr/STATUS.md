@@ -37,6 +37,13 @@ State: proved-open
   tightly `Theta(1/(alpha*rho))`.  This separates the remaining question:
   an output-sized envelope exists, while its accelerated construction or
   dynamic reuse is still missing.
+  A forward-push plus residual-endpoint sampler makes the missing primitive
+  especially explicit: reversibility gives variance proxy `theta`, and an
+  `O(1)` endpoint oracle would attain the target after the square-root
+  balance.  Literal terminated walks cost `Theta(1/alpha)` steps per sample,
+  so the fully charged standard implementation remains
+  `O_tilde(1/(alpha*eps_ppr))`.  This is a push--sample accounting STOP, not
+  a lower bound against randomized shortcut structures.
   The ordering-independent APPR star calibrates the distinction sharply:
   its envelope has radius at most one and volume `Theta(1/rho)`, yet APPR
   spends `Omega(vol(E)/alpha)` work on it.
@@ -540,6 +547,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-proper-face-finite-ground-certificate`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
+  `prop:aesp-cd-point-source-literal-walk-sampling-stop`,
   `cor:aesp-cd-point-source-route-output-interface`,
   `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,
