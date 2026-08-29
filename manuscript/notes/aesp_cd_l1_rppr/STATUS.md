@@ -255,6 +255,13 @@ State: proved-open
   for every coordinate, and summable per-pivot residual budgets fit inside
   the finite KKT hysteresis with only logarithmic accuracy overhead.  The
   unresolved operation is exhaustive event-coordinate location.
+  Simultaneously admitting every currently positive Schur row is always
+  legal and contracts total positive exterior-key mass by the exact factor
+  at most `1-alpha/p`.  This yields a universal
+  `O(alpha^(-1) log(1/eps))` batch fallback, but a three-vertex point-source
+  path has limiting batch-mass ratio
+  `(1-alpha^2)/(1+6alpha+alpha^2)=1-Theta(alpha)`, so this direct mass
+  potential does not provide square-root acceleration.
   Ordinary point-source PPR also gives a universal screen
   `S*(rho) subset {i:y0_i>alpha*rho/p}` of volume below
   `p/(alpha*rho)`.  This screen is sharp: on an explicit unweighted
@@ -497,6 +504,7 @@ graph-uniform end-to-end accelerated solver.
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
+  `prop:aesp-cd-point-source-parallel-batch-contraction`,
   `lem:aesp-cd-point-source-frontier-universe`,
   `prop:aesp-cd-point-source-hitting-column`,
   `lem:aesp-cd-point-source-hitting-radius`,

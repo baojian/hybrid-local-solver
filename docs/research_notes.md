@@ -59,6 +59,12 @@ vertex adjacent to the source while the exact rule that solves the current
 face and admits every positive exterior key still takes a linear number of
 nonempty batches.  Thus radius controls route length, not the number of
 response changes or restricted-face rebuilds around one root.
+The canonical all-positive Schur batch does have a clean universal fallback:
+its total positive exterior-key mass contracts by at least
+`1-alpha/p`, where `p=(1+alpha)/2`.  This gives an
+`O(alpha^-1 log(1/eps))` batch bound, but not square-root acceleration; an
+exact point-source path family has one-batch mass ratio
+`(1-alpha^2)/(1+6alpha+alpha^2)=1-Theta(alpha)`.
 The RPPR support is also not merely the positive connected component of the
 ordinary shifted PPR vector: a three-vertex exact point-source instance has a
 strictly active obstacle coordinate whose unconstrained shifted coordinate is

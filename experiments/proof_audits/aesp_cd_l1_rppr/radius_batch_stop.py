@@ -89,14 +89,50 @@ def exact_trace() -> tuple[list[tuple[int, ...]], list[F]]:
     return batches, positive_margins
 
 
+def sharp_killing_contraction() -> None:
+    """Check the exact path multiplier and its first-order alpha gap."""
+    for denominator in (8, 16, 32, 64, 128, 256):
+        alpha = F(1, denominator)
+        p = (1 + alpha) / 2
+        coupling = (1 - alpha) / 2
+        schur_diagonal = 2 * p - coupling * coupling / p
+        multiplier = coupling / schur_diagonal
+        closed_form = (1 - alpha * alpha) / (
+            1 + 6 * alpha + alpha * alpha
+        )
+        assert multiplier == closed_form
+        assert 0 < multiplier < 1
+        # The normalized gap tends to six, so it is Theta(alpha), not
+        # Theta(sqrt(alpha)).  These rational bounds hold on the audited grid.
+        normalized_gap = (1 - multiplier) / alpha
+        assert F(3) < normalized_gap < F(6)
+
+        # Use a positive rational rho small enough that the root-only path
+        # face has W={1} and row 2 becomes positive after that batch.
+        rho = alpha**3
+        y_root = alpha * (1 - rho) / p
+        key_one = -2 * alpha * rho + coupling * y_root
+        key_two = -alpha * rho
+        assert key_one > 0 > key_two
+        new_key_two = key_two + multiplier * key_one
+        assert new_key_two > 0
+        assert new_key_two / key_one < multiplier
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-all-positive-radius-stop}" in source
+    assert (
+        r"\label{prop:aesp-cd-point-source-parallel-batch-contraction}"
+        in source
+    )
     batches, margins = exact_trace()
+    sharp_killing_contraction()
     print("PASS radius-one all-positive batch STOP")
     print("  exact batches", batches)
     print("  positive margins", margins)
     print("  final support radius=1, nonempty batches=5")
+    print("  path batch contraction gap is Theta(alpha)")
 
 
 if __name__ == "__main__":
