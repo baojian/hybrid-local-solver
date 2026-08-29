@@ -5,7 +5,7 @@
 \input{../../tex/shared/research_note_preamble}
 
 \title{Active-Edge Linear Complementarity for Local RPPR:\\
-Exact Safe Pivots, a Fully Charged Continuation Contract,\\
+Threshold-Certified Safe Pivots, Persistent Path Response,\\
 and a Projected-CG Obstruction}
 \author{Baojian Zhou\\
 \small Working research note for \texttt{hybrid-local-solver}}
@@ -37,6 +37,19 @@ there are no false activations or deletions and at most $|\mathcal S_\rho^*|$ pi
 Only graph-boundary coordinates can violate.  A local minimum-norm KKT
 subgradient gives an objective-gap certificate in one charged terminal scan.
 
+We further remove the hidden complementarity-margin issue.  After an
+approximate face solve with residual norm $\delta$, it is enough to report a
+boundary slack below the known threshold $-\delta/\alpha$.  Such a report is
+provably negative for the exact face and hence support-safe.  If no such key
+exists and
+$\delta/\alpha\leq\sqrt{2\alpha\epsobj}/(1+2\sqrt{|\partial U|})$,
+orthant projection already meets the objective target.  Thus the missing data
+structure need not resolve all arbitrarily small signs.
+Exact face changes also satisfy a global energy telescope: the sum of squared
+$\mQ$-norm corrections, and hence the sum of squared full-slack changes, is at
+most $\alpha$.  This magnitude bound does not by itself pay for communicating
+dense corrections to boundary state.
+
 These facts do not prove OP2.  On endpoint paths, the exact faces are nested
 prefixes and a solve or boundary refresh that scans every current face pays
 quadratic cumulative volume although terminal volume is linear.  We isolate
@@ -50,6 +63,13 @@ accuracy.  No audited primary source supplies the contract.  Wei--Yang's 2026
 local active-set method is closest, but explicitly solves each SDD face from
 scratch; global SDD, obstacle, block-pivot, and bound-QP solvers either require
 a supplied face or operate on the full problem.
+
+The repeated-prefix obstruction is not intrinsic on every graph class.  On a
+promised endpoint-seeded path, append-only scalar $LDL^\trans$ elimination
+tests each successive boundary key in constant arithmetic and materializes
+the solution once, giving exact-real $O(\vol(\mathcal S_\rho^*))$ work without
+global preprocessing.  The arbitrary-graph changing-face response remains
+open.
 
 Finally, a four-vertex rational graph refutes the proposed invariant
 $0\leq\vx_k\leq\vx_\rho^*$ for ordinary or orthant-projected face CG.  CG
@@ -105,6 +125,13 @@ orthant projection has work
 $\bigO(\vol(\mathcal S_\rho^*)\alpha^{-1/2}\log(1/\epsobj))$. \\
 \statusproved & A locally computable minimum-norm KKT subgradient certifies
 objective gap at most $\norm{\vg}^2/(2\alpha)$. \\
+\statusproved & A residual-calibrated threshold reporter either returns an
+exactly support-safe pivot or certifies that one orthant projection meets the
+objective target; no unknown sign margin is required. \\
+\statusproved & Exact face corrections have total squared $\mQ$-energy and
+full-slack motion at most $\alpha$ across the entire nested sequence. \\
+\statusproved & Promised endpoint-seeded paths have an append-only scalar
+$LDL^\trans$ solver with exact-real $O(\vol(\mathcal S_\rho^*))$ total work. \\
 \statusconditional & A margin-free active-edge continuation primitive with
 the aggregate ledger in \cref{def:active-edge-contract} implies OP2 at the
 conjectured scale. \\
@@ -114,16 +141,16 @@ prefix volume. \\
 \statusrefuted & Ordinary face CG, and projected CG when its projection is
 inactive, does not maintain $\vzero\leq\vx_k\leq\vx_\rho^*$ even for a
 four-vertex graph M-matrix. \\
-\statusopen & Construct the aggregate continuation/reporter primitive on
-arbitrary graphs without a hidden complementarity margin. \\
+\statusopen & Construct the aggregate changing-face continuation and
+known-threshold reporter primitive on arbitrary graphs. \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
 No theorem in this note is promoted to the active manuscript.  Exact-real
-arithmetic is the baseline.  Whenever finite precision affects a sign test,
-the contract below requires a certified interval or explicitly charged
-refinement; an unknown minimum decision margin is not free.
+arithmetic is the baseline.  The threshold theorem below converts numerical
+face error into a declared decision threshold; finite-precision interval
+evaluation of that threshold remains charged by the contract.
 
 \section{Exact obstacle and LCP reduction}
 \label{sec:reduction}
@@ -382,6 +409,40 @@ reachable face.  The incidence counts follow by charging each exposed edge to
 its endpoint in $U$.
 \end{proof}
 
+\begin{proposition}[Exact-face energy and slack-motion telescope]
+\label{prop:motion-telescope}
+Let $U_0\subset U_1\subset\cdots\subset U_T$ be reachable exact faces and
+write $\vDelta_t=\vx^{U_{t+1}}-\vx^{U_t}$.  Then
+\begin{align}
+ \sum_{t=0}^{T-1}\norm{\vDelta_t}_{\mQ}^2
+ &=2\bigl(\phi(\vx^{U_0})-\phi(\vx^{U_T})\bigr)
+ \leq\alpha,
+ \label{eq:energy-telescope}\\
+ \sum_{t=0}^{T-1}\norm{\vw^{U_{t+1}}-\vw^{U_t}}_2^2
+ &\leq\sum_{t=0}^{T-1}\norm{\vDelta_t}_{\mQ}^2.
+ \label{eq:slack-motion-telescope}
+\end{align}
+The bound controls squared numerical motion, not the number of state cells or
+cut edges touched by an implementation.
+\end{proposition}
+
+\begin{proof}
+Both consecutive face vectors are supported on $U_{t+1}$, and
+$\vx^{U_{t+1}}$ is stationary for the quadratic restricted to that face.
+The exact quadratic identity therefore gives
+\[
+ \phi(\vx^{U_t})-\phi(\vx^{U_{t+1}})
+ =\tfrac12\norm{\vDelta_t}_{\mQ}^2.
+\]
+Summing telescopes.  Since every restricted minimum has objective at most
+$\phi(\vzero)=0$ and at least the global minimum, the zero-start gap bound
+following \cref{thm:supplied-cg} gives the final inequality in
+\cref{eq:energy-telescope}.  Finally,
+$\vw^{U_{t+1}}-\vw^{U_t}=\mQ\vDelta_t$ and
+$\mQ^2\preceq\mQ$ because $\vzero\prec\mQ\preceq\mI$, proving
+\cref{eq:slack-motion-telescope}.
+\end{proof}
+
 \begin{algorithm}[t]
 \caption{Exact active-edge LCP skeleton (not yet an OP2 implementation)}
 \label{alg:skeleton}
@@ -456,6 +517,142 @@ degree-normalized PageRank accuracy
 $\rho+\sqrt{2\epsobj/\alpha}$; this is a consequence, not a replacement for
 the OP2 objective target.
 
+The next result removes the different margin that arises when an approximate
+face solution is used to decide whether a boundary slack is negative.
+
+\begin{theorem}[Margin-free approximate-face dichotomy]
+\label{thm:threshold-dichotomy}
+Let $U$ be a nonempty reachable face, let $B=\partial U$, and put
+$b_U=|B|$.  Let $\vz$ be any vector supported on $U$ and define
+\begin{equation}
+ \vr_U:=\mQ_{UU}\vz_U-\vc_U,
+ \qquad
+ \delta:=\norm{\vr_U}_2,
+ \qquad
+ \eta:=\delta/\alpha,
+ \qquad
+ \tau:=\sqrt{2\alpha\epsobj}.
+ \label{eq:threshold-parameters}
+\end{equation}
+Suppose
+\begin{equation}
+ \eta\leq \frac{\tau}{1+2\sqrt{b_U}}.
+ \label{eq:face-residual-target}
+\end{equation}
+For $j\in B$, form the approximate boundary slack
+$\widehat w_j=(\mQ\vz-\vc)_j$.  Then the following dichotomy provides a
+valid action.
+\begin{enumerate}[label=(\roman*)]
+\item If some $j\in B$ satisfies
+\begin{equation}
+ \widehat w_j<-\eta,
+ \label{eq:safe-threshold-report}
+\end{equation}
+then the exact face slack satisfies $w_j^U<0$.  Thus $j$ is a support-safe
+pivot covered by \cref{thm:safe-pivots}.
+\item If no boundary coordinate satisfies \cref{eq:safe-threshold-report},
+then the feasible vector
+\begin{equation}
+ \widehat\vx_U=[\vz_U]_+,
+ \qquad
+ \widehat\vx_{\bar U}=\vzero
+ \label{eq:threshold-output}
+\end{equation}
+satisfies
+$F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj$.
+\end{enumerate}
+Consequently the reporter need only return a key below the known,
+objective-derived threshold $-\delta/\alpha$, or certify that no such key
+exists.  It never has to resolve an unknown minimum nonzero complementarity
+slack.
+\end{theorem}
+
+\begin{proof}
+Let $\vx^U$ be the exact face vector and set
+$\ve_0=\vz-\vx^U$.  Restricted stationarity gives
+$\mQ_{UU}(\ve_0)_U=\vr_U$, so
+\begin{equation}
+ \norm{\ve_0}_2\leq\delta/\alpha=\eta.
+ \label{eq:face-error-bound}
+\end{equation}
+Because $\norm{\mQ}_2\leq1$, every boundary slack error obeys
+$|\widehat w_j-w_j^U|\leq\eta$.  Hence
+\cref{eq:safe-threshold-report} implies $w_j^U<0$, proving the first case.
+
+Suppose there is no report.  Then
+$w_j^U\geq\widehat w_j-\eta\geq-2\eta$ for every $j\in B$.
+Only boundary coordinates can have negative exact slack, so, with the negative
+part extended by zero,
+\begin{equation}
+ \norm{[\vw^U_{\bar U}]_-}_2\leq2\sqrt{b_U}\,\eta.
+ \label{eq:exact-face-negative-mass}
+\end{equation}
+Let $\ve=\widehat\vx-\vx^U$.  Orthant projection is nonexpansive relative to
+the nonnegative exact face vector, and therefore
+$\norm{\ve}_2\leq\norm{\ve_0}_2\leq\eta$.  Define
+\begin{equation}
+ \vh:=\mQ\ve+
+ \begin{bmatrix}
+  \vzero_U\\ [\vw^U_{\bar U}]_-
+ \end{bmatrix}.
+ \label{eq:constructed-subgradient}
+\end{equation}
+At positive coordinates of $\widehat\vx$, $\vh$ equals the gradient.  At a
+zero coordinate in $U$, choosing zero normal makes the same identity valid;
+outside $U$, subtracting the positive part of $\vw^U$ is an admissible
+nonpositive normal.  Thus
+$\vh\in\partial(\phi+I_{\R_+^n})(\widehat\vx)$.  Equations
+\cref{eq:face-residual-target,eq:exact-face-negative-mass} give
+\[
+ \norm{\vh}_2
+ \leq\norm{\mQ\ve}_2+\norm{[\vw^U_{\bar U}]_-}_2
+ \leq(1+2\sqrt{b_U})\eta
+ \leq\tau.
+\]
+The strong-convexity argument in \cref{thm:kkt-certificate}, which applies to
+every subgradient and not only the minimum-norm one, proves the objective
+claim.
+\end{proof}
+
+\begin{corollary}[Overlapping thresholds remove finite-precision sign margins]
+\label{cor:interval-threshold}
+In the setting of \cref{thm:threshold-dichotomy}, let
+$\bar\eta\geq\delta/\alpha$ be a certified error bound with
+\begin{equation}
+ \bar\eta\leq\frac{\tau}{1+4\sqrt{b_U}}.
+ \label{eq:interval-residual-target}
+\end{equation}
+For each $j\in B$, suppose a certified interval $I_j$ contains
+$\widehat w_j$ and has width strictly less than $2\bar\eta$.  If
+$\sup I_j<-\bar\eta$ for some $j$, then $w_j^U<0$ and the pivot is safe.  If
+there is no such report, the projected vector in
+\cref{eq:threshold-output} has objective gap at most $\epsobj$.
+Thus every key need only be refined to the predetermined additive scale
+$\bar\eta$; no key-dependent separation margin is required.
+\end{corollary}
+
+\begin{proof}
+A report gives
+$w_j^U\leq\widehat w_j+\bar\eta<0$.  Otherwise
+$\sup I_j\geq-\bar\eta$ for every $j$.  Since the interval width is less than
+$2\bar\eta$, its lower endpoint is greater than $-3\bar\eta$, and hence
+$\widehat w_j>-3\bar\eta$.  Therefore
+$w_j^U>-4\bar\eta$ and
+$\norm{[\vw^U_{\bar U}]_-}_2\leq4\sqrt{b_U}\bar\eta$.  Repeating the
+constructed-subgradient proof with
+$\norm{\widehat\vx-\vx^U}_2\leq\delta/\alpha\leq\bar\eta$ gives a
+subgradient of norm at most
+$(1+4\sqrt{b_U})\bar\eta\leq\tau$.
+\end{proof}
+
+For a fixed supplied face, ordinary CG reaches
+\cref{eq:face-residual-target} in
+$O(\sqrt{\kappa(\mQ_{UU})}\log(b_U/(\alpha\epsobj)))$ iterations up to
+constant and initial-gap factors.  The dependence on $b_U$ and
+$1/\epsobj$ is logarithmic.  This theorem closes sign robustness, but it does
+not amortize the matrix-vector products or threshold reports across changing
+faces.
+
 \section{The fully charged active-edge contract}
 \label{sec:contract}
 
@@ -502,7 +699,7 @@ $C_{\mathrm{emit}}$ & Writing the returned support and coordinate values. \\
 \label{tab:ledger}
 \end{table}
 
-\begin{definition}[Margin-free active-edge continuation contract]
+\begin{definition}[Threshold-certified active-edge continuation contract]
 \label{def:active-edge-contract}
 An active-edge primitive satisfies the contract if, for every canonical OP2
 instance and $0<\epsobj<\alpha/2$, when coupled to the safe outer skeleton it
@@ -511,11 +708,15 @@ has the following properties.
 \item \emph{Sound discovery.}  Every admitted coordinate lies in $\mathcal S_\rho^*$.
 Any speculative activation is restored and its entire cost is included in
 $C_{\mathrm{false}}$.
-\item \emph{Complete reporting.}  It either returns a certified negative
-outside slack for the current face or returns a feasible $\widehat\vx$ with
-$\norm{\vg(\widehat\vx)}_2\leq\sqrt{2\alpha\epsobj}$.
-No positive lower bound on an unknown complementarity margin is assumed;
-ambiguous signs are refined or bypassed within the ledger.
+\item \emph{Threshold-complete reporting.}  On a current face $U$, it
+produces $\vz$, $\delta$, and a certified $\bar\eta$ satisfying
+\cref{eq:threshold-parameters,eq:interval-residual-target}.  It maintains
+boundary-slack intervals of width less than $2\bar\eta$ and either returns a
+coordinate whose interval upper endpoint is below $-\bar\eta$, or certifies
+that no such key exists and returns the projected vector in
+\cref{eq:threshold-output}.  All interval construction and refinement is
+included in $C_{\mathrm{bnd}}$.  By \cref{cor:interval-threshold}, no unknown
+complementarity margin is assumed.
 \item \emph{Exploration bound.}  Counting candidate words as above,
 \begin{equation}
  E\leq\softO(\vol(\mathcal S_\rho^*)).
@@ -549,9 +750,10 @@ fully charged work
 \end{theorem}
 
 \begin{proof}
-Soundness and \cref{thm:safe-pivots} keep every exact outer face in
-$\mathcal S_\rho^*$.  Complete reporting and \cref{thm:kkt-certificate} give the
-objective gap.  The shared support-volume theorem gives
+Soundness and \cref{thm:safe-pivots,cor:interval-threshold} keep every exact
+outer face in $\mathcal S_\rho^*$ and make every reported pivot safe.  A
+no-report outcome has the objective gap by
+\cref{cor:interval-threshold}.  The shared support-volume theorem gives
 $\vol(\mathcal S_\rho^*)\leq1/\rho$, while
 $\kappa(\mQ)\leq1/\alpha$.  Substitution into
 \cref{eq:exploration-contract,eq:aggregate-contract} proves
@@ -562,10 +764,12 @@ materialization is uncharged.
 
 The mathematical outer loop already makes $C_{\mathrm{false}}=0$.  The central
 missing lemma is therefore \cref{eq:aggregate-contract}: maintain a changing
-Stieltjes principal response and locate all relevant decreases of
-\cref{eq:boundary-key} in aggregate active-volume times the fixed-face
-$\sqrt\kappa$ scale.  It is acceptable for a construction to have logarithmic
-rekeying or rebuilding levels; it is not acceptable to rescan every prefix.
+Stieltjes principal response to the declared residual target and decide
+whether any approximate key crosses $-\delta/\alpha$, in aggregate
+active-volume times the fixed-face $\sqrt\kappa$ scale.  The theorem no longer
+asks for all exact negative keys.  It is acceptable for a construction to
+have logarithmic rekeying or rebuilding levels; it is not acceptable to
+rescan every prefix.
 
 \begin{proposition}[Terminal volume is insufficient]
 \label{prop:terminal-insufficient}
@@ -597,6 +801,84 @@ This is a representation/implementation obstruction, not a class lower
 bound.  A persistent elimination record solves the same issue on paths; the
 arbitrary-graph response and boundary interface is the unresolved part.
 
+\begin{theorem}[Exact linear-work continuation on endpoint paths]
+\label{thm:path-ldl}
+Suppose the input is promised to be a unit-weight path, the seed is an
+endpoint, and adjacency-list access starts at that endpoint.  In the exact-real
+arithmetic model, the canonical RPPR obstacle problem can be solved, including
+support discovery, state maintenance, one final materialization, and output,
+in
+\begin{equation}
+ O(\vol(\mathcal S_\rho^*))
+ \label{eq:path-linear-work}
+\end{equation}
+work and $O(|\mathcal S_\rho^*|)$ stored words, with no global preprocessing.
+\end{theorem}
+
+\begin{proof}
+Number the path from the seed and use degree coordinates
+$\vy=\mD^{-1/2}\vx$.  Write
+\begin{equation}
+ \mH:=\mD^{1/2}\mQ\mD^{1/2},
+ \qquad
+ \vh:=\mD^{1/2}\vc,
+ \qquad
+ \beta:=\frac{1-\alpha}{2}.
+ \label{eq:path-degree-system}
+\end{equation}
+Then $H_{ii}=a_i:=(1+\alpha)d_i/2$,
+$H_{i,i+1}=-\beta$, and
+$h_i=\alpha\mathbf 1\{i=1\}-\alpha\rho d_i$.
+Every reachable face is a prefix because the current nonempty prefix has only
+one outside boundary coordinate; until termination that coordinate is the
+next path vertex.
+
+Maintain the scalar $LDL^\trans$ elimination of the current prefix.  With
+$p_1=a_1$ and $q_1=h_1$, appending vertex $i$ performs
+\begin{equation}
+ \ell_i=-\frac{\beta}{p_{i-1}},
+ \qquad
+ p_i=a_i-\ell_i^2p_{i-1},
+ \qquad
+ q_i=h_i-\ell_iq_{i-1}.
+ \label{eq:path-ldl-update}
+\end{equation}
+Positive definiteness makes every $p_i>0$.  Eliminating the preceding
+coordinates shows that the current endpoint value is exactly
+\begin{equation}
+ y_i^{U_i}=q_i/p_i.
+ \label{eq:path-endpoint-value}
+\end{equation}
+The only possibly negative outside slack, expressed in degree coordinates,
+is
+\begin{equation}
+ (\mH\vy^{U_i}-\vh)_{i+1}
+ =-\beta y_i^{U_i}-h_{i+1}
+ =\alpha\rho d_{i+1}-\beta y_i^{U_i}.
+ \label{eq:path-next-slack}
+\end{equation}
+If it is negative, \cref{thm:safe-pivots} admits $i+1$ and
+\cref{eq:path-ldl-update} costs constant arithmetic.  If it is nonnegative,
+all other outside coordinates are nonboundary and have positive slack, so the
+current face is the optimum.
+
+Each admitted row is exposed once.  After termination, one backward
+substitution
+\[
+ y_s=q_s/p_s,
+ \qquad
+ y_i=q_i/p_i-\ell_{i+1}y_{i+1}
+\]
+materializes all $s=|\mathcal S_\rho^*|$ values, followed by
+$x_i=\sqrt{d_i}y_i$.  The exposure, state, arithmetic, materialization, and
+output charges are all linear in the terminal path volume.  The result is the
+exact obstacle optimum and therefore meets every positive objective tolerance.
+\end{proof}
+
+The theorem is structural and exact-real.  It neither supplies a
+finite-precision bit bound nor extends the scalar recurrence to branching
+graphs, where one admission can change many old cut-edge keys.
+
 \section{Literature verdict}
 \label{sec:literature}
 
@@ -617,12 +899,22 @@ SDD face is solved from scratch and the boundary is rescanned. \\
 \citet{foniok2009pivoting} & Global pivot oracle & PDF pp.~15--17: at most $n$ K-LCP
 pivots from zero and $2n$ from any start; PDF p.~7: one vertex query returns
 all $n$ orientations through a principal basis solve. \\
+\citet{bokanowski2009howard} & Global policy iteration & Author PDF p.~13,
+Theorem~4.3: at most $n$ iterations from the obstacle start, but this means
+$n$ global policy-system solves and full policy tests. \\
 \citet{schmelzer2026nonnegative} & Support-oracle / global-only & PDF pp.~7--9 and 14:
 finite guarded pivots, $sO(\sqrt\kappa)$ CG iterations, full free-set products,
 and an unknown trajectory-wide sign margin. \\
 \citet{koutis2011nearly} & Supplied face & PDF p.~10, Theorem~4.6: nearly
 linear global work for one supplied SDD matrix; the preconditioning chain is
 not dynamic local discovery. \\
+\citet{durfee2019dynamic} & Dynamic but global & PDF pp.~2--3 and 15: terminal
+addition is amortized against $\softO(m\beta^{-2}\epsilon^{-4})$
+initialization; coordinate solve queries cost
+$\softO(n^{11/12}\epsilon^{-5})$ on bounded-degree graphs. \\
+\citet{brand2019inverse} & Dynamic but dense/global & PDF p.~17,
+Theorems~4.1--4.2: $O(n^\omega)$ preprocessing and ambient-polynomial update
+and inverse-entry/row query costs. \\
 \citet{judice1994block} & Global-only & Finite block principal pivoting; no local
 access or output-volume theorem. \\
 \citet{more1991solution}; \citet{dostal2011superrelaxation} & Global-only & Projected-gradient
@@ -638,10 +930,10 @@ partitions. \\
 \label{tab:literature}
 \end{table}
 
-The terminology ``nearly linear'' is not enough: it may mean nearly linear in
-the full input matrix, in every supplied principal matrix, or in the final
-local output.  Only the last interpretation could close OP2.  The audited
-sources establish the first two.
+The terminology ``nearly linear'' or ``dynamic'' is not enough: the bound may
+be in the full input matrix, in every supplied principal matrix, or per update
+after global preprocessing.  Only an exposed-volume bound with charged local
+initialization could close OP2.  The audited sources do not provide it.
 
 \section{Projected and face CG: exact verdict}
 \label{sec:cg-verdict}
@@ -756,16 +1048,20 @@ persistent response representations.
 \section{Algorithmic synthesis and exact blocker}
 \label{sec:synthesis}
 
-The route now separates cleanly into three layers.
+The route now separates cleanly into four layers.
 \begin{enumerate}
 \item \emph{Outer mathematical logic (proved):} the K-LCP pivot from zero is
 nested, support-safe, and boundary-local by \cref{thm:safe-pivots}.
 \item \emph{Fixed-face numerical acceleration (proved with supplied face):}
 CG contributes $\sqrt\kappa=O(1/\sqrt\alpha)$ and logarithmic accuracy by
 \cref{thm:supplied-cg}.
-\item \emph{Changing-face implementation (open):} compose the two without
-paying $\sum_t\vol(U_t)$, refreshing every affected boundary key, or assuming
-a minimum sign margin.  This is exactly \cref{def:active-edge-contract}.
+\item \emph{Approximate decision logic (proved):}
+\Cref{thm:threshold-dichotomy} replaces exact negative-sign resolution by a
+known threshold tied to $\epsobj$ and $|\partial U|$.
+\item \emph{Changing-face implementation (open):} compose these layers without
+paying $\sum_t\vol(U_t)$ or refreshing every affected boundary key.  This is
+exactly \cref{def:active-edge-contract}.  \Cref{thm:path-ldl} closes this layer
+only on promised endpoint paths.
 \end{enumerate}
 
 A plausible implementation maintains an implicit Schur response for the old
@@ -774,10 +1070,10 @@ monotone boundary-key data structure driven by \cref{eq:boundary-key}.
 However, a new block can cause a dense positive correction on old
 coordinates; every such change contributes to all incident cut keys.  Energy
 telescoping pays for correction magnitude, but no proved conversion currently
-pays for locating every newly negative key.  Conversely, a heap pays only if
-all key decrements can be generated without replaying the dense correction.
-This dense-response/all-negative-reporting interface is the central missing
-lemma.
+pays for deciding whether any key crossed the declared threshold.  Conversely,
+a heap pays only if relevant key decrements can be generated without replaying
+the dense correction.  This dense-response/threshold-reporting interface is
+the central missing lemma.
 
 The required theorem can be weakened in useful ways without changing the
 proof of \cref{thm:conditional-op2}: a structural graph condition may replace
@@ -803,6 +1099,14 @@ Stieltjes/K-matrix inverse and Schur signs &
 inverse properties. \\
 Classical CG energy estimate & \Cref{thm:supplied-cg} & Source fact; local
 work conversion proved here. \\
+Strong convexity, projection, and face residual bounds &
+\Cref{thm:threshold-dichotomy} & Proved here; exact rational audit covers both
+the safe-pivot and objective-stop branches. \\
+Quadratic stationarity and $\mQ^2\preceq\mQ$ &
+\Cref{prop:motion-telescope} & Proved here; it controls squared motion but not
+the number of explicit state updates. \\
+Scalar path $LDL^\trans$ recurrence & \Cref{thm:path-ldl} & Proved here and
+audited on 580 exact rational canonical path instances. \\
 Wei--Yang safe active sets & Literature comparison & Source result independently
 rederived in the canonical variables here. \\
 Incremental active-set SDD note & Blocker cross-check & Read-only
@@ -833,8 +1137,9 @@ energy convergence; the primary-source results and limitations summarized in
 \item[\statusproved]
 The exact LCP reduction; supplied-support CG work and final projection; safe
 batched true-support pivots; boundary-only violations; the local KKT
-objective certificate; endpoint-prefix insufficiency; and the exact
-four-vertex face-CG counterexample.
+objective certificate; the margin-free threshold dichotomy; endpoint-prefix
+insufficiency; the exact energy/slack-motion telescope; exact linear-work path
+continuation; and the exact four-vertex face-CG counterexample.
 
 \item[\statusconditional]
 \Cref{thm:conditional-op2}: the margin-free aggregate active-edge contract
@@ -842,8 +1147,8 @@ implies fully charged
 $\softO(1/(\rho\sqrt\alpha))$ work with logarithmic objective accuracy.
 
 \item[\statusempirical]
-None.  The counterexample audit is exact rational computation, not floating-
-point measurement.
+None.  The counterexample and theorem audits are exact rational computations,
+not floating-point measurements.
 
 \item[\statusrefuted]
 Terminal volume as a standalone cumulative-work argument; and the invariant
@@ -853,14 +1158,15 @@ Neither refutation is a lower bound for all local obstacle algorithms.
 \item[\statusopen]
 Prove \cref{eq:aggregate-contract}, or a weaker structural version sufficient
 for OP2: persistent changing-face solve state plus complete boundary
-violation reporting, with every update, scan, word, and sign refinement
-charged and no supplied support.
+threshold reporting, with every update, scan, word, and interval error charged
+and no supplied support.
 \end{description}
 
 The next falsifiable target is a single-block expansion theorem: after adding
 $J$ to $U$, update an implicit representation of
-\cref{eq:schur-pivot,eq:old-correction} and report all newly negative keys in
-\cref{eq:boundary-key} at amortized
+\cref{eq:schur-pivot,eq:old-correction} and either return one key below the
+threshold in \cref{eq:safe-threshold-report} or certify that none exists, at
+amortized
 $\softO((\vol(J)+\text{new boundary incidences})\sqrt\kappa)$ work.  A proof
 must survive a dense old-coordinate correction; a counterexample should show
 that even an implicit response must communicate with too many cut keys.

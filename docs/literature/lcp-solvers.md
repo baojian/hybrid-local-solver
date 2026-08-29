@@ -25,8 +25,11 @@ boundary maintenance, changing-face numerical state, and output within
 | --- | --- | --- | --- | --- |
 | Wei--Yang (2026) | Theorems 1.2 and 1.3; Algorithm 2 and Lemmas 4.2--5.2 | ACL `O_tilde(1/lambda^2)`; RPPR `O_tilde(|S*| vol(S*))`; logarithmic numerical accuracy | Local adjacency access, but one SDD solve and one current-boundary inspection per active-set round | **Closest local result, not sufficient.** True-support activation is usable; repeated faces remain. |
 | Foniok--Fukuda--Gärtner--Lüthi (2009) | Theorem 5.6 and Corollary 5.10 for K-matrix LCPs | At most `n` pivots from cube vertex zero; at most `2n` from an arbitrary vertex | A vertex-orientation oracle evaluates all `n` incident cube orientations using a principal basis solve | **Usable with a global pivot oracle.** Linear pivot count is not local work. |
+| Bokanowski--Maroso--Zidani (2009) | Howard obstacle iteration, Theorem 4.3 | At most `N+1` iterations, or `N` from the all-obstacle policy | Each iteration solves a global policy system and evaluates the policy over all `N` coordinates | **Global-only.** The iteration bound does not charge local support discovery or solve work. |
 | Schmelzer--Stoll (2026) | Algorithm 1, Theorem 4.1, Lemma 4.1, Table 2 | Finite active-set loop; each matrix-free CG solve has `O(sqrt(kappa))` iterations; total table entry is `s O(sqrt(kappa))` inner iterations | Full free-set products; inexact sign decisions require a positive trajectory-wide decision margin `mu`; changing-face preconditioner setup is discussed but not amortized | **Global-only / support-oracle primitive.** It exposes the desired square-root factor but leaves outer steps and discovery unbounded. |
 | Koutis--Miller--Peng (2011) | Theorem 4.6 | Expected `O_tilde(m log n log(1/eta))` for a supplied SDD system | Builds a global preconditioning chain from the entire supplied matrix | **Usable on a supplied face; global-only for discovery.** |
+| Durfee--Gao--Goranci--Peng (2019) | Lemma 1.1 and Theorem 1.2 | Terminal additions are amortized after `O_tilde(m beta^-2 epsilon^-4)` initialization; bounded-degree coordinate solve queries cost `O_tilde(n^(11/12) epsilon^-5)` | Full-graph random-walk/Schur preprocessing, rebuilds, oblivious-adversary guarantee, and polynomial numerical-accuracy dependence | **Dynamic but global-only.** It is not an exposed-volume changing-face primitive. |
+| van den Brand--Nanongkai--Saranurak (2019) | Theorems 4.1 and 4.2 | Ambient-polynomial column/element update and row/element inverse-query time | Dense `n x n` algebra with `O(n^omega)` preprocessing over a field | **Dynamic but assumption/access mismatch.** No graph locality; its lower bounds are not OP2 lower bounds. |
 | Júdice--Pires (1994) | Finite block principal-pivoting algorithm for strictly monotone LCPs | Finite termination, with a guarded single-pivot fallback | Global complementary-basis/residual evaluation and principal solves | **Global-only.** No output-sensitive or condition-number work theorem. |
 | Moré--Toraldo (1991) | GPCG: projected-gradient identification plus face CG; finite termination under nondegeneracy | Convergence and finite termination, not a local output-sensitive complexity bound | Full-vector projections, gradients, and reduced systems | **Global-only / assumption mismatch.** |
 | Dostál--Domorádová--Sadowská (2011) | MPRGP projected-gradient/CG working-set method; Theorems 6.1 and 7.6 in the author manuscript | R-linear rate in the Hessian condition number; finite termination with a proportioning parameter at least `3 sqrt(kappa)+4` | Full bound-QP vectors and products; no graph discovery model | **Global-only.** Rate is useful for supplied-face comparison, not OP2 locality. |
@@ -90,6 +93,29 @@ evaluation.  Starting from zero is especially favorable and agrees with the
 nested true-support path proved in the active-edge note, but the local work
 question remains untouched.
 
+### Bokanowski, Maroso, and Zidani, 2009: linear obstacle policies, global solves
+
+**Source.** Olivier Bokanowski, Stefania Maroso, and Hasnaa Zidani,
+[*Some Convergence Results for Howard's
+Algorithm*](https://www.ljll.fr/~bokanowski/recherche/Bokanowski_Maroso_Zidani_2009.pdf),
+*SIAM Journal on Numerical Analysis* 47(4):3001--3026, 2009,
+doi:10.1137/08073041X.
+
+- Author-manuscript PDF p. 13 defines Algorithm (Ho-2) for
+  `min(Ax-b, x-g)=0`.  Its policy update compares the two branches for every
+  coordinate, and the fixed-policy step solves the corresponding `N x N`
+  linear system.
+- Theorem 4.3 on the same PDF page proves termination in at most `N+1`
+  iterations under monotonicity of every policy matrix, and at most `N` when
+  initialized with the all-obstacle policy.  The paragraph after the theorem
+  explicitly interprets the latter count as `N` linear-system resolutions.
+
+**Audit.** Taking `g=0` and `A=Q` matches the canonical obstacle equation.
+The result is a global iteration theorem: it neither restricts policy changes
+to the unknown local support nor prices the changing principal systems and
+full policy tests by exposed volume.  It therefore reinforces, but does not
+improve, the short-pivot/global-oracle verdict from Foniok et al.
+
 ### Schmelzer and Stoll, 2026: matrix-free face CG with a margin
 
 **Source.** Thomas Schmelzer and Martin Stoll, [*Non-Negative Conjugate
@@ -133,6 +159,53 @@ FOCS 2011.
 the chain on every growing face repeats work; building it once on the full
 graph is forbidden global preprocessing.  The theorem neither discovers `U`
 nor maintains boundary violations.
+
+### Durfee et al., 2019: dynamic Schur complements require global initialization
+
+**Source.** David Durfee, Yu Gao, Gramoz Goranci, and Richard Peng,
+[*Fully Dynamic Spectral Vertex Sparsifiers and
+Applications*](https://arxiv.org/abs/1906.10530), STOC 2019,
+pp. 914--925, doi:10.1145/3313276.3316379.
+
+- PDF p. 2, Lemma 1.1 maintains an approximate Schur complement under edge
+  updates and terminal additions.  Initialization costs
+  `O_tilde(m beta^-2 epsilon^-4)` and the data structure supports only
+  `O(beta m)` operations before rebuilding; the guarantee is expected
+  amortized against an oblivious adversary.
+- PDF p. 3, Theorem 1.2 gives coordinate-query access to an energy-norm
+  approximate Laplacian solution on bounded-degree unweighted graphs in
+  `O_tilde(n^(11/12) epsilon^-5)` expected amortized time per update or query.
+- PDF p. 15 explains the accounting: terminal-addition work is charged
+  against preprocessing that generated full-graph random walks, whose
+  initialization cost is `O_tilde(m beta^-2 epsilon^-4)`.
+
+**Audit.** Terminal addition and coordinate query are conceptually close to a
+growing-face response.  The theorem nevertheless starts from the ambient
+graph, pays global initialization/rebuilds, has polynomial rather than
+polylogarithmic dependence on numerical accuracy, and does not report obstacle
+boundary-threshold crossings.  It is not usable as-is under OP2's no-free-
+preprocessing access contract.
+
+### van den Brand, Nanongkai, and Saranurak, 2019: dynamic inverse is ambient algebra
+
+**Source.** Jan van den Brand, Danupon Nanongkai, and Thatchaphol Saranurak,
+[*Dynamic Matrix Inverse: Improved Algorithms and Matching Conditional Lower
+Bounds*](https://arxiv.org/abs/1905.05067), FOCS 2019, pp. 456--480,
+doi:10.1109/FOCS.2019.00036.
+
+- Full-version PDF p. 17, Theorem 4.1 preprocesses an `n x n` matrix in
+  `O(n^omega)` field operations, then supports a column update and inverse-row
+  query in ambient-polynomial time; the optimized current-exponent bound
+  reported there is about `n^1.529`.
+- On the same page, Theorem 4.2 gives element updates and inverse-element
+  queries after the same `O(n^omega)` preprocessing, with optimized exponent
+  about `n^1.407`.
+
+**Audit.** These are powerful changing-inverse primitives, but their unit is
+the ambient dense dimension, not exposed graph volume, and their preprocessing
+is explicitly global.  The paper's conditional lower bounds concern its
+dynamic algebraic models; they do **not** imply a lower bound for the stronger
+specialized Stieltjes/adjacency-list OP2 model and are not used that way here.
 
 ### Júdice and Pires, 1994: finite block pivots
 
@@ -235,12 +308,17 @@ paper does not state an output-sensitive theorem for an unknown support.
    prefix volume `Theta(s^2)`.
 4. **Numerical sign decisions require an explicit policy.**  A theorem that
    assumes a hidden minimum complementarity margin is not polylogarithmic in
-   only the requested objective accuracy.  A usable OP2 primitive must return
-   certified sign intervals, refine ambiguous tests within the total ledger,
-   or avoid exact sign decisions.
-5. **The remaining theorem is dynamic.**  It must amortize changing-face
-   solves, warm starts or response updates, boundary-key changes, state
-   materialization, and final certification over distinct explored volume.
+   only the requested objective accuracy.  The active-edge note proves that a
+   known residual-derived threshold suffices; the data structure still has to
+   report threshold crossings within the total ledger.
+5. **Published dynamic inverse machinery is still global.**  Dynamic Schur
+   complements and matrix inverse maintenance use ambient preprocessing and
+   ambient-dimension update/query bounds.  They do not supply exposed-volume
+   obstacle support discovery.
+6. **The remaining theorem is dynamic and local.**  It must amortize
+   changing-face solves, warm starts or response updates, threshold-key
+   changes, state materialization, and final certification over distinct
+   explored volume.
 
 The theorem-level formulation and the exact projected-CG obstruction are in
 `manuscript/notes/active_edge_lcp/`.

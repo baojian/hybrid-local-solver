@@ -97,6 +97,8 @@ verdicts, is in [`lcp-solvers.md`](lcp-solvers.md).
   and multilevel implementations.
 - *Pivoting in Linear Complementarity: Two Polynomial-Time Cases* (Foniok et
   al., 2009) - linear pivot-path bounds for K-matrix LCPs.
+- *Some Convergence Results for Howard's Algorithm* (Bokanowski, Maroso, and
+  Zidani, 2009) - at most linearly many global obstacle-policy solves.
 - *A Nearly-m log n Time Solver for SDD Linear Systems* (Koutis, Miller, and
   Peng, 2011) - nearly-linear solution of a supplied global SDD system.
 - *Superrelaxation and the Rate of Convergence in Minimizing Quadratic
@@ -104,6 +106,12 @@ verdicts, is in [`lcp-solvers.md`](lcp-solvers.md).
   2011) - projected-gradient/CG working-set convergence rates.
 - *Non-Negative Conjugate Gradients* (Schmelzer and Stoll, 2026) - inexact
   matrix-free CG inside a guarded active-set loop.
+- *Fully Dynamic Spectral Vertex Sparsifiers and Applications* (Durfee, Gao,
+  Goranci, and Peng, 2019) - dynamic terminal additions and Laplacian queries
+  after full-graph Schur preprocessing.
+- *Dynamic Matrix Inverse: Improved Algorithms and Matching Conditional Lower
+  Bounds* (van den Brand, Nanongkai, and Saranurak, 2019) - dense dynamic
+  inverse maintenance with ambient preprocessing/update/query costs.
 
 ### Acceleration and sparse PageRank
 
@@ -272,9 +280,12 @@ downstream ranking requirements.
 3. Júdice and Pires (1994).
 4. Kärkkäinen, Kunisch, and Tarvainen (2003).
 5. Foniok et al. (2009).
-6. Koutis, Miller, and Peng (2011).
-7. Wei and Yang (2026).
-8. Schmelzer and Stoll (2026).
+6. Bokanowski, Maroso, and Zidani (2009).
+7. Koutis, Miller, and Peng (2011).
+8. Durfee et al. (2019).
+9. van den Brand, Nanongkai, and Saranurak (2019).
+10. Wei and Yang (2026).
+11. Schmelzer and Stoll (2026).
 
 ### PageRank applications
 

@@ -75,7 +75,7 @@ This table is generated from `registry.toml` by
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`problem_definitions`](problem_definitions/) | models | synthesis | Collect the exact problem definitions and source-backed standard properties used across the project. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
-| [`active_edge_lcp`](active_edge_lcp/) | response | proved-open | Reduce OP2 exactly to an obstacle LCP and isolate the fully charged changing-face continuation theorem. |
+| [`active_edge_lcp`](active_edge_lcp/) | response | proved-open | Reduce OP2 exactly to an obstacle LCP, prove margin-free threshold decisions, and isolate the fully charged changing-face continuation theorem. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
 | [`hybrid_local_solver_synthesis`](hybrid_local_solver_synthesis/) | synthesis | synthesis | Connect the active manuscript, solver families, and experiments. |

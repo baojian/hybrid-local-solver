@@ -18,7 +18,7 @@ State: proved-open
 - **Access and charged work:** Charge seed and degree queries, adjacency
   entries, false activations, repeated scans, changing-face updates, numerical
   solves, boundary certificates, state traffic, materialization, and output.
-- **Intended result:** A margin-free aggregate continuation and reporter with
+- **Intended result:** A margin-free aggregate continuation and known-threshold reporter with
   total `O_tilde(vol(S*) sqrt(kappa(Q)) log(1/eps_obj))` work, implying
   `O_tilde(1/(rho sqrt(alpha)))` for OP2.
 
@@ -36,16 +36,40 @@ projection in
 `O(vol(S*) / sqrt(alpha) log(1 / eps_obj))` charged row work.  A one-scan
 minimum-norm KKT subgradient certifies objective gap.
 
+The hidden sign-margin issue is closed.  For an approximate face solve with
+residual norm `delta`, any approximate boundary slack below
+`-delta/alpha` is negative on the exact face and is therefore support-safe.
+If no key crosses that threshold and
+`delta/alpha <= sqrt(2 alpha eps_obj)/(1+2 sqrt(|boundary U|))`, orthant
+projection already satisfies the objective target.  The reporter need not
+resolve all exact negative signs.
+
+The finite-precision interface has overlapping thresholds: a certified slack
+interval of predetermined width below twice the residual error either proves
+a safe pivot or proves the projected objective stop.  Refinement therefore
+depends only on the requested objective tolerance, not on key separation.
+
+Across exact nested faces, the total squared correction energy and the total
+squared full-slack motion are at most `alpha`.  This is a rigorous heavy-change
+budget, but it does not pay for touching many small boundary-key changes or
+for applying an implicit dense correction.
+
+On a promised endpoint-seeded path, append-only scalar `LDL^T` state tests
+each successive boundary in constant arithmetic and materializes once.  This
+gives an exact-real, fully charged `O(vol(S*))` structural solver with no
+global preprocessing.
+
 ## Central blocker
 
-Prove the margin-free aggregate continuation bound in Definition 6.1 of
-`main.tex`: over all nested true-support faces, charge changing-face solve
-state, warm starts, boundary-key updates and queries, sign refinement,
+Prove the threshold-certified aggregate continuation bound in Definition
+`def:active-edge-contract` of `main.tex`: over all nested true-support faces,
+charge changing-face solve
+state, warm starts, boundary-key updates and queries, interval error,
 materialization, and output within
 `O_tilde(E sqrt(kappa(Q)) log(1 / eps_obj))`, where explored incidence volume
 `E=O_tilde(vol(S*))`.  The difficult interface is a dense positive correction
-on the old face coupled to complete reporting of newly negative active-edge
-keys.
+on the old face coupled to certifying whether any approximate active-edge key
+crossed the known residual-derived threshold.
 
 Terminal volume does not close this gap.  On endpoint paths the exact safe
 faces can be all prefixes, so a full face solve, materialization, or boundary
@@ -58,7 +82,10 @@ refresh at every pivot costs `Theta(s^2)` for terminal volume `Theta(s)`.
   global LCP, bound-QP, SDD, and obstacle theorems.
 - **Proved here:** exact obstacle/LCP signs and scaling; supplied-support CG
   work; safe batched pivots; boundary-only discovery; objective certificate;
-  path cumulative-volume obstruction; four-vertex rational CG overshoot.
+  the margin-free approximate-face dichotomy and overlapping interval
+  thresholds; the exact energy/slack-motion telescope; path cumulative-volume
+  obstruction; exact linear-work endpoint-path continuation; four-vertex
+  rational CG overshoot.
 - **Conditional:** the fully charged active-edge contract implies OP2 work
   `O_tilde(1 / (rho sqrt(alpha)))` with logarithmic objective accuracy.
 - **Measured:** none.
@@ -66,7 +93,7 @@ refresh at every pivot costs `Theta(s^2)` for terminal volume `Theta(s)`.
   `0 <= x_k <= x*_rho` for ordinary or orthant-projected face CG.  Neither is
   a class lower bound.
 - **Open:** arbitrary-graph dynamic principal response plus complete
-  boundary reporting without a supplied support or hidden sign margin.
+  known-threshold boundary reporting without a supplied support.
 
 ## Literature verdict
 
@@ -78,6 +105,13 @@ refresh at every pivot costs `Theta(s^2)` for terminal volume `Theta(s)`.
   free-set loop, an outer-step factor, and a trajectory-wide decision margin.
 - Koutis--Miller--Peng is usable for a supplied principal SDD matrix; its
   preprocessing is global and not changing-face support discovery.
+- Durfee--Gao--Goranci--Peng support dynamic terminal additions and coordinate
+  Laplacian queries, but only after full-graph preprocessing, with ambient
+  sublinear time and polynomial accuracy dependence.
+- van den Brand--Nanongkai--Saranurak maintain dense inverses dynamically, but
+  use `O(n^omega)` preprocessing and ambient-polynomial update/query work.
+- Bokanowski--Maroso--Zidani give at most linearly many Howard obstacle
+  policies, but each iteration is a global system solve and policy test.
 - Classical projected-CG, MPRGP, block-pivot, and monotone-multigrid results
   are global-only or rely on FEM hierarchy/strict-complementarity assumptions.
 
@@ -97,6 +131,11 @@ Exact theorem/page pointers are in `docs/literature/lcp-solvers.md`.
 
 - `python3 verify_counterexample.py` uses only exact `Fraction` arithmetic and
   checks every iterate, step size, energy decrease, conjugacy, and overshoot.
+- `python3 verify_threshold_dichotomy.py` checks 720 exact rational cases and
+  exercises both the support-safe interval report and objective-stop branches,
+  plus 36 exact energy/slack telescopes.
+- `python3 verify_path_ldl.py` checks 580 exact canonical path instances,
+  including full 30-vertex support, against direct principal solves and KKT.
 - The focused note build, note registry, coordination audit, and all 213 tests
   pass.  The owned Python script passes Ruff lint and format checks.  The full
   repository format check still reports nine pre-existing files in the
@@ -108,7 +147,8 @@ Exact theorem/page pointers are in `docs/literature/lcp-solvers.md`.
 - Exact target: `main.tex`, Definition `def:active-edge-contract`, especially
   the aggregate bound `eq:aggregate-contract`.
 - First test: a single block expansion `U -> U union J` with implicit Schur
-  response; attempt to report every newly negative boundary key while charging
-  only the new incidences and `sqrt(kappa)` numerical work.
+  response; return one approximate key below `-delta/alpha` or certify none,
+  while charging only new incidences and `sqrt(kappa)` numerical work.
 - Stop/qualify if a dense old-coordinate correction forces replay of all old
-  cut edges or if sign correctness assumes an undeclared minimum margin.
+  cut edges.  Do not reintroduce exact-sign refinement: the threshold theorem
+  has already removed that requirement.
