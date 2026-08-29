@@ -438,6 +438,14 @@ One pivot response can therefore be certified by normalized safe Chebyshev in
 `O_tilde(vol(A)/sqrt(alpha))` work.  Repeating that solve independently after
 every admission would still be the forbidden face-by-face rebuild; the open
 interface is amortized response reuse/emission, not finite response safety.
+In the exact rank-one subcase, that reuse now has a concrete implementation:
+each persistent row is a planar point `(ground coupling, key)`, every
+nonneighbor receives one common triangular 2-by-2 transform, and only the
+newly admitted neighbors are rewritten explicitly.  A cumulative lazy matrix
+plus dynamic planar extreme queries gives soft-linear reporter work.  The
+conductance-certified inexact version uses the same structure with propagated
+row bands; accumulated gray rows, not the common motion, are the remaining
+fallback set.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

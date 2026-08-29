@@ -1410,6 +1410,98 @@ Cauchy--Schwarz for the high term as in the preceding corollary, proves
 \cref{eq:aesp-cd-proper-face-finite-rank-one-row}.
 \end{proof}
 
+\begin{proposition}[Rank-one face responses reduce persistent reporting to two dimensions]
+\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}
+At a nested-face admission \(B=A\cup\{w\}\), write the old-face response as
+\begin{equation*}
+ u_A^{(w)}=\gamma_wh_A+e_A^{(w)}.
+\end{equation*}
+Let \(x_w>0\) be the admitted obstacle coordinate and let \(t_w>0\) be the
+ground-update scalar from
+\cref{eq:aesp-cd-proper-face-ground-admission-exact}.  For every persistent
+exterior row \(v\notin B\), put
+\begin{equation*}
+ k_{v,A}:=-H_{vA}\geq0,
+ \qquad
+ s_v:=k_{v,A}^{\mathsf T}h_A,
+ \qquad
+ g_v:=\ell_v-H_{vA}x_A.
+\end{equation*}
+Then its new ground coupling and obstacle key satisfy the exact two-state
+recurrence
+\begin{equation}
+ \begin{pmatrix}s_v^+\\g_v^+\end{pmatrix}
+ =
+ \begin{pmatrix}
+  1+t_w\gamma_w&0\\
+  x_w\gamma_w&1
+ \end{pmatrix}
+ \begin{pmatrix}s_v\\g_v\end{pmatrix}
+ +
+ \begin{pmatrix}
+  t_w\delta_v+k_{v,w}t_w\\
+  x_w\delta_v+k_{v,w}x_w
+ \end{pmatrix},
+ \qquad
+ \delta_v:=k_{v,A}^{\mathsf T}e_A^{(w)}.
+ \label{eq:aesp-cd-proper-face-rank-one-two-state}
+\end{equation}
+The direct term \(k_{v,w}\) is nonzero only on rows found by scanning the
+newly admitted adjacency list.
+
+Consequently, in the exact rank-one case \(e_A^{(w)}=0\), every persistent
+nonneighbor row receives one common invertible triangular transformation.
+Maintain the cumulative product \(P_t\) of these \(2\times2\) matrices and
+store each row as the normalized planar point
+\begin{equation*}
+ z_v:=P_t^{-1}(s_v,g_v)^{\mathsf T}
+\end{equation*}
+at insertion or local rewrite.  Its current key is
+\begin{equation*}
+ g_v=e_2^{\mathsf T}P_tz_v
+     =z_v^{\mathsf T}P_t^{\mathsf T}e_2.
+\end{equation*}
+A dynamic planar extreme-point structure therefore reports a strict positive
+key, or certifies that none remains, in logarithmic time; insertions,
+deletions, and the locally rewritten neighbors have the same cost.  If \(F\)
+is the total number of newly scanned direct incidences, the literal exact
+rank-one reporter uses
+\begin{equation*}
+ O\bigl((M+J+F)\log(2+M+J+F)\bigr)
+\end{equation*}
+exact-real operations for \(M\) exposed rows and \(J\) admissions.
+
+Under the conductance-certified decomposition,
+\cref{eq:aesp-cd-proper-face-rank-one-row-band} bounds
+\(|\delta_v|\leq B_v\), and its finite version bounds it by
+\(\widetilde B_v\).  Propagating these row intervals through the same
+nonnegative triangular matrices gives a certified inexact reporter whenever
+all accumulated intervals fit the finite KKT hysteresis.  Rows whose
+intervals overlap zero are the only fallback set.  Thus the remaining
+high-gap obstruction is quantitatively localized to gray-band accumulation;
+the common rank-one motion itself no longer requires a dense response update.
+\end{proposition}
+
+\begin{proof}
+The old obstacle coordinates change by \(x_wu_A^{(w)}\), while
+\cref{eq:aesp-cd-proper-face-ground-admission-exact} changes the old ground
+coordinates by \(t_wu_A^{(w)}\) and adds the new coordinate \(t_w\).
+Therefore
+\begin{align*}
+ s_v^+
+ &=k_{v,A}^{\mathsf T}(h_A+t_wu_A^{(w)})+k_{v,w}t_w,\\
+ g_v^+
+ &=g_v+x_wk_{v,A}^{\mathsf T}u_A^{(w)}+k_{v,w}x_w.
+\end{align*}
+Substituting \(u_A^{(w)}=\gamma_wh_A+e_A^{(w)}\) proves
+\cref{eq:aesp-cd-proper-face-rank-one-two-state}.  When
+\(\delta_v=k_{v,w}=0\), this is the same triangular matrix for every retained
+row.  Conjugating stored points by the cumulative inverse proves the planar
+extreme-query reduction.  The error statement follows by replacing
+\(\delta_v\) with its certified symmetric interval and applying interval
+arithmetic; every matrix entry is nonnegative.
+\end{proof}
+
 \begin{proposition}[The proper-face conductance certificate is nonvacuous]
 \label{prop:aesp-cd-proper-clique-conductance-witness}
 Let \(0<q\leq1/256\),

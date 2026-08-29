@@ -135,6 +135,12 @@ State: proved-open
   `O_tilde(vol(A)/sqrt(alpha))` work.  This removes a safety/precision gap but
   does not permit a fresh face solve after every admission; dynamic response
   amortization remains the central locator interface.
+  Exact rank-one responses do admit such amortization: persistent rows carry
+  only `(ground coupling,key)`, all nonneighbors receive one common triangular
+  2-by-2 transform, and local adjacency scans identify every explicit rewrite.
+  A cumulative lazy matrix plus a dynamic planar extreme-point structure gives
+  soft-linear reporting.  Under finite conductance bounds the same reduction
+  propagates certified row intervals; only accumulated gray-band rows remain.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -587,6 +593,7 @@ graph-uniform end-to-end accelerated solver.
   `prop:aesp-cd-proper-face-ground-admission-replay`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
+  `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
   `cor:aesp-cd-proper-face-conductance-alignment-tail`,
   `prop:aesp-cd-proper-clique-conductance-witness`,
   `prop:aesp-cd-point-source-literal-walk-sampling-stop`,

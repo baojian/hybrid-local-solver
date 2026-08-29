@@ -271,6 +271,16 @@ response certificate in `O_tilde(vol(A)/sqrt(alpha))` work for one pivot.
 Paying that from scratch after every admission would recreate the known
 quadratic face-by-face ledger; this closes response safety, not dynamic
 response amortization.
+There is now an exact low-rank reporter reduction behind the favorable
+high-gap case.  Store for each persistent row only its ground coupling `s_v`
+and obstacle key `g_v`.  A rank-one admission applies the same invertible
+triangular 2-by-2 map to every nonneighbor row; newly adjacent rows are exactly
+the ones found by scanning the admitted adjacency list.  A cumulative lazy
+matrix turns current-key maximization into a dynamic planar extreme-point
+query, giving soft-linear exact reporting when the response is truly rank one.
+For conductance-certified approximate rank one, the weighted dual error bands
+propagate through the same nonnegative maps; only rows whose accumulated bands
+overlap the KKT threshold require fallback.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

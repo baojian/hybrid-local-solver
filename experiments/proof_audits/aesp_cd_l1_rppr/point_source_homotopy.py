@@ -712,6 +712,61 @@ def check_rank_one_inverse_certificate() -> tuple[F, F, F, F]:
     return alpha, inverse_high_bound, coordinate_row_band, eps_h
 
 
+def check_lazy_rank_one_reporter() -> int:
+    """Audit the cumulative 2x2 normalization behind the lazy reporter."""
+
+    def multiply(left: list[list[F]], right: list[list[F]]) -> list[list[F]]:
+        return [
+            [
+                sum(left[i][k] * right[k][j] for k in range(2))
+                for j in range(2)
+            ]
+            for i in range(2)
+        ]
+
+    def apply(matrix: list[list[F]], point: list[F]) -> list[F]:
+        return [sum(matrix[i][j] * point[j] for j in range(2)) for i in range(2)]
+
+    def inverse(matrix: list[list[F]]) -> list[list[F]]:
+        determinant_value = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+        return [
+            [matrix[1][1] / determinant_value, -matrix[0][1] / determinant_value],
+            [-matrix[1][0] / determinant_value, matrix[0][0] / determinant_value],
+        ]
+
+    normalized = [
+        [F(1, 3), F(-1, 5)],
+        [F(2, 7), F(-1, 11)],
+        [F(3, 8), F(-2, 9)],
+    ]
+    current = [point[:] for point in normalized]
+    cumulative = [[F(1), F(0)], [F(0), F(1)]]
+    stages = ((F(5, 4), F(2, 3)), (F(7, 6), F(1, 5)), (F(9, 8), F(4, 7)))
+    checks = 0
+    for stage, (scale, shear) in enumerate(stages):
+        transform = [[scale, F(0)], [shear, F(1)]]
+        cumulative = multiply(transform, cumulative)
+        current = [apply(transform, point) for point in current]
+        direction = [cumulative[1][0], cumulative[1][1]]
+        lazy_keys = [
+            point[0] * direction[0] + point[1] * direction[1]
+            for point in normalized
+        ]
+        assert lazy_keys == [point[1] for point in current]
+        assert max(range(len(current)), key=lambda i: lazy_keys[i]) == max(
+            range(len(current)),
+            key=lambda i: current[i][1],
+        )
+        checks += len(current)
+
+        if stage == 0:
+            inserted_current = [F(5, 12), F(-1, 17)]
+            inserted_normalized = apply(inverse(cumulative), inserted_current)
+            normalized.append(inserted_normalized)
+            current.append(inserted_current)
+    return checks
+
+
 def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
@@ -729,6 +784,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
+    assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -785,6 +841,7 @@ def main() -> None:
     rank_one_alpha, rank_one_bound, row_band, ground_eps = (
         check_rank_one_inverse_certificate()
     )
+    lazy_reporter_checks = check_lazy_rank_one_reporter()
 
     print("PASS point-source homotopy breakpoint audit")
     print("  first tied batch: {1,4} at 5/96; next winner: 3 at 185/4231")
@@ -804,6 +861,7 @@ def main() -> None:
         f"alpha={rank_one_alpha}, high_inverse_bound={rank_one_bound}, "
         f"row_band={row_band}, finite_ground_eps={ground_eps}"
     )
+    print(f"  lazy rank-one planar reporter checks: {lazy_reporter_checks}")
     print(
         "  proper-clique conductance witness: "
         f"alpha={witness_alpha}, h_nondist={witness_response}, "
