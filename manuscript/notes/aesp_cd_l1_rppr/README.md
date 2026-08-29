@@ -50,6 +50,15 @@ safe admission; otherwise the rounding tail is already at most the allowed
 and every coordinate has only logarithmically many relevant levels.  The
 unclosed interface is now specifically an online source of those level
 crossings from compressed dynamic Schur state, not exact breakpoint order.
+This interface has an exact random-walk form.  Admitting a row \(w\) raises
+the old restricted solution by \(\Delta_w h^{S,w}\), where
+\(h^{S,w}_i\) is the killed PageRank walk's probability of reaching \(w\)
+before another exterior row or killing.  Thus the reporter need only emit
+the coordinates whose killed-harmonic increment crosses their next finite
+level.  The persistent original-frontier universe itself has at most
+`2*vol(S*)` rows and all of its active incidences are exposed in
+`vol(S*)` work.  Candidate enumeration is therefore closed; compressed
+killed-harmonic level notification is the remaining general-graph primitive.
 
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,

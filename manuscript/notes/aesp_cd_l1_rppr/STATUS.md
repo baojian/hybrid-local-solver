@@ -42,6 +42,14 @@ State: proved-open
   every boundary row as either a safe positive pivot or already within the
   terminal KKT band.  The explicit event processing is soft-linear; emitting
   those level crossings from compressed changing-face state remains open.
+  An exact pivot raises the old solution by a killed hitting-probability
+  column, so the missing operation is now a precise harmonic threshold event:
+  report every coordinate whose pivot increment crosses its next finite
+  level.  The union of original frontier candidates has at most
+  `2*vol(S*)` rows and is exposed by one scan of each admitted row.  Hence
+  neither candidate count nor frontier incidence discovery is the remaining
+  obstacle; the unclosed part is compressed emission of the harmonic level
+  events.
 
 ## Claim ledger
 
@@ -169,7 +177,12 @@ State: proved-open
   first-exit law through the current active face.  This gives an implicit
   harmonic sampler for dense fill, but literal exit sampling still has
   `O(1/alpha)` expected path length and is not the missing square-root
-  acceleration.
+  acceleration.  The primal response to the same pivot is another exact
+  killed-walk object: its old-coordinate increment is the pivot amount times
+  the probability of hitting the new row before killing or another exterior
+  row.  This converts the finite reporter to a dynamic killed-harmonic level
+  query.  The query is exhaustive and margin-free, but no graph-universal
+  support-local implementation at square-root dependence is yet proved.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite
@@ -378,6 +391,8 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
+  `lem:aesp-cd-point-source-frontier-universe`,
+  `prop:aesp-cd-point-source-hitting-column`,
   `cor:aesp-cd-fan-finite-stop`,
   `prop:aesp-cd-fan-finite-linear-batches`,
   `cor:aesp-cd-ratio-pivot-interval-interface`,

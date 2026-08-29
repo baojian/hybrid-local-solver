@@ -146,6 +146,120 @@ def audit_harmonic_exit(
         assert sum(gamma, F(0)) <= coupling / p
 
 
+def audit_hitting_column(
+    hessian: list[list[F]],
+    adjacency: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    active: list[int],
+    rng: Random,
+) -> int:
+    """Audit the exact block response and its killed-hitting equations."""
+    size = len(degree)
+    exterior = [vertex for vertex in range(size) if vertex not in active]
+    if not active or not exterior:
+        return 0
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    transition = [
+        [
+            coupling * adjacency[i][j] / (p * degree[i])
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    h_ss = [[hessian[i][j] for j in active] for i in active]
+    audited = 0
+    for w in exterior:
+        rhs = [-hessian[i][w] for i in active]
+        hitting = solve(h_ss, rhs)
+        assert all(0 <= value <= 1 for value in hitting)
+        for row, i in enumerate(active):
+            expected = transition[i][w] + sum(
+                transition[i][j] * hitting[column]
+                for column, j in enumerate(active)
+            )
+            assert hitting[row] == expected
+
+        cut_flux = sum(
+            hitting[row]
+            for row, i in enumerate(active)
+            for v in exterior
+            if adjacency[i][v]
+        )
+        edge_count = sum(adjacency[i][w] for i in active)
+        assert (
+            alpha
+            * sum(
+                degree[i] * hitting[row] for row, i in enumerate(active)
+            )
+            + coupling * cut_flux
+            == coupling * edge_count
+        )
+
+        # Force a positive synthetic pivot residual and compare the enlarged
+        # restricted solve against y'=(y+h*Delta, Delta).
+        old_load = [F(rng.randrange(-3, 6), 11) for _ in active]
+        old_point = solve(h_ss, old_load)
+        delta = F(1 + rng.randrange(5), 13)
+        enlarged = active + [w]
+        target = [
+            old_point[row] + hitting[row] * delta
+            for row in range(len(active))
+        ] + [delta]
+        enlarged_load = [
+            sum(hessian[i][j] * target[column] for column, j in enumerate(enlarged))
+            for i in enlarged
+        ]
+        direct = solve(
+            [[hessian[i][j] for j in enlarged] for i in enlarged],
+            enlarged_load,
+        )
+        assert direct == target
+        old_extended_load = old_load + [enlarged_load[-1]]
+        residual = old_extended_load[-1] - sum(
+            hessian[w][j] * old_point[column]
+            for column, j in enumerate(active)
+        )
+        schur_pivot = hessian[w][w] - sum(
+            hessian[w][i]
+            * solve(h_ss, [hessian[j][w] for j in active])[row]
+            for row, i in enumerate(active)
+        )
+        assert residual == schur_pivot * delta > 0
+        audited += 1
+    return audited
+
+
+def audit_frontier_universe(
+    adjacency: list[list[F]], degree: list[int], support: set[int], order: list[int]
+) -> int:
+    if not support:
+        return 0
+    active = {0}
+    seen_frontier: set[int] = set()
+    for vertex in [*order, -1]:
+        seen_frontier.update(
+            v
+            for v in range(len(degree))
+            if v not in active and any(adjacency[v][u] for u in active)
+        )
+        if vertex >= 0:
+            assert vertex in support
+            active.add(vertex)
+    final_boundary = {
+        v
+        for v in range(len(degree))
+        if v not in support and any(adjacency[v][u] for u in support)
+    }
+    assert seen_frontier <= support | final_boundary
+    cut_edges = sum(
+        adjacency[u][v] for u in support for v in range(len(degree)) if v not in support
+    )
+    assert len(final_boundary) <= cut_edges
+    assert len(support | final_boundary) <= 2 * sum(degree[u] for u in support)
+    return len(seen_frontier)
+
+
 def audit_legal_topplings(
     hessian: list[list[F]],
     load: list[F],
@@ -334,6 +448,9 @@ def main() -> None:
     assert r"\label{eq:aesp-cd-point-source-residual-mass}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-injection}" in source
     assert r"\label{prop:aesp-cd-point-source-harmonic-exit}" in source
+    assert r"\label{prop:aesp-cd-point-source-hitting-column}" in source
+    assert r"\label{eq:aesp-cd-point-source-hitting-flux}" in source
+    assert r"\label{lem:aesp-cd-point-source-frontier-universe}" in source
     assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
     assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
@@ -343,6 +460,8 @@ def main() -> None:
     residual_event_count = 0
     order_difference_count = 0
     toppling_count = 0
+    hitting_column_count = 0
+    frontier_record_count = 0
     for size in range(3, 8):
         for _ in range(40):
             adjacency, degree = connected_graph(size, rng)
@@ -361,6 +480,14 @@ def main() -> None:
                 degree,
                 alpha,
                 list(range(1 + rng.randrange(size - 1))),
+            )
+            hitting_column_count += audit_hitting_column(
+                hessian,
+                adjacency,
+                degree,
+                alpha,
+                list(range(1 + rng.randrange(size - 1))),
+                rng,
             )
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
@@ -382,6 +509,12 @@ def main() -> None:
                 vertex for vertex, _ in residual_events
             ]:
                 order_difference_count += 1
+            frontier_record_count += audit_frontier_universe(
+                adjacency,
+                degree,
+                expected,
+                [vertex for vertex, _ in residual_events],
+            )
             checked += 1
 
     # Exact finite stopping-band calibration on P3, face {0}.
@@ -469,6 +602,8 @@ def main() -> None:
     assert order_difference_count > 0
     print("  positive exterior residual mass is nonincreasing and at most alpha")
     print("  total exact block-pivot residual injection is at most (1-alpha)/2")
+    print(f"  killed hitting-response columns audited={hitting_column_count}")
+    print(f"  persistent original-frontier records audited={frontier_record_count}")
     print(f"  dissipative legal topplings audited={toppling_count}; least action exact")
     print("  finite KKT slope band: exact P3 calibration")
     print("  certified pair intervals: worst-centered exact width bound")

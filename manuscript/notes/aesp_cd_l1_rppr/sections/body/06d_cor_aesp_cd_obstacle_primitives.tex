@@ -354,6 +354,47 @@ load proves the locality claim.  Finally, active residuals vanish, so
 diagnostic bound.
 \end{proof}
 
+\begin{lemma}[The point-source frontier universe is support-linear]
+\label{lem:aesp-cd-point-source-frontier-universe}
+Let \(S_0\subset S_1\subset\cdots\subset S^\star\) be any nested
+point-source support-safe trace, and let
+\begin{equation*}
+ \partial S:=\{v\notin S:\ A_{vS}\one>0\}.
+\end{equation*}
+Every original-graph row that can ever occur on a frontier belongs to
+\(S^\star\cup\partial S^\star\), and, on a graph without isolated vertices,
+\begin{equation}
+ \left|S^\star\cup\partial S^\star\right|
+ \leq |S^\star|+|E(S^\star,V\setminus S^\star)|
+ \leq 2\vol(S^\star).
+ \label{eq:aesp-cd-point-source-frontier-universe}
+\end{equation}
+Moreover all incidences from the trace to this universe are revealed by
+scanning each admitted adjacency row once, at total work
+\(\vol(S^\star)\).  An exterior row need not have its own adjacency list
+scanned: it suffices to keep its identifier, degree, and accumulated
+contributions from already admitted neighbors.
+
+Thus point-source discovery has only a support-linear number of persistent
+boundary records.  Its remaining difficulty is not candidate enumeration,
+but updating their accumulated keys when old active coordinates increase.
+This statement uses the standard local-access convention that a named
+vertex degree is available in \(O(1)\) work; otherwise even deciding whether
+to retain a high-degree exterior row can cost its ambient degree.
+\end{lemma}
+
+\begin{proof}
+For every \(t\), \(S_t\subseteq S^\star\), so every vertex adjacent to
+\(S_t\) lies in \(S^\star\cup\partial S^\star\).  Map each vertex of
+\(\partial S^\star\) to one incident cut edge.  The map is injective because
+a cut edge has only one endpoint outside \(S^\star\), proving the first
+inequality in \cref{eq:aesp-cd-point-source-frontier-universe}.  Also
+\(|S^\star|\leq\vol(S^\star)\) and the number of cut edges is at most
+\(\vol(S^\star)\).  Finally, every incidence is first seen while scanning
+the row of its endpoint in \(S^\star\), and those row lengths sum to
+\(\vol(S^\star)\).
+\end{proof}
+
 \begin{proposition}[Point-source RPPR is a dissipative divisible sandpile]
 \label{prop:aesp-cd-point-source-dissipative-sandpile}
 In degree-unscaled coordinates \(y=D^{-1/2}x\), put
@@ -539,6 +580,82 @@ Summing the sharpened decrease and substituting this initial mass gives
 which proves \cref{eq:aesp-cd-point-source-pivot-injection}.
 Every finite-significant row contributes more than
 \(\alpha\epskkt d_v\geq\alpha\epskkt\) to this mass, proving the count.
+\end{proof}
+
+\begin{proposition}[A support pivot injects a killed hitting-probability column]
+\label{prop:aesp-cd-point-source-hitting-column}
+Work in the degree-unscaled coordinates of
+\cref{prop:aesp-cd-point-source-dissipative-sandpile}.  Let \(S\) be a
+current exact face, let \(w\notin S\) have \(g_w^S>0\), and put
+\begin{equation*}
+ \Delta_w:=\frac{g_w^S}{K^S_{ww}},
+ \qquad
+ h^{S,w}:=-\widehat H_{SS}^{-1}\widehat H_{Sw}.
+\end{equation*}
+The exact restricted solution after admitting \(w\) is
+\begin{equation}
+ y^{S\cup\{w\}}_w=\Delta_w,
+ \qquad
+ y^{S\cup\{w\}}_S=y^S+\Delta_w h^{S,w}.
+ \label{eq:aesp-cd-point-source-hitting-update}
+\end{equation}
+For the killed transition matrix
+\(\mathsf P=(c/p)D^{-1}A\), the response column is exactly
+\begin{equation}
+ h^{S,w}=(I-\mathsf P_{SS})^{-1}\mathsf P_{Sw}.
+ \label{eq:aesp-cd-point-source-hitting-column}
+\end{equation}
+Hence \(h^{S,w}_i\) is the probability that a walk started at \(i\in S\)
+hits \(w\) before it is killed or first visits any other vertex of
+\(V\setminus S\).  In particular \(0\leq h^{S,w}\leq\one\), and the column
+obeys the exact killed-flux identity
+\begin{equation}
+ \alpha\sum_{i\in S}d_i h^{S,w}_i
+ +c\sum_{\substack{i\in S,\ v\notin S\\ i\sim v}}h^{S,w}_i
+ =c\,|E(S,\{w\})|.
+ \label{eq:aesp-cd-point-source-hitting-flux}
+\end{equation}
+
+Consequently the finite-level reporter of
+\cref{cor:aesp-cd-finite-level-reporter} reduces to the following precise
+dynamic primitive.  For each active \(i\), retain its slack to the next
+geometric level.  On a pivot \((w,\Delta_w)\), report exactly the rows with
+\begin{equation}
+ \Delta_w h^{S,w}_i>\operatorname{slack}_i,
+ \label{eq:aesp-cd-point-source-hitting-event}
+\end{equation}
+advance their levels, and update the incident boundary accumulators from
+\cref{lem:aesp-cd-point-source-frontier-universe}.  Exhaustive event reports
+give the finite KKT certificate without a separation promise and use only a
+support-linear number of boundary records.  What remains open on a general
+graph is an online, compressed implementation of
+\cref{eq:aesp-cd-point-source-hitting-event} at total
+\(\widetilde O(\vol(S^\star)/\sqrt\alpha)\) work.  Ordinary walk simulation
+does not supply that rate: its geometric killing time is
+\(\Theta(1/\alpha)\).
+\end{proposition}
+
+\begin{proof}
+The block equations for the enlarged restricted solve give
+\cref{eq:aesp-cd-point-source-hitting-update}.  Since
+\begin{equation*}
+ \widehat H_{SS}=pD_S(I-\mathsf P_{SS}),
+ \qquad
+ -\widehat H_{Sw}=pD_S\mathsf P_{Sw},
+\end{equation*}
+they also give \cref{eq:aesp-cd-point-source-hitting-column}.  Expanding the
+Neumann series enumerates paths that stay in \(S\) until their final step to
+\(w\); killing or a different exterior visit ends the trial.  This proves
+the probability interpretation and \(0\leq h\leq\one\).
+
+Finally use \(\widehat H=\alpha D+cL\), sum
+\(\widehat H_{SS}h=cA_{Sw}\) over \(S\), and cancel every internal edge.
+Each cut edge contributes \(c h_i\), while the right-hand side counts the
+edges from \(S\) to \(w\).  This is
+\cref{eq:aesp-cd-point-source-hitting-flux}.  The event-reduction statement
+then follows directly from
+\cref{eq:aesp-cd-point-source-hitting-update} and the exhaustive finite-level
+certificate.
 \end{proof}
 
 \begin{proposition}[Schur pivot multipliers are killed first-exit laws]
