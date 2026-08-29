@@ -20,6 +20,7 @@
   - `docs/literature/lcp-solvers.md`
   - `manuscript/notes/README.md`
   - `manuscript/notes/registry.toml`
+  - `manuscript/notes/active_edge_lcp/`
 
 ## Outcome
 
@@ -77,7 +78,7 @@
 ## Review notes
 
 - Provider-owned paths changed: none.
-- Shared paths changed: only the six explicitly permitted documentation,
+- Shared paths changed: only the explicitly permitted direction,
   coordination, registry, and index paths listed above.
 - Branch/worktree exception: the Codex worktree manager kept the checkout on a
   detached HEAD.  To avoid damaging manager state, the checkout was not
