@@ -363,6 +363,15 @@ known without an eigensolve; the elimination record already recovers it.
 This supplies Perron data for a separately proved `W_A`-geometric
 correction-free tail, but it does not automatically transplant the original
 constant-direction clipping master to the new mass matrix.
+There is nevertheless an exact controller conjugacy.  With
+`R_A=diag(h_A)`, the operator
+`bar Q_A=R_A^(-1) W_A^(-1) H_A R_A` is self-adjoint in
+`bar D_A=diag(d_i h_i)`, has spectrum in `[alpha,1]`, and satisfies
+`bar Q_A 1=alpha 1`.  A `W_A`-shift and the safe cap
+`[u-Delta h_A]_+` become the ordinary identity shift and common constant cap
+after the change of variables.  Thus the fixed-face full-face algebra
+transfers exactly to a modified proper-face controller; high-gap and master
+sign certificates remain separate hypotheses.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

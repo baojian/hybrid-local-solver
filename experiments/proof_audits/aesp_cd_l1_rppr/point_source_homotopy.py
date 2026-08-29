@@ -152,6 +152,65 @@ def check_ground_state_normalization(
         resolvent = solve(shifted, [shift * mass[i] * response[i] for i in range(len(face))])
         expected_factor = shift / (shift + alpha)
         assert resolvent == [expected_factor * value for value in response]
+
+        # Exact diagonal conjugacy to a constant-ground normalized operator.
+        qbar = [
+            [
+                principal[i][j] * response[j] / degree[face[i]]
+                for j in range(len(face))
+            ]
+            for i in range(len(face))
+        ]
+        dbar = [F(degree[vertex], 1) * response[i] for i, vertex in enumerate(face)]
+        assert all(sum(row) == alpha for row in qbar)
+        assert all(qbar[i][j] <= 0 for i in range(len(face)) for j in range(len(face)) if i != j)
+        assert all(
+            dbar[i] * qbar[i][j] == dbar[j] * qbar[j][i]
+            for i in range(len(face))
+            for j in range(len(face))
+        )
+
+        # A generic shifted solve agrees in the two coordinate systems.
+        target = [F(11 + 2 * i, 10) for i in range(len(face))]
+        load = [
+            sum(principal[i][j] * target[j] for j in range(len(face)))
+            for i in range(len(face))
+        ]
+        center = [F(i + 1, 13) for i in range(len(face))]
+        shifted_rhs = [load[i] + shift * mass[i] * center[i] for i in range(len(face))]
+        shifted_solution = solve(shifted, shifted_rhs)
+        conjugate_shifted = [
+            [qbar[i][j] + shift * F(i == j) for j in range(len(face))]
+            for i in range(len(face))
+        ]
+        z_center = [center[i] / response[i] for i in range(len(face))]
+        bar_load = [load[i] / degree[face[i]] for i in range(len(face))]
+        z_solution = solve(
+            conjugate_shifted,
+            [bar_load[i] + shift * z_center[i] for i in range(len(face))],
+        )
+        assert shifted_solution == [response[i] * z_solution[i] for i in range(len(face))]
+
+        # The h-cap is exactly a constant cap after conjugacy and publishes a
+        # lower subsolution below the chosen positive exact solution.
+        trial = [
+            target[i] + F((i % 3) - 1, 5) + F(len(face), 17)
+            for i in range(len(face))
+        ]
+        violation = [
+            sum(principal[i][j] * trial[j] for j in range(len(face))) - load[i]
+            for i in range(len(face))
+        ]
+        cap = max([F(0), *(violation[i] / (alpha * degree[face[i]]) for i in range(len(face)))])
+        published = [max(F(0), trial[i] - cap * response[i]) for i in range(len(face))]
+        z_trial = [trial[i] / response[i] for i in range(len(face))]
+        assert published == [response[i] * max(F(0), z_trial[i] - cap) for i in range(len(face))]
+        residual = [
+            load[i] - sum(principal[i][j] * published[j] for j in range(len(face)))
+            for i in range(len(face))
+        ]
+        assert all(residual[i] >= 0 for i in range(len(face)) if published[i] > 0)
+        assert all(published[i] <= target[i] for i in range(len(face)))
         checked += 1
     return checked
 
@@ -161,6 +220,7 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-point-source-homotopy-reorder}" in source
     assert r"\label{eq:aesp-cd-point-source-homotopy-mix}" in source
     assert r"\label{lem:aesp-cd-point-source-ground-state-normalization}" in source
+    assert r"\label{prop:aesp-cd-proper-face-ground-conjugacy}" in source
 
     size, alpha = 6, F(2, 7)
     edges = ((0, 1), (0, 3), (0, 4), (1, 2), (1, 3), (2, 3), (2, 5), (3, 4), (4, 5))
@@ -216,6 +276,7 @@ def main() -> None:
     print("  exact nonnegative rank-one mixing for surviving rows {2,5}")
     print("  strict priority reversal: 5>2 before, 2>5 after")
     print(f"  canonical proper-face ground normalization: {ground_faces} connected faces")
+    print("  h-cap / W-shift conjugacy: exact on every connected face")
 
 
 if __name__ == "__main__":

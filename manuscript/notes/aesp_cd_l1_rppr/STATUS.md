@@ -68,6 +68,11 @@ State: proved-open
   `(alpha,h_A)`.  This removes eigendata estimation for a separately proved
   `W_A`-geometric no-correction tail, but does not by itself change the
   clipping direction in the existing full-face master.
+  An exact diagonal conjugacy does remove that mismatch for a modified
+  proper-face primitive: the `W_A`-shift and `h_A`-cap become the normalized
+  identity shift and constant cap.  Hence all algebraic fixed-face
+  full-face interfaces transfer, while their high-gap and master-sign
+  hypotheses still require independent certificates.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the
@@ -490,6 +495,7 @@ still no graph-uniform exact accelerated solver.
   `prop:aesp-cd-point-source-hitting-column`,
   `lem:aesp-cd-point-source-hitting-radius`,
   `lem:aesp-cd-point-source-ground-state-normalization`,
+  `prop:aesp-cd-proper-face-ground-conjugacy`,
   `cor:aesp-cd-point-source-route-output-interface`,
   `lem:aesp-cd-point-source-response-residual-certificate`,
   `prop:aesp-cd-point-source-orthogonal-pivots`,

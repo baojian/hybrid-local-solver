@@ -159,6 +159,12 @@ proper face therefore has a canonical known ground state at eigenvalue
 usable by a separately certified no-correction Perron tail, but it does not
 by itself transplant the original constant-direction clipping master to the
 new mass matrix.
+In fact a modified controller is exactly conjugate to the normalized
+full-face primitive: with `R=diag(h)`, the operator
+`R^-1 W^-1 H R` has constant ground vector, while a `W`-shift and `h`-cap
+become the identity shift and constant cap.  This transfers the algebraic
+fixed-face interfaces without an eigensolve; it does not supply the separate
+high-gap or master-sign certificates those interfaces assume.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

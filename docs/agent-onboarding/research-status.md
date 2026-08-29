@@ -99,7 +99,10 @@ hulls do not support the required bulk projective pullback and meld.  On any
 certified connected proper face, the homotopy slope also gives a canonical
 diagonal normalization with a known ground eigenpair at `alpha`; this removes
 proper-face eigendata estimation, but not the clipping-direction hypothesis
-of the separate full-face momentum master.
+of the unchanged full-face momentum master.  If the proper-face primitive is
+modified to use that diagonal mass and its positive ground-state cap, an exact
+diagonal conjugacy restores the normalized full-face algebra.  Its high-gap
+and master-sign certificates remain separate conditions.
 
 Thus the project has a graph-uniform terminal solver and complete online
 reporters on several large structural classes, but still no graph-uniform
