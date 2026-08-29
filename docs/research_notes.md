@@ -63,6 +63,18 @@ dynamic reporter to lazy planar extreme queries.  The universal graph theorem
 is still open because sparse high-gap pivots can leave genuine gray rows and
 variable two-port blocks still require an amortized transformed-meld/event
 locator.
+In the unweighted model the remaining high-mode row radius has now been
+compressed further: it is at most one common response constant times
+`sqrt(s_v)`, where `s_v` is the same scalar ground coupling already carried
+by the lazy planar reporter.  Thus no row-specific high-dimensional dual
+state remains in this branch.  The unresolved loss is genuinely the scalar
+gray band near zero, not maintenance of the full response vector.
+At a fixed snapshot, even that affine-plus-square-root band reduces to
+planar extreme queries: dyadic bins in `s_v` and the Young majorant for
+`sqrt(s_v)` give affine lower and upper scores with less than 1.02
+multiplicative inflation.  The unresolved online question is now whether
+many simultaneous bin crossings can be reported or charged without a dense
+refresh.
 The exact-rank-one trace is now an end-to-end structural theorem, not merely a
 reporter lemma.  Its Schur pivot, admitted obstacle value, and ground-update
 value are computable from `(s_v,g_v)` and one global ground mass; active

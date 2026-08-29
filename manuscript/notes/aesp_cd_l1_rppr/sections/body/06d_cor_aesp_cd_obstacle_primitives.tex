@@ -1410,6 +1410,133 @@ Cauchy--Schwarz for the high term as in the preceding corollary, proves
 \cref{eq:aesp-cd-proper-face-finite-rank-one-row}.
 \end{proof}
 
+\begin{corollary}[Unweighted exterior bands depend on one ground coupling]
+\label{cor:aesp-cd-proper-face-unweighted-row-band}
+Suppose, in addition, that the ambient graph is unweighted and simple, and
+put \(c=(1-\alpha)/2\).  For every exterior row \(v\), the exact row radius in
+\cref{cor:aesp-cd-proper-face-rank-one-inverse} obeys
+\begin{equation}
+ B_v\leq
+ \frac{q}{\alpha(1+q)}
+ \sqrt{c s_v}\,
+ \norm{f-\bar f\one}_{\bar D_A},
+ \qquad s_v=k_v^{\mathsf T}h_A.
+ \label{eq:aesp-cd-proper-face-unweighted-row-band}
+\end{equation}
+Thus the simultaneous exact response enclosure for a retained row depends
+on its two lazy reporter scalars \((g_v,s_v)\) only: the nominal update is
+affine in \(s_v\), while the entire high-mode uncertainty is at most a common
+constant times \(\sqrt{s_v}\).
+
+The finite certificate has the same reduction.  With the notation of
+\cref{cor:aesp-cd-proper-face-finite-rank-one-inverse}, put
+\(\widetilde s_v=k_v^{\mathsf T}\widetilde h_A\).  Then one may replace its
+row radius by the completely observable upper bound
+\begin{equation}
+ \widetilde B_v\leq
+ \frac{c_h-1}{\alpha}
+ \bigl(|\widetilde f|+c_hM_1\bigr)\widetilde s_v
+ +c_h\frac{q}{\alpha(1+q)}\sigma\sqrt{c\widetilde s_v}.
+ \label{eq:aesp-cd-proper-face-finite-unweighted-row-band}
+\end{equation}
+Consequently the finite proper-face shortcut no longer needs to retain a
+row-specific high-dimensional dual norm.  This does not remove gray rows:
+the remaining square-root band is nonlinear and can dominate a small key.
+It isolates that scalar gray-band problem as the only loss in this
+unweighted high-gap response interface.
+\end{corollary}
+
+\begin{proof}
+For an unweighted graph, \(k_{v,i}\in\{0,c\}\).  Hence
+\begin{equation*}
+ \sum_{i\in A}\frac{k_{v,i}^2h_{A,i}}{d_i}
+ =c^2\sum_{i\in A:\,i\sim v}\frac{h_{A,i}}{d_i}
+ \leq c^2\sum_{i\in A:\,i\sim v}h_{A,i}
+ =c s_v,
+\end{equation*}
+where \(d_i\geq1\).  Substitution in the exact row radius proves
+\cref{eq:aesp-cd-proper-face-unweighted-row-band}.  The identical argument
+with \(\widetilde h_A\) proves
+\(\sum_i k_{v,i}^2\widetilde h_{A,i}/d_i\leq c\widetilde s_v\), and
+substitution in the finite radius proves
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band}.
+\end{proof}
+
+\begin{corollary}[Dyadic square-root bands reduce to planar extreme queries]
+\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}
+At one fixed reporter snapshot, suppose every retained row has
+\(s_v>0\) and the certified interval
+\begin{equation}
+ g_v+(a-d)s_v-C\sqrt{s_v}
+ \ \leq\ G_v\ \leq\
+ g_v+(a+d)s_v+C\sqrt{s_v},
+ \qquad d,C\geq0,
+ \label{eq:aesp-cd-proper-face-affine-root-band}
+\end{equation}
+where \(a,d,C\) are common over the queried rows.  Partition the rows into
+dyadic bins \(L_j\leq s_v<2L_j\), put
+\begin{equation*}
+ s_j^\circ:=\sqrt2\,L_j,
+ \qquad
+ \lambda_j:=\frac{C}{2\sqrt{s_j^\circ}},
+ \qquad
+ \psi_j(s):=\lambda_js+\frac{C^2}{4\lambda_j},
+\end{equation*}
+and, when \(C=0\), interpret
+\(\lambda_j=C^2/(4\lambda_j)=\psi_j=0\).  Then
+\begin{equation}
+ C\sqrt{s}\leq\psi_j(s)
+ \leq\kappa_2 C\sqrt{s}
+ \quad(L_j\leq s<2L_j),
+ \qquad
+ \kappa_2:=\frac{2^{1/4}+2^{-1/4}}2<1.02.
+ \label{eq:aesp-cd-proper-face-dyadic-root-majorant}
+\end{equation}
+Consequently, within bin \(j\), the two affine scores
+\begin{align*}
+ L_{v,j}
+ &:=g_v+(a-d-\lambda_j)s_v-\frac{C^2}{4\lambda_j},\\
+ U_{v,j}
+ &:=g_v+(a+d+\lambda_j)s_v+\frac{C^2}{4\lambda_j}
+\end{align*}
+satisfy \(L_{v,j}\leq G_v\leq U_{v,j}\).  A planar extreme-point query on
+the points \((s_v,g_v)\) therefore either emits a rigorously positive row
+when \(\max_vL_{v,j}>0\), or certifies the whole bin nonpositive when
+\(\max_vU_{v,j}\leq0\).  With
+\(s_{\min}\leq s_v\leq s_{\max}\), a snapshot needs only
+\begin{equation*}
+ O\!\left(1+\log\frac{s_{\max}}{s_{\min}}\right)
+\end{equation*}
+such bin queries.
+
+Applied to
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band}, the linear ground
+uncertainty is absorbed into \(d\) and the high-mode uncertainty supplies
+\(C\).  Thus the scalar gray band itself has a finite-dimensional batched
+reporter.  This is not yet an online trace theorem: a common face transform
+can move many \(s_v\)'s across bin boundaries without exposing those
+crossings.  Charging or lazily representing those rebin events is precisely
+the remaining dynamic interface.
+\end{corollary}
+
+\begin{proof}
+Young's exact identity
+\begin{equation*}
+ C\sqrt{s}
+ =\min_{\lambda>0}
+   \left(\lambda s+\frac{C^2}{4\lambda}\right)
+\end{equation*}
+gives the first inequality.  If
+\(r=\sqrt{s/s_j^\circ}\), then
+\(\psi_j(s)/(C\sqrt{s})=(r+r^{-1})/2\).
+On a dyadic bin,
+\(2^{-1/4}\leq r<2^{1/4}\), which gives the second inequality.
+Substitution into
+\cref{eq:aesp-cd-proper-face-affine-root-band} proves the affine enclosure.
+Each score is a linear functional of \((s_v,g_v)\) plus a common constant,
+so one planar extreme query returns its maximum.
+\end{proof}
+
 \begin{proposition}[Rank-one face responses reduce persistent reporting to two dimensions]
 \label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}
 At a nested-face admission \(B=A\cup\{w\}\), write the old-face response as

@@ -114,6 +114,15 @@ State: proved-open
   its residual error, and the transformed right-hand side.  Exact ground data
   are therefore unnecessary for either the spectral test or the reporter
   interval.
+  In an unweighted graph the row-specific dual factor is bounded by
+  sqrt(c*s_v), where s_v is the same ground-coupling scalar already
+  maintained by the lazy reporter.  Hence the finite high-gap branch carries
+  no additional vector state per row: its unresolved uncertainty is a scalar
+  affine-plus-square-root gray band.
+  At a fixed snapshot, dyadic bins and Young majorants turn that band back
+  into planar affine maxima with less than `1.02` inflation.  What remains
+  open is online rebinning: a common face transform may move many rows across
+  bin boundaries without naming those events.
   A truncated killed-walk Neumann series supplies this one-sided certificate
   with exact residual factor `((1-alpha)/(1+alpha))^K`; this removes the
   logical eigensolver oracle but costs `O(vol(A)/alpha)` up to logs.  The
@@ -609,6 +618,8 @@ graph-uniform end-to-end accelerated solver.
   `prop:aesp-cd-proper-face-ground-admission-replay`,
   `cor:aesp-cd-proper-face-rank-one-inverse`,
   `cor:aesp-cd-proper-face-finite-rank-one-inverse`,
+  `cor:aesp-cd-proper-face-unweighted-row-band`,
+  `cor:aesp-cd-proper-face-dyadic-gray-reporter`,
   `prop:aesp-cd-proper-face-lazy-rank-one-reporter`,
   `cor:aesp-cd-complete-prefix-rank-one-reporter`,
   `cor:aesp-cd-exact-rank-one-trace-discovery`,

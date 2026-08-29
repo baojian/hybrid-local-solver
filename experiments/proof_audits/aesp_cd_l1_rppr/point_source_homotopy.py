@@ -665,6 +665,26 @@ def check_rank_one_inverse_certificate() -> tuple[F, F, F, F]:
     assert positive_key + approximate_response - coordinate_row_band > 0
     assert negative_key + approximate_response + coordinate_row_band < 0
 
+    # On an unweighted graph the row-specific dual radius collapses to the
+    # single ground coupling s_v.  Here h=1 and an exterior vertex sees two
+    # of the three K3 vertices.
+    graph_row = [coupling, F(0), coupling]
+    ground = [F(1)] * size
+    ground_coupling = sum(
+        graph_row[i] * ground[i] for i in range(size)
+    )
+    dual_radius_squared = sum(
+        graph_row[i] ** 2 * ground[i] / degree for i in range(size)
+    )
+    assert dual_radius_squared <= coupling * ground_coupling
+    # Young majorants turn a scalar square-root band into an affine score.
+    # Use the lower endpoint of a factor-two bin so the check stays rational.
+    band = F(7, 13)
+    tangent = band / 2
+    for scalar in (F(1), F(3, 2), F(2)):
+        majorant = tangent * scalar + band * band / (4 * tangent)
+        assert majorant * majorant >= band * band * scalar
+
     # The finite ground certificate must suffice without exact h.  A uniform
     # shrink realizes the extremal one-sided residual sandwich exactly.
     eps_h = F(1, 5)
@@ -931,6 +951,8 @@ def main() -> None:
     assert r"\label{prop:aesp-cd-proper-clique-conductance-witness}" in source
     assert r"\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}" in source
     assert r"\label{cor:aesp-cd-proper-face-rank-one-inverse}" in source
+    assert r"\label{cor:aesp-cd-proper-face-unweighted-row-band}" in source
+    assert r"\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}" in source
     assert r"\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}" in source
     assert r"\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}" in source
     assert r"\label{cor:aesp-cd-complete-prefix-rank-one-reporter}" in source

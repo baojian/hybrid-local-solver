@@ -12,6 +12,15 @@ admission replay, low-rank response intervals, and a lazy planar reporter for
 the zero-band case.  It does not yet prove the universal graph theorem:
 sparse high-gap pivots can retain nonzero gray bands, while variable two-port
 blocks still need an amortized transformed-meld/event locator.
+For unweighted graphs the high-gap row radius now reduces to a common
+constant times `sqrt(s_v)`, using the same ground-coupling scalar already
+stored by the planar reporter.  This removes the last row-specific vector
+state from the shortcut, but it does not certify keys whose scalar band still
+overlaps zero.
+For one snapshot, dyadic ground-coupling bins and a Young majorant reduce
+those square-root bands back to planar affine extreme queries with less than
+1.02 inflation.  The remaining online problem is the amortization of rows
+that cross bins under a common face transform.
 For an exact-rank-one trace this is already end to end: the Schur pivot and
 both admission scalars are recovered from the two row states and one global
 ground mass, active coordinates share the same lazy transform, and one final
