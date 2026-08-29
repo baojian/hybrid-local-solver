@@ -115,6 +115,13 @@ State: proved-open
   move toward the admitted maximum.  Nevertheless an exact six-vertex trace
   reverses two surviving candidates' order, so a stale scalar heap does not
   close the reporter.
+  Maintaining the full sparse exterior Schur complement nevertheless yields
+  an exact ratio-pivot support homotopy: every support row is scanned and
+  admitted once, terminal KKT is exact, and discovery costs
+  `O_tilde(vol(S*)+sum_w(1+delta_w)^2)` in the realized Schur-fill degrees.
+  Hence bounded homotopy width, followed by the certified final-face
+  Chebyshev solve, meets the point-source product target.  This is not
+  graph-uniform because explicit root/fill cliques can be quadratic.
   A positive-coefficient
   polynomial theorem proves that requiring all scratch residuals to remain
   coordinatewise nonnegative reverts to condition-number rather than
@@ -308,6 +315,7 @@ still no graph-uniform exact accelerated solver.
   `lem:aesp-cd-two-port-projective-pullback`,
   `cor:aesp-cd-slope-separated-projective-meld`,
   `cor:aesp-cd-projective-separation-guard`,
+  `thm:aesp-cd-point-source-ratio-pivot`,
   `prop:aesp-cd-point-source-homotopy-reorder`,
   `prop:aesp-cd-point-source-superlevel-stop`,
   `prop:aesp-cd-fan-linear-batches`,

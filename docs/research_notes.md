@@ -74,6 +74,22 @@ candidates' order.  Homotopy therefore replaces the fully arbitrary rekey
 problem by dynamic maxima under row-dependent rank-one mixtures, not by an
 ordinary lazy heap.
 
+There is, however, an exact positive algorithm behind this identity.  If the
+current exterior Schur complement is kept explicitly, admitting a largest
+critical ratio is exactly one Stieltjes pivot; each support coordinate enters
+once, and the first largest ratio below the target rho is the global KKT
+certificate.  With delta_v denoting the realized Schur-fill degree at the
+pivot, discovery costs
+
+```text
+O_tilde(vol(S*) + sum_v (1+delta_v)^2).
+```
+
+Thus bounded homotopy elimination width gives a genuine point-source
+product-scale solver after the existing final-face Chebyshev step.  This is a
+structural breakthrough, not yet a general-graph one: explicit fill can be
+quadratic even when an implicit tree or separator reporter would be linear.
+
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
 cell arithmetic, not exact-minimizer output or a floating-point/bit result.

@@ -200,6 +200,15 @@ average of its old value and the admitted maximum.  The thresholds therefore
 move monotonically, but a six-vertex exact trace reverses two candidates'
 priority order.  A plain lazy heap is insufficient; the remaining reporter
 must support nonuniform rank-one mixtures.
+Keeping the complete exterior Schur complement turns that identity into an
+exact ratio-pivot homotopy algorithm: every support coordinate enters once,
+and the target support is certified when the largest remaining ratio falls
+below $ho$.  Its discovery work is
+$\widetilde O(\vol(S^\star)+\sum_w(1+\delta_w)^2)$, where $delta_w$ is the
+actual Schur-fill degree at pivot $w$.  Bounded homotopy width therefore gives
+a genuine product-scale point-source solver after the final-face Chebyshev
+step.  Explicit fill can still be quadratic (already at a high-degree root),
+so this is a new structural GO rather than the universal theorem.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

@@ -212,6 +212,89 @@ breakpoints $\tau_1=\tau_4=5/96$, then the unique winner
 $\tau_3=185/4231$, and the four before/after values displayed above.
 \end{proof}
 
+\begin{theorem}[Exact point-source ratio-pivot support homotopy]
+\label{thm:aesp-cd-point-source-ratio-pivot}
+For the point-source RPPR obstacle problem at a target \(\rho>0\), the exact
+support can be found by a monotone Schur-complement elimination that admits
+each support vertex once.  More precisely, after the root has entered, keep
+the exterior Schur complement
+\begin{equation*}
+ K^S
+ =H_{\bar S\bar S}-H_{\bar SS}H_{SS}^{-1}H_{S\bar S}
+\end{equation*}
+and the breakpoint pairs \((A_v,B_v)\) from
+\cref{prop:aesp-cd-point-source-homotopy-reorder}.  Repeatedly choose a
+largest ratio \(\tau_w=A_w/B_w\).  If \(\tau_w\leq\rho\), stop.  Otherwise
+admit \(w\), and pivot
+\begin{align}
+ A'_v&=A_v-\frac{K^S_{vw}}{K^S_{ww}}A_w,&
+ B'_v&=B_v-\frac{K^S_{vw}}{K^S_{ww}}B_w,
+ \label{eq:aesp-cd-ratio-pivot-pair}\\
+ K^{S\cup\{w\}}_{uv}
+ &=K^S_{uv}-\frac{K^S_{uw}K^S_{wv}}{K^S_{ww}}.
+ \label{eq:aesp-cd-ratio-pivot-schur}
+\end{align}
+Exact ties may be pivoted as one batch or in a fixed symbolic order.
+At termination \(S=\supp(x_\rho^\star)\), and
+\(x_{\rho,S}^\star=a_S-\rho h_S>0\).
+
+This is a local explicit-fill algorithm.  Scan the adjacency row of a vertex
+only when it is pivoted; point-source connectedness ensures that an unseen
+vertex with no edge to \(S\) cannot enter first.  Let \(\delta_w\) be the
+number of current nonzero Schur neighbors of \(w\), including newly exposed
+original neighbors, just before its pivot.  With a heap for the ratios and
+sparse explicit fill, discovery, the elimination record, and terminal
+back-substitution cost
+\begin{equation}
+ \widetilde O\!\left(
+   \vol(S)+\sum_{w\in S}(1+\delta_w)^2
+ \right)
+ \label{eq:aesp-cd-ratio-pivot-work}
+\end{equation}
+exact field operations.  In particular, homotopy elimination width
+\(\max_w\delta_w\leq\omega\) gives
+\(\widetilde O(\omega^2\vol(S))\) discovery.  Once the face is certified,
+\cref{cor:aesp-cd-final-face-chebyshev} adds
+\(\widetilde O(\vol(S)/\sqrt\alpha)\) terminal work.  Thus bounded-width
+point-source traces satisfy the desired product-scale bound.
+\end{theorem}
+
+\begin{proof}
+For \(\rho\geq1/d_o\), every load coordinate is nonpositive and the obstacle
+solution is zero.  Just below \(1/d_o\), the root is the first active
+coordinate.  On any later face \(S\), the active solution is
+\(x_S(\rho)=a_S-\rho h_S\), and \(h_S\geq0\).  If \(w\) is the largest
+breakpoint, block elimination gives
+\begin{equation*}
+ x'_w(\rho)
+ =\frac{A_w-\rho B_w}{K^S_{ww}}
+ =\frac{B_w(\tau_w-\rho)}{K^S_{ww}},
+ \qquad
+ x'_S(\rho)=x_S(\rho)-H_{SS}^{-1}H_{Sw}x'_w(\rho).
+\end{equation*}
+Therefore \(w\) becomes positive immediately below \(\tau_w\), and every
+old active coordinate is nondecreasing.  The Schur complement of a
+Stieltjes matrix is Stieltjes, so
+\(-K^S_{vw}/K^S_{ww}\geq0\).  Equations
+\cref{eq:aesp-cd-ratio-pivot-pair,eq:aesp-cd-ratio-pivot-schur} are precisely
+the block-elimination identities.  At the first event below the target,
+every exterior key is
+\begin{equation*}
+ g_v(\rho)=B_v(\tau_v-\rho)\leq0,
+\end{equation*}
+while all admitted coordinates are positive.  These are the global obstacle
+KKT conditions, proving correctness.
+
+For locality, a vertex not yet adjacent to \(S\) has \(A_v=0\), hence cannot
+beat a positive breakpoint.  Scanning the selected row reveals every new
+original frontier incidence before its pivot.  Updating the Schur clique
+costs \(O((1+\delta_w)^2)\), pair and heap updates cost only a soft-linear
+amount in \(\delta_w\), and each selected original row costs \(d_w\).
+Summing gives
+\cref{eq:aesp-cd-ratio-pivot-work}; the stored elimination multipliers give a
+back-substitution with no larger charge.
+\end{proof}
+
 \begin{corollary}[Margin-free accelerated obstacle primitive]
 \label{cor:aesp-cd-margin-free-obstacle-primitive}
 In the setting of
