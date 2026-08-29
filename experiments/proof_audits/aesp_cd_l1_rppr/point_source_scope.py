@@ -132,6 +132,20 @@ def check_rppr_nonlinearity() -> None:
     assert joint != superposed
 
 
+def check_residual_recursion_stop() -> None:
+    alpha, rho = F(1, 3), F(1, 12)
+    hessian, degree = path_hessian(alpha, 3)
+    root = 1
+    load = [alpha * (F(i == root) - rho * degree[i]) for i in range(3)]
+    point = [F(0), load[root] / hessian[root][root], F(0)]
+    residual = [
+        load[i] - sum(hessian[i][j] * point[j] for j in range(3))
+        for i in range(3)
+    ]
+    assert point == [F(0), F(5, 24), F(0)]
+    assert residual == [F(1, 24), F(0), F(1, 24)]
+
+
 def check_superlevel_stop() -> None:
     alpha, rho = F(1, 5), F(5, 21)
     hessian, degree = path_hessian(alpha, 3)
@@ -152,17 +166,20 @@ def main() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert r"\label{prop:aesp-cd-point-source-linear-reduction}" in source
     assert r"\label{cor:aesp-cd-point-source-coarse-regime}" in source
+    assert r"\label{prop:aesp-cd-point-source-residual-recursion-stop}" in source
     assert r"\label{lem:aesp-cd-point-source-subsolution-connected}" in source
     assert r"\label{prop:aesp-cd-point-source-superlevel-stop}" in source
     check_linear_superposition()
     check_lazy_nonlazy_conversion()
     check_rppr_nonlinearity()
+    check_residual_recursion_stop()
     check_superlevel_stop()
     print("PASS point-source scope audit")
     print("  linear PPR: exact weighted point-source superposition")
     print("  lazy/nonlazy PageRank parameter conversion: exact")
     print("  external O(1/eps^2) regime split: eps^2 >= alpha")
     print("  RPPR P3: joint obstacle solution differs from weighted point solves")
+    print("  exact root solve: unresolved residual has two positive sources")
     print("  RPPR P3: obstacle support strictly exceeds shifted-PPR positive support")
     print("  scope: point-source theorem target, general-seed linear corollary only")
 

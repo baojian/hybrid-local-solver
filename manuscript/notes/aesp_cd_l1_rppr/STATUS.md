@@ -30,6 +30,8 @@ State: proved-open
   active-SDD-solve implementation supplies finite one-sided boundary
   certificates, but the finite-gap radius-one fan proves that this strategy
   can genuinely take `Omega(1/eps_ppr^2)` work.  Dynamic reuse is still open.
+  Point-source structure is not closed under residual recursion: even the
+  exact root-only solve on `P3` leaves two positive residual sources.
 
 ## Claim ledger
 
@@ -153,6 +155,11 @@ State: proved-open
   converges monotonically to it.  This provides a rooted Abelian process, but
   its direct work bound remains `O(1/(alpha*eps_kkt))`; the Schur pivot is the
   block-toppling primitive whose compressed maintenance is still missing.
+  Equivalently, each Schur residual multiplier is the killed PageRank walk's
+  first-exit law through the current active face.  This gives an implicit
+  harmonic sampler for dense fill, but literal exit sampling still has
+  `O(1/alpha)` expected path length and is not the missing square-root
+  acceleration.
   Its breakpoint slope satisfies the graph-universal band
   `alpha*d_v <= B_v <= (1+alpha)*d_v/2`; hence a certified additive
   upper envelope on the remaining critical ratios gives a margin-free finite

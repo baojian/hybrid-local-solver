@@ -71,6 +71,81 @@ def obstacle_point(
     return point
 
 
+def inverse(matrix: list[list[F]]) -> list[list[F]]:
+    size = len(matrix)
+    columns = [
+        solve(matrix, [F(i == column) for i in range(size)])
+        for column in range(size)
+    ]
+    return [[columns[column][row] for column in range(size)] for row in range(size)]
+
+
+def audit_harmonic_exit(
+    hessian: list[list[F]],
+    adjacency: list[list[F]],
+    degree: list[int],
+    alpha: F,
+    eliminated: list[int],
+) -> None:
+    size = len(degree)
+    exterior = [vertex for vertex in range(size) if vertex not in eliminated]
+    if not eliminated or not exterior:
+        return
+    p, coupling = (1 + alpha) / 2, (1 - alpha) / 2
+    transition = [
+        [
+            coupling * adjacency[i][j] / (p * degree[i])
+            for j in range(size)
+        ]
+        for i in range(size)
+    ]
+    interior_kernel = [
+        [F(i == j) - transition[i][j] for j in eliminated]
+        for i in eliminated
+    ]
+    green = inverse(interior_kernel)
+    trace = [[transition[u][v] for v in exterior] for u in exterior]
+    for iu, u in enumerate(exterior):
+        for iv, v in enumerate(exterior):
+            trace[iu][iv] += sum(
+                transition[u][a]
+                * green[ia][ib]
+                * transition[b][v]
+                for ia, a in enumerate(eliminated)
+                for ib, b in enumerate(eliminated)
+            )
+
+    h_ss = [[hessian[i][j] for j in eliminated] for i in eliminated]
+    h_ss_inv = inverse(h_ss)
+    schur = [[hessian[u][v] for v in exterior] for u in exterior]
+    for iu, u in enumerate(exterior):
+        for iv, v in enumerate(exterior):
+            schur[iu][iv] -= sum(
+                hessian[u][a]
+                * h_ss_inv[ia][ib]
+                * hessian[b][v]
+                for ia, a in enumerate(eliminated)
+                for ib, b in enumerate(eliminated)
+            )
+            expected = p * degree[u] * (F(iu == iv) - trace[iu][iv])
+            assert schur[iu][iv] == expected
+
+    for iw in range(len(exterior)):
+        denominator = 1 - trace[iw][iw]
+        gamma = [
+            -schur[iv][iw] / schur[iw][iw]
+            for iv in range(len(exterior))
+            if iv != iw
+        ]
+        trace_exit = [
+            trace[iw][iv] / denominator
+            for iv in range(len(exterior))
+            if iv != iw
+        ]
+        assert gamma == trace_exit
+        assert sum(gamma, F(0)) <= coupling / p
+
+
 def audit_legal_topplings(
     hessian: list[list[F]],
     load: list[F],
@@ -258,6 +333,7 @@ def main() -> None:
     assert r"\label{lem:aesp-cd-point-source-residual-mass}" in source
     assert r"\label{eq:aesp-cd-point-source-residual-mass}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-injection}" in source
+    assert r"\label{prop:aesp-cd-point-source-harmonic-exit}" in source
     assert r"\label{prop:aesp-cd-point-source-dissipative-sandpile}" in source
     assert r"\label{eq:aesp-cd-point-source-least-action}" in source
 
@@ -279,6 +355,13 @@ def main() -> None:
                 ]
                 for i in range(size)
             ]
+            audit_harmonic_exit(
+                hessian,
+                adjacency,
+                degree,
+                alpha,
+                list(range(1 + rng.randrange(size - 1))),
+            )
             rho = rng.choice((F(1, 20), F(1, 12), F(1, 8), F(1, 6)))
             load = [alpha * (F(i == 0) - rho * degree[i]) for i in range(size)]
             expected = obstacle_support(hessian, load)

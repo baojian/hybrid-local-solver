@@ -541,6 +541,93 @@ Every finite-significant row contributes more than
 \(\alpha\epskkt d_v\geq\alpha\epskkt\) to this mass, proving the count.
 \end{proof}
 
+\begin{proposition}[Schur pivot multipliers are killed first-exit laws]
+\label{prop:aesp-cd-point-source-harmonic-exit}
+Let $S$ be any eliminated face, $E=V\setminus S$, and
+\begin{equation*}
+ \mathsf P:=\frac{c}{p}D^{-1}A,
+ \qquad
+ p=\frac{1+\alpha}{2},
+ \qquad c=\frac{1-\alpha}{2}.
+\end{equation*}
+Thus \(\mathsf P\) is the transition matrix of the ordinary random walk
+followed at every step with survival probability $c/p$.  Its trace kernel
+on $E$ is
+\begin{equation}
+ \mathsf T^S
+ :=\mathsf P_{EE}
+   +\mathsf P_{ES}(I-\mathsf P_{SS})^{-1}\mathsf P_{SE}.
+ \label{eq:aesp-cd-point-source-trace-kernel}
+\end{equation}
+Then the exterior Schur complement is exactly
+\begin{equation}
+ K^S=pD_E(I-\mathsf T^S).
+ \label{eq:aesp-cd-point-source-trace-schur}
+\end{equation}
+For a fixed-target pivot $w\in E$, every multiplier in the residual update
+has the probabilistic representation
+\begin{equation}
+ \gamma_v=-\frac{K^S_{vw}}{K^S_{ww}}
+ =\frac{\mathsf T^S_{wv}}{1-\mathsf T^S_{ww}}
+ \qquad(v\in E\setminus\{w\}).
+ \label{eq:aesp-cd-point-source-harmonic-exit}
+\end{equation}
+Equivalently, start the killed walk at $w$, ignore every return to $w$,
+and stop at the first different exterior vertex; \(\gamma_v\) is the
+probability of stopping at $v$, with the missing probability assigned to
+killing.  In particular
+\begin{equation*}
+ \sum_{v\ne w}\gamma_v\leq\frac{c}{p}
+ =1-\frac{\alpha}{p}.
+\end{equation*}
+
+Consequently the exact block reporter is a monotone transport process whose
+implicit update can be sampled without materializing Schur fill.  Literal
+walk simulation is not yet the desired acceleration: because every original
+transition kills with probability \(\alpha/p\), one such exit sample can
+take $O(p/\alpha)$ expected transitions.  The remaining algorithmic
+question is whether signed/accelerated response data can provide the same
+one-sided threshold reports in \(\widetilde O(1/\sqrt\alpha)\), amortized
+over the point-source injection budget
+\cref{eq:aesp-cd-point-source-pivot-injection}.
+\end{proposition}
+
+\begin{proof}
+The degree-unscaled Hessian factors as
+\begin{equation*}
+ \widehat H=pD(I-\mathsf P).
+\end{equation*}
+Taking its Schur complement over $S$ gives
+\begin{align*}
+ K^S
+ &=pD_E\bigl[
+   I-\mathsf P_{EE}
+   -\mathsf P_{ES}(I-\mathsf P_{SS})^{-1}\mathsf P_{SE}
+  \bigr],
+\end{align*}
+which is \cref{eq:aesp-cd-point-source-trace-schur}.  The bracketed series
+in \cref{eq:aesp-cd-point-source-trace-kernel} enumerates one trace step:
+either the walk moves directly between exterior vertices or it makes a
+positive-length excursion through $S$.  Symmetry of $K^S$ and its
+$w$-row give
+\begin{equation*}
+ -\frac{K^S_{vw}}{K^S_{ww}}
+ =-\frac{K^S_{wv}}{K^S_{ww}}
+ =\frac{\mathsf T^S_{wv}}{1-\mathsf T^S_{ww}}.
+\end{equation*}
+Summing the geometric series of repeated trace returns to $w$ proves the
+first-exit interpretation.  Since a trace excursion must survive its first
+original transition, \(\sum_v\mathsf T^S_{wv}\leq c/p\); hence
+\begin{equation*}
+ \frac{\sum_{v\ne w}\mathsf T^S_{wv}}
+      {1-\mathsf T^S_{ww}}
+ \leq\frac{c/p-\mathsf T^S_{ww}}
+           {1-\mathsf T^S_{ww}}
+ \leq\frac cp.
+\end{equation*}
+The expected-transition statement follows from geometric killing.
+\end{proof}
+
 \paragraph{Relation to principal-pivoting theory.}
 The linear number of exact support pivots is consistent with the broader
 K-matrix LCP theorem of

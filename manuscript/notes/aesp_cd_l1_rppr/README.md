@@ -12,6 +12,10 @@ point-source PPR solver to a sparse distribution with work
 the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions do
 not superpose.  Point-source lower publications are, however, automatically
 rooted and connected, so no multi-source component-merge reporter is needed.
+The contract is not recursively closed: on a three-vertex path, the exact
+root-only point-source solve already leaves two positive residual sources.
+Thus coarse-to-fine bootstrapping needs a joint nonnegative-residual reporter
+or pays the linear-superposition allocation factor.
 
 There is now a sharp external regime split.  The August 2026 active-set
 algorithm of [Wei and Yang](https://arxiv.org/abs/2608.16339) computes a
@@ -265,6 +269,12 @@ $(1-\alpha)/2$.  Hence at any one time at most
 $1/\varepsilon_{\rm kkt}$ rows can exceed the finite KKT threshold.  This
 does not yet bound lifetime rekeys, but it is a genuine finite-accuracy
 sparsity invariant absent from exact support recovery.
+Every Schur multiplier is also exactly the first-exit distribution of the
+PageRank walk killed at rate (2\alpha/(1+\alpha)) and traced through the
+current active face.  This samples one dense fill column implicitly, but a
+literal walk still has (O(1/\alpha)) expected length.  The missing
+acceleration is therefore a one-sided threshold reporter for these harmonic
+transports, not merely an ordinary random-walk sampler.
 The same homotopy has a margin-free approximate stopping rule:
 $\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
 $\eta$ on the largest remaining critical ratio costs at most
