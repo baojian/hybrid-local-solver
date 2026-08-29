@@ -107,6 +107,20 @@ modified to use that diagonal mass and its positive ground-state cap, an exact
 diagonal conjugacy restores the normalized full-face algebra.  Its high-gap
 and master-sign certificates remain separate conditions.
 
+On a face passing the high-gap certificate, every unweighted pivot response
+now splits into an observable ground rank-one term plus a gray remainder
+bounded by
+`c*q*sqrt(s_v*s_w)/(alpha*(1+q))`.  Point-source unit mass turns all such
+remainders into one observable pivot-mass clock.  Conditional on the charged
+exact-row refresh primitive, its work is
+`O_tilde(F+c^(3/2)*q*P_*F_1/2/(alpha*(1+q)*eta))`.  This meets the target if
+the mixed clock--degree quantity is small; in particular, it closes either
+the high-degree-row or high-degree-pivot branch `d>=alpha^(-2)`.  The precise
+proper-face remainder is therefore the simultaneous low-degree row/pivot
+lifetime reporter.  A terminal `K2` pulse shows that the global clock need
+not be `O(alpha)`, but does not rule out a smaller per-row clock stopped at
+that row's admission or certified rejection.
+
 Thus the project has a graph-uniform terminal solver and complete online
 reporters on several large structural classes, but still no graph-uniform
 end-to-end accelerated local PPR theorem, complete general event locator, or
@@ -119,7 +133,7 @@ results and a central unresolved target.
 
 | Direction | Exact unresolved target | Resume source |
 | --- | --- | --- |
-| AESP coordinate descent for RPPR | Build an output-sensitive online thresholded inverse-Cholesky/event locator on arbitrary point-source supports, or close the variable two-port series--parallel reporter that is the smallest present structural gap. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
+| AESP coordinate descent for RPPR | Build the simultaneous low-degree row/pivot lifetime reporter (or another output-sensitive inverse-response locator) on arbitrary point-source supports, or close the variable two-port series--parallel reporter. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
 | AESP--LOCSOR hybrid | Build a nonadditive or logarithmic reset ledger across multiple actual nonsettled admissions, or prove another graph-independent prefix bound. | [`hybrid_aesp_locsor/STATUS.md`](../../manuscript/notes/hybrid_aesp_locsor/STATUS.md) |
 | Volume-gated acceleration | Establish all-history causal solvency under a declared structural condition, or exhibit debt that survives enough admissions to stop that route. | [`volume_gated_acceleration/STATUS.md`](../../manuscript/notes/volume_gated_acceleration/STATUS.md) |
 | Response-preconditioned hybrid | Find sparse collision-sensitive refresh state or a geometrically paid replay/rebuild theorem for changing high-rank cores. | [`response_preconditioned_hybrid/STATUS.md`](../../manuscript/notes/response_preconditioned_hybrid/STATUS.md) |
