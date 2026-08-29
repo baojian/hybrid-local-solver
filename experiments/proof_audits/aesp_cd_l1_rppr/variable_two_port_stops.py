@@ -17,6 +17,10 @@ PRODUCTIVE_SOURCE = (
     ROOT
     / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06c_prop_aesp_cd_productive_cactus.tex"
 )
+PROJECTIVE_GUARD_SOURCE = (
+    ROOT
+    / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06e_cor_aesp_cd_projective_guard.tex"
+)
 
 
 def solve(matrix, rhs):
@@ -210,6 +214,20 @@ def projective_pullback_order_audit():
     assert multiply(projective(p2, u2), projective(p1, u1)) == projective(
         composite_p, composite_u
     )
+
+    interval = (F(1, 5), F(7, 4))
+    for matrix, (determinant, images) in zip(matrices, rows, strict=True):
+        p11, p12 = matrix[0]
+        p21, p22 = matrix[1]
+        endpoint_images = tuple(
+            (p11 * slope + p21) / (p12 * slope + p22) for slope in interval
+        )
+        assert (min(images), max(images)) == (
+            min(endpoint_images),
+            max(endpoint_images),
+        )
+        if determinant == 0:
+            assert endpoint_images[0] == endpoint_images[1]
     return rows
 
 
@@ -778,11 +796,13 @@ def assert_cycle_named_response_go():
 def main():
     source = SOURCE.read_text()
     productive_source = PRODUCTIVE_SOURCE.read_text()
+    projective_guard_source = PROJECTIVE_GUARD_SOURCE.read_text()
     assert r"\label{cor:aesp-cd-cactus-live-sites}" in source
     assert r"\label{prob:aesp-cd-variable-two-port-reporter}" in source
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
     assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
     assert r"\label{cor:aesp-cd-slope-separated-projective-meld}" in source
+    assert r"\label{cor:aesp-cd-projective-separation-guard}" in projective_guard_source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source

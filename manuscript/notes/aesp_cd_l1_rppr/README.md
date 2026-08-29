@@ -174,6 +174,9 @@ interleaving child hulls.
 If every sibling pair instead has disjoint pulled-back slope intervals, one
 bridge tangent gives a logarithmic persistent meld; this is a clean
 structural GO, but not a general reporter.
+The condition is observable from the two lazy endpoint images at every
+changed meld, so the fast branch can be guarded online and abandoned safely
+when the intervals overlap.
 Separately, exact all-positive batching cannot be charged just to support
 radius: an eight-vertex radius-one RPPR instance needs five strict singleton
 batches.
