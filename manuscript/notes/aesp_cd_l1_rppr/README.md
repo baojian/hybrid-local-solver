@@ -434,6 +434,10 @@ new coordinate residual is zero, so declared response residual budgets add
 without a new face solve.  No full-face guard is needed for the finite sparse
 response: its right-hand side is nonnegative, so every zero coordinate of the
 safe publication also has nonnegative residual by the Stieltjes signs.
+One pivot response can therefore be certified by normalized safe Chebyshev in
+`O_tilde(vol(A)/sqrt(alpha))` work.  Repeating that solve independently after
+every admission would still be the forbidden face-by-face rebuild; the open
+interface is amortized response reuse/emission, not finite response safety.
 Keeping the complete exterior Schur complement turns that identity into an
 exact ratio-pivot homotopy algorithm: every support coordinate enters once,
 and the target support is certified when the largest remaining ratio falls

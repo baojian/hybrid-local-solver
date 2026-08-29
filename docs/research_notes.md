@@ -266,6 +266,11 @@ Finite sparse pivot responses need no full-face guard.  Their right-hand side
 is nonnegative; at every zero coordinate of the safe Stieltjes publication,
 the off-diagonal signs make the residual nonnegative automatically.  The
 published response can therefore stay sparse while certifying every row.
+The same normalized raw-residual target as for the ground solve produces this
+response certificate in `O_tilde(vol(A)/sqrt(alpha))` work for one pivot.
+Paying that from scratch after every admission would recreate the known
+quadratic face-by-face ledger; this closes response safety, not dynamic
+response amortization.
 
 There is, however, an exact positive algorithm behind this identity.  If the
 current exterior Schur complement is kept explicitly, admitting a largest

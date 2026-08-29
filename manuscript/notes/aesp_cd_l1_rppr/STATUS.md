@@ -131,6 +131,10 @@ State: proved-open
   Finite sparse pivot responses require no full-face guard: their right-hand
   side is nonnegative, so the safe Stieltjes publication has a nonnegative
   residual even at every coordinate it leaves at zero.
+  The normalized safe-Chebyshev target certifies one such response in
+  `O_tilde(vol(A)/sqrt(alpha))` work.  This removes a safety/precision gap but
+  does not permit a fresh face solve after every admission; dynamic response
+  amortization remains the central locator interface.
   Thus the oracle-free theorem has been reduced exactly to accelerated
   envelope construction (or an equivalent output-sensitive event locator).
   Point-source structure is not closed under residual recursion: even the

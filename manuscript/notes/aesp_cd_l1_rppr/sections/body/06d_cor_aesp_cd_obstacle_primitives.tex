@@ -971,7 +971,8 @@ Finally the Chebyshev residual rate with condition number at most
 
 \begin{proposition}[Ground certificates reuse the admission response]
 \label{prop:aesp-cd-proper-face-ground-admission-replay}
-Let \(B=A\cup\{w\}\) be a one-coordinate principal-face extension and define
+Let \(A\) be connected and let \(B=A\cup\{w\}\) be a connected
+one-coordinate principal-face extension.  Define
 the exact nonnegative response column and Schur pivot
 \begin{equation*}
  u_A^{(w)}:=H_A^{-1}(-H_{Aw})\geq0,
@@ -1036,6 +1037,36 @@ cost without a full-face guard: the pivot right-hand side
 \cref{eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual} makes the sparse
 safe publication a one-sided certificate on every row.  Face discovery and
 response emission remain separately charged.
+
+More explicitly, in normalized coordinates let
+\begin{equation*}
+ b_A^{(w)}:=D_A^{-1/2}(-H_{Aw})\geq0,
+ \qquad
+ z_A^{(w)}:=D_A^{1/2}u_A^{(w)}.
+\end{equation*}
+Apply \cref{thm:aesp-cd-safe-chebyshev-face} to
+\(Q_Az=b_A^{(w)}\) with zero checkpoint and
+\(\upsilon=v_A=D_A^{1/2}\one\).  With \(C_A\) as in
+\cref{cor:aesp-cd-proper-face-accelerated-ground-certificate}, the raw
+residual target
+\begin{equation}
+ \norm{\widehat r_k^{(w)}}_2
+ \leq\frac{\varepsilon_u\alpha\sqrt{d_{\min}(A)}}{C_A}
+ \label{eq:aesp-cd-proper-face-response-raw-target}
+\end{equation}
+publishes a possibly sparse \(\widetilde u_A^{(w)}\geq0\) satisfying exactly
+the assumed full-row response certificate.  It uses
+\begin{equation}
+ O\left(
+ \alpha^{-1/2}
+ \log\frac{2C_A\norm{\widehat r_0^{(w)}}_2}
+               {\varepsilon_u\alpha\sqrt{d_{\min}(A)}}
+ \right)
+ \label{eq:aesp-cd-proper-face-response-safe-work}
+\end{equation}
+face products.  This closes the safety and finite-precision interface for one
+response; summing this cost over many admissions would still be the forbidden
+face-by-face rebuild, so dynamic response reuse/reporting remains essential.
 \end{proposition}
 
 \begin{proof}
@@ -1064,6 +1095,20 @@ by the definition of \(\widetilde t_w\), while the old rows equal
  =r_h+\widetilde t_wr_u.
 \end{equation*}
 The upper bound uses \(\widetilde t_w\leq1\).
+
+For the final specialization, the normalized principal matrix obeys
+\(\alpha I\preceq Q_A\preceq I\) and
+\(Q_Av_A\geq\alpha v_A\).  The right-hand side \(b_A^{(w)}\) is nonnegative,
+so \cref{eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual} applies with no
+full-face checkpoint.  Its residual norm is at most
+\(C_A\norm{\widehat r_k^{(w)}}_2\).  Under
+\cref{eq:aesp-cd-proper-face-response-raw-target}, multiplication by
+\(D_A^{1/2}\) gives
+\begin{equation*}
+ 0\leq-H_{Aw}-H_A\widetilde u_A^{(w)}
+ \leq\varepsilon_u\alpha d_A.
+\end{equation*}
+The Chebyshev rate proves the displayed work bound.
 \end{proof}
 
 \begin{corollary}[A conductance-certified correction-free proper-face tail]
