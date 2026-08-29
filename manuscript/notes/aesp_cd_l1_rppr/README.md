@@ -186,8 +186,11 @@ The condition is observable from the two lazy endpoint images at every
 changed meld, so the fast branch can be guarded online and abandoned safely
 when the intervals overlap.
 Separately, exact all-positive batching cannot be charged just to support
-radius: an eight-vertex radius-one RPPR instance needs five strict singleton
-batches.
+radius.  An explicit point-source fan family has every graph vertex at radius
+one but needs at least $m/2-1$ nonempty simultaneous batches on $m$ path
+vertices; an eight-vertex exact instance additionally realizes five strict
+singleton batches.  Thus the point-source restriction removes component
+mergers, not serial boundary activation around one root.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.

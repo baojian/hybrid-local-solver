@@ -278,6 +278,96 @@ nonnegative coefficients and add total degree.
 Thus the composite analogue of the ordinary-PPR residual-mass contraction is
 valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
 
+\begin{proposition}[A point source can require linearly many radius-one batches]
+\label{prop:aesp-cd-fan-linear-batches}
+For every even $m\geq4$ there is an unweighted $(m+1)$-vertex point-source
+RPPR instance for which every vertex is adjacent to the source, while the
+canonical exact restricted-solve rule that admits all currently
+strict-positive exterior keys takes at least $m/2-1$ nonempty batches.
+Consequently, specializing the end-to-end contract to $s=e_o$ removes the
+multi-source merge problem but does not bound the number of exact face
+changes by the support radius, even up to a graph-independent factor.
+\end{proposition}
+
+\begin{proof}
+Let vertex $0$ be adjacent to every vertex of the path
+$1-2-\cdots-m$; thus the whole fan has radius one from $0$.  Put
+\begin{equation*}
+ \rho=\frac1{4m-2},\qquad
+ U_k=\{0,1,\ldots,k,m-k+1,\ldots,m\}.
+\end{equation*}
+We first take the continuous limit $\alpha\downarrow0$.  In the
+degree-unscaled coordinates, divide every proper-face solution and every
+exterior key by $\alpha$, then multiply the equations by two.  The limiting
+restricted system has Hessian $D-A$ and load $2(e_0-\rho d)$.
+
+At $U_0=\{0\}$ the root value is
+\begin{equation*}
+ r_0=\frac{2(1-\rho m)}m.
+\end{equation*}
+The two path endpoints have key $r_0-4\rho>0$, whereas every other
+path vertex has key $r_0-6\rho<0$; after a common positive denominator their
+numerators are respectively $2(m-2)$ and $-4$.
+
+For $k\geq1$, symmetry gives one root value $r_k$ and two identical arm
+vectors $u\in\mathbb R^k$.  Let $M_k$ be tridiagonal with first diagonal
+entry $2$, all remaining diagonal entries $3$, and off-diagonal entries
+$-1$, and let $d_k=(2,3,\ldots,3)^\top$.  Writing
+\begin{align*}
+ A_k&=\mathbf1^\top M_k^{-1}\mathbf1,&
+ B_k&=\mathbf1^\top M_k^{-1}d_k,\\
+ a_k&=(M_k^{-1}\mathbf1)_k,&
+ b_k&=(M_k^{-1}d_k)_k,
+\end{align*}
+the arm and root equations are
+\begin{equation*}
+ M_ku=r_k\mathbf1-2\rho d_k,\qquad
+ r_k=\frac{2\{1-\rho(m+2B_k)\}}{m-2A_k}.
+\end{equation*}
+If $F_j$ denotes the Fibonacci sequence with $F_0=0,F_1=1$, elementary
+continuant induction gives
+\begin{equation*}
+ \det M_k=F_{2k+1},\quad
+ a_k=\frac{F_{2k}}{F_{2k+1}},\quad
+ b_k=\frac{3F_{2k}-1}{F_{2k+1}},\quad
+ A_k=k-a_k,\quad B_k=3k-1-b_k.
+\end{equation*}
+Let
+$\Delta_k=(4m-2)(m-2A_k)>0$; positivity follows also from the Schur
+complement of the proper principal Laplacian.  Every unseen vertex not next
+to an arm has the same exterior key, while the two vertices immediately next
+to the arms have one additional contribution $u_k$.  Substitution of the
+four continuant identities gives the exact signs
+\begin{equation}
+ g_k^{\rm far}=r_k-6\rho
+   =-\frac{4}{F_{2k+1}\Delta_k}<0,\qquad
+ g_k^{\rm next}=r_k+u_k-6\rho
+   =\frac{2(m-2k-2)}{F_{2k+1}\Delta_k}.
+ \label{eq:aesp-cd-fan-linear-batch-keys}
+\end{equation}
+Hence for $1\leq k<m/2-1$ exactly the next two path vertices have
+positive keys.  Every restricted solution along this trace is strictly
+interior: the root-only solution is positive, and after a strict-positive
+batch the new solution equals the zero-padded old solution plus the inverse
+of a connected proper principal Stieltjes matrix applied to a nonzero
+nonnegative residual.
+
+Return now to
+$\widehat H_\alpha=((1+\alpha)/2)D-((1-\alpha)/2)A$.
+For each of the finitely many proper faces above, the solution divided by
+$\alpha$ and its exterior keys divided by $\alpha$ are continuous at
+$\alpha=0$.  All active-coordinate and key inequalities used through
+$U_{m/2-1}$ are strict by
+\cref{eq:aesp-cd-fan-linear-batch-keys}.  Therefore some
+$\alpha_m>0$ preserves the batches
+\begin{equation*}
+ \{1,m\},\{2,m-1\},\ldots,
+ \{m/2-1,m/2+2\}.
+\end{equation*}
+There are $m/2-1$ of them, and whatever later support is selected remains
+inside the radius-one fan.
+\end{proof}
+
 \begin{proposition}[All-positive batches are not radius bounded]
 \label{prop:aesp-cd-all-positive-radius-stop}
 There is an eight-vertex unweighted single-seed RPPR instance whose exact

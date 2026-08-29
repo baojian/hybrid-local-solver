@@ -53,6 +53,13 @@ final unregularized PPR approximation is formed. Claims that use connected
 support, rooted exploration, or the support-radius bound are therefore
 point-source claims.
 
+The point-source restriction is a genuine simplification, but it does not by
+itself close dynamic support discovery.  A proved fan family has every graph
+vertex adjacent to the source while the exact rule that solves the current
+face and admits every positive exterior key still takes a linear number of
+nonempty batches.  Thus radius controls route length, not the number of
+response changes or restricted-face rebuilds around one root.
+
 An RPPR route must state its regularization conversion, such as
 `rho=tau=eps_ppr/2`, and its terminal certificate. Exact-real means algebraic
 cell arithmetic, not exact-minimizer output or a floating-point/bit result.
