@@ -571,6 +571,10 @@ def audit_orthogonal_pivots(
     ) == sum(degree[i] * old_point[i] for i in range(size)) <= 1
 
     hessian_inverse = inverse(hessian)
+    indices = sorted(support)
+    principal_inverse = inverse(
+        [[hessian[i][j] for j in indices] for i in indices]
+    ) if indices else []
     for i in range(size):
         leverage = sum(
             increment[i] * increment[i] / energy
@@ -578,6 +582,13 @@ def audit_orthogonal_pivots(
         )
         assert leverage <= hessian_inverse[i][i]
         assert hessian_inverse[i][i] <= F(1, alpha * degree[i])
+    for row, i in enumerate(indices):
+        for column, j in enumerate(indices):
+            factor_entry = sum(
+                increment[i] * increment[j] / energy
+                for increment, energy in zip(increments, energies, strict=True)
+            )
+            assert factor_entry == principal_inverse[row][column]
     return len(increments)
 
 
@@ -647,12 +658,23 @@ def audit_sparse_orthogonal_pivots(
     assert sum(energies, F(0)) == released_energy <= alpha
     assert sum(degree[i] * old_point[i] for i in range(len(load))) <= 1
     hessian_inverse = inverse(hessian)
+    indices = sorted(expected)
+    principal_inverse = inverse(
+        [[hessian[i][j] for j in indices] for i in indices]
+    ) if indices else []
     for i in range(len(load)):
         leverage = sum(
             increment[i] ** 2 / energy
             for increment, energy in zip(increments, energies, strict=True)
         )
         assert leverage <= hessian_inverse[i][i] <= F(1, alpha * degree[i])
+    for row, i in enumerate(indices):
+        for column, j in enumerate(indices):
+            factor_entry = sum(
+                increment[i] * increment[j] / energy
+                for increment, energy in zip(increments, energies, strict=True)
+            )
+            assert factor_entry == principal_inverse[row][column]
     return len(events)
 
 
@@ -939,6 +961,7 @@ def main() -> None:
     assert r"\label{lem:aesp-cd-point-source-frontier-universe}" in source
     assert r"\label{prop:aesp-cd-point-source-orthogonal-pivots}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-bessel}" in source
+    assert r"\label{eq:aesp-cd-pivot-inverse-factorization}" in source
     assert r"\label{eq:aesp-cd-point-source-pivot-variation}" in source
     assert r"\label{prop:aesp-cd-point-source-ppr-screening}" in source
     assert r"\label{eq:aesp-cd-point-source-ppr-screening-sharp}" in source
@@ -1238,6 +1261,7 @@ def main() -> None:
         "  sparse-source energy-orthogonal pivot directions audited="
         f"{sparse_orthogonal_directions}"
     )
+    print("  terminal principal inverse factorization: exact on every pivot trace")
     print("  separated sparse-source RPPR decomposition: exact P5 witness")
     print("  sparse-source route threshold: exact P3 merge-level witness")
     print(

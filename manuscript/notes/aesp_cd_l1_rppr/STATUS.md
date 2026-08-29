@@ -53,7 +53,9 @@ State: proved-open
   unresolved interface would close the general sparse-source target as well.
   The response stream remains energy-orthogonal with total energy at most
   `alpha/2` for every source distribution; only the sharper `alpha/(2d_o)`
-  constant is point-source-specific.
+  constant is point-source-specific.  The normalized response columns form
+  an exact inverse factorization of the terminal principal matrix, exposing
+  the missing locator as an online thresholded inverse-Cholesky reporter.
   The fixed-envelope terminal branch also bypasses the proper-face
   constant-vector identity that limits the separate Perron-window branch.
   Thus the oracle-free theorem has been reduced exactly to accelerated

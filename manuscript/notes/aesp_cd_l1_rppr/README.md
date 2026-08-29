@@ -63,7 +63,9 @@ candidate records, joint merge rows use thresholds
 `alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
 Its exact pivot increments remain energy-orthogonal for every source
 distribution, with total energy at most `alpha/2` and total degree-weighted
-variation at most one.
+variation at most one.  On the final support they give an exact inverse
+factorization, reducing the missing primitive to an online thresholded
+inverse-Cholesky-column reporter for an initially unknown principal matrix.
 Thus solving the remaining locator interface would recover the original
 additive sparse-source target, not just its point-source restriction.
 The fixed-envelope terminal composition does not identify the final positive

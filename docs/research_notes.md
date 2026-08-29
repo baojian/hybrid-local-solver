@@ -95,6 +95,10 @@ The principal-pivot response increments are also source-independent:
 they are pairwise energy-orthogonal, have total energy at most `alpha/2`,
 and total degree-weighted variation at most one.  The point source only
 sharpens the energy constant to `alpha/(2d_o)`.
+Restricted to the terminal support, the normalized pivot columns sum exactly
+to the principal inverse.  The remaining locator is therefore an online,
+thresholded inverse-Cholesky-column reporter whose principal matrix is not
+known in advance.
 The subsequent fixed-envelope proximal solve never needs to identify the
 final positive face, so it also bypasses the proper-face
 `Q_A 1 != alpha 1` obstruction in the separate momentum-window analysis.
