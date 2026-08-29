@@ -30,6 +30,15 @@ particular repeated-full-solve implementation can still require
 `Omega(1/eps_ppr^2)` work.  The remaining opportunity is dynamic reuse of
 those one-sided residual certificates in the small-accuracy regime.
 
+Classical APPR already separates envelope size from discovery work more
+sharply than the ordinary-PPR superlevel screen below.  Its terminal support
+contains `S*(rho)` and is itself contained in
+`S*((1-alpha)rho/2)`, so for `alpha<1/2` it is a valid envelope of volume
+below `4/rho`.  Yet APPR has tight worst-case work
+`Theta(1/(alpha*rho))`.  Hence an output-sized envelope exists and can be
+found locally; the unresolved issue is exactly accelerated construction or
+dynamic reuse of that envelope, not an output-volume theorem.
+
 Three superficially stronger point-source results do not close that hard
 range after their hidden scope is restored.  The ICDT 2024
 degree-normalized SSPPR method treats teleportation as a constant and uses

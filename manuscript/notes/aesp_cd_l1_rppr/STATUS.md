@@ -30,6 +30,12 @@ State: proved-open
   active-SDD-solve implementation supplies finite one-sided boundary
   certificates, but the finite-gap radius-one fan proves that this strategy
   can genuinely take `Omega(1/eps_ppr^2)` work.  Dynamic reuse is still open.
+  Classical APPR nevertheless returns an RPPR-support-containing envelope
+  of volume at most `2/((1-alpha)rho)` by the
+  Ha--Fountoulakis--Mahoney support sandwich.  Its worst-case degree work is
+  tightly `Theta(1/(alpha*rho))`.  This separates the remaining question:
+  an output-sized envelope exists, while its accelerated construction or
+  dynamic reuse is still missing.
   Point-source structure is not closed under residual recursion: even the
   exact root-only solve on `P3` leaves two positive residual sources.
   The apparent stronger point-source literature does not close this range:
@@ -422,6 +428,7 @@ still no graph-uniform exact accelerated solver.
   `cor:aesp-cd-projective-separation-guard`,
   `cor:aesp-cd-ratio-pivot-finite-stop`,
   `cor:aesp-cd-point-source-coarse-regime`,
+  `prop:aesp-cd-point-source-appr-envelope`,
   `cor:aesp-cd-point-source-fixed-target-pivot`,
   `prop:aesp-cd-point-source-dissipative-sandpile`,
   `lem:aesp-cd-point-source-residual-mass`,
