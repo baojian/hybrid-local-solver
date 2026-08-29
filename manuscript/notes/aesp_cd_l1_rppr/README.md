@@ -462,6 +462,9 @@ touches.  This costs `O_tilde(N+J sqrt(N))`; it meets the product budget when
 the charged block radius is at least `sqrt(N)`.  The remaining variable-port
 gap is precisely to remove that square-root loss (or charge it) while also
 paying online parse discovery and inactive halo.
+If only `p` distinct home leaves ever change, the same online scheme sharpens
+to `O_tilde(N+J min(p+1,sqrt(N)))`, so repeated mutations through a small
+productive interface are also product-scale when `p+1<=R*`.
 The overlap is genuinely unbounded for an explicitly merged chain: a
 weighted SP fan has even/odd child envelopes whose facets alternate, and one
 bulk child translation removes or reinserts linearly many parent facets.

@@ -145,6 +145,9 @@ already give an exact oracle-free fallback in
 `O_tilde(N+J sqrt(N))` work.  It is product-scale when the charged block
 radius is at least `sqrt(N)`; shallow variable-port blocks still require a
 true bulk-pullback/meld reporter or a new charge for this square-root loss.
+With only `p` distinct changed home leaves, the same online epoch sharpens to
+`O_tilde(N+J min(p+1,sqrt(N)))`, covering repeated updates through a small
+productive interface.
 An exact weighted-fan construction shows that a single bulk translation of
 one child can remove or reinsert linearly many alternating parent-envelope
 facets.  Hence constant-many bridge repairs do not remove the loss; the

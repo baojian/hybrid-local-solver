@@ -503,10 +503,21 @@ More generally, with a rebuild cap \(1\leq k\leq N\), the work is
  \widetilde O\!\left(N+Jk+\frac{JN}{k}\right).
  \label{eq:aesp-cd-sp-static-epoch-tradeoff}
 \end{equation}
+If \(p\) is the number of distinct home leaves changed over the whole trace,
+the same online choice \(k=\lceil\sqrt N\rceil\) has the sharper
+instance-sensitive bound
+\begin{equation}
+ \widetilde O\!\left(
+   N+J\min\{p+1,\sqrt N\}
+ \right).
+ \label{eq:aesp-cd-sp-static-epoch-productive}
+\end{equation}
 In particular, on an admission-only point-source trace, a block of structural
 size \(N\) whose charged support radius satisfies
 \(R_\star\geq\sqrt N\) fits the product ledger
 \(\widetilde O(NR_\star)\), because \(J\leq |S^\star|\leq N\).
+The same conclusion holds under the weaker instance promise
+\(p+1\leq R_\star\).
 
 The parse and its exposed factor universe are part of the input contract.
 Online discovery, parse splice/rebalancing, and inactive ambient halo are not
@@ -548,7 +559,12 @@ all rebuilds cost
 \end{equation*}
 Taking \(k=\lceil\sqrt N\rceil\) proves
 \cref{eq:aesp-cd-sp-static-epoch-work}.  Exact Schur elimination and the
-home/forget invariant prove the KKT claim.
+home/forget invariant prove the KKT claim.  If the global number of touched
+leaves satisfies \(p<k\), the first epoch never fills, so there is no rebuild
+and every query costs only \(\widetilde O(p+1)\).  If \(p\geq k\), the
+square-root bound applies.  Since
+\(p+1\leq k+1\leq2\sqrt N+1\) at the boundary, the two cases give
+\cref{eq:aesp-cd-sp-static-epoch-productive} up to a universal constant.
 \end{proof}
 
 The pullback part of this interface has more structure than an arbitrary

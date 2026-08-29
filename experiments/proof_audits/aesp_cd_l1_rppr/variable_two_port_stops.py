@@ -369,6 +369,7 @@ def balanced_sp_epoch_ledgers():
     cap = math.isqrt(size)
     assert cap * cap == size
     sequences = (
+        [5] * 100,
         [0] * 19 + list(range(1, 33)) + [7] * 11,
         [(17 * step + 3) % size for step in range(96)],
     )
@@ -389,9 +390,20 @@ def balanced_sp_epoch_ledgers():
             query_work += cover
         actual = size * (1 + rebuilds) + query_work
         declared = size + len(sequence) * cap + (len(sequence) // cap) * size
+        productive = size + len(sequence) * min(len(set(sequence)) + 1, cap)
         assert rebuilds <= len(sequence) // cap
         assert actual <= 2 * declared
-        rows.append((len(sequence), rebuilds, maximum_cover, actual, declared))
+        assert actual <= height * productive
+        rows.append(
+            (
+                len(sequence),
+                len(set(sequence)),
+                rebuilds,
+                maximum_cover,
+                actual,
+                productive,
+            )
+        )
     return rows
 
 
