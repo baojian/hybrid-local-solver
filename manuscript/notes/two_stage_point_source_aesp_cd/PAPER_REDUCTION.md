@@ -1,13 +1,14 @@
-# From the 100-page audit to a 4-page strict core and a 10-page paper
+# From the 100-page audit to a compact theorem core and short paper
 
-The executable core now exists as `short_main.ltx`.  It includes complete
+The 12-page executable core now exists as `short_main.ltx`.  It includes complete
 proofs of the one-shot Green--CG lane, direct boundary-leakage gate, mass
 cleanup, safe AESP publication, the hard-capped portfolio, star mechanism,
-and remaining open problem. A conventional submission can expand this core
+and remaining finite-precision problem. A conventional submission can expand this core
 to 12--16 pages with related work, implementation detail, and experiments.
-An even narrower `strict_main.ltx` is four pages: it keeps only set
+An even narrower six-page `strict_main.ltx` keeps only set
 certification, one ordinary-PPR solve, the point-source tree closure, the
-strict fresh-Stage-II measurements, and the remaining general-graph interface.
+strict fresh-Stage-II measurements, and the randomized arbitrary-graph
+closure.
 
 ## One-sentence claim
 
@@ -19,7 +20,7 @@ system after a genuinely set-only screen.
 This is an **at-most-two-stage** result.  It does not claim that every instance
 uses two stages or that exact RPPR support must be identified.
 
-## The eight results that belong in the main paper
+## The nine results that belong in the main paper
 
 1. **One-shot Green--CG lane.** Point-source decay gives a certified rooted
    ball using no numerical values. Expose it once, solve one principal
@@ -64,6 +65,16 @@ uses two stages or that exact RPPR support must be identified.
    charges every root-path update and scans each admitted adjacency list once.
    An exact fixed-face tail uses zero terminal-error budget, so the optimized
    split is `rho = epsilon`, not the generic half-and-half split.
+9. **Randomized threshold-batch closure.**  The companion OP2 theorem rebuilds
+   only `O_tilde(1 / sqrt(alpha))` safe exposed faces, certifies every
+   randomized SDD call by an exact residual scan, and returns a face of RPPR
+   objective gap `eps_obj` in expected fully charged
+   `O_tilde(log(1 / eps_obj) / (rho sqrt(alpha)))` work.  A new inner-face
+   lemma turns that gap into exterior amplitude
+   `sqrt(2 eps_obj / alpha)`.  Consequently, even a strict subset of `S*` is
+   a valid set-only handoff to one ordinary principal-PPR solve.  This closes
+   arbitrary graphs in the exact-real randomized word model; deterministic
+   finite-precision and bit complexity remain open.
 
 The experiments report two different costs for the exact-face lanes.  The
 cheaper one returns the exact RPPR point already computed by the verifier.
@@ -94,13 +105,14 @@ and cannot replace the numerical \(\ell_\infty\) early-return rule.
 | Motivation and contribution | 1.5 | point source, why forced Stage II is redundant |
 | Problem and three certificates | 1.5 | numerical, set-only, mass-completion |
 | At-most-two-stage algorithm | 1.0 | one flowchart/pseudocode |
-| Set-only theorems | 2.5 | linearization and fixed-tail composition |
+| Set-only theorems | 3.0 | linearization, inner-face transfer, fixed-tail composition |
 | AESP--APPR/SOR theorems | 3.0 | retraction, mass cleanup, residual interval, star barrier |
 | Concrete lanes | 2.0 | APPR/SOR exact-face race, Green and mass screens |
 | Certified race and experiments | 2.0 | equal-accuracy benchmark, no forced-tail claim |
-| Scope, limitations, open problem | 1.0 | arbitrary-graph reporter remains open |
+| Randomized OP2 closure | 1.5 | batch-depth source theorem and literal two-stage corollary |
+| Scope and limitations | 1.0 | deterministic finite precision and persistent reuse remain open |
 | References | 1.5 | focused bibliography |
-| **Total** | **16.0** | full proofs of the eight central results |
+| **Total** | **18.0** | full proofs of the nine central results |
 
 ## Move to the companion proof audit
 
@@ -118,8 +130,9 @@ lemmas, not prerequisites for the short theorem spine.
 
 ## Claims the short paper must not make
 
-- No universal \(\widetilde O(1/(\epsilon\sqrt\alpha))\) arbitrary-graph
-  discovery theorem has been proved.
+- The universal arbitrary-graph theorem is only an exact-real randomized
+  word-model theorem; do not promote it to deterministic, floating-point, or
+  coefficient-bit complexity.
 - Exact \(S^\star\) is not required by the final PPR problem.
 - Current APPR/SOR/AESP-gap numerical lanes do not become faster by forcing a
   second linear solve.
@@ -137,7 +150,7 @@ Local PageRank**
 
 The contribution is a reduction and a certified portfolio, not a claim that
 one new engine dominates every graph.  The clean positive theorem is the
-composition interface; the clean open target is a cheaper arbitrary-graph
-set-only screen or accelerated numerical discovery.  The mass lane is the
-new practical AESP--APPR alternative, guarded by a hard cap and the star
-barrier.
+composition interface plus randomized threshold-batch closure.  The clean
+open target is a deterministic finite-precision or practical persistent
+realization.  The mass lane remains the practical AESP--APPR alternative,
+guarded by a hard cap and the star barrier.
