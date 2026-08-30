@@ -32,17 +32,14 @@ accepted corrections.
 
 ## The project in one paragraph
 
-Given adjacency-list access to a large undirected graph, a source vertex
-`s=e_v`, a PageRank parameter `alpha`, and a target degree-normalized error
-`eps_ppr`, return a sparse PPR approximation and a valid terminal certificate.
+Given adjacency-list access to a finite simple connected graph with unit edge
+weights and at least two vertices, one seed vertex `v` (`s=e_v`), a PageRank
+parameter `alpha`, and a target degree-normalized error `eps_ppr`, return a
+sparse PPR approximation and a valid terminal certificate.
 Every graph read, repeated local operation, response update, state access,
 validation step, materialized value, and output write must be charged. The
-canonical aspirational work bound is
-`O_tilde(1 / (sqrt(alpha) * eps_ppr))`. The shared definitions still admit a
-general sparse distribution, but that is an explicitly broader extension:
-point-source superposition naturally costs
-`nnz(s)+O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha)*eps_ppr))`, and nonlinear
-RPPR discovery does not superpose. The central difficulty is
+aspirational work bound is
+`O_tilde(1 / (sqrt(alpha) * eps_ppr))`. The central difficulty is
 that global acceleration can lose locality, while strictly local iterations
 can lose the accelerated dependence on `alpha`.
 
@@ -76,6 +73,8 @@ convention:
 | --- | --- |
 | Repository scope and working rules | [`AGENTS.md`](../../AGENTS.md) |
 | Project-wide notation | [`docs/mathematical-conventions.md`](../mathematical-conventions.md) |
+| Canonical graph class | [`docs/decisions/graph-convention.md`](../decisions/graph-convention.md) |
+| Canonical seed input | [`docs/decisions/seed-convention.md`](../decisions/seed-convention.md) |
 | Repository-wide residual decision | [`docs/decisions/residual-convention.md`](../decisions/residual-convention.md) |
 | Controller-level exact comparison contract | [shared problem definition](../../manuscript/notes/_shared/problem_definition/README.md) |
 | Current cross-direction boundary | [controller broadcast](../../manuscript/notes/_shared/coordination/BROADCAST.md) |

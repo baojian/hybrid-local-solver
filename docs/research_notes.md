@@ -8,14 +8,15 @@ preserved in the immutable
 The machine-readable note map is
 [`registry.toml`](../manuscript/notes/registry.toml).
 
-Last synchronized: 2026-08-29, after the point-source envelope, dynamic
-event-interface, and proper-face ground/reporter audit.
+Last synchronized: 2026-08-29, after adopting the canonical single-source and
+connected unit-weight graph contracts.
 
 ## Fixed end-to-end target
 
-The primary audit target is an exact-real algorithm on a finite simple
-undirected unweighted graph with no isolated vertices and adjacency-list
-access. Its canonical source is one vertex, `s=e_v`. Let
+The audit target is an exact-real algorithm on a finite simple undirected
+connected graph with unit edge weights, at least two vertices, and
+adjacency-list access. The
+canonical input is one seed vertex `v`, equivalently `s=e_v`. Let
 
 ```text
 x0     = Q^-1 b,
@@ -38,8 +39,21 @@ state read/write, and output write. The desired point-source bound is
 O_tilde(1/(sqrt(alpha) eps_ppr)).
 ```
 
-The shared problem definition continues to allow a general sparse
-distribution. By linearity, a proved point-source PPR solver gives the
+The shared algebra continues to allow a general nonnegative unit-mass seed
+distribution, but that is a stronger extension rather than the central
+contract. Unregularized PPR is linear in `s`; independently composing
+point-source approximations incurs a mixture factor as large as `nnz(s)`.
+RPPR support discovery is nonlinear in `s` and requires a separate
+merge-aware proof. General-seed theorems and counterexamples retain their
+original explicit scope.
+
+For a point source on a possibly disconnected positive-degree graph, both PPR
+and RPPR vanish outside the seed component. Restricting to that component
+preserves degrees and local work, so connectedness is without loss for the
+canonical solution problem. It does not force intermediate active faces to be
+connected.
+
+Quantitatively, by linearity a proved point-source PPR solver gives the
 general-seed corollary
 
 ```text
@@ -501,6 +515,10 @@ than duplicating them here.
 - Fixed RPPR regularization gives a support-volume cap, and safe lower centers
   make local proximal calls oracle-free on certified envelopes. This settles
   local call correctness, not expanding-face accelerated amortization.
+- Every connected component of the optimal RPPR support contains a source.
+  Hence in the canonical point-source model the optimal support is either
+  empty or connected and contains `v`. Intermediate algorithmic faces need
+  not share this property.
 - Persistent response state can eliminate repeated solves on paths and other
   structured families, but a graph-uniform output-sensitive boundary
   interface is still missing.

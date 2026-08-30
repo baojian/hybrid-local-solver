@@ -9,7 +9,8 @@ Three files have distinct responsibilities:
 
 - [`registry.toml`](registry.toml) is the single machine-readable inventory of
   buildable notes, research tracks, formal dependencies, and next targets.
-- Each note's `STATUS.md` is the current operational handoff and claim ledger.
+- Each note's status handoff is the current operational claim ledger. It may
+  live in `STATUS.md` or be combined into the note's `README.md`.
 - Each note's `main.tex` and included section files are the proof authority.
 
 Compact notes may keep their bodies in `main.tex`. Large notes use an ordered
@@ -31,8 +32,9 @@ All notes use the common mathematical language in
 [`../../docs/mathematical-conventions.md`](../../docs/mathematical-conventions.md),
 accepted decisions, and the shared LaTeX shell under `../tex/shared/`. A formal
 dependency means a direct proof or construction import. Motivation,
-comparisons, and historical ancestry belong in `STATUS.md` rather than the
-dependency graph. See [`WORKFLOW.md`](WORKFLOW.md) for the contribution flow.
+comparisons, and historical ancestry belong in the status handoff rather than
+the dependency graph. See [`WORKFLOW.md`](WORKFLOW.md) for the contribution
+flow.
 
 The frozen end-to-end audit target remains an exact-real local RPPR solver with
 the full charged-work contract recorded in the shared
@@ -73,6 +75,7 @@ This table is generated from `registry.toml` by
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`problem_definitions`](problem_definitions/) | models | synthesis | Collect the exact problem definitions and source-backed standard properties used across the project. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
+| [`active_edge_lcp`](active_edge_lcp/) | response | proved-open | Prove OP2 by threshold-batched safe LCP discovery, block-Cholesky decay, and certified local SDD face solves. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
 | [`hybrid_local_solver_synthesis`](hybrid_local_solver_synthesis/) | synthesis | synthesis | Connect the active manuscript, solver families, and experiments. |

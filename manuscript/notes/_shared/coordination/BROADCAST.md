@@ -1,6 +1,6 @@
 # Controller broadcast
 
-**Verified snapshot:** 2026-08-27. **Active dispatch:** none. Do not open a new
+**Verified snapshot:** 2026-08-29. **Active dispatch:** none. Do not open a new
 research round automatically.
 
 This file contains only what every direction needs now. Immutable review and
@@ -10,9 +10,16 @@ live in [`../../registry.toml`](../../registry.toml).
 
 ## Global contract
 
-- The end-to-end target is exact-real sparse PPR output with one terminal
-  certificate and charged work
-  `nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` under adjacency-list access.
+- The end-to-end target takes one seed vertex `v` (`s=e_v`) and returns
+  exact-real sparse PPR output with one terminal certificate and charged work
+  `O_tilde(1/(sqrt(alpha)*eps_ppr))` under adjacency-list access.
+- The canonical graph is finite, simple, undirected, connected, has at least
+  two vertices, and has unit edge weights. Point-source PPR/RPPR restricts
+  exactly to the seed component on a disconnected positive-degree graph;
+  active faces may nevertheless be disconnected.
+- The shared algebra may still use a general unit-mass distribution. Such a
+  theorem is a stronger extension and must charge seed input, mixture or
+  component work, merging, and output; RPPR superposition is not assumed.
 - Every discovery, repeated row read, numerical/response operation, rekey,
   certificate query, state access, validation, materialization, and output
   write is charged.

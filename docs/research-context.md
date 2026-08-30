@@ -6,8 +6,9 @@
 
 This project studies whether acceleration and local iterative updates can be
 combined for large-scale graph optimization without losing the computational
-benefits of locality. The initial application is local PageRank near a seed
-set.
+benefits of locality. The initial application is local PageRank from one seed
+vertex on a finite simple connected graph with unit edge weights. General
+seed distributions remain an explicitly separate extension.
 
 The intended hybrid solver will couple or switch between an accelerated outer
 process and efficient local inner updates. The research must identify when
@@ -35,7 +36,8 @@ targeted. Classical APPR has worst-case degree-weighted work
 `manuscript/sections/appr_lower_bound.tex`. For fixed relative RPPR accuracy,
 residual-thresholded coordinate ISTA and the coordinate-to-batch hybrid both
 have exact worst-case work `Theta(1/(alpha * rho))`; the full-batch method has
-the additional tight stale-scan logarithm in the general seed model. The
+the additional tight stale-scan logarithm in a broader disconnected,
+general-seed model outside the canonical graph/seed contract. The
 coarse phase of CF-Push is ordering-independently tight, while the full FIFO
 fixed-SOR hybrid has a spider lower bound but no matching general upper bound.
 These results use different accuracy namespaces and are not silently
@@ -60,13 +62,22 @@ Out of scope unless explicitly added later:
 
 ## Open definitions
 
+The canonical seed input is resolved as one vertex `v`, equivalently `s=e_v`;
+see [`decisions/seed-convention.md`](decisions/seed-convention.md). General
+unit-mass distributions remain explicitly scoped extensions.
+
+The canonical graph class is also resolved as finite, simple, undirected,
+connected, unit-weight, and nontrivial (`|V| >= 2`); see
+[`decisions/graph-convention.md`](decisions/graph-convention.md). For the
+point-source problem this is without loss after restriction to the seed
+component.
+
 The following choices remain unresolved and block definitive theorem or
 accuracy claims:
 
 | Item | Needed decision |
 | --- | --- |
 | PageRank system | Exact equation and transition-matrix orientation |
-| Seed input | Domain and normalization |
 | `alpha` | Meaning, range, and correspondence with cited methods |
 | Residual | Formula, sign, orientation, and normalization |
 | `epsilon` | Norm and absolute, relative, local, or global interpretation |

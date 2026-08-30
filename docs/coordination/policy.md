@@ -2,12 +2,25 @@
 
 This policy separates implementation ownership from shared mathematical work.
 The root `AGENTS.md` remains authoritative for research practice; this file
-defines the mechanics used when more than one agent family contributes.
+defines the optional mechanics used when agents write concurrently.
 
-## One assignment, one branch, one worktree
+## Default single-owner workflow
 
-Each writing assignment uses a dedicated branch and a dedicated clean
-worktree. Agent branches follow `agent/<family>/<task>`, for example
+Routine single-agent work happens directly in the user's current worktree and
+branch, including `main`. It does not require an entry in
+`active_assignments.toml`, a separate branch or worktree, or a coordination
+handoff. The agent first inspects the worktree, preserves unrelated user
+changes, and limits edits to the requested task.
+
+Provider ownership remains mandatory in this mode. Direct work does not grant
+permission to modify another provider family's implementation directory.
+
+## Concurrent assignments
+
+Use assignment isolation when the user explicitly requests parallel or
+isolated work, or when multiple agents will write concurrently. Each such
+writing assignment uses a dedicated branch and a dedicated clean worktree.
+Agent branches follow `agent/<family>/<task>`, for example
 `agent/codex/local-loader`. Two active writers must never share a dirty
 worktree. Human review and read-only comparison may use any worktree.
 
@@ -34,11 +47,11 @@ root `AGENTS.md`.
 
 ## Shared-file changes
 
-An assignment may change a shared file only when that exact file or directory
-is listed in both its write scope and its permitted shared files. Shared changes
-should be limited to interfaces, orchestration, documentation, tests, and
-coordination records needed by the task. A reviewer confirms these paths before
-merge.
+In coordinated mode, an assignment may change a shared file only when that
+exact file or directory is listed in both its write scope and its permitted
+shared files. Shared changes should be limited to interfaces, orchestration,
+documentation, tests, and coordination records needed by the task. A reviewer
+confirms these paths before merge.
 
 Run the repository checks before handoff:
 
@@ -48,9 +61,10 @@ make test
 make lint
 ```
 
-The default branch should require a pull request, passing checks, and owner
-review. Repository hosting settings are managed outside this worktree; the
-checked-in workflow and CODEOWNERS file express the expected rule.
+Pull requests and owner review are optional for direct single-owner work. When
+coordinated branches are used, integrate them only after the relevant checks
+and review are complete. Repository hosting settings are managed outside this
+worktree.
 
 ## Context loading
 
@@ -67,8 +81,9 @@ Git and excluded from normal project context.
 
 ## Handoff
 
-Use `handoff-template.md`. A handoff names the branch and base commit, describes
-every modified scope, identifies shared files, records checks, and states any
-open decisions. A review-ready handoff changes the assignment state to
-`ready_for_review`; it does not merge its own provider-owned work without the
-required review.
+In coordinated mode, use `handoff-template.md`. A handoff names the branch and
+base commit, describes every modified scope, identifies shared files, records
+checks, and states any open decisions. A review-ready handoff changes the
+assignment state to `ready_for_review`; it does not merge its own
+provider-owned work without the required review. Direct single-owner work does
+not require a coordination handoff.
