@@ -8,7 +8,9 @@ named-response primitive used by the bounded-live-site cactus result.
 """
 
 from fractions import Fraction as F
+import math
 from pathlib import Path
+import random
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -16,6 +18,10 @@ SOURCE = ROOT / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06b_prop_aesp_cd
 PRODUCTIVE_SOURCE = (
     ROOT
     / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06c_prop_aesp_cd_productive_cactus.tex"
+)
+PROJECTIVE_GUARD_SOURCE = (
+    ROOT
+    / "manuscript/notes/aesp_cd_l1_rppr/sections/body/06e_cor_aesp_cd_projective_guard.tex"
 )
 
 
@@ -210,7 +216,52 @@ def projective_pullback_order_audit():
     assert multiply(projective(p2, u2), projective(p1, u1)) == projective(
         composite_p, composite_u
     )
+
+    interval = (F(1, 5), F(7, 4))
+    for matrix, (determinant, images) in zip(matrices, rows, strict=True):
+        p11, p12 = matrix[0]
+        p21, p22 = matrix[1]
+        endpoint_images = tuple(
+            (p11 * slope + p21) / (p12 * slope + p22) for slope in interval
+        )
+        assert (min(images), max(images)) == (
+            min(endpoint_images),
+            max(endpoint_images),
+        )
+        if determinant == 0:
+            assert endpoint_images[0] == endpoint_images[1]
     return rows
+
+
+def alternating_meld_facets():
+    """Exact alternating-facet STOP for an explicitly merged parent hull."""
+    half = 9
+    count = 2 * half
+    translation = 16 * half * half
+
+    def value(index, x, odd_shift):
+        return F(index * x - index * index - (odd_shift if index % 2 else 0))
+
+    winners = []
+    shifted_winners = []
+    for index in range(1, count + 1):
+        x = 2 * index
+        values = [value(row, x, 0) for row in range(1, count + 1)]
+        assert values[index - 1] == max(values)
+        assert values.count(max(values)) == 1
+        winners.append(index)
+
+        shifted = [
+            value(row, x, translation) for row in range(1, count + 1)
+        ]
+        shifted_winner = 1 + shifted.index(max(shifted))
+        assert shifted_winner % 2 == 0
+        shifted_winners.append(shifted_winner)
+
+    assert winners == list(range(1, count + 1))
+    assert sum(index % 2 for index in winners) == half
+    assert not any(index % 2 for index in shifted_winners)
+    return half, winners, shifted_winners
 
 
 def root_port_forget_stop():
@@ -298,6 +349,166 @@ def static_cluster_and_prefix_merge_ledgers():
             radius_lower = max(block_count, longest_cycle // 2)
             assert structural_size <= 4 * (1 + radius_lower) ** 2
     return flat_rows[-1], power_rows[-1]
+
+
+def balanced_sp_epoch_ledgers():
+    """Audit canonical clean covers and sqrt-cap rebuild accounting."""
+
+    def cover_size(size, dirty):
+        def visit(left, right):
+            has_dirty = any(left <= leaf < right for leaf in dirty)
+            if not has_dirty or right - left == 1:
+                return 1
+            middle = (left + right) // 2
+            return visit(left, middle) + visit(middle, right)
+
+        return visit(0, size)
+
+    size = 64
+    height = int(math.log2(size))
+    cap = math.isqrt(size)
+    assert cap * cap == size
+    sequences = (
+        [5] * 100,
+        [0] * 19 + list(range(1, 33)) + [7] * 11,
+        [(17 * step + 3) % size for step in range(96)],
+    )
+    rows = []
+    for sequence in sequences:
+        dirty = set()
+        rebuilds = 0
+        query_work = 0
+        maximum_cover = 0
+        for leaf in sequence:
+            dirty.add(leaf)
+            if len(dirty) == cap:
+                rebuilds += 1
+                dirty.clear()
+            cover = cover_size(size, dirty)
+            maximum_cover = max(maximum_cover, cover)
+            assert cover <= 1 + max(1, len(dirty)) * height
+            query_work += cover
+        actual = size * (1 + rebuilds) + query_work
+        declared = size + len(sequence) * cap + (len(sequence) // cap) * size
+        productive = size + len(sequence) * min(len(set(sequence)) + 1, cap)
+        assert rebuilds <= len(sequence) // cap
+        assert actual <= 2 * declared
+        assert actual <= height * productive
+        rows.append(
+            (
+                len(sequence),
+                len(set(sequence)),
+                rebuilds,
+                maximum_cover,
+                actual,
+                productive,
+            )
+        )
+    return rows
+
+
+def hysteretic_heavy_path_ledgers():
+    """Stress the online 2-hysteretic HLD and its atom--node rebuild charge."""
+
+    def one_case(parent, atom_weight):
+        count = len(parent)
+        children = [[] for _ in range(count)]
+        depth = [0] * count
+        for vertex in range(1, count):
+            children[parent[vertex]].append(vertex)
+            depth[vertex] = depth[parent[vertex]] + 1
+        radius = max(depth)
+        active = [False] * count
+        subtree_weight = [0] * count
+        heavy = [None] * count
+        chosen_weights = [[] for _ in range(count)]
+        switch_count = [0] * count
+        conservative_rebuild = 0
+        largest_light_count = 0
+
+        def is_ancestor(ancestor, vertex):
+            while depth[vertex] > depth[ancestor]:
+                vertex = parent[vertex]
+            return ancestor == vertex
+
+        for inserted in range(count):
+            active[inserted] = True
+            route = []
+            cursor = inserted
+            while cursor != -1:
+                route.append(cursor)
+                subtree_weight[cursor] += atom_weight[inserted]
+                cursor = parent[cursor]
+
+            # Descendant weights change before ancestor decisions are tested.
+            for node in route:
+                live_children = [child for child in children[node] if active[child]]
+                if not live_children:
+                    continue
+                competitor = max(
+                    live_children,
+                    key=lambda child: (subtree_weight[child], -child),
+                )
+                old_heavy = heavy[node]
+                if old_heavy is None:
+                    heavy[node] = competitor
+                    chosen_weights[node].append(subtree_weight[competitor])
+                elif (
+                    competitor != old_heavy
+                    and subtree_weight[competitor] > 2 * subtree_weight[old_heavy]
+                ):
+                    assert subtree_weight[competitor] > 2 * chosen_weights[node][-1]
+                    heavy[node] = competitor
+                    chosen_weights[node].append(subtree_weight[competitor])
+                    switch_count[node] += 1
+                    comparable = [
+                        atom
+                        for atom in range(count)
+                        if active[atom]
+                        and (is_ancestor(atom, node) or is_ancestor(node, atom))
+                    ]
+                    conservative_rebuild += sum(atom_weight[atom] for atom in comparable)
+
+            current_weight = subtree_weight[0]
+            light_count = sum(
+                child != heavy[parent[child]] for child in route[:-1]
+            )
+            largest_light_count = max(largest_light_count, light_count)
+            assert light_count <= 1 + math.ceil(math.log(current_weight, 1.5))
+            for child in range(1, inserted + 1):
+                if child != heavy[parent[child]]:
+                    assert 3 * subtree_weight[child] <= 2 * subtree_weight[parent[child]]
+
+        total_weight = sum(atom_weight)
+        switch_cap = 1 + total_weight.bit_length()
+        assert all(count_at_node <= switch_cap for count_at_node in switch_count)
+        assert conservative_rebuild <= (
+            total_weight * (2 * radius + 1) * switch_cap
+        )
+        return (
+            count,
+            total_weight,
+            radius,
+            sum(switch_count),
+            largest_light_count,
+            conservative_rebuild,
+        )
+
+    cases = []
+    # A long spine with alternating side growth stresses ancestor updates.
+    parent = [-1]
+    for vertex in range(1, 96):
+        parent.append(max(0, vertex - 2) if vertex % 3 else 0)
+    cases.append(one_case(parent, [1 + (vertex % 5) for vertex in range(len(parent))]))
+
+    # Random topological leaf streams cover repeated heavy-child reversals.
+    generator = random.Random(20260829)
+    for count in (32, 64, 128, 192):
+        parent = [-1] + [generator.randrange(vertex) for vertex in range(1, count)]
+        weights = [generator.randrange(1, 8) for _ in range(count)]
+        cases.append(one_case(parent, weights))
+    assert any(row[3] > 0 for row in cases)
+    return cases
 
 
 def productive_site_numeric_key_pressure():
@@ -778,11 +989,15 @@ def assert_cycle_named_response_go():
 def main():
     source = SOURCE.read_text()
     productive_source = PRODUCTIVE_SOURCE.read_text()
+    projective_guard_source = PROJECTIVE_GUARD_SOURCE.read_text()
     assert r"\label{cor:aesp-cd-cactus-live-sites}" in source
     assert r"\label{prob:aesp-cd-variable-two-port-reporter}" in source
     assert r"\label{prop:aesp-cd-two-port-direction-stop}" in source
     assert r"\label{lem:aesp-cd-two-port-projective-pullback}" in source
     assert r"\label{cor:aesp-cd-slope-separated-projective-meld}" in source
+    assert r"\label{prop:aesp-cd-sp-static-epoch-reporter}" in source
+    assert r"\label{prop:aesp-cd-sp-alternating-meld-stop}" in source
+    assert r"\label{cor:aesp-cd-projective-separation-guard}" in projective_guard_source
     assert "virtual top forget" in source
     assert r"\label{cor:aesp-cd-cactus-productive-sites}" in productive_source
     assert r"\label{cor:aesp-cd-cactus-productive-epochs}" in productive_source
@@ -791,15 +1006,19 @@ def main():
     assert r"\label{cor:aesp-cd-schur-gain-batch-payment}" in productive_source
     assert r"\label{prop:aesp-cd-cactus-static-cluster-stop}" in productive_source
     assert r"\label{prop:aesp-cd-cactus-offline-hld}" in productive_source
+    assert r"\label{thm:aesp-cd-cactus-online-hysteretic-hld}" in productive_source
     assert "binary-counter stack" in productive_source
     assert "not their pulled-back" in productive_source
 
     rppr_determinant = exact_rppr_direction_stop()
     weighted_determinant = weighted_direction_stop()
     projective_rows = projective_pullback_order_audit()
+    alternating_facets = alternating_meld_facets()
     root_keys = root_port_forget_stop()
     objective_gains = objective_gain_charge_stop()
     interface_ledgers = static_cluster_and_prefix_merge_ledgers()
+    sp_epoch_ledgers = balanced_sp_epoch_ledgers()
+    hysteretic_ledgers = hysteretic_heavy_path_ledgers()
     productive_keys = productive_site_numeric_key_pressure()
     epoch_ledgers = productive_epoch_integer_ledgers()
     connected_order = connected_order_small_rho_certificate()
@@ -817,11 +1036,14 @@ def main():
         weighted_determinant,
     )
     print("  projective pullback determinants / slope images", projective_rows)
+    print("  alternating merged-hull facets", alternating_facets)
     print("  cactus literal-rescan ledgers", cactus_rows)
     print("  fixed two-port Schur assembly and 3x3 named responses PASS")
     print("  virtual top forget catches pinned root-port keys", root_keys)
     print("  K2 strict-admission objective gains", objective_gains)
     print("  flat sqrt / immutable-prefix ledgers", interface_ledgers)
+    print("  balanced SP static-epoch ledgers", sp_epoch_ledgers)
+    print("  online hysteretic HLD ledgers", hysteretic_ledgers)
     print("  legal productive-site numerical-key pressure", productive_keys)
     print("  productive epoch integer ledgers", epoch_ledgers)
     print("  connected-order small-rho phase minima / p / J", connected_order)

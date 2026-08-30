@@ -114,6 +114,52 @@ def rounded_state(y, alpha, rho, coupling, gamma):
     }
 
 
+def rounded_state_finite(y, alpha, rho, coupling, epsilon_kkt):
+    eta = min(F(1, 2), epsilon_kkt / (2 * rho))
+    delta = alpha * epsilon_kkt / (2 * coupling)
+    return {
+        i: round_down(value, delta, eta)
+        for i, value in y.items()
+    }
+
+
+def audit_finite_row(
+    adj,
+    degree,
+    alpha,
+    rho,
+    coupling,
+    active,
+    y,
+    v,
+    epsilon_kkt,
+    rounded=None,
+):
+    eta = min(F(1, 2), epsilon_kkt / (2 * rho))
+    delta = alpha * epsilon_kkt / (2 * coupling)
+    if rounded is None:
+        rounded = rounded_state_finite(
+            y, alpha, rho, coupling, epsilon_kkt
+        )
+    response = coupling * sum(
+        y.get(i, F(0)) for i in adj[v] if i in active
+    )
+    rounded_response = coupling * sum(
+        rounded.get(i, F(0)) for i in adj[v] if i in active
+    )
+    threshold = alpha * rho * degree[v]
+    upper = (
+        (1 + eta) * rounded_response
+        + coupling * degree[v] * delta
+    )
+    assert rounded_response <= response <= upper
+    if rounded_response > threshold:
+        assert response > threshold
+        return "pivot"
+    assert response - threshold <= alpha * epsilon_kkt * degree[v]
+    return "terminal"
+
+
 def audit_row(
     adj,
     degree,
@@ -155,6 +201,7 @@ def audit_row(
 def main():
     source = SOURCE.read_text()
     assert r"\label{prop:aesp-cd-separated-level-reporter}" in source
+    assert r"\label{cor:aesp-cd-finite-level-reporter}" in source
     assert r"\eta_{\rm lev}=\gamma/8" in source
     assert r"\delta=\gamma\alpha\rho/(8c)" in source
 
@@ -172,6 +219,7 @@ def main():
     ]
     gammas = (F(1), F(1, 2), F(1, 4), F(1, 8))
     rows = separated = negative = positive = checkpoints = 0
+    finite_rows = finite_pivots = finite_terminal = 0
 
     for adj in graphs:
         for alpha, rho in params:
@@ -215,6 +263,27 @@ def main():
                             separated += 1
                             negative += negative_flag
                             positive += positive_flag
+
+                for epsilon_kkt in (rho / 4, rho, 4 * rho):
+                    finite_rounded = rounded_state_finite(
+                        y, alpha, rho, coupling, epsilon_kkt
+                    )
+                    for v in frontier:
+                        verdict = audit_finite_row(
+                            adj,
+                            degree,
+                            alpha,
+                            rho,
+                            coupling,
+                            active,
+                            y,
+                            v,
+                            epsilon_kkt,
+                            finite_rounded,
+                        )
+                        finite_rows += 1
+                        finite_pivots += verdict == "pivot"
+                        finite_terminal += verdict == "terminal"
 
     # At b=0 (alpha=1), every nonseed sign is the static -rho*d_v.
     adj = random_graph(8, rng)
@@ -296,11 +365,15 @@ def main():
 
     assert checkpoints > 50
     assert separated > 500 and negative and positive
+    assert finite_rows > 500
+    assert finite_pivots and finite_terminal
     print(
         "PASS separated-level reporter exact audit:",
         f"rows={rows}, separated={separated},",
         f"all-separated checkpoints={checkpoints},",
         f"negative={negative}, positive={positive},",
+        f"finite={finite_rows} ({finite_pivots} pivot,"
+        f" {finite_terminal} terminal),",
         "c=0 static, near-margin=STOP, coarse-bin RPPR STOP",
     )
 

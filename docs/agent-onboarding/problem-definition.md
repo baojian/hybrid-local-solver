@@ -26,6 +26,21 @@ O_tilde(1 / (sqrt(alpha) * eps_ppr))
 
 fully charged work?
 
+This is the active, canonical theorem contract.  The shared algebra below
+continues to allow a sparse probability distribution `s`, but a statement for
+general `s` must be labeled `general-seed`.  Linearity of unregularized PPR
+turns point-source solvers into the valid corollary
+
+```text
+nnz(s) + O_tilde((sum_v sqrt(s_v))^2
+                  / (sqrt(alpha) * eps_ppr)),
+```
+
+not the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions
+are nonlinear in `s`, so their supports and discovery traces cannot be
+superposed.  The stronger additive sparse-source target remains an extension
+question; it is not part of the canonical theorem contract.
+
 “Fully charged” means that the bound includes seed input, graph discovery,
 repeated reads, numerical updates, support changes, maintained inverse or
 response state, certificate evaluation, memory operations, materialization,
@@ -339,8 +354,8 @@ and the cost of failed attempts or randomness-dependent rebuilding.
 
 ## 8. Desired complexity and comparison baselines
 
-For `eps_ppr in (0, 1)`, the main target is a deterministic exact-real
-algorithm with
+For `eps_ppr in (0, 1)`, the canonical main target is a deterministic
+exact-real point-source algorithm with
 
 ```text
 work = O_tilde(1 / (sqrt(alpha) * eps_ppr)).
@@ -354,6 +369,11 @@ O(1 / eps_ppr)
 
 persistent memory and temporary workspace, up to declared logarithmic
 factors, and emits its terminal vector and certificate once.
+
+For a general sparse source, always state whether the result is the linear
+point-source superposition bound above, an exact separated-component RPPR
+decomposition, or a genuinely joint multi-root algorithm.  Only the last can
+possibly recover the old additive `nnz(s)` target on merging components.
 
 Three comparisons explain the target:
 

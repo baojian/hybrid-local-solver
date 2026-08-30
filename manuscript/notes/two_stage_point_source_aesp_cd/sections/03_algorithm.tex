@@ -1,0 +1,84 @@
+\section{The discover-once, restart-once algorithm}
+\label{sec:two-stage-algorithm}
+
+\begin{algorithm}[t]
+\caption{Certificate-first point-source hybrid with one optional continuation}
+\label{alg:two-stage-hybrid}
+\begin{algorithmic}[1]
+\REQUIRE $G,v,\alpha,\epsppr$, an interruptible Stage~I engine, and
+         $\rho,\delta,\tau\geq0$ with $\rho+\delta+\tau\leq\epsppr$
+\STATE Fairly race direct APPR with the hard-capped point-source Green-ball
+       screen and any optional AESP/SOR proposal lanes.
+\STATE Run each live Stage~I lane until it returns one of: a sparse numerical point with a
+       semantic certificate; a mass-completion certificate $(z,c)$; or an
+       exact/approximate set certificate $(E,\delta)$, including a direct
+       PPR boundary-leakage certificate.
+\IF{the numerical Stage~I output is already $\epsppr$-accurate}
+  \STATE Return it immediately.
+\ENDIF
+\IF{a mass-completion certificate was returned}
+  \STATE Discard signed scratch and run monotone APPR/SOR from $z$ until
+         $r_i/\sqrt{d_i}\leq\alpha\epsppr$ for every retained positive
+         residual row; return the resulting checkpoint.
+\ENDIF
+\STATE Discard every momentum, polynomial, SOR, and face-response history
+       not explicitly certified for the returned fixed set.
+\IF{an exact-face certificate was returned}
+  \STATE Set $E\leftarrow A$ and $\delta\leftarrow0$.
+\ENDIF
+\IF{a boundary-leakage certificate was returned}
+  \STATE Set $E$ to its certified envelope and use its leakage budget in
+         place of the RPPR regularization/omission budget.
+\ENDIF
+\STATE Restart from zero (or a separately certified linear-system warm start)
+       and solve the ordinary restricted PPR system $Q_Eu_E=b_E$ by
+       Chebyshev, CG, accelerated gradient, or a certified SOR implementation
+       to $\ell_2$ error at most $\tau$.
+\STATE Return the zero extension of $[\widehat u_E]_+$.
+\end{algorithmic}
+\end{algorithm}
+
+The default Green-ball split is
+$\delta=\tau=\epsppr/2$ and $\rho=0$.  For an RPPR containing-envelope
+certificate the default is $\rho=\tau=\epsppr/2$ and $\delta=0$.  Allowing
+$\delta>0$ is useful for a finite SOR/AESP discovery lane that can certify a
+uniform exterior-amplitude bound but cannot decide exact zero keys.
+If Stage~II is an exact structural solve, set $\tau=0$ and use the full
+screening budget, $\rho=\epsppr$ or $\delta=\epsppr$; do not preserve a
+ritual terminal half-budget.  An exact-face verifier may retain its certified
+factorization of $Q_E$ for the new ordinary-PPR right-hand side, while all
+obstacle and momentum state is still discarded.
+
+The algorithm separates notions that were entangled in the long changing-face
+analysis:
+\begin{enumerate}[leftmargin=2.2em]
+\item \emph{graph discovery} decides which rows must be retained;
+\item \emph{signed numerical acceleration} acts only on a fixed local
+  envelope and publishes either a terminal point or a lower-safe checkpoint;
+\item \emph{continuation} is chosen from one of two certified interfaces:
+  a fixed principal linear solve after a set-only screen, or monotone
+  APPR/SOR after a mass-completion certificate.
+\end{enumerate}
+No unguarded accelerated state crosses an admission.  Stage~I may itself use a safe
+accelerated obstacle solve on a fixed temporary envelope, but it restarts that
+scratch whenever the envelope changes.  In the set-only branch, Stage~II
+deliberately ignores the obstacle momentum and solves a different, linear
+problem on the certified coordinate set.  In the mass branch, the signed
+scratch is retracted to a monotone lower checkpoint before APPR/SOR begins.
+The continuation is optional: a numerical Stage~I certificate may already
+settle the semantic target.
+
+\begin{remark}[Why the exact support is optional]
+Even if Stage~I returns $E\supsetneq S^\star$, the principal unregularized
+solution $u_E=Q_E^{-1}b_E$ is nonnegative and is already within normalized
+$\rho$ error of full PPR by
+\cref{prop:two-stage-envelope-linearization}.  Exact support identification
+and a second obstacle solve are both optional.
+\end{remark}
+
+\begin{remark}[Why ordinary full-graph Chebyshev is not Stage~I]
+A degree-$k$ polynomial wave can occupy an exponentially large frontier on a
+regular tree even when the final obstacle support is tiny.  The fixed-set
+restriction is therefore algorithmic, not cosmetic: signed scratch is charged
+only after an envelope has been certified.
+\end{remark}

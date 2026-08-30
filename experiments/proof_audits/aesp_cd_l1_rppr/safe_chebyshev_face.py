@@ -126,6 +126,8 @@ def check_literal_chebyshev_stop_and_safe_retraction() -> None:
     assert all(F(0) <= lower[i] <= exact[i] for i in range(4))
     lower_residual = [rhs[i] - matvec(hessian, lower)[i] for i in range(4)]
     assert all(lower_residual[i] >= 0 for i in range(4) if lower[i] > 0)
+    assert all(entry >= 0 for entry in lower_residual)
+    assert any(lower[i] == 0 and lower_residual[i] > 0 for i in range(4))
 
     # The strict relative-interior guard is nonvacuous.  A large positive
     # baseline preserves the same signed Chebyshev wave while leaving enough
@@ -148,6 +150,39 @@ def check_literal_chebyshev_stop_and_safe_retraction() -> None:
         for i in range(4)
     ]
     assert all(entry >= 0 for entry in guarded_lower_residual)
+
+
+def check_accelerated_ground_publication() -> None:
+    """Audit the positive checkpoint and finite ground residual interface."""
+    alpha, hessian, walk, denominator = cube_star_face()
+    size = len(hessian)
+    rhs = [alpha] * size
+    exact = solve(hessian, rhs)
+    center = (1 + alpha) / 2
+    checkpoint = [alpha / center] * size
+    checkpoint_residual = [
+        rhs[i] - matvec(hessian, checkpoint)[i] for i in range(size)
+    ]
+    assert all(value > 0 for value in checkpoint)
+    assert all(value >= 0 for value in checkpoint_residual)
+    raw_residual = degree_two_residual(walk, denominator, checkpoint_residual)
+    raw_error = solve(hessian, raw_residual)
+    semi_iterate = [exact[i] - raw_error[i] for i in range(size)]
+    delta = max(max(-value, F(0)) / alpha for value in raw_residual)
+    candidate = [max(semi_iterate[i] - delta, F(0)) for i in range(size)]
+    published = [max(checkpoint[i], candidate[i]) for i in range(size)]
+    residual = [rhs[i] - matvec(hessian, published)[i] for i in range(size)]
+    assert all(published[i] >= checkpoint[i] > 0 for i in range(size))
+    assert all(value >= 0 for value in residual)
+
+    # Here v=one, d_min=1, vol=size, and C=(1+sqrt(size))/alpha=3/alpha.
+    c_ret = F(3) / alpha
+    raw_square = sum(value * value for value in raw_residual)
+    error_square = sum((exact[i] - published[i]) ** 2 for i in range(size))
+    residual_square = sum(value * value for value in residual)
+    assert error_square <= c_ret**2 * raw_square
+    assert residual_square <= error_square
+    assert all(value**2 <= c_ret**2 * raw_square for value in residual)
 
 
 def convolve(left: list[F], right: list[F]) -> list[F]:
@@ -202,23 +237,51 @@ def check_positive_polynomial_obstruction() -> None:
         assert extremal >= 1 - F(degree, condition) == F(1, 2)
 
 
+def check_chebypush_stability_stop() -> None:
+    """Audit the exact high-girth regular-tree column-mass obstruction.
+
+    At distance k, only the leading term 2^(k-1) P^k of T_k(P) can
+    contribute.  A d-regular tree has d(d-1)^(k-1) such vertices, and each
+    receives 2^(k-1)/d^k.  Their mass alone grows as
+    (2(d-1)/d)^(k-1).
+    """
+    for degree in (3, 4, 5, 8):
+        for order in range(1, 13):
+            frontier_size = degree * (degree - 1) ** (order - 1)
+            frontier_entry = F(2 ** (order - 1), degree**order)
+            frontier_mass = frontier_size * frontier_entry
+            expected = F(2 * (degree - 1), degree) ** (order - 1)
+            assert frontier_mass == expected
+            if degree >= 3 and order >= 2:
+                assert frontier_mass > 1
+    assert F(4, 3) ** 11 > 23
+
+
 def check_source_scope() -> None:
     source = note_tex_source("aesp_cd_l1_rppr")
     assert "thm:aesp-cd-safe-chebyshev-face" in source
     assert "eq:aesp-cd-safe-chebyshev-retraction" in source
+    assert "eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual" in source
     assert "cor:aesp-cd-collatz-small-shift" in source
     assert "prop:aesp-cd-positive-polynomial-stop" in source
+    assert "prop:aesp-cd-chebypush-stability-stop" in source
+    assert "cor:aesp-cd-proper-face-accelerated-ground-certificate" in source
     assert "signed intermediate residuals" in source
 
 
 def main() -> None:
     check_literal_chebyshev_stop_and_safe_retraction()
+    check_accelerated_ground_publication()
     check_positive_polynomial_obstruction()
+    check_chebypush_stability_stop()
     check_source_scope()
     print("Safe fixed-face Chebyshev audit passed")
     print("  cube proper S4: literal degree-two residual is negative and overshoots")
     print("  max Stieltjes checkpoint: order-safe, with a strict full-face witness")
+    print("  nonnegative RHS: sparse publication has a full-row residual certificate")
+    print("  proper-face ground solve: accelerated signed scratch, finite safe residual")
     print("  positive coefficients/restarts: exact Omega(condition number) STOP")
+    print("  high-girth cubic wave: ChebyPush l1 stability grows as (4/3)^(k-1)")
 
 
 if __name__ == "__main__":

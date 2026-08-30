@@ -119,11 +119,17 @@ max_i |pi_hat_i-pi_i|/d_i <= eps_ppr
 
 with one complete terminal certificate and return, while charging every
 discovery, row read, numerical/response operation, rekey, query, state access,
-materialization, and output. The target is
+materialization, and output.  The canonical source is `s=e_v`, and the target
+is
 
 ```text
 O_tilde(1/(sqrt(alpha) eps_ppr)).
 ```
+
+General sparse sources remain in the shared algebra but require an explicitly
+labeled extension theorem; point-source linear superposition does not recover
+the formerly requested additive `nnz(s)` bound, and RPPR discovery is
+nonlinear in the source.
 
 An RPPR route must state its bias conversion and terminal certificate. No
 current route satisfies this contract graph-uniformly. A theorem for a

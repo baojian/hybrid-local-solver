@@ -1,3 +1,3983 @@
+\begin{theorem}[Margin-free clip-or-pay obstacle retraction]
+\label{thm:aesp-cd-obstacle-clip-retraction}
+Let
+\begin{equation*}
+ p=\argmin_{x\geq0}\left\{
+   \tfrac12\langle x,Hx\rangle-\langle b,x\rangle\right\},
+ \qquad
+ H=H^\top\succ0,
+ \qquad H_{ij}\leq0\quad(i\neq j).
+\end{equation*}
+Suppose a certified vector $v>0$ and scalar $\mu_v>0$ satisfy
+$Hv\geq\mu_vv$ coordinatewise.  Let $\widehat p\geq0$ be any feasible
+scratch approximation with
+$\norm{\widehat p-p}_\infty\leq\varepsilon$.  Define
+\begin{equation}
+ \tau_i:=\frac{\widehat p_i}{v_i},\qquad
+ R_i:=\frac{(H\widehat p-b)_i}{(Hv)_i},\qquad
+ \Delta:=\max_i\bigl[\min\{\tau_i,R_i\}\bigr]_+,
+ \qquad
+ s:=[\widehat p-\Delta v]_+.
+ \label{eq:aesp-cd-obstacle-clip-pay}
+\end{equation}
+Then $s$ is an obstacle subsolution and is order-safe:
+\begin{equation}
+ s\geq0,\qquad b_i-(Hs)_i\geq0\quad(i\in\supp(s)),
+ \qquad 0\leq s\leq p.
+ \label{eq:aesp-cd-obstacle-clip-pay-safe}
+\end{equation}
+If $y$ is any previously published obstacle subsolution with
+$0\leq y\leq p$, then $z:=y\vee s$ has the same properties and
+$\norm{p-z}_\infty\leq\norm{p-s}_\infty$.
+
+Put $v_{\min}:=\min_i v_i$, $v_{\max}:=\max_i v_i$, and
+$\norm{H}_\infty:=\max_i\sum_j|H_{ij}|$.  The retraction obeys the explicit
+margin-free bounds
+\begin{align}
+ \Delta
+ &\leq \frac{\varepsilon}{v_{\min}}
+   \max\left\{1,\frac{\norm{H}_\infty}{\mu_v}\right\},
+ \label{eq:aesp-cd-obstacle-clip-pay-delta}\\
+ \norm{p-z}_\infty
+ &\leq
+ \left[1+\frac{v_{\max}}{v_{\min}}
+   \max\left\{1,\frac{\norm{H}_\infty}{\mu_v}\right\}\right]\varepsilon.
+ \label{eq:aesp-cd-obstacle-clip-pay-error}
+\end{align}
+Thus large inactive dual residuals do not force a large common shift: an
+inactive coordinate may instead pay through its small primal ratio $\tau_i$.
+The publication costs one matrix application and one scan.
+\end{theorem}
+
+\begin{proof}
+Let $t=\widehat p-\Delta v$.  If $s_i>0$, then
+$s_i=t_i$ and $\Delta<\tau_i$.  Since
+$\Delta\geq\min\{\tau_i,R_i\}$, including when that minimum is negative,
+one must have $R_i\leq\Delta$.  Moreover $s\geq t$, and increasing
+coordinates other than $i$ can only decrease row $i$ of a Stieltjes matrix.
+Consequently
+\begin{equation*}
+ (Hs)_i\leq(Ht)_i=(H\widehat p)_i-\Delta(Hv)_i\leq b_i.
+\end{equation*}
+This proves the subsolution condition.
+
+For completeness, let $I=\{i:s_i>p_i\}$.  On $I$, the subsolution
+condition and obstacle KKT give $[H(s-p)]_I\leq0$.  On $I^c$ one has
+$s-p\leq0$, so $H_{I,I^c}(s-p)_{I^c}\geq0$.  Hence
+$H_{II}(s-p)_I\leq0$.  A principal Stieltjes inverse is nonnegative,
+contradicting $(s-p)_I>0$ unless $I=\varnothing$.  Thus $s\leq p$.
+The coordinatewise maximum of two obstacle subsolutions is again a
+subsolution: on a row selected from either input, increasing the other
+coordinates only decreases that row.  This proves the assertions for $z$.
+
+It remains to bound the shift without a complementarity margin.  If
+$p_i=0$, feasibility and the error bound give
+$\tau_i\leq\varepsilon/v_{\min}$.  If $p_i>0$, obstacle KKT gives
+$(Hp-b)_i=0$, and therefore
+\begin{equation*}
+ [R_i]_+
+ \leq\frac{|[H(\widehat p-p)]_i|}{\mu_vv_{\min}}
+ \leq\frac{\norm{H}_\infty\varepsilon}{\mu_vv_{\min}}.
+\end{equation*}
+Taking the maximum proves
+\cref{eq:aesp-cd-obstacle-clip-pay-delta}.  Finally
+$0\leq p-z\leq p-s$ coordinatewise and
+$\norm{p-s}_\infty\leq\varepsilon+\Delta v_{\max}$, which proves
+\cref{eq:aesp-cd-obstacle-clip-pay-error}.
+\end{proof}
+
+\begin{lemma}[One positive load makes every subsolution rooted and connected]
+\label{lem:aesp-cd-point-source-subsolution-connected}
+Let the nonzero off-diagonal graph of the Stieltjes matrix $H$ be connected,
+and suppose $b_o>0$ while $b_i\leq0$ for $i\neq o$.  Every nonzero obstacle
+subsolution $z$ has connected support containing $o$.  In particular, both
+the obstacle minimizer and every nonzero clip-or-pay publication in
+\cref{thm:aesp-cd-obstacle-clip-retraction} have one rooted component.
+\end{lemma}
+
+\begin{proof}
+If a connected component $C$ of $\supp(z)$ does not contain $o$, then the
+subsolution inequalities on $C$ read
+\begin{equation*}
+ H_{CC}z_C\leq b_C\leq0;
+\end{equation*}
+coordinates outside $C$ make no contribution because they are zero or are
+separated from $C$ in the support graph.  Principal Stieltjes inverse
+positivity gives $z_C\leq0$, a contradiction.  Thus every positive component
+contains $o$, and there can be at most one.  The exact minimizer is nonzero
+because the directional derivative at zero along $e_o$ is $-b_o<0$.
+\end{proof}
+
+\begin{proposition}[Point-source RPPR is not a linear-PPR superlevel set]
+\label{prop:aesp-cd-point-source-superlevel-stop}
+Even with one positive load, the obstacle support need not be contained in
+the positive support of the corresponding unconstrained shifted PPR vector.
+Specifically, on the three-vertex path with source $0$,
+$\alpha=1/5$, and $\rho=5/21$, the degree-unscaled Hessian, shifted load,
+and unconstrained vector are
+\begin{equation*}
+ H=\begin{pmatrix}
+  3/5&-2/5&0\\ -2/5&6/5&-2/5\\0&-2/5&3/5
+ \end{pmatrix},\qquad
+ b=\begin{pmatrix}16/105\\-2/21\\-1/21\end{pmatrix},\qquad
+ H^{-1}b=\begin{pmatrix}8/35\\-4/105\\-11/105\end{pmatrix},
+\end{equation*}
+whereas the obstacle minimizer is
+\begin{equation*}
+ p=\begin{pmatrix}38/147\\1/147\\0\end{pmatrix}.
+\end{equation*}
+Thus computing ordinary point-source PPR and taking its positive
+$\rho$-superlevel component cannot replace the RPPR obstacle solve or its
+boundary reporter.
+\end{proposition}
+
+\begin{proof}
+Direct multiplication gives the displayed unconstrained solve.  On the face
+$\{0,1\}$, direct inversion gives the displayed positive vector, its two
+active equations are exact, and its inactive KKT slack at vertex $2$ is
+$11/245>0$.  Hence it is the unique obstacle minimizer.  Moreover the
+root-only restricted solution has exterior key $2/315>0$ at vertex $1$, so
+the extra obstacle coordinate is not an artifact of choosing an unreachable
+face.
+\end{proof}
+
+\begin{proposition}[Ordinary PPR screens every source support only at the
+classical \(\alpha\rho\) scale]
+\label{prop:aesp-cd-point-source-ppr-screening}
+Let \(y^0\) be ordinary PPR for any probability source $s$ in
+degree-unscaled coordinates,
+\begin{equation*}
+ \widehat H y^0=\alpha s,
+ \qquad d^\top y^0=1,
+ \qquad p=\frac{1+\alpha}{2}.
+\end{equation*}
+Then every active RPPR coordinate satisfies
+\begin{equation}
+ i\in S^\star(\rho)
+ \quad\Longrightarrow\quad
+ y_i^0>\frac{\alpha}{p}\rho,
+ \qquad
+ \vol\!\left\{i:y_i^0>\frac{\alpha}{p}\rho\right\}
+ <\frac{p}{\alpha\rho}.
+ \label{eq:aesp-cd-point-source-ppr-screening}
+\end{equation}
+Thus exact PPR supplies a graph-universal support-containing envelope, but
+its guaranteed volume is on the classical \(1/(\alpha\rho)\) scale, not the
+desired \(1/(\rho\sqrt\alpha)\) scale.
+
+The factor \(\alpha/p\) cannot be replaced by any graph-universal
+\(\omega(\alpha)\) factor.  For integers \(1\leq M\leq L\), let
+\(G_{M,L}\) contain an edge \(ou\), a clique \(C\) of size \(L\), and edges
+from \(u\) to \(M\) vertices of \(C\).  Use the point source \(o\), and put
+\begin{equation*}
+ \tau_M:=\frac{c}{p(M+1)+c},
+ \qquad c=\frac{1-\alpha}{2}.
+\end{equation*}
+For every fixed \(M,L\), all \(\rho<\tau_M\) sufficiently close to
+\(\tau_M\) have exact RPPR support \(\{o,u\}\).  Nevertheless
+\begin{equation}
+ \lim_{M\to\infty}\lim_{L\to\infty}
+ \frac{y_{u}^{0,(M,L)}}{\tau_M}
+ =\frac{\alpha}{p}.
+ \label{eq:aesp-cd-point-source-ppr-screening-sharp}
+\end{equation}
+In particular, a putative screening rule
+\(S^\star(\rho)\subseteq\{i:y_i^0\geq C\rho\sqrt\alpha\}\), with a positive
+graph-independent \(C\), is false as \(\alpha\downarrow0\).  This is a STOP
+for discovering the accelerated-size RPPR envelope by thresholding ordinary
+PPR alone; it is not a lower bound against a dynamic obstacle reporter that
+uses the changing-face residuals.
+\end{proposition}
+
+\begin{proof}
+Let \(S=S^\star(\rho)\), and define
+\begin{equation*}
+ a_S:=\widehat H_{SS}^{-1}\alpha s_S,
+ \qquad
+ t_S:=\widehat H_{SS}^{-1}\alpha d_S.
+\end{equation*}
+The active solution is \(y_S^\star=a_S-\rho t_S>0\).  Because
+\(y^0_{\bar S}\geq0\) and \(\widehat H_{S\bar S}\leq0\),
+\begin{equation*}
+ \widehat H_{SS}y_S^0
+ =\alpha s_S-\widehat H_{S\bar S}y_{\bar S}^0
+ \geq\alpha s_S,
+\end{equation*}
+so principal inverse positivity gives \(y_S^0\geq a_S\).  Also
+\begin{equation*}
+ (t_S)_i
+ =\alpha\sum_{j\in S}
+   (\widehat H_{SS}^{-1})_{ij}d_j
+ \geq\alpha(\widehat H_{SS}^{-1})_{ii}d_i
+ \geq\frac{\alpha d_i}{(\widehat H)_{ii}}
+ =\frac{\alpha}{p}.
+\end{equation*}
+Here the middle inequality is the standard Schur-complement bound
+\((B^{-1})_{ii}\geq1/B_{ii}\) for \(B\succ0\).
+Therefore \(y_i^0\geq(a_S)_i>\rho(t_S)_i\geq\alpha\rho/p\).
+Summing \(d_i y_i^0\) over the superlevel set proves
+\cref{eq:aesp-cd-point-source-ppr-screening}.
+
+For the sharp family, the root-only solution has
+\(y_o=\alpha(1-\rho)/p\), and the exterior key at \(u\) is
+\begin{equation*}
+ -\alpha\rho(M+1)+cy_o.
+\end{equation*}
+It vanishes exactly at \(\rho=\tau_M\).  At that parameter every clique key
+is strictly negative.  Hence continuity and Stieltjes inverse positivity
+show that, immediately below \(\tau_M\), \(u\) is positive while all clique
+vertices remain inactive.
+
+For ordinary PPR, eliminate the clique in the four equitable classes
+\(\{o\},\{u\},N_C(u)\), and \(C\setminus N_C(u)\).  Alternatively, note that
+the clique principal block is at least \(\alpha(L-1)I\).  Its load from \(u\)
+has norm \(c y_u^0\sqrt M\), so for fixed \(M\) its feedback
+\(c\sum_{v\in N_C(u)}y_v^0\) tends to zero as \(L\to\infty\).  The limiting
+two equations are
+\begin{equation*}
+ py_o^0-cy_u^0=\alpha,
+ \qquad
+ -cy_o^0+p(M+1)y_u^0=0.
+\end{equation*}
+Consequently
+\begin{equation*}
+ \lim_{L\to\infty}y_u^{0,(M,L)}
+ =\frac{\alpha c}{p^2(M+1)-c^2},
+\end{equation*}
+and division by \(\tau_M\), followed by \(M\to\infty\), proves
+\cref{eq:aesp-cd-point-source-ppr-screening-sharp}.
+\end{proof}
+
+\begin{proposition}[Point-source homotopy breakpoints mix but can reorder]
+\label{prop:aesp-cd-point-source-homotopy-reorder}
+Fix a face $S\ni o$ and write its point-source parametric solve as
+\begin{equation*}
+ x_S(\rho)=a_S-\rho h_S,\qquad
+ a_S=H_{SS}^{-1}\alpha e_o,\qquad
+ h_S=H_{SS}^{-1}\alpha d_S.
+\end{equation*}
+For an exterior vertex $v$, put
+\begin{equation*}
+ A_v=-H_{vS}a_S\geq0,\qquad
+ B_v=\alpha d_v-H_{vS}h_S>0,\qquad
+ g_v(\rho)=A_v-\rho B_v,\qquad
+ \tau_v=A_v/B_v.
+\end{equation*}
+Suppose one exterior vertex $w$ is added.  Then for every remaining exterior
+vertex $v$ there is a scalar $\gamma_v\geq0$ such that
+\begin{equation}
+ (A'_v,B'_v)=(A_v,B_v)+\gamma_v(A_w,B_w),\qquad
+ \tau'_v=
+ \frac{B_v\tau_v+\gamma_vB_w\tau_w}{B_v+\gamma_vB_w}.
+ \label{eq:aesp-cd-point-source-homotopy-mix}
+\end{equation}
+Thus if $w$ is the current largest breakpoint, every surviving breakpoint
+moves monotonically toward, but never past, $\tau_w$.
+
+This one-dimensional structure does not make a stale priority queue exact:
+breakpoint order can reverse.  On the six-vertex graph with
+$\alpha=2/7$ and edges
+\begin{equation*}
+ 01,03,04,12,13,23,25,34,45,
+\end{equation*}
+the exact decreasing-$\rho$ point-source trace starts
+$\{0\}\to\{0,1,4\}\to\{0,1,3,4\}$.  Immediately before admitting $3$,
+\begin{equation*}
+ \tau_5=\frac{25}{1838}>\frac{25}{2517}=\tau_2,
+\end{equation*}
+whereas immediately afterwards
+\begin{equation*}
+ \tau'_2=\frac{975}{53696}>
+ \frac{1025}{64318}=\tau'_5.
+\end{equation*}
+Hence point-source homotopy compresses each update to a nonnegative
+rank-one mixture, but a reporter must still maintain a dynamic maximum under
+nonuniform mixtures rather than merely lazily validating one fixed heap
+order.
+\end{proposition}
+
+\begin{proof}
+Let
+\begin{equation*}
+ q=-H_{SS}^{-1}H_{Sw}\geq0,\qquad
+ \sigma=H_{ww}-H_{wS}H_{SS}^{-1}H_{Sw}>0.
+\end{equation*}
+Block elimination on the enlarged face gives
+\begin{equation*}
+ a'_w=A_w/\sigma,\quad a'_S=a_S+qa'_w,\qquad
+ h'_w=B_w/\sigma,\quad h'_S=h_S+qh'_w.
+\end{equation*}
+Therefore
+\cref{eq:aesp-cd-point-source-homotopy-mix} holds with
+\begin{equation*}
+ \gamma_v=\frac{-H_{vS}q-H_{vw}}{\sigma}\geq0.
+\end{equation*}
+The second identity in
+\cref{eq:aesp-cd-point-source-homotopy-mix} is then a weighted average.
+Direct rational elimination on the displayed graph gives first the tied
+breakpoints $\tau_1=\tau_4=5/96$, then the unique winner
+$\tau_3=185/4231$, and the four before/after values displayed above.
+\end{proof}
+
+\begin{lemma}[Canonical ground-state normalization of a connected principal face]
+\label{lem:aesp-cd-point-source-ground-state-normalization}
+Let \(0<\alpha<1\), let \(A\) be a nonempty connected vertex set, and in degree-unscaled
+coordinates, put
+\begin{equation*}
+ H_A=\frac{1+\alpha}{2}D_A-\frac{1-\alpha}{2}A_A,
+ \qquad
+ h_A:=H_A^{-1}\alpha d_A.
+\end{equation*}
+Here \(D_A\) retains the ambient graph degrees and \(d_A=D_A\one\).
+Then \(0<h_A\leq\one\) coordinatewise.  It also has an exact killed-walk
+interpretation.  From \(i\in A\), declare success with probability
+\(\alpha/p\), and otherwise choose each ambient neighbor with probability
+\(c/(pd_i)\), where
+\(p=(1+\alpha)/2\) and \(c=(1-\alpha)/2\); an edge leaving \(A\) is failure.
+Then \(h_{A,i}\) is the probability of success before the first exit from
+\(A\).  Define the diagonal mass
+\begin{equation}
+ W_A:=\operatorname{diag}\!\left(\frac{d_i}{h_{A,i}}:i\in A\right).
+ \label{eq:aesp-cd-point-source-ground-mass}
+\end{equation}
+The following identities and Loewner bounds are exact:
+\begin{equation}
+ H_Ah_A=\alpha W_Ah_A,\qquad
+ \alpha W_A\preceq H_A\preceq W_A.
+ \label{eq:aesp-cd-point-source-ground-sandwich}
+\end{equation}
+Consequently
+\(W_A^{-1/2}H_AW_A^{-1/2}\) is an irreducible SPD Stieltjes
+matrix with spectrum in \([\alpha,1]\) and known positive ground eigenpair
+\begin{equation*}
+ \left(\alpha,\;W_A^{1/2}h_A\right).
+\end{equation*}
+For every shift \(\kappa>0\), the resolvent
+\begin{equation*}
+ M_A^{(h)}:=\kappa(H_A+\kappa W_A)^{-1}W_A
+\end{equation*}
+therefore has known Perron pair
+\begin{equation*}
+ M_A^{(h)}h_A=\frac{\kappa}{\kappa+\alpha}h_A
+\end{equation*}
+and all its generalized modes lie in
+\([\kappa/(\kappa+1),\,\kappa/(\kappa+\alpha)]\).
+Equivalently, the shifted system has \(W_A\)-condition number at most
+\begin{equation*}
+ \frac{1+\kappa}{\alpha+\kappa};
+\end{equation*}
+for \(\kappa=1\) this is below two, uniformly over the proper face.
+
+On a point-source \(\rho\)-homotopy face, \(h_A\) is exactly the slope
+response already maintained by
+\cref{thm:aesp-cd-point-source-ratio-pivot}; its elimination record recovers
+the normalization with no larger asymptotic exact-field work.  Alternatively
+it costs one certified fixed-face solve.
+
+This removes the need to estimate the lowest proper-face eigenpair.  It does
+not by itself extend the full-face common-cap master: that proof uses the
+specific cap direction \(\one\) and the original \(D\)-geometry.  What the
+lemma supplies unconditionally is the exact ground data for a separately
+proved \(W_A\)-geometric, correction-free Perron tail; an eigengap or an
+observable alignment certificate remains an additional hypothesis.
+\end{lemma}
+
+\begin{proof}
+The inverse of the irreducible Stieltjes matrix \(H_A\) is strictly positive,
+so \(h_A>0\).  If \(b_A\) is the vector of ambient edges leaving \(A\) and
+\(c=(1-\alpha)/2\), then
+\begin{equation*}
+ h_{A,i}
+ =\frac{\alpha}{p}
+  +\sum_{j\in A\cap N(i)}\frac{c}{pd_i}h_{A,j}.
+\end{equation*}
+Because \(\alpha+c=p\), first-step conditioning proves the killed-walk
+interpretation.  Moreover,
+\begin{equation*}
+ H_A\one=\alpha d_A+c b_A.
+\end{equation*}
+Thus \(H_A(\one-h_A)=cb_A\geq0\), and inverse positivity gives
+\(h_A\leq\one\).  The definition of \(W_A\) now gives
+\(W_Ah_A=d_A\) and hence the first identity in
+\cref{eq:aesp-cd-point-source-ground-sandwich}.
+
+On the full graph,
+\(H=\alpha D+c(D-A)\preceq D\), because the normalized Laplacian has
+spectrum in \([0,2]\).  Principal restriction preserves the inequality, and
+\(h_A\leq\one\) gives \(D_A\preceq W_A\).  Hence \(H_A\preceq W_A\).
+The symmetric matrix \(W_A^{-1/2}H_AW_A^{-1/2}\) is irreducible Stieltjes
+and has the strictly positive eigenvector \(W_A^{1/2}h_A\) at eigenvalue
+\(\alpha\).  Perron--Frobenius applied to a positive shifted inverse says
+that this is its simple smallest eigenvalue.  This proves the lower Loewner
+bound and the spectral sandwich.  Spectral mapping gives the resolvent
+claim.
+\end{proof}
+
+\begin{proposition}[Exact ground-state conjugacy of a connected proper face]
+\label{prop:aesp-cd-proper-face-ground-conjugacy}
+Under the hypotheses and notation of
+\cref{lem:aesp-cd-point-source-ground-state-normalization}, let
+\begin{equation*}
+ R_A:=\operatorname{diag}(h_A),\qquad
+ \bar D_A:=R_AW_AR_A=\operatorname{diag}(d_ih_{A,i}),
+ \qquad
+ \bar Q_A:=R_A^{-1}W_A^{-1}H_AR_A.
+\end{equation*}
+Then \(\bar Q_A\) is an irreducible Stieltjes operator self-adjoint in the
+\(\bar D_A\)-inner product, and
+\begin{equation}
+ \bar Q_A\one=\alpha\one,
+ \qquad
+ \alpha I\preceq_{\bar D_A}\bar Q_A\preceq_{\bar D_A}I.
+ \label{eq:aesp-cd-proper-face-conjugate-spectrum}
+\end{equation}
+More explicitly, with \(c=(1-\alpha)/2\), let \(L_{\omega,A}\) be the
+weighted combinatorial Laplacian on \(G[A]\) whose edge conductances are
+\begin{equation*}
+ \omega_{ij}:=c\,h_{A,i}h_{A,j}
+ \qquad(\{i,j\}\in E[A]).
+\end{equation*}
+Then the conjugated operator has the exact ground-state representation
+\begin{equation}
+ \bar D_A(\bar Q_A-\alpha I)=L_{\omega,A},
+ \qquad
+ z^{\mathsf T}\bar D_A(\bar Q_A-\alpha I)z
+ =\sum_{\{i,j\}\in E[A]}\omega_{ij}(z_i-z_j)^2.
+ \label{eq:aesp-cd-proper-face-doob-laplacian}
+\end{equation}
+In particular the \(\alpha\)-eigenspace consists of the componentwise
+constants; it is one-dimensional because \(A\) is connected.  Thus every
+proper-face high-gap hypothesis is exactly a conductance/Poincar\'e
+hypothesis for the weighted graph
+\((A,\bar D_A,\omega)\), rather than an unexplained extra mode.
+Thus the change of variables \(y_A=R_Az_A\) turns the proper-face system
+\(H_Ay_A=\ell_A\) into the normalized full-face-form system
+\begin{equation*}
+ \bar Q_Az_A=\bar\ell_A,
+ \qquad
+ \bar\ell_A:=R_A^{-1}W_A^{-1}\ell_A.
+\end{equation*}
+
+The conjugacy preserves the whole safe shifted primitive, not just its
+spectrum.  A center \(c_A=R_A\bar c_A\) and a shifted solve with diagonal
+mass \(W_A\) obey
+\begin{equation}
+ (H_A+\kappa W_A)y_A=\ell_A+\kappa W_Ac_A
+ \quad\Longleftrightarrow\quad
+ (\bar Q_A+\kappa I)z_A=\bar\ell_A+\kappa\bar c_A.
+ \label{eq:aesp-cd-proper-face-shift-conjugacy}
+\end{equation}
+For an arbitrary trial \(u_A\), put
+\begin{equation}
+ \Delta_h(u_A)
+ :=\frac1\alpha
+   \max_{i\in A}\frac{[(H_Au_A-\ell_A)_i]_+}{d_i},
+ \qquad
+ \mathcal L_h(u_A):=[u_A-\Delta_h(u_A)h_A]_+.
+ \label{eq:aesp-cd-proper-face-h-cap}
+\end{equation}
+Then \(\mathcal L_h(u_A)\) is an order-safe lower certificate, and
+\begin{equation*}
+ R_A^{-1}\mathcal L_h(u_A)
+ =\left[R_A^{-1}u_A-\Delta_h(u_A)\one\right]_+.
+\end{equation*}
+Consequently, if the safeguarded momentum update uses the \(W_A\)-shift and
+the \(h_A\)-cap
+\begin{equation*}
+ r_t=\min\{\beta d_t,\Delta_t h_A\}
+ \end{equation*}
+componentwise, its exact fixed-face recurrence is diagonally conjugate to
+the note's normalized constant-mode/common-cap recurrence.
+
+Therefore every fixed-face theorem whose hypotheses are stated solely in
+terms of Stieltjes signs, the spectral interval \([\alpha,1]\), the constant
+ground identity, shifted resolvents, and the common-cap rule transfers
+verbatim after replacing \((D,Q,\one)\) by
+\((\bar D_A,\bar Q_A,\one)\).  This includes the algebraic interfaces of the
+observable alignment and master-window results, but not their extra high-gap
+or \(\Psi\leq0\) assumptions: those must still be certified for
+\(\bar Q_A\).  It also describes a modified proper-face controller, not the
+original \(D_A\)-shifted controller.
+\end{proposition}
+
+\begin{proof}
+The off-diagonal entries of \(\bar Q_A\) have the same nonpositive signs as
+those of \(H_A\), and
+\begin{equation*}
+ \bar D_A\bar Q_A=R_AH_AR_A
+\end{equation*}
+is symmetric.  Moreover,
+\begin{equation*}
+ \bar Q_A\one
+ =R_A^{-1}W_A^{-1}H_Ah_A
+ =\alpha R_A^{-1}W_A^{-1}d_A
+ =\alpha\one.
+\end{equation*}
+The Loewner sandwich in
+\cref{eq:aesp-cd-point-source-ground-sandwich}, conjugated by \(R_A\),
+proves \cref{eq:aesp-cd-proper-face-conjugate-spectrum}.  Multiplying either
+linear system in \cref{eq:aesp-cd-proper-face-shift-conjugacy} by the positive
+diagonal matrix \(R_A^{-1}W_A^{-1}\) proves the shifted equivalence.
+
+For the stronger structural identity, symmetry gives
+\(\bar D_A\bar Q_A=R_AH_AR_A\).  Its off-diagonal entry on an edge
+\(\{i,j\}\) is \(-c h_{A,i}h_{A,j}=-\omega_{ij}\).  The already proved row
+identity \(\bar Q_A\one=\alpha\one\) says that
+\(\bar D_A(\bar Q_A-\alpha I)\) has zero row sums, so its diagonal is the
+sum of the incident \(\omega_{ij}\)'s.  This is precisely
+\(L_{\omega,A}\), and its standard Dirichlet form proves
+\cref{eq:aesp-cd-proper-face-doob-laplacian}.  Its nullspace is the
+componentwise constants, proving the eigenspace claim.
+
+Finally, the transformed lower residual is
+\begin{equation*}
+ \bar\ell_A-\bar Q_AR_A^{-1}u_A
+ =R_A^{-1}W_A^{-1}(\ell_A-H_Au_A)
+ =\operatorname{diag}(d_i^{-1})(\ell_A-H_Au_A).
+\end{equation*}
+Because \(\bar Q_A\one=\alpha\one\), subtracting
+\(\Delta_h(u_A)\one\) makes this residual nonnegative before truncation.
+Positive-part truncation preserves the subsolution inequality for a
+Stieltjes matrix.  Conjugating back proves
+\cref{eq:aesp-cd-proper-face-h-cap}.  Componentwise maxima, minima, and
+positive parts commute with the positive diagonal map \(R_A\), which proves
+the recurrence claim.
+\end{proof}
+
+\begin{corollary}[A weighted-conductance certificate for the proper-face high gap]
+\label{cor:aesp-cd-proper-face-conductance-gap}
+Assume \(0<\alpha<1/2\), retain the connected-face notation of
+\cref{prop:aesp-cd-proper-face-ground-conjugacy}, and put
+\begin{equation*}
+ \kappa_{\mathrm A}:=1-2\alpha,
+ \qquad
+ q:=\sqrt{\frac{\alpha}{1-\alpha}}.
+\end{equation*}
+Define the ground-transformed conductance
+\begin{equation}
+ \Phi_h(A)
+ :=\min_{\varnothing\neq B\subsetneq A}
+ \frac{
+   c\sum_{\{i,j\}\in E[A],\,i\in B,\,j\notin B}h_{A,i}h_{A,j}
+ }{
+   \min\left\{
+    \sum_{i\in B}d_ih_{A,i},
+    \sum_{i\in A\setminus B}d_ih_{A,i}
+   \right\}
+ },
+ \qquad c=\frac{1-\alpha}{2}.
+ \label{eq:aesp-cd-proper-face-ground-conductance}
+\end{equation}
+If
+\begin{equation}
+ \Phi_h(A)\geq\sqrt{\frac{2\alpha}{q}},
+ \label{eq:aesp-cd-proper-face-conductance-threshold}
+\end{equation}
+then every nonconstant generalized eigenvalue \(\lambda\) of
+\(\bar Q_A\) obeys
+\begin{equation*}
+ \lambda\geq\alpha+\frac{\alpha}{q}
+ =\frac{\alpha(1+q)}q,
+\end{equation*}
+and its shifted-resolvent eigenvalue satisfies
+\begin{equation*}
+ \frac{\kappa_{\mathrm A}}{\kappa_{\mathrm A}+\lambda}
+ \leq1-q.
+\end{equation*}
+Thus the high-gap hypothesis in the proper-face conjugate of
+\cref{prop:aesp-cd-psi-high-window} has a purely weighted-graph sufficient
+certificate.  For small \(\alpha\), the required conductance scale is
+\(\Theta(\alpha^{1/4})\).  The separate clipped-master sign condition
+\(\Psi\leq0\) is not implied by conductance and remains an independent
+obligation.
+\end{corollary}
+
+\begin{proof}
+By \cref{eq:aesp-cd-proper-face-doob-laplacian}, the shifted eigenvalues
+\(\nu=\lambda-\alpha\) are the generalized eigenvalues of
+\((L_{\omega,A},\bar D_A)\).  The reversible kernel
+\begin{equation*}
+ P_h:=I-\bar D_A^{-1}L_{\omega,A}
+\end{equation*}
+is stochastic and entrywise nonnegative: its off-diagonal transition from
+\(i\) to \(j\) is \(cA_{ij}h_{A,j}/d_i\), and its diagonal is nonnegative
+because
+\begin{equation*}
+ \sum_j\omega_{ij}
+ =c h_{A,i}\sum_{j\in A}A_{ij}h_{A,j}
+ \leq c d_i h_{A,i}
+ \leq\bar D_{A,ii}.
+\end{equation*}
+The standard Cheeger inequality for this reversible chain therefore gives
+\begin{equation*}
+ \nu_2\geq\frac{\Phi_h(A)^2}{2}.
+\end{equation*}
+The assumed threshold implies \(\nu_2\geq\alpha/q\).
+Finally the AESP parameters satisfy
+\begin{equation*}
+ \alpha=\frac{\kappa_{\mathrm A}q^2}{1-q^2},
+\end{equation*}
+so
+\begin{equation*}
+ \frac{\kappa_{\mathrm A}}{\kappa_{\mathrm A}+\lambda}\leq1-q
+ \quad\Longleftrightarrow\quad
+ \lambda\geq\frac{\kappa_{\mathrm A}q}{1-q}
+ =\frac{\alpha(1+q)}q.
+\end{equation*}
+This is exactly the claimed bound.
+\end{proof}
+
+\begin{corollary}[A leakage-and-conductance certificate in the original graph]
+\label{cor:aesp-cd-proper-face-leakage-conductance}
+For \(i\in A\), let
+\begin{equation*}
+ b_i:=\abs{\{j\notin A:\{i,j\}\in E\}},
+ \qquad
+ \eta_A:=\max_{i\in A}\frac{b_i}{d_i},
+\end{equation*}
+and define ambient-volume conductance of the induced face by
+\begin{equation*}
+ \Phi_D(A)
+ :=\min_{\varnothing\neq B\subsetneq A}
+ \frac{\abs{E(B,A\setminus B)}}
+ {\min\{\sum_{i\in B}d_i,\sum_{i\in A\setminus B}d_i\}}.
+\end{equation*}
+Also let its ambient-volume Poincar\'e gap be
+\begin{equation*}
+ \lambda_{2,D}(A)
+ :=\min_{z\notin\operatorname{span}\{\one\}}
+ \frac{\sum_{\{i,j\}\in E[A]}(z_i-z_j)^2}
+ {\min_{a\in\mathbb R}\sum_{i\in A}d_i(z_i-a)^2}.
+\end{equation*}
+Then
+\begin{equation}
+ \min_{i\in A}h_{A,i}
+ \geq\frac{\alpha}{\alpha+c\eta_A},
+ \qquad
+ \Phi_h(A)
+ \geq
+ c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2\Phi_D(A).
+ \label{eq:aesp-cd-proper-face-leakage-conductance}
+\end{equation}
+Moreover, if \(\nu_2^{(h)}\) is the first nonzero generalized eigenvalue of
+\((L_{\omega,A},\bar D_A)\), then
+\begin{equation}
+ \nu_2^{(h)}
+ \geq c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2
+          \lambda_{2,D}(A).
+ \label{eq:aesp-cd-proper-face-leakage-poincare}
+\end{equation}
+Hence either of the ordinary graph conditions
+\begin{align}
+ c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2\Phi_D(A)
+ &\geq\sqrt{\frac{2\alpha}{q}},
+ \label{eq:aesp-cd-proper-face-original-conductance-certificate}\\
+ c\left(\frac{\alpha}{\alpha+c\eta_A}\right)^2\lambda_{2,D}(A)
+ &\geq\frac{\alpha}{q}
+ \label{eq:aesp-cd-proper-face-original-poincare-certificate}
+\end{align}
+certifies the transformed high gap and the correction-free aligned tail
+below.
+In particular, when \(\eta_A=O(\alpha)\), the survival factor is constant
+and the required original conductance and Poincar\'e scales are respectively
+\(\Theta(\alpha^{1/4})\) and \(\Theta(\sqrt\alpha)\).
+\end{corollary}
+
+\begin{proof}
+The identity \(H_A(\one-h_A)=cb_A\) was proved in
+\cref{lem:aesp-cd-point-source-ground-state-normalization}.  Put
+\(r=\one-h_A\geq0\) and choose \(i\) with \(r_i=\norm r_\infty\).
+Writing \(d_i^A=d_i-b_i\), the Stieltjes signs give
+\begin{equation*}
+ c b_i=(H_Ar)_i
+ \geq(p d_i-cd_i^A)r_i
+ =(\alpha d_i+cb_i)r_i.
+\end{equation*}
+Thus
+\(r_i\leq c\eta_A/(\alpha+c\eta_A)\), proving the first bound.
+
+Let \(h_{\min}\) and \(h_{\max}\) be the extreme coordinates of \(h_A\).
+For every cut \(B\subset A\),
+\begin{equation*}
+ c\sum_{\{i,j\}\in E(B,A\setminus B)}h_{A,i}h_{A,j}
+ \geq c h_{\min}^2\abs{E(B,A\setminus B)},
+\end{equation*}
+whereas each of the two \(\bar D_A\)-masses is at most \(h_{\max}\)
+times its ambient \(D\)-mass.  Since \(h_{\max}\leq1\), minimizing over
+cuts gives the second inequality in
+\cref{eq:aesp-cd-proper-face-leakage-conductance}.  The final statement now
+follows from \cref{cor:aesp-cd-proper-face-conductance-gap}.
+
+For the sharper Poincar\'e comparison, write
+\(\operatorname{Var}_D(z)=\min_a\sum_i d_i(z_i-a)^2\), and similarly for
+\(\bar D_A\).  Since \(\bar D_A\preceq h_{\max}D_A\),
+\begin{equation*}
+ \operatorname{Var}_{\bar D_A}(z)
+ \leq h_{\max}\operatorname{Var}_{D_A}(z).
+\end{equation*}
+The weighted edge energy is at least
+\(c h_{\min}^2\sum_{\{i,j\}\in E[A]}(z_i-z_j)^2\).  Taking the Rayleigh
+minimum and using \(h_{\max}\leq1\) proves
+\cref{eq:aesp-cd-proper-face-leakage-poincare}.  The second sufficient
+condition is exactly \(\nu_2^{(h)}\geq\alpha/q\), the high-gap threshold
+used in the preceding corollary.
+\end{proof}
+
+\begin{corollary}[A finite residual certificate for the proper-face ground geometry]
+\label{cor:aesp-cd-proper-face-finite-ground-certificate}
+Retain the connected-face notation of
+\cref{prop:aesp-cd-proper-face-ground-conjugacy}.  Suppose that a computed
+vector \(\widetilde h_A>0\) and a number \(0\leq\varepsilon_h<1\) satisfy
+the entirely local residual inequalities
+\begin{equation}
+ 0\leq r_h:=\alpha d_A-H_A\widetilde h_A
+ \leq\varepsilon_h\alpha d_A
+ \qquad\text{coordinatewise}.
+ \label{eq:aesp-cd-proper-face-ground-residual-certificate}
+\end{equation}
+Then the exact ground vector \(h_A=H_A^{-1}(\alpha d_A)\) obeys
+\begin{equation}
+ \widetilde h_A\leq h_A
+ \leq\frac{1}{1-\varepsilon_h}\widetilde h_A
+ \qquad\text{coordinatewise}.
+ \label{eq:aesp-cd-proper-face-ground-relative-sandwich}
+\end{equation}
+
+Define the completely computable approximate conductance and Poincar\'e
+gap
+\begin{align*}
+ \widetilde\Phi_h(A)
+ &:=\min_{\varnothing\neq B\subsetneq A}
+ \frac{c\sum_{\{i,j\}\in E(B,A\setminus B)}
+             \widetilde h_{A,i}\widetilde h_{A,j}}
+      {\min\{\sum_{i\in B}d_i\widetilde h_{A,i},
+              \sum_{i\in A\setminus B}d_i\widetilde h_{A,i}\}},\\
+ \widetilde\nu_2
+ &:=\min_{z\notin\operatorname{span}\{\one\}}
+ \frac{c\sum_{\{i,j\}\in E[A]}
+             \widetilde h_{A,i}\widetilde h_{A,j}(z_i-z_j)^2}
+      {\min_{a\in\mathbb R}\sum_{i\in A}
+             d_i\widetilde h_{A,i}(z_i-a)^2}.
+\end{align*}
+They give rigorous lower bounds
+\begin{equation}
+ \Phi_h(A)\geq(1-\varepsilon_h)\widetilde\Phi_h(A),
+ \qquad
+ \nu_2^{(h)}\geq(1-\varepsilon_h)\widetilde\nu_2.
+ \label{eq:aesp-cd-proper-face-finite-ground-gap-bounds}
+\end{equation}
+Consequently either finite check
+\begin{equation*}
+ (1-\varepsilon_h)\widetilde\Phi_h(A)
+ \geq\sqrt{\frac{2\alpha}{q}}
+ \quad\text{or}\quad
+ (1-\varepsilon_h)\widetilde\nu_2\geq\frac{\alpha}{q}
+\end{equation*}
+certifies the exact proper-face high gap and hence the aligned tail of
+\cref{cor:aesp-cd-proper-face-conductance-alignment-tail}.  Thus exact
+ground data are not needed to certify the spectral hypothesis: a
+one-sided residual enclosure for a positive approximate ground solve is
+sufficient.  Constructing that enclosure and charging its solve work are
+separate preprocessing obligations.
+\end{corollary}
+
+\begin{proof}
+The inverse of the SPD Stieltjes matrix \(H_A\) is entrywise nonnegative.
+Therefore
+\begin{equation*}
+ 0\leq h_A-\widetilde h_A=H_A^{-1}r_h
+ \leq\varepsilon_h H_A^{-1}(\alpha d_A)
+ =\varepsilon_h h_A.
+\end{equation*}
+Rearranging proves
+\cref{eq:aesp-cd-proper-face-ground-relative-sandwich}.
+
+For every cut, its exact weighted edge mass is at least the corresponding
+\(\widetilde h_A\)-weighted edge mass, while each exact vertex mass is at
+most \((1-\varepsilon_h)^{-1}\) times its computed counterpart.  Taking
+the minimum over cuts proves the conductance inequality.  Likewise the
+exact weighted edge energy dominates the computed one, whereas
+\begin{equation*}
+ \operatorname{Var}_{\bar D_A}(z)
+ \leq\frac{1}{1-\varepsilon_h}
+       \min_a\sum_i d_i\widetilde h_{A,i}(z_i-a)^2.
+\end{equation*}
+Taking the Rayleigh minimum proves the Poincar\'e inequality.  The two
+threshold implications are precisely the sufficient conditions in
+\cref{cor:aesp-cd-proper-face-conductance-gap}.
+\end{proof}
+
+\begin{proposition}[A monotone killed-walk construction of the finite ground certificate]
+\label{prop:aesp-cd-proper-face-walk-ground-certificate}
+Retain a principal face \(A\), put
+\begin{equation*}
+ P_A:=D_A^{-1}A_A,
+ \qquad
+ \vartheta:=\frac{1-\alpha}{1+\alpha},
+\end{equation*}
+and for an integer \(K\geq1\) define
+\begin{equation}
+ h_A^{(K)}
+ :=(1-\vartheta)\sum_{j=0}^{K-1}\vartheta^jP_A^j\one .
+ \label{eq:aesp-cd-proper-face-walk-ground-iterate}
+\end{equation}
+Then \(h_A^{(K)}>0\) and its residual is exactly
+\begin{equation}
+ \alpha d_A-H_Ah_A^{(K)}
+ =\alpha D_A\vartheta^KP_A^K\one.
+ \label{eq:aesp-cd-proper-face-walk-ground-residual}
+\end{equation}
+Since \(P_A\) is substochastic,
+\begin{equation*}
+ 0\leq\alpha d_A-H_Ah_A^{(K)}
+ \leq\vartheta^K\alpha d_A.
+\end{equation*}
+Thus \(\widetilde h_A=h_A^{(K)}\) satisfies
+\cref{eq:aesp-cd-proper-face-ground-residual-certificate} with the explicit
+choice \(\varepsilon_h=\vartheta^K\), and
+\cref{cor:aesp-cd-proper-face-finite-ground-certificate,cor:aesp-cd-proper-face-finite-rank-one-inverse}
+become implementable without
+an eigensolver.
+
+One application of \(P_A\) costs \(O(\vol(A))\), so this direct construction
+uses
+\begin{equation}
+ O\left(
+   \vol(A)\alpha^{-1}\log(1/\varepsilon_h)
+ \right)
+ \label{eq:aesp-cd-proper-face-walk-ground-work}
+\end{equation}
+work.  It is therefore a correctness closure, not yet an accelerated
+preprocessing bound.  The next corollary removes this loss by combining
+signed Chebyshev scratch with a safe Stieltjes publication; the retraction,
+rather than ordinary signed accuracy alone, is what supplies the required
+coordinatewise residual enclosure.
+\end{proposition}
+
+\begin{proof}
+Writing \(p=(1+\alpha)/2\) and \(c=(1-\alpha)/2\), one has
+\begin{equation*}
+ H_A=pD_A-cA_A=pD_A(I-\vartheta P_A),
+ \qquad
+ p(1-\vartheta)=\alpha.
+\end{equation*}
+The finite geometric-series identity gives
+\begin{equation*}
+ (I-\vartheta P_A)h_A^{(K)}
+ =(1-\vartheta)(I-\vartheta^KP_A^K)\one.
+\end{equation*}
+Multiplication by \(pD_A\) proves
+\cref{eq:aesp-cd-proper-face-walk-ground-residual}.  The first summand in
+\cref{eq:aesp-cd-proper-face-walk-ground-iterate} is
+\((1-\vartheta)\one>0\), and every later summand is nonnegative.
+Substochasticity gives \(0\leq P_A^K\one\leq\one\).
+Finally, \(-\log\vartheta=\Theta(\alpha)\), which proves the work estimate.
+\end{proof}
+
+\begin{corollary}[Safe Chebyshev acceleration closes the finite ground solve]
+\label{cor:aesp-cd-proper-face-accelerated-ground-certificate}
+Let \(A\) be a fixed principal face and put
+\begin{equation*}
+ Q_A:=D_A^{-1/2}H_AD_A^{-1/2},
+ \qquad
+ v_A:=D_A^{1/2}\one,
+ \qquad
+ b_A:=\alpha v_A.
+\end{equation*}
+The exact normalized ground solve \(g_A^\star=Q_A^{-1}b_A\) equals
+\(D_A^{1/2}h_A\).  Define the explicit positive lower checkpoint
+\begin{equation*}
+ y_A:=\frac{2\alpha}{1+\alpha}v_A
+\end{equation*}
+and
+\begin{equation*}
+ C_A:=
+ \frac1\alpha+
+ \frac{\sqrt{\vol(A)}}{\alpha\sqrt{d_{\min}(A)}}.
+\end{equation*}
+Run the Chebyshev semi-iteration for \(Q_Ag=b_A\), from any scratch start,
+until its raw residual \(\widehat r_k=b_A-Q_A\widehat g_k\) satisfies
+\begin{equation}
+ \norm{\widehat r_k}_2
+ \leq
+ \frac{\varepsilon_h\alpha\sqrt{d_{\min}(A)}}{C_A},
+ \label{eq:aesp-cd-proper-face-accelerated-ground-raw-target}
+\end{equation}
+and publish \(\widetilde g_A\) by the maximum-with-\(y_A\) Stieltjes
+retraction in \cref{thm:aesp-cd-safe-chebyshev-face}.  Then
+\(\widetilde g_A\geq y_A>0\) and
+\begin{equation}
+ 0\leq b_A-Q_A\widetilde g_A
+ \leq\varepsilon_h\alpha v_A
+ \qquad\text{coordinatewise}.
+ \label{eq:aesp-cd-proper-face-accelerated-ground-normalized-residual}
+\end{equation}
+Consequently
+\(\widetilde h_A:=D_A^{-1/2}\widetilde g_A\) satisfies the finite ground
+certificate
+\begin{equation*}
+ 0\leq\alpha d_A-H_A\widetilde h_A
+ \leq\varepsilon_h\alpha d_A.
+\end{equation*}
+
+Since \(\alpha I\preceq Q_A\preceq I\), the number of face products is
+\begin{equation}
+ O\left(
+ \alpha^{-1/2}
+ \log\frac{2C_A\norm{\widehat r_0}_2}
+               {\varepsilon_h\alpha\sqrt{d_{\min}(A)}}
+ \right).
+ \label{eq:aesp-cd-proper-face-accelerated-ground-work}
+\end{equation}
+Thus, once the conductance or Poincar\'e lower check itself is available,
+the finite ground geometry, rank-one response intervals, alignment warmup,
+and correction-free proper-face tail all have
+\(\widetilde O(\vol(A)/\sqrt\alpha)\) work.  No exact eigendata, exact ground
+solve, or positive-coefficient accelerated polynomial is being assumed.
+\end{corollary}
+
+\begin{proof}
+The principal normalized matrix satisfies
+\(\alpha I\preceq Q_A\preceq I\) and
+\(Q_Av_A\geq\alpha v_A\).  Moreover,
+\begin{equation*}
+ b_A-Q_Ay_A
+ =\alpha v_A-\frac{\alpha}{p}Q_Av_A\geq0,
+ \qquad p=\frac{1+\alpha}{2},
+\end{equation*}
+because \(Q_Av_A\leq pv_A\) coordinatewise.  Hence \(y_A>0\) is a valid
+published checkpoint for
+\cref{thm:aesp-cd-safe-chebyshev-face}, with
+\(\mu_{\rm sp}=\mu_\upsilon=\alpha\),
+\(L_{\rm sp}=1\), and \(\upsilon=v_A\).  Its output is therefore full-face
+and has nonnegative residual on every coordinate.  The theorem's error bound
+specializes to
+\begin{equation*}
+ \norm{g_A^\star-\widetilde g_A}_2
+ \leq C_A\norm{\widehat r_k}_2.
+\end{equation*}
+Since \(\norm{Q_A}_2\leq1\), the published residual has Euclidean norm at
+most the same right-hand side.  Under
+\cref{eq:aesp-cd-proper-face-accelerated-ground-raw-target}, each coordinate
+is therefore at most
+\(\varepsilon_h\alpha\sqrt{d_{\min}(A)}
+\leq\varepsilon_h\alpha\sqrt{d_i}\), proving
+\cref{eq:aesp-cd-proper-face-accelerated-ground-normalized-residual}.
+Multiplication by \(D_A^{1/2}\) gives the degree-unscaled certificate.
+Finally the Chebyshev residual rate with condition number at most
+\(\alpha^{-1}\) proves
+\cref{eq:aesp-cd-proper-face-accelerated-ground-work}.
+\end{proof}
+
+\begin{proposition}[Ground certificates reuse the admission response]
+\label{prop:aesp-cd-proper-face-ground-admission-replay}
+Let \(A\) be connected and let \(B=A\cup\{w\}\) be a connected
+one-coordinate principal-face extension.  Define
+the exact nonnegative response column and Schur pivot
+\begin{equation*}
+ u_A^{(w)}:=H_A^{-1}(-H_{Aw})\geq0,
+ \qquad
+ s_w:=H_{ww}+H_{wA}u_A^{(w)}>0.
+\end{equation*}
+Then the exact ground vectors satisfy
+\begin{equation}
+ t_w:=\frac{\alpha d_w-H_{wA}h_A}{s_w},
+ \qquad
+ h_B=
+ \begin{pmatrix}
+ h_A+t_wu_A^{(w)}\\ t_w
+ \end{pmatrix},
+ \qquad 0<t_w\leq1.
+ \label{eq:aesp-cd-proper-face-ground-admission-exact}
+\end{equation}
+Thus the response column already needed by an exact admission also updates
+the ground geometry; a separate ground solve on every nested face is
+unnecessary.
+
+The identity has a one-sided finite version.  Suppose
+\begin{align*}
+ 0&\leq r_h:=\alpha d_A-H_A\widetilde h_A
+       \leq\varepsilon_h\alpha d_A,\\
+ 0&\leq r_u:=-H_{Aw}-H_A\widetilde u_A^{(w)}
+       \leq\varepsilon_u\alpha d_A,
+\end{align*}
+with \(\widetilde h_A>0\) and \(\widetilde u_A^{(w)}\geq0\).  Put
+\begin{equation*}
+ \widetilde s_w:=H_{ww}+H_{wA}\widetilde u_A^{(w)},
+ \qquad
+ \widetilde t_w:=
+ \frac{\alpha d_w-H_{wA}\widetilde h_A}{\widetilde s_w},
+\end{equation*}
+and publish
+\begin{equation}
+ \widetilde h_B:=
+ \begin{pmatrix}
+ \widetilde h_A+\widetilde t_w\widetilde u_A^{(w)}\\
+ \widetilde t_w
+ \end{pmatrix}.
+ \label{eq:aesp-cd-proper-face-ground-admission-finite}
+\end{equation}
+Then \(\widetilde s_w>0\), \(0<\widetilde t_w\leq t_w\leq1\), and
+\begin{equation}
+ \alpha d_B-H_B\widetilde h_B
+ =
+ \begin{pmatrix}
+ r_h+\widetilde t_wr_u\\0
+ \end{pmatrix},
+ \qquad
+ 0\leq\alpha d_B-H_B\widetilde h_B
+ \leq(\varepsilon_h+\varepsilon_u)\alpha d_B.
+ \label{eq:aesp-cd-proper-face-ground-admission-residual}
+\end{equation}
+Across a nested trace, response residual budgets therefore add, rather than
+forcing repeated ground preprocessing.  Safe Chebyshev response solves can
+make their sum any declared \(\varepsilon_h\) at only logarithmic precision
+cost without a full-face guard: the pivot right-hand side
+\(-H_{Aw}\) is nonnegative, so
+\cref{eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual} makes the sparse
+safe publication a one-sided certificate on every row.  Face discovery and
+response emission remain separately charged.
+
+More explicitly, in normalized coordinates let
+\begin{equation*}
+ b_A^{(w)}:=D_A^{-1/2}(-H_{Aw})\geq0,
+ \qquad
+ z_A^{(w)}:=D_A^{1/2}u_A^{(w)}.
+\end{equation*}
+Apply \cref{thm:aesp-cd-safe-chebyshev-face} to
+\(Q_Az=b_A^{(w)}\) with zero checkpoint and
+\(\upsilon=v_A=D_A^{1/2}\one\).  With \(C_A\) as in
+\cref{cor:aesp-cd-proper-face-accelerated-ground-certificate}, the raw
+residual target
+\begin{equation}
+ \norm{\widehat r_k^{(w)}}_2
+ \leq\frac{\varepsilon_u\alpha\sqrt{d_{\min}(A)}}{C_A}
+ \label{eq:aesp-cd-proper-face-response-raw-target}
+\end{equation}
+publishes a possibly sparse \(\widetilde u_A^{(w)}\geq0\) satisfying exactly
+the assumed full-row response certificate.  It uses
+\begin{equation}
+ O\left(
+ \alpha^{-1/2}
+ \log\frac{2C_A\norm{\widehat r_0^{(w)}}_2}
+               {\varepsilon_u\alpha\sqrt{d_{\min}(A)}}
+ \right)
+ \label{eq:aesp-cd-proper-face-response-safe-work}
+\end{equation}
+face products.  This closes the safety and finite-precision interface for one
+response; summing this cost over many admissions would still be the forbidden
+face-by-face rebuild, so dynamic response reuse/reporting remains essential.
+\end{proposition}
+
+\begin{proof}
+The first block row of \(H_Bh_B=\alpha d_B\) gives
+\(h_{B,A}=h_A+u_A^{(w)}h_{B,w}\).  Substitution in the last row gives
+\cref{eq:aesp-cd-proper-face-ground-admission-exact}.  Positivity follows
+from the Stieltjes inverse, and \(t_w=h_{B,w}\leq1\) from
+\cref{lem:aesp-cd-point-source-ground-state-normalization}.
+
+For the finite statement, inverse positivity gives
+\(\widetilde h_A\leq h_A\) and
+\(\widetilde u_A^{(w)}\leq u_A^{(w)}\).  Since \(H_{wA}\leq0\),
+\begin{equation*}
+ 0<\alpha d_w-H_{wA}\widetilde h_A
+ \leq\alpha d_w-H_{wA}h_A,
+ \qquad
+ \widetilde s_w\geq s_w>0.
+\end{equation*}
+Hence \(0<\widetilde t_w\leq t_w\leq1\).  Direct block multiplication of
+\cref{eq:aesp-cd-proper-face-ground-admission-finite} gives
+\cref{eq:aesp-cd-proper-face-ground-admission-residual}: the last row vanishes
+by the definition of \(\widetilde t_w\), while the old rows equal
+\begin{equation*}
+ r_h-\widetilde t_w
+       (H_A\widetilde u_A^{(w)}+H_{Aw})
+ =r_h+\widetilde t_wr_u.
+\end{equation*}
+The upper bound uses \(\widetilde t_w\leq1\).
+
+For the final specialization, the normalized principal matrix obeys
+\(\alpha I\preceq Q_A\preceq I\) and
+\(Q_Av_A\geq\alpha v_A\).  The right-hand side \(b_A^{(w)}\) is nonnegative,
+so \cref{eq:aesp-cd-safe-chebyshev-nonnegative-rhs-residual} applies with no
+full-face checkpoint.  Its residual norm is at most
+\(C_A\norm{\widehat r_k^{(w)}}_2\).  Under
+\cref{eq:aesp-cd-proper-face-response-raw-target}, multiplication by
+\(D_A^{1/2}\) gives
+\begin{equation*}
+ 0\leq-H_{Aw}-H_A\widetilde u_A^{(w)}
+ \leq\varepsilon_u\alpha d_A.
+\end{equation*}
+The Chebyshev rate proves the displayed work bound.
+\end{proof}
+
+\begin{corollary}[A conductance-certified correction-free proper-face tail]
+\label{cor:aesp-cd-proper-face-conductance-alignment-tail}
+Under the hypotheses of
+\cref{cor:aesp-cd-proper-face-conductance-gap}, fix a positive exact
+principal-face solution \(u_A^\star=H_A^{-1}\ell_A>0\), and run the modified
+pure-prox primitive with \(W_A\)-shift from a lower checkpoint \(u_0\).
+Put
+\begin{equation*}
+ \delta_A:=\min_{i\in A}d_ih_{A,i}>0,
+ \qquad
+ \widehat D_A:=\delta_A^{-1}\bar D_A,
+ \qquad
+ \widehat{\mathsf v}_A:=\one^{\mathsf T}\widehat D_A\one.
+\end{equation*}
+Thus every diagonal weight of \(\widehat D_A\) is at least one.  The
+transformed observable residual is
+\begin{equation}
+ \bar y_j
+ :=R_A^{-1}W_A^{-1}(\ell_A-H_Au_j)
+ =\operatorname{diag}(d_i^{-1})(\ell_A-H_Au_j).
+ \label{eq:aesp-cd-proper-face-observable-residual}
+\end{equation}
+Decompose it as
+\begin{equation*}
+ a_j
+ :=\frac{\langle\bar y_j,\one\rangle_{\widehat D_A}}
+          {\alpha\widehat{\mathsf v}_A},
+ \qquad
+ w_j:=\bar y_j-\alpha a_j\one.
+\end{equation*}
+If \(a_0>0\), then after
+\begin{equation}
+ J\geq
+ \left\lceil
+ \frac{\log_+\!\left(
+  \sqrt2\norm{w_0}_{\widehat D_A}/
+  [\alpha a_0\sqrt{q/(1+q)}]
+ \right)}{\log(1+q)}
+ \right\rceil
+ \label{eq:aesp-cd-proper-face-conductance-alignment-work}
+\end{equation}
+pure-prox stages, a same-point restart of the modified momentum controller
+has zero \(h_A\)-cap at every later exact trial.  Its whole fixed-face tail
+is therefore correction-free.  To reduce its post-restart Moreau bank
+\(\mathcal C_J\) to \(\tau>0\), it suffices to append
+\begin{equation*}
+ \left\lceil q^{-1}\log_+(\mathcal C_J/\tau)\right\rceil
+\end{equation*}
+momentum stages.  Since \(q=\Theta(\sqrt\alpha)\), the exact outer count is
+\(\widetilde O(\alpha^{-1/2})\).
+
+This conclusion does not assume the clipped-master sign
+\(\Psi\leq0\).  Its finite-horizon version follows from
+\cref{cor:aesp-cd-finite-alignment-tail} after the same diagonal conjugacy,
+provided the finite solves remain in the fixed relative interior and obey
+the displayed corollary's absolute residual budget.
+\end{corollary}
+
+\begin{proof}
+Let \(\bar e_j=R_A^{-1}(u_A^\star-u_j)\).  By
+\cref{prop:aesp-cd-proper-face-ground-conjugacy},
+\(\bar y_j=\bar Q_A\bar e_j\), the \(W_A\)-shifted pure-prox recurrence is
+exactly the normalized \(\bar Q_A\)-recurrence, and the \(h_A\)-cap is the
+ordinary common cap after conjugacy.  Multiplying the mass matrix by the
+positive scalar \(\delta_A^{-1}\) changes neither self-adjointness, the
+constant projection, nor the spectrum.  The spectral sandwich gives
+\(\bar Q_A\preceq_{\widehat D_A}I\), while
+\cref{cor:aesp-cd-proper-face-conductance-gap} bounds every nonconstant
+resolvent mode by \(1-q\).  All hypotheses of
+\cref{prop:aesp-cd-observable-alignment-tail} therefore hold for
+\((\widehat D_A,\bar Q_A)\).
+
+That proposition gives \cref{eq:aesp-cd-proper-face-conductance-alignment-work}
+and proves that every transformed trial residual after the restart is
+componentwise nonnegative.  Conjugating back says exactly that every
+\(h_A\)-cap vanishes.  The correction-free Moreau contraction and its
+finite-horizon perturbation follow from
+\cref{prop:aesp-cd-moreau-epoch-restart,cor:aesp-cd-finite-alignment-tail}.
+\end{proof}
+
+\begin{corollary}[Conductance gives a rank-one proper-face inverse certificate]
+\label{cor:aesp-cd-proper-face-rank-one-inverse}
+Under the hypotheses of
+\cref{cor:aesp-cd-proper-face-conductance-gap}, let \(b_A\) be any right-hand
+side and define
+\begin{equation*}
+ f:=R_A^{-1}W_A^{-1}b_A=\operatorname{diag}(d_i^{-1})b_A,
+ \qquad
+ \bar f:=\frac{\langle f,\one\rangle_{\widehat D_A}}
+                  {\widehat{\mathsf v}_A},
+\end{equation*}
+using the harmless scalar normalization
+\(\widehat D_A=\delta_A^{-1}\bar D_A\) from
+\cref{cor:aesp-cd-proper-face-conductance-alignment-tail}.  Then the exact
+solve \(u=H_A^{-1}b_A\) has the decomposition
+\begin{equation}
+ u=\frac{\bar f}{\alpha}h_A+R_Ae_\perp,
+ \qquad
+ \langle e_\perp,\one\rangle_{\widehat D_A}=0,
+ \label{eq:aesp-cd-proper-face-rank-one-inverse}
+\end{equation}
+with the rigorous high-mode bound
+\begin{equation}
+ \norm{e_\perp}_{\widehat D_A}
+ \leq\frac{q}{\alpha(1+q)}
+       \norm{f-\bar f\one}_{\widehat D_A}.
+ \label{eq:aesp-cd-proper-face-rank-one-error}
+\end{equation}
+In particular, every coordinate lies in the computable interval
+\begin{equation}
+ \left|u_i-\frac{\bar f}{\alpha}h_{A,i}\right|
+ \leq
+ \frac{h_{A,i}}{\sqrt{\widehat D_{A,ii}}}
+ \frac{q}{\alpha(1+q)}
+ \norm{f-\bar f\one}_{\widehat D_A}.
+ \label{eq:aesp-cd-proper-face-rank-one-coordinate}
+\end{equation}
+
+More generally, let \(k_v:=(-H_{vi})_{i\in A}\geq0\) be any retained
+exterior coupling row, and put
+\begin{equation*}
+ s_v:=k_v^{\mathsf T}h_A,
+ \qquad
+ B_v:=
+ \frac{q}{\alpha(1+q)}
+ \left(\sum_{i\in A}\frac{k_{v,i}^2h_{A,i}}{d_i}\right)^{1/2}
+ \norm{f-\bar f\one}_{\bar D_A}.
+\end{equation*}
+If a scalar response amount \(t\geq0\) changes the row key from \(g_v\) to
+\begin{equation*}
+ g_v(t):=g_v+t k_v^{\mathsf T}u,
+\end{equation*}
+then the entirely simultaneous enclosure
+\begin{equation}
+ g_v+t\frac{\bar f}{\alpha}s_v-tB_v
+ \leq g_v(t)\leq
+ g_v+t\frac{\bar f}{\alpha}s_v+tB_v
+ \label{eq:aesp-cd-proper-face-rank-one-row-band}
+\end{equation}
+holds for every retained row.  Thus a row is certified positive when the
+left endpoint is positive and certified nonpositive when the right endpoint
+is nonpositive; equality remains inactive.  In particular, if the finite KKT
+hysteresis at every queried row is wider than \(tB_v\), this rank-one update
+is a complete reporter for that response.  Exact local contributions from a
+newly admitted coordinate may simply be added to both endpoints.
+
+For a newly exposed pivot \(w\notin A\), take
+\(b_A=-H_{Aw}\geq0\).  The displayed rank-one term then updates all retained
+boundary accumulators through one common scalar, while
+\cref{eq:aesp-cd-proper-face-rank-one-coordinate} is a simultaneous gray-band
+certificate for the remaining response.  Whenever that band fits inside the
+finite KKT hysteresis, no dense response materialization is needed.  This is
+a genuine conductance-certified reporter shortcut, but it is conditional:
+concentrated pivot loads can make the high-mode norm large, and gray
+coordinates still require the general event locator.
+\end{corollary}
+
+\begin{proof}
+Put \(z=R_A^{-1}u\).  The conjugacy gives
+\(\bar Q_Az=f\).  Let \(P_0\) be the
+\(\widehat D_A\)-orthogonal projection onto the constants.  Since
+\(P_0f=\bar f\one\), spectral decomposition yields
+\begin{equation*}
+ z=\bar Q_A^{-1}P_0f+\bar Q_A^{-1}(I-P_0)f
+  =\frac{\bar f}{\alpha}\one+e_\perp.
+\end{equation*}
+Every eigenvalue on the second summand is at least
+\(\alpha(1+q)/q\) by
+\cref{cor:aesp-cd-proper-face-conductance-gap}.  Taking the
+\(\widehat D_A\)-norm proves
+\cref{eq:aesp-cd-proper-face-rank-one-error}; multiplying by \(R_A\) proves
+\cref{eq:aesp-cd-proper-face-rank-one-inverse}.  Finally
+\(|e_{\perp,i}|\leq
+\norm{e_\perp}_{\widehat D_A}/\sqrt{\widehat D_{A,ii}}\), which gives the
+coordinate interval.
+For the row bound, the high-mode error is
+\(k_v^{\mathsf T}R_Ae_\perp\).  Weighted Cauchy--Schwarz in \(\bar D_A\)
+gives
+\begin{equation*}
+ |k_v^{\mathsf T}R_Ae_\perp|
+ \leq
+ \left(\sum_i\frac{k_{v,i}^2h_{A,i}}{d_i}\right)^{1/2}
+ \norm{e_\perp}_{\bar D_A}.
+\end{equation*}
+The scalar normalization of the high-mode estimate again cancels.  Multiplying
+by \(t\) proves \cref{eq:aesp-cd-proper-face-rank-one-row-band}; the sign tests
+are immediate.
+\end{proof}
+
+\begin{corollary}[The rank-one response certificate is finite]
+\label{cor:aesp-cd-proper-face-finite-rank-one-inverse}
+Retain the hypotheses and notation of
+\cref{cor:aesp-cd-proper-face-finite-ground-certificate,cor:aesp-cd-proper-face-rank-one-inverse},
+including one of the finite
+high-gap checks, and put
+\begin{equation*}
+ c_h:=\frac{1}{1-\varepsilon_h},
+ \qquad
+ \widetilde D_A:=\operatorname{diag}(d_i\widetilde h_{A,i}),
+ \qquad
+ \widetilde{\mathsf v}_A:=\one^{\mathsf T}\widetilde D_A\one.
+\end{equation*}
+For \(f=\operatorname{diag}(d_i^{-1})b_A\), define the completely observable
+quantities
+\begin{align*}
+ \widetilde f
+ &:=\frac{\langle f,\one\rangle_{\widetilde D_A}}
+           {\widetilde{\mathsf v}_A},&
+ M_1
+ &:=\frac{\sum_i\widetilde D_{A,ii}|f_i-\widetilde f|}
+              {\widetilde{\mathsf v}_A},&
+ \sigma
+ &:=\norm{f-\widetilde f\one}_{\widetilde D_A}.
+\end{align*}
+Then \(u=H_A^{-1}b_A\) obeys, coordinatewise,
+\begin{equation}
+ \left|u_i-\frac{\widetilde f}{\alpha}\widetilde h_{A,i}\right|
+ \leq \widetilde E_i,
+ \label{eq:aesp-cd-proper-face-finite-rank-one-coordinate}
+\end{equation}
+where
+\begin{equation}
+ \widetilde E_i:=
+ \frac{\widetilde h_{A,i}}{\alpha}(c_h-1)
+       \bigl(|\widetilde f|+c_hM_1\bigr)
+ +c_h\frac{q}{\alpha(1+q)}
+       \sqrt{\frac{\widetilde h_{A,i}}{d_i}}\,\sigma .
+ \label{eq:aesp-cd-proper-face-finite-rank-one-radius}
+\end{equation}
+Consequently every retained nonnegative coupling row \(k_v\) and response
+amount \(t\geq0\) has the fully finite interval
+\begin{equation*}
+ \widetilde B_v:=
+ \frac{c_h-1}{\alpha}
+ \bigl(|\widetilde f|+c_hM_1\bigr)
+ k_v^{\mathsf T}\widetilde h_A
+ +c_h\frac{q}{\alpha(1+q)}\sigma
+ \left(\sum_i\frac{k_{v,i}^2\widetilde h_{A,i}}{d_i}\right)^{1/2}.
+\end{equation*}
+Namely,
+\begin{equation}
+ g_v+t\frac{\widetilde f}{\alpha}
+              k_v^{\mathsf T}\widetilde h_A
+       -t\widetilde B_v
+ \ \leq\ g_v(t)\ \leq\
+ g_v+t\frac{\widetilde f}{\alpha}
+              k_v^{\mathsf T}\widetilde h_A
+       +t\widetilde B_v .
+ \label{eq:aesp-cd-proper-face-finite-rank-one-row}
+\end{equation}
+Thus the conductance shortcut needs neither exact eigendata nor the exact
+ground vector.  Its remaining limitation is quantitative rather than
+logical: if these observable row radii overlap zero, the gray rows still
+require refinement or the general event locator.
+\end{corollary}
+
+\begin{proof}
+Write \(h_{A,i}=r_i\widetilde h_{A,i}\).  The finite ground sandwich gives
+\(1\leq r_i\leq c_h\).  If \(\widetilde p_i\) denotes the probability mass
+\(\widetilde D_{A,ii}/\widetilde{\mathsf v}_A\), then the exact ground-weighted
+mean \(\bar f\) satisfies
+\begin{equation*}
+ |\bar f-\widetilde f|
+ =\left|
+ \frac{\sum_i\widetilde p_i(r_i-1)(f_i-\widetilde f)}
+      {\sum_i\widetilde p_i r_i}
+ \right|
+ \leq(c_h-1)M_1.
+\end{equation*}
+Moreover, because a weighted mean minimizes squared error,
+\begin{equation*}
+ \norm{f-\bar f\one}_{\bar D_A}^2
+ \leq\sum_i d_ih_{A,i}(f_i-\widetilde f)^2
+ \leq c_h\sigma^2.
+\end{equation*}
+The scalar normalization in
+\cref{eq:aesp-cd-proper-face-rank-one-coordinate} cancels between the
+coordinate denominator and the norm, so its high-mode term equals
+\begin{equation*}
+ \sqrt{\frac{h_{A,i}}{d_i}}\,
+ \frac{q}{\alpha(1+q)}
+ \norm{f-\bar f\one}_{\bar D_A}.
+\end{equation*}
+The preceding inequalities bound this by the second term of
+\cref{eq:aesp-cd-proper-face-finite-rank-one-radius}.  Finally,
+\begin{align*}
+ |\bar f h_{A,i}-\widetilde f\widetilde h_{A,i}|
+ &\leq h_{A,i}|\bar f-\widetilde f|
+       +|\widetilde f|(h_{A,i}-\widetilde h_{A,i})\\
+ &\leq(c_h-1)\widetilde h_{A,i}
+       \bigl(c_hM_1+|\widetilde f|\bigr).
+\end{align*}
+Dividing by \(\alpha\) and adding the high-mode error proves
+\cref{eq:aesp-cd-proper-face-finite-rank-one-coordinate}.  Applying the
+same ground-term estimate after applying \(k_v\), and using weighted
+Cauchy--Schwarz for the high term as in the preceding corollary, proves
+\cref{eq:aesp-cd-proper-face-finite-rank-one-row}.
+\end{proof}
+
+\begin{corollary}[Unweighted exterior bands depend on one ground coupling]
+\label{cor:aesp-cd-proper-face-unweighted-row-band}
+Suppose, in addition, that the ambient graph is unweighted and simple, and
+put \(c=(1-\alpha)/2\).  For every exterior row \(v\), the exact row radius in
+\cref{cor:aesp-cd-proper-face-rank-one-inverse} obeys
+\begin{equation}
+ B_v\leq
+ \frac{q}{\alpha(1+q)}
+ \sqrt{c s_v}\,
+ \norm{f-\bar f\one}_{\bar D_A},
+ \qquad s_v=k_v^{\mathsf T}h_A.
+ \label{eq:aesp-cd-proper-face-unweighted-row-band}
+\end{equation}
+Thus the simultaneous exact response enclosure for a retained row depends
+on its two lazy reporter scalars \((g_v,s_v)\) only: the nominal update is
+affine in \(s_v\), while the entire high-mode uncertainty is at most a common
+constant times \(\sqrt{s_v}\).
+
+If the right-hand side is itself a pivot coupling
+\(b_A=k_w=-H_{Aw}\), then its centered transformed norm also collapses:
+\begin{equation}
+ \norm{f-\bar f\one}_{\bar D_A}^2\leq c s_w,
+ \qquad
+ |\delta_v|
+ \leq\frac{cq}{\alpha(1+q)}\sqrt{s_vs_w}.
+ \label{eq:aesp-cd-proper-face-pivot-product-band}
+\end{equation}
+Thus the whole exact sparse-pivot error matrix has an observable rank-one
+product envelope.  It needs only the pivot coupling \(s_w\) and each retained
+coupling \(s_v\), not a materialized right-hand side norm.
+
+The finite certificate has the same reduction.  With the notation of
+\cref{cor:aesp-cd-proper-face-finite-rank-one-inverse}, put
+\(\widetilde s_v=k_v^{\mathsf T}\widetilde h_A\).  Then one may replace its
+row radius by the completely observable upper bound
+\begin{equation}
+ \widetilde B_v\leq
+ \frac{c_h-1}{\alpha}
+ \bigl(|\widetilde f|+c_hM_1\bigr)\widetilde s_v
+ +c_h\frac{q}{\alpha(1+q)}\sigma\sqrt{c\widetilde s_v}.
+ \label{eq:aesp-cd-proper-face-finite-unweighted-row-band}
+\end{equation}
+For a pivot right-hand side \(b_A=k_w\), put
+\begin{equation*}
+ D_h:=
+ \frac{c_h-1}{\alpha}
+ \bigl(|\widetilde f|+c_hM_1\bigr).
+\end{equation*}
+Then the finite variance also satisfies
+\(\sigma^2\leq c\widetilde s_w\), so the whole observable radius reduces to
+\begin{equation}
+ \widetilde B_v
+ \leq
+ D_h\widetilde s_v+
+ c_h\frac{cq}{\alpha(1+q)}
+ \sqrt{\widetilde s_v\widetilde s_w}.
+ \label{eq:aesp-cd-proper-face-finite-pivot-product-band}
+\end{equation}
+Because a pivot has \(f\geq0\), its two remaining scalar moments satisfy
+\begin{equation*}
+ \widetilde f=\frac{\widetilde s_w}{\widetilde{\mathsf v}_A},
+ \qquad
+ M_1\leq2\widetilde f.
+\end{equation*}
+Consequently the fully state-observable form is
+\begin{equation}
+ \widetilde B_v
+ \leq
+ \frac{(c_h-1)(1+2c_h)}
+      {\alpha\widetilde{\mathsf v}_A}
+ \widetilde s_v\widetilde s_w
+ +c_h\frac{cq}{\alpha(1+q)}
+ \sqrt{\widetilde s_v\widetilde s_w}.
+ \label{eq:aesp-cd-proper-face-finite-pivot-state-band}
+\end{equation}
+Thus neither exact ground data, a row-specific dual norm, nor the full pivot
+RHS norm or moment scan is needed for the finite product envelope.
+For a fixed pivot, both coefficients multiplying
+\(\widetilde s_v\) and \(\sqrt{\widetilde s_v}\) are common across retained
+rows.  Hence
+\cref{cor:aesp-cd-proper-face-dyadic-gray-reporter} reduces its finite
+snapshot sign tests to planar affine maxima.
+Consequently the finite proper-face shortcut no longer needs to retain a
+row-specific high-dimensional dual norm.  This does not remove gray rows:
+the remaining square-root band is nonlinear and can dominate a small key.
+It isolates that scalar gray-band problem as the only loss in this
+unweighted high-gap response interface.
+\end{corollary}
+
+\begin{proof}
+For an unweighted graph, \(k_{v,i}\in\{0,c\}\).  Hence
+\begin{equation*}
+ \sum_{i\in A}\frac{k_{v,i}^2h_{A,i}}{d_i}
+ =c^2\sum_{i\in A:\,i\sim v}\frac{h_{A,i}}{d_i}
+ \leq c^2\sum_{i\in A:\,i\sim v}h_{A,i}
+ =c s_v,
+\end{equation*}
+where \(d_i\geq1\).  Substitution in the exact row radius proves
+\cref{eq:aesp-cd-proper-face-unweighted-row-band}.  The identical argument
+with \(\widetilde h_A\) proves
+\(\sum_i k_{v,i}^2\widetilde h_{A,i}/d_i\leq c\widetilde s_v\), and
+substitution in the finite radius proves
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band}.
+For a pivot right-hand side, \(f_i=k_{w,i}/d_i\).  Since the weighted mean
+minimizes squared error,
+\begin{equation*}
+ \norm{f-\bar f\one}_{\bar D_A}^2
+ \leq\norm{f}_{\bar D_A}^2
+ =\sum_i\frac{k_{w,i}^2h_{A,i}}{d_i}
+ \leq c s_w.
+\end{equation*}
+Combining this with
+\cref{eq:aesp-cd-proper-face-unweighted-row-band} proves
+\cref{eq:aesp-cd-proper-face-pivot-product-band}.
+The same calculation with \(\widetilde h_A\) gives
+\begin{equation*}
+ \sigma^2
+ \leq\sum_i d_i\widetilde h_{A,i}f_i^2
+ =\sum_i\frac{k_{w,i}^2\widetilde h_{A,i}}{d_i}
+ \leq c\widetilde s_w.
+\end{equation*}
+Substitution in
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band} proves
+\cref{eq:aesp-cd-proper-face-finite-pivot-product-band}.
+Finally,
+\begin{equation*}
+ \widetilde f
+ =\frac{\sum_i d_i\widetilde h_{A,i}(k_{w,i}/d_i)}
+        {\widetilde{\mathsf v}_A}
+ =\frac{\widetilde s_w}{\widetilde{\mathsf v}_A},
+\end{equation*}
+and, since \(f_i,\widetilde f\geq0\),
+\begin{equation*}
+ M_1
+ \leq\sum_i\widetilde p_i(f_i+\widetilde f)
+ =2\widetilde f.
+\end{equation*}
+Substitution in \(D_h\) proves
+\cref{eq:aesp-cd-proper-face-finite-pivot-state-band}.
+\end{proof}
+
+\begin{corollary}[Ground coupling packs all large gray rows]
+\label{cor:aesp-cd-proper-face-gray-coupling-packing}
+Let \(E\subseteq\partial A\) be any retained exterior rows of an unweighted
+simple graph and let \(c=(1-\alpha)/2\).  Their ground couplings satisfy
+\begin{equation}
+ \sum_{v\in E}s_v
+ \leq c\sum_{i\in A}d_ih_{A,i}
+ \leq c\,\vol(A).
+ \label{eq:aesp-cd-proper-face-ground-coupling-budget}
+\end{equation}
+Consequently, for common \(D,C,\eta>0\),
+\begin{equation}
+ \#\{v\in E:D s_v+C\sqrt{s_v}>\eta\}
+ \leq
+ c\,\vol(A)
+ \left(\frac{2D}{\eta}+\frac{4C^2}{\eta^2}\right),
+ \label{eq:aesp-cd-proper-face-large-gray-count}
+\end{equation}
+with the corresponding term omitted when \(D=0\) or \(C=0\).
+
+For an actual pivot \(w\), the product envelope
+\cref{eq:aesp-cd-proper-face-pivot-product-band} further gives
+\begin{equation}
+ \sum_{v\in E}\delta_v^2
+ \leq
+ \frac{c^3q^2}{\alpha^2(1+q)^2}\,
+ s_w\vol(A),
+ \qquad
+ \#\{v\in E:|\delta_v|>\eta\}
+ \leq
+ \frac{c^3q^2s_w\vol(A)}
+      {\alpha^2(1+q)^2\eta^2}.
+ \label{eq:aesp-cd-proper-face-pivot-gray-square-budget}
+\end{equation}
+
+Thus, under an absolute KKT hysteresis \(\eta\), every row except the
+displayed output-sensitive fallback set has response uncertainty at most
+\(\eta\).  In the exact unweighted certificate
+\cref{eq:aesp-cd-proper-face-unweighted-row-band}, \(D=0\), so only
+\(O(\vol(A)C^2/\eta^2)\) rows can have a larger high-mode band.  This is a
+packing bound, not a universal target-scale theorem: without a quantitative
+KKT margin, arbitrarily many small-band rows may still overlap zero.
+\end{corollary}
+
+\begin{proof}
+Because \(s_v=c\sum_{i\in A:\,i\sim v}h_{A,i}\),
+changing the order of summation gives
+\begin{equation*}
+ \sum_{v\in E}s_v
+ \leq c\sum_{i\in A}h_{A,i}\deg_{\partial A}(i)
+ \leq c\sum_{i\in A}d_ih_{A,i}.
+\end{equation*}
+The full-graph ground is \(\one\).  On the principal face,
+\(H_A\one\geq\alpha d_A=H_Ah_A\); inverse positivity therefore gives
+\(0<h_A\leq\one\), proving the second inequality in
+\cref{eq:aesp-cd-proper-face-ground-coupling-budget}.
+
+If \(Ds_v+C\sqrt{s_v}>\eta\), then either
+\(s_v>\eta/(2D)\) or \(s_v>\eta^2/(4C^2)\).
+Markov's inequality applied to
+\cref{eq:aesp-cd-proper-face-ground-coupling-budget} and a union bound prove
+\cref{eq:aesp-cd-proper-face-large-gray-count}.  Squaring
+\cref{eq:aesp-cd-proper-face-pivot-product-band}, summing over \(v\), and
+using the same coupling budget proves the first part of
+\cref{eq:aesp-cd-proper-face-pivot-gray-square-budget}; Markov's inequality
+proves the second.
+\end{proof}
+
+\begin{corollary}[All admitted pivot couplings have one output-local budget]
+\label{cor:aesp-cd-proper-face-pivot-coupling-budget}
+Consider any nested unweighted face trace ending at \(S\), and let
+\(s_{w_j}^{(A_j)}\) be the ground coupling of the vertex admitted from face
+\(A_j\).  Then
+\begin{equation}
+ \sum_j s_{w_j}^{(A_j)}
+ \leq c\,|E(S)|
+ \leq\frac c2\vol(S).
+ \label{eq:aesp-cd-proper-face-total-pivot-coupling}
+\end{equation}
+In particular, the squared common coefficients in the exact product bands
+\cref{eq:aesp-cd-proper-face-pivot-product-band} obey
+\begin{equation}
+ \sum_j
+ \left(\frac{cq}{\alpha(1+q)}
+       \sqrt{s_{w_j}^{(A_j)}}\right)^2
+ \leq
+ \frac{c^3q^2}{2\alpha^2(1+q)^2}\vol(S).
+ \label{eq:aesp-cd-proper-face-total-pivot-band-coefficient}
+\end{equation}
+This pays the sequence of pivot-side gray coefficients by final output
+volume.  It does not alone pay accumulated row-side uncertainty, because a
+retained row's \(s_v\) can grow across admissions and the response amounts
+also enter the replay.
+\end{corollary}
+
+\begin{proof}
+At the admission of \(w_j\),
+\begin{equation*}
+ s_{w_j}^{(A_j)}
+ =c\sum_{i\in A_j:\,i\sim w_j}h_{A_j,i}
+ \leq c\,\#\{i\in A_j:i\sim w_j\},
+\end{equation*}
+using \(h_{A_j}\leq\one\) as in the preceding proof.  Every edge of the final
+induced support is counted at most once, when its later endpoint is admitted.
+Summation proves the first inequality, and
+\(2|E(S)|\leq\vol(S)\) proves the second.  Multiplying by the squared common
+factor proves
+\cref{eq:aesp-cd-proper-face-total-pivot-band-coefficient}.
+\end{proof}
+
+\begin{corollary}[Point-source mass caps cumulative high-mode key error]
+\label{cor:aesp-cd-point-source-cumulative-gray-key}
+Consider a nested exact fixed-target point-source RPPR trace in
+degree-unscaled coordinates.  Suppose every face in a subsequence has the
+same certified parameter \(q\) in
+\cref{cor:aesp-cd-proper-face-rank-one-inverse}.  Let \(x_{w_j}>0\) be the
+new degree-unscaled obstacle coordinate at admission \(w_j\), abbreviate it
+as \(\xi_j:=x_{w_j}\), and let \(v\) remain exterior throughout this
+subsequence.  Then its accumulated high-mode contribution to the obstacle-key
+recurrence obeys
+\begin{equation}
+ \sum_j \xi_j|\delta_{v,j}|
+ \leq
+ \frac{c^2q}{\alpha(1+q)}\sqrt{d_v},
+ \qquad c=\frac{1-\alpha}{2}.
+ \label{eq:aesp-cd-point-source-cumulative-gray-key}
+\end{equation}
+Equivalently, after degree normalization the cumulative radius is at most
+\begin{equation*}
+ \frac{c^2q}{\alpha(1+q)\sqrt{d_v}}.
+\end{equation*}
+Direct incidences \(k_{v,w_j}\xi_j\) are exact and are not part of this
+radius.
+
+More precisely, the observable pivot-mass clock
+\begin{equation}
+ \mathfrak p_0:=0,\qquad
+ \mathfrak p_J:=\sum_{1\leq j\leq J}\xi_j\sqrt{s_{w_j}}
+ \leq\sqrt c
+ \label{eq:aesp-cd-point-source-pivot-mass-clock}
+\end{equation}
+is monotone.  For any interval \(r\leq j\leq J\), if
+\(\overline s_v:=\max_{r\leq j\leq J}s_v^{(A_j)}\), then
+\begin{equation}
+ \sum_{j=r}^J\xi_j|\delta_{v,j}|
+ \leq
+ \frac{cq}{\alpha(1+q)}
+ \sqrt{\overline s_v}\,
+ (\mathfrak p_J-\mathfrak p_{r-1}).
+ \label{eq:aesp-cd-point-source-clocked-gray-key}
+\end{equation}
+Thus an exact row refinement can reset its gray interval at the current
+global clock value; future uncertainty depends only on the subsequent clock
+increment.  Scheduling such resets at the target work remains an event
+problem, but no per-row admission counter is needed.
+
+Thus the exact high-gap gray interval does not grow linearly with the number
+of admissions.  This is genuinely point-source: it uses the unit PageRank
+mass.  It still does not close the target theorem for arbitrary low-degree
+rows, because for \(q=\Theta(\sqrt\alpha)\) the displayed normalized bound
+can be \(\Theta(1/\sqrt\alpha)\).
+\end{corollary}
+
+\begin{proof}
+At the moment of admission, monotonicity of nested Stieltjes obstacle solves
+gives
+\begin{equation*}
+ 0<\xi_j\leq y^\star_{w_j},
+\end{equation*}
+where \(y^\star\) is the terminal degree-unscaled RPPR solution.  The
+point-source unregularized PageRank vector has unit mass, and
+\(0\leq y^\star\leq y^0\); hence
+\begin{equation*}
+ \sum_jd_{w_j}\xi_j\leq1,
+ \qquad
+ \sum_j\xi_j\leq1.
+\end{equation*}
+Indeed,
+\(\one^{\mathsf T}\widehat H=\alpha d^{\mathsf T}\) and
+\(\widehat Hy^0=\alpha e_o\), so \(d^{\mathsf T}y^0=1\).
+Also \(s_{w_j}\leq cd_{w_j}\) and, while \(v\) remains exterior,
+\(s_v^{(A_j)}\leq cd_v\).  Therefore
+\begin{align*}
+ \sum_j\xi_j\sqrt{s_{w_j}}
+ &\leq\sqrt c\sum_j\xi_j\sqrt{d_{w_j}}\\
+ &\leq\sqrt c
+ \left(\sum_jd_{w_j}\xi_j\right)^{1/2}
+ \left(\sum_j\xi_j\right)^{1/2}
+ \leq\sqrt c.
+\end{align*}
+This is
+\cref{eq:aesp-cd-point-source-pivot-mass-clock}.  Applying the product
+envelope only on \(r,\ldots,J\) and taking
+\(\sqrt{s_v^{(A_j)}}\leq\sqrt{\overline s_v}\) proves
+\cref{eq:aesp-cd-point-source-clocked-gray-key}.
+Multiplying the product envelope
+\cref{eq:aesp-cd-proper-face-pivot-product-band} by \(\xi_j\), summing,
+and using \(\sqrt{s_v^{(A_j)}}\leq\sqrt{cd_v}\) proves
+\cref{eq:aesp-cd-point-source-cumulative-gray-key}.
+\end{proof}
+
+\begin{corollary}[The pivot-mass clock gives a finite refresh reporter]
+\label{cor:aesp-cd-point-source-clocked-gray-refresh}
+Retain the hypotheses of
+\cref{cor:aesp-cd-point-source-cumulative-gray-key}.  Suppose an exact row
+refresh at \(v\) can evaluate its current key and ground coupling in
+\(\widetilde O(a_v)\) work, where the charged active-incidence sizes satisfy
+\begin{equation*}
+ F:=\sum_v a_v,
+ \qquad
+ F_{1/2}:=\sum_v\frac{a_v}{\sqrt{d_v}}\leq F.
+\end{equation*}
+For an absolute degree-normalized interval target \(\eta>0\), reset row
+\(v\)'s certificate whenever the global clock has advanced by
+\begin{equation*}
+ \Delta_v:=
+ \frac{\eta\sqrt{d_v}}
+      {K\sqrt c},
+ \qquad
+ K:=\frac{cq}{\alpha(1+q)}
+\end{equation*}
+since its last refresh.  A priority queue keyed by the next clock threshold
+names every due row.  Throughout the trace, its accumulated high-mode key
+radius is then at most \(\eta d_v\).  If \(\mathfrak p_\star\) is the final
+value of the observable clock, the total refresh work is
+\begin{equation}
+ \widetilde O\!\left[
+ F+
+ \frac{c^{3/2}q\,\mathfrak p_\star}
+      {\alpha(1+q)\eta}F_{1/2}
+ \right]
+ \subseteq
+ \widetilde O\!\left[
+ F+
+ \frac{c^2q}{\alpha(1+q)\eta}F_{1/2}
+ \right]
+ \subseteq
+ \widetilde O\!\left[
+ F\left(1+\frac{c^2q}{\alpha(1+q)\eta}\right)
+ \right].
+ \label{eq:aesp-cd-point-source-clocked-gray-refresh-work}
+\end{equation}
+Thus the high-gap branch already has a finite reporter whose work is
+independent of the admission count.  It is not the desired universal rate:
+with the finite KKT choice \(\eta=\Theta(\alpha\varepsilon_{\rm ppr})\) and
+\(q=\Theta(\sqrt\alpha)\), the second factor is
+\(\Theta(\alpha^{-3/2}\varepsilon_{\rm ppr}^{-1})\), one factor
+\(1/\alpha\) worse than the target.  The conclusion is conditional on the
+charged row-refresh primitive and is an upper bound for this clock scheme,
+not a lower bound against a stronger transformed reporter.
+\end{corollary}
+
+\begin{proof}
+By
+\cref{eq:aesp-cd-point-source-clocked-gray-key} and
+\(\overline s_v\leq cd_v\), a clock increment below \(\Delta_v\) contributes
+at most
+\begin{equation*}
+ K\sqrt{cd_v}\,\Delta_v=\eta d_v.
+\end{equation*}
+Since the whole clock has length \(\mathfrak p_\star\leq\sqrt c\), row \(v\)
+is refreshed
+at most
+\begin{equation*}
+ 1+\frac{\mathfrak p_\star}{\Delta_v}
+ =1+\frac{K\sqrt c\,\mathfrak p_\star}{\eta\sqrt{d_v}}
+\end{equation*}
+times.  Therefore the charged work is at most
+\begin{equation*}
+ \widetilde O\!\left(
+ \sum_va_v+
+ \frac{K\sqrt c\,\mathfrak p_\star}{\eta}
+ \sum_v\frac{a_v}{\sqrt{d_v}}
+ \right)
+ =
+ \widetilde O\!\left(
+ F+\frac{K\sqrt c\,\mathfrak p_\star}{\eta}F_{1/2}
+ \right)
+ \leq
+ \widetilde O\!\left(F\left(1+\frac{Kc}{\eta}\right)\right),
+\end{equation*}
+because \(d_v\geq1\).  Substituting \(K\) proves
+\cref{eq:aesp-cd-point-source-clocked-gray-refresh-work}.
+\end{proof}
+
+\begin{corollary}[High-degree gray rows or pivots attain the target rate]
+\label{cor:aesp-cd-point-source-high-degree-gray-refresh}
+In the setting of
+\cref{cor:aesp-cd-point-source-clocked-gray-refresh}, suppose
+\begin{equation*}
+ \sqrt c\,\mathfrak p_\star F_{1/2}\leq C_m\alpha F,
+ \qquad
+ q\leq C_q\sqrt\alpha,
+ \qquad
+ \eta\geq c_\eta\alpha\varepsilon_{\rm ppr},
+\end{equation*}
+for absolute positive constants \(C_m,C_q,c_\eta\).  Then the refresh work is
+\begin{equation}
+ \widetilde O\!\left[
+ F\left(1+\frac{1}{\sqrt\alpha\,\varepsilon_{\rm ppr}}\right)
+ \right].
+ \label{eq:aesp-cd-point-source-high-degree-gray-refresh}
+\end{equation}
+Either of the following is sufficient:
+\begin{enumerate}[label=(\alph*)]
+ \item \(d_v\geq\alpha^{-2}\) for every refreshed row with \(a_v>0\);
+ \item \(d_{w_j}\geq\alpha^{-2}\) for every admitted pivot in the trace.
+\end{enumerate}
+The mixed condition itself is observable from the running clock and row
+degree metadata, so it is an a-posteriori branch certificate rather than an
+oracle promise about the terminal solution.
+Thus the clocked reporter reaches the target scale if either side of the
+row--pivot interaction is uniformly high-degree.  The unresolved universal
+branch is the interaction of low-degree gray rows with low-degree pivots
+(together with the charged exact-refresh primitive), rather than all
+proper-face row geometry.
+\end{corollary}
+
+\begin{proof}
+Insert the assumed mixed clock--degree bound into
+\cref{eq:aesp-cd-point-source-clocked-gray-refresh-work}.  The second term is
+at most
+\begin{equation*}
+ \frac{C_mcq}{(1+q)\eta}F
+ =O\!\left(\frac{F}{\sqrt\alpha\,\varepsilon_{\rm ppr}}\right).
+\end{equation*}
+Under (a), \(F_{1/2}\leq\alpha F\), while
+\(\mathfrak p_\star\leq\sqrt c\).  Under (b), the mass proof of
+\cref{eq:aesp-cd-point-source-pivot-mass-clock} gives
+\begin{equation*}
+ \sum_j\xi_j
+ \leq\alpha^2\sum_jd_{w_j}\xi_j
+ \leq\alpha^2,
+ \qquad
+ \mathfrak p_\star\leq\alpha\sqrt c.
+\end{equation*}
+Together with \(F_{1/2}\leq F\), either case implies the mixed condition
+with an absolute constant.
+\end{proof}
+
+\begin{proposition}[The global low-degree clock need not shrink to \(O(\alpha)\)]
+\label{prop:aesp-cd-point-source-low-degree-clock-stop}
+The mixed certificate in
+\cref{cor:aesp-cd-point-source-high-degree-gray-refresh} is not automatic
+from point-source mass alone.  On the unweighted edge \(K_2\), put
+\begin{equation*}
+ a:=\frac{1+\alpha}{2},
+ \qquad
+ c:=\frac{1-\alpha}{2},
+ \qquad
+ \rho:=\frac c2.
+\end{equation*}
+The root-only face has one strict degree-one admission, and its complete
+global clock satisfies
+\begin{equation}
+ \mathfrak p_\star^2
+ =\frac{c^3\alpha}{4a}
+ =\Theta(\alpha).
+ \label{eq:aesp-cd-point-source-low-degree-clock-stop}
+\end{equation}
+Consequently \(\mathfrak p_\star/\alpha=\Theta(\alpha^{-1/2})\), so unit
+mass cannot replace the global estimate \(\mathfrak p_\star\leq\sqrt c\) by
+a universal \(O(\alpha)\) estimate.  The admission here is terminal: no row
+remains exterior after the large pulse.  Thus this is not a lower bound for
+the row-refresh problem.  It leaves open the sharper possibility that every
+row's clock only until its own admission (or permanent rejection) obeys a
+smaller lifetime bound.
+\end{proposition}
+
+\begin{proof}
+On the root-only face, \(h_0=\alpha/a\).  The exterior ground coupling is
+\(s_1=c\alpha/a\), while the exterior obstacle key and Schur pivot are
+\begin{equation*}
+ g_1=\alpha\left(\frac{c(1-\rho)}a-\rho\right)>0,
+ \qquad
+ \sigma_1=a-\frac{c^2}a=\frac\alpha a.
+\end{equation*}
+Hence the new coordinate is
+\(\xi_1=g_1/\sigma_1=c-\rho=c/2\), and
+\(\mathfrak p_\star=\xi_1\sqrt{s_1}\), proving the identity.
+\end{proof}
+
+\begin{corollary}[Dyadic square-root bands reduce to planar extreme queries]
+\label{cor:aesp-cd-proper-face-dyadic-gray-reporter}
+At one fixed reporter snapshot, suppose every retained row has
+\(s_v>0\) and the certified interval
+\begin{equation}
+ g_v+(a-d)s_v-C\sqrt{s_v}
+ \ \leq\ G_v\ \leq\
+ g_v+(a+d)s_v+C\sqrt{s_v},
+ \qquad d,C\geq0,
+ \label{eq:aesp-cd-proper-face-affine-root-band}
+\end{equation}
+where \(a,d,C\) are common over the queried rows.  Partition the rows into
+dyadic bins \(L_j\leq s_v<2L_j\), put
+\begin{equation*}
+ s_j^\circ:=\sqrt2\,L_j,
+ \qquad
+ \lambda_j:=\frac{C}{2\sqrt{s_j^\circ}},
+ \qquad
+ \psi_j(s):=\lambda_js+\frac{C^2}{4\lambda_j},
+\end{equation*}
+and, when \(C=0\), interpret
+\(\lambda_j=C^2/(4\lambda_j)=\psi_j=0\).  Then
+\begin{equation}
+ C\sqrt{s}\leq\psi_j(s)
+ \leq\kappa_2 C\sqrt{s}
+ \quad(L_j\leq s<2L_j),
+ \qquad
+ \kappa_2:=\frac{2^{1/4}+2^{-1/4}}2<1.02.
+ \label{eq:aesp-cd-proper-face-dyadic-root-majorant}
+\end{equation}
+Consequently, within bin \(j\), the two affine scores
+\begin{align*}
+ L_{v,j}
+ &:=g_v+(a-d-\lambda_j)s_v-\frac{C^2}{4\lambda_j},\\
+ U_{v,j}
+ &:=g_v+(a+d+\lambda_j)s_v+\frac{C^2}{4\lambda_j}
+\end{align*}
+satisfy \(L_{v,j}\leq G_v\leq U_{v,j}\).  A planar extreme-point query on
+the points \((s_v,g_v)\) therefore either emits a rigorously positive row
+when \(\max_vL_{v,j}>0\), or certifies the whole bin nonpositive when
+\(\max_vU_{v,j}\leq0\).  With
+\(s_{\min}\leq s_v\leq s_{\max}\), a snapshot needs only
+\begin{equation*}
+ O\!\left(1+\log\frac{s_{\max}}{s_{\min}}\right)
+\end{equation*}
+such bin queries.
+
+Applied to
+\cref{eq:aesp-cd-proper-face-finite-unweighted-row-band}, the linear ground
+uncertainty is absorbed into \(d\) and the high-mode uncertainty supplies
+\(C\).  Thus the scalar gray band itself has a finite-dimensional batched
+reporter.  This is not yet an online trace theorem: a common face transform
+can move many \(s_v\)'s across bin boundaries without exposing those
+crossings.  Charging or lazily representing those rebin events is precisely
+the remaining dynamic interface.
+\end{corollary}
+
+\begin{proof}
+Young's exact identity
+\begin{equation*}
+ C\sqrt{s}
+ =\min_{\lambda>0}
+   \left(\lambda s+\frac{C^2}{4\lambda}\right)
+\end{equation*}
+gives the first inequality.  If
+\(r=\sqrt{s/s_j^\circ}\), then
+\(\psi_j(s)/(C\sqrt{s})=(r+r^{-1})/2\).
+On a dyadic bin,
+\(2^{-1/4}\leq r<2^{1/4}\), which gives the second inequality.
+Substitution into
+\cref{eq:aesp-cd-proper-face-affine-root-band} proves the affine enclosure.
+Each score is a linear functional of \((s_v,g_v)\) plus a common constant,
+so one planar extreme query returns its maximum.
+\end{proof}
+
+\begin{proposition}[Rank-one face responses reduce persistent reporting to two dimensions]
+\label{prop:aesp-cd-proper-face-lazy-rank-one-reporter}
+At a nested-face admission \(B=A\cup\{w\}\), write the old-face response as
+\begin{equation*}
+ u_A^{(w)}=\gamma_wh_A+e_A^{(w)}.
+\end{equation*}
+Let \(x_w>0\) be the admitted obstacle coordinate and let \(t_w>0\) be the
+ground-update scalar from
+\cref{eq:aesp-cd-proper-face-ground-admission-exact}.  For every persistent
+exterior row \(v\notin B\), put
+\begin{equation*}
+ k_{v,A}:=-H_{vA}\geq0,
+ \qquad
+ s_v:=k_{v,A}^{\mathsf T}h_A,
+ \qquad
+ g_v:=\ell_v-H_{vA}x_A.
+\end{equation*}
+Then its new ground coupling and obstacle key satisfy the exact two-state
+recurrence
+\begin{equation}
+ \begin{pmatrix}s_v^+\\g_v^+\end{pmatrix}
+ =
+ \begin{pmatrix}
+  1+t_w\gamma_w&0\\
+  x_w\gamma_w&1
+ \end{pmatrix}
+ \begin{pmatrix}s_v\\g_v\end{pmatrix}
+ +
+ \begin{pmatrix}
+  t_w\delta_v+k_{v,w}t_w\\
+  x_w\delta_v+k_{v,w}x_w
+ \end{pmatrix},
+ \qquad
+ \delta_v:=k_{v,A}^{\mathsf T}e_A^{(w)}.
+ \label{eq:aesp-cd-proper-face-rank-one-two-state}
+\end{equation}
+The direct term \(k_{v,w}\) is nonzero only on rows found by scanning the
+newly admitted adjacency list.
+
+Consequently, in the exact rank-one case \(e_A^{(w)}=0\), every persistent
+nonneighbor row receives one common invertible triangular transformation.
+Maintain the cumulative product \(P_t\) of these \(2\times2\) matrices and
+store each row as the normalized planar point
+\begin{equation*}
+ z_v:=P_t^{-1}(s_v,g_v)^{\mathsf T}
+\end{equation*}
+at insertion or local rewrite.  Its current key is
+\begin{equation*}
+ g_v=e_2^{\mathsf T}P_tz_v
+     =z_v^{\mathsf T}P_t^{\mathsf T}e_2.
+\end{equation*}
+A dynamic planar extreme-point structure therefore reports a strict positive
+key, or certifies that none remains, in logarithmic time; insertions,
+deletions, and the locally rewritten neighbors have the same cost.  If \(F\)
+is the total number of newly scanned direct incidences, the literal exact
+rank-one reporter uses
+\begin{equation*}
+ O\bigl((M+J+F)\log(2+M+J+F)\bigr)
+\end{equation*}
+exact-real operations for \(M\) exposed rows and \(J\) admissions.
+
+Under the conductance-certified decomposition,
+\cref{eq:aesp-cd-proper-face-rank-one-row-band} bounds
+\(|\delta_v|\leq B_v\), and its finite version bounds it by
+\(\widetilde B_v\).  Propagating these row intervals through the same
+nonnegative triangular matrices gives a certified inexact reporter whenever
+all accumulated intervals fit the finite KKT hysteresis.  Rows whose
+intervals overlap zero are the only fallback set.  Thus the remaining
+high-gap obstruction is quantitatively localized to gray-band accumulation;
+the common rank-one motion itself no longer requires a dense response update.
+\end{proposition}
+
+\begin{proof}
+The old obstacle coordinates change by \(x_wu_A^{(w)}\), while
+\cref{eq:aesp-cd-proper-face-ground-admission-exact} changes the old ground
+coordinates by \(t_wu_A^{(w)}\) and adds the new coordinate \(t_w\).
+Therefore
+\begin{align*}
+ s_v^+
+ &=k_{v,A}^{\mathsf T}(h_A+t_wu_A^{(w)})+k_{v,w}t_w,\\
+ g_v^+
+ &=g_v+x_wk_{v,A}^{\mathsf T}u_A^{(w)}+k_{v,w}x_w.
+\end{align*}
+Substituting \(u_A^{(w)}=\gamma_wh_A+e_A^{(w)}\) proves
+\cref{eq:aesp-cd-proper-face-rank-one-two-state}.  When
+\(\delta_v=k_{v,w}=0\), this is the same triangular matrix for every retained
+row.  Conjugating stored points by the cumulative inverse proves the planar
+extreme-query reduction.  The error statement follows by replacing
+\(\delta_v\) with its certified symmetric interval and applying interval
+arithmetic; every matrix entry is nonnegative.
+\end{proof}
+
+\begin{proposition}[A four-scalar monotone replay contains every gray update]
+\label{prop:aesp-cd-proper-face-four-scalar-gray-replay}
+Consider one admission in the notation of
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter}, and suppose that a
+common certificate
+\begin{equation}
+ |\delta_v|\leq D s_v+C\sqrt{s_v},
+ \qquad D,C\geq0,
+ \label{eq:aesp-cd-proper-face-common-root-delta}
+\end{equation}
+holds for every retained row.  The exact unweighted ground certificate
+\cref{eq:aesp-cd-proper-face-unweighted-row-band} is the case \(D=0\).
+The statement also applies to any separately certified finite enclosure of
+the displayed affine-plus-root form.
+
+Suppose before the update that row \(v\) is enclosed by four scalars
+\begin{equation*}
+ \underline s_v\leq s_v\leq\overline s_v,
+ \qquad
+ \underline g_v\leq g_v\leq\overline g_v.
+\end{equation*}
+Put
+\begin{equation*}
+ a:=1+t_w\gamma_w,\qquad b:=x_w\gamma_w,\qquad
+ R_v:=D\overline s_v+C\sqrt{\overline s_v},\qquad k:=k_{v,w}.
+\end{equation*}
+Then the four-scalar update
+\begin{align}
+ \underline s_v^+
+ &:=kt_w+
+   \max\{\underline s_v,\ a\underline s_v-t_wR_v\},&
+ \overline s_v^+
+ &:=kt_w+a\overline s_v+t_wR_v,\nonumber\\
+ \underline g_v^+
+ &:=kx_w+
+   \max\{\underline g_v,\
+          \underline g_v+b\underline s_v-x_wR_v\},&
+ \overline g_v^+
+ &:=kx_w+\overline g_v+b\overline s_v+x_wR_v
+ \label{eq:aesp-cd-proper-face-four-scalar-gray-replay}
+\end{align}
+rigorously contains the exact new state.  It uses no row-specific response
+coordinate.  A newly scanned direct incidence supplies \(k\) locally; every
+nonneighbor has \(k=0\) and receives the same functional form.
+
+Thus nonzero gray bands admit a finite, monotone, row-local state interface.
+The remaining complexity question is bulk application: the square root and
+maximum make
+\cref{eq:aesp-cd-proper-face-four-scalar-gray-replay} nonlinear, so the
+single cumulative \(2\times2\) transform from the zero-band branch no longer
+applies.  The dyadic affine majorants above make it piecewise planar, but
+online bin-crossing notifications or an equivalent transformed-meld
+structure are still required.
+\end{proposition}
+
+\begin{proof}
+The interval for \(s_v\) and
+\cref{eq:aesp-cd-proper-face-common-root-delta} imply
+\(|\delta_v|\leq R_v\).  Applying this to the exact recurrence
+\cref{eq:aesp-cd-proper-face-rank-one-two-state} gives the algebraic lower
+and upper endpoints in
+\cref{eq:aesp-cd-proper-face-four-scalar-gray-replay}.
+There are two additional lower bounds.  Since
+\(H_A^{-1}(-H_{Aw})\geq0\), the ground update is coordinatewise
+nonnegative, so \(s_v^+\geq s_v+kt_w\).  The fixed-target obstacle update is
+also coordinatewise nonnegative, so \(g_v^+\geq g_v+kx_w\).  Taking the
+maximum with these two monotone bounds proves the displayed lower endpoints.
+\end{proof}
+
+\begin{corollary}[Exact rank-one traces have output-linear point-source discovery]
+\label{cor:aesp-cd-exact-rank-one-trace-discovery}
+Consider the fixed-target point-source pivoting trace of
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}, and suppose that at every
+admission
+\begin{equation}
+ H_A^{-1}(-H_{Aw})=\gamma_wh_A
+ \label{eq:aesp-cd-exact-rank-one-trace-hypothesis}
+\end{equation}
+holds.  Then the exact RPPR support, restricted solution, and terminal KKT
+certificate can be found in
+\begin{equation}
+ \widetilde O(\vol(S^\star))
+ \label{eq:aesp-cd-exact-rank-one-trace-work}
+\end{equation}
+exact-real work and \(O(\vol(S^\star))\) memory.
+
+Indeed, retain the row pair \((s_v,g_v)\) from
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter} and the scalar ground
+mass
+\begin{equation*}
+ \mathsf v_A:=\sum_{i\in A}d_ih_{A,i}.
+\end{equation*}
+For the selected positive row \(w\),
+\begin{equation}
+ \gamma_w=\frac{s_w}{\alpha\mathsf v_A},
+ \qquad
+ K^A_{ww}=H_{ww}-\gamma_ws_w,
+ \qquad
+ x_w=\frac{g_w}{K^A_{ww}},
+ \qquad
+ t_w=\frac{\alpha d_w+s_w}{K^A_{ww}}.
+ \label{eq:aesp-cd-exact-rank-one-trace-scalars}
+\end{equation}
+The common triangular update
+\cref{eq:aesp-cd-proper-face-rank-one-two-state} advances every nonneighbor
+row lazily, the newly scanned neighbors are rewritten explicitly, and
+\begin{equation*}
+ \mathsf v_{A\cup\{w\}}
+ =(1+t_w\gamma_w)\mathsf v_A+d_wt_w.
+\end{equation*}
+The same common matrix applied to each active pair \((h_i,x_i)\), with the
+new pair \((t_w,x_w)\) inserted in current coordinates, permits one terminal
+materialization.
+
+Combining \cref{eq:aesp-cd-exact-rank-one-trace-work} with
+\cref{cor:aesp-cd-final-face-chebyshev} gives
+\begin{equation*}
+ \widetilde O\left(\frac{\vol(S^\star)}{\sqrt\alpha}\right)
+ \leq\widetilde O\left(\frac1{\rho\sqrt\alpha}\right)
+\end{equation*}
+end-to-end point-source RPPR work.  Under the standard
+\(\rho=\varepsilon_{\rm ppr}/2\) reduction, this is the desired
+\(\widetilde O(1/(\sqrt\alpha\varepsilon_{\rm ppr}))\) PPR scale.  The complete
+graph prefixes of
+\cref{cor:aesp-cd-complete-prefix-rank-one-reporter} satisfy the hypothesis.
+\end{corollary}
+
+\begin{proof}
+For a pivot right-hand side, the transformed load in
+\cref{cor:aesp-cd-proper-face-rank-one-inverse} is
+\(f_i=k_{w,i}/d_i\).  Hence
+\begin{equation*}
+ \bar f
+ =\frac{\sum_i d_ih_{A,i}(k_{w,i}/d_i)}
+        {\mathsf v_A}
+ =\frac{s_w}{\mathsf v_A}.
+\end{equation*}
+Under the exact rank-one hypothesis,
+\(\gamma_w=\bar f/\alpha\), proving the first identity in
+\cref{eq:aesp-cd-exact-rank-one-trace-scalars}.  Block elimination gives
+\begin{equation*}
+ K^A_{ww}
+ =H_{ww}+H_{wA}H_A^{-1}(-H_{Aw})
+ =H_{ww}-\gamma_ws_w.
+\end{equation*}
+The fixed-target Schur step gives \(x_w=g_w/K^A_{ww}\), while
+\cref{eq:aesp-cd-proper-face-ground-admission-exact} gives the formula for
+\(t_w\).  The two-state and ground-mass recurrences now follow by direct
+substitution.
+
+By \cref{lem:aesp-cd-point-source-frontier-universe}, the number of candidate
+records and the total newly scanned direct incidences are
+\(O(\vol(S^\star))\).  The planar lazy reporter from
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter} therefore proves the
+discovery work, and every support coordinate is inserted once.  The terminal
+KKT certificate is exactly the no-positive-key condition in
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}.  The support-volume cap
+\(\vol(S^\star)\leq1/\rho\) and the final-face solve prove the last claim.
+\end{proof}
+
+\begin{proposition}[Exact rank-one admissions are universal equal-degree attachments]
+\label{prop:aesp-cd-exact-rank-one-admission-characterization}
+On an unweighted simple graph, let \(A\) be connected and let
+\(B=A\cup\{w\}\) be connected.  Then
+\begin{equation*}
+ H_A^{-1}(-H_{Aw})=\gamma_wh_A
+\end{equation*}
+for a scalar \(\gamma_w\) if and only if \(w\) is adjacent to every vertex of
+\(A\) and all vertices of \(A\) have one common ambient degree \(d_A\).
+Necessarily,
+\begin{equation}
+ \gamma_w=\frac{1-\alpha}{2\alpha d_A}.
+ \label{eq:aesp-cd-exact-rank-one-admission-gamma}
+\end{equation}
+Consequently any whole trace satisfying
+\cref{eq:aesp-cd-exact-rank-one-trace-hypothesis} is clique-prefix-like:
+every new support vertex is universal to the preceding face, hence the final
+support is a clique, and the older vertices at each pivot have equal ambient
+degree.  The output-linear theorem above is therefore an exact dense/equitable
+structural branch, not a hidden universal claim for sparse graphs.
+\end{proposition}
+
+\begin{proof}
+Connectedness and inverse positivity give
+\(u_A^{(w)}:=H_A^{-1}(-H_{Aw})>0\), so \(\gamma_w>0\).  If
+\(u_A^{(w)}=\gamma_wh_A\), multiplication by \(H_A\) gives
+\begin{equation*}
+ -H_{iw}=\gamma_w\alpha d_i
+ \qquad(i\in A).
+\end{equation*}
+The left side is \(cA_{iw}\in\{0,c\}\), with
+\(c=(1-\alpha)/2\).  Positivity forces \(A_{iw}=1\) for every \(i\), and then
+\(c=\gamma_w\alpha d_i\) forces all \(d_i\)'s to coincide and proves
+\cref{eq:aesp-cd-exact-rank-one-admission-gamma}.  Conversely, under the
+universal equal-degree condition,
+\begin{equation*}
+ -H_{Aw}=c\one
+ =\frac{c}{\alpha d_A}(\alpha d_A\one)
+ =\frac{c}{\alpha d_A}H_Ah_A,
+\end{equation*}
+and inversion proves the rank-one identity.
+\end{proof}
+
+\begin{corollary}[Complete-graph prefixes realize the exact rank-one reporter]
+\label{cor:aesp-cd-complete-prefix-rank-one-reporter}
+Let the ambient graph be \(K_n\), let \(d=n-1\), and let \(A\) be any proper
+clique prefix of size \(a\).  With
+\begin{equation*}
+ p:=\frac{1+\alpha}{2},
+ \qquad
+ c:=\frac{1-\alpha}{2},
+ \qquad
+ \lambda_A:=pd-c(a-1),
+\end{equation*}
+one has
+\begin{equation}
+ h_A=\frac{\alpha d}{\lambda_A}\one,
+ \qquad
+ u_A^{(w)}=H_A^{-1}(-H_{Aw})
+          =\frac{c}{\lambda_A}\one
+          =\frac{c}{\alpha d}h_A
+ \label{eq:aesp-cd-complete-prefix-rank-one-response}
+\end{equation}
+for every \(w\notin A\).  Thus every nested clique-prefix admission lies
+exactly in the zero-gray-band branch of
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter}, with the same
+\(\gamma=c/(\alpha d)\) at every face.  This supplies a nonvacuous
+point-source graph family for the planar lazy reporter; it is an exact
+structural example, not a universal high-gap claim for small prefixes.
+\end{corollary}
+
+\begin{proof}
+Every row of \(H_A\) sums to
+\(\lambda_A\), so
+\(H_A\one=\lambda_A\one\).  The ground right-hand side is
+\(\alpha d\one\), while the response right-hand side to any exterior clique
+vertex is \(c\one\).  Inverting the common eigenvector proves
+\cref{eq:aesp-cd-complete-prefix-rank-one-response}.
+\end{proof}
+
+\begin{proposition}[High gap alone does not erase sparse-pivot gray bands]
+\label{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}
+Let \(A\) induce \(K_8\), attach one exterior leaf \(w\) to clique vertex
+zero and a second exterior leaf \(v\) to clique vertex one, and take
+\begin{equation*}
+ q=\frac14,\qquad \alpha=\frac1{17}.
+\end{equation*}
+Thus the two distinguished clique vertices have ambient degree eight and the
+other six have degree seven.  For the exact ground weight
+\(W_A=\operatorname{diag}(d_i/h_{A,i})\), the shifted matrix
+\begin{equation*}
+ H_A-\frac5{17}W_A
+\end{equation*}
+has exact no-pivot \(LDL^{\mathsf T}\) pivots
+\begin{equation*}
+ \frac{232}{221},\
+ \frac{5376}{6409},\
+ \frac{65}{153},\
+ -\frac{31496}{9945},\
+ \frac{39751}{9486},\
+ \frac{127508}{47889},\
+ \frac{87757}{38403},\
+ \frac{223520}{105723}.
+\end{equation*}
+It therefore has exactly one negative direction.  Since the ground
+generalized eigenvalue is \(1/17\), every one of the seven high eigenvalues
+is strictly larger than
+\begin{equation*}
+ \frac5{17}=\frac{\alpha(1+q)}q;
+\end{equation*}
+the required high gap holds.
+
+Nevertheless, for the sparse pivot response
+\(u_A^{(w)}=H_A^{-1}(-H_{Aw})\), the rank-one ground approximation in
+\cref{eq:aesp-cd-proper-face-rank-one-inverse} has the exact retained
+coordinate error
+\begin{equation}
+ u_{A,1}^{(w)}-\frac{\bar f}{\alpha}h_{A,1}
+ =-\frac{281}{20320}\neq0.
+ \label{eq:aesp-cd-high-gap-sparse-pivot-gray-witness}
+\end{equation}
+Thus a high-gap certificate alone cannot replace the finite row bands by an
+exact common transform.  A key centered at the rank-one prediction is
+necessarily gray and requires interval refinement or fallback.  This is an
+interface STOP for the zero-band claim, not a lower bound against the
+interval reporter and not a claim about a forced RPPR admission order.
+\end{proposition}
+
+\begin{proof}
+The displayed rational \(LDL^{\mathsf T}\) signs give the inertia by Sylvester
+congruence.  Generalized inertia for the SPD weight \(W_A\), together with
+\(H_Ah_A=\alpha W_Ah_A\), proves the high-gap statement.  Solving the two
+rational systems
+\begin{equation*}
+ H_Ah_A=\alpha d_A,
+ \qquad
+ H_Au_A^{(w)}=\frac8{17}e_0,
+\end{equation*}
+and forming the ground-weighted mean of
+\(f=\operatorname{diag}(d_i^{-1})(8e_0/17)\) gives
+\cref{eq:aesp-cd-high-gap-sparse-pivot-gray-witness}.  All operations are
+exact rational eliminations; the registered audit records the same pivots
+and response value independently.
+\end{proof}
+
+\begin{proposition}[Two scalar row states do not determine a gray update]
+\label{prop:aesp-cd-high-gap-two-state-gray-stop}
+There is an unweighted high-gap face with two retained exterior rows having
+identical old \((s_v,g_v)\) states but opposite signed high-mode corrections
+under the same sparse pivot response.  In particular, the two-dimensional
+lazy state of
+\cref{prop:aesp-cd-proper-face-lazy-rank-one-reporter} is sufficient for the
+zero-band branch, but it cannot by itself advance an exact nonzero-band
+state.
+
+Concretely, let \(A\) induce \(K_8\), take
+\(q=1/4\) and \(\alpha=1/17\), and attach two exterior leaves to clique
+vertex zero and two exterior leaves to clique vertex one.  Use one leaf at
+zero as the pivot \(w\), and retain one leaf \(v_0\) at zero and one leaf
+\(v_1\) at one.  Thus \(d_0=d_1=9\) and the other six clique degrees are
+seven.  The exact ground satisfies
+\begin{equation*}
+ h_{A,0}=h_{A,1}=\frac{543}{911},
+ \qquad
+ h_{A,i}=\frac{655}{911}\quad(2\leq i<8).
+\end{equation*}
+At a symmetric old checkpoint with equal retained loads,
+\begin{equation}
+ (s_{v_0},g_{v_0})=(s_{v_1},g_{v_1}),
+ \qquad
+ s_{v_0}=s_{v_1}=\frac{4344}{15487}.
+ \label{eq:aesp-cd-high-gap-identical-two-state}
+\end{equation}
+Nevertheless, writing the pivot response as
+\(u_A^{(w)}=\gamma_wh_A+e_A^{(w)}\), exact elimination gives
+\begin{equation}
+ e_{A,0}^{(w)}=\frac{21150}{276523}>0,
+ \qquad
+ e_{A,1}^{(w)}=-\frac{3706}{276523}<0.
+ \label{eq:aesp-cd-high-gap-opposite-two-state-errors}
+\end{equation}
+Hence
+\(\delta_{v_0}=((1-\alpha)/2)e_{A,0}^{(w)}>0\) while
+\(\delta_{v_1}=((1-\alpha)/2)e_{A,1}^{(w)}<0\), even though the two stored
+scalar states coincide.  An exact update must therefore retain additional
+attachment geometry, materialize a row response, or carry a certified
+interval.  This is a state-interface STOP, not a lower bound against a
+higher-dimensional or interval reporter and not a forced point-source RPPR
+chronology.
+\end{proposition}
+
+\begin{proof}
+For the exact ground weight \(W_A=\operatorname{diag}(d_i/h_{A,i})\), the
+no-pivot \(LDL^{\mathsf T}\) diagonal of
+\(H_A-(5/17)W_A\) is
+\begin{equation*}
+ \frac{996}{3077},\
+ -\frac{276172}{766173},\
+ \frac{970740}{251651},\
+ \frac{69275924}{31791735},\
+ \frac{96810028}{52762477},\
+ \frac{124344132}{73733219},\
+ \frac{151878236}{94703961},\
+ \frac{179412340}{115674703}.
+\end{equation*}
+There is exactly one negative direction.  As in
+\cref{prop:aesp-cd-high-gap-sparse-pivot-gray-stop}, the known ground
+generalized eigenvalue \(1/17\) proves that all seven high eigenvalues exceed
+\(5/17=\alpha(1+q)/q\).
+
+Solving
+\(H_Ah_A=\alpha d_A\) gives the displayed ground.  Both retained leaf
+couplings equal \(8/17\), so
+\((8/17)(543/911)=4344/15487\), proving the equality of \(s\); equal loads
+and a checkpoint symmetric in coordinates zero and one give equal \(g\).
+Finally solve
+\begin{equation*}
+ H_Au_A^{(w)}=\frac8{17}e_0
+\end{equation*}
+and subtract its ground-weighted rank-one component.  The first two
+coordinates are exactly those in
+\cref{eq:aesp-cd-high-gap-opposite-two-state-errors}.  Multiplication by the
+two retained coupling rows gives the opposite signs of \(\delta\), and
+\cref{eq:aesp-cd-proper-face-rank-one-two-state} proves the claimed
+nonidentifiability.
+\end{proof}
+
+\begin{proposition}[The proper-face conductance certificate is nonvacuous]
+\label{prop:aesp-cd-proper-clique-conductance-witness}
+Let \(0<q\leq1/256\),
+\(\alpha=q^2/(1+q^2)\), and
+\(m\geq\lceil1/\alpha\rceil\).  Form an ambient graph from a clique \(K_m\)
+by attaching one exterior leaf to a distinguished clique vertex \(o\), and
+take the proper face \(A=V(K_m)\).  Then
+\begin{equation*}
+ \Phi_h(A)\geq\frac{27}{256}
+ >\sqrt{\frac{2\alpha}{q}}.
+\end{equation*}
+Consequently this infinite point-source proper-face family satisfies the
+conductance-certified correction-free tail above.
+\end{proposition}
+
+\begin{proof}
+All nondistinguished clique vertices have the same ground-response value
+\begin{equation*}
+ h_i=\frac{T}{T+(1-\alpha)^2},
+ \qquad
+ T:=2\alpha m\bigl((1+\alpha)m-2\alpha\bigr).
+\end{equation*}
+This follows by solving the two orbit equations for
+\(H_Ah_A=\alpha d_A\).  Since \(\alpha\leq1/4\) and
+\(m\geq1/\alpha\), one has \(T\geq9\), so \(h_i\geq3/4\);
+also \((m-1)/m\geq1-\alpha\geq3/4\).
+
+For \(B\subsetneq A\), write
+\(s_B=\sum_{i\in B}h_i\) and \(s_{\bar B}=\sum_{i\notin B}h_i\).
+Completeness gives cut weight \(c s_Bs_{\bar B}\), while
+\(\sum_{i\in B}d_ih_i\leq m s_B\), and similarly for the complement.
+Therefore
+\begin{equation*}
+ \Phi_h(A)
+ \geq\frac{c(s_B+s_{\bar B})}{2m}
+ \geq\frac{c(m-1)}{2m}\min_{i\neq o}h_i
+ \geq\frac{27}{256},
+\end{equation*}
+because \(c=(1-\alpha)/2\geq3/8\).
+Finally
+\(\sqrt{2\alpha/q}=\sqrt{2q/(1+q^2)}
+\leq1/\sqrt{128}<27/256\).
+\end{proof}
+
+\begin{theorem}[Exact point-source ratio-pivot support homotopy]
+\label{thm:aesp-cd-point-source-ratio-pivot}
+For the point-source RPPR obstacle problem at a target \(\rho>0\), the exact
+support can be found by a monotone Schur-complement elimination that admits
+each support vertex once.  More precisely, after the root has entered, keep
+the exterior Schur complement
+\begin{equation*}
+ K^S
+ =H_{\bar S\bar S}-H_{\bar SS}H_{SS}^{-1}H_{S\bar S}
+\end{equation*}
+and the breakpoint pairs \((A_v,B_v)\) from
+\cref{prop:aesp-cd-point-source-homotopy-reorder}.  Repeatedly choose a
+largest ratio \(\tau_w=A_w/B_w\).  If \(\tau_w\leq\rho\), stop.  Otherwise
+admit \(w\), and pivot
+\begin{align}
+ A'_v&=A_v-\frac{K^S_{vw}}{K^S_{ww}}A_w,&
+ B'_v&=B_v-\frac{K^S_{vw}}{K^S_{ww}}B_w,
+ \label{eq:aesp-cd-ratio-pivot-pair}\\
+ K^{S\cup\{w\}}_{uv}
+ &=K^S_{uv}-\frac{K^S_{uw}K^S_{wv}}{K^S_{ww}}.
+ \label{eq:aesp-cd-ratio-pivot-schur}
+\end{align}
+Exact ties may be pivoted as one batch or in a fixed symbolic order.
+At termination \(S=\supp(x_\rho^\star)\), and
+\(x_{\rho,S}^\star=a_S-\rho h_S>0\).
+
+This is a local explicit-fill algorithm.  Scan the adjacency row of a vertex
+only when it is pivoted; point-source connectedness ensures that an unseen
+vertex with no edge to \(S\) cannot enter first.  Let \(\delta_w\) be the
+number of current nonzero Schur neighbors of \(w\), including newly exposed
+original neighbors, just before its pivot.  With a heap for the ratios and
+sparse explicit fill, discovery, the elimination record, and terminal
+back-substitution cost
+\begin{equation}
+ \widetilde O\!\left(
+   \vol(S)+\sum_{w\in S}(1+\delta_w)^2
+ \right)
+ \label{eq:aesp-cd-ratio-pivot-work}
+\end{equation}
+exact field operations.  In particular, homotopy elimination width
+\(\max_w\delta_w\leq\omega\) gives
+\(\widetilde O(\omega^2\vol(S))\) discovery.  Once the face is certified,
+\cref{cor:aesp-cd-final-face-chebyshev} adds
+\(\widetilde O(\vol(S)/\sqrt\alpha)\) terminal work.  Thus bounded-width
+point-source traces satisfy the desired product-scale bound.
+\end{theorem}
+
+\begin{proof}
+For \(\rho\geq1/d_o\), every load coordinate is nonpositive and the obstacle
+solution is zero.  Just below \(1/d_o\), the root is the first active
+coordinate.  On any later face \(S\), the active solution is
+\(x_S(\rho)=a_S-\rho h_S\), and \(h_S\geq0\).  If \(w\) is the largest
+breakpoint, block elimination gives
+\begin{equation*}
+ x'_w(\rho)
+ =\frac{A_w-\rho B_w}{K^S_{ww}}
+ =\frac{B_w(\tau_w-\rho)}{K^S_{ww}},
+ \qquad
+ x'_S(\rho)=x_S(\rho)-H_{SS}^{-1}H_{Sw}x'_w(\rho).
+\end{equation*}
+Therefore \(w\) becomes positive immediately below \(\tau_w\), and every
+old active coordinate is nondecreasing.  The Schur complement of a
+Stieltjes matrix is Stieltjes, so
+\(-K^S_{vw}/K^S_{ww}\geq0\).
+\Cref{eq:aesp-cd-ratio-pivot-pair,eq:aesp-cd-ratio-pivot-schur} are precisely
+the block-elimination identities.  At the first event below the target,
+every exterior key is
+\begin{equation*}
+ g_v(\rho)=B_v(\tau_v-\rho)\leq0,
+\end{equation*}
+while all admitted coordinates are positive.  These are the global obstacle
+KKT conditions, proving correctness.
+
+For locality, a vertex not yet adjacent to \(S\) has \(A_v=0\), hence cannot
+beat a positive breakpoint.  Scanning the selected row reveals every new
+original frontier incidence before its pivot.  Updating the Schur clique
+costs \(O((1+\delta_w)^2)\), pair and heap updates cost only a soft-linear
+amount in \(\delta_w\), and each selected original row costs \(d_w\).
+Summing gives
+\cref{eq:aesp-cd-ratio-pivot-work}; the stored elimination multipliers give a
+back-substitution with no larger charge.
+\end{proof}
+
+\begin{corollary}[Fixed-target scalar residual pivoting]
+\label{cor:aesp-cd-point-source-fixed-target-pivot}
+At one fixed target \(\rho<1/d_o\), the two breakpoint vectors are not
+needed.  On a current face define the exterior restricted residual
+\begin{equation*}
+ g^S_{\bar S}
+ :=c_{\rho,\bar S}-H_{\bar SS}H_{SS}^{-1}c_{\rho,S}
+ =A_{\bar S}-\rho B_{\bar S}.
+\end{equation*}
+Starting with \(S=\{o\}\), choose \emph{any} row \(w\notin S\) with
+\(g^S_w>0\), admit it, and update
+\begin{align*}
+ g^{S\cup\{w\}}_v
+ &=g^S_v-\frac{K^S_{vw}}{K^S_{ww}}g^S_w,\\
+ K^{S\cup\{w\}}_{uv}
+ &=K^S_{uv}-\frac{K^S_{uw}K^S_{wv}}{K^S_{ww}}.
+\end{align*}
+When every remaining residual is nonpositive, the restricted solution is the
+exact obstacle solution.  Every admitted coordinate stays strictly positive,
+so each final-support row is admitted at most once.  In the point-source
+problem, any unseen nonroot row with no original edge to \(S\) has
+\(g^S_v=c_{\rho,v}=-\alpha\rho d_v<0\).  Hence the same row-on-first-pivot
+discovery and explicit-fill work bound
+\cref{eq:aesp-cd-ratio-pivot-work} applies without a global initial scan.
+
+More generally, suppose a finite reporter gives certified intervals
+\begin{equation*}
+ g_v^-\leq g^S_v\leq g_v^+.
+\end{equation*}
+It may safely pivot any row with \(g_v^->0\).  If instead
+\begin{equation}
+ max_{v\notin S}\frac{[g_v^+]_+}{d_v}
+ \leq\alpha\epskkt,
+ \label{eq:aesp-cd-fixed-target-residual-stop}
+\end{equation}
+then the current restricted solution already meets the note's finite KKT
+target.  Otherwise it refines only the gray certificate.  Thus a fixed-target
+implementation needs one-sided row-residual accuracy
+\(O(\alpha\epskkt d_v)\), not exact support, exact breakpoint order, or even
+the separate vectors \(A\) and \(B\).
+\end{corollary}
+
+\begin{proof}
+Let \(x_S=H_{SS}^{-1}c_{\rho,S}\).  If \(g^S_w>0\), block elimination gives
+\begin{equation*}
+ x'_w=\frac{g^S_w}{K^S_{ww}}>0,
+ \qquad
+ x'_S=x_S-H_{SS}^{-1}H_{Sw}x'_w\geq x_S>0,
+\end{equation*}
+because every principal inverse is nonnegative and \(H_{Sw}\leq0\).  The
+displayed residual and Schur recurrences are the same block-elimination
+identity, and their multipliers are nonnegative.  Induction preserves strict
+interiority.  At termination, active equations and exterior nonpositive
+residuals are exactly the global obstacle KKT conditions.  The point-source
+load proves the locality claim.  Finally, active residuals vanish, so
+\cref{eq:aesp-cd-fixed-target-residual-stop} is precisely the normalized KKT
+diagnostic bound.
+\end{proof}
+
+\begin{lemma}[The support-safe frontier universe is output-linear]
+\label{lem:aesp-cd-point-source-frontier-universe}
+Let \(S_0\subset S_1\subset\cdots\subset S^\star\) be any nested
+support-safe trace for a source distribution with $T=\supp(s)$, and let
+\begin{equation*}
+ \partial S:=\{v\notin S:\ A_{vS}\one>0\}.
+\end{equation*}
+Every original-graph row that can ever occur on a frontier belongs to
+\(S^\star\cup\partial S^\star\).  After including the source rows that must
+be candidate records before they are adjacent to the current support, the
+whole persistent candidate universe is contained in
+\(T\cup S^\star\cup\partial S^\star\), and, on a graph without isolated
+vertices,
+\begin{equation}
+ \left|T\cup S^\star\cup\partial S^\star\right|
+ \leq |T|+|S^\star|+|E(S^\star,V\setminus S^\star)|
+ \leq |T|+2\vol(S^\star).
+ \label{eq:aesp-cd-point-source-frontier-universe}
+\end{equation}
+Moreover all incidences from the trace to this universe are revealed by
+scanning each admitted adjacency row once, at total work
+\(\vol(S^\star)\).  An exterior row need not have its own adjacency list
+scanned: it suffices to keep its identifier, degree, and accumulated
+contributions from already admitted neighbors.
+
+Thus sparse-source discovery has only an output-linear number of persistent
+boundary records.  Its remaining difficulty is not candidate enumeration,
+but updating their accumulated keys when old active coordinates increase.
+This statement uses the standard local-access convention that a named
+vertex degree is available in \(O(1)\) work; otherwise even deciding whether
+to retain a high-degree exterior row can cost its ambient degree.
+\end{lemma}
+
+\begin{proof}
+For every \(t\), \(S_t\subseteq S^\star\), so every vertex adjacent to
+\(S_t\) lies in \(S^\star\cup\partial S^\star\).  Map each vertex of
+\(\partial S^\star\) to one incident cut edge.  The map is injective because
+a cut edge has only one endpoint outside \(S^\star\), proving the first
+inequality in \cref{eq:aesp-cd-point-source-frontier-universe}.  Also
+\(|S^\star|\leq\vol(S^\star)\) and the number of cut edges is at most
+\(\vol(S^\star)\).  Finally, every incidence is first seen while scanning
+the row of its endpoint in \(S^\star\), and those row lengths sum to
+\(\vol(S^\star)\).
+\end{proof}
+
+\begin{proposition}[Point-source RPPR is a dissipative divisible sandpile]
+\label{prop:aesp-cd-point-source-dissipative-sandpile}
+In degree-unscaled coordinates \(y=D^{-1/2}x\), put
+\begin{equation*}
+ \widehat H=D^{1/2}QD^{1/2}=pD-cA,
+ \qquad
+ p=\frac{1+\alpha}{2},
+ \qquad
+ c=\frac{1-\alpha}{2},
+ \qquad
+ \ell_\rho=\alpha e_o-\alpha\rho d.
+\end{equation*}
+In the obstacle/odometer language reviewed by
+\href{https://arxiv.org/abs/1903.06263}{Ruszel}, the point-source RPPR vector
+is the odometer of the following killed continuous toppling process.  At a
+state \(y\geq0\), write
+\(r=\ell_\rho-\widehat Hy\).  A row \(i\) with \(r_i>0\) may topple by
+\begin{equation}
+ y_i\leftarrow y_i+\delta,
+ \qquad
+ 0<\delta\leq\frac{r_i}{p d_i}.
+ \label{eq:aesp-cd-point-source-toppling}
+\end{equation}
+The full choice sets \(r_i\) to zero, sends \(c\delta\) to every neighbor,
+and dissipates the fraction
+\begin{equation*}
+ 1-\frac{c}{p}=\frac{2\alpha}{1+\alpha}
+\end{equation*}
+of the removed residual mass.  Every legal toppling sequence is
+coordinatewise bounded by \(y^\star=D^{-1/2}x^\star\), and every fair
+sequence of full topplings converges monotonically to \(y^\star\), where
+fair means that no row whose residual stays positive is ignored forever.
+
+Equivalently, \(y^\star\) obeys the least-action identity
+\begin{equation}
+ y^\star
+ =\min\{z\geq0:\widehat Hz\geq\ell_\rho\}
+ \quad\text{in the coordinatewise order.}
+ \label{eq:aesp-cd-point-source-least-action}
+\end{equation}
+Thus the point-source reduction really does supply an Abelian rooted growth
+process.  It does not by itself accelerate it: if full local topplings are
+performed only while \(r_i/d_i>\alpha\epskkt\), their charged adjacency work
+is at most
+\begin{equation}
+ \frac{p}{\alpha\epskkt},
+ \label{eq:aesp-cd-point-source-toppling-work}
+\end{equation}
+which is the classical \(1/(\alpha\epskkt)\) rather than the desired
+\(1/(\sqrt\alpha\epskkt)\) scale.  The fixed-target Schur pivot in
+\cref{cor:aesp-cd-point-source-fixed-target-pivot} is the corresponding
+exact block-toppling operation.
+\end{proposition}
+
+\begin{proof}
+The obstacle KKT conditions say precisely that \(y^\star\geq0\),
+\(\widehat Hy^\star\geq\ell_\rho\), with equality on
+\(\supp(y^\star)\).  Let \(z\geq0\) be any stabilizer and put
+\(T=\{i:y_i^\star>z_i\}\).  If \(T\neq\varnothing\), then every row in
+\(T\) belongs to \(\supp(y^\star)\), so
+\begin{equation*}
+ [\widehat H(y^\star-z)]_T\leq0.
+\end{equation*}
+On \(T^c\), \(y^\star-z\leq0\), while
+\(\widehat H_{T,T^c}\leq0\).  Hence
+\(\widehat H_{TT}(y^\star-z)_T\leq0\).  Principal Stieltjes inverse
+positivity contradicts \((y^\star-z)_T>0\), proving
+\cref{eq:aesp-cd-point-source-least-action}.
+
+Suppose inductively that a legal state \(y\leq y^\star\) topples row \(i\).
+The safety of positive-residual admission gives \(y_i^\star>0\), and thus
+\begin{equation*}
+ r_i=[\widehat H(y^\star-y)]_i
+ \leq p d_i(y_i^\star-y_i),
+\end{equation*}
+because the off-diagonal terms are nonpositive.  Therefore
+\cref{eq:aesp-cd-point-source-toppling} preserves \(y\leq y^\star\).
+Every legal sequence is monotone and bounded.  Under fairness, its limit can
+have no positive residual row: otherwise a later full toppling has an amount
+bounded away from zero.  The limit is therefore a stabilizer, and least
+action identifies it with \(y^\star\).
+
+For the work statement, put \(\mathcal R=\sum_i[r_i]_+\).  A full toppling
+removes \(r_i=p d_i\delta\) at \(i\), while its neighbors can gain at most
+\(c d_i\delta\) in positive residual.  Hence
+\begin{equation*}
+ \mathcal R_{\rm new}-\mathcal R_{\rm old}
+ \leq-\frac{\alpha}{p}r_i.
+\end{equation*}
+Initially \(\mathcal R\leq\alpha\).  While
+\(r_i>\alpha\epskkt d_i\), one unit of charged work \(d_i\) is therefore
+paid by more than
+\((\alpha^2\epskkt/p)d_i\) of potential decrease.  Summing proves
+\cref{eq:aesp-cd-point-source-toppling-work}.
+\end{proof}
+
+\begin{proposition}[Literal walk sampling does not supply the missing square root]
+\label{prop:aesp-cd-point-source-literal-walk-sampling-stop}
+Assume \(0<\alpha\leq1/2\), and put
+\begin{equation*}
+ \lambda:=\frac{2\alpha}{1+\alpha},
+ \qquad
+ \chi:=1-\lambda=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ \mathsf K:=\lambda(I-\chi AD^{-1})^{-1}.
+\end{equation*}
+Thus \(\mathsf K e_u\) is the endpoint distribution of the ordinary
+\(\lambda\)-terminated PageRank walk from \(u\).  Consider the tempting
+randomized hybrid that first runs nonnegative forward push until its residual
+distribution \(r\) satisfies
+\begin{equation*}
+ R:=\norm r_1\leq1,
+ \qquad
+ \max_i r_i/d_i\leq\vartheta,
+\end{equation*}
+and then estimates the remaining term \(\mathsf K r\) from independent walk
+endpoints whose initial vertex has distribution \(r/R\).
+
+Reversibility gives the simultaneous variance proxy
+\begin{equation}
+ \frac{(\mathsf K r)_v}{d_v}\leq\vartheta
+ \qquad(v\in V).
+ \label{eq:aesp-cd-forward-walk-variance-proxy}
+\end{equation}
+Consequently Bernstein's inequality needs only
+\begin{equation*}
+ N=O\!\left[
+  \left(\frac{\vartheta}{\epsppr^2}
+       +\frac1{\epsppr}\right)
+  \log\frac n\delta
+ \right]
+\end{equation*}
+endpoints for degree-normalized error \(\epsppr\) with failure probability
+at most \(\delta\).  Nevertheless, a literal endpoint costs expected
+\(\Theta(1/\lambda)=\Theta(1/\alpha)\) adjacency steps.  Together with the
+standard forward-push charge \(O(1/(\lambda\vartheta))\), the fully charged
+work is therefore
+\begin{equation}
+ \widetilde O\!\left(
+   \frac1{\lambda\vartheta}
+  +\frac{\vartheta}{\lambda\epsppr^2}
+  +\frac1{\lambda\epsppr}
+ \right),
+ \label{eq:aesp-cd-forward-literal-walk-work}
+\end{equation}
+whose best threshold is \(\vartheta=\Theta(\epsppr)\) and whose scale remains
+\(\widetilde O(1/(\alpha\epsppr))\).
+
+By contrast, if an already charged data structure could return an exact
+\(\mathsf K\)-endpoint in \(O(1)\) work, the same calculation would become
+\begin{equation*}
+ \widetilde O\!\left(
+   \frac1{\lambda\vartheta}
+  +\frac{\vartheta}{\epsppr^2}
+  +\frac1{\epsppr}
+ \right),
+\end{equation*}
+which is minimized at
+\(\vartheta=\Theta(\epsppr/\sqrt\lambda)\) and attains the desired
+\(\widetilde O(1/(\sqrt\alpha\epsppr))\) scale.  Thus point-source
+random-walk correction identifies the same missing object as the deterministic
+analysis---an output-sensitive accelerated endpoint/response oracle---but a
+literal walk sampler is not that oracle.  This is an accounting STOP for this
+specific push--sample implementation, not a lower bound against other
+randomized algorithms, shortcut structures, or global preprocessing.  It is
+also a high-probability semantic estimator; by itself it does not emit the
+primary deterministic terminal residual certificate required by this note.
+\end{proposition}
+
+\begin{proof}
+The symmetric normalization of \(\mathsf K\) gives detailed balance
+\begin{equation*}
+ \frac{\mathsf K_{vu}}{d_v}=\frac{\mathsf K_{uv}}{d_u},
+ \qquad
+ \sum_u\mathsf K_{uv}=1.
+\end{equation*}
+Hence
+\begin{equation*}
+ \frac{(\mathsf K r)_v}{d_v}
+ =\sum_u\frac{r_u}{d_u}\mathsf K_{uv}
+ \leq\vartheta,
+\end{equation*}
+which proves \cref{eq:aesp-cd-forward-walk-variance-proxy}.  For one sampled
+endpoint \(Z\), the normalized summand
+\(Y_v=R\mathbf1_{\{Z=v\}}/d_v\) has
+\(0\leq Y_v\leq1\) and
+\(\operatorname{Var}(Y_v)\leq\mathbb E Y_v\leq\vartheta\).
+Bernstein and a union bound give the displayed sample count.  A geometric
+\(\lambda\)-terminated walk has expected \(\chi/\lambda\) graph moves.
+Adding this cost to the usual forward-push mass telescope gives
+\cref{eq:aesp-cd-forward-literal-walk-work}; the two elementary balances
+prove the remaining claims.
+\end{proof}
+
+\begin{lemma}[Point-source positive-residual mass is nonincreasing]
+\label{lem:aesp-cd-point-source-residual-mass}
+Along any exact fixed-target pivot trace from
+\cref{cor:aesp-cd-point-source-fixed-target-pivot}, put
+\begin{equation*}
+ \mathcal P_S:=\sum_{v\notin S}[g^S_v]_+.
+\end{equation*}
+Then \(\mathcal P_S\) never increases and, immediately after the root
+enters,
+\begin{equation}
+ \mathcal P_{\{o\}}\leq\frac{1-\alpha}{1+\alpha}\alpha
+ \leq\alpha.
+ \label{eq:aesp-cd-point-source-residual-mass}
+\end{equation}
+More sharply, if \(w\) is the next pivot, then
+\begin{equation}
+ \mathcal P_{S\cup\{w\}}
+ \leq\mathcal P_S-\frac{\alpha}{p}g^S_w,
+ \qquad p=\frac{1+\alpha}{2}.
+ \label{eq:aesp-cd-point-source-residual-mass-drop}
+\end{equation}
+Consequently every exact fixed-target pivot order satisfies the global
+injection budget
+\begin{equation}
+ \sum_{\text{pivots }w}g^S_w\leq\frac{1-\alpha}{2}.
+ \label{eq:aesp-cd-point-source-pivot-injection}
+\end{equation}
+Consequently, at every time the number of exterior rows violating the finite
+KKT threshold
+\begin{equation*}
+ g^S_v/d_v>\alpha\epskkt
+\end{equation*}
+is at most \(1/\epskkt\).  This is a simultaneous sparsity bound for
+finite-significant rows.  It does not by itself bound how often a compressed
+Schur reporter must update or rediscover those rows over the full trace.
+\end{lemma}
+
+\begin{proof}
+The Schur complement \(K^S\) is SDDM.  Its row sums satisfy the stronger
+point-source-independent killing bound
+\begin{equation*}
+ K^S\one\geq\alpha d_{\bar S}.
+\end{equation*}
+Indeed, from \(H\one=\alpha d\) and block elimination,
+\begin{align*}
+ K^S\one_{\bar S}
+ &=H_{\bar S\bar S}\one_{\bar S}
+   -H_{\bar SS}H_{SS}^{-1}H_{S\bar S}\one_{\bar S}\\
+ &=\alpha d_{\bar S}
+   -H_{\bar SS}H_{SS}^{-1}\alpha d_S
+ \geq\alpha d_{\bar S}.
+\end{align*}
+Moreover \(K^S_{ww}\leq H_{ww}=p d_w\).  Therefore, for a pivot \(w\),
+\begin{equation*}
+ \gamma_v:=-K^S_{vw}/K^S_{ww}\geq0,
+ \qquad
+ \sum_{v\notin S\cup\{w\}}\gamma_v
+ =1-\frac{(K^S\one)_w}{K^S_{ww}}
+ \leq1-\frac{\alpha}{p}.
+\end{equation*}
+Since \(g'_v=g_v+\gamma_vg_w\) and \(g_w>0\),
+\begin{equation*}
+ \sum_{v\ne w}[g'_v]_+
+ \leq\sum_{v\ne w}[g_v]_++g_w\sum_{v\ne w}\gamma_v
+ \leq\sum_v[g_v]_+-\frac{\alpha}{p}g_w.
+\end{equation*}
+At the root-only face, with
+\(p=(1+\alpha)/2\), \(c=(1-\alpha)/2\),
+\begin{equation*}
+ x_o=\frac{\alpha(1-\rho d_o)}{p d_o},
+ \qquad
+ g_v=-\alpha\rho d_v+cA_{vo}x_o.
+\end{equation*}
+Dropping the negative loads and summing the \(d_o\) root incidences gives
+\begin{equation*}
+ \mathcal P_{\{o\}}
+ \leq c d_ox_o
+ =\frac{c}{p}\alpha(1-\rho d_o)
+ \leq\frac{1-\alpha}{1+\alpha}\alpha.
+\end{equation*}
+Summing the sharpened decrease and substituting this initial mass gives
+\begin{equation*}
+ \sum_w g^S_w
+ \leq\frac{p}{\alpha}\mathcal P_{\{o\}}
+ \leq\frac{1-\alpha}{2},
+\end{equation*}
+which proves \cref{eq:aesp-cd-point-source-pivot-injection}.
+Every finite-significant row contributes more than
+\(\alpha\epskkt d_v\geq\alpha\epskkt\) to this mass, proving the count.
+\end{proof}
+
+\begin{proposition}[Parallel positive batches contract only at the killing rate]
+\label{prop:aesp-cd-point-source-parallel-batch-contraction}
+Let \(S\) be an exact fixed-target face, let \(K^S\) be its exterior Schur
+complement, and let \(g^S\) be its exterior key vector.  Put
+
+\begin{equation*}
+ W:=\{v\notin S:g^S_v>0\},
+ \qquad
+ \mathcal P_S:=\sum_{v\notin S}[g^S_v]_+.
+\end{equation*}
+
+If \(W\neq\varnothing\), simultaneously admitting all of \(W\) is legal,
+and the next exact face obeys
+
+\begin{equation}
+ \mathcal P_{S\cup W}
+ \leq
+ \left(1-\frac{\alpha}{p}\right)\mathcal P_S,
+ \qquad p=\frac{1+\alpha}{2}.
+ \label{eq:aesp-cd-point-source-parallel-batch-contraction}
+\end{equation}
+
+Consequently this canonical parallel rule reaches
+\(\mathcal P_S\leq\alpha\epskkt\), and hence the finite KKT band, after at
+most
+
+\begin{equation*}
+ \left\lceil
+  \frac{p}{\alpha}
+  \log_+\!\frac{\mathcal P_{S_0}}{\alpha\epskkt}
+ \right\rceil
+\end{equation*}
+
+nonempty batches.  The \(1/\alpha\) contraction scale is real: on the
+three-vertex path \(0-1-2\), with point source \(0\), start at the root-only
+face and let \(\rho\downarrow0\).  The first batch is \(W=\{1\}\), and the
+ratio of the new positive mass to the old one tends to
+
+\begin{equation}
+ \gamma_\alpha
+ =\frac{1-\alpha^2}{1+6\alpha+\alpha^2}
+ =1-\Theta(\alpha).
+ \label{eq:aesp-cd-point-source-parallel-batch-sharp}
+\end{equation}
+
+Thus batching every currently positive row is a valid universal fallback,
+but its direct mass argument is not a square-root acceleration.  This does
+not prove an \(\Omega(1/\alpha)\) round lower bound for every batching policy;
+it isolates the limitation of the canonical all-positive contraction.
+\end{proposition}
+
+\begin{proof}
+Write \(R=V\setminus(S\cup W)\) and
+\(x_W=(K^S_{WW})^{-1}g^S_W>0\).  Principal Stieltjes inverse positivity
+makes the simultaneous correction positive on every new coordinate and
+nonnegative on the old face, so the batch is legal.  The remaining keys are
+
+\begin{equation*}
+ g^{S\cup W}_R
+ =g^S_R-K^S_{RW}x_W.
+\end{equation*}
+
+Because \(W\) contains all positive exterior rows, \(g^S_R\leq0\).  The
+Schur killing inequality \(K^S\one\geq\alpha d\) therefore gives
+
+\begin{align*}
+ \mathcal P_{S\cup W}
+ &\leq \one_R^{\mathsf T}(-K^S_{RW})x_W\\
+ &\leq
+ \bigl(\one_W^{\mathsf T}K^S_{WW}-\alpha d_W^{\mathsf T}\bigr)x_W\\
+ &=\mathcal P_S-\alpha d_W^{\mathsf T}x_W.
+\end{align*}
+
+For every \(w\in W\), off-diagonal nonpositivity and
+\(K^S_{ww}\leq H_{ww}=pd_w\) imply
+
+\begin{equation*}
+ g^S_w=(K^S_{WW}x_W)_w
+ \leq K^S_{ww}(x_W)_w
+ \leq pd_w(x_W)_w.
+\end{equation*}
+
+Summing proves
+\cref{eq:aesp-cd-point-source-parallel-batch-contraction}.  Iteration and
+\(-\log(1-u)\geq u\) give the batch count.  If
+\(\mathcal P_S\leq\alpha\epskkt\), then every positive exterior key obeys
+\(g_v/d_v\leq\alpha\epskkt\), since \(d_v\geq1\).
+
+For the path witness, put \(c=(1-\alpha)/2\).  On \(S=\{0\}\),
+
+\begin{equation*}
+ y_0=\frac{\alpha(1-\rho)}p,
+ \qquad
+ g_1=-2\alpha\rho+cy_0,
+ \qquad
+ g_2=-\alpha\rho.
+\end{equation*}
+
+After eliminating the root, the first exterior diagonal is
+\(K^S_{11}=2p-c^2/p\), so admitting \(1\) sends the fraction
+\(\gamma_\alpha=c/K^S_{11}\) of its key to row \(2\).  For all sufficiently
+small positive \(\rho\), \(g_1>0\) and the new key at \(2\) is positive.
+Letting \(\rho\downarrow0\) gives the mass ratio \(\gamma_\alpha\), and
+direct substitution of \(p,c\) gives
+\cref{eq:aesp-cd-point-source-parallel-batch-sharp}.
+\end{proof}
+
+\begin{proposition}[A support pivot injects a killed hitting-probability column]
+\label{prop:aesp-cd-point-source-hitting-column}
+Work in the degree-unscaled coordinates of
+\cref{prop:aesp-cd-point-source-dissipative-sandpile}.  Let \(S\) be a
+current exact face, let \(w\notin S\) have \(g_w^S>0\), and put
+\begin{equation*}
+ \Delta_w:=\frac{g_w^S}{K^S_{ww}},
+ \qquad
+ h^{S,w}:=-\widehat H_{SS}^{-1}\widehat H_{Sw}.
+\end{equation*}
+The exact restricted solution after admitting \(w\) is
+\begin{equation}
+ y^{S\cup\{w\}}_w=\Delta_w,
+ \qquad
+ y^{S\cup\{w\}}_S=y^S+\Delta_w h^{S,w}.
+ \label{eq:aesp-cd-point-source-hitting-update}
+\end{equation}
+For the killed transition matrix
+\(\mathsf P=(c/p)D^{-1}A\), the response column is exactly
+\begin{equation}
+ h^{S,w}=(I-\mathsf P_{SS})^{-1}\mathsf P_{Sw}.
+ \label{eq:aesp-cd-point-source-hitting-column}
+\end{equation}
+Hence \(h^{S,w}_i\) is the probability that a walk started at \(i\in S\)
+hits \(w\) before it is killed or first visits any other vertex of
+\(V\setminus S\).  In particular \(0\leq h^{S,w}\leq\one\), and the column
+obeys the exact killed-flux identity
+\begin{equation}
+ \alpha\sum_{i\in S}d_i h^{S,w}_i
+ +c\sum_{\substack{i\in S,\ v\notin S\\ i\sim v}}h^{S,w}_i
+ =c\,|E(S,\{w\})|.
+ \label{eq:aesp-cd-point-source-hitting-flux}
+\end{equation}
+The time-reversed occupation vector
+\begin{equation}
+ q^{S,w}:=\mathsf P_{wS}(I-\mathsf P_{SS})^{-1}
+ \quad\text{satisfies}\quad
+ q^{S,w}_i=\frac{d_i}{d_w}h^{S,w}_i,
+ \qquad
+ \sum_{i\in S}q^{S,w}_i\leq\frac c\alpha.
+ \label{eq:aesp-cd-point-source-hitting-occupation}
+\end{equation}
+Thus \(q^{S,w}_i\) is the expected number of visits to \(i\) during the
+killed excursion that starts at \(w\), first steps into \(S\), and stops on
+killing or its next exterior visit.
+
+Consequently the finite-level reporter of
+\cref{cor:aesp-cd-finite-level-reporter} reduces to the following precise
+dynamic primitive.  For each active \(i\), retain its slack to the next
+geometric level.  On a pivot \((w,\Delta_w)\), report exactly the rows with
+\begin{equation}
+ \Delta_w h^{S,w}_i>\operatorname{slack}_i,
+ \label{eq:aesp-cd-point-source-hitting-event}
+\end{equation}
+advance their levels, and update the incident boundary accumulators from
+\cref{lem:aesp-cd-point-source-frontier-universe}.  Exhaustive event reports
+give the finite KKT certificate without a separation promise and use only a
+support-linear number of boundary records.  What remains open on a general
+graph is an online, compressed implementation of
+\cref{eq:aesp-cd-point-source-hitting-event} at total
+\(\widetilde O(\vol(S^\star)/\sqrt\alpha)\) work.  Ordinary walk simulation
+does not supply that rate by itself: the geometric killing horizon has mean
+\(\Theta(1/\alpha)\), and cone-preserving walk polynomials are subject to
+\cref{prop:aesp-cd-positive-polynomial-stop}.
+\end{proposition}
+
+\begin{proof}
+The block equations for the enlarged restricted solve give
+\cref{eq:aesp-cd-point-source-hitting-update}.  Since
+\begin{equation*}
+ \widehat H_{SS}=pD_S(I-\mathsf P_{SS}),
+ \qquad
+ -\widehat H_{Sw}=pD_S\mathsf P_{Sw},
+\end{equation*}
+they also give \cref{eq:aesp-cd-point-source-hitting-column}.  Expanding the
+Neumann series enumerates paths that stay in \(S\) until their final step to
+\(w\); killing or a different exterior visit ends the trial.  This proves
+the probability interpretation and \(0\leq h\leq\one\).
+
+Finally use \(\widehat H=\alpha D+cL\), sum
+\(\widehat H_{SS}h=cA_{Sw}\) over \(S\), and cancel every internal edge.
+Each cut edge contributes \(c h_i\), while the right-hand side counts the
+edges from \(S\) to \(w\).  This is
+\cref{eq:aesp-cd-point-source-hitting-flux}.  Reversibility gives
+\begin{equation*}
+ d_i[(I-\mathsf P_{SS})^{-1}]_{ij}
+ =d_j[(I-\mathsf P_{SS})^{-1}]_{ji},
+ \qquad
+ d_w\mathsf P_{wj}=d_j\mathsf P_{jw}.
+\end{equation*}
+Substitution proves the coordinate identity in
+\cref{eq:aesp-cd-point-source-hitting-occupation}; its mass bound follows
+from \cref{eq:aesp-cd-point-source-hitting-flux}.  The event-reduction
+statement then follows directly from
+\cref{eq:aesp-cd-point-source-hitting-update} and the exhaustive finite-level
+certificate.
+\end{proof}
+
+\begin{lemma}[A residual certificate gives simultaneous response intervals]
+\label{lem:aesp-cd-point-source-response-residual-certificate}
+In the setting of
+\cref{prop:aesp-cd-point-source-hitting-column}, let
+\(\widetilde h\in\mathbb R^S\) approximate \(h^{S,w}\), and define its
+degree-unscaled response residual
+\begin{equation*}
+ r:=cA_{Sw}-\widehat H_{SS}\widetilde h.
+\end{equation*}
+Then every old coordinate satisfies
+\begin{equation}
+ \left|h_i^{S,w}-\widetilde h_i\right|
+ \leq
+ \frac{\sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}}
+      {\sqrt{\alpha d_i}}
+ \leq\frac{\norm{D_S^{-1/2}r}_2}{\alpha\sqrt{d_i}},
+ \qquad i\in S.
+ \label{eq:aesp-cd-point-source-response-residual-certificate}
+\end{equation}
+Consequently, for a pivot amount \(\Delta_w>0\), the computable condition
+\begin{equation}
+ \Delta_w\sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}
+ \leq\sqrt\alpha\,\eta
+ \label{eq:aesp-cd-point-source-response-residual-target}
+\end{equation}
+puts every exact increment in the simultaneous interval
+\begin{equation*}
+ \Delta_wh_i^{S,w}
+ \in\left[
+  \Delta_w\widetilde h_i-\frac{\eta}{\sqrt{d_i}},
+  \Delta_w\widetilde h_i+\frac{\eta}{\sqrt{d_i}}
+ \right].
+\end{equation*}
+If successive pivot solves use targets \(\eta_t\) with
+\(\sum_t\eta_t\leq\eta_{\rm tot}\), their accumulated coordinatewise
+response uncertainty is at most
+\(\eta_{\rm tot}/\sqrt{d_i}\).  A summable schedule such as
+\(\eta_t=\Theta(\delta_{\rm fin}/(t+1)^2)\) therefore costs only additional
+logarithmic solver accuracy and can be absorbed by the finite KKT hysteresis.
+The older, solve-free sufficient test
+\(\Delta_w\norm{D_S^{-1/2}r}_2\leq\alpha\eta\) follows from the second
+inequality above.  The sharper first test may instead use any certified upper
+bound on the linear-solve energy error
+\(r^{\mathsf T}\widehat H_{SS}^{-1}r\); this improves the explicit spectral
+loss from \(1/\alpha\) to \(1/\sqrt\alpha\), while changing iterative-solve
+work only logarithmically.  Concretely, for
+\begin{equation*}
+ \phi(z):=\tfrac12z^{\mathsf T}\widehat H_{SS}z
+          -(cA_{Sw})^{\mathsf T}z,
+\end{equation*}
+any certified lower bound \(L\leq\min_z\phi(z)\) gives the computable estimate
+\begin{equation}
+ r^{\mathsf T}\widehat H_{SS}^{-1}r
+ =2[\phi(\widetilde h)-\min_z\phi(z)]
+ \leq2[\phi(\widetilde h)-L].
+ \label{eq:aesp-cd-point-source-response-gap-certificate}
+\end{equation}
+It does not locate the coordinates whose
+intervals cross a retained level;
+that exhaustive output-sensitive step remains the interface in
+\cref{cor:aesp-cd-point-source-route-output-interface}.
+\end{lemma}
+
+\begin{proof}
+Put \(e=h^{S,w}-\widetilde h\).  Since
+\(\widehat H_{SS}e=r\), the degree-normalized vector
+\(z=D_S^{1/2}e\) obeys
+\begin{equation*}
+ Q_{SS}z=D_S^{-1/2}r,
+ \qquad Q_{SS}\succeq\alpha I.
+\end{equation*}
+Thus, with \(\varrho=D_S^{-1/2}r=Q_{SS}z\),
+\begin{equation*}
+ |z_i|
+ \leq\sqrt{(Q_{SS}^{-1})_{ii}}\,
+       \sqrt{\varrho^{\mathsf T}Q_{SS}^{-1}\varrho}
+ \leq\frac1{\sqrt\alpha}
+       \sqrt{r^{\mathsf T}\widehat H_{SS}^{-1}r}.
+\end{equation*}
+Also
+\begin{equation*}
+ r^{\mathsf T}\widehat H_{SS}^{-1}r
+ =\varrho^{\mathsf T}Q_{SS}^{-1}\varrho
+ \leq\alpha^{-1}\norm\varrho_2^2.
+\end{equation*}
+Since \(|e_i|=|z_i|/\sqrt{d_i}\), these displays prove both inequalities in
+\cref{eq:aesp-cd-point-source-response-residual-certificate}.  Alternatively,
+the last one recovers the original direct bound
+\begin{equation*}
+ \norm{z}_2\leq\alpha^{-1}\norm{D_S^{-1/2}r}_2,
+ \qquad
+ |e_i|=|z_i|/\sqrt{d_i},
+\end{equation*}
+but is not needed for the sharper claim.  Multiply by
+\(\Delta_w\), use
+\cref{eq:aesp-cd-point-source-response-residual-target}, and sum the interval
+radii over the pivot sequence.
+Completing the square in \(\phi\) gives
+\(\phi(\widetilde h)-\phi(h^{S,w})
+=\tfrac12e^{\mathsf T}\widehat H_{SS}e
+=\tfrac12r^{\mathsf T}\widehat H_{SS}^{-1}r\), proving
+\cref{eq:aesp-cd-point-source-response-gap-certificate}.
+For any boundary row \(v\), the resulting key uncertainty is at most
+\begin{equation*}
+ c\sum_{\substack{i\in S\\i\sim v}}\frac{\eta_{\rm tot}}{\sqrt{d_i}}
+ \leq c\,d_v\eta_{\rm tot}.
+\end{equation*}
+Thus taking
+\(\eta_{\rm tot}\leq\delta_{\rm fin}=\alpha\epskkt/(2c)\) consumes at most
+half of the terminal KKT band, which justifies the stated finite-hysteresis
+interface.
+\end{proof}
+
+\begin{lemma}[A support pivot has a square-root-scale response radius]
+\label{lem:aesp-cd-point-source-hitting-radius}
+In the setting of
+\cref{prop:aesp-cd-point-source-hitting-column}, put
+\begin{equation*}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha}.
+\end{equation*}
+For \(i\in S\), let
+\(r=\operatorname{dist}_{G[S\cup\{w\}]}(i,w)\).  If \(r\geq2\), then
+\begin{equation}
+ \sqrt{\frac{d_i}{d_w}}\,h_i^{S,w}
+ \leq \frac2\alpha\lambda_\alpha^{r-1}.
+ \label{eq:aesp-cd-point-source-hitting-radius}
+\end{equation}
+Moreover every legal pivot for any source distribution satisfies
+\begin{equation}
+ \Delta_w h_i^{S,w}
+ \leq \frac2{\alpha\sqrt{d_id_w}}
+       \lambda_\alpha^{r-1}
+ \leq \frac2\alpha\lambda_\alpha^{r-1}.
+ \label{eq:aesp-cd-point-source-hitting-event-radius}
+\end{equation}
+Consequently, if all retained coordinate-level slacks are at least
+\(\delta>0\), every event in
+\cref{eq:aesp-cd-point-source-hitting-event} lies within graph distance
+\begin{equation}
+ R_{\rm hit}(\delta)
+ :=1+\left\lceil
+   \frac{\log_+(2/(\alpha\delta))}
+        {\log(1/\lambda_\alpha)}
+ \right\rceil
+ =\widetilde O(1/\sqrt\alpha)
+ \label{eq:aesp-cd-point-source-hitting-event-locality}
+\end{equation}
+of the new pivot.  For the finite-level reporter,
+\(\delta=\delta_{\rm fin}=\alpha\epskkt/(2c)\), so one may use
+\begin{equation*}
+ R_{\rm hit}(\delta_{\rm fin})
+ =O\!\left(
+  1+\frac1{\sqrt\alpha}
+  \log\!\left(2+\frac{c}{\alpha^2\epskkt}\right)
+ \right).
+\end{equation*}
+
+Thus the killed-walk mean horizon \(\Theta(1/\alpha)\) is not the relevant
+deterministic information radius: finite changing-face events are confined
+to the accelerated \(1/\sqrt\alpha\) scale.  This still does not prove the
+desired work bound.  A radius-\(R_{\rm hit}\) ball can have arbitrarily large
+volume, and many pivot neighborhoods can overlap; an implementation must
+use the support-linear frontier universe and emit only actual level events,
+not scan every such ball after every pivot.
+\end{lemma}
+
+\begin{proof}
+Use the degree-normalized principal matrix
+\(Q_{SS}=D_S^{-1/2}\widehat H_{SS}D_S^{-1/2}\).  Its spectrum lies in
+\([\alpha,1]\), and the response equation gives
+\begin{equation*}
+ \frac{D_S^{1/2}h^{S,w}}{\sqrt{d_w}}
+ =-Q_{SS}^{-1}Q_{Sw}.
+\end{equation*}
+The standard degree-\(k\) Chebyshev inverse polynomial on
+\([\alpha,1]\) satisfies
+\begin{equation*}
+ \|Q_{SS}^{-1}-p_k(Q_{SS})\|_2
+ \leq\frac2\alpha\lambda_\alpha^{k+1}.
+\end{equation*}
+Take \(k=r-2\).  Graph sparsity makes the \(i\)-th coordinate of
+\(p_k(Q_{SS})Q_{Sw}\) zero, while
+\(\|Q_{Sw}\|_2\leq\|Qe_w\|_2\leq1\).  This proves
+\cref{eq:aesp-cd-point-source-hitting-radius}.
+
+The enlarged restricted value at \(w\) is \(\Delta_w\), and nested
+Stieltjes comparison gives
+\(\Delta_w\leq y_w^\star\leq y_w^0\), where \(y^0\) is ordinary PPR for
+the same source distribution in degree-unscaled coordinates.  Since
+\(d^\top y^0=1\), one has \(\Delta_w\leq1/d_w\).  Multiplying the first
+bound by \(\Delta_w\) proves
+\cref{eq:aesp-cd-point-source-hitting-event-radius}.  Solving its final
+upper bound for a contribution larger than \(\delta\), and using
+\(\log(1/\lambda_\alpha)\geq2\sqrt\alpha\), proves the remaining claims.
+\end{proof}
+
+\begin{corollary}[A route-output-sensitive event locator closes point-source
+discovery]
+\label{cor:aesp-cd-point-source-route-output-interface}
+Use the standard finite reduction
+\(\rho=\epskkt=\epsppr/2\).  Suppose a dynamic locator maintains the exact
+nested point-source pivot state and, on pivot \(w\), emits every coordinate
+level crossed by \(\Delta_w h^{S,w}\).  Assume its total charged work is
+\begin{equation}
+\widetilde O\!\left(
+  \sum_{w\in S^\star}d_w
+  +
+  \sum_{(w,i,\ell)\in\mathcal E_{\rm lev}}
+   \bigl\{1+\operatorname{dist}_{G[S\cup\{w\}]}(w,i)\bigr\}
+ \right),
+ \label{eq:aesp-cd-point-source-route-output-interface}
+\end{equation}
+where \(\mathcal E_{\rm lev}\) records one item for each crossed geometric
+level, and where maintaining the principal response state, rejected queries,
+and locating an empty output are all included in this charge.  Then the
+finite reporter, exact support-safe discovery, and final obstacle
+publication use
+\begin{equation*}
+ \widetilde O\!\left(
+  \frac{\vol(S^\star)}{\sqrt\alpha}\right)
+ \subseteq
+ \widetilde O\!\left(
+  \frac1{\rho\sqrt\alpha}\right)
+\end{equation*}
+work.  The final certified-face Chebyshev solve has the same order.
+\end{corollary}
+
+\begin{proof}
+\Cref{cor:aesp-cd-finite-level-reporter} bounds the number of level records by
+\begin{equation*}
+ |\mathcal E_{\rm lev}|
+ =\widetilde O(\vol(S^\star))
+\end{equation*}
+when \(\rho=\epskkt\).  Every such record has distance at most
+\(R_{\rm hit}(\delta_{\rm fin})=\widetilde O(1/\sqrt\alpha)\) by
+\cref{lem:aesp-cd-point-source-hitting-radius}.  Also
+\(\sum_{w\in S^\star}d_w=\vol(S^\star)\).
+Substitution into
+\cref{eq:aesp-cd-point-source-route-output-interface}, followed by the
+support cap \(\vol(S^\star)\leq1/\rho\), proves the claim.
+\end{proof}
+
+\begin{corollary}[The same route-output locator closes sparse-source discovery]
+\label{cor:aesp-cd-sparse-source-route-output-interface}
+Let $s\geq0$, $\one^\top s=1$, and $T=\supp(s)$.  Under the standard
+finite reduction $\rho=\epskkt=\epsppr/2$, initialize one candidate record
+for every source row and use the exact nested positive-residual pivot state
+for the joint sparse-source objective.  Suppose the dynamic locator in
+\cref{cor:aesp-cd-point-source-route-output-interface} supplies the same
+exhaustive coordinate-level events and the same route-output charge, including
+empty reports and component mergers.  Then discovery and the final
+certified-envelope solve use
+\begin{equation}
+ |T|+\widetilde O\!\left(
+  \frac{\vol(S^\star)}{\sqrt\alpha}
+ \right)
+ \subseteq
+ |T|+\widetilde O\!\left(
+  \frac1{\rho\sqrt\alpha}
+ \right)
+ \label{eq:aesp-cd-sparse-source-route-output-interface}
+\end{equation}
+work.  Thus the unresolved locator interface is strong enough to recover the
+original additive sparse-source target; point-source specialization removes
+multi-root bookkeeping but does not weaken the value of a solution to that
+interface.
+\end{corollary}
+
+\begin{proof}
+In degree-unscaled coordinates a boundary row has key
+\begin{equation*}
+ g_v=P_v-T_v,
+ \qquad
+ P_v=c\sum_{i\in S\cap N(v)}y_i,
+ \qquad
+ T_v=\alpha(\rho d_v-s_v).
+\end{equation*}
+Reading the sparse source initializes all $T$-records in $O(|T|)$ work.
+Rows with $T_v<0$ are strict-positive pivots already at zero.  For every
+remaining row $0\leq T_v\leq\alpha\rho d_v$.  With the rounding parameters
+of \cref{cor:aesp-cd-finite-level-reporter}, a named row satisfies
+\begin{equation*}
+ \bar P_v\leq P_v
+ \leq(1+\eta_{\rm fin})\bar P_v+c d_v\delta_{\rm fin}.
+\end{equation*}
+Hence $\bar P_v>T_v$ is a safe pivot, while $\bar P_v\leq T_v$ gives
+\begin{equation*}
+ g_v
+ \leq\eta_{\rm fin}T_v+c d_v\delta_{\rm fin}
+ \leq\alpha\epskkt d_v.
+\end{equation*}
+This is the same exhaustive finite KKT dichotomy as in the point-source
+proof.  Ordinary PPR for any probability source obeys $d^\top y^0=1$, so
+every active coordinate is at most $1/d_i$; the number of geometric level
+records is unchanged.  The response column, its residual certificate, and
+its square-root event radius depend only on the current principal matrix and
+the pivot amount.  The generalized argument in
+\cref{lem:aesp-cd-point-source-hitting-radius} bounds that amount for any
+source distribution.  Finally
+\cref{prop:aesp-cd-sparse-source-radius} confines all components to the same
+source-set radius, while the support cap gives
+\(\vol(S^\star)\leq1/\rho\).  Applying the assumed route-output charge proves
+\cref{eq:aesp-cd-sparse-source-route-output-interface}.
+\end{proof}
+
+\paragraph{Dynamic-inverse scope.}
+The hypothesis in
+\cref{cor:aesp-cd-point-source-route-output-interface} is stronger than a
+named-coordinate dynamic solve.  The
+\href{https://arxiv.org/abs/1906.10530}{dynamic spectral vertex sparsifier}
+of Durfee, Gao, Goranci, and Peng supports energy-accurate named solution
+queries on bounded-degree graphs, but its stated update/query bound is
+sublinear in the ambient \(n\), not output-local in \(\vol(S^\star)\), and
+does not provide exhaustive one-sided level events.  General
+\href{https://arxiv.org/abs/1905.05067}{dynamic matrix-inverse}
+data structures and their conditional lower bounds treat much broader
+element/column update streams.  They neither instantiate the monotone
+Stieltjes locator above nor prove it impossible.  The remaining question is
+therefore a specialized dynamic Green-function reporting problem, not an
+ordinary static linear solve and not a settled dynamic-inverse lower bound.
+Likewise, the nearly-linear
+\href{https://arxiv.org/abs/1810.02348}{M-matrix solvers} of Ahmadinejad,
+Jambulapati, Saberi, and Sidford are nearly linear in the supplied input
+matrix size.  They solve the ambient linear-algebra primitive but do not
+discover an unknown output-local principal envelope or emit all one-sided
+level events, so their theorem does not by itself instantiate the locator.
+
+\begin{proposition}[Exact support pivots form a source-independent
+energy-orthogonal response basis]
+\label{prop:aesp-cd-point-source-orthogonal-pivots}
+Consider any exact nested fixed-target trace
+\(\varnothing=S_0\subset S_1\subset\cdots\subset S_J=S^\star\), with one
+positive-residual pivot \(w_j\) at a time.  Zero-pad every restricted
+solution and put
+\begin{equation*}
+ z_j:=y^{S_{j+1}}-y^{S_j}.
+\end{equation*}
+Then the nonzero increments are pairwise \(\widehat H\)-orthogonal:
+\begin{equation}
+ z_i^\top\widehat H z_j=0\quad(i\ne j),
+ \qquad
+ \|z_j\|_{\widehat H}^2
+ =K^{S_j}_{w_jw_j}\Delta_{w_j}^2
+ =g^{S_j}_{w_j}\Delta_{w_j}.
+ \label{eq:aesp-cd-point-source-pivot-orthogonality}
+\end{equation}
+Their energies telescope exactly through the restricted objective
+\(\widehat F(y)=\tfrac12y^\top\widehat Hy-\ell_\rho^\top y\):
+\begin{equation}
+ \frac12\sum_{j=0}^{J-1}\|z_j\|_{\widehat H}^2
+ =\widehat F(0)-\widehat F(y^\star)
+ =\frac12\ell_\rho^\top y^\star
+ \leq\frac{\alpha}{2}.
+ \label{eq:aesp-cd-point-source-pivot-energy}
+\end{equation}
+Under the point source $s=e_o$, the last bound sharpens to
+\(\alpha/(2d_o)\).
+Because every increment is coordinatewise nonnegative, its degree-weighted
+variation also telescopes without cancellation:
+\begin{equation}
+ \sum_{j=0}^{J-1}\sum_i d_i(z_j)_i
+ =d^\top y^\star\leq d^\top y^0=1.
+ \label{eq:aesp-cd-point-source-pivot-variation}
+\end{equation}
+Moreover, for every coordinate \(i\), Bessel's inequality gives the sharp
+leverage ledger
+\begin{equation}
+ \sum_{j:z_j\ne0}
+ \frac{(z_j)_i^2}{\|z_j\|_{\widehat H}^2}
+ \leq e_i^\top\widehat H^{-1}e_i
+ \leq\frac1{\alpha d_i}.
+ \label{eq:aesp-cd-point-source-pivot-bessel}
+\end{equation}
+In fact, after restricting to the terminal support, the increments are a
+complete basis and give the exact inverse factorization
+\begin{equation}
+ \widehat H_{S^\star S^\star}^{-1}
+ =\sum_{j:z_j\ne0}
+   \frac{(z_j)_{S^\star}(z_j)_{S^\star}^\top}
+        {\norm{z_j}_{\widehat H}^2}.
+ \label{eq:aesp-cd-pivot-inverse-factorization}
+\end{equation}
+Thus equality holds in the first leverage bound when $i\in S^\star$ and
+the inverse there is interpreted as the terminal principal inverse.
+
+Thus the changing-face response stream has bounded total energy and no
+energy-direction repetition.  The remaining finite-level task can be
+viewed as coordinate heavy-hitter reporting in this orthogonal stream.
+This ledger alone is not an algorithm: constructing or sketching a new
+dense response \(z_j\) without solving its killed-harmonic column is exactly
+the interface left by
+\cref{prop:aesp-cd-point-source-hitting-column}.
+Equivalently, the missing primitive is an online thresholded
+inverse-Cholesky-column reporter for an initially unknown terminal principal
+matrix.  A named-coordinate inverse query does not enumerate its threshold
+crossings, while an ordinary sparse factorization assumes that this terminal
+matrix is already supplied.
+\end{proposition}
+
+\begin{proof}
+The enlarged restricted equations give
+\begin{equation*}
+ [\widehat H z_j]_{S_j}=0.
+\end{equation*}
+Every earlier increment is supported on \(S_j\); symmetry therefore makes
+it orthogonal to \(z_j\).  The block formula from
+\cref{eq:aesp-cd-point-source-hitting-update} gives the norm identity in
+\cref{eq:aesp-cd-point-source-pivot-orthogonality}.  Completing the square
+on each nested restricted subspace gives
+\begin{equation*}
+ \widehat F(y^{S_j})-\widehat F(y^{S_{j+1}})
+ =\frac12\|z_j\|_{\widehat H}^2,
+\end{equation*}
+so the sum telescopes.  At the obstacle optimum,
+\(\widehat Hy^\star=\ell_\rho\) on its positive support, whence
+\(-\widehat F(y^\star)=\ell_\rho^\top y^\star/2\).
+For a general probability source, put $b=\alpha D^{-1/2}s$.  Obstacle
+comparison and the negative threshold term give
+\begin{equation*}
+ \ell_\rho^\top y^\star
+ \leq (\alpha s)^\top y^0
+ =b^\top Q^{-1}b
+ \leq\frac{\norm{b}_2^2}{\alpha}
+ \leq\alpha,
+\end{equation*}
+where $y^0$ is ordinary PPR in the same coordinates and
+\(\norm{b}_2\leq\alpha\norm{s}_1=\alpha\).  For $s=e_o$, one may instead
+use
+\(\ell_\rho^\top y^\star\leq\alpha y_o^0\leq\alpha/d_o\), giving the
+stated sharper constant.  Monotonicity of the nested restricted solves,
+\(y^\star\leq y^0\), and $d^\top y^0=1$ also prove
+\cref{eq:aesp-cd-point-source-pivot-variation}.
+
+Finally normalize the nonzero \(z_j\)'s in the \(\widehat H\)-inner product.
+They are orthonormal, while coordinate evaluation has Riesz representer
+\(\widehat H^{-1}e_i\).  Bessel gives the first bound in
+\cref{eq:aesp-cd-point-source-pivot-bessel}; the second follows from
+\(\widehat H\succeq\alpha D\).
+There are exactly $|S^\star|$ nonzero increments, and in admission order
+their restrictions to $S^\star$ form a triangular matrix with nonzero
+diagonal.  Consequently they are a basis of $\mathbb R^{S^\star}$.  If $Z$
+is the matrix of these restricted columns and
+$E=\operatorname{diag}(\norm{z_j}_{\widehat H}^2)$, then
+\begin{equation*}
+ Z^\top\widehat H_{S^\star S^\star}Z=E.
+\end{equation*}
+Invertibility of $Z$ gives
+$\widehat H_{S^\star S^\star}^{-1}=ZE^{-1}Z^\top$, which is
+\cref{eq:aesp-cd-pivot-inverse-factorization}.
+\end{proof}
+
+\begin{proposition}[Schur pivot multipliers are killed first-exit laws]
+\label{prop:aesp-cd-point-source-harmonic-exit}
+Let $S$ be any eliminated face, $E=V\setminus S$, and
+\begin{equation*}
+ \mathsf P:=\frac{c}{p}D^{-1}A,
+ \qquad
+ p=\frac{1+\alpha}{2},
+ \qquad c=\frac{1-\alpha}{2}.
+\end{equation*}
+Thus \(\mathsf P\) is the transition matrix of the ordinary random walk
+followed at every step with survival probability $c/p$.  Its trace kernel
+on $E$ is
+\begin{equation}
+ \mathsf T^S
+ :=\mathsf P_{EE}
+   +\mathsf P_{ES}(I-\mathsf P_{SS})^{-1}\mathsf P_{SE}.
+ \label{eq:aesp-cd-point-source-trace-kernel}
+\end{equation}
+Then the exterior Schur complement is exactly
+\begin{equation}
+ K^S=pD_E(I-\mathsf T^S).
+ \label{eq:aesp-cd-point-source-trace-schur}
+\end{equation}
+For a fixed-target pivot $w\in E$, every multiplier in the residual update
+has the probabilistic representation
+\begin{equation}
+ \gamma_v=-\frac{K^S_{vw}}{K^S_{ww}}
+ =\frac{\mathsf T^S_{wv}}{1-\mathsf T^S_{ww}}
+ \qquad(v\in E\setminus\{w\}).
+ \label{eq:aesp-cd-point-source-harmonic-exit}
+\end{equation}
+Equivalently, start the killed walk at $w$, ignore every return to $w$,
+and stop at the first different exterior vertex; \(\gamma_v\) is the
+probability of stopping at $v$, with the missing probability assigned to
+killing.  In particular
+\begin{equation*}
+ \sum_{v\ne w}\gamma_v\leq\frac{c}{p}
+ =1-\frac{\alpha}{p}.
+\end{equation*}
+
+Consequently the exact block reporter is a monotone transport process whose
+implicit update can be sampled without materializing Schur fill.  Literal
+walk simulation is not yet the desired acceleration: because every original
+transition kills with probability \(\alpha/p\), one such exit sample can
+take $O(p/\alpha)$ expected transitions.  The remaining algorithmic
+question is whether signed/accelerated response data can provide the same
+one-sided threshold reports in \(\widetilde O(1/\sqrt\alpha)\), amortized
+over the point-source injection budget
+\cref{eq:aesp-cd-point-source-pivot-injection}.
+\end{proposition}
+
+\begin{proof}
+The degree-unscaled Hessian factors as
+\begin{equation*}
+ \widehat H=pD(I-\mathsf P).
+\end{equation*}
+Taking its Schur complement over $S$ gives
+\begin{align*}
+ K^S
+ &=pD_E\bigl[
+   I-\mathsf P_{EE}
+   -\mathsf P_{ES}(I-\mathsf P_{SS})^{-1}\mathsf P_{SE}
+  \bigr],
+\end{align*}
+which is \cref{eq:aesp-cd-point-source-trace-schur}.  The bracketed series
+in \cref{eq:aesp-cd-point-source-trace-kernel} enumerates one trace step:
+either the walk moves directly between exterior vertices or it makes a
+positive-length excursion through $S$.  Symmetry of $K^S$ and its
+$w$-row give
+\begin{equation*}
+ -\frac{K^S_{vw}}{K^S_{ww}}
+ =-\frac{K^S_{wv}}{K^S_{ww}}
+ =\frac{\mathsf T^S_{wv}}{1-\mathsf T^S_{ww}}.
+\end{equation*}
+Summing the geometric series of repeated trace returns to $w$ proves the
+first-exit interpretation.  Since a trace excursion must survive its first
+original transition, \(\sum_v\mathsf T^S_{wv}\leq c/p\); hence
+\begin{equation*}
+ \frac{\sum_{v\ne w}\mathsf T^S_{wv}}
+      {1-\mathsf T^S_{ww}}
+ \leq\frac{c/p-\mathsf T^S_{ww}}
+           {1-\mathsf T^S_{ww}}
+ \leq\frac cp.
+\end{equation*}
+The expected-transition statement follows from geometric killing.
+\end{proof}
+
+\paragraph{Relation to principal-pivoting theory.}
+The linear number of exact support pivots is consistent with the broader
+K-matrix LCP theorem of
+\href{https://arxiv.org/abs/0807.1249}{Foniok, Fukuda, G\"artner, and
+L\"uthi}, which proves linear pivot-path length for K-matrix LCPs.  The
+point-source content used here is the explicit decreasing-\(\rho\) ratio
+parameterization, the sparse-fill locality ledger, and the finite KKT
+interface below; the note does not claim that linear pivot count itself is
+new.
+
+\begin{corollary}[Finite KKT stopping band for ratio homotopy]
+\label{cor:aesp-cd-ratio-pivot-finite-stop}
+On every point-source homotopy face and every exterior vertex,
+\begin{equation}
+ \alpha d_v\leq B_v\leq\frac{1+\alpha}{2}d_v.
+ \label{eq:aesp-cd-ratio-pivot-slope-band}
+\end{equation}
+Consequently, if a reporter certifies
+\begin{equation*}
+ \max_{v\notin S}\tau_v\leq\rho+\eta,
+\end{equation*}
+then the current restricted point at the target \(\rho\) is a lower
+subsolution satisfying
+\begin{equation}
+ R_{\mathrm{kkt},\rho}(x_S(\rho))
+ =\max_{v\notin S}\frac{[B_v(\tau_v-\rho)]_+}{d_v}
+ \leq\frac{1+\alpha}{2}\eta.
+ \label{eq:aesp-cd-ratio-pivot-finite-kkt}
+\end{equation}
+Thus it suffices to take
+\(\eta=2\alpha\epskkt/(1+\alpha)\) for the note's terminal requirement.
+An approximate Schur or ratio reporter needs a certified upper envelope only
+to this additive scale; arbitrarily small breakpoint gaps do not force exact
+support recovery.
+\end{corollary}
+
+\begin{proof}
+Nonnegativity of \(H_{SS}^{-1}\) gives \(h_S\geq0\).  The full vector
+\(\one\) is a supersolution for the derivative system because
+\begin{equation*}
+ H_{SS}\one
+ =\alpha d_S+\frac{1-\alpha}{2}A_{S,\bar S}\one
+ \geq\alpha d_S.
+\end{equation*}
+Hence \(0\leq h_S\leq\one\), and with
+\(c=(1-\alpha)/2\),
+\begin{equation*}
+ B_v=\alpha d_v+c\sum_{u\in S\cap N(v)}(h_S)_u
+ \in[\alpha d_v,(\alpha+c)d_v].
+\end{equation*}
+Since \(\alpha+c=(1+\alpha)/2\), this proves
+\cref{eq:aesp-cd-ratio-pivot-slope-band}.  Active rows have zero KKT
+residual, while in the degree-unscaled coordinates an inactive positive key
+\(g_v\) contributes \(g_v/d_v\) to
+\(R_{\mathrm{kkt},\rho}\).  Substituting
+\(g_v=B_v(\tau_v-\rho)\) proves
+\cref{eq:aesp-cd-ratio-pivot-finite-kkt}.
+\end{proof}
+
+\begin{corollary}[Certified interval interface for finite ratio pivoting]
+\label{cor:aesp-cd-ratio-pivot-interval-interface}
+On a current point-source homotopy face, suppose a reporter returns rigorous
+coordinatewise intervals
+\begin{equation*}
+ 0\leq A_v^-\leq A_v\leq A_v^+,
+ \qquad
+ 0<B_v^-\leq B_v\leq B_v^+
+ \qquad(v\notin S).
+\end{equation*}
+Put
+\begin{equation*}
+ \tau_v^-:=A_v^-/B_v^+,
+ \qquad
+ \tau_v^+:=A_v^+/B_v^-.
+\end{equation*}
+Then the following three-way interface is safe.
+\begin{enumerate}
+\item If some \(\tau_v^->\rho\), that row has a strictly positive actual
+  exterior key at the target and may be pivoted.
+\item If \(\max_{v\notin S}\tau_v^+\leq\rho+\eta\), the current restricted
+  point satisfies the finite KKT guarantee
+  \begin{equation*}
+   R_{\mathrm{kkt},\rho}(x_S(\rho))
+   \leq\frac{1+\alpha}{2}\eta.
+  \end{equation*}
+\item Otherwise the reporter may refine the gray rows or rebuild its
+  certificate; no unsupported pivot or terminal declaration is made.
+\end{enumerate}
+Thus exact breakpoint ordering is not part of the required approximate
+Schur contract.
+
+For a concrete sufficient scale, suppose
+\begin{equation*}
+ |\widehat A_v-A_v|\leq\epsilon_A d_v,
+ \qquad
+ |\widehat B_v-B_v|\leq\epsilon_B d_v,
+ \qquad
+ \epsilon_B\leq\alpha/4,
+\end{equation*}
+and intersect the corresponding centered intervals with the universal bands
+\(A_v\geq0\) and \(B_v\geq\alpha d_v\).  Every homotopy breakpoint obeys
+\(0\leq\tau_v\leq1/d_o\leq1\), and hence
+\begin{equation}
+ 0\leq\tau_v^+-\tau_v
+ \leq\frac{4(\epsilon_A+\epsilon_B)}{\alpha}.
+ \label{eq:aesp-cd-ratio-pivot-interval-width}
+\end{equation}
+In particular, normalized pair radii
+\(\epsilon_A+\epsilon_B\leq\alpha\eta/4\) are sufficient for an additive
+\(\eta\) ratio upper certificate.
+\end{corollary}
+
+\begin{proof}
+The interval ratios enclose \(\tau_v=A_v/B_v\).  The first claim follows
+from
+\(g_v(\rho)=B_v(\tau_v-\rho)>0\), and adding any strictly violated row is a
+legal monotone obstacle pivot.  The second claim is
+\cref{cor:aesp-cd-ratio-pivot-finite-stop}.
+
+The root enters at \(1/d_o\).  Every later breakpoint is a nonnegative
+weighted average of an old breakpoint and the admitted breakpoint by
+\cref{eq:aesp-cd-point-source-homotopy-mix}; hence all are in
+\([0,1/d_o]\).  A centered certified interval can overshoot the true
+\(A_v\) and undershoot the true \(B_v\) by at most
+\(2\epsilon_A d_v\) and \(2\epsilon_Bd_v\), respectively.  Since
+\(A_v\leq B_v\), \(B_v\geq\alpha d_v\), and
+\(B_v-2\epsilon_Bd_v\geq\alpha d_v/2\), direct subtraction gives
+\begin{equation*}
+ \frac{A_v+2\epsilon_A d_v}{B_v-2\epsilon_Bd_v}
+ -\frac{A_v}{B_v}
+ \leq\frac{4(\epsilon_A+\epsilon_B)}{\alpha},
+\end{equation*}
+which proves \cref{eq:aesp-cd-ratio-pivot-interval-width}.
+\end{proof}
+
+\begin{proposition}[Two-sided spectral Schur approximation is not a ratio certificate]
+\label{prop:aesp-cd-spectral-schur-ratio-stop}
+For every \(0<\varepsilon<1\), the SPD Stieltjes matrices
+\begin{equation*}
+ K_\varepsilon=
+ \begin{pmatrix}1&-\varepsilon\\-\varepsilon&1\end{pmatrix},
+ \qquad
+ \widetilde K=I
+\end{equation*}
+satisfy
+\begin{equation*}
+ (1-\varepsilon)\widetilde K
+ \preceq K_\varepsilon
+ \preceq(1+\varepsilon)\widetilde K.
+\end{equation*}
+Nevertheless, take current breakpoint pairs
+\((A_w,B_w)=(1,1)\) and \((A_v,B_v)=(0,b)\), \(b>0\), and pivot \(w\).
+The exact Schur update gives
+\begin{equation*}
+ (A'_v,B'_v)=(\varepsilon,b+\varepsilon),
+ \qquad \tau'_v=\frac{\varepsilon}{b+\varepsilon}>0,
+\end{equation*}
+whereas using \(\widetilde K\) literally gives
+\((\widetilde A'_v,\widetilde B'_v)=(0,b)\) and
+\(\widetilde\tau'_v=0\).
+Therefore an ordinary two-sided spectral vertex sparsifier or approximate
+Schur complement cannot by itself be interpreted as the certified one-sided
+ratio envelope in
+\cref{cor:aesp-cd-ratio-pivot-interval-interface}.  It must be accompanied
+by a conversion to rowwise pair-error intervals (at scale
+\(O(\alpha\eta d_v)\)), or by another directly certified reporter.  This is
+an interface obstruction, not a lower bound against spectral sparsification
+or randomized approximate elimination.
+\end{proposition}
+
+\begin{proof}
+The two eigenvalues of \(K_\varepsilon\) are
+\(1-\varepsilon\) and \(1+\varepsilon\).  The exact elimination multiplier
+is \(-K_{vw}/K_{ww}=\varepsilon\), whereas the multiplier read from
+\(\widetilde K\) is zero.  Substitution into
+\cref{eq:aesp-cd-ratio-pivot-pair} gives the displayed pairs and ratios.
+\end{proof}
+
+\paragraph{Relation to spectral elimination.}
+Nearly-linear
+\href{https://arxiv.org/abs/1605.02353}{approximate Gaussian elimination}
+and
+\href{https://arxiv.org/abs/1506.08204}{spectral vertex sparsification}
+produce sparse energy approximations, while
+\href{https://arxiv.org/abs/1906.10530}{dynamic spectral vertex
+sparsifiers} additionally support terminal changes and energy/solution
+queries.  Their stated guarantees are spectral or energy-norm guarantees,
+not simultaneous one-sided intervals for every ratio \(A_v/B_v\).  The
+preceding proposition shows that such an interval conversion is a genuine
+additional proof obligation; it does not say that these techniques cannot be
+adapted to provide one.
+
+\begin{corollary}[Margin-free accelerated obstacle primitive]
+\label{cor:aesp-cd-margin-free-obstacle-primitive}
+In the setting of
+\cref{prop:aesp-cd-speculative-envelope-doubling}, suppose on every fixed
+envelope $U$ that
+\begin{equation*}
+ \mu I\preceq H_U\preceq LI,
+ \qquad H_Uv_U\geq\mu_vv_U>0,
+\end{equation*}
+with certified parameters.  Accelerated projected-gradient scratch, followed
+by the publication in
+\cref{thm:aesp-cd-obstacle-clip-retraction}, implements the assumed
+restricted obstacle primitive in
+\begin{equation*}
+ \widetilde O\!\left(\vol(U)\sqrt{L/\mu}\right)
+\end{equation*}
+work.  No active-coordinate or strict-complementarity margin is required.
+For a principal RPPR envelope, $L\leq1$, $\mu\geq\alpha$, and one may take
+$v_U=D_U^{1/2}\one$ with $H_Uv_U\geq\alpha v_U$, giving
+$\widetilde O(\vol(U)/\sqrt\alpha)$ work.
+
+This removes the active-set margin hypothesis from the obstacle solve in
+\cref{prop:aesp-cd-speculative-envelope-doubling}.  It does not control the
+final explored volume, nor does it by itself decide an exactly zero boundary
+key with finite precision; the boundary-interval fallback in that proposition
+remains explicit.
+\end{corollary}
+
+\begin{proof}
+Projected acceleration keeps every scratch iterate feasible and reaches a
+certified $\ell_\infty$ error $\varepsilon$ after
+$O(\sqrt{L/\mu}\log(E_0/\varepsilon))$ matrix applications, for example by
+driving the standard strongly-convex objective-gap bound below
+$\mu\varepsilon^2/2$.  The retraction error amplification in
+\cref{eq:aesp-cd-obstacle-clip-pay-error} changes only the logarithmic target.
+The RPPR specialization uses the principal Stieltjes spectral bounds and the
+same positive supersolution as
+\cref{thm:aesp-cd-safe-chebyshev-face}.
+\end{proof}
+
 \begin{corollary}[Strict margins instantiate the obstacle primitive]
 \label{cor:aesp-cd-margin-obstacle-primitive}
 On a fixed envelope $U$, let
@@ -36,8 +4016,8 @@ $p_U$.  The combined work is
    \vol(U)\sqrt{L/\mu}\right),
 \end{equation*}
 where $m_x,m_g$ enter only logarithmically.  Hence
-\cref{prop:aesp-cd-speculative-envelope-doubling} is implementable under
-uniform strict active/dual margins.
+the exact face itself, rather than only a lower-safe approximation, is
+certified under uniform strict active/dual margins.
 \end{corollary}
 
 \begin{proof}
@@ -60,9 +4040,42 @@ certificate, as in \cref{thm:aesp-cd-safe-chebyshev-face}.
 \end{proof}
 
 Without strict margins, projected acceleration may leave arbitrarily small
-positive inactive coordinates and cannot certify the face at a uniform
-accuracy.  This corollary is therefore a nondegenerate conditional GO, not a
-resolution of the universal active-set problem.
+positive inactive scratch coordinates and cannot certify the exact face at a
+uniform accuracy.  The clip-or-pay publication nevertheless deletes every
+unsafe coordinate without paying its entire dual residual.  Thus strict
+margins remain useful for face identification, not for lower-safe obstacle
+publication.
+
+\begin{proposition}[Projected acceleration can spill outside the true support]
+\label{prop:aesp-cd-accelerated-support-spill}
+Even for a two-coordinate Stieltjes obstacle problem, one exact critically
+tuned projected Nesterov step can activate a coordinate outside the support of
+the true minimizer.  Hence
+\cref{cor:aesp-cd-margin-free-obstacle-primitive} makes the published output
+local, but it does not make unrestricted accelerated scratch support-local.
+\end{proposition}
+
+\begin{proof}
+Take
+\begin{equation*}
+ H=\begin{pmatrix}601/676&-45/169\\-45/169&61/169\end{pmatrix},
+ \qquad b=\begin{pmatrix}1\\-1/3\end{pmatrix}.
+\end{equation*}
+The spectrum is $\{1,1/4\}$ and the obstacle minimizer is
+$p=(676/601,0)^\top$; its second KKT slack is $61/1803>0$.
+With unit step, $x_0=0$, and critical momentum
+$\beta=(1-\sqrt{1/4})/(1+\sqrt{1/4})=1/3$, the first projected-gradient
+point is $x_1=(1,0)^\top<p$ on its support.  Extrapolation gives
+$y_1=x_1+\beta(x_1-x_0)=(4/3,0)^\top$, and the next projected point is
+\begin{equation*}
+ x_2=[y_1-(Hy_1-b)]_+
+ =\begin{pmatrix}194/169\\11/507\end{pmatrix}.
+\end{equation*}
+Thus $(x_2)_2>0=p_2$.  This stops the simplest strategy of running the full
+accelerated scratch by exposing only the final support.  It is not a lower
+bound against restricted envelopes, implicit scratch, or a different
+localized acceleration.
+\end{proof}
 
 \begin{proposition}[Cone-preserving residual polynomials cannot accelerate]
 \label{prop:aesp-cd-positive-polynomial-stop}
@@ -94,3 +4107,255 @@ nonnegative coefficients and add total degree.
 
 Thus the composite analogue of the ordinary-PPR residual-mass contraction is
 valid for arbitrary signed iterates; no nonnegativity hypothesis is needed.
+
+\begin{proposition}[A point source can require linearly many radius-one batches]
+\label{prop:aesp-cd-fan-linear-batches}
+For every even $m\geq4$ there is an unweighted $(m+1)$-vertex point-source
+RPPR instance for which every vertex is adjacent to the source, while the
+canonical exact restricted-solve rule that admits all currently
+strict-positive exterior keys takes at least $m/2-1$ nonempty batches.
+Consequently, specializing the end-to-end contract to $s=e_o$ removes the
+multi-source merge problem but does not bound the number of exact face
+changes by the support radius, even up to a graph-independent factor.
+\end{proposition}
+
+\begin{proof}
+Let vertex $0$ be adjacent to every vertex of the path
+$1-2-\cdots-m$; thus the whole fan has radius one from $0$.  Put
+\begin{equation*}
+ \rho=\frac1{4m-2},\qquad
+ U_k=\{0,1,\ldots,k,m-k+1,\ldots,m\}.
+\end{equation*}
+We first take the continuous limit $\alpha\downarrow0$.  In the
+degree-unscaled coordinates, divide every proper-face solution and every
+exterior key by $\alpha$, then multiply the equations by two.  The limiting
+restricted system has Hessian $D-A$ and load $2(e_0-\rho d)$.
+
+At $U_0=\{0\}$ the root value is
+\begin{equation*}
+ r_0=\frac{2(1-\rho m)}m.
+\end{equation*}
+The two path endpoints have key $r_0-4\rho>0$, whereas every other
+path vertex has key $r_0-6\rho<0$; after a common positive denominator their
+numerators are respectively $2(m-2)$ and $-4$.
+
+For $k\geq1$, symmetry gives one root value $r_k$ and two identical arm
+vectors $u\in\mathbb R^k$.  Let $M_k$ be tridiagonal with first diagonal
+entry $2$, all remaining diagonal entries $3$, and off-diagonal entries
+$-1$, and let $d_k=(2,3,\ldots,3)^\top$.  Writing
+\begin{align*}
+ A_k&=\mathbf1^\top M_k^{-1}\mathbf1,&
+ B_k&=\mathbf1^\top M_k^{-1}d_k,\\
+ a_k&=(M_k^{-1}\mathbf1)_k,&
+ b_k&=(M_k^{-1}d_k)_k,
+\end{align*}
+the arm and root equations are
+\begin{equation*}
+ M_ku=r_k\mathbf1-2\rho d_k,\qquad
+ r_k=\frac{2\{1-\rho(m+2B_k)\}}{m-2A_k}.
+\end{equation*}
+If $F_j$ denotes the Fibonacci sequence with $F_0=0,F_1=1$, elementary
+continuant induction gives
+\begin{equation*}
+ \det M_k=F_{2k+1},\quad
+ a_k=\frac{F_{2k}}{F_{2k+1}},\quad
+ b_k=\frac{3F_{2k}-1}{F_{2k+1}},\quad
+ A_k=k-a_k,\quad B_k=3k-1-b_k.
+\end{equation*}
+Let
+$\Delta_k=(4m-2)(m-2A_k)>0$; positivity follows also from the Schur
+complement of the proper principal Laplacian.  Every unseen vertex not next
+to an arm has the same exterior key, while the two vertices immediately next
+to the arms have one additional contribution $u_k$.  Substitution of the
+four continuant identities gives the exact signs
+\begin{equation}
+ g_k^{\rm far}=r_k-6\rho
+   =-\frac{4}{F_{2k+1}\Delta_k}<0,\qquad
+ g_k^{\rm next}=r_k+u_k-6\rho
+   =\frac{2(m-2k-2)}{F_{2k+1}\Delta_k}.
+ \label{eq:aesp-cd-fan-linear-batch-keys}
+\end{equation}
+Hence for $1\leq k<m/2-1$ exactly the next two path vertices have
+positive keys.  Every restricted solution along this trace is strictly
+interior: the root-only solution is positive, and after a strict-positive
+batch the new solution equals the zero-padded old solution plus the inverse
+of a connected proper principal Stieltjes matrix applied to a nonzero
+nonnegative residual.
+
+Return now to
+$\widehat H_\alpha=((1+\alpha)/2)D-((1-\alpha)/2)A$.
+For each of the finitely many proper faces above, the solution divided by
+$\alpha$ and its exterior keys divided by $\alpha$ are continuous at
+$\alpha=0$.  All active-coordinate and key inequalities used through
+$U_{m/2-1}$ are strict by
+\cref{eq:aesp-cd-fan-linear-batch-keys}.  Therefore some
+$\alpha_m>0$ preserves the batches
+\begin{equation*}
+ \{1,m\},\{2,m-1\},\ldots,
+ \{m/2-1,m/2+2\}.
+\end{equation*}
+There are $m/2-1$ of them, and whatever later support is selected remains
+inside the radius-one fan.
+\end{proof}
+
+\begin{corollary}[The fan batch stop disappears at the matched finite target]
+\label{cor:aesp-cd-fan-finite-stop}
+On the fan family in
+\cref{prop:aesp-cd-fan-linear-batches}, for every \(0<\alpha<1\) the
+root-only restricted point already satisfies
+\begin{equation*}
+ \frac{R_{\mathrm{kkt},\rho}(x_{\{0\}})}{\alpha}<\rho,
+ \qquad \rho=\frac1{4m-2}.
+\end{equation*}
+Hence the linear exact-support batch count is not a lower bound when the
+finite diagnostic is chosen at the matched scale
+\(\epskkt\geq\rho\), including the usual
+\(\rho=\epskkt=\varepsilon/2\) PPR reduction.  The fan remains a strict
+STOP for exact face recovery and exact-positive batch accounting, but not for
+the requested finite PPR approximation.
+\end{corollary}
+
+\begin{proof}
+Write \(p=(1+\alpha)/2\) and \(c=(1-\alpha)/2\).  The root-only value is
+\begin{equation*}
+ x_0=\frac{\alpha(1-\rho m)}{pm}.
+\end{equation*}
+Every exterior vertex is adjacent to the root, and the largest normalized
+key occurs at a path endpoint of degree two.  Therefore
+\begin{equation*}
+ \frac{R_{\mathrm{kkt},\rho}(x_{\{0\}})}{\alpha}
+ \leq
+ \left[-\rho+\frac{c(1-\rho m)}{2pm}\right]_+.
+\end{equation*}
+Since \(c(1-\rho m)<c\leq p<4pm\rho\) for
+\(\rho=1/(4m-2)\), the expression inside the positive part is strictly less
+than \(\rho\).
+\end{proof}
+
+\begin{proposition}[Matched finite-gap fan still forces linearly many re-solves]
+\label{prop:aesp-cd-fan-finite-linear-batches}
+For every even \(m\geq4\), take the same radius-one fan, but set
+\begin{equation*}
+ \alpha=\frac14,
+ \qquad
+ \rho=\tau=\frac1{10m}.
+\end{equation*}
+At each current face, solve the restricted system exactly and admit every
+exterior row satisfying the finite-significance test
+\begin{equation*}
+ g_v/d_v>\alpha\tau.
+\end{equation*}
+The admitted batches are exactly
+\begin{equation*}
+ \{1,m\},\{2,m-1\},\ldots,\{m/2,m/2+1\}.
+\end{equation*}
+Thus even the matched finite target
+\(\rho=\tau=\varepsilon/2\), with \(\varepsilon=1/(5m)\), can require
+\(m/2\) radius-one batches.  Any implementation that independently solves
+and scans the whole current face in every batch pays \(\Omega(m^2)\) work,
+whereas the desired point-source bound at this fixed \(\alpha\) is
+\(\widetilde O(m)\).  This is a lower bound for the repeated-full-solve
+implementation, not for dynamic factor reuse, principal pivoting, or another
+reporter.
+\end{proposition}
+
+\begin{proof}
+Put \(p=5/8\), \(c=3/8\), and \(t=m\rho=1/10\).  Scale a restricted
+solution by writing \(x=(\alpha/m)z\).  On the symmetric face
+\begin{equation*}
+ U_k=\{0,1,\ldots,k,m-k+1,\ldots,m\},
+\end{equation*}
+let \(z_0\) be the root coordinate and let \(u\in\mathbb R^k\) be either
+arm.  If \(T_k\) has first diagonal \(2p\), remaining diagonal \(3p\), and
+off-diagonal \(-c\), then
+\begin{equation}
+ T_ku=cz_0\one-t(2,3,\ldots,3)^\top,
+ \qquad
+ pz_0-\frac{2c}{m}\one^\top u=1-t.
+ \label{eq:aesp-cd-fan-finite-arm}
+\end{equation}
+At \(k=0\), \(z_0=(1-t)/p=36/25\).  Monotonicity of every strict-positive
+face extension therefore gives \(z_0\geq36/25\) inductively.
+
+We also have \(z_0<8/5\) on every proper \(U_k\).  To see this, fix the
+trial root value \(8/5\) and let \(\bar u\) solve the first equation in
+\cref{eq:aesp-cd-fan-finite-arm}.  Its right-hand side is \(2/5\) in the
+first row and \(3/10\) thereafter.  The constant vector \((4/5)\one\) is a
+strict supersolution, so \(0<\bar u_i<4/5\).  For \(k\geq2\), summing the
+arm rows gives
+\begin{equation*}
+ \one^\top\bar u
+ =\frac{4k}{15}+\frac4{45}+\frac2{9}\bar u_1
+   -\frac13\bar u_k
+ <\frac{4(k+1)}{15};
+\end{equation*}
+the case \(k=1\) follows directly from \(T_1=[5/4]\).  Since
+\(k\leq m/2-1\), this is less than \(2m/15\).  Hence at the trial value the
+left side of the root equation is
+\begin{equation*}
+ p\frac85-\frac{2c}{m}\one^\top\bar u
+ >1-\frac1{10}=1-t.
+\end{equation*}
+Its slope in \(z_0\) is the positive root Schur complement divided by \(m\),
+so the actual root value is strictly below \(8/5\).
+
+For an unseen path-interior vertex define the scaled residual
+\(\Gamma_v:=m g_v/\alpha\).  The finite test is
+\(\Gamma_v>t d_v\).  A vertex not immediately next to an arm has
+\begin{equation*}
+ \Gamma^{\rm far}=-3t+cz_0<3t,
+\end{equation*}
+because \(z_0<8/5\).  At \(k=0\), each path endpoint instead satisfies
+\begin{equation*}
+ \Gamma^{\rm end}=-2t+cz_0>2t.
+\end{equation*}
+For \(k\geq1\), the constant vector \((4/25)\one\) is a subsolution of the
+arm equation at every \(z_0\geq36/25\): its row images are at most the
+corresponding right-hand sides, with a strict inequality in at least one
+row.  Irreducibility gives \(u_k>4/25\).  Therefore each of the two next
+vertices has
+\begin{equation*}
+ \Gamma^{\rm next}=-3t+c(z_0+u_k)>3t.
+\end{equation*}
+Exactly those two rows pass the finite test.  Induction proves all \(m/2\)
+batches and strict interiority.  Finally every face contains the degree-\(m\)
+root, so \(m/2\) separate linear solves or boundary scans cost
+\(\Omega(m^2)\).
+\end{proof}
+
+\begin{proposition}[All-positive batches are not radius bounded]
+\label{prop:aesp-cd-all-positive-radius-stop}
+There is an eight-vertex unweighted single-seed RPPR instance whose exact
+support has radius one, but the canonical restricted-solve rule that admits
+every currently strict-positive exterior key takes five nonempty batches.
+Thus neither support radius nor BFS layers bound the number of exact batch
+resolves.
+\end{proposition}
+
+\begin{proof}
+Take seed $0$, $\alpha=1/200$, $\rho=23/800$, and edges
+\begin{equation*}
+ \{01,02,03,04,05,06,07,12,13,17,24,26,34,45,47,56,57,67\}.
+\end{equation*}
+In degree-unscaled coordinates use
+$\widehat H=((1+\alpha)/2)D-((1-\alpha)/2)A$ and
+$\widehat\ell=\alpha e_0-\alpha\rho d$.  Starting from $U_0=\{0\}$,
+exact restricted solves and simultaneous admission of all positive exterior
+keys give
+\begin{equation*}
+ \{3\},\quad\{1\},\quad\{2\},\quad\{6\},\quad\{5\},\quad\varnothing.
+\end{equation*}
+Every restricted solution is strictly interior.  The five positive key
+margins are, in order,
+\begin{equation*}
+ \frac{5013}{37520000},\quad
+ \frac{344981}{8088200000},\quad
+ \frac{49777913}{4439456576000},\quad
+ \frac{169932330613}{61418243753760000},\quad
+ \frac{44816054369}{84444409556591680}.
+\end{equation*}
+The terminal support is $\{0,1,2,3,5,6\}$, every nonseed member is adjacent
+to $0$, and the remaining keys at $4,7$ are strictly negative.  Hence
+$R_\star=1$ while the batch count is five.  This finite witness stops a
+radius-layer count, not every possible amortized batch analysis.
+\end{proof}

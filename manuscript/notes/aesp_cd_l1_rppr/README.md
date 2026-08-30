@@ -5,6 +5,238 @@ coordinate descent for the shared regularized PageRank model. The proof source
 is `main.tex` and its included sections; [`STATUS.md`](STATUS.md) is the
 current claim ledger and handoff.
 
+The point-source restriction has produced a real but qualified breakthrough.
+It closes the online cactus class, and it now closes a conductance-certified
+proper-face branch through accelerated finite ground publication, exact
+admission replay, low-rank response intervals, and a lazy planar reporter for
+the zero-band case.  It does not yet prove the universal graph theorem:
+sparse high-gap pivots can retain nonzero gray bands, while variable two-port
+blocks still need an amortized transformed-meld/event locator.
+For unweighted graphs the high-gap row radius now reduces to a common
+constant times `sqrt(s_v)`, using the same ground-coupling scalar already
+stored by the planar reporter.  This removes the last row-specific vector
+state from the shortcut, but it does not certify keys whose scalar band still
+overlaps zero.
+For one snapshot, dyadic ground-coupling bins and a Young majorant reduce
+those square-root bands back to planar affine extreme queries with less than
+1.02 inflation.  The remaining online problem is the amortization of rows
+that cross bins under a common face transform.
+An exact balanced-`K8` witness shows why this step cannot be skipped: two
+retained rows can have the same `(s_v,g_v)` state while one sparse pivot gives
+opposite signed high-mode corrections.  The two-state planar record is thus
+exact only in the zero-band branch; that interface needs finite intervals,
+additional attachment geometry, or a stronger response oracle for the gray
+branch.
+A four-scalar monotone box—lower and upper endpoints for both `s_v` and
+`g_v`—does safely replay every affine-plus-root gray update without a dense
+response.  The remaining obstacle is algorithmic: that box map contains a
+square root and a maximum, so it has no single cumulative planar transform.
+There is nevertheless a useful packing account:
+`sum_boundary s_v <= ((1-alpha)/2)*vol(A)`.  With absolute KKT hysteresis
+`eta`, only `O(vol(A)*(D/eta+C^2/eta^2))` rows can have a larger
+affine-plus-root band and require fallback.  The no-margin universal case is
+still open.
+For a true pivot RHS the bound is fully two-state observable:
+`|delta_v| <= c*q/(alpha*(1+q))*sqrt(s_v*s_w)`.  Thus the entire exact gray
+matrix has a rank-one product envelope depending only on the selected
+pivot's ground coupling and each retained row's coupling.
+Its squared corrections also have an explicit local ledger proportional to
+`s_w*vol(A)`, giving an output-sensitive count above any absolute threshold.
+Over all admissions, `sum_w s_w <= ((1-alpha)/4)*vol(S*)`; hence the squared
+pivot-side band coefficients are output-linear.  The row-side factors and
+response amounts are the remaining accumulation loss.
+Point-source unit mass nevertheless caps the complete key-side accumulation:
+for every row retained through the trace,
+`sum_j x_wj*|delta_vj| <= c^2*q*sqrt(d_v)/(alpha*(1+q))`, independently of
+the admission count.  The normalized radius decays as `1/sqrt(d_v)`, but it
+is still too large on arbitrary low-degree rows to close the target theorem.
+The observable clock `P_J=sum xi_j*sqrt(s_wj)<=sqrt(c)` makes this resettable:
+after an exact row refresh, only the subsequent global clock increment enters
+its new interval.  Finding a target-work refresh schedule remains open.
+The product form also survives finite ground publication:
+`B_tilde_v <= D_h*s_tilde_v + c_h*c*q/(alpha*(1+q))*sqrt(s_tilde_v*s_tilde_w)`.
+It needs no exact ground vector or full RHS norm.
+Since `f_tilde=s_tilde_w/v_tilde` and `M1<=2*f_tilde`, its linear coefficient
+also uses only the two row couplings and one global ground mass; no RHS moment
+scan remains.
+A charged exact-row refresh primitive plus the global clock gives a concrete
+priority-queue reporter with work
+`O_tilde(F+c^(3/2)*q*P_*F_1/2/(alpha*(1+q)*eta))`, where
+`F_1/2=sum_v a_v/sqrt(d_v)<=F` and `P_*<=sqrt(c)` is the actual final clock.
+It removes admission-count growth and reaches the target rate whenever
+`sqrt(c)*P_*F_1/2=O(alpha*F)`.  In particular, it closes either the charged
+high-degree-row branch or the high-degree-pivot branch
+`d>=alpha^(-2)`.  Only simultaneous low-degree rows and pivots retain the
+coarse factor `1/alpha` at
+`eta=alpha*eps_ppr` and `q=sqrt(alpha)`.  This isolates, rather than hides,
+the last universal rate gap.  An exact low-low `K2` trace has
+`P_*^2=c^3*alpha/(4a)=Theta(alpha)`, so unit point-source mass does not
+automatically improve the global clock to the required `O(alpha)` scale.
+That pulse is terminal, however, so it is not a reporter lower bound: a
+smaller per-row lifetime clock, stopped when the row is admitted or safely
+discarded, remains a live route to closing the low-degree branch.
+For an exact-rank-one trace this is already end to end: the Schur pivot and
+both admission scalars are recovered from the two row states and one global
+ground mass, active coordinates share the same lazy transform, and one final
+materialization plus safe Chebyshev solve gives
+`O_tilde(vol(S*)/sqrt(alpha))`.  Complete-graph point-source traces satisfy
+the hypothesis exactly.
+In fact this exact hypothesis is characterized: a new vertex must be
+universal to the current face and all old face vertices must have the same
+ambient degree, giving `gamma=(1-alpha)/(2*alpha*d)`.  Hence a whole exact
+trace is clique-prefix-like; the broader sparse case is necessarily the
+finite-band rather than zero-band branch.
+
+The oracle-free end-to-end contract is the canonical point-source problem
+`s=e_v`.  The shared definitions remain general.  Linearity extends a proved
+point-source PPR solver to a sparse distribution with work
+`nnz(s)+O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha)*eps_ppr))`; it does not give
+the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions do
+not superpose.  Point-source lower publications are, however, automatically
+rooted and connected, so no multi-source component-merge reporter is needed.
+The contract is not recursively closed: on a three-vertex path, the exact
+root-only point-source solve already leaves two positive residual sources.
+Thus coarse-to-fine bootstrapping needs a joint nonnegative-residual reporter
+or pays the linear-superposition allocation factor.
+
+There is now a sharp external regime split.  The August 2026 active-set
+algorithm of [Wei and Yang](https://arxiv.org/abs/2608.16339) computes a
+point-source ACL `eps_ppr` approximation in `O_tilde(1/eps_ppr^2)` work.
+It therefore already meets this note's target whenever
+`eps_ppr >= sqrt(alpha)`.  The unresolved point-source range is only
+`eps_ppr < sqrt(alpha)`, or `rho < sqrt(alpha)/2` under the standard
+`rho=eps_kkt=eps_ppr/2` reduction.  Their method supplies safe finite
+boundary certificates by repeatedly solving and scanning the current active
+SDD system; the radius-one finite-gap fan in this note proves that this
+particular repeated-full-solve implementation can still require
+`Omega(1/eps_ppr^2)` work.  The remaining opportunity is dynamic reuse of
+those one-sided residual certificates in the small-accuracy regime.
+
+Classical APPR already separates envelope size from discovery work more
+sharply than the ordinary-PPR superlevel screen below.  Its terminal support
+contains `S*(rho)` and is itself contained in
+`S*((1-alpha)rho/2)`, so for `alpha<1/2` it is a valid envelope of volume
+below `4/rho`; for a point source it also has
+`O_tilde(1/sqrt(alpha))` radius.  Yet APPR has tight worst-case work
+`Theta(1/(alpha*rho))`.  Hence an output-sized envelope exists and can be
+found locally; the unresolved issue is exactly accelerated construction or
+dynamic reuse of that envelope, not an output-volume theorem.
+The tight APPR star already has envelope volume `Theta(1/rho)` and radius at
+most one while spending `Omega(vol(E)/alpha)` work, so this distinction is
+not caused by distant output or a loose volume estimate.
+Indeed, if the APPR support is supplied as an oracle, accelerated proximal
+gradient on that fixed envelope gives semantic PPR for a general sparse
+source in
+`nnz(s)+O_tilde(1/(sqrt(alpha)*eps_ppr))` work without a strict support
+margin.  Even the envelope radius extends to distance from a general source
+set.  The point-source hypothesis instead turns that multi-root geometry
+into one connected rooted discovery trace.  The gap between this oracle
+theorem and the desired algorithm is therefore only the accelerated
+envelope-construction interface.
+For multiple sources, the same geometry is multi-rooted.  If the scaled
+point-source RPPR supports have disjoint closed neighborhoods, their exact
+solutions decompose at thresholds `rho/s_v`, their volumes sum to at most
+`1/rho`, and the additive sparse-source target is recovered.  Shared
+inactive rows are precisely what break this decomposition and force component
+mergers.
+The finite route-output locator reduction itself also extends to a sparse
+source with only the additive source-read cost: source rows begin as explicit
+candidate records, joint merge rows use thresholds
+`alpha*(rho*d_v-s_v)`, and the same response-radius/event charge applies.
+Across the whole trace, all source and graph-frontier candidate records total
+at most `nnz(s)+2*vol(S*)`; candidate enumeration itself is not the gap.
+Ordinary PPR also screens the support for every source distribution, but the
+sharp guaranteed volume remains only `Theta(1/(alpha*rho))`, so this linear
+screen does not supply the accelerated envelope.
+Its exact pivot increments remain energy-orthogonal for every source
+distribution, with total energy at most `alpha/2` and total degree-weighted
+variation at most one.  On the final support they give an exact inverse
+factorization, reducing the missing primitive to an online thresholded
+inverse-Cholesky-column reporter for an initially unknown principal matrix.
+Thus solving the remaining locator interface would recover the original
+additive sparse-source target, not just its point-source restriction.
+The fixed-envelope terminal composition does not identify the final positive
+face and therefore also avoids the proper-face constant-vector/Perron
+identity needed by the separate momentum-window route.
+
+Three superficially stronger point-source results do not close that hard
+range after their hidden scope is restored.  The ICDT 2024
+degree-normalized SSPPR method treats teleportation as a constant and uses
+global preprocessing; its variable-`alpha` work is still
+`O_tilde(1/(alpha eps_ppr))`.  ChebyPush has Chebyshev degree
+`K=O_tilde(1/sqrt(alpha))`, but its safe local theorem costs
+`O(K^2/eps_ppr)` under a stability assumption; that assumption is not
+graph-universal, since on a cubic high-girth ball
+`||T_k(P)||_1 >= (4/3)^(k-1)`.  A 2026 single-source estimation lower bound
+does certify the unavoidable `Omega(1/eps_ppr)` output scale, but assumes
+constant teleportation and therefore does not rule out the desired
+variable-`alpha` acceleration.  The 2026 FISTA locality
+bound has the desired accelerated core term only under confinement and adds
+`sqrt(vol(B))/(rho alpha^(3/2))` boundary work.  Thus none supplies the
+missing graph-universal one-sided reporter.
+
+Finite accuracy does remove one previously apparent obstruction.  With
+`rho=eps_kkt`, round each monotone active coordinate down on a constant-ratio
+geometric grid whose floor is `Theta(alpha eps_kkt)`.  If a rounded boundary
+sum exceeds its load baseline, the true key is positive and the row is a
+safe admission; otherwise the rounding tail is already at most the allowed
+`alpha eps_kkt d_v` KKT error.  Hence no unknown strict key margin is needed,
+and every coordinate has only logarithmically many relevant levels.  The
+unclosed interface is now specifically an online source of those level
+crossings from compressed dynamic Schur state, not exact breakpoint order.
+This interface has an exact random-walk form.  Admitting a row \(w\) raises
+the old restricted solution by \(\Delta_w h^{S,w}\), where
+\(h^{S,w}_i\) is the killed PageRank walk's probability of reaching \(w\)
+before another exterior row or killing.  Thus the reporter need only emit
+the coordinates whose killed-harmonic increment crosses their next finite
+level.  By reversibility, the degree-weighted hitting column is also the
+expected occupation distribution of a killed excursion from the pivot;
+this identifies the missing query as a dynamic degree-normalized
+significant-entry problem.  The persistent original-frontier universe itself has at most
+`2*vol(S*)` rows and all of its active incidences are exposed in
+`vol(S*)` work.  Candidate enumeration is therefore closed; compressed
+killed-harmonic level notification is the remaining general-graph primitive.
+The nested exact pivot increments also form an energy-orthogonal response
+basis, with total energy at most `alpha/d_source` and a coordinatewise
+Bessel/leverage ledger.  This removes arbitrary directional repetition from
+the missing interface, but an algorithm must still construct or sketch each
+dense harmonic response without paying for the whole current face.
+Chebyshev locality gives each such response a deterministic tail
+`sqrt(d_i/d_w) h_i <= (2/alpha) lambda_alpha^(dist(i,w)-1)`.  Therefore a
+finite-level crossing can occur only within
+`O_tilde(1/sqrt(alpha))` distance of its pivot, despite the killed walk's
+`Theta(1/alpha)` mean horizon.  This identifies the right information radius,
+but not yet the work: those neighborhoods can have huge volume and can
+overlap.
+Approximate response values are not an additional barrier: a computable
+degree-weighted response residual gives simultaneous rigorous intervals for
+every response coordinate, and a summable residual schedule is absorbed by
+the finite KKT band at only logarithmic accuracy cost.  A certified
+dual-residual energy bound improves the explicit coordinate loss from
+`1/alpha` to `1/sqrt(alpha)`.  This dual energy is exactly twice the response
+quadratic's objective gap, so a certified lower objective bound makes it
+observable; the plain residual norm is retained as the simpler solve-free
+sufficient test.  What remains is
+output-sensitive coordinate location, not exact response arithmetic.
+
+Consequently the remaining general-graph theorem now has a minimal explicit
+interface.  If a dynamic locator charges only once per crossed finite level,
+plus the graph distance from its pivot to that crossing (including all state
+maintenance and empty-output queries), then the event count and hitting-radius
+theorems immediately give `O_tilde(vol(S*)/sqrt(alpha))` discovery work.  This
+is stronger than a named-coordinate dynamic inverse: existing dynamic spectral
+solvers do not by themselves enumerate all one-sided level events.  Thus the
+single-source simplification has produced a genuine reduction, but not yet an
+implementation of the last reporter.
+
+A second exact comparison rules out a tempting shortcut.  If `y0` is
+ordinary point-source PPR, then every RPPR support coordinate satisfies
+`y0_i > alpha*rho/p`, so its `alpha*rho` superlevel is a valid containing
+envelope of volume below `p/(alpha*rho)`.  A root--candidate--large-clique
+family makes the ratio `y0_i/rho` tend to `alpha/p`; hence no universal
+`rho*sqrt(alpha)` screening threshold exists.  Ordinary-PPR thresholding
+alone cannot discover the desired accelerated-size envelope.
+
 The note proves the local KKT-mass and relative-oracle interfaces, safe lower
 centers and retraction, fixed-envelope locality, finite residual identities,
 several exact trajectory calibrations, and an unconditional accelerated result
@@ -129,10 +361,14 @@ instance-sensitive block charge
 yet reaching the radius--volume target on every cactus; it does reach that
 target whenever every root route has
 `sum_B min{p_B+1,sqrt(L_B)}=O_tilde(R*)`.  The
-bounded-productive result includes chains of arbitrarily long cycles.  The smallest still-open
-structural reporter is a cactus trace with unbounded productive sites in
-unbounded ancestor cycles, and more
-generally a variable-port series--parallel graph.  A three-vertex two-source
+bounded-productive result includes chains of arbitrarily long cycles.
+More strongly, a two-hysteretic online heavy--light decomposition removes the
+final-support oracle for every single-root cactus: every current light edge
+shrinks subtree size by at least a `2/3` factor, each node changes heavy child
+only logarithmically often, and conservative whole-path rebuilds have total
+`O_tilde(vol(S*)*R*)` work.  Thus the smallest still-open structural reporter
+is now a genuinely variable-port series--parallel block, rather than an
+unbounded cactus chain.  A three-vertex two-source
 example shows why running
 independent single-root copies does not handle component mergers.
 A small-`rho` connected-prefix realization lemma makes the square-root
@@ -148,14 +384,15 @@ tends quadratically to zero.  Thus gain-only charging needs an explicit
 relative margin or a different potential.  With a declared batch-density
 gate, the repair is exact: `||g_W||^2 >= 2 eta L work(W)` makes the Schur gain
 at least `eta work(W)`, so accepted batch costs telescope.
-If the final closed block tree, its weighted heavy--light decomposition, and
-balanced series--parallel parses are supplied offline, whole heavy paths can
-instead be rebuilt as chain-cactus superblocks and the full post-closure
-cactus reporter meets the radius--volume product.  Making those decompositions
-online is already possible for an immutable core revealed as one contiguous
-prefix by binary-counter SP merges.  Interleaved closure and response updates,
-and dynamic heavy-path changes, still require the unresolved persistent
-cut/concatenate and bulk pullback/meld interface.
+The earlier offline construction supplied the final closed block tree, its
+weighted heavy--light decomposition, and balanced series--parallel parses.
+The hysteretic theorem makes this online by allowing changed paths to be
+discarded and rebuilt, charging each structural atom to a comparable route
+node and at most logarithmically many heavy switches there.  Persistent
+cut/concatenate and bulk pullback/meld would improve this radius-paid rebuild
+to polylogarithmic maintenance, but is no longer needed for the cactus product
+bound.  It remains the missing interface for general variable-port
+series--parallel blocks.
 A separate quantitative result reduces uniformly separated RPPR boundary
 keys to monotone coordinate-level events.  This is soft-linear only when the
 level-event source is itself charged; ordinary point-query Schur messages do
@@ -174,6 +411,205 @@ interleaving child hulls.
 If every sibling pair instead has disjoint pulled-back slope intervals, one
 bridge tangent gives a logarithmic persistent meld; this is a clean
 structural GO, but not a general reporter.
+The condition is observable from the two lazy endpoint images at every
+changed meld, so the fast branch can be guarded online and abandoned safely
+when the intervals overlap.
+Separately, exact all-positive batching cannot be charged just to support
+radius.  An explicit point-source fan family has every graph vertex at radius
+one but needs at least $m/2-1$ nonempty simultaneous batches on $m$ path
+vertices; an eight-vertex exact instance additionally realizes five strict
+singleton batches.  Thus the point-source restriction removes component
+mergers, not serial boundary activation around one root.
+This obstruction is exact-support-specific: on the fan family, the
+root-only restricted point already has normalized KKT residual below
+$\rho$.  It therefore stops immediately under the matched finite choice
+$\varepsilon_{\rm kkt}\geq\rho$ used in the PPR reduction.  Exact batch
+counts must not be reused as finite-accuracy lower bounds.
+The escape is not uniform over fan parameters.  A second exact family with
+$\alpha=1/4$ and
+$\rho=\varepsilon_{\rm kkt}=1/(10m)$ passes the finite-significance test at
+exactly the next two path vertices for $m/2$ rounds.  Consequently, the
+strategy that independently solves and scans the whole current face per
+round really costs $\Omega(m^2)=\Omega(1/\varepsilon^2)$ even at the matched
+finite target.  Dynamic reuse is essential; finite accuracy alone does not
+close the product-scale theorem.
+Nor can the nonlinear obstacle be replaced by one ordinary-PPR sweep: an
+exact point-source path has an active RPPR coordinate where the corresponding
+unconstrained shifted PPR coordinate is strictly negative.
+Parametric point-source homotopy gives a sharper algebraic interface: after
+one admission, every surviving critical threshold is a nonnegative weighted
+average of its old value and the admitted maximum.  The thresholds therefore
+move monotonically, but a six-vertex exact trace reverses two candidates'
+priority order.  A plain lazy heap is insufficient; the remaining reporter
+must support nonuniform rank-one mixtures.
+The same homotopy slope canonically normalizes every connected proper face.
+If `h_A=H_A^(-1) alpha d_A` and `W_A=diag(d_i/h_i)`, then
+`0<h_A<=1`, `H_A h_A=alpha W_A h_A`, and
+`alpha W_A<=H_A<=W_A`.  Thus the exact positive generalized ground state is
+known without an eigensolve; the elimination record already recovers it.
+This supplies Perron data for a separately proved `W_A`-geometric
+correction-free tail, but it does not automatically transplant the original
+constant-direction clipping master to the new mass matrix.
+There is nevertheless an exact controller conjugacy.  With
+`R_A=diag(h_A)`, the operator
+`bar Q_A=R_A^(-1) W_A^(-1) H_A R_A` is self-adjoint in
+`bar D_A=diag(d_i h_i)`, has spectrum in `[alpha,1]`, and satisfies
+`bar Q_A 1=alpha 1`.  A `W_A`-shift and the safe cap
+`[u-Delta h_A]_+` become the ordinary identity shift and common constant cap
+after the change of variables.  Thus the fixed-face full-face algebra
+transfers exactly to a modified proper-face controller; high-gap and master
+sign certificates remain separate hypotheses.
+The high gap now has an explicit graph certificate: with
+`q=sqrt(alpha/(1-alpha))`, weighted ground conductance
+`Phi_h>=sqrt(2alpha/q)=Theta(alpha^(1/4))` implies every transformed high
+resolvent mode is at most `1-q`.  This is only a sufficient Cheeger
+condition; it does not establish the independent clipped-master sign.
+It nevertheless closes the alternative fixed-face alignment route: after an
+observable pure-prox warmup and same-point restart, all later `h_A`-caps are
+zero and the exact proper-face tail costs only
+`O_tilde(alpha^(-1/2))` resolvent applications.  Thus this positive theorem
+does not pass through the unresolved mixed-clipping master inequality.
+The certificate is nonvacuous: for `q<=1/256`, a proper `K_m` face with one
+exterior leaf and `m>=ceil(1/alpha)` has `Phi_h>=27/256`.
+The ground coordinate `h_i` is exactly the probability of teleporting before
+leaving the face.  If every vertex leaks at most an `eta` fraction of its
+edges, then `min h>=alpha/(alpha+((1-alpha)/2)eta)`, giving a direct
+ordinary-conductance or Poincare certificate without first diagonalizing the
+face.  When `eta=O(alpha)`, the sufficient scales are respectively
+`Theta(alpha^(1/4))` and `Theta(sqrt(alpha))`.  This spectral check is also
+finite: a positive approximate ground vector with local one-sided relative
+residual `eps_h` multiplicatively sandwiches the exact ground vector and
+loses only the factor `1-eps_h` in the computed conductance/Poincare lower
+bound.  Exact ground coordinates are therefore not required merely to
+certify the tail hypothesis.
+The same high-gap certificate compresses every proper-face inverse response
+to an explicit ground rank-one term plus a high-mode remainder bounded by
+`q/(alpha*(1+q))` times the centered load.  A pivot can therefore update all
+retained rows through one scalar and classify them with simultaneous error
+intervals: a row's radius uses the weighted dual norm
+`sqrt(sum_i H_vi^2*h_i/d_i)`, which is sharper than summing coordinate error
+bounds across that row.  Whenever those radii fit
+the finite KKT band, every retained row is classified without materializing
+the dense response.  Concentrated
+pivot loads can keep that band wide, so gray rows still fall back to the
+general event locator.
+The finite one-sided ground residual certificate is enough here as well:
+the exact ground mean, ground multiplier, and high-mode norm all admit
+explicit enclosures in terms of the approximate ground vector.  Hence the
+row intervals are implementable without exact eigendata or an exact ground
+solve.
+A truncated killed-walk Neumann series constructs that one-sided ground
+certificate locally and monotonically, with residual factor
+`((1-alpha)/(1+alpha))^K`.  It closes correctness without an eigensolver, but
+its `O(vol(A)/alpha)` scale is not accelerated.  A signed Chebyshev scratch
+solve followed by the safe Stieltjes max-retraction does achieve the same
+one-sided certificate in `O_tilde(vol(A)/sqrt(alpha))` work: the explicit
+positive checkpoint `2*alpha/(1+alpha)*sqrt(d)` keeps the publication on the
+full face, while the output error bound controls every residual coordinate.
+Hence the ground preprocessing loss is closed; the conductance/Poincare lower
+certificate itself remains a separate structural hypothesis.
+Nor must this ground solve be repeated after every admission.  The new-face
+ground vector is the old one plus the newly admitted scalar times the same
+nonnegative pivot-response column already charged to discovery.  With
+one-sided finite inputs, the old residual becomes exactly `r_h+t*r_u` and the
+new coordinate residual is zero, so declared response residual budgets add
+without a new face solve.  No full-face guard is needed for the finite sparse
+response: its right-hand side is nonnegative, so every zero coordinate of the
+safe publication also has nonnegative residual by the Stieltjes signs.
+One pivot response can therefore be certified by normalized safe Chebyshev in
+`O_tilde(vol(A)/sqrt(alpha))` work.  Repeating that solve independently after
+every admission would still be the forbidden face-by-face rebuild; the open
+interface is amortized response reuse/emission, not finite response safety.
+In the exact rank-one subcase, that reuse now has a concrete implementation:
+each persistent row is a planar point `(ground coupling, key)`, every
+nonneighbor receives one common triangular 2-by-2 transform, and only the
+newly admitted neighbors are rewritten explicitly.  A cumulative lazy matrix
+plus dynamic planar extreme queries gives soft-linear reporter work.  The
+conductance-certified inexact version uses the same structure with propagated
+row bands; accumulated gray rows, not the common motion, are the remaining
+fallback set.
+Every prefix of an unweighted complete graph realizes the exact branch:
+`h` and each exterior response are constant and
+`u=(1-alpha)/(2*alpha*(n-1))*h`, so its gray band is identically zero.
+Conversely, an exact `K8` face with two exterior leaves passes the required
+high-gap threshold at `alpha=1/17,q=1/4` but a sparse leaf pivot retains the
+nonzero high-mode coordinate `-281/20320`.  High gap therefore bounds gray
+rows; it does not make every sparse pivot exactly rank one.
+Keeping the complete exterior Schur complement turns that identity into an
+exact ratio-pivot homotopy algorithm: every support coordinate enters once,
+and the target support is certified when the largest remaining ratio falls
+below $\rho$.  Its discovery work is
+$\widetilde O(\vol(S^\star)+\sum_w(1+\delta_w)^2)$, where $\delta_w$ is the
+actual Schur-fill degree at pivot $w$.  Bounded homotopy width therefore gives
+a genuine product-scale point-source solver after the final-face Chebyshev
+step.  Explicit fill can still be quadratic (already at a high-degree root),
+so this is a new structural GO rather than the universal theorem.
+Linear pivot-path length for K-matrix LCPs is classical
+([Foniok--Fukuda--Gärtner--Lüthi](https://arxiv.org/abs/0807.1249)); the
+new role here is the point-source $\rho$-ratio parameterization, sparse-fill
+ledger, and finite-error contract, not the number of exact pivots alone.
+At a single requested $\rho$, this simplifies further: maintain only the
+scalar restricted residual $g_v=A_v-\rho B_v$, pivot any certified-positive
+row, and stop when all certified upper residuals meet the normalized KKT
+tolerance.  Point-source locality makes this row discovery complete because
+every nonroot row not yet adjacent to the support still has strictly negative
+load.  Thus the weakest missing universal interface is now a dynamic
+one-sided residual reporter; separate ratio vectors are needed only for the
+full $\rho$-homotopy.
+In degree-unscaled coordinates the same point-source obstacle is exactly a
+killed divisible-sandpile odometer: a legal push sends the fraction
+`(1-alpha)/(1+alpha)` of its removed residual to its neighbors and dissipates
+the rest.  The obstacle vector is the coordinatewise least stabilizer, so
+every fair full-toppling order converges to it.  This explains the rooted
+Abelian growth structure, but also calibrates its limitation: residual-cone
+local topplings still have only the classical
+`O(1/(alpha*eps_kkt))` work certificate.  The Schur residual pivot is an
+exact block toppling; acceleration must come from representing those block
+responses economically.
+The total positive exterior residual mass is also nonincreasing and starts
+below $\alpha$.  In fact each pivot removes at least
+$\alpha/p$ times its admitted residual from this mass, so the sum of all
+block-pivot residual injections over any legal order is at most
+$(1-\alpha)/2$.  Hence at any one time at most
+$1/\varepsilon_{\rm kkt}$ rows can exceed the finite KKT threshold.  This
+does not yet bound lifetime rekeys, but it is a genuine finite-accuracy
+sparsity invariant absent from exact support recovery.
+Every Schur multiplier is also exactly the first-exit distribution of the
+PageRank walk killed at rate (2\alpha/(1+\alpha)) and traced through the
+current active face.  This samples one dense fill column implicitly, but a
+literal walk still has (O(1/\alpha)) expected length.  The missing
+acceleration is therefore a one-sided threshold reporter for these harmonic
+transports, not merely an ordinary random-walk sampler.
+A separate forward-push/Monte-Carlo audit reaches the same boundary.  After
+pushing to normalized residual threshold `theta`, reversibility bounds every
+degree-normalized residual correction by `theta`, so an `O(1)` endpoint
+oracle would attain the target after balancing
+`theta=eps_ppr/sqrt(alpha)`.  Literal endpoints cost
+`Theta(1/alpha)` walk steps each; charging them moves the optimum back to
+`O_tilde(1/(alpha*eps_ppr))`.  This rules out only the literal push--walk
+implementation, not randomized shortcut preprocessing or a compressed
+endpoint oracle.
+The same homotopy has a margin-free approximate stopping rule:
+$\alpha d_v\leq B_v\leq(1+\alpha)d_v/2$, so an additive upper error
+$\eta$ on the largest remaining critical ratio costs at most
+$(1+\alpha)\eta/2$ in the normalized KKT diagnostic.  Exact support and
+exact breakpoint separation are therefore unnecessary at the requested
+finite accuracy.
+A certified interval version makes the remaining approximation contract
+explicit: rowwise pair radii of order $\alpha\eta d_v$ suffice for additive
+ratio accuracy $\eta$, and the reporter may safely pivot, stop, or refine a
+gray row.  A two-by-two exact witness shows why a generic two-sided spectral
+Schur approximation is not already such a certificate: an
+$\varepsilon$-spectral perturbation can replace a positive updated breakpoint
+by zero.  Approximate elimination therefore still needs a rowwise one-sided
+error conversion; this is the present general-graph bridge.
+This distinction matters when importing near-linear
+[approximate Gaussian elimination](https://arxiv.org/abs/1605.02353),
+[spectral vertex sparsifiers](https://arxiv.org/abs/1506.08204), or their
+[dynamic variants](https://arxiv.org/abs/1906.10530): those papers certify
+spectral/energy behavior, while the ratio-pivot stop needs simultaneous
+one-sided row intervals.  Whether those tools can be augmented to supply the
+intervals at local cost is now the precise open interface.
 An exact RPPR theta core proves that one direction-free scalar threshold is
 insufficient, while a weighted fan has a quadratic-size explicit obstacle
 response table; neither statement is an algorithmic lower bound.
@@ -190,6 +626,22 @@ not yield arbitrary hierarchical affine pullback together with persistent
 hull meld/split and strict labeled argmax.  Thus these papers validate the
 neighboring ingredients, but using them here still requires a new reduction
 or a stronger reporter theorem.
+A supplied balanced series--parallel parse nevertheless has an unconditional
+exact fallback that avoids meld entirely.  Snapshot static hulls at all
+canonical clusters, mark the root paths of changed home leaves dirty, query
+the maximal clean sibling cover, and rebuild after `sqrt(N)` distinct
+touches.  This costs `O_tilde(N+J sqrt(N))`; it meets the product budget when
+the charged block radius is at least `sqrt(N)`.  The remaining variable-port
+gap is precisely to remove that square-root loss (or charge it) while also
+paying online parse discovery and inactive halo.
+If only `p` distinct home leaves ever change, the same online scheme sharpens
+to `O_tilde(N+J min(p+1,sqrt(N)))`, so repeated mutations through a small
+productive interface are also product-scale when `p+1<=R*`.
+The overlap is genuinely unbounded for an explicitly merged chain: a
+weighted SP fan has even/odd child envelopes whose facets alternate, and one
+bulk child translation removes or reinserts linearly many parent facets.
+Thus constant-bridge repair cannot improve the epoch bound; a successful
+improvement must keep the transform/meld lazy or use a different reporter.
 [Kinetic/dynamic hulls](https://doi.org/10.1016/j.comgeo.2006.01.002) also
 allow points with declared bounded-complexity trajectories and individual
 flight-plan changes.  A Schur update, however, changes the pulled-back
@@ -198,10 +650,14 @@ plan update per row reproduces the very materialization charge at issue.
 Speculative coordinate-envelope doubling gives a second conditional route:
 its solves geometrically sum to
 `O_tilde(vol(U_final)/sqrt(lambda_floor))`, but `U_final` includes inactive
-halo and need not be controlled by `vol(S*)`.  Under strict primal/dual active
-margins, accelerated projected-gradient scratch identifies the face and the
-safe Chebyshev publisher implements the required obstacle primitive.  Without
-those margins, support discontinuity and high-degree inactive decoys remain.
+halo and need not be controlled by `vol(S*)`.  A margin-free clip-or-pay
+retraction now converts feasible accelerated projected-gradient scratch into
+an order-safe obstacle subsolution in the required
+`O_tilde(vol(U)/sqrt(alpha))` work.  It charges each unsafe coordinate either
+to its small primal value or to its residual, so strict complementarity is no
+longer needed for this fixed-envelope primitive.  Strict margins remain useful
+only when the exact active face itself must be identified.  High-degree
+inactive decoys and dynamic boundary reporting still remain.
 The RPPR support cap nevertheless gives a universal retained-volume result:
 by keeping at most `1/rho` inactive halo volume in addition to the true active
 support, an exact dynamic obstacle protocol never retains more than `2/rho`
@@ -218,8 +674,9 @@ and face-stability certificates; the bridge does not manufacture them.
 The common-cap truncation ledger is also joint: correction and surviving
 momentum `Q`-energies share one copy of the telescoping energy drop.
 
-The live target is to batch and certify face discovery, pack failed
-proper-face windows, and charge changing-face replays.
+The primary live target is the output-sensitive online one-sided event
+locator, beginning with variable two-port series--parallel blocks; a secondary
+route is to pack failed proper-face windows and finite changing-face replays.
 No graph-uniform exact accelerated solver or unconditional
 `O_tilde(1/(rho*sqrt(alpha)))` end-to-end theorem is claimed. In particular:
 
@@ -248,7 +705,7 @@ Build the note from the repository root with:
 make -C manuscript/notes/aesp_cd_l1_rppr
 ```
 
-Run all twenty exact audits with:
+Run all twenty-seven exact audits with:
 
 ```bash
 uv run python -m experiments.proof_audits.runner \
@@ -277,6 +734,13 @@ Their durable IDs are:
 - `aesp_cd_l1_rppr.tree_singleton_threshold` (Round 040).
 - `aesp_cd_l1_rppr.separated_level_reporter` (Round 041).
 - `aesp_cd_l1_rppr.variable_two_port_stops` (Round 042).
+- `aesp_cd_l1_rppr.radius_batch_stop` (Round 043).
+- `aesp_cd_l1_rppr.obstacle_clip_retraction` (Round 044).
+- `aesp_cd_l1_rppr.accelerated_support_spill` (Round 045).
+- `aesp_cd_l1_rppr.point_source_scope` (Round 046).
+- `aesp_cd_l1_rppr.fan_linear_batches` (Round 047).
+- `aesp_cd_l1_rppr.point_source_homotopy` (Round 048).
+- `aesp_cd_l1_rppr.point_source_ratio_pivot` (Round 049).
 
 The full tier includes the optional P7 corroborating trace. These audits check
 the scoped exact identities and source guardrails; they do not promote the

@@ -1,0 +1,692 @@
+\begin{abstract}
+We give an at-most-two-stage framework for point-source personalized
+PageRank.  A hard-capped first stage either returns an accurate numerical
+point, certifies a coordinate envelope, or publishes a lower-safe point with
+small residual mass.  In the set-only branch one fixed principal PageRank
+system is accelerated; in the mass branch APPR/SOR completes the residual.
+All momentum is discarded at the handoff and direct APPR is an unconditional
+fallback.  Point-source Green decay yields a particularly short set-only
+lane: expose one certified rooted ball, solve it once, and race this lane
+against APPR.  On 90 high-accuracy deterministic instances this lane succeeds
+in 85 and strictly beats the better direct baseline in 22 standalone.  After
+charging the concurrent APPR lane, 15 remain strict wins.  Its strongest
+non-star standalone ratio is $0.103$.
+On certified fixed-treewidth envelopes, sparse elimination strengthens the
+successful branch to $O(1/\varepsilon)$.  With the exact-tail budget tuned,
+56 of 75 balls pass the cap, 50 win standalone, and 35 remain wins after the
+fair APPR charge.
+Coarse APPR snapshots and positive-residual SOR also give exact-support
+races.  Returning the exact verifier point gives four and five fair-race
+wins.  Charging a separate fresh ordinary-PPR solve to enforce literal
+two-stage execution leaves two APPR-proposal and all five SOR-proposal wins;
+failure stays within a factor two of direct APPR.
+On trees, scalar threshold messages identify the exact support
+unconditionally; the implementation certifies all $60$ large instances and
+wins $14$ of $51$ nontrivial comparisons after the fair APPR charge.  A
+literal second-stage ordinary-PPR solve has the same count because it replaces
+the one RPPR recovery solve; it is not appended to it.
+The framework requires neither exact RPPR support nor acceleration across
+changing faces; exact support remains an optional margin-dependent verifier.
+\end{abstract}
+
+\section{Model and the reduction}
+
+Let $G=(V,E_G)$ be a finite simple undirected graph without isolates,
+$A$ its adjacency matrix, and $D$ its degree matrix.  For
+$0<\alpha\leq1$, put
+\begin{equation}
+ Q:=\alpha I+\frac{1-\alpha}{2}
+      \bigl(I-D^{-1/2}AD^{-1/2}\bigr),
+ \qquad b:=\alpha D^{-1/2}e_v.
+ \label{eq:short-q}
+\end{equation}
+The point-source PPR vector in shared coordinates is $x^0=Q^{-1}b$ and the
+semantic target is
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\varepsilon.
+ \label{eq:short-target}
+\end{equation}
+The matrix $Q$ is symmetric Stieltjes, has spectrum in $[\alpha,1]$, and
+satisfies
+\begin{equation}
+ QD^{1/2}\one=\alpha D^{1/2}\one,
+ \qquad Q^{-1}\geq0.
+ \label{eq:short-comparison}
+\end{equation}
+Work is the sum of degrees of every scanned or updated row; all candidate
+generation, boundary checks, matrix applications, and output writes count.
+Classical APPR supplies the monotone local baseline
+\citep{andersen2007using}; accelerated sparse PageRank motivates the target
+product scale \citep{martinezrubio2023accelerated,huang2025accelerated}; and
+the changing-support difficulty for $\ell_1$-regularized PageRank is the
+reason for isolating the fixed-envelope continuation
+\citep{fountoulakis2026complexity}.
+
+The key reduction is to stop asking a single accelerated trajectory to both
+discover graph coordinates and converge numerically.  A first stage may use
+APPR, priority SOR, AESP-CD on temporary fixed envelopes, rooted balls, or a
+structural response oracle.  It has three certified exits:
+\begin{enumerate}[leftmargin=2.2em]
+\item an $\varepsilon$-accurate numerical point, which returns immediately;
+\item an envelope $U$ whose exact principal PPR solution has small boundary
+  leakage, followed by one fixed solve;
+\item a PPR subsolution with $O(\sqrt\alpha)$ missing mass, followed by
+  monotone APPR/SOR cleanup.
+\end{enumerate}
+No accelerated state crosses an envelope change.  A speculative lane retains
+at most a declared volume cap $B$; if it cannot certify an exit, direct APPR
+continues from its raced state (or safely restarts from zero if no concurrent
+state was retained).  A constant-size fair race loses only a constant factor
+to the first complete lane.
+
+\section{A complete set-only two-stage lane}
+
+The point-source restriction supplies a set-only proposal directly.  When
+$\alpha=1$, $Q=I$ and the one-coordinate solution is returned immediately;
+in the remaining case $0<\alpha<1$, put
+\begin{equation}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \qquad
+ R_\delta:=\left\lceil
+  \frac{\log(2/\delta)}
+       {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \right\rceil .
+ \label{eq:short-green-radius}
+\end{equation}
+
+\begin{theorem}[Hard-capped Green--CG lane]
+\label{thm:short-green-cg}
+Let $U=B(v,R_\delta-1)$ and abort before retaining a row that would make
+$\vol(U)>B$.  If the ball completes, solve $Q_Uu=b_U$ from zero by CG,
+stopping when
+\begin{equation*}
+ \norm{b_U-Q_U\widehat u}_2\leq\alpha\tau,
+\end{equation*}
+and return the zero extension of $[\widehat u]_+$.  The returned point is
+$(\delta+\tau)$-accurate in \cref{eq:short-target}.  The successful lane uses
+\begin{equation}
+ O\!\left(B+\frac{B}{\sqrt\alpha}
+       \log\frac{C}{\tau}\right)
+ \label{eq:short-green-work}
+\end{equation}
+degree work.  Racing it one-for-one against direct APPR costs at most twice
+the faster complete lane; if the cap aborts, total work is at most twice the
+direct-APPR work.  Thus $B=2/\varepsilon$ and
+$\delta=\tau=\varepsilon/2$ give an unconditional adaptive algorithm with a
+successful product-scale branch and the classical APPR fallback.
+\end{theorem}
+
+\begin{proof}
+The point-source Green estimate gives
+\begin{equation*}
+ 0\leq x_i^0\leq
+  2\lambda_\alpha^{\operatorname{dist}(v,i)}\sqrt{d_i}.
+\end{equation*}
+Thus every coordinate outside $U$ has normalized amplitude at most $\delta$.
+Principal inverse positivity gives $0\leq\widetilde u_U\leq x^0$; the same
+Schur-complement comparison bounds
+$\norm{D^{-1/2}(x^0-\widetilde u_U)}_\infty$ by $\delta$.
+Since $Q_U\succeq\alpha I$, the residual stopping rule gives normalized
+principal error at most $\tau$.  CG has the work in
+\cref{eq:short-green-work}.  Finally, alternate one charged quantum of the
+Green--CG lane with one quantum of APPR.  A successful lane finishes after at
+most twice its own work.  If the screen aborts first, remove it and continue
+APPR; its failed quanta are no more than the APPR quanta already executed.
+\end{proof}
+
+\begin{corollary}[Fixed-treewidth tail]
+\label{cor:short-green-structural}
+If the completed Green envelope has a certified elimination order of width
+$w$, sparse elimination and back substitution replace CG and give successful
+work
+\begin{equation*}
+ O(B+w^3B).
+\end{equation*}
+For trees and unicyclic graphs this is $O(B)$; with $B=2/\varepsilon$, the
+successful branch is $O(1/\varepsilon)$ and has no
+$1/\sqrt\alpha$ factor.
+Because this solve is exact, it may use the full truncation budget
+$\delta=\varepsilon$ rather than the generic split
+$\delta=\tau=\varepsilon/2$.
+\end{corollary}
+
+\begin{proof}
+Every elimination bag contains at most $w+1$ live variables, so its dense
+Schur update costs $O(w^3)$; a certified width-$w$ order has $O(|U|)$ bags and
+$|U|\leq\vol(U)\leq B$.  Back substitution has no larger cost.  On a tree,
+leaf elimination scans each incidence a constant number of times; a cycle has
+width two.
+\end{proof}
+
+If an exact RPPR face verifier has already factored $Q_A$, a strict
+ordinary-PPR Stage~II changes only the right-hand side.  It may reuse those
+factors and pay one additional backsolve, $O(w^2\vol(A))$ in width $w$ and
+$O(\vol(A))$ on a tree or unicyclic graph.  The measurements below are more
+conservative: their literal two-stage columns charge a fresh structural solve.
+
+This theorem is the cleanest answer to the exact-support question: Stage~I
+need not identify $S^\star$.  It identifies a certified \emph{approximate
+envelope} using only adjacency exploration.  Exact support is a discontinuous
+contract without a KKT margin, whereas semantic PPR accuracy only needs this
+Green envelope.
+
+There is also a literal exact-support version.  With an exact structural
+face solve, set $\rho=\varepsilon$ and reserve no terminal numerical budget;
+run priority APPR toward its numerical $\varepsilon$ endpoint, and at charged
+checkpoints snapshot its support or a charged one-hop expansion $A$.  Solve
+$Q_Ap_A=c_{\rho,A}$ and test positivity plus every boundary KKT row.  A pass
+proves $A=S^\star(\rho)$ and the returned point is already
+$\varepsilon$-accurate for PPR.  Race all verifier work one-for-one against
+the continuing APPR state; failure therefore costs at most twice direct APPR.
+\begin{theorem}[APPR-to-exact-face race]
+\label{thm:short-appr-face-race}
+The preceding snapshot race is unconditionally correct and uses at most
+$2W_{\rm APPR}(\varepsilon)$ work.  On a tree or unicyclic candidate, one
+leaf/cycle elimination and one boundary scan implement the exact verifier in
+$O(\vol(A))$ work.
+\end{theorem}
+In the fixed 90-case large-graph sweep, checkpoints at
+$16\rho,8\rho,4\rho,2\rho$ complete 19 nontrivial exact-support certificates
+before the direct lane; four have total-work ratios below one, namely $0.132$,
+$0.276$, $0.590$, and $0.921$.  Thus APPR plus a one-shot AESP/structural verifier is a real
+certificate strategy, although not a uniform acceleration theorem.  If a
+fresh ordinary-PPR face solve is charged after certification, four cases
+remain standalone wins and the two star cases remain fair-race wins.
+Retaining the verifier factors raises the standalone count to six; the fair
+count remains two.
+
+Replacing APPR proposals by positive-residual SOR gives the AESP-CD version
+of the same idea.  A lower-safe point can expose only true support rows:
+for inactive $i$, $z\leq x_\rho^\star$ and the Stieltjes signs imply
+$(c_\rho-Qz)_i\leq(c_\rho-Qx_\rho^\star)_i\leq0$ whenever
+$(x_\rho^\star)_i=0$.  Hence priority SOR may grow a support-safe face,
+launch the structural KKT verifier only at geometric work checkpoints, and
+restart once when it passes.  The fair APPR fallback is unchanged.  In the
+same sweep this lane finishes first in eight cases and, after charging both
+lanes, strictly beats direct APPR in five, with best ratio $0.088$.  This is
+the numerical early-return accounting.  A separately charged fresh
+ordinary-PPR face solve leaves the same five fair-race wins, so this lane is
+also a literal ``AESP-CD/SOR discovers, fixed face solves'' strategy; its
+serial-frontier cases fall back rather than receiving a universal claim.
+The retained-factor charge raises its standalone count from five to seven.
+
+A more literal baseline solves the current RPPR face exactly, admits every
+strictly positive exterior KKT row, and repeats.  Stieltjes inverse positivity
+implies that the new face point dominates the padded old point, so all
+admissions are support-safe; a face with no positive exterior row is exactly
+the global obstacle KKT certificate.  The work is the sum of all face
+solve-and-scan costs, so singleton paths prevent a universal product bound.
+With $\rho=\varepsilon$, the structural implementation certifies $75$ of
+$90$ cases; it finishes before APPR in $43$ standalone, and $13$ remain wins
+after the one-for-one race when its exact RPPR point returns immediately.
+After charging a fresh ordinary-PPR Stage~II, $33$ standalone and $8$ fair
+wins remain; retaining the final factors raises these to $37$ and $9$.
+Stars batch $1023$ leaves at once, whereas a
+representative path still needs $38$ singleton refits.
+
+The tree case is stronger and closes without a race assumption.
+\begin{theorem}[Exact point-source tree closure]
+\label{thm:short-tree-exact-support}
+On a tree, the point-source RPPR support and its exact restricted point can be
+found in
+\begin{equation*}
+ \widetilde O\!\left(
+   \vol(S^\star)+\sum_{i\in S^\star}\operatorname{dist}(v,i)
+ \right)
+ =\widetilde O\!\left(
+   \frac{1+\vol(S^\star)}{\sqrt\alpha}
+ \right)
+\end{equation*}
+degree work.  If the terminal leaf solve is exact, choose
+$\rho=\varepsilon$ and give it zero numerical error budget; the result is
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$.  If only the set is exported,
+one leaf elimination solves the ordinary principal PPR system in an
+additional $O(\vol(S^\star))$ work.
+\end{theorem}
+
+\begin{proof}[Proof idea]
+Root the tree at the source.  Eliminating the active descendants of $u$
+gives a scalar affine response
+$x_u=(\beta_u x_{p(u)}+B_u)/A_u$ with $A_u>0$.  An inactive child contributes
+the threshold at which its KKT key becomes positive; an active child
+propagates the minimum threshold in its subtree through the same affine map.
+A handled heap at each vertex therefore names one genuinely positive
+frontier row, or certifies that all frontier rows are nonpositive.  Admitting
+the named row changes one record on its root path.  Each adjacency list is
+scanned once, so the total route charge is the first display.  At termination
+the active equations and exterior inequalities are the global obstacle KKT
+conditions.  The point-source radius bound gives the second equality, and
+$\vol(S^\star)\leq1/\rho$ gives the final specialization.
+\end{proof}
+
+This structural theorem explains precisely what the single-source
+restriction buys: one rooted response hierarchy.  Multiple positive loads
+can meet at a pinned row and must aggregate before activation, so independent
+single-source reporters do not compose.
+
+The implementation follows the proof literally and roots only rows when they
+are admitted; it does not pre-scan the ambient tree.  Across $60$ path, star,
+binary-tree, and broom cases of size $1024$--$2047$, every reported face passes
+an independent fixed-face solve and global KKT scan.  On the $51$ nontrivial
+direct-APPR comparisons, the complete lane wins $27$ standalone and $14$
+after a one-for-one APPR race.  The literal set-only-then-PPR version has the
+same charged work: the fixed PPR solve substitutes for recovery of the RPPR
+point.  The exact terminal solve permits the tuned choice $\rho=\varepsilon$.
+For example, at $(\alpha,\varepsilon)=(0.01,10^{-4})$ its path and broom each
+cost $1630$ versus $6312$, while the full-support star costs $17391$ versus
+$116622$.  At $\varepsilon=5\cdot10^{-4}$ the star support collapses to the
+source and the ratio is $2046/34782=0.059$.  The independent RPPR solve and
+KKT scan used to audit the implementation are not required by the exact
+message algorithm.
+
+\section{The shortest set-only certificate}
+
+Let $U\ni v$ and write
+\begin{equation}
+ u_U:=Q_U^{-1}b_U,
+ \qquad \widetilde u_U:=\text{the zero extension of }u_U.
+ \label{eq:short-principal}
+\end{equation}
+Set $c=(1-\alpha)/2$.  Suppose a coarse fixed solve returns
+$\widehat u_U$ and a certified error bar
+\begin{equation}
+ \max_{i\in U}\frac{|(u_U)_i-(\widehat u_U)_i|}{\sqrt{d_i}}
+ \leq\eta.
+ \label{eq:short-error-bar}
+\end{equation}
+For every exterior boundary vertex $j$, compute
+\begin{equation}
+ \widehat\ell_j
+ :=\frac{-Q_{jU}\widehat u_U}{\sqrt{d_j}}
+ =\frac{c}{d_j}\sum_{i\in U\cap N(j)}
+       \frac{(\widehat u_U)_i}{\sqrt{d_i}}.
+ \label{eq:short-leakage-estimate}
+\end{equation}
+
+\begin{theorem}[Boundary-leakage gate]
+\label{thm:short-leakage}
+If
+\begin{equation}
+ \widehat\ell_j+c\frac{\deg_U(j)}{d_j}\eta
+ \leq\alpha\delta
+ \qquad(j\in\partial U),
+ \label{eq:short-leakage-gate}
+\end{equation}
+then
+\begin{equation}
+ 0\leq\widetilde u_U\leq x^0,
+ \qquad
+ \norm{D^{-1/2}(x^0-\widetilde u_U)}_\infty\leq\delta.
+ \label{eq:short-leakage-result}
+\end{equation}
+It is sufficient to take the observable residual error bar
+\begin{equation}
+ \eta=\frac{\norm{b_U-Q_U\widehat u_U}_2}{\alpha}.
+ \label{eq:short-residual-bar}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+For $r=b-Q\widetilde u_U$, the rows in $U$ vanish.  Since the sole positive
+load lies in $U$, every exterior row is
+$r_j=-Q_{jU}u_U\geq0$, and every nonboundary row is zero.  The error bar and
+the Stieltjes edge weights give
+\begin{equation*}
+ \frac{r_j}{\sqrt{d_j}}
+ \leq \widehat\ell_j
+      +c\frac{\deg_U(j)}{d_j}\eta
+ \leq\alpha\delta.
+\end{equation*}
+Thus $0\leq r\leq\alpha\delta D^{1/2}\one$.  Applying inverse positivity
+and \cref{eq:short-comparison} proves
+$0\leq Q^{-1}r=x^0-\widetilde u_U\leq\delta D^{1/2}\one$.
+Finally, $Q_U\succeq\alpha I$ and $d_i\geq1$ imply
+\cref{eq:short-residual-bar}.
+\end{proof}
+
+The gate can be evaluated before any signed scratch.  Let $z\geq0$ be a
+global APPR/SOR subsolution with residual $r=b-Qz\geq0$ and
+$U=\supp(z)$.  Define
+\begin{equation*}
+ \eta_U:=\max_{i\in U}\frac{r_i}{\sqrt{d_i}}.
+\end{equation*}
+Then
+\begin{equation}
+ 0\leq u_U-z_U\leq\frac{\eta_U}{\alpha}D_U^{1/2}\one,
+ \label{eq:short-monotone-box}
+\end{equation}
+because $Q_U(u_U-z_U)=r_U$ and
+$Q_UD_U^{1/2}\one\geq\alpha D_U^{1/2}\one$.  Therefore the observable test
+\begin{equation}
+ \frac{r_j}{\sqrt{d_j}}
+ +c\frac{\deg_U(j)}{d_j}\frac{\eta_U}{\alpha}
+ \leq\alpha\delta
+ \qquad(j\in\partial U)
+ \label{eq:short-monotone-leakage}
+\end{equation}
+certifies the same envelope.  If this test passes before APPR's global
+stopping rule, the fixed accelerated continuation is genuinely useful: Stage
+I has found the rows but has not yet solved their values to target accuracy.
+The coarser test
+\begin{equation}
+ \max_{j\in\partial U}\frac{r_j}{\sqrt{d_j}}
+ +\frac{c}{\alpha}\eta_U\leq\alpha\delta
+ \label{eq:short-two-heap-gate}
+\end{equation}
+is sufficient because $\deg_U(j)/d_j\leq1$.  Internal and boundary lazy heaps
+make it an $O(1)$ checkpoint query; no boundary sweep is needed.
+For an empty boundary the leakage gate is vacuous, so the second term is not
+tested.
+
+If the gate passes, continue the same principal solve or restart it once to
+normalized error $\tau$.  Chebyshev, CG, or accelerated gradient then costs
+\begin{equation}
+ O\!\left(\frac{\vol(U)}{\sqrt\alpha}
+          \log\frac{C_{U,v,\alpha}}{\tau}\right)
+ \label{eq:short-fixed-work}
+\end{equation}
+and returns a $(\delta+\tau)$-accurate PPR point.  This is a literal
+two-stage theorem with no RPPR parameter and no support classification.  If
+$U=V$, the boundary gate is vacuous.
+
+For comparison, RPPR can still propose an envelope: if its amplitude outside
+$U$ is at most $\gamma$ at regularization $\rho$, then the same principal PPR
+solution is within $\rho+\gamma$ of $x^0$.  This useful proposal lemma does
+not make exact RPPR support part of the terminal contract.
+
+\section{The complementary AESP--APPR mass exit}
+
+A fixed set can also be useful without passing the boundary gate.  A vector
+$z$ is a PPR subsolution if
+\begin{equation}
+ z\geq0,\qquad r:=b-Qz\geq0.
+\end{equation}
+Put $\mu(z)=1-\langle D^{1/2}\one,z\rangle$.
+
+\begin{theorem}[Mass completion]
+\label{thm:short-mass-cleanup}
+From a PPR subsolution, exact monotone coordinate pushes on rows satisfying
+$r_i/\sqrt{d_i}>\alpha\varepsilon$ terminate at an
+$\varepsilon$-accurate point after degree work
+\begin{equation}
+ W_{\rm clean}<
+ \frac{1+\alpha}{2\alpha\varepsilon}\,\mu(z).
+ \label{eq:short-mass-work}
+\end{equation}
+Thus $\mu(z)=O(\sqrt\alpha)$ gives
+$O(1/(\sqrt\alpha\varepsilon))$ cleanup.
+\end{theorem}
+
+\begin{proof}
+The weighted residual mass is
+\begin{equation*}
+ \langle D^{1/2}\one,r\rangle=\alpha\mu(z).
+\end{equation*}
+Writing $a=(1+\alpha)/2$, a push at $i$ decreases this mass by
+$(\alpha/a)\sqrt{d_i}r_i>(\alpha^2\varepsilon/a)d_i$.  Summation proves
+\cref{eq:short-mass-work}.  At termination,
+$0\leq r\leq\alpha\varepsilon D^{1/2}\one$; comparison as in the previous
+proof gives the semantic target.
+\end{proof}
+
+The subsolution can be published after signed fixed-envelope acceleration.
+For $U\ni v$, let $u_U=Q_U^{-1}b_U$, $V_U=\vol(U)$, and
+$v_U=D_U^{1/2}\one$.  Given signed scratch $\widehat u$ and residual
+$q=b_U-Q_U\widehat u$, define
+\begin{equation}
+ \Delta=\max_i\left[\frac{-q_i}{\alpha(v_U)_i}\right]_+,
+ \qquad z_U=[\widehat u-\Delta v_U]_+,
+ \label{eq:short-retraction}
+\end{equation}
+and pad by zero.
+
+\begin{theorem}[Safe AESP mass publication]
+\label{thm:short-aesp-mass}
+If the exact principal solution satisfies
+\begin{equation}
+ 1-\langle v_U,u_U\rangle\leq\frac{C\sqrt\alpha}{2},
+ \label{eq:short-mass-premise}
+\end{equation}
+then Chebyshev/AESP scratch followed by
+\cref{eq:short-retraction} publishes a global PPR subsolution with
+$\mu(z)\leq C\sqrt\alpha$ after
+\begin{equation}
+ O\!\left(\frac{V_U}{\sqrt\alpha}
+   \log_+\frac{(1+\sqrt{V_U})\sqrt{V_U}}
+                    {C\sqrt\alpha}\right)
+ \label{eq:short-aesp-work}
+\end{equation}
+degree work.
+\end{theorem}
+
+\begin{proof}
+Because $Q_Uv_U\geq\alpha v_U$, the shifted residual
+$q+\Delta Q_Uv_U$ is nonnegative.  Principal inverse positivity gives
+$\widehat u-\Delta v_U\leq u_U$; the Stieltjes signs show that taking the
+positive part preserves $b_U-Q_Uz_U\geq0$.  Exterior residuals are also
+nonnegative, so the publication is global and lower-safe.  Moreover,
+\begin{equation*}
+ \norm{u_U-z_U}_2
+ \leq\frac{1+\sqrt{V_U}}{\alpha}\norm q_2.
+\end{equation*}
+The spectrum of $Q_U$ is in $[\alpha,1]$, so Chebyshev reduces the right-hand
+side to $C\sqrt\alpha/(2\sqrt{V_U})$ in the work shown above.  Cauchy--Schwarz
+and \cref{eq:short-mass-premise} then give $\mu(z)\leq C\sqrt\alpha$.
+\end{proof}
+
+The mass premise is screened before signed work.  For a current lower-safe
+$z_U$, let $q_U=b_U-Q_Uz_U\geq0$ and
+\begin{equation*}
+ q^-:=\min_i\frac{(Q_Uv_U)_i}{(v_U)_i},\qquad
+ q^+:=\max_i\frac{(Q_Uv_U)_i}{(v_U)_i}.
+\end{equation*}
+Then $\alpha\leq q^-\leq q^+\leq(1+\alpha)/2$ and
+\begin{equation}
+ \langle v_U,z_U\rangle+\frac{\langle v_U,q_U\rangle}{q^+}
+ \leq\langle v_U,u_U\rangle
+ \leq\langle v_U,z_U\rangle+\frac{\langle v_U,q_U\rangle}{q^-}.
+ \label{eq:short-mass-interval}
+\end{equation}
+The row ratios are
+$(1+\alpha)/2-c\deg_U(i)/d_i$, so a lazy heap maintains them locally.  A
+strictly favorable lower endpoint triggers AESP; an unfavorable upper
+endpoint rejects the attempt without a fixed solve.
+
+\section{One algorithm, two continuations}
+
+\begin{algorithm}[t]
+\caption{Hard-capped point-source certificate race}
+\label{alg:short-race}
+\begin{algorithmic}[1]
+\REQUIRE $G,v,\alpha,\varepsilon$ and cap $B=\Theta(1/\varepsilon)$
+\STATE Race direct APPR, priority SOR, and one or more local proposal lanes.
+\STATE Return immediately from any target-accurate numerical lane.
+\FOR{each nested proposed envelope $U$ with $\vol(U)\leq B$}
+  \STATE Update the mass interval and the coarse PPR leakage error bars.
+  \IF{the leakage gate certifies budget $\delta$}
+    \STATE Discard changing-envelope history; refine one fixed solve to
+           $\varepsilon-\delta$ and return.
+  \ELSIF{the mass interval certifies a positive $O(\sqrt\alpha)$ margin}
+    \STATE Run fixed AESP scratch, retract safely, and complete by APPR/SOR.
+  \ENDIF
+\ENDFOR
+\STATE If a proposal would exceed $B$, abandon that lane; direct APPR wins.
+\end{algorithmic}
+\end{algorithm}
+
+With geometrically growing retained volumes, the sum of attempted volumes is
+at most $2B$.  Hence either successful fixed-envelope branch has
+\begin{equation}
+ \widetilde O\!\left(\frac{B}{\sqrt\alpha}
+              +\frac{1}{\sqrt\alpha\varepsilon}\right)
+ =\widetilde O\!\left(\frac{1}{\sqrt\alpha\varepsilon}\right)
+ \label{eq:short-success-work}
+\end{equation}
+work when proposal and bookkeeping cost $\widetilde O(B)$.  A failed branch
+adds direct APPR's classical $O(1/(\alpha\varepsilon))$ work.  Round-robin
+scheduling of a fixed number of complete lanes costs at most a fixed multiple
+of the best lane on each instance.
+
+\section{What the data say}
+
+All experiments use six deterministic graph families (path, cycle, star,
+binary tree, broom, and grid) and charge degree work.  The coarse
+$\varepsilon\in\{0.05,0.1\}$ sweep gives the following message:
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Lane & median ratio to best direct baseline & strict wins \\
+\midrule
+Forced fixed tail after a numerical point & $4.93$--$5.48$ & $0$ \\
+Hard-capped Green set screen & $3.13$ & $0$ \\
+Blind BFS AESP mass screen & $5.99$ & $0$ \\
+Adaptive APPR-shaped mass screen & $1.00$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The fixed tail should therefore never be forced after Stage~I has already met
+the target.
+
+The one-shot Green--CG lane behaves differently in the genuinely
+high-accuracy range
+$\varepsilon\in\{10^{-4},5\cdot10^{-4},10^{-3},0.002,0.005\}$.
+It completes its capped ball in 85 of 90 cases and strictly beats the better
+of FIFO APPR and priority SOR in 22 as a standalone lane.  Those wins comprise
+13 stars, six binary trees, one grid, one path, and one cycle.  In a literal
+one-for-one race, 15 remain strict total-work wins: ten stars, four binary
+trees, and one grid.  Representative standalone ratios are
+\begin{center}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Graph & $(\alpha,\varepsilon)$ & Green--CG / direct & retained volume \\
+\midrule
+binary tree & $(0.01,10^{-4})$ & $0.103$ & $508$ \\
+grid & $(0.01,10^{-4})$ & $0.489$ & $528$ \\
+path & $(0.01,10^{-4})$ & $0.882$ & $105$ \\
+cycle & $(0.01,10^{-4})$ & $0.945$ & $192$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Every error is at most $0.605\varepsilon$.  The median successful-lane ratio
+is $1.95$, so the fair race remains essential; the result is an adaptive
+breakthrough, not uniform domination.
+
+On larger tree/treewidth-two graphs, replacing CG by implemented certified
+sparse elimination is much stronger.  Since the tail is exact, the full
+$\varepsilon$ is assigned to Green truncation.  Of 75 cases, 56 pass the cap,
+50 beat the direct lane standalone, and 35 remain strict wins after the fair
+APPR charge; the median successful ratio is $0.302$.  At
+$(\alpha,\varepsilon)=(0.01,10^{-4})$, the path, cycle, star, and binary-tree
+ratios are $0.0469$, $0.0583$, $0.0526$, and $0.0951$.  General graphs do not
+inherit this fill-free bound.
+
+In a literal coupled version, priority APPR receives the same Stage~I work
+budget while the ball is exposed, and its current point warm-starts the one
+fixed CG solve.  Charging both BFS and APPR work, this hybrid still wins 19 of
+90 cases and reduces the CG count by a median four iterations.  It preserves
+all five winning graph families.  Because a warm residual can have a worse
+spectral mix than the zero-start residual, a robust fixed-face implementation
+may race both starts; correctness always comes from the common residual stop.
+A single degree-shock leakage check adds one further broom win: it stops
+before the high-degree hub and realizes the best-single-ball ratio $0.738$.
+The rule is safe and charged, but its threshold is a policy rather than a
+universal pruning theorem.
+
+At intermediate accuracy,
+$\varepsilon\in\{0.005,0.01,0.02\}$, the adaptive mass
+lane triggers in 20 of 54 cases and retains median ratio $1.00$.  It has two
+strict wins on a 96-vertex source-centered star:
+\begin{center}
+\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$\alpha$ & two-stage work & best direct work & ratio \\
+\midrule
+$0.01$ & $570$ & $3610$ & $0.158$ \\
+$0.04$ & $570$ & $950$ & $0.600$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Every error is at most $0.748\varepsilon$.  The direct leakage implementation
+passes 44 of 54 cases and reproduces the two wins, but its median ratio is
+$7.52$ because it resolves every geometric ball.  The certificate is short;
+candidate generation and response reuse are not solved by it.
+
+The monotone two-heap version is the literal requested two-stage algorithm:
+priority APPR discovers $U$ and queries \cref{eq:short-two-heap-gate}; only
+after success does one fixed CG solve start.  It switches in 4 of 54 cases,
+has median nontrivial ratio $1.061$, and preserves the two star wins at
+$572/3610$ and $572/950$.  The additional two work units are the charged heap
+queries.  In all other cases the direct monotone trajectory finishes, so no
+fixed tail is forced.
+
+The star mechanism is exact.  In degree-unscaled coordinates the full matrix
+is $\widehat Q=aD-cA$, and the source belongs to the two-dimensional subspace
+of vectors constant on the leaves.  Exact CG therefore terminates in at most
+two iterations.  Exposing the star and solving it costs $O(n)$, with no mass
+cleanup.  Yet a partial star retaining $k$ of $n$ leaves has principal mass
+deficit
+\begin{equation}
+ \mu_U=\frac{ac(n-k)}{a^2n-c^2k}.
+ \label{eq:short-star-deficit}
+\end{equation}
+Thus the star may require almost full exposure even when the semantic target
+allows many tiny coordinates to be omitted.  Low numerical dimension, not a
+universal support-volume law, explains the win.
+
+\section{Scope and the remaining problem}
+
+The result is deliberately point-source.  For linear PPR, solving every
+source separately and optimally distributing the error gives the natural
+factor
+\begin{equation*}
+ \left(\sum_{i\in\supp(s)}\sqrt{s_i}\right)^2,
+\end{equation*}
+which can equal $\operatorname{nnz}(s)$; it does not imply the desired
+additive input cost.  RPPR is nonlinear in the source and does not superpose.
+
+Exact RPPR support $S^\star$ is optional.  On trees and some cactus classes,
+point-source response messages can find it at the desired product scale and
+may serve as a proposal lane.  On arbitrary graphs, however, neither exact
+support discovery nor output-sensitive envelope proposal has been proved in
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$ work.  The precise open problem is:
+construct an adjacency-local proposal/reuse mechanism that, before doing the
+work of direct APPR, produces a capped envelope passing either
+\cref{eq:short-leakage-gate} or \cref{eq:short-mass-premise}.  It must charge
+every boundary refresh, response update, rejected row, and exposure.
+
+In a 10-case large-graph diagnostic, literal monotone RPPR discovery does
+return smaller exact sets on paths and grids, but its median work is $7.92$
+times Green--CG and $9.26$ times direct PPR.  This is not a lower bound on
+future active-set acceleration; it is evidence that exactness is a poor
+mandatory interface for the present algorithm.
+
+If exact support is required and a candidate $A$ is already available, it can
+still be certified cleanly.  Solve
+$Q_Ap_A=c_{\rho,A}$ with an error box
+$|p_A-\widehat p_A|\leq\eta D_A^{1/2}\one$.  Positive lower bounds on every
+active coordinate and nonpositive upper bounds
+\begin{equation*}
+ c_{\rho,j}-Q_{jA}\widehat p_A
+ +\frac{1-\alpha}{2}
+  \frac{\deg_A(j)}{\sqrt{d_j}}\eta\leq0
+ \qquad(j\in\partial A)
+\end{equation*}
+prove $A=S^\star$.  Fixed-face acceleration reaches this verifier with only
+logarithmic dependence on a strict KKT margin.  Without such a margin, exact
+support is not a uniform finite-precision contract; leakage is the correct
+approximate alternative.
+
+This short formulation removes the correction-by-correction changing-face
+Lyapunov proof, Moreau face shocks, Perron alignment, permanent finite-inner
+replay, and the catalogue of dynamic-reporter obstructions.  Those results
+remain a companion audit.  They are not prerequisites for the two-stage
+algorithm above.
+
+\paragraph{Bottom line.}
+The terminal fixed solve is closed, safe, and sometimes decisively useful.
+The mass continuation is equally short and preserves direct-APPR fallback.
+The remaining breakthrough is exclusively Stage~I proposal work.  A claim of
+universal acceleration should be made only after that interface is closed.
