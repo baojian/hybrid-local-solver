@@ -3,22 +3,36 @@
 
 \subsection*{What this note does and does not claim}
 
-This note fixes one instance, one state, one primitive, one work charge, one
-output map, and one accuracy guarantee, and then proves how much charged work
-is needed by each of three algorithm classes that differ from one another by
-exactly one axiom. It is a \emph{class} comparison. It is not an information
-lower bound, and \Cref{sec:ladder-elimination} exhibits, on the same instance,
-an algorithm outside the classes that beats every member of the strongest one
-by $\Theta(1/\sqrt{\alpha})$. Nothing in this note argues that
-$1/(\sqrt\alpha\,\epsppr)$ is a necessary cost of the semantic problem.
+This note fixes one instance, one state, one primitive, one work model, one
+output representation, and one accuracy guarantee, and then proves how much
+charged work is needed by three algorithm classes that differ by one axiom at
+a time. It is a \emph{class} comparison. It is not an information lower
+bound, and \Cref{sec:ladder-elimination} exhibits, on the same instance, an
+algorithm outside the classes that is asymptotically faster than every member
+of the strongest class by at least an $\Omega(1/\sqrt\alpha)$ factor. Nothing
+in this note argues that $1/(\sqrt\alpha\,\epsppr)$ is a necessary cost of the
+semantic problem.
+
+\paragraph{Root problem and scope.}
+The governing contract is Problem~1 and its graph-uniform open question in
+\texttt{manuscript/notes/problem\_definitions/main.tex}. Thus
+$\mathcal{G}$ is finite, simple, undirected, connected, unit-weighted, and has
+$n\ge2$; the input is one seed vertex $v$ with
+$\bm{s}=\bm{e}_v$ and $\alpha\in(0,1]$; and the requested object is a sparse
+approximation to $\bm{x}_0^*$. This note studies the star subfamily and
+$0<\epsppr\le1/16$, chiefly to test whether restricted one-hop algorithm
+classes can attain the open fully charged target
+$\widetilde{O}(1/(\sqrt\alpha\,\epsppr))$. It neither studies RPPR Problem~2
+nor the nested-SDD reuse question, and it proves no graph-uniform lower bound
+for the semantic PPR problem.
 
 \paragraph{Accuracy namespace.}
-Throughout, $\epsppr$ is the degree-normalized solution accuracy of the shared
-model in \Cref{subsec:shared-source-aligned-problem}. It is never identified
-with the \APPR{} activation threshold $\epsappr$, with an objective gap
-$\epsobj$, or with a proximal fixed-point tolerance $\epspg$. The one place
-where a bridge to $\epsappr$ is used is
-\Cref{sec:ladder-manuscript-relation}, and it is stated there explicitly.
+Throughout, $\epsppr$ is exactly the semantic degree-normalized PPR output
+accuracy of Problem~1. The source-native \APPR{} activation threshold
+$\epsappr$ appears only in \Cref{sec:ladder-manuscript-relation}; assigning it
+the same numerical value as $\epsppr$ there is an explicit comparison choice,
+not an identification of the two meanings. No RPPR objective or KKT tolerance
+is used in this note.
 
 \paragraph{Claim status.}
 Statements carry one of the following labels.
@@ -31,138 +45,181 @@ auditor's checklist, is in \Cref{sec:ladder-verification}.
 
 \subsection*{Push-scale notation}
 
-The shared model of \Cref{subsec:shared-source-aligned-problem} is used
-verbatim; this subsection only introduces note-scoped abbreviations for
-objects it already defines, and redefines nothing. Put
+The algebraic definitions in
+\Cref{subsec:shared-source-aligned-problem} are used verbatim. The current
+Problem~1 output and fully charged work contract, stated above, governs every
+complexity claim in this note. This subsection only introduces note-scoped
+abbreviations and a mass-coordinate state; it redefines no shared object. Put
 \begin{equation}
     \calpha:=\frac{1-\alpha}{1+\alpha},
     \qquad
     \galpha:=\frac{2\alpha}{1+\alpha},
     \qquad
-    H:=I-\calpha AD^{-1},
+    \bm{H}:=\bm{I}-\calpha\bm{A}\bm{D}^{-1},
     \label{eq:ladder-push-scale-constants}
 \end{equation}
 so that $1-\calpha=\galpha$ and $1+\calpha=2/(1+\alpha)$. Conjugating the
-shared operator $Q$ of \eqref{eq:shared-pagerank-matrices} gives
+shared operator $\bm{Q}$ of \eqref{eq:shared-pagerank-matrices} gives
 \begin{equation}
-    D^{1/2}QD^{-1/2}=\frac{1+\alpha}{2}\,H,
+    \bm{D}^{1/2}\bm{Q}\bm{D}^{-1/2}
+    =\frac{1+\alpha}{2}\,\bm{H},
     \qquad\text{hence}\qquad
-    H\pi=\galpha\,e_{v}
+    \bm{H}\bm{\pi}=\galpha\bm{e}_{v}
     \label{eq:ladder-H-conjugation}
 \end{equation}
-for the single-seed specialization $s=e_{v}$ of \eqref{eq:shared-seed}. Write
+for the single-seed specialization $\bm{s}=\bm{e}_{v}$ of
+\eqref{eq:shared-seed}. Write
 \begin{equation}
-    \pr(h):=\galpha H^{-1}h,
+    \pr(\bm{h}):=\galpha\bm{H}^{-1}\bm{h},
     \qquad\text{so}\qquad
-    \pr(e_{v})=\pi .
+    \pr(\bm{e}_{v})=\bm{\pi} .
     \label{eq:ladder-pr-operator}
 \end{equation}
 The symmetric form used in \Cref{sec:ladder-signed-lower-bound} is
 \begin{equation}
-    \Hsym:=I-\calpha D^{-1/2}AD^{-1/2}=\frac{2}{1+\alpha}\,Q,
+    \Hsym
+    :=\bm{I}-\calpha\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2}
+    =\frac{2}{1+\alpha}\,\bm{Q},
     \qquad
-    \galpha I\preceq\Hsym\preceq\frac{2}{1+\alpha}I,
+    \galpha\bm{I}\preceq\Hsym\preceq\frac{2}{1+\alpha}\bm{I},
     \label{eq:ladder-Hsym}
 \end{equation}
-the spectral bracket following from $\alpha I\preceq Q\preceq I$.
+the spectral bracket following from
+$\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}$.
 
-\subsection*{State, primitive, and charged work}
+\subsection*{State, primitive, and fully charged work}
 
-An algorithm maintains a pair $(z,r)$ with
+An algorithm maintains a pair $(\bm{z},\bm{r})$ with
 \begin{equation}
-    z^{0}=0,
+    \bm{z}^{0}=\bm{0},
     \qquad
-    r:=\galpha e_{v}-Hz,
+    \bm{r}:=\galpha\bm{e}_{v}-\bm{H}\bm{z},
     \qquad\text{so}\qquad
-    r^{0}=\galpha e_{v},
+    \bm{r}^{0}=\galpha\bm{e}_{v},
     \qquad
-    e:=\pi-z=H^{-1}r .
+    \bm{\xi}:=\bm{\pi}-\bm{z}=\bm{H}^{-1}\bm{r} .
     \label{eq:ladder-state}
 \end{equation}
-The one-hop primitive is, for $u\in V$ and $\delta\in\R$,
+For components, write $z_u:=(\bm{z})_u$, $r_u:=(\bm{r})_u$,
+$\xi_u:=(\bm{\xi})_u$, and $\pi_u:=(\bm{\pi})_u$. The one-hop primitive is, for
+$u\in\mathcal{V}$ and $\delta\in\R$,
 \begin{equation}
     \push(u,\delta):\quad
     z_{u}\mathrel{+}=\delta,
     \qquad
     r_{u}\mathrel{-}=\delta,
     \qquad
-    r_{w}\mathrel{+}=\frac{\calpha\,\delta}{d_{u}}\ \ (w\in\mathcal N(u)),
+    r_{w}\mathrel{+}=\frac{\calpha\,\delta}{d_{u}}
+    \quad(w\in\mathcal N(u)),
     \label{eq:ladder-primitive}
 \end{equation}
-charged $\work=d_{u}$: one adjacency-list scan of $u$, the manuscript's unit.
-By construction $\push(u,\delta)$ preserves the invariant
-$z+H^{-1}r=\pi$ exactly and changes $z$ only at its base vertex; the
-neighbour split in \eqref{eq:ladder-primitive} is forced and the scalar
-$\delta$ is the only freedom. Total charged work of a run is
-$\Work=\sum_{t}d_{u_{t}}$ plus the output writes accounted in
-\Cref{sec:ladder-classes}. The policy choosing $(u_{t},\delta_{t})$ is
-arbitrary --- adaptive, randomized, or batched. Every bound below is
-\emph{pathwise}, so a randomized policy obeys it with probability one.
+and it inspects all $d_u$ entries of $u$'s adjacency list. By construction,
+$\push(u,\delta)$ preserves
+$\bm{z}+\bm{H}^{-1}\bm{r}=\bm{\pi}$ exactly and changes $\bm{z}$ only at its
+base vertex; the neighbor split in \eqref{eq:ladder-primitive} is forced and
+the scalar $\delta$ is the only freedom.
 
-\subsection*{Semantic guarantee}
+Write $W_{\mathrm{adj}}:=\sum_t d_{u_t}$ for adjacency-entry inspections and
+let $\Work$ denote the \emph{fully charged} exact-real word work of Problem~1:
+it also counts arithmetic, comparisons, state reads and writes, degree
+queries, and emitted output words. Thus each push costs $\Theta(d_u)$ in the
+full model and $\Work\ge W_{\mathrm{adj}}$. All lower bounds below first
+lower-bound $W_{\mathrm{adj}}$ and therefore also lower-bound $\Work$; stated
+upper bounds perform $O(1)$ additional word operations per inspected entry or
+emitted coordinate. Preprocessing is not free. The policy choosing
+$(u_t,\delta_t)$ is arbitrary --- adaptive, randomized, or batched. Every
+lower bound is pathwise, so it holds for every realized random path; a claimed
+randomized upper bound would additionally have to state success probability
+and the type of work guarantee.
 
-The output is a finite-support vector $\widehat z$, coordinates not listed
-being zero, and must satisfy the shared degree-normalized error target
+\subsection*{Semantic output guarantee}
+
+The algorithm reports a sparse list for $\widehat{\bm{x}}$, with unlisted
+coordinates equal to zero, exactly as in Problem~1. In the mass coordinates
+used by this note, write
 \begin{equation}
-    \errop(\widehat z)
-    :=\max_{u\in V}\frac{\abs{\pi_{u}-\widehat z_{u}}}{d_{u}}
+    \widehat{\bm{\pi}}:=\widehat{\bm{z}},
+    \qquad
+    \widehat{\bm{x}}:=\bm{D}^{-1/2}\widehat{\bm{z}},
+    \qquad
+    \errop(\widehat{\bm{z}})
+    :=\max_{u\in\mathcal{V}}
+      \frac{\abs{\pi_{u}-\widehat z_{u}}}{d_{u}}
+    =\norm{\bm{D}^{-1/2}
+      (\widehat{\bm{x}}-\bm{x}_0^*)}_{\infty}
     \le\epsppr .
     \label{eq:ladder-guarantee}
 \end{equation}
+The two lists have the same support; converting a listed mass coordinate to
+an $\bm{x}$-coordinate and emitting it are charged operations.
 
-\subsection*{Dictionary to the mass scale}
+\subsection*{Dictionary to the source mass scale}
 
 The monotone results were first proved in the mass scale of
 \file{sections/appr_lower_bound.tex}, where the state is the \APPR{} pair
-$(p,r_{\mathrm{mass}})$. The translation is
+$(\bm{p},\bm{r}_{\mathrm{mass}})$. The translation is
 \begin{equation}
-    z=p,
+    \bm{z}=\bm{p},
     \qquad
-    r=\galpha\,r_{\mathrm{mass}},
+    \bm{r}=\galpha\bm{r}_{\mathrm{mass}},
     \qquad
-    \delta=\alpha\,\eta,
+    \delta=\alpha\eta,
     \qquad
-    \pi-z=H^{-1}r=\pr(r_{\mathrm{mass}}).
+    \bm{\pi}-\bm{z}=\bm{H}^{-1}\bm{r}
+    =\pr(\bm{r}_{\mathrm{mass}}).
     \label{eq:ladder-mass-dictionary}
 \end{equation}
-Under it, lazy \APPR{} push at $u$ (mass amount $\xi=(r_{\mathrm{mass}})_{u}$)
-is $\push(u,\omega r_{u})$ with $\omega=(1+\alpha)/2$; full non-lazy push is
-$\omega=1$; and Gauss--Seidel SOR with $\omega>1$ overshoots $r_{u}$ past
-zero. Feasibility of the monotone class, $\eta\le
-2(r_{\mathrm{mass}})_{u}/(1+\alpha)$, is exactly $\delta\le r_{u}$.
+Under it, lazy \APPR{} push at $u$ is
+$\push(u,\omega r_u)$ with $\omega=(1+\alpha)/2$; full non-lazy push is
+$\omega=1$; and Gauss--Seidel SOR with $\omega>1$ overshoots $r_u$ past
+zero. Feasibility of the monotone class,
+$\eta\le2(\bm{r}_{\mathrm{mass}})_u/(1+\alpha)$, is exactly
+$\delta\le r_u$.
 
 \subsection*{Five facts used throughout}
 
+Let $\bm{d}:=(d_u)_{u\in\mathcal{V}}$. The following elementary identities
+keep the push scale and the source mass scale separate.
+
 \begin{lemma}[Elementary facts; \statusproveddraft]
 \label{lem:ladder-facts}
-For every connected $G$, every $\alpha\in(0,1)$ and every $h\in\R^{n}$:
+For every connected $\mathcal{G}$, every $\alpha\in(0,1)$, and every
+$\bm{h}\in\R^{n}$:
 \begin{enumerate}[label=\textup{(F\arabic*)},leftmargin=3em]
     \item\label{it:ladder-f1}
-        $H^{\trans}\one=\galpha\one$, hence
-        $\sum_{u}(H^{-1}r)_{u}=\norm{r}_{1}/\galpha$ whenever $r\ge0$;
+        $\bm{H}^{\trans}\one=\galpha\one$, hence
+        $\sum_u(\bm{H}^{-1}\bm{r})_u
+        =\norm{\bm{r}}_1/\galpha$ whenever $\bm{r}\ge\bm{0}$;
     \item\label{it:ladder-f2}
-        $H^{-1}\ge0$ entrywise;
+        $\bm{H}^{-1}\ge\bm{0}$ entrywise;
     \item\label{it:ladder-f3}
-        $(H^{-1})_{vv}=\pi_{v}/\galpha$;
+        $(\bm{H}^{-1})_{vv}=\pi_v/\galpha$;
     \item\label{it:ladder-f4}
-        $\max_{u}\pr(h)_{u}/d_{u}\le\max_{u}h_{u}/d_{u}$ for $h\ge0$;
+        $\max_u\pr(\bm{h})_u/d_u\le\max_u h_u/d_u$ for
+        $\bm{h}\ge\bm{0}$;
     \item\label{it:ladder-f5}
-        $\abs{H^{-1}h}\le H^{-1}\abs{h}$ entrywise.
+        $\abs{\bm{H}^{-1}\bm{h}}
+        \le\bm{H}^{-1}\abs{\bm{h}}$ entrywise.
 \end{enumerate}
 \end{lemma}
 
 \begin{proof}
-\ref{it:ladder-f1}: $H^{\trans}\one=\one-\calpha D^{-1}A\one
-=\one-\calpha D^{-1}d=(1-\calpha)\one=\galpha\one$, and then
-$\sum_{u}(H^{-1}r)_{u}=\inner{H^{-\trans}\one}{r}=\norm{r}_{1}/\galpha$ for
-$r\ge0$.
-\ref{it:ladder-f2}: $\calpha AD^{-1}\ge0$ has column sums $\calpha<1$, so the
-Neumann series $\sum_{k\ge0}(\calpha AD^{-1})^{k}$ converges to $H^{-1}$ and
-is nonnegative.
+\ref{it:ladder-f1}:
+$\bm{H}^{\trans}\one
+=\one-\calpha\bm{D}^{-1}\bm{A}\one
+=\one-\calpha\bm{D}^{-1}\bm{d}
+=(1-\calpha)\one=\galpha\one$. Therefore
+$\sum_u(\bm{H}^{-1}\bm{r})_u
+=\inner{\bm{H}^{-\trans}\one}{\bm{r}}
+=\norm{\bm{r}}_1/\galpha$ when $\bm{r}\ge\bm{0}$.
+\ref{it:ladder-f2}: $\calpha\bm{A}\bm{D}^{-1}\ge\bm{0}$ has column sums
+$\calpha<1$, so its Neumann series converges to $\bm{H}^{-1}$ and is
+nonnegative.
 \ref{it:ladder-f3}: take the $v$-coordinate of
-$\pi=\galpha H^{-1}e_{v}$, which is \eqref{eq:ladder-H-conjugation}.
-\ref{it:ladder-f4}: $Hd=d-\calpha A\one=d-\calpha d=\galpha d$, so
-$\pr(d)=d$; if $h\le td$ coordinatewise then $\pr(h)\le t\,\pr(d)=td$
-by \ref{it:ladder-f2}.
+$\bm{\pi}=\galpha\bm{H}^{-1}\bm{e}_v$.
+\ref{it:ladder-f4}:
+$\bm{H}\bm{d}=\bm{d}-\calpha\bm{A}\one=\galpha\bm{d}$, so
+$\pr(\bm{d})=\bm{d}$; if $\bm{h}\le t\bm{d}$ coordinatewise then
+$\pr(\bm{h})\le t\bm{d}$ by \ref{it:ladder-f2}.
 \ref{it:ladder-f5}: immediate from \ref{it:ladder-f2}.
 \end{proof}

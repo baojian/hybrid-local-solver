@@ -119,15 +119,30 @@ The source records \(\bm{x}_\rho^*\geq\bm{0}\),
     \label{eq:shared-rppr-kkt}
 \end{equation}
 
-The common computational unit is one repeated adjacency-list scan: scanning
-coordinate \(i\) costs \(d_i\), and scanning a set \(\mathcal{S}\) costs
-\(\vol(\mathcal{S})\).
-Iteration count and wall-clock time do not replace this degree-weighted work
-measure.
+The work unit is one adjacency-list entry inspection. Scanning a vertex \(i\)
+means reading every neighbor \(j\in\mathcal N(i)\) from \(i\)'s adjacency
+list and costs \(d_i\). Scanning a set \(\mathcal{S}\) means doing this once
+for every \(i\in\mathcal{S}\), at total cost
+\(\sum_{i\in\mathcal{S}}d_i=\vol(\mathcal{S})\). Repeated appearances of a
+neighbor in different adjacency lists are charged separately; the cost is not
+\(\lvert\mathcal N(\mathcal{S})\rvert\), and adjacency lists of neighbors
+outside \(\mathcal{S}\) are not recursively scanned. Iteration count and
+wall-clock time do not replace this degree-weighted work measure.
 
-Finally, accuracy symbols remain distinct. The APPR threshold is
-\(\epsappr\); \(\epsobj\) denotes an objective-gap target;
-\(\epspg\) denotes the source experiment's proximal fixed-point tolerance; and
-\(\epsppr\) may denote a document-scoped degree-normalized PPR error target.
-No equality or conversion among these quantities is assumed. In particular,
-this shared model does not resolve the repository-wide residual decision.
+\paragraph{Computational model.}
+Unless a theorem explicitly states otherwise, the complexity questions use an
+exact-real algebraic word model: each scalar arithmetic operation, comparison,
+stored-state read or write, degree reply, and emitted output word has unit
+cost. Every first or repeated adjacency-list entry inspection is charged as
+above. Global preprocessing and storage are reported separately and cannot be
+hidden as free access to the graph. A randomized result must state its success
+probability and whether its work guarantee is expected or high-probability.
+Finite-precision stability, coefficient-bit complexity, and rounding error are
+outside this baseline and require separate statements.
+
+Finally, \(\epsppr\) is reserved for a document-scoped semantic,
+degree-normalized PPR output error, and \(\rho\) is the RPPR regularization and
+locality scale. Any algorithmic threshold, objective tolerance, residual
+certificate, or conversion between such a quantity and \(\epsppr\) must be
+introduced and justified where it is used. This shared model does not adopt an
+implementation-wide residual stopping rule.

@@ -30,6 +30,11 @@ reconciling the two-dimensional reduction against the full
 $(m+1)$-dimensional state every $64$ blocks and at every stop. Reported
 result: $45$ cells $\times$ $13$ checks, $0$ failures.
 
+The script's reported $W$ is adjacency-scan work
+$W_{\mathrm{adj}}$, as in its source packages. The present note separately
+accounts for the remaining exact-real word operations when asserting a fully
+charged asymptotic bound; the script does not verify that bookkeeping.
+
 Checks map to statements as follows. C1: the closed forms
 \eqref{eq:ladder-star-closed-forms} and exactness of
 \Cref{prop:ladder-elimination}. C2--C3:
@@ -45,7 +50,9 @@ Chebyshev-oscillating, random $\omega$, leaf-heavy). C10:
 \Cref{thm:ladder-signed-upper-bound} in both forms. C11:
 \Cref{prop:ladder-elimination}. C12:
 \Cref{prop:ladder-residual-mass-cap}. C13: the scale dictionary
-\eqref{eq:ladder-mass-dictionary}.
+\eqref{eq:ladder-mass-dictionary}. In particular, C13 is why the imported SOR
+certificate is stated in \eqref{eq:ladder-sor-certificate-scales} as
+$\epsppr$ in the source mass scale and $\galpha\epsppr$ in the push scale.
 
 The diagnostic columns are $\epsppr$-invariant on this grid, so one row per
 $\alpha$ suffices.
@@ -53,8 +60,8 @@ $\alpha$ suffices.
 \begin{center}
 \begin{tabular}{@{}lrrrrrrr@{}}
 \toprule
-$\alpha$ & $N_{c}^{+}/\mathrm{LB}$ & $\Work\alpha\epsppr$
-    & $N_{c}/\mathrm{LB}$ & $\Work\sqrt\alpha\epsppr$
+$\alpha$ & $N_{c}^{+}/\mathrm{LB}$ & $W_{\mathrm{adj}}\alpha\epsppr$
+    & $N_{c}/\mathrm{LB}$ & $W_{\mathrm{adj}}\sqrt\alpha\epsppr$
     & $N\sqrt\alpha$ & $\max\widehat y$ & $\max\abs{\delta}$ \\
 \midrule
 $2^{-4}$  & 1.557 & 0.1328 & 3.806 & ---    & 1.500 & 1.000 & 0.970 \\
@@ -70,17 +77,18 @@ $2^{-12}$ & 1.500 & 0.1300 & 1.833 & 0.0840 & 1.359 & 0.978 & 0.974 \\
 \end{tabular}
 \end{center}
 
-Column three is the tightest member's $N_{c}^{+}$ divided by
+Column two is the tightest member's $N_{c}^{+}$ divided by
 \Cref{thm:ladder-monotone-lower-bound}'s bound over the three-policy and pump
 battery; the larger fourteen-policy zoo of \texttt{i2d} closes it to $1.015$.
-Column five is the tightest schedule against
+Column three is its scan-work normalization. Column four is the tightest
+schedule's centre count divided by
 \Cref{thm:ladder-signed-lower-bound}, so that bound is tight to within a
-factor two for $\alpha\le2^{-5}$. Column six is the $\omega\to2$ member's
-$\Work\sqrt\alpha\,\epsppr$, which is absent at $\alpha=2^{-4}$ because that
+factor two for $\alpha\le2^{-5}$. Column five is the $\omega\to2$ member's
+$W_{\mathrm{adj}}\sqrt\alpha\,\epsppr$, which is absent at $\alpha=2^{-4}$ because that
 member stalls there and SOR at $\omega^{\star}$ is the witness instead.
-Column seven is SOR at $\omega^{\star}$ under the semantic stop, whose
-flatness is the evidence that the $\log(1/\alpha)$ in
-\eqref{eq:ladder-signed-upper} is a stopping-rule artifact. The last two
+Column six is SOR at $\omega^{\star}$ under the semantic stop, whose
+flatness suggests that the $\log(1/\alpha)$ in
+\eqref{eq:ladder-signed-upper} may be a stopping-rule artifact. The last two
 columns are utilizations of the caps in
 \Cref{lem:ladder-fast-mode,lem:ladder-displacement}: all at most one and all
 nearly attained, so those inequalities have essentially no slack.
@@ -114,12 +122,12 @@ Lemma~3.1 and Theorem~3.3, verified to $1.4\times10^{-13}$ over forty blocks);
 characterization lemma of \texttt{w1} that every invariant-exact one-hop
 update is a $\push(u,\delta)$, on which \Cref{def:ladder-classes} leans. That
 last item deserves emphasis: its extension to multi-base operations, obtained
-by dropping the axiom that $z$ changes only at the base vertex, is proved
+by dropping the axiom that $\bm{z}$ changes only at the base vertex, is proved
 \emph{only on the star}.
 
 \statusmeasured{} --- numerics only, not proved: the semantic-stop flatness
 $N(\omega^{\star})\sqrt\alpha\in[1.35,1.50]$ and the $\omega\to2$ member
-constant $\Work\sqrt\alpha\,\epsppr\in[0.083,0.094]$, which calibrate
+constant $W_{\mathrm{adj}}\sqrt\alpha\,\epsppr\in[0.083,0.094]$, which calibrate
 tightness of \Cref{thm:ladder-signed-lower-bound} while the \emph{proved}
 upper bound still carries $\log(1/\alpha)$; the conjecture $\Phi=1$ of
 \Cref{open:ladder-phi}; and the $\pi_{v}/\galpha$ scalings behind
@@ -130,15 +138,17 @@ upper bound still carries $\log(1/\alpha)$; the conjecture $\Phi=1$ of
 \subsection*{Auditor's checklist, in order of leverage}
 
 \begin{enumerate}[leftmargin=2.2em]
-    \item The two uses of $r\ge0$ in \Cref{lem:ladder-kappa-step}: the
-        feasibility cap $\delta\le r_{c}$, and $e_{c}\ge(\pi_{c}/\galpha)r_{c}$
+    \item The two uses of $\bm{r}\ge\bm{0}$ in
+        \Cref{lem:ladder-kappa-step}: the
+        feasibility cap $\delta\le r_{c}$, and
+        $\xi_{c}\ge(\pi_{c}/\galpha)r_{c}$
         via \ref{it:ladder-f2} and \ref{it:ladder-f3}. This is the entire
         monotone rung, it is five lines, and either it survives audit or rung
         one falls.
     \item The before-and-after application of \Cref{lem:ladder-fast-mode}
         inside \Cref{lem:ladder-displacement} --- specifically the factor two
         in \eqref{eq:ladder-displacement-cap} --- and the claim that the
-        leaf-difference modes vanish at $c$, so that only $q_{-}$ caps the
+        leaf-difference modes vanish at $c$, so that only $\bm{q}_{-}$ caps the
         centre. Check the eigendecomposition by hand at $m=2$.
     \item The treatment of batched operations in
         \Cref{thm:ladder-monotone-lower-bound}:
@@ -150,7 +160,8 @@ upper bound still carries $\log(1/\alpha)$; the conjecture $\Phi=1$ of
     \item The output-map scoping of \Cref{sec:ladder-classes}: the whole
         ``same output map'' framing rests on choosing $B$ strictly below the
         escape threshold of \Cref{prop:ladder-escape}, so re-check that
-        proposition's witness.
+        proposition's witness and its $\galpha$ scale conversion. It is a
+        zero-push oracle statement, not a zero-full-work implementation.
     \item Dyadic versus general $\epsppr$ constants, $m=1/(8\epsppr)$ exactly
         against $m\ge1/(16\epsppr)$. Every displayed constant states which
         case it belongs to, and the verification grid is dyadic only.
@@ -164,7 +175,7 @@ upper bound still carries $\log(1/\alpha)$; the conjecture $\Phi=1$ of
 Within the campaign packages, this note supersedes \texttt{w1} Lemmas~3--5 and
 Theorem~6, replaced by \Cref{thm:ladder-monotone-lower-bound} with better
 constants and wider scope; the mass-scale potential presentation of
-\texttt{i2d} \S2, replaced by the $z$-scale $\Psi$; and the bare $3/128$
+\texttt{i2d} \S2, replaced by the $\bm{z}$-scale $\Psi$; and the bare $3/128$
 display of \texttt{i4c}, now stated with its dyadic scope explicit and with
 general-$\epsppr$ constant $3/256$. It leaves standing \texttt{i2d} \S1
 (output-map transport characterization), \texttt{i2d} Theorem~3.3
