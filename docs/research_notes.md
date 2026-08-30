@@ -8,8 +8,8 @@ preserved in the immutable
 The machine-readable note map is
 [`registry.toml`](../manuscript/notes/registry.toml).
 
-Last synchronized: 2026-08-29, after adopting the canonical single-source and
-connected unit-weight graph contracts.
+Last synchronized: 2026-08-30, after promoting the threshold-batch RPPR and
+two-stage point-source PPR theorem spine into the active manuscript.
 
 ## Fixed end-to-end target
 
@@ -67,16 +67,28 @@ final unregularized PPR approximation is formed. Claims that use connected
 support, rooted exploration, or the support-radius bound are therefore
 point-source claims.
 
-The current verdict is a qualified breakthrough.  Point-source rootedness
+The primary arbitrary-graph target is now proved in the exact-real randomized
+word model.  Threshold-batched safe obstacle discovery, residual-certified
+fresh SDD face solves, and block-Cholesky/Chebyshev decay give
+`O_tilde(1/(rho*sqrt(alpha)))` fully charged RPPR work.  A low-energy inner
+face, not necessarily the full RPPR support, transfers to a strict two-stage
+PPR algorithm with `O_tilde(1/(eps_ppr*sqrt(alpha)))` expected work.  The
+random SDD primitive is a supplied-face result of Koutis--Miller--Peng; the new
+project contribution is the outer batch-depth theorem and its certified local
+composition.  Deterministic finite-precision/bit complexity and a persistent
+changing-face implementation remain open.
+
+The following material records the stronger deterministic persistent-response
+program that preceded the fresh-batch proof.  Point-source rootedness
 closes the full online cactus class and removes multi-source merge
 bookkeeping.  On arbitrary proper faces, a canonical positive ground
 conjugacy, accelerated finite ground publication, admission replay, and
 conductance-certified rank-one response split now close a second structural
 branch at the target square-root scale.  Exact rank-one responses reduce its
-dynamic reporter to lazy planar extreme queries.  The universal graph theorem
-is still open because sparse high-gap pivots can leave genuine gray rows and
-variable two-port blocks still require an amortized transformed-meld/event
-locator.
+dynamic reporter to lazy planar extreme queries.  A universal theorem for
+this stronger persistent reporter is still open because sparse high-gap
+pivots can leave genuine gray rows and variable two-port blocks still require
+an amortized transformed-meld/event locator.
 In the unweighted model the remaining high-mode row radius has now been
 compressed further: it is at most one common response constant times
 `sqrt(s_v)`, where `s_v` is the same scalar ground coupling already carried
@@ -174,7 +186,9 @@ why the theorem is nonvacuous and why it does not settle general sparse
 graphs.
 
 The point-source restriction is a genuine simplification, but it does not by
-itself close dynamic support discovery.  A proved fan family has every graph
+itself close one-pivot-at-a-time dynamic support discovery.  The threshold-
+batch theorem supplies the additional ingredient used by the active paper.
+A proved fan family has every graph
 vertex adjacent to the source while the exact rule that solves the current
 face and admits every positive exterior key still takes a linear number of
 nonempty batches.  Thus radius controls route length, not the number of

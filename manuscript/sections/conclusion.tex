@@ -1,23 +1,28 @@
-Classical APPR has worst-case degree-weighted work
-\(\Theta(1/(\alpha\epsappr))\), even on an unweighted center-seeded star and
-independently of the legal active-vertex ordering. The construction isolates
-the mass-processing and high-degree rescanning mechanisms that accelerated and
-hybrid local solvers must overcome.
+Threshold batching changes the relevant active-set complexity from the number
+of admitted coordinates to the number of complete exposed faces.  The
+Stieltjes order structure makes every admitted batch support-safe; the
+block-Cholesky/Chebyshev argument limits the number of face rebuilds to
+$\softO(1/\sqrt\alpha)$; and nearly-linear supplied-face SDD solves convert
+that depth bound into $\softO(1/(\rho\sqrt\alpha))$ fully charged RPPR work.
+An approximate inner face is already a sufficient PPR envelope, so the
+strict two-stage handoff yields the desired point-source
+$\softO(1/(\epsppr\sqrt\alpha))$ guarantee without carrying momentum or a
+dynamic inverse across support changes.
 
-For regularized PageRank, the original full-batch ISTA also admits an exact
-algorithm-specific characterization.  Thresholded coordinate ISTA removes
-the batch method's stale-scan logarithm, and the resulting coordinate method
-and its coarse-to-fine batch hybrid both have tight
-\(\Theta(1/(\alpha\rho))\) worst-case work at fixed relative accuracy.  This
-is our first fully matched local hybrid result, but it does not improve the
-dependence on \(\alpha\).
+The grounded electrical-flow dual makes the algorithmic interface explicit:
+the PageRank residual is a dual vertex-constraint slack, the boundary reporter
+is a local separation oracle, and a terminal face is a dual-feasible
+certificate.  Fenchel duality itself is classical and is not claimed as a
+standalone contribution.  Its role here is to expose why support discovery is
+a constraint-generation problem; the new result is that threshold batching
+controls the number of complete local separation-and-rebuild rounds.
 
-The coarse-forward-push/SOR analysis explains why changing only the handoff
-scale is insufficient.  Its monotone phase is tight at the desired balancing
-scale, while the fixed-relaxation FIFO tail revisits a long spider in a
-triangular wave and pays \(\Omega(1/(\alpha\epsppr))\).  A square-root
-improvement therefore requires a different tail mechanism---for example
-nonbacktracking state, elimination on an explored tree, varying polynomial
-relaxation, or an accelerated continuation rule that controls active volume.
-An algorithm-independent local-oracle lower bound and a graph-uniform
-\(\widetilde O(1/(\rho\sqrt\alpha))\) matching method remain open.
+The result is complete in its stated exact-real randomized model, but its
+scope matters.  The random SDD solver is an existing primitive, not the
+paper's novelty; deterministic support safety comes from the checked
+residual interface.  General sparse sources do not inherit the same additive
+work bound for free.  Deterministic finite-precision and coefficient-bit
+complexity, and a practical persistent implementation that avoids rebuilding
+even the bounded number of faces, remain open.  These are now refinements of
+an established arbitrary-graph point-source theorem rather than gaps in the
+underlying two-stage existence argument.

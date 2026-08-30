@@ -1,6 +1,6 @@
 # Research Context
 
-**Status:** Working research map for an early-stage JMLR project.
+**Status:** Working research map for an active JMLR theorem draft.
 
 ## Central problem
 
@@ -10,28 +10,34 @@ benefits of locality. The initial application is local PageRank from one seed
 vertex on a finite simple connected graph with unit edge weights. General
 seed distributions remain an explicitly separate extension.
 
-The intended hybrid solver will couple or switch between an accelerated outer
-process and efficient local inner updates. The research must identify when
-this combination converges, when it remains local, and when its total work
-improves on appropriate baselines.
+The active theorem draft uses a threshold-batched RPPR active set as Stage I
+and one ordinary principal PPR solve as an optional Stage II.  It identifies
+the exact-real randomized setting in which convergence, locality, and the
+target square-root dependence can be proved; deterministic finite precision
+and implementation-level comparisons remain separate research goals.
 
 ## Intended contributions
 
-The current targets are:
+The current contribution ledger is:
 
-1. A precisely defined hybrid local-solver algorithm and switching or coupling
-   rule.
-2. Convergence and complexity guarantees consistent with the implemented
-   residual, normalization, and stopping rule.
-3. A locality-aware work analysis covering outer iterations, local updates,
-   and edge operations.
-4. Reproducible comparisons with relevant local and accelerated methods.
-5. Empirical evidence explaining when acceleration helps or harms locality.
+1. **Established in the manuscript model:** a threshold-batched active-set
+   algorithm, an RPPR objective theorem, and a strict discover-once/solve-once
+   point-source PPR composition.
+2. **Established in the manuscript model:** a fully charged expected-work
+   bound `O_tilde(1/(rho * sqrt(alpha)))` for RPPR and
+   `O_tilde(1/(eps_ppr * sqrt(alpha)))` for semantic PPR accuracy.
+3. **Established proof mechanism:** an exact grounded electrical-flow dual,
+   support-safe Stieltjes pivots, and a block-Cholesky/Chebyshev theorem
+   limiting complete exposed faces to `O_tilde(1/sqrt(alpha))`.  The dual
+   identifies boundary residual violations with failed vertex constraints;
+   the complexity contribution is the local threshold-batch bound, not
+   Fenchel duality itself.
+4. **Still targeted:** a deterministic finite-precision/bit-complexity
+   realization and a practical persistent changing-face implementation.
+5. **Still targeted:** reproducible experiments under an implementation-wide
+   accepted residual and stopping convention.
 
-These are research targets, not established claims.
-
-Several algorithm-specific baselines are now established rather than
-targeted. Classical APPR has worst-case degree-weighted work
+Several algorithm-specific baselines are also established. Classical APPR has worst-case degree-weighted work
 `Theta(1/(alpha * eps_appr))`, proved in
 `manuscript/sections/appr_lower_bound.tex`. For fixed relative RPPR accuracy,
 residual-thresholded coordinate ISTA and the coordinate-to-batch hybrid both
@@ -41,7 +47,8 @@ general-seed model outside the canonical graph/seed contract. The
 coarse phase of CF-Push is ordering-independently tight, while the full FIFO
 fixed-SOR hybrid has a spider lower bound but no matching general upper bound.
 These results use different accuracy namespaces and are not silently
-identified with one another. Contribution 3 is measured against this ledger.
+identified with one another.  The active threshold-batch theorem does not
+promote the older fixed-SOR or changing-momentum conjectures.
 
 ## Current scope
 
@@ -72,21 +79,23 @@ connected, unit-weight, and nontrivial (`|V| >= 2`); see
 point-source problem this is without loss after restriction to the seed
 component.
 
-The following choices remain unresolved and block definitive theorem or
-accuracy claims:
+The manuscript now fixes the choices needed for its exact-real theorem.  The
+following table distinguishes that document-scoped contract from choices
+still needed by the executable repository:
 
-| Item | Needed decision |
+| Item | Current status |
 | --- | --- |
-| PageRank system | Exact equation and transition-matrix orientation |
-| `alpha` | Meaning, range, and correspondence with cited methods |
-| Residual | Formula, sign, orientation, and normalization |
-| `epsilon` | Norm and absolute, relative, local, or global interpretation |
-| Hybrid rule | Trigger, state transfer, and termination behavior |
-| Local work | Counted update and edge-operation model |
+| PageRank system | Fixed for the manuscript by `source_aligned_problem.tex`; executable adoption remains pending |
+| `alpha` | Fixed for the manuscript as the lazy symmetric system parameter in `(0,1]`; baseline translations are explicit |
+| Residual | Every manuscript algorithm defines and certifies its own residual; an implementation-wide convention remains open |
+| `epsilon` | `eps_obj` and semantic degree-normalized `eps_ppr` are fixed and converted in the paper; baseline tolerances remain distinct |
+| Hybrid rule | Fixed for the theorem as threshold-batched Stage I plus an optional fresh principal-PPR Stage II |
+| Local work | Fixed for the theorem as fully charged adjacency-list/algebraic-word work; wall-clock instrumentation remains future work |
 
-Resolve these in
-[`mathematical-conventions.md`](mathematical-conventions.md) and the relevant
-decision record before relying on them in code or reported results.
+Do not transfer the manuscript's algorithm-specific certificates into code or
+experimental comparisons without updating
+[`mathematical-conventions.md`](mathematical-conventions.md), the residual
+decision, and tests.
 
 ## Evidence and authority
 

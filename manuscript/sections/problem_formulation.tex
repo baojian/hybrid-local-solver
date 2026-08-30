@@ -1,268 +1,131 @@
-% The active manuscript uses one reference PageRank system. Alternative
-% scalings from prior work are translated explicitly below rather than being
-% imported as competing definitions.
-
-The PageRank literature uses the same letters for several different walk
-operators, matrix scalings, coordinates, and accuracy criteria.  We therefore
-separate three layers of notation: an undecorated reference formulation used
-throughout this paper, a conversion dictionary for prior work, and
-algorithm-scoped symbols introduced only where they are needed.  In
-particular, a bare \(\varepsilon\) never denotes more than one accuracy notion.
+We use one reference PageRank normalization throughout.  The following shared
+block fixes the graph, the point-source specialization, the matrices
+$\mQ,\mD$, the objectives $f,F_\rho$, the optima
+$\vx_0^*,\vx_\rho^*$, the support $\mathcal S_\rho^*$, and the charged
+adjacency-list model.
 
 \input{tex/shared/source_aligned_problem}
 
-\paragraph{Lazy-walk fixed point.}
-Let
-\[
-    P:=AD^{-1},
-    \qquad
-    P_{\rm L}:=\frac{I+P}{2}.
-\]
-Thus \(P\) is the non-lazy column-walk operator and \(P_{\rm L}\) is its lazy
-version; we do not use \(W\) for either matrix.  Multiplying
-\(Qx^0=b\) by \(D^{1/2}\) shows that the vector
-\(\pi=D^{1/2}x^0\) is equivalently characterized by
+For the remainder of the paper we impose the canonical specialization
 \begin{equation}
-    \pi
-    =
-    \alpha s+(1-\alpha)P_{\rm L}\pi.
-    \label{eq:reference-lazy-ppr}
+ \vs=\eunit{v},
+ \qquad v\in\gV.
+ \label{eq:point-source-contract}
 \end{equation}
-Because \(P_{\rm L}\) is column stochastic, \(\pi\geq0\) and
-\(\inner{\one}{\pi}=1\).  The normalized optimization variable and the mass
-coordinate are related by
+The general distribution in the shared block is used only in the algebraic
+scope discussion of \cref{app:seed-scope}.
+
+\subsection{Semantic PPR accuracy and the RPPR bridge}
+
+An output $\widehat\vx$ represents
+$\widehat\vpi=\mD^{1/2}\widehat\vx$.  Our end-to-end semantic target is
 \begin{equation}
-    x^0=D^{-1/2}\pi,
-    \qquad
-    \pi=D^{1/2}x^0.
-    \label{eq:reference-coordinate-map}
+ \norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty
+ =\norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
+ \leq\epsppr.
+ \label{eq:semantic-ppr-target}
 \end{equation}
+This is an output guarantee, not an activation threshold.  Objective error in
+the regularized problem is denoted by $\epsobj$ and is never silently
+identified with $\epsppr$.
 
-\subsection{Equivalent PageRank conventions}
-\label{subsec:pagerank-convention-dictionary}
-
-The following dictionary is algebraic: all rows describe the same PPR vector
-\(\pi\), not different target problems.  Only the first row supplies
-undecorated symbols to later sections.
-
-\begin{table}[t]
-\centering
-\caption{Conversion between the PageRank systems used in this manuscript and
-representative prior work.  The subscript \(\mathrm{nl}\) denotes a non-lazy
-teleportation parameter.}
-\label{tab:pagerank-convention-dictionary}
-\begin{tabularx}{\textwidth}{@{}
-    >{\raggedright\arraybackslash}p{0.19\textwidth}
-    >{\raggedright\arraybackslash}X
-    >{\raggedright\arraybackslash}p{0.27\textwidth}@{}}
-\toprule
-Convention & Linear system & Coordinate/parameter map \\
-\midrule
-Reference lazy,
-symmetric
-& \(Qx=b\), where
-  \(Q=\alpha I+\frac{1-\alpha}{2}\mathcal L\) and
-  \(b=\alpha D^{-1/2}s\)
-& \(\pi=D^{1/2}x\); spectrum \([\alpha,1]\)
-  \citep{fountoulakis2019variational,fountoulakis2026complexity,huang2025accelerated}
-\\[2pt]
-Rescaled lazy,
-symmetric
-& \(Q_{\rm rs}x=b_{\rm rs}\), where
-  \(Q_{\rm rs}=\frac{2}{1+\alpha}Q\) and
-  \(b_{\rm rs}=\frac{2}{1+\alpha}b\)
-& Same \(x,\pi,\alpha\); spectrum
-  \([\frac{2\alpha}{1+\alpha},\frac{2}{1+\alpha}]\)
-  \citep{zhou2024iterative}
-\\[2pt]
-Non-lazy,
-mass coordinates
-& \(M_{\rm nl}\pi=\alpha_{\rm nl}s\), where
-  \(M_{\rm nl}=I-(1-\alpha_{\rm nl})P\)
-& \(\alpha_{\rm nl}=\frac{2\alpha}{1+\alpha}\), equivalently
-  \(\alpha=\frac{\alpha_{\rm nl}}{2-\alpha_{\rm nl}}\)
-  \citep{chen2023accelerating,wei2026simple}
-\\[2pt]
-Non-lazy,
-degree coordinates
-& \(L_{\alpha_{\rm nl}}y=\alpha_{\rm nl}s\), where
-  \(L_{\alpha_{\rm nl}}=D-(1-\alpha_{\rm nl})A\)
-& \(y=D^{-1}\pi=D^{-1/2}x\)
-  \citep{wei2026simple}
-\\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-The rescaled system changes neither the solution nor the teleportation
-parameter.  The non-lazy system changes the parameter because eliminating the
-self-loop term from \cref{eq:reference-lazy-ppr} gives
-\[
-    \pi
-    =
-    \frac{2\alpha}{1+\alpha}s
-    +
-    \frac{1-\alpha}{1+\alpha}P\pi.
-\]
-Consequently, a theorem stated under one convention is translated before its
-\(\alpha\)-dependence is compared with a theorem under another convention.
-
-\subsection{Output accuracy and computable certificates}
-\label{subsec:accuracy-and-certificates}
-
-For an approximate normalized solution \(\widehat x\), write
-\(\widehat\pi:=D^{1/2}\widehat x\).  The document-scoped semantic PPR target is
+The identities
 \begin{equation}
-    \norm{D^{-1}(\widehat\pi-\pi)}_\infty
-    =
-    \norm{D^{-1/2}(\widehat x-x^0)}_\infty
-    \leq\epsppr.
-    \label{eq:ppr-semantic-accuracy}
+ \mQ\mD^{1/2}\one=\alpha\mD^{1/2}\one,
+ \qquad \mQ^{-1}\geq\vzero
+ \label{eq:constant-vector-inverse-positive}
 \end{equation}
-This is an output statement, not an algorithmic activation rule.
+follow respectively from the degree definition and the fact that $\mQ$ is a
+nonsingular Stieltjes matrix.  They imply the standard RPPR--PPR bridge.
 
-\begin{proposition}[A sufficient scaled-system certificate]
-\label{prop:scaled-system-certificate}
-Every \(\widehat x\in\R^n\) satisfies
+\begin{proposition}[RPPR bias and objective conversion]
+\label{prop:rppr-ppr-bridge}
+For every $\rho>0$,
 \begin{equation}
-    \norm{D^{-1}(\widehat\pi-\pi)}_\infty
-    \leq
-    \frac{1}{\alpha}
-    \norm{D^{-1/2}(Q\widehat x-b)}_\infty.
-    \label{eq:scaled-system-certificate}
+ \vzero\leq\vx_\rho^*\leq\vx_0^*,
+ \qquad
+ \norm{\mD^{-1/2}(\vx_0^*-\vx_\rho^*)}_\infty\leq\rho.
+ \label{eq:rppr-bias}
 \end{equation}
-Hence
-\(\norm{D^{-1/2}(Q\widehat x-b)}_\infty\leq\alpha\epsppr\)
-is sufficient for \cref{eq:ppr-semantic-accuracy}.
+Moreover, every feasible $\widehat\vx\geq\vzero$ satisfying
+$F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj$ obeys
+\begin{equation}
+ \norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
+ \leq \rho+\sqrt{2\epsobj/\alpha}.
+ \label{eq:objective-to-ppr}
+\end{equation}
 \end{proposition}
 
 \begin{proof}
-Set
+On the nonnegative orthant the RPPR load is obtained from the PPR load by
+subtracting $\alpha\rho\mD^{1/2}\one$.  Inverse positivity and
+\cref{eq:constant-vector-inverse-positive}, together with the obstacle KKT
+conditions proved in \cref{thm:obstacle-reduction}, give
+$\vzero\leq\vx_\rho^*\leq\vx_0^*$ and
+$\vx_0^*-\vx_\rho^*\leq\rho\mD^{1/2}\one$.  Strong convexity gives
 \[
-    B:=D^{-1/2}QD^{1/2}
-      =\frac{1+\alpha}{2}I
-       -\frac{1-\alpha}{2}D^{-1}A.
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
+ \geq\frac\alpha2\norm{\widehat\vx-\vx_\rho^*}_2^2.
 \]
-The matrix \(B\) is a nonsingular \(M\)-matrix, so \(B^{-1}\geq0\).
-Moreover, \(D^{-1}A\one=\one\), and therefore
-\(B\one=\alpha\one\).  It follows that
-\(\norm{B^{-1}}_\infty=\norm{B^{-1}\one}_\infty=1/\alpha\).  Using
-\(Qx^0=b\) gives
-\[
-    D^{-1}(\widehat\pi-\pi)
-    =
-    B^{-1}D^{-1/2}(Q\widehat x-b),
-\]
-which proves the claim.  This is the same scaling behind the local
-certificate used by \citet[Lemma~2.2]{huang2025accelerated}.
+Since every $d_i\geq1$, the normalized coordinate error from
+$\widehat\vx$ to $\vx_\rho^*$ is at most
+$\sqrt{2\epsobj/\alpha}$.  The triangle inequality proves
+\cref{eq:objective-to-ppr}.
 \end{proof}
 
-The certificate above fixes neither a residual sign nor a repository-wide
-stopping rule.  Each algorithm below defines its maintained residual, its
-evaluation schedule, and whether its inequality is strict or non-strict.  The
-accuracy namespace is:
-
-\begin{center}
-\begin{tabularx}{0.96\textwidth}{@{}
-    >{\raggedright\arraybackslash}p{0.17\textwidth}
-    >{\raggedright\arraybackslash}X@{}}
-\toprule
-Symbol & Meaning in this manuscript \\
-\midrule
-\(\epsppr\)
-& Semantic degree-normalized output error in
-  \cref{eq:ppr-semantic-accuracy}. \\
-\(\epsappr\)
-& APPR activation threshold \(r_t(u)\geq\epsappr d_u\); it is not
-  identified with \(\epsppr\). \\
-\(\rho\)
-& RPPR regularization/locality scale in \(F_\rho\), with
-  \(\vol(S^\star(\rho))\leq1/\rho\). \\
-\(\epsobj\)
-& Additive objective target
-  \(F_\rho(\widehat x)-F_\rho(x^\star)\leq\epsobj\). \\
-\(\epspg\)
-& Proximal fixed-point diagnostic defined in
-  \cref{eq:source-fixed-point-residual}. \\
-\(\delta\)
-& Dimensionless relative KKT accuracy used in the RPPR algorithms; its
-  absolute excess threshold is defined where the algorithm is introduced. \\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-No conversion among these quantities is implicit.  In particular,
-\(\rho\) controls both bias and support size, while \(\epsobj\) and
-\(\epspg\) describe different optimization diagnostics.
-
-\subsection{Degree-weighted local work and optimization diagnostics}
-\label{subsec:source-work-and-stopping}
-
-The common computational unit is an adjacency-list entry.  A coordinate push
-at \(u_t\) has cost \(d_{u_t}\), so a coordinate method is charged
+The RPPR optimum is zero exactly when $\rho\geq1/d_v$.  Indeed, the only
+possibly positive shifted load is at the seed and equals
+$\alpha(1-\rho d_v)/\sqrt{d_v}$.  We therefore call
 \begin{equation}
-    \operatorname{Work}_{\rm coord}(T)
-    :=
-    \sum_{t=0}^{T-1}d_{u_t}.
-    \label{eq:coordinate-degree-work}
+ 0<\rho<1/d_v
+ \label{eq:nonzero-rppr-regime}
 \end{equation}
-For a batch proximal method with extrapolated point \(y_k\) and next iterate
-\(x_{k+1}\), the symmetric source measure is
+the nontrivial regime; it is recognized with one degree query.
+
+\subsection{Fully charged local work}
+
+A scan of $U\subseteq\gV$ costs $\vol(U)$.  Our work bounds additionally
+charge construction of every principal matrix, every repeated row and
+boundary scan, candidate insertion, numerical solver state, residual
+certification, projection, materialization, state access, and output.  There
+is no free support oracle and no ambient preprocessing.  The theorem is in the
+exact-real algebraic word model from the shared block.  The parameter
+$\zeta\in(0,1)$ denotes the probability of an explicit reported failure.
+
+\subsection{Main theorems}
+
+The regularized result will be proved as \cref{thm:local-rppr}.
+
+\begin{theorem}[Local RPPR, informal]
+\label{thm:local-rppr-informal}
+For a canonical point-source instance, there is an exact-real randomized
+local algorithm which, with failure probability at most $\zeta$, returns
+$\widehat\vx\geq\vzero$ with RPPR objective gap at most $\epsobj$.  Its
+expected fully charged work is
 \begin{equation}
-    \operatorname{work}_k
-    :=
-    \vol(\supp(y_k))
-    +
-    \vol(\supp(x_{k+1})),
-    \qquad
-    \operatorname{Work}(N)
-    :=
-    \sum_{k=0}^{N-1}\operatorname{work}_k.
-    \label{eq:source-degree-work}
+ \softO\!\left(
+   \frac{1}{\rho\sqrt\alpha}
+   \log\frac1{\epsobj}\log\frac2\zeta
+ \right).
+ \label{eq:informal-rppr-work}
 \end{equation}
-Both measures charge \(d_i\) whenever coordinate \(i\)'s neighborhood is
-scanned; they differ only in the set of coordinates scanned at one iteration.
-Iteration count and wall-clock time do not replace this work measure.
+\end{theorem}
 
-For completeness, the experiments of
-\citet{fountoulakis2026complexity} use the unit-step proximal-gradient map
+The two-stage consequence will be proved as
+\cref{thm:two-stage-completion}.
+
+\begin{theorem}[Local point-source PPR, informal]
+\label{thm:local-ppr-informal}
+For $0<\epsppr<1$, a strict two-stage algorithm returns an output satisfying
+\cref{eq:semantic-ppr-target}, with failure probability at most $\zeta$ and
+expected fully charged work
 \begin{equation}
-    T_{\alpha,\rho}(x)
-    :=
-    \prox_{g_\rho}\bigl(x-\nabla f(x)\bigr),
-    \qquad
-    r_{\rm pg}(x)
-    :=
-    \norm{x-T_{\alpha,\rho}(x)}_\infty,
-    \label{eq:source-fixed-point-residual}
+ \softO\!\left(\frac{1}{\epsppr\sqrt\alpha}\right).
+ \label{eq:informal-ppr-work}
 \end{equation}
-and stop when \(r_{\rm pg}(x_k)\leq\epspg\).  This is distinct from the
-source's theoretical objective target
-\(F_\rho(x_N)-F_\rho(x^\star)\leq\epsobj\); the source prints both with the
-same epsilon glyph, whereas we do not.
+\end{theorem}
 
-We call a method \emph{local} when its degree-weighted work can be bounded in
-terms of the seed-local output scale and problem parameters, without an
-unavoidable dependence on \(n\) or \(m\).  An active-set average such as
-\(T^{-1}\sum_{t<T}\vol(S_t)\) is always written explicitly; it is never
-denoted by the same symbol as the smaller-side volume used in conductance.
-
-\subsection{Notation discipline for algorithm-specific objects}
-\label{subsec:source-auxiliary-notation}
-
-The undecorated symbols \(Q\), \(P\), \(x\), \(\pi\), \(\rho\), and
-\(\vol\) retain the meanings above.  Alternative matrix scalings carry a
-subscript, residuals are defined by a formula before their sign is used, and
-condition numbers are written as \(L/\mu\) when a paper uses \(\kappa\) for a
-different quantity.  Our canonical volume is
-\(\vol(S)=\sum_{i\in S}d_i\), without an added \(|S|\).  Likewise,
-\(\partial S=\mathcal N(S)\setminus S\) is a vertex boundary; an edge
-boundary is written explicitly as \(E(S,V\setminus S)\).  Decorated internal
-or matrix-access volumes are introduced only in comparisons that need them.
-
-Instance notation is also local to the result that uses it.  A star is written
-\(K_{1,m}\), with center \(c\) and leaf set \(L\); a center-seeded star uses
-\(s=e_c\).  An endpoint-seeded path is written \(P_{m+1}\) with seed
-\(s=e_1\).  Breakpoints, margins, momentum factors, evolving-set averages,
-and stage counters from prior papers are not part of the global problem
-definition and are defined only in the corresponding analysis.
+The soft notation hides polylogarithms in the displayed accuracy and failure
+parameters and in the local supplied-matrix SDD routine; it hides no
+polynomial dependence on $n$, $m$, $|\mathcal S_\rho^*|$, or an unknown sign
+margin.

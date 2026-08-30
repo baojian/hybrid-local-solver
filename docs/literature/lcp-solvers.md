@@ -79,6 +79,16 @@ boundary reporter needed for OP2.  Its approximation margins also differ from
 the canonical objective-gap stopping rule, so the conversion must be restated
 in the shared normalization.
 
+**Dual-language audit.**  In Wei--Yang's non-lazy notation, equations (2) and
+(4) and Lemmas 5.1--5.2 imply that the grounded-flow vertex slack is
+`L_alpha x - alpha(e_s-rho d) = alpha(rho d-r(x))`.  Thus their test
+`r(x^(S))(v) > rho d(v)` is exactly a violated dual vertex inequality.  The
+paper uses this equivalent residual/KKT condition in the support-safety proof
+on PDF pp. 13--14, but does not introduce a flow variable, a dual energy
+objective, or the grounded electrical-flow optimization problem.  The active
+manuscript now states that dual explicitly as a structural interpretation and
+does not claim standard Fenchel duality as the new complexity ingredient.
+
 ### Foniok et al., 2009: short K-LCP pivot paths, expensive oracle
 
 **Source.** Jan Foniok, Komei Fukuda, Bernd Gärtner, and Hans-Jakob Lüthi,

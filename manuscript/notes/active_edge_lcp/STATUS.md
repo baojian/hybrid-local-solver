@@ -121,7 +121,10 @@ Exact theorem and page pointers are in `docs/literature/lcp-solvers.md`.
 - Read-only cross-checks: `evolving_support_cg`,
   `incremental_active_set_sdd`, `aspr23_bound_audit`, `aesp_cd_l1_rppr`,
   `delayed_reflection_ladder`, and `local_solver_oracle_hierarchy`.
-- Nothing is promoted to the active manuscript.
+- The obstacle reduction, safe-pivot invariant, threshold-batch depth theorem,
+  and fully charged OP2 algorithm are promoted in condensed form to the active
+  manuscript.  Deterministic bit complexity and persistent response remain in
+  this note as stronger open directions.
 
 ## Verification
 
@@ -138,13 +141,15 @@ Exact theorem and page pointers are in `docs/literature/lcp-solvers.md`.
   fatal, undefined-reference, or overfull-box diagnostics; all pages were
   rendered and visually inspected without clipping, overlap, or broken
   equations/tables.
-- Note inventory, `git diff --check`, `make agent-audit`, and the owned Python
-  lint/format checks passed.
-- Final `make test` passed 213/213, with 15 pytest temporary-directory cleanup
-  warnings.  Full `make lint` remains red only because format checking reports
-  nine pre-existing files in the simultaneous
-  `windowed-spectral-lyapunov-7h` assignment's owned experiment path; no such
-  file was modified here.
+- The promoted manuscript builds to 20 pages with resolved citations and
+  references; `git diff --check`, `make agent-audit`, both batch-depth audits,
+  and `make research-audit-fast` pass.
+- The current repository-wide `make test` passes 210/213 tests.  Its three
+  failures are pre-existing AESP-CD note-maintenance issues: one semantic
+  alias match and two reports of the same 1,237-line extracted section.
+  `make lint` is likewise red on one pre-existing unused import in the
+  `problem_definitions` note.  None of those files is modified by this
+  manuscript promotion.
 
 ## Independent audit verdict
 
