@@ -79,5 +79,5 @@ This table is generated from `registry.toml` by
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
 | [`hybrid_local_solver_synthesis`](hybrid_local_solver_synthesis/) | synthesis | synthesis | Connect the active manuscript, solver families, and experiments. |
-| [`two_stage_point_source_aesp_cd`](two_stage_point_source_aesp_cd/) | synthesis | proved-open | Separate numerical early return, lower-safe AESP-to-APPR mass completion, and genuinely set-only fixed-envelope restart. |
+| [`two_stage_point_source_aesp_cd`](two_stage_point_source_aesp_cd/) | synthesis | proved-open | Separate numerical early return, lower-safe AESP-to-APPR mass completion, and set-only fixed-envelope restart, including the randomized OP2 inner-face closure. |
 <!-- END GENERATED NOTE TABLE -->

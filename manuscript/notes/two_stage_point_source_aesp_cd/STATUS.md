@@ -27,12 +27,14 @@ State: proved-open
   `W_disc + O_tilde(vol(E)/sqrt(alpha))` for a set-only screen, or publish a
   lower-safe mass checkpoint and pay
   `O(mu(z)/(alpha eps_ppr))` for APPR/SOR cleanup; plus a fair certified
-  portfolio and a precise reduction of the arbitrary-graph target to
-  output-sensitive screening or mass capture.
-- **Reduced artifacts:** the proof-oriented standalone note is 36 pages, the
-  complete short paper is 10 pages, and the strict support-first theorem core
-  is 4 pages.  The last version removes mass continuation and every
-  changing-face Lyapunov/Perron argument.
+  portfolio.  The imported randomized threshold-batch OP2 theorem and the new
+  inner-face energy transfer additionally close the arbitrary-graph target in
+  the exact-real randomized word model.
+- **Reduced artifacts:** the proof-oriented standalone note is 40 pages, the
+  complete short paper is 12 pages, and the strict support-first theorem core
+  is 6 pages.  The last version removes mass continuation and every
+  changing-face Lyapunov/Perron argument while retaining the randomized
+  arbitrary-graph closure.
 
 ## Claim ledger
 
@@ -56,10 +58,20 @@ State: proved-open
   exact-support attempts.  A successful Green envelope with a certified
   fixed-width order is solved in $O(w^3B)$ work; implemented tree and
   unicyclic elimination realizes the fixed-width claim rather than merely
-  estimating it.
-- **Conditional:** The arbitrary-graph target under a dynamic obstacle/reporter
-  oracle with `W_DS(B)=O_tilde(B/sqrt(alpha))`; strict-margin exact-face
-  identification; AESP-burn-in locality bounds.
+  estimating it.  A new strong-convexity lemma converts the objective gap of
+  any safe inner RPPR face into an exterior-amplitude certificate.  Combining
+  it with the companion threshold-batch theorem gives a literal set-only then
+  ordinary-PPR algorithm with expected fully charged
+  `O_tilde(1/(eps_ppr sqrt(alpha)))` work on every graph in the exact-real
+  randomized word model; the direct certified RPPR return has the same bound.
+- **Imported source theorem:** `active_edge_lcp` proves the graph-uniform OP2
+  threshold-batch solver.  It uses block-Cholesky/Chebyshev batch-depth decay,
+  fresh Koutis--Miller--Peng SDD calls, exact residual acceptance, and capped
+  independent retries.
+- **Conditional:** A persistent dynamic obstacle/reporter implementation;
+  strict-margin exact-face identification; AESP-burn-in locality bounds; and
+  deterministic finite-precision realization of the randomized source
+  theorem.
 - **Measured:** A new exact Fraction audit checks the PPR--RPPR comparison,
   linear sparse-source superposition and the joint-source RPPR obstruction,
   support-volume and face/envelope certificates on paths, cycles, stars, and
@@ -128,24 +140,32 @@ State: proved-open
   charge.  Charging a fresh ordinary-PPR Stage II leaves 33 standalone and 8
   fair wins; retaining the final structural factors raises these to 37 and 9.
   Its 38 singleton path rounds record why this correct baseline is not a
-  universal work theorem.
+  universal work theorem.  The randomized transfer audit checks 171 positive
+  inner faces on 40 exact rational graph instances and four deliberately
+  incomplete cap-exit paths.  A 67-case numerical prototype perturbs every
+  face solve inside the exact residual acceptance region; all direct and
+  literal Stage-II outputs meet the semantic target, including four strict
+  inner faces.
 - **Refuted:** Treating APPR's output-sized envelope as an accelerated
   construction; transporting unguarded momentum across admissions; blind
   radius expansion; and repeated full restricted solves after singleton
   admissions as a universal product-scale proof.
-- **Open:** General-graph output-sensitive point-source set-only screening or
-  accelerated numerical discovery itself; exact-face
-  identification without a finite KKT margin, and a larger implementation
-  study of the certified portfolio. Exact zero-key decisions are unnecessary
+- **Open:** Deterministic finite-precision and coefficient-bit bounds for the
+  randomized closure; a practical local randomized SDD implementation;
+  persistent response reuse sharper than fresh face rebuilding; exact-face
+  identification without a finite KKT margin; and a larger implementation
+  study of the certified portfolio.  Exact zero-key decisions are unnecessary
   for the approximate-envelope main line.
 
 ## Central blocker
 
-Construct or rule out an adjacency-local set-only boundary reporter with total
-`O_tilde(B/sqrt(alpha))` work on every retained envelope of volume `B`.
-Separately, improve the hard-capped mass lane on instances where a small
-mass-capturing envelope exists; the star barrier rules out making that second
-condition universal for the $\ell_\infty$ target.
+There is no remaining arbitrary-graph existence blocker in the exact-real
+randomized word model.  The central next target is a deterministic
+finite-precision realization with controlled coefficient bits, or a practical
+persistent reporter that matches the proved work without rebuilding every
+face.  Separately, improve the hard-capped mass lane on instances where a
+small mass-capturing envelope exists; the star barrier rules out making that
+second condition universal for the $\ell_\infty$ target.
 The numerical fixed-envelope tail is no longer the blocker.  All current
 concrete APPR, SOR, AESP-gap, and exact-response engines return enough values
 to meet the PPR target already; forcing Stage II on them is redundant.
@@ -153,17 +173,18 @@ The Green-ball screen is a genuine set-only exception and is adaptively safe.
 It had no win in the initial coarse 252-lane sweep, but the dedicated
 high-accuracy sweep has 22 standalone and 15 fairly charged wins.  The
 adaptive mass screen supplies two further high-accuracy star wins through a
-different low-minimal-polynomial mechanism.  Neither observation is an
-arbitrary-graph discovery theorem.
+different low-minimal-polynomial mechanism.  Neither observation alone is an
+arbitrary-graph discovery theorem; the threshold-batch OP2 lane supplies that
+theorem independently.
 
 ## Dependencies and reusable outputs
 
-- **Formal registry dependencies:** `aesp_cd_l1_rppr` and
-  `hybrid_aesp_locsor`.
+- **Formal registry dependencies:** `aesp_cd_l1_rppr`,
+  `hybrid_aesp_locsor`, and `active_edge_lcp`.
 - Source/shared prerequisites: the canonical source-aligned problem and the
   acceleration/local-solvers literature maps.
 - Supplies to: a future short main paper, point-source solver prototypes, and
-  any direction implementing the dynamic discovery oracle.
+  any direction implementing deterministic or persistent discovery.
 - Reusable outputs: the two certificate interfaces, envelope-linearization
   lemma, composition theorem, certificate-race wrapper, and paper-reduction
   map.
@@ -172,12 +193,11 @@ arbitrary-graph discovery theorem.
 
 - Exact file/section/lemma: `main.tex`, especially
   `thm:two-stage-composition`, `thm:two-stage-certificate-race`, and
-  `prob:two-stage-general-discovery`.
-- Next concrete action: seek a genuinely cheaper set-only screen; separately,
-  improve the adaptive mass lane using APPR-shaped rather than blind
-  envelopes; replace the benchmark's offline lane
-  selection by an interruptible shared-adjacency race for direct APPR and
-  priority-SOR.
+  `thm:two-stage-randomized-completion`.
+- Next concrete action: implement a finite-precision residual-certified SDD
+  realization or persistent face reuse; separately improve the adaptive mass
+  lane using APPR-shaped rather than blind envelopes and replace offline lane
+  selection by an interruptible shared-adjacency race.
 - Stop/go test: go if a new Stage-I engine returns a valid face/envelope
   certificate with every reporter charge explicit. Narrow or stop if the
   argument assumes the final support, hides global preprocessing, or treats a
@@ -194,7 +214,8 @@ arbitrary-graph discovery theorem.
   `git diff --check` pass.  The repository-wide note inventory still reports
   two pre-existing provider sections above its source-line cap; neither file
   is in this direction's edit scope.
-- Known gaps: no new arbitrary-graph accelerated screening theorem; the SOR
-  lane is a direct nonaccelerated solver rather than an accelerated support
-  engine; the fair race is exact-real unless each engine supplies its own
-  finite-precision certificate.
+- Known gaps: the randomized arbitrary-graph theorem is exact-real rather than
+  a bit-complexity or floating-point theorem; the SOR lane is a direct
+  nonaccelerated solver rather than an accelerated support engine; the fair
+  race is exact-real unless each engine supplies its own finite-precision
+  certificate.

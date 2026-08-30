@@ -27,6 +27,11 @@ literal second-stage ordinary-PPR solve has the same count because it replaces
 the one RPPR recovery solve; it is not appended to it.
 The framework requires neither exact RPPR support nor acceleration across
 changing faces; exact support remains an optional margin-dependent verifier.
+A threshold-batched active-set lane additionally gives the full
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$ bound on arbitrary graphs in an
+exact-real randomized word model.  It returns a low-energy inner face rather
+than identifying all of $S^\star$; deterministic finite-precision complexity
+remains open.
 \end{abstract}
 
 \section{Model and the reduction}
@@ -527,6 +532,8 @@ adds direct APPR's classical $O(1/(\alpha\varepsilon))$ work.  Round-robin
 scheduling of a fixed number of complete lanes costs at most a fixed multiple
 of the best lane on each instance.
 
+\input{sections/randomized_op2_core}
+
 \section{What the data say}
 
 All experiments use six deterministic graph families (path, cycle, star,
@@ -649,13 +656,13 @@ additive input cost.  RPPR is nonlinear in the source and does not superpose.
 
 Exact RPPR support $S^\star$ is optional.  On trees and some cactus classes,
 point-source response messages can find it at the desired product scale and
-may serve as a proposal lane.  On arbitrary graphs, however, neither exact
-support discovery nor output-sensitive envelope proposal has been proved in
-$\widetilde O(1/(\varepsilon\sqrt\alpha))$ work.  The precise open problem is:
-construct an adjacency-local proposal/reuse mechanism that, before doing the
-work of direct APPR, produces a capped envelope passing either
-\cref{eq:short-leakage-gate} or \cref{eq:short-mass-premise}.  It must charge
-every boundary refresh, response update, rejected row, and exposure.
+may serve as a deterministic proposal lane.  On arbitrary graphs,
+\cref{thm:random-core-two-stage} instead returns a low-energy inner face and
+closes the target in the exact-real randomized word model.  It charges every
+fresh face, boundary scan, solver state, and exposure.  What remains open is a
+deterministic finite-precision theorem, or a practical adjacency-local
+proposal/reuse mechanism that produces such a certificate before doing the
+work of direct APPR without rebuilding every face.
 
 In a 10-case large-graph diagnostic, literal monotone RPPR discovery does
 return smaller exact sets on paths and grids, but its median work is $7.92$
@@ -688,5 +695,6 @@ algorithm above.
 \paragraph{Bottom line.}
 The terminal fixed solve is closed, safe, and sometimes decisively useful.
 The mass continuation is equally short and preserves direct-APPR fallback.
-The remaining breakthrough is exclusively Stage~I proposal work.  A claim of
-universal acceleration should be made only after that interface is closed.
+Threshold-batched safe discovery supplies the universal randomized exact-real
+existence theorem.  The remaining breakthrough is a deterministic,
+finite-precision, and practically competitive Stage~I implementation.

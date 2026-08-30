@@ -473,3 +473,36 @@ Every fixed-face PPR output meets the semantic target.  The independent RPPR
 solve/KKT scan is an audit, not part of the algorithmic work.  A randomized
 check of 1,890 small trees also passed the structural solve and global KKT
 verifier.
+
+## Randomized OP2 inner-face transfer
+
+`randomized_op2_inner_face_benchmark.py` tests the new composition with the
+companion OP2 theorem.  It is deliberately **not** an implementation of the
+Koutis--Miller--Peng SDD solver.  Each exposed face is solved directly and
+then perturbed in a random direction whose active residual passes exactly the
+deterministic acceptance test used by the proved randomized wrapper.  This
+isolates the post-solver claims: safe threshold admission, cap exit on a
+strict inner face, direct RPPR return, and an independent ordinary-PPR
+Stage II.
+
+The saved 67-row run covers seven graph families over three `alpha` values and
+three accuracy targets, plus four tiny-`rho` stress cases designed to reach
+the phase cap before discovering all of `S*`.  All 67 direct outputs and all
+67 literal Stage-II outputs meet the semantic PPR target.  The four stress
+cases return strict inner faces; the largest normalized error ratios are
+`0.500010` for the direct RPPR point and `0.462166` for Stage II.  Both stages
+include randomly shaped errors that pass their exact residual acceptance
+tests.  The largest face-gap ratio is below `1.09e-8`.
+
+Run it with:
+
+```bash
+uv run python experiments/two_stage_point_source_aesp_cd/randomized_op2_inner_face_benchmark.py
+```
+
+The independent exact proof audit is
+`experiments/proof_audits/two_stage_point_source_aesp_cd/randomized_op2_transfer.py`.
+It exhausts 171 positive inner faces on 40 rational graph instances and then
+checks four incomplete capped path faces.  It verifies the squared
+strong-convexity transfer and the ordinary principal-PPR semantic bound with
+exact fractions.

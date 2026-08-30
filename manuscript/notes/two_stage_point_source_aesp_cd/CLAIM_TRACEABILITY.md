@@ -21,6 +21,9 @@ interfaces so that the four-page core does not inherit the scope of the
 | Tree threshold messages give product-scale exact Stage I | exact-real, one source, promised tree | strict Section 2 | 60 large rows and 1,890 randomized small-tree traces |
 | A Green ball is an exact-support-free set-only screen | one source; hard volume cap | strict Section 2 | 90-row CG and 75-row structural-tail tables |
 | Direct boundary leakage certifies a PPR envelope | fixed principal approximation plus residual error bar | strict Section 2 | exact rational leakage audit and high-accuracy sweep |
+| Threshold batches solve RPPR in graph-uniform product work | point source; exact-real randomized word model | imported `active_edge_lcp`, Theorems `thm:batch-depth` and `thm:op2` | source audits: 1,152 floating cases, 216 high-precision cases, exact residual/path checks |
+| A low-energy safe inner face certifies omitted RPPR amplitude | any reachable face, including a strict subset of `S*` | `sections/09_randomized_op2_transfer.tex`, Lemma `lem:two-stage-inner-face-energy` | 171 positive inner faces on 40 exact rational instances; 4 incomplete cap-exit paths |
+| Randomized Stage I plus an independent ordinary-PPR Stage II meets the target product bound | point source; exact-real randomized word model | strict randomized-closure section and Theorem `thm:two-stage-randomized-completion` | 67-case accepted-error prototype; all direct and literal Stage-II outputs pass |
 | Ordinary sparse-source PPR superposes but RPPR discovery does not | ordinary PPR versus obstacle RPPR | strict Section 4 | exact weighted P3 superposition and separate/joint KKT keys `-1/48`, `1/24` |
 
 ## Measured columns
@@ -41,7 +44,13 @@ candidate faces, and independently tests the reusable factors.
 
 ## Claims deliberately not made
 
-- No arbitrary-graph accelerated Stage-I support reporter is proved.
+- The randomized closure does not identify all of `S*`; it proves that a
+  low-energy inner face suffices.
+- The exact-real randomized theorem is not a deterministic floating-point or
+  coefficient-bit theorem, and it is not an implementation benchmark of the
+  Koutis--Miller--Peng solver.
+- Threshold-batched active-set discovery is an AESP-CD portfolio lane, not a
+  proof that the original momentum recurrence survives face changes.
 - A numerical RPPR/APPR checkpoint is not forced through a redundant second
   solve when it already meets the PPR target.
 - Exact support is not required for PPR accuracy.

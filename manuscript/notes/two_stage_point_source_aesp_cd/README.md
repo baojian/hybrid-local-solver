@@ -12,7 +12,8 @@ for canonical single-source local PageRank:
 direct APPR ------------------------------- numerical certificate -> return
 Green / leakage screen ----\
 AESP-CD / SOR / APPR face --+-- first certified set -> discard history
-tree threshold messages ----/                         -> solve Q_E u = b_E once
+tree threshold messages ----+                         -> solve Q_E u = b_E once
+random threshold batches ---/
 ```
 
 The direct lane makes the portfolio unconditional.  The speculative lanes
@@ -25,7 +26,7 @@ dichotomy is the main simplification: the fixed-face tail is optional polishing
 unless a future engine finds the set substantially more cheaply than it finds
 the values.
 
-The central proved composition is
+The original containing-envelope composition is
 
 ```text
 W_total = W_discovery + O_tilde(vol(E) / sqrt(alpha)),
@@ -37,6 +38,27 @@ one may split the tolerance between `rho` and the terminal residual. With an
 exact structural tail, the correct choice is `rho = eps_ppr`: the tail
 replaces Stage-I recovery, uses no numerical error budget, and
 `vol(E) = O(1 / eps_ppr)`.
+
+The companion `active_edge_lcp` note now supplies the arbitrary-graph
+randomized Stage 1.  Its threshold batches solve only
+`O_tilde(1 / sqrt(alpha))` complete exposed faces, certify every accepted
+randomized SDD call by an exact residual scan, and never activate outside the
+true RPPR support.  Crucially, the final face `U` may be a strict subset of
+`S*`.  A new transfer lemma proves
+
+```text
+max_{i outside U} x*_rho(i) / sqrt(d_i)
+    <= sqrt(2 * face_gap / alpha),
+PPR_error(Q_U^{-1} b_U) <= rho + sqrt(2 * face_gap / alpha).
+```
+
+Thus a low-energy inner face is already a set-only Stage-1 certificate.  With
+`face_gap = alpha * eta^2 / 2`, an independent ordinary-PPR Stage 2 gives a
+literal two-stage algorithm with expected fully charged work
+`O_tilde(1 / (eps_ppr * sqrt(alpha)))` on every graph.  The shorter execution
+returns the certified RPPR point directly at the same scale.  This is an
+exact-real randomized word-model theorem; deterministic finite-precision and
+coefficient-bit complexity remain open.
 
 The cleanest set-only lane does not solve RPPR at all.  Point-source Green
 decay gives an explicit rooted ball on which one principal CG solve suffices.
@@ -126,8 +148,10 @@ source-centered star (`570/3610` and `570/950` charged work). The direct
 leakage implementation reproduces both wins but is expensive on general BFS
 balls, confirming that proposal/reuse work is the remaining issue.
 
-The arbitrary-graph output-sensitive set-only reporter remains open, while
-mass-envelope growth is used only under a hard cap. The long
+The arbitrary-graph existence theorem is therefore closed by randomized
+threshold batches.  A deterministic/practical set-only reporter and a
+persistent implementation that avoids fresh face rebuilding remain open,
+while mass-envelope growth is still used only under a hard cap. The long
 `aesp_cd_l1_rppr` note is preserved as
 the proof audit and companion; it is not copied or shortened in place.
 For review, [`CLAIM_TRACEABILITY.md`](CLAIM_TRACEABILITY.md) maps every strict
@@ -139,19 +163,19 @@ Build with:
 make -C manuscript/notes/two_stage_point_source_aesp_cd
 ```
 
-The full proof note and its exact page count are recorded in the built PDF. A
-separate short core containing the two continuation theorems, the Green--CG
-lane, algorithm, experiments, and open
-problem is built with:
+The current full proof note is 40 pages. A separate 12-page short core
+contains the randomized closure, the two continuation
+theorems, the Green--CG lane, algorithm, experiments, and remaining
+finite-precision problem is built with:
 
 ```bash
 cd manuscript/notes/two_stage_point_source_aesp_cd
 latexmk -pdf short_main.ltx
 ```
 
-For the most aggressive reduction, the strict support-first paper removes the
-mass continuation entirely and keeps only Stage-I set certificates plus one
-ordinary-PPR Stage II.  The current compiled core is four pages:
+For the most aggressive reduction, the six-page strict support-first paper
+removes the mass continuation entirely and keeps only Stage-I set certificates
+plus one ordinary-PPR Stage II, including the randomized inner-face theorem:
 
 ```bash
 cd manuscript/notes/two_stage_point_source_aesp_cd
