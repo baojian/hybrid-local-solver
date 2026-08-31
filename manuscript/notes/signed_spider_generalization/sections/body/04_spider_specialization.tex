@@ -593,13 +593,177 @@ Since $T$ is arbitrary, no constant $C_W$ can give the claimed product-work
 bound.
 \end{proof}
 
+The same family separates harmless scalar adaptation from genuinely nonlocal
+response information.
+
+\begin{theorem}[Adaptive block-SOR and source-polynomial propagation stop]
+\label{thm:adaptive-polynomial-propagation-stop}
+On the supplied funnel $G_n$, the following statements hold.
+
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item Start from zero and perform complete red--black sweeps, always updating
+      the source color $R$ before $B$.  At every visit to every coordinate,
+      the relaxation $\omega_{k,u}$ may be any finite real scalar chosen from
+      the entire graph, exact eigenvalue advice, randomness, and all previous
+      scalar or iterate history.  Provided the only state write is the literal
+      local SOR row update, after $k$ complete sweeps
+      \begin{equation}
+       \operatorname{supp}(x_R^{(k)})\subseteq\{r_0,\ldots,r_{k-1}\},
+       \qquad
+       \operatorname{supp}(x_B^{(k)})
+       \subseteq\bigcup_{i=0}^{k-1}B_i.
+       \label{eq:adaptive-sor-light-cone}
+      \end{equation}
+      Hence $x_{r_n}^{(k)}=0$ and
+      \begin{equation}
+       \frac{\|x^{(k)}-x^0\|_{D,\infty}}
+            {\|x^0\|_{D,\infty}}
+       \ge c_\alpha^{8n}
+       \qquad(0\le k\le n).
+       \label{eq:adaptive-sor-stop}
+      \end{equation}
+      This includes face-optimal, per-sweep, per-coordinate, and safeguarded
+      scalar relaxation schedules.  Convergence-valid SOR schedules normally
+      restrict $\omega_{k,u}$ to $(0,2)$; the propagation statement itself
+      needs only that every scalar be finite.
+
+\item Let $b$ be the single-seed normalized right-hand side and let $p_d$ be
+      any scalar polynomial of degree at most $d$.  Then
+      \begin{equation}
+       \operatorname{supp}(p_d(Q)b)
+       \subseteq \operatorname{Ball}_{G_n}(r_0,d).
+       \label{eq:source-polynomial-light-cone}
+      \end{equation}
+      Consequently, for every $d\le2n-1$,
+      \begin{equation}
+       \frac{\|p_d(Q)b-x^0\|_{D,\infty}}
+            {\|x^0\|_{D,\infty}}
+       \ge c_\alpha^{8n}.
+       \label{eq:source-polynomial-stop}
+      \end{equation}
+      The same conclusion holds pathwise for any zero-start recurrence whose
+      vectors are formed from scalar linear combinations and at most $d$
+      successive sparse $Q$-matvec dependency layers.  Its scalar
+      coefficients may depend adaptively on exact eigenvalues or global inner
+      products.  Thus the statement covers standard Chebyshev
+      semi-iteration, unpreconditioned CG/Krylov, heavy ball, and
+      variable-coefficient Richardson in their complete-face forms.
+\end{enumerate}
+
+For every fixed $T>0$, taking respectively
+$\alpha_n=(T/n)^2$ in part~(i) or
+$\alpha_n=(T/(2n-1))^2$ in part~(ii) makes the lower bounds tend to one.
+Thus neither class has a graph-uniform fixed semantic reduction through
+$T/\sqrt{\alpha_n}$ complete block sweeps or local matvec layers.
+\end{theorem}
+
+\begin{proof}
+Write the semantic iterate as $z=D^{-1/2}x$.  One literal coordinate update
+has the affine form
+\begin{equation}
+ z_u^+=(1-\omega_{k,u})z_u
+ +\omega_{k,u}\left(c_\alpha(P_{\rm row}z)_u
+ +h\mathbf1_{\{u=r_0\}}\right).
+ \label{eq:adaptive-semantic-row-update}
+\end{equation}
+Starting from zero, a new nonzero coordinate can therefore appear only at
+the seed or next to the old support; the numerical value of the scalar
+$\omega_{k,u}$ is irrelevant.  During an $R$ block there are no same-color
+edges, so visit order and repeated visits within that block cannot carry
+information through a second layer.  Inductively, the $k$th $R$ block can
+first reach $r_{k-1}$ and the following $B$ block can first reach $B_{k-1}$.
+This proves \eqref{eq:adaptive-sor-light-cone}.  Since $r_n$ is at distance
+$2n$, it remains zero through sweep $n$.  The exact solution has semantic
+maximum at $r_0$, while
+$y_{r_n}/y_{r_0}\ge c_\alpha^{8n}$ by
+\eqref{eq:funnel-green-ratio-lower}; hence
+\eqref{eq:adaptive-sor-stop}.
+
+For part~(ii), $Q$ has the graph sparsity pattern plus its diagonal and $b$ is
+supported only at $r_0$.  Induction on $j$ gives
+$\operatorname{supp}(Q^jb)\subseteq\operatorname{Ball}(r_0,j)$, proving
+\eqref{eq:source-polynomial-light-cone}.  Scalar combinations, including
+adaptive three-term coefficients, do not enlarge the union of these
+supports.  If $d\le2n-1$, the polynomial iterate is zero at $r_n$, so the
+same static Green ratio proves \eqref{eq:source-polynomial-stop}.
+
+For either scaling of $\alpha_n$,
+$c_{\alpha_n}^{8n}\to1$, exactly as in
+\Cref{thm:global-semantic-sor-stop}.  This proves the final assertion.
+\end{proof}
+
+The block-order hypothesis cannot be replaced by an arbitrary notion of one
+``sweep.''  With $\omega=1$, the single Gauss--Seidel permutation
+\begin{equation}
+ r_0,\ B_0,\ r_1,\ B_1,\ldots,\ r_{n-1},\ B_{n-1},\ r_n
+ \label{eq:interleaved-funnel-order}
+\end{equation}
+visits every coordinate once and changes $r_n$: after the seed update, strict
+positivity propagates along each next local average.  What
+\Cref{thm:adaptive-polynomial-propagation-stop} counts is color-block depth
+or sparse-matvec dependency depth, not an order-free word ``sweep.''
+
+\begin{corollary}[Scalar-adaptive and polynomial complete-face work stop]
+\label{cor:adaptive-polynomial-work-stop}
+No graph-independent constant gives
+$O(1/(\sqrt\alpha\,\varepsilon_{\rm ppr}))$ charged work on every supplied
+bipartite face for either of the following zero-start primitives:
+\begin{enumerate}[label=(\alph*),leftmargin=*]
+ \item literal source-first complete-face red--black SOR with arbitrary
+       adaptive scalar relaxations; or
+ \item a source-Krylov/Chebyshev recurrence in which every new polynomial
+       dependency layer is evaluated by a complete sparse $Q$-matvec.
+\end{enumerate}
+Spectral preprocessing is allowed here only through scalar advice, and all of
+its work and scalar reductions are charged in addition to these passes.
+Preprocessing that writes a nonlocal vector state belongs to the separately
+excluded response class below.
+\end{corollary}
+
+\begin{proof}
+For part~(a), use the proof of
+\Cref{cor:global-semantic-sor-work-stop}; its finite-propagation step is now
+uniform over the scalar schedule by
+\Cref{thm:adaptive-polynomial-propagation-stop}(i).
+
+For part~(b), take $\alpha_n=(T/(2n-1))^2$ and
+$\varepsilon_n=y_{r_0}/2$.  For all sufficiently large $n$, every degree at
+most $2n-1$ still has error above $\varepsilon_n$.  Under the stated
+complete-face primitive, one sparse $Q$-matvec is charged as one
+degree-volume scan (diagonal vector work only adds), so these dependency
+layers cost at least $(2n-1)\operatorname{vol}(G_n)$ up to an immaterial
+endpoint convention.  Since $q_n=\sqrt{\alpha_n}=T/(2n-1)$,
+\[
+ \frac{(2n-1)\operatorname{vol}(G_n)}{1/(q_n\varepsilon_n)}
+ =\frac{T\operatorname{vol}(G_n)y_{r_0}}2>\frac T2.
+\]
+Arbitrary $T$ rules out a uniform constant.  Spectral estimation only adds
+work.
+\end{proof}
+
+The scope boundary is algebraic, not rhetorical.  Exact eigenvalues used
+only as scalar coefficients do not break finite propagation.  A dense
+eigenvector transform, a nonzero global warm start, an inverse, Schur, or
+Green response, or a preconditioner with nonlocal columns can.  For example,
+$Q^{-1}$ makes one preconditioned Richardson step exact, and the funnel
+response
+\[
+ y_R=h(I-c_\alpha^2K)^{-1}e_{r_0},\qquad y_B=c_\alpha Cy_R
+\]
+fills every layer immediately.  More generally, a preconditioner with graph
+propagation radius $\ell$ expands one $BQ$ dependency layer by at most
+$\ell+1$; a dense response has no finite-radius conclusion.  The theorem is
+therefore not a lower bound on response composition, quotient solves, or
+other nonlocal primitives.
+
 The scope is deliberately algorithm-specific.  The theorem and corollary do
 not contradict the Euclidean fixed-face spectral theorem or its supplied-face
 logarithmic solve, whose conversion to maximum semantic norm can depend on
 graph geometry.  They do not lower-bound other algorithms, local discovery,
-or response composition; indeed the graph is supplied for free above.  They
-refute only a graph-uniform relative maximum-semantic envelope and the target
-product work for the named complete-face full-sweep plain-SOR schedule.  The
+or response composition; indeed the graph is supplied for free above.  The
+adaptive extension refutes only graph-uniform fixed reduction and target
+product work for the named complete-face scalar block-SOR and local-polynomial
+classes.  The
 symmetric-spider theorem and response-based tree algorithms remain intact.
 
 \subsection{How the radial two-rung theorem differs}

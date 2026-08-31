@@ -34,6 +34,12 @@
   handoff.
 - Deliberately unchanged: every other note retains its separate `STATUS.md`;
   no mathematical content in `main.tex` changed.
+- Superseded on `main`: while this assignment was open, `main` landed an
+  extended form of the same change. It accepts a second bold status title
+  variant (`**Direction status: <id>**`), carries the note's own
+  README-embedded handoff at a later review date, and adds three standard
+  consequences to the note. This branch therefore keeps `main`'s version of
+  every shared file and contributes only this coordination record.
 
 ## Evidence
 
@@ -43,9 +49,14 @@
 - Commands run: `make -C manuscript/notes/problem_definitions`,
   `uv run pytest tests/test_note_inventory_tool.py`, `make note-audit`,
   `make agent-audit`, `make test`, and `make lint`.
-- Results: the note built as a six-page PDF; the inventory audited 27 notes;
-  all 211 tests passed; agent auditing, Ruff checks, and Ruff formatting checks
-  passed. Pytest emitted 15 non-failing temporary-directory cleanup warnings.
+- Results at the time of the original run: the note built as a six-page PDF;
+  the inventory audited 27 notes; all 211 tests passed; agent auditing, Ruff
+  checks, and Ruff formatting checks passed.
+- Results after merging `main` (2026-09-01): the tooling, note, and test
+  changes are `main`'s. `uv run python -m tools.agent_boundaries check` passes.
+  `ruff check`, `ruff format --check`, `pytest`, and
+  `note_inventory.py check` match their `main` baselines exactly, all of which
+  are currently failing on `main` for reasons unrelated to this branch.
 
 ## Review notes
 

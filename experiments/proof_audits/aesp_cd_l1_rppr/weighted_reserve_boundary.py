@@ -227,7 +227,7 @@ def check_source_scope() -> None:
     assert r"x^\star-\ell_t" in main
     assert "does not provide the windowed" in main
     assert "weighted_reserve_boundary" in readme
-    assert "windowed or nonlinear" in status
+    assert "windowed spectral, nonlinear" in status
     assert "No graph-uniform exact accelerated solver" in readme
 
 

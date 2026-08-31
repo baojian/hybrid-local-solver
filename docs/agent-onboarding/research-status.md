@@ -1,6 +1,6 @@
 # Current research status and open problems
 
-Verified snapshot: 2026-08-24.
+Verified snapshot: 2026-08-29.
 
 This file is a routing summary. The current
 [controller broadcast](../../manuscript/notes/_shared/coordination/BROADCAST.md),
@@ -10,10 +10,10 @@ proof in the owning note is authoritative for a mathematical claim.
 
 ## Bottom line
 
-The desired graph-uniform sparse PPR solver with fully charged
+The desired graph-uniform single-source sparse PPR solver with fully charged
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 work is not proved. The project has useful local convergence results,
@@ -21,6 +21,22 @@ support and volume controls, exact structured handoffs, response identities,
 finite-trace counterexamples, and algorithm-specific lower bounds. The
 missing step is a graph-uniform composition that preserves accelerated
 progress while paying for every local and response operation.
+
+The canonical input is one seed vertex `v`, equivalently `s=e_v`. General
+unit-mass distributions remain a stronger extension: linear PPR
+superposition can multiply work, and RPPR support discovery requires a
+separate merge-aware argument.
+
+The canonical graph is finite, simple, undirected, connected, has at least
+two vertices, and has unit edge weights. This is without loss for the
+point-source solution: on a disconnected positive-degree graph both PPR and
+RPPR restrict exactly to the seed component. Intermediate active faces may
+still be disconnected.
+
+On the positive side, rootedness has now closed the complete exact reporter on
+promised cactus graphs through an online two-hysteretic heavy--light rebuild
+ledger; the next structural gap is a genuinely variable two-port
+series--parallel block.
 
 The repository-wide residual convention also remains open. The controller
 contract supplies a precise semantic target and sufficient certificate for
@@ -33,7 +49,11 @@ The following facts can be reused with their recorded assumptions and source
 pointers:
 
 - The shared PPR matrix satisfies `alpha I <= Q <= I`.
+- The normalized Laplacian has a simple zero mode, and point-source PPR is
+  strictly positive everywhere when `0 < alpha < 1`.
 - The RPPR minimizer is nonnegative and has support volume at most `1 / rho`.
+- Every RPPR optimal-support component contains a source; with `s=e_v`, the
+  support is either empty or connected and contains `v`.
 - The degree-normalized gradient certificate in the problem contract implies
   its stated degree-normalized PPR solution bound.
 - Literal lazy single-seed APPR has a tight
@@ -71,18 +91,51 @@ conditional confinement corollaries, but may not promote a universal
 
 ## Current frontier
 
-The latest accepted AESP-CD boundary is Round 027. The actual finite-inner
-recurrence now has a lagged Euclidean reserve, but its graph-uniform drift is
-only order `q^2`. The simplest lagged unsplit `q^(-1) Q` reserve cannot both
-contract uniformly in one step at the accelerated rate and carry enough
-coefficient for the reachable K8 pulse. This does not rule out accelerated
-decay over windows or with a different decomposition.
+The active endpoint is now the canonical point-source problem `s=e_v`.
+Several formerly separate obstructions have been reduced to one online
+discovery primitive.  The exact point-source homotopy admits every support
+row once by a Stieltjes Schur pivot, the candidate universe is output-linear,
+and an APPR envelope of volume `O(1 / rho)` exists within the proved support
+radius.  If such an envelope is supplied, fixed-envelope accelerated
+projected gradient closes the semantic PPR target.  What is not yet proved on
+an arbitrary graph is an output-sensitive online event locator that builds or
+reuses that envelope without materializing high-rank inverse responses.
 
-The live AESP route is therefore a windowed, spectrally split, nonlinear, or
-differently normalized low-Dirichlet transfer that retains every finite
-residual and correction. Round 027 does not provide a graph-uniform net
-exponent, end-to-end solver theorem, complete work vector, or
-finite-precision result.
+The structural boundary has moved as well.  A two-hysteretic online
+heavy--light ledger now closes the exact single-source reporter on every
+cactus graph without a supplied final support or decomposition.  The
+smallest remaining graph family exposed by the current proof interfaces is a
+genuinely variable two-port series--parallel block: ordinary dynamic planar
+hulls do not support the required bulk projective pullback and meld.  A
+supplied balanced parse has an exact `O_tilde(N+J sqrt(N))` static-hull epoch
+fallback and is product-scale when the charged block radius is at least
+`sqrt(N)`; the shallow variable-port case remains open.  On any
+certified connected proper face, the homotopy slope also gives a canonical
+diagonal normalization with a known ground eigenpair at `alpha`; this removes
+proper-face eigendata estimation, but not the clipping-direction hypothesis
+of the unchanged full-face momentum master.  If the proper-face primitive is
+modified to use that diagonal mass and its positive ground-state cap, an exact
+diagonal conjugacy restores the normalized full-face algebra.  Its high-gap
+and master-sign certificates remain separate conditions.
+
+On a face passing the high-gap certificate, every unweighted pivot response
+now splits into an observable ground rank-one term plus a gray remainder
+bounded by
+`c*q*sqrt(s_v*s_w)/(alpha*(1+q))`.  Point-source unit mass turns all such
+remainders into one observable pivot-mass clock.  Conditional on the charged
+exact-row refresh primitive, its work is
+`O_tilde(F+c^(3/2)*q*P_*F_1/2/(alpha*(1+q)*eta))`.  This meets the target if
+the mixed clock--degree quantity is small; in particular, it closes either
+the high-degree-row or high-degree-pivot branch `d>=alpha^(-2)`.  The precise
+proper-face remainder is therefore the simultaneous low-degree row/pivot
+lifetime reporter.  A terminal `K2` pulse shows that the global clock need
+not be `O(alpha)`, but does not rule out a smaller per-row clock stopped at
+that row's admission or certified rejection.
+
+Thus the project has a graph-uniform terminal solver and complete online
+reporters on several large structural classes, but still no graph-uniform
+end-to-end accelerated local PPR theorem, complete general event locator, or
+finite-precision realization of all exact-real response contracts.
 
 ## Active open directions
 
@@ -91,14 +144,14 @@ results and a central unresolved target.
 
 | Direction | Exact unresolved target | Resume source |
 | --- | --- | --- |
-| AESP coordinate descent for RPPR | Prove a finite windowed, spectral, nonlinear, or differently normalized low-Dirichlet net exponent that retains all residual and correction charges. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
+| AESP coordinate descent for RPPR | Build the simultaneous low-degree row/pivot lifetime reporter (or another output-sensitive inverse-response locator) on arbitrary point-source supports, or close the variable two-port series--parallel reporter. | [`aesp_cd_l1_rppr/STATUS.md`](../../manuscript/notes/aesp_cd_l1_rppr/STATUS.md) |
 | AESP--LOCSOR hybrid | Build a nonadditive or logarithmic reset ledger across multiple actual nonsettled admissions, or prove another graph-independent prefix bound. | [`hybrid_aesp_locsor/STATUS.md`](../../manuscript/notes/hybrid_aesp_locsor/STATUS.md) |
 | Volume-gated acceleration | Establish all-history causal solvency under a declared structural condition, or exhibit debt that survives enough admissions to stop that route. | [`volume_gated_acceleration/STATUS.md`](../../manuscript/notes/volume_gated_acceleration/STATUS.md) |
 | Response-preconditioned hybrid | Find sparse collision-sensitive refresh state or a geometrically paid replay/rebuild theorem for changing high-rank cores. | [`response_preconditioned_hybrid/STATUS.md`](../../manuscript/notes/response_preconditioned_hybrid/STATUS.md) |
 | Propagate--settle framework | Construct a different legal cyclic coupling or bounded-degree settlement gadget with seed chronology proved before reporter analysis. | [`propagate_settle_framework/STATUS.md`](../../manuscript/notes/propagate_settle_framework/STATUS.md) |
 | Local-solver oracle hierarchy | Define and justify a same-task lower-bound model that defeats residual-slack spreading and sparse-basis delayed synthesis, or narrow the claimed class. | [`local_solver_oracle_hierarchy/STATUS.md`](../../manuscript/notes/local_solver_oracle_hierarchy/STATUS.md) |
 
-The full registry currently tracks 18 notes across iterative, mixed,
+The full registry currently tracks 27 notes across iterative, mixed,
 response, model, and synthesis tracks. A new idea should first be checked
 against the registry and shared result ledger so it does not recreate a
 settled failure under a new name.

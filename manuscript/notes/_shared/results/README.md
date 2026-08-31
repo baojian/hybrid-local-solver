@@ -14,16 +14,33 @@ conditional claim as if it were unconditional.
   `vol(supp(x*(rho))) <= 1 / rho`.
 - A degree-normalized gradient certificate implies the note-scoped
   degree-normalized PPR solution bound stated in the shared problem contract.
+- For a point source on a disconnected positive-degree graph, PPR and RPPR
+  restrict exactly to the seed component. Every connected component of the
+  RPPR optimal support contains a source; hence under `s=e_v` the optimal
+  support is empty or connected and contains `v`. This does not force a
+  changing active face to be connected.
 
-See `manuscript/tex/shared/source_aligned_problem.tex` and the exact source
+See `manuscript/tex/shared/source_aligned_problem.tex`,
+`problem_definitions`, `delayed_reflection_ladder`, and the exact source
 pointers in `docs/literature/acceleration.md`.
 
-## Frozen Round 022 target/audit contract (open)
+## Current point-seed target and frozen Round 022 audit contract (open)
 
-Round 022 freezes the acceptance target for the only currently plausible
-graph-uniform route.  This is an **Open** target/audit contract, not a proved
-solver theorem.  On every finite simple undirected unweighted no-isolate graph
-given by adjacency lists, with a sparse nonnegative seed `s`, `1^T s=1`,
+The canonical end-to-end target now takes one seed vertex `v`, equivalently
+`s=e_v`, on a finite simple connected graph with unit edge weights and at
+least two vertices. Its principal aspirational work is
+`O_tilde(1/(sqrt(alpha) eps_ppr))`, with constant seed-input cost. The shared
+algebra and all genuinely general-seed results remain valid in their stated
+scope. A general sparse distribution is a stronger extension: linear PPR
+superposition can incur a mixture factor as large as `nnz(s)`, while RPPR
+support discovery has no superposition rule.
+
+The following stronger general-seed vector is the historical Round 022
+acceptance ledger. It remains a valid conditional audit statement, not the
+current minimal graph/seed contract and not a proved solver theorem. On every
+finite simple undirected unweighted no-isolate graph given by adjacency lists,
+with a
+sparse nonnegative seed `s`, `1^T s=1`,
 `alpha in (0,1]`, and `eps_ppr in (0,1)`, a deterministic exact-real/algebraic-
 cell algorithm must return a finite-support `x_hat` satisfying
 `||D^(-1/2)(x_hat-x^0)||_infinity<=eps_ppr`, equivalently the shared degree-

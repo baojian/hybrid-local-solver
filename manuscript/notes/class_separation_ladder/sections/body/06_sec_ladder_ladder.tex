@@ -3,11 +3,12 @@
 
 \begin{corollary}[Three classes, one instance; \statusproveddraft]
 \label{cor:ladder-ladder}
-Fix $\epsppr\le1/16$, $\alpha\in(0,3/4)$, and the centre-seeded star
+Fix $0<\epsppr\le1/16$, $\alpha\in(0,3/4)$, and the centre-seeded star
 \eqref{eq:ladder-hard-instance}. All classes use the identical primitive
-\eqref{eq:ladder-primitive}, work charge $d_{u}$, plain output
-$\widehat z=z$, and guarantee \eqref{eq:ladder-guarantee}. Then the following
-holds.
+\eqref{eq:ladder-primitive}, fully charged work model, plain output
+$\widehat{\bm{z}}=\bm{z}$ (equivalently
+$\widehat{\bm{x}}=\bm{D}^{-1/2}\bm{z}$), and semantic guarantee
+\eqref{eq:ladder-guarantee}. The following proved bounds hold.
 \end{corollary}
 
 \begin{center}
@@ -19,10 +20,12 @@ $\Mpos$ & --- & $\Theta(1/(\alpha\epsppr))$
     & \Cref{thm:ladder-monotone-lower-bound} / \APPR{} itself \\
 $\Mpm$ & step positivity & $\Theta(1/(\alpha\epsppr))$, no gain
     & \Cref{thm:ladder-monotone-lower-bound} / same \\
-$\Rpm$ & $r\ge0$ & $\Theta(1/(\sqrt\alpha\,\epsppr))^{\dagger}$
-    & \Cref{thm:ladder-signed-lower-bound} /
-      \Cref{thm:ladder-signed-upper-bound} \\
-elimination & $\delta=\omega r_{u}$, $\omega\in(0,2)$
+$\Rpm$ & $\bm{r}\ge\bm{0}$
+    & $\Omega(1/(\sqrt\alpha\,\epsppr))$
+    & \Cref{thm:ladder-signed-lower-bound} \\
+& & $O(\log(1/\alpha)/(\sqrt\alpha\,\epsppr))$
+    & \Cref{thm:ladder-signed-upper-bound} \\
+elimination & $\delta=\omega r_u$, $\omega\in(0,2)$
     & $\Theta(1/\epsppr)$
     & \eqref{eq:ladder-output-floor} /
       \Cref{prop:ladder-elimination} \\
@@ -30,45 +33,46 @@ elimination & $\delta=\omega r_{u}$, $\omega\in(0,2)$
 \end{tabular}
 \end{center}
 
-Each step from $\Mpos$ to elimination drops exactly one axiom and buys exactly
-one factor of $\sqrt\alpha$, except the step-sign axiom, which buys nothing.
-The dagger records the one place where the table is not fully proved. The lower
-bound of the $\Rpm$ row is proved, but the matching upper bound
-\eqref{eq:ladder-signed-upper} carries a factor $\log(1/\alpha)$, and removing
-it rests on the \statusmeasured{} semantic-stop constant of
-\Cref{thm:ladder-signed-upper-bound}; read without that measurement, the row is
-$\Theta$ up to $\log(1/\alpha)$.
-On the dyadic grid with $\alpha\le1/16$ the explicit constants are
+The step-sign axiom buys nothing: $\Mpos$ and $\Mpm$ have the same proved
+order. Dropping residual nonnegativity improves the proved lower-bound scale
+by $\sqrt\alpha$, while the best proved signed-relaxation upper bound carries
+one additional $\log(1/\alpha)$ factor. Dropping dissipativity permits exact
+star elimination in output-linear work. Therefore the table is a proved
+lower/upper ladder, not a proof that the optimum of $\Rpm$ has an exact
+$\Theta(1/(\sqrt\alpha\,\epsppr))$ order.
+
+On the dyadic grid with $\alpha\le1/16$, the scan-work statements have the
+explicit normalizations
 \begin{equation}
 \begin{aligned}
-    \Mpm:&\quad \Work\cdot\alpha\cdot\epsppr\ \ge\ 0.0397,\\
-    \Rpm:&\quad \Work\cdot\sqrt\alpha\cdot\epsppr\ \ge\
-        \frac{3}{128\sqrt{1+\alpha}}\ \ge\ 0.0227,\\
+    \Mpm:&\quad W_{\mathrm{adj}}\alpha\epsppr\ge0.0397,\\
+    \Rpm:&\quad W_{\mathrm{adj}}\sqrt\alpha\epsppr
+        \ge\frac{3}{128\sqrt{1+\alpha}}\ge0.0227,\\
     \text{elimination}:&\quad
-        \Work\cdot\epsppr\ \le\ \tfrac38+\epsppr
-        \quad\text{against the universal floor }
-        \Work\cdot\epsppr\ \ge\ \epsppr m=\tfrac18 .
+        W_{\mathrm{adj}}\epsppr=2m\epsppr=\tfrac14,
+        \qquad \Work=\Theta(1/\epsppr).
 \end{aligned}
     \label{eq:ladder-constants}
 \end{equation}
-Measured member frontiers sit at $0.087$ for $\Mpm$ and $0.083$ to $0.094$
-for $\Rpm$ (\statusmeasured; \Cref{sec:ladder-verification}), so both lower
-bounds are tight to a small constant rather than to an order. The separation
-ratios on the single instance are $\Mpm/\Rpm=\Theta(1/\sqrt\alpha)$, again free
-of a logarithm only under the semantic stop, and
-$\Rpm/\text{elimination}=\Theta(1/\sqrt\alpha)$, which is unconditional.
+The measured scan-work member frontiers sit at $0.087$ for $\Mpm$ and
+$0.083$ to $0.094$ for $\Rpm$ (\statusmeasured;
+\Cref{sec:ladder-verification}), so the experiments suggest small constant
+slack. They do not remove the logarithm from the proved $\Rpm$ upper bound.
+Consequently, the best proved class-cost ratios are bracketed rather than
+identified exactly: elimination versus $\Rpm$ lies between
+$\Omega(1/\sqrt\alpha)$ and
+$O(\log(1/\alpha)/\sqrt\alpha)$, with the analogous logarithmic uncertainty
+between $\Mpm$ and $\Rpm$.
 
 \paragraph{Reading the two axioms.}
-The condition $r\ge0$ is the \emph{anti-acceleration} axiom. It is what forces
-settling to be paid at the seed's own multiplicative rate
+The condition $\bm{r}\ge\bm{0}$ is the \emph{anti-acceleration} axiom. It is
+what forces settling to be paid at the seed's own multiplicative rate
 $\kappa_{+}=\Theta(\alpha)$ of \Cref{lem:ladder-kappa-step}, instead of the
 additive fast-mode rate $\Theta(\sqrt\alpha)$ of
 \Cref{lem:ladder-displacement}. Dissipative one-hop relaxation is the
-\emph{anti-output-linearity} axiom. It is what stops an algorithm from simply
-writing a linear functional of what it has already seen --- the eliminator's
-closed form \eqref{eq:ladder-elimination-output} --- and its price is exactly
-the fast-mode cap. Its shadow on the output side is the column-mass threshold
-of \Cref{prop:ladder-escape}, beyond which even a one-hop \emph{output} map is
-linear-powerful enough to print the answer at $\Work=0$; by
-\Cref{prop:ladder-transport} the entire output-map question on a radius-one
-instance collapses to that single scalar.
+\emph{anti-output-linearity} axiom. It prevents an algorithm from directly
+writing the closed form \eqref{eq:ladder-elimination-output}; its lower-bound
+signature is the fast-mode cap. The auxiliary output-side analogue is the
+column-mass threshold of \Cref{prop:ladder-escape}, beyond which an oracle map
+can produce a correct answer without a push. In the fully charged Problem~1
+model, applying that map and emitting the answer are still charged.

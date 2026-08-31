@@ -1,0 +1,900 @@
+\section{Stage I: what can identify or contain the support?}
+\label{sec:two-stage-discovery}
+
+The two-stage theorem deliberately parameterizes discovery by
+$W_{\rm disc}$.  The following table records the deterministic and structural
+engines studied before the randomized threshold-batch closure of
+\cref{sec:two-stage-randomized-op2}; it separates the lanes that close their
+declared scope from those that expose a stronger implementation interface.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.20\textwidth}p{0.20\textwidth}p{0.22\textwidth}X@{}}
+\toprule
+Stage~I engine & Returned object & Charged work & Status and limitation \\
+\midrule
+Classical APPR & numerical point and envelope &
+$\Theta(1/(\alpha\rho))$ worst case &
+unconditional direct return; tail is optional \\
+Hard-capped Green ball & set-only approximate envelope &
+$O(B)$ screen, then fixed tail &
+unconditional adaptive lane; may abort to APPR \\
+PPR leakage screen & coarse principal point plus boundary error bars &
+proposal work plus $\widetilde O(\vol(E)/\sqrt\alpha)$ &
+direct local gate; no RPPR support or zero-key decisions \\
+Exact tree response & exact RPPR point and face &
+$\widetilde O((1+\vol(S^\star))/\sqrt\alpha)$ &
+unconditional on promised point-source trees \\
+Random threshold batches & low-energy inner RPPR face &
+$\widetilde O((\rho\sqrt\alpha)^{-1}\log(1/\varepsilon_{\rm obj}))$ &
+unconditional arbitrary-graph closure in the exact-real randomized model \\
+Unicyclic/cactus response & exact face &
+product-scale structural bounds &
+exact-real; scope depends on the reporter theorem \\
+Hard-capped dynamic obstacle & point/face or retained envelope &
+$W_{\rm DS}(2/\rho)+O(1/\rho)$ &
+conditional on an exposure-local response/reporter oracle \\
+Restarted AESP-CD obstacle batches & point and envelope from a gap &
+$\widetilde O(\vol(U)/\sqrt\alpha)$ per fixed envelope &
+the solve is closed; serial discovery/reporting is open \\
+Fixed-envelope AESP mass screen & lower-safe PPR checkpoint &
+$\widetilde O(\vol(E)/\sqrt\alpha)$ per tested envelope &
+no support needed; hard-capped and instance-selective by the star barrier \\
+Monotone GS/SOR with $\omega=1$ & lower-safe numerical state &
+instance/gap dependent &
+robust verifier or fallback; no universal accelerated discovery rate \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{When Stage I can certify the exact support}
+
+Exact support remains a valid optional handoff when the instance has a
+visible KKT margin.  The following interval test makes the quantifier precise
+and avoids solving a fixed face to symbolic exactness.
+
+\begin{proposition}[Residual-error exact-face verifier]
+\label{prop:two-stage-interval-face-verifier}
+Let $A\ni v$ be connected, let
+$p_A=Q_A^{-1}c_{\rho,A}$, and let $\widehat p_A$ satisfy
+\begin{equation}
+ \max_{i\in A}
+ \frac{|(p_A)_i-(\widehat p_A)_i|}{\sqrt{d_i}}
+ \leq\eta.
+ \label{eq:two-stage-face-error-bar}
+\end{equation}
+If
+\begin{align}
+ (\widehat p_A)_i-\eta\sqrt{d_i}&>0 &&(i\in A),
+ \label{eq:two-stage-face-primal-interval}\\
+ c_{\rho,j}-Q_{jA}\widehat p_A
+ +\frac{1-\alpha}{2}
+  \frac{\deg_A(j)}{\sqrt{d_j}}\eta&\leq0
+ &&(j\in\partial A),
+ \label{eq:two-stage-face-dual-interval}
+\end{align}
+then $A=S^\star(\rho)$.  The residual choice
+\begin{equation*}
+ \eta=\frac{\norm{c_{\rho,A}-Q_A\widehat p_A}_2}{\alpha}
+\end{equation*}
+is sufficient.  Under positive primal and strict negative boundary margins,
+fixed-envelope Chebyshev/AESP reaches this certificate in
+$\widetilde O(\vol(A)/\sqrt\alpha)$ work, with the inverse margin entering
+only logarithmically.
+\end{proposition}
+
+\begin{proof}
+The first interval gives $p_A>0$.  For a boundary row, the error contribution
+to its exact key is at most
+\begin{equation*}
+ \sum_{i\in A}(-Q_{ji})\eta\sqrt{d_i}
+ =\frac{1-\alpha}{2}
+   \frac{\deg_A(j)}{\sqrt{d_j}}\eta.
+\end{equation*}
+Thus the second interval proves
+$c_{\rho,j}-Q_{jA}p_A\leq0$.  A nonboundary exterior row has no active
+neighbor and has strictly negative nonseed load.  The zero extension of
+$p_A$ therefore satisfies the global obstacle KKT conditions, proving
+$A=S^\star$.  Strong convexity supplies the residual error bar.  Geometric
+residual reduction on the fixed spectrum $[\alpha,1]$ gives the work claim
+when the declared inequalities have strict margins.
+\end{proof}
+
+This is the clean two-stage ``identify $S^\star$, then restart'' theorem, but
+its scope should not be overstated.  It verifies a proposed face cheaply; it
+does not expose that face on an arbitrary graph.  With a zero active or dual
+margin, no uniform finite-precision procedure can certify the exact support
+in finite work.  The boundary-leakage and approximate-envelope exits are
+therefore the margin-free main contracts.
+
+\begin{theorem}[Interruptible APPR-to-exact-face race]
+\label{thm:two-stage-appr-face-race}
+Choose $0<\rho\leq\epsppr$ and a face-solve error budget
+$\eta_{\max}\leq\epsppr-\rho$, and run priority APPR toward its ordinary
+numerical stopping rule at target $\epsppr$.  At any charged checkpoint, a proposal
+lane may snapshot the current APPR support or a charged local expansion $A$
+and apply \cref{prop:two-stage-interval-face-verifier}.  If the verifier
+passes with error bar $\eta\leq\eta_{\max}$, return its zero-padded point.  Race
+the cumulative verifier work one-for-one against the continuing APPR state;
+if APPR finishes first, abort verification and return APPR.  Then the output
+always satisfies the semantic $\epsppr$ target and the total work is at most
+twice direct priority-APPR work.  A successful exact structural solve has
+$\eta=0$, permits the tuned choice $\rho=\epsppr$, identifies
+$S^\star(\rho)$, and constitutes a certified screen-or-return exit.  A
+strict two-stage variant may instead retain only the face certificate and
+solve $Q_Au_A=b_A$; if that additional work is included in the proposal lane,
+the same fair-race guarantee applies.
+\end{theorem}
+
+\begin{proof}
+On a passing face, the interval KKT test proves that the exact restricted
+point is $x_\rho^\star$.  The RPPR--PPR comparison contributes at most
+$\rho$ normalized error and the certified face error contributes at most
+$\eta\leq\eta_{\max}$, whose sum is at most $\epsppr$.  The APPR exit has its standard
+$\epsppr$ certificate.  Until either exit, equal scheduling gives the
+verifier no more charged work than the direct lane, proving the factor-two
+bound.  Snapshotting does not mutate the continuing APPR state.
+\end{proof}
+
+The deterministic implementation checkpoints at residual parameters
+$16\rho,8\rho,4\rho,2\rho$, tries the APPR support and its one-hop expansion,
+uses $\rho=\epsppr$, and applies the implemented leaf/unicyclic solver for the exact-face test.  Of
+$90$ path, cycle, star, binary-tree, broom, and grid cases on
+$1024$--$2047$ vertices, $19$ nontrivial verifier traces finish before the
+direct lane and return exact support; four exits strictly beat direct APPR.
+Their ratios are $0.132$ and $0.276$ on stars and $0.590$ and $0.921$ on
+binary trees.  Those counts return the exact RPPR verifier point immediately.
+Charging a separate fresh ordinary-PPR solve after certification leaves four
+standalone wins and two fair-race wins, both on stars.  Every failed
+trace is charged at most twice direct work.  These numbers show a genuine
+but margin- and structure-selective exact-support lane, not a universal
+discovery theorem.
+Retaining the structural factors and charging only the second backsolve raises
+the standalone count to six while leaving the fair count at two.
+
+\begin{corollary}[Positive-residual SOR discovers, one face solve finishes]
+\label{cor:two-stage-sor-support-then-solve}
+Start from the zero lower checkpoint for the RPPR problem at
+$\rho=\epsppr$ when the fixed-face solve is exact.  Priority SOR may add every currently positive residual row
+to a connected candidate $A$, perform only lower-safe coordinate updates,
+and launch the exact-face verifier at geometrically increasing charged-work
+checkpoints.  Race this lane against direct APPR.  Every proposed coordinate
+lies in $S^\star(\rho)$; a passing verifier therefore occurs exactly at the
+full support.  Its RPPR point may return immediately, or the certificate may
+trigger one ordinary-PPR solve with the same matrix.  The combined
+algorithm is always correct and costs at most twice the faster completed
+lane.  No claim of a graph-universal accelerated discovery time is implied.
+\end{corollary}
+
+\begin{proof}
+Let $z\leq x_\rho^\star$ be the current lower-safe point and let $i$ be an
+inactive row.  If $(c_\rho-Qz)_i>0$ but $(x_\rho^\star)_i=0$, then the
+Stieltjes signs and $z\leq x_\rho^\star$ give
+$(c_\rho-Qz)_i\leq(c_\rho-Qx_\rho^\star)_i\leq0$, a contradiction.  Thus
+positive residual rows are support-safe.  The interval-face proposition and
+the same fair-race argument as in
+\cref{thm:two-stage-appr-face-race} prove the remaining statements.
+\end{proof}
+
+The implementation checks at powers of two in accumulated SOR degree work,
+uses no high-accuracy changing-face solve, and performs the implemented
+tree/unicyclic solve only on snapshots.  In the same $90$ cases, this exact
+lane finishes before direct APPR in eight cases.  After charging both
+fair-race lanes, five remain strict end-to-end wins: four stars and the
+low-$\alpha$ binary tree, with ratios $0.088$, $0.118$, $0.345$, $0.444$,
+and $0.593$.  This is the
+closest executable realization of ``AESP-CD/SOR discovers $S^\star$, then
+restart once'' in the note: even after a separate fresh ordinary-PPR solve is
+charged, the same five cases remain fair-race wins.  Paths and cycles expose the known serial-frontier
+limitation and correctly fall back to APPR.
+The retained-factor charge raises the standalone count from five to seven and
+leaves the fair count at five.
+
+The charged diagnostic reinforces this distinction.  On five graphs with
+$1024$--$2047$ vertices, $\epsppr=10^{-4}$, and
+$\rho=\epsppr/2$, literal monotone RPPR Gauss--Seidel often returns a smaller
+set than the Green envelope, but its median discovery work is $7.92$ times
+Green--CG and $9.26$ times direct PPR.  At $\alpha=0.01$, the 1024-path exact
+support has only $41$ vertices and volume $81$, yet discovering it costs
+$45518$ versus $5565$ for Green--CG and $6312$ for direct PPR.  On the
+1024-star the corresponding works are $1054713$, $6138$, and $116622$.
+These figures are not a lower bound against every accelerated active-set
+method.  They do show why a smaller exact face is not by itself a useful
+Stage~I contract: changing-face work must be paid before its smaller Stage~II
+can help.
+
+\subsection{Potential-to-envelope conversion: the direct AESP/SOR handoff}
+
+The approximate-envelope interface creates a handoff that does not need a
+final boundary KKT scan.
+
+\begin{proposition}[A certified RPPR gap yields an output-sized envelope]
+\label{prop:two-stage-gap-to-envelope}
+Let $z$ be a feasible RPPR point with a certified gap
+\begin{equation}
+ F_\rho(z)-F_\rho(x^\star(\rho))
+ \leq\frac{\alpha\delta^2}{8}.
+ \label{eq:two-stage-gap-certificate}
+\end{equation}
+Define
+\begin{equation}
+ E_\delta(z):=
+ \left\{i:\frac{|z_i|}{\sqrt{d_i}}>\frac\delta2\right\}.
+ \label{eq:two-stage-threshold-envelope}
+\end{equation}
+Then $E_\delta(z)$ is a $\delta$-approximate-envelope certificate.  If
+$\norm{D^{1/2}z}_1\leq M$, then
+\begin{equation}
+ \vol(E_\delta(z))<\frac{2M}{\delta}.
+ \label{eq:two-stage-threshold-envelope-volume}
+\end{equation}
+In particular, a lower-safe point $0\leq z\leq x^\star(\rho)$ has $M\leq1$.
+\end{proposition}
+
+\begin{proof}
+Strong convexity and \cref{eq:two-stage-gap-certificate} give
+$\norm{z-x^\star}_2\leq\delta/2$.  If $i\notin E_\delta(z)$, then
+\begin{equation*}
+ \frac{x_i^\star}{\sqrt{d_i}}
+ \leq\frac{|x_i^\star-z_i|}{\sqrt{d_i}}
+     +\frac{|z_i|}{\sqrt{d_i}}
+ \leq\delta,
+\end{equation*}
+because $d_i\geq1$.  Every $i\in E_\delta(z)$ contributes more than
+$\delta d_i/2$ to $\norm{D^{1/2}z}_1$, proving the volume bound.  For a
+lower-safe point, Stieltjes monotonicity gives
+$z\leq x^\star\leq x^0$, while the point-source PPR mass identity is
+$\langle D^{1/2}\one,x^0\rangle=1$.
+\end{proof}
+
+Taking $\rho=\delta=\epsppr/2$ shows exactly what AESP-CD or monotone
+SOR must accomplish for an early return: produce a sparse feasible state and
+certify gap at most $\alpha\epsppr^2/32$.  Then
+$\vol(E_\delta)<4/\epsppr$, and
+\cref{cor:two-stage-numerical-handoff-returns} returns the thresholded point
+without a linear tail.  If an application insists on a canonical restricted
+linear output, the three-way split and
+\cref{cor:two-stage-three-budget} remain available.
+This is strictly weaker than identifying $S^\star$ or certifying every zero
+key.  The unresolved issue is the charged work needed to obtain the gap on an
+arbitrary locally exposed graph.
+
+\paragraph{Mass-capped accelerated AESP lane.}
+Coordinatewise lower safety is sufficient for the mass bound, but not
+necessary.  The RPPR optimum belongs to
+\begin{equation}
+ \mathcal C_1:=
+ \{z\geq0:\langle D^{1/2}\one,z\rangle\leq1\}.
+ \label{eq:two-stage-mass-cap}
+\end{equation}
+Therefore accelerated projected gradient may use scratch iterates projected
+onto $\mathcal C_1$ without changing the optimum.  Once its certified gap
+reaches \cref{eq:two-stage-gap-certificate}, thresholding gives volume below
+$2/\delta$ even if the scratch was not coordinatewise lower-safe.  The outer
+iteration count is
+\begin{equation*}
+ O\!\left(\alpha^{-1/2}
+   \log\frac{C}{\alpha\delta^2}\right).
+\end{equation*}
+Thus, if every charged scratch matrix application stays in an exposed
+envelope of volume $O(1/\delta)$, this lane has the target
+$\widetilde O(1/(\delta\sqrt\alpha))$ Stage-I work.  This is a conditional
+locality theorem, not a universal one: a small mass on a newly reached
+high-degree coordinate can still make a matrix application expensive.  The
+mass cap removes the support/publication obstruction and leaves precisely the
+trajectory-exposure obstruction.
+
+The cap does give a graph-uniform one-sided exposure fact.  Write
+$a=(1+\alpha)/2$, $b=(1-\alpha)/2$, and
+$N=D^{-1/2}AD^{-1/2}$.
+
+\begin{proposition}[Mass cap controls every positive-violation batch]
+\label{prop:two-stage-mass-cap-positive-exposure}
+For $z\in\mathcal C_1$, put $r=c_\rho-Qz$ and
+\begin{equation*}
+ C_+(z):=\norm{D^{1/2}[r]_+}_1,
+ \qquad
+ P_\eta(z):=\left\{i:\frac{[r_i]_+}{\sqrt{d_i}}\geq\eta\right\}.
+\end{equation*}
+Then
+\begin{equation}
+ C_+(z)\leq\alpha+b\leq1,
+ \qquad
+ \vol(P_\eta(z))\leq\frac{\alpha+b}{\eta}.
+ \label{eq:two-stage-positive-batch-volume}
+\end{equation}
+Moreover, a nonseed coordinate with $r_i>0$ has
+$d_i<b/(\alpha\rho)$; if the seed residual is positive, then
+$d_v<(\alpha+b)/(\alpha\rho)$.
+\end{proposition}
+
+\begin{proof}
+The source and $Nz$ are nonnegative, whereas the regularizer and diagonal
+parts of $r$ are nonpositive.  Hence
+\begin{equation*}
+ [r]_+\leq \alpha D^{-1/2}e_v+bNz.
+\end{equation*}
+The normalized adjacency preserves degree-weighted mass:
+$\langle D^{1/2}\one,Nz\rangle=\langle D^{1/2}\one,z\rangle$.
+This proves the first inequality.  Every coordinate in $P_\eta$ contributes
+at least $\eta d_i$ to $C_+$, proving the volume bound.  Finally, for a
+nonseed coordinate, multiplication by $\sqrt{d_i}$ and omission of the
+nonpositive diagonal term give
+\begin{equation*}
+ \sqrt{d_i}r_i
+ \leq-\alpha\rho d_i
+     +b\sum_{j\sim i}\frac{z_j}{\sqrt{d_j}}
+ \leq-\alpha\rho d_i+b.
+\end{equation*}
+Positivity yields the degree screen.  At the seed, adding the weighted source
+contribution $\alpha$ gives the stated weaker bound.
+\end{proof}
+
+For a shifted AESP subproblem centered at another point $y\in\mathcal C_1$,
+the same proof bounds the positive residual mass by $\alpha+b+\kappa$ and a
+positive-violation batch by $(\alpha+b+\kappa)/\eta$.  This is useful but not
+yet the missing theorem: signed scratch can create negative KKT keys on its
+positive support, and repeated outer restarts are not paid by
+\cref{eq:two-stage-positive-batch-volume}.  The proposition proves that the
+obstruction is not a single enormous positive batch; it is signed trajectory
+maintenance and repeated exposure.
+
+For a lower-safe publication, even the objective gap is unnecessary.  Define
+the maximum positive key density
+\begin{equation}
+ \eta_+(z):=\norm{D^{-1/2}[c_\rho-Qz]_+}_\infty.
+ \label{eq:two-stage-positive-key-density}
+\end{equation}
+
+\begin{proposition}[One-heap lower-safe envelope handoff]
+\label{prop:two-stage-residual-to-envelope}
+If $0\leq z\leq x^\star(\rho)$ and
+\begin{equation}
+ \eta_+(z)\leq\frac{\alpha\delta}{2},
+ \label{eq:two-stage-residual-handoff}
+\end{equation}
+then
+\begin{equation}
+ 0\leq x^\star(\rho)-z
+ \leq\frac\delta2D^{1/2}\one.
+ \label{eq:two-stage-lower-safe-error-box}
+\end{equation}
+Consequently $E_\delta(z)$ is a $\delta$-approximate envelope of volume below
+$2/\delta$.
+\end{proposition}
+
+\begin{proof}
+Put $e=x^\star-z\geq0$ and $r=c_\rho-Qz$.  On an active optimum coordinate,
+complementarity gives $(Qe)_i=r_i$.  On an inactive optimum coordinate,
+$e_i=z_i=0$ and the Stieltjes signs give $(Qe)_i\leq0$.  Therefore
+\begin{equation*}
+ Qe\leq[r]_+
+ \leq\frac{\alpha\delta}{2}D^{1/2}\one
+ =Q\left(\frac\delta2D^{1/2}\one\right).
+\end{equation*}
+Inverse positivity proves \cref{eq:two-stage-lower-safe-error-box}.  Outside
+$E_\delta(z)$, both $z_i/\sqrt{d_i}\leq\delta/2$ and
+$e_i/\sqrt{d_i}\leq\delta/2$, proving the envelope claim.  Lower safety gives
+$\norm{D^{1/2}z}_1\leq1$, so
+\cref{eq:two-stage-threshold-envelope-volume} gives the volume bound.
+\end{proof}
+
+\begin{corollary}[A numerical discovery certificate can return early]
+\label{cor:two-stage-numerical-handoff-returns}
+Suppose either the gap certificate of
+\cref{prop:two-stage-gap-to-envelope} or the lower-safe key certificate of
+\cref{prop:two-stage-residual-to-envelope} holds.  Zero every coordinate of
+$z$ outside $E_\delta(z)$ and take the positive part; call the resulting
+vector $\bar z$.  Then
+\begin{equation}
+ \norm{D^{-1/2}(\bar z-x^0)}_\infty\leq\rho+\delta.
+ \label{eq:two-stage-numerical-early-output}
+\end{equation}
+Thus if $\rho+\delta\leq\epsppr$, this lane should return $\bar z$ without
+running Stage~II.  Likewise an exact RPPR face solution is already
+$\rho$-accurate for PPR.  The fixed linear tail is needed only for a set-only
+certificate, for a prescribed canonical linear output, or as optional
+refinement.
+\end{corollary}
+
+\begin{proof}
+In the gap case, strong convexity gives
+$\norm{z-x^\star}_2\leq\delta/2$; taking the positive part cannot increase
+distance to $x^\star\geq0$.  Inside $E_\delta$ the normalized error is at most
+$\delta/2$, and outside it the proof of
+\cref{prop:two-stage-gap-to-envelope} gives
+$x_i^\star/\sqrt{d_i}\leq\delta$.  The one-heap case has the same inside and
+outside bounds by \cref{eq:two-stage-lower-safe-error-box}.  In either case
+$\bar z$ is $\delta$-accurate for RPPR; combine with
+\cref{eq:two-stage-rppr-bridge}.
+\end{proof}
+
+For a zero-start monotone obstacle Gauss--Seidel trace, lower safety is an
+invariant.  A lazy heap of positive normalized keys exposes both the next
+priority update and the scalar certificate \cref{eq:two-stage-residual-handoff}.
+The remaining question is not observability of the handoff; it is whether the
+work needed to reach the $\alpha\delta$ key scale can be bounded by the
+accelerated target.
+
+There is nevertheless a clean unconditional nonaccelerated bound.  Put
+$a=(1+\alpha)/2$, $b=(1-\alpha)/2$, $r=c_\rho-Qz$, and define the positive
+residual mass
+\begin{equation*}
+ C_+(z):=\sum_i\sqrt{d_i}[r_i]_+.
+\end{equation*}
+
+\begin{theorem}[Priority monotone-SOR Stage~I]
+\label{thm:two-stage-priority-sor-discovery}
+Start from $z=0$.  While
+$\eta_+(z)>\alpha\delta/2$, choose a positive-residual coordinate
+maximizing $r_i^2/d_i$ and make the exact Gauss--Seidel update
+\begin{equation}
+ z_i^+=z_i+\frac{r_i}{a}.
+ \label{eq:two-stage-priority-sor-update}
+\end{equation}
+Maintain changed neighbor residuals in a lazy maximum heap.  The method is
+lower-safe, terminates with the certificate of
+\cref{prop:two-stage-residual-to-envelope}, and uses degree work
+\begin{equation}
+ \widetilde O\!\left[
+  \frac1\alpha\min\left\{
+   \frac{2}{\delta},
+   \frac1\rho\left(1+\log_+\frac{2}{\delta}\right)
+  \right\}
+ \right].
+ \label{eq:two-stage-priority-sor-work}
+\end{equation}
+With $\rho=\delta=\epsppr/2$, this gives a complete unconditional
+point-source PPR solver with $\widetilde O(1/(\alpha\epsppr))$ work.
+By \cref{cor:two-stage-numerical-handoff-returns}, it should stop after
+Stage~I; appending the accelerated linear solve is correct but unnecessary.
+\end{theorem}
+
+\begin{proof}
+Inductively $0\leq z\leq x^\star$.  Indeed, if $r_i>0$, then $i\in S^\star$;
+otherwise $x_i^\star=z_i=0$ and the Stieltjes signs would give $r_i\leq0$.
+Using the active optimality equation and $x^\star-z\geq0$ shows that the
+coordinate step in \cref{eq:two-stage-priority-sor-update} is at most
+$x_i^\star-z_i$.  The update sets $r_i$ to zero and only increases neighbor
+residuals.
+
+Let $B_+=\sum_{i:r_i>0}d_i$.  Positive residuals are support-safe, whence
+$B_+\leq\vol(S^\star)\leq1/\rho$.  The priority coordinate obeys
+\begin{equation*}
+ \frac{r_i}{\sqrt{d_i}}\geq\frac{C_+(z)}{B_+}.
+\end{equation*}
+The update sets $r_i$ to zero and increases a neighbor $j$ by
+$br_i/(a\sqrt{d_id_j})$.  Since the positive-part map is one-Lipschitz and
+$i$ has $d_i$ neighbors,
+\begin{equation*}
+ C_+(z^+)
+ \leq C_+(z)-\sqrt{d_i}r_i
+       +\frac{b}{a}\sqrt{d_i}r_i
+ \leq C_+(z)\left(1-\frac{\alpha\rho}{a}d_i\right).
+\end{equation*}
+Here $1-b/a=\alpha/a$; the factor is nonnegative because
+$d_i\leq B_+\leq1/\rho$ and $\alpha\leq a$.  Multiplication over the degree work gives the direct
+residual-mass contraction
+\begin{equation*}
+ C_+(z)\leq C_+(0)
+ \exp\!\left(-\frac{\alpha\rho}{a}W\right)
+ \leq\alpha\exp\!\left(-\frac{\alpha\rho}{a}W\right).
+\end{equation*}
+The last inequality follows by evaluating the sole possible positive residual
+at the point source.  Since $\eta_+(z)\leq C_+(z)$, the stopping test is
+certainly true after degree work at most
+\begin{equation*}
+ O\!\left[
+  \frac{a}{\alpha\rho}
+  \left(1+\log_+\frac{2}{\delta}\right)
+ \right].
+\end{equation*}
+There is also a direct additive bound.  Before termination the chosen key
+density exceeds $\alpha\delta/2$, so the first inequality in the mass update
+shows
+\begin{equation*}
+ C_+(z)-C_+(z^+)>
+ \frac{\alpha^2\delta}{2a}d_i.
+\end{equation*}
+Since $C_+(0)\leq\alpha$, summing until termination gives
+$W<2a/(\alpha\delta)$.  Taking the smaller of the exponential and additive
+bounds proves \cref{eq:two-stage-priority-sor-work}.
+Heap changes add only logarithmic factors.  At termination
+\cref{prop:two-stage-residual-to-envelope} supplies the envelope and
+\cref{cor:two-stage-numerical-handoff-returns} supplies the early output.
+\end{proof}
+
+The same heap also gives a direct, unregularized PPR baseline.
+
+\begin{corollary}[Direct priority-SOR PPR]
+\label{cor:two-stage-direct-priority-ppr}
+Set $\rho=0$ and run the priority rule until
+$\eta_+(z)\leq\alpha\epsppr$.  Then
+\begin{equation*}
+ 0\leq x^0-z\leq\epsppr D^{1/2}\one,
+\end{equation*}
+so $z$ itself meets the semantic PPR target.  The degree work is below
+$a/(\alpha\epsppr)$ up to heap logarithms.
+\end{corollary}
+
+\begin{proof}
+Apply \cref{prop:two-stage-residual-to-envelope} with $\rho=0$ and
+$\delta=2\epsppr$, but do not threshold the numerical vector.  The error-box
+conclusion is exactly the displayed bound.  The additive part of the proof of
+\cref{thm:two-stage-priority-sor-discovery} gives
+$W<2a/(\alpha\delta)=a/(\alpha\epsppr)$.
+\end{proof}
+
+This theorem matches the classical $1/\alpha$ discovery scale rather than
+the desired $1/\sqrt\alpha$ scale.  Its value is architectural: it proves a
+complete AESP/SOR-compatible certificate baseline without APPR support
+sandwiches or exact zero decisions.  It also exposes a decisive redundancy:
+at this work scale the numerical discovery vector has already solved the PPR
+target, so Stage~II cannot improve the worst-case bound.  Improving
+\cref{eq:two-stage-priority-sor-work} requires accelerated safe progress or a
+strictly cheaper set-only screening certificate, not a different terminal
+solver.
+
+\subsection{A genuine set-only lane: the hard-capped Green ball}
+
+The point-source assumption permits a screen that computes no obstacle
+values at all.  The case $\alpha=1$ is the immediate one-coordinate solve;
+for $0<\alpha<1$, put
+\begin{equation*}
+ \lambda_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \qquad
+ R_\delta:=
+ \left\lceil
+  \frac{\log(2/\delta)}
+       {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \right\rceil,
+\end{equation*}
+and let $B(v,R_\delta-1)$ be the graph ball around the seed (with radius zero
+if the displayed integer is zero).
+
+\begin{theorem}[Hard-capped Green-ball screen]
+\label{thm:two-stage-green-ball-screen}
+For $0<\alpha<1$, the set
+$E=B(v,R_\delta-1)$ is a $\delta$-approximate envelope for the unregularized
+PPR solution ($\rho=0$).  Consequently a certified adjacency-list BFS with
+hard degree-volume cap $B$ has the following behavior:
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em]
+\item if the whole ball is materialized before the cap, a fixed principal
+  solve to tolerance $\tau$ returns $(\delta+\tau)$-accurate PPR using
+  \begin{equation*}
+   O\!\left(B+\frac{B}{\sqrt\alpha}
+       \log\frac{C}{\tau}\right)
+  \end{equation*}
+  charged work;
+\item if the next retained row would exceed the cap, the lane aborts after
+  $O(B)$ work without weakening a fallback solver.
+\end{enumerate}
+With $B=2/\epsppr$ and $\delta=\tau=\epsppr/2$, a successful lane has the
+aspirational product work.  On failure, switching to direct APPR gives the
+unconditional bound $O(1/(\alpha\epsppr))$ plus the lower-order failed-screen
+budget.  More sharply, alternate charged work quanta of this lane and direct
+APPR.  If the ball and fixed solve finish, the combined work is at most twice
+the faster lane; if the cap aborts, remove the screen and continue APPR, for
+total work at most twice direct APPR.  Thus the screen is an unconditional
+adaptive algorithm even when it is not a universal product-work theorem.
+\end{theorem}
+
+\begin{proof}
+The degree-$k$ Chebyshev approximation to $Q^{-1}$ and graph sparsity give the
+point-source Green bound
+\begin{equation*}
+ 0\leq x_i^0\leq2\lambda_\alpha^{\operatorname{dist}(v,i)}.
+\end{equation*}
+This is the provider lemma \path{lem:graph-support-radius}, before its RPPR
+threshold argument.  If $i\notin E$, then
+$\operatorname{dist}(v,i)\geq R_\delta$, hence
+$x_i^0/\sqrt{d_i}\leq2\lambda_\alpha^{R_\delta}\leq\delta$.
+Apply \cref{prop:two-stage-envelope-linearization} with $\rho=0$ (or its
+identical Schur-complement proof) and then the approximate-envelope
+composition with terminal tolerance $\tau$.
+
+During BFS, query a candidate degree before scanning its row.  Every retained
+row and every discovered candidate is charged to an already scanned
+incidence, so a failed cap costs $O(B)$; a successful materialization costs
+$O(\vol(E))\leq O(B)$.  The two displayed branch bounds follow.  Since
+$B=2/\epsppr\leq2/(\alpha\epsppr)$, the failed attempt changes the APPR
+fallback only by a constant factor.  The fair-race statement follows by
+giving each live lane one work quantum in turn: before either lane receives
+$W$ quanta, fewer than $2W+O(1)$ total quanta have elapsed.  A failed screen
+has consumed no more quanta than the concurrently advanced APPR lane.
+\end{proof}
+
+This is the first concrete lane in the note for which Stage~II is not
+logically redundant: Stage~I returns only graph coordinates.  It is not a
+general-graph accelerated theorem, because a high-growth ball may hit the cap
+immediately.  That failure is observable and safe.  The deterministic sweep
+finds successful low-growth cases, but direct APPR is still faster on every
+tested coarse equal-accuracy case.  The high-accuracy sweep below changes the
+empirical conclusion while preserving the same theorem and implementation.
+
+\begin{corollary}[Structural Green tail]
+\label{cor:two-stage-green-structural-tail}
+In the successful branch of
+\cref{thm:two-stage-green-ball-screen}, suppose the exposed principal graph
+has a certified elimination order of width at most $w$.  Replacing the
+iterative tail by sparse $LDL^\top$ elimination and back substitution returns
+the exact principal PPR point in
+\begin{equation}
+ O\bigl(B+w^3B\bigr)
+ \label{eq:two-stage-green-structural-work}
+\end{equation}
+exact-real work and $O(w^2B)$ state.  In particular, on a tree, unicyclic
+graph, or any supplied fixed-treewidth family, the successful branch costs
+$O(B)$ for fixed $w$; with $B=2/\epsppr$ this is $O(1/\epsppr)$, with no
+$1/\sqrt\alpha$ factor.  The same APPR fair fallback remains unconditional.
+\end{corollary}
+
+\begin{proof}
+Eliminating a bag of at most $w+1$ live variables takes $O(w^3)$ arithmetic
+and creates no factor outside the certified filled graph.  There are
+$O(|U|)$ bags/vertices and $|U|\leq\vol(U)\leq B$; a reverse traversal
+recovers the solution with the same or smaller work.  The Green truncation
+proof is unchanged.  For a tree, leaf elimination and back substitution scan
+each retained incidence only a constant number of times.  A cycle has width
+two.  Tree/cycle structure and the corresponding order can be verified while
+the retained rows are scanned; a general fixed-width order is part of the
+structural lane's certificate.  In finite precision, compute the full
+principal residual after recovery and polish until its norm is at most
+$\alpha\tau$; this restores the same observable terminal certificate and
+adds only conditioning/precision logarithms.
+\end{proof}
+
+\paragraph{High-accuracy Green--CG experiment.}
+The executable one-shot lane uses exactly
+\cref{thm:two-stage-green-ball-screen}: one capped BFS, one zero-start
+principal CG solve stopped by the observable residual bound, and no repeated
+restricted solves.  Across six deterministic graph families, three values of
+$\alpha$, and
+$\epsppr\in\{10^{-4},5\cdot10^{-4},10^{-3},0.002,0.005\}$, it completes the
+ball in $85$ of $90$ cases and strictly beats the better of FIFO APPR and
+priority SOR in $22$ as a standalone lane.  The wins comprise $13$ stars,
+six binary trees, one grid, one path, and one cycle.  After charging the
+one-for-one APPR race, $15$ remain strict total-work wins: ten stars, four
+binary trees, and one grid.  At $(\alpha,\epsppr)=(0.01,10^{-4})$, the
+ratios are $0.103$ on the binary tree, $0.489$ on the grid, $0.882$ on the
+path, and $0.945$ on the cycle.  The best overall ratio is $0.0258$ on the
+star.  Every semantic error is at most $0.605\epsppr$.  The median ratio over
+successful screens is nevertheless $1.95$ and the maximum is $24.85$;
+therefore the fair race is algorithmically essential.  This is the first
+tested set-only two-stage lane to win beyond the low-minimal-polynomial star,
+but it remains an instance-adaptive rather than uniformly accelerated result.
+
+The structural tail changes the constants and the asymptotic dependence.
+On five tree/treewidth-two families with $1024$--$2047$ vertices, three values
+of $\alpha$, and the same five high-accuracy targets, the exact solve spends
+the full $\epsppr$ budget on Green truncation and $56$ of $75$ balls fit the
+cap.  Charging the implemented leaf peeling, two-sweep cyclic-core solve,
+back substitution, and one residual/materialization scan, $50$ strictly beat
+the direct baseline standalone and $35$ remain wins after the fair APPR
+charge; their median successful ratio is $0.302$.  At
+$(\alpha,\epsppr)=(0.01,10^{-4})$, the path, cycle,
+star, and binary-tree ratios are respectively $0.0469$, $0.0583$, $0.0526$,
+and $0.0951$.  These are structural fixed-operator wins, not evidence that
+general sparse elimination is local or fill-free.
+
+A literal APPR-coupled variant spends the same Stage~I exposure budget on a
+priority-APPR prefix and uses that checkpoint as the fixed-face CG warm start.
+Charging both BFS and APPR work, it wins $19$ of the $90$ cases, has median
+successful ratio $1.61$, and reduces the CG count by a median four iterations.
+It retains wins on all five graph families; at
+$(\alpha,\epsppr)=(0.01,10^{-4})$ its ratios are $0.217$ on the binary tree,
+$0.421$ on the grid, $0.782$ on the path, and $0.870$ on the cycle.  Warm
+starting can increase CG iterations when the remaining residual has an
+unfavorable spectral mix, so a robust fixed-face implementation may race the
+zero and warm starts.  Either output uses the same residual certificate; this
+choice affects work only.
+
+A one-ball oracle diagnostic improves the standalone win count only from
+$22$ to $23$.
+The additional case is the high-accuracy broom: stopping at radius $47$, just
+before its high-degree hub, passes the leakage gate with ratio $0.738$;
+the universal Green radius crosses the hub and retains the full broom.  This
+suggests one narrow implementable refinement rather than an unrestricted
+multi-radius search.  The tested rule permits one leakage attempt before the
+first BFS layer whose maximum degree is at least eight times the retained
+median degree (and at least eight).  A failed attempt warm-starts the final
+Green ball.  Exactly one of $90$ cases triggers, it passes on the broom, and
+the executable standalone lane realizes all $23$ oracle wins.  Its extra
+broom ratio is $0.738$, so it does not increase the $15$ fully charged fair
+wins.  The threshold eight is a
+declared policy, not a theorem about optimal pruning; correctness follows
+entirely from the leakage certificate and the hard-cap/fallback discipline.
+
+\subsection{APPR: the unconditional containing-envelope lane}
+
+The provider proposition
+\path{prop:aesp-cd-point-source-appr-envelope} gives
+\begin{equation}
+ S^\star(\rho)
+ \subseteq E_{\rm APPR}(\rho)
+ \subseteq S^\star\!\left(\frac{1-\alpha}{2}\rho\right),
+ \qquad
+ \vol(E_{\rm APPR})\leq\frac{2}{(1-\alpha)\rho}.
+ \label{eq:two-stage-appr-envelope}
+\end{equation}
+For $\alpha<1/2$, the volume is below $4/\rho$.  Combining
+\cref{eq:two-stage-appr-envelope} with
+\cref{thm:two-stage-composition} yields a completely unconditional
+two-stage solver, but its worst-case discovery work remains
+$\Theta(1/(\alpha\rho))$.  A center-seeded star already has radius one and
+envelope volume $\Theta(1/\rho)$ while forcing that APPR work.  Hence neither
+small radius nor output-sized volume pays for literal repeated pushes.
+
+Moreover, APPR's numerical vector at threshold $\alpha\epsppr$ already meets
+the semantic target by the same residual comparison.  Thus this lane is a
+valuable correctness fallback and proves that a suitable envelope always
+exists, but its optional Stage~II is again redundant at equal accuracy.  It
+is not the desired complexity breakthrough.
+
+\subsection{Exact positive-boundary batches: a complete baseline}
+
+There is a particularly simple literal AESP-CD Stage~I that is correct on
+every Stieltjes face, although not uniformly fast.
+
+\begin{proposition}[Exact batch-refit discovery]
+\label{prop:two-stage-exact-batch-refit}
+Start from the source singleton whenever its shifted load is positive.
+At round $j$, solve the current principal RPPR equations exactly on $A_j$,
+compute every exterior KKT key, and set
+\[
+ A_{j+1}=A_j\cup\{i\notin A_j:g_i(x^{A_j})>0\}.
+\]
+If the source load is nonpositive, return the zero solution.  Otherwise the
+faces remain interior and nested inside $S^\star$, and the first round with no
+positive exterior key returns exactly $S^\star$ and $x_\rho^\star$.  If a
+solve-plus-scan on $A$ costs $F(A)$, the charged discovery work is
+\[
+ \sum_j F(A_j).
+\]
+Racing this interruptible lane one-for-one with direct APPR gives a complete
+algorithm within factor two of direct APPR, while retaining any earlier exact
+support win.
+\end{proposition}
+
+\begin{proof}
+Pad the exact face point by zero and write its residual as
+$g=c_\rho-Qx^{A_j}$.  It vanishes on $A_j$ and is strictly positive on the
+new batch $P_j$.  On $B=A_j\cup P_j$,
+\[
+ x^B-(x^{A_j},0)=Q_B^{-1}g_B\geq0,
+\]
+because a principal Stieltjes inverse is nonnegative.  Every new connected
+coordinate is strictly positive, old coordinates do not decrease, and the
+positive-key support-safety argument gives $B\subseteq S^\star$.  The process
+therefore terminates in finitely many admissions.  At a terminal face the
+active equations and all exterior nonpositive keys are precisely the global
+obstacle KKT conditions.  The scheduling claim is
+\cref{thm:two-stage-certificate-race}.
+\end{proof}
+
+With the exact-tail choice $\rho=\epsppr$, the structural implementation
+certifies $75$ of the $90$ benchmark cases.  Its exact lane finishes before
+direct APPR in $43$; after charging the one-for-one race, $13$ nontrivial wins
+remain when the exact RPPR point returns immediately.  With a separate fresh
+ordinary-PPR Stage~II, $33$ standalone and $8$ fair wins remain.  The batch word
+still explains the limitation: a star activates $1023$ leaves in one round
+and a low-$\alpha$ binary tree doubles its batch geometrically, whereas a
+representative path admits one vertex in each of $38$ consecutive rounds.
+Thus exact batch refits are a safe portfolio lane and a useful
+baseline, not a universal product-work proof.
+Retaining the last factors changes those literal counts to $37$ standalone
+and $9$ fair wins.
+
+\subsection{Exact active-set response on structural graph classes}
+
+On a point-source tree, scalar Schur responses and propagated activation
+thresholds name a genuinely positive frontier row without probing every
+rejected row.  The provider theorem
+\path{thm:aesp-cd-tree-singleton-threshold} gives
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{1+\vol(S^\star)}{\sqrt\alpha}
+ \right)
+ \leq
+ \widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right).
+ \label{eq:two-stage-tree-discovery}
+\end{equation}
+The unicyclic theorem and the cactus reporter hierarchy extend the same
+principle by maintaining low-dimensional block responses.  These are true
+Stage~I breakthroughs.  Their exact restricted RPPR values are already
+$\rho$-accurate for PPR and may return immediately; if an implementation
+exports only the certified face, \cref{thm:two-stage-composition} adds a
+product-scale fixed-face solve.
+
+We implemented the tree reporter directly, including the handled child
+threshold heaps, lazy rooting on first active-row exposure, root-path response
+updates, and one final leaf solve.  It performs no preliminary full-tree scan;
+each admitted adjacency list is read once and inactive descendants are known
+only through degree/load metadata.  On $60$ path, star, binary-tree, and broom cases
+with $1024$--$2047$ vertices, all $60$ traces certify the exact face.  Among
+the $51$ cases in which direct APPR performs nonzero work, returning the
+already accurate RPPR point wins $27$ standalone and $14$ after charging a
+literal one-for-one APPR race.  The strict set-only version has the same
+counts: the threshold messages themselves certify the face, so Stage~II's
+ordinary-PPR leaf solve replaces, rather than duplicates, recovery of the
+RPPR point.  Because that solve is exact, the tuned split spends the whole
+semantic budget on screening, $\rho=\epsppr$, and assigns zero terminal
+budget.  Its best ratio is $0.059$ on a star; on the low-$\alpha$ path and
+broom it uses $1630$ charged work versus $6312$ for direct APPR.  Every
+resulting ordinary-PPR point passes the semantic error target.  The benchmark
+also performs a separate RPPR solve and KKT scan as an uncharged independent
+audit.  An additional $1890$ randomized small-tree runs all passed the
+independent structural solve and global KKT verifier.  Thus
+\cref{eq:two-stage-tree-discovery} is now both a proved structural closure and
+an executable two-stage algorithm, rather than an oracle assumption.
+
+\subsection{The general dynamic-obstacle contract}
+
+The provider theorem
+\path{thm:aesp-cd-hard-cap-dynamic-oracle} maintains a retained envelope
+$U$ with
+\begin{equation}
+ \vol(U)\leq\frac2\rho.
+ \label{eq:two-stage-hard-cap}
+\end{equation}
+Every positive boundary key is support-safe.  Speculative inactive rows use a
+pessimistic $1/\rho$ volume ledger, and a boundary with no positive key is the
+global obstacle KKT certificate.  If a dynamic obstacle/reporter oracle costs
+$W_{\rm DS}(2/\rho)$, Stage~I costs
+\begin{equation}
+ W_{\rm disc}=W_{\rm DS}(2/\rho)+O(1/\rho).
+ \label{eq:two-stage-ds-work}
+\end{equation}
+An oracle bound
+$W_{\rm DS}(B)=\widetilde O(B/\sqrt\alpha)$ would close the arbitrary-graph
+target immediately through \cref{thm:two-stage-composition}.  This is the
+minimal unresolved theorem in the two-stage presentation.
+
+\subsection{AESP-CD as a Stage I primitive}
+
+On any fixed retained envelope $U$, accelerated projected-gradient scratch
+plus the safe obstacle retraction solves the restricted problem in
+\begin{equation}
+ \widetilde O(\vol(U)/\sqrt\alpha)
+ \label{eq:two-stage-obstacle-primitive}
+\end{equation}
+work without a strict active or dual margin; this is the provider result
+\texttt{cor:aesp-cd-margin-free-}\allowbreak
+\texttt{obstacle-primitive}.  Thus the inner
+restricted solve is not the missing piece.  It may either publish certified
+boundary violations or invoke \cref{prop:two-stage-gap-to-envelope} once its
+global gap certificate is small enough.  The missing work is obtaining that
+certificate while charging exposure, boundary refresh, and response reuse
+through a sequence of admissions.
+Restarting a full solve after every singleton can cost quadratic cumulative
+volume on a path.
+
+The safe use of AESP-CD in Stage~I is consequently:
+\begin{enumerate}[leftmargin=2.2em]
+\item lock one retained envelope;
+\item run signed accelerated scratch only inside it;
+\item publish a lower-safe obstacle approximation;
+\item certify a batch of boundary violations, or certify the global gap and
+  threshold the published point into an approximate envelope;
+\item discard the polynomial history before changing the envelope.
+\end{enumerate}
+This avoids changing-face momentum errors, but it still requires batching or
+a dynamic response/reporter to achieve target total work.
+
+\subsection{SOR and APPR inside discovery}
+
+Gauss--Seidel, equivalently SOR with $\omega=1$, is attractive during support
+discovery because zero-start obstacle updates are monotone and preserve lower
+certificates.  It is a safe verifier and fallback.  Over-relaxation
+$\omega>1$ may overshoot the restricted solution and therefore is not a
+default support-safe publication rule; it requires an a posteriori
+Stieltjes retraction or must be postponed to Stage~II.
+
+Exact support certification from an approximate SOR state also needs a
+nonzero active/dual margin or an exact fallback.  With certified margins, the
+provider result \texttt{cor:aesp-cd-margin-}\allowbreak
+\texttt{obstacle-primitive} identifies the
+face after an accelerated fixed-envelope solve, with the margins entering
+only logarithmically.  Without margins, the gap-to-envelope certificate is
+the cleaner interface: SOR need only expose a lower-safe sparse state and a
+valid global gap bound.

@@ -1,0 +1,348 @@
+\section{A dimension--spectral dispatch on a supplied face}
+\label{sec:supplied-face-dispatch}
+
+The preceding bridge identifies the linear system on a correct positive face.
+There is then a useful choice that is independent of bipartiteness: exact CG
+has a finite-dimensional cap, whereas interval Chebyshev iteration has the
+usual condition-number rate.  Taking the better of these two bounds removes
+an unnecessary logarithm whenever the supplied face is small.
+
+Let $U\subseteq V$ be nonempty, put $n_U:=|U|$, and let
+$D_U:=\diag(d_i:i\in U)$.  For the unregularized problem set $\rho=0$; for
+the RPPR problem suppose that $U$ is the correct positive face and set
+\begin{equation}
+ c_U:=b_U-\alpha\rho D_U^{1/2}\mathbf 1_U.
+ \label{eq:supplied-face-load}
+\end{equation}
+In either case the supplied-face solution is the unique vector
+\begin{equation}
+ Q_{UU}x_U^\dagger=c_U.
+ \label{eq:supplied-face-system}
+\end{equation}
+The face is held fixed throughout this section.  A multiplication by
+$Q_{UU}$ scans the adjacency list of every vertex in $U$, ignoring entries
+outside $U$, and therefore costs $O(\operatorname{vol}(U))$.  Every dot
+product, vector pass, and output write costs $O(n_U)$ and is absorbed because
+$n_U\leq\operatorname{vol}(U)$.
+
+For an iterate $x$ define the residual and its degree-normalized version by
+\begin{equation}
+ r(x):=c_U-Q_{UU}x,
+ \qquad
+ \widehat r(x):=D_U^{-1/2}r(x).
+ \label{eq:supplied-face-residual}
+\end{equation}
+The next lemma records why a two-sided residual test is a safe semantic
+certificate, even though a raw polynomial iterate need not be a nonnegative
+lower envelope.
+
+\begin{lemma}[Two-sided residual implies semantic accuracy]
+\label{lem:supplied-face-two-sided-stop}
+For every $x\in\mathbb R^U$,
+\begin{equation}
+ \|D_U^{-1/2}(x-x_U^\dagger)\|_\infty
+ \leq \frac1\alpha\|\widehat r(x)\|_\infty.
+ \label{eq:supplied-face-residual-semantic}
+\end{equation}
+Consequently, the computable two-sided stop
+\begin{equation}
+ \boxed{\ \|\widehat r(x)\|_\infty\leq\alpha\tau\ }
+ \label{eq:supplied-face-two-sided-certificate}
+\end{equation}
+implies semantic error at most $\tau$.
+\end{lemma}
+
+\begin{proof}
+Define the row-coordinate principal operator
+\begin{equation*}
+ H_U:=D_U^{-1/2}Q_{UU}D_U^{1/2}.
+\end{equation*}
+It is similar to the SPD Stieltjes matrix $Q_{UU}$, hence is a nonsingular
+$M$-matrix and $H_U^{-1}\geq0$ entrywise.  On the full graph,
+$QD^{1/2}\mathbf1=\alpha D^{1/2}\mathbf1$.  Passing to a principal face
+removes only nonpositive off-diagonal terms, so
+\begin{equation*}
+ H_U\mathbf1_U\geq\alpha\mathbf1_U.
+\end{equation*}
+Multiplication by the nonnegative inverse gives
+$H_U^{-1}\mathbf1_U\leq\alpha^{-1}\mathbf1_U$.  Therefore
+$\|H_U^{-1}\|_{\infty\to\infty}\leq1/\alpha$.  Since
+\begin{equation*}
+ D_U^{-1/2}(x_U^\dagger-x)=H_U^{-1}\widehat r(x),
+\end{equation*}
+the claimed inequalities follow.
+\end{proof}
+
+For the sharp zero-start normalization used below, suppose that $s=e_v$,
+$v\in U$, $0\leq\rho\leq1$, and $\rho\operatorname{vol}(U)\leq1$.  The last
+condition is automatic on the correct RPPR support.  From
+\eqref{eq:supplied-face-load},
+\begin{align}
+ \frac{\|c_U\|_2^2}{\alpha^2}
+ &=\frac{(1-\rho d_v)^2}{d_v}
+   +\rho^2\bigl(\operatorname{vol}(U)-d_v\bigr)\notag\\
+ &\leq1+\rho\leq2.
+ \label{eq:supplied-face-load-bound}
+\end{align}
+Here $\rho d_v\leq1$, so the first term is at most $1/d_v\leq1$, while the
+second is at most $\rho^2\operatorname{vol}(U)\leq\rho$.  When $\rho=0$ the
+same display gives the sharper $\|c_U\|_2\leq\alpha$ without a volume
+assumption.
+
+\begin{theorem}[Supplied-face CG/Chebyshev dispatch]
+\label{thm:supplied-face-dispatch}
+Assume $0<\alpha<1$, $0<\tau\leq1$, and the single-seed normalization and
+load conditions of \eqref{eq:supplied-face-load-bound}.  Put
+\begin{equation}
+ \chi_\alpha:=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+ \qquad
+ k_{\rm Ch}(\tau):=
+ \left\lceil
+  \frac{\log(2\sqrt2/\tau)}{-\log\chi_\alpha}
+ \right\rceil.
+ \label{eq:supplied-face-chebyshev-count}
+\end{equation}
+Starting from zero, one may obtain an iterate satisfying the stronger stop
+\eqref{eq:supplied-face-two-sided-certificate} in at most
+\begin{equation}
+ N_U(\tau)\leq\min\{n_U,k_{\rm Ch}(\tau)\}
+ \label{eq:supplied-face-dispatch-count}
+\end{equation}
+full principal-matrix products, by selecting exact-arithmetic CG when
+$n_U\leq k_{\rm Ch}(\tau)$ and interval Chebyshev semi-iteration otherwise.
+The fully charged real-arithmetic work, including a constant number of vector
+passes per iteration and output, is
+\begin{align}
+ W_U
+ &=O\!\left(\operatorname{vol}(U)
+       \min\{n_U,k_{\rm Ch}(\tau)\}\right)\notag\\
+ &=O\!\left(\operatorname{vol}(U)
+       \min\left\{n_U,
+       \alpha^{-1/2}\log\frac2\tau\right\}\right).
+ \label{eq:supplied-face-dispatch-work}
+\end{align}
+For the accuracy regime $0<\tau\leq1/2$, the last logarithm is
+$\Theta(\log(1/\tau))$.
+For $\alpha=1$, $Q_{UU}=I$ and one face pass solves the system exactly.
+\end{theorem}
+
+\begin{proof}
+The principal matrix has spectrum in $[\alpha,1]$.  Define the degree-$k$
+residual polynomial
+\begin{equation}
+ p_k(\lambda):=
+ \frac{T_k\!\left((1+\alpha-2\lambda)/(1-\alpha)\right)}
+      {T_k\!\left((1+\alpha)/(1-\alpha)\right)},
+ \label{eq:supplied-face-chebyshev-polynomial}
+\end{equation}
+where $T_k$ is the first-kind Chebyshev polynomial.  It satisfies $p_k(0)=1$
+and the exact interval bound
+\begin{equation}
+ \max_{\lambda\in[\alpha,1]}|p_k(\lambda)|
+ =\frac{2\chi_\alpha^k}{1+\chi_\alpha^{2k}}
+ \leq2\chi_\alpha^k.
+ \label{eq:supplied-face-chebyshev-factor}
+\end{equation}
+Chebyshev semi-iteration realizes the residual
+$r_k=p_k(Q_{UU})c_U$ with $k$ principal products.  Since every degree is at
+least one, \eqref{eq:supplied-face-load-bound} gives
+\begin{equation}
+ \|\widehat r_k\|_\infty
+ \leq\|r_k\|_2
+ \leq2\sqrt2\,\alpha\chi_\alpha^k.
+ \label{eq:supplied-face-chebyshev-residual}
+\end{equation}
+Thus $k=k_{\rm Ch}(\tau)$ proves the two-sided stop.  Moreover,
+\begin{equation}
+ -\log\chi_\alpha
+ =2\operatorname{artanh}(\sqrt\alpha)
+ \geq2\sqrt\alpha,
+ \label{eq:supplied-face-chebyshev-exponent}
+\end{equation}
+which proves the second line of \eqref{eq:supplied-face-dispatch-work}.
+
+For the dimension cap, let $\lambda_1,\ldots,\lambda_s$ be the distinct
+eigenvalues of $Q_{UU}$ that occur in the spectral support of $c_U$; then
+$s\leq n_U$.  The error-annihilating polynomial
+\begin{equation}
+ a_s(z):=\prod_{h=1}^s\left(1-\frac z{\lambda_h}\right)
+ \label{eq:supplied-face-annihilator}
+\end{equation}
+has degree $s$, satisfies $a_s(0)=1$, and annihilates $c_U$ under
+$Q_{UU}$.  Hence
+\begin{equation}
+ q_{s-1}(z):=\frac{1-a_s(z)}z,
+ \qquad
+ x_U^\dagger=q_{s-1}(Q_{UU})c_U
+ \in\mathcal K_s(Q_{UU},c_U).
+ \label{eq:supplied-face-krylov-exactness}
+\end{equation}
+Exact-arithmetic CG therefore terminates with zero residual in at most
+$s\leq n_U$ iterations.  Selecting the smaller certified count proves
+\eqref{eq:supplied-face-dispatch-count}.  A sparse product and the constant
+number of vector passes in either recurrence cost
+$O(\operatorname{vol}(U))$; the final $O(n_U)$ output is absorbed.
+\end{proof}
+
+\begin{corollary}[Supplied correct-face PPR approximation]
+\label{cor:supplied-face-ppr-dispatch}
+Let $0<\alpha\leq1$ and $0<\varepsilon_{\rm ppr}\leq1$, set
+$\rho=\tau=\varepsilon_{\rm ppr}/2$, and suppose that the exact RPPR support
+$U=S^\star(\rho)$ is supplied.  Zero-pad the iterate returned by
+\Cref{thm:supplied-face-dispatch} when $U\ne\varnothing$, and return zero
+when $U=\varnothing$.  The resulting vector satisfies
+\begin{equation}
+ \|D^{-1/2}(x-x^0)\|_\infty\leq\varepsilon_{\rm ppr}
+ \label{eq:supplied-face-ppr-error}
+\end{equation}
+in
+\begin{equation}
+ O\!\left(\operatorname{vol}(U)
+ \min\left\{|U|,\alpha^{-1/2}
+ \log\frac2{\varepsilon_{\rm ppr}}\right\}\right)
+ \label{eq:supplied-face-ppr-work}
+\end{equation}
+real-arithmetic work, excluding the cost of supplying or independently
+validating $U$.
+\end{corollary}
+
+\begin{proof}
+If $U=\varnothing$, the returned zero vector equals $x^\star(\rho)$, so the
+bias bridge alone gives error at most $\rho\leq\varepsilon_{\rm ppr}$.
+Suppose now that $U\ne\varnothing$.  Then $v\in U$: otherwise every entry of
+the shifted load \eqref{eq:supplied-face-load} is strictly negative, and the
+entrywise nonnegative inverse of $Q_{UU}$ would give
+$x_U^\star=Q_{UU}^{-1}c_U<0$, contradicting that $U$ is the positive support.
+If $\alpha=1$, then $Q_{UU}=I$, so the one-pass identity solve is exact and
+the bias bridge gives the claim.  Hence suppose $0<\alpha<1$.
+The support-volume theorem gives
+$\rho\operatorname{vol}(U)\leq1$, so
+\Cref{thm:supplied-face-dispatch} applies.  Its two-sided stop and
+\Cref{lem:supplied-face-two-sided-stop} give RPPR semantic error at most
+$\tau$.  The bias bridge \Cref{thm:rppr-ppr-bias} contributes at most $\rho$.
+Thus \eqref{eq:supplied-face-ppr-error} follows from $\rho+\tau$; substituting
+$\tau=\varepsilon_{\rm ppr}/2$ gives \eqref{eq:supplied-face-ppr-work}.
+For $\varepsilon_{\rm ppr}\leq1/2$, this is equivalently the usual
+$O(\operatorname{vol}(U)\min\{|U|,
+\alpha^{-1/2}\log(1/\varepsilon_{\rm ppr})\})$ notation.
+\end{proof}
+
+The constant $2\sqrt2$ comes only from the safe single-seed RPPR load.  For a
+general nonzero supplied right-hand side, define
+\begin{equation}
+ k_{\rm Ch}(c_U,\tau):=
+ \left\lceil
+  \frac{\left[\log\!\left(2\|c_U\|_2/(\alpha\tau)\right)\right]_+}
+       {-\log\chi_\alpha}
+ \right\rceil,
+ \qquad [z]_+:=\max\{0,z\}.
+ \label{eq:supplied-face-general-load}
+\end{equation}
+The same dispatch holds with
+$\min\{n_U,k_{\rm Ch}(c_U,\tau)\}$; only the normalized load removes this
+additional scale from the logarithm.
+When $c_U=0$, the zero start is already exact.
+
+\paragraph{Relation to the fixed-face SOR factor.}
+On a complete connected bipartite face, $\sigma_U=1$ in
+\eqref{eq:bipartite-cross-block}.  Writing $q=\sqrt\alpha$ gives
+\begin{equation}
+ t_U=\frac{2q}{1+q^2},
+ \qquad
+ \zeta_U=\left(\frac{1-q}{1+q}\right)^2=\chi_\alpha^2.
+ \label{eq:supplied-face-chebyshev-sor-factor}
+\end{equation}
+Thus one optimal red--black SOR sweep has the same asymptotic scalar factor as
+two interval-Chebyshev factors, modulo the two primitives' scan conventions.
+The new small-face escape is CG's finite dimension cap, not a better interval
+condition-number exponent.
+
+The spectral estimator need not be chosen in advance.  The following
+portfolio statement turns it into a safe optional worker while retaining the
+dimension--spectral fallback above.
+
+\begin{proposition}[A constant-competitive supplied-face portfolio]
+\label{prop:supplied-face-portfolio}
+Fix $0<\gamma<1$.  On the supplied face, consider three exact-arithmetic
+workers whose linear-solver iterates start from zero (the Collatz worker uses
+the strictly positive auxiliary start required by
+\cref{prop:collatz-face-certificate}):
+\begin{enumerate}
+\item CG, with its maintained residual checked against
+  \eqref{eq:supplied-face-two-sided-certificate};
+\item interval Chebyshev semi-iteration with the same check; and
+\item when the supplied face is bipartite, the componentwise Collatz estimator of
+  \cref{prop:collatz-face-certificate}, followed after its relative-gap
+  certificate by SOR with the resulting parameter frozen, again using the
+  two-sided residual check.
+\end{enumerate}
+On a nonbipartite face the third worker is disabled.  In that case define
+$T_{\rm CS}(U,\gamma,\tau)=+\infty$ and round-robin only the first two
+workers.
+Advance the enabled workers in round-robin order and return the first certified
+iterate.  Let $T_{\rm CS}(U,\gamma,\tau)$ be the number of complete face
+passes used by the third worker before it certifies, including estimator,
+SOR, and residual-validation passes.  Then the portfolio is correct and has
+charged work
+\begin{equation}
+ O\!\left(\operatorname{vol}(U)
+ \min\{n_U,k_{\rm Ch}(\tau),T_{\rm CS}(U,\gamma,\tau)\}\right).
+ \label{eq:supplied-face-portfolio-work}
+\end{equation}
+In particular it retains the unconditional bound
+\eqref{eq:supplied-face-dispatch-work}, while exploiting certified
+face-specific SOR whenever that complete charged route finishes first.
+There is no graph-uniform upper bound on $T_{\rm CS}$.
+\end{proposition}
+
+\begin{proof}
+Every worker returns only after the same computable two-sided certificate, so
+\cref{lem:supplied-face-two-sided-stop} proves correctness independently of
+which worker wins.  One worker pass consists of a constant number of sparse
+face scans, vector passes, and, when needed, residual materialization, hence
+costs $O(\operatorname{vol}(U))$.  If a worker would finish after $T$ of its
+own passes, round robin advances it $T$ times after at most $3T+O(1)$ total
+worker passes (and at most $2T+O(1)$ when the third worker is disabled).
+Exact CG has $T\le n_U$, Chebyshev has
+$T\le k_{\rm Ch}(\tau)$, and the third route has the displayed actual count.
+Taking the first finisher proves \eqref{eq:supplied-face-portfolio-work}.
+Only a constant number of face-sized vector states are stored.  On every
+bipartite fixed face, eventual Collatz certification and fixed-parameter SOR
+convergence make $T_{\rm CS}$ finite, but the Perron-gap discussion after
+\cref{prop:collatz-face-certificate} rules out a uniform family bound.
+\end{proof}
+
+This portfolio is the rigorous meaning of ``adaptive spectral SOR'' used
+here: spectral work is charged, the upper radius is certified, and the
+selected relaxation is then frozen.  Arbitrarily changing $\omega$ after
+each row or sweep is not covered by the fixed-parameter power theorem.  On
+the complete layered funnel, scalar adaptation still obeys the proved light
+cone, and the exact face radius gives the global parameter anyway.
+
+\paragraph{Scope boundary.}
+This theorem is a supplied, fixed-face linear-solver result.  It assumes that
+the correct positive RPPR face is already known (or that an unregularized
+principal problem is intentionally supplied), and it returns the restricted
+solution.  Polynomial and CG iterates may be signed and need not obey the
+one-sided lower-envelope invariants used by local admission algorithms; this
+is precisely why the stop in
+\eqref{eq:supplied-face-two-sided-certificate} is two-sided.  For RPPR, the
+outside inequalities \eqref{eq:rppr-inactive-face-test} must still be checked
+unless correctness of the face is part of the input.
+
+If admissions change $U$, then both $Q_{UU}$ and $c_U$ change.  Restarting
+the dispatch on faces $U_1,U_2,\ldots$ costs only the unamortized sum
+\begin{equation}
+ \sum_j\operatorname{vol}(U_j)
+ \min\{|U_j|,k_{\rm Ch}(\tau_j)\},
+ \label{eq:supplied-face-restart-sum}
+\end{equation}
+which can repeatedly charge old rows.  Neither exact finite termination nor
+the interval rate supplies the face, preserves a local admission certificate,
+or controls this sum.  The arithmetic needed for CG dot products is charged
+above, but distributed reduction latency is a separate resource;
+finite-precision loss of exact termination, bit complexity, boundary
+discovery, and the project's separate response and reporting resources remain outside
+\eqref{eq:supplied-face-dispatch-work}.  The recommended use is therefore a
+terminal dispatch on a certified face: compare $|U|$ with
+$k_{\rm Ch}(\tau)$ and choose the dimension cap only when it is smaller.

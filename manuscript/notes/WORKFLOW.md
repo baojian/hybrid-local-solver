@@ -39,7 +39,10 @@ not a first-order restriction.
    relevant literature summary before changing a theorem statement.
 2. Use `tex/shared/research_note_preamble.tex` and
    `tex/shared/source_aligned_problem.tex`; do not create a private PageRank
-   normalization or redefine reserved notation.
+   normalization or redefine reserved notation. The controller-owned
+   `problem_definitions` note is the sole exception to verbatim import: it may
+   present an expanded reference copy, but its shared equations and symbols
+   must remain synchronized with the reusable fragment.
 3. Give the note its own directory containing `main.tex`, `README.md`, and a
    `Makefile` that includes `../note.mk`. Put the structured status handoff in
    `STATUS.md` or combine it into `README.md`, using the shared coordination

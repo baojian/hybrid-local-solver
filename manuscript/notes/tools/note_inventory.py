@@ -124,8 +124,11 @@ def status_handoff_file(note_directory: Path, note_id: str) -> Path | None:
         return status_file
     readme_file = note_directory / "README.md"
     if readme_file.is_file():
-        expected_title = f"# Direction status: {note_id}"
-        if expected_title in readme_file.read_text(encoding="utf-8").splitlines():
+        title_lines = {
+            f"# Direction status: {note_id}",
+            f"**Direction status: {note_id}**",
+        }
+        if title_lines.intersection(readme_file.read_text(encoding="utf-8").splitlines()):
             return readme_file
     return None
 
@@ -166,14 +169,32 @@ def _dependency_cycles(entries: dict[str, dict[str, Any]]) -> list[list[str]]:
     return cycles
 
 
+def _heading_variants(heading: str) -> tuple[str, str]:
+    """Return semantic-heading and bold-label spellings for a status section."""
+
+    label = heading.removeprefix("## ")
+    return heading, f"**{label}**"
+
+
 def _section_text(text: str, heading: str) -> str:
     lines = text.splitlines()
-    try:
-        start = lines.index(heading) + 1
-    except ValueError:
+    start_line = next(
+        (candidate for candidate in _heading_variants(heading) if candidate in lines), None
+    )
+    if start_line is None:
         return ""
+    start = lines.index(start_line) + 1
     end = next(
-        (index for index in range(start, len(lines)) if lines[index].startswith("## ")),
+        (
+            index
+            for index in range(start, len(lines))
+            if lines[index].startswith("## ")
+            or (
+                lines[index].startswith("**")
+                and lines[index].endswith("**")
+                and len(lines[index]) > 4
+            )
+        ),
         len(lines),
     )
     return "\n".join(lines[start:end])
@@ -258,12 +279,13 @@ def audit_status_handoff(note_id: str, text: str, *, embedded: bool = False) -> 
     errors: list[str] = []
     lines = text.splitlines()
     expected_title = f"# Direction status: {note_id}"
-    if embedded and expected_title not in lines:
-        errors.append(f"{note_id}: README.md must contain {expected_title!r}")
-    elif not embedded and (not lines or lines[0] != expected_title):
-        errors.append(f"{note_id}: STATUS.md must start with {expected_title!r}")
+    title_variants = {expected_title, f"**Direction status: {note_id}**"}
+    if embedded and not title_variants.intersection(lines):
+        errors.append(f"{note_id}: README.md must contain a direction-status title")
+    elif not embedded and (not lines or lines[0] not in title_variants):
+        errors.append(f"{note_id}: STATUS.md must start with a direction-status title")
 
-    reviewed_matches = re.findall(r"^Last reviewed:[ \t]*(.*)$", text, re.MULTILINE)
+    reviewed_matches = re.findall(r"^(?:- )?Last reviewed:[ \t]*(.*)$", text, re.MULTILINE)
     if len(reviewed_matches) != 1:
         errors.append(f"{note_id}: STATUS.md must contain exactly one Last reviewed line")
     else:
@@ -272,7 +294,7 @@ def audit_status_handoff(note_id: str, text: str, *, embedded: bool = False) -> 
         except ValueError:
             errors.append(f"{note_id}: STATUS.md Last reviewed must be an ISO date")
 
-    state_matches = re.findall(r"^State:[ \t]*(.*)$", text, re.MULTILINE)
+    state_matches = re.findall(r"^(?:- )?State:[ \t]*(.*)$", text, re.MULTILINE)
     if len(state_matches) != 1:
         errors.append(f"{note_id}: STATUS.md must contain exactly one State line")
     elif state_matches[0].strip() not in STATUS_STATES:
@@ -281,9 +303,8 @@ def audit_status_handoff(note_id: str, text: str, *, embedded: bool = False) -> 
             f"expected one of {sorted(STATUS_STATES)}"
         )
 
-    status_lines = set(lines)
     for heading in sorted(REQUIRED_STATUS_HEADINGS):
-        if heading not in status_lines:
+        if not set(_heading_variants(heading)).intersection(lines):
             errors.append(f"{note_id}: STATUS.md missing heading {heading!r}")
 
     required_sections = {
@@ -291,7 +312,7 @@ def audit_status_handoff(note_id: str, text: str, *, embedded: bool = False) -> 
         "## Claim ledger": REQUIRED_STATUS_CLAIM_CLASSES,
     }
     for heading, labels in required_sections.items():
-        if heading not in status_lines:
+        if not set(_heading_variants(heading)).intersection(lines):
             continue
         section = _section_text(text, heading)
         for label in labels:

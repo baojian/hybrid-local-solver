@@ -32,5 +32,16 @@ committed output is
 The fifth command audits the exact eliminated-high-variable identity, the
 rational-function kernel signs for every balanced independent-set blow-up of
 `C6`, the strict `(HK)` failure, and the precise `(CL)` obstruction on
-`C10`; its committed output is
+`C10`.  It also checks the edgewise Young certificate that pays the positive
+adjacent entries on every balanced `C10` independent-set blow-up at
+every `1/25<=q<=7/100` and proves master nonpositivity there despite `(CL)`
+failure. At the central value `q=1/20`, the same exact edgewise audit closes
+all balanced blow-ups of `C9` and `C11` as well.  A fourth, global
+diagonal-completion certificate closes every balanced blow-up of `C12` and
+`C13` at the same value even though the two energy kernels are no longer
+weighted Laplacians.  Its exact audit uses rational LDL pivots on the base
+quotient and a rational two-by-two within-part determinant. The interval proof uses exact
+arithmetic in `Q(sqrt(5))(q^2)` and 19 strict Bernstein-coefficient
+certificates; its
+committed output is
 [`verify_cycle_blowup.json`](verify_cycle_blowup.json).

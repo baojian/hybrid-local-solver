@@ -1,6 +1,6 @@
 # Standalone problem definition: fully charged accelerated local PageRank
 
-Last reconciled: 2026-08-24.
+Last reconciled: 2026-08-29.
 
 This is a numerical optimization research problem. This document is
 intentionally self-contained: all project-specific definitions, assumptions,
@@ -14,16 +14,32 @@ proved, conditional, measured, or refuted must retain those labels.
 
 ## 1. Research question
 
-Given only local adjacency-list access to a large undirected graph, a sparse
-seed distribution, a PageRank parameter `alpha`, and a target accuracy
+Given only local adjacency-list access to a finite simple connected graph
+with unit edge weights and at least two vertices, one seed vertex `v`
+(equivalently `s=e_v`), a PageRank parameter `alpha`, and a target accuracy
 `eps_ppr`, can an algorithm return a sparse personalized PageRank vector with
 a valid terminal certificate in
 
 ```text
-nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr))
+O_tilde(1 / (sqrt(alpha) * eps_ppr))
 ```
 
 fully charged work?
+
+This is the active, canonical theorem contract.  The shared algebra below
+continues to allow a sparse probability distribution `s`, but a statement for
+general `s` must be labeled `general-seed`.  Linearity of unregularized PPR
+turns point-source solvers into the valid corollary
+
+```text
+nnz(s) + O_tilde((sum_v sqrt(s_v))^2
+                  / (sqrt(alpha) * eps_ppr)),
+```
+
+not the formerly requested additive `nnz(s)` bound.  RPPR obstacle solutions
+are nonlinear in `s`, so their supports and discovery traces cannot be
+superposed.  The stronger additive sparse-source target remains an extension
+question; it is not part of the canonical theorem contract.
 
 “Fully charged” means that the bound includes seed input, graph discovery,
 repeated reads, numerical updates, support changes, maintained inverse or
@@ -51,7 +67,8 @@ Let
 G = (V, E),    V = {1, ..., n},
 ```
 
-be a finite, simple, undirected, unweighted graph with no isolated vertices.
+be a finite, simple, undirected, connected graph with unit edge weights and
+`n >= 2`.
 The graph need not be supplied as a global matrix. The algorithm receives an
 adjacency-list interface.
 
@@ -59,7 +76,7 @@ Let `A` be the symmetric adjacency matrix. For each vertex `i`, define
 
 ```text
 N(i) = {j : {i,j} is in E},
-d_i  = |N(i)| > 0,
+d_i  = |N(i)| >= 1,
 D    = diag(d_1, ..., d_n).
 ```
 
@@ -80,17 +97,35 @@ supp(x) = {i : x_i != 0}.
 All vectors in this document are column vectors. Unqualified vector
 inequalities are coordinatewise. Matrix inequalities use the Loewner order.
 
+For the canonical point source, connectedness is without loss: on a
+possibly disconnected positive-degree graph, the PPR and RPPR solutions
+vanish outside the component containing `v`, and restriction to that
+component preserves all degrees and equations. This does not promise that an
+intermediate active induced subgraph is connected.
+
 ### 2.2 Seed
 
-The seed is a nonnegative probability vector
+The canonical input is one seed vertex `v`. Its source vector is
 
 ```text
-s >= 0,    1^T s = 1,
+s = e_v,
 ```
 
-supplied as a sparse list of its `nnz(s)` nonzero entries. Reading and
-initializing this list costs `Theta(nnz(s))`. The standard local instance is
-a single seed vertex `v`, for which `s = e_v`.
+so seed input and initialization cost `O(1)`. The shared mathematical layer
+also permits a nonnegative probability vector `s`, but that is an explicitly
+stronger extension, not the central complexity contract.
+
+For unregularized PPR, linearity gives
+
+```text
+pi(s) = sum_v s_v pi(e_v).
+```
+
+This does not preserve the canonical work bound automatically. Independent
+point-source solves generally incur a mixture factor up to `nnz(s)`, together
+with input, merging, and output costs. RPPR is nonlinear in `s`: its threshold,
+support, and admission chronology cannot be obtained by point-source
+superposition.
 
 ### 2.3 PageRank parameter
 
@@ -127,6 +162,11 @@ f(x) = 0.5 x^T Q x - b^T x,
 grad f(x) = Qx - b.
 ```
 
+The plain-text formulas in this onboarding document omit typography only for
+readability. In manuscript LaTeX, vectors and matrices are bold. The canonical
+optimum symbols are `\bm{x}^*`, `\bm{x}_0^*`, and `\bm{x}_\rho^*`; the older
+forms `x^0` and `x^star(rho)` are not aliases.
+
 Because the eigenvalues of `L` lie in `[0, 2]`,
 
 ```text
@@ -137,13 +177,13 @@ Thus `Q` is symmetric positive definite, `f` is `alpha`-strongly convex and
 1-smooth, and the unique minimizer is
 
 ```text
-x^0 = Q^(-1) b.
+x_0^* = Q^(-1) b.
 ```
 
 The personalized PageRank vector is
 
 ```text
-pi = D^(1/2) x^0.
+pi = D^(1/2) x_0^*.
 ```
 
 Let `P = A D^(-1)`. This is column-stochastic. The same vector satisfies
@@ -162,7 +202,7 @@ Useful structural identities are
 Q_ij <= 0 for i != j,
 Q^(-1) >= 0,
 Q D^(1/2) 1 = alpha D^(1/2) 1,
-x^0 >= 0,
+x_0^* >= 0,
 pi >= 0,
 1^T pi = 1.
 ```
@@ -188,7 +228,7 @@ max_i |pi_hat_i - pi_i| / d_i <= eps_ppr,
 or equivalently,
 
 ```text
-||D^(-1/2) (x_hat - x^0)||_infinity <= eps_ppr.
+||D^(-1/2) (x_hat - x_0^*)||_infinity <= eps_ppr.
 ```
 
 This is a coordinatewise, degree-normalized solution guarantee. It is not an
@@ -211,13 +251,13 @@ The following implication holds:
 ```text
 ||D^(-1/2) r(x)||_infinity <= alpha * eps_ppr
     =>
-||D^(-1/2) (x - x^0)||_infinity <= eps_ppr.
+||D^(-1/2) (x - x_0^*)||_infinity <= eps_ppr.
 ```
 
 Indeed,
 
 ```text
-x - x^0 = Q^(-1) r(x)
+x - x_0^* = Q^(-1) r(x)
 ```
 
 and the normalized maximum principle gives
@@ -229,7 +269,7 @@ and the normalized maximum principle gives
 For a sparse `x`, the residual can be nonzero only on
 
 ```text
-supp(x) union N(supp(x)) union supp(s).
+supp(x) union N(supp(x)) union {v}.
 ```
 
 This makes a local terminal check possible in principle, but every necessary
@@ -278,7 +318,7 @@ the storage and later reads are included in the ledger.
 
 A complete theorem reports all applicable categories:
 
-1. sparse seed input and initialization;
+1. seed-vertex input and initialization;
 2. first graph exposure and degree queries;
 3. repeated adjacency reads and active-row scans;
 4. coordinate, gradient, splitting, propagation, Krylov, or other numerical
@@ -314,21 +354,26 @@ and the cost of failed attempts or randomness-dependent rebuilding.
 
 ## 8. Desired complexity and comparison baselines
 
-For `eps_ppr in (0, 1)`, the main target is a deterministic exact-real
-algorithm with
+For `eps_ppr in (0, 1)`, the canonical main target is a deterministic
+exact-real point-source algorithm with
 
 ```text
-work = nnz(s) + O_tilde(1 / (sqrt(alpha) * eps_ppr)).
+work = O_tilde(1 / (sqrt(alpha) * eps_ppr)).
 ```
 
 The preferred target also uses
 
 ```text
-O(nnz(s) + 1 / eps_ppr)
+O(1 / eps_ppr)
 ```
 
 persistent memory and temporary workspace, up to declared logarithmic
 factors, and emits its terminal vector and certificate once.
+
+For a general sparse source, always state whether the result is the linear
+point-source superposition bound above, an exact separated-component RPPR
+decomposition, or a genuinely joint multi-root algorithm.  Only the last can
+possibly recover the old additive `nnz(s)` target on merging components.
 
 Three comparisons explain the target:
 
@@ -356,7 +401,7 @@ A principal route uses L1-regularized personalized PageRank (RPPR). For
 ```text
 g_rho(x) = alpha * rho * ||D^(1/2) x||_1,
 F_rho(x) = f(x) + g_rho(x),
-x*(rho)  = argmin_x F_rho(x).
+x_rho^*  = argmin_x F_rho(x).
 ```
 
 The unique minimizer is nonnegative. On the nonnegative orthant, RPPR is the
@@ -383,25 +428,25 @@ kappa_rho(x) = Qx - c_rho
 The optimum satisfies
 
 ```text
-x*(rho) >= 0,
-kappa_rho(x*(rho)) >= 0,
-x_i*(rho) * kappa_rho,i(x*(rho)) = 0 for every i.
+x_rho^* >= 0,
+kappa_rho(x_rho^*) >= 0,
+(x_rho^*)_i * kappa_rho,i(x_rho^*) = 0 for every i.
 ```
 
 ### 9.1 Support, bias, and monotonicity
 
-Let `S*(rho) = supp(x*(rho))`. Then
+Let `S_rho^* = supp(x_rho^*)`. Then
 
 ```text
 vol(S*(rho)) <= 1 / rho,
-0 <= D^(-1/2) (x^0 - x*(rho)) <= rho * 1.
+0 <= D^(-1/2) (x_0^* - x_rho^*) <= rho * 1.
 ```
 
 Thus RPPR simultaneously provides a sparse optimal support and a PPR bias
 bound. If `rho' >= rho`, then
 
 ```text
-x*(rho') <= x*(rho),
+x_{rho'}^* <= x_rho^*,
 S*(rho') is contained in S*(rho).
 ```
 
@@ -413,7 +458,7 @@ automatically the final PPR answer.
 Suppose an algorithm maintains a point `ell` satisfying
 
 ```text
-0 <= ell <= x*(rho).
+0 <= ell <= x_rho^*.
 ```
 
 If, for some `tau > 0`,
@@ -426,13 +471,13 @@ for every i,
 then the normalized maximum principle gives
 
 ```text
-||D^(-1/2) (x*(rho) - ell)||_infinity <= tau.
+||D^(-1/2) (x_rho^* - ell)||_infinity <= tau.
 ```
 
 Combining this with the RPPR bias bound yields
 
 ```text
-||D^(-1/2) (x^0 - ell)||_infinity <= rho + tau.
+||D^(-1/2) (x_0^* - ell)||_infinity <= rho + tau.
 ```
 
 Moreover, if `ell_i = 0` and `kappa_rho,i(ell) < 0`, then
@@ -481,7 +526,7 @@ R_kkt,rho(x) = ||D^(-1/2) kappa_min(x)||_infinity
 certifies
 
 ```text
-||D^(-1/2) (x - x*(rho))||_infinity
+||D^(-1/2) (x - x_rho^*)||_infinity
     <= R_kkt,rho(x) / alpha.
 ```
 
@@ -571,7 +616,7 @@ Objective convergence also does not control weighted L1 gradient mass without
 a support-volume factor. Smoothness gives
 
 ```text
-||grad f(x)||_2^2 <= 2 * (f(x) - f(x^0)).
+||grad f(x)||_2^2 <= 2 * (f(x) - f(x_0^*)).
 ```
 
 If `Omega_x = supp(grad f(x))`, then

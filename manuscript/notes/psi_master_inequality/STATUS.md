@@ -1,12 +1,12 @@
 # Direction status: psi_master_inequality
 
-Last reviewed: 2026-08-27
+Last reviewed: 2026-08-29
 State: proved-open
 Agent family: codex
-Role: direction
-Branch: `agent/codex/psi-master-inequality`
-Base commit: `4a979a6907880fb2dc76d1c51dbb7d12dc8bd5b3`
-Allowed write scope: `manuscript/notes/psi_master_inequality/` and `docs/coordination/handoffs/psi-master-inequality.md`
+Role: controller
+Branch: `agent/codex/windowed-spectral-lyapunov-7h`
+Base commit: `5d4e0ffc54b5988fa2ca7aff65eef847a8b16cd0`
+Allowed write scope: the registered `windowed-spectral-lyapunov-7h` scope.
 
 ## Exact question and contract
 
@@ -43,23 +43,41 @@ Allowed write scope: `manuscript/notes/psi_master_inequality/` and `docs/coordin
   has nonpositive off-diagonal entries.  This proves `sup Psi=0` for every
   balanced independent-set blow-up `C6[Kbar_a]`, all `a>=1` and
   `0<q<=1/4`, even though `(HK)` fails there with exact ratio
-  `5211/4900>1`.
+  `5211/4900>1`.  A third structural theorem pays positive cross-kernel
+  entries edge by edge when the two diagonal kernels are weighted
+  Laplacians and `c_ij^2<=a_ij*b_ij`.  It proves `sup Psi=0` on every
+  balanced independent-set blow-up `C10[Kbar_a]` throughout
+  `1/25<=q<=7/100`, where `(CL)` fails, because only adjacent cross entries
+  are positive, the within-part entries are negative, and at `q=1/20` the
+  exact payment ratio is
+  `9190540374100260057432724000/35964609239043602890432954263<1`.
+  At `q=1/20`, exact rational inversion also closes every balanced blow-up of
+  `C9` and `C11`; their adjacent Young ratios are approximately `0.0490` and
+  `0.4137`, respectively.  A fourth sufficient condition clips the positive
+  off-diagonal cross kernel, chooses its otherwise invisible diagonal, and
+  requires the resulting two-by-two operator block to be positive
+  semidefinite.  Exact rational LDL certificates prove this diagonal
+  completion on every balanced blow-up of `C12` and `C13` at `q=1/20`, even
+  though positive off-diagonal entries in both energy kernels rule out the
+  edgewise weighted-Laplacian theorem.
 - **Conditional:** None yet.
 - **Measured:** None yet.
 - **Refuted:** `(CL)` does not cover all cycles: on `C10` at `q=1/20`, its
   adjacent kernel entry is the exact positive rational
   `6998345705403423/396849260156782400`.  This refutes the sufficient proof
-  route, not `Psi<=0` itself.
+  route, not `Psi<=0` itself; edgewise Young payment now closes that exact
+  infinite blow-up family by a different sufficient condition.
 - **Open:** Analytic nonpositivity on general graphs and on graph families
-  lying beyond both sufficient `(HK)` and `(CL)` conditions.
+  lying beyond `(HK)`, `(CL)`, edgewise payment, and diagonal completion.
 
 ## Central blocker
 
-The eliminated-`h` form retains clipping complementarity and closes an
-infinite `(HK)`-failing cycle-blow-up family.  However, on longer cycles the
-cross kernel develops positive off-diagonal entries.  The next advance must
-pay those positive cross terms using the two negative diagonal forms, or
-produce an exact admissible positive witness.
+The eliminated-`h` form retains clipping complementarity.  Diagonal
+completion now pays positive cross entries even after the energy kernels stop
+being weighted Laplacians, but only on the two additional fixed cycle
+quotients currently certified.  The next advance must prove a
+graph-uniform/quotient-varying completion or produce an exact admissible
+positive witness.
 
 ## Dependencies and reusable outputs
 
@@ -72,10 +90,12 @@ produce an exact admissible positive witness.
 
 - Exact file/section/lemma: `lem:psi-master-identity`,
   `thm:psi-hk-nonpositivity`, `lem:psi-eliminate-h`, and
-  `thm:psi-c6-blowup` in `main.tex`.
-- Next concrete action: start from `eq:psi-eliminated-form` on `C10` and
-  control its positive adjacent cross entries with the `A_q` and `B_q`
-  energies, or find an exact sign-feasible positive direction.
+  `thm:psi-edgewise-young`, `thm:psi-c6-blowup`, and
+  `thm:psi-c10-edgewise`, `thm:psi-neighboring-cycle-edgewise`, and
+  `thm:psi-c12-c13-diagonal-completion` in `main.tex` and
+  `sections/diagonal_completion.tex`.
+- Next concrete action: vary the cycle quotient or find the first exact
+  admissible state beyond all three sufficient routes.
 - Stop/go test: prove a family-wide sign inequality or produce an exact
   admissible positive witness.
 
@@ -92,10 +112,15 @@ produce an exact admissible positive witness.
   nonnegative degree-eight numerator coefficients, 10/10 nonnegative
   denominator coefficients, 493 part vectors, and 64094 off-diagonal
   checks), the exact `verify_cycle_blowup.py` audit (six rational-function
-  identities, 24 eliminated-`h` checks, 36 blow-up matrices and 68796 strict
-  off-diagonal checks), and `git diff --check` pass.
-- Known gaps: mixed clipping beyond `(HK)`/`(CL)`, proper faces, finite inner
-  residuals, and all algorithm/work consequences.
+  identities, 24 eliminated-`h` checks, 36 blow-up matrices, 68796 strict
+  off-diagonal checks, the exact `C10` point certificate, and 19 exact
+  interval Bernstein certificates, plus fixed-`q` exact edgewise certificates
+  for `C9`, `C10`, and `C11`, and exact diagonal-completion certificates with
+  22/24 positive quotient LDL pivots for `C12`/`C13`),
+  and `git diff --check` pass.  The edgewise theorem and its weighted
+  double-counting were also independently rederived before promotion.
+- Known gaps: mixed clipping beyond all four sufficient conditions, proper
+  faces, finite inner residuals, and all algorithm/work consequences.
 
 ## Repository handoff
 

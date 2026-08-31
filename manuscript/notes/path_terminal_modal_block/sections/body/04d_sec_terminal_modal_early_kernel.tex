@@ -1,0 +1,180 @@
+\section{The exact short-window half-velocity kernel}
+\label{sec:terminal-modal-early-kernel}
+
+The separate sufficient early inequality in
+\eqref{eq:terminal-modal-short-early-convolution-open} has a simpler kernel
+than either $J_k$ or $J_kL$ separately.  This section records that kernel,
+its exact cycle fold, and the cancellation retained from each moving-frontier
+source.  The reduction is exact, but the resulting finite signed convolution
+is not needed after the correlated stopped ledger below.
+
+\begin{lemma}[Half-velocity binomial-tail kernel; proved here]
+\label{lem:terminal-modal-half-velocity-kernel}
+On the infinite line put
+\[
+ \mathcal T_k=\left(J_k-\frac12J_{k-1}\right)L,
+ \qquad k\ge1,
+\]
+and write $t_k(r)=[z^r]\mathcal T_k$.  Then
+\begin{equation}
+ t_k(r)=\frac12\Pr\{\operatorname{Bin}(k,1/2)\ge |r|\},
+ \qquad r\in\mathbb Z.
+ \label{eq:terminal-modal-half-velocity-tail}
+\end{equation}
+In particular $t_k(r)\ge0$, $t_k(r)=0$ for $|r|>k$, and
+$\max_rt_k(r)=1/2$.
+
+Let
+\[
+ \bar t_k(r)=\sum_{a\in\mathbb Z}t_k(r+2ma).
+\]
+For every path vector $d=(d_0,\ldots,d_m)$, even extension and restriction
+give the exact folded formula
+\begin{equation}
+ \begin{split}
+ (\mathcal T_kd)(j)={}&\bar t_k(j)d_0+\bar t_k(j-m)d_m\\
+ &+\sum_{i=1}^{m-1}
+ \{\bar t_k(j-i)+\bar t_k(j+i)\}d_i,
+ \qquad0\le j\le m.
+ \end{split}
+ \label{eq:terminal-modal-half-velocity-fold}
+\end{equation}
+If $qk<3/50$, then $k<24m/25<m$, so every residue in the displayed
+formula has at most one supported $2m$-alias.
+\end{lemma}
+
+\begin{proof}
+Use the Laurent convention
+\[
+ a=\frac{1+z}{2},\qquad b=\frac{1+z^{-1}}2,
+ \qquad a=zb,qquad L=ab.
+\]
+The fundamental velocity kernel has the exact form
+\begin{equation}
+ J_k=b^{k-1}\frac{1-z^k}{1-z}.
+ \label{eq:terminal-modal-J-Laurent}
+\end{equation}
+Consequently
+\begin{equation}
+ J_k-\frac12J_{k-1}
+ =b^{k-2}\frac{1-z^{k+1}}{2z(1-z)},
+ \qquad
+ \mathcal T_k=\frac12b^k\frac{1-z^{k+1}}{1-z}.
+ \label{eq:terminal-modal-half-velocity-Laurent}
+\end{equation}
+Coefficient extraction gives
+\[
+ t_k(r)=2^{-(k+1)}\sum_{a=|r|}^k\binom ka,
+\]
+which is \eqref{eq:terminal-modal-half-velocity-tail}.  Convolution on the
+$2m$-cycle folds the line coefficient modulo $2m$.  An interior path source
+has the two even copies $i$ and $-i$, while the two endpoints have one copy
+each.  This proves \eqref{eq:terminal-modal-half-velocity-fold}.  Finally
+$q=1/(16m)$ and $qk<3/50$ give $k<48m/50$.
+\end{proof}
+
+The same Laurent form retains the derivative cancellation in the proper-face
+source ledger.  The following identity is useful because it removes the
+apparent geometric sum before any absolute values are taken.
+
+\begin{lemma}[Standard moving-source response; proved here]
+\label{lem:terminal-modal-half-velocity-moving-source}
+Consider a standard positive-orientation source at transition $n$,
+\[
+ \widehat F_{n+1}^{U,+}=U_nz^{n-2}(1-z)(1+3z),
+ \qquad4\le n\le m-1,
+\]
+and put $\ell=m-n$.  Its contribution to the full-entry velocity difference
+$A_{m+1}-\delta A_m$, followed by $\mathcal T_k$, is exactly
+\begin{equation}
+ \frac{\delta^\ell U_n}{4}
+ b^{k+\ell-1}(1-z^{k+1})(z^{-1}+z^\ell)
+ z^{n-2}(1+3z).
+ \label{eq:terminal-modal-half-velocity-U-response}
+\end{equation}
+The reflected source is obtained by $z\mapsto z^{-1}$.  For the accompanying
+mass source $M_nz^n$, the corresponding expression is
+\begin{equation}
+ \frac{\delta^\ell M_n}{4}
+ b^{k+\ell-1}\frac{1-z^{k+1}}{1-z}
+ (z^{-1}+z^\ell)z^n.
+ \label{eq:terminal-modal-half-velocity-M-response}
+\end{equation}
+The overlapping sources $n<4$ and the final degree-one source at $n=m$ are
+not represented by these standard formulas; they remain the exact base and
+endpoint groups from
+\cref{lem:terminal-modal-boundary-source}.
+\end{lemma}
+
+\begin{proof}
+A source injected in $A_{n+1}$ contributes
+$\delta^{\ell-1}J_\ell F$ to $A_m$ and
+$\delta^\ell J_{\ell+1}F$ to $A_{m+1}$.  The elementary identity
+\begin{equation}
+ J_{\ell+1}-J_\ell
+ =\frac12b^{\ell-1}(z^{-1}+z^\ell)
+ \label{eq:terminal-modal-entry-velocity-difference}
+\end{equation}
+therefore gives its contribution to $A_{m+1}-\delta A_m$.
+Multiplication by \eqref{eq:terminal-modal-half-velocity-Laurent} cancels
+$1-z$ in $\widehat F_{n+1}^{U,+}$ and proves
+\eqref{eq:terminal-modal-half-velocity-U-response}.  Without that derivative
+factor, the mass source retains the finite quotient in
+\eqref{eq:terminal-modal-half-velocity-M-response}.
+\end{proof}
+
+\begin{corollary}[Exact finite early certificate; proved here]
+\label{cor:terminal-modal-half-velocity-certificate}
+For $d$ in \eqref{eq:terminal-modal-static-remainder},
+\begin{equation}
+ \mathcal L_ku=\mathcal T_kd.
+ \label{eq:terminal-modal-half-velocity-static-identity}
+\end{equation}
+Thus the separate short-window target
+\eqref{eq:terminal-modal-short-early-convolution-open} is exactly the finite
+folded inequality
+\begin{equation}
+ \max_{0\le j\le m}(\mathcal T_kd)(j)\le\frac{13q^3}{200},
+ \qquad1\le k,\quad qk<\frac3{50},
+ \label{eq:terminal-modal-half-velocity-finite-open}
+\end{equation}
+with the left side given by
+\eqref{eq:terminal-modal-half-velocity-fold}.  Equations
+\eqref{eq:terminal-modal-half-velocity-U-response} and
+\eqref{eq:terminal-modal-half-velocity-M-response} give an exact
+source-localized expansion of every standard proper-prefix contribution.
+Inequality \eqref{eq:terminal-modal-half-velocity-finite-open} remains
+\textbf{OPEN}, but the correlated theorem below proves the needed early
+half-retention without it.
+\end{corollary}
+
+\begin{proof}
+The deconvolution \eqref{eq:terminal-modal-static-remainder} says $u=Ld$.
+Therefore
+$\mathcal L_ku=(J_k-J_{k-1}/2)Ld=\mathcal T_kd$.
+All remaining statements are substitutions of the preceding two lemmas.
+\end{proof}
+
+There is a small but decisive obstruction to a source-free norm shortcut.
+At $k=2$ the line coefficients are
+\begin{equation}
+ t_2(0)=\frac12,qquad t_2(\mathord\pm1)=\frac38,
+ \qquad t_2(\mathord\pm2)=\frac18.
+ \label{eq:terminal-modal-half-velocity-k2}
+\end{equation}
+At path target $j=0$, an interior source at $i=1$ contributes both reflected
+copies, hence has coefficient $2t_2(1)=3/4$.  Dividing by its degree weight
+two gives $3/8>1/4$.  Thus a global claim that every folded coefficient is at
+most one quarter per unit $D$-mass is false.  The desired bound must retain
+the location of the moving sources and the signed endpoint group; the
+positive-mass estimate alone cannot prove it.
+
+The deterministic screen gives
+\[
+ \max_{j,k:\,qk<3/50}\frac{(\mathcal T_kd)(j)}{q^3}
+ =0.059654,0.060267,0.060726,0.061044,0.061268
+\]
+at $m=64,128,256,512,1024$, respectively.  These values are evidence only.
+They are close enough to $13/200$ that discarding reflection or splitting the
+final derivative and endpoint atoms by absolute value loses the available
+margin.

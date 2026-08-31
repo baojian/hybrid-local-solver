@@ -57,10 +57,10 @@ This table is generated from `registry.toml` by
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
 | [`path_face_lock_warmup`](path_face_lock_warmup/) | iterative | proved-open | Determine whether a sharp componentwise entrance certificate yields a constant or logarithmic safe warmup on paths and spiders. |
-| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Prove short-path admission chronology and isolate the remaining terminal modal route. |
+| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | synthesis | Separate the named endpoint-path recurrence's asymptotic logarithmic certificate delay from its explicit constant-scale semantic stop. |
 | [`psi_master_inequality`](psi_master_inequality/) | iterative | proved-open | Turn the exact Psi master identity into analytic absorption theorems or precise graph-family counterexamples. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
-| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove log-free radial SOR on symmetric spiders and isolate the paid continuation frontier. |
+| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove supplied-face dimension/spectral dispatch, log-free radial SOR, and scalar-local propagation limits. |
 | [`signed_star_acceleration`](signed_star_acceleration/) | iterative | proved-open | Prove the exact signed-star accelerated rung and separate locality failure modes. |
 | [`two_rung_sor`](two_rung_sor/) | iterative | measured | Record the best measured two-rung SOR schedule. |
 | [`volume_gated_acceleration`](volume_gated_acceleration/) | iterative | proved-open | Develop support-volume safety and charged cross-face acceleration ledgers. |
@@ -75,7 +75,9 @@ This table is generated from `registry.toml` by
 | [`local_solver_oracle_hierarchy`](local_solver_oracle_hierarchy/) | models | proved-open | Separate information, recurrence, response, representation, and output restrictions. |
 | [`problem_definitions`](problem_definitions/) | models | synthesis | Collect the exact problem definitions and source-backed standard properties used across the project. |
 | [`seed_maximum_principle`](seed_maximum_principle/) | models | proved-open | Close the seed response-row constant and general output-map terminal bound. |
+| [`active_edge_lcp`](active_edge_lcp/) | response | proved-open | Source the promoted OP2 theorem via threshold-batched safe LCP discovery, block-Cholesky decay, and certified local SDD face solves. |
 | [`incremental_active_set_sdd`](incremental_active_set_sdd/) | response | proved-open | Remove repeated solves through persistent solve-and-boundary state. |
 | [`hybrid_local_solver_complete_note`](hybrid_local_solver_complete_note/) | synthesis | synthesis | Preserve proof history, corrections, and failed routes. |
 | [`hybrid_local_solver_synthesis`](hybrid_local_solver_synthesis/) | synthesis | synthesis | Connect the active manuscript, solver families, and experiments. |
+| [`two_stage_point_source_aesp_cd`](two_stage_point_source_aesp_cd/) | synthesis | proved-open | Separate numerical early return, lower-safe AESP-to-APPR mass completion, and set-only fixed-envelope restart, including the randomized OP2 inner-face closure. |
 <!-- END GENERATED NOTE TABLE -->

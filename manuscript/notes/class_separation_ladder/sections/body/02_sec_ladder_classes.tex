@@ -1,4 +1,4 @@
-\section{The three classes, output maps, and the hard instance}
+\section{The three classes, auxiliary output maps, and the hard instance}
 \label{sec:ladder-classes}
 
 \subsection*{The classes}
@@ -6,133 +6,157 @@
 \begin{definition}[Monotone, signed-step, and signed-relaxation classes]
 \label{def:ladder-classes}
 All three classes share the state \eqref{eq:ladder-state}, the primitive
-\eqref{eq:ladder-primitive}, the charge $d_{u}$, the instance, and the
-guarantee \eqref{eq:ladder-guarantee}. They differ in one constraint each.
+\eqref{eq:ladder-primitive}, the fully charged work model, the instance, and
+the guarantee \eqref{eq:ladder-guarantee}. They differ in one constraint each.
 \begin{itemize}[leftmargin=2.2em]
-    \item $\Mpos$ (\emph{monotone push}): $0<\delta\le r_{u}$ at every
-        operation. Equivalently, steps are positive and $r\ge0$ is preserved.
-        This class contains lazy and non-lazy \APPR{} under every ordering,
-        damped push with $\omega\le1$, Jacobi sweeps, and partial or
-        below-threshold pushes.
-    \item $\Mpm$ (\emph{signed step}): $\delta\in\R$ arbitrary, subject only
-        to $r\ge0$ after every operation. This class contains $\Mpos$ together
-        with anti-pushes (``pumping'').
-    \item $\Rpm$ (\emph{signed relaxation}): $\delta=\omega r_{u}$ with
-        $\omega\in(0,2)$, and $r$ otherwise unrestricted. This class contains
-        Gauss--Seidel ($\omega=1$), SOR and CF-Push phase II including
-        $\omega^{\star}$, Gauss--Southwell, and adaptive, per-vertex or
+    \item $\Mpos$ (\emph{monotone push}): $0<\delta\le r_u$ at every
+        operation. Equivalently, steps are positive and
+        $\bm{r}\ge\bm{0}$ is preserved. This class contains lazy and
+        non-lazy \APPR{} under every ordering, damped push with
+        $\omega\le1$, Jacobi sweeps, and partial or below-threshold pushes.
+    \item $\Mpm$ (\emph{signed step}): $\delta\in\R$ is arbitrary, subject
+        only to $\bm{r}\ge\bm{0}$ after every operation. This class contains
+        $\Mpos$ together with anti-pushes (``pumping'').
+    \item $\Rpm$ (\emph{signed relaxation}): $\delta=\omega r_u$ with
+        $\omega\in(0,2)$, and $\bm{r}$ is otherwise unrestricted. This class
+        contains Gauss--Seidel ($\omega=1$), SOR and CF-Push phase II including
+        $\omega^{\star}$, Gauss--Southwell, and adaptive, per-vertex, or
         randomized $\omega$.
 \end{itemize}
 \end{definition}
 
 The three sit in a lattice: $\Mpos=\Mpm\cap\Rpm$, because a positive step
-keeping $r_{u}\ge0$ is exactly $\omega\in(0,1]$; and neither of $\Mpm$,
-$\Rpm$ contains the other, since anti-pushes have $\delta/r_{u}\le0$ while
-over-relaxation violates $r\ge0$. By \Cref{lem:ladder-energy} the constraint
-$\omega\in(0,2)$ is precisely pathwise energy dissipation, so $\Rpm$ is the
-class of one-hop updates that never increase the error energy. Dropping that
-axiom too leaves the unrestricted one-hop writer, which is
-\Cref{sec:ladder-elimination}.
+keeping $r_u\ge0$ is exactly $\omega\in(0,1]$; neither $\Mpm$ nor $\Rpm$
+contains the other, since anti-pushes have $\delta/r_u\le0$ while
+over-relaxation violates $\bm{r}\ge\bm{0}$. By
+\Cref{lem:ladder-energy}, the constraint $\omega\in(0,2)$ is precisely
+pathwise energy dissipation, so $\Rpm$ is the class of one-hop updates that
+never increase the error energy. Dropping that axiom leaves the unrestricted
+one-hop writer used in \Cref{sec:ladder-elimination}.
+
+\subsection*{Auxiliary one-hop output maps}
 
 \begin{definition}[One-hop output maps]
 \label{def:ladder-output-maps}
-For $B\ge0$, let $\OB$ be the set of matrices $M$ with $M\ge0$,
-$M_{uw}=0$ unless $w\in\mathcal N(u)\cup\{u\}$, and column mass
-$\sum_{u}M_{uw}\le B$ for every $w$. The reported output is
-$\widehat z=z+Mr$. The choice $B=0$ is $\widehat z=z$.
+For $B\ge0$, let $\OB$ be the set of matrices $\bm{M}\ge\bm{0}$ such that
+$M_{uw}=0$ unless $w\in\mathcal N(u)\cup\{u\}$ and
+$\sum_u M_{uw}\le B$ for every $w$. The reported mass-coordinate output is
+$\widehat{\bm{z}}=\bm{z}+\bm{M}\bm{r}$. The choice $B=0$ is the plain output
+$\widehat{\bm{z}}=\bm{z}$.
 \end{definition}
 
-\paragraph{Why the comparison is fair.}
-Both lower bounds below are stated primarily for the plain output
-$\widehat z=z$: the same output map, on the same instance, under the same
-guarantee and the same work charge, so that the \emph{only} difference between
-the classes compared in \Cref{sec:ladder-ladder} is the class axiom. Output
-post-processing is then handled symmetrically as an extension of each bound.
-\Cref{thm:ladder-monotone-lower-bound} tolerates every $M\in\OB$ up to the
-escape threshold $B<(1-\epsppr\vol(V))/\galpha$, and
-\Cref{prop:ladder-residual-mass-cap} tolerates
-$B\le\tfrac{1}{16}\sqrt{(1+\alpha)/\alpha}$. The thresholds differ because
-the classes do. What bounds the admissible range from above is the same for
-every class:
+These maps are an auxiliary oracle extension used to test robustness of the
+lower bounds. Membership in $\OB$ does not provide an implementation: in the
+fully charged Problem~1 model, discovering, storing, or applying $\bm{M}$ and
+emitting $\widehat{\bm{x}}=\bm{D}^{-1/2}\widehat{\bm{z}}$ must all be paid
+for. Granting the map for free can only strengthen an algorithm, so a lower
+bound that survives the oracle also applies to an implementable algorithm.
+No upper bound in this note treats such post-processing as free.
 
-\begin{proposition}[Universal zero-work escape; \statusimported]
+\paragraph{Why the primary comparison is fair.}
+Both lower bounds below are stated first for the plain output
+$\widehat{\bm{z}}=\bm{z}$: the same output rule, on the same instance, under
+the same semantic guarantee and fully charged work model. Thus the only
+difference between the classes compared in \Cref{sec:ladder-ladder} is the
+class axiom. The oracle output maps are then handled symmetrically as
+extensions. \Cref{thm:ladder-monotone-lower-bound} tolerates every
+$\bm{M}\in\OB$ up to
+$B<(1-\epsppr\vol(\mathcal V))/\galpha$, and
+\Cref{prop:ladder-residual-mass-cap} tolerates
+$B\le\tfrac{1}{16}\sqrt{(1+\alpha)/\alpha}$.
+
+\begin{proposition}[Zero-push oracle escape; \statusimported]
 \label{prop:ladder-escape}
 On the centre-seeded star of \eqref{eq:ladder-hard-instance} with
-$\alpha<3/4$, for every $B\ge1-\epsppr\vol(V)$ in the mass scale --- that is,
-every $\galpha B\ge1-\epsppr\vol(V)$ in the scale of
-\Cref{def:ladder-output-maps} --- there is an $M\in\OB$ with
-$\errop(Me_{c})\le\epsppr$ at $\Work=0$.
+$\alpha<3/4$, if
+\begin{equation}
+    \galpha B\ge1-\epsppr\vol(\mathcal V),
+    \label{eq:ladder-escape-threshold}
+\end{equation}
+then there is a $\bm{M}\in\OB$ such that the initial-state oracle output
+$\bm{M}\bm{r}^0=\galpha\bm{M}\bm{e}_c$ satisfies
+$\errop(\bm{M}\bm{r}^0)\le\epsppr$ without executing a push.
 \end{proposition}
 
 \noindent
-This is Proposition~1.3 of the source package \texttt{i2d}, whose proof runs
-through the transport characterization recalled next; it is used here, not
-re-derived. Its role is to delimit the range in which any lower bound of any
-kind can live, which is why every $B$-dependent statement below is scoped
-strictly below the threshold.
+This is the push-scale translation of Proposition~1.3 of the source package
+\texttt{i2d}. It is a zero-\emph{push} statement, not a zero-work algorithm
+for Problem~1: applying the map and emitting its nonzero coordinates remain
+charged. Its role is only to delimit the $B$-range in which a lower bound on
+one-hop update work can hold.
 
 \begin{proposition}[Transport characterization; \statusimported]
 \label{prop:ladder-transport}
-Fix a state $(z,r)$ with $r\ge0$. There is an $M\in\OB$ with
-$\errop(z+Mr)\le\epsppr$ if and only if for every $S\subseteq V$,
+Fix a state $(\bm{z},\bm{r})$ with $\bm{r}\ge\bm{0}$. There is a
+$\bm{M}\in\OB$ with
+$\errop(\bm{z}+\bm{M}\bm{r})\le\epsppr$ if and only if, for every
+$\mathcal{S}\subseteq\mathcal{V}$,
 \begin{equation}
-    \sum_{u\in S}\pos{\pr(r)_{u}-\epsppr d_{u}}
+    \sum_{u\in\mathcal{S}}
+      \pos{(\bm{H}^{-1}\bm{r})_u-\epsppr d_u}
     \;\le\;
-    B\cdot r\bigl(\mathcal N(S)\cup S\bigr).
+    B\sum_{w\in\mathcal N(\mathcal{S})\cup\mathcal{S}}r_w .
     \label{eq:ladder-transport-cut}
 \end{equation}
+Equivalently, in the source mass scale, replace
+$\bm{H}^{-1}\bm{r}$ by $\pr(\bm{r}_{\mathrm{mass}})$ and $B$ by
+$\galpha B$.
 \end{proposition}
 
 \noindent
-Again \texttt{i2d} (Lemma~1.2), by Gale--Hoffman feasibility for the
-bipartite transportation problem with row demands
-$\pr(r)_{u}-\epsppr d_{u}$ and column capacities $Br_{w}$. The consequence
-that matters here is structural: on a graph of radius one around the seed,
-$r(\mathcal N(S)\cup S)=\norm{r}_{1}$ for every nonempty $S$, so $S=V$ is the
-only binding cut and \emph{the entire output-map question collapses to the
-single scalar $B$}. That is why the star can carry a clean class comparison
-in which output post-processing is a one-parameter family rather than a
-confounder.
+This is Lemma~1.2 of \texttt{i2d}, translated using
+\eqref{eq:ladder-mass-dictionary}. It follows from Gale--Hoffman feasibility
+for a bipartite transportation problem with row demands
+$(\bm{H}^{-1}\bm{r})_u-\epsppr d_u$ and column capacities $Br_w$.
+For the initial star residual, all mass lies at the centre, so every relevant
+nonempty cut sees the same available residual and the full-set cut yields
+\eqref{eq:ladder-escape-threshold}. This collapse is asserted only for that
+initial state; for a general residual on a star, smaller cuts can differ.
 
 \subsection*{The hard instance}
 
 \begin{equation}
-    G=K_{1,m}\ \text{with centre }c\text{ and leaf set }L,
+    \mathcal{G}=K_{1,m}\ \text{with centre }c
+    \text{ and leaf set }\mathcal{F},
     \qquad
     v=c,
     \qquad
     m=\floor{\frac{1}{8\epsppr}},
     \qquad
-    \epsppr\le\frac{1}{16},
+    0<\epsppr\le\frac{1}{16},
     \label{eq:ladder-hard-instance}
 \end{equation}
-so that $1/(16\epsppr)\le m\le1/(8\epsppr)$, $\vol(V)=2m$,
-$\epsppr\vol(V)\le1/4$ and $\epsppr m\le1/8$. This is the instance of
+so that $1/(16\epsppr)\le m\le1/(8\epsppr)$,
+$\vol(\mathcal V)=2m$, $\epsppr\vol(\mathcal V)\le1/4$, and
+$\epsppr m\le1/8$. This is the instance of
 \texttt{eq:hard-star-size} in the active manuscript. Eliminating the leaves
-from $H\pi=\galpha e_{c}$ gives the closed forms
+from $\bm{H}\bm{\pi}=\galpha\bm{e}_c$ gives
 \begin{equation}
-    \pi_{c}=\frac{\galpha}{1-\calpha^{2}}=\frac{1+\alpha}{2},
+    \pi_c=\frac{\galpha}{1-\calpha^2}=\frac{1+\alpha}{2},
     \qquad
-    \pi_{l}=\frac{\calpha\pi_{c}}{m}=\frac{1-\alpha}{2m}
-    \quad(l\in L).
+    \pi_\ell=\frac{\calpha\pi_c}{m}=\frac{1-\alpha}{2m}
+    \quad(\ell\in\mathcal F).
     \label{eq:ladder-star-closed-forms}
 \end{equation}
 
 \begin{observation}[The instance is semantically nontrivial]
 \label{obs:ladder-nontrivial}
-For $\alpha<3/4$ one has $\pi_{u}/d_{u}>\epsppr$ at every vertex, since
-$\pi_{l}=(1-\alpha)/(2m)\ge4(1-\alpha)\epsppr>\epsppr$. Hence
-$S_{\epsppr}=V$: every correct output must write $m+1$ nonzero coordinates,
-which gives the universal floor
+For $\alpha<3/4$, one has $\pi_u/d_u>\epsppr$ at every vertex; for example,
+$\pi_\ell=(1-\alpha)/(2m)\ge4(1-\alpha)\epsppr>\epsppr$ at every leaf.
+Hence the semantic support
+$\mathcal S_{\epsppr}:=\{u:\pi_u/d_u>\epsppr\}$ is all of
+$\mathcal V$. Every correct sparse output must therefore contain all $m+1$
+coordinates, giving the universal fully charged floor
 \begin{equation}
-    \Work\ \ge\ m\ \ge\ \frac{1}{16\epsppr}
+    \Work\ge m+1\ge m\ge\frac{1}{16\epsppr}
     \label{eq:ladder-output-floor}
 \end{equation}
-for \emph{any} algorithm whatsoever.
+for any algorithm, independently of adjacency work.
 \end{observation}
 
 \noindent
 \Cref{obs:ladder-nontrivial} is worth isolating, because it is exactly what
 the long-spider construction of \texttt{thm:cf-spider-lower} does not have:
-there $S_{\epsppr}=\emptyset$ in the relevant regime, so the all-zero vector
-is a valid output. See \Cref{sec:ladder-manuscript-relation}.
+there $\mathcal S_{\epsppr}=\emptyset$ in the relevant regime, so the all-zero
+vector is a valid semantic output. See
+\Cref{sec:ladder-manuscript-relation}.

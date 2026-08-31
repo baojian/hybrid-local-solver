@@ -48,6 +48,15 @@ those older command files:
   drafting colors, checkmarks, and pseudocode assignment symbols;
 - `preamble.tex` owns package loading and theorem-environment setup.
 
+The active 20-page draft is now organized around one positive theorem spine:
+point-source problem and semantic accuracy, Stieltjes obstacle geometry,
+support-safe threshold batches, the block-Cholesky/Chebyshev depth theorem, a
+fully charged randomized local RPPR solver, and the strict two-stage PPR
+composition.  It also contains an explicit related-work lineage and a
+human/AI research-process disclosure.  The earlier APPR, ISTA, and CF-Push
+section files remain in the repository as proved supporting material but are
+not input by the focused active draft.
+
 Add reusable notation to these shared files rather than defining commands
 inside individual sections. Structural tests enforce that boundary and prevent
 the source-aligned problem from being redeclared. Archived macro files remain

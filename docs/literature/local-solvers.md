@@ -319,9 +319,9 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
     personalized PageRank in its time-reversed chain.
 - Formulation differences: The method explores edges backward from a target
   vertex on a directed web graph and approximates a column of the personalized
-  PageRank matrix. The hybrid solver begins from a seed distribution and
-  targets a PageRank-type solution under the repository’s residual and work
-  conventions.
+  PageRank matrix. The canonical hybrid target begins from one seed vertex on
+  a connected unit-weight undirected graph and targets a PageRank-type
+  solution under the repository’s residual and work conventions.
 - Open questions: Determine whether the pushback invariant or time-reversal
   relation provides a useful dual view of local residual propagation, and
   whether the support bounds can be translated to the hybrid solver’s active
@@ -390,9 +390,10 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
     detection and single-node PageRank estimation.
 - Formulation differences: The target is a column-oriented contribution vector
   or one node’s global PageRank score on a directed graph under an oracle
-  access model. The hybrid solver starts from a seed distribution, produces a
-  PageRank-type solution vector, and measures residual-based accuracy and
-  concrete edge work, so the lower bounds do not transfer without a reduction.
+  access model. The canonical hybrid target starts from one seed vertex on a
+  connected unit-weight undirected graph, produces a PageRank-type solution
+  vector, and measures residual-based accuracy and concrete edge work, so the
+  lower bounds do not transfer without a reduction.
 - Open questions: Determine whether the paper’s degree-sensitive lower bounds
   constrain the hybrid solver’s backward or dual operations, translate its
   query model into the repository’s edge-operation model, and compare its

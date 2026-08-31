@@ -124,6 +124,18 @@ def test_status_handoff_can_be_embedded_in_readme() -> None:
     assert tool.audit_status_handoff("example", text, embedded=True) == []
 
 
+def test_status_handoff_can_use_bold_labels_in_readme() -> None:
+    tool = _load_tool()
+    text = "**Example note**\n\nOverview.\n\n" + _valid_status_text()
+    text = text.replace("# Direction status: example", "**Direction status: example**")
+    text = text.replace("Last reviewed:", "- Last reviewed:")
+    text = text.replace("State:", "- State:")
+    for heading in tool.REQUIRED_STATUS_HEADINGS:
+        text = text.replace(heading, f"**{heading.removeprefix('## ')}**")
+
+    assert tool.audit_status_handoff("example", text, embedded=True) == []
+
+
 def test_status_handoff_rejects_empty_fields_and_non_enum_state() -> None:
     tool = _load_tool()
     text = _valid_status_text().replace("State: proved-open", "State: proved-open; refuted")

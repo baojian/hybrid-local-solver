@@ -1,26 +1,30 @@
-# class_separation_ladder
+# Class-separation ladder
 
-A three-rung class-complexity ladder for local PageRank on a single instance,
-the centre-seeded star `K_{1,m}` with `m = floor(1/(8 eps_ppr))`.
+This note studies **Problem 1 (semantic PPR)** on the centre-seeded star
+`K_{1,m}`, where `m = floor(1/(8 eps_ppr))`. It uses the current connected,
+unit-weight graph model, the canonical point seed, the sparse `x_hat` output,
+and the fully charged exact-real word model from `problem_definitions`.
 
-| Class | Axiom dropped | Star work |
+The note works internally in mass coordinates `z_hat = pi_hat` and explicitly
+returns `x_hat = D^(-1/2) z_hat`. The two outputs have identical support and
+the same canonical degree-normalized semantic error.
+
+| Class | Axiom dropped | Proved star work |
 |---|---|---|
-| monotone push `M_+` | --- | `Theta(1/(alpha eps_ppr))` |
-| signed step `M_pm` | step positivity | `Theta(1/(alpha eps_ppr))`, no gain |
-| signed relaxation `R_pm` | `r >= 0` | `Theta(1/(sqrt(alpha) eps_ppr))` |
-| elimination | dissipativity `omega in (0,2)` | `Theta(1/eps_ppr)` |
+| monotone push `M_+` | — | `Theta(1/(alpha eps_ppr))` |
+| signed step `M_pm` | step positivity | `Theta(1/(alpha eps_ppr))` |
+| signed relaxation `R_pm` | residual nonnegativity | lower `Omega(1/(sqrt(alpha) eps_ppr))`; upper with `log(1/alpha)` |
+| elimination | dissipativity | `Theta(1/eps_ppr)` |
 
-Each rung drops exactly one axiom and buys exactly one factor of
-`sqrt(alpha)`, except the step-sign axiom, which buys nothing. All four rows
-share one primitive, one work charge, one output map and one semantic
-guarantee, so the only difference between the compared classes is the class
-axiom.
+The signed-relaxation row is **not yet an exact Theta result**. Removing its
+logarithmic upper-bound factor is supported by measurements but remains
+unproved. Elimination also shows that the signed lower bound is a restricted
+class result, not an information lower bound for semantic PPR.
 
-The note is deliberate about what this does **not** show: elimination beats
-every member of `R_pm` on the same instance, so the rung-two bound is a class
-statement rather than an information barrier, and it gives no support to
-`1/(sqrt(alpha) eps_ppr)` as a necessary cost of the semantic problem.
+Auxiliary one-hop output maps are treated as an oracle extension only. A map
+may avoid push operations above a column-mass threshold, but applying the map
+and emitting the sparse answer are still charged by Problem 1.
 
-Build with `make`. Claim status, provenance, the verification appendix and an
-auditor's checklist are in the final section of the note; the direction's
-ledger and open items are in `STATUS.md`.
+Build with `make`. Claim status, source provenance, verification details, and
+the two remaining open directions are recorded in the final section and in
+`STATUS.md`.

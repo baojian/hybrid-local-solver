@@ -1,0 +1,538 @@
+\section{The complementary AESP-burn-in--SOR handoff}
+\label{sec:two-stage-alternative-handoff}
+
+The certificate-first algorithm is not the only sensible two-stage order.
+The provider note \path{hybrid_aesp_locsor} studies the reverse lane:
+AESP first reduces a numerical potential, all momentum is discarded, and
+local SOR finishes the PPR system without identifying $S^\star$.
+
+For the smooth PPR quadratic, a coordinate SOR update at $u$ is
+\begin{equation}
+ x^+=x-\frac{2\omega}{1+\alpha}\nabla_u f(x)e_u,
+ \qquad 0<\omega<2,
+ \label{eq:two-stage-sor-step}
+\end{equation}
+and has exact decrease
+\begin{equation}
+ f(x)-f(x^+)
+ =\frac{\omega(2-\omega)}{1+\alpha}\nabla_u f(x)^2.
+ \label{eq:two-stage-sor-decrease}
+\end{equation}
+If the tail updates only coordinates with
+$|\nabla_u f(x)|\geq\alpha\epsppr\sqrt{d_u}$, then from any finite handoff
+$x_J$ it terminates with the semantic PPR certificate and work
+\begin{equation}
+ W_{\rm SOR}
+ \leq
+ \frac{(1+\alpha)(f(x_J)-f(x^0))}
+ {\omega(2-\omega)\alpha^2\epsppr^2}.
+ \label{eq:two-stage-sor-tail}
+\end{equation}
+For $\omega=1$, a handoff gap
+$f(x_J)-f(x^0)\leq\alpha^{3/2}\epsppr/(1+\alpha)$ makes the tail work at most
+$1/(\sqrt\alpha\epsppr)$.
+
+For a lower-safe publication, the same cleanup admits a sharper scalar
+interface that directly models ``AESP-CD plus APPR.''
+
+\begin{proposition}[Mass-completion handoff to APPR/SOR]
+\label{prop:two-stage-aesp-appr-mass-handoff}
+Let $z$ be a PPR subsolution:
+\begin{equation*}
+ 0\leq z\leq x^0,
+ \qquad r:=b-Qz\geq0.
+\end{equation*}
+Put
+\begin{equation*}
+ \mu(z):=1-\langle D^{1/2}\one,z\rangle.
+\end{equation*}
+Starting from $z$, repeatedly choose, in any fair order, only rows with
+$r_i/\sqrt{d_i}>\alpha\epsppr$ and make their exact monotone coordinate
+pushes.  Stop when none remains.  The terminal vector is semantically
+$\epsppr$-accurate and the cleanup degree work obeys
+\begin{equation}
+ W_{\rm clean}
+ <\frac{1+\alpha}{2\alpha\epsppr}\,\mu(z).
+ \label{eq:two-stage-mass-completion-cleanup}
+\end{equation}
+In particular, a certified handoff
+$\mu(z)\leq c\sqrt\alpha$ gives
+$W_{\rm clean}=O(c/(\sqrt\alpha\epsppr))$.
+\end{proposition}
+
+\begin{proof}
+The PPR mass identity and $QD^{1/2}\one=\alpha D^{1/2}\one$ give
+\begin{equation*}
+ M(z):=\langle D^{1/2}\one,r\rangle
+ =\alpha\langle D^{1/2}\one,x^0-z\rangle
+ =\alpha\mu(z).
+\end{equation*}
+Write $a=(1+\alpha)/2$.  An exact update at $i$ adds $r_i/a$ to $z_i$,
+zeros $r_i$, and increases only neighbor residuals.  Thus nonnegativity is
+preserved and the weighted residual mass decreases by
+$(\alpha/a)\sqrt{d_i}r_i$.  While row $i$ is eligible this is larger than
+$(\alpha^2\epsppr/a)d_i$.  Summing the charged degrees proves
+\cref{eq:two-stage-mass-completion-cleanup}.  At termination,
+\begin{equation*}
+ 0\leq x^0-z=Q^{-1}r
+ \leq Q^{-1}(\alpha\epsppr D^{1/2}\one)
+ =\epsppr D^{1/2}\one,
+\end{equation*}
+which is the semantic certificate.
+\end{proof}
+
+This proposition is strictly more informative than saying ``run SOR after a
+finite AESP handoff.''  It names the exact scalar that the accelerated prefix
+must reduce.  The scalar is observable from the maintained sparse checkpoint;
+it needs no global residual scan.  A safe AESP retraction can publish the
+required subsolution, but
+the current arbitrary-graph theory does not prove that it reaches
+$\mu(z)=O(\sqrt\alpha)$ with output-sensitive local work.  If that scalar
+mass-completion theorem is proved, APPR-style FIFO cleanup and priority-SOR
+cleanup both attain the desired tail scale without identifying $S^\star$.
+
+In fact, a fixed local set need not contain $S^\star$ to make this handoff
+work.  It need only capture almost all PageRank mass.
+
+\begin{theorem}[Mass-capturing envelope gives an AESP--APPR hybrid]
+\label{thm:two-stage-mass-capturing-envelope}
+Let $E$ be any connected coordinate set containing the seed, let
+$V_E=\vol(E)$, and let $u_E=Q_E^{-1}b_E$.  Suppose that for some $c>0$,
+\begin{equation}
+ 1-\langle D_E^{1/2}\one,u_E\rangle
+ \leq\frac{c\sqrt\alpha}{2}.
+ \label{eq:two-stage-mass-capturing-envelope}
+\end{equation}
+Then signed Chebyshev/AESP scratch restricted to $E$, followed by an
+a-posteriori Stieltjes lower retraction, publishes a global PPR subsolution
+$z$ with $\mu(z)\leq c\sqrt\alpha$ after
+\begin{equation}
+ O\!\left(\frac{V_E}{\sqrt\alpha}
+   \log_+\frac{(1+\sqrt{V_E})\sqrt{V_E}}
+                    {c\sqrt\alpha}\right)
+ \label{eq:two-stage-mass-capture-work}
+\end{equation}
+degree work.  The APPR/SOR cleanup of
+\cref{prop:two-stage-aesp-appr-mass-handoff} then costs
+$O(c/(\sqrt\alpha\epsppr))$.  No support-containment or exterior-amplitude
+certificate is required.
+\end{theorem}
+
+\begin{proof}
+Put $v_E=D_E^{1/2}\one$.  Principal Stieltjes monotonicity gives
+$0\leq u_E\leq x_E^0$, so its weighted mass is at most one, and
+$Q_Ev_E\geq\alpha v_E$.  Run the usual degree-$k$ Chebyshev residual
+polynomial on $Q_Eu=b_E$, allowing signed scratch $\widehat u$.  For its raw
+residual $r=b_E-Q_E\widehat u$, define
+\begin{equation*}
+ \Delta:=\max_i\left[\frac{-r_i}{\alpha(v_E)_i}\right]_+,
+ \qquad z_E:=[\widehat u-\Delta v_E]_+,
+\end{equation*}
+and extend $z_E$ by zero.
+
+Because $r+\Delta Q_Ev_E\geq0$, inverse positivity gives
+$\widehat u-\Delta v_E\leq u_E$.  The Stieltjes sign pattern shows directly
+that taking the positive part preserves the subsolution inequalities:
+$b_E-Q_Ez_E\geq0$.  Every exterior row also has nonnegative residual because
+its source load is zero and its couplings to $z_E$ are nonpositive.  Hence
+$0\leq z\leq x^0$ and $z$ satisfies the hypotheses of
+\cref{prop:two-stage-aesp-appr-mass-handoff}.
+
+Since $(v_E)_i\geq1$ and $\norm{v_E}_2=\sqrt{V_E}$,
+\begin{equation*}
+ \norm{u_E-z_E}_2
+ \leq\frac{1+\sqrt{V_E}}{\alpha}\norm{r}_2.
+\end{equation*}
+It is therefore enough to make the right-hand side at most
+$c\sqrt\alpha/(2\sqrt{V_E})$.  The spectrum of $Q_E$ lies in $[\alpha,1]$,
+so the Chebyshev residual bound reaches this target in the logarithmic number
+of $1/\sqrt\alpha$ iterations displayed in
+\cref{eq:two-stage-mass-capture-work}.  Cauchy--Schwarz and
+\cref{eq:two-stage-mass-capturing-envelope} then give
+\begin{align*}
+ 1-\langle v_E,z_E\rangle
+ &\leq 1-\langle v_E,u_E\rangle
+      +\sqrt{V_E}\norm{u_E-z_E}_2\\
+ &\leq c\sqrt\alpha.
+\end{align*}
+The cleanup bound is
+\cref{eq:two-stage-mass-completion-cleanup}.
+\end{proof}
+
+\begin{proposition}[A residual interval screens mass attempts]
+\label{prop:two-stage-mass-attempt-screen}
+Let $z$ be a PPR subsolution supported on $E$, put
+$r_E=b_E-Q_Ez_E\geq0$, $v_E=D_E^{1/2}\one$, and
+$m(z)=\langle v_E,z_E\rangle$.  Define the observable row ratios
+\begin{equation*}
+ q_E^-:=\min_{i\in E}\frac{(Q_Ev_E)_i}{(v_E)_i},
+ \qquad
+ q_E^+:=\max_{i\in E}\frac{(Q_Ev_E)_i}{(v_E)_i}.
+\end{equation*}
+Then $\alpha\leq q_E^-\leq q_E^+\leq(1+\alpha)/2$ and
+\begin{equation}
+ m(z)+\frac1{q_E^+}\langle v_E,r_E\rangle
+ \leq \langle v_E,u_E\rangle
+ \leq m(z)+\frac1{q_E^-}\langle v_E,r_E\rangle.
+ \label{eq:two-stage-mass-attempt-interval}
+\end{equation}
+Consequently, the lower endpoint at least
+$1-\sqrt\alpha/2$ certifies the uniform half-slack premise before running
+signed scratch.  More generally, a strict lower endpoint above
+$1-\sqrt\alpha$ certifies an instance-dependent positive trigger margin and
+the scratch may refine to that margin.  The upper endpoint below
+$1-\sqrt\alpha$ certifies that even the exact principal solution cannot
+trigger the cleanup lane.  Both scalars can be maintained with the monotone
+coordinate updates without a full fixed-envelope solve.
+\end{proposition}
+
+\begin{proof}
+For $v_E=D_E^{1/2}\one$, the principal Stieltjes rows obey
+\begin{equation*}
+ q_E^- v_E\leq Q_Ev_E\leq q_E^+ v_E.
+\end{equation*}
+Inverse positivity therefore gives
+$v_E/q_E^+\leq Q_E^{-1}v_E\leq v_E/q_E^-$.  Since
+$u_E-z_E=Q_E^{-1}r_E$ and $Q_E$ is symmetric,
+\begin{equation*}
+ \langle v_E,u_E-z_E\rangle
+ =\langle Q_E^{-1}v_E,r_E\rangle.
+\end{equation*}
+The claimed interval follows from $r_E\geq0$.
+For the normalized PageRank matrix,
+\begin{equation*}
+ \frac{(Q_Ev_E)_i}{(v_E)_i}
+ =\frac{1+\alpha}{2}
+  -\frac{1-\alpha}{2}\frac{\deg_E(i)}{d_i},
+\end{equation*}
+which proves the declared range and makes the extrema maintainable under a
+support insertion with local degree updates and a lazy heap.
+\end{proof}
+
+\begin{theorem}[A universal rooted-ball mass certificate]
+\label{thm:two-stage-rooted-ball-mass}
+Let
+\begin{equation*}
+ \kappa_\alpha:=\frac{1-\alpha}{1+\alpha}.
+\end{equation*}
+If $E$ contains every vertex at graph distance at most $R$ from the point
+source, then its principal PPR solution satisfies
+\begin{equation}
+ 1-\langle D_E^{1/2}\one,u_E\rangle
+ \leq \kappa_\alpha^{R+1}.
+ \label{eq:two-stage-rooted-ball-mass}
+\end{equation}
+For $0<\alpha<1$, the half-slack premise of
+\cref{thm:two-stage-mass-capturing-envelope} is therefore guaranteed once
+\begin{equation}
+ R\geq
+ \left\lceil
+  \frac{\log(2/\sqrt\alpha)}
+       {\log((1+\alpha)/(1-\alpha))}
+ \right\rceil-1.
+ \label{eq:two-stage-rooted-ball-radius}
+\end{equation}
+For $\alpha=1$, the seed alone has unit mass.
+\end{theorem}
+
+\begin{proof}
+Write $P=D^{-1/2}AD^{-1/2}$ and
+$h=D^{-1/2}e_v$.  Since
+\begin{equation*}
+ Q=\frac{1+\alpha}{2}(I-\kappa_\alpha P),
+ \qquad
+ \frac{2\alpha}{1+\alpha}=1-\kappa_\alpha,
+\end{equation*}
+the principal solution has the nonnegative walk expansion
+\begin{equation*}
+ u_E=(1-\kappa_\alpha)
+ \sum_{t\geq0}\kappa_\alpha^t(P_E)^th_E.
+\end{equation*}
+Put $v_E=D_E^{1/2}\one$.  The scalar
+$v_E^\top(P_E)^th_E$ is the mass of the normalized walk killed when it leaves
+$E$; it lies in $[0,1]$.  No length-$t$ walk can leave a radius-$R$ ball when
+$t\leq R$, so this scalar equals one for those terms.  Consequently
+\begin{align*}
+ 1-v_E^\top u_E
+ &=(1-\kappa_\alpha)
+   \sum_{t\geq0}\kappa_\alpha^t
+     \left(1-v_E^\top(P_E)^th_E\right)\\
+ &\leq(1-\kappa_\alpha)
+   \sum_{t\geq R+1}\kappa_\alpha^t
+ =\kappa_\alpha^{R+1}.
+\end{align*}
+Solving the last inequality for a deficit $\sqrt\alpha/2$ proves
+\cref{eq:two-stage-rooted-ball-radius}.
+\end{proof}
+
+\begin{theorem}[Hard-capped mass screen or APPR fallback]
+\label{thm:two-stage-hard-capped-mass-screen}
+Let an adjacency-local proposal rule expose nested connected envelopes
+$E_0\subset E_1\subset\cdots$ containing the seed.  Suppose successive
+retained volumes at least double, all exposure and bookkeeping through volume
+cap $B$ cost $W_{\rm grow}(B)$, and no proposed row beyond the cap is
+committed.  On each accepted envelope run the fixed-envelope scratch and
+retraction of \cref{thm:two-stage-mass-capturing-envelope} to its half-slack
+residual target.  If the published checkpoint satisfies
+\begin{equation*}
+  \mu(z)\leq\sqrt\alpha,
+\end{equation*}
+complete it by APPR/SOR.  If no checkpoint passes before the cap, discard the
+lane and run direct APPR from zero.  The algorithm is correct on every finite
+graph.  Its successful-branch work is
+\begin{equation}
+ O\!\left(
+   W_{\rm grow}(B)
+   +\frac{B}{\sqrt\alpha}\log_+\frac{B}{\alpha}
+   +\frac{1}{\sqrt\alpha\epsppr}
+ \right),
+ \label{eq:two-stage-hard-capped-mass-success}
+\end{equation}
+and the failed branch adds only the direct-APPR
+$O(1/(\alpha\epsppr))$ fallback.  Thus with
+$B=C/\epsppr$ and $W_{\rm grow}(B)=\widetilde O(B)$, every successful trace
+has $\widetilde O(C/(\sqrt\alpha\epsppr))$ work, while every failed trace
+retains the classical unconditional guarantee.
+\end{theorem}
+
+\begin{proof}
+Each fixed-envelope publication is a global PPR subsolution.  Therefore the
+observable mass trigger invokes
+\cref{prop:two-stage-aesp-appr-mass-handoff} and proves the successful output
+and cleanup term.  If it never triggers, no candidate has been returned, so
+zero-start direct APPR proves the failed output independently.
+
+The work of one fixed-envelope attempt is
+\begin{equation*}
+ O\!\left(
+  \frac{\vol(E_j)}{\sqrt\alpha}
+  \log_+\frac{\vol(E_j)}{\alpha}
+ \right).
+\end{equation*}
+Geometric growth gives
+$\sum_j\vol(E_j)\leq2B$ and the logarithm is monotone, which yields
+\cref{eq:two-stage-hard-capped-mass-success}.  The cap makes every unsuccessful
+speculation a declared prefix rather than hidden global preprocessing.
+\end{proof}
+
+The trigger $\mu(z)\leq c\sqrt\alpha$ is fully observable and does not
+require knowing whether \cref{eq:two-stage-mass-capturing-envelope} holds.
+Thus a practical lane may grow hard-capped envelopes geometrically, restart
+the fixed-envelope scratch, and switch the moment the mass test passes;
+otherwise it falls back.  What remains open is an arbitrary-graph proof that
+such a mass-capturing envelope of output-sensitive discovered volume is
+reached with fully charged exposure work.  This is a weaker target than exact
+support discovery on favorable instances and is the cleanest
+AESP-CD--plus--APPR formulation found in this note.  It is not universal:
+\cref{prop:two-stage-star-mass-barrier} shows that diffuse small coordinates
+can make mass capture far stronger than the semantic $\ell_\infty$ target.
+
+\paragraph{Envelope diagnostic.}
+On the same six deterministic graph families, the smallest rooted ball whose
+exact principal PPR mass leaves half-slack deficit
+$\sqrt\alpha/2$ retains a median $0.195$ fraction of graph volume.  Ten of
+eighteen graph--$\alpha$ cases retain at most one quarter, whereas five
+require the full graph.  The median fractions at
+$\alpha=0.01,0.04,0.16$ are respectively $0.662$, $0.232$, and $0.056$.
+Paths, cycles, and the broom handle are favorable; the star and the
+low-$\alpha$ binary tree are not.  This diagnostic uses exact principal
+solves and makes no work claim.  It shows both why the mass interface can be
+substantially weaker than support discovery and why blind ball growth cannot
+close the arbitrary-graph theorem.
+
+The executable hard-capped lane is more sobering.  With cap
+$2/\epsppr$, geometric BFS envelopes, restarted signed CG scratch, the safe
+publication above, and priority-APPR cleanup, it triggers in $17$ of $36$
+cases and falls back in $19$.  On the $30$ cases where direct APPR does
+nonzero work, its median ratio is $5.99$ (range $2.67$--$12.25$) with no
+win; even successful traces have median $5.17$.  Every output remains within
+$0.523\epsppr$.  Hence the theorem identifies a legitimate new interface,
+but naive balls and restart-from-zero scratch do not supply the missing
+speedup.  Better envelope proposals or response reuse must reduce the prefix
+constant and repeated work.
+
+Replacing blind balls by the support exposed by priority APPR, maintaining
+\cref{eq:two-stage-mass-attempt-interval}, testing only when its lower endpoint
+proves a positive trigger margin, warm-starting the scratch, and continuing
+the same priority state on failure reduces the median ratio to the better
+direct baseline to $1.00$ (range $1.00$--$1.64$ on nontrivial cases).  It
+triggers in only $3$ of $36$ cases; their ratios are $1.00$, $1.00$, and
+$1.11$, so the coarse sweep has no strict win.  A second sweep at
+$\epsppr\in\{0.005,0.01,0.02\}$ changes that conclusion in a narrow but
+informative regime.  It triggers in $20$ of $54$ cases, has median ratio
+$1.00$, and produces two strict wins.  On the 96-vertex source-centered star,
+the ratios at $\epsppr=0.005$ are $570/3610\simeq0.158$ for $\alpha=0.01$
+and $570/950=0.60$ for $\alpha=0.04$.  The maximum semantic error over the
+sweep is $0.748\epsppr$.  The scalar screen therefore removes almost all
+speculative overhead and sometimes exposes a genuine fixed-envelope win,
+but it remains conservative and instance-selective.
+
+\begin{proposition}[Why the star can be a genuine two-stage win]
+\label{prop:two-stage-star-two-krylov}
+Let the point source be the center of an $n$-leaf star.  Once the full star is
+exposed, the ordinary PPR system in degree-unscaled coordinates preserves
+the two-dimensional subspace of vectors that are constant on the leaves.
+Consequently exact-arithmetic CG from zero solves the full system in at most
+two iterations, and a set exposure plus the fixed solve costs $O(n)$ degree
+work.  The resulting PPR checkpoint has zero mass deficit, so the cleanup
+stage is empty.
+\end{proposition}
+
+\begin{proof}
+Put $a=(1+\alpha)/2$ and $b=(1-\alpha)/2$.  In degree-unscaled coordinates
+the matrix is $\widehat Q=aD-bA$ and the right-hand side is
+$\alpha e_c$.  Both belong to the invariant subspace
+\begin{equation*}
+ \mathcal U=\{y:y_\ell\text{ is common to all leaves}\},
+ \qquad \dim\mathcal U=2.
+\end{equation*}
+Indeed, for center value $y_c$ and common leaf value $y_\ell$,
+\begin{equation*}
+ (\widehat Qy)_c=an y_c-bn y_\ell,
+ \qquad
+ (\widehat Qy)_\ell=ay_\ell-by_c.
+\end{equation*}
+CG therefore terminates in at most two iterations in exact arithmetic.
+Scanning the star and applying its matrix a constant number of times costs
+$O(\vol(G))=O(n)$.  The exact full solution has weighted mass one, hence no
+residual-mass cleanup remains.
+\end{proof}
+
+This proposition explains rather than contradicts the next barrier.  A
+source-centered star is bad for support-sensitive mass capture because almost
+every leaf may be needed, but it is excellent for a fixed solve because the
+relevant minimal polynomial has degree two.  The high-accuracy win occurs
+when the cap permits the whole star and direct coordinate pushes revisit the
+same two global modes many times.  At looser targets the direct solver often
+stops before exposure, and the same two-stage lane loses.
+
+The direct PPR leakage gate of
+\cref{prop:two-stage-leakage-certificate} was also run on the 54 high-accuracy
+cases.  It certifies 44 envelopes and keeps every semantic error below
+$0.566\epsppr$, including the same two star wins at ratios $0.184$ and
+$0.700$.  Its median nontrivial ratio is nevertheless $7.52$ (maximum
+$22.79$): restarting a fixed solve on every geometric BFS ball is much more
+expensive than the adaptive scalar mass screen.  This comparison cleanly
+separates the two issues.  The leakage certificate removes RPPR support
+discovery from correctness, but a competitive arbitrary-graph proposal and
+response-reuse mechanism is still required for work.
+
+Using the monotone APPR checkpoint directly gives a much cheaper realization
+of the same certificate.  The two-heap gate
+\cref{eq:two-stage-two-heap-leakage-gate} is queried only when exposed support
+volume doubles; on success, one warm-started fixed CG solve completes the
+point.  On the same 54 high-accuracy cases this literal
+``APPR/SOR discovery, AESP/CG solve'' lane switches only four times, all on
+the star.  Its median nontrivial ratio is $1.061$ (range
+$0.158$--$2.007$), and the two strict wins cost $572/3610$ and $572/950$.
+The two units beyond the mass lane are the explicitly charged heap queries.
+Thus conservative observability is beneficial here: it prevents almost all
+speculative fixed solves while retaining the low-minimal-polynomial wins.
+
+\begin{proposition}[A star barrier for mass capture]
+\label{prop:two-stage-star-mass-barrier}
+Let the point source be the center of a star with $n$ leaves, and put
+$a=(1+\alpha)/2$, $b=(1-\alpha)/2$.  If an envelope contains the center and
+exactly $k$ leaves, then its exact principal PPR solution has mass deficit
+\begin{equation}
+ \mu_E=\frac{ab(n-k)}{a^2n-b^2k}.
+ \label{eq:two-stage-star-mass-deficit}
+\end{equation}
+For any $\eta<b/a$, the condition $\mu_E\leq\eta$ forces
+\begin{equation}
+ \frac{k}{n}\geq
+ \frac{a(b-\eta a)}{b(a-\eta b)}.
+ \label{eq:two-stage-star-mass-fraction}
+\end{equation}
+Meanwhile the full PPR vector in degree-unscaled coordinates has center value
+$a/n$ and leaf value $b/n$.  Thus for $n\geq a/\epsppr$ the zero vector is
+already semantically $\epsppr$-accurate, while a small-$\eta$ mass certificate
+may still require nearly every leaf.  In particular, mass capture cannot be
+a universal output-volume substitute for the numerical early-return lane.
+\end{proposition}
+
+\begin{proof}
+By symmetry, the principal solution has center value $y_c$ and common
+retained-leaf value $y_\ell$.  Its equations are
+\begin{equation*}
+ an y_c-bk y_\ell=\alpha,\qquad
+ ay_\ell-by_c=0.
+\end{equation*}
+Hence
+$y_c=\alpha a/(a^2n-b^2k)$ and $y_\ell=(b/a)y_c$.
+The weighted mass in degree-unscaled coordinates is
+$ny_c+ky_\ell$.  Using $a^2-b^2=\alpha$ gives
+\cref{eq:two-stage-star-mass-deficit}; rearrangement gives
+\cref{eq:two-stage-star-mass-fraction}.  Setting $k=n$ yields the stated full
+PPR coordinates.  Their maximum is $a/n$.
+\end{proof}
+
+This route has different strengths and weaknesses:
+\begin{itemize}[leftmargin=2.2em]
+\item it requires no support certificate and remains correct after a signed
+  handoff;
+\item its final SOR phase is safe and completely charged;
+\item the graph-uniform local work of the early AESP phase remains open;
+\item its black-box balance gives an instance-dependent
+  $\alpha^{-3/4}$-type rate rather than automatically reaching the target.
+\end{itemize}
+
+The two lanes are complementary.  A set-only discovery lane isolates graph
+exposure and makes an accelerated numerical tail routine.  A numerical
+discovery lane normally returns early by
+\cref{thm:two-stage-screen-or-solve}.  The burn-in-first lane avoids exact
+discovery but asks AESP to remain local before the SOR handoff.
+Including both in the fair race makes this complementarity algorithmic rather
+than a pre-run guess.
+
+\paragraph{Why the monotone lane does not become accelerated by a cosmetic
+momentum term.}
+The provider result
+\texttt{prop:aesp-cd-positive-polynomial-stop} proves that any residual
+polynomial that preserves the nonnegative cone for every nonnegative
+transition matrix has nonnegative coefficients.  At a slow eigenvalue
+$1-1/\mathcal K$, such a degree-$k$ polynomial is no smaller than
+$(1-1/\mathcal K)^k$ and therefore needs
+$\Omega(\mathcal K\log(1/\varepsilon))$ degree.  Square-root acceleration
+must allow signed scratch.  In turn, signed scratch needs either a fixed
+envelope plus a safe publication map, or a separately charged exposure and
+retraction theorem.  This explains the architecture: monotone SOR is the
+unconditional discovery/cleanup baseline, while AESP or Chebyshev is used
+only where its signed state has a certified locality contract.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.24\textwidth}p{0.18\textwidth}p{0.24\textwidth}X@{}}
+\toprule
+Certified handoff & Continuation & Sufficient observable & Main open cost \\
+\midrule
+Target-accurate numerical point & none & semantic residual/gap & already done \\
+Lower-safe PPR subsolution & APPR or SOR & $\mu(z)=O(\sqrt\alpha)$ & local AESP mass completion \\
+Signed numerical point & SOR & objective gap $O(\alpha^{3/2}\epsppr)$ & local signed AESP burn-in \\
+Set-only envelope $E$ & Chebyshev/CG & exterior amplitude plus $\vol(E)$ & cheap screening/reporter \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+This four-way table is enough for a short main paper.  The long changing-face
+momentum ledgers are not prerequisites for any continuation in it.
+
+\begin{proposition}[Support versus numerical handoff certificates]
+\label{prop:two-stage-handoff-dichotomy}
+An implementation may safely switch when either
+\begin{enumerate}[label=(\roman*),leftmargin=2.2em]
+\item a support/envelope certificate from
+  \cref{def:two-stage-face-certificate,def:two-stage-envelope-certificate,def:two-stage-approximate-envelope}
+  is available, possibly via \cref{prop:two-stage-gap-to-envelope}; a
+  target-accurate numerical point returns immediately, while a set-only
+  certificate invokes the ordinary principal PPR system; or
+\item an objective-gap or weighted-residual-mass certificate for
+  \cref{eq:two-stage-sor-tail} is available, in which case it discards
+  momentum and uses local SOR.
+\end{enumerate}
+Neither switch needs to infer the other certificate.  Taking the first
+certified switch preserves correctness, and fair scheduling gives the
+constant-factor best-of bound of
+\cref{thm:two-stage-certificate-race} when each full lane is treated as an
+interruptible engine.
+\end{proposition}

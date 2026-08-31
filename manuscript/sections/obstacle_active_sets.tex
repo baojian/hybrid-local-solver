@@ -1,0 +1,288 @@
+Define the shifted load and nonnegative quadratic
+\begin{equation}
+ \vc_\rho:=\vb-\alpha\rho\mD^{1/2}\one,
+ \qquad
+ \phi_\rho(\vx):=\frac12\vx^\trans\mQ\vx-\vc_\rho^\trans\vx.
+ \label{eq:shifted-obstacle}
+\end{equation}
+The point-source load $\vc_\rho$ has at most one positive coordinate.  This
+is the first place where the single-source scope changes the geometry rather
+than merely shortening the input.
+
+\begin{theorem}[Exact obstacle reduction]
+\label{thm:obstacle-reduction}
+The RPPR problem has the same unique optimum and optimum value as
+\begin{equation}
+ \min_{\vx\geq\vzero}\phi_\rho(\vx).
+ \label{eq:obstacle-problem}
+\end{equation}
+Its KKT system is
+\begin{equation}
+ \vx\geq\vzero,
+ \qquad
+ \vw:=\mQ\vx-\vc_\rho\geq\vzero,
+ \qquad
+ x_iw_i=0\quad(i\in[n]).
+ \label{eq:obstacle-kkt}
+\end{equation}
+In the nontrivial regime \cref{eq:nonzero-rppr-regime}, the support
+$\mathcal S_\rho^*$ is connected and contains $v$.
+\end{theorem}
+
+\begin{proof}
+Replacing $\vx$ by $|\vx|$ leaves the diagonal quadratic and weighted
+$\ell_1$ terms unchanged.  Since $Q_{ij}\leq0$ for $i\neq j$ and
+$\vb\geq\vzero$, it cannot increase the off-diagonal quadratic or the linear
+term.  Strong convexity therefore makes $\vx_\rho^*\geq\vzero$.  On the
+nonnegative orthant the weighted $\ell_1$ term is linear, so
+$F_\rho=\phi_\rho$.  The normal-cone stationarity conditions are exactly
+\cref{eq:obstacle-kkt}.  The matrix $\mQ$ is symmetric positive definite with
+nonpositive off-diagonals, hence every principal inverse is nonnegative and
+the KKT solution is unique.
+
+At the seed,
+\[
+ (c_\rho)_v=\frac{\alpha}{\sqrt{d_v}}(1-\rho d_v)>0.
+\]
+If $(x_\rho^*)_v=0$, its slack is strictly negative, contradicting
+\cref{eq:obstacle-kkt}.  Thus $v\in\mathcal S_\rho^*$.  If an active connected
+component $C$ did not contain $v$, no support edge would join $C$ to the
+other active components.  Stationarity on $C$ would give
+$\mQ_{CC}(\vx_\rho^*)_C=(\vc_\rho)_C<\vzero$.  Multiplication by
+$\mQ_{CC}^{-1}\geq\vzero$ contradicts positivity on $C$.
+\end{proof}
+
+\subsection{The grounded electrical-flow dual}
+
+The KKT slack also has an exact network meaning.  Form an augmented graph by
+adding a ground vertex $\mathsf g$.  Give every original edge conductance
+$(1-\alpha)/2$ and connect each $i\in\gV$ to $\mathsf g$ with conductance
+$\alpha d_i$; when $\alpha=1$, omit the zero-conductance original edges.  Fix
+an orientation, let $\mB$ be the signed incidence matrix with the ground
+column deleted, and let $\mW$ be the diagonal matrix of positive
+conductances.  Define
+\begin{equation}
+ \mH:=\mD^{1/2}\mQ\mD^{1/2}
+ =\alpha\mD+\frac{1-\alpha}{2}(\mD-\mA),
+ \qquad
+ \vh:=\mD^{1/2}\vc_\rho=\alpha(\vs-\rho\mD\one).
+ \label{eq:grounded-system}
+\end{equation}
+Then $\mB^\trans\mW\mB=\mH$.
+
+\begin{proposition}[Grounded electrical-flow dual]
+\label{prop:grounded-flow-dual}
+Under the change of variables $\vy=\mD^{-1/2}\vx$, the obstacle problem is
+\begin{equation}
+ \min_{\vy\geq\vzero}
+ \left\{
+  \frac12\norm{\mW^{1/2}\mB\vy}_2^2-\vh^\trans\vy
+ \right\}.
+ \label{eq:grounded-flow-primal}
+\end{equation}
+Its Fenchel dual, written as a minimum-energy problem, is
+\begin{equation}
+ \min_{\vf}\ \frac12\vf^\trans\mW^{-1}\vf
+ \qquad\text{subject to}\qquad
+ \mB^\trans\vf\geq\vh.
+ \label{eq:grounded-flow-dual}
+\end{equation}
+The two minimum values have opposite signs.  At an optimal primal--dual pair,
+\begin{equation}
+ \vf^*=\mW\mB\vy^*,
+ \qquad
+ \vlambda^*:=\mB^\trans\vf^*-\vh
+ =\mD^{1/2}\vw^*\geq\vzero,
+ \qquad
+ y_i^*\lambda_i^*=0.
+ \label{eq:flow-slack-correspondence}
+\end{equation}
+More generally, for an exact reachable face $U$, the induced flow
+$\vf^U:=\mW\mB\vy^U$ is tight on $U$ and
+\begin{equation}
+ (\mB^\trans\vf^U-\vh)_j=\sqrt{d_j}\,w_j^U
+ \quad(j\notin U).
+ \label{eq:face-dual-violation}
+\end{equation}
+Consequently, $w_j^U<0$ is exactly a violated dual vertex constraint.
+\end{proposition}
+
+\begin{proof}
+The identities in \cref{eq:grounded-system} give
+$\vy^\trans\mH\vy=\norm{\mW^{1/2}\mB\vy}_2^2$ and transform
+\cref{eq:obstacle-problem} into \cref{eq:grounded-flow-primal}.  The conjugate
+identity
+\[
+ \frac12\norm{\mW^{1/2}\vz}_2^2
+ =\max_{\vf}
+ \left\{\vf^\trans\vz-\frac12\vf^\trans\mW^{-1}\vf\right\}
+\]
+and minimization over $\vy\geq\vzero$ make the inner value finite precisely
+when $\mB^\trans\vf-\vh\geq\vzero$.  Fenchel--Rockafellar duality applies
+because the quadratic is continuous everywhere and the orthant is nonempty,
+with the sign reversal in the displayed minimization convention.  Stationarity in the conjugate pair
+gives $\vf^*=\mW\mB\vy^*$; minimization over the orthant gives
+complementarity.  Finally,
+\[
+ \mB^\trans\mW\mB\vy-\vh
+ =\mH\vy-\vh
+ =\mD^{1/2}(\mQ\vx-\vc_\rho)
+ =\mD^{1/2}\vw,
+\]
+which proves both slack identities.
+\end{proof}
+
+Thus the active-set method may be read as local constraint generation for
+\cref{eq:grounded-flow-dual}: a face solve constructs the electrical flow
+induced by the current potentials, and the boundary reporter separates
+violated vertex inequalities.  This interpretation does not by itself give
+a local algorithm---forming a global dual or checking all its inequalities
+would scan the graph.  The content needed below is that Stieltjes order makes
+every reported violation support-safe, boundary sparsity makes separation
+local, and threshold batching limits how often a complete induced flow must
+be rebuilt.
+
+For an inactive $j\neq v$, write $y_i=x_i/\sqrt{d_i}$.  Its normalized slack
+is
+\begin{equation}
+ \frac{w_j}{\sqrt{d_j}}
+ =\alpha\rho-\frac{1-\alpha}{2d_j}
+   \sum_{i\in\mathcal N(j)\cap\supp(\vx)}y_i.
+ \label{eq:boundary-slack}
+\end{equation}
+Thus a violation can occur only on the graph boundary of the current
+support.  The challenge is to update these boundary keys after a face solve
+without scanning the ambient graph.
+
+\subsection{Reachable faces and safe batches}
+
+For $U\subseteq[n]$, define the zero-extended exact face solution and slack
+\begin{equation}
+ x_i^U=
+ \begin{cases}
+  (\mQ_{UU}^{-1}(\vc_\rho)_U)_i,&i\in U,\\
+  0,&i\notin U,
+ \end{cases}
+ \qquad
+ \vw^U:=\mQ\vx^U-\vc_\rho.
+ \label{eq:exact-face}
+\end{equation}
+The empty face means $\vx^\emptyset=\vzero$.  A face is \emph{reachable} if
+it is obtained by first admitting $v$ and thereafter adding only coordinates
+whose exact current slack is negative.
+
+\begin{theorem}[Safe batched Stieltjes pivots]
+\label{thm:safe-batched-pivots}
+For every reachable face $U$,
+\begin{equation}
+ U\subseteq\mathcal S_\rho^*,
+ \qquad
+ \vzero<\vx_U^U\leq(\vx_\rho^*)_U.
+ \label{eq:reachable-face-invariant}
+\end{equation}
+Every $j\notin U$ with $w_j^U<0$ lies in
+$\mathcal S_\rho^*\setminus U$.  If $B$ is any nonempty collection of such
+coordinates, then $U\cup B$ is reachable and
+\begin{equation}
+ \vx_{U\cup B}^{U\cup B}>\vzero,
+ \qquad
+ \vx_U^{U\cup B}\geq\vx_U^U.
+ \label{eq:face-monotonicity}
+\end{equation}
+If no outside slack is negative, $\vx^U=\vx_\rho^*$.
+\end{theorem}
+
+\begin{proof}
+The empty-face slack at the seed is negative, so the first scalar face is
+positive.  Suppose the claim holds at $U$.  Restricted stationarity and the
+optimal equations give
+\begin{equation}
+ \mQ_{UU}\bigl((\vx_\rho^*)_U-\vx_U^U\bigr)
+ =-\mQ_{U,\mathcal S_\rho^*\setminus U}
+   (\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}\geq\vzero.
+ \label{eq:face-comparison-main}
+\end{equation}
+Inverse positivity proves the coordinatewise comparison.  If
+$j\notin\mathcal S_\rho^*$, then
+\begin{align}
+ w_j^U-w_j^*
+ &=\mQ_{jU}\bigl(\vx_U^U-(\vx_\rho^*)_U\bigr)
+   -\mQ_{j,\mathcal S_\rho^*\setminus U}
+     (\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}\geq0.
+ \label{eq:no-false-pivot}
+\end{align}
+Hence a negative violator cannot be a false support coordinate.
+
+For $U'=U\cup B$, block elimination gives
+\begin{equation}
+ \mH_B\vx_B^{U'}=-\vw_B^U,
+ \qquad
+ \mH_B:=\mQ_{BB}-\mQ_{BU}\mQ_{UU}^{-1}\mQ_{UB}.
+ \label{eq:batch-schur}
+\end{equation}
+Moreover,
+\begin{equation}
+ \vx_U^{U'}-\vx_U^U=-\mQ_{UU}^{-1}\mQ_{UB}\vx_B^{U'}.
+ \label{eq:batch-old-correction}
+\end{equation}
+The Schur complement is Stieltjes and has a nonnegative inverse.  Since
+$-\vw_B^U>\vzero$, the new coordinates are positive; the second display and
+the off-diagonal sign make every old correction nonnegative.  This closes the
+induction.  If no outside slack is negative, inside stationarity, positivity,
+and outside nonnegativity satisfy the global KKT system, whose solution is
+unique.
+\end{proof}
+
+\begin{corollary}[Boundary-only discovery]
+\label{cor:boundary-only-discovery}
+At a nonempty reachable face, every negative slack lies in $\partial U$.
+Exposing the adjacency lists of admitted vertices creates at most
+$\vol(U)$ boundary incidences, and no adjacency list of a false candidate
+must be scanned.
+\end{corollary}
+
+\begin{proof}
+If $j\notin U\cup\partial U$ and $j\neq v$, sparsity gives
+$w_j^U=-(c_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
+The incidence count charges each exposed edge to its endpoint in $U$.
+\end{proof}
+
+\subsection{A local objective certificate}
+
+For feasible $\vx\geq\vzero$, let $\vw=\mQ\vx-\vc_\rho$ and define
+\begin{equation}
+ g_i(\vx)=
+ \begin{cases}
+  w_i,&x_i>0,\\
+  \min\{w_i,0\},&x_i=0.
+ \end{cases}
+ \label{eq:minimal-kkt-subgradient}
+\end{equation}
+
+\begin{lemma}[KKT subgradient certificate]
+\label{lem:kkt-gap-certificate}
+The vector $\vg(\vx)$ is the minimum-Euclidean-norm subgradient of
+$\phi_\rho+I_{\R_+^n}$ at $\vx$, and
+\begin{equation}
+ F_\rho(\vx)-F_\rho(\vx_\rho^*)
+ \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
+ \label{eq:kkt-gap-certificate}
+\end{equation}
+If $\vx$ is supported on $U$ containing $v$, one scan of the rows in $U$
+computes every possibly nonzero entry of this certificate.
+\end{lemma}
+
+\begin{proof}
+At $x_i>0$ the normal cone is zero.  At $x_i=0$ it is $(-\infty,0]$, so
+\cref{eq:minimal-kkt-subgradient} is the closest point to zero in the
+coordinate subdifferential.  Strong convexity gives, for every subgradient
+$\vg$,
+\[
+ (\phi_\rho+I)(\vy)\geq(\phi_\rho+I)(\vx)
+ +\vg^\trans(\vy-\vx)+\frac\alpha2\norm{\vy-\vx}_2^2.
+\]
+Minimizing the right side and taking $\vy=\vx_\rho^*$ proves the bound.
+Locality follows from \cref{eq:boundary-slack}: a sparse row scan accumulates
+$\mQ\vx$ on $U\cup\partial U$, and every farther nonseed coordinate has
+positive slack.
+\end{proof}
