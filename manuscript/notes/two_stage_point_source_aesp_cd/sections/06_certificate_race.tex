@@ -1,0 +1,95 @@
+\section{A certified best-of-strategies portfolio}
+\label{sec:two-stage-race}
+
+No single Stage~I engine dominates on every graph.  This can be handled
+without choosing a heuristic winner in advance.
+
+\begin{definition}[Interruptible certified lane]
+A lane is interruptible if its state can be paused after any charged work
+quantum and later resumed, and if it eventually returns a semantically valid
+PPR output.  A numerical lane may return directly.  A mass-completion lane
+includes its APPR/SOR cleanup, and a set-only lane includes its certified
+fixed-envelope Stage~II.  Let $W_j$ be the total charged work until lane $j$
+returns on the current instance.
+\end{definition}
+
+\begin{theorem}[Fair certificate race]
+\label{thm:two-stage-certificate-race}
+Run $m$ interruptible engines in round-robin work quanta, with $m$ fixed.
+Stop at the first certified PPR output.  Then the total work is at most
+\begin{equation}
+ W_{\rm race}\leq m\min_{1\leq j\leq m}W_j+O(m),
+ \label{eq:two-stage-race-work}
+\end{equation}
+and correctness is that of the winning lane.  If direct APPR is included,
+the race terminates on every finite graph and never loses more than a constant
+factor relative to direct APPR at the same semantic target.
+\end{theorem}
+
+\begin{proof}
+Before lane $j$ receives $W_j$ work, the fair schedule has spent at most
+$mW_j+O(m)$ total quanta.  Choose the minimizing engine.  Every returned
+output carries an independent semantic certificate.  Direct APPR supplies a
+finite $W_j$ on every finite graph.
+\end{proof}
+
+\paragraph{Recommended constant-size portfolio.}
+\begin{enumerate}[leftmargin=2.2em]
+\item \textbf{Direct APPR.}  Universal numerical fallback with
+  $1/\alpha$ worst-case work.
+\item \textbf{Direct priority SOR.}  The same observable residual certificate
+  with Gauss--Southwell scheduling; useful when its ordering wins.
+\item \textbf{Safe active-set AESP-CD.}  Fixed-envelope accelerated obstacle
+  solves, restarted after certified batches; a numerical gap/key certificate
+  returns early, a mass certificate invokes APPR/SOR cleanup, and a genuinely
+  set-only screen invokes the fixed linear Stage~II.
+\item \textbf{Structural response.}  Tree, unicyclic, cactus, bounded-block,
+  or fixed-port reporter selected after local structure is certified.
+\item \textbf{Potential or mass handoff lane.}  AESP burn-in followed by
+  momentum-free SOR, or a safely retracted lower checkpoint followed by
+  APPR/SOR, as discussed in
+  \cref{sec:two-stage-alternative-handoff}.
+\end{enumerate}
+
+The race is a theorem about charged execution, not a license to run dense
+global preprocessing for every lane.  Each paused engine pays for its own
+state and exposures.  Sharing an adjacency cache can improve constants but is
+not used in \cref{eq:two-stage-race-work}.
+
+\paragraph{Deterministic diagnostic.}
+The experiment-directory script \path{portfolio_benchmark.py}
+tests six graph families, three values of $\alpha$, two error targets, and
+seven lanes (252 rows).  On the 30 cases where direct APPR does nonzero work,
+the total-work ratios below use direct APPR at the same semantic target as
+denominator.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Lane & median ratio & wins / 30 \\
+\midrule
+Direct priority SOR & $1.00$ & $2$ \\
+Hard-capped Green screen or APPR & $3.13$ & $0$ \\
+APPR envelope plus forced tail & $5.08$ & $0$ \\
+Oracle-gap envelope plus forced tail & $5.48$ & $0$ \\
+Priority envelope plus forced tail & $4.93$ & $0$ \\
+Tuned priority envelope plus forced tail & $5.07$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All numerical handoff points already satisfy the target; their largest
+observed error is $0.62\epsppr$.  The Green screen is the only genuinely
+set-only lane: it completes its capped ball in 10 of 36 cases and falls back
+safely in the rest, but it still loses every nonzero equal-accuracy
+comparison.  These data do not prove a lower bound.  They do rule out using
+the current forced-tail experiments as evidence for an end-to-end speedup and
+motivate racing full certified lanes rather than stopping at the first set.
+
+Inside a set-only lane, a second constant-size race may run Chebyshev/CG,
+accelerated gradient, and SOR on the same principal system $Q_Eu=b_E$.
+Every lane must use an independently valid residual or energy certificate;
+the first certified $\tau$-accurate output wins.  Chebyshev or accelerated
+gradient supplies the worst-case $O(\alpha^{-1/2})$ iteration guarantee,
+while SOR can win on favorable ordered supports without weakening it.

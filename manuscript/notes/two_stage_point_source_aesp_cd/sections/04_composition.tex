@@ -1,0 +1,259 @@
+\section{The modular at-most-two-stage theorem}
+\label{sec:two-stage-composition}
+
+\begin{theorem}[Containing-envelope composition]
+\label{thm:two-stage-composition}
+Fix $0<\alpha\leq1$, $0<\epsppr\leq1$, and one seed $s=e_v$.  Let a Stage~I
+engine use charged work $W_{\rm disc}$ and return a containing-envelope
+certificate $E$ for $\rho=\epsppr/2$.  Then
+\cref{alg:two-stage-hybrid} returns $\widehat x$ satisfying
+\cref{eq:two-stage-ppr-target} with total degree work
+\begin{equation}
+ W_{\rm total}
+ \leq W_{\rm disc}
+ +O\!\left(
+   \frac{\vol(E)}{\sqrt\alpha}
+   \log\frac{C_{E,v,\alpha}}{\epsppr}
+ \right),
+ \label{eq:two-stage-composition-work}
+\end{equation}
+where $C_{E,v,\alpha}$ is an explicit input/checkpoint scale and enters only
+logarithmically.  In particular, if
+$\vol(E)\leq C_E/\epsppr$, then
+\begin{equation}
+ W_{\rm total}
+ =W_{\rm disc}
+ +\widetilde O\!\left(
+   \frac{C_E}{\epsppr\sqrt\alpha}
+ \right).
+ \label{eq:two-stage-product-tail}
+\end{equation}
+An exact-face certificate is the special case $E=A=S^\star$.
+\end{theorem}
+
+\begin{proof}
+By \cref{prop:two-stage-envelope-linearization}, the exact restricted linear
+solution $u_E$ already obeys
+\begin{equation*}
+ \norm{D^{-1/2}(x^0-\widetilde u_E)}_\infty\leq\rho.
+\end{equation*}
+The principal matrix $Q_E$ has spectrum in $[\alpha,1]$.  Accelerated
+gradient or Chebyshev therefore reaches linear-system objective gap
+$\alpha\tau^2/2$ in
+\begin{equation*}
+ O\!\left(\alpha^{-1/2}
+   \log\frac{C_{E,v,\alpha}}\tau\right)
+\end{equation*}
+restricted matrix applications.  Strong convexity gives
+$\norm{\widehat u_E-u_E}_2\leq\tau$.  Because $u_E\geq0$, taking the
+coordinatewise positive part cannot increase this error.  Since every
+$d_i\geq1$,
+\begin{equation*}
+ \norm{D_E^{-1/2}([\widehat u_E]_+-u_E)}_\infty\leq\tau.
+\end{equation*}
+Combining this with the envelope-linearization bound and
+$\rho=\tau=\epsppr/2$ proves the semantic target.
+
+One matrix application on $E$ costs $O(\vol(E))$.  For a point source the
+initial restricted linear-system gap is bounded without a graph-size factor:
+\begin{equation*}
+ \frac12\langle b_E,Q_E^{-1}b_E\rangle
+ \leq\frac{\norm{b_E}_2^2}{2\alpha}
+ \leq\frac{\alpha}{2d_v}.
+\end{equation*}
+This supplies a valid logarithmic scale and completes the work bound.
+\end{proof}
+
+\begin{corollary}[Direct leakage-screen composition]
+\label{cor:two-stage-leakage-composition}
+Let Stage~I spend $W_{\rm screen}$ work and return a $\delta$ PPR
+boundary-leakage certificate on $E$.  Refining the fixed principal solve to
+normalized error $\tau$ returns a semantic PPR approximation whenever
+$\delta+\tau\leq\epsppr$, with total work
+\begin{equation}
+ W_{\rm screen}
+ +O\!\left(
+   \frac{\vol(E)}{\sqrt\alpha}
+   \log\frac{C_{E,v,\alpha}}{\tau}
+ \right).
+ \label{eq:two-stage-leakage-composition-work}
+\end{equation}
+This conclusion uses neither a regularization parameter nor containment of
+$S^\star$.  In particular, if $E=V$ then the boundary gate is vacuous and
+the statement reduces to one ordinary fixed solve.
+\end{corollary}
+
+\begin{proof}
+Apply \cref{prop:two-stage-leakage-certificate} and the same fixed-system
+convergence and triangle-inequality argument as in
+\cref{thm:two-stage-composition}.
+\end{proof}
+
+\begin{theorem}[Screen-or-solve accounting]
+\label{thm:two-stage-screen-or-solve}
+Suppose Stage~I uses work $W_{\rm disc}$.  If it returns either
+\begin{enumerate}[leftmargin=2.2em]
+\item an exact RPPR point with $\rho\leq\epsppr$, or
+\item a numerical gap/key certificate covered by
+  \cref{cor:two-stage-numerical-handoff-returns} with
+  $\rho+\delta\leq\epsppr$,
+\end{enumerate}
+then the algorithm returns after $W_{\rm disc}$ work, apart from writing the
+sparse output.  Only a certificate that supplies a set without an equally
+accurate numerical point pays the terminal term in
+\cref{eq:two-stage-composition-work,eq:two-stage-three-budget-work}.
+\end{theorem}
+
+\begin{proof}
+The exact RPPR point is $\rho$-accurate for PPR by
+\cref{eq:two-stage-rppr-bridge}.  The second case is exactly
+\cref{cor:two-stage-numerical-handoff-returns}.  The set-only case has no
+claimed numerical output, so it invokes the containing- or
+approximate-envelope composition theorem.
+\end{proof}
+
+\begin{corollary}[Approximate-envelope composition]
+\label{cor:two-stage-three-budget}
+Let Stage~I return a $\delta$-approximate-envelope certificate at
+regularization $\rho$, and choose a terminal tolerance $\tau>0$ with
+$\rho+\delta+\tau\leq\epsppr$.  Then the same linear Stage~II returns a
+semantic $\epsppr$-PPR approximation, with terminal work
+\begin{equation}
+ O\!\left(
+  \frac{\vol(E)}{\sqrt\alpha}
+  \log\frac{C_{E,v,\alpha}}{\tau}
+ \right).
+ \label{eq:two-stage-three-budget-work}
+\end{equation}
+Thus a Stage~I engine may certify small exterior RPPR amplitude instead of
+exact support containment.  Exact zero-key decisions are not part of the
+minimal interface.
+\end{corollary}
+
+\begin{corollary}[An exact tail spends the full budget on screening]
+\label{cor:two-stage-exact-tail-full-budget}
+Suppose Stage~II solves its fixed principal system exactly, or to an error
+accounted for outside the declared semantic tolerance.  Then the terminal
+reserve may be zero.  A containing RPPR envelope may use
+$\rho=\epsppr$, while a direct PPR truncation certificate may use
+$\delta=\epsppr$.  In either case the returned point satisfies the semantic
+target.  In the RPPR branch this also gives
+\begin{equation*}
+ \vol(S^\star(\epsppr))\leq\frac1{\epsppr}.
+\end{equation*}
+Thus an exact structural tail should replace the final Stage~I recovery
+solve rather than be appended to it; the generic half-and-half split is
+unnecessary for this lane.
+\end{corollary}
+
+\begin{proof}
+The exact principal solution has no terminal numerical error.  The
+envelope-linearization lemma bounds its normalized error by $\rho$, and the
+direct leakage lemma bounds it by $\delta$, so the two claimed parameter
+choices prove the semantic target directly.  The RPPR volume bound gives the
+display.
+The replacement statement is accounting rather than a new numerical step:
+once the set certificate is available, only the ordinary principal system is
+needed to produce the output.
+\end{proof}
+
+\begin{corollary}[An exact-face verifier may reuse its factorization]
+\label{cor:two-stage-factor-reuse}
+Suppose an exact-face verifier certifies $A=S^\star$ by factoring $Q_A$ and
+solving $Q_Ap_A=c_{\rho,A}$.  The strict ordinary-PPR second stage solves
+$Q_Au_A=b_A$ with the same factorization.  With a width-$w$ elimination
+order, its incremental triangular-solve and output work is
+$O(w^2\vol(A))$ after the $O(w^3\vol(A))$ factorization; for trees and
+unicyclic graphs both are $O(\vol(A))$.  No obstacle or momentum state is
+reused, only a certified factorization of the fixed linear operator.
+\end{corollary}
+
+\begin{proof}
+The two systems have identical principal matrix and differ only in their
+right-hand sides.  Reuse the stored elimination factors and perform forward
+and backward substitution for $b_A$.  The stated sparse-factor costs follow
+from the width bound.  Because the second right-hand side is the original PPR
+load, the result is exactly the Stage~II point used in the composition
+theorem.
+\end{proof}
+
+\begin{corollary}[The exact RPPR point is a certified linear warm start]
+\label{cor:two-stage-rppr-warm-start}
+Let $A=S^\star(\rho)$ and let $p_A=x_{\rho,A}^\star>0$.  For the ordinary
+principal PPR system, the initial residual and correction are
+\begin{equation}
+ r_0=b_A-Q_Ap_A=\alpha\rho D_A^{1/2}\one,
+ \qquad
+ u_A-p_A=Q_A^{-1}r_0\geq0.
+ \label{eq:two-stage-rppr-warm-residual}
+\end{equation}
+Moreover its linear-system objective gap is at most
+\begin{equation*}
+ \frac12 r_0^\top Q_A^{-1}r_0
+ \leq\frac{\alpha\rho^2\vol(A)}2
+ \leq\frac{\alpha\rho}{2}.
+\end{equation*}
+Thus a numerical terminal solve may start from $p_A$ with a fully observable
+residual and a graph-size-free energy bound.  This is optional: when
+$\rho=\epsppr$, $p_A$ is already a valid semantic output.
+\end{corollary}
+
+\begin{proof}
+Every coordinate of the exact support is active, so stationarity gives
+$Q_Ap_A=b_A-\alpha\rho D_A^{1/2}\one$.  This proves
+\cref{eq:two-stage-rppr-warm-residual}; inverse positivity proves the sign.
+Finally $Q_A\succeq\alpha I$ and
+$\norm{D_A^{1/2}\one}_2^2=\vol(A)$ give the first inequality, while the RPPR
+volume bound gives the second.
+\end{proof}
+
+\paragraph{For a genuinely set-only lane, the three budgets should be tuned,
+not ritualized.}
+The symmetric choice $\rho=\delta=\tau=\epsppr/3$ is transparent, but it is
+not generally cost-minimizing.  For the exponential branch of the priority
+monotone-SOR bound below, a useful leading-order proxy (suppressing logarithms
+and fixed constants) is
+\begin{equation}
+ \frac{1}{\alpha\rho}+\frac{1}{\sqrt\alpha\,\delta},
+ \qquad \rho+\delta=\epsppr-\tau.
+ \label{eq:two-stage-budget-proxy}
+\end{equation}
+For a fixed terminal reserve $\tau$, this proxy is minimized by
+\begin{equation}
+ \frac{\rho}{\delta}=\alpha^{-1/4},\qquad
+ \rho=\frac{\epsppr-\tau}{1+\alpha^{1/4}},\qquad
+ \delta=\frac{\alpha^{1/4}(\epsppr-\tau)}{1+\alpha^{1/4}}.
+ \label{eq:two-stage-tuned-budget}
+\end{equation}
+The minimized value is
+$(\alpha^{-1/2}+\alpha^{-1/4})^2/(\epsppr-\tau)$.
+Thus small $\alpha$ assigns most semantic error to RPPR regularization and a
+smaller, but still explicit, amount to envelope omission.  The terminal
+reserve affects an accelerated linear solve only logarithmically, so in a
+ practical implementation it can be chosen from a modest fixed fraction or by
+ the Stage~II residual target.  APPR has a different envelope law and should
+ use its own split; the certificate race permits each lane to declare one.
+ This is a worst-case proxy, not a claim that the tuned split dominates the
+ symmetric choice instance by instance.  It must not be applied to a
+ numerical Stage~I lane that can already invoke
+ \cref{thm:two-stage-screen-or-solve}; for that lane the correct terminal
+ reserve is zero and the output returns immediately.
+
+\begin{corollary}[Exact support is not the main numerical bottleneck]
+\label{cor:two-stage-support-not-needed}
+Once any Stage~I construction returns an envelope of volume $O(1/\rho)$, all
+remaining numerical work already has the target
+$\widetilde O(1/(\rho\sqrt\alpha))$ scale.  Exact identification of the zero
+coordinates and a second constrained optimization inside that envelope are
+both unnecessary for semantic PPR.
+\end{corollary}
+
+\begin{corollary}[The obstacle history is disposable]
+\label{cor:two-stage-history-disposable}
+The terminal work bound requires only the set $E$ and the original PPR right
+hand side $b_E$.  No Stage~I momentum, face-response bank, obstacle lower
+checkpoint, strict-complementarity margin, Perron vector, or face-shock
+transfer enters the theorem.  Such state may be used as a separately
+certified warm start, but restarting the linear solve from zero already gives
+\cref{eq:two-stage-composition-work}.
+\end{corollary}

@@ -10,6 +10,17 @@ MANUSCRIPT = REPOSITORY / "manuscript"
 NOTES = MANUSCRIPT / "notes"
 SHARED_PROBLEM_INPUT = r"\input{../../tex/shared/source_aligned_problem}"
 ACTIVE_SHARED_PROBLEM_INPUT = r"\input{tex/shared/source_aligned_problem}"
+EXPANDED_PROBLEM_REFERENCE_ID = "problem_definitions"
+SHARED_PROBLEM_LABELS = (
+    "subsec:shared-source-aligned-problem",
+    "eq:shared-volume",
+    "eq:shared-seed",
+    "eq:shared-pagerank-matrices",
+    "eq:shared-pagerank-objective",
+    "eq:shared-ppr-solution",
+    "eq:shared-rppr-objective",
+    "eq:shared-rppr-kkt",
+)
 
 
 def _read(path: Path) -> str:
@@ -53,10 +64,18 @@ def test_every_note_uses_the_shared_shell_and_problem_model_once() -> None:
         problem_imports = sum(
             _read(path).count(SHARED_PROBLEM_INPUT) for path in entrypoint.parent.rglob("*.tex")
         )
-        assert problem_imports == 1, (
-            f"{record['id']} must import the common problem model exactly once; "
-            f"found {problem_imports} imports"
-        )
+        if record["id"] == EXPANDED_PROBLEM_REFERENCE_ID:
+            assert problem_imports == 0
+            expanded_reference = _read(entrypoint)
+            assert all(
+                expanded_reference.count(rf"\label{{{label}}}") == 1
+                for label in SHARED_PROBLEM_LABELS
+            )
+        else:
+            assert problem_imports == 1, (
+                f"{record['id']} must import the common problem model exactly once; "
+                f"found {problem_imports} imports"
+            )
 
 
 def test_active_manuscript_uses_the_shared_problem_model_once() -> None:
@@ -65,6 +84,24 @@ def test_active_manuscript_uses_the_shared_problem_model_once() -> None:
     problem_imports = sum(_read(path).count(ACTIVE_SHARED_PROBLEM_INPUT) for path in sources)
     assert problem_imports == 1
     assert ACTIVE_SHARED_PROBLEM_INPUT in _read(MANUSCRIPT / "sections/problem_formulation.tex")
+
+
+def test_shared_problem_keeps_author_bold_optimum_notation() -> None:
+    shared = _read(MANUSCRIPT / "tex/shared/source_aligned_problem.tex")
+    required = {
+        r"\bm{A}",
+        r"\bm{D}",
+        r"\bm{Q}",
+        r"\bm{x}",
+        r"\bm{s}",
+        r"\bm{x}^*",
+        r"\bm{x}_0^*",
+        r"\bm{x}_\rho^*",
+    }
+    assert all(symbol in shared for symbol in required)
+    assert "plain italic notation" not in shared
+    assert r"x^0" not in shared
+    assert r"x^\star(\rho)" not in shared
 
 
 def test_reusable_latex_declarations_are_confined_to_shared_files() -> None:
@@ -134,7 +171,9 @@ def test_known_semantic_aliases_do_not_regress() -> None:
         "normalized adjacency must not be W": re.compile(
             r"W\s*:?=\s*D\^\{-1/2\}\s*A\s*D\^\{-1/2\}"
         ),
-        "unregularized optimum must be x0": re.compile(r"x\^\{?\\star\}?\s*:?=\s*Q\^\{-1\}\s*b"),
+        "unregularized optimum must be x_0^*": re.compile(
+            r"\\bm\{x\}\^\*\s*:?=\s*\\bm\{Q\}\^\{-1\}\\bm\{b\}"
+        ),
     }
     offenders: list[str] = []
     for path in _publication_tex_sources():

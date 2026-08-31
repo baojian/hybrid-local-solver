@@ -1,0 +1,150 @@
+\section{Randomized arbitrary-graph closure}
+\label{sec:random-core}
+
+Put
+\begin{equation*}
+ c_\rho=b-\alpha\rho D^{1/2}\one,
+ \qquad
+ F_\rho(x)=\frac12x^\top Qx-c_\rho^\top x
+ \quad(x\geq0).
+\end{equation*}
+The companion \path{active_edge_lcp} note supplies the missing
+arbitrary-graph discovery mechanism in an exact-real randomized word model.
+The regime $\rho\geq1/d_v$ has the exact zero RPPR solution and is recognized
+by one seed-degree query; below we discuss the canonical nonzero regime.
+It does not maintain an accelerated trajectory through every face.  Instead,
+on the current reachable RPPR face $U$ it approximately solves
+\begin{equation}
+ Q_{UU}x_U^U=c_{\rho,U},
+ \qquad x_i^U=0\quad(i\notin U),
+ \label{eq:random-core-face}
+\end{equation}
+certifies the active residual exactly, and admits in one batch every boundary
+row whose residual clears a declared threshold.  Every admitted row is
+support-safe, so $U\subseteq S^\star$ and $\vol(U)\leq1/\rho$ throughout.
+
+Its threshold-batch depth theorem orders the unknown support by these batches,
+block-factorizes $Q_{S^\star S^\star}$, and retains only the diagonal and
+first block subdiagonal of its scalar Cholesky factor.  The retained
+block-bidiagonal M-matrix $\widehat C$ satisfies
+\begin{equation}
+ \norm{\widehat C^{-1}}_2\leq\frac1{\sqrt\alpha},
+ \qquad \norm{\widehat C}_2\leq\sqrt2.
+ \label{eq:random-core-conditioning}
+\end{equation}
+Chebyshev inverse decay on this block chain gives, after $J$ complete faces,
+\begin{equation}
+ F_\rho(x^{U_J})-F_\rho(x_\rho^\star)
+ \leq 8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho},
+ \qquad
+ q_\alpha=\frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}.
+ \label{eq:random-core-depth}
+\end{equation}
+Thus the threshold
+$\vartheta=\sqrt{\alpha\rho\varepsilon_{\rm obj}}/8$ needs only
+$O(\alpha^{-1/2}\log(1/\varepsilon_{\rm obj}))$ rebuilt faces.  A fresh
+nearly-linear randomized SDD solve \citep{koutis2011nearly} is accepted only
+when an exact active-row scan certifies its residual; capped independent
+retries make all randomness an explicit failure flag.  The proved source
+theorem therefore returns, except with declared probability $\zeta$, a
+reachable face whose exact face point, as well as its projected feasible
+numerical point, has RPPR objective gap at most
+$\varepsilon_{\rm obj}$, and uses
+expected fully charged work
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{1}{\rho\sqrt\alpha}
+  \log\frac1{\varepsilon_{\rm obj}}
+  \log\frac2\zeta
+ \right).
+ \label{eq:random-core-source-work}
+\end{equation}
+This includes every face construction, fresh solver state, scan, comparison,
+projection, and output; no support, global preprocessing, or complementarity
+margin is supplied.
+
+The following transfer is what makes the result a literal two-stage theorem,
+rather than only an RPPR theorem.
+
+\begin{lemma}[A low-energy inner face is a set certificate]
+\label{lem:random-core-inner-face}
+Let $U$ be any reachable face and
+$\Gamma_U=F_\rho(x^U)-F_\rho(x_\rho^\star)$.  For the ordinary principal-PPR
+solution $u_U=Q_{UU}^{-1}b_U$ and its zero extension $\widetilde u_U$,
+\begin{align}
+ \max_{i\notin U}\frac{x_{\rho,i}^\star}{\sqrt{d_i}}
+ &\leq\sqrt{\frac{2\Gamma_U}{\alpha}},
+ \label{eq:random-core-amplitude}\\
+ \norm{D^{-1/2}(x^0-\widetilde u_U)}_\infty
+ &\leq\rho+\sqrt{\frac{2\Gamma_U}{\alpha}}.
+ \label{eq:random-core-envelope}
+\end{align}
+In particular, $U$ need not contain $S^\star$.
+\end{lemma}
+
+\begin{proof}
+Strong convexity gives
+$\Gamma_U\geq(\alpha/2)\norm{x^U-x_\rho^\star}_2^2$.
+Because the padded face point vanishes outside $U$ and $d_i\geq1$, this
+proves \cref{eq:random-core-amplitude}.  Approximate-envelope linearization
+then proves \cref{eq:random-core-envelope}.
+\end{proof}
+
+\begin{theorem}[Randomized two-stage point-source PPR]
+\label{thm:random-core-two-stage}
+For $0<\varepsilon<1$, choose $\rho,\eta,\tau>0$ with
+$\rho+\eta+\tau\leq\varepsilon$ and set
+$\varepsilon_{\rm obj}=\alpha\eta^2/2$.  If the seed-degree test certifies
+zero RPPR, return zero and omit Stage~II; its PPR error is at most $\rho$.
+Otherwise run the threshold-batch algorithm
+with failure budget $\zeta/2$, retain only its final face $U$, and discard its
+numerical point and all solver state.  Solve $Q_{UU}u_U=b_U$ independently to
+Euclidean error at most $\tau$, with failure budget $\zeta/2$, project the
+approximation onto the nonnegative orthant, and zero-pad it.  With failure
+probability at most $\zeta$, the result is $\varepsilon$-accurate and has
+expected fully charged work
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{1}{\rho\sqrt\alpha}\log\frac1{\alpha\eta^2}
+      \log\frac4\zeta
+  +\frac1\rho\log\frac1{\sqrt\alpha\tau}\log\frac4\zeta
+ \right).
+ \label{eq:random-core-total-work}
+\end{equation}
+The equal split $\rho=\eta=\tau=\varepsilon/3$ is therefore
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$ on every graph in this model.
+\end{theorem}
+
+\begin{proof}
+On a successful first stage,
+\cref{lem:random-core-inner-face} bounds exact truncation error by
+$\rho+\eta$.  The terminal Euclidean error contributes at most $\tau$ to the
+normalized $\ell_\infty$ norm, and projection cannot increase its distance
+from the nonnegative exact principal solution.
+
+For the charged terminal solve, the exact principal solution has
+$Q$-energy at most $\alpha$.  A randomized relative-energy call at tolerance
+$\sqrt\alpha\tau$ is accepted only if the exact active-row residual is at
+most $\alpha\tau$ in Euclidean norm.  Since $Q_{UU}\succeq\alpha I$, every
+accepted call then has Euclidean error at most $\tau$, regardless of its
+random coins.  The source SDD bound, capped retries, and
+$\vol(U)\leq1/\rho$ give the second term in
+\cref{eq:random-core-total-work}; the first is
+\cref{eq:random-core-source-work}.
+\end{proof}
+
+The fastest execution does not require the restart.  With
+$\rho=\varepsilon/2$ and
+$\varepsilon_{\rm obj}=\alpha\varepsilon^2/8$, the feasible numerical point
+already produced by the threshold-batch solver is $\varepsilon$-accurate by
+strong convexity and the RPPR--PPR bridge.  It has the same
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$ work.  The literal Stage~II is
+useful when the desired architecture requires a set-only handoff; it is not
+an asymptotic necessity.
+
+This closure is randomized and exact-real.  It does not prove that AESP-CD's
+original momentum recurrence survives changing faces, nor does it supply a
+deterministic finite-precision or coefficient-bit theorem.  What transfers to
+the hybrid is the safe threshold admission, hard phase cap, exact residual
+certification, and restart discipline.  The result is best regarded as a new
+threshold-batched active-set lane in the AESP-CD portfolio.

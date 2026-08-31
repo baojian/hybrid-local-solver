@@ -1,0 +1,193 @@
+\section{A matching lower bound for dissipative signed local relaxation}
+\label{sec:signed-star-signed-lower}
+
+The preceding theorem is an algorithmic upper bound.  We now define a broad
+class containing it and prove that no member can improve its polynomial scale
+on the same star.
+
+\paragraph{Signed dissipative class $\mathcal R_{\pm}$.}
+A member starts from $p^0=0$ and the exact invariant
+$r^t=\gamma_\alpha e_o-Hp^t$.  At time $t$ it may adaptively or randomly
+choose a coordinate $u_t$ and relaxation $\omega_t\in(0,2)$, then perform
+\begin{equation}
+  \delta_t=\omega_t r^t_{u_t},
+  \qquad
+  p^{t+1}=p^t+\delta_t e_{u_t},
+  \qquad
+  r^{t+1}=r^t-\delta_tHe_{u_t}.
+  \label{eq:signed-star-class-update}
+\end{equation}
+Residuals and iterates may be signed.  The output is the maintained iterate
+$p^T$ itself; no uncharged inverse, dense response, or residual postprocessor
+is allowed.  Each operation costs $d_{u_t}$.
+
+The interval $(0,2)$ is not an arbitrary aesthetic restriction.  It is
+exactly the interval in which every coordinate step dissipates the natural
+quadratic error energy.
+
+\begin{lemma}[Exact energy identity]
+\label{lem:signed-star-energy}
+Let $e^t:=\pi-p^t$ and define
+\begin{equation}
+  \Phi(e):=\frac12 e^TD^{-1}He.
+  \label{eq:signed-star-energy}
+\end{equation}
+For a coordinate update $p^+=p+\delta e_u$,
+\begin{equation}
+  \Phi(e)-\Phi(e^+)
+  =\frac{\delta}{d_u}\left(r_u-\frac\delta2\right).
+  \label{eq:signed-star-energy-identity}
+\end{equation}
+Thus \eqref{eq:signed-star-class-update} gives
+\begin{equation}
+  \Phi(e^t)-\Phi(e^{t+1})
+  =\frac{\omega_t(2-\omega_t)}{2}
+      \frac{(r^t_{u_t})^2}{d_{u_t}}
+  \ge0.
+  \label{eq:signed-star-energy-descent}
+\end{equation}
+On the center-seeded star,
+\begin{equation}
+  \Phi(e^0)=\frac{\alpha}{2m}.
+  \label{eq:signed-star-initial-energy}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We have $e^+=e-\delta e_u$,
+$(D^{-1}He)_u=r_u/d_u$, and
+$(D^{-1}H)_{uu}=1/d_u$.  Expanding the quadratic proves
+\eqref{eq:signed-star-energy-identity}; substituting
+$\delta=\omega r_u$ proves descent.  Initially $e^0=\pi$ and
+$H\pi=\gamma_\alpha e_o$, so
+\[
+  \Phi(e^0)
+  =\frac12\pi^TD^{-1}\gamma_\alpha e_o
+  =\frac{\gamma_\alpha\pi_o}{2m}
+  =\frac{\alpha}{2m},
+\]
+using $\gamma_\alpha\pi_o=\alpha$.
+\end{proof}
+
+\subsection{The fast mode caps every center displacement}
+
+Put
+\begin{equation}
+  \overline H:=D^{-1/2}HD^{1/2}
+  =I-c_\alpha D^{-1/2}AD^{-1/2},
+  \qquad y:=D^{-1/2}e.
+  \label{eq:signed-star-symmetric-operator}
+\end{equation}
+Then $\overline H$ is symmetric positive definite and
+$\Phi(e)=\tfrac12y^T\overline Hy$.  The normalized adjacency of the star has
+the two unit eigenvectors
+\begin{equation}
+  q_+=\frac{(\sqrt m,1,\ldots,1)^T}{\sqrt{2m}},
+  \qquad
+  q_-=\frac{(\sqrt m,-1,\ldots,-1)^T}{\sqrt{2m}},
+  \label{eq:signed-star-two-modes}
+\end{equation}
+with eigenvalues $+1$ and $-1$.  Therefore $q_+$ is the slow mode of
+$\overline H$ with eigenvalue $1-c_\alpha=\gamma_\alpha$, whereas $q_-$ is
+the fast mode with eigenvalue
+\begin{equation}
+  \mu_+:=1+c_\alpha=\frac{2}{1+\alpha}.
+  \label{eq:signed-star-fast-eigenvalue}
+\end{equation}
+The remaining leaf-difference modes vanish at the center and are irrelevant
+to the following displacement argument, even if an adaptive policy breaks
+leaf symmetry.
+
+\begin{lemma}[Pathwise center-displacement cap]
+\label{lem:signed-star-displacement-cap}
+Every center relaxation of every $\mathcal R_{\pm}$ member satisfies
+\begin{equation}
+  |\delta_t|\le2\sqrt{\alpha(1+\alpha)}.
+  \label{eq:signed-star-displacement-cap}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Expand $y$ in an orthonormal eigenbasis of $\overline H$.  Energy descent
+implies, before and after every operation,
+\begin{equation}
+  |\langle y,q_-\rangle|
+  \le\sqrt{\frac{2\Phi(e^0)}{\mu_+}}.
+  \label{eq:signed-star-fast-coordinate-cap}
+\end{equation}
+A center update changes $e$ by $-\delta e_o$ and hence changes $y$ by
+$-(\delta/\sqrt m)e_o$.  Since the center coordinate of $q_-$ is
+$1/\sqrt2$,
+\begin{equation}
+  |\Delta\langle y,q_-\rangle|
+  =\frac{|\delta|}{\sqrt{2m}}.
+  \label{eq:signed-star-equal-mode-movement}
+\end{equation}
+The value of $\langle y,q_-\rangle$ lies in the interval
+\eqref{eq:signed-star-fast-coordinate-cap} both before and after the update,
+so its displacement is at most twice the interval radius.  Therefore
+\begin{align*}
+  |\delta|
+  &\le\sqrt{2m}\,2
+       \sqrt{\frac{2\Phi(e^0)}{\mu_+}} \\
+  &=2\sqrt{\alpha(1+\alpha)},
+\end{align*}
+where \eqref{eq:signed-star-initial-energy} and
+\eqref{eq:signed-star-fast-eigenvalue} were used in the last step.
+\end{proof}
+
+This cap explains the $1/\sqrt\alpha$ scale mechanically.  Moving the center
+changes the slow mode that carries the desired PPR mass, but it necessarily
+moves the fast mode by the same magnitude.  Dissipativity prevents the fast
+mode from storing enough energy to permit a larger center jump.
+
+\begin{theorem}[Signed one-hop class lower bound]
+\label{thm:signed-star-signed-lower}
+Under \eqref{eq:signed-star-size}, every successful path of every
+$\mathcal R_{\pm}$ member performs at least
+\begin{equation}
+  N_o
+  \ge\frac{\pi_o-\varepsilon_{\rm ppr}m}
+           {2\sqrt{\alpha(1+\alpha)}}
+  \ge\frac{3}{16\sqrt{\alpha(1+\alpha)}}
+  \label{eq:signed-star-center-count-lower}
+\end{equation}
+center relaxations.  Hence its charged work satisfies
+\begin{equation}
+  W
+  \ge mN_o
+  \ge\frac{3}
+      {256\,\varepsilon_{\rm ppr}\sqrt{\alpha(1+\alpha)}}
+  =\Omega\!\left(
+      \frac{1}{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+    \right).
+  \label{eq:signed-star-signed-work-lower}
+\end{equation}
+The statement is pathwise and therefore also applies to randomized policies
+on every path on which they promise success.
+\end{theorem}
+
+\begin{proof}
+Only a center relaxation changes $p_o$.  Starting from $p_o^0=0$, semantic
+accuracy and \eqref{eq:signed-star-center-required} require total signed
+center displacement at least $3/8$.  Total absolute center travel is at least
+the signed displacement.  Divide by the per-operation cap
+\eqref{eq:signed-star-displacement-cap} to obtain
+\eqref{eq:signed-star-center-count-lower}.  Each such operation scans the
+degree-$m$ center and costs $m\ge1/(16\varepsilon_{\rm ppr})$.
+\end{proof}
+
+Combining \Cref{thm:signed-star-semantic-upper,thm:signed-star-signed-lower}
+gives the promised-family class theorem
+\begin{equation}
+  \boxed{
+  W^{\star}_{\mathcal R_{\pm}}
+  =\Theta\!\left(
+      \frac{1}{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+    \right)}
+  \label{eq:signed-star-class-theta}
+\end{equation}
+for $0<\alpha<1$ and
+$0<\varepsilon_{\rm ppr}\le1/16$, under the exact primitive, output, and
+work contract above.  This is the precise sense in which the signed star rung
+is promoted to a proved accelerated algorithmic result.

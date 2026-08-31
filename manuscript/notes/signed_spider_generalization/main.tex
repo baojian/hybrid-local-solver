@@ -1,0 +1,95 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{From Signed Stars to Spiders and Beyond:\\
+What SOR and FISTA Really Compare, and a Graph-Family Generalization Plan}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The optimal signed-SOR star theorem and the standard FISTA leaf-star
+obstruction are informative together, but they are not a head-to-head
+algorithm comparison: SOR solves the unregularized PageRank linear system,
+whereas FISTA solves an $\ell_1$-regularized PageRank objective; the two
+examples also use different seeds and accuracy namespaces.  This note makes
+the legitimate bridge explicit.  The RPPR minimizer is within $\rho$ of PPR
+in degree-normalized semantic norm, an RPPR objective gap $\delta$ contributes
+at most $\sqrt{2\delta/\alpha}$, and on a known positive face RPPR is exactly
+the same PageRank principal linear system with a shifted right-hand side.
+
+We then extend the algebraic star mechanism.  On every fixed exposed
+bipartite face, red--black SOR decomposes into two-dimensional singular-mode
+blocks.  Its optimal relaxation has exact spectral factor
+$(1-t)/(1+t)$, where $t=\sqrt{1-\rho_J^2}$ and $\rho_J$ is the Jacobi spectral
+radius.  This gives a finite fixed-face semantic solve in
+$\widetilde O(\operatorname{vol}(U)/\sqrt\alpha)$ work using one graph-global
+parameter.  If the face spectrum is supplied, a depth-$L$ spider prefix has
+the sharper sweep scale
+$\Theta(1/\sqrt{\alpha+L^{-2}})$.  On every complete equal-arm,
+hub-seeded spider, an even reflection converts the semantic recurrence into
+a Chebyshev wave on a cycle and proves the log-free envelope
+$\lambda_\alpha^{2k}(1+2k(1-\lambda_\alpha^2))$.  This yields the target
+plain-SOR work on the output-scale spider family.  This maximum-norm statement
+does not extend graph-uniformly to all bipartite faces: a layered family with
+geometrically decreasing channel multiplicities keeps a far semantic error
+arbitrarily close to its initial maximum through any fixed multiple of
+$1/\sqrt\alpha$ source-first full sweeps.  Consequently no graph-independent
+constant can multiply the spider's exponential envelope on all finite
+connected bipartite graphs.  This is a relative semantic-contraction stop,
+and the same family puts the semantic output at inverse-volume scale, ruling
+out graph-uniform $O(1/(\sqrt\alpha\,\varepsilon_{\rm ppr}))$ work for the
+literal complete-face full-sweep plain-SOR primitive.  It is not a lower bound
+for all algorithms.  The same finite-propagation stop does extend to every
+finite scalar-adaptive source-first red--black SOR schedule, even with exact
+eigenvalue advice, and to zero-start Chebyshev/Krylov recurrences whose only
+vector operation is a complete sparse PageRank matvec.  It does not extend to
+eigenvector transforms, inverse or Green responses, nonlocal warm starts, or
+other vector-valued advice.  Plain SOR also does not by itself discover the
+face.  Face-specific spectral tuning is therefore stated with its estimation
+cost: a certified upper Jacobi-radius bound gives the advertised rate, while
+a raw lower Rayleigh estimate does not.  A componentwise Collatz iteration
+now supplies such an upper certificate a posteriori: every estimator pass is
+charged as a complete face scan, the relaxation is frozen only after a
+checkable relative-gap test succeeds, and a scan-budget expiry safely falls
+back to the graph-global parameter.  Certification can be arbitrarily slow,
+and on a complete face it gives exactly the global parameter and no sweep
+benefit.
+For discovery, stronger proved response results already cover hub-rooted spiders,
+arbitrary rooted trees, and bounded-biconnected-block graphs, yielding the
+target product scale after the RPPR-to-PPR bias conversion.  The unresolved
+frontier is therefore narrowed to large biconnected cyclic cores, where a
+local face change may alter many boundary demands and signed state records.
+Nonsettled face-shock Pythagoras and a supplied geometrically growing-face
+SOR continuation theorem close the numerical state-transfer layer, but not
+arbitrary singleton reporting or repeated-prefix work.
+On any genuinely supplied fixed face, a separate CG/Chebyshev dispatch gives
+the stronger two-sided residual certificate in
+$O(\operatorname{vol}(U)\min\{|U|,\alpha^{-1/2}\log(2/\tau)\})$ work:
+exact CG supplies the dimension cap and interval Chebyshev supplies the
+spectral cap.  A round-robin portfolio may add the charged
+Collatz-to-frozen-SOR route without weakening either fallback.  This terminal
+rule does not amortize changing faces.
+The final sections give a staged plan with explicit proof obligations,
+counterexample tests, and promotion gates.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\input{sections/body/01_scope_and_answer}
+\input{sections/body/02_comparison_bridge}
+\input{sections/body/02b_supplied_face_dispatch}
+\input{sections/body/03_fixed_face_sor}
+\input{sections/body/04_spider_specialization}
+\input{sections/body/05_tree_and_block_results}
+\input{sections/body/06_beyond_bounded_blocks}
+\input{sections/body/07_research_plan}
+\input{sections/body/08_conclusion_and_references}
+
+\end{document}

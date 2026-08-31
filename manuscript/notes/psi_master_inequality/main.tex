@@ -1,0 +1,984 @@
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{An Analytic Route to the Clipped Acceleration Master Inequality}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note independently reconstructs the exact one-step Lyapunov master form
+for a clipped accelerated proximal recurrence.  The identity is a statement
+about an exact shifted solve on one positive face; it is not a convergence or
+local-work theorem.  The reconstruction exposes two sign-visible channels,
+leaving only mixed clipping as the analytic obstruction.  Fable's finite
+exact decisions are retained as source evidence rather than promoted here.
+An entrywise positive-association condition closes that obstruction on every
+complete multipartite graph, including all unequal part vectors.  Exact
+elimination of the high variable yields a different clipped-Laplacian route
+and proves an infinite balanced six-cycle blow-up family strictly beyond the
+positive-association class.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Scope, coordinates, and evidence labels}
+
+The shared RPPR objective uses the normalized variable in the imported
+definition above.  This note temporarily uses degree-scaled coordinates
+$u=D^{-1/2}x$, because clipping by a common degree-normalized threshold then
+acts as $(u-c\one)_+$.  In these coordinates the quadratic matrix is
+\begin{equation}
+ \widetilde Q
+ :=D^{1/2}QD^{1/2}
+ =\frac{1+\alpha}{2}D-\frac{1-\alpha}{2}A.
+ \label{eq:psi-scaled-q}
+\end{equation}
+This is a note-scoped change of coordinates, not a change to the shared RPPR
+convention.
+
+\paragraph{Source.}
+Fable's iteration-7 files propose the master form and report exact finite
+decisions.  They are exploratory evidence, not proof authority for this note.
+\paragraph{Proved here.}
+The recurrence, admissible functional domain, master identity, the two
+unmixed-sign inequalities, and both graph-family theorems below are derived
+independently.
+\paragraph{Open.}
+Nonpositivity for mixed clipping beyond the stated structural condition,
+proper-face transport, finite shifted solves, and every end-to-end work
+conclusion remain open at this point in the note.
+
+\section{Exact recurrence and admissible functional domain}
+
+Fix $0<q\leq1/2$ and put
+\begin{equation}
+ \alpha=\frac{q^2}{1+q^2},\qquad
+ \kappa=1-2\alpha,\qquad
+ \beta=\frac{1-q}{1+q},\qquad
+ \nu=\frac{q}{1+q}=\frac{1-\beta}{2}.
+ \label{eq:psi-parameters}
+\end{equation}
+Let $\langle u,v\rangle_D=u^TDv$, let
+$\mathsf v_G=\one^TD\one$, and let
+\begin{equation}
+ P=I-\frac{\one\one^TD}{\mathsf v_G}
+ \label{eq:psi-projection}
+\end{equation}
+be the $D$-orthogonal projection onto $\one^{\perp_D}$.  Define the exact
+shifted-resolvent operator
+\begin{equation}
+ M:=\kappa(\widetilde Q+\kappa D)^{-1}D,
+ \qquad
+ m_0:=\frac{\kappa}{\kappa+\alpha}=1-q^2.
+ \label{eq:psi-resolvent}
+\end{equation}
+The matrix $M$ is $D$-self-adjoint, positive definite, entrywise
+nonnegative, commutes with $P$, and satisfies $M\one=m_0\one$.  The last
+display and \cref{eq:psi-parameters} give the two scalar identities
+\begin{equation}
+ \beta m_0=(1-q)^2,
+ \qquad
+ m_0(1+\beta)^2=4\beta.
+ \label{eq:psi-scalar-identities}
+\end{equation}
+
+Consider one exact positive-face shifted step.  With
+$e_t=x^\star-x_t$, $d_t=x_t-x_{t-1}=e_{t-1}-e_t\geq0$, and an arbitrary
+cap $\Delta_t\geq0$, put
+\begin{equation}
+ y_t=\beta d_t-\Delta_t\one,
+ \qquad
+ \phi_t=(y_t)_+,
+ \qquad
+ \ell_t=x_t+\phi_t.
+ \label{eq:psi-clip}
+\end{equation}
+Exact minimization of the shifted quadratic centered at $\ell_t$ is
+equivalent to
+\begin{equation}
+ e_{t+1}=M(e_t-\phi_t).
+ \label{eq:psi-error-recurrence}
+\end{equation}
+This reconstruction assumes that the obstacle solve stays on the stated
+positive face.  It does not silently extend to a proper face.
+
+Write
+\begin{equation}
+ h_{t-1}=Pe_{t-1},\quad h_t=Pe_t,\quad
+ z_t=Py_t=\beta(h_{t-1}-h_t),\quad
+ w_t=P(y_t)_-,\quad b_t=z_t-\nu h_t.
+ \label{eq:psi-high-variables}
+\end{equation}
+Since $(y_t)_+=y_t+(y_t)_-$, one has
+$P\phi_t=z_t+w_t$ and therefore
+\begin{equation}
+ h_{t+1}=M(h_t-z_t-w_t).
+ \label{eq:psi-high-recurrence}
+\end{equation}
+
+The trajectory-free functional below is defined for every
+$y\in\mathbb R^V$ and $h\in\one^{\perp_D}$.  This really is the full
+algebraic cap domain: given any $y$, choosing
+$\Delta\geq\max_i(-y_i)$ and $d=(y+\Delta\one)/\beta$ gives
+$d\geq0$ and $y=\beta d-\Delta\one$.  The functional domain is nevertheless
+stronger than reachability by a single fixed RPPR trajectory, because it
+forgets the preceding history and the positive-face inequalities.
+
+\section{Independent master-identity reconstruction}
+
+For $u,v\in\one^{\perp_D}$ define
+\begin{equation}
+ \mathcal V(u,v)
+ :=\norm{u}_D^2-(1+\beta)\langle u,Mv\rangle_D
+     +\beta\langle v,Mv\rangle_D.
+ \label{eq:psi-lyapunov}
+\end{equation}
+Also put
+\begin{equation}
+ G:=m_0I-2M+M^2.
+ \label{eq:psi-g-operator}
+\end{equation}
+
+\begin{lemma}[Exact clipped master identity]
+\label{lem:psi-master-identity}
+For every step satisfying \cref{eq:psi-error-recurrence},
+\begin{equation}
+ \mathcal V(h_{t+1},h_t)-(1-q)^2\mathcal V(h_t,h_{t-1})
+ =\Psi(y_t,h_t),
+ \label{eq:psi-master-identity}
+\end{equation}
+where, for arbitrary $y$ and $h\in\one^{\perp_D}$,
+\begin{align}
+ z&:=Py,& w&:=P(y_-),& b&:=z-\nu h,\notag\\
+ \Psi(y,h)
+ &:=\norm{M(b+w)}_D^2-m_0\langle b,Mb\rangle_D
+       -\nu^2\norm{Mh}_D^2-\beta\langle h,Gh\rangle_D.
+ \label{eq:psi-master-form}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Put $\bar\phi=P\phi=z+w$ and $c=b/\beta$.  From
+$z=\beta(h_{t-1}-h_t)$ one has
+$h_{t-1}=h_t+z/\beta$ and $z=\beta c+\nu h_t$.
+Substitute these two relations and
+$h_{t+1}=M(h_t-\bar\phi)$ into \cref{eq:psi-lyapunov}.  Using
+$D$-self-adjointness of $M$ and the two scalar identities in
+\cref{eq:psi-scalar-identities}, direct collection gives
+\begin{align}
+ &\mathcal V(h_{t+1},h_t)-(1-q)^2\mathcal V(h_t,h_{t-1})\notag\\
+ &\quad=\norm{M\bar\phi}_D^2
+ -(1-\beta)\langle Mh_t,M\bar\phi\rangle_D
+ -\beta^2m_0\langle c,Mc\rangle_D
+ -\beta\langle h_t,Gh_t\rangle_D.
+ \label{eq:psi-collected-form}
+\end{align}
+Finally, $b=\beta c=z-\nu h_t$ and
+$M(b+w)=M(\bar\phi-\nu h_t)$.  Expanding its squared norm and using
+$1-\beta=2\nu$ turns \cref{eq:psi-collected-form} exactly into
+\cref{eq:psi-master-form}.
+\end{proof}
+
+The calculation uses neither the trigger that selected $\Delta_t$ nor a
+stage-type case split.  Conversely, it uses exact shifted minimization and a
+fixed positive face; it is not an identity for a finite inner solve without
+additional residual terms.
+
+\section{A sign-visible decomposition}
+
+Expanding only the first square in \cref{eq:psi-master-form} gives
+\begin{align}
+ \Psi(y,h)
+ &=\norm{Mw}_D^2+2\langle M^2w,b\rangle_D
+   -\langle b,M(m_0I-M)b\rangle_D\notag\\
+ &\qquad-\nu^2\norm{Mh}_D^2-\beta\langle h,Gh\rangle_D.
+ \label{eq:psi-slack-decomposition}
+\end{align}
+This representation keeps the complementarity $y_+y_-=0$ visible; replacing
+$y_+$ and $y_-$ by independent vectors would discard the main structure.
+
+Let $\mu_2$ be the first nonzero normalized-Laplacian eigenvalue.  On a mode
+with normalized-Laplacian eigenvalue $\mu$, the generalized eigenvalue of
+$\widetilde Q$ is
+$\lambda(\mu)=\alpha+(1-\alpha)\mu/2$, and the eigenvalue of $M$ is
+$m(\mu)=\kappa/(\kappa+\lambda(\mu))$.  If
+\begin{equation}
+ \mu_2\geq2q,
+ \label{eq:psi-hgap}
+\end{equation}
+then $0<m(\mu)\leq1-q<m_0$ on $\one^{\perp_D}$.  Since
+$m_0-2m+m^2\geq0$ for $0<m\leq1-q$, both
+$M(m_0I-M)$ and $G$ are positive semidefinite on the high space.
+
+Two entire channels now have a visible sign:
+\begin{itemize}
+ \item If $y\geq0$, then $w=0$, and every term in
+ \cref{eq:psi-slack-decomposition} is nonpositive.
+ \item If $y\leq0$, then $w=-z$ and $b+w=-\nu h$, so
+ \begin{equation}
+  \Psi(y,h)=-m_0\langle b,Mb\rangle_D
+            -\beta\langle h,Gh\rangle_D\leq0.
+ \end{equation}
+\end{itemize}
+Thus only a genuinely mixed sign pattern can violate the master inequality.
+This conclusion is analytic and family-independent under
+\cref{eq:psi-hgap}; it does not rely on finite enumeration.
+
+\section{A structural mixed-clipping theorem}
+
+The remaining mixed term admits a sufficient condition with a probabilistic
+sign interpretation.  Assume
+\begin{equation}
+ (M^2)_{ij}\leq \frac{m_0^2d_j}{\mathsf v_G}
+ \qquad(i\neq j).
+ \label{eq:psi-hk}
+\end{equation}
+This condition is entrywise and stronger than the desired conclusion, but it
+can be checked analytically on graph families.
+
+\begin{lemma}[Kernel positive association]
+\label{lem:psi-kernel-positive-association}
+Under \cref{eq:psi-hk}, for every $a\in\mathbb R^V$ and threshold
+$\Delta\in\mathbb R$, if
+\begin{equation*}
+ f=(a-\Delta\one)_+,
+ \qquad
+ g=a-f=\min\{a,\Delta\one\},
+\end{equation*}
+then
+\begin{equation}
+ \langle MPf,MPg\rangle_D\geq0.
+ \label{eq:psi-positive-association}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $\pi_i=d_i/\mathsf v_G$ and define
+\begin{equation*}
+ K_{ij}:=\frac{d_i(M^2)_{ij}}{m_0^2\mathsf v_G}.
+\end{equation*}
+Entrywise nonnegativity of $M$, $D$-self-adjointness, and
+$M^2\one=m_0^2\one$ show that $K$ is a symmetric probability coupling with
+both marginals $\pi$.  Condition \cref{eq:psi-hk} is precisely
+$K_{ij}\leq\pi_i\pi_j$ off the diagonal.  Centering by $P$ and using the
+marginals gives the exact two-point identity
+\begin{align}
+ \langle MPf,MPg\rangle_D
+ &=m_0^2\mathsf v_G
+   \left(\sum_{i,j}K_{ij}f_ig_j
+        -\sum_i\pi_if_i\sum_j\pi_jg_j\right)\notag\\
+ &=\frac{m_0^2\mathsf v_G}{2}
+   \sum_{i,j}(\pi_i\pi_j-K_{ij})(f_i-f_j)(g_i-g_j).
+ \label{eq:psi-two-point-kernel}
+\end{align}
+Both $f$ and $g$ are nondecreasing functions of the same scalar $a_i$, so
+the difference product is nonnegative.  Its diagonal value is zero, and
+every off-diagonal coefficient is nonnegative by \cref{eq:psi-hk}.  This
+proves the claim.
+\end{proof}
+
+\begin{theorem}[Structural nonpositivity of the master form]
+\label{thm:psi-hk-nonpositivity}
+If $\mu_2\geq2q$ and \cref{eq:psi-hk} holds, then
+\begin{equation}
+ \Psi(y,h)\leq0
+ \qquad
+ \text{for every }y\in\mathbb R^V,
+ \quad h\in\one^{\perp_D}.
+ \label{eq:psi-hk-conclusion}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Given $y$, choose $\Delta\geq\max_i(-y_i)$ and put
+$a=y+\Delta\one$.  Then $f=y_+$, $z=Py=Pa$, and
+$Pg=z-Pf$.  Hence \cref{lem:psi-kernel-positive-association} says
+\begin{equation}
+ \langle MPf,M(z-Pf)\rangle_D\geq0,
+ \quad\text{or equivalently}\quad
+ \langle MPf,Mz\rangle_D\geq\norm{MPf}_D^2.
+ \label{eq:psi-kernel-payment}
+\end{equation}
+In \cref{eq:psi-collected-form}, write $c=b/\beta$ and note
+$z=\beta c+\nu h$.  The first two terms of that form satisfy
+\begin{align*}
+ L
+ &:=\norm{MPf}_D^2-2\nu\langle Mh,MPf\rangle_D\\
+ &=\norm{MPf}_D^2-2\langle M(z-\beta c),MPf\rangle_D\\
+ &\leq-\norm{MPf}_D^2+2\beta\langle Mc,MPf\rangle_D\\
+ &\leq\beta^2\norm{Mc}_D^2
+ \leq\beta^2m_0\langle c,Mc\rangle_D.
+\end{align*}
+The first inequality uses \cref{eq:psi-kernel-payment}, the second completes
+the square, and the third uses $0\prec M\preceq m_0I$ in the
+$D$-inner product.  This pays the $c$-term of
+\cref{eq:psi-collected-form}.  The remaining term
+$-\beta\langle h,Gh\rangle_D$ is nonpositive under
+$\mu_2\geq2q$, proving \cref{eq:psi-hk-conclusion}.
+\end{proof}
+
+\section{An infinite non-scalar family: complete bipartite graphs}
+
+Condition \cref{eq:psi-hk} has a $q$-independent graph form.  Indeed,
+\begin{equation}
+ \widetilde Q+\kappa D
+ =\frac{1-\alpha}{2}(3D-A),
+ \qquad
+ M=\frac{2(1-2\alpha)}{1-\alpha}N,
+ \qquad
+ N:=(3D-A)^{-1}D.
+ \label{eq:psi-n-resolvent}
+\end{equation}
+Since $N\one=\one/2$, condition \cref{eq:psi-hk} is equivalent to
+\begin{equation}
+ 4\mathsf v_G(N^2)_{ij}\leq d_j
+ \qquad(i\neq j).
+ \label{eq:psi-hk-n}
+\end{equation}
+
+\begin{theorem}[Master nonpositivity on every complete bipartite graph]
+\label{thm:psi-complete-bipartite}
+Let $G=K_{a,b}$ with integers $a,b\geq1$.  For every $0<q\leq1/2$,
+condition \cref{eq:psi-hgap} holds and
+\begin{equation}
+ \sup_{y\in\mathbb R^{a+b},\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-complete-bipartite-sup}
+\end{equation}
+In particular, the exact positive-face recurrence satisfies the one-step
+contraction \cref{eq:psi-master-identity} on the entire infinite family.
+\end{theorem}
+
+\begin{proof}
+Let $L$ and $R$ be the two parts, with $|L|=a$ and $|R|=b$; degrees are $b$
+on $L$ and $a$ on $R$, and $\mathsf v_G=2ab$.  Solving
+$(3D-A)z=Dx$ by the two part sums gives
+\begin{equation}
+ N=
+ \begin{pmatrix}
+ \frac13I_a+\frac1{24a}J_a&\frac1{8b}J_{a\times b}\\[2mm]
+ \frac1{8a}J_{b\times a}&\frac13I_b+\frac1{24b}J_b
+ \end{pmatrix}.
+ \label{eq:psi-kab-n}
+\end{equation}
+Squaring the four blocks shows, for distinct vertices,
+\begin{equation}
+ (N^2)_{ij}=
+ \begin{cases}
+  13/(288a),&i,j\in L,\\
+  13/(288b),&i,j\in R,\\
+  3/(32b),&i\in L,\ j\in R,\\
+  3/(32a),&i\in R,\ j\in L.
+ \end{cases}
+ \label{eq:psi-kab-n2}
+\end{equation}
+The corresponding left-to-right ratios in \cref{eq:psi-hk-n} are
+$13/36$ within either part and $3/4$ across the cut.  Thus
+\cref{eq:psi-hk-n} holds strictly.
+
+The normalized-Laplacian spectrum of $K_{a,b}$ is
+$\{0,1^{(a+b-2)},2\}$ when $a+b\geq3$, while $K_{1,1}$ has spectrum
+$\{0,2\}$.  Hence $\mu_2\geq1\geq2q$.  The structural theorem
+\cref{thm:psi-hk-nonpositivity} gives $\Psi\leq0$.  Equality is attained at
+$y=0,h=0$, so the supremum is zero.
+\end{proof}
+
+This family is not a disguised scalar-high-space case: when $a+b\geq3$, the
+normalized Laplacian has the two distinct high eigenvalues $1$ and $2$.
+Thus the theorem goes beyond the complete-graph truncation-covariance proof.
+It includes every star $K_{1,b}$, but it remains a positive-face Lyapunov
+statement rather than a locality or work theorem.
+
+\paragraph{Novelty boundary.}
+The read-only Fable evidence already lists $K_{a,b}$ inside its proposed
+\textup{(HK)} subclass.  The calculation above is therefore an independent
+analytic closure and normalization of that listed family, not a new family
+discovery.  The unequal-part complete-multipartite closure below is the
+strict extension pursued here.
+
+\section{Unequal complete multipartite graphs}
+
+Let $G=K_{n_1,\ldots,n_k}$, where $k\geq2$ and every $n_r\geq1$.  Put
+$n=\sum_r n_r$, $d_r=n-n_r$, and let $r(i)$ denote the part containing
+vertex $i$.  The direct block inverse already shows that unequal part sizes
+do not create a singular threshold.  With
+\begin{equation}
+ c_r=3n-2n_r,
+ \qquad
+ C=1-\sum_{r=1}^k\frac{n_r}{c_r},
+ \label{eq:psi-kmultipartite-block-parameters}
+\end{equation}
+one obtains
+\begin{equation}
+ N_{ij}
+ =\frac13\mathbf1_{\{i=j\}}
+  +\frac{d_{r(j)}}{c_{r(i)}C c_{r(j)}}
+  -\frac{\mathbf1_{\{r(i)=r(j)\}}}{3c_{r(i)}}.
+ \label{eq:psi-kmultipartite-block-inverse}
+\end{equation}
+The following result proves that the favorable kernel sign persists for
+every part vector.
+
+\begin{theorem}[Master nonpositivity on every complete multipartite graph]
+\label{thm:psi-complete-multipartite}
+For every $G=K_{n_1,\ldots,n_k}$ with $k\geq2$, every $n_r\geq1$, and every
+$0<q\leq1/2$, condition \cref{eq:psi-hk-n} holds.  Consequently,
+\begin{equation}
+ \sup_{y\in\mathbb R^n,\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-complete-multipartite-sup}
+\end{equation}
+This assertion is for the exact positive-face recurrence and carries no
+local-work conclusion.
+\end{theorem}
+
+\begin{proof}
+Write
+\begin{equation}
+ p_r=\frac{n_r}{n},\qquad
+ \delta=\sum_u p_u(1-p_u),\qquad
+ \Pi_r=\frac{p_r(1-p_r)}{\delta}.
+ \label{eq:psi-kmultipartite-masses}
+\end{equation}
+Thus $\Pi_r$ is the stationary mass of part $r$ and the stationary mass of
+one vertex in that part is $\pi_j=\Pi_r/n_r$.  Let
+$R$ be the random-walk chain lumped by parts:
+\begin{equation}
+ R_{rs}=\begin{cases}
+ p_s/(1-p_r),&r\neq s,\\
+ 0,&r=s.
+ \end{cases}
+ \label{eq:psi-kmultipartite-part-chain}
+\end{equation}
+Since $N=(3I-D^{-1}A)^{-1}$, the stochastic kernel
+$\widehat N:=2N$ lumps to
+$\widehat R:=2(3I-R)^{-1}$.  Define
+\begin{equation}
+ x_r=\frac{2}{3-2p_r},\qquad
+ m=\sum_u\Pi_u x_u,\qquad
+ t=\frac{\sum_u\Pi_u x_u^2}{m}.
+ \label{eq:psi-kmultipartite-xmt}
+\end{equation}
+A rank-one inversion of \cref{eq:psi-kmultipartite-part-chain} gives the
+exact formula
+\begin{equation}
+ \widehat R_{rs}
+ =\left(1-\frac{x_r}{2}\right)\mathbf1_{\{r=s\}}
+   +\frac{x_rx_s}{2m}\Pi_s.
+ \label{eq:psi-kmultipartite-rhat}
+\end{equation}
+In particular, for $r\neq s$,
+\begin{equation}
+ \frac{(\widehat R^2)_{rs}}{\Pi_s}
+ =\frac{x_rx_s}{4m}(4-x_r-x_s+t).
+ \label{eq:psi-kmultipartite-cross-ratio}
+\end{equation}
+
+We prove that the last ratio is at most one.  The interval
+$2/3\leq x_u\leq2$ gives
+\begin{equation}
+ x_u^2\leq\frac83x_u-\frac43,
+ \qquad
+ t\leq\frac83-\frac{4}{3m}.
+ \label{eq:psi-kmultipartite-t-bound}
+\end{equation}
+Fix the two distinct parts and abbreviate $p=p_r$, $s=p_s$, $x=x_r$,
+$y=x_s$, and $r_0=1-p-s$.  Since $p+s\leq1$,
+$(3-2p)(3-2s)\geq3$, hence $xy\leq4/3$.  Also $m\geq2/3$, so
+$xy\leq3m^2$.  Therefore
+\begin{equation}
+ F(m):=4m-xy\left(\frac{20}{3}-x-y-\frac{4}{3m}\right)
+ \label{eq:psi-kmultipartite-f}
+\end{equation}
+is nondecreasing in $m$.  If $w(u)=u(1-u)$, the remaining parts have total
+weight $W=\sum_{u\neq r,s}w(p_u)\leq r_0$ and contribute at least
+$2W/3$ to the numerator of $m$.  Hence
+\begin{equation}
+ m\geq m_L
+ :=\frac{w(p)x+w(s)y+(2/3)r_0}{w(p)+w(s)+r_0}.
+ \label{eq:psi-kmultipartite-ml}
+\end{equation}
+Here the last replacement $W\mapsto r_0$ is valid because
+$(A+(2/3)W)/(B+W)$ is nonincreasing when $A/B\geq2/3$, with
+$A=w(p)x+w(s)y$ and $B=w(p)+w(s)$.
+The monotonicity of $F$ reduces the claim to one exact bivariate polynomial
+certificate.  For degree $d$, define the simplex Bernstein polynomial
+\begin{equation}
+ \mathcal B_d[c](p,s)
+ :=\sum_{i+j\leq d}c_{ij}\frac{d!}{i!j!(d-i-j)!}
+ p^is^j(1-p-s)^{d-i-j}.
+ \label{eq:psi-simplex-bernstein}
+\end{equation}
+Let $\mathcal P=\mathcal B_8[c]$, where row $i$ below lists
+$c_{i0},\ldots,c_{i,8-i}$:
+{\scriptsize
+\begin{equation}
+\begin{array}{c|l}
+0&(81,54,459/14,243/14,54/7,81/28,27/28,0,0)\\
+1&(54,2025/56,1247/56,3399/280,1587/280,65/28,27/28,0)\\
+2&(459/14,1247/56,2977/210,4581/560,869/210,13/7,27/28)\\
+3&(243/14,3399/280,4581/560,1457/280,85/28,3/2)\\
+4&(54/7,1587/280,869/210,85/28,81/35)\\
+5&(81/28,65/28,13/7,3/2)\\
+6&(27/28,27/28,27/28)\\
+7&(0,0)\\
+8&(0)
+\end{array}
+\label{eq:psi-kmultipartite-p-coefficients}
+\end{equation}
+}
+Also let
+\begin{equation}
+ \mathcal L(p,s)
+ =2p^2s-3p^2+2ps^2+4ps-6p-3s^2-6s+9.
+ \label{eq:psi-kmultipartite-l}
+\end{equation}
+Its degree-three Bernstein coefficient rows are
+$(9,7,4,0)$, $(7,17/3,4)$, $(4,4)$, and $(0)$.
+Direct rational simplification gives
+\begin{equation}
+ F(m_L)=
+ \frac{32\mathcal P(p,s)}
+ {3(3-2p)^2(3-2s)^2(1-p^2-s^2)\mathcal L(p,s)}.
+ \label{eq:psi-kmultipartite-bernstein-certificate}
+\end{equation}
+Every displayed Bernstein coefficient is nonnegative.  Since $p,s>0$ and
+$p+s\leq1$, the denominator is positive; hence $F(m_L)\geq0$.
+Together with \cref{eq:psi-kmultipartite-t-bound,eq:psi-kmultipartite-f},
+this proves $(\widehat R^2)_{rs}\leq\Pi_s$ for $r\neq s$.
+
+It remains to check distinct vertices in the same part.  The normalized
+adjacency is congruent to the adjacency matrix and has one positive eigenvalue,
+$k-1$ negative eigenvalues, and $n-k$ zero eigenvalues.  One elementary way
+to see this is to restrict the adjacency quadratic form to part-constant
+vectors: it has one positive direction and is negative definite on the
+codimension-one subspace whose weighted part sum is zero; every within-part
+zero-sum vector lies in the kernel.  Thus every nonconstant eigenvalue of
+$R$ lies in $[-1,0)$, and every nonconstant eigenvalue of
+$\widehat R^2$ is at most $4/9$.  Reversibility then gives
+\begin{equation}
+ (\widehat R^2)_{rr}
+ \leq\Pi_r+\frac49(1-\Pi_r).
+ \label{eq:psi-kmultipartite-diagonal-covariance}
+\end{equation}
+On a within-part zero-sum vector, $\widehat N^2$ has eigenvalue $4/9$.
+Consequently, for distinct $i,j$ in part $r$,
+\begin{equation}
+ (\widehat N^2)_{ij}
+ =\frac{(\widehat R^2)_{rr}-4/9}{n_r}
+ \leq\frac{5\Pi_r}{9n_r}
+ \leq\pi_j.
+ \label{eq:psi-kmultipartite-same-part}
+\end{equation}
+For vertices in different parts, block constancy and the cross-part result
+give $(\widehat N^2)_{ij}=(\widehat R^2)_{rs}/n_s\leq\pi_j$.
+Because $\widehat N^2=4N^2$, these two bounds are exactly
+\cref{eq:psi-hk-n}.
+
+Finally, the nontrivial normalized-adjacency spectrum is nonpositive apart
+from the Perron eigenvalue, with possible zero modes.  Hence the first
+nonzero normalized-Laplacian eigenvalue is at least one, so
+$\mu_2\geq1\geq2q$.  The structural theorem gives $\Psi\leq0$, and
+$y=h=0$ attains equality.
+\end{proof}
+
+\section{Eliminating the high variable: a route beyond \textup{(HK)}}
+
+The entrywise condition \cref{eq:psi-hk} is not necessary.  A second
+sufficient condition appears after eliminating $h$ exactly while preserving
+the disjointness of the positive and negative parts of $y$.  Put
+\begin{equation}
+ u=P(y_+),\qquad v=P(y_-),
+ \label{eq:psi-eliminate-uv}
+\end{equation}
+and define, on $\one^{\perp_D}$,
+\begin{align}
+ \mathcal A_q
+ &:=\frac1{m_0}M(m_0I-M)^2(I-M)^{-1},\notag\\
+ \mathcal B_q
+ &:=m_0MG(I-M)^{-1}(m_0I-M)^{-1},\notag\\
+ \mathcal C_q
+ &:=M(m_0I-M)(I-M)^{-1}.
+ \label{eq:psi-abc-kernels}
+\end{align}
+All factors commute.  The inverse of $m_0I-M$ is only used on the high
+space, where it is positive definite.
+
+\begin{lemma}[Exact elimination of $h$]
+\label{lem:psi-eliminate-h}
+Under \cref{eq:psi-hgap}, for every fixed $y$,
+\begin{equation}
+ \sup_{h\in\one^{\perp_D}}\Psi(y,h)
+ =-\langle u,\mathcal A_qu\rangle_D
+  -\langle v,\mathcal B_qv\rangle_D
+  +2\langle u,\mathcal C_qv\rangle_D.
+ \label{eq:psi-eliminated-form}
+\end{equation}
+Moreover, $\mathcal A_q$ and $\mathcal B_q$ are positive semidefinite and
+$\mathcal C_q\one=0$.
+\end{lemma}
+
+\begin{proof}
+Since $Py=u-v$ and $P(y_-)=v$, direct expansion of
+\cref{eq:psi-master-form} gives a concave quadratic in $h$.  Its negative
+Hessian and linear vector are
+\begin{align*}
+ S&=\nu^2m_0M+\beta G
+   =\beta(I-M)(m_0I-M),\\
+ r_h&=M\bigl((m_0I-M)u-m_0v\bigr).
+\end{align*}
+Here the factorization uses $m_0=1-q^2$ and
+$\nu^2m_0=\beta q^2$.  Completing the square adds
+$\nu^2\langle r_h,S^{-1}r_h\rangle_D$ to the constant term
+$\langle u,M^2u\rangle_D-m_0\langle u-v,M(u-v)\rangle_D$.
+Collecting the $u^2$, $v^2$, and $uv$ coefficients yields exactly
+\cref{eq:psi-eliminated-form}.  The high-space spectral bounds used after
+\cref{eq:psi-hgap} give $0\prec M\prec m_0I\prec I$ and $G\succeq0$, so
+the two diagonal operators are positive semidefinite.  Finally,
+$(m_0I-M)\one=0$, hence $\mathcal C_q\one=0$.
+\end{proof}
+
+Consider the following $q$-dependent clipped-Laplacian condition:
+\begin{equation}
+ (\mathcal C_q)_{ij}\leq0
+ \qquad(i\neq j).
+ \label{eq:psi-cl}
+\end{equation}
+Unlike \textup{(HK)}, this is a sign condition on a zero-row-sum kernel and
+need not compare a positive resolvent entry with the shrinking stationary
+mass.
+
+\begin{theorem}[Clipped-Laplacian sufficient condition]
+\label{thm:psi-cl}
+If \cref{eq:psi-hgap,eq:psi-cl} hold, then
+$\Psi(y,h)\leq0$ for every $y\in\mathbb R^V$ and
+$h\in\one^{\perp_D}$.
+\end{theorem}
+
+\begin{proof}
+Let $f=y_+$ and $g=y_-$.  Since $fg=0$ coordinatewise and
+$\mathcal C_q\one=0$, projection can be removed from the cross term:
+\begin{equation}
+ \langle u,\mathcal C_qv\rangle_D
+ =\langle f,\mathcal C_qg\rangle_D
+ =\sum_{i\neq j}d_if_i(\mathcal C_q)_{ij}g_j\leq0.
+ \label{eq:psi-cl-cross}
+\end{equation}
+The two diagonal terms in \cref{eq:psi-eliminated-form} are nonpositive,
+so the supremum over $h$ is nonpositive.  The original value is no larger.
+\end{proof}
+
+\section{Edgewise payment beyond the clipped-Laplacian sign condition}
+
+Condition \textup{(CL)} discards every positive off-diagonal entry of the
+cross kernel.  A positive entry can instead be paid locally when the two
+negative diagonal energies carry enough weight on the same unordered pair.
+For the next statement, extend $\mathcal A_q$ and $\mathcal B_q$ by zero on
+the constant mode and put
+\begin{equation*}
+ K^{\mathrm A}:=D\mathcal A_q,
+ \qquad K^{\mathrm B}:=D\mathcal B_q,
+ \qquad K^{\mathrm C}:=D\mathcal C_q.
+\end{equation*}
+These matrices are symmetric and have zero row sums.
+
+\begin{theorem}[Edgewise Young payment]
+\label{thm:psi-edgewise-young}
+Assume \cref{eq:psi-hgap}.  Suppose, for every $i\neq j$,
+\begin{equation}
+ K^{\mathrm A}_{ij}\leq0,
+ \qquad K^{\mathrm B}_{ij}\leq0,
+ \qquad
+ \bigl(K^{\mathrm C}_{ij}\bigr)^2
+ \leq
+ \bigl(-K^{\mathrm A}_{ij}\bigr)
+ \bigl(-K^{\mathrm B}_{ij}\bigr)
+ \quad\hbox{whenever }K^{\mathrm C}_{ij}>0.
+ \label{eq:psi-edgewise-young-condition}
+\end{equation}
+Then $\Psi(y,h)\leq0$ for every $y\in\mathbb R^V$ and
+$h\in\one^{\perp_D}$.
+\end{theorem}
+
+\begin{proof}
+Put $f=y_+$ and $g=y_-$.  Projection can be removed from all three terms in
+\cref{eq:psi-eliminated-form}, because the three extended kernels annihilate
+$\one$.  Set
+\begin{equation*}
+ a_{ij}:=-K^{\mathrm A}_{ij},
+ \qquad b_{ij}:=-K^{\mathrm B}_{ij},
+ \qquad c_{ij}:=K^{\mathrm C}_{ij}
+ \quad(i\neq j).
+\end{equation*}
+The zero-row-sum identities and the first two sign assumptions give
+\begin{equation*}
+ \langle f,\mathcal A_qf\rangle_D
+ =\sum_{i<j}a_{ij}(f_i-f_j)^2,
+ \qquad
+ \langle g,\mathcal B_qg\rangle_D
+ =\sum_{i<j}b_{ij}(g_i-g_j)^2.
+\end{equation*}
+Also
+\begin{equation*}
+ \langle f,\mathcal C_qg\rangle_D
+ =\sum_{i<j}c_{ij}(f_ig_j+f_jg_i),
+\end{equation*}
+because $f_ig_i=0$.  Terms with $c_{ij}\leq0$ are nonpositive.  If
+$c_{ij}>0$, coordinatewise disjointness implies that at most one of
+$f_ig_j$ and $f_jg_i$ is nonzero.  In the first case $g_i=f_j=0$, and
+Young's inequality plus \cref{eq:psi-edgewise-young-condition} gives
+\begin{equation*}
+ 2c_{ij}f_ig_j
+ \leq a_{ij}f_i^2+b_{ij}g_j^2
+ =a_{ij}(f_i-f_j)^2+b_{ij}(g_i-g_j)^2.
+\end{equation*}
+The other orientation is identical.  Summing over unordered pairs proves
+\begin{equation*}
+ 2\langle f,\mathcal C_qg\rangle_D
+ \leq
+ \langle f,\mathcal A_qf\rangle_D
+ +\langle g,\mathcal B_qg\rangle_D.
+\end{equation*}
+Insert this bound in \cref{eq:psi-eliminated-form}; the supremum over $h$ is
+nonpositive, and so is every original value.
+\end{proof}
+
+\section{An infinite cycle-blow-up family strictly beyond \textup{(HK)}}
+
+For $a\geq1$, let $B_a=C_6[\overline K_a]$ be the balanced independent-set
+blow-up of the six-cycle: replace each cycle vertex by an independent part
+of size $a$, and join two parts completely exactly when their cycle
+vertices are adjacent.  This is not a complete multipartite graph.
+
+\begin{theorem}[Cycle-blow-up master nonpositivity beyond \textup{(HK)}]
+\label{thm:psi-c6-blowup}
+For every integer $a\geq1$ and every $0<q\leq1/4$,
+\begin{equation}
+ \sup_{y\in\mathbb R^{6a},\ h\in\one^{\perp_D}}\Psi(y,h)=0
+ \qquad\text{on }B_a.
+ \label{eq:psi-c6-blowup-sup}
+\end{equation}
+Nevertheless, \textup{(HK)} fails strictly on every $B_a$.
+\end{theorem}
+
+\begin{proof}
+Let $\mathsf H=2(3I-D^{-1}A)^{-1}$, so $M=m_0\mathsf H$.  On functions
+constant within each part, $\mathsf H$ is the six-cycle circulant with
+eigenvalues
+\begin{equation*}
+ 1,\quad (4/5)^{(2)},\quad(4/7)^{(2)},\quad1/2.
+\end{equation*}
+On every within-part zero-sum subspace its eigenvalue is $2/3$.  Therefore
+\begin{equation}
+ \mathcal C_q
+ =m_0^2\mathsf H(I-\mathsf H)(I-m_0\mathsf H)^{-1}.
+ \label{eq:psi-c6-blowup-c}
+\end{equation}
+Put $r=q^2$ and
+$\mathcal D(r)=140(1+r)(1+4r)(3+4r)$.  Spectral inversion of the six-cycle
+gives the first row $c_0,\ldots,c_5$ of the part-level kernel, with
+$c_5=c_1$, $c_4=c_2$, and
+\begin{align}
+ c_0&=\frac{(1-r)^2(656r^2+848r+227)}{\mathcal D(r)},\notag\\
+ c_1&=-\frac{(1-r)^2(272r^2+256r+19)}{\mathcal D(r)},\notag\\
+ c_2&=-\frac{(1-r)^2(48r^2+144r+61)}{\mathcal D(r)},\notag\\
+ c_3&=-\frac{(1-r)^2(16r^2+48r+67)}{\mathcal D(r)}.
+ \label{eq:psi-c6-circulant-entries}
+\end{align}
+Thus every part-level off-diagonal entry is strictly negative for
+$0<r<1$.  The within-part eigenvalue is
+\begin{equation*}
+ c_{\rm in}=\frac{2(1-r)^2}{3(1+2r)},
+\end{equation*}
+and exact subtraction gives
+\begin{equation}
+ c_{\rm in}-c_0
+ =\frac{(1-r)^2(544r^3+1904r^2+1414r+159)}
+ {420(1+r)(1+2r)(1+4r)(3+4r)}>0.
+ \label{eq:psi-c6-within-margin}
+\end{equation}
+For vertices in different parts at cyclic distance $d$, the full kernel
+entry is $c_d/a<0$.  For distinct vertices in the same part it is
+$(c_0-c_{\rm in})/a<0$.  Hence \textup{(CL)} holds strictly.
+
+The normalized-Laplacian spectrum contains the six-cycle part modes and
+the within-part eigenvalue $1$, so $\mu_2=1/2$.  Therefore
+$q\leq1/4$ is exactly the required high-gap range, and
+\cref{thm:psi-cl} proves \cref{eq:psi-c6-blowup-sup}; equality occurs at
+$y=h=0$.
+
+To separate this result from the earlier kernel route, let
+$N=(3I-D^{-1}A)^{-1}$.  On the base six-cycle,
+$(N^2)_{0,1}=1737/39200$ for adjacent parts.  The corresponding entry on
+$B_a$ is smaller by $a$, while $\mathsf v_G=12a^2$ and $d_j=2a$.
+Thus the left-to-right ratio in \cref{eq:psi-hk-n} is
+\begin{equation}
+ \frac{4\mathsf v_G(N^2)_{ij}}{d_j}
+ =24\frac{1737}{39200}
+ =\frac{5211}{4900}>1.
+ \label{eq:psi-c6-hk-failure}
+\end{equation}
+So \textup{(HK)} fails on every member of the family even though the exact
+master form is nonpositive.
+\end{proof}
+
+\paragraph{An exact cycle beyond \textup{(CL)}.}
+Condition \textup{(CL)} is not universal even within cycles.  On $C_{10}$
+at $q=1/20$, exact rational inversion gives
+\begin{equation}
+ (\mathcal C_q)_{0,1}
+ =\frac{6998345705403423}{396849260156782400}>0.
+ \label{eq:psi-c10-cl-failure}
+\end{equation}
+Thus the simple off-diagonal sign proof cannot cover this cycle.  The new
+edgewise condition nevertheless pays its two positive adjacent entries.
+
+\begin{theorem}[Ten-cycle blow-ups beyond \textup{(CL)}]
+\label{thm:psi-c10-edgewise}
+For every integer $a\geq1$, let
+$B_a^{(10)}=C_{10}[\overline K_a]$ be the balanced independent-set blow-up
+of the ten-cycle.  For every
+\begin{equation}
+ \frac1{25}\leq q\leq\frac7{100},
+ \label{eq:psi-c10-edgewise-q-window}
+\end{equation}
+one has
+\begin{equation}
+ \sup_{y\in\mathbb R^{10a},\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-c10-edgewise-sup}
+\end{equation}
+This conclusion holds even though \textup{(CL)} fails throughout the same
+parameter window on every member.  In particular, $q=1/20$ gives the exact
+calibration in \cref{eq:psi-c10-cl-failure}.
+\end{theorem}
+
+\begin{proof}
+The normalized-Laplacian gap is
+$\mu_2=1-\cos(\pi/5)=(3-\sqrt5)/4$.  Since $\sqrt5<9/4$,
+$\mu_2>3/16>7/50\geq2q$, so
+\cref{eq:psi-hgap} holds; the additional within-part modes have normalized-
+Laplacian eigenvalue one.
+
+Put $r=q^2$.  On the part-constant subspace the three kernels are the base
+$C_{10}$ circulants.  Diagonalizing the cycle over
+$\mathbb Q(\sqrt5)(r)$ and pairing conjugate Fourier modes makes each entry a
+rational function in $r$.  Cancel its exact polynomial gcd and substitute
+\[
+ r=\frac1{625}
+ +t\left(\frac{49}{10000}-\frac1{625}\right),
+ \qquad 0\leq t\leq1.
+\]
+The following table records the exact Bernstein certificate.  In every row,
+all Bernstein coefficients of the signed numerator and denominator are
+strictly positive.
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+quantity & numerator degree & denominator degree & certified sign\\
+\midrule
+$\mathcal A_q(0,d)$, $1\leq d\leq5$ & $6$ & $5$ & negative\\
+$\mathcal B_q(0,d)$, $1\leq d\leq5$ & $7$ & $5$ & negative\\
+$\mathcal C_q(0,1)$ & $6$ & $5$ & positive\\
+$\mathcal C_q(0,d)$, $2\leq d\leq5$ & $6$ & $5$ & negative\\
+within-part $\mathcal A_q,\mathcal B_q,\mathcal C_q$
+ & $7,8,7$ & $6,6,6$ & negative\\
+$\mathcal A_q(0,1)\mathcal B_q(0,1)-\mathcal C_q(0,1)^2$
+ & $8$ & $5$ & positive\\
+\bottomrule
+\end{tabular}
+\end{center}
+Thus the only positive off-diagonal entries of $\mathcal C_q$ are the two
+adjacent entries, while every off-diagonal entry of $\mathcal A_q$ and
+$\mathcal B_q$ is negative.  The last row is exactly the adjacent edgewise
+Young margin.  At the interior calibration $q=1/20$, the common degree factor
+cancels and the exact edgewise ratio is
+\begin{equation}
+ \frac{(\mathcal C_q)_{0,1}^2}
+ {(-\mathcal A_q{}_{0,1})(-\mathcal B_q{}_{0,1})}
+ =\frac{9190540374100260057432724000}
+ {35964609239043602890432954263}<1.
+ \label{eq:psi-c10-edgewise-ratio}
+\end{equation}
+On a within-part zero-sum mode the resolvent eigenvalue is $m_0(2/3)$.
+Subtracting the corresponding scalar kernel eigenvalue from the base diagonal
+entry at $q=1/20$ gives the three calibration values
+\begin{equation*}
+ -\frac{8569107687113450384299}{189685215671218537987200},\quad
+ -\frac{5779278789418042112799}{53177800861008841600000},\quad
+ -\frac{1662576823382931953}{26588900430504420800}
+\end{equation*}
+for $\mathcal A_q,\mathcal B_q,\mathcal C_q$, respectively.  They are all
+strictly negative, consistently with the interval certificate.  Every
+cross-part entry is the corresponding base entry divided by $a$, while every
+within-part off-diagonal entry is its certified value divided by $a$.  The
+positive adjacent ratio is therefore unchanged, and
+\cref{eq:psi-edgewise-young-condition} holds for every $a$ throughout
+\eqref{eq:psi-c10-edgewise-q-window}.
+Consequently
+\cref{thm:psi-edgewise-young} proves nonpositivity.  Equality occurs at
+$y=h=0$.  The adjacent cross entry stays positive after division by $a$, so
+\textup{(CL)} fails on every member.
+\end{proof}
+
+The same edgewise mechanism is not isolated to ten-cycle arithmetic.  At the
+central calibration $q=1/20$, it closes the two neighboring cycle sizes as
+well, and therefore supplies two additional infinite blow-up families.
+
+\begin{theorem}[Neighboring-cycle blow-ups at the central calibration]
+\label{thm:psi-neighboring-cycle-edgewise}
+For $n\in\{9,10,11\}$, every integer $a\geq1$, and $q=1/20$, the balanced
+independent-set blow-up $C_n[\overline K_a]$ satisfies
+\begin{equation}
+ \sup_{y\in\mathbb R^{na},\ h\in\one^{\perp_D}}\Psi(y,h)=0.
+ \label{eq:psi-neighboring-cycle-edgewise-sup}
+\end{equation}
+Condition \textup{(CL)} fails on every member because the two adjacent entries
+of $\mathcal C_q$ are positive.
+\end{theorem}
+
+\begin{proof}
+Exact rational inversion of the three base cycles gives strictly negative
+off-diagonal entries for $\mathcal A_q$ and $\mathcal B_q$.  The only positive
+off-diagonal entries of $\mathcal C_q$ occur at cyclic distances $1$ and
+$n-1$.  Their exact Young ratios are
+\begin{equation*}
+ \begin{array}{c|c}
+ n & \mathcal C_q(0,1)^2/
+       [(-\mathcal A_q(0,1))(-\mathcal B_q(0,1))]\\
+ \hline
+ 9 & \displaystyle
+ \frac{5842738024515092025}{119159286728031753407}\\[2mm]
+ 10 & \displaystyle
+ \frac{9190540374100260057432724000}
+ {35964609239043602890432954263}\\[2mm]
+ 11 & \displaystyle
+ \frac{759833811295164275525119375}
+ {1836567396937201040410711278}
+ \end{array}
+\end{equation*}
+and every ratio is strictly less than one.  The registered exact checker also
+subtracts the within-part scalar eigenvalue from each base diagonal and
+certifies all nine resulting entries to be negative.  All tests are rational
+integer cross-multiplications, and no floating-point eigendecomposition is
+used.  Division by $a$ preserves the signs and cancels from every Young ratio.
+
+It remains to check the high-gap hypothesis.  The smallest gap among the
+three bases is $2\sin^2(\pi/11)$.  From $3<\pi<22/7$ and
+$\sin x\geq x-x^3/6$ on this range,
+\begin{equation*}
+ \sin(\pi/11)>
+ \frac3{11}-\frac16\left(\frac2{7}\right)^3,
+ \qquad
+ 2\sin^2(\pi/11)>\frac1{10}=2q.
+\end{equation*}
+The within-part modes have normalized-Laplacian eigenvalue one.  Hence
+\cref{eq:psi-hgap,eq:psi-edgewise-young-condition} hold, and
+\cref{thm:psi-edgewise-young} proves \cref{eq:psi-neighboring-cycle-edgewise-sup}.
+\end{proof}
+
+\input{sections/diagonal_completion}
+
+\end{document}

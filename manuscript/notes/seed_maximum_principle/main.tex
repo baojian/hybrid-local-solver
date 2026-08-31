@@ -1,0 +1,316 @@
+% Standalone research note for the hybrid-local-solver project.
+%
+% The note proves that degree-normalized PPR is maximized at its seed, fixes
+% the resulting response-row reciprocity factor, and derives the general-graph
+% terminal potential bound for nonnegative residual/output maps.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{A Seed Maximum Principle for Personalized PageRank\\
+and a General Output-Map Potential Bound}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For the source-aligned personalized PageRank vector $\pi$ seeded at $v$, we
+prove the discrete maximum principle
+\[
+    \frac{\pi_u}{d_u}\le \frac{\pi_v}{d_v}
+    \qquad (u\in V).
+\]
+Combining it with reversibility gives the exact response-row formula
+\[
+ \frac{\operatorname{pr}(e_u)_v}{\pi_v}
+ =\frac{d_v\pi_u}{d_u\pi_v}
+ =\frac{\pi_u/d_u}{\pi_v/d_v}\le1.
+\]
+Thus the response-row constant relevant to the monotone unsettled-value
+potential equals one on every connected graph, not merely on the centre-seeded
+star.  This corrects an inverted degree ratio in an earlier proof-campaign
+transcription.
+
+As a consequence, if a one-hop state has nonnegative residual $r$ and reports
+$z+Mr$ using any nonnegative output map with column mass at most $B$, then a
+degree-normalized $\epsppr$ solution implies
+\[
+ \frac{(H^{-1}r)_v}{\pi_v}
+ \le \frac{\|r\|_1}{\gamma_{\alpha}}
+ \le \frac{\epsppr\vol(V)}{1-\gamma_{\alpha} B}
+ \qquad(\gamma_{\alpha} B<1).
+\]
+This closes the general-graph terminal-potential question and extends the
+associated monotone seed-operation lower bound to output maps.  It does not
+apply to signed residuals, signed output maps, or stronger response
+primitives, and it does not resolve the signed-relaxation lower-bound problem.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Scope and push-scale formulation}
+\label{sec:seed-scope}
+
+\paragraph{Claim status.}
+All mathematical statements in this note are \statusproved{} in the shared
+exact-arithmetic model.  The note imports no theorem beyond the shared PPR
+definition.  Cross-direction integration is \statusopen{} because the note
+whose transcription motivated the correction was separately owned and was
+left untouched.
+
+Specialize the shared model to a single seed $s=e_v$ and put
+\begin{equation}
+ c_{\alpha}:=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ \gamma_{\alpha}:=\frac{2\alpha}{1+\alpha}=1-c_{\alpha},
+ \qquad
+ H:=I-c_{\alpha} AD^{-1}.
+ \label{eq:seed-push-operator}
+\end{equation}
+Then $H\pi=\gamma_{\alpha} e_v$.  For any $h\in\mathbb R^V$, define the discounted
+response
+\begin{equation}
+ \operatorname{pr}(h):=\gamma_{\alpha} H^{-1}h,
+ \qquad \operatorname{pr}(e_v)=\pi.
+ \label{eq:seed-response}
+\end{equation}
+Since $c_{\alpha} AD^{-1}$ is nonnegative with column sums $c_{\alpha}<1$, its
+Neumann series shows that $H^{-1}>0$ entrywise on a connected graph.
+
+The state used in the output-map corollary is
+\begin{equation}
+ r:=\gamma_{\alpha} e_v-Hz,
+ \qquad e:=\pi-z=H^{-1}r.
+ \label{eq:seed-state}
+\end{equation}
+There $r\ge0$ is an explicit assumption.  The reported vector is $z+Mr$,
+where $M\ge0$ and every column sum of $M$ is at most $B$.  The proof does not
+need the additional one-hop sparsity of $M$, so it applies in particular to
+the project output-map class.
+
+\section{Reciprocity and the seed maximum principle}
+\label{sec:seed-maximum}
+
+\begin{lemma}[Discounted Green-kernel reciprocity; \statusproved]
+\label{lem:seed-reciprocity}
+For every $u,w\in V$,
+\begin{equation}
+ d_u(H^{-1})_{wu}=d_w(H^{-1})_{uw}.
+ \label{eq:seed-reciprocity}
+\end{equation}
+Consequently, for PPR seeded at $v$,
+\begin{equation}
+ \frac{\operatorname{pr}(e_u)_v}{\pi_v}
+ =\frac{d_v\pi_u}{d_u\pi_v}
+ =\frac{\pi_u/d_u}{\pi_v/d_v}.
+ \label{eq:seed-response-ratio}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The matrix
+\[
+ K:=D^{-1}H=D^{-1}-c_{\alpha} D^{-1}AD^{-1}
+\]
+is symmetric positive definite.  Since $H=DK$, one has
+$H^{-1}=K^{-1}D^{-1}$.  Symmetry of $K^{-1}$ gives
+$(H^{-1})_{wu}=(K^{-1})_{wu}/d_u
+=(K^{-1})_{uw}/d_u=(d_w/d_u)(H^{-1})_{uw}$, proving
+\eqref{eq:seed-reciprocity}.  Multiply by $\gamma_{\alpha}$ and use
+$\pi_u=\gamma_{\alpha}(H^{-1})_{uv}$ and
+$\pi_v=\gamma_{\alpha}(H^{-1})_{vv}$ to obtain
+\eqref{eq:seed-response-ratio}.
+\end{proof}
+
+\begin{theorem}[Degree-normalized seed maximum; \statusproved]
+\label{thm:seed-normalized-maximum}
+For every finite simple connected undirected unit-weight graph with at least
+two vertices, every $\alpha\in(0,1)$, and every seed $v$,
+\begin{equation}
+ \max_{u\in V}\frac{\pi_u}{d_u}=\frac{\pi_v}{d_v},
+ \label{eq:seed-normalized-maximum}
+\end{equation}
+and the maximum is strict away from $v$.
+\end{theorem}
+
+\begin{proof}
+Put $q:=D^{-1}\pi$.  Multiplying $H\pi=\gamma_{\alpha} e_v$ by the identity
+$\pi=Dq$ gives
+\begin{equation}
+ (D-c_{\alpha} A)q=\gamma_{\alpha} e_v.
+ \label{eq:seed-harmonic-equation}
+\end{equation}
+The Neumann-series observation in \cref{sec:seed-scope} gives $q>0$.  At
+every nonseed vertex $u\ne v$, \eqref{eq:seed-harmonic-equation} says
+\begin{equation}
+ q_u=c_{\alpha}\frac{1}{d_u}\sum_{w\sim u}q_w.
+ \label{eq:seed-strict-subharmonic}
+\end{equation}
+If a nonseed vertex attained the positive global maximum $q_{\max}$, the
+right side would be at most $c_{\alpha} q_{\max}<q_{\max}$, a contradiction.
+Thus the maximum is attained only at $v$, which is exactly
+\eqref{eq:seed-normalized-maximum}.
+\end{proof}
+
+\begin{corollary}[Exact response-row constant; \statusproved]
+\label{cor:seed-response-row}
+Define
+\begin{equation}
+ \Phi_v:=\max_{u\in V}\frac{\operatorname{pr}(e_u)_v}{\pi_v}.
+ \label{eq:seed-phi-definition}
+\end{equation}
+Then
+\begin{equation}
+ \Phi_v
+ =\max_{u\in V}\frac{d_v\pi_u}{d_u\pi_v}
+ =1.
+ \label{eq:seed-phi-one}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Combine \cref{lem:seed-reciprocity,thm:seed-normalized-maximum}; equality
+holds at $u=v$.
+\end{proof}
+
+\paragraph{Correction to the campaign transcription.}
+The earlier formula
+\[
+ \frac{\operatorname{pr}(e_u)_v}{\pi_v}
+ \stackrel{\mathrm{incorrect}}{=}
+ \frac{d_u\pi_u}{d_v\pi_v}
+\]
+has the degree ratio reversed.  On an irregular graph the two expressions
+differ.  The corrected ratio in \eqref{eq:seed-response-ratio} both matches
+the star identity and turns the measured conjecture $\Phi_v=1$ into the
+maximum principle above.
+
+\section{Terminal potential and output maps}
+\label{sec:seed-output-map}
+
+\begin{lemma}[Nonnegative residual response; \statusproved]
+\label{lem:seed-residual-response}
+For every $r\ge0$,
+\begin{equation}
+ \Psi_v(r):=\frac{(H^{-1}r)_v}{\pi_v}
+ \le \frac{\|r\|_1}{\gamma_{\alpha}}.
+ \label{eq:seed-residual-response}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Write $r=\gamma_{\alpha} r_{\rm mass}$.  By linearity and
+\cref{cor:seed-response-row},
+\[
+ \Psi_v(r)
+ =\sum_u\frac{\operatorname{pr}(e_u)_v}{\pi_v}(r_{\rm mass})_u
+ \le\sum_u(r_{\rm mass})_u
+ =\frac{\|r\|_1}{\gamma_{\alpha}}.
+\]
+\end{proof}
+
+\begin{corollary}[General output-map terminal bound; \statusproved]
+\label{cor:seed-output-terminal}
+Suppose the state \eqref{eq:seed-state} has $r\ge0$.  Let $M\ge0$ have
+column sums at most $B$, and suppose the reported output satisfies
+\begin{equation}
+ \max_u\frac{|\pi_u-z_u-(Mr)_u|}{d_u}\le\epsppr.
+ \label{eq:seed-semantic-output}
+\end{equation}
+If $\gamma_{\alpha} B<1$, then
+\begin{equation}
+ \frac{\|r\|_1}{\gamma_{\alpha}}
+ \le\frac{\epsppr\vol(V)}{1-\gamma_{\alpha} B},
+ \qquad
+ \Psi_v(r)
+ \le\frac{\epsppr\vol(V)}{1-\gamma_{\alpha} B}.
+ \label{eq:seed-output-terminal}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+Because $r\ge0$, the column-sum assumption gives
+$\one^TMr\le B\|r\|_1$.  Also
+$H^T\one=\gamma_{\alpha}\one$, and hence
+\begin{equation}
+ \one^TH^{-1}r=\frac{\|r\|_1}{\gamma_{\alpha}}.
+ \label{eq:seed-error-mass}
+\end{equation}
+Summing the one-sided inequalities
+$\pi_u-z_u-(Mr)_u\le\epsppr d_u$ from
+\eqref{eq:seed-semantic-output} yields
+\[
+ \|r\|_1\left(\frac1{\gamma_{\alpha}}-B\right)
+ \le\epsppr\vol(V).
+\]
+This is the first bound in \eqref{eq:seed-output-terminal}; the second follows
+from \cref{lem:seed-residual-response}.
+\end{proof}
+
+\begin{corollary}[Monotone seed-operation count with output maps;
+\statusproved]
+\label{cor:seed-monotone-count}
+Consider invariant-exact one-hop updates
+\[
+ z_u\mathrel{+}=\delta,
+ \qquad r\mathrel{-}=\delta He_u,
+\]
+that preserve $r\ge0$, start from $z=0$, and charge $d_u$ per update.  Let
+$N_v^+$ be the number of seed updates with $\delta>0$, put
+$\kappa_v:=\gamma_{\alpha}/\pi_v$, and assume $\alpha\in(0,1)$.  Under the terminal
+conditions of \cref{cor:seed-output-terminal}, if
+$\epsppr\vol(V)<1-\gamma_{\alpha} B$, then
+\begin{equation}
+ N_v^+\ge
+ \frac{\log\!\left((1-\gamma_{\alpha} B)/(\epsppr\vol(V))\right)}
+      {-\log(1-\kappa_v)},
+ \qquad
+ \Work\ge d_vN_v^+.
+ \label{eq:seed-monotone-count}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The potential $\Psi=(\pi_v-z_v)/\pi_v$ starts at one and changes only at
+seed updates, by $-\delta/\pi_v$.  Since $r\ge0$,
+\[
+ (H^{-1}r)_v\ge(H^{-1})_{vv}r_v
+ =\frac{\pi_v}{\gamma_{\alpha}}r_v.
+\]
+Feasibility after a positive seed update gives $\delta\le r_v$, so that
+$-\Delta\Psi\le\kappa_v\Psi$.  Negative seed updates increase $\Psi$, and
+nonseed updates leave it unchanged.  Therefore
+$\Psi_T\ge(1-\kappa_v)^{N_v^+}$.  The terminal upper bound in
+\cref{cor:seed-output-terminal} is strictly below one under the displayed
+assumption; combining the two bounds and taking logarithms proves
+\eqref{eq:seed-monotone-count}.  Each counted update costs $d_v$.
+\end{proof}
+
+\section{Implications and limits}
+\label{sec:seed-limits}
+
+The response-row question is closed exactly: the correct constant is one on
+every connected graph.  The proof also strengthens the terminal-potential
+bound because the locality pattern of $M$ is unused; nonnegativity and column
+mass are the only output-map properties required.
+
+The result has four strict limits.
+\begin{enumerate}
+ \item It uses $r\ge0$ both in \cref{lem:seed-residual-response} and in the
+   multiplicative step argument.  Signed-relaxation trajectories are outside
+   the theorem.
+ \item It uses $M\ge0$.  A signed response map can cancel mass and is not
+   controlled by the column-sum argument.
+ \item It is a class statement about invariant-exact one-hop updates.  It is
+   not an information lower bound and says nothing against block elimination,
+   Schur response, or another stronger primitive.
+ \item It does not address whether a bounded-seed-degree graph family forces
+   product-scale work for dissipative signed one-hop relaxation.  That is a
+   separate spectral/work-distribution question.
+\end{enumerate}
+
+\end{document}

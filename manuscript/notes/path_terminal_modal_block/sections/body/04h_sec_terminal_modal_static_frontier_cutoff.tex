@@ -1,0 +1,347 @@
+\section{An explicit cutoff for the five static frontier rows}
+\label{sec:terminal-modal-static-frontier-cutoff}
+
+The first-order theorem above proves eventual positivity without a numerical
+threshold.  The exact finite interface also gives a conservative explicit
+cutoff.  This section records that quantitative refinement; it does not claim
+that the threshold is sharp, nor does it settle the stronger uniform statement
+beginning at $m=64$.
+
+\begin{theorem}[Explicit five-frontier cutoff; proved here]
+\label{thm:terminal-modal-static-frontier-cutoff}
+Along $q=1/(16m)$, every one of the five margins
+$\mathcal M_{m,r}$ in
+\eqref{eq:terminal-modal-static-frontier-finite-M1}--
+\eqref{eq:terminal-modal-static-frontier-finite-Mr} is strictly positive for
+every $m\ge4096$.
+\end{theorem}
+
+\begin{proof}
+We quantify separately the forced triangular response, its finite-$q$ input
+error, the endpoint scalar, and the homogeneous transient.
+
+\paragraph{Exact causal transfer.}
+Put $d(z)=1-z/2$ and retain $c_r$ from
+\eqref{eq:terminal-modal-static-frontier-cr}.  For formal scalar impulses
+$N,A$, let $Y_r(z)=\sum_{h\ge0}y_h(r)z^h$ be the zero-past causal transforms
+of \eqref{eq:terminal-modal-static-frontier-y1}--
+\eqref{eq:terminal-modal-static-frontier-yr}.  Direct transformation gives
+\begin{align}
+ Y_1&=\frac{z(-N-c_1A)}{d},\notag\\
+ Y_2&=\frac{z(4-z)Y_1+c_1z^2A-4c_2zA}{4d},\notag\\
+ Y_r&=\frac{1}{4d}\bigl\{
+ z(4-z)Y_{r-1}+2z(1-z)Y_{r-2}-z^2Y_{r-3}\notag\\
+ &\hspace{28mm}
+ +z^2(c_{r-1}+2c_{r-2}+c_{r-3})A-4c_rzA\bigr\},
+ \qquad r\ge3.
+ \label{eq:terminal-modal-frontier-cutoff-transfer}
+\end{align}
+Set
+\[
+ L_r=Y_r-z^{-1}Y_{r+1}-c_{r+1}A
+\]
+and
+\[
+ R=(L_1,L_2,L_3-L_1/4,L_4-L_2/4,L_5-L_3/4).
+\]
+For either $(N,A)=(1,0)$ or $(0,1)$, $R_j$ has denominator
+$d^{j+1}$.  Its signed coefficient mass, absolute coefficient mass, and
+first absolute moment are as follows:
+\begin{equation}
+\begin{array}{c|ccccc}
+ &1&2&3&4&5\\ \hline
+ \text{signed }N&1&3/2&1&1&1\\
+ \text{signed }A&-2&-19/8&-13/8&-27/16&-53/32\\ \hline
+ \text{absolute }N&1&3/2&9/8&11/8&79/64\\
+ \text{absolute }A&2&19/8&63/32&31/16&123/64\\ \hline
+ \text{moment }N&4&13/2&63/8&321/32&375/32\\
+ \text{moment }A&7&91/8&451/32&557/32&333/16
+\end{array}
+\label{eq:terminal-modal-frontier-cutoff-transfer-table}
+\end{equation}
+Here is an exact tail-sign certificate for the absolute values.  For
+$h\ge2j$, $2^h[z^h]R_j$ is a polynomial in $h$.  Its Newton coefficients at
+$h=2j$ are, for $N$,
+\[
+ (1,1),\ (3,3,1),\ (35/4,39/4,5,1),
+\]
+\[
+ (119/4,133/4,83/4,7,1),\quad
+ (105,117,327/4,143/4,9,1),
+\]
+and, for $A$,
+\[
+ (-2,-3/2),\ (-6,-5,-3/2),
+\]
+\[
+ (-18,-137/8,-8,-3/2),
+\]
+\[
+ (-245/4,-241/4,-277/8,-11,-3/2),
+\]
+\[
+ (-216,-1731/8,-281/2,-465/8,-14,-3/2).
+\]
+Thus each tail has one sign.  Exact replay of the finitely many coefficients
+$h<2j$, followed by evaluation of $R_j(1)$ and $R_j'(1)$, gives
+\eqref{eq:terminal-modal-frontier-cutoff-transfer-table}.
+
+If
+\begin{equation}
+ |\nu_{n+1}-\nu_n|<57q,
+ \qquad |a_{n+1}-a_n|<129q,
+ \label{eq:terminal-modal-frontier-cutoff-locality-assumed}
+\end{equation}
+then temporal telescoping against the first moments shows that replacing the
+forcing history by its current constant pair costs at most
+\begin{equation}
+ q\left(\frac{375}{32}\,57+\frac{333}{16}\,129\right)<3353q.
+ \label{eq:terminal-modal-frontier-cutoff-locality-loss}
+\end{equation}
+Precisely, fix the terminal pair $(\nu_m,a_m)$ and decompose the exact
+triangular solution into its constant-forcing stationary response, the causal
+convolution of the historical input differences, and the homogeneous
+mismatch in the two starting states $(y_6,y_7)$.  The signed masses in
+\eqref{eq:terminal-modal-frontier-cutoff-transfer-table} give the first
+piece, its first absolute moments give
+\eqref{eq:terminal-modal-frontier-cutoff-locality-loss}, and the last piece
+is bounded by the fourteen-state calculation below.
+
+\paragraph{Finite inputs.}
+For $2\le n\le m$ put $t=\chi^{n-1}$,
+$A_n=\delta^{-(n-2)}$, and write $\mathsf p_q$ for
+\eqref{eq:terminal-modal-static-frontier-function}.  Define
+\begin{align*}
+ p_0(t)&=\frac{2(t^2+10t-1)}{5(1+t^2)},
+ &e_0(t)&=\frac{t^2-10t+3}{10(1+t^2)},\\
+ a_0(q,t)&=\frac{\delta^{-1}\{e_0(\chi t)-q/10\}
+                    -\{e_0(t)-q/10\}}q,\\
+ R_q(u)&=\frac{2(1-u^2)/(1+u^2)-3q+q^3}{1-q^2},
+ &s_q(u)&=2\eta-qR_q(u),\\
+ \nu_0(q,t)&=\frac{\mathsf p_q(t)R_q(\chi t)}4
+ +\frac{\delta s_q(\chi t)+2\eta}{10\eta\delta}.
+\end{align*}
+Equations \eqref{eq:terminal-modal-finite-E} and
+\eqref{eq:terminal-modal-finite-mu-M} give exactly
+\begin{equation}
+ E_n=A_n(e_0(t)-q/10),\qquad
+ a_n=A_na_0(q,t),\qquad \nu_n=A_n\nu_0(q,t).
+ \label{eq:terminal-modal-frontier-cutoff-local-inputs}
+\end{equation}
+At $q=0$ the two local inputs are $f(t)$ and $g(t)$ from
+\eqref{eq:terminal-modal-static-frontier-fg}.
+
+On $7/8\le t\le1$ and $q\le1/1024$, clearing the positive denominators and
+taking coefficient $\ell_1$ norms gives
+\begin{align}
+ |a_0-f|&\le\frac{238q}{5\delta}<48q,&
+ |\nu_0-g|&\le\frac{462q}{10\delta}<47q,\notag\\
+ |\partial_ta_0|&\le\frac{96}{5}
+ +\frac{q(862+4\cdot238)}{5\delta}<20,&
+ |\partial_t\nu_0|&\le\frac{96}{5}
+ +\frac{q(1476+4\cdot462)}{10\delta}<20.
+ \label{eq:terminal-modal-frontier-cutoff-input-bounds}
+\end{align}
+For reproducibility, $(a_0-f)/q$ and $(\nu_0-g)/q$ have the common positive
+denominator factor
+\[
+ (1+t^2)^2\{(1-q)^2t^2+(1+q)^2\},
+\]
+in addition to $5\delta$ and $10\delta$, respectively; their numerator
+coefficient norms are $238$ and $462$.  The numerator norms after
+$t$-differentiation are $862$ and $1476$.  The rational derivatives $f'$ and
+$g'$ have numerator norm $96$ over $5(1+t^2)^3$, and the logarithmic
+derivative of the displayed positive denominator is at most four.  These
+facts give exactly \eqref{eq:terminal-modal-frontier-cutoff-input-bounds}.
+The same cleared formulas, after including $A_n\le16/15$ in
+\eqref{eq:terminal-modal-frontier-cutoff-local-inputs}, give
+$|a_n|,|\nu_n|<7$; explicitly,
+\[
+ \frac{16}{15}(28/5+48q)<7,
+ \qquad \frac{16}{15}(28/5+47q)<7.
+\]
+Since
+$A_{n+1}-A_n=A_nq/\delta$, and $0<t-\chi t<2q$, the mean-value theorem and
+\eqref{eq:terminal-modal-frontier-cutoff-input-bounds} give the stronger
+common bound
+\[
+ |a_{n+1}-a_n|,|\nu_{n+1}-\nu_n|
+ <\frac{16}{15}\left(\frac7\delta+40\right)q<51q.
+\]
+In particular, \eqref{eq:terminal-modal-frontier-cutoff-locality-assumed}
+holds.  The absolute-mass table and
+$\delta^{m-1}A_m=\delta$ show that replacing the finite local inputs by
+$f,g$ costs at most the row-two value
+\begin{equation}
+ \frac32(47q)+\frac{19}{8}(48q)=\frac{369}{2}q<185q.
+ \label{eq:terminal-modal-frontier-cutoff-local-input-loss}
+\end{equation}
+
+\paragraph{Endpoint scalar.}
+Put
+\begin{align*}
+ D_q(t)&=\frac{\mathsf p_q(t)-\mathsf p_q(\chi t)}q,
+ &D_0(t)&=2tp_0'(t),\\
+ H_q(t)&=\frac{\eta D_q(t)-(3/2+q/2)\mathsf p_q(\chi t)+2/5+q/5}
+ {1+q},
+ &H_0(t)&=\frac{D_0(t)}2-\frac32p_0(t)+\frac25.
+\end{align*}
+Exact denominator clearing gives
+\begin{equation}
+ |\mathsf p_q-p_0|<6q,\qquad |D_q-D_0|<177q,\qquad
+ |p_0'|<10,\quad |D_0|,|H_0|<20,\quad |H_0'|<43.
+ \label{eq:terminal-modal-frontier-cutoff-endpoint-local}
+\end{equation}
+The two finite-error numerator norms are $28$ and $880$, over the respective
+positive denominators
+$5(1-q^2)(1+t^2)$ and
+$5(1-q^2)(1+t^2)^2\{(1-q)^2t^2+(1+q)^2\}$.
+In particular,
+$|\mathsf p_q(\chi t)-p_0(t)|<26q$.  Direct comparison in the numerator of
+$H_q$ uses $|D_q|<21$ and gives
+\begin{equation}
+ |H_q-H_0|<150q.
+ \label{eq:terminal-modal-frontier-cutoff-H-error}
+\end{equation}
+
+Write $z_n=\zeta_n/q$ and $t_n=\chi^{n-1}$.  The exact endpoint recurrence
+is
+\[
+ z_n=\frac\delta2z_{n-1}+H_q(t_n).
+\]
+Comparison with $2H_0(t_n)$ has one-step forcing at most
+\[
+ 150q+\delta\,43(t_{n-1}-t_n)+20q
+ <(150+86+20)q=256q.
+\]
+The geometric gain is less than two, while the contracted initial term is
+at most $2/(q^2 2^{m-1})<q$ for $m\ge64$.  Hence
+\begin{equation}
+ |z_m-2H_0(t_m)|<513q.
+ \label{eq:terminal-modal-frontier-cutoff-zeta-error}
+\end{equation}
+The exact expression \eqref{eq:terminal-modal-static-frontier-B-exact}
+rewrites as
+\[
+ \mathcal B_m=\frac\eta2\{D_q(t_m)-\mathsf p_q(t_m)\}
+ +\frac\delta5-\eta z_m+\frac{\delta^m}{q^2 2^m}.
+\]
+Together with
+\[
+ \frac{D_0-p_0}{4}+\frac15-H_0=4g-5f,
+\]
+the preceding bounds give
+\begin{equation}
+ |\mathcal B_m-\{4g(t_m)-5f(t_m)\}|<305q.
+ \label{eq:terminal-modal-frontier-cutoff-B-error}
+\end{equation}
+Indeed, the finite local block, including coefficient drift, is bounded by
+\[
+ \left\{\frac{177+6}{4}+q\frac{20+2}{4}\right\}q<46q,
+\]
+while the $z_m$ block is at most
+$(513/2+20q)q<257q$.  The remaining two losses are $q/5$ and $q$, giving
+$305q$.  Only the first two rows contain $\mathcal B_m$, with coefficients
+$1/4$ and $-1/8$, so its contribution to the common error ledger is less
+than $77q$.
+
+\paragraph{Homogeneous transient.}
+The exact bases are
+\[
+ \bar c_1(0)=-\frac\delta5,\qquad
+ \bar c_2(0)=\frac{\delta(4-q)}{10},\qquad
+ \bar c_2(1)=-\frac{q(5-q)}{20}.
+\]
+Since $B_0$ is an $\ell_\infty$ contraction and
+$|F_n|=|\mu_n-3E_n/4|<1/4$, if
+$M_n=\|\bar c_n\|_\infty$, then
+\[
+ M_{n+1}\le\max\{2M_n+M_{n-1},M_n/2+1/4\}.
+\]
+Thus $M_1,\ldots,M_7$ are bounded by
+$1,1,3,7,17,41,99$.  As $|c_r|<3/2$ and $|E_n|<1/3$, the actual states
+$y_6,y_7$ have size less than $(199/2)/q$.  The stationary states for
+$|a|,|\nu|<7$ have size less than $1/(4q)$: the largest coefficient row in
+\eqref{eq:terminal-modal-static-frontier-y-limit-table} gives
+$7(313+773)/32<256\le1/(4q)$.  Hence their difference from the actual start
+is less than $100/q$.
+
+Start the homogeneous recurrence with $y_6$ as the previous-time state and
+$y_7$ as the current-time state.  After $h=m-7$ advances, the current state
+is $y_m$ and its one-step image is $y_{m+1}$, exactly the pair in
+\eqref{eq:terminal-modal-static-frontier-ellB}.  For this map from the
+fourteen coordinates $(y_6(r),y_7(r))_{1\le r\le7}$ to the five combined
+margins, put every entry over $d^7$.  If $N_{ji}(z)$ is the resulting
+numerator, exact elimination gives
+\begin{equation}
+ \sum_i\sum_s2^s|[z^s]N_{ji}(z)|
+ =\left(64,176,\frac{987}{4},\frac{2743}{8},477\right)_j.
+ \label{eq:terminal-modal-frontier-cutoff-transient-norms}
+\end{equation}
+Consequently, at lag $h=m-7$, every transient margin is at most
+\begin{equation}
+ \frac{100}{q}\,477\binom{h+6}{6}2^{-h}.
+ \label{eq:terminal-modal-frontier-cutoff-transient}
+\end{equation}
+At $m=80$ this is less than $1/1000$; its ratio at $m+1$ to that at $m$ is
+$(m+1)/(2(m-6))<1$.  The same bound therefore holds for all $m\ge80$.
+
+\paragraph{Final ledger.}
+Put $T=e^{-1/8}$ and let $\Phi$ be the five limiting expressions on the
+right of \eqref{eq:terminal-modal-static-frontier-limit-1}--
+\eqref{eq:terminal-modal-static-frontier-limit-5}.  Thus
+$\Phi_1(T)>2/3$ and $\Phi_j(T)>1/3$ for $2\le j\le5$.
+Moreover
+\[
+ 0<\frac18+\log t_m
+ =2q-2(m-1)(\operatorname{artanh}q-q)<2q,
+\]
+and hence $0<t_m-T<2q/(1-2q)$.  Clearing the five rational derivatives on
+$[7/8,1]$, together with the factor $\delta$ on the nonendpoint piece,
+bounds the $t_m$-versus-$T$ and damping loss by $24q$.  One exact common
+certificate is
+\[
+ \frac{51/2}{(113/64)^3}\frac{2}{1-2/1024}
+ +\frac{251/40}{(113/64)^2}<24:
+\]
+the first quotient bounds all five $\Phi_j'$ and the second bounds the five
+stationary pieces multiplied by $1-\delta$.  Combining
+\eqref{eq:terminal-modal-frontier-cutoff-locality-loss},
+\eqref{eq:terminal-modal-frontier-cutoff-local-input-loss}, the endpoint
+loss, this last loss, and \eqref{eq:terminal-modal-frontier-cutoff-transient}
+gives the common error bound
+\[
+ (3353+185+77+24)q+\frac1{1000}
+ <3654q+\frac1{1000}.
+\]
+For $m\ge4096$, $q=1/(16m)$ and
+\[
+ \frac{3654}{16\cdot4096}+\frac1{1000}<\frac1{12}.
+\]
+The displayed ledger itself first closes at the integer $m=2774$; the theorem
+retains the simpler conservative dyadic cutoff $4096$.
+Thus rows two through five are greater than $1/3-1/12>0$, while row one
+has the larger $2/3$ baseline.  This proves the theorem.
+\end{proof}
+
+\begin{corollary}[Explicit static and nonlinear cutoff]
+\label{cor:terminal-modal-static-regime-cutoff}
+For every $m\ge4096$, the strict static directed-remainder certificate
+\eqref{eq:terminal-modal-static-asymptotic-target} holds.  Consequently the
+named literal recurrence, if continued, has strictly positive raw points and
+a strictly unclipped safe envelope at every full-face step $k\ge1$.
+\end{corollary}
+
+\begin{proof}
+The interior cone theorem is uniform for $m\ge64$, and the theorem above
+closes its five omitted frontier rows.  The tail-reduction implication in
+\cref{thm:terminal-modal-static-asymptotic-closure} gives the static target.
+The early finite stopped theorem is uniform from $m=64$ onward.  At the first
+integer with $qk\ge3/50$, its preceding integer is covered by that theorem.
+The late position-envelope lemma then gives the next state, and its scalar
+right side is decreasing for every later $qk$.  Its positivity, row-mass, and
+folded-alias bounds have no upper-time restriction.  Induction therefore
+proves the nonlinear conclusion for every later integer as well.  If the
+literal implementation stops when its certificate fires, the continued
+states are of course only a theorem-defined extension.
+\end{proof}

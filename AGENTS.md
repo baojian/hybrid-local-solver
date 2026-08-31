@@ -5,13 +5,24 @@ This is a numerical optimization repository.
 This repository is a research project targeting peer-reviewed publication,
 including possible JMLR and ICML submissions.
 
-## Multi-agent coordination
+## Working mode and multi-agent coordination
 
-Before writing, read `docs/coordination/policy.md`, register the assignment in
-`docs/coordination/active_assignments.toml`, and use a dedicated clean
-worktree on a branch named `agent/<family>/<task>`. Active assignments must
-have disjoint write scopes. Shared-file permission and provider ownership are
-checked by `make agent-audit` and CI.
+This is normally a single-owner repository. For ordinary tasks, work directly
+in the user's current worktree and branch, including `main`. Before writing,
+inspect the worktree, preserve unrelated user changes, and keep edits within
+the requested scope. Do not create an assignment record, agent branch,
+worktree, or handoff solely for a routine single-agent change.
+
+Use the coordinated multi-agent workflow only when the user explicitly asks
+for parallel or isolated agent work, or when multiple agents will write
+concurrently. In that mode, read `docs/coordination/policy.md`, register each
+assignment in `docs/coordination/active_assignments.toml`, and use dedicated
+clean worktrees on branches named `agent/<family>/<task>`. Concurrent active
+assignments must have disjoint write scopes. Shared-file permission and
+provider ownership are checked by `make agent-audit` and CI.
+
+Provider ownership boundaries apply in both modes. A direct single-agent task
+must not modify another provider family's owned implementation paths.
 
 Use `docs/coordination/context.toml` as the canonical default-context
 manifest. Load excluded source material only when the active task names it.

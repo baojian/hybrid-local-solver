@@ -1,0 +1,183 @@
+\section{Provenance, verification, and honesty pass}
+\label{sec:ladder-verification}
+
+\subsection*{Provenance}
+
+This note transcribes into the repository proof medium four markdown packages
+produced by the autonomous campaign of 2026-08-24/25. They are tracked in the
+repository at
+\begin{center}
+\file{manuscript/claude-overnight-2026-08-24/findings/}
+\end{center}
+and are, in order of use:
+\file{w1_monotone_lb.md} (first monotone lower bound),
+\file{i2d_separation_package.md} (output-map transport characterization,
+escape threshold, SOR block law and upper bound),
+\file{i4c_signed_class_lb.md} (signed-residual class lower bound), and
+\file{i5d_ladder_paper.md} (consolidation, from which the present
+organization and constants are taken). No claim in those packages has passed
+the repository promotion gate, and transcription does not promote one.
+
+\subsection*{Verification}
+
+The single re-checking script is
+\file{manuscript/claude-overnight-2026-08-24/i5d/verify_ladder.py}, which
+imports \texttt{lib/zoo.py}, \file{w1_monotone_lb/gpush.py} and
+\texttt{i4c/core.py} from the same directory. It re-checks every numbered
+inequality of this note on the dyadic grid
+$\alpha\in\{2^{-4},\ldots,2^{-12}\}\times\epsppr\in\{2^{-4},\ldots,2^{-8}\}$,
+reconciling the two-dimensional reduction against the full
+$(m+1)$-dimensional state every $64$ blocks and at every stop. Reported
+result: $45$ cells $\times$ $13$ checks, $0$ failures.
+
+The script's reported $W$ is adjacency-scan work
+$W_{\mathrm{adj}}$, as in its source packages. The present note separately
+accounts for the remaining exact-real word operations when asserting a fully
+charged asymptotic bound; the script does not verify that bookkeeping.
+
+Checks map to statements as follows. C1: the closed forms
+\eqref{eq:ladder-star-closed-forms} and exactness of
+\Cref{prop:ladder-elimination}. C2--C3:
+\Cref{lem:ladder-locality,lem:ladder-kappa-step}. C4--C5:
+\Cref{thm:ladder-monotone-lower-bound} and
+\Cref{cor:ladder-monotone-constants} on three member policies
+(\APPR{}-FIFO, greedy non-lazy, cheap-first) plus the anti-push pump
+adversary. C6: \Cref{lem:ladder-energy} and the reduction reconciliation.
+C7--C8: \Cref{lem:ladder-fast-mode,lem:ladder-displacement}. C9:
+\Cref{thm:ladder-signed-lower-bound} over a seven-schedule battery
+(SOR at $\omega^{\star}$, Gauss--Seidel, $\omega\to2$, fixed $1.5$,
+Chebyshev-oscillating, random $\omega$, leaf-heavy). C10:
+\Cref{thm:ladder-signed-upper-bound} in both forms. C11:
+\Cref{prop:ladder-elimination}. C12:
+\Cref{prop:ladder-residual-mass-cap}. C13: the scale dictionary
+\eqref{eq:ladder-mass-dictionary}. In particular, C13 is why the imported SOR
+certificate is stated in \eqref{eq:ladder-sor-certificate-scales} as
+$\epsppr$ in the source mass scale and $\galpha\epsppr$ in the push scale.
+
+The diagnostic columns are $\epsppr$-invariant on this grid, so one row per
+$\alpha$ suffices.
+
+\begin{center}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+$\alpha$ & $N_{c}^{+}/\mathrm{LB}$ & $W_{\mathrm{adj}}\alpha\epsppr$
+    & $N_{c}/\mathrm{LB}$ & $W_{\mathrm{adj}}\sqrt\alpha\epsppr$
+    & $N\sqrt\alpha$ & $\max\widehat y$ & $\max\abs{\delta}$ \\
+\midrule
+$2^{-4}$  & 1.557 & 0.1328 & 3.806 & ---    & 1.500 & 1.000 & 0.970 \\
+$2^{-5}$  & 1.500 & 0.1328 & 1.838 & 0.0884 & 1.414 & 1.000 & 0.854 \\
+$2^{-6}$  & 1.516 & 0.1309 & 1.974 & 0.0938 & 1.375 & 0.999 & 0.940 \\
+$2^{-7}$  & 1.502 & 0.1309 & 1.873 & 0.0884 & 1.414 & 0.997 & 0.940 \\
+$2^{-8}$  & 1.506 & 0.1304 & 1.994 & 0.0859 & 1.375 & 0.991 & 0.979 \\
+$2^{-9}$  & 1.503 & 0.1301 & 1.883 & 0.0829 & 1.370 & 0.980 & 0.969 \\
+$2^{-10}$ & 1.501 & 0.1300 & 1.832 & 0.0859 & 1.375 & 0.986 & 0.966 \\
+$2^{-11}$ & 1.500 & 0.1300 & 1.767 & 0.0829 & 1.348 & 0.975 & 0.958 \\
+$2^{-12}$ & 1.500 & 0.1300 & 1.833 & 0.0840 & 1.359 & 0.978 & 0.974 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Column two is the tightest member's $N_{c}^{+}$ divided by
+\Cref{thm:ladder-monotone-lower-bound}'s bound over the three-policy and pump
+battery; the larger fourteen-policy zoo of \texttt{i2d} closes it to $1.015$.
+Column three is its scan-work normalization. Column four is the tightest
+schedule's centre count divided by
+\Cref{thm:ladder-signed-lower-bound}, so that bound is tight to within a
+factor two for $\alpha\le2^{-5}$. Column five is the $\omega\to2$ member's
+$W_{\mathrm{adj}}\sqrt\alpha\,\epsppr$, which is absent at $\alpha=2^{-4}$ because that
+member stalls there and SOR at $\omega^{\star}$ is the witness instead.
+Column six is SOR at $\omega^{\star}$ under the semantic stop, whose
+flatness suggests that the $\log(1/\alpha)$ in
+\eqref{eq:ladder-signed-upper} may be a stopping-rule artifact. The last two
+columns are utilizations of the caps in
+\Cref{lem:ladder-fast-mode,lem:ladder-displacement}: all at most one and all
+nearly attained, so those inequalities have essentially no slack.
+
+Not re-checked by this script, and covered instead by the source packages:
+asymmetric, partial-leaf and Gauss--Southwell schedules together with the
+sixty-digit form of \Cref{lem:ladder-energy} (\texttt{i4c}, $104$ runs, $0$
+violations); the fourteen-policy member zoo and the linear-programming
+output-map thresholds (\texttt{i2d}); and the general-graph zoo sweeps behind
+\Cref{prop:ladder-signed-general}.
+
+\subsection*{Status of every statement}
+
+\statusproveddraft{} --- complete argument written above, unaudited:
+\Cref{lem:ladder-facts}; \Cref{lem:ladder-locality};
+\Cref{lem:ladder-kappa-step}; \Cref{lem:ladder-terminal};
+\Cref{thm:ladder-monotone-lower-bound};
+\Cref{cor:ladder-monotone-constants};
+\Cref{thm:ladder-monotone-general}; \Cref{lem:ladder-energy};
+\Cref{lem:ladder-fast-mode}; \Cref{lem:ladder-displacement};
+\Cref{thm:ladder-signed-lower-bound};
+\Cref{prop:ladder-residual-mass-cap}; \Cref{prop:ladder-elimination};
+and \Cref{cor:ladder-ladder} except as noted next.
+
+\statusimported{} --- proof complete in a named source package, not
+re-derived here: \Cref{prop:ladder-escape} and
+\Cref{prop:ladder-transport} (\texttt{i2d} Proposition~1.3 and Lemma~1.2);
+the upper bound of \Cref{thm:ladder-signed-upper-bound} (\texttt{i2d}
+Lemma~3.1 and Theorem~3.3, verified to $1.4\times10^{-13}$ over forty blocks);
+\Cref{prop:ladder-signed-general} (\texttt{i4c} Proposition~3.4); and the
+characterization lemma of \texttt{w1} that every invariant-exact one-hop
+update is a $\push(u,\delta)$, on which \Cref{def:ladder-classes} leans. That
+last item deserves emphasis: its extension to multi-base operations, obtained
+by dropping the axiom that $\bm{z}$ changes only at the base vertex, is proved
+\emph{only on the star}.
+
+\statusmeasured{} --- numerics only, not proved: the semantic-stop flatness
+$N(\omega^{\star})\sqrt\alpha\in[1.35,1.50]$ and the $\omega\to2$ member
+constant $W_{\mathrm{adj}}\sqrt\alpha\,\epsppr\in[0.083,0.094]$, which calibrate
+tightness of \Cref{thm:ladder-signed-lower-bound} while the \emph{proved}
+upper bound still carries $\log(1/\alpha)$; the conjecture $\Phi=1$ of
+\Cref{open:ladder-phi}; and the $\pi_{v}/\galpha$ scalings behind
+\Cref{prop:ladder-signed-general} beyond closed-form families.
+
+\statusopen{}: \Cref{open:ladder-phi} and \Cref{open:ladder-beyond-star}.
+
+\subsection*{Auditor's checklist, in order of leverage}
+
+\begin{enumerate}[leftmargin=2.2em]
+    \item The two uses of $\bm{r}\ge\bm{0}$ in
+        \Cref{lem:ladder-kappa-step}: the
+        feasibility cap $\delta\le r_{c}$, and
+        $\xi_{c}\ge(\pi_{c}/\galpha)r_{c}$
+        via \ref{it:ladder-f2} and \ref{it:ladder-f3}. This is the entire
+        monotone rung, it is five lines, and either it survives audit or rung
+        one falls.
+    \item The before-and-after application of \Cref{lem:ladder-fast-mode}
+        inside \Cref{lem:ladder-displacement} --- specifically the factor two
+        in \eqref{eq:ladder-displacement-cap} --- and the claim that the
+        leaf-difference modes vanish at $c$, so that only $\bm{q}_{-}$ caps the
+        centre. Check the eigendecomposition by hand at $m=2$.
+    \item The treatment of batched operations in
+        \Cref{thm:ladder-monotone-lower-bound}:
+        \Cref{lem:ladder-locality} covers any invariant-preserving update, but
+        the feasibility cap $\delta\le r_{c}$ is per-operation. Confirm that a
+        simultaneous batch cannot settle more at $c$ than sequential
+        operations with the same intermediate states. The \texttt{w1}
+        argument for this is star-specific.
+    \item The output-map scoping of \Cref{sec:ladder-classes}: the whole
+        ``same output map'' framing rests on choosing $B$ strictly below the
+        escape threshold of \Cref{prop:ladder-escape}, so re-check that
+        proposition's witness and its $\galpha$ scale conversion. It is a
+        zero-push oracle statement, not a zero-full-work implementation.
+    \item Dyadic versus general $\epsppr$ constants, $m=1/(8\epsppr)$ exactly
+        against $m\ge1/(16\epsppr)$. Every displayed constant states which
+        case it belongs to, and the verification grid is dyadic only.
+    \item Re-run \file{verify_ladder.py} (about two minutes) and, for the
+        imported pieces, \texttt{i4c/verify.py} together with
+        \file{w9_i2d/member_check.py} (about thirteen minutes).
+\end{enumerate}
+
+\subsection*{What this note supersedes}
+
+Within the campaign packages, this note supersedes \texttt{w1} Lemmas~3--5 and
+Theorem~6, replaced by \Cref{thm:ladder-monotone-lower-bound} with better
+constants and wider scope; the mass-scale potential presentation of
+\texttt{i2d} \S2, replaced by the $\bm{z}$-scale $\Psi$; and the bare $3/128$
+display of \texttt{i4c}, now stated with its dyadic scope explicit and with
+general-$\epsppr$ constant $3/256$. It leaves standing \texttt{i2d} \S1
+(output-map transport characterization), \texttt{i2d} Theorem~3.3
+(certificate-stopped SOR upper bound), \texttt{i4c} \S6 (spider and
+stopping-rule calibrations), and all general-graph zoo measurements.

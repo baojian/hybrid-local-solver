@@ -1,0 +1,59 @@
+% Standalone research note for the hybrid-local-solver project.
+
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Signed Local Acceleration on a Star:\\
+Exact SOR, Matching Class Bounds, and Failure Modes of Pure Local Acceleration}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note completely resolves one promised-family case of the accelerated
+local PageRank question.  On the center-seeded star
+$K_{1,m}$ with $m=\lfloor1/(8\varepsilon_{\rm ppr})\rfloor$, optimal signed
+SOR, stopped after the predetermined number
+$\lceil2/\sqrt\alpha\rceil$ of alternating center/leaf blocks, has exact
+degree-normalized semantic error
+\[
+  \frac{\lambda^k}{2m}
+  \bigl(1+\alpha+2k\sqrt\alpha\bigr),
+  \qquad
+  \lambda=\frac{1-\sqrt\alpha}{1+\sqrt\alpha},
+\]
+and therefore uses
+$O(1/(\sqrt\alpha\,\varepsilon_{\rm ppr}))$ charged work including output.
+The proof identifies a cancellation that is invisible to the usual residual
+certificate and removes its apparent $\log(1/\alpha)$ overhead.  A matching
+energy/fast-mode lower bound applies to every adaptive dissipative signed
+one-coordinate relaxation, giving an exact
+$\Theta(1/(\sqrt\alpha\,\varepsilon_{\rm ppr}))$ class result on this star.
+For comparison, when $0<\alpha\leq1/16$, maintaining a nonnegative residual
+forces $\Omega(1/(\alpha\varepsilon_{\rm ppr}))$ work on the same family.  We then
+give a detailed, accuracy-separated account of why standard FISTA can lose
+locality on a leaf-seeded RPPR star, why literal safe active-set acceleration
+can pay a repeated-prefix tax on paths, and why a conservative certificate can
+misdiagnose an already accurate signed iterate.  These are sharply scoped
+special-case and algorithm-specific results, not a graph-uniform local-solver
+theorem.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\input{sections/body/01_scope_and_claims}
+\input{sections/body/02_mass_system_and_star}
+\input{sections/body/03_signed_sor_algorithm}
+\input{sections/body/04_exact_semantic_upper}
+\input{sections/body/05_signed_class_lower}
+\input{sections/body/06_monotone_failure}
+\input{sections/body/07_fista_failure}
+\input{sections/body/08_other_failure_modes}
+\input{sections/body/09_general_lessons}
+\input{sections/body/10_conclusion_and_references}
+
+\end{document}

@@ -1,0 +1,295 @@
+\section{Why large cyclic cores are the real next boundary}
+\label{sec:beyond-bounded-blocks}
+
+The fixed-face theorem and the response corollaries eliminate several false
+blockers.  Restricted PageRank systems never have condition number worse than
+$1/\alpha$; long spiders do not create an $\alpha^{-2}$ spectrum; and tree
+support discovery can be performed without repeatedly solving every prefix.
+What remains is the interaction of signed acceleration, changing faces, and
+many coupled boundary demands inside a large biconnected core.
+
+\subsection{A global relaxation parameter already handles all bipartite faces}
+
+One might worry that every face change requires recomputing
+$\sigma_U$ and $\omega_U^\star$.  A conservative global choice avoids that
+particular cost.  Put
+\begin{equation}
+ t_\alpha:=\sqrt{1-c_\alpha^2}
+ =\frac{2\sqrt\alpha}{1+\alpha},
+ \qquad
+ \omega_\alpha:=\frac2{1+t_\alpha},
+ \qquad
+ \zeta_\alpha:=\omega_\alpha-1
+ =\left(\frac{1-\sqrt\alpha}{1+\sqrt\alpha}\right)^2.
+ \label{eq:global-bipartite-omega}
+\end{equation}
+
+\begin{lemma}[One parameter for every fixed bipartite principal face]
+\label{lem:one-omega-all-bipartite-faces}
+For every bipartite principal face $U$, red--black SOR with
+$\omega=\omega_\alpha$ has spectral radius at most $\zeta_\alpha$.  The
+finite power bound
+\begin{equation}
+ \|T_U^k\|_2\leq6k\zeta_\alpha^{k-1}
+ \label{eq:global-face-power-bound}
+\end{equation}
+holds without computing a face-specific eigenvalue.
+\end{lemma}
+
+\begin{proof}
+Repeat the singular-mode proof of \Cref{thm:fixed-bipartite-sor} with the
+upper bound $c_\alpha\sigma\leq c_\alpha$.  The identity
+$\omega_\alpha^2c_\alpha^2=4\zeta_\alpha$ places every modal trace in
+$[-2\zeta_\alpha,2\zeta_\alpha]$, with determinant
+$\zeta_\alpha^2$.  The Cayley--Hamilton argument is unchanged.
+\end{proof}
+
+\begin{corollary}[Fully charged generic tuning on a supplied face]
+\label{cor:global-omega-fixed-face-work}
+Let the bipartite face $U$ and its face equations be supplied, let
+$\|x^\dagger\|_2\leq1$, and let $0<\tau\leq1$.  Red--black SOR with the
+graph-global $\omega_\alpha$ reaches semantic error at most $\tau$ in work
+\begin{equation}
+ O\!\left(
+  \frac{\operatorname{vol}(U)}{\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right),
+ \label{eq:global-omega-fixed-face-work}
+\end{equation}
+including all repeated face scans and explicit output, without computing
+$\sigma_U$.
+\end{corollary}
+
+\begin{proof}
+Apply \eqref{eq:global-face-power-bound} to the zero-start error, use
+$\zeta_\alpha\leq\exp(-2t_\alpha)$ and
+$t_\alpha=\Theta(\sqrt\alpha)$, and charge each red--black sweep by
+$\operatorname{vol}(U)$.  Output costs $|U|\leq\operatorname{vol}(U)$.
+\end{proof}
+
+Thus spectral tuning is not the main obstacle on an evolving bipartite
+support.  The difficulty is that $T_U$ acts on a different state space after
+an admission, while the new restricted optimum has moved.
+
+\subsection{Face-shock orthogonality at a nonsettled iterate}
+
+The simplest face-change identity shows what must be paid.  Fix a load
+$\ell$; for RPPR on a positive face it is
+$\ell=b-\alpha\rho D^{1/2}\mathbf1$.  Let $U'=U\mathbin{\dot\cup}E$, let
+$z_U=Q_{UU}^{-1}\ell_U$, and zero-pad $z$ to $U'$.  Define the new-coordinate
+demand
+\begin{equation}
+ g_E:=\ell_E-Q_{EU}z_U.
+ \label{eq:new-face-demand}
+\end{equation}
+
+\begin{lemma}[Exact nonsettled face-shock Pythagoras]
+\label{lem:settled-face-shock}
+If $z'=Q_{U'U'}^{-1}\ell_{U'}$, then
+\begin{align}
+ z'-z&=Q_{U'U'}^{-1}
+       \begin{bmatrix}0\\g_E\end{bmatrix},
+ \label{eq:face-shift-resolvent}\\
+ \|z'-z\|_{Q_{U'U'}}^2
+ &=g_E^T(z'_E-z_E)=g_E^Tz'_E.
+ \label{eq:face-shock-energy}
+\end{align}
+If $g_E\geq0$, then $z'-z\geq0$.  Moreover, for every possibly
+nonsettled vector $x$ supported on $U$ and zero-padded to $U'$,
+\begin{equation}
+ \boxed{
+ \|z'-x\|_{Q_{U'U'}}^2
+ =
+ \|z-x\|_{Q_{UU}}^2
+ +\|z'-z\|_{Q_{U'U'}}^2.}
+ \label{eq:nonsettled-face-pythagoras}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The old equations are exact on $U$ and $z_E=0$, so
+$\ell_{U'}-Q_{U'U'}z=(0,g_E)^T$.  Apply the inverse to obtain
+\eqref{eq:face-shift-resolvent}; multiply by $(z'-z)^TQ_{U'U'}$ to obtain
+\eqref{eq:face-shock-energy}.  The final assertion follows because a
+principal SPD Stieltjes matrix has a nonnegative inverse.
+
+For the last identity, put $s=z'-z$.  The old-face error $z-x$ is supported
+on $U$, while
+\begin{equation*}
+ Q_{U'U'}s=\begin{bmatrix}0\\g_E\end{bmatrix}.
+\end{equation*}
+Therefore
+$\langle z-x,s\rangle_{Q_{U'U'}}=0$.  Expanding
+$z'-x=(z-x)+s$ proves \eqref{eq:nonsettled-face-pythagoras}.
+\end{proof}
+
+Thus the current numerical error itself needs no restart and no settled-face
+assumption: zero-padding adds exactly the optimum-shift energy and no cross
+term.  This is the same Galerkin orthogonality that underlies the project's
+lifted-response results.  It does not make the dense correction $z'-z$
+available to the algorithm, and it does not control auxiliary estimate
+centers used by other accelerated methods.
+
+\begin{proposition}[Conditional windowed SOR continuation]
+\label{prop:windowed-sor-continuation}
+Let
+$U_0\subsetneq U_1\subsetneq\cdots\subsetneq U_J$
+be supplied bipartite faces for one fixed load, let
+$z^j=Q_{U_jU_j}^{-1}\ell_{U_j}$, start from any supplied iterate $x^0$
+supported on $U_0$, and define
+\begin{equation*}
+ \Delta_j:=
+ \|z^j-z^{j-1}\|_{Q_{U_jU_j}}^2
+ \qquad (1\leq j\leq J),
+\end{equation*}
+with zero-padding understood.  At stage $j$, zero-pad the preceding SOR
+iterate and run $H$ complete red--black sweeps with the global
+$\omega_\alpha$.  For every fixed $0<\theta<1$, one may choose
+\begin{equation}
+ H=O\!\left(
+  \frac1{\sqrt\alpha}\log\frac2\alpha
+ \right)
+ \label{eq:generic-face-window-length}
+\end{equation}
+independently of the faces so that the terminal energy errors
+$\mathcal E_j:=\|z^j-x^j\|_{Q_{U_jU_j}}^2$ satisfy
+\begin{align}
+ \mathcal E_j
+ &\leq\theta(\mathcal E_{j-1}+\Delta_j),
+ \label{eq:windowed-energy-recursion}\\
+ \mathcal E_J
+ &\leq\theta^J\mathcal E_0
+ +\sum_{j=1}^J\theta^{J-j+1}\Delta_j.
+ \label{eq:windowed-energy-telescope}
+\end{align}
+The charged numerical work is
+\begin{equation}
+ O\!\left(
+  H\sum_{j=1}^J\operatorname{vol}(U_j)
+ \right).
+ \label{eq:windowed-face-scan-work}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For one fixed face, \Cref{lem:one-omega-all-bipartite-faces} gives
+$\|T_U^H\|_2\leq6H\zeta_\alpha^{H-1}$.  Since
+$\alpha I\preceq Q_{UU}\preceq I$,
+\begin{equation*}
+ \|T_U^He\|_{Q_{UU}}^2
+ \leq
+ \frac{\|T_U^H\|_2^2}{\alpha}
+ \|e\|_{Q_{UU}}^2.
+\end{equation*}
+The choice \eqref{eq:generic-face-window-length}, together with
+$\zeta_\alpha\leq e^{-4\sqrt\alpha}$, makes the displayed factor at most
+$\theta$ uniformly in $U$.  At the admission,
+\eqref{eq:nonsettled-face-pythagoras} says that the pre-window energy is
+exactly $\mathcal E_{j-1}+\Delta_j$.  This proves the first recurrence;
+iteration proves the second.  Every sweep scans the current face once, giving
+\eqref{eq:windowed-face-scan-work}.
+\end{proof}
+
+If the exposed volumes grow geometrically, then
+$\sum_j\operatorname{vol}(U_j)=
+O(\operatorname{vol}(U_J))$, and
+\Cref{prop:windowed-sor-continuation} gives a fully charged
+$\widetilde O(\operatorname{vol}(U_J)/\sqrt\alpha)$ numerical
+continuation bound.  This closes the state-transport part under a volume gate.
+It does \emph{not} close arbitrary singleton admissions: in that chronology
+the sum in \eqref{eq:windowed-face-scan-work} can still be quadratic in the
+final volume.  Discovery and boundary-report maintenance also remain outside
+the proposition.
+
+\subsection{Four distinct costs on a changing cyclic face}
+
+A valid broad-graph proof must control all of the following.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Discovery.}  Which exterior coordinates violate an RPPR KKT
+      inequality?  Reading every boundary row after every change can be
+      quadratic in the eventual support.
+\item \textbf{Numerical continuation.}  Does carried signed state contract
+      over a window after zero-padding new coordinates, or must it be reset?
+      A reset after every singleton admission loses acceleration.
+\item \textbf{Representation.}  One local Schur update can alter many
+      boundary demands.  Explicitly rewriting all of them is a cost even if
+      the underlying matrix operation is algebraically low rank.
+\item \textbf{Certification.}  A sufficient residual envelope may be much
+      stronger than semantic error, as the signed star already shows.  The
+      final test must not silently restore an avoidable logarithm.
+\end{enumerate}
+
+These costs explain why neither of the following implications is valid:
+\begin{equation}
+ \begin{aligned}
+ \text{small final support}
+ &\not\Longrightarrow
+ \text{local accelerated trajectory},\\
+ \text{fast fixed-face rate}
+ &\not\Longrightarrow
+ \text{fast face discovery}.
+ \end{aligned}
+ \label{eq:two-invalid-implications}
+\end{equation}
+The FISTA leaf-star refutes the first for one standard momentum rule.  The
+literal endpoint-path restart examples refute the second for one safe
+active-set implementation.
+
+\subsection{The next positive structural classes}
+
+The following classes form a sensible progression beyond bounded blocks.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Bipartite cores with a charged incremental gate.}  The global
+      parameter \eqref{eq:global-bipartite-omega} settles spectral tuning.
+      The only new theorem should concern face shocks, KKT reporting, and
+      state transport.
+\item \textbf{Nearly bipartite cores.}  Choose a partition and write
+      $S=S_{\rm cross}+S_{\rm same}$.  A useful conditional target is to
+      absorb $S_{\rm same}$ as a perturbation when its operator norm or its
+      locally charged energy is $O(\sqrt\alpha)$.  A statement based only on
+      the number of same-color edges is too crude for high-degree graphs.
+\item \textbf{Graphs with small dynamic separators or response rank.}
+      Maintain a low-dimensional Schur response at the separator and run SOR
+      only on the unsettled side.  Every separator rebuild and response query
+      must be included; low final rank alone is not a maintenance theorem.
+\item \textbf{Arbitrary large cores.}  Exact boundary refresh is likely too
+      strong.  The weakest sufficient interface is an output-sensitive
+      reporter that identifies only KKT demands crossing a finite accuracy
+      band, with missed light changes controlled by an energy packing bound.
+\end{enumerate}
+
+The last item is compatible with the existing certified-response direction:
+one need not maintain every exact zero sign.  It remains open to combine such
+a reporter with a signed iterative state while retaining the product scale.
+
+\subsection{Mandatory counterexample suite}
+
+Every proposed general theorem should be tested against a different failure
+mechanism on each of the following families.
+
+\begin{center}
+\begin{tabular}{p{0.24\textwidth}p{0.31\textwidth}p{0.34\textwidth}}
+\toprule
+Family & What it stresses & A proof must demonstrate \\
+\midrule
+Center-star & Slow monotone transport and semantic cancellation & Signed
+progress without replacing semantic error by a stronger residual test \\
+Leaf-star & Momentum overshoot onto a high-degree hub & Confinement,
+safeguarding, or an explicit charge for the transient hub scan \\
+Endpoint path & Repeated growing-prefix work & Persistent state or a
+geometric/windowed amortization \\
+Asymmetric T tree & Debt surviving an admission & A multistage rather than
+one-step reset potential \\
+Comb or high-rank boundary & Many distinct response directions & Compressed
+reporting, not an uncharged dense boundary vector \\
+Bounded-degree expander & Large fronts and no small articulation & A genuine
+large-core mechanism, or an explicit structural exclusion \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A failure on one named recurrence should remain scoped to that recurrence.
+Conversely, passing finite examples is not a proof of the required windowed
+or graph-uniform inequality.

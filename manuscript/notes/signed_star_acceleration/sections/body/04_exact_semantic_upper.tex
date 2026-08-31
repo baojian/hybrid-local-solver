@@ -1,0 +1,205 @@
+\section{Exact semantic error and the no-log accelerated upper bound}
+\label{sec:signed-star-semantic-upper}
+
+We now prove the central result.  The proof has two ingredients: an exact
+critically damped residual recurrence and an exact conversion of its two
+signed layers into semantic error.
+
+\begin{lemma}[Exact block recurrence]
+\label{lem:signed-star-block-recurrence}
+Let $x_j$ denote the aggregate residual processed by block $j$, with the
+initial center block indexed by $j=0$.  Then
+\begin{equation}
+  x_0=\gamma_\alpha,
+  \qquad
+  x_1=2\lambda\gamma_\alpha,
+  \qquad
+  x_{j+1}=2\lambda x_j-\lambda^2x_{j-1},
+  \label{eq:signed-star-block-recurrence}
+\end{equation}
+and hence
+\begin{equation}
+  x_j=\gamma_\alpha(j+1)\lambda^j.
+  \label{eq:signed-star-block-solution}
+\end{equation}
+After $k\ge1$ completed blocks, the center and aggregate-leaf residuals, in
+an order determined by the parity of $k$, are
+\begin{equation}
+  a_k:=x_k=\gamma_\alpha(k+1)\lambda^k,
+  \qquad
+  -b_k:=-\lambda^2x_{k-1}
+      =-\gamma_\alpha k\lambda^{k+1}.
+  \label{eq:signed-star-two-layers}
+\end{equation}
+In particular $a_k>b_k\ge0$.
+\end{lemma}
+
+\begin{proof}
+Immediately before block $j$, the layer being processed contains $x_j$ and
+the previously processed layer contains $-\lambda^2x_{j-1}$.  The block
+reflects the former to $-\lambda^2x_j$ and adds $2\lambda x_j$ to the latter.
+Thus the next processed residual is
+$x_{j+1}=2\lambda x_j-\lambda^2x_{j-1}$.  Its characteristic polynomial is
+$(z-\lambda)^2$.  The initial values determine
+$x_j=\gamma_\alpha(j+1)\lambda^j$.  The post-block description follows
+directly, and $a_k/b_k=(k+1)/(k\lambda)>1$.
+\end{proof}
+
+\begin{lemma}[Exact semantic-error identity]
+\label{lem:signed-star-semantic-identity}
+Let $p^{(k)}$ be the iterate after $k\ge0$ complete blocks.  Then
+\begin{equation}
+  \boxed{
+  \mathcal E(p^{(k)})
+  =\frac{\lambda^k}{2m}
+      \left(1+t^2+2tk\right),
+  \qquad t=\sqrt\alpha .}
+  \label{eq:signed-star-exact-semantic-error}
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Let $e=\pi-p^{(k)}=H^{-1}r$, and let
+$E_L:=\sum_{\ell\in L}e_\ell$.  For any symmetric star residual pair
+$(R,T)$, the two equations $He=r$ reduce to
+\begin{equation}
+  e_o-c_\alpha E_L=R,
+  \qquad
+  E_L-c_\alpha e_o=T.
+  \label{eq:signed-star-error-system}
+\end{equation}
+Therefore
+\begin{equation}
+  e_o=\frac{R+c_\alpha T}{1-c_\alpha^2},
+  \qquad
+  E_L=\frac{T+c_\alpha R}{1-c_\alpha^2}.
+  \label{eq:signed-star-error-solution}
+\end{equation}
+Every leaf has error $E_L/m$, while the center has degree $m$, so
+\begin{equation}
+  \mathcal E(p^{(k)})
+  =\frac{1}{m(1-c_\alpha^2)}
+    \max\{|R+c_\alpha T|,|T+c_\alpha R|\}.
+  \label{eq:signed-star-semantic-max}
+\end{equation}
+
+For $k\ge1$, the unordered residual pair is $\{a_k,-b_k\}$ from
+\eqref{eq:signed-star-two-layers}.  Whenever $a\ge b\ge0$ and
+$0\le c\le1$,
+\[
+  \max\{|a-cb|,|ca-b|\}=a-cb.
+\]
+Indeed, compare $a-cb$ with $ca-b$ if the latter is nonnegative, and with
+$b-ca$ otherwise.  Hence
+\begin{align}
+  \mathcal E(p^{(k)})
+  &=\frac{a_k-c_\alpha b_k}{m(1-c_\alpha^2)} \notag\\
+  &=\frac{\lambda^k\bigl(1+k(1-c_\alpha\lambda)\bigr)}
+          {m(1+c_\alpha)}.
+  \label{eq:signed-star-semantic-before-cancel}
+\end{align}
+Now
+\begin{equation}
+  c_\alpha=\frac{1-t^2}{1+t^2},
+  \qquad
+  1+c_\alpha=\frac{2}{1+t^2},
+  \qquad
+  1-c_\alpha\lambda=\frac{2t}{1+t^2}.
+  \label{eq:signed-star-cancellation-identities}
+\end{equation}
+Substitution proves \eqref{eq:signed-star-exact-semantic-error}.  At $k=0$
+the formula gives $(1+t^2)/(2m)=\pi_o/m$, which is the initial semantic
+error, so the identity also holds there.
+\end{proof}
+
+The last identity in \eqref{eq:signed-star-cancellation-identities} is the
+essential cancellation.  The residual magnitude contains $k\lambda^k$, but
+the semantic combination contains only $tk\lambda^k$.  Thus the critical
+double-root transient is attenuated by exactly the spectral scale
+$t=\sqrt\alpha$.
+
+\begin{theorem}[Predetermined-stop accelerated SOR on the star]
+\label{thm:signed-star-semantic-upper}
+Let $0<\alpha<1$, let
+$0<\varepsilon_{\rm ppr}\le1/16$, and choose $m$ as in
+\eqref{eq:signed-star-size}.  The signed-SOR algorithm of
+\Cref{sec:signed-star-algorithm}, stopped after
+$k_\star=\lceil2/\sqrt\alpha\rceil$ blocks, satisfies
+\begin{equation}
+  \mathcal E(p^{(k_\star)})\le\varepsilon_{\rm ppr}.
+  \label{eq:signed-star-upper-accuracy}
+\end{equation}
+Including the sparse seed read and $m+1$ explicit output writes, its work is
+\begin{equation}
+  W_{\rm SOR}
+  \le m\left\lceil\frac{2}{\sqrt\alpha}\right\rceil+m+2
+  =O\!\left(
+      \frac{1}{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+    \right).
+  \label{eq:signed-star-upper-work}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+The logarithm of $\lambda$ obeys
+\begin{equation}
+  -\log\lambda
+  =\log\frac{1+t}{1-t}
+  =2\operatorname{arctanh}(t)
+  \ge2t,
+  \label{eq:signed-star-lambda-exponential}
+\end{equation}
+so $\lambda^k\le e^{-2tk}$.  Put $y=tk$.  Since $t^2\le1$,
+\begin{equation}
+  \mathcal E(p^{(k)})
+  \le\frac{(1+y)e^{-2y}}{m}.
+  \label{eq:signed-star-error-envelope}
+\end{equation}
+For $k=k_\star$, $y\ge2$.  The function $(1+y)e^{-2y}$ is decreasing for
+$y\ge0$, and
+\begin{equation}
+  (1+y)e^{-2y}\le3e^{-4}<\frac1{16}.
+  \label{eq:signed-star-numerical-constant}
+\end{equation}
+By \eqref{eq:signed-star-size-bounds}, $m\ge1/(16\varepsilon_{\rm ppr})$;
+hence $1/(16m)\le\varepsilon_{\rm ppr}$.  This proves accuracy.
+
+Every block costs $m$.  The algorithm performs $k_\star$ blocks, reads one
+seed entry, and writes $m+1$ output coordinates.  The star validation scans
+can be combined with the first center and leaf blocks.  This proves the first
+work inequality; $m\le1/(8\varepsilon_{\rm ppr})$ and
+$\lceil2/t\rceil\le2/t+1$ give the asymptotic statement.
+\end{proof}
+
+\subsection{Why certificate stopping pays an avoidable logarithm}
+
+At a block boundary, the largest degree-normalized residual magnitude is
+\begin{equation}
+  \max_u\frac{|r_u|}{d_u}
+  =\frac{a_k}{m}
+  =\frac{\gamma_\alpha(k+1)\lambda^k}{m}.
+  \label{eq:signed-star-residual-at-block}
+\end{equation}
+The sufficient certificate \eqref{eq:signed-star-certificate} therefore
+requires
+\begin{equation}
+  (k+1)\lambda^k\le\varepsilon_{\rm ppr}m.
+  \label{eq:signed-star-certificate-block-condition}
+\end{equation}
+For our star, the right-hand side is a fixed constant at most $1/8$.
+Because $-\log\lambda=\Theta(t)$, the descending solution of
+\eqref{eq:signed-star-certificate-block-condition} is
+\begin{equation}
+  k=\Theta\!\left(\frac{\log(1/t)}{t}\right)
+   =\Theta\!\left(
+      \frac{\log(1/\alpha)}{\sqrt\alpha}
+     \right).
+  \label{eq:signed-star-certificate-log}
+\end{equation}
+By contrast, the semantic identity needs only $k=O(1/t)$.  Thus the
+logarithm is a property of the stronger certificate on this signed trajectory,
+not a lower bound on the algorithm's semantic complexity.  This distinction
+is safe here because the predetermined block count proves accuracy without
+querying the unknown solution.  On a general graph, replacing the certificate
+requires a new locally checkable argument; the star formula cannot simply be
+assumed.

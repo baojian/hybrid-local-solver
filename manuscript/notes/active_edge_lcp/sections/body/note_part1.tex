@@ -1,0 +1,869 @@
+% Front matter through the threshold-batch depth theorem.
+\maketitle
+
+\begin{abstract}
+This note audits an obstacle/linear-complementarity route to the project's
+second open problem (OP2).  In the shared normalization, regularized
+PageRank is exactly the nonnegative quadratic
+\[
+ \min_{\vx\geq0}\ \phi(\vx)
+ :=\tfrac12\vx^\trans\mQ\vx-\vc^\trans\vx,
+ \qquad
+ \vc=\vb-\alpha\rho\mD^{1/2}\one .
+\]
+Its KKT system is the symmetric nonsingular M-matrix LCP
+$\vx\geq0$, $\vw=\mQ\vx-\vc\geq0$, and
+$x_iw_i=0$.  This reduction has no sign or scaling slack.
+
+The first positive ingredient is an exact safe-pivot theorem.
+Starting from zero, solve the current principal face exactly and activate any
+outside coordinate with negative complementarity slack.  Every activated
+coordinate belongs to the unknown optimum support; after a batch activation,
+the new exact face solution is positive and increases coordinatewise.  Thus
+there are no false activations or deletions and at most $|\mathcal S_\rho^*|$ pivots.
+Only graph-boundary coordinates can violate.  A local minimum-norm KKT
+subgradient gives an objective-gap certificate in one charged terminal scan.
+
+We further remove the hidden complementarity-margin issue.  After an
+approximate face solve with residual norm $\delta$, it is enough to report a
+boundary slack below the known threshold $-\delta/\alpha$.  Such a report is
+provably negative for the exact face and hence support-safe.  If no such key
+exists and
+$\delta/\alpha\leq\sqrt{2\alpha\epsobj}/(1+2\sqrt{|\partial U|})$,
+orthant projection already meets the objective target.  Thus the missing data
+structure need not resolve all arbitrarily small signs.
+Exact face changes also satisfy a global energy telescope: the sum of squared
+$\mQ$-norm corrections, and hence the sum of squared full-slack changes, is at
+most $\alpha$.  This magnitude bound does not by itself pay for communicating
+dense corrections to boundary state.
+
+The main result closes the repeated-face gap and proves OP2.  Order the unknown
+optimal support by threshold-certified admission batches and take the block
+Cholesky factor of its principal matrix.  Keeping only the diagonal and first
+block subdiagonal produces a block-bidiagonal nonsingular M-matrix.  Its inverse
+is entrywise no larger than the full inverse, so its smallest singular value is
+at least $\sqrt\alpha$; its two-block row structure gives largest singular value
+at most $\sqrt2$.  Chebyshev inverse decay on this block chain shows that the
+unreleased face energy after $J$ batches is at most
+$8q^{2J}+\tau^2/(\alpha\rho)$, where
+$q=(\sqrt{2/\alpha}-1)/(\sqrt{2/\alpha}+1)$ and $\tau$ is the declared residual
+threshold.  The second term pays every delayed or numerically ambiguous release
+at once; no complementarity margin is assumed.
+
+Choose $\tau=\Theta(\sqrt{\alpha\rho\epsobj})$ and
+$J=O(\alpha^{-1/2}\log(1/\epsobj))$.  At each batch, a fresh nearly-linear SDD
+solve of the exposed degree-coordinate face is accepted only after a fully
+charged exact active-residual scan; capped independent retries provide the
+declared success probability.  One boundary scan then either admits all
+certified violations above threshold or stops.  Every admitted row lies in
+$\mathcal S_\rho^*$, hence every phase costs $\softO(1/\rho)$ and all
+preprocessing is local to the exposed face.  Orthant
+projection of the last approximate face gives objective gap at most
+$\epsobj$.  This yields a graph-uniform randomized high-probability algorithm
+with fully charged work
+$\softO(1/(\rho\sqrt\alpha)\log(1/\epsobj))$ and no supplied support, global
+preprocessing, boundary oracle, or uncharged materialization.
+
+The earlier repeated-prefix obstruction remains a warning against counting only
+terminal volume, but it is bypassed because only
+$O(\alpha^{-1/2}\log(1/\epsobj))$ complete faces are solved.  On a
+promised endpoint-seeded path, append-only scalar $LDL^\trans$ elimination
+tests each successive boundary key in constant arithmetic and materializes
+the solution once, giving exact-real $O(\vol(\mathcal S_\rho^*))$ work without
+global preprocessing.
+
+Finally, a four-vertex rational graph refutes the proposed invariant
+$0\leq\vx_k\leq\vx_\rho^*$ for ordinary or orthant-projected face CG.  CG
+started from an exact old face stays strictly feasible and decreases the
+quadratic, yet overshoots one optimum coordinate at iteration three.
+Projection is inactive, so it cannot repair the failure.  This is a precise
+algorithmic obstruction, not a lower bound for all accelerated active-set
+methods.
+\end{abstract}
+
+\tableofcontents
+
+\section{Scope and claim status}
+\label{sec:scope}
+
+\input{../../tex/shared/source_aligned_problem}
+
+This note specializes to the canonical point seed $\vs=\eunit{v}$ and the
+nonzero regime
+\begin{equation}
+ 0<\rho<1/d_v.
+ \label{eq:nonzero-regime}
+\end{equation}
+OP2 asks for a feasible returned vector $\widehat\vx$ satisfying
+\begin{equation}
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj
+ \label{eq:op2-gap}
+\end{equation}
+in fully charged graph work
+$\softO(1/(\rho\sqrt\alpha))$, with only polylogarithmic dependence on
+$1/\epsobj$.  The algorithm receives neither $\mathcal S_\rho^*$ nor free global
+preprocessing.  Adjacency entries, degree queries, arithmetic, state
+reads/writes, boundary and certificate scans, materialization, and output all
+count.
+The source variational formulation, nonnegativity, and support-volume theorem
+are \citet[Section~4 and Theorems~1--2]{fountoulakis2019variational}; the
+shared normalization is \citet[Section~3]{fountoulakis2026complexity}; and the
+target complexity is the open question of
+\citet[Section~3]{fountoulakis2022open}.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{0.18\textwidth}X@{}}
+\toprule
+Status & Statement \\
+\midrule
+\statussource & The canonical RPPR optimum is nonnegative and has
+$\vol(\mathcal S_\rho^*)\leq1/\rho$.  Wei--Yang give a true-support growing active-set
+method but pay a repeated principal-system factor. \\
+\statusproved & RPPR is exactly a symmetric nonsingular M-matrix LCP with
+$\vc=\vb-\alpha\rho\mD^{1/2}\one$ and
+$\vw=\mQ\vx-\vc$. \\
+\statusproved & Exact negative-violation pivots from zero activate only
+$\mathcal S_\rho^*$, require no deletions, and increase the exact face solution
+coordinatewise. \\
+\statusproved & On a supplied exact support, ordinary CG plus one final
+orthant projection has work
+$\bigO(\vol(\mathcal S_\rho^*)\alpha^{-1/2}\log(1/\epsobj))$. \\
+\statusproved & A locally computable minimum-norm KKT subgradient certifies
+objective gap at most $\norm{\vg}^2/(2\alpha)$. \\
+\statusproved & A residual-calibrated threshold reporter either returns an
+exactly support-safe pivot or certifies that one orthant projection meets the
+objective target; no unknown sign margin is required. \\
+\statusproved & Exact face corrections have total squared $\mQ$-energy and
+full-slack motion at most $\alpha$ across the entire nested sequence. \\
+\statusproved & Threshold-batch block Cholesky decay bounds the exact
+unreleased face gap after $J$ nonempty batches by
+$8q^{2J}+\tau^2/(\alpha\rho)$, with
+$q=(\sqrt{2/\alpha}-1)/(\sqrt{2/\alpha}+1)$. \\
+\statusproved & Fresh local SDD solves and complete active-row scans for
+$O(\alpha^{-1/2}\log(1/\epsobj))$ threshold batches give a fully charged
+$\softO(1/(\rho\sqrt\alpha))$ OP2 algorithm with polylogarithmic objective
+accuracy dependence. \\
+\statusproved & Promised endpoint-seeded paths have an append-only scalar
+$LDL^\trans$ solver with exact-real $O(\vol(\mathcal S_\rho^*))$ total work. \\
+\statusconditional & The stronger persistent active-edge contract in
+\cref{def:active-edge-contract} would remove fresh per-batch rebuilding and
+remains useful beyond the proved OP2 bound. \\
+\statusrefuted & Terminal support volume alone pays neither repeated face
+solves nor repeated boundary scans; endpoint paths give quadratic cumulative
+prefix volume. \\
+\statusrefuted & Ordinary face CG, and projected CG when its projection is
+inactive, does not maintain $\vzero\leq\vx_k\leq\vx_\rho^*$ even for a
+four-vertex graph M-matrix. \\
+\statusopen & Deterministic finite-precision/bit-complexity and a persistent
+changing-face implementation sharper than the proved fresh-batch solver. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The obstacle reduction, safe-pivot theorem, threshold-batch depth theorem,
+and fully charged OP2 algorithm are promoted in condensed form to the active
+manuscript.  The algorithmic theorem uses the shared exact-real algebraic word model and a randomized
+nearly-linear SDD solver with declared failure probability.  It proves
+polylogarithmic numerical-accuracy dependence, not coefficient-bit complexity
+or a deterministic finite-precision implementation.
+
+\section{Exact obstacle and LCP reduction}
+\label{sec:reduction}
+
+Define
+\begin{equation}
+ \vc:=\vb-\alpha\rho\mD^{1/2}\one,
+ \qquad
+ \phi(\vx):=\frac12\vx^\trans\mQ\vx-\vc^\trans\vx .
+ \label{eq:c-and-phi}
+\end{equation}
+The off-diagonal entries of $\mQ$ are nonpositive, and
+$\alpha\mI\preceq\mQ\preceq\mI$.
+
+\begin{theorem}[Exact obstacle reduction]
+\label{thm:reduction}
+The RPPR problem is equivalent, with the same optimum value and unique
+optimum, to
+\begin{equation}
+ \min_{\vx\geq\vzero}\phi(\vx).
+ \label{eq:obstacle}
+\end{equation}
+Its KKT system is
+\begin{equation}
+ \vx\geq\vzero,
+ \qquad
+ \vw:=\mQ\vx-\vc\geq\vzero,
+ \qquad
+ x_iw_i=0\quad(i\in[n]).
+ \label{eq:lcp}
+\end{equation}
+Moreover, $\mQ$ is a symmetric nonsingular M-matrix (a Stieltjes matrix) and
+a K-matrix, so \cref{eq:lcp} has a unique solution.  In the regime
+\cref{eq:nonzero-regime}, $v\in\mathcal S_\rho^*$.
+\end{theorem}
+
+\begin{proof}
+For any $\vx$, replacing it by $|\vx|$ leaves the diagonal quadratic and
+weighted $\ell_1$ terms unchanged.  Because $Q_{ij}\leq0$ for $i\neq j$,
+the off-diagonal quadratic contribution cannot increase, and because
+$\vb\geq\vzero$, $-\vb^\trans|\vx|\leq-\vb^\trans\vx$.  Thus
+$F_\rho(|\vx|)\leq F_\rho(\vx)$, and uniqueness from strong convexity makes
+$\vx_\rho^*\geq\vzero$.  On the nonnegative orthant,
+\[
+ \alpha\rho\norm{\mD^{1/2}\vx}_1
+ =\alpha\rho\one^\trans\mD^{1/2}\vx,
+\]
+so $F_\rho(\vx)=\phi(\vx)$ there.  This proves \cref{eq:obstacle}.
+
+At a lower bound $x_i\geq0$, stationarity and the normal cone give
+$w_i=(\nabla\phi(\vx))_i\geq0$ when $x_i=0$ and $w_i=0$ when $x_i>0$.
+These are exactly \cref{eq:lcp}; in particular the slack sign is positive,
+not negative.  The matrix $\mQ$ is symmetric positive definite and has
+nonpositive off-diagonals.  Hence it is Stieltjes.  Every principal minor is
+positive, so it is also a P-matrix; together with the Z-sign pattern this is a
+K-matrix.  Strict convexity, or the P-matrix LCP theorem, gives uniqueness.
+
+Finally,
+\[
+ c_v=\frac{\alpha}{\sqrt{d_v}}(1-\rho d_v)>0.
+\]
+If $(\vx_\rho^*)_v=0$, then
+$w_v=\sum_{j\neq v}Q_{vj}(\vx_\rho^*)_j-c_v<0$, contradicting
+\cref{eq:lcp}.  Thus $v\in\mathcal S_\rho^*$.
+\end{proof}
+
+\begin{remark}[Degree-coordinate boundary key]
+\label{rem:boundary-key}
+Set $y_i=x_i/\sqrt{d_i}$.  Once the seed is active, every inactive
+$j\neq v$ satisfies
+\begin{equation}
+ \frac{w_j}{\sqrt{d_j}}
+ =\alpha\rho-\frac{1-\alpha}{2d_j}
+   \sum_{i\in\mathcal N(j)\cap\supp(\vx)}y_i.
+ \label{eq:boundary-key}
+\end{equation}
+If $j$ is not on the graph boundary of the support, the sum is empty and the
+slack is strictly positive.  Detecting violations is therefore a dynamic
+active-edge problem: admitted coordinates increase and monotonically lower
+the keys of their inactive neighbors, but a dense old-face correction may
+change every cut-edge contribution.
+\end{remark}
+
+\section{What a supplied active set gives}
+\label{sec:supplied}
+
+For $S\subseteq[n]$, let $\mQ_{SS}$ denote the principal matrix and extend
+vectors on $S$ by zero outside $S$.  Principal interlacing gives
+\begin{equation}
+ \alpha\mI\preceq\mQ_{SS}\preceq\mI,
+ \qquad
+ \kappa(\mQ_{SS})\leq1/\alpha.
+ \label{eq:principal-spectrum}
+\end{equation}
+
+\begin{theorem}[Supplied exact-support CG]
+\label{thm:supplied-cg}
+Suppose $S=\mathcal S_\rho^*$ is supplied.  Run ordinary exact-arithmetic CG on
+\begin{equation}
+ \mQ_{SS}\vy=\vc_S
+ \label{eq:face-system}
+\end{equation}
+from any $\vy_0$, and after the last iteration return
+$\widehat\vx_S=[\vy_k]_+$ and zero outside $S$.  If
+$\Delta_S:=\tfrac12\norm{\vy_0-(\vx_\rho^*)_S}_{\mQ_{SS}}^2$, then
+\begin{equation}
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
+ \leq \frac{4\Delta_S}{\alpha}
+ \left(\frac{\sqrt\kappa-1}{\sqrt\kappa+1}\right)^{2k},
+ \qquad \kappa:=\kappa(\mQ_{SS}).
+ \label{eq:supplied-cg-rate}
+\end{equation}
+Consequently a supported-row implementation has charged work
+\begin{equation}
+ \bigO\!\left(
+   \frac{\vol(\mathcal S_\rho^*)}{\sqrt\alpha}
+   \log\frac{\Delta_S}{\alpha\epsobj}
+ \right),
+ \label{eq:supplied-work}
+\end{equation}
+including one final projection and output scan.
+\end{theorem}
+
+\begin{proof}
+Every optimum coordinate on its exact support is positive, so
+$\mQ_{SS}(\vx_\rho^*)_S=\vc_S$.  The standard CG energy estimate
+\citep{hestenes1952methods} is
+\[
+ \norm{\vy_k-(\vx_\rho^*)_S}_{\mQ_{SS}}
+ \leq2q^k\norm{\vy_0-(\vx_\rho^*)_S}_{\mQ_{SS}},
+ \quad q=\frac{\sqrt\kappa-1}{\sqrt\kappa+1}.
+\]
+Euclidean orthant projection is nonexpansive relative to the positive vector
+$(\vx_\rho^*)_S$.  Since $\mQ_{SS}\preceq\mI$ and
+$\mQ_{SS}\succeq\alpha\mI$,
+\begin{align*}
+ \phi([\vy_k]_+)-\phi((\vx_\rho^*)_S)
+ &=\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_{\mQ_{SS}}^2\\
+ &\leq\tfrac12\norm{[\vy_k]_+-(\vx_\rho^*)_S}_2^2\\
+ &\leq\frac1{2\alpha}
+       \norm{\vy_k-(\vx_\rho^*)_S}_{\mQ_{SS}}^2.
+\end{align*}
+This proves \cref{eq:supplied-cg-rate}.  A principal matrix-vector product
+scans only rows in $S$ and costs $O(\vol(S))$.  The estimate
+$q\leq\exp(-2/(\sqrt\kappa+1))$ and \cref{eq:principal-spectrum} give the
+iteration and work bound.
+\end{proof}
+
+For the zero start, no graph-dependent polynomial is hidden in the logarithm:
+since $F_\rho(\vzero)=0$ and
+$\min f\geq-\norm{\vb}^2/(2\alpha)\geq-\alpha/2$, the initial RPPR gap is at
+most $\alpha/2$.  The ordinary $\sqrt\kappa=O(1/\sqrt\alpha)$ factor therefore
+enters exactly through the supplied principal solve.  What is hidden by
+\cref{eq:supplied-work} is the cost of finding and maintaining $S$.
+
+\section{Safe exact active-edge discovery}
+\label{sec:safe-discovery}
+
+For $U\subseteq[n]$ with $\mQ_{UU}$ nonempty, define the exact face-stationary
+vector
+\begin{equation}
+ x_i^U=
+ \begin{cases}
+  (\mQ_{UU}^{-1}\vc_U)_i,&i\in U,\\
+  0,&i\notin U,
+ \end{cases}
+ \qquad
+ \vw^U:=\mQ\vx^U-\vc.
+ \label{eq:face-vector}
+\end{equation}
+The empty face means $\vx^\emptyset=\vzero$ and $\vw^\emptyset=-\vc$.
+We call a face \emph{reachable} if it arises from the empty face by repeatedly
+adding only coordinates with strictly negative current slack.
+
+\begin{theorem}[Safe batched K-LCP pivots]
+\label{thm:safe-pivots}
+Let $U$ be reachable.  Then
+\begin{equation}
+ U\subseteq\mathcal S_\rho^*,
+ \qquad
+ \vzero<\vx^U_U\leq(\vx_\rho^*)_U.
+ \label{eq:reachable-invariant}
+\end{equation}
+Every coordinate $j\notin U$ with $w_j^U<0$ belongs to
+$\mathcal S_\rho^*\setminus U$.  If $J$ is any nonempty collection of such coordinates,
+then $U':=U\cup J$ is reachable and
+\begin{equation}
+ \vx^{U'}_{U'}>\vzero,
+ \qquad
+ \vx^{U'}_U\geq\vx^U_U.
+ \label{eq:batch-monotonicity}
+\end{equation}
+If no outside slack is negative, $\vx^U=\vx_\rho^*$.  Consequently this exact
+outer loop makes at most $|\mathcal S_\rho^*|$ pivots, has nested support, and never
+activates a false coordinate or deletes a coordinate.
+\end{theorem}
+
+\begin{proof}
+The empty-face slack at the seed is $w_v^\emptyset=-c_v<0$, so the first
+pivot admits $v\in\mathcal S_\rho^*$.  Its scalar principal solve is positive.
+
+Assume the invariant holds at a reachable $U$.  Restricted stationarity of
+$\vx^U$ and the optimum equations on $\mathcal S_\rho^*$ give
+\begin{equation}
+ \mQ_{UU}\bigl((\vx_\rho^*)_U-\vx^U_U\bigr)
+ =-\mQ_{U,\mathcal S_\rho^*\setminus U}(\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}
+ \geq\vzero.
+ \label{eq:face-comparison}
+\end{equation}
+The inverse of a principal Stieltjes matrix is nonnegative
+\citep[Chapter~6]{berman1994nonnegative}, so
+$\vx^U_U\leq(\vx_\rho^*)_U$.
+
+Now take $j\notin\mathcal S_\rho^*$.  Since $(\vx_\rho^*)_j=0$ and $w_j^*\geq0$,
+\begin{align}
+ w_j^U-w_j^*
+ &=\mQ_{jU}\bigl(\vx^U_U-(\vx_\rho^*)_U\bigr)
+   -\mQ_{j,\mathcal S_\rho^*\setminus U}(\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}
+ \geq0.
+ \label{eq:no-false-violation}
+\end{align}
+Both terms are nonnegative because the coordinate differences in the first
+are nonpositive and all displayed off-diagonal matrix entries are
+nonpositive.  Hence $w_j^U\geq0$; a negative violator must lie in $\mathcal S_\rho^*$.
+
+For a batch $J$ of negative violators, block elimination in the enlarged
+principal equations gives
+\begin{align}
+ \mH_J\vx^{U'}_J&=-\vw^U_J,
+ &\mH_J&:=\mQ_{JJ}-\mQ_{JU}\mQ_{UU}^{-1}\mQ_{UJ},
+ \label{eq:schur-pivot}\\
+ \vx^{U'}_U-\vx^U_U&=-\mQ_{UU}^{-1}\mQ_{UJ}\vx^{U'}_J.
+ \label{eq:old-correction}
+\end{align}
+The Schur complement $\mH_J$ is again Stieltjes, so
+$\mH_J^{-1}\geq0$.  Since $-\vw_J^U>\vzero$,
+$\vx_J^{U'}>\vzero$; \cref{eq:old-correction} and the Z-sign pattern make the
+old correction nonnegative.  This proves \cref{eq:batch-monotonicity} and
+closes the induction.  If there is no negative outside slack, inside
+stationarity and positivity give complementarity and outside nonnegativity;
+uniqueness in \cref{thm:reduction} identifies the optimum.
+\end{proof}
+
+\begin{corollary}[Boundary-only discovery]
+\label{cor:boundary-only}
+At every nonempty reachable face, a negative violation can occur only in
+$\partial U$.  Exposing every newly admitted vertex's adjacency list once costs
+$\vol(U)$, and creates at most $\vol(U)$ boundary-candidate incidences.  No
+adjacency list of a false boundary candidate need be scanned.
+\end{corollary}
+
+\begin{proof}
+For $j\notin U\cup\partial U$ with $j\neq v$, sparsity gives
+$w_j^U=-c_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already in every nonempty
+reachable face.  The incidence counts follow by charging each exposed edge to
+its endpoint in $U$.
+\end{proof}
+
+\begin{proposition}[Exact-face energy and slack-motion telescope]
+\label{prop:motion-telescope}
+Let $U_0\subset U_1\subset\cdots\subset U_T$ be reachable exact faces and
+write $\vDelta_t=\vx^{U_{t+1}}-\vx^{U_t}$.  Then
+\begin{align}
+ \sum_{t=0}^{T-1}\norm{\vDelta_t}_{\mQ}^2
+ &=2\bigl(\phi(\vx^{U_0})-\phi(\vx^{U_T})\bigr)
+ \leq\alpha,
+ \label{eq:energy-telescope}\\
+ \sum_{t=0}^{T-1}\norm{\vw^{U_{t+1}}-\vw^{U_t}}_2^2
+ &\leq\sum_{t=0}^{T-1}\norm{\vDelta_t}_{\mQ}^2.
+ \label{eq:slack-motion-telescope}
+\end{align}
+The bound controls squared numerical motion, not the number of state cells or
+cut edges touched by an implementation.
+\end{proposition}
+
+\begin{proof}
+Both consecutive face vectors are supported on $U_{t+1}$, and
+$\vx^{U_{t+1}}$ is stationary for the quadratic restricted to that face.
+The exact quadratic identity therefore gives
+\[
+ \phi(\vx^{U_t})-\phi(\vx^{U_{t+1}})
+ =\tfrac12\norm{\vDelta_t}_{\mQ}^2.
+\]
+Summing telescopes.  Since every restricted minimum has objective at most
+$\phi(\vzero)=0$ and at least the global minimum, the zero-start gap bound
+following \cref{thm:supplied-cg} gives the final inequality in
+\cref{eq:energy-telescope}.  Finally,
+$\vw^{U_{t+1}}-\vw^{U_t}=\mQ\vDelta_t$ and
+$\mQ^2\preceq\mQ$ because $\vzero\prec\mQ\preceq\mI$, proving
+\cref{eq:slack-motion-telescope}.
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Exact active-edge LCP skeleton}
+\label{alg:skeleton}
+\begin{algorithmic}[1]
+\STATE $U\gets\emptyset$, $\vx^U\gets\vzero$.
+\WHILE{a certified reporter returns $j\notin U$ with $w_j^U<0$}
+  \STATE Choose a nonempty reported batch $J\subseteq\{j:w_j^U<0\}$.
+  \STATE Continue the principal state from $U$ to $U\cup J$ and obtain
+         $\vx^{U\cup J}$.
+  \STATE Expose the adjacency lists of newly admitted vertices and update
+         boundary keys.
+  \STATE $U\gets U\cup J$.
+\ENDWHILE
+\STATE Materialize a feasible approximation and certify \cref{eq:op2-gap}.
+\end{algorithmic}
+\end{algorithm}
+
+The theorem validates the outer logic of \cref{alg:skeleton}.  By itself it
+says nothing about how cheaply an exact or sufficiently accurate principal
+state can be continued, how a negative boundary key is located after a dense
+old correction, or how ambiguous numerical signs are resolved.  Sections
+\ref{sec:batch-depth}--\ref{sec:op2-algorithm} close those requirements at a
+fixed threshold and objective accuracy.
+
+\section{A local objective-gap certificate}
+\label{sec:certificate}
+
+For a feasible $\vx\geq\vzero$, set $\vw=\mQ\vx-\vc$ and define
+\begin{equation}
+ g_i(\vx):=
+ \begin{cases}
+  w_i,&x_i>0,\\
+  \min\{w_i,0\},&x_i=0.
+ \end{cases}
+ \label{eq:minimal-subgradient}
+\end{equation}
+
+\begin{theorem}[KKT subgradient certificate]
+\label{thm:kkt-certificate}
+The vector $\vg(\vx)$ is the minimum-Euclidean-norm element of the
+subdifferential of $\phi+I_{\R_+^n}$ at $\vx$, and
+\begin{equation}
+ F_\rho(\vx)-F_\rho(\vx_\rho^*)
+ \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
+ \label{eq:gap-certificate}
+\end{equation}
+Thus $\norm{\vg(\vx)}_2\leq\sqrt{2\alpha\epsobj}$ is a sufficient OP2
+stopping rule.  If $\vx$ is stored on $U$ containing the seed, one scan of
+the rows in $U$ computes all positive-support residuals and all possibly
+negative outside entries, at work $O(\vol(U))$ plus $O(|U|)$ state and output
+words.
+\end{theorem}
+
+\begin{proof}
+At $x_i>0$ the normal cone is zero.  At $x_i=0$ it is $(-\infty,0]$, so the
+smallest magnitude in $w_i+(-\infty,0]$ is zero when $w_i\geq0$ and $w_i$
+when $w_i<0$.  This proves \cref{eq:minimal-subgradient}.  Strong convexity
+gives, for every subgradient $\vg$,
+\[
+ (\phi+I)(\vy)\geq(\phi+I)(\vx)+\vg^\trans(\vy-\vx)
+       +\frac\alpha2\norm{\vy-\vx}_2^2.
+\]
+Minimizing the right side over $\vy\in\R^n$ and taking
+$\vy=\vx_\rho^*$ yields \cref{eq:gap-certificate}.  For locality, a sparse
+row scan accumulates $\mQ\vx$ on $U\cup\partial U$.  Every farther nonseed
+coordinate has positive slack by \cref{rem:boundary-key}, so its minimum-norm
+subgradient entry is zero.
+\end{proof}
+
+The certificate explicitly charges the terminal scan.  It also avoids a
+minimum positive coordinate or strict-complementarity assumption.  Combined
+with the shared source conversion, objective gap $\epsobj$ yields the usual
+degree-normalized PageRank accuracy
+$\rho+\sqrt{2\epsobj/\alpha}$; this is a consequence, not a replacement for
+the OP2 objective target.
+
+The next result removes the different margin that arises when an approximate
+face solution is used to decide whether a boundary slack is negative.
+
+\begin{theorem}[Margin-free approximate-face dichotomy]
+\label{thm:threshold-dichotomy}
+Let $U$ be a nonempty reachable face, let $B=\partial U$, and put
+$b_U=|B|$.  Let $\vz$ be any vector supported on $U$ and define
+\begin{equation}
+ \vr_U:=\mQ_{UU}\vz_U-\vc_U,
+ \qquad
+ \delta:=\norm{\vr_U}_2,
+ \qquad
+ \eta:=\delta/\alpha,
+ \qquad
+ \tau:=\sqrt{2\alpha\epsobj}.
+ \label{eq:threshold-parameters}
+\end{equation}
+Suppose
+\begin{equation}
+ \eta\leq \frac{\tau}{1+2\sqrt{b_U}}.
+ \label{eq:face-residual-target}
+\end{equation}
+For $j\in B$, form the approximate boundary slack
+$\widehat w_j=(\mQ\vz-\vc)_j$.  Then the following dichotomy provides a
+valid action.
+\begin{enumerate}[label=(\roman*)]
+\item If some $j\in B$ satisfies
+\begin{equation}
+ \widehat w_j<-\eta,
+ \label{eq:safe-threshold-report}
+\end{equation}
+then the exact face slack satisfies $w_j^U<0$.  Thus $j$ is a support-safe
+pivot covered by \cref{thm:safe-pivots}.
+\item If no boundary coordinate satisfies \cref{eq:safe-threshold-report},
+then the feasible vector
+\begin{equation}
+ \widehat\vx_U=[\vz_U]_+,
+ \qquad
+ \widehat\vx_{\bar U}=\vzero
+ \label{eq:threshold-output}
+\end{equation}
+satisfies
+$F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj$.
+\end{enumerate}
+Consequently the reporter need only return a key below the known,
+objective-derived threshold $-\delta/\alpha$, or certify that no such key
+exists.  It never has to resolve an unknown minimum nonzero complementarity
+slack.
+\end{theorem}
+
+\begin{proof}
+Let $\vx^U$ be the exact face vector and set
+$\ve_0=\vz-\vx^U$.  Restricted stationarity gives
+$\mQ_{UU}(\ve_0)_U=\vr_U$, so
+\begin{equation}
+ \norm{\ve_0}_2\leq\delta/\alpha=\eta.
+ \label{eq:face-error-bound}
+\end{equation}
+Because $\norm{\mQ}_2\leq1$, every boundary slack error obeys
+$|\widehat w_j-w_j^U|\leq\eta$.  Hence
+\cref{eq:safe-threshold-report} implies $w_j^U<0$, proving the first case.
+
+Suppose there is no report.  Then
+$w_j^U\geq\widehat w_j-\eta\geq-2\eta$ for every $j\in B$.
+Only boundary coordinates can have negative exact slack, so, with the negative
+part extended by zero,
+\begin{equation}
+ \norm{[\vw^U_{\bar U}]_-}_2\leq2\sqrt{b_U}\,\eta.
+ \label{eq:exact-face-negative-mass}
+\end{equation}
+Let $\ve=\widehat\vx-\vx^U$.  Orthant projection is nonexpansive relative to
+the nonnegative exact face vector, and therefore
+$\norm{\ve}_2\leq\norm{\ve_0}_2\leq\eta$.  Define
+\begin{equation}
+ \vh:=\mQ\ve+
+ \begin{bmatrix}
+  \vzero_U\\ [\vw^U_{\bar U}]_-
+ \end{bmatrix}.
+ \label{eq:constructed-subgradient}
+\end{equation}
+At positive coordinates of $\widehat\vx$, $\vh$ equals the gradient.  At a
+zero coordinate in $U$, choosing zero normal makes the same identity valid;
+outside $U$, subtracting the positive part of $\vw^U$ is an admissible
+nonpositive normal.  Thus
+$\vh\in\partial(\phi+I_{\R_+^n})(\widehat\vx)$.  Equations
+\cref{eq:face-residual-target,eq:exact-face-negative-mass} give
+\[
+ \norm{\vh}_2
+ \leq\norm{\mQ\ve}_2+\norm{[\vw^U_{\bar U}]_-}_2
+ \leq(1+2\sqrt{b_U})\eta
+ \leq\tau.
+\]
+The strong-convexity argument in \cref{thm:kkt-certificate}, which applies to
+every subgradient and not only the minimum-norm one, proves the objective
+claim.
+\end{proof}
+
+\begin{corollary}[Overlapping thresholds remove finite-precision sign margins]
+\label{cor:interval-threshold}
+In the setting of \cref{thm:threshold-dichotomy}, let
+$\bar\eta\geq\delta/\alpha$ be a certified error bound with
+\begin{equation}
+ \bar\eta\leq\frac{\tau}{1+4\sqrt{b_U}}.
+ \label{eq:interval-residual-target}
+\end{equation}
+For each $j\in B$, suppose a certified interval $I_j$ contains
+$\widehat w_j$ and has width strictly less than $2\bar\eta$.  If
+$\sup I_j<-\bar\eta$ for some $j$, then $w_j^U<0$ and the pivot is safe.  If
+there is no such report, the projected vector in
+\cref{eq:threshold-output} has objective gap at most $\epsobj$.
+Thus every key need only be refined to the predetermined additive scale
+$\bar\eta$; no key-dependent separation margin is required.
+\end{corollary}
+
+\begin{proof}
+A report gives
+$w_j^U\leq\widehat w_j+\bar\eta<0$.  Otherwise
+$\sup I_j\geq-\bar\eta$ for every $j$.  Since the interval width is less than
+$2\bar\eta$, its lower endpoint is greater than $-3\bar\eta$, and hence
+$\widehat w_j>-3\bar\eta$.  Therefore
+$w_j^U>-4\bar\eta$ and
+$\norm{[\vw^U_{\bar U}]_-}_2\leq4\sqrt{b_U}\bar\eta$.  Repeating the
+constructed-subgradient proof with
+$\norm{\widehat\vx-\vx^U}_2\leq\delta/\alpha\leq\bar\eta$ gives a
+subgradient of norm at most
+$(1+4\sqrt{b_U})\bar\eta\leq\tau$.
+\end{proof}
+
+For a fixed supplied face, ordinary CG reaches
+\cref{eq:face-residual-target} in
+$O(\sqrt{\kappa(\mQ_{UU})}\log(b_U/(\alpha\epsobj)))$ iterations up to
+constant and initial-gap factors.  The dependence on $b_U$ and
+$1/\epsobj$ is logarithmic.  This theorem closes sign robustness, but it does
+not amortize the matrix-vector products or threshold reports across changing
+faces.
+
+\section{Threshold-batch Cholesky decay}
+\label{sec:batch-depth}
+
+The preceding paragraph treats every face independently.  The next argument
+instead orders the unknown optimal support by the batches in which it is
+admitted.  Its central fact is that delayed releases form a well-conditioned
+block-bidiagonal Cholesky chain.  This gives the square-root depth bound even
+though ordinary Bellman contraction gives only the factor $1-\Theta(\alpha)$.
+
+Write the outside face residual as
+\begin{equation}
+ \vr^U:=\vc-\mQ\vx^U=-\vw^U.
+ \label{eq:outside-face-residual}
+\end{equation}
+Fix $\vartheta\geq0$.  A nested sequence
+$U_k=B_0\mathbin{\dot\cup}\cdots\mathbin{\dot\cup}B_k$ is called
+\emph{$\vartheta$-batched} if $B_0=\{v\}$, every later $B_k$ is a nonempty
+set of coordinates with $r_i^{U_{k-1}}>0$, and, immediately before admitting
+$B_k$, every coordinate that will be admitted after $B_k$ has residual at
+most $\vartheta$.  Coordinates outside the seed have empty-face residual
+$c_i=-\alpha\rho\sqrt{d_i}<0$, which supplies the analogous bound before
+$B_0$ without adding it to the definition.  Any finite such sequence may be
+extended to a partition of $\mathcal S_\rho^*$: after its last declared batch,
+repeatedly admit all exact positive residuals.  After each such all-positive
+batch is selected, every still-future coordinate has current residual at most
+zero, so the extension remains $\vartheta$-batched.  For the first exact
+continuation block, the different two-face-back causal bound used below comes
+from the last declared batch condition; its newly positive residual on the
+immediately preceding face need not be small.
+
+\begin{theorem}[Threshold-batch energy-depth bound]
+\label{thm:batch-depth}
+Let $U_0\subset U_1\subset\cdots$ be a $\vartheta$-batched reachable
+sequence, extended as above to the full optimal support.  Put
+\begin{equation}
+ q_\alpha:=
+ \frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}.
+ \label{eq:batch-q}
+\end{equation}
+Then for every included face $U_J$,
+\begin{equation}
+ \phi(\vx^{U_J})-\phi(\vx_\rho^*)
+ \leq 8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho}.
+ \label{eq:batch-depth-gap}
+\end{equation}
+In particular, a constant reduction needs only
+$O(\alpha^{-1/2})$ batches up to logarithmic factors; no terminal-support
+cardinality, graph diameter, or complementarity margin occurs in the depth,
+provided the requested gap lies above the displayed additive threshold floor.
+\end{theorem}
+
+\begin{proof}
+Restrict $\mQ$ and $\vc$ to $S:=\mathcal S_\rho^*$ and order $S$ by the
+blocks $B_0,B_1,\ldots,B_K$.  Block elimination gives
+\begin{equation}
+ \mQ_{SS}=\mL\mDelta\mL^\trans,
+ \qquad
+ \mDelta=\operatorname{diag}(\mDelta_0,\ldots,\mDelta_K),
+ \qquad
+ \vg=\mL^{-1}\vc_S.
+ \label{eq:block-ldl}
+\end{equation}
+Here $\mL$ is unit block lower triangular, every pivot
+$\mDelta_k$ is Stieltjes, and $\vg_k$ is exactly the positive Schur residual
+on the batch $B_k$ when it is admitted.  If
+$\mDelta_k=\mR_k\mR_k^\trans$ is its lower Cholesky factor and
+\begin{equation}
+ \vz_k:=\mR_k^{-1}\vg_k,
+ \label{eq:block-z}
+\end{equation}
+then $\vz_k\geq\vzero$ because $\mR_k$ is a triangular nonsingular
+M-matrix.  Standard completion of squares in block elimination gives the
+exact face-gap identity
+\begin{equation}
+ 2\bigl(\phi(\vx^{U_J})-\phi(\vx_\rho^*)\bigr)
+ =\sum_{k>J}\norm{\vz_k}_2^2.
+ \label{eq:block-gap-identity}
+\end{equation}
+
+Put $\mC:=\mL\operatorname{diag}(\mR_0,\ldots,\mR_K)$, so
+$\mQ_{SS}=\mC\mC^\trans$.  This is the unique scalar lower Cholesky factor
+under the block-respecting coordinate order.  Its recursion
+$C_{ij}=(Q_{ij}-\sum_{\ell<j}C_{i\ell}C_{j\ell})/C_{jj}$ shows inductively
+that every off-diagonal entry is nonpositive.  Let
+$\widehat{\mC}$ retain from $\mC$ only its diagonal blocks and its first block
+subdiagonal.  Both $\mC$ and $\widehat{\mC}$ are triangular nonsingular
+M-matrices, and $\mC\leq\widehat{\mC}$ entrywise.  Inverse monotonicity and
+nonnegativity therefore give
+\begin{equation}
+ \vzero\leq\widehat{\mC}^{-1}\leq\mC^{-1},
+ \qquad
+ \norm{\widehat{\mC}^{-1}}_2
+ \leq\norm{\mC^{-1}}_2\leq\frac1{\sqrt\alpha}.
+ \label{eq:bidiagonal-inverse-bound}
+\end{equation}
+Indeed, the inverse ordering follows directly from
+$\mC^{-1}-\widehat{\mC}^{-1}
+=\mC^{-1}(\widehat{\mC}-\mC)\widehat{\mC}^{-1}\geq0$.
+The passage from entrywise to spectral norm is valid because both inverses
+are nonnegative: $|\widehat{\mC}^{-1}z|\leq
+\mC^{-1}|z|$ for every $z$.
+
+There is also a graph-independent upper bound.  The $k$th block row of
+$\mC$ has squared row-map matrix
+\begin{equation}
+ \sum_{i\leq k}\mC_{ki}\mC_{ki}^\trans
+ =\mQ_{B_kB_k}\preceq\mI.
+ \label{eq:block-row-bound}
+\end{equation}
+Deleting all but two input blocks cannot increase this row-map norm.  Each
+input block occurs in at most two retained rows, whence
+\begin{equation}
+ \norm{\widehat{\mC}}_2\leq\sqrt2.
+ \label{eq:bidiagonal-upper-bound}
+\end{equation}
+Consequently
+$\mA:=\widehat{\mC}\widehat{\mC}^\trans$ is block tridiagonal and
+\begin{equation}
+ \alpha\mI\preceq\mA\preceq2\mI.
+ \label{eq:block-chain-spectrum}
+\end{equation}
+
+We next encode the batch chronology.  For $k\geq2$, immediately before
+$B_{k-1}$ is admitted, the still-future block $B_k$ has residual at most
+$\vartheta\one$; this is its residual after eliminating through $B_{k-2}$.
+For $k=1$, the same bound follows from
+$c_i=-\alpha\rho\sqrt{d_i}<0$ off the seed.  Eliminating $B_{k-1}$ subtracts
+$\mL_{k,k-1}\vg_{k-1}$.  Hence, for every $k\geq1$,
+\begin{equation}
+ \vg_k+\mL_{k,k-1}\vg_{k-1}\leq\vartheta\one.
+ \label{eq:causal-pivot-bound}
+\end{equation}
+Using $\mC_{k,k-1}=\mL_{k,k-1}\mR_{k-1}$, equations
+\cref{eq:block-z,eq:causal-pivot-bound} say
+\begin{equation}
+ (\widehat{\mC}\vz)_0=\vg_0,
+ \qquad
+ (\widehat{\mC}\vz)_k\leq\vartheta\one\quad(k\geq1).
+ \label{eq:chain-forcing}
+\end{equation}
+Because $\widehat{\mC}^{-1}\geq0$,
+\begin{equation}
+ \vzero\leq\vz
+ \leq\widehat{\mC}^{-1}
+ \begin{bmatrix}\vg_0\\ \vartheta\one_{S\setminus B_0}\end{bmatrix}.
+ \label{eq:chain-domination}
+\end{equation}
+
+It remains to bound the two sources.  For the distributed threshold source,
+\cref{eq:bidiagonal-inverse-bound} and $|S|\leq\vol(S)\leq1/\rho$ give
+\begin{equation}
+ \norm{\widehat{\mC}^{-1}
+ [\vzero;\vartheta\one]}_2^2
+ \leq\frac{\vartheta^2|S|}{\alpha}
+ \leq\frac{\vartheta^2}{\alpha\rho}.
+ \label{eq:threshold-forcing-bound}
+\end{equation}
+
+For the seed-block source and $J\geq1$, use a degree-$(J-1)$ Chebyshev
+polynomial $p_{J-1}$ for $1/t$ on $[\alpha,2]$.  Its standard uniform error is
+\begin{equation}
+ \norm{\mA^{-1}-p_{J-1}(\mA)}_2
+ \leq\frac2\alpha q_\alpha^J.
+ \label{eq:inverse-chebyshev}
+\end{equation}
+Since $\mA$ is block tridiagonal and $\vg_0$ is supported on block zero,
+$p_{J-1}(\mA)\vg_0$ is supported on blocks through $J-1$.  Multiplication by
+the block upper-bidiagonal $\widehat{\mC}^\trans$ does not increase the
+largest block index.  Therefore, writing $P_{>J}$ for the block-tail
+projection and using
+$\widehat{\mC}^{-1}=\widehat{\mC}^\trans\mA^{-1}$,
+\begin{align}
+ \norm{P_{>J}\widehat{\mC}^{-1}[\vg_0;\vzero]}_2
+ &\leq\norm{\widehat{\mC}}_2
+       \norm{\mA^{-1}-p_{J-1}(\mA)}_2\norm{\vg_0}_2\notag\\
+ &\leq\frac{2\sqrt2}{\alpha}q_\alpha^J\norm{\vg_0}_2
+ \leq2\sqrt2q_\alpha^J.
+ \label{eq:seed-tail-bound}
+\end{align}
+The last inequality uses
+$\vg_0=c_v=\alpha(1-\rho d_v)/\sqrt{d_v}\leq\alpha$.
+For $J=0$, the same displayed tail bound follows directly from
+$\norm{\widehat{\mC}^{-1}}_2\leq1/\sqrt\alpha$,
+$\norm{\vg_0}_2\leq\alpha$, and $\alpha\leq1$.
+Combining \cref{eq:chain-domination,eq:threshold-forcing-bound,eq:seed-tail-bound}
+with $\norm{a+b}_2^2/2\leq\norm a_2^2+\norm b_2^2$ and then
+\cref{eq:block-gap-identity} proves \cref{eq:batch-depth-gap}.
+\end{proof}
+
+The proof explains both known extremes.  At $\vartheta=0$ it recovers an
+accelerated exact-batch depth bound without the earlier $\rho=0$ Krylov
+containment.  On a long endpoint path the retained block-bidiagonal factor is
+the whole scalar factor, and the decay scale is sharp up to constants.  A
+delayed same-boundary release contributes to the distributed forcing only
+once, at the block where that vertex is eventually admitted; it cannot create
+an uncharged sequence of margin errors.

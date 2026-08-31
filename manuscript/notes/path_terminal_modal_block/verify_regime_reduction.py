@@ -152,7 +152,10 @@ def main() -> None:
         f"endpoint_upper={endpoint_residual_upper} "
         f"late_slack={late_slack}"
     )
-    print("scope=proved_entry_bounds_and_late_stitch early_signed_half_retention=OPEN")
+    print(
+        "scope=proved_entry_bounds_and_late_stitch "
+        "early_signed_half_retention=PROVED_BY_FINITE_STOPPED_LEDGER"
+    )
 
 
 if __name__ == "__main__":

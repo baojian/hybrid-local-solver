@@ -1,0 +1,92 @@
+\section{Question, scope, and claim discipline}
+\label{sec:signed-star-scope}
+
+The motivating phrase ``promote the signed rung to proved'' can mean three
+different things, only one of which is an algorithmic theorem.
+
+\begin{enumerate}[leftmargin=*]
+\item A \emph{lower bound} says that every method in a declared class must pay
+      at least a certain amount.  It does not construct a method.
+\item A \emph{member upper bound} analyzes one explicit algorithm and proves
+      that it pays at most that amount.
+\item A \emph{matching class theorem} combines the two, thereby identifying
+      the optimal scale within that class on that instance family.
+\end{enumerate}
+
+This note supplies items two and three for a promised star family.  The
+algorithm is not newly invented: it is the classical optimal-SOR relaxation
+specialized to the star.  The new point is the exact semantic-error analysis,
+which proves that this algorithm reaches the project accuracy in accelerated
+work without the logarithm required by its stronger residual certificate.
+
+\subsection{What is proved and what is compared}
+
+The status of every principal statement is as follows.
+
+\begin{center}
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}p{0.49\textwidth}}
+\toprule
+Statement & Status & Precise scope \\
+\midrule
+Optimal SOR upper bound & \textbf{Proved here} & Center-seeded
+$K_{1,m}$, semantic $\varepsilon_{\rm ppr}$ error, signed coordinate
+relaxations, explicit output writes. \\
+Signed-class lower bound & \textbf{Proved here} & Every adaptive or randomized
+dissipative one-coordinate relaxation with output equal to its maintained PPR
+iterate. \\
+Nonnegative-residual lower bound & \textbf{Proved here} & Every one-coordinate
+method that preserves the exact residual invariant and $r\ge0$. \\
+FISTA leaf-star obstruction & \textbf{Source} & Standard strongly-convex
+FISTA for the $\ell_1$-regularized RPPR objective, objective-gap accuracy and
+the source degree-work model. \\
+ASPR path obstruction & \textbf{Imported} & Literal COLT--2023 ASPR under the
+corrected objective-gap contract of the proof-owning audit note. \\
+AESP--LocGD star cost & \textbf{Imported} & Literal source AESP schedule with
+the batched LocGD inner method and the source PPR accuracy/work model. \\
+Graph-uniform accelerated local PPR & \textbf{Open} & General undirected
+graphs under the shared fully charged semantic-output contract. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The comparisons are intentionally not collapsed into one theorem.  In
+particular,
+\(\varepsilon_{\rm ppr}\) below is the semantic degree-normalized PPR error,
+whereas \(\varepsilon_{\rm obj}\) in the FISTA and ASPR sections is an RPPR
+objective gap.  No equality or conversion between them is assumed.
+
+\subsection{Promised-family versus graph-uniform results}
+
+The upper-bound algorithm is given a star with its center as the seed.  It can
+verify this promise by scanning the center and then its leaves, at additional
+$O(m)$ work, which is included in the final asymptotic bound.  The proof uses
+the star's exact two-dimensional invariant subspace.  It therefore does not
+establish the project target
+\[
+  \widetilde O\!\left(
+      \frac{1}{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+  \right)
+\]
+on arbitrary graphs.  A general theorem would additionally need to control
+support discovery, changing local faces, repeated reads, safeguarding,
+certificate queries, materialization, and output.
+
+\subsection{Why the negative examples belong in the same note}
+
+The star theorem shows that signed local dynamics can accelerate.  It does not
+say that every insertion of momentum into a local solver is safe.  The
+negative examples isolate four independent bottlenecks:
+
+\begin{enumerate}[leftmargin=*]
+\item \emph{sign restriction}: forbidding negative residuals loses the
+      $1/\sqrt\alpha$ scale;
+\item \emph{trajectory locality}: FISTA may touch an expensive vertex outside
+      the optimum's support;
+\item \emph{restart locality}: a support-safe method may repeatedly re-solve
+      growing prefixes;
+\item \emph{certificate mismatch}: a sufficient local residual test may be
+      much stronger than the required semantic output error.
+\end{enumerate}
+
+These mechanisms are logically distinct.  A solver design that repairs only
+one should not be described as resolving the others.

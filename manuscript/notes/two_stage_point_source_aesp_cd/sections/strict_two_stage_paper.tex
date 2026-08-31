@@ -1,0 +1,303 @@
+\begin{abstract}
+We isolate the strict two-stage part of a much longer AESP-CD analysis for
+single-source personalized PageRank.  Stage~I returns only a certified
+coordinate set; all changing-face state is discarded.  Stage~II solves one
+ordinary principal PageRank system.  A containing RPPR envelope of volume
+$V$ gives total work
+$W_{\rm disc}+\widetilde O(V/\sqrt\alpha)$, while an exact structural tail
+uses the full semantic budget $\rho=\varepsilon$ and may reuse the verifier's
+factorization.  Exact support is unnecessary: a Green envelope, a direct
+boundary-leakage certificate, or a low-energy inner RPPR face is enough.
+A threshold-batched active-set algorithm now closes the arbitrary-graph
+target in an exact-real randomized word model; deterministic finite-precision
+complexity remains open.  In saved large-graph experiments, conservative
+fresh Stage~II solves preserve
+2 APPR-proposal, 5 SOR-proposal, 8 exact-batch, 14 tree-message, and 35
+structural-Green fair-race wins.  This short core is the theorem spine; the
+changing-face machinery belongs in a companion audit.
+\end{abstract}
+
+\section{Problem and the strict handoff}
+
+Let $G$ be a finite simple undirected graph without isolates, with adjacency
+$A$ and degree matrix $D$.  For one seed $v$ and $0<\alpha\leq1$, define
+\begin{equation}
+ Q=\alpha I+\frac{1-\alpha}{2}
+   (I-D^{-1/2}AD^{-1/2}),
+ \qquad b=\alpha D^{-1/2}e_v .
+ \label{eq:strict-q}
+\end{equation}
+Then $Q$ is symmetric Stieltjes, $\alpha I\preceq Q\preceq I$, and
+$QD^{1/2}\one=\alpha D^{1/2}\one$.  Full PPR is $x^0=Q^{-1}b$ and the target
+is
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\varepsilon.
+ \label{eq:strict-target}
+\end{equation}
+Classical APPR is the universal local baseline \citep{andersen2007using};
+accelerated sparse PPR motivates the product target
+\citep{martinezrubio2023accelerated,huang2025accelerated}; and RPPR supplies
+the support screen \citep{fountoulakis2026complexity}.
+At regularization $\rho$, RPPR is the obstacle problem
+\begin{equation}
+ x_\rho^\star=\argmin_{x\geq0}
+ \left\{\frac12x^\top Qx-(b-\alpha\rho D^{1/2}\one)^\top x\right\},
+ \qquad S^\star=\supp(x_\rho^\star).
+ \label{eq:strict-rppr}
+\end{equation}
+Inverse positivity and the constant-vector identity give
+\begin{equation}
+ 0\leq x_\rho^\star\leq x^0,
+ \quad
+ \norm{D^{-1/2}(x^0-x_\rho^\star)}_\infty\leq\rho,
+ \quad
+ \vol(S^\star)\leq1/\rho.
+ \label{eq:strict-bridge}
+\end{equation}
+If $S^\star$ is nonempty, it is connected and contains $v$.  Indeed, an
+active component $C$ not containing the only positive load would satisfy
+$Q_Cx_C=c_{\rho,C}<0$; inverse positivity contradicts $x_C>0$.  This rooted
+support invariant is the main structural gain from the point-source scope.
+
+The original strict interface is deliberately set-only.  Stage~I returns a
+certified $E\supseteq S^\star$; Stage~II ignores its numerical point and solves
+\begin{equation}
+ Q_Eu_E=b_E,
+ \label{eq:strict-stage2}
+\end{equation}
+then zero-pads $u_E$.  No obstacle momentum or changing-face response is
+continued.
+Section~\ref{sec:random-core} later widens the set-only certificate to a
+low-energy inner face, which need not contain $S^\star$.
+
+\begin{lemma}[Envelope linearization]
+\label{lem:strict-linearization}
+For every $E\supseteq S^\star$, the zero extension $\widetilde u_E$ of the
+solution to \cref{eq:strict-stage2} obeys
+\begin{equation*}
+ 0\leq\widetilde u_E\leq x^0,
+ \qquad
+ \norm{D^{-1/2}(x^0-\widetilde u_E)}_\infty\leq\rho.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+Outside $E$, \cref{eq:strict-bridge} and $x_{\rho,i}^\star=0$ give
+$0\leq x_i^0\leq\rho\sqrt{d_i}$.  Put $w=x_E^0-u_E$.  The full and principal
+PPR equations give $Q_Ew=-Q_{E\bar E}x_{\bar E}^0\geq0$, so inverse
+positivity gives $0\leq u_E\leq x_E^0$.  Since
+$x_{\bar E}^0\leq\rho D_{\bar E}^{1/2}\one$ and $Q_{E\bar E}\leq0$,
+\begin{equation*}
+ Q_Ew\leq-Q_{E\bar E}\rho D_{\bar E}^{1/2}\one
+ \leq Q_E\rho D_E^{1/2}\one.
+\end{equation*}
+The last inequality is the restriction of
+$QD^{1/2}\one=\alpha D^{1/2}\one$.  Multiplying by $Q_E^{-1}\geq0$ and
+combining with the outside bound proves the claim.
+\end{proof}
+
+\begin{theorem}[Strict two-stage composition]
+\label{thm:strict-composition}
+If Stage~I certifies $E\supseteq S^\star$ in charged work $W_{\rm disc}$ and
+Stage~II solves \cref{eq:strict-stage2} to Euclidean error $\tau$, then the
+output is $(\rho+\tau)$-accurate.  For $\tau>0$, total work is
+\begin{equation}
+ W_{\rm disc}+O\!\left(
+   \frac{\vol(E)}{\sqrt\alpha}
+   \log\frac{C}{\tau}
+ \right).
+ \label{eq:strict-composition-work}
+\end{equation}
+If Stage~II is exact, replace the iterative term by its structural
+factorization/backsolve cost and take $\rho=\varepsilon$, $\tau=0$; no
+terminal half-budget is needed.  If an exact verifier already factors $Q_E$, the
+ordinary-PPR right-hand side reuses the factors and costs only one additional
+backsolve: $O(w^2\vol(E))$ at elimination width $w$, and $O(\vol(E))$ on a
+tree or unicyclic graph.
+\end{theorem}
+
+\begin{proof}
+Combine \cref{lem:strict-linearization} with the terminal error.  The spectrum
+of every principal $Q_E$ lies in $[\alpha,1]$, so Chebyshev, CG, or accelerated
+gradient gives \cref{eq:strict-composition-work}; one matrix application costs
+$O(\vol(E))$.  Exact elimination has no terminal error.  The RPPR and PPR
+systems have the same matrix and different right-hand sides, proving factor
+reuse.
+\end{proof}
+
+If the exact RPPR verifier point $p_E$ is available, it is also a certified
+warm start: $b_E-Q_Ep_E=\alpha\rho D_E^{1/2}\one$, the correction is
+nonnegative, and its initial objective gap is at most
+$\alpha\rho^2\vol(E)/2\leq\alpha\rho/2$.  This can reduce polishing, but it
+does not justify forcing Stage~II when $p_E$ already meets the semantic target.
+
+\section{Seven safe Stage-I choices}
+
+Exact support is a KKT statement.  If an exact face solve $p_A$ is positive
+on $A$ and every exterior key
+$(b-\alpha\rho D^{1/2}\one-Q\widetilde p_A)_j$ is nonpositive, then
+$A=S^\star$.  For a single source already contained in $A$, only
+$\partial A$ must be read: every farther row has zero coupling to $A$ and
+strictly negative load $-\alpha\rho\sqrt{d_j}$.  With finite arithmetic,
+primal and dual error intervals replace exact comparisons; a zero margin is
+not a uniform finite-precision contract.
+The following options are therefore intentionally heterogeneous.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}
+  >{\raggedright\arraybackslash}p{0.19\textwidth}
+  >{\raggedright\arraybackslash}p{0.22\textwidth}
+  >{\raggedright\arraybackslash}X@{}}
+\toprule
+Stage~I & Returned certificate & Status \& charged limitation \\
+\midrule
+Green ball & approximate PPR envelope & unconditional capped screen; may be
+large and falls back to APPR \\
+PPR leakage & approximate PPR envelope & observable boundary gate; proposal
+and coarse principal solve must be charged \\
+APPR snapshot & candidate plus exact KKT verifier & unconditional fair race;
+margin/structure selective \\
+SOR/AESP lower point & support-safe positive rows plus verifier & unconditional
+fair race; serial-frontier work is not accelerated \\
+Exact positive batches & exact RPPR face & always correct where structural
+refits apply; cumulative face volume can be quadratic \\
+Tree thresholds & exact face without rejected-row probes & unconditional
+exact-real product work on promised point-source trees \\
+Random threshold batches & low-energy inner RPPR face & unconditional
+arbitrary-graph product work in the exact-real randomized word model \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+The leakage option is exact-support-free.  Let $u_E=Q_E^{-1}b_E$ and suppose
+$\widehat u_E$ has normalized coordinate error at most $\eta$.  For
+$j\in\partial E$, set
+\begin{equation*}
+ \widehat\ell_j=\frac{-Q_{jE}\widehat u_E}{\sqrt{d_j}},
+ \qquad c=\frac{1-\alpha}{2}.
+\end{equation*}
+If
+\begin{equation}
+ \widehat\ell_j+c\frac{\deg_E(j)}{d_j}\eta\leq\alpha\delta
+ \quad(j\in\partial E),
+ \label{eq:strict-leakage-gate}
+\end{equation}
+then $0\leq x^0-\widetilde u_E\leq\delta D^{1/2}\one$.  Indeed the padded
+principal residual vanishes except on the boundary, where
+\cref{eq:strict-leakage-gate} bounds it by
+$\alpha\delta D^{1/2}\one$; multiply by $Q^{-1}\geq0$.  The computable choice
+$\eta=\norm{b_E-Q_E\widehat u_E}_2/\alpha$ follows from strong convexity.
+
+The SOR/AESP safety fact is short.  If $0\leq z\leq x_\rho^\star$ and an
+inactive row has $(c_\rho-Qz)_i>0$, then $i\in S^\star$: otherwise Stieltjes
+signs give $(c_\rho-Qz)_i\leq(c_\rho-Qx_\rho^\star)_i\leq0$.  Thus positive
+residuals may be admitted without false support.  Solving each current face
+exactly and admitting all positive exterior rows is also monotone, since for
+$B=A\cup P$,
+\begin{equation*}
+ x^B-(x^A,0)=Q_B^{-1}g_B\geq0.
+\end{equation*}
+It terminates at global KKT, but a path may add only one vertex per refit.
+
+Every optional lane is interruptible and is scheduled one charged quantum at
+a time against direct APPR.  If it certifies and finishes after $W$ work, the
+combined charge is at most $2W$; if it fails or APPR finishes first, the charge
+is at most $2W_{\rm APPR}$.  Thus proposal failures never invalidate the
+unconditional baseline.
+
+For a point-source tree, eliminate every active descendant subtree into the
+affine response
+$x_u=(\beta_ux_{p(u)}+B_u)/A_u$ with $A_u>0$.  An inactive child contributes
+the parent value at which its KKT key becomes positive; an active child
+propagates its minimum descendant threshold through the same positive-slope
+map.  One handled heap per vertex therefore names a strictly positive
+frontier row or certifies global KKT.  Each admission changes one record along
+its root path and each admitted adjacency list is scanned once, giving
+\begin{equation}
+ \widetilde O\!\left(
+   \vol(S^\star)+\sum_{i\in S^\star}\operatorname{dist}(v,i)
+ \right)
+ =\widetilde O\!\left(
+   \frac{1+\vol(S^\star)}{\sqrt\alpha}
+ \right).
+ \label{eq:strict-tree-work}
+\end{equation}
+With $\rho=\varepsilon$, this closes the desired
+$\widetilde O(1/(\varepsilon\sqrt\alpha))$ strict two-stage bound on trees.
+
+Exact support is not required on general graphs.  The case $\alpha=1$ returns
+the seed coordinate immediately; for $0<\alpha<1$, point-source Green decay
+gives
+$x_i^0/\sqrt{d_i}\leq
+2((1-\sqrt\alpha)/(1+\sqrt\alpha))^{\operatorname{dist}(v,i)}$.
+Expose the corresponding accuracy ball under a hard volume cap, then solve
+one principal system.  Completion is correct; cap failure discards the lane
+and resumes direct APPR.  On a certified width-$w$ envelope the successful
+branch costs $O(w^3\vol(E))$, and on trees/unicyclic graphs $O(\vol(E))$.
+
+\input{sections/randomized_op2_core}
+
+\section{Conservative literal-two-stage measurements}
+
+All rows below use 1,024--2,047 vertex deterministic path, cycle, star,
+binary-tree, broom, and grid families.  ``Early'' returns the exact RPPR
+verifier point.  ``Literal'' additionally runs and charges a fresh ordinary
+PPR face solve; it does not take credit for factor reuse.  ``Fair'' charges a
+one-for-one race with direct APPR.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Lane & certified / nontrivial & early raw / fair & literal raw / fair \\
+\midrule
+APPR proposal & $28/19$ & $9/4$ & $4/2$ \\
+SOR proposal & $75$ & $8/5$ & $5/5$ \\
+Exact batches & $75$ & $43/13$ & $33/8$ \\
+Tree messages & $60/51$ & $--$ & $27/14$ \\
+Structural Green & $56$ & $--$ & $50/35$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The literal column deliberately refactors $Q_E$.  Retaining the verifier's
+tree/unicyclic factors and charging the implemented structural backsolve
+model changes the APPR, SOR, and exact-batch raw/fair counts to respectively
+$6/2$, $7/5$, and $37/9$.  Thus reuse recovers several standalone cases and
+one additional fully charged batch case; it does not manufacture a universal
+advantage for the proposal lanes.
+
+On the 51 nontrivial promised-tree rows, a literal three-way round-robin race
+of direct APPR, threshold messages, and structural Green still has 23 strict
+wins even after charging three times the first successful speculative lane.
+Structural Green supplies 21 of those winners and threshold messages supply
+the other two.  Thus the two set-only mechanisms are genuinely complementary
+without requiring an offline oracle selector.
+
+Every literal Stage~II output was compared with a full sparse PPR solve and
+met \cref{eq:strict-target}.  The strongest general lesson is not that exact
+support always wins.  APPR/SOR proposals are useful optional lanes; repeated
+refits remain vulnerable to serial paths; tree thresholds are a genuine
+single-source structural closure; and Green truncation is the cleanest
+support-free set-only screen.
+
+\section{What remains open}
+
+The strict two-stage reduction removes all need to carry momentum across a
+face change, and \cref{thm:random-core-two-stage} closes the arbitrary-graph
+existence theorem in the exact-real randomized word model.  The remaining
+questions are stronger: deterministic finite-precision and coefficient-bit
+bounds, a practical local realization of the randomized SDD primitive, and a
+persistent reporter that improves on rebuilding a fresh face solver.  The
+older Green, leakage, APPR, SOR, and response lanes remain useful deterministic
+or practical competitors.  Direct APPR remains the unconditional
+finite-arithmetic fallback, rather than the only graph-uniform existence
+proof.
+
+The single-source restriction is substantive: it yields one connected rooted
+support and the radius bound behind \cref{eq:strict-tree-work}.  It is not a
+free reduction for sparse sources.  Linear PPR superposition can multiply
+work by as much as $\operatorname{nnz}(s)$, and RPPR supports do not
+superpose.  The correct paper claim is therefore a point-source randomized
+theorem, not an additive-$\operatorname{nnz}(s)$ sparse-source theorem.
