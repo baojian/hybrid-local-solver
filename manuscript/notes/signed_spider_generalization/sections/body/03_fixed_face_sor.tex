@@ -184,8 +184,267 @@ costs $\operatorname{vol}(U)$.  Since $|U|\leq\operatorname{vol}(U)$, the
 explicit output is absorbed.  Finally use \eqref{eq:fixed-face-universal-t}.
 \end{proof}
 
-The qualifier ``supplied'' matters: the sharp $t_U$ bound does not include a
-local computation of $\sigma_U$.  Without spectral advice,
+\begin{proposition}[Certified face tuning with spectral cost]
+\label{prop:certified-face-spectral-cost}
+Suppose a charged spectral routine returns a certified upper bound
+\begin{equation}
+ \rho_U\le \bar\rho_U<1,
+ \qquad
+ \bar t_U:=\sqrt{1-\bar\rho_U^2},
+ \qquad
+ \bar\omega_U:=\frac2{1+\bar t_U},
+ \qquad
+ \bar\zeta_U:=\bar\omega_U-1.
+ \label{eq:certified-face-advice}
+\end{equation}
+Then red--black SOR with the scalar $\bar\omega_U$ has
+\begin{equation}
+ \rho(T_U)\le\bar\zeta_U,
+ \qquad
+ \|T_U^k\|_2\le6k\bar\zeta_U^{k-1}.
+ \label{eq:certified-face-power}
+\end{equation}
+If producing the certificate costs $\mathsf C_{\rm spec}(U)$ and, for some
+$0<\gamma\le1$, it also certifies $\bar t_U\ge\gamma t_U$, the fully charged
+semantic solve costs
+\begin{equation}
+ \boxed{
+ \mathsf C_{\rm spec}(U)
+ +O\!\left(
+  \frac{\operatorname{vol}(U)}{\gamma t_U}
+  \log\frac{2}{\gamma t_U\tau}
+ \right).}
+ \label{eq:certified-face-total-work}
+\end{equation}
+The relative-gap guarantee follows, in particular, from the squared-radius
+certificate
+\begin{equation}
+ 0\le\bar\rho_U^2-\rho_U^2
+ \le(1-\gamma^2)t_U^2.
+ \label{eq:certified-face-required-accuracy}
+\end{equation}
+Thus, within this certified-upper tuning rule, a constant-factor realization
+of the face-optimal sweep count requires additive accuracy on the scale
+$t_U^2$ in the squared Jacobi radius.  This scale can be as small as
+$\Theta(\alpha)$.
+\end{proposition}
+
+\begin{proof}
+At $\bar\omega_U$, one has
+$1-\bar\omega_U=-\bar\zeta_U$ and
+$\bar\omega_U^2\bar\rho_U^2=4\bar\zeta_U$.  Every true modal squared coupling
+is at most $\rho_U^2\le\bar\rho_U^2$, so its trace lies in
+$[-2\bar\zeta_U,2\bar\zeta_U]$ and its determinant is
+$\bar\zeta_U^2$.  The singular-mode and Cayley--Hamilton proof of
+\Cref{thm:fixed-bipartite-sor} gives
+\eqref{eq:certified-face-power}.  Applying that bound as in
+\Cref{cor:fixed-face-semantic-sor} and adding the spectral routine's work
+proves \eqref{eq:certified-face-total-work}.  Finally,
+\eqref{eq:certified-face-required-accuracy} gives
+\[
+ \bar t_U^2=1-\bar\rho_U^2
+ \ge 1-\rho_U^2-(1-\gamma^2)t_U^2
+ =\gamma^2t_U^2.
+\]
+The universal lower bound $t_U^2\ge1-c_\alpha^2=\Theta(\alpha)$ gives the
+last statement.
+
+The upper-certificate direction is essential.  If a lower estimate
+$\widetilde\rho_U<\rho_U$ is inserted into the same formula, its tuned top-mode
+trace is
+\[
+ 2\widetilde\zeta_U
+ +\widetilde\omega_U^2
+   (\rho_U^2-\widetilde\rho_U^2)
+ >2\widetilde\zeta_U,
+\]
+while the determinant remains $\widetilde\zeta_U^2$.  The larger real root is
+then strictly greater than the advertised factor.  A raw Rayleigh quotient
+cannot silently serve as safe face advice.
+\end{proof}
+
+The upper certificate in \cref{prop:certified-face-spectral-cost} can be
+obtained a posteriori without a dense eigensolve.  The following construction
+charges every pass and returns only scalar advice; its work vectors are never
+injected into the SOR state.
+
+\begin{proposition}[A-posteriori Collatz tuning with charged face scans]
+\label{prop:collatz-face-certificate}
+Let the nonnegative symmetric Jacobi block on a supplied bipartite face have
+connected components
+\begin{equation}
+ J_a=\begin{bmatrix}0&C_a\\C_a^T&0\end{bmatrix},
+ \qquad
+ \mathcal M_a=\frac{I+J_a}{2}.
+ \label{eq:collatz-component-matrix}
+\end{equation}
+Starting from any $x_a^{(0)}>0$, perform, for $s\ge1$,
+\begin{equation}
+ x_a^{(s)}=\mathcal M_ax_a^{(s-1)},qquad
+ \ell_{a,s}=\min_i\frac{x_{a,i}^{(s)}}{x_{a,i}^{(s-1)}},qquad
+ u_{a,s}=\max_i\frac{x_{a,i}^{(s)}}{x_{a,i}^{(s-1)}}.
+ \label{eq:collatz-component-iteration}
+\end{equation}
+Then
+\begin{equation}
+ \ell_{a,s}\nearrow\rho(\mathcal M_a),qquad
+ u_{a,s}\searrow\rho(\mathcal M_a),qquad
+ \rho(\mathcal M_a)=\frac{1+\sigma_a}{2},\qquad
+ \sigma_a=\|C_a\|_2.
+ \label{eq:collatz-component-bounds}
+\end{equation}
+In particular, the computable component intervals
+\begin{equation}
+ \underline\sigma_{a,s}=\max\{0,2\ell_{a,s}-1\},qquad
+ \bar\sigma_{a,s}=\min\{1,2u_{a,s}-1\}
+ \label{eq:collatz-component-sigma-interval}
+\end{equation}
+contain $\sigma_a$.
+
+Aggregate all components and scale to the SOR Jacobi radius by
+\begin{align}
+ \underline\sigma_s&=\max_a\underline\sigma_{a,s},&
+ \bar\sigma_s&=\max_a\bar\sigma_{a,s},\notag\\
+ \underline\rho_s&=c_\alpha\underline\sigma_s,&
+ \bar\rho_s&=c_\alpha\bar\sigma_s,qquad
+ \bar t_s=\sqrt{1-\bar\rho_s^2}.
+ \label{eq:collatz-aggregate-interval}
+\end{align}
+For a requested $0<\gamma<1$, the a-posteriori check
+\begin{equation}
+ 1-\bar\rho_s^2
+ \ge\gamma^2\bigl(1-\underline\rho_s^2\bigr)
+ \label{eq:collatz-relative-certificate}
+\end{equation}
+certifies
+\begin{equation}
+ \bar t_s\ge\gamma t_U,qquad
+ t_U=\sqrt{1-\rho_U^2}.
+ \label{eq:collatz-relative-gap}
+\end{equation}
+Upon the first successful check, freeze
+\begin{equation}
+ \bar\omega_s=\frac{2}{1+\bar t_s}
+ \label{eq:collatz-frozen-omega}
+\end{equation}
+for the subsequent red--black SOR phase.  Including component discovery, the
+$s$ estimator products, the SOR sweeps, and explicit output, the charged work
+is
+\begin{equation}
+ O\!\left(
+  (s+1)\operatorname{vol}(U)
+  +\frac{\operatorname{vol}(U)}{\gamma t_U}
+   \log\frac{2}{\gamma t_U\tau}
+ \right).
+ \label{eq:collatz-certified-work}
+\end{equation}
+Each estimator product costs one complete face scan.  If a prescribed scan
+budget $s_{\max}$ expires first, discarding the uncertified advice and freezing
+the graph-global $\omega_\alpha$ instead gives the safe fallback
+\begin{equation}
+ O\!\left(
+  (s_{\max}+1)\operatorname{vol}(U)
+  +\frac{\operatorname{vol}(U)}{\sqrt\alpha}
+   \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:collatz-global-fallback-work}
+\end{equation}
+No graph-uniform bound on the certification index $s$ is asserted.
+\end{proposition}
+
+\begin{proof}
+Every $\mathcal M_a$ is nonnegative and has a positive diagonal.  It is
+irreducible on a nontrivial connected component, hence primitive.  An isolated
+vertex has $J_a=0$, $\mathcal M_a=1/2$, and $\sigma_a=0$, so its interval is
+immediate and exact after one product.  Since $x_a^{(s-1)}>0$, the
+Collatz--Wielandt inequalities give
+\begin{equation*}
+ \ell_{a,s}\le\rho(\mathcal M_a)\le u_{a,s}.
+\end{equation*}
+Moreover,
+$\ell_{a,s}x_a^{(s-1)}\le x_a^{(s)}\le
+u_{a,s}x_a^{(s-1)}$.  Multiplication by $\mathcal M_a$ and coordinatewise
+division by $x_a^{(s)}>0$ show
+\begin{equation*}
+ \ell_{a,s}\le\ell_{a,s+1}\le u_{a,s+1}\le u_{a,s}.
+\end{equation*}
+Perron--Frobenius convergence of the primitive power iteration makes both
+limits equal to $\rho(\mathcal M_a)$.  The eigenvalues of $J_a$ are the signed
+singular values of $C_a$, so
+$\rho(\mathcal M_a)=(1+\|C_a\|_2)/2$.  This proves
+\eqref{eq:collatz-component-bounds}--
+\eqref{eq:collatz-component-sigma-interval}.
+
+The face value is $\sigma_U=\max_a\sigma_a$.  Maxima preserve the component
+lower and upper bounds, hence
+\begin{equation*}
+ \underline\rho_s\le\rho_U\le\bar\rho_s.
+\end{equation*}
+Therefore \eqref{eq:collatz-relative-certificate} implies
+\begin{equation*}
+ \bar t_s^2=1-\bar\rho_s^2
+ \ge\gamma^2(1-\underline\rho_s^2)
+ \ge\gamma^2(1-\rho_U^2)=\gamma^2t_U^2.
+\end{equation*}
+The certified work bound now follows from
+\cref{prop:certified-face-spectral-cost}.  One multiplication by every
+$\mathcal M_a$ is just one multiplication by $(I+J)/2$ on the whole face and
+costs one adjacency scan plus $O(|U|)$ vector work.  Component discovery is
+one additional scan.  Freezing the scalar is essential to invoke the fixed
+parameter power bound.  If the check does not pass within budget,
+\cref{cor:global-omega-fixed-face-work} gives
+\eqref{eq:collatz-global-fallback-work}; the failed estimator passes remain
+charged.
+\end{proof}
+
+The bounds converge for every fixed face.  Because $0<\gamma<1$ and
+$t_U>0$, the check in \eqref{eq:collatz-relative-certificate} therefore
+eventually succeeds on that face.  Its rate depends on the top Perron gap and
+on the starting vector, however.  Those gaps can approach zero on long path
+faces, so the number of face scans can be arbitrarily large across a graph
+family.  This is why \eqref{eq:collatz-relative-certificate} is an
+a-posteriori stopping rule, not a graph-uniform estimator theorem.  In finite
+precision, the displayed minima and maxima must be enclosed with outward
+rounding (or exact arithmetic); an unchecked floating ratio is evidence, not
+a certificate, and its bit cost is additional.
+
+There is also a sharp no-benefit boundary.  On a complete connected face,
+$\sigma_U=1$.  Thus every valid aggregate interval has
+$\bar\sigma_s=1$, so $\bar\rho_s=c_\alpha$ and the frozen parameter in
+\eqref{eq:collatz-frozen-omega} is exactly the graph-global
+$\omega_\alpha$.  In particular, the complete layered funnel gains no SOR
+sweep improvement from this estimator; its extra face scans are still
+charged.  The scalar advice does not weaken the adaptive funnel light-cone
+theorem: estimator vectors are not written into the solution, and after
+freezing the literal solver still performs source-first color blocks.  Using
+an estimated eigenvector as a warm start or applying a nonlocal response would
+be a different, explicitly excluded primitive.
+
+This proposition makes the formerly hidden oracle cost explicit.  On one
+supplied face, materializing the cross block costs
+$O(\operatorname{vol}(U))$.  A dense SVD to the required certified precision
+uses $O(|U|^3)$ real-arithmetic work and $O(|U|^2)$ workspace, so it gives the
+valid but generally nonlocal bound
+\begin{equation}
+ O\!\left(
+  \operatorname{vol}(U)+|U|^3
+  +\frac{\operatorname{vol}(U)}{t_U}
+   \log\frac{2}{t_U\tau}
+ \right).
+ \label{eq:dense-face-spectral-work}
+\end{equation}
+The bit cost needed to certify a requested eigenvalue interval is additional
+and depends on the input encoding.  Alternatively, an iterative estimator
+using $s$ sparse products costs $O(s\operatorname{vol}(U))$ plus vector
+operations.  The value of $s$ is not graph-uniform without an estimator
+theorem: ordinary power/Rayleigh estimates approach $\rho_U$ from below and
+are not the upper certificate required in
+\eqref{eq:certified-face-advice}; their rate also depends on the top singular
+gap.  On changing faces, every recomputation is charged, so the spectral term
+is $\sum_j\mathsf C_{\rm spec}(U_j)$ rather than one free scalar.
+
+The qualifier ``supplied'' therefore matters: the sharp $t_U$ bound does not
+include a local computation of $\sigma_U$.  Without spectral advice,
 \Cref{lem:one-omega-all-bipartite-faces} uses the graph-global parameter
 $\omega_\alpha$ and gives the fully charged generic
 $O(\operatorname{vol}(U)\alpha^{-1/2}

@@ -60,7 +60,7 @@ This table is generated from `registry.toml` by
 | [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Prove short-path admission chronology and isolate the remaining terminal modal route. |
 | [`psi_master_inequality`](psi_master_inequality/) | iterative | proved-open | Turn the exact Psi master identity into analytic absorption theorems or precise graph-family counterexamples. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
-| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove log-free radial SOR on symmetric spiders and isolate the paid continuation frontier. |
+| [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove supplied-face dimension/spectral dispatch, log-free radial SOR, and scalar-local propagation limits. |
 | [`signed_star_acceleration`](signed_star_acceleration/) | iterative | proved-open | Prove the exact signed-star accelerated rung and separate locality failure modes. |
 | [`two_rung_sor`](two_rung_sor/) | iterative | measured | Record the best measured two-rung SOR schedule. |
 | [`volume_gated_acceleration`](volume_gated_acceleration/) | iterative | proved-open | Develop support-volume safety and charged cross-face acceleration ledgers. |
