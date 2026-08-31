@@ -57,7 +57,7 @@ This table is generated from `registry.toml` by
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
 | [`path_face_lock_warmup`](path_face_lock_warmup/) | iterative | proved-open | Determine whether a sharp componentwise entrance certificate yields a constant or logarithmic safe warmup on paths and spiders. |
-| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | proved-open | Prove short-path admission chronology and isolate the remaining terminal modal route. |
+| [`path_terminal_modal_block`](path_terminal_modal_block/) | iterative | synthesis | Separate the named endpoint-path recurrence's asymptotic logarithmic certificate delay from its explicit constant-scale semantic stop. |
 | [`psi_master_inequality`](psi_master_inequality/) | iterative | proved-open | Turn the exact Psi master identity into analytic absorption theorems or precise graph-family counterexamples. |
 | [`rlsor_terminal_exact_rung`](rlsor_terminal_exact_rung/) | iterative | measured | Record the measured terminal-rung mechanism. |
 | [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove supplied-face dimension/spectral dispatch, log-free radial SOR, and scalar-local propagation limits. |

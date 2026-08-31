@@ -1102,6 +1102,1046 @@ def exact_directional_packet_checks() -> None:
     )
 
 
+def exact_static_tail_reduction_checks() -> None:
+    """Audit the proved mass/tail ledger and finite local-tail evidence."""
+    q_max = Fraction(1, 1024)
+
+    def frontier_function(t_value: Fraction, q_value: Fraction) -> Fraction:
+        return (
+            Fraction(2, 1)
+            / (1 + t_value * t_value)
+            * (
+                t_value * (1 + t_value / 5) / (1 - q_value)
+                + (t_value - Fraction(1, 5)) / (1 + q_value)
+            )
+        )
+
+    block_t = (Fraction(1), Fraction(32, 33), Fraction(16, 17), Fraction(32, 35))
+    block_p = tuple(frontier_function(t_value, q_max) for t_value in block_t)
+    assert block_p == (
+        Fraction(3495936, 1747625),
+        Fraction(22013937664, 11078194875),
+        Fraction(5636163584, 2857366875),
+        Fraction(307615744, 157216345),
+    )
+    x_value = Fraction(1, 16)
+    delta_lower = (
+        1
+        - x_value
+        + (x_value**2 - x_value * q_max) / 2
+        - (x_value**3 - 3 * x_value**2 * q_max + 2 * x_value * q_max**2) / 6
+    )
+    assert delta_lower == Fraction(15760245, 16777216)
+    signed_upper = Fraction(1, 2) * (
+        block_p[3]
+        - block_p[0] * delta_lower
+        + (block_p[0] - block_p[1]) * Fraction(64, 67)
+        + (block_p[1] - block_p[2]) * Fraction(32, 33)
+        + (block_p[2] - block_p[3]) * Fraction(64, 65)
+    )
+    assert signed_upper == Fraction(
+        213106150684112952120801,
+        3552503277561938585600000,
+    )
+    assert signed_upper < Fraction(3, 50)
+
+    endpoint_p_upper = frontier_function(Fraction(8, 9), q_max)
+    assert endpoint_p_upper == Fraction(1474594816, 760216875)
+    endpoint_upper = Fraction(1, 2) * (endpoint_p_upper / 2 - Fraction(2, 5)) + Fraction(512, 2**63)
+    assert endpoint_upper < Fraction(57, 200)
+    raw_endpoint_gap = (
+        (1 - q_max) * (5 + q_max) / (4 * (1 + q_max)) * Fraction(3488, 1921)
+        - Fraction(1, 5)
+        - Fraction(33, 16)
+    )
+    assert raw_endpoint_gap == Fraction(797707, 252035200)
+    assert Fraction(1024, 2**64) < raw_endpoint_gap / 3
+    assert (Fraction(12, 5) + Fraction(1, 5120) - Fraction(5232, 1921)) < 0
+    assert Fraction(3, 50) + Fraction(57, 200) * Fraction(17, 24) == Fraction(419, 1600)
+    assert Fraction(57, 200 * 48 * 2**62) < Fraction(1, 1600)
+
+    # Exact computer-assisted certificate for the folded mass-kernel lemma.
+    # Every quantity below is a dyadic integer comparison; no float enters.
+    def correction_atom(step: int, offset: int) -> Fraction:
+        absolute = abs(offset)
+        if absolute > step:
+            return Fraction(0)
+        if absolute == 0:
+            return Fraction(-1, 2) if step == 1 else Fraction(0)
+        return -Fraction(math.comb(step - 1, absolute - 1), 2 ** (step + 1))
+
+    def folded_point_coefficient(edge_count: int, coordinate: int, step: int) -> Fraction:
+        source = edge_count - step
+        return 2 * (
+            correction_atom(step, coordinate - source)
+            + correction_atom(step, coordinate + source)
+            - correction_atom(step, coordinate + 2 - source) / 4
+            - correction_atom(step, coordinate + 2 + source) / 4
+        )
+
+    def signed_gap(edge_count: int, coordinate: int) -> Fraction:
+        return Fraction(1, 2) + sum(
+            (
+                folded_point_coefficient(edge_count, coordinate, step)
+                for step in range(1, edge_count - 1)
+            ),
+            Fraction(0),
+        )
+
+    base_gaps = [(signed_gap(64, coordinate), coordinate) for coordinate in range(61)]
+    assert max(base_gaps) == (
+        Fraction(102332589933520061, 2**62),
+        28,
+    )
+    assert max(base_gaps)[0] < Fraction(1, 45)
+    assert all(signed_gap(64, 64 - distance) < Fraction(-1, 10) for distance in range(3, 20))
+    binomial_mass = [Fraction(math.comb(61, index), 2**61) for index in range(62)]
+    binomial_cdf = []
+    running_mass = Fraction(0)
+    alternating_mass = []
+    running_alternating = Fraction(0)
+    for index, mass in enumerate(binomial_mass):
+        running_mass += mass
+        binomial_cdf.append(running_mass)
+        running_alternating = mass - running_alternating / 2
+        alternating_mass.append(running_alternating)
+
+    def base_binomial_mass(index: int) -> Fraction:
+        return binomial_mass[index] if 0 <= index <= 61 else Fraction(0)
+
+    for coordinate in range(1, 61):
+        cdf = binomial_cdf[coordinate - 4] if coordinate >= 4 else Fraction(0)
+        formula = (
+            -cdf / 2
+            + base_binomial_mass(coordinate - 2) / 2
+            + 3 * base_binomial_mass(coordinate - 1) / 8
+            + base_binomial_mass(coordinate) / 4
+            - 3 * base_binomial_mass(coordinate + 1) / 32
+            - base_binomial_mass(coordinate + 2) / 16
+            - 5 * alternating_mass[coordinate] / 64
+            - 5 * Fraction(-1, 2) ** (64 + coordinate) / 8
+        )
+        assert formula == signed_gap(64, coordinate)
+    boundary_polynomial = (
+        Fraction(math.comb(61, 3), 2) + math.comb(61, 2) + Fraction(7 * 61, 8) + Fraction(3, 4)
+    )
+    assert boundary_polynomial < 2**58
+    assert signed_gap(64, 61) == -Fraction(1, 4) + boundary_polynomial / 2**61
+    assert signed_gap(65, 1) == (signed_gap(64, 1) + signed_gap(64, 0)) / 2 - Fraction(1, 2**64)
+    for coordinate in range(2, 61):
+        assert (
+            signed_gap(65, coordinate)
+            == (signed_gap(64, coordinate) + signed_gap(64, coordinate - 1)) / 2
+        )
+    assert signed_gap(65, 61) == (signed_gap(64, 61) + signed_gap(64, 60)) / 2 - Fraction(1, 8)
+
+    def binomial(n_value: int, index: int) -> int:
+        return math.comb(n_value, index) if 0 <= index <= n_value else 0
+
+    def branch_atom_numerator(distance: int, step: int, orientation: int) -> int:
+        horizon = step - 1
+        raw_offset = step - distance
+        raw_index = abs(raw_offset) - 1 if raw_offset else -1
+        shifted_offset = raw_offset + 2 * orientation
+        shifted_index = abs(shifted_offset) - 1 if shifted_offset else -1
+        return binomial(horizon, shifted_index) - 4 * binomial(horizon, raw_index)
+
+    def positive_branch_scaled(distance: int) -> tuple[int, int]:
+        common_step = 2 * distance
+        numerator = 0
+        for step in range(1, common_step + 1):
+            atom = branch_atom_numerator(distance, step, 1)
+            if atom > 0:
+                numerator += atom << (common_step - step)
+        return numerator, common_step + 2
+
+    def negative_branch_scaled(distance: int) -> tuple[int, int]:
+        # The persistent late lobe starts exactly at step 3D+5.
+        first_tail_step = 3 * distance + 5
+        horizon = first_tail_step - 1
+        numerator = 0
+        for step in range(1, first_tail_step):
+            atom = branch_atom_numerator(distance, step, -1)
+            if atom > 0:
+                numerator += atom << (horizon - step)
+        cdf_distance = sum(math.comb(horizon, index) for index in range(distance + 1))
+        numerator += (
+            binomial(horizon, distance + 1) + binomial(horizon, distance + 2) - 3 * cdf_distance
+        )
+        return numerator, horizon + 2
+
+    for distance in range(6, 512):
+        numerator, exponent = positive_branch_scaled(distance)
+        assert numerator * 1024 <= 113 * 2**exponent
+        if distance >= 20:
+            assert numerator * 512 < 9 * 2**exponent
+        if distance >= 64:
+            numerator, exponent = negative_branch_scaled(distance)
+            assert numerator * 2048 < 2**exponent
+
+    assert 80**80 < 2**75 * 27**27 * 53**53
+    assert 513**32 < 2 * 512**32
+    assert 513**64 < 8 * 512**64
+    assert Fraction(128, 2**15) < Fraction(9, 512)
+    assert Fraction(64, 2**23) + Fraction(1, 4 * 2**96) < Fraction(1, 2048)
+    assert Fraction(1, 45) + Fraction(13, 1500) == Fraction(139, 4500)
+    assert Fraction(139, 4500) < Fraction(1, 32)
+    assert Fraction(9, 512) + Fraction(1, 2048) < Fraction(1, 50)
+    assert Fraction(113, 1024) + Fraction(1, 2048) < Fraction(9, 80)
+
+    # Exact moments behind the asymptotic STOP for the proposed 1/16
+    # derivative constant.
+    def correction_atom_zero_moment(distance: int) -> Fraction:
+        return -Fraction(2, 3) - Fraction(1, 12) * Fraction(-1, 2) ** (distance - 2)
+
+    def correction_atom_first_moment(distance: int) -> Fraction:
+        return (
+            -Fraction(30 * distance + 26, 27)
+            - Fraction(3 * distance + 1, 27) * Fraction(-1, 2) ** distance
+        )
+
+    def raw_correction_atom_moments(distance: int) -> tuple[Fraction, Fraction]:
+        # Sum the finite pre-central part from the displayed atom itself.
+        # The post-central negative-binomial tail has mass -1/2 and first
+        # moment -(distance+1).
+        finite_zero = sum(
+            (correction_atom(step, step - distance) for step in range(1, distance)),
+            Fraction(0),
+        )
+        finite_first = sum(
+            (step * correction_atom(step, step - distance) for step in range(1, distance)),
+            Fraction(0),
+        )
+        return finite_zero - Fraction(1, 2), finite_first - (distance + 1)
+
+    for distance in range(3, 10):
+        raw_zero, raw_first = raw_correction_atom_moments(distance)
+        assert raw_zero == correction_atom_zero_moment(distance)
+        assert raw_first == correction_atom_first_moment(distance)
+
+    derivative_coefficients = (-3, 2, 1)
+    for distance in range(7, 20):
+        zero_moment = 2 * sum(
+            coefficient
+            * (
+                raw_correction_atom_moments(distance - shift)[0]
+                - raw_correction_atom_moments(distance - shift - 2)[0] / 4
+            )
+            for shift, coefficient in enumerate(derivative_coefficients)
+        )
+        first_moment = 2 * sum(
+            coefficient
+            * (
+                raw_correction_atom_moments(distance - shift)[1]
+                - raw_correction_atom_moments(distance - shift - 2)[1] / 4
+            )
+            for shift, coefficient in enumerate(derivative_coefficients)
+        )
+        assert zero_moment == 0
+        assert first_moment == Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** distance
+    assert Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** 7 == Fraction(213, 32)
+    t_cap = Fraction(113, 128)
+    polynomial_at_cap = t_cap**4 - 30 * t_cap**3 + 12 * t_cap**2 + 10 * t_cap + 3
+    derivative_lower = polynomial_at_cap / (10 * Fraction(47, 50) * (1 + t_cap**2) ** 2)
+    assert derivative_lower == Fraction(1539492805, 39945178223)
+    assert derivative_lower > Fraction(8, 213)
+
+    # Exact scalar part and finite evidence for the replacement -q/8 ledger.
+    q_maximum = Fraction(1, 1024)
+    exponential_argument = Fraction(1, 8 * (1 - q_maximum**2))
+    exponential_lower = (
+        1 - exponential_argument + exponential_argument**2 / 2 - exponential_argument**3 / 6
+    )
+    assert exponential_lower > Fraction(15, 17)
+    t_floor = Fraction(15, 17)
+    leading_source_derivative = (
+        t_floor**4 - 30 * t_floor**3 + 12 * t_floor**2 + 10 * t_floor + 3
+    ) / (10 * (1 + t_floor**2) ** 2)
+    derivative_numerator = 15 * t_floor**4 - 10 * t_floor**3 - 60 * t_floor**2 + 6 * t_floor + 5
+    derivative_numerator_slope = 60 * t_floor**3 - 30 * t_floor**2 - 120 * t_floor + 6
+    finite_q_source_error = 2 * q_maximum / (5 * (1 - q_maximum)) + 2 * q_maximum**2 / (
+        5 * (1 - q_maximum**2)
+    )
+    assert leading_source_derivative == Fraction(24297, 660490)
+    assert derivative_numerator < 0
+    assert derivative_numerator_slope < 0
+    assert finite_q_source_error == Fraction(684, 1747625)
+    assert leading_source_derivative + finite_q_source_error < Fraction(3, 80)
+    assert Fraction(1, 10) + finite_q_source_error < Fraction(13, 128)
+    assert 90 * q_maximum - 19 * q_maximum**2 < 1
+
+    def folded_derivative_atom(edge_count: int, distance: int, step: int) -> Fraction:
+        coefficients = (-3, 2, 1)
+        direct = 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, step + shift - distance)
+                - correction_atom(step, step + shift - distance + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+        reflected = 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, 2 * edge_count - distance - step - shift)
+                - correction_atom(step, 2 * edge_count - distance - step - shift + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+        return direct + reflected
+
+    edge_count = 64
+    for distance in range(6, edge_count + 1):
+        prefix = Fraction(0)
+        positive_prefix_mass = Fraction(0)
+        negative_prefix_mass = Fraction(0)
+        for step in range(1, edge_count - 1):
+            prefix += folded_derivative_atom(edge_count, distance, step)
+            if step < edge_count - 2:
+                positive_prefix_mass += max(prefix, 0)
+                negative_prefix_mass += max(-prefix, 0)
+        assert positive_prefix_mass <= Fraction(1, 2)
+        assert negative_prefix_mass <= Fraction(57, 8)
+        assert abs(prefix) <= Fraction(1, 2)
+    assert Fraction(1421, 14400) < Fraction(1, 8)
+
+    # Exact direct-prefix generating function and the D=6,7 folded proof.
+    prefix_polynomial = (12, 16, -11, -20, -2, 4, 1)
+
+    def prefix_walk_polynomial(prefix_time: int) -> list[Fraction]:
+        if prefix_time < 0:
+            return []
+        output = [Fraction(0) for _ in range(2 * prefix_time + 1)]
+        for left_steps in range(prefix_time + 1):
+            for right_steps in range(prefix_time - left_steps + 1):
+                total_steps = left_steps + right_steps
+                for binomial_index in range(total_steps + 1):
+                    output[right_steps + binomial_index] += Fraction(
+                        math.comb(total_steps, binomial_index), 2**total_steps
+                    )
+        return output
+
+    def direct_prefix_gf_coefficient(distance: int, prefix_time: int) -> Fraction:
+        walk_stencil: list[Fraction] = []
+        for multiplier, shift, time in (
+            (2, 0, prefix_time - 1),
+            (-3, 1, prefix_time - 2),
+            (1, 2, prefix_time - 3),
+        ):
+            for index, coefficient in enumerate(prefix_walk_polynomial(time)):
+                while len(walk_stencil) <= index + shift:
+                    walk_stencil.append(Fraction(0))
+                walk_stencil[index + shift] += multiplier * coefficient
+        return (
+            sum(
+                (
+                    polynomial_coefficient * walk_stencil[distance - degree]
+                    for degree, polynomial_coefficient in enumerate(prefix_polynomial)
+                    if 0 <= distance - degree < len(walk_stencil)
+                ),
+                Fraction(0),
+            )
+            / 16
+        )
+
+    for distance in range(1, 14):
+        direct_prefix = Fraction(0)
+        for prefix_time in range(1, 20):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            assert direct_prefix == direct_prefix_gf_coefficient(distance, prefix_time)
+
+    def direct_main_alias(distance: int, prefix_time: int) -> tuple[Fraction, Fraction]:
+        def choose(index: int) -> int:
+            return math.comb(prefix_time, index) if 0 <= index <= prefix_time else 0
+
+        main = Fraction(
+            choose(distance - 3)
+            + 3 * choose(distance - 2)
+            - 4 * choose(distance - 1)
+            - 12 * choose(distance),
+            2 ** (prefix_time + 2),
+        )
+        alias_index = distance - prefix_time - 4
+        alias = Fraction(
+            choose(alias_index) + choose(alias_index + 1) - 6 * choose(alias_index + 2),
+            2 ** (prefix_time + 2),
+        )
+        return main, alias
+
+    for distance in range(6, 20):
+        for prefix_time in range(3, 30):
+            main, alias = direct_main_alias(distance, prefix_time)
+            assert main + alias == direct_prefix_gf_coefficient(distance, prefix_time)
+    main_positive_bases = [
+        sum(
+            (max(direct_main_alias(distance, prefix_time)[0], 0) for prefix_time in range(1, 100)),
+            Fraction(0),
+        )
+        for distance in (8, 9)
+    ]
+    alias_positive_bases = [
+        sum(
+            (max(direct_main_alias(distance, prefix_time)[1], 0) for prefix_time in range(1, 100)),
+            Fraction(0),
+        )
+        for distance in (8, 9)
+    ]
+    assert main_positive_bases == [Fraction(279, 1024), Fraction(57, 256)]
+    assert alias_positive_bases == [Fraction(1, 16), Fraction(1, 8)]
+    for distance in range(8, 20):
+        for prefix_time in range(1, 30):
+            assert (
+                direct_main_alias(distance + 2, prefix_time + 1)[1]
+                == (
+                    direct_main_alias(distance, prefix_time)[1]
+                    + direct_main_alias(distance + 1, prefix_time)[1]
+                )
+                / 2
+            )
+    direct_eight_positive = sum(
+        (max(sum(direct_main_alias(8, prefix_time)), 0) for prefix_time in range(1, 100)),
+        Fraction(0),
+    )
+    assert direct_eight_positive == Fraction(311, 1024)
+    assert Fraction(57, 256) + Fraction(1, 8) == Fraction(356, 1024)
+    assert Fraction(356, 1024) < Fraction(29, 64)
+    assert Fraction(356, 1024) + Fraction(427, 64) == Fraction(7188, 1024)
+    assert Fraction(7188, 1024) < Fraction(57, 8)
+
+    direct_lobes = {}
+    for distance in (6, 7):
+        direct_prefix = Fraction(0)
+        positive_area = Fraction(0)
+        negative_area = Fraction(0)
+        for prefix_time in range(1, 200):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            positive_area += max(direct_prefix, 0)
+            negative_area += max(-direct_prefix, 0)
+        if distance == 6:
+            assert positive_area == Fraction(107, 256)
+            assert negative_area < Fraction(1819, 256)
+            direct_lobes[distance] = (Fraction(107, 256), Fraction(1819, 256))
+        else:
+            assert positive_area == Fraction(235, 512)
+            assert negative_area < Fraction(3643, 512)
+            direct_lobes[distance] = (Fraction(235, 512), Fraction(3643, 512))
+
+    def direct_tail_prefix(distance: int, prefix_time: int) -> Fraction:
+        if distance == 6:
+            return -Fraction(
+                prefix_time
+                * (prefix_time - 1)
+                * (prefix_time - 2)
+                * (2 * prefix_time**3 - 20 * prefix_time**2 + 51 * prefix_time - 47),
+                480 * 2**prefix_time,
+            )
+        return -Fraction(
+            prefix_time
+            * (prefix_time - 1)
+            * (prefix_time - 2)
+            * (prefix_time - 3)
+            * (6 * prefix_time**3 - 76 * prefix_time**2 + 255 * prefix_time - 293),
+            10080 * 2**prefix_time,
+        )
+
+    for distance, start_time in ((6, 6), (7, 7)):
+        direct_prefix = sum(
+            (folded_derivative_atom(10**4, distance, step) for step in range(1, start_time + 1)),
+            Fraction(0),
+        )
+        assert direct_prefix == direct_tail_prefix(distance, start_time)
+        for prefix_time in range(start_time + 1, 100):
+            direct_prefix += folded_derivative_atom(10**4, distance, prefix_time)
+            assert direct_prefix == direct_tail_prefix(distance, prefix_time)
+
+    def reflected_derivative_atom(edge_count: int, distance: int, step: int) -> Fraction:
+        coefficients = (-3, 2, 1)
+        return 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, 2 * edge_count - distance - step - shift)
+                - correction_atom(step, 2 * edge_count - distance - step - shift + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+
+    def reflected_derivative_atom_absolute_bound(
+        edge_count: int, distance: int, step: int
+    ) -> Fraction:
+        coefficients = (-3, 2, 1)
+        return 2 * sum(
+            abs(coefficient)
+            * (
+                abs(correction_atom(step, 2 * edge_count - distance - step - shift))
+                + abs(correction_atom(step, 2 * edge_count - distance - step - shift + 2)) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+
+    for distance, area_bound, endpoint_bound in (
+        (6, Fraction(7589, 2**63), Fraction(2414417, 2**64)),
+        (7, Fraction(76399, 2**62), Fraction(28747761, 2**64)),
+    ):
+        nonzero_steps = [
+            step
+            for step in range(1, edge_count - 1)
+            if reflected_derivative_atom(edge_count, distance, step)
+        ]
+        assert nonzero_steps == [edge_count - 4, edge_count - 3, edge_count - 2]
+        assert all(
+            reflected_derivative_atom(edge_count, distance, step) < 0 for step in nonzero_steps
+        )
+        assert (
+            sum(
+                (edge_count - 2 - step)
+                * reflected_derivative_atom_absolute_bound(edge_count, distance, step)
+                for step in range(1, edge_count - 1)
+            )
+            == area_bound
+        )
+        assert (
+            sum(
+                (
+                    reflected_derivative_atom_absolute_bound(edge_count, distance, step)
+                    for step in range(1, edge_count - 1)
+                ),
+                Fraction(0),
+            )
+            == endpoint_bound
+        )
+        positive_area, negative_area = direct_lobes[distance]
+        assert positive_area + area_bound < Fraction(1, 2)
+        assert negative_area + area_bound < Fraction(57, 8)
+        assert abs(direct_tail_prefix(distance, edge_count - 2)) + endpoint_bound < Fraction(1, 2)
+
+    # Exact reflected-prefix recurrence, terminal coefficient, and weighted
+    # folded-tail certificate completing the replacement derivative ledger.
+    def reflected_atom_at_horizon(horizon: int, step: int) -> Fraction:
+        coefficients = (-3, 2, 1)
+        return 2 * sum(
+            coefficient
+            * (
+                correction_atom(step, horizon - step - shift)
+                - correction_atom(step, horizon - step - shift + 2) / 4
+            )
+            for shift, coefficient in enumerate(coefficients)
+        )
+
+    def reflected_prefix_at_horizon(horizon: int, prefix_time: int) -> Fraction:
+        return sum(
+            (reflected_atom_at_horizon(horizon, step) for step in range(1, prefix_time + 1)),
+            Fraction(0),
+        )
+
+    def reflected_a_coefficient(degree: int) -> Fraction:
+        numerator = (Fraction(-3, 4), Fraction(-1, 4), Fraction(3), Fraction(1))
+        return sum(
+            (
+                coefficient * Fraction((-1) ** (degree - index), 2 ** (degree - index + 1))
+                for index, coefficient in enumerate(numerator)
+                if index <= degree
+            ),
+            Fraction(0),
+        )
+
+    def reflected_prefix_closed(horizon: int, prefix_time: int) -> Fraction:
+        value = reflected_a_coefficient(horizon)
+        for degree in range(prefix_time, min(2 * prefix_time, horizon) + 1):
+            value -= Fraction(
+                math.comb(prefix_time, degree - prefix_time), 2**prefix_time
+            ) * reflected_a_coefficient(horizon - degree)
+        return value
+
+    for horizon in (64, 65, 66, 96):
+        for prefix_time in range(1, horizon - 1):
+            literal = reflected_prefix_at_horizon(horizon, prefix_time)
+            assert literal == reflected_prefix_closed(horizon, prefix_time)
+            if prefix_time <= horizon - 4:
+                assert (
+                    reflected_prefix_at_horizon(horizon, prefix_time + 1)
+                    == (
+                        reflected_prefix_at_horizon(horizon - 1, prefix_time)
+                        + reflected_prefix_at_horizon(horizon - 2, prefix_time)
+                    )
+                    / 2
+                )
+
+    reflected_positive_bases = []
+    for horizon in (64, 65):
+        reflected_positive_bases.append(
+            sum(
+                (
+                    max(reflected_prefix_at_horizon(horizon, prefix_time), 0)
+                    for prefix_time in range(1, horizon - 2)
+                ),
+                Fraction(0),
+            )
+        )
+    assert reflected_positive_bases == [
+        Fraction(8330122021020985, 2**63),
+        Fraction(14501951681351529, 2**64),
+    ]
+    for horizon in range(64, 128):
+        boundary = reflected_prefix_at_horizon(horizon, horizon - 2)
+        boundary_formula = Fraction(
+            6 * horizon**2 - 32 * horizon - 7 + 15 * (-1) ** horizon,
+            2 ** (horizon + 3),
+        )
+        assert boundary == boundary_formula > 0
+    reflected_slack = Fraction(1, 1024) - reflected_positive_bases[0]
+    assert reflected_slack == Fraction(677077233720007, 2**63)
+    assert Fraction(12681, 2**65) < reflected_slack
+
+    def alternating_a_coefficient(order: int, degree: int) -> int:
+        return sum(
+            binomial(order, index) * (-2) ** (degree - index)
+            for index in range(min(order, degree) + 1)
+        )
+
+    def alternating_b_coefficient(order: int, degree: int) -> int:
+        return sum(
+            binomial(order, index) * (degree - index + 1) * (-2) ** (degree - index)
+            for index in range(min(order, degree) + 1)
+        )
+
+    for order in range(8, 129):
+        for degree in range(order):
+            a_value = alternating_a_coefficient(order, degree)
+            assert 0 <= a_value <= binomial(order, degree)
+        assert alternating_a_coefficient(order, order - 1) == (1 - (-1) ** order) // 2
+        for degree in range(order - 2):
+            assert alternating_b_coefficient(order, degree) >= 0
+        assert alternating_b_coefficient(order, order - 3) == (
+            0 if order % 2 == 0 else (order - 1) // 2
+        )
+        assert [
+            alternating_a_coefficient(order, degree) for degree in range(order - 2, order + 3)
+        ] == [
+            order // 2,
+            (1 - (-1) ** order) // 2,
+            (-1) ** order,
+            -2 * (-1) ** order,
+            4 * (-1) ** order,
+        ]
+        assert [
+            alternating_b_coefficient(order, degree) for degree in range(order - 2, order + 3)
+        ] == [
+            (-1) ** order * (order // 2),
+            (-1) ** (order + 1) * order,
+            (-1) ** order * (2 * order + 1),
+            (-1) ** (order + 1) * 4 * (order + 1),
+            (-1) ** order * (8 * order + 12),
+        ]
+
+    def terminal_polynomial_coefficient(order: int, degree: int) -> Fraction:
+        return (
+            -Fraction(399, 32) * binomial(order, degree)
+            - Fraction(49, 16) * binomial(order, degree - 1)
+            - Fraction(23, 8) * binomial(order, degree - 2)
+            + Fraction(3, 4) * binomial(order, degree - 3)
+            + Fraction(3, 2) * binomial(order, degree - 4)
+            + Fraction(15, 32) * alternating_a_coefficient(order, degree)
+        )
+
+    def weighted_tail_polynomial_coefficient(order: int, degree: int) -> Fraction:
+        return (
+            Fraction(113, 64) * binomial(order, degree)
+            + Fraction(37, 8) * binomial(order, degree - 1)
+            + Fraction(55, 16) * binomial(order, degree - 2)
+            - Fraction(1, 4) * binomial(order, degree - 3)
+            - Fraction(3, 4) * binomial(order, degree - 4)
+            + Fraction(32, 3) * sum(binomial(order, index) for index in range(degree + 1))
+            - Fraction(49, 96) * alternating_a_coefficient(order, degree)
+            + Fraction(5, 64) * alternating_b_coefficient(order, degree)
+        )
+
+    for checked_edge_count in (16, 32, 64, 65):
+        order = checked_edge_count - 2
+        for distance in range(8, checked_edge_count + 1):
+            prefixes = []
+            prefix = Fraction(0)
+            for step in range(1, order + 1):
+                prefix += folded_derivative_atom(checked_edge_count, distance, step)
+                prefixes.append(prefix)
+            if distance <= order + 1:
+                assert (
+                    prefixes[-1]
+                    == terminal_polynomial_coefficient(order, distance) / 2**checked_edge_count
+                )
+            else:
+                central_terminal = Fraction(
+                    6 * order**2 - 71 + 15 * (-1) ** order,
+                    8 * 2**checked_edge_count,
+                )
+                assert prefixes[-1] == central_terminal
+
+            moment = Fraction(20, 3) + Fraction(4, 3) * Fraction(-1, 2) ** distance
+            literal_tail = sum(prefixes[:-1], Fraction(0)) + moment
+            coefficient_tail = weighted_tail_polynomial_coefficient(order, distance) / 2 ** (
+                checked_edge_count - 1
+            )
+            if distance == checked_edge_count:
+                coefficient_tail += Fraction(6, 2**checked_edge_count)
+            assert literal_tail == coefficient_tail > 0
+
+    central_mass = math.comb(62, 31)
+    assert 94 * central_mass**2 <= 2**124
+    assert 151**2 < 256 * 94
+    assert Fraction(357, 1024) < Fraction(29, 64)
+    assert Fraction(357, 1024) + Fraction(427, 64) == Fraction(7189, 1024)
+    assert Fraction(7189, 1024) < Fraction(57, 8)
+
+    # Exact coefficient audit for the source-free base interface.
+    def constant_input_base(edge_count: int, q_value: Fraction) -> list[Fraction]:
+        def reflected_b0(values: list[Fraction]) -> list[Fraction]:
+            output = [Fraction(0) for _ in values]
+            output[0] = (values[0] + values[1]) / 2
+            for index in range(1, len(values) - 1):
+                output[index] = (values[index - 1] + 2 * values[index] + values[index + 1]) / 4
+            output[-1] = (values[-2] + 2 * values[-1]) / 4
+            return output
+
+        delta_value = 1 - q_value
+        corrections: dict[int, list[Fraction]] = {
+            1: [-delta_value / 5],
+            2: [
+                Fraction(2, 5) - q_value / 2 + q_value**2 / 10,
+                -q_value / 4 + q_value**2 / 20,
+            ],
+        }
+        for length in range(2, edge_count):
+            current = corrections[length]
+            previous = corrections[length - 1]
+            source = [
+                2 * current[index] - (previous[index] if index < len(previous) else 0)
+                for index in range(length - 1)
+            ] + [2 * current[-1] - Fraction(3, 10)]
+            corrections[length + 1] = reflected_b0(source) + [current[-1] / 2 + Fraction(9, 40)]
+        current_difference = [
+            corrections[edge_count][index]
+            - (corrections[edge_count - 1][index] / 2 if index < edge_count - 1 else 0)
+            for index in range(edge_count)
+        ]
+        previous_difference = [
+            corrections[edge_count - 1][index]
+            - (corrections[edge_count - 2][index] / 2 if index < edge_count - 2 else 0)
+            for index in range(edge_count - 1)
+        ] + [Fraction(0)]
+        smoothed = reflected_b0(
+            [
+                previous_value - current_value
+                for previous_value, current_value in zip(
+                    previous_difference, current_difference, strict=True
+                )
+            ]
+        )
+        return [2 * (smoothed[index] - smoothed[index + 2] / 4) for index in range(edge_count - 2)]
+
+    def alternating_binomial_coefficient(order: int, index: int) -> Fraction:
+        return sum(
+            (
+                Fraction(
+                    math.comb(order, source) * (-1) ** (index - source),
+                    2 ** (index - source + 1),
+                )
+                for source in range(0, min(index, order) + 1)
+            ),
+            Fraction(0),
+        )
+
+    for checked_edge_count in range(8, 65):
+        q_value = Fraction(1, 16 * checked_edge_count)
+        leading_seed = constant_input_base(checked_edge_count, Fraction(0))[0]
+        finite_seed = constant_input_base(checked_edge_count, q_value)[0]
+        leading_seed_formula = Fraction(
+            -5 * checked_edge_count**2
+            + 56 * checked_edge_count
+            - (72 if checked_edge_count % 2 == 0 else 27),
+            160 * 2**checked_edge_count,
+        )
+        initial_seed_formula = Fraction(
+            q_value * (-7 * checked_edge_count**2 + 11 * checked_edge_count + 108)
+            + q_value**2 * (checked_edge_count**2 - checked_edge_count - 16),
+            80 * 2**checked_edge_count,
+        )
+        assert leading_seed == leading_seed_formula
+        assert finite_seed - leading_seed == initial_seed_formula
+    assert 32 * 64**3 < 3 * 2**64
+    assert 28 * 64**2 < 5 * 2**64
+    assert Fraction(65, 64) ** 3 < 2
+
+    edge_count = 12
+    leading_base = constant_input_base(edge_count, Fraction(0))
+    polynomial_coefficients = (-25, 19, -5, -28, 36)
+    for coordinate in range(1, edge_count - 5):
+        coefficient_index = coordinate + 2
+        ordinary = sum(
+            coefficient
+            * (
+                math.comb(edge_count - 2, coefficient_index - degree)
+                if 0 <= coefficient_index - degree <= edge_count - 2
+                else 0
+            )
+            for degree, coefficient in enumerate(polynomial_coefficients)
+        )
+        ordinary += 45 * alternating_binomial_coefficient(edge_count - 2, coefficient_index)
+        formula = Fraction(ordinary, 40 * 2**edge_count) - Fraction(
+            9 * (-1) ** (edge_count + coordinate + 2),
+            2 ** (edge_count + coordinate + 6),
+        )
+        assert formula == leading_base[coordinate]
+
+    q_base = Fraction(1, 16 * edge_count)
+    finite_base = constant_input_base(edge_count, q_base)
+
+    def initial_kernel_raw(offset: int) -> Fraction:
+        return (1 - q_base / 5) * correction_atom(edge_count - 1, offset) + correction_atom(
+            edge_count - 2, offset
+        ) / 5
+
+    def initial_kernel(offset: int) -> Fraction:
+        return (
+            initial_kernel_raw(offset - 1)
+            + 2 * initial_kernel_raw(offset)
+            + initial_kernel_raw(offset + 1)
+        ) / 4
+
+    for coordinate in range(edge_count - 5):
+        initial_formula = (
+            -2 * q_base * (initial_kernel(coordinate) - initial_kernel(coordinate + 2) / 4)
+        )
+        assert finite_base[coordinate] - leading_base[coordinate] == initial_formula
+
+    # Exact finite certificate and rational tail checks for the uniform
+    # weakened base bound.  T obeys 2 T_k + T_{k-1} = binom(n,k).
+    for order in range(62, 1024):
+        binomial_row = [1]
+        for index in range(order):
+            binomial_row.append(binomial_row[-1] * (order - index) // (index + 1))
+        # If U_k=2^(k+1)T_k, then U_k=2^k binom(n,k)-U_(k-1).
+        alternating_numerator = 0
+        for coefficient_index, binomial in enumerate(binomial_row):
+            alternating_numerator = 2**coefficient_index * binomial - alternating_numerator
+            if not 3 <= coefficient_index <= order - 2:
+                continue
+            polynomial_part = (
+                36 * (binomial_row[coefficient_index - 4] if coefficient_index >= 4 else 0)
+                - 28 * (binomial_row[coefficient_index - 3] if coefficient_index >= 3 else 0)
+                - 5 * (binomial_row[coefficient_index - 2] if coefficient_index >= 2 else 0)
+                + 19 * binomial_row[coefficient_index - 1]
+                - 25 * binomial
+            )
+            scaled_leading = (
+                2 ** (coefficient_index + 1) * polynomial_part
+                + 45 * alternating_numerator
+                - 45 * (-1) ** (order + coefficient_index)
+            )
+            assert (
+                1024 * (order + 2) * scaled_leading + 480 * 2 ** (order + coefficient_index + 1)
+                >= 0
+            )
+
+    assert Fraction(29 * 1026, 80 * 2**20) + Fraction(9 * 1026, 2**1033) < Fraction(3, 1024)
+    assert Fraction(math.comb(61, 30), 2**61) < Fraction(5, 48)
+    assert Fraction(3, 16) - Fraction(1421, 14400) - Fraction(1, 16) == Fraction(379, 14400)
+
+    # This finite exact replay is not part of the asymptotic local-half-ratio
+    # proof, which combines the uniform interior theorem with eventual
+    # frontier positivity.
+    for edge_count in (8, 12):
+        q = Fraction(1, 16 * edge_count)
+        eta = (1 - q * q) / 2
+        delta = 1 - q
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        p = [Fraction(0)]
+        velocity = [Fraction(0)]
+        frontier_values: list[Fraction] = []
+        entry_residuals: list[list[Fraction]] = []
+        for length in range(1, edge_count + 1):
+            optimum = _fraction_optimum(length, degrees, q)
+            frontier_values.append(optimum[-1])
+            entry_residuals.append(_fraction_residual(p, degrees[:length], q))
+            p_next, velocity_next = _fraction_step(p, velocity, degrees[:length], q)
+            new_optimum = _fraction_optimum(length + 1, degrees, q)
+            p = p_next + [Fraction(0)]
+            velocity = [
+                value + new_value - old_value
+                for value, new_value, old_value in zip(
+                    velocity_next + [Fraction(0)],
+                    new_optimum,
+                    optimum + [Fraction(0)],
+                    strict=True,
+                )
+            ]
+        entry_residuals.append(_fraction_residual(p, degrees, q))
+
+        entry_b = [q * value for value in _fraction_residual(velocity, degrees, q)]
+        gamma = [Fraction(0) for _ in range(edge_count + 1)]
+        gamma[1:edge_count] = [
+            -(q * q)
+            * delta**edge_count
+            * Fraction(math.comb(edge_count - 2, index - 1), 2 ** (edge_count - 1))
+            for index in range(1, edge_count)
+        ]
+        deconvolution = [Fraction(0) for _ in range(edge_count + 1)]
+        deconvolution[0] = -gamma[1] / 2
+        deconvolution[-1] = gamma[-2] / 2
+        deconvolution[1:-1] = [
+            (gamma[index - 1] - gamma[index + 1]) / 4 for index in range(1, edge_count)
+        ]
+        static_data = [left - right for left, right in zip(entry_b, deconvolution, strict=True)]
+        signed_mass = sum(
+            degree * value for degree, value in zip(degrees, static_data, strict=True)
+        )
+        p_scaled = [value / q**2 for value in frontier_values]
+        signed_formula = q**3 * (
+            -(delta**edge_count) * q**2 * (5 - q) / (5 * (1 + q * q))
+            + eta
+            / (1 + q)
+            * sum(
+                q * delta ** (edge_count - index) * p_scaled[index - 1]
+                for index in range(1, edge_count + 1)
+            )
+        )
+        assert signed_mass == signed_formula
+
+        corrections: dict[int, list[Fraction]] = {}
+        for length in (edge_count - 2, edge_count - 1, edge_count):
+            ideal = _fraction_ideal_prefix_packet(length, q)
+            corrections[length] = [
+                -actual - ideal_value
+                for actual, ideal_value in zip(
+                    entry_residuals[length - 1],
+                    ideal,
+                    strict=True,
+                )
+            ]
+        full_ideal = [
+            q**2 * delta**edge_count * Fraction(math.comb(edge_count, index), 2 ** (edge_count + 1))
+            for index in range(edge_count + 1)
+        ]
+        full_correction = [
+            -actual - ideal_value
+            for actual, ideal_value in zip(entry_residuals[-1], full_ideal, strict=True)
+        ]
+        correction_k = [
+            corrections[edge_count][index] - delta * corrections[edge_count - 1][index] / 2
+            for index in range(edge_count - 1)
+        ]
+        previous_k = [
+            corrections[edge_count - 1][index] - delta * corrections[edge_count - 2][index] / 2
+            for index in range(edge_count - 2)
+        ]
+        temporal_cone = [
+            delta * (previous_k[index] if index < len(previous_k) else 0) - correction_k[index]
+            for index in range(edge_count - 1)
+        ]
+        l_temporal = [
+            (temporal_cone[0] + temporal_cone[1]) / 2,
+            *[
+                (temporal_cone[index - 1] + 2 * temporal_cone[index] + temporal_cone[index + 1]) / 4
+                for index in range(1, edge_count - 2)
+            ],
+        ]
+        assert static_data[0] == 2 * delta * l_temporal[0]
+        assert static_data[1 : edge_count - 3] == [
+            2 * delta * value for value in l_temporal[1 : edge_count - 3]
+        ]
+        assert [
+            static_data[index] - static_data[index + 2] / 4 for index in range(edge_count - 5)
+        ] == [
+            2 * delta * (l_temporal[index] - l_temporal[index + 2] / 4)
+            for index in range(edge_count - 5)
+        ]
+        assert static_data[1:edge_count] == [
+            delta * corrections[edge_count][index] - full_correction[index]
+            for index in range(1, edge_count)
+        ]
+
+        beta = static_data[-1] / q**3
+        tail_coordinates = [
+            static_data[edge_count - distance] / q**3 for distance in range(edge_count + 1)
+        ]
+        first_margin = tail_coordinates[1] + beta / 4
+        half_combinations = [
+            tail_coordinates[distance] + tail_coordinates[distance - 1] / 2
+            for distance in range(1, edge_count + 1)
+        ]
+        assert first_margin == (static_data[-2] + static_data[-1] / 4) / q**3
+        assert (
+            half_combinations[1] - first_margin / 2
+            == (static_data[-3] - static_data[-1] / 8) / q**3
+        )
+        assert [
+            half_combinations[distance - 1] - half_combinations[distance - 2] / 2
+            for distance in range(3, edge_count + 1)
+        ] == [
+            (static_data[index] - static_data[index + 2] / 4) / q**3
+            for index in range(edge_count - 3, -1, -1)
+        ]
+
+        for length in range(2, edge_count):
+            source_e = delta ** (-(length - 2)) * (Fraction(1, 5) - eta * p_scaled[length - 2] / 2)
+            source_f = delta ** (-(length - 2)) * (
+                Fraction(1, 5) - eta * p_scaled[length - 2] / 2 + p_scaled[length - 1]
+            ) / 4 - Fraction(1, 5) * delta ** (-(length - 1))
+            source_mu = source_f + 3 * source_e / 4
+            source_nu = -source_mu / q
+            assert Fraction(2, 5) < source_nu < Fraction(43, 75)
+
+        tail = [
+            q**3 * (beta if distance == 0 else -beta * Fraction(-1, 2) ** (distance - 1) / 4)
+            for distance in range(edge_count, -1, -1)
+        ]
+        tail_preimage = [-4 * value / delta for value in tail]
+        l_tail_preimage = [
+            (tail_preimage[0] + tail_preimage[1]) / 2,
+            *[
+                (tail_preimage[index - 1] + 2 * tail_preimage[index] + tail_preimage[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (tail_preimage[-2] + tail_preimage[-1]) / 2,
+        ]
+        assert 2 * delta * l_tail_preimage[0] == 4 * tail[0]
+        assert tail[1 : edge_count - 3] == [
+            2 * delta * value for value in l_tail_preimage[1 : edge_count - 3]
+        ]
+
+    # Check the endpoint half-stencil and the finite alternating-tail correction
+    # independently of the comparison d >= h, proved asymptotically by the
+    # separate interior/frontier synthesis.
+    for edge_count in (8, 9):
+        beta = Fraction(-1)
+        tail = [Fraction(0) for _ in range(edge_count + 1)]
+        for distance in range(edge_count + 1):
+            tail[edge_count - distance] = (
+                beta if distance == 0 else -beta * Fraction(-1, 2) ** (distance - 1) / 4
+            )
+        path_l_tail = [
+            (tail[0] + tail[1]) / 2,
+            *[
+                (tail[index - 1] + 2 * tail[index] + tail[index + 1]) / 4
+                for index in range(1, edge_count)
+            ],
+            (tail[-2] + tail[-1]) / 2,
+        ]
+        degrees = [Fraction(1)] + [Fraction(2)] * (edge_count - 1) + [Fraction(1)]
+        negative_mass = sum(
+            degree * max(Fraction(0), -value)
+            for degree, value in zip(degrees, path_l_tail, strict=True)
+        )
+        assert negative_mass <= -beta * (Fraction(17, 24) + Fraction(1, 48 * 2 ** (edge_count - 2)))
+
+    print(
+        "exact_static_tail_reduction=mass<3/50 endpoint<57/200 "
+        "geometric_tail_ledger:pass temporal_cone_identity=m=8,12 "
+        "two_step_equivalence:pass mass_window=(2/5,43/75) "
+        "mass_kernel:proved derivative_1/16=STOP base_interface:proved "
+        "base_bound:proved replacement_derivative:proved "
+        "frontier_five=eventually_proved_separate uniform_from_m64=open"
+    )
+
+
 def h_apply(z: np.ndarray, degrees: np.ndarray, q: float) -> np.ndarray:
     """Apply D^(-1/2) Q D^(1/2) in normalized path coordinates."""
     a = (1.0 + q * q) / 2.0
@@ -1630,6 +2670,14 @@ def screen(edge_count: int, max_qk: float) -> None:
     static_remainder = (static_data - h_apply(static_data, degrees, q)) / (1.0 - q * q)
     assert np.max(np.abs(static_remainder - directed_remainder)) <= 1.0e-7 * q**3
     static_positive_mass = float(np.dot(degrees, np.maximum(static_data, 0.0)))
+    static_signed_mass = float(np.dot(degrees, static_remainder))
+    static_beta = float(static_data[-1] / q**3)
+    static_tail = np.zeros(edge_count + 1)
+    for distance in range(edge_count + 1):
+        static_tail[edge_count - distance] = (
+            static_beta if distance == 0 else -static_beta * (-0.5) ** (distance - 1) / 4.0
+        )
+    static_tail_margin = float(np.min(static_data[:-1] / q**3 - static_tail[:-1]))
     print(
         f"m={edge_count:5d} q={q:.9g} alpha={q * q:.9g} "
         f"rho=tau={q / 5.0:.9g} graph=P_m seed=v0 "
@@ -1667,6 +2715,9 @@ def screen(edge_count: int, max_qk: float) -> None:
         f"{velocity_source.max() / q**3:.6g}] "
         f"weighted_mean_w_over_q3={np.dot(degrees, velocity_source) / q**3:.6g} "
         f"directed_uplus_L1D/q3={directed_positive_mass / q**3:.6g} "
+        f"directed_signed_mass/q3={static_signed_mass / q**3:.6g} "
+        f"static_beta={static_beta:.6g} "
+        f"tail_dominance_nonendpoint_margin={static_tail_margin:.6g} "
         f"static_dplus_L1D/q3={static_positive_mass / q**3:.6g} "
         f"entry_c_max/q3={packet_error.max() / q**3:.6g}"
     )
@@ -1710,6 +2761,7 @@ def main() -> None:
     position_profile_asymptotic_checks()
     velocity_profile_asymptotic_checks()
     exact_directional_packet_checks()
+    exact_static_tail_reduction_checks()
     check_signed_green_formula()
     for edge_count in arguments.m:
         if edge_count < 3:
