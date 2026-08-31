@@ -1,0 +1,494 @@
+\section{A proved SOR extension to every fixed bipartite face}
+\label{sec:fixed-face-sor}
+
+The exact star proof uses a two-cell bipartition.  On a general bipartite
+face, the same algebra survives mode by mode after a singular-value
+decomposition.  This yields a genuine extension of the accelerated spectral
+mechanism, with an important qualifier: the face is already exposed and is
+held fixed.
+
+Let $U=R\mathbin{\dot\cup}B$ induce a bipartite subgraph.  The shared matrix
+restricted to $U$ is
+\begin{equation}
+ Q_{UU}=\frac{1+\alpha}{2}
+ \left(I-c_\alpha S_{UU}\right),
+ \qquad
+ c_\alpha:=\frac{1-\alpha}{1+\alpha},
+ \qquad
+ S:=D^{-1/2}AD^{-1/2}.
+ \label{eq:scaled-fixed-face}
+\end{equation}
+The degrees in $D$ remain ambient graph degrees.  In the red--blue order,
+write
+\begin{equation}
+ S_{UU}=\begin{bmatrix}0&C\\C^T&0\end{bmatrix},
+ \qquad
+ \sigma_U:=\|C\|_2,
+ \qquad
+ \rho_U:=c_\alpha\sigma_U.
+ \label{eq:bipartite-cross-block}
+\end{equation}
+Since $S$ has spectrum in $[-1,1]$, $0\leq\rho_U<1$.
+
+One red--black SOR sweep first relaxes every coordinate in $R$ and then every
+coordinate in $B$, using a common $\omega\in(0,2)$.  Coordinates inside one
+color have no edges, so their updates commute and constitute one exact block
+relaxation.
+
+\begin{theorem}[Exact optimal red--black SOR factor]
+\label{thm:fixed-bipartite-sor}
+Suppose $\rho_U>0$ and put
+\begin{equation}
+ t_U:=\sqrt{1-\rho_U^2},
+ \qquad
+ \omega_U^\star:=\frac{2}{1+t_U},
+ \qquad
+ \zeta_U:=\omega_U^\star-1
+ =\frac{1-t_U}{1+t_U}.
+ \label{eq:fixed-face-optimal-sor}
+\end{equation}
+For the scaled system $(I-c_\alpha S_{UU})x=h$, the red--black SOR error
+matrix $T_U$ at $\omega_U^\star$ satisfies
+\begin{equation}
+ \rho(T_U)=\zeta_U.
+ \label{eq:fixed-face-spectral-radius}
+\end{equation}
+More precisely, for every integer $k\geq1$,
+\begin{equation}
+ \|T_U^k\|_2\leq6k\zeta_U^{k-1}.
+ \label{eq:fixed-face-power-bound}
+\end{equation}
+When $\rho_U=0$, one sweep with $\omega=1$ solves the decoupled system.
+\end{theorem}
+
+\begin{proof}
+Take a singular pair of $C$ with singular value $\sigma$.  In its two scalar
+amplitudes $(a,b)$, the homogeneous error update is
+\begin{align}
+ a^+&=(1-\omega)a+\omega c_\alpha\sigma b,
+ \notag\\
+ b^+&=(1-\omega)b+\omega c_\alpha\sigma a^+.
+ \label{eq:sor-singular-mode-update}
+\end{align}
+Thus the mode matrix is
+\begin{equation}
+ T_\sigma(\omega)=
+ \begin{bmatrix}
+ 1-\omega&\omega c_\alpha\sigma\\
+ \omega c_\alpha\sigma(1-\omega)&
+ (1-\omega)+\omega^2c_\alpha^2\sigma^2
+ \end{bmatrix}.
+ \label{eq:sor-mode-matrix}
+\end{equation}
+It has determinant $(1-\omega)^2$ and trace
+\begin{equation}
+ 2(1-\omega)+\omega^2c_\alpha^2\sigma^2.
+ \label{eq:sor-mode-trace}
+\end{equation}
+
+At $\omega=\omega_U^\star$, one has
+$1-\omega=-\zeta_U$ and
+\begin{equation}
+ (\omega_U^\star)^2\rho_U^2=4\zeta_U.
+ \label{eq:sor-optimal-identity}
+\end{equation}
+As $0\leq c_\alpha\sigma\leq\rho_U$, the trace in
+\eqref{eq:sor-mode-trace} ranges from $-2\zeta_U$ to $2\zeta_U$, while the
+determinant is $\zeta_U^2$.  The two eigenvalues therefore either form a
+complex-conjugate pair of modulus $\zeta_U$ or meet at
+$\pm\zeta_U$.  The largest singular mode meets at $+\zeta_U$.
+Null singular directions have the scalar factor $-\zeta_U$.  Orthogonal
+singular-vector changes of basis block-diagonalize the full error map, proving
+\eqref{eq:fixed-face-spectral-radius}.
+
+It remains to justify optimality.  On the largest singular mode the
+characteristic discriminant factors as
+\begin{equation*}
+ \omega^2\rho_U^2
+ \left(4(1-\omega)+\omega^2\rho_U^2\right).
+\end{equation*}
+The nonzero factor first vanishes in $(1,2)$ exactly at
+$\omega=2/(1+t_U)$.  Before this double-root point the larger real root
+decreases; after it, the determinant lower bound
+$\rho(T_\sigma)\geq|1-\omega|$ increases.  Values $\omega\leq1$ have a
+larger top-mode root.  Hence no common relaxation parameter has a smaller
+worst-modal spectral radius.
+
+For the finite bound, the entries of every $T_\sigma(\omega_U^\star)$ are
+bounded in magnitude by constants and
+$\|T_\sigma\|_2\leq5$.  If its eigenvalues are $\lambda_1,\lambda_2$, the
+Cayley--Hamilton identity gives
+\begin{equation*}
+ T_\sigma^k=s_kT_\sigma-\zeta_U^2s_{k-1}I,
+ \qquad
+ s_k:=\sum_{j=0}^{k-1}\lambda_1^{k-1-j}\lambda_2^j.
+\end{equation*}
+Here $s_0:=0$.  The same formula holds by continuity at a repeated root, and
+$|s_k|\leq k\zeta_U^{k-1}$.  Hence
+$\|T_\sigma^k\|_2\leq6k\zeta_U^{k-1}$.  Taking the maximum over the
+orthogonal mode blocks proves \eqref{eq:fixed-face-power-bound}.
+\end{proof}
+
+The factor is accelerated because
+\begin{equation}
+ \zeta_U=\frac{1-t_U}{1+t_U}\leq e^{-2t_U},
+ \qquad
+ t_U\geq\sqrt{1-c_\alpha^2}
+ =\frac{2\sqrt\alpha}{1+\alpha}.
+ \label{eq:fixed-face-universal-t}
+\end{equation}
+The first inequality is elementary, and the second uses $\sigma_U\leq1$.
+
+\begin{corollary}[Oracle-tuned finite fixed-face semantic solve]
+\label{cor:fixed-face-semantic-sor}
+Let $x^\dagger\geq0$ solve either the unregularized problem on $U$ or the
+correct positive RPPR face system \eqref{eq:rppr-active-face-system}, and
+suppose $\|x^\dagger\|_2\leq1$ and $0<\tau\leq1$.  If
+$\sigma_U$ (equivalently $\omega_U^\star$) is supplied, starting from zero
+with that parameter produces $x^{(k)}$ with
+\begin{equation}
+ \|x^{(k)}-x^\dagger\|_{D,\infty}\leq\tau
+ \label{eq:fixed-face-semantic-target}
+\end{equation}
+after
+\begin{equation}
+ k=O\!\left(
+  \frac1{t_U}\log\frac{2}{t_U\tau}
+ \right)
+ \label{eq:fixed-face-sweep-count}
+\end{equation}
+full red--black sweeps.  Including repeated row scans and output, the charged
+work is
+\begin{equation}
+ W_U=O\!\left(
+  \frac{\operatorname{vol}(U)}{t_U}
+  \log\frac{2}{t_U\tau}
+ \right)
+ =O\!\left(
+  \frac{\operatorname{vol}(U)}{\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:fixed-face-work}
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+All degrees are at least one, so
+$\|z\|_{D,\infty}\leq\|z\|_2$.  Apply
+\eqref{eq:fixed-face-power-bound} to the zero-start error and use
+$\zeta_U\leq e^{-2t_U}$.  If $t_U\leq1/2$, the polynomial factor $k$ is
+absorbed by choosing a sufficiently large absolute constant in
+\eqref{eq:fixed-face-sweep-count}; if $t_U>1/2$, geometric convergence needs
+only $O(\log(2/\tau))$ sweeps.  Each sweep scans every row in $U$ once and
+costs $\operatorname{vol}(U)$.  Since $|U|\leq\operatorname{vol}(U)$, the
+explicit output is absorbed.  Finally use \eqref{eq:fixed-face-universal-t}.
+\end{proof}
+
+\begin{proposition}[Certified face tuning with spectral cost]
+\label{prop:certified-face-spectral-cost}
+Suppose a charged spectral routine returns a certified upper bound
+\begin{equation}
+ \rho_U\le \bar\rho_U<1,
+ \qquad
+ \bar t_U:=\sqrt{1-\bar\rho_U^2},
+ \qquad
+ \bar\omega_U:=\frac2{1+\bar t_U},
+ \qquad
+ \bar\zeta_U:=\bar\omega_U-1.
+ \label{eq:certified-face-advice}
+\end{equation}
+Then red--black SOR with the scalar $\bar\omega_U$ has
+\begin{equation}
+ \rho(T_U)\le\bar\zeta_U,
+ \qquad
+ \|T_U^k\|_2\le6k\bar\zeta_U^{k-1}.
+ \label{eq:certified-face-power}
+\end{equation}
+If producing the certificate costs $\mathsf C_{\rm spec}(U)$ and, for some
+$0<\gamma\le1$, it also certifies $\bar t_U\ge\gamma t_U$, the fully charged
+semantic solve costs
+\begin{equation}
+ \boxed{
+ \mathsf C_{\rm spec}(U)
+ +O\!\left(
+  \frac{\operatorname{vol}(U)}{\gamma t_U}
+  \log\frac{2}{\gamma t_U\tau}
+ \right).}
+ \label{eq:certified-face-total-work}
+\end{equation}
+The relative-gap guarantee follows, in particular, from the squared-radius
+certificate
+\begin{equation}
+ 0\le\bar\rho_U^2-\rho_U^2
+ \le(1-\gamma^2)t_U^2.
+ \label{eq:certified-face-required-accuracy}
+\end{equation}
+Thus, within this certified-upper tuning rule, a constant-factor realization
+of the face-optimal sweep count requires additive accuracy on the scale
+$t_U^2$ in the squared Jacobi radius.  This scale can be as small as
+$\Theta(\alpha)$.
+\end{proposition}
+
+\begin{proof}
+At $\bar\omega_U$, one has
+$1-\bar\omega_U=-\bar\zeta_U$ and
+$\bar\omega_U^2\bar\rho_U^2=4\bar\zeta_U$.  Every true modal squared coupling
+is at most $\rho_U^2\le\bar\rho_U^2$, so its trace lies in
+$[-2\bar\zeta_U,2\bar\zeta_U]$ and its determinant is
+$\bar\zeta_U^2$.  The singular-mode and Cayley--Hamilton proof of
+\Cref{thm:fixed-bipartite-sor} gives
+\eqref{eq:certified-face-power}.  Applying that bound as in
+\Cref{cor:fixed-face-semantic-sor} and adding the spectral routine's work
+proves \eqref{eq:certified-face-total-work}.  Finally,
+\eqref{eq:certified-face-required-accuracy} gives
+\[
+ \bar t_U^2=1-\bar\rho_U^2
+ \ge 1-\rho_U^2-(1-\gamma^2)t_U^2
+ =\gamma^2t_U^2.
+\]
+The universal lower bound $t_U^2\ge1-c_\alpha^2=\Theta(\alpha)$ gives the
+last statement.
+
+The upper-certificate direction is essential.  If a lower estimate
+$\widetilde\rho_U<\rho_U$ is inserted into the same formula, its tuned top-mode
+trace is
+\[
+ 2\widetilde\zeta_U
+ +\widetilde\omega_U^2
+   (\rho_U^2-\widetilde\rho_U^2)
+ >2\widetilde\zeta_U,
+\]
+while the determinant remains $\widetilde\zeta_U^2$.  The larger real root is
+then strictly greater than the advertised factor.  A raw Rayleigh quotient
+cannot silently serve as safe face advice.
+\end{proof}
+
+The upper certificate in \cref{prop:certified-face-spectral-cost} can be
+obtained a posteriori without a dense eigensolve.  The following construction
+charges every pass and returns only scalar advice; its work vectors are never
+injected into the SOR state.
+
+\begin{proposition}[A-posteriori Collatz tuning with charged face scans]
+\label{prop:collatz-face-certificate}
+Let the nonnegative symmetric Jacobi block on a supplied bipartite face have
+connected components
+\begin{equation}
+ J_a=\begin{bmatrix}0&C_a\\C_a^T&0\end{bmatrix},
+ \qquad
+ \mathcal M_a=\frac{I+J_a}{2}.
+ \label{eq:collatz-component-matrix}
+\end{equation}
+Starting from any $x_a^{(0)}>0$, perform, for $s\ge1$,
+\begin{equation}
+ x_a^{(s)}=\mathcal M_ax_a^{(s-1)},qquad
+ \ell_{a,s}=\min_i\frac{x_{a,i}^{(s)}}{x_{a,i}^{(s-1)}},qquad
+ u_{a,s}=\max_i\frac{x_{a,i}^{(s)}}{x_{a,i}^{(s-1)}}.
+ \label{eq:collatz-component-iteration}
+\end{equation}
+Then
+\begin{equation}
+ \ell_{a,s}\nearrow\rho(\mathcal M_a),qquad
+ u_{a,s}\searrow\rho(\mathcal M_a),qquad
+ \rho(\mathcal M_a)=\frac{1+\sigma_a}{2},\qquad
+ \sigma_a=\|C_a\|_2.
+ \label{eq:collatz-component-bounds}
+\end{equation}
+In particular, the computable component intervals
+\begin{equation}
+ \underline\sigma_{a,s}=\max\{0,2\ell_{a,s}-1\},qquad
+ \bar\sigma_{a,s}=\min\{1,2u_{a,s}-1\}
+ \label{eq:collatz-component-sigma-interval}
+\end{equation}
+contain $\sigma_a$.
+
+Aggregate all components and scale to the SOR Jacobi radius by
+\begin{align}
+ \underline\sigma_s&=\max_a\underline\sigma_{a,s},&
+ \bar\sigma_s&=\max_a\bar\sigma_{a,s},\notag\\
+ \underline\rho_s&=c_\alpha\underline\sigma_s,&
+ \bar\rho_s&=c_\alpha\bar\sigma_s,qquad
+ \bar t_s=\sqrt{1-\bar\rho_s^2}.
+ \label{eq:collatz-aggregate-interval}
+\end{align}
+For a requested $0<\gamma<1$, the a-posteriori check
+\begin{equation}
+ 1-\bar\rho_s^2
+ \ge\gamma^2\bigl(1-\underline\rho_s^2\bigr)
+ \label{eq:collatz-relative-certificate}
+\end{equation}
+certifies
+\begin{equation}
+ \bar t_s\ge\gamma t_U,qquad
+ t_U=\sqrt{1-\rho_U^2}.
+ \label{eq:collatz-relative-gap}
+\end{equation}
+Upon the first successful check, freeze
+\begin{equation}
+ \bar\omega_s=\frac{2}{1+\bar t_s}
+ \label{eq:collatz-frozen-omega}
+\end{equation}
+for the subsequent red--black SOR phase.  Including component discovery, the
+$s$ estimator products, the SOR sweeps, and explicit output, the charged work
+is
+\begin{equation}
+ O\!\left(
+  (s+1)\operatorname{vol}(U)
+  +\frac{\operatorname{vol}(U)}{\gamma t_U}
+   \log\frac{2}{\gamma t_U\tau}
+ \right).
+ \label{eq:collatz-certified-work}
+\end{equation}
+Each estimator product costs one complete face scan.  If a prescribed scan
+budget $s_{\max}$ expires first, discarding the uncertified advice and freezing
+the graph-global $\omega_\alpha$ instead gives the safe fallback
+\begin{equation}
+ O\!\left(
+  (s_{\max}+1)\operatorname{vol}(U)
+  +\frac{\operatorname{vol}(U)}{\sqrt\alpha}
+   \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:collatz-global-fallback-work}
+\end{equation}
+No graph-uniform bound on the certification index $s$ is asserted.
+\end{proposition}
+
+\begin{proof}
+Every $\mathcal M_a$ is nonnegative and has a positive diagonal.  It is
+irreducible on a nontrivial connected component, hence primitive.  An isolated
+vertex has $J_a=0$, $\mathcal M_a=1/2$, and $\sigma_a=0$, so its interval is
+immediate and exact after one product.  Since $x_a^{(s-1)}>0$, the
+Collatz--Wielandt inequalities give
+\begin{equation*}
+ \ell_{a,s}\le\rho(\mathcal M_a)\le u_{a,s}.
+\end{equation*}
+Moreover,
+$\ell_{a,s}x_a^{(s-1)}\le x_a^{(s)}\le
+u_{a,s}x_a^{(s-1)}$.  Multiplication by $\mathcal M_a$ and coordinatewise
+division by $x_a^{(s)}>0$ show
+\begin{equation*}
+ \ell_{a,s}\le\ell_{a,s+1}\le u_{a,s+1}\le u_{a,s}.
+\end{equation*}
+Perron--Frobenius convergence of the primitive power iteration makes both
+limits equal to $\rho(\mathcal M_a)$.  The eigenvalues of $J_a$ are the signed
+singular values of $C_a$, so
+$\rho(\mathcal M_a)=(1+\|C_a\|_2)/2$.  This proves
+\eqref{eq:collatz-component-bounds}--
+\eqref{eq:collatz-component-sigma-interval}.
+
+The face value is $\sigma_U=\max_a\sigma_a$.  Maxima preserve the component
+lower and upper bounds, hence
+\begin{equation*}
+ \underline\rho_s\le\rho_U\le\bar\rho_s.
+\end{equation*}
+Therefore \eqref{eq:collatz-relative-certificate} implies
+\begin{equation*}
+ \bar t_s^2=1-\bar\rho_s^2
+ \ge\gamma^2(1-\underline\rho_s^2)
+ \ge\gamma^2(1-\rho_U^2)=\gamma^2t_U^2.
+\end{equation*}
+The certified work bound now follows from
+\cref{prop:certified-face-spectral-cost}.  One multiplication by every
+$\mathcal M_a$ is just one multiplication by $(I+J)/2$ on the whole face and
+costs one adjacency scan plus $O(|U|)$ vector work.  Component discovery is
+one additional scan.  Freezing the scalar is essential to invoke the fixed
+parameter power bound.  If the check does not pass within budget,
+\cref{cor:global-omega-fixed-face-work} gives
+\eqref{eq:collatz-global-fallback-work}; the failed estimator passes remain
+charged.
+\end{proof}
+
+The bounds converge for every fixed face.  Because $0<\gamma<1$ and
+$t_U>0$, the check in \eqref{eq:collatz-relative-certificate} therefore
+eventually succeeds on that face.  Its rate depends on the top Perron gap and
+on the starting vector, however.  Those gaps can approach zero on long path
+faces, so the number of face scans can be arbitrarily large across a graph
+family.  This is why \eqref{eq:collatz-relative-certificate} is an
+a-posteriori stopping rule, not a graph-uniform estimator theorem.  In finite
+precision, the displayed minima and maxima must be enclosed with outward
+rounding (or exact arithmetic); an unchecked floating ratio is evidence, not
+a certificate, and its bit cost is additional.
+
+There is also a sharp no-benefit boundary.  On a complete connected face,
+$\sigma_U=1$.  Thus every valid aggregate interval has
+$\bar\sigma_s=1$, so $\bar\rho_s=c_\alpha$ and the frozen parameter in
+\eqref{eq:collatz-frozen-omega} is exactly the graph-global
+$\omega_\alpha$.  In particular, the complete layered funnel gains no SOR
+sweep improvement from this estimator; its extra face scans are still
+charged.  The scalar advice does not weaken the adaptive funnel light-cone
+theorem: estimator vectors are not written into the solution, and after
+freezing the literal solver still performs source-first color blocks.  Using
+an estimated eigenvector as a warm start or applying a nonlocal response would
+be a different, explicitly excluded primitive.
+
+This proposition makes the formerly hidden oracle cost explicit.  On one
+supplied face, materializing the cross block costs
+$O(\operatorname{vol}(U))$.  A dense SVD to the required certified precision
+uses $O(|U|^3)$ real-arithmetic work and $O(|U|^2)$ workspace, so it gives the
+valid but generally nonlocal bound
+\begin{equation}
+ O\!\left(
+  \operatorname{vol}(U)+|U|^3
+  +\frac{\operatorname{vol}(U)}{t_U}
+   \log\frac{2}{t_U\tau}
+ \right).
+ \label{eq:dense-face-spectral-work}
+\end{equation}
+The bit cost needed to certify a requested eigenvalue interval is additional
+and depends on the input encoding.  Alternatively, an iterative estimator
+using $s$ sparse products costs $O(s\operatorname{vol}(U))$ plus vector
+operations.  The value of $s$ is not graph-uniform without an estimator
+theorem: ordinary power/Rayleigh estimates approach $\rho_U$ from below and
+are not the upper certificate required in
+\eqref{eq:certified-face-advice}; their rate also depends on the top singular
+gap.  On changing faces, every recomputation is charged, so the spectral term
+is $\sum_j\mathsf C_{\rm spec}(U_j)$ rather than one free scalar.
+
+The qualifier ``supplied'' therefore matters: the sharp $t_U$ bound does not
+include a local computation of $\sigma_U$.  Without spectral advice,
+\Cref{lem:one-omega-all-bipartite-faces} uses the graph-global parameter
+$\omega_\alpha$ and gives the fully charged generic
+$O(\operatorname{vol}(U)\alpha^{-1/2}
+\log(2/(\tau\sqrt\alpha)))$ bound without an eigenvalue computation.
+
+The norm assumption is automatic for the shared single-seed or probability-
+seed PPR problem.  Indeed,
+\begin{equation}
+ \|b\|_2=\alpha\|D^{-1/2}s\|_2\leq\alpha,
+ \qquad
+ \|x^0\|_2\leq\|Q^{-1}\|_2\|b\|_2\leq1.
+ \label{eq:ppr-unit-two-norm}
+\end{equation}
+Moreover, \Cref{thm:rppr-ppr-bias} gives
+$0\leq x^\rho\leq x^0$, so $\|x^\rho\|_2\leq1$ as well.
+
+\subsection{What has and has not generalized}
+
+The theorem generalizes three star ingredients:
+
+\begin{itemize}[leftmargin=*]
+\item the relaxation parameter is determined by an exact Jacobi spectral
+      radius;
+\item every seed-visible mode is accelerated at the factor $\zeta_U$;
+\item actual degree work, rather than only iteration count, is charged for a
+      fixed face.
+\end{itemize}
+
+It does not generalize the star's log-free semantic cancellation.  The safe
+finite bound carries a logarithm and an absolute norm conversion.  It also
+does not find $U$, verify exterior KKT signs, transport momentum to a larger
+face, or compute $\sigma_U$ locally.  These are the next layers of the graph
+problem, not details hidden inside the spectral theorem.
+
+For a known RPPR support $A$, the source volume bound
+$\operatorname{vol}(A)\leq1/\rho$ turns
+\eqref{eq:fixed-face-work} into
+\begin{equation}
+ W_A=O\!\left(
+  \frac1{\rho\sqrt\alpha}
+  \log\frac{2}{\tau\sqrt\alpha}
+ \right).
+ \label{eq:oracle-face-rppr-work}
+\end{equation}
+This is a useful oracle benchmark.  Calling it an end-to-end local algorithm
+would be incorrect because the support and its boundary certificate were
+supplied for free.

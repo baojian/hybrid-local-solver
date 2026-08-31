@@ -1,0 +1,176 @@
+Write the outside face residual as
+\begin{equation}
+ \vr^U:=\vc_\rho-\mQ\vx^U=-\vw^U.
+ \label{eq:outside-face-residual-main}
+\end{equation}
+Fix $\vartheta\geq0$.  A nested sequence
+$U_k=B_0\mathbin{\dot\cup}\cdots\mathbin{\dot\cup}B_k$ is
+\emph{$\vartheta$-batched} if $B_0=\{v\}$, every later $B_k$ is a nonempty
+set with $r_i^{U_{k-1}}>0$, and, immediately before admitting $B_k$, every
+coordinate that will be admitted after $B_k$ has residual at most
+$\vartheta$.  Any finite sequence can be extended to partition
+$\mathcal S_\rho^*$ by repeatedly admitting all exact positive residuals;
+after each such batch, every still-future coordinate had nonpositive residual
+on the preceding face, so the threshold condition is preserved.
+
+\begin{theorem}[Threshold-batch energy-depth bound]
+\label{thm:threshold-batch-depth}
+Let $U_0\subset U_1\subset\cdots$ be a $\vartheta$-batched reachable
+sequence, extended to the full optimal support.  Put
+\begin{equation}
+ q_\alpha:=
+ \frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}.
+ \label{eq:batch-decay-factor}
+\end{equation}
+Then every included face $U_J$ satisfies
+\begin{equation}
+ \phi_\rho(\vx^{U_J})-\phi_\rho(\vx_\rho^*)
+ \leq8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho}.
+ \label{eq:batch-depth-main}
+\end{equation}
+Thus, above the displayed threshold floor, a constant gap reduction needs
+only $O(1/\sqrt\alpha)$ batches up to logarithmic factors, independently of
+$|\mathcal S_\rho^*|$, graph diameter, and any complementarity margin.
+\end{theorem}
+
+\begin{proof}
+Let $S=\mathcal S_\rho^*$ and order it by the blocks
+$B_0,B_1,\ldots,B_K$.  Block elimination gives
+\begin{equation}
+ \mQ_{SS}=\mL\mDelta\mL^\trans,
+ \qquad
+ \mDelta=\operatorname{diag}(\mDelta_0,\ldots,\mDelta_K),
+ \qquad
+ \vg=\mL^{-1}(\vc_\rho)_S.
+ \label{eq:batch-block-ldl}
+\end{equation}
+Here $\mL$ is unit block lower triangular, every pivot $\mDelta_k$ is
+Stieltjes, and $\vg_k$ is the positive Schur residual on $B_k$ when it is
+admitted.  Let $\mDelta_k=\mR_k\mR_k^\trans$ be its lower Cholesky factor and
+set
+\begin{equation}
+ \vz_k:=\mR_k^{-1}\vg_k.
+ \label{eq:batch-elimination-vector}
+\end{equation}
+Each $\mR_k$ is a triangular nonsingular M-matrix, so $\vz_k\geq\vzero$.
+Completion of squares in the block elimination gives the exact identity
+\begin{equation}
+ 2\bigl(\phi_\rho(\vx^{U_J})-\phi_\rho(\vx_\rho^*)\bigr)
+ =\sum_{k>J}\norm{\vz_k}_2^2.
+ \label{eq:batch-exact-gap-tail}
+\end{equation}
+
+Put
+$\mC=\mL\operatorname{diag}(\mR_0,\ldots,\mR_K)$, so that
+$\mQ_{SS}=\mC\mC^\trans$.  This is the scalar lower Cholesky factor in the
+block-respecting order.  Its recursion shows that every off-diagonal entry is
+nonpositive.  Let $\widehat{\mC}$ retain only the diagonal blocks and first
+block subdiagonal.  Both factors are triangular nonsingular M-matrices and
+$\mC\leq\widehat{\mC}$ entrywise.  Hence
+\begin{equation}
+ \vzero\leq\widehat{\mC}^{-1}\leq\mC^{-1},
+ \qquad
+ \norm{\widehat{\mC}^{-1}}_2
+ \leq\norm{\mC^{-1}}_2\leq\frac1{\sqrt\alpha}.
+ \label{eq:batch-bidiagonal-inverse}
+\end{equation}
+The inverse ordering follows directly from
+\[
+ \mC^{-1}-\widehat{\mC}^{-1}
+ =\mC^{-1}(\widehat{\mC}-\mC)\widehat{\mC}^{-1}\geq\vzero.
+\]
+The spectral-norm comparison is valid because both inverses are nonnegative:
+$|\widehat{\mC}^{-1}\vz|\leq\mC^{-1}|\vz|$ for every $\vz$.
+
+There is also a graph-independent upper bound.  The $k$th block row of
+$\mC$ satisfies
+\begin{equation}
+ \sum_{i\leq k}\mC_{ki}\mC_{ki}^\trans
+ =\mQ_{B_kB_k}\preceq\mI.
+ \label{eq:batch-row-map}
+\end{equation}
+Deleting all but two input blocks cannot increase its row-map norm, and each
+input block occurs in at most two retained rows.  Therefore
+\begin{equation}
+ \norm{\widehat{\mC}}_2\leq\sqrt2.
+ \label{eq:batch-bidiagonal-upper}
+\end{equation}
+Consequently
+$\mA_{\rm ch}:=\widehat{\mC}\widehat{\mC}^\trans$ is block tridiagonal and
+\begin{equation}
+ \alpha\mI\preceq\mA_{\rm ch}\preceq2\mI.
+ \label{eq:batch-chain-spectrum}
+\end{equation}
+
+We next encode causality.  For $k\geq2$, immediately before $B_{k-1}$ is
+admitted, the still-future block $B_k$ has residual at most
+$\vartheta\one$; this is its residual after elimination through $B_{k-2}$.
+For $k=1$, the same bound follows from
+$(c_\rho)_i=-\alpha\rho\sqrt{d_i}<0$ away from the seed.  Eliminating
+$B_{k-1}$ subtracts $\mL_{k,k-1}\vg_{k-1}$, so
+\begin{equation}
+ \vg_k+\mL_{k,k-1}\vg_{k-1}\leq\vartheta\one
+ \qquad(k\geq1).
+ \label{eq:batch-causal-pivot}
+\end{equation}
+Using
+$\mC_{k,k-1}=\mL_{k,k-1}\mR_{k-1}$, this becomes
+\begin{equation}
+ (\widehat{\mC}\vz)_0=\vg_0,
+ \qquad
+ (\widehat{\mC}\vz)_k\leq\vartheta\one\quad(k\geq1).
+ \label{eq:batch-chain-forcing}
+\end{equation}
+Since $\widehat{\mC}^{-1}\geq\vzero$,
+\begin{equation}
+ \vzero\leq\vz\leq
+ \widehat{\mC}^{-1}
+ \begin{bmatrix}\vg_0\\ \vartheta\one_{S\setminus B_0}\end{bmatrix}.
+ \label{eq:batch-chain-domination}
+\end{equation}
+
+The distributed threshold source is bounded by
+\begin{equation}
+ \norm{\widehat{\mC}^{-1}[\vzero;\vartheta\one]}_2^2
+ \leq\frac{\vartheta^2|S|}{\alpha}
+ \leq\frac{\vartheta^2}{\alpha\rho},
+ \label{eq:batch-threshold-source}
+\end{equation}
+where the last step uses
+$|S|\leq\vol(S)\leq1/\rho$.
+
+For the seed source and $J\geq1$, take a degree-$(J-1)$ Chebyshev polynomial
+$p_{J-1}$ for $1/t$ on $[\alpha,2]$, with
+\begin{equation}
+ \norm{\mA_{\rm ch}^{-1}-p_{J-1}(\mA_{\rm ch})}_2
+ \leq\frac2\alpha q_\alpha^J.
+ \label{eq:batch-chebyshev-inverse}
+\end{equation}
+Because $\mA_{\rm ch}$ is block tridiagonal and $\vg_0$ is supported on
+block zero, $p_{J-1}(\mA_{\rm ch})\vg_0$ reaches only blocks through
+$J-1$.  Multiplication by the block upper-bidiagonal
+$\widehat{\mC}^\trans$ does not increase the largest block index.  If
+$P_{>J}$ projects onto the block tail, then
+\begin{align}
+ \norm{P_{>J}\widehat{\mC}^{-1}[\vg_0;\vzero]}_2
+ &\leq\norm{\widehat{\mC}}_2
+       \norm{\mA_{\rm ch}^{-1}-p_{J-1}(\mA_{\rm ch})}_2
+       \norm{\vg_0}_2\notag\\
+ &\leq2\sqrt2q_\alpha^J.
+ \label{eq:batch-seed-tail}
+\end{align}
+Here
+$\vg_0=(c_\rho)_v=\alpha(1-\rho d_v)/\sqrt{d_v}\leq\alpha$.
+For $J=0$, the same bound follows from
+\cref{eq:batch-bidiagonal-inverse} and $\alpha\leq1$.
+Combining
+\cref{eq:batch-exact-gap-tail,eq:batch-chain-domination,eq:batch-threshold-source,eq:batch-seed-tail}
+with $\norm{\va+\vb}_2^2/2\leq\norm{\va}_2^2+\norm{\vb}_2^2$ proves
+\cref{eq:batch-depth-main}.
+\end{proof}
+
+The two terms have different meanings.  The seed term decays spectrally down
+the block chain.  The threshold term charges every delayed coordinate once,
+at the block where it is eventually eliminated.  A vertex can therefore
+remain below threshold for many faces without generating a repeated,
+uncharged error.

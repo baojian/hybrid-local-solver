@@ -1,0 +1,274 @@
+\section{Randomized threshold batches close the arbitrary-graph word-model gap}
+\label{sec:two-stage-randomized-op2}
+
+The preceding sections were written before the companion
+\texttt{active\_edge\_lcp} note proved OP2.  Its decisive idea is not a new
+terminal linear solver.  It is a square-root bound on the number of
+\emph{complete exposed faces} that must be solved before the unreleased RPPR
+energy is negligible.  This section records the exact transfer and corrects
+the earlier statement that arbitrary-graph accelerated discovery was wholly
+open.
+
+Put
+\begin{equation*}
+ c_\rho=b-\alpha\rho D^{1/2}\one,
+ \qquad
+ F_\rho(x)=\frac12x^\top Qx-c_\rho^\top x
+ \quad(x\geq0).
+\end{equation*}
+For a reachable active face $U$, let
+\begin{equation}
+ x_i^U=
+ \begin{cases}
+  (Q_{UU}^{-1}c_{\rho,U})_i,&i\in U,\\
+  0,&i\notin U,
+ \end{cases},
+ \label{eq:two-stage-random-face}
+\end{equation}
+where reachability means that the seed is admitted first and every later
+batch has strictly positive exact residual $c_\rho-Qx^U$.  Stieltjes inverse
+positivity gives
+\begin{equation}
+ U\subseteq S^\star,
+ \qquad
+ 0<x_U^U\leq x_{\rho,U}^\star.
+ \label{eq:two-stage-random-safe-face}
+\end{equation}
+The trivial regime $\rho\geq1/d_v$ has $x_\rho^\star=0$ and is recognized by
+one seed-degree query; all nonempty faces below refer to $\rho<1/d_v$.
+
+We import the following proved theorem from the companion note.  It is stated
+here in the exact form needed by the two-stage composition.
+
+\begin{theorem}[Threshold-batch source theorem]
+\label{thm:two-stage-threshold-source}
+In the canonical nonzero regime, fix an RPPR objective target
+$0<\varepsilon_{\rm obj}<\alpha/2$ and a
+failure probability $\zeta\in(0,1)$.  There is an exact-real randomized local
+algorithm which returns an explicit failure flag with probability at most
+$\zeta$ and otherwise returns a reachable face $U$ and a residual-certified
+face point $z$.  Its exact face satisfies
+\begin{equation}
+ F_\rho(x^U)-F_\rho(x_\rho^\star)\leq\varepsilon_{\rm obj},
+ \label{eq:two-stage-threshold-face-gap}
+\end{equation}
+and the projected numerical point satisfies the same target.  Every active
+face is contained in $S^\star$, hence
+$\vol(U)\leq1/\rho$, and the fully charged expected work is
+\begin{equation}
+ \widetilde O\!\left(
+   \frac{1}{\rho\sqrt\alpha}
+   \log\frac1{\varepsilon_{\rm obj}}
+   \log\frac2\zeta
+ \right).
+ \label{eq:two-stage-threshold-source-work}
+\end{equation}
+No support, ambient preprocessing, boundary oracle, or complementarity
+margin is supplied.
+For $\varepsilon_{\rm obj}\geq\alpha/2$, zero already meets the objective
+target; the seed-degree test handles the trivial zero-RPPR regime.
+\end{theorem}
+
+The construction sets
+\begin{equation}
+ \vartheta=\frac18\sqrt{\alpha\rho\varepsilon_{\rm obj}},
+ \qquad \nu=\vartheta/4,
+ \qquad
+ J=\left\lceil
+  \frac{\log(64/\varepsilon_{\rm obj})}
+       {2\log(1/q_\alpha)}
+ \right\rceil,
+ \qquad
+ q_\alpha=\frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}.
+ \label{eq:two-stage-threshold-parameters}
+\end{equation}
+At each phase it constructs the exposed degree-coordinate SDD matrix, makes
+capped independent calls to the randomized solver of
+\citet{koutis2011nearly}, and accepts a call only if a complete active-row
+scan certifies
+\begin{equation}
+ \norm{Q_{UU}z_U-c_{\rho,U}}_2\leq\nu\sqrt\alpha.
+ \label{eq:two-stage-threshold-residual-test}
+\end{equation}
+It then admits every boundary row whose approximate positive residual is
+larger than $\vartheta/2$.  The residual test makes every admission
+deterministically support-safe and leaves each unreported exact residual
+below $\vartheta$.
+
+For completeness, the source of the square-root phase count is a block
+Cholesky argument.  Order the final support by admission batches, retain only
+the diagonal and first block subdiagonal of its scalar Cholesky factor, and
+call the resulting block-bidiagonal M-matrix $\widehat C$.  Entrywise inverse
+ordering and the two-block row structure give
+\begin{equation}
+ \norm{\widehat C^{-1}}_2\leq\frac1{\sqrt\alpha},
+ \qquad
+ \norm{\widehat C}_2\leq\sqrt2.
+ \label{eq:two-stage-bidiagonal-conditioning}
+\end{equation}
+Chebyshev inverse decay along this block chain proves
+\begin{equation}
+ F_\rho(x^{U_J})-F_\rho(x_\rho^\star)
+ \leq 8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho}.
+ \label{eq:two-stage-batch-depth-import}
+\end{equation}
+The distributed threshold term charges every delayed row once, at its
+eventual elimination block.  Since
+$\log(1/q_\alpha)\geq\sqrt{2\alpha}$, only
+$O(\alpha^{-1/2}\log(1/\varepsilon_{\rm obj}))$ complete faces are rebuilt.
+The full factor proof and randomized-solver ledger remain in the companion
+audit rather than being repeated here.
+
+The new observation is that the face in
+\cref{thm:two-stage-threshold-source} need not contain $S^\star$.
+
+\begin{lemma}[Face energy is an approximate-envelope certificate]
+\label{lem:two-stage-inner-face-energy}
+Let $U$ be reachable and let
+\begin{equation}
+ \Gamma_U:=F_\rho(x^U)-F_\rho(x_\rho^\star).
+ \label{eq:two-stage-inner-face-gap}
+\end{equation}
+Then the exterior RPPR amplitude and the ordinary principal-PPR solution
+$u_U=Q_{UU}^{-1}b_U$ obey
+\begin{align}
+ \max_{i\notin U}\frac{x_{\rho,i}^\star}{\sqrt{d_i}}
+ &\leq\sqrt{\frac{2\Gamma_U}{\alpha}},
+ \label{eq:two-stage-inner-amplitude}\\
+ \norm{D^{-1/2}(x^0-\widetilde u_U)}_\infty
+ &\leq\rho+\sqrt{\frac{2\Gamma_U}{\alpha}}.
+ \label{eq:two-stage-inner-ppr-error}
+\end{align}
+Thus a certified low-energy \emph{inner} face is a valid Stage~I set
+certificate even when $U\subsetneq S^\star$.
+\end{lemma}
+
+\begin{proof}
+Strong convexity of the RPPR objective on the nonnegative orthant gives
+\begin{equation*}
+ \Gamma_U\geq\frac\alpha2\norm{x^U-x_\rho^\star}_2^2.
+\end{equation*}
+The zero extension of $x^U$ vanishes outside $U$, and every $d_i\geq1$.
+Hence each omitted normalized coordinate is at most
+$\sqrt{2\Gamma_U/\alpha}$, proving
+\cref{eq:two-stage-inner-amplitude}.  Apply the approximate-envelope
+linearization proposition with
+$\delta_U=\max_{i\notin U}x_{\rho,i}^\star/\sqrt{d_i}$ to obtain
+\cref{eq:two-stage-inner-ppr-error}.
+\end{proof}
+
+\begin{theorem}[Randomized literal two-stage completion]
+\label{thm:two-stage-randomized-completion}
+For the nontrivial regime $0<\epsppr<1$, choose positive budgets
+$\rho,\eta,\tau$ satisfying
+\begin{equation}
+ \rho+\eta+\tau\leq\epsppr,
+ \qquad
+ \varepsilon_{\rm obj}=\frac{\alpha\eta^2}{2}.
+ \label{eq:two-stage-random-budget}
+\end{equation}
+If the seed-degree test certifies the zero-RPPR regime, return zero and omit
+Stage~II; the RPPR--PPR bridge gives error at most $\rho$.
+Run \cref{thm:two-stage-threshold-source} with failure budget $\zeta/2$ as
+Stage~I, retain only its face $U$, and discard its numerical point and
+randomized solver state.  In
+Stage~II solve the ordinary principal system
+\begin{equation}
+ Q_{UU}u_U=b_U
+ \label{eq:two-stage-random-tail}
+\end{equation}
+to Euclidean error at most $\tau$ with failure budget $\zeta/2$, take its
+positive part, and then zero-pad the result.  With failure probability at
+most $\zeta$, the output is semantically
+$\epsppr$-accurate.  Using a second residual-certified randomized SDD solve
+for Stage~II, the expected fully charged work is
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{1}{\rho\sqrt\alpha}
+  \log\frac1{\alpha\eta^2}
+  \log\frac4\zeta
+  +\frac1\rho
+  \log\frac1{\sqrt\alpha\tau}
+  \log\frac4\zeta
+ \right).
+ \label{eq:two-stage-random-total-work}
+\end{equation}
+In particular, $\rho=\eta=\tau=\epsppr/3$ gives
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ work on every graph in the stated
+exact-real randomized model.
+\end{theorem}
+
+\begin{proof}
+On a successful Stage~I execution,
+\cref{thm:two-stage-threshold-source,lem:two-stage-inner-face-energy} give
+\begin{equation*}
+ \norm{D^{-1/2}(x^0-\widetilde u_U)}_\infty
+ \leq\rho+\eta.
+\end{equation*}
+The terminal Euclidean error contributes at most $\tau$ to the normalized
+$\ell_\infty$ error because $d_i\geq1$.  Euclidean projection onto the
+nonnegative orthant cannot increase distance from the exact nonnegative
+principal solution.
+
+For the Stage~II work claim, use the degree-coordinate SDD matrix
+$D_U^{1/2}Q_{UU}D_U^{1/2}$.  The exact principal PPR solution has energy at
+most $\alpha$, so a good randomized call at relative energy tolerance
+$\sqrt\alpha\tau$ has residual norm at most $\alpha\tau$.  Accept a call
+only after an exact active-row residual scan verifies that inequality.  Every
+accepted call then has Euclidean solution error at most $\tau$,
+deterministically.  Capped independent retries give the declared failure
+probability.  The face has volume at most $1/\rho$; applying the source SDD
+work theorem and adding \cref{eq:two-stage-threshold-source-work} proves
+\cref{eq:two-stage-random-total-work}.
+\end{proof}
+
+\begin{corollary}[The shortest algorithm returns after Stage I]
+\label{cor:two-stage-randomized-direct-return}
+Set
+\begin{equation*}
+ \rho=\epsppr/2,
+ \qquad
+ \varepsilon_{\rm obj}=\alpha\epsppr^2/8.
+\end{equation*}
+The projected numerical point already returned by
+\cref{thm:two-stage-threshold-source} is semantically
+$\epsppr$-accurate, with expected work
+$\widetilde O(1/(\epsppr\sqrt\alpha))$.  Therefore the literal Stage~II in
+\cref{thm:two-stage-randomized-completion} is a modular set-only variant, not
+the fastest required execution.
+\end{corollary}
+
+\begin{proof}
+The standard RPPR objective conversion gives normalized PPR error at most
+\begin{equation*}
+ \rho+\sqrt{2\varepsilon_{\rm obj}/\alpha}=\epsppr.
+\end{equation*}
+Substitute $\rho=\epsppr/2$ in
+\cref{eq:two-stage-threshold-source-work}.
+\end{proof}
+
+\begin{remark}[Las Vegas wrapper]
+All accepted face solves and admissions are verified deterministically; the
+randomness can only cause an explicit failure flag.  Taking a constant
+$\zeta<1$ and restarting the complete procedure after a flag therefore gives
+a Las Vegas exact-real algorithm with constant expected restart overhead.
+This does not supply deterministic bit complexity.
+\end{remark}
+
+\paragraph{What transfers to AESP--CD.}
+The safe-residual admission rule, hard face cap, restart discipline, and
+certificate race transfer directly.  The result should be viewed as a new
+threshold-batched active-set lane compatible with the AESP--CD portfolio, not
+as a proof that the original momentum recurrence itself has become
+randomized.  It deliberately rebuilds a fresh exposed SDD solver on each of
+only $\widetilde O(1/\sqrt\alpha)$ faces; no momentum, Perron alignment,
+face-shock bank, or dynamic response structure crosses a batch.
+
+\paragraph{Remaining scope.}
+The arbitrary-graph existence question is closed only in the companion
+note's exact-real randomized word model.  Deterministic finite-precision and
+coefficient-bit bounds, a practical local implementation of the randomized
+SDD primitive, and a faster persistent changing-face response remain open.
+The earlier Green, leakage, APPR, SOR, tree-message, and mass lanes remain
+valuable as deterministic or practical competitors; they are no longer the
+only route to the target asymptotic existence theorem.

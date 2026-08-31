@@ -19,7 +19,11 @@ The proof has four layers.
 2. The full-entry position and velocity profiles are proved on the required
    growing modal band.  The ideal packet splits into two nonpositive directed
    binomial waves, while the literal entry correction satisfies
-   `c(j)<-13q^3/100` on every row for `m>=64`.
+   `c(j)<-13q^3/100` on every row for `m>=64`.  A signed Green
+   addendum supports both profiles: it derives the exact constant-trace
+   response by finite geometric sums, its fixed-mode position and
+   velocity limits, the early-base velocity limit, and an exact
+   reduction of the final endpoint limit to one scalar remainder.
 3. The static directed remainder is deconvolved exactly as `u=Ld`.  A uniform
    folded-source theorem proves the two-step cone on rows `0<=j<=m-6` for
    every `m>=64`.  Exact first-order formulas give positive limits on the

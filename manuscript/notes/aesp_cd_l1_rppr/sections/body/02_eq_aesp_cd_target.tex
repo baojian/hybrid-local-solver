@@ -13,3 +13,484 @@ $F_\rho$.  The final, note-scoped diagnostic target is
   \label{eq:aesp-cd-target}
 \end{equation}
 This is not identified with $\epsobj$, $\epspg$, or $\epsppr$.
+
+\subsection{Point-source contract and the exact limit of linear reduction}
+
+The oracle-free discovery and reporter results in this note take the canonical
+point-source specialization
+\begin{equation*}
+ s=e_o.
+\end{equation*}
+Statements that use only the shared quadratic algebra may remain valid for a
+general distribution.  Connected support and a single rooted exploration
+order are invoked only under this point-source contract.  The support-radius
+bound itself extends to distance from the whole source set, as the next
+proposition shows.  Thus the genuine restriction is a one-root dynamic
+discovery contract, not merely a notational normalization.
+
+\begin{proposition}[Sparse-source support geometry is multi-rooted but still local]
+\label{prop:aesp-cd-sparse-source-radius}
+Let $s\geq0$, $\one^\top s=1$, and $T=\supp(s)$.  Every connected
+component of the RPPR support $S^\star(\rho)$ intersects $T$, and
+\begin{equation}
+ \max_{v\in S^\star(\rho)}\operatorname{dist}(T,v)
+ \leq
+ 1+\frac{\log_+((1-\alpha)/(\alpha\rho))}
+ {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \leq
+ 1+\frac{\log_+((1-\alpha)/(\alpha\rho))}{2\sqrt\alpha}.
+ \label{eq:aesp-cd-sparse-source-radius}
+\end{equation}
+Consequently sparsity of $s$ creates at most $|T|$ source-rooted
+components, all within the same square-root-scale radius.  What is lost
+relative to $s=e_o$ is not spatial locality but the single rooted response
+order: distinct components can contribute jointly to a previously inactive
+row and then merge.
+\end{proposition}
+
+\begin{proof}
+Work first in the degree-unscaled congruence
+$\widehat H=((1+\alpha)/2)D-((1-\alpha)/2)A$.
+If an active connected component $C$ does not intersect $T$, its active
+equations give
+\begin{equation*}
+ y_C^\star=\widehat H_{CC}^{-1}(-\alpha\rho d_C)<0,
+\end{equation*}
+because every principal Stieltjes inverse is nonnegative.  This contradicts
+activity, so every component meets $T$.
+
+For the radius, return to the shared normalized matrix $Q$.  Put
+$b=\alpha D^{-1/2}s$ and
+$\lambda_\alpha=(1-\sqrt\alpha)/(1+\sqrt\alpha)$.  The degree-$k$
+Chebyshev inverse polynomial from the point-source proof satisfies
+\begin{equation*}
+ \norm{Q^{-1}-p_k(Q)}_2\leq\frac2\alpha\lambda_\alpha^{k+1}.
+\end{equation*}
+Moreover $\norm{b}_2\leq\alpha\norm{s}_1=\alpha$.  If
+$\operatorname{dist}(T,v)=\ell$, locality makes
+$(p_{\ell-1}(Q)b)_v=0$.  Obstacle comparison therefore gives exactly the
+same Green bound as for one source,
+\begin{equation*}
+ 0\leq x_v^\star\leq(Q^{-1}b)_v\leq2\lambda_\alpha^\ell.
+\end{equation*}
+Choose an active vertex at maximum source-set distance $R\geq1$.  It is
+not a source, every neighbor has source-set distance at least $R-1$, and
+its active KKT equality yields
+\begin{equation*}
+ \alpha\rho\sqrt{d_v}
+ <\sum_{u\sim v}\frac{1-\alpha}{2\sqrt{d_ud_v}}x_u^\star
+ \leq(1-\alpha)\sqrt{d_v}\lambda_\alpha^{R-1}.
+\end{equation*}
+Taking logarithms proves the first radius bound; the second uses
+$\log((1+t)/(1-t))\geq2t$.
+\end{proof}
+
+\begin{proposition}[Sparse linear PPR from point-source solvers]
+\label{prop:aesp-cd-point-source-linear-reduction}
+Suppose a point-source routine, for every $v$ and tolerance $\eta>0$, returns
+$\widehat\pi^{(v)}$ satisfying
+\begin{equation*}
+ \norm{D^{-1}(\widehat\pi^{(v)}-\pi(e_v))}_\infty\leq\eta
+\end{equation*}
+in $\widetilde O(1/(\sqrt\alpha\eta))$ work.  For a distribution $s$ with
+$T=\supp(s)$, put $A_s:=\sum_{v\in T}\sqrt{s_v}$.  Then weighted point-source
+solves give a general-seed approximation with error $\epsppr$ in
+\begin{equation}
+ |T|+\widetilde O\!\left(
+  \frac{A_s^2}{\sqrt\alpha\,\epsppr}
+ \right)
+ \label{eq:aesp-cd-point-source-linear-reduction}
+\end{equation}
+work.  Since $1\leq A_s^2\leq|T|$, this does not recover the desired additive
+$|T|+\widetilde O(1/(\sqrt\alpha\epsppr))$ bound for a uniform $|T|$-point
+source.
+\end{proposition}
+
+\begin{proof}
+Linearity of the unregularized system gives
+\begin{equation*}
+ \pi(s)=\sum_{v\in T}s_v\pi(e_v).
+\end{equation*}
+Choose $\eta_v=\epsppr/(A_s\sqrt{s_v})$.  The degree-normalized error of
+$\sum_vs_v\widehat\pi^{(v)}$ is at most
+$\sum_vs_v\eta_v=\epsppr$, while
+\begin{equation*}
+ \sum_{v\in T}\frac1{\eta_v}=\frac{A_s^2}{\epsppr}.
+\end{equation*}
+Reading the source and merging its outputs costs the additive $|T|$ term.
+The RPPR obstacle solution is nonlinear in $s$ and does not obey this
+superposition; the exact three-vertex merge witness after
+\cref{cor:aesp-cd-cactus-live-sites} shows why componentwise point-source
+RPPR reporters can all stop while their joint middle key is positive.
+\end{proof}
+
+\begin{proposition}[Well-separated source components recover the additive target]
+\label{prop:aesp-cd-separated-source-decomposition}
+Let $T=\supp(s)$, and for each $v\in T$ let $z^{(v)}$ be the
+point-source RPPR solution at threshold $\rho/s_v$, with support $S_v$.
+Assume every $S_v$ contains $v$, and that the closed graph neighborhoods
+\begin{equation*}
+ N[S_v]:=S_v\cup\{w:\text{$w$ is adjacent to some $u\in S_v$}\}
+\end{equation*}
+are pairwise disjoint.  Then the general-source RPPR solution decomposes
+exactly as
+\begin{equation}
+ x^\star_\rho(s)=\sum_{v\in T}s_vz^{(v)},
+ \qquad
+ \supp(x^\star_\rho(s))=\mathop{\dot\bigcup}_{v\in T}S_v.
+ \label{eq:aesp-cd-separated-source-decomposition}
+\end{equation}
+In particular,
+\begin{equation}
+ \sum_{v\in T}\vol(S_v)
+ \leq\sum_{v\in T}\frac{s_v}{\rho}
+ =\frac1\rho.
+ \label{eq:aesp-cd-separated-source-volume}
+\end{equation}
+Thus any point-source implementation whose work on $S_v$ is
+\(\widetilde O(\vol(S_v)/\sqrt\alpha)\) gives the general source the desired
+\begin{equation*}
+ |T|+\widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right)
+\end{equation*}
+work on this separated class.  The loss in
+\cref{prop:aesp-cd-point-source-linear-reduction} is therefore not inherent
+to multiple source weights; it is caused by shared inactive rows and the
+component mergers they trigger.
+\end{proposition}
+
+\begin{proof}
+Put $x^{(v)}=s_vz^{(v)}$.  Scaling the point-source active equations at
+threshold $\rho/s_v$ gives, on $S_v$,
+\begin{equation*}
+ Q_{S_vS_v}x^{(v)}_{S_v}
+ =\alpha s_v(D^{-1/2}e_v)_{S_v}
+  -\alpha\rho(D^{1/2}\one)_{S_v}.
+\end{equation*}
+Pairwise disjoint closed neighborhoods imply that there are no edges between
+distinct supports and that $S_v$ contains no other source.  Hence the sum
+in \cref{eq:aesp-cd-separated-source-decomposition} satisfies every active
+equation of the general-source problem.
+
+Every inactive vertex is adjacent to at most one $S_v$, and no inactive
+vertex is a source.  If it is adjacent to $S_v$, its general-source KKT key
+is exactly $s_v$ times the corresponding inactive key of the point-source
+problem at threshold $\rho/s_v$, hence is nonpositive.  If it is adjacent
+to no support, its key is $-\alpha\rho\sqrt{d_w}<0$.  The summed point is
+therefore the unique global obstacle minimizer.  Finally the point-source
+support cap at threshold $\rho/s_v$ gives
+\(\vol(S_v)\leq s_v/\rho\); summing proves
+\cref{eq:aesp-cd-separated-source-volume} and the work claim.
+\end{proof}
+
+\begin{corollary}[The coarse-accuracy point-source regime is already closed]
+\label{cor:aesp-cd-point-source-coarse-regime}
+The active-set algorithm of
+\href{https://arxiv.org/abs/2608.16339}{Wei and Yang}
+computes, with high probability, a point-source ACL
+$\epsppr$-approximate PageRank vector in
+\begin{equation*}
+ \widetilde O\!\left(\frac1{\epsppr^2}\right)
+\end{equation*}
+work, with support volume at most $2/\epsppr$.  Consequently, whenever
+\begin{equation}
+ \epsppr\geq\sqrt\alpha,
+ \label{eq:aesp-cd-point-source-coarse-regime}
+\end{equation}
+their bound is no larger than the target
+$\widetilde O(1/(\sqrt\alpha\epsppr))$.  Thus the only accuracy regime not
+already covered by this comparison is
+\begin{equation}
+ \epsppr<\sqrt\alpha.
+ \label{eq:aesp-cd-point-source-hard-regime}
+\end{equation}
+Under the usual RPPR-to-PPR choice
+$\rho=\epskkt=\epsppr/2$, this is the small-threshold regime
+$\rho<\sqrt\alpha/2$.
+\end{corollary}
+
+\begin{proof}
+Wei and Yang use the nonlazy teleportation parameter $\bar\alpha$.  Setting
+\begin{equation*}
+ \bar\alpha=\frac{2\alpha}{1+\alpha}
+\end{equation*}
+matches the shared lazy convention: if
+$p=(1+\alpha)/2$ and $c=(1-\alpha)/2$, then
+\begin{equation*}
+ p\bigl(D-(1-\bar\alpha)A\bigr)=pD-cA,
+ \qquad p\bar\alpha=\alpha.
+\end{equation*}
+Their ACL certificate writes the returned vector as the exact PageRank of
+$e_o-r$, where $0\leq r\leq\epsppr d$.  Positivity of the PageRank operator
+and stationarity on $d$ therefore give the shared degree-normalized error
+bound.  Finally,
+$1/\epsppr^2\leq1/(\sqrt\alpha\epsppr)$ is exactly
+\cref{eq:aesp-cd-point-source-coarse-regime}.
+\end{proof}
+
+\begin{proposition}[Existing point-source absolute-error methods do not close the hard regime]
+\label{prop:aesp-cd-point-source-existing-hard-regime}
+The point-source restriction aligns the note with several single-source
+PageRank algorithms, but their published bounds do not already imply
+\cref{eq:aesp-cd-point-source-hard-regime}.  More precisely:
+\begin{enumerate}
+\item The degree-normalized SSPPR algorithm of
+  \href{https://doi.org/10.4230/LIPIcs.ICDT.2024.9}{Wei, Wen, and Yang}
+  has expected work
+  \begin{equation*}
+   \widetilde O\!\left(
+    \frac1{\bar\alpha\epsppr}
+    \sqrt{\sum_t\frac{\pi(o,t)}{d_t}}
+   \right)
+   \leq \widetilde O\!\left(
+    \frac1{\bar\alpha\epsppr}
+   \right),
+  \end{equation*}
+  after restoring the teleportation parameter \(\bar\alpha\) that their
+  statement treats as a constant.  Their candidate-discovery subroutine
+  also assumes a \(\Theta(m)\)-time graph preprocessing.  With
+  \(\bar\alpha=2\alpha/(1+\alpha)\), this is the classical
+  \(\widetilde O(1/(\alpha\epsppr))\) dependence rather than the target.
+\item The local Chebyshev method of
+  \href{https://arxiv.org/abs/2412.10789}{Yang, Li, Liao, Lin, and Wang}
+  proves, under its stated stability assumption, work
+  \(O(K^2/\epsppr)\), where the PageRank Chebyshev truncation degree is
+  \(K=\widetilde O(1/\sqrt\alpha)\).  Thus its worst-case theorem again
+  gives \(\widetilde O(1/(\alpha\epsppr))\).  The second factor \(K\)
+  comes from distributing a safe truncation budget over all subset
+  recurrences, not from the polynomial approximation degree itself.
+\item The FISTA locality theorem of
+  \href{https://arxiv.org/abs/2602.21138}{Fountoulakis and
+  Mart\'inez-Rubio} does contain the accelerated core term
+  \(\widetilde O(1/(\rho\sqrt\alpha))\), but only under a confinement
+  hypothesis and with the additional boundary work
+  \begin{equation*}
+   O\!\left(\frac{\sqrt{\vol(B)}}{\rho\alpha^{3/2}}\right).
+  \end{equation*}
+  Their point-source star witness shows that standard FISTA can activate
+  an arbitrarily high-volume off-support center, so this is not a
+  graph-universal local bound.
+\item The 2026 single-source lower bound of
+  \href{https://arxiv.org/abs/2602.10843}{Bertram and Jensen} is
+  \(\widetilde\Omega(\min\{m,1/\delta\})\), even with their strongest
+  \textsc{Jump}, degree-sorted-neighbor, and adjacency queries (in their
+  average-over-sources formulation).  This confirms that the
+  \(1/\epsppr\) output scale cannot be removed.  It does not rule out the
+  present \(1/(\sqrt\alpha\epsppr)\) target: their paper explicitly treats
+  the teleportation probability as a constant, and its approximation model
+  asks for constant relative error only above a scalar threshold \(\delta\),
+  with additive \(O(\delta)\) error below it, rather than the shared
+  degree-normalized coordinatewise certificate with variable \(\alpha\).
+\end{enumerate}
+Consequently the comparison in
+\cref{cor:aesp-cd-point-source-coarse-regime} remains the strongest
+unconditional external closure used by this note: existing point-source
+methods remove neither the small-\(\alpha\) factor nor the one-sided local
+reporter problem in the hard regime.
+\end{proposition}
+
+The stability qualification in the ChebyPush comparison is essential, even
+for the point source.
+
+\begin{proposition}[ChebyPush's \(\ell_1\)-stability assumption is not graph universal]
+\label{prop:aesp-cd-chebypush-stability-stop}
+Let \(P=A/d\) be the random-walk matrix on a rooted \(d\)-regular tree,
+\(d\geq3\), or on a finite \(d\)-regular graph whose radius-\(k\) ball about
+the root is a tree.  Then
+\begin{equation}
+ \norm{T_k(P)}_1\geq
+ \left(\frac{2(d-1)}d\right)^{k-1}.
+ \label{eq:aesp-cd-chebypush-stability-stop}
+\end{equation}
+In particular, already for cubic high-girth graphs this lower bound is
+\((4/3)^{k-1}\).  Thus the universal-constant hypothesis
+\(\norm{T_k(P)}_1=O(1)\) used in the published local Chebyshev work analysis
+fails exponentially, and its \(O(K^2/\epsppr)\) theorem cannot be specialized
+into an unconditional point-source result by setting
+\(K=\widetilde O(1/\sqrt\alpha)\).
+
+This is a STOP for that stability-based work proof, not for every truncated
+or adaptively compressed Chebyshev algorithm.  In particular it does not
+alter the safe fixed-final-face result, which charges matrix applications to
+an already certified envelope rather than asserting global \(\ell_1\)
+stability of the wave.
+\end{proposition}
+
+\begin{proof}
+The leading coefficient of \(T_k\) is \(2^{k-1}\).  No lower-degree monomial
+can reach a vertex at distance \(k\), while the unique length-\(k\) path gives
+\begin{equation*}
+ [T_k(P)e_o]_v=\frac{2^{k-1}}{d^k}
+ \qquad(\operatorname{dist}(o,v)=k).
+\end{equation*}
+There are \(d(d-1)^{k-1}\) such vertices.  Their absolute column mass is
+exactly \((2(d-1)/d)^{k-1}\), proving
+\cref{eq:aesp-cd-chebypush-stability-stop}.
+\end{proof}
+
+\begin{proposition}[APPR gives an optimal-volume envelope but not accelerated discovery]
+\label{prop:aesp-cd-point-source-appr-envelope}
+Let \(0<\alpha<1\), let \(x^{\mathrm{APPR}}(\rho)\) be any terminal output of
+the classical APPR coordinate-push algorithm at normalized residual threshold
+\(\alpha\rho d_i\), and let \(S^\star(\rho)\) be the support of the shared
+RPPR solution.  Then
+\begin{equation}
+ S^\star(\rho)
+ \subseteq \supp(x^{\mathrm{APPR}}(\rho))
+ \subseteq S^\star\!\left(\frac{1-\alpha}{2}\rho\right).
+ \label{eq:aesp-cd-point-source-appr-envelope}
+\end{equation}
+Consequently
+\begin{equation}
+ \vol\bigl(\supp(x^{\mathrm{APPR}}(\rho))\bigr)
+ \leq \frac{2}{(1-\alpha)\rho}.
+ \label{eq:aesp-cd-point-source-appr-envelope-volume}
+\end{equation}
+For an arbitrary source distribution with $T=\supp(s)$, the same envelope
+also obeys
+\begin{equation}
+ \max_{i\in\supp(x^{\mathrm{APPR}}(\rho))}\operatorname{dist}(T,i)
+ \leq1+
+ \frac{\log_+(2/(\alpha\rho))}
+ {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))}
+ \leq1+\frac{\log_+(2/(\alpha\rho))}{2\sqrt\alpha}.
+ \label{eq:aesp-cd-point-source-appr-envelope-radius}
+\end{equation}
+In particular, throughout the accelerated range \(\alpha<1/2\), APPR
+constructs a containing envelope of volume below \(4/\rho\).  Nevertheless,
+its graph-universal degree work is
+\(\Theta(1/(\alpha\rho))\) in the worst case.  Thus the remaining
+point-source problem is not to prove that an output-sized envelope exists;
+it is to construct or reuse that envelope without the classical
+\(1/\alpha\) repeated-push factor.  This separation already occurs at graph
+radius one: for \(0<\rho\leq1/16\), on the center-seeded star with
+\(m=\lfloor1/(8\rho)\rfloor\), the APPR envelope \(E\) satisfies
+\begin{equation}
+ m\leq\vol(E)\leq2m,qquad
+ \operatorname{rad}_o(E)\leq1,qquad
+ W_{\mathrm{APPR}}>
+ \frac{3}{32\alpha}\vol(E).
+ \label{eq:aesp-cd-point-source-appr-envelope-reuse-gap}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The two support inclusions are Theorem~10 of
+\href{https://jmlr.csail.mit.edu/papers/volume22/20-029/20-029.pdf}{Ha,
+Fountoulakis, and Mahoney}; their degree-unscaled variable is related to the
+shared variable by a positive diagonal congruence and hence has identical
+support.  Applying the shared support cap
+\(\vol(S^\star(\eta))\leq1/\eta\) to the right inclusion with
+\(\eta=(1-\alpha)\rho/2\) proves
+\cref{eq:aesp-cd-point-source-appr-envelope-volume}.  For a general source,
+the same right inclusion and \cref{prop:aesp-cd-sparse-source-radius} at
+parameter \(\eta\) give
+\cref{eq:aesp-cd-point-source-appr-envelope-radius}.  The classical APPR
+upper bound and the matching center-seeded-star lower bound proved in the
+parent manuscript give the final worst-case work statement.  Notice that
+both the support sandwich and the source-set radius hold for general source
+distributions; the point-source restriction makes the dynamic discovery
+trace singly rooted.  For the final display, the root belongs to every APPR
+support, so its degree gives \(\vol(E)\geq m\), while \(E\subseteq V\) gives
+\(\vol(E)\leq2m\).  The parent star theorem gives
+\(W_{\mathrm{APPR}}>3/(128\alpha\rho)\); since
+\(2m\leq1/(4\rho)\), this is larger than
+\(3\vol(E)/(32\alpha)\).
+\end{proof}
+
+\begin{corollary}[An APPR-envelope oracle closes semantic sparse-source PPR]
+\label{cor:aesp-cd-point-source-appr-envelope-oracle}
+\label{cor:aesp-cd-appr-envelope-oracle}
+For any shared source distribution \(s\), fix \(0<\epsppr\leq1\), set
+\(\rho=\epsppr/2\), and suppose the set
+\begin{equation*}
+ E=\supp(x^{\mathrm{APPR}}(\rho))
+\end{equation*}
+is supplied without charging its construction.  Strongly-convex accelerated
+proximal gradient applied to \(F_\rho\) on the fixed coordinate envelope
+\(E\), followed by zero padding, returns \(\widehat x\) such that
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsppr
+ \label{eq:aesp-cd-point-source-appr-envelope-oracle-error}
+\end{equation}
+using
+\begin{equation}
+ |\supp(s)|+\widetilde O\!\left(
+  \frac{\vol(E)}{\sqrt\alpha}
+ \right)
+ \leq
+ |\supp(s)|+\widetilde O\!\left(
+  \frac1{\epsppr\sqrt\alpha}
+ \right)
+ \label{eq:aesp-cd-point-source-appr-envelope-oracle-work}
+\end{equation}
+degree work in the accelerated range \(\alpha<1/2\).  No strict active or
+dual margin and no exact-face identification are required for this semantic
+PPR guarantee.  The point-source hypothesis is needed to turn the local
+source-set geometry into one rooted discovery trace, not for the radius
+bound or this oracle-supplied terminal solve.  Because the solve remains on
+the containing coordinate envelope rather than identifying the final positive
+face, it also bypasses the proper-face identity
+$Q_A\one=\alpha\one$ required by the separate mean/Perron window analysis.
+\end{corollary}
+
+\begin{proof}
+By \cref{eq:aesp-cd-point-source-appr-envelope}, \(E\) contains
+\(S^\star(\rho)\).  Therefore restricting the obstacle objective to \(E\)
+does not change its minimizer.  The restricted Hessian still has spectrum in
+\([\alpha,1]\), so accelerated proximal gradient drives the objective gap
+below \(\alpha\epsppr^2/8\) in
+\(\widetilde O(1/\sqrt\alpha)\) iterations.  Strong convexity then gives
+\begin{equation*}
+ \norm{\widehat x-x^\star(\rho)}_2\leq\epsppr/2.
+\end{equation*}
+Since every degree is at least one,
+\begin{equation*}
+ \norm{D^{-1/2}(\widehat x-x^\star(\rho))}_\infty
+ \leq\epsppr/2.
+\end{equation*}
+The RPPR comparison inequality
+\(0\leq D^{-1/2}(x^0-x^\star(\rho))\leq\rho\one\), with
+\(\rho=\epsppr/2\), proves
+\cref{eq:aesp-cd-point-source-appr-envelope-oracle-error}.  Each restricted
+matrix application costs \(O(\vol(E))\), and
+\cref{eq:aesp-cd-point-source-appr-envelope-volume} bounds that volume by
+\(4/\rho=8/\epsppr\) when \(\alpha<1/2\).  Logarithmic accuracy factors are
+absorbed by \(\widetilde O\), and reading the sparse source costs
+\(O(|\supp(s)|)\).
+\end{proof}
+
+\begin{proposition}[Point-source structure is not closed under residual recursion]
+\label{prop:aesp-cd-point-source-residual-recursion-stop}
+Even an exact lower solve on the first point-source face can leave a residual
+with several positive coordinates.  On the three-vertex path, take the
+middle vertex as the source and put
+\begin{equation*}
+ \alpha=\frac13,
+ \qquad \rho=\frac1{12}.
+\end{equation*}
+In degree-unscaled coordinates the root-only exact solve has
+\begin{equation*}
+ y_1=\frac{5}{24},
+ \qquad
+ \ell_\rho-\widehat H(y_1e_1)
+ =\begin{pmatrix}1/24&0&1/24\end{pmatrix}^{\!\top}.
+\end{equation*}
+Thus a bootstrap which recursively calls a point-source routine on the
+unresolved residual leaves its hypothesis after one exact step.  For linear
+PPR the two residual sources may still be superposed, but that pays the
+source-allocation factor from
+\cref{prop:aesp-cd-point-source-linear-reduction}.  For an obstacle
+correction the map is nonlinear, so componentwise point-source solves are
+not an exact replacement.  This proposition only stops a black-box
+point-source recursion; it does not stop a reporter designed for the joint
+nonnegative residual.
+\end{proposition}
+
+\begin{proof}
+Here $p=2/3$, $c=1/3$, and the degree vector is $(1,2,1)$.  The middle
+load is
+$\ell_1=\alpha(1-2\rho)=5/18$, while
+$\widehat H_{11}=2p=4/3$, giving $y_1=5/24$.  Each endpoint has load
+$-\alpha\rho=-1/36$ and receives $cy_1=5/72$, so its residual is
+$5/72-1/36=1/24$.  The active middle equation is exact.
+\end{proof}

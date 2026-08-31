@@ -1,0 +1,111 @@
+\subsection{A reachable clipped positive-residual row}
+\label{sec:reachable-positive-residual-projection}
+
+The algebraic projection STOP above leaves open whether the same mechanism is
+reachable from the declared zero start.  The next finite witness closes that
+reachability qualification without closing the asymptotic coefficient gap.
+
+Define the simple graph $G_{\rm reach}$ on $\{0,\ldots,29\}$ by
+{\small
+\begin{align*}
+E_{\rm reach}=\{&
+06,0\,12,12,18,19,1\,10,1\,21,1\,24,29,2\,14,2\,18,2\,25,2\,26,2\,27,\\
+&34,36,3\,14,3\,15,3\,17,3\,18,3\,19,3\,23,3\,24,3\,26,3\,27,
+4\,11,4\,18,4\,27,4\,28,4\,29,\\
+&5\,11,5\,15,5\,21,5\,22,5\,29,6\,13,6\,14,6\,16,6\,20,6\,24,6\,28,
+78,7\,13,7\,15,\\
+&8\,10,8\,11,9\,11,9\,20,10\,17,10\,28,11\,26,11\,27,
+12\,13,12\,16,12\,23,12\,28,13\,18,\\
+&14\,15,14\,21,14\,22,15\,24,15\,29,16\,24,16\,27,17\,21,17\,25,
+18\,21,19\,20,20\,27,\\
+&21\,28,22\,25,24\,25,24\,28,25\,27,25\,28,25\,29,27\,29\},
+\end{align*}}
+where $ij$ denotes the unordered edge $\{i,j\}$; spaces disambiguate
+multi-digit labels.
+
+\begin{proposition}[A reachable clipped positive-residual row with positive
+causal debt]
+\label{prop:reachable-positive-residual-projection}
+Run the literal zero-start transported-center recurrence and named complete
+gate on $G_{\rm reach}$ from the point seed $s=7$, with
+\begin{equation*}
+ q=\frac{12}{625},\qquad \alpha=q^2,
+ \qquad \rho=\tau=\frac q5.
+\end{equation*}
+Every visited restricted optimum is interior, every gate decision is strict,
+and the run certifies at stage $32$.  Its action word, with admission batch
+sizes as superscripts, is
+\begin{equation}
+ A^3A^3H^7A^9H^2A^1H^{11}A^9HA^2A^1A^1H^2C.
+ \label{eq:reachable-projection-action-word}
+\end{equation}
+Projection is active only at vertex $23$ on stages $11,12,13$.  At the held
+stage-$12$ checkpoint the active face has $16$ vertices and
+\begin{equation}
+ y_{12,23}=p_{12,23}=0,\qquad
+ n_{12,23}>0,\qquad
+ r_{23}(p_{12})=\max_i r_i(p_{12})>0.
+ \label{eq:reachable-projection-positive-row}
+\end{equation}
+For $b_{12}=(1-q)z_{11}+qz_{U_{12}}^\star$, exact rational arithmetic gives
+\begin{align}
+ \frac{553}{100}
+ &<\frac{n_{12,23}}{b_{12,23}}<\frac{55301}{10000},
+ \label{eq:reachable-projection-anchor-ratio}\\
+ \Xi_{12}-D_{12}&>0,
+ \label{eq:reachable-projection-positive-debt}\\
+ \frac{433}{5000}
+ &<\lambda_{12}^{\rm reach}
+ :=\frac{\Xi_{12}-D_{12}}{R_{12}}
+ <\frac{867}{10000},
+ \label{eq:reachable-projection-required-coefficient}\\
+ \frac{1178}{10^{11}}
+ &<q^4\lambda_{12}^{\rm reach}<\frac{1179}{10^{11}}.
+ \label{eq:reachable-projection-scaled-coefficient}
+\end{align}
+Thus clipped positive-residual rows and positive original-score debt are both
+reachable from the declared zero start.  The witness does not raise the known
+$\Omega(q^{-4})$ lower order: it is one fixed $q$, and its actual required
+coefficient is below $0.087$.  It cannot establish a $q^{-5}$ asymptotic
+order.
+\end{proposition}
+
+\begin{proof}
+The registered exact audit
+\texttt{volume\_gated\_acceleration.reachable\_projection\_witness}
+uses \texttt{Fraction} arithmetic for every restricted solve, transported
+center, projection, residual, Schur drop, energy, reserve, and complete-gate
+comparison.  It verifies the admitted batches
+\begin{align*}
+1&:\{8,13,15\},&2&:\{10,12,18\},\\
+10&:\{0,1,5,6,11,14,23,24,29\},&13&:\{3\},\\
+25&:\{2,4,9,16,17,21,22,26,28\},&27&:\{25,27\},\\
+28&:\{20\},&29&:\{19\},
+\end{align*}
+the holds and terminal certificate in
+\cref{eq:reachable-projection-action-word}, and strict positivity of every
+restricted optimum.  The least exact decision margin over all $32$ stages is
+larger than $1/(2\cdot10^7)$.
+
+The only negative raw coordinates are row $23$ at stages $11,12,13$.  Its
+post-step residual is negative at stages $11$ and $13$.  At stage $12$ the
+audit checks \cref{eq:reachable-projection-positive-row}; in particular the
+positive residual is the literal all-coordinate maximum that defines
+$\Xi_{12}$.  Direct exact evaluation of the normal, anchor, cumulative
+realized admission credit $D_{12}$, and consumed reserve $R_{12}$ proves
+\cref{eq:reachable-projection-anchor-ratio,eq:reachable-projection-positive-debt,eq:reachable-projection-required-coefficient,eq:reachable-projection-scaled-coefficient}.
+\end{proof}
+
+For separation of scales, the same audit has an optional exact finite screen
+on
+\begin{equation*}
+ q\in\{187,188,\ldots,195\}/10^4.
+\end{equation*}
+A clipped positive-residual row exists only from $0.0188$ through $0.0194$.
+Across those seven points, $q(n_{23}/b_{23})$ lies strictly between $0.098$
+and $0.111$; causal debt is zero through $q=0.0191$, and $q^4\lambda$ is only
+$1.178\ldots\,10^{-8}$, $3.170\ldots\,10^{-8}$, and
+$5.558\ldots\,10^{-8}$ at the last three points.  These are exact finite
+evaluations.  The apparent $1/q$ normal--anchor scaling on this narrow window
+is not an asymptotic statement, and the same fixed graph loses the relevant
+row at both endpoints of the screen.

@@ -1,0 +1,178 @@
+\section{Beyond spiders: rooted trees and bounded cyclic blocks}
+\label{sec:tree-and-block-results}
+
+The spider calculation suggests two possible notions of generalization.
+
+\begin{enumerate}[leftmargin=*]
+\item \emph{SOR generalization} asks whether the same signed iterative
+      recurrence has accelerated semantic convergence and locally maintainable
+      support.
+\item \emph{target-problem generalization} asks whether some fully charged
+      local algorithm reaches the desired PPR work scale on the larger graph
+      class.
+\end{enumerate}
+
+The first remains incomplete beyond a fixed face.  The second is already
+proved for substantially more than spiders through persistent responses.
+
+\subsection{Arbitrary rooted trees}
+
+For a finite tree rooted at its single seed, the proof-owning
+\texttt{propagate\_settle\_framework} note constructs lazy exact subtree
+responses.  Conditioned on its parent value, every subtree sends a monotone
+piecewise-affine scalar response.  Child breakpoints are merged lazily, so an
+active label is propagated only along its root path; one final top-down solve
+materializes the solution.
+
+Let $S^\rho=\operatorname{supp}(x^\rho)$ and
+$R_\star=\max_{v\in S^\rho}\operatorname{dist}(o,v)$.  The imported results
+give
+\begin{align}
+ R_\star
+ &\leq1+
+ \frac{\log_+((1-\alpha)/(\alpha\rho))}
+      {\log((1+\sqrt\alpha)/(1-\sqrt\alpha))},
+ \label{eq:tree-support-radius-import}\\
+ W_{\rm tree}
+ &\leq O\!\left(
+  \log(2+\Delta_\star)
+  \left[
+   \operatorname{cvol}(S^\rho)
+   +\sum_{v\in S^\rho}\operatorname{dist}(o,v)
+  \right]
+ \right)
+ \notag\\
+ &=\widetilde O\!\left(
+  \frac{1+\operatorname{cvol}(S^\rho)}{\sqrt\alpha}
+ \right).
+ \label{eq:tree-response-import}
+\end{align}
+The algorithm scans active adjacency lists, emits every active label, charges
+response-event routing, performs final recovery, and checks the exterior KKT
+condition.  It does not require the support or radius as advice.
+
+\begin{theorem}[Semantic PPR at the product scale on rooted trees]
+\label{thm:tree-semantic-ppr}
+On every finite unweighted tree with one seed, exact arithmetic and ordinary
+adjacency-list access suffice to return a sparse $\widehat x$ with
+\begin{equation}
+ \|\widehat x-x^0\|_{D,\infty}
+ \leq\varepsilon_{\rm ppr}
+ \label{eq:tree-semantic-target}
+\end{equation}
+in
+\begin{equation}
+ W_{\rm tree}
+ =\widetilde O\!\left(
+  \frac1{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+ \right)
+ \label{eq:tree-semantic-work}
+\end{equation}
+charged work, including discovery, exact solution, certification, and output.
+\end{theorem}
+
+\begin{proof}
+Set $\rho=\varepsilon_{\rm ppr}$ and return the exact RPPR point
+$\widehat x=x^\rho$ from the imported response algorithm.  By
+\Cref{thm:rppr-ppr-bias}, its semantic PPR error is at most $\rho$.  The
+source support bound gives
+$\operatorname{vol}(S^\rho)\leq1/\rho$.  If the support is nonempty, every
+degree is at least one and hence
+\begin{equation*}
+ \operatorname{cvol}(S^\rho)
+ =|S^\rho|+\operatorname{vol}(S^\rho)
+ \leq2\operatorname{vol}(S^\rho)
+ \leq\frac2\rho.
+\end{equation*}
+The empty-support case is constant work.  Substitute into
+\eqref{eq:tree-response-import}; its soft factors come from the displayed
+support radius and local heaps.  Output is already charged by the imported
+theorem.
+\end{proof}
+
+This is an end-to-end theorem for a broad infinite graph class.  It is not an
+SOR theorem: the response representation retains exact piecewise-affine
+subtree maps.  On a known fixed tree face, \Cref{cor:fixed-face-semantic-sor}
+still gives an accelerated iterative tail, but running that tail after the
+response algorithm has already computed the exact solution would be
+redundant.
+
+\subsection{Graphs assembled from bounded cyclic blocks}
+
+Trees cease to be the right boundary when small cycles are attached at
+articulation vertices.  Count each bridge as a two-vertex block and suppose
+every biconnected block in the seed component has at most $q$ vertices.  The
+proof-owning \texttt{delayed\_reflection\_ladder} note maintains the
+block--cut forest under ordinary adjacency exposure.  When a new edge merges
+blocks, the newly activated coordinates are still zero at that event, so
+past response pieces remain valid; only future pieces in the merged block are
+rebuilt.
+
+The imported representation-free theorem solves exact single-seed RPPR in
+\begin{equation}
+ W_{\rm block}
+ =\widetilde O\!\left(
+  \frac{q^3}{\rho\sqrt\alpha}
+ \right)
+ \label{eq:bounded-block-rppr-import}
+\end{equation}
+degree work and $O(q\operatorname{vol}(S^\rho))$ storage.  It requires no
+supplied block decomposition, support, radius, or confinement oracle.
+
+\begin{corollary}[Semantic PPR on bounded-block graphs]
+\label{cor:bounded-block-semantic-ppr}
+Under the bounded-block hypothesis above, choosing
+$\rho=\varepsilon_{\rm ppr}$ returns semantic PPR output in
+\begin{equation}
+ W_{\rm block}
+ =\widetilde O\!\left(
+  \frac{q^3}{\sqrt\alpha\,\varepsilon_{\rm ppr}}
+ \right).
+ \label{eq:bounded-block-ppr-work}
+\end{equation}
+In particular, constant-size blocks meet the desired product scale, and
+$q=\log^{O(1)}(1/(\alpha\varepsilon_{\rm ppr}))$ changes only soft factors.
+\end{corollary}
+
+\begin{proof}
+Apply \Cref{thm:rppr-ppr-bias} to the exact RPPR output and substitute
+$\rho=\varepsilon_{\rm ppr}$ into
+\eqref{eq:bounded-block-rppr-import}.
+\end{proof}
+
+\subsection{The graph-family ladder now established}
+
+The logical status is summarized below.
+
+\begin{center}
+\begin{tabular}{p{0.16\textwidth}p{0.22\textwidth}p{0.25\textwidth}p{0.19\textwidth}}
+\toprule
+Graph class & Strongest proved primitive & Charged semantic PPR scale & Main
+qualification \\
+\midrule
+Center-star & Signed coordinate SOR &
+$\Theta(1/(\sqrt\alpha\varepsilon_{\rm ppr}))$ in the declared class &
+Promised center-star; exact semantic stop \\
+Fixed bipartite face & Red--black SOR &
+$\widetilde O(\operatorname{vol}(U)/\sqrt\alpha)$ & Face and exterior test
+supplied \\
+Hub-rooted spider & Kinetic scalar response &
+$O(\varepsilon_{\rm ppr}^{-1}\log(2+B))$ & Exact arithmetic; tree geometry
+\\
+Arbitrary rooted tree & Lazy subtree response &
+$\widetilde O(1/(\sqrt\alpha\varepsilon_{\rm ppr}))$ & Exact arithmetic;
+single seed \\
+Blocks of size $q$ & Dynamic block response &
+$\widetilde O(q^3/(\sqrt\alpha\varepsilon_{\rm ppr}))$ & Every biconnected
+block has size at most $q$ \\
+Arbitrary graph & None yet & Target remains
+$\widetilde O(1/(\sqrt\alpha\varepsilon_{\rm ppr}))$ & Large cyclic cores
+remain open \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This ladder changes the research priority.  Proving another tree-only SOR
+rate would refine the iterative story, but it would not enlarge the graph
+class on which the target problem is solved.  The next genuinely broader
+step must address a large biconnected core.

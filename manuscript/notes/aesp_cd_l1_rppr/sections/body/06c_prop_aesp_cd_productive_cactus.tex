@@ -1,0 +1,553 @@
+The live-site parameter can be sharpened when most sites remain immutable.
+The distinction is between a threshold which merely exists and a site whose
+descendant response has actually changed.
+
+\begin{corollary}[Cactus cycles with bounded productive sites]
+\label{cor:aesp-cd-cactus-productive-sites}
+Retain the exact-real, static, single-positive-load cactus setting of
+\cref{cor:aesp-cd-cactus-live-sites}.  After a cycle block $B$ first closes,
+call a cycle site \emph{productive} when its aggregate descendant response
+has changed because of a routed singleton admission.  Let $p_B$ be the total
+number of distinct productive sites during the remaining trace.  Require the
+following immutable-run contract:
+\begin{enumerate}[label=(\roman*)]
+\item at closure, choose the parent articulation (or the root site) as the
+      sole permanent base anchor and compress every other site's current
+      snapshot---even one with a finite live threshold---into dormant runs;
+\item between the base anchor and productive sites, every dormant cycle site keeps the same local
+      diagonal, load, descendant threshold, and active/pinned mark;
+\item the first routed change below a dormant site promotes that site before
+      applying the change, after which the site is maintained explicitly;
+\item every descendant mark or response change is reported on its unique
+      cactus route to the root;
+\item equality at a threshold remains inactive and ties use a fixed label
+      order.
+\end{enumerate}
+Then the term $(r_B+1)\log(2+L_B)$ in
+\cref{eq:aesp-cd-cactus-live-sites-work} may be replaced by
+$(p_B+1)\log^2(2+L_B)$.  Equivalently, the cycle contribution is
+\begin{equation}
+ \widetilde O\!\left(
+   \sum_{v\in S^\star}
+   \sum_{B\in\mathcal P(v)}(p_B+1)\log^2(2+L_B)
+ \right),
+ \label{eq:aesp-cd-cactus-productive-sites-work}
+\end{equation}
+plus the tree and pre-closure term in
+\cref{eq:aesp-cd-cactus-live-sites-work}.  In particular, if
+$\max_B p_B=\operatorname{polylog}(2+\vol(S^\star))$, the RPPR work remains
+\begin{equation*}
+ \widetilde O\!\left(
+  \frac{1+\vol(S^\star)}{\sqrt\alpha}
+ \right),
+\end{equation*}
+even when the number of dormant live sites is unbounded.
+
+This statement does not cover finite-inner response drift, online factor
+revelation inside a dormant run, or an unreported child mutation.  It does not
+resolve cactus traces with unboundedly many productive sites.
+\end{corollary}
+
+\begin{proof}
+At cycle closure, rebuild the static representation with only the stipulated
+base anchor explicit; all other frozen sites belong to dormant runs.  Later
+cuts are precisely the distinct promoted productive sites together with that
+anchor.  On a dormant run
+$I$ with endpoint values $(z_L,z_R)$, exact elimination gives, for every site
+$j\in I$,
+\begin{equation*}
+ x_j=A_jz_L+B_jz_R+C_j,
+ \qquad A_j,B_j\geq0.
+\end{equation*}
+The coefficients and the descendant threshold $\theta_j$ are immutable by
+hypothesis.  Thus every dormant safety condition is one fixed half-plane
+\begin{equation*}
+ A_jz_L+B_jz_R+C_j\leq\theta_j.
+\end{equation*}
+Preprocess these normalized homogeneous half-planes---not their pulled-back
+scalar thresholds---in the dual planar hull for every canonical interval of a
+balanced segment tree on the cycle order.  A maximal dormant run is a
+disjoint union of $O(\log L_B)$ canonical intervals.
+
+Conditioned on the parent articulation scalar $t$, inverse positivity makes
+both endpoint values a nonnegative affine ray in $t$.  Exact line/ray
+shooting in each static planar hull returns the first strict boundary crossing
+and a labeled row in $O(\log L_B)$ work.  Zero ray slope is treated as an
+immediate record when the row is already positive and as infinity otherwise;
+equality is inactive.  Therefore all dormant runs are queried in
+$O((p_B+1)\log^2(2+L_B))$ work.
+
+The base anchor, productive sites, and run endpoints form a cyclic or path Stieltjes
+skeleton of order $O(p_B+1)$.  Eliminating each dormant run contributes one
+two-port Schur factor, so two tridiagonal solves recover the affine skeleton
+response to $t$ in $O(p_B+1)$ work.  On first mutation, splitting the run and
+promoting the touched site logically retires every canonical interval
+containing that site: no physical deletion is needed, because future
+maximal-run covers decompose around it and never use those intervals.  When
+$p_B=0$, the wraparound dormant run may have the
+same permanent anchor at both ends and is handled by the same half-plane query.
+Hence every site is promoted once, and preprocessing, promotions, and final
+recovery sum to $\widetilde O(\vol(S^\star))$.
+
+An admission below $B$ changes its aggregate response only at the unique
+cycle articulation on the admission-to-root route.  The promotion-before-
+mutation rule therefore preserves every dormant hull exactly.  Summing the
+per-visit cost over block routes proves
+\cref{eq:aesp-cd-cactus-productive-sites-work}.  The support-radius argument
+from \cref{cor:aesp-cd-cactus-live-sites} gives the final specialization.
+\end{proof}
+
+Nor can the repeated reporter work be paid solely by objective gain.
+
+\begin{proposition}[Objective-gain-only admission charge STOP]
+\label{prop:aesp-cd-objective-gain-charge-stop}
+There is no positive graph-uniform constant that charges even one unit of
+reporter work per strict RPPR admission to that admission's exact Schur
+objective gain.  This rules out gain-only charging without a declared relative
+margin; it does not rule out a different potential or batched accounting.
+\end{proposition}
+
+\begin{proof}
+On the degree-one graph $K_2$, put
+$a=(1+\alpha)/2$, $c=(1-\alpha)/2$, and
+$\rho=c-\varepsilon$ with $0<\varepsilon<c$.  On the singleton root face the
+degree-unscaled restricted solution is
+$y_o=\alpha(1-\rho)/a$.  The inactive neighbor has strict key and Schur pivot
+\begin{equation*}
+ g=-\alpha\rho+cy_o=\frac{\alpha\varepsilon}{a}>0,
+ \qquad
+ s=a-\frac{c^2}{a}=\frac{\alpha}{a}.
+\end{equation*}
+Hence admitting it decreases the exact quadratic objective by
+$g^2/(2s)=\alpha\varepsilon^2/(2a)\to0$, while a strict admission and its
+reporter operation remain necessary.
+\end{proof}
+
+The exact repair is a declared batch-density margin.
+
+\begin{corollary}[Conditional Schur-gain batch payment]
+\label{cor:aesp-cd-schur-gain-batch-payment}
+Let $\mu I\preceq H\preceq LI$ be SPD Stieltjes.  At an exact restricted
+minimizer on $U$, let a pinned batch $W$ have componentwise strict-positive
+key vector $g_W$, and let $w_W$ be the charged work of admitting and rebuilding
+that batch.  If
+\begin{equation*}
+ \norm{g_W}_2^2\geq2\eta Lw_W,
+\end{equation*}
+then its exact restricted-objective decrease is at least $\eta w_W$.
+Consequently any nested sequence of such accepted batches has total charged
+work at most the available objective decrease divided by $\eta$.
+For the shared normalized RPPR quadratic one may take $L=1$.
+\end{corollary}
+
+\begin{proof}
+The batch Schur complement
+$S_W=H_{WW}-H_{WU}H_{UU}^{-1}H_{UW}$ is SPD Stieltjes and
+$S_W\preceq LI$: its quadratic form is the minimum of the full quadratic form
+over the eliminated coordinates.  Thus the new batch displacement
+$S_W^{-1}g_W$ is positive and the exact gain satisfies
+\begin{equation*}
+ \frac12 g_W^{\mathsf T}S_W^{-1}g_W
+ \geq \frac{\norm{g_W}_2^2}{2L}
+ \geq \eta w_W.
+\end{equation*}
+The restricted optima are nested, so these objective decreases telescope.
+\end{proof}
+
+The square-root cap in the epoch scheme below is not merely an artifact of
+choosing one unfortunate constant.  It is forced for that literal flat
+snapshot interface, although not for a more powerful persistent reporter.
+
+\begin{proposition}[Static-cluster interface STOP]
+\label{prop:aesp-cd-cactus-static-cluster-stop}
+Consider a length-$L$ cycle reporter with the following interface.  A snapshot
+may build a hull on a spatial parse cluster in $\Omega(|C|)$ work.  A site
+mutation invalidates every snapshot hull containing that leaf.  Between
+snapshots, a strict-positive query may use only a disjoint cover by still-valid
+canonical hulls together with separately checked touched rows; it has no
+persistent bulk affine-pullback or hull-meld operation, and pays $\Omega(1)$
+for every queried cover hull or explicit row in the strict sign certificate.
+Then there is an
+update/query phase of $\Theta(\sqrt L)$ site events whose arithmetic work is
+$\Omega(L)$, or $\Omega(\sqrt L)$ amortized per event.
+
+This is a lower bound for that static-cluster interface, not for exact cactus
+reporting or RPPR.  In particular it does not exclude a multilevel kinetic
+structure or the bulk interface in
+\cref{prop:aesp-cd-sp-meld-hull-reduction}.
+\end{proposition}
+
+\begin{proof}
+Let $q$ sites be evenly spaced around the cycle and mutate each once.  Until a
+new snapshot absorbs them, a query checks $\Omega(q)$ explicit touched rows.
+To replace them by $o(q)$ valid spatial clusters, some rebuilt clusters must
+join consecutive touched sites; their disjoint circular spans have total
+$\Omega(L)$, so the linear build rule charges $\Omega(L)$.  Now perform
+$M:=\lfloor L/q\rfloor$ further mutations and queries at an already touched
+site.  The endpoint response changes, so the other touched rows cannot be
+discarded from a strict sign certificate.  The interface therefore either
+pays $\Omega(Mq)=\Omega(L)$ through its explicit checks or pays
+$\Omega(L)$ for a rebuilding snapshot.  Taking
+$q=\lfloor\sqrt L\rfloor$ gives $q+M=\Theta(\sqrt L)$ events and the claimed
+amortized bound.  The legal-admission sign flip in the accompanying exact
+audit shows why caching the old numerical values of the other rows is not a
+valid shortcut.
+\end{proof}
+
+There is a conditional way to remove the square-root loss by changing the
+unit of rebuilding from one cycle to a whole heavy block path.  It is useful
+as a precise description of the remaining online interface, not as a local
+discovery theorem.
+
+\begin{proposition}[Offline heavy-path cactus reduction]
+\label{prop:aesp-cd-cactus-offline-hld}
+Suppose the final active cactus block-cut tree is supplied in advance, and
+consider only a core-first phase in which every structural factor of each
+heavy-path superblock used below is already active and closed; unfinished
+light descendants enter only through their routed response streams.  Build
+the weighted heavy--light decomposition by final active subtree volume.  For
+each heavy block path $\mathcal H$, let
+$S_{\mathcal H}\geq1$ be the total size of all structural factors in its
+two-terminal chain-cactus superblock (cycle rows, bridge rows, and articulation
+rows), and supply a balanced,
+height $O(\log(2+S_{\mathcal H}))$ series--parallel parse of the resulting two-terminal
+chain-cactus superblock.  Then the exact singleton reporter can be implemented
+with post-closure work
+\begin{equation}
+ \widetilde O\!\left(
+   1+\vol(S^\star)+
+   \sum_{\mathcal H}J_{\mathcal H}\sqrt{S_{\mathcal H}}
+ \right)
+ =\widetilde O\!\left(
+   (1+R_\star)(1+\vol(S^\star))
+ \right),
+ \label{eq:aesp-cd-cactus-offline-hld-work}
+\end{equation}
+where $J_{\mathcal H}$ counts routed response mutations visiting the heavy path.
+Thus the RPPR specialization has
+$\widetilde O((1+\vol(S^\star))/\sqrt\alpha)$ work.
+
+The conclusion is offline and conditional.  It does not pay for discovering
+$S^\star$, dynamically changing the heavy decomposition, or merging epochs
+when cycle blocks close asynchronously.  Those operations require the
+persistent cut/concatenate and bulk-affine hull interface isolated in
+\cref{prop:aesp-cd-sp-meld-hull-reduction}.
+\end{proposition}
+
+\begin{proof}
+At an epoch snapshot, every canonical node of the supplied balanced
+series--parallel parse stores its exact two-port quadratic factor and the
+static homogeneous half-plane hull of its internal threshold rows.  Touching
+one site invalidates only its leaf-to-root parse path.  After $p$ distinct
+touches, the maximal clean sibling cover of the union of dirty paths contains
+$O((p+1)\log(2+S_{\mathcal H}))$ canonical two-port nodes.  This canonical-cover
+statement is essential: the connected graph components left by deleting the
+touched sites can have arbitrarily many boundary ports.
+
+Point-factor updates and the root two-port solve use the dynamic quadratic
+parse.  A top-down context pass pulls the current affine endpoint ray back to
+every clean cover node; its static hull reports the first strict crossing.
+The touched rows are checked explicitly.  Hence a visit with $p$ current
+touches costs $\widetilde O(p+1)$, while rebuilding the snapshot costs
+$\widetilde O(S_{\mathcal H})$.  Applying
+\cref{cor:aesp-cd-cactus-productive-epochs} with cap
+$\lceil\sqrt{S_{\mathcal H}}\rceil$ proves the first expression in
+\cref{eq:aesp-cd-cactus-offline-hld-work}.  Within one heavy path, a routed
+admission changes only its deepest attachment factor; the parse absorbs all
+upstream response changes in that single visit.
+
+A root route meets $O(\log(2+\vol(S^\star)))$ heavy paths.  If a heavy path
+contains $b$ block factors and its longest cycle has length $L_{\max}$, with
+$L_{\max}:=1$ when it contains no cycle, then
+$S_{\mathcal H}=O(bL_{\max})$.  Cactus geometry gives
+$b=O(1+R_\star)$ and $L_{\max}=O(1+R_\star)$, so
+$\sqrt{S_{\mathcal H}}=O(1+R_\star)$.  Reversing the route sum therefore gives
+\begin{equation*}
+ \sum_{\mathcal H}J_{\mathcal H}\sqrt{S_{\mathcal H}}
+ =\widetilde O\!\left(
+  (1+R_\star)|S^\star|
+ \right).
+\end{equation*}
+The one-time heavy-path builds partition all structural factors and cost
+$\widetilde O(\vol(S^\star))$.  This proves the second expression, and the
+known RPPR radius bound gives the final specialization.
+\end{proof}
+
+For a cactus, the final-support oracle in the preceding proposition can in
+fact be removed.  The key is to allow conservative whole-path rebuilding and
+charge it to rooted depth, rather than demanding a polylogarithmic dynamic
+hull meld.
+
+\begin{theorem}[Online hysteretic heavy-path cactus reporter]
+\label{thm:aesp-cd-cactus-online-hysteretic-hld}
+Retain the exact-real, single-positive-load, locally revealed cactus setting
+of \cref{cor:aesp-cd-cactus-live-sites}.  There is an online legal singleton
+reporter, requiring neither the final support nor its final block--cut tree,
+whose total work is
+\begin{equation}
+ \widetilde O\!\left(
+   (1+R_\star)(1+\vol(S^\star))
+ \right).
+ \label{eq:aesp-cd-cactus-online-hysteretic-hld-work}
+\end{equation}
+Consequently, on a promised single-source RPPR cactus it has
+$\widetilde O((1+\vol(S^\star))/\sqrt\alpha)$ work and hence
+$\widetilde O(1/(\rho\sqrt\alpha))$ work.
+
+The implementation may discard and rebuild the reporter state of a changed
+heavy path.  It does not assume a persistent bulk hull meld.  The theorem is
+specific to the rooted connected cactus trace: it does not cover multiple
+positive loads or a general series--parallel graph whose active block
+decomposition can merge through two independent ports.
+\end{theorem}
+
+\begin{proof}
+Maintain the currently closed rooted cactus block--cut core.  Give every
+block, bridge, articulation, and attached response record its positive
+structural size, so the final total size
+$W$ is $O(1+\vol(S^\star))$.  Unclosed cycle arms use the tree messages and
+the unique double-frontier check from
+\cref{cor:aesp-cd-unicyclic-singleton}; after a cycle closes, splice its
+cached factors into the closed core and build its exact two-port factor.
+
+For a core node $u$, let $w_u$ be its current active subtree size.  Choose an
+initial maximum-size child $h(u)$ as heavy.  Retain it until a maximum
+competitor $c$ satisfies
+\begin{equation*}
+ w_c>2w_{h(u)},
+\end{equation*}
+and then set $h(u):=c$.  If $(u,c)$ is light, either no switch is due and
+$w_c\leq2w_{h(u)}$, or it is the old heavy edge immediately after a switch.
+In both cases
+\begin{equation*}
+ w_c\leq\frac23 w_u.
+\end{equation*}
+Hence every current root route meets only $O(\log(2+W))$ heavy paths.  The
+weights of the successively selected heavy children at one node more than
+double, so that node switches at most $1+\lfloor\log_2 W\rfloor$ times over
+the whole monotone trace.
+
+Treat every current heavy path as the two-terminal chain-cactus superblock
+of \cref{prop:aesp-cd-cactus-offline-hld}.  A switch cuts and concatenates a
+constant number of such paths; rebuild their balanced series--parallel
+parses and epoch snapshots from the current exact factors.  This operation
+does not alter the represented restricted solution or any key.  Every
+structural atom rebuilt by a switch at $u$ lies on a heavy path containing
+$u$, an old heavy child, or a new heavy child, and is therefore comparable
+with $u$ in the rooted core.  For a fixed atom there are only
+$O(1+R_\star)$ comparable core nodes, each switching $O(\log(2+W))$ times.
+Charging a rebuild to the pair consisting of that atom and the switching
+node gives total switch-rebuild work
+\begin{equation*}
+ \widetilde O(W(1+R_\star)).
+\end{equation*}
+Updating subtree sizes by the explicit root route has the same, or smaller,
+bound.
+
+A cycle closure is a local contraction of its cached two active arms into
+one cactus block.  Rebuild the block factor and every heavy-path piece whose
+topology it changes.  An atom can be affected only when a distinct cycle
+comparable with it on one rooted block route closes, so the same
+atom--route charge contributes another
+$O(W(1+R_\star))$ term.  One-time adjacency scans, factor construction, and
+final recovery cost $\widetilde O(W)$; the pre-closure tree routes cost
+$\widetilde O(W(1+R_\star))$ by
+\cref{eq:aesp-cd-cactus-live-sites-work}.
+
+It remains to charge visits while the decomposition is unchanged.  A heavy
+path contains at most $O(1+R_\star)$ block factors.  Every fully active cycle
+on it has length at most $2R_\star+1$, because a farthest cycle vertex lies
+at distance at least half the cycle length from its entry.  Thus its
+structural size $S_{\mathcal H}$ is
+$O((1+R_\star)^2)$, and the epoch reporter used in
+\cref{prop:aesp-cd-cactus-offline-hld} charges
+\begin{equation*}
+ \widetilde O(\sqrt{S_{\mathcal H}})
+ =\widetilde O(1+R_\star)
+\end{equation*}
+per visited heavy path.  A singleton admission visits only logarithmically
+many current paths, and there are at most $|S^\star|\leq W$ admissions.
+Summing over all path lifetimes gives the bound in
+\cref{eq:aesp-cd-cactus-online-hysteretic-hld-work}; path snapshots discarded
+at a switch were already paid by the rebuild ledger.
+
+Every query and rebuild is an exact change of representation, so the strict
+positive-key and terminal KKT arguments of the tree, unicyclic, and static
+heavy-path reporters remain unchanged.  Finally apply the point-source RPPR
+radius and volume bounds.
+\end{proof}
+
+There is a cheaper online subcase hidden inside the offline construction.  If the
+structural factors of each supplied heavy superblock close in one contiguous
+root-to-leaf order and no descendant-response mutation occurs before that
+core is complete, keep the closed prefix as a binary-counter stack of
+consecutive immutable series--parallel chunks.  Equal-size adjacent chunks
+are rebuilt and merged.  Every factor participates in only
+$O(\log(2+S_{\mathcal H}))$ builds, and the prefix has only logarithmically
+many chunks, so the balanced snapshot required above is constructed in
+$\widetilde O(S_{\mathcal H})$ online work.  This observation does not pay for
+interleaved closure and point mutation.  The general cactus theorem above
+handles those events by the more conservative radius-paid rebuilding ledger;
+the persistent-meld interface is still needed to obtain polylogarithmic
+rather than radius-paid dynamic path maintenance, and remains open for
+general variable-port series--parallel blocks.
+
+The next elementary realization lemma separates a limitation of the reporter
+accounting from a merely formal bad ledger.
+
+\begin{lemma}[Small-threshold realization of connected singleton orders]
+\label{lem:aesp-cd-connected-order-small-rho}
+Let $G$ be a finite connected unweighted graph, let $o$ be the single RPPR
+source, and fix $0<\alpha<1$.  For every vertex order
+$v_0=o,v_1,\ldots,v_{n-1}$ whose prefixes
+$U_j:=\{v_0,\ldots,v_j\}$ are connected, there is a $\rho_0>0$ such that,
+for every $0<\rho<\rho_0$, the following are all strict:
+the restricted RPPR solution on every $U_j$ is interior, the boundary key of
+$v_{j+1}$ is positive, and the final full solution is positive.  Hence the
+chosen order is a legal singleton positive-subset trace and $S^\star=V$.
+If the singleton policy chooses the least-labeled currently strict-positive
+row, labeling vertices in this order reproduces the trace.  This says nothing
+about a policy that selects the earliest future threshold rather than an
+arbitrary currently positive row.
+\end{lemma}
+
+\begin{proof}
+Use the degree-unscaled congruent coordinates
+\begin{equation*}
+ \widehat H=\frac{1+\alpha}{2}D-\frac{1-\alpha}{2}A,
+ \qquad
+ \widehat\ell(\rho)=\alpha\mathbf e_o-\alpha\rho d.
+\end{equation*}
+At $\rho=0$, every connected principal block containing $o$ is an
+irreducible SPD Stieltjes matrix, so
+$y_{U_j}=\widehat H_{U_jU_j}^{-1}\alpha\mathbf e_o\gg0$.
+Because $v_{j+1}$ has a neighbor in $U_j$, its exact boundary key is
+\begin{equation*}
+ -\widehat H_{v_{j+1},U_j}y_{U_j}
+ =\frac{1-\alpha}{2}
+   \sum_{u\in U_j\cap N(v_{j+1})}y_u>0.
+\end{equation*}
+The same inverse-positivity argument makes the full solution positive.
+There are only finitely many active-coordinate and chosen-key inequalities;
+the matrices do not depend on $\rho$, and every solution and key is affine in
+$\rho$.  Their strict margins therefore persist on one common interval
+$0<\rho<\rho_0$.
+\end{proof}
+
+The bounded-productive-site hypothesis can be removed at the price of a
+square-root block factor.  This interpolation is useful when a block has many
+mutable sites but is still much larger than the number of sites touched in a
+typical response epoch.
+
+\begin{corollary}[Epoch rebuilding for unrestricted productive sites]
+\label{cor:aesp-cd-cactus-productive-epochs}
+Retain the exact static cactus setting above, but impose no bound on $p_B$.
+For every closed cycle block $B$, let $J_B$ be the number of routed singleton
+admissions after closure whose descendant-response mutation visits $B$ (with
+repeated visits to the same site counted separately).  For any integer
+$1\leq k_B\leq L_B$, there is an exact reporter whose post-closure work on
+$B$ is
+\begin{equation}
+ \widetilde O\!\left(
+   L_B+J_B\left(k_B+\frac{L_B}{k_B}\right)
+ \right).
+ \label{eq:aesp-cd-cactus-productive-epoch-work}
+\end{equation}
+In particular, $k_B=\lceil\sqrt{L_B}\rceil$ gives
+$\widetilde O(L_B+J_B\sqrt{L_B})$.  More sharply, if $p_B$ denotes the
+number of distinct productive sites over the whole post-closure trace, the
+same algorithm automatically gives
+\begin{equation}
+ \widetilde O\!\left(
+  L_B+J_B\min\{p_B+1,\sqrt{L_B}\}
+ \right).
+ \label{eq:aesp-cd-cactus-productive-hybrid-work}
+\end{equation}
+Here $p_B$ is only an a posteriori analysis parameter; the online reporter
+uses $L_B$ and does not need to know $p_B$.
+Including bridges, pre-closure work, and
+final recovery gives the unconditional instance-sensitive cactus bound
+\begin{equation*}
+ \widetilde O\!\left(
+  1+\vol(S^\star)+
+  \sum_{B\ \mathrm{cycle}}J_B
+       \min\{p_B+1,\sqrt{L_B}\}
+ +\sum_{v\in S^\star}\operatorname{dist}(o,v)
+ \right).
+\end{equation*}
+Consequently the target RPPR product follows under the alternative route
+geometry promise
+\begin{equation*}
+ \max_{v\in S^\star}
+ \sum_{B\in\mathcal P(v)}
+       \min\{p_B+1,\sqrt{L_B}\}
+ =\widetilde O(1+R_\star).
+\end{equation*}
+For example, this promise holds when every used parent--child passage, or the
+parent--terminal passage relevant to $v$, through $B$ traverses
+$\widetilde\Omega(\min\{p_B+1,\sqrt{L_B}\})$ edges of that cycle, because
+those passage lengths add along a cactus block route.
+This is not a universal support-radius product bound, even on reachable
+parameters.  Chain $k$ length-$L$ cycle blocks with adjacent entry and exit
+articulations.  At
+$q:=\lceil\sqrt L\rceil-1$ distinct sites of every block, including its exit,
+attach one private side leaf; attach another $M$ private leaves at the final
+exit.  Order the connected core first, then all side leaves, then the terminal
+leaves.  By \cref{lem:aesp-cd-connected-order-small-rho}, this is a strict legal
+RPPR singleton trace for sufficiently small $\rho>0$.  The side admissions
+give $p_B\geq q$ without reaching the epoch reset threshold, while every
+terminal admission revisits the already productive exit of every ancestor,
+so $J_B\geq M$.  Thus the certified hybrid ledger, and the literal flat
+scan-all-runs implementation behind it, can pay $\Theta(kM\sqrt L)$.
+Taking $k=L=m$ through square values and $M=m^2$ gives
+$\Theta(m^{7/2})$, whereas volume times radius is only $\Theta(m^3)$.
+This is a strict STOP for the flat global-rebuild proof interface, not an
+algorithmic lower bound: a multilevel persistent reporter or a different
+legal batching order may still be faster.  In this family, for example,
+simultaneously admitting all currently positive terminal leaves at their one
+attachment collapses their $M$ singleton visits to one aggregate response
+update; the remaining task is precisely to report that batch without scanning
+an uncontrolled frontier.
+\end{corollary}
+
+\begin{proof}
+At the start of an epoch, rebuild in $\widetilde O(L_B)$ work the canonical
+static half-plane hulls from the current factors, choose the permanent anchor,
+and reset the touched set to empty.  During the epoch, apply the preceding
+productive-site construction with at most $k_B$ explicit touched sites.  A
+routed response update and its exact next-event query therefore cost
+$\widetilde O(k_B)$, including the skeleton solve and dormant-run queries.
+
+Rebuild immediately after the $k_B$-th distinct site is touched.  Every
+completed epoch is charged to at least $k_B$ routed admissions, so there are
+at most $\lfloor J_B/k_B\rfloor$ completed rebuilds after the initial one.
+Repeated mutations at an already touched site cause no extra rebuild and are
+already charged by the $J_Bk_B$ term.  Thus the total is
+\begin{equation*}
+ \widetilde O\!\left(
+  L_B+J_Bk_B+\frac{J_B}{k_B}L_B
+ \right),
+\end{equation*}
+which proves \cref{eq:aesp-cd-cactus-productive-epoch-work}.  Summing the
+one-time builds, the tree route ledger, and the block terms gives the stated
+cactus bound.  If the whole trace has $p_B<k_B$ distinct productive sites,
+no rebuild occurs and every visit sees at most $p_B+1$ skeleton sites and
+dormant runs.  Otherwise the preceding $k_B$ bound applies.  Taking
+$k_B=\lceil\sqrt{L_B}\rceil$ and using
+$p_B+1\leq k_B\leq2\sqrt{L_B}$ in the no-rebuild branch proves
+\cref{eq:aesp-cd-cactus-productive-hybrid-work}.
+
+Reversing the order of summation gives
+\begin{equation*}
+ \sum_B J_B\min\{p_B+1,\sqrt{L_B}\}
+ \leq
+ \sum_{v\in S^\star}\sum_{B\in\mathcal P(v)}
+       \min\{p_B+1,\sqrt{L_B}\},
+\end{equation*}
+which proves the route-geometry specialization.  The final chain ledger gives
+the announced limitation.  Moreover
+$k_B+L_B/k_B\geq2\sqrt{L_B}$, so the square-root factor is optimal within
+the displayed fixed-cap full-rebuild tradeoff: no choice of its one cap
+improves the bound.  This observation does not rule out a multilevel
+persistent hull.
+\end{proof}

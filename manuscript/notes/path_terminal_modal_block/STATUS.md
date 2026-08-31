@@ -145,6 +145,8 @@ cutoff is `m>=4096`; improving it to `m>=64` is optional.
   full-face screen.
 - `verify.py` includes the exact folded derivative completion and interior
   cone checks.
+- `verify.py` also checks the signed Green leading-sum formulas behind
+  `sections/body/01_signed_green_addendum.tex`.
 - `verify_static_frontier.py` checks the exact five-row reduction, joint
   first-order limits, and positive polynomial certificates.
 - `verify_stopped_baseline.py` and `verify_finite_stopped_ledger.py` check the

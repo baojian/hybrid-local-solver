@@ -1,84 +1,112 @@
-Local graph algorithms aim to answer seed-centered questions without scanning
-an entire graph. Approximate personalized PageRank (APPR) is the canonical
-example: its residual-push implementation has degree-weighted work
-\(\bigO(1/(\alpha\epsappr))\), independent of the total graph size
-\citep{andersen2007using}. This guarantee is also the natural baseline for
-local optimization methods that seek a better dependence on the PageRank
-parameter \(\alpha\).
+Personalized PageRank (PPR) is both a graph diffusion and a local linear
+system.  Its classical push algorithm can return a useful sparse
+approximation without reading the whole graph, but its worst-case
+degree-weighted work is $\Theta(1/(\alpha\epsappr))$
+\citep{andersen2007using}.  Global conjugate-gradient and Chebyshev methods
+replace the $1/\alpha$ dependence by $1/\sqrt\alpha$, but one iteration may
+scan the entire graph.  The central question is whether the spectral
+square-root improvement can coexist with output-sensitive locality.
 
-We first make that baseline precise. In
-\cref{thm:appr-star-lower-bound}, we give a center-seeded star on which every
-legal ordering of APPR pushes incurs
-\(\Omega(1/(\alpha\epsappr))\) adjacency-list work. Together with the classical
-upper bound, this proves a tight worst-case complexity of
-\(\Theta(1/(\alpha\epsappr))\). The proof separates the obstruction into two
-parts: APPR must process \(\Omega(1/\alpha)\) cumulative residual mass, and the
-star forces a constant fraction of that mass through a vertex of degree
-\(\Theta(1/\epsappr)\). These mechanisms clarify what an accelerated or hybrid
-local solver must change to improve the worst-case bound.
+The variational formulation of PPR suggests a route.  Adding the weighted
+$\ell_1$ penalty $\alpha\rho\|\mD^{1/2}\vx\|_1$ produces a regularized PPR
+(RPPR) solution whose support has volume at most $1/\rho$
+\citep{fountoulakis2019variational}.  If that support, or even a sufficiently
+accurate local envelope, were supplied, one principal PageRank system would
+be small.  The difficulty is finding the set without repeatedly paying for
+every growing prefix.
 
-We next turn to the variational, \(\ell_1\)-regularized PageRank problem.  For
-the original full-batch ISTA, we remove an unnecessary
-\(\log(1/\alpha)\) from the published upper analysis and prove matching
-lower bounds.  With general teleportation distributions, its exact worst-case
-order is
+That distinction is easy to miss.  The 2023 accelerated sparse active-set
+method repeatedly solves a restricted problem and may expose one new
+coordinate at a time \citep{martinezrubio2023accelerated}.  A recent
+active-set method of \citet{wei2026simple} replaces the accelerated inner
+iteration by a nearly-linear SDD solve, improving the cost of each supplied
+face but retaining a factor proportional to the number of support
+discoveries.  On an endpoint-seeded path, literal one-pivot-per-face
+implementations really do accumulate quadratic prefix volume.  This is an
+algorithmic obstruction, not a lower bound for every local method: what is
+missing is a theorem that limits the number of \emph{complete} faces that
+must be processed.
+
+This paper supplies that theorem for the canonical point source
+$\vs=\eunit{v}$.  We write RPPR as a nonnegative quadratic obstacle problem.
+The same quadratic is the potential energy of a graph augmented by one ground
+vertex; its Fenchel dual is a minimum-energy flow with one inequality per
+original vertex.  The obstacle slack is exactly the dual vertex-constraint
+slack, so an outside residual violation is a failed dual constraint.  Because
+the Hessian is Stieltjes, an exact face solution is coordinatewise below the
+global optimum, and every such violation is a safe support admission.  We
+then admit all residuals above a common threshold.
+The core analysis orders the unknown optimal support by these batches.  A
+block $LDL^\trans$ elimination turns the remaining objective gap into the
+squared tail of an elimination vector.  Keeping only the diagonal and first
+block subdiagonal of the scalar Cholesky factor produces a well-conditioned
+block chain.  Chebyshev inverse decay on that chain yields
 \[
-    \Theta\!\left(
-      \frac{1}{\alpha\rho}
-      \left[1+\log\frac{1}{\delta\rho}\right]
-    \right),
+ F_\rho(\vx^{U_J})-F_\rho(\vx_\rho^*)
+ \leq
+ 8\left(
+   \frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}
+  \right)^{2J}
+ +\frac{\vartheta^2}{\alpha\rho}.
 \]
-where \(\delta\) is the relative KKT accuracy.  The extra
-\(\log(1/\rho)\) is a stale full-batch scanning cost, not an intrinsic
-problem barrier.  A residual-thresholded coordinate implementation removes
-it: for every fixed \(\delta\), both that method and a coordinate-to-batch
-coarse-to-fine hybrid have exact worst-case work
-\(\Theta(1/(\alpha\rho))\).  Their matching lower bound is again a
-center-seeded star and holds for every violating-coordinate ordering.
+Thus $\widetilde O(1/\sqrt\alpha)$ threshold batches suffice, independent of
+$|\mathcal S_\rho^*|$, graph diameter, and any unknown complementarity
+margin.
 
-Our unregularized two-stage experiment combines coarse forward push with a
-signed, optimally relaxed SOR tail.  The coarse phase has exact order
-\(\Theta(1/(\alpha\tau))\) at tolerance \(\tau\), independently of the
-active ordering.  This justifies the balancing scale
-\(\tau=\Theta(\epsppr/\sqrt\alpha)\), but it does not make the complete
-method uniformly accelerated.  A long spider forces
-\(\Omega(1/(\alpha\epsppr))\) work for the fixed-relaxation FIFO tail.
-Thus an effective hybrid must change the propagation mechanism, not only its
-handoff tolerance.
+Each exposed face is degree-scaled to an SDD system with
+$O(\vol(U))$ nonzeros.  A standard randomized nearly-linear SDD routine is
+wrapped by an exact local residual test: randomness may cause an explicit
+failure flag, but it cannot cause an unsafe admission or an uncertified
+answer.  Combining the $1/\rho$ support-volume bound with the square-root
+batch depth gives the first main result,
+\[
+ \softO\!\left(
+   \frac{1}{\rho\sqrt\alpha}
+   \log\frac1{\epsobj}\log\frac2\zeta
+ \right)
+\]
+expected fully charged work for RPPR objective error $\epsobj$.
 
-\Cref{tab:lower-bound-ledger} summarizes the proved statements in the active
-manuscript.  The accuracy symbols in different rows are deliberately not
-identified.
+The second result is a strict two-stage solver.  Stage~I runs the obstacle
+method only long enough to return a low-energy inner face $U$; it need not
+identify the exact RPPR support.  All numerical and changing-face state is
+then discarded.  Stage~II solves the ordinary principal PPR system on $U$.
+Strong convexity controls the omitted RPPR amplitude, while an M-matrix
+maximum principle converts it into the semantic PPR guarantee
+\[
+ \norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
+ \leq \rho+\eta+\tau.
+\]
+With equal error budgets this gives
+$\softO(1/(\epsppr\sqrt\alpha))$ expected work.  The shortest execution can
+return the Stage~I numerical point directly; the literal second stage is
+valuable because it cleanly separates support discovery from final linear
+accuracy and permits other local tails such as SOR or APPR to be used as
+practical fallbacks.
 
-\begin{table}[t]
-\centering
-\caption{Active-manuscript lower-bound ledger.  ``Tight'' always refers to
-the stated algorithm and work model, not to every local graph oracle.}
-\label{tab:lower-bound-ledger}
-\begin{tabularx}{\textwidth}{@{}
-    >{\raggedright\arraybackslash}p{0.25\textwidth}
-    >{\raggedright\arraybackslash}X
-    >{\raggedright\arraybackslash}p{0.21\textwidth}@{}}
-\toprule
-Method & Accuracy and worst-case work & Status \\
-\midrule
-APPR & \(\epsappr\)-threshold; \(\Theta(1/(\alpha\epsappr))\)
-& Tight \\
-Full-batch RPPR ISTA
-& relative \(\delta\); \(\Theta((1+\log(1/(\delta\rho)))/(\alpha\rho))\)
-& Tight in the general seed model \\
-Coordinate RPPR ISTA
-& fixed relative \(\delta\); \(\Theta(1/(\alpha\rho))\)
-& Tight \\
-Coordinate--batch hybrid
-& fixed final \(\delta\); \(\Theta(1/(\alpha\rho))\)
-& Tight \\
-CF-Push Phase I
-& coarse \(\tau\); \(\Theta(1/(\alpha\tau))\)
-& Tight as \(\alpha\downarrow0\) \\
-CF-Push/FIFO-SOR hybrid
-& final \(\epsppr\); \(\Omega(1/(\alpha\epsppr))\)
-& Upper/lower gap remains \\
-\bottomrule
-\end{tabularx}
-\end{table}
+Our contributions are therefore:
+
+\begin{enumerate}[label=(\roman*)]
+\item an exact Stieltjes-obstacle formulation and grounded electrical-flow
+  dual, identifying support-safe batched admission with local separation of
+  violated dual vertex constraints;
+\item a threshold-batch Cholesky-decay theorem that replaces a possible
+  $|\mathcal S_\rho^*|$ sequence of full face solves by
+  $\widetilde O(1/\sqrt\alpha)$ certified faces;
+\item a fully charged exact-real randomized RPPR algorithm with local
+  $\softO(1/(\rho\sqrt\alpha))$ work and a Las Vegas restart wrapper; and
+\item an exact inner-face-to-PPR transfer proving the desired
+  point-source $\softO(1/(\epsppr\sqrt\alpha))$ two-stage bound.
+\end{enumerate}
+
+The first item is a structural interface, not a claim that Fenchel duality or
+primal--dual obstacle methods are new.  The complexity contribution is that
+this local separation process can be batched and its number of complete face
+solves bounded independently of $|\mathcal S_\rho^*|$.
+
+The source restriction is substantive.  PPR is linear in a general seed
+distribution, but independently composing point-source approximations can
+cost a factor as large as its support size.  RPPR and its active support are
+nonlinear in the seed.  We therefore make the single-source theorem the main
+contract and record the precise general-seed implication separately in
+\cref{app:seed-scope}.

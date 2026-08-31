@@ -717,6 +717,151 @@ def exact_boundary_source_checks() -> None:
     )
 
 
+def position_profile_asymptotic_checks() -> None:
+    """Audit exact constants and the finite constant-U Chebyshev formula."""
+    t_lower = Fraction(2711, 3072)
+    p_lower = 2 * (2 * t_lower + t_lower * t_lower / 5 - Fraction(1, 5)) / (1 + t_lower * t_lower)
+    variation_numerator = 2 - p_lower
+    assert variation_numerator == Fraction(5478536, 83933525)
+    assert variation_numerator < Fraction(1, 15)
+
+    rational_ledger = Fraction(1, 2160) + Fraction(1, 1080) + Fraction(43, 30720)
+    assert rational_ledger == Fraction(257, 92160)
+    assert Fraction(1, 256) - rational_ledger == Fraction(103, 92160)
+
+    for edge_count in (64, 128, 256):
+        q = 1.0 / (16.0 * edge_count)
+        constant_u = 3.0 * q**3 / 40.0
+        for mode_index in (1, 2, 3):
+            phi = mode_index * math.pi / edge_count
+            z = complex(math.cos(2.0 * phi), math.sin(2.0 * phi))
+            cosine = math.cos(phi)
+            radius = (1.0 - q) * cosine
+            first = 2.0 * radius * cosine
+            second = radius * radius
+
+            values = [0.0] * (edge_count + 2)
+            for prefix in range(2, edge_count + 1):
+                source = 0.0
+                if 4 <= prefix < edge_count:
+                    source = (
+                        2.0
+                        * constant_u
+                        * (
+                            math.cos((prefix - 2) * 2.0 * phi)
+                            + 2.0 * math.cos((prefix - 1) * 2.0 * phi)
+                            - 3.0 * math.cos(prefix * 2.0 * phi)
+                        )
+                    )
+                values[prefix + 1] = first * values[prefix] - second * values[prefix - 1] + source
+
+            cutoff = edge_count - 4
+            chebyshev_previous = 1.0
+            chebyshev_current = 2.0 * cosine
+            direct_sum = chebyshev_current * (radius / z)
+            for index in range(2, cutoff + 1):
+                chebyshev_next = 2.0 * cosine * chebyshev_current - chebyshev_previous
+                direct_sum += chebyshev_next * (radius / z) ** index
+                chebyshev_previous = chebyshev_current
+                chebyshev_current = chebyshev_next
+            closed_response = (
+                2.0 * constant_u * (z**-2 * (1.0 - z) * (1.0 + 3.0 * z) * direct_sum).real
+            )
+            assert math.isclose(
+                values[edge_count + 1],
+                closed_response,
+                rel_tol=2.0e-10,
+                abs_tol=2.0e-18,
+            )
+
+    print("position_profile_asymptotic_checks=rational_constants=pass constant_U_Chebyshev=pass")
+
+
+def velocity_profile_asymptotic_checks() -> None:
+    """Audit the rational velocity ledger and its continuum normalization."""
+    t_edge = Fraction(7, 8)
+    a_value = t_edge**4 - 30 * t_edge**3 + 12 * t_edge**2 + 10 * t_edge + 3
+    a_derivative = 4 * t_edge**3 - 90 * t_edge**2 + 24 * t_edge + 10
+    assert 0 < a_value == Fraction(5841, 4096) < Fraction(3, 2)
+    assert a_derivative < 0
+
+    h_variation_bound = Fraction(1, 8) * 4 / (80 * Fraction(49, 60) * Fraction(113, 64) ** 2)
+    assert h_variation_bound == Fraction(1536, 625681)
+    assert h_variation_bound < Fraction(1, 400)
+
+    g_bernstein = (
+        Fraction(16854209, 262144),
+        Fraction(565377, 8192),
+        Fraction(94677, 1280),
+        Fraction(202609, 2560),
+        Fraction(20291, 240),
+        Fraction(541, 6),
+        Fraction(96),
+    )
+    assert min(g_bernstein) > 0
+
+    velocity_ledger = Fraction(1, 5) + Fraction(2, 75) + Fraction(43, 2880)
+    assert velocity_ledger == Fraction(3479, 14400)
+    assert Fraction(1, 4) - velocity_ledger == Fraction(121, 14400)
+
+    sample_count = 20000
+    step = 1.0 / sample_count
+    mode_index = 1
+
+    def p_limit(position: float) -> float:
+        t_value = math.exp(-position / 8.0)
+        return (
+            2.0 * (2.0 * t_value + t_value * t_value / 5.0 - 1.0 / 5.0) / (1.0 + t_value * t_value)
+        )
+
+    def u_limit(position: float) -> float:
+        return (p_limit(position) - 4.0 / 5.0) / 16.0
+
+    def mass_limit(position: float) -> float:
+        t_value = math.exp(-position / 8.0)
+        return (
+            p_limit(position) * (1.0 - t_value * t_value) / (2.0 * (1.0 + t_value * t_value))
+            + 2.0 / 5.0
+        )
+
+    derivative_integral = 0.0
+    mass_integral = 0.0
+    for index in range(sample_count + 1):
+        position = index * step
+        weight = 0.5 if index in (0, sample_count) else 1.0
+        damping = math.exp(-(1.0 - position) / 16.0)
+        derivative_integral += (
+            weight
+            * damping
+            * u_limit(position)
+            * math.sin(2.0 * math.pi * mode_index * position)
+            * math.cos(math.pi * mode_index * position)
+        )
+        mass_integral += (
+            weight
+            * damping
+            * mass_limit(position)
+            * math.cos(2.0 * math.pi * mode_index * position)
+            * math.cos(math.pi * mode_index * position)
+        )
+    derivative_integral *= step
+    mass_integral *= step
+    p_star = p_limit(1.0)
+    assert 0.0 < p_star < 2.0
+    continuum_value = (
+        4.0 * math.exp(-1.0 / 16.0) / 5.0
+        + p_star / 2.0
+        - 2.0 / 5.0
+        - 16.0 * math.pi * derivative_integral
+        - mass_integral / 8.0
+    )
+    assert math.isclose(continuum_value, -0.190520165, abs_tol=2.0e-8)
+
+    print(
+        "velocity_profile_asymptotic_checks=rational_TV=pass ledger=3479/14400 float_limit_s1=pass"
+    )
+
+
 def exact_directional_packet_checks() -> None:
     """Audit the directed packet, entry sign, and folded J-kernel bound."""
 
@@ -954,151 +1099,6 @@ def exact_directional_packet_checks() -> None:
         "exact_directional_packet_checks=cycle_split:pass directed_sign:pass "
         "J_alias:pass JL_kernel:pass exact_entry_c_sign=m=8,12 "
         "static_u=Ld:pass"
-    )
-
-
-def position_profile_asymptotic_checks() -> None:
-    """Audit exact constants and the finite constant-U Chebyshev formula."""
-    t_lower = Fraction(2711, 3072)
-    p_lower = 2 * (2 * t_lower + t_lower * t_lower / 5 - Fraction(1, 5)) / (1 + t_lower * t_lower)
-    variation_numerator = 2 - p_lower
-    assert variation_numerator == Fraction(5478536, 83933525)
-    assert variation_numerator < Fraction(1, 15)
-
-    rational_ledger = Fraction(1, 2160) + Fraction(1, 1080) + Fraction(43, 30720)
-    assert rational_ledger == Fraction(257, 92160)
-    assert Fraction(1, 256) - rational_ledger == Fraction(103, 92160)
-
-    for edge_count in (64, 128, 256):
-        q = 1.0 / (16.0 * edge_count)
-        constant_u = 3.0 * q**3 / 40.0
-        for mode_index in (1, 2, 3):
-            phi = mode_index * math.pi / edge_count
-            z = complex(math.cos(2.0 * phi), math.sin(2.0 * phi))
-            cosine = math.cos(phi)
-            radius = (1.0 - q) * cosine
-            first = 2.0 * radius * cosine
-            second = radius * radius
-
-            values = [0.0] * (edge_count + 2)
-            for prefix in range(2, edge_count + 1):
-                source = 0.0
-                if 4 <= prefix < edge_count:
-                    source = (
-                        2.0
-                        * constant_u
-                        * (
-                            math.cos((prefix - 2) * 2.0 * phi)
-                            + 2.0 * math.cos((prefix - 1) * 2.0 * phi)
-                            - 3.0 * math.cos(prefix * 2.0 * phi)
-                        )
-                    )
-                values[prefix + 1] = first * values[prefix] - second * values[prefix - 1] + source
-
-            cutoff = edge_count - 4
-            chebyshev_previous = 1.0
-            chebyshev_current = 2.0 * cosine
-            direct_sum = chebyshev_current * (radius / z)
-            for index in range(2, cutoff + 1):
-                chebyshev_next = 2.0 * cosine * chebyshev_current - chebyshev_previous
-                direct_sum += chebyshev_next * (radius / z) ** index
-                chebyshev_previous = chebyshev_current
-                chebyshev_current = chebyshev_next
-            closed_response = (
-                2.0 * constant_u * (z**-2 * (1.0 - z) * (1.0 + 3.0 * z) * direct_sum).real
-            )
-            assert math.isclose(
-                values[edge_count + 1],
-                closed_response,
-                rel_tol=2.0e-10,
-                abs_tol=2.0e-18,
-            )
-
-    print("position_profile_asymptotic_checks=rational_constants=pass constant_U_Chebyshev=pass")
-
-
-def velocity_profile_asymptotic_checks() -> None:
-    """Audit the rational velocity ledger and its continuum normalization."""
-    t_edge = Fraction(7, 8)
-    a_value = t_edge**4 - 30 * t_edge**3 + 12 * t_edge**2 + 10 * t_edge + 3
-    a_derivative = 4 * t_edge**3 - 90 * t_edge**2 + 24 * t_edge + 10
-    assert 0 < a_value == Fraction(5841, 4096) < Fraction(3, 2)
-    assert a_derivative < 0
-
-    h_variation_bound = Fraction(1, 8) * 4 / (80 * Fraction(49, 60) * Fraction(113, 64) ** 2)
-    assert h_variation_bound == Fraction(1536, 625681)
-    assert h_variation_bound < Fraction(1, 400)
-
-    g_bernstein = (
-        Fraction(16854209, 262144),
-        Fraction(565377, 8192),
-        Fraction(94677, 1280),
-        Fraction(202609, 2560),
-        Fraction(20291, 240),
-        Fraction(541, 6),
-        Fraction(96),
-    )
-    assert min(g_bernstein) > 0
-
-    velocity_ledger = Fraction(1, 5) + Fraction(2, 75) + Fraction(43, 2880)
-    assert velocity_ledger == Fraction(3479, 14400)
-    assert Fraction(1, 4) - velocity_ledger == Fraction(121, 14400)
-
-    sample_count = 20000
-    step = 1.0 / sample_count
-    mode_index = 1
-
-    def p_limit(position: float) -> float:
-        t_value = math.exp(-position / 8.0)
-        return (
-            2.0 * (2.0 * t_value + t_value * t_value / 5.0 - 1.0 / 5.0) / (1.0 + t_value * t_value)
-        )
-
-    def u_limit(position: float) -> float:
-        return (p_limit(position) - 4.0 / 5.0) / 16.0
-
-    def mass_limit(position: float) -> float:
-        t_value = math.exp(-position / 8.0)
-        return (
-            p_limit(position) * (1.0 - t_value * t_value) / (2.0 * (1.0 + t_value * t_value))
-            + 2.0 / 5.0
-        )
-
-    derivative_integral = 0.0
-    mass_integral = 0.0
-    for index in range(sample_count + 1):
-        position = index * step
-        weight = 0.5 if index in (0, sample_count) else 1.0
-        damping = math.exp(-(1.0 - position) / 16.0)
-        derivative_integral += (
-            weight
-            * damping
-            * u_limit(position)
-            * math.sin(2.0 * math.pi * mode_index * position)
-            * math.cos(math.pi * mode_index * position)
-        )
-        mass_integral += (
-            weight
-            * damping
-            * mass_limit(position)
-            * math.cos(2.0 * math.pi * mode_index * position)
-            * math.cos(math.pi * mode_index * position)
-        )
-    derivative_integral *= step
-    mass_integral *= step
-    p_star = p_limit(1.0)
-    assert 0.0 < p_star < 2.0
-    continuum_value = (
-        4.0 * math.exp(-1.0 / 16.0) / 5.0
-        + p_star / 2.0
-        - 2.0 / 5.0
-        - 16.0 * math.pi * derivative_integral
-        - mass_integral / 8.0
-    )
-    assert math.isclose(continuum_value, -0.190520165, abs_tol=2.0e-8)
-
-    print(
-        "velocity_profile_asymptotic_checks=rational_TV=pass ledger=3479/14400 float_limit_s1=pass"
     )
 
 
@@ -2380,6 +2380,129 @@ def five_piece_decomposition(
     return position, velocity
 
 
+def check_signed_green_formula() -> None:
+    """Check the closed constant-U Green sums and their fixed-mode limits."""
+
+    for edge_count in (5, 8, 17, 32, 65, 257):
+        q = 1.0 / (16.0 * edge_count)
+        eta = (1.0 - q**2) / 2.0
+        chi = (1.0 - q) / (1.0 + q)
+        constant_u = 3.0 * q**3 / 40.0
+        u_values = []
+        for prefix in range(4, edge_count):
+            t_value = chi ** (prefix - 1)
+            previous_frontier = (
+                q**2
+                * 2.0
+                / (1.0 + q)
+                * (t_value * (1.0 + t_value / 5.0) / chi + t_value - 1.0 / 5.0)
+                / (1.0 + t_value**2)
+            )
+            u_values.append(
+                q * eta**2 / (4.0 * (1.0 + q)) * (previous_frontier - 2.0 * q**2 / (5.0 * eta))
+            )
+        assert all(left >= right for left, right in zip(u_values, u_values[1:]))
+        assert max(constant_u - value for value in u_values) <= q**3 / 150.0
+        total_variation = sum(abs(right - left) for left, right in zip(u_values, u_values[1:]))
+        assert total_variation <= q**3 / 150.0
+
+    def finite_sums(edge_count: int, mode_index: int) -> tuple[float, float, float, float]:
+        q = 1.0 / (16.0 * edge_count)
+        gamma = 1.0 - q
+        theta = 2.0 * math.pi * mode_index / edge_count
+        phi = theta / 2.0
+        z_value = complex(math.cos(theta), math.sin(theta))
+        root = gamma * (1.0 + z_value) / 2.0
+        constant_u = 3.0 * q**3 / 40.0
+
+        def sigma_sum(value: complex, length: int) -> complex:
+            return value * (1.0 - value**length) / (1.0 - value)
+
+        def gamma_sum(value: complex, length: int) -> complex:
+            return (1.0 - value ** (length + 1)) / (1.0 - value)
+
+        closed_position = (
+            2.0
+            * constant_u
+            * (
+                (1.0 + 3.0 * z_value)
+                * (
+                    z_value**-2 * sigma_sum(root * z_value**-2, edge_count - 4)
+                    - z_value**-1 * sigma_sum(root * z_value**-1, edge_count - 4)
+                )
+            ).real
+        )
+        closed_previous = (
+            2.0
+            * constant_u
+            * (
+                (1.0 + 3.0 * z_value)
+                * (
+                    z_value**-3 * gamma_sum(root * z_value**-2, edge_count - 5)
+                    - z_value**-2 * gamma_sum(root * z_value**-1, edge_count - 5)
+                )
+            ).real
+        )
+
+        radius = gamma * math.cos(phi)
+        direct_position = 0.0
+        direct_previous = 0.0
+        for prefix in range(4, edge_count):
+            source = (
+                2.0
+                * constant_u
+                * (z_value ** (prefix - 2) * (1.0 - z_value) * (1.0 + 3.0 * z_value)).real
+            )
+            lag = edge_count - prefix
+            direct_position += source * radius**lag * math.sin((lag + 1) * phi) / math.sin(phi)
+            direct_previous += source * radius ** (lag - 1) * math.sin(lag * phi) / math.sin(phi)
+        return closed_position, closed_previous, direct_position, direct_previous
+
+    cells = 0
+    for edge_count in (8, 17, 32, 65):
+        for mode_index in range(1, min(4, (edge_count - 1) // 2) + 1):
+            closed_position, closed_previous, direct_position, direct_previous = finite_sums(
+                edge_count, mode_index
+            )
+            scale = (1.0 / (16.0 * edge_count)) ** 3
+            assert abs(closed_position - direct_position) <= 2.0e-11 * scale
+            assert abs(closed_previous - direct_previous) <= 2.0e-11 * scale
+            cells += 1
+
+    edge_count = 262_144
+    a_value = 1.0 / 16.0
+    exponential = math.exp(-a_value)
+    for mode_index in (1, 2, 3):
+        closed_position, closed_previous, _, _ = finite_sums(edge_count, mode_index)
+        q = 1.0 / (16.0 * edge_count)
+        sigma = (-1.0) ** mode_index
+        b_value = math.pi * mode_index
+        position_limit = (
+            3.0
+            * a_value
+            * (sigma * exponential - 1.0)
+            / 80.0
+            * (1.0 / (a_value**2 + b_value**2) - 1.0 / (a_value**2 + 9.0 * b_value**2))
+        )
+        velocity_limit = (
+            3.0
+            * sigma
+            * b_value**2
+            * (exponential - sigma)
+            / 5.0
+            * (1.0 / (a_value**2 + b_value**2) + 3.0 / (a_value**2 + 9.0 * b_value**2))
+        )
+        observed_position = closed_position / q**2
+        observed_velocity = (closed_position - (1.0 - q) * closed_previous) / q**3
+        assert abs(observed_position - position_limit) <= 3.0e-7
+        assert abs(observed_velocity - velocity_limit) <= 2.0e-4
+
+    print(
+        f"signed_green_formula_checks=6 variation cells + {cells} finite cells "
+        "+ 3 fixed-mode limits"
+    )
+
+
 def screen(edge_count: int, max_qk: float) -> None:
     (
         q,
@@ -2635,10 +2758,11 @@ def main() -> None:
     exact_chronology_correction_checks()
     exact_finite_q_correction_checks()
     exact_boundary_source_checks()
-    exact_directional_packet_checks()
     position_profile_asymptotic_checks()
     velocity_profile_asymptotic_checks()
+    exact_directional_packet_checks()
     exact_static_tail_reduction_checks()
+    check_signed_green_formula()
     for edge_count in arguments.m:
         if edge_count < 3:
             raise ValueError("every screened path needs at least three edges")

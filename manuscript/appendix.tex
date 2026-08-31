@@ -1,3 +1,49 @@
-\section{Additional Proofs}
+\section{Point Sources, Sparse Sources, and Nonlinearity}
+\label{app:seed-scope}
 
-Additional technical lemmas and proofs will be included here.
+The main theorem assumes $\vs=\eunit{v}$.  This appendix records exactly what
+that restriction does and does not imply.
+
+\begin{proposition}[Linear superposition with a mixture factor]
+\label{prop:sparse-source-superposition}
+Let $\vs$ be a nonnegative unit-mass distribution with support $K$.  Suppose a
+point-source algorithm at vertex $v$ returns $\widehat\vpi^{(v)}$ with
+degree-normalized error at most $\varepsilon_v$ and work
+$\softO(1/(\sqrt\alpha\varepsilon_v))$.  Then
+\begin{equation}
+ \widehat\vpi:=\sum_{v\in K}s_v\widehat\vpi^{(v)}
+ \label{eq:sparse-source-composition}
+\end{equation}
+has error at most $\sum_{v\in K}s_v\varepsilon_v$.  Choosing the individual
+tolerances optimally gives total work
+\begin{equation}
+ |K|+\softO\!\left(
+   \frac{(\sum_{v\in K}\sqrt{s_v})^2}
+        {\sqrt\alpha\epsppr}
+ \right).
+ \label{eq:sparse-source-mixture-work}
+\end{equation}
+The mixture factor lies in $[1,|K|]$ and equals $|K|$ for the uniform
+distribution on $K$.
+\end{proposition}
+
+\begin{proof}
+The PPR solution is linear in the load:
+$\vpi(\vs)=\sum_{v\in K}s_v\vpi(\eunit{v})$.  The triangle inequality proves
+the error statement.  Minimizing $\sum_v1/\varepsilon_v$ subject to
+$\sum_vs_v\varepsilon_v\leq\epsppr$ gives
+$\varepsilon_v=\epsppr/(\sqrt{s_v}\sum_u\sqrt{s_u})$ and
+\cref{eq:sparse-source-mixture-work}.  Cauchy--Schwarz gives the stated range.
+\end{proof}
+
+RPPR does not admit the same composition.  Already at $\alpha=1$,
+$\mQ=\mI$ and
+\[
+ (\vx_\rho^*(\vs))_i
+ =\max\!\left\{\frac{s_i}{\sqrt{d_i}}-\rho\sqrt{d_i},0\right\},
+\]
+which is nonlinear in $\vs$.  Consequently independently discovered
+point-source RPPR supports cannot simply be superposed to obtain the support
+for a multi-source instance.  The rooted active-set geometry and the
+point-source end-to-end bound in this paper should therefore not be read as a
+free reduction of the stronger general-seed problem.

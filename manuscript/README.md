@@ -20,6 +20,7 @@ manuscript/
 │       ├── research_commands.tex
 │       ├── research_note_preamble.tex
 │       ├── source_aligned_problem.tex
+│       ├── notation.tex
 │       ├── NOTATION.md
 │       └── writing_commands.tex
 └── jmlr2e.sty
@@ -40,11 +41,21 @@ those older command files:
   notes;
 - `research_commands.tex` owns algorithm names and claim-status labels, while
   `research_note_preamble.tex` gives every standalone note the same shell;
-- `NOTATION.md` is the human-readable registry of reserved and proof-scoped
-  scientific symbols;
+- `notation.tex` is the registry of reserved and proof-scoped scientific
+  symbols, written as includable LaTeX (`\input{tex/shared/notation}`);
+  `NOTATION.md` records the layering and maintenance rules and points to it;
 - `writing_commands.tex` contains figure-panel labels, reference wrappers,
   drafting colors, checkmarks, and pseudocode assignment symbols;
 - `preamble.tex` owns package loading and theorem-environment setup.
+
+The active 20-page draft is now organized around one positive theorem spine:
+point-source problem and semantic accuracy, Stieltjes obstacle geometry,
+support-safe threshold batches, the block-Cholesky/Chebyshev depth theorem, a
+fully charged randomized local RPPR solver, and the strict two-stage PPR
+composition.  It also contains an explicit related-work lineage and a
+human/AI research-process disclosure.  The earlier APPR, ISTA, and CF-Push
+section files remain in the repository as proved supporting material but are
+not input by the focused active draft.
 
 Add reusable notation to these shared files rather than defining commands
 inside individual sections. Structural tests enforce that boundary and prevent

@@ -1,0 +1,127 @@
+\section{Scope, conclusion, and claim status}
+\label{sec:two-stage-scope}
+
+This note studies the canonical point source $s=e_v$.  The restriction is
+substantive: the shifted RPPR load has one positive coordinate, the exact
+support is connected to $v$, and the known support-radius theorem is rooted at
+one vertex.  General sparse sources remain algebraically meaningful, but the
+single-root discovery theorems below do not silently extend to them.
+
+\begin{proposition}[What point-source superposition does and does not give]
+\label{prop:two-stage-sparse-source-superposition}
+For ordinary linear PPR and a probability source
+$s=\sum_{v\in\supp(s)}s_ve_v$,
+\begin{equation*}
+ x^0(s)=\sum_v s_vx^0(e_v).
+\end{equation*}
+If a point-source solver costs
+$\widetilde O(1/(\sqrt\alpha\,\varepsilon_v))$ and each output has normalized
+$\ell_\infty$ error at most $\varepsilon_v$, weighted summation gives error
+at most $\sum_vs_v\varepsilon_v$.  The optimal independent allocation yields
+\begin{equation}
+ \widetilde O\!\left(
+  \frac{(\sum_v\sqrt{s_v})^2}
+       {\sqrt\alpha\,\epsppr}
+ \right)
+ \label{eq:two-stage-sparse-source-superposition}
+\end{equation}
+work, in addition to reading the source.  This factor lies between one and
+$\nnz(s)$ and equals $\nnz(s)$ for a uniform sparse source.  It therefore
+does not prove the desired additive-$\nnz(s)$ general-source bound.
+RPPR itself is nonlinear in $s$, so its supports and discovery traces cannot
+be superposed at all.
+\end{proposition}
+
+\begin{proof}
+Linearity follows from $x^0(s)=Q^{-1}b(s)$.  The triangle inequality gives
+the declared combined error.  Minimizing
+$\sum_v1/\varepsilon_v$ subject to
+$\sum_vs_v\varepsilon_v\leq\epsppr$ gives
+$\varepsilon_v\propto1/\sqrt{s_v}$ and
+\cref{eq:two-stage-sparse-source-superposition}.  The endpoint bounds follow
+from $\sum_vs_v=1$ and Cauchy--Schwarz.  The RPPR obstacle contains the
+source-dependent $\ell_1$ active set, which destroys linearity.
+\end{proof}
+
+\begin{remark}[A three-vertex exact RPPR obstruction]
+On the path $0$--$1$--$2$, take endpoint source weights $1/2$, $\alpha=1/3$,
+and $\rho=1/8$.  In degree-unscaled coordinates,
+\begin{equation*}
+ \widehat H=\frac23D-\frac13A,\qquad
+ \widehat\ell=(1/8,-1/12,1/8).
+\end{equation*}
+Each endpoint component alone has value $3/16$ and contributes only $1/16$
+to the middle key, so an independent single-source reporter sees
+$1/16-1/12<0$ and stops.  Together the middle key is
+$2/16-1/12=1/24>0$ and the middle coordinate must activate.  Thus even the
+support-discovery decisions do not compose source by source.
+\end{remark}
+
+The main design choice is
+\begin{center}
+\fbox{screen or solve; discard history; restart on a fixed envelope at most
+once.}
+\end{center}
+This is the reverse of the more delicate accelerated-burn-in narrative.
+Acceleration is used only after graph exposure has stopped changing the
+operator.  Consequently the main theorem needs no momentum transfer across an
+admission, no face-shock convolution, no Perron alignment gate, and no bound
+on the number of rejected accelerated windows.
+
+\paragraph{What is proved here.}
+\begin{enumerate}[leftmargin=2.2em]
+\item A complete point-source set-only lane: one certified Green ball, one
+  fixed principal CG solve, and a fair race with APPR.  It is unconditional,
+  has a product-scale success branch, and never loses more than a constant
+  factor to direct APPR when the cap fails.
+\item A certificate-level composition theorem: any Stage~I method returning
+  a containing envelope $E$ yields a semantic point-source PPR solver with
+  work
+  $W_{\rm disc}+\widetilde O(\vol(E)/\sqrt\alpha)$.
+\item Exact support is unnecessary.  More strongly, once a containing
+  envelope is known, Stage~II can solve the \emph{ordinary linear PPR system}
+  on that envelope.  It need not solve RPPR again, project at every step, or
+  classify the inactive coordinates inside the envelope.
+\item If Stage~I obtained its envelope from a certified numerical RPPR point,
+  thresholding that point is already a semantic PPR output.  The fixed linear
+  tail is therefore optional and is genuinely needed only by set-only
+  discovery engines or by a requested refinement.
+\item A fair, interruptible certificate race loses only a constant factor
+  relative to the fastest declared discovery engine, while an APPR lane
+  guarantees termination.
+\item Two AESP-first continuations fit the same portfolio: a signed
+  objective-gap handoff to SOR, and a lower-safe mass-completion handoff to
+  APPR/SOR.  A new mass-capturing-envelope theorem proves the latter without
+  identifying $S^\star$.
+\item The companion threshold-batch OP2 theorem, combined with a new
+  inner-face energy transfer, gives an arbitrary-graph
+  $\widetilde O(1/(\epsppr\sqrt\alpha))$ exact-real randomized algorithm.
+  A literal version discards all Stage-I numerical state and solves ordinary
+  PPR on the returned inner face; the fastest version returns the certified
+  RPPR point directly.
+\end{enumerate}
+
+\paragraph{What is imported.}
+The RPPR comparison and support-volume facts are source results
+\citep{fountoulakis2026complexity}.  The APPR support sandwich, fixed-face
+Chebyshev machinery, hard-capped dynamic obstacle protocol, and exact
+tree/unicyclic reporters are imported
+from the proof-audit provider note \path{aesp_cd_l1_rppr}; their provider
+labels are stated at every use.  The AESP-burn-in--SOR handoff is imported
+from \path{hybrid_aesp_locsor} and uses the source AESP and SOR frameworks
+\citep{huang2025accelerated,chen2023accelerating}.  This note proves the new
+modular composition and scheduling statements rather than duplicating those
+long proofs.  Section~\ref{sec:two-stage-randomized-op2} imports the
+threshold-batch depth and fully charged randomized OP2 theorem from
+\path{active_edge_lcp}, then proves the new low-energy-inner-face transfer
+needed for a literal ordinary-PPR Stage~II.
+
+\paragraph{What remains open.}
+The graph-uniform existence question is closed only in the exact-real
+randomized word model of the companion theorem.  Deterministic
+finite-precision and coefficient-bit bounds, a practical local randomized
+SDD realization, and a persistent face-response implementation remain open.
+The mass-envelope rule provides another hard-capped success branch, but the
+star barrier below proves that it cannot be uniformly output-volume for an
+$\ell_\infty$ target.  APPR remains the unconditional practical baseline and
+pays $\Theta(1/(\alpha\rho))$ in the worst case.

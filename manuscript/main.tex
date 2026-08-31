@@ -5,7 +5,7 @@
 \input{tex/shared/writing_commands}
 \input{tex/shared/research_commands}
 
-\title{Hybrid Accelerated Local Solvers for Large-Scale Graph Optimization}
+\title{Threshold-Batched Active Sets for Local Personalized PageRank}
 
 \author{Baojian Zhou}
 \editor{To be assigned}
@@ -15,47 +15,66 @@
 \maketitle
 
 \begin{abstract}
-We study hybrid accelerated algorithms for local graph optimization problems.
-We first prove that classical approximate personalized PageRank (APPR) has
-worst-case degree-weighted work \(\Theta(1/(\alpha\epsappr))\); a
-center-seeded star gives the matching lower bound for every legal active
-ordering.  For \(\ell_1\)-regularized PageRank, we sharpen the work analysis
-of full-batch ISTA and prove matching star and direct-sum lower bounds.  We
-then give a residual-thresholded coordinate method and a coordinate-to-batch
-hybrid whose worst-case work is exactly \(\Theta(1/(\alpha\rho))\) at fixed
-relative KKT accuracy.  Finally, we analyze a coarse-forward-push/SOR hybrid:
-its first phase is ordering-independently tight, while a long spider forces
-\(\Omega(1/(\alpha\epsppr))\) total work and rules out the desired uniform
-square-root improvement for the fixed-relaxation FIFO variant.  All results
-use explicit, noninterchangeable accuracy conventions.
+We study single-source personalized PageRank on an undirected graph in a
+fully charged adjacency-list model.  The main obstacle in using
+$\ell_1$-regularized PageRank as a local support screen is not solving one
+restricted system, but controlling how many growing restricted systems must
+be rebuilt.  We reduce the regularized problem to a Stieltjes obstacle
+problem and expose its exact grounded electrical-flow dual.  In this dual,
+the obstacle slack is a vertex-constraint slack, so active-set expansion is
+local dual constraint generation.  We prove that positive-residual batch
+admissions are support-safe and that a threshold-batched sequence has only
+$\widetilde O(1/\sqrt\alpha)$ relevant exposed faces.  The proof orders the
+unknown optimal support by admission time and applies Chebyshev inverse decay
+to a block-bidiagonal truncation of its Cholesky factor.
+
+Combining this depth theorem with residual-certified, nearly-linear SDD face
+solves yields an exact-real randomized algorithm with expected fully charged
+work
+\[
+  \widetilde O\!\left(
+    \frac{1}{\rho\sqrt\alpha}
+    \log\frac1{\epsobj}\log\frac2\zeta
+  \right)
+\]
+for an $\epsobj$-accurate regularized solution, with failure probability at
+most $\zeta$.  A strict two-stage variant keeps only the discovered face and
+then solves one ordinary principal PageRank system.  With
+$\rho=\Theta(\epsppr)$ it returns a degree-normalized
+$\epsppr$-accurate PPR vector in
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ expected work.  The outer support
+construction and every accepted admission are deterministically certified;
+randomness enters only through a standard supplied-face SDD solver.  We state
+the point-source scope and the remaining deterministic finite-precision
+question explicitly.
 \end{abstract}
 
-\section{Introduction}
-\label{sec:introduction}
+\section{Introduction}\label{sec:introduction}
 \input{sections/introduction}
 
-\section{Related Work}
-\label{sec:related-work}
+\section{Related Work}\label{sec:related-work}
 \input{sections/related_work}
 
-\section{Problem Formulation}
-\label{sec:problem-formulation}
+\section{Problem Formulation and Main Results}\label{sec:problem-formulation}
 \input{sections/problem_formulation}
 
-\section{A Tight Worst-Case Bound for Classical APPR}
-\label{sec:appr-lower-bound}
-\input{sections/appr_lower_bound}
+\section{Obstacle Geometry and Safe Active Sets}\label{sec:obstacle-active-sets}
+\input{sections/obstacle_active_sets}
 
-\input{sections/rppr_ista_tightness}
+\section{Threshold-Batch Depth}\label{sec:threshold-batch-depth}
+\input{sections/threshold_batch_depth}
 
-\input{sections/cf_push_two_stage_analysis}
+\section{A Fully Charged Local RPPR Algorithm}\label{sec:threshold-batch-algorithm}
+\input{sections/threshold_batch_algorithm}
 
-\section{Experiments}
-\label{sec:experiments}
-\input{sections/experiments}
+\section{The Two-Stage PPR Solver}\label{sec:two-stage-ppr}
+\input{sections/two_stage_ppr}
 
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Research Process, Contributions, and AI Assistance}
+\label{sec:ai-assistance}
+\input{sections/ai_assistance}
+
+\section{Conclusion}\label{sec:conclusion}
 \input{sections/conclusion}
 
 \bibliography{references}

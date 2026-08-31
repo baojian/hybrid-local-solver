@@ -1,402 +1,131 @@
-% Source-aligned reference formulation.
-% Primary source: Fountoulakis and Martínez-Rubio, arXiv:2602.21138v2.
-% Verified against the source PDF, especially pp. 3--5 and 24, and against
-% main.tex in the provenance-pinned local import.
-
-\subsection{Source-aligned notation}
-\label{subsec:source-aligned-notation}
-
-This section follows the notation of
-\citet{fountoulakis2026complexity}. In particular, vectors and matrices are
-written as plain italic symbols \(x,s,A,D,Q\), as in that paper, rather than
-using the boldface convention employed elsewhere in this manuscript. We record
-the source convention completely so that later algorithms can state any
-translation explicitly.
-
-The source uses one undifferentiated accuracy glyph in two contexts: as an objective-gap
-target in its theoretical bounds and as a proximal fixed-point residual
-tolerance in its experiments. We retain both definitions below, but do not
-identify them. The repository has not yet adopted either one as its canonical
-stopping rule.
+We use one reference PageRank normalization throughout.  The following shared
+block fixes the graph, the point-source specialization, the matrices
+$\mQ,\mD$, the objectives $f,F_\rho$, the optima
+$\vx_0^*,\vx_\rho^*$, the support $\mathcal S_\rho^*$, and the charged
+adjacency-list model.
 
 \input{tex/shared/source_aligned_problem}
 
-For the single-seed initialization \(s=e_v\) and \(x_0=0\), the source gives
-the sharper initial-gap bound
-\[
-    \Delta_0
-    :=
-    F_\rho(0)-F_\rho(x^\star)
-    \leq
-    \frac{\alpha}{2d_v}
-    \leq
-    \frac{\alpha}{2}.
-\]
-
-\subsection{Composite optimization and FISTA notation}
-\label{subsec:source-fista-notation}
-
-For a generic composite objective \(F=f+g\), \(L>0\) is the Euclidean
-smoothness constant of \(f\), and \(\mu>0\) is the Euclidean
-strong-convexity constant of \(F\). For RPPR,
-\[
-    L=1,
-    \qquad
-    \mu=\alpha,
-    \qquad
-    \eta:=\frac{1}{L}=1,
-    \qquad
-    \beta
-    :=
-    \frac{\sqrt{L/\mu}-1}{\sqrt{L/\mu}+1}
-    =
-    \frac{1-\sqrt{\alpha}}{1+\sqrt{\alpha}}.
-\]
-
-For any proper convex function \(g\), its scaled proximal operator is
-\[
-    \prox_{\eta g}(x)
-    :=
-    \argmin_{y\in\R^n}
-    \left\{
-        \eta g(y)+\frac{1}{2}\norm{y-x}_2^2
-    \right\}.
-\]
-Starting from \(x_{-1}=x_0=0\), the source writes strongly-convex FISTA as
+For the remainder of the paper we impose the canonical specialization
 \begin{equation}
-    y_k
-    =
-    x_k+\beta(x_k-x_{k-1}),
-    \qquad
-    x_{k+1}
-    =
-    \prox_{\eta g}\bigl(y_k-\eta\nabla f(y_k)\bigr),
-    \qquad
-    k\geq0.
-    \label{eq:source-fista}
+ \vs=\eunit{v},
+ \qquad v\in\gV.
+ \label{eq:point-source-contract}
 \end{equation}
-For \(g=g_\rho\), the coordinate update is the weighted
-soft-thresholding rule
+The general distribution in the shared block is used only in the algebraic
+scope discussion of \cref{app:seed-scope}.
+
+\subsection{Semantic PPR accuracy and the RPPR bridge}
+
+An output $\widehat\vx$ represents
+$\widehat\vpi=\mD^{1/2}\widehat\vx$.  Our end-to-end semantic target is
 \begin{equation}
-    x_{k+1,i}
-    =
-    \sign\bigl(y_{k,i}-\eta\nabla_i f(y_k)\bigr)
-    \max\left\{
-        \left|y_{k,i}-\eta\nabla_i f(y_k)\right|
-        -
-        \eta\alpha\rho\sqrt{d_i},
-        0
-    \right\}.
-    \label{eq:source-fista-coordinate}
+ \norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty
+ =\norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
+ \leq\epsppr.
+ \label{eq:semantic-ppr-target}
 \end{equation}
-ISTA is the specialization \(y_k=x_k\), equivalently \(\beta=0\).
+This is an output guarantee, not an activation threshold.  Objective error in
+the regularized problem is denoted by $\epsobj$ and is never silently
+identified with $\epsppr$.
 
-\subsection{Degree-weighted work and source stopping rule}
-\label{subsec:source-work-and-stopping}
-
-The source charges \(d_i\) work whenever the neighborhood of vertex \(i\) is
-scanned. For an iterate pair \((y_k,x_{k+1})\), its symmetric per-iteration
-work measure and cumulative work are
+The identities
 \begin{equation}
-    \operatorname{work}_k
-    :=
-    \vol(\supp(y_k))
-    +
-    \vol(\supp(x_{k+1})),
-    \qquad
-    \operatorname{Work}(N)
-    :=
-    \sum_{k=0}^{N-1}\operatorname{work}_k.
-    \label{eq:source-degree-work}
+ \mQ\mD^{1/2}\one=\alpha\mD^{1/2}\one,
+ \qquad \mQ^{-1}\geq\vzero
+ \label{eq:constant-vector-inverse-positive}
 \end{equation}
-This counts neighbor accesses with repetition and is distinct from iteration
-count.
+follow respectively from the degree definition and the fact that $\mQ$ is a
+nonsingular Stieltjes matrix.  They imply the standard RPPR--PPR bridge.
 
-The source experiments use the unit-step proximal-gradient map and its
-fixed-point residual
+\begin{proposition}[RPPR bias and objective conversion]
+\label{prop:rppr-ppr-bridge}
+For every $\rho>0$,
 \begin{equation}
-    T_{\alpha,\rho}(x)
-    :=
-    \prox_{g_\rho}\bigl(x-\nabla f(x)\bigr),
-    \qquad
-    r_{\mathrm{pg}}(x)
-    :=
-    \norm{x-T_{\alpha,\rho}(x)}_\infty.
-    \label{eq:source-fixed-point-residual}
+ \vzero\leq\vx_\rho^*\leq\vx_0^*,
+ \qquad
+ \norm{\mD^{-1/2}(\vx_0^*-\vx_\rho^*)}_\infty\leq\rho.
+ \label{eq:rppr-bias}
 \end{equation}
-They stop when \(r_{\mathrm{pg}}(x_k)\leq\epspg\).
-We add the subscript ``pg'' to distinguish this experimental tolerance from
-the theoretical objective-gap target
-\[
-    F_\rho(x_N)-F_\rho(x^\star)\leq\epsobj.
-\]
-The source itself writes both quantities with the same glyph.
+Moreover, every feasible $\widehat\vx\geq\vzero$ satisfying
+$F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj$ obeys
+\begin{equation}
+ \norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
+ \leq \rho+\sqrt{2\epsobj/\alpha}.
+ \label{eq:objective-to-ppr}
+\end{equation}
+\end{proposition}
 
-\subsection{Over-regularization and locality notation}
-\label{subsec:source-locality-notation}
+\begin{proof}
+On the nonnegative orthant the RPPR load is obtained from the PPR load by
+subtracting $\alpha\rho\mD^{1/2}\one$.  Inverse positivity and
+\cref{eq:constant-vector-inverse-positive}, together with the obstacle KKT
+conditions proved in \cref{thm:obstacle-reduction}, give
+$\vzero\leq\vx_\rho^*\leq\vx_0^*$ and
+$\vx_0^*-\vx_\rho^*\leq\rho\mD^{1/2}\one$.  Strong convexity gives
+\[
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
+ \geq\frac\alpha2\norm{\widehat\vx-\vx_\rho^*}_2^2.
+\]
+Since every $d_i\geq1$, the normalized coordinate error from
+$\widehat\vx$ to $\vx_\rho^*$ is at most
+$\sqrt{2\epsobj/\alpha}$.  The triangle inequality proves
+\cref{eq:objective-to-ppr}.
+\end{proof}
 
-The source compares the base problem (A), with regularization \(\rho\), and
-the over-regularized problem (B), with regularization \(2\rho\):
-\[
-    g_A(x)
-    :=
-    \alpha\rho\norm{D^{1/2}x}_1,
-    \qquad
-    g_B(x)
-    :=
-    2\alpha\rho\norm{D^{1/2}x}_1,
-\]
-\[
-    F_A:=f+g_A,
-    \qquad
-    F_B:=f+g_B,
-    \qquad
-    x_A^\star\in\argmin_xF_A(x),
-    \qquad
-    x_B^\star\in\argmin_xF_B(x).
-\]
-Their active and inactive sets are
-\[
-    S_A:=\supp(x_A^\star),
-    \qquad
-    S_B:=\supp(x_B^\star),
-    \qquad
-    I_B:=[n]\setminus S_B.
-\]
-The spurious active set of FISTA relative to the base support is
-\[
-    \widetilde{A}_k
-    :=
-    \supp(x_{k+1})\cap S_A^c.
-\]
-With this notation, the source decomposes degree-weighted work as
-\[
-    \operatorname{Work}(N)
-    =
-    O\left(
-        N\vol(S_A)
-        +
-        \sum_{k=0}^{N-1}\vol(\widetilde{A}_k)
-    \right).
-\]
+The RPPR optimum is zero exactly when $\rho\geq1/d_v$.  Indeed, the only
+possibly positive shifted load is at the seed and equals
+$\alpha(1-\rho d_v)/\sqrt{d_v}$.  We therefore call
+\begin{equation}
+ 0<\rho<1/d_v
+ \label{eq:nonzero-rppr-regime}
+\end{equation}
+the nontrivial regime; it is recognized with one degree query.
 
-For the forward-gradient map
-\[
-    u(x):=x-\eta\nabla f(x),
-\]
-the (B)-problem soft-threshold and the degree-normalized complementarity slack
-of an inactive coordinate \(i\in I_B\) are
-\[
-    \lambda_i^{(B)}
-    :=
-    2\alpha\rho\sqrt{d_i},
-    \qquad
-    \gamma_i^{(B)}
-    :=
-    \frac{
-        \lambda_i^{(B)}
-        -
-        |\nabla_i f(x_B^\star)|
-    }{\sqrt{d_i}}
-    =
-    2\alpha\rho
-    +
-    \frac{\nabla_i f(x_B^\star)}{\sqrt{d_i}}.
-\]
-For the base problem, the analogous threshold is
-\(\lambda_i^{(A)}:=\alpha\rho\sqrt{d_i}\).
-The superscripts on \(\lambda_i^{(A)}\) and \(\lambda_i^{(B)}\) are added here
-to keep the two problems distinct; the source writes \(\lambda_i\) and lets
-the active problem determine whether the threshold is
-\(\alpha\rho\sqrt{d_i}\) or \(2\alpha\rho\sqrt{d_i}\).
-The global inactive-set margin sometimes used in the source is
-\[
-    \gamma
-    :=
-    \min_{i\in I^\star}\gamma_i.
-\]
+\subsection{Fully charged local work}
 
-The source further defines
-\[
-    A_{\mathrm{spur}}(y)
-    :=
-    \supp\left(
-        \prox_{\eta g_B}\bigl(u(y)\bigr)
-    \right)
-    \cap I_B,
-\]
-\[
-    I_B^{\mathrm{small}}
-    :=
-    \left\{
-        i\in I_B:
-        \gamma_i^{(B)}<\rho\alpha
-    \right\},
-    \qquad
-    I_B^{\mathrm{large}}
-    :=
-    \left\{
-        i\in I_B:
-        \gamma_i^{(B)}\geq\rho\alpha
-    \right\}.
-\]
-The source denotes \(A_{\mathrm{spur}}(y)\) simply by \(A(y)\); the renamed
-version here avoids collision with the adjacency matrix \(A\).
+A scan of $U\subseteq\gV$ costs $\vol(U)$.  Our work bounds additionally
+charge construction of every principal matrix, every repeated row and
+boundary scan, candidate insertion, numerical solver state, residual
+certification, projection, materialization, state access, and output.  There
+is no free support oracle and no ambient preprocessing.  The theorem is in the
+exact-real algebraic word model from the shared block.  The parameter
+$\zeta\in(0,1)$ denotes the probability of an explicit reported failure.
 
-A confinement set \(\mathcal{B}\) satisfies
-\(\widetilde{A}_k\subseteq\mathcal{B}\) for every \(k\). For a candidate core
-\(S\supseteq S_B\), the principal choice is
-\[
-    \mathcal{B}:=\partial S,
-    \qquad
-    \supp(x_k)\subseteq S\cup\partial S.
-\]
-Thus the notation distinguishes the core \(S\), its boundary
-\(\mathcal{B}\), and its exterior \(\operatorname{Ext}(S)\).
+\subsection{Main theorems}
 
-\subsection{Auxiliary symbols used in the source analysis}
-\label{subsec:source-auxiliary-notation}
+The regularized result will be proved as \cref{thm:local-rppr}.
 
-For completeness, the remaining recurring analytical symbols in
-\citet{fountoulakis2026complexity} are:
-\begin{itemize}[leftmargin=*]
-    \item \(b:=\alpha D^{-1/2}s\), so that
-    \(\nabla f(x)=Qx-b\);
-    \item \(q:=1-\sqrt{\mu/L}=1-\sqrt{\alpha}\), the geometric contraction
-    factor used in the FISTA proof;
-    \item
-    \[
-        N_{\epsobj}
-        :=
-        \left\lceil
-            \frac{
-                \log(\Delta_0/\epsobj)
-            }{
-                \log\bigl(1/(1-\sqrt{\mu/L})\bigr)
-            }
-        \right\rceil,
-    \]
-    the sufficient iteration count for the stated objective-gap target;
-    \item
-    \[
-        M
-        :=
-        \frac{8\Delta_0}{\mu}
-        \left(
-            (1+\beta)^2(1-\sqrt{\mu/L})+\beta^2
-        \right),
-    \]
-    an iterate-distance constant in the source proof;
-    \item \(\mathcal{B}'\subseteq\mathcal{B}\), the subset of confined
-    coordinates whose (B)-margin is at least \(\rho\alpha\);
-    \item \(R\), any uniform bound satisfying
-    \(\norm{y_k-x_B^\star}_2\leq R\);
-    \item \(\Delta x:=x_A^\star-x_B^\star\), used in the
-    regularization-path comparison;
-    \item \(w_k:=y_k-\eta\nabla f(y_k)=u(y_k)\), an alternative name for the
-    forward point.
-    \item \(\widetilde{\operatorname{vol}}(S)\), used only in the comparison
-    with prior work, is the number of edges in the subgraph induced by \(S\).
-\end{itemize}
+\begin{theorem}[Local RPPR, informal]
+\label{thm:local-rppr-informal}
+For a canonical point-source instance, there is an exact-real randomized
+local algorithm which, with failure probability at most $\zeta$, returns
+$\widehat\vx\geq\vzero$ with RPPR objective gap at most $\epsobj$.  Its
+expected fully charged work is
+\begin{equation}
+ \softO\!\left(
+   \frac{1}{\rho\sqrt\alpha}
+   \log\frac1{\epsobj}\log\frac2\zeta
+ \right).
+ \label{eq:informal-rppr-work}
+\end{equation}
+\end{theorem}
 
-\paragraph{High-degree cutoff.}
-The source uses \(R\) in the sufficient nonactivation condition
-\[
-    d_i
-    \geq
-    \left(\frac{LR}{\alpha\rho}\right)^2.
-\]
-For RPPR, \(L\leq1\) and the source obtains \(R\leq\sqrt{20}\), giving the
-more concrete cutoff \(d_i\geq20\alpha^{-2}\rho^{-2}\).
+The two-stage consequence will be proved as
+\cref{thm:two-stage-completion}.
 
-\paragraph{Breakpoint examples.}
-The source uses two short graph families to show that the global margin
-\(\gamma\) can vanish.
-\begin{itemize}[leftmargin=*]
-    \item In the center-seeded star, \(G\) has \(m+1\) vertices, center \(c\)
-    with \(d_c=m\), leaves \(\ell\) with \(d_\ell=1\), and seed \(s=e_c\).
-    It defines
-    \[
-        \rho_0:=\frac{1-\alpha}{2m},
-        \qquad
-        x^\star:=x_c^\star e_c,
-        \qquad
-        x_c^\star
-        :=
-        \frac{2\alpha(1-\rho m)}
-        {(1+\alpha)\sqrt{m}},
-    \]
-    and the leaf slack
-    \[
-        \gamma_\ell
-        :=
-        \frac{2\alpha}{1+\alpha}(\rho-\rho_0).
-    \]
-    \item In the endpoint-seeded path,
-    \(G=P_{m+1}\) has vertices \(1,\ldots,m+1\), seed \(s=e_1\), and
-    \[
-        \rho_0:=\frac{1-\alpha}{3+\alpha},
-        \qquad
-        x^\star:=x_1^\star e_1,
-        \qquad
-        x_1^\star
-        :=
-        \frac{2\alpha(1-\rho)}{1+\alpha}.
-    \]
-    The degree-normalized slack at vertex \(2\) is
-    \[
-        \gamma_2
-        :=
-        \frac{\alpha(3+\alpha)}
-        {2(1+\alpha)}(\rho-\rho_0).
-    \]
-\end{itemize}
-In both families, \(\gamma=0\) at \(\rho=\rho_0\).
+\begin{theorem}[Local point-source PPR, informal]
+\label{thm:local-ppr-informal}
+For $0<\epsppr<1$, a strict two-stage algorithm returns an output satisfying
+\cref{eq:semantic-ppr-target}, with failure probability at most $\zeta$ and
+expected fully charged work
+\begin{equation}
+ \softO\!\left(\frac{1}{\epsppr\sqrt\alpha}\right).
+ \label{eq:informal-ppr-work}
+\end{equation}
+\end{theorem}
 
-\paragraph{Leaf-seeded star lower bound.}
-In the source's lower-bound construction, \(G(m)\) has \(n=m+1\) vertices:
-center \(w\), seed leaf \(v\), and remaining leaves
-\(u_1,\ldots,u_{m-1}\). Here
-\[
-    \rho_0
-    :=
-    \frac{1-\alpha}
-    {m(1+\alpha)+(1-\alpha)},
-    \qquad
-    x^\star
-    :=
-    x_v^\star e_v,
-    \qquad
-    x_v^\star
-    :=
-    \frac{2\alpha(1-\rho)}{1+\alpha}.
-\]
-At the breakpoint \(\rho=\rho_0\), the proof also names the one-step
-candidate
-\[
-    x^+
-    :=
-    \prox_{\alpha\rho_0\norm{D^{1/2}\cdot}_1}\bigl(u(y)\bigr).
-\]
-The symbols
-\[
-    e_k:=x_{k,v}-x_v^\star,
-    \qquad
-    \widetilde e_k:=y_{k,v}-x_v^\star,
-    \qquad
-    a:=\frac{1-\alpha}{2}
-\]
-denote the one-dimensional seed-coordinate errors and recurrence coefficient.
-The lower-bound objective-gap threshold is
-\[
-    \varepsilon_0(\alpha)
-    :=
-    \frac{
-        \alpha^3(1-\alpha)^4\beta^4
-    }{
-        2(3+\alpha)^2
-    }.
-\]
-These instance-specific symbols are not part of the generic RPPR definition,
-but including them makes the catalogue cover the paper's proof-local
-notation as well as its main formulation.
+The soft notation hides polylogarithms in the displayed accuracy and failure
+parameters and in the local supplied-matrix SDD routine; it hides no
+polynomial dependence on $n$, $m$, $|\mathcal S_\rho^*|$, or an unknown sign
+margin.

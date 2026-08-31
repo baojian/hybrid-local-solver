@@ -703,3 +703,124 @@ VGF, the heavy-tailed-ball solve-cost question (the last rung of the τ
 ladder), and the R± bound's instance scope. Corrections cascade audit-style:
 I4-C corrected by I5-A, I4-A's sign by I5-C, constant slips by I5-D — each
 recorded in place.
+
+---
+
+# ITERATIONS 6–7: THE PROOF PUSH (2026-08-26)
+
+Run at the user's request: "try your best to finish the proof." Eight agents
+across two iterations, everything aimed at closing open proof links. Outcome:
+**four theorems completed, one refutation that reshapes the target, and one
+promotion-audit-ready document.**
+
+## 6.1 The K_n absorption theorem is COMPLETE (I6-B)
+
+The single open link (C9, V-contraction at genuinely partial correction
+stages) is closed — and the investigation revealed the old certificate was
+structurally broken (it fails 47 of 53 partial stages once you can generate
+them; the published pulse's 0.979 margin was the *luckiest* case, not the
+typical one). The repair: an exact clip identity plus a truncation-covariance
+lemma `Var(ψ(v)) ≤ Cov(ψ(v), v)` closes C9 on K_n for all n, all q ≤ 1/2, any
+cap value, **with no new hypothesis**. Final battery: 140 instances, 18/18
+predicates, 0 failures. **The Route-B packing target holds on K_n for the
+ORIGINAL recurrence with c = 1 and B ≤ 0.36918 < log 2, no open links.**
+
+## 6.2 The never-triggering theorem: refuted as stated, completed as modified (I6-A1, I6-A2, I7-A)
+
+Two independent iteration-6 routes each reached proved-except-one-step with
+complementary machinery and a cleanly stated interface. The iteration-7
+composition then did the honest thing: it **refuted the unmodified lemma** —
+an exact counterexample (rt22b, a random tree on 22 vertices) fires at t = 13,
+three stages after a face lock. The two "absorbable transients" iteration 6
+had noticed were luck, not a pattern.
+
+The completion is the modified algorithm **fm-w**: after every face change,
+run J_S pure-proximal (β = 0) stages — each unconditionally fire-proof by the
+new LCP comparison lemma P-A — and enable momentum only after an
+exact-rational inertia gate passes (the (H-sep) condition, now *checked*
+online rather than assumed). The warmup contraction identity
+`μ⁺ = s₂/(1−q_r)²` shows warmup contracts the entrance certificate at twice
+momentum's own log-rate, giving an explicit J_S. Result, verified exactly:
+
+> **On fm-w, Δ_t = 0 at every stage of every run** — 3,840/3,840 stages over
+> 19 cells including five adversarial short-segment cells; the previously
+> firing K8 control is cured; rt22b's own lock face runs 228 momentum stages
+> fire-free. No α restriction. Hence **J_T^fin = 0 exactly, and the Route-B
+> packing target holds trivially with c = 1** — with the modification proved
+> *necessary*, not merely convenient.
+
+The honest cost (from iteration 5, unchanged): fm-variants are 25–60% slower
+to fixed accuracy than the baseline, winning only asymptotically; and J_S is
+large on near-critical faces (those run prox-only — safe but unaccelerated).
+Never-triggering controls *inflation*, not total work — the end-to-end work
+theorem still needs the outer iteration count assembled (sketched in the
+theorem document).
+
+## 6.3 The class theorem, closed via a new master form (I7-B)
+
+The planned invariant TK ≥ 0 turned out to be the *wrong* one — proved
+equivalent (over the reachable clip cone) to the (H-K) entrywise condition,
+with exact negative witnesses on C6/Q4/Petersen, so no transport argument
+could ever work. The replacement is cleaner: a **master form**
+`V_{t+1} − (1−q)²·V_t = Ψ(y, h)`, making C9 equivalent to the stage-free
+variational statement `sup Ψ ≤ 0` (**PSI**). Status: exact rational proofs on
+C6, C8, Q3, and Petersen — the boundary cases q = μ₂/2 are *sharp*
+(sup Ψ = 0, mixed-pattern extremals identified); Q4 decided completely by full
+automorphism-orbit enumeration of all 3¹⁶ sign assignments; a 20-family
+adversarial sweep finds (H-K) failing on 14 families and (PSI) holding on
+every one, zero violations. **Theorem B''**: for connected G, q ≤ 1/2, (H0),
+(Hgap), (PSI): C9 holds at every stage, absorption fires, J_T^fin ≤ B, c = 1.
+What remains is analytic (PSI) in general — now a clean, isolated variational
+problem with its extremal structure known.
+
+## 6.4 The ladder is closed; the HSEG tree theorem is complete (I6-C, I6-D)
+
+- **Φ = 1 proved** by a five-line maximum principle (max_u π_u/d_u is attained
+  at the seed — an off-seed maximum would force max u ≤ c_α·max u). The
+  general-graph monotone corollary is now constant-free, and the proof pass
+  found and recorded an erratum in an earlier display (ratio, not product).
+- **The scope theorem** replaces the second Open: the R± lower envelope is
+  `max(vol(S_ε), T_seed, T_bulk)`, and on every bounded-degree family it is
+  o(1/(√α·ε)) — **the √α-coupling is a d_v·√π_v = Ω(1/ε) phenomenon**
+  (high-degree-with-mass seeds), which is sharper than "self-return". One
+  narrower successor question remains (a √(1/ε) member-vs-envelope window on
+  bounded-degree cycles). Extended verifier: 630 cell-checks, 0 failures.
+- **HSEG-LDL amortization proved** with the potential
+  Φ = Σ_light max(0, 2·sz(c) − sz(h)); hysteresis factor 2 is exactly the
+  self-amortizing constant; total re-carve O(n·log²n), α-free. The thrash
+  adversary validates rather than falsifies (and shows per-op Θ(n) is real, so
+  amortization is genuinely needed). A real bookkeeping hole in the shipped
+  code was found and repaired along the way. **Complete tree theorem**: on any
+  tree, any admission order, total charged work O((nnz(s)+vol(S))·log²·) with
+  α-free constants, certified — and trees escape the Θ(1/√α) certification
+  radius at tightness C ≥ 2, so the theorem is α-free end-to-end.
+
+## 6.5 The assembled document (I7-C)
+
+`findings/i7c_routeB_theorem.md` is the promotion-candidate write-up: the
+executive statement in the repository's own vocabulary (everything labeled
+Proved-draft = unaudited; enters the ladder as Conditional), fm-w pseudocode
+with every certified quantity, the fifteen-theorem chain T0–T15 with
+hypotheses, statuses, verification counts, and file pointers, the
+program-impact section (which of the repository's open items this addresses:
+the Route-B queue, the windowed spectral split, the K₂/K₈ STOP families — all
+explained or absorbed), and a single driver `i7c/verify_routeB.py` that
+re-verifies the composed chain end-to-end in 109.5 s: **all gated exact checks
+pass**. One subtle consistency point was reconciled machine-verifiably: the
+apparent I5-C/I7-A contradiction about re-tune direction is two names for the
+same monotone event (q_r nonincreasing ⟺ β nondecreasing).
+
+Audit anchors, in order: the rt22b counterexample; Petersen at q = 1/3 and C6
+at q = 1/4 (the sharp (PSI) boundaries); the S16 inertia-gate rejection; the
+K8 pulse.
+
+## Where this leaves the campaign
+
+Fully closed (campaign standard — Proved-draft, exactly verified, no open
+links): K_n absorption; fm-w never-triggering (with necessity); the HSEG tree
+theorem; the three-class ladder including both former Opens; the
+monotone/signed separation; the certificate sharp constant and radius law;
+spider information complexity. Open and cleanly isolated: analytic (PSI);
+sharp entrance propagation (J_S → O(1)); inexact inner solves; finite
+precision; the end-to-end work-ledger assembly; the bounded-degree window;
+non-tree incremental factorization.

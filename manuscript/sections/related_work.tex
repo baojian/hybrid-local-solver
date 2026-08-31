@@ -1,27 +1,138 @@
-Andersen, Chung, and Lang introduced the lazy APPR push operation and proved
-that its degree-weighted work is at most
-\(1/(\alpha\epsappr)\) through a residual-mass argument
-\citep{andersen2007using}. Some later local-solver work describes this
-dependence as \(\Theta(1/(\alpha\epsappr))\); for example,
-\citet{zhou2024iterative} uses that notation while restating the classical
-one-sided mass-decrease argument. Our
-\cref{thm:appr-star-lower-bound} supplies the explicit matching instance and
-proves the lower bound directly in the same adjacency-list work model.
+\paragraph{Local PageRank and variational locality.}
+The push method of \citet{andersen2007using} made PPR a canonical local graph
+primitive: its work is controlled by residual mass and a degree-normalized
+threshold rather than by the ambient number of edges.  Variational RPPR
+recasts locality as weighted $\ell_1$ regularization and proves the support
+volume bound used here \citep{fountoulakis2019variational}.  Classical
+first-order acceleration alone does not settle the local problem.  Momentum
+can create spurious activity, and even a support-monotone method can revisit
+an increasingly large face.  The COLT open problem of
+\citet{fountoulakis2022open} asks for a square-root dependence on the PPR
+condition parameter without losing the sparse regularized structure.
 
-The APPR stopping rule is algorithmic: it terminates when every residual
-coordinate is smaller than \(\epsappr d_u\). By contrast, variational
-PageRank methods express locality through an \(\ell_1\)-regularized objective
-\citep{fountoulakis2019variational}.  That work proves monotone support,
-support volume, and a batch-ISTA upper bound.  Our
-\cref{sec:rppr-ista-tightness} sharpens the batch upper bound, proves its
-algorithm-specific tightness, and shows that a thresholded coordinate
-implementation removes the stale-scan logarithm. We keep these parameters distinct, but
-\cref{prop:appr-rppr-bridge} shows that APPR's exact target, after symmetric
-degree scaling, is the unregularized member of the RPPR family used in
-\cref{sec:problem-formulation}.
+\paragraph{From accelerated faces to cheap faces to few faces.}
+The closest sequence of results is more informative than a flat list of
+complexities.  \citet{martinezrubio2023accelerated} introduced a sparse
+accelerated active-set algorithm: it keeps the active set inside the optimal
+support and applies accelerated optimization on successive restricted
+problems.  Under its internal-volume convention, the stated leading work is
+\[
+ \softO\!\left(
+   \frac{|\mathcal S_\rho^*|\,\widetilde{\vol}(\mathcal S_\rho^*)}
+        {\sqrt\alpha}
+   +|\mathcal S_\rho^*|\vol(\mathcal S_\rho^*)
+ \right).
+\]
+An endpoint-path audit shows that the factor $|\mathcal S_\rho^*|$ is real
+for the literal repeated-face algorithm.  For sufficiently small $\rho$, the
+optimal support is the whole path, while every proper seed prefix has only
+the next path vertex on its boundary; exact positive-residual expansion
+therefore adds one coordinate per stage and accumulates quadratic prefix
+volume.  This does not make the factor an information-theoretic barrier.
 
-The forward-push/SOR connection is developed by
-\citet{chen2023accelerating}.  Our CF-Push analysis uses an explicit signed
-residual, adjacency-list work model, and FIFO rule to separate convergence
-from accelerated locality.  The star and spider lower bounds are new to this
-manuscript and are not attributed to that source.
+\citet{wei2026simple} take the next step.  They preserve true-support
+activation but solve every supplied degree-scaled face with a nearly-linear
+SDD method, obtaining
+$\softO(|\mathcal S_\rho^*|\vol(\mathcal S_\rho^*))$ RPPR work in the
+comparable unweighted setting.  This removes the explicit
+$1/\sqrt\alpha$ inner-iteration factor from each face, but the outer method
+may still rebuild and rescan $|\mathcal S_\rho^*|$ faces.
+
+There is also an exact primal--dual correspondence between their residual
+test and our flow language.  In the non-lazy convention of
+\citet{wei2026simple}, with $L_a=D-(1-a)A$ and
+$r(x)=e_s-a^{-1}L_ax$, the slack of the corresponding grounded-flow vertex
+constraint is
+\begin{equation}
+ L_ax-a(e_s-\rho d)=a(\rho d-r(x)).
+ \label{eq:wei-yang-dual-slack}
+\end{equation}
+Hence their activation test $r(x^{(S)})(v)>\rho d(v)$ is exactly a violated
+dual inequality.  Their paper states and exploits the residual/KKT form in
+its RPPR support argument, but it does not introduce a flow variable, a dual
+energy objective, or the grounded-flow optimization problem.  Our explicit
+dual therefore clarifies the separation structure; the new complexity claim
+remains the threshold-batch theorem, not the standard act of taking a
+Fenchel dual.
+
+Our result changes the outer counting unit.  Threshold admission plus the
+Cholesky-decay theorem bounds the number of complete exposed faces by
+$\softO(1/\sqrt\alpha)$, and each face is solved in nearly-linear local
+volume.  The progression is summarized in \cref{tab:lineage}; logarithms and
+the papers' slightly different internal-volume definitions are suppressed.
+
+\begin{table}[t]
+\centering
+\small
+\caption{The active-set lineage.  ``Complete faces'' counts restricted
+systems that are constructed and solved, not individual admitted vertices.}
+\label{tab:lineage}
+\begin{tabularx}{\textwidth}{@{}
+ >{\raggedright\arraybackslash}p{0.25\textwidth}
+ >{\raggedright\arraybackslash}p{0.20\textwidth}
+ >{\raggedright\arraybackslash}p{0.18\textwidth}
+ >{\raggedright\arraybackslash}X@{}}
+\toprule
+Method & Complete faces & Work per face & Resulting leading RPPR work \\
+\midrule
+Accelerated sparse active set
+\citep{martinezrubio2023accelerated}
+& up to $|\mathcal S_\rho^*|$
+& $\widetilde{\vol}/\sqrt\alpha$
+& $|\mathcal S_\rho^*|\widetilde{\vol}/\sqrt\alpha$ \\
+Wei--Yang \citep{wei2026simple}
+& up to $|\mathcal S_\rho^*|$
+& $\softO(\vol)$
+& $\softO(|\mathcal S_\rho^*|\vol)$ \\
+This paper
+& $\softO(1/\sqrt\alpha)$
+& $\softO(\vol)$
+& $\softO(\vol(\mathcal S_\rho^*)/\sqrt\alpha)$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This comparison also locates the novelty.  The randomized SDD primitive is
+not ours, and randomization itself is not the contribution.  We use the
+supplied-matrix solver of \citet{koutis2011nearly} as a black box.  The new
+ingredient is the threshold-batch depth theorem and its integration with
+support-safe, residual-certified local discovery.  The same distinction
+applies to Wei--Yang: their innovation is the simple active-set reduction and
+the use of nearly-linear supplied-face solves, not the invention of the SDD
+solver.
+
+\paragraph{Obstacle and complementarity methods.}
+The RPPR KKT system is a monotone linear complementarity problem with a
+Stieltjes matrix.  Classical principal-pivot, projected-gradient, policy-
+iteration, and reduced-space conjugate-gradient methods give finite
+termination or fast convergence on a supplied global problem.  Their usual
+complexities count global tests, full policy systems, or one solve per pivot;
+they do not provide adjacency-list locality or an output-volume bound.  Our
+grounded-flow dual is likewise an instance of standard Fenchel duality, and
+primal--dual active-set methods are classical for obstacle problems
+\citep{karkkainen2003augmented}.  We do not claim either fact as new.  Our
+safe-pivot lemma uses the same inverse-positivity geometry, while the local
+dual separation interface, threshold-batch depth, and boundary charging are
+specific to the PageRank setting.
+
+\paragraph{AESP--CD and the two-stage viewpoint.}
+The present algorithm grew from attempts to continue AESP/CD-style
+acceleration across a changing active set.  The final proof takes a cleaner
+route: it rebuilds a certified SDD state on only
+$\softO(1/\sqrt\alpha)$ faces and carries no momentum across a batch.  It is
+therefore best viewed as a threshold-batched active-set lane compatible with
+an AESP--CD portfolio, not as a randomized proof of the original momentum
+recurrence.  The strict handoff is similarly modular: Stage~II may be a
+principal SDD solve for the theorem, while SOR, APPR, or a structural direct
+solver can be raced as implementation choices without changing the Stage~I
+certificate.
+
+\paragraph{Randomization and derandomization.}
+All support admissions in our method are deterministic consequences of a
+checked residual inequality.  Randomness only determines whether a proposed
+face solve passes that check within a capped number of trials.  Hence a
+constant-failure run followed by a full restart is Las Vegas in the
+exact-real model.  Ordinary deterministic CG immediately gives a weaker
+$\softO(1/(\rho\alpha))$ route.  Obtaining the same nearly-linear face cost
+deterministically, together with finite-precision and coefficient-bit
+guarantees, is outside the present theorem.

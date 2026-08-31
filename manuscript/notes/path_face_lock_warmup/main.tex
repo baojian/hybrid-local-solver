@@ -1,0 +1,1127 @@
+\documentclass[11pt]{article}
+
+\input{../../tex/shared/research_note_preamble}
+
+\title{Sharp Post-Lock Warmup Certificates on Paths and Spiders}
+\author{Baojian Zhou\\
+\small Working research note for \texttt{hybrid-local-solver}}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This note asks whether a componentwise entrance analysis can replace the
+conservative spectral warmup used to prevent support retraction after a face
+change.  The first target is an endpoint path and the second is a spider.
+We first reconstruct the exact entrance condition in the project's
+source-aligned variables.  An exact rational screen then separates two
+questions that had been conflated: one stable-face proximal solve can be safe
+on the realized path traces while still being insufficient uniformly over the
+whole nonnegative residual cone.  In fact, supplied full paths give exact
+cone witnesses against one, two, and three proximal solves, while a 16-arm
+star gives an exact witness against four.  A leaf-seeded family then turns the
+star obstruction into a literal reachable trajectory: every fixed number of
+post-lock pure-prox solves fails for all sufficiently large stars.  Conversely,
+an explicit logarithmic warmup makes every later trigger kernel entrywise
+nonnegative on the full star.  An exact residual decomposition sharpens the
+reachable lower bound to logarithmic order, so this repeated-solve policy has
+matching $\Theta(\log B)$ warmup scale.  A strict entrywise upper margin is
+available on finite horizons, whereas every strict connected proper face has
+an oscillatory Perron obstruction to permanent safety under the same global
+momentum.  Tuning momentum to the face Perron mode repairs that obstruction
+under an explicit spectral-ratio and Perron-spread warmup.  These results still
+do not supply an end-to-end local-work theorem.
+\end{abstract}
+
+\input{../../tex/shared/source_aligned_problem}
+
+\section{Question and claim boundary}
+
+The target is a proved constant or logarithmic post-lock warmup bound under a
+fully stated changing-face recurrence and charged-work model.  A failed proof,
+growing exact family, or spider obstruction will be retained as a refuted
+route rather than promoted to an accelerated local-solver theorem.
+
+The graph is a finite undirected endpoint path with ambient degrees, and all
+variables below use the source-aligned PageRank parameter
+\(q=\sqrt{\alpha/(1-\alpha)}\).  A supplied fixed face is not a local
+discovery algorithm.  Every proximal solve, face sweep, inverse application,
+certificate query, and state write must be charged by any algorithmic
+corollary.  This note presently proves no \(\varepsilon_{\rm ppr}\) stopping
+or end-to-end work theorem.
+
+\subsection{Exact reconstruction of the Fable entrance gate}
+\label{sec:gate-reconstruction}
+
+Let \(\widetilde Q=D^{1/2}QD^{1/2}\),
+\(\widetilde c=\alpha(s-\rho d)\), and
+\(\kappa=1-2\alpha\), as in the exploratory Fable recurrence.  On a fixed
+positive face \(S\), define the lower state residual
+\begin{equation}
+ Y_t=\widetilde c-\widetilde Qx_t
+ \quad\hbox{and}\quad
+ \mathcal M_S=\kappa D_S
+ (\widetilde Q_{SS}+\kappa D_S)^{-1}.
+ \label{eq:path-lock-hat-residual-map}
+\end{equation}
+If a stage has no retraction, exact obstacle optimality gives
+\begin{equation}
+ Y_{t+1}=\mathcal M_Su_t,
+ \qquad
+ u_t=(1+\beta)Y_t-\beta Y_{t-1}.
+ \label{eq:path-lock-trigger-recurrence}
+\end{equation}
+The stage does not trigger if and only if \(u_t\geq0\) componentwise on its
+support.  Conjugating by \(D^{1/2}\),
+\begin{equation}
+ D_S^{-1/2}\mathcal M_SD_S^{1/2}
+ =\kappa(Q_{SS}+\kappa I)^{-1}.
+ \label{eq:path-lock-normalized-map}
+\end{equation}
+Thus this is not the transported-center residual wave of the sibling
+\texttt{path\_terminal\_modal\_block} note.  The two recurrences share the
+weighted path cosine basis, but neither one's entry profile can be imported
+into the other without a new calculation.
+
+For completeness, split the normalized residual as
+\(D^{-1/2}Y_t=L_t\phi+h_t\), where \(\phi>0\) is the Perron direction of the
+normalized map.  Fable's sharp sufficient entrance test is
+\begin{equation}
+ \left|(1+\beta)h_t-\beta h_{t-1}\right|
+ \leq \beta L_{t-1}\phi
+ \quad\hbox{componentwise},
+ \qquad
+ L_t\geq(1-q_S)L_{t-1}>0.
+ \label{eq:path-lock-sharp-entrance}
+\end{equation}
+The absolute values make
+\eqref{eq:path-lock-sharp-entrance} stronger than the exact trigger
+\(u_t\geq0\).  The conservative certified warmup controls it by one global
+norm; the present target is the true componentwise condition.
+
+\subsection{One prox solve certifies the first momentum stage}
+\label{sec:first-momentum-safe}
+
+There is a useful graph-uniform fact hidden by the conservative modal norm.
+It certifies entrance to momentum, but not the whole momentum tail.
+
+\begin{proposition}[First-momentum entrance; proved here]
+\label{prop:first-momentum-safe}
+Let \(0<\alpha\leq1/5\), let \(S\) be any supplied face, and let
+\(0\leq\beta\leq1\).  Suppose a stable-face pure proximal solve starts from
+a state residual \(Y\geq0\) and produces \(Y^+=\mathcal M_SY\).  Then the
+immediately following momentum trigger is nonnegative:
+\begin{equation}
+ (1+\beta)Y^+-\beta Y\geq0
+ \quad\hbox{componentwise}.
+ \label{eq:first-momentum-safe}
+\end{equation}
+Consequently that first momentum stage has no retraction.  The claim applies
+to every endpoint-path prefix and every spider face, without a spectral-gap
+or Perron-spread constant.
+\end{proposition}
+
+\begin{proof}
+Write \(S_S=D_S^{-1/2}A_{SS}D_S^{-1/2}\geq0\).  Direct substitution gives
+\begin{equation}
+ \overline{\mathcal M}_S
+ :=D_S^{-1/2}\mathcal M_SD_S^{1/2}
+ =\frac{2(1-2\alpha)}{1-\alpha}(3I-S_S)^{-1}.
+ \label{eq:first-momentum-neumann-map}
+\end{equation}
+Since \(\lVert S_S\rVert_2\leq1\), the Neumann series
+\begin{equation}
+ (3I-S_S)^{-1}=\frac13\sum_{r\geq0}(S_S/3)^r
+ \label{eq:first-momentum-neumann-series}
+\end{equation}
+is entrywise nonnegative and has diagonal at least \(1/3\).  The scalar
+coefficient in \eqref{eq:first-momentum-neumann-map} is at least \(3/2\)
+exactly when \(\alpha\leq1/5\).  Hence
+\(\overline{\mathcal M}_S\geq\frac12I\) entrywise.  With
+\(\sigma=\beta/(1+\beta)\leq1/2\), this gives
+\(\overline{\mathcal M}_S-\sigma I\geq0\).  Positive diagonal conjugation
+preserves entrywise signs, so
+\[
+ (1+\beta)Y^+-\beta Y
+ =(1+\beta)(\mathcal M_S-\sigma I)Y\geq0.
+\]
+The exact trigger equivalence in
+\eqref{eq:path-lock-trigger-recurrence} completes the proof.
+\end{proof}
+
+This proposition reduces the actual entrance warmup from Fable's large
+norm-certified \(J_S\) to one solve if the goal is only to launch one safe
+momentum stage.  It does not establish
+\eqref{eq:path-lock-sharp-entrance}, and
+\cref{prop:path-lock-cone-witnesses} shows why the conclusion cannot simply
+be iterated forever.
+
+\begin{proposition}[Every fixed safe burst with reset loses acceleration;
+proved here]
+\label{prop:alternating-reset-slow}
+Fix \(L\geq1\).  On the full connected face, consider a cycle comprising one
+pure proximal stage followed by \(L\) consecutive momentum stages, and then
+reset momentum.  Assume those \(L\) stages have already been certified safe.
+On the Perron residual mode, one cycle has exact multiplier
+\begin{equation}
+ \eta_{L,q}=\bigl(1+(L+1)q\bigr)(1-q)^{L+1}.
+\label{eq:alternating-reset-multiplier}
+\end{equation}
+For every fixed \(L\),
+\begin{equation}
+ 1-\eta_{L,q}=\binom{L+2}{2}q^2+O_L(q^3).
+ \label{eq:fixed-burst-expansion}
+\end{equation}
+Thus a constant-factor reduction of a nonzero Perron component needs
+\(\Theta_L(q^{-2})=\Theta_L(\alpha^{-1})\) cycles.  A bounded safe burst
+followed by reset is not an accelerated algorithm.
+\end{proposition}
+
+\begin{proof}
+On the full face the Perron eigenvalue of \(\mathcal M\) is
+\(m_0=1-q^2\), and the global momentum is
+\(\beta=(1-q)/(1+q)\).  Normalize the incoming Perron residual to
+\(p_0=1\).  The pure proximal stage gives \(p_1=m_0\), and each safe
+momentum stage obeys
+\[
+ p_{j+1}=m_0\bigl((1+\beta)p_j-\beta p_{j-1}\bigr).
+\]
+The characteristic polynomial is
+\[
+ \lambda^2-2(1-q)\lambda+(1-q)^2=(\lambda-(1-q))^2.
+\]
+The two initial values therefore give
+\(p_j=(1+jq)(1-q)^j\).  Taking \(j=L+1\) proves
+\eqref{eq:alternating-reset-multiplier}; Taylor expansion at \(q=0\)
+proves \eqref{eq:fixed-burst-expansion} and the fixed-\(L\) rate claim.
+\end{proof}
+
+\subsection{A cone-uniform shortcut is already false}
+\label{sec:cone-screen}
+
+Suppose a supplied full face receives an arbitrary nonnegative residual
+column \(y\).  After \(J\geq1\) stable-face pure proximal solves, the two
+entrance residuals are \(\mathcal M^{J-1}y\) and
+\(\mathcal M^Jy\).  The first trigger matrix is therefore
+\begin{equation}
+ U_0^{(J)}=
+ \mathcal M^{J-1}\bigl((1+\beta)\mathcal M-\beta I\bigr),
+ \label{eq:path-lock-trigger-kernel-initial}
+\end{equation}
+and subsequent trigger matrices obey
+\begin{equation}
+ U_{k+1}^{(J)}=
+ \mathcal M\bigl((1+\beta)U_k^{(J)}-\beta U_{k-1}^{(J)}\bigr),
+ \qquad U_{-1}^{(J)}=\mathcal M^{J-1}.
+ \label{eq:path-lock-trigger-kernel-recurrence}
+\end{equation}
+
+\begin{proposition}[Exact cone witnesses; proved here]
+\label{prop:path-lock-cone-witnesses}
+A theorem asserting permanent no-triggering after one stable-face proximal
+solve for \emph{every} nonnegative residual is false, even on the full
+endpoint path.  On \(P_4\), with \(q=1/8\), \(J=1\), the endpoint diagonal
+of \(U_2^{(1)}\) is
+\begin{equation}
+ (U_2^{(1)})_{00}=-\frac{541}{48000}<0.
+ \label{eq:path-lock-one-warmup-witness}
+\end{equation}
+The analogous two-solve assertion is also false: on \(P_8\), with
+\(q=1/16\), \(J=2\),
+\begin{equation}
+ (U_3^{(2)})_{00}
+ =-\frac{151523312832478779015383634375}
+ {28857779215644070278768053190656}<0.
+ \label{eq:path-lock-two-warmup-witness}
+\end{equation}
+In each case the nonnegative entrance column \(y=e_0\) realizes the negative
+trigger coordinate.
+
+Three solves are not cone-uniform either.  On \(P_{46}\), with
+\(q=1/92\), exact rational elimination gives
+\begin{equation}
+ (U_4^{(3)})_{00}<0.
+ \label{eq:path-lock-three-warmup-witness}
+\end{equation}
+The verifier prints the full reduced fraction; its decimal value is about
+\(-1.0542862762\times10^{-5}\).  The smaller sizes through \(P_{44}\) do not
+replace this witness: finite endpoint effects delay the first negative
+diagonal until size 46 in the screened family.
+\end{proposition}
+
+\begin{proof}
+For a full endpoint path all entries of \(\widetilde Q\), \(D\),
+\(\mathcal M\), and \(\beta=(1-q)/(1+q)\) are rational.  Exact Gaussian
+elimination followed by
+\eqref{eq:path-lock-trigger-kernel-initial} and
+\eqref{eq:path-lock-trigger-kernel-recurrence}
+gives the two displayed fractions and the exact negative sign in
+\eqref{eq:path-lock-three-warmup-witness}.  Multiplication by \(e_0\)
+selects the first column, so its endpoint is negative and the exact trigger
+condition fails.
+\end{proof}
+
+The witnesses are deliberately scoped.  They refute a proof that forgets the
+actual face-entry profile and uses only \(Y\geq0\); they do not show that
+\(e_0\) is reached by the endpoint-seeded changing-face RPPR execution.  They
+also do not rule out a different absolute constant.  The exact finite screen
+over \(q=1/(2n)\) found the first horizon-passing values \(J=2\) on
+\(P_4,P_6\) and \(J=3\) on \(P_8,P_{10},P_{12},P_{14},P_{16},P_{20}\),
+through 32 or 64 momentum stages as applicable.  This passing table is
+\emph{Measured} finite exact arithmetic, not an all-time theorem.
+
+\section{The spider junction: exact coupling and an obstruction}
+\label{sec:spider-junction}
+
+Let a supplied spider have center \(c\), \(B\geq3\) arms, and arm lengths
+\(\ell_a\).  Write \(v_{a,r}\) for distance \(r\) along arm \(a\), and let
+\(\delta_{a,r}\) be its ambient degree.  Thus the center degree is \(B\), an
+internal arm degree is two, and a full-arm leaf degree is one.
+
+\begin{proposition}[Exact center equation and star obstruction; proved here]
+\label{prop:spider-center-and-star}
+In normalized coordinates, put \(R=(3I-S_S)^{-1}\).  For \(z=Rf\), the
+center and arm equations are exactly
+\begin{align}
+ 3z_c-\sum_{a:v_{a,1}\in S}
+   \frac{z_{a,1}}{\sqrt{B\delta_{a,1}}}&=f_c,
+ \label{eq:spider-center-row}\\
+ 3z_{a,r}
+ -\frac{z_{a,r-1}}{\sqrt{\delta_{a,r}\delta_{a,r-1}}}
+ -\mathbf 1_{\{r<\ell_a,\ v_{a,r+1}\in S\}}
+  \frac{z_{a,r+1}}{\sqrt{\delta_{a,r}\delta_{a,r+1}}}
+ &=f_{a,r},
+ \label{eq:spider-arm-row}
+\end{align}
+where \(z_{a,0}=z_c\) and \(\delta_{a,0}=B\).  Moreover, cone-uniform
+permanent safety after four pure proximal solves is false on spiders.  On the
+16-arm unit-length star, with \(q=1/34\), the leaf diagonal of the second
+consecutive momentum trigger is
+\begin{equation}
+ (U_1^{(4)})_{11}
+ =-\frac{17140927690425}{914326479306752}<0.
+ \label{eq:star-four-warmup-witness}
+\end{equation}
+The same star already has a negative \(U_1^{(J)}\) leaf diagonal for each
+\(J=1,2,3\).
+\end{proposition}
+
+\begin{proof}
+Equations \eqref{eq:spider-center-row}--\eqref{eq:spider-arm-row} are the
+rows of \((3I-S_S)z=f\), using the normalized edge weight
+\(1/\sqrt{d_id_j}\).  They are the only junction coupling; the residual map
+is \(\overline{\mathcal M}=2(1-q^2)R\).
+
+For the star, \(S\) has eigenvalues \(1,-1,0\), with the zero eigenspace of
+dimension \(B-1\).  Hence the three residual-map eigenvalues are
+\[
+ m_+=1-q^2,\qquad m_-=(1-q^2)/2,\qquad
+ m_z=2(1-q^2)/3.
+\]
+For a leaf coordinate and any scalar function \(F\) on these eigenvalues,
+spectral projection gives
+\begin{equation}
+ (F(\overline{\mathcal M}))_{11}
+ =\left(1-\frac1B\right)F(m_z)
+  +\frac1{2B}\bigl(F(m_+)+F(m_-)\bigr).
+ \label{eq:star-leaf-mixture}
+\end{equation}
+From \eqref{eq:path-lock-trigger-kernel-recurrence},
+\[
+ F_J(m)=m^J\bigl((1+\beta)^2m-\beta(2+\beta)\bigr)
+\]
+is the scalar polynomial for \(U_1^{(J)}\).  Substituting
+\(B=16\), \(q=1/34\), and \(J=4\) into
+\eqref{eq:star-leaf-mixture} gives
+\eqref{eq:star-four-warmup-witness}.  The exact values for \(J=1,2,3\) are,
+respectively,
+\[
+ -\frac{22143}{152320},\qquad
+ -\frac{14394765}{171051008},\qquad
+ -\frac{17615977995}{395469930496}.
+\]
+Positive diagonal conjugation leaves diagonal entries unchanged, so these
+are also the hat-coordinate trigger entries printed by the verifier.
+\end{proof}
+
+\subsection{A reachable family and a logarithmic repair}
+\label{sec:reachable-star-family}
+
+The preceding diagonal witness used an arbitrary nonnegative entrance
+column.  The next theorem closes that reachability gap for a concrete
+leaf-seeded schedule.  A second theorem gives a logarithmic upper mechanism
+at the level of full-face trigger kernels.
+
+\begin{theorem}[No universal constant warmup on reachable stars; proved here]
+\label{thm:reachable-star-no-constant}
+For every fixed integer $J\geq1$, there is an arm count $B_J$ such that for
+every $B\geq B_J$ the following holds.  Let $G_B$ be the unit $B$-star, seed
+leaf one, and set
+\begin{equation}
+ q_B=\frac{1}{2(B+1)},\qquad
+ \alpha_B=\frac{q_B^2}{1+q_B^2},\qquad
+ \rho_B=\frac{1}{4B}.
+ \label{eq:reachable-star-parameters}
+\end{equation}
+Starting from zero, run exact obstacle-prox stages with $\beta=0$ until the
+full face first appears, run exactly $J$ further full-face pure-prox stages,
+and then use $\beta_B=(1-q_B)/(1+q_B)$.  The seeded
+leaf of the second momentum trigger is negative.  Consequently no
+graph-size-independent constant $J$ can certify this exact policy.
+
+This is not a solver lower bound.  It does not exclude a $q$-dependent or
+adaptive warmup, a different momentum rule, or a finite-inner method with
+explicit margins.
+\end{theorem}
+
+\begin{proof}
+Put $t=(1-\alpha_B)/2$, $\kappa=1-2\alpha_B$, and
+$R_B=\kappa/t=2-1/[2(B+1)^2]$.  By symmetry, retain three coordinates:
+the center $c$, the seeded leaf $s$, and one common value $o$ for every
+other leaf.  In the scaled variable $X=(t/\alpha_B)x$, the shifted Hessian is
+$tK_B$, where
+\begin{equation}
+ K_B=
+ \begin{pmatrix}
+  3B&-1&-(B-1)\\
+  -1&3&0\\
+  -1&0&3
+ \end{pmatrix},
+ \qquad
+ \frac{\widetilde c}{\alpha_B}
+ =\left(-\frac14,1-\frac{1}{4B},-\frac{1}{4B}\right)^{\!\top}.
+ \label{eq:reachable-star-three-class}
+\end{equation}
+
+While only $c,s$ are positive, write $Z_n=BX_{n,c}$ and $S_n=X_{n,s}$.
+The exact two-class recurrence is
+\begin{align}
+ r_{c,n}&=-\frac14+R_BZ_{n-1},&
+ r_{s,n}&=1-\frac{1}{4B}+R_BS_{n-1},
+ \label{eq:reachable-star-rhs}\\
+ Z_n&=\frac{B(3r_{c,n}+r_{s,n})}{9B-1},&
+ S_n&=\frac{r_{c,n}+3Br_{s,n}}{9B-1},
+ \label{eq:reachable-star-restricted-recurrence}
+\end{align}
+starting at zero.  The inactive-other KKT condition is exactly $Z_n\leq1/4$.
+Taking $B\to\infty$ in these rational functions gives
+\begin{equation}
+ (Z_1,Z_2,Z_3)\longrightarrow
+ \left(\frac1{36},\frac{13}{108},\frac{25}{108}\right),
+ \qquad
+ Z_4^{\rm res}\longrightarrow\frac{329}{972}>\frac14.
+ \label{eq:reachable-star-admission-limits}
+\end{equation}
+All inequalities are strict.  Rational continuity therefore implies that,
+for every sufficiently large $B$, the first three outputs have support
+$\{c,s\}$ and the fourth output admits all other leaves.
+
+For the fourth, full-face solve put $W_4=BX_{4,o}$.  The limiting three
+equations give
+\begin{equation}
+ Z_4\longrightarrow\frac{151}{432},\qquad
+ S_4\longrightarrow\frac{65}{81},\qquad
+ W_4\longrightarrow\frac{43}{1296},
+ \label{eq:reachable-star-full-state}
+\end{equation}
+so all three classes are strictly positive.  Let
+$Y_4=\widetilde c-\widetilde Qx_4$.  Exact shifted optimality gives
+$Y_4=\kappa D(x_4-x_3)$.  Hence, in normalized coordinates,
+\begin{equation}
+ \alpha_B^{-1}D^{-1/2}Y_4
+ \longrightarrow \frac{16}{81}e_{\mathrm{seed}}
+ \quad\hbox{in }\ell_2.
+ \label{eq:reachable-star-residual-limit}
+\end{equation}
+Indeed the seeded entry tends to
+$R_B(S_4-S_3)\to16/81$, the center is $O(B^{-1/2})$, and the combined norm
+of the other leaves is $O(B^{-1/2})$.  The residual is strictly positive for
+all sufficiently large $B$; subsequent pure-prox stages preserve positivity.
+
+The normalized full-face residual map has eigenvalues
+\begin{equation}
+ m_+=1-q_B^2,\qquad m_z=\frac23(1-q_B^2),\qquad
+ m_- =\frac12(1-q_B^2),
+ \label{eq:reachable-star-three-modes}
+\end{equation}
+where the leaf-contrast eigenspace for $m_z$ has multiplicity $B-1$.  After
+$J$ pure-prox stages, the scalar polynomial of the second momentum trigger is
+\begin{equation}
+ F_J(m)=m^J\left((1+\beta_B)^2m-\beta_B(2+\beta_B)\right).
+ \label{eq:reachable-star-second-trigger-polynomial}
+\end{equation}
+The first trigger is nonnegative by \cref{prop:first-momentum-safe}, since
+$\alpha_B\leq1/5$.  The seeded coordinate in
+\eqref{eq:reachable-star-residual-limit} is asymptotically entirely leaf
+contrast.  Therefore, for every fixed $J$,
+\begin{equation}
+ \alpha_B^{-1}(U_1^{(J)}Y_4)_s
+ \longrightarrow
+ \frac{16}{81}F_J(2/3)
+ =-\frac{16}{243}\left(\frac23\right)^J<0.
+ \label{eq:reachable-star-negative-limit}
+\end{equation}
+Strict convergence proves the claimed threshold $B_J$.
+\end{proof}
+
+The exact three-class verifier supplies a finite guard for the asymptotic
+argument.  At $B=50$, $J=6$, $q=1/102$, and $\rho=1/200$, the first negative
+trigger is the seeded leaf at stage $11=J+5$, with value
+\begin{equation}
+ -\frac{147824969167474143070830622648108443644686306420711}
+ {5876713986025144219355264603664195883039449023398155386880}.
+ \label{eq:reachable-star-b50-witness}
+\end{equation}
+
+\begin{theorem}[Matching logarithmic reachable-star lower bound; proved here]
+\label{thm:reachable-star-logarithmic-lower}
+There is an absolute $B_0$ such that, for every $B\geq B_0$ and every integer
+\begin{equation}
+ 1\leq J\leq
+ \min\left\{B,
+ \left\lfloor\log_{3/2}\!\left(\frac{9B}{6400}\right)\right\rfloor
+ \right\},
+ \label{eq:reachable-star-logarithmic-lower-range}
+\end{equation}
+the literal trajectory of \cref{thm:reachable-star-no-constant} reaches the
+full face at $x_4$, survives the first momentum stage, and its seeded-leaf
+normalized residual at the second momentum trigger satisfies
+\begin{equation}
+ \alpha_B^{-1}(U_1^{(J)}Y_4)_s\leq-\frac{2}{B}.
+ \label{eq:reachable-star-logarithmic-lower-margin}
+\end{equation}
+The integer range becomes nonempty at $B=1067$.  Together with
+\cref{thm:star-logarithmic-warmup}, this gives a $\Theta(\log B)$ warmup
+scale for this exact pure-prox-then-global-momentum policy.  It remains a
+policy-specific statement, not a lower bound for all local solvers.
+\end{theorem}
+
+\begin{proof}
+Write the exact normalized entrance residual as
+\[
+ \alpha_B^{-1}D^{-1/2}Y_4
+ =\left(C_B/\sqrt B,S_B,O_B,\ldots,O_B\right).
+\]
+Direct substitution of the three-class recurrence gives, for every $B\geq2$,
+\begin{equation}
+ 0<C_B<1,\qquad
+ 0<S_B+(B-1)O_B<1,\qquad
+ S_B-O_B\geq\frac{3}{20}.
+ \label{eq:reachable-star-residual-margins}
+\end{equation}
+These are exact rational inequalities.  For example, the last left-hand
+side is
+\[
+ \frac{(2B+1)(2B+3)}{96(B+1)^8(9B-1)^3}
+ \begin{aligned}[t]
+ (&3456B^9+20376B^8+47328B^7+56134B^6+38516B^5\\
+  &+18173B^4+6724B^3+1423B^2+23B-1).
+ \end{aligned}
+\]
+After subtracting $3/20$, clearing the positive denominator, and putting
+$B=b+2$, every coefficient is nonnegative and the constant coefficient is
+positive.  The other two bounds have the same coefficient certificate; the
+exact verifier checks all three symbolic polynomials.
+
+Let $F_+,F_z,F_-$ denote \eqref{eq:reachable-star-second-trigger-polynomial}
+at the three modes in \eqref{eq:reachable-star-three-modes}.  Exact star
+spectral projectors give
+\begin{align}
+ T_{B,J}:={}&\alpha_B^{-1}(U_1^{(J)}Y_4)_s\notag\\
+ ={}&\frac{(F_+-F_-)C_B}{2B}
+ +\frac{(F_++F_-)(S_B+(B-1)O_B)}{2B}
+ +\left(1-\frac1B\right)(S_B-O_B)F_z.
+ \label{eq:reachable-star-exact-seed-trigger}
+\end{align}
+With $m_0=1-q_B^2$, scalar simplification yields
+\begin{align*}
+ F_+&=m_0^J\frac{(1-q_B)(1+3q_B)}{(1+q_B)^2},\\
+ F_-&=-m_-^J\left(\frac{1-q_B}{1+q_B}\right)^2,\\
+ F_z&=-\left(\frac23\right)^Jm_0^J
+ \frac{(1-q_B)(1-5q_B)}{3(1+q_B)^2}.
+\end{align*}
+Thus $|F_+|,|F_-|\leq1$.  For $B\geq4$ and $J\leq B$,
+$m_0^J\geq3/4$ and the final rational factor in $F_z$ is at least $1/10$.
+Using \eqref{eq:reachable-star-residual-margins} in
+\eqref{eq:reachable-star-exact-seed-trigger} gives
+\begin{equation}
+ T_{B,J}\leq\frac{2}{B}
+ -\frac{9}{1600}\left(\frac23\right)^J.
+ \label{eq:reachable-star-quantitative-trigger-bound}
+\end{equation}
+The range \eqref{eq:reachable-star-logarithmic-lower-range} makes the second
+term at least $4/B$.  The support chronology holds for all sufficiently
+large $B$ by the strict limits in
+\eqref{eq:reachable-star-admission-limits}--\eqref{eq:reachable-star-full-state};
+absorbing that fixed threshold into $B_0$ proves the claim.
+\end{proof}
+
+\begin{theorem}[Logarithmic cone-uniform star warmup; proved here]
+\label{thm:star-logarithmic-warmup}
+Let $B\geq2$, $0<q\leq1/2$, and let a supplied full $B$-star face receive any
+nonnegative residual $y$.  If
+\begin{equation}
+ J\geq3,\qquad
+ \left(\frac23\right)^{J-1}\leq\frac{1}{8(B-1)},
+ \label{eq:star-logarithmic-condition}
+\end{equation}
+then $J$ exact pure-prox solves followed by
+$\beta=(1-q)/(1+q)$ make every later trigger nonnegative.  In particular one
+may take
+\begin{equation}
+ J_B=\max\left\{3,
+ 1+\left\lceil\log_{3/2}(8(B-1))\right\rceil\right\}.
+ \label{eq:star-logarithmic-warmup}
+\end{equation}
+This is an exact fixed-full-face theorem, not a finite-inner margin theorem.
+\end{theorem}
+
+\begin{proof}
+Let $m_0=1-q^2$, $\theta=1-q$, and let $u_k(m)$ be the scalar trigger
+kernel, with
+\begin{align*}
+ u_{-1}(m)&=m^{J-1},\\
+ u_0(m)&=m^{J-1}((1+\beta)m-\beta),\\
+ u_{k+1}(m)&=m((1+\beta)u_k(m)-\beta u_{k-1}(m)).
+\end{align*}
+On the Perron mode,
+\begin{equation}
+ u_k(m_0)=m_0^{J-1}\theta^{k+1}
+ \left(1+\frac{q(k+1)}{1+q}\right)>0.
+ \label{eq:star-perron-trigger}
+\end{equation}
+For $m=\delta m_0$, $\delta\in\{2/3,1/2\}$, the characteristic roots are
+$\theta\sqrt\delta\,e^{\pm i\phi_\delta}$ with
+$\cos\phi_\delta=\sqrt\delta$.  Direct solution gives
+\begin{equation}
+ u_k(\delta m_0)=(\delta m_0)^{J-1}
+ (\theta\sqrt\delta)^{k+1}
+ \left(\cos((k+1)\phi_\delta)
+ +A_\delta(q)\sin((k+1)\phi_\delta)\right),
+ \label{eq:star-oscillatory-trigger}
+\end{equation}
+where
+\[
+ A_\delta(q)=
+ \frac{\delta(1+q)-1}{(1+q)\sqrt{\delta(1-\delta)}}.
+\]
+For the two displayed values of $\delta$ and $q\leq1/2$,
+$|A_\delta(q)|\leq1$.  Thus, for every $k\geq-1$,
+\begin{equation}
+ \frac{|u_k(\delta m_0)|}{u_k(m_0)}
+ \leq2\delta^{J-1+(k+1)/2}
+ \leq2\delta^{J-1}.
+ \label{eq:star-mode-domination}
+\end{equation}
+
+Write $F_+=u_k(m_+)$, $F_z=u_k(m_z)$, and $F_-=u_k(m_-)$.  Conditions
+\eqref{eq:star-logarithmic-condition} and $J\geq3$ imply
+$|F_-|\leq F_+/2$ and
+$|F_z|\leq F_+/[4(B-1)]$.  The four entry types of
+$u_k(\overline{\mathcal M})$ are
+\begin{align*}
+ cc &: (F_++F_-)/2,\\
+ c\ell &: (F_+-F_-)/(2\sqrt B),\\
+ \ell\ell &: (1-1/B)F_z+(F_++F_-)/(2B),\\
+ \ell\ell' &: -F_z/B+(F_++F_-)/(2B).
+\end{align*}
+The two bounds make each expression nonnegative.  Hence every trigger kernel
+is entrywise nonnegative, and multiplication by $y\geq0$ proves permanent
+full-face safety.
+\end{proof}
+
+\begin{corollary}[Strict full-star kernel margin; proved here]
+\label{cor:star-logarithmic-kernel-margin}
+Under the hypotheses of \cref{thm:star-logarithmic-warmup}, strengthen the
+warmup conditions to
+\begin{equation}
+ J\geq4,\qquad
+ \left(\frac23\right)^{J-1}\leq\frac{1}{16(B-1)}.
+ \label{eq:star-strict-margin-condition}
+\end{equation}
+Then, for every $k\geq-1$ and all star coordinates $i,j$,
+\begin{equation}
+ [u_k(\overline{\mathcal M})]_{ij}
+ \geq\frac{a_k}{4B},
+ \qquad
+ a_k:=u_k(m_0)>0.
+ \label{eq:star-strict-kernel-margin}
+\end{equation}
+Consequently an entrance residual $y\geq0$ has trigger margin at least
+$a_k\lVert y\rVert_1/(4B)$ in every coordinate.
+\end{corollary}
+
+\begin{proof}
+Equations \eqref{eq:star-mode-domination} and
+\eqref{eq:star-strict-margin-condition} give
+$|F_-|\leq a_k/4$ and $|F_z|\leq a_k/[8(B-1)]$.  Substitution in the four
+entry types in the preceding proof gives respective lower bounds
+$3a_k/8$, $3a_k/(8\sqrt B)$, $a_k/(4B)$, and at least $a_k/(4B)$.
+\end{proof}
+
+The margin in \cref{cor:star-logarithmic-kernel-margin} is useful but not
+uniform in time or input scale: $a_k\to0$.  On a fixed finite horizon $T$,
+an absolute finite-inner schedule can compare its accumulated trigger error
+with $\min_{k\leq T}a_k\lVert y\rVert_1/(4B)$.  Permanent finite-inner safety
+instead requires a relative tolerance, a finite window, or a restart rule.
+
+\begin{proposition}[Conditional finite-inner full-star window; proved here]
+\label{prop:star-finite-inner-window}
+Let $B\geq2$, $0<q\leq1/2$, and let a reset admit the final full unit $B$-star from a normalized trigger
+$g\geq0$, and put $G=\lVert g\rVert_1>0$ and $m_0=1-q^2$.  Suppose the
+shifted solve returns normalized right-hand-side residual $\bar a_t$.
+Choose $J$ as in \eqref{eq:star-strict-margin-condition}, fix a momentum
+horizon $0\leq k\leq T$, and set
+\begin{equation*}
+ a_{\min}:=\min_{0\leq k\leq T}u_k(m_0),
+ \qquad
+ h:=\frac{a_{\min}m_0G}{96B}.
+\end{equation*}
+If the admission and $J$ warmup solves have
+$\lVert\bar a_t\rVert_2\leq\xi_{\rm w}$, the momentum-window solves have
+$\lVert\bar a_t\rVert_2\leq\xi_{\rm m}$, and
+\begin{align}
+ \xi_{\rm w}&\leq
+ \min\left\{
+  \frac{m_0G}{24B},
+  \frac{hq}{16(J+1)},
+  \frac{m_0G}{24B(J+1)}\left(\frac{3m_0}{4}\right)^J
+ \right\},
+ \label{eq:star-finite-warm-tolerance}\\
+ \xi_{\rm m}&\leq\frac{hq^2}{8},
+ \label{eq:star-finite-momentum-tolerance}
+\end{align}
+then every trigger through the stated window is strictly positive.  To keep
+the approximate primal state on the full face, it is additionally sufficient
+to enforce the observable per-stage guard
+\begin{equation}
+ \lVert\bar a_t\rVert_2\leq\frac{\lVert u_t\rVert_1}{24B}.
+ \label{eq:star-finite-primal-guard}
+\end{equation}
+This is a one-admission, final-full-face finite-window theorem, not a
+changing-proper-face convergence result.
+\end{proposition}
+
+\begin{proof}
+The four exact entry types of the normalized full-star map are
+\[
+ M_{cc}=\frac{3m_0}{4},\quad
+ M_{c\ell}=\frac{m_0}{4\sqrt B},\quad
+ M_{\ell\ell}=m_0\left(\frac23+\frac{1}{12B}\right),\quad
+ M_{\ell\ell'}=\frac{m_0}{12B}.
+\]
+Thus the exact admission output $y_0=Mg$ obeys
+$\min_i(y_0)_i\geq m_0G/(12B)$ and
+$\lVert y_0\rVert_1\geq m_0G/12$.  A finite solve instead gives
+$y_0^{\rm fin}=Mg+(I-M)\bar a_0$, and
+$\lVert(I-M)\bar a_0\rVert_2\leq\lVert\bar a_0\rVert_2$.  The first and
+third bounds in \eqref{eq:star-finite-warm-tolerance} preserve positivity
+through admission and pure warmup; the minimum row sum of $M$ is at least
+$3m_0/4$.
+
+By \cref{cor:star-logarithmic-kernel-margin}, the ideal $k$th momentum
+trigger is at least $a_km_0G/(48B)$ in every coordinate.  The scalar Green
+kernel satisfies $|g_r|\leq(r+1)(1-q)^r$, so the accumulated trigger error is
+at most
+\[
+ \frac{8(J+1)}q\xi_{\rm w}+\frac4{q^2}\xi_{\rm m}\leq h.
+\]
+This leaves at least half the ideal minimum margin.  Finally, the exact primal
+increment is $M u_t/\kappa$, whose minimum coordinate is at least
+$m_0\lVert u_t\rVert_1/(12B\kappa)$, while the solve error is at most
+$m_0\lVert\bar a_t\rVert_2/\kappa$.  This proves
+\eqref{eq:star-finite-primal-guard} and the claim.
+\end{proof}
+
+\begin{proposition}[Strict proper faces defeat permanent global momentum]
+\label{prop:proper-face-global-momentum-stop}
+Let the ambient graph be connected and let $A\subsetneq V$ be a nonempty
+connected fixed face.  For any finite number $J$ of pure-prox warmup solves,
+the global choice $\beta=(1-q)/(1+q)$ is not permanently cone-safe on $A$:
+for every nonzero entrance residual $y\geq0$, some later exact fixed-face
+trigger has a negative coordinate.
+\end{proposition}
+
+\begin{proof}
+Let $S_A=D_A^{-1/2}A_{AA}D_A^{-1/2}$.  The strict Dirichlet face has Perron
+eigenvalue $\lambda_1<1$ and a positive Perron vector $\phi_1$.  With
+$m_0=1-q^2$, the corresponding residual-map eigenvalue is
+\[
+ m_1=\delta_1m_0,
+ \qquad \delta_1=\frac{2}{3-\lambda_1}<1.
+\]
+The scalar momentum characteristic roots are
+$(1-q)\sqrt{\delta_1}\,e^{\pm i\varphi_1}$ with
+$\cos\varphi_1=\sqrt{\delta_1}$.  Hence $u_k(m_1)$ is a nonzero damped
+sinusoid and is negative for some $k$; multiplying by $m_1^{J-1}$ changes
+only its amplitude.  Since
+\[
+ \langle\phi_1,u_k(\overline{\mathcal M})y\rangle
+ =u_k(m_1)\langle\phi_1,y\rangle
+\]
+and the second factor is positive, that trigger cannot be componentwise
+nonnegative.  The negative time may diverge as $\lambda_1\uparrow1$, so the
+claim does not exclude finite windows or face-adapted momentum.
+\end{proof}
+
+The proper-face obstruction still admits a conditional accelerated window if
+momentum is tuned to the face and both components of the actual common-cap
+correction are retained.
+
+\begin{proposition}[Face-tuned Perron-split accepted window]
+\label{prop:proper-face-perron-split-window}
+Let $M_A$ be the $D$-self-adjoint positive residual map on a fixed connected
+face.  Let $M_A\phi=\mu_1\phi$, where
+$\phi>0$, $\lVert\phi\rVert_D=1$, and put
+\begin{equation*}
+ q_{\mathrm{face}}:=\sqrt{1-\mu_1},\qquad
+ \theta_A:=1-q_{\mathrm{face}},\qquad
+ \beta_A:=\frac{1-q_{\mathrm{face}}}{1+q_{\mathrm{face}}},\qquad
+ P_\phi:=I-\phi\phi^{\mathsf T}D.
+\end{equation*}
+Run the exact fixed-face safeguarded recurrence with this $\beta_A$.  For its
+actual common-cap correction $r_t$, define
+\begin{equation*}
+ a_t:=\langle e_t,\phi\rangle_D,\qquad
+ h_t:=P_\phi e_t,\qquad
+ \bar r_t:=\langle r_t,\phi\rangle_D,
+\end{equation*}
+and
+\begin{equation*}
+ H_t:=\sqrt{\mathcal V_A(h_t,h_{t-1})},\qquad
+ \mathcal V_A(u,v):=\lVert u\rVert_D^2
+ -(1+\beta_A)\langle u,M_Av\rangle_D
+ +\beta_A\langle v,M_Av\rangle_D.
+\end{equation*}
+After a same-point restart, let $T=\lceil2/q_{\mathrm{face}}\rceil$ and
+$\rho_T=(1+q_{\mathrm{face}}T)\theta_A^T<1/2$.  Then
+\begin{align}
+ H_T+a_T
+ &\leq\rho_T(H_0+a_0)+\mathcal G_T,\notag\\
+ \mathcal G_T
+ &:=\sum_{t=0}^{T-1}\theta_A^{T-1-t}
+       \lVert M_AP_\phi r_t\rVert_D
+   +\mu_1\sum_{t=0}^{T-1}(T-t)\theta_A^{T-1-t}\bar r_t.
+ \label{eq:proper-face-perron-split-window}
+\end{align}
+Consequently the observable gate
+\begin{equation}
+ \mathcal G_T\leq(1/2-\rho_T)a_0
+ \label{eq:proper-face-perron-split-gate}
+\end{equation}
+implies $H_T+a_T\leq(H_0+a_0)/2$.  If
+$Q_A\phi=\lambda_1\phi$ and $y_0=Q_Ae_0$ is the active residual, then
+$a_0=\langle y_0,\phi\rangle_D/\lambda_1$.  Thus the gate is checkable from a
+certified face Perron pair and the realized cap, although the eigencertificate
+and the applications of $M_A$ remain charged work.
+\end{proposition}
+
+\begin{proof}
+Projection of the exact correction recurrence gives
+\begin{align*}
+ a_{t+1}
+ &=\mu_1[(1+\beta_A)a_t-\beta_Aa_{t-1}+\bar r_t],\\
+ h_{t+1}
+ &=M_A[(1+\beta_A)h_t-\beta_Ah_{t-1}+P_\phi r_t].
+\end{align*}
+On every eigenmode below the Perron mode, a correction-free transition obeys
+$\mathcal V_{t+1}=\beta_Am\mathcal V_t\leq\theta_A^2\mathcal V_t$.
+The triangle inequality in the pair norm therefore gives
+\begin{equation*}
+ H_{t+1}\leq\theta_AH_t+\lVert M_AP_\phi r_t\rVert_D.
+\end{equation*}
+The Perron scalar has the critical repeated root $\theta_A$.  Its Green
+formula after a same-point restart is
+\begin{equation*}
+ a_T=(1+q_{\mathrm{face}}T)\theta_A^Ta_0
+ +\mu_1\sum_{t=0}^{T-1}(T-t)\theta_A^{T-1-t}\bar r_t.
+\end{equation*}
+Unroll the high root and add the two identities.
+\end{proof}
+
+\begin{corollary}[Proper-face accepted-or-Perron-paid macro]
+\label{cor:proper-face-perron-accepted-paid}
+Under the hypotheses of
+\cref{prop:proper-face-perron-split-window}, assume the exact trajectory is
+monotone and put
+\begin{equation*}
+ \gamma_A:=\min_{i\in A}\phi_i>0,
+ \qquad
+ \mu_2:=\norm{M_A|_{\phi^\perp}}_D,
+ \qquad
+ \eta_A:=\frac12-\rho_T,
+ \qquad
+ B_A:=\frac{\mu_2}{\gamma_A}+\frac{\mu_1}{q_{\mathrm{face}}}.
+\end{equation*}
+Every length-$T$ macro satisfies the dichotomy
+\begin{align*}
+ &\mathcal G_T\leq\eta_Aa_0
+   &&\Longrightarrow&H_T+a_T&\leq\frac12(H_0+a_0),\\
+ &\mathcal G_T>\eta_Aa_0
+   &&\Longrightarrow&a_T&<
+    \left(1-\frac{\eta_A}{\beta_AB_A}\right)a_0.
+\end{align*}
+Thus every rejected window spends a definite fraction of the Perron mean,
+but that fraction is only
+$\Theta((q_{\mathrm{face}}^{-1}+\gamma_A^{-1})^{-1})$.  This direct common-cap telescope
+can therefore allow $\Theta(1/q_{\mathrm{face}})$ rejected macros, or
+$\Theta(1/q_{\mathrm{face}}^2)$ stages, even when $\gamma_A\gtrsim q_{\mathrm{face}}$; by itself it is
+not an accelerated packing theorem.
+\end{corollary}
+
+\begin{proof}
+Because $r_t\geq0$, $d_i\geq1$, and $\phi_i\geq\gamma_A$,
+\begin{equation*}
+ \norm{M_AP_\phi r_t}_D
+ \leq\mu_2\norm{r_t}_D
+ \leq\frac{\mu_2}{\gamma_A}\bar r_t.
+\end{equation*}
+Moreover
+$\max_{k\geq1}k\theta_A^{k-1}\leq q_{\mathrm{face}}^{-1}$ and
+$0\leq r_t\leq\beta_Ad_t$.  Telescoping
+$\langle d_t,\phi\rangle_D=a_{t-1}-a_t$ gives
+\begin{equation*}
+ \mathcal G_T
+ \leq\beta_AB_A(a_0-a_T).
+\end{equation*}
+Combine this with
+\cref{eq:proper-face-perron-split-gate}.
+\end{proof}
+
+\begin{corollary}[Finite error-bar Perron gate]
+\label{cor:proper-face-finite-perron-gate}
+Retain the fixed-face data of
+\cref{prop:proper-face-perron-split-window}, including a certified unit
+Perron vector and certified bounds $\mu_1,\mu_2$.  Suppose
+\begin{equation*}
+ \norm{\widehat y_0-y_0}_D\leq\eta_0,
+ \qquad
+ \norm{\widehat r_t-r_t}_D\leq\eta_t^r,
+ \qquad
+ \lambda_1=\frac{\kappa(1-\mu_1)}{\mu_1},
+\end{equation*}
+and define the computable confidence bounds
+\begin{align*}
+ a_0^-&:=\frac{\langle\widehat y_0,\phi\rangle_D-\eta_0}{\lambda_1}>0,\\
+ \bar r_t^+&:=[\langle\widehat r_t,\phi\rangle_D+\eta_t^r]_+,\\
+ \chi_t^+&:=\mu_2
+   (\norm{P_\phi\widehat r_t}_D+\eta_t^r).
+\end{align*}
+Let the finite solve at stage $t$ differ from its exact fixed-face output by
+$\varepsilon_t$, and put
+\begin{align*}
+ \widehat{\mathcal G}_T
+ &:={\sum_{t=0}^{T-1}\theta_A^{T-1-t}\chi_t^+}
+  +\mu_1\sum_{t=0}^{T-1}(T-t)\theta_A^{T-1-t}\bar r_t^+,\\
+ \mathcal E_T
+ &:=\sum_{t=0}^{T-1}(T-t+1)\theta_A^{T-1-t}
+       \norm{\varepsilon_t}_D.
+\end{align*}
+Then the certified gate
+\begin{equation}
+ \widehat{\mathcal G}_T+\mathcal E_T
+ \leq(1/2-\rho_T)a_0^-
+ \label{eq:proper-face-finite-perron-gate}
+\end{equation}
+implies the actual finite inequality $H_T+a_T\leq(H_0+a_0)/2$.
+
+If every normalized inner end residual is at most $\xi$ in $D$-norm, then
+$\norm{\varepsilon_t}_D\leq(\mu_1/\kappa)\xi$.  Allocating half of the gate
+margin to finite error is ensured by
+\begin{equation}
+ \xi\leq
+ \frac{\kappa q_{\mathrm{face}}^2(1/2-\rho_T)a_0^-}
+      {2\mu_1(1+q_{\mathrm{face}})}.
+ \label{eq:proper-face-finite-perron-inner-budget}
+\end{equation}
+All statements are conditional on the finite outputs remaining in the same
+relative interior.  Producing the Perron data and materializing $\phi$ are
+charged operations, not free certificates.
+\end{corollary}
+
+\begin{proof}
+Cauchy--Schwarz makes $a_0^-$ a lower confidence bound, while
+$\bar r_t^+$ and $\chi_t^+$ dominate the two exact cap charges in
+\cref{eq:proper-face-perron-split-window}.  The finite forcing enters the
+high root once and the Perron repeated-root Green kernel with weight $T-t$,
+giving $\mathcal E_T$.  Apply the triangle inequality and the exact window
+bound.  Finally,
+\begin{equation*}
+ \sum_{j\geq0}(j+2)\theta_A^j=\frac{1+q_{\mathrm{face}}}{q_{\mathrm{face}}^2}
+\end{equation*}
+proves
+\cref{eq:proper-face-finite-perron-inner-budget}.
+\end{proof}
+
+\begin{proposition}[Disconnected faces require componentwise Perron accounts]
+\label{prop:proper-face-componentwise-perron}
+Suppose a fixed face is the disjoint union of connected components
+$A=\bigsqcup_c A_c$ and the safeguarded error is coordinatewise nonnegative.
+On each component form its own Perron data
+$(\phi_c,\mu_{1,c},q_c,\beta_c)$ and the split bank $Z_c=H_c+a_c$ from
+\cref{prop:proper-face-perron-split-window}.  A block-diagonal controller
+which uses $\beta_c$ on $A_c$ and records the realized component correction
+$r_{t,c}$ satisfies the exact Perron gate and finite error-bar gate on every
+component separately.  Its accepted fixed-face work is the sum of the
+component works,
+\begin{equation*}
+ \sum_c\widetilde O\!\left(
+   \frac{\vol(A_c)}{\sqrt{\lambda_{1,c}}}\right),
+\end{equation*}
+plus one connected-component scan.
+
+A single Perron vector and a single critical momentum parameter do not give
+such a theorem in general.  If the values $\mu_{1,c}$ are unequal, a Perron
+vector for the spectral radius vanishes on every faster component, so its
+minimum coordinate is zero.  Tuning $\beta$ to the slowest component makes
+the Perron recurrence on a faster component underdamped; no finite
+pure-prox warmup changes its phase, and a later trigger is negative.
+
+Under nested active-set additions, components can only remain separate or
+merge.  If a set $G$ of old components merges into a connected face $B$,
+same-point restart gives the conditional bridge
+\begin{equation}
+ Z_B^{\rm rst}
+ \leq\sqrt2\left(\sum_{c\in G}C_c^2Z_c^2\right)^{1/2}
+ +2\sqrt{\frac{\Delta_{G\to B}}{\lambda_{1,B}}},
+ \qquad
+ C_c:=\min\{\delta_c^{-1/2},\gamma_c^{-1}\},
+ \label{eq:proper-face-component-merge}
+\end{equation}
+where
+$\delta_c=1-\mu_{2,c}/\mu_{1,c}$ (set $\delta_c=1$ on a singleton) and
+$\gamma_c=\min_i(\phi_c)_i$.  Thus componentwise accounting repairs the
+zero-coordinate obstruction, but a merge still carries explicit spectral
+gap, Perron-spread, and $1/\sqrt{\lambda_{1,B}}$ costs.
+\end{proposition}
+
+\begin{proof}
+Both $Q_A$ and $M_A$ are block diagonal, so projecting the recurrence onto
+each component reproduces the proof of
+\cref{prop:proper-face-perron-split-window} with that component's parameters.
+For a single global $\beta$, the characteristic roots on any component whose
+Perron resolvent eigenvalue is below the critical one are a nonzero damped
+complex-conjugate pair; multiplying the entrance state by any finite power
+of $M_A$ changes only its amplitude.  This proves the STOP.
+
+For the merge bridge, the old split bank controls its component error by
+$\norm{e_c}_D\leq C_cZ_c$.  The new restarted bank is at most
+$\sqrt2$ times the embedded Euclidean error norm.  The optimum displacement
+$h=x_B^\star-(x_G^\star,0)$ obeys
+$\norm h_D\leq\sqrt{2\Delta_{G\to B}/\lambda_{1,B}}$.
+The triangle inequality proves
+\cref{eq:proper-face-component-merge}.
+\end{proof}
+
+This proposition assumes monotone nested additions.  A genuine deletion
+that splits a previously connected face is a nonnested change: the restricted
+optimum gain need not be nonnegative or telescope, so the old histories must
+be discarded and a separate two-sided transfer certificate supplied.
+
+The Perron split does not make the actual coordinatewise common cap into a
+common cap in ground-state coordinates.  This is already visible on a
+three-vertex reachable trajectory.
+
+\begin{proposition}[$P_3$ proper-face Perron/common-cap STOP]
+\label{prop:p3-proper-perron-cap-stop}
+Take $P_3$, seed $(1/2,1/2,0)$, $q=1/4$, and $\rho=1/4$.  The optimal and
+settled face is $A=\{0,1\}$, and the exact event word through stage five is
+$NNNNPN$.  At the partial correction at stage four,
+\begin{equation*}
+ \Delta=\frac{137457}{53453440},\qquad
+ \operatorname{cap}=\frac{53541}{13363360},\qquad
+ r=(\Delta,\Delta,0).
+\end{equation*}
+On $A$, the minimum/Perron eigenpair of
+\begin{equation*}
+ Q_A=\frac1{17}\begin{pmatrix}9&-8\\-4&9\end{pmatrix}
+\end{equation*}
+is $\lambda_1=(9-4\sqrt2)/17$ and $\phi=(\sqrt2,1)$.  Hence the correction
+in Perron coordinates is $(\Delta/\sqrt2,\Delta)$, not a common cap.
+Moreover, on the pure Perron ray the global-$q$ momentum has its first
+negative trial scalar at index five.  Thus neither a ground-state change of
+variables nor Perron alignment alone permits importing the full-face
+common-cap master theorem with the global momentum parameter.  This does not
+stop the face-tuned gate in
+\cref{prop:proper-face-perron-split-window}.
+\end{proposition}
+
+\begin{proof}
+All trajectory values and cap comparisons are rational.  The registered
+checker verifies the support chronology and word exactly.  It also checks the
+quadratic-surds eigenpair.  The proper-face Perron residual-map eigenvalue is
+$m_1=(90+15\sqrt2)/136<m_0=15/16$, and the global-$\beta$ trial at index five
+is
+\begin{equation*}
+ \frac{-3977667+1608417\sqrt2}{227177120}<0,
+\end{equation*}
+while the preceding five trial scalars are positive.
+\end{proof}
+
+The preceding obstruction is specific to using the full-graph momentum
+parameter on a Dirichlet face.  Tuning momentum to the current face restores
+permanent exact cone safety, at the cost of face spectral information.
+
+\begin{theorem}[Face-tuned permanent cone safety; proved here]
+\label{thm:face-tuned-permanent-safety}
+Let $A$ be a finite connected fixed face.  Write the eigenvalues of its
+normalized residual map as $1>\mu_1$, and, in dimension at least two,
+$\mu_1>\mu_2\geq\cdots>0$.  Let $\phi_1>0$ be its unit Perron vector, and put
+\begin{equation*}
+ \gamma:=\min_i(\phi_1)_i,\qquad
+ q_{\mathrm{face}}:=\sqrt{1-\mu_1},\qquad
+ \beta_{\mathrm{face}}:=\frac{1-q_{\mathrm{face}}}{1+q_{\mathrm{face}}},\qquad
+ \delta_i:=\frac{\mu_i}{\mu_1}.
+\end{equation*}
+For $i\geq2$, define
+\begin{equation*}
+ A_i:=\frac{\delta_i(1+q_{\mathrm{face}})-1}
+ {(1+q_{\mathrm{face}})\sqrt{\delta_i(1-\delta_i)}},\qquad
+ C_\star:=\max_{i\geq2}\sqrt{1+A_i^2},\qquad
+ \delta_\star:=\delta_2,
+\end{equation*}
+In dimension one, omit $C_\star,\delta_\star$ and regard the following
+condition as vacuous.  For an integer $J\geq1$, if
+\begin{equation}
+ C_\star\delta_\star^{J-1}\leq\frac{\gamma^2}{2},
+ \label{eq:face-tuned-warmup-condition}
+\end{equation}
+then $J$ pure-prox solves followed by $\beta_{\mathrm{face}}$ give, for every
+$k\geq-1$,
+\begin{equation}
+ [u_k(\overline{\mathcal M}_A)]_{ij}
+ \geq\frac12u_k(\mu_1)(\phi_1)_i(\phi_1)_j
+ \geq\frac{\gamma^2}{2}u_k(\mu_1)>0.
+ \label{eq:face-tuned-kernel-margin}
+\end{equation}
+Hence every nonzero entrance residual $y\geq0$ has a permanently positive
+exact trigger tail.  The warmup depends on the face spectral ratio and Perron
+spread; it is not graph-uniform.
+\end{theorem}
+
+\begin{proof}
+The Perron scalar is
+\[
+ u_k(\mu_1)=\mu_1^{J-1}(1-q_{\mathrm{face}})^{k+1}
+ \left(1+\frac{q_{\mathrm{face}}(k+1)}{1+q_{\mathrm{face}}}\right)>0.
+\]
+For a lower mode, the same calculation as
+\eqref{eq:star-oscillatory-trigger} gives
+\[
+ \frac{|u_k(\mu_i)|}{u_k(\mu_1)}
+ \leq\sqrt{1+A_i^2}\,
+ \delta_i^{J-1+(k+1)/2}
+ \leq C_\star\delta_\star^{J-1}.
+\]
+By Cauchy--Schwarz, the absolute value of each entry of the lower-mode
+spectral remainder is at most the last ratio times $u_k(\mu_1)$.  The Perron
+rank-one entry is at least $\gamma^2u_k(\mu_1)$, so
+\eqref{eq:face-tuned-warmup-condition} proves
+\eqref{eq:face-tuned-kernel-margin}.
+\end{proof}
+
+
+\input{sections/body/fixed_face_tail}
+
+\end{document}

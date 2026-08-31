@@ -1,0 +1,186 @@
+\section{The exact PPR--RPPR comparison bridge}
+\label{sec:comparison-bridge}
+
+The common operator makes a comparison possible, but only after accounting
+for regularization bias and optimization error.  This section gives that
+accounting from first principles.
+
+Recall
+\begin{equation}
+ f(x)=\frac12x^TQx-b^Tx,
+ \qquad
+ F_\rho(x)=f(x)+\alpha\rho\|D^{1/2}x\|_1,
+ \qquad
+ x^\rho:=\argmin_x F_\rho(x).
+ \label{eq:ppr-rppr-objectives}
+\end{equation}
+The unregularized solution is $x^0=Q^{-1}b$.
+
+\begin{lemma}[Sign and residual box for RPPR]
+\label{lem:rppr-residual-box}
+For every $\rho\geq0$, the unique minimizer satisfies $x^\rho\geq0$.  Its
+linear-system residual
+\begin{equation}
+ r^\rho:=b-Qx^\rho
+ \label{eq:rppr-linear-residual}
+\end{equation}
+obeys the componentwise box
+\begin{equation}
+ 0\leq r^\rho\leq\alpha\rho D^{1/2}\mathbf1.
+ \label{eq:rppr-residual-box}
+\end{equation}
+On every coordinate in $\operatorname{supp}(x^\rho)$, the upper inequality
+is an equality.
+\end{lemma}
+
+\begin{proof}
+The matrix $Q$ is SPD with nonpositive off-diagonal entries and $b\geq0$.
+Replacing any $x$ by $|x|$ does not increase the diagonal quadratic or the
+$\ell_1$ term, weakly decreases every off-diagonal quadratic term, and does
+not increase $-b^Tx$.  Uniqueness therefore gives $x^\rho\geq0$.
+
+The KKT equation is
+\begin{equation}
+ Qx^\rho-b+\alpha\rho D^{1/2}z=0,
+ \qquad
+ z_i=1\ \hbox{if }x_i^\rho>0,
+ \quad z_i\in[-1,1]\ \hbox{if }x_i^\rho=0.
+ \label{eq:rppr-kkt-subgradient}
+\end{equation}
+If $x_i^\rho=0$, then
+$(Qx^\rho)_i=\sum_{j\ne i}Q_{ij}x_j^\rho\leq0\leq b_i$, so
+$r_i^\rho\geq0$.  If $x_i^\rho>0$, the KKT equation gives
+$r_i^\rho=\alpha\rho\sqrt{d_i}>0$.  Equation
+\eqref{eq:rppr-kkt-subgradient} now bounds every coordinate above by
+$\alpha\rho\sqrt{d_i}$ and proves the equality statement.
+\end{proof}
+
+\begin{theorem}[Exact regularization-bias bridge]
+\label{thm:rppr-ppr-bias}
+For every $\rho\geq0$,
+\begin{equation}
+ 0\leq x^0-x^\rho\leq\rho D^{1/2}\mathbf1,
+ \qquad
+ \|x^0-x^\rho\|_{D,\infty}\leq\rho.
+ \label{eq:rppr-ppr-bias}
+\end{equation}
+Consequently, any approximation $\widehat x$ satisfying
+$\|\widehat x-x^\rho\|_{D,\infty}\leq\tau$ is a semantic PPR approximation
+with
+\begin{equation}
+ \|\widehat x-x^0\|_{D,\infty}\leq\rho+\tau.
+ \label{eq:rppr-ppr-triangle}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Because $Q$ is a nonsingular $M$-matrix, $Q^{-1}\geq0$ entrywise.  The shared
+normalized Laplacian annihilates $D^{1/2}\mathbf1$, hence
+\begin{equation}
+ QD^{1/2}\mathbf1=\alpha D^{1/2}\mathbf1,
+ \qquad
+ Q^{-1}D^{1/2}\mathbf1=\frac1\alpha D^{1/2}\mathbf1.
+ \label{eq:degree-ground-state}
+\end{equation}
+Using \Cref{lem:rppr-residual-box},
+\begin{equation*}
+ x^0-x^\rho=Q^{-1}r^\rho
+ \in\left[0,
+ Q^{-1}\alpha\rho D^{1/2}\mathbf1\right]
+ =\left[0,\rho D^{1/2}\mathbf1\right].
+\end{equation*}
+This proves \eqref{eq:rppr-ppr-bias}; the triangle inequality proves
+\eqref{eq:rppr-ppr-triangle}.
+\end{proof}
+
+This theorem is why an RPPR solver can be used for PPR: choose, for example,
+$\rho=\tau=\varepsilon_{\rm ppr}/2$.  It is also why one may not silently
+write $\rho=\varepsilon_{\rm ppr}$ inside an RPPR complexity theorem and
+ignore inexact-solve error.
+
+\begin{corollary}[Objective-gap conversion]
+\label{cor:objective-gap-conversion}
+If
+\begin{equation}
+ F_\rho(\widehat x)-F_\rho(x^\rho)\leq\delta,
+ \label{eq:rppr-objective-gap}
+\end{equation}
+then
+\begin{equation}
+ \|\widehat x-x^0\|_{D,\infty}
+ \leq\rho+\sqrt{\frac{2\delta}{\alpha}}.
+ \label{eq:objective-to-semantic}
+\end{equation}
+In particular, $\rho\leq\varepsilon_{\rm ppr}/2$ and
+$\delta\leq\alpha\varepsilon_{\rm ppr}^2/8$ suffice for the semantic PPR
+target.
+\end{corollary}
+
+\begin{proof}
+The objective $F_\rho$ is $\alpha$-strongly convex because
+$Q\succeq\alpha I$.  Therefore
+\begin{equation*}
+ \frac\alpha2\|\widehat x-x^\rho\|_2^2
+ \leq F_\rho(\widehat x)-F_\rho(x^\rho)\leq\delta.
+\end{equation*}
+All graph degrees are at least one, so
+$\|z\|_{D,\infty}\leq\|z\|_2$.  Combine this fact with
+\Cref{thm:rppr-ppr-bias}.
+\end{proof}
+
+The conversion is deliberately conservative: it uses only strong convexity
+and not graph-specific Green-function cancellation.  It is nevertheless a
+valid common accuracy contract under which two RPPR algorithms can be ranked.
+
+\subsection{On a known face, the \texorpdfstring{$\ell_1$}{l1} term becomes a shifted load}
+
+Let $A=\operatorname{supp}(x^\rho)$.  Positivity and the active KKT equations
+give
+\begin{equation}
+ Q_{AA}x_A^\rho
+ =b_A-\alpha\rho D_A^{1/2}\mathbf1_A.
+ \label{eq:rppr-active-face-system}
+\end{equation}
+The inactive KKT test is
+\begin{equation}
+ 0\leq b_j-Q_{jA}x_A^\rho
+ \leq\alpha\rho\sqrt{d_j},
+ \qquad j\notin A.
+ \label{eq:rppr-inactive-face-test}
+\end{equation}
+Thus, after the correct positive face has been identified, RPPR is not a
+different numerical linear-algebra problem: it is the same SPD Stieltjes
+principal matrix $Q_{AA}$ with the right-hand side shifted by the linear
+$\ell_1$ term.  SOR, CG, or a direct response method can solve
+\eqref{eq:rppr-active-face-system}.  What the fixed-face solve does not supply
+is the set $A$ or the exterior inequalities \eqref{eq:rppr-inactive-face-test}.
+
+This is the precise answer to the concern ``SOR is non-$\ell_1$, but FISTA is
+$\ell_1$-regularized.''  SOR is an iterative method for a linear system, not
+an objective class.  It can solve the active linear equations of either PPR
+or RPPR.  The nonsmoothness matters at face discovery and at zero-coordinate
+KKT tests, not inside a fixed positive face.
+
+\subsection{Three legitimate experimental comparisons}
+
+There are three clean ways to compare the algorithms.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Same unregularized problem.}  Set $\rho=0$ so the proximal map
+      in FISTA becomes the identity, run both methods on the same graph and
+      seed, and stop both at the same semantic PPR error.  The published RPPR
+      leaf-star obstruction no longer applies automatically.
+\item \textbf{Same regularized problem.}  Fix the same $\rho$, require the
+      same objective gap or semantic error via
+      \eqref{eq:objective-to-semantic}, and charge both algorithms for finding
+      and checking their active coordinates.  A face-aware SOR method must pay
+      for \eqref{eq:rppr-inactive-face-test}.
+\item \textbf{Same supplied face.}  Give both methods the exact $A$ and
+      compare only their restricted numerical work.  This is a linear-solver
+      rate experiment, not a locality experiment.
+\end{enumerate}
+
+The current center-SOR star and leaf-FISTA star do none of these three
+matching operations.  Their correct joint use is diagnostic: one example
+proves that signed local acceleration can work, and the other identifies a
+specific momentum-locality hazard.

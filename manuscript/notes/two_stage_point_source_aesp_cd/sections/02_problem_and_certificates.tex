@@ -1,0 +1,348 @@
+\subsection{Point-source obstacle form and semantic target}
+\label{subsec:two-stage-obstacle}
+
+For the remainder of the note let $s=e_v$.  Put
+\begin{equation}
+ c_\rho:=b-\alpha\rho D^{1/2}\one.
+ \label{eq:two-stage-load}
+\end{equation}
+The source nonnegativity theorem converts RPPR into the Stieltjes obstacle
+problem
+\begin{equation}
+ x^\star(\rho)
+ =\argmin_{x\geq0}
+ \left\{\frac12\langle x,Qx\rangle-\langle c_\rho,x\rangle\right\}.
+ \label{eq:two-stage-obstacle}
+\end{equation}
+For $x\geq0$, define the boundary key
+\begin{equation}
+ g_i(x):=(c_\rho-Qx)_i.
+ \label{eq:two-stage-key}
+\end{equation}
+At the optimum, $g_i(x^\star)=0$ on $S^\star$ and
+$g_i(x^\star)\leq0$ off $S^\star$.
+
+The note-scoped PPR target is
+\begin{equation}
+ \norm{D^{-1/2}(\widehat x-x^0)}_\infty\leq\epsppr.
+ \label{eq:two-stage-ppr-target}
+\end{equation}
+We use the source comparison
+\begin{equation}
+ 0\leq D^{-1/2}(x^0-x^\star(\rho))\leq\rho\one,
+ \qquad
+ \vol(S^\star(\rho))\leq\frac1\rho.
+ \label{eq:two-stage-rppr-bridge}
+\end{equation}
+
+\begin{lemma}[The point-source active face has one root]
+\label{lem:two-stage-point-source-connected}
+If $S^\star(\rho)$ is nonempty, it contains the seed and induces a connected
+subgraph.
+\end{lemma}
+
+\begin{proof}
+Let $C$ be a connected component of the active induced subgraph that does not
+contain the seed.  Active KKT equalities and the absence of active edges from
+$C$ to the other components give
+\begin{equation*}
+ Q_Cx_C^\star=c_{\rho,C}
+ =-\alpha\rho D_C^{1/2}\one<0.
+\end{equation*}
+The principal Stieltjes inverse is nonnegative, so this would imply
+$x_C^\star<0$, contradicting activity.  Therefore every active component
+contains the unique seed; there can be at most one.
+\end{proof}
+
+One sufficient route is to set
+\begin{equation}
+ \rho=\tau=\frac{\epsppr}{2}
+ \label{eq:two-stage-split}
+\end{equation}
+and return an RPPR approximation satisfying
+$\norm{D^{-1/2}(\widehat x-x^\star(\rho))}_\infty\leq\tau$.
+The stronger envelope-linearization result below gives a simpler second
+route: after using RPPR only to certify a set, solve ordinary PPR on that set.
+
+\subsection{Exact-face and containing-envelope certificates}
+
+\begin{definition}[Exact-face certificate]
+\label{def:two-stage-face-certificate}
+An exact-face certificate is either the certified empty optimum, or a set
+$A\ni v$ and a vector $p_A>0$ such that
+\begin{equation}
+ Q_Ap_A=c_{\rho,A},
+ \qquad
+ c_{\rho,j}-Q_{jA}p_A\leq0\quad(j\in\partial A).
+ \label{eq:two-stage-face-certificate}
+\end{equation}
+It may additionally contain a lower checkpoint $0\leq z\leq p_A$ satisfying
+$c_{\rho,A}-Q_Az\geq0$.
+\end{definition}
+
+Because every nonseed load outside $A\cup\partial A$ is strictly negative
+and has no edge into $A$, the two conditions in
+\cref{eq:two-stage-face-certificate}, together with zero padding, are the
+global obstacle KKT conditions.  Hence $A=S^\star$ and $p_A=x_A^\star$.
+
+\begin{definition}[Containing-envelope certificate]
+\label{def:two-stage-envelope-certificate}
+A containing-envelope certificate is a finite set $E$ for which the
+producing algorithm proves
+\begin{equation}
+ S^\star(\rho)\subseteq E,
+ \qquad
+ \vol(E)\leq V_E.
+ \label{eq:two-stage-envelope-certificate}
+\end{equation}
+The support inclusion may be a theorem of the producing algorithm; it need
+not reveal the exact active face within $E$.
+\end{definition}
+
+The second certificate is deliberately weaker.  Once
+$S^\star\subseteq E$, restricting the obstacle problem to $E$ does not change
+its minimizer.  This observation removes exact face identification, strict
+complementarity, and zero-key decisions from the minimal end-to-end theorem.
+
+\begin{definition}[Approximate-envelope certificate]
+\label{def:two-stage-approximate-envelope}
+For $\delta\geq0$, an approximate-envelope certificate is a finite set $E$
+and a proof that
+\begin{equation}
+ \max_{i\notin E}\frac{x_i^\star(\rho)}{\sqrt{d_i}}\leq\delta.
+ \label{eq:two-stage-approximate-envelope}
+\end{equation}
+A containing-envelope certificate is the special case $\delta=0$.
+\end{definition}
+
+\begin{definition}[Mass-completion certificate]
+\label{def:two-stage-mass-certificate}
+A mass-completion certificate is a sparse vector $z$ and a declared constant
+$c>0$ such that
+\begin{equation}
+ 0\leq z,\qquad b-Qz\geq0,\qquad
+ 1-\langle D^{1/2}\one,z\rangle\leq c\sqrt\alpha.
+ \label{eq:two-stage-mass-certificate}
+\end{equation}
+It is a numerical certificate, but it need not yet meet the requested PPR
+accuracy and it need not contain, approximate, or identify the RPPR support.
+The remaining positive residual mass is small enough for a monotone
+APPR/SOR cleanup.
+\end{definition}
+
+Thus Stage~I has three useful exits: a target-accurate numerical point, a
+set-only envelope, or a lower-safe mass-completion point.  Only the set-only
+exit invokes a new fixed principal linear solve.  The mass exit continues
+from $z$ and is analyzed in
+\cref{prop:two-stage-aesp-appr-mass-handoff,thm:two-stage-mass-capturing-envelope}.
+
+There is also a direct set certificate that bypasses RPPR altogether.  It is
+especially useful when a candidate envelope comes from graph structure rather
+than an obstacle solve.  Put $a=(1+\alpha)/2$ and
+$c=(1-\alpha)/2$.
+
+\begin{definition}[Observable PPR boundary-leakage certificate]
+\label{def:two-stage-leakage-certificate}
+Let $E$ contain the point source, let $u_E=Q_E^{-1}b_E$, and suppose a
+computed vector $\widehat u_E$ has the certified error bar
+\begin{equation}
+ \max_{i\in E}
+ \frac{|(u_E)_i-(\widehat u_E)_i|}{\sqrt{d_i}}
+ \leq\eta.
+ \label{eq:two-stage-leakage-error-bar}
+\end{equation}
+For $j\in\partial E$, define the observable leakage estimate
+\begin{equation}
+ \widehat\ell_j
+ :=\frac{-Q_{jE}\widehat u_E}{\sqrt{d_j}}
+ =\frac{c}{d_j}
+   \sum_{i\in E\cap N(j)}
+   \frac{(\widehat u_E)_i}{\sqrt{d_i}}.
+ \label{eq:two-stage-observed-leakage}
+\end{equation}
+The pair $(E,\widehat u_E)$ is a $\delta$ boundary-leakage certificate if
+\begin{equation}
+ \widehat\ell_j
+ +c\frac{\deg_E(j)}{d_j}\eta
+ \leq\alpha\delta
+ \qquad(j\in\partial E).
+ \label{eq:two-stage-leakage-gate}
+\end{equation}
+\end{definition}
+
+\begin{proposition}[A local leakage gate certifies a PPR envelope]
+\label{prop:two-stage-leakage-certificate}
+If \cref{eq:two-stage-leakage-gate} holds, then the zero extension
+$\widetilde u_E$ satisfies
+\begin{equation}
+ 0\leq\widetilde u_E\leq x^0,
+ \qquad
+ \norm{D^{-1/2}(x^0-\widetilde u_E)}_\infty\leq\delta.
+ \label{eq:two-stage-leakage-conclusion}
+\end{equation}
+Consequently a fixed-envelope Stage~II approximation with normalized error
+at most $\tau$ is a full-PPR $(\delta+\tau)$-approximation.  A residual-based
+fully observable choice is
+\begin{equation}
+ \eta=\frac{\norm{b_E-Q_E\widehat u_E}_2}{\alpha},
+ \label{eq:two-stage-leakage-residual-error}
+\end{equation}
+because $Q_E\succeq\alpha I$ and $d_i\geq1$.
+\end{proposition}
+
+\begin{proof}
+Pad $u_E$ by zero and put $r=b-Q\widetilde u_E$.  Its rows in $E$ vanish.
+Outside $E$ the point-source load vanishes, so
+\begin{equation*}
+ r_j=-Q_{jE}u_E\geq0,
+\end{equation*}
+and nonboundary rows vanish as well.  The error bar gives
+\begin{equation*}
+ \frac{r_j}{\sqrt{d_j}}
+ \leq\widehat\ell_j
+ +c\frac{\deg_E(j)}{d_j}\eta
+ \leq\alpha\delta.
+\end{equation*}
+Thus $0\leq r\leq\alpha\delta D^{1/2}\one$.  Since
+$QD^{1/2}\one=\alpha D^{1/2}\one$ and $Q^{-1}\geq0$,
+\begin{equation*}
+ 0\leq x^0-\widetilde u_E=Q^{-1}r
+ \leq\delta D^{1/2}\one.
+\end{equation*}
+This proves \cref{eq:two-stage-leakage-conclusion}; the terminal error follows
+by the triangle inequality.  Finally, strong convexity gives
+$\norm{u_E-\widehat u_E}_2\leq
+\norm{b_E-Q_E\widehat u_E}_2/\alpha$, which implies
+\cref{eq:two-stage-leakage-error-bar} with the declared $\eta$.
+\end{proof}
+
+\begin{corollary}[An APPR/SOR checkpoint screens the fixed envelope]
+\label{cor:two-stage-monotone-leakage-screen}
+Let $z\geq0$ be a global PPR subsolution, $r=b-Qz\geq0$, and
+$E=\supp(z)\ni v$.  Put
+\begin{equation}
+ \eta_E:=\max_{i\in E}\frac{r_i}{\sqrt{d_i}}.
+ \label{eq:two-stage-internal-key-scale}
+\end{equation}
+Then the exact principal solution obeys
+\begin{equation}
+ 0\leq u_E-z_E
+ \leq\frac{\eta_E}{\alpha}D_E^{1/2}\one.
+ \label{eq:two-stage-monotone-principal-box}
+\end{equation}
+Hence the fully observable gate
+\begin{equation}
+ \frac{r_j}{\sqrt{d_j}}
+ +c\frac{\deg_E(j)}{d_j}\frac{\eta_E}{\alpha}
+ \leq\alpha\delta
+ \qquad(j\in\partial E)
+ \label{eq:two-stage-monotone-leakage-gate}
+\end{equation}
+is sufficient for a $\delta$ boundary-leakage certificate.  If it passes
+before the global APPR stopping test, discarding the monotone history and
+accelerating $Q_Eu_E=b_E$ gives a genuine two-stage continuation rather than
+a redundant tail.
+The still cheaper two-heap sufficient test is
+\begin{equation}
+ \eta_{\partial E}+\frac{c}{\alpha}\eta_E
+ \leq\alpha\delta,
+ \qquad
+ \eta_{\partial E}:=
+ \max_{j\in\partial E}\frac{r_j}{\sqrt{d_j}},
+ \label{eq:two-stage-two-heap-leakage-gate}
+\end{equation}
+with an empty-boundary maximum equal to zero.  It follows from
+$\deg_E(j)/d_j\leq1$ and can be maintained by one lazy heap for internal rows
+and one for boundary rows, without a boundary sweep.  When
+$\partial E=\varnothing$, the leakage gate is vacuous; the displayed
+two-term test is used only for a nonempty boundary.
+\end{corollary}
+
+\begin{proof}
+The principal error satisfies
+$Q_E(u_E-z_E)=r_E\leq\eta_ED_E^{1/2}\one$.  Since
+$Q_ED_E^{1/2}\one\geq\alpha D_E^{1/2}\one$, inverse positivity proves
+\cref{eq:two-stage-monotone-principal-box}.  The current exterior residual
+density is exactly the leakage estimate
+$r_j/\sqrt{d_j}=-Q_{jE}z_E/\sqrt{d_j}$.  Substituting
+$\eta=\eta_E/\alpha$ in
+\cref{eq:two-stage-leakage-gate} proves the claim.
+\end{proof}
+
+This gate is the shortest literal two-stage interface in the note.  Stage~I
+may propose $E$ by APPR, SOR, AESP-CD, a rooted ball, or a structural
+reporter; a coarse fixed-envelope solve and one boundary scan decide whether
+the set is sufficient.  If it passes, Stage~II refines the same principal
+system once.  No RPPR support, zero-key decision, or obstacle history is part
+of the certificate.  If it fails, the positive leakage rows name where the
+envelope must grow, subject to the same hard cap and fallback discipline as
+the other lanes.
+
+The following further reduction is the key two-stage simplification.  Let
+$u_E$ solve the \emph{unregularized} principal PPR system
+\begin{equation}
+ Q_Eu_E=b_E,
+ \qquad \widetilde u_E:=\text{the zero extension of }u_E.
+ \label{eq:two-stage-restricted-ppr}
+\end{equation}
+
+\begin{proposition}[An approximate RPPR envelope linearizes Stage~II]
+\label{prop:two-stage-envelope-linearization}
+For any $E$, put
+$\delta_E:=\max_{i\notin E}x_i^\star(\rho)/\sqrt{d_i}$, with the maximum of
+the empty set equal to zero.  Then
+\begin{equation}
+ 0\leq u_E\leq x_E^0,
+ \qquad
+ \norm{D^{-1/2}(x^0-\widetilde u_E)}_\infty
+ \leq\rho+\delta_E.
+ \label{eq:two-stage-envelope-linearization}
+\end{equation}
+In particular, a $\delta$-approximate-envelope certificate incurs at most
+$\rho+\delta$ truncation error.  A containing envelope incurs at most
+$\rho$.  Stage~II may therefore solve
+\cref{eq:two-stage-restricted-ppr}; it need not solve the obstacle problem
+again or classify the coordinates inside $E$.
+\end{proposition}
+
+\begin{proof}
+The RPPR comparison gives, outside $E$,
+\begin{equation*}
+ 0\leq x_i^0\leq x_i^\star(\rho)+\rho\sqrt{d_i}
+ \leq(\rho+\delta_E)\sqrt{d_i}.
+\end{equation*}
+Put $w=x_E^0-u_E$.  The full and principal PPR equations give
+\begin{equation*}
+ Q_Ew=-Q_{E\bar E}x_{\bar E}^0\geq0,
+\end{equation*}
+so inverse positivity gives $0\leq u_E\leq x_E^0$.  Let
+$\gamma=\rho+\delta_E$.  Since
+$x_{\bar E}^0\leq\gamma D_{\bar E}^{1/2}\one$ and
+$Q_{E\bar E}\leq0$,
+\begin{equation*}
+ Q_Ew
+ \leq-Q_{E\bar E}\gamma D_{\bar E}^{1/2}\one
+ \leq Q_E\gamma D_E^{1/2}\one.
+\end{equation*}
+The last inequality is the restriction of
+$QD^{1/2}\one=\alpha D^{1/2}\one$.  A final use of principal inverse
+positivity yields $0\leq w\leq\gamma D_E^{1/2}\one$.  Together with the
+outside bound, this proves \cref{eq:two-stage-envelope-linearization}.
+\end{proof}
+
+\begin{remark}[The linearization is not point-source specific]
+The proof uses only $b\geq0$, the Stieltjes signs, and an envelope containing
+the RPPR support.  It therefore extends to every nonnegative source
+distribution.  The point-source restriction is needed for the strongest
+known Stage~I locality, connected-support, and rooted-reporter results, not
+for the fixed-envelope linear solve.
+\end{remark}
+
+\subsection{Charged work}
+
+Scanning row $i$ costs $d_i$.  Stage~I work includes every exposure, repeated
+row read, coordinate or batch update, boundary query, response or factor
+update, certificate scan, and state write.  Stage~II charges every restricted
+linear-system matrix application and final output write.  Preprocessing
+outside the exposed graph is not free.  All exact-real structural results and finite-precision
+claims are kept separate.

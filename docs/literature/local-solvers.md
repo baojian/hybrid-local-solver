@@ -19,6 +19,82 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 ## Source annotations
 
+## Citation key: `zhou2024iterative`
+
+- Citation: Baojian Zhou, Yifan Sun, Reza Babanezhad Harikandeh, Xingzhi Guo,
+  Deqing Yang, and Yanghua Xiao. “Iterative Methods via Locally Evolving Set
+  Process.” *Advances in Neural Information Processing Systems 37*, 2024.
+- DOI/arXiv/URL: <https://doi.org/10.48550/arXiv.2410.15020>; arXiv
+  `2410.15020v1`.
+- Local PDF:
+  `papers/2024-neurips-zhou-iterative-methods-locally-evolving-set-process.pdf`.
+- Relevance: The paper introduces the locally evolving-set framework and the
+  rescaled symmetric lazy-PageRank system used by LocGD, LocSOR, LocCH, and
+  LocHB. It is the principal source for translating those algorithms into the
+  active manuscript’s unscaled lazy system.
+- Exact pointers:
+  - PDF page 1, Equation (1): defines the lazy column-walk PPR system and the
+    degree-normalized infinity-error target.
+  - PDF pages 2-3, Section 2.2 and Equations (3)-(4): define
+    `Q_rs = I - ((1-alpha)/(1+alpha)) D^{-1/2} A D^{-1/2}`, the right-hand
+    side `2 alpha/(1+alpha) D^{-1/2} e_s`, the spectrum
+    `[2 alpha/(1+alpha), 2/(1+alpha)]`, the recovery
+    `pi = D^{1/2} x`, and the sufficient scaled-residual stopping rule.
+  - PDF page 3, Definition 3.1 and Equation (6): define the locally evolving
+    active sets, degree-volume runtime, run-average active volume, and residual
+    concentration ratio.
+  - Supplemental PDF page 17, “Justification of an equivalent condition” and
+    Equation (14): prove the degree-normalized error certificate from the
+    rescaled residual using the nonnegative inverse and its infinity norm.
+- Formulation differences: Its symmetric matrix and right-hand side are both
+  `2/(1+alpha)` times the active manuscript’s `Q` and `b`, so the solution,
+  lazy teleportation parameter, and PPR vector are unchanged. The source uses
+  `W` for normalized adjacency and an undifferentiated epsilon; the active
+  manuscript reserves neither convention and decorates the rescaled system.
+- Use in this repository: The conversion is now stated explicitly in the
+  active manuscript’s problem-formulation table. No run-dependent accelerated
+  guarantee is inferred from the algebraic scaling alone.
+- Open questions: Determine which evolving-set quantities can be bounded by a
+  graph-independent local volume and reconcile each algorithm’s signed or
+  monotone residual with the eventual implementation-wide stopping rule.
+
+## Citation key: `chen2023accelerating`
+
+- Citation: Zhen Chen, Xingzhi Guo, Baojian Zhou, Deqing Yang, and Steven
+  Skiena. “Accelerating Personalized PageRank Vector Computation.”
+  *Proceedings of the 29th ACM SIGKDD Conference on Knowledge Discovery and
+  Data Mining*, pages 262-273, 2023.
+- DOI/arXiv/URL: <https://doi.org/10.1145/3580305.3599251>.
+- Local PDF:
+  `papers/2023-kdd-chen-accelerating-personalized-pagerank-vector-computation.pdf`.
+- Relevance: The paper formulates forward push in non-lazy mass coordinates,
+  including directed graphs, and identifies its coordinate updates with
+  Gauss-Seidel before introducing SOR and momentum variants.
+- Exact pointers:
+  - PDF page 3 (proceedings page 264), Section 3 and Equation (1): define the
+    out-degree matrix, the column-stochastic operator
+    `P = A^T D^{-1}`, the non-lazy fixed point, and the mass-coordinate system
+    `M pi = alpha e_s` with `M = I - (1-alpha)P`.
+  - PDF pages 3-4, Algorithm 1 and Equations (4)-(6): state FwdPush’s
+    activation rule, reserve/residue updates, and linear invariant.
+  - PDF page 3, Section 3.2, and PDF page 4, Theorem 1: connect each local
+    FwdPush update to a Gauss-Seidel update of the same non-lazy system.
+  - PDF page 4, Equation (9): give the undirected optimal-SOR parameter in the
+    source’s non-lazy teleportation convention.
+- Formulation differences: The source permits directed graphs and therefore
+  writes `A^T D^{-1}`. On this repository’s undirected graphs, `A^T=A` and the
+  operator becomes `P=AD^{-1}`. Its teleportation parameter is non-lazy; the
+  active lazy parameter satisfies
+  `alpha_nonlazy = 2 alpha_lazy/(1+alpha_lazy)`. Residue and accuracy symbols
+  are not imported without their defining formulas.
+- Use in this repository: The active problem formulation now includes the
+  non-lazy mass-coordinate system and parameter conversion. The two-stage
+  local-SOR section separately defines the signed residual and fixed
+  relaxation that it actually analyzes.
+- Open questions: Establish graph-uniform locality bounds for signed SOR
+  trajectories and determine which ordering or relaxation policies avoid the
+  spider obstruction in the active manuscript.
+
 ## Citation key: `wei2026simple`
 
 - Citation: Zhewei Wei and Mingji Yang. “A Simple Active-Set Method for
@@ -243,9 +319,9 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
     personalized PageRank in its time-reversed chain.
 - Formulation differences: The method explores edges backward from a target
   vertex on a directed web graph and approximates a column of the personalized
-  PageRank matrix. The hybrid solver begins from a seed distribution and
-  targets a PageRank-type solution under the repository’s residual and work
-  conventions.
+  PageRank matrix. The canonical hybrid target begins from one seed vertex on
+  a connected unit-weight undirected graph and targets a PageRank-type
+  solution under the repository’s residual and work conventions.
 - Open questions: Determine whether the pushback invariant or time-reversal
   relation provides a useful dual view of local residual propagation, and
   whether the support bounds can be translated to the hybrid solver’s active
@@ -314,9 +390,10 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
     detection and single-node PageRank estimation.
 - Formulation differences: The target is a column-oriented contribution vector
   or one node’s global PageRank score on a directed graph under an oracle
-  access model. The hybrid solver starts from a seed distribution, produces a
-  PageRank-type solution vector, and measures residual-based accuracy and
-  concrete edge work, so the lower bounds do not transfer without a reduction.
+  access model. The canonical hybrid target starts from one seed vertex on a
+  connected unit-weight undirected graph, produces a PageRank-type solution
+  vector, and measures residual-based accuracy and concrete edge work, so the
+  lower bounds do not transfer without a reduction.
 - Open questions: Determine whether the paper’s degree-sensitive lower bounds
   constrain the hybrid solver’s backward or dual operations, translate its
   query model into the repository’s edge-operation model, and compare its

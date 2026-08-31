@@ -1,0 +1,121 @@
+\section{The mass-scale PageRank system and the hard star}
+\label{sec:signed-star-model}
+
+The shared source-aligned definition uses the symmetric variable $x^0$ and
+the PPR mass vector $\pi=D^{1/2}x^0$.  For local propagation it is convenient
+to write the equivalent mass-scale system explicitly.  Put
+\begin{equation}
+  c_\alpha:=\frac{1-\alpha}{1+\alpha},
+  \qquad
+  \gamma_\alpha:=\frac{2\alpha}{1+\alpha}=1-c_\alpha,
+  \qquad
+  H:=I-c_\alpha AD^{-1}.
+  \label{eq:signed-star-mass-operator}
+\end{equation}
+Then
+\begin{equation}
+  H\pi=\gamma_\alpha s,
+  \qquad
+  H=\frac{2}{1+\alpha}
+      D^{1/2}QD^{-1/2}.
+  \label{eq:signed-star-mapping}
+\end{equation}
+Thus this is only a diagonal change of variables and a positive scalar
+rescaling of the shared system; it is not a different PageRank convention.
+Because $H$ is a nonsingular $M$-matrix, $H^{-1}$ is entrywise nonnegative.
+
+For a maintained mass iterate $p$, define the exact mass residual and semantic
+error by
+\begin{equation}
+  r:=\gamma_\alpha s-Hp=H(\pi-p),
+  \qquad
+  \mathcal E(p):=\max_{u\in V}
+      \frac{|p_u-\pi_u|}{d_u}.
+  \label{eq:signed-star-residual-error}
+\end{equation}
+The theorem target is $\mathcal E(p)\le\varepsilon_{\rm ppr}$.
+
+\subsection{The exact residual certificate and its scale}
+
+Let $d=D\mathbf 1$ be the degree vector.  Since
+$AD^{-1}d=A\mathbf1=d$,
+\begin{equation}
+  Hd=(1-c_\alpha)d=\gamma_\alpha d,
+  \qquad
+  H^{-1}d=\frac{d}{\gamma_\alpha}.
+  \label{eq:signed-star-degree-eigenvector}
+\end{equation}
+Consequently, positivity of $H^{-1}$ gives the sufficient certificate
+\begin{equation}
+  |r|\le\gamma_\alpha\varepsilon_{\rm ppr}d
+  \quad\Longrightarrow\quad
+  |\pi-p|=|H^{-1}r|
+  \le H^{-1}|r|
+  \le\varepsilon_{\rm ppr}d.
+  \label{eq:signed-star-certificate}
+\end{equation}
+The factor $\gamma_\alpha$ is essential.  The unscaled test
+$\max_u|r_u|/d_u\le\varepsilon_{\rm ppr}$ would imply only
+$\mathcal E(p)\le\varepsilon_{\rm ppr}/\gamma_\alpha$.  Later we will show
+that even the correctly scaled sufficient certificate can be substantially
+stronger than the semantic target on the star.
+
+\subsection{The center-seeded star}
+
+Let $G=K_{1,m}$ have center $o$, leaf set $L$, and seed $s=e_o$.  Hence
+\begin{equation}
+  d_o=m,
+  \qquad d_\ell=1\quad(\ell\in L),
+  \qquad \operatorname{vol}(V)=2m.
+  \label{eq:signed-star-degrees}
+\end{equation}
+Solving the two balance equations gives
+\begin{equation}
+  \pi_o=\frac{1+\alpha}{2},
+  \qquad
+  \sum_{\ell\in L}\pi_\ell=\frac{1-\alpha}{2},
+  \qquad
+  \pi_\ell=\frac{1-\alpha}{2m}.
+  \label{eq:signed-star-ppr}
+\end{equation}
+Indeed, if $P_L:=\sum_\ell\pi_\ell$, then
+$\pi_o=\gamma_\alpha+c_\alpha P_L$ and
+$P_L=c_\alpha\pi_o$.
+
+For the complexity separation fix
+\begin{equation}
+  0<\varepsilon_{\rm ppr}\le\frac1{16},
+  \qquad
+  m:=\left\lfloor\frac{1}{8\varepsilon_{\rm ppr}}\right\rfloor.
+  \label{eq:signed-star-size}
+\end{equation}
+Since $1/(8\varepsilon_{\rm ppr})\ge2$,
+\begin{equation}
+  \frac{1}{16\varepsilon_{\rm ppr}}
+  \le m\le
+  \frac{1}{8\varepsilon_{\rm ppr}},
+  \qquad
+  \varepsilon_{\rm ppr}m\le\frac18.
+  \label{eq:signed-star-size-bounds}
+\end{equation}
+The center coordinate alone is therefore nontrivial: any semantically
+accurate output must satisfy
+\begin{equation}
+  p_o\ge\pi_o-\varepsilon_{\rm ppr}m
+  \ge\frac12-\frac18=\frac38.
+  \label{eq:signed-star-center-required}
+\end{equation}
+
+\subsection{Charged primitive}
+
+A coordinate relaxation at $u$ changes
+\begin{equation}
+  p_u\leftarrow p_u+\delta,
+  \qquad
+  r\leftarrow r-\delta He_u,
+  \label{eq:signed-star-coordinate-primitive}
+\end{equation}
+and costs $d_u$, representing the scan of the $u$th adjacency list.  Repeated
+relaxations are charged repeatedly.  An explicit final output pays one write
+per listed coordinate.  The SOR specialization takes
+$\delta=\omega r_u$ because $H_{uu}=1$.
