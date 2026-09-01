@@ -59,7 +59,9 @@ The exact checks relevant to the final decision boundary are
 `adaptive_square_function_exact.py`, `moving_face_smoothing_exact.py`,
 `green_bracket_exact.py`, `green_lift_exact.py`,
 `projected_green_overshoot_exact.py`, `exact_delayed_clock.md` with its
-`exact_delayed_clock.py` verifier, and
+`exact_delayed_clock.py` verifier, `green_band_stress_exact.py`,
+`source_ramp_experiment.py`, `retained_prox_experiment.py`,
+`retained_prox_lag_exact.py`, and
 `cycle_rank_response_verify.py`.  The larger numerical regression suite is
 `witnesses.py`; the two-mask chronology experiments are kept separately in
 `two_mask_experiments.py`.
@@ -378,16 +380,687 @@ response/publication clock, not another fixed-face eigenvalue estimate.
     `J=O_tilde(alpha^-1/2)` maximal faces this is
     `O_tilde((M+k^omega_mat)/sqrt(alpha))`; it returns the certified approximate
     output and does not assert `U_J=S*` or exact unrestricted termination.
-40. Capped shifted-prox termination needs no Green leverage.  If the current
-    lower correction has active residual `e>=0` and every current exterior
-    score is nonpositive, then `(-e,0)` is a full obstacle subgradient and the
-    entire hidden cascade has objective value at most
-    `||e||^2/[2(alpha+sigma)]`.  Visible batches still zero-append and share
-    source-square mass at most `(1+sigma)alpha`; a norm-buy count requires
-    reset-and-zero-append epochs.  The remaining general task is persistent
-    accelerated reduction of `e`, with rescans, in `O_tilde(M/tau)` total
-    work.  Green leverage remains relevant only to exact restricted-center or
-    zero-margin support certification.
+40. Capped shifted-prox termination needs no Green leverage or exact
+    quietness.  For a lower correction, the minimum full subgradient is
+    `(-e,-(s_out)_+)`, so the active debt and current positive-boundary scores
+    enter one Euclidean certificate.  More generally, at any feasible raw
+    point its minimum orthant subgradient is the smooth gradient on positive
+    coordinates and its negative part on zero coordinates.  Thus a two-mask
+    method may use the lower state only for safe row publication and the raw
+    accelerated state for final certification.  A second, Lipschitz option
+    tests the proximal-gradient mapping and outputs one projected point; its
+    gap is at most `2||G_L||^2/(alpha+sigma)`.  Once raw and lower states are
+    equilibrated to `delta/(8L)`, failure of this test forces the next exact
+    orthogonal center packet to have energy at least
+    `25delta^2/(64L)`.  This gives an absolute-scale no-reuse count, but it
+    is polynomially too large at the final tolerance.  Visible batches still
+    zero-append and share source-square mass at most `(1+sigma)alpha`; a
+    norm-buy count requires reset-and-zero-append epochs.  The remaining
+    general task is persistent accelerated reduction of this global
+    minimum-subgradient norm, with rescans, in `O_tilde(M/tau)` total work.
+    Raw-positive rows may be false and cannot be materialized, while Green
+    leverage remains relevant to exact restricted-center or zero-margin
+    support certification.
+41. The point source supplies two additional exact structures, but the
+    first naive chronology conversion is false.  On the final support the
+    Green profile has a strict ascent path from every non-source vertex to
+    the source, connected source-rooted superlevels, degree mass at most one,
+    and only logarithmically many dyadic amplitude bands.  On the full graph,
+    division by the ordinary Green profile turns RPPR into a constant-upper-
+    obstacle problem with conductances `b pbar_i pbar_j` and total load
+    `alpha rho`.  Nevertheless, an exact `Q(sqrt(10))` thresholded trace on
+    a 40-vertex simple-unit graph has events `[0,1,2,41,91,92,109]`: the
+    event-41 packet releases only `0.0312985369...<1/30` of the remaining
+    packet energy, and at events 41 and 91 both the *global* missing Green
+    maximum and the global missing final-solution maximum are unchanged while
+    face volume grows only by `26/25` and `105/104`.
+    The nested complements of the explored faces do supply a canonical
+    laminar component forest, with every component Green maximum at a port;
+    hence a proof must charge within that forest or use a finer aggregate
+    ledger.  The witness refutes those named constants and the global
+    dichotomy, not the overall shared root clock.
+42. The Green-normalized *solution slack* gives a more support-aligned
+    canonical path.  If `s=y*/pbar`, then every positive non-source vertex
+    has a strictly larger-`s` neighbor, so all positive superlevels are
+    connected and source-rooted.  Uniformly shaving this slack produces
+    `y^(eta)=diag(pbar)(s-eta)_+`, an exact lower subsolution with
+    `F(y^(eta))-F(y*)<=alpha pbar_v eta/2`.  Hence only logarithmically many
+    relative-slack bands are relevant at a requested objective accuracy and
+    their volume shells are disjoint.  This is an oracle comparison path,
+    not yet an algorithm: both `s` and the Green shaving direction `pbar`
+    are unknown dense responses.  The remaining opportunity is to prove
+    that the computable lower-envelope chronology shadows this path on one
+    shared root clock without explicitly applying `pbar`.
+43. The same normalization yields a new exact chronological capacity.  If
+    `Sigma_U` is the Schur complement on the not-yet-explored final support,
+    then `h_U=Sigma_U1>=0` is harmonic port mass and
+    `cap(U)=1^Th_U<=alpha p_v`.  A globally maximum remaining relative-slack
+    vertex has exact gate at least `s_i(h_U)_i`; admitting a block `B` drops
+    capacity by exactly
+    `(h_U)_B^T(Sigma_U)_(BB)^-1(h_U)_B`.  These drops telescope with no
+    randomized hierarchy.  The direct time conversion still squares the
+    gate and therefore depends on the absolute publication threshold, so
+    this is a sharper candidate reservoir rather than the final shared-clock
+    proof.
+44. Ramping the amplitude of the single source gives a more promising global
+    clock.  The exact solutions of
+    `F_t(y)=y^THy/2-(t alpha e_v-alpha rho d)^Ty` have nested support, move
+    along one Green column per fixed face, and trace total `H`-length at most
+    `sqrt(alpha/d_v)`.  They dominate the relative-slack oracle truncations
+    and are within `alpha p_v(1-t)/2` of the final objective.  Thus every
+    exact activation breakpoint can share the one scalar parameter `t`,
+    rather than receiving an independent root-time solve.  The missing
+    `SourceRampShadow` lemma is now precise: prove that the computable local
+    two-mask accelerated state follows this moving optimum without false
+    materialization or repeated whole-face scans.  The continuous exterior-
+    gate slopes over the entire ramp have total `l1` mass at most `alpha`.
+    A one-root-unit numerical ramp collapses the 40-vertex stress witness's
+    publication horizon from `3.4785` to `0.1581` root units, but slightly
+    worsens the lollipop, so the schedule remains a candidate rather than a
+    theorem.
+45. The negative floor makes the solution itself the cleanest intrinsic
+    spine.  Every positive non-source coordinate of `y*` has a larger-valued
+    neighbor, hence every positive solution superlevel is connected and
+    source-rooted.  Constant shaving is exact in the needed direction:
+    `(y*(rho)-eta 1)_+` is a lower subsolution for floor `rho+eta` and loses
+    at most `alpha eta/2` objective.  The exact path satisfies
+    `(y(rho)-eta 1)_+<=y(rho+eta)<=y(rho)`, so its coordinate speed is at most
+    one and `y(rho+eta)` is already an `alpha eta/2` approximation to the
+    original problem.  On an arbitrary current face, the maximum solution
+    amplitude still missing bounds both uniform center error and all future
+    energy; once the lower state has that uniform shadow, every high-amplitude
+    remaining component exposes a port gate at least `alpha d_i eta`.
+    This removes the unknown Green direction from the oracle comparison and
+    matches the implemented retraction.  The remaining `ConstantShaveShadow`
+    question is whether newly zero-appended ports can regain the shadow
+    locally, without dense old-face response replay.
+46. Reversible-walk Gaussian decay closes the serial *spatial* part of that
+    picture.  The full point-source Green profile obeys
+    `pbar_i<=C(d_i d_v)^-1/2 exp(-c sqrt(alpha)dist(v,i))`; combined with the
+    canonical support lower bound, all of `S*` lies within
+    `O_tilde(alpha^-1/2)` hops and `{y*>eta}` within
+    `O(alpha^-1/2 log(1/eta))` hops.  This needs no random cover.  It does not
+    permit ambient BFS through false hubs or control the many ports and
+    Schur responses that can coexist in one distance layer.
+47. The computable constant bracket is exact but not monotone under even
+    coordinatewise monotone certified lower updates.  On the two-vertex path
+    with `alpha=1/4`, `rho=1/20`, the exact solution is
+    `y*=(23/40,13/40)`.  The two full-support certified lower states
+    `ell_0=(3/8,1/8)<=ell_1=(17/40,47/200)<=y*` have nonnegative residuals
+    `(1/20,1/20)` and `(3/50,0)`, respectively, so their observable widths
+    are `c(ell_0)=1/5<c(ell_1)=6/25`.  Thus `ObservableConstantShaveDecay`
+    cannot follow from lower-state monotonicity; it needs a schedule-specific
+    contraction, a retained upper state, or an amortized repair charge.
+48. A retained scalar bracket *does* contract under the exact shifted
+    obstacle prox.  If `ell<=y*<=ell+delta 1` and
+    `P_tau(z)=argmin_(x>=0){F(x)+tau^2||x-z||_D^2/2}`, then
+    `P_tau(ell)<=y*<=P_tau(ell)+q delta 1`, where
+    `q=tau^2/(alpha+tau^2)`.  If an inner certified-lower solve `z` has
+    computable shifted bracket `zeta`, then
+    `z<=y*<=z+(q delta+zeta)1`.  Consequently, at `tau^2=alpha`, reducing
+    each inner bracket to `zeta<=delta/4` contracts the retained width by
+    `3/4` and safely materializes every coordinate above the new width.  This
+    closes the scalar `ObservableConstantShaveDecay` logic; the remaining
+    work theorem is exactly `AmortizedLowerShiftedApply`, namely producing
+    those certified inner states through face growth in total root work.
+49. The retained loop also controls the otherwise nonmonotone recomputed
+    residual width.  Write `kappa=c_H(ell)`, set
+    `q=sigma/(alpha+sigma)`, and let an inner lower point have shifted width
+    `zeta`.  Then
+    `delta^+=q delta+zeta` and
+    `kappa^+<=zeta/(1-q)+q kappa`.  Hence
+    `kappa<=[1/(1-q)]delta` is invariant.  With `sigma=alpha` and
+    `zeta<=delta/4`, this becomes
+    `delta^+<=3delta/4` and `kappa^+<=2delta^+`; every next shifted phase
+    begins with bracket at most `delta`.  The new deterministic experiment
+    continues projected NAG through all safe maximal expansions.  On paths,
+    lollipops, alternating layers, the 34- and 40-vertex stress graphs,
+    random graphs, clique chains, and brooms, every quarter-bracket inner
+    phase used at most about `1.67` normalized root-time over
+    `alpha in [10^-4,10^-2]`; a 50-vertex evolutionary search did not exceed
+    that value.  This is reproducible candidate evidence for
+    `QuarterBracketMaskedNAG`, not a proof that mask events cannot delay it.
+50. A new omniscient-shadow comparison identifies a possible final proof
+    line and its exact limit.  Same-time coordinate domination is false:
+    on the four-vertex graph with edges
+    `{01,02,12,13}`, `alpha=.01`, and `rho=.1`, an exact
+    `Q(sqrt(202))` trace has an omniscient lower coordinate exceed the masked
+    zero-append by `0.000110470130852219...` at phase 6, product 3.  However,
+    the one-product-lag inequalities for the lower state, primal state, and
+    next extrapolate hold exactly through that witness.  They also survived
+    exhaustive connected graphs through five vertices, 2000 random graphs,
+    structured stress families, and evolutionary search; the auxiliary
+    state alone can violate the order.  This suggested a one-lag transfer,
+    but the next item gives a canonical strict counterexample.
+51. `OneStepDomainDominance` is false even for the simplified target class.
+    A 30-vertex simple connected unit graph, `alpha=1/10000`, and
+    `rho=17/2000` give a strict lag-one lower deficit in retained-prox phase
+    8, product 86.  An exact `Q(sqrt(20002))` trace gives, in degree coordinates,
+    `0.0002892921587903060918853871424203...`; in normalized coordinates the
+    maximum deficit is `0.0007417822237238216`.  An independent 80/140-digit
+    execution selects the same branch trace.  The same phase still finishes in only
+    `1.6405` root-time, so the witness refutes the pointwise-shadow proof,
+    not `QuarterBracketMaskedNAG` or the target complexity.
+52. Positive residuals provide a free certified repair primitive.  For a
+    Stieltjes matrix `B`, certified lower state `u`, residual `r=h-Bu`, and
+    any zero batch `W` with `r_W>0`, the simultaneous update
+    `p_i=r_i/B_ii` on `W` preserves the lower certificate; off-diagonal
+    entries can only increase every affected residual.  The same Jacobi push
+    may be applied to all visible positive-residual coordinates.  Relative
+    to any other certified lower state `w`, it contracts the maximum positive
+    coordinate deficit by at least
+    `min_i (B1)_i/B_ii`; for `B=H+alpha D` this is
+    `4alpha/(1+3alpha)`.  A positive-append/residual-push retained-prox
+    variant preserves the observed `O(1)` root-time phases and removes the
+    new lag30 deficit, but the contraction factor alone is only
+    `1-O(alpha)` and therefore does not yet prove the square-root clock.
+53. The repaired recurrence exposes a new, stronger falsifiable route.  Let
+    the masked step perform diagonal positive-append closure and one diagonal
+    push on every visible positive-residual row after retraction.  The
+    candidate statement
+
+    ```text
+    PushedDomainDominance:
+      lower_pushed_masked(t) >= lower_unpushed_omniscient(t)
+    ```
+
+    would transfer the ordinary fixed-face NAG bound with no lag and prove
+    `QuarterBracketMaskedNAG`.  It holds on the lag4 and lag30 witness graphs,
+    the structured suite, 1500 random connected graphs over
+    `alpha in [10^-5,10^-1]`, and all 26,704 connected labelled six-vertex
+    graphs at `alpha=.01,rho=.1/d_0`; the random maximum quarter phase was
+    `1.6578` root-time.  A separate 17,472-run grid over all 728 connected
+    labelled five-vertex graphs, four `alpha` values, and six threshold
+    fractions also had zero deficit.  In addition, a degree-coordinate
+    Fraction implementation checks all 728 connected labelled five-vertex
+    graphs at both `alpha=1/7` and `alpha=1/199` and three thresholds
+    (4,368 complete histories) with exact rational branch decisions and no
+    violation.  This remains finite candidate
+    evidence.  The generic
+    Jacobi contraction proved above cannot imply exact domination, so a proof
+    must use the relation between the masked and omniscient NAG candidates,
+    not only that both outputs are certified lower states.
+54. `PushedDomainDominance` reduces to a sharper local flux inequality.  Let
+    `u` be the masked lower envelope immediately before the push, let `w` be
+    the same-time omniscient envelope, and put `r=h-Bu`.  The coordinatewise
+    condition
+
+    ```text
+    B_ii (w_i-u_i) <= [r_i]_+                         (shadow residual cover)
+    ```
+
+    is sufficient: the active push raises coordinate `i` by `[r_i]_+/B_ii`,
+    while the same positive residual safely admits an unseen boundary row;
+    subsequent closure only increases its residual.  Writing
+    `delta=w-u`, `C=diag(B)-B>=0`, and `r(w)=h-Bw`, the nontrivial case is
+    equivalently `C delta<=r(w)`.  Thus a violation requires positive shadow
+    deficit to arrive through neighboring deficit mass faster than the
+    omniscient certificate's own residual slack.  In particular, an
+    independent set of positive-deficit vertices is sufficient.  The new
+    search metrics directly maximize this flux violation and adjacent
+    positive-deficit ratio; none has yet been positive on the canonical
+    enhanced traces.  This is an exact reduction plus empirical evidence,
+    not a proof that the NAG histories obey the flux inequality.
+55. A bare three-state order induction is strictly insufficient.  In an
+    exact scalar NAG state with root parameter `s=1/2`, take omniscient
+    `(current,auxiliary)=(8,14)` and masked `(9,12)`.  Both extrapolates are
+    exactly `10`, while the masked current is larger.  For the legal scalar
+    gradient map `T(q)=q+(2-q/2)`, both next currents equal `7`; retraction
+    gives the same certified lower value `4`, below both next auxiliaries.
+    Nevertheless the next omniscient and masked extrapolates are `20/3` and
+    `19/3`, respectively.  Thus lower/current/extrapolate order can reverse
+    because of the negative history coefficient even when the same
+    retraction is applied.  The state is not claimed reachable from the
+    canonical zero start, so this stops only an order-only induction; a
+    proof may still exploit a quantitative reachable-history inequality.
+56. The retained shift supplies an exact momentum-flux identity for that
+    missing inequality.  Put `s=sqrt(2alpha/(1+alpha))`,
+    `R=I-B/(1+alpha)`, and `K=R-diag(R)>=0`.  Exactly
+    `R_ii=(1-s^2)/2`.  If `g`, `d`, and `z` are masked-minus-omniscient gaps
+    in the extrapolate, current, and auxiliary states, then on every common
+    active row the next raw extrapolate gap is
+
+    ```text
+    g_i^+ = [s(1-s) z_i + 2(Kg)_i]/(1+s).       (momentum-flux identity)
+    ```
+
+    Thus a lagging auxiliary is harmless precisely when positive neighboring
+    extrapolate flux pays it.  This explains why the auxiliary order fails
+    in the enhanced structured traces while current and extrapolate order do
+    not.  It also turns the state part of the proof into a local cone
+    inequality.  The experiments record its equivalent raw compatibility
+    margin and find no negative value beyond roundoff on the structured
+    suite.  What remains is to prove this cone is restored by the actual
+    retraction/push/admission chronology, including newly initialized rows.
+57. The pushed retraction is not a generically isotone operator even after
+    fixing a canonical phase load.  On the two-vertex unit edge with
+    `alpha=1/10000`, `rho=1/1000`, exact solution
+    `(9981,9979)/20000`, and certified constant-shave old lower
+    `(69873,69853)/200000`, use ordered phase currents
+
+    ```text
+    c_omn=(494953,494866)/10^6
+      <= c_mask=(645553,640166)/10^6.
+    ```
+
+    uniform lower retraction followed by a full positive-residual diagonal
+    push gives strict omniscient-minus-masked output deficits
+    `(1693660617,1693140669)/40012000000`.  Thus the graph, source load,
+    retained shift, and old lower certificate are all canonical; only the
+    ordered currents are not claimed reachable from the zero-start NAG
+    chronology.  The witness rules out proving the candidate by monotonicity
+    of the composite operator alone and reinforces that shadow and momentum
+    flux must be tied to reachable histories.
+58. The enhanced recurrence has an exact sparse-work ledger conditional only
+    on its product count.  In every product, the active residual-push set is
+    a subset of the scratch face, so its adjacency work is no larger than
+    that product's core work.  Each positive-appended vertex is new and is
+    pushed only in its admission batch, so all append work is at most `M`.
+    Therefore
+
+    ```text
+    W_charged <= 2 W_core + M.
+    ```
+
+    No randomized or dense primitive is hidden in this inequality.  Thus a
+    proof of `O_tilde(alpha^-1/2)` enhanced products immediately gives the
+    desired charged work; the sole remaining issue is the history/runtime
+    theorem, not the cost of the diagonal repair itself.
+59. Reachable NAG clamping preserves the required state order.  If a raw
+    current `c+` comes from an old current above the old lower state and the
+    retracted lower `ell+` is the maximum of that old lower and a shaved
+    candidate no larger than `c+`, then its clamped extrapolate is exactly
+
+    ```text
+    q_clamp=max{q_raw,ell+,(c+ + s ell+)/(1+s)}.
+    ```
+
+    Consequently, paired order of the raw current, raw extrapolate, and new
+    lower state implies paired order after both current/auxiliary clamps.
+    This closes the clamp step that was implicit in the momentum-flux route;
+    arbitrary state triples need not have this property, but reachable NAG
+    triples do.
+60. Dimension growth also has an exact local reduction.  On a zero-history
+    exterior row, let `q^o` be the omniscient input extrapolate and `u` the
+    masked pre-push lower state.  If
+
+    ```text
+    (C q^o)_i <= (C u)_i,                  (boundary flux gate)
+    ```
+
+    then `r_i(u)>=L c_i^{o,+}`.  A positive omniscient raw current therefore
+    forces safe admission, and the diagonal append value dominates both that
+    current and its next extrapolate.  The last assertion uses only
+    `B_ii<=L` and
+    `s>=2alpha/(1+alpha)`, whose squared slack is exactly
+    `2alpha(1-alpha)/(1+alpha)^2`.  If the raw current is nonpositive, the
+    omniscient row clamps back to zero.  Hence this boundary-flux premise
+    proves the old `ExteriorPrimalGate`; the stronger boundary-layer order
+    `u_j>=q_j^o` on active neighbors is sufficient.  Both conditions are
+    strict on the tested moving-front paths; the 17,472-run five-vertex grid
+    and a 2,500-run random parameter sweep (669 genuinely growing faces) have
+    no violation, but their preservation is still open.
+61. A tempting one-variable shortcut is false.  The isotone positive-residual
+    Jacobi map `J(x)=max{x,diag(B)^-1(h+Cx)}` does not cap one round of the
+    omniscient retracted envelope.  On the canonical two-vertex unit edge at
+    `alpha=1/7,rho=1/10`, the retained root is exactly `1/2`; at product four
+    the new envelope exceeds `J` of the preceding envelope by exactly
+    `(1/3200,1/3200)`.  Thus one push cannot be viewed as simply prepaying a
+    whole omniscient NAG round.  This refutes only `OneJacobiEnvelopeCap`, not
+    the paired enhanced-history candidate.
+62. Repeating a fixed small number of diagonal pushes does not presently
+    collapse the state proof either.  Four pushes eliminate the auxiliary
+    and active-frontier gaps on the `alpha=.01` structured suite, but a
+    path-initialized adversary at the same `alpha` finds frontier gap
+    `0.0407`; on the exact lag30 graph at `alpha=10^-4`, four pushes also
+    leave auxiliary deficit `4.51e-6` and frontier gap `1.38e-5`.  At `k=8,16,32`
+    these fall to roughly `(5.13e-7,1.80e-6)`,
+    `(1.83e-9,1.24e-7)`, and `(1.86e-13,3.82e-9)`, respectively.  This is
+    consistent with needing a push count that grows on the root scale; such
+    a count would forfeit the target work bound.  The executable supports
+    `--residual-push-rounds` only as this charged diagnostic.  The main
+    candidate and its exact ledger continue to use one push.
+63. The reachable-clamp lemma preserves current/extrapolate order but not the
+    stronger momentum-flux cone.  An exact two-coordinate state with
+    `s=1/2` and off-diagonal `K_12=K_21=1/8` has ordered raw current,
+    extrapolate, and retracted lower, with strict pre-clamp flux margins
+    `(7/12,23/12)`.  Both sides' auxiliaries come from the true NAG formula.
+    After the legal clamps, current and extrapolate remain ordered, but the
+    flux margins become `(-1/6,1/3)`.  Moreover, the retained-form matrix
+    `[[5,-1],[-1,5]]/7` admits a common load for which both lowers are
+    certified; one legal masked diagonal push still leaves flux
+    `(-2/15,13/30)`.  The load/state is not claimed reachable from the
+    canonical zero-source history.  It proves that `MomentumFlux` must be
+    re-established jointly by the actual source chronology; local clamp and
+    push legality alone cannot propagate it.
+64. The enhanced-history evidence now includes a fully rational exhaustive
+    audit, not only floating point.  For rational retained root `s`, choosing
+    `alpha=s^2/(2-s^2)` makes the entire degree-coordinate recurrence exact.
+    At `s=1/2` (`alpha=1/7`) and `s=1/10` (`alpha=1/199`), all 728
+    connected labelled five-vertex simple graphs and threshold fractions
+    `1/10,1/2,9/10` give 4,368 complete
+    histories with exact nonnegative pushed lower/current/extrapolate,
+    pre-push lower, momentum-flux, boundary-flux, and exterior-state margins;
+    the nontrivial boundary-layer/flux minima are strictly positive rationals.
+    The `alpha=1/199` histories use as many as 152 products.  Two additional
+    complete four-vertex grids at `alpha=1/391` and `alpha=1/4999` add 228
+    exact histories (4,596 total); the latter uses as many as 1,003 products.
+    A focused five-vertex `alpha=1/199,rho d_v=1/10` rerun has strict minimum
+    relevant one-step lead `2.91e-6` and strict minimum masked raw-residual
+    margin `9.11e-7`.  This removes
+    roundoff and one-product phases as explanations for the small-graph
+    evidence, but finite enumeration still cannot prove chronological
+    preservation on arbitrary graphs.
+65. The data support a stronger alternative to `ShadowResidualCover`:
+
+    ```text
+    PrePushDomainDominance:
+      lower_masked_before_current_push(t) >= lower_omniscient(t).
+    ```
+
+    It holds exactly in all rational exhaustive histories above; its maximum
+    apparent violation in the 17,472-run floating five-vertex grid is only
+    `2.50e-16`, and path/rho adversaries remain at roundoff.  If proved, the
+    shadow-cover clause becomes vacuous and the push serves only to build
+    lead for future products.  The exact canonical-load retraction-isotonicity
+    stop shows that current order alone cannot prove this stronger statement;
+    it too must use the paired accelerated/push history.
+66. After the synchronized first product, the evidence is stronger still:
+
+    ```text
+    PushedOneStepLead:
+      lower_masked_after_push(t) >= lower_omniscient(t+1).
+    ```
+
+    This immediately implies the next pre-push dominance because the masked
+    envelope is monotone.  On the structured suite, the worst relevant
+    normalized margins are strictly favorable (from `-3.0e-5` to
+    `-4.1e-4` when recorded as omniscient-minus-masked); the exact
+    `alpha=1/199` four-vertex enumeration has a strictly positive minimum
+    masked-minus-omniscient lead of about `3.91e-6`.  If the first product's
+    push is handled separately, this one statement proves
+    `PushedDomainDominance` without tracking all three local clauses.  The
+    exact `OneJacobiEnvelopeCap` stop is not a contradiction: it refutes a
+    static `J(w_t)` cap, whereas this lead belongs to the actual accelerated
+    masked history.  Proving or refuting `PushedOneStepLead` is now the most
+    compact direct formulation of the remaining problem.
+67. `PushedOneStepLead` is an envelope-only phenomenon, not a time-shifted
+    full-state order.  In the exact `alpha=1/199` four-vertex exhaustive
+    audit, the prior masked lower and current lead the next omniscient lower
+    and current, but the minimum one-step auxiliary and extrapolate gaps are
+    strictly negative, approximately `-0.0138778` and `-0.000434179`.
+    Structured floating traces show the same separation, with extrapolate lag
+    as large as `0.0224` in normalized units.  Therefore the compact lead
+    conjecture cannot be proved by simply shifting the existing state-order
+    induction by one product; its proof must use the uniform retraction and
+    certified envelope directly.
+68. The phase-base lemma is unconditional.  On the
+    synchronized first product, masked/omniscient state gaps are zero, so
+    `MomentumFlux` is automatic.  The omniscient input extrapolate is the old
+    lower `ell`, while masked retraction keeps `u>=ell`; hence `Cq^o<=Cu` and
+    `BoundaryFluxGate` is automatic as well.  More directly, if `r` is the
+    old residual on the active face `A`, then `r_A>=0` and the first masked
+    gradient current is `ell_A+r_A/L`.  Its active residual is
+    `(I-B_AA/L)r_A=R_AA r_A>=0`, so its retraction shave is exactly zero.
+    The omniscient common current is identical but undergoes a nonnegative
+    shave, hence its lower is no larger on `A`.  Outside `A`, a positive
+    omniscient lower requires `r_i>0`; the masked exterior residual after the
+    active step is at least `r_i`, and diagonal append gives at least
+    `r_i/B_ii>=r_i/L`, dominating that lower.  Therefore
+
+    ```text
+    FirstProductPushedDominance (proved) + PushedOneStepLead
+       => PushedDomainDominance
+       => O_tilde(M/sqrt(alpha)).
+    ```
+
+    The only unproved premise in this compact route is now
+    `PushedOneStepLead`.  It passes all current floating and exact histories
+    but remains open on arbitrary canonical graphs.
+69. On an already common fixed face, the first-to-second-product lead has a
+    second unconditional proof.  Write `b=B_ii`, `R=I-B/L`, and let `r>=0`
+    be the synchronized phase-start residual.  The first omniscient current
+    and auxiliary are `ell+r/L` and `ell+r/(Ls)`, so its second input
+    extrapolate is `ell+2r/[L(1+s)]`.  The first pushed masked lower `U_1`
+    and the second omniscient raw current `c_2^o` therefore obey
+
+    ```text
+    U_1-c_2^o
+      = (1/b-2/[L(1+s)]) Rr
+      = s(1-s) Rr/[b(1+s)] >= 0,
+    ```
+
+    using `2b=L(1+s^2)`.  The omniscient retraction only lowers `c_2^o`, so
+    `U_1>=w_2`.  Thus every phase has both an unconditional first-product
+    repair and, when the first face is already common, an unconditional
+    second-product temporal lead.  This identity does not iterate by itself.
+70. A Fraction-exact point-source stop shows precisely why it does not
+    iterate.  On the stored 12-vertex simple connected unit graph with
+    `s=1/250` (`alpha=1/124999`), start both processes from zero but
+    gratuitously supply the full face to the masked process.  Product two
+    obeys the identity above, while product three has
+    `min_i(U_2-w_3)=-0.120502280701876...`.  The first three post-push
+    positive-residual maxima are `0.2777644,0.2503891,0.1929120`; with the
+    legitimate synthetic old width `1/(2alpha)`, product three is executed
+    and is the first product meeting the quarter-residual stop.  All three
+    masked raw residuals are nonnegative, so even `MaskedNoShave` does not
+    imply the lead.  This is not a counterexample to the local algorithm:
+    the supplied face contains uncertified zero rows.  Starting instead from
+    the minimal source face and applying the prescribed exact-positive
+    append cascade reaches the same full face after product one but gives
+    strict minimum lead `0.0039679` through product three.  Admission values,
+    not final face size, carry the missing protection.
+71. The canonical chronology excludes exactly that stop.  After the initial
+    source update, exact-positive closure maintains
+
+    ```text
+    certified face = supp(lower).
+    ```
+
+    Moreover every retained shifted-prox lower `u` is also an original RPPR
+    lower certificate: from `Bu<=h=load+alpha old_lower` and
+    `u>=old_lower`, one gets `Qu<=load`.  Hence at every positive non-source
+    row,
+
+    ```text
+    ((1-alpha)/2) (Pu)_i
+       >= ((1+alpha)/2)u_i + alpha rho > ((1-alpha)/2)u_i.
+    ```
+
+    Some neighbor has strictly larger lower value; following such neighbors
+    reaches the source, and every positive lower superlevel is source-rooted
+    and connected.  Call this `CertifiedSourceArborescence`.  It is a proved
+    structural invariant and explains why pre-certified zero rows are
+    illegal.  It still does not prove `PushedOneStepLead`: the remaining
+    statement must turn these first-admission parents/values into a temporal
+    no-reuse or boundary-flux argument.
+72. `PushedOneStepLead` itself has an exact residual-shield form.  Let `U` be
+    the starting pushed masked lower, `q` the next omniscient input
+    extrapolate, `r_U=h-BU`, and let `theta>=0` be the omniscient uniform
+    shave after its raw current `c=q+(h-Bq)/L`.  Assuming the already-needed
+    old-envelope order `U>=w_old`, only a newly active candidate row matters.
+    With `a=U-q`,
+
+    ```text
+    U-c+theta
+      = (I-B/L)a-r_U/L+theta.
+    ```
+
+    Consequently the temporal lead is equivalent, on every candidate-growth
+    row, to
+
+    ```text
+    TemporalResidualShield:
+      L [R(U-q)]_i + L theta >= r_U,i.       (R=I-B/L)
+    ```
+
+    This identity isolates the remaining payment: the post-push residual
+    slack at `U` must be covered by the smoothed gap to the omniscient
+    extrapolate plus its global shave.  After a diagonal push that slack is
+    incoming neighbor flux `C p`; later admission increments add further
+    one-time incoming flux.  Thus a proof can charge append contributions to
+    first-entry edges in the certified source arborescence and reserve the
+    momentum cone for repeated active-push flux.  The identity is an exact
+    reformulation, not yet the missing inequality.
+73. The residual on the right side has an exact chronological decomposition.
+    Number the active push as batch `0` and the subsequent exact-positive
+    append batches as `1,...,k`.  Let `p_j` be coordinate `j`'s diagonal
+    increment and `t(j)` the batch in which its then-current residual is
+    cleared.  For every certified coordinate after closure,
+
+    ```text
+    r_i(final)=sum_{j: t(j)>=t(i)} C_ij p_j.
+    ```
+
+    Indeed, immediately before batch `t(i)`, `b_i p_i` equals the entire
+    accumulated residual at `i`, so its diagonal update cancels all earlier
+    contributions; simultaneous same-batch and every later neighbor increment
+    add exactly the displayed coupling terms.  Call this
+    `ChronologicalFluxDecomposition`.  It is valid even when some increments
+    are zero.  Append vertices contribute to this directed flux only in their
+    unique admission product, whereas active batch-0 increments may recur.
+    Thus the residual shield separates canonically into a one-time admission
+    term and a repeated active--active term.  The former is aligned with the
+    certified source arborescence; the latter is the part that must be paired
+    with `MomentumFlux`.  Proving that their two credits dominate the displayed
+    directed sum remains the exact combined task.
+74. Combining the last two identities cancels the apparent debt.  Let `V` be
+    the pre-push lower in the preceding product, `U=V+p` its post-closure
+    lower, `q` the next omniscient extrapolate, and
+    `gamma=L-B_ii=(1-alpha)/2`.  Then row by row,
+
+    ```text
+    L[R(U-q)]_i-r_U,i
+      = gamma(U_i-q_i) + [C(V-q)]_i
+        + sum_{j:t(j)<t(i)} C_ij p_j.       (causal cancellation)
+    ```
+
+    All same-batch and later push debts cancel exactly against their copies
+    inside `C(U-q)`; only earlier-neighbor increments survive, with a positive
+    sign.  Therefore `PushedOneStepLead` is equivalently the nonnegativity of
+    the last display plus `L theta` on omniscient candidate-growth rows.  For
+    an old active row the early-credit sum is empty.  For a newly admitted row
+    it is precisely the causal credit received from earlier batches.  This is
+    the sharpest current proof interface: diagonal temporal lead, pre-push
+    neighbor flux, admission-DAG credit, and omniscient shave must sum
+    nonnegatively.  No residual term or hidden face solve remains, but the
+    four-term sign theorem is still open along arbitrary canonical histories.
+75. A constant-cost variant attacks the recurrent part directly.  After the
+    usual active push and maximal append closure, perform one additional
+    diagonal cleanup push on the enlarged certified face and run append
+    closure once more.  Let `U^(1)` and `U^(2)` be the lowers before and after
+    cleanup.  The same cancellation identity becomes
+
+    ```text
+    L[R(U^(2)-q)]_i-r_i^(2)
+      =gamma(U_i^(2)-q_i)+[C(U^(1)-q)]_i
+       + earlier-second-closure admission credit.
+    ```
+
+    Thus the residual debt disappears and only two consecutive lower levels,
+    positive causal credit, and `L theta` remain.  Cleanup work on every
+    nonterminal product is charged to the next product's enlarged face; a
+    terminal cleanup costs at most `M` per outer phase.  Consequently
+    `W_cleanup<=W_core+O(M log(1/accuracy))`, and the total repair ledger stays
+    `O(W_core+M polylog)` with a larger constant.  Fraction-exact arithmetic
+    changes the 12-vertex supplied-face product-three margin from
+    `-0.120502...` to `+0.083327...`.  On lag30, the relevant temporal margin
+    improves by about two orders of magnitude; structured phases stay below
+    `0.99` root-time.  A 10,000-run arbitrary nonnegative fixed-face search,
+    run through up to 30 products but stopped at the first quarter-residual
+    crossing exactly as a prox phase would stop, found no two-push lead
+    reversal (minimum `5.78e-9`).  An unrestricted longer search does find a
+    product-seven reversal, but only after its synthetic phase had already
+    crossed the stopping threshold at product one.  This is a serious
+    candidate simplification, not a theorem: two static Jacobi pushes do not
+    cap an omniscient accelerated envelope.  The Fraction-exact four-vertex
+    star at `alpha=1/199,rho d_v=1/10`, phase 2/product 9, has
+    `w_(t+1)-J^2(w_t)=0.000485329800997107...` at the source.  Hence the
+    displayed two-level sign remains unproved on general canonical histories.
+    The exact conditional implication is
+
+    ```text
+    FirstProductPushedDominance
+      + StoppedPostAppendTwoLevelLead
+      => QuarterBracketMaskedNAG
+      => O_tilde(M/sqrt(alpha)).
+    ```
+
+    Thus this variant also has a single-premise target interface, scoped only
+    through and including the first quarter-residual crossing of each phase.
+76. The one-push canonical traces lie in a still smaller normal form.  At the
+    input extrapolate `q` of every masked gradient step they satisfy
+
+    ```text
+    MaskedInputResidual: h_A-B_AA q_A >= 0.
+    ```
+
+    Conditional on this inequality, all observed simplifications are exact:
+    the raw-current residual is `R_AA(h_A-B_AAq_A)>=0`, so the uniform shave
+    is zero; the raw current is `q+(h-Bq)/L>=q>=lower`; the pre-push lower is
+    exactly that current; and the diagonal push raises the lower above the
+    current, after which clamping gives `current=lower` for the next product.
+    The state then reduces to a lower/residual plus a nonnegative auxiliary
+    gap.  The 728-history exact five-vertex focused audit and the exact
+    four-vertex grid have nonnegative input residual; structured runs are
+    strict, and a 100-generation random-graph adversary reaches only
+    `-7.2e-25` floating roundoff.  Generic fixed-face residuals do violate the
+    property, so it again needs minimal source admission.  Moreover the exact
+    supplied-face lead stop fails before any shave, proving that this normal
+    form alone does not imply `PushedOneStepLead`; it is a state reduction for
+    the remaining causal/two-level sign, not its proof.
+77. The stopping qualifier on the two-cleanup route is essential, not merely
+    a convenient weakening.  A new Fraction-exact 12-row fixed-face trace
+    with rational root `430/51139` has post-cleanup residual maxima
+    `0.163995...,0.087846...,0.063046...`: it must stop after product one, but
+    if it is illegally continued then product three reverses the temporal lead
+    by `0.000122140052...`.  Conversely, a deterministic exact audit over all
+    38 connected labelled four-vertex graphs and all 15 nonzero binary
+    residual profiles passes at `s in {1/2,1/10,1/50}` (1,710 histories), and
+    two 80-profile skewed grids at `s=1/10` add 6,080 histories.  The precise
+    open implication is therefore the contrapositive
+
+    ```text
+    two-cleanup temporal-lead failure => predecessor bracket <= delta/4,
+    ```
+
+    not an all-time Jacobi-envelope inequality.
+78. There is a cleaner use of `MaskedInputResidual`.  Before a gradient
+    product, let `q` be supported on the current face `A`, assume
+    `h_A-B_AAq_A>=0`, and materialize every exterior row with positive
+    residual at `q`.  This **input-residual frontier** is support-safe.  Indeed
+    `q_A<=B_AA^-1h_A<=x_A^*`; hence for `i` outside the exact prox support,
+    `h_i-(Bq)_i<=h_i-(Bx^*)_i<=0`.  The scan is one-hop local because every
+    non-source row not adjacent to `A` has its negative floor load.  After the
+    closure, ignored exterior gradients are nonnegative, so the active
+    gradient remains a valid global strong-convexity lower model.
+79. This yields a new single-premise conditional theorem,
+    `InputConeFrontierNAG`.  With `mu=2alpha`, `L=1+alpha`, and
+    `s=sqrt(mu/L)`, use the usual estimate state
+    `q=(x+s z)/(1+s)`.  Active partial-gradient NAG contracts
+
+    ```text
+    E=f(x)-f(x^*)+(mu/2)||z-x^*||_2^2
+    ```
+
+    by `1-s`: smooth descent uses the active gradient, while the omitted term
+    in the strong-convexity model is
+    `sum_(i outside A) grad_i f(q)x_i^*>=0`.  Positive-residual pushes,
+    lower projection, and safe zero-state admissions cannot increase `E` by
+    the proved Stieltjes lattice/dual-dominance projection.  The exact NAG
+    cancellation has remainder `-(1-s)mu||x-q||^2/(2s)`.  Thus, if
+    `MaskedInputResidual` is preserved on every executed product, the phase
+    takes `O_tilde(1/sqrt(alpha))` products and its one-hop scans cost
+    `O_tilde(M/sqrt(alpha))`; the outer two-certificate loop closes the target.
+    This bypasses temporal dominance altogether.  The input-frontier variant
+    has exact nonnegative input residual on 842 histories (the 114-history
+    four-vertex grid and all 728 connected five-vertex graphs at `s=1/10`);
+    500 deterministic-seed random canonical runs reach only
+    `-1.36e-15` roundoff, and 200 further runs have maximum measured potential
+    contraction ratio `0.999197`.  A 40-generation targeted adversary and its
+    five-alpha crosscheck reach only `-9.1e-20` roundoff.  Preservation of the input cone from the
+    minimal single-source chronology is still unproved and is now the narrowest
+    one-premise route found here.
 
 The investigation is continuing.  Statements below are separated into
 proved claims, candidate bounds, and stops.
@@ -4034,6 +4707,1271 @@ bounded-fill classes remain positive special cases.  On general graphs the
 Poisson route is therefore a clean equivalent formulation of the missing
 persistent dense response, not a free derandomization.
 
+#### The solution-amplitude spine and constant-shave path
+
+The negative uniform floor makes the RPPR solution itself more ordered than
+an arbitrary positive Green response.  In degree coordinates,
+
+```text
+H=alpha D+b(D-A),             b=(1-alpha)/2,
+f_rho=alpha e_v-alpha rho d,
+y*=argmin_(y>=0){1/2 y^THy-f_rho^Ty}.
+```
+
+At every non-source support vertex, stationarity gives
+
+```text
+a d_i y_i^*-b sum_(j~i)y_j^*=-alpha rho d_i,
+(1/d_i)sum_(j~i)y_j^*=(a/b)y_i^*+alpha rho/b>y_i^*.
+```
+
+Hence some support neighbor has strictly larger solution value.  Repeated
+ascent ends at the source, so the source is the unique maximum and every
+nonempty positive superlevel
+
+```text
+Y_eta={i:y_i^*>eta}
+```
+
+is connected and source-rooted.  Conservation gives
+`sum_i d_i y_i^*<=1`, and therefore
+
+```text
+vol(Y_eta)<=1/eta.                            (solution-level volume)
+```
+
+The superlevels also come with an exact lower path in the *same constant
+direction used by the implemented retraction*.  Define
+
+```text
+y^[eta]=(y*-eta 1)_+,
+r^[eta]=min(y*,eta 1),
+y*-y^[eta]=r^[eta].
+```
+
+For an active row `y_i^*>eta`, direct substitution gives
+
+```text
+(H y^[eta])_i-(H y*)_i
+ =-a d_i eta+b sum_(j~i)min(y_j^*,eta)
+ <=-(a-b)d_i eta=-alpha d_i eta.
+```
+
+Thus `y^[eta]` is an active-row lower subsolution not only for the original
+problem, but for the more strongly regularized load
+
+```text
+f_(rho+eta)=alpha e_v-alpha(rho+eta)d.         (constant-shave barrier)
+```
+
+The truncation is a normal contraction of the grounded graph Dirichlet form.
+Since the final obstacle multiplier is supported where `r^[eta]=0`,
+
+```text
+(r^[eta])^T H r^[eta]
+ <=(r^[eta])^T H y^*
+ =alpha r_v^[eta]-alpha rho d^T r^[eta]
+ <=alpha eta.
+```
+
+The linear term at the optimum cancels on its support, yielding
+
+```text
+F_rho(y^[eta])-F_rho(y*)
+ =1/2 (r^[eta])^T H r^[eta]
+ <=alpha eta/2.                               (constant-shave cap)
+```
+
+Let `y(r)` denote the exact RPPR solution at floor `r`.  Inverse positivity,
+the barrier above, and load monotonicity imply the sharp sandwich
+
+```text
+(y(rho)-eta 1)_+ <=y(rho+eta)<=y(rho),
+0<=y(rho)-y(rho+eta)<=eta 1.                  (rho-path Linfinity speed)
+```
+
+Writing `e=y(rho)-y(rho+eta)`, the two KKT systems further give
+
+```text
+||e||_H^2<=alpha eta d^Te<=alpha eta,
+F_rho(y(rho+eta))-F_rho(y(rho))<=alpha eta/2. (shifted-rho cap)
+```
+
+The last inequality uses `e<=y(rho)` and canonical mass conservation
+`d^Ty(rho)<=1`.  It follows that every final coordinate larger than `eta`
+is already present in the exact support at `rho+eta`, and that solving this
+shifted-floor problem is itself an `alpha eta/2`-accurate answer for the
+original objective.
+
+As with the relative-slack version, this immediately gives a face theorem
+without requiring the current face itself to be a superlevel.  For any
+source-containing `U subseteq S*`, set
+
+```text
+m_y(U)=max_(i in S*\U)y_i^*,       m_y(U)=0 if U=S*.
+```
+
+The shave `y^[m_y(U)]` is supported in `U`, so the exact restricted center
+`x^U` is at least this lower subsolution and is no worse as a feasible
+competitor.  Hence
+
+```text
+0<=y_U^*-x_U^U<=m_y(U)1,
+F(x^U)-F(y^*)<=alpha m_y(U)/2.                 (missing-solution face cap)
+```
+
+Thus the maximum final solution amplitude still missing controls both the
+uniform old-face center error and *all* future center energy.  The exact
+40-vertex stress trace shows why this offline scalar cannot itself count
+events: an untouched parallel branch can keep it exactly unchanged.
+
+The unknown scalar has a computable residual upper certificate.  Let `ell`
+be any certified lower state, extended by zero, and define
+
+```text
+c(ell)=max_i (f_rho-Hell)_i^+/(alpha d_i).       (constant bracket width)
+```
+
+Only current-face and one-hop boundary rows can contribute: every farther
+row has the negative floor score `-alpha rho d_i`.  Since `H1=alpha d`,
+
+```text
+H(ell+c(ell)1)>=f_rho.
+```
+
+The obstacle comparison principle now gives the exact global bracket
+
+```text
+ell<=y*<=ell+c(ell)1.                           (computable Linfinity bracket)
+```
+
+For completeness, if `w=(y*-ell-c1)_+`, then on its support `Hy*=f_rho`
+and `H(ell+c1)>=f_rho`; the Stieltjes truncation inequality gives
+`w^THw<=0`, hence `w=0`.  The lower inequality is the usual certified-face
+comparison.  Immediate consequences are
+
+```text
+||y*-ell||_infinity<=c(ell),
+{i:y_i^*>c(ell)} subseteq supp(ell),
+m_y(supp(ell))<=c(ell).
+```
+
+This is a fully local observable form of the constant-shave spine.  It also
+explains the normalization of the residual threshold: a normalized residual
+norm `R=||D^-1/2(f-Hell)_+||_2` implies `c(ell)<=R/alpha`.
+The bracket alone gives the coarse energy estimate
+`||y*-ell||_H^2<=c(ell)^2 vol(S*)`, so replacing the existing Euclidean
+subgradient stop by this scalar would reintroduce `M`; its value is the
+amplitude/chronology information, not a better terminal norm cap.
+
+The sharpened dynamic target is `ObservableConstantShaveDecay`: under the
+persistent lower-envelope accelerated updates, either `c(ell)` falls by a
+constant factor over a root window or the newly positive ports can be
+repaired locally and charged to disjoint component-layer volume.  A generic
+monotone increase of `ell` need not make the residual formula visibly
+monotone row by row, because raising one coordinate increases neighboring
+scores; the supersolution bracket therefore does not by itself prove this
+decay.
+
+This failure is strict even on one unit edge.  Take `alpha=1/4`,
+`rho=1/20`, so
+
+```text
+H=[[5/8,-3/8],[-3/8,5/8]],
+f=(19/80,-1/80),             y*=(23/40,13/40).
+```
+
+Both full-support vectors
+
+```text
+ell_0=(3/8,1/8),             f-Hell_0=(1/20,1/20),
+ell_1=(17/40,47/200),        f-Hell_1=(3/50,0)
+```
+
+are certified lower subsolutions and `ell_0<=ell_1<=y*`.  Nevertheless,
+
+```text
+c(ell_0)=1/5 < 6/25=c(ell_1).                 (nonmonotone bracket stop)
+```
+
+The mechanism is exactly neighboring residual transfer: increasing the
+second coordinate can concentrate the remaining positive residual on the
+first.  Therefore any decay theorem must use the particular update map or
+retain more state than the scalar recomputed from the latest lower vector.
+
+There is, however, a schedule-specific repair which is exact.  For
+`tau>0`, define the obstacle proximal map
+
+```text
+P_tau(z)=argmin_(x>=0) {
+  F_rho(x)+(tau^2/2)||x-z||_D^2
+},
+B_tau=H+tau^2D,
+q_tau=tau^2/(alpha+tau^2).
+```
+
+The map is order preserving because `B_tau` is Stieltjes.  It fixes the
+true solution, `P_tau(y*)=y*`.  Moreover, for every `delta>=0`,
+
+```text
+P_tau(z+delta 1)<=P_tau(z)+q_tau delta 1.       (prox translation bound)
+```
+
+Indeed, if `x=P_tau(z)`, then `x+q_tau delta 1` is a supersolution for the
+problem centered at `z+delta 1`, since
+
+```text
+B_tau 1=(alpha+tau^2)d,
+q_tau delta B_tau 1=tau^2 delta d.
+```
+
+Thus monotone obstacle comparison proves the claim.  If `ell` is a
+certified lower state and
+
+```text
+ell<=y*<=ell+delta 1,
+```
+
+then lower comparison and the translation bound give
+
+```text
+ell<=P_tau(ell)<=y*<=P_tau(ell)+q_tau delta 1.  (retained bracket contraction)
+```
+
+No dense upper vector has to be applied or stored.  The retained scalar
+`delta` is the upper state.
+
+The statement is robust to an inexact inner solve.  Let `z` be any
+certified lower state for the proximal subproblem centered at `ell`, and
+let
+
+```text
+zeta=max_i [f_rho+tau^2D ell-B_tau z]_i^+
+             /((alpha+tau^2)d_i).
+```
+
+The same constant-bracket proof, now for `B_tau`, yields
+`z<=P_tau(ell)<=z+zeta 1`; hence
+
+```text
+z<=y*<=z+(q_tau delta+zeta)1.                  (inexact retained bracket)
+```
+
+This certificate is again one-hop local for the canonical point-source
+load.  It also gives the safe amplitude publication statement
+
+```text
+{i:y_i^*>q_tau delta+zeta} subseteq supp(z).
+```
+
+For `tau^2=alpha`, `q_tau=1/2`; asking the inner lower solve for
+`zeta<=delta/4` reduces the retained width to at most `3delta/4`.  Hence the
+nonmonotonicity stop above is not fatal: one must retain the *proved old
+width* and update it by this recurrence, rather than recompute it from the
+new lower state.  What remains open is computational rather than scalar:
+`AmortizedLowerShiftedApply` must reach the requested `zeta` through all
+zero-appends and boundary discoveries in `O_tilde(vol(U_out)/tau)` work,
+without restarting on every intermediate face.
+
+The residual certificate itself can be retained without allowing the exact
+two-vertex rebound to compound.  Denote the original residual width by
+
+```text
+kappa=c_H(ell)=max_i(f_rho-Hell)_i^+/(alpha d_i).
+```
+
+The initial shifted width at center `ell` is
+
+```text
+zeta_0=alpha kappa/(alpha+sigma)=(1-q_sigma)kappa.
+```
+
+For an inner certified lower output `z`, its original residual decomposes as
+
+```text
+f_rho-Hz
+ =[f_rho+sigma D ell-(H+sigma D)z]+sigma D(z-ell).
+```
+
+The first positive part is at most `(alpha+sigma)zeta d`.  Also
+`0<=z-ell<=P_sigma(ell)-ell<=zeta_0 1`.  Consequently
+
+```text
+delta^+=q_sigma delta+zeta,
+kappa^+<=zeta/(1-q_sigma)+q_sigma kappa.        (two-certificate recurrence)
+```
+
+It follows immediately that
+
+```text
+kappa<=delta/(1-q_sigma)
+```
+
+is invariant.  At `sigma=alpha`, it is the simple invariant
+`kappa<=2delta`.  Choosing `zeta<=delta/4` gives
+
+```text
+delta^+<=3delta/4,              kappa^+<=3delta/2<=2delta^+.
+```
+
+Thus every next proximal phase starts with a *shifted* constant bracket no
+larger than its retained final-solution width: the shifted initial width is
+`kappa/2<=delta`.  The outer logic therefore asks only for a constant-factor
+quartering of a locally certified bracket, never for an uncalibrated or
+absolute tiny residual.
+
+This isolates a strictly narrower producer statement:
+
+```text
+QuarterBracketMaskedNAG:
+  for B=H+alpha D, start from a certified lower state whose shifted
+  constant bracket is at most delta; continue the projected estimate-
+  sequence recurrence through every lower-certified maximal zero-append;
+  reach shifted bracket delta/4 in O_tilde(1/sqrt(alpha)) products, with
+  total edge work charged to the final face of the phase.
+```
+
+If this statement holds, the two-certificate recurrence needs only
+`O(log(alpha/eps_obj))` phases.  When the retained width reaches
+`2eps_obj/alpha`, every still-missing final coordinate is at most that width;
+the missing-solution face cap makes one final certified restricted solve an
+`eps_obj` solution.  Nested phase volumes contribute only the logarithmic
+factor hidden by `O_tilde`, yielding the desired deterministic
+`O_tilde(M/sqrt(alpha))` bound.
+
+The implementation in `retained_prox_experiment.py` tests exactly this
+statement, but with dense matrices for auditing.  It keeps one scratch NAG
+recurrence during a phase, immediately zero-appends every maximal batch with
+positive lower residual, and stops only when the observable shifted bracket
+is at most `delta/4`.  At `alpha=10^-3`, reducing the retained width by
+`10^4` took 31--32 phases.  The longest phase on the delayed graph, exact
+40-vertex Green-band stress graph, alternating layers, a 48-vertex lollipop,
+and a 48-vertex path was between `1.61` and `1.65` normalized root-time;
+total measured *core-product* adjacency work was about `19--26` times
+`M/sqrt(alpha)`.
+Longer 200-vertex paths, lollipops, brooms, and clique chains and evolutionary
+searches remained below about `1.67` per phase across
+`alpha=10^-4,3*10^-4,10^-3,3*10^-3,10^-2`.  These runs strongly motivate
+the named lemma, but do not control all forced-recurrence mask histories and
+therefore are not promoted to an unconditional theorem.
+
+There is a particularly sharp route to proving the quarter-bracket lemma.
+For analysis only, run the same projected estimate-sequence recurrence on
+the *final support of the current proximal subproblem* from the beginning of
+the phase; call its states omniscient.  Standard fixed-face NAG and the
+proved retraction adapter imply that after
+
+```text
+T=O(alpha^-1/2 log(poly(M,1/alpha)))
+```
+
+products its omniscient lower state is within
+`alpha delta/[O(1)]` coordinatewise of the exact prox.  If the actual masked
+lower state one product later dominates that omniscient lower state, it has
+the same uniform error.  For `e=prox-lower>=0`, every positive residual row
+satisfies
+
+```text
+(B e)_i^+ <=B_ii e_i<=(a+alpha)d_i||e||_infinity.
+```
+
+Thus uniform error `2alpha delta/[4(a+alpha)]` gives shifted bracket at most
+`delta/4`.  The logarithmic extra accuracy is harmless.  In other words,
+the following coordinate comparison would imply the complete inner work
+bound without a response oracle:
+
+```text
+OneStepDomainDominance:
+  lower_masked(t+1) >= lower_omniscient(t)
+  for every t of every canonical retained-prox phase.  (candidate)
+```
+
+The stronger same-time version is rigorously false.  On the graph
+
+```text
+V={0,1,2,3},       E={01,02,12,13},
+alpha=1/100,       rho=1/10,
+```
+
+the exact retained-prox trace lies in `Q(sqrt(202))`.  At outer phase 6,
+inner product 3, the omniscient lower state is ahead of the masked state by
+
+```text
+0.0001104701308522192143251030711212037453...  (strict same-time stop)
+```
+
+on the newly admitted coordinate.  This is the unavoidable zero-append lag.
+The exact script nevertheless verifies the one-step-lag lower, primal, and
+next-extrapolate inequalities through phase 7.  The auxiliary physical state
+does not satisfy the same order in general, so the candidate must be stated
+in the three variables actually needed for the comparison, not as a blanket
+two-history order.
+
+The earlier floating-point audit found zero lag-one lower deficit on every
+connected simple graph with at most five vertices for the tested parameter
+grid, on all 26,704 connected labelled six-vertex graphs at
+`alpha=.01,rho=.1/d_0`, on 2000 random canonical graphs, and on the named
+structured witnesses.  That finite evidence is now superseded by a canonical
+counterexample.  The graph stored as `lag30` in
+`retained_prox_experiment.py`, with
+
+```text
+alpha=1/10000,        rho=17/2000,
+```
+
+has, in outer phase 8 and inner product 86, a one-product-lag omniscient
+lower coordinate ahead of the actual masked lower coordinate.  The
+degree-coordinate deficit is
+
+```text
+0.0002892921587903060918853871424203172810386466638370573791167654...
+```
+
+in an exact `Q(sqrt(20002))` execution.  The phase-zero unconstrained shifted
+solution is exactly strictly positive; all later shifted loads increase, so
+inverse positivity proves that every omniscient phase face is the full graph.
+An independent 80/140-digit execution selects the same strict branch and
+publication trace.  The normalized implementation reports maximum lag-one
+lower, primal, and next-extrapolate deficits
+
+```text
+0.0007417822237238216,
+0.00069313996565427,
+0.0006987770647958204,
+```
+
+respectively.  Thus `OneStepDomainDominance` is a strict stop, not an open
+lemma.  Importantly, the worst quarter-bracket phase on this graph still
+takes only `1.640405714...` root-time.  What survives is the aggregate phase
+conjecture, not its pointwise omniscient-shadow proof.
+
+There is a certified local repair that was absent from the zero-append
+recurrence.  Let `B` be Stieltjes, let `u` satisfy the lower-certificate
+condition, and write `r=h-Bu`.  For a set `W` of zero coordinates with
+`r_i>0`, set
+
+```text
+p_i=r_i/B_ii  (i in W),       p_i=0 otherwise.
+```
+
+For an old positive row, `r'_i=r_i-sum_(j in W)B_ij p_j>=r_i`.  For a new
+row, its diagonal term cancels and
+
+```text
+r'_i=-sum_(j in W, j!=i) B_ij p_j>=0.
+```
+
+Hence `u+p` is again a certified lower state, and positive batches may be
+cascaded without unsafe exploration.  Each newly exposed coordinate is
+pushed once and its adjacency is then charged to the final support volume.
+There is also an exact block form.  For the same newly exposed batch `W`,
+set
+
+```text
+p_W=B_WW^-1 r_W,             p_outside=0.
+```
+
+Inverse positivity gives `p_W>=0`; the new residual is zero on `W` and can
+only increase off `W`.  Thus block positive append is certified, and the
+new-vertex blocks are disjoint.  This is an algebraic strengthening, not a
+free implementation: a deterministic support-local solve of every general
+batch block must still be supplied and charged.  The diagonal version above
+is directly linear-work and is the concrete enhanced recurrence used below.
+The same update on every visible row with positive residual is a safe Jacobi
+push.  There is also a useful algebraic benchmark in which the push is made
+on *every ambient coordinate* with positive residual.  If `w` is any other
+certified lower state, put
+`delta=w-u` and `Delta=max_i delta_i^+`.  For every row `j` with
+`delta_j>0`, the Stieltjes sign pattern and `delta_k<=Delta` give
+
+```text
+r_j(u)=r_j(w)+(B delta)_j
+      >= B_jj delta_j-(B_jj-(B1)_j) Delta.
+```
+
+If `r_j(u)<=0`, this inequality already bounds `delta_j` by
+`(1-(B1)_j/B_jj)Delta`.  If `r_j(u)>0`, the diagonal push subtracts
+`r_j(u)/B_jj` from the deficit and gives the same bound.  Coordinates with
+nonpositive deficit need no bound.  Therefore the maximum post-push deficit
+is at most
+
+```text
+(1-min_i (B1)_i/B_ii) Delta.
+```
+
+For the retained shift `B=H+alpha D`, this ratio is exactly
+`1-4alpha/(1+3alpha)`.  The theorem explains why positive append plus one
+active residual push strongly repairs the lag witnesses, and the enhanced
+dense suite still has constant observed root-time.  It is not itself an
+accelerated proof: iterating only this contraction costs `Theta(1/alpha)`.
+Nor is the ambient contraction automatically an output-local operation: the
+implemented recurrence pushes the active face and then discovers only
+positive boundary rows.  `PushedDomainDominance` below is precisely the
+additional comparison needed to show that this visible closure suffices.
+The narrowed open question is whether the NAG candidate and this certified
+push admit a joint square-root potential through all face events.
+
+The most direct version of that question is now
+
+```text
+PushedDomainDominance:
+  after the masked retraction, one safe active Jacobi push and maximal
+  diagonal positive-append closure dominate the same-time lower envelope
+  of the unpushed NAG run on the final proximal face.
+```
+
+Unlike the refuted one-lag statement, this comparison is true on both fixed
+counterexamples.  At `alpha=.01,rho=.1/d_0`, it also has zero deficit on all
+26,704 connected labelled six-vertex graphs.  A further 1500 random
+connected-graph runs with `8--60` vertices, log-uniform
+`alpha in [10^-5,10^-1]`, and log-uniform valid threshold fractions found
+zero same-time deficit and maximum quarter-phase time
+`1.6577706299`.  Long paths and lollipops can retain dozens of missing
+omniscient-face vertices after one closure, so the evidence is not a trivial
+consequence of discovering the whole face immediately.
+
+The parameter-grid driver additionally checked all 728 connected labelled
+five-vertex graphs at
+
+```text
+alpha in {.003,.01,.03,.1},
+rho*d_0 in {.001,.03,.1,.3,.7,.95},
+```
+
+for 17,472 enhanced runs.  It found no positive pushed-domain or
+shadow-residual-cover deficit.  This broadens the finite parameter evidence;
+it does not replace an exact symbolic check or an asymptotic proof.
+
+The sparse 12,286-vertex projected-overshoot tree at `alpha=10^-6` and
+`rho=10^-30` gives a complementary accounting check.  Exact-positive maximal
+append cascades through its entire true support in the first closure.  Over a
+`10^-3` relative-width run, the maximum phase is `0.16688` root-time and the
+charged core/push/append ratio is `0.4651 M/sqrt(alpha)`; lower, primal,
+extrapolate, and raw momentum-flux comparisons miss zero only at about
+`10^-10` in double precision.  Because the first closure already reaches the
+full face, this is a large sparse stability/charging regression, not a hard
+moving-face comparison.
+
+If `PushedDomainDominance` holds, the fixed-face lower-envelope convergence
+argument used for the old shadow route applies at the *same* product.  The
+extra active push is one additional sparse matrix application per product;
+positive-append batches are disjoint and add only total final-support volume.
+The experiment therefore reports both the old core-product counter and a
+charged counter including these two linear additions.  Dense block-push
+flags remain explicitly uncharged diagnostics and are not evidence for this
+bound.
+More exactly, if `W_core` is the sum of scratch-face volumes over products,
+then the residual-push support is a subset of that scratch face on every
+product, and new append batches are vertex-disjoint.  Hence
+
+```text
+W_push<=W_core,        W_append<=M,
+W_charged<=2W_core+M.                 (enhanced sparse ledger)
+```
+
+This part is unconditional for the diagonal enhanced recurrence.  It reduces
+the target entirely to bounding the number/distribution of core products;
+the dense block flags satisfy no such charged statement.
+It would therefore prove the required quarter bracket and, through the
+two-certificate outer recurrence, the full `O_tilde(M/sqrt(alpha))` target.
+No proof is claimed: for arbitrary certified `u,w`, the exact comparison
+available from the Stieltjes lattice is only the `1-O(alpha)` deficit
+contraction above.  The missing ingredient is an inequality tying the
+pre-push deficit specifically to the paired NAG/retraction histories.
+
+That missing inequality now has a local exact form.  Let `u` be the masked
+envelope just before the active push, `w` the same-time unpushed omniscient
+envelope, `r(u)=h-Bu`, and `delta=w-u`.  If
+
+```text
+B_ii delta_i <= [r_i(u)]_+            whenever delta_i>0,
+                                                    (shadow residual cover)
+```
+
+then the active diagonal push or the first positive-append update makes the
+new masked coordinate at least `w_i`; later append updates only increase
+outside residuals.  Hence shadow residual cover implies
+`PushedDomainDominance`.  Since both lower envelopes are certified,
+
+```text
+r(u)=r(w)+B delta
+    =r(w)+diag(B)delta-C delta,        C=diag(B)-B>=0.
+```
+
+Therefore, on a positive-deficit row, shadow residual cover is exactly
+
+```text
+(C delta)_i <= r_i(w).                (shadow-flux form)
+```
+
+This exposes the only way the local comparison can fail: neighboring
+positive deficit must send more Stieltjes coupling flux into `i` than the
+omniscient lower certificate retains as residual slack.  If no neighbor of
+a positive-deficit row has positive deficit, then `C delta<=0` there and the
+condition follows immediately from `r(w)>=0`.  The experiment now records
+both the residual-cover violation and adjacent-deficit ratios.  Their
+nonpositivity on tested enhanced chronologies is useful evidence, but
+neither the independent-set property nor the more general shadow-flux form
+has been proved from the paired NAG histories.
+
+Empirically, the enhanced histories satisfy the stronger
+`PrePushDomainDominance`: the masked envelope already dominates the
+same-time omniscient envelope immediately after retraction and before the
+current active push.  Thus no positive shadow deficit actually needs cover in
+the tested chronology.  The 17,472-run five-vertex floating grid has maximum
+normalized pre-push deficit `2.50e-16`; path-initialized searches with
+optimized thresholds remain at roundoff; and all Fraction-exact histories
+reported below have nonnegative pre-push gaps.  Proving this stronger lead
+invariant would replace `ShadowResidualCover` outright.  It cannot follow
+from current order or generic retraction isotonicity, as the exact canonical
+two-row stop below demonstrates.
+
+For products after the synchronized phase start, all current tests satisfy an
+even stronger temporal lead: the *starting* masked lower, already pushed at
+the preceding product, dominates the newly produced omniscient envelope.
+Call this `PushedOneStepLead`.  It implies pre-push dominance immediately by
+monotonicity of the masked envelope.  In the exact `alpha=1/199`
+four-vertex enumeration its minimum masked-minus-omniscient lead is a strict
+positive rational (approximately `3.91e-6`); relevant structured floating
+margins are also strict.  Thus one possible proof can bypass the three-clause
+state induction: prove the first-product repair and this temporal lead.
+However, `omniscient_jacobi_cap_exact.py` proves that the lead cannot be
+reduced to the static inequality `w_(t+1)<=J(w_t)`; it must exploit the actual
+accelerated masked state accumulated behind its pushed lower.
+
+Nor is this merely the old state induction shifted by one product.  The
+Fraction-exact `alpha=1/199` four-vertex audit finds strictly positive
+one-step lower/current lead, but exact negative one-step auxiliary and
+extrapolate gaps of approximately `-0.0138778` and `-0.000434179`.
+Structured floating traces have extrapolate lag up to `0.0224`.  The future
+omniscient *retracted envelope* remains behind even though its accelerated
+state does not.  Any proof of `PushedOneStepLead` must therefore use the
+retraction/certificate geometry, not a time-shifted coordinate order on NAG
+states.
+
+The phase base is fully proved.  Let `ell` be the old certified lower, `A` its
+materialized face, and `r=h-Bell`.  Active certificate rows have `r_A>=0`.
+Both histories start with extrapolate `ell`; hence the first masked raw current
+is
+
+```text
+c_A=ell_A+r_A/L.
+```
+
+Its active residual is
+
+```text
+h_A-B_AA c_A=(I-B_AA/L)r_A=R_AA r_A>=0,
+```
+
+because `R=I-B/L` is entrywise nonnegative.  Thus the masked uniform shave is
+zero and its pre-push lower is exactly `c_A`.  The omniscient raw current is
+the same on `A`; its retraction subtracts a nonnegative shave, so its lower is
+no larger there.  On an exterior row, its lower is at most
+`[r_i/L]_+`.  The masked residual after raising `A` is
+`r_i-B_iA r_A/L>=r_i`, and the active push only increases it further.  If the
+omniscient exterior lower is positive, exact-positive closure therefore
+appends at value at least `r_i/B_ii>=r_i/L`, using `B_ii<=L`.  This proves
+`FirstProductPushedDominance` on every phase.  At the same time initial state
+gaps vanish (`MomentumFlux=0`) and `q^o=ell<=c_A` makes boundary flux
+automatic.
+
+Combining this proved base with `PushedOneStepLead` proves all later pre-push
+and pushed lower orders without invoking the three local clauses at every
+product.  Hence the compact temporal route has exactly one remaining premise:
+`PushedOneStepLead`.
+
+There is one further unconditional product on a synchronized common face.
+Let `b=B_ii`, `R=I-B/L`, and suppose the phase-start residual `r` is
+nonnegative on that face.  After product one the unpushed current and
+auxiliary are `ell+r/L` and `ell+r/(Ls)`, so the next omniscient input is
+`ell+2r/[L(1+s)]`.  Direct substitution, together with
+`2b=L(1+s^2)`, gives
+
+```text
+U_1-c_2^o
+ = (1/b-2/[L(1+s)])Rr
+ = s(1-s)Rr/[b(1+s)] >= 0.
+```
+
+Since the next retracted envelope is no larger than the raw current and its
+old envelope is already below `U_1`, this proves `U_1>=w_2`.  Thus the first
+temporal lead is algebraic, not empirical.  The identity does not repeat for
+later products because the pushed and unpushed auxiliary histories have then
+separated.
+
+The exact limit of that fixed-face argument is sharp.  In
+`masked_fixed_face_counterexample_exact.py`, a 12-vertex simple connected
+unit graph, `s=1/250`, and a single point-source residual start both histories
+from zero.  If the full face is supplied to the masked recurrence for free,
+product three has
+
+```text
+min_i(U_2-w_3)=-0.120502280701876... .
+```
+
+The first three post-push positive-residual maxima are approximately
+`0.2777644,0.2503891,0.1929120`.  Taking the admissible synthetic old width
+`1/(2alpha)` makes `1/4` the residual-coordinate stopping threshold, so the
+violating product is executed and is exactly the first stopping product.
+Every masked raw residual through that product is nonnegative: the stronger
+empirical `MaskedNoShave` property is therefore still insufficient.
+
+This is deliberately not a counterexample to the local recurrence.  The
+supplied face contains zero rows that have never been certified.  Starting
+instead from `{v}` and applying maximal exact-positive append reaches the
+same full face after the first product, but it deposits values causally along
+the append cascade and keeps minimum one-step lead `0.0039679` through product
+three.  Face *size* is identical after product one; the first-admission values
+are what repair the inequality.  This controlled pair rules out every proof
+that forgets admission time and retains only the current principal matrix,
+point-source load, nonnegative residual, or no-shave fact.
+
+The actual chronology has an exact structural invariant absent from that
+stop.  Exact-positive admission gives every new row a strictly positive lower
+value and lower values never decrease; after the initial source update,
+
+```text
+certified face = supp(lower).
+```
+
+It also preserves the original RPPR lower certificate.  Indeed, within a
+retained phase `Bu<=load+alpha old_lower` and `u>=old_lower`, whence
+`Qu<=load`.  In random-walk degree coordinates, every positive non-source
+row consequently satisfies
+
+```text
+((1-alpha)/2)(Pu)_i
+ >= ((1+alpha)/2)u_i+alpha rho
+ >  ((1-alpha)/2)u_i.
+```
+
+It has a neighbor of strictly larger lower value.  Iterating these strict
+parents reaches the unique source, so every positive lower superlevel is
+source-rooted and connected.  This `CertifiedSourceArborescence` proves that
+gratuitously supplied zero rows are unreachable and provides the right
+combinatorial carrier for a future no-reuse argument.  What remains is a
+quantitative theorem showing that the admission deposit along each parent
+edge pays all later omniscient envelope advances; connectivity alone does not
+supply that payment.
+
+The remaining temporal statement can be written without mentioning the new
+envelope explicitly.  Let `U` be the preceding pushed masked lower, `q` the
+next omniscient input extrapolate, `r_U=h-BU`, and `theta` the omniscient
+uniform shave.  Put `a=U-q`.  Since
+
+```text
+h-Bq=r_U+Ba,
+c=q+(h-Bq)/L,
+```
+
+one has the exact identity
+
+```text
+U-c+theta=R a-r_U/L+theta,       R=I-B/L.
+```
+
+The old omniscient envelope is already below `U`; hence on every row where
+the new candidate grows, `PushedOneStepLead` is equivalent to
+
+```text
+L[R(U-q)]_i+L theta >= r_U,i.    (TemporalResidualShield)
+```
+
+This exposes the correct local currency.  Immediately after a diagonal push,
+the residual slack is incoming coupling flux `Cp`; later append batches add
+more one-time incoming flux to old rows.  A plausible proof can therefore
+assign append flux to first-admission edges of the certified source
+arborescence and use the momentum-flux cone only for the repeated active-push
+part.  No such combined charging inequality has yet been proved; the display
+is a lossless reformulation of the single open premise, not a replacement for
+it.
+
+There is no need to treat `r_U` as an undirected, history-free `Cp` term.
+Order the preceding product's active push as batch zero and its append batches
+as `1,...,k`.  If `p_j` is the diagonal increment and `t(j)` its batch, then
+for every coordinate certified after closure,
+
+```text
+r_U,i=sum_{j:t(j)>=t(i)} C_ij p_j.     (chronological flux)
+```
+
+At batch `t(i)`, the diagonal update cancels all residual accumulated before
+that batch at row `i`; same-batch and later neighbor increments are exactly
+the terms that remain.  This proves the identity.  It decomposes the temporal
+shield into globally one-time append flux, naturally oriented along admission
+edges, and recurrent active--active flux.  The source arborescence can in
+principle pay the first part without reuse, while `MomentumFlux` must pay the
+second.  The missing proof is now the inequality combining those two credits,
+not a representation of the debt.
+
+In fact, substitution cancels every same-or-later debt term.  Write
+`U=V+p`, where `V` is the pre-push lower, and put
+`gamma=L-B_ii=(1-alpha)/2`.  Then
+
+```text
+L[R(U-q)]_i-r_U,i
+ =gamma(U_i-q_i)+[C(V-q)]_i
+  +sum_{j:t(j)<t(i)}C_ij p_j.          (causal cancellation identity)
+```
+
+This follows by expanding `LR=gamma I+C` and deleting from `Cp` exactly the
+terms present in the chronological residual.  Adding `L theta` gives a
+quantity whose nonnegativity on candidate-growth rows is *equivalent* to
+`PushedOneStepLead`.  Old active rows have no early-batch credit; newly
+admitted rows inherit a positive term from earlier neighbors.  The missing
+theorem is consequently a four-term sign statement involving the diagonal
+gap `U_i-q_i`, the neighbor pre-push gap `C(V-q)`, admission-DAG credit, and
+the omniscient shave.  This is the most local lossless interface found in the
+audit.
+
+A modified repair order makes the interface still cleaner.  Execute the
+ordinary active push and append cascade, call the resulting lower `U^(1)`,
+then make one cleanup diagonal push on the enlarged face and cascade any new
+positive exterior rows once more, producing `U^(2)`.  Applying chronological
+cancellation to this second push gives
+
+```text
+L[R(U^(2)-q)]_i-r_i^(2)
+ =gamma(U_i^(2)-q_i)+[C(U^(1)-q)]_i
+  + earlier-second-closure credit.
+```
+
+The potentially recurrent residual is gone; a proof needs only a two-level
+lower/extrapolate comparison plus positive admission credit and shave.  This
+does not lose the target ledger.  Except for the last product of a phase, the
+cleanup face is contained in the next core-product face, so its scan charges
+forward; terminal cleanup is at most `M` per logarithmically many outer
+phases.  Together with the first push and disjoint append work, total charged
+work remains `O(W_core+M polylog)`.
+
+The evidence is materially stronger than for merely repeating pre-append
+pushes.  The exact supplied-full-face stop becomes positive by `0.083327...`;
+lag30 gains about two orders of magnitude in relevant lead; structured phases
+stay below `0.99` root-time; and 10,000 arbitrary nonnegative fixed-face
+histories through their first quarter-residual crossing (up to 30 products)
+show no reversal, with minimum `5.78e-9`.  A generic product-seven reversal
+exists after its phase should already have stopped, so the candidate must be
+stated as `StoppedPostAppendTwoLevelLead`.  Nevertheless, this remains a
+candidate.  On the Fraction-exact four-vertex star at
+`alpha=1/199,rho d_v=1/10`, phase 2/product 9, the omniscient source envelope
+exceeds two static Jacobi pushes by `0.000485329800997107...`, so a
+proof must use the paired two-level masked history rather than a static cap.
+If the stopped sign is proved, first-product dominance, monotonicity of the
+second repair, fixed-face NAG, and the charged cleanup ledger close the full
+target exactly as in the one-push route.
+
+The focused five-vertex cleanup audit now adds all 728 connected labelled
+graphs at `s=1/10,rho d_v=1/10`; its relevant temporal lead is strictly
+positive with minimum `3.9234467782768e-5`.  This remains finite evidence.
+Moreover, an exact arbitrary-residual 12-row trace proves the stopping scope
+cannot be deleted: it crosses the quarter threshold after product one with
+residual maximum `0.1639953816...`, yet an illegal continuation reverses the
+product-three lead by `0.000122140052...`.  Exact four-vertex fixed-face
+enumeration passes 1,710 binary-residual histories across three rational roots
+and another 6,080 skew-profile histories.  Thus the sharp open implication is
+`residual(U_t)>delta/4 => U_t>=w_(t+1)`, not permanent two-push domination.
+
+There is also a smaller observed reachable-state cone.  Every canonical
+enhanced trace tested has nonnegative masked residual already at the *input*
+extrapolate `q`.  If `y=h-Bq>=0`, then the raw-current residual is `Ry>=0`,
+so masked retraction has zero shave.  Since the previous clamp gives
+`q>=lower`, the raw current `q+y/L` is above the old lower; it becomes the
+pre-push lower exactly.  The push then raises the lower and resets the current
+to it.  Thus `MaskedInputResidual` implies the exact normal form
+
+```text
+current=lower,
+q=lower+s(auxiliary-lower)/(1+s),
+h-Bq>=0,
+pre-push lower=q+(h-Bq)/L.
+```
+
+The focused 728-history five-vertex Fraction audit, the four-vertex exact
+grid, structured suites, and adversarial canonical searches all satisfy this
+cone; the strongest floating search value is `-7.2e-25`, consistent with
+roundoff.  Arbitrary nonnegative fixed-face starts can leave it.  Even within
+the cone, the supplied-face point-source stop reverses the temporal lead, so
+the normal form simplifies the state but does not replace causal admission.
+
+The cone does, however, support a different proof that needs no temporal
+comparison.  At the beginning of a product, scan the one-hop exterior and
+zero-admit every row with positive residual at the input extrapolate `q`.
+Call the enlarged face `A`.  If `h_A-B_AAq_A>=0`, inverse positivity gives
+
+```text
+q_A<=B_AA^-1 h_A<=x_A^*,
+```
+
+where `x^*` is the exact obstacle prox.  For a row outside its support,
+Stieltjes monotonicity and the obstacle KKT inequality then give
+
+```text
+h_i-(Bq)_i <= h_i-(Bx^*)_i <=0.
+```
+
+Thus every input-residual admission is genuinely in the output support; no
+false hub can be explored.  After closure the omitted exterior gradient is
+nonnegative.  In the global strong-convexity lower model its omitted inner
+product with `x^*_outside>=0` is also nonnegative, so dropping it is safe.
+The active `L`-smooth step supplies the usual descent inequality.
+
+Write `mu=2alpha`, `s=sqrt(mu/L)`, and use the standard physical estimate
+state `q=(x+s z)/(1+s)`.  The ordinary strongly-convex NAG algebra with the
+active gradient therefore gives
+
+```text
+f(x^+)-f(x^*)+(mu/2)||z^+-x^*||_2^2
+ <=(1-s)[f(x)-f(x^*)+(mu/2)||z-x^*||_2^2].
+```
+
+The exact scalar cancellation leaves the additional nonpositive remainder
+`-(1-s)mu||x-q||_2^2/(2s)`; it is symbolically reproduced by
+`input_frontier_potential_exact.py`.
+
+Because the active input residual is nonnegative, the raw current residual
+is `R_AA(h_A-B_AAq_A)>=0`, so the current is a restricted subsolution.  The
+subsequent positive-residual push/closure produces another lower subsolution
+below `x^*`.  Joining both physical NAG states with that lower cannot increase
+the displayed potential: the primal part is the proved Stieltjes lattice
+projection, and the auxiliary Euclidean distance decreases coordinatewise.
+Zero-state face admission changes neither state.  Consequently the contraction
+survives every safe growing-face event with no additive event bank.
+
+This proves the conditional theorem
+
+```text
+StoppedMaskedInputResidual
+  + input-residual frontier admission
+  => QuarterBracketMaskedNAG
+  => O_tilde(M/sqrt(alpha)).
+```
+
+Each frontier scan uses only the current face and its incident edges; every
+admitted row lies in the final prox support.  Hence a product costs at most
+that support volume, and the usual `O(s^-1 log(poly))` energy-to-coordinate
+conversion gives the claimed phase ledger.  Unlike the temporal-lead route,
+the exact supplied-face lead counterexample is irrelevant to this argument.
+The sole unproved step is preservation of the active input residual from the
+minimal single-source initialization.  It is observable, exact on the current
+small-graph grids, and false for arbitrary fixed-face initial states.  An
+adaptive restart can enforce it algorithmically, but no graph-uniform bound
+on the number or timing of such restarts has yet been proved.
+
+One tempting way to prove that history statement is to induct simultaneously
+on masked domination of the lower state, primal state, and next extrapolate.
+The enhanced structured traces do satisfy all three comparisons even though
+their auxiliary state can fail.  However, these three orders are not closed
+under the NAG transition by themselves.  With root parameter `s`, current
+`c`, auxiliary `a`, and extrapolate `q=(c+s a)/(1+s)`, the next unprojected
+auxiliary and extrapolate contain the negative old-current term
+
+```text
+a^+=(c^+-(1-s)c)/s,
+q^+=(2c^+-(1-s)c)/(1+s).
+```
+
+The exact scalar witness in `pushed_state_order_exact.py` sets the two current
+states to `8` and `9`, their auxiliaries to `14` and `12`, and `s=1/2`.
+Both inputs are `q=10`.  Under `T(q)=q+(2-q/2)`, both new currents are `7`;
+the common retracted lower value is `4`, so neither new auxiliary (`6` and
+`5`) is clamped.  The next extrapolates are exactly `20/3` and `19/3`, in the
+wrong order.  This is not a canonical reachability counterexample.  It proves
+that any successful induction needs an additional quantitative constraint
+on the paired current gap, not just coordinatewise lower/current/extrapolate
+orders.
+
+For the retained shift there is an exact reason that a stronger invariant may
+still work.  Write `L=1+alpha`,
+
+```text
+s=sqrt(2alpha/(1+alpha)),
+R=I-B/L=beta I+K,
+beta=(1-alpha)/(2(1+alpha))=(1-s^2)/2,
+K>=0 and diag(K)=0.
+```
+
+Let `d=c_mask-c_omn`, `z=a_mask-a_omn`, and
+`g=q_mask-q_omn=(d+s z)/(1+s)` at the input of a common active-row gradient
+step.  The common load cancels, so the new current gap is `Rg`.  Substitution
+into the NAG extrapolate formula gives the exact coordinate identity
+
+```text
+g_i^+
+ =[2(Rg)_i-(1-s)d_i]/(1+s)
+ =[s(1-s)z_i+2(Kg)_i]/(1+s).          (momentum-flux identity)
+```
+
+Consequently the auxiliary state need not dominate.  Its negative gap can be
+paid *exactly* by positive off-diagonal extrapolate flux.  This matches the
+enhanced traces: auxiliary deficits are strict, while the raw compatibility
+margin `s(1-s)z+2Kg` is nonnegative to numerical precision and the next
+extrapolate still dominates.
+
+This identity isolates a concrete reachable-history cone rather than proving
+it.  There is no additional clamp conjecture.  Let `c+` and `a+` be the raw
+new current and auxiliary, let `c_old>=ell_old`, and let the retracted lower
+state be
+
+```text
+ell+=max{ell_old,0,c+-theta sqrt(d)},       theta>=0.
+```
+
+If `c+<ell+`, then `ell+` comes from the nonnegative old lower state and
+
+```text
+a+=[c+-(1-s)c_old]/s < ell+.
+```
+
+Thus either neither current is clamped, or both current and auxiliary lie
+below the old lower when the current is clamped.  In both cases direct
+calculation gives the reachable-clamp identity
+
+```text
+q_clamp=max{q_raw,ell+,(c+ + s ell+)/(1+s)}.
+```
+
+The right side is isotone jointly in raw extrapolate, new lower, and raw
+current.  Hence raw-current order from `R>=0`, raw-extrapolate order from the
+momentum-flux inequality, and pushed-lower order from shadow residual cover
+survive both the retraction clamp and the later upward clamp to the pushed
+lower.  The negative clamp-gap changes seen in some traces merely consume
+positive raw margin; the post-clamp margin remains nonnegative.  The
+fraction-exact finite audit in `pushed_clamp_compatibility_exact.py` checks
+493,050 ordered reachable pairs, while the argument above is general.
+
+This does **not** mean the stronger momentum cone is clamp-invariant.  The
+exact two-coordinate construction in `pushed_clamp_flux_exact.py` uses
+`s=1/2`, `K_12=K_21=1/8`, and genuine raw-auxiliary formulas on both sides.
+Before clamping, raw current, raw extrapolate, and retracted lower are ordered
+and the two momentum-flux margins are `(7/12,23/12)>0`.  After legal reachable
+clamps, current and extrapolate are still ordered, exactly as the lemma
+promises, but the flux margins are `(-1/6,1/3)`.  These states are not asserted
+canonical-reachable.  The witness can be strengthened with
+`B=[[5,-1],[-1,5]]/7`, which has the retained diagonal/root relation and a
+canonical normalized principal coupling.  A common load makes both displayed
+lowers certified; after one legal positive-residual masked push, the flux is
+still `(-2/15,13/30)`.  The common load is not asserted to be a canonical
+single-source phase load.  Thus the actual source chronology must
+re-establish `MomentumFlux`; order-compatible clamping plus generic push
+legality cannot do it.
+
+Dimension change also reduces exactly to a local flux premise.  Let `A` be
+the old active face, assume the omniscient current and auxiliary histories
+are zero on `A^c`, and let `q^o` be its input extrapolate.  For a row
+`i notin A`, `q_i^o=0`, so its omniscient raw current satisfies
+
+```text
+L c_i^{o,+}=h_i+(Cq^o)_i.
+```
+
+For the masked pre-push lower `u`, which is also zero at `i`, the safe
+publication residual is `r_i(u)=h_i+(Cu)_i`.  Therefore
+
+```text
+(Cq^o)_i <= (Cu)_i                       (boundary flux gate)
+```
+
+implies `r_i(u)>=L c_i^{o,+}`.  An active push only increases exterior
+residuals.  If `c_i^{o,+}<=0`, the omniscient retraction and clamp leave the
+zero-history row at zero.  If it is positive, the row is safely appended at
+value `p_i>=r_i(u)/B_ii`; this dominates the omniscient current because
+`B_ii<=L`.  It also dominates the new omniscient extrapolate
+`2c_i^{o,+}/(1+s)`, since for `0<alpha<=1`
+
+```text
+s=sqrt(2alpha/(1+alpha)) >= 2alpha/(1+alpha),
+L/B_ii >= 2/(1+s).
+```
+
+The exact squared slack in the first inequality is
+`2alpha(1-alpha)/(1+alpha)^2`; `pushed_exterior_gate_exact.py` audits the
+parameter algebra.  Hence boundary flux proves both zero-state persistence
+off the expanded face and current/extrapolate order on newly admitted rows.
+The stronger coordinate condition `u_j>=q_j^o` on every active neighbor of
+the old exterior implies it immediately.  Dedicated path-like searches, the
+full 17,472-run five-vertex grid, and a 2,500-run random parameter sweep with
+669 genuinely growing-face traces found nonpositive boundary-layer and
+boundary-flux gaps, while exterior omniscient extrapolates remained exactly
+zero after closure.  These are finite tests, not a preservation proof.
+
+A complete induction is now conditional on the following three local
+reachable-history clauses after every event:
+
+```text
+MomentumFlux:       s(1-s)z+2Kg >= 0 on old active rows;
+ShadowResidualCover:B_ii(w_i-u_i) <= [h-Bu]_i^+ for lower envelopes;
+BoundaryFluxGate:   Cq^o <= Cu on zero-history exterior rows.
+```
+
+The first propagates raw extrapolate order, the second repairs lower order,
+and the third closes dimension-change initialization; the reachable-clamp
+lemma then completes the state induction.  The implications of the latter
+two clauses and the momentum identity are proved, but preservation of the
+three premises by the paired source chronology remains open.
+
+More formally, initialize both histories at the same old certified lower
+state, with zero current/auxiliary outside the materialized face.  Suppose
+the three displayed premises hold whenever their corresponding transition is
+reached.  Inductively, exterior zero history and `R>=0` give raw-current
+order on old active rows; `MomentumFlux` gives raw-extrapolate order;
+`ShadowResidualCover` plus active push/positive closure gives lower order;
+the reachable-clamp identity preserves current/extrapolate order on the old
+rows; and `BoundaryFluxGate` supplies those orders plus zero persistence on
+the new/exterior rows.  Thus the pushed masked lower dominates the same-time
+unpatched omniscient lower after every product.  Fixed-face accelerated
+convergence then proves `QuarterBracketMaskedNAG`; the two-certificate outer
+loop and enhanced sparse ledger give the desired
+`O_tilde(M/sqrt(alpha))` work.  This is a rigorous conditional theorem: its
+only unproved content is preservation of the three local premises, not any
+hidden clamp, state-extension, or work step.
+
+One further simplification does not work.  Although
+`J(x)=x+diag(B)^-1[h-Bx]_+=max{x,diag(B)^-1(h+Cx)}` is isotone, an
+omniscient lower envelope can advance farther than one `J` step.  On the
+canonical two-vertex unit edge with `alpha=1/7,rho=1/10`, exact rational
+arithmetic gives retained root `s=1/2` and, at product four,
+
+```text
+w_4-J(w_3)=(1/3200,1/3200)>0.
+```
+
+The full trace is in `omniscient_jacobi_cap_exact.py`.  Thus the successful
+enhanced comparisons cannot be proved by saying that one residual push
+pre-pays the next omniscient round; the accelerated state and push must be
+analyzed jointly.
+
+One further shortcut is unavailable.  The mapping “uniform certified
+retraction, then one all-coordinate positive-residual Jacobi push” is not
+coordinatewise monotone in its input current, even with a canonical phase
+load and certified old lower.  The exact two-vertex witness in
+`pushed_retraction_isotonicity_exact.py` uses `alpha=1/10000`,
+`rho=1/1000`,
+
+```text
+B=[[10003,-9999],[-9999,10003]]/20000,
+old_lower=(69873,69853)/200000,
+c_omn=(494953,494866)/10^6,
+c_mask=(645553,640166)/10^6.
+```
+
+Although `c_omn<=c_mask`, the pushed outputs have omniscient-minus-masked
+deficits exactly
+
+```text
+(1693660617,1693140669)/40012000000>0.
+```
+
+The phase load is exactly `f_rho+alpha*old_lower`, and the old lower is a
+constant shave of the exact canonical solution.  Only the two ordered current
+states are not asserted reachable from the prescribed zero start.  Hence this
+does not refute the enhanced canonical recurrence; it is a strict stop against
+replacing the three local history clauses by a generic isotonicity lemma.
+
+The constant-shave comparison has a direct chronological boundary form.
+Let `U subseteq S*` contain the source, let `ell` be supported on `U`, and
+assume the uniform lower shadow
+
+```text
+0<=y_j^*-ell_j<=eta        for every j in U.
+```
+
+For a component `C` of `S*\U`, choose a vertex `i` maximizing `y*` on `C`.
+Strict ascent makes `i` a port adjacent to `U`.  Split its neighbors into
+`U`, `C`, and the final exterior, with corresponding counts
+`d_iU,d_iC,d_i0`.  The exact row equation and maximality on `C` give
+
+```text
+r_i(ell)=f_i-H_iU ell_U
+ >=a d_i y_i^*-b d_iC y_i^*-b d_iU eta
+ =alpha d_i y_i^*
+   +b d_iU(y_i^*-eta)+b d_i0 y_i^*.           (shave-to-port gate)
+```
+
+Therefore every remaining component whose solution maximum is at least
+`eta` has a currently exposed positive gate of size at least
+`alpha d_i eta`; in normalized coordinates it is at least
+`alpha sqrt(d_i) eta`.  All high-amplitude components publish in parallel
+once the old face has a uniform `eta` shadow.  This is exactly the branch-
+local replacement needed after the strict global-maximum counterexample.
+
+The premise is the remaining algorithmic issue.  The exact center on a face
+containing `{y*>eta}` dominates the oracle shave, but after a new port is
+zero-appended its coordinate can be more than `eta` below `y*`.  Restoring
+the uniform shadow by a fresh whole-face accelerated solve at every port
+would recreate the forbidden replay.  A proof must persist/localize that
+repair through the complement-component forest, or show that the newly
+violated port layers buy disjoint volume.  This is the precise
+`ConstantShaveShadow` update clause.
+
+This is stronger and more implementable in form than the Green-amplitude
+spine: the shaving direction is the known vector `1`, exactly the direction
+of lower-envelope retraction, and only
+`O(log(alpha/eps_obj))` dyadic solution-amplitude bands matter for objective
+accuracy; their disjoint volume shells sum to `M`.  It still is not a full
+runtime proof.  The values and crossing levels of `y*` are unknown, and an
+accelerated local solve of the shifted-floor instances can still replay a
+dense response after support admissions.  The sharpened target is
+`ConstantShaveShadow`: show that the computable retracted lower envelope
+dominates successive oracle shaves, or reaches the global mapping stop, on
+one shared root clock.  Unlike the Green version, this comparison no longer
+requires materializing an unknown dense shaving direction.
+
+There is also a universal root-scale *graph-distance* bound on this spine.
+Let `P=D^-1A`, `theta=b/a`, and `delta=1-theta=alpha/a`.  The full ordinary
+point-source Green profile `pbar=alpha H^-1e_v` has the reversible-walk
+representation
+
+```text
+d_i pbar_i=delta sum_(t>=0)theta^t P^t(v,i).
+```
+
+The Varopoulos--Carne inequality for the simple random walk says, with
+`r=dist(v,i)`,
+
+```text
+P^t(v,i)<=2 sqrt(d_i/d_v) exp(-r^2/(2t)).
+```
+
+Its geometrically killed sum has the elementary split at
+`t=r/sqrt(delta)`:
+
+```text
+delta sum_t theta^t exp(-r^2/(2t))
+ <=C exp(-c r sqrt(delta)).
+```
+
+Indeed the Gaussian factor pays the terms below the split, while
+`theta^t<=exp(-delta t)` pays the tail.  Consequently
+
+```text
+pbar_i<=C/sqrt(d_i d_v)
+          exp(-c r sqrt(alpha/a)).             (killed-walk distance decay)
+```
+
+Every final support coordinate satisfies
+`pbar_i>=p_i>alpha rho/a`, where `p` is the final-support Green profile.
+Therefore
+
+```text
+max_(i in S*) dist(v,i)
+ =O(alpha^-1/2 log(1/(alpha rho))).            (support radius)
+```
+
+More generally, `y_i^*>eta` implies the sharper radius
+`O(alpha^-1/2 log(1/eta))`, up to harmless degree-improving factors.  Thus
+the canonical complement forest has only root-scale *spatial* depth and the
+solution-amplitude bands live inside root-radius support balls.  This is a
+deterministic theorem; no random cover is used.
+
+It is not an output-local BFS algorithm.  An ordinary ambient radius-two
+exploration can already touch arbitrarily many leaves behind a false hub
+when `M=1`, as the seed--hub witness shows.  Nor does small graph distance
+control the number of same-layer ports or transport their dense Schur
+responses.  The theorem closes serial support distance, but a proof must
+discover only certified support edges and charge within-layer response to
+volume/capacity rather than exploring the ambient ball.
+
 The Perron survival identity gives a genuine spatial version of the missing
 shared clock.  Work in degree coordinates on a connected source-free
 chamber `W`.  Let `P_W` be the substochastic random-walk restriction, let
@@ -4102,6 +6040,297 @@ Consequently only `O(log(1/(alpha rho)))` constant-attenuation chambers can
 occur on a significant serial ancestry chain.  Notice that this is a lower
 bound on the *unregularized source response* `p`, not on `y_i^*` itself;
 the latter can approach zero without strict complementarity.
+
+The point source actually supplies a canonical amplitude hierarchy without
+choosing any chambers.  First, `S` is connected: a support component not
+containing `v` would solve a Stieltjes system with the strictly negative
+load `-alpha rho d`, contradicting positivity.  On this connected support,
+every non-source row of `H_Sp=alpha e_v` obeys
+
+```text
+a d_i p_i=b sum_(j in N(i) intersect S) p_j.
+```
+
+Since `a/b>1`, some support neighbor has value strictly larger than `p_i`.
+Following such neighbors terminates at the source.  Hence the source is the
+unique local maximum and every nonempty superlevel set
+
+```text
+L(t)={i in S:p_i>=t}
+```
+
+is connected and contains `v`.  There is also an exact mass bound.  With
+`d_out,S(i)` denoting final-support boundary degree,
+
+```text
+H_S 1=alpha d_S+b d_out,S,
+alpha=1^T H_Sp
+     =alpha sum_S d_i p_i+b sum_S d_out,S(i)p_i,
+sum_S d_i p_i<=1.                              (Green mass)
+```
+
+Therefore `vol(L(t))<=1/t`.  The dyadic sets `L(2^-k)` are a canonical
+nested connected chain, and the range `alpha rho/a<p_i<=1` uses only
+`O(log(1/(alpha rho)))` nonempty amplitude bands.  Each support vertex
+belongs to exactly one band, so their shell volumes sum to `M`; sliding
+spatial chambers cannot be charged with multiplicity if they can first be
+assigned to these bands.
+
+There is also a chronology-dependent laminar object that requires no
+separator algorithm.  Let
+
+```text
+{v} subseteq U_0 subseteq U_1 subseteq ... subseteq S
+```
+
+be any nested source-containing faces, and let `C_t` be the connected
+components of `S\U_t`.  Every component at time `t+1` is contained in a
+unique component at time `t`; hence all components over the trace form a
+canonical laminar forest.  Moreover, if `C in C_t` and `i` maximizes either
+`p` or the final solution amplitude `y*` on `C`, the corresponding strict-
+ascent neighbor of `i` cannot lie in `C`.  Because `C` is a component of
+`S\U_t`, that neighbor lies in `U_t`.  Thus
+
+```text
+max_C p and max_C y* are attained at entrances adjacent to U_t,
+with strictly higher matching amplitudes in U_t.              (port maximum)
+```
+
+In particular, the failure of a *global* missing-`p` maximum to decrease can
+be caused by an untouched parallel component and should not be charged to
+the component in which the publication occurs.  The complement-component
+forest gives an exact branch-local replacement and removes the arbitrary-
+overlap selector from this part of the analysis.  It does not yet bound the
+depth of one branch: a component can lose a tiny low-amplitude boundary set,
+retain the same entrance maximum, and shrink by an arbitrarily small volume
+fraction.  A valid clock must combine this forest with amplitude-band
+crossing or an additional within-component response/occupancy payment.
+
+This removes the *existence* of a laminar amplitude spine from the open
+problem, but not the needed chronology bridge.  A Green band may contain
+many parallel bottlenecks or several signed low modes, the chain is defined
+by the unknown final response, and no theorem yet says that a root-delayed
+publication must cross one dyadic `p` level or spend a disjoint portion of
+that band's volume.  The sharpened remaining statement is
+`GreenBandNoReuse`: every long nonterminal epoch must make one of those two
+payments.  Proving it would instantiate the serial-amplitude part of
+`SourceClockNoReuse` without an externally supplied hierarchy; producing
+and transporting the within-band response is still the `CenterLift` side.
+
+There is a second exact point-source transform behind this spine.  Let
+`pbar=alpha H^-1e_v>0` be the ordinary full-graph Green profile and write
+
+```text
+q=pbar-y,                 w_i=q_i/pbar_i.
+```
+
+Because `Hpbar=alpha e_v`, substituting `y=pbar-q` into the global RPPR
+objective shows, up to an additive constant, that `q` is the unique solution
+of
+
+```text
+min_(q<=pbar)  1/2 q^T Hq-alpha rho d^Tq.      (Green upper obstacle)
+```
+
+Truncation for a Stieltjes quadratic gives `0<=q<=pbar`, and
+
+```text
+i in S*  iff  q_i<pbar_i  iff  w_i<1.
+```
+
+The point-source ground-state identity is exact.  For every vector `z`,
+
+```text
+(diag(pbar)z)^T H(diag(pbar)z)
+ =alpha pbar_v z_v^2
+  +b sum_({i,j} in E) pbar_i pbar_j(z_i-z_j)^2. (Green ground state)
+```
+
+Also `sum_i d_i pbar_i=1`.  Consequently RPPR is equivalently a unit-upper-
+obstacle problem on a weighted graph with edge conductances
+`b pbar_i pbar_j`, one source-ground term `alpha pbar_v`, and distributed
+load `alpha rho d_i pbar_i` of total mass exactly `alpha rho`.  In the final
+support version, replacing `pbar` by `p=alpha H_SS^-1e_v` gives total mass at
+most `alpha rho` and the free relative solution stays strictly below one.
+
+This is a genuine simplification supplied by the indicator source: it turns
+the unknown regularized support into the noncontact set of a *constant*
+obstacle and makes the canonical Green bands intrinsic conductance scales.
+It is not yet an algorithm.  `pbar` is dense and ambient, while `p` depends
+on the unknown final support; explicitly constructing either profile or all
+weighted responses would assume the local PPR/`CenterLift` work being
+proved.  A successful `GreenBandNoReuse` argument must use the transform as
+an analysis witness or recover only charged band summaries.
+
+The complementary relative variable gives an even more support-aligned
+spine.  Put
+
+```text
+s_i=y_i^*/pbar_i=1-w_i,       mu_i=d_i pbar_i,
+K=diag(pbar) H diag(pbar).
+```
+
+Then `0<=s<=1`, `S*={s>0}`, `sum_i mu_i=1`, and
+
+```text
+K 1=alpha pbar_v e_v,
+K_ij=-b pbar_i pbar_j  for {i,j} in E.
+```
+
+On every non-source support row, obstacle stationarity is
+
+```text
+sum_(j~i) b pbar_i pbar_j(s_i-s_j)=-alpha rho mu_i<0.
+```
+
+Thus every non-source vertex with `s_i>0` has a neighbor with strictly
+larger `s`.  Repeated ascent terminates at the source.  Consequently the
+source is the unique maximum of `s`, and every nonempty positive superlevel
+
+```text
+T_eta={i:s_i>eta},        0<=eta<s_v,
+```
+
+is connected and source-rooted.  In particular, the exact support is the
+increasing union of a canonical nested family, with no randomized separator
+and no strict-complementarity assumption.
+
+This spine has an exact capped lower path.  Define
+
+```text
+y^(eta)=diag(pbar)(s-eta)_+,
+r^(eta)=min(s,eta),
+y^*-y^(eta)=diag(pbar)r^(eta).
+```
+
+For an active row `s_i>eta`, subtracting the stationarity equation shows
+`H y^(eta)<=f`: every neighbor below the level contributes
+`b pbar_j(s_j-eta)<=0`, and at the source there is the additional negative
+term `-alpha pbar_v eta`.  Hence `y^(eta)` is a nonnegative lower
+subsolution on its connected support.  The scalar truncation is a normal
+contraction of the ground-state Dirichlet form, so
+
+```text
+(r^(eta))^T K r^(eta)<=(r^(eta))^T K s
+ =alpha pbar_v r_v^(eta)-alpha rho sum_i mu_i r_i^(eta)
+ <=alpha pbar_v eta.
+```
+
+The obstacle gradient vanishes on `S*`, while `y^*-y^(eta)` vanishes off
+`S*`.  Therefore the objective identity and cap are
+
+```text
+F(y^(eta))-F(y^*)
+ =1/2 ||y^*-y^(eta)||_H^2
+ <=alpha pbar_v eta/2
+ <=alpha eta/(2d_v).                         (relative-slack cap)
+```
+
+Thus, at objective scale `eps_obj`, only
+`O(log(alpha pbar_v/eps_obj))` positive relative-slack bands matter, and
+their disjoint original-volume shells sum to `M`.  This is a substantially
+stronger oracle path than arbitrary connected support growth: it is nested,
+support-safe, and comes with a linear terminal-error budget.
+
+There is a useful face version which no longer asks the iterate to equal the
+oracle truncation.  Let `x^U` be the exact restricted center on any
+source-containing `U subseteq S*`, and put
+
+```text
+m(U)=max_(i in S*\U) s_i,       with m(U)=0 if U=S*.
+```
+
+Every vertex with `s_i>m(U)` already belongs to `U`, so `y^(m(U))` is a
+feasible competitor for the restricted face problem.  Restricted optimality
+and the preceding cap give
+
+```text
+F(x^U)-F(y^*)<=alpha pbar_v m(U)/2.             (missing-slack face cap)
+```
+
+Thus the single largest relative slack still missing is an exact offline
+certificate for *all* future center energy, even when the current face is
+not itself a superlevel.  Parallel components explain why this maximum need
+not fall at every event.
+
+The final-support Green profile gives a second, chronological ledger.  For
+this paragraph use `p=alpha H_(S*S*)^-1e_v`, put
+
+```text
+K=diag(p) H_(S*S*) diag(p),
+kappa=alpha p_v,
+mu_i=d_i p_i,
+b=kappa e_v-alpha rho mu,
+s_i=y_i^*/p_i.
+```
+
+Then `K1=kappa e_v` and `Ks=b`.  For a source-containing face `U`, write
+`R=S*\U` and form the exact Schur complement and remaining gate
+
+```text
+Sigma_U=K_RR-K_RU K_UU^-1K_UR,
+g_U=b_R-K_RU K_UU^-1b_U=Sigma_U s_R.
+```
+
+Its row-sum vector is nonnegative:
+
+```text
+h_U=Sigma_U 1
+   =-kappa K_RU K_UU^-1e_v>=0.                 (harmonic port mass)
+```
+
+It is supported on Schur-visible entrance rows.  If `i` maximizes `s` over
+all of `R`, Stieltjes signs give the quantitative top-gate inequality
+
+```text
+(g_U)_i=(h_U)_i s_i
+          +sum_(j!=i)(-Sigma_ij)(s_i-s_j)
+        >=(h_U)_i s_i.                         (top-slack gate)
+```
+
+Define the scalar remaining capacity
+
+```text
+cap(U)=1^T Sigma_U 1=1^T h_U.
+```
+
+The Schur variational principle gives `0<=cap(U)<=kappa`: it is the minimum
+`K`-energy obtained by fixing all remaining coordinates to one, and the
+all-ones vector has energy `kappa`.  More importantly, it has an exact
+event ledger.  If the next admitted block is `B` and the current Schur
+complement is partitioned as
+
+```text
+Sigma_U=[[A,F],[F^T,D]]          on B union (R\B),
+```
+
+then Schur transitivity gives
+
+```text
+cap(U)-cap(U union B)
+ =(A1_B+F1_(R\B))^T A^-1(A1_B+F1_(R\B))
+ =(h_U)_B^T A^-1(h_U)_B.                      (capacity packet)
+```
+
+All capacity packets are nonnegative and telescope to at most
+`kappa=alpha p_v`.  This is a threshold-free, deterministic, chronology-
+compatible bank, and the top-slack gate places the next globally highest
+oracle level in the same formula.
+
+It still does not implement the desired algorithm.  Both `pbar` and
+`s=y^*/pbar` contain the unknown dense response.  Uniformly shaving the
+relative slack means subtracting the Green direction `pbar`, precisely the
+response that a local `CenterLift` must represent.  The sharpened possible
+route is therefore a comparison theorem: prove that the computable
+lower-envelope chronology dominates successively lower members of this
+oracle path after a shared root-scale amount of work, without ever
+materializing `pbar`.  No such domination/no-reuse lemma is proved here.
+The capacity ledger narrows that lemma further but does not close it: the
+obvious conversion of a gate `g_i>=s_i h_i` into a capacity payment squares
+`h_i` and therefore reintroduces the absolute publication threshold.
+One still needs a scale-relative dwell inequality, or a local implementation
+whose work is proportional to the harmonic port mass rather than to a full
+rescan of `U`.
 
 The identity is even better aligned with the shifted-prox balance.  For
 `Q_W+sigma I`, replace `theta` by `theta_sigma=b/(a+sigma)` to obtain
@@ -4519,6 +6748,87 @@ phenomenon known for nonnegative Stieltjes quadratic regularization.  It is a
 real structural improvement over a generic active-set QP: no exponential
 pivot sequence is possible here.
 
+For the indicator source there is a better parameterization of the same
+support path.  Ramp only the source amplitude:
+
+```text
+F_t(y)=1/2 y^T H y-(t alpha e_v-alpha rho d)^T y,
+y(t)=argmin_(y>=0) F_t(y),                 0<=t<=1.
+```
+
+For `t>0`, homogeneity gives `y(t)=t y_(rho/t)`, so its supports are nested
+and it has the same linear breakpoint bound.  On a fixed active face `U`,
+however, its derivative is the single Green column
+
+```text
+d y_U(t)/dt=alpha H_UU^-1e_v=p^U>0,
+||d y_U(t)/dt||_H^2=alpha p_v^U<=alpha/d_v.    (source-ramp speed)
+```
+
+Consequently the entire exact path has `H`-length at most
+`sqrt(alpha/d_v)`, independently of its number of breakpoints.
+
+The same Green column gives a threshold-free gate-speed budget.  For an
+exterior non-source row `i`, its exact score while `U` is held is
+
+```text
+g_i^U(t)=-alpha rho d_i-H_iU y_U(t),
+d g_i^U(t)/dt=-H_iU p^U>=0.
+```
+
+Summing over all exterior rows and using `H_UU p^U=alpha e_v` gives
+
+```text
+sum_(i notin U) d g_i^U(t)/dt
+ =b sum_(j in U)d_out,U(j)p_j^U
+ =alpha-alpha sum_(j in U)d_jp_j^U
+ <=alpha.                                      (source-gate slope bank)
+```
+
+Thus, along any one global ramp `0<=t<=1`, all *continuous* positive gate
+variation caused by increasing the source has total `l1` mass at most
+`alpha`, independently of the number of support breakpoints.  A face
+expansion can additionally jump the remaining gates through a Schur
+response; those jumps are the separate orthogonal center-packet and
+Green--Schur capacity banks above.  This cleanly separates source-time rent
+from response-lift buy.
+
+The relative-slack truncation proved above is a pointwise lower barrier for
+this computable homotopy.  With the final-support Green profile `p`, final
+relative slack `s=y(1)/p`, and `eta=1-t`, the vector
+
+```text
+p(s-eta)_+
+```
+
+is an active-row lower subsolution for the load
+`t alpha e_v-alpha rho d`.  Hence
+
+```text
+p(s-(1-t))_+ <= y(t) <= y(1).                  (ramp sandwich)
+```
+
+There is also a direct final-objective cap.  Put `e=y(1)-y(t)`.  Final KKT
+equality holds wherever `e` is nonzero, while the `F_t` obstacle multiplier
+is nonnegative, so
+
+```text
+||e||_H^2
+ <=alpha(1-t)(y_v(1)-y_v(t))
+ <=alpha p_v(1-t),
+F_1(y(t))-F_1(y(1))<=alpha p_v(1-t)/2.         (source-ramp cap)
+```
+
+This suggests a genuinely different no-restart formulation.  Increase `t`
+once on a global root-scale schedule and track `y(t)` with the persistent
+two-mask accelerated state.  Every exact activation threshold then lies on
+the same scalar clock; events do not receive separate held-face burn-ins.
+After `t=1`, one terminal mapping/subgradient certificate may ignore any
+remaining slack allowed by the displayed cap.  Call the missing comparison
+statement `SourceRampShadow`: the computable lower envelope, with only local
+boundary scans, must stay close enough to the ramp sandwich in total
+`O_tilde(M/sqrt(alpha))` work.
+
 It is not the desired local running-time theorem.  Advancing one breakpoint
 requires the direction `H_UU^-1 d_U`; inserting a block `B` requires
 
@@ -4566,6 +6876,16 @@ ObstacleHomotopyLift:
   touch only support-safe exposed rows; and charge all dense response work
   to O_tilde(M/sqrt(alpha)) (or to the tau-split ledgers).
 ```
+
+The source ramp replaces the distributed direction `H_UU^-1d_U` by one
+Green column and removes the *logical* multiplication of breakpoint count by
+a separate clock.  It still needs `SourceRampShadow`: projected momentum can
+overshoot, the safe lower state may lag the moving optimum, and a lazy
+implementation must not materialize false exterior coordinates.  The
+bounded exact path length alone is an additive tracking budget, not a proof
+that every full-face scan is shared.  Thus the source ramp is a sharper
+single-source candidate for `CanonicalSingleSourceProjectiveNoRestart`, not
+an unconditional algorithm yet.
 
 The value of the obstacle reformulation is that it narrows future searches
 to this primitive and makes parametric Stieltjes-QP and sandpile algorithms
@@ -5071,6 +7391,197 @@ the source is seeded, and a nonneighbor of `U` has no coupling and the known
 strictly negative floor score `-alpha rho sqrt(d_v)`.  Scanning all incident
 edges of `U` therefore checks every potentially positive exterior row.
 
+The quietness premise can be removed entirely for an objective-capped
+closure.  Keep the same feasible lower correction and write
+
+```text
+s_v=r_v-A_vU d_U,                 v outside U,
+p_out=(s_out)_+.
+```
+
+At an exterior zero coordinate with `s_v<=0`, choose the orthant-normal
+component `s_v` and cancel the smooth gradient; when `s_v>0`, choose zero
+normal.  Therefore
+
+```text
+g_min=(-e_U,-p_out) in partial F(d),
+||g_min||_2^2=||e_U||_2^2+||(s_out)_+||_2^2,
+F(d)-F(d_prox*)
+ <=[||e_U||_2^2+||(s_out)_+||_2^2]/[2(alpha+sigma)],
+||d-d_prox*||_2
+ <=sqrt(||e_U||_2^2+||(s_out)_+||_2^2)/(alpha+sigma).
+                                                    (positive-boundary cap)
+```
+
+This is the minimum-norm full subgradient among the coordinatewise normal
+choices.  The same one-hop scan computes its exterior norm in the canonical
+point-source problem.  Hence a capped algorithm need not append every tiny
+positive score or identify the exact prox support: it may stop as soon as
+the joint active-debt/positive-boundary norm reaches the requested cap.  All
+inexact outer recurrences below remain valid with `||e_U||` replaced by this
+joint norm.  This strictly weakens the remaining producer, but does not make
+its accelerated residual reduction free.
+
+The lower-residual premise is needed for safe intermediate publication, but
+not for the final cap.  At an arbitrary feasible `d>=0`, put
+
+```text
+h=Ad-r,
+(g_min)_i=h_i                         if d_i>0,
+(g_min)_i=min{h_i,0}=-[r_i-(Ad)_i]_+  if d_i=0.
+```
+
+The orthant normal is zero at a positive coordinate.  At a zero coordinate
+it ranges over `(-infinity,0]`, so the displayed choice is the unique
+minimum-magnitude element of `h_i+(-infinity,0]`.  Consequently
+
+```text
+g_min in partial F(d),
+F(d)-F(d_prox*) <=||g_min||_2^2/[2(alpha+sigma)],
+||d-d_prox*||_2 <=||g_min||_2/(alpha+sigma).
+                                           (arbitrary-feasible final cap)
+```
+
+Thus a support-safe two-mask method may use its certified lower state only
+to decide which rows are allowed to enter the materialized face, while it
+tests the final accuracy directly at any nonnegative accelerated raw state.
+This avoids paying the scalar lower-envelope retraction in the *stopping*
+criterion.  It does not permit a raw-positive exterior row to be materialized:
+that row may be a transient false activation, and reading its adjacency list
+can still violate output locality.  Nor does the cap by itself prove that the
+raw minimum-subgradient reaches its target in root time on a changing face.
+
+The word *final* is essential here.  In the shifted-prox outer recurrence, an
+intermediate raw approximation can overshoot the exact prox point.  Committing
+it destroys the lower-subsolution premise used to discover the next face
+safely, even though its support is contained in a certified face.  Therefore
+intermediate prox calls must still return a quantitatively accurate lower
+state (or prove a different support-safe restart theorem).  The raw cap is an
+additional terminal exit for a direct two-mask solve or the last outer call;
+it does not by itself replace lower-state accuracy in every prox call.
+
+A second final-only certificate replaces the discontinuous minimum
+subgradient by a Lipschitz residual.  Let `L>=lambda_max(A)` and put
+
+```text
+d_plus=[d-(Ad-r)/L]_+,          G_L(d)=L(d-d_plus).
+```
+
+Projection optimality gives
+
+```text
+s_plus=G_L(d)+A(d_plus-d) in partial F(d_plus),
+||s_plus||_2<=2||G_L(d)||_2.
+```
+
+Strong convexity therefore yields
+
+```text
+F(d_plus)-F(d_prox*) <=2||G_L(d)||_2^2/(alpha+sigma),
+||d_plus-d_prox*||_2 <=2||G_L(d)||_2/(alpha+sigma).
+                                      (proximal-gradient final cap)
+```
+
+Moreover `d mapsto G_L(d)` is `2L`-Lipschitz and vanishes at the exact
+minimizer, because `d mapsto [d-(Ad-r)/L]_+` is nonexpansive.  Thus a large
+mapping norm implies the genuine distance lower bound
+`||d-d_prox*||>=||G_L(d)||/(2L)`; unlike the minimum subgradient, it cannot
+stay large merely because a vanishing positive coordinate is about to be
+projected to zero.  At a raw point supported on `U`, `G_L(d)` and `d_plus`
+are obtained by the same one-hop scan: an exterior coordinate is just its
+positive score divided by `L`.  Boundary labels need not expose their rows,
+so even a false high-degree hub remains output-local.  The certified output
+is `d_plus`, not `d`, and the same intermediate-outer-call caveat still
+applies.
+
+The final test itself is nevertheless false-hub safe.  For a raw point
+supported on the materialized face `U`, scan only the adjacency lists of
+`U` and accumulate the cut contribution under each encountered exterior
+label.  A nonneighbor of `U` has score `-alpha rho sqrt(d_v)<0`, and hence
+contributes zero.  The scan therefore obtains every nonzero exterior term in
+`g_min` and its squared norm in `O(vol(U))` work, without opening any
+exterior adjacency list.  In particular, a transiently positive hub of
+arbitrarily large degree costs one accumulated boundary label rather than
+its ambient degree.  Its row is opened only if the certified-lower score is
+positive, in which case inverse positivity puts it inside the true support
+and its degree is chargeable to `M`.
+
+There is also a clean capped timeout theorem for one unchanged face.  Let
+`z_U` be its exact restricted shifted center, let `L>=||A||_2`, and suppose
+the projected raw and lower states satisfy
+
+```text
+0<=ell<=y,                 supp(ell),supp(y) subset U,
+all exterior scores at ell are nonpositive,
+||y-z_U||_2<=delta/(sqrt(5)L),
+||ell-z_U||_2<=delta/(sqrt(5)L).
+```
+
+On `U`, the minimum-subgradient restriction has norm at most
+`||A_U(y-z_U)||<=L||y-z_U||`.  With `C=-A_(out,U)>=0`, exterior quietness at
+`ell` gives
+
+```text
+(r_out-A_(out,U)y)_+ <= C(y-ell),
+||C(y-ell)||_2<=L(||y-z_U||_2+||z_U-ell||_2).
+```
+
+The two orthogonal coordinate blocks therefore give `||g_min(y)||<=delta`.
+Ordinary fixed-face Chebyshev followed by projection above `ell`, together
+with the proved lower-envelope retraction, reaches both distance premises in
+
+```text
+O(sqrt(L/(alpha+sigma)) log(poly(M,L,1/delta)))
+```
+
+products.  For `sigma=tau^2>=alpha` this is `O_tilde(1/tau)`.  Hence every
+unchanged-face timeout of that length must end in one of two outcomes: a
+lower-certified publication, or a valid global capped stop.  This closes
+the *maximum single quiet interval*.  It does not bound how many such
+intervals can be separated by certified face expansions; summing one fresh
+timeout per singleton event is exactly the forbidden restart ledger.
+
+The Lipschitz mapping turns this timeout into an exact energy-charged
+dichotomy.  Drop exterior quietness, assume instead
+
+```text
+0<=ell<=z_U,       ||y-z_U||_2,||ell-z_U||_2<=delta/(8L),
+```
+
+and let `B` contain every exterior row with positive score at `ell`.  If
+`||G_L(y)||<=delta`, the projected point `y_plus` satisfies the final cap
+above.  Otherwise `G_L` being `2L`-Lipschitz gives
+
+```text
+||(score_out(z_U))_+||_2=||G_L(z_U)||_2>=3delta/4.
+```
+
+Positive-part nonexpansiveness and `||-A_(out,U)||<=L` then give
+
+```text
+||(score_out(ell))_+||_2>=5delta/8.
+```
+
+Let `d_B` be the exact center increment after appending `B`, and let
+`S_B` be its Schur complement.  The exact-center scores on `B` dominate
+those at `ell`, while `S_B<=L I`, so
+
+```text
+||d_B||_A^2=g_B^T S_B^-1 g_B
+            >=||g_B||_2^2/L
+            >=25delta^2/(64L).                 (mapping-to-packet charge)
+```
+
+Exact nested center increments are `A`-orthogonal.  Therefore, if their
+total available packet energy is `E_tot`, at most
+`64 L E_tot/(25delta^2)` fully equilibrated nonterminal timeouts can occur
+at this fixed absolute mapping scale.  This is a real no-reuse theorem for
+energy-significant events.  It still does not prove the target: at the tiny
+absolute tolerance required for the final objective, the displayed count
+can be polynomial in `1/rho` or `1/eps_obj`.  The missing source-clock lemma
+must either aggregate the following avalanche into the same packet charge
+or show that slow small-source packets buy disjoint volume.
+
 Visible positive batches have a fully local persistent append.  If
 `g_tilde_B=r_B-Q_BU d_tilde_U>0`, append `B` with correction zero.  Then
 
@@ -5097,10 +7608,12 @@ rent step an `l2` contraction.
 
 The remaining general interface can therefore be weakened to
 `AmortizedLowerShiftedApply(tau)`: maintain a certified-lower accelerated
-shifted solve through visible zero-appends; rescan, append every positive
-current score, and reduce `||e||` until the global capped stop holds, with all
-response work and rescans totaling `O_tilde(M/tau)`.  Exact zero-margin
-support discovery still needs an exact solve or interval refinement.  No
+shifted solve through visible zero-appends; reduce the lower state's joint
+active-debt/positive-boundary norm to the accuracy required by every
+intermediate outer call, with all response work and rescans totaling
+`O_tilde(M/tau)`.  A parallel nonnegative raw state may use the cheaper
+arbitrary-feasible cap only for terminal exit.  Exact zero-margin support
+discovery still needs an exact solve or interval refinement.  No
 general-graph implementation of this weaker producer is currently proved.
 
 There is a sharp reason that ordinary projected gradient does not implement
@@ -5126,6 +7639,40 @@ valid `ShiftedProxClosure(tau)` must consequently use signed square-root
 acceleration together with a certified lower envelope/delayed response, or a
 structural direct elimination.  Merely observing that projected gradient is
 monotone would yield `M/tau^2`, destroying the desired balance.
+
+Even choosing the largest residual-positive Richardson step adaptively does
+not repair this loss.  For a Stieltjes system `A=aI-B`, `B>=0`, consider
+
+```text
+r_(t+1)=r_t-gamma_t A r_t,
+gamma_t=min_({i:(Ar_t)_i>0}) r_t(i)/(Ar_t)_i.
+                                                    (Collatz-safe step)
+```
+
+This is the largest scalar step preserving `r_(t+1)>=0`.  On an endpoint
+path with `r_0=e_1`, the residual is supported on one parity class at every
+time.  Since `(Ar)_i/r_i<=a` for every positive coordinate and a positive
+frontier coordinate has only zero-residual neighbors, the maximum ratio is
+exactly `a`.  Inductively,
+
+```text
+gamma_t=1/a,              r_t=(B/a)^t e_1.
+```
+
+Thus the adaptive rule is exactly the ordinary positive Jacobi walk on this
+canonical simple-unit family.  Taking path length
+`n=Theta(1/sqrt(alpha+sigma))`, its Perron factor is
+`1-Theta(alpha+sigma)` and the endpoint has polynomially nonzero Perron
+overlap.  Reducing the residual below a polynomially small tolerance needs
+
+```text
+Omega((alpha+sigma)^-1 log(1/(alpha+sigma)))
+```
+
+steps, rather than root time.  This is a scoped obstruction to the natural
+maximal-safe scalar acceleration, not to signed Krylov state, block Schur
+elimination, or a nonlinear multi-direction lower solver.  The numerical
+regression is `collatz_safe_richardson_experiment.py`.
 
 The primitive closes unconditionally on a path.  Every prox support is an
 interval containing the old support: a disjoint positive component would
@@ -7448,6 +9995,9 @@ The closest follow-ups found so far give the following concrete comparison.
 | Fountoulakis--Martinez-Rubio, classical acceleration for RPPR (2026) | A deterministic FISTA analysis with over-regularization and an explicit no-percolation/confinement condition.  Under confinement it proves a core term `O_tilde(1/(rho sqrt(alpha)))`. | The additional transient-boundary term is `O(sqrt(vol(B))/(rho alpha^(3/2)))`; a seed-at-leaf star makes standard FISTA activate a degree-`m` center and incur `Omega(m)` work although the optimum has one vertex.  This is a structural conditional result, not a general response-reuse primitive. |
 | Calder--Yezzi, PDE acceleration for obstacle problems (2018) | A damped-wave/heavy-ball discretization rigorously replaces the diffusive CFL scale by the square-root/wave scale and is numerically effective for penalized obstacle problems.  The paper explicitly observes that optimal damping depends on the first Dirichlet eigenvalue of the unknown free domain. | Its complexity counts full-grid sweeps (the same global order as CG for a linear problem); the obstacle experiments use a large finite penalty and supplied spatial domain.  It neither discovers only the final graph support nor persists responses across changing free domains.  It supports adaptive damping in a numerical backend, not the local `CenterLift` theorem. |
 | Ang--De Sterck--Vavasis, MGProx / FastMGProx (2024) | Adaptive restriction zeros coarse variables at currently nonsmooth/active fine coordinates, proves a fixed-point property and descent of the coarse correction, and performs well empirically on an elastic obstacle problem.  It is a credible practical supplied-hierarchy backend and closely matches the idea of a support-aware coarse solve. | The proved strongly-convex rate is exactly the proximal-gradient fallback `(1-mu/L)^k`; FastMGProx proves the generic `O(1/k^2)` first-order rate.  The authors explicitly leave the observed multigrid speedup unexplained by a stronger rate.  Each experiment uses the full supplied mesh and coarse hierarchy, with no output-local discovery, changing-principal response, or work bound in `vol(S*)`.  It therefore supports the conditional `NestedExpanderLift` architecture but does not instantiate it. |
+| Zeng--Zhou, monotone Schwarz for obstacle problems (1998) | For obstacle discretizations whose stiffness matrix has the required M-matrix form, monotone and geometric Schwarz convergence are proved; a mesh-independent rate is obtained under a uniformly overlapping geometric decomposition.  This is the closest classical theorem to the certified block residual push above. | The uniform rate assumes the overlapping decomposition and its stable geometry, and every Schwarz correction solves a supplied subdomain problem.  An arbitrary graph with a growing output-local support has neither a given mesh hierarchy nor a proved bounded-overlap/stable-decomposition constant.  The theorem therefore validates the conditional block-push architecture but does not construct or charge `CenterLift` on the discovered graph.  See [Zeng--Zhou](https://epubs.siam.org/doi/10.1137/S0036142995288920). |
+| Lee--McCormick--Philip--Quinlan, AFACx theory (2004) | Proves a level-independent multilevel condition-number bound for an asynchronous fast adaptive composite-grid elliptic solver.  This is a genuine example in which changing local resolution and asynchronous corrections do not destroy a uniform rate. | The theorem starts with a supplied adaptive-mesh-refinement hierarchy and its multilevel norm equivalence.  An arbitrary simple graph and its solution-discovered support have no such coarse spaces or stable decomposition for free, so importing AFACx would assume the missing `NestedExpanderLift`/`CenterLift` structure.  See [AFACx theoretical foundations](https://epubs.siam.org/doi/10.1137/S0036142902400767). |
+| Wolfson-Pou--Chow, asynchronous Chebyshev (2025) | Shows how a second-order Chebyshev iteration can be executed asynchronously and develops an additive multigrid preconditioner; it is the closest direct analogue of retaining an accelerated recurrence across delayed coordinate work. | The paper emphasizes that second-order Chebyshev is more delay-sensitive than first-order relaxation and changes parameters or supplies multigrid to regain robustness.  Its setting updates a fixed, fully supplied linear system in shared memory; it gives no support-safe unknown-domain theorem, no final-support work charge, and no guarantee that arbitrary mask delays retain the synchronous square-root rate.  See [asynchronous Chebyshev](https://epubs.siam.org/doi/10.1137/24M1669669). |
 | Schmelzer--Stoll, Non-Negative Conjugate Gradients (July 2026) | Wraps matrix-free CG in a primal--dual principal-pivot loop for nonnegative quadratics.  Its inexact-decision lemma proves that a residual below the finite decision margin follows exactly the same active-set trajectory as exact solves; this independently validates our residual/certification layer.  Each fixed free-set solve retains the usual `O(sqrt(kappa))` CG rate. | The method explicitly restarts CG whenever a variable is dropped or re-admitted.  Its total count is `s O(sqrt(kappa))`, where `s` has only finite termination; the paper states that the `2^n` ceiling is not an efficiency estimate.  It scans a supplied variable set, its randomized Nystrom option is not deterministic, and the paper itself notes that factorized preconditioners generally do not restrict cheaply to changing free sets.  On our monotone Stieltjes specialization it is therefore a fresh-face method stopped by the ballasted broom, not response reuse. |
 | Papadopoulos--Hintermueller, mesh-dependent PDAS iteration growth (August 2026) | Proves a sticky-active-set theorem for finite-element obstacle problems: an interior active degree of freedom cannot deactivate until the inactive boundary reaches it, so the method peels only layer by layer.  The experiments show nearly doubling iteration counts under refinement despite finite-dimensional local superlinear convergence. | This is a different PDE discretization and a shrinking/deactivation chronology, so it is not a lower bound for our monotone growing PageRank face.  It does rigorously show that local semismooth-Newton/identification theory alone gives no mesh-independent Stage-I active-set count; multilevel or persistent transport must be analyzed separately. |
 | Martinez-Rubio--Wirth--Pokutta (2023) | Deterministic accelerated sparse optimization and conjugate-direction variants for positive-definite M-matrices. | Bounds retain support-size/repeated-subspace factors and do not give output-linear changing-face reuse. |

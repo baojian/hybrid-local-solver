@@ -123,6 +123,68 @@ def delayed_publication_graph() -> np.ndarray:
     return graph(34, edges)
 
 
+def green_band_stress_graph() -> np.ndarray:
+    """Search witness with several root-scale gaps and small packet release."""
+    edges = [
+        (0, 1),
+        (0, 2),
+        (0, 10),
+        (0, 11),
+        (0, 23),
+        (0, 24),
+        (0, 38),
+        (1, 3),
+        (1, 5),
+        (1, 6),
+        (2, 30),
+        (2, 31),
+        (2, 34),
+        (3, 4),
+        (3, 11),
+        (3, 15),
+        (3, 25),
+        (4, 8),
+        (4, 16),
+        (4, 17),
+        (4, 34),
+        (5, 7),
+        (5, 12),
+        (6, 9),
+        (6, 14),
+        (7, 19),
+        (8, 10),
+        (8, 14),
+        (9, 13),
+        (9, 20),
+        (9, 21),
+        (9, 38),
+        (11, 23),
+        (12, 17),
+        (13, 16),
+        (13, 18),
+        (14, 37),
+        (15, 22),
+        (16, 26),
+        (16, 29),
+        (17, 24),
+        (17, 32),
+        (18, 30),
+        (18, 35),
+        (19, 24),
+        (19, 28),
+        (21, 32),
+        (21, 37),
+        (22, 33),
+        (23, 39),
+        (25, 27),
+        (27, 34),
+        (27, 36),
+        (29, 34),
+        (37, 39),
+    ]
+    return graph(40, edges)
+
+
 def random_connected_graph(
     rng: np.random.Generator,
     vertex_count: int,
@@ -244,6 +306,7 @@ def run_two_mask(
                     ),
                     "scaled_total_wait": sum(waits) * math.sqrt(alpha),
                     "scratch_size": len(scratch),
+                    "scratch_volume": float(degrees[scratch].sum()),
                     "volume_work": volume_work,
                     "terminated": True,
                 }
@@ -260,6 +323,7 @@ def run_two_mask(
         ),
         "scaled_total_wait": sum(waits) * math.sqrt(alpha),
         "scratch_size": len(scratch),
+        "scratch_volume": float(degrees[scratch].sum()),
         "volume_work": volume_work,
         "terminated": False,
     }
@@ -308,8 +372,13 @@ def run_projected_estimate_nag(
     companion_event_slacks: list[float] = []
     publication_scratch_minima: list[float] = []
     event_iterations: list[int] = []
+    event_batches: list[list[int]] = []
+    center_increment_energies: list[float] = []
+    exact_gate_squares: list[float] = []
+    face_volumes_at_events: list[float] = []
     certificate_history: list[dict[str, float | int]] = []
     adaptive_root_clock = 0.0
+    minimum_subgradient_norms: list[float] = []
 
     def landscape_certificate(mask: np.ndarray) -> float:
         internal_degree = adjacency[np.ix_(mask, mask)].sum(axis=1)
@@ -465,6 +534,8 @@ def run_projected_estimate_nag(
             new_potential = estimate_potential(scratch, center, current, previous)
             center_increment = center - old_center
             center_energy = float(center_increment @ q_matrix @ center_increment)
+            center_increment_energies.append(center_energy)
+            face_volumes_at_events.append(float(degrees[scratch].sum()))
             combined_jump = new_potential - old_potential - center_energy
             historical_room = old_center - lower
             proved_bank = float(current_mu * historical_room @ center_increment)
@@ -474,6 +545,7 @@ def run_projected_estimate_nag(
             exact_gate = (
                 load[batch] - q_matrix[np.ix_(batch, old_scratch)] @ old_center[old_scratch]
             )
+            exact_gate_squares.append(float(exact_gate @ exact_gate))
             auxiliary = current + auxiliary_scale * (current - previous)
             old_w = square_root * (auxiliary[old_scratch] - old_center[old_scratch])
             cut = -q_matrix[np.ix_(batch, old_scratch)]
@@ -488,6 +560,16 @@ def run_projected_estimate_nag(
             companion_event_slacks.append(event_upper - (new_companion - old_companion))
             events += 1
             event_iterations.append(iteration)
+            event_batches.append([int(vertex) for vertex in batch])
+
+        smooth_gradient = q_matrix @ current - load
+        minimum_subgradient = smooth_gradient.copy()
+        zero_coordinates = current <= 1.0e-15
+        minimum_subgradient[zero_coordinates] = np.minimum(
+            minimum_subgradient[zero_coordinates],
+            0.0,
+        )
+        minimum_subgradient_norms.append(float(np.linalg.norm(minimum_subgradient)))
 
         if not len(batch):
             outside = np.array(sorted(set(range(vertex_count)) - certified), dtype=int)
@@ -504,6 +586,118 @@ def run_projected_estimate_nag(
                     later - earlier
                     for earlier, later in zip(event_iterations, event_iterations[1:])
                 ]
+                remaining_event_energies = np.cumsum(
+                    np.asarray(center_increment_energies[::-1], dtype=float)
+                )[::-1]
+                release_fractions = [
+                    energy / remaining
+                    for energy, remaining in zip(
+                        center_increment_energies,
+                        remaining_event_energies,
+                    )
+                    if remaining > 0.0
+                ]
+                long_window_threshold = 0.5 / math.sqrt(alpha)
+                long_window_release_fractions = [
+                    center_increment_energies[index] / remaining_event_energies[index]
+                    for index in range(1, len(center_increment_energies))
+                    if event_iterations[index] - event_iterations[index - 1]
+                    >= long_window_threshold
+                    and remaining_event_energies[index] > 0.0
+                ]
+                delayed_burst_starts = [
+                    index
+                    for index in range(1, len(center_increment_energies))
+                    if event_iterations[index] - event_iterations[index - 1]
+                    >= long_window_threshold
+                ]
+                delayed_burst_release_fractions = []
+                for start_index, next_start in zip(
+                    delayed_burst_starts,
+                    delayed_burst_starts[1:] + [len(center_increment_energies)],
+                ):
+                    remaining = remaining_event_energies[start_index]
+                    if remaining > 0.0:
+                        released = sum(center_increment_energies[start_index:next_start])
+                        delayed_burst_release_fractions.append(released / remaining)
+                h_matrix = np.diag(sqrt_degrees) @ q_matrix @ np.diag(sqrt_degrees)
+                final_green = np.zeros(vertex_count)
+                final_green[scratch] = np.linalg.solve(
+                    h_matrix[np.ix_(scratch, scratch)],
+                    alpha * (scratch == 0).astype(float),
+                )
+                final_solution_amplitude = center / sqrt_degrees
+                green_amplitude_drop_ratios: list[float] = []
+                solution_amplitude_drop_ratios: list[float] = []
+                face_growth_ratios: list[float] = []
+                face_before = {0}
+                for event_batch in event_batches:
+                    remaining_before = sorted(set(map(int, scratch)) - face_before)
+                    amplitude_before = max(
+                        (final_green[vertex] for vertex in remaining_before),
+                        default=0.0,
+                    )
+                    solution_amplitude_before = max(
+                        (
+                            final_solution_amplitude[vertex]
+                            for vertex in remaining_before
+                        ),
+                        default=0.0,
+                    )
+                    volume_before = float(degrees[list(face_before)].sum())
+                    face_before.update(event_batch)
+                    remaining_after = sorted(set(map(int, scratch)) - face_before)
+                    amplitude_after = max(
+                        (final_green[vertex] for vertex in remaining_after),
+                        default=0.0,
+                    )
+                    solution_amplitude_after = max(
+                        (
+                            final_solution_amplitude[vertex]
+                            for vertex in remaining_after
+                        ),
+                        default=0.0,
+                    )
+                    volume_after = float(degrees[list(face_before)].sum())
+                    green_amplitude_drop_ratios.append(
+                        amplitude_after / amplitude_before if amplitude_before > 0.0 else 0.0
+                    )
+                    solution_amplitude_drop_ratios.append(
+                        (
+                            solution_amplitude_after / solution_amplitude_before
+                            if solution_amplitude_before > 0.0
+                            else 0.0
+                        )
+                    )
+                    face_growth_ratios.append(volume_after / volume_before)
+                delayed_dichotomy_progress = [
+                    max(
+                        face_growth_ratios[index],
+                        (
+                            1.0 / green_amplitude_drop_ratios[index]
+                            if green_amplitude_drop_ratios[index] > 0.0
+                            else float("inf")
+                        ),
+                    )
+                    for index in range(1, len(event_iterations))
+                    if event_iterations[index] - event_iterations[index - 1]
+                    >= long_window_threshold
+                    and green_amplitude_drop_ratios[index] > 0.0
+                ]
+                delayed_solution_dichotomy_progress = [
+                    max(
+                        face_growth_ratios[index],
+                        (
+                            1.0 / solution_amplitude_drop_ratios[index]
+                            if solution_amplitude_drop_ratios[index] > 0.0
+                            else float("inf")
+                        ),
+                    )
+                    for index in range(1, len(event_iterations))
+                    if event_iterations[index] - event_iterations[index - 1]
+                    >= long_window_threshold
+                    and solution_amplitude_drop_ratios[index] > 0.0
+                ]
                 return {
                     "iterations": iteration + 1,
                     "scaled_iterations": (iteration + 1) * math.sqrt(alpha),
@@ -512,6 +706,50 @@ def run_projected_estimate_nag(
                     "certificate_history": certificate_history,
                     "events": events,
                     "event_iterations": event_iterations,
+                    "event_batches": event_batches,
+                    "last_event_iteration": max(event_iterations, default=-1),
+                    "scaled_event_horizon": (
+                        (max(event_iterations, default=-1) + 1) * math.sqrt(alpha)
+                    ),
+                    "center_increment_energies": center_increment_energies,
+                    "effective_packet_eigenvalues": [
+                        gate_square / energy
+                        for gate_square, energy in zip(
+                            exact_gate_squares,
+                            center_increment_energies,
+                        )
+                        if energy > 0.0
+                    ],
+                    "effective_packet_root_sum": sum(
+                        math.sqrt(energy / gate_square)
+                        for gate_square, energy in zip(
+                            exact_gate_squares,
+                            center_increment_energies,
+                        )
+                        if gate_square > 0.0
+                    ),
+                    "face_volumes_at_events": face_volumes_at_events,
+                    "green_amplitude_drop_ratios": green_amplitude_drop_ratios,
+                    "solution_amplitude_drop_ratios": solution_amplitude_drop_ratios,
+                    "face_growth_ratios": face_growth_ratios,
+                    "minimum_delayed_dichotomy_progress": min(
+                        delayed_dichotomy_progress,
+                        default=1.0,
+                    ),
+                    "minimum_delayed_solution_dichotomy_progress": min(
+                        delayed_solution_dichotomy_progress,
+                        default=1.0,
+                    ),
+                    "minimum_event_release_fraction": min(release_fractions, default=1.0),
+                    "minimum_long_window_release_fraction": min(
+                        long_window_release_fractions,
+                        default=1.0,
+                    ),
+                    "minimum_delayed_burst_release_fraction": min(
+                        delayed_burst_release_fractions,
+                        default=1.0,
+                    ),
+                    "delayed_bursts": len(delayed_burst_starts),
                     "maximum_inter_event_gap": max(inter_event_gaps, default=0),
                     "maximum_root_scaled_inter_event_gap": (
                         max(inter_event_gaps, default=0) * math.sqrt(alpha)
@@ -526,16 +764,129 @@ def run_projected_estimate_nag(
                     "minimum_scratch_residual_at_publication": min(
                         publication_scratch_minima, default=0.0
                     ),
+                    "initial_minimum_subgradient_norm": minimum_subgradient_norms[0],
+                    "final_minimum_subgradient_norm": minimum_subgradient_norms[-1],
+                    "maximum_minimum_subgradient_growth": max(
+                        (
+                            later / earlier
+                            for earlier, later in zip(
+                                minimum_subgradient_norms,
+                                minimum_subgradient_norms[1:],
+                            )
+                            if earlier > 1.0e-30
+                        ),
+                        default=0.0,
+                    ),
                     "all_batches_ready_at_publication": all(
                         value >= -1.0e-12 for value in publication_scratch_minima
                     ),
                     "scratch_size": len(scratch),
+                    "scratch_volume": float(degrees[scratch].sum()),
                     "volume_work": volume_work,
                     "terminated": True,
                 }
 
     inter_event_gaps = [
         later - earlier for earlier, later in zip(event_iterations, event_iterations[1:])
+    ]
+    remaining_event_energies = np.cumsum(np.asarray(center_increment_energies[::-1], dtype=float))[
+        ::-1
+    ]
+    release_fractions = [
+        energy / remaining
+        for energy, remaining in zip(center_increment_energies, remaining_event_energies)
+        if remaining > 0.0
+    ]
+    long_window_threshold = 0.5 / math.sqrt(alpha)
+    long_window_release_fractions = [
+        center_increment_energies[index] / remaining_event_energies[index]
+        for index in range(1, len(center_increment_energies))
+        if event_iterations[index] - event_iterations[index - 1] >= long_window_threshold
+        and remaining_event_energies[index] > 0.0
+    ]
+    delayed_burst_starts = [
+        index
+        for index in range(1, len(center_increment_energies))
+        if event_iterations[index] - event_iterations[index - 1] >= long_window_threshold
+    ]
+    delayed_burst_release_fractions = []
+    for start_index, next_start in zip(
+        delayed_burst_starts,
+        delayed_burst_starts[1:] + [len(center_increment_energies)],
+    ):
+        remaining = remaining_event_energies[start_index]
+        if remaining > 0.0:
+            released = sum(center_increment_energies[start_index:next_start])
+            delayed_burst_release_fractions.append(released / remaining)
+    h_matrix = np.diag(sqrt_degrees) @ q_matrix @ np.diag(sqrt_degrees)
+    final_green = np.zeros(vertex_count)
+    final_green[scratch] = np.linalg.solve(
+        h_matrix[np.ix_(scratch, scratch)],
+        alpha * (scratch == 0).astype(float),
+    )
+    final_solution_amplitude = center / sqrt_degrees
+    green_amplitude_drop_ratios: list[float] = []
+    solution_amplitude_drop_ratios: list[float] = []
+    face_growth_ratios: list[float] = []
+    face_before = {0}
+    for event_batch in event_batches:
+        remaining_before = sorted(set(map(int, scratch)) - face_before)
+        amplitude_before = max(
+            (final_green[vertex] for vertex in remaining_before),
+            default=0.0,
+        )
+        solution_amplitude_before = max(
+            (final_solution_amplitude[vertex] for vertex in remaining_before),
+            default=0.0,
+        )
+        volume_before = float(degrees[list(face_before)].sum())
+        face_before.update(event_batch)
+        remaining_after = sorted(set(map(int, scratch)) - face_before)
+        amplitude_after = max(
+            (final_green[vertex] for vertex in remaining_after),
+            default=0.0,
+        )
+        solution_amplitude_after = max(
+            (final_solution_amplitude[vertex] for vertex in remaining_after),
+            default=0.0,
+        )
+        volume_after = float(degrees[list(face_before)].sum())
+        green_amplitude_drop_ratios.append(
+            amplitude_after / amplitude_before if amplitude_before > 0.0 else 0.0
+        )
+        solution_amplitude_drop_ratios.append(
+            (
+                solution_amplitude_after / solution_amplitude_before
+                if solution_amplitude_before > 0.0
+                else 0.0
+            )
+        )
+        face_growth_ratios.append(volume_after / volume_before)
+    delayed_dichotomy_progress = [
+        max(
+            face_growth_ratios[index],
+            (
+                1.0 / green_amplitude_drop_ratios[index]
+                if green_amplitude_drop_ratios[index] > 0.0
+                else float("inf")
+            ),
+        )
+        for index in range(1, len(event_iterations))
+        if event_iterations[index] - event_iterations[index - 1] >= long_window_threshold
+        and green_amplitude_drop_ratios[index] > 0.0
+    ]
+    delayed_solution_dichotomy_progress = [
+        max(
+            face_growth_ratios[index],
+            (
+                1.0 / solution_amplitude_drop_ratios[index]
+                if solution_amplitude_drop_ratios[index] > 0.0
+                else float("inf")
+            ),
+        )
+        for index in range(1, len(event_iterations))
+        if event_iterations[index] - event_iterations[index - 1] >= long_window_threshold
+        and solution_amplitude_drop_ratios[index] > 0.0
     ]
     return {
         "iterations": maximum_iterations,
@@ -545,6 +896,48 @@ def run_projected_estimate_nag(
         "certificate_history": certificate_history,
         "events": events,
         "event_iterations": event_iterations,
+        "event_batches": event_batches,
+        "last_event_iteration": max(event_iterations, default=-1),
+        "scaled_event_horizon": ((max(event_iterations, default=-1) + 1) * math.sqrt(alpha)),
+        "center_increment_energies": center_increment_energies,
+        "effective_packet_eigenvalues": [
+            gate_square / energy
+            for gate_square, energy in zip(
+                exact_gate_squares,
+                center_increment_energies,
+            )
+            if energy > 0.0
+        ],
+        "effective_packet_root_sum": sum(
+            math.sqrt(energy / gate_square)
+            for gate_square, energy in zip(
+                exact_gate_squares,
+                center_increment_energies,
+            )
+            if gate_square > 0.0
+        ),
+        "face_volumes_at_events": face_volumes_at_events,
+        "green_amplitude_drop_ratios": green_amplitude_drop_ratios,
+        "solution_amplitude_drop_ratios": solution_amplitude_drop_ratios,
+        "face_growth_ratios": face_growth_ratios,
+        "minimum_delayed_dichotomy_progress": min(
+            delayed_dichotomy_progress,
+            default=1.0,
+        ),
+        "minimum_delayed_solution_dichotomy_progress": min(
+            delayed_solution_dichotomy_progress,
+            default=1.0,
+        ),
+        "minimum_event_release_fraction": min(release_fractions, default=1.0),
+        "minimum_long_window_release_fraction": min(
+            long_window_release_fractions,
+            default=1.0,
+        ),
+        "minimum_delayed_burst_release_fraction": min(
+            delayed_burst_release_fractions,
+            default=1.0,
+        ),
+        "delayed_bursts": len(delayed_burst_starts),
         "maximum_inter_event_gap": max(inter_event_gaps, default=0),
         "maximum_root_scaled_inter_event_gap": (
             max(inter_event_gaps, default=0) * math.sqrt(alpha)
@@ -555,10 +948,24 @@ def run_projected_estimate_nag(
         "minimum_companion_event_slack": min(companion_event_slacks, default=0.0),
         "minimum_event_debt_slack": min(event_debt_slacks, default=0.0),
         "minimum_scratch_residual_at_publication": min(publication_scratch_minima, default=0.0),
+        "initial_minimum_subgradient_norm": minimum_subgradient_norms[0],
+        "final_minimum_subgradient_norm": minimum_subgradient_norms[-1],
+        "maximum_minimum_subgradient_growth": max(
+            (
+                later / earlier
+                for earlier, later in zip(
+                    minimum_subgradient_norms,
+                    minimum_subgradient_norms[1:],
+                )
+                if earlier > 1.0e-30
+            ),
+            default=0.0,
+        ),
         "all_batches_ready_at_publication": all(
             value >= -1.0e-12 for value in publication_scratch_minima
         ),
         "scratch_size": len(scratch),
+        "scratch_volume": float(degrees[scratch].sum()),
         "volume_work": volume_work,
         "terminated": False,
     }
@@ -631,6 +1038,18 @@ def main() -> None:
         adaptive_result.update({"alpha": alpha, "rho": rho})
         delayed_adaptive_records.append(adaptive_result)
 
+    stress_graph = green_band_stress_graph()
+    stress_alpha = 1.0e-3
+    stress_rho = 1.6294035977595616e-6 / stress_graph[0].sum()
+    stress_result = run_projected_estimate_nag(
+        stress_graph,
+        stress_alpha,
+        stress_rho,
+        maximum_iterations=3_000,
+        publication_tolerance=1.0e-13,
+    )
+    stress_result.update({"alpha": stress_alpha, "rho": stress_rho})
+
     print(
         json.dumps(
             {
@@ -638,6 +1057,7 @@ def main() -> None:
                 "structured": structured,
                 "delayed_projected_publication": delayed_records,
                 "delayed_gap_adaptive_publication": delayed_adaptive_records,
+                "green_band_stress": stress_result,
                 "random_summary": {
                     "trials": args.trials,
                     "maximum_wait": max(int(record["maximum_wait"]) for record in random_records),
