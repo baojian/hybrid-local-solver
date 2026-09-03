@@ -613,7 +613,7 @@ def audit_graph(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--vertices", type=int, default=4, choices=(2, 3, 4, 5))
+    parser.add_argument("--vertices", type=int, default=4, choices=(2, 3, 4, 5, 6))
     parser.add_argument("--root", default="1/2")
     parser.add_argument("--rho-fractions", default="1/10,1/2,9/10")
     parser.add_argument("--relative-width", default="1/64")
