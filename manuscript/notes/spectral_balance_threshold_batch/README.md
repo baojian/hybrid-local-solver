@@ -15,6 +15,17 @@ whose optimum is attained at `beta = sqrt(alpha)`.  Here
 unconditional tradeoff: the spectral parameter must either be certified or
 have a second branch that pays when the promise fails.
 
+**Superseding update (2026-09-04).**  Sections below describing
+`StoppedMaskedInputResidual` as the sole remaining premise predate exact
+canonical zero-start counterexamples.  The threshold-only route is refuted
+for every fixed `0<beta<0.4897917473484638...`; its remaining interval to
+`1/2` is open.  `ExactBoxLC` and positive-barrier cap-min rounding now reduce
+the main theorem to a deterministic support-linear approximate obstacle
+oracle (or equivalent persistent response), which is not supplied by the
+audited literature.  `DETERMINISTIC_HALO_INTEGRATION.md` is the current
+boundary; this long notebook retains older conditional routes as dated
+research history.
+
 ## Scope and project-convention map
 
 This is an unregistered working companion to the registered
@@ -5652,11 +5663,12 @@ admitted row lies in the final prox support.  Hence a product costs at most
 that support volume, and the usual `O(s^-1 log(poly))` energy-to-coordinate
 conversion gives the claimed phase ledger.  Unlike the temporal-lead route,
 the exact supplied-face lead counterexample is irrelevant to this argument.
-The sole unproved step is preservation of the active input residual from the
-minimal single-source initialization.  It is observable, exact on the current
-small-graph grids, and false for arbitrary fixed-face initial states.  An
-adaptive restart can enforce it algorithmically, but no graph-uniform bound
-on the number or timing of such restarts has yet been proved.
+This implication's former sole unproved step was preservation of the active
+input residual from the minimal single-source initialization.  It is now
+strictly refuted for the quarter stop, and exact same-chronology cells refute
+every fixed `beta<0.4897917473484638...`.  An adaptive restart can enforce it
+algorithmically, but no graph-uniform bound on the number or timing of such
+restarts has yet been proved.
 
 One tempting way to prove that history statement is to induct simultaneously
 on masked domination of the lower state, primal state, and next extrapolate.

@@ -2,6 +2,18 @@
 
 Updated 2026-08-31.  `README.md` contains the arguments and witnesses.
 
+**Superseding update (2026-09-04).**  Historical entries below that call
+`StoppedMaskedInputResidual` the central or sole unproved premise are no
+longer current.  The prescribed point-source zero-start recurrence has exact
+strict counterexamples for every fixed `0<beta<0.4897917473484638...`; only
+the remaining beta interval up to `1/2` survives that threshold-only route.
+`ExactBoxLC` proves the accelerated outer oracle-call count, and positive-
+barrier cap-min rounding removes the exact one-sided output obstruction, but
+the deterministic support-linear approximate obstacle oracle remains open.
+The authoritative current boundary is
+`DETERMINISTIC_HALO_INTEGRATION.md`; the older route-by-route ledger is kept
+below as research history.
+
 ## Target
 
 Determine whether deterministic Chebyshev/CG, possibly with a tunable cutoff,
@@ -280,12 +292,13 @@ deterministic graph algorithms.
 
 ## Operational handoff
 
-- **Central blocker:** prove or refute `StoppedMaskedInputResidual` for the
-  one-push input-frontier recurrence from the minimal point-source start.  If
-  it holds, the proved frontier-safety and estimate-potential contraction give
-  `AmortizedLowerShiftedApply(sqrt(alpha))` directly.  Otherwise the broader
-  fallback remains a support-local `CenterLift(tau)` with total
-  `O_tilde(M/tau)` response-production/rescan work.
+- **Historical blocker, now refuted at the quarter stop:**
+  `StoppedMaskedInputResidual` fails for the one-push input-frontier
+  recurrence from the minimal point-source start.  The conditional
+  frontier-safety implication remains correct, but exact chronology cells
+  now refute every `beta<0.4897917473484638...`.  The live alternatives are a
+  threshold in the remaining interval, the `ExactBoxMaintenance` oracle, or
+  the broader support-local `CenterLift(tau)`/persistent-response route.
 - **Next falsifiable target:** on the maintained dyadic landscape well forest,
   either prove `StreamMeanZero(tau)` for all positive frontier packets with no
   old-cluster replay, or exhibit one canonical growing-support trace on which

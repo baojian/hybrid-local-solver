@@ -4,6 +4,19 @@ This manifest records what the executable checks certify.  A passing script
 is evidence only for the statement listed here; it must not be promoted to a
 stronger end-to-end claim.
 
+## Superseding verification addendum (2026-09-04)
+
+| Artifact | Certified statement | Deliberate scope limit |
+|---|---|---|
+| `positive_barrier_safe_supersolution_rounding_exact.py` | Exact Stieltjes barrier/cap-min feasibility identities; the canonical sensitivity, unsafe raw-center prox floor, and gap-nonmonotonicity examples; and the `s=1/10` endpoint inequalities used by the direction-independent zero-input proof. | Rounding requires an objective-accurate obstacle input; it is not a deterministic support-linear solver, and statewise logarithmic precision still needs whole-run accounting. |
+| `stopped_masked_input_residual_beta_cell_atlas_exact.py` | Forty-four exact positive-root chronology cells cover `(0,0.48979117875734753...)`. | This finite atlas does not include its upper endpoint or imply monotonicity outside each cell. |
+| `stopped_masked_input_residual_beta_04898_twenty_two_leaf_zero_root_equioscillation_exact.py` | Exact E22 cross-product equioscillation, strict terminal failure, complete classification of forced zero/twin comparisons, and limiting cell `[0.48869804073544294...,0.4897917473484638...)`. | The zero-root trace is a limiting certificate; each interior beta uses a sufficiently small positive root via the finite-prefix lifting lemma, and the full interval from zero also uses the preceding overlapping cells. |
+| `stopped_masked_input_residual_beta_04898_twenty_two_leaf_equioscillation_exact.py` | Direct finite `s=1/65536` E22 failure and cell ending at `0.48979117875734753...`. | It does not cover the stronger zero-root endpoint by itself. |
+
+These entries supersede older manifest descriptions that treated preservation
+of the literal quarter-stop input cone as merely unproved.  The conditional
+potential implication remains valid, but its canonical premise is refuted.
+
 | Artifact | Certified statement | Deliberate scope limit |
 |---|---|---|
 | `exact_delayed_clock.py` | Exact `Q(sqrt(10))` moving projected-NAG trace with events `0,1,2,3,4,38`; finite threshold, lower-subsolution, early-stop, connectedness, and `S*=V` checks. | Refutes immediate next-product publication for this recurrence only; not a target-runtime lower bound. |

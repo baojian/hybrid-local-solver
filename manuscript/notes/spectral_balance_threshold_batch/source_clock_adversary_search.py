@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 
 import numpy as np
 
@@ -185,6 +186,12 @@ def evaluate(
             result["maximum_post_push_current_over_lower_ratio"]
         )
         masked_input_residual_violation = -float(result["minimum_masked_input_residual_ratio"])
+        first_negative_input_witness = result.get(
+            "first_negative_masked_input_residual_witness", {}
+        )
+        first_negative_predecessor_width_ratio = float(
+            first_negative_input_witness.get("preceding_inner_width_ratio", -math.inf)
+        )
         work_ratio = float(result["root_work_ratio"])
         events = float(result["events"])
         if objective == "prox-phase":
@@ -230,6 +237,12 @@ def evaluate(
                 masked_input_residual_violation,
                 masked_retraction_shift_ratio,
                 relevant_shadow_increment_over_starting_lower_ratio,
+            )
+        elif objective == "prox-masked-input-failure-width":
+            score = (
+                first_negative_predecessor_width_ratio,
+                masked_input_residual_violation,
+                masked_retraction_shift_ratio,
             )
         elif objective == "prox-adjacent-shadow":
             score = (
@@ -409,6 +422,7 @@ def main() -> None:
             "prox-one-step-lead",
             "prox-masked-shave",
             "prox-masked-input-residual",
+            "prox-masked-input-failure-width",
             "prox-adjacent-shadow",
             "prox-state-domination",
             "prox-auxiliary-domination",

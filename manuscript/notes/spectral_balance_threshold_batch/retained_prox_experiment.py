@@ -123,6 +123,7 @@ def run_retained_prox(
     residual_push_rounds: int = 1,
     post_append_residual_push: bool = False,
     input_residual_append: bool = False,
+    inner_stop_fraction: float | None = None,
 ) -> dict[str, object]:
     if residual_push_rounds < 1:
         raise ValueError("residual_push_rounds must be positive")
@@ -149,6 +150,10 @@ def run_retained_prox(
     momentum = (1.0 - root) / (1.0 + root)
     contraction = sigma / shifted_gap
     requested_fraction = (1.0 - contraction) / 2.0
+    if inner_stop_fraction is not None:
+        if not 0.0 < inner_stop_fraction < 0.5:
+            raise ValueError("inner_stop_fraction must lie strictly between 0 and 1/2")
+        requested_fraction = inner_stop_fraction
 
     phase_records: list[dict[str, object]] = []
     total_volume_work = 0.0
@@ -200,6 +205,8 @@ def run_retained_prox(
     maximum_masked_retraction_shift_ratio = -math.inf
     minimum_residual_velocity_credit_ratio = math.inf
     minimum_masked_input_residual_ratio = math.inf
+    masked_input_residual_witness: dict[str, object] = {}
+    first_negative_masked_input_residual_witness: dict[str, object] = {}
     maximum_omniscient_over_one_jacobi_ratio = -math.inf
     maximum_omniscient_over_two_jacobi_ratio = -math.inf
     maximum_adjacent_shadow_deficit = -math.inf
@@ -326,10 +333,43 @@ def run_retained_prox(
             block = shifted_matrix[np.ix_(scratch, scratch)]
             masked_input_residual = shifted_load[scratch] - block @ extrapolated
             if len(scratch):
-                minimum_masked_input_residual_ratio = min(
-                    minimum_masked_input_residual_ratio,
-                    float(np.min(masked_input_residual) / old_width),
-                )
+                input_vertex_local = int(np.argmin(masked_input_residual))
+                input_ratio = float(masked_input_residual[input_vertex_local] / old_width)
+                if input_ratio < minimum_masked_input_residual_ratio:
+                    input_vertex = int(scratch[input_vertex_local])
+                    minimum_masked_input_residual_ratio = input_ratio
+                    masked_input_residual_witness = {
+                        "phase": len(phase_records),
+                        "iteration": iteration + 1,
+                        "vertex": input_vertex,
+                        "face_size": len(scratch),
+                        "old_width": old_width,
+                        "preceding_inner_width": inner_width,
+                        "preceding_inner_width_ratio": inner_width / old_width,
+                        "input_residual": float(masked_input_residual[input_vertex_local]),
+                        "ratio": input_ratio,
+                        "extrapolate": float(extrapolated[input_vertex_local]),
+                        "current": float(current[input_vertex]),
+                        "previous": float(previous[input_vertex]),
+                        "lower": float(lower[input_vertex]),
+                    }
+                if input_ratio < 0.0 and not first_negative_masked_input_residual_witness:
+                    input_vertex = int(scratch[input_vertex_local])
+                    first_negative_masked_input_residual_witness = {
+                        "phase": len(phase_records),
+                        "iteration": iteration + 1,
+                        "vertex": input_vertex,
+                        "face_size": len(scratch),
+                        "old_width": old_width,
+                        "preceding_inner_width": inner_width,
+                        "preceding_inner_width_ratio": inner_width / old_width,
+                        "input_residual": float(masked_input_residual[input_vertex_local]),
+                        "ratio": input_ratio,
+                        "extrapolate": float(extrapolated[input_vertex_local]),
+                        "current": float(current[input_vertex]),
+                        "previous": float(previous[input_vertex]),
+                        "lower": float(lower[input_vertex]),
+                    }
             next_iterate[scratch] = extrapolated + masked_input_residual / lipschitz
             previous, current = current, next_iterate
             masked_raw_next = current.copy()
@@ -1208,6 +1248,7 @@ def run_retained_prox(
         "total_positive_append_work": total_positive_append_work,
         "total_post_append_push_work": total_post_append_push_work,
         "input_residual_append": input_residual_append,
+        "inner_stop_fraction": requested_fraction,
         "total_charged_volume_work": (
             total_volume_work
             + total_residual_push_work
@@ -1304,6 +1345,10 @@ def run_retained_prox(
         "maximum_masked_retraction_shift_ratio": (maximum_masked_retraction_shift_ratio),
         "minimum_residual_velocity_credit_ratio": (minimum_residual_velocity_credit_ratio),
         "minimum_masked_input_residual_ratio": (minimum_masked_input_residual_ratio),
+        "masked_input_residual_witness": masked_input_residual_witness,
+        "first_negative_masked_input_residual_witness": (
+            first_negative_masked_input_residual_witness
+        ),
         "shadow_increment_witness": shadow_increment_witness,
         "maximum_omniscient_over_one_jacobi_ratio": (maximum_omniscient_over_one_jacobi_ratio),
         "maximum_omniscient_over_two_jacobi_ratio": (maximum_omniscient_over_two_jacobi_ratio),
@@ -1362,6 +1407,7 @@ def compact(result: dict[str, object]) -> dict[str, object]:
         "total_positive_append_work",
         "total_post_append_push_work",
         "input_residual_append",
+        "inner_stop_fraction",
         "total_charged_volume_work",
         "charged_root_work_ratio",
         "contains_uncharged_block_solve",
@@ -1408,6 +1454,7 @@ def main() -> None:
     parser.add_argument("--residual-push-rounds", type=int, default=1)
     parser.add_argument("--post-append-residual-push", action="store_true")
     parser.add_argument("--input-residual-append", action="store_true")
+    parser.add_argument("--inner-stop-fraction", type=float)
     parser.add_argument("--block-residual-push", action="store_true")
     parser.add_argument("--seed", type=int, default=20260901)
     parser.add_argument("--full", action="store_true")
@@ -1434,6 +1481,7 @@ def main() -> None:
             residual_push_rounds=args.residual_push_rounds,
             post_append_residual_push=args.post_append_residual_push,
             input_residual_append=args.input_residual_append,
+            inner_stop_fraction=args.inner_stop_fraction,
         )
         results[name] = result if args.full else compact(result)
     print(json.dumps(results, indent=2, sort_keys=True))

@@ -4,6 +4,17 @@ Date: 2026-08-31; updated 2026-09-01.  This report summarizes the audited workin
 counterexamples, and executable certificates are in `README.md`, `CLAIMS.md`,
 `STATUS.md`, and `VERIFICATION.md`.
 
+**Superseding update (2026-09-04).**  This report's later statements that
+`StoppedMaskedInputResidual` is the sole unproved premise are historical.
+The literal point-source zero-start statement is strictly refuted, with a
+continuous exact beta-cell cover through
+`0.4897917473484638...`.  A separate `ExactBoxLC` route proves the outer
+accelerated oracle-call theorem, and positive-barrier cap-min rounding makes
+an objective-accurate obstacle point exactly safe, but no audited theorem
+supplies that point in deterministic support-linear work.  Thus the general
+deterministic `O_tilde(M/sqrt(alpha))` result remains open for the narrower
+oracle/persistent-response reason stated in `DETERMINISTIC_HALO_INTEGRATION.md`.
+
 ## Decision
 
 The directed-random-walk paper can derandomize each *supplied-face* solve, but
@@ -459,8 +470,9 @@ StoppedMaskedInputResidual + input-residual frontier admission
 ```
 
 This `InputConeFrontierNAG` route bypasses temporal dominance and the event
-timing bank entirely.  Its only unproved premise is preservation of the
-active input-residual cone from the minimal point-source chronology.  The
+timing bank entirely.  The implication is correct, but the once-unproved
+premise is now refuted at the literal quarter stop and throughout every fixed
+`beta<0.4897917473484638...` by exact zero-start chronology cells.  The
 input-frontier implementation has exact nonnegative residual on 842
 four/five-vertex histories at `s=1/10`, reaches only `-1.36e-15` roundoff over 500
 seeded random canonical runs, and has maximum stable measured potential ratio
