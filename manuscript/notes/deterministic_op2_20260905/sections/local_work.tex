@@ -1,0 +1,132 @@
+\section{Why the accelerated trajectory has bounded local work}
+\label{sec:det-op2-local-work}
+
+\begin{lemma}[Projection inequality for the inverse-source comparator]
+\label{lem:det-op2-sector}
+For $\bm{n}=\bm{q}-\bm{p}$ and
+$\bm{t}=\bm{M}^{-1}\bm{r}_{\mathrm{src}}$,
+\[
+ \ip{\bm{p}-\bm{t}}{\bm{M}\bm{n}}
+       =(\bm{M}\bm{p}-\bm{r}_{\mathrm{src}})^{\top}\bm{n}\geq0.
+\]
+\end{lemma}
+\begin{proof}
+Decompose the projection normal as
+$\bm{n}=\eta\bm{w}+\bm{n}^{\rm up}-\bm{n}^{\rm low}$ with nonnegative
+multipliers. At a lower face $p_i=0$, Stieltjes signs give
+$(\bm{M}\bm{p}-\bm{r}_{\mathrm{src}})_i\leq0$.
+At an upper face $p_i=4rw_i$, the same signs and the upper box give
+$(\bm{M}\bm{p})_i\geq4r(\bm{M}\bm{w})_i
+\geq4\alpha rw_i\geq(r_{\mathrm{src}})_i$.
+If $\eta>0$, the cap is active and
+\[
+ \bm{w}^{\top}(\bm{M}\bm{p}-\bm{r}_{\mathrm{src}})
+ \geq\alpha\bm{w}^{\top}\bm{p}-m_{\mathrm{src}}=0.
+\]
+Each contribution to the normal pairing is nonnegative.
+\end{proof}
+
+\begin{lemma}[Second energy and squared-response bound]
+\label{lem:det-op2-response}
+The actual exact trajectory satisfies
+\begin{equation}\label{eq:det-op2-response-bound}
+ \norm{\bm{M}(\bm{\xi}_k-\bm{\xi}^*)}^2
+       \leq18\lambda m_{\mathrm{src}}\leq18\alpha^2r.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Define
+\begin{align*}
+ \mathcal J_2(\bm{\xi})&=\tfrac12\norm{\bm{M}\bm{\xi}
+                    -\bm{r}_{\mathrm{src}}}^2
+                  +\lambda(\bm{M}\bm{w})^{\top}\bm{\xi},\\
+ B_k&=\mathcal J_2(\bm{\xi}_k)-\mathcal J_2(\bm{t})
+                         +\tfrac\mu2\norm{\bm{z}_k-\bm{t}}_{\bm{M}}^2.
+\end{align*}
+The gradient in the $\bm{M}$ metric is exactly
+$\bm{M}\bm{\xi}-\bm{r}_{\mathrm{src}}+\lambda\bm{w}$ and its metric
+Hessian is $\bm{M}$. Apply \cref{lem:det-op2-comparison} using
+\cref{lem:det-op2-sector} to get $B_{k+1}\leq(1-\theta)B_k$.
+This comparison energy may be negative; its recurrence does not require
+that $\bm{t}$ minimize $\mathcal J_2$.
+
+Diffuseness gives
+$\norm{\bm{r}_{\mathrm{src}}}^2\leq4\lambda m_{\mathrm{src}}$.
+Also $\bm{t}^{\top}\bm{M}\bm{t}\leq4r m_{\mathrm{src}}$ and
+$\mathcal J_2(\bm{t})=\lambda m_{\mathrm{src}}$, hence
+$B_0\leq3\lambda m_{\mathrm{src}}$. The nonnegative linear term and
+kinetic term now imply
+$\norm{\bm{M}\bm{\xi}_k-\bm{r}_{\mathrm{src}}}^2
+\leq8\lambda m_{\mathrm{src}}$.
+The optimum residual
+$\bm{q}^*=\bm{r}_{\mathrm{src}}-\bm{M}\bm{\xi}^*$ lies in
+$[\bm{0},\lambda\bm{w}]$ and has weighted mass at most
+$m_{\mathrm{src}}$, so $\norm{\bm{q}^*}^2\leq\lambda m_{\mathrm{src}}$.
+The squared triangle bound yields the factor $2(8+1)=18$.
+\end{proof}
+
+Let $\mathcal C_r=\supp(\bm{u}_{r/2}^*)$. By
+\cref{lem:det-op2-order}, this analytical set has volume at most $2/r$.
+For $i\notin\mathcal C_r$, both optima vanish at $i$, and monotonicity
+with the off-diagonal signs gives
+\begin{equation}\label{eq:det-op2-slack-margin}
+ (\ell_r)_i\geq\alpha r w_i/2.
+\end{equation}
+The comparator is the restricted optimum at $r/2$, even when $r/2<\rho$.
+Neither it nor $\mathcal C_r$ is computed by the algorithm.
+
+\begin{theorem}[Cumulative repeated row volume]
+\label{thm:det-op2-volume}
+For any horizon $K$ of the exact stage recurrence,
+\[
+ \sum_{k=0}^{K-1}\vol(\supp\bm{z}_{k+1})\leq148K/r.
+\]
+This includes every repeated activation and does not assume confinement to
+the optimal support or to a supplied boundary set.
+\end{theorem}
+\begin{proof}
+Use mass vectors $\bm{v}_k=\theta\bm{D}^{1/2}\bm{z}_k$ and
+$\bm{v}^*=\theta\bm{D}^{1/2}\bm{\xi}^*$.
+Set $\bm{P}_{\mathcal A}=\bm{A}_{\mathcal A\mathcal A}\bm{D}_{\mathcal A}^{-1}$,
+$\bm{K}_0=(\bm{I}+\bm{P}_{\mathcal A})/2$ and
+$\beta_0=(1-\alpha)/(1+\theta)\leq1-\theta$.
+The matrix $\bm{K}_0$ is nonnegative and column-substochastic because
+degrees are original degrees. Algebraic substitution into the update gives
+\begin{align*}
+ \bm{v}^{\rm raw}-\bm{v}^*
+       &=\beta_0\bm{K}_0(\bm{v}_k-\bm{v}^*)+\bm{h}_k-\bm{R}^*,\\
+ \bm{h}_k&=-\frac{\bm{D}^{1/2}(\bm{M}-\mu\bm{I})
+                  (\bm{\xi}_k-\bm{\xi}^*)}{1+\theta},\qquad
+ \bm{R}^*=\bm{D}^{1/2}\bm{\ell}_r.
+\end{align*}
+Select $S_k=\{i:(v_{k+1})_i>v_i^*\}$ and put
+$\bm{e}_k=(\bm{v}_k-\bm{v}^*)_+$.
+On selected coordinates lower-face multipliers vanish, while upper-face
+and cap multipliers subtract mass. Column-substochasticity therefore gives
+\[
+ \norm{\bm{e}_{k+1}}_1+\sum_{i\in S_k}R_i^*
+ \leq\beta_0\norm{\bm{e}_k}_1+\sum_{i\in S_k}(h_k)_i.
+\]
+Since $\bm{e}_0=\bm{0}$, telescope this inequality and retain the signed
+forcing on the selected coordinates. Every positive kinetic coordinate
+outside $\mathcal C_r$ is selected. Consequently
+\[
+ \tfrac\lambda2 V_{\rm out}\leq\sum_{k<K}\sum_{i\in S_k}(h_k)_i,
+ \qquad
+ V_{\rm out}=\sum_{k<K}\vol(\supp\bm{z}_{k+1}\setminus\mathcal C_r).
+\]
+The total selected volume is at most $V_{\rm out}+2K/r$. Moreover
+$\bm{M}-\mu\bm{I}$ commutes with $\bm{M}$ and has eigenvalues between zero
+and the corresponding eigenvalues of $\bm{M}$. Thus
+\[
+ H_2:=\sum_{k<K}\norm{\bm{D}^{-1/2}\bm{h}_k}^2
+      \leq18\alpha^2rK.
+\]
+Weighted Cauchy--Schwarz implies
+\[
+ \tfrac{\lambda^2}{4}V_{\rm out}^2
+       \leq(V_{\rm out}+2K/r)H_2.
+\]
+Using $\lambda=\alpha r$, the scalar inequality yields
+$V_{\rm out}+2K/r\leq148K/r$. This includes all kinetic volume.
+\end{proof}

@@ -1,0 +1,128 @@
+\section{Accelerated convergence: a complete stage proof}
+\label{sec:det-op2-convergence}
+
+In this section all vector operations are on the fixed principal set
+$\mathcal A$. The implementation discovers this set locally; specifying it
+analytically does not authorize a global enumeration. For every $r>0$, let
+$\bm{u}_r^*$ denote the restricted RPPR optimum. For $r\geq\rho$ it equals
+the restriction of the full optimum $\bm{x}_r^*$, because the full support
+has volume at most $1/r$ and is contained in $\mathcal A$.
+
+\begin{lemma}[Restricted order and mass bounds]
+\label{lem:det-op2-order}
+The restricted optimum satisfies
+\[
+ \bm{\ell}_r=\bm{M}\bm{u}_r^*-\bm{b}+\alpha r\bm{w}\geq\bm{0},
+ \qquad (\ell_r)_i(u_r^*)_i=0,
+ \qquad \bm{0}\leq\bm{b}-\bm{M}\bm{u}_r^*\leq\alpha r\bm{w}.
+\]
+Moreover $\bm{w}^{\top}\bm{u}_r^*\leq1$,
+$\vol(\supp\bm{u}_r^*)\leq1/r$, and
+$\bm{u}_{r/2}^*\geq\bm{u}_r^*$.
+\end{lemma}
+\begin{proof}
+KKT conditions give the first two assertions. On positive coordinates the
+source residual equals $\alpha r w_i$; on zero coordinates it is nonnegative
+by the nonpositive off-diagonals and nonnegative source. This proves the
+displayed interval. Weighted summation, using
+$\bm{M}\bm{w}\geq\alpha\bm{w}$ and $\bm{w}^{\top}\bm{b}=\alpha$,
+gives mass at most one. The same source residual has weighted mass at most
+$\alpha$ and equals $\alpha r w_i$ on the support, proving its volume bound.
+
+For monotonicity, suppose $S=\{i:(u_r^*)_i>(u_{r/2}^*)_i\}$ is nonempty.
+The KKT inequalities give, on $S$,
+$\bm{M}(\bm{u}_r^*-\bm{u}_{r/2}^*)\leq-\alpha r\bm{w}/2$.
+Outside $S$ the difference is nonpositive, so Stieltjes signs imply
+\[
+ \bm{M}_{SS}(\bm{u}_r^*-\bm{u}_{r/2}^*)_S
+ \leq-\alpha r\bm{w}_S/2.
+\]
+Multiplying by $\bm{M}_{SS}^{-1}\geq0$ contradicts positivity on $S$.
+\end{proof}
+
+For the safe stage baseline define
+$\bm{\xi}^*=\bm{u}_r^*-\overline{\bm{x}}$ and the correction objective
+\[
+ J(\bm{\xi})=\tfrac12\bm{\xi}^{\top}\bm{M}\bm{\xi}
+       -(\bm{r}_{\mathrm{src}}-\lambda\bm{w})^{\top}\bm{\xi}.
+\]
+Translation by the baseline preserves objective gaps on nonnegative
+corrections. The comparison vector $\bm{t}=\bm{M}^{-1}\bm{r}_{\mathrm{src}}$
+satisfies
+\begin{equation}\label{eq:det-op2-comparators}
+ \bm{0}\leq\bm{\xi}^*\leq\bm{t}\leq4r\bm{w},\qquad
+ \bm{w}^{\top}\bm{t}\leq m_{\mathrm{src}}/\alpha\leq1.
+\end{equation}
+Indeed $\bm{M}\bm{\xi}^*\leq\bm{r}_{\mathrm{src}}$,
+$\bm{M}^{-1}\geq0$ and $\bm{M}^{-1}\bm{w}\leq\bm{w}/\alpha$.
+Weighted summation of $\bm{M}\bm{t}=\bm{r}_{\mathrm{src}}$ gives the mass
+bound. Thus both comparators belong to $\mathcal K$; neither is computed.
+
+\begin{lemma}[Accelerated comparison in a Hilbert metric]
+\label{lem:det-op2-comparison}
+Let $\varphi$ be one-smooth and $\mu$-strongly convex in an inner-product
+metric. Put $\theta^2=\mu$, $a=1-\theta$,
+$\bm{y}=(\bm{x}+\theta\bm{z})/(1+\theta)$,
+$\bm{q}=a\bm{z}+\theta\bm{y}-\nabla\varphi(\bm{y})/\theta$, and
+$\bm{x}^{+}=a\bm{x}+\theta\bm{p}$. If a comparator $\bm{u}$ satisfies
+$\ip{\bm{p}-\bm{u}}{\bm{q}-\bm{p}}\geq0$, then
+\begin{align*}
+ &\varphi(\bm{x}^{+})-\varphi(\bm{u})
+                  +\tfrac\mu2\norm{\bm{p}-\bm{u}}^2\\
+ &\quad\leq a\left(\varphi(\bm{x})-\varphi(\bm{u})
+                  +\tfrac\mu2\norm{\bm{z}-\bm{u}}^2\right)
+       -\tfrac{\mu\theta(1-\mu)}2\norm{\bm{z}-\bm{y}}^2.
+\end{align*}
+The gradient and norms use that metric. The comparator need not minimize
+$\varphi$.
+\end{lemma}
+\begin{proof}
+Write $\bm{g}=\nabla\varphi(\bm{y})$. Since
+$\bm{x}^{+}=\bm{y}-\bm{g}+\theta(\bm{p}-\bm{q})$, smoothness gives
+\[
+ \varphi(\bm{x}^{+})\leq\varphi(\bm{y})-\tfrac12\norm{\bm{g}}^2
+                                  +\tfrac\mu2\norm{\bm{p}-\bm{q}}^2.
+\]
+The comparator inequality implies
+$\norm{\bm{p}-\bm{u}}^2\leq\norm{\bm{q}-\bm{u}}^2
+-\norm{\bm{p}-\bm{q}}^2$. Add these inequalities and expand
+$\bm{q}-\bm{u}=a(\bm{z}-\bm{u})+\theta(\bm{y}-\bm{u})-\bm{g}/\theta$.
+Apply strong convexity at $\bm{x}$ and $\bm{u}$ with weights $a$ and
+$\theta$, respectively. The gradient terms cancel because
+\[
+ a(\bm{x}-\bm{y})+\theta(\bm{u}-\bm{y})
+ =-\theta\{a(\bm{z}-\bm{u})+\theta(\bm{y}-\bm{u})\}.
+\]
+The convex-combination norm identity and
+$\bm{x}-\bm{y}=\theta(\bm{y}-\bm{z})$ leave the negative term
+$-\mu a\theta(1+\theta)\norm{\bm{z}-\bm{y}}^2/2$.
+Since $a(1+\theta)=1-\mu$, this proves the statement.
+\end{proof}
+
+\begin{theorem}[Deterministic accelerated stage rate]
+\label{thm:det-op2-stage}
+Choose $\theta$ by halving $1/2$ until $\theta^2\leq\alpha$ and set
+$\mu=\theta^2$. Then $\alpha/4\leq\mu\leq\alpha$ and the exact updates
+in \eqref{eq:det-op2-step} satisfy
+\[
+ E_{k+1}\leq(1-\theta)E_k,\qquad
+ E_k=J(\bm{\xi}_k)-J(\bm{\xi}^*)
+          +\tfrac\mu2\norm{\bm{z}_k-\bm{\xi}^*}^2,
+ \qquad E_0\leq1.
+\]
+Consequently $K=O(\alpha^{-1/2}\log(1/\tau))$ iterations suffice for
+stage objective gap at most $\tau$, for $0<\tau<1$.
+\end{theorem}
+\begin{proof}
+The Hessian of $J$ lies between $\alpha\bm{I}$ and $\bm{I}$.
+Euclidean projection onto $\mathcal K$ supplies the comparator inequality
+for $\bm{u}=\bm{\xi}^*$. Apply
+\cref{lem:det-op2-comparison} in the Euclidean metric.
+Complementarity gives
+$J(\bm{0})-J(\bm{\xi}^*)=\tfrac12(\bm{\xi}^*)^{\top}\bm{M}\bm{\xi}^*$.
+Since $w_i\geq1$ and $\bm{w}^{\top}\bm{\xi}^*\leq1$,
+$\norm{\bm{\xi}^*}\leq1$, so $E_0\leq(1+\mu)/2\leq1$.
+Finally $(1-\theta)^K\leq\exp(-\theta K)$.
+The horizon is computable without an optimum oracle by repeatedly
+multiplying the scalar $1-\theta$ until the upper bound is at most $\tau$.
+\end{proof}

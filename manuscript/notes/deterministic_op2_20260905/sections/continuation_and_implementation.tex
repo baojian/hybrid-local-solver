@@ -1,0 +1,163 @@
+\section{Safe continuation and the deterministic implementation}
+\label{sec:det-op2-continuation}
+
+\begin{lemma}[Safe stage completion]
+\label{lem:det-op2-repair}
+Choose $0<\delta\leq\lambda/2$ and $\tau=\alpha\delta^2/8$.
+From a nonnegative candidate $\widetilde{\bm{x}}$ of stage gap at most
+$\tau$, compute
+\[
+ \bm{p}=[\widetilde{\bm{x}}-(\bm{M}\widetilde{\bm{x}}
+                  -\bm{b}+\lambda\bm{w})]_+,
+ \qquad
+ z_i=w_i\left\lfloor[p_i/w_i-\delta]_+\right\rfloor_h,
+\]
+where $h$ is dyadic, $h\leq\min(\delta/2,\lambda/4)$, and
+$\lfloor t\rfloor_h=h\lfloor t/h\rfloor$.
+If the old baseline is a nonnegative subsolution below $\bm{u}_r^*$,
+then $\overline{\bm{x}}^+=\max(\overline{\bm{x}},\bm{z})$ satisfies
+\begin{equation}\label{eq:det-op2-repair}
+ \bm{0}\leq\overline{\bm{x}}^+\leq\bm{u}_r^*,\quad
+ \bm{0}\leq\bm{b}-\bm{M}\overline{\bm{x}}^+\leq2\alpha r\bm{w},\quad
+ F_r(\overline{\bm{x}}^+)-F_r(\bm{u}_r^*)\leq2\delta^2/r.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Projected-gradient descent and strong convexity imply
+$\norm{\bm{p}-\bm{u}_r^*}\leq\delta/2$.
+The vector $(\bm{I}-\bm{M})(\widetilde{\bm{x}}-\bm{p})$ is a
+subgradient of the orthant-constrained objective at $\bm{p}$ and has norm
+at most $\sqrt{2\tau}\leq\delta/2$.
+Since $w_i\geq1$, downward clipping gives
+$\bm{0}\leq\bm{z}\leq\bm{u}_r^*$ and
+$\bm{0}\leq\bm{u}_r^*-\bm{z}\leq2\delta\bm{w}$.
+On a retained positive coordinate, clipping decreases the matrix product
+by at least $\alpha\delta w_i$: the coordinate itself decreases by
+$\delta w_i$, and every other coordinate decreases by at most
+$\delta w_j$. Rounding can raise the product by at most $hw_i$,
+using $|\bm{M}|\bm{w}\leq\bm{w}$. Therefore
+\[
+ (\bm{M}\bm{z}-\bm{b})_i
+ \leq(-\lambda+\delta/2-\alpha\delta+h)w_i\leq0.
+\]
+On zero coordinates the subsolution inequality follows from Stieltjes
+signs. A coordinatewise maximum of two nonnegative subsolutions remains
+a subsolution: at coordinate $i$, select the vector attaining the maximum
+there and use the nonpositive off-diagonal entries.
+The error of the new baseline is at most $2\delta\bm{w}$, so its source
+residual is at most $(\lambda+2\delta)\bm{w}\leq2\lambda\bm{w}$.
+Support containment removes the linear KKT term in the objective gap.
+Finally $\bm{M}\preceq\bm{I}$ and support volume at most $1/r$ give
+the last bound in \eqref{eq:det-op2-repair}.
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Deterministic constrained accelerated continuation}
+\label{alg:det-op2}
+\begin{algorithmic}[1]
+\REQUIRE Local graph access, seed $v$, $\alpha$, $\rho$, $\epsobj>0$
+\STATE Query $d_v$. If $\rho d_v\geq1$, return $\bm{0}$.
+\STATE Set $r_{\rm old}=1/d_v$ and $\overline{\bm{x}}=\bm{0}$.
+\STATE Choose dyadic $\theta$ by halving $1/2$ until $\theta^2\leq\alpha$.
+\REPEAT
+\STATE $r\gets\max(\rho,r_{\rm old}/2)$; $\lambda\gets\alpha r$.
+\STATE Set $\delta=\lambda/2$; if $r=\rho$, halve until
+       $2\delta^2/\rho\leq\epsobj$.
+\STATE Form the sparse source $\bm{r}_{\mathrm{src}}$ and cap
+       $m_{\mathrm{src}}/\alpha$; set $\bm{\xi}=\bm{z}=\bm{0}$.
+\STATE Set $\tau=\alpha\delta^2/8$ and choose $K$ with
+       $(1-\theta)^K\leq\tau$.
+\FOR{$k=0,\ldots,K-1$}
+\STATE Apply \eqref{eq:det-op2-step} using the deterministic threshold reporter.
+\ENDFOR
+\STATE Repair $\widetilde{\bm{x}}=\overline{\bm{x}}+\bm{\xi}$ by
+       \cref{lem:det-op2-repair}; set $r_{\rm old}\gets r$.
+\UNTIL{$r=\rho$}
+\RETURN $\overline{\bm{x}}$
+\end{algorithmic}
+\end{algorithm}
+
+The first stage has $r\geq1/(2d_v)$, so its source is diffuse.
+Equation~\eqref{eq:det-op2-repair} gives the next stage's source bound
+$2\alpha r_{\rm old}\bm{w}\leq4\alpha r\bm{w}$.
+Subsolution feasibility implies nonnegative source; weighted summation gives
+source mass at most $\alpha$. Monotonicity of restricted optima preserves
+the baseline order. Thus every stage meets all earlier hypotheses.
+
+\subsection{Sparse steps and a finite threshold search}
+The recurrence alone does not establish a local work bound. Its implementation
+stores primal densities as a common scalar times normalized records.
+The averaging update changes normalized records only on emitted kinetic
+coordinates. Opening those original adjacency rows updates cached matrix
+responses. The old kinetic exceptions are removed and the new ones installed;
+both costs are charged to their kinetic volumes. Source records lie on the
+baseline, its neighbors and the seed and number $O(1/r)$.
+
+Two deterministic ordered trees store the ordinary records and kinetic
+exceptions, with degree sums and weighted-key sums. Common affine changes
+of raw density keys do not require revisiting every record. For a tail
+threshold $t$, write
+\[
+ D(t)=\sum_{q_i/w_i>t}d_i,\qquad
+ S(t)=\sum_{q_i/w_i>t}d_i q_i/w_i.
+\]
+For upper density $U=4r$, the projected mass at multiplier $\eta$ equals
+\[
+ S(\eta)-\eta D(\eta)
+       -S(\eta+U)+(\eta+U)D(\eta+U).
+\]
+If the mass at zero respects the cap, choose $\eta=0$. Otherwise the two
+trees induce four sorted breakpoint lists, from the two clip levels.
+Rank selection and binary searches using the displayed mass evaluation
+locate the affine interval containing the target mass. One scalar division
+then gives the exact multiplier. Each search uses polylogarithmic work;
+there is no numerical tolerance search of unspecified length.
+Unexposed coordinates have zero state and source and negative raw density.
+Only positive emitted coordinates open rows. History materialization at
+stage completion is bounded by the union of already charged kinetic rows.
+
+Consequently the stage work, up to logarithmic factors, is
+\begin{equation}\label{eq:det-op2-ledger}
+ K(1+|\supp\bm{r}_{\mathrm{src}}|)
+ +\sum_{k<K}\vol(\supp\bm{z}_{k+1})
+ +\vol(\supp\overline{\bm{x}})+1.
+\end{equation}
+This includes first and repeated incidences, degree queries, ordered-tree
+maintenance, all state accesses, terminal PG and repair, certificates,
+materialization, discarded history and output writes. Degrees remain original
+degrees; vertices above the fixed cutoff are filtered upon discovery.
+The floor operation in repair can be implemented by binary search over
+bounded integer multiples of dyadic $h$, with logarithmic overhead.
+
+\begin{theorem}[Total deterministic accelerated local work]
+\label{thm:det-op2-total}
+In the graph and local-access model of the contract, for
+$0<\rho<1/d_v$, \cref{alg:det-op2} returns
+$\bm{0}\leq\widehat{\bm{x}}\leq\bm{x}_\rho^*$ with objective gap at most
+$\epsobj$ and support volume at most $1/\rho$. Its total exact-real
+algebraic word work is
+$\widetilde O(1/(\rho\sqrt\alpha))$, where the suppressed factors are
+logarithmic in graph size, $1/\alpha$, $1/\rho$ and $1/\epsobj$.
+No randomized algorithm, SDD solver or evolving-set sampling process is used.
+\end{theorem}
+\begin{proof}
+The stage theorem supplies the required candidate gap. Safe repair and
+induction give the stage invariants and final objective guarantee.
+The final support is contained in that of $\bm{x}_\rho^*$.
+In \eqref{eq:det-op2-ledger}, the source size and baseline volume are
+$O(1/r)$, and \cref{thm:det-op2-volume} bounds cumulative kinetic volume
+by $148K/r$. Stage horizons are
+$\widetilde O(\alpha^{-1/2})$. The halving schedule has
+$\sum_r1/r=O(1/\rho)$, proving the total bound.
+\end{proof}
+
+\paragraph{Arithmetic and practical evidence boundary.}
+The proof above concerns exact-real algebraic word work. The archived full
+audit additionally develops perturbation bounds for both energies, downward
+dyadic density rounding, a closed-tail reporter that avoids enumerating
+outputs rounded to zero, and a repeated-volume constant of 360. Its portable
+package contains the corresponding integer prototype and tests. That extension
+is preserved as an audited source result; bit-complexity and practical timing
+claims must use its stated precision assumptions. Optional component
+certificates and the at-most-16-vertex exact solve are implementation
+refinements, not requirements of the recurrence or its theorem.

@@ -1,0 +1,150 @@
+\documentclass[11pt]{article}
+\input{../../tex/shared/research_note_preamble}
+\title{Deterministic Local RPPR by\\Constrained Accelerated Continuation}
+\author{Research record for \texttt{hybrid-local-solver}}
+\date{September 6, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We describe a deterministic local algorithm for point-source regularized
+PageRank, prove its accelerated stage convergence, and give the second-energy
+argument controlling total scanned volume. The continuation and two-energy argument originated
+in the parallel task \emph{Prove conjecture 2 deterministically}; this task
+independently checked it and developed the implementation refinements.
+The audited work bound is $\widetilde O(1/(\rho\sqrt\alpha))$ for the
+canonical point-source problem. Practical superiority over FISTA remains
+unproved. The algorithm and exact-real proof are developed below in repository
+notation. The complete earlier audit, bounded-arithmetic extension and
+implementation refinements are also preserved with their original sources.
+\end{abstract}
+
+\section{Contract and provenance}
+\label{sec:archive-contract}
+\input{../../tex/shared/source_aligned_problem}
+
+The seed in the shared formulation is $\bm{s}=\bm{e}_v$.
+The target here is additive RPPR objective accuracy $\epsobj>0$.
+The audited result returns $\bm{0}\leq\widehat{\bm{x}}\leq\bm{x}_\rho^*$
+with $F_\rho(\widehat{\bm{x}})-F_\rho(\bm{x}_\rho^*)\leq\epsobj$
+and support volume at most $1/\rho$. In the nonzero regime
+$0<\rho<1/d_v$, total exact-real algebraic word work is
+$\widetilde O(1/(\rho\sqrt\alpha))$. Every degree reply, first or repeated
+adjacency incidence, state access, arithmetic operation, comparison,
+threshold query, certificate, materialization and output write is charged.
+The solver has no ambient preprocessing or randomized primitive.
+
+\paragraph{Claim classes.}
+\textbf{Source:} canonical Stieltjes/RPPR facts and the parallel task's
+continuation proof. \textbf{Proved here:} audited degree-pruning and practical
+refinements, detailed in the full report. \textbf{Measured:} deterministic
+finite checks and selected structured timings. \textbf{Conditional:}
+extensions outside the stated model require separate assumptions and proofs.
+\textbf{Open:} external review, practical superiority and earlier score-repair
+rate questions. \textbf{Refuted:} the particular failed precursor assumptions
+identified in the research notes, not arbitrary algorithms in their families.
+
+\section{Algorithm and the additional energy}
+\label{sec:archive-algorithm}
+Let $\bm{w}=\bm{D}^{1/2}\one$. The conceptual restriction
+$\mathcal A=\{i:d_i\leq1/\rho\}$ is discovered locally; it is never globally
+enumerated. All degrees remain original degrees and
+$\bm{M}=\bm{Q}_{\mathcal A\mathcal A}$.
+On this restriction, $\alpha\bm{I}\preceq\bm{M}\preceq\bm{I}$,
+$\bm{M}^{-1}\geq0$, and $\bm{M}\bm{w}\geq\alpha\bm{w}$.
+
+Continuation halves a stage regularizer $r$ from $1/d_v$ down to $\rho$.
+A safe baseline $\overline{\bm{x}}\leq\bm{x}_r^*$ has source residual
+\[
+ \bm{r}_{\mathrm{src}}=\bm{b}-\bm{M}\overline{\bm{x}},\qquad
+ \bm{0}\leq\bm{r}_{\mathrm{src}}\leq4\alpha r\bm{w},\qquad
+ m_{\mathrm{src}}=\bm{w}^{\top}\bm{r}_{\mathrm{src}}\leq\alpha.
+\]
+This residual is denoted by $s$ in the archival report; it is distinct from
+the shared seed vector $\bm{s}$. Choose a dyadic
+$\theta\asymp\sqrt\alpha$, with $\theta\leq1/2$ and $\theta^2\leq\alpha$.
+Put $\lambda=\alpha r$ and
+\[
+ \mathcal K=\{\bm{u}:\bm{0}\leq\bm{u}\leq4r\bm{w},\quad
+                \bm{w}^{\top}\bm{u}\leq m_{\mathrm{src}}/\alpha\}.
+\]
+Starting from $\bm{\xi}=\bm{z}=\bm{0}$, perform
+\begin{equation}\label{eq:det-op2-step}
+\begin{aligned}
+ \bm{y}&=(\bm{\xi}+\theta\bm{z})/(1+\theta),\\
+ \bm{q}&=(1-\theta)\bm{z}+\theta\bm{y}
+       -(\bm{M}\bm{y}-\bm{r}_{\mathrm{src}}+\lambda\bm{w})/\theta,\\
+ \bm{p}&=\operatorname{Proj}_{\mathcal K}^{\rm Euclidean}(\bm{q}),\\
+ \bm{\xi}^{+}&=(1-\theta)\bm{\xi}+\theta\bm{p},\qquad
+ \bm{z}^{+}=\bm{p}.
+\end{aligned}
+\end{equation}
+Projection is scalar thresholding:
+$p_i/w_i=\min\{4r,(q_i/w_i-\eta)_+\}$, with the multiplier $\eta\geq0$
+chosen to respect the mass cap. Ordinary accelerated energy gives
+$K=\widetilde O(\alpha^{-1/2})$ iterations per stage.
+
+The additional estimate uses the analytical comparator
+$\bm{t}=\bm{M}^{-1}\bm{r}_{\mathrm{src}}$, which is never computed.
+For the projection normal $\bm{n}=\bm{q}-\bm{p}$, Stieltjes signs,
+the diffuse source, the box and the cap yield
+\[
+ (\bm{M}\bm{p}-\bm{r}_{\mathrm{src}})^{\top}\bm{n}\geq0.
+\]
+This is a special comparator inequality, not general nonexpansiveness of
+Euclidean projection in a matrix metric. With $\mu=\theta^2$, the energy
+\[
+ \mathcal J_2(\bm{\xi})-\mathcal J_2(\bm{t})
+       +\frac\mu2\norm{\bm{z}-\bm{t}}_{\bm{M}}^2,\qquad
+ \mathcal J_2(\bm{\xi})=\frac12\norm{\bm{M}\bm{\xi}-\bm{r}_{\mathrm{src}}}^2
+              +\lambda(\bm{M}\bm{w})^{\top}\bm{\xi},
+\]
+contracts. It bounds the actual squared response by
+$\norm{\bm{M}(\bm{\xi}_k-\bm{\xi}^*)}^2\leq18\alpha^2r$.
+Selected signed-flow accounting then proves
+\[
+ \sum_{k<K}\vol(\supp(\bm{z}_{k+1}))\leq148K/r
+\]
+for the exact recurrence; the rounded implementation has a proved constant
+360 instead of 148. Repeated visits are included even outside the true
+optimal support. Shared-scale primal updates, cached matrix responses and
+deterministic ordered trees realize this bound without repeatedly scanning
+the complete historical primal support.
+
+Terminal PG certification and downward density clipping produce the safe
+baseline for the next stage. Summing $1/r$ over the halving schedule gives
+$O(1/\rho)$. The complete repair and rounding arguments, accuracy schedules,
+and code correspondence are preserved in the full report and package.
+
+\input{sections/accelerated_convergence}
+\input{sections/local_work}
+\input{sections/continuation_and_implementation}
+\input{sections/related_work}
+
+\section{Source locations and evidence boundaries}
+\label{sec:archive-locations}
+The following files preserve the complete record:
+\begin{itemize}[nosep]
+\item \path{proof-audit.pdf}: the complete original proof report.
+\item \path{archive/solver-package.zip}: portable solver, tests, examples,
+extended audits, and the original standalone TeX in its report directory.
+\item \path{archive/research-source.zip}: research source and history.
+\item The numbered raw-result archives: experimental records, including
+stopped runs.
+\item \path{ARCHIVE_MANIFEST.json}: per-source hashes and archive membership.
+\end{itemize}
+These preserved sources use their original notation; the mapping above
+keeps the seed, source residual and accuracy namespaces distinct.
+
+The 18 mathematical notes include both successful refinements and algorithms
+whose rates remain open. The historical audit counts are finite checks,
+not substitutes for the proof. The optional exact factorization is capped at
+16 vertices on a completed component; no general SDD solve is used by the
+continuation algorithm. The historical timing examples do not establish
+superiority over an optimized floating-point FISTA implementation.
+
+The file \path{DISCUSSION.md} compares FM26, WY26 and the user's
+2024--2025 evolving-set papers, with exact versions and theorem pointers.
+The algorithm changes the constrained trajectory; it does not prove the
+desired unconditional locality bound for standard FISTA or for an unchanged
+AESP recurrence.
+\end{document}
