@@ -1,0 +1,61 @@
+\section{Accelerated convergence and cumulative local work}
+\label{sec:note-proof-chain}
+\subsection{Ordinary accelerated energy}
+For the correction objective
+\[
+ J_r(\bm{\xi})=\tfrac12\bm{\xi}^{\mathsf T}\bm{Q}\bm{\xi}
+                    -(\bm{h}-\lambda_r\bm{w})^{\mathsf T}\bm{\xi},
+\]
+the accelerated comparison lemma establishes
+\[
+ E_{k+1}\le(1-\theta)E_k,\qquad
+ E_k=J_r(\bm{\xi}_k)-J_r(\bm{\xi}^*)
+          +\tfrac{\theta^2}{2}\|\bm{z}_k-\bm{\xi}^*\|_2^2,
+ \qquad E_0\le1.
+\]
+Thus $K=O(\alpha^{-1/2}\log(1/\tau))$ suffices. This is the accelerated
+convergence rate. It alone does not bound the graph work per iteration.
+
+\subsection{A second energy for the actual projected trajectory}
+Define the analytical comparator $\bm{t}=\bm{Q}^{-1}\bm{h}$ and auxiliary
+function
+\[
+ \mathcal A(\bm{\xi})
+  =\tfrac12\|\bm{Q}\bm{\xi}-\bm{h}\|_2^2
+     +\alpha\lambda_r\bm{w}^{\mathsf T}\bm{\xi}.
+\]
+Its gradient in the $\bm{Q}$ metric equals
+$\bm{Q}\bm{\xi}-\bm{h}+\lambda_r\bm{w}$, exactly the gradient used by
+the algorithm. For a projection output $\bm{p}$ and normal
+$\bm{n}=\bm{q}-\bm{p}$, the Stieltjes signs, the upper box, and the mass cap
+give
+\[
+ (\bm{p}-\bm{t})^{\mathsf T}\bm{Q}\bm{n}\ge0.
+\]
+This sector inequality is for one particular comparator. It does not assert
+general nonexpansiveness of Euclidean projection in the $\bm{Q}$ metric.
+The comparison lemma then yields
+\[
+ \|\bm{Q}(\bm{\xi}_k-\bm{\xi}^*)\|_2^2\le18\alpha^2r.
+\]
+The comparator need not minimize $\mathcal A$; the comparison energy may be
+negative. Both facts are allowed by the lemma used in the archived proof.
+
+\subsection{Why acceleration remains local}
+For analysis only, let $\mathcal C_r=\supp(\bm{x}_{r/2}^*)$.
+It has volume at most $2/r$. Outside this set the KKT slack at
+$\bm{x}_r^*$ is at least $\alpha r w_i/2$.
+A signed-flow inequality on selected momentum coordinates, followed by
+telescoping and Cauchy's inequality, gives
+\[
+ \sum_{k=0}^{K-1}\vol(\supp\bm{z}_{k+1})\le148K/r.
+\]
+The sum counts every repeated visit. Momentum may leave the optimal support;
+only the final repaired output is required to be coordinatewise safe.
+Neither $\mathcal C_r$ nor an exact optimum is queried.
+
+Source assembly, sparse reporting, materialization, repair, and state disposal
+are bounded by the same history up to allowed logarithms. Finally,
+$\sum_j1/r_j=O(1/\rho)$. Combining this with the accelerated stage rate
+proves the work assertion of Theorem~\ref{thm:archived-op2}.
+The archived appendix separately controls rounding errors in both energies.

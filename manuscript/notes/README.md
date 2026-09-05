@@ -55,6 +55,7 @@ This table is generated from `registry.toml` by
 | [`aesp_locgd_star_lower_bound`](aesp_locgd_star_lower_bound/) | iterative | proved-open | Stress-test the literal accelerated local-gradient loop. |
 | [`aspr23_bound_audit`](aspr23_bound_audit/) | iterative | proved-open | Audit literal ASPR correctness and repeated-prefix tightness. |
 | [`deterministic_op2_20260905`](deterministic_op2_20260905/) | iterative | proved-open | Develop a standalone audited algorithm, accelerated convergence and local-work proof, with practical refinements and reproducible research records. |
+| [`deterministic_op2_independent_20260905`](deterministic_op2_independent_20260905/) | iterative | proved-open | Independent deterministic OP2 proof, accelerated convergence, local-work accounting, and archived implementation evidence. |
 | [`evolving_support_cg`](evolving_support_cg/) | iterative | proved-open | Separate Krylov finite propagation from envelope locality. |
 | [`frontier_adaptive_ladder`](frontier_adaptive_ladder/) | iterative | measured | Preserve the measured adaptive frontier artifact. |
 | [`path_face_lock_warmup`](path_face_lock_warmup/) | iterative | proved-open | Determine whether a sharp componentwise entrance certificate yields a constant or logarithmic safe warmup on paths and spiders. |

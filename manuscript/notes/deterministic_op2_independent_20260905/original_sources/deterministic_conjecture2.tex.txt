@@ -1,0 +1,497 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,enumitem,booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{Deterministic local RPPR}\fancyhead[R]{Proof and implementation}\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Proj}{\operatorname{Proj}}
+\newcommand{\ip}[2]{\langle #1,#2\rangle}
+\newcommand{\norm}[1]{\lVert #1\rVert}
+\newcommand{\xp}{x^*_{\rho}}
+\newcommand{\xb}{\bar x}
+\newcommand{\calK}{\mathcal K}
+\title{A Deterministic Local Algorithm for\\Regularized Personalized PageRank}
+\author{Independent research draft for the hybrid-local-solver project}
+\date{September 5, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We give a deterministic continuation algorithm for the second conjecture in
+the supplied problem-definition note. Its charged local work is
+$\widetilde O(1/(\rho\sqrt\alpha))$ in the nonzero regime
+$0<\rho<1/d_v$, for additive objective accuracy,
+and its returned vector lies coordinatewise below the exact optimum.
+The algorithm uses accelerated steps with a degree-scaled box and a mass cap,
+a sparse exact waterfilling reporter, and a certified truncation between
+regularization stages. A second quadratic energy, justified by a projection
+inequality for one analytical comparator, bounds the cumulative residual
+response and hence every repeated kinetic-support scan. No randomized
+primitive or restricted linear-system solver is used.
+\end{abstract}
+\noindent\textbf{Verification status.} The complete mathematical proof has passed
+two independent end-to-end audits and a separate audit of the computational
+model and local work charges. The exact continuation implementation has
+also passed independent tests. The bounded-integer implementation and its
+standalone package have passed independent arithmetic, local-access, and
+end-to-end audits. These checks were performed within this research task;
+they are not claims of external peer review.
+Only the authorized \texttt{problem\_definitions/main.tex}
+was read from the manuscript; this document is stored outside that repository.
+
+\section{Statement and model}
+Let $G=(V,E)$ be the finite connected simple unweighted undirected graph in
+the supplied definition, with degrees $d_i\ge1$, adjacency matrix $A$, and
+$D=\diag(d)$. Fix the point seed $v$, $0<\alpha\le1$, and $\rho>0$. Write
+\[
+ w=D^{1/2}{\bf1},\quad c=\frac{1-\alpha}{2},\quad
+ Q=\alpha I+c(I-D^{-1/2}AD^{-1/2}),\quad
+ b=\alpha D^{-1/2}e_v.
+\]
+The objective and optimum are
+\[
+ F_\rho(x)=\frac12x^TQx-b^Tx+\alpha\rho\norm{D^{1/2}x}_1,
+ \qquad x^*_\rho=\arg\min_x F_\rho(x).
+\]
+All inequalities between vectors below are coordinatewise. For a positive
+definite matrix $M$, write $\ip{u}{v}_M=u^TMv$,
+$\norm u_M^2=u^TMu$, and $\nabla_M f=M^{-1}\nabla f$.
+
+\begin{theorem}\label{thm:main}
+For $0<\rho<1/d_v$ and $\epsilon>0$, the deterministic algorithm in
+Section~\ref{sec:schedule} returns a sparse vector $\widehat x$ satisfying
+\[
+ 0\le\widehat x\le x^*_\rho,\qquad
+ F_\rho(\widehat x)-F_\rho(x^*_\rho)\le\epsilon,
+ \qquad \vol(\supp\widehat x)\le1/\rho,
+\]
+in $\widetilde O(1/(\rho\sqrt\alpha))$ charged local work. The hidden
+factors are polylogarithmic in the inverse parameters, inverse accuracy,
+and exposed or emitted words. There is no polynomial dependence on the
+total graph size or free preprocessing, support, or boundary oracle.
+For unrestricted $\rho>0$, the bound is
+$\widetilde O(1+1/(\rho\sqrt\alpha))$.
+\end{theorem}
+
+The theorem uses the reference's exact-real algebraic word model. Scalar
+arithmetic, comparisons, stored-state reads and writes, degree replies,
+all first and repeated adjacency entries, and emitted words are charged.
+Bit complexity and floating-point stability are separate questions.
+Computation uses degree densities $f_i=x_i/w_i$, with rational coefficients
+when the parameters are rational. An output value may retain its exact
+constant-size radical representation $f_i\sqrt{d_i}$. No square-root or
+logarithm primitive is needed for the iteration schedule.
+
+If $\rho d_v\ge1$, return zero after querying $d_v$. If $\alpha=1$, return
+only $x_v=(1-\rho d_v)_+/\sqrt{d_v}$. Henceforth $0<\alpha<1$ and
+$0<\rho<1/d_v$.
+
+\section{Obstacle facts and analytical comparison support}
+The basic graph and obstacle properties are
+\[
+ \alpha I\preceq Q\preceq I,\quad Q^{-1}\ge0,\quad Qw=\alpha w,
+ \quad x^*_r\ge0,\quad w^Tx^*_r\le1,\quad\vol(\supp x^*_r)\le1/r.
+\]
+For completeness, put $S=D^{-1/2}AD^{-1/2}$ and $q_0=(1+\alpha)/2$.
+The normalized adjacency satisfies $-I\preceq S\preceq I$ and $Sw=w$,
+so $Q=q_0I-cS$ has the stated spectral bounds and $Qw=\alpha w$.
+Since $c/q_0<1$ and $S\ge0$ entrywise, its convergent Neumann expansion
+shows $Q^{-1}\ge0$; this expansion is used only in the analysis.
+Replacing a vector by its coordinatewise absolute value cannot increase
+the objective, because the off-diagonal entries of $Q$ are nonpositive
+and $b\ge0$. Strict convexity therefore gives $x_r^*\ge0$.
+The nonnegative-orthant KKT conditions, together with
+$(Qx_r^*-b)_i\le0$ at a zero coordinate, imply
+$0\le b-Qx_r^*\le\alpha r w$, with equality to $\alpha r w_i$
+on the positive support. Multiplication by $w^T$ gives
+\[
+ \alpha(1-w^Tx_r^*)=w^T(b-Qx_r^*)
+ \ge\alpha r\vol(\supp x_r^*)\ge0.
+\]
+This proves both mass and support bounds. At $r=0$, the unconstrained
+solution $x_0^*=Q^{-1}b\ge0$ has mass exactly one.
+
+On nonnegative vectors put $\lambda=\alpha r$ and
+$J_r(x)=x^TQx/2-(b-\lambda w)^Tx$. Its KKT slack obeys
+\begin{equation}\label{eq:kkt}
+ r^*=Qx^*_r-b+\lambda w\ge0,\quad r_i^*x^*_{r,i}=0,
+ \qquad 0\le b-Qx^*_r\le\lambda w.
+\end{equation}
+The optimum is coordinatewise nonincreasing in $r$. For example, it is the
+least nonnegative supersolution of $Qy\ge b-\alpha r w$. To verify this,
+on $I=\{i:x^*_{r,i}>y_i\}$ the Stieltjes signs give
+$Q_{II}(x^*_r-y)_I\le0$; inverse positivity forces $I$ empty.
+
+Let $C_r=\supp(x^*_{r/2})$, used only in analysis. Then
+\begin{equation}\label{eq:margin}
+ \vol(C_r)\le2/r,\qquad i\notin C_r\Longrightarrow
+ x^*_{r,i}=0\ \text{and}\ r_i^*\ge\lambda w_i/2.
+\end{equation}
+Indeed both optima vanish at $i$, and their order with the nonpositive
+off-diagonals implies $(Qx^*_r)_i\ge(Qx^*_{r/2})_i$.
+The degree-coordinate matrix
+\[
+ D^{-1/2}QD^{1/2}=\frac{1+\alpha}{2}I-cD^{-1}A
+\]
+has absolute row sums one. In particular,
+\begin{equation}\label{eq:infty}
+ |u|\le\gamma w\quad\Longrightarrow\quad |Qu|\le\gamma w.
+\end{equation}
+
+\section{A stage with a diffuse residual source}
+At regularization $r$, assume a sparse baseline satisfies
+\begin{equation}\label{eq:baseline}
+ 0\le\xb\le x^*_r,\qquad s=b-Q\xb,\qquad 0\le s\le4\lambda w.
+\end{equation}
+Let $m_s=w^Ts=\alpha(1-w^T\xb)\le\alpha$. Define the analytical vectors
+\begin{equation}\label{eq:t}
+\begin{gathered}
+ t=Q^{-1}s=x^*_0-\xb,\qquad \xi^*=x^*_r-\xb,\\
+ 0\le\xi^*\le t\le4r w,\qquad w^Tt=m_s/\alpha\le1.
+\end{gathered}
+\end{equation}
+Inverse positivity proves these inequalities; neither vector is computed.
+
+Choose $\theta$ by halving from $1/2$ until $\theta^2\le\alpha$. Set
+$\mu=\theta^2$ and $a=1-\theta$, so
+\begin{equation}\label{eq:theta}
+ \alpha/4<\mu\le\alpha,\qquad \sqrt\alpha/2<\theta\le\sqrt\alpha.
+\end{equation}
+Use the explicit convex correction set
+\[
+ \calK_r=\{z:0\le z\le4r w,\ w^Tz\le1\}.
+\]
+Starting at $\xi_0=z_0=0$, apply only the following ordinary averaging steps:
+\begin{equation}\label{eq:iteration}
+ \begin{aligned}
+ y_k&=\frac{\xi_k+\theta z_k}{1+\theta},\\
+ z_k^{\rm raw}&=a z_k+\theta y_k-\frac{Qy_k-s+\lambda w}{\theta},\\
+ z_{k+1}&=\Proj_{\calK_r}^{\rm Euclidean}(z_k^{\rm raw}),\\
+ \xi_{k+1}&=a\xi_k+\theta z_{k+1}.
+ \end{aligned}
+\end{equation}
+No original-objective line search or intermediate primal cleanup is added.
+Such changes would require another proof for the auxiliary energy below.
+
+\subsection{An accelerated comparison lemma}
+\begin{lemma}\label{lem:comparison}
+In a Hilbert metric, let $f$ be one-smooth and $\mu$-strongly convex,
+$\theta^2=\mu$, $a=1-\theta$, and $y=(x+\theta z)/(1+\theta)$.
+Set $g=\nabla f(y)$, $q=az+\theta y-g/\theta$, and $x^+=ax+\theta p$.
+For any comparator $t$ satisfying $\ip{p-t}{q-p}\ge0$,
+\[
+ f(x^+)-f(t)+\frac\mu2\norm{p-t}^2
+ \le a\left(f(x)-f(t)+\frac\mu2\norm{z-t}^2\right)
+ -\frac{\mu\theta(1-\mu)}2\norm{z-y}^2.
+\]
+The comparator need not minimize $f$.
+\end{lemma}
+\begin{proof}
+Since $x^+=y-g+\theta(p-q)$, smoothness gives
+$f(x^+)\le f(y)-\norm g^2/2+\mu\norm{p-q}^2/2$.
+The sector inequality gives
+$\norm{p-t}^2\le\norm{q-t}^2-\norm{p-q}^2$.
+Add these and expand $q-t=a(z-t)+\theta(y-t)-g/\theta$.
+The strong-convexity inequalities at $x$ and $t$, with weights $a$ and
+$\theta$, apply because
+\[
+ a(x-y)+\theta(t-y)=-\theta\{a(z-t)+\theta(y-t)\}.
+\]
+Finally
+\[
+ \norm{a(z-t)+\theta(y-t)}^2
+ =a\norm{z-t}^2+\theta\norm{y-t}^2-a\theta\norm{z-y}^2
+\]
+and $x-y=\theta(y-z)$. The remaining negative term is
+$-\mu a\theta(1+\theta)\norm{z-y}^2/2$, as asserted.
+\end{proof}
+
+Apply Lemma~\ref{lem:comparison} in Euclidean metric to
+$J(\xi)=\xi^TQ\xi/2-(s-\lambda w)^T\xi$ and comparator $\xi^*$.
+Here $J(\xi)=J_r(\xb+\xi)-J_r(\xb)$, while
+$Q\xi^*-s+\lambda w=r^*$ and $(r^*)^T\xi^*=0$.
+Thus $\xi^*$ is a feasible minimizer and the correction gap is exactly
+the full candidate's original objective gap.
+Projection supplies its sector inequality. Thus
+\begin{equation}\label{eq:ordinary}
+ E_{k+1}\le aE_k,\qquad
+ E_k=J(\xi_k)-J(\xi^*)+\frac\mu2\norm{z_k-\xi^*}^2.
+\end{equation}
+By complementarity and $w^T\xi^*\le1$,
+\[
+ E_0=\tfrac12\norm{\xi^*}_Q^2+\tfrac\mu2\norm{\xi^*}^2\le1.
+\]
+Maintaining the scalar bound $a^k$ and stopping at $a^k\le\tau$ certifies
+objective gap at most $\tau$ in at most
+$K\le1+\theta^{-1}\log(1/\tau)$ steps.
+
+\section{The second energy bounds the nonlinear response}
+\begin{lemma}\label{lem:sector}
+For a projection output $p$ in \eqref{eq:iteration}, with
+$n=z^{\rm raw}-p$, the comparator in \eqref{eq:t} satisfies
+$\ip{p-t}{Qn}\ge0$.
+\end{lemma}
+\begin{proof}
+Write $n=\eta w+n^{\rm up}-n^{\rm low}$ for the Euclidean projection
+normals, with all multipliers nonnegative. Their contributions to
+$(Qp-s)^Tn$ are separately nonnegative. At $p_i=0$, $(Qp)_i\le0\le s_i$.
+At $p_i=4rw_i$, Stieltjes signs and $p\le4rw$ give
+$(Qp)_i\ge4\alpha r w_i\ge s_i$. If $\eta>0$, $w^Tp=1$ and its
+contribution is $\eta(\alpha-m_s)\ge0$.
+\end{proof}
+
+Define
+\begin{equation}\label{eq:aux}
+ \mathcal A(\xi)=\tfrac12\norm{Q\xi-s}^2+\alpha\lambda w^T\xi.
+\end{equation}
+Its gradient in the $Q$ metric is $Q\xi-s+\lambda w$, exactly the gradient
+used in \eqref{eq:iteration}: indeed
+\[
+ \nabla_Q\mathcal A
+ =Q^{-1}\{Q(Q\xi-s)+\alpha\lambda w\}
+ =Q\xi-s+\lambda w,
+\]
+using $Q^{-1}w=w/\alpha$. Its metric Hessian is $Q$, with eigenvalues
+in $[\alpha,1]\subseteq[\mu,1]$. Lemmas~\ref{lem:comparison}
+and~\ref{lem:sector} therefore yield
+\[
+ B_{k+1}\le a B_k,\qquad
+ B_k=\mathcal A(\xi_k)-\mathcal A(t)+\tfrac\mu2\norm{z_k-t}_Q^2.
+\]
+This energy may be negative: $t$ is not an optimizer of $\mathcal A$.
+The comparison lemma does not require either property.
+
+The diffuse-source bounds imply
+\[
+ \norm s^2\le4\lambda m_s,\quad \mathcal A(t)=\lambda m_s,
+ \quad t^TQt=t^Ts\le4r m_s,
+\]
+so $B_0\le3\lambda m_s$. Since the mass term in \eqref{eq:aux} is
+nonnegative, $\norm{Q\xi_k-s}^2\le8\lambda m_s$ for every $k$.
+Furthermore $q=s-Q\xi^*=b-Qx^*_r$ satisfies
+$0\le q\le\lambda w$ and $w^Tq\le m_s$, hence $\norm q^2\le\lambda m_s$.
+We obtain the central uniform bound
+\begin{equation}\label{eq:response}
+ \boxed{\norm{Q(\xi_k-\xi^*)}^2\le18\lambda m_s\le18\alpha^2r.}
+\end{equation}
+This is a bound for the actual constrained nonlinear trajectory.
+It does not use a general claim that Euclidean projection is $Q$-nonexpansive.
+
+\section{Selected signed flow charges repeated support work}
+Set $P=AD^{-1}$, $K_0=(I+P)/2$, and use mass coordinates
+\[
+ u=D^{1/2}\xi,\quad V=\theta D^{1/2}z,\quad
+ u^*=D^{1/2}\xi^*,\quad V^*=\theta u^*,\quad
+ \beta_0=\frac{1-\alpha}{1+\theta}\le a.
+\]
+A direct substitution gives
+\begin{equation}\label{eq:rawflow}
+ V^{\rm raw}-V^*=\beta_0K_0(V-V^*)+H-R^*,\quad
+ H=-\frac{D^{1/2}(Q-\mu I)(\xi-\xi^*)}{1+\theta},\quad
+ R^*=D^{1/2}r^*.
+\end{equation}
+Here $K_0$ is nonnegative and column stochastic. Write
+$e=(V-V^*)_+$ and $n^-=(V^*-V)_+$, and select
+$I_k=\{i:V_{k+1,i}>V_i^*\}$. Lower projection normals vanish there;
+upper and mass normals subtract nonnegative mass. On this set,
+\[
+ e_{k+1,i}+R_i^*
+ \le\beta_0(K_0e_k)_i-\beta_0(K_0n_k^-)_i+H_{k,i}.
+\]
+Summing, dropping the nonpositive term, and using column stochasticity gives
+\begin{equation}\label{eq:selected}
+ \norm{e_{k+1}}_1+\sum_{i\in I_k}R_i^*
+ \le\beta_0\norm{e_k}_1+\sum_{i\in I_k}H_{k,i}.
+\end{equation}
+No total unselected positive flux replaces the signed term.
+Since $e_0=0$, \eqref{eq:margin} and telescoping give
+\[
+ \frac\lambda2 D_{\rm out}\le\sum_k\sum_{i\in I_k}H_{k,i},\qquad
+ D_{\rm out}=\sum_{k=0}^{K-1}\vol(\supp z_{k+1}\setminus C_r).
+\]
+The total selected degree-volume is at most $D_{\rm out}+2K/r$.
+Cauchy's inequality yields
+\[
+ \frac{\lambda^2}{4}D_{\rm out}^2
+ \le(D_{\rm out}+2K/r)H_2,\qquad
+ H_2=\sum_k\norm{D^{-1/2}H_k}^2.
+\]
+As $0\preceq Q-\mu I\preceq Q$ and these matrices commute,
+\eqref{eq:response} gives $H_2\le18\alpha^2rK$.
+The scalar quadratic inequality implies
+$D_{\rm out}\le8H_2/\lambda^2+2K/r$. Adding the support inside $C_r$ proves
+\begin{equation}\label{eq:work}
+ \boxed{\sum_{k=0}^{K-1}\vol(\supp z_{k+1})\le148K/r.}
+\end{equation}
+Every repeated adjacency scan is included in this sum. All comparison
+vectors and sets in its proof remain uncomputed analytical objects.
+
+\section{A certified repair of approximate stages}
+\begin{lemma}\label{lem:repair}
+Suppose $\widetilde x\ge0$ has objective gap at most
+$\tau=\alpha^3\delta^2/2$ at regularization $r$, where
+$0<\delta\le\alpha r/2$. Set $\xb^+=[\widetilde x-\delta w]_+$.
+Then
+\[
+ 0\le\xb^+\le x^*_r,\quad
+ 0\le b-Q\xb^+\le2\alpha r w,\quad
+ \vol(\supp\xb^+)\le1/r,
+\]
+and $F_r(\xb^+)-F_r(x^*_r)\le2\delta^2/r$.
+\end{lemma}
+\begin{proof}
+Strong convexity gives $\norm{\widetilde x-x^*_r}\le\eta=\alpha\delta$.
+Since $w_i\ge1$ and $\eta\le\delta$,
+\[
+ 0\le x^*_r-\xb^+\le(\delta+\eta)w\le2\delta w.
+\]
+On a positive coordinate of $\xb^+$, Stieltjes signs and
+$\xb^+\ge\widetilde x-\delta w$ give
+\[
+ (Q\xb^+)_i\le(Q\widetilde x)_i-\alpha\delta w_i
+ \le(Qx^*_r)_i\le b_i.
+\]
+At a zero coordinate $(Q\xb^+)_i\le0\le b_i$. Thus the repaired source
+is exactly nonnegative. Equation~\eqref{eq:infty} and \eqref{eq:kkt} give
+$b-Q\xb^+\le\alpha r w+2\delta w\le2\alpha r w$.
+Support containment proves the volume bound. Complementarity removes the
+linear term in the objective difference, which is at most
+$\norm{\xb^+-x^*_r}^2/2\le2\delta^2/r$.
+\end{proof}
+
+\section{Complete schedule and output}\label{sec:schedule}
+Let $r_0=1/d_v$ and initialize $\xb=0$. For successive stages set
+$r_j=\max\{\rho,r_0/2^j\}$ and stop at the first $r_j=\rho$.
+The first source is $s=b\le2\alpha r_1 w$, so \eqref{eq:baseline} holds.
+At each intermediate stage set $\delta_j=\alpha r_j/2$. At the final
+stage halve this starting value until also
+$\delta_j^2\le\epsilon\rho/2$. Set $\tau_j=\alpha^3\delta_j^2/2$.
+Run \eqref{eq:iteration} until the maintained scalar $a^k$ is at most
+$\tau_j$, materialize $\widetilde x=\xb+\xi_k$, and apply
+Lemma~\ref{lem:repair}.
+
+For the next regularization $r_{j+1}\ge r_j/2$, the repaired source obeys
+$0\le s\le2\alpha r_jw\le4\alpha r_{j+1}w$. Optimum monotonicity preserves
+$\xb\le x^*_{r_{j+1}}$. This proves all stage invariants by induction.
+At the final stage Lemma~\ref{lem:repair} gives objective gap at most
+$2\delta_j^2/\rho\le\epsilon$, with safe support containment.
+
+There are $O(1+\log(1/\rho))$ stages. Their iteration counts are
+$O(\alpha^{-1/2}L)$ for a fixed sum $L$ of the allowed parameter and
+accuracy logarithms, while $\sum_j1/r_j=O(1/\rho)$.
+The geometric sum and \eqref{eq:work} give the desired total kinetic work.
+There is no exact-old-solution or smallest-complementarity-margin assumption.
+
+\section{The local exact reporter and arithmetic ledger}
+We describe a sufficient implementation, allowing conservative logarithmic
+factors. Represent the degree densities by $\xi_i/w_i=\sigma X_i$, with
+$\sigma=a^k$, and maintain the normalized response
+$R=(Q-\mu I)\xi/\sigma$. Let $T_z=(Q-\mu I)z$.
+The exact raw-density key is
+\begin{equation}\label{eq:key}
+ \begin{aligned}
+ K_i={}&-\frac{R_i}{\theta(1+\theta)w_i}
+ +\frac1\sigma\left(\frac{az_i}{w_i}
+ -\frac{(T_z)_i}{(1+\theta)w_i}+\frac{s_i}{\theta w_i}\right),\\
+ \frac{z_i^{\rm raw}}{w_i}={}&\sigma K_i-\lambda/\theta.
+ \end{aligned}
+\end{equation}
+Only the sparse bracketed exceptions change when the common scale changes.
+Ordinary averaging changes normalized $X$ only on the newly emitted
+kinetic support. A scan of those lists updates its response. Reverting
+and reinstalling the previous and new kinetic exceptions costs their
+charged support volume. Refreshing the fixed source exceptions every
+iteration costs $O(|\supp s|)$ key operations, also paid.
+
+Use a deterministic balanced tree storing key order, cardinalities,
+degree weights, and weighted key sums. With $U=4r$, projection is
+\[
+ \frac{z_i}{w_i}=\min\{U,(\sigma K_i-\lambda/\theta-\eta)_+\},
+ \qquad\eta\ge0.
+\]
+Let $T(q)=\sum_i d_i(K_i-q)_+$ and
+$q=(\lambda/\theta+\eta)/\sigma$. The projected mass is
+$\sigma\{T(q)-T(q+U/\sigma)\}$, computable by two tree-tail queries.
+If its value at $\eta=0$ exceeds one, locate its root among the two
+translated ordered breakpoint lists $\{K_i\}$ and $\{K_i-U/\sigma\}$.
+Deterministic rank selection in their implicit merge and binary search
+among $2N$ breakpoint ranks take $O(\log^3(N+2))$ operations. Solve the
+remaining affine equation exactly. Flat intervals and ties admit a valid
+multiplier without any numerical support-margin search.
+
+Enumerate only keys with positive projected output. Before every projection,
+every row with positive primal or kinetic state has already been scanned
+and every neighbor has been exposed. Consequently an unexposed vertex
+has zero own state, source, and neighbor response, and its raw value is
+strictly negative. It cannot be selected. Each newly exposed degree is
+queried once and cached. An inactive
+boundary source vertex incurs only scalar key updates until it becomes
+kinetic-active; its adjacency list is not recursively scanned.
+
+The fixed source is assembled from the baseline support, its neighbors,
+and the seed. After repair this costs $O(\vol(\supp\xb)+1)$ and has
+$|\supp s|=O(1/r+1)$ records. The full per-stage ledger is
+\[
+ O\!\left(\left[K(1+|\supp s|)+\sum_k\vol(\supp z_k)
+ +\vol(\supp\xb)+1\right]\operatorname{polylog}(N+2)\right).
+\]
+Final materialization visits only the old baseline and the union of emitted
+kinetic supports, already charged by \eqref{eq:work}. Repair leaves support
+volume at most $1/r$. Building the next source scans that repaired support.
+Discarding obsolete state is charged to the same history. There is no
+repeated scan of old primal coordinates during the iterations, hidden
+restricted solve, or global terminal certificate.
+
+The exposed records and cached adjacency entries are themselves bounded
+by the charged history. Summing the ledger over the geometric schedule
+proves Theorem~\ref{thm:main}.
+
+All vertex-state maps and sets can use deterministic balanced comparison
+trees, with the same permitted logarithmic factors. No expected-time hashing
+bound is needed. The early exact rational Python prototype used dictionaries
+for convenience. The standalone implementation uses deterministic AVL maps
+and sets; its structural counters are not a claim about Python bit costs.
+
+\section{Verification record and scope}
+Separate fresh proof files contain the single-comparator metric argument,
+the selected squared-flow reduction, the approximate repair, and independent
+audits of their composition. Earlier exact prototypes checked the lazy
+state representation and mass-waterfilling against full rational iterations.
+The enlarged box and sparse-source reporter passed an independent exact suite
+of 6,250 projection cases and 198 sparse-state checks. The complete
+continuation wrapper passed 24 exact cases, 38 pre-repair and repaired-stage
+comparisons, and 1,398 correction iterations. These include non-dyadic
+parameters and an inactive degree-1,000 boundary whose adjacency list is
+never scanned. No computational experiment is needed by the mathematical
+theorem.
+
+The theorem above is an arithmetic-word result. The following appendix
+supplies a separate bounded-arithmetic extension for rational inputs,
+including directed rounding, scalar rescaling, and coefficient lengths.
+A successful exact Fraction test alone is not a bit-complexity or
+production-runtime guarantee.
+
+\appendix
+\input{practical_refinements_appendix}
+\input{practical_schedules_appendix}
+
+\begin{thebibliography}{9}
+\bibitem{definition} B. Zhou, \emph{Problem Definitions and Standard Properties
+for Local PageRank and Regularized PageRank}, supplied standalone reference
+note, August 2026. Only its authorized \texttt{main.tex} was consulted.
+\bibitem{colt22} K. Fountoulakis and S. Yang,
+\emph{Open Problem: Running Time Complexity of Accelerated $\ell_1$-Regularized
+PageRank}, COLT 2022.
+\url{https://proceedings.mlr.press/v178/open-problem-fountoulakis22a.html}.
+\end{thebibliography}
+\end{document}
