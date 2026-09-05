@@ -1,0 +1,71 @@
+\section{The algorithm}
+\label{sec:note-algorithm}
+\subsection{A continuation stage}
+At regularization $r$, maintain a sparse baseline and diffuse source:
+\[
+ \bm{0}\le\overline{\bm{x}}\le\bm{x}_r^*,\qquad
+ \bm{h}=\bm{b}-\bm{Q}\overline{\bm{x}},\qquad
+ \bm{0}\le\bm{h}\le4\alpha r\bm{w}.
+\]
+Set $\lambda_r=\alpha r$. The unknown correction
+$\bm{\xi}^*=\bm{x}_r^*-\overline{\bm{x}}$ belongs to
+\[
+ \mathcal K_r=\{\bm{z}:\bm{0}\le\bm{z}\le4r\bm{w},\quad
+                       \bm{w}^{\mathsf T}\bm{z}\le1\}.
+\]
+This follows from inverse positivity, $\bm{Q}\bm{w}=\alpha\bm{w}$,
+and the residual source bound. The analytical inverse is not evaluated.
+Choose a dyadic $\theta$ by halving $1/2$ until $\theta^2\le\alpha$;
+then $\sqrt\alpha/2<\theta\le\sqrt\alpha$. Let $a=1-\theta$.
+Starting with $\bm{\xi}_0=\bm{z}_0=\bm{0}$, repeat
+\begin{align}
+ \bm{y}_k&=\frac{\bm{\xi}_k+\theta\bm{z}_k}{1+\theta},\nonumber\\
+ \bm{q}_k&=a\bm{z}_k+\theta\bm{y}_k
+       -\frac{\bm{Q}\bm{y}_k-\bm{h}+\lambda_r\bm{w}}{\theta},\nonumber\\
+ \bm{z}_{k+1}&=\operatorname{Proj}_{\mathcal K_r}(\bm{q}_k),
+       \qquad
+ \bm{\xi}_{k+1}=a\bm{\xi}_k+\theta\bm{z}_{k+1}.
+ \label{eq:note-update}
+\end{align}
+The projection is Euclidean. Its densities have the explicit form
+\[
+ \frac{z_{k+1,i}}{w_i}
+ =\min\{4r,(q_{k,i}/w_i-\eta)_+\},\qquad \eta\ge0.
+\]
+Use $\eta=0$ when the mass cap is satisfied; otherwise find the common
+threshold giving mass one. Deterministic balanced trees store ordered keys
+and degree-weighted sums, locate the appropriate finite breakpoint interval,
+and solve its affine mass equation exactly.
+
+\subsection{Outer schedule and certified repair}
+Initialize $r_0=1/d_v$ and $\overline{\bm{x}}=\bm{0}$.
+For $j=1,2,\ldots$, set $r_j=\max\{\rho,r_0/2^j\}$.
+Choose $\delta_j=\alpha r_j/2$ at intermediate stages; at the final stage,
+halve that value until $\delta_j^2\le\epsobj\rho/2$.
+Set $\tau_j=\alpha^3\delta_j^2/2$ and run
+\eqref{eq:note-update} until the maintained scalar $a^k\le\tau_j$.
+Materialize $\widetilde{\bm{x}}=\overline{\bm{x}}+\bm{\xi}_k$, then set
+\[
+ \overline{\bm{x}}^{+}=[\widetilde{\bm{x}}-\delta_j\bm{w}]_+.
+\]
+The repair lemma gives safety, a nonnegative source bounded by
+$2\alpha r_j\bm{w}$, and objective error at most $2\delta_j^2/r_j$.
+Because $r_{j+1}\ge r_j/2$, the next stage's source bound follows.
+Stop after the repaired stage at $r_j=\rho$.
+
+\paragraph{Sparse execution.}
+Shared scaling handles the decay of old correction coordinates. Cached
+responses change through the emitted momentum coordinates and their neighbors.
+An unexposed vertex has negative raw projection value and cannot be selected.
+An inactive boundary record does not cause a recursive scan of its row.
+All first and repeated scans, source refreshes, threshold queries, and discarded
+state are charged. A dense execution of \eqref{eq:note-update} has the same
+optimization recurrence but does not establish the local-work theorem.
+
+\paragraph{Implemented refinements.}
+The package uses controlled dyadic rounding, deterministic AVL maps, a tighter
+source-energy schedule, and certified stopping checks with a deterministic
+fallback horizon. Its terminal projected-gradient step permits a less
+conservative stage tolerance. Optional adaptive regularization and mass-scaled
+precision preserve their separately proved guarantees; neither is needed for
+the exact-real recurrence above.

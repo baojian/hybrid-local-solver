@@ -1,0 +1,528 @@
+% Fresh optional refinements for the audited deterministic algorithm.
+\subsection{A computable initial energy and a shorter stage schedule}
+\label{app:source-energy}
+
+The initial bound $E_0\le1$ can be sharpened using the already assembled
+source, without querying another graph word. Put
+\[
+ g_i=(s_i/w_i-\lambda)_+,\quad
+ H_1=\sum_i d_i g_i,\quad H_2=\sum_i d_i g_i^2,\quad
+ H_\infty=\max_i g_i,
+\]
+where an empty maximum is zero. Only stored source records contribute.
+For the exact correction $e=\xi^*$, complementarity gives
+\[
+ E_0=\tfrac12 e^TQe+\tfrac\mu2\norm e^2,
+ \qquad e^TQe=e^T(s-\lambda w).
+\]
+The box, mass, and spectral bounds respectively imply
+\[
+ e^TQe\le4rH_1,\qquad e^TQe\le\eta H_\infty,
+ \qquad e^TQe\le H_2/\alpha.
+\]
+For the last inequality, combine
+$e^TQe\le\norm e\sqrt{H_2}$ with
+$\alpha\norm e^2\le e^TQe$; the zero case is immediate. Therefore
+\begin{equation}\label{app:initial-bound}
+ E_0\le\overline E
+ :=\min\!\left\{1,\frac{1+\mu/\alpha}{2}
+       \min\{4rH_1,\eta H_\infty,H_2/\alpha\}\right\}
+ \le3\alpha r\eta.
+\end{equation}
+The last bound follows from $H_\infty\le3\alpha r$. A single source pass
+computes the statistics and is charged even when the resulting stage takes
+no accelerated steps.
+
+Exact $H_2$ can accumulate coprime degree denominators. For bounded
+arithmetic write $\alpha=A_0/B_\alpha$, $r=P/R$, $h=1/H$, and let the
+stored source density be $n_i/(2B_\alpha H d_i)$. Define
+\[
+ C=2B_\alpha HR,\qquad
+ a_i=(Rn_i-2A_0HPd_i)_+.
+\]
+Then $g_i=a_i/(Cd_i)$, and the bounded-denominator statistics are
+\[
+ H_1=\frac{\sum_i a_i}{C},\qquad
+ H_\infty=\frac{\max_i(a_i/d_i)}{C},\qquad
+ H_2\le H_2^{\rm up}:=
+       \frac{\sum_i\lceil a_i^2/d_i\rceil}{C^2}.
+\]
+If $M>0$ numerators are positive, the squared-statistic excess is less than
+$M/C^2$; if $M=0$, it is zero. Each accumulation uses integers, and the
+maximum retains only one degree denominator. Replacing $H_2$ by
+$H_2^{\rm up}$ in \eqref{app:initial-bound} keeps both inequalities valid.
+
+Keep the same grid, so $\Gamma<\tau/8$. Choose the least integer $q\ge0$
+with $\overline E/2^q\le\tau/2$, and run $K=Tq$ iterations. The actual
+gap is below $\tau$. At zero steps report $\overline E$ itself; after
+positive steps a valid bound is
+$\overline E/2^{\lfloor k/T\rfloor}+\Gamma$. If $q=0$, the unchanged
+terminal repair still applies. The auxiliary energy and selected-flow
+ledger hold for every such shorter prefix. No monotonicity of the original
+objective along accelerated iterates is assumed.
+
+\subsection{A tighter block contraction with fixed dyadic precision}
+\label{app:binomial-block}
+
+The factor $1/2$ per $T$ steps is conservative. A constant-size computation
+gives a tighter certified factor without forming a large exact power.
+For the integer $T\ge2$, set
+\[
+ m=\min\{6,T\},\qquad
+ S_T=\sum_{j=0}^{m}\binom Tj(T-1)^{-j},\qquad
+ \beta_T=2^{-16}\left\lceil\frac{2^{16}}{S_T}\right\rceil.
+\]
+The binomial theorem and positivity of omitted terms give
+\[
+ (1-1/T)^T
+ =\left(1+\frac1{T-1}\right)^{-T}
+ \le S_T^{-1}\le\beta_T<\frac12.
+\]
+For the strict upper bound, the first three terms give
+$S_T\ge1+3T/(2(T-1))>5/2$, and
+$2/5+2^{-16}<1/2$. In particular $\beta_2=1/4$ and
+$\beta_4=81/256$. There are at most seven terms, with setup integers of
+$O(1+\log T)$ bits.
+
+In the preceding schedule, instead choose the least $q\ge0$ with
+$\overline E\beta_T^q\le\tau/2$. The certificate after positive steps is
+\[
+ \overline E\beta_T^{\lfloor k/T\rfloor}+\Gamma.
+\]
+Store numerator and denominator powers of the fixed 16-bit dyadic factor.
+Their bit lengths are $O(q)$, and they update only at completed blocks.
+This changes neither the rounded trajectory nor its work proof; it changes
+only the chosen endpoint. Zero-step stages use the preceding convention.
+
+\subsection{An independent local certificate for a supplied output}
+\label{app:independent-certificate}
+
+There is also a certificate that does not use the acceleration proof.
+For any sparse $x\ge0$ put $r^{\rm out}=Qx-b+\alpha\rho w$ and choose
+\[
+ \omega_i=\begin{cases}r^{\rm out}_i,&x_i>0,\\
+                 \min\{r^{\rm out}_i,0\},&x_i=0.\end{cases}
+\]
+At a zero coordinate the Stieltjes signs give $(Qx-b)_i\le0$, so this
+choice lies in the original weighted-absolute-value subgradient interval.
+Thus $\omega\in\partial F_\rho(x)$. Strong convexity, minimizing its quadratic
+lower model, proves
+\begin{equation}\label{app:independent-gap}
+ F_\rho(x)-F_\rho(x^*_\rho)\le\frac{\norm\omega^2}{2\alpha}.
+\end{equation}
+Only the supplied support, its immediate boundary, and the seed can have
+nonzero $\omega$. Computing it scans each output row once; boundary rows are
+not recursively scanned. Its local word charge is
+$O((1+\vol(\supp x))\log(N+2))$, in addition to encoded scalar arithmetic.
+
+For a common output denominator $x_i/w_i=B_i/H$, write
+$\alpha=A_0/B_\alpha$, $\rho=P/R$, and $C=2B_\alpha HR$.
+If $J_i=\sum_{j\sim i}B_j$, then $r^{\rm out}_i/w_i=t_i/(Cd_i)$ with
+\[
+ t_i=(B_\alpha+A_0)Rd_iB_i-(B_\alpha-A_0)RJ_i
+       -2A_0HR\mathbf1_{i=v}+2A_0HPd_i.
+\]
+Retain $t_i$ on positive output coordinates and $\min\{t_i,0\}$ elsewhere.
+If these selected integers are
+$u_i$, an integer-accumulated upper bound is
+\[
+ \norm\omega^2\le\frac{\sum_i\lceil u_i^2/d_i\rceil}{C^2}.
+\]
+This avoids degree-denominator accumulation exactly as above. If the
+resulting gap bound exceeds a requested tolerance, the certificate is
+inconclusive; it does not disprove a tighter convergence certificate.
+
+\subsection{Geometric cached checkpoints and a certified fallback}
+\label{app:checkpoints}
+
+The independent certificate can safely shorten the binomial-block stage.
+Let $K=Tq$ be its prescribed horizon. At iteration indices
+$k=T,2T,4T,\ldots$ strictly below $K$, materialize the actual full
+candidate $x=\xb+\xi_k$ and compute the preceding independent gap bound.
+Return that candidate only if the bound is strictly less than $\tau$.
+If the test is inconclusive, discard its temporary records and continue
+the same accelerated recurrence. At $K$, use the already proved
+binomial-block certificate. If $K=0$, use the initial-energy bound without
+performing a checkpoint. Every return therefore supplies exactly the
+accuracy hypothesis needed by the terminal repair in
+Appendix~\ref{app:pg}.
+
+These checks use only cached graph data. A positive candidate coordinate
+belongs to the baseline support or to a previously emitted kinetic support.
+Its row was scanned during source initialization or its kinetic update,
+respectively, and those scans exposed every neighboring degree. Hence the
+certificate requires no new degree reply or adjacency list from the graph
+oracle. Repeated cached reads are nevertheless charged. The check reads
+the actual candidate and its rows, not the rounded neighbor-response
+approximation used by the accelerated recurrence.
+
+Let $W_k$ be the cumulative kinetic volume through iteration $k$ and
+$V_k=\vol(\supp(\xb+\xi_k))$. The prefix work theorem gives
+\[
+ V_k\le\vol(\supp\xb)+W_k\le\frac{1+360k}{r}.
+\]
+If the actual return occurs at $k_{\rm ret}>0$, the checked indices satisfy
+$\sum_j k_j<2k_{\rm ret}$. Thus
+\[
+ \sum_j V_{k_j}=O\!\left(\frac{k_{\rm ret}+1}{r}\right).
+\]
+Each check costs $O((V_{k_j}+1)\log(N+2))$ local operations, including
+candidate materialization, every cached adjacency entry and degree lookup,
+integer accumulation, and disposal of temporary balanced-tree records.
+The added stage work is consequently
+$O((k_{\rm ret}+1)\log(N+2)/r)$. Terminal repair pays for its own scans
+again. The public continuation performs one such run per stage; any extra
+user-requested materialization or manual continuation is additional work.
+
+The candidate densities have a common denominator dividing $H^2$, so the
+integer certificate retains the same scalar bit envelope. A successful
+check retains only its scalar bound and the current iteration index.
+Any later manual step invalidates that bound before changing the state;
+the ordinary binomial bound then applies until another successful check.
+At an unchanged iteration the checked candidate, numerical recurrence,
+and all analytical energy bounds are exactly those of the binomial-only
+method. In particular the tests do not modify the dynamics used in the
+selected-work proof.
+
+\subsection{Explicit local operation and bit bounds}
+\label{app:explicit-complexity}
+
+For the default complete integer wrappers in the nontrivial regime
+$0<\alpha<1$ and $0<\rho<1/d_v$, let
+\[
+ \ell_\alpha=\lceil\log_2(1/\alpha)\rceil,\quad
+ \ell_\rho=\lceil\log_2(1/\rho)\rceil,\quad
+ \ell_\epsilon=\lceil\log_2\max\{1,1/\epsilon\}\rceil,\quad
+ L=16+4\ell_\alpha+3\ell_\rho+\ell_\epsilon.
+\]
+These are analysis variables, not required algorithmic primitives. The
+stage tolerances satisfy
+\[
+ \tau_j\ge\min\{\alpha^3\rho^2/32,
+                         \alpha\epsilon\rho/64\}.
+\]
+Indeed, a last halving of the final shift leaves
+$\delta^2>\epsilon\rho/8$; without such a halving, the ordinary shift
+applies. Tolerances decrease along continuation. Since preceding baseline
+denominators divide their old dyadic grid, the largest admissible dyadic
+grid at the new tolerance already represents the baseline. Hence the
+default grids obey
+\[
+ \theta\tau_j/512<h_j\le\theta\tau_j/256,
+ \qquad \log_2(1/h_j)<L,\qquad K_j\le TL.
+\]
+Arbitrarily finer grids supplied to a separately invoked corrector are
+outside this particular lower-grid estimate.
+
+At a stage with $K$ steps, initialization and the prefix work bound give
+$N\le363(K+1)/r$ exposed records. Thus $\log(N+2)=O(L)$. A rebase needs
+more than $T/4$ steps since the last reset: while $S\le H$, each step
+decreases $S$ by at most $H/T+1$, and $H\ge T$. There are at most
+$4\theta K$ rebases. Each pays for every old and new record and key.
+The two-tree reporter uses four breakpoint sequences and
+$O(\log^2(N+2))$ work per root query. A conservative full stage charge is
+\[
+ O\!\left(L+K\log^2(N+2)
+       +\frac{K+1}{r}(1+\theta K)\log(N+2)\right).
+\]
+This includes zero-step initialization and terminal work; the optional
+checkpoint charge above is absorbed by the same bound. The geometric
+schedule has $\sum_j1/r_j<3/\rho$. Consequently the bounded integer
+realization uses
+\begin{equation}\label{app:explicit-word}
+ O\!\left(\frac{L^3}{\rho\sqrt\alpha}\right)
+ \quad\hbox{arithmetic and word operations},\qquad
+ O\!\left(\frac{L}{\rho\sqrt\alpha}\right)
+ \quad\hbox{adjacency inspections}.
+\end{equation}
+Integer quotient/remainder operations are included in this arithmetic
+ledger. This does not silently add a floor primitive to the arbitrary-real
+model of Theorem~\ref{thm:main}.
+
+Let $b_{\rm par}$ bound the total encoding length of the three rational
+parameters and $b_{\rm graph}$ the largest encountered degree or vertex-label
+encoding length. The common-denominator arguments above bound stored
+integers, reduced rational components, and temporary products by
+$B=O(b_{\rm par}+b_{\rm graph}+L)$ bits. Direct affine root reconstruction
+introduces only a degree sum; scalar block powers use $O(L)$ bits. A
+conservative schoolbook-arithmetic and Euclidean-gcd implementation therefore
+has bit-arithmetic cost
+\[
+ O\!\left(\frac{B^3L^3}{\rho\sqrt\alpha}\right).
+\]
+Encoded oracle replies are paid; any additional computation inside a
+user-supplied graph oracle must be added. These bounds separate parameter
+and graph-word encoding costs from the original exact-real theorem.
+The cases $\rho d_v\ge1$ and $\alpha=1$ use their direct branches, with
+$O(1)$ scalar/word operations and $O(B^3)$ conservative bit work; the
+displayed nontrivial-regime logarithms are not applied to those branches.
+
+\subsection{Sharper work from the remaining mass}
+\label{app:rounded-deficit}
+
+The mass-deficit refinement \eqref{app:strong-work} also holds for the
+actual complete integer wrappers, including their optional schedules,
+checkpoints, and direct tree transitions. No grid refinement is needed.
+At a nontrivial stage, the seed belongs to $\supp x_r^*$: if its value
+were zero, Stieltjes signs would give $(Qx_r^*)_v\le0$, contradicting
+$b_v-\alpha r w_v>0$. Equation~\eqref{app:deficit-volume} therefore gives
+\[
+ \eta\ge\eta_*(r)\ge r d_v\ge r,\qquad
+ \vol(\supp\xb)\le\eta/r,\qquad\vol(C_r)\le2\eta/r.
+\]
+Retain $m_s=\alpha\eta$ in the perturbed auxiliary comparison instead
+of bounding it by $\alpha$. Its proof gives
+$B_k\le a^kB_0+\Gamma$, $B_0\le3\lambda m_s$, and
+$\mathcal A(t)=\lambda m_s$. Dropping the nonnegative mass and mirror
+terms yields $\norm{Q\xi_k-s}^2\le8\lambda m_s+2\Gamma$. The same
+optimal-source estimate as before then proves
+\begin{equation}\label{app:deficit-response}
+ \norm{Q(\xi_k-\xi^*)}^2
+ \le18\alpha^2r\eta+4\Gamma.
+\end{equation}
+The actual default tolerances and grids already satisfy
+\[
+ \Gamma\le\frac{29h}{\theta}
+ \le\frac{29\tau}{256}
+ \le\frac{29\alpha^3r^2}{8192}
+ \le\alpha^2r\eta.
+\]
+Here $\tau=\alpha\delta^2/8$ and $\delta\le\alpha r/2$; this extra
+inequality is not asserted for arbitrary separately supplied stage grids.
+
+In the existing perturbed selected-flow argument take
+$B_0^{\rm core}=K\vol(C_r)\le2\eta K/r$ and
+$H_2\le22\alpha^2r\eta K$. Absorbing $\nu\le\lambda/4$ and applying
+the same Young inequality gives, for every actual executed prefix,
+\begin{equation}\label{app:rounded-mass-work}
+ \sum_{k=0}^{K-1}\vol(\supp z_{k+1})
+ \le\frac{16H_2}{\lambda^2}+4B_0^{\rm core}
+ \le\frac{360\eta K}{r}.
+\end{equation}
+Thus source records, baseline scans, emitted history, and direct exception
+updates all inherit the factor $\eta/r$. In particular
+$N\le363\eta(K+1)/r$. The fixed root-query and setup charges are
+absorbed because $\eta/r\ge1$, including at zero-step stages.
+Rebases still pay every retained record, and geometric checkpoints use
+$V_k\le\eta(1+360k)/r$ and the same summation argument. All terminal
+scans and temporary-state reclamation remain charged.
+
+The actual rounded repair obeys \eqref{app:repair-deficit}; the diffuse-source
+comparison \eqref{app:diffuse-deficit} and concavity therefore give
+$\eta_j/r_j\le4\eta_*(\rho)/\rho$ at every stage. A conservative
+per-stage word bound is $O((\eta_j/r_j)TL^3)$. Summing over $O(L)$ stages
+gives the simultaneous bounds
+\[
+ O\!\left(\frac{\eta_*(\rho)L^4}{\rho\sqrt\alpha}\right)
+ \quad\hbox{word/arithmetic operations},\qquad
+ O\!\left(\frac{\eta_*(\rho)L^2}{\rho\sqrt\alpha}\right)
+ \quad\hbox{adjacency inspections}.
+\]
+The bounds in \eqref{app:explicit-word} remain valid as well, so their
+minimum may be taken. The unchanged scalar encoding gives the same
+conservative $B^3$ multiplier for bit work. In soft notation the actual
+rounded implementation consequently satisfies
+$\widetilde O(\eta_*(\rho)/(\rho\sqrt\alpha))$.
+The stage-count logarithm is paid explicitly here; no constant-factor
+geometric sum of mass-weighted stages is assumed.
+
+For interpretation, the same KKT source inequalities imply
+\[
+ \vol(\supp x_\rho^*)\le\frac{\eta_*(\rho)}\rho
+ \le\min\{1/\rho,\vol(V)\}.
+\]
+No total graph volume is queried. The final returned mass deficit brackets
+$\eta_*(\rho)$ within the already proved factor $1+\alpha$.
+
+\subsection{An optional exact singleton check}
+\label{app:singleton}
+
+A small deterministic precheck can recognize a seed-only exact optimum.
+After the zero and $\alpha=1$ direct branches, the minimizer restricted
+to the seed has density
+\[
+ f_v=\frac{2\alpha(1-\rho d_v)}{d_v(1+\alpha)}>0.
+\]
+Its seed derivative vanishes. Each neighboring zero coordinate has
+density-coordinate gradient $\alpha\rho d_i-cf_v$, and every other zero
+coordinate has gradient $\alpha\rho d_i>0$.
+Thus this vector is the unique exact optimum
+if and only if
+$cf_v\le\alpha\rho d_i$ for every neighbor $i$ of $v$; equality is
+accepted. With $\alpha=A_0/B_\alpha$ and $\rho=P/R$, the test is the
+integer comparison
+\[
+ (B_\alpha-A_0)(R-Pd_v)
+ \le P d_v(B_\alpha+A_0)d_i.
+\]
+Scan only the seed row, stopping at the first failed inequality. On success
+return this exact vector with zero objective gap; on failure run the
+certified solver and charge both the trial and its complete fallback.
+A fixed seed-degree cutoff, such as $32$, can skip the trial on large rows.
+
+The trial needs at most $d_v$ entries and $d_v+1$ degrees, constant
+auxiliary scalar storage, and $O(d_v+1)$ word operations. It never reads a
+boundary row and does not aggregate degree denominators. In the nontrivial
+regime $d_v<1/\rho$ and $d_v\le\eta_*(\rho)/\rho$, so this prefix
+preserves both proved local bounds. Its integers have the same encoding
+envelope, with $O((d_v+1)B^3)$ conservative bit work. A failed trial may
+cause repeated oracle reads in the fallback; those reads are counted again.
+The exact singleton density may be rational rather than dyadic, so this is
+a final-output check, not an unproved intermediate grid conversion.
+
+\subsection{Choosing the next stage from the repaired source}
+\label{app:adaptive}
+
+An optional deterministic schedule can skip some of the prescribed halving
+stages. After repair at $r_{\rm old}<1/d_v$, compute the exact scalar
+\[
+ M=\max_i\frac{(b-Q\xb)_i}{w_i}.
+\]
+The repair implies $M\le2\alpha r_{\rm old}$. Conversely,
+$M<\alpha r_{\rm old}$ would make $\xb$ a nonnegative supersolution at
+$r_{\rm old}$. Its least-supersolution property and $\xb\le x^*_{r_{\rm old}}$
+would give equality. The nontrivial optimum has a positive seed, where
+its source equals $\alpha r_{\rm old}w_v$, a contradiction. Thus
+\begin{equation}\label{app:adaptive-source}
+ \alpha r_{\rm old}\le M\le2\alpha r_{\rm old},\qquad
+ r_{\rm next}=\max\{\rho,M/(4\alpha)\}.
+\end{equation}
+Initially $\xb=0$ and $r_0=1/d_v$ give $M=\alpha/d_v$ directly from
+the queried seed degree, so the first stage is $\max\{\rho,r_0/4\}$.
+The zero and $\alpha=1$ branches remain unchanged.
+
+Every new stage has $0\le b-Q\xb\le4\alpha r_{\rm next}w$ and
+$\xb\le x^*_{r_{\rm next}}$. These are exactly the hypotheses used by
+the correction and repair proofs. A nonfinal stage satisfies
+$r_{\rm old}/4\le r_{\rm next}\le r_{\rm old}/2$.
+A final stage clamped to $\rho$ can be closer to $r_{\rm old}$; it still
+strictly decreases the parameter. Use the same intermediate and final
+shift rules and the same proved stage certificates as before. The number
+of stages remains $O(1+\log(1/\rho))$, and their reciprocals satisfy
+$\sum_j1/r_j<3/\rho$. The source-energy, binomial, and cached-checkpoint
+options use only the current stage invariant and therefore remain valid.
+A zero-iteration stage still pays initialization and repair. After the
+final repair no further source maximum is computed.
+
+To obtain $M$, assemble the source exactly from the retained baseline
+support, its immediate boundary, and the seed. This costs
+$O((1+\vol(\supp\xb))\log(N+2))$ word operations and
+$O(\vol(\supp\xb))$ adjacency inspections. Cached entries are charged
+again; a newly retained row may be scanned and is charged here. No boundary
+row outside the retained support is scanned. Reusing this assembled source
+is optional; assembling it again at the next corrector costs another paid
+pass. Both charges fit the existing ledger. The initial maximum needs no
+row scan. Hence the original word and adjacency bounds remain valid.
+Equation~\eqref{app:diffuse-deficit} gives $\eta_j\le4\eta_*(r_j)$
+at every new stage independently of its predecessor, so the sharper
+mass-deficit bounds also remain valid.
+
+The adaptive parameter does not cause growing rational coefficients.
+If $\alpha=A_0/B_\alpha$ and the repaired densities are $P_i/H$, let
+\[
+ n_i=2A_0H\mathbf1_{i=v}-(B_\alpha+A_0)d_iP_i
+             +(B_\alpha-A_0)\sum_{j\sim i}P_j.
+\]
+Then $s_i/w_i=n_i/(2B_\alpha H d_i)$. Choose a maximum by comparing
+$n_i d_j$ and $n_j d_i$, retaining only the maximizing numerator and
+degree. If $i_*$ attains it, the proposed parameter is
+\[
+ \frac{M}{4\alpha}=\frac{n_{i_*}}{8A_0H d_{i_*}}.
+\]
+This representation is rebuilt from the current dyadic baseline, without
+a product of previous parameter denominators. A clamped step retains the
+original target $\rho$. Tolerances still decrease, stay above the lower
+bound in Appendix~\ref{app:explicit-complexity}, and produce nested grids
+with $\log H=O(L)$. The extra integer accumulations, cross products, and
+new parameter therefore retain $O(b_{\rm par}+b_{\rm graph}+L)$ bits.
+The explicit word, adjacency, and conservative bit bounds remain unchanged.
+This schedule changes the stage trajectory; it is not claimed to reduce
+elapsed time on every input.
+
+\subsection{A mass-scaled rounding grid}
+\label{app:mass-grid}
+
+The exact correction cap $\eta$ also permits a coarser grid. In the error
+interface \eqref{app:error-model}, suppose all feasible states and both
+analytical comparators have mass at most $\eta$. The same proof as
+Lemma~\ref{app:two-energy} gives
+\begin{equation}\label{app:mass-perturbation}
+ E^+\le aE+\eta\zeta,\qquad B^+\le aB+\eta\zeta,
+ \qquad
+ \zeta=2\mu\kappa_r+\frac52\kappa_x+
+                       \frac52(\theta+\mu)\kappa_p.
+\end{equation}
+Here the mass-face sector term is exactly
+$\gamma(\alpha\eta-w^Ts)=0$, and each raw-error sector term is at most
+$2\eta\kappa_r$. To check the remaining factor, let
+$\xi_0^+=a\xi+\theta p_0$ and $d=\xi^+-\xi_0^+\le0$.
+Writing $\kappa_d=\theta\kappa_p+\kappa_x$, its lost mass is at most
+$\eta$, so $\norm d^2\le\eta\kappa_d$.
+Also $w^T|Q\xi_0^+-s|\le(1+\alpha)\eta\le2\eta$.
+Quadratic expansion therefore bounds the increase of either primal
+objective by $5\eta\kappa_d/2$; both linear mass penalties decrease.
+The mirror-distance increase costs at most $5\mu\eta\kappa_p/2$.
+These estimates prove \eqref{app:mass-perturbation}, including when the
+auxiliary energy is negative.
+
+For the unchanged directed rounding and scalar rebase, define the effective
+floor $\Gamma_\eta=\eta\zeta/\theta$. Equations
+\eqref{app:rounding-constants} and \eqref{app:raw-rounding} imply
+\[
+ \Gamma_\eta\le\frac{29\eta h}{\theta}.
+\]
+At the actual tolerance $\tau=\alpha\delta^2/8$, with
+$0<\delta\le\alpha r/2$, choose the largest reciprocal power of two
+$h$ that represents the incoming baseline exactly and satisfies
+\begin{equation}\label{app:mass-grid-ceiling}
+ h\le\psi:=\frac{\theta\tau}{256\eta}.
+\end{equation}
+The nontrivial stage has $r\le\eta\le1$, so
+\[
+ \psi\le\frac{\theta\alpha^3r^2}{8192\eta}
+       \le\frac{\theta\alpha^3r}{8192}.
+\]
+This implies all former numerical guards: $h\le1/8$,
+$2h\le\lambda/4$, $h\le\delta/2$, and
+$h\le\theta\alpha^2r/29$. Consequently
+\[
+ \Gamma_\eta\le\frac{29\tau}{256}<\frac\tau8,
+ \qquad \Gamma_\eta\le\alpha^2r\eta.
+\]
+Retaining $m_s=\alpha\eta$ in the auxiliary initialization gives
+\[
+ \norm{Q(\xi_k-\xi^*)}^2
+ \le18\alpha^2r\eta+4\Gamma_\eta.
+\]
+The proof of \eqref{app:rounded-mass-work} therefore applies unchanged,
+including its repeated scans and all other ledger charges. Every stopping
+schedule and accepted certificate continues to use the actual target
+$\tau$. The relaxed quantity $\tau/\eta$ is only a grid-selection device;
+it is not an admissible replacement for the requested stage tolerance.
+The exact terminal gradient, downward repair, and monotone maximum with
+the previous baseline are unchanged. Zero-step stages still use their
+initial energy bound without an added rounding floor.
+
+Exact representation of the baseline suffices; retaining unused bits of
+the preceding grid is unnecessary. To verify the encoding bound, let
+$g_{\rm base}$ be the reciprocal of the largest reduced denominator of
+the incoming dyadic baseline (one for an empty baseline), and let
+$g_{\rm num}$ be the largest reciprocal power of two at most $\psi$.
+Then $g_{\rm base}\ge h_{\rm old}$ and
+$h_{\rm new}=\min\{g_{\rm base},g_{\rm num}\}$.
+Since $\eta\le1$ and actual tolerances are nonincreasing, induction gives
+\[
+ h_{\rm new}\ge\min\{h_{\rm old},g_{\rm num}\}
+       >\frac{\theta\tau_{\rm new}}{512},
+ \qquad H_{\rm new}<\frac{512}{\theta\tau_{\rm new}}.
+\]
+The first stage starts with the zero baseline. Thus the previous
+logarithmic grid and integer-encoding bounds require no enlargement,
+even if a final clamped stage permits coarsening. Computing $\eta$ from
+the retained baseline uses one integer degree-weighted sum on its previous
+grid and one bounded rational scalar; it creates no least common multiple
+of degrees or product of historical denominators. The additional cached
+baseline pass and any repeated scalar schedule construction are charged.
+This option preserves the proved word, adjacency, and bit bounds. A
+coarser grid can change the numerical trajectory, so smaller elapsed time
+or fewer graph reads on every input is not asserted.
