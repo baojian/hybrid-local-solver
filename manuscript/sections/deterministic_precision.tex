@@ -1,0 +1,457 @@
+The exact-real model does not bound the encoding length of a repeatedly
+updated rational state. We therefore give a specified rounded algorithm,
+prove its guarantees for the actual stored iterates, and account for all
+integer lengths. This appendix does not assume a positive activation margin.
+Throughout, the constant-output cases have been removed, so
+$0<\alpha<1$, $0<r<1/d_v\leq1$, and $U=4r<4$.
+
+\subsection{A dimension-independent perturbation bound}
+
+Fix a valid stage. At the actual stored states $\vxi,\vz\in\gK_r$,
+form the ideal $\vy,\vq$ by \cref{eq:det-iteration}. Model a rounded step as
+\begin{equation}
+ \begin{aligned}
+ \vp_0&=\operatorname{Proj}_{\gK_r}(\vq+\vu),&
+ \vp&=\vp_0+\ve_p,&
+ \vxi^+&=\chi\vxi+\theta\vp+\ve_x,\\
+ |\vu|&\leq\kappa_{\rm raw}\vomega,&
+ -\kappa_{\rm proj}\vomega&\leq\ve_p\leq\vzero,&
+ -\kappa_{\rm pri}\vomega&\leq\ve_x\leq\vzero.
+ \end{aligned}
+ \label{eq:bounded-error-model}
+\end{equation}
+We require $\vp,\vxi^+\geq\vzero$. The downward errors then preserve
+box and mass feasibility. The ideal projection $\vp_0$ is a comparison
+object; the implementation need not enumerate all of its positive entries.
+
+\begin{lemma}[Two energies under directed rounding]
+\label{lem:bounded-two-energies}
+The energies $E$ and $B$ in \cref{eq:det-first-energy,eq:det-second-energy}
+satisfy, at the actual stored states,
+\begin{equation}
+ \begin{gathered}
+ E^+\leq\chi E+e_{\rm step},\qquad
+ B^+\leq\chi B+e_{\rm step},\\
+ e_{\rm step}:=2\mu_{\rm c}\kappa_{\rm raw}
+       +\tfrac52\kappa_{\rm pri}
+       +\tfrac52(\theta+\mu_{\rm c})\kappa_{\rm proj}.
+ \end{gathered}
+ \label{eq:bounded-energy-errors}
+\end{equation}
+For uniform error bounds put $\Gamma=e_{\rm step}/\theta$. Starting
+from zero, the rounded trajectory obeys
+\begin{equation}
+ \begin{aligned}
+ J_r(\vxi_k)-J_r(\vxi^*)&\leq\chi^k+\Gamma,\\
+ \norm{\mQ(\vxi_k-\vxi^*)}_2^2&\leq18\alpha^2r+4\Gamma.
+ \end{aligned}
+ \label{eq:bounded-objective-response}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Symmetry and $|\mQ|\vomega=\vomega$ imply
+\begin{equation}
+ \vomega^\trans|\mQ\va|\leq\vomega^\trans|\va|,
+ \qquad |\mQ\va|\leq\kappa\vomega
+       \quad\hbox{if }|\va|\leq\kappa\vomega.
+ \label{eq:bounded-weighted-contractions}
+\end{equation}
+All feasible nonnegative vectors have weighted mass at most one.
+For the two comparison vectors, therefore,
+\[
+ |(\vp_0-\vxi^*)^\trans\vu|\leq2\kappa_{\rm raw},
+ \qquad
+ |(\vp_0-\vt)^\trans\mQ\vu|\leq2\kappa_{\rm raw}.
+\]
+The normal of the projection of $\vq+\vu$ has the required sector
+signs in both metrics. Replacing that normal by $\vq-\vp_0$ changes
+the comparison estimate by at most $2\mu_{\rm c}\kappa_{\rm raw}$.
+This follows directly from the squared-distance identity in the proof of
+\cref{lem:det-comparison}; no nonexpansiveness in a second metric is used.
+
+Let $\vxi_0^+=\chi\vxi+\theta\vp_0$ and
+$\vd=\vxi^+-\vxi_0^+=\theta\ve_p+\ve_x\leq\vzero$.
+Put $\kappa_d=\theta\kappa_{\rm proj}+\kappa_{\rm pri}$.
+The lost weighted mass is at most one, so
+$\norm{\vd}_2^2\leq\kappa_d\vomega^\trans|\vd|\leq\kappa_d$.
+Also
+$\vomega^\trans|\mQ\vxi_0^+-\vh|\leq1+m_h\leq2$.
+Expanding either $J_r$ or $\mathcal A_r$, their positive mass penalties
+decrease under $\vd\leq\vzero$; the remaining linear increase is at
+most $2\kappa_d$, by \cref{eq:bounded-weighted-contractions}.
+The quadratic increase is at most $\kappa_d/2$, using
+$\mQ\preceq\mI$ and $\norm{\mQ\vd}_2\leq\norm{\vd}_2$.
+
+Similarly $\norm{\ve_p}_2^2\leq\kappa_{\rm proj}$.
+Expanding the Euclidean or $\mQ$ mirror-distance term costs at most
+$5\mu_{\rm c}\kappa_{\rm proj}/2$, because the absolute weighted mass
+of the difference between two feasible comparison vectors is at most two.
+Adding these contributions proves \cref{eq:bounded-energy-errors}.
+Summing the geometric recurrences proves the objective estimate.
+The proof of \cref{lem:det-response} with the additional energy $\Gamma$
+gives a bound $8\lambda_r m_h+2\Gamma$ on
+$\norm{\mQ\vxi_k-\vh}_2^2$, and hence the stated response bound.
+\end{proof}
+
+Uniform error per coordinate alone would permit dimension-dependent error.
+The estimates above instead use the mass of the actual feasible vectors
+and their actual downward losses. Unexposed zero coordinates are not
+assigned fictitious independent rounding errors.
+
+\begin{lemma}[Local work survives rounding]
+\label{lem:bounded-kinetic-volume}
+If $\theta\kappa_{\rm raw}\leq\lambda_r/4$ and
+$\Gamma\leq\alpha^2r$, the actual rounded kinetic supports satisfy
+\begin{equation}
+ \sum_{k<K}\vol(\supp\vp_k)\leq360K/r.
+ \label{eq:bounded-kinetic-volume}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Use the comparison set $\gC_r$ from \cref{eq:det-comparison-margin}.
+On a selected coordinate $p_i>\xi_i^*$, also $p_{0,i}>\xi_i^*$.
+Its lower normal vanishes; the upper and mass normals and $\ve_p\leq0$
+can only reduce the selected flow. The raw error contributes at most
+$\nu d_i$, where $\nu=\theta\kappa_{\rm raw}$.
+The telescope from \cref{eq:det-selected-flow} therefore becomes
+\begin{equation}
+ \frac{\lambda_r}2 V_{\rm out}
+ \leq\sqrt{(V_{\rm out}+2K/r)H_2}
+          +\nu(V_{\rm out}+2K/r),
+ \qquad H_2\leq K(18\alpha^2r+4\Gamma).
+ \label{eq:bounded-selected-flow}
+\end{equation}
+Downward primal error affects the response estimate; it introduces no
+additional term into the identity for the raw kinetic vector at the next
+actual state. With $Y=V_{\rm out}+2K/r$ and $\nu\leq\lambda_r/4$,
+the displayed inequality gives
+$Y\leq4K/r+4\sqrt{YH_2}/\lambda_r
+ \leq4K/r+Y/2+8H_2/\lambda_r^2$.
+Consequently $Y\leq8K/r+16H_2/\lambda_r^2\leq360K/r$.
+\end{proof}
+
+\subsection{A rounded implementation and its sparse reporter}
+
+Choose a dyadic grid width $h_{\rm q}=1/H$, where $H$ is a power of two,
+with
+\begin{equation}
+ h_{\rm q}\leq
+ \min\{1/8,\theta\tau/256,\delta/2,\lambda_r/8\},
+ \qquad \tau=\alpha\delta^2/8.
+ \label{eq:bounded-grid}
+\end{equation}
+Use the coarsest such grid at the first stage and refine it by halving as
+needed at later stages. The grids are thus nested. Let
+\begin{equation}
+ T=1/\theta,\qquad K=Tq_{\rm blk},\qquad
+ q_{\rm blk}:=\min\{j\in\sN:2^j\geq2/\tau\}.
+ \label{eq:bounded-block-schedule}
+\end{equation}
+Here $T$ is an integer, and $(1-\theta)^T<1/2$ implies
+$\chi^K\leq\tau/2$. This finite schedule uses no stored growing exact
+power. Its iteration count is $O(\log(1/\tau)/\sqrt\alpha)$.
+
+Store densities
+\begin{equation}
+ \xi_i/\omega_i=\sigma X_i,\qquad Z_i=z_i/\omega_i,
+ \qquad \sigma,X_i,Z_i\in h_{\rm q}\sN_0.
+ \label{eq:bounded-density-storage}
+\end{equation}
+At iteration boundaries $1/2\leq\sigma\leq1$.
+Maintain primal neighbor records $L_i$, initially
+$L_i=\sum_{j\sim i}X_j$, together with exact neighbor sums of $Z_j$
+and the current baseline densities. For notational convenience set
+$c=(1-\alpha)/2$ and $q_0=(1+\alpha)/2$ in this appendix.
+The normalized response used by the reporter is
+\begin{equation}
+ \widetilde{\mathscr R}_i=(q_0-\mu_{\rm c})X_i-cL_i/d_i.
+ \label{eq:bounded-approximate-response}
+\end{equation}
+The source is always computed exactly from the stored baseline:
+\begin{equation}
+ \frac{h_i}{\omega_i}
+ =\frac{\alpha\one_{\{i=v\}}}{d_i}
+    -q_0\frac{\overline x_i}{\omega_i}
+    +\frac c{d_i}\sum_{j\sim i}\frac{\overline x_j}{\omega_j}.
+ \label{eq:bounded-exact-source}
+\end{equation}
+The seed contribution is zero off its one known coordinate.
+
+Use \cref{eq:det-raw-key} with
+$\mathscr R_i$ replaced by \cref{eq:bounded-approximate-response} and
+with exact kinetic and source terms. The finite reporter computes the exact
+box/mass multiplier $\gamma$ for this represented raw vector. Enumerate
+only the \emph{closed} tail
+\begin{equation}
+ k_i\geq\frac{\lambda_r/\theta+\gamma+h_{\rm q}}{\sigma}.
+ \label{eq:bounded-closed-tail}
+\end{equation}
+At each emitted vertex set
+$p_i/\omega_i=\lfloor p_{0,i}/\omega_i\rfloor_{h_{\rm q}}$, where
+$\lfloor t\rfloor_{h_{\rm q}}=h_{\rm q}\lfloor t/h_{\rm q}\rfloor$.
+Because $h_{\rm q}\leq U$, \cref{eq:bounded-closed-tail} is exactly the
+condition for a positive stored projection. Equality must be included.
+Enumerating positive ideal coordinates smaller than one grid unit would
+incur work absent from \cref{eq:bounded-kinetic-volume}; the closed-tail
+reporter avoids that enumeration.
+
+Remove the old source and kinetic exceptions. Set
+\begin{equation}
+ \sigma'=\lfloor\chi\sigma\rfloor_{h_{\rm q}},\qquad
+ X_i\gets\left\lfloor
+ X_i+\frac{\theta(p_i/\omega_i)}{\sigma'}
+ \right\rfloor_{h_{\rm q}}\quad\hbox{at emitted vertices only}.
+ \label{eq:bounded-primal-update}
+\end{equation}
+A changed $X_j$ scatters its \emph{actual} dyadic increment to every
+neighbor record $L_i$ with $i\sim j$. Set $\vz\gets\vp$ and form the
+exact kinetic neighbor sums by scanning these same emitted rows.
+Since $\chi\sigma\geq1/4$ and $h_{\rm q}\leq1/8$, the scale stays
+positive. At the old boundary $X_i\leq2U$. Scale rounding therefore loses
+at most $2Uh_{\rm q}$ in physical primal density, and rounding the update
+loses at most another $h_{\rm q}$.
+
+If $\sigma'<1/2$, perform a scalar rebase on all retained records:
+\begin{equation}
+ X_i\gets\lfloor\sigma'X_i\rfloor_{h_{\rm q}},\qquad
+ L_i\gets\lfloor\sigma'L_i\rfloor_{h_{\rm q}},\qquad
+ \sigma\gets1.
+ \label{eq:bounded-scalar-rebase}
+\end{equation}
+Both replacements use their pre-rebase values. Do not scatter these $X_i$
+changes: the neighbor records have already been scaled. Do not scale the
+kinetic or baseline neighbor sums. Rebuild all keys from the resulting
+records. If $\sigma'\geq1/2$, set $\sigma\gets\sigma'$ instead and
+refresh only touched ordinary keys and the new exceptions. No projection
+query occurs during an incomplete update. The optional rebase adds at most
+one grid unit of downward primal error. Thus
+\begin{equation}
+ \kappa_{\rm proj}=h_{\rm q},\qquad
+ \kappa_{\rm pri}\leq(2U+2)h_{\rm q}\leq10h_{\rm q}.
+ \label{eq:bounded-downward-errors}
+\end{equation}
+Nonnegativity is enforced by construction.
+
+\begin{lemma}[Controlled neighbor-response error]
+\label{lem:bounded-neighbor-error}
+The stored neighbor records satisfy
+\begin{equation}
+ \frac1{d_i}\left|L_i-\sum_{j\sim i}X_j\right|\leq4h_{\rm q},
+ \qquad \kappa_{\rm raw}\leq2h_{\rm q}/\theta.
+ \label{eq:bounded-neighbor-error}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Let $e_i^L=L_i-\sum_{j\sim i}X_j$. Actual scattered increments preserve
+this difference between rebases, including when records are first exposed.
+At a rebase, denote its scalar floor losses by $\ell_j$ and $\ell_i^L$.
+Then
+\[
+ e_i^{L,+}=\sigma'e_i^L+\sum_{j\sim i}\ell_j-\ell_i^L,
+ \qquad 0\leq\ell_j,\ell_i^L<h_{\rm q}.
+\]
+Because $d_i\geq1$ and $\sigma'<1/2$, an old bound of $4h_{\rm q}$
+yields a new bound at most
+$\sigma'4h_{\rm q}+2h_{\rm q}\leq4h_{\rm q}$.
+The initial error is zero. The only approximate response term is this
+primal neighbor sum; its effect on the raw density is at most
+\[
+ \frac{|u_i|}{\omega_i}
+ \leq\frac{\sigma c|e_i^L|}{\theta(1+\theta)d_i}
+ \leq\frac{2h_{\rm q}}\theta.
+\]
+Retaining the stage's exposed records ensures that this induction does not
+silently discard a previously nonzero neighbor contribution.
+\end{proof}
+
+Substituting \cref{eq:bounded-downward-errors,eq:bounded-neighbor-error}
+into \cref{eq:bounded-energy-errors}, and using $\theta\leq1/2$, gives
+\begin{equation}
+ \Gamma\leq29h_{\rm q}/\theta<\tau/8,
+ \qquad \theta\kappa_{\rm raw}\leq2h_{\rm q}\leq\lambda_r/4.
+ \label{eq:bounded-certified-budgets}
+\end{equation}
+Also $\tau\leq\alpha^2r$. Hence
+\cref{lem:bounded-two-energies,lem:bounded-kinetic-volume} certify a gap
+below $\tau$ for the actual candidate and a cumulative volume at most
+$360K/r$. These statements allow approximate primal neighbor records;
+they never identify them with an exact matrix product.
+
+\paragraph{Charging rebases.}
+A scale interval starts at one. Each step decreases scale by at most
+$\theta+h_{\rm q}$, so crossing below $1/2$ takes at least
+$1/[2(\theta+h_{\rm q})]$ steps. Since $h_{\rm q}\leq\theta$,
+there are at most $4\theta K+1=O(1+\log(1/\tau))$ rebases.
+Each is a scalar and tree pass over at most $O(1+K/r)$ retained records;
+it inspects no graph adjacency list. Thus rebases contribute only an
+additional logarithmic factor. Ordinary scatters and the final candidate
+scan retain their explicit cumulative-volume charges.
+
+\subsection{Integer encodings and a finite projection search}
+
+It remains to show that the reporter's arithmetic does not accumulate a
+product of degree denominators or one new denominator per iteration.
+Write
+\[
+ \alpha=A_0/B_\alpha,\qquad\theta=1/T,\qquad
+ h_{\rm q}=1/H,\qquad\sigma=S/H,
+\]
+and express dyadic densities and neighbor records as integers over $H$.
+Let $M_i=\sum_{j\sim i}Z_j$. Multiplying the raw key by its degree gives
+\begin{equation}
+ \begin{aligned}
+ W_i:=d_i k_i={}&-
+   \frac{(q_0-\mu_{\rm c})d_iX_i-cL_i}{\theta(1+\theta)}\\
+ &+\frac1\sigma\left\{
+   \chi d_iZ_i-\frac{(q_0-\mu_{\rm c})d_iZ_i-cM_i}{1+\theta}
+            +\frac{d_i h_i/\omega_i}{\theta}\right\}.
+ \end{aligned}
+ \label{eq:bounded-degree-weighted-key}
+\end{equation}
+The degree denominator cancels from every term. By
+\cref{eq:bounded-exact-source}, all $W_i$ have denominators dividing
+$2B_\alpha HT(T+1)S$; the physical weighted keys $\sigma W_i$ have
+one common denominator dividing $2B_\alpha H^2T(T+1)$.
+Include the represented denominator of $r$ for the common shift and the
+box height. A comparison of two unweighted keys uses their two individual
+degrees, whereas subtree weighted sums use this one common denominator.
+No least common multiple of encountered degrees is formed.
+
+For a direct implementation, partition the records into two disjoint
+balanced trees. Clearing the fixed stage denominators expresses the physical
+pre-shift density as
+\begin{equation}
+ \frac{S\mathfrak b_i+H\mathfrak e_i}{G_0d_i},
+ \label{eq:bounded-two-tree-key}
+\end{equation}
+where $\mathfrak b_i,\mathfrak e_i$ are integers, $G_0$ is a fixed
+positive integer, and $\mathfrak e_i=0$ outside the current source and
+kinetic exceptions. The ordinary tree stores $\mathfrak b_i/d_i$ with
+global scale $S$; the exception tree stores
+$\mathfrak n_i/d_i=(S\mathfrak b_i+H\mathfrak e_i)/d_i$ with scale one.
+A registry places each vertex in exactly one tree and records the old key
+needed for deletion. Each subtree stores cardinality, degree sum, and
+numerator sum. All updates and weighted sums therefore use integers.
+
+A physical clipped-mass query is four tail queries: two trees, each at
+the lower and upper clipping thresholds. Its breakpoints, in units scaled
+by $G_0$, are the ordered sequences
+\[
+ \{S\mathfrak b_i/d_i\},\quad\{\mathfrak n_i/d_i\},
+ \quad\{S\mathfrak b_i/d_i-G_0U\},
+ \quad\{\mathfrak n_i/d_i-G_0U\}.
+\]
+The argument of \cref{lem:det-reporter} applies to these four lists.
+Successively binary search each list by rank, narrowing the bracket until
+it has no breakpoint from that list in its interior. Previously excluded
+breakpoints remain excluded. There are $O(\log(N+2))$ queries per list,
+each using $O(\log(N+2))$ integer tree operations. An affine interval
+then gives the root by one rational division. Equality returns immediately;
+a zero cap returns the zero projection. The reporter still costs
+$O(\log^2(N+2))$ operations plus its stored positive output, independently
+of activation margins.
+
+To bound the last division, write $a_i^{\rm den}$ for a represented raw
+density, let $\gI$ be the free coordinates in the final interval, and let
+$\gU_0$ be the saturated coordinates. If $\gI$ is nonempty, the multiplier is
+\begin{equation}
+ \gamma=\frac{\sum_{i\in\gI}d_i a_i^{\rm den}
+               +U\sum_{i\in\gU_0}d_i-m_r}
+              {\sum_{i\in\gI}d_i}.
+ \label{eq:bounded-waterfill-division}
+\end{equation}
+An empty free set is handled by the exact breakpoint comparison.
+The only new divisor is a degree sum. The ideal projected densities are
+immediately rounded to the grid, so that divisor never enters the next
+stored vector. This is a finite ordered search, not repeated numerical
+bisection toward an unknown sign margin.
+
+Normalized primal densities are at most $2U$ at iteration boundaries and
+remain bounded by an absolute constant during a rebase step. Neighbor sums
+add at most the encoding length of a degree or an exposed-record count.
+The grids are nested across stages, so the old baseline is exact on the
+new grid. It follows that every integer temporary has length
+\begin{equation}
+ O\!\left(L_{\rm in}+\log H+\log T+
+       \log(N+2)+\log(d_{\max}+2)\right),
+ \label{eq:bounded-integer-length}
+\end{equation}
+where $L_{\rm in}$ includes the numerical input encodings and the maximum
+length of an encountered vertex label, and $d_{\max}$ is the maximum
+encountered degree. Intermediate cross products change only the absolute
+constant. In particular, there is no linear-in-$K$ denominator growth.
+
+\subsection{Rounded handoff and the bit-complexity theorem}
+
+At completion of a stage, materialize the actual candidate and perform one
+\emph{exact} projected-gradient step as in \cref{eq:det-repair-map}.
+This scan must use the actual stored primal densities; the approximate
+records $L_i$ are not a valid replacement for its matrix product.
+The projected-gradient point $\vp$ obeys
+$\norm{\vp-\vx_r^*}_2\leq\delta/2$ and has a valid subgradient of
+norm at most $\delta/2$, by \cref{eq:det-pg-certificate}. Return the
+rounded downward correction
+\begin{equation}
+ u_i/\omega_i=
+    \left\lfloor[p_i/\omega_i-\delta]_+\right\rfloor_{h_{\rm q}},
+ \qquad \overline\vx^+=\max\{\overline\vx,\vu\}.
+ \label{eq:bounded-terminal-repair}
+\end{equation}
+The total density error is at most
+$\delta/2+\delta+h_{\rm q}\leq2\delta$, and $\vu\leq\vx_r^*$.
+On a retained positive coordinate, uniform clipping helps the subsolution
+inequality, while the additional grid loss changes the $\mQ$ product by
+at most $h_{\rm q}\omega_i$. Thus
+\[
+ (\mQ\vu-\vb)_i
+ \leq(-\lambda_r+\delta/2-\alpha\delta+h_{\rm q})\omega_i\leq0.
+\]
+At zero coordinates this follows from Stieltjes signs. The coordinatewise
+maximum preserves safety, as in \cref{lem:det-repair}. Consequently the
+actual dyadic baseline satisfies all of \cref{eq:det-repaired-invariant}:
+source diffuseness, the support bound, and gap at most $2\delta^2/r$.
+It supplies the invariant for the next stage and the requested final gap.
+Newly positive neighbors are scanned only after this repair.
+
+\begin{theorem}[Bounded-arithmetic deterministic local acceleration]
+\label{thm:bounded-deterministic-rppr}
+For rational inputs $\alpha,\rho,\epsobj>0$ in the main problem,
+the rounded continuation algorithm described in this appendix returns
+$\vzero\leq\widehat\vx\leq\vx_\rho^*$ with objective gap at most
+$\epsobj$. Its support volume is at most $1/\rho$. Its fully charged
+local operation count is $\softO(1/(\rho\sqrt\alpha))$.
+
+Let $L_{\rm par}=\log(2/(\alpha\rho\min\{1,\epsobj\}))$ and set
+\begin{equation}
+ B:=1+L_{\rm in}+L_{\rm par}
+       +\log\!\left(2+\frac{L_{\rm par}}{\rho\sqrt\alpha}\right)
+       +\log(d_{\max}+2).
+ \label{eq:bounded-bit-parameter}
+\end{equation}
+All numerical integers have $O(B)$ bits. With schoolbook integer arithmetic
+and exact division, the total bit cost is
+$\softO(B^2/(\rho\sqrt\alpha))$. The output stores rational densities
+and original degrees. The theorem permits arbitrarily small positive
+activation margins and exact threshold equalities.
+\end{theorem}
+\begin{proof}
+The initial baseline and the stage induction are the same as in
+\cref{alg:deterministic-rppr}, with \cref{eq:bounded-terminal-repair} at
+each handoff. The block schedule, \cref{eq:bounded-certified-budgets}, and
+\cref{lem:bounded-two-energies} give the required candidate gap.
+The rounded repair closes the induction and the final choice of $\delta$
+proves accuracy and support safety.
+
+The rounded cumulative volume, finite reporter, sparse source refreshes,
+and scalar rebases have just been charged. Their sum over the halving
+schedule uses \cref{eq:det-geometric-work} and is
+$\softO(1/(\rho\sqrt\alpha))$. At any stage the number of retained
+records is $N=O(1+L_{\rm par}/(\rho\sqrt\alpha))$.
+Choosing the coarsest allowed nested grids gives
+$\log H=O(L_{\rm par})$, and $\log T=O(\log(1/\alpha))$.
+Hence \cref{eq:bounded-integer-length} is $O(B)$.
+All comparisons, products, sums, floors, and divisions can be performed
+with $O(B^2)$ bit operations. Label processing is included in $L_{\rm in}$.
+No operation uses an unrepresented real oracle, so multiplication by this
+encoding cost proves the bit bound.
+\end{proof}

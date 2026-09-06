@@ -1,0 +1,295 @@
+Fix one stage and suppress its regularizer in the iteration indices.
+The analysis has three steps. An ordinary accelerated energy bounds the
+objective gap. The same comparison argument in a different metric bounds
+the squared response of the actual projected trajectory. Finally, a
+signed-flow inequality converts that response bound into cumulative degree
+volume. The second and third steps account for locality.
+
+\subsection{One comparison identity, two metrics}
+
+\begin{lemma}[Accelerated comparison]
+\label{lem:det-comparison}
+In a Hilbert inner product, let $\varphi$ be one-smooth and
+$\mu_{\rm c}$-strongly convex, where $\mu_{\rm c}=\theta^2$ and
+$0<\theta<1$. Write $\chi=1-\theta$ and set
+\[
+ \vy=\frac{\vx+\theta\vz}{1+\theta},\quad
+ \vg=\nabla\varphi(\vy),\quad
+ \vq=\chi\vz+\theta\vy-\vg/\theta,\quad
+ \vx^+=\chi\vx+\theta\vp.
+\]
+Here the gradient and norms use the Hilbert metric. If a comparison vector
+$\vu$ satisfies
+\begin{equation}
+ \inner{\vp-\vu}{\vq-\vp}\geq0,
+ \label{eq:det-comparison-sector}
+\end{equation}
+then
+\begin{align}
+ &\varphi(\vx^+)-\varphi(\vu)
+       +\frac{\mu_{\rm c}}2\norm{\vp-\vu}^2\notag\\
+ &\quad\leq\chi\left(\varphi(\vx)-\varphi(\vu)
+       +\frac{\mu_{\rm c}}2\norm{\vz-\vu}^2\right)
+       -\frac{\mu_{\rm c}\theta(1-\mu_{\rm c})}2
+        \norm{\vz-\vy}^2.
+ \label{eq:det-comparison-inequality}
+\end{align}
+The vector $\vu$ need not minimize $\varphi$, and the quantity in
+parentheses need not be nonnegative.
+\end{lemma}
+\begin{proof}
+The update satisfies $\vx^+=\vy-\vg+\theta(\vp-\vq)$.
+Smoothness and expansion of its squared displacement imply
+\[
+ \varphi(\vx^+)\leq\varphi(\vy)-\tfrac12\norm{\vg}^2
+                     +\tfrac{\mu_{\rm c}}2\norm{\vp-\vq}^2.
+\]
+The sector inequality gives
+$\norm{\vp-\vu}^2\leq\norm{\vq-\vu}^2-\norm{\vp-\vq}^2$.
+Add the two inequalities and expand
+$\vq-\vu=\chi(\vz-\vu)+\theta(\vy-\vu)-\vg/\theta$.
+Strong convexity at $\vx$ and $\vu$, with weights $\chi$ and $\theta$,
+respectively, gives
+\begin{align*}
+ \chi\varphi(\vx)+\theta\varphi(\vu)
+ &\geq\varphi(\vy)
+    +\inner{\vg}{\chi(\vx-\vy)+\theta(\vu-\vy)}\\
+ &\quad+\tfrac{\mu_{\rm c}}2
+       \bigl(\chi\norm{\vx-\vy}^2+\theta\norm{\vu-\vy}^2\bigr).
+\end{align*}
+The gradient terms cancel because
+\[
+ \chi(\vx-\vy)+\theta(\vu-\vy)
+ =-\theta\{\chi(\vz-\vu)+\theta(\vy-\vu)\}.
+\]
+Use $\vx-\vy=\theta(\vy-\vz)$ and the convex-combination identity
+\[
+ \norm{\chi(\vz-\vu)+\theta(\vy-\vu)}^2
+ =\chi\norm{\vz-\vu}^2+\theta\norm{\vy-\vu}^2
+       -\chi\theta\norm{\vz-\vy}^2.
+\]
+The remaining decrease is
+$-\mu_{\rm c}\chi\theta(1+\theta)\norm{\vz-\vy}^2/2$.
+Since $\chi(1+\theta)=1-\mu_{\rm c}$, this proves the claim.
+\end{proof}
+
+\begin{proposition}[Accelerated objective convergence]
+\label{prop:det-stage-rate}
+The exact stage recurrence satisfies
+\begin{equation}
+ E_{k+1}\leq\chi E_k,\qquad
+ E_k:=J_r(\vxi_k)-J_r(\vxi^*)
+          +\tfrac{\mu_{\rm c}}2\norm{\vz_k-\vxi^*}_2^2,
+ \qquad E_0\leq1.
+ \label{eq:det-first-energy}
+\end{equation}
+Consequently $K\leq1+\theta^{-1}\log(1/\tau)$ steps suffice for
+correction gap at most $\tau\in(0,1)$.
+\end{proposition}
+\begin{proof}
+The Hessian of $J_r$ lies between $\alpha\mI$ and $\mI$, and
+$\mu_{\rm c}\leq\alpha$. Euclidean projection onto $\gK_r$ supplies
+\cref{eq:det-comparison-sector} with $\vu=\vxi^*$.
+Apply \cref{lem:det-comparison} and discard its nonpositive last term.
+The correction slack
+\begin{equation}
+ \vell_r:=\mQ\vxi^*-\vh+\lambda_r\vomega
+         =\mQ\vx_r^*-\vb+\lambda_r\vomega
+ \label{eq:det-optimum-slack}
+\end{equation}
+is nonnegative and satisfies $\vell_r^\trans\vxi^*=0$.
+Indeed $\vxi^*$ can be positive only where $\vx_r^*$ is positive.
+It follows that
+\[
+ E_0=\tfrac12\norm{\vxi^*}_{\mQ}^2
+               +\tfrac{\mu_{\rm c}}2\norm{\vxi^*}_2^2\leq1,
+\]
+because $\vomega^\trans\vxi^*\leq1$, $\omega_i\geq1$, and
+$\mQ\preceq\mI$. Finally $\chi^K\leq\exp(-\theta K)$.
+\end{proof}
+
+\subsection{The projection inequality in the PageRank metric}
+
+Euclidean projection onto a box with a mass cap is not generally
+nonexpansive in an unrelated matrix metric. We need only the following
+inequality for the particular inverse-source comparator $\vt$.
+
+\begin{lemma}[The second projection comparison]
+\label{lem:det-sector}
+For any $\vq$, put $\vp=\operatorname{Proj}_{\gK_r}(\vq)$ and
+$\vn=\vq-\vp$. Then
+\begin{equation}
+ \inner{\vp-\vt}{\mQ\vn}
+       =(\mQ\vp-\vh)^\trans\vn\geq0.
+ \label{eq:det-second-sector}
+\end{equation}
+\end{lemma}
+\begin{proof}
+The Euclidean normal has a decomposition
+$\vn=\gamma\vomega+\vn^{\rm up}-\vn^{\rm low}$,
+where all multipliers are nonnegative and obey complementary slackness.
+At a lower face $p_i=0$, Stieltjes signs give
+$(\mQ\vp-\vh)_i\leq0$. At an upper face $p_i=4r\omega_i$,
+the upper box and the same signs give
+$(\mQ\vp)_i\geq4r(\mQ\vomega)_i=4\lambda_r\omega_i\geq h_i$.
+Finally, if $\gamma>0$, the mass constraint is tight and
+\[
+ \vomega^\trans(\mQ\vp-\vh)
+ =\alpha\vomega^\trans\vp-m_h=\alpha m_r-m_h=0.
+\]
+Each normal component has nonnegative pairing with $\mQ\vp-\vh$.
+\end{proof}
+
+Define the auxiliary quadratic and comparison energy
+\begin{equation}
+ \begin{aligned}
+ \mathcal A_r(\vxi)&:=\tfrac12\norm{\mQ\vxi-\vh}_2^2
+                  +\alpha\lambda_r\vomega^\trans\vxi,\\
+ B_k&:=\mathcal A_r(\vxi_k)-\mathcal A_r(\vt)
+                  +\tfrac{\mu_{\rm c}}2\norm{\vz_k-\vt}_{\mQ}^2.
+ \end{aligned}
+ \label{eq:det-second-energy}
+\end{equation}
+Its gradient in the $\mQ$ inner product is
+\begin{equation}
+ \nabla_{\mQ}\mathcal A_r(\vxi)
+ =\mQ^{-1}\{\mQ(\mQ\vxi-\vh)+\alpha\lambda_r\vomega\}
+ =\mQ\vxi-\vh+\lambda_r\vomega.
+ \label{eq:det-metric-gradient}
+\end{equation}
+This is exactly the vector already used in \cref{eq:det-iteration}.
+The metric Hessian is $\mQ$, so its eigenvalues are in $[\alpha,1]$.
+
+\begin{lemma}[Uniform squared-response bound]
+\label{lem:det-response}
+For the actual projected trajectory, at every iteration,
+\begin{equation}
+ B_{k+1}\leq\chi B_k,\qquad
+ \norm{\mQ(\vxi_k-\vxi^*)}_2^2
+       \leq18\lambda_r m_h\leq18\alpha^2r.
+ \label{eq:det-response-bound}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Apply \cref{lem:det-comparison} in the $\mQ$ metric, using
+\cref{lem:det-sector} and \cref{eq:det-metric-gradient}.
+The comparator $\vt$ need not minimize $\mathcal A_r$; the comparison
+lemma explicitly permits this.
+Diffuseness and \cref{lem:det-correction-domain} give
+\[
+ \norm{\vh}_2^2\leq4\lambda_r m_h,
+ \quad \vt^\trans\mQ\vt=\vt^\trans\vh\leq4r m_h,
+ \quad \mathcal A_r(\vt)=\lambda_r m_h.
+\]
+Thus $B_0\leq3\lambda_r m_h$ and
+$B_k\leq\chi^k B_0\leq3\lambda_r m_h$, even if $B_0$ is negative.
+The linear and kinetic terms in \cref{eq:det-second-energy} are nonnegative,
+which yields $\norm{\mQ\vxi_k-\vh}_2^2\leq8\lambda_r m_h$.
+Meanwhile
+\[
+ \vq^*:=\vh-\mQ\vxi^*=\vb-\mQ\vx_r^*
+ \quad\hbox{satisfies}\quad
+ \vzero\leq\vq^*\leq\lambda_r\vomega,
+ \quad \vomega^\trans\vq^*\leq m_h.
+\]
+Hence $\norm{\vq^*}_2^2\leq\lambda_r m_h$.
+The squared triangle inequality gives the factor $2(8+1)=18$.
+\end{proof}
+
+\subsection{An analytical set with a uniform outside margin}
+
+Let $\gC_r:=\supp(\vx_{r/2}^*)$. This set is used only in the proof.
+By \cref{lem:rppr-order-mass},
+\begin{equation}
+ \vol(\gC_r)\leq2/r,\qquad
+ i\notin\gC_r\quad\Longrightarrow\quad
+ (x_r^*)_i=0,\quad (\ell_r)_i\geq\lambda_r\omega_i/2.
+ \label{eq:det-comparison-margin}
+\end{equation}
+To verify the margin, both optima vanish at such $i$.
+The order $\vx_{r/2}^*\geq\vx_r^*$ and the nonpositive off-diagonals
+imply $(\mQ\vx_r^*)_i\geq(\mQ\vx_{r/2}^*)_i$.
+Subtracting the two regularization loads and applying KKT at $r/2$
+proves the claim. Thus even when complementarity is arbitrarily weak on
+the optimal boundary, every excursion outside $\gC_r$ pays a known margin.
+
+\begin{theorem}[Cumulative kinetic volume]
+\label{thm:det-kinetic-work}
+For every horizon $K\geq1$ of an exact stage,
+\begin{equation}
+ \sum_{k=0}^{K-1}\vol(\supp\vz_{k+1})\leq\frac{76K}{r}.
+ \label{eq:det-kinetic-work}
+\end{equation}
+The sum includes all repeated visits; no confinement assumption is imposed
+on the kinetic supports.
+\end{theorem}
+\begin{proof}
+Put $\mK_0=(\mI+\mP)/2$, where $\mP=\mA\mD^{-1}$ is nonnegative
+and column stochastic. In mass coordinates set
+\[
+ \vv_k=\theta\mD^{1/2}\vz_k,\quad
+ \vv^*=\theta\mD^{1/2}\vxi^*,\quad
+ \beta_0=\frac{1-\alpha}{1+\theta}\leq\chi.
+\]
+Substitution into the raw update gives the exact identity
+\begin{equation}
+ \begin{aligned}
+ \vv_k^{\rm raw}-\vv^*
+   &=\beta_0\mK_0(\vv_k-\vv^*)+\vh_k^{\rm f}-\vr_{\rm f}^*,\\
+ \vh_k^{\rm f}&=-\frac{\mD^{1/2}(\mQ-\mu_{\rm c}\mI)
+                         (\vxi_k-\vxi^*)}{1+\theta},\qquad
+ \vr_{\rm f}^*=\mD^{1/2}\vell_r.
+ \end{aligned}
+ \label{eq:det-raw-flow}
+\end{equation}
+For clarity, the coefficient of $\vv_k$ is
+$(\mI-\mD^{1/2}\mQ\mD^{-1/2})/(1+\theta)=\beta_0\mK_0$;
+the constant comparison terms cancel by the optimum's stationarity with
+slack $\vell_r$.
+
+Select $\gI_k=\{i:v_{k+1,i}>v_i^*\}$ and let
+$\ve_k=(\vv_k-\vv^*)_+$. On selected coordinates the projected value is
+positive, so lower-face multipliers vanish. Upper-face and mass multipliers
+only subtract nonnegative mass. Column stochasticity therefore gives
+\begin{equation}
+ \norm{\ve_{k+1}}_1+\sum_{i\in \gI_k}r_{{\rm f},i}^*
+ \leq\beta_0\norm{\ve_k}_1+\sum_{i\in \gI_k}h_{k,i}^{\rm f}.
+ \label{eq:det-selected-flow}
+\end{equation}
+This retains the \emph{signed} forcing on the selected coordinates;
+replacing it by all positive forcing would lose the useful estimate.
+Since $\ve_0=\vzero$ and $\beta_0\leq1$, summing telescopes. Every
+positive kinetic coordinate outside $\gC_r$ is selected because
+$\vxi^*$ vanishes there. With
+\[
+ V_{\rm out}:=\sum_{k<K}\vol(\supp\vz_{k+1}\setminus\gC_r),
+ \qquad H_2:=\sum_{k<K}\norm{\mD^{-1/2}\vh_k^{\rm f}}_2^2,
+\]
+we obtain
+\begin{equation}
+ \tfrac{\lambda_r}2 V_{\rm out}
+ \leq\sum_{k<K}\sum_{i\in \gI_k}h_{k,i}^{\rm f}
+ \leq\sqrt{(V_{\rm out}+2K/r)H_2}.
+ \label{eq:det-selected-cauchy}
+\end{equation}
+The last inequality is weighted Cauchy--Schwarz: the total selected
+degree volume is at most $V_{\rm out}+2K/r$.
+Since $\mQ-\mu_{\rm c}\mI$ commutes with $\mQ$ and has eigenvalues
+between zero and those of $\mQ$, \cref{lem:det-response} implies
+$H_2\leq18\alpha^2rK$.
+Writing $Y=V_{\rm out}+2K/r$, \cref{eq:det-selected-cauchy} and
+Young's inequality give
+\[
+ Y\leq\frac{2K}{r}+\frac{2\sqrt{YH_2}}{\lambda_r}
+ \leq\frac{2K}{r}+\frac Y2+\frac{2H_2}{\lambda_r^2}.
+\]
+Thus $Y\leq4K/r+4H_2/\lambda_r^2\leq76K/r$.
+The total kinetic volume is at most $Y$.
+\end{proof}
+
+An accelerated iteration bound and a small final support would not prove
+\cref{eq:det-kinetic-work}. The bound concerns the actual projected
+trajectory, including every excursion and revisit. Its usefulness depends
+on implementing each iteration in time proportional to kinetic updates
+and sparse source records, rather than scanning the historical primal
+support. We give that implementation next.

@@ -1,49 +1,188 @@
-\section{Point Sources, Sparse Sources, and Nonlinearity}
+\section{Explicit Seed Distributions and Their Input Costs}
 \label{app:seed-scope}
 
-The main theorem assumes $\vs=\eunit{v}$.  This appendix records exactly what
-that restriction does and does not imply.
+The main problem begins with one known seed label. This appendix uses a
+different, explicit input interface: a list of $h$ distinct vertex labels
+and positive weights $(i,s_i)$, with $\sum_i s_i=1$. Reading this list,
+checking its mass, querying its degrees, and building an indexed source map
+are charged. These labels are initially known; all subsequent graph labels
+must still be discovered through charged incidences. The graph assumptions
+and original-degree normalization are unchanged. The results in this
+appendix count exact-real words; the bounded-arithmetic theorem in
+\cref{app:bounded-arithmetic} retains its point-source scope.
 
-\begin{proposition}[Linear superposition with a mixture factor]
-\label{prop:sparse-source-superposition}
-Let $\vs$ be a nonnegative unit-mass distribution with support $K$.  Suppose a
-point-source algorithm at vertex $v$ returns $\widehat\vpi^{(v)}$ with
-degree-normalized error at most $\varepsilon_v$ and work
-$\softO(1/(\sqrt\alpha\varepsilon_v))$.  Then
-\begin{equation}
- \widehat\vpi:=\sum_{v\in K}s_v\widehat\vpi^{(v)}
- \label{eq:sparse-source-composition}
-\end{equation}
-has error at most $\sum_{v\in K}s_v\varepsilon_v$.  Choosing the individual
-tolerances optimally gives total work
-\begin{equation}
- |K|+\softO\!\left(
-   \frac{(\sum_{v\in K}\sqrt{s_v})^2}
-        {\sqrt\alpha\epsppr}
- \right).
- \label{eq:sparse-source-mixture-work}
-\end{equation}
-The mixture factor lies in $[1,|K|]$ and equals $|K|$ for the uniform
-distribution on $K$.
-\end{proposition}
+\subsection{Randomized acceleration with additive seed-input work}
 
+The threshold-batch proof has a useful block-source extension. Set
+\begin{equation}
+ \gB_0:=\{i:s_i>\rho d_i\},\qquad
+ \vc_\rho=\alpha\mD^{-1/2}\vs-\alpha\rho\vomega.
+ \label{eq:general-seed-initial-block}
+\end{equation}
+Thus $\gB_0$ is exactly the set of positive coordinates of $\vc_\rho$.
+It is computable from the input list and its degree replies. If it is
+empty, zero satisfies the full obstacle KKT system and is the optimum.
+Otherwise
+\begin{equation}
+ \vol(\gB_0)<1/\rho,\qquad
+ \gB_0\subseteq\mathcal S_\rho^*,\qquad
+ \norm{(\vc_\rho)_{\gB_0}}_2\leq\norm{\vb}_2\leq\alpha.
+ \label{eq:general-seed-initial-bounds}
+\end{equation}
+The first inequality follows by summing $\rho d_i<s_i$.
+For support containment, a positive load at a zero optimum coordinate
+would contradict the off-diagonal signs and KKT. For the norm bound, use
+$d_i\geq1$ and $\sum_i s_i^2\leq(\sum_i s_i)^2=1$.
+
+\begin{theorem}[Explicit-distribution randomized RPPR]
+\label{thm:general-seed-randomized}
+For the explicit seed list above, put
+$k_*=|\mathcal S_\rho^*|$ and $V_*=\vol(\mathcal S_\rho^*)$.
+There is a Las Vegas local algorithm with expected fully charged work
+\begin{equation}
+ \softO\!\left(h+V_*\min\{k_*,\alpha^{-1/2}\}\right)
+ \leq\softO\!\left(h+
+          \min\{\rho^{-2},\rho^{-1}\alpha^{-1/2}\}\right)
+ \label{eq:general-seed-randomized-work}
+\end{equation}
+that returns $\vzero\leq\widehat\vx\leq\vx_\rho^*$ with objective
+gap at most $\epsobj$ and
+$\vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega$.
+The support volume is at most $1/\rho$. Logarithms may include the
+explicit input length $h$; there is no ambient graph-size charge.
+\end{theorem}
 \begin{proof}
-The PPR solution is linear in the load:
-$\vpi(\vs)=\sum_{v\in K}s_v\vpi(\eunit{v})$.  The triangle inequality proves
-the error statement.  Minimizing $\sum_v1/\varepsilon_v$ subject to
-$\sum_vs_v\varepsilon_v\leq\epsppr$ gives
-$\varepsilon_v=\epsppr/(\sqrt{s_v}\sum_u\sqrt{s_u})$ and
-\cref{eq:sparse-source-mixture-work}.  Cauchy--Schwarz gives the stated range.
+The obstacle reduction, least-supersolution order, KKT signs, and weighted
+mass proof in \cref{thm:obstacle-reduction,lem:rppr-order-mass} use only
+$\vs\geq\vzero$ and $\one^\trans\vs=1$, except for the assertion that
+one active component contains the one seed. That assertion is unnecessary
+here. Start the face sequence at $\gB_0$. Its exact face solution is
+strictly positive because its load is strictly positive and the principal
+inverse is nonnegative with positive diagonal. The proof of
+\cref{thm:safe-batched-pivots} then applies to all later batches.
+Outside $\gB_0$, the initial load is nonpositive. Thus a negative slack
+outside the current face can occur only on its boundary, even when an
+unadmitted source label lies farther away. No scan over all source labels
+is required at later phases.
+
+The proof of \cref{thm:threshold-batch-depth} uses the singleton initial
+block at exactly two places. The causal inequality for block one needs
+$(c_\rho)_i\leq0$ outside the initial block. The seed-tail estimate needs
+$\norm{\vg_0}_2\leq\alpha$. Both hold by
+\cref{eq:general-seed-initial-block,eq:general-seed-initial-bounds}, with
+$\vg_0=(\vc_\rho)_{\gB_0}$. All other steps allow arbitrary block
+sizes: the Stieltjes Cholesky factor, its block-bidiagonal truncation,
+inverse ordering, row-map norm, and Chebyshev propagation depend on block
+indices rather than on the cardinality of block zero. The support-volume
+bound remains $V_*\leq1/\rho$. Therefore the same energy-depth theorem
+holds verbatim with initial block $\gB_0$.
+
+Run the certified threshold-batch algorithm from this initial face.
+Its energy bound still follows from $\norm{\vb}_2\leq\alpha$.
+The numerical wrapper, boundary error estimate, and output projection
+therefore have the same guarantees. There are at most
+$\min\{k_*-|\gB_0|+1,J+1\}\leq\min\{k_*,J+1\}$ face solves.
+Building the source map costs $\widetilde O(h)$ once. Each later source
+lookup costs $O(\log(h+2))$ and occurs only in a charged face or boundary
+operation. Exposing the initial block costs at most $V_*$, and all later
+face and boundary records obey the same volume bound. The source map
+adds $O(h)$ storage and is not rescanned per phase.
+
+Finally apply \cref{cor:randomized-safe-repair}. Its proof uses the
+same KKT signs, $\mQ\vomega=\alpha\vomega$, and support-volume bound,
+all of which hold for this distribution. This gives the stronger output
+at the same work up to logarithms. If the initial block is empty, zero
+already has residual at most $\alpha\rho\vomega$.
+At $\alpha=1$, coordinatewise soft thresholding of the explicit source
+list is exact in $O(h)$ work. These branches complete the proof.
 \end{proof}
 
-RPPR does not admit the same composition.  Already at $\alpha=1$,
-$\mQ=\mI$ and
+In particular, direct regularization and the bias bound give a general-seed
+PPR approximation in expected work
+$\widetilde O(h+1/(\epsppr\sqrt\alpha))$.
+The result is a direct multi-source algorithm. It does not use linear
+superposition of separate regularized optima.
+
+\subsection{The deterministic extension and its different input charge}
+
+\begin{proposition}[Explicit-distribution deterministic continuation]
+\label{prop:general-seed-deterministic}
+With the same explicit source interface, the exact-real deterministic
+method has work
+\begin{equation}
+ \softO\!\left(\frac{h+1/\rho}{\sqrt\alpha}\right)
+ \label{eq:general-seed-deterministic-work}
+\end{equation}
+for the same RPPR objective and safe-subsolution output guarantees.
+\end{proposition}
+\begin{proof}
+Read the source list and compute
+$r_0=\max_i s_i/d_i$. If $\rho\geq r_0$, return the exact zero
+solution. Otherwise start the continuation schedule at $r_{\rm old}=r_0$
+and zero baseline. Its first stage has $r\geq r_0/2$, so
+$\vb\leq2\alpha r\vomega$. All subsequent invariants follow as before.
+The correction domain, both energies, and the selected-flow argument use
+only nonnegativity and unit source mass. They therefore give the same
+$76K/r$ cumulative kinetic-volume estimate.
+
+The change is in the fixed source-record set. It now lies in
+$\supp\vs\cup\supp\overline\vx\cup\partial(\supp\overline\vx)$,
+with $O(h+1/r)$ records. Refreshing these exceptions costs
+$\widetilde O(h+1/r)$ per iteration. Thus a stage costs
+$\widetilde O(K(h+1/r))$.
+There are $O(1+\log(1/\rho))$ stages, each with
+$K=\widetilde O(1/\sqrt\alpha)$, and
+$\sum_j1/r_j\leq4/\rho$. This proves
+\cref{eq:general-seed-deterministic-work}, including repeated source
+refreshes rather than assigning them an additive input charge.
+For arbitrary requested accuracy, use the final repair schedule; if a
+positive residual upper bound is desired even at a loose objective target,
+run with tolerance $\min\{\epsobj,\alpha/4\}$ to omit the optional
+loose-accuracy zero branch. The extra precision is only logarithmic.
+\end{proof}
+
+\subsection{What superposition alone would give}
+
+For comparison, linearity of unregularized PPR yields the following
+weaker direct reduction from point-source routines.
+
+\begin{proposition}[Superposition with an explicit mixture factor]
+\label{prop:sparse-source-superposition}
+Let $\gK=\supp\vs$. Suppose a point-source routine at $v$ has
+semantic tolerance $\varepsilon_v$ and work
+$\widetilde O(1/(\sqrt\alpha\varepsilon_v))$, apart from constant
+input work. Then the mixture
+$\widehat\vpi=\sum_{v\in\gK}s_v\widehat\vpi^{(v)}$ has error at most
+$\sum_vs_v\varepsilon_v$. Optimizing these budgets gives work
+\begin{equation}
+ \softO\!\left(h+
+       \frac{(\sum_{v\in\gK}\sqrt{s_v})^2}
+            {\sqrt\alpha\epsppr}\right).
+ \label{eq:sparse-source-mixture-work}
+\end{equation}
+The mixture factor lies in $[1,h]$ and equals $h$ for a uniform source.
+\end{proposition}
+\begin{proof}
+Linearity and the triangle inequality give the error estimate.
+Minimizing $\sum_v1/\varepsilon_v$ subject to
+$\sum_vs_v\varepsilon_v\leq\epsppr$ gives
+$\varepsilon_v=\epsppr/(\sqrt{s_v}\sum_u\sqrt{s_u})$.
+Cauchy--Schwarz gives the factor's range. Tolerances exceeding one use
+zero outputs; the per-source constant work is covered by $h$.
+Dyadic estimates of $\sqrt{s_v}$, found by squared comparisons, obtain
+the same bound within a constant factor using the stated arithmetic model.
+Merging sparse outputs costs only their total size and local dictionary
+logarithms.
+\end{proof}
+
+RPPR itself is nonlinear in the source. At $\alpha=1$ its optimum is
 \[
  (\vx_\rho^*(\vs))_i
- =\max\!\left\{\frac{s_i}{\sqrt{d_i}}-\rho\sqrt{d_i},0\right\},
+   =\max\{s_i/\sqrt{d_i}-\rho\sqrt{d_i},0\}.
 \]
-which is nonlinear in $\vs$.  Consequently independently discovered
-point-source RPPR supports cannot simply be superposed to obtain the support
-for a multi-source instance.  The rooted active-set geometry and the
-point-source end-to-end bound in this paper should therefore not be read as a
-free reduction of the stronger general-seed problem.
+For example, on a single edge with $\rho=1/2$, the two point-source
+regularized optima are $(1/2,0)$ and $(0,1/2)$, whereas the optimum for
+their uniform seed mixture is zero. Their averaged optima are therefore
+not the mixture optimum. The direct extension in
+\cref{thm:general-seed-randomized} works by an initial positive-load
+block and the same depth theorem, rather than by composing those optima.

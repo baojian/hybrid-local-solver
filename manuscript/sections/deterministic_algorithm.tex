@@ -1,0 +1,227 @@
+The deterministic method uses a changing regularization parameter to make
+each remaining correction diffuse. It then accelerates that correction on
+an explicit convex set. The set contains the unknown correction optimum,
+but its definition requires only the current source and the degrees.
+
+\subsection{A diffuse-source stage}
+
+Write
+\begin{equation}
+ \vomega:=\mD^{1/2}\one,
+ \qquad \lambda_r:=\alpha r.
+ \label{eq:det-degree-weight}
+\end{equation}
+Here $r\geq\rho$ is the stage regularizer; $\rho$ remains the final target.
+At the start of a stage we have a sparse baseline $\overline\vx$ satisfying
+\begin{equation}
+ \vzero\leq\overline\vx\leq\vx_r^*,\qquad
+ \vh:=\vb-\mQ\overline\vx,\qquad
+ \vzero\leq\vh\leq4\lambda_r\vomega.
+ \label{eq:det-stage-invariant}
+\end{equation}
+The vector $\vh$ is a residual source, distinct from the seed distribution
+$\vs$. Its weighted mass is
+\begin{equation}
+ m_h:=\vomega^\trans\vh
+      =\alpha(1-\vomega^\trans\overline\vx),\qquad
+ m_r:=m_h/\alpha\leq1.
+ \label{eq:det-source-mass}
+\end{equation}
+We use two comparison vectors only in the analysis:
+\begin{equation}
+ \vxi^*:=\vx_r^*-\overline\vx,
+ \qquad \vt:=\mQ^{-1}\vh=\vx_0^*-\overline\vx.
+ \label{eq:det-comparators}
+\end{equation}
+The algorithm computes neither inverse nor optimum.
+
+\begin{lemma}[An explicit correction domain]
+\label{lem:det-correction-domain}
+Both $\vxi^*$ and $\vt$ belong to
+\begin{equation}
+ \gK_r:=\{\vu:\vzero\leq\vu\leq4r\vomega,
+                    \ \vomega^\trans\vu\leq m_r\}.
+ \label{eq:det-correction-domain}
+\end{equation}
+In fact $\vzero\leq\vxi^*\leq\vt\leq4r\vomega$ and
+$\vomega^\trans\vt=m_r$.
+\end{lemma}
+\begin{proof}
+The order follows from \cref{eq:rppr-bias}, the baseline invariant,
+inverse positivity, and
+$\mQ^{-1}\vomega=\vomega/\alpha$:
+$\vt\leq4\alpha r\mQ^{-1}\vomega=4r\vomega$.
+Multiplying $\mQ\vt=\vh$ by $\vomega^\trans$ proves the mass identity.
+\end{proof}
+
+The correction objective is the smooth quadratic
+\begin{equation}
+ J_r(\vxi):=\tfrac12\vxi^\trans\mQ\vxi
+                 -(\vh-\lambda_r\vomega)^\trans\vxi.
+ \label{eq:det-correction-objective}
+\end{equation}
+On nonnegative corrections it satisfies
+$J_r(\vxi)=F_r(\overline\vx+\vxi)-F_r(\overline\vx)$.
+Thus $\vxi^*$ minimizes $J_r$ on $\gK_r$, and correction gaps are
+exactly the desired gaps for the full candidate.
+
+Choose a dyadic $\theta$ by halving $1/2$ until $\theta^2\leq\alpha$, and set
+\begin{equation}
+ \mu_{\rm c}:=\theta^2,\qquad \chi:=1-\theta,
+ \qquad \alpha/4\leq\mu_{\rm c}\leq\alpha.
+ \label{eq:det-acceleration-parameters}
+\end{equation}
+The subscript distinguishes $\mu_{\rm c}$ from a source paper's curvature
+notation. Start with $\vxi_0=\vz_0=\vzero$ and iterate
+\begin{equation}
+ \begin{aligned}
+ \vy_k&=\frac{\vxi_k+\theta\vz_k}{1+\theta},\\
+ \vq_k&=\chi\vz_k+\theta\vy_k
+       -\frac{\mQ\vy_k-\vh+\lambda_r\vomega}{\theta},\\
+ \vz_{k+1}&=\operatorname{Proj}_{\gK_r}(\vq_k),\\
+ \vxi_{k+1}&=\chi\vxi_k+\theta\vz_{k+1}.
+ \end{aligned}
+ \label{eq:det-iteration}
+\end{equation}
+Projection is Euclidean. We call $\vz_k$ the \emph{kinetic vector} to
+distinguish the coordinates updated by the projection from the longer-lived
+primal correction $\vxi_k$. Both stay in $\gK_r$ by convexity.
+
+\paragraph{Why both constraints are present.}
+The upper box controls the sign of a projection normal at a saturated
+coordinate. The mass cap controls the common normal introduced by the
+weighted sum constraint. Together they allow the \emph{same} Euclidean
+projection to satisfy a comparison inequality in the $\mQ$ metric
+(\cref{lem:det-sector}). That second comparison is the additional ingredient
+needed to bound local work. Neither constraint requires knowing the support
+of $\vx_r^*$, and the kinetic support need not be contained in it.
+
+\paragraph{Explicit projection.}
+There is a scalar $\gamma\geq0$ such that
+\begin{equation}
+ \frac{z_{k+1,i}}{\omega_i}
+ =\min\{4r,(q_{k,i}/\omega_i-\gamma)_+\}.
+ \label{eq:det-waterfill}
+\end{equation}
+If the right side at $\gamma=0$ has weighted mass at most $m_r$, use zero;
+otherwise choose $\gamma$ so that $\vomega^\trans\vz_{k+1}=m_r$.
+These are exactly the projection KKT conditions. The finite threshold search
+and the cost of reporting its positive coordinates are proved in
+\cref{sec:deterministic-implementation}.
+
+\subsection{A certified stage handoff}
+
+A small objective gap does not by itself make the candidate a subsolution.
+We use one projected-gradient step and a downward density correction at the
+\emph{end} of a stage. Intermediate iterations remain precisely
+\cref{eq:det-iteration}.
+
+\begin{lemma}[Safe repair]
+\label{lem:det-repair}
+Let $0<\delta\leq\lambda_r/2$. Suppose a nonnegative candidate
+$\widetilde\vx$ has $F_r(\widetilde\vx)-F_r(\vx_r^*)\leq\tau$, where
+$\tau\leq\alpha\delta^2/8$. Let the old baseline satisfy
+$\vzero\leq\overline\vx\leq\vx_r^*$ and
+$\mQ\overline\vx\leq\vb$; it may be zero. Define
+\begin{equation}
+ \vp=[\widetilde\vx-(\mQ\widetilde\vx-\vb+\lambda_r\vomega)]_+,
+ \qquad \vu=[\vp-\delta\vomega]_+.
+ \label{eq:det-repair-map}
+\end{equation}
+Then $\overline\vx^+:=\max\{\overline\vx,\vu\}$ satisfies
+\begin{equation}
+ \begin{gathered}
+ \vzero\leq\overline\vx\leq\overline\vx^+\leq\vx_r^*,\qquad
+ \vzero\leq\vb-\mQ\overline\vx^+\leq2\lambda_r\vomega,\\
+ \vol(\supp\overline\vx^+)\leq1/r,\qquad
+ F_r(\overline\vx^+)-F_r(\vx_r^*)\leq2\delta^2/r.
+ \end{gathered}
+ \label{eq:det-repaired-invariant}
+\end{equation}
+The coordinatewise maximum can be omitted if monotone baselines are not
+needed.
+\end{lemma}
+\begin{proof}
+Write $\vdelta=\widetilde\vx-\vp$. Projection optimality and
+$\mQ\preceq\mI$ give
+\begin{equation}
+ F_r(\widetilde\vx)-F_r(\vp)\geq\tfrac12\norm{\vdelta}_2^2,
+ \qquad (\mI-\mQ)\vdelta\in
+ \partial(\phi_r+I_{\R_+^n})(\vp).
+ \label{eq:det-pg-certificate}
+\end{equation}
+For the second assertion, the projection normal is
+$\vdelta-\nabla\phi_r(\widetilde\vx)$; adding
+$\nabla\phi_r(\vp)$ gives $(\mI-\mQ)\vdelta$.
+Strong convexity and descent imply
+\[
+ \norm{\vp-\vx_r^*}_2\leq\sqrt{2\tau/\alpha}\leq\delta/2,
+ \qquad \norm{(\mI-\mQ)\vdelta}_2\leq\sqrt{2\tau}\leq\delta/2.
+\]
+At every positive coordinate of $\vp$ the normal cone vanishes. Hence
+$(\mQ\vp-\vb)_i\leq\delta/2-\lambda_r\omega_i\leq0$.
+At a zero coordinate the same inequality follows from the Stieltjes signs.
+Clipping gives $\vzero\leq\vu\leq\vx_r^*$ and
+$\vzero\leq\vx_r^*-\vu\leq2\delta\vomega$, using $\omega_i\geq1$.
+If $u_i>0$, then $u_i=p_i-\delta\omega_i$ and
+$\vu\geq\vp-\delta\vomega$. Therefore
+$(\mQ\vu)_i\leq(\mQ\vp)_i-\alpha\delta\omega_i\leq b_i$;
+zero coordinates again follow by the off-diagonal sign.
+
+The maximum of two nonnegative subsolutions is a subsolution: on row $i$,
+choose the vector that attains the maximum there; the diagonal term is
+unchanged and every other coordinate can only increase. Both vectors are
+below $\vx_r^*$, and the maximum retains the displayed error bound.
+The identity $|\mQ|\vomega=\vomega$ then gives
+\[
+ \vb-\mQ\overline\vx^+
+ \leq\vb-\mQ\vx_r^*+2\delta\vomega
+ \leq(\lambda_r+2\delta)\vomega\leq2\lambda_r\vomega.
+\]
+Support containment gives the volume bound and makes the linear KKT term
+in the objective expansion zero. Thus the gap is
+$\tfrac12\norm{\overline\vx^+-\vx_r^*}_{\mQ}^2
+ \leq\tfrac12(2\delta)^2\vol(\mathcal S_r^*)\leq2\delta^2/r$.
+\end{proof}
+
+\subsection{The complete deterministic algorithm}
+
+\begin{algorithm}[t]
+\caption{Deterministic accelerated local RPPR}
+\label{alg:deterministic-rppr}
+\begin{algorithmic}[1]
+\REQUIRE Degree and adjacency-list access, seed $v$, $\alpha,\rho,\epsobj>0$
+\STATE Query $d_v$. If $\rho d_v\geq1$ or $\epsobj\geq\alpha/2$, return $\vzero$.
+\STATE If $\alpha=1$, return the single coordinate
+       $\widehat x_v=(1-\rho d_v)/\sqrt{d_v}$.
+\STATE Choose $\theta,\mu_{\rm c},\chi$ as in
+       \cref{eq:det-acceleration-parameters}; set
+       $r_{\rm old}=1/d_v$ and $\overline\vx=\vzero$.
+\REPEAT
+  \STATE $r\gets\max\{\rho,r_{\rm old}/2\}$; set $\delta\gets\alpha r/2$.
+  \IF{$r=\rho$}
+    \STATE Halve $\delta$ until $2\delta^2/r\leq\epsobj$.
+  \ENDIF
+  \STATE Assemble $\vh=\vb-\mQ\overline\vx$ locally; compute $m_r$.
+  \STATE Set $\vxi=\vz=\vzero$, $a_0=1$, and $\tau=\alpha\delta^2/8$.
+  \WHILE{$a_0>\tau$}
+    \STATE Apply \cref{eq:det-iteration} using the sparse threshold reporter.
+    \STATE $a_0\gets\chi a_0$.
+  \ENDWHILE
+  \STATE Materialize $\widetilde\vx=\overline\vx+\vxi$; apply
+         \cref{eq:det-repair-map} and set
+         $\overline\vx\gets\max\{\overline\vx,\vu\}$.
+  \STATE $r_{\rm old}\gets r$.
+\UNTIL{$r=\rho$}
+\RETURN The sparse coordinate list of $\overline\vx$.
+\end{algorithmic}
+\end{algorithm}
+
+The scalar $a_0$ is a computable upper bound on the current comparison
+energy, as proved next. In particular, the stopping test uses no optimum,
+global gradient, or unknown complementarity margin.
+The first stage has $r\geq1/(2d_v)$, so its source obeys
+$\vb\leq2\alpha r\vomega$. At subsequent stages,
+\cref{eq:det-repaired-invariant} and $r\geq r_{\rm old}/2$ imply
+$\vh\leq4\alpha r\vomega$. Monotonicity of $\vx_r^*$ as $r$ decreases
+preserves baseline safety. These facts close the continuation induction.

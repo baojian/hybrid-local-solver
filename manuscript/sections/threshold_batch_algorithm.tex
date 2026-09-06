@@ -1,16 +1,25 @@
-For $\zeta\in(0,1)$ and $0<\epsobj<\alpha/2$, define
+Remove the constant-output cases first. For
+$0<\epsobj<\alpha/2$, $0<\rho<1/d_v$, and $0<\alpha<1$, choose
+$\vartheta$ by halving one until
 \begin{equation}
- \vartheta:=\frac18\sqrt{\alpha\rho\epsobj},
- \qquad
- \nu:=\frac{\vartheta}{4},
- \qquad
- J:=\left\lceil
-  \frac{\log(64/\epsobj)}{2\log(1/q_\alpha)}
- \right\rceil,
- \qquad
- R:=\left\lceil\log_4\frac{J+1}{\zeta}\right\rceil.
+ \frac1{16}\sqrt{\alpha\rho\epsobj}<\vartheta
+       \leq\frac18\sqrt{\alpha\rho\epsobj},\qquad
+ \nu:=\vartheta/4.
+ \label{eq:algorithm-threshold}
+\end{equation}
+Equivalently, stop when $\vartheta^2\leq\alpha\rho\epsobj/64$;
+no square root is computed. Choose a dyadic $\theta_{\rm b}$ as in
+\cref{eq:det-acceleration-parameters}, and define the integer caps
+\begin{equation}
+ \begin{aligned}
+ T_{\rm b}&=1/\theta_{\rm b},&
+ q_{\rm acc}&=\min\{j\in\sN:2^j\geq64/\epsobj\},&
+ J&=T_{\rm b}q_{\rm acc},\\
+ N_{\rm try}&=\min\{j\in\sN:4^j\geq(J+1)/\zeta\}.&&&
+ \end{aligned}
  \label{eq:algorithm-parameters}
 \end{equation}
+All these choices use halving, integer multiplication, and comparisons.
 The algorithm deliberately rebuilds a supplied-face solver.  The depth
 theorem makes this affordable and avoids a stronger dynamic-inverse
 assumption.
@@ -19,23 +28,27 @@ assumption.
 \caption{Threshold-batch local RPPR solver}
 \label{alg:threshold-batch-rppr}
 \begin{algorithmic}[1]
-\STATE $U\gets\{v\}$.
+\REQUIRE Local graph access, seed $v$, $\alpha,\rho,\epsobj>0$, $\zeta\in(0,1)$
+\STATE Query $d_v$. If $\rho d_v\geq1$ or $\epsobj\geq\alpha/2$, return zero.
+\STATE If $\alpha=1$, return the exact seed coordinate.
+\STATE Set the parameters in \cref{eq:algorithm-threshold,eq:algorithm-parameters}.
+\STATE $\gU\gets\{v\}$; expose its row and cache the discovered degrees.
 \FOR{$k=0,1,\ldots,J$}
-  \STATE Make at most $R$ independent local SDD calls at relative energy
+  \STATE Make at most $N_{\rm try}$ independent local SDD calls at relative energy
          tolerance $\nu$.  After each call, scan the active rows and accept
          the first $\vz$ satisfying
-         $\norm{\mQ_{UU}\vz_U-(\vc_\rho)_U}_2\leq\nu\sqrt\alpha$.
+         $\norm{\mQ_{\gU\gU}\vz_\gU-(\vc_\rho)_\gU}_2\leq\nu\sqrt\alpha$.
   \STATE If no call is certified, \textbf{return} an explicit failure flag.
-  \STATE Scan all rows in $U$ once and accumulate
+  \STATE Scan all rows in $\gU$ once and accumulate
          $\widehat r_i=(c_\rho)_i-(\mQ\vz)_i$ for every boundary candidate.
   \IF{$k=J$}
-    \STATE \textbf{return} $[\vz]_+$ and $U$.
+    \STATE \textbf{return} $[\vz]_+$ and $\gU$.
   \ENDIF
-  \STATE $B\gets\{i\in\partial U:\widehat r_i>\vartheta/2\}$.
-  \IF{$B=\emptyset$}
-    \STATE \textbf{return} $[\vz]_+$ and $U$.
+  \STATE $\gB\gets\{i\in\partial \gU:\widehat r_i>\vartheta/2\}$.
+  \IF{$\gB=\emptyset$}
+    \STATE \textbf{return} $[\vz]_+$ and $\gU$.
   \ENDIF
-  \STATE Expose the adjacency lists of $B$ and set $U\gets U\cup B$.
+  \STATE Expose the adjacency lists of $\gB$ and set $\gU\gets \gU\cup \gB$.
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
@@ -68,37 +81,42 @@ $\rho\geq1/d_v$, one seed-degree query identifies the exact zero solution.
 
 \begin{proof}
 We first verify the face-solve wrapper.  On a reachable face,
-$(\vc_\rho)_U\leq\vb_U$ and $\mQ_{UU}^{-1}\geq\vzero$, so
+$(\vc_\rho)_\gU\leq\vb_\gU$ and $\mQ_{\gU\gU}^{-1}\geq\vzero$, so
 \begin{equation}
- \vzero\leq\vx_U^U\leq\mQ_{UU}^{-1}\vb_U,
+ \vzero\leq\vx_\gU^\gU\leq\mQ_{\gU\gU}^{-1}\vb_\gU,
  \qquad
- \norm{\vx^U}_{\mQ}^2
- =(\vc_\rho)_U^\trans\vx_U^U
- \leq\vb_U^\trans\mQ_{UU}^{-1}\vb_U\leq\alpha.
+ \norm{\vx^\gU}_{\mQ}^2
+ =(\vc_\rho)_\gU^\trans\vx_\gU^\gU
+ \leq\vb_\gU^\trans\mQ_{\gU\gU}^{-1}\vb_\gU\leq\alpha.
  \label{eq:face-energy-bound}
 \end{equation}
 The last inequality uses
 $\norm{\vb}_2^2=\alpha^2/d_v\leq\alpha^2$ and
-$\mQ_{UU}\succeq\alpha\mI$.
+$\mQ_{\gU\gU}\succeq\alpha\mI$.
 
-Run the solver of \citet{koutis2011nearly} with a constant-success chain
-construction.  On a good call at relative energy tolerance $\nu$, the error
-$\ve=\vz-\vx^U$ satisfies
-$\norm{\ve}_{\mQ}\leq\nu\norm{\vx^U}_{\mQ}leq\nu\sqrt\alpha$ and hence
+Use the supplied-matrix solver of
+\citet[Lemma~4.5 and Theorem~4.6]{koutis2011nearly}, with a fresh
+chain having success probability at least $3/4$ on each call. All of its
+construction and iteration work is charged on the supplied local matrix.  On a good call at relative energy tolerance $\nu$, the error
+$\ve=\vz-\vx^\gU$ satisfies
+$\norm{\ve}_{\mQ}\leq\nu\norm{\vx^\gU}_{\mQ}\leq\nu\sqrt\alpha$ and hence
 passes the residual test.  Conversely, every accepted call, whether or not
 its random chain was good, obeys the deterministic bound
 \begin{equation}
- \norm{\vz-\vx^U}_{\mQ}^2
- =\vr_U^\trans\mQ_{UU}^{-1}\vr_U
- \leq\frac1\alpha\norm{\vr_U}_2^2
+ \norm{\vz-\vx^\gU}_{\mQ}^2
+ =\vr_\gU^\trans\mQ_{\gU\gU}^{-1}\vr_\gU
+ \leq\frac1\alpha\norm{\vr_\gU}_2^2
  \leq\nu^2,
  \qquad
- \vr_U:=\mQ_{UU}\vz_U-(\vc_\rho)_U.
+ \vr_\gU:=\mQ_{\gU\gU}\vz_\gU-(\vc_\rho)_\gU.
  \label{eq:certified-face-error-main}
 \end{equation}
-With constant call-failure probability at most $1/4$, $R$ independent trials
+With constant call-failure probability at most $1/4$, $N_{\rm try}$ fresh trials
 leave a phase uncertified with probability at most
-$4^{-R}\leq\zeta/(J+1)$.  A union bound proves the reported-failure claim.
+$4^{-N_{\rm try}}\leq\zeta/(J+1)$.  The face depends on earlier accepted calls. Conditional on that entire
+history, each fresh call has the stated success guarantee for the now fixed
+supplied matrix. The conditional failure bound and a union bound over at
+most $J+1$ faces prove the reported-failure claim.
 
 The boundary residual is uniformly accurate.  Since
 $\mQ^2\preceq\mQ$,
@@ -113,39 +131,39 @@ $\vartheta/4$ and is support-safe by
 exact residual below $3\vartheta/4<\vartheta$.  Thus the nonempty batches
 form a $\vartheta$-batched sequence and every face satisfies
 \begin{equation}
- U\subseteq\mathcal S_\rho^*,
+ \gU\subseteq\mathcal S_\rho^*,
  \qquad
- \vol(U)\leq\vol(\mathcal S_\rho^*)\leq1/\rho.
+ \vol(\gU)\leq\vol(\mathcal S_\rho^*)\leq1/\rho.
  \label{eq:algorithm-face-volume}
 \end{equation}
 
 If the loop reaches its cap, \cref{thm:threshold-batch-depth} and
-\cref{eq:algorithm-parameters} give
+\cref{eq:algorithm-threshold,eq:algorithm-parameters} give
 \begin{equation}
- \phi_\rho(\vx^U)-\phi_\rho(\vx_\rho^*)
+ \phi_\rho(\vx^\gU)-\phi_\rho(\vx_\rho^*)
  \leq8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho}
  \leq\frac{\epsobj}{8}+\frac{\epsobj}{64}.
  \label{eq:capped-face-gap-main}
 \end{equation}
-If $B=\emptyset$, every exact positive outside residual is at most
+If $\gB=\emptyset$, every exact positive outside residual is at most
 $3\vartheta/4$.  Only boundary coordinates can be positive and
-$|\partial U|\leq\vol(U)\leq1/\rho$, so
+$|\partial \gU|\leq\vol(\gU)\leq1/\rho$, so
 \cref{lem:kkt-gap-certificate} gives
 \begin{equation}
- \phi_\rho(\vx^U)-\phi_\rho(\vx_\rho^*)
+ \phi_\rho(\vx^\gU)-\phi_\rho(\vx_\rho^*)
  \leq\frac{9\vartheta^2}{32\alpha\rho}
- =\frac{9\epsobj}{2048}.
+ \leq\frac{9\epsobj}{2048}.
  \label{eq:empty-batch-gap-main}
 \end{equation}
 
-Finally, $\vx^U\geq\vzero$, so Euclidean orthant projection is nonexpansive
-relative to $\vx^U$.  Restricted stationarity and
+Finally, $\vx^\gU\geq\vzero$, so Euclidean orthant projection is nonexpansive
+relative to $\vx^\gU$.  Restricted stationarity and
 $\alpha\mI\preceq\mQ\preceq\mI$ imply
 \begin{equation}
- \phi_\rho([\vz]_+)-\phi_\rho(\vx^U)
- =\frac12\norm{[\vz]_+-\vx^U}_{\mQ}^2
+ \phi_\rho([\vz]_+)-\phi_\rho(\vx^\gU)
+ =\frac12\norm{[\vz]_+-\vx^\gU}_{\mQ}^2
  \leq\frac{\nu^2}{2\alpha}
- =\frac{\rho\epsobj}{2048}
+ \leq\frac{\rho\epsobj}{2048}
  \leq\frac{\epsobj}{2048}.
  \label{eq:projected-face-error}
 \end{equation}
@@ -154,18 +172,19 @@ prove \cref{eq:local-rppr-gap} with room to spare.
 
 It remains to charge work.  In degree coordinates the supplied face matrix is
 \begin{equation}
- \mH_{UU}:=\mD_U^{1/2}\mQ_{UU}\mD_U^{1/2}
- =\frac{1+\alpha}{2}\mD_U-\frac{1-\alpha}{2}\mA_{UU}.
+ \mH_{\gU\gU}:=\mD_\gU^{1/2}\mQ_{\gU\gU}\mD_\gU^{1/2}
+ =\frac{1+\alpha}{2}\mD_\gU-\frac{1-\alpha}{2}\mA_{\gU\gU}.
  \label{eq:degree-scaled-face-sdd}
 \end{equation}
 Its diagonal dominates its absolute off-diagonal row sum, and it has
-$O(\vol(U))$ stored nonzeros.  Solving
-$\mH_{UU}\vy_U=\mD_U^{1/2}(\vc_\rho)_U$ and returning
-$\vz_U=\mD_U^{1/2}\vy_U$ preserves the energy norm.  The requested relative
+$O(\vol(\gU))$ stored nonzeros.  Solving
+$\mH_{\gU\gU}\vy_\gU=\mD_\gU^{1/2}(\vc_\rho)_\gU$ and returning
+$\vz_\gU=\mD_\gU^{1/2}\vy_\gU$ preserves the energy norm.  The requested relative
 accuracy is
 \begin{equation}
  \eta_{\rm sdd}=\nu
- =\frac1{32}\sqrt{\alpha\rho\epsobj}.
+ \in\left(\frac1{64}\sqrt{\alpha\rho\epsobj},
+          \frac1{32}\sqrt{\alpha\rho\epsobj}\right].
  \label{eq:face-sdd-tolerance}
 \end{equation}
 The supplied-matrix theorem of \citet{koutis2011nearly} is nearly linear in
@@ -173,10 +192,14 @@ the local nonzeros and logarithmic in $1/\eta_{\rm sdd}$.  Including capped
 retries and certification, one face costs
 \[
  \softO\!\left(
-   \vol(U)\log\frac1{\eta_{\rm sdd}}\,R
+   \vol(\gU)\log\frac1{\eta_{\rm sdd}}\,N_{\rm try}
  \right).
 \]
-Every other operation in the phase is $O(\vol(U))$.  Batch exposure is
+Degree replies for newly exposed endpoints are cached. Candidate records
+and sparse indices use deterministic balanced trees, contributing local-size
+logarithms. Every other operation in the phase is therefore
+$\widetilde O(\vol(\gU))$, including candidate maintenance and all repeated
+reads of cached incidences.  Batch exposure is
 charged to the next face and remains $O(1/\rho)$ by
 \cref{eq:algorithm-face-volume}.  Finally,
 \begin{equation}
@@ -185,14 +208,31 @@ charged to the next face and remains $O(1/\rho)$ by
  \geq\sqrt{2\alpha},
  \label{eq:batch-count-log-bound}
 \end{equation}
-so $J=O(\alpha^{-1/2}\log(1/\epsobj))$.  Multiplying the per-face charge by
-this count proves \cref{eq:local-rppr-work}.  The bound is unconditional:
+Since $\theta_{\rm b}\leq\sqrt\alpha$, the chosen
+$J=T_{\rm b}q_{\rm acc}$ satisfies
+$q_\alpha^{2J}\leq\exp(-2\sqrt2q_{\rm acc})
+ \leq2^{-q_{\rm acc}}\leq\epsobj/64$,
+justifying the capped-gap estimate above.
+Also $J=O(\alpha^{-1/2}\log(1/\epsobj))$.
+Multiplying the per-face charge by this count proves
+\cref{eq:local-rppr-work}.  The bound is unconditional:
 only certified batches are exposed, even on an execution that later reports
-failure.
+failure. More precisely, every nonempty batch adds at least one new vertex.
+Thus the number of face solves is at most
+$\min\{k_*,J+1\}$, and each face has volume at most $V_*$.
+The same ledger gives
+\begin{equation}
+ \E\Work\leq
+ \softO\!\left(V_*\min\{k_*,\alpha^{-1/2}\}\right),
+ \label{eq:randomized-refined-ledger}
+\end{equation}
+with the accuracy and failure logarithms already specified. Graph and
+boundary records have $O(V_*)$ words; only one supplied-face numerical
+state is live at a time. All its allocation and disposal are charged.
 
 For the constant-output cases, $F_\rho(\vzero)-F_\rho(\vx_\rho^*)\leq
 \alpha/2$ follows from $\norm{\vb}_2^2\leq\alpha^2$ and strong convexity of
-the smooth quadratic.  The seed-load sign proves the zero-RPPR test.
+the smooth quadratic.  The seed-load sign proves the zero-RPPR test. The case $\alpha=1$ is diagonal and has the explicit solution stated in \cref{sec:problem-formulation}.
 \end{proof}
 
 \begin{remark}[Las Vegas wrapper and exact scope]
@@ -204,3 +244,43 @@ algorithm with constant expected restart overhead.  This statement does not
 provide deterministic bit complexity or guarantee the stability of a
 particular floating-point implementation.
 \end{remark}
+
+\begin{corollary}[A safe subsolution output at the same work bound]
+\label{cor:randomized-safe-repair}
+The randomized algorithm can additionally return
+\begin{equation}
+ \vzero\leq\widehat\vx\leq\vx_\rho^*,\qquad
+ \vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega,
+ \label{eq:randomized-safe-output}
+\end{equation}
+while satisfying the requested objective gap and retaining the expected
+work in \cref{eq:randomized-refined-ledger} up to parameter logarithms.
+\end{corollary}
+\begin{proof}
+Choose $\delta$ by halving $\alpha\rho/2$ until
+$2\delta^2/\rho\leq\epsobj$, and call the threshold-batch algorithm
+with the smaller objective budget $\tau=\alpha\delta^2/8$.
+On its returned candidate perform the projected-gradient and downward
+correction in \cref{eq:det-repair-map}, with $r=\rho$ and old baseline
+zero. \Cref{lem:det-repair} gives
+\cref{eq:randomized-safe-output}, support safety, and the required gap.
+The new budget has
+$\log(1/\tau)=O(\log(2/(\alpha\rho\min\{1,\epsobj\})))$.
+The terminal product scans only the already discovered candidate face.
+Apply the downward correction before opening newly positive neighbors;
+the repaired support lies inside $\mathcal S_\rho^*$.
+Hence any additional scan and output cost is $\widetilde O(V_*)$.
+The repair is deterministic and introduces no new failure event.
+\end{proof}
+
+\begin{proof}[Proof of \cref{thm:randomized-rppr-main}]
+Use \cref{thm:local-rppr,eq:randomized-refined-ledger} and, for the stronger
+subsolution output, \cref{cor:randomized-safe-repair}.
+Set $\zeta=1/4$ and restart after an explicit failure. Each entire run
+uses fresh random choices and succeeds with probability at least $3/4$.
+The usual renewal identity bounds total expected work by at most $4/3$
+times the unconditional expected work of one run; it does not require
+independence between that run's work and its success event. Every returned
+vector is certified, so this is Las Vegas. Keeping the requested $\zeta$
+and making a single run gives the alternative failure-reporting guarantee.
+\end{proof}

@@ -1,7 +1,8 @@
 # Manuscript workspace
 
-This directory separates the active hybrid-local-solver paper from complete
-archives of earlier papers.
+This directory contains the active arXiv theory paper, *Accelerated Local
+Algorithms for Regularized PageRank*, and preserves the independent research
+notes and archives that led to it.
 
 ## Active manuscript
 
@@ -23,7 +24,7 @@ manuscript/
 │       ├── notation.tex
 │       ├── NOTATION.md
 │       └── writing_commands.tex
-└── jmlr2e.sty
+└── dist/                  # generated PDF and arXiv source archive
 ```
 
 `main.tex` contains document structure only. Shared package configuration and
@@ -48,14 +49,25 @@ those older command files:
   drafting colors, checkmarks, and pseudocode assignment symbols;
 - `preamble.tex` owns package loading and theorem-environment setup.
 
-The active 20-page draft is now organized around one positive theorem spine:
-point-source problem and semantic accuracy, Stieltjes obstacle geometry,
-support-safe threshold batches, the block-Cholesky/Chebyshev depth theorem, a
-fully charged randomized local RPPR solver, and the strict two-stage PPR
-composition.  It also contains an explicit related-work lineage and a
-human/AI research-process disclosure.  The earlier APPR, ISTA, and CF-Push
-section files remain in the repository as proved supporting material but are
-not input by the focused active draft.
+The active paper presents both randomized and deterministic solutions of the
+algorithmic OP2 running-time target in `notes/problem_definitions/`:
+
+- deterministic regularization continuation, a two-metric accelerated proof,
+  cumulative kinetic-volume charging, and a deterministic sparse reporter;
+- randomized support-safe threshold batching, block-Cholesky/Chebyshev depth,
+  and residual-certified nearly-linear SDD calls;
+- a separate bounded-arithmetic point-source implementation with explicit
+  encoding costs;
+- semantic PPR and ACL residual guarantees, an optional set-only PPR handoff,
+  and explicit multi-source input-cost extensions;
+- source-checked comparisons, full proofs, and an AI-assistance disclosure.
+
+The randomized proof comes from `notes/active_edge_lcp/`. The two
+`deterministic_op2*_20260905` notes contain the development and independent
+audit of the deterministic proof. `evolving_support_cg` is relevant context,
+not the source of a complete randomized OP2 theorem. The active paper builds
+without importing any of those archives. Earlier APPR, ISTA, and CF-Push
+section files remain as supporting material but are not input by this paper.
 
 Add reusable notation to these shared files rather than defining commands
 inside individual sections. Structural tests enforce that boundary and prevent
@@ -66,7 +78,15 @@ Build the active paper from the repository root with:
 
 ```bash
 make paper
+make -C manuscript arxiv
 ```
+
+The second command writes `dist/arxiv-source.tar.gz` and
+`dist/accelerated-local-rppr.pdf`. The archive contains only the active
+transitive TeX dependencies, bibliography, generated `.bbl`, and a small
+build README. See [`ARXIV_REVIEW.md`](ARXIV_REVIEW.md) for the proof/source
+audit, baseline repository issues, independent-build check, and visual QA.
+The author will submit the archive; no external submission is performed.
 
 Project-wide mathematical definitions and research decisions belong in
 `docs/`. Keep the active manuscript consistent with those documents, the

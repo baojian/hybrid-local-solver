@@ -1,85 +1,91 @@
-\documentclass[twoside,11pt]{article}
+\documentclass[11pt]{article}
 
 \input{tex/shared/preamble}
 \input{tex/shared/math_commands}
 \input{tex/shared/writing_commands}
 \input{tex/shared/research_commands}
 
-\title{Threshold-Batched Active Sets for Local Personalized PageRank}
-
+\title{Accelerated Local Algorithms for Regularized PageRank}
 \author{Baojian Zhou}
-\editor{To be assigned}
+\date{September 2026}
+\hypersetup{pdftitle={Accelerated Local Algorithms for Regularized PageRank},
+            pdfauthor={Baojian Zhou}}
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-We study single-source personalized PageRank on an undirected graph in a
-fully charged adjacency-list model.  The main obstacle in using
-$\ell_1$-regularized PageRank as a local support screen is not solving one
-restricted system, but controlling how many growing restricted systems must
-be rebuilt.  We reduce the regularized problem to a Stieltjes obstacle
-problem and expose its exact grounded electrical-flow dual.  In this dual,
-the obstacle slack is a vertex-constraint slack, so active-set expansion is
-local dual constraint generation.  We prove that positive-residual batch
-admissions are support-safe and that a threshold-batched sequence has only
-$\widetilde O(1/\sqrt\alpha)$ relevant exposed faces.  The proof orders the
-unknown optimal support by admission time and applies Chebyshev inverse decay
-to a block-bidiagonal truncation of its Cholesky factor.
+Can acceleration improve the condition-number dependence of local PageRank
+without losing locality? We give deterministic and randomized algorithms
+attaining the $\widetilde O(1/(\rho\sqrt\alpha))$ running-time target for
+$\ell_1$-regularized personalized PageRank posed by Fountoulakis and Yang at
+COLT 2022. Here $\alpha$ is the lazy PageRank parameter, $\rho$ is the
+regularization parameter, and optimization accuracy enters only
+polylogarithmically. The graph is given by local adjacency-list access;
+all discovery, repeated scans, arithmetic, state maintenance, and output are
+charged, with no graph-wide preprocessing or supplied solution support.
 
-Combining this depth theorem with residual-certified, nearly-linear SDD face
-solves yields an exact-real randomized algorithm with expected fully charged
-work
-\[
-  \widetilde O\!\left(
-    \frac{1}{\rho\sqrt\alpha}
-    \log\frac1{\epsobj}\log\frac2\zeta
-  \right)
-\]
-for an $\epsobj$-accurate regularized solution, with failure probability at
-most $\zeta$.  A strict two-stage variant keeps only the discovered face and
-then solves one ordinary principal PageRank system.  With
-$\rho=\Theta(\epsppr)$ it returns a degree-normalized
-$\epsppr$-accurate PPR vector in
-$\widetilde O(1/(\epsppr\sqrt\alpha))$ expected work.  The outer support
-construction and every accepted admission are deterministically certified;
-randomness enters only through a standard supplied-face SDD solver.  We state
-the point-source scope and the remaining deterministic finite-precision
-question explicitly.
+Our deterministic algorithm combines regularization continuation with
+accelerated corrections constrained by a degree-scaled box and a mass cap.
+One energy proves accelerated convergence. A second energy, obtained from
+the same recurrence in the PageRank metric, controls the response that can
+activate vertices outside a small analytical comparison set. A signed-flow
+argument then bounds cumulative scanned volume, including repeated visits.
+A deterministic threshold data structure realizes this bound. We also give
+a bounded-arithmetic realization with explicit encoding costs.
+
+Our randomized algorithm instead solves a sequence of support-safe principal
+systems. A block-Cholesky and Chebyshev argument bounds the number of
+threshold batches by $\widetilde O(1/\sqrt\alpha)$. Residual-certified SDD
+solves yield a Las Vegas algorithm. Both methods imply
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ work for degree-normalized PPR
+error $\epsppr$. The main results hold for point sources on finite connected
+simple unweighted undirected graphs.
 \end{abstract}
 
 \section{Introduction}\label{sec:introduction}
 \input{sections/introduction}
 
-\section{Related Work}\label{sec:related-work}
-\input{sections/related_work}
-
 \section{Problem Formulation and Main Results}\label{sec:problem-formulation}
 \input{sections/problem_formulation}
 
-\section{Obstacle Geometry and Safe Active Sets}\label{sec:obstacle-active-sets}
+\section{Related Work}\label{sec:related-work}
+\input{sections/related_work}
+
+\section{Stieltjes Geometry and Local Certificates}\label{sec:obstacle-active-sets}
 \input{sections/obstacle_active_sets}
 
-\section{Threshold-Batch Depth}\label{sec:threshold-batch-depth}
+\section{Deterministic Accelerated Continuation}\label{sec:deterministic-algorithm}
+\input{sections/deterministic_algorithm}
+
+\section{Two Energies and Cumulative Local Work}\label{sec:deterministic-analysis}
+\input{sections/deterministic_analysis}
+
+\section{A Deterministic Sparse Implementation}\label{sec:deterministic-implementation}
+\input{sections/deterministic_implementation}
+
+\section{The Threshold-Batch Depth Theorem}\label{sec:threshold-batch-depth}
 \input{sections/threshold_batch_depth}
 
-\section{A Fully Charged Local RPPR Algorithm}\label{sec:threshold-batch-algorithm}
+\section{The Randomized Local Algorithm}\label{sec:threshold-batch-algorithm}
 \input{sections/threshold_batch_algorithm}
 
-\section{The Two-Stage PPR Solver}\label{sec:two-stage-ppr}
+\section{Consequences for Personalized PageRank}\label{sec:two-stage-ppr}
 \input{sections/two_stage_ppr}
 
-\section{Research Process, Contributions, and AI Assistance}
-\label{sec:ai-assistance}
-\input{sections/ai_assistance}
-
-\section{Conclusion}\label{sec:conclusion}
+\section{Discussion}\label{sec:conclusion}
 \input{sections/conclusion}
+
+\section*{Research Assistance and Responsibility}
+\input{sections/ai_assistance}
 
 \bibliography{references}
 
 \appendix
+\section{Bounded Arithmetic for the Deterministic Algorithm}
+\label{app:bounded-arithmetic}
+\input{sections/deterministic_precision}
+
 \input{appendix}
 
 \end{document}

@@ -8,8 +8,10 @@ preserved in the immutable
 The machine-readable note map is
 [`registry.toml`](../manuscript/notes/registry.toml).
 
-Last synchronized: 2026-08-30, after promoting the threshold-batch RPPR and
-two-stage point-source PPR theorem spine into the active manuscript.
+Last synchronized: 2026-09-06, after assembling the deterministic and randomized
+RPPR algorithms, bounded-arithmetic proof, and PPR consequences in the active
+arXiv manuscript. Detailed preparation and validation are recorded in
+[`ARXIV_REVIEW.md`](../manuscript/ARXIV_REVIEW.md).
 
 ## Fixed end-to-end target
 
@@ -43,9 +45,10 @@ The shared algebra continues to allow a general nonnegative unit-mass seed
 distribution, but that is a stronger extension rather than the central
 contract. Unregularized PPR is linear in `s`; independently composing
 point-source approximations incurs a mixture factor as large as `nnz(s)`.
-RPPR support discovery is nonlinear in `s` and requires a separate
-merge-aware proof. General-seed theorems and counterexamples retain their
-original explicit scope.
+RPPR support discovery is nonlinear in `s` and requires a direct argument.
+The active paper now gives one through a positive-load initial block, with
+explicit input costs. Earlier general-seed theorems and counterexamples
+retain their original scope.
 
 For a point source on a possibly disconnected positive-degree graph, both PPR
 and RPPR vanish outside the seed component. Restricting to that component
@@ -60,26 +63,33 @@ general-seed corollary
 nnz(s) + O_tilde((sum_v sqrt(s_v))^2/(sqrt(alpha) eps_ppr)).
 ```
 
-This is not the formerly requested additive `nnz(s)` bound: for a uniform
-`k`-point source the extra factor is `k`. RPPR obstacle solutions are
-nonlinear in `s`, so their point-source runs cannot be superposed before the
-final unregularized PPR approximation is formed. Claims that use connected
-support, rooted exploration, or the support-radius bound are therefore
-point-source claims.
+Superposition alone does not give additive `nnz(s)` work: for a uniform
+`k`-point source its extra factor is `k`. The active paper's Appendix B now
+proves the stronger randomized bound directly. It begins with every positive
+shifted-load coordinate in one block, so the same Cholesky depth proof gives
+`O_tilde(nnz(s) + 1/(rho sqrt(alpha)))` RPPR work. Its deterministic
+multi-source extension instead pays for source exception refreshes each
+iteration. Neither statement changes the canonical point-source input model
+or the scope of older rooted-support claims.
 
-The primary arbitrary-graph target is now proved in the exact-real randomized
-word model.  Threshold-batched safe obstacle discovery, residual-certified
-fresh SDD face solves, and block-Cholesky/Chebyshev decay give
-`O_tilde(1/(rho*sqrt(alpha)))` fully charged RPPR work.  A low-energy inner
-face, not necessarily the full RPPR support, transfers to a strict two-stage
-PPR algorithm with `O_tilde(1/(eps_ppr*sqrt(alpha)))` expected work.  The
-random SDD primitive is a supplied-face result of Koutis--Miller--Peng; the new
-project contribution is the outer batch-depth theorem and its certified local
-composition.  Deterministic finite-precision/bit complexity and a persistent
-changing-face implementation remain open.
+The primary arbitrary-graph point-source target is now proved both
+randomly and deterministically in the manuscript word model. Randomized
+threshold batching uses certified fresh SDD solves and a block-Cholesky/
+Chebyshev depth bound. Deterministic regularization continuation uses a
+source-dependent box and mass cap, an ordinary accelerated energy, a second
+PageRank-metric energy, and a signed-flow cumulative-volume estimate. A
+finite ordered reporter realizes the deterministic work bound without
+scanning the full primal history each iteration. The bounded-arithmetic
+appendix handles the actual rounded point-source trajectory with explicit
+encoding costs. These arguments come from `active_edge_lcp` and the
+September 5 deterministic development/audit notes; `evolving_support_cg`
+contains useful obstructions and conditional routes, not the randomized OP2
+proof. No claimed graph-uniform AESP–LOCSOR or persistent-response theorem
+is promoted by these results.
 
-The following material records the stronger deterministic persistent-response
-program that preceded the fresh-batch proof.  Point-source rootedness
+The following material records the more restrictive persistent-response
+program that preceded the fresh-batch proof. Its unresolved reporter remains
+a separate algorithmic goal despite the new deterministic continuation theorem.  Point-source rootedness
 closes the full online cactus class and removes multi-source merge
 bookkeeping.  On arbitrary proper faces, a canonical positive ground
 conjugacy, accelerated finite ground publication, admission replay, and

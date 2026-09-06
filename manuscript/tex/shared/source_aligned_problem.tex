@@ -6,16 +6,14 @@
 % Primary source: Fountoulakis and Martinez-Rubio, arXiv:2602.21138v2,
 % PDF p. 3, Section 3 and equation (RPPR).
 
-\subsection{Common source-aligned PageRank and RPPR model}
+\subsection{Graph and optimization problems}
 \label{subsec:shared-source-aligned-problem}
 
-All documents in this manuscript workspace use the following reference
-language. Vectors and matrices are typeset in bold. The generic optimization
+Vectors and matrices are typeset in bold. The generic optimization
 variable is \(\bm{x}\); \(\bm{x}^*\) denotes an optimum when the objective is
 clear from context; \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\) denote respectively
 the unregularized PPR optimum and the RPPR optimum at regularization
-\(\rho\). A note may impose a stronger assumption after this block, but it
-must not redefine these objects or rename these three optimum vectors.
+\(\rho\).
 
 Let \(\mathcal{G}=(\mathcal{V},\mathcal{E})\) be a finite, simple,
 undirected, connected graph with \(n:=|\mathcal{V}|\geq2\) and unit edge
@@ -44,8 +42,9 @@ For \(\mathcal{S}\subseteq\mathcal{V}\), define
     \label{eq:shared-volume}
 \end{equation}
 The support of a vector is
-\(\supp(\bm{x}):=\{i\in[n]:x_i\neq0\}\). Matrix inequalities use the Loewner
-order, and all unqualified vector inequalities are coordinatewise.
+\(\supp(\bm{x}):=\{i\in[n]:x_i\neq0\}\). The symbols \(\preceq,\succeq\)
+denote Loewner order; \(\leq,\geq\) denote entrywise order on vectors and
+matrices.
 
 The seed is a column distribution
 \begin{equation}
@@ -54,13 +53,9 @@ The seed is a column distribution
     \inner{\one}{\bm{s}}=1.
     \label{eq:shared-seed}
 \end{equation}
-The single-seed specialization is always written \(\bm{s}=\bm{e}_v\), where
-\(v\in\mathcal{V}\) is the seed vertex. Thus \(\bm{s}\) is never used as a
-vertex label.  The
-project's canonical end-to-end computational problem uses this single-seed
-specialization.  The general unit-mass distribution above is retained as a
-source-aligned algebraic extension; a theorem for it must state its additional
-input and work dependence explicitly. For
+The main computational problem takes one seed vertex \(v\), hence
+\(\bm{s}=\bm{e}_v\). General distributions are considered only when
+their input and work costs are stated explicitly. For
 \(\alpha\in(0,1]\), define
 \begin{equation}
 \begin{aligned}
@@ -73,7 +68,7 @@ input and work dependence explicitly. For
     \label{eq:shared-pagerank-matrices}
 \end{equation}
 Since \(\bm{0}\preceq\bm{\mathcal L}\preceq2\bm{I}\),
-\(\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}\). The shared smooth PageRank
+\(\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}\). The smooth PageRank
 quadratic is
 \begin{equation}
     f(\bm{x}):=\frac12\inner{\bm{x}}{\bm{Q}\bm{x}}-\inner{\bm{b}}{\bm{x}},
@@ -90,8 +85,7 @@ vector are
     \label{eq:shared-ppr-solution}
 \end{equation}
 
-For a regularization parameter \(\rho>0\), reserve \(g_\rho\) for the
-nonsmooth weighted \(\ell_1\) term and define
+For a regularization parameter \(\rho>0\), define
 \begin{equation}
     g_\rho(\bm{x}):=\alpha\rho\norm{\bm{D}^{1/2}\bm{x}}_1,
     \qquad
@@ -107,7 +101,7 @@ the explicit symbols remain \(\bm{x}_0^*\) and \(\bm{x}_\rho^*\). Write
     \qquad
     \mathcal{I}_\rho^*:=[n]\setminus\mathcal{S}_\rho^*.
 \]
-The source records \(\bm{x}_\rho^*\geq\bm{0}\),
+Standard RPPR properties give \(\bm{x}_\rho^*\geq\bm{0}\),
 \(\vol(\mathcal{S}_\rho^*)\leq1/\rho\), and the coordinatewise conditions
 \begin{equation}
     \nabla_i f(\bm{x}_\rho^*)
@@ -130,7 +124,7 @@ outside \(\mathcal{S}\) are not recursively scanned. Iteration count and
 wall-clock time do not replace this degree-weighted work measure.
 
 \paragraph{Computational model.}
-Unless a theorem explicitly states otherwise, the complexity questions use an
+Unless a theorem explicitly states otherwise, we use an
 exact-real algebraic word model: each scalar arithmetic operation, comparison,
 stored-state read or write, degree reply, and emitted output word has unit
 cost. Every first or repeated adjacency-list entry inspection is charged as
@@ -140,9 +134,9 @@ probability and whether its work guarantee is expected or high-probability.
 Finite-precision stability, coefficient-bit complexity, and rounding error are
 outside this baseline and require separate statements.
 
-Finally, \(\epsppr\) is reserved for a document-scoped semantic,
+Finally, \(\epsppr\) denotes semantic,
 degree-normalized PPR output error, and \(\rho\) is the RPPR regularization and
 locality scale. Any algorithmic threshold, objective tolerance, residual
 certificate, or conversion between such a quantity and \(\epsppr\) must be
-introduced and justified where it is used. This shared model does not adopt an
-implementation-wide residual stopping rule.
+introduced and justified where it is used.
+% This reference model does not adopt an implementation-wide stopping rule.

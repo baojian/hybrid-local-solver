@@ -46,10 +46,44 @@ At the seed,
 \]
 If $(x_\rho^*)_v=0$, its slack is strictly negative, contradicting
 \cref{eq:obstacle-kkt}.  Thus $v\in\mathcal S_\rho^*$.  If an active connected
-component $C$ did not contain $v$, no support edge would join $C$ to the
-other active components.  Stationarity on $C$ would give
-$\mQ_{CC}(\vx_\rho^*)_C=(\vc_\rho)_C<\vzero$.  Multiplication by
-$\mQ_{CC}^{-1}\geq\vzero$ contradicts positivity on $C$.
+component $\gC$ did not contain $v$, no support edge would join $\gC$ to the
+other active components.  Stationarity on $\gC$ would give
+$\mQ_{\gC\gC}(\vx_\rho^*)_\gC=(\vc_\rho)_\gC<\vzero$.  Multiplication by
+$\mQ_{\gC\gC}^{-1}\geq\vzero$ contradicts positivity on $\gC$.
+\end{proof}
+
+\begin{lemma}[Order, mass, and support volume]
+\label{lem:rppr-order-mass}
+The obstacle optimum is the least nonnegative supersolution: if
+$\vz\geq\vzero$ and $\mQ\vz\geq\vc_\rho$, then
+$\vx_\rho^*\leq\vz$. Consequently, for $0<r\leq r'$,
+\begin{equation}
+ \vzero\leq\vx_{r'}^*\leq\vx_r^*\leq\vx_0^*,
+ \qquad \vomega^\trans\vx_r^*+r\vol(\mathcal S_r^*)\leq1.
+ \label{eq:rppr-order-mass}
+\end{equation}
+In particular $\vol(\mathcal S_r^*)\leq1/r$.
+\end{lemma}
+\begin{proof}
+For the first assertion let $\gI=\{i:(x_\rho^*)_i>z_i\}$ and
+$\ve=\vx_\rho^*-\vz$. If $\gI$ is nonempty, stationarity on
+its positive optimum coordinates gives
+$\mQ_{\gI\gI}\ve_{\gI}
+ \leq-\mQ_{\gI\gI^c}\ve_{\gI^c}\leq\vzero$.
+The last inequality uses $\ve_{\gI^c}\leq\vzero$ and Stieltjes signs.
+Multiplication by the nonnegative principal inverse contradicts
+$\ve_{\gI}>\vzero$. Since $\vc_r\geq\vc_{r'}$,
+$\vx_r^*$ is a supersolution at $r'$; $\vx_0^*$ is one at $r$.
+This proves the order.
+
+The source deficit $\vb-\mQ\vx_r^*$ is nonnegative: it equals
+$\alpha r\omega_i$ on the positive support, and at a zero coordinate
+the off-diagonal signs give $(\mQ\vx_r^*)_i\leq0\leq b_i$.
+Its weighted mass is
+$\alpha(1-\vomega^\trans\vx_r^*)$, by
+$\mQ\vomega=\alpha\vomega$ and $\vomega^\trans\vb=\alpha$.
+Its contribution on the positive support alone is
+$\alpha r\vol(\mathcal S_r^*)$, proving the mass inequality.
 \end{proof}
 
 \subsection{The grounded electrical-flow dual}
@@ -65,7 +99,7 @@ conductances.  Define
  \mH:=\mD^{1/2}\mQ\mD^{1/2}
  =\alpha\mD+\frac{1-\alpha}{2}(\mD-\mA),
  \qquad
- \vh:=\mD^{1/2}\vc_\rho=\alpha(\vs-\rho\mD\one).
+ \vc_\rho^{\mathrm d}:=\mD^{1/2}\vc_\rho=\alpha(\vs-\rho\mD\one).
  \label{eq:grounded-system}
 \end{equation}
 Then $\mB^\trans\mW\mB=\mH$.
@@ -76,7 +110,7 @@ Under the change of variables $\vy=\mD^{-1/2}\vx$, the obstacle problem is
 \begin{equation}
  \min_{\vy\geq\vzero}
  \left\{
-  \frac12\norm{\mW^{1/2}\mB\vy}_2^2-\vh^\trans\vy
+  \frac12\norm{\mW^{1/2}\mB\vy}_2^2-(\vc_\rho^{\mathrm d})^\trans\vy
  \right\}.
  \label{eq:grounded-flow-primal}
 \end{equation}
@@ -84,27 +118,27 @@ Its Fenchel dual, written as a minimum-energy problem, is
 \begin{equation}
  \min_{\vf}\ \frac12\vf^\trans\mW^{-1}\vf
  \qquad\text{subject to}\qquad
- \mB^\trans\vf\geq\vh.
+ \mB^\trans\vf\geq\vc_\rho^{\mathrm d}.
  \label{eq:grounded-flow-dual}
 \end{equation}
 The two minimum values have opposite signs.  At an optimal primal--dual pair,
 \begin{equation}
  \vf^*=\mW\mB\vy^*,
  \qquad
- \vlambda^*:=\mB^\trans\vf^*-\vh
+ \vlambda^*:=\mB^\trans\vf^*-\vc_\rho^{\mathrm d}
  =\mD^{1/2}\vw^*\geq\vzero,
  \qquad
  y_i^*\lambda_i^*=0.
  \label{eq:flow-slack-correspondence}
 \end{equation}
-More generally, for an exact reachable face $U$, the induced flow
-$\vf^U:=\mW\mB\vy^U$ is tight on $U$ and
+More generally, for an exact reachable face $\gU$, the induced flow
+$\vf^\gU:=\mW\mB\vy^\gU$ is tight on $\gU$ and
 \begin{equation}
- (\mB^\trans\vf^U-\vh)_j=\sqrt{d_j}\,w_j^U
- \quad(j\notin U).
+ (\mB^\trans\vf^\gU-\vc_\rho^{\mathrm d})_j=\sqrt{d_j}\,w_j^\gU
+ \quad(j\notin \gU).
  \label{eq:face-dual-violation}
 \end{equation}
-Consequently, $w_j^U<0$ is exactly a violated dual vertex constraint.
+Consequently, $w_j^\gU<0$ is exactly a violated dual vertex constraint.
 \end{proposition}
 
 \begin{proof}
@@ -118,14 +152,14 @@ identity
  \left\{\vf^\trans\vz-\frac12\vf^\trans\mW^{-1}\vf\right\}
 \]
 and minimization over $\vy\geq\vzero$ make the inner value finite precisely
-when $\mB^\trans\vf-\vh\geq\vzero$.  Fenchel--Rockafellar duality applies
+when $\mB^\trans\vf-\vc_\rho^{\mathrm d}\geq\vzero$.  Fenchel--Rockafellar duality applies
 because the quadratic is continuous everywhere and the orthant is nonempty,
 with the sign reversal in the displayed minimization convention.  Stationarity in the conjugate pair
 gives $\vf^*=\mW\mB\vy^*$; minimization over the orthant gives
 complementarity.  Finally,
 \[
- \mB^\trans\mW\mB\vy-\vh
- =\mH\vy-\vh
+ \mB^\trans\mW\mB\vy-\vc_\rho^{\mathrm d}
+ =\mH\vy-\vc_\rho^{\mathrm d}
  =\mD^{1/2}(\mQ\vx-\vc_\rho)
  =\mD^{1/2}\vw,
 \]
@@ -156,15 +190,15 @@ without scanning the ambient graph.
 
 \subsection{Reachable faces and safe batches}
 
-For $U\subseteq[n]$, define the zero-extended exact face solution and slack
+For $\gU\subseteq[n]$, define the zero-extended exact face solution and slack
 \begin{equation}
- x_i^U=
+ x_i^\gU=
  \begin{cases}
-  (\mQ_{UU}^{-1}(\vc_\rho)_U)_i,&i\in U,\\
-  0,&i\notin U,
+  (\mQ_{\gU\gU}^{-1}(\vc_\rho)_\gU)_i,&i\in \gU,\\
+  0,&i\notin \gU,
  \end{cases}
  \qquad
- \vw^U:=\mQ\vx^U-\vc_\rho.
+ \vw^\gU:=\mQ\vx^\gU-\vc_\rho.
  \label{eq:exact-face}
 \end{equation}
 The empty face means $\vx^\emptyset=\vzero$.  A face is \emph{reachable} if
@@ -173,60 +207,60 @@ whose exact current slack is negative.
 
 \begin{theorem}[Safe batched Stieltjes pivots]
 \label{thm:safe-batched-pivots}
-For every reachable face $U$,
+For every reachable face $\gU$,
 \begin{equation}
- U\subseteq\mathcal S_\rho^*,
+ \gU\subseteq\mathcal S_\rho^*,
  \qquad
- \vzero<\vx_U^U\leq(\vx_\rho^*)_U.
+ \vzero<\vx_\gU^\gU\leq(\vx_\rho^*)_\gU.
  \label{eq:reachable-face-invariant}
 \end{equation}
-Every $j\notin U$ with $w_j^U<0$ lies in
-$\mathcal S_\rho^*\setminus U$.  If $B$ is any nonempty collection of such
-coordinates, then $U\cup B$ is reachable and
+Every $j\notin \gU$ with $w_j^\gU<0$ lies in
+$\mathcal S_\rho^*\setminus \gU$.  If $\gB$ is any nonempty collection of such
+coordinates, then $\gU\cup \gB$ is reachable and
 \begin{equation}
- \vx_{U\cup B}^{U\cup B}>\vzero,
+ \vx_{\gU\cup \gB}^{\gU\cup \gB}>\vzero,
  \qquad
- \vx_U^{U\cup B}\geq\vx_U^U.
+ \vx_\gU^{\gU\cup \gB}\geq\vx_\gU^\gU.
  \label{eq:face-monotonicity}
 \end{equation}
-If no outside slack is negative, $\vx^U=\vx_\rho^*$.
+If no outside slack is negative, $\vx^\gU=\vx_\rho^*$.
 \end{theorem}
 
 \begin{proof}
 The empty-face slack at the seed is negative, so the first scalar face is
-positive.  Suppose the claim holds at $U$.  Restricted stationarity and the
+positive.  Suppose the claim holds at $\gU$.  Restricted stationarity and the
 optimal equations give
 \begin{equation}
- \mQ_{UU}\bigl((\vx_\rho^*)_U-\vx_U^U\bigr)
- =-\mQ_{U,\mathcal S_\rho^*\setminus U}
-   (\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}\geq\vzero.
+ \mQ_{\gU\gU}\bigl((\vx_\rho^*)_\gU-\vx_\gU^\gU\bigr)
+ =-\mQ_{\gU,\mathcal S_\rho^*\setminus \gU}
+   (\vx_\rho^*)_{\mathcal S_\rho^*\setminus \gU}\geq\vzero.
  \label{eq:face-comparison-main}
 \end{equation}
 Inverse positivity proves the coordinatewise comparison.  If
 $j\notin\mathcal S_\rho^*$, then
 \begin{align}
- w_j^U-w_j^*
- &=\mQ_{jU}\bigl(\vx_U^U-(\vx_\rho^*)_U\bigr)
-   -\mQ_{j,\mathcal S_\rho^*\setminus U}
-     (\vx_\rho^*)_{\mathcal S_\rho^*\setminus U}\geq0.
+ w_j^\gU-w_j^*
+ &=\mQ_{jU}\bigl(\vx_\gU^\gU-(\vx_\rho^*)_\gU\bigr)
+   -\mQ_{j,\mathcal S_\rho^*\setminus \gU}
+     (\vx_\rho^*)_{\mathcal S_\rho^*\setminus \gU}\geq0.
  \label{eq:no-false-pivot}
 \end{align}
 Hence a negative violator cannot be a false support coordinate.
 
-For $U'=U\cup B$, block elimination gives
+For $\gU'=\gU\cup \gB$, block elimination gives
 \begin{equation}
- \mH_B\vx_B^{U'}=-\vw_B^U,
+ \mH_\gB\vx_\gB^{\gU'}=-\vw_\gB^\gU,
  \qquad
- \mH_B:=\mQ_{BB}-\mQ_{BU}\mQ_{UU}^{-1}\mQ_{UB}.
+ \mH_\gB:=\mQ_{\gB\gB}-\mQ_{\gB\gU}\mQ_{\gU\gU}^{-1}\mQ_{\gU\gB}.
  \label{eq:batch-schur}
 \end{equation}
 Moreover,
 \begin{equation}
- \vx_U^{U'}-\vx_U^U=-\mQ_{UU}^{-1}\mQ_{UB}\vx_B^{U'}.
+ \vx_\gU^{\gU'}-\vx_\gU^\gU=-\mQ_{\gU\gU}^{-1}\mQ_{\gU\gB}\vx_\gB^{\gU'}.
  \label{eq:batch-old-correction}
 \end{equation}
 The Schur complement is Stieltjes and has a nonnegative inverse.  Since
-$-\vw_B^U>\vzero$, the new coordinates are positive; the second display and
+$-\vw_\gB^\gU>\vzero$, the new coordinates are positive; the second display and
 the off-diagonal sign make every old correction nonnegative.  This closes the
 induction.  If no outside slack is negative, inside stationarity, positivity,
 and outside nonnegativity satisfy the global KKT system, whose solution is
@@ -235,16 +269,16 @@ unique.
 
 \begin{corollary}[Boundary-only discovery]
 \label{cor:boundary-only-discovery}
-At a nonempty reachable face, every negative slack lies in $\partial U$.
+At a nonempty reachable face, every negative slack lies in $\partial \gU$.
 Exposing the adjacency lists of admitted vertices creates at most
-$\vol(U)$ boundary incidences, and no adjacency list of a false candidate
+$\vol(\gU)$ boundary incidences, and no adjacency list of a false candidate
 must be scanned.
 \end{corollary}
 
 \begin{proof}
-If $j\notin U\cup\partial U$ and $j\neq v$, sparsity gives
-$w_j^U=-(c_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
-The incidence count charges each exposed edge to its endpoint in $U$.
+If $j\notin \gU\cup\partial \gU$ and $j\neq v$, sparsity gives
+$w_j^\gU=-(c_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
+The incidence count charges each exposed edge to its endpoint in $\gU$.
 \end{proof}
 
 \subsection{A local objective certificate}
@@ -268,7 +302,7 @@ $\phi_\rho+I_{\R_+^n}$ at $\vx$, and
  \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
  \label{eq:kkt-gap-certificate}
 \end{equation}
-If $\vx$ is supported on $U$ containing $v$, one scan of the rows in $U$
+If $\vx$ is supported on $\gU$ containing $v$, one scan of the rows in $\gU$
 computes every possibly nonzero entry of this certificate.
 \end{lemma}
 
@@ -283,6 +317,6 @@ $\vg$,
 \]
 Minimizing the right side and taking $\vy=\vx_\rho^*$ proves the bound.
 Locality follows from \cref{eq:boundary-slack}: a sparse row scan accumulates
-$\mQ\vx$ on $U\cup\partial U$, and every farther nonseed coordinate has
+$\mQ\vx$ on $\gU\cup\partial \gU$, and every farther nonseed coordinate has
 positive slack.
 \end{proof}

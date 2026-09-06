@@ -1,6 +1,6 @@
 # Research Context
 
-**Status:** Working research map for an active JMLR theorem draft.
+**Status:** Research map synchronized with the active arXiv theory manuscript, 2026-09-06.
 
 ## Central problem
 
@@ -10,32 +10,45 @@ benefits of locality. The initial application is local PageRank from one seed
 vertex on a finite simple connected graph with unit edge weights. General
 seed distributions remain an explicitly separate extension.
 
-The active theorem draft uses a threshold-batched RPPR active set as Stage I
-and one ordinary principal PPR solve as an optional Stage II.  It identifies
-the exact-real randomized setting in which convergence, locality, and the
-target square-root dependence can be proved; deterministic finite precision
-and implementation-level comparisons remain separate research goals.
+The active paper, *Accelerated Local Algorithms for Regularized PageRank*,
+contains two complete algorithms: deterministic accelerated regularization
+continuation and randomized threshold-batched active sets. Both attain the
+point-source `O_tilde(1/(rho sqrt(alpha)))` RPPR work target and imply
+`O_tilde(1/(eps_ppr sqrt(alpha)))` semantic PPR work. The deterministic
+algorithm also has a specified bounded-arithmetic realization. These are
+manuscript theorems; executable provider adoption and practical comparisons
+remain separate work.
 
 ## Intended contributions
 
 The current contribution ledger is:
 
-1. **Established in the manuscript model:** a threshold-batched active-set
-   algorithm, an RPPR objective theorem, and a strict discover-once/solve-once
-   point-source PPR composition.
-2. **Established in the manuscript model:** a fully charged expected-work
-   bound `O_tilde(1/(rho * sqrt(alpha)))` for RPPR and
-   `O_tilde(1/(eps_ppr * sqrt(alpha)))` for semantic PPR accuracy.
-3. **Established proof mechanism:** an exact grounded electrical-flow dual,
-   support-safe Stieltjes pivots, and a block-Cholesky/Chebyshev theorem
-   limiting complete exposed faces to `O_tilde(1/sqrt(alpha))`.  The dual
-   identifies boundary residual violations with failed vertex constraints;
-   the complexity contribution is the local threshold-batch bound, not
-   Fenchel duality itself.
-4. **Still targeted:** a deterministic finite-precision/bit-complexity
-   realization and a practical persistent changing-face implementation.
-5. **Still targeted:** reproducible experiments under an implementation-wide
-   accepted residual and stopping convention.
+1. **Established in the manuscript model:** deterministic continuation,
+   two comparison energies, a signed-flow bound on cumulative kinetic volume,
+   and a deterministic sparse threshold reporter. The proof charges every
+   repeated scan and does not assume support confinement.
+2. **Established in the manuscript model:** support-safe randomized threshold
+   batching with expected work
+   `O_tilde(V_* min(|S_*|, alpha^(-1/2)))`, using the published SDD solver only
+   on charged, already discovered principal systems. A block-Cholesky/
+   Chebyshev theorem limits the number of those systems.
+3. **Established output consequences:** additive RPPR objective accuracy,
+   safe subsolution and ACL residual certificates, semantic PPR conversion,
+   and an optional set-only handoff followed by a deterministic CG or
+   randomized SDD principal-PPR solve.
+4. **Established separately for rational point-source inputs:** directed
+   rounding, controlled neighbor-response error, scalar rebasing, and finite
+   threshold search give the same soft local operation bound with explicit
+   input/degree/label encoding factors in bit complexity. This does not
+   certify ordinary unchecked floating-point execution.
+5. **Explicit-distribution extension:** the randomized proof allows an initial
+   positive-load block and gives additive seed-input work `O_tilde(nnz(s))`.
+   The direct deterministic extension refreshes source exceptions and has
+   `O_tilde((nnz(s)+1/rho)/sqrt(alpha))` work. These interfaces are stated
+   separately from the canonical single-label input.
+6. **Still targeted:** practical solver integration, persistent reuse across
+   faces, and reproducible experimental comparisons under an accepted
+   implementation-wide residual and stopping convention.
 
 Several algorithm-specific baselines are also established. Classical APPR has worst-case degree-weighted work
 `Theta(1/(alpha * eps_appr))`, proved in
@@ -47,7 +60,7 @@ general-seed model outside the canonical graph/seed contract. The
 coarse phase of CF-Push is ordering-independently tight, while the full FIFO
 fixed-SOR hybrid has a spider lower bound but no matching general upper bound.
 These results use different accuracy namespaces and are not silently
-identified with one another.  The active threshold-batch theorem does not
+identified with one another.  The active theorems do not
 promote the older fixed-SOR or changing-momentum conjectures.
 
 ## Current scope
@@ -89,7 +102,7 @@ still needed by the executable repository:
 | `alpha` | Fixed for the manuscript as the lazy symmetric system parameter in `(0,1]`; baseline translations are explicit |
 | Residual | Every manuscript algorithm defines and certifies its own residual; an implementation-wide convention remains open |
 | `epsilon` | `eps_obj` and semantic degree-normalized `eps_ppr` are fixed and converted in the paper; baseline tolerances remain distinct |
-| Hybrid rule | Fixed for the theorem as threshold-batched Stage I plus an optional fresh principal-PPR Stage II |
+| Algorithm | Two specified methods: deterministic continuation and randomized threshold batching; both permit a set-only PPR handoff |
 | Local work | Fixed for the theorem as fully charged adjacency-list/algebraic-word work; wall-clock instrumentation remains future work |
 
 Do not transfer the manuscript's algorithm-specific certificates into code or

@@ -166,9 +166,15 @@ margin-free, fully charged reporter.
 `m log n` Time Solver for SDD Linear Systems*](https://arxiv.org/abs/1102.4842),
 FOCS 2011.
 
+- Local PDF:
+  `papers/2011-focs-koutis-nearly-m-log-n-time-solver-sdd-linear-systems.pdf`,
+  downloaded from <https://arxiv.org/pdf/1102.4842> on 2026-09-06. The PDF
+  identifies arXiv `1102.4842v4`; its title page also has a later TeX date,
+  which does not change the FOCS 2011 publication metadata.
 - PDF pp. 9--10, Definition 4.2 and Lemmas 4.3--4.5 construct and analyze a
   global preconditioning chain.
-- PDF p. 10, Theorem 4.6 gives expected
+- In this local PDF, p. 10 states Lemma 4.5 and p. 11 states Theorem 4.6,
+  which gives expected
   `O_tilde(m log n log(1/eta))` work for an input SDD matrix with `m` nonzeros
   and relative energy error `eta`.
 

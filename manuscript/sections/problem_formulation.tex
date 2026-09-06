@@ -1,131 +1,227 @@
-We use one reference PageRank normalization throughout.  The following shared
-block fixes the graph, the point-source specialization, the matrices
-$\mQ,\mD$, the objectives $f,F_\rho$, the optima
-$\vx_0^*,\vx_\rho^*$, the support $\mathcal S_\rho^*$, and the charged
-adjacency-list model.
+We use the lazy symmetric normalization of the COLT 2022 problem
+\citep[Section~2, equation~(3)]{fountoulakis2022open}, also used by
+\citet[Section~3]{fountoulakis2026complexity}. Original graph degrees are
+retained in every restricted system. This is essential: replacing them by
+induced-subgraph degrees changes the PageRank problem and its local work.
 
 \input{tex/shared/source_aligned_problem}
 
-For the remainder of the paper we impose the canonical specialization
+For the main theorems we impose
 \begin{equation}
- \vs=\eunit{v},
- \qquad v\in\gV.
+ \vs=\eunit{v},\qquad v\in\gV.
  \label{eq:point-source-contract}
 \end{equation}
-The general distribution in the shared block is used only in the algebraic
-scope discussion of \cref{app:seed-scope}.
+The nonzero point-source regime is
+\begin{equation}
+ 0<\rho<1/d_v.
+ \label{eq:nonzero-rppr-regime}
+\end{equation}
+Indeed, the optimum is zero exactly when
+$\vb\leq\alpha\rho\mD^{1/2}\one$, and the only possibly violated
+coordinate is the seed. A single degree query decides this case. At
+$\alpha=1$, the solution has only the seed coordinate
+$(x_\rho^*)_v=(1-\rho d_v)_+/\sqrt{d_v}$.
 
-\subsection{Semantic PPR accuracy and the RPPR bridge}
+\subsection{What is approximated?}
 
-An output $\widehat\vx$ represents
-$\widehat\vpi=\mD^{1/2}\widehat\vx$.  Our end-to-end semantic target is
+The RPPR task takes $\rho>0$ and a separate additive tolerance
+$\epsobj>0$, and asks for a sparse coordinate list satisfying
+\begin{equation}
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj.
+ \label{eq:rppr-output-target}
+\end{equation}
+Coordinates absent from the list mean zero. Both main algorithms can return
+nonnegative subsolutions lying coordinatewise below $\vx_\rho^*$.
+The raw threshold-batch output already has safe support; a certified repair
+gives this stronger coordinatewise and residual guarantee at the same
+asymptotic work bound.
+
+For PPR, an output $\widehat\vx$ represents
+$\widehat\vpi=\mD^{1/2}\widehat\vx$. The semantic target is
 \begin{equation}
  \norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty
  =\norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
  \leq\epsppr.
  \label{eq:semantic-ppr-target}
 \end{equation}
-This is an output guarantee, not an activation threshold.  Objective error in
-the regularized problem is denoted by $\epsobj$ and is never silently
-identified with $\epsppr$.
+Thus $\epsppr$ measures solution error per unit degree. It is not an
+objective gap, a coordinate activation threshold, or a relative error on
+every nonzero PageRank probability. This distinction matters in comparisons
+with push algorithms and with regularized optimization methods.
 
-The identities
+Let $\vomega=\mD^{1/2}\one$. The Stieltjes identities
 \begin{equation}
- \mQ\mD^{1/2}\one=\alpha\mD^{1/2}\one,
- \qquad \mQ^{-1}\geq\vzero
+ \mQ\vomega=\alpha\vomega,\qquad
+ \mQ^{-1}\geq\vzero,
+ \qquad |\mQ|\vomega=\vomega
  \label{eq:constant-vector-inverse-positive}
 \end{equation}
-follow respectively from the degree definition and the fact that $\mQ$ is a
-nonsingular Stieltjes matrix.  They imply the standard RPPR--PPR bridge.
+will be used throughout; $|\mQ|$ denotes entrywise absolute values.
+The last identity follows by summing the absolute entries of the
+normalized PageRank operator against $\vomega$.
 
-\begin{proposition}[RPPR bias and objective conversion]
+\begin{proposition}[Regularization bias and objective-to-PPR conversion]
 \label{prop:rppr-ppr-bridge}
 For every $\rho>0$,
 \begin{equation}
- \vzero\leq\vx_\rho^*\leq\vx_0^*,
- \qquad
- \norm{\mD^{-1/2}(\vx_0^*-\vx_\rho^*)}_\infty\leq\rho.
+ \vzero\leq\vx_0^*-\vx_\rho^*\leq\rho\vomega.
  \label{eq:rppr-bias}
 \end{equation}
-Moreover, every feasible $\widehat\vx\geq\vzero$ satisfying
-$F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj$ obeys
+Every nonnegative output satisfying \cref{eq:rppr-output-target} obeys
 \begin{equation}
  \norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty
- \leq \rho+\sqrt{2\epsobj/\alpha}.
+ \leq\rho+\sqrt{2\epsobj/\alpha}.
  \label{eq:objective-to-ppr}
 \end{equation}
 \end{proposition}
-
 \begin{proof}
-On the nonnegative orthant the RPPR load is obtained from the PPR load by
-subtracting $\alpha\rho\mD^{1/2}\one$.  Inverse positivity and
-\cref{eq:constant-vector-inverse-positive}, together with the obstacle KKT
-conditions proved in \cref{thm:obstacle-reduction}, give
-$\vzero\leq\vx_\rho^*\leq\vx_0^*$ and
-$\vx_0^*-\vx_\rho^*\leq\rho\mD^{1/2}\one$.  Strong convexity gives
-\[
- F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
- \geq\frac\alpha2\norm{\widehat\vx-\vx_\rho^*}_2^2.
-\]
-Since every $d_i\geq1$, the normalized coordinate error from
-$\widehat\vx$ to $\vx_\rho^*$ is at most
-$\sqrt{2\epsobj/\alpha}$.  The triangle inequality proves
-\cref{eq:objective-to-ppr}.
+The KKT conditions give
+$\vzero\leq\vb-\mQ\vx_\rho^*\leq\alpha\rho\vomega$.
+Multiply by $\mQ^{-1}\geq\vzero$ and use
+$\mQ^{-1}\vomega=\vomega/\alpha$ to obtain \cref{eq:rppr-bias}.
+Strong convexity gives
+$\norm{\widehat\vx-\vx_\rho^*}_2\leq\sqrt{2\epsobj/\alpha}$.
+Since $d_i\geq1$, its degree-normalized maximum norm is no larger.
+The triangle inequality proves \cref{eq:objective-to-ppr}.
 \end{proof}
 
-The RPPR optimum is zero exactly when $\rho\geq1/d_v$.  Indeed, the only
-possibly positive shifted load is at the seed and equals
-$\alpha(1-\rho d_v)/\sqrt{d_v}$.  We therefore call
+For example,
 \begin{equation}
- 0<\rho<1/d_v
- \label{eq:nonzero-rppr-regime}
+ \rho=\epsppr/2,\qquad \epsobj=\alpha\epsppr^2/8
+ \label{eq:direct-ppr-budgets}
 \end{equation}
-the nontrivial regime; it is recognized with one degree query.
-
-\subsection{Fully charged local work}
-
-A scan of $U\subseteq\gV$ costs $\vol(U)$.  Our work bounds additionally
-charge construction of every principal matrix, every repeated row and
-boundary scan, candidate insertion, numerical solver state, residual
-certification, projection, materialization, state access, and output.  There
-is no free support oracle and no ambient preprocessing.  The theorem is in the
-exact-real algebraic word model from the shared block.  The parameter
-$\zeta\in(0,1)$ denotes the probability of an explicit reported failure.
-
-\subsection{Main theorems}
-
-The regularized result will be proved as \cref{thm:local-rppr}.
-
-\begin{theorem}[Local RPPR, informal]
-\label{thm:local-rppr-informal}
-For a canonical point-source instance, there is an exact-real randomized
-local algorithm which, with failure probability at most $\zeta$, returns
-$\widehat\vx\geq\vzero$ with RPPR objective gap at most $\epsobj$.  Its
-expected fully charged work is
+is sufficient for \cref{eq:semantic-ppr-target}. No identification of the
+two tolerances is involved. A second, residual-based sufficient condition is
 \begin{equation}
- \softO\!\left(
-   \frac{1}{\rho\sqrt\alpha}
-   \log\frac1{\epsobj}\log\frac2\zeta
- \right).
- \label{eq:informal-rppr-work}
+ \norm{\mD^{-1/2}(\vb-\mQ\widehat\vx)}_\infty\leq\alpha\epsppr
+ \quad\Longrightarrow\quad
+ \norm{\mD^{-1/2}(\widehat\vx-\vx_0^*)}_\infty\leq\epsppr.
+ \label{eq:ppr-residual-certificate}
 \end{equation}
+It follows from inverse positivity applied to the two coordinatewise
+residual bounds. Our main RPPR algorithm uses its proved objective budget;
+it does not need to scan the whole graph to check this sufficient PPR
+certificate.
+
+\subsection{Local access and the meaning of running time}
+
+The graph is an adjacency-list oracle. A degree query on a known label
+costs one word operation. A row scan at $i$ reads all $d_i$ incident entries
+and exposes their endpoint labels; it costs $d_i$ even if the same row was
+scanned previously. The initial known label is $v$. All later labels are
+obtained from charged incident entries. The algorithm is not given the
+optimal support, a containing ball, a global connectivity certificate, or a
+preprocessed inverse.
+
+We also charge arithmetic, comparisons, random choices where applicable,
+state reads and writes, dictionary operations, candidate maintenance,
+principal-matrix construction, solver/preconditioner state, threshold
+reporting, verification, materialization, disposal, and output. Accessing a
+cached incidence still has a cost; caching is not a license to discard
+repeated work. The displayed graph matrices and unknown comparison vectors
+are mathematical objects, not freely supplied arrays.
+
+The main bounds count exact-real algebraic word operations. For rational
+inputs, degree densities avoid computing square roots: a listed density
+$f_i$ and original degree $d_i$ represent $x_i=f_i\sqrt{d_i}$ and
+$\pi_i=d_if_i$. The deterministic schedule uses only dyadic halving,
+arithmetic, and comparisons. A separate bounded-arithmetic theorem below
+charges numerical and label encoding lengths. In particular, an
+exact-arithmetic statement is not a guarantee for unchecked floating point.
+
+In soft bounds, $\widetilde O$ hides only polylogarithms in inverse numerical
+parameters, requested accuracy, explicitly supplied failure probability, and
+the number of exposed records. It hides no ambient graph-size factor, no
+unknown minimum sign margin, and no uncharged setup. Set
+\begin{equation}
+ L_{\rm par}:=\log\frac{2}{\alpha\rho\min\{1,\epsobj\}}.
+ \label{eq:main-parameter-log}
+\end{equation}
+This is positive in the nonzero regime and is only a parameter-logarithm
+abbreviation, not a smoothness constant.
+
+\subsection{Main results}
+
+\begin{theorem}[Deterministic local acceleration]
+\label{thm:deterministic-rppr}
+For every graph and point source above, $0<\alpha\leq1$,
+$0<\rho<1/d_v$, and $\epsobj>0$, \cref{alg:deterministic-rppr} returns
+\begin{equation}
+ \vzero\leq\widehat\vx\leq\vx_\rho^*,\qquad
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj,
+ \qquad\vol(\supp\widehat\vx)\leq1/\rho.
+ \label{eq:deterministic-main-guarantee}
+\end{equation}
+Its fully charged deterministic work is
+\begin{equation}
+ O\!\left(\frac{L_{\rm par}}{\rho\sqrt\alpha}
+           \log^2\!\left(2+\frac{L_{\rm par}}{\rho\sqrt\alpha}\right)\right)
+ =\softO\!\left(\frac1{\rho\sqrt\alpha}\right),
+ \label{eq:deterministic-main-work}
+\end{equation}
+and its peak storage is $O(1+L_{\rm par}/(\rho\sqrt\alpha))$ words.
+For $\rho\geq1/d_v$ it returns the exact zero solution in constant word
+work. It uses no randomized primitive or linear-system solver.
 \end{theorem}
 
-The two-stage consequence will be proved as
-\cref{thm:two-stage-completion}.
+The proof occupies \cref{sec:deterministic-algorithm,sec:deterministic-analysis,sec:deterministic-implementation}.
+The principal new estimate bounds the cumulative kinetic volume of an
+entire stage, not the support of each accelerated primal iterate.
 
-\begin{theorem}[Local point-source PPR, informal]
-\label{thm:local-ppr-informal}
-For $0<\epsppr<1$, a strict two-stage algorithm returns an output satisfying
-\cref{eq:semantic-ppr-target}, with failure probability at most $\zeta$ and
-expected fully charged work
+\begin{theorem}[Randomized local acceleration, with support adaptation]
+\label{thm:randomized-rppr-main}
+Let $k_*=|\mathcal S_\rho^*|$ and $V_*=\vol(\mathcal S_\rho^*)$.
+For $0<\alpha\leq1$, $0<\rho<1/d_v$, and $\epsobj>0$, there is a Las
+Vegas local algorithm returning $\vzero\leq\widehat\vx\leq\vx_\rho^*$
+satisfying \cref{eq:rppr-output-target}. It can also guarantee
+$\vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega$.
+Its expected fully charged work is
 \begin{equation}
- \softO\!\left(\frac{1}{\epsppr\sqrt\alpha}\right).
- \label{eq:informal-ppr-work}
+ \softO\!\left(V_*\min\{k_*,\alpha^{-1/2}\}\right)
+ \leq\softO\!\left(
+       \min\left\{\frac1{\rho^2},\frac1{\rho\sqrt\alpha}\right\}\right).
+ \label{eq:randomized-adaptive-work}
 \end{equation}
+Alternatively, a single capped run reports an explicit failure with
+probability at most $\zeta\in(0,1)$, has the same expected work up to
+failure-probability logarithms, and always satisfies the output guarantee
+when it returns a vector. All support admissions are deterministically
+certified.
 \end{theorem}
 
-The soft notation hides polylogarithms in the displayed accuracy and failure
-parameters and in the local supplied-matrix SDD routine; it hides no
-polynomial dependence on $n$, $m$, $|\mathcal S_\rho^*|$, or an unknown sign
-margin.
+The factors suppressed in \cref{eq:randomized-adaptive-work} include
+logarithmic objective-accuracy dependence in the batch count and in the SDD
+solves. The refined bound follows because every nonempty batch adds a new
+vertex, while \cref{thm:threshold-batch-depth} bounds the number of batches
+spectrally. Thus the randomized method retains the small-support bound as
+well as the accelerated worst-case envelope.
+Its graph and boundary records have size $O(V_*)$; numerical workspace is
+that of one supplied-face SDD call. Allocation is charged, so expected peak
+space is in particular bounded by the displayed expected work.
+
+\begin{corollary}[Local PPR at semantic accuracy]
+\label{cor:main-ppr}
+For $0<\epsppr<1$, degree-normalized PPR error $\epsppr$ can be attained
+in $\softO(1/(\epsppr\sqrt\alpha))$ deterministic work, or in the same
+expected work by a Las Vegas algorithm. The deterministic output obeys
+$\vzero\leq\widehat\vx\leq\vx_0^*$, and both outputs have support volume
+at most $2/\epsppr$. If $\epsppr\geq1$, zero suffices.
+\end{corollary}
+\begin{proof}
+Use \cref{eq:direct-ppr-budgets} and
+\cref{prop:rppr-ppr-bridge}. The logarithm of the requested objective
+accuracy remains a sum of $\log(1/\alpha)$ and $\log(1/\epsppr)$.
+For $\epsppr\geq1$, use $\vpi\geq\vzero$, $\one^\trans\vpi=1$, and
+$d_i\geq1$.
+\end{proof}
+
+\paragraph{Bounded arithmetic.}
+For rational numerical inputs, \cref{thm:bounded-deterministic-rppr} gives
+an implementation with the same $\softO(1/(\rho\sqrt\alpha))$ local
+operation bound using integers of controlled length. With schoolbook
+integer arithmetic its bit cost is
+$\softO(B^2/(\rho\sqrt\alpha))$, where $B$ explicitly includes the
+input numerical encodings, encountered label and degree encodings, and
+parameter and precision logarithms. This statement has no hidden dependence
+on a minimum activation margin. It concerns a specified rounded algorithm,
+not an arbitrary numerical implementation of the exact recurrence.

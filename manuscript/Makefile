@@ -3,6 +3,7 @@
 #   make            # build main.pdf
 #   make watch      # rebuild continuously on file changes
 #   make view       # build and open the PDF
+#   make arxiv      # build and package the active source dependencies
 #   make clean      # remove auxiliary files, keep main.pdf
 #   make distclean  # remove auxiliary files and main.pdf
 #
@@ -22,11 +23,14 @@ else
 OPEN := xdg-open
 endif
 
-.PHONY: all pdf notes notes-clean watch view clean distclean
+.PHONY: all pdf arxiv notes notes-clean watch view clean distclean
 
 all: $(MAIN).pdf
 
 pdf: all
+
+arxiv: $(MAIN).pdf
+	python3 ../tools/build_arxiv_bundle.py
 
 notes:
 	$(MAKE) -C notes

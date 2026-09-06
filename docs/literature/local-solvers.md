@@ -477,7 +477,7 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   work bound of Theorem 3.2 / Equation (3.3) in the repository's column-vector
   and degree-weighted work conventions, and adds a matching lower bound. The
   source proves only the upper bound `O(1/(alpha * eps))`; the paper does not
-  state whether it is worst-case tight. The manuscript closes this by a
+  state whether it is worst-case tight. The supporting section proves this by a
   center-seeded star `K_{1,m}` with `m = floor(1/(8 * eps_appr))`, giving
   `3/(128 * alpha * eps_appr) < W <= 1/(alpha * eps_appr)` for every legal
   active-vertex ordering, hence
@@ -485,7 +485,7 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   mechanisms are: termination on a graph of volume `Theta(1/eps_appr)` forces
   `Omega(1/alpha)` cumulative pushed residual, and a leaf-flow identity routes
   a constant fraction of it through a vertex of degree `Theta(1/eps_appr)`.
-  The manuscript also records that `x = D^{-1/2} pi` is the unique minimizer of
+  The section also records that `x = D^{-1/2} pi` is the unique minimizer of
   the RPPR objective at `rho = 0`, which is what makes APPR and the
   `l1`-regularized formulation comparable at all.
 - Formulation differences: The algorithm returns a low-conductance set after
@@ -496,5 +496,52 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 - Open questions: Compare PageRank-Nibble's volume-indexed work bound with the
   hybrid solver's residual-driven stopping and edge-operation accounting. The
   row/column translation, push invariant, implementation cross-check, and
-  ordering-independent tight work bound are now complete in the active
-  manuscript.
+  ordering-independent tight work bound are complete in the supporting
+  section. That section is retained but is not input by the current arXiv
+  paper, whose scope is the two accelerated RPPR algorithms.
+
+## Active manuscript comparison audit, 2026-09-06
+
+- For `wei2026simple`, the official arXiv record was checked on 2026-09-06:
+  the latest listed version is `2608.16339v1`, dated 2026-08-17. Theorem 1.3
+  begins on physical p. 3 and continues on p. 4. The same p. 4 explicitly
+  describes replacement by deterministic almost-linear SDD solvers, adding
+  `|S*|^{o(1)}` for RPPR (or `(1/eps_appr)^{o(1)}` for ACL approximation).
+  The active paper must not describe all deterministic active-set solvers as
+  unavailable. It compares the precise polylogarithmic-overhead accelerated
+  bound instead.
+- The exact objective dictionary is
+  `alpha_nl = 2 alpha/(1+alpha)`, `x_shared = D^(1/2) y`, and
+  `F_rho(D^(1/2)y) = ((1+alpha)/2) psi_(alpha_nl,rho)(y)`.
+  Thus the regularizer is unchanged and additive objective tolerances differ
+  by a factor in `[1/2,1]`. Original degrees are required on every face.
+- Definition 1.1 on pp. 2–3 is the ACL positive-residual representation,
+  not merely degree-normalized solution error. The active paper now supplies
+  that representation for both algorithms through a certified final repair.
+  It states the numerical substitution property separately from any
+  conductance or seed-quality hypothesis in an outer clustering theorem.
+- The current deterministic proof is a different constrained recurrence from
+  standard FISTA and AESP. Its promotion does not discharge the standalone
+  AESP–LOCSOR early-locality gate or any signed-SOR trajectory conjecture.
+
+
+## Citation key: `ha2021statistical`
+
+- Citation: Wooseok Ha, Kimon Fountoulakis, and Michael W. Mahoney.
+  “Statistical Guarantees for Local Graph Clustering.” *Journal of Machine
+  Learning Research* 22(148):1–54, 2021.
+- Publisher record: <https://jmlr.org/papers/v22/20-029.html>.
+- Local PDF:
+  `papers/2021-jmlr-ha-statistical-guarantees-local-graph-clustering.pdf`.
+- Source audit on 2026-09-06: physical p. 6, Lemma 4, states componentwise
+  monotonicity of the regularized optimum as the regularizer decreases;
+  Appendix C.3, pp. 40–41, proves it through principal inverse positivity.
+  Section 5 starts on p. 13; the stagewise algorithm (10) and Corollary 12
+  are on p. 14. These pages connect the vanishing-step stagewise path with
+  the regularization path; pp. 6 and 13–14 were also visually checked.
+- Coordinate dictionary: its degree-coordinate vector is
+  `x_Ha = D^(-1/2) x_shared`; its Hessian is
+  `D^(1/2) Q_shared D^(1/2)` and the lazy teleportation parameter and
+  regularizer agree. The active paper cites the source for monotonicity and
+  path methods, then proves its own least-supersolution comparison and
+  accelerated continuation work. The source does not supply the latter.

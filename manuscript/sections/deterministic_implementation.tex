@@ -1,0 +1,204 @@
+We now realize \cref{eq:det-iteration} without scanning the entire primal
+history at every step. All maps, sets, and order statistics below use
+deterministic balanced comparison trees. Bounds therefore include their
+logarithmic operations; no expected-time hashing assumption is used.
+
+\subsection{Common scaling and sparse response updates}
+
+Let $U=4r$ and write the degree densities of the primal correction as
+\begin{equation}
+ \frac{\xi_{k,i}}{\omega_i}=\sigma_k X_{k,i},\qquad
+ \sigma_k=\chi^k.
+ \label{eq:det-lazy-primal}
+\end{equation}
+Maintain normalized response densities and the current kinetic response
+\begin{equation}
+ \mathscr R_{k,i}:=
+   [(\mQ-\mu_{\rm c}\mI)\vxi_k]_i/(\sigma_k\omega_i),
+ \qquad
+ \mathscr T_{k,i}:=
+   [\mD^{-1/2}(\mQ-\mu_{\rm c}\mI)\vz_k]_i.
+ \label{eq:det-lazy-responses}
+\end{equation}
+The primal averaging step changes normalized records only where the new
+kinetic vector is nonzero:
+\begin{equation}
+ \sigma_{k+1}=\chi\sigma_k,\qquad
+ X_{k+1,i}=X_{k,i}+
+       \frac{\theta z_{k+1,i}}{\sigma_{k+1}\omega_i}.
+ \label{eq:det-lazy-update}
+\end{equation}
+Opening the original adjacency list of each such vertex updates its diagonal
+response and scatters the change to its neighbors. The work is proportional
+to $\vol(\supp\vz_{k+1})$, including every repeated scan.
+
+The raw projection density can be represented by a key $k_i$:
+\begin{equation}
+ \begin{aligned}
+ k_i={}&-\frac{\mathscr R_{k,i}}{\theta(1+\theta)}
+       +\frac1{\sigma_k}\left(
+          \frac{\chi z_{k,i}}{\omega_i}
+          -\frac{\mathscr T_{k,i}}{1+\theta}
+          +\frac{h_i}{\theta\omega_i}\right),\\
+ \frac{q_{k,i}}{\omega_i}={}&\sigma_k k_i-\lambda_r/\theta.
+ \end{aligned}
+ \label{eq:det-raw-key}
+\end{equation}
+The first term is an ordinary key. The bracketed term is an exception only
+on the source records and on the current kinetic support and its boundary.
+When the common scale changes, remove the old exceptions, update responses
+on the newly scanned rows and their neighbors, and install the new
+exceptions. This touches only the old and new kinetic incidence sets and
+the fixed source records. Stored old keys permit exact deletion even when
+their new values have changed. No threshold query is made during a partial
+update.
+
+The fixed source is assembled by scanning the baseline support. Its record
+set lies in
+\begin{equation}
+ \gF_r:=\{v\}\cup\supp\overline\vx\cup\partial(\supp\overline\vx),
+ \qquad |\gF_r|=O(1+1/r).
+ \label{eq:det-source-records}
+\end{equation}
+Indeed the baseline is inside $\mathcal S_r^*$, and the number of boundary
+records is at most its degree volume. Refreshing source exceptions every
+iteration is therefore affordable, including records that are inactive and
+whose adjacency lists are never opened.
+
+\subsection{An exact finite threshold reporter}
+
+Store each represented key in a balanced tree ordered by $(k_i,i)$, with
+subtree cardinalities, degree sums, and weighted key sums. Vertex labels
+break ties only; mass comparisons group equal numerical keys correctly.
+For a real threshold $t$, define
+\begin{equation}
+ D(t)=\sum_{k_i>t}d_i,\quad
+ S(t)=\sum_{k_i>t}d_i k_i,\quad
+ T(t)=S(t)-tD(t)=\sum_i d_i(k_i-t)_+.
+ \label{eq:det-tree-moments}
+\end{equation}
+Each tail query costs $O(\log(N+2))$ operations when $N$ records are stored.
+Writing $t=(\lambda_r/\theta+\gamma)/\sigma_k$, the projected mass is
+\begin{equation}
+ M(t)=\sigma_k\{T(t)-T(t+U/\sigma_k)\}.
+ \label{eq:det-mass-query}
+\end{equation}
+This formula includes both the lower truncation and upper clipping in
+\cref{eq:det-waterfill}.
+
+\begin{lemma}[Deterministic projection reporting]
+\label{lem:det-reporter}
+Given the maintained state, the exact multiplier and every positive
+coordinate of $\operatorname{Proj}_{\gK_r}(\vq_k)$ can be obtained in
+\begin{equation}
+ O\bigl(\log^2(N+2)+|\supp\vz_{k+1}|\bigr)
+ \label{eq:det-reporter-cost}
+\end{equation}
+operations, in addition to the charged point updates and row scans.
+The search uses finitely many order statistics, with no dependence on a
+smallest positive coordinate or on a complementarity margin.
+\end{lemma}
+\begin{proof}
+Evaluate \cref{eq:det-mass-query} at $t_0=\lambda_r/(\theta\sigma_k)$.
+If $M(t_0)\leq m_r$, then $\gamma=0$ is valid. Otherwise the desired root
+lies between $t_0$ and the maximum stored key, where the mass is zero.
+The only breakpoints of $M$ are the two sorted lists
+\begin{equation}
+ \{k_i\}_{i=1}^N,\qquad \{k_i-U/\sigma_k\}_{i=1}^N.
+ \label{eq:det-projection-breakpoints}
+\end{equation}
+Binary search the first list by rank, evaluating $M$ at each queried
+breakpoint and maintaining a bracket around the target mass. If equality
+holds, return that breakpoint. Otherwise stop when no breakpoint from the
+first list lies strictly inside the bracket. Repeat for the second list.
+Narrowing a bracket cannot restore an excluded breakpoint from the first
+list. Each search uses $O(\log(N+2))$ rank selections and mass queries,
+each of logarithmic cost. The remaining interval has no breakpoint, so
+$M$ is affine there and one division gives a valid root. Endpoint equality
+handles a flat interval; a constant affine function cannot strictly
+straddle the target. If a zero cap occurs, zero is returned directly.
+
+Finally enumerate keys strictly above the root. They are exactly the
+positive projected coordinates because $U>0$; each value follows from
+\cref{eq:det-waterfill}. A tree successor traversal takes one logarithmic
+initial search and linear output work. Exact equalities produce zero
+coordinates and do not trigger an adjacency scan.
+\end{proof}
+
+\subsection{Discovery, completion, and the full ledger}
+
+Before every projection, each vertex with positive primal or kinetic state
+has had its row scanned, and all its neighbors have been exposed. Every
+source coordinate is also represented. A vertex never exposed has zero
+state, zero source, and zero neighbor response. Its raw density is therefore
+$-\lambda_r/\theta<0$, so it cannot be selected. The finite reporter thus
+agrees exactly with the full-space projection. Degree replies are requested
+only for the seed or a discovered neighbor and are cached; their number is
+bounded by the same incidences. Inactive boundary records incur scalar
+work but no recursive row scan.
+
+Let $V_k^{\rm row}=\vol(\supp\vz_k)$, with $V_0^{\rm row}=0$.
+Removing old exceptions and installing new ones costs
+$O(|\gF_r|+V_k^{\rm row}+V_{k+1}^{\rm row})$ point operations up to
+logarithms. Each new primal response and kinetic response is assembled from
+the emitted rows at the same charge. Thus \cref{lem:det-reporter} and
+\cref{thm:det-kinetic-work} account for the entire iteration loop.
+
+At completion, materialize the baseline and the union of kinetic supports.
+Their cumulative row volume is already charged. One scan of this candidate
+support computes the exact projected-gradient input on the candidate and
+its boundary. Apply the downward correction before opening any newly
+positive neighbor's row. The repaired support lies in $\mathcal S_r^*$,
+so its next source assembly costs at most $1/r$ additional incidences.
+Discarding obsolete state is charged to its number of records. These facts
+give the stage bound
+\begin{equation}
+ O\!\left(
+  \left[K(1+|\gF_r|)+\sum_{k=1}^KV_k^{\rm row}
+              +\vol(\supp\overline\vx)+1\right]
+  \log^2(N+2)\right)
+ =O\!\left(\frac Kr\log^2(N+2)\right).
+ \label{eq:det-stage-ledger}
+\end{equation}
+Here $N=O(1+K/r)$ suffices for the current stage's records and cached
+adjacencies. In particular, lazy arithmetic does not hide a dense
+materialization or a global terminal certificate.
+
+\begin{proof}[Proof of \cref{thm:deterministic-rppr}]
+The constant-output branches follow from the zero-solution criterion and
+$F_\rho(\vzero)-F_\rho(\vx_\rho^*)\leq\alpha/2$.
+For all other branches, \cref{prop:det-stage-rate} supplies the candidate
+accuracy and \cref{lem:det-repair} closes the stage invariant. The final
+choice of $\delta$ gives the requested objective gap and safe support.
+
+For work, let $L_{\rm par}=\log(2/(\alpha\rho\min\{1,\epsobj\}))$ as in
+\cref{eq:main-parameter-log}. Every stage uses
+$K=O(L_{\rm par}/\sqrt\alpha)$ iterations. Indeed its prescribed tolerance is
+$\tau=\alpha\delta^2/8$, where halving from $\alpha r/2$ makes
+$\delta^2$ within an absolute constant of
+$\min\{\alpha^2r^2,\epsobj r\}$ at the final stage; intermediate
+stages use the first value. Thus $\log(1/\tau)=O(L_{\rm par})$.
+The halving schedule has
+\begin{equation}
+ \sum_j\frac1{r_j}\leq\frac4\rho.
+ \label{eq:det-geometric-work}
+\end{equation}
+Summing \cref{eq:det-stage-ledger} therefore gives
+\[
+ O\!\left(\frac{L_{\rm par}}{\rho\sqrt\alpha}
+       \log^2\!\left(2+\frac{L_{\rm par}}{\rho\sqrt\alpha}\right)\right).
+\]
+The same history bounds peak state by $O(1+L_{\rm par}/(\rho\sqrt\alpha))$ words
+and output by $1/\rho$ coordinates. All preprocessing is confined to
+discovered rows and included in this charge.
+\end{proof}
+
+\paragraph{Arithmetic representation.}
+The exact algorithm can use rational degree densities when its numerical
+inputs are rational: the matrix acting on densities is
+$\mD^{-1/2}\mQ\mD^{1/2}=((1+\alpha)/2)\mI-((1-\alpha)/2)\mD^{-1}\mA$.
+An output can store its density and degree, representing
+$\widehat x_i=\sqrt{d_i}\,\widehat x_i/\omega_i$ exactly. This observation
+alone gives no bound on growing rational denominators.
+\Cref{app:bounded-arithmetic} supplies directed rounding, controlled
+neighbor-response error, scalar rebasing, and a separate encoding analysis.

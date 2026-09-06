@@ -56,6 +56,11 @@ imports, and duplicate core definitions outside this explicit exception.
 Proof-local indexed quantities remain permitted only when their scope is
 stated and they do not reuse a reserved symbol.
 
+In this manuscript reference, \(\preceq,\succeq\) denote Loewner order,
+whereas \(\leq,\geq\) on vectors and matrices denote entrywise order.
+In particular, inverse positivity \(\bm Q^{-1}\geq0\) is an entrywise
+statement, distinct from positive definiteness \(\bm Q\succ0\).
+
 This shared layer is a source-grounded manuscript reference convention. It
 does not become an implementation or stopping-rule convention until the
 remaining decisions and tests below are completed.

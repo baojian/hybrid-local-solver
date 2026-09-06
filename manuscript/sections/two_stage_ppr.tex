@@ -1,170 +1,223 @@
-The RPPR theorem already yields a PPR approximation through
-\cref{prop:rppr-ppr-bridge}.  A stricter two-stage interface is useful for
-algorithm design: Stage~I returns only a set, all changing-face state is
-discarded, and Stage~II solves one ordinary principal PPR system.  The key
-observation is that the retained face need not contain the exact RPPR
-support.
+The objective-to-PPR conversion in \cref{prop:rppr-ppr-bridge} already
+proves \cref{cor:main-ppr}. We record two further consequences: a positive
+residual certificate compatible with the ACL approximation definition, and
+a set-only handoff to an ordinary principal PPR solve.
 
-For a reachable face $U$, let
+\subsection{A positive residual certificate}
+
+Write $\mP_{\rm L}=(\mI+\mA\mD^{-1})/2$ and, for any load $\va$,
+let
 \begin{equation}
- \vu_U:=\mQ_{UU}^{-1}\vb_U,
+ \operatorname{PPR}_\alpha(\va)
+   :=\alpha(\mI-(1-\alpha)\mP_{\rm L})^{-1}\va.
+ \label{eq:linear-ppr-load-map}
+\end{equation}
+The ACL approximation condition is stronger than an arbitrary small
+solution error: a nonnegative vector $\widehat\vpi$ is an ACL
+$\epsappr$-approximation if
+\begin{equation}
+ \widehat\vpi=\operatorname{PPR}_\alpha(\eunit{v}-\vr^{\rm mass}),
+ \qquad \vzero\leq\vr^{\rm mass}\leq\epsappr\mD\one.
+ \label{eq:acl-approximation-contract}
+\end{equation}
+This is the residual representation in
+\citet{andersen2007using} and \citet[Definition~1.1]{wei2026simple},
+translated to the lazy parameter.
+
+\begin{corollary}[ACL-compatible local acceleration]
+\label{cor:acl-compatible-output}
+For $0<\epsappr<1$, both our deterministic and randomized methods can
+return an ACL $\epsappr$-approximation, with support volume at most
+$2/\epsappr$, in respectively
+$\softO(1/(\epsappr\sqrt\alpha))$ deterministic and expected Las Vegas
+work. In particular $\vzero\leq\widehat\vpi\leq\vpi$ and the
+semantic error is at most $\epsappr$.
+\end{corollary}
+\begin{proof}
+Set $\rho=\epsappr/2$ and request objective tolerance
+$\alpha\epsappr^2/8$. The nontrivial deterministic execution reaches a
+stage handoff, since this tolerance is below $\alpha/2$.
+\Cref{eq:det-repaired-invariant} gives
+$\vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega$;
+for the randomized method use \cref{cor:randomized-safe-repair}.
+Define
+\[
+ \vr^{\rm mass}:=\alpha^{-1}\mD^{1/2}(\vb-\mQ\widehat\vx).
+\]
+Then \cref{eq:acl-approximation-contract} follows by rearranging the
+PageRank equation, and
+$\vr^{\rm mass}\leq2\rho\mD\one=\epsappr\mD\one$.
+Inverse positivity gives the one-sided solution and semantic bounds.
+The support and work follow from the main theorems.
+If $\rho d_v\geq1$, zero has residual $\eunit{v}\leq\rho\mD\one$.
+At $\alpha=1$ the exact one-coordinate solution has the same certificate.
+\end{proof}
+
+The corollary supplies the numerical approximation property used in ACL
+local clustering, in addition to the semantic guarantee. Applying a
+particular sweep-cut theorem still requires its graph, seed, and parameter
+hypotheses; those hypotheses are not replaced by an objective-gap statement.
+
+\subsection{An approximate support as a linear-system envelope}
+
+For any nonempty set $\gU\subseteq\gV$, define the principal PPR solution
+and its zero extension by
+\begin{equation}
+ \vu_\gU:=\mQ_{\gU\gU}^{-1}\vb_\gU,
+ \qquad \widetilde\vu_\gU\in\R^n.
  \label{eq:principal-ppr-system}
 \end{equation}
-and write $\widetilde\vu_U$ for its zero extension.
+An empty set has the zero solution. The following comparison does not
+require $\gU$ to contain the full RPPR support or to be reachable by pivots.
 
 \begin{lemma}[Approximate-envelope linearization]
 \label{lem:approximate-envelope}
 Let
 \begin{equation}
- \delta_U:=\max_{i\notin U}
-       \frac{(x_\rho^*)_i}{\sqrt{d_i}},
+ \delta_\gU:=\max_{i\notin \gU}(x_\rho^*)_i/\sqrt{d_i},
  \label{eq:outside-rppr-amplitude}
 \end{equation}
-with the maximum equal to zero when $U=[n]$.  Then
+where the maximum is zero if $\gU=\gV$. Then
 \begin{equation}
- \vzero\leq\widetilde\vu_U\leq\vx_0^*,
- \qquad
- \norm{\mD^{-1/2}(\vx_0^*-\widetilde\vu_U)}_\infty
- \leq\rho+\delta_U.
+ \vzero\leq\widetilde\vu_\gU\leq\vx_0^*,\qquad
+ \norm{\mD^{-1/2}(\vx_0^*-\widetilde\vu_\gU)}_\infty
+       \leq\rho+\delta_\gU.
  \label{eq:approximate-envelope-bound}
 \end{equation}
 \end{lemma}
-
 \begin{proof}
-By \cref{eq:rppr-bias}, every coordinate outside $U$ satisfies
-\begin{equation}
- (x_0^*)_i\leq(x_\rho^*)_i+\rho\sqrt{d_i}
- \leq(\rho+\delta_U)\sqrt{d_i}.
- \label{eq:outside-ppr-envelope}
-\end{equation}
-On $U$, put $\vw_U=(\vx_0^*)_U-\vu_U$.  The full and principal equations
-give
-\begin{equation}
- \mQ_{UU}\vw_U=-\mQ_{U\bar U}(\vx_0^*)_{\bar U}\geq\vzero,
- \label{eq:principal-ppr-difference}
-\end{equation}
-so inverse positivity gives $\vzero\leq\vu_U\leq(\vx_0^*)_U$.
-Using \cref{eq:outside-ppr-envelope}, the off-diagonal sign, and
-\cref{eq:constant-vector-inverse-positive},
-\begin{align*}
- \mQ_{UU}\vw_U
- &\leq-\mQ_{U\bar U}(\rho+\delta_U)
-      \mD_{\bar U}^{1/2}\one\\
- &\leq\mQ_{UU}(\rho+\delta_U)\mD_U^{1/2}\one.
-\end{align*}
-Multiplication by $\mQ_{UU}^{-1}\geq\vzero$ proves the inside normalized
-bound; \cref{eq:outside-ppr-envelope} proves it outside.
+Outside $\gU$, \cref{eq:rppr-bias} gives
+$(x_0^*)_i\leq(\rho+\delta_\gU)\sqrt{d_i}$.
+On $\gU$, the difference
+$\vw_\gU=(\vx_0^*)_\gU-\vu_\gU$ satisfies
+\[
+ \mQ_{\gU\gU}\vw_\gU=-\mQ_{\gU\bar \gU}(\vx_0^*)_{\bar \gU}\geq\vzero.
+\]
+Both nonnegativity of $\vu_\gU$ and its comparison with $(\vx_0^*)_\gU$
+follow from inverse positivity. The outside bound and Stieltjes signs imply
+\[
+ \mQ_{\gU\gU}\vw_\gU
+ \leq-\mQ_{\gU\bar \gU}(\rho+\delta_\gU)\vomega_{\bar \gU}
+ \leq\mQ_{\gU\gU}(\rho+\delta_\gU)\vomega_\gU.
+\]
+The last inequality uses $\mQ\vomega=\alpha\vomega\geq\vzero$.
+Multiplication by the nonnegative principal inverse proves the inside
+bound. The empty-set case is the already established outside bound.
 \end{proof}
 
-\begin{lemma}[Low face energy is a set certificate]
+\begin{lemma}[A sparse objective certificate gives a set certificate]
 \label{lem:face-energy-envelope}
-Let
+If a nonnegative $\vz$ supported on $\gU$ satisfies
+$F_\rho(\vz)-F_\rho(\vx_\rho^*)\leq\Gamma_\gU$, then
 \begin{equation}
- \Gamma_U:=F_\rho(\vx^U)-F_\rho(\vx_\rho^*).
- \label{eq:exact-face-gap-transfer}
-\end{equation}
-Then
-\begin{equation}
- \max_{i\notin U}\frac{(x_\rho^*)_i}{\sqrt{d_i}}
- \leq\sqrt{\frac{2\Gamma_U}{\alpha}},
- \label{eq:face-gap-amplitude}
-\end{equation}
-and
-\begin{equation}
- \norm{\mD^{-1/2}(\vx_0^*-\widetilde\vu_U)}_\infty
- \leq\rho+\sqrt{\frac{2\Gamma_U}{\alpha}}.
+ \delta_\gU\leq\sqrt{2\Gamma_\gU/\alpha},\qquad
+ \norm{\mD^{-1/2}(\vx_0^*-\widetilde\vu_\gU)}_\infty
+       \leq\rho+\sqrt{2\Gamma_\gU/\alpha}.
  \label{eq:face-gap-ppr-envelope}
 \end{equation}
 \end{lemma}
-
 \begin{proof}
-Strong convexity gives
-$\Gamma_U\geq(\alpha/2)\norm{\vx^U-\vx_\rho^*}_2^2$.  Since the zero
-extension of $\vx^U$ vanishes outside $U$ and every $d_i\geq1$, this proves
-\cref{eq:face-gap-amplitude}.  Apply
-\cref{lem:approximate-envelope} with the resulting value of $\delta_U$.
+Strong convexity bounds $\norm{\vz-\vx_\rho^*}_2$ by
+$\sqrt{2\Gamma_\gU/\alpha}$. Since $\vz$ vanishes outside $\gU$ and
+$d_i\geq1$, this bounds $\delta_\gU$. Apply
+\cref{lem:approximate-envelope}.
 \end{proof}
 
+The lemma applies to either main algorithm's output. For the randomized
+algorithm, one may also use the exact reachable-face gap certified in the
+proof of \cref{thm:local-rppr}; the numerical point need not be retained.
+
 \begin{algorithm}[t]
-\caption{Strict discover-once, solve-once PPR}
+\caption{PPR with a set-only handoff}
 \label{alg:two-stage-ppr}
 \begin{algorithmic}[1]
-\STATE Choose positive budgets $\rho,\eta,\tau$ with
-       $\rho+\eta+\tau\leq\epsppr$ and set
-       $\epsobj=\alpha\eta^2/2$.
-\STATE Run \cref{alg:threshold-batch-rppr} with failure budget $\zeta/2$.
-       Retain only its certified face $U$; discard the numerical point and
-       all Stage~I solver state.
-\STATE Solve $\mQ_{UU}\vu_U=\vb_U$ to Euclidean error at most $\tau$ with
-       failure budget $\zeta/2$.
-\STATE Project the Stage~II vector onto $\R_+^U$, zero-pad it, and return.
+\STATE Choose $\rho,\varepsilon_{\rm env},\varepsilon_{\rm lin}>0$ with
+       $\rho+\varepsilon_{\rm env}+\varepsilon_{\rm lin}\leq\epsppr$.
+\STATE Run a main RPPR algorithm to objective gap
+       $\epsobj=\alpha\varepsilon_{\rm env}^2/2$.
+\STATE Retain only its output support $\gU$ (or its certified reachable face).
+       Discard the changing numerical state. If $\gU=\emptyset$, return zero.
+\STATE Build the principal PPR system on $\gU$ using original degrees and
+       solve it to Euclidean error at most $\varepsilon_{\rm lin}$.
+\STATE Project its numerical solution onto $\R_+^\gU$, zero-extend, and return.
 \end{algorithmic}
 \end{algorithm}
 
-\begin{theorem}[Randomized literal two-stage completion]
+\begin{theorem}[Deterministic and randomized two-stage completion]
 \label{thm:two-stage-completion}
-Let $0<\epsppr<1$ and choose positive budgets
-\begin{equation}
- \rho+\eta+\tau\leq\epsppr,
- \qquad
- \epsobj=\frac{\alpha\eta^2}{2}.
- \label{eq:two-stage-budgets}
-\end{equation}
-With failure probability at most $\zeta$,
-\cref{alg:two-stage-ppr} returns $\widehat\vx$ satisfying
-\cref{eq:semantic-ppr-target}.  If Stage~II uses an independent
-residual-certified randomized SDD solve, the expected fully charged work is
-\begin{equation}
- \softO\!\left(
-  \frac{1}{\rho\sqrt\alpha}
-  \log\frac1{\alpha\eta^2}\log\frac4\zeta
-  +\frac1\rho
-  \log\frac1{\sqrt\alpha\tau}\log\frac4\zeta
- \right).
- \label{eq:two-stage-total-work}
-\end{equation}
-In particular, $\rho=\eta=\tau=\epsppr/3$ gives
-$\softO(1/(\epsppr\sqrt\alpha))$ expected work.  If the initial degree test
-finds $\rho\geq1/d_v$, the algorithm may return zero and omit Stage~II.
+For $0<\epsppr<1$, \cref{alg:two-stage-ppr} attains the semantic target
+whenever its two certified stages return. With equal budgets
+$\rho=\varepsilon_{\rm env}=\varepsilon_{\rm lin}=\epsppr/3$, there
+is a deterministic implementation with
+$\softO(1/(\epsppr\sqrt\alpha))$ fully charged work and a Las Vegas
+implementation with the same expected work. The second stage may use
+ordinary preconditioned conjugate gradient deterministically or a
+residual-certified SDD solve randomly.
 \end{theorem}
-
 \begin{proof}
-On a successful Stage~I execution, the proof of \cref{thm:local-rppr}
-certifies that the exact retained face has $\Gamma_U\leq\epsobj$.
-By \cref{lem:face-energy-envelope}, the exact principal PPR solution then has
-semantic error at most $\rho+\eta$.  A Euclidean Stage~II error of at most
-$\tau$ contributes at most $\tau$ in the normalized $\ell_\infty$ norm
-because $d_i\geq1$.  Projection cannot increase the Euclidean distance from
-the exact nonnegative principal solution.  The two failure budgets combine by
-a union bound.
+\Cref{lem:face-energy-envelope} bounds the error of the exact principal
+solution by $\rho+\varepsilon_{\rm env}$.
+Orthant projection cannot increase distance from that nonnegative solution.
+A Euclidean error at most $\varepsilon_{\rm lin}$ therefore contributes
+at most that amount to the degree-normalized maximum norm. This proves
+accuracy, including the empty-set case.
 
-For work, use the degree-coordinate SDD matrix in
-\cref{eq:degree-scaled-face-sdd}.  The exact principal PPR solution has
-energy at most $\alpha$.  A good call at relative energy tolerance
-$\sqrt\alpha\tau$ has active residual norm at most $\alpha\tau$.  Accept a
-call only after an active-row scan verifies that inequality.  Every accepted
-call then has Euclidean solution error at most $\tau$, deterministically,
-because $\mQ_{UU}\succeq\alpha\mI$.  Capped independent retries give the
-second failure budget.  Since $U\subseteq\mathcal S_\rho^*$ and
-$\vol(U)\leq1/\rho$, the supplied SDD work plus
-\cref{eq:local-rppr-work} proves \cref{eq:two-stage-total-work}.
+Building the principal matrix from only the retained labels costs
+$\widetilde O(\vol(\gU))$; no prior solver state is needed. Its energy
+satisfies
+\[
+ \norm{\widetilde\vu_\gU}_{\mQ}^2
+ =\vb_\gU^\trans\mQ_{\gU\gU}^{-1}\vb_\gU\leq\alpha.
+\]
+Preconditioned CG on the degree system
+$\mH_{\gU\gU}\vy_\gU=\mD_\gU^{1/2}\vb_\gU$, with preconditioner $\mD_\gU$,
+is equivalent to CG on $\mQ_{\gU\gU}$, whose spectrum is in $[\alpha,1]$.
+Its energy minimization over the current Krylov space, together with a
+Chebyshev residual polynomial on $[\alpha,1]$, bounds the Euclidean error
+after $j$ steps by
+\[
+ 2\left(\frac{1-\sqrt\alpha}{1+\sqrt\alpha}\right)^j.
+\]
+Indeed the polynomial's maximum absolute residual bounds the energy error
+relative to its initial value, which is at most $\sqrt\alpha$; converting
+to Euclidean error divides by $\sqrt\alpha$.
+The polynomial is obtained by the same construction as
+\cref{lem:chebyshev-inverse}, with upper endpoint one. Exact zero residual
+terminates CG immediately, including the degenerate spectral case.
+Thus $O(\alpha^{-1/2}\log(2/\varepsilon_{\rm lin}))$ iterations suffice.
+Each costs $O(\vol(\gU))$ arithmetic and repeated incidence reads, in
+addition to local indexing logarithms. This gives the deterministic tail
+charge
+\begin{equation}
+ \softO\!\left(\frac{\vol(\gU)}{\sqrt\alpha}
+                  \log\frac2{\varepsilon_{\rm lin}}\right).
+ \label{eq:deterministic-principal-tail}
+\end{equation}
 
-In the zero-RPPR regime, \cref{eq:rppr-bias} directly bounds the semantic
-error of zero by $\rho\leq\epsppr$.
+For the randomized tail, choose a relative SDD energy tolerance no larger
+than $\sqrt\alpha\,\varepsilon_{\rm lin}$. A good call then has active
+residual norm at most $\alpha\varepsilon_{\rm lin}$.
+Accept only after verifying this residual inequality by a charged active-row
+scan. Every accepted call has Euclidean error at most
+$\varepsilon_{\rm lin}$, since $\mQ_{\gU\gU}\succeq\alpha\mI$.
+The resulting expected tail charge is
+\begin{equation}
+ \softO\!\left(\vol(\gU)
+          \log\frac2{\sqrt\alpha\,\varepsilon_{\rm lin}}\right).
+ \label{eq:randomized-principal-tail}
+\end{equation}
+The tolerance can be rounded down dyadically to avoid computing a root.
+Independent certified retries give Las Vegas completion; alternatively,
+split a requested failure budget between the two stages and report failure
+explicitly if a cap is reached.
+
+Finally, $\vol(\gU)\leq1/\rho$. Combining either tail charge with its
+corresponding Stage~I theorem and the equal budgets proves the result.
+All reconstruction, projection, state disposal, and output are included.
 \end{proof}
 
-\begin{corollary}[The shortest execution stops after Stage~I]
-\label{cor:direct-stage-one-return}
-Set $\rho=\epsppr/2$ and $\epsobj=\alpha\epsppr^2/8$.  The projected
-numerical point already returned by \cref{alg:threshold-batch-rppr} is
-semantically $\epsppr$-accurate by \cref{eq:objective-to-ppr}, with expected
-work $\softO(1/(\epsppr\sqrt\alpha))$.  Hence Stage~II is a modular set-only
-variant, not a mandatory extra cost.
-\end{corollary}
-
-This separation clarifies the relation to AESP--CD.  Support-safe admission,
-the hard face cap, restart, and the certificate race transfer to an AESP--CD
-portfolio.  The theorem itself does not carry the original momentum state
-across changing faces; it instead pays for fresh solves on a provably bounded
-number of faces.  Practical SOR or APPR tails may be raced with the certified
-Stage~II solve, but their empirical behavior is not used in the theorem.
+For the shortest execution, return the numerical Stage~I answer directly
+using \cref{eq:direct-ppr-budgets}. The set-only variant is useful when
+support discovery and final linear accuracy are implemented by different
+routines. Its correctness follows from a quantitative envelope certificate,
+so exact identification of the regularized support is unnecessary.

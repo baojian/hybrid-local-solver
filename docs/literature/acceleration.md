@@ -379,3 +379,82 @@ archive.
   linear inner rate, translate its residual into the conference paper's
   function-gap schedule, and bound the work added by extrapolation and
   regularized auxiliary solves.
+
+## ArXiv manuscript source audit, 2026-09-06
+
+The active manuscript now combines the deterministic continuation proof with
+randomized threshold batching. The following source distinctions constrain
+its claims; they are not changes to the implementation-wide residual choice.
+
+- **COLT 2022 (`fountoulakis2022open`):** local PDF p. 2, equation (3), is
+  exactly the lazy weighted-l1 objective used in the paper. Page 3, Section 3,
+  names both FISTA and linear coupling and proposes total
+  `O_tilde(1/(rho sqrt(alpha)))` work. The new paper attains this algorithmic
+  target with specified algorithms. It does not claim that unmodified FISTA
+  satisfies the suggested uniform support bound.
+- **COLT 2023 (`martinezrubio2023accelerated`):** the local library PDF is a
+  25-page PMLR-formatted version. Its physical PDF p. 4 defines external
+  volume as `nnz(Q[:, S])` and internal volume as `nnz(Q[S, S])`; physical
+  p. 9 states Theorem 4 (CDPR), p. 11 states Theorems 7–8 (ASPR), and p. 24
+  proves Theorem 8. Theorem 8 is
+  `O_tilde(|S*| internal_volume(S*) sqrt(L/alpha) + |S*| external_volume(S*))`.
+  Appendix B is on physical p. 25. These are the pointers used for the
+  active arXiv paper; the older arXiv-v1/archive pointers above identify a
+  different pagination and must not be silently used for this local PDF.
+- **Classical FISTA (`fountoulakis2026complexity`):** the local PDF is v2;
+  the official arXiv record was checked on 2026-09-06 and lists v2 dated
+  2026-04-08. Theorem 4.3 on physical p. 6 has the conditional term
+  `sqrt(vol(B))/(rho alpha^(3/2))`, as well as accelerated core work.
+  Theorem 4.4 and informal Proposition 4.7 are on p. 6. Its two-regularizer
+  comparison already removes a global minimum-complementarity-margin
+  requirement; confinement is the remaining hypothesis. The new deterministic
+  proof must therefore identify its second energy and cumulative-volume
+  argument, rather than claiming that using two regularizers is new.
+- **AESP (`huang2025accelerated`):** Theorem 3.6 and equation (13), physical
+  p. 7, give semantic PPR work
+  `O_tilde(min(m/sqrt(alpha), R_A^2/(sqrt(alpha) eps_ppr^2)))` for
+  `alpha < 1/2`. Its equation (7), p. 5, defines `R_A` through initial
+  weighted gradient-mass ratios; this is not the FISTA iterate-distance `R`.
+  The discussion on p. 8 explicitly proposes a simplex constraint as a way
+  to bound mass. The active deterministic proof adds the diffuse correction
+  source, degree-scaled upper box, source-mass cap, projection-sector proof,
+  and signed-flow charging. It does not promote the separate AESP–LOCSOR
+  graph-uniform locality claim, which remains subject to its existing gate.
+
+## Citation key: `beck2009fast`
+
+- Citation: Amir Beck and Marc Teboulle. “A Fast Iterative
+  Shrinkage-Thresholding Algorithm for Linear Inverse Problems.” *SIAM
+  Journal on Imaging Sciences* 2(1):183–202, 2009.
+- DOI: <https://doi.org/10.1137/080716542>.
+- Local PDF:
+  `papers/2009-siims-beck-fast-iterative-shrinkage-thresholding-linear-inverse-problems.pdf`.
+- Primary-paper copy retrieved from
+  <https://www.cs.cmu.edu/~airg/readings/2012_02_21_a_fast_iterative_shrinkage-thresholding.pdf>.
+- Exact pointers: first page verifies authors, journal, pages, and DOI;
+  physical pp. 11–12 (printed pp. 193–194) specify FISTA with constant step
+  and backtracking; physical p. 13 (printed p. 195), Theorem 4.4, proves the
+  accelerated composite objective rate.
+- Use: cite FISTA as a classical accelerated proximal method and as an
+  explicitly named motivation of the COLT 2022 question. Its generic
+  iteration theorem is not an adjacency-local work guarantee, and the
+  strong-convexity schedule in the active paper is proved separately.
+
+## Citation key: `allenzhu2017linear`
+
+- Citation: Zeyuan Allen-Zhu and Lorenzo Orecchia. “Linear Coupling: An
+  Ultimate Unification of Gradient and Mirror Descent.” *8th Innovations in
+  Theoretical Computer Science Conference*, LIPIcs 67, article 3,
+  pp. 3:1–3:22, 2017.
+- DOI: <https://doi.org/10.4230/LIPIcs.ITCS.2017.3>.
+- Local PDF:
+  `papers/2017-itcs-allen-zhu-linear-coupling-gradient-mirror-descent.pdf`.
+- Publisher PDF:
+  <https://drops.dagstuhl.de/storage/00lipics/lipics-vol067-itcs2017/LIPIcs.ITCS.2017.3/LIPIcs.ITCS.2017.3.pdf>.
+- Exact pointers: physical p. 1 verifies metadata and explains the primal/
+  mirror interpretation; pp. 10–11, Algorithm 1, Theorem 4.1, and Lemmas
+  4.2–4.3 give the accelerated coupling algorithm and proof inequalities.
+- Use: provide the acceleration lineage for the primal/kinetic comparison
+  energy. The active paper's second PageRank-metric energy, capped-box
+  projection comparison, and local-work reporter require their own proofs;
+  they do not follow from a black-box iteration bound in this source.

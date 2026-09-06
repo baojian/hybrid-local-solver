@@ -121,6 +121,12 @@ certified supplied-face SDD solves.
 These papers study accelerated, sparse, or complexity-improved methods for
 PageRank and related local problems.
 
+- *A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse
+  Problems* (Beck and Teboulle, 2009) - FISTA and its composite convergence
+  analysis; a motivating algorithm in the COLT 2022 question.
+- *Linear Coupling: An Ultimate Unification of Gradient and Mirror Descent*
+  (Allen-Zhu and Orecchia, 2017) - coupling primal and auxiliary progress;
+  another explicit motivation in the COLT 2022 question.
 - *Catalyst Acceleration for First-order Convex Optimization: From Theory to
   Practice* (Lin, Mairal, and Harchaoui, 2018) - general outer acceleration
   framework.
@@ -190,12 +196,13 @@ downstream ranking requirements.
 | 2007 | PNAS | *The Heat Kernel as the PageRank of a Graph* | `chung2007heat` | Heat-kernel PageRank |
 | 2007 | WAW | *Local Computation of PageRank Contributions* | `andersen2007localcontributions` | Local PageRank computation |
 | 2007 | IM | [*Using PageRank to Locally Partition a Graph*](../../papers/2007-im-andersen-using-pagerank-locally-partition-graph.pdf) | `andersen2007using` | Local graph clustering |
+| 2009 | SIIMS | [*A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse Problems*](../../papers/2009-siims-beck-fast-iterative-shrinkage-thresholding-linear-inverse-problems.pdf) | `beck2009fast` | Acceleration |
 | 2009 | MP | [*A Coordinate Gradient Descent Method for Nonsmooth Separable Minimization*](../../papers/2009-mp-tseng-coordinate-gradient-descent-nonsmooth-separable-minimization.pdf) | `tseng2009coordinate` | Coordinate optimization |
 | 2009 | DCG | *Pivoting in Linear Complementarity: Two Polynomial-Time Cases* | `foniok2009pivoting` | Complementarity solvers |
 | 2009 | IM | *A Local Graph Partitioning Algorithm Using Heat Kernel PageRank* | `chung2009local` | Heat-kernel PageRank |
 | 2009 | STOC | *Finding Sparse Cuts Locally Using Evolving Sets* | `andersen2009finding` | Evolving-set methods |
 | 2010 | ICM | *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices* | `spielman2010algorithms` | Spectral graph optimization |
-| 2011 | FOCS | *A Nearly-m log n Time Solver for SDD Linear Systems* | `koutis2011nearly` | Spectral graph optimization |
+| 2011 | FOCS | [*A Nearly-m log n Time Solver for SDD Linear Systems*](../../papers/2011-focs-koutis-nearly-m-log-n-time-solver-sdd-linear-systems.pdf) | `koutis2011nearly` | Spectral graph optimization |
 | 2011 | COAP | *Superrelaxation and the Rate of Convergence in Minimizing Quadratic Functions Subject to Bound Constraints* | `dostal2011superrelaxation` | Bound-constrained optimization |
 | 2011 | SICOMP | *Spectral Sparsification of Graphs* | `spielman2011spectral` | Spectral graph optimization |
 | 2011 | SIDMA | [*Sublinear Time Algorithms*](../../papers/2011-sidma-rubinfeld-sublinear-time-algorithms.pdf) | `rubinfeld2011sublinear` | Sublinear algorithms |
@@ -205,6 +212,7 @@ downstream ranking requirements.
 | 2015 | NeurIPS | [*A Universal Catalyst for First-Order Optimization*](../../papers/2015-neurips-lin-universal-catalyst-first-order-optimization.pdf) | `lin2015universal` | Acceleration |
 | 2016 | JACM | *Almost Optimal Local Graph Clustering Using Evolving Sets* | `andersen2016almost` | Evolving-set methods |
 | 2017 | ICML | [*Breaking Locality Accelerates Block Gauss-Seidel*](../../papers/2017-icml-tu-breaking-locality-accelerates-block-gauss-seidel.pdf) | `tu2017breaking` | Acceleration |
+| 2017 | ITCS | [*Linear Coupling: An Ultimate Unification of Gradient and Mirror Descent*](../../papers/2017-itcs-allen-zhu-linear-coupling-gradient-mirror-descent.pdf) | `allenzhu2017linear` | Acceleration |
 | 2018 | JMLR | [*Catalyst Acceleration for First-order Convex Optimization: From Theory to Practice*](../../papers/2018-jmlr-lin-catalyst-acceleration-first-order-convex-optimization.pdf) | `lin2018catalyst` | Acceleration |
 | 2019 | MP | *Variational Perspective on Local Graph Clustering* | `fountoulakis2019variational` | PageRank formulations |
 | 2021 | JMLR | [*Statistical Guarantees for Local Graph Clustering*](../../papers/2021-jmlr-ha-statistical-guarantees-local-graph-clustering.pdf) | `ha2021statistical` | Statistical guarantees |
