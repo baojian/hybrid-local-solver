@@ -1,0 +1,104 @@
+\section{Sparse source distributions with additive input work}
+\label{sec:revisit-sparse-sources}
+This extension is for semantic PPR. It does not identify a solution of the
+original general-source RPPR objective after modifying the source.
+The input is an explicit list $(i,s_i)_{i\in T}$ with $s_i>0$ and
+$\sum_{i\in T}s_i=1$. Reading the list and querying all its degrees costs
+$O(|T|)$; no adjacency list is opened during this input pass.
+
+\begin{lemma}[Discarding small source densities]
+\label{lem:revisit-small-sources}
+Set $T_{\rm h}=\{i\in T:s_i/d_i>\epsppr/2\}$ and split
+$\vs=\vs_{\rm h}+\vs_{\rm l}$ accordingly. Then
+\[
+ \vol(T_{\rm h})<2/\epsppr,\qquad
+ 0\leq\mQ^{-1}\alpha\mD^{-1/2}\vs_{\rm l}
+                   \leq(\epsppr/2)\vomega.
+\]
+\end{lemma}
+\begin{proof}
+Summing $s_i>(\epsppr/2)d_i$ over $T_{\rm h}$ proves the volume bound.
+For the omitted load,
+$0\leq\alpha\mD^{-1/2}\vs_{\rm l}
+\leq\alpha(\epsppr/2)\vomega$.
+Multiply by $\mQ^{-1}\geq0$ and use
+$\mQ^{-1}\vomega=\vomega/\alpha$.
+\end{proof}
+
+\begin{theorem}[Additive-input sparse-source semantic PPR]
+\label{thm:revisit-sparse-source}
+For the explicit sparse distribution above, there is a deterministic local
+algorithm returning a nonnegative lower approximation to its PPR vector
+with normalized semantic error at most $\epsppr$, support volume at most
+$4/\epsppr$, and fully charged exact-real work
+\[
+ \widetilde O\!\left(|T|+\frac1{\epsppr\sqrt\alpha}\right).
+\]
+A separately specified rounded implementation has the same local operation
+scale and bounded integer encodings. An optional tighter final tolerance
+also gives a nonnegative full-source residual load bounded by
+$\epsppr\mD\one$.
+\end{theorem}
+\begin{proof}
+Read the source list, retain only $T_{\rm h}$, and return zero if this set
+is empty. Otherwise keep its original, unnormalized weights. Put
+\[
+ \vb_{\rm h}=\alpha\mD^{-1/2}\vs_{\rm h},\qquad
+ m=\one^\trans\vs_{\rm h}\leq1,
+ \qquad r_0=\max_{i\in T_{\rm h}}s_i/d_i,
+ \qquad \rho=\epsppr/4.
+\]
+Run the same two-phase recurrence on this fixed source to semantic error
+$\epsppr/2$, using its own RPPR optimum only in the analysis.
+The comparator $\vt=\mQ^{-1}\vb_{\rm h}$ has weighted mass $m$.
+Initialization still gives $B_0\leq0$, since
+\[
+ \|\vb_{\rm h}\|_2^2
+    =\alpha^2\sum_i s_i^2/d_i\leq\alpha^2 r_0 m,
+ \qquad \mathcal A_{\lambda_0}(\vt)=\alpha\lambda_0 m.
+\]
+The regularizer-change term is now
+$\alpha(\lambda_{k+1}-\lambda_k)
+(\vomega^\trans\vx_{k+1}-m)$, bounded above by
+$\alpha(\lambda_k-\lambda_{k+1})$.
+All bank, response, mass, and freeze constants therefore remain valid.
+The comparison optima have residual mass at most $\alpha m\leq\alpha$
+and support volume at most $m/r\leq1/r$. The moving signed-flow and
+kinetic work proofs are unchanged.
+
+The reporter's source-exception set is now $T_{\rm h}$ instead of one
+seed. Refreshing all these scalar keys at every step costs
+$O(K|T_{\rm h}|\log(M+2))$, with no source-row scans.
+Here $K=O(\alpha^{-1/2}\log(1/\epsppr))$, because $r_0\leq1$.
+By \cref{lem:revisit-small-sources}, this additional work is within the
+claimed scale. All other labels, row incidences, and state operations retain
+their kinetic charges. This argument avoids an uncharged repeated scan of
+the original, possibly much larger, source list.
+
+The output is below the retained-source PPR vector, and that vector is
+below the full-source PPR vector. Add its error $\epsppr/2$ to the
+discarded-source bound from \cref{lem:revisit-small-sources}.
+The retained-source output has support volume at most $1/\rho=4/\epsppr$.
+At $\alpha=1$, return the retained-source RPPR masses
+$[s_i-\rho d_i]_+$ directly; the same error and support bounds hold.
+
+For bounded arithmetic, use the same directed-record and coarse kinetic-grid
+construction. Its mass estimates use only $m\leq1$.
+Every retained source contributes a fixed rational term to its own key.
+An ordered-key comparison combines only a constant number of individual
+source denominators, and each new state is immediately rounded to the
+common grid. There are no subtree mass sums requiring a least common
+multiple across all source denominators. The bit bound gains only the
+maximum encoding length of a supplied source weight, while the input pass
+and the repeated retained-source updates have already been charged.
+
+Finally, request the retained-source positive residual certificate at
+accuracy $\epsppr/2$. Adding the omitted source increases its residual by
+$\vb_{\rm l}\in[0,\alpha\epsppr\vomega/2]$.
+Thus the full residual is nonnegative and at most
+$\alpha\epsppr\vomega$, giving the stated residual-load certificate.
+\end{proof}
+
+The source split uses linearity only for the final PPR error bound. It does
+not superpose separate RPPR solutions, and overlapping source neighborhoods
+and component mergers are handled jointly by the retained-source recurrence.

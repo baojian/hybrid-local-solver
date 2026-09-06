@@ -1,0 +1,112 @@
+\section{A certified coarse randomized prefix followed by coordinate delivery}
+\label{sec:revisit-randomized-handoff}
+The generic clipping routine of this note already finishes semantic PPR at
+the relative-tail objective budget. There is nevertheless a different,
+nonredundant use of \cref{prop:revisit-relative-tail}: retain the randomized
+algorithm's \emph{face certificate} and clip relative to that face's exact
+solution. This requires less global discovery accuracy than clipping
+relative to the full RPPR optimum.
+
+\paragraph{Source contract.}
+The threshold-batch theorem in
+\path{two_stage_point_source_aesp_cd}, Section~9, supplies a reachable face
+$U\subseteq S_\rho^*$, its strictly positive exact face point
+$\vx^U_U=\mQ_{UU}^{-1}(\vb-\alpha\rho\vomega)_U$, and a certified
+numerical approximation $\vz$. The exact point is analytical, not computed
+by a free oracle. With objective target $G/2$, the returned face obeys
+\[
+ F_\rho(\vx^U)-F_\rho(\vx_\rho^*)\leq G/2,
+ \qquad
+ \|\vz-\vx^U\|_2\leq\nu/\sqrt\alpha
+                 \leq\sqrt{\rho G}/(32\sqrt2).
+\]
+Every intermediate accepted face solve has the same numerical error bound
+and support-safe face, even before its global objective gap is small.
+The source algorithm certifies its local residual norm and charges all
+active-row scans and fresh randomized SDD solver construction.
+
+\begin{theorem}[Randomized discovery with a reserve-preserving GS finish]
+\label{thm:revisit-randomized-gs}
+For $0<\epsppr<1$, set
+\[
+ \rho=\epsppr/2,\qquad G=\alpha\mu\rho/2.
+\]
+There is a two-stage algorithm using the source threshold-batch prefix
+at objective target $G/2$, followed by
+\cref{eq:revisit-reserved-gs}, with expected fully charged work
+\[
+ \widetilde O\!\left(
+ \frac1{\epsppr\sqrt\alpha}
+ \log\frac2{\alpha^2\epsppr}\log\frac2\zeta\right).
+\]
+It reports failure with probability at most $\zeta$, and otherwise returns
+a nonnegative, one-sided semantic PPR approximation satisfying the ACL
+residual certificate. Constant-probability restarts give the source
+theorem's Las Vegas exact-real guarantee.
+An optional local KKT test permits earlier, certified handoff.
+\end{theorem}
+\begin{proof}
+The zero-RPPR and $\alpha=1$ branches have the usual direct outputs.
+Otherwise choose a dyadic $\delta$ by halving $1/2$ until
+$\delta^2\leq G\rho/4$. Then
+$\delta^2>G\rho/16$, so every accepted face approximation has error
+less than $\delta$ from $\vx^U$. On that face set
+\[
+ \vp=[\vz-\delta\vomega]_+.
+\]
+Thus $\vzero\leq\vp\leq\vx^U\leq\vx_\rho^*$ and
+$0\leq\vx^U-\vp\leq2\delta\vomega$. Stationarity on $U$ gives
+\[
+ F_\rho(\vp)-F_\rho(\vx^U)
+ =\tfrac12\|\vp-\vx^U\|_{\mQ}^2
+ \leq2\delta^2\vol(U)\leq G/2.
+\]
+The full returned prefix therefore has objective gap at most $G$.
+
+It also has nonnegative PPR residual. At a positive output coordinate,
+the exact face residual is $\alpha\rho\omega_i$ and the clipping error
+changes it by at most $2\delta\omega_i$. Since
+\[
+ 2\delta\leq\sqrt{G\rho}
+ =\rho\sqrt{\alpha\mu/2}\leq\alpha\rho/\sqrt2,
+\]
+this residual stays nonnegative. At every zero output coordinate,
+Stieltjes signs give nonnegative residual directly. No global upper
+residual bound is inferred at this checkpoint: omitted optimal rows may
+still be active for the delivery threshold.
+
+Initialize the actual residual of $\vp$ and apply
+\cref{cor:revisit-relative-gap}. The tail costs at most
+$2/(\epsppr\sqrt\alpha)$ incidences, preserves the nonnegative residual,
+and terminates at $\bm R\leq\alpha\epsppr\vomega$.
+Its initialization and output cost $\widetilde O(1/\epsppr)$.
+Combining this with the imported prefix work proves the result.
+
+For the earlier handoff, after any accepted face solve form the same
+$\vp$ and compute the minimum-magnitude subgradient
+$\bm\kappa(\vp)$. It is supported on the seed, the explicit face, and
+its observed boundary, so this costs only another charged face scan.
+Strong convexity gives the global certificate
+\[
+ F_\rho(\vp)-F_\rho(\vx_\rho^*)
+ \leq \|\bm\kappa(\vp)\|_2^2/(2\alpha).
+\]
+If this bound is at most $G$, hand off immediately. Face-relative lower
+order and residual nonnegativity already hold at this earlier checkpoint.
+Alternatively, the directly computed test
+$M_\rho(\vp)\leq\alpha\theta$ permits handoff by
+\cref{prop:revisit-excess-tail}, even if the objective certificate is
+larger than $G$. This second test needs no additional graph exposure.
+Otherwise retain the source algorithm's admissions and phase cap. The
+additional test changes only a constant number of scans per phase, and
+cannot increase the number of randomized phases or the failure probability.
+\end{proof}
+
+The direct point-source RPPR-to-PPR conversion uses objective target
+$\alpha\epsppr^2/8$. The new prefix target is
+$G/2=\alpha\mu\epsppr/8$, larger by $\mu/\epsppr$ when
+$\epsppr<\mu$. This is an accuracy and certificate comparison, not a
+measured runtime speedup. Exact support identification is unnecessary.
+The supplied-face randomized solver remains an imported primitive; this
+composition does not provide its deterministic bounded-arithmetic replacement
+or prove the original AESP trajectory's locality bound.

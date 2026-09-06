@@ -1,0 +1,173 @@
+\section{A certified obstruction to the tempting constant-four ramp bound}
+\label{sec:revisit-ramp-four}
+The first numerical experiments suggested
+$\|\mD^{-1/2}(\vx_k-\vx_0^*)\|_\infty\leq4r_k$ during the ramp.
+That particular constant is false. We first give certified finite witnesses;
+\cref{sec:revisit-ramp-asymptotic} then rules out every graph-independent
+constant by a separate asymptotic argument.
+
+The original guess has an exact linear explanation. When $\alpha=\theta^2$
+and the orthant constraint is omitted, the exponential schedule admits the
+particular trajectory
+\[
+ \vx_k=\vx_0^*-4\eta r_k\vomega,\qquad
+ \vz_k=\vx_0^*-2r_k\vomega.
+\]
+Substitution uses $\mQ\vomega=\alpha\vomega$ and
+$\eta-\chi=\theta/2$. Its error factor $4\eta<4$ approaches four as
+$\alpha$ decreases. This particular solution does not have the algorithm's
+zero initial state and can have negative coordinates. It therefore controls
+neither the homogeneous transient nor changes of the active constraints.
+
+\begin{lemma}[Pairwise contraction of the exact step]
+\label{lem:revisit-pairwise}
+For two incoming states, apply the exact orthant recurrence with the same
+source and regularizer. On state differences define
+\[
+ \mathcal D(\vd_x,\vd_z)
+   =\left(\tfrac12\|\vd_x\|_{\mQ}^2
+                   +\tfrac\mu2\|\vd_z\|_2^2\right)^{1/2}.
+\]
+Then $\mathcal D(\vd_x^+,\vd_z^+)\leq\sqrt\chi\,
+\mathcal D(\vd_x,\vd_z)$.
+\end{lemma}
+\begin{proof}
+Subtract the two raw recurrences. The source and regularizer cancel, so
+their difference has gradient $\mQ\vd_y$.
+Monotonicity of the orthant normal gives
+\[
+ (\vp_1-\vp_2)^\trans
+       \{(\vq_1-\vp_1)-(\vq_2-\vp_2)\}\geq0.
+\]
+Apply the imported comparison identity to the quadratic
+$\varphi(\vd)=\tfrac12\|\vd\|_{\mQ}^2$, comparator zero, and kinetic
+output $\vp_1-\vp_2$. Taking square roots proves the assertion.
+\end{proof}
+
+\paragraph{An offline trajectory certificate.}
+For this witness $\alpha=\theta^2=1/T^2$, $T=256$.
+In degree-density coordinates, round both the kinetic and the next primal
+state downward to a grid $h=2^{-80}$ after each dense exact step.
+Also round $r$ downward to that grid, starting from the rounded $1/d_v$.
+This is solely a verification procedure, separate from the local rounded
+algorithm of \cref{sec:revisit-rounding}.
+
+Its regularizer error is at most
+$h/(1-\eta)=2h/\theta$. At a fixed incoming rounded state this perturbs
+the raw kinetic density by at most $2h$, since $\alpha=\theta^2$.
+Orthant projection and its floor consequently perturb the new kinetic
+density by at most $3h$, and the primal density by at most $(1+3\theta)h$.
+If $V$ is the full original graph volume, the perturbation in
+$\mathcal D$ is at most $(1+3\theta)h\sqrt V$.
+\Cref{lem:revisit-pairwise} and
+$1-\sqrt\chi\geq\theta/2$ give, at every finite horizon,
+\[
+ \mathcal D(\vx_{\rm approx}-\vx_{\rm exact},
+            \vz_{\rm approx}-\vz_{\rm exact})
+ \leq5h\sqrt V/\theta.
+\]
+Thus the error in any primal degree density is at most
+$5\sqrt2h\sqrt V/\theta^2$, which is less than the rational bound
+$24\lceil\sqrt V\rceil T^2h$ used in the audit. Ambient volume is allowed
+in this external verification certificate; it is not supplied to the
+proposed local solver.
+
+For the PPR reference, propose a dyadic vector $\vu$ from a numerical solve
+and compute its residual exactly. Inverse positivity and
+$\mQ\vomega=\alpha\vomega$ give the independent certificate
+\[
+ \|\mD^{-1/2}(\vu-\vx_0^*)\|_\infty
+ \leq\|\mD^{-1/2}(\mQ\vu-\vb)\|_\infty/\alpha.
+\]
+The accuracy of the numerical solve is therefore not an assumption.
+
+\begin{proposition}[Constant four fails]
+\label{prop:revisit-four-fails}
+Take a unit-weight clique on 128 vertices and attach a path of 384 new
+vertices to one clique vertex. Seed a different clique vertex. For
+$\alpha=1/65536$, $\theta=1/256$, $\eta=511/512$, and
+$\rho=1/(1024\vol(\mathcal V))$, the exact ramp at step 5468 satisfies
+\[
+ 4.01807<
+ \frac{\|\mD^{-1/2}(\vx_{5468}-\vx_0^*)\|_\infty}{r_{5468}}
+ <4.01809,
+ \qquad r_{5468}=\frac1{127}\left(\frac{511}{512}\right)^{5468}>\rho.
+\]
+\end{proposition}
+\begin{proof}[Certified finite verification]
+The executable certificate is \texttt{ramp\_four\_counterexample.py} in the
+note's proof-audit directory. Symmetry compresses the graph into the seed,
+the other 126 non-connector clique vertices, the connector, and the 384
+individual path vertices. Original degrees, class cardinalities, and
+neighbor multiplicities are explicit; detailed balance and every row sum
+are checked. The source and trajectory are constant on these classes.
+
+The script evolves integer grid numerators for exactly 5468 steps. All
+floors are integer divisions, so no trajectory arithmetic is floating point.
+It then computes the exact rational PPR residual certificate and adds the
+trajectory error bound above. Exact integer comparisons verify the two
+displayed decimal rational bounds and that the ramp has not reached $\rho$.
+This proves a finite counterexample, not an asymptotic lower bound.
+\end{proof}
+
+\subsection{Radial trees also refute monotonicity and PPR lower order}
+Let $\mathcal T(b,s,L)$ be the rooted unit tree of depth $L$ in which a
+vertex at level $j<L$ has $b$ children when $s$ divides $j$, and one child
+otherwise. Seed the root. For all examples below use
+$\rho=1/(1024\vol(\mathcal V))$; the displayed times occur strictly before
+the ramp reaches $\rho$.
+
+\begin{proposition}[Further certified ramp limitations]
+\label{prop:revisit-radial-failures}
+The following statements hold for the exact recurrence.
+\begin{enumerate}
+\item On $\mathcal T(10,3,12)$, which has 33,331 vertices, take
+$\alpha=1/16384$ and $\theta=1/128$. The root degree density decreases
+between steps 2249 and 2250 by an amount strictly between
+$1.59\cdot10^{-11}$ and $1.61\cdot10^{-11}$.
+\item On $\mathcal T(10,4,128)$, take $\alpha=1/4096$ and
+$\theta=1/64$. At step 3037 the root density exceeds exact PPR by an
+amount strictly between $4\cdot10^{-13}$ and $5\cdot10^{-13}$.
+The minimum normalized PPR residual is strictly between
+$-1.93\cdot10^{-14}$ and $-1.92\cdot10^{-14}$.
+This tree has $1+4\sum_{j=1}^{32}10^j$ vertices.
+\item On $\mathcal T(2,4,128)$, which has $8\cdot2^{32}-7$ vertices,
+take $\alpha=1/4096$ and $\theta=1/64$. At step 3498,
+\[
+ 6.82360<
+ \frac{\|\mD^{-1/2}(\vx_{3498}-\vx_0^*)\|_\infty}{r_{3498}}
+ <6.82361.
+\]
+\item On $\mathcal T(10,2,128)$, with
+$1+2\sum_{j=1}^{64}10^j$ vertices, take $\alpha=1/4096$ and
+$\theta=1/64$. At step 19129 the same error-to-$r$ ratio is strictly
+between $2{,}700{,}097{,}454{,}229{,}948$ and
+$2{,}700{,}097{,}454{,}229{,}950$.
+\end{enumerate}
+\end{proposition}
+\begin{proof}[Certified finite verification]
+The certificate \texttt{radial\_ramp\_counterexamples.py} uses one
+equitable class per level. Class cardinalities are the successive products
+of the branching factors; a nonroot vertex has one parent and its declared
+number of children. The script checks row degrees and detailed balance,
+so these are canonical finite unit graphs, not weighted quotient instances
+substituted for the problem.
+
+The integer trajectory uses grid $2^{-200}$ for the first three examples
+and $2^{-700}$ for the fourth, with the same uniform error radius
+$E=24\lceil\sqrt V\rceil T^2 h$ as above.
+Exact rational tridiagonal elimination supplies the PPR reference; all of
+its equations and its unit weighted mass are checked exactly. For a
+one-step decrease use error radius $2E$; for an overshoot, the global
+tracking norm, or a normalized residual use $E$ (the residual radius uses
+$|\mQ|\vomega\leq\vomega$). Exact rational comparisons verify each
+displayed bound and each condition $r_k>\rho$.
+\end{proof}
+
+The second example also disproves lower order to the current RPPR optimum,
+because that optimum lies below exact PPR. These counterexamples justify
+keeping the final accuracy-and-clipping phase and allowing signed residuals
+and support excursions in the work proof. The finite witnesses alone do
+not disprove all larger constants; that conclusion uses the separate proof
+in \cref{sec:revisit-ramp-asymptotic}. Neither argument gives a work lower
+bound against the complete two-phase algorithm or other local algorithms.

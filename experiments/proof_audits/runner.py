@@ -8,6 +8,7 @@ import sys
 import time
 import tomllib
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 
@@ -25,10 +26,11 @@ class Audit:
     id: str
     note: str
     script: str
-    provenance_round: int
+    provenance_round: int | None
     kind: str
     fast: bool
     full_args: tuple[str, ...]
+    provenance_date: str | None = None
 
     @property
     def module(self) -> str:
@@ -58,10 +60,13 @@ def load_audits(path: Path = REGISTRY_PATH) -> list[Audit]:
                     id=str(record["id"]),
                     note=str(record["note"]),
                     script=str(record["script"]),
-                    provenance_round=int(record["provenance_round"]),
+                    provenance_round=(
+                        int(record["provenance_round"]) if "provenance_round" in record else None
+                    ),
                     kind=str(record["kind"]),
                     fast=bool(record["fast"]),
                     full_args=tuple(str(value) for value in record["full_args"]),
+                    provenance_date=record.get("provenance_date"),
                 )
             )
         except KeyError, TypeError, ValueError:
@@ -85,7 +90,6 @@ def audit_registry(path: Path = REGISTRY_PATH) -> list[str]:
         "id",
         "note",
         "script",
-        "provenance_round",
         "kind",
         "fast",
         "full_args",
@@ -127,8 +131,18 @@ def audit_registry(path: Path = REGISTRY_PATH) -> list[str]:
             errors.append(f"{label}: fast must be Boolean")
         elif record["fast"]:
             fast_notes.add(str(note_id))
-        if not isinstance(record["provenance_round"], int) or record["provenance_round"] <= 0:
-            errors.append(f"{label}: provenance_round must be a positive integer")
+        has_round = "provenance_round" in record
+        has_date = "provenance_date" in record
+        if has_round == has_date:
+            errors.append(f"{label}: specify exactly one provenance_round or provenance_date")
+        elif has_round:
+            if not isinstance(record["provenance_round"], int) or record["provenance_round"] <= 0:
+                errors.append(f"{label}: provenance_round must be a positive integer")
+        else:
+            try:
+                date.fromisoformat(record["provenance_date"])
+            except TypeError, ValueError:
+                errors.append(f"{label}: provenance_date must be an ISO calendar date")
         if not isinstance(record["full_args"], list) or not all(
             isinstance(value, str) for value in record["full_args"]
         ):
@@ -181,11 +195,11 @@ def _selected_audits(
 
 
 def _print_registry(audits: list[Audit]) -> None:
-    print("audit\tkind\tfast\tround\tscript")
+    print("audit\tkind\tfast\tprovenance\tscript")
     for audit in audits:
         print(
             f"{audit.id}\t{audit.kind}\t{'yes' if audit.fast else 'no'}\t"
-            f"{audit.provenance_round:03d}\t{audit.script}"
+            f"{audit.provenance_date or f'{audit.provenance_round:03d}'}\t{audit.script}"
         )
 
 

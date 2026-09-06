@@ -1,0 +1,290 @@
+\section{Two phases and one final clipping operation}
+\label{sec:revisit-completion}
+The two phases are a geometric regularization ramp and an accuracy phase
+at its final regularizer. They share both numerical vectors and all graph
+state. Neither phase makes a restricted-system solve or invokes SDD.
+
+\begin{lemma}[An explicit accuracy-phase energy bound]
+\label{lem:revisit-freeze-energy}
+At any checkpoint of the cooling recurrence, with
+$r=\lambda/\alpha$ and $\vu=\vx_r^*$, the Euclidean accelerated energy
+satisfies
+\begin{equation}
+ E=J_\lambda(\vx)-J_\lambda(\vu)
+                           +\tfrac\mu2\|\vz-\vu\|_2^2\leq9\lambda.
+ \label{eq:revisit-freeze-energy}
+\end{equation}
+\end{lemma}
+\begin{proof}
+The response bound and $\mQ\succeq\alpha\mI$ give
+\[
+ f(\vx)-f(\vt)=\tfrac12\|\vx-\vt\|_{\mQ}^2\leq2\lambda,
+ \qquad \tfrac\mu2\|\vz-\vt\|_2^2\leq2\lambda.
+\]
+Also $\vomega^\trans\vx\leq2$, while
+$J_\lambda(\vu)\geq f(\vt)$, so the objective part of $E$ is at most
+$4\lambda$. The standard RPPR bias gives
+$\vzero\leq\vt-\vu\leq r\vomega$ and
+$\vomega^\trans(\vt-\vu)\leq1$. Thus
+$\|\vt-\vu\|_2^2\leq r$. The squared triangle inequality yields
+\[
+ \tfrac\mu2\|\vz-\vu\|_2^2
+ \leq\mu\|\vz-\vt\|_2^2+\mu\|\vt-\vu\|_2^2
+ \leq4\lambda+\mu r\leq5\lambda.
+\]
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Two-phase orthant acceleration for semantic PPR}
+\label{alg:revisit-ppr}
+\begin{algorithmic}[1]
+\REQUIRE Seed $v$, local graph access, $\alpha\in(0,1]$, $0<\epsppr<1$.
+\STATE Read $d_v$; put $\rho=\epsppr/2$.
+\IF{$\rho d_v\geq1$}
+ \RETURN zero.
+\ENDIF
+\IF{$\alpha=1$}
+ \RETURN the single coordinate $\widehat{\vpi}=(1-\rho d_v)\eunit v$.
+\ENDIF
+\STATE Choose \cref{eq:revisit-parameters}; set
+       $r=1/d_v$ and $\vx=\vz=\vzero$.
+\WHILE{$r>\rho$}
+ \STATE Apply \cref{eq:revisit-recurrence} with $\lambda=\alpha r$.
+ \STATE $r\gets\max\{\rho,\eta r\}$.
+\ENDWHILE
+\STATE Set $a=9\alpha\rho$ and $\tau=\alpha\epsppr^2/32$.
+\WHILE{$a>\tau$}
+ \STATE Apply the same recurrence with $\lambda=\alpha\rho$.
+ \STATE $a\gets\chi a$.
+\ENDWHILE
+\STATE Materialize the historical primal support once and form
+       $\widehat\vx=[\vx-(\epsppr/4)\vomega]_+$.
+\RETURN $\widehat{\vpi}=\mD^{1/2}\widehat\vx$ as a sparse list.
+\end{algorithmic}
+\end{algorithm}
+
+\begin{theorem}[Direct deterministic semantic PPR]
+\label{thm:revisit-semantic}
+In the stated exact-real local model, \cref{alg:revisit-ppr} returns
+\begin{equation}
+ \vzero\leq\widehat\vx\leq\vx_\rho^*\leq\vx_0^*,\qquad
+ \vol(\supp\widehat\vx)\leq2/\epsppr,
+ \qquad
+ \|\mD^{-1/2}(\widehat\vx-\vx_0^*)\|_\infty\leq\epsppr.
+ \label{eq:revisit-semantic}
+\end{equation}
+If $N$ is the number of accuracy-phase steps and $K$ the total number of
+steps, then
+\begin{equation}
+ N\leq1+\theta^{-1}\log(144/\epsppr),\qquad
+ \sum_{k<K}\vol(\supp\vz_{k+1})
+       \leq\frac{44}{\rho}(N+2/\theta).
+ \label{eq:revisit-explicit-work}
+\end{equation}
+There is a deterministic sparse implementation with total work
+\begin{equation}
+ O\!\left(
+ \frac{\log(144/\epsppr)}{\epsppr\sqrt\alpha}
+ \log\!\left(2+
+       \frac{\log(144/\epsppr)}{\epsppr\sqrt\alpha}\right)\right).
+ \label{eq:revisit-total-work}
+\end{equation}
+Peak state is
+$O(1+\log(144/\epsppr)/(\epsppr\sqrt\alpha))$ words.
+The one-sided vector statement does not by itself assert a nonnegative
+PageRank residual or an ACL certificate.
+\end{theorem}
+\begin{proof}[Accuracy and kinetic work]
+At the start of the frozen phase, \cref{lem:revisit-freeze-energy} supplies
+the computable upper bound $a=9\alpha\rho$. With $\lambda$ fixed,
+Euclidean orthant projection and
+\cref{eq:revisit-imported-comparison} give $E^+\leq\chi E$.
+Thus the scalar stopping rule proves an objective gap at most $\tau$.
+Strong convexity gives
+\[
+ \|\vx-\vx_\rho^*\|_2\leq\sqrt{2\tau/\alpha}=\epsppr/4.
+\]
+Since $d_i\geq1$, this is also a degree-normalized coordinate error at
+most $\epsppr/4$. The downward clipping gives
+\[
+ \vzero\leq\widehat\vx\leq\vx_\rho^*,\qquad
+ \vzero\leq\vx_\rho^*-\widehat\vx\leq(\epsppr/2)\vomega.
+\]
+Add the RPPR bias at $\rho=\epsppr/2$ and use support containment.
+The zero-return branch is correct because then $\vx_\rho^*=\vzero$;
+the $\alpha=1$ branch is the exact RPPR vector and has semantic error $\rho$.
+
+The ratio $a/\tau$ at the freeze is $144/\epsppr$ and
+$\chi^j\leq\exp(-\theta j)$, giving the bound on $N$.
+Before the first clipped-to-$\rho$ parameter, the inverse regularizers
+form a geometric series whose sum is less than
+$1/((1-\eta)\rho)=2/(\theta\rho)$.
+The frozen phase contributes $N/\rho$. Apply
+\cref{thm:revisit-volume}. The local implementation and its other charges
+are supplied below.
+\end{proof}
+
+\subsection{The same handoff also solves the RPPR objective problem}
+\begin{corollary}[Direct RPPR objective completion]
+\label{cor:revisit-rppr}
+For an independently specified $\rho>0$ and $0<\epsobj<1$, use the
+same ramp to $\rho$. Choose a dyadic $\delta$ by halving $1/2$ until
+$\delta^2\leq\epsobj\rho/2$, and freeze until the scalar energy bound
+is at most $\alpha\delta^2/2$. Return
+$\widehat\vx=[\vx-\delta\vomega]_+$. In the nonzero regime
+$\rho<1/d_v$, this returns
+\[
+ 0\leq\widehat\vx\leq\vx_\rho^*,\qquad
+ \vol(\supp\widehat\vx)\leq1/\rho,\qquad
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj.
+\]
+The frozen phase has at most
+$1+\theta^{-1}\log(144/\epsobj)$ steps, and fully charged exact-real
+work is $\widetilde O(1/(\rho\sqrt\alpha))$ with logarithmic dependence
+on $1/\epsobj$. The same constant-output branches apply, using the
+requested $\rho$.
+\end{corollary}
+\begin{proof}
+The chosen grid obeys
+$\epsobj\rho/8<\delta^2\leq\epsobj\rho/2$.
+Strong convexity and the frozen energy bound give
+$\|\vx-\vx_\rho^*\|_2\leq\delta$.
+Clipping therefore yields
+$0\leq\vx_\rho^*-\widehat\vx\leq2\delta\vomega$ and zero error
+outside $\supp\vx_\rho^*$.
+The KKT gradient of $J_{\alpha\rho}$ vanishes on that support, so
+\[
+ F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)
+ =\tfrac12\|\widehat\vx-\vx_\rho^*\|_{\mQ}^2
+ \leq\frac{2\delta^2}{\rho}\leq\epsobj.
+\]
+The actual handoff energy is $9\alpha\rho$, whose ratio to the target
+is $18\rho/\delta^2<144/\epsobj$. The same kinetic and reporter charges
+apply to this alternative stopping rule and terminal clipping.
+\end{proof}
+
+\subsection{Optional positive residual completion}
+\begin{corollary}[The older AESP--CD KKT diagnostic]
+\label{cor:revisit-kkt}
+For a nonnegative point, let $\bm{\kappa}_\rho$ be the coordinatewise
+minimum-magnitude element of $\partial F_\rho$ and define
+$R_{\mathrm{kkt},\rho}(\vx)
+=\|\mD^{-1/2}\bm{\kappa}_\rho(\vx)\|_\infty$.
+If the frozen gap is at most $\alpha\delta^2/2$, the clipped output
+satisfies $R_{\mathrm{kkt},\rho}(\widehat\vx)\leq2\delta$.
+Thus taking $\delta=\alpha\epskkt/2$ gives the note-scoped target
+$R_{\mathrm{kkt},\rho}(\widehat\vx)/\alpha\leq\epskkt$
+with only logarithmic dependence on $1/\epskkt$ in the iteration count.
+This concerns the new recurrence, not the unchanged AESP--CD method.
+\end{corollary}
+\begin{proof}
+As above, $\ve=\vx_\rho^*-\widehat\vx$ lies in
+$[0,2\delta\vomega]$, so $|\mQ\ve|\leq2\delta\vomega$.
+At a positive output coordinate the optimal RPPR gradient is zero, and
+the KKT vector equals $-(\mQ\ve)_i$.
+At a zero output coordinate the PPR residual is nonnegative; its KKT
+violation is the positive excess of that residual over
+$\alpha\rho\omega_i$. The optimum's residual is at most that threshold,
+so this violation is also bounded by $2\delta\omega_i$.
+\end{proof}
+
+\begin{corollary}[A positive residual certificate by tighter final clipping]
+\label{cor:revisit-positive-residual}
+Let the frozen objective gap be at most $\alpha\delta^2/2$ and suppose
+$0<\delta\leq\alpha\rho/2$. The same final clipping
+$\widehat\vx=[\vx-\delta\vomega]_+$ then gives
+\begin{equation}
+ 0\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega.
+ \label{eq:revisit-positive-residual}
+\end{equation}
+For $\rho=\epsppr/2$, this is a nonnegative PPR residual certificate
+at semantic accuracy $\epsppr$. It can be obtained with the same
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ work by freezing to
+$\alpha^3\epsppr^2/32$ and clipping by $\alpha\epsppr/4$.
+No projected-gradient repair or additional row scan is required.
+\end{corollary}
+\begin{proof}
+Put $\vu=\vx_\rho^*$ and $\ve=\vu-\widehat\vx$.
+The preceding clipping argument gives $0\leq\ve\leq2\delta\vomega$.
+Since $|\mQ|\vomega=\vomega$, we have
+$|\mQ\ve|\leq2\delta\vomega$.
+The RPPR residual lies in $[0,\alpha\rho\vomega]$, proving the upper
+bound in \cref{eq:revisit-positive-residual}.
+At a positive output coordinate, $u_i>0$ and the RPPR residual equals
+$\alpha\rho\omega_i$, so the new residual is at least
+$(\alpha\rho-2\delta)\omega_i\geq0$.
+At a zero output coordinate, nonnegativity follows directly from the
+Stieltjes signs and the nonnegative source.
+The stated tolerance corresponds to $\delta=\alpha\epsppr/4$;
+the freeze ratio is $144/(\alpha^2\epsppr)$.
+Finally $\alpha^{-1}\mD^{1/2}(\vb-\mQ\widehat\vx)$ is a nonnegative
+residual load bounded by $\epsppr\mD\one$, giving the usual ACL
+residual representation of the sparse PPR output.
+\end{proof}
+
+\subsection{A threshold reporter with no mass search}
+We give sufficient detail to exclude a hidden full-support scan.
+Let $\sigma_k=\chi^k$ and maintain degree-density records
+\begin{equation}
+ X_{k,i}=x_{k,i}/(\sigma_k\omega_i),\qquad
+ \mathcal R_{k,i}=[(\mQ-\mu\mI)\vx_k]_i/(\sigma_k\omega_i),\qquad
+ \mathcal T_{k,i}=[(\mQ-\mu\mI)\vz_k]_i/\omega_i.
+ \label{eq:revisit-lazy-records}
+\end{equation}
+Represent each exposed projection coordinate by the numerical key
+\begin{equation}
+ k_i=-\frac{\mathcal R_{k,i}}{\theta(1+\theta)}
+ +\frac1{\sigma_k}\left(
+       \frac{\chi z_{k,i}}{\omega_i}
+       -\frac{\mathcal T_{k,i}}{1+\theta}
+       +\frac{b_i}{\theta\omega_i}\right).
+ \label{eq:revisit-key}
+\end{equation}
+Direct algebra gives
+\begin{equation}
+ \frac{q_{k,i}}{\omega_i}=\sigma_k k_i-\lambda_k/\theta.
+ \label{eq:revisit-key-threshold}
+\end{equation}
+Consequently the next kinetic support is exactly the strict suffix
+$k_i>\lambda_k/(\theta\sigma_k)$ in an ordered tree. Equalities return
+zero and cause no row opening. No root search, weighted-sum tree, projection
+multiplier, or complementarity margin is involved.
+
+The ordinary part $-\mathcal R_{k,i}/(\theta(1+\theta))$ changes only
+when a kinetic update touches that coordinate or a neighbor. The remaining
+bracket is exceptional only at the seed, the current kinetic support, and
+its boundary. Its entries can all be removed by their stored old keys and
+reinserted after a step at the cost of those incidence sets. The exact
+primal update is
+\[
+ \sigma_{k+1}=\chi\sigma_k,\qquad
+ X_{k+1,i}=X_{k,i}+
+                   \frac{\theta z_{k+1,i}}{\sigma_{k+1}\omega_i}.
+\]
+Only positive new kinetic coordinates change normalized primal records.
+One original row scan per such coordinate updates its normalized response
+and its new kinetic response on its neighbors and diagonal. All key updates
+are completed before the next threshold query. The changing regularizer
+changes a single scalar threshold, not all stored keys.
+
+Use deterministic balanced trees for labels and keys. A strict suffix
+enumeration takes $O(\log(M+2)+|\supp\vz_{k+1}|)$ operations with $M$
+represented labels. Point updates take $O(\log(M+2))$. Thus one step has
+cost
+\[
+ O\!\left((1+\vol(\supp\vz_k)+\vol(\supp\vz_{k+1}))\log(M+2)\right).
+\]
+The initial seed degree costs one reply. Every other represented label is
+exposed from a charged kinetic row. A never-exposed label has zero source,
+state, and neighbor response, hence raw density $-\lambda_k/\theta<0$.
+The finite reporter therefore agrees exactly with the full-space update.
+Inactive boundary labels incur scalar degree/key work but no row scan.
+
+The union of historical primal supports is contained in the union of
+kinetic supports. Its terminal materialization is charged once to that
+history; final clipping needs no new row scan. The number of stored label
+records and cached incidences is $O(1+\sum_k\vol(\supp\vz_{k+1}))$.
+Every scalar iteration is affordable as well: $r_k\leq1$ gives
+$K\leq\sum_k1/r_k$. These observations and
+\cref{eq:revisit-explicit-work} prove the full work and storage assertions
+of \cref{thm:revisit-semantic}.

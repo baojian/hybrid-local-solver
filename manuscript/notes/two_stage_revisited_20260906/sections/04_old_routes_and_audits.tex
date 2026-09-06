@@ -1,0 +1,120 @@
+\section{What this changes in the older two-stage attempts}
+\paragraph{The AESP--CD retraction issue.}
+The older \texttt{aesp\_cd\_l1\_rppr} proof keeps accelerated centers
+order-safe, but must pay the loss caused by repeated nonlinear lower
+retractions. The new recurrence removes those intermediate retractions.
+Its kinetic support can leave the optimal support, and weighted signed
+flow pays the repeated events directly. This is an alternative algorithm,
+not a missing-lemma proof for the old recurrence.
+
+\paragraph{The AESP--LOCSOR burn-in issue.}
+The old note correctly charges a coordinate tail after a small energy or
+residual-mass handoff, but does not prove the universal early-AESP work
+factor. The new deterministic ramp has an explicit cumulative work theorem
+and carries its numerical state into a final accelerated accuracy phase.
+For a different composition, \cref{thm:revisit-randomized-gs} replaces the
+unproved AESP prefix by certified randomized faces and uses an RPPR-relative
+mass deficit for a reserve-preserving coordinate finish. The original
+quantity $\Lambda_J$ is not bounded by these new proofs.
+The separate ideal exact-inner analysis in
+\cref{thm:revisit-exact-aesp-mass} also shows that a constant $R_J$
+cannot be inferred from outer convergence and inner accuracy alone.
+It does not analyze the actual thresholded inner trajectory.
+
+\paragraph{The ranked two-rung SOR issue.}
+The measured policy in \texttt{two\_rung\_sor} is analyzed further in
+\texttt{two\_rung\_direct\_theory}. The latter already proves a
+center-seeded three-vertex-path obstruction:
+$W_{\rm spread}\geq\alpha^{-3/2}/1408$ for its stated fixed accuracy and
+small-$\alpha$ regime, despite explored volume four. Repeated branch
+reflection prevents a universal accelerated theorem for that unchanged
+policy. Our batch kinetic updates and changing regularizer are different
+from adjusting SOR's relaxation parameter. Empirical performance of the
+old policy on its recorded benchmark retains its original scope.
+
+\paragraph{The randomized and deterministic proofs.}
+Threshold-batch depth and certified SDD solves already yield the existence
+scale and an optional principal-PPR tail. The old point-source two-stage
+note also already proves that an approximate inner face can replace an
+exact support envelope. We do not claim those principles as new.
+The deterministic orthant recurrence imports the two-energy and signed-flow
+strategy, then changes the projection and regularization schedule.
+The general-source extension adds the load comparison that compensates
+for omitted source entries by lowering the first regularizer.
+
+\paragraph{Four distinct handoffs.}
+The main deterministic schedule switches from cooling to fixed accuracy,
+with explicit actual-state energy at most $9\alpha\rho$ (or
+$13\alpha\rho$ when rounded). The general-source OP2 construction switches
+from a reduced source to the original objective on an approximate support.
+The randomized composition switches from a face-relative gap certificate
+to a reserve-preserving GS tail. The signed deterministic composition in
+\cref{thm:revisit-deterministic-gs} instead switches at a coarse objective
+or thresholded-residual certificate, before any clipping. Only the
+general-source and randomized constructions make a principal-face solve.
+A GS tail appended to the generic deterministic clipping routine at
+its smallest relative-gap budget is redundant; the face-relative randomized
+handoff and the new signed deterministic handoff have different certificates.
+
+\section{Verification and unresolved directions}
+All audits are under
+\path{experiments/proof_audits/two_stage_revisited_20260906/}.
+The dense rational trajectory audit checks both metric energies, the
+parameter-change bank, moving-comparator selected flow, its weighted
+telescope, response bounds, and cumulative degree charges at every tested
+step. Its reference optima use exact elimination and are not local solver
+primitives. The lazy-state audit instead checks the actual sparse reporter,
+primal and kinetic records, output, and original-row ledger against a dense
+reference. Separate directed-rounding checks verify the neighbor
+underestimates, perturbed energies, grid states, scalar rebases, and output.
+
+The completed sparse exact run has 1,618 graph cases. Directed rounding has
+4,872 graph cases and four implicit stars. A 780-case audit independently
+checks the point-source objective, KKT, and positive-residual completion
+rules. Sparse-source semantic checks cover 324 graph cases and four
+implicit stars, including an input with 1,000 source entries on a star
+with $10^{12}$ leaves. Cold source rows and the hub row are not opened.
+The general-source OP2 extension passed 10,228 exact/rounded cases; a later
+652-case run added the maximum-principle and KKT/residual assertions.
+These scopes are distinguished in the saved source snapshots.
+
+The coarse randomized-face interface passed 36 path cases, of which 19
+needed nonempty coordinate tails. On $P_{64}$ with $\alpha=1/64$ and
+$\epsppr=2^{-24}$, the rounded tail performs 1,112 updates before meeting
+the final ACL certificate. Exact face elimination in this audit proposes
+candidates that must pass the same residual test as a randomized supplied-
+face solve. It is not an implementation or timing claim for that solver.
+
+The deterministic signed-delivery audit passed 256 conservative runs and
+1,096 runs allowing the observed early residual gate. The former small-graph
+tails were empty; 1,025 of the latter were nonempty. Twelve separate
+tail-only witnesses start above PPR and exercise negative updates. Their
+initial states are externally supplied references, not alleged prefix
+outputs. The positive residual-excess audit also passed 256 cases, including
+128 prefixes above the RPPR optimum. Every one of those cases exceeded
+the older objective handoff budget while meeting the new excess budget.
+
+The separated-front sign audit passed twelve finite trees, including
+65,000-step cases, using integer trajectory certificates. Detailed atlas
+coverage through seven vertices, run parameters, source hashes, repository
+checks, and build status are recorded in the operational verification report.
+Exact and numerical records are labelled separately.
+
+\paragraph{What the counterexamples rule out.}
+The exact P16 witness in \texttt{unsafe\_intermediate.py} disproves the
+positive-coordinate RPPR subsolution condition during the ramp.
+\Cref{prop:revisit-four-fails,prop:revisit-radial-failures} additionally
+refute monotonicity, PPR lower order, nonnegative PPR residual, and several
+constant tracking bounds. The large radial examples were found by a
+floating-point search, but their certificates use integer trajectories,
+proved error radii, and exact PPR equations. They are not assumptions of
+any positive theorem. The separate asymptotic result in
+\cref{sec:revisit-ramp-asymptotic} proves the graph limit using levelwise
+energy bounds and stable causal recurrences. Numerical agreement with that
+limit provides a check, not the proof.
+
+\paragraph{Remaining scope.}
+Independent review of the new proofs, practical comparisons under a common
+work contract, review of the graph-limit argument, and the unchanged AESP-specific
+locality claims remain open. No speedup over an existing implementation is
+claimed from a smaller projection routine or from finite exact audit times.

@@ -10,6 +10,10 @@ identifier, its owning note, exact or numerical status, and its historical
 round of origin. Round numbers are provenance only. Renaming or adding an
 audit requires updating the registry in the same change.
 
+An audit developed outside a coordinated research round records an ISO
+`provenance_date` instead. Exactly one of the date or historical round is
+required; this records new work without inventing a research-round history.
+
 From the repository root, run:
 
 ```bash

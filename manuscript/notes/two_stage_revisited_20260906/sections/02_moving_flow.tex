@@ -1,0 +1,120 @@
+\section{Signed flow with moving comparison optima}
+Let $\mP=\mA\mD^{-1}$, $\mK_0=(\mI+\mP)/2$, and
+\[
+ \beta_0=(1-\alpha)/(1+\theta)\leq\chi<\eta.
+\]
+The operator $\mK_0$ is nonnegative and column stochastic. In mass
+coordinates write
+\begin{equation}
+ \begin{aligned}
+ \vv_k&=\theta\mD^{1/2}\vz_k,
+ &\va_k&=\theta\mD^{1/2}\vu_k,\\
+ \vh_k^{\rm f}&=-\frac{\mD^{1/2}(\mQ-\mu\mI)
+                                      (\vx_k-\vu_k)}{1+\theta},
+ &\vs_k^{\rm f}&=\mD^{1/2}
+                (\mQ\vu_k-\vb+\lambda_k\vomega).
+ \end{aligned}
+ \label{eq:revisit-flow-objects}
+\end{equation}
+The slack $\vs_k^{\rm f}$ is nonnegative. Direct substitution in the raw
+update gives the exact fixed-comparator identity
+\begin{equation}
+ \theta\mD^{1/2}\vq_k-\va_k
+       =\beta_0\mK_0(\vv_k-\va_k)+\vh_k^{\rm f}-\vs_k^{\rm f}.
+ \label{eq:revisit-raw-flow}
+\end{equation}
+This is the same algebraic identity as in the source deterministic proof;
+its comparator is now permitted to change after the step.
+
+Set
+\[
+ \ve_k=(\vv_k-\va_k)_+,\qquad
+ \mathcal I_k=\{i:v_{k+1,i}>a_{k+1,i}\}.
+\]
+Since $r_{k+1}\leq r_k$, monotonicity gives
+$\va_{k+1}\geq\va_k$. A selected coordinate has positive new kinetic
+state, so the orthant projection does not change its raw value.
+Summing \cref{eq:revisit-raw-flow} on $\mathcal I_k$, and dropping the
+favorable comparison shift $\va_{k+1}-\va_k$, proves
+\begin{equation}
+ \|\ve_{k+1}\|_1+\sum_{i\in\mathcal I_k}s_{k,i}^{\rm f}
+   \leq\beta_0\|\ve_k\|_1
+                   +\sum_{i\in\mathcal I_k}h_{k,i}^{\rm f}.
+ \label{eq:revisit-selected-flow}
+\end{equation}
+Here positivity and column stochasticity bound the selected propagated
+signed excess by its total positive mass. Retaining signed forcing on
+the selected set is essential.
+
+\begin{lemma}[The cooling weights preserve the telescope]
+\label{lem:revisit-weighted-flow}
+For every horizon $K$,
+\begin{equation}
+ \sum_{k<K}\sum_{i\in\mathcal I_k}
+                          \frac{s_{k,i}^{\rm f}}{\lambda_k}
+ \leq\sum_{k<K}\sum_{i\in\mathcal I_k}
+                          \frac{h_{k,i}^{\rm f}}{\lambda_k}.
+ \label{eq:revisit-weighted-flow}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Divide \cref{eq:revisit-selected-flow} by $\lambda_k$ and sum.
+The initial excess is zero because $\vz_0=\vu_0=\vzero$.
+Every intermediate excess has coefficient
+$1/\lambda_{k-1}-\beta_0/\lambda_k\geq0$, since
+$\lambda_k\geq\eta\lambda_{k-1}\geq\beta_0\lambda_{k-1}$.
+The terminal excess also has a nonnegative coefficient. Discard them.
+\end{proof}
+
+For each $k$ use the analytical core
+$\mathcal C_k=\supp(\vx_{r_k/2}^*)$. It has volume at most $2/r_k$.
+Off this core, the KKT slack satisfies
+\begin{equation}
+ i\notin\mathcal C_k\quad\Longrightarrow\quad
+ (u_k)_i=(u_{k+1})_i=0,
+ \qquad s_{k,i}^{\rm f}\geq\lambda_kd_i/2.
+ \label{eq:revisit-core-margin}
+\end{equation}
+Indeed $r_{k+1}\geq\eta r_k\geq r_k/2$, so both comparison optima
+vanish there. Comparing their zero row at $r_k$ with the optimum at
+$r_k/2$ and using the nonpositive off-diagonals proves the slack margin.
+
+\begin{theorem}[Cumulative kinetic degree work]
+\label{thm:revisit-volume}
+Every finite horizon of \cref{eq:revisit-recurrence} with the stated cooling
+schedule satisfies
+\begin{equation}
+ \sum_{k<K}\vol(\supp\vz_{k+1})
+                  \leq44\sum_{k<K}\frac1{r_k}.
+ \label{eq:revisit-volume}
+\end{equation}
+This includes all excursions, first exposures, and repeated kinetic scans.
+\end{theorem}
+\begin{proof}
+Put $S_K=\sum_{k<K}1/r_k$ and
+\[
+ V_{\rm out}=\sum_{k<K}\vol(\supp\vz_{k+1}\setminus\mathcal C_k),
+ \qquad
+ H_K=\sum_{k<K}
+     \frac{\|\mD^{-1/2}\vh_k^{\rm f}\|_2^2}{\lambda_k^2}.
+\]
+Since $\mQ-\mu\mI$ commutes with $\mQ$ and its eigenvalues lie between
+zero and those of $\mQ$, \cref{eq:revisit-optimum-response} gives
+$H_K\leq10S_K$. Every positive kinetic coordinate outside its current
+core is selected. By \cref{eq:revisit-weighted-flow,eq:revisit-core-margin}
+and weighted Cauchy--Schwarz,
+\[
+ \tfrac12V_{\rm out}
+ \leq\sum_{k<K}\sum_{i\in\mathcal I_k}h_{k,i}^{\rm f}/\lambda_k
+ \leq\sqrt{(V_{\rm out}+2S_K)H_K}.
+\]
+The total selected degree volume is at most $V_{\rm out}+2S_K$,
+regardless of how often a coordinate reappears. Set
+$Y=V_{\rm out}+2S_K$. Young's inequality gives
+\[
+ Y\leq2S_K+2\sqrt{YH_K}
+        \leq2S_K+Y/2+2H_K,
+ \qquad Y\leq4S_K+4H_K\leq44S_K.
+\]
+The total kinetic volume is at most $Y$.
+\end{proof}

@@ -1,0 +1,175 @@
+\section{A transfer lemma for a Gauss--Seidel tail}
+\label{sec:revisit-relative-tail}
+This section gives a reusable handoff criterion, not a claim that the old
+AESP burn-in satisfies it. The relevant mass deficit is relative to an RPPR
+optimum. It need not require capturing almost all of the full PPR mass.
+
+\begin{proposition}[Relative-deficit thresholded coordinate tail]
+\label{prop:revisit-relative-tail}
+Let $0<\rho<\epsppr$ and suppose a prefix returns
+$0\leq\overline\vx\leq\vu:=\vx_\rho^*$.
+Write $\Delta=\vomega^\trans(\vu-\overline\vx)$ and initialize the actual
+PPR residual $\bm R=\vb-\mQ\overline\vx$ by one scan of the sparse prefix
+support and its incident entries. While some
+$R_i>\alpha\epsppr\omega_i$, make the coordinate update
+\begin{equation}
+ x_i\gets x_i+\frac{R_i-\alpha\rho\omega_i}{Q_{ii}}.
+ \label{eq:revisit-reserved-gs}
+\end{equation}
+Update that row's residual effects and repeat. Then the tail terminates,
+returns $0\leq\vx\leq\vu$, and satisfies
+$\|\mD^{-1/2}(\vx-\vx_0^*)\|_\infty\leq\epsppr$.
+Its repeated adjacency work is at most
+\begin{equation}
+ W_{\rm tail}\leq
+ \frac{(1+\alpha)\Delta}{2\alpha(\epsppr-\rho)}.
+ \label{eq:revisit-relative-tail-work}
+\end{equation}
+Initialization costs $O(1+1/\rho)$ incidence and scalar operations before
+label-map logarithms. If the incoming PPR residual is nonnegative, that
+property is preserved and the output has the ACL residual certificate.
+\end{proposition}
+\begin{proof}
+Maintain $\vx\leq\vu$. If $u_i=0$, Stieltjes signs imply
+$R_i\leq(\vb-\mQ\vu)_i\leq\alpha\rho\omega_i$, so $i$ is never
+selected. If $u_i>0$, complementarity and the off-diagonal signs give
+\[
+ R_i-\alpha\rho\omega_i
+   =[\mQ(\vu-\vx)]_i\leq Q_{ii}(u_i-x_i).
+\]
+The positive update therefore preserves the order and increases the
+weighted primal mass by more than
+$\alpha(\epsppr-\rho)d_i/Q_{ii}$.
+The total available increase is $\Delta$, and
+$Q_{ii}=(1+\alpha)/2$. This proves the work bound and finite termination.
+Every selected row belongs to $\supp\vu$, and the updated residual at its
+own coordinate is exactly $\alpha\rho\omega_i$; neighbor residuals
+increase. This also proves preservation of nonnegative residuals when
+that property holds initially.
+
+At termination $\bm R\leq\alpha\epsppr\vomega$ on represented labels.
+Outside the seed and the boundary of the actual support, it is zero.
+Inverse positivity yields
+$\vx_0^*-\vx=\mQ^{-1}\bm R\leq\epsppr\vomega$;
+the left side is nonnegative by the maintained order.
+Initializing the residual opens only $\supp\overline\vx$, whose volume is
+at most $1/\rho$. A FIFO active queue with deterministic label maps charges
+each new activation and update to its processed incidence; boundary rows
+are opened only if selected. Output materialization costs another
+$O(1+1/\rho)$ words.
+\end{proof}
+
+The reserve $\alpha\rho\omega_i$ is part of the update. It is equivalent
+to a residual-dependent under-relaxation factor
+$1-\alpha\rho\omega_i/R_i$. At $\rho=\epsppr/2$, every selected factor
+lies in $(1/2,1)$. The proof is not for a fixed over-relaxed SOR sweep.
+
+\begin{proposition}[A directly observable residual-excess budget]
+\label{prop:revisit-excess-tail}
+More generally, suppose only $0\leq\overline\vx\leq\vx_0^*$ and define
+\[
+ M_\rho(\vx)=\sum_i\omega_i
+       [(\vb-\mQ\vx)_i-\alpha\rho\omega_i]_+.
+\]
+The same reserved coordinate tail preserves $0\leq\vx\leq\vx_0^*$,
+terminates with semantic error at most $\epsppr$, and has adjacency work
+\begin{equation}
+ W_{\rm tail}\leq
+ \frac{Q_{ii}M_\rho(\overline\vx)}
+      {\alpha^2(\epsppr-\rho)}.
+ \label{eq:revisit-excess-tail}
+\end{equation}
+Initialization and output cost the volume of the supplied prefix support
+and its boundary; that volume must be charged to the prefix separately.
+Nonnegative input residuals remain nonnegative.
+For $\rho=\epsppr/2$, the local certificate
+$M_\rho(\overline\vx)\leq\alpha\theta$ gives at most
+$2/(\epsppr\sqrt\alpha)$ tail incidences.
+If the stronger order $\overline\vx\leq\vx_\rho^*$ holds, then also
+\[
+ \Delta\leq M_\rho(\overline\vx)/\alpha.
+\]
+\end{proposition}
+\begin{proof}
+For a selected coordinate let
+$a=(R_i-\alpha\rho\omega_i)/Q_{ii}>0$ be its increment.
+Its own contribution to $M_\rho$ falls by $\omega_iQ_{ii}a$.
+The increase of the positive part at a neighbor is at most the increase
+of its residual, so all neighbor contributions increase by at most
+$ca\omega_i$, where $c=(1-\alpha)/2$.
+Therefore
+\[
+ M_\rho(\vx+a\eunit i)
+ \leq M_\rho(\vx)-\alpha\omega_i a.
+\]
+Since $a>\alpha(\epsppr-\rho)\omega_i/Q_{ii}$, summing this
+nonnegative potential proves \cref{eq:revisit-excess-tail} and finite
+termination. The PPR order is preserved because
+$R_i=[Q(\vx_0^*-\vx)]_i\leq Q_{ii}((x_0^*)_i-x_i)$.
+At termination the same inverse-positive residual argument as above gives
+the semantic bound. Residual nonnegativity is preserved by the same row
+update. The positive residual excess is supported on the source, the
+prefix support and its observed boundary, so its sum is locally computable.
+
+For the final assertion set $\ve=\vx_\rho^*-\overline\vx\geq0$
+and $\vh=[\vb-Q\overline\vx-\alpha\rho\vomega]_+$.
+Complementarity on the optimal support, and the Stieltjes signs off it,
+give $Q\ve\leq\vh$. Hence
+$\ve\leq Q^{-1}\vh$ and
+$\Delta\leq\vomega^\trans\vh/\alpha=M_\rho/\alpha$.
+\end{proof}
+
+This potential subtracts the RPPR reserve before summing positive residual
+mass. It is different from requiring the full remaining PPR mass to be
+small. It also permits a prefix above the RPPR optimum on some coordinates,
+provided it remains below PPR. The new ramp itself does not maintain that
+PPR order, as the counterexamples show; an arbitrary ramp iterate cannot
+be fed into this proposition without a separate certificate.
+
+\begin{corollary}[An objective certificate supplies the relative deficit]
+\label{cor:revisit-relative-gap}
+If the prefix additionally has certified RPPR gap at most $G$, then
+\[
+ \Delta\leq\sqrt{\frac{2G}{\alpha\rho}}.
+\]
+With $\rho=\epsppr/2$ and $G\leq\alpha\mu\rho/2$, the tail costs at
+most $2/(\epsppr\sqrt\alpha)$ adjacency entries, apart from its
+initialization and bookkeeping charges.
+\end{corollary}
+\begin{proof}
+The difference is supported on $\supp\vu$, of volume at most $1/\rho$.
+Weighted Cauchy--Schwarz and strong convexity give
+$\Delta\leq\rho^{-1/2}\|\vu-\overline\vx\|_2
+\leq\sqrt{2G/(\alpha\rho)}$.
+Thus $\Delta\leq\theta\leq\sqrt\alpha$, and
+\cref{eq:revisit-relative-tail-work} proves the claim.
+\end{proof}
+
+\paragraph{Rounded tail.}
+For a dyadic prefix, refine its common density grid to a dyadic $h_{\rm t}$
+with $h_{\rm t}\leq\alpha(\epsppr-\rho)/(2Q_{ii})$.
+Round only the positive density increment in
+\cref{eq:revisit-reserved-gs} downward to this grid. It retains at least
+half of the ideal increment, preserves $\vx\leq\vu$, and leaves the
+updated density residual below the activation threshold.
+The work bound merely doubles. The residual-excess potential also decreases
+by at least $\alpha\omega_i$ times the actual rounded increment, so
+\cref{eq:revisit-excess-tail} likewise only doubles.
+Keep exact degree-weighted residual
+numerators: their common denominator uses the fixed input denominator of
+$\alpha$ and the density grid. Each unweighted threshold comparison uses
+only the individual degree. No product of encountered degree denominators
+accumulates. This supplies a bounded-arithmetic tail for a bounded-arithmetic
+prefix, with the same local work scale.
+
+\paragraph{Scope of the transfer.}
+The criterion applies to any deterministic or certified randomized prefix
+that supplies both lower order to $\vx_\rho^*$ and the stated objective
+gap, with that prefix's own work and success guarantees. It does not prove
+those properties for an unchanged old AESP trajectory.
+It also does not, by itself, give a practical speedup when composed with
+our generic clipping-based OP2 routine: at this small objective budget,
+that routine's clipping already satisfies
+\cref{cor:revisit-positive-residual}, so the tail need not do any work.
+The lemma is useful for investigating a cheaper, differently certified
+prefix and for separating relative RPPR deficit from full-PPR mass capture.

@@ -1,0 +1,167 @@
+\section{Orthant projection and a regularizer that changes every step}
+Write $\vomega=\mD^{1/2}\one$, so $\mQ\vomega=\alpha\vomega$.
+For $\lambda>0$ put
+\[
+ J_\lambda(\vx)=f(\vx)+\lambda\vomega^\trans\vx.
+\]
+On the nonnegative orthant this equals $F_r$ when $\lambda=\alpha r$.
+Choose a dyadic $\theta\in(0,1/2]$ by halving $1/2$ until
+$\theta^2\leq\alpha$, and set
+\begin{equation}
+ \mu=\theta^2,\qquad \chi=1-\theta,\qquad
+ \eta=1-\theta/2,\qquad \alpha/4\leq\mu\leq\alpha.
+ \label{eq:revisit-parameters}
+\end{equation}
+Starting with $\vx_0=\vz_0=\vzero$, the recurrence is
+\begin{equation}
+ \begin{aligned}
+ \vy_k&=(\vx_k+\theta\vz_k)/(1+\theta),\\
+ \vq_k&=\chi\vz_k+\theta\vy_k
+          -(\mQ\vy_k-\vb+\lambda_k\vomega)/\theta,\\
+ \vz_{k+1}&=[\vq_k]_+,\\
+ \vx_{k+1}&=\chi\vx_k+\theta\vz_{k+1}.
+ \end{aligned}
+ \label{eq:revisit-recurrence}
+\end{equation}
+Thus both actual vectors are nonnegative. The primal support is nested
+within a run, but it is not assumed to lie in any RPPR optimal support.
+The projection is on the kinetic vector $\vz$; it is not the ordinary
+FISTA proximal update on the primal iterate.
+
+\begin{proposition}[Equivalent accelerated step with a retention floor]
+\label{prop:revisit-floor-form}
+Set $\vx_{-1}=\vx_0=\vzero$ and
+$\beta=\chi/(1+\theta)$. The primal trajectory is exactly
+\begin{equation}
+ \begin{aligned}
+ \vy_k&=\vx_k+\beta(\vx_k-\vx_{k-1}),\\
+ \vx_{k+1}&=\max\{\chi\vx_k,
+              (\mI-\mQ)\vy_k+\vb-\lambda_k\vomega\}.
+ \end{aligned}
+ \label{eq:revisit-floor-form}
+\end{equation}
+The maximum is coordinatewise. Its kinetic vector is recovered by
+$\theta\vz_{k+1}=\vx_{k+1}-\chi\vx_k\geq\vzero$.
+\end{proposition}
+\begin{proof}
+Use $\theta\vz_k=\vx_k-\chi\vx_{k-1}$ in the first line of
+\cref{eq:revisit-recurrence}. Also
+$\chi\vx_k+\theta\vq_k
+ =\vy_k-(\mQ\vy_k-\vb+\lambda_k\vomega)$.
+Adding $\chi\vx_k$ to $\theta[\vq_k]_+$ is the displayed maximum.
+\end{proof}
+
+This form locates the change relative to standard projected acceleration:
+the lower obstacle is $\chi\vx_k$ rather than zero. The positive increments
+above this common decay floor are precisely the coordinates charged by
+the kinetic work theorem. Implementing the formula with full historical
+primal scans would lose that local work guarantee.
+
+\begin{lemma}[Orthant sector in the PageRank metric]
+\label{lem:revisit-orthant}
+For any $\vh\geq\vzero$, let $\vt=\mQ^{-1}\vh$. For any $\vq$, set
+$\vp=[\vq]_+$ and $\vn=\vq-\vp$. Then
+\[
+ (\vp-\vt)^\trans\mQ\vn=(\mQ\vp-\vh)^\trans\vn\geq0.
+\]
+\end{lemma}
+\begin{proof}
+If $n_i\ne0$, then $n_i<0$ and $p_i=0$. All other coordinates of
+$\vp$ are nonnegative and all off-diagonal entries of $\mQ$ are
+nonpositive, so $(\mQ\vp-\vh)_i\leq0$. Every summand is nonnegative.
+\end{proof}
+
+The imported accelerated comparison identity says the following.
+For a one-smooth, $\mu$-strongly convex quadratic $\varphi$ in a Hilbert
+metric, take the first two and last lines of
+\cref{eq:revisit-recurrence}, with the gradient of $\varphi$ in that metric,
+and write $\vp$ for the next kinetic vector. If
+$\langle\vp-\vu,\vq-\vp\rangle\geq0$, then
+\begin{equation}
+ \varphi(\vx^+)-\varphi(\vu)+\frac\mu2\|\vp-\vu\|^2
+ \leq\chi\left(\varphi(\vx)-\varphi(\vu)
+                          +\frac\mu2\|\vz-\vu\|^2\right).
+ \label{eq:revisit-imported-comparison}
+\end{equation}
+The comparison vector need not minimize $\varphi$. In particular the
+quantity on the right is allowed to be negative. The omitted additional
+term in the source identity is nonpositive. Its assumptions hold in the
+Euclidean metric for $J_\lambda$ and in the $\mQ$ metric for the
+auxiliary quadratic below; the orthant sector supplies the latter case.
+
+For the rest of this note, the analytical comparator is fixed:
+$\vt:=\vx_0^*=\mQ^{-1}\vb$. In particular,
+$\vomega^\trans\vt=1$ and $\vt\geq\vzero$.
+Define
+\begin{equation}
+ \begin{aligned}
+ \mathcal A_\lambda(\vx)
+   &:=\tfrac12\|\mQ\vx-\vb\|_2^2
+                           +\alpha\lambda\vomega^\trans\vx,\\
+ B_k&:=\mathcal A_{\lambda_k}(\vx_k)
+       -\mathcal A_{\lambda_k}(\vt)
+                       +\tfrac\mu2\|\vz_k-\vt\|_{\mQ}^2.
+ \end{aligned}
+ \label{eq:revisit-bank}
+\end{equation}
+Its $\mQ$-metric gradient is precisely
+$\mQ\vx-\vb+\lambda\vomega$, because
+$\mQ^{-1}\vomega=\vomega/\alpha$. Its metric Hessian is $\mQ$.
+
+\begin{theorem}[Cooling bank without resets]
+\label{thm:revisit-cooling-bank}
+Let $\lambda_0=\alpha/d_v$ and let
+$\eta\lambda_k\leq\lambda_{k+1}\leq\lambda_k$. Then the actual recurrence
+satisfies, for every $k$,
+\begin{align}
+ B_{k+1}&\leq\chi B_k+\alpha(\lambda_k-\lambda_{k+1}),
+                 &B_k&\leq\alpha\lambda_k,
+                 \label{eq:revisit-cooling-bank}\\
+ \|\mQ\vx_k-\vb\|_2^2
+   +\mu\|\vz_k-\vt\|_{\mQ}^2&\leq4\alpha\lambda_k,
+                 &\vomega^\trans\vx_k&\leq2.
+                 \label{eq:revisit-response-mass}
+\end{align}
+No box, mass constraint, intermediate repair, or support confinement is
+assumed.
+\end{theorem}
+\begin{proof}
+Apply \cref{eq:revisit-imported-comparison} with the current $\lambda_k$,
+the $\mQ$ metric, comparator $\vt$, and
+\cref{lem:revisit-orthant}. Changing the parameter afterward changes the
+bank by exactly
+\[
+ \alpha(\lambda_{k+1}-\lambda_k)
+                     (\vomega^\trans\vx_{k+1}-1)
+ \leq\alpha(\lambda_k-\lambda_{k+1}),
+\]
+since the new primal vector is nonnegative. This proves the recursion.
+At initialization,
+\[
+ B_0=\tfrac12\|\vb\|_2^2-\alpha\lambda_0
+                                  +\tfrac\mu2\vt^\trans\mQ\vt\leq0,
+\]
+because $\|\vb\|_2^2=\alpha^2/d_v=\alpha\lambda_0$ and
+$\mu\vb^\trans\mQ^{-1}\vb\leq\|\vb\|_2^2$.
+If $B_k\leq\alpha\lambda_k$, the recursion gives
+\[
+ B_{k+1}\leq\alpha\{(1+\chi)\lambda_k-\lambda_{k+1}\}
+              \leq\alpha\lambda_{k+1},
+\]
+since $1+\chi=2\eta$. Finally
+$\mathcal A_{\lambda_k}(\vt)=\alpha\lambda_k$.
+All three terms in $B_k+\alpha\lambda_k$ are nonnegative, so dropping
+either the mass term or the other two terms proves
+\cref{eq:revisit-response-mass}.
+\end{proof}
+
+For the actual schedule put $r_k=\lambda_k/\alpha$ and
+$\vu_k=\vx_{r_k}^*$. These comparison optima are never computed.
+The RPPR residual $\vb-\mQ\vu_k$ is nonnegative, bounded above by
+$\lambda_k\vomega$, and has weighted mass at most $\alpha$.
+Its squared Euclidean norm is consequently at most $\alpha\lambda_k$.
+The squared triangle inequality gives
+\begin{equation}
+ \|\mQ(\vx_k-\vu_k)\|_2^2\leq10\alpha\lambda_k.
+ \label{eq:revisit-optimum-response}
+\end{equation}

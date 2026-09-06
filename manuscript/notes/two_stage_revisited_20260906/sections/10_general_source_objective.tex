@@ -1,0 +1,227 @@
+\section{Two stages recover the original sparse-source RPPR objective}
+\label{sec:revisit-general-rppr}
+The semantic source truncation has a stronger two-stage consequence.
+Its first stage changes both source and regularizer to find an approximate
+coordinate envelope. The second stage restores the original source and the
+requested regularizer. Thus it solves the original RPPR objective rather
+than treating the source change as part of the final error definition.
+
+\begin{lemma}[Source reduction compensated by lower regularization]
+\label{lem:revisit-source-envelope}
+Fix $\rho>0$. Retain $T_{\rm h}=\{i:s_i/d_i>\rho/2\}$, let
+$\vs_{\rm h}$ contain their original weights, and let $\vu_{\rm h}$
+be its RPPR optimum at regularizer $\rho/2$. Then
+\begin{equation}
+ \vx_\rho^*(\vs)\leq\vu_{\rm h},\qquad
+ \vol(T_{\rm h})<2/\rho,\qquad
+ \vol(\supp\vu_{\rm h})\leq2/\rho.
+ \label{eq:revisit-source-envelope}
+\end{equation}
+\end{lemma}
+\begin{proof}
+The omitted load satisfies
+$0\leq\vb_{\rm l}\leq(\alpha\rho/2)\vomega$.
+Consequently
+\[
+ \vb_{\rm h}-(\alpha\rho/2)\vomega
+ \geq\vb-\alpha\rho\vomega.
+\]
+Solutions of an orthant quadratic with a Stieltjes Hessian are monotone
+in this linear load. To verify the comparison directly, let $\va,\vb'$ be
+the optima for loads $\vc_a\geq\vc_b$, and put
+$\vd=(\vb'-\va)_+$. On its positive support, complementarity for
+$\vb'$ and the KKT inequality for $\va$ give
+$[\mQ(\vb'-\va)]_i\leq0$.
+Replacing the negative coordinates of $\vb'-\va$ by zero can only decrease
+this product on that support. Hence $\vd^\trans\mQ\vd\leq0$,
+which forces $\vd=0$.
+Apply this fact to the displayed loads. The two volume bounds follow
+respectively by summing retained source weights and by RPPR residual mass.
+\end{proof}
+
+\begin{theorem}[Sparse-source RPPR with additive input work]
+\label{thm:revisit-general-rppr}
+Given an explicit sparse source list of size $|T|$, $\alpha\in(0,1]$,
+$\rho>0$, and $0<\epsobj<1$, there is a deterministic two-stage local
+algorithm returning
+\[
+ 0\leq\widehat\vx\leq\vx_\rho^*(\vs),\qquad
+ \vol(\supp\widehat\vx)\leq1/\rho,
+ \qquad F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj
+\]
+in fully charged exact-real work
+\[
+ \widetilde O\!\left(|T|+\frac1{\rho\sqrt\alpha}\right),
+\]
+with logarithmic accuracy dependence. A separately rounded realization
+retains this local operation scale and bounded integer encodings.
+\end{theorem}
+\begin{proof}[Exact-real construction and accuracy]
+Read the source list and its degrees. If
+$\rho\geq\max_i s_i/d_i$, return zero; the KKT conditions hold there.
+At $\alpha=1$ return the exact masses $[s_i-\rho d_i]_+$.
+In the remaining case $\rho<1$, retain $T_{\rm h}$ as above, choose a
+dyadic $\delta$ by halving $1/2$ until
+$\delta^2\leq\epsobj\rho/4$, and proceed as follows.
+
+Stage I runs the joint retained-source orthant continuation at final
+regularizer $\rho/2$. Freeze it until its actual Euclidean accelerated
+energy is at most $\alpha\delta^2/2$, and set
+\[
+ \vp=[\vx-\delta\vomega]_+,\qquad U=\supp\vp.
+\]
+The subprobability-source proof in \cref{sec:revisit-sparse-sources} gives
+$0\leq\vp\leq\vu_{\rm h}$ and
+$0\leq\vu_{\rm h}-\vp\leq2\delta\vomega$.
+Thus $\vol(U)\leq2/\rho$, and
+\cref{lem:revisit-source-envelope} gives
+\begin{equation}
+ i\notin U\quad\Longrightarrow\quad
+ (\vx_\rho^*)_i\leq2\delta\omega_i.
+ \label{eq:revisit-missing-source-support}
+\end{equation}
+If $U$ is empty, the same argument below certifies returning zero.
+
+Stage II builds the principal matrix $\mQ_{UU}$ using original degrees
+and the \emph{original} source coefficients on $U$. Let $\vu_U$ be the
+exact restricted RPPR optimum, zero-extended. It is below $\vx_\rho^*$:
+the latter's restriction to $U$ is a supersolution for the principal
+obstacle problem, and the Stieltjes comparison proof above applies.
+Run fixed-face orthant acceleration from zero until its energy is at most
+$\alpha\delta^2/2$, then clip by $\delta\vomega_U$ and zero-extend.
+The initial energy is at most one because
+$\|\vu_U\|_2\leq\vomega^\trans\vu_U\leq1$.
+This returns $0\leq\widehat\vx\leq\vu_U$ and degree-density error at
+most $2\delta$ from $\vu_U$.
+
+To bound the envelope error, truncate the true full optimum to $U$.
+The removed vector is supported on $\supp\vx_\rho^*$ and is bounded
+by $2\delta\vomega$, by \cref{eq:revisit-missing-source-support}.
+The KKT linear term vanishes on that optimal support, so
+\[
+ F_\rho(\vu_U)-F_\rho(\vx_\rho^*)
+ \leq F_\rho((\vx_\rho^*)_U)-F_\rho(\vx_\rho^*)
+ \leq2\delta^2/\rho.
+\]
+The same quadratic expansion for the final clipped error, supported on
+$\supp\vu_U\subseteq\supp\vx_\rho^*$, gives
+$F_\rho(\widehat\vx)-F_\rho(\vu_U)\leq2\delta^2/\rho$.
+Their sum is at most $\epsobj$. Lower order also proves the final support
+volume bound.
+\end{proof}
+
+\begin{proof}[Work and bounded arithmetic]
+The initial source pass costs $O(|T|)$ degree replies and input reads.
+Stage I refreshes only $T_{\rm h}$ as source exceptions, of cardinality at
+most $2/\rho$. Its iteration count is
+$O(\alpha^{-1/2}\log(2/(\rho\epsobj)))$, and its kinetic work has the
+same $44\sum_k1/r_k$ bound (or $60\sum_k1/r_k$ when rounded).
+Source-exception updates therefore fit the claimed total.
+No source row is opened merely because its label was supplied in the input.
+
+Building the principal face costs $O(\vol(U))$ incidence work plus indexing
+logarithms. Retrieve its original source entries by one further pass over
+the supplied source list and membership tests in $U$; this costs
+$\widetilde O(|T|)$ and does not query cold-source adjacency lists.
+Stage II makes
+$O(\alpha^{-1/2}\log(2/(\alpha\rho\epsobj)))$ fixed-face iterations,
+each costing $O(\vol(U))$ with all repeated original incidences charged.
+Final clipping and output add $O(1+\vol(U))$ scalar work.
+
+The bounded Stage I uses \cref{sec:revisit-rounding}, with its frozen
+tolerance replaced by $\alpha\delta^2/2$. For Stage II let
+$V_U=\vol(U)$, use a dyadic density grid
+\[
+ h_U\leq\frac{\delta\theta^2}{16\max\{1,V_U\}},
+\]
+and round both kinetic and next primal densities downward after each dense
+fixed-face step. Choose $N=q/\theta$, where $q$ is the least integer with
+$2^q\geq8/(\alpha\delta^2)$.
+The corresponding exact trajectory has Euclidean error at most $\delta/2$.
+Each rounded step differs from its ideal step by at most $h_U$ in kinetic
+density and $(1+\theta)h_U$ in primal density.
+The pairwise-contraction proof of \cref{lem:revisit-pairwise} applies to
+the principal matrix, giving accumulated state-distance error at most
+$4h_U\sqrt{V_U}/\theta$ and hence primal Euclidean error at most
+\[
+ \frac{4\sqrt2h_U\sqrt{V_U}}{\theta\sqrt\alpha}<\delta/2.
+\]
+Thus the actual candidate is within $\delta$ of $\vu_U$, exactly what the
+clipping proof requires.
+
+Every new Stage II state returns immediately to its fixed grid. Exact
+source terms use only individual input denominators, and all neighbor sums
+are sums of grid integers. The exact trajectory's initial energy is at
+most one, which bounds its primal and kinetic norms polynomially in
+$1/\alpha$; the comparison bound gives the same for the rounded state.
+Integer lengths are therefore bounded by input encoding lengths and
+logarithms of $1/(\alpha\rho\epsobj)$ and encountered degrees.
+No denominator grows linearly with the iteration count. This finishes
+the separately rounded construction.
+\end{proof}
+
+\begin{lemma}[Maximum principle for an incomplete obstacle face]
+\label{lem:revisit-obstacle-face-error}
+Let $\vu$ be the full RPPR optimum and $\vu_U$ its restricted optimum
+on $U$, zero-extended. If $u_i\leq a\omega_i$ outside $U$, then
+\[
+ \vzero\leq\vu-\vu_U\leq a\vomega.
+\]
+\end{lemma}
+\begin{proof}
+The lower bound is the Stieltjes comparison already used above. Write
+$\vc=\vb-\alpha\rho\vomega$ and $\mM=\mQ_{UU}$.
+The full optimum restricted to $U$ solves the obstacle problem with load
+$\vc_U-\mQ_{U,U^c}\vu_{U^c}$. Meanwhile
+$\vu_{U,U}+a\vomega_U$ is a supersolution, because
+\[
+ \mM(\vu_{U,U}+a\vomega_U)-\vc_U
+                +\mQ_{U,U^c}\vu_{U^c}
+ \geq a(\mM\vomega_U+\mQ_{U,U^c}\vomega_{U^c})
+ =a\alpha\vomega_U\geq\vzero.
+\]
+Here nonpositive off-diagonals and the exterior amplitude bound give the
+inequality. The same positive-part comparison with a supersolution proves
+the claimed upper bound on $U$; it is assumed on the complement.
+\end{proof}
+
+\begin{corollary}[General-source residual and semantic certificates]
+\label{cor:revisit-general-residual}
+Run the two-stage construction with any dyadic $\delta>0$, using its
+stated $\alpha\delta^2/2$ accuracy budget in Stage I and the same Stage II
+schedule. Then
+\[
+ \vzero\leq\vx_\rho^*-\widehat\vx\leq4\delta\vomega,
+ \qquad
+ \|\mD^{-1/2}\bm{\kappa}(\widehat\vx)\|_\infty\leq4\delta,
+\]
+where $\bm{\kappa}$ is the minimum-magnitude RPPR subgradient.
+The semantic PPR error is at most $\rho+4\delta$.
+If $\delta\leq\alpha\rho/4$, the full original-source residual additionally
+satisfies
+\[
+ \vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega.
+\]
+All work bounds retain their scale, with logarithmic dependence on
+$1/\delta$.
+\end{corollary}
+\begin{proof}
+Stage I bounds omitted optimal coordinates by $2\delta\vomega$.
+Apply \cref{lem:revisit-obstacle-face-error}, then add the Stage II clipping
+error of at most $2\delta\vomega$. Write their total as
+$\ve=\vx_\rho^*-\widehat\vx$, so
+$|\mQ\ve|\leq4\delta\vomega$, using $|\mQ|\vomega\leq\vomega$.
+At every positive output coordinate the exact optimum has zero RPPR
+gradient. At zero output coordinates only residual excess over
+$\alpha\rho\vomega$ contributes to the minimum subgradient. These facts
+give the subgradient bound, and the RPPR bias gives the semantic bound.
+For residual nonnegativity, positive output coordinates have residual at
+least $(\alpha\rho-4\delta)\vomega$. At a zero output coordinate,
+Stieltjes signs give nonnegative residual directly. The residual upper
+bound follows from $\vb-\mQ\vx_\rho^*\leq\alpha\rho\vomega$.
+\end{proof}
+
+The second stage is needed to restore the original RPPR objective. In
+general, the first-stage optimum has a different source and a smaller
+regularizer, so directly returning it would not satisfy the requested
+objective-gap statement. Neither stage needs exact support identification.

@@ -1,0 +1,358 @@
+\section{An asymptotic obstruction to constant ramp tracking}
+\label{sec:revisit-ramp-asymptotic}
+This section proves an asymptotic obstruction for the actual nonlinear
+graph trajectory. The proof first identifies a linear amplification
+mechanism, then justifies its graph limit using the cooling energy and
+level symmetry. It is not needed by any positive algorithm theorem above.
+
+Fix $\theta=1/64$, $\alpha=\theta^2$, $\chi=1-\theta$,
+$\eta=1-\theta/2$, $\beta=\chi/(1+\theta)$, and
+$c=(1-\alpha)/2$. In degree-density coordinates define
+\[
+ Q_B=\begin{pmatrix}(1+\alpha)/2&-c\\-c/2&(1+\alpha)/2\end{pmatrix},
+ \qquad C_B=I-Q_B=c\begin{pmatrix}1&1\\1/2&1\end{pmatrix}.
+\]
+These matrices are self-adjoint in the inner product with weights $(1,2)$.
+They arise from an even/odd pair of levels of $\mathcal T(b,2,L)$ as
+$b\to\infty$. The coupling from the next pair's first density into this
+pair's second density is $c/2$ in $I-Q$; the reverse coupling vanishes
+in that limit. This limiting calculation does not supply a quotient oracle
+to a local algorithm.
+
+\begin{lemma}[Exact frequency amplification in a level pair]
+\label{lem:revisit-pair-gain}
+For a positive pair obeying the linear recurrence, divide its PPR density
+error by $r_k$ and take temporal differences. At frequency $\zeta$ on
+the unit circle, set $z=\eta\zeta$ and
+\[
+ A(z)=c(1+\beta-\beta/z),\qquad
+ H(z)=\frac{A(z)^2}{2(z-A(z))^2-A(z)^2}.
+\]
+The transfer from the next pair's first error difference to the current
+pair's first error difference is $H(z)$. At $\zeta=(12+5\mathrm i)/13$,
+\[
+ |H(\eta\zeta)|^2
+ =\frac{51067952908040250000}{5105426406330152281}>9.
+\]
+All poles of the normalized causal transfer lie strictly inside the unit
+circle.
+\end{lemma}
+\begin{proof}
+For error $e_k=t-x_k$ on a region where the kinetic floor is inactive,
+\[
+ e_{k+1}=(I-Q)((1+\beta)e_k-\beta e_{k-1})+\alpha r_k\one.
+\]
+After division by $r_{k+1}=\eta r_k$, temporal differences remove the
+constant forcing. The pair's frequency matrix is
+\[
+ \begin{pmatrix}z-A&-A\\-A/2&z-A\end{pmatrix},
+\]
+with right-hand side $(0,A/2)^\trans$ times the next pair's first
+coordinate. Solving its two equations gives the transfer formula.
+The displayed strict inequality is rational arithmetic; it is independently
+checked by \texttt{front\_limit\_probe.py}.
+
+The eigenvalues of $C_B$ are $c(1\pm1/\sqrt2)$. The unnormalized
+second-order poles have moduli
+$\chi\sqrt{(1\pm1/\sqrt2)/2}$, so their largest modulus is
+$\sigma=\chi\cos(\pi/8)<\chi<\eta$. Division by $\eta$ proves stability.
+\end{proof}
+
+\paragraph{The isolated activation profile.}
+Use $Q_B$, source $(1,0)^\trans$, and regularizer $\lambda_\tau=\eta^\tau$
+in the orthant recurrence. Extend it by zero for integer $\tau\leq0$;
+that extension is consistent because both raw entries are nonpositive
+when $\lambda_\tau\geq1$. Put
+\[
+ t_B=Q_B^{-1}(1,0)^\trans,\qquad
+ U(\tau)=\alpha\eta^{-\tau}(t_B-x(\tau)),\qquad
+ d(\tau)=U_1(\tau)-U_1(\tau-1).
+\]
+
+\begin{lemma}[The activation signal excites an amplifying frequency band]
+\label{lem:revisit-front-signal}
+The sequence $d$ is nonzero and decays exponentially in both time
+directions. If $f_j$ is the result of passing it through $j$ copies of
+the transfer in \cref{lem:revisit-pair-gain}, then there is a constant
+$a>0$, independent of $j$, such that
+\[
+ \sup_{\tau\in\mathbb Z}|f_j(\tau)|\geq a\,3^j/\sqrt j
+ \qquad(j\geq1).
+\]
+\end{lemma}
+\begin{proof}
+The pair has a Stieltjes Hessian with spectrum in $[\alpha,1]$ in its
+weighted metric, and $Q_B\one\geq\alpha\one$.
+Apply the principal-operator auxiliary energy argument of
+\cref{sec:revisit-pruning}. Here the weighted source mass is one and
+$\lambda_0=1$, so its bank recursion is
+$B^+\leq\chi B+(\lambda-\lambda^+)$ and $B\leq\lambda$.
+Consequently both primal and kinetic states tend to the strictly positive
+$t_B$. From some finite time onward the kinetic floor is inactive.
+
+Thereafter the profile is a linear combination of the poles of modulus
+at most $\sigma$ and the particular response $\eta^\tau v$, where
+\[
+ v=(\eta I-(1+\beta-\beta/\eta)C_B)^{-1}\one>0.
+\]
+Thus $U(\tau)\to\alpha v$, and its temporal difference decays at rate
+at most a polynomial times $(\sigma/\eta)^\tau$. In the negative time
+direction, $U=\alpha\eta^{-\tau}t_B$, which also decays. Moreover
+$\sum_\tau d(\tau)=\alpha v_1>0$, so $d$ is nonzero.
+
+Its bilateral transform $D(\zeta)=\sum_\tau d(\tau)\zeta^{-\tau}$
+is analytic in an annulus containing the unit circle. The transfer is
+analytic there after shrinking the annulus if necessary. By
+\cref{lem:revisit-pair-gain}, an open arc has $|H(\eta\zeta)|>3$.
+The nonzero analytic $D$ cannot vanish on the entire arc. A closed
+subarc therefore has $|D|\geq a_0>0$ and $|H|\geq3$.
+Parseval's identity gives $\|f_j\|_2\geq a_1 3^j$.
+
+To turn this into a maximum bound, choose circles of radii
+$r<1<R$ inside the common annulus. Cauchy's coefficient estimates give
+\[
+ |f_j(\tau)|\leq C B_r^j r^\tau\quad(\tau\geq0),\qquad
+ |f_j(-\tau)|\leq C B_R^j R^{-\tau}\quad(\tau\geq0),
+\]
+for fixed finite $C,B_r,B_R$. Choose a constant $L$ sufficiently large
+that both tails $|\tau|>Lj$ have squared sum less than
+$a_1^2 3^{2j}/2$ for all sufficiently large $j$.
+The remaining $O(j)$ coefficients therefore contain a value of magnitude
+at least $a_2 3^j/\sqrt j$. Decreasing the constant covers the finitely
+many smaller $j$, whose output is nonzero.
+\end{proof}
+
+\subsection{Justifying the separated-front limit on finite unit trees}
+Fix an integer $j\geq1$ and let
+\[
+ \gamma=\frac{c^2}{2((1+\alpha)/2)^2-c^2},\qquad
+ b_K=\operatorname{nearestInteger}(\gamma\eta^{-K}),
+ \qquad G_{j,K}=\mathcal T(b_K,2,2j+4).
+\]
+Run the actual point-source ramp on $G_{j,K}$, and write $E_{j,K}(\tau)$
+for its root PPR density error divided by $r_{jK+\tau}$.
+The graph-limit statement is
+\begin{equation}
+ E_{j,K}(\tau)-E_{j,K}(\tau-1)\longrightarrow f_j(\tau)
+ \quad\text{as }K\to\infty,
+ \quad\text{for every fixed }j,\tau.
+ \tag{FL}\label{eq:revisit-front-limit}
+\end{equation}
+We prove this limit below. All limits first fix $j$ and any finite time
+window, and then send $K$ to infinity. Constants may depend on these fixed
+quantities and on the fixed $\alpha$, but not on $K$ or $b_K$.
+
+Write $T_\ell$ for the exact PPR degree density on level $\ell$, and
+$X_{\ell,k},Z_{\ell,k}$ for the actual primal and kinetic densities.
+Every level is an automorphism orbit fixing the seed, so these densities
+are constant within a level. Let $W_\ell$ be that level's original degree
+volume. For pair $i=(2i,2i+1)$, $0\leq i\leq j$, put
+\[
+ h_i=\frac\alpha b\left(\frac\gamma b\right)^i,
+ \qquad \mathbf T_i=(T_{2i},T_{2i+1})^\trans.
+\]
+
+\begin{lemma}[Static scales and coordinatewise energy control]
+\label{lem:revisit-level-scales}
+For fixed $j$ and $0\leq i\leq j$, as $b\to\infty$,
+\[
+ \mathbf T_i/h_i\longrightarrow t_B,\qquad
+ W_{2i}/b^{i+1}\longrightarrow1,\qquad
+ W_{2i+1}/b^{i+1}=2.
+\]
+At every actual ramp step, on every level,
+\begin{equation}
+ |X_{\ell,k}-T_\ell|,
+ |Z_{\ell,k}-T_\ell|\leq2\sqrt{r_k/W_\ell}.
+ \label{eq:revisit-level-energy}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Here $\mu=\alpha$, so \cref{eq:revisit-response-mass} and
+$Q\succeq\alpha I$ imply both
+$\|x_k-t\|_2^2\leq4r_k$ and $\|z_k-t\|_2^2\leq4r_k$.
+Grouping the nonnegative squared terms by level proves
+\cref{eq:revisit-level-energy}. The level volumes follow by counting:
+level $2i$ has $b^i$ vertices of degree $b+1$ except that the root has
+degree $b$; level $2i+1$ has $b^{i+1}$ vertices of degree two.
+
+For completeness, the static asymptotics follow by elimination from the
+leaves. Set $R_\ell=T_\ell/T_{\ell-1}$ and $q_0=(1+\alpha)/2$.
+At the last leaf, $R=c/q_0<1$. At other odd and even levels,
+respectively, elimination gives
+\[
+ R_\ell=\frac{c/2}{q_0-(c/2)R_{\ell+1}},\qquad
+ R_\ell=\frac{c/(b+1)}{q_0-(cb/(b+1))R_{\ell+1}}.
+\]
+Backward induction gives $0<R_\ell<1$. Every nonterminal even ratio
+is $O(1/b)$, because its denominator is at least $\alpha$.
+Thus for $i\leq j$, the next even level is nonterminal and
+$R_{2i+1}=c/(2q_0)+O(1/b)$. It follows that
+$R_{2i}R_{2i-1}=\gamma/b+O(1/b^2)$ for $1\leq i\leq j$.
+Finally $T_0=(\alpha/b)/(q_0-cR_1)$, yielding the stated $t_B$ scale.
+The extra pair before the terminal leaf ensures these formulas hold
+through pair $j$.
+\end{proof}
+
+\begin{lemma}[Activation separation without an assumed history]
+\label{lem:revisit-activation-separation}
+For each $i\leq j$ there is a fixed integer $C_i$ such that, for all
+sufficiently large $K$, both kinetic coordinates in pair $i$ are strictly
+positive at every ramp time $k\geq iK+C_i$.
+For every fixed integer $M$, all levels beyond pair $j$ remain identically
+zero up to time $jK+M$, for sufficiently large $K$.
+Moreover pair $j$ and all later levels are zero up to time $jK-1$.
+\end{lemma}
+\begin{proof}
+Since $b_K\eta^K\to\gamma$, one has
+\[
+ r_{iK+C}=(1/b_K)\eta^{iK+C},\qquad
+ r_{iK+C}W_{2i}\longrightarrow\gamma^i\eta^C,
+ \qquad T_{2i}W_{2i}\longrightarrow\alpha\gamma^i(t_B)_1,
+\]
+and analogous positive limits on the odd coordinate. Choose $C_i$ large
+enough that $2\sqrt{r_kW_\ell}<T_\ell W_\ell$ at $k=iK+C_i$
+on both levels. This remains true at later ramp times because $r_k$
+decreases. Equation~\eqref{eq:revisit-level-energy} proves strict
+kinetic positivity, and hence inactivity of the kinetic projection floor.
+
+The inactivity claims require an argument from the start of the run.
+Suppose all levels from an even level $2i$ onward are zero at the incoming
+state. Only its first level can receive a nonzero raw forcing, namely
+$cY_{2i-1,k}/(b+1)-\alpha r_k$ before division by $\theta$.
+Since $Y$ is a convex combination of $X$ and $Z$,
+\[
+ \frac{cY_{2i-1,k}}{(b+1)\alpha r_k}
+ \leq\frac{cT_{2i-1}}{(b+1)\alpha r_k}
+   +\frac{2c}{(b+1)\alpha\sqrt{r_kW_{2i-1}}}.
+\]
+Both terms increase as $r_k$ decreases, so it suffices to check the last
+time under consideration. At $i=j$, $k=jK-1$, the first term tends to
+$\eta<1$ and the second is $O(b^{-1/2})$.
+At $i=j+1$, $k=jK+M$, both terms are $O(1/b)$.
+For sufficiently large $b$, the raw forcing is therefore nonpositive
+at every earlier time. Induction from the zero initialization proves
+the claims for these separating levels and all levels after them.
+\end{proof}
+
+\begin{lemma}[The actual current front has the isolated profile limit]
+\label{lem:revisit-current-front}
+For every fixed integer $\tau$,
+\[
+ \frac{(X_{2j,jK+\tau},X_{2j+1,jK+\tau})^\trans}{h_j}
+       \longrightarrow x(\tau),\qquad
+ \frac{(Z_{2j,jK+\tau},Z_{2j+1,jK+\tau})^\trans}{h_j}
+       \longrightarrow z(\tau).
+\]
+Consequently this pair's normalized PPR error tends to $U(\tau)$.
+\end{lemma}
+\begin{proof}
+The pair is zero through $\tau=-1$, and all later pairs are zero on any
+fixed time window, by \cref{lem:revisit-activation-separation}.
+Its incoming source is $cY_{2j-1,k}/(b+1)$. The static part divided by
+$h_j$ tends to one. The error in that source, divided by $h_j$, is
+$O(b^{-1/2})$ on each fixed window by
+\cref{eq:revisit-level-energy}. Its internal matrix tends to $Q_B$, and
+$\alpha r_{jK+\tau}/h_j\to\eta^\tau$.
+Induction over the finitely many steps from $\tau=-1$ now applies the
+continuity of all operations, including the coordinatewise maximum.
+Negative fixed times are already zero. Finally
+$h_j/r_{jK+\tau}\to\alpha\eta^{-\tau}$ and
+\cref{lem:revisit-level-scales} identify the limiting PPR error.
+\end{proof}
+
+\begin{theorem}[The graph-limit statement holds]
+\label{thm:revisit-front-limit}
+Equation~\eqref{eq:revisit-front-limit} holds for the actual nonlinear
+ramp on the finite canonical unit graphs $G_{j,K}$.
+\end{theorem}
+\begin{proof}
+Write $\mathbf E_{i,k}$ for pair $i$'s density error divided by $r_k$.
+Fix a last time $T=jK+M$. First we establish a bound on every
+$\mathbf E_{i,k}$, $i\leq j$, $0\leq k\leq T$, that is uniform in $K$.
+For pair $j$ this follows directly from
+\cref{eq:revisit-level-energy}, because $r_TW_\ell$ has a positive
+limit. For each $i<j$, the same estimate bounds its error uniformly up
+to $t_i=iK+C_i$. After $t_i$, both kinetic coordinates are positive
+by \cref{lem:revisit-activation-separation}, so its error recurrence
+is exactly linear.
+
+The within-pair matrix in $I-Q$ is $C_B$ at the root and
+\[
+ C_{i,b}=c\begin{pmatrix}1&b/(b+1)\\1/2&1\end{pmatrix}
+ \quad(i>0).
+\]
+Its normalized second-order recurrence has poles uniformly bounded in
+modulus by $\sigma/\eta<1$. For example, its eigenvalues lie between
+$c(1-1/\sqrt2)$ and $c(1+1/\sqrt2)$ and the quadratic temporal poles
+have modulus $\sqrt{\beta\lambda}/\eta$. Fix
+$\sigma/\eta<s_0<1$. The corresponding impulse kernels and homogeneous
+propagators have norms at most $C s_0^m$, uniformly for sufficiently
+large $b$. This follows by the resolvent formula on $|z|=s_0$ for the
+four-dimensional state matrix, whose entries converge and whose spectrum
+is strictly inside that circle.
+
+The next pair enters with a bounded coefficient $c/2$, while the previous
+pair enters with coefficient $c/(b+1)$. Summing these uniformly
+absolutely summable kernels, including the one-step delayed inputs, gives
+\[
+ M_i\leq A_i+L M_{i+1}+(L/b)M_{i-1},\qquad
+ M_i:=\max_{0\leq k\leq T}\|\mathbf E_{i,k}\|_\infty,
+ \quad i<j,
+\]
+where $M_{-1}=0$, $M_j$ is already bounded, and all $A_i,L$ are
+independent of $K$. The constants include the uniformly bounded states
+at $t_i,t_i-1$ and the constant regularization forcing.
+The nonnegative matrix of this finite system tends to a strictly upper
+triangular matrix. For sufficiently large $b$ its spectral radius is
+less than one, and its inverse $\sum_{m\geq0}N_b^m$ is nonnegative
+and uniformly bounded. Multiplication by this inverse proves the claimed
+uniform bounds on all $M_i$. This step prevents a hidden growth factor
+from the earlier fronts.
+
+Now shift time by $jK$. For $i<j$ the time since $t_i$ tends to infinity,
+so the uniformly bounded homogeneous initial contribution tends to zero.
+The previous-pair contribution is $O(1/b)$ by the bounds just proved.
+The remaining causal kernels converge to those of $C_B$ and have a common
+exponentially summable majorant. Starting with the current-front limit in
+\cref{lem:revisit-current-front}, dominated convergence of the causal
+sums proves the older-pair limits successively for $i=j-1,\ldots,0$.
+To apply this on an arbitrarily long past, first truncate the kernel at
+a fixed length; its remaining tail is uniformly small by the same
+$M_i$ bounds, and then let that length tend to infinity.
+
+The limiting recurrence is exactly the positive-pair recurrence used in
+\cref{lem:revisit-pair-gain}, with constant regularization forcing.
+Temporal differences remove that forcing. Each pair therefore contributes
+one copy of the transfer $H$ to the current front's difference $d$.
+At the root the result is $f_j$, proving
+\cref{eq:revisit-front-limit}.
+\end{proof}
+
+\begin{corollary}[No graph-uniform constant ramp-tracking bound]
+\label{cor:revisit-unbounded-tracking}
+No graph-uniform constant $C$ can bound the ramp's normalized PPR error
+by $Cr_k$, even at the fixed
+$\alpha=1/4096$ and with target $\rho=1/(1024\vol(G))$.
+\end{corollary}
+\begin{proof}
+Choose $j$ so that \cref{lem:revisit-front-signal} exceeds $2C$ at some
+finite integer $\tau$. The limit then makes one of the two neighboring
+values of $|E_{j,K}|$ exceed $C$ for sufficiently large $K$.
+At these times $r=\Theta(b_K^{-j-1})$, whereas
+$\rho=\Theta(b_K^{-j-2})$, so the ramp has not reached its target.
+\end{proof}
+
+\paragraph{Measured checks and proof scope.}
+The limit-profile audit agrees at 80 and 100 decimal digits. For four
+old pairs, the maximum discrepancy on $0\leq\tau\leq800$ between the
+finite-tree profile and its limit decreases from about $2.03\cdot10^{-5}$
+at $b=6{,}481{,}113$ to $3.82\cdot10^{-8}$ at $b=3{,}440{,}713{,}565$.
+These are diagnostics for (FL), not its proof. The proof above uses the
+global energy only to establish levelwise sign separation and initial
+bounds, then obtains a uniform normalized-error bound through the finite
+stable input system. It does not assume monotonicity, lower order, or
+nonnegative residuals along the ramp. The obstruction is specific to
+omitting the final accuracy phase of this recurrence; it is not a lower
+bound against all local algorithms. The earlier unresolved route and its
+resolution are preserved in \path{RAMP_ASYMPTOTICS.md}.

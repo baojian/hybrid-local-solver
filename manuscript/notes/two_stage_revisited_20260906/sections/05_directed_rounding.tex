@@ -1,0 +1,272 @@
+\section{Directed rounding without activation margins}
+\label{sec:revisit-rounding}
+This section changes the exact recurrence to a specified rounded algorithm.
+The scalar rebase idea is adapted from the active manuscript's bounded
+arithmetic appendix. The new features are one-sided neighbor records,
+an orthant projection, a coarser kinetic grid, and a rounded cooling
+schedule. All assertions concern the actual stored states.
+
+Let $h$ be a reciprocal power of two and let
+$\lfloor a\rfloor_h=h\lfloor a/h\rfloor$. Retain the parameters
+$\theta,\mu,\chi,\eta$ above. Write
+$c=(1-\alpha)/2$ and $q_0=(1+\alpha)/2$.
+At iteration boundaries store
+\[
+ x_i/\omega_i=\sigma X_i,\qquad Z_i=z_i/\omega_i,
+ \qquad \sigma,X_i\in h\sN_0,\quad
+ Z_i\in(h/\theta)\sN_0,\quad 1/2\leq\sigma\leq1.
+\]
+The kinetic grid is deliberately $h/\theta$: its smallest positive
+coordinate contributes at least one primal grid unit before scaling.
+Store neighbor records $L_i\in h\sN_0$ with the invariant
+\begin{equation}
+ 0\leq\sum_{j\sim i}X_j-L_i\leq4d_i h.
+ \label{eq:revisit-directed-neighbors}
+\end{equation}
+Kinetic neighbor sums are exact. All degrees in these formulas are original
+graph degrees, including at the boundary.
+
+\paragraph{One rounded step.}
+In the reporter replace the normalized primal response by
+$(q_0-\mu)X_i-cL_i/d_i$ and leave all other terms exact. If $\vq$ is
+the ideal raw vector at the actual stored states, the represented raw
+vector is $\vq+\vu$ where
+\begin{equation}
+ -\frac{2h}{\theta}\vomega\leq\vu\leq\vzero.
+ \label{eq:revisit-directed-raw}
+\end{equation}
+Let $\vp_0=[\vq+\vu]_+$ be an analytical comparison vector and set
+\[
+ p_i/\omega_i=\left\lfloor p_{0,i}/\omega_i\right\rfloor_{h/\theta}.
+\]
+The reporter enumerates the closed tail
+$k_i\geq(\lambda/\theta+h/\theta)/\sigma$. It therefore opens exactly
+the positive stored kinetic coordinates, without enumerating smaller
+positive ideal coordinates.
+
+Next set $s=\lfloor\chi\sigma\rfloor_h$.
+If $s<1/2$, first rebase the \emph{old} primal records by
+\begin{equation}
+ X_i\gets\lfloor sX_i\rfloor_h,\qquad
+ L_i\gets\max\{0,\lfloor sL_i\rfloor_h-d_i h\},
+ \qquad s\gets1.
+ \label{eq:revisit-directed-rebase}
+\end{equation}
+These replacements use the old values and make no row scans. Then, on
+the emitted coordinates only, perform
+\begin{equation}
+ X_i\gets X_i+\left\lfloor\frac{\theta(p_i/\omega_i)}s\right\rfloor_h,
+ \qquad \sigma\gets s,\qquad \vz\gets\vp.
+ \label{eq:revisit-rounded-primal}
+\end{equation}
+Scatter the actual increments in $X_i$ and form exact kinetic neighbor
+sums from these same charged rows. Rebuild all keys after a rebase;
+otherwise refresh only the usual touched coordinates and exceptions.
+No query occurs while an update is incomplete.
+An old positive primal coordinate can round to zero at a rebase. Thus
+actual rounded supports need not be nested; the implementation retains a
+nested history of exposed labels, which is what the storage and rebase
+charges use.
+
+\begin{lemma}[Directed records and kinetic mass]
+\label{lem:revisit-rounded-records}
+Suppose $h\leq1/16$ and the incoming primal mass is at most three.
+The updates preserve \cref{eq:revisit-directed-neighbors} and satisfy
+\begin{equation}
+ \vp=\vp_0+\ve_p,\quad
+ \vx^+=\chi\vx+\theta\vp+\ve_x,\qquad
+ -\frac h\theta\vomega\leq\ve_p\leq0,
+ \quad -8h\vomega\leq\ve_x\leq0.
+ \label{eq:revisit-rounded-errors}
+\end{equation}
+Also $\theta\vomega^\trans\vp\leq2\vomega^\trans\vx^+$.
+\end{lemma}
+\begin{proof}
+At a rebase let the scalar floor losses be $\ell_j,\ell_i^L\in[0,h)$.
+Before the nonnegative clamp, the new neighbor deficit equals
+\[
+ s\Big(\sum_{j\sim i}X_j-L_i\Big)
+                -\sum_{j\sim i}\ell_j+\ell_i^L+d_i h.
+\]
+It is nonnegative and at most $4s d_i h+2d_i h\leq4d_i h$.
+The clamp can only reduce that nonnegative deficit. Actual scattered
+increments preserve it between rebases. Substitution into the reporter
+gives \cref{eq:revisit-directed-raw}.
+
+The incoming density bound gives $X_i\leq6$. Rounding the scale loses
+at most $6h$ in physical primal density. A rebase loses at most another
+$h$, and the emitted-coordinate increment floor loses at most $h$.
+All losses are downward, proving \cref{eq:revisit-rounded-errors}.
+The scale is positive because $\chi\sigma\geq1/4$.
+If $p_i>0$, then $\theta p_i/\omega_i\geq h$ and $s\leq1$.
+The floor in \cref{eq:revisit-rounded-primal} retains at least half its
+argument. The old primal contribution is nonnegative, so
+$x_i^+\geq\theta p_i/2$ coordinatewise. The rebase precedes this
+increment and cannot erase it.
+\end{proof}
+
+\begin{lemma}[Two perturbed energies without a mass cap]
+\label{lem:revisit-rounded-energies}
+At an incoming state with
+$\vomega^\trans\vx\leq3$ and
+$\vomega^\trans\vz\leq6/\theta$, either comparison energy obeys
+\begin{equation}
+ E^+\leq\chi E+256h,
+ \qquad B_{\rm fixed}^+\leq\chi B+256h.
+ \label{eq:revisit-rounded-energy-step}
+\end{equation}
+The first comparator is the current RPPR optimum, and the second is
+$\vt=\mQ^{-1}\vb$ as before.
+\end{lemma}
+\begin{proof}
+Both comparison vectors have weighted mass at most one.
+The identity
+\[
+ \vq=\frac{\mI-\mQ}{1+\theta}\vz
+       -\frac{\mQ-\mu\mI}{\theta(1+\theta)}\vx
+       +\frac{\vb-\lambda\vomega}{\theta}
+\]
+and $\vu\leq0$ imply
+\[
+ \vomega^\trans\vp_0
+ \leq\frac{1-\alpha}{1+\theta}\vomega^\trans\vz
+       +\frac{c}{\theta(1+\theta)}\vomega^\trans\vx
+       +\frac\alpha\theta\leq9/\theta.
+\]
+Here the diagonal of $\mQ-\mu\mI$ is nonnegative. Thus the ideal
+next primal mass is at most $12$, and the absolute weighted difference
+between $\vp_0$ and either comparator is at most $10/\theta$.
+
+In the imported comparison identity, replacing the projection normal of
+$\vq+\vu$ by that of $\vq$ costs at most
+$\mu(10/\theta)(2h/\theta)=20h$. This estimate also holds in the
+$\mQ$ metric because $|\mQ|\vomega=\vomega$.
+Rounding $\vp_0$ downward costs at most $10h+9h/2$ in either mirror
+term: use the coordinate error $h/\theta$, the mass bound $9/\theta$,
+and $\mu=\theta^2$.
+
+The total primal loss relative to $\chi\vx+\theta\vp_0$ has density
+at most $9h$ and mass at most $12$. Its squared norm is at most
+$12(9h)$. The absolute weighted mass of the residual at that ideal
+primal point is at most $13$. Expanding either quadratic therefore costs
+at most $(13+6)(9h)=171h$. The positive linear mass penalties decrease
+under the downward loss. The three costs sum to less than $256h$.
+\end{proof}
+
+\paragraph{Finite cooling parameters.}
+For rational $\rho$, set $g=\theta\rho/8$. Start at $r_0=1/d_v$ and use
+\begin{equation}
+ r_{k+1}=\max\{\rho,g\lceil\eta r_k/g\rceil\}.
+ \label{eq:revisit-rounded-cooling}
+\end{equation}
+Since $\rho/g=8/\theta$ is an integer, all parameters after the first
+are integer multiples of the same $g$. Whenever $r_k>\rho$,
+\[
+ \eta r_k\leq r_{k+1}
+ \leq\max\{\rho,(1-3\theta/8)r_k\}<r_k.
+\]
+Thus the finite ramp terminates and
+$\sum_{\rm ramp}1/r_k<3/(\theta\rho)$.
+There is no growing exact geometric-power denominator.
+
+\begin{theorem}[Rounded two-phase semantic completion]
+\label{thm:revisit-rounded-semantic}
+Put $\rho=\epsppr/2$, $\tau=\alpha\epsppr^2/32$, and choose the
+coarsest dyadic grid satisfying
+\begin{equation}
+ h\leq\min\{1/16,\theta,
+           \theta\alpha^2\rho/256,\theta\tau/512\}.
+ \label{eq:revisit-rounded-grid}
+\end{equation}
+Use the rounded operations above, with the same constant-output branches
+as \cref{alg:revisit-ppr}. After the ramp, let $q$ be the least nonnegative
+integer with $2^q\geq416/\epsppr$ and run $N=q/\theta$ frozen rounded
+steps. Determine $q$ by integer doubling; no growing contraction power
+is stored. Final exact clipping of the represented
+densities by $\epsppr/4$ satisfies \cref{eq:revisit-semantic}.
+With $N$ frozen steps, cumulative kinetic volume is at most
+\begin{equation}
+ 60\sum_{k<K}1/r_k
+ \leq\frac{60}{\rho}(N+3/\theta),
+ \qquad N\leq\theta^{-1}\{1+\log_2(416/\epsppr)\}.
+ \label{eq:revisit-rounded-work}
+\end{equation}
+\end{theorem}
+\begin{proof}
+Set $\Gamma=256h/\theta$. The rounded bank induction is
+\[
+ B_{k+1}\leq\chi B_k+256h+\alpha(\lambda_k-\lambda_{k+1}),
+ \qquad B_k\leq\alpha\lambda_k+\Gamma.
+\]
+The latter follows from $\chi\Gamma+256h=\Gamma$ and the same
+cooling-ratio inequality as in \cref{thm:revisit-cooling-bank}.
+Since $\Gamma\leq\alpha^2\rho\leq\alpha\lambda_k$, the new primal
+mass is at most three. \Cref{lem:revisit-rounded-records} then bounds
+the new kinetic mass by $6/\theta$, closing the induction from zero
+without assuming a mass-constrained projection.
+
+The actual response satisfies
+$\|\mQ\vx_k-\vb\|_2^2+\mu\|\vz_k-\vt\|_{\mQ}^2
+\leq6\alpha\lambda_k$.
+Consequently the squared response relative to $\vu_k$ is at most
+$14\alpha\lambda_k$. Both the raw error and kinetic floor error are
+downward; on a selected positive coordinate they can only reduce the
+signed flow. Its weighted telescope is unchanged. Repeating the core and
+Cauchy--Schwarz proof with $H_K\leq14S_K$ gives the constant $60$.
+
+At the freeze, the objective part of the Euclidean energy is at most
+$6\lambda$, and its mirror part is at most $7\lambda$, by the same
+RPPR bias calculation as in \cref{lem:revisit-freeze-energy}. Hence
+$E\leq13\lambda$. The frozen rounded energy is at most
+$\chi^j13\lambda+\Gamma$, with $\Gamma\leq\tau/2$.
+Since $\chi^{1/\theta}<1/2$, the stopping count makes the first term
+at most $\tau/2$. The semantic clipping proof follows. The rounded
+geometric sum supplies the work assertion.
+\end{proof}
+
+\paragraph{Rounded RPPR objective completion.}
+\Cref{cor:revisit-rppr} also survives these rounded operations.
+Use its $\rho,\delta$, put $\tau=\alpha\delta^2/2$, and choose $h$
+by \cref{eq:revisit-rounded-grid} with this $\tau$.
+Take $q$ minimal with $2^q\geq52\rho/\delta^2$ and use $N=q/\theta$
+frozen steps. The actual freeze energy is still $13\alpha\rho$,
+the accumulated error is at most $\tau/2$, and the first term contracts
+below $\tau/2$. Thus the same order and objective-gap certificate holds.
+Since $52\rho/\delta^2<416/\epsobj$, the bit and operation bounds
+have only logarithmic dependence on $1/\epsobj$ as well.
+
+\Cref{cor:revisit-positive-residual} also applies to the actual rounded
+output: replace the frozen tolerance by $\alpha\delta^2/2$, use the
+same grid error budget, and perform the final clipping exactly on the
+represented densities. Choosing $\delta=\alpha\rho/2$ gives the positive
+residual certificate with only additional parameter logarithms. This final
+clipping need not be dyadic; it uses only fixed rational input denominators.
+
+\paragraph{Represented arithmetic and rebase charges.}
+Write $\theta=1/T$ and $h=1/H$, where $T,H$ are powers of two.
+The stored $X,L,\sigma,Z$ are integers over $H$; kinetic numerators
+are multiples of $T$. Boundary primal densities are at most three,
+normalized primal records at most six, and kinetic densities at most
+$6/\theta$. Neighbor records have only an additional degree factor.
+The degree-weighted key $d_i k_i$ has a common denominator formed from
+the fixed input denominator of $\alpha$, $H$, $T(T+1)$, and the current
+scale numerator. An unweighted comparison uses only two individual
+degrees; no least common multiple over degrees is formed. The threshold
+also uses the fixed denominator of $g$ (and the initial $d_v$).
+Floors immediately return every updated state to the grid.
+
+Crossing the scale from one to below $1/2$ requires at least
+$1/[2(\theta+h)]$ steps. There are therefore at most $4\theta K+1$
+rebases, each a scalar/tree pass over retained records and no row scans.
+The iteration count is $O(\theta^{-1}\log(1/\epsppr))$, and the union
+of represented labels is charged by \cref{eq:revisit-rounded-work}.
+Thus these passes add only a logarithmic factor.
+For rational inputs the total local operation count remains
+$\widetilde O(1/(\epsppr\sqrt\alpha))$; every integer has
+\[
+ O\bigl(L_{\rm in}+\log(1/(\alpha\epsppr))
+                +\log(d_{\max}+2)\bigr)
+\]
+bits, including encountered label encodings in $L_{\rm in}$.
+Schoolbook integer arithmetic multiplies the operation count by the square
+of this bit bound. Exact threshold ties need no positive activation margin.

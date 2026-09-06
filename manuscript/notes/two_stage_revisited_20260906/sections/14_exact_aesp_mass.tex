@@ -1,0 +1,146 @@
+\section{A separate obstruction to a universal AESP start-mass bound}
+\label{sec:revisit-exact-aesp-mass}
+The old hybrid's black-box bound contains
+$R_J=\max_{t\leq J}\|D^{1/2}\nabla h_t(y^{t-1})\|_1/\alpha$.
+Since a shifted objective has $\nabla h_t(y)=\nabla f(y)$ at its center,
+this is an outer-center residual-mass quantity. The following result
+shows why outer convergence alone cannot bound it by a universal constant.
+It analyzes the ideal exact-inner recurrence, not the thresholded local
+inner solver in the published AESP implementation.
+
+Set $s=64$, $\alpha=1/(s^2+1)$, $\kappa=1-2\alpha$, and
+$\beta=(s-1)/(s+1)$. Consider
+\begin{equation}
+ x_{-1}=x_0=0,\quad y_k=x_k+\beta(x_k-x_{k-1}),\quad
+ x_{k+1}=(Q+\kappa I)^{-1}(b+\kappa y_k).
+ \label{eq:revisit-ideal-aesp}
+\end{equation}
+These are the unregularized AESP shift and momentum parameters, with
+every inner problem solved exactly. The inverse in this definition is
+used only to specify and analyze the trajectory; no free local inverse
+primitive is being claimed.
+
+\begin{theorem}[Exact shifted acceleration need not have bounded residual mass]
+\label{thm:revisit-exact-aesp-mass}
+Even at the fixed $\alpha=1/4097$, no constant independent of the graph
+and stage bounds either
+\[
+ \frac{\|D^{1/2}(b-Qx_k)\|_1}{\alpha}
+ \quad\text{or}\quad
+ \frac{\|D^{1/2}(b-Qy_k)\|_1}{\alpha}
+\]
+along \cref{eq:revisit-ideal-aesp}. The counterexamples are finite rooted
+regular unit trees with a point source. Thus a constant bound on $R_J$
+does not follow from the outer recurrence and valid inner accuracy
+certificates alone: exact solves satisfy every such accuracy requirement.
+This is not a locality or work lower bound for a specified approximate
+AESP inner policy, and does not decide its $\Lambda_J$ conjecture.
+\end{theorem}
+
+\begin{proof}
+Put $B=\kappa(Q+\kappa I)^{-1}$ and $q=1-1/s^2$.
+Commutation of $Q$ with $B$ gives
+\[
+ b-Qx_k=p_k(B)b,\qquad p_0(z)=1,\quad p_1(z)=z,\quad
+ p_{k+1}(z)=z\bigl((1+\beta)p_k(z)-\beta p_{k-1}(z)\bigr).
+\]
+In probability-mass coordinates $P=AD^{-1}$ is column stochastic and
+\begin{equation}
+ \mathsf B=D^{1/2}BD^{-1/2}
+       =2q(3I-P)^{-1}
+       =\frac{2q}{3}\sum_{m\geq0}3^{-m}P^m,
+ \qquad \|\mathsf B\|_1=q<1.
+ \label{eq:revisit-aesp-resolvent}
+\end{equation}
+Consequently the first ratio in the statement is
+$\|p_k(\mathsf B)e_o\|_1$.
+
+First use the unilateral outward shift on levels $0,1,\ldots$ in place
+of $P$. The generating function of $p_k(\mathsf B)e_0$, evaluated at
+$\zeta=(12+5\mathrm i)/13$, is $p_k(g)$, where
+\[
+ g=\frac{2q}{3-\zeta}
+   =\frac{110565+20475\mathrm i}{118784}.
+\]
+Since $|\zeta|=1$, the absolute value of this generating function is a
+lower bound on the sequence's $\ell_1$ norm. Its temporal characteristic
+polynomial is $z^2-a z+c$, with $a=(1+\beta)g$ and $c=\beta g$.
+Exact arithmetic gives
+\[
+ |c|^2=\frac{204788493}{243269632}<1,\qquad
+ |a-\overline a c|^2-(1-|c|^2)^2
+   =\frac{6227645511749975}{59180113853415424}>0.
+\]
+At least one temporal root is therefore outside the closed unit disk.
+Indeed, if roots $u,v$ both had modulus at most one, then
+\[
+ |a-\overline a c|
+ =|u(1-|v|^2)+v(1-|u|^2)|
+ \leq(|u|+|v|)(1-|uv|)\leq1-|uv|^2=1-|c|^2.
+\]
+The last inequality follows from
+$(1-|u|)(1-|v|)\geq0$. This contradicts the exact strict defect.
+Because $|c|<1$, the other root is inside the unit disk, so the roots
+are distinct. The coefficient of the outside root in $p_k(g)$ is
+nonzero: otherwise the initial ratio $p_1(g)/p_0(g)=g$ would itself
+be the inside root, but substitution gives
+$g^2-a g+c=\beta g(1-g)\ne0$.
+Hence $|p_k(g)|$ grows exponentially with $k$.
+
+It remains to realize this bound on finite undirected unit graphs.
+Let $T(b,L)$ be the rooted tree with $b$ children at every nonleaf
+vertex and leaves at depth $L$. Its original degrees are $b$ at the
+root, $b+1$ internally, and one at a leaf. Symmetry reduces its
+probability-mass walk to a birth--death chain on levels. For $m<L$, the
+probability of any inward step in its first $m$ steps is at most
+$m/(b+1)$; the root's step is always outward. Therefore its level
+distribution after $m$ steps differs in $\ell_1$ norm from the unit
+mass at level $m$ by at most $2m/(b+1)$.
+
+For every fixed $k$, the Neumann series in
+\cref{eq:revisit-aesp-resolvent} and the finite polynomial $p_k$ give
+an absolutely summable power series
+\[
+ p_k(\mathsf B)=\sum_{m\geq0}c_{k,m}P^m,
+ \qquad \sum_m|c_{k,m}|<\infty.
+\]
+To compare it with the outward shift, first truncate at a finite $M$,
+then take $L>M$ and $b$ large. The tail is bounded uniformly by its
+absolute coefficient sum, and the first $M$ walk terms converge by the
+preceding estimate. Thus the finite tree's phase evaluation
+$\sum_{\ell=0}^L\zeta^\ell[p_k(\mathsf B)e_o]_\ell$ can be made
+arbitrarily close to $p_k(g)$; here the component indexed by $\ell$ is
+the total probability mass on that level. Its absolute value is at most the finite
+tree's residual $\ell_1$ norm. Choosing $k$ first and then a sufficiently
+large finite $L,b$ proves the first unboundedness claim. This order of
+choices uses no uniform-in-$k$ graph-limit assertion.
+
+Finally, the endpoint residual at $k+1$ is $B$ times the center residual
+at $k$. Equation~\eqref{eq:revisit-aesp-resolvent} implies that the
+center's weighted mass is at least the endpoint's weighted mass divided
+by $q$. This proves the second claim.
+\end{proof}
+
+\paragraph{Exact finite checks.}
+The audit \texttt{aesp\_exact\_shift\_instability.py} checks the complex
+defect using rational arithmetic. It also computes the complete ideal
+trajectory on three finite unit trees by integer tridiagonal elimination.
+For $T(2,32)$ at stage 74, the endpoint residual mass divided by $\alpha$
+is strictly above 260. For $T(10,32)$ at stage 98 it is above 135688,
+and for $T(10,64)$ at stage 213 it is above 138610690219.
+In the last example, the thresholded excess at reserve $\rho=2^{-16}$
+is nevertheless exactly zero: every residual density is already at most
+$\alpha\rho$. Thus a large unthresholded mass can consist entirely of
+coordinates already below the desired residual threshold.
+These are enormous finite graphs represented by their exact symmetry;
+they are not small practical benchmark instances or local-oracle runs.
+The asymptotic proof precedes and does not depend on these finite checks.
+
+\paragraph{Implication for the old hybrid.}
+A proof based on a graph-independent, all-stage $R_J=O(1)$ cannot use
+only ideal outer acceleration and valid inner solves. It must exploit
+the actual thresholded inner policy, restrict the stopping regime, or
+use a different potential. The thresholded excess in
+\cref{lem:revisit-signed-excess} is such an alternative handoff quantity:
+it ignores residual already within a reserve. Whether unchanged AESP
+reaches its accelerated budget locally remains \textbf{Open}.

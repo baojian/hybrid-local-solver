@@ -1,0 +1,74 @@
+\section{A fixed degree filter is compatible with both phases}
+\label{sec:revisit-pruning}
+This is an optional extension. The fixed-degree observation already appears
+in the research notes of \texttt{deterministic\_op2\_20260905}; the energy
+and moving-comparator checks below adapt it to this new recurrence.
+
+Fix $\rho=\epsppr/2$ and define analytically
+$A=\{i:d_i\leq1/\rho\}$. Do not enumerate $A$. Classify a newly exposed
+label using its degree reply, and permanently omit it from kinetic reports
+when it lies outside $A$. In particular, its adjacency list is never opened.
+All formulas and row charges retain original degrees. This is the
+principal-matrix algorithm with $\mM=\mQ_{AA}$, implemented lazily.
+
+\begin{proposition}[Fixed pruning preserves the guarantees]
+\label{prop:revisit-fixed-pruning}
+Both the exact-real and the directed-rounded two-phase algorithms retain
+their semantic guarantees and their respective constants $44$ and $60$
+under this fixed filter. Every row they open has original degree at most
+$1/\rho$.
+\end{proposition}
+\begin{proof}
+For every actual $r\geq\rho$, the full RPPR optimum is supported in $A$
+by $\vol(\supp\vx_r^*)\leq1/r$. Thus the restricted optimum is the
+full optimum extended by zero. The nonzero branch's seed belongs to $A$.
+Write $\vomega=\vomega_A$, $\vb=\vb_A$, and
+$\vt=\mM^{-1}\vb$ within this proof. Principal-matrix properties give
+\[
+ \alpha\mI\preceq\mM\preceq\mI,\qquad \mM^{-1}\geq0,
+ \qquad \mM\vomega\geq\alpha\vomega,
+ \qquad |\mM|\vomega\leq\vomega.
+\]
+The required auxiliary objective is now
+\[
+ \mathcal A_\lambda(\vx)=\tfrac12\|\mM\vx-\vb\|_2^2
+                            +\lambda(\mM\vomega)^\trans\vx.
+\]
+Its $\mM$-metric gradient is $\mM\vx-\vb+\lambda\vomega$,
+and $\mathcal A_\lambda(\vt)=\lambda\vomega^\trans\vb=\alpha\lambda$.
+The orthant sector uses only the Stieltjes signs and $\vb\geq0$.
+Changing $\lambda$ changes the bank by
+\[
+ (\lambda^+-\lambda)
+       \{(\mM\vomega)^\trans\vx^+-\alpha\}
+ \leq\alpha(\lambda-\lambda^+).
+\]
+Initialization and the cooling bank therefore have the same constants.
+The nonnegative penalty bounds primal mass because
+$(\mM\vomega)^\trans\vx\geq\alpha\vomega^\trans\vx$.
+
+The restricted lazy walk is nonnegative and column substochastic, which
+suffices for selected signed-flow propagation. Its moving comparator
+remains monotone. For the analytical core use the \emph{restricted}
+obstacle optimum at $r/2$. Its support volume is at most $2/r$, since
+its nonnegative residual has weighted mass at most $\alpha$.
+This core need not equal the full-graph optimum when $r/2<\rho$.
+The zero-row slack comparison still gives $\lambda d_i/2$ off the core.
+Consequently the entire weighted telescope and kinetic charge survive.
+
+For the frozen energy, $\vomega^\trans\vt\leq1$ follows by summing
+$\mM\vt=\vb$. Inverse positivity and the restricted residual bound give
+$0\leq\vt-\vu_r\leq r\vomega$ and
+$\|\vt-\vu_r\|_2^2\leq r$. The same freeze and rounding constants
+follow. In the rounded energy estimates, the changed positive linear
+penalty decreases under downward errors, and $|\mM|\vomega\leq\vomega$
+supplies both weighted contractions. Neighbor sums in the implementation
+include only neighbors in $A$ but their denominators and the safe rebase
+subtraction still use $d_i$. The deficit proof therefore remains valid.
+Finally the terminal optimum is the full $\vx_\rho^*$, so the original
+full-graph RPPR bias proves the semantic output statement.
+\end{proof}
+
+The cutoff stays fixed for the whole run. Intermediate primal vectors are
+not certified subsolutions, so residual-mass arguments for a dynamically
+shrinking cutoff do not follow from this proposition.

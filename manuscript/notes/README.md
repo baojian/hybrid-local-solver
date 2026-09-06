@@ -65,6 +65,7 @@ This table is generated from `registry.toml` by
 | [`signed_spider_generalization`](signed_spider_generalization/) | iterative | proved-open | Prove supplied-face dimension/spectral dispatch, log-free radial SOR, and scalar-local propagation limits. |
 | [`signed_star_acceleration`](signed_star_acceleration/) | iterative | proved-open | Prove the exact signed-star accelerated rung and separate locality failure modes. |
 | [`two_rung_sor`](two_rung_sor/) | iterative | measured | Record the best measured two-rung SOR schedule. |
+| [`two_stage_revisited_20260906`](two_stage_revisited_20260906/) | iterative | proved-open | Proved deterministic and randomized coordinate handoffs, orthant continuation, sparse sources, and an asymptotic ramp obstruction. |
 | [`volume_gated_acceleration`](volume_gated_acceleration/) | iterative | proved-open | Develop support-volume safety and charged cross-face acceleration ledgers. |
 | [`adaptive_revisit_control`](adaptive_revisit_control/) | mixed | proved-open | Turn revisit feedback into safe switching and charged delta reporters. |
 | [`delayed_reflection_ladder`](delayed_reflection_ladder/) | mixed | proved-open | Develop activation-once response solvers on structured graph classes. |

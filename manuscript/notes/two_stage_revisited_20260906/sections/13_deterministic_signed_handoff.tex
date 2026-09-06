@@ -1,0 +1,216 @@
+\section{A coarse deterministic prefix and a signed coordinate finish}
+\label{sec:revisit-deterministic-signed}
+The preceding excess potential has a signed version. This gives a literal
+deterministic accelerated-prefix / coordinate-tail algorithm whose prefix
+does not have to be below PPR or the RPPR optimum. Unlike appending GS after
+the earlier fine clipping rule, this handoff uses a coarser objective target
+and can leave a nonempty tail.
+
+\begin{lemma}[Signed residual excess pays for coordinate delivery]
+\label{lem:revisit-signed-excess}
+Let $0<\rho<\sigma$ and initialize $R=b-Qx$ from any sparse vector.
+Define
+\[
+ \mathcal M_\rho(x)=\sum_i\omega_i[|R_i|-\alpha\rho\omega_i]_+.
+\]
+While $|R_i|>\alpha\sigma\omega_i$, update
+\begin{equation}
+ x_i\gets x_i+a_i,\qquad
+ a_i=\operatorname{sign}(R_i)
+            \frac{|R_i|-\alpha\rho\omega_i}{Q_{ii}}.
+ \label{eq:revisit-signed-coordinate}
+\end{equation}
+This tail terminates at normalized semantic error at most $\sigma$, with
+\begin{equation}
+ W_{\rm tail}\leq
+ \frac{Q_{ii}\mathcal M_\rho(x_{\rm in})}
+      {\alpha^2(\sigma-\rho)}.
+ \label{eq:revisit-signed-tail-work}
+\end{equation}
+All support and boundary initialization, output, and label bookkeeping are
+charged separately. If the input is nonnegative, all iterates remain so.
+Rounding the magnitude of each density increment downward on a grid at
+most $\alpha(\sigma-\rho)/(2Q_{ii})$ only doubles the bound.
+\end{lemma}
+\begin{proof}
+The selected residual is set to
+$\operatorname{sign}(R_i)\alpha\rho\omega_i$. Its own potential
+contribution decreases by $Q_{ii}\omega_i|a_i|$. The function
+$[|r|-c]_+$ is one-Lipschitz, so the total increase at neighbors is at
+most $((1-\alpha)/2)\omega_i|a_i|$. Consequently
+\[
+ \mathcal M_\rho(x+a_i e_i)
+ \leq\mathcal M_\rho(x)-\alpha\omega_i|a_i|.
+\]
+Every selected row therefore spends more than
+$\alpha^2(\sigma-\rho)d_i/Q_{ii}$ of this nonnegative potential.
+This proves the work bound and finite termination. At termination,
+$|R|\leq\alpha\sigma\omega$, so
+$|Q^{-1}R|\leq Q^{-1}|R|\leq\sigma\omega$.
+
+If $x\geq0$ and $R_i<0$, Stieltjes signs and $b\geq0$ imply
+$-R_i\leq Q_{ii}x_i$. The negative increment has magnitude less than
+$x_i$, so it cannot cross zero. Positive increments also preserve
+nonnegativity. A magnitude rounded toward zero retains at least half of
+the ideal increment, keeps the selected residual on its original side of
+the reserve, and has the same potential decrease per unit actual movement.
+This proves the rounded statement.
+\end{proof}
+
+\begin{lemma}[A coarse RPPR gap controls the thresholded residual]
+\label{lem:revisit-gap-to-excess}
+For $0<r_*<\rho$ and any $x\geq0$ with RPPR gap at $r_*$ at most $G$,
+\begin{equation}
+ \mathcal M_\rho(x)\leq\frac{G}{2\alpha(\rho-r_*)}.
+ \label{eq:revisit-gap-to-excess}
+\end{equation}
+The same bound holds for signed $x$ if its gap is measured by the full
+composite objective $F_{r_*}(x)=f(x)+\alpha r_*\|D^{1/2}x\|_1$.
+\end{lemma}
+\begin{proof}
+Let $u=x^*_{r_*}$. Its residual belongs to
+$[0,\alpha r_*\omega]$, and KKT gives
+$\|Q(x-u)\|_2^2\leq\|x-u\|_Q^2\leq2G$.
+Thus
+\[
+ [|b-Qx|_i-\alpha\rho\omega_i]_+
+ \leq[|Q(x-u)|_i-\alpha(\rho-r_*)\omega_i]_+.
+\]
+For $z\geq0$ and $a>0$, $(z-a)_+\leq z^2/(4a)$.
+Multiply the displayed inequality by $\omega_i$, sum, and apply that
+scalar bound to obtain \cref{eq:revisit-gap-to-excess}.
+For signed $x$, the composite KKT subgradient at $u$ gives the same
+quadratic lower bound $F_{r_*}(x)-F_{r_*}(u)\geq\|x-u\|_Q^2/2$.
+The remaining inequalities are unchanged.
+\end{proof}
+
+\begin{theorem}[Deterministic accelerated prefix with signed GS delivery]
+\label{thm:revisit-deterministic-gs}
+For point-source semantic accuracy $0<\epsppr<1$, there is a deterministic
+local algorithm returning
+\[
+ 0\leq\widehat x\leq x^*_{\epsppr/3}\leq x_0^*,\qquad
+ \|D^{-1/2}(\widehat x-x_0^*)\|_\infty\leq\epsppr,
+ \qquad \vol(\supp\widehat x)\leq3/\epsppr.
+\]
+With $L_\alpha=1+\log(2/\alpha)$, its exact-real adjacency work is
+$O(L_\alpha/(\epsppr\sqrt\alpha))$, and all local operations cost
+\[
+ O\!\left(\frac{L_\alpha}{\epsppr\sqrt\alpha}
+       \log\!\left(2+\frac{L_\alpha}{\epsppr\sqrt\alpha}\right)\right).
+\]
+A separately rounded implementation has the same soft local work scale
+and bounded integer encodings. The output residual is nonnegative and is
+at least $\alpha(\epsppr/3)\omega_i$ on every positive output coordinate.
+The result is semantic; no ACL residual upper bound is asserted for this
+final clipped output.
+\end{theorem}
+\begin{proof}[Construction and exact-real work]
+Set
+\[
+ \sigma=\epsppr/3,\qquad \rho=\sigma/2,\qquad
+ r_*=\rho/2=\epsppr/12,\qquad G=\alpha^2\theta\rho.
+\]
+Read $d_v$. If $\sigma d_v\geq1$, return zero, which is accurate by
+the maximum principle. If $\alpha=1$, return
+$[x_0^*-\sigma\omega]_+=x_\sigma^*$, using only the seed coordinate;
+its error is $\sigma$ and its support volume is below $1/\sigma$.
+
+Run the orthant continuation to $r_*$, then freeze the same state until
+its Euclidean accelerated energy is at most $G$. No clipping or reset is
+performed at this handoff. The initial frozen energy is at most
+$9\alpha r_*$, so the number of frozen steps is at most
+\[
+ N\leq1+\theta^{-1}\log\frac9{2\alpha\theta}.
+\]
+The kinetic incidence bound is
+$44(N+2/\theta)/r_*$. This is
+$O(L_\alpha/(\epsppr\sqrt\alpha))$ and includes the complete prefix
+history. Materialize that history and initialize the actual residual with
+one charged scan of its support. By \cref{lem:revisit-gap-to-excess},
+$\mathcal M_\rho(x)\leq G/(\alpha\rho)=\alpha\theta$.
+
+Apply \cref{eq:revisit-signed-coordinate} with activation threshold
+$\alpha\sigma\omega$. By \cref{lem:revisit-signed-excess}, its work is
+at most $6/(\epsppr\sqrt\alpha)$ and its final point $x^{\rm t}$
+satisfies $|x^{\rm t}-x_0^*|\leq\sigma\omega$.
+Return
+\[
+ \widehat x=[x^{\rm t}-2\sigma\omega]_+.
+\]
+Then $0\leq\widehat x\leq x_0^*$ and
+$x_0^*-\widehat x\leq3\sigma\omega$.
+There is also a stronger order certificate. Put
+$n=\widehat x-(x^{\rm t}-2\sigma\omega)\geq0$.
+At a positive output coordinate $n_i=0$, so Stieltjes signs give
+\[
+ (Q\widehat x)_i
+   \leq (Qx^{\rm t})_i-2\alpha\sigma\omega_i,
+ \qquad (b-Q\widehat x)_i\geq\alpha\sigma\omega_i.
+\]
+At a zero output coordinate the residual is nonnegative directly.
+The positive-part Stieltjes comparison therefore gives
+$\widehat x\leq x^*_\sigma$: on any set where the output exceeded that
+optimum, its RPPR gradient would be nonpositive and the optimum's gradient
+nonnegative, contradicting positive definiteness as in
+\cref{lem:revisit-source-envelope}. This also proves the stated support
+volume bound. A residual lower bound is distinct from the ACL upper bound.
+
+Use a deterministic label map and an active queue in the tail. Every newly
+exposed label comes from a charged row, and every residual update and queue
+change is charged to that incidence. The retained prefix history, the new
+tail history, initialization, and final clipping all fit the sum of the
+two incidence budgets, before label-map logarithms. The prefix reporter
+has the same fully charged realization as in
+\cref{sec:revisit-completion}. This proves the
+claimed total work.
+\end{proof}
+
+\begin{proof}[Separately rounded realization]
+Use the directed-rounded prefix of \cref{sec:revisit-rounding} at final
+regularizer $r_*$, retaining $h\leq\min\{1/16,\theta\}$ and choosing
+$\Gamma=256h/\theta\leq\min\{\alpha^2r_*,G/2\}$.
+At the freeze its energy is at most $13\alpha r_*$. Choose $q$ by
+integer doubling until $2^q\geq13/(\alpha\theta)$ and run $q/\theta$
+frozen steps. Their actual gap is at most $G$. The prefix incidence
+constant is $60$, and its existing scalar rebase passes add only parameter
+logarithms.
+
+Refine the common stored density grid for the tail to be at most
+$\alpha(\sigma-\rho)/(2Q_{ii})$, and round magnitudes toward zero.
+Its potential argument only doubles the tail work. Exact residual
+numerators use the fixed input denominators and the fixed density grid;
+each comparison uses only the individual degree. The total weighted
+absolute coordinate movement is at most
+$\mathcal M_\rho(x_{\rm in})/\alpha\leq\theta$, so together with the
+prefix's primal mass bound this also bounds all actual tail densities.
+No denominator grows with the number of tail steps. Final clipping uses
+the fixed input denominator of $\epsppr$, so all integers have the same
+type of logarithmic bit bound as in \cref{sec:revisit-rounding}.
+\end{proof}
+
+\paragraph{An optional observable early handoff.}
+At any fully charged prefix checkpoint one may compute
+$\mathcal M_\rho$ directly and hand off when it is at most
+$\alpha\theta$, without waiting for the conservative objective bound.
+For the orthant prefix, use only $O(\log(1/\epsppr)+\log(1/\alpha))$
+checkpoints, such as geometric regularizer levels and frozen blocks of
+$1/\theta$ steps. Repeated historical materializations then add only
+logarithmic overhead. For an old AESP prefix, the same signed-tail lemma
+gives the instance-wise bound
+\[
+ B_J+\frac{Q_{ii}\mathcal M_\rho(x_J)}
+                 {\alpha^2(\sigma-\rho)},
+\]
+plus explicitly charged initialization and output. Proving that unchanged
+AESP reaches this threshold with accelerated local prefix work remains
+\textbf{Open}. This is a falsifiable alternative handoff target, not a
+proof of its original confinement quantity $\Lambda_J$.
+
+In particular, a signed composite-AESP endpoint at regularizer $r_*$ with
+$F_{r_*}$ gap at most $G$ qualifies directly by
+\cref{lem:revisit-gap-to-excess}. It needs no lower retraction before the
+coordinate tail. Although such a tail may contain negative coordinates,
+the residual certificate and final clipping proof above still apply and
+give the same nonnegative, lower-RPPR output. This removes a handoff
+requirement; it does not establish locality of the preceding AESP stages.

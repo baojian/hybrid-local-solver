@@ -1,0 +1,105 @@
+\documentclass[11pt]{article}
+\input{../../tex/shared/research_note_preamble}
+\title{Two-Stage Local PageRank Revisited:\\
+Orthant Acceleration with Gradual Regularization}
+\author{Research note for \texttt{hybrid-local-solver}}
+\date{September 6, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+The recent deterministic RPPR proof supplies a second comparison energy
+and a signed-flow work argument. Reexamining those mechanisms yields a
+simpler two-phase algorithm for semantic personalized PageRank. Ordinary
+orthant projection satisfies the required second-metric comparison, so
+neither an upper box nor a mass-cap projection is needed. Furthermore,
+the regularizer can decrease at every accelerated step without resetting
+either numerical vector or repairing intermediate iterates. A weighted
+signed-flow telescope accommodates the changing RPPR comparison optimum.
+The resulting degree-work estimate is
+$44\sum_k r_k^{-1}$. Geometric cooling to $r=\epsppr/2$, followed by
+fixed-regularizer acceleration and one downward clipping operation, gives
+a deterministic exact-real semantic PPR algorithm with
+$\widetilde O(1/(\epsppr\sqrt\alpha))$ fully charged work and output
+support volume at most $2/\epsppr$. An alternative stopping rule solves
+the RPPR objective problem. Directed rounding preserves both guarantees
+using bounded-size integers, and a fixed degree filter is optional.
+More directly, a coarse deterministic prefix can hand off to signed
+Gauss--Seidel updates using a thresholded absolute-residual potential.
+This yields incidence work
+$O((1+\log(2/\alpha))/(\epsppr\sqrt\alpha))$ and removes the
+accuracy logarithm from the frozen prefix phase.
+A second construction handles an explicit sparse source with additive
+input work by finding an approximate envelope under a reduced source,
+then restoring the original objective on that envelope. A certified
+randomized face prefix also admits a coarser handoff to a reserve-preserving
+Gauss--Seidel finish. Exact trajectory and sparse-state audits accompany
+the proofs. Certified tree counterexamples disprove several stronger
+ramp-only invariants. A separated-front limit and a stable linear cascade
+prove that no graph-uniform constant bounds ramp error by its current
+regularizer, even at one fixed value of $\alpha$.
+This changes the old algorithms;
+it does not prove their original AESP-locality or fixed-SOR conjectures.
+\end{abstract}
+
+\section{Question, conventions, and provenance}
+\input{../../tex/shared/source_aligned_problem}
+The input is one seed label $v$, a finite simple connected unit-weight
+graph with positive original degrees, $\alpha\in(0,1]$, and $0<\epsppr<1$.
+The required sparse output obeys
+\[
+ \max_i\frac{|\widehat\pi_i-\pi_i|}{d_i}\leq\epsppr,
+ \qquad \widehat{\vpi}=\mD^{1/2}\widehat\vx.
+\]
+Every degree reply, original adjacency incidence (including repeated
+reads), arithmetic operation, data-structure update, threshold query,
+materialization, and output word is charged. No graph-wide preprocessing
+or supplied optimal support is available. Statements here use exact-real
+algebraic word work except for the explicitly separate rounded theorem.
+
+\paragraph{Source.}
+The common RPPR facts, in the conventions of
+\citet{fountoulakis2026complexity}, are nonnegativity, inverse positivity,
+$\alpha\mI\preceq\mQ\preceq\mI$, monotonicity of $\vx_r^*$ as $r$
+decreases, support volume at most $1/r$, and
+$\vzero\leq\vx_0^*-\vx_r^*\leq r\mD^{1/2}\one$.
+The two-energy and selected-flow strategy originates in
+\path{deterministic_op2_independent_20260905} and is independently
+audited in \path{deterministic_op2_20260905}. The precise import is its
+accelerated-comparison lemma, with label \path{lem:det-op2-comparison}.
+The equivalent active-manuscript label is \path{lem:det-comparison}.
+The randomized threshold-batch theorem already gives the same existence
+scale; it is context, not a proof dependency of our deterministic result.
+
+\paragraph{Proved here.}
+The orthant sector observation, the changing-regularizer bank, the weighted
+moving-comparator flow, the no-restart work bound, and its direct semantic
+completion are the new statements developed below. The directed rounding
+construction and its fixed-pruning extension are proved separately.
+The later sections extend the source model and give a different
+randomized-to-coordinate handoff, as well as a deterministic signed-coordinate
+handoff at a coarse objective target. The linear cascade amplification and its
+graph limit together prove an asymptotic obstruction to constant ramp tracking.
+Exact computations are
+\textbf{Measured} checks, not asymptotic proofs. \textbf{Open} items include
+independent review, practical comparisons,
+and transfer to unchanged AESP or SOR. Unproved transfers are explicitly
+\textbf{Conditional}. Previously \textbf{Refuted} policies remain refuted in
+their precise original scopes.
+
+\input{sections/01_orthant_and_cooling}
+\input{sections/02_moving_flow}
+\input{sections/03_completion_and_implementation}
+\input{sections/05_directed_rounding}
+\input{sections/06_fixed_pruning}
+\input{sections/07_ramp_limit}
+\input{sections/08_relative_tail}
+\input{sections/09_sparse_sources}
+\input{sections/10_general_source_objective}
+\input{sections/11_randomized_coarse_handoff}
+\input{sections/13_deterministic_signed_handoff}
+\input{sections/12_ramp_obstruction}
+\input{sections/14_exact_aesp_mass}
+\input{sections/04_old_routes_and_audits}
+\bibliographystyle{plainnat}
+\bibliography{../../references}
+\end{document}
