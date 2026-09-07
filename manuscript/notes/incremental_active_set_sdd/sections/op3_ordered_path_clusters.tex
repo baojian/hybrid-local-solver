@@ -1,0 +1,264 @@
+\section[Ordered path clusters and projective reporters]{Ordered path clusters with persistent projective reporters}
+\label{sec:op3-ordered-path-clusters}
+
+\paragraph{Scope.}
+The following \statusproved{} statements are proof drafts awaiting independent
+review. They give an implemented algebraic backend for supplied rooted tree
+clusters. The audit driver rebuilds supplied hierarchies; it does not implement
+an online hierarchy or establish a graph-uniform OP3 result. We use exact real
+word arithmetic, counting comparisons, unsuccessful searches, dictionary
+operations, copies, retained records, graph access and final recovery.
+Rational bit complexity and numerical stability are outside this model.
+Put $\gamma=(1-\alpha)/(1+\alpha)$, $\lambda=\epsappr/2$,
+$\boldsymbol M=\boldsymbol D-\gamma\boldsymbol A$ and
+$\boldsymbol b=\boldsymbol e_v-\lambda\boldsymbol d$.
+The current positive face $U$ is a connected rooted subtree containing $v$.
+
+\subsection{A finite chart for both endpoint strata}
+
+A two-port cluster has ordered ports $(L,R)$, with $L$ closer to the seed.
+Eliminating its interior gives each owned boundary gate the form
+\[
+ g_j(\boldsymbol u)=a_j u_L+b_j u_R+c_j,
+ \qquad a_j,b_j\geq0,\quad a_j+b_j>0,\quad c_j<0.
+\]
+The source is never an eliminated interior vertex. Consequently the interior
+load is negative, and inverse positivity gives the asserted signs.
+Use the homogeneous point and its finite chart
+\begin{equation}
+ (X_j,Y_j,W_j)=(a_j,c_j,a_j+b_j),\qquad
+ (x_j,y_j)=(X_j/W_j,Y_j/W_j).
+ \label{eq:op3-compact-projective-chart}
+\end{equation}
+Both $a_j=0$ and $b_j=0$ are finite: $0\leq x_j\leq1$ and $y_j<0$.
+The normalized gate is $x_j u_L+(1-x_j)u_R+y_j$. Its maximum is attained
+on the upper convex chain of these points. The normalization preserves signs,
+so a positive maximizing row is an actual positive original gate, while a
+nonpositive maximum certifies every owned row. This does not claim to preserve
+the ordering of unnormalized gate magnitudes.
+
+\begin{lemma}[Positive projective pullback; \statusproved]
+\label{lem:op3-compact-projective-pullback}
+Suppose old ports equal $\boldsymbol P$ times new ports plus
+$\boldsymbol t$, where
+$\boldsymbol P=\left(\begin{smallmatrix}a&b\\c&d\end{smallmatrix}\right)$
+is entrywise nonnegative with positive determinant and
+$\boldsymbol t=(t_L,t_R)^\top\leq0$.
+The complete row pullback is
+\begin{equation}
+ \begin{pmatrix}X'\\Y'\\W'\end{pmatrix}=
+ \begin{pmatrix}
+ a-c&0&c\\ t_L-t_R&1&t_R\\a+b-c-d&0&c+d
+ \end{pmatrix}
+ \begin{pmatrix}X\\Y\\W\end{pmatrix}.
+ \label{eq:op3-compact-projective-matrix}
+\end{equation}
+It has positive denominator on the whole compact chart, preserves increasing
+$x$ order, and maps the old upper convex chain to the new upper convex chain.
+\end{lemma}
+\begin{proof}
+The new coefficients are $aX+c(W-X)$ and $bX+d(W-X)$; their sum is
+$W'>0$, including both endpoints since both row sums of $\boldsymbol P$
+are positive. Differentiation of $x'=X'/W'$ gives the positive numerator
+$ad-bc$. The homogeneous determinant in
+\eqref{eq:op3-compact-projective-matrix} is also $ad-bc$.
+Every orientation sign is therefore preserved after division by positive
+homogeneous coordinates. At fixed $x$, the new $y$ coordinate increases
+strictly with the old $y$ coordinate. Thus upper and lower sides cannot
+exchange, including equal-$x$ endpoint strata. Negative offsets preserve
+$Y'<0$. These facts establish the upper-chain assertion without scanning rows.
+\end{proof}
+
+\begin{lemma}[Implemented persistent chain; \statusproved]
+\label{lem:op3-persistent-projective-chain}
+Let $N$ bound the number of owned rows and put $\ell=\log(2+N)$.
+An immutable AVL chain supports a whole-chain pullback in $O(1)$ work and one
+copied root; the upper hull of two chains with separated $x$ intervals in
+$O(\ell^3)$ work and $O(\ell^2)$ newly allocated nodes; and a gate-sign query
+or positive one-port substitution in $O(\ell^2)$ work. Earlier versions remain
+queryable. All allocated nodes, including subsequently discarded ones, are
+charged to these bounds.
+\end{lemma}
+\begin{proof}
+Store a constant-size homogeneous matrix tag at every node, along with its
+point, two children, height and subtree size. A whole-chain map transforms the
+root point and composes its tag. A point access carries the product of tags
+along one root-to-leaf path in $O(\ell)$ work. Pushing a tag when a structural
+operation needs its children copies at most two roots. Persistent AVL split,
+join and rotations therefore have at most $O(\ell^2)$ copied nodes and work
+under a conservative accounting. The separated-bridge searches from
+\cref{lem:op3-avl-upper-hull} use $O(\ell^2)$ point accesses, including failed
+comparisons. Homogeneous orientation and endpoint comparisons cost constant
+word work per accessed point. After the bridge is found, persistent splits
+retain the two surviving subchains and concatenate them. Equal endpoint
+abscissae keep the higher point, with a fixed label tie rule; collinear
+interior points may be omitted. This proves the stated conservative bounds.
+
+For a one-port substitution
+$(u_L,u_R)=(p,q)t+(\xi,\omega)$ with $p,q>0$ and $\xi,\omega\leq0$, a row threshold is
+\[
+ -\frac{Y+(\xi-\omega)X+\omega W}{(p-q)X+qW}.
+\]
+The denominator is positive on $[0,1]$. The fractional transformation
+$x\mapsto x/((p-q)x+q)$ is increasing, and transforms the upper chain into
+an upper chain. The corresponding ordinate, the negative threshold, is thus
+unimodal along its ordered vertices. Binary adjacent-value comparisons find
+its maximum with $O(\ell)$ point accesses. A flat adjacent maximum is a
+supporting edge, so ties cannot conceal a later larger value. Ordinary gate
+queries use the same argument with constant denominator. Nodes are immutable;
+reclamation, if performed, can be charged once per allocated node. Keeping
+all historical versions instead costs at most the total allocation count.
+\end{proof}
+
+\subsection{Compression, raking, and one-port reduction}
+
+Cluster edges retain the original diagonal and load at each endpoint.
+For a cluster, its matrix uses its own edges and the original diagonal and
+load once per vertex. These matrices are positive definite M-matrices:
+original degrees dominate the cluster degrees, with strict diagonal dominance
+because $0<\gamma<1$. When two edge-disjoint clusters share a port, subtract
+one copy of that port's original diagonal and load before eliminating it.
+This convention avoids distributing a vertex's load over a changing number
+of incident edges.
+
+\begin{lemma}[Adjacent compression has separated chains; \statusproved]
+\label{lem:op3-adjacent-chain-separation}
+Let two clusters have ports $(L,M)$ and $(M,R)$, with $M\ne v$.
+Write their Schur states as $(\boldsymbol H^l,\boldsymbol f^l)$ and
+$(\boldsymbol H^r,\boldsymbol f^r)$. Set
+\[
+ \delta=H^l_{MM}+H^r_{MM}-d_M>0,\quad
+ \beta=f^l_M+f^r_M-b_M<0,\quad
+ w_L=-H^l_{LM}>0,\quad w_R=-H^r_{MR}>0.
+\]
+Then
+\begin{equation}
+ u_M=\eta u_L+\zeta u_R+\sigma,
+ \qquad(\eta,\zeta,\sigma)=(w_L,w_R,\beta)/\delta.
+ \label{eq:op3-adjacent-recovery}
+\end{equation}
+The left and right reporter pullbacks have respective matrices
+$\left(\begin{smallmatrix}1&0\\\eta&\zeta\end{smallmatrix}\right)$ and
+$\left(\begin{smallmatrix}\eta&\zeta\\0&1\end{smallmatrix}\right)$,
+and offsets $(0,\sigma)$ and $(\sigma,0)$. Their new compact abscissae lie in
+\[
+ \text{right child: }[0,\eta/(\eta+\zeta)],\qquad
+ \text{left child: }[\eta/(\eta+\zeta),1].
+\]
+Hence their exact union reporter uses one separated merge, with the right
+child first. The new Schur matrix, load and recovery record need $O(1)$ words.
+\end{lemma}
+\begin{proof}
+Schur elimination gives \eqref{eq:op3-adjacent-recovery}. Positivity follows
+from the M-matrix property; $\beta<0$ follows because every eliminated vertex
+is a nonseed with negative original load. Each displayed port matrix is
+nonnegative with positive determinant, so
+\cref{lem:op3-compact-projective-pullback} applies. Evaluate the monotone
+abscissa maps at $0$ and $1$ to obtain the intervals. They meet only at the
+shared-port endpoint. The new entries are
+\[
+ H_{LL}=H^l_{LL}-w_L\eta,\quad
+ H_{RR}=H^r_{RR}-w_R\zeta,\quad
+ H_{LR}=-w_L\zeta=-w_R\eta,
+\]
+with loads $f_L=f^l_L+w_L\sigma$ and $f_R=f^r_R+w_R\sigma$.
+\end{proof}
+
+\paragraph{Raking and forgetting.}
+A one-port side cluster at $i$ is represented by its scalar Schur state and
+its smallest boundary threshold $\theta$. Raking it into a path cluster adds
+its diagonal and load, subtracting the original $d_i,b_i$ once. Conditional
+on the unchanged path ports, the old path interior and reporter do not
+change. All side gates reduce exactly to the single inequality $u_i>\theta$,
+so its reporter contributes one endpoint point, merged at $x=0$ or $x=1$.
+Raking two one-port clusters takes the minimum threshold and the same scalar
+state sum. If there are no owned gates, omit the threshold.
+
+To forget the farther port $R\ne v$ of a two-port cluster, substitute
+\[
+ u_R=(-H_{LR}/H_{RR})u_L+f_R/H_{RR}.
+\]
+Its multiplier is positive and offset negative. Apply the one-port query of
+\cref{lem:op3-persistent-projective-chain}, update the scalar Schur state,
+and save the affine recovery record. This proves closure of all these
+operations with $O(\ell^3)$ work and $O(\ell^2)$ allocated hull nodes per
+operation, independently of how many original rows the cluster represents.
+
+\paragraph{Unique row ownership and recovery.}
+Every inactive boundary vertex $j$ of a connected active subtree has exactly
+one active parent $i$. At $i$, maintain the minimum of the local thresholds
+$\lambda d_j/\gamma$ in a heap. All these gates have the same coefficient
+of $u_i$, so this single minimum is an exact local certificate. Home the
+resulting single row on $i$'s permanent parent edge; home the seed's row on
+its first admitted edge. An admission changes the old parent's one home-edge
+payload and creates the new vertex's payload. Copying that row to every
+incident edge would be unnecessary and could cost quadratically on a star.
+The singleton face is handled directly before the first edge exists.
+Original adjacency entries and neighbor-degree queries are charged when a
+vertex is admitted, with cached records and heap construction also charged.
+
+The current hierarchy has a linear number of cluster records. A final
+traversal uses the saved affine recovery equations, passes port values to
+children, and writes each active vertex once. A dictionary verifies or
+coalesces repeated shared ports; balanced dictionaries give $O(|U|\log(2+|U|))$
+work, or a preassigned active index gives linear word work. Historical roots
+need not be traversed. The returned PageRank vector is
+$\bar\alpha\boldsymbol D\boldsymbol u$, with original residual
+$\boldsymbol e_v-\boldsymbol M\boldsymbol u$.
+
+\subsection{Precise remaining hierarchy contract}
+
+\paragraph{Source.}
+Alstrup et al.\ \cite{alstrup2005toptrees}, journal Section 2 and
+Theorem 2.1 (pp.\ 245--248), maintain edge-induced clusters with at
+most two boundary vertices. A link, cut or expose uses $O(\log n)$ joins and
+splits, with logarithmic height and linear structural space. Section 6.1
+(pp.\ 259--260) explains exposure; Section 6.2 (p.\ 260) handles arbitrary
+degrees within the implementation. Link and cut reset external boundaries.
+This source supplies a hierarchy theorem, not the PageRank summaries above.
+
+\paragraph{Conditional.}
+If an online hierarchy maintains the stated rooted cluster summaries with
+$O(\log(2+|U|))$ changed records per admission and home-edge update, then the
+backend yields total word work
+\[
+ O\bigl(\operatorname{cvol}(U)\log^4(2+\operatorname{cvol}(U))\bigr)
+\]
+and at most $O(\operatorname{cvol}(U)\log^3(2+\operatorname{cvol}(U)))$
+retained state, even keeping every old application version. Temporary
+query matrices are discarded as the search advances; their allocations
+are charged to word work, not accumulated as persistent hull nodes. The root's one-port
+Schur equation gives $u_v$ exactly, and its minimum threshold gives either a
+strict positive original gate or a complete quiet certificate. Every strict
+admission increases the positive face, whose volume is at most
+$1/\lambda=2/\epsappr$. Thus this contract would give
+$\widetilde O(1/\epsappr)$ local ACL work on arbitrary trees. This statement
+charges failed searches, the final quiet query, local heaps, graph discovery,
+all factor and hull records, dictionaries and output.
+
+\paragraph{Integration obligations at the primitive stage.}
+The code currently supplies and reparents static hierarchies. Before removing
+the preceding condition, reconcile every join shape, singleton initialization,
+source exposure during updates, changing base-edge payloads and dynamic
+vertex allocation with the source interface. In particular, a temporary
+cluster with an interior seed cannot use the negative-load argument. One
+candidate is to mark such a summary unavailable until seed exposure splits
+it; another is the source's composite-update interface. The unavailable-summary option is proved and fully integrated in
+\cref{sec:op3-local-top-trees}; it is not silently assumed by this primitive. The source's internal high-degree representation is
+structural and must not become extra PageRank vertices. No ambient graph
+preprocessing is permitted.
+
+\paragraph{Measured.}
+The implemented immutable chain passes 516 independent materialized-chain
+comparisons, 360 exact extreme queries, 360 one-port queries and 96 adjacent
+separation checks, with 130 retained versions rechecked. The cluster audit
+uses every nonisomorphic tree through seven vertices, every seed and three
+parameter pairs, following exact positive faces. It checks independent dense
+Schur complements, every raw boundary inequality, recovered coordinates,
+three path parenthesizations and both orders of one-port rakes. Five implicit
+unweighted path/private-star families through 128 active vertices keep all
+boundary rows on the upper chain; their inactive adjacency is never scanned.
+These are correctness and representation audits, not an online hierarchy
+benchmark. Exact counts and source hashes are in
+\texttt{PROJECTIVE\_HULL\_ROPE\_AUDIT.json} and
+\texttt{PATH\_CLUSTER\_REPORTER\_AUDIT.json}.

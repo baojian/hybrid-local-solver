@@ -1,0 +1,331 @@
+\section{Root-threshold transformations under legal tree admissions}
+\label{sec:op3-root-threshold-groups}
+
+\paragraph{Status and scope.}
+The identities and counterexamples below are \statusproved{} proof drafts
+awaiting independent review. All computations used to audit them are exact
+reference computations, not an implemented fast local response producer.
+They concern fixed $\lambda=\epsappr/2$ on canonical unweighted trees.
+In particular, the counterexamples do not vary regularization or prescribe
+external port values. General OP3 remains \statusopen.
+
+\subsection{A resistance coordinate for the common transformations}
+
+Root the input tree at the source $v$. Let $U$ be a connected strictly
+positive restricted face, $E=U\setminus\{v\}$, and $B$ its exposed inactive
+frontier. Keep the source potential as the formal parameter $t$ and set
+\[
+ \bm S=\bm M_{EE},\quad \bm G=\bm S^{-1},\quad
+ \bm h_E=\bm G\gamma\bm A_{Ev},\quad
+ \bm z_E=\bm G\bm b_E,
+ \qquad h_v=1,\ z_v=0.
+\]
+Then $u_i(t)=h_it+z_i$ on $U$, with $h_i>0$ and $z_i\leq0$.
+Extend $\bm G$ by a zero source row and column. Every $j\in B$ has a
+unique parent $p(j)\in U$, and its exact gate and root threshold are
+\begin{equation}
+ g_j(t)=a_jt+\eta_j,\qquad
+ a_j=\gamma h_{p(j)},\qquad
+ \eta_j=-\lambda d_j+\gamma z_{p(j)},\qquad
+ \tau_j=-\eta_j/a_j.
+ \label{eq:op3-root-threshold-row}
+\end{equation}
+These affine formulas are algebraic continuations of the current face;
+only the actual restricted source value is used to decide an admission.
+
+Put $R_v=0$ and, for $i\in E$, define
+\begin{equation}
+ R_i=\sum_{(x,y)\in P(v,i)}\frac1{\gamma h_xh_y}.
+ \label{eq:op3-harmonic-resistance}
+\end{equation}
+Here $P(v,i)$ is the path within the current positive tree.
+
+\begin{lemma}[Green columns and common root-threshold transformations]
+\label{lem:op3-root-resistance-transform}
+For $p,x\in U$, let $\ell$ be their lowest common ancestor. Then
+\begin{equation}
+ G_{px}=h_ph_xR_\ell.
+ \label{eq:op3-tree-green-resistance}
+\end{equation}
+Admit a frontier vertex $w$ with positive current gate, and put
+\[
+ x=p(w),\qquad
+ \delta=d_w-\gamma^2G_{xx}>0,\qquad
+ \kappa=\gamma^2h_x^2/\delta.
+\]
+For a surviving frontier vertex $j$, with
+$\ell=\operatorname{LCA}(p(j),x)$, its new threshold satisfies
+\begin{equation}
+ \tau'_j=\frac{\tau_j+\kappa R_\ell\tau_w}
+                    {1+\kappa R_\ell}
+ =\tau_w+\frac{\tau_j-\tau_w}{1+\kappa R_\ell}.
+ \label{eq:op3-root-threshold-transform}
+\end{equation}
+Thus every fixed-ancestor group shares one positive affine transformation
+of its thresholds. Its internal order is preserved. Different groups need
+not have the same transformation.
+\end{lemma}
+\begin{proof}
+Let $\bm H=\operatorname{diag}(\bm h_E)$. The matrix
+$\bm H\bm S\bm H$ is the grounded Laplacian of the current tree, with
+edge conductances $\gamma h_ih_j$, including $h_v=1$ at the ground.
+Indeed the harmonic equation for $h_i$ makes its diagonal equal the sum
+of these incident conductances. Injecting one unit at $x$ sends all current
+along the unique $x$--$v$ path. The resulting potential at $p$ is exactly
+the resistance of the shared root path, namely $R_\ell$. Inverting the
+diagonal transformation proves \cref{eq:op3-tree-green-resistance}; the
+zero source row and column cover $p=v$ or $x=v$.
+
+Eliminating the newly admitted $w$ at fixed source value gives
+$u_w(t)=(a_wt+\eta_w)/\delta$. The change of an old potential is
+$\gamma G_{p(j),x}u_w(t)$, and hence
+\[
+ (a'_j,\eta'_j)=(a_j,\eta_j)
+       +\frac{\gamma^2G_{p(j),x}}\delta(a_w,\eta_w).
+\]
+Divide the new intercept by its positive slope and use
+$a_j=\gamma h_{p(j)}$, $a_w=\gamma h_x$, and
+\cref{eq:op3-tree-green-resistance}. This gives
+\cref{eq:op3-root-threshold-transform}. Its slope is positive, so a
+common group map preserves order. The pivot is a positive Schur pivot of
+an SPD principal matrix. A legal admission also ensures that the actual
+restricted solution remains strictly positive and monotone.
+\end{proof}
+
+\begin{corollary}[Updating the harmonic and resistance coordinates]
+\label{cor:op3-root-coordinate-update}
+For an old active vertex $p$, write
+$\ell=\operatorname{LCA}(p,x)$ and $m_\ell=1+\kappa R_\ell$. Then
+\begin{align}
+ h'_p&=h_pm_\ell,&
+ z'_p&=z_p+\gamma G_{px}\eta_w/\delta,\label{eq:op3-root-harmonic-update}\\
+ R'_p&=\frac{R_\ell}{m_\ell}
+          +\frac{R_p-R_\ell}{m_\ell^2}.
+ \label{eq:op3-root-resistance-update}
+\end{align}
+On the path from the source to $x$, the latter map is
+$R\mapsto R/(1+\kappa R)$.
+\end{corollary}
+\begin{proof}
+The fixed-root Schur update and
+\cref{eq:op3-tree-green-resistance} give the first two identities.
+On an edge of the root--$x$ path, the updated resistance increment is
+\[
+ \frac{R_y-R_z}{(1+\kappa R_z)(1+\kappa R_y)}
+ =\frac{R_y}{1+\kappa R_y}-\frac{R_z}{1+\kappa R_z}.
+\]
+These terms telescope as far as $\ell$. Below $\ell$ toward $p$, every
+harmonic coordinate is multiplied by the same $m_\ell$, so every further
+resistance is divided by $m_\ell^2$. This proves the formula.
+\end{proof}
+
+The corollary is an algebraic interface, not a data-structure theorem.
+It does not pay for identifying the groups, changing their membership,
+searching their transformed minima or maintaining their coordinates.
+The existing ancestor-walk tree reporter in the companion AESP--CD note
+already pays for exact threshold propagation. A faster implementation must
+remove that path cost without assuming the groups are free to access.
+
+\subsection{Source-valid failures of a stale global threshold order}
+
+\begin{proposition}[A nine-vertex fixed-parameter ordering witness]
+\label{prop:op3-tree-fixed-threshold-order}
+Consider the tree with edges
+\[
+ 01,\ 05,\ 12,\ 23,\ 34,\ 56,\ 58,\ 67,
+\]
+seed $0$, $\alpha=1/7$ and $\epsappr=1/20$, so
+$\gamma=3/4$ and $\lambda=1/40$. FIFO exact-positive admission has prefix
+$0,1,5,2,6,8$. Just before admitting $8$, the only positive frontier gate
+is at $8$. The other two thresholds have order $\tau_3<\tau_7$.
+After admitting $8$, their order reverses, vertex $3$ remains quiet, and
+vertex $7$ becomes positive. Therefore recomputing only the old minimum
+surviving threshold does not certify exact obstacle quietness.
+\end{proposition}
+\begin{proof}
+Exact restricted elimination gives the following rows before and after
+admitting $8$:
+\[
+\begin{array}{c|c|c|c|c}
+ j&a_j&\eta_j&\tau_j&\tau'_j\\\hline
+ 3&27/220&-2/25&88/135&88/135\\
+ 7&9/116&-31/580&31/45&43/72
+\end{array}
+\]
+The new row at $7$ is $(a'_7,\eta'_7)=(9/92,-43/736)$.
+The actual source values are
+$t=28523/46760$ and $t'=11143/17860$. Before admission,
+\[
+ g_3(t)=-961/187040,
+ \quad g_7(t)=-229/37408,
+ \quad g_8(t)=3523/46760>0.
+\]
+Afterward $g'_3(t')=-49/14288<0$, whereas
+$g'_7(t')=373/142880>0$. All prefix admissions are strictly positive;
+the exact FIFO audit verifies each gate on its actual preceding face.
+The two group slopes in \cref{eq:op3-root-threshold-transform} are $1$
+and $23/29$, corresponding to ancestors $0$ and $5$.
+\end{proof}
+
+\begin{proposition}[Minimum-threshold order can miss exact quietness]
+\label{prop:op3-tree-minimum-policy-order}
+Use the tree with edges
+\[
+ 01,06,12,14,15,23,67,78,
+\]
+seed $0$, $\alpha=1/7$, and
+$\lambda=1/31$ ($\epsappr=2/31$). The exact minimum-root-threshold policy,
+with vertex-label ties, follows the prefix $0,6,1,7,4,5$.
+Before $5$ activates it is the only positive frontier vertex, and the
+minimum surviving threshold belongs to $8$. Afterward $8$ stays quiet
+but $2$ is positive. This shortcut therefore fails exact quietness even on
+a prefix generated by the minimum-threshold policy.
+\end{proposition}
+\begin{proof}
+The five selected thresholds are respectively
+$8/93,16/93,88/279,112/279,112/279$. Direct restricted elimination verifies
+that each is the current minimum. Each is below the initial source value
+$29/62$, so monotonicity also verifies all strict admissions. Just before
+$5$, the two quiet thresholds are
+$\tau_8=484/837<\tau_2=167/279$.
+Afterward $\tau'_8=484/837$ and $\tau'_2=158/279$, reversing their order.
+The actual source values are $1472/2573$ and $66704/115847$, giving
+\[
+ g'_8=-35/115847<0,\qquad g'_2=215/115847>0.
+\]
+No regularization parameter changes during this trace.
+\end{proof}
+
+\paragraph{Exact parameter-interval audit.}
+The minimum policy can be explored without choosing a grid of tolerances.
+For a fixed face write
+$\bm u_U=\bm q_U-\lambda\bm y_U$, where
+$\bm q_U=\bm M_{UU}^{-1}\bm e_v$ and
+$\bm y_U=\bm M_{UU}^{-1}\bm d_U$.
+A frontier vertex $j$ is positive exactly when
+\[
+ \lambda<c_j^U:=\frac{\gamma q_{p(j)}}{d_j+\gamma y_{p(j)}}.
+\]
+Since $\tau_j=\lambda(q_v/c_j^U-y_v)$, the next minimum-threshold label
+is the maximizer of $c_j^U$, independently of $\lambda$ until stopping.
+Intersect the strict upper bounds from previous admissions with the desired
+quiet and positive inequalities to obtain an exact interval of valid fixed
+parameters. The audit reconstructs each saved witness with separate dense
+face solves and verifies every selected minimum.
+Through eleven vertices, three teleportation choices and all seeds, it
+checks 13,179 complete parameter-independent sequences and 122,388 symbolic
+admissions. It finds 33 strict quiet-pair reorderings and 39 missed-positive
+intervals. It finds no ACL miss under this policy in that finite family;
+this is \textbf{Measured} evidence, not an ACL robustness theorem.
+
+Both nine-vertex stopping witnesses concern exact stopping: their missed residuals are
+still within the looser ACL tolerance. The next construction separates
+that distinction explicitly.
+
+\begin{proposition}[A stale minimum can also miss an ACL violation]
+\label{prop:op3-tree-stale-minimum-acl}
+Let a tree have the two arms $0$--$1$--$2$--$3$--$8$ and
+$0$--$4$--$5$--$6$--$9$, the extra leaf edge $4$--$7$, four leaves
+$10,11,12,13$ at $8$, and one leaf $14$ at $9$.
+Set $\alpha=1/1009$ and $\epsappr=4/51$, so
+$\gamma=504/505$ and $\lambda=2/51$.
+The positive-admission prefix $0,1,2,3,4,5,6,7$ is legal. Before $7$
+activates it is the only positive frontier vertex, and the old minimum of
+$\{\tau_8,\tau_9\}$ is $\tau_8$. Afterward $8$ remains quiet but the
+original physical residual at $9$ exceeds $\epsappr d_9$.
+Thus exact validation of just that old minimum cannot certify ACL quietness.
+\end{proposition}
+\begin{proof}
+An independent exact restricted solve gives
+\[
+ g'_8=-\frac{84478293610659282106}{9305780219492155967283}<0,
+ \qquad
+ g'_9=\frac{823081029939108794444}{9305780219492155967283}.
+\]
+Since $d_9=2$, the physical residual is $r'_9=g'_9+4/51$.
+Its exact excess above $\epsappr d_9=8/51$ is
+$93215914684822051912/9305780219492155967283>0$; the ratio is approximately
+$1.0638583$. Before admission, the threshold difference is positive:
+\[
+ \tau_9-\tau_8
+ =\frac{89389333405}{68556886272}
+  -\frac{260536855325}{205670658816}>0.
+\]
+The preceding gates at $8,9$ are negative and the gate at $7$ is positive.
+Every earlier gate on the stated prefix is positive as well; the durable
+witness records each exact rational value. These claims can also be checked
+without a dense solve by eliminating each three-vertex arm. If its first
+diagonal is $a$ and its first load is $-\lambda b$, its last potential is
+\[
+ \frac{\gamma^3t-\lambda\{a(4+2\gamma)+\gamma^2(b-2)\}}
+ {a(4-\gamma^2)-2\gamma^2}.
+\]
+Use $(a,b)=(2,2)$ on the left, $(3,3)$ on the right before admission,
+and $(3-\gamma^2,3+\gamma)$ on the right afterward, then impose the source
+row. This reproduces the displayed exact inequalities.
+\end{proof}
+
+The proposition rejects this specific stale-order shortcut on a legal
+single-source trace. It is not a failure of the verified physical-flux
+queues, and it is not a lower bound for local algorithms.
+
+\subsection{Why one operation per ancestor group is still a real cost}
+
+\begin{proposition}[A legal admission can have many distinct group maps]
+\label{prop:op3-tree-many-threshold-groups}
+For every $m\geq2$, there is a canonical tree and a forced legal backbone
+trace with positive support volume $3m$ such that admission number $k$
+has $k$ distinct transformations of surviving frontier groups, including
+$k-1$ nonidentity transformations. Thus an implementation explicitly
+applying a map to every such group performs $\Omega(m^2)$ group operations
+on that trace. This demonstrates a growing number of distinct maps; it is
+not a lower bound against an OP3 algorithm or a polylogarithmic
+amortization in the accuracy.
+\end{proposition}
+\begin{proof}
+Use the backbone $0$--$1$--$\cdots$--$m$, seeded at $0$. At every
+$i<m$ attach a report vertex with $D-1$ private leaves, giving report
+degree $D$. Choose
+\[
+ \alpha=1/1009,\quad \bar\alpha=1/505,\quad
+ \lambda=\frac{\bar\alpha}{12\cdot6^m},\quad
+ \epsappr=2\lambda,\quad D=12\cdot6^m\cdot505^2.
+\]
+The reports and their leaves remain inactive: the unregularized potential
+is at most $1/\bar\alpha$, so incoming report flux is at most
+$\gamma/\bar\alpha<\lambda D=1/\bar\alpha$.
+
+Every positive backbone prefix has positive next gate. A single walk term
+on a prefix gives source response at least $1/(3\cdot6^m)$ at each of its
+vertices. As before, the load correction is at most
+$\lambda/\bar\alpha=1/(12\cdot6^m)$. Thus its last potential is at least
+$1/(4\cdot6^m)$. Since backbone degrees are at most three and
+$\gamma>3\bar\alpha/2$, the next gate is strictly positive. The same bound
+exceeds the finite-band readiness threshold
+$(3/4)\epsappr d$, so the trace is also compatible with that interface.
+There is exactly one possible next positive vertex. The resulting support
+is the whole backbone and has volume $2+3(m-1)+1=3m$.
+
+Before admitting $k$, the parent is $k-1$, and the surviving report at
+$i<k$ has lowest common ancestor $i$. The resistances
+$R_0<R_1<\cdots<R_{k-1}$ are strictly increasing, so the slopes
+$1/(1+\kappa R_i)$ are distinct. Only $R_0=0$ gives the identity map.
+Summing $k-1$ over $k=1,\ldots,m$ proves the stated explicit-group cost.
+The chosen $1/\epsappr$ grows exponentially with $m$, so this example
+must not be presented as work exceeding the OP3 target. Moreover its large
+report degrees permit other quietness certificates that may avoid exact
+threshold updates altogether. Nor does this family rule out an
+$O(\vol(U)\log(1/\epsappr))$ charge for the explicit group operations.
+\end{proof}
+
+\paragraph{The narrower open interface.}
+The current formulas suggest a rooted hierarchy supporting an insertion at
+$x$, the LCA-dependent updates
+\cref{eq:op3-root-threshold-transform,eq:op3-root-harmonic-update,eq:op3-root-resistance-update},
+and a complete search for due original-residual events. Group discovery,
+online hierarchy changes, failed queries and reconstruction must all be
+charged. The formula for a known group is insufficient. The supplied-tree
+persistent-curve solver does not supply local discovery, and the previous
+ancestor iterator retains its radius factor. Ordinary independently updated
+planar hulls also do not automatically implement the required changing
+coordinates. This interface remains \statusopen.

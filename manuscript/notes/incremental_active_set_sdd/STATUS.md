@@ -1,8 +1,303 @@
 # Direction status: incremental_active_set_sdd
 
-Last reviewed: 2026-08-20
+Last reviewed: 2026-09-07
+
+The new exploration is a proof draft, not independently reviewed.
 
 State: proved-open
+
+## Latest local cycle-rank result
+
+**Proved here, awaiting independent review:** `thm:op3-local-cycle-rank`
+gives a local exact obstacle algorithm on arbitrary finite simple connected
+unweighted graphs with explicit support parameters r and q. Here r is the
+cycle rank inside the final positive support and q is the rank of the graph
+revealed by its scanned incidences, excluding edges between inactive vertices.
+For V=cvol(U) and L=log(2+V), the work is
+
+`O(1 + V*((1+r)*L^4 + (1+r)^3 + q*L^2))`.
+
+This gives O_tilde((1+r^3+q)/eps_appr) ACL and exact
+O_tilde((1+r^3+q)/rho) RPPR. Shared-port copies, duplicate diagonal/load
+corrections, exceptional gates, cycle-birth repartitioning, matrices, failed
+checks and final output are paid. The online top-tree balancing remains an
+explicit **Source** import. The implemented audit rebuilds its reference
+hierarchies and separates those costs.
+
+**Measured:** `LOCAL_CYCLE_RANK_CLUSTER_AUDIT.json` passes 54,240 executions
+on all 995 connected atlas graphs through seven vertices, every seed, four
+parameter pairs and two policies. Twenty larger explicit examples and five
+finite implicit private-star examples also pass. They check 217,410 positive
+faces, 168,368 independent coarse Schur systems and 483,413 original gates.
+The atlas includes 33,074 admissions creating multiple cycles and 3,441 quiet
+exceptional checks. The implicit graphs scan only 58/51/48/62/70 entries.
+
+**Proved here / Measured:** `sec:op3-cluster-green` obtains selected
+conditional inverse entries from stored scalar elimination records.
+`CLUSTER_GREEN_QUERY_AUDIT.json` checks 29,408 affine/variance identities
+and 123,844 covariance pairs against 2,664 independent conditional inverses.
+
+**Next Open target:** `COARSE_INVERSE_UPDATE_PROBE.md` specifies a maintained
+coarse inverse: ordinary rank-one updates, old-port promotion, one border
+containing every active parent, and optional removal of the transient
+insertion parent. Its proposed r^2 improvement is not yet an end-to-end
+algorithm or theorem. General OP3 remains Open, and every new proof draft
+still awaits independent review.
+
+## Earlier local unicyclic result
+
+**Proved here, awaiting independent review:** `thm:op3-local-unicyclic`
+extends the local exact obstacle/ACL construction to every finite simple
+connected unweighted unicyclic graph, with an arbitrary physical seed and
+unbounded tree attachments. Its exact-word work is
+O(1+cvol(U) log^4(2+cvol(U))) and its space, including historical application
+versions, is O(1+cvol(U) log^3(2+cvol(U))). This gives O_tilde(1/eps_appr)
+ACL and exact O_tilde(1/rho) RPPR in the nonzero regime.
+
+The new ingredients are a charged named-coordinate query, the unique
+exceptional two-parent candidate, one paid re-rooting at cycle closure, and
+uniform-shift restoration at two fixed ports. Every unsuccessful gate check,
+original graph query, payload change, historical allocation and final output
+is included. The published height-bounded balancing algorithm remains an
+explicit **Source** import; its fast online implementation is not supplied.
+
+**Measured:** `CLUSTER_POINT_QUERY_AUDIT.json` checks 58,816 named coordinates.
+`LOCAL_UNICYCLIC_CLUSTER_AUDIT.json` checks 3,888 atlas executions over all
+78 tree/unicyclic graphs through seven vertices, plus sixteen larger explicit
+attachment executions and four finite implicit private-star examples. There
+are 16,371 independent face solves, 26,043 original gate checks, and 319
+negative uncorrected spanning-tree faces. The implicit examples scan only
+27, 51, 45 and 48 original entries. Reference hierarchy rebuilding and full
+validation recovery are counted separately from the proposed online work.
+
+**Next Open target:** `BOUNDED_CYCLE_RANK_PROBE.md` proposes partitioning the
+active spanning tree into O(q) two-port components, glued by a small coarse
+system, where q is the cycle rank of the locally revealed graph. Multiple
+exceptional candidates and paid repartitioning must be audited before a new
+theorem is stated. Arbitrary-graph OP3 remains Open; no manuscript promotion
+or independent review has occurred.
+
+## Earlier complete tree result
+
+**Proved here, awaiting independent review:** `thm:op3-local-top-tree`
+gives a deterministic exact obstacle/ACL algorithm on arbitrary trees with
+O(cvol(U) log^4(2+cvol(U))) local exact-real word work and
+O(cvol(U) log^3(2+cvol(U))) space, including every retained version.
+Graph discovery, home-edge payloads, failed queries, all cluster operations
+and final output are charged. The source balancing algorithm is imported;
+the complete application callbacks are implemented and exactly audited.
+This implies O_tilde(1/eps_appr) tree ACL work and exact O_tilde(1/rho)
+tree RPPR work in the nonzero regime. It is not a numerical-stability claim.
+
+**Measured:** `TOP_TREE_CALLBACK_AUDIT.json` checks 650 source-valid faces,
+167,384 legal binary joins, 26,130 independent Schur oracles, 168,294 valid
+summaries, 650 exposure transitions and 1,296 payload refreshes. Supplied
+hierarchy enumeration is reference work, not the published online algorithm.
+
+**Proved here / Measured:** a uniform shift C=1/bar_alpha makes every
+cluster load negative while allowing the physical seed to be interior.
+The geometric root may therefore differ from the seed. The exact shifted
+reporter and one-cycle restoration identities are in
+`sec:op3-shifted-tree-clusters`; 564 faces check 33,550 conditional identities
+and 1,972 valid physical-seed-interior clusters. Two cycle witnesses pass.
+
+**Resolved next target:** `UNICYCLE_TOP_TREE_PROBE.md` preserves the plan for local unicyclic
+continuation: one exceptional two-parent candidate, a charged point query,
+one paid re-rooting at cycle closure, two fixed cycle ports and the corrected
+root solve. A triangle witness proves that the uncorrected spanning-tree
+response can be negative; retain signed affine responses. Arbitrary-graph
+OP3 remains Open. No result has been promoted to the active manuscript.
+
+## Earlier threshold result
+
+**Proved here, awaiting independent review:**
+`lem:op3-root-resistance-transform` and `cor:op3-root-coordinate-update`
+give exact ancestor-group affine threshold maps and harmonic/resistance
+updates on canonical rooted trees. `ROOT_THRESHOLD_ORDER_PROBE.md` records
+22,440 exact traces and 406,131 coordinate/Green checks.
+
+**Refuted, representation-specific:** a stale minimum certifies exact
+quietness, even under minimum-threshold admissions. Two nine-vertex
+witnesses separate FIFO and minimum policies. A fifteen-vertex legal trace
+also misses an original ACL violation by a factor about 1.06386. These are
+not failures of the implemented physical-flux queues. The exact interval
+search covers 13,179 minimum-policy sequences through eleven vertices;
+a minimum-policy ACL guarantee remains Open beyond that finite evidence.
+
+**Follow-up:** adjacent-path separation and the projective primitive are now
+implemented and proof-drafted. The precise remaining top-tree import is
+recorded in `ORDERED_PATH_CLUSTER_PROBE.md`.
+
+## Latest constructive result
+
+**Proved here, awaiting independent review:** `thm:op3-live-core-peeling`
+in `sections/op3_live_core_peeling.tex` replaces the permanent branching
+count by maximum simultaneous core size q. Removing a nonseed vertex of
+current reduced degree at most two moves at most one grouped physical
+flux. It gives `O_tilde((1+q^2)/eps_appr)` word work and `O(V+q^2)` storage,
+including failed queue visits and inverse deletion. See
+`LIVE_CORE_PEELING_PROBE.md`.
+
+**Measured:** 54,240 exact comparisons, 50 larger/targeted cases, 15,476
+inverse-entry checks and 8,497 physical-group checks pass. Groups of up to
+64 original boundary incidences move without membership copies in the
+solver. On the 127-vertex completed binary tree, LIFO reduces the peak core
+from FIFO's 64 to 7 and inverse updates from 167,743 to 1,344.
+
+**Refuted, representation-specific:** degree-two peeling plus LIFO always
+has polylogarithmic live-core size. `prop:op3-live-core-interior-tree` forces
+a full depth-h prefix while original leaves at height `3h+5` remain inactive.
+No first peeling step is possible. The explicit inverse needs
+`Omega((1/eps_appr)^(log_6 8))` writes for this family. Ten exact cases
+include a 2,097,151-vertex implicit ambient tree with only 127 positive rows
+and 674,751 inverse updates. This does not lower-bound OP3 or other solvers.
+
+**Follow-up completed:** fixed-lambda root thresholds and their group maps
+are now audited in `ROOT_THRESHOLD_ORDER_PROBE.md`; the next constructive
+question is the ordered path-cluster probe above.
+
+## Earlier growing-core backend
+
+**Proved here, awaiting independent review:**
+`thm:op3-branch-core-flux` in `sections/op3_branch_core_flux.tex` handles
+a growing retained branching core with scalar physical-flux queues. It
+returns ACL output using `lambda=eps_appr/2`, with
+`O(|U|r^2 + r vol(U) + vol(U) L log(2+vol(U)))` exact-real word work,
+where `r` is the returned retained-core size and
+`L=1+log_+(1/(bar_alpha eps_appr))`. Storage is `O(vol(U)+r^2)`.
+All event searches are paid; polynomial costs remain in the dense inverse
+and in scanning all retained queues. It reads precisely positive output rows, including on
+arbitrary ambient graphs. See `BRANCH_CORE_FLUX_PROBE.md`.
+
+**Measured:** 27,120 exact face/obstacle comparisons and 17 additional
+residual diagnostics pass, including threshold equality, shared reports
+from 16 retained vertices, and the prior Schur-cancellation examples.
+On a 102,707-vertex shared-report graph, it scans 271 positive rows and
+878 entries. Intermediate audits separately check 9,717 inverse entries,
+4,345 physical fluxes and 3,253 shared gate sums.
+
+**Proved here, representation-specific:**
+`prop:op3-dense-core-binary-tree` forces cubic inverse writes for this
+backend on balanced trees with full required support. Four exact cost
+diagnostics through 127 vertices verify the accounting. This is an easy
+family for other representations, not a lower bound for OP3.
+
+## Earlier exact support theorem
+
+**Proved here, awaiting independent review:**
+`thm:op3-two-port-frontier` in `sections/op3_two_port_frontier.tex` gives
+`O((1+vol(S)) log^4(2+vol(S)))` exact-real local work when the positive
+support has at most one nonseed vertex of degree at least three. The solver
+discovers the retained vertices itself, scans precisely positive-support
+rows, and never explores an inactive attachment. A second nonseed branching
+activation is detected as outside this class before its row is read.
+
+**Measured:** 8,329 exact comparisons and nine larger KKT checks pass;
+18,791 outside-class cases are correctly detected. A 66,162-vertex shared
+report graph requires 98 row scans and 258 adjacency entries. The actual
+planar reporter passes 5,136 extreme checks and 1,606 independent static-chain
+checks. See `TWO_PORT_FRONTIER_PROBE.md` and the durable audit files.
+
+**Refuted:** a constant-relative normalized Schur extreme query alone
+certifies original ACL quietness. Three source-valid two-arm traces satisfy
+the 1.1 approximate-return contract at every admission, yet allow a quiet
+return with the other boundary residual above the requested tolerance.
+See `SCHUR_RELATIVE_REPORTER_PROBE.md`; original-value geometric reporting
+is not refuted by this different normalization.
+
+**Open:** remove the polynomial cost of a growing retained branching core,
+including finding due scalar thresholds without rewriting all retained
+values. A hierarchy that eliminates its vertices still needs paid changes
+of old boundary coordinates. The source 3D extreme-query contract is now
+reconciled, but its backend is not implemented here. The earlier stable-port reporter and
+rooted-spider results are explicitly identified as provenance; the new
+structural work proof and AVL implementation are self-contained drafts.
+
+## Overnight continuation
+
+The user has authorized ten additional active research hours. Resume from
+[`OVERNIGHT_STATUS.md`](OVERNIGHT_STATUS.md) and its work log. The first block
+produced an affine-composition-tree mechanism for supplied tree responses.
+The next block implemented its persistent AVL representation and proved the
+supplied-tree `O(n log^2 n)` word-work bound as a draft; see
+`TREE_AFFINE_PROBE.md` and `thm:op3-persistent-tree`. It also implemented a
+fully local exact solver on cycles with unequal pendant-leaf counts and an
+arbitrary seed, with `O_tilde(1/eps_appr)` ACL work on that promised family;
+see `LOCAL_CYCLE_PROBE.md` and `cor:op3-local-cycle-acl`. All 1,152 tree and
+5,265 cyclic exact comparisons pass. These claims await independent review.
+An exact length-two-attachment witness refutes automatically freezing more
+general attached trees. The third block handles delayed changes by retaining
+a bounded region near each active end: `thm:op3-bounded-attachments` gives
+`O_tilde(q^3/eps_appr)` work for a cycle seed and attachment size q, without
+supplying q or the cycle ports. Its 1,909 exact comparisons and eight larger
+KKT checks pass. The q dependence remains real for this implementation:
+`INACTIVE_ATTACHMENT_AUDIT.json` shows full classification reading an
+arbitrarily large inactive star while support volume stays three. A direct
+initial gate check avoids that particular witness. This is a representation
+obstruction, not a lower bound for local solvers. Local discovery and cyclic response maintenance at
+the general OP3 scale remain open. Existing lazy tree iterators already
+achieve the weaker product scale by paying for ancestor walks.
+
+## Current OP3 exploration
+
+The current direction comparison is
+[`OP3_DIRECTIONS_20260906.md`](OP3_DIRECTIONS_20260906.md). The previous
+contract and history below remain useful for the literal source interface.
+The new finite-band interface intentionally allows a different safe trace.
+
+- **Proved here, awaiting independent review:**
+  `lem:op3-response-size`, `thm:op3-geometric-recipient`, and
+  `lem:op3-terminal-repair` in `sections/op3_geometric_events.tex`.
+  With `lambda=eps_appr/2`, geometric publications have total recipient work
+  `O_tilde(V[1+log_+(1/(alpha eps_appr)))+1)`. Terminal completion is one
+  expected near-linear certified SDD solve and a downward repair, returning
+  the ACL witness with support volume at most `2/eps_appr`.
+- **Proved here, awaiting independent review:** the rescaled obstacle optimum
+  grows as teleportation decreases, but a three-vertex path acquires new
+  support under a factor-two matrix change. There is no pointwise
+  multiplicative warm-start bracket from spectral comparability alone.
+- **Conditional:** an output-sensitive producer for the required geometric
+  publications would resolve the broader OP3 complexity target. This does
+  not reproduce the literal Wei--Yang gate or solve arbitrary dynamic
+  inverse queries.
+- **Measured:** 19,440 exact rational trace checks and 64,400 terminal
+  perturbation checks passed. Dense reference solves supply the missing
+  producer; these counts do not establish a fast implementation.
+- **Open:** produce the value intervals, locate all due publications and
+  certify quietness with total `O_tilde(V+1)` local work, including every
+  unsuccessful search. Near-linear recipient work is not producer work.
+- **Source alternative:** Chen--Peng--Wang's generalized diffusion algorithm
+  supplies a randomized near-linear *global* constrained solver under a
+  polynomial numerical-range assumption. Locality and parameter range both
+  require new work; source pointers are in
+  `docs/literature/lcp-solvers.md`.
+
+**Next falsifiable target:** build the producer on an asymmetric cyclic
+family with growing attachments and surviving old boundary keys. Meter
+response production and event location separately from delivery. A full
+old-face scan at every small admission fails this implementation target.
+The secondary route is local constrained elimination; teleportation
+continuation is a lower-priority probe.
+
+**Concrete overnight refinement:** bounded attached trees are now covered by
+a complete proof draft. The two-retained-vertex construction now avoids
+whole inactive attachments, including on a genuinely activating asymmetric
+branch. A growing core now has a complete scalar physical-flux reporter,
+with an explicit dense inverse cost. Next remove that response cost and
+the full scan of retained queues, or maintain changing separator coordinates
+with every transformation and failed certificate charged.
+The stronger Chebyshev saturation comparison passes 6,155 exact polynomial
+checks through q=9 but remains **Open** for arbitrary q; improving this factor
+alone would not resolve the discovery gap. The supplied-tree ACT does not
+itself give a growing-tree event dictionary or a bulk-transformed threshold
+hull. The new planar primitive supports individual changes in stable
+coordinates; it does not supply that stronger interface.
+
+Formal registry dependencies remain unchanged: the new reduction uses its
+own elementary arguments and the supplied-face SDD source. No new claim is
+promoted into the shared results or active manuscript. The detailed checks,
+coverage and elapsed research time are in `VERIFICATION.md` and
+`EXPLORATION_COVERAGE.json`.
 
 ## Exact question and contract
 
@@ -19,7 +314,8 @@ State: proved-open
 - **Source:** Wei--Yang arXiv:2608.16339v1 gives ACL work `O_tilde(1/epsilon^2)` and RPPR work `O_tilde(|S*| vol(S*))`, and explicitly leaves incremental reuse open (`main.tex:154-182,591-597`).
 - **Proved here:** Exact block-Schur correction and energy telescoping; the endpoint-path materialization barrier; append-only path `LDL^T` gates plus one reverse materialization; and preservation of the source ACL/RPPR guarantees on paths (`main.tex:184-276,280-455`).
 - **Conditional:** Any interface satisfying the source-safe error margins and charging all update/query/output work removes the round factor, with total `O(I(U_K)+cvol(U_K))` (`main.tex:471-517`).
-- **Measured:** None.
+- **Measured:** None for the original exact-interface investigation. The
+  September finite-band audit is recorded separately above.
 - **Refuted:** An ordinary warm start followed by full active-matrix passes or full vector materialization does not remove repeated-prefix work; endpoint paths force quadratic writes in that representation (`main.tex:73-80,280-340`).
 - **Open:** Graph-uniform implicit continuation on arbitrary cyclic graphs; energy telescoping alone does not pay for dense old-coordinate transport or repeated boundary-key refresh (`main.tex:519-560`).
 
@@ -36,14 +332,23 @@ Support complete boundary-violation reporting under dense implicit Schur correct
 
 ## Resume here
 
-- Exact file/section/lemma: `main.tex:471-517`, `def:interface` and `thm:conditional-interface`; then `main.tex:519-555`, `conj:aggregate`.
-- Next concrete action: Extend the scalar path record to one explicitly charged low-rank separator and determine whether all affected boundary keys can be located once rather than refreshed globally.
-- Stop/go test: Go if every eliminated incidence, separator update, violation query, and final word is charged near-linearly in final exposed volume. Stop or qualify if dense transport or rekeying forces repeated-prefix work.
+- Start with `UNICYCLE_TOP_TREE_PROBE.md` and the completed tree/shift
+  proofs in `sections/op3_local_top_trees.tex` and
+  `sections/op3_shifted_tree_clusters.tex`.
+- Implement a logarithmic point query and a locally discovering unicyclic
+  state machine; audit actual source-driven prefixes and both sides of
+  cycle closure. Keep the balancing-source import explicit.
+- Stop/go test: all exceptional candidates, one-time re-rooting, two-port
+  exposure, signed spanning-tree responses and original residual checks
+  must be paid before stating a unicyclic theorem.
 
 ## Verification
 
 - Source pointers checked: `README.md`; `main.tex`; the note's entry in `registry.toml`; and shared related-work/results/broadcast ledgers dated 2026-08-20.
-- Focused build/checks run: No TeX source changed; repository `make note-audit` is the required post-edit check.
+- Focused build/checks run: New proof sections compile. The exact audits and
+  focused Python checks pass. The latest broad test run has 231 passes and
+  the same three pre-existing notation/size failures; broader lint has the
+  same two unrelated findings. Full details are in `VERIFICATION.md`.
 - Known gaps: `cvol` is now defined locally in the scope section, removing the
   dependence on `propagate_settle_framework` for the basic work unit. The short
   README still omits the alpha/variable mapping, native accuracy parameters,

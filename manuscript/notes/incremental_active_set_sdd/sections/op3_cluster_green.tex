@@ -1,0 +1,159 @@
+\section[Selected Green entries]{Selected Green entries from the same cluster records}
+\label{sec:op3-cluster-green}
+
+\paragraph{Status.}
+The query identities below are \statusproved{} as a draft awaiting
+independent review and are implemented in an exact audit. Replacing the
+coarse solve of \cref{thm:op3-local-cycle-rank} by a complete maintained
+inverse algorithm remains \statusopen{}. A block inverse formula alone
+does not pay for changing retained vertices, selecting covariance entries
+or updating every stored matrix word.
+
+\begin{lemma}[Conditional variance and selected covariance; \statusproved]
+\label{lem:op3-cluster-conditional-green}
+Let a valid tree-piece hierarchy have height $h$, root ports $P_B$ and
+interior $I_B$. For a named vertex $i$, one incident-edge parent walk returns
+its conditional affine response
+\[
+ w_i=z_i+\boldsymbol a_i^{\mathsf T}\boldsymbol w_{P_B}
+\]
+and conditional variance
+$g_{ii}=(\boldsymbol M_{I_BI_B}^{-1})_{ii}$, extended by zero when $i$
+is a port, in $O(1+h)$ word work and constant live arithmetic state.
+Optionally retain $O(1+h)$ scalar noise coefficients from that walk.
+For two vertices in the same piece, their retained traces give
+$g_{ij}=(\boldsymbol M_{I_BI_B}^{-1})_{ij}$, again extended by zero at
+ports, in $O((1+h)\log(2+h))$ comparison-dictionary work.
+Thus the height-bounded source hierarchy gives logarithmic named variance
+work and at most $O(\log^2(2+n))$ selected covariance work.
+\end{lemma}
+\begin{proof}
+At a compress or forget operation, let $m$ be the eliminated scalar and
+$\delta_m>0$ its pivot. Completing its square factors the conditional
+quadratic into
+\[
+ \tfrac12\delta_m
+ \bigl(w_m-\boldsymbol\eta_m^{\mathsf T}\boldsymbol w_{\rm parent}
+              -\sigma_m\bigr)^2
+\]
+plus the parent Schur quadratic. Raking joins disjoint interiors and
+introduces no eliminated scalar. Applying this identity recursively gives
+a triangular factorization with one independent scalar residual
+$\xi_m$ of variance $1/\delta_m$ per eliminated interior vertex. This is
+an algebraic covariance interpretation of the inverse factorization;
+the algorithm samples no random variables.
+
+Follow the affine pullback of \cref{lem:op3-cluster-point-query}. Whenever
+the current row has coefficient $c_m$ on an eliminated port, add
+$c_m^2/\delta_m$ to a variance accumulator and, optionally, save
+$(m,c_m,1/\delta_m)$ keyed by its current elimination record. The rest of
+the row pulls back to the parent ports as before. Previously collected
+residual coefficients do not change, since the factorization makes those
+residuals independent of the remaining coordinates. At the root,
+\[
+ w_i=z_i+\boldsymbol a_i^{\mathsf T}\boldsymbol w_{P_B}
+          +\sum_m c_{i,m}\xi_m,
+ \qquad
+ g_{ij}=\sum_m\frac{c_{i,m}c_{j,m}}{\delta_m}.
+\]
+Only eliminated records on the query's ancestor path can occur. Each
+structural callback has at most two helper records, so there are $O(1+h)$
+terms. A compress pivot is the sum of the two children's shared diagonal
+entries minus the original degree; a forget pivot is the child's eliminated
+diagonal entry. Both are read or computed in constant work from existing
+records. Matching two saved traces in a comparison dictionary gives the
+claimed covariance cost. A root port has its basis response and an empty
+noise trace, as required. Different pieces have conditionally independent
+interiors given all coarse ports; their conditional cross term is zero by
+the partition, not merely because two arbitrary record identifiers differ.
+\end{proof}
+
+\begin{lemma}[Port promotion and an original-vertex border; \statusproved]
+\label{lem:op3-green-promotion-border}
+Suppose the full current active inverse restricted to retained ports is
+$\boldsymbol J=(\boldsymbol M_{UU}^{-1})_{PP}$.
+Extend each piece response row $\boldsymbol a_i$ by zero to all of $P$.
+For old active vertices $i,j$, its full Green entry is
+\begin{equation}
+ (\boldsymbol M_{UU}^{-1})_{ij}
+   =g_{ij}+\boldsymbol a_i^{\mathsf T}\boldsymbol J\boldsymbol a_j,
+ \label{eq:op3-conditional-full-green}
+\end{equation}
+where $g_{ij}=0$ across different piece interiors and at retained ports.
+In particular, promoting old interior vertices to retained coordinates
+augments $\boldsymbol J$ with these entries without solving a new full
+active system.
+
+If a new candidate $j$ has active-parent indicator $\boldsymbol s$ on $U$,
+put $\boldsymbol g=\boldsymbol M_{UU}^{-1}\boldsymbol s$ and
+$\delta=d_j-\gamma^2\boldsymbol s^{\mathsf T}\boldsymbol g$.
+Then $\delta\geq\bar\alpha d_j>0$ and the enlarged inverse is
+\begin{equation}
+ \begin{pmatrix}
+  \boldsymbol M_{UU}^{-1}+\gamma^2\boldsymbol g\boldsymbol g^{\mathsf T}/\delta
+       &\gamma\boldsymbol g/\delta\\
+  \gamma\boldsymbol g^{\mathsf T}/\delta&1/\delta
+ \end{pmatrix}.
+ \label{eq:op3-original-border-inverse}
+\end{equation}
+For the original physical face values,
+$u_j=(\gamma\boldsymbol s^{\mathsf T}\boldsymbol u_U-\lambda d_j)/\delta$
+and the old values increase by $\gamma\boldsymbol g u_j$.
+\end{lemma}
+\begin{proof}
+The inverse factorization underlying
+\cref{lem:op3-cluster-conditional-green} separates conditional interior
+residuals from the retained coordinates, proving
+\eqref{eq:op3-conditional-full-green}. Equivalently, it is the usual block
+inverse of a matrix partitioned into interiors and ports. Each response
+row has at most two nonzero retained coefficients.
+
+The enlarged original matrix has blocks
+$\boldsymbol M_{UU}$, $-\gamma\boldsymbol s$ and $d_j$.
+Direct block elimination proves \eqref{eq:op3-original-border-inverse}
+and the physical value update. For any principal active set $W$ and vector
+$\boldsymbol y$, the original full degrees give
+\[
+ \boldsymbol y^{\mathsf T}\boldsymbol M_{WW}\boldsymbol y
+ \geq \sum_{i\in W}(d_i-\gamma d_{G[W]}(i))y_i^2
+ \geq\bar\alpha\sum_{i\in W}d_i y_i^2.
+\]
+Minimizing the enlarged quadratic over old coordinates with the new
+coordinate fixed to one gives $\delta\geq\bar\alpha d_j$.
+The identities are exact; this lower bound by itself is not a floating-point
+stability theorem for a long sequence of inverse updates.
+\end{proof}
+
+\paragraph{Precise remaining algorithmic obligation.}
+For an ordinary one-parent admission at $i$, a named trace supplies
+$g_{ii}$ and the at most two nonzero coefficients of $\boldsymbol a_i$.
+Then the selected old-port Green vector is
+$\boldsymbol J\boldsymbol a_i$ and the full parent variance is
+$g_{ii}+\boldsymbol a_i^{\mathsf T}\boldsymbol J\boldsymbol a_i$.
+Equation \eqref{eq:op3-original-border-inverse} suggests a rank-one update
+of the stored port inverse in $O(|P|^2)$ work, with every inverse entry
+written and charged.
+
+At a cycle birth, first promote the old active parents and newly needed
+Steiner junctions using selected covariances, then border the new vertex
+with all its active edges. At most one parent, the insertion-tree parent,
+may be a transient port; restricting the updated inverse afterward to the
+permanent retained set preserves the original partition's port bound.
+Retaining every promoted marker is an alternative with a larger constant.
+This step must
+be reconciled with the paid repartition and with queries from the old
+current piece versions. The full update implementation, exact comparisons
+and total promotion/copy bound are the next falsifiable target in
+\texttt{COARSE\_INVERSE\_UPDATE\_PROBE.md}. No improved end-to-end exponent
+is asserted from these identities alone.
+
+\paragraph{Measured.}
+\texttt{cluster\_green\_queries.py} compares affine rows, conditional
+variances and all covariance pairs against independent exact conditional
+inverse matrices. It includes one-port bases, all compress/rake/forget
+helpers, arbitrary physical seeds, shifted source-interior clusters and
+retained payload versions. Whole-hierarchy indexing and dense inverse
+columns are separate reference costs. Reproducible counts and hashes are
+recorded in \texttt{CLUSTER\_GREEN\_QUERY\_AUDIT.json}. The sweep includes
+256 canonical faces, 2,664 independent conditional inverse matrices,
+29,408 affine/variance checks and 123,844 covariance pairs, with no mismatch.

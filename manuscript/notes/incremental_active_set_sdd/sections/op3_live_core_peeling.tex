@@ -1,0 +1,309 @@
+\section{Peeling the live core while preserving physical-flux groups}
+\label{sec:op3-live-core-peeling}
+
+\paragraph{Status and scope.}
+The following \statusproved{} construction is a proof draft awaiting
+independent review. It strengthens \cref{thm:op3-branch-core-flux} by
+allowing retained vertices to disappear after their side branches settle.
+The work depends on the maximum simultaneous core size, including a
+temporarily admitted vertex, rather than on the total number of original
+branching vertices admitted. No graph-uniform bound on that maximum is
+claimed. General OP3 remains \statusopen.
+
+Use $\lambda=\epsappr/2$, $\bm M=\bm D-\gamma\bm A$, and
+$\bm b=\bm e_v-\lambda\bm d$. Every strictly positive admission is
+temporarily retained. The seed always remains retained. Other core vertices
+are eliminated whenever their current reduced degree is at most two,
+counting distinct retained and inactive neighbors after parallel couplings
+have been coalesced. Denote the current retained set by $C$ and exposed
+inactive set by $B$. The admitted original set $U$ includes both retained
+and eliminated vertices.
+
+\subsection{The reduced matrix and grouped physical signals}
+
+Maintain the exact Schur matrix on $C\cup B$, retaining its core block,
+core--boundary couplings, boundary diagonals and transformed loads.
+Original inactive--inactive edges are revealed only on admission of an
+endpoint. No fill edge between two inactive vertices is created.
+For a pair $(c,j)\in C\times B$, collect a disjoint group of original
+boundary edges whose total physical flux has the form
+\begin{equation}
+ F_{cj}=a_{cj}u_c+b_{cj},\qquad
+ a_{cj}>0,\quad b_{cj}\leq0.
+ \label{eq:op3-grouped-physical-flux}
+\end{equation}
+Store the original incidence count $k_{cj}$ and a lower publication
+$\ell_{cj}$. At each inactive $j$ the groups partition all original edges
+from $U$ into $j$, so its exact gate is
+\[
+ g_j=-\lambda d_j+\sum_c F_{cj}.
+\]
+The group slope is also the reduced coupling between $c$ and $j$.
+Its intercept contributes to the transformed load of $j$.
+
+\begin{lemma}[One boundary group per eligible core removal]
+\label{lem:op3-live-core-removal}
+If a nonseed core vertex $i$ has reduced degree at most two, it has at
+least one core neighbor and at most one inactive neighbor. Eliminating
+$i$ changes at most two remaining neighbors and moves at most one
+physical-flux group. The representation
+\cref{eq:op3-grouped-physical-flux}, its signs, and the absence of
+inactive--inactive fill are preserved.
+\end{lemma}
+\begin{proof}
+Every admitted vertex has an original active neighbor at admission, hence
+the admitted graph is connected to the seed. Positive Schur elimination
+preserves connectedness among the remaining retained vertices. Thus a
+nonseed retained vertex has a retained neighbor, proving the degree claim.
+
+Suppose the two neighbors are retained $c$ and inactive $j$. Write
+\[
+ \delta_i u_i=b_i+w_{ic}u_c+a_{ij}u_j,
+ \qquad F_{ij}=a_{ij}u_i+b_{ij}.
+\]
+At the pinned boundary value $u_j=0$, elimination moves this physical group
+to retained coordinate $c$ with
+\begin{equation}
+ a'_{cj}=a_{ij}w_{ic}/\delta_i,\qquad
+ b'_{cj}=b_{ij}+a_{ij}b_i/\delta_i,
+ \qquad \delta_j\leftarrow\delta_j-a_{ij}^2/\delta_i.
+ \label{eq:op3-live-core-group-move}
+\end{equation}
+All nonseed transformed core loads remain negative: initially they are
+$-\lambda d_i$, and eliminating another negative-load vertex adds a
+negative multiple to them. Schur pivots remain positive. Thus the group
+signs are preserved. Keep its original incidence count and lower
+publication unchanged. If a group $(c,j)$ already exists, add the slopes,
+intercepts, incidence counts and lower publications. The physical edge
+sets being combined are disjoint.
+
+For two retained neighbors, ordinary two-neighbor Schur complementation
+changes their diagonals, loads and mutual coupling; there is no boundary
+group to move. With one retained neighbor and no inactive neighbor, the
+operation removes a settled leaf response. In all cases there are at most
+two distinct neighbors, so no two inactive vertices receive a fill edge.
+Save the removed scalar equation for recovery.
+\end{proof}
+
+When $j\in B$ is admitted, its current diagonal, transformed load
+$-\lambda d_j+\sum_c b_{cj}$, and couplings $a_{cj}$ form its exact
+bordered core equation. Retire all groups ending at $j$, then scan its
+original row. A newly revealed edge to an inactive vertex starts a direct
+group with $(a,b,k,\ell)=(\gamma,0,1,0)$. An original-edge dictionary
+prevents repeating an old incidence. Queue the new core vertex for peeling;
+after a removal, only its retained neighbors need another eligibility test.
+Thus no global scan is needed to find eligible removals.
+
+\subsection{Events, inverse restriction and recovery}
+
+Use a scalar minimum heap at each retained coordinate, with group threshold
+\begin{equation}
+ \tau_{cj}=\frac{(5/4)\ell_{cj}+k_{cj}\epsappr/16-b_{cj}}{a_{cj}}.
+ \label{eq:op3-grouped-flux-threshold}
+\end{equation}
+After updating the core, settle all these heaps. If $u_c>\tau_{cj}$,
+publish the actual group flux and update the shared sum
+$L_j=\sum_c\ell_{cj}$. Queue $j$ once this sum exceeds
+$(11/20)\epsappr d_j$. Equality stays inactive.
+
+Moving and coalescing groups preserves the published sum at their common
+target. In particular, a moved group's lower publication is not reset to
+zero. A published group remains a lower bound after every legal admission
+by monotonicity of the restricted solution. A settled group satisfies
+\[
+ \ell_{cj}\leq F_{cj}\leq\tfrac54\ell_{cj}
+                  +k_{cj}\epsappr/16.
+\]
+Summing over the disjoint physical incidences gives the same original
+residual certificate as \cref{eq:op3-arm-terminal-residual}. Every queued
+candidate stays legal, including through representation changes.
+
+Maintain the retained inverse $\bm P=\bm H_C^{-1}$ and retained values.
+An admission uses the bordered update in
+\cref{eq:op3-core-rank-update}. Removing a retained vertex leaves the
+restricted solution unchanged, and the inverse of its new Schur matrix is
+exactly the principal submatrix of $\bm P$ on the remaining retained labels.
+The implementation stores dense inverse rows keyed by original vertex
+labels. Deleting one row and column costs $O(|C|)$ dictionary entries;
+there is no global change of the labels used by old group or recovery records.
+
+Each original positive vertex is either still retained or has exactly one
+saved equation. Its coefficients name original remaining-neighbor labels,
+including any inactive neighbor at that time. In reverse elimination order,
+every later eliminated neighbor has already been recovered, and a neighbor
+that never activated contributes zero. This recovers all original positive
+coordinates once. A vertex's temporary core birth is not a second output
+record.
+
+\begin{theorem}[A bound in maximum live-core size]
+\label{thm:op3-live-core-peeling}
+Let $q$ be the largest simultaneous retained set, including temporary
+admissions before peeling. Put $V=\vol(U)$, $n_U=|U|$, and
+$L=1+\log_+(1/(\bar\alpha\epsappr))$ for the returned support $U$.
+On every canonical input graph, the algorithm returns a nonnegative ACL
+approximation with exact-real word work
+\begin{equation}
+ O\left((n_Uq^2+qV+VL)\log(2+V)\right)
+ =\widetilde O((1+q^2)/\epsappr),
+ \label{eq:op3-live-core-work}
+\end{equation}
+and working storage $O(V+q^2)$. Empty output costs $O(1)$.
+Only positive-output adjacency rows are scanned, and degrees are queried
+only at the seed or exposed neighbors. No topology, elimination order,
+final support or bound on $q$ is supplied.
+\end{theorem}
+\begin{proof}
+The reduced equations and \cref{lem:op3-live-core-removal} preserve the exact
+restricted solution. Scalar publications certify positive gates for the
+obstacle at $\lambda=\epsappr/2$. Inverse positivity therefore makes all
+admissions safe and all old coordinates increase. At termination active
+residuals equal $\lambda d_i$, while the summed group bands bound inactive
+residuals by $(3/4)\epsappr d_i$. This yields the ACL witness, and
+conservation gives $V\leq2/\epsappr$.
+
+Each original row is scanned once. Each admitted vertex is removed from
+the core at most once. A removal changes only two reduced neighbors and
+moves at most one group. A direct edge starts one group and each move
+starts at most one replacement group, possibly coalescing an existing
+group. Thus the total number of group lifetimes is $O(V)$, including all
+replacements. During a fixed lifetime, physical membership is fixed and
+$0\leq F_{cj}\leq k_{cj}\gamma/\bar\alpha$. A first new publication
+exceeds $k_{cj}\epsappr/16$, and successive publications grow by more
+than $5/4$. Hence each lifetime has $O(L)$ publications, regardless of its
+incidence count. Each retired entry is discarded once, including heaps
+discarded with a removed core. Every unsuccessful heap test, core-queue
+scan, ready-queue operation and peeling eligibility test is charged.
+
+The number of core-queue visits is at most $n_Uq$. Each admission updates
+at most $q^2$ inverse entries; sparse inverse-vector products cost at most
+$O(qV)$ in total because candidate group counts sum to $O(V)$. Removing
+inverse rows and columns costs $O(n_Uq)$ entries. Reduced-edge changes,
+original-edge bookkeeping, group replacement and reverse equations cost
+$O(V)$ records. Comparison dictionaries and scalar heaps give the displayed
+logarithmic factor and a deterministic word bound. The audited Python code
+uses dictionaries as a bookkeeping convenience. Dense inverse storage is
+$O(q^2)$, and all group lifetimes, cached rows, scalar heaps and recovery
+records require $O(V)$ words. No group operation copies its original
+physical membership list; such lists appear only in the independent audit.
+\end{proof}
+
+\subsection{A source-valid separation between two admission orders}
+
+\begin{proposition}[Peeling resolves the balanced-tree diagnostic under depth-first order]
+\label{prop:op3-live-core-binary-order}
+On the complete binary tree of height $h\geq2$, rooted at the seed, take
+$\alpha=1/1009$ and $\epsappr=\alpha/(10\cdot6^h)$ as in
+\cref{prop:op3-dense-core-binary-tree}. The last-in-first-out ready policy
+has $q\leq h+1$ and therefore $\widetilde O(n)$ word work for this family.
+The first-in-first-out policy has $q\geq2^h$ and incurs
+$\Omega(n^3)$ explicit inverse writes before the first leaf is processed.
+Both policies return valid ACL output on the same full support.
+\end{proposition}
+\begin{proof}
+Every newly exposed boundary vertex becomes ready after the heaps settle.
+To see this uniformly over connected root-containing faces, let $i$ be
+the active parent of an inactive boundary vertex. Its depth is at most
+$h-1$. A single walk term gives
+$(\bm M_{UU}^{-1}\bm e_v)_i\geq2/6^h$.
+Also $\bm M_{UU}\bm1\geq\bar\alpha\bm d_U$, so
+$\bm M_{UU}^{-1}\bm d_U\leq\bm1/\bar\alpha$. Consequently
+\[
+ u_i^U\geq\frac2{6^h}-\frac\lambda{\bar\alpha}
+ >\frac{39}{20\cdot6^h},\qquad
+ r_j^U\geq\gamma u_i^U>\frac{39}{40\cdot6^h}
+ >\tfrac34\epsappr d_j.
+\]
+The settled group bands then force
+$L_j>(11/20)\epsappr d_j$. All old boundary vertices were already queued;
+the newly queued vertices are exactly the children exposed by the latest
+admission. Thus the two ready policies realize the usual breadth-first
+and depth-first orders, with arbitrary sibling ties.
+
+During depth-first exploration of a tree, all active vertices off the
+current root path belong to completed subtrees. Their leaf responses have
+been peeled, recursively, and their roots are eligible for further peeling.
+No unfinished active subtree lies off the current search path. All retained
+vertices therefore lie on that path; even including a temporary admission
+there are at most $h+1$. Since $V=O(n)$ and $h=O(\log n)$, the work bound
+follows from \cref{thm:op3-live-core-peeling}.
+
+Under breadth-first order every internal vertex is admitted before any
+leaf. Each nonseed internal vertex still has three distinct reduced
+neighbors, so none has been peeled. The first leaf is temporarily added to
+the $2^h-1$ internal retained vertices, proving the bound on $q$. The
+preceding internal births alone force
+$\sum_{k=1}^{2^h-2}k^2=\Omega(n^3)$ inverse writes. This is a difference
+between two implementations on an easy graph family, not an OP3 lower bound.
+\end{proof}
+
+\paragraph{What remains open.}
+Depth-first order alone does not bound $q$ on a general trace. A branch that
+is quiet at one root value can become productive after another branch
+changes the response. Many unfinished branches may therefore remain live.
+The next target is a paid rule that either bounds the simultaneous core,
+eliminates a higher-degree core vertex with a stronger grouped response,
+or maintains its response and all due thresholds implicitly. Every change
+of physical membership and every failed certificate must remain charged.
+
+\begin{proposition}[Interior tree support blocks every first peeling step]
+\label{prop:op3-live-core-interior-tree}
+For any integer $h\geq1$, let the input be the complete binary tree of
+height $H=3h+5$, seeded at its root, with
+\[
+ \alpha=\tfrac13,\qquad \gamma=\bar\alpha=\tfrac12,
+ \qquad \epsappr=\frac1{12\cdot6^h},\qquad
+ \lambda=\epsappr/2.
+\]
+Under either ready policy, and indeed under any legal ready policy in this
+construction, no nonseed core vertex is peeled. Every valid ACL output
+contains all vertices through depth $h$, so
+$q=|U|\geq2^{h+1}-1$. The explicit inverse backend consequently requires
+$\Omega(8^h)=\Omega((1/\epsappr)^{\log_6 8})$ word writes.
+In particular, current-degree-two peeling plus depth-first order does not
+give a uniform polylogarithmic live core or an OP3 work bound.
+\end{proposition}
+\begin{proof}
+A source-to-vertex walk term, using original degrees at most three, gives
+for every vertex at depth at most $h$
+\[
+ \pi_i/d_i=\bar\alpha(\bm M^{-1})_{iv}
+ \geq\frac1{6\cdot6^h}=2\epsappr.
+\]
+The ACL semantic implication therefore forces positive output at every
+such vertex.
+
+At the other end of the tree, no original leaf can belong to the positive
+obstacle support at $\lambda$. To verify this, write
+\[
+ \bm M^{-1}=(\bm I-\gamma\bm D^{-1}\bm A)^{-1}\bm D^{-1}.
+\]
+The transition matrix is row-stochastic. Its entries connecting a vertex
+at depth $t$ to the seed vanish before time $t$ and are at most one
+afterward. Since $d_v\bar\alpha=1$, the unregularized degree potential
+at that vertex is at most $\gamma^t$. The obstacle potential is bounded
+above by this unregularized solution. At the parent of an original leaf,
+the possible incoming leaf flux is thus at most
+\[
+ \gamma^H=\frac1{32\cdot8^h}
+ <\frac1{24\cdot6^h}=\lambda.
+\]
+A positive leaf would require $u_i=\gamma u_{p(i)}-\lambda>0$, a
+contradiction. Safe admissions consequently never reach any original leaf.
+
+Before any peeling step, every admitted nonseed vertex has its three
+distinct original neighbors in the core or the exposed boundary. An
+admission changes a neighbor's status but does not reduce that degree.
+There can therefore be no first eligible removal. Induction gives no
+removals at all, and $C=U$. Each successive admission changes every entry
+of the previous positive retained inverse, giving
+$\sum_{k=1}^{|U|-1}k^2=\Omega(|U|^3)$. The required depth-$h$ prefix
+proves the stated bound. Since $\log_6 8>1$ and all relevant logarithms
+grow only with $h$, this exceeds the OP3 scale for this backend.
+\end{proof}
+
+The last proposition is an implementation-specific negative control.
+Teleportation is fixed in that family, so standard positive local-push
+bounds already reach $O(1/\epsappr)$ there. It neither refutes OP3 nor
+rules out a method choosing between response representations. It does show
+that a small live-core assertion requires additional structure, and that
+completed-subtree examples alone are insufficient evidence for it.

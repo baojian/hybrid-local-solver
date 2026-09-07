@@ -1,6 +1,6 @@
 # LCP, obstacle, and active-set solvers for the OP2 route
 
-Last source audit: 2026-08-30
+Last source audit: 2026-09-06 (OP3 constrained-diffusion addendum)
 
 This map asks a narrow question: does a primary-source theorem already give
 the fully charged, graph-uniform, output-sensitive solver required by OP2 after
@@ -88,6 +88,139 @@ on PDF pp. 13--14, but does not introduce a flow variable, a dual energy
 objective, or the grounded electrical-flow optimization problem.  The active
 manuscript now states that dual explicitly as a structural interpretation and
 does not claim standard Fenchel duality as the new complexity ingredient.
+
+### Chen, Peng, and Wang, 2021: constrained diffusion and the OP3 alternative
+
+**Source.** [*ℓ2-Norm Flow Diffusion in Near-Linear Time*](https://arxiv.org/pdf/2105.14629v2), FOCS 2021, arXiv:2105.14629v2.
+
+- Theorem 1.1 (PDF p. 5) gives randomized high-probability
+  `O(m log^8(n) log(1/eta))` work on a supplied graph. Definitions 3.7--3.8
+  (p. 15) specify the generalized diffusion objective and its approximation;
+  Lemmas 4.1--4.2 (p. 17) give the generalized solver and refinement.
+- Constrained elimination and vertex weighting functions are the relevant
+  mechanisms (Sections 2.2--2.3). Section 1.4 (p. 8) leaves strongly local
+  near-linear diffusion open.
+- Assumption 3.15 (p. 17) restricts every encountered nonzero number to
+  `[n^(-c), n^c]` for a universal constant. Numerical stability is outside
+  the source's scope; Lemma 4.4 also uses polynomial weight ratio.
+
+**Audit.** Global-only, with a parameter-range obligation. The OP3 face matrix
+is algebraically a graph Laplacian plus positive diagonal vertex terms, but
+this does not supply a local construction or unrestricted polylogarithmic
+inverse-teleportation dependence. The exploration and proposed acceptance
+criteria are in
+[`OP3_DIRECTIONS_20260906.md`](../../manuscript/notes/incremental_active_set_sdd/OP3_DIRECTIONS_20260906.md).
+
+### Alstrup, Holm, de Lichtenberg and Thorup: dynamic tree clusters
+
+**Source.** [*Maintaining Information in Fully-Dynamic Trees with Top Trees*](https://arxiv.org/pdf/cs/0310065v2),
+*ACM Transactions on Algorithms* 1(2):243–264, 2005; publication metadata
+checked against the [University of Copenhagen record](https://researchprofiles.ku.dk/en/publications/maintaining-information-in-fully-dynamic-trees-with-top-trees/).
+The checked theorem text is arXiv:cs/0310065v2 (21 November 2003).
+Section 2, PDF pp. 4–8, defines edge-induced clusters with at most two
+boundary vertices and application callbacks. Theorem 1, p. 6, gives
+logarithmic height, linear structural space, and O(log n) joins/splits per
+link, cut or expose. Composite k-operation bounds multiply by k.
+Section 2.1 requires splitting every cluster whose edge set or boundary
+set will change. Link/cut reset external boundaries. Section 6.1, p. 25,
+implements exposure; Section 6.2, pp. 25–26, handles arbitrary degree
+inside the data structure.
+
+The [published PDF](https://www.cs.uoi.gr/~loukas/courses/grad/Data_Structures_and_Algorithms/papers/p243-alstrup.pdf)
+was subsequently checked directly: Theorem 2.1, journal p. 247; definitions,
+modification discipline and application pointers, pp. 245–248; exposure and
+arbitrary-degree reduction, pp. 259–260. It retains the required height and
+callback guarantees. Unlike the old preprint, the published interface does
+not offer zero-argument expose; the application uses only one- or two-vertex
+exposure. The final theorem imports this height-bounded published version.
+
+**Import audit completed for trees.** The OP3 note proves
+`thm:op3-local-top-tree`: the application stores an unavailable marker for
+clusters with an interior seed, then uses source exposure to split/recreate
+them. Every valid join is a constant number of implemented compress/rake/
+forget operations. A home-edge payload refresh follows the logarithmic
+ancestor path. Local indices and incidence records include only admitted
+vertices. The resulting exact-real word work is O(cvol(U) log^4(2+cvol(U))),
+with final recovery and all retained copies charged. This is a local proof
+draft awaiting independent review, not a theorem attributed to the source.
+The callback audit checks 167,384 legal joins and 650 exposure transitions;
+its exhaustive hierarchy builder is not the published balancing algorithm.
+Source height bounds, not the unbounded-height amortized variant of Section
+6.3, are used for the payload walk. Uniform shifted loads now allow an
+independent geometric anchor; the proposed unicyclic continuation remains
+Open in `UNICYCLE_TOP_TREE_PROBE.md`.
+
+### Jacob and Brodal: stable planar boundary records
+
+**Source.** [*Dynamic Planar Convex Hull*](https://arxiv.org/pdf/1902.11169),
+arXiv:1902.11169v1 (2019), Theorem 1 on PDF page 2, gives amortized
+logarithmic insertion/deletion, logarithmic extreme-point queries, and
+linear space. Section 2.2, PDF pages 5–6, specifies exact geometric
+primitives and the real-RAM/pointer model.
+
+**Audit.** This is enough for individual changes to stable planar frontier
+records. The earlier `aesp_cd_l1_rppr` stable-port corollary already states
+that reduction, while its series-parallel hull-meld interface remains open.
+The new `thm:op3-two-port-frontier` verifies the required local work by
+retaining the seed and at most one other admitted branching vertex. Its
+separate AVL implementation uses a conservative fourth-power logarithm,
+proved locally; it does not implement or import the source's optimal
+construction. Changing many separator coordinates at once is not a single
+point update in this source model.
+
+### Chan: a verified three-coordinate source contract
+
+**Source.** [*Dynamic Geometric Data Structures via Shallow Cuttings*](https://arxiv.org/pdf/1903.08387),
+arXiv:1903.08387v1 (2019), Theorem 4.2 on PDF pp. 10–11, gives
+three-dimensional extreme queries in `O(log^2 n)` time, amortized
+`O(log^2 n)` insertion and `O(log^4 n)` deletion, with `O(n log n)`
+preprocessing and `O(n log n)` space (p. 11). Lemma 4.1, PDF p. 9, uses
+deterministic restricted shallow cuttings. The query proof on p. 11 checks
+the static envelope and a recursively maintained exception set; its deletion
+counter argument ensures a surviving extremizer is found.
+
+**Import audit.** Theorem 4.2 has no general-position restriction; the
+restriction in Theorem 2.1 concerns a different hull-size problem. Coincident
+labeled points can be grouped in a comparison dictionary, storing a live
+representative. Any exact maximizer suffices for a strict gate query.
+Initialization from a constant-size set is paid by the stated insertion
+bound; local frontier size is discovered online. This reconciles the source
+contract for a fixed third coordinate, without implementing its backend.
+It supplies individual updates, not bulk coordinate transformations.
+The newer scalar physical-flux construction in `incremental_active_set_sdd`
+handles growing core dimension with an explicit dense-core cost, so a
+three-dimensional implementation is no longer the immediate research target.
+
+### Tree hitting times and the bounded-attachment probe
+
+**Source.** [*Reversible Markov Chains and Random Walks on Graphs*, Chapter 5, §5.3](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch5.S3.html), online section dated 23 April 1996. Theorem 5.20, equation (5.81), gives the mean time across a tree edge as twice the starting-side component size minus one. Proposition 5.24(b) bounds the maximal mean hitting time on an n-vertex tree by `(n-1)^2`.
+
+**Audit.** These are mean-hitting statements, not an extremal comparison of
+discounted hitting transforms. The new
+[`BOUNDED_ATTACHMENT_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/BOUNDED_ATTACHMENT_PROBE.md)
+rederives the needed edge identity and a conservative mean bound, then uses
+Jensen's inequality to prove attachment saturation. The sharper Chebyshev
+comparison in `DISCOUNTED_ATTACHMENT_EXTREMAL_PROBE.md` remains **Open**;
+finite exact tests do not turn the source's mean bound into that claim.
+
+### Agarwal, Phillips, and Sadri: an affine response data structure
+
+**Source.** [*Lipschitz Unimodal and Isotonic Regression on Paths and Trees*](https://www.cs.toronto.edu/~sadri/publications/regression.pdf), author manuscript dated 2 January 2010. Section 3, Theorem 3.1 (PDF p. 7), gives affine composition trees: whole-curve affine maps cost constant time; evaluation, inverse evaluation, insertion and interval maps cost logarithmic time. The transformed curve must remain monotone in both coordinates.
+
+**Audit.** This is a data structure for supplied scalar curves, not a local
+RPPR solver. The new
+[`TREE_AFFINE_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/TREE_AFFINE_PROBE.md)
+gives a supplied-tree adaptation. Its persistent AVL implementation and
+`O(n log^2 n)` word-work argument are now proof-drafted and exactly audited
+in `thm:op3-persistent-tree`. Local discovery and multidimensional cyclic
+responses remain separate obligations; these are our claims, not the
+source's RPPR results.
+
+For comparison, Kuric, Ahmetspahic and Pock's
+[*Total Generalized Variation on a Tree*](https://epubs.siam.org/doi/10.1137/23M1556915)
+(2024), Lemma 4.4, proves quadratic worst-case time and memory for its convex
+piecewise-quadratic message implementation. This is an algorithm bound, not a
+lower bound for implicit affine representations.
 
 ### Foniok et al., 2009: short K-LCP pivot paths, expensive oracle
 

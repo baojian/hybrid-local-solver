@@ -1,0 +1,237 @@
+\section{A bounded region of changing tree attachments}
+\label{sec:op3-bounded-attachments}
+
+\paragraph{Status and model.}
+The following are \statusproved{} proof drafts, awaiting independent review.
+The graph is a simple cycle with disjoint finite trees attached to its
+centers through one edge each. The seed is on the cycle. Neither the cycle
+ordering nor any attachment size is supplied. Use the degree obstacle
+problem with $\bm M=\bm D-\gamma\bm A$,
+$\bm b=\bm e_v-\lambda\bm d$, $0<\gamma<1$, and $\lambda>0$.
+Let $q\geq1$ be the maximum size of an attachment incident to a cycle
+center that is positive in the final answer, taking $q=1$ if there are no
+such attachments. This is an analysis parameter, not advice to the solver.
+The exact-real word model charges all bounded probes, even into inactive
+vertices, all curve construction, stored-state work, event searches and
+output. No coefficient-bit or floating-point claim is made.
+
+\subsection{When a tree attachment has finished changing}
+
+\begin{lemma}[A discounted-hitting saturation bound]
+\label{lem:op3-attachment-saturation}
+Let a tree $T$ of at most $q$ vertices be attached through one edge to a
+center whose potential is fixed at $x\geq0$. All loads in $T$ are
+$-\lambda d_i$, using actual graph degrees. Its conditional obstacle
+solution has every coordinate strictly positive, and its response has
+reached the final affine piece, whenever
+\begin{equation}
+ x\geq X_q:=\frac{\lambda}{1-\gamma}
+                    \bigl(\gamma^{-2q^2}-1\bigr).
+ \label{eq:op3-attachment-saturation}
+\end{equation}
+The algorithm need not evaluate this threshold.
+\end{lemma}
+\begin{proof}
+Run simple random walk until it first hits the center, with hitting time
+$\tau$, and put $p_i=\mathbb E_i[\gamma^\tau]$. Harmonic conditioning on
+the first step gives $p_i=\gamma\sum_{j\sim i}p_j/d_i$, with center value
+one. Direct substitution therefore shows that the unconstrained solution is
+\begin{equation}
+ u_i=p_i\left(x+\frac{\lambda}{1-\gamma}\right)
+                -\frac{\lambda}{1-\gamma}.
+ \label{eq:op3-discounted-attachment}
+\end{equation}
+
+Root the attachment at the center. The expected time from a child $j$ to
+its parent is $2|T_j|-1$. Indeed, first-step decomposition gives
+$H_j=d_j+\sum_{k\text{ child of }j}H_k$; induction over the descendant
+tree gives the displayed expression. The walk from any $i$ to the center
+crosses the successive parent edges in order. The strong Markov property
+then gives
+$\mathbb E_i\tau\leq q(2q-1)<2q^2$.
+The function $t\mapsto\gamma^t$ is convex, so
+$p_i\geq\gamma^{\mathbb E_i\tau}>\gamma^{2q^2}$.
+Under \cref{eq:op3-attachment-saturation},
+\cref{eq:op3-discounted-attachment} is strictly positive for every $i$.
+It is therefore the obstacle optimum. It remains positive at larger $x$,
+so the response thereafter is this single affine formula.
+\end{proof}
+
+\begin{lemma}[Potential growth behind the active end]
+\label{lem:op3-cycle-interior-growth}
+Before cycle closure, let $y_0\geq0$ be the potential at an active end,
+$y_{-1}=0$ the next inactive cycle coordinate, and $y_k$ the consecutive
+active-center potentials toward the seed. Up to and including the seed,
+\begin{equation}
+ y_k\geq\frac{\lambda}{1-\gamma}(\gamma^{-k}-1).
+ \label{eq:op3-cycle-interior-growth}
+\end{equation}
+Consequently all attachments at a center at least $2q^2$ edges behind an
+active end have finished changing.
+\end{lemma}
+\begin{proof}
+A negative-load attachment has no coordinate greater than its center:
+a larger positive maximum would contradict its own obstacle equality and
+$\gamma<1$. At a nonseed cycle center of degree $d_i=2+k_i$, the sum of
+the $k_i$ attached-root potentials is at most $k_i y_i$. Its active
+equation therefore implies
+\[
+ y_{i+1}+y_{i-1}
+ =\frac{2+k_i}{\gamma}(y_i+\lambda)
+     -\sum_{j\text{ attached at }i}u_j
+ \geq\frac2\gamma(y_i+\lambda).
+\]
+Put $w_i=y_i+\lambda/(1-\gamma)$. Then
+$w_{i+1}\geq2w_i/\gamma-w_{i-1}$, and
+$w_0\geq w_{-1}=\lambda/(1-\gamma)$.
+The first step gives $w_1\geq w_0/\gamma$. If
+$w_i\geq w_{i-1}/\gamma$, the recurrence gives
+$w_{i+1}\geq(2/\gamma-\gamma)w_i\geq w_i/\gamma$.
+Induction proves \cref{eq:op3-cycle-interior-growth}. This uses only
+nonseed equations even when the last derived value is the seed value.
+Apply \cref{lem:op3-attachment-saturation} at distance $2q^2$.
+\end{proof}
+
+The length-two counterexample in
+\cref{prop:op3-cycle-unsettled-attachment} is consistent with these bounds.
+An attachment can still change after one advance; it cannot remain
+unsettled arbitrarily far behind the active end when its size is bounded.
+
+\subsection{Finding ports and building only bounded components}
+
+At an admitted cycle center $c$, read its adjacency row and try exploration
+limits $L=1,2,4,\ldots$. For each neighbor $j$, explore its component in
+$G-c$ until it is exhausted or one of the following certificates occurs:
+more than $L$ vertices are found, a vertex has degree greater than $L$, or
+another neighbor of $c$ is reached. In the degree test, stop before reading
+that vertex's adjacency row. An exhausted component is an attached tree of
+size at most $L$. The other cases provisionally mark a port. Reaching
+another neighbor marks both of the corresponding ports.
+
+The actual two cycle ports are always marked: their common component in
+$G-c$ either exceeds the limit or connects the two neighbors. An attached
+tree can be marked only when it exceeds $L$. Thus exactly two marked
+ports certify that all attached components have been fully discovered.
+Otherwise double $L$ and retry, caching graph replies. If the largest
+attachment at $c$ has size $q_c\geq1$, this terminates with $L<2q_c$,
+or with $L=1$ when there is no attachment. Each trial explores at most
+$L$ rows of degree at most $L$ per incident neighbor, plus a constant
+number of stopping replies. Its charged work is $O(L^2d_c)$; all trials
+sum to $O(q_c^2d_c)$. No ambient graph scan or structural advice is used.
+
+Build each discovered attachment's response once using
+\cref{thm:op3-persistent-tree}, retaining its child curves for terminal
+reconstruction. It is permissible to build already exhausted small
+components again during failed classification trials, provided this work
+is charged; the implementation does so. Each attachment response is
+convex and has at most its size in knots. For a center, sort the union of
+its attachment knots in the center's own potential and maintain one cursor.
+If its current summed response is $C_i x+E_i$, the effective center
+diagonal and load are $d_i-C_i$ and $-\lambda d_i+E_i$; the seed also has
+its source load one. Crossing a hinge $c(x-\tau)_+$ subtracts $c$ from
+that diagonal and $c\tau$ from that load. Equal knots are consumed together.
+
+\subsection{Eagerly store settled prefixes and retain the changing region}
+
+Run the exact source-potential continuation of
+\cref{sec:op3-local-cycle}. On each arm retain a consecutive window of
+centers adjacent to the active end. After any event, repeatedly eliminate
+the first center of the window if its attachment cursor is exhausted,
+always leaving at least the last center. Eliminate from the seed outward,
+store one fixed reverse record, and accumulate its source-derivative
+contribution as in \cref{eq:op3-cycle-append,eq:op3-cycle-root-derivative}.
+The rule depends on the exhausted cursor, not on knowing $q$.
+
+If a window has more than one center, its first center has an unsettled
+attachment. By \cref{lem:op3-cycle-interior-growth}, its distance to the
+active end is less than $2q^2$. Therefore each retained arm has at most
+$2q^2$ centers. The attached components have already been compressed to
+their current scalar affine pieces. Their remaining cycle system is
+tridiagonal, with affine loads in the source potential $t$. Two forward
+and reverse passes compute all retained response coefficients in $O(q^2)$
+work. The exact root derivative follows from their Schur contributions.
+
+Inspect only the next attachment knot at each retained center, the seed's
+next knot, and the one or two cycle candidates. Every knot time is the
+zero of a known affine equality. The earliest event or earlier root of
+the reduced derivative is therefore found in $O(q^2)$ work, including
+the no-event certificate. A fully settled eliminated center has no future
+attachment event. No old prefix coordinate is queried or rewritten.
+
+If the two candidates coincide, use their combined load for the closing
+gate. After its admission, the two windows and the last center form one
+tridiagonal path, ordered from one seed-side prefix to the other, of size
+at most $4q^2+1$. Retain this path for the rest of the continuation.
+It contains every remaining nonseed attachment event. The root's own
+knots are still checked directly. Compute the two affine right-hand sides
+and the first remaining event by linear passes in this bounded path.
+Finish with one reverse pass through all stored prefixes and one traversal
+of the retained attachment curves.
+
+\begin{theorem}[Local solve with bounded tree attachments; proof draft]
+\label{thm:op3-bounded-attachments}
+For a cycle-seeded graph in the stated family, the described algorithm
+returns the exact obstacle optimum with
+\begin{equation}
+ \widetilde O\bigl(q^3(1+\vol(S))\bigr)
+ \quad\text{word work and}\quad
+ \widetilde O\bigl(q^2(1+\vol(S))\bigr)
+ \quad\text{working storage},
+ \label{eq:op3-bounded-attachment-work}
+\end{equation}
+where $S$ is its positive support. The quantity $q$ and the graph structure
+need not be supplied. Admitted center rows and all bounded probes are
+charged. Taking $\lambda=\epsappr$ gives an ACL approximation with work
+$\widetilde O(q^3/\epsappr)$ and no polynomial dependence on $1/\alpha$.
+For every fixed attachment-size bound this attains the OP3 scale on the
+promised family. It is not an arbitrary-graph or an arbitrary-seed theorem.
+\end{theorem}
+\begin{proof}
+Port classification is exact under the graph promise. At each admitted
+center the supplied bounded components therefore give its entire exact
+conditional response. The two-arm description enumerates all cycle gates
+before closure, including combined load at the last inactive center.
+All other possible events are attachment knots. Eliminated centers have
+exhausted their lists; the retained windows and the seed contain the rest.
+The source derivative, response equations and knot times are exact Schur
+computations on these current pieces. The positive Schur derivative and
+continuity justify advancing precisely when its zero lies after the next
+event. Thus every admitted center is positive at the final root; equality
+causes stopping before a new row is admitted. Final reconstruction solves
+all active equations and all other obstacle inequalities.
+
+Summing center degrees is bounded by $\vol(S)$. Classification, including
+failed bounded probes and reaccesses, costs $O(q^2\vol(S))$. The number
+of attachment vertices built is at most $q$ times the number of attached
+components, hence $O(q\vol(S))$. Repeated bounded builds and sorting cost
+$\widetilde O(q\vol(S))$. The number of consumed knots and center
+admissions is $O(q\vol(S))$. Each costs $O(q^2)$ for retained factors,
+responses and event searches, including unsuccessful searches. Each
+committed record is created once and used once at the end; even array
+shifts of retained windows cost only $O(q^2)$ per committed record.
+Terminal attached-curve evaluations cost
+$\widetilde O(q\vol(S))$ and positive output writes cost $O(\vol(S))$.
+These terms give the work bound. Cached probe incidences, persistent
+bounded-component curves, current knot lists, center records and temporary
+tridiagonal arrays fit the stated working storage bound; discarded
+construction and solve allocations are already charged to work.
+
+Finally the full-graph obstacle equations give
+$\lambda\vol(S)\leq1$, and the inverse-positive residual argument of
+\cref{cor:op3-local-cycle-acl} gives the ACL error
+$\bm0\leq\bm\pi-\bar\alpha\bm D\bm u\leq\lambda\bm d$.
+\end{proof}
+
+\paragraph{Measured evidence and remaining question.}
+The exact bounded-attachment implementation passes 1,909
+comparisons against a separate exact obstacle solver, including branching
+attachments and the preceding length-two witness. Eight larger instances
+pass full-graph KKT checks, performed only by the audit. There are also
+195 exact discounted-hitting checks on rooted trees through size six.
+For sizes two and three the reported larger runs retain at most five cycle
+centers at once; the theorem uses the conservative bound $4q^2+1$.
+The implementation counts failed classification probes, repeated curve
+construction and every retained-window factor row. These finite checks do
+not replace independent proof review. The remaining OP3 question is to
+remove the growing-attachment factor or replace it by a paid approximate
+response certificate, and then to handle more than one cyclic core.

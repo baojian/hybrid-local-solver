@@ -1,0 +1,263 @@
+\section[Complete local tree construction]{A complete local tree construction from the top-tree interface}
+\label{sec:op3-local-top-trees}
+
+\paragraph{Status and scope.}
+This section discharges the hierarchy condition in
+\cref{sec:op3-ordered-path-clusters} for arbitrary finite unweighted trees.
+It is \statusproved{} as a proof draft awaiting independent review. The
+published balancing algorithm is a \statussource{} import; the application
+callbacks and exact audits are implemented here. The exhaustive audit driver
+is not a fast online balancing implementation. No conclusion for arbitrary
+cyclic graphs follows from this tree result.
+Use the exact-real word model and the local degree/adjacency access model of
+\cref{sec:scope}. The physical seed is $v$,
+$\boldsymbol M=\boldsymbol D-\gamma\boldsymbol A$, and
+$\boldsymbol b=\boldsymbol e_v-\lambda\boldsymbol d$, with
+$\lambda=\epsappr/2$. Every checkpoint exposes $v$ as the single external
+boundary of the current active tree. Depths and parent edges refer to that
+permanently rooted mathematical tree, not to the changing cluster hierarchy.
+
+\begin{lemma}[Rooted ports and unavailable summaries; \statusproved]
+\label{lem:op3-source-interior-adapter}
+During a leaf insertion and subsequent exposure of $v$, a cluster can store
+its port set, a Boolean indicating whether it contains $v$, and either its
+exact summary from \cref{sec:op3-ordered-path-clusters} or an unavailable
+marker. Mark it unavailable exactly when $v$ is in its interior.
+A valid cluster has one or two ports, its rootward vertex is a port, and its
+two ports, if present, are comparable in the tree rooted at $v$.
+A valid parent never needs an unavailable child. After exposing $v$, every
+cluster is valid. Marking, splitting and propagating these flags cost
+constant work per structural operation.
+\end{lemma}
+\begin{proof}
+The maintained forest has one component containing edges, namely the active
+tree containing $v$, and at most one newly allocated isolated vertex.
+A zero-port edge cluster must be the whole component, hence contains $v$
+in its interior and is unavailable. Consider any other cluster $C$ whose
+rootward vertex is $r$. If $v\notin C$, the edge from $r$ toward $v$ leaves
+$C$, making $r$ a boundary. If $v\in C$ and $C$ is valid, then $r=v$ is a
+boundary by validity. Thus the rootward vertex is always a port. With at
+most two ports, they are comparable: otherwise their least common ancestor,
+or the exit from it toward $v$, would give a third boundary.
+
+A vertex interior to a child cannot be a boundary of its parent: every edge
+incident to it already belongs to the child, and it is not externally
+exposed. In particular, an unavailable child forces its parent to be
+unavailable. Conversely, a valid parent has only valid children and may use
+their algebraic summaries. These observations apply between updates.
+The source discipline in Section 2.1 of \cite{alstrup2005toptrees} first
+splits every cluster whose edges or boundary set will change. Thus an old
+interior vertex cannot silently become a new boundary in a retained cluster.
+After exposure, every cluster containing $v$ has it as a boundary, so every
+unavailable cluster has been split or its base edge recreated.
+Containment is the Boolean OR of the children's flags; no membership scan
+is needed. An unavailable node retains its structural child pointers so a
+later split needs no algebraic reconstruction.
+\end{proof}
+
+\begin{lemma}[Complete callback closure; \statusproved]
+\label{lem:op3-top-tree-callback-closure}
+With the convention of \cref{lem:op3-source-interior-adapter}, every base
+creation and legal top-tree join is implemented by a constant number of the
+edge, compress, rake and forget operations of
+\cref{sec:op3-ordered-path-clusters}. It costs
+$O(\log^3(2+N))$ exact word work and allocates
+$O(\log^2(2+N))$ hull nodes, where $N$ bounds the number of owned rows.
+No source load is eliminated in a valid summary.
+\end{lemma}
+\begin{proof}
+At a base edge, sort its endpoints by stored depth. With two ports, use the
+edge summary; with one port, retain its rootward endpoint and forget its
+nonseed farther endpoint. A source-interior base edge is unavailable and
+requires no algebra.
+
+In a join, the two child clusters share exactly one vertex, which is a port
+of each child. Every other child port remains a parent port: an edge leaving
+the child there cannot belong to the other child, since their only common
+vertex is the shared port. There are therefore exactly the following cases.
+\begin{enumerate}
+\item Two two-port children produce a two-port parent and eliminate their
+shared nonseed middle port. Their depth ordering identifies left and right,
+so \cref{lem:op3-adjacent-chain-separation} gives a separated compression.
+\item One one-port and one two-port child produce either a two-port parent,
+by raking, or a one-port parent, by raking and forgetting the shared port.
+In the latter case the shared port is farther from $v$; otherwise the
+parent's rootward vertex would be interior, contrary to
+\cref{lem:op3-source-interior-adapter}.
+\item Two one-port children share their sole port. If it remains a parent
+port, rake their scalar states and take the minimum threshold. Otherwise
+the parent has no ports and is unavailable.
+\end{enumerate}
+An unavailable parent is constructed as a structural record, independently
+of its children's algebraic status. For every valid parent all children
+are valid by \cref{lem:op3-source-interior-adapter}. The list exhausts the
+source's five join shapes. At a valid elimination the eliminated vertex is
+not $v$, and the eliminated interior is source-free. Its negative load
+invariant and positive Schur pivots therefore hold. The primitive bounds in
+\cref{lem:op3-persistent-projective-chain} finish the accounting.
+\end{proof}
+
+\begin{lemma}[One edge payload and online allocation; \statusproved]
+\label{lem:op3-top-tree-payload}
+A changed owned boundary row on one base edge can be maintained in
+$O(\log^4(2+n))$ word work and $O(\log^3(2+n))$ allocated hull nodes in a
+height-bounded top tree on $n$ active vertices. The local application needs
+no preprocessing indexed by the ambient graph size.
+\end{lemma}
+\begin{proof}
+Use the parent/child and edge-leaf pointers in the source representation,
+and walk from the changed leaf to the current hierarchy root. Recompute the
+base summary and every ancestor from its current children, preserving its
+existing port set and structural join shape. Even unavailable ancestors
+receive fresh child pointers. The walk has logarithmic length by Theorem 2.1 (journal p.\ 247)
+of \cite{alstrup2005toptrees}; the callback bound proves the claim. This
+operation changes application data only, so it does not rebalance the
+structural hierarchy. Later joins, including joins that undo a previous
+exposure, always derive fresh summaries from current children. They do not
+reactivate stale numerical snapshots from before the payload change.
+
+The underlying forest contains only admitted vertices and one newly created
+isolated vertex. Source vertex and edge identifiers can therefore be local
+indices allocated on demand. Store a comparison dictionary from discovered
+original labels to local records, and keep each active incidence list as
+local edge records. Resizable arrays can instead be allocated by doubling,
+charging each copy to the growing number of exposed words. The source's
+internal treatment of large degrees concerns these active structural
+incidences; it neither accesses inactive adjacency nor adds vertices to the
+PageRank matrix. Initialization of a singleton's empty top tree needs
+constant state. The dictionary, cache, allocation and occasional copies all
+cost at most a logarithmic factor per discovered word.
+
+If a concrete source implementation requests a fixed vertex capacity,
+start with constant capacity and double it when exhausted. Rebuild only
+the currently active structural tree, using its cached edges and current
+home rows. A size-$m$ rebuild uses $O(m\log^4(2+m))$ application work by
+inserting its edges in parent-before-child order through the same source
+interface, and allocates
+$O(m\log^3(2+m))$ persistent hull state. The geometric sum of the doubled
+capacities is $O(n)$, so these bounds remain $O(n\log^4(2+n))$ work and
+$O(n\log^3(2+n))$ retained state in total. This alternative never reserves
+capacity indexed by the original graph's unknown size.
+\end{proof}
+
+\begin{theorem}[Local exact obstacle and ACL solves on trees; \statusproved]
+\label{thm:op3-local-top-tree}
+On an arbitrary finite, simple, connected, unweighted tree with a supplied
+seed vertex and local degree/adjacency queries, there exists a deterministic
+algorithm returning the exact obstacle solution for
+$\boldsymbol M=\boldsymbol D-\gamma\boldsymbol A$ and
+$\boldsymbol b=\boldsymbol e_v-\lambda\boldsymbol d$.
+If $U$ is its returned positive support, its total exact-real word work is
+\begin{equation}
+ O\!\left(1+\operatorname{cvol}(U)
+     \log^4(2+\operatorname{cvol}(U))\right),
+ \label{eq:op3-local-top-tree-work}
+\end{equation}
+and its space, even retaining every historical application version, is
+$O(1+\operatorname{cvol}(U)\log^3(2+\operatorname{cvol}(U)))$ words.
+For $0<\epsappr<1$ and $\lambda=\epsappr/2$, the vector
+$\widehat{\boldsymbol\pi}=\bar\alpha\boldsymbol D\boldsymbol u$
+has original source residual
+$0\leq\boldsymbol e_v-\boldsymbol M\boldsymbol u
+ \leq\lambda\boldsymbol d\leq\epsappr\boldsymbol d$.
+Consequently its fully charged local ACL work is
+$\widetilde O(1/\epsappr)$, with no polynomial dependence on $1/\alpha$.
+\end{theorem}
+\begin{proof}
+First query $d_v$. If $\lambda d_v\geq1$, return zero, which is the exact
+obstacle solution. Otherwise the singleton face has
+$u_v=(1-\lambda d_v)/d_v>0$. Scan its row, query and cache neighbor degrees,
+and build its heap of thresholds $\lambda d_j/\gamma$. The singleton's
+minimum threshold gives the exact next gate or a quiet stop directly.
+When the first child is admitted, create the first active edge and home
+both endpoint rows there.
+
+For every later positive face, retain the source-exposed top tree with its
+complete root summary. The scalar Schur equation gives $u_v$ in constant
+work. The root's minimum threshold either names an actual strict positive
+original boundary gate or certifies all gates nonpositive, since one-port
+normalizations preserve signs. A named candidate has exactly one active
+parent: two active parents, together with the path between them in the
+connected active set, would create a cycle in the original tree.
+
+Admit the named candidate $j$. Remove it from its parent's local heap and
+refresh that parent's one home-edge payload. Scan $j$'s original row once;
+its sole previously active neighbor is its parent. Cache its other
+neighbors and their degree replies, build its own heap and one home row,
+and allocate its new active vertex and edge records. Invoke one source
+\texttt{link}, then \texttt{expose} on $v$. Original degrees and loads in all
+existing numerical records remain fixed. Changes to active incidence and
+port sets are handled by the source's split/create/join discipline, while
+\cref{lem:op3-source-interior-adapter} handles temporary source-interior
+clusters. Only the heap minimum is homed on an edge; the other original
+candidate thresholds remain in the local heap for later admissions.
+
+Every admitted gate is evaluated at the exact restricted solution. A
+positive Schur complement correction gives $u_j>0$ and increases all old
+active coordinates, so the face stays positive and grows monotonically.
+Summing the original residual over the entire graph gives
+\[
+ \boldsymbol1^{\mathsf T}
+ (\boldsymbol e_v-\boldsymbol M\boldsymbol u)
+ =1-\bar\alpha\boldsymbol d^{\mathsf T}\boldsymbol u.
+\]
+Every inactive residual is nonnegative, and each active residual equals
+$\lambda d_i$. Therefore $\lambda\vol(U)<1$ at every positive checkpoint.
+There are finitely many strict admissions. At a quiet checkpoint the active
+equations and all boundary inequalities are exactly the obstacle KKT
+conditions; other inactive rows have zero residual. Uniqueness gives the
+exact obstacle solution and the displayed ACL certificate. This proof
+identity does not require an algorithmic scan of the whole graph.
+
+Let $V=\operatorname{cvol}(U)$ for the final nonempty support. Scanning every
+admitted row once costs at most $V$. The number of discovered candidate
+records and degree replies is at most $V$; dictionary accesses, heap
+construction/deletion and all unsuccessful heap or final quiet checks cost
+$O(V\log(2+V))$. Each admission uses one home-edge update, one link and one
+expose, hence $O(\log(2+V))$ recomputed cluster records by the source theorem
+and \cref{lem:op3-top-tree-payload}. Every callback costs at most
+$O(\log^3(2+V))$ word work and allocates $O(\log^2(2+V))$ hull nodes.
+Thus all comparisons, searches, factor updates, copies and historical
+records satisfy \eqref{eq:op3-local-top-tree-work} and the claimed space
+bound. Structural source state is linear in active size and already paid.
+The optional capacity-doubling rebuilds in
+\cref{lem:op3-top-tree-payload} satisfy these same total bounds.
+
+Finally solve the root's scalar equation once and traverse only the current
+cluster hierarchy with its saved affine recovery records. Each represented
+edge or helper record is visited a constant number of times. Active indices
+allow each vertex to be emitted once; comparison dictionaries would add only
+an already allowed logarithm. Multiply by $\bar\alpha d_i$ for the sparse
+PageRank output. Neither the past hierarchies nor old full solution vectors
+are traversed. Since $V\leq2\vol(U)<2/\lambda$, the stated ACL bound follows.
+\end{proof}
+
+\paragraph{An exact RPPR consequence.}
+In the nonzero regime $0<\rho<1/d_v$, taking $\lambda=\rho$ and returning
+$\boldsymbol x=\bar\alpha\boldsymbol D^{1/2}\boldsymbol u$ gives the exact
+shared RPPR minimizer on trees, by the mapping in \cref{sec:mapping}.
+Its word work is $\widetilde O(1/\rho)$ and it has zero objective gap in this
+exact-real model. This structural statement does not convert ACL accuracy
+into the semantic PPR tolerance of OP1 and does not assert numerical stability.
+
+\paragraph{Exact implementation evidence.}
+\texttt{top\_tree\_callback\_adapter.py} implements the application layer.
+Its final audit covers 650 canonical positive faces: every nonisomorphic
+core tree through eight vertices, every seed, and two teleportation choices.
+Each core vertex has one inactive private-star report. The original degrees
+and tiny positive $\lambda$ give a legal positive core face with every report
+quiet; the stars need not be materialized. All 167,384 legal binary cluster
+joins under exposed and unexposed seed boundaries are checked, covering all
+five join shapes. There are 26,130 independent Schur oracles, 168,294 valid
+summary comparisons, 104,794 owned rows, 270,792 exact two-port queries,
+78,030 one-port checks and 833,718 recovered coordinates. The audit also
+checks 650 complete exposure transitions and 1,296 intermediate edge-payload
+refreshes, then rechecks the old roots. Payload-only perturbations test the
+algebraic interface; they are not represented as legal graph admissions.
+
+The driver enumerates clusters, constructs supplied hierarchies and performs
+dense reference solves. Its 240.431-second runtime does not measure the
+source hierarchy's online bound. The asymptotic result imports that source
+algorithm and proves every additional application cost above; it does not
+infer complexity from finite timing. Audit counts, graph/parameter rules,
+source and backend hashes are in \texttt{TOP\_TREE\_CALLBACK\_AUDIT.json}.

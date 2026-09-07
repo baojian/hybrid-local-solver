@@ -1,0 +1,249 @@
+\section{Support-local elimination with two retained vertices}
+\label{sec:op3-two-port-frontier}
+
+\paragraph{Status, scope and provenance.}
+The results below are \statusproved{} proof drafts awaiting independent
+review. Use the degree obstacle with
+$\bm M=\bm D-\gamma\bm A$ and
+$\bm b=\bm e_v-\lambda\bm d$, and let $S$ be its positive support.
+Assume
+\begin{equation}
+ \#\{i\in S\setminus\{v\}:d_i\geq3\}\leq1.
+ \label{eq:op3-two-port-promise}
+\end{equation}
+This is a condition on the actual positive support. No separator, cycle
+ordering, path lengths, attachment sizes or ambient graph size is supplied.
+The rest of the graph may have arbitrary degrees and cycles.
+
+Earlier notes already prove the stable fixed-port reporter principle
+and exact rooted-spider elimination. The companion probe identifies their
+precise source files and theorem labels. The new contribution here is a locally
+discovered graph condition that guarantees only individually charged rekeys,
+including shared inactive candidates and multiple cycles. We give the
+algebra and an implemented, conservative planar reporter explicitly. These
+are contextual pointers, not imported proof dependencies.
+
+\subsection{The retained matrix and stable frontier rows}
+
+Retain the seed and, when it is first admitted, the first nonseed vertex
+of degree at least three. Call this set $C$, of size at most two. Eliminate
+every other admitted vertex immediately. Write $E$ for the eliminated set
+and $B$ for the exposed, inactive frontier. Cache a frontier record
+\begin{equation}
+ \delta_j>0,\qquad h_j<0,\qquad \bm a_j\in\mathbb R^2_{\geq0},
+ \qquad g_j=h_j+\bm a_j^{\mathsf T}\bm u_C.
+ \label{eq:op3-two-port-row}
+\end{equation}
+All retained quantities use two fixed slots. Before the second vertex
+exists, its diagonal is one, its load and couplings zero; it is merely
+padding. The stored Schur matrix $\bm H_C$ and load $\bm f_C$ then give the
+exact retained values $\bm u_C=\bm H_C^{-1}\bm f_C$ in constant work.
+
+\begin{lemma}[Only one outside successor at a low-degree admission]
+\label{lem:op3-two-port-stability}
+Every legal admitted vertex of degree at most two has at most one original
+neighbor still inactive. Eliminating it changes $\bm H_C,\bm f_C$ and at most one
+surviving frontier record. Every other record in
+\cref{eq:op3-two-port-row} remains exactly unchanged.
+\end{lemma}
+\begin{proof}
+A positive gate requires a positive original active neighbor, because the
+nonseed load is negative. At most one of the two original neighbors is
+therefore still inactive. Inductively, no eliminated path creates a fill
+edge between two inactive vertices: just before elimination the pivot is
+coupled only to retained vertices and that possible single inactive
+successor. Original edges between two inactive vertices are irrelevant to
+the restricted solve and are revealed only when one endpoint is admitted.
+
+For pivot $i$, abbreviate its record by $(\delta,h,\bm a)$, and let $j$
+be its possible inactive successor, with original conductance $w=\gamma$.
+Scalar Schur complementation gives
+\begin{align}
+ \bm H_C&\leftarrow \bm H_C-\bm a\bm a^{\mathsf T}/\delta,
+ & \bm f_C&\leftarrow \bm f_C+\bm a h/\delta,
+ \label{eq:op3-two-port-core-update}\\
+ \delta_j&\leftarrow\delta_j-w^2/\delta,
+ & h_j&\leftarrow h_j+wh/\delta,
+ & \bm a_j&\leftarrow\bm a_j+w\bm a/\delta.
+ \label{eq:op3-two-port-frontier-update}
+\end{align}
+The second line is absent without a successor. It includes any prior
+contribution to $j$ from another path; such a shared candidate is never
+treated as independent copies. Positive Schur pivots follow from positive
+definiteness. Initially $h_j=-\lambda d_j<0$, and the displayed recurrence
+preserves its sign and nonnegative couplings. All changes are confined to
+the displayed constant-size records.
+\end{proof}
+
+When a degree-at-least-three candidate $i$ is first admitted, place its
+existing diagonal and load in the second retained slot, with coupling
+$-a_{i,1}$ to the seed slot. Scan its original row, adding new original
+conductances to the appropriate second coupling of each inactive neighbor.
+Its old neighbors already admitted have had their edges accounted for.
+An edge dictionary prevents counting an original edge twice. Old frontier
+records unrelated to this row keep second coupling zero. There is no bulk
+change of their coordinates. If another nonseed branching candidate has a
+positive gate later, stop with a certificate that
+\cref{eq:op3-two-port-promise} fails, before reading that candidate's row.
+
+\subsection{An implemented planar reporter with a conservative bound}
+
+Normalize each frontier record to the point
+\begin{equation}
+ \bm p_j:=\bm a_j/(-h_j)\in\mathbb R^2_{\geq0}.
+ \label{eq:op3-two-port-point}
+\end{equation}
+Then $g_j>0$ exactly when
+$\bm p_j^{\mathsf T}\bm u_C>1$. One extreme-point query either produces
+a legal singleton admission or certifies all frontier gates nonpositive.
+Only insertions, deletions and individual replacements of points are used.
+The retained solve changes the query direction, not the stored points.
+
+\begin{lemma}[A fully charged dynamic upper-hull implementation]
+\label{lem:op3-avl-upper-hull}
+An initially empty planar point dictionary can support a labeled point
+insertion, deletion or replacement in $O(\log^4(2+N))$ word work and an
+extreme query in any nonnegative direction in $O(\log^2(2+N))$ work,
+where $N$ is the largest dictionary size so far. The working storage is
+$O(N\log(2+N))$. Over $K$ operations, allocations and discarded-state
+work are bounded by $O(K\log^4(2+N))$.
+\end{lemma}
+\begin{proof}
+Maintain an AVL search tree on lexicographic keys $(x,y,\text{label})$.
+Each node stores its subtree's upper convex chain as an immutable AVL
+sequence, with subtree sizes and heights. Joining, splitting and indexed
+selection of such sequences use standard height recursion; even allowing
+$O(\log^2(2+N))$ for split/join is sufficient below. These operations copy
+only their recursion paths, never the whole sequence.
+
+It remains to charge merging the upper chains $A,B$ of horizontally
+separated point sets. Both chains have strictly increasing $x$ and strictly
+decreasing edge slopes. If their boundary $x$ coordinates agree, discard
+the lower endpoint there, with a fixed tie rule, using a sequence split.
+After this the remaining nonempty chains are strictly separated.
+For $A_i$, put
+\[
+ F_i=\max_j\operatorname{slope}(A_i,B_j).
+\]
+The slopes to successive $B_j$ first increase and then decrease, by
+concavity of $B$. A binary search gives the last maximizing $j$ in
+$O(\log^2(2+N))$ work, counting every indexed sequence access.
+
+The bridge endpoint in $A$ is the first $i$ for which the next edge slope
+of $A$ is at most $F_i$, taking the last index if needed. This predicate
+is monotone: if that edge slope is at most $F_i$, the same maximizing
+point of $B$ has slope at least $F_i$ from $A_{i+1}$, while later edge
+slopes in $A$ only decrease. Conversely, when an edge slope exceeds
+$F_i$, every slope to $B$ decreases after moving across that edge.
+At the first passing index, the preceding edge slope is therefore at least
+$F_i$. The resulting line supports both chains from above. Keep the prefix
+through $A_i$ and the suffix from the last maximizing $B_j$; their
+concatenation is the merged upper hull. The outer binary search costs
+$O(\log^3(2+N))$, including the inner search and indexed accesses.
+
+An AVL point update changes $O(\log(2+N))$ nodes and rotations. Rebuilding
+each node's chain by two separated merges gives the stated fourth-power
+bound. Along a stored upper chain, dot product with a nonnegative direction
+first increases and then decreases, so indexed binary search gives the
+query bound. Equal points and vertical coincidences follow the stated
+endpoint rule; every label still exists in the point dictionary for later
+deletion.
+
+At one depth of the point search tree the represented subtrees are
+disjoint, so their total chain lengths are at most $N$. Summing over its
+logarithmic height gives the working-storage bound, even without credit
+for shared immutable sequence nodes. Each update allocates and discards
+only the charged recursion records. Reclamation costs can be charged once
+to each allocation. No old version is retained by the solver.
+\end{proof}
+
+The exact implementation is \texttt{dynamic\_upper\_hull.py}; its simpler
+fourth-power logarithm is adequate for OP3's soft-$O$ target. As a
+\statussource{} alternative, Jacob--Brodal's dynamic planar convex hull
+supports individual insertions and deletions in amortized logarithmic time
+and extreme queries in logarithmic time; see \citet{jacob2019dynamic}, Theorem~1 and
+computational model, Sections~1--2, arXiv:1902.11169v1, PDF pages~2 and~5--6.
+The implementation here does not import their more elaborate construction.
+Neither primitive supplies the unresolved bulk-pullback-and-meld reporter
+for a changing general separator hierarchy.
+
+\subsection{The resulting local theorem}
+
+\begin{theorem}[Two retained vertices; exact local proof draft]
+\label{thm:op3-two-port-frontier}
+Under \cref{eq:op3-two-port-promise}, the described algorithm returns the
+exact obstacle optimum with
+\begin{equation}
+ O\bigl((1+\vol(S))\log^4(2+\vol(S))\bigr)
+ \label{eq:op3-two-port-work}
+\end{equation}
+exact-real word work and
+$O((1+\vol(S))\log(2+\vol(S)))$ working storage. It reads precisely the
+original adjacency rows of positive output vertices and may query degrees
+of their inactive neighbors. There is no polynomial dependence on
+inverse teleportation or on inactive component sizes. With
+$\lambda=\epsappr$, the output $\widehat{\bm\pi}=\bar\alpha\bm D\bm u$
+is an ACL approximation and the work is
+$\widetilde O(1/\epsappr)$ on this support-defined graph class.
+\end{theorem}
+\begin{proof}
+If $\lambda d_v\geq1$, all loads are nonpositive, and zero is the optimum;
+only the seed degree is read. Otherwise the singleton seed solution is
+strictly positive. At every stage the retained matrix and saved
+eliminations represent the exact restricted solution on the admitted set.
+Its nonseed boundary gates are exactly
+\cref{eq:op3-two-port-row}, by Schur elimination.
+
+A strict positive gate admits a vertex with a positive Schur value. Inverse
+positivity makes every old admitted coordinate increase. Moreover every
+restricted positive coordinate is bounded above by the full optimum:
+on an admitted set $U$, the full optimum satisfies
+$\bm M_{UU}\bm u^*_U\geq\bm b_U$, hence
+$\bm u^*_U\geq\bm M_{UU}^{-1}\bm b_U$.
+If a boundary vertex were zero at the full optimum, its full neighbor flux
+would be at most $\lambda d_j$, so its restricted gate could not be
+positive. Induction therefore puts every admission in $S$. The promised
+second branching admission cannot occur.
+
+Every successful query deletes one admitted label, and the final failed
+query certifies every exposed boundary inequality, including shared
+candidates. An unexposed vertex has no admitted neighbor and has negative
+load, so its inequality holds too. One reverse pass through the records
+\[
+ u_i=\frac{h_i+\bm a_i^{\mathsf T}\bm u_C+w u_j}{\delta_i}
+\]
+recovers the exact positive coordinates, taking $u_j=0$ if the optional
+successor never activated. This gives all KKT conditions and hence the
+unique optimum.
+
+Each admitted row is scanned once. Degree replies, original-edge dictionary
+operations and boundary exposures total $O(1+\vol(S))$, with logarithmic
+dictionary overhead allowed. The seed and at most one other retained row
+contribute at most their degrees in point updates. Every other admission
+has constant-size Schur work and changes at most one surviving point.
+There are $O(1+\vol(S))$ point operations, retained solves, queries and
+reverse records. Apply \cref{lem:op3-avl-upper-hull}, charging all
+allocations, failed queries and output words. Inactive adjacency rows are
+never scanned. Finally, the obstacle mass identity gives
+$\lambda\vol(S)\leq1$, and its nonnegative residual satisfies
+$\bm0\leq\bm e_v-\bm M\bm u\leq\lambda\bm d$.
+The ACL conclusion follows as in \cref{cor:op3-local-cycle-acl}.
+\end{proof}
+
+\paragraph{Measured evidence and the remaining limitation.}
+The graph implementation passes 8,329 exact comparisons on connected atlas
+graphs through seven vertices, every seed and four parameter pairs. Another
+18,791 cases correctly detect that the support condition fails. Nine larger
+instances pass separate full-graph KKT audits. With a growing inactive
+descendant tree, ambient sizes 73, 265 and 1,033 all give the same eight
+row scans, 17 adjacency entries and nine degree replies, while an attachment
+really activates. A shared-report graph with 66,162 vertices requires only
+98 positive row scans and 258 adjacency entries. Unequal path bundles with
+up to 128 paths exercise multiple cycles and shared candidates. Reference
+solves and global validation are excluded from local operation counters.
+
+The new structural result does not handle a growing number of admitted
+branching vertices. Keeping more vertices raises reporter dimension; hiding
+them behind a changing hierarchy recreates bulk transformation and event
+location obligations. Those remain separate from the successfully paid
+two-vertex construction.

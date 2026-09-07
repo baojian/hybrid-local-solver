@@ -1,0 +1,294 @@
+\section{A local exact solver on cycles with unequal leaf attachments}
+\label{sec:op3-local-cycle}
+
+\paragraph{Status and scope.}
+This is a \statusproved{} proof draft with an exact implementation and
+falsification audit, awaiting independent review. The promised graph is a
+simple cycle of unknown length $m\geq3$, with any number $k_i\geq0$ of
+degree-one leaves attached to cycle vertex $i$. The $k_i$ may all differ.
+The seed is arbitrary. Input consists only of the seed and degree/adjacency
+queries; there is no supplied cycle ordering, length, decomposition,
+equitable partition or future attachment data. Class verification is not
+part of the promise algorithm. General unicyclic graphs with nontrivial
+attached trees, and arbitrary cyclic graphs, remain outside this theorem.
+
+\paragraph{Context.}
+Root-conditioned scalar homotopy and a symmetry-based pure-cycle solver
+already appear in the companion \texttt{delayed\_reflection\_ladder} note.
+Here we give the two-tip implementation for unequal leaf attachments,
+including its closing-block exception. The proof below is self-contained.
+
+Use the exact-real word model and the degree obstacle problem
+\eqref{eq:op3-tree-obstacle}, now with the actual graph degrees. Here
+$\lambda>0$ is free; the ACL corollary will set $\lambda=\epsappr$.
+All degree replies, adjacency entries, retained records, event searches,
+arithmetic and output writes are charged. We first take a cycle seed and
+extend to a leaf seed at the end.
+
+\subsection{The continuation parameter and the two exposed ends}
+
+Fix the seed potential $u_v=t\geq0$ and minimize over all other
+coordinates. Denote the derivative of this reduced objective by $g(t)$.
+It is continuous, strictly increasing and piecewise affine. On each
+active face its slope is a positive Schur diagonal. The conditional
+coordinates are nondecreasing in $t$, by inverse positivity and the
+obstacle comparison principle. The optimum is zero if
+$1-\lambda d_v\leq0$; otherwise it occurs at the unique positive root of
+$g$. Start at $t=0$, with only the seed exposed.
+
+The two cycle directions from the seed are called arms. Before they meet,
+each has an admitted consecutive prefix and one unadmitted candidate. An
+unadmitted cycle vertex becomes positive when the sum of its incident
+active potentials times $\gamma$ reaches $\lambda d_i$. No other cycle
+vertex can activate before one of these candidates. The adjacency row of
+a candidate is read only after this event is known to precede the root of
+$g$. Its two nonleaf neighbors identify the continuation ports using
+charged degree queries. Its other neighbors form a leaf group.
+
+A negative-load leaf attached to a center of potential $x$ has value
+\begin{equation}
+ u_{\rm leaf}=(\gamma x-\lambda)_+.
+ \label{eq:op3-cycle-leaf}
+\end{equation}
+All $k$ leaves at one center activate at $x=\lambda/\gamma$. Once active,
+eliminating them changes its diagonal and load by
+\begin{equation}
+ d\longleftarrow d-k\gamma^2,\qquad
+ b\longleftarrow b-k\gamma\lambda.
+ \label{eq:op3-cycle-leaf-fold}
+\end{equation}
+Reading and storing their labels is charged to the center's degree even
+when some leaves are zero in the final answer.
+
+\begin{lemma}[Settled interior prefixes]
+\label{lem:op3-cycle-settled}
+Before cycle closure, a cycle vertex leaves the active end of an arm only
+after its leaf group has activated, or when that group is empty. Therefore
+every committed interior record has a fixed quadratic response for the
+rest of the continuation.
+\end{lemma}
+\begin{proof}
+A next candidate reached from just this arm requires
+$\gamma u_{\rm tip}=\lambda d_{\rm next}\geq2\lambda$.
+The tip's leaves activate already at $u_{\rm tip}=\lambda/\gamma$.
+Monotonicity prevents later deactivation. The only exception to the
+one-sided candidate rule is the last inactive cycle vertex, which is
+handled separately below.
+\end{proof}
+
+\subsection{Constant-size end records and exact event location}
+
+Eliminate a settled arm prefix outward from the seed. Its current tip has
+diagonal $\delta_i>0$ and affine load $\eta_i(t)=a_i t+b_i$, so its
+potential is $(a_i t+b_i)/\delta_i$. Initially
+$(\delta_i,a_i,b_i)=(d_i,\gamma,-\lambda d_i)$. When committing this tip
+and admitting the next cycle vertex $j$, its new record is
+\begin{equation}
+ \delta_j=d_j-\frac{\gamma^2}{\delta_i},\qquad
+ a_j=\frac{\gamma a_i}{\delta_i},\qquad
+ b_j=-\lambda d_j+\frac{\gamma b_i}{\delta_i}.
+ \label{eq:op3-cycle-append}
+\end{equation}
+Apply \cref{eq:op3-cycle-leaf-fold} to a tip when its leaf group activates.
+All Schur pivots stay positive because they eliminate principal submatrices
+of the positive definite Stieltjes matrix.
+
+Maintain two accumulated coefficients over committed records,
+\[
+ P=\sum_i a_i^2/\delta_i,\qquad
+ R=\sum_i a_i b_i/\delta_i.
+\]
+Let $(\delta_v,b_v)$ denote the seed diagonal/load with any activated seed
+leaves folded. While the arms are distinct, the current face derivative is
+\begin{equation}
+ g(t)=\left(\delta_v-P-\sum_{\rm tips}\frac{a_i^2}{\delta_i}\right)t
+       -b_v-R-\sum_{\rm tips}\frac{a_i b_i}{\delta_i}.
+ \label{eq:op3-cycle-root-derivative}
+\end{equation}
+This follows by differentiating the eliminated contributions
+$-\eta_i(t)^2/(2\delta_i)$. Each committed record is inserted into $P,R$
+once; old records are not refreshed when $t$ changes.
+
+At a state, compute the zero $t_\star$ of the current affine expression
+for $g$ and the earliest of at most five prospective events: the seed leaf
+group, up to two tip leaf groups, and up to two next cycle candidates.
+Every event time follows from a single affine equality using the stored
+tip responses. If $t_\star$ is no later than the first event, stop.
+Otherwise process that event and repeat. Equal-time events are processed
+in any fixed order; a zero at the same time causes stopping before row
+exposure. Continuity of $g$ makes this tie rule correct, with zero
+coordinates omitted from the output.
+
+\subsection{Closing the cycle without folding inactive leaves}
+
+If the candidate labels of the two arms coincide at $j$, the candidate
+receives two-sided load. Write each tip response as $p_a t+q_a$; an empty
+arm contributes the seed response $t$. Its activation time is now
+\begin{equation}
+ t_j=\frac{\lambda d_j-\gamma(q_1+q_2)}
+                 {\gamma(p_1+p_2)}.
+ \label{eq:op3-cycle-close-time}
+\end{equation}
+Using the two separate one-sided events here would miss the first
+activation. Furthermore, $t_j$ can precede activation of a tip's leaves.
+Such a tip cannot yet become a permanently folded interior record.
+
+Keep both current tips and the newly admitted $j$ in a Schur block of
+dimension at most three. The rest of each arm already satisfies
+\cref{lem:op3-cycle-settled}. The block matrix $\bm S$ has the stored tip
+diagonals, diagonal $d_j$, and off-diagonal $-\gamma$ between $j$ and
+each nonempty arm tip. Its load is $\bm a t+\bm b$: old tip coefficients
+are retained and $a_j=\gamma$ times the number of empty arms. The block
+response is
+\[
+ \bm x(t)=\bm S^{-1}\bm a\,t+\bm S^{-1}\bm b.
+\]
+Replace the two tip sums in \cref{eq:op3-cycle-root-derivative} by
+$\bm a^\top\bm S^{-1}\bm a$ and
+$\bm a^\top\bm S^{-1}\bm b$. Any remaining leaf events are obtained from
+$x_i(t)=\lambda/\gamma$. There are at most three such groups. Each is
+folded by a diagonal/load change inside this same block, and both solves
+have dimension at most three. All seed leaves were already settled before
+closure by the one-sided first admission. Thus no larger dynamic solve or
+search over old vertices is hidden in this step.
+
+At the final $t_\star$, evaluate the tip or closing-block responses. Recover
+each arm's committed prefix in reverse order using its stored records:
+\begin{equation}
+ u_i=\frac{a_i t_\star+b_i+\gamma u_{\rm next}}{\delta_i}.
+ \label{eq:op3-cycle-reverse}
+\end{equation}
+Read each exposed center's leaf list once and use
+\cref{eq:op3-cycle-leaf}. Materialize positive coordinates only.
+
+\subsection{Correctness, locality and the approximation guarantee}
+
+\begin{theorem}[Local exact obstacle solve on the promised cyclic family]
+\label{thm:op3-local-cycle}
+On a simple cycle with arbitrary pendant-leaf counts and an arbitrary
+seed, the above algorithm computes the unique obstacle optimum with
+$\widetilde O(1+\vol(S))$ charged exact-real word work and storage, where
+$S$ is its positive support. Its structural arithmetic, record and query
+counts are $O(1+\vol(S))$; the tilde allows deterministic label-dictionary
+overhead. It exposes adjacency rows only at vertices in $S$, and
+$\lambda\vol(S)\leq1$. It requires no unknown-support preprocessing and
+no polynomial factor in $1/\alpha$.
+\end{theorem}
+\begin{proof}
+For a cycle seed, the conditional obstacle has monotone support as $t$
+increases. A face starts valid at its activation time, with newly admitted
+coordinates zero. Its equations remain valid until the first nonactive
+cycle or leaf gate reaches zero. The two-arm description enumerates all
+possible cycle gates; disconnected inactive vertices have strictly positive
+dual slack. The leaf formula enumerates every remaining type of gate.
+\Cref{lem:op3-cycle-settled} justifies committing interiors, while the
+small closing block retains all possible unsettled exceptions. The Schur
+formulas give the exact reduced derivative and event times on this face.
+Its positive slope and continuity certify either the exact optimum before
+the next event or the next valid face. At any processed event, $g<0$, so
+the eventual root lies strictly later. Monotonicity and strict positive
+boundary influence imply that every exposed center is positive finally.
+The reverse equations and leaf formulas recover the conditional minimizer
+at the root of $g$; all obstacle KKT conditions therefore hold.
+
+There is one admission per exposed cycle vertex and at most one leaf event
+per such vertex. Only a constant number of event keys is inspected each
+time. Each prefix record is written once and read once in reconstruction;
+at most three constant-dimensional leaf updates occur after closure.
+Scanning a center and classifying its neighbors costs $O(1+d_i)$, including
+all neighbor degree replies. Outputting its leaves and reaccessing stored
+labels has the same bound. All exposed centers are in $S$, so these costs
+are bounded by $O(1+\vol(S))$, even if some inspected leaf or candidate
+labels are outside $S$. A deterministic balanced label dictionary adds at
+most logarithmic overhead.
+
+For a leaf seed $s$, first return zero if $\lambda\geq1$. Otherwise its
+conditional value at its neighbor $v$ of potential $t$ is
+$u_s=1-\lambda+\gamma t>0$. Read the seed's one-entry row and $d_v$.
+Eliminating $s$ changes the root data to
+\[
+ \delta_v=d_v-\gamma^2,\qquad
+ b_v=\gamma(1-\lambda)-\lambda d_v.
+\]
+If $b_v\leq0$, only $s$ is positive, with value $1-\lambda$, and the
+root row is not read. Otherwise apply the same cycle-root algorithm with
+these modified data, excluding $s$ from its negative leaf group; recover
+$s$ by its displayed formula. The additional work is constant and all
+exposed rows still belong to positive output coordinates.
+
+Finally sum the optimal equations on $S$. For nonempty support the seed
+lies in $S$ and
+\[
+ 1-\lambda\vol(S)
+ =\bar\alpha\sum_{i\in S}d_i u_i
+   +\gamma\sum_{\substack{\{i,j\}\in E\\i\in S,\ j\notin S}}u_i
+ \geq0.
+\]
+This proves the support-volume bound and completes the accounting.
+\end{proof}
+
+\begin{corollary}[The OP3 approximation scale on this graph class]
+\label{cor:op3-local-cycle-acl}
+Let $\lambda=\epsappr\in(0,1)$ and let
+$\widehat{\bm\pi}=\bar\alpha\bm D\bm u$ be the output of
+\cref{thm:op3-local-cycle}. For the shared lazy PageRank vector $\bm\pi$,
+\[
+ \bm0\leq\bm\pi-\widehat{\bm\pi}\leq\epsappr\bm d.
+\]
+The charged work is $\widetilde O(1/\epsappr)$ in the exact-real word
+model on this promised graph family.
+\end{corollary}
+\begin{proof}
+Put $\bm r=\bm e_v-\bm M\bm u$. On positive coordinates
+$r_i=\lambda d_i$; on zero coordinates the obstacle conditions and
+nonpositive off-diagonals give $0\leq r_i\leq\lambda d_i$.
+The empty-support case has the same inequality. Since
+$\bm M\one=\bar\alpha\bm d$ and $\bm M^{-1}\geq0$,
+\[
+ \bm0\leq\bm\pi-\bar\alpha\bm D\bm u
+ =\bar\alpha\bm D\bm M^{-1}\bm r
+ \leq\lambda\bm d.
+\]
+Apply the preceding work and volume bounds.
+\end{proof}
+
+\paragraph{Measured evidence and limits.}
+The exact local routine is \texttt{local\_sun\_solver.py}. The audit
+enumerates ordered leaf counts in $\{0,1,2\}$ on cycles of length three
+through five, cycle and leaf seeds, and nine parameter pairs: 5,265
+comparisons with a separate exact obstacle routine pass. Full-graph KKT
+checks are audit-only and excluded from solver counters. Larger asymmetric
+cycles demonstrate local stopping without scanning the ambient graph.
+This is a family theorem, not arbitrary-graph OP3 and not a claim to realize
+every intermediate Wei--Yang active-set gate. Its decisive special property
+is that an interior attachment settles before its center leaves the frontier.
+Arbitrary attached trees can violate that ordering; identifying a paid
+replacement for their changing responses is the next question.
+
+\begin{proposition}[A length-two attachment need not settle; proof draft]
+\label{prop:op3-cycle-unsettled-attachment}
+The automatic-settling claim fails if pendant leaves are replaced by
+arbitrary pendant trees. This refutes that extension of the record rule,
+not the existence of an efficient solver on the larger graph class.
+\end{proposition}
+\begin{proof}
+Attach a path $c-a-b$ to a cycle center $c$, where $d_a=2$ and $d_b=1$.
+Take $\gamma=3/4$. While $b$ is inactive, the branch response is
+$u_a=(\gamma u_c-2\lambda)_+/2$. Thus $a$ activates at
+$u_c=8\lambda/3$, and $b$ activates only at $u_c=56\lambda/9$.
+A next one-sided cycle neighbor of degree three activates at
+$u_c=4\lambda$, strictly between those thresholds. At that point
+$u_a=\lambda/2$ and $u_b=0$. Eliminating this branch subtracts $9/32$
+from the center diagonal before $b$ activates, but $9/23$ after it
+activates. A single fixed quadratic record cannot describe both regimes.
+
+This ordering occurs on an actual source continuation. Use the cycle
+$0,1,\ldots,11,0$, add edges $\{1,12\},\{12,13\},\{2,14\}$, seed at
+$0$, and $\lambda=1/1000$. The exact conditional solve at
+$u_0=39/2000$ gives $u_1=1/250$, $u_2=0$, $u_{12}=1/2000$, $u_{13}=0$
+and reduced source derivative $-10639/11000<0$. At $u_0=1/20$ it gives
+$u_2=307/118500>0$, $u_{13}=89/31600>0$ and source derivative
+$-2147709/2325760<0$. The full vectors and exact conditional
+solves are recorded in the audit. Both events therefore precede
+the final root, and the old branch changes after the next cycle admission.
+\end{proof}

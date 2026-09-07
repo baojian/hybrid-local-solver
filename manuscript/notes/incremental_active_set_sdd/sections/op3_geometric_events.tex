@@ -1,0 +1,259 @@
+\section{OP3 exploration: geometric value events}
+\label{sec:op3-geometric-events}
+
+\paragraph{Status and scope (6 September 2026).}
+The statements marked \statusproved{} in this section are new proof drafts,
+awaiting independent review. They do not resolve OP3. Their purpose is to
+replace exact reproduction of every source gate by a weaker, explicitly
+quantified sufficient interface. The investigation and source comparison are
+recorded in \texttt{OP3\_DIRECTIONS\_20260906.md}. The exact audit uses dense
+reference solves to supply the missing interface and does not measure an
+output-linear solver.
+
+Throughout this section, $0<\alpha<1$ and $0<\varepsilon<1$, with
+$\varepsilon=\epsappr$ in the source-native ACL namespace. Retain the
+mapping of \cref{sec:mapping}, and put
+\[
+ \gamma:=1-\bar\alpha,\qquad
+ \bm M=\bm D-\gamma \bm A,\qquad
+ \lambda:=\varepsilon/2.
+\]
+For a reached face $U$ containing the seed, define the auxiliary response
+and its degree-coordinate solution by
+\begin{equation}
+ \bm u^U_U=\bm M_{UU}^{-1}(\bm e_v-\lambda\bm d)_U,
+ \qquad \bm u^U_{\bar U}=\bm0,
+ \qquad \bm z^U=\bar\alpha\bm u^U.
+ \label{eq:op3-scaled-response}
+\end{equation}
+Thus the canonical RPPR point is $\bm D^{1/2}\bm z^U$, and the PageRank
+output is $\bm D\bm z^U$. No optimum symbol is renamed. The source residual is
+$\bm r^U=\bm e_v-\bm M\bm u^U$.
+
+\begin{lemma}[Response size and monotonicity; proof draft]
+\label{lem:op3-response-size}
+Start with $U=\{v\}$ when $\lambda d_v<1$, and enlarge $U$ by any
+nonempty subset of exterior vertices satisfying $r_i^U>\lambda d_i$.
+Every restricted solution is positive on its face, increases on old
+coordinates, and is bounded above by the scaled RPPR optimum. Moreover,
+\begin{equation}
+ \bm r^U\geq\bm0,\qquad r_i^U=\lambda d_i\ (i\in U),\qquad
+ \lambda\vol(U)+\bar\alpha\sum_{i\in U}d_i u_i^U
+       +\sum_{i\notin U}r_i^U=1.
+ \label{eq:op3-mass-identity}
+\end{equation}
+In particular, $\vol(U)\leq2/\varepsilon$ and
+$0\leq u_i^U\leq1/(\bar\alpha d_i)$.
+\end{lemma}
+\begin{proof}
+The singleton has positive load. On an admitted block the padded old point
+has strictly positive residual relative to the new restricted load. Inverse
+positivity of the principal Stieltjes matrix proves monotone, positive
+correction, as in \cref{thm:block-schur}. Comparing the restricted equation
+with the full obstacle supersolution proves the upper bound by the RPPR
+optimum. An exterior violation cannot lie outside that optimum's support:
+at a zero optimum coordinate, its negative off-diagonal entries and the
+comparison on $U$ would otherwise contradict obstacle dual feasibility.
+Residuals outside the face are $\gamma \bm A_{\bar U,U}\bm u_U^U\geq\bm0$;
+inside they equal $\lambda\bm d_U$. Finally
+$\one^\top \bm M=\bar\alpha\bm d^\top$. Summing the residual identity proves
+\cref{eq:op3-mass-identity} and its consequences.
+\end{proof}
+
+\begin{definition}[Geometric value publications]
+\label{def:op3-publications}
+Set
+\begin{equation}
+ h:=\frac{\varepsilon}{16\gamma},\qquad
+ q:=\frac54,\qquad a_0:=\frac{11}{10},\qquad
+ \vartheta:=\frac{11\varepsilon}{20}.
+ \label{eq:op3-event-constants}
+\end{equation}
+For each active coordinate maintain a published value $\ell_i\geq0$,
+initially zero. Every publication is a lower bound on the current $u_i^U$.
+The first positive publication is at least $h/2$; every later change
+multiplies the preceding positive value by at least $a_0$. Before declaring
+a face ready for a boundary decision, the producer certifies
+\begin{equation}
+ \ell_i\leq u_i^U\leq q\ell_i+h\qquad(i\in U).
+ \label{eq:op3-publication-band}
+\end{equation}
+The producer must find changes and certify readiness without assuming a
+free scan. Its entire update and search work is denoted by $\mathcal P$.
+The actual coordinatewise bound is required; a spectral approximation alone
+does not certify it.
+\end{definition}
+
+For an exterior vertex maintain the lower boundary signal
+\begin{equation}
+ L_j:=\gamma\sum_{i\in U\cap\mathcal N(j)}\ell_i.
+ \label{eq:op3-lower-signal}
+\end{equation}
+When $\ell_i$ increases by $\Delta\ell_i$, scan its cached adjacency list
+and add $\gamma\Delta\ell_i$ to each surviving exterior neighbor's key.
+The incidence reads are charged even when the list was exposed earlier.
+Admit any nonempty subset with $L_j>\vartheta d_j$, and repeat. A terminal
+decision requires both a ready producer and an empty violation dictionary.
+
+\begin{theorem}[An output-linear recipient of value events; proof draft]
+\label{thm:op3-geometric-recipient}
+Suppose a producer implements \cref{def:op3-publications} along this
+execution. Let $V=\vol(U_{\rm fin})$. The execution is support-safe and
+terminates after at most $|U_{\rm fin}|$ nonempty faces. Its exact terminal
+state satisfies
+\begin{equation}
+ r_i^{U_{\rm fin}}=\tfrac12\varepsilon d_i\quad(i\in U_{\rm fin}),
+ \qquad
+ 0\leq r_j^{U_{\rm fin}}\leq\tfrac34\varepsilon d_j
+       \quad(j\notin U_{\rm fin}).
+ \label{eq:op3-quiet-certificate}
+\end{equation}
+All graph exposure, repeated incidence delivery, dictionary maintenance,
+and publication records outside the producer cost
+\begin{equation}
+ \widetilde O\!\left(
+  V\left[1+\log_+\frac{32\gamma}{\bar\alpha\varepsilon}\right]+1
+ \right).
+ \label{eq:op3-recipient-work}
+\end{equation}
+Here $\log_+ t=\max\{0,\log t\}$. The full work is the displayed cost
+plus $\mathcal P$ and terminal numerical completion. In particular,
+\emph{this theorem does not bound $\mathcal P$}.
+\end{theorem}
+\begin{proof}
+For any exterior $j$, positivity and \cref{eq:op3-publication-band} imply
+\begin{equation}
+ L_j\leq r_j^U
+ \leq qL_j+\gamma h\,|\mathcal N(j)\cap U|
+ \leq qL_j+\tfrac1{16}\varepsilon d_j.
+ \label{eq:op3-signal-sandwich}
+\end{equation}
+Since $\vartheta>\lambda$, each reported admission satisfies the exact
+support-safe condition of \cref{lem:op3-response-size}. If no key exceeds
+its threshold, then
+$q\vartheta+\varepsilon/16=3\varepsilon/4$, proving
+\cref{eq:op3-quiet-certificate}.
+
+Each coordinate starts positive publication at $h/2$ or more, grows by a
+factor at least $a_0$, and never exceeds $1/(\bar\alpha d_i)$. It therefore
+has at most
+$1+\lceil\log_{a_0,+}(32\gamma/(\bar\alpha\varepsilon))\rceil$
+positive publications. Multiplying by $d_i$ and summing gives the repeated
+incidence bound. A dictionary with logarithmic word cost stores the
+exposed neighbor labels, degrees, scores, and active flags. The number of
+distinct labels and incidences is $O(V+1)$. Candidate keys are monotone
+until their vertex is admitted; they can be queued once and removed at
+admission. New-face exposure costs $V$, and there are at most $|U_{\rm fin}|$
+nonempty faces. All event-location and ready-certification costs remain in
+$\mathcal P$, including empty searches.
+\end{proof}
+
+\paragraph{Finite bands do not require exact bucket decisions.}
+An exact geometric floor with ratio $5/4$ and minimum value $h$ is one
+valid publication policy. It is not necessary to decide such floors near
+equality. For example, suppose a queried coordinate comes with an interval
+$[L,H]$ containing its exact value and of width at most $h/4$. Retain the
+old publication if $H\leq q\ell+h$. Otherwise $L>q\ell+3h/4$; publish
+the largest value $(h/2)a_0^k\leq L$. If $\ell>0$, this is a strict
+increase by at least $a_0$, because $q>a_0^2$; if $\ell=0$, it is at least
+$h/2$. The new value is at most the truth, and
+$q\ell_{\rm new}+h\geq H$. Thus there is an overlap band and no
+trajectory minimum-complementarity-margin parameter. Producing these
+intervals and choosing which coordinates to query are still charged to
+$\mathcal P$.
+
+\begin{lemma}[One final certified SDD solve suffices; proof draft]
+\label{lem:op3-terminal-repair}
+Let $U$ satisfy \cref{eq:op3-quiet-certificate}. Compute a numerical
+solution $\widetilde{\bm z}$ on $U$ such that
+\begin{equation}
+ \|\widetilde{\bm z}-\bm z^U\|_\infty\leq\delta,
+ \qquad \delta:=\bar\alpha\varepsilon/16.
+ \label{eq:op3-terminal-accuracy}
+\end{equation}
+Return $\widehat z_i=\max\{0,\widetilde z_i-\delta\}$ on $U$ and zero
+outside. Then $\bm D\widehat{\bm z}$ is an ACL $\varepsilon$-approximation
+of support volume at most $2/\varepsilon$. A supplied-face SDD solver with
+certified retries performs this completion in expected
+$\widetilde O(V+1)$ word work, hiding only logarithmic parameter factors.
+\end{lemma}
+\begin{proof}
+Write $\bm e=\bm z^U-\widehat{\bm z}$; then $0\leq e_i\leq2\delta$.
+Outside $U$ the residual can only decrease and remains nonnegative.
+On $U$ its upper bound is
+\[
+ r_i(\widehat{\bm z})
+ =\lambda d_i+\bar\alpha^{-1}(\bm M\bm e)_i
+ \leq(\lambda+2\delta/\bar\alpha)d_i
+ =\tfrac58\varepsilon d_i.
+\]
+If $\widehat z_i>0$, the same formula gives a lower bound
+$(\lambda-2\gamma\delta/\bar\alpha)d_i\geq0$.
+If $\widehat z_i=0$, its residual is directly
+$(\bm e_v)_i+\gamma\bar\alpha^{-1}(\bm A\widehat{\bm z})_i\geq0$.
+This proves the ACL witness and the support bound.
+
+The matrix $\bm M_{UU}$ is SDD with $O(V)$ nonzeros. The exact test
+\[
+ \|\bm D_U^{-1}(\bm M_{UU}\widetilde{\bm z}_U
+       -\bar\alpha(\bm e_v-\lambda\bm d)_U)\|_\infty
+ \leq\bar\alpha\delta
+\]
+implies \cref{eq:op3-terminal-accuracy}, since
+$\bm M_{UU}\one\geq\bar\alpha\bm d_U$ and the inverse is nonnegative.
+It costs one charged pass over the face. Also
+$\|\bm z^U\|_{\bm M_{UU}}^2\leq\bar\alpha$, so relative energy error at
+most $\bar\alpha^2\varepsilon/16$ suffices for this test by rowwise
+energy Cauchy--Schwarz. The tolerance is polynomial in the named parameters.
+The supplied SDD result of \citet{koutis2011nearly}, applied only to the
+exposed face, followed by independent certified retries gives the claimed
+expected cost. Capped retries alternatively give explicit high-probability
+completion or a reported failure. There is no ambient scan.
+\end{proof}
+
+The cases $\lambda d_v\geq1$, $\alpha=1$, and $\varepsilon\geq1$ are
+handled directly by the zero or one-coordinate solution. Combining
+\cref{thm:op3-geometric-recipient,lem:op3-terminal-repair} leaves a precise
+\statusopen{} target: construct the producer with
+$\mathcal P=\widetilde O(V+1)$ along this finite-band, one-source trace.
+This permits a different sequence of faces from the literal Wei--Yang
+algorithm. It neither maintains arbitrary changing right-hand sides nor
+answers arbitrary inverse queries. The older additive-quantization and
+exact-full-boundary obstructions must not be silently transferred to this
+weaker interface.
+
+\subsection{A separate teleportation-continuation probe}
+\label{subsec:op3-teleportation-probe}
+
+Put $t=\bar\alpha/(1-\bar\alpha)$ and $\bm L=\bm D-\bm A$. For fixed $\lambda$,
+define, only in this subsection,
+\[
+ \bm w_t:=\argmin_{\bm w\geq0}
+ \left\{\tfrac12\bm w^\top(\bm L+tD)\bm w
+                  -(\bm e_v-\lambda\bm d)^\top\bm w\right\}.
+\]
+The degree-coordinate RPPR optimum is $t\bm w_t$. If $0<t'<t$, then
+$\bm w_{t'}\geq\bm w_t$: the smaller-$t$ solution is a nonnegative
+supersolution for the larger-$t$ obstacle, and the obstacle solution is the
+least such supersolution. Thus supports are nested in this rescaling.
+For $t'=t/2$, the formed matrices obey
+\begin{equation}
+ \tfrac12(\bm L+tD)\preceq \bm L+(t/2)\bm D\preceq \bm L+tD.
+ \label{eq:op3-teleportation-spectral-sandwich}
+\end{equation}
+Both are useful \statusproved{} proof-draft facts, but they do not give a
+constant-cost local continuation stage.
+
+On the three-vertex path seeded at its first endpoint, take $\lambda=1/5$.
+The two exact solutions are
+\[
+ \bm w_{3/2}=(8/25,0,0)^\top,\qquad
+ \bm w_{3/4}=(96/205,4/205,0)^\top.
+\]
+Direct substitution verifies all obstacle inequalities. A new coordinate
+becomes positive even though the matrices satisfy
+\cref{eq:op3-teleportation-spectral-sandwich}. Therefore no uniform
+coordinatewise multiplicative bracket by the old solution follows. A
+preconditioned obstacle step must still discover new support and apply its
+non-Euclidean constrained map; a good preconditioner for an unconstrained
+linear solve does not perform that step.

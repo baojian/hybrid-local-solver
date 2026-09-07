@@ -46,6 +46,25 @@ clustering and local PageRank computation.
 These papers develop local iterative solvers or related graph-diffusion
 methods whose work is intended to depend on local structure.
 
+- [*Maintaining Information in Fully-Dynamic Trees with Top Trees*](https://arxiv.org/pdf/cs/0310065v2)
+  (Alstrup, Holm, de Lichtenberg and Thorup, *ACM Transactions on
+  Algorithms* 1(2):243–264, 2005) — logarithmically many cluster changes
+  per dynamic-tree update. The checked application contract supports the
+  local-tree proof draft in `incremental_active_set_sdd`; the balancing
+  algorithm is an explicit source import. Journal
+  Theorem 2.1 and Sections 2/6 were checked in the published PDF.
+- [*Dynamic Planar Convex Hull*](https://arxiv.org/abs/1902.11169)
+  (Jacob and Brodal, arXiv:1902.11169v1, 2019; full version of earlier work)
+  — individual point updates and extreme queries for stable two-port
+  boundary records. It does not provide bulk affine pullback and meld.
+- [*Dynamic Geometric Data Structures via Shallow Cuttings*](https://arxiv.org/abs/1903.08387)
+  (Chan, arXiv:1903.08387v1, 2019) — Theorem 4.2 supplies dynamic
+  three-dimensional extreme queries; a candidate for a bounded third
+  retained coordinate, not a general local-solver theorem.
+- [*Reversible Markov Chains and Random Walks on Graphs*, Chapter 5, §5.3](https://www.stat.berkeley.edu/~aldous/RWG/Book_Ralph/Ch5.S3.html)
+  (online manuscript section dated 23 April 1996) — exact tree edge-hitting
+  means and maximal mean bounds. These do not establish the discounted
+  path-extremal conjecture in the bounded-attachment OP3 probe.
 - *Local Computation of PageRank Contributions* (Andersen et al., 2007).
 - *Using PageRank to Locally Partition a Graph* (Andersen, Chung, and Lang,
   2007) - journal treatment of approximate PageRank push, sweep cuts, and
@@ -102,11 +121,21 @@ certified supplied-face SDD solves.
   al., 2009) - linear pivot-path bounds for K-matrix LCPs.
 - *Some Convergence Results for Howard's Algorithm* (Bokanowski, Maroso, and
   Zidani, 2009) - at most linearly many global obstacle-policy solves.
+- [*Lipschitz Unimodal and Isotonic Regression on Paths and Trees*](https://www.cs.toronto.edu/~sadri/publications/regression.pdf)
+  (Agarwal, Phillips, and Sadri; author manuscript, 2010) - affine composition
+  trees for implicit scalar response curves; OP3 import audit in `lcp-solvers.md`.
+- [*Total Generalized Variation on a Tree*](https://epubs.siam.org/doi/10.1137/23M1556915)
+  (Kuric, Ahmetspahic, and Pock, 2024) - explicit piecewise-quadratic tree
+  messages; comparison for the affine-response probe.
 - *A Nearly-m log n Time Solver for SDD Linear Systems* (Koutis, Miller, and
   Peng, 2011) - nearly-linear solution of a supplied global SDD system.
 - *Superrelaxation and the Rate of Convergence in Minimizing Quadratic
   Functions Subject to Bound Constraints* (Dostál, Domorádová, and Sadowská,
   2011) - projected-gradient/CG working-set convergence rates.
+- [*ℓ2-Norm Flow Diffusion in Near-Linear Time*](https://arxiv.org/pdf/2105.14629v2)
+  (Chen, Peng, and Wang, 2021) - global constrained diffusion; an OP3
+  localization candidate with a numerical-range obligation, audited in
+  [`lcp-solvers.md`](lcp-solvers.md#chen-peng-and-wang-2021-constrained-diffusion-and-the-op3-alternative).
 - *Non-Negative Conjugate Gradients* (Schmelzer and Stoll, 2026) - inexact
   matrix-free CG inside a guarded active-set loop.
 - *Fully Dynamic Spectral Vertex Sparsifiers and Applications* (Durfee, Gao,

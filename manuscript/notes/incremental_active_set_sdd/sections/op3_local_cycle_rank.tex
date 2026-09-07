@@ -1,0 +1,284 @@
+\section[Locally exposed cycle rank]{A coarse system for the locally exposed cycles}
+\label{sec:op3-local-cycle-rank}
+
+\paragraph{Status and parameters.}
+This section gives a \statusproved{} construction as a proof draft awaiting
+independent review. It applies to arbitrary finite simple connected
+unweighted graphs in the same local degree/adjacency and exact-real word
+models. Its work depends on the cycle ranks of the final active support
+and of the locally revealed graph. These dependencies remain explicit;
+the result does not resolve graph-uniform OP3. The published height-bounded
+top-tree algorithm remains an explicit \statussource{} import, and the
+implemented audit rebuilds application hierarchies as reference work.
+
+\begin{lemma}[Revealed cycle rank and exceptional incidences; \statusproved]
+\label{lem:op3-revealed-cycle-rank}
+For a nonempty connected active set $U$, let
+\[
+ r(U)=|E(G[U])|-|U|+1,\qquad
+ a_j=|N(j)\cap U|\quad(j\in\partial U),
+\]
+and define the revealed cycle rank
+\begin{equation}
+ q(U)=r(U)+\sum_{j\in\partial U}(a_j-1).
+ \label{eq:op3-revealed-cycle-rank}
+\end{equation}
+It is the cycle rank of the connected graph on $U\cup\partial U$ with
+exactly the original edges incident to $U$. Both $r(U)$ and $q(U)$ are
+nondecreasing under connected admissions, and
+$r(U)\leq q(U)\leq\operatorname{vol}(U)$.
+There are at most $q(U)-r(U)$ exceptional candidates with $a_j\geq2$,
+and their total number of active parents is at most $2(q(U)-r(U))$.
+All these quantities are maintained from scanned incidences only.
+\end{lemma}
+\begin{proof}
+The revealed graph has $|U|+|\partial U|$ vertices and
+$|E(G[U])|+\sum_j a_j$ edges, proving the identity. Admitting a candidate
+with $a$ active parents increases $r$ by $a-1$ and removes the same amount
+from the boundary sum. Each newly scanned incidence to a previously
+discovered boundary vertex increases $q$ by one; an incidence introducing
+a new boundary vertex changes its edge and vertex counts equally.
+Thus both ranks are nondecreasing. Each exceptional summand $a_j-1$ is
+at least one, and $a_j\leq2(a_j-1)$ for $a_j\geq2$. Finally the revealed
+edge count is at most the number of scanned entries $\operatorname{vol}(U)$.
+No edge between two still-inactive vertices is queried or included.
+\end{proof}
+
+\begin{lemma}[Two-port partition with permanent row homes; \statusproved]
+\label{lem:op3-marked-tree-partition}
+Let $T$ be an insertion spanning tree of $G[U]$, permanently rooted at $v$,
+and let $R$ be the $r=r(U)$ remaining active edges. If $r\geq1$, there is
+a retained set $P$ of at most $4r$ active vertices and a partition of
+$E(T)$ into $|P|-1$ connected tree pieces, each with exactly two ports in
+$P$. Distinct pieces have disjoint interiors and share only retained ports.
+The total number of vertex copies over all pieces is
+$|U|-1+(|P|-1)$.
+The partition, original-label maps and permanent row-home component map
+can be constructed in $O((|U|+r)\log(2+\operatorname{cvol}(U)))$ word
+work from cached active tree edges, using comparison dictionaries.
+An ordinary one-parent admission subsequently extends just one piece;
+no partition change or global re-homing is required.
+\end{lemma}
+\begin{proof}
+Mark $v$ and all endpoints of edges in $R$, giving a set $S$ of at most
+$2r+1$ vertices. Let $K$ be the minimal subtree of $T$ connecting $S$.
+Add every degree-at-least-three vertex of $K$ to $S$ to obtain $P$.
+Every leaf of $K$ is marked, so the number of unmarked branching vertices
+is at most $|S|-2$. Consequently $|P|\leq2|S|-2\leq4r$.
+The maximal paths in $K$ between vertices of $P$ form a coarse tree with
+$|P|-1$ edges. Since $v\in P$ and $T$ is rooted at $v$, the endpoints of
+each such path are comparable; choose its rootward endpoint as its anchor.
+
+Assign all unmarked branches attached to an interior path vertex to that
+path's piece. At a retained vertex other than $v$, assign all its off-$K$
+branches to its rootward path piece. At $v$, choose an incident piece for
+any off-$K$ branches. The pieces are connected trees whose only shared
+vertices are their two retained endpoints. Their edge sets partition $T$.
+If there are $c$ pieces, summing the tree identity
+$|V(B)|=|E(B)|+1$ gives total copy count $|U|-1+c$.
+
+Home vertex $i\ne v$ on its permanent insertion-parent edge, and home $v$
+on the first admitted edge. A row stays on that physical tree edge through
+every repartition. A retained nonroot vertex therefore homes its row in
+the rootward piece. At $v$, if its home edge is off $K$, assign that branch
+to the selected home piece; otherwise its path already determines the
+home piece. Each ordinary minimum row appears exactly once. Other copies
+of a shared retained vertex contribute no duplicate reporter row.
+
+To build $K$, process the cached insertion order backward, marking whether
+each subtree contains a marked vertex. A tree edge is in $K$ exactly when
+its farther subtree is marked. Count these incidences, identify $P$, and
+traverse the resulting nonbranching paths once. Process the insertion order
+forward to assign off-$K$ edges to their parent's home piece. This reads
+$O(|U|+r)$ records and writes the same order of component, copy and home
+records; dictionaries and deterministic sorting add the stated logarithm.
+There is no ambient adjacency scan or reserved ambient vertex array.
+
+If a new candidate has one active parent, it adds a leaf to $T$ and does
+not change $R$, $S$, $K$ or $P$. Assign its new edge to its parent's home
+piece. That piece contains the parent, even when the parent is shared.
+The new vertex is unmarked, so both ports and every other piece remain
+unchanged. Its own permanent home is its new insertion edge.
+\end{proof}
+
+\paragraph{The tree regime.}
+When $r=0$, use one piece, the whole active tree, with its sole port $v$.
+The ordinary reporter is the scalar tree reporter. There may still be many
+exceptional inactive candidates, so the single-exception argument of the
+unicyclic theorem must not be used here.
+
+\begin{lemma}[Shared-port assembly and cycle restoration; \statusproved]
+\label{lem:op3-coarse-cycle-assembly}
+For every piece $B$, maintain its shifted Schur state
+$(\boldsymbol H_B,\boldsymbol h'_B)$ at its one or two ports, using
+original full degrees and
+$\beta_i=\mathbf1_{i=v}-\lambda d_i-Cd_i$, where $C=1/\bar\alpha$.
+Embed and sum these states on the retained coordinates $P$. If $i\in P$
+appears in $m_i$ pieces, subtract $(m_i-1)d_i$ from its summed diagonal
+and $(m_i-1)\beta_i$ from its summed load. For every extra edge
+$\{i,j\}\in R$, subtract $\gamma$ from the two off-diagonal entries and
+add $\gamma C$ to both endpoint loads. The resulting system is the exact
+Schur system of the full active matrix and shifted load on $P$.
+It is positive definite. Its solution supplies the exact port values for
+every component reporter and named-coordinate query.
+\end{lemma}
+\begin{proof}
+Before interior elimination, each piece contributes one $d_i$ and one
+$\beta_i$ at every represented vertex, plus the unique contributions from
+its own tree edges. The interiors are disjoint and have no edges to other
+interiors, while all extra-edge endpoints are retained. Eliminating the
+interiors can therefore be done independently within pieces. At shared
+ports, the stated diagonal and load subtractions remove exactly the
+duplicated fixed vertex terms. The extra-edge update is the per-edge
+shifted rule from \cref{lem:op3-uniform-negative-shift}. Thus the assembled
+system is precisely the full principal matrix's Schur complement, with its
+correct shifted right-hand side. Positive definiteness follows from that
+of $\boldsymbol M_{UU}$. In particular, an uncorrected piece or spanning-tree
+response need not be positive in the physical coordinates; no obstacle
+truncation is applied to these affine response objects.
+\end{proof}
+
+\paragraph{Local update and query algorithm.}
+Cache each boundary candidate's active-parent list. A one-parent candidate
+belongs to its parent's ordinary heap with key $\lambda d_j/\gamma-C$.
+On acquiring a second parent, remove its ordinary row, refresh the old
+parent's home edge, and put it in an exceptional dictionary. Later parents
+only extend its incidence record; the candidate stays outside all ordinary
+heaps. At every checkpoint, solve the coarse system and query every piece's
+ordinary reporter at its resulting port values. Separately evaluate each
+exceptional original gate
+\[
+ g_j=\gamma\sum_{i\in N(j)\cap U}u_i-\lambda d_j
+\]
+using \cref{lem:op3-cluster-point-query} in each named parent's home piece.
+All quiet queries are included. Either type of strict positive gate can
+supply the next admission; stop only when all queried signs are nonpositive.
+
+An admission with $a\geq2$ active parents keeps one new edge in $T$ and
+adds the other $a-1$ edges to $R$. Rebuild the marked partition and the
+current component hierarchies from cached active edges. This occurs at
+most $r(U_{\rm final})$ times. A one-parent admission instead uses one
+source leaf insertion in the parent's home piece and the needed old home
+payload updates. The source restores each affected piece's fixed one or
+two external ports before any new gate query. Separate local structural
+copies of shared ports are glued only by the coarse equation; they are not
+additional vertices of the PageRank problem.
+
+\begin{theorem}[A local bound in active and revealed cycle rank; \statusproved]
+\label{thm:op3-local-cycle-rank}
+The preceding deterministic algorithm returns the exact obstacle solution
+on an arbitrary finite simple connected unweighted graph with at least two
+vertices, for $0<\alpha<1$ and $\lambda>0$.
+For a nonempty returned positive support $U$, put
+$V=\operatorname{cvol}(U)$, $r=r(U)$, $q=q(U)$ and $L=\log(2+V)$.
+Its total exact-real word work is
+\begin{equation}
+ O\!\left(1+V\bigl[(1+r)L^4+(1+r)^3+qL^2\bigr]\right),
+ \label{eq:op3-cycle-rank-work}
+\end{equation}
+and its space, including all historical application versions, is
+\begin{equation}
+ O\!\left(1+(1+r)VL^3+(1+r)^2\right).
+ \label{eq:op3-cycle-rank-space}
+\end{equation}
+An empty support is certified in constant work by $\lambda d_v\geq1$.
+With $\lambda=\epsappr/2$ and $0<\epsappr<1$, it gives original ACL residual between zero and
+$\lambda\boldsymbol d$ and fully charged local work
+$\widetilde O((1+r^3+q)/\epsappr)$.
+With $\lambda=\rho$, it gives the exact RPPR solution, of objective gap zero,
+in $\widetilde O((1+r^3+q)/\rho)$ work in the nonzero regime.
+\end{theorem}
+\begin{proof}
+The singleton and zero cases are as in \cref{thm:op3-local-unicyclic}.
+By \cref{lem:op3-coarse-cycle-assembly}, every checkpoint has exact full
+active-face coordinates at all retained ports. The component reporters
+cover each ordinary heap minimum exactly once, while the exceptional
+queries use every actual active parent. Thus every admission has a strict
+positive original gate and the block update of \cref{thm:block-schur}
+keeps every admitted coordinate positive and increases the old ones.
+Termination gives the exact obstacle KKT conditions. All admitted rows
+belong to the unique final positive support, giving at most $|U|$ iterations
+and a single final recovery. The residual and mass arguments from the
+unicyclic theorem apply unchanged.
+
+There are $O(1+V)$ original row entries, degree replies, discovered-label
+records and incidence insertions. Ordinary heap insertions and lazy
+deletions have the same total count. A new second-parent incidence causes
+at most one extra old home-payload refresh, so there are $O(1+V)$ such
+refreshes in total, even if a single admitted row creates many exceptional
+candidates. Source leaf insertions, exposure restoration and height-bounded
+payload walks cost $O((1+V)L^4)$ work and allocate $O((1+V)L^3)$ persistent
+application state. Component copies use local identifiers; dictionaries,
+capacity changes and their data copies are charged as in
+\cref{lem:op3-top-tree-payload}.
+
+By \cref{lem:op3-marked-tree-partition}, a cycle-birth rebuild visits
+$O(|U|+r)$ cached words and creates pieces of total size $O(|U|+r)$.
+Initialize their source hierarchies in parent-before-child order. Since
+$r\leq V$, one such rebuild costs $O(VL^4)$ work and $O(VL^3)$ newly
+allocated application state. At most $r$ rebuilds give the first terms in
+\eqref{eq:op3-cycle-rank-work} and \eqref{eq:op3-cycle-rank-space}.
+Per-component capacity doubling between rebuilds has the same geometric-sum
+bound. Permanent original home edges and depths do not change, but their
+component map and structural leaf locators are rebuilt and charged.
+
+Each coarse system has dimension $O(1+r)$. Zeroing its dense matrix, copying
+it for elimination, assembling piece entries, correcting duplicates and
+restoring extra edges cost $O((1+r)^2+(1+r)L)$ word work. A deterministic
+dense positive-definite solve costs $O((1+r)^3)$ work and $O((1+r)^2)$
+temporary words. There is one solve per checkpoint, including termination.
+Querying all $O(1+r)$ component reporters costs $O((1+r)L^2)$ per checkpoint.
+By \cref{lem:op3-revealed-cycle-rank}, all exceptional parent incidences
+number at most $2q$, so their named queries and dictionary work cost
+$O((1+q)L^2)$ per checkpoint, including every failed gate check and the
+candidate list search. These bounds are absorbed in
+\eqref{eq:op3-cycle-rank-work}, since $|U|\leq V$.
+If incidence lists are copied as tuples, as in the exact driver, their total
+copy work is at most $O((1+q)V)$, also covered by that bound; old temporary
+tuple copies need not be retained.
+
+Current component copies and their original-label maps use $O(V+r)$ words.
+Final recovery traverses each current component once, checks equal values
+at shared ports, adds $C$ and emits each original coordinate once. Its work
+is $O((V+r)L)$. Historical root pointers and their solved one/two-port
+values cost $O((1+r)|U|)$ words and are included in the allocated-state
+bound. Temporary coarse matrices and query arithmetic are paid work but
+need not be saved as historical application versions. Finally
+$\lambda\operatorname{vol}(U)<1$ implies $V=O(1/\lambda)$, proving both
+accuracy-namespace consequences.
+\end{proof}
+
+\paragraph{Relation to OP3.}
+The support ranks are output parameters, not a supplied decomposition or an
+ambient preprocessing budget. For fixed revealed cycle rank this reaches
+OP3's $\widetilde O(1/\epsappr)$ ACL scale, while the general bound retains
+the explicit rank factors. Separately, the sufficient structural condition
+$1+r^3+q=O(\alpha^{-1/2})$ puts the exact regularized solve at OP2's
+conjectured $\widetilde O(1/(\rho\sqrt\alpha))$ scale. These are distinct
+accuracy namespaces; no semantic PPR conversion is inferred here.
+Large active cycle rank leaves a cubic coarse-system factor, and many quiet
+exceptional candidates leave repeated named-query work. Neither dependency
+is proved necessary. Removing or separately paying them is \statusopen{}.
+
+\paragraph{Measured implementation boundary.}
+\texttt{local\_cycle\_rank\_clusters.py} implements local incidence discovery,
+permanent home edges, cycle-birth partition changes, shared-port correction,
+coarse solves, complete exceptional gates and one final output. Independent
+dense Schur references check the assembled matrix and shifted load on every
+audited positive face, in addition to full obstacle and original-residual
+comparisons. The audit exercises multiple simultaneous exceptional candidates
+and single admissions that create several cycles. Rebuilt component
+hierarchies, their full parent indices and dense reference recovery are
+separately counted audit work. The asymptotic theorem uses the same verified
+published online hierarchy as the earlier tree and unicyclic constructions.
+The sweep covers all 995 connected atlas graphs through seven vertices,
+every seed, four parameter pairs and two policies: 54,240 executions.
+Twenty larger explicit cases and five finite implicit private-star cases
+extend the families. In total, 217,410 positive faces, 168,368 independently
+assembled coarse Schur systems and 483,413 original gates are checked.
+The atlas alone has 33,074 admissions creating multiple cycles and 166,405
+exceptional gate checks, of which 3,441 are quiet. Retained component roots
+are rechecked 198,001 times. The five implicit examples inspect only
+58, 51, 48, 62 and 70 original entries, respectively, and never scan an
+inactive hub row. Full parameters, counts and source hashes are in
+\texttt{LOCAL\_CYCLE\_RANK\_CLUSTER\_AUDIT.json}.

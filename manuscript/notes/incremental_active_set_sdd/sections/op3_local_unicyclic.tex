@@ -1,0 +1,218 @@
+\section[Local unicyclic construction]{Local unicyclic discovery with two fixed cycle ports}
+\label{sec:op3-local-unicyclic}
+
+\paragraph{Status and model.}
+The construction below is \statusproved{} as a proof draft awaiting
+independent review. It extends \cref{thm:op3-local-top-tree} to arbitrary
+finite simple connected unweighted unicyclic graphs, with an arbitrary
+physical seed and arbitrarily large tree attachments. Neither the cycle
+nor any attachment is supplied. The exact-real word and local graph-access
+models are unchanged. The height-bounded top-tree balancing algorithm is
+the same explicit \statussource{} import. The local state machine,
+application algebra and named queries are implemented, while the audit
+rebuilds reference hierarchies and counts those rebuilds separately.
+The result does not settle arbitrary-graph OP3.
+
+\begin{lemma}[Named coordinates through current cluster records; \statusproved]
+\label{lem:op3-cluster-point-query}
+Given a current height-$h$ cluster hierarchy, solved values at its at most
+two root ports, and a stored incident-edge locator for an active vertex
+$i$, its exact coordinate can be queried in $O(1+h)$ word operations.
+The query uses a constant-size affine row and current parent pointers; it
+does not recover or scan any other active coordinate. It therefore costs
+$O(\log(2+n))$ on the height-bounded source hierarchy.
+\end{lemma}
+\begin{proof}
+Start with the basis row selecting $i$ from its incident base edge's two
+endpoints. A one-port base edge has one forget record, which immediately
+pulls this row back to the structural leaf's port. Each structural join
+introduces at most two application records. Compression recovers the shared
+port as $w_m=\eta w_L+\zeta w_R+\sigma$; forgetting recovers
+$w_b=\eta w_a+\sigma$; raking preserves each child port among the parent
+ports. Hence a child's at most two port coordinates are affine functions
+of the parent's at most two ports, computable through these at most two
+new records in constant work. Pull the current affine row through that map
+and follow the structural parent pointer. At the root, evaluate the row at
+the solved port values and add $C$ if physical $u_i$ is requested.
+
+The published source stores edge-leaf and structural parent pointers
+(Section 2.4 of \cite{alstrup2005toptrees}). Store one current incident home
+edge per vertex as in \cref{lem:op3-top-tree-payload}. An endpoint lookup,
+including the root's first edge, therefore needs no search. Current child
+to parent affine maps can be computed from the saved helper records or
+cached with each freshly created parent in constant additional work.
+Changed payload ancestors recompute these maps from current children.
+No old numerical parent version is reactivated after an exposure update.
+Equivalently, the expanded application hierarchy has at most twice the
+structural height, and the query follows its current parent links.
+The audit's whole-hierarchy index construction is a reference convenience;
+it is not needed by this source-pointer implementation.
+\end{proof}
+
+\begin{lemma}[The unique exceptional boundary candidate; \statusproved]
+\label{lem:op3-unicyclic-exception}
+Let $U$ be a connected active set in a graph of cycle rank at most one.
+If $G[U]$ is a tree, every inactive boundary vertex has one active neighbor,
+except possibly one vertex having two active neighbors. If $G[U]$ is
+already unicyclic, every inactive boundary vertex has exactly one active
+neighbor. The exceptional vertex, if present, can be discovered from
+cached incidences while scanning newly admitted rows.
+\end{lemma}
+\begin{proof}
+Adjoin any collection $B$ of inactive boundary vertices and only their edges
+to $U$. The resulting connected subgraph has cycle rank
+\[
+ |E(U)|-|U|+1+\sum_{j\in B}\bigl(|N(j)\cap U|-1\bigr)\leq1.
+\]
+Every summand is nonnegative. The assertions follow immediately, including
+the impossibility of a third active neighbor. Since every active row has
+already been scanned, a boundary record contains all its current active
+parents. A newly scanned incidence either creates its first parent or
+reveals the sole possible second parent. Thus no inactive row or unknown
+cycle information is required.
+\end{proof}
+
+\paragraph{State before closure.}
+Use the uniform shift of \cref{lem:op3-uniform-negative-shift} from the
+start. Root the active spanning tree at the physical seed $v$, exposing
+only $v$ at each checkpoint. Every ordinary candidate $j$ has one active
+parent $i$, so its heap key is $\kappa_j=\lambda d_j/\gamma-C$.
+Home only the minimum live key from each active vertex's heap. This gives
+the root's exact ordinary sign certificate by
+\cref{lem:op3-shifted-reporters}.
+
+When a second active parent is discovered for $j$, remove its entry from
+the first parent's ordinary heap and exclude it from the new parent's
+heap. Refresh the first parent's home edge. Store the exceptional triple
+$(j,p,q)$ separately. Lazy heap deletion is also valid: a live-entry test
+checks the cached parent tuple and active status; every stale entry is
+removed at most once. At every checkpoint, including unsuccessful checks,
+use \cref{lem:op3-cluster-point-query} twice to evaluate
+\[
+ g_j=\gamma(u_p+u_q)-\lambda d_j.
+\]
+Either an ordinary reporter or this exceptional gate may supply the next
+strict positive admission. Stop before closure only if both are quiet.
+The exceptional record is created at most once: it persists until its
+vertex is admitted, which closes the sole cycle, or until termination.
+
+\paragraph{The single closure and subsequent growth.}
+Admitting an ordinary candidate adds one leaf to the stored spanning tree.
+Admitting the exceptional candidate $j$ adds two edges to the active graph.
+Keep either new edge in the spanning tree and designate the other as the
+extra edge $\{c,j\}$. Re-root and rebuild the cached active spanning tree
+once at geometric anchor $c$, re-homing its current minimum rows. Insert
+its edges through the source interface in parent-before-child order, then
+expose $c,j$. The uniform negative-load shift allows the physical seed to
+be interior, and \eqref{eq:op3-one-edge-restoration} gives the exact full
+active solution at the two retained ports. The underlying uncorrected
+spanning-tree response remains a signed affine object; no positivity or
+obstacle truncation is imposed on that response.
+
+By \cref{lem:op3-unicyclic-exception}, every subsequent inactive candidate
+has one active parent. Its admission adds a leaf to the stored spanning
+tree and changes its parent's minimum row. Expose the same two fixed cycle
+ports after each link. The root hull now gives a complete sign certificate
+for all remaining ordinary boundary candidates, using the corrected root
+values. Link operations may temporarily reset external vertices: apply the
+unavailable-anchor convention of \cref{lem:op3-source-interior-adapter}
+and make no gate query until the required exposure has been restored.
+The source splits all clusters whose boundary set changes before an update,
+so both one-port and two-port exposures preserve the callback contract.
+
+\begin{theorem}[Local exact obstacle and ACL solves on unicyclic graphs; \statusproved]
+\label{thm:op3-local-unicyclic}
+For a finite simple connected unweighted graph with at least two vertices
+and cycle rank at most one, the preceding deterministic local algorithm
+returns the exact obstacle solution for
+$\boldsymbol M=\boldsymbol D-\gamma\boldsymbol A$ and
+$\boldsymbol b=\boldsymbol e_v-\lambda\boldsymbol d$.
+For $0<\alpha<1$, $\lambda>0$, and returned positive support $U$, its total
+exact-real word work is
+\[
+ O\!\left(1+\operatorname{cvol}(U)
+       \log^4(2+\operatorname{cvol}(U))\right).
+\]
+Its space, even retaining all historical application versions, is
+$O(1+\operatorname{cvol}(U)\log^3(2+\operatorname{cvol}(U)))$ words.
+For $\lambda=\epsappr/2$ and $0<\epsappr<1$, it returns
+$\widehat{\boldsymbol\pi}=\bar\alpha\boldsymbol D\boldsymbol u$ with
+original residual between zero and $\lambda\boldsymbol d$, in fully
+charged local work $\widetilde O(1/\epsappr)$.
+\end{theorem}
+\begin{proof}
+If $\lambda d_v\geq1$, return zero after the seed degree query. Otherwise
+start at the positive singleton. Exact Schur states and reporters,
+\cref{lem:op3-unicyclic-exception}, and the separately checked exceptional
+gate ensure that every admission has a strictly positive original gate.
+The usual positive inverse block update makes the new coordinate positive
+and increases the old coordinates. Thus every checkpoint is a positive
+face, all admissions lie in the final obstacle support, and termination
+occurs after at most $|U|$ admissions. At termination every active equation
+is exact and every inactive gate is nonpositive. These are the obstacle KKT
+conditions, proving uniqueness and correctness. Final recovery visits only
+the current application records and adds $C$ once per emitted coordinate.
+The original residual is nonnegative, equals $\lambda d_i$ on $U$, and is
+at most $\lambda d_i$ outside $U$.
+
+Write $V=\operatorname{cvol}(U)$. Each admitted original row is scanned once,
+for at most $V$ adjacency entries. Distinct degree replies, discovered-label
+records, active-membership tests and cached boundary incidences require
+$O(1+V)$ logical operations; comparison dictionaries add a logarithm.
+There is one heap insertion per first boundary incidence and at most one
+later deletion per entry, with $O(\log(2+V))$ work per heap operation.
+Each admission changes at most two old home payloads and one new payload;
+the exceptional extra old-parent refresh occurs only once. By
+\cref{lem:op3-top-tree-payload}, these changes and the source's link/expose
+callbacks cost $O((1+V)\log^4(2+V))$ work. At most two named-coordinate
+queries per checkpoint add $O(|U|\log(2+|U|))$ work. Constant-size root
+solves and the final failed ordinary and exceptional queries are included.
+
+Closure re-roots only the cached active spanning tree, at most once.
+Traversing its edges, assigning new depths and homes, and rebuilding through
+the source interface costs $O(|U|\log^4(2+|U|))$, with
+$O(|U|\log^3(2+|U|))$ newly allocated persistent state. This is charged to
+the final $V$, even when the remaining graph is enormous. The capacity-
+doubling alternative in \cref{lem:op3-top-tree-payload} adds the same bounds;
+no array is initialized using the ambient vertex count. All historical
+application records satisfy the stated total allocation bound, while each
+current hierarchy has only linear structural state and constant-size helper
+records. Temporary arithmetic matrices and query rows have constant size;
+their work is charged and they need not be retained after use. The final
+recovery and dictionary output cost $O((1+V)\log(2+V))$.
+
+For nonempty $U$, the source-mass identity gives $\lambda\operatorname{vol}(U)<1$.
+The positive-degree graph implies $|U|\leq\operatorname{vol}(U)$, so
+$V=O(1/\lambda)$. Substituting $\lambda=\epsappr/2$ proves the ACL bound.
+\end{proof}
+
+\paragraph{RPPR consequence.}
+With $\lambda=\rho$, the same construction gives the exact regularized
+solution $\boldsymbol x=\bar\alpha\boldsymbol D^{1/2}\boldsymbol u$,
+with objective gap zero and $\widetilde O(1/\rho)$ work in the nonzero
+regime $0<\rho<1/d_v$. This removes both the cycle-seed assumption and the
+polynomial attachment-size factor in the earlier bounded-attachment result.
+It remains a structural exact-word theorem, not a numerical implementation
+or an arbitrary-graph OP3 theorem.
+
+\paragraph{Measured and implementation boundary.}
+\texttt{cluster\_point\_queries.py} checks 58,816 exact named coordinates
+on all core trees through six vertices, including arbitrary root assignments,
+one-port base edges, all recovery helper shapes and retained payload versions.
+
+\texttt{local\_unicyclic\_clusters.py} uses actual strict local admissions on
+all 78 connected tree and unicyclic atlas graphs through seven vertices,
+every seed, four parameter pairs and two admission/extra-edge policies.
+Independent dense references check every face, every original boundary
+gate, cycle correction, final obstacle solution and ACL residual. There are
+3,888 atlas executions and sixteen larger explicit attachment executions,
+checking 16,371 faces and 26,043 original gates. They include 319 negative
+uncorrected spanning-tree faces. Four finite implicit private-star examples
+have 9, 17, 15 and 16 active vertices, respectively; their original row
+scans inspect only 27, 51, 45 and 48 entries despite enormous ambient size.
+Inactive hub rows are never scanned. Exact totals and source hashes are
+recorded in \texttt{LOCAL\_UNICYCLIC\_CLUSTER\_AUDIT.json}.
+The audit's rebuilt hierarchies and full validation recoveries are explicitly
+separate reference work. The complexity theorem imports the verified online
+source hierarchy, rather than claiming that these reference rebuilds are
+fast online updates.

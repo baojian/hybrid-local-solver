@@ -1,0 +1,155 @@
+\section{Supplied trees: persistent affine response curves}
+\label{sec:op3-persistent-tree}
+
+\paragraph{Status and model.}
+\statusproved{} below means a new proof draft, awaiting independent review.
+The input is an explicitly supplied tree $T$ on $n\geq2$ vertices, rooted at
+the seed $v$, with diagonal data $d_i\geq\deg_T(i)>0$. Put
+$\bm M=\bm D-\gamma\bm A_T$, $0<\gamma<1$, $\bar\alpha=1-\gamma$, and
+$\bm b=\bm e_v-\lambda\bm d$ for $\lambda>0$. We solve exactly
+\begin{equation}
+ \min_{\bm u\geq\bm0}
+ \frac12\bm u^\top\bm M\bm u-\bm b^\top\bm u.
+ \label{eq:op3-tree-obstacle}
+\end{equation}
+All input reads, arithmetic, comparisons, stored words, copied nodes and
+output writes are charged in the exact-real word model. Coefficient bit
+length and floating-point stability are outside this claim. The whole tree
+is supplied: the theorem does not charge its discovery to optimal support.
+
+\paragraph{Source and adaptation.}
+The affine composition tree of \citet[Section 3, Theorem 3.1]{agarwal2010act}
+represents a piecewise-linear curve that is monotone in both coordinates.
+Its whole-curve affine operation costs constant time, and evaluations,
+insertions and interval transforms cost logarithmic time. The response
+embedding and persistence argument below are our adaptation. We spell out
+the needed operations rather than invoking the source's more general
+tree-set representation: transforming separate summands by an inverse-type
+map would not transform their sum correctly.
+
+\begin{lemma}[A strictly increasing response embedding]
+\label{lem:op3-tree-embedding}
+For a nonroot vertex $i$, condition its parent's potential to be $t\geq0$,
+minimize the descendant objective, and denote the resulting root coordinate
+by $u_i(t)$. The curve $\nu_i(t):=t+\gamma u_i(t)$ is convex, continuous,
+strictly increasing and piecewise affine. Extend its initial branch to
+negative inputs by $\nu_i(t)=t$. It has at most $|T_i|$ knots, where $T_i$
+is the descendant subtree. It can be constructed from its children's
+curves by addition, two whole-curve affine maps and one new knot.
+\end{lemma}
+\begin{proof}
+For $k_i$ children define
+\[
+ S_i(x)=\sum_{j\text{ child of }i}\nu_j(x),\qquad
+ H_i(x)=(d_i+k_i)x-b_i-S_i(x).
+\]
+For $x\geq0$, $H_i$ is the derivative of the minimum descendant energy
+conditioned on $u_i=x$. On each active-set interval its slope is the Schur
+diagonal of a principal submatrix of $\bm M$. Since
+$\bm M\succeq\bar\alpha\bm D$, minimizing the quadratic form with root
+coordinate fixed to one gives $H_i'\geq\bar\alpha d_i>0$.
+Inductively the child curves are convex; hence $H_i$ is concave and strictly
+increasing. Its inverse is convex. Since $b_i=-\lambda d_i<0$, the response
+is zero until $t_i^0=\lambda d_i/\gamma$ and thereafter satisfies
+$H_i(u_i(t))=\gamma t$. This proves convexity and strict increase of
+$\nu_i$ across the join with the line $t$.
+
+The graph of $H_i$ is obtained from that of $S_i$ by
+\[
+ (x,y)\longmapsto\bigl(x,(d_i+k_i)x-b_i-y\bigr).
+\]
+The positive branch of $\nu_i$ follows by the second map
+\[
+ (x,y)\longmapsto\bigl(y/\gamma,\gamma x+y/\gamma\bigr).
+\]
+Each map has nonzero determinant and preserves the order of points along
+the applicable curve. Every inherited knot has $x>0$ before the second
+map, and therefore new abscissa greater than $H_i(0)/\gamma=t_i^0$.
+Insert $(t_i^0,t_i^0)$ and replace the left ray by the line $t$. There are
+at most the sum of the children's knot counts plus one knots. Leaves
+start the induction with one knot.
+\end{proof}
+
+At the seed construct $H_v$ without the inverse-type map, and set
+$u_v=\max\{0,H_v^{-1}(0)\}$. Recover a child coordinate from
+\begin{equation}
+ u_i=\frac{\nu_i(u_{\operatorname{parent}(i)})
+                 -u_{\operatorname{parent}(i)}}{\gamma}.
+ \label{eq:op3-tree-reconstruct}
+\end{equation}
+Thus the children's original curve versions must remain available after
+the upward pass. Destructive reuse alone would not implement this step.
+
+\begin{lemma}[Persistent curve primitives]
+\label{lem:op3-persistent-primitives}
+The operations used in \cref{lem:op3-tree-embedding}, together with adding
+one convex child curve containing $k$ knots to another, admit a persistent
+implementation. Whole-curve affine maps take $O(1)$ work and new nodes;
+evaluation, inverse evaluation, knot insertion and a positive hinge
+addition take $O(\log(n+1))$ work and at most that many new nodes. Adding
+the child takes $O((k+1)\log(n+1))$ work and new nodes. Old curve versions
+remain unchanged.
+\end{lemma}
+\begin{proof}
+Store knots in an immutable AVL tree, in their common increasing order in
+both coordinates. Each node contains its point, two child references,
+height, subtree size, and a constant-size pending affine map. Store the two
+unbounded-ray slopes with the curve. A whole-curve map copies the root,
+transforms its point and ray slopes, and composes its pending map.
+Monotonicity makes the old search-tree order valid after the transform.
+
+An evaluation or inverse evaluation follows one search path, carrying
+composed affine maps, then interpolates between the bracketing knots or
+on an end ray. Insertion copies one search path, pushing each pending map
+to copies of at most two child roots. AVL rotations involve a constant
+number of such pushes and copies per visited level. Thus both work and
+allocations are logarithmic; old roots and descendants are immutable.
+
+For a hinge $c(x-t)_+$, $c\geq0$, first insert the point at $t$ if needed.
+The suffix shear $(x,y)\mapsto(x,y+c(x-t))$ visits one path to the suffix
+boundary and tags whole subtrees branching to its right. This copies only
+$O(\log(n+1))$ nodes. The shear is continuous at $t$ and preserves strict
+increase. Every child has a representation
+$\nu(x)=x+\sum_a c_a(x-t_a)_+$ with $c_a\geq0$.
+Traverse only the smaller child's $k$ knots to obtain successive slope
+increments, add its initial $x$ by a whole-curve shear, then add the hinges.
+This proves the asserted merge cost without traversing the larger curve.
+\end{proof}
+
+\begin{theorem}[Exact supplied-tree solve; proof draft]
+\label{thm:op3-persistent-tree}
+Problem \eqref{eq:op3-tree-obstacle} on the supplied tree can be solved
+deterministically in $O(n\log^2(n+1))$ exact-real word operations and
+allocated words, including one terminal output of all coordinates. There
+is no polynomial dependence on $1/\alpha$ or $1/\lambda$ in this word bound.
+\end{theorem}
+\begin{proof}
+Read the supplied tree and degrees, root it, and compute subtree sizes in
+$O(n)$ work. At each vertex retain the largest-subtree child's curve as
+the initial sum and merge all smaller children using
+\cref{lem:op3-persistent-primitives}. The sum of the sizes of smaller child
+subtrees, over all vertices, is $O(n\log(n+1))$: a vertex can belong to a
+smaller child at most logarithmically many times, because the containing
+subtree at least doubles on each such ascent. Each child curve contains
+at most its subtree size in knots. The logarithmic cost per visited knot,
+plus the $O(n)$ affine maps and $O(n)$ knot insertions, gives the stated
+upward work and allocation bound. Coincident knots only reduce this count.
+Retain every child's immutable root. The root inverse query and the
+downward evaluations in \cref{eq:op3-tree-reconstruct} cost
+$O(n\log(n+1))$, including all accesses and output writes. Conditional
+minimization at every parent proves that the resulting vector is the
+unique optimum of \cref{eq:op3-tree-obstacle}.
+\end{proof}
+
+\paragraph{Measured audit and remaining gap.}
+The persistent rational implementation passed
+1,152 supplied-tree comparisons, 43,614 value/inverse round trips and
+19,584 checks of retained child versions against separate exact obstacle
+solves. Twenty-four path, star, binary-tree and comb diagnostics count
+actual allocations and visits. These are falsification checks, not an
+independent proof review. A 512-vertex path still constructs all 512
+vertices despite an optimum supported on 66. A demand-driven construction
+with near-linear work in discovered support volume remains \statusopen{}.
+The companion \texttt{delayed\_reflection\_ladder} note already has a lazy
+local tree iterator; its additional ancestor-walk cost is precisely what
+an OP3-scale local extension would have to remove.

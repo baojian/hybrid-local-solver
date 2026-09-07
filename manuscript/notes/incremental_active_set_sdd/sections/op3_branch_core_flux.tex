@@ -1,0 +1,261 @@
+\section{A growing branching core with scalar flux events}
+\label{sec:op3-branch-core-flux}
+
+\paragraph{Status and purpose.}
+This section is a \statusproved{} proof draft awaiting independent review.
+It combines the original-residual publication bands of
+\cref{sec:op3-geometric-events} with low-degree path elimination.
+The number of retained vertices may now grow. A fully specified dense
+inverse pays for their response changes, leaving an explicit quadratic
+core-size factor. No high-dimensional geometric reporter is required.
+General OP3 remains \statusopen.
+
+Set $\lambda=\epsappr/2$, $\bm M=\bm D-\gamma\bm A$ and
+$\bm b=\bm e_v-\lambda\bm d$. At each stage, $U$ is the admitted set
+and $\bm u^U_U=\bm M_{UU}^{-1}\bm b_U>0$, with zero outside $U$.
+Retain the seed and every admitted vertex of original degree at least three
+in a set $C$. Immediately eliminate all other admitted vertices into saved
+scalar equations. Let $r=|C|$ at termination, $n_U=|U|$, and $V=\vol(U)$.
+These are measured properties of the returned support, not input advice.
+
+\subsection{One retained endpoint per unfinished path}
+
+\begin{lemma}[Stable physical-flux arms]
+\label{lem:op3-scalar-flux-arms}
+For every original edge $ij$ with $i\in U$ and $j\notin U$, the physical
+flux $F_{ij}=\gamma u_i^U$ has a representation
+\begin{equation}
+ F_{ij}=a_{ij}u_{c(ij)}^U+b_{ij},\qquad
+ a_{ij}>0,\quad b_{ij}\leq0,\quad c(ij)\in C.
+ \label{eq:op3-physical-flux-arm}
+\end{equation}
+The coefficients and core label are fixed during this edge's lifetime on
+the boundary. An admission creates at most one such record per newly scanned
+original edge, and retires the records ending at its vertex. The total number
+of arm creations and retirements is $O(V)$.
+\end{lemma}
+\begin{proof}
+An eliminated vertex has original degree at most two. Every connected
+component of eliminated vertices is consequently a path, and it touches the
+retained set: the admitted set is connected to the retained seed. If a path
+also touches an inactive vertex, it has exactly one retained endpoint.
+It cannot have an additional inactive or retained exit. Components joining
+two retained endpoints have no inactive exit and produce no frontier arm.
+
+A direct retained-to-inactive edge has $(a,b)=(\gamma,0)$.
+Suppose an admitted degree-two vertex $i$ has an inactive successor $j$.
+It has exactly one original active neighbor, so its old frontier record
+contains exactly one arm $a u_c+b$. With current Schur diagonal $\delta_i$,
+its equation, keeping $j$ as a formal outside variable, is
+\[
+ \delta_i u_i=-\lambda d_i+b+a u_c+\gamma u_j.
+\]
+Eliminating $i$ creates the new physical-flux arm, evaluated at $u_j=0$,
+\[
+ F_{ij}=\frac{\gamma a}{\delta_i}u_c
+       +\frac{\gamma(-\lambda d_i+b)}{\delta_i}.
+\]
+Its diagonal contribution at $j$ is $-\gamma^2/\delta_i$.
+Positive Schur pivots preserve the coefficient signs. Nothing changes an
+existing arm's internal path until its target is admitted, when that arm
+is retired. Other admissions change only its retained endpoint potential.
+Each original edge is first seen when one endpoint's row is scanned;
+an edge dictionary avoids counting its reverse appearance again.
+\end{proof}
+
+Several arms may end at the same inactive vertex, including arms with
+different retained endpoints. Their contributions are summed in one
+candidate record. In particular, the exact gate is
+\begin{equation}
+ g_j=-\lambda d_j+\sum_{ij:\,i\in U}F_{ij}.
+ \label{eq:op3-arm-original-gate}
+\end{equation}
+It is not a collection of independent-copy gates. A candidate's stored
+Schur diagonal includes all prior path eliminations into that candidate.
+
+\subsection{Scalar queues certify the original residual scale}
+
+For each arm keep a lower published flux $\ell_{ij}$, initially zero.
+Use $h=\epsappr/16$ and $\kappa=5/4$. The next publication is due when
+\begin{equation}
+ u_{c(ij)}^U>
+ \tau_{ij}:=\frac{\kappa\ell_{ij}+h-b_{ij}}{a_{ij}}.
+ \label{eq:op3-arm-next-event}
+\end{equation}
+A minimum heap for each retained coordinate stores these thresholds.
+After updating the retained potentials, visit each heap and process all
+due entries. Publish the actual flux $\ell_{ij}\leftarrow F_{ij}$, update
+the candidate's sum $L_j=\sum_i\ell_{ij}$, and insert the new threshold.
+Retired arms may be removed lazily: every discarded entry is charged once.
+
+When all heaps are settled, every live arm satisfies
+\[
+ \ell_{ij}\leq F_{ij}\leq\tfrac54\ell_{ij}+\epsappr/16.
+\]
+Queue a candidate as soon as $L_j>(11/20)\epsappr d_j$. This is a legal
+admission because its exact gate in \cref{eq:op3-arm-original-gate} is
+strictly positive for $\lambda=\epsappr/2$. A queued candidate stays legal:
+all restricted solutions and physical fluxes increase under legal admissions.
+When the ready queue is empty after settling all heaps,
+\begin{equation}
+ 0\leq r_j^U=\sum_i F_{ij}
+ \leq\tfrac54L_j+\tfrac1{16}\epsappr d_j
+ \leq\tfrac34\epsappr d_j
+ \quad (j\notin U).
+ \label{eq:op3-arm-terminal-residual}
+\end{equation}
+An unexposed vertex has no active neighbor and residual zero.
+Active residuals are exactly $\lambda d_i$. Thus the exact restricted
+solution already supplies an ACL output; a further solve is unnecessary
+in this exact-arithmetic implementation.
+
+\begin{lemma}[All scalar reporting work is paid]
+\label{lem:op3-scalar-flux-work}
+Write $L=1+\log_+(1/(\bar\alpha\epsappr))$. Over the entire run the arm
+queues perform $O(VL)$ publications, heap insertions and heap removals,
+plus $O(n_Ur+VL)$ top inspections. Their work, including candidate sums,
+ready entries and failed event searches, is
+$O(n_Ur+VL\log(2+V))$, with $O(V+r)$ stored words.
+\end{lemma}
+\begin{proof}
+Conservation on any positive restricted face gives
+$\bar\alpha\sum_{i\in U}d_i u_i^U\leq1$, hence
+$F_{ij}\leq\gamma/\bar\alpha$. A first publication exceeds $h$;
+each later one exceeds $5/4$ times its predecessor. Each fixed arm therefore
+publishes $O(L)$ times. There are $O(V)$ arms by
+\cref{lem:op3-scalar-flux-arms}. A publication pops its current entry and
+pushes exactly one replacement. Retiring an arm leaves at most one stale
+entry. Thus all stale removals and allocated heap records are paid.
+Each round scans at most $r$ heaps, and every round except the last admits
+one vertex. One failed top comparison per nonempty heap is included.
+Every candidate enters the ready queue at most once. All arm records,
+candidate records and possibly stale heap entries occupy $O(V+r)$ words.
+\end{proof}
+
+This argument uses individual physical fluxes, not relative error after
+division by a candidate's accumulated negative Schur load. The latter
+contract fails on the source-valid path examples in
+\texttt{SCHUR\_RELATIVE\_REPORTER\_PROBE.md}. Large cancellation in an
+arm's affine formula is allowed in the exact-real word model; coefficient
+bit cost and finite-precision certification remain outside this theorem.
+
+\subsection{An explicit core backend and the resulting bound}
+
+Maintain the inverse $\bm P=\bm H_C^{-1}$ and retained values $\bm u_C$.
+At an admission the candidate has a Schur diagonal $\delta$, load $b<0$
+and nonnegative sparse coupling vector $\bm a$. Put
+\begin{equation}
+ \bm z=\bm P\bm a,\qquad s=\delta-\bm a^{\mathsf T}\bm z>0,
+ \qquad t=(b+\bm a^{\mathsf T}\bm u_C)/s>0.
+ \label{eq:op3-core-rank-update}
+\end{equation}
+All old retained values change by $\bm u_C\leftarrow\bm u_C+t\bm z$.
+If the candidate has degree at most two, eliminate it and update
+$\bm P\leftarrow\bm P+\bm z\bm z^{\mathsf T}/s$.
+If it is a branching vertex, retain it with value $t$ and bordered inverse
+\[
+ \begin{pmatrix}
+ \bm P+\bm z\bm z^{\mathsf T}/s&\bm z/s\\
+ \bm z^{\mathsf T}/s&1/s
+ \end{pmatrix}.
+\]
+These are ordinary scalar block-inverse identities. A low-degree candidate
+has at most two arm coordinates; at a branching admission, forming its
+couplings costs at most its original degree. Every dense inverse entry
+updated, every retained value written and every inverse allocation is
+charged. A reverse pass through the saved low-degree equations recovers
+all eliminated values in $O(V)$ work.
+
+\begin{theorem}[Local ACL with a growing branching-core parameter]
+\label{thm:op3-branch-core-flux}
+On every graph in the canonical local access model, the described algorithm
+returns a nonnegative ACL approximation at tolerance $\epsappr$. It scans
+precisely the rows of its positive output set $U$ and queries only the seed
+degree and degrees of exposed neighbors. For a nonempty output, its exact-real
+word work is bounded by
+\begin{equation}
+ O\left(n_Ur^2+rV+VL\log(2+V)\right),\qquad
+ L=1+\log_+\frac1{\bar\alpha\epsappr},
+ \label{eq:op3-branch-core-work}
+\end{equation}
+and its working storage is $O(V+r^2)$. Empty output costs $O(1)$.
+Moreover $V\leq2/\epsappr$, so the work is
+$\widetilde O((1+r^2)/\epsappr)$. In particular, this attains the OP3
+soft-$O(1/\epsappr)$ scale when the returned support has at most a
+polylogarithmic number of original branching vertices.
+\end{theorem}
+\begin{proof}
+If $\lambda d_v\geq1$, zero is feasible with the required residual bound.
+Otherwise the positive singleton seed initializes the construction. The
+Schur identities and \cref{lem:op3-scalar-flux-arms} preserve exact restricted
+solutions. Strict positive gates give positive new coordinates and monotone
+old ones by inverse positivity. As in \cref{thm:op3-two-port-frontier}, every
+admission belongs to the positive support of the full obstacle at $\lambda$.
+Thus the process terminates and the finite-band gate rule is safe.
+Conservation gives $\lambda V\leq1$ on every reached face.
+
+At termination, \cref{eq:op3-arm-terminal-residual} and active-face
+equalities give $0\leq\bm e_v-\bm M\bm u^U\leq\epsappr\bm d$.
+Consequently $\widehat{\bm\pi}=\bar\alpha\bm D\bm u^U$ has the required
+ACL witness. The final reverse pass evaluates every eliminated equation
+once and writes only positive output coordinates.
+
+Each of $n_U-1$ admissions changes at most $r^2$ inverse entries. Sparse
+inverse-vector products cost at most $O(rV)$ altogether; the sum of
+candidate arm counts is $O(V)$. Dense inverse growth allocates $O(r^2)$
+entries. Original row entries, cached degrees, edge dictionaries and stored
+reverse records cost $O(V\log(2+V))$ using comparison dictionaries.
+\Cref{lem:op3-scalar-flux-work} pays for every event and failed queue test.
+These bounds include initialization and combine to
+\cref{eq:op3-branch-core-work}. Only the inverse is quadratic in storage.
+\end{proof}
+
+\paragraph{Implementation and remaining lemma.}
+\texttt{branch\_core\_flux.py} implements this construction with exact
+fractions, scalar binary heaps and explicitly updated dense inverse entries.
+Its Python dictionaries are an implementation convenience; comparison
+dictionaries give the conservative word bound above. Full-graph solves,
+inverse checks and residual checks occur only in the separate audit wrapper.
+This implementation does not reproduce the full obstacle support: its output
+is an exact restricted solution chosen to meet the ACL residual tolerance.
+
+The remaining general-graph obligation is now concentrated in the retained
+core: replace dense inverse changes and full scans of the growing core's
+queues by an implicit response primitive that reports all due scalar
+thresholds and certifies quietness. A fast named coordinate query or a fresh
+near-linear core solve alone does not pay for that sequence. The polynomial
+$r^2$ factor is an upper bound for this backend, not a lower bound for OP3.
+
+\begin{proposition}[Dense-core cost on an easy tree family]
+\label{prop:op3-dense-core-binary-tree}
+On the complete binary tree of height $h\geq2$, take seed at the root,
+$\alpha=1/1009$ and $\epsappr=\alpha/(10\cdot6^h)$.
+Every ACL output has full support. The explicit inverse backend above
+therefore performs $\Omega(n^3)$ word writes on this $n=2^{h+1}-1$ vertex
+family, while its total number of flux publications is near-linear up to
+logarithmic factors. Scanning all retained queues is separately charged.
+This is a statement about the explicit retained-inverse representation.
+\end{proposition}
+\begin{proof}
+The Neumann expansion of $\bm M^{-1}$ contains the unique source-to-vertex
+walk of length at most $h$. Since all degrees are at most three and
+$\gamma>1/2$, its contribution gives
+\[
+ \frac{\pi_i}{d_i}
+ =\bar\alpha(\bm M^{-1})_{iv}
+ \geq\frac{\bar\alpha}{3\cdot6^h}
+ >\epsappr.
+\]
+ACL implies degree-normalized semantic error at most $\epsappr$, so no
+coordinate can be zero in an ACL output. The retained set therefore has
+$r=2^h-1$ vertices. At each successive retained birth, the previous inverse
+has order $k=1,\ldots,r-1$; its top-left update changes every one of its
+$k^2$ entries. Indeed the current restricted graph is connected, its
+retained Schur inverse is entrywise positive, and the new coupling is
+nonzero and nonnegative, so the update vector $\bm z$ is strictly positive.
+The mandatory writes total
+$\sum_{k=1}^{r-1}k^2=r(r-1)(2r-1)/6=\Omega(n^3)$.
+The same reasoning forces changes to all explicitly stored old retained
+values, separately from inverse maintenance. Balanced trees already have
+short rooted paths; this is not a graph-access hardness example.
+\end{proof}

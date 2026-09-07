@@ -1,0 +1,130 @@
+\section[Uniform shift and geometric root]{A uniform shift separates the source from the geometric root}
+\label{sec:op3-shifted-tree-clusters}
+
+\paragraph{Status.}
+The algebra below is \statusproved{} as a draft awaiting independent review.
+Its application to an online unicyclic solver is completed in
+\cref{sec:op3-local-unicyclic}, also as a proof draft.
+The exact word model is essential: subtracting two large nearly equal real
+numbers here is not a finite-precision stability guarantee.
+
+\begin{lemma}[Negative loads with an arbitrary physical seed; \statusproved]
+\label{lem:op3-uniform-negative-shift}
+Set $C=1/\bar\alpha$ and write $u_i=w_i+C$ on a represented active tree.
+For an edge-induced cluster $B$, let $d_B(i)$ be its own edge degree, while
+$d_i$ is the original graph degree. Its shifted load is
+\begin{equation}
+ b'_B(i)=\mathbf1_{i=v}-\lambda d_i-C\bigl(d_i-\gamma d_B(i)\bigr)<0.
+ \label{eq:op3-shifted-cluster-load}
+\end{equation}
+It is represented locally by the fixed vertex load
+$\beta_i=\mathbf1_{i=v}-\lambda d_i-Cd_i$ and a contribution $\gamma C$
+to each endpoint of every cluster edge. Joins subtract one duplicate
+$\beta_i$ at a shared port. No vertex-wide load redistribution is required.
+This remains true when the physical seed is an eliminated interior vertex.
+\end{lemma}
+\begin{proof}
+The identity is $\boldsymbol b'_B=\boldsymbol b_B-C\boldsymbol M_B\boldsymbol1$.
+Because $d_B(i)\leq d_i$ and $C(1-\gamma)=1$,
+\[
+ b'_B(i)\leq\mathbf1_{i=v}-\lambda d_i-d_i<0.
+\]
+Each incident cluster edge supplies exactly one $\gamma C$ term. Combining
+two clusters counts the fixed vertex load twice at their shared port, so
+subtracting one $\beta_i$ gives the desired union load. All interior loads
+are negative, independently of the source's location. Positive inverse
+entries then preserve the negative Schur-load and affine-offset invariants.
+The diagonal and off-diagonal matrix entries are unchanged.
+\end{proof}
+
+\begin{lemma}[Reporter equivalence after shifting; \statusproved]
+\label{lem:op3-shifted-reporters}
+The compact homogeneous reporter and its persistent chain operations remain
+correct with arbitrary real intercepts $Y$, including $Y>0$.
+In the shifted coordinates, a local gate at parent $i$ has threshold
+$\lambda d_j/\gamma-C$. If its original normalized two-port point is $(x,y)$,
+its shifted point is $(x,y+C)$. Thus every upper-chain membership, ordering
+and strict gate sign is preserved by this common vertical translation.
+One-port thresholds decrease by $C$.
+\end{lemma}
+\begin{proof}
+For a row $g=a u_L+b u_R+c$, substitution gives
+$g=a w_L+b w_R+c+C(a+b)$, proving the point and threshold identities.
+The upper-chain and bridge proofs use positive $W=a+b$, orientation signs
+and nonnegative port coefficients, not the sign of $Y=c$. The fractional
+one-port query uses a positive denominator and a positive coefficient of
+$Y$ in its numerator, independently of the numerator's value. Therefore
+negative thresholds and arbitrary intercepts do not change the algorithms
+or their work bounds. In particular, \cref{lem:op3-uniform-negative-shift}
+keeps the existing nonpositive-offset pullback contract intact, even when
+the source has been eliminated. If a conditional interior response was
+$u_i=z_i+\boldsymbol a_i^{\mathsf T}\boldsymbol u_P$, it becomes
+\[
+ w_i=z_i+C(\boldsymbol a_i^{\mathsf T}\boldsymbol1-1)
+       +\boldsymbol a_i^{\mathsf T}\boldsymbol w_P.
+\]
+This also gives an independent identity for checking every recovered value.
+\end{proof}
+
+\paragraph{A separate geometric anchor.}
+The unavailable-summary argument can now refer to any chosen geometric
+anchor $r$, retained as an external vertex, rather than to the physical seed
+$v$. Root the represented tree at $r$ so ordered path ports remain
+comparable. The physical seed may lie in a valid cluster's interior because
+\eqref{eq:op3-shifted-cluster-load} is still negative. The only modification
+in \texttt{ShiftedBackend} is to add $\gamma C$ to the two base-edge loads;
+all compress/rake/forget operations use their existing negative-load paths.
+Changing a geometric root by rebuilding the currently exposed tree costs
+work and must be charged explicitly; the shift does not make repeated
+rebuilding free.
+
+\paragraph{One extra edge: an exact algebraic reduction.}
+Suppose an active connected graph is represented by a spanning tree plus
+one extra edge $\{r,t\}$. Use the original graph degrees, retain $r,t$ as
+ports, and let $(\boldsymbol H,\boldsymbol h')$ be the shifted tree's root
+Schur state. The full active matrix is restored by solving
+\begin{equation}
+ \left[\boldsymbol H-\gamma
+   \begin{pmatrix}0&1\\1&0\end{pmatrix}\right]
+ \begin{pmatrix}w_r\\w_t\end{pmatrix}
+ =\boldsymbol h'+\gamma C\begin{pmatrix}1\\1\end{pmatrix}.
+ \label{eq:op3-one-edge-restoration}
+\end{equation}
+The two added load terms are required by the per-edge rule in
+\cref{lem:op3-uniform-negative-shift}. The corrected matrix is positive
+definite, being a Schur complement of the full original principal matrix.
+All interior conditional responses and reporters are unchanged by the extra
+edge, so recovery followed by adding $C$ gives the exact full face solution.
+\Cref{sec:op3-local-unicyclic} supplies the separately charged end-to-end
+local construction using this identity.
+
+\paragraph{A source-valid pitfall.}
+On the triangle with physical seed $0$, $\alpha=1/3$ and $\lambda=1/20$,
+the legal active prefix $(0,1)$ has values $(7/15,1/15)$. The gate for vertex
+$2$ with both active parents is $1/6>0$, while its gate using only parent
+$1$ is $-1/15$. After admission, the full triangle solution is
+$(1/2,1/10,1/10)$. However, deleting edge $\{0,2\}$ and solving just the
+path's unconstrained system with the original degrees gives
+$(13/28,2/35,-1/28)$.
+A cycle-restoration algorithm must therefore retain the exact signed
+spanning-tree response. It cannot replace that response by the spanning
+tree's obstacle solution or assume the uncorrected spanning-tree face is
+positive. Equation \eqref{eq:op3-one-edge-restoration} restores the full
+positive solution exactly. A separate four-vertex triangle-with-leaf case
+checks the physical seed strictly inside a one-port side cluster while the
+cycle endpoints are retained.
+
+\paragraph{Measured.}
+\texttt{shifted\_tree\_clusters.py} checks every core tree through seven
+vertices, every physical seed, geometric anchors at the seed and at a
+farthest core vertex, and two teleportation choices. Each vertex has an
+inactive private-star report; small and large report degrees give unfinished
+positive faces and both signs of reporter intercept. The final sweep covers
+564 faces, 33,550 conditional shift identities, 9,496 independent Schur
+oracles and 28,606 valid summary comparisons. It includes 1,972 valid clusters
+with the physical seed interior and 14,012 positive-intercept rows. Both
+cycle-restoration witnesses use independent dense full-matrix references.
+These audits establish implementation evidence for the identities. The
+separate local cyclic work proof is in \cref{sec:op3-local-unicyclic}.
+\texttt{UNICYCLE\_TOP\_TREE\_PROBE.md} preserves the original obligations
+and records their resolution.
