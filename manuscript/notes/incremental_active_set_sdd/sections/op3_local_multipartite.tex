@@ -1,0 +1,426 @@
+\section[Local multipartite core responses]{Local discovery and incremental multipartite core responses}
+\label{sec:op3-local-multipartite}
+
+\paragraph{Status and model.}
+This \statusproved{} draft, awaiting independent review, extends the scalar
+clique construction to an unknown complete multipartite core. The complete
+local state machine and incremental event heap are implemented. Neither a
+partition nor a core size nor a future support is supplied. The input graph
+is promised to consist of a complete multipartite core $C$, with at least
+two nonempty parts $C_g$, and $t_i\geq0$ private degree-one leaves at each
+core vertex $i$. Put $N=|C|$ and $n_g=|C_g|$. For this theorem assume
+\begin{equation}
+ N-\max_g n_g\geq2,\qquad v\in C.
+ \label{eq:op3-multipartite-promise}
+\end{equation}
+Thus original degree distinguishes every core vertex from every pendant.
+The promise is an assumption; it is not globally verified on unread rows.
+Use finite simple connected unweighted graphs, original full degrees,
+local degree/adjacency access, $0<\alpha<1$, $\lambda>0$, and exact-real
+word arithmetic. The physical response and original residual conventions
+are unchanged. This is a structural result; arbitrary-graph OP3 remains
+\statusopen{}.
+
+\begin{lemma}[One scalar coordinate for all discovered parts; \statusproved]
+\label{lem:op3-multipartite-scalar}
+Suppose the identifiers and original degrees of all core vertices are
+known, and let $\mathcal J$ be a collection of identified complete parts
+containing the seed part. Set every other core coordinate to zero and
+solve the obstacle problem on the identified parts and their private
+leaves. Write $S=\sum_{i\in C}u_i$ and
+$S_g=\sum_{i\in C_g}u_i$. For $i\in C_g$, put
+$b_i=\mathbb 1_{\{i=v\}}-\lambda d_i$ and
+\[
+ \psi_i(T)=
+ \begin{cases}
+ 0,&b_i+T\leq0,\\
+ (b_i+T)/d_i,&0<b_i+T\leq d_i\lambda/\gamma,\\
+ (b_i+T-\gamma\lambda t_i)/(d_i-\gamma^2t_i),
+     &b_i+T>d_i\lambda/\gamma.
+ \end{cases}
+\]
+Let $F_g(T)=\sum_{i\in C_g}\psi_i(T)$ and define $G_g(S)$ by the
+unique solution of $T/\gamma+F_g(T)=S$, with $G_g(S)=F_g(T)$.
+Then the restricted obstacle solution is determined by the unique
+nonnegative scalar root
+\begin{equation}
+ S=\sum_{g\in\mathcal J}G_g(S).
+ \label{eq:op3-multipartite-root}
+\end{equation}
+On a piece $F_g(T)=AT+B$,
+\begin{equation}
+ G_g(S)=\frac{\gamma AS+B}{1+\gamma A},\qquad
+ S_* = T_*/\gamma+F_g(T_*)
+ \label{eq:op3-part-transform}
+\end{equation}
+is the corresponding transformed piece and breakpoint. Part $g$ has at
+most $2n_g$ such events, with
+\begin{equation}
+ 0\leq G'_g\leq
+ \frac{\gamma n_g}{N-n_g+\gamma n_g}<\frac{n_g}{N}.
+ \label{eq:op3-part-slope}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Each private leaf has value $(\gamma u_i-\lambda)_+$. Substitution into
+the original core equation gives
+\[
+ d_i u_i-\gamma t_i(\gamma u_i-\lambda)_+
+       =b_i+\gamma(S-S_g)
+\]
+at a positive coordinate, with its nonpositive original gate at zero.
+The two positive denominators obey
+$d_i-\gamma^2t_i=N-n_g+(1-\gamma^2)t_i>0$, so solving the pieces gives
+$u_i=\psi_i(\gamma(S-S_g))$. The part equation is exactly the displayed
+inverse relation. Its left side is continuous, strictly increasing and
+onto the real line. Negative $T$ intervals must be retained when building
+the inverse: for trial $S$ below the final root the seed part can have
+$G_g(S)>S$. At the final root, all part masses are nonnegative and sum to
+$S$, so every actual field $\gamma(S-S_g)$ is nonnegative.
+
+The affine inverse gives \cref{eq:op3-part-transform}; continuity makes
+the breakpoint value independent of which adjacent piece is used.
+The transformation is strictly increasing, preserving event order.
+Every slope of $F_g$ is at most $n_g/(N-n_g)$, giving
+\cref{eq:op3-part-slope}. Summing over identified parts gives a slope
+strictly less than one, even if only some parts are present.
+The sum of part responses is nonnegative at zero; subtracting $S$ is
+strictly decreasing and eventually negative. Its unique nonnegative root
+satisfies all original restricted obstacle conditions. Positive definiteness
+identifies it as the unique restricted optimum.
+\end{proof}
+
+\begin{lemma}[Two positive rows pay for complete core identifiers; \statusproved]
+\label{lem:op3-multipartite-startup}
+Either the exact obstacle solution is zero or a seed star, or two
+support-safe original row scans identify all core labels and the seed's
+and one adjacent core vertex's entire parts. All startup work is
+$O(1+(d_v+d_j)\log(2+d_v+d_j))$, including degree queries, dictionaries
+and copies; the row $j$ is read only in the latter case.
+\end{lemma}
+\begin{proof}
+If $\lambda d_v\geq1$, all physical loads are nonpositive and zero is
+optimal. Otherwise $v$ is positive. Read its row and query every neighbor's
+original degree. The degree-one neighbors are precisely its $t_v$ private
+leaves; the others are all core vertices outside the seed's part.
+The exact restricted seed-star value is
+$u_v=\psi_v(0)$, using the now known $d_v,t_v$. A degree-one leaf's
+equation is determined by that incidence and its degree, so this virtual
+star requires no additional leaf-row scan before final output.
+
+For each exposed core vertex $j$, test the original excess
+$\gamma u_v-\lambda d_j$. If all are nonpositive, every exposed core
+gate is quiet. Other vertices in the seed's part see only zero core
+neighbors, and every remaining private leaf has zero parent. These are
+the complete original obstacle conditions, proving the seed-star stop.
+
+Otherwise choose a strictly positive gate and read that vertex $j$'s row.
+The usual inverse-positive obstacle admission argument makes $j$ positive
+in the full optimum, so this scan is support-safe. Since $v,j$ lie in
+different parts, every core vertex is adjacent to at least one of them.
+The union of the two rows' degree-greater-than-one neighbors therefore
+contains all core labels, including $v,j$. Their number is at most
+$d_v+d_j$, and all their degrees have been queried.
+
+The seed part consists exactly of core labels not in the seed's neighbor
+set, including $v$ itself; the analogous complement of $j$'s row is its
+entire part. They are disjoint. Building these sets and core-label records
+costs linear many dictionary operations and copies in the two row lengths.
+Comparison dictionaries give the stated bound. Both scanned rows are cached
+for final output and later classification.
+\end{proof}
+
+\paragraph{Incremental part and event state.}
+After the two-row startup, build the seed-part curve and solve its scalar
+root, then insert the second identified part and solve again. Each new
+part's size and its known original degrees give $t_i=d_i-(N-n_g)$.
+Build its at most $2n_g$ original breakpoints, sort them, and transform
+them by \cref{eq:op3-part-transform}. At the current exact scalar root,
+consume all past transformed events to initialize this part's current
+affine piece. Insert only its future events in one global min-heap.
+Store one current affine coefficient pair per part, and one aggregate
+coefficient pair for their sum. Earlier parts' curves are not rebuilt.
+
+On a current combined interval write $\sum_gG_g(S)=AS+B$. Compute the
+candidate $B/(1-A)$. If it lies at or before the next event, it is the exact
+restricted root. Otherwise cross that event, update its part's coefficient
+pair and the aggregate pair, and continue. A provisional affine root is
+never used as an original boundary certificate. Equality at an event is
+valid in both adjacent continuous pieces.
+
+Keep unidentified core labels in a dictionary $R$ and a second min-heap
+with keys $\lambda d_i/\gamma$. Stale entries from identified parts are
+removed with charged work. At each exact restricted root, either
+$S\leq\min_{i\in R}\lambda d_i/\gamma$ and stop, or the heap names a
+strictly positive original gate $j$. Read its row, classify the current
+$R$ by adjacency to $j$, remove the nonneighbors as its newly identified
+part, build that part once, and continue. Original degrees and penalties
+are never replaced by induced degrees.
+
+\begin{lemma}[Paid discovery and monotone event consumption; \statusproved]
+\label{lem:op3-multipartite-paid-events}
+Every representative scanned by this continuation is positive in the
+full optimum. Total complement-classification work uses
+$O(N+\sum_jd_j)$ dictionary operations and copied labels, where the sum
+runs over the newly scanned representatives. Across all identified parts,
+the algorithm creates at most $2N$ scalar events and consumes each at most
+once, with $O(N\log(2+N))$ total curve and heap work.
+\end{lemma}
+\begin{proof}
+Every unidentified vertex is adjacent to every identified core vertex.
+Thus its true original gate at the restricted optimum is
+$\gamma S-\lambda d_j$, regardless of unequal values within identified
+parts. The heap minimum is an exact quietness test. A positive gate gives
+a support-safe representative before its row is read.
+
+Among currently unidentified labels, the nonneighbors of $j$, including
+$j$ itself, are exactly its complete part. During a scan of $R$, each
+nonneighbor is removed permanently and charged once to its identifier.
+Every other inspected label is an actual neighbor of $j$ and can be charged
+to that newly scanned original row. The same accounting pays for a temporary
+snapshot of $R$ used while deleting entries; it is not a free complement
+oracle. All unknown-heap insertions and stale removals number at most $N$.
+
+Adding an identified part enlarges the virtual obstacle region, so its
+restricted solution increases entrywise. Equivalently, its nonnegative
+part response increases the right side of \cref{eq:op3-multipartite-root}.
+For a positive representative the increase is strict at the previous root.
+The new root is therefore no smaller, and all previously crossed events
+remain in the past. Each newly identified vertex contributes at most two
+events, built once. Its past events are consumed during initialization;
+its future events are inserted and subsequently crossed at most once.
+The algorithm keeps its exact scalar root until the next part insertion,
+so every root search costs one final test plus its newly crossed events.
+Sorting separately within parts costs
+$O(\sum_g n_g\log(2+n_g))\leq O(N\log(2+N))$.
+Heap operations and constant-size coefficient updates obey the same bound.
+No old coordinate-value vector is recovered between part insertions.
+\end{proof}
+
+\begin{theorem}[Local exact multipartite-core solver; \statusproved]
+\label{thm:op3-local-multipartite}
+On the promised family \cref{eq:op3-multipartite-promise}, the preceding
+algorithm returns the exact $\lambda$-obstacle response. If $U$ is its
+returned positive support, total local exact-real word work and space are
+\begin{equation}
+ O\!\left(1+\operatorname{cvol}(U)
+                    \log(2+\operatorname{cvol}(U))\right),
+ \qquad O(1+\operatorname{cvol}(U)),
+ \label{eq:op3-multipartite-local-work}
+\end{equation}
+respectively, including all graph accesses, dictionary operations, copies,
+events and output. For $0<\epsappr,\rho<1$, choosing
+$\lambda=\epsappr/2$ gives $\widetilde O(1/\epsappr)$ ACL work;
+separately, choosing $\lambda=\rho$ gives exact
+$\widetilde O(1/\rho)$ RPPR work on this family.
+\end{theorem}
+\begin{proof}
+The startup lemma handles both early exits. In the remaining case,
+\cref{lem:op3-multipartite-scalar,lem:op3-multipartite-paid-events} give
+exact restricted solutions and support-safe new representatives until all
+unidentified gates are nonpositive. The identified-part obstacle equations,
+unknown-core inequalities and their zero-parent leaf inequalities are the
+full original obstacle conditions, so the terminal restricted solution is
+the unique full optimum.
+
+At termination evaluate each identified part's mass and then each of its
+core values once. Read a core row only when its exact value is positive,
+reusing cached representative rows. Its private leaves have the known
+common value $(\gamma u_i-\lambda)_+$; enumerate them along that positive
+row and emit positive coordinates. If desired, as in the implementation,
+read each positive degree-one row once as an incidence check. Never read a
+zero core or zero leaf row. Unidentified core values are implicitly zero.
+These final operations cost $O(\operatorname{vol}(U))$ dictionary operations
+and original incidence reads, including reads of cached rows.
+
+Both startup representatives and every later representative lie in $U$.
+Consequently $N\leq d_v+d_j\leq\operatorname{vol}(U)$ after startup,
+and the sum of all representative degrees is at most
+$\operatorname{vol}(U)$. This pays for all core metadata and even the
+identified core values that turn out to be zero. The preceding lemmas
+and comparison dictionaries prove the work bound. Current event heaps,
+part records, degree/boundary dictionaries, cached positive rows and output
+contain $O(1+\operatorname{cvol}(U))$ words; temporary part curves and
+complement snapshots have the same peak bound and their construction is
+charged. No old complete response histories are retained.
+
+The original obstacle mass identity gives
+$\lambda\operatorname{vol}(U)<1$ for nonzero output, yielding the two
+separate accuracy consequences. There is no polynomial arithmetic-operation
+dependence on $1/\alpha$, no global preprocessing, and no imported SDD or
+dynamic-tree solver in this construction. Bit complexity, unchecked
+floating-point stability and an arbitrary-core theorem are not asserted.
+\end{proof}
+
+\paragraph{Measured and open extensions.}
+The actual state machine in \nolinkurl{local_multipartite_pendants.py}
+is compared against independent full original obstacle solutions, including
+restricted optima between part insertions and original unknown-coordinate
+gates. Separate ledgers check that old events are retained, every coordinate
+curve is built once, and complement scans are paid. Reversed incidence order,
+exact first-core/leaf/unknown-part/zero gate ties, and enormous implicit
+inactive attachments are included in
+\nolinkurl{LOCAL_MULTIPARTITE_PENDANT_AUDIT.json}.
+All dense matrices are validators only. The Python driver records abstract
+dictionary operations; the deterministic word theorem prices them using
+comparison dictionaries, rather than assuming worst-case constant-time
+Python hashing. The next subsection removes
+\cref{eq:op3-multipartite-promise}; general OP3 and recursive module
+discovery remain separate \statusopen{} targets.
+
+\subsection{Canonical core and arbitrary physical seed}
+\label{sec:op3-canonical-multipartite}
+
+\begin{lemma}[The non-leaf core is canonical; \statusproved]
+\label{lem:op3-canonical-core}
+On the same promised graph family, without
+\cref{eq:op3-multipartite-promise}, let
+$C^\circ=\{i:d_i>1\}$. If $|C^\circ|\geq2$, its induced graph is a
+connected complete multipartite graph, and every other vertex is its
+private leaf. If $|C^\circ|=1$, the graph is a star. If
+$C^\circ=\varnothing$, it is the two-vertex graph. Thus original degree
+provides the required classification whenever a positive core row is read;
+no canonical partition or global classification is supplied.
+\end{lemma}
+\begin{proof}
+Every attached private leaf has degree one. An original core vertex in
+part $g$ can have degree one only if $N-n_g=1$ and it has no attached
+leaves. When $N>2$, this forces the original core to be a star: one part
+contains its center, and the other contains its peripheral vertices.
+Removing peripheral core vertices of original degree one leaves a star
+core, possibly just its center. Each removed vertex is now a private leaf
+of that center. When $N=2$, keeping both endpoints, one endpoint or neither
+gives respectively an edge core, a singleton core or the two-vertex graph.
+In all other cases every original core vertex has degree greater than one,
+so the original multipartite representation is already canonical.
+The conclusions concern the promised graph; they do not claim to verify
+the promise using unread adjacency rows.
+\end{proof}
+
+\begin{lemma}[Eliminating a physical leaf seed; \statusproved]
+\label{lem:op3-multipartite-leaf-seed}
+Suppose $d_v=1$ and $\lambda<1$, and let $a$ be the neighbor of the
+physical seed $v$. The seed-only solution is exact if
+\begin{equation}
+ \gamma(1-\lambda)-\lambda d_a\leq0.
+ \label{eq:op3-leaf-anchor-gate}
+\end{equation}
+Otherwise $a$ is positive in the full obstacle solution and its row may
+be read. Eliminating the necessarily positive seed gives
+\begin{equation}
+ u_v=1-\lambda+\gamma u_a,\qquad
+ \widehat d_a=d_a-\gamma^2,\qquad
+ \widehat b_a=\gamma(1-\lambda)-\lambda d_a.
+ \label{eq:op3-forced-seed-kernel}
+\end{equation}
+All other loads and diagonal coefficients are unchanged, and the seed is
+excluded from the anchor's ordinary thresholded leaves. Every penalty
+still uses the original full degree.
+\end{lemma}
+\begin{proof}
+Since $\lambda<1$, the original seed equation has positive right side
+$1-\lambda+\gamma u_a$, so the displayed recovery holds for every
+nonnegative neighbor value. With $u_a=0$, the only possible violated
+boundary inequality is exactly \cref{eq:op3-leaf-anchor-gate}. A positive
+gate certifies a positive anchor by obstacle comparison before its row is
+scanned. Substituting the seed equation into the anchor equation gives
+\cref{eq:op3-forced-seed-kernel}. This is an exact elimination from the
+original positive definite problem. It changes the equation coefficients,
+not the original degree in $-\lambda d_a$ or in boundary certificates.
+\end{proof}
+
+\paragraph{Modified coordinate kernels.}
+If the physical seed is a core vertex, take it as anchor and use the
+previous kernels. Otherwise first perform the leaf-seed test and, on a
+positive gate, use the forced-seed elimination above. For a canonical core
+vertex $i$, let $c_i$ be its canonical core degree, let $\sigma_i$ indicate
+that it is the forced seed's anchor, and set
+\[
+ a_i=d_i-\gamma^2\sigma_i,\qquad
+ q_i=d_i-c_i-\sigma_i,\qquad
+ b_i=
+ \begin{cases}
+ \gamma(1-\lambda)-\lambda d_i,&\sigma_i=1,\\
+ \mathbb 1_{\{i=v\}}-\lambda d_i,&\sigma_i=0.
+ \end{cases}
+\]
+The response $\psi_i(T)$ is obtained by replacing $d_i,t_i,b_i$ in
+\cref{lem:op3-multipartite-scalar} by $a_i,q_i,b_i$, respectively.
+These replacements affect only that three-piece coordinate formula;
+all original gate and accuracy formulas retain $d_i$. In particular,
+\begin{equation}
+ a_i-\gamma^2q_i
+ =c_i+(1-\gamma^2)(d_i-c_i)\geq c_i.
+ \label{eq:op3-canonical-kernel-slope}
+\end{equation}
+Whenever the canonical core has at least two vertices, $c_i=N-n_g\geq1$.
+The denominator is positive, the bound on $F'_g$ and hence
+\cref{eq:op3-part-slope} continue to hold, and each coordinate still
+has at most two events. Negative transformed intervals remain necessary.
+
+\begin{theorem}[Every physical seed, without a minimum core degree; \statusproved]
+\label{thm:op3-canonical-multipartite}
+For every finite simple connected unweighted graph consisting of a
+complete multipartite core with private leaves, and every physical seed,
+the canonical-core algorithm returns the exact $\lambda$-obstacle response
+using only original degree/adjacency queries. No core size, partition or
+seed-type annotation is supplied. Its exact-real word work, space, and
+separate ACL and RPPR consequences are those of
+\cref{thm:op3-local-multipartite}.
+\end{theorem}
+\begin{proof}
+The initial $\lambda d_v\geq1$ test again returns zero exactly. Otherwise
+a degree-one physical seed is positive; read its one-entry row and test
+\cref{eq:op3-leaf-anchor-gate}, querying only its neighbor's degree.
+A quiet gate returns the seed-only answer. A positive gate certifies the
+anchor and permits its row scan and forced-seed elimination. A physical
+core seed is itself the positive anchor without this preliminary step.
+
+Use original degree to split the anchor's row into canonical core neighbors
+and ordinary leaves, retaining the physical seed as a distinguished leaf
+when necessary. Solve its exact virtual star using the modified kernel and
+test each exposed canonical core gate $\gamma u_a-\lambda d_j$.
+If all are quiet, the star and forced-seed recovery satisfy all original
+obstacle conditions. This also handles a singleton canonical core and the
+two-vertex graph. Their star kernel has a positive denominator: even when
+$c_a=0$, $d_a>0$ and $\gamma<1$ give positivity in
+\cref{eq:op3-canonical-kernel-slope}.
+
+If a core gate is positive, the canonical core has at least two vertices.
+Two positive rows enumerate its identifiers exactly as before. Use the
+modified kernels in the same incremental part/event construction, with
+$c_i=N-n_g$ computed after identifying a part.
+\Cref{eq:op3-canonical-kernel-slope} supplies every bound used in
+\cref{lem:op3-multipartite-scalar,lem:op3-multipartite-paid-events}.
+Every unknown core vertex has load $-\lambda d_i$ and is adjacent to all
+identified core vertices; it is not adjacent to a private physical seed.
+Consequently its original gate is still $\gamma S-\lambda d_i$.
+The exact quietness and monotone part-insertion arguments are unchanged.
+
+At final recovery, skip the distinguished physical seed in its anchor's
+ordinary-leaf loop and emit it once using
+\cref{eq:op3-forced-seed-kernel}. Cache its already read row rather than
+reading it again. Every scanned row, including this preliminary seed row,
+belongs to the returned positive support. Both startup core rows and each
+subsequent representative still pay for all metadata, complement scans,
+curve construction and final output. The extra seed record and its gate
+test cost only constant many words and dictionary operations. This proves
+the same work and space bound. Finally the \emph{original} obstacle mass
+identity gives $\lambda\operatorname{vol}(U)<1$; the eliminated load is
+never substituted into that accuracy argument.
+\end{proof}
+
+\paragraph{Measured scope.}
+The implemented extension in
+\nolinkurl{canonical_multipartite_pendants.py} shares the actual incremental
+event engine with the narrow solver. Its full exact audit has 4,840 explicit
+original obstacle comparisons, including 2,664 physical leaf seeds and
+1,650 cases with an original degree-one core vertex, 4,348 independent
+restricted-optimum checks, and 56 implicit original-equation certificates.
+Twenty-four included exact-tie cases cover the source-leaf gate, an ordinary
+leaf born after elimination, an unknown-part gate and the zero solution.
+The audit counts original graph accesses separately from dense validation,
+checks the distinguished seed's original recovery, and verifies that the
+set of scanned rows equals the returned positive support. The result is
+a promised-family theorem and a proof draft awaiting independent review;
+it is not an arbitrary-graph OP3 theorem.

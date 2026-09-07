@@ -1,3 +1,15 @@
+# Completed multipartite probe and its original proposal
+
+Second-night update, 7 September 2026: the local discovery/event mechanism
+and canonical-core/any-physical-seed extension are now implemented and
+**Proved here** as drafts awaiting independent review. See
+`LOCAL_MULTIPARTITE_PROBE.md`, `thm:op3-local-multipartite` and
+`thm:op3-canonical-multipartite`. General OP3 remains **Open**. The supplied-
+part audit below remains an algebraic reference; its saved source and output
+retain their original historical scope.
+
+The remainder records the first-night proposal, before this completion.
+
 # Next bounded direction: multipartite core responses
 
 Date: 7 September 2026. **Conditional / Open local extension.** The

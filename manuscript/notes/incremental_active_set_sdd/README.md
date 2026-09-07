@@ -1,6 +1,45 @@
 # incremental_active_set_sdd
 
-## Final overnight research block (14)
+## Second night, block 1: local multipartite solver
+
+**General OP3 remains Open.** The user requested 480 additional active
+research minutes on 7 September. The current campaign is tracked in
+`OVERNIGHT_20260907_STATUS.md` and `OVERNIGHT_20260907_WORK_LOG.json`;
+none of the completed first-night 601.407 minutes count toward it.
+
+**Proved here**, draft awaiting independent review:
+`thm:op3-canonical-multipartite` gives a complete original-degree/adjacency
+solver for promised complete multipartite cores with unequal private leaves,
+for every physical seed. No partition, core size or minimum core degree is
+supplied. Work is `O(1+cvol(U)*log(2+cvol(U)))`, space is `O(1+cvol(U))`,
+in exact-real words. Separately, this yields ACL `O_tilde(1/eps_appr)` at
+lambda=eps_appr/2 and exact RPPR `O_tilde(1/rho)` at lambda=rho. It has
+no imported fast SDD or dynamic-tree primitive and no bit-cost claim.
+
+**Measured:** the actual narrow engine passes 3,640 full original obstacle
+comparisons and 16 implicit certificates. Its canonical/any-seed extension
+passes 4,840 explicit comparisons and 56 implicit certificates, with all
+scanned rows positive, exact gate ties and independently audited restricted
+solutions. The two audits overlap in graph coverage; their counts are not
+claims of distinct graph instances. See `LOCAL_MULTIPARTITE_PROBE.md` and
+`sections/op3_local_multipartite.tex` for the mechanism and scope.
+
+**Next falsifiable target:** `RECURSIVE_MODULE_RESPONSE_PROBE.md` derives
+candidate union/join response transformations and a distinct-core-edge
+charge for intermediate copying. Audit both before claiming a work theorem. The
+partition-discovery theorem does not extend automatically to recursive
+modules. Revisit generic sparse coarse response/certification and primary
+sources after this bounded probe; reducing the repeated rank-dependent
+coarse writes remains the arbitrary-graph blocker.
+
+**Formal dependencies:** existing note registry `depends_on=[]`; all new
+proof imports are within this direction. **Context/provenance:** the saved
+multipartite probe and earlier clique result; no shared-ledger or active-
+manuscript promotion. The first-night synthesis below is preserved as
+history. Current verification is recorded in `VERIFICATION.md` and
+`OVERNIGHT_20260907_BLOCK1_AUDIT.json`.
+
+## Historical first-night final block (14)
 
 **General OP3 remains Open.** The current decision document is
 [OP3_MORNING_DECISIONS_20260907.md](OP3_MORNING_DECISIONS_20260907.md).

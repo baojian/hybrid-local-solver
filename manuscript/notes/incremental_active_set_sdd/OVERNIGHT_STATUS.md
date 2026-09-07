@@ -1,9 +1,13 @@
 # OP3 overnight research
 
+**Second night is now active:** the user requested eight more hours. Resume
+[OVERNIGHT_20260907_STATUS.md](OVERNIGHT_20260907_STATUS.md) and its new
+work ledger. The completed first-night record below is historical.
+
 Last updated: 7 September 2026. Repository:
 `/Users/baojian/git/hybrid-local-solver`, branch `main`.
 
-## Current state
+## First-night completion (historical)
 
 Completed **601.407 additional active research minutes** across fourteen
 blocks, exceeding the requested ten-hour minimum. The work ledger is

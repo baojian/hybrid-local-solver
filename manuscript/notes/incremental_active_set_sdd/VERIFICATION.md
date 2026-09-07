@@ -843,3 +843,61 @@ Generated PDF/auxiliary files remain local build products, not research state.
 The primary-source Kiwiel comparison and companion-note provenance are in
 `LOCAL_CLIQUE_PENDANT_PROBE.md`; no scalar-search novelty claim is made.
 No additional usage reset was attempted.
+
+
+## Second night, block 1 — local multipartite and canonical physical seeds
+
+The new campaign requires 480 additional active research minutes. First-night
+601.407 minutes are excluded; the separate ledger is
+`OVERNIGHT_20260907_WORK_LOG.json`. This checkpoint does not claim eight
+hours complete. The same-task heartbeat remains ACTIVE.
+
+**Proved here**, drafts awaiting independent review:
+`thm:op3-local-multipartite` implements adjacency-only part discovery and
+incremental scalar events; `thm:op3-canonical-multipartite` removes minimum
+core degree and permits every physical seed by exact forced-leaf elimination.
+The work is O(1+cvol(U)*log(2+cvol(U))) exact-real words and O(1+cvol(U))
+space on the promised family. ACL and exact RPPR consequences retain their
+separate original normalizations. No Source solver or balancing import is
+needed by this construction. General OP3 remains **Open**.
+
+Final full audits were run through the registered module-style entry points
+and saved with matching source/backend hashes:
+
+| Executable | Saved exact audit | Result |
+| --- | --- | --- |
+| `local_multipartite_pendants.py --full` | `LOCAL_MULTIPARTITE_PENDANT_AUDIT.json` | 3,640 explicit original obstacle comparisons, 3,944 independent restricted optima, 6,772 unknown original gate checks and 16 implicit certificates; 30.193 seconds. |
+| `canonical_multipartite_pendants.py --full` | `CANONICAL_MULTIPARTITE_PENDANT_AUDIT.json` | 4,840 explicit comparisons, 2,664 physical leaf seeds, 1,650 original degree-one-core cases, 4,348 restricted optima, 6,318 unknown original gates, 1,996 distinguished-seed recoveries and 56 implicit certificates; 16.922 seconds. |
+
+The suites overlap and count executions, not distinct graph instances.
+They check literal original equations, positive-only row access, original
+degree penalties, negative transformed pieces, exact ties, monotone roots,
+once-created events and paid complement snapshots. The first runner attempt
+exposed missing sibling imports under module execution. The two new entry
+points now initialize their existing helper path explicitly; both fast
+entry points and both full module-style executions passed afterward.
+This is not a claim that every historical audit was executed this block.
+
+Focused verification: **35 scripts pass lint and format**, registry tests
+**3 passed**, ownership and whitespace checks pass. After the final code
+change, required `make test` reports **231 passed, the same three baseline
+failures**. Required `make reproduce` stops at those test prerequisites;
+later stages are not reported as run. Required lint retains two unrelated
+findings, and note inventory retains two oversized AESP sources. All five
+baseline failure-file hashes are unchanged.
+
+The built note has **80 pages**, no final warnings, overfull boxes or
+undefined references. Cover/contents and pages 72–80 were rendered and
+visually inspected. The PDF is an ignored local build product; the source,
+proof labels, exact JSON results and this verification record are research
+state. Its digest is saved in `OVERNIGHT_20260907_BLOCK1_AUDIT.json`.
+
+`RECURSIVE_MODULE_RESPONSE_PROBE.md` records the next candidate response
+algebra and a useful correction: a quadratic count of ancestor curve copies
+in core vertices can still be linear in core edges. On a reduced alternating
+union/join decomposition, charging join-node sizes to their disjoint
+cross-child edges and union-node sizes to join parents suggests a total
+module-size bound n+4*m_core. Audit this before claiming a supplied-tree work
+theorem. The charge uses all core edges and does not solve support-local
+module discovery. Reassess general coarse certification and primary sources
+after that bounded probe. No arbitrary-graph or novelty claim is promoted.
