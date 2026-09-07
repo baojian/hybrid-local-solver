@@ -4,6 +4,12 @@ Second-night block 4 checkpoint, 8 September 2026 local time. General OP3
 is **Open**. Resume here after checking the actual-time ledger; do not
 repeat the completed special-family or accuracy audits.
 
+**Block 5 follow-up:** the computable certificate, capped grounding-to-VWF
+mapping, positive-face range witness and a certified supplied-edge pruning
+rule are now draft results. Resume `BOUNDED_VWF_COMPRESSION_PROBE.md` for
+the remaining scalar-function range and accumulated-error obligations.
+The text below preserves the starting questions for block 5.
+
 ## What is now established locally
 
 The authoritative draft is `sec:op3-diffusion-accuracy` in

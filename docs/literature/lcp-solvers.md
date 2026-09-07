@@ -111,6 +111,19 @@ inverse-teleportation dependence. The exploration and proposed acceptance
 criteria are in
 [`OP3_DIRECTIONS_20260906.md`](../../manuscript/notes/incremental_active_set_sdd/OP3_DIRECTIONS_20260906.md).
 
+**Objective-class correction and new local bridge.** Definition 3.2, PDF
+p. 14 (visually checked), requires a VWF derivative that is constant on
+its final ray. A positive quadratic grounding term does not directly meet
+that condition. The note's `lem:op3-capped-grounding-vwf` supplies an
+equivalent two-piece objective using a known potential bound and final
+boxing; `thm:op3-local-gap-certificate` supplies a computable original
+accuracy certificate. Both are note-local proof drafts, not source imports.
+Fact 7.2 and the compression argument, PDF pp. 35–37, use breakpoint
+range to bound the number of geometric bins. Certified edge pruning does
+not establish an analogous bound for these scalar functions. The next
+specific probe is
+[`BOUNDED_VWF_COMPRESSION_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/BOUNDED_VWF_COMPRESSION_PROBE.md).
+
 ### Second-night check: curve primitives and dynamic flow
 
 The further OP3 accuracy check is in

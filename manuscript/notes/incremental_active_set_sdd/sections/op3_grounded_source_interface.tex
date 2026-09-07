@@ -1,0 +1,179 @@
+\section[Grounding, range and pruning]{Grounded source objectives, exact range loss, and certified edge pruning}
+\label{sec:op3-grounded-source-interface}
+
+\paragraph{Status and matrix scope.}
+These \statusproved{} drafts concern supplied grounded quadratic matrices
+and a physical unweighted-graph witness. They do not implement or remove
+the source's recursive numerical assumptions. A source interface must match
+the objective class as well as its advertised accuracy and work.
+
+Consider $K=\operatorname{diag}(h)+\sum_e c_e a_ea_e^\top$, where
+$a_e=e_i-e_j$, $c_e>0$, $h_i\geq\mu>0$. Let $f$ be a load with a known
+bound $\sum_i\max\{f_i,0\}\leq B$, $B>0$, and minimize
+$E_K(x)=x^\top Kx/2-f^\top x$ over $x\geq0$.
+Write $U_B=B/\mu$ and $T(x)_i=\min\{x_i,U_B\}$.
+For the physical OP3 objective one may use $h_i=\bar\alpha d_i$,
+$\mu=\bar\alpha$, $B=1$, $f=e_v-\lambda d$.
+For a supplied restricted face, the diagonal grounding additionally
+includes $\gamma$ times its original cut degree.
+
+\begin{lemma}[A two-piece source VWF embedding; \statusproved]
+\label{lem:op3-capped-grounding-vwf}
+The optimum $u$ satisfies $0\leq u_i\leq U_B$. Replace its quadratic
+vertex term by
+\begin{equation}
+ q_i(x)=
+ \begin{cases}
+  h_i x^2/2-f_i x,&0\leq x\leq U_B,\\
+  h_iU_Bx-h_iU_B^2/2-f_i x,&x\geq U_B.
+ \end{cases}
+ \label{eq:op3-capped-grounding-vwf}
+\end{equation}
+Each $q_i$ is a size-two vertex weighting function in the source's
+Definition 3.2. For the source-form objective
+$E_{\mathrm{cap}}(x)=\sum_e c_e(a_e^\top x)^2/2+\sum_i q_i(x_i)$,
+\begin{equation}
+ E_K(T(x))\leq E_{\mathrm{cap}}(x)\leq E_K(x),\qquad x\geq0,
+ \quad \min E_{\mathrm{cap}}=\min E_K.
+ \label{eq:op3-capped-grounding-equivalence}
+\end{equation}
+Thus boxing any source-form relative-energy candidate preserves its
+approximation guarantee for the original grounded objective. Constructing
+the source instance on a supplied graph costs $O(n+m)$ words and work.
+This construction does not supply a locally discovered graph.
+\end{lemma}
+\begin{proof}
+Let $f_+$ denote the coordinatewise positive part. For an optimum $u$,
+$r=f_+-Ku$ is nonnegative: on positive coordinates it equals $f_+-f$,
+and on zero coordinates it equals $f_++\sum_j c_{ij}u_j$.
+Summing gives $\sum_i h_i u_i\leq\sum_i(f_+)_i\leq B$, so $u_i\leq U_B$.
+
+The derivative $q_i'(x)=h_i\min\{x,U_B\}-f_i$ is continuous,
+nondecreasing, concave and constant on its final ray; $q_i(0)=0$.
+These are precisely the source VWF conditions. Beyond $U_B$ its slope
+is $h_iU_B-f_i\geq B-f_i\geq0$. Boxing cannot increase a vertex term,
+and $|T(x)_i-T(x)_j|\leq|x_i-x_j|$ cannot increase an edge term.
+On the box the capped and original objectives agree. Finally
+\[
+ E_K(x)-E_{\mathrm{cap}}(x)
+ =\frac12\sum_i h_i(x_i-U_B)_+^2\geq0.
+\]
+This proves the two inequalities and equality of minima. There are two
+constant-size pieces per vertex and the same supplied edges.
+\end{proof}
+
+\paragraph{Source distinction.}
+An unmodified positive quadratic vertex penalty is not a VWF under
+Chen--Peng--Wang's Definition 3.2, PDF p.\ 14: its derivative is not
+constant on a final ray \citep{chen2021diffusion}.
+\Cref{lem:op3-capped-grounding-vwf} supplies the missing objective mapping.
+It does not discharge Assumption 3.15 or make the source construction local.
+
+\begin{proposition}[Exponential Schur scale on a fully positive physical face;
+ \statusproved]
+\label{prop:op3-positive-face-range-loss}
+There is a simple unweighted graph on $n+1$ vertices, with
+$\alpha=1/3$, $\epsappr=1/(24n)$, and every original obstacle coordinate
+strictly positive, whose exact constrained-Schur energy has a local
+quadratic piece with a nonzero edge coefficient at most
+\begin{equation}
+ \frac12\left(\frac2{11}\right)^{n-2}.
+ \label{eq:op3-exponentially-small-coupling}
+\end{equation}
+Thus polynomial numerical range in only the original graph and requested
+parameters is not inherited by arbitrary exact Schur elimination.
+This is not a trace of the source algorithm or an OP3 lower bound.
+\end{proposition}
+\begin{proof}
+Take a path $1,\ldots,n$ and a hub $0$ adjacent to every path vertex;
+the hub is the physical seed. The degrees are $n$ at the hub, two at
+path endpoints, and three at internal path vertices. Set
+$\gamma=\bar\alpha=1/2$ and $\lambda=1/(48n)$.
+For $G=M^{-1}$, its nonnegative Neumann expansion gives
+$G_{00}\geq1/n$ and $G_{i0}\geq\gamma/(d_i n)\geq1/(6n)$ for $i>0$.
+Since $M\one=\bar\alpha d$, the unconstrained solution is
+$u=Ge_0-(\lambda/\bar\alpha)\one$. It is positive, with
+$u_i\geq1/(8n)$ for every path vertex, and hence is the obstacle optimum.
+Its full original volume is $4n-2$.
+
+Retain ports $\{0,1,n\}$ and eliminate $\{2,\ldots,n-1\}$.
+The interior principal matrix is tridiagonal with diagonal three and
+adjacent entries $-1/2$. Let $\Delta_k$ be its size-$k$ determinant:
+$\Delta_0=1$, $\Delta_1=3$, and
+$\Delta_k=3\Delta_{k-1}-\Delta_{k-2}/4$.
+The successive ratios are at least $11/4$, by induction, so
+$\Delta_k\geq(11/4)^k$.
+The positive endpoint coupling in the Schur matrix is
+\[
+ c_{1n}=\frac{(1/2)^{n-1}}{\Delta_{n-2}}
+ \leq\frac12\left(\frac2{11}\right)^{n-2}.
+\]
+For example this follows from the endpoint cofactor of the interior
+tridiagonal inverse; the hub is retained and is not another eliminated
+route between the endpoints. All eliminated coordinates are strictly
+positive at the physical optimum. Continuity therefore gives a neighborhood
+of its port values where constrained elimination equals this quadratic
+Schur formula. All original input scales and $1/\epsappr$ are polynomial
+in $n$, while the displayed nonzero coefficient is exponentially small.
+\end{proof}
+
+\begin{lemma}[Small total edge weight can be pruned with an absolute budget;
+ \statusproved]
+\label{lem:op3-grounded-edge-pruning}
+For the supplied grounded matrix $K$ above, remove edges of total weight
+$W$ by subtracting their Laplacian terms, and call the result $\widetilde K$.
+Grounding and the load remain unchanged. If $u,\widetilde u$ are their
+obstacle optima, then
+\begin{equation}
+ 0\leq E_K(\widetilde u)-E_K(u)\leq\frac{WB^2}{2\mu^2},
+ \qquad
+ \|\widetilde u-u\|_\infty^2\leq\frac{WB^2}{\mu^3}.
+ \label{eq:op3-pruning-accuracy}
+\end{equation}
+More generally, let $w\geq0$ have error at most $\zeta$ for the pruned
+objective. Its boxed version $T(w)$ has original energy error at most
+$\zeta+WB^2/(2\mu^2)$. In particular, $W\leq\mu^3\delta^2/(2B^2)$
+and $\zeta\leq\mu\delta^2/4$ imply
+$\|T(w)-u\|_\infty\leq\delta$.
+This controls approximation, not exact support preservation.
+\end{lemma}
+\begin{proof}
+The pruned matrix still has the same $h_i\geq\mu$ and is positive
+definite. Both optima lie in $[0,U_B]^n$ by
+\cref{lem:op3-capped-grounding-vwf}. Write $R=K-\widetilde K$.
+For any vector $z$ in that box, $0\leq z^\top Rz\leq WU_B^2$.
+Optimality in the pruned objective therefore gives
+\[
+ E_K(\widetilde u)-E_K(u)
+ \leq\tfrac12\widetilde u^\top R\widetilde u-\tfrac12u^\top Ru
+ \leq WU_B^2/2.
+\]
+The original constrained quadratic gap is at least
+$\mu\|\widetilde u-u\|_2^2/2$, proving the first claim.
+Boxing decreases the pruned quadratic objective, so the same comparison
+with an additional $\zeta$ applies to $T(w)$. Its gap and strong convexity
+give the final bound. Two vertices already permit a support change:
+take both shunts $\mu$, one small edge $c<\mu$, and
+$f=(1,-c/(2\mu))$. The second optimum coordinate is positive before
+deletion and zero afterwards.
+\end{proof}
+
+For a supplied $m$-edge matrix, deleting every edge smaller than
+$\mu^3\delta^2/(2mB^2)$ respects the displayed combined budget.
+The scan costs $O(n+m)$, and the logarithm of the resulting edge threshold
+depends only logarithmically on $m$, $1/\mu$, $1/\delta$ and $B$.
+This observation addresses tiny edge coefficients. It does not compress
+arbitrary vertex-weighting functions, control recursive shifted breakpoints,
+or supply a cumulative local-work argument. The exact range witness is
+therefore not an obstruction to certified approximate pruning.
+
+\paragraph{Audit.}
+\texttt{grounded\_pruning\_range.py} verifies original KKT positivity on
+hub-paths through 257 physical vertices, determinant and coupling identities,
+and independent dense Schur elimination through 17 vertices. Grounded
+weighted atlas cases check exact energy and coordinate bounds, row-margin
+preservation, boxed approximate candidates, and the capped VWF inequality.
+Two designed cases verify strict support changes after pruning.
+\texttt{GROUNDED\_PRUNING\_RANGE\_AUDIT.json} records all cases and hashes.
+All full matrices and exact solves here are validators or supplied inputs;
+no source algorithm's speed or graph discovery is implemented by this audit.

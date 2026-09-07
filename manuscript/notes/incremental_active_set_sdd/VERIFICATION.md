@@ -1058,3 +1058,55 @@ remain ignored, while proof sources and audit records are tracked.
 obligations. Keep unreviewed claims out of the active manuscript and shared
 results ledger. The same-task heartbeat stays active, and existing
 commit/push authorization remains in force.
+
+
+## Second night, block 5: local gap certificates and grounded source interfaces
+
+The 480 new active minute campaign is still in progress; the actual-time
+ledger excludes prior-night and idle time. General OP3 remains Open.
+
+`local_gap_certificate.py` implements deterministic record emission,
+buffered merge sorting and grouped certificate evaluation. Exact original
+matrix comparisons pass 16,506 gap sandwiches and graph-access checks
+across 1,233 original graph cases. There are 12,807 accepted original ACL
+certificates and 3,699 charged failures of the sufficient acceptance test.
+All 11,574 candidates meeting the stronger relative objective accuracy
+pass. Four implicit stars through 10^30 leaves read one leaf row and two
+degrees, with no access to the huge center row. Runtime: 26.817 seconds.
+Every candidate support row is charged; candidate generation is reference
+work. The audit does not implement a candidate-producing local solver.
+
+`grounded_pruning_range.py` passes 550 exact supplied pruning cases,
+2,572 row-margin checks, 2,576 boxed approximate candidate bounds and
+45,870 capped-VWF inequalities. Two constructed two-vertex instances
+verify that exact support can change after a tiny edge is removed.
+Eight hub-paths through 257 physical vertices verify original positivity
+and KKT identities, determinant recurrence and exponentially small endpoint
+coupling. Independent dense Schur elimination agrees through 17 vertices.
+Runtime of the final full audit: 29.045 seconds. Source and backend hashes
+match both saved audit records. Earlier intermediate runs are superseded
+by the final record, which includes boxed candidates and VWF capping.
+
+The source's Definition 3.2 (arXiv:2105.14629v2, PDF p. 14) was inspected
+visually: its VWF derivative must be constant on the final ray. The new
+capped-grounding lemma supplies the missing objective-class mapping.
+Fact 7.2 and Algorithm 8's compression proof on pages 35–37 retain a
+breakpoint-range obligation. The proposed bounded scalar compression is
+saved as a Conditional probe, not a new source import or completed solver.
+
+Ownership passes. All 43 direction scripts pass focused Ruff lint/format;
+registry tests give 3 passed. Whole-project tests give 231 passed and the
+same three notation/inventory failures, with temporary cleanup warnings.
+Lint retains the same two unrelated findings; note inventory retains the
+two oversized AESP files. All five baseline hashes are unchanged.
+`make reproduce` stops at the failing test prerequisite; later stages are
+not claimed. The standalone note builds to 97 pages without final warnings,
+overfull boxes or undefined references. Pages 3 and 90–97 were visually
+reviewed. PDF and auxiliaries remain ignored build products; exact audits
+and proof sources are tracked.
+
+`OVERNIGHT_20260907_BLOCK5_AUDIT.json` records this checkpoint. Resume
+`BOUNDED_VWF_COMPRESSION_PROBE.md`, retain the original-coordinate and
+cumulative local-work obligations, and keep unreviewed claims out of the
+active manuscript/shared results ledger. Existing commit/push authorization
+and the active same-task heartbeat remain in force.

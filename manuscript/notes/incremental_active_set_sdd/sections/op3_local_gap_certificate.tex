@@ -1,0 +1,136 @@
+\section[Computable local gap certificate]{A computable objective-gap certificate with local graph access}
+\label{sec:op3-local-gap-certificate}
+
+\paragraph{Status.}
+The following \statusproved{} drafts replace the unknown-optimum acceptance
+test in \cref{thm:op3-diffusion-accuracy-bridge} by an implemented certificate.
+The graph, physical point seed, original degrees and ACL namespace are as
+in that theorem. Candidate production remains a separate \statusopen{}
+work obligation. Every row of the positive candidate support, including
+false positives later clipped away, is charged here.
+
+Put $\mu=\bar\alpha$, $\ell=1+\gamma$ and $g=Mw-b$ for a feasible
+candidate $w\geq0$. These are note-scoped curvature and smoothness symbols;
+$\mu D\preceq M\preceq\ell D$. Define
+\begin{equation}
+ C(w):=\sum_i c_i(w),\qquad
+ c_i(w)=
+ \begin{cases}
+  g_i^2/(2\mu d_i),&g_i\leq\mu d_iw_i,\\
+  g_iw_i-\mu d_iw_i^2/2,&g_i>\mu d_iw_i.
+ \end{cases}
+ \label{eq:op3-local-gap-certificate}
+\end{equation}
+
+\begin{lemma}[Computable gap sandwich; \statusproved]
+\label{lem:op3-local-gap-sandwich}
+For every feasible $w$, the exact optimum $u$ satisfies
+\begin{equation}
+ E(w)-E(u)\leq C(w)\leq\frac{\ell}{\mu}\bigl(E(w)-E(u)\bigr).
+ \label{eq:op3-gap-sandwich}
+\end{equation}
+Every summand is nonnegative, and $C(w)=0$ if and only if $w=u$.
+\end{lemma}
+\begin{proof}
+Minimize the separable quadratic lower model
+\[
+ E(w)+g^\top(z-w)+\frac\mu2\|z-w\|_D^2,\qquad z\geq0.
+\]
+Its minimizer is $z_i=\max\{0,w_i-g_i/(\mu d_i)\}$, and its improvement
+over $E(w)$ is exactly \cref{eq:op3-local-gap-certificate}. Since this is
+a global lower model for $E$, its minimum is at most $E(u)$, giving
+the first inequality. In particular, the formula handles positive
+gradients on small positive candidate coordinates; replacing them all
+by zero would not be a valid gap certificate.
+
+Let $t=\mu/\ell\in(0,1]$ and $p=z-w$. The point $w+tp$ is feasible.
+Smoothness and $\ell t=\mu$ give
+\[
+ E(w+tp)\leq E(w)+t g^\top p+\frac{\ell t^2}{2}\|p\|_D^2
+ =E(w)-tC(w).
+\]
+Optimality of $u$ proves the second inequality. The lower model includes
+$z=w$, so $C(w)\geq0$, also clear termwise from the displayed cases.
+Strict convexity and the sandwich characterize zero.
+\end{proof}
+
+\begin{theorem}[Local candidate acceptance; \statusproved]
+\label{thm:op3-local-gap-certificate}
+Let $U=\{i:w_i>0\}$ be supplied as a list of distinct labels and positive
+values. The value $C(w)$ and the clipped vector
+$\widehat u_i=\max\{0,w_i-\delta\}$, $\delta=\epsappr/8$, can be computed
+with original degree and adjacency access in
+\[
+ O\bigl((1+\vol(U))\log(2+\vol(U))\bigr)
+\]
+exact-real word work and $O(1+\vol(U))$ allocated words. Only rows in
+$U$ are read. If
+\begin{equation}
+ C(w)\leq\frac{\mu\delta^2}{2},
+ \label{eq:op3-computable-acceptance}
+\end{equation}
+the clipped vector satisfies the original ACL certificate and has support
+contained in the exact obstacle support.
+
+If $\epsappr d_v<1$, a feasible candidate satisfying
+\begin{equation}
+ E(w)\leq E(u)/(1+\eta_C),\qquad
+ \eta_C=\frac{\bar\alpha^3\delta^2}{1+\gamma},
+ \label{eq:op3-source-accuracy-for-certificate}
+\end{equation}
+is guaranteed to pass \cref{eq:op3-computable-acceptance}.
+Only logarithms of $1/\alpha$ and $1/\epsappr$ occur in
+$\log(1/\eta_C)$. These statements do not bound the number of candidates
+or the sum of their support volumes.
+\end{theorem}
+\begin{proof}
+At a zero coordinate outside $U\cup N(U)\cup\{v\}$,
+$g_i=\lambda d_i>0$ and $c_i(w)=0$. To compute the other summands, emit
+one seed record, one record $(i,w_i,-d_iw_i,d_i)$ per positive candidate
+coordinate, and one residual contribution $\gamma w_i$ at label $j$ for
+each original incidence $i\sim j$ with $i\in U$. Sort by vertex label
+and sum contributions within each group. The resulting residual is
+$r_i=\mathbf1_{i=v}-d_iw_i+\gamma\sum_{j\sim i}w_j$, and
+$g_i=\lambda d_i-r_i$. Query a group's original degree if it was not
+already read as a positive candidate coordinate.
+
+There are at most $1+|U|+\vol(U)$ records and at most that many groups.
+A bottom-up merge sort with one reusable buffer charges every comparison
+and copy in the stated bound, without a constant-time dictionary assumption
+or any ambient preprocessing. Degree queries cost one per distinct group;
+adjacency entries cost exactly $\vol(U)$. The grouped certificate and
+clipped output also use linear work and space. When $U$ is empty, only
+the seed degree is needed. These charges apply to failed certificates too.
+
+The left inequality in \cref{eq:op3-gap-sandwich} and
+\cref{lem:op3-diffusion-energy-scale} imply $\|w-u\|_\infty\leq\delta$
+under \cref{eq:op3-computable-acceptance}. The clipping argument of
+\cref{thm:op3-diffusion-accuracy-bridge} then applies unchanged.
+For \cref{eq:op3-source-accuracy-for-certificate}, the right inequality
+in the sandwich and $|E(u)|\leq1/(2\bar\alpha)$ give
+\[
+ C(w)\leq\frac{1+\gamma}{\bar\alpha}
+       \frac{\eta_C}{1+\eta_C}|E(u)|
+ \leq\frac{\bar\alpha\delta^2}{2}.
+\]
+The stated logarithmic tolerance follows directly.
+\end{proof}
+
+\paragraph{Audit and remaining obligation.}
+\texttt{local\_gap\_certificate.py} implements the record emission,
+buffered merge sort and grouped certificate. A row guard forbids access to
+every coordinate outside the positive candidate support. Independent
+original matrices check both sides of the gap sandwich, every computed
+residual, and each accepted original ACL output. There are 16,506 candidate
+checks across 1,233 original graph cases: 12,807 pass, 3,699 correctly
+fail the sufficient test, and all 11,574 candidates meeting
+\cref{eq:op3-source-accuracy-for-certificate} pass. Four implicit stars,
+with up to $10^{30}$ leaves, inspect only one leaf row and two degrees.
+The center's huge adjacency list is neither supplied nor read.
+
+The exact record is \texttt{LOCAL\_GAP\_CERTIFICATE\_AUDIT.json}.
+Candidates and original exact optima in the audit are reference work.
+An arbitrary candidate can have expensive false-positive rows, and a
+sequence of individually local scans can have quadratic cumulative volume.
+The theorem therefore resolves a certificate interface, while the generic
+OP3 producer and cumulative-work questions remain \statusopen.

@@ -1,6 +1,57 @@
 # Direction status: incremental_active_set_sdd
 
-## Second night, block 4: residual-paid updates and diffusion accuracy
+## Second night, block 5: computable certificates and source-objective mapping
+
+**General OP3 remains Open.** `thm:op3-local-gap-certificate` implements
+an original-accuracy certificate using only positive candidate rows and
+neighbor degree queries. Its deterministic work is
+O((1+volume)*log(2+volume)), including failed certificates and false-positive
+rows. A separable quadratic model gives a computable upper bound on the
+unknown objective gap, with a matching smoothness-factor upper bound;
+an explicit source tolerance guarantees acceptance. Candidate production
+and cumulative support-volume work remain separate open questions.
+
+`lem:op3-capped-grounding-vwf` repairs the source objective mapping:
+CPW's VWF definition requires a linear final tail, so an unmodified positive
+quadratic is outside that class. A two-piece capped penalty has the same
+optimum, and boxing transfers any relative objective guarantee back.
+`prop:op3-positive-face-range-loss` gives an exponentially small exact
+Schur coupling on a fully positive physical hub-path face with alpha=1/3
+and eps_appr=1/(24n). This refutes unqualified coefficient-range inheritance,
+not the source algorithm or OP3. `lem:op3-grounded-edge-pruning` then bounds
+energy and coordinate error from removing small total edge weight, including
+boxed approximate candidates. Exact support can change. All four results
+and the gap-sandwich lemma are **Proved here**, drafts awaiting review.
+
+**Measured:** 16,506 independent gap and graph-access checks across 1,233
+original cases, including 12,807 accepted and 3,699 charged failed
+certificates; all 11,574 candidates meeting the sufficient source accuracy
+pass. Four implicit stars with up to 10^30 leaves read one leaf row only.
+The range/pruning audit checks 550 supplied cases, two designed support
+changes, 2,576 boxed approximate candidates, 45,870 capped-VWF inequalities
+and hub paths through 257 physical vertices. Exact full matrices and
+candidate generation remain validator work, distinct from the certificate.
+
+**Source / context:** CPW Definition 3.2 was checked visually in PDF p. 14;
+Fact 7.2 and the scalar compression proof still use a bounded breakpoint
+range. New source-objective mapping and pruning do not discharge that
+recursive obligation. No fast constrained solver is imported.
+
+**Next falsifiable target:** `BOUNDED_VWF_COMPRESSION_PROBE.md`. Test
+snapping small signed split points to zero while retaining curvature,
+combine its additive error with the source's geometric compression, and
+prove bounds on all required fields and cumulative error. The known
+original potential box does not bound every accelerated or shifted query.
+Local graph construction remains open even if the supplied solver is repaired.
+
+Current checks: `OVERNIGHT_20260907_BLOCK5_AUDIT.json` and `VERIFICATION.md`.
+The 97-page note builds without final warnings; pages 3 and 90–97 were
+visually reviewed. All 43 direction scripts pass focused lint/format and
+three registry tests pass. Required whole-project checks retain the same
+unrelated baseline failures. The eight additional active hours remain in
+progress in the separate actual-time ledger.
+
+## Historical second-night block 4: residual-paid updates and diffusion accuracy
 
 **General OP3 remains Open.** The new generic result is an accuracy
 conversion, not a local solver. `lem:op3-diffusion-energy-scale` gives a

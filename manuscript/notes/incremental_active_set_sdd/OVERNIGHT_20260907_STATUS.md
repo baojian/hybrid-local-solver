@@ -8,28 +8,28 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 4 and next work
+## Completed block 5 and next work
 
-The supplied-module interfaces and bounded two-star admission probe are
-complete as proof drafts. The new general-graph accuracy bridge converts
-feasible relative objective accuracy to a downward-clipped original ACL
-certificate with an explicit tolerance. See the newest README/STATUS
-checkpoint and `OVERNIGHT_20260907_BLOCK4_AUDIT.json` for exact scope.
-None supplies an arbitrary-graph OP3 runtime theorem.
+The computable local candidate certificate, capped grounding-to-VWF
+objective mapping, fully positive physical Schur range witness, and
+certified supplied-edge pruning rule are now proof drafts. Use the newest
+README/STATUS checkpoint and `OVERNIGHT_20260907_BLOCK5_AUDIT.json`.
+General OP3 remains Open; no fast constrained source algorithm is imported.
 
-Resume `DIFFUSION_SOURCE_CERTIFICATE_PROBE.md`. Prioritize the source's
-intermediate numerical-range/tolerance obligations, a computable accuracy
-certificate, and a local construction whose total supplied-graph work is
-charged. The known original energy floor does not control every recursive
-residual quantity. Small final support does not bound rows accessed before
-clipping. Keep both limitations explicit.
+Resume `BOUNDED_VWF_COMPRESSION_PROBE.md`. It gives a specific signed
+small-split-to-zero proposal with an additive Bregman error bound. Audit
+complete intervals and the zero split, then combine it carefully with
+source geometric compression. The key missing contracts are bounds on
+all queried fields and curvature, plus an accumulated approximation budget
+through residual refinements and recursion. The original optimum's box
+alone does not bound accelerated extrapolation or shifted subproblems.
 
-Use the completed exact audits rather than rerunning them. The two-star
-family satisfies the causal harmonic union-stream budget and does not
-establish the proposed naive cumulative obstruction. Further special graph
-classes are not the main next block. Generic sparse coarse certification
-remains a parallel mathematical alternative with its rank factor open;
-this describes directions, not authorization for additional agents.
+The gap certificate now supplies a computable stopping rule and a known
+minimum gap while further refinement is needed. It still charges a scan
+of the candidate's positive rows. Preserve the separate generic graph
+exposure and cumulative supplied-graph obligations. The new probe also
+records an unimplemented seed-only input-scale shortcut worth checking.
+Do not repeat completed audits or return primarily to more special graphs.
 
 The campaign stays ACTIVE until 480 new active minutes are verified. Start
 and close actual intervals in the separate ledger; exclude heartbeat idle
