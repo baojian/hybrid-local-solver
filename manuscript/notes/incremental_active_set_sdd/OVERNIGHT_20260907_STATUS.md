@@ -8,34 +8,30 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 8 and next work
+## Completed block 9 and next work
 
-The generic relative tolerance 1/(33*2^30*kappa^3) is now a proved draft
-with exact audits of every accelerated step, signed lower domains, zero gap
-and common energy rescaling. A paid common-shift normalization preserves
-original and model energies and bounds canonical coordinates from explicit
-input quantities, even when the total terminal slope is zero. The generic
-connected finite-minimum criterion and initial-gap bound are also proved
-drafts. Use the newest README/STATUS and `OVERNIGHT_20260907_BLOCK8_AUDIT.json`.
-The convergence inequality remains a source import; fast inner work is open.
+The persistent exact VWF forest primitive is implemented and exact-audited,
+with corrected Lift constants, signed endpoints, lazy derivative integrals,
+canonical export, stored edge weights and complete reconstruction. Its work,
+all-allocation and one-pass range bounds are proved drafts. Source elimination
+is existing work; this new implementation is independently verified. Use the
+newest README/STATUS and `OVERNIGHT_20260907_BLOCK9_AUDIT.json`.
 
-Resume the new first section of `CAPPED_INNER_ORACLE_PROBE.md`. The prior
-generic tolerance candidate is complete; proceed to the corrected Lift and
-persistent derivative-integral forest primitive. Its general signed-domain
-endpoint formulas and augmented-node cautions are recorded there.
+Resume `ADDITIVE_RECURSION_PROBE.md`. Its next bounded target is compression,
+refinement and acceleration with mixed relative/additive accuracy contracts.
+The saved derivation avoids choosing an absolute compression budget from an
+unknown negative optimum. Formalize and audit zero gap, signs, all source
+indices, residual translation, canonicalization and every charged call.
+A dense forward-piece policy is outlined as a candidate exact coarse
+validator; verify original KKT and compare trees before relying on it.
 
-Implement and audit one supplied forest-elimination pass. The probe records a
-visually confirmed sign error in the source Lift constant and its direct
-correction, explicit terminal-slope/curvature/range candidates, and a
-persistent derivative-curve design with exact area aggregates. Preserve
-old validated backends; use a new module for this type. An arbitrary spanning
-forest does not justify dropping nonforest incidences at eliminated vertices.
-
-Keep the full recursive error and inner-source work, unknown-support graph
-discovery and cumulative supplied-graph scans separate. Do not repeat the
-completed 23-minute exact driver audit unless changed code or a new concern
-requires it. Continue to at least 480 new active minutes, excluding idle and
-prior-night time; commit and push verified blocks under existing authorization.
+Then trace CPW's actual recursive graph/preconditioner scales and recurrence.
+Do not treat the exact-Schur witness as a source execution or a supplied
+solver as local discovery. Preserve immutable helper hashes and completed
+audits; do not repeat the 23-minute original restart driver audit unless
+changed code or a new concern requires it. Continue to at least 480 new
+active minutes, excluding idle and prior-night time. Commit and push verified
+blocks under the user's existing authorization.
 
 ## Conventions, status and authorization
 

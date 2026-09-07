@@ -1,6 +1,57 @@
 # incremental_active_set_sdd
 
-## Second night, block 8: generic proximal tolerance and canonical ranges
+## Second night, block 9: persistent exact VWF forest elimination
+
+**General OP3 remains Open.** `thm:op3-persistent-vwf-forest` implements
+exact elimination on a supplied forest whose remaining edges join retained
+roots. It stores immutable derivative curves with exact integral aggregates,
+correct Lift constants and signed lower endpoints. It returns canonical
+root functions, copied coarse edges and saved child responses for exact
+conditional recovery. With W=sum(input split count+2), work is
+O(m+W log^2(2+W)) and all newly allocated words are
+O(m_root+W log^2(2+W)), including retained versions. Recovery costs
+O(n log(2+W)) work and total allocation. These are **Proved here** drafts.
+
+`lem:op3-correct-vwf-lift` proves the corrected negative constant term and
+boundary formulas. `lem:op3-affine-derivative-integrals` proves the lazy
+integral transform. `prop:op3-vwf-forest-ranges` bounds one exact pass's
+splits, terminal slopes, curvature and values at zero. Individual terminal
+slopes may be negative. `cor:op3-generic-proximal-terminal-mass` bounds
+the positive tail mass supplied by an accelerated normalized model.
+
+**Source / context:** CPW already gives fast degree-one VWF elimination
+in Lemmas 6.1 and 6.6; this is an independently implemented and audited
+representation of that approach, not a claim that elimination is new.
+PDF pp. 30–34 were visually checked. Algorithm 6 eliminates before
+compression. The note records the checked constant-sign correction on
+pp. 40–42 and states an explicit saved-child recovery contract to avoid
+the parent-descriptor ambiguity in Algorithm 7.
+
+**Measured:** The explicit reference passes 3,000 scalar Lift cases,
+16,997 full polynomial identities and 192 tree reconstructions in 4.390
+seconds. The persistent audit passes 1,000 scalar operation/persistence
+cases, 34,404 complete curve intervals, 5,941 saved versions and 9,081
+general affine integral checks. It reconstructs 192 trees, certifies 15
+retained-root field assignments, rejects three invalid graph shapes and
+checks nine larger cases through 512 vertices. Every coordinate in the
+larger outputs is positive. Canonical exports match exact coefficients.
+The final full persistent audit took 54.119 seconds; old helper hashes remain
+unchanged. Reference pieces and original KKT are validator work.
+
+**Next falsifiable target:** `ADDITIVE_RECURSION_PROBE.md`. Formalize
+and audit compression, refinement and acceleration with mixed relative
+and additive guarantees, including zero gap. Then trace the actual recursive
+preconditioner/graph scales and work. The new additive-budget schedule and
+dense forward-piece coarse validator are **Conditional candidates**.
+Fast recursive coarse work and unknown-support local discovery remain
+**Open**. The 111-page note builds without final warnings; final pages 4
+and 104–109 were visually reviewed. All 51 direction scripts pass focused
+lint/format and three registry tests pass. Required broad checks retain the
+same baseline failures and five unchanged hashes. Details are in
+`OVERNIGHT_20260907_BLOCK9_AUDIT.json` and `VERIFICATION.md`.
+
+
+## Historical second-night block 8: generic proximal tolerance and canonical ranges
 
 **General OP3 remains Open.** `thm:op3-generic-relative-proximal` proves
 the universal inner relative tolerance `1/(33*2^30*kappa^3)` for a supplied

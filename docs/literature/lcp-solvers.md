@@ -175,6 +175,22 @@ For the valid VWF `f(y)=-y`, `y>=0`, `c=1`, the value at x=0 is
 specific correction before implementing Lift values, without treating
 it as a refutation of the paper's entire complexity theorem.
 
+**Implemented forest comparison, note-local draft.** PDF pp. 30–34 were
+visually checked: Lemmas 6.1 and 6.6 already state fast degree-one VWF
+elimination, and Algorithm 6 eliminates first and then compresses refinement
+instances on the remaining core. The note's
+`thm:op3-persistent-vwf-forest` implements a separate immutable
+derivative-integral AVL representation with corrected constants, signed
+domains, explicit all-allocation accounting and canonical export.
+`prop:op3-vwf-forest-ranges` gives one-pass split, terminal-slope, curvature
+and zero-value bounds. This is implementation and proof verification of a
+known elimination approach, not a claim that the approach is new.
+Reconstruction uses the saved lifted child derivative. Algorithm 7's printed
+recovery line on p. 33 names the parent descriptor after Add, while Lemma 6.6
+specifies OptimalX after Lift; the note states its own exact child recovery
+contract to avoid this descriptor ambiguity. Fast recursive coarse work and
+the source's numerical-range obligations remain separate.
+
 ### Local flow runtime parameters checked against primary formulas
 
 **Source.** Fountoulakis, Wang and Yang,

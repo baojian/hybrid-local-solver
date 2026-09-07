@@ -1,0 +1,325 @@
+\section[Persistent VWF forests]{Persistent exact VWF forest elimination and explicit ranges}
+\label{sec:op3-persistent-vwf-forest}
+
+\paragraph{Status and source comparison.}
+CPW Lemma 6.1 and Lemma 6.6, PDF pp.\ 30--34
+\citep{chen2021diffusion}, already state fast degree-one elimination using
+maintained vertex functions. The source was visually checked, including
+Algorithm 6's elimination-before-compression schedule. We do not claim
+degree-one elimination as a new algorithmic idea. This section gives a
+separately implemented derivative-integral representation, direct proofs
+of its exact constants and all allocated work, and explicit bounds for one
+uncompressed forest pass. These are \statusproved{} drafts awaiting review.
+The scalar coefficient sign on source pp.\ 40--42 is corrected below.
+No fast coarse oracle or recursive complexity theorem is imported here.
+
+\begin{lemma}[Correct Lift coefficients and signed endpoints; \statusproved]
+\label{lem:op3-correct-vwf-lift}
+Let $F$ be a finite-piece VWF on $[L,\infty)$, $L\leq0$, and $c>0$.
+For a parent endpoint $P\leq0$ define
+$\widehat F(x)=\min_{y\geq L}\{c(x-y)^2/2+F(y)\}$ on $[P,\infty)$.
+Then $\widehat F$ is a VWF with the same final derivative as $F$.
+If the minimizing $y$ lies in a piece
+$F(y)=ry^2/2+ay+b$, the correct new piece is
+\begin{equation}
+ \widehat F(x)=\frac{cr}{2(c+r)}x^2+
+ \frac{ca}{c+r}x+b-\frac{a^2}{2(c+r)}.
+ \label{eq:op3-correct-vwf-lift-piece}
+\end{equation}
+The boundary transition is $s_0=L+F'(L)/c$. For $x\leq s_0$ the
+minimizer is $L$ and the function is $F(L)+c(x-L)^2/2$.
+Every old split $s$ maps to $s+F'(s)/c$ with derivative value $F'(s)$.
+For all $x\geq P$ the unique minimizer is
+\begin{equation}
+ y(x)=x-\widehat F'(x)/c.
+ \label{eq:op3-vwf-lift-recovery}
+\end{equation}
+In particular, if $P>s_0$, the exact new endpoint value is
+$F(y(P))+\widehat F'(P)^2/(2c)$; otherwise it is $F(L)+c(P-L)^2/2$.
+\end{lemma}
+\begin{proof}
+The function minimized in $y$ is strongly convex and grows quadratically
+above a global affine lower bound for $F$, so it has a unique minimizer.
+Its interior stationarity equation gives $y=(cx-a)/(c+r)$.
+Substitution gives \eqref{eq:op3-correct-vwf-lift-piece}, with a minus
+sign in its constant. At the boundary the one-sided stationarity condition
+is $c(L-x)+F'(L)\geq0$, equivalent to $x\leq s_0$.
+The split map is strictly increasing because $F'$ is nondecreasing.
+Interior curvature changes from $r$ to $cr/(c+r)$, a nondecreasing
+function of $r$ bounded by $c$. Thus the decreasing sequence of old
+curvatures remains decreasing, including the initial boundary curvature
+$c$ and the final zero curvature. Values and derivatives match at every
+transition, as direct substitution shows. Restricting to $[P,\infty)$
+discards only an initial prefix of pieces. Moreover
+$\widehat F(0)\leq F(0)\leq0$ by the feasible choice $y=0$.
+Envelope differentiation gives \eqref{eq:op3-vwf-lift-recovery}, including
+the boundary branch, and proves the endpoint formulas.
+\end{proof}
+
+\paragraph{Source formula diagnostic.}
+The printed positive constant correction on source pp.\ 40--42 disagrees
+with \eqref{eq:op3-correct-vwf-lift-piece}. The valid VWF $F(y)=-y$ on
+$y\geq0$, with $c=1$, has $\widehat F(0)=-1/2$ at $y=1$; a positive
+correction gives $+1/2$. This is a specific coefficient correction, not
+a refutation of the whole source theorem. Recovery here explicitly uses
+the saved lifted child function. Source Algorithm 7, p.\ 33, instead
+prints the parent descriptor $D_v$ after its Add operation in the recovery
+line, whereas Lemma 6.6 defines OptimalX after Lift. Our reconstruction
+contract is \eqref{eq:op3-vwf-lift-recovery}, avoiding that descriptor
+ambiguity and keeping each child's lifted snapshot independently available.
+
+\begin{lemma}[Affine updates of derivative integrals; \statusproved]
+\label{lem:op3-affine-derivative-integrals}
+Represent a piecewise linear derivative by ordered points $(x,g)$.
+A subtree stores its first and last point and the trapezoid integral
+$I=\int g\,dx$ between them. Under an order-preserving affine point map
+\[
+ x'=ax+bg+t_x,\qquad g'=cx+dg+t_g,
+\]
+the aggregate changes in constant exact-real word work to
+\begin{equation}
+ I'=(ad-bc)I+bc\,\Delta(xg)+\frac{ac}{2}\Delta(x^2)
+       +\frac{bd}{2}\Delta(g^2)+t_g\bigl(a\Delta x+b\Delta g\bigr),
+ \label{eq:op3-affine-derivative-area}
+\end{equation}
+where each $\Delta$ is last endpoint minus first endpoint.
+An immutable AVL tree with these aggregates supports a derivative query
+or prefix integral in $O(\log(2+k))$ work without allocating tree nodes,
+where $k$ is the number of stored points.
+\end{lemma}
+\begin{proof}
+Expand $\int(cx+dg+t_g)(a\,dx+b\,dg)$ and use
+$\int x\,dg=\Delta(xg)-\int g\,dx$ and the endpoint identities for
+$\int x\,dx$ and $\int g\,dg$. This gives
+\eqref{eq:op3-affine-derivative-area}; translation $t_x$ disappears from
+the differential. The formula also holds on every individual segment.
+
+A node combines the two child aggregates and the connecting trapezoids.
+A lazy affine update transforms the node point and aggregate, composes its
+pending tag, and shares its unchanged children. It does not reconstruct
+an aggregate using children still in their old coordinates. A read-only
+query carries the composed map down one search path. Fully covered child
+integrals are included in constant work, with one partial connecting
+segment at the query endpoint. The AVL height recurrence bounds the path
+by $O(\log(2+k))$; no push or path copy is needed for reads.
+\end{proof}
+
+\paragraph{Implemented scalar operations.}
+The new module \texttt{persistent\_vwf\_forest.py} preserves the old
+validated affine-tree and removal modules. Its augmented node stores
+the domain point $(L,F'(L))$, all retained derivative knots, and the
+value $F(L)$ separately. The final derivative is constant. Function values
+use the prefix integral, with the constant derivative on the final ray.
+
+Lift applies $(x,g)\mapsto(x+g/c,g)$ to one root. Before its transformed
+domain point, it uses derivative $c(x-L)$. At parent endpoint $P$, it
+computes the exact constant by \cref{lem:op3-correct-vwf-lift}, deletes
+the transformed points at or below $P$ when necessary, and inserts the
+new endpoint. Repeated minimum deletion is used; its total cost is charged
+below, rather than assumed to be one logarithmic operation.
+
+For addition on a common domain $[P,\infty)$, the smaller derivative has
+the form $g(P)+C(x-P)-\sum_s q_s(x-s)_+$, with $q_s\geq0$.
+One global vertical shear adds the affine term to the larger tree.
+A stream through the smaller tree then inserts each needed split and
+applies its negative suffix hinge. The temporary final curvature is tracked
+until it returns to zero. It stays nonnegative throughout: it is the
+remaining curvature of the smaller function, added to the larger function's
+nonnegative curvature. Zero drops are skipped. Constants at $P$ are added.
+The operations preserve earlier snapshots by copying only touched paths.
+Canonical export streams positive curvature drops, omits zero jumps, and
+uses the exact $F(0),F'(0)$ anchors. It costs linear work in the curve size
+and returns the atom representation of \cref{sec:op3-global-vwf-compression}.
+
+\begin{theorem}[Implemented persistent supplied-forest elimination; \statusproved]
+\label{thm:op3-persistent-vwf-forest}
+Suppose a supplied weighted graph with $n$ numbered vertices and $m$ edges
+is the union of vertex-disjoint rooted trees and edges joining their $r$
+retained roots. Every tree has exactly one retained root. Give vertex $i$
+a VWF $f_i$ on $[L_i,\infty)$, $L_i\leq0$, with $k_i$ splits, and set
+$W=\sum_i(k_i+2)$. The implementation validates the topology and produces
+exact retained-root functions, the copied root-to-root edge list, and an
+immutable reconstruction representation in
+\begin{equation}
+ O\bigl(m+W\log^2(2+W)\bigr)\ \text{word work},\qquad
+ O\bigl(m_R+W\log^2(2+W)\bigr)\ \text{newly allocated words},
+ \label{eq:op3-persistent-vwf-forest-work}
+\end{equation}
+where $m_R$ is the root-edge count. These bounds include all copies and
+retained versions, not only peak live storage. The retained functions have
+total size $O(W)$ and can be exported in $O(W)$ additional work and words.
+
+For any feasible supplied root vector, one downward pass costs
+$O(n\log(2+W))$ work and total newly allocated words, including its
+$O(n)$ output vector, and returns the exact
+conditional minimum over all eliminated coordinates. Its original energy
+equals the reduced root energy. The original root gradients equal the
+reduced gradients. A single-root tree with nonnegative total final slope
+can therefore be minimized exactly with one additional derivative-zero
+query. No unknown-support graph discovery is included in these supplied
+access bounds.
+\end{theorem}
+\begin{proof}
+Orient the supplied forest from its given roots, reading each incidence
+and storing every parent edge weight. Reject extra incidences at eliminated
+vertices. Copy each root edge once. A second incidence pass constructs the
+postorder merge inputs. All orientation arrays, descriptors, unsuccessful
+topology checks and copied edge records are charged in $O(n+m)$ work and
+$O(n+m_R)$ words. Vertices are array-indexed; reconstruction reads stored
+weights and makes no edge-key searches.
+
+For a vertex $v$, define bottom-up
+\[
+ F_v=f_v+\sum_{w:\,p(w)=v}\widehat F_w,\qquad
+ \widehat F_w(x)=\min_{y\geq L_w}
+       \{c_{wv}(x-y)^2/2+F_w(y)\}.
+\]
+Each lifted child is restricted to the parent's domain. The scalar lemma
+proves these identities exactly. Induction shows that $F_v$ is the
+subtree conditional minimum for a fixed value at $v$. Given parent value
+$x$, the saved $\widehat F_w'$ yields the unique minimizing child value
+by \eqref{eq:op3-vwf-lift-recovery}. A downward pass therefore realizes
+all conditional minima simultaneously. Only the retained root edges remain
+outside those subtrees, proving energy equality. Differentiating the lifted
+contributions gives the root-gradient equality. Finite single-root minima
+and zero total final slope are covered by
+\cref{prop:op3-vwf-canonical-input-gap}; the root derivative is continuous
+nondecreasing with a nonnegative final value, so a zero crossing or its
+domain endpoint is sufficient.
+
+It remains to account for all representation work. Assign each original
+vertex immutable mass $k_i+2$, and each subtree the sum of its input masses.
+At a vertex choose the largest-mass input among its own function and all
+lifted children as the shared base. Every other input has mass at most
+that base's mass. Its point count is at most its mass: original knots,
+domain points and at most one newly created endpoint per eliminated vertex
+are enough to account for every retained record. Each smaller input's
+stream can thus be charged to its original mass tokens. Whenever a token
+is charged, its containing merged mass at least doubles. There are at most
+$O(\log(2+W))$ charges per token, for $O(W\log(2+W))$ streamed points.
+Every streamed hinge makes $O(\log(2+W))$ path visits and node copies.
+Local input construction is linear in its points; selecting merge inputs
+and retaining all response pointers is linear in the graph and input size.
+
+Prefix deletion does not escape this ledger. Consider only the logical
+current curves on the postorder frontier; saved inactive snapshots are
+never reintroduced into that frontier. Initially there are
+$\sum_i(k_i+1)$ points. A merge consumes the smaller curve and creates
+at most its non-domain point count in the base, so it cannot increase the
+frontier's total point count. Each Lift introduces at most one endpoint.
+Consequently the total number of points removed by prefix deletion is at
+most $\sum_i(k_i+1)+n-r=O(W)$. Each removal costs logarithmic path work
+and allocation. Each remaining Lift uses one lazy root update, logarithmic
+endpoint queries and at most one insertion. These facts establish
+\eqref{eq:op3-persistent-vwf-forest-work}, including temporary paths,
+rotations, affine tags, integral aggregates, output records and all old
+snapshots. Each read-only derivative query in reconstruction is logarithmic;
+its temporary carry records are charged as well as its output vector.
+Exporting all root curves is
+linear because their disjoint mass sum is $W$.
+\end{proof}
+
+\begin{proposition}[One-pass terminal, curvature and split bounds; \statusproved]
+\label{prop:op3-vwf-forest-ranges}
+In \cref{thm:op3-persistent-vwf-forest}, let $t_i$ be the final derivative
+of $f_i$, $h_i$ its largest curvature, $S_+=\sum_i\max(t_i,0)$,
+$U=\max(0,\text{all input splits})$, and let every forest edge have
+weight at least $c_{\min}>0$. For a subtree rooted at $v$, put
+$T_v=\sum_{i\text{ in that subtree}}t_i$. Then
+\begin{enumerate}
+\item $F_v$ and its lifted version have final derivative $T_v$, including
+when it is negative.
+\item Every retained split in the exact pass is at most
+$U+nS_+/c_{\min}$ and at least the lower endpoint of its current domain.
+Thus all split magnitudes are bounded by
+$\max\{\max_i(-L_i),U+nS_+/c_{\min}\}$.
+\item The largest curvature of $F_v$ is at most
+$h_v+\sum_{w:p(w)=v}c_{vw}$, and that of $\widehat F_v$ is at most
+$c_{vp(v)}$. In particular the sum of largest curvatures of all retained
+root functions is at most $\sum_i h_i+\sum_{e\text{ in forest}}c_e$.
+\item If the full original objective has a finite minimum $\Phi^*$,
+then every stored $F_v(0)$ and $\widehat F_v(0)$ belongs to $[\Phi^*,0]$.
+\end{enumerate}
+No intermediate compression is used in these claims, and no new graph
+edge is produced by the pass.
+\end{proposition}
+\begin{proof}
+Lift preserves the final derivative and addition sums it, proving the first
+claim by induction. Every event or endpoint $s$ lifted from a subtree maps
+to $s+F_v'(s)/c$, which is at most
+$\max(0,s)+\max(T_v,0)/c\leq\max(0,s)+S_+/c_{\min}$.
+Original domain endpoints are nonpositive. New parent endpoints are also
+nonpositive, and prefix restriction discards events rather than moving them
+farther. An event traverses at most $n-1$ forest edges. This proves the
+split bound, including signed input splits and the boundary transition.
+
+The Lift curvature formula is at most its edge weight. Adding the children
+to $f_v$ gives the curvature bound, and summing over roots is bounded by
+the larger sum over all vertices. These operations alter only vertex
+functions and remove forest edges; the retained graph edges are copied
+unchanged.
+
+Choosing zero throughout a subtree gives nonpositive conditional energy,
+so both kinds of stored functions are nonpositive at zero. For a lower
+bound, embed a conditional minimizer with root value zero into the full
+graph by setting all outside coordinates to zero. The boundary forest edge
+has zero contribution in the $F_v(0)$ case; it is already part of the
+minimum in the $\widehat F_v(0)$ case. There are no other incidences out
+of the eliminated subtree. The remaining vertex constants are nonpositive,
+and all other edge contributions are zero. The full feasible energy is
+therefore no greater than the stored value at zero and is at least
+$\Phi^*$. Conditional minimizers exist by repeated strongly convex scalar
+Lift. This proves the last claim.
+\end{proof}
+
+\begin{corollary}[Terminal mass of a generic proximal instance; \statusproved]
+\label{cor:op3-generic-proximal-terminal-mass}
+For graph Laplacians in \cref{thm:op3-generic-relative-proximal}, let
+$W_G$ be the sum of the supplied $\mathcal G$ edge weights and let
+$S_+=\sum_i\max(T_i,0)$ for the original vertex final derivatives.
+At any accelerated center, the normalized model's positive final-slope
+mass is at most
+\[
+ S_++32\kappa\sqrt{\kappa W_G\Delta}.
+\]
+This bounds the input $S_+$ for a subsequent valid forest pass without
+requiring coordinate bounds or nonnegative individual shifted final slopes.
+\end{corollary}
+\begin{proof}
+For any graph Laplacian $L$ with edge-weight sum $W_L$,
+$\|Lx\|_1\leq2\sum_e c_e|x_i-x_j|
+\leq2\sqrt{W_L}\|x\|_L$.
+Trace comparison gives $W_H\leq\kappa W_G$. Since
+$\|x\|_G\leq\|x\|_H\leq8\kappa\sqrt\Delta$, the triangle
+inequality yields
+$\|(\mathcal G-\mathcal H)x\|_1
+\leq32\kappa\sqrt{\kappa W_G\Delta}$.
+The normalized model changes each final slope by
+$((\mathcal G-\mathcal H)x)_i$. The positive-part mass can increase by
+at most the $\ell_1$ norm of this shift. This argument does not assume
+edgewise nonnegative weights for the difference $\mathcal H-\mathcal G$.
+\end{proof}
+
+\paragraph{Audit and limits.}
+The explicit reference audit checks 3,000 scalar Lift cases, 16,997 complete
+constant/recovery polynomial identities, and 192 tree reconstructions.
+The persistent audit independently checks 1,000 Lift/addition/persistence
+cases, 34,404 complete derivative/quadratic overlay intervals, 5,941 saved
+curve versions, 9,081 general affine segment/prefix identities and all
+stored AVL/integral aggregates. It reconstructs 192 atlas trees, certifies
+15 retained-root field assignments, rejects three invalid elimination
+topologies, and checks original KKT on nine path/star/binary instances
+through 512 vertices. All coordinates in the nine larger solutions are
+positive. Canonical export is compared with full polynomial coefficients.
+Exact reference matrices are unnecessary for this primitive: independent
+scalar pieces and original sparse KKT equations supply the validators.
+
+The immutable affine-tree and removal backends retain their prior hashes.
+No floating-point stability or rational bit-complexity bound is claimed.
+The remaining bridge is an implemented compressed coarse oracle with a
+compatible additive-error budget, followed by the actual recursive graph
+and preconditioner schedule. The forest bound on $c_{\min}$ is an input
+hypothesis; it does not prove a lower bound for future recursively built
+graphs. A positive compression error still needs a justified energy-scale
+budget. Unknown-support discovery and cumulative graph-local work remain
+separate. General OP3 remains \statusopen{}.

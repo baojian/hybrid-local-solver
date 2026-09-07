@@ -1,5 +1,12 @@
 # The remaining inner oracle after explicit certified restarts
 
+Block 9 update: the corrected Lift, persistent derivative-integral forest,
+canonical export and one-pass range claims below are now implemented and
+proved drafts in `sec:op3-persistent-vwf-forest`. Resume the new
+`ADDITIVE_RECURSION_PROBE.md` for mixed relative/additive budgets and the
+actual recursive graph schedule. The block-8 and earlier probes below
+remain as historical derivations. General OP3 remains **Open**.
+
 Second-night block 8 checkpoint, 8 September 2026. **General OP3 remains
 Open.** The outer reductions retain every inner-oracle cost. Continue
 the active-time campaign without repeating completed audits.

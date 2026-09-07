@@ -1,7 +1,7 @@
 # OP3 exploration verification
 
-Latest block: see **Second night, block 8** below and
-`OVERNIGHT_20260907_BLOCK8_AUDIT.json`. The first-night synthesis is
+Latest block: see **Second night, block 9** below and
+`OVERNIGHT_20260907_BLOCK9_AUDIT.json`. The first-night synthesis is
 `OP3_MORNING_DECISIONS_20260907.md`. The earlier dated entries are historical
 verification records; their then-uncommitted status is not current Git state.
 
@@ -1228,3 +1228,37 @@ note inventory reports the same two oversized AESP sources. All five baseline
 file hashes are unchanged. Required reproduction stops at the failed test
 prerequisite; no later stages are claimed. Durable details are in
 `OVERNIGHT_20260907_BLOCK8_AUDIT.json`.
+
+
+## Second night, block 9: persistent exact VWF forests
+
+The new proof section `sec:op3-persistent-vwf-forest` establishes corrected
+Lift coefficients and endpoints, affine integral aggregates, a complete
+persistent supplied-forest primitive with all-allocation bounds, one-pass
+split/curvature/constant ranges and a proximal terminal-mass bound. These
+are **Proved here** drafts awaiting review. CPW already gives the elimination
+approach; PDF pp. 30–34 were visually checked and the implementation is
+compared explicitly. No fast coarse or local OP3 theorem is asserted.
+
+`vwf_forest_reference.py --full` passes 3,000 scalar Lift cases, 16,997
+complete polynomial identities and 192 tree reconstructions in 4.390 seconds;
+source SHA-256 `2beb1b6447d6a74a4c27ad107b41b091c26e44f66ba595b02ef8c86e57dc8778`.
+`persistent_vwf_forest.py --full` passes 1,000 scalar cases, 34,404 full
+curve overlays, 5,941 saved versions, 9,081 affine segment/prefix checks,
+192 tree reconstructions, 15 retained-root assignments and nine larger
+cases through 512 vertices. It rejects three invalid graph topologies.
+All larger solutions have every coordinate positive. The final canonical
+export and stored-edge-weight implementation passed in 54.119 seconds;
+source SHA-256 `8977f6a2a361b7a203422e6f140d52af32aa8bfaa24ba6d493c60a122274b911`.
+Old helper hashes were verified unchanged. Explicit pieces and original
+KKT, together with aggregate materialization, are validator work.
+
+The 111-page note builds without final warnings, unresolved references or
+overfull boxes. Final pages 4 and 104–109 were visually reviewed. Ownership,
+focused lint/format for all 51 scripts, three registry tests and diff checks
+pass. Required tests retain 231 passes and the same three unrelated failures;
+broad lint and note inventory retain the same two findings each. All five
+baseline file hashes are unchanged. Required reproduction stops at the failed
+test prerequisite; later stages did not run. Durable details are in
+`OVERNIGHT_20260907_BLOCK9_AUDIT.json`. The new additive recursion probe
+is explicitly **Conditional**, and general OP3 remains **Open**.
