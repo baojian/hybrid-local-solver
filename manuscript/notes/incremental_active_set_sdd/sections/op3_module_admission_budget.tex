@@ -1,0 +1,136 @@
+\section[Residual-paid union updates]{A causal residual budget for union-response updates}
+\label{sec:op3-module-admission-budget}
+
+\paragraph{Status and measured interface.}
+The lemmas below are \statusproved{} drafts awaiting independent review.
+They bound a particular curve-update charge along legal original obstacle
+admissions; they are not a complete local graph solver. All degrees are
+original full degrees, including every as-yet unadmitted vertex. A freshly
+constructed full response on an arbitrary supplied subset is a validator,
+not a free local update. General OP3 remains \statusopen.
+
+\begin{lemma}[Residual mass pays for common inactive inputs; \statusproved]
+\label{lem:op3-inactive-residual-mass}
+Let $u$ be any restricted obstacle response for physical seed $v$ and
+load $e_v-\lambda d$, extended by zero outside the restricted set. Its
+original residual $r=e_v-Mu$ satisfies
+\begin{equation}
+ r\geq0,\qquad \sum_i r_i
+   =1-\bar\alpha\sum_i d_i u_i\leq1.
+ \label{eq:op3-inactive-residual-mass}
+\end{equation}
+Consequently, if $L$ inactive nonseed vertices each have original residual
+strictly larger than $\lambda D$, then $L\lambda D<1$.
+\end{lemma}
+\begin{proof}
+At a positive coordinate, obstacle equality gives $r_i=\lambda d_i>0$.
+At a zero coordinate, including one outside the restricted set,
+$r_i=\mathbf1_{i=v}+\gamma\sum_{j\sim i}u_j\geq0$.
+Sum and use $\one^\top M=\bar\alpha d^\top$. Nonnegativity of the
+remaining residuals proves the last assertion. This uses the original
+ambient identity for analysis; computing its full sum is not an algorithmic
+operation being supplied for free.
+\end{proof}
+
+Consider the following fixed finite graph. Its core is the complete join
+of a universal vertex $w$ with the disjoint union of two stars $A,B$.
+The centers are $a,b$. Star $A$ has $k$ old leaves with distinct private-leaf
+counts $1,\ldots,k$, and $T$ further leaves, called twins, with no private
+leaves. Each twin has exactly the two original neighbors $w,a$, hence
+original degree two. The old leaves of $B$ may also have private leaves.
+The physical seed is $w$ or $a$. The current core grows by strictly positive
+original gates. For every reached core vertex its private leaves are
+handled by their exact obstacle kernel, whether zero or positive.
+
+Let $s$ be the number of reached old leaves in $A$ just before a twin
+admission, and let $L$ count all still-unadmitted twins, including that one.
+The response of the current $A$ uses original degrees throughout.
+
+\begin{lemma}[Genuine events under a legal twin admission; \statusproved]
+\label{lem:op3-twin-event-budget}
+Immediately after admitting this twin, the $A$ response has at most
+$2s+2$ genuine breakpoints. If $s>0$, it has fewer than $2/(\lambda L)$
+breakpoints. This counts actual events, including coincidences, rather
+than treating every admitted identical twin as a new event.
+\end{lemma}
+\begin{proof}
+Each old leaf and its private-leaf group contribute at most two events.
+All reached twins have the same singleton kernel
+$(h-2\lambda)_+/2$ and are mutually nonadjacent, so their aggregate
+contributes a single event, independently of their multiplicity. The
+center, if present, contributes one event. Sum and the order-preserving
+join transforms create no additional events, proving $2s+2$.
+This also holds when the center has not yet entered and $A$ is a union.
+
+If $s>0$, let $q_*$ be the largest private-leaf count among those $s$
+old leaves. Distinct positive integer counts imply $q_*\geq s$.
+Their positivity implies
+\[
+ \gamma(u_w+u_a)>\lambda(2+q_*).
+\]
+Indeed, the eliminated private-leaf kernel has strictly positive slope
+after its birth, whose input is exactly $\lambda(2+q_*)$; no old leaf
+is the physical seed. Each unadmitted twin has original residual
+$\gamma(u_w+u_a)$. Thus \cref{lem:op3-inactive-residual-mass} gives
+$L\lambda(2+q_*)<1$. It follows that
+$2s+2<2/(\lambda L)$. The newly admitted twin changes no old leaf count
+in this step, so the same event bound applies to the new response.
+\end{proof}
+
+\begin{proposition}[Harmonic cumulative union-stream charge; \statusproved]
+\label{prop:op3-harmonic-union-stream}
+At every twin admission for which both sides are present, suppose the
+old and new $A$ responses and the unchanged $B$ response are available.
+Update their union by the least expensive of these three known operations:
+remove old $A$ from the old sum and add new $A$; add $B$ to new $A$; or
+add new $A$ to $B$. If $J$ such updates occur, the total number of streamed
+genuine breakpoints is at most
+\begin{equation}
+ 2J+\frac{2}{\lambda}H_J,
+ \qquad H_J=\sum_{j=1}^J\frac1j,
+ \label{eq:op3-harmonic-union-stream}
+\end{equation}
+with $H_0=0$. In particular, this part of the update work and all its
+persistent allocations are
+$O(\lambda^{-1}\log(2+\lambda^{-1})\log(2+N))$ exact-real words.
+This prices the union operation, not construction of its supplied inputs,
+module recognition, reporters or all operations of an outer local solver.
+\end{proposition}
+\begin{proof}
+By \cref{lem:op3-module-summand-removal}, the three stream lengths are
+$k_{A,\mathrm{old}}+k_{A,\mathrm{new}}$, $k_B$ and
+$k_{A,\mathrm{new}}$, respectively. Their minimum is at most
+$k_{A,\mathrm{new}}$. The preceding lemma bounds it by
+$2+2/(\lambda L)$ in all cases, including $s=0$.
+The successive values of $L$ at these updates are distinct positive
+integers: every twin is admitted once and the graph is fixed. For any
+$J$ such integers their reciprocal sum is at most $H_J$, giving
+\cref{eq:op3-harmonic-union-stream}. It is unnecessary to replace this
+by a logarithm of the unknown ambient twin count $T$.
+
+Each measured twin remains positive and has original degree two, so the
+usual original support-volume bound gives $2\lambda J<1$. Therefore
+$J=O(1/\lambda)$ and $H_J=O(\log(2+1/\lambda))$.
+Each streamed hinge costs $O(\log(2+N))$ operations and copied nodes;
+fixed overhead contributes $O(J\log(2+N))$. This proves the displayed
+word bound without asserting that any unavailable input curve is free.
+\end{proof}
+
+\paragraph{Exact audit and consequence.}
+\texttt{module\_admission\_cost.py} keeps all future degrees fixed, admits
+only strictly positive original gates, checks every original core and
+private-leaf equation, and verifies the full residual-mass identity at
+each step. It executes all three union-update routes and checks complete
+affine identities with no redundant knots. Original-degree event bounds,
+the twin residual budget and \cref{eq:op3-harmonic-union-stream} are checked
+separately. Full response construction and candidate scans belong to the
+reference ledger and are not charged as an implemented local solver.
+The exact record is \texttt{MODULE\_ADMISSION\_COST\_AUDIT.json}.
+
+This family therefore does not establish a superlinear cumulative
+union-rebuild obstruction at the OP3 scale. A single expensive update or
+an arbitrary-field curve with many events is insufficient evidence.
+The useful general question is whether numerical response complexity can
+be associated with original residual mass on the still-unadmitted
+boundary. The special twin identity and distinct pendant-count argument
+above do not provide that association for arbitrary modules or graphs.

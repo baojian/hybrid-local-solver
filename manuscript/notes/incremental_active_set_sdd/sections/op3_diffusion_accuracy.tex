@@ -1,0 +1,150 @@
+\section[Diffusion accuracy and ACL]{A feasible diffusion objective guarantee implies ACL accuracy}
+\label{sec:op3-diffusion-accuracy}
+
+\paragraph{Status and interface.}
+The following \statusproved{} drafts concern finite simple connected
+unweighted graphs, the physical point seed, original degrees, and exact-real
+arithmetic. They convert a feasible objective approximation to an original
+ACL certificate. They neither construct the candidate locally nor bound its
+production work. General OP3 remains \statusopen.
+
+Write $\gamma=(1-\alpha)/(1+\alpha)$, $\bar\alpha=1-\gamma$,
+$M=D-\gamma A$, $\lambda=\epsappr/2$, and $b=e_v-\lambda d$.
+Let $u$ minimize
+\[
+ E(x)=\tfrac12x^\top Mx-b^\top x,\qquad x\geq0,
+ \qquad E_*:=E(u).
+\]
+The original residual is $r=e_v-Mu$. If $\epsappr d_v\geq1$, the zero
+output already has an original ACL residual certificate. Thus the
+nontrivial case below assumes $\epsappr d_v<1$.
+
+\begin{lemma}[Known objective scale and coordinate error; \statusproved]
+\label{lem:op3-diffusion-energy-scale}
+In the nontrivial case,
+\begin{equation}
+ -\frac1{2\bar\alpha}\leq E_*< -\frac{\epsappr}{8}.
+ \label{eq:op3-diffusion-energy-scale}
+\end{equation}
+For every feasible $w\geq0$,
+\begin{equation}
+ E(w)-E_*\geq\tfrac12(w-u)^\top M(w-u)
+ \geq\frac{\bar\alpha}{2}\sum_i d_i(w_i-u_i)^2.
+ \label{eq:op3-diffusion-energy-error}
+\end{equation}
+\end{lemma}
+\begin{proof}
+Complementarity gives $u^\top Mu=b^\top u$ and
+$E_*=-b^\top u/2$. The original residual is nonnegative, so
+$\bar\alpha\sum_i d_i u_i\leq1$ by
+\cref{lem:op3-inactive-residual-mass}. Since $d_v\geq1$,
+$b^\top u=u_v-\lambda\sum_i d_i u_i\leq u_v\leq1/\bar\alpha$.
+For the other bound, the feasible singleton
+$x=(b_v/d_v)e_v$ has energy $-b_v^2/(2d_v)$.
+Here $b_v=1-\epsappr d_v/2>1/2$ and $1/d_v>\epsappr$.
+Optimality proves \cref{eq:op3-diffusion-energy-scale}.
+
+Expand $E(w)-E(u)$ about $u$. The linear term is
+$(Mu-b)^\top(w-u)\geq0$ by feasibility and complementarity.
+Finally $M=\gamma L+\bar\alpha D\succeq\bar\alpha D$.
+\end{proof}
+
+\begin{theorem}[Multiplicative energy to original ACL; \statusproved]
+\label{thm:op3-diffusion-accuracy-bridge}
+Set $\delta=\epsappr/8$ and $\eta=\bar\alpha^2\delta^2$.
+Suppose a candidate $w\geq0$ satisfies the negative-energy convention
+\begin{equation}
+ E(w)\leq\frac{E_*}{1+\eta}.
+ \label{eq:op3-diffusion-relative-interface}
+\end{equation}
+Define $\widehat u_i=\max\{0,w_i-\delta\}$.
+Then $\widehat u$ has support contained in the exact obstacle support and
+\begin{equation}
+ 0\leq e_v-M\widehat u\leq\epsappr d.
+ \label{eq:op3-diffusion-original-certificate}
+\end{equation}
+Consequently $\bar\alpha D\widehat u$ is an ACL approximation in the
+project's original namespace. The requested relative accuracy has only
+logarithmic parameter size:
+$\log(1/\eta)=O(1+\log(1/\alpha)+\log(1/\epsappr))$.
+This is an accuracy implication, not a local complexity theorem.
+\end{theorem}
+\begin{proof}
+By the assumption and \cref{lem:op3-diffusion-energy-scale},
+\[
+ E(w)-E_*\leq\frac{\eta}{1+\eta}|E_*|
+ \leq\frac{\eta}{2\bar\alpha}
+ =\frac{\bar\alpha\delta^2}{2}.
+\]
+Equation~\eqref{eq:op3-diffusion-energy-error} and $d_i\geq1$ imply
+$|w_i-u_i|\leq\delta$ for every $i$. Downward clipping therefore gives
+$0\leq u_i-\widehat u_i\leq2\delta$ and $\widehat u_i=0$ wherever
+$u_i=0$. Put $e=u-\widehat u$ and $\widehat r=e_v-M\widehat u=r+Me$.
+At a positive exact coordinate, $r_i=\lambda d_i$ and
+\[
+ (\lambda-2\gamma\delta)d_i\leq\widehat r_i
+ \leq(\lambda+2\delta)d_i.
+\]
+These bounds lie in $[0,\epsappr d_i]$. At an exact zero coordinate,
+$\widehat u_i=e_i=0$ and
+$\widehat r_i=\mathbf1_{i=v}+\gamma\sum_{j\sim i}\widehat u_j\geq0$;
+also $\widehat r_i=r_i-\gamma\sum_{j\sim i}e_j\leq r_i\leq\lambda d_i$.
+This proves \cref{eq:op3-diffusion-original-certificate}. The logarithmic
+statement follows from $\alpha\leq\bar\alpha\leq2\alpha$.
+\end{proof}
+
+\paragraph{What the conversion does and does not resolve.}
+The negative-energy convention matches Definitions 3.7--3.8 of
+Chen--Peng--Wang \citep{chen2021diffusion}. The source's Assumption 3.15
+(PDF p.\ 17) controls all encountered nonzero numbers; Claim 8.21's proof
+(p.\ 52) uses it in selecting a proximal tolerance. The known initial
+energy scale above does not establish that assumption for intermediate
+eliminations or residual problems. Nor does an approximate candidate's
+small support certify that its computation read only a local graph.
+This theorem imports no source algorithm. Its audit obtains candidates
+from an exact reference solution and halving, which are validation costs.
+
+\subsection{A separate curvature diagnostic for local flow claims}
+\label{sec:op3-diffusion-path-curvature}
+
+\begin{proposition}[Unit edges do not give unit support curvature;
+ \statusproved]
+\label{prop:op3-flow-path-curvature}
+For each integer $m\geq3$, a unit-weight path with $m+2$ vertices and
+unit sink capacities has a diffusion optimum with exactly $m$ positive
+coordinates and strictly inactive next coordinate. Nevertheless the
+smallest Dirichlet curvature on that positive support is at most
+$6/((m+1)(2m+1))$. The same quantity times two is still less than the
+minimum edge weight. Thus a minimum-edge-weight lower bound for this
+curvature is \statusrefuted, under either the $L$ or $2L$ Hessian convention.
+\end{proposition}
+\begin{proof}
+Number the path $0,\ldots,m+1$, take source
+$\Delta=(m+1/2)e_0$, and minimize
+$\tfrac12x^\top Lx+(\one-\Delta)^\top x$ over $x\geq0$.
+The vector $x_i=(m-i)^2/2$ for $i<m$ and zero otherwise has zero
+gradient on its positive coordinates, gradient $1/2$ at $m$, and gradient
+$1$ at $m+1$. It is an optimum by convex KKT conditions.
+On $S=\{0,\ldots,m-1\}$, put $z_i=m-i$.
+The principal matrix $K=L_{SS}$ has diagonal $(1,2,\ldots,2)$ and
+adjacent entries $-1$. Thus $z^\top Kz=m$, whereas
+$z^\top z=m(m+1)(2m+1)/6$. The Rayleigh principle proves the bound,
+and $12/((m+1)(2m+1))<1$ for $m\geq3$.
+\end{proof}
+
+This checks one proposed parameter interpretation, not an algorithmic
+lower bound for OP3 or a refutation of an unspecified source parameter.
+The original Fountoulakis--Wang--Yang running-time theorem retains a
+Dirichlet-curvature factor \citep{fountoulakis2020pnorm}.
+The weighted-flow statement's parameter meaning requires reconciliation
+before importing it as an OP3 certificate \citep{yang2023weighted}.
+
+\paragraph{Exact audit.}
+\texttt{diffusion\_accuracy\_bridge.py} checks all connected graph-atlas
+graphs of orders two through five, every physical seed, three teleportation
+parameters and three ACL tolerances. Its 1,233 original graph cases give
+11,574 feasible-candidate original-residual certificates, including 3,291
+clipped false-positive coordinates. Seven path instances check the full
+KKT conditions and exact Rayleigh quotients. The record
+\texttt{DIFFUSION\_ACCURACY\_BRIDGE\_AUDIT.json} distinguishes reference
+work from any proposed local implementation.

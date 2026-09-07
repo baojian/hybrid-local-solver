@@ -46,6 +46,19 @@ clustering and local PageRank computation.
 These papers develop local iterative solvers or related graph-diffusion
 methods whose work is intended to depend on local structure.
 
+- [*p-Norm Flow Diffusion for Local Graph Clustering*](https://proceedings.mlr.press/v119/fountoulakis20a.html)
+  (Fountoulakis, Wang and Yang, ICML 2020, PMLR 119:3222–3232) —
+  support-local coordinate descent with explicit curvature and degree factors;
+  the OP3 parameter check is in `lcp-solvers.md`.
+- [*Weighted Flow Diffusion for Local Graph Clustering with Node Attributes: an Algorithm and Statistical Guarantees*](https://proceedings.mlr.press/v202/yang23d.html)
+  (Yang and Fountoulakis, ICML 2023, PMLR 202:39252–39276) —
+  weighted local push; the stated runtime parameter needs reconciliation
+  before an OP3 import.
+- [*Local Graph Clustering with Noisy Labels*](https://proceedings.iclr.cc/paper_files/paper/2024/file/a4d991d581accd2955a1e1928f4e6965-Paper-Conference.pdf)
+  (Back de Luca, Fountoulakis and Yang, ICLR 2024) — application context;
+  its introductory linear-support runtime summary is checked against the
+  original theorem in `lcp-solvers.md`.
+
 - [*Maintaining Information in Fully-Dynamic Trees with Top Trees*](https://arxiv.org/pdf/cs/0310065v2)
   (Alstrup, Holm, de Lichtenberg and Thorup, *ACM Transactions on
   Algorithms* 1(2):243–264, 2005) — logarithmically many cluster changes

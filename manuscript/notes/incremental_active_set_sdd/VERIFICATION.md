@@ -1005,3 +1005,56 @@ and visually checked. PDF and auxiliaries remain ignored build products.
 `OVERNIGHT_20260907_BLOCK3_AUDIT.json` records details. Resume
 `MODULE_ADMISSION_COST_PROBE.md`; the updated heartbeat remains ACTIVE
 until 480 new active minutes, excluding all first-night and idle time.
+
+
+## Second night, block 4: causal update budget and generic accuracy bridge
+
+The requested additional 480 active minutes are still in progress; consult
+`OVERNIGHT_20260907_WORK_LOG.json`. This checkpoint does not claim eight
+hours completed. General OP3 remains Open and the new proofs await
+independent review.
+
+The two-star legal-admission audit passed 96 trajectories, 864,088 original
+core/group KKT checks, 6,808 original residual-mass identities, 6,712 strict
+admissions, 2,047 twin residual budgets, 216,453 complete affine-piece
+identities and all 96 cumulative harmonic stream bounds. It executes three
+valid persistent union routes and counts allocations. Full response builds
+and candidate scans are reference work. Runtime: 829.842 seconds.
+The proof bounds only union operations with supplied inputs.
+
+The generic diffusion accuracy audit passed all 30 connected graph-atlas
+graphs of orders two through five, every physical seed, three alpha values
+and three tolerances: 1,233 original graph cases and 11,574 candidate ACL
+certificates. It checks the known initial energy interval, strong-convexity
+error bound and original residual after clipping, including 3,291 clipped
+false positives. Candidate generation uses the exact reference optimum.
+Seven exact path instances verify the support KKT conditions and Rayleigh
+curvature diagnostic. Runtime: 45.446 seconds. This is an accuracy
+conversion, not a local algorithm or a general complexity lower bound.
+
+Source pages were checked in the primary PDFs: Fountoulakis–Wang–Yang
+2020 equation (10)/Theorem 6, pages 7–8 visually; Yang–Fountoulakis 2023
+Algorithm 1 and Propositions 2.1–2.2, pages 3–4, with page 4 visually;
+Back de Luca–Fountoulakis–Yang 2024 equation (2) discussion/page 4 visually
+and Remark 3.3/page 6. Chen–Peng–Wang's residual construction and
+intermediate tolerance assumption were rechecked at pages 16–17 and 52.
+The synchronized literature notes preserve the exact parameter caveats.
+No new fast source solver is imported by these proofs.
+
+Ownership passes. All 41 direction scripts pass focused Ruff lint and
+format checks; registry tests give 3 passed. Whole-project tests give
+231 passed and the same three notation/inventory failures; temporary
+cleanup warnings also remain. Lint retains the same two unrelated
+findings. Note inventory retains the same two oversized AESP source files.
+All five baseline hashes match. `make reproduce` stops at its failed test
+prerequisite; later stages were not run or claimed. The standalone note
+builds to 93 pages without final warnings, overfull boxes or undefined
+references; pages 3 and 87–93 were visually reviewed. Audit code and
+backend hashes match both saved exact records. Build PDF and auxiliaries
+remain ignored, while proof sources and audit records are tracked.
+
+`OVERNIGHT_20260907_BLOCK4_AUDIT.json` records these checks. Resume
+`DIFFUSION_SOURCE_CERTIFICATE_PROBE.md` for the generic source/local-work
+obligations. Keep unreviewed claims out of the active manuscript and shared
+results ledger. The same-task heartbeat stays active, and existing
+commit/push authorization remains in force.

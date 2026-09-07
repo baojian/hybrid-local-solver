@@ -113,6 +113,51 @@ criteria are in
 
 ### Second-night check: curve primitives and dynamic flow
 
+The further OP3 accuracy check is in
+[`DIFFUSION_SOURCE_CERTIFICATE_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/DIFFUSION_SOURCE_CERTIFICATE_PROBE.md).
+Chen--Peng--Wang's residual instance has full supplied-graph construction
+cost (Definition 3.13 and Fact 3.14, PDF p. 16). Claim 8.21's proof
+(p. 52) uses Assumption 3.15 when choosing a proximal tolerance. The new
+note-local energy-to-ACL lemma supplies a known initial energy scale and
+requested tolerance; it does not establish the source's intermediate
+numerical-range assumption or a local construction.
+
+### Local flow runtime parameters checked against primary formulas
+
+**Source.** Fountoulakis, Wang and Yang,
+[*p-Norm Flow Diffusion for Local Graph Clustering*](https://proceedings.mlr.press/v119/fountoulakis20a/fountoulakis20a.pdf),
+ICML 2020, PMLR 119:3222–3232. Equation (10), PDF p. 7, retains a
+weighted Dirichlet eigenvalue and bounds the strong-convexity parameter
+below by `1/((p-1)*|Delta|^p)`. Theorem 6, PDF p. 8, gives at `p=q=2`
+work `O(|Delta|*d_max^2/gamma_source*log(1/epsilon))`.
+Here `gamma_source` is curvature, not this project's PageRank coupling.
+Both pages were checked visually. **Audit:** locality is useful, but this
+quantified theorem retains conditioning and degree factors.
+
+**Source.** Yang and Fountoulakis,
+[*Weighted Flow Diffusion for Local Graph Clustering with Node Attributes: an Algorithm and Statistical Guarantees*](https://proceedings.mlr.press/v202/yang23d/yang23d.pdf),
+ICML 2023, PMLR 202:39252–39276. Algorithm 1 is on PDF p. 3.
+Propositions 2.1–2.2 and the following paragraph, p. 4, give support
+containment and work
+`O(d_max*||Delta||_1*alpha_source/beta_source*log(1/epsilon))`.
+The displayed statement identifies `alpha_source` with maximum weighted
+degree and prints `beta_source >= min edge weight`; these symbols do not
+denote the project's teleportation parameters. **Audit:** the exact path
+diagnostic in `prop:op3-flow-path-curvature` rules out interpreting that
+lower bound as a general Dirichlet-curvature bound. It does not refute an
+unspecified parameter or establish an algorithmic lower bound. This
+meaning must be reconciled before importing the runtime as an OP3 result.
+
+**Source / context.** Back de Luca, Fountoulakis and Yang,
+[*Local Graph Clustering with Noisy Labels*](https://proceedings.iclr.cc/paper_files/paper/2024/file/a4d991d581accd2955a1e1928f4e6965-Paper-Conference.pdf),
+ICLR 2024. The paragraph after equation (2), PDF p. 4, describes linear
+support-size work and cites the 2020 paper; the formula was checked in
+the rendered page. Remark 3.3, p. 6, discusses support-neighborhood
+locality. **Audit:** this introductory summary does not replace the
+quantified original theorem or provide a uniform original-ACL certificate.
+
+### Persistent curve and dynamic flow context
+
 **Source / context, not a new solver import.** Chen--Peng--Wang,
 [Section 7.2, Lemma 7.8 and Claim 7.9, PDF pp. 39--40](https://arxiv.org/pdf/2105.14629v2),
 uses augmented search trees for predecessor, insertion, range updates and

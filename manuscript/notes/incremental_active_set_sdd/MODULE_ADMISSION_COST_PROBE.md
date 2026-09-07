@@ -86,6 +86,21 @@ associated with remaining candidates whose residual is at least
 Omega(lambda*k), the displayed mass budget suggests a phase charge;
 proving that association and handling changes between phases are open.
 
+## Block 4 outcome: the causal budget controls this union charge
+
+The bounded probe is complete. `lem:op3-twin-event-budget` and
+`prop:op3-harmonic-union-stream` prove the proposed association for this
+family, as drafts awaiting independent review. The cheapest valid union
+route over J twin admissions streams at most `2*J+2*H_J/lambda` genuine
+events. The full exact audit passes 96 legal trajectories and 2,047 twin
+budget checks; all full-response construction and candidate scans are
+reference work. This is a bound for the union operation with supplied
+inputs, not an end-to-end local module solver.
+
+The next checkpoint is `DIFFUSION_SOURCE_CERTIFICATE_PROBE.md`. Do not
+repeat this completed family audit or treat its expensive individual updates
+as a cumulative OP3 obstruction.
+
 ## Return to the arbitrary-graph question
 
 After this bounded admission-cost test, revisit the generic sparse coarse

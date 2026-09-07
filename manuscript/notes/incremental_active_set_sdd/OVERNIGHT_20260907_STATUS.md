@@ -8,26 +8,28 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 3 and next work
+## Completed block 4 and next work
 
-The local multipartite solver, supplied persistent recursive responses,
-fixed-response strict coordinate reporter and known convex summand removal
-are implemented and proved as drafts. The newest README/STATUS checkpoint,
-`OVERNIGHT_20260907_BLOCK3_AUDIT.json` and its exact audit files give the
-scope and work counts. None supplies an arbitrary-graph OP3 theorem.
+The supplied-module interfaces and bounded two-star admission probe are
+complete as proof drafts. The new general-graph accuracy bridge converts
+feasible relative objective accuracy to a downward-clipped original ACL
+certificate with an explicit tolerance. See the newest README/STATUS
+checkpoint and `OVERNIGHT_20260907_BLOCK4_AUDIT.json` for exact scope.
+None supplies an arbitrary-graph OP3 runtime theorem.
 
-Resume `MODULE_ADMISSION_COST_PROBE.md`. Test the real curve work caused
-by a low-degree positive admission inside a large union, allowing the
-cheapest valid merge/removal route and counting genuine events. Enforce
-original full degrees and legal prior admissions. Its candidate residual
-mass bound may prevent naive cumulative counterexamples; verify that
-association before claiming an amortized theorem. Source-backed graph
-recognition is separate from changed numerical responses.
+Resume `DIFFUSION_SOURCE_CERTIFICATE_PROBE.md`. Prioritize the source's
+intermediate numerical-range/tolerance obligations, a computable accuracy
+certificate, and a local construction whose total supplied-graph work is
+charged. The known original energy floor does not control every recursive
+residual quantity. Small final support does not bound rows accessed before
+clipping. Keep both limitations explicit.
 
-After this bounded test, return to generic sparse coarse certification and
-constrained diffusion. Do not spend the remaining campaign only expanding
-special graph classes. Keep all original-coordinate and local-work
-obligations explicit, and retain general OP3 Open.
+Use the completed exact audits rather than rerunning them. The two-star
+family satisfies the causal harmonic union-stream budget and does not
+establish the proposed naive cumulative obstruction. Further special graph
+classes are not the main next block. Generic sparse coarse certification
+remains a parallel mathematical alternative with its rank factor open;
+this describes directions, not authorization for additional agents.
 
 The campaign stays ACTIVE until 480 new active minutes are verified. Start
 and close actual intervals in the separate ledger; exclude heartbeat idle

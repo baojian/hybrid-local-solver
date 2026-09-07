@@ -1,6 +1,55 @@
 # Direction status: incremental_active_set_sdd
 
-## Second night, block 3: strict reporting and known-child removal
+## Second night, block 4: residual-paid updates and diffusion accuracy
+
+**General OP3 remains Open.** The new generic result is an accuracy
+conversion, not a local solver. `lem:op3-diffusion-energy-scale` gives a
+known negative objective scale for the nontrivial ACL case.
+`thm:op3-diffusion-accuracy-bridge` proves that a feasible relative-energy
+approximation with `eta=bar_alpha^2*(eps_appr/8)^2`, followed by downward
+clipping, satisfies every original ACL residual inequality and retains
+only true obstacle-support coordinates. These are **Proved here** drafts
+awaiting independent review. Producing and certifying that candidate with
+local total work remains open.
+
+The bounded two-star admission probe has a useful positive conclusion:
+`prop:op3-harmonic-union-stream` charges genuine changed-response events
+against the original residual mass of remaining twins. J supplied union
+updates stream at most `2*J+2*H_J/lambda` events. This prices the union
+operation with available input curves; it does not price their construction
+or give a complete local module solver. A naive cumulative obstruction
+from this family therefore fails for the measured mechanism.
+
+**Measured:** the union audit passes 96 legal original-degree trajectories,
+6,712 positive core admissions, 2,047 twin residual budgets and 216,453
+complete affine-piece identities. The accuracy audit passes 1,233 original
+graph cases and 11,574 candidate-to-ACL certificates, with 3,291 clipped
+false-positive coordinates. Full curve builds and candidate generation
+are separately identified reference work. Saved records are
+`MODULE_ADMISSION_COST_AUDIT.json` and `DIFFUSION_ACCURACY_BRIDGE_AUDIT.json`.
+
+**Source / context:** the original p-norm flow theorem retains degree and
+Dirichlet-curvature factors. A unit-weight path exactly refutes a proposed
+minimum-edge-weight curvature bound, under both L and 2L conventions;
+it does not refute an unspecified source parameter or prove an OP3 lower
+bound. Chen–Peng–Wang still requires local-construction and intermediate
+numerical-range arguments. Primary page pointers and metadata are
+synchronized in `docs/literature/`; no new fast solver is imported.
+
+**Next falsifiable targets:** `DIFFUSION_SOURCE_CERTIFICATE_PROBE.md`:
+trace intermediate tolerance requirements, seek a computable certificate,
+and charge local construction and cumulative supplied-face work. Use the
+completed audits rather than repeating them. Further special graph classes
+are not the main next block.
+
+Current checks: `OVERNIGHT_20260907_BLOCK4_AUDIT.json` and `VERIFICATION.md`.
+The 93-page note builds without final warnings; pages 3 and 87–93 were
+visually checked. All 41 direction scripts pass focused lint/format and
+three registry tests pass. Required whole-project checks retain the same
+unrelated baseline failures, whose five files have unchanged hashes.
+The new eight-hour campaign remains ACTIVE in its actual-time ledger.
+
+## Historical second-night block 3: strict reporting and known-child removal
 
 **General OP3 remains Open.** Two missing algebraic interfaces are now
 implemented and **Proved here**, as drafts awaiting independent review.
