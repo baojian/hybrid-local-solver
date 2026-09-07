@@ -719,3 +719,57 @@ algebraically derived implicit star-with-shared-hubs family with r=0,
 q=binom(k,2), V=(k+1)^2 and binom(k+1,3) direct exceptional checks; the new
 publication state machine and this family's execution remain to be audited.
 Usage remains 8% used / 92% remaining; no additional reset was attempted.
+
+## Overnight block 13: geometric producer and sparse Schur potential
+
+**Proved here, awaiting independent review:** `thm:op3-coarse-publication-acl`
+composes the component reporters with geometric lower-value publications.
+It removes the revealed-rank term and gives ACL-only
+O_tilde((1+r^2)/eps_appr) work. It may stop before the exact obstacle optimum.
+The theorem includes cached redelivery, appendable parent buffers, failed
+searches, current inverse updates and source callbacks. Whole historical
+port-value snapshots are released; retained immutable application records
+are charged. General OP3 remains Open. Online balancing is still imported.
+
+- `coarse_publication_solver.py --max-n 7 --structured --shared-star-max 32`:
+  **passed**, 1602.172 seconds including independent validation. There are
+  54,240 atlas cases, twenty larger explicit cases, five implicit private-star
+  cases and twenty-four implicit shared-pair-star cases. The audit checks
+  217,135 admission faces and inverse certificates, 3,221,573 due signs,
+  1,379,835 original boundary inequalities and 500,887 publication-only
+  inverse invariance checks. There are 542 early terminal points; all pass ACL.
+- The largest implicit graph has 4,240,252,449 vertices, actual rank r=0,
+  revealed rank q=496, thirty-three active rows and 1,056 scanned entries.
+  It makes 33 publications/1,056 cached deliveries and no exceptional gate
+  scans, versus 5,456 previous direct exceptional checks. No hub row is read.
+- Publication source SHA-256: `5208903188954e9ab78f488da7478459a8e9cc4e901701b46253c3a05e53eb26`.
+- The three-call metadata-hook refactor of the previous inverse backend was
+  independently rerun with max-n7 and structured cases: **passed**, 454.989
+  seconds. All previous audit, state-machine, original-access, structured and
+  triangle result ledgers are exactly identical. The historical block-12
+  JSON and hash are preserved; the new audit/source hash is
+  `2cbe3e0968da33960da889b9d2595053e1c214dbff9a2085c26fb62e15b4caea`.
+- `coarse_schur_downdates.py --max-n 6`: **passed**, 94.979 seconds.
+  It checks 6,472 source-driven exact-gate/publication traces, 58,359 independent
+  original Schur systems and determinants, 11,668 sparse matrix/load/determinant
+  formulas, 25,254 global product budgets and 2,308 temporary-port drops.
+  The potential is a proved draft and does not itself give fast solve work.
+  Source SHA-256: `c5f4bc104586a92e789be57d8b5a5eecb099cec7aa203c43ba5ca73a37548d73`.
+- All three current source hashes and their dependency hashes match. Five
+  baseline failure-file hashes remain unchanged. Focused lint/format:
+  **28 scripts passed**; registry: **3 passed**; ownership/whitespace: **passed**.
+- Required `make reproduce` was attempted: its test prerequisite gives
+  **231 passed and the same three pre-existing failures**, stopping later
+  stages. Broad lint retains two pre-existing findings; note inventory retains
+  two unrelated oversized files. No unrelated failure file was changed.
+- Note: **66 pages**, final log free of warnings, overfull boxes and unresolved
+  references. Cover/contents and new proof/closing pages rendered and inspected.
+  PDF SHA-256: `04b997b1c184b04b92897ea72f678285bef4d5f8f060dfdd72303b2ad2c6f4ac`.
+
+The next Conditional/Open composition is `CERTIFIED_COARSE_SDD_PROBE.md`:
+certify approximate sparse-coarse responses with exact residual bounds,
+propagate bands through tree pieces, publish safe lower values and repair
+once downward. Its possible expected linear-rank bound has not yet been
+implemented or promoted to a theorem. The sparse determinant budget is an
+alternative amortization tool, not a substitute for this remaining audit.
+No additional usage reset was attempted.

@@ -1,0 +1,276 @@
+\section[Coarse publication producer]{A coarse response producer without repeated shared-candidate scans}
+\label{sec:op3-coarse-publications}
+
+\paragraph{Status and accuracy.}
+This section composes the geometric recipient of
+\cref{thm:op3-geometric-recipient} with the maintained coarse response.
+The construction and its cost are \statusproved{} as a draft awaiting
+independent review. Its state machine is implemented and exactly audited;
+fast online hierarchy balancing remains the explicit \statussource{}
+import. This construction returns an original ACL approximation and may
+stop before the exact $\lambda$-obstacle optimum. Consequently the exact
+RPPR conclusion of \cref{thm:op3-maintained-coarse-inverse} does not carry
+over to this different stopping rule. Graph-uniform OP3 remains
+\statusopen{}.
+
+\paragraph{Publication rows and local recipient.}
+Fix $0<\alpha<1$ and $0<\epsappr<1$. Use
+\[
+ \lambda=\frac{\epsappr}{2},\quad
+ h=\frac{\epsappr}{16\gamma},\quad
+ \eta=\frac54,\quad
+ \vartheta=\frac{11\epsappr}{20},\quad C=\frac1{\bar\alpha}.
+\]
+Here $\eta$ is the publication ratio; $q$ continues to denote revealed
+cycle rank. Maintain the exact physical active-face response implicitly
+and a lower publication $\ell_i$, initially zero, for every admitted vertex.
+Place the single row
+\begin{equation}
+ u_i-(\eta\ell_i+h)
+   =w_i-(\eta\ell_i+h-C)
+ \label{eq:op3-producer-home-row}
+\end{equation}
+on $i$'s permanent insertion home edge. The singleton seed row is queried
+directly before its first edge exists. These rows replace the ordinary
+boundary-heap minima; they refer to active vertices, not candidates.
+
+Query every current piece's one/two-port reporter. If a returned sign is
+positive, find that active coordinate by its named point query and set
+$\ell_i=u_i$. Update its one home-edge payload. Along the cached original
+row of $i$, deliver $\gamma(\ell_i^{\rm new}-\ell_i^{\rm old})$ to every
+still-inactive neighbor's signal
+$L_j=\gamma\sum_{i\in U\cap N(j)}\ell_i$. Every incidence read is paid,
+including those whose recipient is already active and is skipped. A
+candidate is queued once when $L_j>\vartheta d_j$. Exhaust due publications
+before popping the next queued admission. If the producer is quiet and
+the queue is empty, recover the current physical face once and return
+$\bar\alpha\boldsymbol D\boldsymbol u$.
+
+\begin{lemma}[Complete due-row reporting and safe admission; \statusproved]
+\label{lem:op3-coarse-publication-producer}
+The piece reporters locate a due publication whenever any active vertex
+satisfies $u_i>\eta\ell_i+h$. If they are all nonpositive, they certify
+\[
+ \ell_i\leq u_i\leq\eta\ell_i+h\qquad(i\in U).
+\]
+Every publication meets \cref{def:op3-publications}. Every queued admission
+has a strictly positive original $\lambda$-obstacle gate, so the maintained
+inverse updates remain valid. At termination,
+\begin{equation}
+ r_i=\lambda d_i\quad(i\in U),\qquad
+ 0\leq r_j\leq\frac34\epsappr d_j\quad(j\notin U).
+ \label{eq:op3-produced-acl-certificate}
+\end{equation}
+\end{lemma}
+\begin{proof}
+The permanent homes put one row for each active vertex in exactly one
+piece. A piece's conditional affine response is exact at the maintained
+full-active port values. Its normalized hull query preserves the sign of
+each row, by the reporter contract in
+\cref{sec:op3-ordered-path-clusters,sec:op3-shifted-tree-clusters}.
+Arbitrary signs of the scalar threshold $\eta\ell_i+h-C$ are allowed.
+Thus complete piece queries find a positive row or certify all of them
+nonpositive. The numerical value of a normalized reporter score is not
+used as the physical coordinate; a separate named query supplies $u_i$.
+
+The first exact publication exceeds $h$, and a later one exceeds
+$\eta\ell_i^{\rm old}$. These satisfy the original $h/2$ starting value
+and $11/10$ growth requirements. Active-face responses increase under
+admissions and stay fixed under publication-only events, so every retained
+publication remains a lower bound. Changing a reporter payload changes
+neither the active matrix nor its port inverse or physical means.
+
+On first discovery of a candidate, its lower signal is initialized to
+zero. This loses no previous publication: an edge to any previously active
+vertex would already have revealed the candidate when that row was first
+scanned. The new active vertex starts with zero publication. Hence cached
+incremental delivery maintains the stated exact sum. Candidate signals
+are monotone until admission; queueing once and removing the record at
+admission suffices. Since $\vartheta>\lambda$ and $L_j\leq r_j$, a queued
+candidate has the strictly positive original gate required by both inverse
+update lemmas. Every reached face remains positive, monotone and contained
+in the unique $\lambda$-obstacle support.
+
+At quietness the band implies
+$r_j\leq\eta L_j+\gamma h d_j$. An empty ready queue gives
+$L_j\leq\vartheta d_j$, and
+$\eta\vartheta+\gamma h=3\epsappr/4$.
+The active equations give $r_i=\lambda d_i$. This proves the claimed
+original residual and is precisely the geometric recipient certificate.
+\end{proof}
+
+\paragraph{Metadata and version discipline.}
+Retain every original adjacency list after its single scan. Store active
+parent incidences in geometrically growing arrays: allocating capacities
+$1,2,4,\ldots$ makes all initialization, copy and append words linear in
+the total number of inserted incidences. Copy or reverse a list at admission
+only once, charging its length to that admitted row. The previous exact-gate
+audit's tuple concatenation is not used: charging its copies to $qV$ would
+defeat the present improvement. No exceptional-candidate dictionary is
+scanned for decisions. Maintaining a diagnostic $q$ by one increment for
+each newly repeated boundary incidence has only linear total record work.
+
+At an admission, use the same old-version promotion and original border
+as \cref{lem:op3-cycle-inverse-transaction}. At a publication, change only
+its one reporter payload and deliver the increment; no coarse inverse
+entry or physical port mean is changed. Restore the affected piece's source
+exposure before another query. Maintain only the current list of component
+roots and their current port values; old full port-value snapshots need
+not be kept. Historical immutable cluster/hull records may still be retained.
+
+\begin{theorem}[An ACL publication bound; \statusproved]
+\label{thm:op3-coarse-publication-acl}
+The preceding deterministic algorithm returns an ACL $\epsappr$-approximation
+on every finite simple connected unweighted graph with at least two
+vertices, in the local degree/adjacency and exact-real word models.
+For its actual nonempty final support $U$, let
+\[
+ V=\operatorname{cvol}(U),\quad L=\log(2+V),\quad
+ K=1+\log_+\frac{32\gamma}{\bar\alpha\epsappr},
+\]
+let $b$ count admissions that create at least one active cycle, and let
+$p$ be final permanent retained-port count. Its total word work is
+\begin{equation}
+ O\!\left(1+V\left[(1+b)L^4+(1+p)^2+
+              K\bigl(L^4+(1+p)L^2\bigr)\right]\right).
+ \label{eq:op3-coarse-publication-work}
+\end{equation}
+Space, retaining historical application records but only current coarse
+inverse and port-value state, is
+\begin{equation}
+ O\!\left(1+V(1+b+K)L^3+(1+p)^2\right).
+ \label{eq:op3-coarse-publication-space}
+\end{equation}
+Writing $r=|E(G[U])|-|U|+1$, this gives
+$\widetilde O((1+r^2)/\epsappr)$ ACL work, with no revealed-cycle-rank
+factor. The returned support, and hence its $r,b,p$, may depend on the
+publication and admission policy.
+\end{theorem}
+\begin{proof}
+The previous lemma gives correctness and the same support-safe mass bound
+$\lambda\operatorname{vol}(U)<1$. The empty case
+$\lambda d_v\geq1$ takes constant work. Otherwise there are at most $|U|$
+admissions, and a final recovery reads $O(V)$ current records and writes
+$|U|$ original-coordinate output values.
+
+Each coordinate has $O(K)$ publications by
+\cref{thm:op3-geometric-recipient}; hence their number is $O(|U|K)$ and
+their degree-weighted delivery count is $O(VK)$. A publication refreshes
+one home-edge payload in $O(L^4)$ source work and allocates $O(L^3)$ new
+application records. Checking all $O(1+p)$ piece reporters costs
+$O((1+p)L^2)$ per producer search, including current port-value reads or
+copies and failed searches. There is one such search per publication,
+plus one quiet search per reached face. Named publication coordinates
+cost at most $O(L^2)$ each. These terms give the $K$ bracket in the work
+bound; all dictionary and cached delivery work $O(VKL)$ fits within it.
+
+Original graph discovery, parent buffers, local identifiers and ready
+queues use $O(V)$ word operations before their comparison-dictionary
+factors. The $b$ cycle-birth partitions and source rebuilds cost
+$O((1+b)VL^4)$. Each admission's dense update and temporary matrix copies
+cost $O((1+p)^2)$. There are at most $p+b\leq2p$ old promotion occurrences,
+since every cycle-birth vertex is permanently retained and $b\leq p-1$.
+Their total conditional covariance work $O(p^2L^2)$ is covered by
+$O(V(1+p)^2)$, exactly as in the refined inverse ledger. These charges
+account for every remaining term. No inverse update is performed at a
+publication, and no repeated exceptional-candidate search remains.
+
+The original caches, parent arrays, queues and current source structures
+use $O(V)$ words. Admissions and the $b$ rebuilds allocate
+$O((1+b)VL^3)$ historical application state; publications allocate
+$O(VKL^3)$ more. Current roots/port values and a constant number of
+temporary dense matrices fit in $O(V+(1+p)^2)$, as do promotion traces
+within the displayed larger bound. Old whole port-value snapshots are
+released. Keeping a fresh complete root/value snapshot at every search
+would add $O(VKp)$ space and is excluded from this statement.
+
+For $r=0$, $b=0$ and $p=1$. For $r\geq1$, $b\leq r$ and $p\leq4r$.
+Combining these inequalities with $V\leq2\operatorname{vol}(U)<4/\epsappr$
+gives the stated rank-dependent ACL work. All dependence on teleportation
+outside the structural rank parameters is logarithmic in this exact-word
+model. This is not a finite-precision stability theorem.
+\end{proof}
+
+\begin{corollary}[Tree-shaped returned support in an arbitrary graph; \statusproved]
+\label{cor:op3-published-tree-support}
+If the returned active support is a tree, the preceding algorithm has
+$\widetilde O(1/\epsappr)$ ACL work even when the graph revealed by its
+active rows has arbitrarily many cycles. More generally, fixed active
+cycle rank gives that scale without a restriction on shared inactive
+candidates. A sufficient policy-independent condition is bounded cycle
+rank of the exact $\lambda$-obstacle positive support, since the returned
+connected support is contained in it and active cycle rank is monotone.
+\end{corollary}
+
+\begin{proposition}[Shared-pair stars; \statusproved]
+\label{prop:op3-shared-pair-star}
+For $k\geq2$, form a star with seed center $v$ and $k$ core leaves. For
+each pair of core leaves add one shared hub joined to that pair and to
+$D-2$ private leaves, where
+\[
+ \lambda=\frac{\gamma}{4k(k+\gamma)},\quad
+ \epsappr=2\lambda,\quad D=\left\lceil\frac4{\bar\alpha\lambda}\right\rceil.
+\]
+Both the publication policy and the previous exact-gate algorithm return
+exactly the star core. Its active rank is zero, revealed rank is
+$\binom{k}{2}$, scanned volume is $k(k+1)$ and charged volume is $(k+1)^2$.
+The previous per-face exceptional checker makes exactly
+$\binom{k+1}{3}$ exceptional gate queries. The new publication algorithm
+makes none and performs only $O(k(k+1)K)$ cached incidence deliveries.
+No shared-hub or private-leaf row is scanned by either algorithm.
+\end{proposition}
+\begin{proof}
+Every core vertex has original degree $k$. Directly solving the full-core
+face gives
+\[
+ u_v=\frac{1-\lambda k(1+\gamma)}{k-\gamma^2},\qquad
+ u_{\rm leaf}=\frac{3\gamma}{4k(k-\gamma^2)}>0.
+\]
+Each hub's original residual is at most $2\gamma/\bar\alpha<\lambda D$;
+its private leaves have zero residual. Thus this positive core is the
+unique obstacle support. On the singleton face, the seed value
+$(1-\lambda k)/k$ exceeds $h$ and is published. It queues every core leaf,
+because
+\[
+ \frac{\gamma(1-\lambda k)}{k}>\frac{11}{10}\lambda k.
+\]
+After multiplying by $40k(k+\gamma)/\gamma$, this is
+$40k+30\gamma>11k$. The queued leaves remain ready, while the hub bound
+prevents every hub admission. Hence the publication policy also reaches
+the entire core, independently of leaf order.
+
+After $t$ core leaves have been admitted, exactly $\binom{t}{2}$ hubs
+have two active parents. The previous checker evaluates each at every
+checkpoint, including final quietness, and
+$\sum_{t=0}^k\binom{t}{2}=\binom{k+1}{3}$. The new loop has no such
+query, and its cached-delivery bound follows from the publication count.
+This is a cost separation between these implementations, not a universal
+lower bound for local algorithms.
+\end{proof}
+
+\paragraph{Measured and an exact early-stop example.}
+\texttt{coarse\_publication\_solver.py} independently checks each producer
+sign certificate, every boundary signal, readiness membership, all original
+ACL residuals, and $\boldsymbol J\boldsymbol K=\boldsymbol I$ against
+original-matrix Schur elimination at admissions. It also verifies that
+publication-only events leave the inverse and physical port means unchanged.
+Dynamic parent-buffer copies and every cached incidence delivery are counted.
+Source hierarchy rebuilds and whole-face validators are separate reference
+work. The unchanged inverse transaction is rerun in
+\texttt{MAINTAINED\_COARSE\_INVERSE\_REFACTOR\_AUDIT.json}; the complete
+publication sweep is recorded in \texttt{COARSE\_PUBLICATION\_AUDIT.json}.
+
+On the path $v$--$a$--$b$--$c$, with $\alpha=1/3$ and
+$\epsappr=1/10$, the publication policy stops at
+\[
+ \boldsymbol u=(37/35,\ 3/14,\ 0,\ 0),\qquad
+ \boldsymbol r=(1/20,\ 1/10,\ 3/28,\ 0).
+\]
+The exact $\lambda=1/20$ obstacle response is
+$(55/52,\ 14/65,\ 1/260,\ 0)$. The exterior value $r_b=3/28$ exceeds
+$\lambda d_b=1/10$ but is below the readiness threshold
+$\vartheta d_b=11/100$, and satisfies the original ACL certificate.
+This verified distinction is why this section states an ACL result rather
+than an exact-RPPR result. Removing active-rank dependence while preserving
+these paid original-coordinate certificates remains the next general OP3
+question.

@@ -83,6 +83,10 @@ class InverseState(CycleRankState):
         self.inverse_counts["rank_one_updates"] += 1
         return out
 
+    def _admit_metadata(self, vertex):
+        """Local graph bookkeeping hook; inverse identities are unchanged."""
+        super().admit(vertex)
+
     def admit(self, vertex):
         degree = self.oracle.degree(vertex)
         if not self.active:
@@ -91,7 +95,7 @@ class InverseState(CycleRankState):
             self.inverse = self.allocate(1)
             self.put(self.inverse, 0, 0, F(1, degree))
             self.means = [(1 - self.lam * degree) / degree]
-            super().admit(vertex)
+            self._admit_metadata(vertex)
             return
         parents = self.boundary[vertex]
         if len(parents) == 1:
@@ -111,7 +115,7 @@ class InverseState(CycleRankState):
             ]
             self.inverse_counts["ordinary_inverse_updates"] += 1
             self.inverse_counts["vector_read_write_arithmetic_units"] += 12 * len(z) + 12
-            super().admit(vertex)
+            self._admit_metadata(vertex)
         else:
             # New metadata may be computed, but these old roots, homes, J and
             # means stay intact until all promoted responses have been read.
@@ -120,7 +124,7 @@ class InverseState(CycleRankState):
             old_ports = self.ports
             old_retained = set(old_ports)
             self.inverse_counts["cycle_birth_port_set_copy_words"] += len(old_ports)
-            super().admit(vertex)
+            self._admit_metadata(vertex)
             assert old_retained <= self.retained and vertex in self.retained
             promoted = sorted(
                 (self.retained - old_retained - {vertex}) | (set(parents) - old_retained)

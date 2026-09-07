@@ -1,5 +1,43 @@
 # incremental_active_set_sdd
 
+## Latest geometric-publication result (block 13)
+
+**Proved here, awaiting independent review:** `thm:op3-coarse-publication-acl`
+uses the component reporters as a geometric-value producer and removes the
+revealed-cycle-rank q term. Its ACL-only exact-word work is
+`O_tilde((1+r^2)/eps_appr)`, where r is the cycle rank inside the actually
+reached positive support. It pays for cached incidence redelivery, failed
+producer searches, geometrically grown parent buffers, source callbacks,
+cycle rebuilds and current inverse updates. Publications leave the inverse
+unchanged. Old whole port-value snapshots are released; immutable application
+records are included in the space bound. The online top-tree balancing
+algorithm remains an explicit **Source** import.
+
+**Measured:** `COARSE_PUBLICATION_AUDIT.json` passes 54,240 atlas executions,
+twenty larger explicit cases, five implicit private-star cases and twenty-four
+shared-pair-star cases. It checks 217,135 independent admission faces and
+inverse certificates, 3,221,573 due-row signs, 1,379,835 original boundary
+bounds and 500,887 publication-only inverse invariance checks. There are 542
+terminal points strictly before the exact obstacle optimum; all satisfy ACL.
+The largest implicit example has 4,240,252,449 vertices but reads only 33
+active rows (1,056 original incidences); its support rank is zero and its
+revealed rank is 496. It makes 33 publications and 1,056 cached deliveries,
+with zero exceptional-candidate gate scans, versus 5,456 old direct checks.
+This algorithm is not an exact-RPPR algorithm and gives no OP2 conclusion.
+
+**Proved here / Measured:** `COARSE_SCHUR_DOWNDATE_PROBE.md` derives an
+at-most-two-coordinate ordinary coarse Schur downdate and a determinant
+budget spanning all permanent and temporary port changes. Its audit checks
+6,472 actual source-driven traces and 11,668 sparse-update identities. The
+budget alone is not a maintained-solve work theorem.
+
+**Next Open target:** `CERTIFIED_COARSE_SDD_PROBE.md` specifies approximate
+port bands certified by a sparse original coarse residual, downward terminal
+repair, and a possible source-backed expected linear-rank ACL bound. That
+composition is not yet implemented or proved as an end-to-end theorem.
+General OP3 remains **Open**; no active-manuscript promotion has occurred.
+
+
 This standalone note audits the repeated-active-set factor in the August 2026
 Wei--Yang PageRank/RPPR algorithm and asks exactly what is required to remove
 it.  The note proves an exact block-Schur correction identity and a telescoping

@@ -1,12 +1,14 @@
-# Next probe: use the coarse response as a geometric publication producer
+# Completed probe: the coarse response as a geometric publication producer
 
-Date: 7 September 2026. **Conditional / Open end-to-end composition.**
-The maintained inverse now has a complete proof draft and exact audit in
-`sec:op3-maintained-inverse`. The remaining q term comes from checking all
-exceptional inactive candidates at each face. OP3 asks for an ACL residual
-certificate, so exact reproduction of every obstacle gate is unnecessary.
-The already proved geometric recipient in `sec:op3-geometric-events` may
-remove that term if its producer is implemented using the new tree pieces.
+Date: 7 September 2026. **Proved here, awaiting independent review.**
+The proposal below is completed in `sections/op3_coarse_publications.tex`,
+`thm:op3-coarse-publication-acl`, with the exact audit in
+`COARSE_PUBLICATION_AUDIT.json`. The implemented state machine uses the
+metadata hook, paid parent buffers and cached deliveries described here.
+It removes q from ACL work and can stop before the obstacle optimum.
+The prospective wording below preserves the block-12 design checklist;
+its proof authority is the completed theorem, not this historical plan.
+The next Open composition is `CERTIFIED_COARSE_SDD_PROBE.md`.
 
 ## Exact constants and accuracy namespace
 
