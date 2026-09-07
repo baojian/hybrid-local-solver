@@ -1,8 +1,47 @@
 # The remaining inner oracle after explicit certified restarts
 
-Second-night block 7 checkpoint, 8 September 2026. **General OP3 remains
-Open.** The new outer reduction retains every inner-oracle cost. Continue
+Second-night block 8 checkpoint, 8 September 2026. **General OP3 remains
+Open.** The outer reductions retain every inner-oracle cost. Continue
 the active-time campaign without repeating completed audits.
+
+## Resume here: generic tolerance and canonicalization are now proved drafts
+
+`sec:op3-generic-proximal-geometry` formalizes the earlier highest-priority
+probe. The exact audit `GENERIC_PROXIMAL_GEOMETRY_AUDIT.json` passes 112
+trajectories and 3,584 complete model/range certificates, including 11
+zero-gap runs, four zero-total-tail runs, 80 signed-domain runs and two
+exact common-energy-scale invariance checks. The script hash is
+`4c5995f3fe6b154bec982ce9e4d714d79a82fe3398ea39efa36371ddb7b446fc`.
+The policy is `delta=1/(33*2^30*kappa^3)`, with no algorithmic use of the
+unknown gap. Residual translation gives restarts on signed lower domains.
+
+The canonical shift `q-max(0,min(q)-U)*1` never increases model or original
+energy, even when the total terminal slope is zero. For a connected supplied
+graph, finite infimum is equivalent to nonnegative total terminal slope,
+and the minimum is attained. With A=sum|f_i'(0)|, B0=max(U,max(-L_i)),
+K=(n-1)/c_min, the initial gap is at most `A*B0+K*A^2/2`. Canonical APG
+outputs have absolute coordinates at most `B0+sqrt(12*kappa*K*gap)`;
+centers have at most three times that radius. These statements are draft
+proofs awaiting independent review, not a recursive OP3 theorem.
+
+**Next bounded target:** implement and audit the corrected Lift and a
+persistent derivative-integral curve for valid supplied forest elimination.
+Start with the two sections below named "Remaining numerical and local-work
+obligations" and "A possible implemented replacement". Preserve validated
+backends and old snapshots. Handle general child and parent lower endpoints:
+the child endpoint L maps to L+F'(L)/c; before that point the lifted derivative
+is c*(x-L). At parent lower P, use the boundary value if P is before this
+point, otherwise y=P-g_lift(P)/c and F_lift(P)=F(y)+g_lift(P)^2/(2*c).
+This gives exact constants and permits signed residual domains.
+
+For the augmented area tree, override both node construction and lazy apply;
+do not recompute a tagged aggregate from children still in old coordinates.
+Read-only prefix integrals must carry transformations without allocating
+nodes. A prefix deletion may be paid by removed event lineages, provided
+the full small-to-large copying argument is proved. Do not repeat the
+23-minute completed original driver audit unless its code or assumptions
+change. The earlier derivation below is historical, now superseded where
+the labeled generic proof applies.
 
 ## Established outer interface
 
@@ -38,11 +77,11 @@ Large final rationals use explicit binary-hash/bit-size metadata rather
 than decimal expansion; every comparison remains exact. Rational runtime
 is not the claimed exact-real word complexity.
 
-## New highest-priority probe: a universal relative proximal tolerance
+## Historical block-7 derivation: a universal relative proximal tolerance
 
 The following sharper induction emerged after writing the original-capped
-policy. **Formalize and audit it before pursuing the persistent curve
-implementation.** It is currently a candidate, not a promoted theorem.
+policy. It has now been formalized and exact-audited as described above;
+retain this derivation as provenance, with the labeled TeX proof authoritative.
 
 For any convex diffusion objective Phi=g+h with g=x'G*x/2, 0 feasible,
 an attained finite optimum u and G<=H<=kappa*G, write

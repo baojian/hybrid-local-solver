@@ -1,0 +1,233 @@
+\section[Generic proximal geometry]{Generic relative proximal accuracy and canonical vertex ranges}
+\label{sec:op3-generic-proximal-geometry}
+
+\paragraph{Scope and source.}
+This section concerns a supplied convex objective and supplied Laplacians;
+its accuracy parameter is an inner relative-energy tolerance, not
+$\epsappr$ or $\rho$. The new statements are \statusproved{} drafts
+awaiting independent review. The convergence inequality
+\eqref{eq:op3-source-inexact-apg-bound} is imported from CPW Algorithm 9
+and Theorem 8.3, PDF p.\ 44 \citep{chen2021diffusion}; the normalization
+agrees with Claim 8.19, pp.\ 50--51. We prove the tolerance directly,
+without invoking Claim 8.21's all-number-range assumption. This does not
+import a fast inner oracle or establish an unrestricted recursive solver.
+
+Let $\Phi(x)=x^\top\mathcal Gx/2+h(x)$, where $h$ is proper closed convex,
+$0$ is feasible, a finite minimum $\Phi^*$ is attained, and
+$0\preceq\mathcal G\preceq\mathcal H\preceq\kappa\mathcal G$ with
+$\kappa\geq1$. Here $\mathcal G,\mathcal H$ may initially be arbitrary
+positive semidefinite matrices. Write $\Delta=\Phi(0)-\Phi^*$, and use
+the model $\Phi_x$ and normalized objective $E_x$ in
+\eqref{eq:op3-capped-prox-model}--\eqref{eq:op3-capped-prox-normalization},
+with the general $h$ and with $E_x=\Phi_x-\Phi_x(0)$.
+
+\begin{theorem}[A universal relative proximal tolerance; \statusproved]
+\label{thm:op3-generic-relative-proximal}
+Choose the least power of two $T$ satisfying $T^2\geq256\kappa$ and set
+\begin{equation}
+ \delta_{\rm rel}=\frac1{33\cdot2^{30}\kappa^3}.
+ \label{eq:op3-generic-relative-policy}
+\end{equation}
+Run source Algorithm 9 from $y_0=z_0=0$, obtaining a feasible output
+$q$ at every center $x$ with
+$E_x(q)\leq E_x^*/(1+\delta_{\rm rel})$.
+Then every absolute model error is at most
+$e_0:=\Delta/(2^{30}\kappa)$ and
+\[
+ \Phi(y_T)-\Phi^*\leq\Delta/32.
+\]
+No knowledge of $\Delta$, a positive gap floor, vertex coordinate bounds,
+or absolute coefficient scale is needed to set this tolerance.
+All iterates obey $\Phi(y_k)-\Phi^*\leq2\kappa\Delta$ and all centers
+obey $\|x\|_{\mathcal H}^2\leq64\kappa^2\Delta$.
+\end{theorem}
+\begin{proof}
+Fix an optimum $u$. Convexity and optimality give, for every feasible $v$,
+\begin{equation}
+ \|v-u\|_{\mathcal H}^2\leq
+ 2\kappa\bigl(\Phi(v)-\Phi^*\bigr),\qquad
+ \|u\|_{\mathcal H}^2\leq2\kappa\Delta.
+ \label{eq:op3-generic-gap-distance}
+\end{equation}
+First suppose $\Delta>0$. Since $T<32\sqrt\kappa$,
+$\sum_{j=1}^Tj\leq528\kappa$, and hence
+\[
+ 3\sum_{j=1}^Tj\sqrt{2e_0}
+ \leq\frac{1584\sqrt2}{2^{15}}\sqrt{\kappa\Delta}
+ <\frac18\sqrt{\kappa\Delta}.
+\]
+For any already justified prefix of length $k\geq2$, the source bound
+therefore gives $\Phi(y_k)-\Phi^*\leq8\kappa\Delta/(k+1)^2$.
+At the first step $x=0$, the relative contract gives $E_0(q)\leq0$,
+so $\Phi(q)\leq\Phi_0(q)\leq\Phi(0)$. Thus every justified previous
+iterate, including $y_0$, has gap at most $2\kappa\Delta$ and distance
+at most $2\kappa\sqrt\Delta$ from $u$ in the $\mathcal H$ seminorm.
+
+For completeness the update with $A_{k+1}=(k+2)/2$ is
+$x_{k+1}=(1-1/A_{k+1})y_k+z_k/A_{k+1}$ and
+$z_{k+1}=z_k+A_{k+1}(y_{k+1}-x_{k+1})$.
+It implies $z_k=A_ky_k-(A_k-1)y_{k-1}$ for $k\geq1$, and
+\[
+ x_{k+1}=y_k+\frac{k-1}{k+2}(y_k-y_{k-1}).
+\]
+The coefficient lies in $[0,1)$, so
+$\|x-u\|_{\mathcal H}\leq6\kappa\sqrt\Delta$ and
+$\|x\|_{\mathcal H}\leq8\kappa\sqrt\Delta$; the first center is zero.
+Since $\Phi_x\geq\Phi$, this bound uses only earlier errors and gives
+\begin{equation}
+ 0\leq\Phi_x(0)-\Phi_x(q)
+ \leq\tfrac12\|x\|_{\mathcal H}^2+\Delta
+ \leq33\kappa^2\Delta.
+ \label{eq:op3-generic-model-range}
+\end{equation}
+The relative contract rearranges to
+$0\leq e_x\leq\delta_{\rm rel}(\Phi_x(0)-\Phi_x(q))\leq e_0$.
+This closes the induction before applying its next prefix bound.
+At $T$, that bound is at most $8\kappa\Delta/T^2\leq\Delta/32$.
+As in the previous section, the source seminorm inequality can be justified
+by applying its positive definite version with $\mathcal H+\nu I$ to
+the same fixed finite run and letting $\nu\downarrow0$.
+
+If $\Delta=0$, take $u=0$. Inductively a center in $\ker\mathcal H$
+has $\Phi_x(0)=\Phi^*$ and $E_x^*=0$. The relative output is therefore
+also an optimum of $\Phi$. Equation~\eqref{eq:op3-generic-gap-distance}
+puts it in $\ker\mathcal H$, and the linear updates keep the next center
+in that kernel. All gaps and errors are zero, even if the oracle chooses
+large coordinates in null directions. This proves the zero-gap case.
+\end{proof}
+
+\begin{corollary}[Translation for restarts; \statusproved]
+\label{cor:op3-generic-residual-restart}
+For a feasible starting vector $a$, apply
+\cref{thm:op3-generic-relative-proximal} to
+$\Psi(z)=\Phi(a+z)-\Phi(a)$. The same tolerance gives a factor-$32$
+gap contraction from $a$. For separable VWFs with domains $[L_i,\infty)$,
+the residual functions are
+\[
+ f_i^a(t)=f_i(a_i+t)-f_i(a_i)+(\mathcal Ga)_it,
+ \qquad t\geq L_i-a_i.
+\]
+They have nonpositive lower endpoints, value zero at zero, continuous
+concave derivatives and constant final derivatives. Thus they remain
+source VWFs, including when translated breakpoints are negative.
+\end{corollary}
+\begin{proof}
+Expand the quadratic in $\Phi(a+z)$. Translation and addition of an
+affine function preserve the stated derivative properties, and
+$a_i\geq L_i$. The optimum and initial gap translate exactly.
+\end{proof}
+
+We now specialize to a connected supplied graph on $n\geq2$ vertices
+with positive edge weights, Laplacian $\mathcal G$, and finite-piece
+VWFs $f_i$ on $[L_i,\infty)$, $L_i\leq0$.
+Let $T_i$ be each final derivative and put
+\begin{equation}
+ \begin{aligned}
+ U=\max(0,\text{all vertex breakpoints}),\quad
+ &B_0=\max(U,\max_i(-L_i)),\\
+ A=\sum_i|f_i'(0)|,\quad &K=\frac{n-1}{c_{\min}},
+ \end{aligned}
+ \label{eq:op3-generic-input-parameters}
+\end{equation}
+where the maximum over an empty breakpoint list is zero and $c_{\min}$
+is the smallest positive supplied edge weight.
+
+\begin{proposition}[Finite minimum and a canonical representative; \statusproved]
+\label{prop:op3-vwf-canonical-input-gap}
+The objective $\Phi(q)=q^\top\mathcal Gq/2+\sum_i f_i(q_i)$
+has a finite infimum if and only if $\sum_iT_i\geq0$. In that case its
+minimum is attained. Every feasible $q$ can be replaced by
+\begin{equation}
+ \mathcal C(q)=q-\max(0,\min_iq_i-U)\mathbf1
+ \label{eq:op3-vwf-canonical-map}
+\end{equation}
+without increasing energy. The new minimum coordinate is at most $U$,
+and the explicit initial-gap bound is
+\begin{equation}
+ 0\leq\Phi(0)-\Phi^*\leq B_{\rm gap}:=AB_0+KA^2/2.
+ \label{eq:op3-vwf-input-gap-bound}
+\end{equation}
+If $\mathcal H$ is also a graph Laplacian, the same replacement never
+increases any normalized proximal objective $E_x$.
+\end{proposition}
+\begin{proof}
+Along $q=t\mathbf1$ beyond all breakpoints, energy has slope
+$\sum_iT_i$; a negative slope gives infimum $-\infty$.
+Suppose the slope sum is nonnegative. If the shift in
+\eqref{eq:op3-vwf-canonical-map} is positive, all changed coordinates
+remain at least $U\geq0\geq L_i$ and stay on their final rays. The
+Laplacian energy is unchanged and the vertex sum decreases by the shift
+times $\sum_iT_i$. The same is true for $\Phi_x$, because
+$(\mathcal H-\mathcal G)\mathbf1=0$.
+
+For a canonical vector write $b=\min_iq_i$ and
+$D=\max_iq_i-\min_iq_i$. Then $|b|\leq B_0$. A simple path between
+minimum and maximum coordinates and weighted Cauchy--Schwarz give
+$q^\top\mathcal Gq\geq D^2/K$. The tangents at zero yield
+\begin{align*}
+ \Phi(q)&\geq\Phi(0)+D^2/(2K)+\sum_i f_i'(0)q_i\\
+ &\geq\Phi(0)-AB_0+D^2/(2K)-AD\\
+ &\geq\Phi(0)-AB_0-KA^2/2.
+\end{align*}
+For a general vector first canonicalize, which only lowers energy, so
+the same lower bound holds. A canonical minimizing sequence has bounded
+energy, hence bounded $D$ by the penultimate display. Its minimum lies
+in the compact interval $[\min_iL_i,U]$, so the whole sequence is bounded.
+The feasible domain is closed and the piecewise quadratic objective is
+continuous there. A convergent subsequence attains the finite minimum.
+This also proves the input-gap bound, including zero total final slope.
+\end{proof}
+
+\begin{corollary}[Input-controlled canonical accelerated ranges; \statusproved]
+\label{cor:op3-generic-canonical-ranges}
+Under the graph hypotheses above, canonicalize every relative-oracle
+output before the source updates. The conclusion of
+\cref{thm:op3-generic-relative-proximal} still holds, and
+\[
+ \|y_k\|_\infty\leq B_0+\sqrt{12\kappa K\Delta}
+ \leq B_0+\sqrt{12\kappa K B_{\rm gap}}.
+\]
+Every center has absolute coordinates at most three times the last bound.
+No positive lower bound on an individual final slope or on their sum is
+required.
+\end{corollary}
+\begin{proof}
+Canonicalization preserves the model relative contract and feasibility,
+so the theorem applies to the resulting outputs. Its distance argument
+in the $\mathcal G$ seminorm gives
+\[
+ \|y_k\|_{\mathcal G}^2
+ \leq2\|y_k-u\|_{\mathcal G}^2+2\|u\|_{\mathcal G}^2
+ \leq4\bigl(\Phi(y_k)-\Phi^*+\Delta\bigr)\leq12\kappa\Delta.
+\]
+Thus the diameter is at most $\sqrt{12\kappa K\Delta}$ by the same
+path inequality. The canonical minimum lies between $-B_0$ and $B_0$,
+giving the coordinate bound. The extrapolation identity gives the factor
+three for centers. In the zero-gap case only a common nullspace shift
+remains, and canonicalization bounds that shift as well.
+\end{proof}
+
+\paragraph{Charged implementation and remaining obligations.}
+For a supplied graph and explicit total piece count $S$, construction of
+each normalized vertex instance costs $O(n+m+m_H+S)$ word work and
+$O(n+S)$ new words; these bounds charge linear terms and constants even
+when they are copied into every piece. Canonicalization costs $O(n)$
+work and at most $n$ new words per call. Source update vectors cost
+$O(n)$ per iteration. Consequently one invocation, excluding the supplied
+oracle's own work and allocations, costs
+$O(T(n+m+m_H+S)+\log(2+\kappa))$ work and
+$O(T(n+S)+\log(2+\kappa))$ new words. Computing the displayed input
+parameters costs $O(n+m+S)$; their square roots are analysis bounds and
+are not needed by the tolerance algorithm. For bounded-size original
+vertex descriptions these counts reduce to the previous sparse outer
+interface counts. No global graph scan is reclassified as local work.
+
+The exact audit \texttt{generic\_proximal\_geometry.py} uses dense rational
+piece/KKT solves solely to supply validators. It implements the canonical
+scan and source updates, while its edge budget is a supplied-interface
+ledger, not a measured sparse oracle. It checks signed lower domains,
+negative feasible iterates, zero gap, zero total final slope, large common
+nullspace shifts and exact invariance under common energy rescaling.
+Recursive coefficient growth, compression error allocation, fast forest
+and coarse oracles, and unknown-support discovery remain separate open
+obligations. General OP3 remains \statusopen{}.

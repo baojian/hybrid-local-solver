@@ -1,6 +1,51 @@
 # incremental_active_set_sdd
 
-## Second night, block 7: explicit proximal accuracy and certified restarts
+## Second night, block 8: generic proximal tolerance and canonical ranges
+
+**General OP3 remains Open.** `thm:op3-generic-relative-proximal` proves
+the universal inner relative tolerance `1/(33*2^30*kappa^3)` for a supplied
+zero-start accelerated invocation. One energy-seminorm induction controls
+every model error and contracts the gap by 32, without using the unknown
+gap, a positive gap floor, absolute coefficient scale or coordinate bounds
+to set the tolerance. The zero-gap case is included. Residual translation
+in `cor:op3-generic-residual-restart` permits arbitrary feasible restarts
+and signed lower domains. These are **Proved here** drafts awaiting review.
+
+`prop:op3-vwf-canonical-input-gap` proves finite attainment exactly when
+the total final slope is nonnegative on a connected supplied graph. A paid
+common terminal-ray shift bounds the minimum coordinate without increasing
+either the original or normalized proximal objective. With A=sum|f_i'(0)|,
+B0=max(U,max(-L_i)) and K=(n-1)/c_min, the initial gap is at most
+`A*B0+K*A^2/2`. `cor:op3-generic-canonical-ranges` then bounds every
+canonical accelerated coordinate from these input quantities, including
+zero total final slope. This does not control all recursively generated
+edge or curvature coefficients.
+
+**Source:** CPW Algorithm 9 / Theorem 8.3 supply only the convergence
+inequality, and Claim 8.19 identifies the normalized model. The tolerance
+and canonicalization arguments are note-local. Every supplied graph scan,
+piece copy, vector, failed call and oracle cost remains charged. Dense
+exact proximal candidates are validators; the audit's edge budget is an
+interface ledger, not a measured fast sparse oracle.
+
+**Measured:** `GENERIC_PROXIMAL_GEOMETRY_AUDIT.json` passes 112 complete
+trajectories and 3,584 step certificates in 25.121 seconds. It covers 80
+signed-domain runs, 11 zero-gap runs, four zero-total-tail runs, five
+infeasible centers, 1,184 negative feasible iterates, 64 oracle shifts by
+2^512, and exact trajectory equality under energy scales 2^-80, 1, 2^80.
+Earlier full audits and immutable backend hashes are preserved.
+
+**Next falsifiable target:** corrected Lift with exact function constants,
+persistent derivative-integral curves, and a valid supplied forest pass.
+Resume from the new first section of `CAPPED_INNER_ORACLE_PROBE.md`.
+General recursive inner work, numerical propagation, local discovery and
+cumulative supplied-graph costs remain **Open**. Formal note dependencies
+remain empty; source imports and context are identified in the proof.
+Verification is recorded in `OVERNIGHT_20260907_BLOCK8_AUDIT.json` and
+`VERIFICATION.md`. The campaign continues until 480 new actual active minutes.
+
+
+## Historical second-night block 7: explicit proximal accuracy and certified restarts
 
 **General OP3 remains Open.** `thm:op3-explicit-capped-proximal-budget`
 proves a parameter-explicit relative oracle tolerance for a supplied original

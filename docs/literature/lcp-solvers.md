@@ -154,6 +154,19 @@ source's recursive inner solver or prove local OP3 work. The remaining
 interface is recorded in
 [`CAPPED_INNER_ORACLE_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/CAPPED_INNER_ORACLE_PROBE.md).
 
+**Generic accuracy and canonical ranges, note-local drafts.**
+`thm:op3-generic-relative-proximal` now gives the universal tolerance
+`1/(33*2^30*kappa^3)` for a zero-start invocation of the same source
+algorithm, including zero gap. Its energy-seminorm induction cancels the
+unknown objective-gap scale; translated residual VWFs cover restarts.
+`prop:op3-vwf-canonical-input-gap` and
+`cor:op3-generic-canonical-ranges` give finite-minimum and coordinate
+bounds for a connected supplied graph after a paid common terminal-ray
+shift. They permit zero total final slope and signed lower domains.
+These are new proofs using the already checked source convergence bound,
+not claims attributed to CPW. They do not settle recursive coefficient
+growth, fast inner-oracle work, or unknown-support discovery.
+
 **Printed Lift coefficient check.** On visually checked PDF pp. 40–42,
 the displayed constant update has a plus sign. Direct minimization of
 `c*(x-y)^2/2+r*y^2/2+a*y+b` gives `b-a^2/(2*(c+r))`.

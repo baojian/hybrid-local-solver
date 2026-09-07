@@ -8,22 +8,23 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 7 and next work
+## Completed block 8 and next work
 
-Explicit original-capped proximal accuracy and a gap-certified restarted
-outer driver are now proved drafts and fully audited. The convergence
-inequality is a source import; every fast inner-oracle cost remains open.
-Use the newest README/STATUS and `OVERNIGHT_20260907_BLOCK7_AUDIT.json`.
+The generic relative tolerance 1/(33*2^30*kappa^3) is now a proved draft
+with exact audits of every accelerated step, signed lower domains, zero gap
+and common energy rescaling. A paid common-shift normalization preserves
+original and model energies and bounds canonical coordinates from explicit
+input quantities, even when the total terminal slope is zero. The generic
+connected finite-minimum criterion and initial-gap bound are also proved
+drafts. Use the newest README/STATUS and `OVERNIGHT_20260907_BLOCK8_AUDIT.json`.
+The convergence inequality remains a source import; fast inner work is open.
 
-Resume `CAPPED_INNER_ORACLE_PROBE.md`. Its highest-priority new target is
-a generic energy-norm induction suggesting the universal relative tolerance
-1/(33*2^30*kappa^3), without a known absolute energy scale. Formalize and
-audit the actual source normalization, zero-gap case, shifted lower domains
-and all prefixes. Then test canonical common-shift normalization for generic
-coordinate bounds. These sharper ideas are saved candidates, not yet proved
-or implemented results of block 7.
+Resume the new first section of `CAPPED_INNER_ORACLE_PROBE.md`. The prior
+generic tolerance candidate is complete; proceed to the corrected Lift and
+persistent derivative-integral forest primitive. Its general signed-domain
+endpoint formulas and augmented-node cautions are recorded there.
 
-Next inspect one supplied forest-elimination pass. The probe records a
+Implement and audit one supplied forest-elimination pass. The probe records a
 visually confirmed sign error in the source Lift constant and its direct
 correction, explicit terminal-slope/curvature/range candidates, and a
 persistent derivative-curve design with exact area aggregates. Preserve

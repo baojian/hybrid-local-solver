@@ -1,7 +1,7 @@
 # OP3 exploration verification
 
-Latest block: see **Second night, block 7** below and
-`OVERNIGHT_20260907_BLOCK7_AUDIT.json`. The first-night synthesis is
+Latest block: see **Second night, block 8** below and
+`OVERNIGHT_20260907_BLOCK8_AUDIT.json`. The first-night synthesis is
 `OP3_MORNING_DECISIONS_20260907.md`. The earlier dated entries are historical
 verification records; their then-uncommitted status is not current Git state.
 
@@ -1197,3 +1197,34 @@ findings; note inventory retains the same two oversized AESP sources.
 All five baseline hashes are unchanged. Reproduction stops at the test
 prerequisite; later stages are not claimed. Cleanup warnings remain in logs.
 The eight-new-active-hour campaign is still in progress.
+
+
+## Second night, block 8: generic relative accuracy and canonical ranges
+
+`thm:op3-generic-relative-proximal`, `cor:op3-generic-residual-restart`,
+`prop:op3-vwf-canonical-input-gap` and
+`cor:op3-generic-canonical-ranges` are new **Proved here** drafts.
+The source convergence inequality is explicitly imported; the tolerance,
+finite-minimum criterion and canonical input bounds are note-local.
+General OP3 and recursive/local implementation costs remain **Open**.
+
+Registered `generic_proximal_geometry.py --full` passed 112 trajectories
+and 3,584 complete model, gap, seminorm and coordinate certificates in
+25.121 seconds. The audit includes 80 signed-domain runs, 11 zero-gap runs,
+four zero-total-tail runs, 64 large common-shift calls and identical exact
+trajectories at common energy scales 2^-80, 1 and 2^80. Its source hash is
+`4c5995f3fe6b154bec982ce9e4d714d79a82fe3398ea39efa36371ddb7b446fc`.
+The dense oracle and matrices are validators; edge counts are a supplied
+interface ledger. The canonical scan and source vector updates are implemented.
+All three unchanged imported backend hashes were verified.
+
+The 106-page note builds without final warnings, undefined references or
+overfull boxes. Final pages 4 and 101–104 were visually reviewed; end pages
+105–106 were also reviewed before a small equation-layout adjustment.
+Ownership, focused lint/format for all 49 scripts, three registry tests and
+diff checks pass. Required tests report 231 passes and the same three
+unrelated failures; broad lint reports the same two unrelated findings;
+note inventory reports the same two oversized AESP sources. All five baseline
+file hashes are unchanged. Required reproduction stops at the failed test
+prerequisite; no later stages are claimed. Durable details are in
+`OVERNIGHT_20260907_BLOCK8_AUDIT.json`.
