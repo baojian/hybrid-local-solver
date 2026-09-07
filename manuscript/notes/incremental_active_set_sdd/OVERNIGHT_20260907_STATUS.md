@@ -8,45 +8,49 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Second night, block 10: mixed additive numerical recursion
+## Second night, block 11: spectral edge floors and recursive ranges
 
 **General OP3 remains Open.** The new section
-`sec:op3-mixed-additive-oracles` proves compression embedding, guarded
-relative refinement and accelerated accuracy while retaining an explicit
-additive error. The recursive budget is
-`eta_child=eta_parent/(2^34*kappa_parent)`. It needs no unknown negative
-optimum or positive gap floor. These are **Proved here** drafts; recursive
-preconditioner construction, graph ranges and fast work remain **Conditional**.
+`sec:op3-recursive-vwf-ranges` proves a paid preconditioner edge-floor
+wrapper, complete one-step range propagation and a simultaneous
+logarithmic bound through a supplied mixed recursion. Deleting sufficiently
+small preconditioner edges and doubling retained weights preserves spectral
+order at twice the quality; every forest bridge survives. The original
+objective is unchanged, so this uses no objective-error budget.
 
-**Measured:** The dense forward-piece reference passes 747 exact minima,
-2,830 bound quadratic solves and 192 independent tree comparisons. Mixed
-acceleration passes 153 invocations and 4,896 complete step certificates,
-including 640 nonzero errors at zero initial gap. The implemented persistent
-forest/compression/refinement/recovery pipeline passes 61 cases and 942
-coarse calls, including 188 positive compression-error checks, 570 nonzero
-negative regularization shifts and 484 paid failed improvement guards.
-Signed splits at 2^-100 and the actual kappa=4 recursive tolerance are
-included. Dense coarse solves and dyadic candidate rounding are validator
-work; no fast oracle or bit-complexity claim follows from their timing.
+The range induction controls energy and graph weights first, then final
+slopes/curvature, then domains and breakpoints. With depth D, size/quality
+bound P and initial numerical bound Z, logarithmic ranges and compression
+bins are O((D+1) log P+log Z). No minimum positive curvature drop, gap or
+split separation is assumed. These are **Proved here** drafts. They are
+not a statement that every encountered nonzero meets CPW Assumption 3.15.
 
-An initial reference run exceeded decimal serialization limits because
-successive exact candidates developed large denominators. Upward dyadic
-rounding with an exact energy guard repaired the reference policy; no
-mathematical inequality had failed. All final source/backend hashes match.
+**Measured:** The spectral audit passes 150 cases, 750 exact PSD
+certificates, 5,598 cut certificates, 213 bridge checks and 21 threshold
+ties. The range audit passes 108 proximal/forest steps and 432
+residual/compressed-child steps, including 27 zero initial gaps, 121
+negative individual model slopes and 135 positive compression errors.
+Common energy scales and signed events at 2^-100 are included. Dense
+minima, matrices and cuts are validators, not production costs.
 
-**Next falsifiable target:** `COARSE_GRAPH_RANGE_PROBE.md` saves a spectral
-preconditioner edge-floor wrapper and simultaneous energy/range induction.
-They are unproved candidates at this checkpoint. Actual CPW construction
-and shrink costs still need source verification. The 114-page note builds
-without final warnings; pages 108–113 were visually reviewed. All 54
-scripts pass focused lint/format and three registry tests pass. Required
-broad checks retain the same baseline failures and five unchanged hashes.
-See `OVERNIGHT_20260907_BLOCK10_AUDIT.json` and `VERIFICATION.md`.
-Formal note dependencies remain empty; prior source imports are unchanged.
+**Source / next target:** CPW's constructor still explicitly assumes a
+polynomial weight ratio. The underlying Abraham–Neiman arbitrary-weight
+low-stretch-tree and Koutis–Levin–Peng fixed-precision sparsifier statements
+were checked in their primary PDFs and recorded in the literature index
+and topic note. Resume `SUPPLIED_GLOBAL_RECURSION_PROBE.md`: reconcile a
+complete weighted constructor/confidence contract, formalize the full
+supplied work recurrence, and run a genuinely nested accelerated audit.
+These full-recursion claims remain **Conditional** here. Local discovery
+and cumulative graph work remain **Open**.
 
-Continue to 480 new actual active minutes, then save the morning synthesis,
-pause the heartbeat and stop only the owned matching keep-awake process.
-Commit and push verified blocks under the existing authorization.
+The 117-page note builds without warnings or unresolved references;
+pages 112–115 were visually reviewed. All 56 scripts pass focused
+lint/format and three registry tests pass. Broad checks retain the same
+baseline failures and five unchanged hashes; reproduction stops at the
+test prerequisite. See `OVERNIGHT_20260907_BLOCK11_AUDIT.json` and
+`VERIFICATION.md`. Formal note dependencies remain empty.
+
+Continue to at least 480 new actual active minutes; exclude unverified gaps.
 
 ## Conventions, status and authorization
 

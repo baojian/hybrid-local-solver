@@ -101,6 +101,15 @@ methods whose work is intended to depend on local structure.
 These papers connect graph partitioning, spectral sparsification,
 preconditioning, and fast solution of graph-structured linear systems.
 
+- [*Using Petal-Decompositions to Build a Low Stretch Spanning Tree*](https://www.cs.bgu.ac.il/~neimano/spanning-full1.pdf)
+  (Abraham and Neiman, SIAM J. Comput. 48(2):227–248, 2019) —
+  arbitrary positive-weight low-stretch trees; checked 2012 author full
+  version and precise source scope in `lcp-solvers.md`.
+- [*Faster spectral sparsification and numerical algorithms for SDD matrices*](https://arxiv.org/pdf/1209.5821v3)
+  (Koutis, Levin and Peng, ACM Trans. Algorithms 12(2), Article 17, 2015;
+  DOI 10.1145/2743021) — fixed-precision general spectral sparsification;
+  checked source version and recursive-constructor limits in `lcp-solvers.md`.
+
 - *Nearly-Linear Time Algorithms for Graph Partitioning, Graph
   Sparsification, and Solving Linear Systems* (Spielman and Teng, 2004).
 - *Algorithms, Graph Theory, and Linear Equations in Laplacian Matrices*

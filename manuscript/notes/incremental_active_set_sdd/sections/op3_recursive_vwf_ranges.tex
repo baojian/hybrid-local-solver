@@ -1,0 +1,229 @@
+\section[Recursive numerical ranges]{A spectral edge floor and simultaneous recursive numerical ranges}
+\label{sec:op3-recursive-vwf-ranges}
+
+\paragraph{Scope.}
+This section supplies an implemented preconditioner modification and
+range bounds for the mixed recursion of
+\cref{cor:op3-mixed-recursive-budgets}. All graphs here are supplied,
+connected, loopless positive-weight graphs; parallel edge records are
+allowed. Work is exact-real word work. The new statements are
+\statusproved\ drafts awaiting independent review. They do not establish
+a local graph-discovery algorithm or a fast preconditioner constructor.
+
+\begin{lemma}[A paid spectral preconditioner edge floor; \statusproved]
+\label{lem:op3-spectral-preconditioner-floor}
+Let $G\preceq Q\preceq\kappa_0G$ be graph Laplacians on $n\geq2$
+vertices. Let $c$ be the smallest positive edge weight of $G$, and let
+$m_Q$ be the number of edge records of $Q$. Delete exactly the edges of
+$Q$ whose weights are strictly below
+\[
+ t=\frac{c}{2m_Q(n-1)},
+\]
+and double every retained weight, obtaining $H$. Then
+\[
+ G\preceq H\preceq2\kappa_0G,
+ \qquad c_H\geq\frac{c}{m_Q(n-1)},
+ \qquad W_H\leq2\kappa_0W_G,
+\]
+where $W$ denotes the sum of edge weights. The complete modification
+costs $O(n+m_G+m_Q)$ work and $O(n+m_Q)$ newly allocated words,
+including retained and deleted records.
+If $Q$ is a supplied forest with a retained-root core, no forest edge is
+deleted and the core stays connected. The original objective is unchanged.
+\end{lemma}
+\begin{proof}
+A simple path in $G$ and weighted Cauchy--Schwarz give
+$(x_u-x_v)^2\leq(n-1)x^TGx/c$ for any pair $u,v$.
+The deleted Laplacian $P$ has total weight at most $m_Qt$, so
+$P\preceq G/2$. Therefore $H=2(Q-P)\succeq G$ and
+$H\preceq2\kappa_0G$. The edge floor is the retained threshold after
+doubling. Taking traces proves the weight-sum bound, since a graph
+Laplacian has trace twice its total edge weight.
+
+Every forest edge is a bridge of $Q$. For its component cut $S$, the
+indicator-vector inequality $Q\succeq G$ implies that its weight is at
+least $G(S,V\setminus S)\geq c$. Thus it is not deleted. Connectivity
+of $H$ follows from $H\succeq G$, and with all forest edges retained
+this also gives connectivity of its root core. Scan every original edge
+for $c$, then every supplied edge for the threshold comparison, copying
+and scaling retained records and charging deleted records. No spectral
+test is part of the modification: the input order is its contract.
+The sparse matrix $G$ and its vertex functions are untouched, so there
+is no objective-pruning error to budget.
+\end{proof}
+
+For a VWF problem $\Phi$, use the following nonnegative quantities:
+\[
+ B\geq-\Phi^*,\quad
+ S=\sum_i\max(T_i,0),\quad C=\sum_i h_i,\quad
+ R=\max\{1,U,\max_i(-L_i)\},
+\]
+where $T_i$ is the final derivative, $h_i$ its largest curvature, and
+$U$ the largest nonnegative split (zero if absent). Assume $\Phi(0)\leq0$
+and finite minimum, so $\sum_iT_i\geq0$. The symbols $S,C,R$ in this
+section are numerical ranges, not support sets or input piece counts.
+
+\begin{lemma}[Range propagation for a single recursive step; \statusproved]
+\label{lem:op3-single-recursive-ranges}
+Let a mixed accelerated call use adjusted quality $\kappa\geq1$ and
+requested additive error $\eta>0$. Its normalized inner objective $E$
+satisfies
+\begin{align*}
+ -E^*&\leq B_I:=33\kappa^2(B+\eta),\\
+ S_I&\leq S+32\kappa\sqrt{\kappa W_G(B+\eta)}.
+\end{align*}
+Its domains, splits and curvatures equal those of $\Phi$.
+Exact forest elimination on $H$ gives a coarse objective $F$ with
+\[
+ -F^*\leq B_I,\quad S_F\leq S_I,\quad C_F\leq C+W_H,
+ \quad U_F\leq U+nS_I/c_H.
+\]
+Its lower endpoints are a subset of the original endpoints.
+For any canonical coarse refinement state $a$ with
+$F(a)\leq F(0)\leq0$, the exact residual $F_a$ has
+\begin{align*}
+ -F_a^*&\leq B_I,&
+ S_a&\leq S_F+4\sqrt{2W_FB_I},& C_a&=C_F,\\
+ R_a&\leq2R_F+\sqrt{8K_FB_I},&&K_F=(n_F-1)/c_F.
+\end{align*}
+Compression with common cutoff $\tau\leq1$ and total error $\Xi$
+then gives a child objective satisfying
+\[
+ B_{\rm child}\leq2B_I+2\Xi,\quad
+ S_{\rm child}=S_a,\quad C_{\rm child}\leq C_a,
+ \quad R_{\rm child}\leq2R_a.
+\]
+These bounds apply to every refinement call without summing its state
+ranges over the number of earlier calls.
+\end{lemma}
+\begin{proof}
+The mixed accelerated theorem gives
+$\|x\|_H^2\leq64\kappa^2(\Delta+\eta)$, where
+$\Delta\leq B$. Since $\Phi_x\geq\Phi$,
+\[
+ -E^*=\Phi_x(0)-\Phi_x^*
+ \leq\tfrac12\|x\|_H^2+\Delta\leq B_I.
+\]
+The terminal-mass proof of
+\cref{cor:op3-generic-proximal-terminal-mass} applies with
+$\Delta+\eta\leq B+\eta$. Normalization adds only a linear term and
+subtracts each zero-anchor value. The forest assertions follow from
+\cref{prop:op3-vwf-forest-ranges}; positive parts of disjoint subtree
+tail sums cannot increase their total, and the minimum energy is preserved.
+
+Both the gap at $a$ and the gap at zero are at most $B_I$. The
+gap-to-distance inequality and triangle inequality give
+$\|a\|_{G_F}\leq2\sqrt{2B_I}$. Thus
+\[
+ \|G_Fa\|_1\leq2\sqrt{W_F}\|a\|_{G_F}
+ \leq4\sqrt{2W_FB_I}.
+\]
+The residual final slopes add $(G_Fa)_i$, proving the mass bound.
+Canonicalization gives $\min_iL_i\leq\min_i a_i\leq U_F$;
+the path inequality gives diameter at most $\sqrt{8K_FB_I}$.
+Hence $L_i-a_i\geq-2R_F-\sqrt{8K_FB_I}$, while each positive
+shifted split is at most $U_F-\min_i a_i\leq2R_F$.
+Also $F_a^*=F^*-F(a)\geq F^*$.
+The residual is constructed from the original coarse functions at the
+current state; previous linear shifts are not added again.
+
+The global compression inequality
+$\widehat F_a(x)\geq2F_a(x/2)-2\Xi$ bounds its minimum below by
+$2F_a^*-2\Xi$. The compressor preserves final slopes and does not
+increase total curvature. Every moved split has magnitude at most
+$2\max(R_a,\tau)\leq2R_a$. Lower endpoints are unchanged. These
+facts prove all child bounds, including zero gap and negative individual
+terminal slopes. If the coarse graph has one vertex, minimize that
+scalar function directly and terminate instead of defining $c_F$.
+\end{proof}
+
+\begin{theorem}[A simultaneous logarithmic range bound; \statusproved]
+\label{thm:op3-simultaneous-recursive-ranges}
+Consider any depth-$D$ execution satisfying the preceding contracts,
+using the spectral floor before every exact forest pass and
+\cref{cor:op3-mixed-recursive-budgets}'s error schedule.
+Let $P\geq2$ bound all vertex counts, supplied preconditioner edge counts
+and adjusted qualities. Write $Z\geq2$ for an upper bound on
+\[
+ R_0,\ S_0,\ C_0,\ W_0,\ c_0^{-1},\ B_0+\max(1,\eta_0),
+ \ \eta_0^{-1}.
+\]
+Use a common compression cutoff
+\[
+ \tau=\min\{1,\Xi_0/C_a\},\qquad
+ \Xi_0=\frac{\eta}{2^{35}\kappa},
+\]
+with $\tau=1$ if $C_a=0$. All quantities
+$B,S,C,R,W,c^{-1},\eta^{-1},\tau^{-1}$ at any level have logarithm
+at most
+\[
+ O\bigl((D+1)\log P+\log Z\bigr).
+\]
+The number of nonzero dyadic compression bins per vertex is bounded by
+the same expression. This conclusion needs no lower bound on nonzero
+curvature drops, gaps or split separations.
+\end{theorem}
+\begin{proof}
+Set $Q=2^{40}P^4$ and $E_0=\max(1,\eta_0)$. Along a path, the
+graph-floor and trace bounds give $c_{d+1}^{-1}\leq P^2c_d^{-1}$
+and $W_{d+1}\leq PW_d$. The schedule gives
+$\eta_{d+1}^{-1}\leq2^{34}P\eta_d^{-1}$ and $\eta_d\leq E_0$.
+Since $\Xi\leq\Xi_0\leq\eta_d$,
+\[
+ B_{d+1}+E_0\leq(66P^2+3)(B_d+E_0).
+\]
+Consequently $B_d+E_0,W_d,c_d^{-1},\eta_d^{-1}\leq Q^dZ$.
+The two terminal-mass additions in the preceding lemma give
+\[
+ S_{d+1}\leq S_d+65P^2\sqrt{W_d(B_d+E_0)},\qquad
+ C_{d+1}\leq C_d+PW_d.
+\]
+Geometric summation implies $S_d,C_d\leq Q^{d+1}Z$.
+The inner mass obeys $S_I\leq2Q^{d+1}Z$, and the preconditioner floor
+obeys $c_H^{-1}\leq Q^{d+1}Z$. Combining the forest, residual and
+compression radius bounds therefore gives inductively
+\[
+ R_d\leq Q^{2d+2}Z^2.
+\]
+For completeness, in its induction step the term $4R_d$ contributes
+at most $4Q^{2d+2}Z^2$, the forest addition contributes at most
+$8P Q^{2d+2}Z^2$, and the diameter term contributes at most
+$33P^2Q^{2d+2}Z^2$. Their sum is below $Q^{2d+4}Z^2$.
+Also $C_a\leq2Q^{d+1}Z$, whence
+\[
+ \tau^{-1}\leq\max\{1,2^{35}PC_a/\eta_d\}
+ \leq Q^{2d+2}Z^2.
+\]
+Taking logarithms proves the stated bounds and the bin count
+$O(1+\log(R_a/\tau))$. The chosen cutoff gives
+$\Xi\leq C_a\tau^2/8\leq\Xi_0$.
+The ordering of these inductions matters: graph weights and energy are
+bounded first, slopes and curvature second, and radius last. No new
+$A^2$ input-gap bound is substituted at each recursive level.
+\end{proof}
+
+\paragraph{Which numbers the result controls.}
+The derivative-at-zero mass obeys
+$\sum_i|f_i'(0)|\leq2S+CR$, because $\sum_iT_i\geq0$ and the
+derivative drop from the final ray to zero is at most $h_iR$.
+Individual zero-anchor values remain in $[-B,0]$ after an exact pass;
+residual anchors are zero, and compression's negative anchor shifts
+total at most $\Xi$. These facts also bound ordinary piece coefficients
+by fixed-degree polynomials in $B,S,C,R$. Tiny nonzero jumps and affine
+tag cancellations can remain. The theorem is not Assumption 3.15 for
+every encountered nonzero, nor is it a rational bit-complexity theorem.
+The implemented persistent and compression operations charge their
+comparisons, arithmetic, stored versions and scans without depending on
+the magnitude of a nonzero jump.
+
+\paragraph{Source construction still requires a separate check.}
+CPW Lemma 4.4, PDF p.~19, explicitly assumes polynomial edge-weight
+ratio; its Algorithm 3 and work recurrence are on p.~20. The preceding
+range theorem alone does not imply that ratio is polynomial in the
+current, shrinking vertex count. It cannot silently discharge the source
+hypothesis. Sections 5.1--5.6 reduce construction to weighted low-stretch
+trees, exact tree decomposition/routing and core spectral sparsification.
+The weighted source primitives are being checked individually before any
+stronger constructor contract is imported. Even a complete supplied-graph
+recurrence would still need a separate local-discovery and cumulative-work
+argument for original OP3. General OP3 remains \statusopen.

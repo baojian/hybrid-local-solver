@@ -692,3 +692,37 @@ paper does not state an output-sensitive theorem for an unknown support.
 
 The theorem-level formulation and the exact projected-CG obstruction are in
 `manuscript/notes/active_edge_lcp/`.
+
+
+### Second-night weighted constructor check (8 September 2026)
+
+**Source.** Abraham and Neiman, [*Using Petal-Decompositions to Build a Low
+Stretch Spanning Tree*](https://www.cs.bgu.ac.il/~neimano/spanning-full1.pdf),
+SIAM J. Comput. 48(2):227–248 (2019). The checked author full version is
+dated March 22, 2012. Theorem 1 is on PDF p.2; Sections 6–7, PDF pp.17–18
+(printed pp.16–17), explicitly extend the construction to arbitrary positive
+weights. Their scale contraction limits each edge's participating scales.
+The stated stretch and work are O(m log n log log n). The weighted-extension
+pages were rendered and visually checked. This is a supplied graph source
+primitive; no local discovery is provided.
+
+**Source.** Koutis, Levin and Peng, [*Faster spectral sparsification and
+numerical algorithms for SDD matrices*](https://arxiv.org/pdf/1209.5821v3),
+ACM Trans. Algorithms 12(2), Article 17 (2015), DOI 10.1145/2743021.
+Checked arXiv v3: Sections 3.1/3.4 and 4.1–4.2, Theorem 4.2 on PDF p.9
+(rendered and visually checked). General positive weights are permitted
+with minimum weight scaled to one. The general sparsifier has O(n log n)
+edges at constant approximation and uses fixed solver precision. The
+solver interface is a symmetric approximate inverse operator. Later
+integer-weight or dense-graph shortcuts are not needed here.
+
+**Audit / inference.** These primitives are relevant to CPW's construction,
+but CPW Lemma 4.4 itself explicitly retains a polynomial weight-ratio
+hypothesis (PDF p.19); its recursive schedule is on p.20, both visually
+checked. The new note-local edge-floor wrapper and simultaneous range
+theorem do not by themselves establish that hypothesis for shrinking n.
+A source-derived weighted constructor and global confidence allocation
+must be reconciled before removing it. The candidate supplied recurrence,
+with all vertex-piece work and nonconstant base costs, is saved in
+`SUPPLIED_GLOBAL_RECURSION_PROBE.md` in the incremental note. It remains
+Conditional at this checkpoint. General OP3 and local discovery remain Open.

@@ -1,6 +1,49 @@
 # incremental_active_set_sdd
 
-## Second night, block 10: mixed additive numerical recursion
+## Second night, block 11: spectral edge floors and recursive ranges
+
+**General OP3 remains Open.** The new section
+`sec:op3-recursive-vwf-ranges` proves a paid preconditioner edge-floor
+wrapper, complete one-step range propagation and a simultaneous
+logarithmic bound through a supplied mixed recursion. Deleting sufficiently
+small preconditioner edges and doubling retained weights preserves spectral
+order at twice the quality; every forest bridge survives. The original
+objective is unchanged, so this uses no objective-error budget.
+
+The range induction controls energy and graph weights first, then final
+slopes/curvature, then domains and breakpoints. With depth D, size/quality
+bound P and initial numerical bound Z, logarithmic ranges and compression
+bins are O((D+1) log P+log Z). No minimum positive curvature drop, gap or
+split separation is assumed. These are **Proved here** drafts. They are
+not a statement that every encountered nonzero meets CPW Assumption 3.15.
+
+**Measured:** The spectral audit passes 150 cases, 750 exact PSD
+certificates, 5,598 cut certificates, 213 bridge checks and 21 threshold
+ties. The range audit passes 108 proximal/forest steps and 432
+residual/compressed-child steps, including 27 zero initial gaps, 121
+negative individual model slopes and 135 positive compression errors.
+Common energy scales and signed events at 2^-100 are included. Dense
+minima, matrices and cuts are validators, not production costs.
+
+**Source / next target:** CPW's constructor still explicitly assumes a
+polynomial weight ratio. The underlying Abraham–Neiman arbitrary-weight
+low-stretch-tree and Koutis–Levin–Peng fixed-precision sparsifier statements
+were checked in their primary PDFs and recorded in the literature index
+and topic note. Resume `SUPPLIED_GLOBAL_RECURSION_PROBE.md`: reconcile a
+complete weighted constructor/confidence contract, formalize the full
+supplied work recurrence, and run a genuinely nested accelerated audit.
+These full-recursion claims remain **Conditional** here. Local discovery
+and cumulative graph work remain **Open**.
+
+The 117-page note builds without warnings or unresolved references;
+pages 112–115 were visually reviewed. All 56 scripts pass focused
+lint/format and three registry tests pass. Broad checks retain the same
+baseline failures and five unchanged hashes; reproduction stops at the
+test prerequisite. See `OVERNIGHT_20260907_BLOCK11_AUDIT.json` and
+`VERIFICATION.md`. Formal note dependencies remain empty.
+
+
+## Historical second-night block 10: mixed additive numerical recursion
 
 **General OP3 remains Open.** The new section
 `sec:op3-mixed-additive-oracles` proves compression embedding, guarded

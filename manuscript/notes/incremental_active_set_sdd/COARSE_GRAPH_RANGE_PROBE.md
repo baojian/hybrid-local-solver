@@ -1,5 +1,12 @@
 # Recursive graph floors and numerical ranges
 
+**Block 11 update:** The spectral floor and simultaneous range derivations
+below are now proved drafts and exact-audited in
+`sec:op3-recursive-vwf-ranges`. The optional precision lemma remains a
+candidate. Resume `SUPPLIED_GLOBAL_RECURSION_PROBE.md`; this earlier
+derivation is retained as development history.
+
+
 Second-night block 10 continuation. **Conditional derivations to formalize
 and audit**, not yet proved claims. General OP3 remains **Open**. Block 10's
 mixed additive recursion is proved and audited separately in
