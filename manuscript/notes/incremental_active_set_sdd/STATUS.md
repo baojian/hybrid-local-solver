@@ -1,6 +1,56 @@
 # Direction status: incremental_active_set_sdd
 
-## Second night, block 5: computable certificates and source-objective mapping
+## Second night, block 6: global signed compression and original sublevels
+
+**General OP3 remains Open.** `thm:op3-global-vwf-compression` now
+implements a scalar compression valid on the entire VWF domain. Tiny
+signed breakpoints distribute their curvature between zero and a fixed
+nearby breakpoint; a controlled constant shift makes the approximation
+one-sided. The final derivative is unchanged. Dyadic compression then
+satisfies `F >= F_hat >= 2*F(x/2)-2*xi`, with `xi<=C*tau^2/8` and
+O(k+1+log(R/tau)) charged word work. This removes dependence on the
+smallest split and on an evaluation radius for this operation. It still
+needs a largest-split and curvature/error bound, and tiny curvature weights
+may remain. It is not a proof of the source's all-number assumption.
+
+`cor:op3-global-vwf-energy-embedding` gives the exact one-call graph
+scaling and additive budget. `lem:op3-original-capped-coercivity` bounds
+original feasible sublevels by `lambda*sum(x)-1/(2*bar_alpha)`.
+`prop:op3-seed-only-shortcut` returns a certified original ACL output with
+one degree query and no adjacency reads when diffusion is weak enough;
+remaining cases have `gamma>eps_appr`. These are **Proved here**, drafts
+awaiting independent review, with their limited scopes stated in the note.
+
+**Measured:** 1,212 global compressions with 23,000 complete polynomial
+overlay intervals, 87,152 finite-interval inequalities, 4,848 infinite-ray
+inequalities and exact preservation of every final derivative. Signed splits
+reach 2^-2048. The weaker bounded baseline has 1,206 functions and 18,616
+full intervals. The original coercivity/shortcut audit checks 1,644 graph
+cases, 7,716 complete vertex bounds and three implicit stars with up to
+10^30 leaves. Reference graph matrices and optima remain validators.
+
+**Source / context:** CPW's signed geometric argument, Lemma 7.7 and the
+proof of Lemma 6.4, was visually checked on PDF pp. 37–39. The new global
+regularization and perspective proof are local drafts, not source imports.
+The actual normalized proximal instance in Claim 8.19 was reread; absolute
+proximal tolerances remain a concrete next target.
+
+**Next falsifiable target:** `GLOBAL_VWF_RECURSION_PROBE.md`. Prove a
+single elimination-pass upper-breakpoint bound and a parameter-explicit
+absolute-error policy for one original-capped accelerated invocation.
+Then trace shifted residual instances and the full recursion/error budget.
+Unknown-support graph discovery and cumulative supplied-graph work remain
+open even if the numerical source interface is repaired.
+
+Current checks: `OVERNIGHT_20260907_BLOCK6_AUDIT.json` and `VERIFICATION.md`.
+The 101-page note builds without final warnings; new pages 94–98 and the
+changed end pages 99–101 were visually reviewed. All 46 direction scripts
+pass focused lint/format and three registry tests pass. Required project
+checks retain the same baseline failures, with all five baseline hashes
+unchanged. The eight new active hours remain in progress in the actual-time
+ledger.
+
+## Historical second-night block 5: computable certificates and source-objective mapping
 
 **General OP3 remains Open.** `thm:op3-local-gap-certificate` implements
 an original-accuracy certificate using only positive candidate rows and

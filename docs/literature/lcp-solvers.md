@@ -118,11 +118,18 @@ that condition. The note's `lem:op3-capped-grounding-vwf` supplies an
 equivalent two-piece objective using a known potential bound and final
 boxing; `thm:op3-local-gap-certificate` supplies a computable original
 accuracy certificate. Both are note-local proof drafts, not source imports.
-Fact 7.2 and the compression argument, PDF pp. 35–37, use breakpoint
-range to bound the number of geometric bins. Certified edge pruning does
-not establish an analogous bound for these scalar functions. The next
-specific probe is
-[`BOUNDED_VWF_COMPRESSION_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/BOUNDED_VWF_COMPRESSION_PROBE.md).
+Fact 7.2 and the compression argument, PDF pp. 35–39, use breakpoint
+range to bound the number of geometric bins. Lemma 7.7 and the proof of
+Lemma 6.4 were visually checked on pp. 37–39. The note-local
+`thm:op3-global-vwf-compression` adds moment regularization of tiny signed
+splits, with a global additive budget and an unchanged final derivative.
+It removes the smallest-split and evaluation-radius dependence for this
+scalar operation. Largest-split, curvature and recursive error bounds
+remain separate; tiny curvature weights can still occur. This does not
+establish Assumption 3.15 or import the source's fast solver. The next
+specific targets, including the actual normalized proximal objective in
+Claim 8.19, are in
+[`GLOBAL_VWF_RECURSION_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/GLOBAL_VWF_RECURSION_PROBE.md).
 
 ### Second-night check: curve primitives and dynamic flow
 

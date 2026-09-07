@@ -1,0 +1,183 @@
+\section[Global VWF compression]{Global signed VWF compression with an absolute error budget}
+\label{sec:op3-global-vwf-compression}
+
+\paragraph{Status and input contract.}
+These are \statusproved{} drafts for a supplied scalar function, not a
+recursive diffusion solver. The input is a vertex weighting function on
+$[L,\infty)$, $L\leq0$, given by its sorted curvature-drop events:
+\begin{equation}
+ F(x)=c+ax+\sum_{j=1}^k q_j B_{s_j}(x),\qquad
+ c\leq0,\quad q_j>0,\quad L<s_1<\cdots<s_k,
+ \label{eq:op3-vwf-atoms}
+\end{equation}
+where
+\[
+ B_s(x)=
+ \begin{cases}
+  (s-x)_+^2/2,&s\leq0,\\
+  x^2/2-(x-s)_+^2/2,&s\geq0.
+ \end{cases}
+\]
+The formulas agree at $s=0$. Each atom is convex in $x$, has value and
+derivative zero at zero, and has second derivative $\one_{x<s}$ off its
+breakpoint. Thus $c=F(0)$, $a=F'(0)$, and $C=\sum_jq_j$ bounds the initial
+curvature. A supplied piecewise quadratic VWF has this representation by
+listing its nonzero curvature drops; the constant final derivative makes
+the remaining quadratic coefficient zero. Conversion costs $O(1+k)$.
+
+Chen--Peng--Wang's geometric compression uses the same signed atoms and
+rounds breakpoints away from zero; see Lemma 7.7 and the proof of Lemma 6.4,
+PDF pp.\ 37--39 \citep{chen2021diffusion}. Their size bound uses the
+encountered-number assumption through Fact 7.2. The following regularization
+removes dependence on the smallest nonzero breakpoint for this operation.
+It does not bound every number encountered by the source algorithm.
+
+\begin{lemma}[Tiny-breakpoint moment regularization; \statusproved]
+\label{lem:op3-vwf-moment-regularization}
+Fix $\tau>0$. For every event with $r=|s|<\tau$, replace $qB_s$ by
+\[
+ q(1-r/\tau)B_0+q(r/\tau)B_{\operatorname{sgn}(s)\tau}.
+\]
+For $s=0$ the second term is omitted. For each negative such event also
+subtract the constant $A_s=qr(\tau-r)/2$. Leave all other events unchanged.
+Call the result $F_{\rm reg}$ and set
+\begin{equation}
+ \xi=\sum_{|s_j|<\tau}\frac{q_j|s_j|(\tau-|s_j|)}2
+ \leq \frac{C\tau^2}{8}.
+ \label{eq:op3-global-regularization-error}
+\end{equation}
+Then, on the entire original domain,
+\[
+ 0\leq F(x)-F_{\rm reg}(x)\leq\xi.
+\]
+The result is a VWF, has the same derivative at zero and the same final
+derivative as $F$, and has no greater initial curvature.
+\end{lemma}
+\begin{proof}
+For fixed $x$, the function $s\mapsto B_s(x)$ on $[0,\tau]$ is concave,
+with second derivative between $-1$ and zero wherever it exists. Its chord
+lies below it by at most $r(\tau-r)/2$. This last bound follows by
+subtracting the chord and comparing with $s(\tau-s)/2$: their difference
+is convex and zero at both endpoints. On $[-\tau,0]$ the same function
+is convex with second derivative between zero and one. Its chord lies
+above it by at most $r(\tau-r)/2$. Subtracting this upper bound therefore
+makes the negative-event replacement a lower approximation as well.
+These statements also hold at the piecewise quadratic joins by continuity.
+Sum the individual nonnegative errors and use $r(\tau-r)\leq\tau^2/4$.
+
+All replacement curvature weights are nonnegative and have the same total
+as their input event. The new value at zero is
+$c-\sum_{-\tau<s_j<0}A_{s_j}\leq0$, and the derivative there remains $a$.
+The final derivative is $a+\sum_{s_j>0}q_js_j$. Every positive replacement
+preserves its contribution because $(qr/\tau)\tau=qr$; negative and zero
+atoms contribute zero. An event at or below $L$ is identically zero on
+the domain and may be omitted. Such omissions can only decrease the
+listed initial curvature.
+\end{proof}
+
+\begin{theorem}[Global dyadic compression; \statusproved]
+\label{thm:op3-global-vwf-compression}
+Let $R=\max\{\tau,\max_j|s_j|\}$. After the regularization above, round
+every nonzero event $s$ away from zero to the smallest signed dyadic grid
+point $t$ of magnitude at least $|s|$, on the grid
+$\tau,2\tau,4\tau,\ldots$. Replace its weight $q$ by $q|s|/|t|$.
+Keep zero events explicitly without taking a ratio. The resulting VWF
+$\widehat F$ satisfies, for every $x\geq L$,
+\begin{equation}
+ F(x)\geq\widehat F(x)\geq2F(x/2)-2\xi.
+ \label{eq:op3-global-vwf-compression}
+\end{equation}
+It preserves the final derivative, has initial curvature at most $C$, and
+has at most $2(1+\lceil\log_2(R/\tau)\rceil)+1$ events. Every nonzero
+output breakpoint has magnitude between $\tau$ and $2R$.
+Construction costs $O(1+k+\log(R/\tau))$ exact-real word operations and
+$O(1+\log(R/\tau))$ additional allocated words, including the output.
+The input event storage is supplied and is not counted as new allocation.
+\end{theorem}
+\begin{proof}
+For any signed $s$ and any $b>0$, direct substitution gives
+$B_{bs}(x)=b^2B_s(x/b)$. Since $B_s$ is convex and $B_s(0)=0$,
+$bB_s(x/b)$ is nonincreasing in $b>0$: for $0<b_1\leq b_2$, apply
+convexity to $x/b_2=(b_1/b_2)(x/b_1)+(1-b_1/b_2)0$.
+For a rounded event, $t=bs$ with $1\leq b\leq2$, hence
+\[
+ 2qB_s(x/2)\leq (q/b)B_{bs}(x)\leq qB_s(x).
+\]
+This proof applies to positive and negative $x,s$. A zero event is kept
+exactly and obeys the same inequalities by convexity. Summing and using
+$F_{\rm reg}(0)\leq0$ gives
+$2F_{\rm reg}(x/2)\leq\widehat F(x)\leq F_{\rm reg}(x)$.
+Here $x/2\geq L$, since $L\leq0$. The preceding lemma now gives
+\eqref{eq:op3-global-vwf-compression}. Rounding preserves $qs$ for positive
+events and never increases a curvature weight. The constant and linear
+terms are retained, proving the derivative claims.
+
+One scan finds $R$. Repeated doubling builds the finite grid; no constant-time
+real logarithm oracle is assumed. A second scan of the sorted events fills
+positive, negative and zero bins. A negative-side pointer moves monotonically
+toward zero, and a positive-side pointer moves monotonically away from zero.
+Tiny events enter just the three bins $-\tau,0,\tau$, including the constant
+shift. Each pointer visits the grid at most once. Finally stream the bins
+in sorted order, omitting zero weights and events at or below $L$.
+All scans, bins, output records and allocations fit the stated bounds;
+neither comparison sorting nor an uncharged hash table is needed.
+\end{proof}
+
+\paragraph{Choice of the absolute budget.}
+For a requested $\xi_0>0$ and $C>0$, the conservative word-computable choice
+$\tau=\min\{1,\xi_0/C\}$ ensures $C\tau^2/8\leq\xi_0$.
+If $C=0$, return the affine input exactly. This does not require extracting
+a square root. The size bound then depends logarithmically on the largest
+split, curvature upper bound and requested error. Tiny curvature weights
+can still remain: $q=1$, $s=2^{-2048}$, $\tau=2^{-10}$ creates a weight
+$2^{-2038}$ at $\tau$. Thus the theorem is not a proof of the source's
+Assumption 3.15, even though the tiny split itself has disappeared.
+
+\begin{corollary}[One compressed graph-objective embedding; \statusproved]
+\label{cor:op3-global-vwf-energy-embedding}
+Let $E(x)=x^\top\mathcal Lx/2+\sum_iF_i(x_i)$ on
+$x_i\geq L_i$, where $\mathcal L$ is a graph Laplacian and $L_i\leq0$.
+Compress each vertex function as above and let $\Xi=\sum_i\xi_i$.
+For the resulting objective $\widehat E$,
+\[
+ E(x)\geq\widehat E(x)\geq2E(x/2)-2\Xi.
+\]
+Assume the infima are finite, $E^*<0$, $\beta\geq1$, and a feasible
+candidate obeys $\widehat E(w)\leq\widehat E^*/\beta$.
+Then $E(w/2)\leq E^*/(2\beta)+\Xi$.
+If additionally $\Xi\leq|E^*|/(4\beta)$, it is a $4\beta$-approximation
+in the negative-energy convention: $E(w/2)\leq E^*/(4\beta)$.
+\end{corollary}
+\begin{proof}
+The upper bound follows term by term. The lower bound has an additional
+nonnegative quadratic $x^\top\mathcal Lx/4$, besides the scalar lower
+bounds. Since $\widehat E^*\leq E^*$, substitution of the candidate gives
+the claim. Feasibility is preserved by division by two.
+\end{proof}
+
+\paragraph{Weaker bounded-domain construction retained for comparison.}
+On $[\max\{L,-R\},R]$, dropping events at or below $-R$ and clamping
+events above $R$ to $R$ changes no atom value. Moving every $|s|<\tau$
+to zero changes its atom by at most $R|s|$: this follows directly from
+the two formulas in \eqref{eq:op3-vwf-atoms}. Put
+$\xi_R=R\sum_{|s|<\tau}q|s|$, and call the snapped function $G$, retaining
+the original affine terms. Thus $|G-F|\leq\xi_R$ on this interval.
+Its dyadic compression $H$ obeys $G\geq H\geq2G(x/2)$ by the perspective
+argument above. Return $\widehat F_R=H-\xi_R$. Then
+$F\geq\widehat F_R\geq2F(x/2)-3\xi_R$ on the bounded domain.
+We use the stronger global theorem for subsequent arguments.
+Deleting a tiny negative event outright is invalid: at $x=-1$,
+$B_{-\tau/2}(x)=(1-\tau/2)^2/2$, which does not tend to zero with $\tau$.
+
+\paragraph{Audit and remaining obligations.}
+\texttt{global\_vwf\_compression.py} audits 1,212 supplied functions in
+exact rational arithmetic, including splits of both signs down to
+$2^{-2048}$. Independent polynomial overlays certify 23,000 complete
+intervals, 87,152 finite-interval inequalities and 4,848 infinite-ray
+inequalities; all 1,212 final derivatives agree exactly. All grid scans,
+pointer moves and output allocations are charged. The separate bounded
+baseline audits 1,206 functions and 18,616 complete finite intervals.
+These are implementations of scalar compression, not of the source solver.
+Recursive upper-split and curvature bounds, additive budgets through all
+refinement calls, and local graph discovery with cumulative paid work
+remain \statusopen. General OP3 is unchanged.

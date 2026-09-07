@@ -1,0 +1,89 @@
+\section[Original capped sublevels]{Original capped sublevels and a degree-only ACL shortcut}
+\label{sec:op3-capped-sublevels}
+
+\paragraph{Scope.}
+Return to the original simple connected unweighted graph, physical seed
+$v$, $\gamma=(1-\alpha)/(1+\alpha)$, $\bar\alpha=1-\gamma$, and
+$\lambda=\epsappr/2$. The following \statusproved{} drafts use original
+degrees. They do not assert a bound for every recursive or accelerated
+query of a generalized diffusion solver.
+
+\begin{lemma}[Original capped coercivity; \statusproved]
+\label{lem:op3-original-capped-coercivity}
+Apply \cref{lem:op3-capped-grounding-vwf} with
+$h_i=\bar\alpha d_i$, $f=e_v-\lambda d$, and cap $U=1/\bar\alpha$.
+For every feasible $x\geq0$,
+\begin{equation}
+ E_{\rm cap}(x)\geq\lambda\sum_i x_i-\frac1{2\bar\alpha}.
+ \label{eq:op3-original-capped-coercivity}
+\end{equation}
+In particular, $E_{\rm cap}(x)\leq B_E$ implies
+$\sum_i x_i\leq(B_E+1/(2\bar\alpha))/\lambda$.
+The nonpositive sublevel lies in a box of radius
+$1/(2\bar\alpha\lambda)$ in every coordinate.
+\end{lemma}
+\begin{proof}
+Every edge term is nonnegative. At a nonseed vertex, the capped quadratic
+grounding is nonnegative and the load term is $\lambda d_ix_i$,
+so $q_i(x_i)\geq\lambda x_i$. At the seed, put
+$a=f_v+\lambda=1-\lambda(d_v-1)\leq1$. On $[0,U]$,
+\[
+ q_v(x)-\lambda x=\bar\alpha d_vx^2/2-ax
+ \geq-\frac{\max\{a,0\}^2}{2\bar\alpha d_v}
+ \geq-\frac1{2\bar\alpha}.
+\]
+Beyond the cap, the derivative of $q_v(x)-\lambda x$ is
+$d_v-a=(d_v-1)(1+\lambda)\geq0$. Its minimum is therefore already
+attained on the quadratic interval. Sum the vertex bounds.
+\end{proof}
+
+\begin{proposition}[One degree query for weak diffusion; \statusproved]
+\label{prop:op3-seed-only-shortcut}
+One original seed-degree query suffices for the following ACL certificates.
+If $\epsappr d_v\geq1$, return zero. Otherwise, if
+$\gamma\leq\epsappr d_v$, return the physical vector $u=e_v/d_v$,
+whose ACL output is $\bar\alpha Du=\bar\alpha e_v$.
+Both branches cost $O(1)$ words and operations and read no adjacency entry.
+If neither branch applies, then $\gamma>\epsappr d_v\geq\epsappr$.
+\end{proposition}
+\begin{proof}
+For zero, the residual is $e_v$, which obeys
+$0\leq e_v\leq\epsappr d$ precisely under the stated condition.
+For $u=e_v/d_v$ and $M=D-\gamma A$, the residual at $v$ is zero.
+Every neighbor has residual $\gamma/d_v\leq\epsappr\leq\epsappr d_i$;
+all other residuals are zero. This proves the original ACL certificate
+without revealing who the neighbors are. Degree, parameter arithmetic
+and the single output coordinate take constant work. The final strict
+inequality follows from failure of the two tests and $d_v\geq1$.
+\end{proof}
+
+The shortcut is an approximate ACL output, not an exact obstacle solution.
+It removes a possible logarithmic dependence on $1/\gamma$ from the input
+of a remaining algorithm: on its remaining branch,
+$\log(1/\gamma)<\log(1/\epsappr)$. It does not remove polynomial
+$1/\bar\alpha$ work from any solver or establish OP3 by itself.
+
+\paragraph{A conditional coercivity transfer.}
+If a compressed graph objective obeys the global embedding in
+\cref{cor:op3-global-vwf-energy-embedding}, and its input satisfies
+$E(x)\geq\lambda\sum_i x_i-C_0$ on $x\geq0$, then
+\[
+ \widehat E(x)\geq\lambda\sum_i x_i-2C_0-2\Xi.
+\]
+This follows by substituting $x/2$ in the input bound. It gives a concrete
+way to track sublevels through one compression. To use repeated transfers,
+one must bound the actual compression depth and total accumulated errors;
+counting only a single invocation would not suffice.
+
+\paragraph{Audit.}
+\texttt{capped\_sublevel\_bounds.py} checks all 30 connected atlas graphs
+on two through five vertices, every physical seed, three teleportation
+values and four original ACL tolerances: 1,644 cases. Exact quadratic
+minima and final-ray slopes certify all 7,716 vertex bounds; 16,440
+feasible vectors check the original capped objective, including values
+beyond the cap. There are 411 zero shortcuts, 685 seed-only shortcuts and
+548 continuations, all checked against the original matrix. Implicit
+center-seeded stars with $16$, $10^{12}$ and $10^{30}$ leaves certify one
+degree query, zero adjacency reads and the exact threshold tie. The graph
+enumeration and dense obstacle solutions are validators, not charged
+operations of the constant-work shortcut.

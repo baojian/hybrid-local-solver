@@ -1,5 +1,12 @@
 # Bounded scalar-function compression after the computable certificate
 
+**Historical block 5 probe, superseded after block 6.** The bounded primitive,
+original sublevel bound and seed-only shortcut below were implemented and
+audited. A stronger global moment regularization now avoids the evaluation
+radius altogether. Continue from `GLOBAL_VWF_RECURSION_PROBE.md`; preserve
+this file as the dated candidate record rather than treating its old
+"not yet implemented" statements as current status.
+
 Second-night block 5 checkpoint. General OP3 remains **Open**. The source
 and supplied-instance questions below remain separate from unknown-support
 graph discovery. Start a fresh actual interval before continuing.

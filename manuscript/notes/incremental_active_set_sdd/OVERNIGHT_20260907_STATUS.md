@@ -8,28 +8,27 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 5 and next work
+## Completed block 6 and next work
 
-The computable local candidate certificate, capped grounding-to-VWF
-objective mapping, fully positive physical Schur range witness, and
-certified supplied-edge pruning rule are now proof drafts. Use the newest
-README/STATUS checkpoint and `OVERNIGHT_20260907_BLOCK5_AUDIT.json`.
-General OP3 remains Open; no fast constrained source algorithm is imported.
+Global signed VWF moment compression, its one-call graph embedding,
+original capped coercivity and a degree-only ACL shortcut are now proof
+drafts with complete exact audits. Use the newest README/STATUS checkpoint
+and `OVERNIGHT_20260907_BLOCK6_AUDIT.json`. General OP3 remains Open.
+No fast constrained source solver has been imported.
 
-Resume `BOUNDED_VWF_COMPRESSION_PROBE.md`. It gives a specific signed
-small-split-to-zero proposal with an additive Bregman error bound. Audit
-complete intervals and the zero split, then combine it carefully with
-source geometric compression. The key missing contracts are bounds on
-all queried fields and curvature, plus an accumulated approximation budget
-through residual refinements and recursion. The original optimum's box
-alone does not bound accelerated extrapolation or shifted subproblems.
+Resume `GLOBAL_VWF_RECURSION_PROBE.md`. It replaces the weaker bounded
+field route: the new scalar compression is valid on the whole domain,
+retains the final derivative, and does not depend on the smallest split.
+Remaining numerical targets are largest-split and curvature bounds through
+elimination, and a known absolute proximal error policy using the original
+capped coercivity and the source's actual normalized oracle objective.
+Do not assume all recursive domains or individual tail slopes stay original.
 
-The gap certificate now supplies a computable stopping rule and a known
-minimum gap while further refinement is needed. It still charges a scan
-of the candidate's positive rows. Preserve the separate generic graph
-exposure and cumulative supplied-graph obligations. The new probe also
-records an unimplemented seed-only input-scale shortcut worth checking.
-Do not repeat completed audits or return primarily to more special graphs.
+After the bounded probes, trace the complete recursion and cumulative
+additive error. Keep unknown-support graph discovery, supplied-instance
+construction, failed certificate scans and cumulative support-volume work
+as separate general obligations. Do not repeat completed audits or return
+primarily to more special graphs.
 
 The campaign stays ACTIVE until 480 new active minutes are verified. Start
 and close actual intervals in the separate ledger; exclude heartbeat idle

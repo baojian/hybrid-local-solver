@@ -1,6 +1,7 @@
 # OP3 exploration verification
 
-Latest block: see **Overnight block 14** below and
+Latest block: see **Second night, block 6** below and
+`OVERNIGHT_20260907_BLOCK6_AUDIT.json`. The first-night synthesis is
 `OP3_MORNING_DECISIONS_20260907.md`. The earlier dated entries are historical
 verification records; their then-uncommitted status is not current Git state.
 
@@ -1110,3 +1111,44 @@ and proof sources are tracked.
 cumulative local-work obligations, and keep unreviewed claims out of the
 active manuscript/shared results ledger. Existing commit/push authorization
 and the active same-task heartbeat remain in force.
+
+## Second night, block 6: global signed VWF compression
+
+The full exact audits pass for `bounded_vwf_compression`,
+`global_vwf_compression` and `capped_sublevel_bounds`. Their durable JSON
+records include input families, seeds, parameters, stopping rules, source
+and backend hashes, measured work and explicit algorithm/validator scope.
+There are 1,206 bounded and 1,212 global compression cases, including
+4,848 complete infinite-ray inequalities and 1,212 exact final derivatives.
+The original graph audit has 1,644 cases, 7,716 vertex minima/ray bounds,
+16,440 capped-energy checks and three implicit constant-work star cases.
+
+One initial bounded audit failed because the validator's empty polynomial
+sum produced Python float zero before division. The validator now uses
+an exact Fraction zero initializer and asserts exact coefficient types;
+all final full audits passed. This was a validator defect, not a mathematical
+counterexample. Outright deletion of a tiny negative curvature event was
+separately refuted and is retained as a diagnostic.
+
+The new proofs are drafts awaiting independent review. The graph embedding
+is one compression call; the original coercivity is for feasible original
+points; the degree-only shortcut is ACL-only. No recursive source runtime
+or general OP3 theorem is claimed. Source PDF pp. 37–39 were rendered and
+visually checked before recording the geometric-compression provenance.
+
+The standalone note builds to 101 pages with no final warnings, undefined
+references/citations or overfull boxes. Pages 94–101 were rendered and
+visually inspected. Ownership audit, focused lint and formatting for all
+46 direction scripts, three registry tests and diff whitespace checks pass.
+Required tests retain 231 passed and the same three unrelated failures;
+required lint retains two unrelated findings; note inventory retains the
+two oversized AESP sources. All five baseline file hashes are unchanged.
+`make reproduce` stops at the failed test prerequisite; no later stage is
+claimed. Temporary-directory cleanup warnings remain visible in test logs.
+See the block audit for exact exit codes and local log paths.
+
+The stronger global primitive supersedes the bounded evaluation-domain
+probe. `GLOBAL_VWF_RECURSION_PROBE.md` records remaining largest-split,
+curvature, recursive error, normalized proximal objective and local-work
+obligations. The 480-new-active-minute campaign continues; no idle time
+or first-night work is counted.
