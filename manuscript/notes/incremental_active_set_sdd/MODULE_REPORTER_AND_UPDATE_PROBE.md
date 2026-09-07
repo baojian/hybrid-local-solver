@@ -1,5 +1,22 @@
 # Next local-module probe: weighted-depth reporting and changing curves
 
+## Block 3 update
+
+The fixed-response reporter and known convex summand removal are now
+**Proved here**, drafts awaiting independent review, and implemented.
+Authoritative proofs: `sections/op3_module_reporter.tex` and
+`sections/op3_module_curve_removal.tex`. Their exact records are
+`MODULE_VALUE_REPORTER_AUDIT.json` and `MODULE_CURVE_REMOVAL_AUDIT.json`.
+The reporter supports arbitrary fields and positive target increases or
+decreases; it uses dense indexed heaps and preserves all curve versions.
+Removal deletes zero slope jumps and uses the common transformed field.
+
+Resume `MODULE_ADMISSION_COST_PROBE.md` for the remaining changed-curve
+work and a possible original-residual charge. The original proposal and
+reachable module-split witness below are preserved as historical context.
+
+## Historical proposal
+
 Date: 8 September 2026, second night, block 2. **Conditional / Open** until
 independent proof and exact audit. Do not confuse a supplied decomposition
 with a locally constructed one. General OP3 remains **Open**.

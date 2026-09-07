@@ -1,0 +1,164 @@
+\section[Fixed-module coordinate reporter]{Strict coordinate reporting on fixed supplied modules}
+\label{sec:op3-module-reporter}
+
+\paragraph{Status and scope.}
+The results below are \statusproved{} drafts awaiting independent review.
+They use the fixed original matrix, supplied reduced decomposition, core
+physical seed and persistent responses of
+\cref{thm:op3-persistent-modules}. They do not update that decomposition or
+its responses after a graph admission. The external physical field $h$ is
+common to the core coordinates only. The implementation permits arbitrary
+field queries and arbitrary changes of positive core targets, including
+decreases. No monotone-query restriction is needed.
+
+\begin{lemma}[Original degree pays for a coordinate path; \statusproved]
+\label{lem:op3-module-weighted-depth}
+For each core vertex $i$, its depth in a reduced union/join decomposition
+satisfies
+\begin{equation}
+ \operatorname{depth}(i)\leq 2\deg_C(i)+1\leq 2d_i+1.
+ \label{eq:op3-module-weighted-depth}
+\end{equation}
+The depth is the number of edges from the root to its singleton.
+\end{lemma}
+\begin{proof}
+At each join ancestor choose one vertex in a sibling of the child
+containing $i$. It is adjacent to $i$. The chosen vertices at distinct
+ancestors lie in disjoint sibling sets, so the number $J$ of join ancestors
+is at most $\deg_C(i)$. Alternating internal labels imply that the number
+of union ancestors is at most $J+1$. Thus the depth is at most $2J+1$.
+This includes a union root and a singleton tree, whose depth is zero.
+The original degree contains every core incidence, proving the last bound.
+The lemma pays for a walk only when that walk has a charged coordinate;
+it gives no free budget for arbitrary repeated visits.
+\end{proof}
+
+Fix a target $T_i>0$ for every core coordinate. For a module $H$, let
+$\tau_H$ be the smallest uniform module field at which any descendant
+coordinate reaches its target, and retain a winning original label $w_H$.
+All thresholds below are finite, and negative thresholds must be retained.
+For a singleton, with $b_i=\mathbf1_{i=v}-\lambda d_i$, the exact threshold is
+\begin{equation}
+ \tau_i=d_iT_i-\gamma t_i(\gamma T_i-\lambda)_+-b_i.
+ \label{eq:op3-module-leaf-target}
+\end{equation}
+For a union take the minimum child threshold. For a join define
+\begin{equation}
+ z_j=\tau_{H_j}+\gamma F_{H_j}(\tau_{H_j}),\qquad
+ z_* = \min_j z_j,\qquad
+ \tau_H=z_*-\gamma G_H(z_*),
+ \label{eq:op3-module-parent-target}
+\end{equation}
+where $G_H$ is the sum of the transformed child responses from
+\cref{eq:op3-join-input-transform}. The winning label is inherited from
+a minimizing child; break ties deterministically by original label.
+
+\begin{lemma}[Exact strict target certificate; \statusproved]
+\label{lem:op3-module-target-certificate}
+The recurrences above have the following exact meaning for every real $h$:
+\begin{align*}
+ h\leq\tau_H&\quad\Longleftrightarrow\quad
+ u_i^H(h)\leq T_i\text{ for all }i\in H,\\
+ u_{w_H}^H(\tau_H)&=T_{w_H},\qquad
+ h>\tau_H\quad\Longrightarrow\quad u_{w_H}^H(h)>T_{w_H}.
+\end{align*}
+In particular, equality at the root threshold is quiet for the strict
+reporting rule; it is not a violation.
+\end{lemma}
+\begin{proof}
+Every coordinate is continuous and nondecreasing in the uniform field.
+After it becomes positive it is strictly increasing: eliminating its
+private leaves gives a strictly increasing scalar left-hand side, while
+its right-hand side contains $h$ plus nondecreasing neighbor contributions.
+The coordinate tends to infinity as $h$ does, since already its direct
+field contribution gives $u_i\geq (b_i+h)_+/d_i$.
+Thus each positive target is reached exactly once. Substitution in the
+singleton equation gives \cref{eq:op3-module-leaf-target}.
+
+At a union the common field is passed unchanged to every child, proving
+the minimum rule. At a join, each child's field $t$ is related to $z$ by
+$z=t+\gamma F_{H_j}(t)$, a strictly increasing bijection. The parent field
+$h=z-\gamma G_H(z)$ is also a strictly increasing bijection by
+\cref{lem:op3-module-response}. Consequently the first child threshold
+is reached at $z_*$ and hence at the stated $\tau_H$. Before this point
+every child is quiet; at equality the winning coordinate equals its
+target; afterwards that child's field is strictly greater and its winning
+coordinate is strictly above target. Induction proves all assertions.
+\end{proof}
+
+\begin{theorem}[Fixed-module strict reporter; \statusproved]
+\label{thm:op3-module-reporter}
+Given the retained responses of \cref{thm:op3-persistent-modules}, construct
+an additional reporter in $O(N\log(2+N))$ exact-real word work and $O(N)$
+additional stored words. It supports:
+\begin{enumerate}
+\item a strict due query at any real common field in $O(1)$ work, returning
+an original core label above its target or certifying all core targets;
+\item replacing one target $T_i$ by any positive value in
+$O((1+d_i)\log(2+N))$ work;
+\item recovering one requested original core coordinate at any field in
+$O((1+d_i)\log(2+N))$ work and $O(1+d_i)$ temporary path words.
+\end{enumerate}
+All responses remain unchanged by target updates. The reporter stores no
+stale heap entries and its stored size does not grow with the number of
+queries or updates. Including response construction, $Q$ due queries and
+a multiset $I$ of target updates and coordinate recoveries cost
+\begin{equation}
+ O\!\left(N\log^2(2+N)+Q+
+       \log(2+N)\sum_{i\in I}(1+d_i)\right).
+ \label{eq:op3-module-reporter-work}
+\end{equation}
+This charges every operation, including unsuccessful due queries; it does
+not bound how many queries an outer solver might make.
+\end{theorem}
+\begin{proof}
+Store an indexed comparison heap at each internal node, with one fixed
+entry per child, keyed by the appropriate child threshold and its winning
+label. The heap index is a dense array over that node's child slots.
+Parent pointers, child slots and module records use dense node indices;
+an external original label needs only one dictionary lookup per coordinate
+operation. A deterministic comparison dictionary suffices within the
+displayed logarithmic work. The total child count is $O(N)$.
+
+Do not evaluate $G_H$ by summing all children on each operation. Apply the
+positive shear $(x,y)\mapsto(x+\gamma y,y)$ once to the retained parent
+curve $F_H$, obtaining exactly $G_H$. Each such persistent view costs one
+root copy and a constant number of words. It supports the horizontal
+value query in \cref{eq:op3-module-parent-target} in $O(\log(2+N))$ work.
+Postorder initialization evaluates each child key and each parent
+threshold once; linear heap construction and all dictionaries, arrays,
+temporary entry lists and retained views satisfy the stated bound.
+
+A target update recomputes its singleton threshold and then only the
+ancestor path. At each ancestor it replaces one heap entry, reads the
+minimum and makes at most two response queries. A heap replacement costs
+$O(\log(2+N))$ comparisons and indexed-array operations; a response query
+costs the same order and allocates no curve nodes. Apply
+\cref{lem:op3-module-weighted-depth}.
+
+For recovery, obtain the parent path from the requested singleton, then
+traverse it downwards. Query the root mass at $h$. A union child receives
+the same field and its own queried mass. At a join put
+$z=h+\gamma F_H(h)$, query the retained transformed child response
+$G_j(z)$ and pass child field $z-\gamma G_j(z)$. This visits only the
+requested path and ends with the original coordinate. Charge the path
+stack as well as every curve query. The depth lemma again gives the bound.
+Root reporting is the single strict comparison of
+\cref{lem:op3-module-target-certificate}. Fixed heap membership prevents
+history growth, and immutable curves preserve every old response version.
+\end{proof}
+
+\paragraph{Measured audit and remaining interface.}
+The executable \texttt{module\_value\_reporter.py} compares strict due and
+quiet states with independent exact solutions of the original matrix,
+including its private leaves. It exercises negative fields, simultaneous
+targets, equality, target increases and decreases, weighted paths and
+unchanged old curve versions. Its full record is
+\texttt{MODULE\_VALUE\_REPORTER\_AUDIT.json}. The reporter tracks core
+targets only. Distinct private-leaf targets require a separately charged
+extension. More substantially, changing the induced active graph can
+split a module and change its response. Neither fixed-field reporting nor
+the static small-child merge amortization pays for that operation.
+Local discovery, changed-response propagation and general OP3 remain
+\statusopen. The legal triangle-to-paw trace in
+\texttt{MODULE\_REPORTER\_AND\_UPDATE\_PROBE.md} retains this distinction.

@@ -1,6 +1,55 @@
 # incremental_active_set_sdd
 
-## Second night, block 2: persistent recursive responses
+## Second night, block 3: strict reporting and known-child removal
+
+**General OP3 remains Open.** Two missing algebraic interfaces are now
+implemented and **Proved here**, as drafts awaiting independent review.
+`thm:op3-module-reporter` gives a constant-work strict due/quiet query on
+fixed supplied responses. Updating a positive core target or recovering a
+coordinate costs O((1+d_i)*log(2+N)); original degree pays for the cotree
+path. Arbitrary common fields and target increases or decreases are allowed.
+Dense indexed heaps retain no stale history. This does not update a graph.
+
+`lem:op3-module-summand-removal` removes a known convex zero-left summand
+in O((1+k_child)*log(2+k_total)) exact-real word work and allocated words,
+streaming only that child. Signed suffix shears are locally certified;
+zero jumps are deleted with persistent AVL deletion. The original curves
+remain intact. `cor:op3-module-child-extraction` applies this in the correct
+union/join field, retaining original diagonal degrees.
+
+**Measured:** the reporter passes 1,716 original graph executions,
+121,344 independent original-matrix queries, 30,336 strict equality checks,
+9,540 degree/depth certificates and 15,102 old-version checks. Seventeen
+structural diagnostics include 512-core combs, cliques, stars and root
+unions, plus a singleton. Removal passes 2,000 seeded synthetic sequences,
+2,231 supplied child extractions, 179,816 complete affine-piece identities
+and 165,113 AVL node checks. Counts describe overlapping tests and are not
+numbers of distinct graphs. Exact records are `MODULE_VALUE_REPORTER_AUDIT.json`
+and `MODULE_CURVE_REMOVAL_AUDIT.json`; no floating-point claim is inferred.
+
+**Source / context:** the Shamir–Sharan cograph structure theorem was
+checked in its author PDF and synchronized in `docs/literature/`. It
+supports degree-paid structural updates, but does not update obstacle
+responses. No source is imported into the new fixed-response or removal
+proofs, and the formal note dependency array remains empty.
+
+**Next falsifiable target:** `MODULE_ADMISSION_COST_PROBE.md`. Test genuine
+changed-curve work at union nodes under legal positive admissions. Its
+possible residual-mass charge may prevent a naive repeated-rebuild
+counterexample; the association between event complexity and paid residual
+is still open. Then return to the arbitrary-graph sparse coarse certificate
+and constrained-diffusion directions. The triangle-to-paw witness still
+refutes keeping all old induced-active modules intact.
+
+Current checks: `OVERNIGHT_20260907_BLOCK3_AUDIT.json` and `VERIFICATION.md`.
+The 88-page note builds without final warnings and the new proof pages
+were visually reviewed. All 39 direction scripts pass focused lint/format;
+registry tests pass. Repository-wide checks retain the same unrelated
+notation/inventory/lint failures. No active-manuscript/shared-ledger
+promotion occurred. The eight-hour campaign remains ACTIVE in its separate
+actual-time ledger; prior-night time is excluded.
+
+## Historical second-night block 2: persistent recursive responses
 
 **General OP3 remains Open.** The new supplied-decomposition result is
 `thm:op3-persistent-modules`: complete recursive union/join core responses

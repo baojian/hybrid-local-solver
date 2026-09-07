@@ -117,6 +117,10 @@ certified supplied-face SDD solves.
 - *Augmented Lagrangian Active Set Methods for Obstacle Problems*
   (Kärkkäinen, Kunisch, and Tarvainen, 2003) - Stieltjes obstacle active sets
   and multilevel implementations.
+- [*A Fully Dynamic Algorithm for Modular Decomposition and Recognition of Cographs*](https://www.cs.tau.ac.il/~roded/articles/cmd.pdf)
+  (Shamir and Sharan, Discrete Applied Mathematics 136(2–3):329–340, 2004) -
+  degree-paid graph-structure maintenance; response-update obligations are
+  separately audited in `lcp-solvers.md`.
 - *Pivoting in Linear Complementarity: Two Polynomial-Time Cases* (Foniok et
   al., 2009) - linear pivot-path bounds for K-matrix LCPs.
 - *Some Convergence Results for Howard's Algorithm* (Bokanowski, Maroso, and

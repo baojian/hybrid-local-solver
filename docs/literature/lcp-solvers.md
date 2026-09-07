@@ -1,6 +1,6 @@
 # LCP, obstacle, and active-set solvers for the OP2 route
 
-Last source audit: 2026-09-08 (second-night OP3 dynamic-flow and curve-primitive check)
+Last source audit: 2026-09-08 (second-night OP3 dynamic-flow, curve and cograph-structure checks)
 
 This map asks a narrow question: does a primary-source theorem already give
 the fully charged, graph-uniform, output-sensitive solver required by OP2 after
@@ -159,6 +159,30 @@ The source check was scoped to these statements and curve primitives, not
 an exhaustive literature review or a proof that no newer result exists.
 No source PDF was added to the local paper collection. Stable versioned
 links above identify the checked sources.
+
+### Shamir and Sharan, 2004: dynamic cograph structure
+
+**Source / context.** Ron Shamir and Roded Sharan, [*A Fully Dynamic
+Algorithm for Modular Decomposition and Recognition of Cographs*](https://www.cs.tau.ac.il/~roded/articles/cmd.pdf),
+*Discrete Applied Mathematics* 136(2–3):329–340, 2004,
+[doi:10.1016/S0166-218X(03)00448-7](https://doi.org/10.1016/S0166-218X(03)00448-7).
+Checked the author preprint, Section 3.1 (PDF p. 6), Section 3.3
+(PDF p. 9), Proposition 7 and Theorem 8 (PDF p. 10), including rendered
+pages where text extraction loses theorem numbers. Its representation
+stores node types, child counts and linked parent/child records, with no
+explicit module membership lists. Theorem 8 gives O(d) structural work
+per modification involving d edges. Vertex insertion uses the earlier
+Corneil–Perl–Stewart incremental algorithm; Section 3.1 describes linear
+initial construction. Allow O(1+d) to include isolated-vertex operations.
+
+**OP3 assessment (inference).** Starting from the discovered induced graph
+and supplying only paid original-row incidences could address the structural
+interface. The implementation and accounting of that wrapper are still
+missing. This source does not maintain the obstacle-response curves,
+original-coordinate targets, or their changed values. The separately proved
+known-summand removal bound depends on the removed child's size. Thus cheap
+structural edits cannot yet be charged as cheap response updates. No new
+formal source import is used by the fixed-response or removal theorems.
 
 ### Alstrup, Holm, de Lichtenberg and Thorup: dynamic tree clusters
 

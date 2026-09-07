@@ -1,0 +1,114 @@
+\section[Known module summand removal]{Persistent removal of a known module summand}
+\label{sec:op3-module-curve-removal}
+
+\paragraph{Status and algebraic input promise.}
+This \statusproved{} draft supplies a missing curve operation; it does not
+yet pay for a sequence of graph admissions. Work is in exact-real words,
+using the immutable affine AVL primitives already implemented in this note.
+No new external data-structure theorem is imported. A response is represented
+by its genuine breakpoints and affine end rays. Consider convex,
+nondecreasing, continuous piecewise-affine functions $A,B,C$ that vanish
+on their left rays and satisfy $A=B+C$ in the \emph{same horizontal field}.
+Write $k_A,k_B$ for the numbers of genuine breakpoints of $A,B$.
+
+\begin{lemma}[Known convex summand removal; \statusproved]
+\label{lem:op3-module-summand-removal}
+Given persistent versions of $A$ and $B$ and the promise above, construct
+$C=A-B$ in
+\begin{equation}
+ O\bigl((1+k_B)\log(2+k_A)\bigr)
+ \label{eq:op3-module-summand-removal}
+\end{equation}
+work and allocated words. The algorithm streams only $B$ and makes
+logarithmic searches and updates in $A$; it never scans all of $A$.
+It deletes every breakpoint whose slope jump becomes zero and preserves
+all old curve versions. In particular, repeated addition and removal of
+known components need not accumulate redundant knots in the current curve.
+This last assertion bounds current representation size, not the total
+work or allocated history of an unbounded operation sequence.
+\end{lemma}
+\begin{proof}
+A convex function with zero left ray has the unique hinge expansion
+\[
+ B(x)=\sum_{s\in\mathcal K_B}c_s(x-s)_+,\qquad c_s>0.
+\]
+Because $A=B+C$ and $C$ is convex, $A$ has a breakpoint at each $s$ and
+its slope jump there is at least $c_s$. Removing any subset of these
+hinges leaves $C$ plus the remaining positive hinges of $B$, still convex
+and nondecreasing with a zero left ray. Thus no unchecked nonconvex
+intermediate state is required.
+
+Stream successive points of $B$, recovering $c_s$ from adjacent slopes
+and the two end rays. In the current $A$, locate $s$ and its strict
+predecessor and successor with read-only searches carrying lazy affine
+tags. They give its exact left and right slopes, using stored end slopes
+when a neighbor is absent. Verify that their jump is at least $c_s$.
+Apply the signed suffix shear
+\[
+ (x,y)\longmapsto (x,y-c_s(x-s))\quad\text{for }x\geq s.
+\]
+This changes only the suffix boundary search path and lazy tags on
+whole subtrees. Horizontal order is unchanged. The promise and the
+local jump check ensure convexity; this is not an unconditional permission
+to subtract an arbitrary response.
+
+If the old jump equals $c_s$, remove the now-redundant point at $s$.
+Persistent AVL deletion pushes tags and copies only search paths. With
+two children, replace the point by its right subtree's first point and
+rebalance on the copied path. Heights and sizes are structural and do
+not change under affine tags. Each level uses a constant number of
+copies and rotations, so deletion, suffix shear and strict-neighbor
+queries each cost $O(\log(2+k_A))$. Every intermediate curve has at most
+$k_A$ knots. Streaming and all copied nodes satisfy
+\cref{eq:op3-module-summand-removal}.
+
+If the last knot is removed, the zero left ray identifies the resulting
+empty curve as identically zero. Otherwise every remaining knot has a
+positive slope jump. Immutability preserves the original $A$, $B$ and
+any earlier versions. The operation creates no new breakpoint position.
+\end{proof}
+
+\begin{corollary}[Extract a child in the correct module field; \statusproved]
+\label{cor:op3-module-child-extraction}
+From a supplied union or join response and a saved child response, obtain
+the response of the union or join of the remaining children in
+$O((1+|H_j|)\log(2+|H|))$ work and allocated words, retaining original
+degrees, private-leaf counts and physical loads. No all-parent-curve scan
+is required. This includes a sole remaining child.
+\end{corollary}
+\begin{proof}
+At a union subtract $F_{H_j}$ directly from $F_H$. At a join first apply
+the positive shear to $F_H$, obtaining $G_H=\sum_jG_j$ in the common $z$
+field, and subtract the saved $G_j$ there. Then apply the negative shear
+$h=z-\gamma\sum_{\ell\ne j}G_\ell(z)$ to the remainder. Its horizontal
+derivative is positive because the original sum had derivative less than
+$1/\gamma$ and all child derivatives are nonnegative. This is exactly
+the response of the remaining children with the original diagonal degrees,
+not degrees recomputed after deleting a child. The remaining physical
+load and uniform field are the same algebraic inputs as before.
+
+Each whole shear costs one persistent root copy. The removed child has
+at most $2|H_j|$ breakpoints by \cref{lem:op3-module-response}, so the
+removal lemma gives the stated charge. With a sole child, the positive
+and negative shears cancel its saved transform, as required. Independently
+applying inverse shears to summands before summing would be a different,
+generally incorrect operation; common horizontal coordinates are essential.
+\end{proof}
+
+\paragraph{Measured scope and next obstruction.}
+The executable \texttt{module\_curve\_removal.py} checks complete affine
+identities, strict positive jumps, AVL invariants and old-version preservation
+after removal and restoration. Its exact suite includes coincident knots,
+negative breakpoint positions, arbitrary removal orders, complete removal
+to zero and inherited lazy shears. Supplied union/join examples extract
+every child and reconstruct the remaining response in the correct field.
+The full record is \texttt{MODULE\_CURVE\_REMOVAL\_AUDIT.json}.
+
+\Cref{cor:op3-module-child-extraction} prices a \emph{known} child by its
+size. Replacing a large changed child can still require streaming many
+knots, even when graph recognition changes few tree records. A static
+small-to-large proof charges construction merges; it cannot be reused for
+arbitrary future replacements without a fresh potential or structural
+charge. That missing amortization, paid local discovery and general OP3
+remain \statusopen. The operation does not repair a boundary that ceases
+to apply a common field after a module split.

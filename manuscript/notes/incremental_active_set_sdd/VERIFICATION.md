@@ -969,3 +969,39 @@ and final source/backend hashes are in `OVERNIGHT_20260907_BLOCK2_AUDIT.json`.
 The next bounded target is the weighted-depth fixed-module event reporter,
 followed by paid recognition and changed-curve propagation under actual
 admissions. The 480-minute second-night campaign remains ACTIVE.
+
+
+## Second night, block 3 — 8 September 2026
+
+Implemented fixed-response strict core-coordinate reporting with dense
+indexed heaps, original-degree path accounting and arbitrary positive target
+updates. Its full exact audit passed 1,716 graph executions, 121,344 original
+matrix due/quiet queries, 30,336 equality certificates and 15,102 preserved
+curve versions. Seventeen structural diagnostics include 512-vertex cores.
+Implemented persistent removal of a known convex summand, including signed
+suffix updates and deletion of zero jumps. Its full audit passed 2,000
+synthetic sequences, 2,231 child extractions and 179,816 complete affine-piece
+identities. Reference checks and construction/update counts are separated.
+All final source/backend hashes match their saved audit records.
+
+New authoritative draft labels: `lem:op3-module-weighted-depth`,
+`lem:op3-module-target-certificate`, `thm:op3-module-reporter`,
+`lem:op3-module-summand-removal`, `cor:op3-module-child-extraction`.
+These assume fixed supplied responses or a known convex summand; graph
+admission and general OP3 remain open. Shamir–Sharan graph-recognition
+source pointers were checked and literature metadata synchronized.
+
+`make agent-audit` passed. All 39 direction scripts passed focused lint and
+format checks; registry tests passed 3/3. `make test` passed 231 tests and
+retained the same three notation/inventory failures. `make lint` retained
+the same two unrelated findings. `make note-audit` retained the same two
+oversized AESP files. The five baseline hashes are unchanged. `make reproduce`
+stopped at its failing test prerequisite; no later stage is claimed.
+Concurrent test runs reported temporary-directory cleanup warnings.
+
+The note built to 88 pages without final warnings, overfull boxes or undefined
+references. Contents page 3 and proof/conclusion pages 82–88 were rendered
+and visually checked. PDF and auxiliaries remain ignored build products.
+`OVERNIGHT_20260907_BLOCK3_AUDIT.json` records details. Resume
+`MODULE_ADMISSION_COST_PROBE.md`; the updated heartbeat remains ACTIVE
+until 480 new active minutes, excluding all first-night and idle time.
