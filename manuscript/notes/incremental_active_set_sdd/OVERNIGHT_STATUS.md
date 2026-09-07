@@ -448,3 +448,46 @@ containing every active parent, and optional removal of the transient
 insertion parent. Its proposed r^2 improvement is not yet an end-to-end
 algorithm or theorem. General OP3 remains Open, and every new proof draft
 still awaits independent review.
+
+
+## Latest maintained coarse inverse result
+
+**Proved here, awaiting independent review:** `thm:op3-maintained-coarse-inverse`
+completes the selected-Green transaction and improves active-cycle-rank
+work to
+
+`O(1 + V*((1+r)*L^4 + (1+r)^2 + q*L^2))`.
+
+The ACL consequence is O_tilde((1+r^2+q)/eps_appr). Separately, the same
+exact-obstacle algorithm gives O_tilde((1+r^2+q)/rho) exact RPPR work.
+The graph, access and exact-real word model are unchanged. The proof pays
+for every old-port promotion, old-version response query, temporary parent,
+dense update, restriction copy, source rebuild, quiet gate and final output.
+The finer trajectory ledger uses cycle-birth count b and retained count p:
+O(1+V*((1+b)*L^4+(1+p)^2+q*L^2)). Only the current dense inverse is retained;
+all historical application versions and their old port values are charged
+within the stated r-based space bound.
+
+**Measured:** `MAINTAINED_COARSE_INVERSE_AUDIT.json` passes 54,240 atlas
+executions on all 995 connected graphs through seven vertices, every seed,
+four parameter pairs and two policies; twenty larger explicit cases, five
+implicit private-star cases and the exact triangle witness also pass.
+There are 217,490 independent inverse certificates, checking 2,295,640
+entries of J*K=I against original-matrix Schur elimination, 483,416 explicit
+original-gate checks plus 859 implicit-case gates, and 198,003 historical
+component rechecks. Atlas updates include 21,543 temporary-parent drops,
+5,858 newly promoted Steiner junctions, up to five simultaneous old
+promotions and six active parents. No coarse solve feeds an admission.
+Reference hierarchy rebuilding and full validation remain separately
+charged; the fast online balancing algorithm is an explicit Source import.
+
+**Next Open target:** `COARSE_PUBLICATION_PROBE.md` proposes using the
+component reporters as the previously missing geometric-publication producer.
+It may remove repeated exceptional-gate scans and the q term for ACL work.
+The proposal must replace tuple-copying parent lists, count cached-edge
+redelivery and publication-only payload updates, and distinguish current
+inverse storage from optional historical port-value snapshots. The final
+point may stop before the exact obstacle optimum, so no exact-RPPR or OP2
+consequence is asserted for that proposed variant. General OP3 remains Open.
+
+Block 12 closed at 2026-09-07T01:31:20.138486+00:00: 29.610 active minutes. Conservative cumulative additional active research: 472.787 minutes; 127.213 minutes remain toward the requested 600. No unverified gap was counted in this block. The same-task heartbeat remains ACTIVE for the publication-producer probe.

@@ -664,3 +664,58 @@ counted. Only substantive intervals outside it count toward the 600-minute
 minimum. Temporary idle-sleep prevention was extended for the remaining
 research, and the existing same-task heartbeat stays ACTIVE. Usage is
 8% consumed / 92% remaining; no additional reset was attempted.
+
+## Overnight block 12: maintained coarse inverse and promotion accounting
+
+**Proved here, awaiting independent review:**
+`thm:op3-maintained-coarse-inverse` replaces each full coarse solve by paid
+ordinary rank-one updates, fixed-old-version conditional Green promotion,
+an original-vertex border and restriction of the inverse after a possible
+temporary-parent elimination. Its exact-real word bound is
+O(1+V*((1+r)*L^4+(1+r)^2+q*L^2)), or the finer trajectory bound
+O(1+V*((1+b)*L^4+(1+p)^2+q*L^2)). The exact-obstacle output gives separate
+ACL and exact RPPR consequences. General OP3 remains Open. The source's
+online balancing remains imported; reference hierarchy rebuilding is not
+reported as an implementation of the fast source structure.
+
+- `maintained_coarse_inverse.py --max-n 7 --structured`: **passed**,
+  383.877 seconds including independent reference work.
+- All 995 connected atlas graphs through seven vertices, every seed,
+  four parameter pairs and two policies: 54,240 executions. Twenty larger
+  explicit examples, five finite implicit private-star examples and the
+  transient-parent triangle witness also passed.
+- Independent checks: 217,490 inverse certificates with 2,295,640 entries
+  of J*K=I, 217,413 explicit positive faces, 408,091 component recoveries,
+  483,416 explicit and 859 implicit original gates, and 198,003 old-root
+  rechecks. Full solves and Schur assembly are only in the validator.
+- Atlas update coverage: 86,332 ordinary inverse updates; 81,790 cycle
+  borders; 21,543 transient-parent drops; 5,858 old Steiner-junction
+  promotions; up to five old promotions at one birth and six active parents;
+  31,624 births needing no old promotion. There are 56,274 conditional
+  covariance calls and 594,020 response parent walks. All 5,697,217 explicit
+  inverse initializations/writes and 1,914,246 restriction-copy words are
+  recorded. No coarse factorization feeds admissions.
+- Source SHA-256: `afd21746be9a55143424d6c4edb9e545482d6b41a50107c1d18235228ed0bc1d`.
+  This and all nine backend hashes matched at final verification.
+- Focused lint/format: **26 scripts passed**. Registry checks: **3 passed**.
+  Ownership and whitespace: **passed** after removing two trailing blank
+  lines in appended handoffs.
+- Broad tests: **231 passed**, the same three pre-existing failures; broad
+  lint: the same two unrelated findings; note inventory: the same two
+  oversized files. All five baseline failure-file hashes are unchanged.
+  Required `make reproduce` was attempted and stopped at those same three
+  existing test failures before later reproduction stages.
+- Note: **62 pages**, no warnings, overfull boxes or unresolved references.
+  Revised cover/contents and pages57–61 were rendered and visually checked.
+  Final PDF SHA-256: `4787e72ab1ffdad684dc66f1107ab69725714acdbf45dcc84d3441629002193c`.
+
+The next Open composition is specified in `COARSE_PUBLICATION_PROBE.md`.
+It uses the completed component reporters to produce geometric lower-value
+publications and cached incidence delivery, aiming to remove the q term
+for ACL only. The probe explicitly requires appendable parent buffers,
+paid publication searches, no inverse updates at publication, and accurate
+accounting for optional historical port-value snapshots. It includes an
+algebraically derived implicit star-with-shared-hubs family with r=0,
+q=binom(k,2), V=(k+1)^2 and binom(k+1,3) direct exceptional checks; the new
+publication state machine and this family's execution remain to be audited.
+Usage remains 8% used / 92% remaining; no additional reset was attempted.

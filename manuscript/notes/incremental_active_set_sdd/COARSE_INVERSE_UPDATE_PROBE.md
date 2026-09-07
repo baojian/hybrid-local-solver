@@ -1,6 +1,13 @@
 # Next probe: maintained coarse inverse and paid port promotion
 
-Date: 7 September 2026. **Open end-to-end construction.** The selected
+Date: 7 September 2026. **Completed proof draft and exact audit.**
+The prospective transaction below is preserved. Its completed proof is
+`sec:op3-maintained-inverse`, with full results in
+`MAINTAINED_COARSE_INVERSE_AUDIT.json`. The r^2 work bound is Proved here
+as a draft awaiting independent review. The next Open target is
+`COARSE_PUBLICATION_PROBE.md`.
+
+Original prospective status: **Open end-to-end construction.** The selected
 conditional Green query and block identities are **Proved here**, as drafts
 awaiting independent review, in `sec:op3-cluster-green`. The existing complete
 cycle-rank theorem is `thm:op3-local-cycle-rank`, with work

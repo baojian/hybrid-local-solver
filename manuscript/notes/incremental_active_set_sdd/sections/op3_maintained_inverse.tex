@@ -1,0 +1,263 @@
+\section[Maintained coarse inverse]{A maintained coarse inverse with paid port promotion}
+\label{sec:op3-maintained-inverse}
+
+\paragraph{Status.}
+This section completes the construction proposed after
+\cref{lem:op3-green-promotion-border}. Its correctness and word-work bound
+are \statusproved{} as a draft awaiting independent review. The exact
+update transaction is implemented and audited. The online balanced
+hierarchy remains the explicit published \statussource{} import of
+\cref{thm:op3-local-top-tree}; rebuilding it at every checkpoint in the
+audit is separately charged reference work. General OP3 remains
+\statusopen{}.
+
+\begin{lemma}[Monotone permanent ports and one temporary parent; \statusproved]
+\label{lem:op3-monotone-coarse-ports}
+Use the permanent insertion tree and marked partition of
+\cref{lem:op3-marked-tree-partition}. The permanent retained sets are
+nested as admissions proceed. Suppose a new vertex $j$ has $a\geq2$
+active parents, and let $P^+$ be the permanent retained set after its
+admission. Every active parent except possibly the chosen insertion-tree
+parent belongs to $P^+$. Thus
+\[
+ Z=(P^+\setminus(P\cup\{j\}))\cup(N(j)\cap U\setminus P)
+\]
+contains at most one vertex outside $P^+$. Across the entire run, there
+are at most $5r$ occurrences in these promotion sets, where $r$ is final
+active cycle rank. At every such event, $|P\cup Z\cup\{j\}|\leq4r+1$.
+\end{lemma}
+\begin{proof}
+The insertion tree grows only by attaching a new leaf; old tree paths
+do not change. Endpoints of extra edges are never unmarked. Consequently
+the old marked Steiner subtree is contained in the new one, and an old
+degree-at-least-three Steiner vertex remains branching. The seed stays
+retained, including through the initial tree regime. Hence $P\subseteq P^+$.
+
+The new vertex and every non-tree active parent are endpoints of newly
+created extra edges and therefore are marked. Only its one tree parent
+can fail to be retained. Each permanent old vertex is promoted at most
+once, so there are at most $4r$ such promotions. The temporary parent can
+be promoted again at later events, but each event increases cycle rank by
+at least one. There are at most $r$ events and therefore at most $r$
+temporary occurrences. Finally $P\cup Z\cup\{j\}$ is $P^+$ plus at most
+that one temporary parent, proving the dimension bound.
+\end{proof}
+
+\paragraph{Maintained state.}
+At a checkpoint keep the current dense matrix
+\[
+ \boldsymbol J=(\boldsymbol M_{UU}^{-1})_{PP}
+\]
+and the exact physical values $\boldsymbol u_P$. Keep the current piece
+records and their one- or two-port values
+$\boldsymbol w_{P_B}=\boldsymbol u_{P_B}-C\boldsymbol1$, with
+$C=1/\bar\alpha$. For a queried old vertex $i$, extend its conditional
+row $\boldsymbol a_i$ by zero to the full port namespace. Then
+\[
+ u_i=z_i+\boldsymbol a_i^{\mathsf T}
+                    (\boldsymbol u_P-C\boldsymbol1)+C.
+\]
+If $i\in P$, use its basis row and zero conditional variance directly.
+The singleton state is $P=\{v\}$, $J_{vv}=1/d_v$ and
+$u_v=(1-\lambda d_v)/d_v$; the empty case is certified before allocation.
+
+\begin{lemma}[Ordinary leaf update without a coarse solve; \statusproved]
+\label{lem:op3-ordinary-coarse-inverse}
+Suppose $j$ has exactly one active parent $i$. Query $u_i$, its sparse
+conditional row $\boldsymbol a_i$ and conditional variance $g_{ii}$ from
+the old current piece. Put
+\[
+ \boldsymbol z=\boldsymbol J\boldsymbol a_i,\qquad
+ \nu=g_{ii}+\boldsymbol a_i^{\mathsf T}\boldsymbol z,\qquad
+ \delta=d_j-\gamma^2\nu,
+ \qquad u_j^+=\frac{\gamma u_i-\lambda d_j}{\delta}.
+\]
+For a strictly positive original gate, $u_j^+>0$ and
+$\delta\geq\bar\alpha d_j$. With the same retained set $P$, the updates
+\begin{equation}
+ \boldsymbol J^+=\boldsymbol J+
+      \frac{\gamma^2}{\delta}\boldsymbol z\boldsymbol z^{\mathsf T},
+ \qquad
+ \boldsymbol u_P^+=\boldsymbol u_P+\gamma\boldsymbol z u_j^+
+ \label{eq:op3-ordinary-inverse-update}
+\end{equation}
+are exact. Their work is $O((1+|P|)^2+L^2)$, including all dense reads,
+writes and allocations and the named response query.
+\end{lemma}
+\begin{proof}
+By \eqref{eq:op3-conditional-full-green}, $\nu$ is the full parent inverse
+diagonal and $\boldsymbol z$ is its full inverse column restricted to $P$.
+Restrict \eqref{eq:op3-original-border-inverse} and its physical mean
+update to $P$. This proves the identities and positivity assertions.
+The row $\boldsymbol a_i$ has at most two nonzero coefficients, so
+$\boldsymbol z$ requires at most two columns of $\boldsymbol J$ and
+$O(1+|P|)$ field work. Writing the rank-one update costs
+$O((1+|P|)^2)$. Store its new matrix, release the old current inverse,
+and retain no dense inverse history. The unchanged port set is valid
+after the leaf is appended to its parent's home piece. Restore that
+piece's source exposure before the next reporter query.
+\end{proof}
+
+\begin{lemma}[Cycle birth with old-version promotion and inverse restriction; \statusproved]
+\label{lem:op3-cycle-inverse-transaction}
+At a multi-parent admission, the following transaction gives the exact
+new coarse inverse and physical port values without a coarse factorization.
+\begin{enumerate}
+ \item Preserve the old current piece records, their port values, home-piece
+ map, $\boldsymbol J$ and $\boldsymbol u_P$. After the positive gate has
+ been certified, the newly admitted row may be scanned and the new marked
+ partition computed from cached tree edges. Queries in the following step
+ still use the preserved old versions.
+ \item Form $Z$ from \cref{lem:op3-monotone-coarse-ports}. For each vertex
+ in $Z$, obtain its old conditional response and noise trace from its old
+ home piece. On $Q=P\cup Z$, assemble
+ $\boldsymbol J_Q=(\boldsymbol M_{UU}^{-1})_{QQ}$ using
+ \eqref{eq:op3-conditional-full-green}, always with the same old
+ $\boldsymbol J$ as baseline. Also evaluate the old physical means on $Q$.
+ \item All active parents of $j$ are now in $Q$. With their indicator
+ $\boldsymbol s_Q$, put
+ $\boldsymbol z=\boldsymbol J_Q\boldsymbol s_Q$,
+ $\delta=d_j-\gamma^2\boldsymbol s_Q^{\mathsf T}\boldsymbol z$ and
+ $u_j^+=(\gamma\boldsymbol s_Q^{\mathsf T}\boldsymbol u_Q-
+ \lambda d_j)/\delta$. Border $\boldsymbol J_Q$ by
+ \eqref{eq:op3-original-border-inverse} and update its means. This includes
+ every active edge incident to $j$.
+ \item Select the principal submatrix of the bordered \emph{inverse}
+ indexed by $P^+$ and select the corresponding means. Drop the possible
+ temporary parent, releasing all temporary dense matrices. Complete the
+ already paid rebuilding of the new piece hierarchies and their home maps.
+\end{enumerate}
+The resulting state is
+$((\boldsymbol M_{U^+U^+}^{-1})_{P^+P^+},\boldsymbol u_{P^+})$.
+\end{lemma}
+\begin{proof}
+All responses in step 2 refer to the same old matrix. Within a piece,
+their conditional cross entries are obtained by matching old elimination
+records. Across different piece interiors, those entries are zero because
+the interiors are disjoint and all extra edges meet retained ports.
+Entries involving old ports use basis rows and zero conditional covariance.
+The fixed-baseline Green identity therefore supplies precisely the selected
+old full inverse, independently of the new partition.
+
+Since every old neighbor of $j$ is in $Q$, eliminating $U\setminus Q$
+does not change the new vertex's diagonal $d_j$ or its off-diagonal row
+$-\gamma\boldsymbol s_Q$. The Schur matrix on $Q\cup\{j\}$ has old
+block $\boldsymbol J_Q^{-1}$ and this exact border. Thus step 3 is the
+block inverse identity, and $\delta\geq\bar\alpha d_j$ as before.
+Step 4 selects the desired entries of the full new inverse. Selecting
+instead a principal submatrix of the coarse \emph{matrix} would omit
+the elimination of the temporary parent and is not this algorithm.
+All maintained physical means follow the same original block solve.
+Adding the newly admitted original row never changes the original degree
+or fixed load of any old vertex, so preserving old numerical records is
+sufficient while the new metadata is constructed.
+\end{proof}
+
+\begin{theorem}[Quadratic rank dependence; \statusproved]
+\label{thm:op3-maintained-coarse-inverse}
+Use the model, support, ranks and notation of
+\cref{thm:op3-local-cycle-rank}. Replacing its checkpoint coarse solves
+by \cref{lem:op3-ordinary-coarse-inverse,lem:op3-cycle-inverse-transaction}
+returns the same exact obstacle solution, with total word work
+\begin{equation}
+ O\!\left(1+V\bigl[(1+r)L^4+(1+r)^2+qL^2\bigr]\right)
+ \label{eq:op3-maintained-inverse-work}
+\end{equation}
+and space
+\begin{equation}
+ O\!\left(1+(1+r)VL^3+(1+r)^2\right).
+ \label{eq:op3-maintained-inverse-space}
+\end{equation}
+Here all historical cluster/hull versions and their one/two-port values
+may be retained, but only the current coarse inverse is kept. With
+$\lambda=\epsappr/2$, this gives original ACL work
+$\widetilde O((1+r^2+q)/\epsappr)$; with $\lambda=\rho$, it gives the
+exact RPPR solution in $\widetilde O((1+r^2+q)/\rho)$ work.
+\end{theorem}
+\begin{proof}
+The two update lemmas inductively preserve the exact inverse and physical
+means. The component ordinary reporters and the exceptional original-gate
+queries are unchanged. Their complete sign certificates therefore retain
+the positivity, monotonicity, support locality, exact stopping, final
+recovery and residual conclusions of \cref{thm:op3-local-cycle-rank}.
+
+There are at most $|U|$ admissions. Every ordinary inverse update costs
+$O((1+r)^2+L^2)$. At a cycle birth, copying the old home map is included
+in the existing $O(VL^4)$ rebuild charge. Let $t_b$ be the number of
+old promotion occurrences at that birth. Their parent walks and trace
+storage cost $O(t_bL^2)$, and their selected conditional pair entries cost
+$O(t_b^2L^2)$. By \cref{lem:op3-monotone-coarse-ports},
+$\sum_b t_b\leq5r$, so these costs total $O(r^2L^2)$, which is included
+in $O((1+r)VL^4)$ because $r\leq V$.
+
+Old-to-new inverse entries use at most two old entries per pair; new-to-new
+entries use at most four, plus the conditional covariance. Copying the old
+block, initializing the augmented/bordered matrices, writing the border,
+and restricting/reordering the final inverse cost $O((1+r)^2)$ at each
+birth. Multiplying by the parent indicator costs $O((1+r)a)$ and
+$a\leq4r+1$ there. Even retaining a simpler implementation that copies a
+dense matrix separately for each promotion adds at most $O(r^3)$ work,
+covered by $O(V(1+r)^2)$; the implemented variant fills one augmented
+matrix per birth. All comparison maps, sorts and temporary port lists
+fit the existing rebuild or trace charge.
+
+The hierarchy construction, payload changes, output and original graph
+access retain their previously paid $O((1+r)VL^4)$ work. At most
+$O(q)$ exceptional-parent incidences are queried at a checkpoint, giving
+$O(qVL^2)$ work including quiet queries. The one/two-port reporters cost
+$O((1+r)VL^2)$, already covered. This proves the work bound.
+
+The current inverse and a constant number of temporary promotion, border
+and restriction matrices occupy $O((1+r)^2)$ words. Temporary response
+traces require $O(rL)$ words. The source structures and retained application
+versions occupy $O((1+r)VL^3)$, as before. Old coarse inverses are released;
+saving them at every checkpoint would introduce a further $O(Vr^2)$ space
+term and is excluded from \eqref{eq:op3-maintained-inverse-space}.
+Finally $\lambda\operatorname{vol}(U)<1$ and $V\leq2\operatorname{vol}(U)$
+give the stated ACL and RPPR consequences in their separate accuracy
+namespaces.
+\end{proof}
+
+\paragraph{A sharper trajectory ledger.}
+Let $b$ be the number of cycle-birth admissions and $p=|P_{\rm final}|$.
+The same proof gives
+\[
+ O\!\left(1+V\bigl[(1+b)L^4+(1+p)^2+qL^2\bigr]\right).
+\]
+Indeed $b\leq p-1$, because each cycle-birth vertex is permanently marked;
+there are at most $p+b\leq2p$ old promotion occurrences. Their total
+$O(p^2L^2)$ covariance work is covered by $O(V(1+p)^2)$, since
+$\log^2(2+V)=O(V)$ for $V\geq1$. Rebuilding happens only at the $b$
+births, while all dense matrices have dimension at most $p+1$.
+Here $p\leq\min\{|U|,4r\}$ for $r\geq1$, and $b\leq\min\{|U|-1,r\}$.
+This form can be smaller when many cycles appear in the same admission;
+unlike final $r$ and $q$, the selected partition and its $p,b$ can depend
+on the admission and spanning-parent policy.
+
+\paragraph{Scope and the next question.}
+Fixed revealed cycle rank again meets OP3's target scale on that structural
+class. The sufficient structural condition for the separate OP2 target
+is now $1+r^2+q=O(\alpha^{-1/2})$, with logarithms suppressed. Neither
+statement removes rank dependence on arbitrary graphs. Dense inverse
+writes and repeated quiet exceptional gates are real costs of this
+representation; they are not lower bounds for all local algorithms.
+An approximate or compressed coarse response must still provide a paid
+original-coordinate stopping certificate. The positive pivot bound alone
+does not establish finite-precision stability.
+
+\paragraph{Measured implementation contract.}
+\texttt{maintained\_coarse\_inverse.py} implements the complete update
+transaction. No coarse solve or full-face recovery feeds its admission
+decisions. A separate validator forms the Schur matrix $\boldsymbol K$
+from the original active matrix and checks
+$\boldsymbol J\boldsymbol K=\boldsymbol I$ exactly, as well as physical
+port values, all original gates, final obstacle values and ACL residuals.
+Reference-only hierarchy rebuilding and whole-hierarchy parent indexing
+are separately labeled. Every explicit inverse initialization, read,
+write and restriction copy is counted. Old component versions are
+rechecked using their own saved port values; dense inverse histories are
+not retained. The triangle at $\alpha=1/3$, $\lambda=1/20$ exercises
+the temporary-parent case and ends with ports $(0,2)$ and inverse
+$\left(\begin{smallmatrix}3/5&1/5\\1/5&3/5\end{smallmatrix}\right)$.
+Complete reproducible sweep counts and source hashes are in
+\texttt{MAINTAINED\_COARSE\_INVERSE\_AUDIT.json}.

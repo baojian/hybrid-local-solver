@@ -148,3 +148,15 @@ revealed by active-row scans. See
 reference rebuilds are not claimed as fast updates. Selected inverse entries
 are now implemented and audited, giving the next Open transaction in
 [`COARSE_INVERSE_UPDATE_PROBE.md`](COARSE_INVERSE_UPDATE_PROBE.md).
+
+The maintained inverse transaction is now complete as a proof draft:
+`thm:op3-maintained-coarse-inverse` in
+`sections/op3_maintained_inverse.tex` gives
+O_tilde((1+r^2+q)/eps_appr) ACL work and, separately, the analogous exact
+RPPR bound with rho. The full audit independently checks 217,490 inverse
+identities and all original gates, including transient-parent elimination.
+See [`MAINTAINED_COARSE_INVERSE_AUDIT.json`](MAINTAINED_COARSE_INVERSE_AUDIT.json).
+The next Open composition is
+[`COARSE_PUBLICATION_PROBE.md`](COARSE_PUBLICATION_PROBE.md): use active-value
+reporters and cached incidence delivery to remove the revealed-rank term
+for ACL approximation. General OP3 remains Open.
