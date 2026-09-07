@@ -1,6 +1,45 @@
 # OP3: directions after the OP2 results
 
-## Latest geometric-publication result (block 13)
+## Final overnight research block (14)
+
+**General OP3 remains Open.** The current decision document is
+[OP3_MORNING_DECISIONS_20260907.md](OP3_MORNING_DECISIONS_20260907.md).
+All positive results below are **Proved here** as drafts awaiting independent
+review; no active-manuscript or shared-ledger promotion has occurred.
+
+The sparse certified coarse construction replaces the dense inverse and
+proves expected ACL work `E[W]=O_tilde((1+E[r])/eps_appr)`; a fixed containing
+obstacle-support rank bound `R` gives `O_tilde((1+R)/eps_appr)`.
+See `thm:op3-certified-linear-rank` and
+`CERTIFIED_COARSE_PUBLICATION_AUDIT.json` (67,856 original ACL executions).
+Online top-tree balancing and the fast sparse SDD solver remain explicit
+**Source** imports. Exact reference substitutions audit application logic,
+not those sources' fast performance. The construction may stop early and
+has no exact RPPR or OP2 consequence.
+
+A separate fully implemented scalar sweep solves promised clique cores
+with arbitrary unequal private leaves and a core seed in local
+`O(cvol(U)*log(2+cvol(U)))` exact-real word work. It has 1,464 explicit
+original obstacle comparisons and six implicit original-equation checks;
+see `thm:op3-local-clique-pendants` and `LOCAL_CLIQUE_PENDANT_PROBE.md`.
+It handles the dense family that forces cubic complete-vector writes under
+the fixed absolute-budget refresh policy. Sparse residual epochs and a
+geometric-supersolution counterexample identify representation-specific
+failures, not universal OP3 lower bounds.
+
+The recommended next bounded target is **Conditional / Open**:
+`MULTIPARTITE_CORE_PROBE.md`. Its supplied-part scalar algebra is implemented
+and audited (261 original obstacle comparisons); local part discovery and
+incremental event maintenance still need a complete construction. General
+OP3 additionally requires avoiding repeated rank-dependent coarse writes,
+all-component searches and cycle-triggered reconstruction.
+
+
+## Historical block 13 checkpoint
+
+The following checkpoint records the earlier state. Its certified-solve next
+probe is completed by block 14 above; subsequent old probes and statuses
+are retained as development history.
 
 **Proved here, awaiting independent review:** `thm:op3-coarse-publication-acl`
 uses the component reporters as a geometric-value producer and removes the

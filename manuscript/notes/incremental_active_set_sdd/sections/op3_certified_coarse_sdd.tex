@@ -1,0 +1,275 @@
+\section[Certified sparse coarse solves]{Certified sparse coarse responses with linear rank dependence}
+\label{sec:op3-certified-coarse-sdd}
+
+\paragraph{Status and distinction.}
+This section gives a \statusproved{} construction, as a draft awaiting
+independent review, that replaces the exact dense inverse by a certified
+approximate solution of the sparse coarse SDD system. The published
+supplied-SDD solver and the height-bounded top-tree balancing algorithm
+are explicit \statussource{} imports. The application state machine,
+sparse assembly, acceptance certificate and original ACL repair are
+implemented and exactly audited. The audit substitutes a dense coarse
+reference provider for the source solver; it is not an implementation of
+that solver's fast numerical algorithm. No exact RPPR conclusion or OP2
+rate is asserted. Graph-uniform OP3 remains \statusopen{}.
+
+\begin{lemma}[Sparse Schur residual certifies all coordinates; \statusproved]
+\label{lem:op3-coarse-error-certificate}
+Let $U$ be a positive reached face, $P$ its permanent ports, $I=U\setminus P$,
+and $\bm K,\bm f$ the \emph{physical} Schur matrix and load on $P$.
+The matrix $\bm K$ is SDDM, has $O(1+|P|+r_U)$ nonzeros, and satisfies
+\begin{equation}
+ \bm K\one\geq\bar\alpha\bm d_P,\qquad
+ K_{ii}\leq d_i.
+ \label{eq:op3-coarse-rowsum}
+\end{equation}
+If a supplied vector $\bm t_P$ passes the exact sparse certificate
+\begin{equation}
+ |\bm f-\bm K\bm t_P|\leq\delta\bar\alpha\bm d_P,
+ \label{eq:op3-coarse-accept}
+\end{equation}
+then its exact conditional extension through the tree pieces satisfies
+$|t_i-u_i^U|\leq\delta$ on every $i\in U$.
+\end{lemma}
+\begin{proof}
+Write the conditional extension as
+\[
+ \bm u_I=\bm\zeta+\bm H\bm u_P,\qquad
+ \bm H=-\bm M_{II}^{-1}\bm M_{IP}\geq\bm0.
+\]
+Every row sum of $\bm M_{UU}$ is at least $\bar\alpha d_i$.
+Multiplying $\bm M_{II}\one+\bm M_{IP}\one\geq\bm0$ by the
+nonnegative inverse gives $\bm H\one\leq\one$.
+The assertion is vacuous when $I$ is empty. Consequently
+\[
+ \bm K\one=\bm M_{PP}\one+\bm M_{PI}\bm H\one
+ \geq\bm M_{PP}\one+\bm M_{PI}\one
+ \geq\bar\alpha\bm d_P.
+\]
+Schur elimination preserves positive definiteness and nonpositive
+off-diagonal entries and reduces the diagonal, proving the other claims
+in \cref{eq:op3-coarse-rowsum}. There are $O(1+|P|)$ one/two-port pieces
+and $r_U$ extra edges. Each contributes at most a two-coordinate matrix;
+duplicate-port corrections affect only diagonals. Sparse assembly thus
+uses $O(1+|P|+r_U)$ entries and operations, before dictionary factors.
+This assembly retains original degrees and restores every extra edge.
+
+Inverse positivity and \cref{eq:op3-coarse-rowsum,eq:op3-coarse-accept}
+give
+\[
+ |\bm t_P-\bm u_P^U|
+ \leq\bm K^{-1}|\bm f-\bm K\bm t_P|
+ \leq\delta\bm K^{-1}\bm K\one=\delta\one.
+\]
+The nonnegative substochastic rows of $\bm H$ propagate this same bound
+to every interior coordinate, with no factor depending on path depth.
+\end{proof}
+
+\begin{lemma}[A certified supplied coarse solve; \statusproved{} using \statussource]
+\label{lem:op3-certified-sparse-solve}
+For a positive face, a vector satisfying \cref{eq:op3-coarse-accept} can
+be obtained with expected
+\begin{equation}
+ \widetilde O\!\left((1+|P|+r_U)
+       \log\frac{2}{\delta\bar\alpha^2}\right)
+ \label{eq:op3-certified-coarse-source-work}
+\end{equation}
+word work, including preprocessing, candidate certification and independent
+retries. Here $0<\delta<1$ and all matrices supplied to the source solver
+are already assembled from locally read active data.
+\end{lemma}
+\begin{proof}
+The physical seed $v$ is always retained. Every interior physical load is
+negative. Since
+$\bm f=\bm b_P-\bm M_{PI}\bm M_{II}^{-1}\bm b_I$,
+we have $f_i\leq0$ for $i\ne v$ and $f_v\leq1$. Positivity of the face
+and \cref{lem:op3-response-size} imply
+\[
+ 0<\|\bm u_P^U\|_{\bm K}^2
+   =\bm f^\top\bm u_P^U\leq u_v^U\leq1/\bar\alpha.
+\]
+If the relative energy error is at most
+$\eta_{\rm sdd}=\delta\bar\alpha^2/2$, Cauchy--Schwarz gives
+\[
+ |(\bm K(\bm t_P-\bm u_P^U))_i|
+ \leq\sqrt{K_{ii}}\|\bm t_P-\bm u_P^U\|_{\bm K}
+ \leq\frac{\sqrt{d_i}\eta_{\rm sdd}}{\sqrt{\bar\alpha}}
+ \leq\delta\bar\alpha d_i.
+\]
+The last step uses original unweighted degrees $d_i\geq1$ and
+$0<\bar\alpha<1$. This is a sufficient energy accuracy for the explicit
+coordinate certificate, not an assumption that a relative spectral
+approximation alone controls original residuals.
+
+The supplied weighted-SDD theorem of \citet{koutis2011nearly},
+Theorem~4.6 (local arXiv v4 PDF, p.~11), gives expected
+$\widetilde O(m\log n\log(1/\eta_{\rm sdd}))$ work.
+The constant-success good-chain event is in Lemma~4.5 on pp.~10--11;
+Lemma~4.3 on p.~9 applies the chain to a supplied SDD matrix.
+Use independent source attempts with a fixed constant failure parameter
+in that construction, accept only after \cref{eq:op3-coarse-accept}, and
+discard rejected workspaces. A successful energy-accuracy attempt passes.
+Each attempt costs the displayed source amount in expectation and succeeds
+with probability bounded below by a constant. The renewal identity gives
+the same expected bound for the accepted solve, including failed attempts
+and their allocations. Fresh randomness after each adaptively chosen face
+makes this a conditional expected bound given that face's history.
+No arbitrary high-probability interface is attributed to Theorem~4.6.
+\end{proof}
+
+\paragraph{Certified finite-width producer.}
+Use the constants $\lambda,h,\eta=5/4,\vartheta,C$ of
+\cref{sec:op3-coarse-publications} and fix
+\begin{equation}
+ \delta=\min\{h/16,\epsappr/64\}.
+ \label{eq:op3-coarse-delta}
+\end{equation}
+Initially return zero if $\epsappr d_v\geq1$; this directly certifies ACL
+without reading the seed row. Otherwise admit the seed. At each admission
+update only local metadata and the component summaries, assemble the sparse
+physical coarse system, and obtain a certified approximate port vector.
+There is no maintained dense inverse, Green promotion or temporary port.
+Retain this vector until the next admission.
+
+On vertex $i$'s single permanent home edge put the producer row
+\begin{equation}
+ t_i-(\eta\ell_i+h-\delta).
+ \label{eq:op3-approximate-producer-row}
+\end{equation}
+The existing reporter uses shifted key $\eta\ell_i+h-\delta-C$ and the
+current approximate shifted port values. A positive selected row is followed
+by a named query for $t_i$ and publication $\ell_i^{\rm new}=t_i-\delta$.
+The normalized hull score is used only for its sign and label.
+All cached delivery, parent-buffer and monotone ready-queue rules are as
+before; the inverse-free admission rule uses a queued vertex whose lower
+signal exceeds $\vartheta d_i$.
+
+\begin{lemma}[Safe publications and downward ACL recovery; \statusproved]
+\label{lem:op3-approximate-publications-repair}
+This producer implements \cref{def:op3-publications}. It admits only
+strictly positive original obstacle gates. When it is quiet and the ready
+queue is empty, recover $\bm t_U$ once and return
+\begin{equation}
+ \widehat{\bm u}_U=\max\{\bm0,\bm t_U-\delta\one\},\qquad
+ \widehat{\bm u}_{\bar U}=\bm0,\qquad
+ \widehat{\bm p}=\bar\alpha\bm D\widehat{\bm u}.
+ \label{eq:op3-coarse-final-repair}
+\end{equation}
+The output is an original ACL $\epsappr$-approximation and, in the nonzero
+case, is strictly positive at every admitted vertex.
+\end{lemma}
+\begin{proof}
+The preceding certificate lemma gives $|t_i-u_i^U|\leq\delta$. A positive
+row therefore yields a true lower publication with
+\[
+ \ell_i^{\rm new}>\eta\ell_i^{\rm old}+h-2\delta
+ \geq\eta\ell_i^{\rm old}+7h/8.
+\]
+It meets both the first-publication threshold and geometric growth rule.
+After that publication, $u_i^U\leq\ell_i^{\rm new}+2\delta
+\leq\eta\ell_i^{\rm new}+h$. Quietness of all rows certifies
+$u_i^U\leq t_i+\delta\leq\eta\ell_i+h$ everywhere.
+Old publications remain lower bounds because exact positive faces increase
+under admissions. Thus the recipient's original residual argument applies
+without requiring the actual exact face as algorithmic state.
+The reporters allow arbitrary real port query values; their positive
+homogeneous denominators depend on the exact structural maps and loads,
+not on a sign assumption for approximate port values.
+
+At termination put $\bm e=\bm u^U-\widehat{\bm u}$.
+Clipping gives $0\leq e_i\leq2\delta$ on $U$. For active coordinates,
+\[
+ \widehat{\bm r}_U=\lambda\bm d_U+\bm M_{UU}\bm e_U,
+ \qquad
+ (\lambda-2\gamma\delta)d_i\leq\widehat r_i
+       \leq(\lambda+2\delta)d_i.
+\]
+Both bounds lie within $[0,\epsappr d_i]$. Exterior residuals decrease
+under downward repair and were already at most $3\epsappr d_i/4$.
+All residuals stay nonnegative because exterior values are nonnegative
+weighted sums of the returned active coordinates.
+
+The initial nonzero seed value is $1/d_v-\epsappr/2>\epsappr/2$.
+For a later admitted vertex $j$, its original old gate excess is greater
+than $(\vartheta-\lambda)d_j=\epsappr d_j/20$. Its full Schur admission
+pivot is positive and at most $d_j$, so its new exact value exceeds
+$\epsappr/20$. Monotonicity preserves this lower bound. Finally,
+$2\delta\leq\epsappr/32<\epsappr/20$ makes every repaired active value
+strictly positive. Thus the actually scanned support equals the returned
+positive support; there is no uncharged discarded exploration.
+\end{proof}
+
+\begin{theorem}[Expected linear-rank ACL work; \statusproved]
+\label{thm:op3-certified-linear-rank}
+On every finite simple connected unweighted graph with at least two
+vertices and for $0<\epsappr<1$, the preceding local degree/adjacency
+algorithm terminates almost surely and returns an original ACL
+$\epsappr$-approximation. In the
+exact-real word model its expected work satisfies
+\begin{equation}
+ \mathbb E W=\widetilde O\!\left(
+       \frac{1+\mathbb E r}{\epsappr}\right),
+ \label{eq:op3-expected-linear-rank}
+\end{equation}
+where $r$ is the cycle rank of its possibly random returned support
+(set $r=0$ for the zero output). The hidden factors are logarithmic in
+$1/\epsappr$ and $1/\alpha$. In particular, if the exact
+$\lambda=\epsappr/2$ obstacle positive support has cycle rank at most a
+fixed $R$, expected work is
+$\widetilde O((1+R)/\epsappr)$.
+\end{theorem}
+\begin{proof}
+Every accepted solve is certified, so the preceding lemmas prove correctness
+for every finite accepted trajectory. At most $|U|$ faces are reached and
+each solve terminates almost surely by independent constant-success retries.
+The original mass bound gives
+$V=\operatorname{cvol}(U)<4/\epsappr$. Let
+$L=\log(2+V)$, let $b$ count cycle-birth admissions, and let $p$ be final
+permanent-port count. As before $b\leq r$ and $p=O(1+r)$, pathwise.
+
+With $K_{
+\rm pub}=1+\log_+(32\gamma/(\bar\alpha\epsappr))$, the fully charged
+discovery, metadata, source rebuild, producer, named-query, cached-delivery
+and final-recovery work outside coarse solves is
+\[
+ O\!\left(1+V\left[(1+b)L^4+
+ K_{\rm pub}\bigl(L^4+(1+p)L^2\bigr)\right]\right).
+\]
+This is the previous publication ledger with the dense inverse terms
+removed. Each new face additionally assembles and certifies a matrix with
+$O(1+p_t+r_t)$ nonzeros and applies the supplied solver.
+Since $\epsappr/256\leq\delta\leq\epsappr/64$,
+\cref{eq:op3-certified-coarse-source-work} is
+$\widetilde O(1+p_t+r_t)$ with the stated uniform logarithms.
+Conditional expectation at each reached face and the tower rule bound all
+such work by $\widetilde O(\mathbb E[V(1+r)])$.
+The same bound absorbs the deterministic pathwise charges above, proving
+\cref{eq:op3-expected-linear-rank}. No random realized $r$ is treated as a
+deterministic expected-work bound. Finally, every admitted vertex lies in
+the fixed obstacle support; cycle rank is monotone under subgraphs, so
+$r\leq R$ whenever the stated sufficient condition holds.
+
+Only current whole root/port vectors and the current sparse system are kept.
+Outside the source solver workspace, retaining immutable application
+histories uses $O(1+V(1+b+K_{\rm pub})L^3+p+r)$ words. All source workspace
+allocations, including failed attempts, are charged in expected work and
+discarded between attempts/faces. No sharper worst-case workspace bound
+for the imported solver is claimed; expected peak storage is bounded by
+the expected total word work. No ambient graph structure is supplied to
+either imported primitive.
+\end{proof}
+
+\paragraph{Audit boundary and remaining question.}
+\texttt{certified\_coarse\_publications.py} constructs sparse coarse
+matrices and checks their original-matrix Schur identities independently.
+Its testing provider sends two oppositely signed unacceptable perturbations
+before a certified nonzero perturbation. Every original-coordinate error
+band, producer sign, lower signal, positive admission and final repaired
+residual is checked against independent exact faces. No dense inverse is
+stored, and publication-only events leave the coarse matrix, load and
+certified port vector unchanged. The exhaustive evidence is recorded in
+\texttt{CERTIFIED\_COARSE\_PUBLICATION\_AUDIT.json}; it does not test the
+unimplemented source solver's numerical performance. The remaining general
+OP3 question is how to avoid the aggregate rank-dependent coarse work and
+component-query work while retaining these paid original-coordinate
+certificates.

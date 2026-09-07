@@ -128,7 +128,9 @@ certified supplied-face SDD solves.
   (Kuric, Ahmetspahic, and Pock, 2024) - explicit piecewise-quadratic tree
   messages; comparison for the affine-response probe.
 - *A Nearly-m log n Time Solver for SDD Linear Systems* (Koutis, Miller, and
-  Peng, 2011) - nearly-linear solution of a supplied global SDD system.
+  Peng, 2011) - nearly-linear solution of a supplied SDD system; the OP3
+  note applies it to a locally assembled sparse coarse system with explicit
+  residual certification (application audit in `lcp-solvers.md`).
 - *Superrelaxation and the Rate of Convergence in Minimizing Quadratic
   Functions Subject to Bound Constraints* (Dostál, Domorádová, and Sadowská,
   2011) - projected-gradient/CG working-set convergence rates.

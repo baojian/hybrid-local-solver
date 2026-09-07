@@ -326,6 +326,22 @@ provide a constant-success event; the OP2 note obtains a declared failure
 probability by exact local residual certification and capped independent
 retries, not by attributing a `zeta` interface to Theorem 4.6.
 
+**Note-scoped application audit, 7 September 2026.** The independent OP3
+note `incremental_active_set_sdd`, `lem:op3-certified-sparse-solve`, imports
+this supplied theorem on an already assembled coarse Schur system, not on
+the ambient graph. PDF pp. 9--11 were reread, and pp. 10--11 rendered and
+visually checked. Its K has O(p+r) nonzeros and K*1>=bar_alpha*d_P. The
+exact residual test |f-K*t|<=delta*bar_alpha*d_P certifies a uniform physical
+port error delta. With the physical seed retained, f has no positive entry
+except f_v<=1 and the positive-face energy is at most 1/bar_alpha. Relative
+energy accuracy eta=delta*bar_alpha^2/2 therefore suffices. Independent
+constant-success retries are explicitly certified and charged; fresh
+randomness is used after adaptive face selection. The note's expected
+linear-rank ACL claim is a new proof draft, not a source theorem. Its exact
+audit uses a labelled dense coarse provider and does not implement the
+source solver. Source metadata is unchanged; no separate worst-case
+workspace or finite-precision stability guarantee is imported.
+
 ### Durfee et al., 2019: dynamic Schur complements require global initialization
 
 **Source.** David Durfee, Yu Gao, Gramoz Goranci, and Richard Peng,

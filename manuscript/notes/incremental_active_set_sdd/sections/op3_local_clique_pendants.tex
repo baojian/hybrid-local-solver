@@ -1,0 +1,153 @@
+\section{A scalar core response for cliques with unequal pendants}
+\label{sec:op3-local-clique-pendants}
+
+\paragraph{Status and promised family.}
+This \statusproved{} draft, awaiting independent review, gives a different
+representation for a family on which explicit global refresh is expensive.
+The graph is promised to consist of a clique $C$ of unknown size $k\geq3$
+with $t_i\geq0$ private degree-one leaves attached to each core vertex $i$.
+The physical seed $v$ belongs to the core. Pendant counts can be unequal
+and arbitrarily large. The whole scalar-sweep algorithm is implemented;
+it does not import a dynamic tree or numerical SDD solver. This is a
+structural result, not a graph-uniform OP3 theorem.
+The graph promise is an assumption; verifying it on unread rows is not
+part of the claimed work.
+
+Fix $0<\alpha<1$ and $\lambda>0$, with the same $\gamma,\bar\alpha$,
+physical response and original residual conventions as before.
+If $\lambda d_v\geq1$, return zero. Otherwise read the seed row once and
+query its neighbors' original degrees. Its neighbors of degree greater
+than one, together with $v$, are exactly $C$. Thus $k$, all original core
+degrees and all $t_i=d_i-(k-1)$ are discovered with $O(d_v)$ work, without
+reading any other core row or an inactive attachment.
+
+\begin{lemma}[Three-piece scalar core response; \statusproved]
+\label{lem:op3-clique-scalar-response}
+Set $S=\sum_{i\in C}u_i$, $b_i=\mathbb 1_{\{i=v\}}-\lambda d_i$,
+$a_i=d_i+\gamma$, and $c_i=a_i-\gamma^2t_i$. The exact obstacle response
+is determined by the unique nonnegative fixed point
+\begin{equation}
+ S=F(S):=\sum_{i\in C}\phi_i(S),\qquad
+ \phi_i(S)=
+ \begin{cases}
+ 0,&b_i+\gamma S\leq0,\\
+ (b_i+\gamma S)/a_i,&0<b_i+\gamma S\leq a_i\lambda/\gamma,\\
+ (b_i+\gamma S-\gamma\lambda t_i)/c_i,
+       &b_i+\gamma S>a_i\lambda/\gamma.
+ \end{cases}
+ \label{eq:op3-clique-response}
+\end{equation}
+Each pendant at core vertex $i$ then has value
+$\max\{0,\gamma\phi_i(S)-\lambda\}$.
+The function $F$ is continuous and piecewise affine with at most $2k$
+breakpoints. Every affine slope is bounded above by
+\begin{equation}
+ \frac{k\gamma}{k-1+\gamma}<1.
+ \label{eq:op3-clique-slope-bound}
+\end{equation}
+\end{lemma}
+\begin{proof}
+A degree-one pendant's obstacle equation gives exactly the displayed
+positive-part response. Substituting all $t_i$ identical pendant responses
+into the original core equation gives
+\[
+ (d_i+\gamma)u_i-\gamma t_i(\gamma u_i-\lambda)_+
+     =b_i+\gamma S
+\]
+at a positive core coordinate, with the corresponding nonpositive gate
+when it is zero. Solving its two positive linear pieces gives
+\cref{eq:op3-clique-response}. Both transitions are continuous and their
+slopes are $0$, $\gamma/a_i$ and $\gamma/c_i$. Since
+\[
+ c_i=k-1+\gamma+(1-\gamma^2)t_i\geq k-1+\gamma>0,
+\]
+summing the largest slopes gives \cref{eq:op3-clique-slope-bound}.
+Thus $F(S)-S$ is strictly decreasing. If $\lambda d_v\geq1$ its value
+at zero is zero; otherwise it is positive there and tends to a negative
+value as $S$ increases without bound. This proves a unique nonnegative
+fixed point. The resulting point satisfies every original core and pendant
+obstacle equation or inequality, so strict convexity identifies it as the
+unique obstacle solution.
+\end{proof}
+
+\paragraph{Exact breakpoint sweep.}
+The possible breakpoints of row $i$ are
+\[
+ S_{i,0}=-b_i/\gamma,\qquad
+ S_{i,1}=(a_i\lambda/\gamma-b_i)/\gamma.
+\]
+The second has no effect when $t_i=0$. Determine every row's affine
+piece at $S=0$, ignore its negative or irrelevant breakpoints, and sort
+the remaining at most $2k$ events. Keep only the aggregate coefficients
+$F(S)=AS+B$ for the current interval. Its candidate root is $B/(1-A)$.
+If this is at or before the next breakpoint, it is the fixed point.
+Otherwise advance through that event and change only the affected row's
+two aggregate coefficients. Continuity and the slope bound guarantee
+that the root stays beyond the current interval's left endpoint until it
+is found. Ties need no sign margin: a root at a breakpoint is valid in
+both neighboring pieces. This is an exact sweep, not a contraction
+iteration with a hidden $1/(1-A)$ iteration count.
+
+\begin{theorem}[A local clique-pendant solver; \statusproved]
+\label{thm:op3-local-clique-pendants}
+On the promised family, the preceding algorithm returns the exact
+$\lambda$-obstacle response with
+\begin{equation}
+ O\!\left(1+\operatorname{cvol}(U)
+                  \log(2+\operatorname{cvol}(U))\right)
+ \label{eq:op3-clique-local-work}
+\end{equation}
+local exact-real word work and $O(1+\operatorname{cvol}(U))$ space, where
+$U$ is its positive support. All original graph accesses and output are
+included. For $0<\epsappr,\rho<1$, $\lambda=\epsappr/2$ gives
+$\widetilde O(1/\epsappr)$ ACL work, and, separately, $\lambda=\rho$
+gives exact $\widetilde O(1/\rho)$ RPPR work on this family.
+\end{theorem}
+\begin{proof}
+The zero case uses one degree query. In the nonzero case the seed is
+positive, and its one scanned row discovers all $k\leq d_v+1$ core
+identifiers and their degrees. The scalar sweep stores and sorts at most
+$2k$ constant-size records, evaluates at most $2k+1$ candidate roots, and
+changes constant-size aggregates at each crossed event. Its work is
+$O(k\log(2+k))$ and its additional state is $O(k)$, regardless of the
+magnitude of any inactive pendant count.
+
+Evaluate all core values once. Read an additional core row only when its
+computed exact value is positive, using the cached seed row for $v$.
+For each such row, the core-membership dictionary distinguishes the
+private pendants. Query their degrees and output a pendant only when
+$\gamma u_i-\lambda>0$; scan that positive degree-one row once if an
+explicit original incidence check is desired. Never read a zero core or
+zero pendant row. These operations cost $O(\operatorname{vol}(U))$,
+including cached incidence reads and every positive output coordinate.
+All core-value writes, even at zero core coordinates, cost only $O(k)$
+and are charged to the already scanned positive seed row.
+
+The preceding lemma gives the exact original obstacle certificate. Its
+mass identity yields $\lambda\operatorname{vol}(U)<1$ when nonzero.
+Original full degrees, all discoveries, dictionaries and temporary rows
+fit in $O(1+\operatorname{cvol}(U))$ space. Combining these bounds proves
+\cref{eq:op3-clique-local-work} and the two distinct accuracy-namespace
+consequences. There is no polynomial arithmetic-operation dependence on
+$1/\alpha$; rational bit complexity and numerical stability are not claimed.
+\end{proof}
+
+\paragraph{Why this complements the refresh obstruction.}
+The family of \cref{prop:op3-clique-leaf-refresh} lies in this promised
+class. The scalar sweep handles its $\Theta(k^2)$ cycle rank without a
+rank factor, whereas the explicit refresh policy must write $\Omega(k^3)$
+port coordinates. The useful parameter there is the simple algebraic form
+of the core coupling, not its number of independent cycles. This does not
+extend automatically to arbitrary cores: several coupled scalar aggregates
+would create a multidimensional response and a new event-location problem.
+
+\paragraph{Measured.}
+\texttt{local\_clique\_pendants.py} compares its actual local scalar sweep
+against independent exact original-matrix obstacle solves for unequal
+pendant counts and every core seed. Exact core-birth, pendant-birth and
+zero-seed equalities are included. Implicit finite graphs with enormous
+inactive pendant counts are checked using original core equations and
+pendant inequalities with explicit multiplicities; no dense ambient graph
+is built. The audit is saved in \texttt{LOCAL\_CLIQUE\_PENDANT\_AUDIT.json}.
+This implementation is separate from the conditional source interfaces
+in the general cycle-rank construction.

@@ -1,7 +1,8 @@
 # OP3 exploration verification
 
-Latest block: see **Overnight block 11** at the end for the local cycle-rank
-theorem, selected Green queries and the next inverse-update transaction.
+Latest block: see **Overnight block 14** below and
+`OP3_MORNING_DECISIONS_20260907.md`. The earlier dated entries are historical
+verification records; their then-uncommitted status is not current Git state.
 
 Date: 6 September 2026. Base commit:
 `15446d8f946dd03ca42b7e035cd37517ad937a01` on `main`.
@@ -772,4 +773,73 @@ propagate bands through tree pieces, publish safe lower values and repair
 once downward. Its possible expected linear-rank bound has not yet been
 implemented or promoted to a theorem. The sparse determinant budget is an
 alternative amortization tool, not a substitute for this remaining audit.
+No additional usage reset was attempted.
+
+## Overnight block 14: certified coarse responses and scalar dense cores
+
+**Proved here, awaiting independent review:** the certified publication
+construction (`thm:op3-certified-linear-rank`) has expected original ACL
+work `E[W]=O_tilde((1+E[r])/eps_appr)`. If the containing exact obstacle
+support has fixed cycle-rank bound R, this is `O_tilde((1+R)/eps_appr)`.
+The physical sparse certificate, uniform interior error propagation,
+independent source retries, geometric lower publications and downward
+final recovery are charged. This stopping policy is ACL-only. General
+OP3 remains **Open**. The fast sparse SDD solver and online top-tree
+balancing are explicit **Source** imports; the exact reference providers
+and hierarchy rebuilds do not implement their fast algorithms.
+
+**Proved here, awaiting independent review:** the complete local scalar
+algorithm for a promised clique core with unequal private leaves and a
+core seed has work `O(1+cvol(U)*log(2+cvol(U)))` and linear storage
+(`thm:op3-local-clique-pendants`). It solves the exact obstacle problem;
+the ACL and RPPR consequences use separate choices of lambda. The graph
+promise is assumed, and all graph accesses and output are included.
+
+**Refuted:** sparse residual updates alone pay for repeated complete-vector
+refreshes. The legal clique-leaf family forces cubic port writes at a
+quadratic OP3 scale. A separate triangle rejects the claim that a true
+geometric coordinate upper envelope automatically passes a supersolution
+test. Both are representation-specific obstructions. The scalar clique
+algorithm solves the same forced-refresh family efficiently.
+
+The five full audit commands below were run from the repository root using
+`uv run python experiments/proof_audits/incremental_active_set_sdd/<script>`;
+each used `--output manuscript/notes/incremental_active_set_sdd/<audit>.json`.
+Their exact parameters, stopping rules, source hashes, backend hashes and
+reference-only work are saved in the named JSON files.
+
+| Script and full parameters | Audit file | Result |
+| --- | --- | --- |
+| `certified_coarse_publications.py --max-n 7 --structured --shared-star-max 32` | `CERTIFIED_COARSE_PUBLICATION_AUDIT.json` | Passed; 67,856 original ACL checks, 223,514 independent positive faces, 3,228,290 uniform error/due-row checks; 1922.673 seconds including reference work. |
+| `coarse_residual_epochs.py --max-n 6 --clique-max 16` | `COARSE_RESIDUAL_EPOCH_AUDIT.json` | Passed; 4,866 original ACL checks, 26 accepted vector reuses, six canonical forced-refresh families, 14,840 independently checked stored residuals; 498.068 seconds including reference work. |
+| `coarse_geometric_supersolutions.py --max-n 6` | `COARSE_GEOMETRIC_SUPERSOLUTION_AUDIT.json` | Passed; 2,427 positive faces and 16,446 independent Schur/upper-envelope/shift identities; 9.731 seconds. |
+| `local_clique_pendants.py --max-core 6` | `LOCAL_CLIQUE_PENDANT_AUDIT.json` | Passed; 1,464 explicit original obstacle comparisons and six implicit original-equation certificates; 8.270 seconds. |
+| `multipartite_scalar_response.py` | `MULTIPARTITE_SCALAR_AUDIT.json` | Passed; 261 original obstacle comparisons, 704 supplied scalar fixed points, 3,602 transformed breakpoints and 182 positive part insertions; 0.841 seconds. |
+
+The multipartite reference knows the partition and rebuilds curves. Its
+local startup, positive-only part discovery and persistent event insertion
+remain **Conditional / Open**, not a completed local solver.
+
+Final focused verification: **33 scripts pass lint and format checks**;
+`tests/test_proof_audit_registry.py`: **3 passed**; `make agent-audit` and
+whitespace checks pass. All five new source/backend hash sets match the
+executed code, and all five baseline failure-file hashes are unchanged.
+Required `make reproduce` was attempted; its test prerequisite gives
+**231 passed and the same three pre-existing failures** in notation and
+note inventory, with 15 temporary-directory cleanup warnings. Later
+reproduction stages are therefore not reported as run. `make lint` retains
+the same two unrelated findings; `make note-audit` retains the same two
+oversized AESP sources. No unrelated failure file was changed.
+
+The final note has **74 pages** and no log warnings, overfull boxes or
+undefined references. Cover/contents and the new proof/closing pages were
+rendered and inspected; the final scope changes were also checked visually.
+PDF SHA-256:
+`67660101374848307a8f109766e4bedb9af7f8c5cde2dd1532899867a2249fb3`.
+Generated PDF/auxiliary files remain local build products, not research state.
+
+`OVERNIGHT_BLOCK14_AUDIT.json` collects the verification record.
+`OP3_MORNING_DECISIONS_20260907.md` gives the consolidated recommendation.
+The primary-source Kiwiel comparison and companion-note provenance are in
+`LOCAL_CLIQUE_PENDANT_PROBE.md`; no scalar-search novelty claim is made.
 No additional usage reset was attempted.

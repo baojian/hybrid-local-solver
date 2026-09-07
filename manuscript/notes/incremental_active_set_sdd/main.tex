@@ -16,57 +16,46 @@ Nested SDD Corrections and Persistent Local Responses}
 \begin{abstract}
 Wei and Yang's growing-active-set PageRank method solves a nearly-linear
 SDD system on every reached face, giving repeated-support work
-$\widetilde O(|S^\star|\vol(S^\star))$. This note studies what is needed
-to reuse the nested systems. Exact Schur corrections and a telescoping
-energy identity supply warm-start information, but they do not pay for
-repeatedly writing old coordinates or searching all boundary conditions.
-Endpoint paths admit a linear-work realization using scalar elimination
-records and one final reverse pass.
+$\widetilde O(|S^\star|\vol(S^\star))$. This note studies how to reuse the
+nested systems while charging graph discovery, response maintenance,
+failed boundary searches, stored state and final output. Exact Schur
+corrections and a telescoping energy identity provide warm starts, but do
+not pay for repeatedly writing or querying all old coordinates. Endpoint
+paths instead admit a linear-work elimination and final reverse pass.
 
-A geometric-publication reduction separates response production from
-boundary delivery. Original-coordinate publications have near-linear total
-delivery work and admit a certified ACL completion; finding all due
-publications remains an explicit producer obligation on general graphs.
-Several concrete constructions narrow that obligation. Persistent affine
-response curves give an exact $O(n\log^2 n)$ solve on a supplied tree.
-A local solver on cycles with arbitrary pendant-leaf counts reaches
-$\widetilde O(1/\epsappr)$ ACL work. For a cycle seed and tree attachments
-of size at most $q$, a locally discovered changing-response window gives
-$\widetilde O(q^3/\epsappr)$ work. A separate local construction uses an
-implemented planar reporter to avoid inactive attachment scans when the
-positive obstacle support contains at most one nonseed branching vertex.
+Geometric lower-value publications separate original boundary delivery
+from the task of finding changed active values. Several concrete local
+constructions progressively address that producer task. Persistent
+projective upper chains implement exact rooted tree-cluster callbacks;
+a verified height-bounded top-tree source supplies online balancing.
+This gives $O(\operatorname{cvol}(U)\log^4(2+\operatorname{cvol}(U)))$
+local exact-real word work on arbitrary trees and unicyclic graphs,
+without restricting seed position or attachment size. On arbitrary graphs,
+a partition into two-port tree pieces isolates a small cycle system.
+Selected Green queries and maintained inverse updates give a complete
+exact-obstacle bound with active and revealed cycle-rank factors.
+Using the component reporters as geometric-value producers removes repeated
+shared-candidate scans and the revealed-rank factor for ACL approximation.
 
-Finally, scalar physical-flux queues support a growing retained branching
-core and give $\widetilde O((1+r^2)/\epsappr)$ ACL work, with all searches
-and dense inverse updates charged. Here $r$ counts retained vertices in the
-returned support. Constant-relative rounding of accumulated Schur loads
-fails the original residual guarantee; physical-flux bands avoid that
-failure. The explicit inverse still incurs cubic writes on easy balanced
-trees, identifying a remaining representation cost. These constructions
-can also peel settled core vertices, replacing the permanent count by the
-maximum live core. Completed and interior tree supports show respectively
-why admission order can help and why it does not guarantee a small core.
-An ordered path-cluster construction now removes the growing-core factor on
-arbitrary trees. Persistent projective upper chains provide exact cluster
-callbacks; a checked top-tree source interface pays for online discovery,
-all hierarchy changes and final recovery, giving
-$O(\operatorname{cvol}(U)\log^4(2+\operatorname{cvol}(U)))$ local word work.
-The balancing algorithm is imported, while its application callbacks are
-implemented and exactly audited. A uniform negative-load shift then allows
-one locally detected cycle to be restored at two fixed ports, with one paid
-re-rooting. This gives the same local work bound on arbitrary unicyclic
-graphs, for any seed and without a bound on attachment sizes.
-On arbitrary graphs, a partition into two-port tree pieces gives the scoped
-bound $\widetilde O((1+r^2+q)/\epsappr)$, where $r$ is active cycle rank
-and $q$ is locally revealed cycle rank. Selected Green queries permit
-old-port promotion, a paid inverse border and temporary-port elimination;
-the current coarse inverse is updated without repeated factorization.
-Using these component reporters to produce geometric value publications
-then removes the revealed-rank term for ACL approximation, giving
-$\widetilde O((1+r^2)/\epsappr)$ work. This policy may stop before the
-exact obstacle optimum; its final original residual is certified directly.
-The results are proof drafts awaiting
-independent review. Arbitrary-graph OP3 remains open.
+A further certified variant solves the sparse coarse SDD system only to a
+checked residual accuracy. Substochastic conditional responses propagate
+uniform port error bounds to every active coordinate. Safe lower
+publications and one downward final recovery then give an original ACL
+certificate, even when the method stops before the exact obstacle optimum.
+If the containing obstacle support has cycle rank at most $R$, its expected
+work is $\widetilde O((1+R)/\epsappr)$, with only logarithmic dependence
+on $1/\alpha$. The more precise random-support statement uses
+$1+\mathbb E r$. The supplied sparse SDD solver and online top-tree balancing
+are explicit source imports; the application state machines, sparse
+certificates and exact audits are implemented. The reference audits do
+not implement those sources' fast numerical or balancing algorithms.
+Separately, a fully implemented scalar breakpoint sweep solves promised
+clique cores with unequal private leaves in
+$O(\operatorname{cvol}(U)\log(2+\operatorname{cvol}(U)))$ local word work,
+including cases with large cycle rank and enormous unread attachments.
+All new results are proof drafts awaiting independent review. The certified
+coarse refinement is ACL-only and gives no exact RPPR or OP2 result.
+Arbitrary-graph OP3 remains open because its active-rank cost is still present.
 \end{abstract}
 
 \clearpage
@@ -615,6 +604,12 @@ is broad and the boundary has no known low-dimensional kinetic description.
 \input{sections/op3_maintained_inverse}
 \input{sections/op3_coarse_publications}
 
+\input{sections/op3_certified_coarse_sdd}
+
+\input{sections/op3_coarse_residual_epochs}
+
+\input{sections/op3_local_clique_pendants}
+
 \section{Conclusions for the project conjecture}
 \label{sec:conclusion}
 
@@ -676,6 +671,21 @@ Its ACL bound is $\widetilde O((1+r^2)/\epsappr)$, depending on active
 cycle rank only. Tree-shaped returned support therefore gives the target
 scale even in an arbitrary ambient graph with many shared inactive
 candidates. This different stopping policy is not an exact RPPR solver.
+\item \Cref{thm:op3-certified-linear-rank} replaces the dense inverse by a
+certified sparse coarse SDD solve. Its expected ACL work is
+$\widetilde O((1+\mathbb E r)/\epsappr)$, or
+$\widetilde O((1+R)/\epsappr)$ under a fixed containing-support rank bound.
+Uniform port bands propagate without tree-depth loss, and downward repair
+certifies the original residual while preserving every admitted coordinate.
+The source solver is imported and separately identified from the audit's
+dense reference provider. Aggregate rank-dependent coarse work remains open.
+\item The explicit absolute-budget refresh shortcut fails on the clique-leaf
+family of \cref{prop:op3-clique-leaf-refresh}. Yet
+\cref{thm:op3-local-clique-pendants} solves all clique cores with arbitrary
+unequal private pendant counts by a local scalar breakpoint sweep, with
+$\widetilde O(1/\epsappr)$ ACL and exact $\widetilde O(1/\rho)$ RPPR work.
+This separates a representation obstruction from the graph problem and
+motivates simple algebraic core couplings beyond cycle rank.
 \item If an output-linear arbitrary-graph interface is found, the resulting
 $\widetilde O(1/\rho)$ RPPR bound would beat, rather than merely match, the
 project's $\widetilde O(1/(\rho\sqrt\alpha))$ conjectured scale.  This does not

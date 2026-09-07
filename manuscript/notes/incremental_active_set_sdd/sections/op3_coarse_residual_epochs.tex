@@ -1,0 +1,183 @@
+\section{Sparse residual epochs and their refresh obstruction}
+\label{sec:op3-coarse-residual-epochs}
+
+\paragraph{Status.}
+The following identities and family are \statusproved{} as drafts awaiting
+independent review. The corresponding residual-epoch state machine is
+implemented and exactly audited. They refine the certified coarse solver
+but do not remove its rank factor. The obstruction below concerns this
+fixed absolute-budget representation, not all OP3 algorithms.
+
+\begin{lemma}[Two-coordinate residual update; \statusproved]
+\label{lem:op3-sparse-residual-epoch}
+During an epoch with fixed ports and a fixed certified vector $\bm t_P$,
+write $\bm g=\bm f-\bm K\bm t_P$. Suppose an ordinary admitted vertex $j$
+has unique old active parent $i$, whose old conditional response is
+$u_i=\zeta_i+\bm a_i^\top\bm u_P$, with conditional variance $g_{ii}$.
+Put $\tau=d_j-\gamma^2g_{ii}$ and $c=-\lambda d_j+\gamma\zeta_i$.
+Then
+\begin{align}
+ \bm K_{\rm new}&=\bm K-\frac{\gamma^2}{\tau}\bm a_i\bm a_i^\top,
+ &\bm f_{\rm new}&=\bm f+\frac{\gamma c}{\tau}\bm a_i,
+ \label{eq:op3-epoch-sparse-matrix}\\
+ \bm g_{\rm new}&=\bm g+
+ \frac{\gamma}{\tau}(\gamma t_i-\lambda d_j)\bm a_i.
+ \label{eq:op3-epoch-sparse-residual}
+\end{align}
+The residual increment is nonnegative and supported on at most two ports.
+Only the upper acceptance budgets at these ports need checking; all other
+coordinate inequalities persist while $\bm t_P$ is unchanged.
+\end{lemma}
+\begin{proof}
+First eliminate the old interiors. The bordered physical system is
+\[
+ \begin{pmatrix}\bm K&-\gamma\bm a_i\\
+ -\gamma\bm a_i^\top&\tau\end{pmatrix},\qquad
+ \begin{pmatrix}\bm f\\c\end{pmatrix}.
+\]
+Eliminating $j$ gives \cref{eq:op3-epoch-sparse-matrix}; subtracting its
+action on the fixed $\bm t_P$ gives \cref{eq:op3-epoch-sparse-residual}.
+The old named conditional query supplies $\bm a_i,g_{ii},\zeta_i$ in the
+paid hierarchy work, without a whole inverse. Its row has at most two
+nonnegative port coefficients. Positivity of the full original system
+gives $\tau\geq\bar\alpha d_j>0$.
+The publication admission has true gate excess greater than
+$\epsappr d_j/20$; the certified parent error is at most $\delta$.
+Thus $\gamma t_i-\lambda d_j>\epsappr d_j/20-\gamma\delta>0$.
+The last inequality uses $d_j\geq1$ and \cref{eq:op3-coarse-delta}.
+This proves the support and monotonicity of the residual change.
+\end{proof}
+
+The optional epoch algorithm uses this sparse update and retains the old
+port vector if every changed upper bound remains valid. Otherwise it
+refreshes the complete certified coarse solution. A cycle birth uses the
+full sparse assembly and solve. Matrix/load updates, residual resets,
+failed certificates and complete vector writes are all charged.
+
+\begin{lemma}[An admitted retained-parent leaf forces refresh; \statusproved]
+\label{lem:op3-forced-leaf-refresh}
+Suppose $j$ has original degree one, its parent $i$ is retained,
+$\gamma\geq1/2$, and $\bar\alpha d_i\leq1$. Every such publication
+admission makes the old fixed port vector fail its absolute residual
+certificate, regardless of the signed errors left by its last solve.
+\end{lemma}
+\begin{proof}
+Here $\bm a_i$ is a unit coordinate, $g_{ii}=0$ and $\tau=1$.
+Also $\delta=\epsappr/(256\gamma)$. With
+$B_i=\delta\bar\alpha d_i$ the residual increment obeys
+\[
+ \Delta g_i>\gamma\epsappr\left(\frac1{20}-\frac1{256}\right)
+ =\frac{59\gamma\epsappr}{1280},\qquad
+ 2B_i\leq\frac{\epsappr}{128\gamma}.
+\]
+Their ratio is greater than $59\gamma^2/10\geq59/40>1$.
+Since the old certificate has $g_i\geq-B_i$, its updated value exceeds
+$B_i$ and necessarily fails.
+\end{proof}
+
+\begin{proposition}[A source-valid global-refresh cost; \statusproved]
+\label{prop:op3-clique-leaf-refresh}
+For each $k\geq3$, take a $k$-clique with $t\geq k$ pendant leaves at
+each core vertex and core seed $v=0$. Set $d=k-1+t$ and
+\[
+ \bar\alpha=\frac1{4d},\quad \alpha=\frac1{8d-1},\quad
+ \epsappr=\frac1{8d^2},\quad \lambda=\frac1{16d^2}.
+\]
+List seed core neighbors before its leaves, and use FIFO readiness and the
+first-discovered insertion parent. The certified publication algorithm
+admits the entire clique before any leaf and then admits all $kt$ leaves.
+All $k$ core vertices are retained ports throughout these leaf admissions.
+The fixed absolute-budget epoch algorithm refreshes at every leaf, so
+writing its complete refreshed port vectors costs at least $k^2t$ words.
+For $t=k$, this is $\Omega(k^3)$ work whereas
+$1/\epsappr=\Theta(k^2)$ and $\operatorname{cvol}(U)=\Theta(k^2)$.
+\end{proposition}
+\begin{proof}
+We have $d\geq5$, $\gamma=1-1/(4d)\geq19/20$, and
+$\epsappr d_v<1$. The initial exact seed value is $1/d-\lambda$;
+its first certified lower publication exceeds $1/(2d)$ even after
+subtracting $2\delta$. It queues every core neighbor, since
+$\gamma/(2d)>\vartheta d=11/(160d)$, and queues the seed's leaves too.
+The chosen incidence order places all core neighbors first. Later
+publications only append to the FIFO queue, so the entire clique is
+admitted before a leaf.
+
+On that core-only face put $L_0=d-\gamma(k-1)$. Direct clique elimination
+gives each nonseed core value
+\[
+ u_i=\frac{\gamma/(d+\gamma)-\lambda d}{L_0}.
+\]
+Since $L_0\leq d$ and $d/(d+1)\geq5/6$, this is at least
+$35/(48d^2)>4\epsappr$. The seed value is larger. At producer quietness
+every core lower publication is consequently greater than $3\epsappr$.
+It queues every pendant leaf, since $3\gamma\epsappr>\vartheta$.
+Monotonicity retains readiness until each leaf is admitted.
+
+The insertion parent of every core vertex is the seed. At the first
+triangle, all three vertices are marked by the seed or an extra-edge
+endpoint. Every further core vertex becomes an extra-edge endpoint too.
+Thus all core vertices are permanent ports before any leaf admission.
+Now $\bar\alpha d=1/4$, so \cref{lem:op3-forced-leaf-refresh} applies to
+every one of the $kt$ leaves. Each full refresh writes $k$ coordinates.
+The exact charged volume is $k(k+3t)$ and, for $t=k$, the inverse tolerance
+is $8(2k-1)^2$. The resulting $k^3$ mandatory writes exceed both scales
+by a growing polynomial factor.
+\end{proof}
+
+\paragraph{Interpretation and evidence.}
+This is \statusrefuted{} for the explicit global-vector refresh shortcut:
+sparse matrix and residual updates alone imply graph-uniform OP3 work.
+It is not a lower bound for implicit coarse representations, different
+publication policies or arbitrary local algorithms. In particular, the
+proved linear-rank algorithm and its structural corollaries remain valid.
+\texttt{coarse\_residual\_epochs.py} checks the new sparse residual identities,
+accepted reuse events, failed epochs, original ACL output and the canonical
+family against independent original equations. Its family reference
+eliminates pendant leaves separately and checks the full original equations;
+the smallest cases additionally use full dense original-face solves.
+The exact execution evidence is in \texttt{COARSE\_RESIDUAL\_EPOCH\_AUDIT.json}.
+Adaptive coordinate certificates, implicit coarse updates, incremental
+partition maintenance and a reporter avoiding all-component scans remain
+separate \statusopen{} obligations.
+
+\begin{proposition}[A true geometric envelope need not be a supersolution; \statusproved]
+\label{prop:op3-coarse-geometric-supersolution}
+Suppose the obstacle support is the entire finite graph, and let $P$ contain
+the seed and at least one other vertex. Put
+$\bm d_{\rm eff}=\bm d_P-\bm M_{PI}\bm M_{II}^{-1}\bm d_I$.
+For the exact physical coarse solution $\bm u_P$ and its true coordinate
+upper envelope $\bm H=\eta\bm u_P+h\one$, with the publication constants,
+\begin{equation}
+ (\bm f-\bm K\bm H)_i
+ =\bigl((\eta-1)\lambda-h\bar\alpha\bigr)(d_{\rm eff})_i
+ \qquad(i\in P\setminus\{v\}).
+ \label{eq:op3-geometric-supersolution-gap}
+\end{equation}
+In particular, when $\gamma>1/3$ this envelope fails the sufficient
+supersolution test $\bm K\bm H\geq\bm f$ at every nonseed port.
+\end{proposition}
+\begin{proof}
+Since the support is the whole graph, $\bm M\one=\bar\alpha\bm d$.
+Eliminating interiors gives $\bm K\one=\bar\alpha\bm d_{\rm eff}$,
+while the retained physical seed gives
+$\bm f=\bm e_v-\lambda\bm d_{\rm eff}$.
+Subtracting $\bm K(\eta\bm u_P+h\one)$ proves
+\cref{eq:op3-geometric-supersolution-gap}. The effective degrees are
+positive by inverse positivity. Here $\eta-1=1/4$ and
+$h=\lambda/(8\gamma)$, so the coefficient is positive exactly when
+$2\gamma>\bar\alpha$, equivalently $\gamma>1/3$.
+\end{proof}
+
+For a triangle with $\alpha=1/3$ and $\lambda=1/20$, the exact response
+is $(1/2,1/10,1/10)$ and its envelope is $(51/80,11/80,11/80)$.
+The supersolution residual is $(-19/80,1/80,1/80)$, although the envelope
+is strictly above the true vector at every coordinate. The exact audit
+\nolinkurl{COARSE_GEOMETRIC_SUPERSOLUTION_AUDIT.json} verifies the identity
+through independent original Schur elimination, including the equality
+case $\gamma=1/3$. Thus geometric coordinate domination does not itself
+justify this supersolution certificate; tighter coupled upper bounds may
+still be useful. On this full-support face,
+the shift $\bm u_P+(\lambda/\bar\alpha)\one$ does have the positive
+coarse source $\bm e_v$; recovering small physical values then requires
+resolving cancellation against that shift. This identifies another
+certificate obligation, not an impossibility result for adaptive bands.

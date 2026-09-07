@@ -1,9 +1,25 @@
-# Next probe: certified sparse coarse solves for linear-rank ACL work
+# Certified sparse coarse solves for linear-rank ACL work
 
-Date: 7 September 2026. **Conditional / Open composition.** The identities
-below are derived proof obligations, not yet a completed algorithm audit.
-The completed exact-publication result remains authoritative until this
-variant has its own proof, original-residual audit and source-cost audit.
+Date: 7 September 2026. **Proved here**, completed construction and exact
+audit, draft awaiting independent review. General OP3 remains **Open**.
+Proof authority is `sections/op3_certified_coarse_sdd.tex`, especially
+`thm:op3-certified-linear-rank`. The source solver and online top-tree
+balancing are explicit **Source** imports; the exact audit substitutes a
+dense coarse candidate provider and separately charged hierarchy rebuilds.
+
+The correct random-support statement is
+`E[W]=O_tilde((1+E[r])/eps_appr)`. A fixed sufficient rank bound `R` on the
+containing exact obstacle support gives `O_tilde((1+R)/eps_appr)`.
+`CERTIFIED_COARSE_PUBLICATION_AUDIT.json` contains 67,856 complete original
+ACL checks, 223,514 independent faces, and 3,228,290 original uniform-error
+and due-row checks. Rejected signed perturbations and accepted nonzero
+errors exercise the exact certificate and downward repair. This is ACL-only;
+it does not establish exact RPPR, OP2, or fast source-solver performance.
+
+The following development specification is retained as **historical proof
+obligations now resolved by the cited section**. Its prospective wording
+is not the current completion status. See the theorem for the final
+random-support expectation, source-retry and workspace statements.
 
 ## Why approximate ports may suffice
 
