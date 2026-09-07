@@ -1,0 +1,256 @@
+\section[Mixed additive accuracy]{Compression, refinement and acceleration with additive budgets}
+\label{sec:op3-mixed-additive-oracles}
+
+\paragraph{Scope.}
+The global compressor incurs an explicit additive error. A normalized
+proximal objective may have zero optimum or an arbitrarily small negative
+optimum, so an additive budget must not be converted to a relative one
+using an unstated positive gap margin. This section keeps the two errors
+separate throughout the supplied numerical interface. The statements are
+\statusproved{} drafts awaiting independent review. The accelerated
+convergence inequality remains the same explicit CPW Theorem 8.3 source
+import. Source Algorithm 6's elimination-before-refinement/compression
+schedule is context, not a fast recursive solver imported by these proofs.
+
+For a feasible-origin objective $\Phi$ with $\Phi(0)\leq0$ and finite
+attained minimum $\Phi^*$, call a feasible output $q$ a
+$(\beta,\eta)$ output when
+\begin{equation}
+ \Phi(q)\leq\Phi^*/\beta+\eta,\qquad \beta\geq1,\quad\eta\geq0.
+ \label{eq:op3-mixed-oracle-contract}
+\end{equation}
+The parameter $\eta$ is an absolute objective error. It is distinct from
+both $\epsappr$ and $\rho$, and from the scalar compression error $\Xi$.
+
+\begin{lemma}[Compression preserves a mixed contract; \statusproved]
+\label{lem:op3-mixed-compression-embedding}
+Suppose the implemented compressor gives
+$E(x)\geq\widehat E(x)\geq2E(x/2)-2\Xi$ on the feasible domain,
+as in \cref{cor:op3-global-vwf-energy-embedding}.
+If $w$ is a $(\beta,\zeta)$ output for $\widehat E$, then
+\[
+ E(w/2)\leq E^*/(2\beta)+\zeta/2+\Xi.
+\]
+If $E$ is the exact reduced objective of a supplied forest, its original
+reconstruction at $w/2$ has this same energy. In particular, a
+$(2,\xi)$ compressed oracle with $\Xi\leq\xi/2$ gives a
+$(4,\xi)$ output for the uncompressed objective.
+\end{lemma}
+\begin{proof}
+The lower compression inequality gives
+$E(w/2)\leq\widehat E(w)/2+\Xi$, and
+$\widehat E^*\leq E^*$. Apply the mixed contract. Scaling by one half
+preserves each domain $[L_i,\infty)$ because $L_i\leq0$.
+The forest recovery theorem preserves the reduced energy exactly.
+No division by $|E^*|$ occurs, including when $E^*=0$.
+\end{proof}
+
+\begin{theorem}[Refinement with a retained additive error; \statusproved]
+\label{thm:op3-mixed-relative-refinement}
+Suppose a $(\beta,\xi)$ oracle is supplied for every exact residual
+instance of $\Phi$, with fixed $\beta\geq1$ and $\xi\geq0$.
+Starting at $a_0=0$, call it on
+$R_a(z)=\Phi(a+z)-\Phi(a)$ and form $a+z$.
+A paid guard may keep $a$ if its energy would increase, and the canonical
+common shift of \cref{prop:op3-vwf-canonical-input-gap} may be applied
+before that guard in the graph/VWF setting. For every $J$,
+\begin{equation}
+ \Phi(a_J)-\Phi^*\leq
+ (1-1/\beta)^J\bigl(\Phi(0)-\Phi^*\bigr)+\beta\xi.
+ \label{eq:op3-mixed-refinement-recurrence}
+\end{equation}
+For desired relative $\delta>0$ and additive $\zeta\geq0$, choose
+$\xi=\zeta/\beta$ and the least $J$ with
+$(1-1/\beta)^J\leq\delta/(1+\delta)$.
+Then $a_J$ is a $(1+\delta,\zeta)$ output.
+The call count is $O(1+\beta\log(1+1/\delta))$; it has no dependence
+on the unknown absolute optimum or on $\log(1/\zeta)$.
+\end{theorem}
+\begin{proof}
+The residual minimum is $-g$, where $g=\Phi(a)-\Phi^*\geq0$.
+Its oracle gives $R_a(z)\leq-g/\beta+\xi$, hence the next gap is at
+most $(1-1/\beta)g+\xi$. Canonicalization only decreases the candidate
+energy. If the guard rejects an increasing candidate, that candidate gap
+exceeds $g$ but is still bounded by the displayed upper bound; keeping
+$g$ therefore preserves the inequality. Summing the geometric recurrence
+gives \eqref{eq:op3-mixed-refinement-recurrence}. Initially
+$\Phi(0)-\Phi^*\leq|\Phi^*|$, because $\Phi(0)\leq0$.
+The chosen $J$ and $\xi$ then give
+$\Phi(a_J)-\Phi^*\leq\delta|\Phi^*|/(1+\delta)+\zeta$, which is
+the claimed mixed contract. The same calculation includes zero initial
+gap. For $\beta=1$ one call suffices; for $\beta>1$, use
+$1-1/\beta\leq\exp(-1/\beta)$ for the call bound.
+\end{proof}
+
+\paragraph{Implemented residual and guard work.}
+On a supplied graph with $m$ edges and total explicit vertex piece count
+$S$, residual construction uses
+$f_i(a_i+t)-f_i(a_i)+(\mathcal Ga)_it$ on $t\geq L_i-a_i$.
+It copies all translated splits and coefficients and computes the sparse
+graph product in $O(m+S)$ work and $O(S)$ newly allocated words.
+Both vertex value anchors and the original objective guard are charged.
+Binary search per vertex costs at most linear total piece work.
+Each accepted candidate, failed guard, common-shift scan and output vector
+is charged. Excluding the supplied oracle's own work and allocations,
+$J$ iterations therefore cost $O(J(m+S))$ work and $O(JS)$ new words.
+No graph access is classified as local merely because the original
+objective arose from a local-diffusion question.
+
+\begin{theorem}[An accelerated mixed tolerance without a gap floor; \statusproved]
+\label{thm:op3-mixed-proximal-accuracy}
+Under the matrix and convexity hypotheses of
+\cref{thm:op3-generic-relative-proximal}, give the algorithm $\eta>0$.
+Choose the least dyadic $T$ with $T^2\geq256\kappa$ and set
+\begin{equation}
+ \delta_{\rm rel}=\frac1{66\cdot2^{30}\kappa^3},\qquad
+ \zeta=\frac{\eta}{2^{32}\kappa}.
+ \label{eq:op3-mixed-proximal-policy}
+\end{equation}
+At every source accelerated center $x$, require a feasible output obeying
+\begin{equation}
+ E_x(q)\leq E_x^*/(1+\delta_{\rm rel})+\zeta,
+ \qquad E_x=\Phi_x-\Phi_x(0).
+ \label{eq:op3-mixed-normalized-proximal-contract}
+\end{equation}
+Starting at zero, the output satisfies
+\[
+ \Phi(y_T)-\Phi^*\leq\frac{\Delta+\eta}{32},
+ \qquad\Delta=\Phi(0)-\Phi^*.
+\]
+All centers have $\mathcal H$ seminorm squared at most
+$64\kappa^2(\Delta+\eta)$ and all feasible iterate gaps are at most
+$2\kappa(\Delta+\eta)$. Neither $\Delta$ nor a positive gap floor is
+needed to set the policy. If $\Phi(0)\leq0$, the output in particular
+satisfies the weaker reusable $(2,\eta)$ contract.
+\end{theorem}
+\begin{proof}
+Write $D=\Delta+\eta>0$ and $e_0=D/(2^{30}\kappa)$ for analysis only.
+The gap-distance inequality gives $\|u\|_{\mathcal H}^2\leq2\kappa\Delta
+\leq2\kappa D$. As in the generic proof,
+$3\sum_{j=1}^Tj\sqrt{2e_0}<\sqrt{\kappa D}/8$.
+Every already justified source prefix $k\geq2$ therefore has gap at
+most $8\kappa D/(k+1)^2$. At the first center $x=0$, the mixed
+contract gives $\Phi(q)\leq\Phi(0)+\zeta$, so its gap is at most $D$.
+All previous feasible gaps are thus at most $2\kappa D$. The exact
+extrapolation identity bounds $\|x\|_{\mathcal H}^2\leq64\kappa^2D$.
+
+Since $\Phi_x\geq\Phi$, one has
+$\Phi_x(0)-\Phi_x(q)\leq\|x\|_{\mathcal H}^2/2+\Delta
+\leq33\kappa^2D$. This difference is allowed to be negative.
+Rearranging \eqref{eq:op3-mixed-normalized-proximal-contract} gives
+\begin{align*}
+ 0\leq e_x&\leq\delta_{\rm rel}\bigl(\Phi_x(0)-\Phi_x(q)\bigr)
+                +(1+\delta_{\rm rel})\zeta\\
+ &\leq\frac{D}{2^{31}\kappa}+
+          \frac{\eta}{2^{31}\kappa}\leq e_0.
+\end{align*}
+This closes the induction and yields final gap at most $D/32$.
+The source seminorm inequality has the same limiting justification as
+in \cref{thm:op3-generic-relative-proximal}. When $\Delta=0$, $D=\eta$
+still makes the argument valid and permits small nonzero model errors;
+the proof does not require exact oracle output in that case.
+If $\Phi(0)\leq0$, then $\Delta\leq-\Phi^*$, so
+$\Phi(y_T)\leq31\Phi^*/32+\eta/32\leq\Phi^*/2+\eta$.
+\end{proof}
+
+\begin{corollary}[A compatible numerical recursion schedule; \statusproved]
+\label{cor:op3-mixed-recursive-budgets}
+Consider one invocation of \cref{thm:op3-mixed-proximal-accuracy}.
+Suppose every supplied inner graph has a valid forest/core decomposition,
+and a recursive $(2,\eta_{\rm child})$ oracle is available on compressed
+coarse instances. Exactly eliminate each inner forest once. Refine the
+resulting coarse objective using $\beta=4$ and per-call error $\xi=\zeta/4$.
+For each refinement residual use total compression error at most $\zeta/8$
+and request the recursive oracle with
+\begin{equation}
+ \eta_{\rm child}=\frac\zeta4
+                 =\frac{\eta_{\rm parent}}{2^{34}\kappa_{\rm parent}}.
+ \label{eq:op3-mixed-child-additive-budget}
+\end{equation}
+Then refinement and exact recovery provide
+\eqref{eq:op3-mixed-normalized-proximal-contract}.
+Each inner solve uses $O(1+\log(2+\kappa))$ recursive calls. Along a
+path of depth $d$, the logarithm of the inverse additive budget increases
+by exactly $34d\log2+\sum_{\ell<d}\log\kappa_\ell$.
+\end{corollary}
+\begin{proof}
+The compression lemma gives a $(4,\zeta/4)$ coarse residual output:
+the two additive terms are at most $\zeta/8$ each.
+The refinement theorem gives the requested relative and additive pair,
+and original forest recovery preserves energy. The relative target in
+\eqref{eq:op3-mixed-proximal-policy} has logarithm
+$O(1+\log(2+\kappa))$. Iterating
+\eqref{eq:op3-mixed-child-additive-budget} gives the last statement.
+Geometric refinement and the accelerated weighted error sum already charge
+their repeated calls, so no guessed global call count is used as an error
+divisor. This is a conditional numerical interface: existence, construction
+cost, coefficient ranges and size reduction of the recursive graphs and
+oracles remain explicit hypotheses.
+\end{proof}
+
+\paragraph{Dense validator and exact precision control.}
+The implemented compressed-forest refinement audit
+eliminates a supplied forest, exports its root functions, constructs exact
+residuals, calls the unchanged global compressor, applies the paid energy
+guard and reconstructs the original coordinates. It uses a dense exact
+coarse policy solely as a validator. The policy is proved below, and its
+matrix work is separate from the supplied fast-oracle hypotheses.
+Reference coarse candidates are rounded upward to a dyadic grid, which
+preserves lower-bound feasibility; the grid is refined until the mixed
+energy inequality passes exactly. This replaces an initial reference
+choice whose rational denominators grew beyond the decimal serializer's
+limit. The failed serialization was not a failed mathematical inequality.
+Dyadic integer rounding and its backtracking are reference work, not a
+production bit-complexity or floating-point guarantee.
+
+\begin{lemma}[A finite forward-piece reference policy; \statusproved]
+\label{lem:op3-vwf-forward-quadratic-policy}
+For a connected supplied graph and finite-piece VWFs with nonnegative
+total final slope, the following dense policy reaches an exact minimum
+in at most one plus the total number of scalar splits bound-QP calls.
+Start at the original lower vector. Form the quadratic pieces containing
+the current vector, continue them quadratically to the right, and minimize
+that quadratic subject to the current vector as lower bound. Advance the
+piece indices to the new vector, using right-continuous ties, and repeat
+until no index changes. The temporary lower bounds introduce no spurious
+original optimality constraints.
+\end{lemma}
+\begin{proof}
+Every quadratic matrix is the connected Laplacian plus nonnegative diagonal
+curvature. When some curvature is positive it is positive definite.
+Otherwise all selected pieces are affine final rays, so the total linear
+slope is nonnegative. The dense positive-face obstacle reference can also
+solve this latter bound QP: its total load is nonpositive, and with zero
+residual on the current face the inactive residuals cannot all be strictly
+positive. Thus strict face growth never requests the singular full
+Laplacian; every solved proper principal submatrix is positive definite.
+The resulting bound QP has the usual feasible complementary gradient.
+
+New iterates never decrease, by their imposed lower bound. At a piece
+advance, concavity of the scalar derivative implies that the newly selected
+piece derivative at the previous vector is no greater than the old
+quadratic continuation. At a coordinate already above its original lower
+bound, the old quadratic gradient is zero by induction, so the new gradient
+there is nonpositive. If that coordinate stays at its temporary lower
+bound in the next solve, neighbor increases only decrease its gradient,
+because Laplacian off-diagonals are nonpositive. Bound-QP optimality requires
+a nonnegative gradient there, hence it must be zero. If the coordinate
+increases, ordinary complementary optimality again makes it zero.
+Coordinates at their original bound need only a nonnegative gradient.
+This proves original-bound KKT for every quadratic model.
+
+Each nonterminal iteration advances at least one piece index, and no index
+decreases. After at most the total split count such advances, the quadratic
+and original nonlinear derivatives agree at the output. The original
+feasible complementary gradient is therefore exact, so convexity gives a
+global minimum. All dense solves and piece-policy bookkeeping remain
+validator costs; this bound is not a fast coarse-oracle implementation.
+\end{proof}
+
+\paragraph{Remaining obligations.}
+The new mixed contracts remove one unknown-optimum error-budget obstacle.
+They do not establish the sizes, weight ranges or construction costs of
+future recursive preconditioners. Compression size still depends explicitly
+on its largest split, curvature and requested additive budget. The supplied
+graph recurrence and unknown-support graph discovery must both be proved
+before inferring original OP3 work. General OP3 remains \statusopen{}.

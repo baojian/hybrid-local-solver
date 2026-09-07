@@ -1,5 +1,12 @@
 # Additive budgets through compressed recursive diffusion
 
+**Block 10 update:** Sections 1–4 and the dense forward-piece policy below
+are now proved drafts and exact-audited in `sec:op3-mixed-additive-oracles`.
+The original candidate derivation is retained as dated development history.
+Resume `COARSE_GRAPH_RANGE_PROBE.md` for the still-conditional graph/range
+work. The source constructor and local-work obligations remain open.
+
+
 Second-night block 9 continuation, 8 September 2026. **General OP3 remains
 Open.** The persistent exact forest primitive is implemented and audited in
 `sec:op3-persistent-vwf-forest`. Its code is `persistent_vwf_forest.py`,

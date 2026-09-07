@@ -1,6 +1,43 @@
 # Direction status: incremental_active_set_sdd
 
-## Second night, block 9: persistent exact VWF forest elimination
+## Second night, block 10: mixed additive numerical recursion
+
+**General OP3 remains Open.** The new section
+`sec:op3-mixed-additive-oracles` proves compression embedding, guarded
+relative refinement and accelerated accuracy while retaining an explicit
+additive error. The recursive budget is
+`eta_child=eta_parent/(2^34*kappa_parent)`. It needs no unknown negative
+optimum or positive gap floor. These are **Proved here** drafts; recursive
+preconditioner construction, graph ranges and fast work remain **Conditional**.
+
+**Measured:** The dense forward-piece reference passes 747 exact minima,
+2,830 bound quadratic solves and 192 independent tree comparisons. Mixed
+acceleration passes 153 invocations and 4,896 complete step certificates,
+including 640 nonzero errors at zero initial gap. The implemented persistent
+forest/compression/refinement/recovery pipeline passes 61 cases and 942
+coarse calls, including 188 positive compression-error checks, 570 nonzero
+negative regularization shifts and 484 paid failed improvement guards.
+Signed splits at 2^-100 and the actual kappa=4 recursive tolerance are
+included. Dense coarse solves and dyadic candidate rounding are validator
+work; no fast oracle or bit-complexity claim follows from their timing.
+
+An initial reference run exceeded decimal serialization limits because
+successive exact candidates developed large denominators. Upward dyadic
+rounding with an exact energy guard repaired the reference policy; no
+mathematical inequality had failed. All final source/backend hashes match.
+
+**Next falsifiable target:** `COARSE_GRAPH_RANGE_PROBE.md` saves a spectral
+preconditioner edge-floor wrapper and simultaneous energy/range induction.
+They are unproved candidates at this checkpoint. Actual CPW construction
+and shrink costs still need source verification. The 114-page note builds
+without final warnings; pages 108–113 were visually reviewed. All 54
+scripts pass focused lint/format and three registry tests pass. Required
+broad checks retain the same baseline failures and five unchanged hashes.
+See `OVERNIGHT_20260907_BLOCK10_AUDIT.json` and `VERIFICATION.md`.
+Formal note dependencies remain empty; prior source imports are unchanged.
+
+
+## Historical second-night block 9: persistent exact VWF forest elimination
 
 **General OP3 remains Open.** `thm:op3-persistent-vwf-forest` implements
 exact elimination on a supplied forest whose remaining edges join retained
