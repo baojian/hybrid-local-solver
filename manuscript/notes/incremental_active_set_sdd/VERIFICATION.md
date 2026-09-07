@@ -1,7 +1,7 @@
 # OP3 exploration verification
 
-Latest block: see **Second night, block 6** below and
-`OVERNIGHT_20260907_BLOCK6_AUDIT.json`. The first-night synthesis is
+Latest block: see **Second night, block 7** below and
+`OVERNIGHT_20260907_BLOCK7_AUDIT.json`. The first-night synthesis is
 `OP3_MORNING_DECISIONS_20260907.md`. The earlier dated entries are historical
 verification records; their then-uncommitted status is not current Git state.
 
@@ -1152,3 +1152,48 @@ probe. `GLOBAL_VWF_RECURSION_PROBE.md` records remaining largest-split,
 curvature, recursive error, normalized proximal objective and local-work
 obligations. The 480-new-active-minute campaign continues; no idle time
 or first-night work is counted.
+
+## Second night, block 7: explicit proximal accuracy and original certified restarts
+
+Both new registered full exact audits pass. `CAPPED_PROXIMAL_BUDGET_AUDIT.json`
+records 414 trajectories, 11,152 complete model/sublevel certificates,
+10,960 relative-to-absolute checks, 192 absolute-error stress steps, 43
+infeasible accelerated centers and 36 standalone centers. The capped KKT
+reference exercises 32 coordinates beyond the cap and 30 negative individual
+terminal slopes. Its final full run took 85.835 seconds.
+
+`CAPPED_RESTART_DRIVER_AUDIT.json` records 277 original driver cases, 696
+guard gap sandwiches, 419 failed guards with a known gap floor, 142 nonzero
+restarts, 13,824 normalized inner model contracts and 277 original ACL
+certificates. There are 135 multiple-run cases. Tiny eps_appr=2^-30 path,
+star and cycle cases need four, four and five runs, respectively. Their
+large exact certificate rationals are encoded by sign, bit lengths and a
+specified binary SHA-256 scheme instead of huge decimal strings. The full
+run took 1,393.777 seconds. All source/backend hashes were rechecked.
+
+An initial driver check reached its certificate but failed while converting
+an over-4,300-digit rational to decimal JSON text. The compact exact-value
+record fixes this reporting limitation; no mathematical inequality failed.
+An integer combinatorial coefficient in the proximal validator was also
+made explicitly Fraction-valued before the final runs. Every final iterate
+coordinate is checked for exact Fraction type. These audits implement the
+outer state/guard mechanics with a dense reference oracle, not a fast inner
+numerical solver or preconditioner constructor.
+
+The source convergence inequality and normalized proximal instance were
+visually checked on CPW PDF pp. 44 and 50–52. Pages 40–42 reveal a separate
+printed Lift constant sign mismatch, demonstrated by f(y)=-y on y>=0;
+its corrected formula and further elimination candidates are preserved in
+CAPPED_INNER_ORACLE_PROBE.md. They do not affect the verified APG argument.
+A sharper universal relative-tolerance candidate remains unpromoted and
+must be independently proved/audited before use.
+
+The note builds to 103 pages with no final warnings, undefined references
+or overfull boxes. Pages 98–103 were rendered and visually reviewed.
+Ownership, all 48 direction scripts' focused lint/format, three registry
+tests and whitespace checks pass. Required tests retain 231 passed and the
+same three pre-existing failures; required lint retains two unrelated
+findings; note inventory retains the same two oversized AESP sources.
+All five baseline hashes are unchanged. Reproduction stops at the test
+prerequisite; later stages are not claimed. Cleanup warnings remain in logs.
+The eight-new-active-hour campaign is still in progress.

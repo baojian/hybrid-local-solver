@@ -1,5 +1,11 @@
 # Global compression: recursive scales and absolute proximal errors
 
+**Historical block 6 checkpoint.** Block 7 proves the explicit original-capped
+proximal policy and restarts driven by the original gap certificate.
+Continue from `CAPPED_INNER_ORACLE_PROBE.md`, which also records a source
+Lift constant-sign correction and a more specific forest-elimination scale
+induction. The proposals below retain their original dated status.
+
 Second-night block 6 checkpoint, 8 September 2026. **General OP3 remains
 Open.** The global scalar primitive below supersedes the bounded-domain
 route as the primary numerical probe. All new proofs are drafts awaiting

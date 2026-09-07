@@ -8,31 +8,33 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 6 and next work
+## Completed block 7 and next work
 
-Global signed VWF moment compression, its one-call graph embedding,
-original capped coercivity and a degree-only ACL shortcut are now proof
-drafts with complete exact audits. Use the newest README/STATUS checkpoint
-and `OVERNIGHT_20260907_BLOCK6_AUDIT.json`. General OP3 remains Open.
-No fast constrained source solver has been imported.
+Explicit original-capped proximal accuracy and a gap-certified restarted
+outer driver are now proved drafts and fully audited. The convergence
+inequality is a source import; every fast inner-oracle cost remains open.
+Use the newest README/STATUS and `OVERNIGHT_20260907_BLOCK7_AUDIT.json`.
 
-Resume `GLOBAL_VWF_RECURSION_PROBE.md`. It replaces the weaker bounded
-field route: the new scalar compression is valid on the whole domain,
-retains the final derivative, and does not depend on the smallest split.
-Remaining numerical targets are largest-split and curvature bounds through
-elimination, and a known absolute proximal error policy using the original
-capped coercivity and the source's actual normalized oracle objective.
-Do not assume all recursive domains or individual tail slopes stay original.
+Resume `CAPPED_INNER_ORACLE_PROBE.md`. Its highest-priority new target is
+a generic energy-norm induction suggesting the universal relative tolerance
+1/(33*2^30*kappa^3), without a known absolute energy scale. Formalize and
+audit the actual source normalization, zero-gap case, shifted lower domains
+and all prefixes. Then test canonical common-shift normalization for generic
+coordinate bounds. These sharper ideas are saved candidates, not yet proved
+or implemented results of block 7.
 
-After the bounded probes, trace the complete recursion and cumulative
-additive error. Keep unknown-support graph discovery, supplied-instance
-construction, failed certificate scans and cumulative support-volume work
-as separate general obligations. Do not repeat completed audits or return
-primarily to more special graphs.
+Next inspect one supplied forest-elimination pass. The probe records a
+visually confirmed sign error in the source Lift constant and its direct
+correction, explicit terminal-slope/curvature/range candidates, and a
+persistent derivative-curve design with exact area aggregates. Preserve
+old validated backends; use a new module for this type. An arbitrary spanning
+forest does not justify dropping nonforest incidences at eliminated vertices.
 
-The campaign stays ACTIVE until 480 new active minutes are verified. Start
-and close actual intervals in the separate ledger; exclude heartbeat idle
-gaps. Commit and push completed blocks under the existing authorization.
+Keep the full recursive error and inner-source work, unknown-support graph
+discovery and cumulative supplied-graph scans separate. Do not repeat the
+completed 23-minute exact driver audit unless changed code or a new concern
+requires it. Continue to at least 480 new active minutes, excluding idle and
+prior-night time; commit and push verified blocks under existing authorization.
 
 ## Conventions, status and authorization
 

@@ -1,6 +1,61 @@
 # Direction status: incremental_active_set_sdd
 
-## Second night, block 6: global signed compression and original sublevels
+## Second night, block 7: explicit proximal accuracy and certified restarts
+
+**General OP3 remains Open.** `thm:op3-explicit-capped-proximal-budget`
+proves a parameter-explicit relative oracle tolerance for a supplied original
+capped diffusion problem. Earlier feasible iterates bound the next accelerated
+center; the normalized oracle guarantee then supplies its absolute model
+error; the source convergence inequality bounds the next feasible iterate.
+This induction avoids a circular numerical-range assumption. It applies
+from any feasible nonpositive-energy starting point with a known gap floor.
+
+`cor:op3-capped-certified-restart-driver` obtains that floor from every
+failed original gap certificate, runs the same original capped objective,
+boxes the output and restarts. Each run contracts gap by at least 32.
+The implemented original certificate stops the driver and certifies its ACL
+output. All sparse construction, failed guards, graph scans, new vectors,
+boxing and inner-oracle work are retained in the bound. The new results
+are **Proved here**, drafts awaiting independent review, conditional on
+the explicitly stated inner relative-oracle contracts.
+
+**Source:** CPW Algorithm 9 and Theorem 8.3 supply the accelerated
+convergence inequality; their normalized proximal instance is Claim 8.19.
+PDF pp. 44 and 50–52 were visually checked. This imports convergence
+analysis, not a fast constrained numerical backend or preconditioner builder.
+
+**Measured:** 414 accelerated trajectories with 11,152 complete model and
+sublevel checks, including 43 infeasible centers, 36 standalone center
+checks, 32 reference optimum coordinates beyond the cap and 30 negative
+individual proximal tail slopes. The driver audit passes 277 original cases,
+696 guard sandwiches, 419 failed guards with known positive gap floors and
+277 original ACL certificates. It checks 142 nonzero restarts and 13,824
+inner model contracts. Of these drivers, 135 need multiple runs; the three
+cases with eps_appr=2^-30 require four, four and five runs. Dense exact
+KKT-piece solves and perturbation searches are validator work. The full
+driver audit took 1,393.777 seconds; large exact rationals are recorded
+compactly with explicit binary hashes and bit lengths.
+
+**Next falsifiable target:** `CAPPED_INNER_ORACLE_PROBE.md`. A sharper
+energy-norm induction suggests the generic relative tolerance
+`1/(33*2^30*kappa^3)` for a zero-start source invocation, independent of
+unknown absolute energy scale. This is still a **Conditional probe** to
+formalize and audit, including zero gap and signed lower domains. A
+canonical common-shift normalization may then bound generic coordinates.
+The probe also records the checked sign correction in the source Lift
+constant, a forest-elimination range induction, and a possible persistent
+derivative-curve implementation with exact integral aggregates.
+
+Unknown-support discovery, recursive inner-oracle work and cumulative
+supplied-graph costs remain open. Current checks are in
+`OVERNIGHT_20260907_BLOCK7_AUDIT.json` and `VERIFICATION.md`. The 103-page
+note builds without final warnings. New proof pages 98–101 and changed end
+pages 102–103 were visually reviewed. All 48 direction scripts pass focused
+lint/format and three registry tests pass. The same baseline failures and
+five unchanged file hashes remain. The 480-new-active-minute campaign
+continues in its actual-time ledger.
+
+## Historical second-night block 6: global signed compression and original sublevels
 
 **General OP3 remains Open.** `thm:op3-global-vwf-compression` now
 implements a scalar compression valid on the entire VWF domain. Tiny

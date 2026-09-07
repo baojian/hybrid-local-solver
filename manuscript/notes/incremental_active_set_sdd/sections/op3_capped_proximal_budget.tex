@@ -1,0 +1,214 @@
+\section[Explicit proximal accuracy]{Explicit proximal accuracy and certified restarts on a supplied graph}
+\label{sec:op3-capped-proximal-budget}
+
+\paragraph{Status and imported ingredient.}
+The parameter policy and restart reduction below are \statusproved{}
+drafts for a supplied relative-oracle interface. The accelerated convergence
+inequality is a \statussource{} ingredient: Algorithm 9 and Theorem 8.3 of
+Chen--Peng--Wang, PDF p.\ 44 \citep{chen2021diffusion}. The normalized
+proximal instance is their Claim 8.19, PDF pp.\ 50--51. These pages and
+the numerical-range use in Claim 8.21, p.\ 52, were visually checked.
+No fast implementation of the inner oracle or preconditioner construction
+is imported by the following reduction.
+
+Use the original capped objective $\Phi=E_{\rm cap}$ from
+\cref{lem:op3-original-capped-coercivity}. Put
+$\mathcal G=\gamma L$, $h(x)=\sum_iq_i(x_i)+I_{x\geq0}$ and
+$\Phi(x)=x^\top\mathcal Gx/2+h(x)$. Thus $\Phi(0)=0$.
+Assume $\epsappr d_v<1$ and a supplied graph Laplacian $\mathcal H$
+obeying $\mathcal G\preceq\mathcal H\preceq\kappa\mathcal G$,
+$\kappa\geq1$. Let $m$ be the original edge count, $m_H$ the supplied
+preconditioner edge count, $C_0=1/(2\bar\alpha)$, and $\Phi^*=\min\Phi$.
+The capped and original quadratic minima agree and $-\Phi^*\leq C_0$.
+
+For a possibly infeasible center $x$, its model and normalized oracle
+objective are
+\begin{align}
+ \Phi_x(y)&=\Phi(y)+\tfrac12(y-x)^\top
+              (\mathcal H-\mathcal G)(y-x),\label{eq:op3-capped-prox-model}\\
+ E_x(y)&=\Phi_x(y)-\Phi_x(0)
+ =\tfrac12y^\top\mathcal Hy+
+ \sum_i\bigl[q_i(y_i)+((\mathcal G-\mathcal H)x)_iy_i\bigr].
+ \label{eq:op3-capped-prox-normalization}
+\end{align}
+Each new vertex function has the same two pieces, domain and zero value
+at zero. Individual final slopes need not remain positive. Nevertheless
+$\Phi_x\geq\Phi$ and the original coercivity imply existence of a
+finite model minimum on $y\geq0$.
+
+\begin{theorem}[An explicit tolerance for one original-capped run;
+ \statusproved]
+\label{thm:op3-explicit-capped-proximal-budget}
+Let $a\geq0$ satisfy $\Phi(a)\leq0$ and let a known
+$0<\underline\Delta\leq\Delta:=\Phi(a)-\Phi^*$ be supplied.
+Choose the least power of two $T$ with $T^2\geq256\kappa$, and set
+\begin{equation}
+ R=\frac{\kappa}{\bar\alpha\lambda},\qquad
+ e_0=\frac{\underline\Delta}{2^{30}\kappa^4},\qquad
+ B=\frac92\kappa mR^2+C_0,\qquad \delta_{\rm rel}=e_0/B.
+ \label{eq:op3-explicit-capped-proximal-policy}
+\end{equation}
+Run source Algorithm 9 from $y_0=z_0=a$ for $T$ iterations. At every
+center $x$, obtain a feasible relative-oracle output satisfying
+\begin{equation}
+ E_x(q)\leq\frac{E_x^*}{1+\delta_{\rm rel}}.
+ \label{eq:op3-capped-inner-relative-contract}
+\end{equation}
+Then every model error is at most $e_0$, every feasible iterate lies in
+$[0,R]^n$, every center lies in $[-R,2R]^n$, and
+\begin{equation}
+ \Phi(y_T)-\Phi^*\leq\Delta/32.
+ \label{eq:op3-capped-run-contraction}
+\end{equation}
+All tolerances are determined before the calls they justify. Apart from
+the oracle work, a run costs $O(T(n+m+m_H)+\log(2+\kappa))$ word work
+and $O(Tn+\log(2+\kappa))$ newly allocated words. Supplied edges are
+read-only input; every new iterate and normalized vertex record is charged.
+\end{theorem}
+\begin{proof}
+Convexity of $h$ and optimality of an optimum $u$ give
+$\Phi(a)-\Phi(u)\geq\|a-u\|_{\mathcal G}^2/2$, and hence
+$\|a-u\|_{\mathcal H}^2\leq2\kappa\Delta$.
+The source convergence bound for a prefix $k\geq2$ is
+\begin{equation}
+ \Phi(y_k)-\Phi^*\leq\frac2{(k+1)^2}
+ \left(\|a-u\|_{\mathcal H}
+       +3\sum_{j=1}^k j\sqrt{2e_j}\right)^2.
+ \label{eq:op3-source-inexact-apg-bound}
+\end{equation}
+No Euclidean strong-convexity estimate is substituted for this Laplacian
+seminorm. One may also obtain the seminorm version by applying the convex
+smooth bound with $\mathcal H+\nu I$: for any fixed finite run, its same
+oracle outputs have new errors at most
+$e_j+\nu\|q_j-x_j\|_2^2/2$. Let $\nu\downarrow0$ in that bound.
+
+The chosen integer satisfies $16\sqrt\kappa\leq T<32\sqrt\kappa$.
+Since $\sum_{j=1}^Tj\leq528\kappa$ and
+$e_0\leq\Delta/(2^{30}\kappa^4)$,
+\[
+ 3\sum_{j=1}^T j\sqrt{2e_0}
+ \leq\frac{\sqrt\Delta}{8\kappa}
+ \leq\frac18\sqrt{\kappa\Delta}.
+\]
+For example the first inequality follows from
+$1584\sqrt2<4096$. Thus any already justified prefix with
+$e_j\leq e_0$ obeys
+$\Phi(y_k)-\Phi^*\leq8\kappa\Delta/(k+1)^2$ for $k\geq2$.
+At the first step $x_1=a$, and the model optimum is no greater than
+$\Phi_a(a)=\Phi(a)$, so its error bound gives
+$\Phi(y_1)-\Phi^*\leq\Delta+e_0\leq2\kappa\Delta$.
+All such feasible iterates therefore have gap at most $2\kappa\Delta$.
+Because $\Delta\leq-\Phi^*\leq C_0$, original coercivity then implies
+\[
+ \lambda\sum_i(y_k)_i
+ \leq\Phi(y_k)+C_0
+ \leq(2\kappa-1)(-\Phi^*)+C_0\leq2\kappa C_0.
+\]
+This is exactly the stated radius $R$; the initial point has the same bound.
+
+It remains to justify each error before using this consequence. Write
+$A_k=(k+1)/2$. The source updates imply, for $k\geq1$,
+\[
+ z_k=A_ky_k-(A_k-1)y_{k-1},\qquad
+ x_{k+1}=y_k+\frac{k-1}{k+2}(y_k-y_{k-1}).
+\]
+Consequently previously bounded feasible iterates give the next center
+in $[-R,2R]^n$; $x_1=a$ does also. Each original edge difference is at
+most $3R$, and its weight $\gamma\leq1$, so
+$\|x\|_{\mathcal H}^2\leq9\kappa mR^2$.
+
+Put $e_x=\Phi_x(q)-\min\Phi_x$. Rearranging the normalized relative
+contract, as in source equation (14), gives
+\[
+ 0\leq e_x\leq\delta_{\rm rel}(\Phi_x(0)-\Phi_x(q))
+ \leq\delta_{\rm rel}\bigl(\tfrac12\|x\|_{\mathcal H}^2+C_0\bigr)
+ \leq e_0.
+\]
+Here $\Phi_x(q)\geq\Phi(q)\geq\Phi^*$, independently of the size
+of the new output. This establishes the next error using only old bounds,
+and the prefix estimate establishes the next feasible radius. Induction
+therefore closes without a circular range assumption. Applying the prefix
+estimate at $T$ gives $8\kappa\Delta/T^2\leq\Delta/32$.
+
+Repeated doubling determines $T$ with no real-square-root oracle.
+The two supplied sparse products and the vector updates cost
+$O(n+m+m_H)$ per iteration. Linear shifts create constant-size records
+for each of the two-piece vertex functions. Only constantly many current
+vectors are needed, but every newly allocated vector across all iterations
+is included in the stated total. The oracle's internal work, failed
+attempts, retained state and output allocations are separate costs.
+\end{proof}
+
+\begin{corollary}[A certified restart driver for original ACL accuracy;
+ \statusproved]
+\label{cor:op3-capped-certified-restart-driver}
+Let $t=\bar\alpha(\epsappr/8)^2/2$ and
+$\Delta_{\min}=\bar\alpha t/(1+\gamma)$. Start with $a=0$.
+Compute the original quadratic certificate $C(a)$ from
+\cref{thm:op3-local-gap-certificate}. If $C(a)\leq t$, return its
+downward-clipped original ACL output. Otherwise run
+\cref{thm:op3-explicit-capped-proximal-budget} with
+$\underline\Delta=\Delta_{\min}$, box the result at $1/\bar\alpha$,
+and use it as the next $a$. All runs use the same original capped
+objective and supplied $\mathcal H$.
+
+The driver terminates after at most
+$J=\min\{j\geq0:C_0/32^j\leq\Delta_{\min}\}$ accelerated runs,
+returning an original ACL certificate. In particular
+$J=O(1+\log(1/\alpha)+\log(1/\epsappr))$, and
+\[
+ \log(1/\delta_{\rm rel})
+ =O\bigl(1+\log(2+m)+\log(2+\kappa)
+            +\log(1/\alpha)+\log(1/\epsappr)\bigr).
+\]
+If $W_s$ is all work of inner call $s$, the implemented certificate interface
+gives total supplied-graph work
+\[
+ O\bigl(J\sqrt\kappa(n+m+m_H)
+       +(J+1)(n+m)\log(2+n)\bigr)+\sum_s W_s.
+\]
+The corresponding driver allocations are $O(J\sqrt\kappa n+(J+1)(n+m))$,
+in addition to input storage and every inner call's allocated state.
+These expressions retain the entire inner-oracle cost and do not prove OP3.
+\end{corollary}
+\begin{proof}
+Every current $a$ lies in the cap box, so its capped and original quadratic
+energies agree. A failed certificate and its gap sandwich imply
+$\Phi(a)-\Phi^*>\bar\alpha t/(1+\gamma)=\Delta_{\min}$.
+Boxing a run's output cannot increase its capped energy and transfers that
+bound to the original quadratic. Thus each failed guard is followed by
+a factor-$32$ gap contraction, and $\Phi(a)\leq0$ is preserved.
+When the gap is at most $\Delta_{\min}$, the other side of the sandwich
+forces $C(a)\leq t$. This proves the run bound and original ACL guarantee.
+The parameter logarithms follow directly by substituting the displayed
+positive scales into \eqref{eq:op3-explicit-capped-proximal-policy}.
+There are at most $J+1$ certificate scans, including every failed guard,
+$JT$ inner calls, and $J$ full boxing passes. The local certificate's
+allocated records and reusable sort buffer are linear in scanned volume;
+its comparisons and writes cost that volume times its label logarithm.
+Bounding that volume by the supplied $n+m$ gives the stated accounting.
+\end{proof}
+
+\paragraph{What is still missing.}
+The outer restart policy avoids shifted residual domains at this level.
+Its inner normalized objectives still have new linear terms and possibly
+negative individual final slopes. A fast recursive solver for all these
+calls, with compatible compression and error budgets, remains
+\statusopen. So do a paid local construction of the input graph and a
+bound on cumulative work when that graph changes. The original certificate
+protects acceptance, but the finite-run bound assumes the inner relative
+contracts; an inaccurate provider cannot be assigned the theorem's work
+guarantee merely because a later certificate rejects its output.
+
+\paragraph{Exact audit scope.}
+\texttt{capped\_proximal\_budget.py} audits normalized model identities,
+the explicit relative-to-absolute bound, original feasible sublevels,
+infeasible centers, source extrapolation indices and final contraction.
+Its dense capped piece enumeration includes vertices beyond the cap and
+negative individual proximal final slopes. The driver audit
+\texttt{capped\_restart\_driver.py} uses the implemented original local
+certificate for every guard and final output, including tiny-tolerance
+multiple-run cases. The inner candidates are exact reference optima plus
+controlled perturbations; all reference solves and perturbation searches
+are validators, not a fast inner oracle. Durable audit records give the
+final complete counts, parameter profiles and source hashes.

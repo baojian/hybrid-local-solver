@@ -142,6 +142,26 @@ note-local energy-to-ACL lemma supplies a known initial energy scale and
 requested tolerance; it does not establish the source's intermediate
 numerical-range assumption or a local construction.
 
+**Explicit outer accuracy policy.** Algorithm 9 / Theorem 8.3 (p. 44)
+and Claims 8.19–8.21 (pp. 50–52) were visually checked. The note's
+`thm:op3-explicit-capped-proximal-budget` uses the source convergence
+inequality with an explicit induction on original feasible sublevels and
+accelerated centers. `cor:op3-capped-certified-restart-driver` supplies
+the positive gap scale from the original certificate and restarts the same
+capped objective. Every inner relative-oracle cost remains in its bound.
+This replaces one outer accuracy obligation; it does not implement the
+source's recursive inner solver or prove local OP3 work. The remaining
+interface is recorded in
+[`CAPPED_INNER_ORACLE_PROBE.md`](../../manuscript/notes/incremental_active_set_sdd/CAPPED_INNER_ORACLE_PROBE.md).
+
+**Printed Lift coefficient check.** On visually checked PDF pp. 40–42,
+the displayed constant update has a plus sign. Direct minimization of
+`c*(x-y)^2/2+r*y^2/2+a*y+b` gives `b-a^2/(2*(c+r))`.
+For the valid VWF `f(y)=-y`, `y>=0`, `c=1`, the value at x=0 is
+`-1/2`; the printed coefficient gives `+1/2`. The note records this
+specific correction before implementing Lift values, without treating
+it as a refutation of the paper's entire complexity theorem.
+
 ### Local flow runtime parameters checked against primary formulas
 
 **Source.** Fountoulakis, Wang and Yang,
