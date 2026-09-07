@@ -138,6 +138,16 @@ certified supplied-face SDD solves.
   (Chen, Peng, and Wang, 2021) - global constrained diffusion; an OP3
   localization candidate with a numerical-range obligation, audited in
   [`lcp-solvers.md`](lcp-solvers.md#chen-peng-and-wang-2021-constrained-diffusion-and-the-op3-alternative).
+- [*Almost-Linear Time Algorithms for Incremental Graphs: Cycle Detection,
+  SCCs, s-t Shortest Path, and Minimum-Cost Flow*](https://arxiv.org/pdf/2311.18295v1)
+  (Chen, Kyng, Liu, Meierhans, and Probst Gutenberg, 2023 preprint) -
+  thresholded incremental flow; subpolynomial overhead and no direct OP3
+  coordinate certificate. Scoped audit in `lcp-solvers.md`.
+- [*Almost-Linear Time Algorithms for Decremental Graphs: Min-Cost Flow and
+  More via Duality*](https://arxiv.org/pdf/2407.10830v1)
+  (van den Brand, Chen, Kyng, Liu, Meierhans, Probst Gutenberg, and Sachdeva,
+  FOCS 2024 preprint) - decremental thresholded flow and approximate value
+  maintenance; scoped OP3 comparison in `lcp-solvers.md`.
 - *Non-Negative Conjugate Gradients* (Schmelzer and Stoll, 2026) - inexact
   matrix-free CG inside a guarded active-set loop.
 - *Fully Dynamic Spectral Vertex Sparsifiers and Applications* (Durfee, Gao,

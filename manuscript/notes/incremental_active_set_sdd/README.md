@@ -1,6 +1,46 @@
 # incremental_active_set_sdd
 
-## Second night, block 1: local multipartite solver
+## Second night, block 2: persistent recursive responses
+
+**General OP3 remains Open.** The new supplied-decomposition result is
+`thm:op3-persistent-modules`: complete recursive union/join core responses
+and final core recovery in **O(N*log^2(2+N)) exact-real word work and
+allocated words**, including all retained old versions. This is **Proved
+here**, a draft awaiting independent review. The input includes a reduced
+decomposition, original degrees and private-leaf counts; local discovery
+is not included. The earlier explicit implementation has the weaker
+O((N+m_core)*log(2+N)) bound, with its distinct-edge charge retained.
+
+The persistent implementation reuses the existing immutable affine AVL
+primitives and adds zero-left-ray merging and legal positive/negative join
+shears. It passes 1,716 original graph cases, 50,268 retained affine-piece
+matches, 22,530 saved curve versions and 100,500 coordinate recoveries,
+alongside 50,250 independent whole-interval original certificates. Eighteen
+comb/clique/star diagnostics reach 512 core vertices. Counts overlap and
+are executions/versions, not additional distinct input graphs.
+
+Read `RECURSIVE_MODULE_RESPONSE_PROBE.md` and the authoritative proof
+`sections/op3_recursive_modules.tex`. Next resume
+`MODULE_REPORTER_AND_UPDATE_PROBE.md`: audit the degree-paid depth bound
+and exact fixed-module event reporter, then changing module membership.
+The saved triangle-to-paw example gives a legal positive admission that
+breaks an old induced-active module, so keeping every old module intact is
+not a valid general update interface. Curve replacement remains a separate
+cost even if graph recognition is cheap.
+
+The scoped primary-source check in `docs/literature/lcp-solvers.md` covers
+related persistent curve primitives and dynamic min-cost-flow thresholds.
+Those flow guarantees have different certificates and explicit
+subpolynomial overhead, so no direct OP3 import is asserted. The literature
+index is synchronized; no source PDF or new cross-note proof edge was added.
+The note registry still has `depends_on=[]` and no active-manuscript/shared-
+ledger promotion occurred.
+
+Current checks are in `OVERNIGHT_20260907_BLOCK2_AUDIT.json` and the latest
+`VERIFICATION.md` entry. The same-task heartbeat remains ACTIVE for the
+480-minute second-night campaign; see its separate actual-time ledger.
+
+## Historical second-night block 1: local multipartite solver
 
 **General OP3 remains Open.** The user requested 480 additional active
 research minutes on 7 September. The current campaign is tracked in

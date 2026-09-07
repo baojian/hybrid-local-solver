@@ -1,6 +1,6 @@
 # LCP, obstacle, and active-set solvers for the OP2 route
 
-Last source audit: 2026-09-06 (OP3 constrained-diffusion addendum)
+Last source audit: 2026-09-08 (second-night OP3 dynamic-flow and curve-primitive check)
 
 This map asks a narrow question: does a primary-source theorem already give
 the fully charged, graph-uniform, output-sensitive solver required by OP2 after
@@ -110,6 +110,55 @@ this does not supply a local construction or unrestricted polylogarithmic
 inverse-teleportation dependence. The exploration and proposed acceptance
 criteria are in
 [`OP3_DIRECTIONS_20260906.md`](../../manuscript/notes/incremental_active_set_sdd/OP3_DIRECTIONS_20260906.md).
+
+### Second-night check: curve primitives and dynamic flow
+
+**Source / context, not a new solver import.** Chen--Peng--Wang,
+[Section 7.2, Lemma 7.8 and Claim 7.9, PDF pp. 39--40](https://arxiv.org/pdf/2105.14629v2),
+uses augmented search trees for predecessor, insertion, range updates and
+order-preserving composite operators, with persistence. Their small-function
+addition scans the smaller representation. This is relevant context for
+persistent scalar responses; the OP3 recursive-module experiment reuses this
+repository's independently implemented immutable affine AVL primitives.
+Its response shear, nonnegative left ray, reconstruction versions and
+small-child charge require their own proof. No novelty claim is made for
+lazy affine transforms or merging a smaller piecewise function.
+
+**Source.** Chen, Kyng, Liu, Meierhans and Probst Gutenberg,
+[*Almost-Linear Time Algorithms for Incremental Graphs*](https://arxiv.org/pdf/2311.18295v1),
+arXiv:2311.18295v1 (30 November 2023). Section 1.2, Theorem 1.4 and
+Remark 1.5, PDF p. 5, address the first incremental update at which a
+min-cost-flow threshold is attained, with polynomially bounded
+capacities/costs. Remark 1.5 permits fixed-point arithmetic and an unknown
+final edge count using doubling. Theorem 1.6 on that page gives
+approximate flow maintenance with an inverse-accuracy factor. The displayed
+runtime includes an exponential of a fractional power of log m.
+
+**OP3 assessment (inference).** This is useful dynamic-flow context, not a
+polylogarithmic-overhead obstacle-coordinate oracle. OP3's soft-O notation
+does not hide the source's subpolynomial factor; a local graph exposure,
+continuous quadratic reduction and original ACL certificate would also be
+required. No lower bound for OP3 is inferred from the source's matching
+comparison.
+
+**Source.** van den Brand, Chen, Kyng, Liu, Meierhans, Probst Gutenberg and
+Sachdeva, [*Almost-Linear Time Algorithms for Decremental Graphs*](https://arxiv.org/pdf/2407.10830v1),
+arXiv:2407.10830v1 (15 July 2024), accepted to FOCS 2024 per the author
+record. Section 1.2, Theorem 1.6, PDF p. 6, reports threshold feasibility
+under edge deletion, capacity decrease or cost increase, with bounded
+integral data. Theorem 1.7 maintains an approximate flow cost with an
+inverse-accuracy factor; its guarantee handles adaptive adversaries.
+
+**OP3 assessment (inference).** The explicit runtime has subpolynomial,
+rather than polylogarithmic, overhead. Decremental flow feasibility does not
+itself expose positive original obstacle coordinates under local graph
+admissions. These are separate model and certificate obligations, not a
+refutation of adapting a particular source mechanism.
+
+The source check was scoped to these statements and curve primitives, not
+an exhaustive literature review or a proof that no newer result exists.
+No source PDF was added to the local paper collection. Stable versioned
+links above identify the checked sources.
 
 ### Alstrup, Holm, de Lichtenberg and Thorup: dynamic tree clusters
 

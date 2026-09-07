@@ -8,28 +8,34 @@ with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
 pause the same-task heartbeat and stop only the matching temporary keep-awake
 process in `OVERNIGHT_20260907_RUNTIME.json`.
 
-## Completed block 1 and next work
+## Completed block 2 and next work
 
-The actual local multipartite event engine and its canonical-core/any-seed
-extension are complete as proof drafts. Read `LOCAL_MULTIPARTITE_PROBE.md`
-and `sections/op3_local_multipartite.tex`, then the block audit and latest
-VERIFICATION entry. The former narrow assumptions were removed by original-
-degree canonicalization and an exact forced-positive seed-leaf elimination.
+Both the local multipartite result from block 1 and the supplied recursive
+module result from block 2 are implemented as proof drafts. Read the newest
+README/STATUS checkpoint, `sections/op3_recursive_modules.tex` and the
+block-2 audit. The strongest new compressed-input bound is
+O(N*log^2(2+N)) work and allocated words, using existing immutable affine
+AVL curves with all old reconstruction versions retained. Original full
+matrix intervals and supplied cores through 512 vertices were audited.
 
-Resume with `RECURSIVE_MODULE_RESPONSE_PROBE.md`. Implement only the supplied
-recursive union/join response algebra first; verify full affine intervals,
-negative fields, tied events, original equations, reconstruction and every
-intermediate curve copy. Audit the saved distinct-core-edge charge on
-balanced and alternating-comb trees before claiming a fast construction.
-The charge uses all core edges; local module discovery is still Open.
+Resume `MODULE_REPORTER_AND_UPDATE_PROBE.md`. First exact-audit the
+weighted-depth lemma depth(i)<=2*d_i+1 and a fixed-module target reporter
+under monotone common external fields. Derive every original-coordinate
+threshold and charge indexed-heap updates and path queries to actual
+coordinate degree. Equality must not become a strict violation. Then
+address actual admissions: the saved original-matrix triangle-to-paw trace
+shows why an old induced-active module need not survive intact.
 
-After that bounded audit, revisit arbitrary-graph coarse response and
-certification and check current primary sources on monotone SDD obstacle or
-convex-flow methods. Do not spend the whole campaign collecting special
-cases. The general blocker remains repeated rank-dependent coarse writes,
-all-component searches and cycle-triggered reconstruction. Critically audit
-prior proofs before importing conclusions. The campaign stays ACTIVE until
-480 new active minutes are verified; use the ledger for the current total.
+Paid module recognition, signed curve removal/splitting and sparse
+propagation of changed child responses are separate missing interfaces.
+Do not infer them from the static theorem. Revisit the generic coarse
+response/certification route after this bounded reporter probe; the scoped
+primary-source screen in docs/literature/lcp-solvers.md gives no direct OP3
+replacement. The full arbitrary-graph problem remains central.
+
+The campaign stays ACTIVE until 480 new active minutes are verified. Start
+and close actual intervals in the separate ledger; exclude heartbeat idle
+gaps. Commit and push completed blocks under the existing authorization.
 
 ## Conventions, status and authorization
 

@@ -1,3 +1,41 @@
+# Completed supplied-module probe and remaining local question
+
+Second-night block 2 update, 8 September 2026: the candidate algebra and
+edge accounting below are implemented and **Proved here** as drafts
+awaiting independent review. `thm:op3-supplied-modules` gives the explicit
+O((N+m_core)*log(2+N)) construction. The stronger implemented
+`thm:op3-persistent-modules` uses immutable affine curves and non-largest
+physical child merging for O(N*log^2(2+N)) work and allocated words, with
+all recovery versions retained. Neither supplies local module discovery.
+
+Proof authority: `sections/op3_recursive_modules.tex`. Exact audits:
+`RECURSIVE_MODULE_RESPONSE_AUDIT.json` and
+`PERSISTENT_MODULE_RESPONSE_AUDIT.json`. The former verifies 50,250 full
+original affine intervals on 1,716 cases/53 cores; the latter checks the
+same original problems, 22,530 retained curve versions and 100,500
+coordinate recoveries, plus 18 larger supplied cores through 512 vertices.
+The persistent 512-core comb has 65,536 edges and 38,598 immutable node
+allocations. Explicit matrices and the full-graph decomposition recognizer
+are validation only. Its recursive recognizer was replaced by an explicit
+stack after the first 512-core validation reached Python's depth limit;
+all final audits passed on the corrected source. Solver traversals already
+use postorder/stack processing and bounded-height AVL paths.
+
+The relevant mathematical correction is stronger than the initial edge
+charge: whole join transforms are affine shears of curve points, so they
+need only a persistent root copy. Stream the knots of non-largest physical
+child modules, adding their nonnegative hinges through suffix updates.
+Each vertex incurs such a merge only logarithmically many times. A zero
+left ray is permitted because this algorithm makes only horizontal queries;
+no inverse query requiring a positive left slope is imported.
+
+**Next:** `MODULE_REPORTER_AND_UPDATE_PROBE.md` isolates fixed-module
+reporting from changing-graph recognition and response replacement. The
+source screen in `docs/literature/lcp-solvers.md` is scoped, not a claim of
+an exhaustive literature review. General OP3 remains **Open**.
+
+The original block-1 proposal follows as development history.
+
 # Recursive union/join response: next bounded algebraic probe
 
 Date: 7 September 2026, second night, block 1.

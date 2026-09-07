@@ -1,0 +1,336 @@
+\section[Supplied recursive module responses]{Exact response composition on supplied recursive modules}
+\label{sec:op3-recursive-modules}
+
+\paragraph{Status and access distinction.}
+The results in this section are \statusproved{} drafts awaiting independent
+review. Unlike \cref{thm:op3-canonical-multipartite}, this construction is
+given a complete reduced union/join decomposition of the core, all original
+core degrees and all private-leaf counts. It does not discover that
+decomposition locally. A small response curve and a near-linear
+\emph{all-core-edge} construction do not supply an OP3 local-work theorem.
+The complete composition and reconstruction are implemented; dense original
+obstacle solves are independent validators only.
+
+Use a finite simple connected unweighted graph whose core $C$, of size
+$N$, is constructed recursively from singletons by disjoint union and
+complete join. A join adds every edge between different children; a union
+adds none. A supplied reduced decomposition has at least two children per
+internal node and alternating union/join labels along internal edges.
+Let $m_C$ be the number of core edges. Each core vertex $i$ has $t_i$
+private leaves, and $d_i$ is its original full degree. Initially the
+physical seed $v$ lies in $C$; this section does not claim an implemented
+arbitrary-seed extension. Keep $0<\alpha<1$, $\lambda>0$, physical
+$M=D-\gamma A$, and load $b=e_v-\lambda d$.
+
+For a module $H$, set exterior coordinates to zero and add a uniform
+physical field $h\in\mathbb R$ to its core equations, retaining its private
+leaves and all original diagonal degrees. Define $F_H(h)$ as the total
+core value in this restricted obstacle problem. The field is applied to
+the core coordinates only, not to their private leaves. It is an algebraic
+parameter; negative fields do not claim to be physical PageRank sources.
+
+\begin{lemma}[Uniform-field module response; \statusproved]
+\label{lem:op3-module-response}
+Every $F_H$ is continuous, nonnegative, nondecreasing and piecewise affine,
+with at most $2|H|$ events. It vanishes for sufficiently negative field.
+At a union node $H$ with children $H_j$,
+$F_H(h)=\sum_jF_{H_j}(h)$. At a join node, define $G_j$ by
+\begin{equation}
+ z=t+\gamma F_{H_j}(t),\qquad G_j(z)=F_{H_j}(t),\qquad
+ G(z)=\sum_jG_j(z).
+ \label{eq:op3-join-input-transform}
+\end{equation}
+Then $h=z-\gamma G(z)$ is strictly increasing and onto, and
+$F_H(h)=G(z)$. On affine pieces the exact transforms are
+\begin{align}
+ F_{H_j}(t)=at+b
+ &\quad\Longrightarrow\quad
+ G_j(z)=\frac{az+b}{1+\gamma a},
+ &z_*&=t_*+\gamma F_{H_j}(t_*),
+ \label{eq:op3-module-child-piece}\\
+ G(z)=Az+B
+ &\quad\Longrightarrow\quad
+ F_H(h)=\frac{Ah+B}{1-\gamma A},
+ &h_*&=z_*-\gamma G(z_*).
+ \label{eq:op3-module-parent-piece}
+\end{align}
+Both event transformations preserve order, including on negative intervals.
+\end{lemma}
+\begin{proof}
+The restricted matrix retains original diagonal degrees and is a positive
+definite $M$-matrix. Increasing the uniform field increases the load
+coordinatewise, so obstacle comparison gives nondecreasing coordinates.
+Each core coordinate is born at most once, as is its ordinary private-leaf
+group, whose value is $(\gamma u_i-\lambda)_+$. Between these at most
+$2|H|$ births the original equations are a fixed nonsingular linear system
+with an affine load. This gives the stated affine structure and continuity.
+Every core load is nonpositive at sufficiently negative field, and private
+leaves have negative load, giving the initial zero piece. A singleton has
+exactly the coordinate kernel of \cref{lem:op3-multipartite-scalar}.
+
+The union identity follows from independent children. At a join put
+$S=F_H(h)$, $S_j=\sum_{i\in H_j}u_i$, and $z=h+\gamma S$.
+Child $j$ sees field $h+\gamma(S-S_j)=z-\gamma S_j$, which gives
+\cref{eq:op3-join-input-transform}. Each child inverse is strictly
+increasing and onto because $F_{H_j}$ is nondecreasing with finite
+piecewise slopes.
+
+It remains to justify the parent inverse without assuming a contraction.
+Write $n=|H|$ and $n_j=|H_j|$. On any fixed child face, eliminate its
+positive private leaves. The derivative of the remaining positive core
+values with respect to its uniform field solves $K w=\mathbf1$.
+Here $K$ is a positive definite $M$-matrix whose row sums are at least
+$n-n_j$. Indeed, every cross-child core edge contributes its original
+diagonal unit and no child off-diagonal entry. Internal positive core
+neighbors leave a nonnegative $(1-\gamma)$ contribution; internal zero
+core neighbors leave a full diagonal unit. Private leaves leave
+$t_i-\gamma^2t_i^{+}\geq0$, and original core neighbors outside $H$
+only improve the margin. Therefore
+$K^{-1}\mathbf1\leq\mathbf1/(n-n_j)$ and
+\[
+ 0\leq F'_{H_j}\leq\frac{n_j}{n-n_j},\qquad
+ \gamma G'_j\leq
+ \frac{\gamma n_j}{n-n_j+\gamma n_j}<\frac{n_j}{n}.
+\]
+This argument applies to all affine intervals, including negative ones.
+Summing gives $\gamma G'<1$ with a fixed positive margin for this finite
+node. Thus $z-\gamma G(z)$ is strictly increasing and onto. The affine
+inverse identities and event positions follow by substitution. They also
+show directly that a parent creates no more events than its children
+together. Simultaneous events are merged at their common continuous value.
+The recovered child equations are precisely the original restricted
+obstacle conditions, so uniqueness identifies the composed response.
+\end{proof}
+
+\begin{lemma}[All intermediate module sizes are paid by distinct edges; \statusproved]
+\label{lem:op3-module-edge-charge}
+In a supplied reduced decomposition,
+\begin{equation}
+ \sum_{H\text{ internal}}|H|\leq N+4m_C.
+ \label{eq:op3-module-edge-charge}
+\end{equation}
+No balance or logarithmic-height assumption is needed.
+\end{lemma}
+\begin{proof}
+For a join node of size $n\geq2$ with at least two children, its cross-child
+edge set has size $\sum_{j<k}n_jn_k\geq n-1\geq n/2$.
+Every core edge belongs to exactly one such set, at the lowest common
+ancestor of its endpoints. Hence the sum of join-node sizes is at most
+$2m_C$. Each non-root union node has a join parent. The total sizes of all
+union children of a particular join are at most that parent's size.
+Consequently the sum of non-root union-node sizes is at most the sum of
+join-node sizes. A union root, if present in a restricted core instance,
+adds at most $N$. This proves \cref{eq:op3-module-edge-charge}.
+An alternating comb can have quadratically many vertex records, but it
+can also have quadratically many core edges; the former count alone is not
+an excessive-work witness in this supplied-input model.
+\end{proof}
+
+\begin{theorem}[Supplied recursive response construction; \statusproved]
+\label{thm:op3-supplied-modules}
+Given a reduced postorder decomposition, all original core degrees and
+private-leaf counts, the implemented bottom-up construction stores every
+module response and the required child transforms in
+\begin{equation}
+ O((N+m_C)\log(2+N))\ \text{exact-real word work},\qquad
+ O(N+m_C)\ \text{words of space}.
+ \label{eq:op3-supplied-module-work}
+\end{equation}
+For any supplied field $h$, it recovers all core values in
+$O(N\log(2+N))$ further work. Each private-leaf group's common value then
+costs constant work per parent. Explicit original leaf output, if requested,
+additionally charges enumeration of the relevant original incidences and
+each emitted coordinate. These are all-core-input bounds, not
+$\operatorname{cvol}(U)$ bounds.
+\end{theorem}
+\begin{proof}
+Read the supplied tree and kernel metadata once, checking its postorder,
+unique-parent, alternating-label and vertex-cover properties with charged
+dictionary operations. This does not check that an unread ambient graph
+has the supplied decomposition; that correspondence is an input promise.
+The reduced tree has $O(N)$ nodes and child references.
+
+Build each singleton kernel once. At a union, merge the children's sorted
+event streams with one heap and one current affine pair per child. At a
+join, first transform each child event using
+\cref{eq:op3-module-child-piece}; merge those streams and transform each
+combined event using \cref{eq:op3-module-parent-piece}. Combine equal
+thresholds before advancing. Every input event has one heap insertion,
+one removal and constant many coefficient operations. Temporary current
+pieces, event records and heap entries are charged. Retain child curves
+and join-input transforms for recovery, rather than treating their copies
+as free.
+
+The response lemma bounds the sum of input stream lengths at a node by
+twice its size. Thus all transforms, copies, heap work, retained curves
+and tree validation cost the claimed amount by
+\cref{lem:op3-module-edge-charge}. Peak space includes all retained
+histories, the current merge workspace and dictionaries. They obey the
+same linear all-core-edge record bound.
+
+To recover, query the root curve by binary search and traverse the tree
+once with a stack. A union passes its field to its children. A join uses
+its known mass $S$ to form $z=h+\gamma S$, queries each stored $G_j(z)$,
+and passes $z-\gamma G_j(z)$ and that child mass to the child. Each node
+is visited once and each child mass requires one binary search. A
+singleton returns its coordinate response, and private leaves follow from
+their scalar formula. No full vector is written between parent
+construction steps. The algorithm returns every core value, including
+zeros; its input charge is therefore not support-local.
+\end{proof}
+
+\paragraph{Measured and open.}
+The full \nolinkurl{recursive_module_response.py} audit has 1,716 executions
+on all 53 eligible connected graph-atlas cores through six vertices, every
+core seed, two unequal-leaf patterns and three parameter pairs. It checks
+15,102 module curves through 50,250 complete original affine-interval
+certificates and 50,250 original event or zero-field comparisons, including
+20,063 negative-field interval samples. Each interval certificate derives
+the original affine coordinate vector independently, verifies equality
+coefficients and inequality signs over the entire interval including
+unbounded endpoints, and compares its core-mass coefficients to the stored
+curve. Ten additional balanced and alternating-comb instances through 128
+core vertices check reconstruction and the edge ledger.
+
+The supplied full-graph decomposition recognizer and dense validators are
+audit-only. The source of a local module representation remains
+\statusopen{}. In particular, the distinct-edge charge uses edges between
+inactive core vertices too, and a positive pair inside one deep module need
+not enumerate the whole core. One cannot import
+\cref{eq:op3-supplied-module-work} into the local multipartite theorem by
+declaring a decomposition oracle free. General OP3 remains \statusopen{}.
+
+\subsection{Persistent composition without an all-core-edge factor}
+\label{sec:op3-persistent-modules}
+
+The explicit merge above has a stronger implementation using the immutable
+affine curve structure already developed in
+\cref{lem:op3-persistent-primitives}. The supplied decomposition remains an
+essential assumption. The improvement concerns algebra on that compressed
+input, not the cost of constructing it from local graph queries.
+
+\begin{lemma}[Convex zero-left-ray curves and legal shears; \statusproved]
+\label{lem:op3-module-convex-shears}
+Every module curve $F_H$ and transformed child curve $G_j$ is convex and
+has a zero left ray. They have representations
+\begin{equation}
+ F(h)=\sum_{\ell=1}^{k}c_\ell(h-\tau_\ell)_+,
+ \qquad c_\ell\geq0,
+ \label{eq:op3-module-hinges}
+\end{equation}
+with $k\leq2|H|$. The child and parent join transforms are the respective
+whole-curve shears
+\begin{equation}
+ (x,y)\longmapsto(x+\gamma y,y),\qquad
+ (x,y)\longmapsto(x-\gamma y,y).
+ \label{eq:op3-module-shears}
+\end{equation}
+Each preserves strict horizontal point order on its applicable curve.
+Their persistent implementations take constant work and new records.
+Adding a zero-left-ray curve with $k$ knots to another takes
+$O(k\log(2+N))$ work and new records without traversing the other curve.
+\end{lemma}
+\begin{proof}
+Singleton kernels are convex and start at zero. Unions preserve convexity.
+At a child transform the new slope is $a/(1+\gamma a)$, an increasing
+function of $a\geq0$. At the parent transform it is $A/(1-\gamma A)$,
+an increasing function of $A$ on the domain
+$\gamma A<1$ proved in \cref{lem:op3-module-response}. The event
+transformations preserve order, so this inductively proves convexity and
+the hinge representation. Both shears fix the zero ray; their horizontal
+derivatives are positive throughout the applicable slope range.
+
+Store the curve knots in the same immutable affine-tagged AVL tree as in
+\cref{lem:op3-persistent-primitives}, with both ray slopes in its header.
+The present left slope is zero. This does not invalidate horizontal
+search, interpolation, insertion, suffix shears or affine tagging; no
+vertical inverse query is used. The search tree's stored heights and
+relative horizontal order stay valid under \cref{eq:op3-module-shears}.
+The same constant-size root copies and path-copying proof therefore apply.
+Only horizontal monotonicity and a nonzero affine determinant are needed
+for these operations; the stricter inverse-query condition is not imported.
+
+Stream the smaller curve's knots in order, obtaining the nonnegative
+slope jumps in \cref{eq:op3-module-hinges}. For each jump insert its knot
+in the recipient if needed, then apply the continuous suffix shear
+$(x,y)\mapsto(x,y+c_\ell(x-\tau_\ell))$ above that threshold. Each step
+copies one search path and tags whole off-path subtrees. It changes only
+$O(\log(2+N))$ nodes and leaves every prior version unchanged. A streaming
+iterator visits each smaller-curve knot once and retains only its search
+stack. The zero initial ray requires no initial linear-term addition.
+\end{proof}
+
+\begin{theorem}[Persistent solve on a supplied recursive core; \statusproved]
+\label{thm:op3-persistent-modules}
+Under the supplied-input assumptions of \cref{thm:op3-supplied-modules},
+all module curves, required transformed child versions, and one final
+recovery of all core coordinates can be constructed in
+\begin{equation}
+ O(N\log^2(2+N))
+ \label{eq:op3-persistent-module-work}
+\end{equation}
+exact-real word work and allocated words. There is no $m_C$ factor and no
+polynomial arithmetic-operation dependence on $1/\alpha$ or $1/\lambda$.
+The output and locality qualifications of
+\cref{thm:op3-supplied-modules} still apply.
+\end{theorem}
+\begin{proof}
+Compute physical module sizes from the supplied postorder tree. At a
+union, retain the curve of a largest-size child as the initial sum and
+merge each other child by \cref{lem:op3-module-convex-shears}. At a
+join, first apply the positive shear to every child using one persistent
+root copy per child, retain a largest-size child's transformed curve,
+merge the other transformed curves, then apply the negative shear to
+their sum. Largest means physical core count, not the number of distinct
+knots, which can shrink under ties. Store every module root and each
+transformed child root for reconstruction.
+
+If a child is not the chosen largest child, its size is at most half
+the parent's size. Each physical vertex can therefore belong to such a
+child at most $\lfloor\log_2N\rfloor$ times on its ancestor path.
+The sum of all merged non-largest child sizes is at most
+$N\lfloor\log_2N\rfloor$. Each such curve has at most twice its physical
+size in knots. This pays for every streamed knot, inserted breakpoint,
+suffix update, lazy push, AVL rotation and immutable copied record in
+\cref{eq:op3-persistent-module-work}. There are only $O(N)$ tree nodes,
+child references, retained version headers, whole-curve maps and singleton
+events. Their metadata reads, comparisons and allocations fit the bound.
+The bound counts all allocated nodes, so it includes old recovery
+versions and even intermediate records; it does not require freeing
+history to make space appear small.
+
+The downward traversal is unchanged, querying stored transformed children
+at each join and original child curves at each union. Horizontal searches
+carry composed affine maps without modifying or copying tree nodes. There
+are $O(N)$ queries and output core coordinates, each query costing
+$O(\log(2+N))$ work. Conditional original obstacle equations from
+\cref{lem:op3-module-response} prove the recovered response exactly.
+Private-leaf group values are obtained once per parent; explicit original
+leaf enumeration remains an additional charged output operation.
+
+The input can represent $\Theta(N^2)$ core edges implicitly. This is why
+an $m_C$-independent bound is consistent with the access model. Reading an
+explicit graph or finding its decomposition is not silently included as
+free preprocessing. No local support-volume theorem follows from the
+compressed-input theorem alone.
+\end{proof}
+
+\paragraph{Implementation and independent verification.}
+\nolinkurl{persistent_module_response.py} imports the existing immutable
+AVL implementation without changing it. Its new sum routine handles
+zero left rays and streams only non-largest child curves. The audit checks
+every retained module and transformed child version after all parents have
+been built. It compares complete affine pieces against the explicit module
+engine's independently certified original-matrix intervals, checks AVL
+height/size invariants, and recovers coordinates at events, interval
+interiors, zero and both unbounded rays. Validation uses a separate observer
+so reads of old versions do not masquerade as construction work. One final
+production recovery and all actual construction allocations are counted
+separately. The saved full audit records its exact scope and code hashes.
+It passes 1,716 original graph cases, 50,268 retained affine-piece matches,
+22,530 saved curve versions and 100,500 module-coordinate recoveries,
+alongside the 50,250 independent original interval certificates. Eighteen
+additional comb, clique and star diagnostics reach 512 core vertices.
+The 512-vertex alternating comb has 65,536 core edges and allocates
+38,598 immutable AVL nodes; this is a measured construction count,
+not a local-discovery benchmark.

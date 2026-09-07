@@ -901,3 +901,71 @@ module-size bound n+4*m_core. Audit this before claiming a supplied-tree work
 theorem. The charge uses all core edges and does not solve support-local
 module discovery. Reassess general coarse certification and primary sources
 after that bounded probe. No arbitrary-graph or novelty claim is promoted.
+
+
+## Second night, block 2 — supplied recursive cores and persistence
+
+**Proved here**, drafts awaiting independent review:
+`lem:op3-module-response`, `lem:op3-module-edge-charge`,
+`thm:op3-supplied-modules`, `lem:op3-module-convex-shears` and
+`thm:op3-persistent-modules`. The explicit reduced union/join construction
+has O((N+m_core)*log(2+N)) word work. The persistent version improves this
+to **O(N*log^2(2+N)) work and allocated words**, including all retained
+child versions and one complete core recovery. Original degrees and private
+leaf counts, plus a complete reduced decomposition, are supplied. Explicit
+original leaf output is additionally charged. This is a compressed-input
+result; general OP3 and local module discovery remain **Open**.
+
+| Final full execution | Saved audit | Result |
+| --- | --- | --- |
+| `recursive_module_response.py --full` | `RECURSIVE_MODULE_RESPONSE_AUDIT.json` | 1,716 cases, all 53 eligible connected cores through six vertices, 15,102 module curves, 50,250 complete original affine intervals, 50,250 event/zero-field comparisons and 20,063 negative-field samples; ten structural cases through 128 vertices; 82.525 seconds. |
+| `persistent_module_response.py --full` | `PERSISTENT_MODULE_RESPONSE_AUDIT.json` | Same 1,716 independently checked original cases, 50,268 retained affine-piece matches, 22,530 saved curve versions and 100,500 coordinate recoveries; eighteen comb/clique/star diagnostics through 512 vertices; 191.090 seconds. |
+
+The persistent 512-vertex comb has 65,536 core edges, 851 root knots,
+38,598 immutable node allocations, 511 light-child vertex charges and
+852 merged light-child knots. Its clique counterpart has 130,816 edges
+and 8,184 allocated nodes. These count supplied construction and one final
+recovery, not graph recognition or a local-discovery benchmark. The
+interval reference and snapshot observer costs are separate. Counts across
+the two suites overlap and must not be added as distinct graph instances.
+
+The first large persistent run hit a depth limit in the full-graph audit
+recognizer. That validator now uses an explicit stack. Both full audits
+were rerun successfully with the corrected source/backend hashes. The
+existing immutable affine AVL helper was unchanged. Its zero left ray
+extension uses only horizontal queries; no unavailable vertical inverse
+primitive is assumed.
+
+The saved module-update probe also contains an exact original-gate trace
+on edges {01,02,12,03,34}, seed 2, alpha=1/3 and lambda=1/100. Admitting
+0, then 1, then 3 has positive excesses 43/200, 25/92 and 11/320. It
+breaks an old module of the induced active core while preserving legal
+positive admissions. Original fractions and the final KKT solution are in
+`MODULE_REPORTER_AND_UPDATE_PROBE.md` and the block audit. This rules out
+an unchanged-module interface, not an OP3 solver.
+
+Primary sources were checked for related persistent function operations
+and incremental/decremental flow thresholds. The scoped findings and
+versioned PDF page pointers are in `docs/literature/lcp-solvers.md`; the
+literature index was updated in the same change. The source flow overhead
+is explicitly subpolynomial, not hidden by OP3's soft-O convention, and its
+certificate differs from the required original-coordinate certificate.
+This is not an exhaustive literature review, and no new source PDF,
+formal cross-note import or active-manuscript/shared-ledger promotion was
+introduced.
+
+Checks: **37 scripts pass focused lint and format**, registry tests
+**3 passed**, both new registered fast-tier entry points pass, ownership
+and whitespace pass. Required tests have **231 passed and the same three
+pre-existing failures**. Required reproduction stops at those test
+prerequisites; later stages are not claimed. Required lint retains the same
+two unrelated findings, and note inventory retains the same two oversized
+AESP sources. All five baseline failure-file hashes are unchanged.
+
+The final note has **84 pages**, no final log warnings, overfull boxes or
+undefined references. Contents and proof/conclusion pages 78–84 were
+rendered and inspected. The PDF remains an ignored build product; its hash
+and final source/backend hashes are in `OVERNIGHT_20260907_BLOCK2_AUDIT.json`.
+The next bounded target is the weighted-depth fixed-module event reporter,
+followed by paid recognition and changed-curve propagation under actual
+admissions. The 480-minute second-night campaign remains ACTIVE.
