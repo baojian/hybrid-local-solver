@@ -826,3 +826,17 @@ an implemented fast estimator or an unconditional supplied recurrence.
 KLP's p.1 footnote omits output time and inverse-n failure from displayed
 work, and its Lemma 3.4 asks for a symmetric operator. Neither omission
 is silently assumed away by this alternative.
+
+**Fourth-block implementation update / Proved here.** The incremental
+note now implements heavy-path cycle updates, fixed iteration/error
+budgets and capped categorical sampling from fair bits. Its source
+composition in `sec:op3-weighted-cycle-solver` imports KOSZ's pointwise
+voltage-rounding lemma before taking expectations; it does not square
+an expected-norm estimate. PDF p.13 was additionally rendered and
+checked. Together with the AN arbitrary-weight tree, the resulting
+supplied linear-solve bound is O(m L^5), where L includes logarithms of
+size, inverse norm accuracy and inverse failure probability. The AN
+tree algorithm remains an explicit source import. Exact state, path,
+work and fixed-budget audits are recorded with hashes in the note.
+Resistance sketches and core sparsification are still Open composition;
+the full supplied diffusion recurrence remains Conditional.

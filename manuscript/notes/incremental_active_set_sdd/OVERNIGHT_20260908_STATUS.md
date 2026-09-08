@@ -50,6 +50,16 @@ sketch perturbation constants still need implementation and audit. The
 third checkpoint passed its focused checks and retains only the recorded
 broad-check baseline failures; see `OVERNIGHT_20260908_BLOCK3_AUDIT.json`.
 
+The active fourth block has now implemented and proved the fair-bit
+sampler and heavy-path cycle solver. Their full audits pass, including
+140,860 exact terminal intervals, 3,488 cycle energy identities, and
+3,456 large-tree path/work checks. Their sections are
+`sec:op3-fair-bit-sampling` and `sec:op3-weighted-cycle-solver`.
+The remaining target in the resistance-estimator probe is the actual
+ordinary-solve sketch, then its capped sampling/core-sparsifier
+composition. The fourth checkpoint is verified; see `OVERNIGHT_20260908_BLOCK4_AUDIT.json`.
+The fifth active block continues the resistance estimator and core composition.
+
 Work directly on main under the continuing commit/push authorization.
 No subagents, new tasks or further usage resets. Preserve existing proved
 drafts and expensive audit results. Own note and audit scripts remain in
@@ -64,3 +74,6 @@ pause the same-task heartbeat, and stop only the matching owned process in
 `OVERNIGHT_20260908_RUNTIME.json`. Do not pad time with sleeps or repeated
 unchanged tests. Existing repository-wide baseline failures remain recorded
 in `BASELINE_CHECK_FAILURES.json`.
+
+Completed new active minutes after block 4: **131.856425**.
+Both prior campaigns and all recorded unverified gaps are excluded.

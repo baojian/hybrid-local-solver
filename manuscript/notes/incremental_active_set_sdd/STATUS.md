@@ -39,6 +39,32 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 4: paid random sampling and cycle solves
+
+**Proved here, awaiting independent review:** a bounded fair-bit categorical
+sampler, a heavy-path flow backend, and a supplied-tree cycle solve with
+explicit energy-error and failure budgets. The checked arbitrary-weight
+low-stretch-tree source gives O(m L^5) word work for logarithmic L. No
+fixed symmetric solver operator, real-uniform sampler or bit-complexity
+claim is assumed. Read `sec:op3-fair-bit-sampling` and
+`sec:op3-weighted-cycle-solver`.
+
+**Measured:** 140,860 exact terminal intervals, 209 exhaustive sampling
+grids, 3,488 cycle energy identities, 3,456 heavy-path update/query/work
+checks and nine prescribed-budget solves totaling 2,808 updates. Larger
+trees have up to 512 vertices, arbitrary roots and weights 2^-80 to 2^80.
+
+**Verification:** 137-page note builds without final warnings; new pages
+130-134 visually reviewed. All 70 own scripts and three registry tests
+pass. Broad checks retain only the same baseline failures; all five
+baseline hashes match. Reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK4_AUDIT.json`.
+
+**Next / Open:** implement and prove ordinary-solve resistance sketches,
+then capped core sparsification. Check all failure-branch resource and
+weight bounds before promoting the full supplied recurrence. General OP3
+and local discovery remain Open; the 600-new-minute campaign continues.
+
 ## Third campaign, block 3: charged weighted corridor routing
 
 **Proved here, awaiting independent review:** a complete construction

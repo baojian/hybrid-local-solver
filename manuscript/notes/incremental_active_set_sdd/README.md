@@ -25,6 +25,13 @@ from a supplied tree, with 27,961 exact cases and quality `5376W/j`.
 The remaining core sparsifier and source composition are tracked in
 [the resistance-estimator probe](RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md).
 
+The fourth checkpoint completes capped fair-bit sampling and a charged
+heavy-path cycle solver, with explicit accuracy and failure budgets. Its
+exact audits pass 140,860 terminal intervals, 3,488 cycle energy identities,
+and 3,456 large-tree path/work checks. Read `sec:op3-fair-bit-sampling` and
+`sec:op3-weighted-cycle-solver`. The ordinary-solve resistance estimator
+and core sparsifier remain the next targets; general OP3 remains Open.
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target

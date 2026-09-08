@@ -1,3 +1,14 @@
+# Third campaign, block 4 (8 September 2026)
+
+137-page note builds without final warnings; new pages
+130-134 visually reviewed. All 70 own scripts and three registry tests
+pass. Broad checks retain only the same baseline failures; all five
+baseline hashes match. Reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK4_AUDIT.json`.
+
+The two new exact audits and source/backend hashes are preserved in
+`OVERNIGHT_20260908_BLOCK4_AUDIT.json`. The campaign continues.
+
 # Third campaign, block 1 (8 September 2026)
 
 The lower-bound quantifier audit passes with exact fractions: 44 dense

@@ -1,0 +1,173 @@
+\section[Paid cycle solves]{A paid cycle-solver backend for supplied graphs}
+\label{sec:op3-weighted-cycle-solver}
+
+\paragraph{Source and scope.}
+This section implements the basic cycle method of
+\citet[Algorithm 1, Theorem 4.1 and Lemmas 6.1--6.2, PDF pp.\ 8,13--14]{kelner2013simple}.
+The graph is supplied in full and has positive conductances; a spanning
+tree is supplied by original-edge indices. The source's faster variants,
+fixed linear-operator conclusions and finite-precision claims are not
+needed here. A direct heavy-path implementation uses $O(\log^2 n)$
+tree work per update, which suffices for our polylogarithmic target.
+
+Write $L=B^T R^{-1}B$, where $B$ is the oriented incidence matrix and
+$R$ is the diagonal resistance matrix. Given demand $\bm b$ with
+$\bm1^T\bm b=0$, let $\bm v^*=L^+\bm b$. A feasible flow satisfies
+$B^T\bm f=\bm b$ and has energy $E(\bm f)=\bm f^TR\bm f$.
+Let $E^*=\|\bm v^*\|_L^2$ be the minimum flow energy.
+For the supplied tree $T$, retain the total stretch $W$ defined earlier,
+and set
+\[
+ \tau=\sum_{e\notin T}\frac{r_e+r(T(e))}{r_e}
+      =W+m-2n+2.
+\]
+If $G=T$, then $\tau=0$ and the tree solve is exact. Otherwise $\tau>1$.
+
+\paragraph{Imported convergence inequalities; \statussource.}
+Initialize the unique feasible flow supported on $T$. For each off-tree
+edge, form its fundamental cycle, and sample that cycle with probability
+$(r_e+r(T(e)))/(\tau r_e)$. Subtract the energy-minimizing cycle flow.
+The cited source gives
+\[
+ E(\bm f_0)\leq W E^*,\qquad
+ \mathbb E[E(\bm f_K)-E^*]
+ \leq(1-1/\tau)^K(E(\bm f_0)-E^*).
+\]
+For every feasible iterate, its tree-induced potentials satisfy the
+pointwise inequality
+\[
+ \|\bm v_K-\bm v^*\|_L^2\leq\tau(E(\bm f_K)-E^*).
+\]
+Consequently
+\begin{equation}
+ \mathbb E\|\bm v_K-\bm v^*\|_L^2
+ \leq\tau W e^{-K/\tau}E^*.
+ \label{eq:op3-cycle-squared-error}
+\end{equation}
+This uses the source's pointwise voltage-rounding lemma before taking
+expectations. Squaring its displayed expected-norm bound would not
+justify this conclusion.
+
+\begin{proposition}[Charged root-path flow operations; \statusproved]
+\label{prop:op3-heavy-path-flow}
+On a supplied rooted weighted tree, initialize one flow value per
+child-to-parent edge. After $O(n)$ additional preprocessing beyond the
+tree index, one can add a scalar to an entire root path and query the
+sum of resistance times flow on a root path in $O(\log^2(2+n))$ work.
+All flows and induced potentials can be recovered in $O(n)$ work.
+Every array, temporary frame, scalar update and output is charged.
+\end{proposition}
+\begin{proof}
+At each vertex choose a child of maximum subtree size as heavy. Each
+light step at least halves the remaining subtree size, so a root path
+has $O(\log(2+n))$ heavy-path intervals. A linear traversal puts each
+heavy path in contiguous array positions. Store these positions in a
+balanced segment tree, with the sum of resistances, the sum of resistance
+times flow, and a lazy uniform flow increment at each node.
+
+Adding $a$ to a whole node interval adds $a\sum r_e$ to its weighted
+sum. For a partial update, retain the node's own lazy increment and
+reconstruct its sum from the two child sums plus that increment times
+its resistance sum. A query carries ancestor increments downward.
+There is no need to copy a path or create new segment-tree nodes.
+Each interval update or query visits $O(\log(2+n))$ nodes, giving the
+claimed root-path bound. Counting the recursion frames still fits this
+work bound. A final traversal carries all lazy increments to the leaves;
+one tree traversal then accumulates the potentials. Both are linear.
+The root has no flow edge and is explicitly excluded from path updates.
+\end{proof}
+
+\paragraph{Cycle signs and charged preparation.}
+Store $t_v$ on the edge from child $v$ toward its parent. Initially it
+is the sum of demands in $v$'s subtree. The root potential is zero,
+and $v_u=\sum_{f\text{ on root-to-}u}r_ft_f$.
+For an off-tree edge oriented from $u$ to $v$, store $f_e$ separately,
+and write $R_e^{\rm cyc}=r_e+r(T(e))$. One cycle update computes
+\[
+ \Delta_e=r_ef_e-(v_u-v_v),\qquad a=\Delta_e/R_e^{\rm cyc},
+\]
+sets $f_e\leftarrow f_e-a$, adds $a$ on the root path of $u$, and
+adds $-a$ on the root path of $v$. Shared portions cancel. This preserves
+divergence and makes the selected cycle's voltage sum zero; the energy
+decreases by $\Delta_e^2/R_e^{\rm cyc}$.
+
+The paid tree index from \cref{sec:op3-weighted-corridor-routing}
+computes all $r(T(e))$ in $O((n+m)\log(2+n))$ work. Cycle weights,
+CDF prefixes, tree-flow initialization and off-tree arrays are all
+explicit. No fundamental-cycle edge list is materialized during an update.
+
+\begin{theorem}[Supplied-tree solve with bounded work and failure; \statusproved]
+\label{thm:op3-paid-cycle-solve}
+Fix $0<\eta\leq1$ and $0<\delta<1$. For a supplied tree with $\tau>0$,
+let $\widehat\tau$ be the smallest power of two at least $\tau$, and set
+\[
+ \ell=\left\lceil\log_2\frac{2\tau W}{\delta\eta^2}\right\rceil,
+ \qquad K=\widehat\tau\ell.
+\]
+Use \cref{prop:op3-fair-bit-categorical} for the $K$ cycle samples with
+total capped failure budget $\delta/2$. The algorithm returns
+\textnormal{FAIL} or a vector $\widehat{\bm v}$, and with probability
+at least $1-\delta$ it returns a vector satisfying
+\[
+ \|\widehat{\bm v}-L^+\bm b\|_L\leq\eta\|L^+\bm b\|_L.
+\]
+If $B_0$ is the resulting per-draw bit cap, total work and total
+allocated words are bounded by
+\[
+ O\!\left((n+m)\log(2+n)
+ +K\left[\log^2(2+n)+(B_0+1)\log(2+m)\right]\right).
+\]
+Every failure branch respects the same bound. Zero demand and tree
+graphs are solved exactly in linear additional work, without sampling.
+\end{theorem}
+\begin{proof}
+Since $K\geq\tau\log(2\tau W/(\delta\eta^2))$,
+\cref{eq:op3-cycle-squared-error} and Markov's inequality give ideal
+sampling error probability at most $\delta/2$. Couple the capped draws
+to those ideal independent draws. The additional probability of any
+capped failure is at most $\delta/2$. No conditioning on accepted
+samples is used. Union of these two bad events proves the claim.
+
+Every update uses two root-path queries, two root-path increments,
+constant scalar arithmetic and one bounded draw. Preparation and final
+recovery have the costs stated above. All iteration and bit budgets can
+be found by integer-scale doubling and comparisons; these costs fit
+the displayed bound. The implementation stores current arrays rather
+than its update history, and even all created frames and scalar
+temporaries fit the total charged work. If $\bm b=0$ the result is
+zero; if $\tau=0$, the feasible tree flow is already optimal.
+\end{proof}
+
+\begin{corollary}[Source-backed supplied polylogarithmic work; \statusproved]
+\label{cor:op3-cycle-solve-near-linear}
+On at least two vertices, using the arbitrary-positive-weight low-stretch tree from
+\citet[Theorem 1 and Sections 6--7]{abraham2019petal}, the preceding
+algorithm has work $O(mL^5)$ for a sufficiently large universal constant
+in $L=\log(2+n+m+1/\eta+1/\delta)$. All allocated words are charged
+within this bound. There is no edge-weight-ratio assumption.
+\end{corollary}
+\begin{proof}
+First aggregate parallel edges by a charged sort, preserving $L$ exactly.
+The tree is chosen in that supplied representation.
+The source gives $W=O(mL^2)$, hence $\tau=O(mL^2)$,
+$K=O(mL^3)$ and $B_0=O(L)$. Substitute these estimates in
+\cref{thm:op3-paid-cycle-solve}, and include the source tree-construction
+work. Bounded-size and one-vertex inputs are handled directly.
+\end{proof}
+
+\paragraph{Implementation and verification.}
+The implementation is \texttt{weighted\_cycle\_solver.py}. Its source
+and backend hashes, exact cycle identities, fixed-budget solves and
+heavy-path audits are recorded in \texttt{WEIGHTED\_CYCLE\_SOLVER\_AUDIT.json}.
+The full audit passes 276 state cases, 3,488 exact sampled-cycle energy
+identities, 3,456 heavy-path update/query/work checks on trees through
+512 vertices, and nine prescribed-budget solves with 2,808 updates.
+It also checks 27 scalar accuracy/failure budgets, zero demand, exact
+tree solves, and a deliberately forced capped-sampler abort.
+Dense grounded solves and explicit reference paths are validators. The
+charged counters include all backend API calls exercised by those
+validators, not just the calls in a final solve. The AN low-stretch-tree
+algorithm is a source import and is not implemented by these audits.
+This is a supplied linear-solve primitive; the resistance-sketch and
+core-sparsifier composition still needs its own proof and audit.
+General local OP3 remains \statusopen.

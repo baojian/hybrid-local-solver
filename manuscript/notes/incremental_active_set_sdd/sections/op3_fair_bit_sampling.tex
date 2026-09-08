@@ -1,0 +1,97 @@
+\section[Sampling with fair bits]{Bounded categorical sampling from fair bits}
+\label{sec:op3-fair-bit-sampling}
+
+\paragraph{Purpose and model.}
+The reference confidence audit uses a common-denominator integer sampler,
+with its integer operations explicitly identified as reference work.
+For the supplied constructor we now give a sampler using only exact-real
+word arithmetic, comparisons, integer indices and independent fair bits.
+No uniformly random real, common-denominator integer sampler, or minimum
+positive probability is imported. Dyadic arithmetic uses the same
+exact-real word model as the supplied solver. The result below charges
+those operations and makes no assertion about their bit complexity.
+
+\begin{proposition}[Capped fair-bit categorical sampling; \statusproved]
+\label{prop:op3-fair-bit-categorical}
+Given positive weights $a_1,\ldots,a_r$, store their prefix sums in
+$O(r)$ work and words. For any integer $B\geq0$, a draw uses at most
+$B$ fair bits and $O((B+1)\log(2+r))$ work. It returns a category or
+\textnormal{FAIL}. It couples to an exact draw with probabilities
+$a_i/\sum_j a_j$, agrees with that draw whenever it returns a category,
+and satisfies
+\[
+ \Pr\{\textnormal{FAIL}\}\leq (r-1)2^{-B}.
+\]
+With no cap, expected work is $O(\log^2(2+r))$.
+All prefix construction, searches, arithmetic, fair bits, temporary
+state and output records are charged.
+
+For at most $N$ draws whose distributions may depend on previous
+successful outputs, suppose every distribution has at most $R$
+categories. If $N(R-1)2^{-B}\leq p$, the joint coupling fails with
+probability at most $p$. The bounded sampling work is
+$O(N(B+1)\log(2+R))$, in addition to all distribution-assembly work.
+For $R=1$ no random bit is necessary.
+\end{proposition}
+\begin{proof}
+Write $A=\sum_i a_i$ and $s_i=\sum_{j\leq i}a_j$. The first $k$
+fair bits define an integer $z_k\in\{0,\ldots,2^k-1\}$ and the
+dyadic interval
+\[
+ I_k=[z_k/2^k,(z_k+1)/2^k).
+\]
+Start with $I_0=[0,1)$. Find the first $i$ with
+$2^k s_i>z_k A$ by binary search. If
+$(z_k+1)A\leq2^k s_i$, the whole interval is in category $i$;
+return it. Otherwise read another fair bit unless $k=B$, in which
+case return \textnormal{FAIL}. The strict comparison at the lower
+endpoint and nonstrict comparison at the upper endpoint handle dyadic
+CDF boundaries without introducing an error.
+
+Imagine completing each draw's bit sequence indefinitely to obtain a
+uniform point $U\in[0,1)$. Every interval inspected contains that point.
+When the procedure returns, its category is exactly the category of $U$.
+At depth $k$, an unresolved dyadic interval must contain a category
+boundary strictly in its interior. There are $r-1$ boundaries and
+therefore at most $r-1$ unresolved intervals among the $2^k$ equally
+likely intervals. This proves the failure bound. Binary-expansion
+ambiguities at individual points have probability zero.
+
+If $T$ is the number of bits required without a cap, then
+$\Pr\{T>k\}\leq\min\{1,(r-1)2^{-k}\}$. Summing this tail gives
+$\mathbb E T=O(\log(2+r))$, while each interval test costs
+$O(\log(2+r))$. The computation retains only its current integer
+numerator, dyadic scale and binary-search indices; it never stores all
+old prefixes. Counting even all created scalar temporaries is bounded
+by the stated word work.
+
+For adaptive draws, couple the two processes until the first failure.
+Conditional on any shared previous history, the next exact draw uses
+fresh fair bits, and the conditional failure probability has the same
+uniform bound $(R-1)2^{-B}$. A union bound proves the joint claim.
+A sufficient $B$ can be found by doubling an integer scale until it
+exceeds $N(R-1)/p$, charging $O(1+\log(NR/p))$ additional operations.
+The cases $N=0$ or $R=1$ are handled directly.
+\end{proof}
+
+\paragraph{Use the coupling, not conditioning on successful draws.}
+For weights $(1,2)$ and cap $B=1$, the lower dyadic half is unresolved,
+while the upper half returns the second category. Thus conditional on
+nonfailure, that category has probability one, rather than $2/3$.
+When applying a concentration theorem, analyze the exact coupled
+sampling process and add the capped failure probability. Do not assert
+that the accepted conditional distribution is unchanged.
+
+\paragraph{Verification.}
+The implementation \texttt{fair\_bit\_categorical.py} independently
+checks terminal dyadic intervals against exact category intersections,
+exhaustive short-bit distribution and failure bounds, adaptive pairs,
+and explicitly chosen rare-event strings. Its source hash and full
+counts are saved in \texttt{FAIR\_BIT\_CATEGORICAL\_AUDIT.json}.
+The full audit checks 140,860 successful terminal intervals, 879
+ambiguous terminal intervals, 209 complete distribution/failure grids,
+and seven adaptive two-draw union bounds. Explicit rare-event strings
+reach probability $2^{-1024}$ without rounding. Seeded sample frequencies
+are not used to prove the probability guarantee.
+This supplies a sampling primitive; the complete resistance estimator,
+core sparsifier and local OP3 algorithm are not asserted by it.

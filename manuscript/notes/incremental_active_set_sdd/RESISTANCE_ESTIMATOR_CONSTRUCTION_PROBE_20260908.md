@@ -1,5 +1,16 @@
 # Next construction: cycle solves, fair-bit sampling and resistance sketches
 
+**Fourth-block update:** Fair-bit sampling and the heavy-path cycle backend
+are now implemented and have note-local proofs in
+`sec:op3-fair-bit-sampling` and `sec:op3-weighted-cycle-solver`. The sampler
+passes 140,860 terminal-interval checks. The cycle backend passes 276
+state cases, 3,488 exact sampled-cycle identities, 3,456 large-tree
+path/work checks, and nine fixed-budget solves with 2,808 total updates.
+Its input error/failure budget also passes 27 scalar stress cases.
+Read the current audit JSONs for source/backend hashes. The design below
+is retained; the remaining unimplemented target is the ordinary-solve
+resistance sketch and its complete core-sparsifier composition.
+
 **Open composition; proposed constants below are not yet audited.**
 The supplied-tree weighted constructor is now proved and audited in
 `sec:op3-weighted-corridor-routing`. Its 27,961 constructions and 55,706
@@ -38,7 +49,7 @@ graph source; it does not discover a local support.
 
 ## Implemented target: a simple paid cycle-update backend
 
-This backend is not implemented yet. Use a heavy-path decomposition and
+This backend is now implemented. It uses a heavy-path decomposition and
 a lazy segment tree, accepting O(log^2 n) per cycle instead of the
 source's O(log n). That extra logarithm is harmless for the intended
 supplied polylogarithmic recurrence and is easier to audit directly.
