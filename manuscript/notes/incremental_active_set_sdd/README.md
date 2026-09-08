@@ -151,6 +151,19 @@ The exact audit checks 7,311 original outputs, 12,986 prefix states and
 [the structural follow-up](FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md).
 No small-group guarantee on arbitrary graphs is claimed.
 
+The seventeenth checkpoint proves local work
+`O((1+V)(1+k)^2*log(2+V))` for graphs with k neighborhood types, without
+supplying or computing their global partition. A four-type double-star
+family preserves the inverse-accuracy output lower bound on arbitrarily
+large ambient graphs. The structural audit checks 20,826 original outputs
+and nine private double-star outputs. In contrast, the current group-order
+rule has a proved cubic obstruction on finite binary trees even when
+inverse teleportation is only logarithmic in inverse accuracy. Six exact
+nonterminal prefixes and independent radial systems validate that proof.
+Read `sec:op3-neighborhood-types`, `sec:op3-group-branching-obstruction`,
+`FRONTIER_NEIGHBORHOOD_TYPES_AUDIT.json`, and
+`FRONTIER_GROUP_BRANCHING_AUDIT.json`. General OP3 remains Open.
+
 The following second-campaign record is historical.
 
 

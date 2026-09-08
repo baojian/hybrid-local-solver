@@ -40,6 +40,51 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 17: a tight type-bound result and a branching limit
+
+**Source / Proved here, awaiting independent review:** Lampis's uncolored
+neighborhood-type definition gives a structural promise, not free global
+preprocessing. The local producer itself neither receives k nor the type
+partition. A type's remaining members are discovered together and never
+split across completed-state groups, proving at most k such groups and
+2k+1 transient groups. Thus `thm:op3-local-neighborhood-types` gives
+`O((1+V)(1+k)^2*log(2+V))` work/allocation with V<2/eps_appr, independent
+of target alpha and ambient size in the exact-real word model.
+
+**Proved here:** A two-center star with near and remote leaf banks has at
+most four global types and arbitrarily large ambient volume. Every original
+ACL output has Omega(1/eps_appr) mandatory near leaves for alpha in (0,1/3].
+This matches the structural upper bound's accuracy power up to logarithms;
+it does not resolve arbitrary-graph OP3.
+
+**Proved here / Refuted rule:** `thm:op3-grouped-binary-cubic` forces the
+implemented first-eligible-group order to use Omega(eps_appr^-3) shared
+matrix updates on a finite binary tree. Here alpha=1/(96R-1) and
+eps_appr=1/(32*2^R), so inverse alpha is only logarithmic in inverse accuracy.
+A rational Green subsolution and explicit Dirichlet torsion prove the
+positive gates. This is a representation/order obstruction; existing fast
+tree algorithms are unaffected.
+
+**Measured:** The type audit passes 20,826 original outputs on 349 quotient
+blow-ups, 71,050 count checks and 194,276 unsplit/discovery checks, plus nine
+private four-type double-star outputs. The branching audit passes 1,024
+symbolic certificates, 156 radial faces, 234 Green/torsion systems and six
+actual capped prefixes. The latter are nonterminal and are not ACL outputs.
+They contain 246 total pivots, with independently verified lifted coordinates.
+At R=6 the producer reaches volume 380 using 91,519 shared matrix updates,
+including 79,552 on the last level. See both new audit JSON files.
+
+**Open / next:** Exact-obstacle gates under the same type promise, followed
+by useful low-rank or compositional compression that avoids the demonstrated
+branching growth. General OP3 remains Open. Formal dependencies remain
+`["problem_definitions"]`; source type definitions are attributed explicitly.
+The 181-page note builds without final warnings; new proof pages 173-176
+were visually reviewed. All 88 own scripts and three registry tests pass.
+Broad checks retain only recorded baseline failures and all five source
+hashes match. Reproduction stops at the failed test prerequisite. See
+`OVERNIGHT_20260908_BLOCK17_AUDIT.json` and resume
+`EXACT_GROUP_OBSTACLE_PROBE_20260908.md`.
+
 ## Third campaign, block 16: shared frontier groups and reverse aggregates
 
 **Proved here, awaiting independent review:** The implemented grouped

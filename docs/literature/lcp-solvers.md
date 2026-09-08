@@ -952,8 +952,15 @@ are retained without inferring later publication metadata.
 adaptive frontier groups, individual original-degree heaps, row-driven
 partition refinement and reverse aggregate reconstruction. Its exact
 ACL work depends on the squared transient group count. The source offers
-a candidate structural promise under which that count may stay small;
-the local no-supplied-partition bound is a separate next proof/audit target.
+a structural promise under which the note now proves at most k completed
+groups and 2k+1 transient groups. The resulting local work is
+O((1+V)(1+k)^2 log(2+V)), with no supplied partition; 20,826 exact original
+ACL outputs and nine private four-type double-star cases are audited.
+A four-type output obstruction matches the inverse-accuracy power on
+arbitrarily large ambient graphs. These are note-local proofs, not source
+runtime imports. A separate binary-tree construction refutes a small-group
+inference for the implemented group order, even at logarithmic inverse
+teleportation.
 No source partition-computation or logical model-checking algorithm enters
 the local producer or its work accounting. See
 `FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`; general OP3 remains Open.

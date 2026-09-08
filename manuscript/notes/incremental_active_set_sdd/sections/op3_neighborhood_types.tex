@@ -1,0 +1,109 @@
+\section{Local work under a neighborhood-type promise}
+\label{sec:op3-neighborhood-types}
+
+\paragraph{Source definition and transfer scope.}
+For an uncolored graph, two vertices are of the same neighborhood type
+when $N(u)\setminus\{v\}=N(v)\setminus\{u\}$.
+Definitions 1--2 of \citet{lampis2009types}, PDF p.\ 4, define neighborhood
+diversity by a partition into such types. The source's Theorem 5,
+pp.\ 12--13, describes clique or independent types and complete or empty
+connections between them. Its global partition-computation and logical
+model-checking algorithms are not local PageRank algorithms and are not
+used in the following work bound. Here the type partition is a graph
+promise, not input or free preprocessing.
+
+\begin{theorem}[Unsupplied neighborhood types; \statusproved]
+\label{thm:op3-local-neighborhood-types}
+Suppose the original connected simple unweighted graph has a partition
+into $k$ neighborhood types. The producer of
+\cref{thm:op3-frontier-response-groups}, given only its original local
+graph interface, seed, $0<\alpha\leq1$ and $0<e<1$, returns original
+ACL output with $V<2/e$ and work and total allocated words
+\[
+ O\bigl((1+V)(1+k)^2\log(2+V)\bigr)
+ \subseteq O\bigl((1+e^{-1})(1+k)^2\log(2+e^{-1})\bigr).
+\]
+The producer need not know $k$ or any type membership. All graph queries,
+group refinement, transformed-load reporting, history, reconstruction and
+output are charged. The bound is deterministic and independent of target
+teleportation and ambient size in the exact-real word model.
+\end{theorem}
+\begin{proof}
+The initial seed group is the only known group. If it is ineligible, the
+producer stops after a degree query. Otherwise the seed is admitted first.
+Thereafter, for each promised global type, its unadmitted members are either
+all undiscovered or all known in one response group. Indeed, the first
+admitted vertex adjacent to any member of a still-undiscovered type is
+adjacent to every other member: the common-type equality applies outside
+the pair. Its original row therefore discovers them together. If the
+admitted vertex itself belongs to that type, the same statement concerns
+the remaining members; a clique type exposes all of them and an independent
+type exposes none. The seed has already left the frontier, so its distinct
+source load causes no exception among these remaining members.
+
+Inductively, a later admitted row treats every still-unadmitted member of
+a global type identically. Hence the row-driven split either moves all of
+that type's remaining members to the same child or moves none. A type can
+never be divided between two completed-state response groups. Several
+global types may share one group, but each nonempty group contains a type
+that occurs in no other group. There are therefore at most $k$ nonempty
+groups after each completed pivot. A pivot starts with at most $k$ groups,
+creates at most one child per old group and at most one fresh discovery
+group. Before retiring empty parents its live list has size at most
+$2k+1$. Thus every $b_i$ in
+\cref{thm:op3-frontier-response-groups} is at most $2k+1$.
+Its proved volume, work and allocation bounds give the result. This
+argument uses the promised partition only as a comparison object; the
+producer's code never reads it.
+\end{proof}
+
+\begin{proposition}[Four types retain the output lower bound; \statusproved]
+\label{prop:op3-four-type-output-lower-bound}
+For every $0<e\leq1/16$ and $0<\alpha\leq1/3$, there are original
+graphs with at most four neighborhood types and arbitrarily large ambient
+volume on which every nonnegative original ACL output must contain at least
+$1/(16e)$ positive coordinates. Consequently the inverse-accuracy power in
+\cref{thm:op3-local-neighborhood-types} is optimal, up to logarithmic
+factors, already for fixed $k=4$ in this parameter range.
+\end{proposition}
+\begin{proof}
+Let $m=\lfloor1/(8e)\rfloor\geq1/(16e)$. Join a seed center $v$ to
+$m$ private leaves and to another center $h$, and join $h$ to an arbitrary
+number $D\geq1$ of other private leaves. The two centers and their two
+leaf banks form four neighborhood types. Increasing $D$ increases ambient
+volume without changing $d_v=m+1$.
+
+For any $x\geq0$ with $0\leq e_v-(D_G-\gamma A)x\leq e d$, the seed
+inequality gives $x_v\geq1/d_v-e$. Here $D_G$ denotes the original degree
+matrix, distinguished from the remote leaf count. Since
+\[
+ e d_v\leq\tfrac18+e\leq\tfrac3{16}
+ <\tfrac13\leq\frac\gamma{1+\gamma},
+\]
+an omitted near leaf would have residual
+$\gamma x_v\geq\gamma(1/d_v-e)>e$, a contradiction. All $m$ near
+leaves are mandatory. This extends the same original-seed inequality used
+in \cref{prop:op3-large-ambient-leaf-lower-bound}, while keeping a constant
+number of global types. It is an output-writing lower bound, not a claim
+that every instance requires that much work.
+\end{proof}
+
+\paragraph{Implemented audit; Measured.}
+\path{frontier_neighborhood_types.py} generates 349 graphs from all
+connected quotient shapes on at most four vertices, clique/independent
+type choices and recorded multiplicity patterns. It checks every physical
+source at the listed parameters, totaling 20,826 original ACL outputs and
+157,500 original residual rows. The partition is validator-only information.
+There are 71,050 group-count checks and 194,276 checks that unadmitted types
+remain unsplit and are discovered together. The run also records 12,959
+states with unequal original degrees inside one response group. Twenty-one
+selected cases have independent dense obstacle/Schur validation and 164
+reverse coordinate/aggregate checks.
+
+Private star and double-star oracles test huge ambient leaf banks without
+reading the remote hub row. The double-star tests also verify the mandatory
+near-leaf inequality and every potentially nonzero original residual;
+unseen remote leaves have no active original neighbor and hence zero
+residual. Parameters, configurations, counters and hashes are in
+\path{FRONTIER_NEIGHBORHOOD_TYPES_AUDIT.json}. This is a structural upper
+bound with a matching accuracy power. General OP3 remains \statusopen.

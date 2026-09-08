@@ -1,0 +1,127 @@
+\section{Branching forces cubic work for the current group order}
+\label{sec:op3-group-branching-obstruction}
+
+The shared star clique does not imply small response diversity on trees.
+The following obstruction applies to the implemented first-eligible-group
+rule, with its explicit matrix between current groups. Earlier fast tree
+methods remain available; this is not a lower bound on OP3 computation.
+
+\begin{theorem}[Cubic grouped frontier on a finite binary tree; \statusproved]
+\label{thm:op3-grouped-binary-cubic}
+For every integer $R\geq1$, take the complete binary tree of depth
+$D=4R+8$, with root seed and all original degrees, and set
+\[
+ \lambda=\frac1{64\,2^R},\qquad e=2\lambda,\qquad
+ t=1-\gamma=\frac1{48R},\qquad \alpha=\frac1{96R-1}.
+\]
+The producer in \cref{thm:op3-frontier-response-groups} admits every vertex
+through depth $R$ in breadth-first order. While processing depth $R$
+alone, it executes at least $2^{3R-3}$ shared matrix-entry updates.
+Its eventual original support volume is $\Theta(2^R)=\Theta(e^{-1})$,
+and the graph's ambient volume exceeds $4/e$. Thus this representation and
+order incur $\Omega(e^{-3})$ work even though
+$\alpha^{-1}=\Theta(\log(1/e))$.
+\end{theorem}
+\begin{proof}
+Let $S_r$ be the complete root ball of depth $0\leq r\leq R$. Its
+original volume is $v_r=3\cdot2^{r+1}-4$. The root has degree two and
+every other vertex reached in this argument has original degree three;
+the true degree-one leaves remain at depth $D$.
+
+We first show that the exact face solution on $S_r$ is positive and makes
+every next-level vertex eligible. All the following vectors are constant
+on a level, with zero value outside $S_r$. Write $L_r$ for the original
+Dirichlet Laplacian, $A_r$ for the within-ball adjacency, and
+$M_r=L_r+tA_r$. The conservative torsion $w^0=L_r^{-1}d$ has the exact
+radial values
+\[
+ w^0_\ell=3(r+1-\ell)
+       -4\bigl(2^{-\ell}-2^{-(r+1)}\bigr)
+ \leq3(r+1-\ell),\qquad 0\leq\ell\leq r.
+\]
+The formula follows by direct substitution into the root, interior and
+last-level equations; all original degrees are retained. Positivity also
+follows from inverse positivity. With $w=M_r^{-1}d$, the inequality
+$M_rw^0=d+tA_rw^0\geq d$ gives $0<w\leq w^0$.
+
+Put $q=(1-3t)/2$ and define
+\[
+ y_\ell=\tfrac12(q^\ell-q^{r+1}),\qquad y_{r+1}=0.
+\]
+For a nonroot row, the homogeneous coefficient satisfies
+\[
+ 3-\frac\gamma q-2\gamma q
+ =-\frac{3t^2(5-3t)}{1-3t}<0.
+\]
+The subtracted constant contributes $-3tq^{r+1}/2$, so these rows of
+$M_ry$ are nonpositive, including the last level by its zero extension.
+The root row is $1-\gamma q-tq^{r+1}\leq1$. Thus $M_ry\leq e_v$,
+and $g=M_r^{-1}e_v\geq y>0$.
+
+Since $r\leq R$, Bernoulli's inequality gives
+\[
+ q^r=2^{-r}\left(1-\frac1{16R}\right)^r
+ \geq\frac{15}{16}\,2^{-r}.
+\]
+Also $1-q\geq1/2$, and summing the geometric differences yields
+\[
+ y_\ell=\tfrac12(1-q)\sum_{j=\ell}^r q^j
+ \geq\frac{15(r+1-\ell)}{64\,2^r}.
+\]
+Consequently the damped face solution $z=g-\lambda w$ satisfies
+\[
+ z_\ell\geq y_\ell-\lambda w^0_\ell
+ \geq\frac{3(r+1-\ell)}{16\,2^R}>0.
+\]
+Every next-level vertex has one admitted parent and original degree three.
+Its residual is at least
+\[
+ \gamma z_r\geq\frac{47}{256\,2^R}
+ >\frac9{128\,2^R}=3(\lambda+\kappa),
+ \qquad \kappa=\lambda/2.
+\]
+Thus all next-level gates are strict. Partial subsequent positive
+admissions can only increase their transformed loads, by the exact Schur
+invariant already proved.
+
+In this tree each admitted row discovers its two children and encounters
+no other unadmitted old neighbor. It creates one fresh sibling group and
+causes no partition split. Each existing sibling group is exhausted before
+groups later in the live list: at the start of a level all its vertices
+are eligible by the complete-ball calculation, and they remain eligible.
+Their original degrees agree, so the heap's label tie-break only orders
+the two siblings. Induction gives breadth-first order through depth $R$.
+
+At the start of that level, $2^{R-1}$ nonempty sibling groups remain.
+Each of its $2^R$ pivots creates a new child group and removes at most one
+empty parent group, so the number of nonempty groups never drops below
+$2^{R-1}$. The implementation updates every unordered pair including
+diagonal pairs, at least $\tfrac12(2^{R-1})^2$ entries per pivot. The
+level total is therefore at least $2^{3R-3}$. Its admitted volume is
+already $v_R$, while the general positive-pivot bound gives eventual
+$V<1/\lambda=64\,2^R$. Finally the ambient volume is
+$2^{D+2}-4>4/e$, and the displayed $\alpha$ gives the asserted logarithmic
+inverse-teleportation scale. The argument constrains this implementation,
+not a compressed low-rank matrix or a different elimination order.
+\end{proof}
+
+\paragraph{Finite and symbolic audits.}
+\path{frontier_group_branching.py} checks 1,024 symbolic parameter,
+ambient-volume and uniform gate certificates. Independent radial systems
+check 156 conservative/damped faces, 234 Green/torsion systems and 78
+rational subsolution certificates, with 728 original-degree radial rows.
+These small quotient systems are validators, not a hidden producer solver.
+
+The actual group producer executes six capped prefixes, $R=1,\ldots,6$,
+through 246 total positive pivots. All lifted prefix coordinates match
+independent radial face solutions, and 126 final sibling groups are checked.
+Every prefix is stopped with a further legal vertex and is explicitly
+recorded as a nonterminal computation, not a completed ACL solve. For
+$R=6$, original admitted volume is 380, only 255 labels are discovered,
+and the final frontier has 64 sibling groups. The run makes 91,519 total
+shared matrix updates, including 79,552 while processing depth six, against
+the proved lower bound 32,768 for that level. Its finite ambient tree has
+$2^{33}-1$ vertices and is accessed through a private lazy oracle, never
+materialized. Results and hashes are in
+\path{FRONTIER_GROUP_BRANCHING_AUDIT.json}. General OP3 remains
+\statusopen.

@@ -7,12 +7,11 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **448.469745 new active minutes** through block 16; at least
-**151.530255 minutes** remain. Block 17 is active. Adaptive response
-groups and reverse aggregate reconstruction are proved drafts, with
-implemented audit and checkpoint evidence in
-`OVERNIGHT_20260908_BLOCK16_AUDIT.json`. Resume
-`FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`. General OP3 remains Open.
+Completed **471.749554 new active minutes** through block 17; at least
+**128.250446 minutes** remain. Block 18 is active. The local type-bound
+upper/lower result and grouped binary-tree obstruction are proved drafts.
+Checkpoint evidence is in `OVERNIGHT_20260908_BLOCK17_AUDIT.json`. Resume
+`EXACT_GROUP_OBSTACLE_PROBE_20260908.md`. General OP3 remains Open.
 Earlier chronological targets below are historical.
 
 ## Initial verdict and current work
@@ -163,3 +162,6 @@ The sixteenth block is active; the unverified compaction gap is excluded.
 
 Completed new active minutes after block 16: **448.469745**.
 The seventeenth block is active; all five baseline hashes remain unchanged.
+
+Completed new active minutes after block 17: **471.749554**.
+The eighteenth block is active; all five baseline hashes remain unchanged.

@@ -1,6 +1,17 @@
 # Structural type bound and branching test for response groups
 
-**Next targets, awaiting implementation audits and formal proof.** The
+**Completed as proved drafts and exact audits.** Read
+`sec:op3-neighborhood-types`, `sec:op3-group-branching-obstruction`,
+`FRONTIER_NEIGHBORHOOD_TYPES_AUDIT.json`, and
+`FRONTIER_GROUP_BRANCHING_AUDIT.json`. The structural audit passes 20,826
+outputs plus nine private four-type double-star cases. The strengthened
+branching proof uses t=1/(48R), alpha=1/(96R-1), a rational Green
+subsolution q=(1-3t)/2, and explicit torsion, so the obstruction persists
+at logarithmic inverse teleportation. The earlier smaller-t argument
+below is retained as exploratory provenance, not the final parameter
+statement. Exact-obstacle gates remain a next extension; general OP3 is Open.
+
+The following original targets are retained as provenance. The
 general paid grouped producer is already proved as a draft and implemented
 in `sec:op3-frontier-response-groups` / `FRONTIER_GROUPS_AUDIT.json`.
 General OP3 remains Open. Do not infer a small response-group count from
