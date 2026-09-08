@@ -40,6 +40,46 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 7: supplied-envelope work and the small-alpha reduction
+
+**Proved here, awaiting independent review:** The complete supplied-envelope
+work theorem reads only original rows in the supplied set, preserves cut
+grounding and has cost `(1+V) polylog(2+V+1/alpha+1/eps_appr+1/p)`.
+The seed gate removes an extra inverse-(1-alpha) range term near alpha one.
+Every positive superlevel of any nonnegative-residual potential is connected
+to the seed. Proper support of k vertices gives maximum potential at most
+`k/gamma`; full support has an explicit counterexample.
+
+**Conditional:** A native ACL producer with original support-volume bound
+B can run at `max(alpha, eps_appr/(4B+eps_appr))`. After a paid degree pass
+and support closure check, proper support transfers with the same potential;
+a whole-graph support of volume at most B invokes the completed supplied
+solver at the target alpha. This yields an accuracy-squared floor when
+B=O(1/eps_appr). A sparse word bound is not a volume contract.
+
+**Refuted:** Raising to a floor of order accuracy and returning the same
+native obstacle can violate the target residual on a proper-support path.
+This is a substitution obstruction, not a general algorithmic lower bound.
+
+**Measured:** 6,177 envelope preparations, 258 exact principal-matrix and
+numerical compositions, and 1,806 numerical ranges pass. The alpha audit
+checks 1,644 original ACL outputs, 7,545 strict-superlevel identities,
+15,341 edge gradient bounds and 1,071 proper-support maxima. Its outputs
+include 152 same-potential transfers and 259 full-component fallbacks.
+Both wrappers reject huge-degree candidates before any row scan. Dense
+numerical providers are validators; the native near-linear producer is
+not implemented or proved. Source hashes are in the named audit JSONs.
+
+**Next / Open:** General OP3. Continue the new campaign with a possible
+proper-envelope range improvement and an explicit bounded-volume native
+producer. See `PROPER_ENVELOPE_AND_NATIVE_PRODUCER_PROBE_20260908.md`.
+Checkpoint verification: 151-page note builds without final warnings; new
+pages 143-148 were visually reviewed. All 75 own scripts and three registry
+tests pass. Broad checks retain the same three test failures, two unrelated
+lint findings and two oversized sources; all five baseline hashes match.
+Reproduction stops at its failed test prerequisite. See
+`OVERNIGHT_20260908_BLOCK7_AUDIT.json`.
+
 ## Third campaign, block 6: complete capped supplied recurrence
 
 **Proved here, awaiting independent review:**

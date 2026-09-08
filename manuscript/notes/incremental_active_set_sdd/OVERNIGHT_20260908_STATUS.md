@@ -99,3 +99,13 @@ finder and rank-independent event production the remaining targets.
 
 Completed new active minutes after block 6: **192.012852**.
 The seventh block is active. Read `LOCAL_ENVELOPE_WORK_PROBE_20260908.md`.
+
+The seventh block proves paid supplied-envelope work and the superlevel
+potential cap, and gives the conditional small-alpha floor with a paid
+whole-component fallback. Exact audits and all checkpoint checks are
+recorded in `OVERNIGHT_20260908_BLOCK7_AUDIT.json`. The path obstruction
+refutes only the larger same-vector parameter substitution.
+
+Completed new active minutes after block 7: **222.513587**.
+The eighth block is active. Read
+`PROPER_ENVELOPE_AND_NATIVE_PRODUCER_PROBE_20260908.md`.

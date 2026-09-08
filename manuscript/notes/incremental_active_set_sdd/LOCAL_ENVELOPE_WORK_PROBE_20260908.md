@@ -6,6 +6,13 @@ still Open. Continue with the tasks below, distinguishing new proposals
 from proved results and keeping every graph query and repeated operation
 charged.
 
+The seventh block completes targets 1 and 2 below as proof drafts and exact
+audits: `thm:op3-supplied-envelope-work`, `lem:op3-superlevel-potential-cap`,
+`thm:op3-small-alpha-floor`, and the larger-floor path obstruction. The
+floor theorem remains Conditional on its explicit native volume/work
+contract. Resume `PROPER_ENVELOPE_AND_NATIVE_PRODUCER_PROBE_20260908.md`.
+The original design text below is retained as provenance.
+
 ## 1. Make the supplied-envelope work reduction explicit
 
 Use the existing significant-envelope theorem with lambda=eps_appr/2,

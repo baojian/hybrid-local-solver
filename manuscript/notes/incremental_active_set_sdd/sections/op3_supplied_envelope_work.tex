@@ -1,0 +1,146 @@
+\section{The complete work reduction from a supplied envelope}
+\label{sec:op3-supplied-envelope-work}
+
+\begin{theorem}[Paid significant-envelope preparation and solve; \statusproved]
+\label{thm:op3-supplied-envelope-work}
+Let $G$ be a connected simple unweighted graph on at least two vertices,
+accessed by original degree and adjacency-list queries, with point seed
+$v$, $\alpha\in(0,1]$, $\epsappr\in(0,1)$ and $p\in(0,1)$.
+Let $u$ be the original obstacle solution for
+$M=D-\gamma A$, $b=e_v-(\epsappr/2)d$ and
+$\gamma=(1-\alpha)/(1+\alpha)$. Suppose distinct labels for a set
+$U\supseteq\{i:u_i>\epsappr/8\}$ are supplied. Write
+$V=\operatorname{vol}_G(U)$ for its original degree volume.
+There is a supplied algorithm using
+\[
+ (1+V)\operatorname{polylog}
+ (2+V+\alpha^{-1}+\epsappr^{-1}+p^{-1})
+\]
+exact-real word work and total allocated words on every execution.
+It returns \textnormal{FAIL} or a nonnegative sparse potential $x$;
+with probability at least $1-p$ its output obeys
+\[
+ 0\leq e_v-Mx\leq\epsappr d,\qquad
+ \operatorname{supp}(x)\subseteq\operatorname{supp}(u),\qquad
+ \operatorname{vol}_G(\operatorname{supp}x)<2/\epsappr.
+\]
+The only adjacency lists read are those of $U$. A preliminary one-degree
+shortcut can return without reading even those lists. Outside degree
+queries are unnecessary, except for the seed query before the shortcut.
+The output approximation is $\bar\alpha Dx$, with original degrees and
+$\bar\alpha=1-\gamma$. The algorithm does not discover $U$.
+\end{theorem}
+\begin{proof}
+First use \cref{prop:op3-sharp-seed-only-gate}. If
+$\epsappr d_v\geq\gamma/(1+\gamma)$, return the potential
+$x_v=\max\{0,d_v^{-1}-\epsappr\}$ and zero elsewhere.
+If it is positive, the exact obstacle is positive at the seed because
+$b_v=1-(\epsappr/2)d_v>0$; moreover $d_v<1/\epsappr$.
+Thus the shortcut also has the claimed support and volume bounds.
+It includes $\alpha=1$. Otherwise
+\[
+ \epsappr d_v<\frac\gamma{1+\gamma}<\frac12,
+ \qquad \gamma>\epsappr.
+\]
+Here $b_v>0$ forces $u_v>0$ by its original KKT row, and
+$d_vu_v\geq(Mu)_v=b_v$ gives
+$u_v\geq d_v^{-1}-\epsappr/2>3\epsappr/2$.
+Consequently every valid envelope contains the seed.
+
+Sort its labels by a paid merge sort and use binary search for membership.
+Read and store every original degree first, then scan each original row
+in $U$ exactly once. There are $V$ entries, and $|U|\leq V$ because
+all original degrees are positive. During these scans construct the
+induced graph, recording an edge only at its smaller endpoint. This
+costs $O((1+V)\log(2+V))$ comparisons, arithmetic, reads and copied
+or allocated words. No outside adjacency list is needed to recognize
+an induced edge. If an optional volume limit is supplied, the degree
+pass can reject an oversized set before reading any row.
+
+Find the seed component $C$ of the induced graph by a paid traversal.
+Every other component has load $-(\epsappr/2)d_i<0$ at all vertices,
+so its restricted energy is nonnegative on the nonnegative orthant,
+with unique minimum at zero. Discard these components. On $C$ let
+$d_i^{\mathrm{in}}$ be induced degree, and form
+\[
+ K=\gamma L_{G[C]}+\operatorname{diag}(h),\qquad
+ h_i=d_i-\gamma d_i^{\mathrm{in}}
+     =\bar\alpha d_i+\gamma(d_i-d_i^{\mathrm{in}}).
+\]
+This is exactly the original principal matrix $M_{CC}$, with
+$h_i\geq\bar\alpha d_i\geq\bar\alpha$. There are no edges from
+$C$ to another induced component, so its induced degrees agree with
+those computed in $U$. In particular, replacing original degrees with
+induced degrees in the diagonal would be incorrect.
+
+Apply the size-two capped grounding embedding with positive load mass
+at most one, $\mu=\bar\alpha$, and cap $U_B=1/\bar\alpha$.
+Write $f_i=(e_v)_i-(\epsappr/2)d_i$ on $C$ and put
+\[
+ \delta=\epsappr/8,\qquad t=\bar\alpha\delta^2/2,\qquad
+ B_0=1/(2\bar\alpha),\qquad
+ Z=256(1+V+\bar\alpha^{-1}+\epsappr^{-1})^4.
+\]
+These are computable using the supplied parameters and degree pass.
+Here $-E_C^*\leq B_0$: on the original nonpositive sublevel,
+the quadratic lower bound and positive load mass at most one give
+this standard scale, also directly by completing the square at the
+seed and dropping other nonnegative terms. The cap lemma preserves
+the minimum. Its terminal slopes $T_i=h_iU_B-f_i$ are nonnegative.
+Every initial range in the complete supplied theorem is bounded by $Z$:
+\[
+ \begin{split}
+ R_0&\leq\max\{1,\bar\alpha^{-1}\},\qquad
+ S_0=\sum_i T_i\leq V/\bar\alpha+(\epsappr/2)V,\\
+ C_0&=\sum_i h_i\leq V,\qquad W_0\leq V,\qquad
+ c_0^{-1}=\gamma^{-1}<\epsappr^{-1},\\
+ B_0+1&\leq1+(2\bar\alpha)^{-1},\qquad
+ t^{-1}=128/(\bar\alpha\epsappr^2).
+ \end{split}
+\]
+The edge minimum is used only when $|C|\geq2$; a singleton is minimized
+by the scalar piece scan. The bounds for total curvature and terminal
+mass refer to the two-piece embedding, whose affine tail has zero
+curvature. Since $\bar\alpha^{-1}\leq\alpha^{-1}$, the logarithm
+of $Z$ has the claimed parameter dependence. The preceding gate removes
+a possible extra $\log(1/(1-\alpha))$ from the edge minimum.
+
+The supplied input size is $O(1+V)$. Invoke
+\cref{cor:op3-complete-supplied-absolute} with gap $t$, confidence $p$
+and these range bounds. All its failed executions have the stated
+work and allocation caps. On a good execution, box the feasible
+output to $[0,U_B]$ without increasing the original energy gap.
+Strong convexity $K\succeq\bar\alpha I$ then makes its coordinate
+error from the restricted optimum at most $\delta$.
+Extend by zero and subtract $\delta$ coordinatewise with truncation
+at zero. \Cref{cor:op3-significant-envelope-ACL} gives the original
+ACL certificate, support containment and strict volume bound.
+All boxing, clipping, normalization, label recovery and output words
+cost $O(1+V)$ and are included. No ambient graph-size quantity occurs.
+\end{proof}
+
+\paragraph{What remains conditional.}
+A local procedure that pays
+$\epsappr^{-1}\operatorname{polylog}(2+\alpha^{-1}+\epsappr^{-1}+p^{-1})$
+work and supplies such a $U$ of original volume $O(1/\epsappr)$ would
+combine with this theorem to produce the corresponding original ACL
+output. If the finder is randomized, split confidence between finding
+and solving, and cap the supplied degree volume before the row pass.
+This is a precise sufficient local-search contract; no such arbitrary-graph
+finder is proved here. It also makes no promise of literally retaining
+every exact nested face of the original active-set realization.
+
+\paragraph{Measured construction checks.}
+The exact audit \texttt{supplied\_envelope\_work.py} checks 6,177
+preparations on 2,059 physical inputs. It verifies 258 principal-matrix
+identities and numerical reference compositions, 1,806 range quantities,
+and 29,223 original residual rows. It exercises 41 discarded off-seed
+coordinates and 159 positive cut-grounding coordinates. Three privately
+represented stars have outside hub degrees $2^{20}$, $2^{80}$ and
+$2^{1024}$; the valid one-leaf envelope reads no hub row and has a
+parameter bound independent of that ambient size. Three oversized
+envelopes are rejected by the degree pass before any adjacency row.
+Dense obstacle solutions and feasible objective perturbations are
+identified validators, not implementations of the full VWF solver or
+an envelope finder. The durable source and backend hashes are in
+\path{SUPPLIED_ENVELOPE_WORK_AUDIT.json}; the full run took 3.396 seconds.

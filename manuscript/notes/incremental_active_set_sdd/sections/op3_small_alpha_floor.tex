@@ -1,0 +1,226 @@
+\section{A proper-support potential bound and a small-teleportation reduction}
+\label{sec:op3-small-alpha-floor}
+
+\begin{lemma}[Unit-source superlevels and a proper-support cap; \statusproved]
+\label{lem:op3-superlevel-potential-cap}
+On a finite connected simple unweighted graph with at least two vertices,
+let $0<\gamma<1$, $M_\gamma=D-\gamma A$, and suppose
+$x\geq0$ has original residual $r=e_v-M_\gamma x\geq0$.
+Every nonempty strict positive superlevel set $H_t=\{i:x_i>t\}$,
+$t\geq0$, is connected and contains the seed. Moreover
+\[
+ (1-\gamma)\sum_{i\in H_t}d_ix_i
+ +\gamma\sum_{\substack{i\in H_t,\ j\notin H_t\\i\sim j}}
+ (x_i-x_j)
+ =\boldsymbol{1}_{v\in H_t}-\sum_{i\in H_t}r_i\leq1.
+\]
+In particular $\gamma|x_i-x_j|\leq1$ on every edge. If
+$S=\operatorname{supp}x$ is a proper subset of the graph, then
+\[
+ \|x\|_\infty\leq |S|/\gamma.
+\]
+For the exact positive-$\lambda$ obstacle, proper support gives
+$\|u\|_\infty<1/(\lambda\gamma)$.
+An upper bound on the residual is unnecessary for this lemma.
+\end{lemma}
+\begin{proof}
+Sum $M_\gamma x=e_v-r$ over $H_t$, canceling internal edge
+differences. This gives the displayed identity. The grounding and every
+outward boundary difference are nonnegative. The same identity applies
+to a connected component of $H_t$, because its neighbors in any other
+component of $H_t$ are absent. If that component did not contain the
+seed, its right side would be nonpositive, whereas its grounding term
+is strictly positive. Thus every component contains the seed, proving
+both assertions about $H_t$.
+
+For an edge with unequal endpoints, choose $t$ strictly between its
+two nonnegative values. The corresponding nonnegative boundary sum
+contains $\gamma|x_i-x_j|$, which is therefore at most one. Equal
+endpoints are immediate. If $S$ is nonempty and proper, take a simple
+path from a maximizing vertex to the first vertex outside $S$.
+It has at most $|S|$ edges. Telescope the endpoint values and use the
+edge bound to obtain the maximum estimate. Empty support is immediate.
+For the exact obstacle, its original residual is nonnegative and its
+positive support has original volume below $1/\lambda$; original
+degrees are at least one, so $|S|<1/\lambda$ as well.
+\end{proof}
+
+\paragraph{Why the proper-support condition is needed.}
+On the graph of one edge, take seed zero and
+\[
+ x=\frac{(1,\gamma)}{1-\gamma^2}.
+\]
+Its original residual is exactly zero and both coordinates are positive.
+As $\gamma\uparrow1$ its maximum diverges, while $|S|/\gamma$ stays
+bounded. Thus even exact original ACL output can have a large constant
+component on full support. The superlevel and gradient statements still
+hold; the path to a zero coordinate is the missing premise.
+
+\begin{theorem}[A paid small-alpha reduction with a volume contract;
+\statusconditional]
+\label{thm:op3-small-alpha-floor}
+Fix target $\alpha\in(0,1]$, $\epsappr\in(0,1)$, failure budget
+$p\in(0,1)$ and a known $B\geq1$.
+Suppose a native original-ACL producer, at supplied parameters $(a,e,q)$,
+has a computable bound $\mathcal W(a,e,q,B)$ for work and total allocated
+words on every execution. With probability at least $1-q$ it returns
+an explicitly listed nonnegative sparse potential $x$ satisfying
+\[
+ 0\leq e_v-M_{\gamma_a}x\leq e d,\qquad
+ \operatorname{vol}_G(\operatorname{supp}x)\leq B,
+ \qquad \gamma_a=(1-a)/(1+a).
+\]
+Its nonzero output entries have distinct labels; it may return
+\textnormal{FAIL}. All discovery and preprocessing work belongs to
+$\mathcal W$. Define
+\[
+ a_0=\frac{\epsappr}{4B+\epsappr},\qquad
+ a_{\mathrm{eff}}=\max\{\alpha,a_0\}.
+\]
+There is a wrapper returning original ACL output at target
+$(\alpha,\epsappr)$ with probability at least $1-p$. Its work and
+total allocated words on every execution are at most
+\[
+ \mathcal W(a_{\mathrm{eff}},\epsappr/2,p/2,B)
+ +(1+B)\operatorname{polylog}
+ (2+B+\alpha^{-1}+\epsappr^{-1}+p^{-1}).
+\]
+It calls the native producer once. If a parameter change is needed and
+the native support is nonempty and proper, it returns the same potential.
+If that support is the whole graph, it uses one complete supplied solve
+at the original target. A sparse output word bound alone does not meet
+the native support-volume hypothesis.
+\end{theorem}
+\begin{proof}
+Call the native producer at $(a_{\mathrm{eff}},\epsappr/2,p/2)$.
+Before any support-row scan, reject more than $B$ output entries,
+invalid nonpositive entries or duplicate labels, and query the original
+degrees of its positive support $S$. Reject immediately if their sum
+exceeds $B$. Sorting and these checks cost
+$O((1+B)\log(2+B))$. They preserve every good native output.
+In particular a tiny output containing a huge-degree vertex cannot
+force an expensive adjacency-list scan on a bad native execution.
+
+If $\alpha\geq a_0$, no parameter changes and the native good output
+already has target accuracy. An empty support is also independent of
+$\alpha$ and can be returned. Otherwise scan the original support rows,
+using a paid membership map. Finding one neighbor outside $S$ proves
+that $S$ is proper. If no such neighbor exists, connectedness and
+$S\ne\varnothing$ imply $S=V(G)$. The degree pass bounds the entire
+scan and copied entries by $B$, even on a bad native execution.
+
+Consider the proper branch on the native good event. Here
+$a_{\mathrm{eff}}=a_0$ and
+\[
+ \gamma_0=\frac{2B}{2B+\epsappr},\qquad
+ \frac{1-\gamma_0}{\gamma_0}=\frac{\epsappr}{2B},\qquad
+ 0\leq\gamma_\alpha-\gamma_0\leq1-\gamma_0.
+\]
+The potential lemma gives $\|x\|_\infty\leq |S|/\gamma_0
+\leq B/\gamma_0$. Consequently the target residual is exactly
+\[
+ r_\alpha=r_0+(\gamma_\alpha-\gamma_0)Ax,
+ \qquad
+ 0\leq r_\alpha
+ \leq\left(\frac{\epsappr}{2}
+       +\frac{(1-\gamma_0)B}{\gamma_0}\right)d
+ =\epsappr d.
+\]
+This proves the same-potential transfer; the original normalization of
+the emitted approximation uses $\bar\alpha D$ at the target parameter.
+
+In the full-support branch, every original degree and adjacency list
+of the graph has now been supplied, at volume at most $B$.
+Apply \cref{thm:op3-supplied-envelope-work} to this entire supplied
+graph at original $\alpha$, accuracy $\epsappr$ and failure budget
+$p/2$. Its preparation can reuse the materialized rows. It costs the
+second term in the stated bound on every execution. It requires no
+assertion that the previous native vector is accurate: the supplied
+graph is complete by the closure check itself. Recovered output degrees
+are obtained from its paid sorted degree map, without outside queries.
+Source randomness for this call is fresh. A conditional union bound
+over native and fallback failures is at most $p$; the fallback is
+invoked at most once. Output copies, formatting and all guards are
+charged. The native cap and supplied cap include failed attempts.
+\end{proof}
+
+\paragraph{Interpretation of the reduction.}
+When the explicit native volume contract has $B=C/\epsappr$ for a
+fixed $C>0$, the new floor is
+$a_0=\epsappr^2/(4C+\epsappr^2)$.
+Thus arbitrary smaller teleportation can be reduced to a native local
+problem at this accuracy-squared scale, with a paid full-graph exception
+only when that whole graph has volume at most $B$. This isolates a
+parameter range; it does not supply the native near-linear local producer.
+In particular, one cannot apply the theorem to an arbitrary sparse ACL
+algorithm without first proving its original support-volume contract.
+
+\begin{proposition}[A larger same-vector floor can fail on paths;
+\statusproved]
+\label{prop:op3-large-alpha-floor-obstruction}
+For every integer $N\geq16$, consider the original path on
+$4N^2+1$ vertices, seeded at an endpoint, and set
+\[
+ \epsappr=N^{-2},\quad \lambda=\epsappr/4,\quad
+ \gamma_{\mathrm{eff}}=1-N^{-2},\quad
+ \gamma_{\mathrm{target}}=1-N^{-4}.
+\]
+The exact $\lambda$-obstacle at $\gamma_{\mathrm{eff}}$ is an
+original $\epsappr/2$ ACL potential with proper support of volume
+below $4/\epsappr$. The same potential violates target
+$\epsappr$ accuracy at the seed. Here the effective teleportation
+is of order $\epsappr$ and the target teleportation is of order
+$\epsappr^2$. This refutes this larger same-vector substitution;
+it is not a lower bound on general algorithms or other transformations.
+\end{proposition}
+\begin{proof}
+Number path vertices from the seed. Set
+$z_i=(N-i)^2/(4N)$ for $0\leq i<N$ and zero elsewhere.
+The seed row satisfies
+\[
+ (M_{\gamma_{\mathrm{eff}}}z)_0
+ =\tfrac12-\frac1{2N^2}+\frac1{4N^3}
+ \leq\tfrac12<1-\lambda.
+\]
+For $1\leq i<N$, original degree is two and
+\[
+ (M_{\gamma_{\mathrm{eff}}}z)_i
+ =-\frac1{2N}+\frac{(N-i)^2+1}{2N^3}
+ \leq-\frac{N-1}{N^3}\leq-2\lambda.
+\]
+Thus $z$ is a positive-coordinate subsolution, so the maximum-principle
+argument gives $z\leq u$, where $u$ is the exact native obstacle.
+Its support is proper because its volume is below $1/\lambda=4N^2$,
+whereas the entire path has volume $8N^2$.
+At the seed, $u_0>0$ and the native residual equals $\lambda$.
+The target seed residual therefore satisfies
+\[
+ (r_{\mathrm{target}})_0
+ =\lambda+(N^{-2}-N^{-4})u_1
+ \geq\lambda+(N^{-2}-N^{-4})\frac{(N-1)^2}{4N}
+ >\epsappr.
+\]
+For example, the added term is at least $3/(32N)>N^{-2}$ for
+$N\geq16$, using $N^{-2}-N^{-4}\geq3/(4N^2)$ and
+$(N-1)^2\geq N^2/2$. The original seed degree is one.
+Finally $\alpha=(1-\gamma)/(1+\gamma)$ gives the stated parameter
+orders. All assertions use original degrees on the full path.
+\end{proof}
+
+\paragraph{Audit scope.}
+The exact script \texttt{small\_alpha\_floor.py} implements the paid
+sparse-output volume/closure wrapper with native and full-component
+callbacks. Its obstacle and truncated-Neumann vectors are explicit
+validators, not a fast local producer. It checks strict-superlevel flux,
+connectivity, edge gradients, proper-support maxima, target residuals,
+the full-support counterexample and the private large-path subsolution.
+Source/backend hashes and finite counts are in
+\path{SMALL_ALPHA_FLOOR_AUDIT.json}.
+
+The full run takes 2.673 seconds and checks 1,644 target ACL outputs,
+including 152 same-vector transfers and 259 complete-component reference
+fallbacks. It verifies 7,545 superlevel flux/connectivity identities,
+15,341 edge gradients and 1,071 proper-support maxima on 2,741 potentials.
+Six private-path witnesses check 1,002 positive subsolution rows. The
+volume pass rejects all three huge-degree outputs before any row, and
+five malformed native outputs are rejected by explicit guards.
