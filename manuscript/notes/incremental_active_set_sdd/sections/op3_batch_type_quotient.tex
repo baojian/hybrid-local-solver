@@ -1,0 +1,276 @@
+\section{Complete eligible batches and exact original twin quotients}
+\label{sec:op3-batch-type-quotient}
+
+The individual grouped update in \cref{thm:op3-frontier-response-groups}
+can repeat its small matrix work once per physical vertex. The following
+construction instead takes every currently eligible member in one batch.
+It computes exact original twin classes from rows that this same batch
+has already paid to expose. A supplied global type partition is unnecessary.
+
+\begin{theorem}[Batched quotient frontier; \statusproved]
+\label{thm:op3-batch-type-quotient}
+On the original connected simple unweighted graph, fix
+$0<\alpha\leq1$, $\lambda>0$ and $\kappa\geq0$. A local deterministic
+exact-real word algorithm returns $x\geq0$ such that
+\[
+ 0\leq e_v-Mx\leq(\lambda+\kappa)d,
+ \qquad (e_v-Mx)_i=\lambda d_i\quad\text{if }x_i>0,
+ \qquad M=D-\gamma A.
+\]
+Its original positive-support volume is $V<1/\lambda$, and it reads
+exactly those positive rows once. On any graph, let $t$ be the total
+number of consumed batch classes and $f$ the maximum number of completed
+frontier groups after a nonempty batch. Its work and total allocated words
+are $O((1+V+t(t+f)^2)\log(2+V))$, with $f\leq2^t-1$; take $f=0$
+when there is no batch. If the ambient graph has at most $k$
+uncolored neighborhood types, its total work and allocated words are
+\begin{equation}
+ O\left((1+V+(1+k)^3)\log(2+V)\right),
+ \label{eq:op3-batch-type-work}
+\end{equation}
+with $O(1+V+(1+k)^2)$ live words. It receives neither $k$ nor a type
+partition and has no target-teleportation factor in this arithmetic model.
+All degree queries, full rows, sorting, tries, heap changes, quotient
+factors, group refinement, failed gates, retained history and final output
+are charged. Setting $\kappa=0$ returns the exact physical obstacle;
+setting $(\lambda,\kappa)=(\epsappr/2,\epsappr/4)$ returns original ACL
+output with upper residual margin $3\epsappr/4$.
+\end{theorem}
+
+\begin{proof}
+Keep the individual-degree heaps and stable original-label dictionary
+from \cref{thm:op3-frontier-response-groups}. A completed frontier group
+$t$ has common original adjacency into the admitted set $S$, common
+transformed load offset $q_t$, and shared fill matrix $C$, so
+\[
+ h_i=q_t-\lambda d_i,\qquad
+ (M/M_{SS})_{ij}=M_{ij}-C_{g_i,g_j}.
+\]
+The diagonal convention includes $C_{g_i,g_i}$. Initially only the seed
+is known, in a group with $q=1$ and $C=0$; newly discovered groups have
+base $q=0$ and zero prior fill.
+
+\emph{The batch and its row budget.}
+At the beginning of a round take every known member with
+$q_{g_i}>(\lambda+\kappa)d_i$. Repeated minimum extraction from each
+heap finds exactly this set $B$, without scanning its ineligible members.
+Let $H$ be the original Schur block on $B$. It is an SPD M-matrix, so
+$z=H^{-1}h_B>0$. The old face correction is nonnegative as well.
+Thus the enlarged restricted solution is positive on $S\cup B$, has
+residual $\lambda d$ there and nonnegative residual everywhere else.
+The unit-source mass identity gives
+\[
+ \lambda\vol(S\cup B)\leq\sum_i(e_v-Mx^{S\cup B})_i
+ =1-\bar\alpha\sum_i d_i x_i^{S\cup B}<1.
+\]
+This certifies the whole batch's row volume before any of its rows are
+read. Mark and remove the batch members, then read their original rows
+once. Store the row entries and discover their new labels and degrees.
+
+\emph{Paid full-row classes.}
+Partition $B$ by the original uncolored twin relation, refined by old
+response-group identity and original degree. This relation is transitive:
+for three distinct pairwise consecutive twins, the three mutual adjacency
+bits agree and all external adjacency bits agree. Each class is either
+a clique or an independent set. Its full open rows are equal in the
+independent case, and its full closed rows are equal in the clique case.
+Sort each paid original row, form open and closed keys with the two
+metadata fields, and insert them into separate tries with AVL child maps.
+Merge equal keys by union by size. This constructs exactly the desired
+classes, with no row query at an unadmitted vertex. The total key length
+is $O(|B|+\vol(B))$; sorting, trie steps and union-find paths cost this
+quantity times $O(\log(2+V))$, including all temporary allocations.
+
+Write $a=1,\ldots,\tau$ for these classes, $n_a$ for their sizes,
+$d_a$ for their original degrees, $g_a$ for their old group and $c_a$
+for their internal clique bit. All future couplings are constant on a
+class because its members are twins in the \emph{original graph}.
+The row-constant quotient of $H$ is
+\begin{align*}
+ \overline H_{aa}&=d_a-\gamma c_a(n_a-1)-n_a C_{g_a,g_a},\\
+ \overline H_{ab}&=-n_b(\gamma A_{ab}+C_{g_a,g_b}),\qquad a\ne b.
+\end{align*}
+Its symmetric form is $K=N\overline H$, $N=\operatorname{diag}(n_a)$.
+Indeed, if $T$ is the class-indicator matrix, then $HT=T\overline H$
+and $K=T^THT\succ0$. Original adjacency bits $A_{ab}$ are obtained
+by binary search in the already sorted representative rows. The producer
+factors $K$ once by explicit rational LDL elimination. It never forms
+an inverse or a matrix indexed by all physical batch members.
+
+\emph{Future refinement and Schur updates.}
+Traverse the cached batch rows once more. A touched unadmitted vertex
+records the indices of adjacent batch classes. Sort and deduplicate
+these indices. A trie keyed by its old group and this signature creates
+one new group per distinct key. Move only touched old members from their
+heaps; untouched members stay in their original heap without a copy or
+traversal. Fresh labels use a separate empty-prior-group key. Empty old
+groups leave the live list but retain their identity for reconstruction.
+Every moved member is paid by an original incidence in this batch.
+
+Let $f$ be the number of resulting live groups. For each such group $t$,
+let $q_t^0,C_{tu}^0$ denote its inherited offset and matrix entries;
+for a fresh group these are zero. Put
+\[
+ W_{at}=C^0_{g_a,t}+\gamma\mathbf1_{\{a\text{ adjacent to }t\}},
+ \qquad h_a=q_{g_a}-\lambda d_a.
+\]
+Exact twins make the displayed adjacency a whole-class bit. Solve
+\[
+ z=K^{-1}Nh,\qquad Y_{\cdot t}=K^{-1}N W_{\cdot t},
+ \quad t=1,\ldots,f,
+\]
+using the one retained factor within this transaction, and update
+\begin{equation}
+ q_t=q_t^0+\sum_a n_a W_{at}z_a,
+ \qquad C_{tu}=C_{tu}^0+\sum_a n_a W_{at}Y_{au}.
+ \label{eq:op3-batch-quotient-update}
+\end{equation}
+These are the exact physical Schur identities. Rebuild only the $f$ by
+$f$ scalar matrix, assigning new dense indices to stable group objects.
+No heap membership is traversed to change such an index. The algebra
+costs $O(\tau^3+\tau^2 f+\tau f^2+f^2)$; adjacency searches and the
+smaller bookkeeping terms fit the same expression with the logarithm
+in \cref{eq:op3-batch-type-work}. The number of old groups is at most
+$f+\tau$: an old group with remaining members has a distinct future
+descendant, and every other old group contributes a consumed class.
+
+\emph{One reverse reconstruction.}
+Save each class's physical member list, old parent group, $z_a$, row
+$Y_{a\cdot}$, and the future group identities. Also save the split and
+fresh-discovery records. Initially every group aggregate is zero.
+In reverse transaction order use
+\[
+ x_a=z_a+\sum_t Y_{at}\,s_t,
+ \qquad s_t=\sum_{j\text{ in the historical future group }t}x_j.
+\]
+Assign this value to every original member of class $a$. Then undo the
+future splits by adding child aggregates to their old parents and clearing
+the children; clear the fresh groups, whose members were previously
+unknown. Finally add $n_a x_a$ to each old batch parent group. The same
+historical-membership induction as in the individual grouped lift proves
+all these sums and all reconstructed coordinates. It never expands a
+historical future group. Scalar matrix entries and old forward $q$ values
+need not be retained. At termination all remaining loads are at most
+$\kappa d$, while unseen residuals are zero. This proves the original
+certificate, and for $\kappa=0$ the full strictly convex obstacle KKT system.
+
+\emph{Adaptive and global type bounds.}
+Completed groups have distinct nonzero adjacency columns into the admitted
+set: refinement preserves distinct old prefixes, while a fresh column has
+zero old prefix and a nonzero new signature. Each consumed exact twin
+class contributes only one adjacency bit to an unadmitted vertex. Thus
+$f\leq2^t-1$, without any promise on the ambient graph. Summing the
+transaction costs with $\sum_j\tau_j=t$ and at most $t$ rounds gives
+$O(t(t+f)^2)$ algebra and group bookkeeping. The paid row, sorting, trie
+and heap terms contribute $O((1+V)\log(2+V))$ as before.
+
+For accounting only, separate the physical seed from the rest of its
+original type. There are at most $k+1$ resulting source-colored types.
+Every nonseed type's remaining members are discovered together by the
+first admitted adjacent row, and no completed frontier group splits them.
+They have identical original degrees. Consequently either all of a known
+type is eligible in a round or none is. Every nonempty round therefore
+consumes at least one whole type, and a type can occur in a batch only
+once. The exact full-row partition may merge accounting types, so
+\[
+ \#\text{rounds}\leq k+1,
+ \qquad \sum_j\tau_j\leq k+1,
+ \qquad f_j\leq k\quad\text{after the seed round}.
+\]
+In particular, $\sum_j\tau_j^3$, $\sum_j\tau_j^2f_j$,
+$\sum_j\tau_jf_j^2$ and $\sum_jf_j^2$ are all $O((1+k)^3)$.
+All original rows total $V$; labels, row sorts, trie keys, heap insertions
+and incidence-driven moves cost $O((1+V)\log(2+V))$. This includes
+unsuccessful terminal gates and all phase lists, not only the quotient
+arithmetic. The bound holds on every execution since there is no randomness.
+
+For live space, all retained physical member/row records and heap
+capacities use $O(1+V)$ words. The saved numerical lift coefficients total
+$\sum_j\tau_j f_j=O((1+k)^2)$; split/fresh signatures fit the same
+bound. The old and new scalar matrices, current quotient factor and
+coupling arrays have quadratic type size. Current sort, trie and union-find
+buffers use $O(1+V)$ live words and can be discarded after the transaction.
+Old group heaps are not duplicated; geometric heap capacities are bounded
+by total paid insertions. This proves the stated live bound. Exact scalar
+bit lengths and floating-point stability are outside this word model.
+\end{proof}
+
+\begin{corollary}[Improved structural ACL and canonical RPPR work; \statusproved]
+\label{cor:op3-batch-type-canonical}
+Without a supplied type partition, the batched producer gives original ACL
+work/allocation
+\[
+ O\left((1+\epsappr^{-1}+(1+k)^3)\log(2+\epsappr^{-1})\right).
+\]
+With $\lambda=\rho$ and $\kappa=0$, followed by
+\cref{thm:op3-rational-canonical-materialization}, it emits dyadic canonical
+RPPR output of objective gap at most $\epsobj$ in
+\[
+ O\left((1+\rho^{-1}+(1+k)^3)\log(2+\rho^{-1})
+       +(1+\rho^{-1})\log(2+\epsobj^{-1})\right).
+\]
+The original four-type family in \cref{prop:op3-four-type-output-lower-bound}
+continues to match the ACL accuracy power up to logarithms. These are
+structural results, not a resolution of arbitrary-graph OP2 or OP3.
+\end{corollary}
+
+\begin{proposition}[Two limits of this exact quotient; \statusproved]
+\label{prop:op3-batch-type-limits}
+Induced-batch twins cannot replace full-original-row twins in this
+construction. Also, the implemented batched quotient still has a cubic
+accuracy cost on a finite binary-tree family; the obstruction concerns
+its dense quotient factorization, not the graph problem.
+\end{proposition}
+\begin{proof}
+Take the path $0,1,2,3,4$, physical seed $2$, $\alpha=1/3$,
+$\lambda=1/64$ and $\kappa=1/128$. The first batch is the seed, and
+its next eligible batch is $\{1,3\}$. Both members have original degree
+two and identical empty neighborhoods within that batch. They are not
+original twins: their future neighbors are respectively $0$ and $4$.
+After the seed pivot the Schur block is
+\[
+ H=\begin{pmatrix}2-c&-c\\-c&2-c\end{pmatrix},\qquad c=\gamma^2/2.
+\]
+The final frontier fill obeys $C_{00}-C_{04}=\gamma^2/2>0$, since the
+contrast eigenvalue of $H$ is two. A one-class constant quotient loses
+this contrast and does not give the required original Schur matrix.
+
+For the second claim use the finite binary trees and parameters of
+\cref{thm:op3-grouped-binary-cubic}: depth $4R+8$,
+$\lambda=1/(64\,2^R)$, $\kappa=\lambda/2$ and
+$\alpha=1/(96R-1)$. That proof's original radial gate inequality makes
+all of the next level eligible after each completed ball through level
+$R-1$. The batch policy therefore consumes one full level in each round
+through level $R$. All $2^R$ vertices in that last batch have distinct
+full original rows because their two future children differ; there are
+no edges within the level. Thus its exact twin quotient has order $2^R$.
+The implemented dense LDL routine executes exactly $\binom{2^R}{3}$
+off-diagonal inner products in that factorization alone, giving
+$\Omega(\epsappr^{-3})$ work. Here final support volume is
+$\Theta(\epsappr^{-1})$ by the same positive-ball and mass bounds, and
+inverse teleportation is only logarithmic in inverse accuracy. Existing
+fast tree algorithms are unaffected by this representation-specific cost.
+\end{proof}
+
+\paragraph{Implemented exact audit; Measured.}
+\texttt{BATCH\_TYPE\_QUOTIENT\_AUDIT.json} records 7,728 original ACL
+outputs and 7,298 exact physical obstacles, checking 88,759 final original
+residual rows. Independent validators check 40,641 prefix states,
+100,668 face/inverse-column solves, 37,149 reverse coordinates,
+27,098 historical group sums and 25,618 distinct nonzero frontier-column
+bounds. Mixed clique/independent quotient blow-ups contribute 1,687
+global type checks. Signed gate offsets and teleportation reach $2^{-1024}$;
+five arbitrary signed-label cases and private huge hubs also pass.
+
+Four-type blow-ups with multiplicities $4,16,64$ keep four batches,
+five consumed classes and the same quotient-work count, while paid
+original volume grows from $120$ to $32,640$. Four private double-stars
+with up to 256 near leaves and $2^{1024}$ unread remote leaves use exactly
+two batches and two quotient classes. These are charged-operation
+diagnostics, not claims of a floating-point speed improvement.
+The six binary-tree executions are explicitly nonterminal prefixes,
+not ACL outputs. They check 27 level batches and 246 independently lifted
+coordinates. At $R=6$, the last quotient has order 64 and executes 41,664
+off-diagonal LDL inner products. Reference graph partitions, full original
+obstacles, dense inverses, radial solves and historical member snapshots
+are validator work; they are never passed to the producer.

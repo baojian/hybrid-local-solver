@@ -40,6 +40,44 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 19: batched exact twin quotients
+
+**Proved here, awaiting independent review:** Complete eligible batches
+can be partitioned into true original twin classes using only their paid
+full rows. A symmetric quotient is factored once, and saved class-to-group
+coefficients reconstruct every physical coordinate in one reverse replay.
+The fully charged adaptive bound is O((1+V+t*(t+f)^2)*log(2+V)); t counts
+consumed classes and f counts maximum frontier groups, with f<=2^t-1.
+Under an unsupplied k-type promise, total work/allocation improves to
+O((1+V+(1+k)^3)*log(2+V)), with O(1+V+(1+k)^2) live words. This gives
+both original ACL and, separately, exact physical/dyadic canonical RPPR
+structural bounds. Read `thm:op3-batch-type-quotient`.
+
+**Proved here / Refuted rule:** Induced-batch twin grouping loses a nonzero
+Schur contrast on a five-vertex path. The implemented dense quotient
+factorization has a cubic binary-tree cost even when inverse alpha is
+logarithmic in inverse accuracy. These are representation-specific limits,
+not general OP3 lower bounds. Read `prop:op3-batch-type-limits`.
+
+**Measured:** 7,728 original ACL outputs, 7,298 exact obstacles, 88,759
+final residual rows, 40,641 prefixes, 37,149 reverse coordinates and
+27,098 historical group sums. Mixed types, tiny signed gates, tiny alpha,
+arbitrary signed labels, fixed-type multiplicity growth and private huge
+hubs pass. Six separately labeled binary-tree prefixes are nonterminal;
+they check 246 independently lifted coordinates. The R=6 quotient has
+order 64 and uses 41,664 off-diagonal factor inner products. See
+`BATCH_TYPE_QUOTIENT_AUDIT.json`.
+
+**Open / next:** Preserve sparse quotient structure instead of producing
+a dense quotient factor; first audit weighted tree quotients and the
+physical seed's within-class contrast. General OP3 remains Open. Formal
+dependencies remain `["problem_definitions"]`. All 90 own scripts and three
+registry tests pass. The 187-page note builds without final warnings; proof
+pages 180-183 were visually reviewed. The same baseline failures and five
+source hashes remain; reproduction stops at its test prerequisite. See
+`OVERNIGHT_20260908_BLOCK19_AUDIT.json`. Resume
+`TWIN_QUOTIENT_TREE_PROBE_20260908.md`.
+
 ## Third campaign, block 18: exact obstacles and dyadic canonical output
 
 **Proved here, awaiting independent review:** The grouped backend can use

@@ -179,6 +179,14 @@ outputs against independent objective intervals. Read
 `sec:op3-exact-group-obstacle` and `EXACT_GROUP_OBSTACLE_AUDIT.json`.
 General OP3 remains Open; broader compositional compression is next.
 
+The nineteenth checkpoint implements complete eligible batches and exact
+full-row twin quotients. Under the unsupplied k-type promise the work bound
+improves to O((1+V+(1+k)^3)*log(2+V)), including all discovery and one
+reverse reconstruction. The audit checks 7,728 ACL and 7,298 exact-obstacle
+outputs. A separate binary-tree example preserves a cubic dense-factor
+limit, so general OP3 remains Open. Read `sec:op3-batch-type-quotient` and
+`BATCH_TYPE_QUOTIENT_AUDIT.json`.
+
 ## Second night, block 12: nested numerics and a sharper local target
 
 **General OP3 remains Open.** Start with

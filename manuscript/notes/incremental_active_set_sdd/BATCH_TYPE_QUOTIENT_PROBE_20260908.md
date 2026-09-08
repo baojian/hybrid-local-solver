@@ -44,3 +44,34 @@ Target: O((1+V+(1+k)^3)*log(2+V)) total work/allocated words, with exact
 obstacle and ACL variants. This is a proposed stronger structural bound,
 not an arbitrary-graph improvement or a proved claim until implemented,
 independently audited and reconciled with all group-history obligations.
+
+## Completed block 19 result
+
+The construction and reverse replay are now implemented and proved as
+`thm:op3-batch-type-quotient`, awaiting independent review. The adaptive
+bound on any graph is O((1+V+t*(t+f)^2)*log(2+V)), where t counts consumed
+full-row classes and f is the maximum completed frontier-group count;
+distinct nonzero columns give f<=2^t-1. Under a global k-type promise,
+t<=k+1 and f<=k, proving the proposed O((1+V+(1+k)^3)*log(2+V)) work
+and allocation bound. Live words are O(1+V+(1+k)^2).
+
+The full audit checks 7,728 original ACL outputs and 7,298 exact obstacles,
+88,759 final original residual rows, 40,641 prefixes, 37,149 reverse
+coordinates and 27,098 historical group sums. Original row/degree queries,
+merge sorts, trie AVL maps, heap moves, symmetric quotient LDL factors,
+all future coupling solves, matrix rebuilds and output are charged.
+The earlier default grouped implementation is unchanged.
+
+A path of order five proves why induced-batch twins cannot replace full
+original twins. A finite binary tree proves that this dense quotient factor
+still has a cubic accuracy obstruction. Six executed binary-tree prefixes
+are nonterminal, and are not counted among completed ACL outputs. At R=6
+the last quotient has order 64 and uses 41,664 off-diagonal inner products.
+This refutes only the representation's general near-linear cost.
+
+A concrete next direction is to retain the quotient's graph structure rather
+than eliminate it into a dense matrix: a tree of arbitrary twin classes
+could combine local row discovery with the existing weighted tree response
+machinery. A physical seed breaks symmetry within its class and needs an
+explicit mean/contrast correction. Do not assume that a supplied quotient
+or a generic tree callback already pays for that interface.

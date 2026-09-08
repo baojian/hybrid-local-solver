@@ -7,11 +7,11 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **500.739824 new active minutes** through block 18; at least
-**99.260176 minutes** remain. Block 19 is active. Exact grouped obstacles
-and dyadic canonical output are proved drafts; see
-`OVERNIGHT_20260908_BLOCK18_AUDIT.json`. Resume
-`BATCH_TYPE_QUOTIENT_PROBE_20260908.md`. General OP3 remains Open.
+Completed **535.298113 new active minutes** through block 19; at least
+**64.701887 minutes** remain. Block 20 is active. The paid batched
+original-twin quotient is proved and audited; see
+`OVERNIGHT_20260908_BLOCK19_AUDIT.json`. Resume
+`TWIN_QUOTIENT_TREE_PROBE_20260908.md`. General OP3 remains Open.
 Earlier chronological targets below are historical.
 
 ## Initial verdict and current work
@@ -168,3 +168,6 @@ The eighteenth block is active; all five baseline hashes remain unchanged.
 
 Completed new active minutes after block 18: **500.739824**.
 The nineteenth block is active; the compaction gap is excluded.
+
+Completed new active minutes after block 19: **535.298113**.
+The twentieth block is active; all baseline source hashes match.
