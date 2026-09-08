@@ -1,0 +1,137 @@
+\section{A penalty reserve does not repair coarse spectral support replacement}
+\label{sec:op3-spectral-load-reserve-obstruction}
+
+One might try to avoid the squared-accuracy spectral requirement by
+decreasing the obstacle penalty, thereby enlarging the approximate
+matrix's support. The next construction rules out this generic support
+rule even with a reserve polynomial in the logarithm of inverse accuracy.
+It does not concern accurate refinement, and trees already admit fast
+local algorithms in this note.
+
+\begin{theorem}[Finite binary-tree obstruction with a penalty reserve;
+\statusproved]
+\label{thm:op3-spectral-load-reserve-obstruction}
+Put $q=3/17$, $K=17/31$ and $\beta=289/300$. For any integer
+$R\geq64$, take the original complete binary tree of depth $D=4R$,
+rooted and seeded at $v$. Set
+\[
+ \alpha=1/3,\quad t=\bar\alpha=1/2,\quad
+ \lambda=Kq^R/4,\quad e=2\lambda,\quad\delta=e/8.
+\]
+The graph has maximum degree three and volume greater than $4/e$.
+Let $M=D_G-A/2$, using $D_G$ for the original degree matrix, and
+let $L_{\rm right}$ contain just the original edges to right children.
+The matrix $\widehat M=M+L_{\rm right}/4$ satisfies
+\[
+ M\preceq\widehat M\preceq\tfrac32M,\qquad
+ \widehat M\one=M\one=d/2,
+\]
+and is a strictly diagonally dominant M-matrix. At the all-left vertex
+$w$ of depth $R$, the original obstacle at load $e_v-\lambda d$ has
+$u_w\geq2\lambda>\delta$. But the $\widehat M$ obstacle at load
+$e_v-(\lambda/C)d$ has $\widehat u_{C,w}=0$ whenever
+\begin{equation}
+ C\geq1,\qquad C\beta^R\leq51/403.
+ \label{eq:op3-reserve-failure-condition}
+\end{equation}
+This includes every fixed reserve, and every reserve polynomial in
+$\log(2+1/e)$ for all sufficiently large $R$. Therefore constant spectral
+quality and a polylogarithmic penalty reserve do not by themselves give
+a significant-envelope finder, even at fixed positive teleportation.
+\end{theorem}
+\begin{proof}
+The volume is $2^{4R+2}-4>4/e$. For example, it is at least
+$2^{4R+1}$, and its ratio to $4/e=(8/K)(17/3)^R$ is at least
+$(K/4)(48/17)^R>1$ for $R\geq2$.
+Consider the depth-dependent nonnegative vector
+\[
+ x_i=\bigl(Kq^{\operatorname{depth}(i)}-2\lambda\bigr)_+.
+\]
+It is positive precisely through depth $R$, and $x_w=2\lambda$.
+At positive nonroot coordinates the untruncated homogeneous coefficient is
+\[
+ 3-\frac{1/2}{q}-q=-1/102<0.
+\]
+The constant term contributes $-3\lambda$, so the original row has
+$(Mx)_i\leq-3\lambda$. Clipping a negative child value to zero only
+decreases this row of $Mx$. At the root, $K(2-q)=1$ gives
+$(Mx)_v=1-2\lambda$. Thus $Mx\leq e_v-\lambda d$ on positive
+coordinates of $x$. The obstacle maximum principle gives $x\leq u$.
+All these coordinates lie above the true degree-one leaves, since $D=4R$.
+
+Since $0\preceq L_{\rm right}\preceq L$ and
+$M=(L+D_G)/2$, the stated spectral sandwich follows. The perturbation
+has zero row sums. Its conductances are $1/2$ on left edges and $3/4$
+on right edges, while its grounding at vertex $i$ remains $d_i/2$.
+
+Let $g=\widehat M^{-1}e_v$. We bound $g$ by finite-tree elimination,
+including its true leaves. A descendant subtree with effective ground
+conductance $H$, excluding the incoming edge, transfers a parent
+potential through an edge of conductance $c$ by the factor $c/(c+H)$.
+This follows by solving its one retained scalar equation. At a true leaf
+$H_0=1/2$. At an internal nonroot vertex whose child subtrees have the
+same remaining depth, the effective ground is
+\[
+ F(H)=\frac32+\frac{(1/2)H}{1/2+H}+\frac{(3/4)H}{3/4+H}.
+\]
+The function is increasing, and direct rational evaluation gives
+\[
+ H_1=F(H_0)=41/20,\qquad
+ H_2=F(H_1)=\frac32+\frac{41}{102}+\frac{123}{224}
+ =\frac{28001}{11424}>\frac{83}{34}.
+\]
+Since $H_1>H_0$, all subtrees of remaining depth at least two have
+$H\geq H_2$. Every left transfer along the root-to-$w$ path is therefore
+less than $17/100$. The root grounding equals one, so $g_v\leq1$,
+and consequently
+\[
+ g_w\leq(17/100)^R.
+\]
+No infinite graph or uncharged numerical primitive is used in this bound;
+the Schur equations are comparison identities on the specified finite tree.
+
+Because $g\geq0$ and $\widehat Mg=e_v\geq e_v-(\lambda/C)d$,
+the maximum principle gives $\widehat u_C\leq g$.
+The vertex $w$ has original degree three and diagonal
+$\widehat M_{ww}=13/4$: its incoming and left-child conductances are
+$1/2$, its right-child conductance is $3/4$, and its grounding is $3/2$.
+If $\widehat u_{C,w}>0$, stationarity and the zero seed load at $w$
+would require
+\[
+ \frac{13}{4}\widehat u_{C,w}
+ =\sum_{j\sim w}c_{wj}\widehat u_{C,j}-\frac{3\lambda}{C}
+ \leq\sum_{j\sim w}c_{wj}g_j-\frac{3\lambda}{C}
+ =\frac{13}{4}g_w-\frac{3\lambda}{C}.
+\]
+But \cref{eq:op3-reserve-failure-condition} is exactly the sufficient
+inequality $(13/4)(17/100)^R\leq3Kq^R/(4C)$ making the right side
+nonpositive. Positivity is impossible, proving omission of $w$.
+
+For an explicit uniform sequence, take $C=2^k$ and $R=64(k+1)$.
+The integer inequality $8\cdot289^{64}<300^{64}$ gives
+$C\beta^R<2^k8^{-(k+1)}\leq1/8<51/403$.
+For any fixed reserve choose a larger dyadic one; increasing the penalty
+can only decrease obstacle coordinates. Finally
+$\log(1/e)=R\log(17/3)+\log(2/K)$, while $\beta^R$ decays
+exponentially. Every fixed polynomial in that logarithm satisfies
+\cref{eq:op3-reserve-failure-condition} eventually.
+\end{proof}
+
+\paragraph{Audit and interpretation.}
+\path{spectral_load_reserve_obstruction.py} checks the rational subsolution,
+the two-step ground invariant, and 257 exact dyadic reserve/volume
+certificates through $C=2^{256}$. These last trees are symbolic objects;
+they are not materialized or claimed as executed local solves. Small
+independent dense computations check five finite-tree Green functions
+on 243 total vertices, every Schur/lifting identity, ten left-transfer
+bounds, and five original radial obstacle quotients. The quotient checks
+include 129 exact KKT and subsolution rows. Seven further witnesses use
+reserves polynomial in $R+1$.
+Hashes, exact parameters and measured audit duration are recorded in
+\path{SPECTRAL_LOAD_RESERVE_OBSTRUCTION_AUDIT.json}.
+
+This refutes the implication from the stated coarse spectral guarantee
+and a penalty reserve to support containment. It does not assert that any
+particular sparsifier returns the constructed matrix, nor does it constrain
+a method that verifies/refines original residuals or deliberately explores
+additional coordinates. It is not an OP3 computational lower bound.

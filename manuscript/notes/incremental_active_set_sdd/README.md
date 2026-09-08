@@ -120,6 +120,15 @@ preserve the role of spectral preconditioning with accurate refinement.
 Read `sec:op3-spectral-envelope-stability` and
 [the penalty-reserve follow-up](LOAD_RESERVE_SPECTRAL_PROBE_20260908.md).
 
+The fourteenth checkpoint proves that a coarse spectral matrix and a
+penalty reserve polynomial in log(1/eps_appr) can still miss a significant
+coordinate. The counterexample uses finite degree-three trees, fixed alpha,
+unchanged row sums and only reweighted original edges. Exact symbolic
+certificates and independent small finite-tree checks pass. This refutes
+that support rule, while preserving refinement and existing fast tree
+algorithms. Read `thm:op3-spectral-load-reserve-obstruction` and
+[the constructive frontier baseline](FRONTIER_IMPLEMENTATION_PROBE_20260908.md).
+
 The following second-campaign record is historical.
 
 

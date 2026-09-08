@@ -40,6 +40,41 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 14: a penalty reserve still misses support
+
+**Proved here, awaiting independent review:** A finite complete binary tree
+at fixed alpha=1/3 admits an original significant-coordinate subsolution.
+Increasing only right-edge conductances gives M<=M_hat<=(3/2)M while
+preserving original row sums and M-matrix signs. A two-step finite-subtree
+grounding bound shows that the all-left potential decays faster. Its
+perturbed obstacle at penalty lambda/C omits the significant vertex whenever
+`C*(289/300)^R <=51/403`. This includes every fixed or polylogarithmic
+penalty reserve eventually. True degree-one leaves and root grounding are
+included; no infinite-tree limit is assumed.
+
+**Measured:** 257 exact symbolic dyadic-reserve and large-volume certificates,
+seven polynomial-reserve witnesses, five independent finite-tree Green
+solves on 243 total vertices, ten left-transfer bounds, and five original
+radial obstacle quotients with 129 KKT/subsolution rows. Enormous trees are
+symbolic proof objects and are not described as executed local solves.
+See `SPECTRAL_LOAD_RESERVE_OBSTRUCTION_AUDIT.json`.
+
+**Scope:** This is a support-rule obstruction, not a computational lower
+bound or a restriction on accurate original-residual refinement. The
+original fixed-alpha problem and trees already have fast local algorithms.
+General OP3 remains Open. Formal dependencies remain
+`["problem_definitions"]`.
+
+**Open / next:** Implement the exact paid live-frontier elimination baseline
+in `FRONTIER_IMPLEMENTATION_PROBE_20260908.md`. Its honest cost should
+expose the fill-pair and load-reporting work, with one-time original rows
+and one final reconstruction; no new nearly linear general claim is made.
+Checkpoint verification: the 172-page note builds without final warnings;
+new proof pages 166-168 were visually reviewed. All 84 own scripts and three
+registry tests pass. Broad checks retain the recorded baseline failures,
+with all five hashes unchanged; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK14_AUDIT.json`.
+
 ## Third campaign, block 13: sharp spectral support stability
 
 **Proved here, awaiting independent review:** Under a relative spectral

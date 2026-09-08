@@ -1,11 +1,13 @@
 # Does a constant load reserve repair coarse spectral support discovery?
 
-Next falsifiable target, **Open until formally checked**. A natural attempt
-to avoid accuracy-squared matrix approximation is to solve a constant-quality
-M-matrix approximation at a smaller obstacle penalty lambda/C. Could its
-larger support then enclose the original significant region? The following
-bounded-degree tree construction appears to refute this for every fixed
-reserve C. It is a rule-specific obstruction, not an OP3 work lower bound.
+**Proved here, awaiting independent review (8 September 2026):** the finite
+tree construction is now proved in `thm:op3-spectral-load-reserve-obstruction`.
+It also rules out any fixed polynomial in log(1/eps_appr) as a reserve for
+this coarse matrix-replacement support rule. The exact audit includes 257
+symbolic dyadic reserves, seven polynomial reserves and independent finite
+Green/obstacle checks; see `SPECTRAL_LOAD_RESERVE_OBSTRUCTION_AUDIT.json`.
+The derivation below is retained as provenance. This is not an OP3 work
+lower bound or a restriction on accurate original-residual refinement.
 
 ## Original finite tree and a rational subsolution
 
