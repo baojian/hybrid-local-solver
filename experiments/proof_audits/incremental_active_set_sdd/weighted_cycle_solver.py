@@ -202,9 +202,17 @@ class CyclePreparation:
         return steps, cap
 
     def solve(self, demand, eta, delta, fair_bit):
+        assert 0 < eta <= 1 and 0 < delta < 1
         state = self.state(demand)
         self.work["zero_demand_checks"] += len(demand)
-        steps, cap = (0, 0) if all(value == 0 for value in demand) else self.budget(eta, delta)
+        if all(value == 0 for value in demand):
+            steps, cap = 0, 0
+        elif len(self.off_tree) == 1:
+            # The feasible flow space has one cycle direction. Its exact
+            # coordinate minimum is the global minimum, with no randomness.
+            steps, cap = 1, 0
+        else:
+            steps, cap = self.budget(eta, delta)
         for iteration in range(steps):
             draw = self.sampler.draw(fair_bit, cap)
             if draw.category is None:
@@ -316,6 +324,11 @@ def audit_states(graph, weights, root, rng, counts, work, steps):
     old_energy, _ = state_checks(state, demand, optimum, counts)
     assert old_energy <= prep.index.total_stretch * energy(original, optimum)
     counts["initial_tree_flow_stretch_bounds"] += 1
+    if len(prep.off_tree) == 1:
+        actual, outcome = prep.solve(demand, F(1, 2**100), F(1, 2**200), lambda: 0)
+        assert energy(original, [x - y for x, y in zip(actual, optimum)]) == 0
+        assert outcome["completed_updates"] <= 1 and outcome["cap"] == 0
+        counts["one_cycle_exact_solve_checks"] += 1
     for _ in range(steps if prep.off_tree else 0):
         selected = rng.randrange(len(prep.off_tree))
         residual = state.update(selected)

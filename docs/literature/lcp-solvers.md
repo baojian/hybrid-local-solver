@@ -840,3 +840,26 @@ tree algorithm remains an explicit source import. Exact state, path,
 work and fixed-budget audits are recorded with hashes in the note.
 Resistance sketches and core sparsification are still Open composition;
 the full supplied diffusion recurrence remains Conditional.
+
+## 8 September 2026: ordinary-solve resistance and core composition
+
+The note-local sections `op3_ordinary_solve_resistances.tex` and
+`op3_bounded_core_sparsifier.tex` now give a source-backed construction
+using the previously checked KOSZ energy-solve lemmas, the arbitrary-weight
+Abraham--Neiman tree algorithm, and Tropp Corollary 5.2 (author PDF p.29).
+This uses ordinary energy-approximate solves with RHS-dependent errors;
+no fixed symmetric approximate inverse is imported from KLP. Rational
+square-root upper brackets, 512-row groups, and coordinate medians give
+joint relative resistance accuracy 1/4 with requested confidence.
+
+Capped fair-bit sampling pays for every draw and returns FAIL on its cap.
+Positive-score/total-score guards cap sample count. Additional total-weight
+and connectivity guards never reject the good spectral event and protect
+all nonaborted output branches. The repaired rooted-piece routing then
+provides a core of O(j log(j/p)) edges and quality 10752W/j from a
+supplied tree. The AN source substitutes W=O(m log n loglog n), without
+CPW's printed polynomial-current-n weight-ratio assumption. Work is
+O(m[L^6+log(weight_ratio)]) in the exact-real word model. The source tree is not
+implemented by these exact audits; dense resistance/PSD validators are
+labelled separately. The final supplied-recursion cap composition is the
+next target. General local OP3 remains Open.

@@ -18,7 +18,8 @@ why CPW's printed whole-component stretch lemma cannot be imported
 literally; this does not refute its final spectral theorem. Read
 `sec:op3-rooted-piece-comparison`, `sec:op3-weighted-tree-ownership`, and
 [the remaining construction design](WEIGHTED_DECOMPOSITION_DESIGN_20260908.md).
-Routed-load composition and the full supplied constructor remain Conditional.
+The third and fifth checkpoints below complete routing and the weighted
+constructor; final supplied-recursion cap composition is the next target.
 
 The third checkpoint completes the charged corridor-routing construction
 from a supplied tree, with 27,961 exact cases and quality `5376W/j`.
@@ -31,6 +32,14 @@ exact audits pass 140,860 terminal intervals, 3,488 cycle energy identities,
 and 3,456 large-tree path/work checks. Read `sec:op3-fair-bit-sampling` and
 `sec:op3-weighted-cycle-solver`. The ordinary-solve resistance estimator
 and core sparsifier remain the next targets; general OP3 remains Open.
+
+The fifth checkpoint gives ordinary-solve resistance estimates and a
+bounded core sparsifier. With the checked arbitrary-weight tree source,
+the resulting constructor has quality O(m L^2/j) and O(j L) core edges.
+All randomness, failed draws, weight/connectivity guards and output are
+charged. The final supplied-recursion cap composition is the next target:
+[read its concrete continuation probe](SUPPLIED_RECURSION_CAP_PROBE_20260908.md).
+General local OP3 remains Open.
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 

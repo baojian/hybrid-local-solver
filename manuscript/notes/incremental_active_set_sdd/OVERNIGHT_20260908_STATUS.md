@@ -77,3 +77,14 @@ in `BASELINE_CHECK_FAILURES.json`.
 
 Completed new active minutes after block 4: **131.856425**.
 Both prior campaigns and all recorded unverified gaps are excluded.
+
+The fifth active block has proved and implemented the ordinary-solve
+resistance sketch and bounded core sparsifier. Final full runs pass, including large relative-weight cases; all checkpoint
+checks are recorded in `OVERNIGHT_20260908_BLOCK5_AUDIT.json`.
+Read `sec:op3-ordinary-solve-resistances`,
+`sec:op3-bounded-core-sparsifier`, and their named audit JSONs.
+The next proof target is the capped full supplied recursion, followed by
+potential-driven local discovery. Do not count this campaign complete.
+
+Completed new active minutes after block 5: **160.752023**.
+Resume `SUPPLIED_RECURSION_CAP_PROBE_20260908.md`; the sixth block is active.

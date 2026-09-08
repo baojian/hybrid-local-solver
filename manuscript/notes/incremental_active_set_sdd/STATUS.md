@@ -29,8 +29,9 @@ check 1,764 original residual rows; at k=128 the algorithm emits 255
 coordinates and records 3,812,842 charged units without reading ambient n.
 Source and backend hashes are in `LOWER_BOUND_QUANTIFIERS_AUDIT.json`.
 
-**Open / next:** general OP3, the weighted supplied-constructor extension,
-and potential-driven local discovery. Continue the additional campaign;
+**Open / next:** general OP3 and potential-driven local discovery. The
+weighted constructor is now proved below; the final capped supplied
+recurrence remains under review. Continue the additional campaign;
 this first literature checkpoint does not complete the ten-hour request.
 The formal dependency is now `problem_definitions`, specifically its
 Proposition 5 star formula/output argument. Other directions remain
@@ -38,6 +39,43 @@ context/provenance only. The 127-page note builds without final warnings;
 65 own scripts and three registry tests pass. Broad checks retain only the
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
+
+## Third campaign, block 5: resistance estimates and bounded core sparsification
+
+**Proved here, awaiting independent review:** ordinary-solve resistance
+sketches and a bounded core sparsifier. The new constructor gives
+`G <= Q <= (10752W/j)G`, with O(j log(j/p)) core edges, from a supplied
+tree. The checked arbitrary-positive-weight AN source yields quality
+O(m L^2/j) and work O(m[L^6+log(weight_ratio)]). The source tree is
+explicitly imported; its algorithm is not implemented by these audits.
+All nonaborted cores are connected and have deterministic weight bounds,
+even when their spectral estimate is wrong. Read
+`sec:op3-ordinary-solve-resistances` and `sec:op3-bounded-core-sparsifier`.
+
+**Measured:** 260 square-root brackets, 68 exact sign-moment identities,
+1,556 nonlinear solver edge-error bounds, 676 actual cycle-backend sketch
+groups and 225 additional dense nonlinear reference groups. The sampling
+audit has 182 attempts: 155 returned graphs pass both exact PSD bounds,
+while 27 report permitted capped-sampler aborts. Three complete
+sketch-to-sampler runs use 450 resistance groups; nine forest/core
+compositions pass. Extreme relative weights and all four explicit guard
+failures are exercised. No probability theorem is inferred from frequencies.
+
+**Verification:** 143-page note builds without final warnings; pages
+134-140 visually reviewed. All 72 own scripts and three registry tests
+pass. Broad checks retain 231 passing tests, the same three failures,
+two unrelated lint findings and two oversized AESP sources. All five
+baseline hashes match, as do the three current audit/backend hash sets.
+Reproduction stops at its test prerequisite. See
+`OVERNIGHT_20260908_BLOCK5_AUDIT.json`.
+
+**Next / Open:** reconcile primitive-level work/allocation and call/depth
+caps in the complete supplied recursion. Read
+`SUPPLIED_RECURSION_CAP_PROBE_20260908.md`. The weighted constructor
+hypothesis is now discharged on the tracked global numerical ranges;
+the final capped recurrence composition remains to be written. General
+OP3 and potential-driven local discovery remain Open. Continue the
+600-new-minute campaign; neither earlier night counts toward it.
 
 ## Third campaign, block 4: paid random sampling and cycle solves
 

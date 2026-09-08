@@ -1,0 +1,217 @@
+\section{A bounded core sparsifier and the weighted constructor}
+\label{sec:op3-bounded-core-sparsifier}
+
+\paragraph{Purpose.}
+The resistance estimates in \cref{sec:op3-ordinary-solve-resistances}
+now close the core-sampling obligation left by
+\cref{thm:op3-supplied-tree-constructor}. The graph is supplied,
+connected, loopless and positively weighted. All edge records, randomness,
+searches, copies, guards and allocated words are charged. The matrix
+concentration inequality remains the explicit primary-source result from
+\citet[Corollary 5.2, PDF p.~29]{tropp2012tails}; neither dense effective
+resistances nor spectral tests are a production primitive.
+
+\begin{theorem}[Capped arbitrary-weight sparsification; \statusproved]
+\label{thm:op3-bounded-core-sparsifier}
+Given a supplied graph $C$ on $r\geq2$ vertices, with $m_C$ edge records,
+positive weight ratio $\chi_C$, and $0<p_C<1$, a procedure returns
+\textnormal{FAIL} or a connected weighted graph $S$. With probability
+at least $1-p_C$, it returns a graph satisfying
+\[
+ C\preceq S\preceq2C.
+\]
+With $\mathcal L_C=\log(2+r+m_C+1/p_C)$, every branch has bounded
+word work and total allocated words
+\[
+ O\bigl(m_C[\mathcal L_C^6+\log\chi_C]\bigr),
+\]
+using the checked low-stretch-tree source. The output has
+$O(r\log(2+r/p_C))$ edge records. If the output is not
+\textnormal{FAIL}, it is always connected and its weights satisfy
+\[
+ \sum_{e\in S}c_e\leq2\sum_{e\in C}c_e,
+ \qquad c_{\min}(S)\geq\frac{3c_{\min}(C)}{2q},
+\]
+where the charged draw count is $q=O(r\log(2+r/p_C))$.
+These output-size, connectivity and weight conclusions hold even when
+the spectral estimate is wrong. The one-vertex graph returns the empty
+graph directly.
+\end{theorem}
+\begin{proof}
+Run \cref{cor:op3-resistance-near-linear} with joint failure budget
+$p_C/4$. Form scores $s_e=2c_e\widehat R_e$ and $t=\sum_es_e$.
+Abort if any score is nonpositive or $t>4(r-1)$. On the good estimator
+event, $c_eR_e\leq s_e\leq4c_eR_e$, so these guards never abort,
+because $\sum_e c_eR_e=r-1$.
+Let
+\[
+ \ell=\lceil\log_2(8r/p_C)\rceil,
+ \qquad q=\text{the smallest power of two at least }
+               \max\{1,27t\ell\}.
+\]
+Both quantities are found by paid doubling. The score guard implies
+$q\leq\max\{1,216(r-1)\ell\}$ on every branch, before any sample
+buffer is allocated. Use the capped fair-bit sampler with probabilities
+$p_e=s_e/t$, $q$ draws, and total cap-failure budget $p_C/2$.
+Abort if any draw fails. Give each sampled copy of edge $e$ conductance
+$3c_e/(2q p_e)$ and aggregate copies of the same original edge using
+an explicitly allocated multiplicity array.
+
+Condition on any good estimate vector and consider the ideal independent
+categorical draws to which the capped draws couple. On the space
+orthogonal to constants, each unscaled sampled proof matrix has expectation
+identity and norm $c_eR_e/p_e\leq t$. The source matrix Chernoff bound,
+with relative error $1/3$, gives
+\[
+ \Pr\{C\not\preceq S\text{ or }S\not\preceq2C\}
+ \leq2(r-1)e^{-q/(27t)}\leq p_C/4.
+\]
+This is the same source inequality as in
+\cref{prop:op3-spectral-confidence-wrapper}, now with a directly requested
+estimator confidence and an implemented capped sampler. Union with the
+estimator event and the cap event gives total failure at most $p_C$.
+We condition on the estimate vector for the ideal sampling analysis,
+not on successful termination of the capped sampler.
+
+After assembling $S$, scan its weights and abort if their sum exceeds
+twice the input weight sum. Also check connectivity by union by size
+and abort if disconnected. Neither guard rejects the good spectral event:
+taking traces of $S\preceq2C$ gives the first condition, while
+$S\succeq C$ implies connectivity. Every selected edge has at least
+$3c_{\min}(C)/(2q)$ weight because $p_e\leq1$; aggregation only
+increases that bound. Thus both weight conclusions hold on every
+nonaborted branch. Connectivity checking requires only $O(r)$ parent
+and size words and $O(\log(2+r))$ work per selected edge.
+
+All score scans and prefix construction are linear. The per-draw bit
+cap is $O(\log(2+qm_C/p_C))=O(\mathcal L_C)$, and each draw uses
+$O(\mathcal L_C^2)$ word work. Multiplicity arrays, every fair bit,
+CDF comparison, output record and guard are charged. Since
+$q=O(r\mathcal L_C)$ and $r\leq m_C+1$, this sampling work is
+absorbed by the displayed resistance-estimation bound. No guard
+performs a spectral comparison. The argument also bounds all failed
+attempts, rather than discarding their work.
+\end{proof}
+
+\begin{theorem}[Sparse-core construction from a supplied tree; \statusproved]
+\label{thm:op3-supplied-tree-sparse-core}
+Let $G$ be supplied on $n\geq2$ vertices with $m$ positive edge records,
+weight ratio $\chi_w$, a supplied spanning tree of total stretch $W$, and
+$1\leq j\leq n$. Put $\kappa=256W/j$ and $0<p_Q<1$.
+There is a procedure returning \textnormal{FAIL} or a rooted forest
+with a connected core on at most $j$ roots. With probability at least
+$1-p_Q$, its Laplacian satisfies
+\[
+ G\preceq Q\preceq\frac{10752W}{j}G.
+\]
+The core has $O(j\log(2+j/p_Q))$ edge records on every nonaborted
+branch. With $\mathcal L=\log(2+n+m+1/p_Q)$, bounded work and all
+allocated words are
+\[
+ O\bigl(m[\mathcal L^6+\log\chi_w]\bigr).
+\]
+In this work bound only the core's own low-stretch tree is selected by
+the checked source; the original tree is the supplied one. Every
+nonaborted output is connected and, if $q$ is its core draw count,
+\[
+ c_{\min}(Q)\geq\frac{3c_{\min}(G)}{\max\{1,q\}},
+ \qquad \sum_{e\in Q}c_e\leq9\kappa\sum_{e\in G}c_e.
+\]
+For a one-root core take $q=0$.
+\end{theorem}
+\begin{proof}
+Apply \cref{thm:op3-supplied-tree-constructor}. Its result has the form
+$Q_0=3\kappa F+3C$ and satisfies
+$G\preceq Q_0\preceq21\kappa G$. The unscaled core $C$ is the
+quotient of the original graph by the components of the retained
+forest, so it is connected unless it has just one vertex. Its edges
+are sums of original cross-component conductances. For a nonempty core,
+therefore,
+\[
+ c_{\min}(C)\geq c_{\min}(G),\qquad
+ \sum_{e\in C}c_e\leq\sum_{e\in G}c_e,
+ \qquad \chi_C\leq m\chi_w.
+\]
+For a single root, set $S=C$ empty and $q=0$ directly. Otherwise
+use \cref{thm:op3-bounded-core-sparsifier} on $C$, and return
+$Q=3\kappa F+3S$. On its good event,
+$Q_0\preceq Q\preceq2Q_0$, which gives the claimed quality
+$42\kappa=10752W/j$. The core-size bound follows because it has at
+most $j$ vertices. Relabel its supplied roots into an explicit array,
+then lift returned edges back using that array; all maps and scans are
+paid. The initial routing work and the core sparsification work fit the
+displayed bound, using $m_C\leq m$ and $\log\chi_C\leq\log(m\chi_w)$.
+
+The forest has one root per component. A returned connected core therefore
+makes $Q$ connected even off the good spectral event. Forest weights
+are at least $3\kappa c_{\min}(G)$, and $\kappa\geq1$.
+For $q\geq1$, core weights after scaling by three are at least
+$9c_{\min}(G)/(2q)$. These facts prove the lower weight bound, including
+the forest-only case $q=0$. The retained forest is a subset of the
+original supplied tree, and the core weight guard gives
+\[
+ \sum_{e\in Q}c_e
+ \leq3\kappa\sum_{e\in G}c_e+6\sum_{e\in G}c_e
+ \leq9\kappa\sum_{e\in G}c_e.
+\]
+These deterministic bounds do not use successful resistance estimates.
+\end{proof}
+
+\begin{corollary}[The arbitrary-weight constructor contract; \statusproved]
+\label{cor:op3-weighted-constructor-contract}
+Use the Abraham--Neiman source tree on the original supplied graph,
+after paid aggregation of parallel edges. For $1\leq j<n$, the
+preceding procedure gives, with failure at most $p_Q$,
+\[
+ G\preceq Q\preceq C_0\frac{m\mathcal L^2}{j}G,
+ \qquad m_{\rm core}\leq C_1j\mathcal L,
+\]
+for universal constants, at work
+$O(m[\mathcal L^6+\log\chi_w])$ and the same bound on all allocated
+words. For $j=n$, apply the whole-graph sparsifier directly, with an
+empty forest and constant spectral quality. This imposes no polynomial
+weight-ratio assumption in the current vertex count.
+\end{corollary}
+\begin{proof}
+The checked arbitrary-weight tree result gives $W=O(m\mathcal L^2)$.
+Include its construction, sorting, path-index and output costs, and
+substitute in \cref{thm:op3-supplied-tree-sparse-core}. Parallel
+aggregation preserves the Laplacian exactly and increases the weight
+ratio by at most a factor $m$. The whole-graph branch is
+\cref{thm:op3-bounded-core-sparsifier} itself. The one-vertex input is
+handled directly without a resistance estimate or a division by zero.
+\end{proof}
+
+\paragraph{Relation to the supplied recursion.}
+This discharges the missing weighted-constructor hypothesis on input
+families whose $\log\chi_w$ is bounded by a polynomial in the global
+parameter $L$ from \cref{thm:op3-conditional-supplied-recursion}.
+The simultaneous recursive range theorem gives $\log\chi_w=O(L^2)$
+on successful recursive executions. Final composition must retain the
+explicit call, depth, work and allocation caps on failed executions;
+no per-current-core polynomial weight-ratio assumption may be substituted.
+The conditional theorem remains a reusable contract statement. A complete
+source-backed recurrence needs this final capped-execution reconciliation.
+
+\paragraph{Implementation and audit.}
+The implementation is \texttt{bounded\_core\_sparsifier.py}; source and
+backend hashes are saved in \texttt{BOUNDED\_CORE\_SPARSIFIER\_AUDIT.json}.
+Its production pipeline composes the ordinary resistance sketch with
+capped sampling. Separate weighted atlas and routed-core fixtures identify
+dense resistance and PSD providers as validators. Deliberate bad estimates
+exercise score, total-weight and connectivity guards, while a binary CDF
+boundary exercises a capped-sampler abort. Legitimate seeded sampling
+aborts are recorded as allowed outcomes, not misreported as wrong answers
+or omitted from work. The low-stretch tree algorithm is an explicit
+source dependency and is not implemented by these audits. General OP3
+and local support discovery remain \statusopen.
+
+The final audit records 182 valid-estimator sampling attempts: 155 returned
+graphs pass both exact PSD bounds, and 27 report allowed capped-sampler
+aborts. Returned weighted fixtures include ratio $2^{160}$ and omit four
+low-leverage input edges in total. Three complete sketch-to-sampler runs
+use 450 actual resistance groups, and nine supplied-tree/core compositions
+through 256 vertices pass their exact spectral comparisons; six have a
+nonempty core. Score, sampler, weight and connectivity failures are also
+forced explicitly. The complete run took 149.180 seconds. These are finite
+algebra and implementation checks, not empirical proofs of the confidence.

@@ -1,3 +1,17 @@
+# Third campaign, block 5 (8 September 2026)
+
+**Verification:** 143-page note builds without final warnings; pages
+134-140 visually reviewed. All 72 own scripts and three registry tests
+pass. Broad checks retain 231 passing tests, the same three failures,
+two unrelated lint findings and two oversized AESP sources. All five
+baseline hashes match, as do the three current audit/backend hash sets.
+Reproduction stops at its test prerequisite. See
+`OVERNIGHT_20260908_BLOCK5_AUDIT.json`.
+
+The resistance and core-sampling audits pass, including nonlinear error
+providers, large relative weights and explicit allowed sampling aborts.
+The campaign continues with `SUPPLIED_RECURSION_CAP_PROBE_20260908.md`.
+
 # Third campaign, block 4 (8 September 2026)
 
 137-page note builds without final warnings; new pages

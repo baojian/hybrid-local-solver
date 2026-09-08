@@ -119,6 +119,7 @@ allocated words are bounded by
 \]
 Every failure branch respects the same bound. Zero demand and tree
 graphs are solved exactly in linear additional work, without sampling.
+With exactly one off-tree edge, one cycle update gives the exact solution.
 \end{theorem}
 \begin{proof}
 Since $K\geq\tau\log(2\tau W/(\delta\eta^2))$,
@@ -136,6 +137,11 @@ the displayed bound. The implementation stores current arrays rather
 than its update history, and even all created frames and scalar
 temporaries fit the total charged work. If $\bm b=0$ the result is
 zero; if $\tau=0$, the feasible tree flow is already optimal.
+If there is exactly one off-tree edge, the feasible flow space has one
+cycle direction. The first exact coordinate minimum is therefore the
+global minimum. Its cycle voltage is zero, so its tree potentials also
+solve the full system exactly. The implementation uses this deterministic
+one-update base case instead of the larger general iteration budget.
 \end{proof}
 
 \begin{corollary}[Source-backed supplied polylogarithmic work; \statusproved]
@@ -161,13 +167,14 @@ and backend hashes, exact cycle identities, fixed-budget solves and
 heavy-path audits are recorded in \texttt{WEIGHTED\_CYCLE\_SOLVER\_AUDIT.json}.
 The full audit passes 276 state cases, 3,488 exact sampled-cycle energy
 identities, 3,456 heavy-path update/query/work checks on trees through
-512 vertices, and nine prescribed-budget solves with 2,808 updates.
-It also checks 27 scalar accuracy/failure budgets, zero demand, exact
+512 vertices, and nine prescribed-budget solves with 2,643 updates.
+It also checks 72 one-cycle exact solves, 27 scalar accuracy/failure
+budgets, zero demand, exact
 tree solves, and a deliberately forced capped-sampler abort.
 Dense grounded solves and explicit reference paths are validators. The
 charged counters include all backend API calls exercised by those
 validators, not just the calls in a final solve. The AN low-stretch-tree
 algorithm is a source import and is not implemented by these audits.
-This is a supplied linear-solve primitive; the resistance-sketch and
-core-sparsifier composition still needs its own proof and audit.
+This is a supplied linear-solve primitive; the following sections supply
+the resistance-sketch and core-sparsifier proofs and audits.
 General local OP3 remains \statusopen.

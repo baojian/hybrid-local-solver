@@ -1,0 +1,180 @@
+\section{Resistance estimates from ordinary approximate solves}
+\label{sec:op3-ordinary-solve-resistances}
+
+\paragraph{Scope and primitive.}
+The graph is supplied in full, connected, and has positive conductances.
+The following construction uses ordinary right-hand-side solves from
+\cref{thm:op3-paid-cycle-solve}; their errors may depend nonlinearly on
+the right-hand side. It does not assume that all solves are evaluations
+of one fixed symmetric operator. All arithmetic below is charged in the
+exact-real word model, including fair bits, dyadic searches and allocated
+words. A square root appearing in the proof is not a computed primitive.
+
+\begin{lemma}[Paid square-root upper brackets; \statusproved]
+\label{lem:op3-paid-square-root-bracket}
+For $a\geq1$, using only arithmetic and comparisons, one can compute $s$
+with $\sqrt a\leq s\leq h\sqrt a$, where $h=257/256$, in
+$O(1+\log a)$ word work and allocated words.
+\end{lemma}
+\begin{proof}
+Double an upper endpoint from one until its square is at least $a$.
+The lower endpoint equal to half that upper endpoint lies below $\sqrt a$.
+Perform eight bisections, keeping the upper endpoint on equality.
+If the original upper endpoint was $U$, the final interval has width
+$U/512$ and $\sqrt a\geq U/2$. Thus its upper endpoint exceeds
+$\sqrt a$ by at most $\sqrt a/256$. Each comparison, arithmetic result
+and temporary word is counted. The case $a=1$ also obeys this bracket.
+\end{proof}
+
+\begin{theorem}[Ordinary-solve resistance sketch; \statusproved]
+\label{thm:op3-ordinary-solve-resistances}
+Let $n\geq2$, $m\geq1$, $\chi_w=c_{\max}/c_{\min}$ and
+$0<p_R<1$. Suppose an ordinary solver for a supplied weighted Laplacian
+returns a vector satisfying relative energy-norm error $\eta$, or may
+fail to do so with probability at most $\delta_s$, with a bounded cost
+$T_{\rm solve}(\eta,\delta_s)$ on every branch. Shared preparation
+costs are charged separately. Preparation is fixed independently of the
+sketch bits, and each group uses fresh solver state and independent bits.
+There is a procedure returning estimates of all original-edge effective
+resistances satisfying, jointly with probability at least $1-p_R$,
+\[
+ \tfrac34 R_e\leq\widehat R_e\leq\tfrac54 R_e\qquad(e\in E).
+\]
+Put $q=512$, $g=32\lceil\log_2(4m/p_R)\rceil+1$, and use
+$\eta=1/(128m)$ and $\delta_s=1/(16q)$ in every solve. Besides shared
+preparation, bounded work and all allocated words are at most
+\[
+ O\!\left(m(1+\log\chi_w)+gq\,[m+n+T_{\rm solve}(\eta,\delta_s)]
+             +mg\log(2+g)\right).
+\]
+The one-vertex graph returns an empty vector directly.
+\end{theorem}
+\begin{proof}
+Scan the original conductances to obtain $c_{\min}$ and form
+$c'_e=c_e/c_{\min}\geq1$, with Laplacian $L'=L/c_{\min}$.
+Use \cref{lem:op3-paid-square-root-bracket} to compute
+$\sqrt{c'_e}\leq s_e\leq h\sqrt{c'_e}$. In each of $g$ independent
+groups, generate $q$ independent sign vectors
+$\bm a\in\{-1,1\}^m$. Form the zero-sum demand
+$\bm b=B^T\operatorname{diag}(\bm s)\bm a$ by one edge scan, and
+solve $L'\bm x=\bm b$ to the prescribed energy accuracy.
+For each original edge $e=(u,v)$, accumulate
+$(\widehat x_u-\widehat x_v)^2/q$. If a solver returns
+\textnormal{FAIL}, use a zero vector for that whole group and stop its
+remaining rows. Finally take the coordinatewise median of the $g$
+group vectors and divide by $c_{\min}$.
+
+Here is the complete error analysis. Fix a queried edge $e$ and first
+use exact solves for one group. The corresponding scalar random variable
+$Z_e=x_u-x_v$ is a linear combination of independent signs. If
+$S_e=\mathbb E Z_e^2$ and $R'_e=c_{\min}R_e$, then
+\[
+ R'_e\leq S_e\leq h^2R'_e,
+ \qquad \mathbb E Z_e^4\leq3S_e^2.
+\]
+The first inequalities follow by inserting
+$C'\preceq\operatorname{diag}(\bm s)^2\preceq h^2C'$
+between $B L'^+\bm b_e$ and its transpose. For a linear sign sum
+$Z=\sum_j a_j z_j$, expansion gives
+$\mathbb E Z^4=3(\sum_jz_j^2)^2-2\sum_jz_j^4$, proving the second.
+Consequently the variance of a $q$-row mean square is at most
+$2S_e^2/q$. Chebyshev's inequality gives
+\[
+ \Pr\left\{\left|q^{-1}\sum_{k=1}^q Z_{e,k}^2-S_e\right|
+       >S_e/8\right\}\leq\frac{128}{q}=\frac14.
+\]
+
+For every sign row, not just with high probability,
+$\|L'^+\bm b\|_{L'}\leq h\sqrt m$. Indeed
+$L'^{+/2}B^TC'^{1/2}$ has operator norm one on the nonconstant
+subspace, and the remaining diagonal scaling has norm at most $h$.
+For any energy-valid approximate solve, energy Cauchy--Schwarz gives
+\[
+ |(\widehat x_u-\widehat x_v)-(x_u-x_v)|
+ \leq\sqrt{R'_e}\,\|\widehat{\bm x}-\bm x\|_{L'}
+ \leq\eta h\sqrt m\sqrt{R'_e}.
+\]
+This is a pointwise bound, even for nonlinear or right-hand-side-dependent
+errors. Over $q$ rows, the normalized Euclidean error is at most
+$\eta h\sqrt m\sqrt{R'_e}\leq(h/128)\sqrt{R'_e}$.
+A union bound makes all $q$ solves energy-valid with probability at
+least $15/16$. No independence between the good-solve event and the
+sketch-concentration event is needed. On their intersection, the reverse
+triangle and triangle inequalities give a group estimate $A_e$ with
+\[
+ \left(\frac78-\frac h{128}\right)^2R'_e
+ \leq A_e\leq h^2\left(\frac{17}{16}+\frac1{128}\right)^2R'_e.
+\]
+Here $\sqrt{7/8}\geq7/8$ and $\sqrt{9/8}\leq17/16$.
+The displayed rational lower factor is at least $3/4$ and the upper
+factor at most $5/4$. Therefore this group is good for the fixed edge
+with probability at least $1-1/4-1/16=11/16$.
+
+The independent groups need not be simultaneously good for all edges.
+For each fixed edge their bad indicators are independent with probabilities
+at most $5/16$. Applying exponential Markov with multiplier $11/5$
+bounds the probability of a bad majority by
+\[
+ \left(\frac{\sqrt{55}}8\right)^g
+ \leq\left(\frac78\right)^{g/2}\leq e^{-g/16}.
+\]
+For the stated $g$, this is at most $p_R/m$. Union over the $m$
+original edges proves the joint median claim. Dividing by $c_{\min}$
+undoes the initial scaling. A failed row remains a bad group in this
+analysis; we never condition the distribution on successful capped draws.
+
+All original-edge scans, normalizations and brackets cost the first
+term of the work bound. Each row explicitly allocates its demand,
+consumes $m$ fair bits, invokes one paid solve, and scans all queried
+edges. Row outputs are streamed into one group accumulator; stored group
+vectors have $mg$ words. Each coordinate median is computed by the paid
+merge sort with a reusable buffer from the earlier local certificate.
+Its input records, comparisons, copies and temporary arrays cost
+$O(g\log(2+g))$. Early group failure only decreases work. This proves
+the same bound for all failure branches and all allocated words.
+\end{proof}
+
+\begin{corollary}[Supplied arbitrary-weight resistance estimates; \statusproved]
+\label{cor:op3-resistance-near-linear}
+With the checked Abraham--Neiman tree source and the cycle backend of
+\cref{cor:op3-cycle-solve-near-linear}, the preceding estimator has
+work and total allocated words
+\[
+ O\bigl(m[\mathcal L^6+\log\chi_w]\bigr),
+ \qquad \mathcal L=\log(2+n+m+1/p_R).
+\]
+All resistances meet the stated error simultaneously with probability
+at least $1-p_R$. This is supplied-graph work.
+\end{corollary}
+\begin{proof}
+Aggregate parallel edges by paid sorting before tree selection; identical
+endpoint pairs have the same effective resistance and their answer can
+be copied back to every original record in linear work. For the source
+tree, each prescribed ordinary solve has cost $O(m\mathcal L^5)$,
+with $q$ constant and $g=O(\mathcal L)$. Initial normalization and
+square-root brackets cost $O(m(1+\log\chi_w))$; aggregation only
+increases this logarithm by $O(\log m)$ if $\chi_w$ refers to the original
+records. The preceding theorem supplies all other costs. The source tree
+can be fixed and its preparation reused for every right-hand side.
+\end{proof}
+
+\paragraph{Audit and limitations.}
+The implementation is \texttt{ordinary\_solve\_resistances.py}, with
+source and backend hashes in \texttt{ORDINARY\_SOLVE\_RESISTANCES\_AUDIT.json}.
+Exact validators enumerate sign moments, energy bounds, dyadic brackets,
+nonlinear but admissible solver errors, median budgets and early failures.
+Complete prescribed sampling runs include the actual cycle backend on
+supplied trees and a triangle; a separate dense nonlinear provider is
+explicitly labelled as validation. These finite checks support the proof,
+not its asymptotic probability argument. Tree selection remains the named
+source algorithm. The full supplied recursion still needs its final capped
+composition; general local OP3 remains \statusopen.
+
+The final audit checks 260 dyadic brackets, 68 exact second/fourth-moment
+identities, 1,556 nonlinear edge-error bounds, and 15 joint-median budgets.
+Five complete actual-backend fixtures use 676 prescribed groups; a separate
+dense nonlinear fixture uses 225 groups. Parallel edges and relative
+weights from $2^{-80}$ to $2^{80}$ appear in the moment checks, and an
+actual triangle sketch has weight ratio $2^{80}$. The full run took
+78.955 seconds. The subsequent core composition is now provided in
+\cref{sec:op3-bounded-core-sparsifier}.

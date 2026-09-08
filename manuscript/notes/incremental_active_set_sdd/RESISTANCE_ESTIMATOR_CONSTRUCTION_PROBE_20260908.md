@@ -1,4 +1,23 @@
-# Next construction: cycle solves, fair-bit sampling and resistance sketches
+# Cycle solves, resistance estimates and the weighted constructor
+
+**Fifth-block update:** The ordinary-solve resistance sketch and bounded
+core sparsifier now have implemented constructions and note-local proof
+drafts in `sec:op3-ordinary-solve-resistances` and
+`sec:op3-bounded-core-sparsifier`. The final full runs pass, including large relative-weight stress cases. The corrected one-cycle
+base now passes 72 exact solves; the nine general prescribed solve
+fixtures use 2,643 total updates. Earlier checkpoint counts below are
+historical.
+
+The constructor conclusion is now `cor:op3-weighted-constructor-contract`:
+quality O(m L^2/j), O(j L) core edges, and paid word work
+O(m[L^6+log(weight_ratio)]) for arbitrary positive input weights. It uses the
+explicitly checked Abraham--Neiman source tree. The code does not
+implement that source tree algorithm. The final full supplied recurrence
+still requires explicit failed-execution cap reconciliation; general
+OP3 and potential-driven local discovery remain Open.
+
+The completed design text below records the derivation. For current
+claims and hashes, use the new proof sections and final audit JSONs.
 
 **Fourth-block update:** Fair-bit sampling and the heavy-path cycle backend
 are now implemented and have note-local proofs in
@@ -11,7 +30,7 @@ Read the current audit JSONs for source/backend hashes. The design below
 is retained; the remaining unimplemented target is the ordinary-solve
 resistance sketch and its complete core-sparsifier composition.
 
-**Open composition; proposed constants below are not yet audited.**
+**Historical design below; the constants have now been proved and audited.**
 The supplied-tree weighted constructor is now proved and audited in
 `sec:op3-weighted-corridor-routing`. Its 27,961 constructions and 55,706
 exact PSD checks match source SHA-256
