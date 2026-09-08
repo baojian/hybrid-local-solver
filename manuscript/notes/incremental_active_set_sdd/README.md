@@ -78,7 +78,18 @@ Read `sec:op3-native-gap-push`, the sandpile source comparison in
 `sec:op3-sandpile-source-mapping`, and
 [the next producer targets](NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md).
 
+The tenth checkpoint replaces small-alpha native work by conservative
+discovery, stops at the first closed positive support, and directly solves
+the original target system only on that already known whole graph.
+`thm:op3-conservative-local-reference` has deterministic O(eps_appr^-3)
+work and original row volume below 2/eps_appr. Its exact audit passes
+2,065 target certificates and 29 implemented whole-component solves.
+This improves the reference without improving the known quadratic source
+rate. The next target is
+[the conservative envelope reduction](CONSERVATIVE_ENVELOPE_EQUIVALENCE_PROBE_20260908.md).
+
 The following second-campaign record is historical.
+
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 

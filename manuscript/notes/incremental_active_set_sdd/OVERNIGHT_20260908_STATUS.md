@@ -129,3 +129,9 @@ Completed new active minutes after block 9: **287.917120**.
 The tenth block is active. Its conservative/early-closure target is recorded
 in `NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md`. Block 9 verification is
 in `OVERNIGHT_20260908_BLOCK9_AUDIT.json`; all baseline hashes match.
+
+Completed new active minutes after block 10: **310.940737**.
+The conservative native producer and paid early-closure solve are proved
+and audited in `sec:op3-conservative-local-producer`; checkpoint evidence
+is in `OVERNIGHT_20260908_BLOCK10_AUDIT.json`. The eleventh block is active.
+Read `CONSERVATIVE_ENVELOPE_EQUIVALENCE_PROBE_20260908.md` next.

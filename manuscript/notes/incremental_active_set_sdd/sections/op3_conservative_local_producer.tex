@@ -1,0 +1,170 @@
+\section{Conservative discovery with a first-closure stop}
+\label{sec:op3-conservative-local-producer}
+
+The following refinement retains the weaker cubic accuracy bound but
+removes the slow native constant mode. Zero teleportation is an internal
+discovery device; every requested output still has positive target
+teleportation. No global conservative obstacle is assumed to exist.
+
+\begin{lemma}[Conservative prefix bounds; \statusproved]
+\label{lem:op3-conservative-prefix-bounds}
+Let $x\geq0$ have conservative residual $r=e_v-Lx\geq0$, where
+$L=D-A$ uses original degrees on the connected graph. Every edge obeys
+$|x_i-x_j|\leq1$. If $S=\{i:x_i>0\}$ is proper, then
+$\max_i x_i\leq|S|$.
+
+Run the gap-threshold updates of \cref{thm:op3-native-gap-push} with
+$\gamma=1$, native accuracy $e$ and $\lambda=e/2$, stopping at the
+first completed push whose positive support is the whole graph, or at
+an empty queue. Every processed prefix has
+\[
+ \operatorname{vol}(S)<2/e,\qquad
+ \max_i x_i<2/e,\qquad
+ P<8/e^3,
+\]
+where $P$ counts original degrees with multiplicity over all pushes.
+In particular the stopped process terminates in finite work, even if
+$\lambda\operatorname{vol}(G)<1$ and the exact conservative obstacle
+has no stabilizing solution.
+\end{lemma}
+\begin{proof}
+For a strict superlevel $H$ lying between two unequal endpoint values,
+sum the residual identity to obtain
+\[
+ \sum_{i\in H,\ j\notin H,\ j\sim i}(x_i-x_j)
+ =\one_{\{v\in H\}}-\sum_{i\in H}r_i\leq1.
+\]
+Every summand is positive. Choosing $H$ to separate an arbitrary
+unequal edge proves its unit difference bound. Equal edges need no
+argument. From a maximizing positive vertex follow a simple path to
+the first zero coordinate. The path has at most $|S|$ edges, proving
+the proper-support maximum bound. Empty support is immediate.
+
+The local update and queue invariants of the native theorem do not
+require a killing term. Residuals stay nonnegative and have total mass
+exactly one; every previously pushed vertex retains at least
+$\lambda d_i$. Immediately before a new activation, its legal residual
+exceeds $e d_i$, so $\lambda\operatorname{vol}(S\cup\{i\})<1$
+before any degree-sized row buffer is allocated. This gives the strict
+volume bound on every prefix.
+
+All proper prefixes have maximum below $2/e$. If one push first makes
+support full, only its previously zero coordinate changes. Its new
+value is at most $r_i/d_i\leq1$, while all old coordinates were at
+most $n-1$. Since $n\geq2$, the new maximum is at most $n-1<2/e$.
+The algorithm stops before another full-support push. Each push raises
+one potential by $h>e/2$, and all raises are monotone. Consequently
+\[
+ (e/2)P<\sum_i d_i x_i
+ \leq\operatorname{vol}(S)\max_i x_i<4/e^2
+\]
+after a nonzero number of pushes. This gives the displayed bound on
+$P$; the zero-push case is direct. An infinite run would violate this
+uniform prefix bound because every pushed degree is at least one.
+\end{proof}
+
+\begin{lemma}[Transfer upward from a conservative proper output;
+\statusproved]
+\label{lem:op3-conservative-upward-transfer}
+Suppose the stopped conservative process terminates with an empty queue
+on proper support. If the target parameter satisfies
+$\bar\alpha=2\alpha/(1+\alpha)\leq e^2/4$, then its same potential
+$x$ has original target ACL accuracy $e$.
+\end{lemma}
+\begin{proof}
+The conservative residual $r_0=e_v-Lx$ lies in $[0,e d]$ by the
+queue invariant. The target residual is
+\[
+ r_\alpha=e_v-(D-(1-\bar\alpha)A)x=r_0-\bar\alpha Ax\leq r_0.
+\]
+On a positive coordinate, $r_{0,i}\geq(e/2)d_i$ and
+$(Ax)_i\leq d_i\max_jx_j<(2/e)d_i$, hence
+$r_{\alpha,i}\geq0$. On a zero coordinate it equals
+$(e_v)_i+(1-\bar\alpha)\sum_{j\sim i}x_j\geq0$ directly.
+This proves both original residual inequalities. This is an upward
+transfer using an active residual margin, distinct from the earlier
+downward floor wrapper.
+\end{proof}
+
+\begin{theorem}[An early-closure local reference; \statusproved]
+\label{thm:op3-conservative-local-reference}
+For every original graph, point seed, $0<\alpha\leq1$ and
+$0<\epsappr<1$, a deterministic local exact-real word algorithm
+returns original ACL output with support volume below $2/\epsappr$
+in $O(\epsappr^{-3})$ work and total allocated words. It reads each
+positive vertex's original row once, of total volume below
+$2/\epsappr$, and queries each discovered degree once. It uses
+$O(1+\epsappr^{-1})$ live graph-state words. Only when the entire
+graph has already become positive does it additionally allocate a
+dense matrix, of $O(\epsappr^{-2})$ live words. No supplied support,
+numerical oracle, target-alpha logarithm or ambient preprocessing is used.
+\end{theorem}
+\begin{proof}
+Set $e=\epsappr$. If $\bar\alpha\leq e^2/4$, use conservative
+discovery. Otherwise use the original target-parameter gap push. In
+both cases stop at an empty queue or immediately after the first push
+making the active-record count equal the discovered-record count.
+Every neighbor of every positive vertex already has a record, since
+its row was cached on first activation. Equality of these two counters
+therefore says the nonempty positive support is closed; connectedness
+makes it the entire graph. Testing this costs constant work per push
+and does not query ambient $n$.
+
+If the queue empties on proper support, the conservative case is
+certified by \cref{lem:op3-conservative-upward-transfer}, and the
+damped case is the original native theorem. The conservative work
+bound is \cref{lem:op3-conservative-prefix-bounds}. In the damped
+case the mass calculation gives
+$P<2/(\bar\alpha e)<8/e^3$. Both cases have original support volume
+below $2/e$ on every processed prefix.
+
+On first full closure, solve the \emph{unregularized target} system
+\[
+ (D-(1-\bar\alpha)A)y=e_v
+\]
+on the known whole graph. It is positive definite and an M-matrix,
+so the unique exact solution is nonnegative and has target residual
+zero. No claim that the target regularized obstacle remains fully
+positive is needed. All original degrees and rows are already cached.
+Build a dense matrix by paid binary label lookup, use in-place
+$LDL^T$ elimination with its positive Schur pivots, and perform the two
+triangular solves and diagonal divisions. This uses $O(n^3)$ work,
+total allocated words at most that work, and $O(n^2)$ live matrix words.
+Here $n\leq\operatorname{vol}(G)<2/e$, so these costs fit the stated
+bound. The computation is implemented arithmetic, not a dense reference
+callback standing in for a faster numerical source.
+
+The stable-record, sorted-array, cached-incidence and intrusive-queue
+accounting is exactly the native theorem's: first discovery costs
+$O(e^{-2})$, and all repeated updates cost $O(P)$. Adding counter
+checks and the possible closed solve preserves the cubic bound.
+Emit $\bar\alpha D x$ or $\bar\alpha D y$ in one paid pass.
+The positive-support labels are unchanged by a proper return and can
+only lie in the already known whole graph on the exact branch.
+All claims are in the exact-real word model; arbitrarily small target
+teleportation may still cause large rational numerators and denominators.
+\end{proof}
+
+\paragraph{Implemented audit and remaining rate.}
+\path{conservative_local_producer.py} implements every production step,
+including the dense target solve. Its independent validators check
+original residuals, conservative strict-superlevel flux, prefix maximum
+and monotone-value work bounds, counter-based closure, cached graph access,
+and exact zero residual after a closed solve. The regime boundary
+$\bar\alpha=e^2/4$ is tested exactly. Source and backend hashes,
+parameters, counts and work reservations are in
+\path{CONSERVATIVE_LOCAL_PRODUCER_AUDIT.json}.
+The native interface now permits zero teleportation only with the
+first-full-support stop; its original positive-parameter audit is rerun.
+This refinement improves the explicit reference and support constant.
+Its cubic worst-case rate remains weaker than the existing nearly
+quadratic source bound, and general OP3 remains \statusopen.
+
+The full run checks 2,065 original target certificates, 3,223 exact
+prefixes and 985 conservative strict-superlevel identities in 1.209
+seconds. It includes 29 implemented closed-system solves, 1,158 pushes,
+2,061 degree-weighted updates and three private huge-hub compositions.
+Target parameters extend to $2^{-1024}$. At $\epsappr=1/8$ on the
+two-vertex graph, this method uses two pushes and one exact solve,
+compared with 1,744 pushes by the earlier floor reference. Both satisfy
+the same target ACL accuracy, although their internal tolerances differ.

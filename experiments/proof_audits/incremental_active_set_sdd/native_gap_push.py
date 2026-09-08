@@ -90,8 +90,8 @@ class SortedRecords:
 
 
 class NativePush:
-    def __init__(self, oracle, seed, alpha, epsilon, work):
-        assert 0 < alpha <= 1 and 0 < epsilon < 1
+    def __init__(self, oracle, seed, alpha, epsilon, work, allow_zero=False):
+        assert 0 <= alpha <= 1 and (alpha > 0 or allow_zero) and 0 < epsilon < 1
         self.oracle, self.seed, self.alpha, self.epsilon, self.work = (
             oracle,
             seed,
@@ -141,7 +141,10 @@ class NativePush:
             self.work["first_row_stable_neighbor_pointer_writes"] += 4
         assert number == record.degree
 
-    def run(self, validator=None):
+    def run(self, validator=None, stop_on_full_support=False):
+        # The conservative extension is proved separately and must stop at
+        # the first full-support prefix, before further constant-mode pushes.
+        assert self.alpha > 0 or stop_on_full_support
         if validator is not None:
             validator(self)
         while self.head is not None:
@@ -169,6 +172,10 @@ class NativePush:
             assert 0 <= self.mass <= 1
             if validator is not None:
                 validator(self)
+            if stop_on_full_support:
+                self.work["paid_full_support_counter_comparisons"] += 3
+                if self.active_count == self.records.size:
+                    break
         output, position = [None] * self.active_count, 0
         self.work["graph_state_words_reserved"] += 3 * self.active_count
         self.work["final_output_initialization"] += self.active_count + 2

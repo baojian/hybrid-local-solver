@@ -40,6 +40,46 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 10: conservative discovery and first closure
+
+**Proved here, awaiting independent review:** The stopped conservative
+gap push needs no globally stabilizing obstacle. Unit superlevel flux
+controls each edge difference; proper support bounds the maximum by its
+cardinality. The last push first making support full also obeys a bounded
+maximum, and the process stops immediately there. Its monotone-value
+budget gives fewer than 8/eps_appr^3 degree-weighted updates.
+
+For bar_alpha<=eps_appr^2/4, a proper conservative output transfers upward
+to the target parameter using its active residual margin. Larger parameters
+use native damped pushes. Equality of maintained positive/discovered counts
+detects the whole graph without ambient n; a paid in-place LDL^T solve
+then gives exact original target PageRank. Total work and allocation are
+O(eps_appr^-3), original row volume is below 2/eps_appr, and all original
+rows/degrees are cached once. Live graph state is linear in inverse accuracy;
+the optional dense matrix uses quadratic space. This remains a weaker
+reference, not the conjectured reuse rate or a floating-point theorem.
+
+**Measured:** 2,065 original target certificates, 3,223 exact prefixes,
+985 conservative superlevel identities and 29 implemented exact closed
+solves; 1,158 pushes, 2,061 degree-weighted updates and three private
+huge-hub cases. Alpha extends to 2^-1024. The two-vertex case uses two
+pushes and one exact solve instead of the old reference's 1,744 pushes.
+Internal tolerances differ; both certify the same target accuracy.
+
+**Open / next:** Investigate the explicit conservative-envelope equivalence
+probe. A capped whole-component exploration may handle small ambient
+graphs in the desired work, leaving a well-posed proper conservative
+obstacle. The torsion comparison and two algorithmic reductions need
+proof and charged implementation checks before being claimed. Formal
+dependencies remain `["problem_definitions"]`; neither the OP2 note nor
+the bounded-treewidth comparisons were imported into this result.
+
+Checkpoint verification: the 161-page note builds without final warnings;
+new proof pages were visually reviewed. All 79 own scripts and three
+registry tests pass. Broad checks retain the recorded baseline failures,
+with all five hashes unchanged; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK10_AUDIT.json`.
+
 ## Third campaign, block 9: a paid native reference and sandpile mapping
 
 **Proved here, awaiting independent review:** `thm:op3-native-gap-push`
