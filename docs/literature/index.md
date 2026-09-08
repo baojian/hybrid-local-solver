@@ -89,6 +89,21 @@ methods whose work is intended to depend on local structure.
   densely-interconnected vertex sets.
 - *Revisiting Local Computation of PageRank: Simple and Optimal* (Wang et al.,
   2024).
+- [*Approximating Single-Source Personalized PageRank with Absolute Error Guarantees*](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICDT.2024.9)
+  (Wei, Wen and Yang, ICDT 2024, LIPIcs 290:9:1–9:19;
+  DOI 10.4230/LIPIcs.ICDT.2024.9) — degree-normalized sparse-output
+  comparison; fixed-alpha and preprocessing assumptions are audited in
+  `local-solvers.md` against arXiv:2401.01019v1.
+- [*Personalized PageRank Estimation in Undirected Graphs*](https://arxiv.org/abs/2602.10843)
+  (Bertram and Jensen, arXiv:2602.10843v1, 11 February 2026 preprint) —
+  undirected thresholded-relative estimation and graph-access lower bounds;
+  its error, source-average and fixed-alpha scope are in `local-solvers.md`.
+- [*Near-Optimality for Single-Source Personalized PageRank*](https://arxiv.org/pdf/2507.14462v5)
+  (Jiang, Liu, Luo and Xiao, Proc. ACM Manag. Data 4(2), Article 110,
+  May 2026, 55 pages; DOI 10.1145/3801906) — directed SSPPR absolute/relative
+  bounds. Checked v5 replaces the earlier title *Tighter Lower Bounds for
+  Single Source Personalized PageRank*; see `local-solvers.md` for the
+  accuracy/access barriers to OP3 transfer.
 - *Fast Online Node Labeling for Very Large Graphs* (Zhou, Sun, and
   Babanezhad Harikandeh, 2023).
 - *Faster Local Solvers for Graph Diffusion Equations* (Bai et al., 2024).

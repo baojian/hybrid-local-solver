@@ -1,0 +1,151 @@
+\section[Lower-bound quantifiers]{What the literature lower bounds imply for OP3}
+\label{sec:op3-lower-bound-quantifiers}
+
+\paragraph{Scope and formal import.}
+Use the original connected simple undirected unweighted graph, a point seed
+$v$, and an explicit sparse output with omitted coordinates equal to zero.
+Here $\gamma=(1-\alpha)/(1+\alpha)$, $\bar\alpha=1-\gamma$ and
+$\bm M=\bm D-\gamma\bm A$. All graph access, arithmetic, comparisons,
+allocation, retained state and output are charged. This section imports
+only the star formula and fixed-parameter sparse-output argument from
+\href{../problem_definitions/open_conjectures_proof_attempt.md}{the
+problem-definition proof attempt, Proposition 5}. Its nonlazy parameter
+maps to $\bar\alpha$. The new consequences below audit its uniform
+quantifiers and distinguish worst-case optimality from an upper-bound proof.
+
+\paragraph{Certificate direction.}
+For $0\leq\bm r=\bm e_v-\bm M\bm u\leq\epsappr\bm d$, put
+$\bm p=\bar\alpha\bm D\bm u$. Since
+$\bm M^{-1}\geq0$ and $\bm M\one=\bar\alpha\bm d$,
+\[
+ 0\leq\bm D^{-1}(\bm\pi-\bm p)
+ =\bar\alpha\bm M^{-1}\bm r\leq\epsappr\one.
+\]
+Thus a lower bound for explicit semantic output applies to this stronger
+ACL certificate. The reverse implication requires another argument.
+
+\begin{corollary}[Uniform accuracy-scale output obstruction; \statusproved]
+\label{cor:op3-uniform-output-lower-bound}
+For every $0<\alpha\leq1/3$ and $0<\epsappr\leq1/16$, there is a
+center-seeded star on which every valid explicit sparse ACL output has
+at least $1/(16\epsappr)$ nonzero coordinates. Consequently its output
+work is $\Omega(1/\epsappr)$, uniformly as $\alpha$ tends to zero.
+For a randomized algorithm with a constant success probability, the same
+bound holds in expectation. It is not a lower bound valid for every
+fixed $\alpha\in(0,1]$, or on every graph.
+\end{corollary}
+\begin{proof}
+The imported formula, after substituting $\bar\alpha=2\alpha/(1+\alpha)$,
+gives center mass $(1+\alpha)/2$ and leaf mass $(1-\alpha)/(2m)$.
+Take $m=\lfloor1/(8\epsappr)\rfloor$. Then
+$m\geq1/(16\epsappr)$, while every degree-one leaf has mass
+at least $1/(3m)\geq8\epsappr/3>\epsappr$.
+The semantic consequence above prevents omission of any such leaf.
+Multiply the mandatory output size by the success probability for the
+expected-work statement. At $\alpha=1$, the exact answer is just
+$\bm e_v$, explaining the endpoint qualification.
+\end{proof}
+
+This is a necessary accuracy scale for an affirmative OP3 result. It
+neither establishes the conjectured upper bound nor requires a polynomial
+inverse-$\alpha$ factor. The proof charges the emitted words alone and
+does not require an additional assumption about globally known vertex labels.
+
+\begin{proposition}[A sharper one-coordinate gate; \statusproved]
+\label{prop:op3-sharp-seed-only-gate}
+One seed-degree query permits the original ACL output associated with
+\[
+ u_v=\max\{0,1/d_v-\epsappr\},\qquad u_i=0\quad(i\ne v),
+\]
+whenever $\epsappr d_v\geq\gamma/(1+\gamma)=(1-\alpha)/2$.
+This costs constant word work and reads no adjacency entry.
+On center-seeded stars this threshold is necessary and sufficient among
+outputs supported only at the seed.
+\end{proposition}
+\begin{proof}
+If $\epsappr d_v\geq1$, the zero output is valid. Otherwise the seed
+residual is $\epsappr d_v$; each neighbor has residual
+$\gamma(1/d_v-\epsappr)\leq\epsappr\leq\epsappr d_i$;
+and every other residual is zero. All are nonnegative. For necessity on
+a star, a seed-supported valid output must have
+$u_v\geq1/d_v-\epsappr$ and, at every degree-one leaf,
+$\gamma u_v\leq\epsappr$. Their combination gives the claimed
+threshold. The case $\gamma=0$ is included directly.
+\end{proof}
+
+This strengthens the sufficient gate in
+\cref{prop:op3-seed-only-shortcut}. It is an approximate certificate,
+not an exact obstacle solution. It illustrates why output size can be
+much smaller than a mass divided by the allowed error on an individual input.
+
+\paragraph{Source comparison.}
+\citet[Definitions 1--2 and Section 1.2, full-version pp.\ 2--3]{wei2024absolute}
+study degree-normalized SSPPR-D on undirected graphs, but fix nonlazy
+$\alpha$ and suppress ambient $\operatorname{polylog}(n)$ factors.
+Their Appendix D, p.\ 22, also assumes a full-graph preprocessing step
+for RBS. Their stated query bound is therefore not the local OP3 upper
+bound. The mass-over-error expression in their output discussion is not
+used here as a pointwise lower bound; the next proposition explains why.
+\citet[Theorem 4.2.2, PDF p.\ 26]{bertram2026undirected} give an
+undirected $\Omega(\min\{m,1/\delta\})$ thresholded-relative lower bound
+under several stronger access models, with fixed decay and error constants.
+\citet[Theorems 1.6 and 1.8, pp.\ 5--6]{jiang2026nearoptimality} give
+stronger bounds for directed relative/absolute SSPPR. These source
+statements require error/model reductions before any OP3 comparison.
+
+\begin{proposition}[Instancewise mass bound; \statusrefuted]
+\label{prop:op3-pointwise-mass-lower-bound-refuted}
+Let $H_v=\sum_i\pi(v,i)/d_i$. It is false that every original graph and
+point seed require $\Omega(H_v/\epsappr)$ local work for an explicit
+ACL output. The statement remains false if the work and $H_v$ are
+averaged over sources on each individual graph, even when
+$1/\epsappr=o(n)$. This does not refute a worst-graph existential bound.
+\end{proposition}
+\begin{proof}
+The following local procedure is valid on every original graph. Define
+$\bm P=\bm A\bm D^{-1}$ and choose an integer $K$ with
+$\gamma^K\leq\epsappr$. Starting with $\bm w_0=\bm e_v$, form
+\[
+ \bm w_{j+1}=\gamma\bm P\bm w_j,\qquad
+ \bm u_K=\bm D^{-1}\sum_{j=0}^{K-1}\bm w_j.
+\]
+Each multiplication queries only the degree and adjacency list of a
+currently nonzero coordinate; row caches and sparse maps can be built
+from the discovered labels. Telescoping gives
+\[
+ \bm e_v-\bm M\bm u_K=\bm w_K\geq0,
+ \qquad \one^\top\bm w_K=\gamma^K\leq\epsappr.
+\]
+Since original degrees are at least one, this is the required ACL
+certificate. The algorithm needs neither $n$ nor a supplied support.
+
+Now take a cycle with $n=2^{2k+2}$ vertices, $\alpha=1/3$ and
+$\epsappr=2^{-k}$, for any integer $k\geq1$. Then $\gamma=1/2$
+and $K=k$. Only distance at most $k$ is discovered, so all row queries,
+stored labels and output occupy $O(k)$ words. There are $O(k^2)$ sparse
+coordinate operations over all rounds. Even simple deterministic
+linear-search maps charge at most $O(k)$ work per lookup/update, giving
+total $O(k^3)$ word work, including all comparisons, temporary
+allocations, row reads and final output. This is a conservative bound;
+no fast dictionary primitive is needed for the separation.
+Every cycle vertex has degree two, so $H_v=1/2$ and
+$H_v/\epsappr=2^{k-1}$. This grows faster than $k^3$, and
+$1/\epsappr=2^k=o(n)$. Rotation symmetry makes the same construction
+valid for every seed; both uniform and degree-proportional source
+averages give the same separation. An existential hard graph can still
+have much larger work, so the worst-case output lower bound is unaffected.
+\end{proof}
+
+\paragraph{Evidence and remaining question.}
+\texttt{lower\_bound\_quantifiers.py} checks the imported star formula
+by independent exact original-system solves, the sharpened degree gate
+on connected graph-atlas inputs, and explicit cycle runs through an
+oracle that keeps the ambient size private. Its maps charge every label
+comparison, all repeated arithmetic, array append/copy budgets, row
+storage, release work and emitted records. Dense solves and original
+residual validation are separately identified audit work.
+The primary-source hashes, versions and page-level transfer map are in
+\texttt{LOWER\_BOUND\_LITERATURE\_AUDIT\_20260908.md}.
+General OP3 remains \statusopen: the required inverse-accuracy scale is
+justified, while a graph-uniform upper bound with only logarithmic
+inverse-$\alpha$ dependence still needs a complete algorithm and proof.

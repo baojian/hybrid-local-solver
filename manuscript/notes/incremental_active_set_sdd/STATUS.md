@@ -1,5 +1,46 @@
 # Direction status: incremental_active_set_sdd
 
+## Third campaign: lower-bound audit and 600 additional active minutes
+
+The user requested another ten active hours after checking whether existing
+lower bounds support the conjecture's scale. This campaign began on
+8 September 2026 at 02:44:03 UTC; both prior campaigns are excluded.
+Use [the current campaign status](OVERNIGHT_20260908_STATUS.md) and
+`OVERNIGHT_20260908_WORK_LOG.json` for continuation and actual active time.
+
+**Source / Proved here:** the literature review supports worst-case
+inverse-accuracy optimality, with the existing problem-definition star
+result imported explicitly. Corollary `cor:op3-uniform-output-lower-bound`
+makes its constant uniform for lazy alpha in `(0,1/3]`. This is not a
+proof of the conjectured upper bound. The new seed-only gate reduces the
+sufficient threshold to `eps_appr*d_v >= (1-alpha)/2` with one degree query.
+
+**Refuted:** the instancewise reading of the mass-over-degree divided by
+epsilon lower bound. A cycle family has that expression exponential in k
+and a deterministic local original-ACL computation costing O(k^3), including
+linear-search maps. This does not refute any existential worst-graph bound.
+See `sec:op3-lower-bound-quantifiers` and
+[the source transfer map](LOWER_BOUND_LITERATURE_AUDIT_20260908.md).
+
+**Measured:** the exact audit passes 44 independent star-system solves,
+132 exact seed-only threshold cases, 231 uniform-alpha output cases,
+1,096 original degree-gate inputs and 36 local cycle runs. The latter
+check 1,764 original residual rows; at k=128 the algorithm emits 255
+coordinates and records 3,812,842 charged units without reading ambient n.
+Source and backend hashes are in `LOWER_BOUND_QUANTIFIERS_AUDIT.json`.
+
+**Open / next:** general OP3, the weighted supplied-constructor extension,
+and potential-driven local discovery. Continue the additional campaign;
+this first literature checkpoint does not complete the ten-hour request.
+The formal dependency is now `problem_definitions`, specifically its
+Proposition 5 star formula/output argument. Other directions remain
+context/provenance only. The 127-page note builds without final warnings;
+65 own scripts and three registry tests pass. Broad checks retain only the
+recorded baseline failures, with all five baseline hashes unchanged.
+See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
+
+## Historical second campaign completion
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target
@@ -1005,7 +1046,9 @@ Support complete boundary-violation reporting under dense implicit Schur correct
 
 ## Dependencies and reusable outputs
 
-- Formal registry dependencies: none.
+- Formal registry dependencies: `problem_definitions`.
+  The third campaign imports Proposition 5 in its proof-attempt supplement
+  for the star formula and fixed-parameter sparse-output argument.
 - Source/shared prerequisites: the shared PageRank/RPPR model and the
   Wei--Yang 2026 source.
 - Supplies to: `response_preconditioned_hybrid` (block correction and implicit interface), `local_solver_oracle_hierarchy` (path representation separation), and the controller's persistent-response track.

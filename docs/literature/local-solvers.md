@@ -58,6 +58,67 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   graph-independent local volume and reconcile each algorithm’s signed or
   monotone residual with the eventual implementation-wide stopping rule.
 
+## Citation key: `wei2024absolute`
+
+- Citation: Zhewei Wei, Ji-Rong Wen and Mingji Yang. *Approximating
+  Single-Source Personalized PageRank with Absolute Error Guarantees*.
+  ICDT 2024, LIPIcs 290, 9:1–9:19, 14 March 2024.
+  [Published metadata](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICDT.2024.9),
+  DOI 10.4230/LIPIcs.ICDT.2024.9.
+- Checked source: [arXiv:2401.01019v1](https://arxiv.org/pdf/2401.01019v1).
+  PDF pp.2–3, Definitions 1–2 and Section 1.2: fixed nonlazy alpha,
+  degree-normalized SSPPR-D, sparse output and probability `1-1/n`.
+  Page 1 permits ambient polylog(n). Appendix D, p.22 assumes Theta(m)
+  preprocessing for RBS; Theorem 20, p.24 states the query-time bound.
+- OP3 use: supports the worst-case accuracy-scale comparison, with the
+  existing star proof supplying a parameter-explicit ACL output lower bound.
+  The pointwise interpretation `work(G,s,eps)>=Omega(sum(pi/d)/eps)` is
+  **Refuted** by a local truncated-walk cycle family in
+  `incremental_active_set_sdd`, `prop:op3-pointwise-mass-lower-bound-refuted`.
+  This does not refute an existential worst-graph bound or the source's
+  intended worst-graph average-source statement. Fixed alpha, prepaid
+  preprocessing and semantic output prevent direct import as OP3's upper
+  bound. See `LOWER_BOUND_LITERATURE_AUDIT_20260908.md` in that note for
+  source hashes and the exact quantifier distinction.
+
+## Citation key: `bertram2026undirected`
+
+- Citation: Christian Bertram and Mads Vestergaard Jensen. *Personalized
+  PageRank Estimation in Undirected Graphs*. Preprint,
+  [arXiv:2602.10843v1](https://arxiv.org/pdf/2602.10843v1), 11 February 2026.
+- Exact pointers: PDF p.3 fixes alpha and describes discovered-label
+  degree/neighbor access, optionally random jumps, degree-sorted neighbors
+  and adjacency tests. Equation (2), PDF p.7, gives per-target thresholded
+  relative/additive error and constant failure probability. Theorem 4.2.2,
+  PDF p.26 (printed p.24), proves `Omega(min(m,1/delta))` averaged over
+  a uniform source, even with all optional query types.
+- OP3 differences: the proof permits disconnected hard graphs and assumes
+  the error constant is at most `(1-alpha)^3*alpha/4`. Error is not divided
+  by target degree. It does not establish an inverse-alpha lower bound for
+  the original connected, degree-normalized ACL task. The preprint's
+  undirected frontier is relevant evidence, not a completed reduction.
+
+## Citation key: `jiang2026nearoptimality`
+
+- Citation: Xinpeng Jiang, Haoyu Liu, Siqiang Luo and Xiaokui Xiao.
+  *Near-Optimality for Single-Source Personalized PageRank*.
+  Proc. ACM Manag. Data 4(2), Article 110, May 2026, 55 pages,
+  DOI 10.1145/3801906. Metadata is printed on the checked primary PDF;
+  the ACM page returned 403 on 8 September 2026.
+- Checked source: [arXiv:2507.14462v5](https://arxiv.org/pdf/2507.14462v5),
+  12 April 2026; earlier versions were titled *Tighter Lower Bounds for
+  Single Source Personalized PageRank*.
+- Exact pointers: Definitions 1.1–1.2, p.3 fix alpha and joint failure
+  probability; Theorems 1.6/1.8, pp.5–6 give
+  `Omega(min(m,log(1/delta)/delta))` relative and
+  `Omega(min(m,1/epsilon^2))` absolute-error SSPPR lower bounds.
+  Section 2/Definition 2.2, p.6 uses directed graphs and arc-centric
+  degree/adjacency queries with random jumps. Section 5, pp.16–18,
+  describes the directed Bernoulli-matrix hard family.
+- OP3 use: a generic directed-task lower bound, not an algorithm-specific
+  obstruction. It requires an undirected graph and degree-error reduction
+  before comparing with OP3; no such reduction is claimed here.
+
 ## Citation key: `chen2023accelerating`
 
 - Citation: Zhen Chen, Xingzhi Guo, Baojian Zhou, Deqing Yang, and Steven

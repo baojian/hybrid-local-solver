@@ -1,3 +1,20 @@
+# Third campaign, block 1 (8 September 2026)
+
+The lower-bound quantifier audit passes with exact fractions: 44 dense
+star validators, 132 exact seed-only thresholds, 231 uniform-alpha cases,
+1,096 degree-gate inputs and 36 local cycle runs. Source/backend hashes
+match the final files. The 127-page note has no final warnings; pages
+121–124 were visually reviewed. All 65 own scripts pass lint/format and
+three registry tests pass. Agent audit passes. Broad tests have 231 passes
+and the same three baseline failures; broad lint has two unchanged
+findings; note audit has only the two unchanged oversized AESP sources.
+All five baseline source hashes match. Reproduction stops at tests; later
+stages did not run. An initial missing formal dependency in the status
+was corrected and the affected checks rerun. Formal dependency now:
+`problem_definitions`, Proposition 5 star formula/output argument.
+See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`. The new 600-minute campaign
+continues; neither prior night is counted.
+
 # OP3 exploration verification
 
 Latest block: **Second night, block 12**, recorded in

@@ -1,5 +1,15 @@
 # incremental_active_set_sdd
 
+The **third campaign is active**: ten additional research hours, beginning
+with the literature lower-bound audit requested by the user. Read
+[the current status](OVERNIGHT_20260908_STATUS.md),
+[the transfer map](LOWER_BOUND_LITERATURE_AUDIT_20260908.md), and
+`sec:op3-lower-bound-quantifiers`. Worst-case inverse-accuracy optimality
+is supported; general OP3 remains Open. Formal dependencies now include
+`problem_definitions` for its existing star formula and output argument.
+The completed second campaign below is historical and is not counted
+toward the new ten-hour minimum.
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target
