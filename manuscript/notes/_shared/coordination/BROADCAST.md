@@ -8,6 +8,21 @@ redistribution history lives in [`rounds/`](rounds/); detailed current proof
 state lives in each direction's `STATUS.md`; formal roles and dependencies
 live in [`../../registry.toml`](../../registry.toml).
 
+## OP3 direction update, 8 September 2026
+
+General source-native ACL OP3 remains **Open**. The independent lower-bound
+audit supports its worst-case inverse-accuracy scale, not its upper bound.
+The standalone direction now has supplied-envelope/conservative reductions
+and a source-backed fast local construction on unsupplied original
+twin-quotient trees. All new results are proof drafts awaiting independent
+review; exact tests are not a substitute for proof review. Read
+[`incremental_active_set_sdd/STATUS.md`](../../incremental_active_set_sdd/STATUS.md)
+and its current campaign synthesis before reusing these results. The fast
+balancing algorithm is a source import and dense numeric drivers are
+reference work. Formal import dependency: `problem_definitions`; earlier
+comparison notes are provenance only. The active manuscript and the global
+semantic target below are unchanged by this standalone campaign.
+
 ## Global contract
 
 - The end-to-end target takes one seed vertex `v` (`s=e_v`) and returns

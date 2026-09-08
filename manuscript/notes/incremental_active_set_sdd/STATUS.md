@@ -40,6 +40,33 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 21: complete twin-quotient-tree composition
+
+**Proved here, awaiting independent review:** `thm:op3-local-twin-quotient-tree`
+composes the paid single-parent-heap stream with weighted rooted callbacks
+and the checked published top-tree algorithm. On an unsupplied original
+twin-quotient tree, it returns exact physical obstacles (kappa=0) or
+original ACL output (lambda=eps_appr/2, kappa=eps_appr/4) with
+O((1+V)*log^4(2+V)) work and O((1+V)*log^3(2+V)) retained words,
+V<1/lambda. All graph queries, heap changes, failed gates, named means,
+links, source-class growth, numerical records and final output are charged.
+The four-type double-star output lower bound belongs to this family.
+The canonical dyadic RPPR consequence remains separate from ACL output.
+
+**Measured:** 5,129 complete outputs and 58,047 original residual rows;
+10,161 physical/quotient checkpoints; 37,583 heap and 16,152 whole-type
+checks. The root-before-links order passes 12,917 positive SDD
+intermediates, including 1,298 combined root-growth/new-leaf transactions.
+Private huge ambient hubs, signed labels, high penalties and tiny alpha
+pass. See `LOCAL_TWIN_TREE_STREAM_AUDIT.json`.
+
+**Implementation boundary:** local graph/heap/type state and weighted
+application callbacks are implemented. The stream's numeric driver is an
+explicitly slow dense reference with separately counted global heap scans.
+The fast balancing layer is a source algorithm, not an implemented
+experiment. No bit-complexity or floating-point claim follows. General
+OP3 remains Open; see the final campaign synthesis for the next targets.
+
 ## Third campaign, block 20: sparse twin-tree interfaces
 
 **Proved here, awaiting independent review:** The paid original-type map

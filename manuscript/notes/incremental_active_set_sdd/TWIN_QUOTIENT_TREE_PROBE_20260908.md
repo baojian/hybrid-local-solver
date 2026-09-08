@@ -127,3 +127,24 @@ Only claim an end-to-end source-backed fast local solver once graph discovery,
 all degree heaps, special-root gates, online balancing, callback updates and
 final physical/canonical output have complete charged contracts. Otherwise
 record the proved reduction and the precise remaining interface as Conditional.
+
+
+## Completion after blocks 20–21
+
+The paid descriptor and weighted/bulk update obligations are now proved
+in `sec:op3-twin-quotient-tree`. The full single-parent-heap state machine
+and source-backed numerical composition are proved, as drafts awaiting
+independent review, in `thm:op3-local-twin-quotient-tree`. The three scripts
+`twin_quotient_tree.py`, `weighted_tree_payloads.py` and
+`local_twin_tree_stream.py` have separate full exact audits. In particular,
+the final audit covers 1,298 transactions that grow the source class and
+add new ordinary leaves; source refresh precedes links, and every
+intermediate weighted matrix is positive and SDD in the audit.
+
+This closes the restricted quotient-tree construction at the proof level.
+The published online balancing algorithm is still imported, and the
+stream audit's dense numeric reporter remains a deliberately slow
+reference. A bounded-cycle quotient extension is a new target; do not
+silently apply the original unweighted cycle-rank theorem to weighted
+quotient loads, changing source multiplicity or source-class contrast.
+General OP3 remains Open.

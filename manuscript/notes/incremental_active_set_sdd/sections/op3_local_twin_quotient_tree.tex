@@ -1,0 +1,225 @@
+\section{A complete local algorithm on unsupplied twin-quotient trees}
+\label{sec:op3-local-twin-quotient-tree}
+
+The previous section's sparse descriptors and weighted callbacks now
+compose with a paid heap-driven local state machine. This is a
+\statusproved{} proof draft awaiting independent review. The published
+height-bounded top-tree algorithm remains an explicit \statussource{}
+import. The local state machine and application primitives are implemented;
+the numerical driver used to test the state machine is a deliberately slow
+reference, not an implementation of the source's online algorithm.
+
+\begin{theorem}[Local exact and ACL work on twin-quotient trees; \statusproved]
+\label{thm:op3-local-twin-quotient-tree}
+Suppose the original connected simple unweighted graph's canonical
+uncolored neighborhood-type quotient is a tree or one vertex. Given only
+a physical seed and local degree/adjacency queries, there exists a
+deterministic exact-real word algorithm, for $0<\alpha\leq1$,
+$\lambda>0$ and $\kappa\geq0$, returning $x\geq0$ with
+\[
+ 0\leq e_v-(D-\gamma A)x\leq(\lambda+\kappa)d,
+ \qquad (e_v-(D-\gamma A)x)_i=\lambda d_i\quad(x_i>0).
+\]
+Its final positive-support volume satisfies $V<1/\lambda$. Its work is
+$O((1+V)\log^4(2+V))$, and all retained application versions occupy
+$O((1+V)\log^3(2+V))$ words. It receives no global type partition, quotient,
+ambient-size parameter or preprocessing. Every original row, degree query,
+heap operation, failed report, numerical and structural update, allocation,
+materialized coordinate and output word is charged. There is no target
+teleportation dependence in these exact-real word bounds.
+
+Taking $\kappa=0$ gives the exact physical obstacle. Taking
+$(\lambda,\kappa)=(\epsappr/2,\epsappr/4)$ gives original ACL output
+$\bar\alpha D x$ in $\widetilde O(\epsappr^{-1})$ work. This restricted
+result does not settle general OP3 on arbitrary graphs.
+\end{theorem}
+\begin{proof}
+\emph{Initial state and local records.}
+Query $d_v$. If $1\leq(\lambda+\kappa)d_v$, zero satisfies the certificate;
+for $\kappa=0$ it satisfies the obstacle KKT conditions. Otherwise admit
+the positive singleton $x_v=1/d_v-\lambda$. If $\gamma=0$, this is already
+terminal and can be returned directly. Assume henceforth $\gamma>0$.
+Read the positive source row, cache its neighbors and their degree replies,
+and initialize the paid original-type descriptors of
+\cref{prop:op3-paid-twin-tree-descriptors}.
+
+Each active quotient node $P$ owns a binary heap of its ordinary inactive
+candidates, ordered by original $(D_i,i)$. The only other heap stores
+exceptional missing source twins. Each physical record belongs to exactly
+one heap or is admitted. Records, dictionaries, stable heap positions,
+rooted quotient depths and incident-edge locators are allocated only when
+exposed by an admitted original row. At the initial singleton all its
+neighbors belong to the ordinary source heap.
+
+\emph{A complete original gate without a frontier scan.}
+Home only the minimum live ordinary heap member at its active parent's
+incident base edge. Its owned row is
+\[
+ y_P>\theta_P,\qquad
+ \theta_P=\frac{(\lambda+\kappa)D_{\min(P)}}{\gamma n_P}>0;
+\]
+an empty heap owns no row. Use the mean system
+\eqref{eq:op3-twin-tree-mean-system}, keep the source type geometrically
+rooted, and expose it as the sole external port at each checkpoint.
+The weighted callbacks of \cref{lem:op3-weighted-twin-tree-callbacks}
+maintain the exact root Schur equation and the one-port reporter. Solving
+that scalar equation returns $y_R$. The reporter's minimum threshold
+either identifies an actual strict ordinary gate or certifies that all
+ordinary heaps are quiet. Its retained label identifies the original
+candidate and hence its heap through a paid dictionary lookup. The
+singleton quotient has the same scalar gate directly.
+
+If the exceptional heap is nonempty, $n_R=1$ and $y_R=u_v$. Its members
+are exactly the remaining source twins and share degree and clique bit.
+Check \eqref{eq:op3-twin-tree-exceptional-gate} once. This is an additional
+constant-size gate, not a sum over its possibly many active physical
+neighbors. Every checkpoint, including the final unsuccessful one, checks
+both kinds as needed.
+
+\emph{Whole types from one named parent.}
+If the exceptional gate is positive, select its entire heap. Otherwise,
+if the ordinary reporter is positive, query the named parent's mean by
+one current incident-edge ancestor walk. The affine pullback in
+\cref{lem:op3-cluster-point-query} uses the same weighted recovery records
+and takes $O(\log(2+V))$ work. Fix this old value and repeatedly remove
+heap minima satisfying
+$\gamma n_Py_P>(\lambda+\kappa)D_i$. Stop at the first failing minimum.
+At least one member is removed. This operation never scans the other heaps.
+
+Every still-unadmitted original type is either wholly undiscovered or
+wholly known in one heap: its first adjacent row reveals all remaining
+members, its active quotient parent set is common, and all its degrees
+are equal. Once a second distinct active type is seen, every missing
+source twin moves to the same exceptional heap before the checkpoint.
+Thus the selected batch consumes whole nonseed types and either none or
+all of the remaining source type. Its full original twins are identified
+from its newly paid rows, independently of the old heap identity.
+
+\emph{Positivity before the rows are paid.}
+Let $B$ be the selected batch and $S$ the old support. Each selected
+original residual has $r_i>(\lambda+\kappa)D_i$, so its transformed
+obstacle load $h_i=r_i-\lambda D_i$ is strictly positive. The Schur
+block of $M=D-\gamma A$ on $B$ is an SPD M-matrix. Therefore its inverse
+maps $h_B$ to a strictly positive correction; the old face correction is
+nonnegative. The enlarged face is positive, has residual $\lambda d$ on
+$S\cup B$, and has nonnegative residual elsewhere. Consequently
+\[
+ \lambda\vol(S\cup B)
+ \leq 1-\bar\alpha\sum_i d_i x_i^{S\cup B}<1.
+\]
+The whole batch's degree sum is known before its adjacency is read, so
+this argument pays every new original row. In particular no minimum
+strict-gate gap is required.
+
+\emph{A numerical transaction with no hidden rebuild.}
+Read each selected row once, assign its whole original twin classes, and
+update the sparse descriptors. Reinspect only these cached incidences to
+create ordinary candidates or move newly exceptional source candidates out
+of their previous ordinary heaps. Mark changed heap identities using a
+transaction index; duplicate changes do not cause a global scan. Each
+changed ordinary minimum requires its one home-edge payload refresh. Heap
+order remains degree order when a parent's multiplicity changes, so its
+whole heap is never rekeyed.
+
+New ordinary types are quotient leaves. Their parent and depth are known
+from the paid incidences. Allocate them one at a time and use source
+\texttt{link} and source-root \texttt{expose}, with the weighted rooted
+callbacks, as in \cref{thm:op3-local-top-tree}. All old nonseed diagonals
+and loads stay fixed. A new leaf has its final original diagonal and load;
+original grounding includes neighbors that have not yet been admitted.
+
+If the source type grows in this transaction, first perform the simultaneous
+source update on the existing tree, before linking its new ordinary leaves.
+Use its final multiplicity, final diagonal and load, and the final weights
+of its existing incident edges. This intermediate matrix is SDD: its root
+diagonal dominates even the final incident sum, and each other unchanged
+diagonal dominates its final incident sum too. The corresponding physical
+intermediate face admits the source remainder before the other selected
+types; its positivity also follows from their old positive gates. The
+marked-ancestor procedure in
+\cref{lem:op3-weighted-twin-tree-callbacks} avoids mixing old and new copies
+of the shared root data. Now link any new leaves with their final weights.
+A singleton root uses its scalar descriptor until the first link. Update
+all changed home rows and restore the source exposure before making another
+gate query. Old application versions are retained only as immutable history.
+
+\emph{Termination, recovery and all work.}
+A nonempty transaction admits a new physical vertex, so there are finitely
+many. At a quiet checkpoint both ordinary and special original gates
+satisfy the stated bound. Every other inactive vertex has zero original
+residual. Together with the positive active equations this proves the
+certificate, and proves exact KKT optimality when $\kappa=0$.
+
+All row queries, original degree replies, cached incidence inspections,
+full-row sorting, twin tries, heap insertions/removals and type descriptors
+cost $O((1+V)\log(2+V))$, by their paid volume and stable-record bounds.
+A member is inserted once and moves from an ordinary heap to the special
+heap at most once. There is at most one failed degree test per selected
+ordinary heap and one final quiet report. The number of changed heap
+minima, new leaf links, source exposures and named queries is $O(1+V)$.
+The exceptional gate adds constant work per checkpoint. The source
+multiplicity grows at most once and its $q\leq D_R$ old incident edges
+are paid by the newly admitted source members' volume.
+
+The checked source, Theorem 2.1 and Section 2.4 of
+\cite{alstrup2005toptrees}, journal pp.\ 247--248, supplies logarithmic
+height, current parent/edge pointers, and logarithmically many structural
+callbacks per link or expose. Weighted callbacks and home-payload walks
+therefore give the stated $\log^4$ work and $\log^3$ retained-space
+bounds. They use the number of locally created quotient nodes, not the
+ambient graph size. The local allocation or capacity-doubling argument in
+\cref{lem:op3-top-tree-payload} applies unchanged to the cached quotient
+tree and also charges all discarded allocations.
+
+Finally traverse only the current hierarchy once, recover all current
+mean values, and apply \eqref{eq:op3-twin-tree-source-contrast} to each
+admitted physical member. This costs $O(1+V)$ additional work and output
+words. No old full vector or historical hierarchy is traversed. Multiplying
+by $\bar\alpha D_i$ gives the promised original PageRank output.
+\end{proof}
+
+\paragraph{Separate canonical consequence.}
+For $\lambda=\rho$ and $\kappa=0$, the exact mean/contrast output is the
+physical obstacle. The direct dyadic materialization in
+\cref{thm:op3-rational-canonical-materialization} therefore gives canonical
+RPPR objective gap at most $\epsobj$ with additional
+$O((1+V)\log(2+\epsobj^{-1}))$ arithmetic work and dyadic output precision
+independent of target teleportation. This is a separate RPPR consequence;
+it makes no assertion that those dyadic canonical values are an ACL output.
+The internal exact-rational bit complexity and floating-point stability
+remain unproved.
+
+\paragraph{Matching accuracy power on this family.}
+The four-type double stars in
+\cref{prop:op3-four-type-output-lower-bound} have a path as their canonical
+type quotient. Thus even this restricted class contains arbitrarily large
+ambient graphs requiring $\Omega(\epsappr^{-1})$ original output words for
+$0<\alpha\leq1/3$. The new upper bound matches that worst-case accuracy
+power up to logarithms. It is not a lower bound on every individual input.
+
+\paragraph{Implementation boundary and measured evidence.}
+\path{local_twin_tree_stream.py} implements local degree caching, one-parent
+heaps, original twin batches, exceptional source transfers, sparse update
+notifications and final mean/contrast output. The numerical reference
+driver rebuilds a dense quotient and scans all heaps;
+these operations are explicit numerical reference work. The fast numerical
+composition above uses the source hierarchy and the independently audited
+weighted application callbacks. No source balancing implementation or
+floating-point speed measurement is claimed by this audit.
+
+The full run checks 2,560 complete original ACL outputs and 2,569 exact
+obstacle outputs, with 58,047 original final residual rows. Its 10,161
+positive checkpoints have 20,322 independent physical/quotient solves,
+41,714 mean/source-contrast coordinates, 37,583 heap membership/order
+checks and 16,152 whole-type discovery checks. It records 1,961 source
+enlargements, 368 special source admissions and 298 paid second-parent
+heap moves. The prescribed root-before-links ordering passes 12,917
+positive SDD intermediate checks, including 1,298 combined source-growth
+and new-leaf transactions. Signed labels, high penalties and tiny
+teleportation pass. Seven private huge-hub/double-star oracles certify
+original residuals while rejecting a remote hub-row query. For near-leaf
+counts $4,16,64,256$, the double star uses two type batches and the same
+five dense reference matrix words while its paid original volume grows.
+These are exact operation diagnostics, not measured fast-hierarchy timings.
+Parameters, all separate counters and source hashes are recorded in
+\path{LOCAL_TWIN_TREE_STREAM_AUDIT.json}.

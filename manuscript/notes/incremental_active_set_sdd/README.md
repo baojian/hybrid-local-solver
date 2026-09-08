@@ -10,6 +10,15 @@ is supported; general OP3 remains Open. Formal dependencies now include
 The completed second campaign below is historical and is not counted
 toward the new ten-hour minimum.
 
+The latest structural result is now `thm:op3-local-twin-quotient-tree`:
+O((1+V)*log^4(2+V)) local exact-real work on graphs whose original twin
+quotient is a tree, without a supplied partition. The heap-driven state
+machine, original gates, source contrast and weighted callbacks are
+implemented and audited; the fast hierarchy is an explicit published
+source algorithm. The separate dense numeric driver is reference work.
+Read `sections/op3_local_twin_quotient_tree.tex` and
+`LOCAL_TWIN_TREE_STREAM_AUDIT.json`. General OP3 remains Open.
+
 The second checkpoint proves a spectral comparison using rooted pieces
 and a linear-work weighted ownership decomposition with at most two
 shared boundaries per piece. Their exact audits pass 19,854 weighted
@@ -990,7 +999,8 @@ for ACL approximation. General OP3 remains Open.
 The third campaign's sparse type-tree reduction is now proof-drafted in
 `sec:op3-twin-quotient-tree`. It implements paid local type descriptors,
 mean/source-contrast recovery identities, ordinary and exceptional gates,
-weighted callbacks and simultaneous source payload refresh. The full fast
-local state-machine composition remains Conditional/Open. See
+weighted callbacks and simultaneous source payload refresh. The subsequent
+`thm:op3-local-twin-quotient-tree` completes the fast source-backed
+composition as a proof draft. See
 `TWIN_QUOTIENT_TREE_AUDIT.json`, `WEIGHTED_TREE_PAYLOADS_AUDIT.json` and
 the current campaign status; reference numerical work is labeled separately.

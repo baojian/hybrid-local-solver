@@ -13,6 +13,34 @@ RPPR algorithms, bounded-arithmetic proof, and PPR consequences in the active
 arXiv manuscript. Detailed preparation and validation are recorded in
 [`ARXIV_REVIEW.md`](../manuscript/ARXIV_REVIEW.md).
 
+## OP3 standalone update, 8 September 2026
+
+The source-native ACL question in `problem_definitions` remains **Open**
+on arbitrary graphs. Its accuracy is `eps_appr`; it is not silently
+identified with the semantic `eps_ppr` target below. The current research
+and source audit are in
+[`incremental_active_set_sdd/STATUS.md`](../manuscript/notes/incremental_active_set_sdd/STATUS.md).
+No result from this campaign has been promoted into the active manuscript.
+
+**Source / Proved here, proof drafts awaiting independent review:** the
+existing star output argument supports an existential Omega(1/eps_appr)
+bound uniformly for lazy alpha in (0,1/3]. An instancewise mass-over-error
+interpretation is refuted. The supplied weighted recursion and significant-
+envelope repair are complete under their stated source imports, with no
+target-alpha dependence for supplied-envelope arithmetic; near-linear
+general local discovery is still missing. A precise conservative-envelope
+equivalence isolates that remaining algorithmic target and its volume caps.
+
+The latest structural results are `thm:op3-batch-type-quotient`, with
+O((1+V+(1+k)^3)*log(2+V)) work under an unsupplied k-type promise, and
+`thm:op3-local-twin-quotient-tree`, with O((1+V)*log^4(2+V)) work when the
+canonical original-type quotient is a tree. The latter includes paid
+original degree heaps, special source twins, source contrast, weighted
+callbacks, simultaneous source updates and final output. The published
+fast tree hierarchy is imported; dense numeric reference drivers and
+supplied hierarchy enumeration are not fast implementations. See the
+own-note proof labels and separate exact audit records before reuse.
+
 ## Fixed end-to-end target
 
 The audit target is an exact-real algorithm on a finite simple undirected

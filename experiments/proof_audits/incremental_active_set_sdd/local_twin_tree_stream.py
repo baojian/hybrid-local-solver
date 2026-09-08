@@ -228,6 +228,37 @@ class ReferenceReporter:
     def sync(self, stream, new, enlarged, changed):
         nodes, edges = stream.ledger.nodes, stream.ledger.edges
         n = len(nodes)
+        old_n = len(self.means)
+
+        def check_intermediate(size):
+            intermediate = [[F(0)] * size for _ in range(size)]
+            for node in nodes[:size]:
+                intermediate[node.identity][node.identity] = node.diagonal
+            for edge in edges:
+                i, j = edge.left.identity, edge.right.identity
+                if i < size and j < size:
+                    intermediate[i][j] = intermediate[j][i] = -edge.weight
+            for node in nodes[:size]:
+                assert sum(intermediate[node.identity]) >= stream.bar * node.size * node.degree > 0
+            values = solve(intermediate, [node.load for node in nodes[:size]])
+            assert min(values) > 0
+            self.counts["reference_root_before_links_positive_SDD_intermediates"] += 1
+            self.counts["reference_intermediate_dense_matrix_words"] += size * size
+
+        if enlarged is not None:
+            check_intermediate(old_n)
+            if new:
+                self.counts["combined_source_growth_and_new_leaf_transactions"] += 1
+        for node in new:
+            if old_n:
+                assert (
+                    sum(
+                        edge.left.identity < old_n or edge.right.identity < old_n
+                        for edge in node.edges
+                    )
+                    == 1
+                )
+            check_intermediate(node.identity + 1)
         matrix = [[F(0)] * n for _ in nodes]
         for node in nodes:
             matrix[node.identity][node.identity] = node.diagonal

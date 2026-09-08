@@ -7,12 +7,12 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **558.950251 new active minutes** through block 20; at least
-**41.049749 minutes** remain. Block 21 is active.
-The sparse original-twin descriptors, weighted callbacks and simultaneous
-source payload refresh are proved and audited; see
-`OVERNIGHT_20260908_BLOCK20_AUDIT.json`. The full local quotient-tree
-composition and general OP3 remain Open.
+Completed **580.11532 new active minutes** through block 21; at least
+**19.88468 minutes** remain. Block 22 is active.
+The complete local twin-quotient-tree composition is now proved as a draft
+and its heap-driven discovery state machine is audited; see
+`OVERNIGHT_20260908_BLOCK21_AUDIT.json`. Fast tree balancing remains a
+source import. General OP3 remains Open; the final synthesis is in progress.
 Earlier chronological targets below are historical.
 
 ## Initial verdict and current work

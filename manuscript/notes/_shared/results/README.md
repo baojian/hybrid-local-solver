@@ -7,6 +7,25 @@ This ledger exists so a new direction does not repeatedly conjecture something
 already proved false, reprove a shared lemma under a new name, or inherit a
 conditional claim as if it were unconditional.
 
+## OP3 delta, 8 September 2026
+
+These are standalone `incremental_active_set_sdd` proof drafts awaiting
+independent review, in source-native `eps_appr`, with general OP3 **Open**.
+Use the proof labels and [direction status](../../incremental_active_set_sdd/STATUS.md)
+as the starting point; this index is not proof authority.
+
+| Claim | Exact scope and boundary | Proof label |
+| --- | --- | --- |
+| Worst-case Omega(1/eps_appr) output words, with constants uniform for lazy alpha in (0,1/3]. | Original sparse ACL outputs; an existential hard graph, not every instance. Imported problem-definition star argument plus checked transfer; no upper bound follows. | `cor:op3-uniform-output-lower-bound` |
+| Supplied significant-envelope repair costs (1+V)*polylog(2+V+1/eps_appr+1/p), independent of target alpha in exact-real arithmetic. | A suitable original-row envelope is input; general fast discovery is not proved. All source calls, failed branches, rows and output are charged. | `thm:op3-alpha-independent-supplied-envelope` |
+| An explicitly capped algorithmic ACL target is equivalent to finding a small significant envelope for a proper conservative obstacle. | Includes small-component handling, original volume and work caps; does not by itself solve literal nested-system reuse. | `thm:op3-conservative-envelope-equivalence` |
+| Whole original-twin batches cost O((1+V+(1+k)^3)*log(2+V)) under an unsupplied k-type promise. | Original full rows, exact quotient factors and reverse physical output are paid; induced-batch twins can lose contrast. | `thm:op3-batch-type-quotient` |
+| An unsupplied original twin-quotient tree admits O((1+V)*log^4(2+V)) exact obstacle/ACL work. | Exact-real proof using the published fast tree hierarchy; local state and weighted callbacks implemented, numerical driver is an explicit slow reference. Canonical dyadic RPPR is a separate consequence. | `thm:op3-local-twin-quotient-tree` |
+
+Constant-factor support approximations, a pointwise mass-over-error lower
+bound, and dense/grouped cubic examples must not be reused as a universal
+OP3 result. Their exact refuted rules and quantifiers are recorded locally.
+
 ## Common source facts
 
 - The shared PageRank operator satisfies `alpha I <= Q <= I`.
