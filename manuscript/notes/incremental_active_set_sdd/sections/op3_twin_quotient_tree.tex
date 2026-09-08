@@ -1,0 +1,241 @@
+\section{Sparse trees of locally discovered original twin classes}
+\label{sec:op3-twin-quotient-tree}
+
+The dense quotient in \cref{sec:op3-batch-type-quotient} discards the
+sparsity of a tree of original types. This section proves a paid descriptor
+and gate reduction, together with weighted cluster primitives. It does
+not identify the dense reference driver with a fast local tree algorithm.
+The graph promise is that the canonical uncolored neighborhood-type
+quotient is a tree or a single vertex; the partition is not supplied.
+All physical graphs remain simple, connected and unweighted. The auxiliary
+quotient has positive weights when $0<\alpha<1$.
+
+\begin{lemma}[Mean coordinates and the source contrast; \statusproved]
+\label{lem:op3-twin-tree-means}
+Consider a positive restricted physical face obtained by whole eligible-type
+batches, with the physical seed admitted first. Let $R$ be its original
+type. Every active nonseed type $C$ is complete; $R$ is either its initial
+singleton or its complete type. Write $n_C$ for the admitted multiplicity,
+$D_C$ for the original physical degree, $c_C\in\{0,1\}$ for its clique
+bit, and $y_C$ for the mean physical potential. Its mean system is
+\begin{align}
+ K_{CC}&=n_C[D_C-\gamma c_C(n_C-1)], &
+ K_{CH}&=-\gamma n_Cn_H\quad(C\sim H),\notag\\
+ b_C&=\boldsymbol1_{C=R}-\lambda n_CD_C,& Ky&=b.
+ \label{eq:op3-twin-tree-mean-system}
+\end{align}
+Absent quotient edges have zero entries. The matrix is symmetric positive
+definite and diagonally dominant, with
+$K\boldsymbol1\geq\bar\alpha(n_CD_C)_C>0$. The individual lift is
+\begin{equation}
+ u_i=y_C\ (i\in C\ne R),\qquad
+ u_i=y_R+\frac{\boldsymbol1_{i=v}-1/n_R}{D_R+\gamma c_R}
+       \ (i\in R).
+ \label{eq:op3-twin-tree-source-contrast}
+\end{equation}
+For $n_R=1$ the contrast vanishes, so the then-unknown clique bit is irrelevant.
+\end{lemma}
+\begin{proof}
+A still-unadmitted type is discovered together and all its members have
+identical original degrees and residuals. A complete eligible-type batch
+therefore consumes all of it; only the distinguished source singleton can
+have preceded its remaining type. This is the same unsplit-type induction
+as \cref{thm:op3-local-neighborhood-types}, and holds also when a batch
+consumes all eligible members of one common-parent heap.
+
+Subtract the original equations for two admitted vertices $i,j$ of one
+type. All external terms cancel, giving
+$(D_C+\gamma c_C)(u_i-u_j)=\boldsymbol1_{i=v}-\boldsymbol1_{j=v}$.
+Averaging gives \eqref{eq:op3-twin-tree-source-contrast}; summing each
+class's original equations gives \eqref{eq:op3-twin-tree-mean-system}.
+If $T$ is the class-indicator matrix, $K=T^{\mathsf T}M_{SS}T$, which
+proves positive definiteness. Moreover
+\[
+ (K\boldsymbol1)_C
+ =n_C\left[D_C-\gamma\left(c_C(n_C-1)+
+                   \sum_{H\sim C,\ H\text{ active}}n_H\right)\right]
+ \geq\bar\alpha n_CD_C.
+\]
+The original degree includes all inactive neighbors. Replacing it by
+active quotient degree would lose this identity.
+\end{proof}
+
+\begin{lemma}[One parent and the missing source twins; \statusproved]
+\label{lem:op3-twin-tree-gates}
+At a positive checkpoint the active quotient is connected. Every known
+inactive vertex of a new original type has exactly one active quotient
+parent $P$. Its original residual and strict gate are
+\[
+ r_i=\gamma n_Py_P,\qquad
+ y_P>\frac{(\lambda+\kappa)D_i}{\gamma n_P}.
+\]
+The threshold formula applies for $\gamma>0$; $\gamma=0$ has no nonseed
+admissions. If a known inactive vertex has at least two distinct active
+quotient parents, it belongs to the remaining seed type and $n_R=1$.
+For such a vertex $j$, with $c_R=\boldsymbol1_{j\sim v}$,
+\begin{equation}
+ r_j=(D_R+\gamma c_R)u_v-1+\lambda D_R,\qquad
+ r_j>(\lambda+\kappa)D_R
+ \ \Longleftrightarrow\ 
+ u_v>\frac{1+\kappa D_R}{D_R+\gamma c_R}.
+ \label{eq:op3-twin-tree-exceptional-gate}
+\end{equation}
+The same residual identity is valid for remaining source twins with only
+one parent, although identifying them is unnecessary at that stage.
+\end{lemma}
+\begin{proof}
+Adding a new quotient vertex with two active neighbors to the connected
+active quotient subtree would create a cycle. Thus only a type already
+represented in the active subtree can have several active parents; the
+previous lemma leaves only the incomplete source type. On an ordinary
+candidate, summing its complete parent's physical values gives $n_Py_P$.
+For a missing source twin, the external neighbors agree with the source's,
+while its active neighborhood also includes the source exactly in the
+clique case. Substitute
+$D_Ru_v-\gamma\sum_{i\sim v,\ i\in S}u_i=1-\lambda D_R$.
+This gives \eqref{eq:op3-twin-tree-exceptional-gate}.
+\end{proof}
+
+\begin{proposition}[Paid sparse descriptor construction; \statusproved]
+\label{prop:op3-paid-twin-tree-descriptors}
+Given the cached, already paid original rows of a legal whole-type batch
+stream, an online construction discovers its original type identities,
+maintains \eqref{eq:op3-twin-tree-mean-system}, and classifies its known
+inactive records as ordinary or exceptional in total
+$O((1+V)\log(2+V))$ word work and allocation, using $O(1+V)$ live words.
+Here $V$ is the total admitted original row volume. This additional bound
+does not include producing the stream or solving its numerical systems.
+It uses neither a global partition nor an inactive adjacency query.
+\end{proposition}
+\begin{proof}
+Use global open-row and closed-row tries keyed by original degree and the
+full sorted original neighbor labels. Unlike the response-group keys in
+\cref{sec:op3-batch-type-quotient}, these keys contain no old group identity.
+Equal open keys identify independent twins and equal closed keys identify
+clique twins. A representative's two keys suffice for every consumed
+class. Their total length is $O(1+V)$; comparison dictionaries and the
+already paid row sorting cost $O((1+V)\log(2+V))$. The only later match
+to an old type is the once-only enlargement of the source singleton.
+Its clique bit is read from the cached source row.
+
+Maintain a physical-label dictionary, stable type records, and a
+comparison dictionary of quotient endpoint pairs. Assign all members of a
+batch to their types before inspecting its cached row incidences. Each
+new ordinary type is a leaf of the active quotient subtree: it has one
+old parent, and an edge to another newly eligible type would create a cycle
+through their old parents. Insert each new quotient pair once. Store
+multiplicity, original degree, clique bit, diagonal, load and incident
+quotient edges. All ordinary type descriptors are subsequently fixed.
+
+When $R$ grows, replace its diagonal and load, and its incident weights
+$\gamma n_Rn_H$. There are at most $D_R$ such edges, and the newly admitted
+source members contribute at least $D_R$ original volume. Thus this
+apparently high-degree refresh is paid once. An inactive physical record
+remembers its first active type parent; the first incidence from a second
+distinct type marks it exceptional. The preceding lemma certifies this
+classification, including its original degree and clique bit. Repeated
+physical incidences from one type do not create spurious parents. Every
+record, classification, map operation and edge update is charged to a
+cached original incidence or newly admitted member. No whole frontier or
+hierarchy scan occurs in this descriptor construction.
+\end{proof}
+
+\begin{lemma}[Weighted callback closure and simultaneous root refresh;
+\statusproved]
+\label{lem:op3-weighted-twin-tree-callbacks}
+For a fixed current mean system in \eqref{eq:op3-twin-tree-mean-system},
+the rooted reporter callbacks of \cref{lem:op3-top-tree-callback-closure}
+remain valid after replacing the common edge coupling by its actual
+positive quotient weight. A base edge owns only positive normalized
+thresholds at its endpoints. The source type is the geometric root and
+is never eliminated in an available summary. The existing callback work
+and allocation bounds remain $O(\log^3(2+V))$ and $O(\log^2(2+V))$.
+
+Given current parent and edge-leaf pointers in a height-$h$ hierarchy,
+simultaneously replacing the source descriptor, all its $q$ incident
+weights and its owned threshold can rebuild exactly the affected
+ancestor union in $O((1+qh)\log^3(2+V))$ work and
+$O((1+qh)\log^2(2+V))$ allocated hull words. No numerical gate is queried
+inside the transaction. On the imported height-bounded source hierarchy,
+this is $O((1+q)\log^4(2+V))$ work and
+$O((1+q)\log^3(2+V))$ allocation.
+\end{lemma}
+\begin{proof}
+Only the base-edge routine used a common coupling. Every compress,
+rake, forget and recovery operation instead reads the actual Schur
+entries. The current matrix is SPD with negative edge entries; every
+eliminated interior is source-free and has strictly negative load
+$-\lambda n_CD_C$. Its conditional inverse is nonnegative, so the negative
+load and positive pivot invariants used by the projective-chain separation
+proof remain true. Rooted port comparability is a tree property independent
+of weights. Thus the same separated hull joins and affine recoveries apply.
+
+Endpoint diagonals and loads are duplicated in all incident base edges,
+and joins subtract the shared endpoint's current data. Refreshing these
+edges one at a time could mix old and new copies. Instead first walk upward
+from every affected edge leaf, marking the union in a comparison dictionary.
+Stop each walk at an already marked node. Replace the scalar descriptors
+and weights once, then rebuild marked nodes in postorder, using unmarked
+children as they are. Every old cluster containing the root owns some
+root-incident edge, and hence is marked. Therefore an unmarked child
+contains no stale root data; a marked child is rebuilt with the final data
+before its parent. Induction gives the exact new summary at every rebuilt
+node. Each retained old version remains immutable and is never reactivated
+as the current numerical state.
+
+There are at most $O(1+qh)$ marks and child inspections. A comparison map
+adds at most a logarithm per record, already below the callback bound;
+no whole-hierarchy indexing is part of this procedure. The source-root
+threshold is homed on a root-incident edge and is included in the same
+transaction. A singleton quotient has a direct scalar update and no
+hierarchy. Finally $q\leq D_R$ is paid by the once-only source enlargement
+in \cref{prop:op3-paid-twin-tree-descriptors}.
+\end{proof}
+
+\paragraph{Implemented checks; Measured.}
+\path{twin_quotient_tree.py} implements the paid descriptors and receives
+legal batches from the separately charged dense reference producer. Its
+full audit checks 18,131 positive prefixes against 36,262 independent
+physical and quotient solves, including 88,029 mean/source-contrast
+coordinates, 61,502 ordinary gate identities and 1,643 special source gates.
+There are 4,518 source-type enlargements, 3,840 complete ACL reference
+outputs and 3,843 complete exact-obstacle reference outputs. Clique and
+independent source types, all quotient trees through order five, and
+teleportation $1,2^{-80},2^{-1024}$ are covered by the recorded regimes.
+
+\path{weighted_tree_payloads.py} implements weighted base callbacks and
+the marked-ancestor transaction. On 384 physical source cases it checks
+768 independent physical/quotient mean systems, 11,154 legal binary joins,
+11,148 valid summary comparisons, 39,780 recovered quotient coordinates,
+and 384 simultaneous source refreshes with retained-old-version checks.
+The 11,064 independently solved physical coordinates are counted separately.
+Supplied hierarchy enumeration and whole-hierarchy indexing are explicitly
+validator work, not an online balancing implementation. The first audit
+attempt exposed a validator node-ordering mismatch; fixed label-indexed
+arrays precede the recorded successful run. Parameters, work counters,
+source hashes and limitations are in
+\path{TWIN_QUOTIENT_TREE_AUDIT.json} and
+\path{WEIGHTED_TREE_PAYLOADS_AUDIT.json}.
+
+\paragraph{Remaining composition; Conditional / Open.}
+These lemmas make a sparse quotient-tree route plausible, but this section
+claims no complete fast local solver. The next falsifiable target is a
+single-parent-heap state machine. A global tree reporter should name an
+eligible parent heap, and a named-coordinate query should recover its
+current mean without materializing all means. Extract all eligible
+members of that heap at the fixed old face; this consumes complete
+nonseed original types. Original degrees remain heap keys when a parent
+multiplicity changes, so only its minimum's normalization changes.
+Classify second-parent source candidates from paid rows, removing them
+from their former ordinary heaps and checking their special root gate.
+Every changed heap minimum needs one owned-payload refresh. New types
+require leaf links and the unique source enlargement requires the proved
+simultaneous transaction. Complete every update before the next gate.
+
+A source composition must count these local changes, named queries,
+failed reports, all structural updates, root enlargement, and one final
+mean/contrast recovery. Scanning all frontier groups or rebuilding the
+whole quotient on every batch is not that composition. The present
+reference drivers perform such numerical reference work and cannot
+certify the desired running time. The restricted quotient-tree completion,
+and general arbitrary-graph OP3 beyond it, remain \statusopen.

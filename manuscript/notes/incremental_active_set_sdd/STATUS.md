@@ -40,6 +40,31 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 20: sparse twin-tree interfaces
+
+**Proved here, awaiting independent review:** The paid original-type map
+preserves a sparse weighted tree on supplied legal whole-type batches.
+Exact class means require a separate physical seed contrast. Ordinary
+frontier gates have one active quotient parent; missing source twins are
+the only multi-parent exception. All descriptor, incidence and once-only
+source multiplicity changes cost O((1+V)*log(2+V)). Weighted cluster
+callbacks and a simultaneous dirty-ancestor source update are proved and
+implemented. Read `sec:op3-twin-quotient-tree`.
+
+**Measured:** 18,131 independent physical/quotient prefixes, 88,029
+mean/source-contrast coordinates, 61,502 ordinary and 1,643 special gate
+identities; 7,683 complete reference outputs. The weighted callback audit
+checks 384 physical source cases, 11,148 summaries, 39,780 recovered
+quotient coordinates and 384 simultaneous source updates. Graph-wide
+reference solves, hierarchy enumeration and indexing are excluded from
+producer claims; their counts and all parameters are saved separately.
+
+**Conditional / Open:** The complete fast local quotient-tree state
+machine still needs a paid composition of ordinary degree heaps, the
+special source gate, named mean queries, leaf links, numerical refreshes
+and final recovery. The dense reference producer is not that algorithm.
+General OP3 remains Open. Resume `TWIN_QUOTIENT_TREE_PROBE_20260908.md`.
+
 ## Third campaign, block 19: batched exact twin quotients
 
 **Proved here, awaiting independent review:** Complete eligible batches

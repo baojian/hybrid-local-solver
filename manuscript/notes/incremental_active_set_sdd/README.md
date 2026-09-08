@@ -985,3 +985,12 @@ The next Open composition is
 [`COARSE_PUBLICATION_PROBE.md`](COARSE_PUBLICATION_PROBE.md): use active-value
 reporters and cached incidence delivery to remove the revealed-rank term
 for ACL approximation. General OP3 remains Open.
+
+
+The third campaign's sparse type-tree reduction is now proof-drafted in
+`sec:op3-twin-quotient-tree`. It implements paid local type descriptors,
+mean/source-contrast recovery identities, ordinary and exceptional gates,
+weighted callbacks and simultaneous source payload refresh. The full fast
+local state-machine composition remains Conditional/Open. See
+`TWIN_QUOTIENT_TREE_AUDIT.json`, `WEIGHTED_TREE_PAYLOADS_AUDIT.json` and
+the current campaign status; reference numerical work is labeled separately.
