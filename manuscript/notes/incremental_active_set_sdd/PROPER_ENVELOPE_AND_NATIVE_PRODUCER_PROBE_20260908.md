@@ -6,6 +6,13 @@ set of volume V gives `(1+V) polylog(2+V+1/alpha+1/eps+1/p)` work. The
 new conditional floor theorem needs an explicit native support-volume
 contract. Continue actual active work toward the 600-new-minute minimum.
 
+The eighth block found a simpler route to the intended parameter improvement:
+`thm:op3-alpha-independent-supplied-envelope` composes same-load monotonicity
+and the reserved-margin constant-shift wrapper. It makes the proposed
+proper-envelope cap construction below unnecessary for that goal. Retain
+the Poincare and energy ideas for native local-production bounds instead.
+Read `FULL_SUPPORT_CONSTANT_SHIFT_PROBE_20260908.md` and continue target 2.
+
 ## 1. Proper supplied envelopes may admit stronger parameter bounds
 
 This is a PROPOSED extension, not yet a theorem or audited implementation.
@@ -93,3 +100,24 @@ least-action principles. Browse primary sources before asserting a link,
 algorithm, or complexity result. Existing literature review of dynamic
 flows is not a proof of a local event producer. Do not rerun unchanged
 expensive BFS/tree/dense-core obstruction audits without a changed rule.
+
+## 4. A possible direct weak alpha-uniform push bound (not yet proved)
+
+For the proposed gap-threshold coordinate push at lambda=eps/2, every
+activated vertex has residual at least lambda*d forever. Total residual
+mass is at most one, so support volume is at most 1/lambda without invoking
+an exact obstacle. On every proper-support state, the new potential cap
+bounds x_seed by `2/(gamma*eps)`, hence bounds the magnitude of decreasing
+obstacle energy by that quantity. Each legal update decreases energy by
+at least `(eps^2/8)*d_i`. This suggests O(1/(gamma*eps^3)) degree work
+before full support, where a materialized full graph has volume <=2/eps.
+For gamma>=1/2 this is O(eps^-3). For gamma<1/2, the ordinary total-residual
+mass argument gives O(eps^-1). Handle the final update that first fills the
+whole support separately; its degree is <=2/eps and the pre-update energy
+bound is the one available. Full-support detection must be maintained with
+charged boundary state; no scan of all active rows after every push.
+
+A full-support phase could use the completed supplied numerical theorem,
+or perhaps an arithmetic parameter construction. This is a weak polynomial
+inverse-accuracy result, not the target inverse-accuracy OP3 bound. Check
+existing sources before claiming novelty.

@@ -1,0 +1,138 @@
+\section{An arithmetic full-support repair for the alpha floor}
+\label{sec:op3-full-support-constant-shift}
+
+\begin{lemma}[Oscillation without a proper-support premise; \statusproved]
+\label{lem:op3-global-potential-oscillation}
+Under the nonnegative-residual hypotheses of
+\cref{lem:op3-superlevel-potential-cap}, write
+$\operatorname{osc}(x)=\max_i x_i-\min_i x_i$.
+On a connected graph with $n$ vertices,
+\[
+ \operatorname{osc}(x)\leq(n-1)/\gamma.
+\]
+This holds on full support too. Original degree-normalized neighborhood
+averages $a_i=(Ax)_i/d_i$ obey
+$\operatorname{osc}(a)\leq\operatorname{osc}(x)$.
+\end{lemma}
+\begin{proof}
+Connect a maximizing vertex to a minimizing one by a simple path of at
+most $n-1$ edges, and use the proved bound of $1/\gamma$ on each edge
+difference. Every $a_i$ is an average of nonnegative-neighbor coordinate
+values, so it belongs to $[\min_jx_j,\max_jx_j]$. All original degrees
+are positive, and the asserted oscillation inequality follows.
+\end{proof}
+
+\begin{theorem}[A purely arithmetic full-support floor wrapper;
+\statusconditional]
+\label{thm:op3-arithmetic-alpha-floor}
+Under the native producer, graph and volume hypotheses of
+\cref{thm:op3-small-alpha-floor}, the same effective parameter
+$a_{\mathrm{eff}}=\max\{\alpha,\epsappr/(4B+\epsappr)\}$ suffices
+with total work and allocated words
+\[
+ \mathcal W(a_{\mathrm{eff}},\epsappr/2,p/2,B)
+ +O((1+B)\log(2+B)).
+\]
+There is no second numerical solve. On a native good execution, proper
+support returns the same potential. Full support returns the native
+potential plus one nonnegative constant, computed from its original
+target residual. Success probability is at least $1-p/2\geq1-p$.
+The extra work has no logarithmic dependence on target $1/\alpha$ in
+the exact-real word model. Every output still has original support
+volume at most $B$ on the good event.
+\end{theorem}
+\begin{proof}
+Use the same native call and paid word, format, degree-volume and
+support-closure checks as in the earlier wrapper. The unchanged-parameter,
+empty-support and proper-support branches have already been proved.
+Suppose instead that $\alpha<a_0=\epsappr/(4B+\epsappr)$ and the
+native positive support is the full graph. Its volume is at most $B$
+by the degree pass; all its rows and original degrees have been
+materialized by the closure scan. Define
+\[
+ \rho_i=\frac{(e_v-M_{\gamma_\alpha}x)_i}{d_i},\qquad
+ m=\min_i\rho_i,\qquad c=\frac{m}{\bar\alpha},\qquad
+ y=x+c\one.
+\]
+Reject a negative $m$ on a bad native execution. On a good native
+execution, with $\Delta=\gamma_\alpha-\gamma_0\geq0$,
+\[
+ \rho_i=\frac{(r_0)_i}{d_i}+\Delta\frac{(Ax)_i}{d_i}\geq0,
+ \qquad
+ \operatorname{osc}(\rho)
+ \leq\frac{\epsappr}{2}
+      +\frac{\Delta(n-1)}{\gamma_0}
+ \leq\frac{\epsappr}{2}
+      +\frac{(1-\gamma_0)B}{\gamma_0}
+ =\epsappr.
+\]
+The first inequality uses the native original ACL certificate. The
+second uses \cref{lem:op3-global-potential-oscillation}; positive
+original degrees give $n-1\leq B$. The floor identity is the one
+already proved in \cref{thm:op3-small-alpha-floor}.
+
+Since $M_{\gamma_\alpha}\one=\bar\alpha d$ with $\bar\alpha>0$,
+adding $c$ changes every degree-normalized original residual by exactly
+$-\bar\alpha c=-m$. Hence
+\[
+ y\geq x>0,\qquad
+ 0\leq\frac{(e_v-M_{\gamma_\alpha}y)_i}{d_i}
+      =\rho_i-m\leq\epsappr.
+\]
+It follows that $\bar\alpha Dy$ is the requested original ACL output.
+The shift cannot add an unknown vertex, because this branch has already
+proved that the entire ambient graph is precisely the positive support.
+
+Compute the target residual from the stored rows using binary lookup
+in the sorted support map. There are at most $B$ entries, each lookup
+costs $O(\log(2+B))$, and the remaining degree divisions, minimum,
+constant shift, label recovery and output copies cost $O(1+B)$.
+All allocations and guards, including a negative-minimum rejection,
+are charged on every execution. A very large $c$ still takes one word
+in the stipulated arithmetic model; bit complexity and floating-point
+cancellation are not claimed. Only the native producer is randomized,
+so its failure budget $p/2$ is sufficient and the old fallback confidence
+budget is unused slack. No source numerical algorithm is invoked by
+this correction.
+\end{proof}
+
+\begin{corollary}[A general reserved residual margin; \statusproved]
+\label{cor:op3-general-residual-margin-floor}
+The same wrapper argument applies to a native accuracy $e_0$ with
+$0<e_0<\epsappr$. Write $h=\epsappr-e_0$ and use
+$a_0=h/(2B+h)$. Then $(1-\gamma_0)B/\gamma_0=h$.
+Proper support increases its normalized residual upper bound by at
+most $h$, while full support increases normalized residual width by at
+most $h$ before the exact constant correction. Thus both branches
+give target accuracy $e_0+h=\epsappr$, with the same charged maps,
+degree pass, closure scan and arithmetic repair. The producer's work
+and volume assumptions remain required.
+\end{corollary}
+
+\paragraph{What this improves and leaves open.}
+The constant-shift wrapper strengthens the previous full-component
+fallback without changing its volume premise or its proper-support
+branch. For $B=O(1/\epsappr)$, the native computation can again be
+restricted to $a\geq\Theta(\epsappr^2)$. Establishing the required
+near-linear native work remains \statusopen. The full-support
+counterexample to a uniform maximum bound remains valid: the correction
+uses bounded oscillation while allowing a large common constant.
+
+\paragraph{Implemented arithmetic audit.}
+The exact script \texttt{small\_alpha\_constant\_shift.py} implements
+the correction on materialized original rows. Its native inputs include
+exact obstacles, nonconstant seed perturbations and common positive
+shifts, all verified against the native ACL contract. The original
+target residual, its normalized width and the final mass
+$\bar\alpha\sum_i d_i y_i\leq1$ are checked exactly, including target
+$\alpha=2^{-1024}$. The native producer remains an explicitly supplied
+validator; there is no second solve even in the production-side repair.
+Durable source/backend hashes and counts appear in
+\path{SMALL_ALPHA_CONSTANT_SHIFT_AUDIT.json}.
+
+The full run checks 3,243 original target certificates, including 1,554
+constant corrections and 608 proper-support transfers, in 2.069 seconds.
+It verifies 1,081 global oscillation bounds and 1,554 final mass bounds;
+three invalid native residual minima are rejected. The largest computed
+shift numerator has 1,069 bits, illustrating the distinction between the
+stated word model and bit complexity.

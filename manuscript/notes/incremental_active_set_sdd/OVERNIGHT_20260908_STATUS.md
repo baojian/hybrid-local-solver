@@ -109,3 +109,14 @@ refutes only the larger same-vector parameter substitution.
 Completed new active minutes after block 7: **222.513587**.
 The eighth block is active. Read
 `PROPER_ENVELOPE_AND_NATIVE_PRODUCER_PROBE_20260908.md`.
+
+The eighth block implements the full-support constant-shift repair and
+proves the alpha-independent supplied-envelope work composition with the
+original load and threshold preserved. All checks and exact audit counts
+are recorded in `OVERNIGHT_20260908_BLOCK8_AUDIT.json`. The whole native
+local producer remains the missing contract.
+
+Completed new active minutes after block 8: **256.547590**.
+The ninth block is active. Read `LOCAL_NATIVE_PUSH_PROBE_20260908.md`.
+Primary sandpile PDFs downloaded to /tmp are op3-sandpile-fl12 and
+op3-sandpile-lmpu15; their exact source statements still need reading.

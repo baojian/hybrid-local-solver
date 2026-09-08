@@ -1,0 +1,152 @@
+\section{Supplied-envelope work independent of target teleportation}
+\label{sec:op3-supplied-envelope-alpha-floor}
+
+\begin{lemma}[Teleportation monotonicity with the same obstacle load;
+\statusproved]
+\label{lem:op3-same-load-teleportation-monotonicity}
+Fix original degrees, the point seed and $\lambda>0$.
+For $0\leq\gamma_1\leq\gamma_2<1$, let $u^{(k)}$ be the obstacle
+solution of $M_k=D-\gamma_kA$ with the same load
+$b=e_v-\lambda d$. Then $0\leq u^{(1)}\leq u^{(2)}$.
+Consequently a supplied set containing
+$\{i:u_i^{(2)}>\delta\}$ also contains
+$\{i:u_i^{(1)}>\delta\}$ for every fixed $\delta>0$.
+The regularization parameter and threshold are unchanged in this statement.
+\end{lemma}
+\begin{proof}
+The full KKT condition gives
+\[
+ M_1u^{(2)}=M_2u^{(2)}+(\gamma_2-\gamma_1)Au^{(2)}\geq b.
+\]
+If $u^{(1)}-u^{(2)}$ had a positive maximum at $i$, then
+$u_i^{(1)}>0$, so $(M_1u^{(1)})_i=b_i$ and
+$(M_1(u^{(1)}-u^{(2)}))_i\leq0$. The original positive diagonal
+dominance gives instead at least
+$(1-\gamma_1)d_i(u_i^{(1)}-u_i^{(2)})>0$, a contradiction.
+Nonnegativity and superlevel containment follow.
+\end{proof}
+
+\begin{theorem}[An alpha-independent supplied significant-envelope solve;
+\statusproved]
+\label{thm:op3-alpha-independent-supplied-envelope}
+Use the original graph, access model, point seed and supplied set $U$
+of \cref{thm:op3-supplied-envelope-work}. In particular $U$ contains
+every coordinate above $\epsappr/8$ of the TARGET obstacle at
+$\lambda=\epsappr/2$ and target $\alpha\in(0,1]$.
+For original degree volume $V=\operatorname{vol}_G(U)$, a supplied
+algorithm has work and total allocated words on every execution
+\[
+ (1+V)\operatorname{polylog}(2+V+\epsappr^{-1}+p^{-1}).
+\]
+With probability at least $1-p$ it returns a sparse nonnegative potential
+$x$ satisfying the original target ACL residual certificate, with
+support contained in the target obstacle support and original support
+volume less than $2/\epsappr$. Only rows in $U$ are queried, and the
+seed's original degree is the only query that may precede identifying
+that supplied set. No polynomial or logarithmic dependence on target
+$1/\alpha$ remains in this exact-real word-work bound. The supplied
+set and numerical source algorithms retain their stated interfaces;
+no local finder or bit-complexity guarantee is asserted.
+\end{theorem}
+\begin{proof}
+Retain exactly the original load and significant threshold, and put
+\[
+ \lambda=\epsappr/2,\quad\delta=\epsappr/8,\quad
+ e_0=7\epsappr/8,\quad B=2/\epsappr,\quad
+ a_0=\frac{\epsappr^2}{32+\epsappr^2},\quad
+ a_{\mathrm{eff}}=\max\{\alpha,a_0\}.
+\]
+This is the floor in \cref{cor:op3-general-residual-margin-floor}
+with reserved margin $h=\epsappr/8$ and volume bound $B$.
+Because $a_{\mathrm{eff}}\geq\alpha$, its $\gamma$ is no larger
+than the target one. The same-load monotonicity lemma therefore makes
+$U$ a valid significant envelope also for the effective obstacle.
+Changing the load to $e_v-(e_0/2)d$ here would invalidate that argument;
+the construction keeps $\lambda=\epsappr/2$.
+
+Use a preliminary seed-only gate at accuracy $e_0$, with effective
+$\gamma_{\mathrm{eff}}$. When
+$e_0d_v\geq\gamma_{\mathrm{eff}}/(1+\gamma_{\mathrm{eff}})$,
+the shortcut returns $z_v=\max\{0,d_v^{-1}-e_0\}$.
+It has native accuracy $e_0$. If positive, it has
+$d_v<1/e_0<B$, and the effective obstacle is positive at the seed
+because $d_v^{-1}>e_0>\lambda$. Indeed its seed potential is at least
+$d_v^{-1}-\lambda>3\epsappr/8>\delta$, so the seed belongs to $U$.
+If this gate fails, $\gamma_{\mathrm{eff}}>e_0=7\epsappr/8$.
+
+In the latter case perform the paid original-degree preparation and
+source-backed supplied solve of
+\cref{thm:op3-supplied-envelope-work}, using effective teleportation
+while retaining the original $\lambda,\delta$ and absolute gap
+$t=(1-\gamma_{\mathrm{eff}})\delta^2/2$.
+The modified gate leaves its preparation proof valid and gives
+$\gamma_{\mathrm{eff}}^{-1}<8/(7\epsappr)$ in its range bounds.
+Moreover
+\[
+ a_{\mathrm{eff}}^{-1}\leq a_0^{-1}
+ =32\epsappr^{-2}+1.
+\]
+Thus every initial radius, positive terminal-slope mass, curvature,
+edge-weight range, objective bound and inverse numerical tolerance is
+polynomial in $1+V+\epsappr^{-1}$. The completed capped supplied
+theorem consequently costs the stated polylogarithmic expression, even
+on failed source executions, without a target-$\alpha$ range term.
+Use confidence $p$ for this sole numerical computation.
+
+Box and clip its feasible output by the original $\delta$. The envelope
+proof gives $z\geq0$, support contained in the effective obstacle,
+original support volume below $B$, and the sharper bound
+\[
+ 0\leq e_v-M_{\gamma_{\mathrm{eff}}}z
+ \leq(\lambda+3\delta)d=e_0d.
+\]
+These conclusions also hold for the shortcut, including its volume
+bound and effective support containment. Monotonicity transfers that
+support containment to the target obstacle.
+
+Now apply the paid volume and closure checks and the arithmetic margin
+wrapper. If the parameter did not change, return $z$. Empty support
+also requires no change. On proper positive support, return the same
+potential; the reserved margin $h$ pays the increased target residual.
+On full support, materialized original rows compute the exact uniform
+constant from the minimum target normalized residual, and add it to
+every coordinate. This branch does not create any new support label;
+its entire graph is already the positive native support. Therefore
+target obstacle support containment and the strict volume bound remain
+true in every good branch.
+
+Although the generic wrapper bound uses $B$, its additional work here
+is $O((1+V)\log(2+V))$: the numerical output has labels only in $U$
+on every execution, and its degree-volume pass and closure scan can
+read only that original volume. Guard a malformed numerical output
+before processing it, as part of the supplied execution cap. If the
+volume exceeds $B$, reject before any additional row scan. The shortcut
+costs only the seed degree and its possible support check. Thus all
+new guards, row entries, maps, normalization and output words fit the
+claimed bound. The arithmetic correction is deterministic, so the sole
+source failure probability remains at most $p$. Its division by target
+$\bar\alpha$ is a constant-time exact-real operation, even when the
+resulting common potential is large.
+\end{proof}
+
+\paragraph{Audit scope and remaining locality.}
+The exact script \path{supplied_envelope_alpha_floor.py} checks
+target/effective obstacle monotonicity with the same $\lambda$, the
+reserved native residual tolerance, exact target residuals and support
+containment. Its numerical callback is a dense reference with a deliberate
+nonzero feasible objective error. Preparation, clipping, degree-volume
+guards, closure and the constant correction are implemented arithmetic.
+Cases include target $\alpha=2^{-1024}$ and private outside hubs of
+degree $2^{1024}$ whose adjacency lists are never read.
+The source/backend hashes and counts are recorded in
+\path{SUPPLIED_ENVELOPE_ALPHA_FLOOR_AUDIT.json}.
+This improves the supplied numerical reduction. Finding the envelope,
+or producing native local ACL output at the accuracy-squared floor with
+the desired work, remains \statusopen.
+
+The full run checks 1,650 target/effective obstacle pairs and 4,950
+reserved-margin and original target certificates in 5.722 seconds.
+There are 1,758 numerical reference callbacks, 792 full-support constant
+corrections, 1,038 proper-support same-potential transfers and 23,820
+original target residual rows. Three private huge-hub compositions read
+only the supplied leaf row, even at target $\alpha=2^{-1024}$.

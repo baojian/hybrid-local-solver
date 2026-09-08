@@ -59,6 +59,15 @@ refutes the same-vector use of a larger floor of order accuracy. Read
 `sec:op3-supplied-envelope-work` and `sec:op3-small-alpha-floor`.
 General OP3 and the fast native local producer remain Open.
 
+The eighth checkpoint strengthens the small-alpha reduction: full support
+needs only one constant shift, computed from materialized original rows.
+The resulting supplied significant-envelope theorem preserves the original
+obstacle load and has cost `(1+V) polylog(2+V+1/eps_appr+1/p)`, independent
+of target alpha in the exact-real word model. It includes 4,950 exact target
+certificates. Read `sec:op3-full-support-constant-shift` and
+`sec:op3-supplied-envelope-alpha-floor`. A fast local finder or native
+producer is still missing; general OP3 remains Open.
+
 The following second-campaign record is historical.
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).

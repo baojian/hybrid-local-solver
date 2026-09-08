@@ -45,17 +45,19 @@ class SuppliedRows:
             yield neighbor
 
 
-def prepare(oracle, labels, seed, alpha, epsilon, work, volume_cap=None):
+def prepare(oracle, labels, seed, alpha, epsilon, work, volume_cap=None, gate_accuracy=None):
     assert 0 < alpha <= 1 and 0 < epsilon < 1
+    gate_accuracy = epsilon if gate_accuracy is None else gate_accuracy
+    assert epsilon / 2 <= gate_accuracy <= epsilon
     gamma = (1 - alpha) / (1 + alpha)
     bar, lam, delta = 1 - gamma, epsilon / 2, epsilon / 8
     seed_degree = oracle.degree(seed)
-    work["seed_gate_arithmetic_reads_and_comparisons"] += 10
-    if epsilon * seed_degree >= gamma / (1 + gamma):
-        value = max(F(0), F(1, seed_degree) - epsilon)
+    work["seed_gate_arithmetic_reads_and_comparisons"] += 16
+    if gate_accuracy * seed_degree >= gamma / (1 + gamma):
+        value = max(F(0), F(1, seed_degree) - gate_accuracy)
         work["seed_gate_output_words_and_arithmetic"] += 6
         return {"shortcut": [(seed, value)] if value else [], "abort": None}
-    assert gamma > epsilon
+    assert gamma > gate_accuracy
     records = [(v,) for v in labels]
     work["supplied_label_records_and_copy_budget"] += 4 * len(labels)
     records = sort_records(records, work)

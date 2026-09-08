@@ -40,6 +40,47 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 8: arithmetic alpha transfer and supplied work
+
+**Proved here, awaiting independent review:** A unit-source potential has
+global oscillation at most `(n-1)/gamma`, including full support. With all
+support rows materialized, adding one nonnegative constant shifts every
+normalized target residual down to minimum zero. This replaces the former
+full-component numerical fallback with O(B log B) arithmetic.
+
+**Conditional:** The general floor wrapper still requires the native work
+and original support-volume contract. It is not a near-linear finder.
+
+**Proved here, awaiting independent review:** The supplied-envelope solver
+now has work `(1+V) polylog(2+V+1/eps_appr+1/p)`, independent of target
+alpha even in logarithms. It keeps lambda=eps_appr/2 and delta=eps_appr/8,
+solves at `max(alpha, eps_appr^2/(32+eps_appr^2))`, reserves eps_appr/8
+of residual tolerance, then applies the arithmetic transfer. Same-load
+obstacle monotonicity preserves the promised target envelope. Exact-real
+constant division is charged; no bit or floating-point claim is made.
+
+**Measured:** The arithmetic wrapper passes 3,243 original certificates,
+including 1,554 constant corrections and 608 proper-support transfers.
+The supplied composition passes 4,950 target residual/support certificates,
+1,650 same-load monotonicity checks and 1,758 numerical reference callbacks.
+It includes 792 full-support constant shifts, alpha=2^-1024, and three
+private huge-hub cases whose outside rows are never read. Numerical VWF
+outputs remain explicit dense validators; preparation and correction are
+implemented. The seed-gate interface was extended to reserve accuracy
+without changing the original load; all three dependent short audits were
+rerun to update their source/backend hashes.
+
+**Next / Open:** General OP3 and native local production. The alternative
+proper-envelope cap proof is no longer needed to obtain alpha-independent
+supplied work. Investigate a paid monotone push with a volume contract,
+its energy bound before full support, and the primary sandpile literature.
+Checkpoint verification: 155-page note builds without final warnings; the
+new proofs and final one-page abstract were visually reviewed. All 77 own
+scripts and three registry tests pass. Broad checks retain the same three
+test failures, two unrelated lint findings and two oversized sources; all
+five baseline hashes match. Reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK8_AUDIT.json`.
+
 ## Third campaign, block 7: supplied-envelope work and the small-alpha reduction
 
 **Proved here, awaiting independent review:** The complete supplied-envelope
