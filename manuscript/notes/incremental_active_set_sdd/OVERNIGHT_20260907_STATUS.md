@@ -1,12 +1,8 @@
-# OP3 second night: eight additional active hours
+# OP3 second night: completed
 
-The user requested another eight hours on the night of 7 September 2026.
-The minimum is **480 new active research minutes**. The first night's
-601.407 minutes do not count. Use `OVERNIGHT_20260907_WORK_LOG.json` for
-truthful intervals; exclude idle, scheduling and unverified gaps. Do not pad
-with sleeps or redundant tests. At 480 minutes, save a morning synthesis,
-pause the same-task heartbeat and stop only the matching temporary keep-awake
-process in `OVERNIGHT_20260907_RUNTIME.json`.
+Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
+
+The eight-hour minimum has been met. The work ledger is complete; the same-task heartbeat is paused and the owned temporary keep-awake process has exited.
 
 ## Second night, block 12: nested numerics and a sharper local target
 

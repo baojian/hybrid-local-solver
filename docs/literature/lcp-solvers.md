@@ -746,3 +746,11 @@ the probability theorem. No fast resistance estimator is implemented.
 The full supplied near-linear recurrence is now formalized conditionally
 on the actual positive-weight constructor contract. CPW's printed
 polynomial weight-ratio hypothesis is still not silently removed.
+
+**Final source review.** CPW Claim 5.14, PDF p.28, was rendered and
+visually checked: its displayed case condition is reversed relative to
+the proof below it. The proof and the affected-edge sum in equation (5)
+on p.29 use the consistent condition. A small unit-path routing example
+and the remaining constructor review map are recorded in
+`WEIGHTED_CONSTRUCTOR_REVIEW_20260908.md` in the incremental note.
+This display mismatch is not a claimed refutation of the final theorem.

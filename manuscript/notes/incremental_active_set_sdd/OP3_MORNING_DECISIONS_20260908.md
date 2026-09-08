@@ -1,5 +1,7 @@
 # Conjecture 3: second-night results and the next decision
 
+Research window completed: **481.581 new active minutes**; prior-night work and unverified gaps are excluded.
+
 **Conjecture 3 remains open.** I recommend making local discovery the main
 next question, using the new significant-potential envelope theorem as a
 precise target. The supplied numerical solver now has substantially more
@@ -97,7 +99,7 @@ is stated explicitly in `sections/op3_supplied_recursion.tex`.
 | 2 | Close the supplied weighted-constructor contract | Reconcile the actual weighted forest, routing and core sparsification construction with its source assumptions and full cost. Keep this separate from locality. |
 | 3 | Review and extract the structural results | Independently check the tree/unicyclic and canonical multipartite results, persistent VWF primitives and new envelope proof; turn the strongest complete pieces into a shorter presentation. |
 
-I would stop investing in breadth-first or degree-only exploration and in
+I would stop investing in breadth-first exploration with degree filtering and in
 an unquantified “warm start should be cheap” argument. The numerical tools
 make a more focused discovery question possible; further large audit suites
 should answer a specific remaining mathematical uncertainty.
@@ -109,6 +111,9 @@ should answer a specific remaining mathematical uncertainty.
   envelopes. The bibliography identifies source imports separately.
 - Latest evidence and checks: `OVERNIGHT_20260907_BLOCK12_AUDIT.json` and
   `VERIFICATION.md`. Full JSON records include source/backend hashes.
+- The remaining constructor review is mapped in
+  `WEIGHTED_CONSTRUCTOR_REVIEW_20260908.md`, including a visually checked
+  Claim 5.14 display/proof mismatch and its small routing example.
 - Earlier second-night blocks retain the structural core/module results and
   the development of the numerical route in `STATUS.md` and the work ledger.
 

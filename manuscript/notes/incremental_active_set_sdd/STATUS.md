@@ -1,5 +1,7 @@
 # Direction status: incremental_active_set_sdd
 
+Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
+
 ## Second night, block 12: nested numerics and a sharper local target
 
 **General OP3 remains Open.** Start with
