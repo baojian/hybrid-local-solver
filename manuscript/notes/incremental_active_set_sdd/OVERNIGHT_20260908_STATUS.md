@@ -7,12 +7,14 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **580.11532 new active minutes** through block 21; at least
-**19.88468 minutes** remain. Block 22 is active.
-The complete local twin-quotient-tree composition is now proved as a draft
-and its heap-driven discovery state machine is audited; see
-`OVERNIGHT_20260908_BLOCK21_AUDIT.json`. Fast tree balancing remains a
-source import. General OP3 remains Open; the final synthesis is in progress.
+Completed **600.770027 NEW actual active minutes** through block 22.
+The requested minimum of 600 minutes is met; both prior campaigns and
+121.119076 minutes of recorded unverified intervals are excluded.
+Read [the final synthesis](RESEARCH_SYNTHESIS_20260908.md) and
+`OVERNIGHT_20260908_BLOCK22_AUDIT.json`. General OP3 remains Open.
+The overnight continuation is paused and the matching temporary keep-awake
+process has been stopped. The next step is user discussion of the documented
+research directions.
 Earlier chronological targets below are historical.
 
 ## Initial verdict and current work

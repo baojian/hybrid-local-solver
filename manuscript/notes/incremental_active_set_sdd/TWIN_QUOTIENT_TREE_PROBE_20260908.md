@@ -148,3 +148,31 @@ reference. A bounded-cycle quotient extension is a new target; do not
 silently apply the original unweighted cycle-rank theorem to weighted
 quotient loads, changing source multiplicity or source-class contrast.
 General OP3 remains Open.
+
+## Bounded-cycle continuation sharpened at the final checkpoint
+
+`lem:op3-quotient-cycle-frontier-budget` now proves that, with quotient
+rank r and active rank r_S, new types spend at most r-r_S excess parents.
+At most r-r_S+1 multi-parent response groups remain, including possible
+missing source twins. The five-cycle witness in
+`prop:op3-five-cycle-source-type-ambiguity` rules out using the tree's
+two-parent source classification on a one-cycle quotient.
+
+For a one-cycle promise, first implement paid parent-set refinement with
+at most two small exceptional groups, and classify large-parent candidates
+as source twins only after the rank quota proves it. Every candidate's
+original degree stays in a heap; group keys are current active type parents,
+not a supplied global type partition. Avoid copying a long source parent
+set once per new incidence. Use its certified source formula when the
+parent quota applies. The finite quota audit is global reference work,
+not this missing local maintenance code.
+
+The numerical prototype can allow one rebuild at quotient-cycle closure
+and one at source-class enlargement, using only cached positive rows and
+current heap minima. Each event happens at most once; two rebuilds costing
+O((1+V)*log^4(2+V)) fit the desired total scale. This is a budget observation,
+not a completed cyclic algorithm. It avoids requiring an unproved fully
+dynamic weighted correction interface at the first prototype stage.
+The remaining proof must still supply the weighted cycle solve, shifted
+reporters if the geometric root moves, original seed contrast, exact gate
+recovery, and all local group updates before any stopping query.

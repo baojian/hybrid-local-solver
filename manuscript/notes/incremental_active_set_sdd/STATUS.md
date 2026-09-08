@@ -4,9 +4,10 @@
 
 The user requested another ten active hours after checking whether existing
 lower bounds support the conjecture's scale. This campaign began on
-8 September 2026 at 02:44:03 UTC; both prior campaigns are excluded.
+8 September 2026 at 02:44:03 UTC and completed 600.770027 new actual active
+minutes; both prior campaigns and recorded unverified intervals are excluded.
 Use [the current campaign status](OVERNIGHT_20260908_STATUS.md) and
-`OVERNIGHT_20260908_WORK_LOG.json` for continuation and actual active time.
+`OVERNIGHT_20260908_WORK_LOG.json` for final provenance and actual active time.
 
 **Source / Proved here:** the literature review supports worst-case
 inverse-accuracy optimality, with the existing problem-definition star
@@ -39,6 +40,31 @@ context/provenance only. The 127-page note builds without final warnings;
 65 own scripts and three registry tests pass. Broad checks retain only the
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
+
+## Third campaign, block 22: synthesis and the next quotient-cycle target
+
+Read [the campaign synthesis](RESEARCH_SYNTHESIS_20260908.md) first for
+the tightness verdict, strongest results, implementation limits and next
+research decisions. It distinguishes this campaign from the earlier nights.
+
+**Proved here, awaiting independent review:** In a canonical quotient of
+cycle rank r with active rank r_S, the sum of new types' excess active
+parents is at most r-r_S. There are at most r-r_S+1 multi-parent response
+groups, with the extra group accounting for incomplete source twins.
+A candidate with more than r-r_S+1 parents must be a source twin.
+Two parents alone are insufficient on a five-cycle: the exact tree-only
+source formula is wrong there, although both gates in that witness are
+positive. It is an identity obstruction, not a wrong-output claim.
+
+**Measured:** 258 original graph blow-ups, 6,463 cycle-excess checks,
+36,824 complete/incomplete-source frontier states and 196,027 original
+parent-quota checks. The three five-cycle prefixes are separately checked
+legal positive states. See `QUOTIENT_CYCLE_FRONTIER_AUDIT.json` and
+`sec:op3-quotient-cycle-frontier`.
+
+**Open:** A paid weighted one-cycle quotient solver, and the broader
+conservative significant-envelope finder. The combinatorial quota does
+not supply either numerical/local algorithm. General OP3 remains Open.
 
 ## Third campaign, block 21: complete twin-quotient-tree composition
 

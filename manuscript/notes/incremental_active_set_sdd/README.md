@@ -1,7 +1,7 @@
 # incremental_active_set_sdd
 
-The **third campaign is active**: ten additional research hours, beginning
-with the literature lower-bound audit requested by the user. Read
+The **third campaign is complete**: 600.770027 new actual active research
+minutes, beginning with the requested literature lower-bound audit. Read
 [the current status](OVERNIGHT_20260908_STATUS.md),
 [the transfer map](LOWER_BOUND_LITERATURE_AUDIT_20260908.md), and
 `sec:op3-lower-bound-quantifiers`. Worst-case inverse-accuracy optimality
@@ -9,6 +9,11 @@ is supported; general OP3 remains Open. Formal dependencies now include
 `problem_definitions` for its existing star formula and output argument.
 The completed second campaign below is historical and is not counted
 toward the new ten-hour minimum.
+
+Read [the third-campaign synthesis](RESEARCH_SYNTHESIS_20260908.md) for
+the lower-bound verdict, results and recommended next directions. The
+latest bounded-cycle probe proves a frontier-group quota and a five-cycle
+source-type ambiguity; the weighted cyclic solver remains Open.
 
 The latest structural result is now `thm:op3-local-twin-quotient-tree`:
 O((1+V)*log^4(2+V)) local exact-real work on graphs whose original twin
