@@ -1,3 +1,17 @@
+# Third campaign, block 6 (8 September 2026)
+
+**Verification:** 146-page note builds without final warnings; the final
+cover and pages 140-143 were visually reviewed. All 73 own scripts and
+three registry tests pass. Broad checks retain 231 passing tests and the
+same three failures, two unrelated lint findings and two oversized AESP
+sources. All five baseline hashes and the cap-audit source hash match.
+Reproduction stops at its failed test prerequisite. See
+`OVERNIGHT_20260908_BLOCK6_AUDIT.json`.
+
+The complete supplied recurrence is now a source-backed proof draft.
+The cap audit explicitly separates its accounting model from a complete
+solver implementation. Continue with `LOCAL_ENVELOPE_WORK_PROBE_20260908.md`.
+
 # Third campaign, block 5 (8 September 2026)
 
 **Verification:** 143-page note builds without final warnings; pages

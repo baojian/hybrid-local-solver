@@ -1,0 +1,254 @@
+\section{Capped composition of the supplied near-linear recursion}
+\label{sec:op3-complete-supplied-recursion}
+
+\paragraph{What changes at this checkpoint.}
+The weighted constructor in \cref{cor:op3-weighted-constructor-contract}
+now meets the former source hypothesis on the global numerical ranges
+proved in \cref{thm:op3-simultaneous-recursive-ranges}. This section
+makes the treatment of failed executions explicit and composes the
+supplied theorem. All work is on an already supplied graph. The source
+low-stretch-tree algorithm and the source accelerated convergence
+inequality remain identified imports; no local-discovery conclusion is
+inferred from them.
+
+\begin{lemma}[Capping primitive work and cumulative allocations; \statusproved]
+\label{lem:op3-primitive-execution-cap}
+Consider an exact-real word algorithm whose input includes computable
+budgets for primitive work, total allocated words, recursion depth,
+number of designated source calls, and other nonnegative cumulative
+counters such as node-input mass. There is a wrapper with constant
+factor work overhead whose simulated payload halts with \textnormal{FAIL}
+before exceeding any budget. It agrees with every execution staying within the budgets,
+apart from the harmless constant factor accounting overhead. Its total
+work and total allocated words, including the final rejected guard and
+wrapper temporaries, are $O(1+T+A)$ when $T$ and
+$A$ bound the original primitive work and total allocated words.
+No complete-source-call runtime guarantee is required on a bad branch.
+\end{lemma}
+\begin{proof}
+Execute the fixed algorithm one word instruction at a time, maintaining
+counters for executed work, every allocated word, the current call depth
+and the cumulative designated-call count. Check and reserve the resource
+increment before the instruction's effect. A bulk initialization or copy
+can either be expanded into single-word steps, or have its entire known
+work/allocation increment reserved before entering its bounded loop.
+In particular, a request for an enormous buffer is rejected before that
+buffer is created. The interpreter is applied to an imported source's
+word algorithm too; checking after an opaque source call returns is not
+this construction.
+
+Every executed instruction consumes at least one work unit, including a
+zero-word allocation, a failed objective guard and an empty-list step.
+Releasing an array decreases live storage, but does not decrease the
+cumulative allocation counter. Call entry checks depth and the designated
+call budget before allocating its frame; returning releases the frame
+without refunding its allocation. Counter arithmetic and comparisons
+have constant overhead per original word step or reserved word.
+A first rejected reservation has constant additional cost and immediately
+terminates the execution. Thus there cannot be an uncharged infinite loop
+of rejected requests or zero-sized operations. Counters, wrapper frames
+and termination words fit the same constant factor overhead.
+An arithmetic instruction outside its domain is mapped to
+\textnormal{FAIL}, charging its domain check. These checks do not alter
+any mathematically valid execution.
+\end{proof}
+
+\begin{lemma}[Conditional confidence for capped adaptive calls; \statusproved]
+\label{lem:op3-capped-adaptive-confidence}
+Suppose at most $N$ designated calls are allowed. At each call, conditional
+on every valid past execution and its supplied input, fresh randomness
+makes that call satisfy its complete contract with probability at least
+$1-\delta$. Then the probability of any first failed contract before
+termination is at most $N\delta$. The inputs and number of calls may
+be chosen adaptively. No independence of complete recursive instances
+is required.
+\end{lemma}
+\begin{proof}
+For each position $i\leq N$, restrict to histories that reach call $i$
+without a previous failed contract. Conditional on such a history, the
+probability that this call is the first failure is at most $\delta$.
+Integrate over those histories and sum over the at most $N$ positions.
+These first-failure events are disjoint, so their total is at most
+$N\delta$. Stopping early only removes histories.
+
+The conditional assumption matters. For example, let a shared seed be a
+uniform label $U\in\{0,\ldots,s-1\}$. An oracle can expose $U$ in its
+first output while declaring failure on an input exactly equal to $U$.
+For any fixed input the failure probability is $1/s$, but choosing the
+second input to be the exposed label forces failure under the same seed.
+With fresh independent randomness the conditional failure is again $1/s$.
+The actual constructor uses fresh independent fair bits for each call.
+\end{proof}
+
+\begin{theorem}[A complete source-backed supplied VWF recursion; \statusproved]
+\label{thm:op3-complete-supplied-recursion}
+Consider a supplied connected graph VWF instance on $n\geq2$ vertices with finite attained
+minimum, $\Phi(0)\leq0$, and total input size $M_0=m+S$, where $S$
+counts all scalar pieces and includes one per vertex. Let
+$B_0\geq-\Phi^*$ be computable, and let $Z\geq2$ bound the initial
+quantities in \cref{thm:op3-simultaneous-recursive-ranges}, including
+$\eta^{-1}$, for requested $\eta\in(0,1]$ and $p\in(0,1)$.
+Set
+\[
+ L=\left\lceil\log_2(2+M_0+Z+p^{-1})\right\rceil.
+\]
+There are universal computable constants $C,d$ and a supplied algorithm
+returning \textnormal{FAIL} or a feasible vector $x$. Every execution
+uses at most $CM_0L^d$ exact-real word work and total allocated words,
+and with probability at least $1-p$ it returns a vector satisfying
+\[
+ \Phi(x)\leq\tfrac12\Phi^*+\eta.
+\]
+The algorithm uses the checked arbitrary-positive-weight low-stretch-tree
+source, the proved weighted constructor, persistent forest elimination,
+global compression, the mixed additive schedule, and the bounded-size
+dense forward-piece base policy. No polynomial weight-ratio assumption
+in the current core size is imposed. This is an existence/construction
+and work theorem in the stated word model, not a claim that the entire
+source-backed recursion is implemented by the finite audits.
+For one vertex, the same conclusion follows by scanning its scalar
+pieces for the first derivative zero or nonnegative lower-end derivative;
+this exact $O(S)$ base is used before any graph edge-range expression.
+\end{theorem}
+\begin{proof}
+Use the recursion of \cref{thm:op3-conditional-supplied-recursion},
+with $K=A L^{12}$ for a sufficiently large universal $A$. In a nonbase
+call choose
+\[
+ j=\min\{n,\lceil C_2mL^2/K\rceil\},
+\]
+and use \cref{cor:op3-weighted-constructor-contract}, with failure budget
+$\delta=p/(4M_0)$, followed by the proved spectral edge floor.
+The $j=n$ branch uses the whole-graph sparsifier. On a valid constructor
+execution, adjusted quality is at most $K$ and the core has
+$O(jL)$ edges. These conclusions use global $L$:
+$\log(2+n+m+1/\delta)=O(L)$ for every capped input below.
+
+Here is a noncircular good-execution induction. Impose a per-node size
+cap $M\leq M_0$, a depth cap $D_0=\lceil\log_2 M_0\rceil+1$,
+and a total node-input-mass cap $2M_0$. Analyze any prefix up to the
+first putative cap violation, on which all constructor contracts hold.
+Every constructed graph then has at most $O(M_0L)$ records and quality
+at most $K$. Choose the parameter $P$ of the simultaneous range theorem
+to bound these quantities. Since $\log P=O(L)$ and $D_0=O(L)$,
+that theorem bounds every numerical logarithm, including the actual
+input weight ratio, by $O(L^2)$ along this prefix.
+Consequently every compression grid has $O(L^2)$ bins per vertex,
+and the new constructor costs
+\[
+ O\bigl(m[L^6+\log(c_{\max}/c_{\min})]\bigr)=O(mL^6).
+\]
+This is exactly the cost hypothesis formerly missing from the conditional
+recurrence, without assuming the ratio is polynomial in the shrinking $n$.
+
+The size calculation in that recurrence now applies on the prefix:
+\[
+ M'=O(ML^4/K),\qquad
+ \#\text{ children}=O(\sqrt K L),\qquad
+ \sum_{\text{children}}M'\leq M/2.
+\]
+Choose $A$ large enough to make the last constant at most one half for
+all $L\geq1$. Each child's positive integral size is at most $M/2$,
+so no path can reach the depth cap while continuing recursion.
+Summing mass by levels gives total node mass at most $2M_0$; each
+individual node has size at most $M_0$. Thus none of these caps can be
+the first violation. This proves the size/range induction for the whole
+good execution. Since every node has positive size, there are at most
+$2M_0$ constructor calls as well; base nodes need none.
+
+For completeness, all costs in the good-execution recurrence have fixed
+polynomial exponents. Nonrecursive source construction costs $O(mL^6)$.
+Persistent forest passes, explicit exports, compression, residual copies,
+objective guards, canonical shifts, recoveries and source-vector updates
+have their previously proved word bounds, repeated at most
+$O(\sqrt K L)$ times per node. At a base node $n\leq K$, the exact
+dense policy costs $O(m+(S+1)n^4)$, so at most
+$M\operatorname{poly}(L)$ even when the number of scalar pieces is large.
+The numerical policy uses fixed scheduled counts and explicitly charged
+piece traversals; it does not search for an unknown positive optimum gap.
+Summing over node mass at most $2M_0$ gives a computable fixed bound
+$T_0=C_3M_0L^{d_0}$ for work and every allocated word. Its constants can
+be chosen from the finitely many preceding bounds and the checked source
+algorithms. No assertion that $d_0$ equals the source paper's exponent
+eight is made.
+
+Apply \cref{lem:op3-primitive-execution-cap} using this good-run bound,
+the preceding mass/depth caps, and designated-call cap $2M_0$.
+Use constant slack to cover all checking overhead. Input validation,
+failed guards, copied histories and all failed source attempts remain
+inside the counter. The complete algorithm halts before any bad execution
+can exceed its fixed word-work/allocation budget. On the joint event
+that all constructor contracts hold, none of the caps is reached and
+it coincides with the proved mixed recursion, whose correctness follows
+from \cref{cor:op3-mixed-recursive-budgets} and
+\cref{thm:op3-mixed-proximal-accuracy}.
+
+Finally, \cref{lem:op3-capped-adaptive-confidence} bounds the probability
+of a first constructor failure by
+$2M_0\cdot p/(4M_0)=p/2\leq p$. Each constructor's complete confidence
+already includes its resistance estimator, matrix sampling and bit caps;
+those probabilities are not counted a second time. The remaining half
+is unused slack. This proves both the returned mixed contract and the
+bounded cost on every execution. Sparse output recovery and the final
+feasibility check are charged before return.
+\end{proof}
+
+\begin{corollary}[Supplied absolute objective accuracy; \statusproved]
+\label{cor:op3-complete-supplied-absolute}
+For a supplied instance as above and absolute target $t\in(0,1]$, enlarge
+$Z$ to include $t^{-1}$. The same model admits a supplied algorithm
+returning \textnormal{FAIL} or a feasible vector, and with probability
+at least $1-p$ the returned vector has objective gap at most $t$.
+Its cost is $M_0\operatorname{poly}(L)$ word work and total
+allocated words. Original ACL accuracy follows by using
+\cref{lem:op3-capped-grounding-vwf,lem:op3-diffusion-energy-scale}
+with $\delta=\epsappr/8$ and $t=\bar\alpha\delta^2/2$.
+The separable case $\alpha=1$ is handled directly by $u=e_v/d_v$;
+for $0<\alpha<1$ the positive edge weight is $\gamma$.
+Paying to obtain or enlarge a suitable supplied vertex set remains a
+separate obligation.
+\end{corollary}
+\begin{proof}
+Use guarded residual refinement with $\beta=2$ and per-call additive
+error $t/4$. After $J$ calls the original gap is at most
+$2^{-J}B_0+t/2$. Choose a known
+$J=O(1+\log(2+B_0/t))$ making this at most $t$; if $B_0=0$, return
+zero directly. Canonical objective guards keep all accepted states in
+the original nonpositive sublevel. The existing residual range bounds
+therefore bound all translated instances by the same original energy
+scale, rather than multiplying a fresh gap bound over iterations.
+Their numerical logarithms remain polynomial in $L$.
+Allocate $p/J$ to each invocation of the complete supplied theorem and
+apply its work cap. Fresh source randomness and a conditional union
+bound give total failure at most $p$; $\log J=O(L)$ and the additional
+factor $J=O(L)$ are absorbed by the stated polynomial. Residual copies,
+objective comparisons and final output are explicitly included.
+For the physical specialization, boxing preserves the absolute objective
+gap by \cref{lem:op3-capped-grounding-vwf}. The chosen $t$ and
+\cref{lem:op3-diffusion-energy-scale} imply coordinate error at most
+$\delta$. The downward-clipping proof of
+\cref{thm:op3-diffusion-accuracy-bridge} then gives the original ACL
+residual. Boxing, clipping, input scans and output entries are charged.
+\end{proof}
+
+\paragraph{Audit scope and the remaining conjecture.}
+The exact resource/confidence model audit is
+\texttt{supplied\_recursion\_caps.py}. Its durable source hash is in
+\path{SUPPLIED_RECURSION_CAPS_AUDIT.json}. It checks rejected
+reservations before payload execution, zero-size loops, cumulative
+allocations despite releases, invalid requests, nested mass/depth/call
+bounds, and adaptive conditional probability trees. A reused-seed example
+shows why a per-fixed-input failure statement is insufficient on its own.
+These checks audit the cap semantics and composition algebra, not a full
+implementation of the asymptotic recursion or imported tree algorithm.
+The preceding numerical and constructor audits remain their separate
+finite evidence. General OP3, the significant-envelope finder and a
+rank-independent geometric event producer remain \statusopen.
+
+The full model audit checks 12,374 transaction prefixes and 39,807 accepted
+or rejected requests, including 9,818 halted adversarial traces. It rejects
+three enormous allocations before their payloads, caps four zero-size
+loops, and charges three allocate/release loops cumulatively. It also
+checks 252 adaptive conditional union bounds on 48,891 probability-tree
+nodes, 40 mass/depth/call trees and four reused-seed counterexamples.
+These finite checks took 1.284 seconds and do not measure full-solver work.

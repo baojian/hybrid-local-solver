@@ -1,4 +1,18 @@
-# Next target: finish the supplied recursion with explicit failed-run caps
+# Supplied recursion cap composition: completed proof draft
+
+**Sixth-block update:** `sec:op3-complete-supplied-recursion` now proves
+the primitive-execution cap, adaptive conditional confidence, the complete
+source-backed supplied VWF recurrence and supplied absolute-accuracy
+corollary. The generic cap audit passes 12,374 transaction prefixes,
+252 adaptive probability trees and 40 recursive mass/depth/call trees.
+These are proof drafts awaiting independent review. The audit is explicitly
+a cap/composition model, not a full implementation of the imported tree
+algorithm or the asymptotic recursion. General local OP3 remains Open.
+
+The design below is retained as the checklist used in the proof. The next
+active target is the significant-potential envelope finder or geometric
+boundary-event production, starting with a precise supplied-envelope
+work reduction and tests of concrete local exploration rules.
 
 The fifth third-campaign block has implemented and proved resistance
 estimation and bounded core sparsification. Its final source-backed

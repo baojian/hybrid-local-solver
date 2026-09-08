@@ -88,3 +88,14 @@ potential-driven local discovery. Do not count this campaign complete.
 
 Completed new active minutes after block 5: **160.752023**.
 Resume `SUPPLIED_RECURSION_CAP_PROBE_20260908.md`; the sixth block is active.
+
+The sixth active block now has a complete source-backed supplied VWF
+recursion proof in `sec:op3-complete-supplied-recursion`. Its caps bound
+all executed primitive steps and cumulative allocations, including failed
+source attempts and freed histories. Fresh conditional source confidence
+is charged once. The generic cap audit and checkpoint checks pass as recorded in
+`OVERNIGHT_20260908_BLOCK6_AUDIT.json`. General OP3 remains Open, with the local envelope
+finder and rank-independent event production the remaining targets.
+
+Completed new active minutes after block 6: **192.012852**.
+The seventh block is active. Read `LOCAL_ENVELOPE_WORK_PROBE_20260908.md`.

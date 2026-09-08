@@ -41,6 +41,15 @@ charged. The final supplied-recursion cap composition is the next target:
 [read its concrete continuation probe](SUPPLIED_RECURSION_CAP_PROBE_20260908.md).
 General local OP3 remains Open.
 
+The sixth checkpoint completes the source-backed supplied VWF recurrence
+with explicit primitive work, allocation, depth and source-call caps.
+Its absolute-accuracy specialization gives original ACL repair on supplied
+physical inputs. The full asymptotic recursion and imported tree algorithm
+are not claimed as implemented experiments. The generic cap audit passes
+12,374 transaction prefixes and 252 adaptive conditional confidence trees.
+The next target is local discovery; general OP3 remains Open. Read
+`sec:op3-complete-supplied-recursion`.
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target

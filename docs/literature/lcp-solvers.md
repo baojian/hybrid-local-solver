@@ -863,3 +863,22 @@ O(m[L^6+log(weight_ratio)]) in the exact-real word model. The source tree is not
 implemented by these exact audits; dense resistance/PSD validators are
 labelled separately. The final supplied-recursion cap composition is the
 next target. General local OP3 remains Open.
+
+## 8 September 2026: capped supplied-recursion composition
+
+`sec:op3-complete-supplied-recursion` now composes the corrected weighted
+constructor with the note's persistent forest, mixed additive accuracy and
+simultaneous numerical ranges. The former conditional theorem is retained
+as an explicit interface; the new source-backed theorem has M0 poly(L)
+work and total allocated words on every branch, with requested confidence.
+The cap wraps primitive instructions, allocations and imported-source
+steps before execution; it is not an after-return time check. Source-call
+confidence is conditional on the supplied input and previous history, and
+the complete constructor's estimator/sampling failure is counted once.
+
+A generic exact cap and adaptive-probability audit supports the accounting
+semantics. It is not a full implementation of the source low-stretch tree
+or the asymptotic VWF recursion. The source CPW convergence inequality and
+AN tree remain explicitly cited. The next general-OP3 obligation is local
+discovery or event production; a supplied-graph theorem does not pay for
+finding the needed vertex set.

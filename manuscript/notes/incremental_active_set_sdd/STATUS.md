@@ -30,8 +30,8 @@ coordinates and records 3,812,842 charged units without reading ambient n.
 Source and backend hashes are in `LOWER_BOUND_QUANTIFIERS_AUDIT.json`.
 
 **Open / next:** general OP3 and potential-driven local discovery. The
-weighted constructor is now proved below; the final capped supplied
-recurrence remains under review. Continue the additional campaign;
+weighted constructor and capped supplied recurrence are now proved below
+as drafts awaiting independent review. Continue the additional campaign;
 this first literature checkpoint does not complete the ten-hour request.
 The formal dependency is now `problem_definitions`, specifically its
 Proposition 5 star formula/output argument. Other directions remain
@@ -39,6 +39,45 @@ context/provenance only. The 127-page note builds without final warnings;
 65 own scripts and three registry tests pass. Broad checks retain only the
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
+
+## Third campaign, block 6: complete capped supplied recurrence
+
+**Proved here, awaiting independent review:**
+`thm:op3-complete-supplied-recursion` gives a complete source-backed
+supplied VWF solver with M0 polylogarithmic word work and total allocated
+words, including every failed branch. Its absolute-accuracy corollary
+uses the original boxing and ACL bridge. The corrected weighted
+constructor is composed with the existing numerical range, compression,
+forest and mixed-accuracy proofs. No polynomial weight ratio in the
+current core size, minimum positive gap, or free failed call is assumed.
+The old conditional recurrence remains a reusable contract statement.
+
+**Measured:** The generic cap/composition audit passes 12,374 transaction
+prefixes, 39,807 requests, 252 adaptive conditional probability trees,
+and 40 recursive mass/depth/call trees. It rejects huge allocations before
+their payloads, charges released memory cumulatively, caps zero-size loops,
+and gives four counterexamples to reusing one random seed under adaptive
+calls. This audits resource semantics, not the full VWF algorithm.
+
+**Source / implementation boundary:** The low-stretch tree and accelerated
+convergence inequality remain explicit source imports. Earlier audits
+implement the numerical, routing, resistance and sampling interfaces.
+Neither the source tree algorithm nor the entire asymptotic recursion
+is claimed as an implemented experiment.
+
+**Verification:** 146-page note builds without final warnings; the final
+cover and pages 140-143 were visually reviewed. All 73 own scripts and
+three registry tests pass. Broad checks retain 231 passing tests and the
+same three failures, two unrelated lint findings and two oversized AESP
+sources. All five baseline hashes and the cap-audit source hash match.
+Reproduction stops at its failed test prerequisite. See
+`OVERNIGHT_20260908_BLOCK6_AUDIT.json`.
+
+**Next / Open:** General OP3 remains Open. Make the significant-envelope
+work reduction fully explicit, then test potential-driven local discovery
+or a geometric boundary-event producer. The supplied numerical solver
+obligation has been closed at the proof-draft level. Continue the
+600-new-active-minute campaign; both earlier campaigns are excluded.
 
 ## Third campaign, block 5: resistance estimates and bounded core sparsification
 
