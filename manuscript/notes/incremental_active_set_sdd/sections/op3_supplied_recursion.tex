@@ -1,0 +1,186 @@
+\section[Conditional supplied recursion]{Confidence accounting and a conditional supplied near-linear recursion}
+\label{sec:op3-supplied-recursion}
+
+\paragraph{What is and is not imported.}
+CPW's printed Lemma 4.4 assumes polynomial edge-weight ratio. Its
+weighted forest/routing construction is described in Sections 5.1--5.6.
+The underlying low-stretch-tree source explicitly handles arbitrary
+positive weights \citep[Sections 6--7]{abraham2019petal}; the general
+spectral-sparsification source uses fixed solver precision
+\citep[Sections 3.4 and 4, Theorem 4.2]{koutis2015sparsification}.
+These facts motivate the contract below, but do not silently change the
+statement of CPW's theorem. We keep the complete positive-weight
+constructor contract explicit and label the full solver result
+\statusconditional. The numerical lemmas proved earlier do not depend
+on that source-extension decision.
+
+\begin{proposition}[Confidence from a supplied resistance estimator; \statusproved]
+\label{prop:op3-spectral-confidence-wrapper}
+Suppose a supplied procedure on a connected positive-weight graph
+returns all effective resistances within relative error $1/4$, jointly
+with probability at least $3/4$, at cost $T_R$. Independent calls use
+fresh randomness. For any $p\in(0,1)$, there is a wrapper producing a
+graph $S$ with
+\[
+ G\preceq S\preceq2G
+\]
+with probability at least $1-p$, using $O(n\log(n/p))$ sampled edge
+records. Its extra work besides $O(\log(1/p))$ estimator calls is
+\[
+ O\bigl(mk\log(2+k)+n\log(n/p)\log(2+m)\bigr),
+ \qquad k=O(1+\log(1/p)).
+\]
+Every estimate vector, median buffer, sample and output is charged.
+\end{proposition}
+\begin{proof}
+Take an odd $k\geq8\lceil\log_2(2/p)\rceil$ independent complete
+estimate vectors and use coordinatewise medians. If a majority of
+vectors are good, every median is good. For the number of bad vectors,
+the exponential Markov bound with multiplier three gives majority-failure
+probability at most $(\sqrt3/2)^k\leq e^{-k/8}\leq p/2$.
+Scale each median by twice its original edge weight, obtaining scores
+$s_e$ satisfying
+\[
+c_eR_e\leq s_e\leq4c_eR_e,
+ \qquad t=\sum_es_e\leq4(n-1).
+\]
+Abort if any score is nonpositive or if $t>4(n-1)$, charging the
+complete check. This never happens on the good median event and caps
+the sampling work even on an erroneous estimator output.
+Sample edges independently with probabilities $p_e=s_e/t$. On the
+$(n-1)$-dimensional space orthogonal to the constants, the proof matrices
+\[
+ Y_e=(c_e/p_e)G^{+/2}b_eb_e^TG^{+/2}
+\]
+have expectation identity and operator norm $c_eR_e/p_e\leq t$.
+These square roots are proof notation, not computed objects.
+The matrix Chernoff inequalities
+\citep[Corollary 5.2]{tropp2012tails} imply for $0<\varepsilon\leq1$
+\[
+ \Pr\!\left\{\frac1q\sum_{j=1}^qY_{e_j}
+       \notin[(1-\varepsilon)I,(1+\varepsilon)I]\right\}
+ \leq2(n-1)e^{-\varepsilon^2q/(3t)}.
+\]
+For clarity, the scalar exponents follow from
+$\varepsilon+(1-\varepsilon)\log(1-\varepsilon)\geq\varepsilon^2/2$
+and $(1+\varepsilon)\log(1+\varepsilon)-\varepsilon\geq\varepsilon^2/3$.
+Choose $\varepsilon=1/3$ and
+$q\geq27t\lceil\log_2(4n/p)\rceil$. The sampling failure is at
+most $p/2$. Scaling the sampled Laplacian by $3/2$ gives the claimed
+spectral interval; union with the median event proves the confidence.
+Sorting each median and binary-search sampling give the displayed work.
+Repeated sampled edges may be aggregated by paid multiplicity updates.
+The audit's exact rational CDF sampler is a reference realization; no
+constant-time integer bit operations are asserted.
+\end{proof}
+
+\paragraph{Explicit constructor hypothesis.}
+Fix a global logarithmic parameter $L$. For every supplied connected
+positive-weight graph with $m$ edges and every integer $10\leq j<n$,
+assume an available constructor returns a $j$-tree $Q$ with
+\[
+ G\preceq Q\preceq C_0mL^2G/j,
+ \qquad m_{\rm core}\leq C_1jL,
+\]
+at cost $O(mL^c)$ for a fixed universal $c$. The guarantee must hold
+for the actual input weights, with requested failure probability
+$p/(4M_0)$; its logarithm is included in $L$. The rooted forest,
+core records and all allocations are part of its output/cost contract.
+For $j=n$, use a whole-graph constant-factor sparsifier instead.
+The preceding confidence wrapper addresses the core-sampling probability;
+the weighted forest/decomposition/routing assumptions still require their
+separate source reconciliation. This hypothesis does not grant free
+access to an unknown neighborhood.
+
+\begin{theorem}[A supplied VWF recursion under that contract; \statusconditional]
+\label{thm:op3-conditional-supplied-recursion}
+Consider a supplied connected graph VWF instance with finite minimum,
+$\Phi(0)\leq0$, total input size $M_0=m+S$, and requested
+$\eta\in(0,1]$, $p\in(0,1)$. Here $S$ counts all scalar pieces,
+including one per vertex. Let a computable $B_0\geq-\Phi^*$ be given,
+and let $Z\geq2$ bound the initial quantities in
+\cref{thm:op3-simultaneous-recursive-ranges}, including $\eta^{-1}$.
+Set $L=\lceil\log_2(2+M_0+Z+p^{-1})\rceil$.
+Under the explicit constructor contract, a supplied algorithm returns
+a $(2,\eta)$ output in $M_0\operatorname{poly}(L)$ exact-real word
+work and total allocated words, with probability at least $1-p$.
+It uses the proved persistent forest, global compression and mixed
+accuracy schedule, and may use the proved dense forward-piece policy
+only at an explicitly bounded base size. The logarithmic exponent is
+not claimed to be CPW's exponent eight.
+\end{theorem}
+\begin{proof}
+Use $K=A L^{12}$ for a sufficiently large universal $A$, and stop
+recursing when $n\leq K$. In a nonbase case choose
+\[
+ j=\min\{n,\lceil C_2mL^2/K\rceil\},
+\]
+where $C_2$ absorbs the constructor quality and the factor-two spectral
+floor. Since $n>K$ and $m\geq n-1$, the nontrivial choice is at least
+ten after adjusting universal constants. If the minimum equals $n$,
+whole-graph sparsification gives quality at most four after the floor.
+In either case adjusted quality is at most $K$ and
+$j=O(mL^2/K)$. Every inner exact forest pass is followed by the
+mixed refinement/compression schedule, with
+$\eta_{\rm child}=\eta/(2^{34}K)$.
+
+Here is a simultaneous induction on the input sizes and ranges.
+Every constructed graph has at most $O(M_0L)$ edge records, and
+all qualities are at most $K$. A path whose successive input sizes
+halve has depth $O(\log M_0)$. Thus the preceding range theorem bounds
+every compression grid by $O(L^2)$ bins per vertex. Consequently a child
+has
+\[
+ m' = O(mL^3/K),\qquad S'=O(mL^4/K),\qquad
+ M'=O(ML^4/K),
+\]
+where $M=m+S$ is the parent input size. The base and induction step
+may equivalently use a depth cap $\lceil\log_2 M_0\rceil+1$;
+the size estimate shows the cap is never reached on a valid execution.
+
+One accelerated invocation makes $O(\sqrt K)$ inner calls, each with
+$O(\log K)\leq O(L)$ refinement calls. The sum of child sizes is
+therefore at most
+\[
+ O(\sqrt K L)\,O(ML^4/K)
+ =O(ML^5/\sqrt K)\leq M/2
+\]
+for a sufficiently large $A$. This also justifies the path-depth and
+range induction. Full construction, normalization, exact forest passes,
+exports, residual copies, bin scans, objective guards, canonical shifts,
+recoveries, source updates and outputs cost $M\operatorname{poly}(L)$
+outside the child calls. Old versions and failed calls remain included.
+
+At a base case build the dense graph matrix once in $O(m+n^2)$ work.
+The forward-piece policy makes at most $S+1$ bound QPs; each has at most
+$n$ strict face expansions and at most $O(n^3)$ arithmetic per dense
+principal solve. Hence its work is $O(m+(S+1)n^4)$, which is
+$M\operatorname{poly}(L)$ because $n\leq K$. This is not a
+constant-time base case when many scalar pieces remain. All newly
+allocated words are bounded by the same charged operation count.
+
+The sum of input sizes over the complete recursion tree is at most
+$2M_0$, so summing the nonrecursive costs proves the work bound.
+The number of constructor calls is at most $2M_0$. Allocate
+$p/(4M_0)$ to each call, using fresh randomness on its adaptively supplied
+input; the conditional union bound is at most $p/2$. A corresponding
+call/work cap may abort failed-source executions. On the event that all
+constructor contracts hold, no cap is reached. Correctness then follows
+by induction from \cref{cor:op3-mixed-recursive-budgets} and the mixed
+accelerated theorem. Reserving the remaining failure budget absorbs the
+source-estimator confidence contract. The asserted work is fully supplied
+graph work throughout.
+\end{proof}
+
+\paragraph{Absolute accuracy and original ACL.}
+A computable $B_0$ is available from the canonical input-gap proposition:
+add $-\Phi(0)$ to its gap upper bound. Guarded $\beta=2$ refinement
+with per-call additive error $t/4$ reaches absolute gap $t$ after
+$O(1+\log(2+B_0/t))$ calls. Residual range bounds keep their initial
+numerical logarithms controlled. Split the total failure budget over
+that known number of outer calls. Thus the same conditional supplied
+near-linear conclusion holds up to another logarithmic factor.
+For original capped diffusion, the existing boxing and gap-to-residual
+bridge then supplies ACL accuracy. Paying for a suitable supplied vertex
+set, and for any repeated enlargements, remains a separate obligation.
+No support-local or arbitrary-graph OP3 theorem is inferred here.

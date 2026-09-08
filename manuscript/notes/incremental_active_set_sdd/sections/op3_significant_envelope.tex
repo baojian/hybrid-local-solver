@@ -1,0 +1,172 @@
+\section[A significant-potential envelope]{A weaker sufficient local envelope}
+\label{sec:op3-significant-envelope}
+
+\begin{theorem}[Supplied significant-potential envelope; \statusproved]
+\label{thm:op3-significant-envelope}
+Let $u$ be the original obstacle solution for
+$M=D-\gamma A$, $b=e_v-\lambda d$, on a connected simple graph
+with at least two vertices. Here $0<\gamma<1$ and $\lambda>0$.
+For $\delta>0$, let a supplied set $U$ contain every vertex with
+$u_i>\delta$. Let $v$ be the obstacle solution restricted to $U$,
+extended by zero, using the original full diagonal degrees. Then
+\[
+ 0\leq v\leq u,\qquad \|u-v\|_\infty\leq\delta.
+\]
+No exact-support containment is required.
+\end{theorem}
+\begin{proof}
+Restriction monotonicity follows directly from a maximum principle.
+If $v-u$ had a strictly positive maximum at $i$, then $i\in U$ and
+$v_i>0$. Restricted KKT gives $(Mv)_i=b_i$, while full KKT gives
+$(Mu)_i\geq b_i$. Thus $(M(v-u))_i\leq0$, contradicting
+\[
+ (M(v-u))_i\geq(1-\gamma)d_i(v_i-u_i)>0.
+\]
+Both obstacles are nonnegative, so $0\leq v\leq u$.
+Now suppose $e=u-v$ has maximum greater than $\delta$ at $i$.
+Outside $U$, $e_i=u_i\leq\delta$, so $i\in U$ and $u_i>0$.
+Full KKT gives $(Mu)_i=b_i$ and restricted KKT gives
+$(Mv)_i\geq b_i$. Consequently $(Me)_i\leq0$, whereas
+$(Me)_i\geq(1-\gamma)d_i e_i>0$. This proves the claim,
+including an empty envelope and coordinates tied at $\delta$.
+\end{proof}
+
+\begin{corollary}[Original ACL repair from that envelope; \statusproved]
+\label{cor:op3-significant-envelope-ACL}
+Set $\lambda=\epsappr/2$ and $\delta=\epsappr/8$.
+Suppose a feasible restricted numerical output $w$, extended by zero,
+satisfies $\|w-v\|_\infty\leq\delta$. Then
+\[
+ x=(w-\delta)_+,\qquad p=(1-\gamma)Dx
+\]
+obey the original ACL residual requirement
+$0\leq e_v-Mx\leq\epsappr d$. Moreover
+$\operatorname{supp}(x)\subseteq\operatorname{supp}(u)$ and its
+original volume is less than $1/\lambda$.
+\end{corollary}
+\begin{proof}
+The coordinate error and clipping give $0\leq x\leq v\leq u$ and
+$\|u-x\|_\infty\leq3\delta$. Write $e=u-x\geq0$ and
+$r^*=e_v-Mu\leq\lambda d$. Always
+\[
+ e_v-Mx=r^*+Me\leq(\lambda+3\delta)d<\epsappr d.
+\]
+When $x_i>0$, $u_i>0$ and $r_i^*=\lambda d_i$, so
+\[
+ (e_v-Mx)_i\geq(\lambda-3\gamma\delta)d_i>0.
+\]
+When $x_i=0$, the same residual equals
+$(e_v)_i+\gamma\sum_{j\sim i}x_j\geq0$ directly.
+The output normalization is the original ACL one.
+For completeness, $r^*\geq0$ holds by the same zero-coordinate
+argument and positive-coordinate KKT. If the support is nonempty,
+\[
+ 1=\lambda\operatorname{vol}(\operatorname{supp}u)
+ +(1-\gamma)\sum_i d_i u_i
+ +\sum_{i\notin\operatorname{supp}u}r_i^*,
+\]
+and the middle term is strictly positive. Empty support is immediate.
+\end{proof}
+
+\paragraph{Numerical and access obligations.}
+On a supplied $U$, the original grounded energy gap $t$ bounds
+$\|w-v\|_\infty$ by $\sqrt{2t/(1-\gamma)}$, since all original
+degrees are at least one. Thus the existing capped solver and gap
+certificate can target $t=(1-\gamma)\delta^2/2$.
+Reading its original rows, boundary degree information, all numeric
+updates, failed checks and output entries must still be paid. The
+theorem supplies no procedure for discovering $U$.
+An $\widetilde O(1/\epsappr)$ local procedure producing a set of
+original volume $O(1/\epsappr)$ that contains
+$\{i:u_i>\epsappr/8\}$ is a sufficient remaining target, together
+with the explicitly conditional supplied solver. It is weaker than
+finding every positive coordinate, but remains \statusopen.
+
+\paragraph{A falsifiable exploration rule.}
+The exact audit tests ordinary FIFO breadth-first row exploration on
+the unweighted tree formed by joining a seed to one path and two binary
+branches. Every original degree is at most three. Consequently a
+degree filter admitting degrees up to three keeps all the decoys.
+For binary height $H$ and path length $P$, the supplied symmetry
+quotient has only $1+H+P$ vertices; its binary-level edge multiplicities
+are $2^k$, and its original degree sums are $3\cdot2^k$ except
+at the final leaves. Uniqueness and automorphisms identify the quotient
+solution with the original per-vertex obstacle. This is a validator
+using supplied symmetry, not a free local oracle.
+
+Before BFS can query a path row at distance $k<\min\{H,P\}$,
+it must query every row at smaller distance, at original degree cost
+\[
+ 3+3(2^k-2)+2(k-1).
+\]
+Even discovering the label at distance $k$ requires querying its parent
+at distance $k-1$. Thus all rows at distance less than $k-1$ must have
+been queried first, at cost $3+3(2^{k-1}-2)+2(k-2)$.
+The audit uses this stronger discovery obstruction, allowing the envelope
+to include every discovered label without first querying its row.
+Exact KKT values can therefore certify failure of a specified budget
+even when that undiscovered path coordinate exceeds $\epsappr/8$. Such a finite
+witness refutes only this exploration rule and budget constant. By itself it is
+not an asymptotic lower bound, nor a refutation of OP3: the earlier
+local tree algorithm already solves this graph family efficiently.
+
+\begin{proposition}[An asymptotic obstruction to the BFS envelope rule; \statusproved]
+\label{prop:op3-BFS-envelope-family}
+For every integer $N\geq4$, take the original unweighted tree above
+with path length and binary height both $N$, and set
+\[
+ \lambda=\frac1{16N^2},\quad
+ \epsappr=2\lambda,\quad \alpha=\lambda^2,\quad
+ \delta=\epsappr/8=\lambda/4.
+\]
+The obstacle has $u_k\geq1/32>\delta$ at path distance
+$k=\lfloor N/2\rfloor$. FIFO breadth-first exploration cannot even
+discover that vertex before spending
+\[
+ 3+3(2^{k-1}-2)+2(k-2)=\Omega(2^{N/2})
+\]
+original row-degree work. Hence its discovered-label envelope, with
+or without a degree filter retaining degree three, cannot achieve
+$(1/\epsappr)\operatorname{polylog}(n,1/\alpha,1/\epsappr)$
+work on this family. This is a lower bound on the specified BFS rule,
+not on arbitrary local algorithms.
+\end{proposition}
+\begin{proof}
+A nonnegative vector $z$ satisfying $(Mz)_i\leq b_i$ at every
+coordinate with $z_i>0$ is a lower bound on the obstacle $u$.
+Indeed, a strictly positive maximum of $z-u$ occurs where $z_i>0$;
+there $(M(z-u))_i\leq0$ by full KKT, contradicting the strictly
+positive maximum-principle bound. No condition is required at $z_i=0$.
+
+On the seed and path define
+\[
+ z_i=2\lambda(N-i)^2,\qquad 0\leq i\leq N,
+\]
+and set every binary-branch value to zero. The seed has $z_0=1/8$,
+so its original row obeys
+$(Mz)_0=3z_0-\gamma z_1\leq3/8\leq1-3\lambda$.
+Every positive path coordinate has original degree two. Writing
+$\bar\alpha=1-\gamma=2\alpha/(1+\alpha)$, its row is exactly
+\[
+ (Mz)_i=-4\lambda+
+ 4\bar\alpha\lambda\bigl((N-i)^2+1\bigr)\leq-2\lambda.
+\]
+For the last inequality, use
+\[
+ \bar\alpha(N^2+1)\leq2\lambda^2(N^2+1)
+ =\frac{N^2+1}{128N^4}\leq\frac12.
+\]
+Thus $z\leq u$. At $k=\lfloor N/2\rfloor$,
+$z_k\geq2\lambda(N/2)^2=1/32>\delta$.
+
+Before querying the parent at distance $k-1$, BFS must query all
+rows at smaller distance, regardless of tie ordering or whether it
+adds unqueried discovered labels to its output. Counting binary levels
+and path rows gives the displayed work. Here
+$n=2^{N+1}-1+N$, $1/\epsappr=8N^2$ and
+$1/\alpha=256N^4$. Every fixed polynomial in their logarithms,
+multiplied by $1/\epsappr$, is polynomial in $N$, whereas the necessary
+BFS work is exponential. This proves the claimed rule-specific failure.
+The original obstacle support still has volume below $16N^2$, and
+the previously proved local tree algorithm applies to this same family.
+\end{proof}

@@ -109,6 +109,10 @@ preconditioning, and fast solution of graph-structured linear systems.
   (Koutis, Levin and Peng, ACM Trans. Algorithms 12(2), Article 17, 2015;
   DOI 10.1145/2743021) — fixed-precision general spectral sparsification;
   checked source version and recursive-constructor limits in `lcp-solvers.md`.
+- [*User-Friendly Tail Bounds for Sums of Random Matrices*](https://users.cms.caltech.edu/~jtropp/papers/Tro11-User-Friendly-FOCM.pdf)
+  (Tropp, Found. Comput. Math. 12:389–434, 2012;
+  DOI 10.1007/s10208-011-9099-z) — matrix Chernoff bounds for the
+  explicitly charged resistance-sampling confidence wrapper; see `lcp-solvers.md`.
 
 - *Nearly-Linear Time Algorithms for Graph Partitioning, Graph
   Sparsification, and Solving Linear Systems* (Spielman and Teng, 2004).

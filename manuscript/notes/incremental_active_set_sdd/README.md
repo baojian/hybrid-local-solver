@@ -1,6 +1,58 @@
 # incremental_active_set_sdd
 
-## Second night, block 11: spectral edge floors and recursive ranges
+## Second night, block 12: nested numerics and a sharper local target
+
+**General OP3 remains Open.** Start with
+[OP3_MORNING_DECISIONS_20260908.md](OP3_MORNING_DECISIONS_20260908.md).
+The new significant-potential envelope theorem only requires a supplied set
+containing `{i: u_i > eps_appr/8}`. Its restricted solution is within
+`eps_appr/8` of the full obstacle; numerical approximation and clipping then
+certify the original ACL residual. Finding this set in the target local work
+remains Open. A separate explicit subsolution now proves an asymptotic
+obstruction to FIFO BFS discovered-label envelopes on original degree-three
+trees. This refutes the exploration rule, not general OP3.
+
+**Proved here, awaiting independent review:** the envelope/ACL bridge,
+spectral residual gap certificate, computable stopping rules, paid upward
+rounding and confidence wrapper under its stated resistance-estimator
+contract. The full supplied near-linear recurrence is a **Conditional**
+theorem: the actual-positive-weight constructor/source extension remains
+explicitly unreconciled. The previously proved numerical range lemmas do
+not silently remove CPW's printed weight-ratio assumption.
+
+**Measured:** Two genuinely nested accelerated levels pass 389,120 fixed
+inner steps. On the same two physical profiles, certified stopping uses
+6,525 steps plus 12,605 paid tree certificates. Its third signed profile
+exercises positive compression errors and piece changes. All four saved
+physical outputs pass the original ACL certificate. The envelope audit
+passes 1,097 physical inputs, 19,925 supplied sets and 751,993 original
+residual certificates. Three finite tree witnesses pass exact original
+quotient KKT checks; 67 asymptotic-family instances validate 10,138 positive
+subsolution rows. The spectral audits pass 1,440 mixed certificates,
+240 exact-tree certificates and 180 weighted confidence cases, including
+540 invalid-estimator aborts before any sampling.
+
+All eight new audits have durable source/backend hashes. Dense minima,
+supplied preconditioners and symmetry quotients remain identified validators.
+No general fast constructor, hidden free graph access or bit-complexity
+claim is inferred. The initial full-curve tree witness computation was
+terminated without a result; a simpler exact positive-face tree validator
+completed all three finite cases in 5.587 seconds.
+
+**Verification:** The 124-page note builds without final warnings or
+unresolved references; the new proof pages were visually reviewed. All
+64 own scripts pass focused lint/format and three registry tests pass.
+Required broad checks retain the same 231 passing tests and three baseline
+failures, two unrelated lint findings and two oversized AESP sources.
+All five baseline hashes are unchanged; reproduction stops at its test
+prerequisite. See `OVERNIGHT_20260907_BLOCK12_AUDIT.json` and
+`VERIFICATION.md`. Formal note dependencies remain empty.
+
+**Next decision:** prioritize potential-driven local discovery or the
+geometric boundary-event interface; separately close the weighted supplied
+constructor contract. The morning note gives specific success criteria.
+
+## Historical second-night block 11: spectral edge floors and recursive ranges
 
 **General OP3 remains Open.** The new section
 `sec:op3-recursive-vwf-ranges` proves a paid preconditioner edge-floor

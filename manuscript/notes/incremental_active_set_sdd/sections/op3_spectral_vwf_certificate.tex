@@ -1,0 +1,142 @@
+\section[General spectral gap certificates]{A computable spectral gap certificate and paid upward rounding}
+\label{sec:op3-spectral-vwf-certificate}
+
+\paragraph{Scope.}
+The following elementary spectral/convexity comparison gives a useful
+stopping interface for the supplied numerical recursion. The comparison
+idea is standard; this note supplies its exact mixed-error certificate
+and charged VWF realization. These are \statusproved\ drafts awaiting
+independent review. They do not provide the preconditioner or its oracle.
+In particular, they do not imply a local OP3 work bound.
+
+\begin{theorem}[A nongrounded spectral residual certificate; \statusproved]
+\label{thm:op3-spectral-vwf-gap-certificate}
+Let $G\preceq H\preceq\kappa G$, $\kappa\geq1$, and let $a$ be
+any feasible point of $\Phi(x)=x^TGx/2+h(x)$ with finite infimum
+$\Phi^*$. The proper convex function $h$ includes the domain indicator.
+Define
+\[
+ R_G(z)=\Phi(a+z)-\Phi(a)=\tfrac12z^TGz+h_a(z),\qquad
+ R_H(z)=\tfrac12z^THz+h_a(z).
+\]
+Thus $h_a(0)=0$ and its domain is convex and contains zero.
+Suppose an oracle returns feasible $q$ with
+$R_H(q)\leq R_H^*/\beta+\xi$, where $\beta\geq1$ and $\xi\geq0$.
+Then the computable quantity
+\begin{equation}
+ \mathcal C(a)=\kappa\beta\bigl(\xi-R_H(q)\bigr)
+ \label{eq:op3-spectral-vwf-gap-certificate}
+\end{equation}
+satisfies
+\[
+ 0\leq\Phi(a)-\Phi^*\leq\mathcal C(a)
+ \leq\kappa\beta\bigl(\Phi(a)-\Phi^*+\xi\bigr).
+\]
+No positive grounding, objective-gap margin or coordinate box is required.
+The point $a$ need not have nonpositive objective value.
+\end{theorem}
+\begin{proof}
+The spectral order and convexity at the feasible origin give, for all
+feasible $z$,
+\[
+ R_G(z)\leq R_H(z),\qquad
+ R_H(z/\kappa)\leq R_G(z)/\kappa.
+\]
+The second inequality uses $H/\kappa^2\preceq G/\kappa$ and
+$h_a(z/\kappa)\leq h_a(z)/\kappa$. Taking infima proves
+\[
+ \kappa R_H^*\leq R_G^*\leq R_H^*\leq0,
+ \qquad R_G^*=-(\Phi(a)-\Phi^*).
+\]
+The mixed oracle contract yields
+$\kappa\beta(R_H(q)-\xi)\leq\kappa R_H^*\leq R_G^*$,
+which is the lower certificate inequality. Feasibility yields
+$R_H(q)\geq R_H^*\geq R_G^*$, proving the upper one. The argument
+uses only finite infima; attainment is unnecessary for the comparison.
+\end{proof}
+
+\begin{corollary}[Computable absolute and mixed stopping rules; \statusproved]
+\label{cor:op3-spectral-vwf-stopping}
+For a requested absolute gap $t>0$, accept if $\mathcal C(a)\leq t$.
+If $\xi\leq t/(2\kappa\beta)$, this must accept whenever the true
+gap is at most $t/(2\kappa\beta)$.
+For a requested $(2,\eta)$ output, it suffices to check
+\[
+ \Phi(a)+\mathcal C(a)\leq2\eta.
+\]
+For a feasible-origin normalized objective with nonpositive infimum,
+$\mathcal C(a)\leq\zeta$ also certifies its $(1+\delta,\zeta)$
+contract for every $\delta>0$.
+\end{corollary}
+\begin{proof}
+The first claim follows from both certificate inequalities.
+For the second,
+$2\Phi(a)\leq\Phi(a)-\mathcal C(a)+2\eta\leq\Phi^*+2\eta$.
+For the third, $\Phi(a)\leq\Phi^*+\zeta
+\leq\Phi^*/(1+\delta)+\zeta$.
+\end{proof}
+
+\paragraph{Charged VWF implementation.}
+With original vertex functions $f_i$, the residual functions are
+$f_i(a_i+z)-f_i(a_i)+(Ga)_iz$ on $[L_i-a_i,\infty)$.
+They are constructed with a complete sparse product, anchor queries and
+piece copies, and the oracle energy is evaluated on $H$, not on $G$.
+This costs $O(m_G+m_H+S)$ work and $O(S+n)$ new words besides the
+oracle's own complete costs, where $S$ is the total piece count.
+Each failed certificate remains charged. When $H$ is a supplied tree,
+\cref{thm:op3-persistent-vwf-forest} computes $R_H^*$ exactly using a
+single retained root. Only its minimizing scalar value is needed:
+no full-coordinate reconstruction is required by the certificate.
+This realizes $\beta=1$, $\xi=0$, with the stated persistent-tree work
+and all-allocation bound. Dense minima in the audit are validators only.
+
+\begin{lemma}[An explicit upward rounding budget; \statusproved]
+\label{lem:op3-upward-vwf-rounding}
+Consider a supplied graph VWF objective with total edge weight $W$,
+total largest curvature $C$, and $A=\sum_i|f_i'(0)|$. Let feasible
+$x$ satisfy $\|x\|_\infty\leq R$. For a vector $d$ with
+$0\leq d_i\leq s\leq1$, the point $x+d$ remains feasible and
+\[
+ \Phi(x+d)-\Phi(x)
+ \leq s\bigl(A+(4W+C)R\bigr)+\tfrac12(W+C)s^2
+ \leq s\bigl(A+(4W+C)(R+1)\bigr).
+\]
+Thus upward rounding to a dyadic grid with spacing at most
+$\min\{1,\zeta/[2(A+(4W+C)(R+1))]\}$ raises energy by at most
+$\zeta/2$. If the denominator is zero, the objective is constant and
+there is no rounding error.
+All range scans, grid selection, arithmetic and output are charged.
+\end{lemma}
+\begin{proof}
+The graph gradient satisfies $\|Gx\|_1\leq4WR$, and bounded scalar
+curvature gives $\sum_i|f_i'(x_i)|\leq A+CR$.
+Consequently $\nabla\Phi(x)^Td\leq s(A+(4W+C)R)$.
+The exact graph quadratic remainder is at most $Ws^2/2$, because
+$|d_i-d_j|\leq s$. Integrating each scalar derivative gives total
+vertex remainder at most $Cs^2/2$. These arguments cross all scalar
+breakpoints and include lower endpoints via their right derivatives.
+The displayed bound and feasibility follow. A dyadic spacing can be
+found by repeated halving; this costs logarithmically many comparisons
+in the displayed range and requested tolerance. Implementing integer
+rounding in the rational validator is separate from a bit-complexity
+claim, which is not made here.
+\end{proof}
+
+\paragraph{Relation to the nested audit.}
+The fixed-length nested audit runs the mixed accelerated updates at two
+levels. Each outer inner problem is eliminated once; its coarse residuals
+are compressed and solved by another accelerated invocation. That
+invocation uses a supplied tree preconditioner and exact persistent
+single-root minima. Upward dyadic rounding deliberately makes its base
+oracle inexact, and the mixed energy inequality is checked exactly.
+Every refinement call, rejected candidate, normalized model, source
+update, curve version and recovered coordinate is counted. Dense minima
+are used only to verify gaps, never to choose a stopping iteration or
+an accelerated output. A separately implemented certified variant stops
+only when its paid tree certificate proves the required mixed accuracy.
+For the same two physical profiles it uses 6,525 inner accelerated steps
+and 12,605 additional tree minimum-value certificates, versus 389,120
+inner steps for the fixed-length variant. A third signed profile with
+breakpoints at $\pm2^{-100}$ exercises positive compression errors and
+actual piece changes. These are exact finite integration audits, not
+asymptotic or local-algorithm timing claims.

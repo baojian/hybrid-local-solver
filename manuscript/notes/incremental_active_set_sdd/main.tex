@@ -53,9 +53,18 @@ Separately, a fully implemented scalar breakpoint sweep solves promised
 complete multipartite cores with unequal private leaves and any physical seed in
 $O(\operatorname{cvol}(U)\log(2+\operatorname{cvol}(U)))$ local word work,
 including cases with large cycle rank and enormous unread attachments.
+The supplied numerical direction also gives corrected persistent VWF
+forest elimination, explicit mixed relative/additive tolerances and
+logarithmic recursive range bounds. A complete supplied near-linear
+recurrence is conditional on an explicitly stated positive-weight
+preconditioner constructor; that source extension is not assumed proved.
+A new maximum-principle reduction shows that a local set need only
+contain obstacle coordinates above $\epsappr/8$ to support ACL repair.
+Finding such a set within the target work remains open.
 All new results are proof drafts awaiting independent review. The certified
 coarse refinement is ACL-only and gives no exact RPPR or OP2 result.
-Arbitrary-graph OP3 remains open because its active-rank cost is still present.
+Arbitrary-graph OP3 remains open: the first route retains active-rank
+cost, and the supplied numerical route still needs local discovery.
 \end{abstract}
 
 \clearpage
@@ -625,6 +634,9 @@ is broad and the boundary has no known low-dimensional kinetic description.
 \input{sections/op3_persistent_vwf_forest}
 \input{sections/op3_mixed_additive_oracles}
 \input{sections/op3_recursive_vwf_ranges}
+\input{sections/op3_spectral_vwf_certificate}
+\input{sections/op3_supplied_recursion}
+\input{sections/op3_significant_envelope}
 
 \section{Conclusions for the project conjecture}
 \label{sec:conclusion}
@@ -725,70 +737,24 @@ $\widetilde O(1/\rho)$ RPPR bound would beat, rather than merely match, the
 project's $\widetilde O(1/(\rho\sqrt\alpha))$ conjectured scale.  This does not
 contradict the project's existing lower bounds, which are tied to narrower
 persistent-support or repeated-row access models.
+\item \Cref{thm:op3-persistent-vwf-forest,cor:op3-mixed-recursive-budgets,thm:op3-simultaneous-recursive-ranges}
+provide corrected persistent VWF elimination, a mixed additive recursive
+accuracy schedule and logarithmic range control without a minimum positive
+split, curvature drop or objective gap. The supplied near-linear work
+recurrence in \cref{thm:op3-conditional-supplied-recursion} remains
+conditional on the stated weighted constructor. The nested numerical and
+spectral stopping interfaces are implemented and exact-audited on supplied
+families; no general source constructor is implemented.
+\item \Cref{thm:op3-significant-envelope,cor:op3-significant-envelope-ACL}
+reduce one possible local route to finding a small set containing
+$\{i:u_i>\epsappr/8\}$. The set may omit smaller positive coordinates.
+This weakens exact-support recognition, but supplies no fast finder.
+The original degree-three tree family in
+\cref{prop:op3-BFS-envelope-family} rules out the target asymptotic work
+for FIFO breadth-first exploration, even when every discovered label can
+enter the envelope. It is not an arbitrary-algorithm lower bound.
 \end{itemize}
 
-\begin{thebibliography}{9}
-
-\bibitem[Chen et~al.(2021)Chen, Peng, and Wang]{chen2021diffusion}
-Li Chen, Richard Peng, and Di Wang.
-\newblock $\ell_2$-norm flow diffusion in near-linear time.
-\newblock In \emph{FOCS}, pages 540--551, 2021.
-\newblock Checked version: arXiv:2105.14629v2, Definitions 3.7--3.8,
-Assumption 3.15, and Claim 8.21.
-\newblock \url{https://arxiv.org/pdf/2105.14629v2}.
-
-\bibitem[Fountoulakis et~al.(2020)Fountoulakis, Wang, and Yang]{fountoulakis2020pnorm}
-Kimon Fountoulakis, Di Wang, and Shenghao Yang.
-\newblock $p$-norm flow diffusion for local graph clustering.
-\newblock In \emph{ICML}, PMLR 119:3222--3232, 2020.
-\newblock Checked: equation (10) and Theorem 6, PDF pp.\ 7--8.
-\newblock \url{https://proceedings.mlr.press/v119/fountoulakis20a.html}.
-
-\bibitem[Yang and Fountoulakis(2023)]{yang2023weighted}
-Shenghao Yang and Kimon Fountoulakis.
-\newblock Weighted flow diffusion for local graph clustering with node
-attributes: an algorithm and statistical guarantees.
-\newblock In \emph{ICML}, PMLR 202:39252--39276, 2023.
-\newblock Checked: Algorithm 1 and Propositions 2.1--2.2, PDF pp.\ 3--4.
-\newblock \url{https://proceedings.mlr.press/v202/yang23d.html}.
-
-\bibitem[Alstrup et~al.(2005)Alstrup, Holm, de~Lichtenberg, and Thorup]{alstrup2005toptrees}
-Stephen Alstrup, Jacob Holm, Kristian de~Lichtenberg, and Mikkel Thorup.
-\newblock Maintaining information in fully-dynamic trees with top trees.
-\newblock \emph{ACM Transactions on Algorithms}, 1(2):243--264, 2005.
-\newblock Checked: journal Theorem 2.1, pp.\ 245--248 and 259--260;
-also arXiv:cs/0310065v2, Sections 2 and 6.
-\newblock \url{https://arxiv.org/pdf/cs/0310065v2}.
-
-\bibitem[Jacob and Brodal(2019)]{jacob2019dynamic}
-Riko Jacob and Gerth St\o lting Brodal.
-\newblock Dynamic planar convex hull.
-\newblock \emph{arXiv:1902.11169v1}, 2019. Theorem 1 and Section 2.2.
-\newblock \url{https://arxiv.org/pdf/1902.11169v1}.
-
-\bibitem[Agarwal et~al.(2010)Agarwal, Phillips, and Sadri]{agarwal2010act}
-Pankaj~K. Agarwal, Jeff~M. Phillips, and Bardia Sadri.
-\newblock Lipschitz unimodal and isotonic regression on paths and trees.
-\newblock Author manuscript, January 2, 2010. Section 3, Theorem 3.1.
-\newblock \url{https://www.cs.toronto.edu/~sadri/publications/regression.pdf}.
-
-\bibitem[Koutis et~al.(2011)Koutis, Miller, and Peng]{koutis2011nearly}
-Ioannis Koutis, Gary~L. Miller, and Richard Peng.
-\newblock A nearly-$m\log n$ time solver for SDD linear systems.
-\newblock In \emph{FOCS}, pages 590--598, 2011.
-
-\bibitem[Wei and Yang(2026)]{wei2026simple}
-Zhewei Wei and Mingji Yang.
-\newblock A simple active-set method for PageRank-based local graph clustering.
-\newblock \emph{arXiv preprint arXiv:2608.16339v1}, 2026.
-
-\bibitem[Fountoulakis et~al.(2019)Fountoulakis, Roosta-Khorasani, Shun,
-Cheng, and Mahoney]{fountoulakis2019variational}
-Kimon Fountoulakis, Farbod Roosta-Khorasani, Julian Shun, Xiang Cheng, and
-Michael~W. Mahoney.
-\newblock Variational perspective on local graph clustering.
-\newblock \emph{Mathematical Programming}, 174(1--2):553--573, 2019.
-
-\end{thebibliography}
+\input{sections/references}
 
 \end{document}

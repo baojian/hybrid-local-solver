@@ -1,5 +1,7 @@
 # Supplied global recursion: next bounded target
 
+**Block 12 outcome.** Two accelerated levels, persistent forests, compression/refinement and paid spectral stopping are implemented and exact-audited. The complete supplied size/work/confidence recurrence is now a Conditional theorem with a nonconstant dense base cost. The unreconciled positive-weight constructor contract remains explicit. Local discovery is Open; see `SIGNIFICANT_ENVELOPE_PROBE.md` and `OP3_MORNING_DECISIONS_20260908.md`. The earlier proposal follows.
+
 Block 11 continuation, 8 September 2026. **General OP3 remains Open.**
 The edge-floor and simultaneous range statements are now proved drafts
 and exact-audited in `sec:op3-recursive-vwf-ranges`. The earlier probe is

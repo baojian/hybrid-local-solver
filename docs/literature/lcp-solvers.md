@@ -726,3 +726,23 @@ must be reconciled before removing it. The candidate supplied recurrence,
 with all vertex-piece work and nonconstant base costs, is saved in
 `SUPPLIED_GLOBAL_RECURSION_PROBE.md` in the incremental note. It remains
 Conditional at this checkpoint. General OP3 and local discovery remain Open.
+
+### Second-night confidence wrapper (8 September 2026)
+
+**Source.** Joel Tropp, [*User-Friendly Tail Bounds for Sums of Random
+Matrices*](https://users.cms.caltech.edu/~jtropp/papers/Tro11-User-Friendly-FOCM.pdf),
+Found. Comput. Math. 12:389–434 (2012), DOI 10.1007/s10208-011-9099-z.
+Corollary 5.2, PDF p.29, was rendered and visually checked. Its independent
+positive-semidefinite matrix Chernoff bounds give the two-sided sampling
+failure bound used in the incremental note. The journal page confirms the
+2012 volume; the online publication date was August 2, 2011.
+
+**Proved here / inference.** Independent complete resistance estimates,
+coordinatewise medians and charged sampling yield requested failure
+probability p, assuming an explicit joint constant-probability estimator
+contract. The audit checks 180 weighted cases and 565,178 exact sample
+draws; this validates finite algebra and does not empirically establish
+the probability theorem. No fast resistance estimator is implemented.
+The full supplied near-linear recurrence is now formalized conditionally
+on the actual positive-weight constructor contract. CPW's printed
+polynomial weight-ratio hypothesis is still not silently removed.
