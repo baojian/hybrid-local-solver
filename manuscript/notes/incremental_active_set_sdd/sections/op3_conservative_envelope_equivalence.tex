@@ -1,0 +1,219 @@
+\section{A conservative formulation of the algorithmic ACL target}
+\label{sec:op3-conservative-envelope-equivalence}
+
+This section isolates a remaining discovery problem without a teleportation
+parameter. The reductions concern the fully charged ACL output target
+with the standard original support-volume guarantee. They do not assert
+reuse of the particular exact nested systems in the literal OP3 question.
+
+\begin{lemma}[Proper conservative obstacle and a quantitative comparison;
+\statusproved]
+\label{lem:op3-conservative-torsion-comparison}
+Let $0<e<1$ and $\operatorname{vol}(G)>4/e$. Set
+$\lambda=e/2$, $\delta=e/8$, $b=e_v-\lambda d$, and let $u_0$ be
+the nonnegative obstacle minimizer for $L=D-A$ with load $b$.
+This minimizer exists uniquely, has proper support $S_0$, and satisfies
+\[
+ V_0:=\operatorname{vol}(S_0)<2/e,\qquad
+ H_0:=\max_i u_{0,i}\leq|S_0|\leq V_0.
+\]
+For $0<t\leq1$, let $u_t$ be the obstacle for
+$M_t=L+tA=D-(1-t)A$ with the same load. Then $0\leq u_t\leq u_0$.
+If $S_0$ is nonempty and $w$ solves
+$L_{S_0S_0}w_{S_0}=d_{S_0}$ with zero extension, then
+\[
+ \|w\|_\infty\leq V_0|S_0|\leq V_0^2,
+ \qquad
+ 0\leq u_0-u_t\leq tH_0w,
+ \qquad
+ \|u_0-u_t\|_\infty<8t/e^3.
+\]
+The final inequality also holds when $S_0$ is empty. In particular,
+at $t=e^4/128$, every $u_{0,i}>\delta$ has $u_{t,i}>0$.
+The support and torsion solve are comparison objects, not algorithm inputs.
+\end{lemma}
+\begin{proof}
+Here $\lambda\operatorname{vol}(G)>2$, so
+\cref{prop:op3-conservative-sandpile-mapping} gives existence and
+uniqueness. Full-support stationarity would imply
+$0=\one^TLu_0=\one^Tb<0$, which is impossible. The conservative
+original residual is nonnegative: positive-coordinate KKT gives
+$r_i=\lambda d_i$, and a zero coordinate gives
+$r_i=(e_v)_i+\sum_{j\sim i}u_{0,j}\geq0$. Summing residuals gives
+one. If $S_0$ is nonempty, connectedness supplies a positive cut
+residual outside it, so $\lambda V_0<1$. The conservative proper-support
+maximum bound gives $H_0\leq|S_0|$. Empty support satisfies both bounds.
+
+The same-load maximum principle applies to the positive-target operator:
+$M_tu_0=Lu_0+tAu_0\geq b$. A positive maximum of $u_t-u_0$ would
+have $u_{t,i}>0$ and $(M_t(u_t-u_0))_i\leq0$, contradicting
+strict diagonal dominance by $td_i$. Thus $u_t\leq u_0$.
+
+The original proper Dirichlet matrix $L_{S_0S_0}$ is positive definite
+and an M-matrix. Indeed every component of $S_0$ has a cut edge, and
+the zero-extended Laplacian energy vanishes only at zero. Its inverse
+is nonnegative. For a strict positive superlevel $H$ of its torsion
+solution, $H\subseteq S_0$, and summing its rows gives
+\[
+ \sum_{i\in H,\ j\notin H,\ j\sim i}(w_i-w_j)
+ =\sum_{i\in H}d_i\leq V_0.
+\]
+Every cut term is positive, so every edge difference is at most $V_0$.
+Follow a simple path from a maximum to the first zero coordinate;
+it has at most $|S_0|$ edges. This proves the torsion bound.
+
+On $S_0$ the conservative obstacle is stationary, while positive-target
+KKT holds as an inequality even where $u_t$ vanishes. Therefore
+\[
+ L(u_0-u_t)\leq tAu_t\leq tH_0d\quad\hbox{on }S_0.
+\]
+Both obstacles vanish outside $S_0$. Multiplying by the positive
+Dirichlet inverse proves the coordinate comparison. The bounds
+$H_0\leq V_0<2/e$ and $\|w\|_\infty\leq V_0^2$ give
+$\|u_0-u_t\|_\infty<8t/e^3$. If $u_0=0$, monotonicity gives
+$u_t=0$ directly. At $t=e^4/128$ the error is below
+$e/16=\delta/2$, proving strict containment of significant coordinates.
+\end{proof}
+
+\begin{definition}[Conservative significant-envelope target]
+\label{def:op3-conservative-envelope-target}
+On an original graph promised to have volume greater than $4/e$, the
+input consists of its point seed, $e\in(0,1)$ and failure budget $p$.
+For the conservative obstacle at $\lambda=e/2$, return a list $U$
+containing $\{i:u_{0,i}>e/8\}$, with original volume at most $C/e$
+on success, for an absolute constant $C$. The desired work and total
+allocated words on every branch are
+\[
+ e^{-1}\operatorname{polylog}(2+e^{-1}+p^{-1}),
+\]
+with success probability at least $1-p$. Graph access, labels, failed
+searches and output are charged; no ambient preprocessing is provided.
+This target remains \statusopen.
+\end{definition}
+
+\begin{theorem}[Equivalence of the capped algorithmic targets;
+\statusproved]
+\label{thm:op3-conservative-envelope-equivalence}
+The conservative target in
+\cref{def:op3-conservative-envelope-target} is equivalent to the
+existence of a graph-uniform local ACL producer with original output
+volume $O(1/e)$ on success and all-branch work and total allocated words
+\[
+ e^{-1}\operatorname{polylog}(2+e^{-1}+\alpha^{-1}+p^{-1}).
+\]
+The forward reduction in fact removes target $\alpha$ even from the
+logarithms, using the source-backed supplied theorem already proved in
+this note. The equivalence concerns these explicit resource and volume
+contracts; it is not a proof that either desired producer exists.
+\end{theorem}
+\begin{proof}
+First assume the conservative finder. Pay the gate at $B=4/e$.
+On its complete branch use \cref{cor:op3-small-whole-graph}.
+On its larger-graph branch call the finder with confidence budget $p/2$.
+Guard its output length, distinctness and original degree volume before
+reading any new row, rejecting a malformed or oversized result. These
+guards cost $O((1+e^{-1})\log(2+e^{-1}))$ after a length cap.
+
+On a good finder execution, same-load monotonicity gives
+$u_\alpha\leq u_0$ for the original target obstacle. Thus its supplied
+set contains every target coordinate above $e/8$, with exactly the
+required load $\lambda=e/2$. Apply
+\cref{thm:op3-alpha-independent-supplied-envelope} with fresh confidence
+budget $p/2$. Its output has original ACL accuracy $e$ and volume
+below $2/e$. A union bound gives failure probability at most $p$.
+The gate, guards, capped finder and capped supplied computation give
+the stated work on bad branches as well. An incorrect small envelope
+need not give correct output, but its numerical/degree caps still apply;
+that event was already charged to finder failure. The forward bound
+contains no target-parameter logarithm.
+
+Conversely, suppose the ACL producer exists with successful output
+volume at most $C_A/\eta$ at residual accuracy $\eta$. On a promised
+large graph, set
+\[
+ \lambda=e/2,\qquad t=e^4/128,\qquad a=t/(2-t),
+\]
+and call that producer at lazy parameter $a$, accuracy $\eta=\lambda$
+and failure budget $p$. Its physical potential $x\geq0$ satisfies
+$M_tx\geq e_v-\lambda d=b$. If the interface returns probabilities,
+convert each emitted coordinate by $x_i=p_i/(td_i)$ using paid original
+degree replies. A positive maximum principle proves $x\geq u_t$:
+at a hypothetical positive maximum of $u_t-x$, positive-coordinate
+KKT for $u_t$ and the supersolution inequality for $x$ contradict
+strict diagonal dominance of $M_t$.
+
+\Cref{lem:op3-conservative-torsion-comparison} now implies that
+$U=\operatorname{supp}(x)$ contains every conservative coordinate
+above $e/8$. Its volume is at most $2C_A/e$. Guard word count, positive
+format, distinct labels and original volume as above; the good output
+passes. The producer's all-branch work is of the required order because
+$\eta^{-1}=2/e$ and $\log(a^{-1})=O(\log(2+e^{-1}))$.
+The conversion and output guards add only the same local logarithmic
+work. No computation of $u_0$, $S_0$, $u_t$ or the torsion vector was
+used by this reduction.
+\end{proof}
+
+An advertised high-probability work bound can be capped at its declared
+primitive budget, counting cap failure in the confidence split. An
+expected-only premise does not automatically give this all-branch,
+polylogarithmic-confidence contract. Likewise, output cardinality alone
+does not replace the original support-volume premise. These are part
+of the precise target being reduced.
+
+\begin{proposition}[The output obstruction persists on arbitrarily large graphs;
+\statusproved]
+\label{prop:op3-large-ambient-leaf-lower-bound}
+For $0<e\leq1/16$, let $m=\lfloor1/(8e)\rfloor$ and attach $m$
+degree-one leaves and a path of any length $N>2/e$ to a point-seeded
+center. The graph has volume greater than $4/e$.
+For every $0<\alpha\leq1/3$, any nonnegative original ACL output of
+accuracy $e$ must emit all $m\geq1/(16e)$ leaves. Every conservative
+significant envelope at $\lambda=e/2$, $\delta=e/8$ must also contain
+these leaves. Thus the inverse-accuracy output scale survives the
+small-component gate. The first conclusion is a residual-certificate
+lower bound; no unchanged semantic star formula is imported after
+adding the path.
+\end{proposition}
+\begin{proof}
+The original center degree is $d_c=m+1$, with
+$ed_c\leq1/8+e\leq3/16<1/3$. The seed residual upper bound and
+nonnegative neighbor potentials imply $x_c\geq1/d_c-e$.
+If a leaf were omitted, its residual would be $\gamma x_c$, where
+$\gamma=(1-\alpha)/(1+\alpha)\geq1/2$. But
+\[
+ \gamma(1/d_c-e)>e,
+\]
+equivalently $ed_c<\gamma/(1+\gamma)$, contradicting that leaf's
+original residual bound. The path length never enters these two rows.
+
+The conservative obstacle exists uniquely by the volume premise.
+Its seed is positive because $1-\lambda d_c>0$. Seed stationarity
+gives $u_{0,c}\geq1/d_c-\lambda$, and the leaf obstacle equation gives
+$u_{0,\ell}=\max\{0,u_{0,c}-\lambda\}$. Hence
+$u_{0,\ell}\geq1/d_c-e>e/8$. Every leaf is significant.
+Finally $m\geq1/(16e)$ in this parameter range. Each emitted label
+costs at least one word; a randomized algorithm with constant success
+probability has the same lower bound in expectation.
+\end{proof}
+
+\paragraph{What is implemented and what remains open.}
+\path{conservative_envelope_reduction.py} independently checks
+conservative KKT, proper support, torsion, quantitative parameter
+comparison and the large-ambient leaf inequalities. Its reverse-direction
+test uses the implemented \emph{cubic} ACL producer to obtain an actual
+local envelope. Its forward supplied numerical callback is an explicitly
+labelled dense validator. Original target residuals and support are then
+checked in the full graph. Neither this finite composition nor the
+equivalence supplies a fast conservative finder or literal nested reuse.
+The new remaining target is the algorithm in
+\cref{def:op3-conservative-envelope-target}; source and backend hashes
+and all counts are recorded in \path{CONSERVATIVE_ENVELOPE_REDUCTION_AUDIT.json}.
+
+The full run checks 7,299 original target outputs in 7.501 seconds,
+including 1,902 conservative comparisons and actual weak-producer
+envelopes, 1,237 Dirichlet torsion systems and 5,706 same-load target
+comparisons. The forward interface uses 586 explicit dense numerical
+validators. The large-ambient leaf bounds are checked at 1,021 dyadic
+accuracies, with 3,063 positive-target parameter cases. These are exact
+checks of the reduction and its source-interface separation, not timing
+evidence for the missing fast finder.

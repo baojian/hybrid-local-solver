@@ -1,0 +1,98 @@
+\section{A paid small-component gate}
+\label{sec:op3-capped-component-exploration}
+
+\begin{theorem}[Complete component or original-volume witness;
+\statusproved]
+\label{thm:op3-capped-component-gate}
+Given the original graph, seed and $B\geq1$, a deterministic local
+algorithm either returns the complete original graph with volume at
+most $B$, or certifies $\operatorname{vol}(G)>B$. Its work and total
+allocated words are $O((1+B)\log(2+B))$, and live graph state is
+$O(1+B)$. Every discovered degree is queried once, and every started
+original row is queried once. Even charging a partially consumed row
+in full, the total started-row degree is at most $B$. No ambient size,
+global label list or uncharged dictionary is needed.
+\end{theorem}
+\begin{proof}
+Keep stable vertex records in an AVL search tree. Each record holds
+its label, queried original degree, tree links and height, queue link,
+cached row and completion flag. Insert the seed and maintain the sum
+$V_{m known}$ of degrees of all distinct discovered records. Whenever
+this exceeds $B$, immediately return the distinct-degree witness.
+It is a lower bound on the original graph volume, regardless of the
+degrees of undiscovered vertices.
+
+Otherwise remove one record from the intrusive FIFO, charge its full
+degree and allocate a row buffer of exactly that size. Before this
+operation, the set of all started rows, including the new one, is a
+subset of the known records and has degree sum at most
+$V_{m known}\leq B$. Read neighbors one at a time. A new label
+creates one stable record, queries one original degree and enters the
+queue. Store its pointer in the current buffer. If its degree pushes
+$V_{m known}$ over budget, stop before starting another row or
+allocating that new vertex's adjacency buffer. Thus even a huge outside
+degree costs one reply and one constant-size record; the already
+started row is fully charged despite a possible partial stop.
+
+If the queue empties, all neighbors of all discovered records have
+been discovered and all their rows are complete. This nonempty closed
+set is the whole graph by connectedness, and its original volume is
+$V_{m known}\leq B$. Conversely, on a graph of volume at most $B$
+the degree test never rejects, so the finite exploration reaches this
+complete outcome. The partial result on a larger graph is only a
+volume witness; it is not asserted to be a significant-potential envelope.
+
+Before rejection there are at most $\lfloor B\rfloor$ known records,
+and the rejecting degree query creates at most one extra record.
+There are at most $B$ charged row entries and at most $B+1$ degree
+queries. AVL insertion or lookup uses $O(\log(2+B))$ comparisons,
+pointer reads and writes. For completeness, the implemented rotations
+preserve binary-search order and balance $|h_L-h_R|\leq1$; the minimum
+node count at height $h$ satisfies
+$N_h\geq1+N_{h-1}+N_{h-2}$, so height is $O(\log(2+B))$.
+Each traversed ancestor requires only constant height and rotation work.
+Records stay at fixed addresses, so queue and adjacency pointers remain
+valid under tree rotations. The final in-order scan allocates exactly
+one output array and a stack of the recorded tree height, in $O(1+B)$
+work. Records, row buffers and queue links use $O(1+B)$ live words;
+including transient call frames conservatively bounds total allocated
+words by the stated work. All comparisons, partial-row charges, output
+records and failed-budget branches are included.
+\end{proof}
+
+\begin{corollary}[Small whole graphs already have the desired ACL scale;
+\statusproved]
+\label{cor:op3-small-whole-graph}
+For $B=4/\epsappr$, the complete branch can return original target
+ACL output in
+$\epsappr^{-1}\operatorname{polylog}(2+\epsappr^{-1}+p^{-1})$
+work and total allocated words, with failure probability at most $p$.
+No target-teleportation dependence remains in the exact-real word model.
+Consequently the remaining algorithmic ACL question may be restricted
+to graphs of original volume greater than $4/\epsappr$, after paying
+this gate. This restriction does not provide nested-system reuse on
+the larger graphs.
+\end{corollary}
+\begin{proof}
+On the complete branch, the known whole graph is a valid supplied
+envelope for every target obstacle and has volume at most $4/\epsappr$.
+Apply \cref{thm:op3-alpha-independent-supplied-envelope}, reading
+the already cached rows through the paid label map. Its source-backed
+numerical construction retains its explicit confidence and primitive
+caps. The gate is deterministic, so it spends no failure probability.
+On the other branch the degree witness proves the stated size restriction.
+\end{proof}
+
+\paragraph{Implemented gate audit.}
+\path{capped_component_exploration.py} implements the AVL map, rotations,
+intrusive queue, precharged rows and distinct-degree witness. The full
+run checks 4,086 component outcomes, comprising 1,653 complete graphs
+and 2,433 large-volume witnesses, in 1.114 seconds. It checks 26,660
+one-time degree queries and 53,743 charged degree units, including
+partially read terminal rows. Cases include a 4,096-vertex path,
+permuted labels of large magnitude, private paths with $2^{1024}$
+vertices and private hubs of degree $2^{1024}$ whose rows are never
+read. Source and backend hashes are recorded in
+\path{CAPPED_COMPONENT_EXPLORATION_AUDIT.json}.
+The gate is implemented; the corollary's fast numerical solver retains
+the earlier supplied-source interface.

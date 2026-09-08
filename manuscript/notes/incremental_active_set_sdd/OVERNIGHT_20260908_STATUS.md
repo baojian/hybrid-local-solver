@@ -5,6 +5,15 @@ of Conjecture 3 and, if so, to continue for ten more hours. The active-time
 minimum is **600 NEW minutes**, excluding both completed campaigns and any
 idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
+## Current checkpoint
+
+Completed **343.598863 new active minutes** through block 11; at least
+**256.401137 minutes** remain. Block 12 is active. The capped component
+gate, conservative-envelope equivalence and large-ambient output obstruction
+are now proved drafts, with verification in `OVERNIGHT_20260908_BLOCK11_AUDIT.json`.
+Resume `CONSERVATIVE_PARAMETER_OBSTRUCTION_PROBE_20260908.md`. General OP3
+remains Open. Earlier chronological targets below are historical.
+
 ## Initial verdict and current work
 
 **Source:** Wei, Wen and Yang, ICDT 2024, arXiv:2401.01019v1, PDF pp.2–3,
@@ -135,3 +144,6 @@ The conservative native producer and paid early-closure solve are proved
 and audited in `sec:op3-conservative-local-producer`; checkpoint evidence
 is in `OVERNIGHT_20260908_BLOCK10_AUDIT.json`. The eleventh block is active.
 Read `CONSERVATIVE_ENVELOPE_EQUIVALENCE_PROBE_20260908.md` next.
+
+Completed new active minutes after block 11: **343.598863**.
+The twelfth block is active; all five baseline hashes remain unchanged.

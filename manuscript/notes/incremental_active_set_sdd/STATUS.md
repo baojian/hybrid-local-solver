@@ -40,6 +40,48 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 11: conservative-envelope equivalence
+
+**Proved here, awaiting independent review:** The capped AVL component gate
+either materializes the whole original graph of volume at most B or gives
+a distinct-degree witness that its volume exceeds B. Full started rows,
+including a partially consumed last row, have degree sum at most B.
+Work and cumulative allocation are O((1+B) log(2+B)); a huge new degree
+is rejected before its row buffer is allocated or read.
+
+With B=4/eps_appr, the supplied theorem handles complete small graphs in
+the desired work. On larger graphs the conservative obstacle is unique
+and proper. A Dirichlet torsion comparison shows that at
+bar_a=eps_appr^4/128, every conservative coordinate above eps_appr/8
+remains positive. This gives an equivalence between fast significant
+conservative-envelope discovery and the capped algorithmic ACL target
+with original support volume O(1/eps_appr). The forward reduction removes
+target alpha even from logarithms. Neither producer is proved to exist;
+literal exact nested-system reuse is a further requirement.
+
+A center with inverse-accuracy many leaves and an arbitrarily long tail
+forces those leaves in both original ACL output and conservative envelopes.
+The small-component gate therefore does not remove the output lower bound.
+
+**Measured:** The gate passes 4,086 outcomes, including private paths and
+hubs of size 2^1024. The reduction passes 7,299 original target certificates,
+1,902 conservative comparisons and actual weak-producer envelopes, and
+1,237 torsion systems. Reverse tests use the implemented cubic producer;
+forward supplied solves are explicitly dense validators. No fast finder
+is inferred from these tests. Large-ambient leaf inequalities pass at
+1,021 accuracies and 3,063 positive-target parameter cases.
+
+**Open / next:** Prove or refute the explicit fourth-power parameter
+obstruction in `CONSERVATIVE_PARAMETER_OBSTRUCTION_PROBE_20260908.md`.
+It concerns support containment under an arbitrary ACL output, not an OP3
+work lower bound. Formal dependencies remain `["problem_definitions"]`.
+
+Checkpoint verification: the 166-page note builds without final warnings;
+new proof pages were visually reviewed. All 81 own scripts and three
+registry tests pass. Broad checks retain the recorded baseline failures,
+with all five hashes unchanged; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK11_AUDIT.json`.
+
 ## Third campaign, block 10: conservative discovery and first closure
 
 **Proved here, awaiting independent review:** The stopped conservative

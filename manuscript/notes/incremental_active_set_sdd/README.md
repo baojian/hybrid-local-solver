@@ -88,6 +88,19 @@ This improves the reference without improving the known quadratic source
 rate. The next target is
 [the conservative envelope reduction](CONSERVATIVE_ENVELOPE_EQUIVALENCE_PROBE_20260908.md).
 
+The eleventh checkpoint gives a paid component gate and a conservative
+formulation of the algorithmic ACL target. After handling graphs of volume
+at most 4/eps_appr, finding a significant conservative obstacle envelope in
+nearly inverse-accuracy work is equivalent to producing local ACL output
+with the stated original-volume and all-branch resource guarantees.
+This is a reduction, not an algorithm for the missing finder or a solution
+to literal nested-system reuse. A leaf-and-tail family preserves the output
+lower bound on arbitrarily large ambient graphs. The gate checks 4,086
+outcomes; the reduction checks 7,299 exact original target outputs. Read
+`sec:op3-capped-component-exploration`,
+`sec:op3-conservative-envelope-equivalence`, and
+[the next parameter-obstruction probe](CONSERVATIVE_PARAMETER_OBSTRUCTION_PROBE_20260908.md).
+
 The following second-campaign record is historical.
 
 
