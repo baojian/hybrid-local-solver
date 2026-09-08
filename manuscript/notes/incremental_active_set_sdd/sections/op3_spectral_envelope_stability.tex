@@ -1,0 +1,209 @@
+\section{Sharp spectral accuracy for replacing the obstacle matrix}
+\label{sec:op3-spectral-envelope-stability}
+
+Spectral approximation can accelerate an accurate computation. Replacing
+the obstacle matrix itself is a different operation: its minimizer can
+have a different support. This section quantifies that distinction under
+explicit sign and row-sum assumptions. All matrices and optima below are
+comparison objects; no ambient preprocessing or local finder is supplied.
+
+\begin{theorem}[Significant support is stable at squared-accuracy spectral error;
+\statusproved]
+\label{thm:op3-spectral-envelope-stability}
+Let $0<e<1$, $\operatorname{vol}(G)>4/e$, $\lambda=e/2$, and
+$b=e_v-\lambda d$. For $0\leq t\leq1$ put $M=(1-t)L+tD$.
+Suppose $\widehat M$ is symmetric, has nonpositive off-diagonal entries
+and nonnegative row sums, and, for $0<\eta\leq1/2$, satisfies
+\[
+ (1-\eta)M\preceq\widehat M\preceq(1+\eta)M.
+\]
+Let $u$ and $\widehat u$ be their nonnegative same-load obstacle minimizers.
+Both exist uniquely, including at $t=0$. Their original support volumes
+are at most $2/e$, and
+\[
+ \|u-\widehat u\|_\infty
+ \leq\frac{\sqrt{32}\eta}{e(1-\eta)}<\frac{12\eta}{e}.
+\]
+Consequently $\eta\leq e^2/192$ guarantees
+$\|u-\widehat u\|_\infty\leq e/16$ and
+$\operatorname{supp}(\widehat u)\supseteq\{i:u_i>e/8\}$.
+The degree vector and the support-volume measure are those of the original
+unweighted graph, even when $\widehat M$ uses different conductances.
+\end{theorem}
+\begin{proof}
+For $t>0$, both matrices are positive definite, giving unique orthant
+minimizers. For $t=0$, spectral equivalence gives kernel exactly
+$\operatorname{span}\{\one\}$ for both matrices; their nonpositive
+off-diagonal entries make them connected weighted Laplacians. Moreover
+$\one^Tb=1-\lambda\operatorname{vol}(G)<0$. Write a nonnegative
+vector as $c\one+y$, with $\min y=0$. Its objective contains the
+positive linear term $-c\one^Tb$ and a coercive quadratic-minus-linear
+function of $y$. Coercivity follows because the Laplacian energy has
+a positive minimum on the compact set $\{y\geq0:\min y=0,\max y=1\}$.
+Existence follows. Two minimizers could differ only by a constant;
+the nonzero constant-direction objective slope proves uniqueness.
+
+For either minimizer $x$ and its corresponding matrix $B$, define
+$r=e_v-Bx$. KKT gives $r_i=\lambda d_i$ on positive coordinates.
+At a zero coordinate the nonpositive off-diagonal entries give $r_i\geq0$.
+Also $\one^Tr=1-(B\one)^Tx\leq1$. Thus
+$\lambda\operatorname{vol}(\operatorname{supp}x)\leq1$.
+The union $W$ of the two supports therefore has volume at most $4/e$,
+strictly below the original graph volume. It is proper, and $M_{WW}$
+is positive definite even when $t=0$.
+
+Write $z=\widehat u-u$ and $E=\widehat M-M$. The two variational
+inequalities imply
+\[
+ z^TMz\leq-z^TE\widehat u
+ \leq\eta\|z\|_M\|\widehat u\|_M.
+\]
+Here the spectral inequality bounds the bilinear form of $E$ in the
+$M$-energy seminorm; equivalently restrict both vectors to $W$ and
+use its positive definite principal matrix. The triangle inequality gives
+\begin{equation}
+ \|z\|_M\leq\frac{\eta}{1-\eta}\|u\|_M.
+ \label{eq:op3-obstacle-spectral-energy-stability}
+\end{equation}
+
+We need bounds independent of a small $t$. For any vector $y$ supported
+on $W$, telescope from $i\in W$ along a simple original path to the
+first zero outside $W$. Cauchy--Schwarz gives
+$y_i^2\leq |W|\,y^TLy$. If $t\leq1/2$, then $M\succeq L/2$,
+so $y_i^2\leq2\operatorname{vol}(W)y^TMy$.
+If $t\geq1/2$, then $M\succeq D/2$, giving the same coarse bound.
+Thus, whenever $W$ is nonempty,
+\[
+ (M_{WW}^{-1})_{ii}\leq2\operatorname{vol}(W)\leq8/e,
+ \qquad \|z\|_\infty^2\leq(8/e)\|z\|_M^2.
+\]
+
+For the original minimizer, $u^TMu=b^Tu\leq u_v\leq\|u\|_\infty$.
+If $t\leq1/2$, the original unit-superlevel flux bound, also valid
+at $t=0$, gives $\|u\|_\infty\leq
+|\operatorname{supp}u|/(1-t)\leq2\operatorname{vol}(\operatorname{supp}u)$.
+If $t\geq1/2$, the original mass identity gives $t\sum_i d_iu_i\leq1$,
+so the same bound holds whenever the support is nonempty. Therefore
+$\|u\|_M^2\leq4/e$. Combining this with
+\cref{eq:op3-obstacle-spectral-energy-stability} proves the displayed
+coordinate bound. If either needed union is empty, both vectors are zero
+and the conclusion is immediate. The stated choice of $\eta$ yields
+error at most $e/16$, which preserves strict positivity of every coordinate
+originally above $e/8$.
+\end{proof}
+
+\begin{proposition}[The squared-accuracy power is necessary for this rule;
+\statusproved]
+\label{prop:op3-spectral-envelope-path-obstruction}
+There is a sequence of original paths, accuracies $e\downarrow0$, positive
+physical parameters $t=e^4/128$, and symmetric strictly diagonally dominant
+M-matrices satisfying
+\[
+ M_t\preceq\widehat M_t\preceq(1+\eta_e)M_t,
+ \qquad \widehat M_t\one=M_t\one=td,
+ \qquad \eta_e/e^2\longrightarrow4,
+\]
+whose same-load obstacle $\widehat u_t$ omits a coordinate with
+$u_{t,i}>3e/16$. In particular, the accuracy power two in
+\cref{thm:op3-spectral-envelope-stability} is sharp up to constants
+for direct matrix-replacement support containment. This is not a lower
+bound on iterative refinement work or on a producer that emits extra labels.
+\end{proposition}
+\begin{proof}
+Use the path and $\lambda,e,\delta$ from
+\cref{thm:op3-fourth-power-support-obstruction}. Put $q=N^{-2}$ and
+let $L_R$ be the unit Laplacian on just the edges
+$(N,N+1),\ldots,(2N-1,2N)$. Set
+\[
+ \widehat L=L+qL_R,\qquad
+ t=e^4/128,\qquad \widehat M_t=M_t+qL_R.
+\]
+The original load $b=e_N-\lambda d$ is unchanged.
+We first exhibit the $\widehat L$ obstacle supported on
+$T=\{1,\ldots,2N-1\}$ with zero endpoints. Edge $(i-1,i)$ has
+conductance $c_i=1$ for $i\leq N$ and $c_i=1+q$ for $N<i\leq2N$.
+Set
+\[
+ j_1=\frac{1-\lambda(4N-2+q(N-1))}{2+q},\qquad
+ j_i=j_1+2\lambda(i-1)-\boldsymbol1_{i>N},\qquad
+ z_i=\sum_{k=1}^i j_k/c_k.
+\]
+Summing the two arithmetic progressions gives $z_{2N}=0$.
+The left fluxes are positive and the right fluxes negative, since
+\[
+ \frac1{8N^2+1}\leq j_1<\lambda,
+ \qquad
+ j_1-\lambda=\frac{1-2qN^2}{(2+q)(8N^2+1)}<0,
+ \qquad j_{2N}<0.
+\]
+These inequalities follow by substitution for $N\geq4$.
+Thus $z$ is positive precisely on $T$. Its second flux differences
+give $\widehat Lz=b$ on $T$. At the omitted endpoint, the incoming
+flux is $j_1<\lambda$. At $2N$ it is
+$-j_{2N}=1-j_1-2\lambda(2N-1)\in(0,2\lambda]$.
+All farther rows have zero flux. These are the full same-load KKT
+conditions, using the original degrees one at $0$ and two at $2N$.
+
+Since $\widehat M_tz=\widehat Lz+tAz\geq b$ and $z\geq0$,
+the positive-parameter maximum principle gives $\widehat u_t\leq z$.
+In particular $\widehat u_{t,0}=0$. For the original matrix, the safe
+comparison in \cref{lem:op3-conservative-torsion-comparison} gives
+$u_{t,0}>u_{0,0}-\delta/2=3\delta/2=3e/16$.
+
+Finally, $0\preceq L_R\preceq L\preceq M_t/(1-t)$, so the
+spectral claim holds with $\eta_e=q/(1-t)$; this tends to $4e^2$
+in ratio as $N\to\infty$. For every $N\geq4$ it is below $5e^2$.
+The extra Laplacian has zero row sums and nonpositive off-diagonal entries,
+so both stated structural assumptions hold. Along this sequence, any
+permitted relative tolerance asymptotically larger than $e^2$ allows
+the displayed support omission.
+\end{proof}
+
+\begin{proposition}[Spectral equivalence does not imply the sign premise;
+\statusproved]
+\label{prop:op3-spectral-factor-sign-obstruction}
+Arbitrarily accurate positive definite spectral approximations with
+nonnegative row sums can have positive off-diagonal entries. Their
+same-load obstacle KKT conditions need not imply nonnegative residuals
+at zero coordinates. Hence the sign premise of
+\cref{thm:op3-spectral-envelope-stability} is substantive.
+\end{proposition}
+\begin{proof}
+On an original star with $m\geq3$ leaves, let $M=D-\gamma A$,
+$0<\gamma<1$. Embed $C=\gamma^2(I-J/m)$ on the leaves, zero at the
+center. Eliminating the center gives the exact decomposition
+\[
+ M=aa^T/m+(1-\gamma^2)I_{\rm leaves}+C,
+ \qquad a=(m,-\gamma,\ldots,-\gamma)^T.
+\]
+Thus $0\preceq C\preceq M$. For any $0<\eta<1$, the matrix
+$Z=M-\eta C$ satisfies $(1-\eta)M\preceq Z\preceq M$ and
+$Z\one=M\one>0$. But every pair of distinct leaves has
+$Z_{ij}=\eta\gamma^2/m>0$.
+
+For example, take $\gamma=1/2$, $\lambda=3/4$, and a leaf seed $s$.
+The vector with only $x_s=(1-\lambda)/Z_{ss}>0$ satisfies every
+same-load KKT condition for $Z$. The center's inactive gradient is
+$\lambda m-\gamma x_s>0$, and all other inactive gradients are positive.
+At any other leaf $j$, however, the residual is
+$r_j=-Z_{js}x_s<0$. This is an abstract spectral-guarantee
+counterexample; no particular source algorithm is asserted to return $Z$.
+\end{proof}
+
+\paragraph{Source boundary and exact audit.}
+The checked approximate-elimination source
+\citep{kyng2016approximate} is compared in
+\path{docs/literature/lcp-solvers.md}. Its factorization guarantee alone
+does not supply the sign premise, a positivity-constrained pivot order,
+or local discovery. The conclusions above permit spectral approximation
+as a preconditioner for a sufficiently accurate computation.
+
+\path{spectral_envelope_stability.py} checks 28,335 same-load pairs,
+including one- and two-sided edge/grounding perturbations, 16,365 exact
+union-Dirichlet diagonals, and 9,444 safe-threshold containments.
+It checks 132 weighted paths through $N=4096$, 135,748 original-degree
+load rows, three independent dense endpoint obstructions and 12 sign
+counterexamples. The full run takes 39.683 seconds. These are proof
+validators; perturbed-matrix residuals are not relabelled original ACL
+certificates. Source/backend hashes and exact cases are in
+\path{SPECTRAL_ENVELOPE_STABILITY_AUDIT.json}.

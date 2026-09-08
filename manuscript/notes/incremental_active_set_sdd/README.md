@@ -110,6 +110,16 @@ reduction, not a lower bound on OP3 computation. Read
 `thm:op3-fourth-power-support-obstruction` and
 [the spectral-stability follow-up](SPECTRAL_ENVELOPE_OBSTRUCTION_PROBE_20260908.md).
 
+The thirteenth checkpoint proves a sharp squared-accuracy spectral condition
+for direct obstacle-matrix replacement, assuming nonpositive off-diagonal
+entries and nonnegative row sums. The sufficient error is eps_appr^2/192;
+a weighted path gives a matching accuracy power, and a star shows that a
+spectral factorization guarantee alone does not imply the required signs.
+The audit passes 28,335 obstacle pairs and 132 weighted paths. These results
+preserve the role of spectral preconditioning with accurate refinement.
+Read `sec:op3-spectral-envelope-stability` and
+[the penalty-reserve follow-up](LOAD_RESERVE_SPECTRAL_PROBE_20260908.md).
+
 The following second-campaign record is historical.
 
 

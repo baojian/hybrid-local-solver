@@ -1,9 +1,13 @@
 # Can a spectral approximation itself guide conservative discovery?
 
-Next proof target, **Open until checked**. This is an obstruction to using
-the approximate matrix's obstacle support directly as an envelope. It is
-not an objection to iterative refinement with a spectral preconditioner,
-and is not a computational lower bound for OP3.
+**Proved here, awaiting independent review (8 September 2026):** the
+matching sufficient stability theorem, weighted-path obstruction and
+spectral sign counterexample are now proved in
+`sec:op3-spectral-envelope-stability`. The full audit passes 28,335
+same-load obstacle pairs, 9,444 safe containments and 132 weighted paths;
+see `SPECTRAL_ENVELOPE_STABILITY_AUDIT.json`. The derivation below is
+retained as provenance. This is a matrix-replacement support result,
+not a computational lower bound or an objection to iterative refinement.
 
 ## Candidate exact family
 
@@ -121,21 +125,9 @@ certificate before claiming that the usual active-volume proof is
 unavailable without the sign condition. This does not claim that a
 particular random source execution returns this Z.
 
-## Source transfer to check
+## Checked source transfer
 
-Kyng--Sachdeva, arXiv:1605.02353v1 (May 2016), primary PDF downloaded to
-`/tmp/op3-ks16-approx-elimination.pdf`. Theorem 1.1 PDF p.2 supplies a
-constant-quality approximate Cholesky factorization; Theorem 1.2 p.3 uses
-iterative refinement. Theorem 3.1 p.5 gives explicit relative-accuracy
-dependence; Algorithm 1 p.6 uses a uniformly random permutation of the
-supplied vertices. Remark 3.2 and Appendix B allow sampling among the
-vertices of at most twice the average multi-edge degree, not among a
-positivity-constrained active frontier. Verify these page pointers against
-the rendered pages. The PDF's printed page number is one less than its
-one-based PDF page number.
-
-Its clique sampler uses only the pivot row, an attractive local feature.
-Its complete theorem still starts from all supplied graph edges. Neither
-its vertex-order analysis nor its spectral conclusion automatically supplies
-a local positivity-constrained discovery algorithm. Record a compact source
-map and synchronized bibliography/index if this direction is formalized.
+The source map is in `docs/literature/lcp-solvers.md`, under Kyng and
+Sachdeva (2016). The primary PDF pages 2, 3, 5, 6 and 20 were read and
+visually reviewed. Its hash and the exact version are recorded there.
+No source theorem is imported into a new local-work claim.

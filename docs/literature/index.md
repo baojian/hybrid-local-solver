@@ -123,6 +123,8 @@ methods whose work is intended to depend on local structure.
 These papers connect graph partitioning, spectral sparsification,
 preconditioning, and fast solution of graph-structured linear systems.
 
+- [*Approximate Gaussian Elimination for Laplacians: Fast, Sparse, and Simple*](https://arxiv.org/abs/1605.02353)
+  (Kyng and Sachdeva, arXiv:1605.02353v1, 2016) — source map in `lcp-solvers.md`.
 - [*Using Petal-Decompositions to Build a Low Stretch Spanning Tree*](https://www.cs.bgu.ac.il/~neimano/spanning-full1.pdf)
   (Abraham and Neiman, SIAM J. Comput. 48(2):227–248, 2019) —
   arbitrary positive-weight low-stretch trees; checked 2012 author full

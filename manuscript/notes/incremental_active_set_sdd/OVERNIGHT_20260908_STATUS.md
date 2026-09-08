@@ -7,12 +7,12 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **362.662220 new active minutes** through block 12; at least
-**237.337780 minutes** remain. Block 13 is active. The fourth-power
-comparison-parameter obstruction is now a proved draft with exact audit
-and checkpoint evidence in `OVERNIGHT_20260908_BLOCK12_AUDIT.json`.
-Resume `SPECTRAL_ENVELOPE_OBSTRUCTION_PROBE_20260908.md`. General OP3
-remains Open. Earlier chronological targets below are historical.
+Completed **381.676183 new active minutes** through block 13; at least
+**218.323817 minutes** remain. Block 14 is active. The sharp spectral
+support-stability theorem, weighted-path obstruction and sign counterexample
+are proved drafts, with checks in `OVERNIGHT_20260908_BLOCK13_AUDIT.json`.
+Resume `LOAD_RESERVE_SPECTRAL_PROBE_20260908.md`. General OP3 remains Open.
+Earlier chronological targets below are historical.
 
 ## Initial verdict and current work
 
@@ -150,3 +150,6 @@ The twelfth block is active; all five baseline hashes remain unchanged.
 
 Completed new active minutes after block 12: **362.662220**.
 The thirteenth block is active. No additional gap is counted as active work.
+
+Completed new active minutes after block 13: **381.676183**.
+The fourteenth block is active; all five baseline hashes remain unchanged.

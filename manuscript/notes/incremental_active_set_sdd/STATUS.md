@@ -40,6 +40,50 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 13: sharp spectral support stability
+
+**Proved here, awaiting independent review:** Under a relative spectral
+sandwich, nonpositive off-diagonal entries and nonnegative row sums,
+same-load obstacle minimizers satisfy
+`||u-u_hat||_infty <12 eta/eps_appr` on the large-component branch.
+Their union has original volume at most 4/eps_appr, so it is proper.
+A path-to-zero energy bound controls the Dirichlet inverse without target
+alpha. Thus eta<=eps_appr^2/192 preserves all significant coordinates.
+
+A weighted path changes edge conductances while keeping original-degree
+load and row sums. At relative error asymptotic to 4 eps_appr^2, its
+obstacle omits a coordinate above 3 eps_appr/16 in the original positive-
+target obstacle. The accuracy power two is sharp for this direct
+matrix-replacement rule. A separate star shows that an abstract positive
+definite spectral approximation need not have the M-matrix signs, and
+its inactive residual can be negative despite exact KKT.
+
+**Measured:** 28,335 exact same-load pairs, 16,365 union Dirichlet diagonals,
+9,444 safe containments, 132 weighted paths through N=4096, 135,748
+original-degree load rows, three independent dense endpoint obstructions
+and 12 sign counterexamples. All solves in this audit are explicit proof
+validators; perturbed residuals are not relabelled original ACL output.
+
+**Source / scope:** Kyng--Sachdeva arXiv:1605.02353v1 was checked in its
+primary PDF and the literature index, topic note and local bibliography
+were synchronized. No source primitive is imported into a new local-work
+theorem. These obstructions do not apply to proved accurate refinement
+using a spectral preconditioner. General OP3 remains Open.
+
+**Open / next:** Check `LOAD_RESERVE_SPECTRAL_PROBE_20260908.md`.
+It proposes a finite bounded-degree tree obstruction to using a coarser
+matrix with any fixed reduction of the obstacle penalty. This is another
+specific support rule, not a computational lower bound; trees already
+have fast local algorithms. Formal dependencies remain
+`["problem_definitions"]`.
+
+Checkpoint verification: the 170-page note builds without final warnings;
+new proof pages 164-166 and the new source's central pages were visually
+reviewed. All 83 own scripts and three registry tests pass. Broad checks
+retain the recorded baseline failures, with all five hashes unchanged;
+reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK13_AUDIT.json`.
+
 ## Third campaign, block 12: sharp comparison-parameter obstruction
 
 **Proved here, awaiting independent review:** On an explicit path family,

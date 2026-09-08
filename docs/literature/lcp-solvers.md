@@ -529,6 +529,30 @@ audit uses a labelled dense coarse provider and does not implement the
 source solver. Source metadata is unchanged; no separate worst-case
 workspace or finite-precision stability guarantee is imported.
 
+### Kyng and Sachdeva, 2016: approximate elimination and its transfer boundary
+
+**Source.** [*Approximate Gaussian Elimination for Laplacians: Fast, Sparse,
+and Simple*](https://arxiv.org/pdf/1605.02353v1), Rasmus Kyng and Sushant
+Sachdeva, 2016. Theorems 1.1–1.2 (PDF pp.2–3) give a supplied factorization
+and iterative refinement. Theorem 3.1 (p.5) charges
+`O(delta^2 m eta^-2 log^3 n)`. Algorithm 1 (p.6) uses a global random
+permutation; Appendix B (p.20) gives a random low-degree variant.
+The clique sampler reads only its pivot row.
+
+**Proved here / transfer audit:** `sec:op3-spectral-envelope-stability`
+in the incremental note gives a sharp squared-accuracy scale for direct
+same-load matrix replacement, under explicit M-matrix and row-sum
+assumptions. Its star example shows those signs do not follow from an
+abstract spectral sandwich. Its weighted-path example does not object
+to using a factorization as a preconditioner. A positivity-constrained
+local pivot order and its full charged analysis remain missing; the
+source's global order cannot simply be replaced by the current positive
+frontier. No new source primitive is imported into an OP3 work theorem.
+
+Checked PDF SHA-256:
+`bd485c6e488aaccf1dac4cfdcc4997dda097c1cf78b116a0810266fa4c63cb25`.
+The listed pages were read and visually inspected on 8 September 2026.
+
 ### Durfee et al., 2019: dynamic Schur complements require global initialization
 
 **Source.** David Durfee, Yu Gao, Gramoz Goranci, and Richard Peng,
