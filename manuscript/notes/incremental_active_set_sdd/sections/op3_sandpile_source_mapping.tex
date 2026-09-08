@@ -1,0 +1,74 @@
+\section{Sandpile structure and the missing running-time theorem}
+\label{sec:op3-sandpile-source-mapping}
+
+\paragraph{Source scope.}
+\citet[Definitions 2.1--2.4 and Proposition 2.5, pp.\ 6--8]{levine2016critical}
+allow real configurations on a connected locally finite undirected graph.
+Their Laplacian is $\Delta=-L$, their stable capacity is one, and their
+odometer counts mass emitted \emph{per neighbor}. Their least-action
+principle compares legal topplings to every nonnegative stabilizing
+function. It does not provide the charged local work requested by OP3.
+
+\begin{proposition}[The conservative affine mapping; \statusproved]
+\label{prop:op3-conservative-sandpile-mapping}
+On a finite original graph, set $L=D-A$ and fix $\lambda>0$.
+The note-scoped zero-teleportation residual $r=e_v-Lx$ maps to the
+source's unit-capacity configuration by
+\[
+ s_0=e_v+\one-\lambda d,\qquad
+ s(x)=s_0-Lx=r+\one-\lambda d.
+\]
+Thus $r_i>\lambda d_i$ is precisely source instability, and increasing
+$x_i$ by $(r_i-\lambda d_i)/d_i$ is one maximal legal toppling.
+There exists $x\geq0$ with $Lx\geq e_v-\lambda d$ if and only if
+$\lambda\operatorname{vol}(G)\geq1$. For strict inequality, the
+nonnegative obstacle energy has a unique minimizer. At equality the
+linear solutions differ by a constant, and the nonnegative solution
+with minimum coordinate zero is the least stabilizing function.
+These are structural statements at $\gamma=1$, not an OP3 algorithm
+at target $\alpha=0$ or a running-time import.
+\end{proposition}
+\begin{proof}
+The affine identity is direct. A coordinate increase $h$ reduces its
+configuration by $d_i h$ and increases every neighbor by $h$, which is
+exactly the stated per-neighbor convention. Negative entries in $s_0$
+are permitted by the source's real-configuration domain.
+
+Write $b=e_v-\lambda d$. Necessity follows by summing $Lx\geq b$:
+$0\geq\sum_i b_i=1-\lambda\operatorname{vol}(G)$. Conversely, when
+this sum is nonpositive, solve
+$Lz=b-(\sum_i b_i/n)\one$, whose right-hand side sums to zero,
+and shift $z$ by a constant to make it nonnegative. This is an
+existence argument on the full finite graph, not a free local inverse.
+It gives $Lz\geq b$.
+
+For a negative sum, write any $x\geq0$ as $z+c\one$ where
+$\min_i z_i=0$ and $c\geq0$. The energy
+$\tfrac12x^TLx-b^Tx$ increases strictly with $c$. On the slice
+$\min z=0$, a positive spectral gap on the zero-mean subspace makes
+its sublevel sets bounded. Hence a minimizer exists. Two minimizers
+would differ by a constant by strict convexity modulo the Laplacian
+kernel, and the strictly positive constant-direction slope forces that
+constant to vanish. At zero sum, summing any stabilizing inequality
+forces equality $Lx=b$. Connectedness makes all such solutions differ
+by a constant, proving the last assertion.
+\end{proof}
+
+For $\gamma<1$, the physical operator is
+$M=\gamma L+(1-\gamma)D$. The extra loss is a killed variation;
+the conservative source theorem is not literally this operator.
+\Cref{thm:op3-native-gap-push} proves its own least-action comparison
+and work bound instead of importing a runtime from stabilization.
+
+\paragraph{Fast odometer correction is not a supplied OP3 primitive.}
+\citet[Section 4, pp.\ 10--13]{friedrich2013fast} study abelian-stack
+growth with integer chips and a supplied approximate odometer. Their
+initial batched configuration calculation costs $O(|E|+|V|)$ on the
+supplied graph; local hill/hole correction and reverse cycle popping
+then give the exact odometer. The checked argument proves termination,
+not a graph-uniform near-linear total correction bound. Their geometric
+initial approximations and observed timings do not furnish an arbitrary
+local PageRank envelope. A useful next target is a charged correction
+bound in terms of an explicitly obtained approximation; both obtaining
+that approximation and finding its domain remain necessary obligations.
+No theorem from either sandpile paper enters the native work proof.

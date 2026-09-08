@@ -68,6 +68,16 @@ certificates. Read `sec:op3-full-support-constant-shift` and
 `sec:op3-supplied-envelope-alpha-floor`. A fast local finder or native
 producer is still missing; general OP3 remains Open.
 
+The ninth checkpoint implements a deterministic native producer, with
+O(eps_appr^-3) work after the arithmetic floor, original row volume below
+4/eps_appr and no target-alpha dependence. Its stable records, intrusive
+queue and one-time row cache are fully charged. It is a weak reference,
+not an improvement over the source's nearly quadratic active-set bound.
+The audit checks 826 complete ACL outputs and 3,848 intermediate states.
+Read `sec:op3-native-gap-push`, the sandpile source comparison in
+`sec:op3-sandpile-source-mapping`, and
+[the next producer targets](NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md).
+
 The following second-campaign record is historical.
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).

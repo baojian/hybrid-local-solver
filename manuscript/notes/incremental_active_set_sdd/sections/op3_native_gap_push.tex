@@ -1,0 +1,138 @@
+\section{An implemented local producer with a weaker uniform bound}
+\label{sec:op3-native-gap-push}
+
+This section closes the native-producer interface at a deliberately weaker
+rate. It supplies an executable, source-free reference algorithm, not the
+conjectured inverse-accuracy work. In particular, its cubic bound does not
+improve the source's nearly quadratic active-set bound in \cref{sec:source}.
+
+\begin{theorem}[Paid gap-threshold local push; \statusproved]
+\label{thm:op3-native-gap-push}
+On the original connected simple unweighted graph with at least two
+vertices, let $0<a\leq1$, $0<e<1$, $\gamma=(1-a)/(1+a)$,
+$\bar a=1-\gamma$, and $\lambda=e/2$. There is a deterministic local
+exact-real word algorithm returning $x\geq0$ such that
+\[
+ 0\leq r=e_v-(D-\gamma A)x\leq e d,
+ \qquad \operatorname{vol}(\operatorname{supp}x)<2/e.
+\]
+Its total work and allocated words are
+$O(1/(\bar a e)+e^{-2})$. Original rows are read once, only when their
+vertex first becomes positive; the total original row volume is below
+$2/e$. Every discovered degree is queried once. Live graph records,
+cached original incidences and output occupy $O(1+e^{-1})$ words.
+Neither ambient size nor a supplied support is needed. The last space
+claim concerns graph state; it is not a count of Python scalar objects or
+a bit-complexity assertion.
+\end{theorem}
+\begin{proof}
+Initialize $x=0$, $r=e_v$. Keep every discovered label in a sorted
+dynamic pointer array, with a stable record containing its original degree,
+potential, residual, activation flag, queue flag and next pointer. A record
+is queued exactly when $r_i>e d_i$. On removing such a record, make the
+update
+\[
+ h=(r_i-\lambda d_i)/d_i>e/2,\qquad
+ x_i\gets x_i+h,\qquad r_i\gets\lambda d_i,\qquad
+ r_j\gets r_j+\gamma h\quad(j\sim i).
+\]
+If this is its first update, first read and cache its original row as
+stable pointers to neighbor records, creating missing records and querying
+their degrees. Enqueue a neighbor when it crosses the threshold, unless
+already queued. An intrusive FIFO uses these existing record fields.
+
+The displayed changes preserve the original residual identity and
+nonnegativity. Every previously pushed coordinate has residual at least
+$\lambda d_i$ forever: its own push resets to that value, and other
+pushes can only increase it. The total mass satisfies
+\[
+ m:=\sum_i r_i=1-\bar a\sum_i d_i x_i\leq1;
+ \qquad \Delta m=-\bar a d_i h<-\bar a(e/2)d_i.
+\]
+Thus the sum $P$ of the degrees of all pushed rows, including repeated
+updates, is below $2/(\bar a e)$. This proves finite termination because
+all original degrees are at least one. If $S$ is the set already pushed,
+then $\lambda\operatorname{vol}(S)\leq m<1$ after its first push.
+Before a first activation, the newly legal residual exceeds
+$e d_i>\lambda d_i$, so the old active residuals and that new residual
+already imply $\lambda\operatorname{vol}(S\cup\{i\})<m\leq1$.
+This bound holds \emph{before} allocating a degree-sized row buffer.
+Hence a huge outside degree cannot trigger a large unbudgeted row read.
+
+Every nonzero residual is at the seed or a neighbor of a pushed vertex.
+All such labels have records. Residual increases update the queue, and
+the just-pushed coordinate is below threshold. A queued coordinate cannot
+fall below threshold before its own turn. Therefore an empty queue
+certifies the desired inequalities on all vertices, including undiscovered
+vertices whose residual is zero. The positive support is exactly $S$.
+
+For an additional comparison used only by the audit, let $u$ be the
+exact obstacle with load $b=e_v-\lambda d$. Inductively $x\leq u$.
+Indeed the new value at a pushed coordinate is
+$(b_i+\gamma\sum_{j\sim i}x_j)/d_i$, which is at most $u_i$ by
+the KKT inequality $d_i u_i\geq b_i+\gamma\sum_{j\sim i}u_j$.
+The algorithm never computes this comparison vector.
+
+It remains to charge the representation. The number $R$ of discovered
+labels is at most $1+\operatorname{vol}(S)$. Binary lookup of each
+first-read adjacency entry costs $O(\log(2+R))$; there are
+$\operatorname{vol}(S)$ such entries. Array capacities double, with
+total initialization and copying $O(R)$ and total reserved slots $O(R)$
+even counting old arrays. Sorted insertions shift at most $O(R^2)$
+pointers in total. Records do not move, so all repeated neighbor updates
+use their cached pointers in constant work and require no dictionary
+lookup. Queue operations, arithmetic and cached row visits cost $O(P)$.
+The final sorted-record scan and output cost $O(R)$.
+These bounds give $O(1/(\bar a e)+e^{-2})$ work. Graph-state buffers
+and stable records reserve $O(R+\operatorname{vol}(S))$ words; counting
+constant-size scalar temporaries conservatively gives total allocated
+words $O(1/(\bar a e)+e^{-2})$ as well. All costs hold deterministically.
+\end{proof}
+
+\begin{corollary}[A source-free alpha-uniform local reference; \statusproved]
+\label{cor:op3-cubic-local-reference}
+For every original target $0<\alpha\leq1$ and $0<\epsappr<1$, a
+deterministic local algorithm returns original ACL output with support
+volume below $4/\epsappr$ in $O(\epsappr^{-3})$ exact-real word work
+and total allocated words. It reads original rows of total volume below
+$4/\epsappr$, once per row, with $O(1+\epsappr^{-1})$ live graph state.
+The bound has no dependence on target teleportation or ambient size.
+\end{corollary}
+\begin{proof}
+Use \cref{thm:op3-native-gap-push} at
+\[
+ e=\epsappr/2,\quad B=4/\epsappr,\quad
+ a_0=\frac{\epsappr^2}{16+\epsappr^2},\quad
+ a_{\rm eff}=\max\{\alpha,a_0\}.
+\]
+These parameters satisfy the native premises of
+\cref{thm:op3-arithmetic-alpha-floor}. The producer is deterministic,
+so no probability budget is needed. Moreover
+\[
+ 1-\gamma_{\rm eff}\geq1-\gamma_0
+ =\frac{\epsappr^2}{8+\epsappr^2}\geq\epsappr^2/9,
+ \qquad P<36\epsappr^{-3}.
+\]
+The wrapper costs $O((1+B)\log(2+B))$, returns the same potential on
+proper support and adds one constant on full support. All rows and
+degrees it needs are already cached, so it issues no additional original
+graph queries. Its paid maps and temporary arrays use $O(1+B)$ live
+words. Finally emit $(1-\gamma_\alpha)Dx$. The native obstacle load
+here is $\epsappr/4$; no containment in the different
+$\epsappr/2$ obstacle is claimed.
+\end{proof}
+
+\paragraph{Exact implementation audit.}
+\path{native_gap_push.py} implements the stable map, queue, first-activation
+volume check, cached updates and arithmetic wrapper. The full audit checks
+826 complete original ACL outputs and 3,848 intermediate states, with
+12,452 original residual rows, 3,022 pushes and 3,773 degree-weighted
+updates. Dense obstacles and full-graph residuals are validators only.
+Three private hubs of degree through $2^{1024}$ are queried only for
+their degree; only the seed leaf row is read. The exact symbolic update
+bound is checked for 1,024 dyadic accuracies. Results, parameter records
+and source/backend hashes are in \path{NATIVE_GAP_PUSH_AUDIT.json}.
+Its two-vertex stress case still needs 1,744 native pushes at
+$\epsappr=1/8$: avoiding the slow full-support constant mode during
+the native computation is a concrete next improvement. General OP3 and
+an inverse-linear arbitrary-graph producer remain \statusopen.

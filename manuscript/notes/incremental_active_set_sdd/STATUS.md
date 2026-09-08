@@ -40,6 +40,46 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 9: a paid native reference and sandpile mapping
+
+**Proved here, awaiting independent review:** `thm:op3-native-gap-push`
+gives native work O(1/(bar_a*e)+e^-2) with original support volume below
+2/e. Its sorted pointer array charges insertions, stable cached records
+avoid repeated lookups, and its intrusive queue needs no allocation per
+push. Only newly positive rows are read, once each. The arithmetic floor
+composition gives a deterministic local O(eps_appr^-3) reference with no
+target-alpha or ambient-size dependence. Live graph state is O(1/eps_appr);
+total allocation is conservatively bounded by work, not by Python memory
+measurements. This weak result does not improve the nearly quadratic
+Wei–Yang source rate or prove OP3.
+
+**Measured:** 826 complete original ACL outputs; 3,848 exact intermediate
+invariant checks; 3,022 pushes and 3,773 degree-weighted updates. Three
+private hubs through degree 2^1024 are queried only for degree. The
+two-vertex stress case requires 1,744 pushes, exposing a removable
+full-support constant-mode cost. Source/backend hashes are recorded in
+`NATIVE_GAP_PUSH_AUDIT.json`.
+
+**Source / Proved here:** LMPU's conservative sandpile least action and
+FL's supplied odometer correction were checked in their primary PDFs.
+The note gives an explicit affine mapping at gamma=1 and its own
+finite-graph feasibility proof. Neither source supplies a charged local
+OP3 running-time bound; positive teleportation is a killed variation.
+The literature index, topic note and references are synchronized.
+
+**Open / next:** Read `NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md`.
+Detect full support during native work and replace its repeated constant
+mode by one paid solve. Check the conservative proper-support energy
+bound and whether a useful stronger correction contract emerges. The
+existing OP2 theorem was read for comparison; it is not imported into a
+new claim and formal dependencies remain `["problem_definitions"]`.
+
+Checkpoint verification: the 159-page note builds without final warnings;
+new proof pages were visually reviewed. All 78 own scripts and three
+registry tests pass. Broad checks retain the recorded baseline failures,
+with all five hashes unchanged; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK9_AUDIT.json`.
+
 ## Third campaign, block 8: arithmetic alpha transfer and supplied work
 
 **Proved here, awaiting independent review:** A unit-source potential has

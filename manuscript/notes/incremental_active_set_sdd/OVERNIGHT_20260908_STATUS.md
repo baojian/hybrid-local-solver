@@ -15,7 +15,7 @@ argument in the problem-definition note supports Omega(1/eps_appr) for
 our stronger original ACL certificate. Its exact constants and representation have been checked and recorded in
 `cor:op3-uniform-output-lower-bound`.
 
-**Open:** General OP3 and removal of polynomial inverse-alpha dependence.
+**Open:** General OP3 at the conjectured inverse-accuracy work scale.
 A matching accuracy lower bound shows optimality if the conjectured upper
 bound is achieved; it does not establish that upper bound.
 
@@ -118,5 +118,14 @@ local producer remains the missing contract.
 
 Completed new active minutes after block 8: **256.547590**.
 The ninth block is active. Read `LOCAL_NATIVE_PUSH_PROBE_20260908.md`.
-Primary sandpile PDFs downloaded to /tmp are op3-sandpile-fl12 and
-op3-sandpile-lmpu15; their exact source statements still need reading.
+The native reference and the primary sandpile source mapping are now
+proved and audited as drafts. The source statements were read and their
+central pages visually checked. Read
+`NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md` next. The cubic reference
+has no target-alpha dependence but does not improve the known quadratic
+source accuracy power. A fast native producer remains Open.
+
+Completed new active minutes after block 9: **287.917120**.
+The tenth block is active. Its conservative/early-closure target is recorded
+in `NATIVE_PRODUCER_REFINEMENT_PROBE_20260908.md`. Block 9 verification is
+in `OVERNIGHT_20260908_BLOCK9_AUDIT.json`; all baseline hashes match.

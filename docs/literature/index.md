@@ -46,6 +46,13 @@ clustering and local PageRank computation.
 These papers develop local iterative solvers or related graph-diffusion
 methods whose work is intended to depend on local structure.
 
+- [*The Divisible Sandpile at Critical Density*](https://arxiv.org/abs/1501.07258)
+  (Levine, Murugan, Peres and Ugurcan, *Annales Henri Poincaré*
+  17(7):1677–1711, 2016; DOI 10.1007/s00023-015-0433-x) —
+  least action, with the conservative physical mapping in `lcp-solvers.md`.
+- [*Fast Simulation of Large-Scale Growth Models*](https://arxiv.org/abs/1006.1003)
+  (Friedrich and Levine, *Random Structures & Algorithms* 42:185–213,
+  2013) — supplied odometer correction; no OP3 runtime import.
 - [*p-Norm Flow Diffusion for Local Graph Clustering*](https://proceedings.mlr.press/v119/fountoulakis20a.html)
   (Fountoulakis, Wang and Yang, ICML 2020, PMLR 119:3222–3232) —
   support-local coordinate descent with explicit curvature and degree factors;

@@ -882,3 +882,31 @@ or the asymptotic VWF recursion. The source CPW convergence inequality and
 AN tree remain explicitly cited. The next general-OP3 obligation is local
 discovery or event production; a supplied-graph theorem does not pay for
 finding the needed vertex set.
+
+## 8 September 2026: sandpile source boundary
+
+**Source.** Levine–Murugan–Peres–Ugurcan,
+[*The Divisible Sandpile at Critical Density*](https://arxiv.org/pdf/1501.07258v2),
+Definitions 2.1–2.4 and Proposition 2.5, PDF pp.6–8. Friedrich–Levine,
+[*Fast Simulation of Large-Scale Growth Models*](https://arxiv.org/pdf/1006.1003v2),
+Section 4, PDF pp.10–13, and further directions p.26. Publication metadata
+was checked against [Levine's author list](https://lionellevine.github.io/)
+and both arXiv records. LMPU pp.7–8 and FL pp.11–12 were rendered and read.
+Local PDF SHA256 values, respectively:
+`55001bc487433cdfe74d4944b26aad783e05e10e4d32bc447814227303fb861b`,
+`ef18db2e1a0a4f503875cfa9c1ad765d69717db5bebef51b475a75ffea7bad33`.
+
+**Proved here / comparison.** The incremental note's
+`prop:op3-conservative-sandpile-mapping` uses
+`s0=e_v+1-lambda*d`, `Delta=-L`, and a per-neighbor odometer.
+This maps the zero-teleportation physical obstacle to unit capacity,
+including negative background values. The note gives its own finite-graph
+existence argument and distinguishes the killed operator at positive
+teleportation. No sandpile theorem enters the native push work proof.
+
+**Open.** FL's supplied approximation and finite correction argument do
+not give a graph-uniform bound on total correction work. Its initial
+`O(|E|+|V|)` batched calculation alone is not an OP3 solver. The outstanding
+target is a charged local approximation/correction pair, including domain
+discovery. The implemented cubic native reference does not improve the
+already recorded nearly quadratic Wei–Yang source bound.
