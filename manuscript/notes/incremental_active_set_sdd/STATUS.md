@@ -40,6 +40,39 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 12: sharp comparison-parameter obstruction
+
+**Proved here, awaiting independent review:** On an explicit path family,
+a conservative coordinate of value eps_appr/4 disappears from a valid
+accuracy-eps_appr/2 ACL output at bar_a asymptotic to 16 eps_appr^4.
+The exact positive-target obstacle also omits it, including at all larger
+bar_a. The existing safe comparison uses eps_appr^4/128. Consequently the
+fourth power is sharp for the arbitrary-output support-extraction rule;
+the uniform potential-sensitivity factor eps_appr^-3 is sharp as well.
+This constrains this reduction and does not imply an OP3 work lower bound
+or rule out a producer deliberately emitting additional envelope labels.
+
+**Measured:** 135 path cases through N=4096, 193,071 conservative and
+193,071 positive-target original residual rows, 270 exact prefix Dirichlet
+solves, six independent dense Dirichlet validators and 15 small whole-graph
+obstacle validators. The safe parameter retains the endpoint, while the
+larger comparison parameters omit it. Exact examples and hashes are in
+`CONSERVATIVE_PARAMETER_OBSTRUCTION_AUDIT.json`.
+
+**Open / next:** The spectral-envelope probe proposes a weighted-path
+obstruction at relative spectral error of order eps_appr^2 and a matching
+sufficient stability bound under M-matrix and nonnegative-row-sum
+assumptions. Both require proof and audit. A newly checked approximate
+Cholesky source motivates the transfer question; no new source theorem
+is imported at this checkpoint. Formal note dependencies remain
+`["problem_definitions"]`.
+
+Checkpoint verification: the 168-page note builds without final warnings;
+new proof pages 162-163 were visually reviewed. All 82 own scripts and three
+registry tests pass. Broad checks retain the recorded baseline failures,
+with all five hashes unchanged; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK12_AUDIT.json`.
+
 ## Third campaign, block 11: conservative-envelope equivalence
 
 **Proved here, awaiting independent review:** The capped AVL component gate

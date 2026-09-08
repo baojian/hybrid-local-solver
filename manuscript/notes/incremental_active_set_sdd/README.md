@@ -101,6 +101,15 @@ outcomes; the reduction checks 7,299 exact original target outputs. Read
 `sec:op3-conservative-envelope-equivalence`, and
 [the next parameter-obstruction probe](CONSERVATIVE_PARAMETER_OBSTRUCTION_PROBE_20260908.md).
 
+The twelfth checkpoint proves that the fourth-power comparison parameter
+is necessary, up to constants, for extracting a conservative envelope from
+arbitrary ACL output support. An explicit path certificate passes 135 cases
+and 386,142 original residual rows; independent dense checks also verify
+the safe parameter and endpoint omission. This is a limitation of that
+reduction, not a lower bound on OP3 computation. Read
+`thm:op3-fourth-power-support-obstruction` and
+[the spectral-stability follow-up](SPECTRAL_ENVELOPE_OBSTRUCTION_PROBE_20260908.md).
+
 The following second-campaign record is historical.
 
 

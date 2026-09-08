@@ -1,8 +1,12 @@
 # Is the fourth-power comparison scale necessary?
 
-This is the next proof/audit target, not yet a proved obstruction. It
-concerns the rule that extracts an envelope from arbitrary ACL output at
-one comparison parameter. It is not a computational lower bound for OP3.
+**Proved here, awaiting independent review (8 September 2026):** the
+certificate below is now proved in `thm:op3-fourth-power-support-obstruction`.
+The full exact audit passes 135 paths through N=4096, 386,142 original
+residual rows, six independent dense Dirichlet solves and 15 independent
+whole-graph obstacle solves. See `CONSERVATIVE_PARAMETER_OBSTRUCTION_AUDIT.json`.
+The earlier derivation below is retained as provenance. This is a rule-specific
+support-containment obstruction, not a computational lower bound for OP3.
 
 ## Exact conservative family
 
