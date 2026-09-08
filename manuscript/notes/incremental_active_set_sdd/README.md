@@ -20,6 +20,11 @@ literally; this does not refute its final spectral theorem. Read
 [the remaining construction design](WEIGHTED_DECOMPOSITION_DESIGN_20260908.md).
 Routed-load composition and the full supplied constructor remain Conditional.
 
+The third checkpoint completes the charged corridor-routing construction
+from a supplied tree, with 27,961 exact cases and quality `5376W/j`.
+The remaining core sparsifier and source composition are tracked in
+[the resistance-estimator probe](RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md).
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target

@@ -1,0 +1,215 @@
+\section[Weighted corridor routing]{Charged corridor routing for an arbitrary supplied tree}
+\label{sec:op3-weighted-corridor-routing}
+
+\paragraph{Input and scope.}
+The graph in this section is supplied in full, connected, loopless and
+positively weighted; parallel edges are permitted as separate records.
+A spanning tree $T$ is also supplied by original-edge indices. No
+low-stretch property or weight-ratio bound is assumed. Write
+\[
+ r_e=1/c_e,\qquad w_e=c_e r(T(e)),\qquad W=\sum_{e\in E(G)}w_e.
+\]
+For $n\geq2$, $W\geq n-1$, because every retained tree edge contributes
+one. The following construction supplies the missing routing step for
+\cref{thm:op3-rooted-piece-spectral-comparison}; selection of $T$ and
+fast core sparsification remain separate source obligations.
+
+\begin{lemma}[Corridor cuts, roots and the common offset; \statusproved]
+\label{lem:op3-corridor-common-offset}
+Suppose connected pieces partition $E(T)$ and cover $V$, distinct pieces
+meet in at most one vertex, and every piece has at most two shared
+boundary vertices. Every vertex is owned by one containing piece.
+Let $C$ be all shared vertices, or one arbitrary vertex if there is a
+single piece. In every two-boundary piece $W_i$, delete an edge $f_i$
+minimizing the global path congestion
+\[
+ g(f)=\sum_{e:f\in T(e)}c_e
+\]
+on the boundary-to-boundary corridor $R_i=T(s_i,t_i)$.
+Keep every other tree edge. The resulting forest has exactly one
+vertex of $C$ per component. The connected parts within individual
+pieces are rooted pieces in the sense of
+\cref{sec:op3-rooted-piece-comparison}, allowing empty-edge root parts.
+
+Let $D_i$ be the original edges assigned to $W_i$ by endpoint ownership
+whose tree path meets an edge of $W_i$. On every $f\in R_i$,
+\[
+ g(f)=g_i(f)+b_i,\qquad
+ g_i(f)=\sum_{e\in D_i:f\in T(e)}c_e,
+\]
+where $b_i\geq0$ is independent of $f$. Consequently $f_i$ also
+minimizes $g_i$ on $R_i$.
+\end{lemma}
+\begin{proof}
+With a single piece, make no cut and use the chosen root; the forest
+assertion is immediate. There is no two-boundary corridor to analyze.
+If there is more than one piece, every piece has a shared boundary.
+Cutting a two-boundary piece on its corridor produces two connected
+parts, one containing each boundary; a one-boundary piece is already
+rooted. Distinct original pieces meet only at shared vertices.
+All parts therefore meet only at their common root. Every vertex is
+covered by such a part, and parts with distinct roots cannot connect.
+This proves the forest and rooted-piece assertions, including singleton
+owner pieces that contain no tree edge.
+
+An interior vertex of $W_i$ belongs to no other piece, so its owner is
+$W_i$. Also, an edge of $T$ leaving $W_i$ can do so only at a shared
+boundary, since its other containing piece then meets $W_i$ there.
+Thus an original edge not assigned to $W_i$ has no interior endpoint.
+If its tree path crosses any edge of $R_i$, it must enter and leave
+$W_i$ at the two distinct boundaries, possibly starting or ending at
+one of them. It traverses the entire corridor. Edges assigned to
+$W_i$ but outside $D_i$ cross no edge of $W_i$ and contribute zero.
+The sum of the conductances of the remaining unassigned crossing edges
+is the common offset $b_i$. Adding that constant preserves all
+minimizers, including deterministic edge-index tie breaking.
+\end{proof}
+
+\begin{lemma}[Routed stretch from owned loads; \statusproved]
+\label{lem:op3-corridor-owned-stretch}
+Under \cref{lem:op3-corridor-common-offset}, every rooted part $B$
+of a piece $W_i$ satisfies
+\[
+ \sum_e c_e r(P_F(e)\cap B)
+ \leq 2\sum_{e\text{ assigned to }W_i}w_e.
+\]
+Here $P_F(e)$ is the original-edge route defined in
+\cref{sec:op3-rooted-piece-comparison}. The assertion includes original
+edges retained in $F$ and pieces containing many branches at one root.
+\end{lemma}
+\begin{proof}
+An edge contributes a forest segment within $W_i$ only if at least one
+of its endpoints is a nonroot interior vertex of $W_i$. A route from
+another piece terminates when it reaches the shared root and cannot
+continue through $W_i$. Such a contributing original edge is assigned
+to $W_i$, and its tree path meets $W_i$, so it belongs to $D_i$.
+
+For a one-boundary piece, the forest segment is contained in $T(e)$,
+which already gives the stronger factor-one bound. Consider a
+two-boundary piece and write $J=T(e)\cap W_i$ as an edge path.
+If $f_i\notin T(e)$, routing adds no edge within $W_i$: the segment
+is contained in $J$. If $f_i\in T(e)$, the endpoint segments in the
+two cut sides can instead run toward the two boundary roots. Their
+edges are contained in $J\cup(R_i\setminus J)$. To see this, project
+each endpoint of $J$ onto the corridor. The paths off the corridor
+remain unchanged, and the two paths toward the boundary roots use
+only corridor edges outside the interval between those projections.
+This also covers a projected endpoint already equal to a boundary.
+It follows in both cases that
+\[
+ r(P_F(e)\cap W_i)
+ \leq r(T(e))+
+       \boldsymbol{1}_{\{f_i\in T(e)\}}r(R_i\setminus T(e)).
+\]
+The left side sums the forest portions in both rooted parts of $W_i$;
+no core edge is included. The additional term is present only when
+the deleted edge lies on the original tree path, correcting the
+reversed displayed cases in the source's Claim 5.14.
+
+Discarding the nonpositive subtraction from the extra length gives
+\[
+ \sum_e c_e r(P_F(e)\cap W_i)
+ \leq\sum_{e\in D_i}w_e+r(R_i)g_i(f_i).
+\]
+By the preceding lemma, $f_i$ minimizes $g_i$, and hence
+\[
+ \begin{split}
+ r(R_i)g_i(f_i)
+ &\leq\sum_{f\in R_i}r_f g_i(f)\\
+ &=\sum_{e\in D_i}c_e r(T(e)\cap R_i)
+ \leq\sum_{e\in D_i}w_e.
+ \end{split}
+\]
+All terms are nonnegative. Restricting to either rooted part and
+enlarging $D_i$ to all assigned edges proves the claim. A singleton
+piece has no forest segment and satisfies it trivially.
+\end{proof}
+
+\begin{theorem}[Weighted construction from a supplied spanning tree; \statusproved]
+\label{thm:op3-supplied-tree-constructor}
+For a supplied connected positive-weight graph on $n\geq2$ vertices,
+a supplied spanning tree of total stretch $W$, and $1\leq j\leq n$,
+one can construct a rooted subforest and an aggregated core on at most
+$j$ roots such that their weighted union $Q$ satisfies
+\[
+ L(G)\preceq L(Q)\preceq \frac{5376W}{j}L(G).
+\]
+The construction costs $O((n+m)\log(2+n+m))$ exact-real word work and
+$O(n\log(2+n)+m)$ total allocated words, including all input reads,
+tree indexing, decomposition, root labeling, sorting and output.
+The core can have $O(m)$ edges; it has not yet been sparsified.
+There is no minimum-weight or weight-ratio assumption.
+\end{theorem}
+\begin{proof}
+For $j<64$, use all of $T$ as one rooted piece. Its total local stretch
+is $W$. Otherwise set $\theta=64W/j$, assemble
+$a_v=\sum_{e\ni v}w_e$, and use
+\cref{thm:op3-weighted-tree-ownership,cor:op3-weighted-edge-ownership}.
+There are at most $j/4$ pieces, with assigned stretch below
+$2\theta$ for each nontrivial piece. Use the corridor cuts above.
+If there are $h>1$ pieces, their number of shared vertices is at most
+$h-1$ by the incidence count in the ownership proof. If $h=1$, use
+one root. Thus there are at most $j$ roots in all cases.
+
+Every nonempty rooted piece has local stretch below $4\theta$ in
+the large-$j$ branch. Set $\kappa=256W/j$. Since $W\geq n-1$,
+$\kappa\geq1$, and it also exceeds $W$ in the small-$j$ branch.
+\Cref{thm:op3-rooted-piece-spectral-comparison} constructs $Q$ by
+scaling forest edges by $3\kappa$ and aggregated core conductances
+by three. Its comparison gives $21\kappa=5376W/j$ as claimed.
+
+For completeness, tree paths are not supplied for free. Build parent,
+depth and resistance-prefix arrays and a binary-ancestor table in
+$O(n\log(2+n))$ work and allocated words. Each original edge uses
+one lowest-common-ancestor query to compute its tree resistance.
+For its conductance $c_e$, add $c_e$ at both endpoints and subtract
+$2c_e$ at that ancestor. A reverse tree traversal sums these differences;
+the sum below every parent edge is exactly its global congestion.
+All original stretches, vertex loads and congestion values are therefore
+computed in $O((n+m)\log(2+n))$ work without a complete path table.
+
+The ownership and refinement work is linear in $n$. Enumerate a
+two-boundary corridor by ascending its two parent chains to their
+lowest common ancestor. Corridors in distinct pieces have disjoint
+tree edges, so total path output and minimum-congestion scanning cost
+$O(n)$, besides $O(h\log(2+n))$ ancestor queries. Rooted-part adjacency
+is assembled from each piece's own edge list, never by repeatedly
+reading a shared root's complete adjacency. These lists, all local
+traversals, and the global forest root labels have total linear size.
+
+Finally scan the original edges, sort cross-root records by their
+two root labels, add parallel conductances, and emit the scaled forest
+and core. A merge sort uses one reusable $O(m)$ buffer. Ancestor
+tables, initial and refined piece lists, linked-list arenas, local
+adjacencies, released scratch arrays and emitted records all fit the
+stated total-allocation bound. Exact arithmetic is charged as word
+work; this is not a bit-complexity assertion.
+\end{proof}
+
+For $n=1$, the graph has no edges and the empty graph is an exact
+comparison with one root. This case is handled directly and never
+divides by $W=0$.
+
+\paragraph{Audit.}
+The implementation constructs all of the above objects from original graph records and
+supplied tree indices. Independent tree paths, congestion sums, rooted
+part intersections, corrected routing inequalities and dense PSD tests
+serve only as validators. The final exact audit and its source/backend
+hashes are recorded in \texttt{WEIGHTED\_CORRIDOR\_ROUTING\_AUDIT.json}.
+The source is \texttt{weighted\_corridor\_routing.py} in the note's
+proof-audit directory.
+The full audit passes 27,961 supplied constructions, 55,706 exact PSD
+certificates, 33,404 common-offset corridor checks and 16,189 cases
+in which the deleted edge lies on an original path. It checks every
+spanning tree and every root of the connected atlas graphs through
+five vertices, two weight profiles, and five load thresholds, as well
+as the actual $j$-budget branch. Larger stars, paths and random trees
+through 512 vertices include parallel original edges and weights at
+$2^{-80}$ and $2^{80}$. Independent validators check 272,880 stretches,
+134,700 congestion values and 132,199 rooted-piece loads. These finite
+checks support the stated proof and do not replace its asymptotic work
+argument.
+This theorem does not provide a low-stretch tree, a sparse core, or
+local discovery. Reconciling the arbitrary-weight source primitives and
+their requested confidence remains necessary for the full supplied
+near-linear recurrence. General OP3 remains \statusopen.

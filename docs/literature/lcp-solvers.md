@@ -789,3 +789,40 @@ corrected routed-load proof are the next target. The full weighted
 constructor and supplied recurrence remain Conditional; general OP3
 and local discovery remain Open. See the incremental note's
 `WEIGHTED_DECOMPOSITION_DESIGN_20260908.md` for the exact obligations.
+
+**Third-checkpoint update / Proved here.** The common-offset lemma and
+corrected routing proof are now formalized in
+`sec:op3-weighted-corridor-routing`. From any supplied spanning tree of
+total stretch W, the charged construction produces a core on at most j
+roots and a comparison `G <= Q <= (5376W/j)G`. It does not yet sparsify
+that core. The full exact audit passes 27,961 constructions, 55,706 PSD
+certificates and 33,404 common-offset checks; source/backend hashes are
+saved in `WEIGHTED_CORRIDOR_ROUTING_AUDIT.json`. These proofs replace
+the literal component interpretation; they are not an assertion that
+the printed source statements have been corrected by their authors.
+
+### Cycle-solver source for the remaining supplied estimator (8 September 2026)
+
+**Source.** Jonathan A. Kelner, Lorenzo Orecchia, Aaron Sidford and
+Zeyuan Allen Zhu, [*A Simple, Combinatorial Algorithm for Solving SDD
+Systems in Nearly-Linear Time*](https://arxiv.org/pdf/1301.6628v1),
+STOC 2013. The author's [publication list](https://math.mit.edu/~kelner/publications.html)
+confirms the venue. The arXiv record has only v1, January 28, 2013.
+Theorem 3.2 on PDF p.7 gives expected error with fixed work. Algorithm 1
+and Theorem 4.1 on p.8 give cycle sampling and geometric energy
+contraction; Lemmas 6.1/6.2, pp.13–14, bound initial tree-flow energy
+and final tree-potential error. Pages 7,8,14 were rendered and reviewed.
+The source permits positive weighted graphs and imports the AN
+low-stretch tree. This is a supplied graph algorithm, not local discovery.
+Its basic algorithm suffices; the faster variants and finite-precision
+claims in later sections are not imported here.
+
+**Open implementation/composition.** An explicitly charged heavy-path
+backend, capped fair-bit sampler and resistance sketches using ordinary
+approximate solves may supply the outstanding estimator contract. Their
+proposed error constants and source mapping are in the incremental note's
+`RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md`; they are not yet
+an implemented fast estimator or an unconditional supplied recurrence.
+KLP's p.1 footnote omits output time and inverse-n failure from displayed
+work, and its Lemma 3.4 asks for a symmetric operator. Neither omission
+is silently assumed away by this alternative.

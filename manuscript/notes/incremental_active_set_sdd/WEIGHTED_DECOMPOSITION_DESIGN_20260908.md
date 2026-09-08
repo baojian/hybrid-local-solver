@@ -1,5 +1,14 @@
 # Weighted ownership and two-boundary refinement: implementation design
 
+**Third-checkpoint update:** The routed-load composition below is now
+proved in `sec:op3-weighted-corridor-routing` and implemented in
+`weighted_corridor_routing.py`. Its 27,961 exact constructions pass,
+including 55,706 PSD certificates and 33,404 common-offset corridors.
+The supplied-tree quality is `5376W/j` with at most j roots. The remaining
+source/core-sparsifier work is tracked in
+`RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md`. The design history
+below is retained; its routing obligations are no longer outstanding.
+
 **Proved here and exactly audited; routed-load composition still open.**
 `weighted_tree_ownership.py --full` passes 9,042 supplied-tree cases,
 127,547 piece checks and 1,483,000 pairwise intersection checks. It records

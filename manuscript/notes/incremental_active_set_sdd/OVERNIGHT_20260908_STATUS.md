@@ -38,6 +38,18 @@ op3-lower-bj26 (undirected thresholded relative estimation),
 op3-lower-jllx26 (PODS 2026 v5, formerly Tighter Lower Bounds), and
 op3-lower-wwwy24 (STOC 2024 contributor/centrality queries).
 
+The third checkpoint has proved and audited the charged tree-path,
+common-offset and corridor-routing composition: 27,961 constructions
+and 55,706 exact PSD certificates. The resulting supplied-tree theorem
+gives `G <= Q <= (5376W/j)G`, with a core on at most j roots. Core
+sparsification remains separate. Resume
+`RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md`: a checked KOSZ
+2013 source now offers an alternative ordinary-solve route to the missing
+resistance estimates. Its fair-bit sampler, heavy-path cycle backend and
+sketch perturbation constants still need implementation and audit. The
+third checkpoint passed its focused checks and retains only the recorded
+broad-check baseline failures; see `OVERNIGHT_20260908_BLOCK3_AUDIT.json`.
+
 Work directly on main under the continuing commit/push authorization.
 No subagents, new tasks or further usage resets. Preserve existing proved
 drafts and expensive audit results. Own note and audit scripts remain in

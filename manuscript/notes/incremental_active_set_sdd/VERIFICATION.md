@@ -1451,3 +1451,37 @@ routing step in `WEIGHTED_DECOMPOSITION_DESIGN_20260908.md`. Its
 common-offset argument must cover edges that cross a piece with neither
 endpoint owned there. The full supplied recurrence remains Conditional,
 and general OP3 remains Open. Continue the ten NEW active hours.
+
+## Third campaign, block 3: charged weighted corridor routing
+
+**Proved here, awaiting independent review:** a complete construction
+from an arbitrary supplied spanning tree T. With total stretch W and
+root budget j, it constructs `G <= Q <= (5376W/j)G` using at most j
+roots. All tree distances, congestion, ownership, corridor cuts, local
+part construction and core aggregation are charged. The proof uses the
+correct common congestion offset and retains parts sharing one root.
+Read `sec:op3-weighted-corridor-routing`.
+
+**Measured:** 27,961 exact constructions, 55,706 PSD certificates,
+33,404 common-offset corridors, 16,189 corrected cut-routing cases,
+272,880 independent stretches and 134,700 congestion checks. The audit
+records 56,091,347 charged construction units and passes every supplied
+root/spanning tree in the small atlas grid, plus larger weighted and
+parallel-edge cases through 512 vertices. Its full run took 69.054 seconds.
+
+**Verification:** the 133-page note builds without final warnings and
+pages 127-130 were visually reviewed. All 68 own scripts and three
+registry tests pass. Broad checks retain only the same three failures
+with 231 passing tests, two unrelated lint findings and two oversized
+AESP sources. All five baseline hashes match; reproduction stops at its
+failed test prerequisite. See `OVERNIGHT_20260908_BLOCK3_AUDIT.json`.
+
+**Next / Open:** the core still needs sparsification, and tree selection
+must use the checked arbitrary-weight source. The KOSZ 2013 cycle solver
+provides a new source-backed route to the resistance estimator; its exact
+expected-error lemmas were checked in the primary PDF. The next concrete
+tasks are a bounded fair-bit sampler, a heavy-path cycle-update backend,
+and ordinary-solve resistance sketches. Read
+`RESISTANCE_ESTIMATOR_CONSTRUCTION_PROBE_20260908.md`. The full supplied
+recurrence remains Conditional; general OP3 remains Open. Continue the
+600 NEW active-minute campaign.
