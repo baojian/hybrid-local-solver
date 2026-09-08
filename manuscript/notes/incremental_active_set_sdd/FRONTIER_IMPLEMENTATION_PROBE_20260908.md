@@ -1,6 +1,14 @@
 # Implementing the exact live-frontier elimination baseline
 
-Next constructive target. The algebraic predecessor is
+**Completed as a proof draft and implemented reference.** Read
+`sec:op3-exact-frontier`, `frontier_exact.py`, and
+`FRONTIER_EXACT_AUDIT.json`. The audit passes 7,305 original outputs and
+12,986 prefix states. The fill-dependent cost and cubic star-and-tail
+obstruction are now proved; general OP3 remains Open.
+
+The following implementation plan is retained as provenance.
+
+Originally the next constructive target. The algebraic predecessor is
 `FRONTIER_ELIMINATION_PROBE.md`; no implementation was found under its
 live-frontier/elimination anchors. Preserve its star-fill obstruction.
 General OP3 remains Open. The point here is an actual paid baseline and

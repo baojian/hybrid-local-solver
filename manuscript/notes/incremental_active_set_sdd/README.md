@@ -129,6 +129,17 @@ that support rule, while preserving refinement and existing fast tree
 algorithms. Read `thm:op3-spectral-load-reserve-obstruction` and
 [the constructive frontier baseline](FRONTIER_IMPLEMENTATION_PROBE_20260908.md).
 
+The fifteenth checkpoint implements exact local frontier elimination with
+paid AVL maps, intrusive incidence lists and one final reconstruction.
+Its cost is `O((1+V+sum_i(p_i+1)^2)*log(2+V))`, where V is admitted
+original degree volume and p_i is the effective pivot degree. Original
+row access is linear in V, but explicit fill expansion is cubic on a
+star with a long tail. This is a representation obstruction, not an OP3
+lower bound. The exact audit checks 7,305 original ACL outputs and 12,986
+prefix Schur/map/queue states. Read `sec:op3-exact-frontier` and
+`FRONTIER_EXACT_AUDIT.json`; implicit fill with paid threshold reporting
+remains Open.
+
 The following second-campaign record is historical.
 
 

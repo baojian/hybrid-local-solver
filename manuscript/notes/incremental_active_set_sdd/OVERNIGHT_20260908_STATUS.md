@@ -7,11 +7,12 @@ idle, scheduling or unverified gaps. Use `OVERNIGHT_20260908_WORK_LOG.json`.
 
 ## Current checkpoint
 
-Completed **401.030032 new active minutes** through block 14; at least
-**198.969968 minutes** remain. Block 15 is active. The fixed and
-polylogarithmic penalty-reserve obstruction is a proved draft, with exact
-audit and checkpoint evidence in `OVERNIGHT_20260908_BLOCK14_AUDIT.json`.
-Resume `FRONTIER_IMPLEMENTATION_PROBE_20260908.md`. General OP3 remains Open.
+Completed **428.195015 new active minutes** through block 15; at least
+**171.804985 minutes** remain. Block 16 is active. Exact frontier
+elimination and its explicit-fill obstruction are proved drafts, with
+implemented audit and checkpoint evidence in
+`OVERNIGHT_20260908_BLOCK15_AUDIT.json`. Resume
+`FRONTIER_GROUP_COMPRESSION_PROBE_20260908.md`. General OP3 remains Open.
 Earlier chronological targets below are historical.
 
 ## Initial verdict and current work
@@ -156,3 +157,6 @@ The fourteenth block is active; all five baseline hashes remain unchanged.
 
 Completed new active minutes after block 14: **401.030032**.
 The fifteenth block is active; all five baseline hashes remain unchanged.
+
+Completed new active minutes after block 15: **428.195015**.
+The sixteenth block is active; the unverified compaction gap is excluded.

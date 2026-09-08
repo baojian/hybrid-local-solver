@@ -40,6 +40,42 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 15: implemented exact frontier and explicit fill cost
+
+**Proved here, awaiting independent review:** `thm:op3-exact-frontier`
+returns original ACL output with residual at most 3eps_appr*d/4 and
+original support volume below 2/eps_appr. Each admitted row and each
+known degree is read once. The exact Schur state uses deterministic AVL
+maps and intrusive incidence lists; one reverse pass reconstructs the
+potentials. Total work and allocated words are
+`O((1+V+sum_i(p_i+1)^2)*log(2+V))`, live state is O((1+V)^2), and the
+arithmetic bound has no alpha dependence. No dense inverse or repeated
+face solve is part of the producer.
+
+**Proved here / Refuted rule:** A star with a long tail forces at least
+binomial(m,3) explicit fill-pair updates at admitted volume Theta(m), even
+when the ambient volume exceeds 4/eps_appr. This refutes a linear fill
+bound for this representation; it does not obstruct implicit rank-one
+cliques, existing tree algorithms, or the OP3 target.
+
+**Measured:** 7,305 original ACL outputs, 44,149 final residual rows,
+12,986 prefix Schur/map/queue checks, 6,349 implemented pivots, 60,747
+fill updates and 12,900 load publications. Exact threshold ties, signed
+large labels, small alpha through 2^-1024, and three private huge hubs
+are included. Independent dense calculations are validators only.
+See `FRONTIER_EXACT_AUDIT.json`.
+
+**Open / next:** Compress fill while paying for transformed-load threshold
+reporting, or use controlled refinement in the original equations.
+The cubic reference does not improve the known quadratic source rate.
+General OP3 remains Open. Formal dependencies remain
+`["problem_definitions"]`. The 175-page note builds without final warnings;
+new proof pages 168-170 were visually reviewed. All 85 own scripts and
+three registry tests pass. Broad checks retain only the recorded baseline
+failures, with all five source hashes unchanged. Reproduction stops at
+its failed test prerequisite. See `OVERNIGHT_20260908_BLOCK15_AUDIT.json`
+and resume `FRONTIER_GROUP_COMPRESSION_PROBE_20260908.md`.
+
 ## Third campaign, block 14: a penalty reserve still misses support
 
 **Proved here, awaiting independent review:** A finite complete binary tree

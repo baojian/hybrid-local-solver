@@ -1,0 +1,189 @@
+\section{A paid exact frontier elimination reference}
+\label{sec:op3-exact-frontier}
+
+The following implementation makes the frontier algebra in
+\path{FRONTIER_ELIMINATION_PROBE.md} executable, including original graph
+access and fill generation. It is a reference for testing representations.
+Its worst-case cubic bound is weaker than the source quadratic bound in
+\cref{sec:source}; no improvement of general OP3 is claimed.
+
+\begin{theorem}[Exact local frontier with a fill ledger; \statusproved]
+\label{thm:op3-exact-frontier}
+Let the original graph be finite, connected, simple and unweighted, with
+at least two vertices. For $0<\alpha\leq1$ and $0<e<1$, put
+\[
+ \gamma=\frac{1-\alpha}{1+\alpha},\quad \bar\alpha=1-\gamma,
+ \quad M=D-\gamma A,\quad \lambda=e/2,\quad \kappa=e/4.
+\]
+There is a deterministic local exact-real word algorithm returning $x\geq0$
+with
+\[
+ 0\leq e_v-Mx\leq(3e/4)d,\qquad
+ V:=\operatorname{vol}(\operatorname{supp}x)<2/e.
+\]
+It reads each admitted original row once, or skips all rows if $\gamma=0$,
+queries each discovered degree once, and materializes the final physical
+potentials in one reverse pass. Let $p_i$ be the number of live effective
+neighbors just before eliminating admitted vertex $i$, after exposing its
+original row, and put $\Phi=\sum_i(p_i+1)^2$. Its work and total allocated
+words are
+\[
+ O\bigl((1+V+\Phi)\log(2+V)\bigr)
+ \subseteq O\bigl((1+V)^3\log(2+V)\bigr),
+\]
+with $O((1+V)^2)$ live words. These bounds include original adjacency and
+degree access, all fill and transformed-load updates, failed admission
+checks, history and final output $\bar\alpha D x$. They have no dependence
+on target $\alpha$ or ambient size in this arithmetic model. No bit or
+floating-point complexity guarantee is asserted.
+\end{theorem}
+\begin{proof}
+Write $b=e_v-\lambda d$. For an admitted set $S$, let $x^S$ be the exact
+face solution $M_{SS}x^S_S=b_S$, zero outside $S$. Initially $S$ is empty.
+For each known unadmitted label $j$, maintain the exact quantities
+\[
+ h_j=b_j-M_{jS}x^S_S,
+ \qquad s_j=M_{jj}-M_{jS}M_{SS}^{-1}M_{Sj}.
+\]
+After each completed pivot, the stored edges between two unadmitted
+vertices $j,k$ contain only their accumulated fill conductance
+$M_{jS}M_{SS}^{-1}M_{Sk}\geq0$. Original edges between two unadmitted
+vertices have not yet been read and are not included in this stored fill.
+This distinction avoids assuming that the whole frontier graph is supplied.
+
+Known labels are queued exactly when $h_j>\kappa d_j$; a queued flag and
+intrusive FIFO prevent duplicate insertions. On admitting $i$, expose its
+original row once. A newly encountered label gets one degree query and
+initial data $s_j=d_j$, $h_j=b_j$. It could not have an original edge to
+an earlier admitted vertex, since that earlier row would already have
+discovered it. Add conductance $\gamma$ to every still-unadmitted original
+neighbor, combining it with any stored fill on that pair. Skip original
+edges back to eliminated vertices, whose contributions are already in the
+Schur state. If $\gamma=0$, no original row is needed.
+
+Let $w_{ij}>0$ be the resulting effective conductances and $\sigma=s_i>0$.
+Store $z_i=h_i/\sigma>0$ and the coefficients $w_{ij}/\sigma$, then make
+the exact scalar Schur updates
+\[
+ s_j\gets s_j-w_{ij}^2/\sigma,\qquad
+ h_j\gets h_j+w_{ij}z_i,\qquad
+ w_{jk}\gets w_{jk}+w_{ij}w_{ik}/\sigma\quad(j<k).
+\]
+Remove all incident pairs of $i$. The Schur formula proves the stated
+invariant inductively; positive definiteness of $M$ gives all positive
+pivots and remaining diagonals. Loads only increase, so a queued vertex
+stays eligible until removed. No old potential coordinate is written in
+these discovery updates.
+
+For completeness, every admission is safe before its original row buffer
+is allocated. The enlarged face solution has new coordinate $z_i>0$ and
+old coordinates
+\[
+ x^{S\cup\{i\}}_S
+ =x^S_S+M_{SS}^{-1}(-M_{Si})z_i\geq x^S_S\geq0.
+\]
+Its original residual is $\lambda d$ on the enlarged face and is
+nonnegative outside, because outside coordinates are zero and all physical
+couplings are nonpositive. Since the new vector is nonzero,
+\[
+ \lambda\operatorname{vol}(S\cup\{i\})
+ \leq\sum_j(e_v-Mx^{S\cup\{i\}})_j
+ =1-\bar\alpha\sum_jd_jx^{S\cup\{i\}}_j<1.
+\]
+Thus checking $\lambda(V+d_i)<1$ before allocating or reading that row
+always succeeds in the exact model. A huge outside degree is only a single
+degree response unless it passes this certified admission gate. Also, if
+$u$ is the full $\lambda$ obstacle, then
+$M_{SS}u_S\geq b_S-M_{S\bar S}u_{\bar S}\geq b_S$ and inverse
+positivity gives $x^S\leq u$. This comparison vector is never computed.
+
+There are fewer than $2/e$ admissions. The number $R$ of discovered labels
+is at most $1+V$, because every label except the seed first appears in an
+admitted original row. At termination every known unadmitted load is at
+most $\kappa d_j$. Its residual is $\lambda d_j+h_j\leq3e d_j/4$.
+Every undiscovered vertex has no original neighbor in $S$ and is not the
+seed, so its residual is zero. Active residuals equal $\lambda d_j$.
+Reverse the saved pivot history, setting
+\[
+ x_i=z_i+\sum_j(w_{ij}/\sigma_i)x_j,
+\]
+where later admitted values have already been reconstructed and never
+admitted values remain zero. This is exact back substitution, giving the
+face solution just certified. Emit its physical and probability records in
+one paid pass.
+
+Here are the data-structure costs, including historical allocations.
+Use an insertion-only AVL map for labels, with stable vertex records and
+indices; a second AVL map indexes unordered pairs of these indices. Each
+pair has two intrusive incidence-list records, so retiring all incident
+edges costs $O(p_i)$. An inactive pair key is retained in the map: it has
+an eliminated endpoint and will never be used again. There are at most
+$R(R-1)/2$ historical pair records, and both maps have logarithmic lookup,
+insertion and balancing cost. All original row entries, whose total is at
+most $V$, use the label map. Each pivot allocates $O(1+p_i)$ gathered
+neighbor and lifting records, updates $p_i$ loads and diagonals, and makes
+$\binom{p_i}{2}$ pair updates, each charged to the pair map. AVL recursive
+frames, constant-size temporaries, queue operations, discarded buffers and
+dynamic history capacities are included in the total-allocation bound.
+The reverse pass costs $O(1+\sum_i(1+p_i))$. These bounds yield the stated
+work and allocation formula. Since $p_i<R\leq1+V$ and $|S|\leq V$,
+$\Phi=O((1+V)^3)$. Historical pairs and all saved lifting coefficients
+occupy $O((1+V)^2)$ live words. No dense inverse, scan of all original
+vertices or repeated full face solve is part of the algorithm.
+\end{proof}
+
+\begin{proposition}[Cubic work of explicit pair expansion; \statusproved]
+\label{prop:op3-explicit-frontier-cubic}
+For every integer $m\geq4$, there is an original graph of volume $18m$
+with $\alpha=1/3$ and $e=1/(4m)$ on which the above explicit frontier
+representation makes at least $\binom m3$ fill-pair updates. Its admitted
+original volume is $\Theta(m)$, while the ambient volume exceeds $4/e$.
+This is a representation-specific obstruction, not an OP3 work lower bound.
+\end{proposition}
+\begin{proof}
+Take the path $0,\ldots,8m$, attach $m$ leaves at the seed $0$, and retain
+all original degrees. The seed degree is $m+1$, and its first face value is
+\[
+ x_0=\frac{1-\lambda(m+1)}{m+1}
+ =\frac{7m-1}{8m(m+1)},\qquad \lambda=\frac1{8m}.
+\]
+It is eligible. Each attached leaf then has transformed load
+\[
+ h=-\lambda+\tfrac12x_0
+ =\frac{5m-3}{16m(m+1)}>
+ \kappa=\frac1{16m}.
+\]
+All $m$ leaves are therefore queued and remain eligible. Eliminating the
+seed creates a positive clique among them; positive fill updates never
+remove an edge between surviving leaves. If $k$ of these leaves remain,
+eliminating one has at least $k-1$ other leaf neighbors and explicitly
+updates at least $\binom{k-1}{2}$ pairs. Summing over the $m$ leaf pivots
+gives $\sum_{k=1}^m\binom{k-1}{2}=\binom m3$, independent of their
+queue order. The seed and all leaves contribute $2m+1$ to $V$, while
+\cref{thm:op3-exact-frontier} gives $V<8m$. The graph's $18m$ volume is
+greater than $4/e=16m$. The first clique is rank one; implicit algebraic
+representations and the existing fast tree results are not ruled out.
+\end{proof}
+
+\paragraph{Implemented audit; Measured.}
+\path{frontier_exact.py} implements both AVL maps, stable records,
+intrusive incidence lists and queue, original row access, Schur updates and
+one final reconstruction. The full audit checks 7,305 original ACL outputs,
+44,149 final residual rows and 12,986 exact prefix states. Independent
+dense face, inverse-column and obstacle calculations are validators only;
+they are absent from the producer. Prefix checks also verify AVL balance,
+pair-list consistency, queue eligibility and the original-volume guard.
+The audit records 6,349 actual pivots, 60,747 fill updates and 12,900 load
+publications. Exact gate ties are checked on both initial and final states.
+
+Additional profiles include endpoint paths, cycles, seeded sparse regular
+graphs, signed labels larger than a machine integer, and two-vertex graphs
+with $\alpha$ through $2^{-1024}$. The latter use two pivots and the same
+529 charged units at all four tested parameter scales; this is an arithmetic
+observation, not a bit bound. Three private huge hubs, with degrees through
+$2^{1024}$, expose only their seed leaf row. The $m=64$ star-and-tail
+profile makes 45,760 fill updates despite admitted volume 131. Parameters,
+source hash and the full cost ledger are in \path{FRONTIER_EXACT_AUDIT.json}.
+The next missing primitive is an implicit representation that also pays for
+transformed-load threshold reporting under adaptive positive admissions.
+General OP3 remains \statusopen.
