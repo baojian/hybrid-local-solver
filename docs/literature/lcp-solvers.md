@@ -934,3 +934,26 @@ not give a graph-uniform bound on total correction work. Its initial
 target is a charged local approximation/correction pair, including domain
 discovery. The implemented cubic native reference does not improve the
 already recorded nearly quadratic Wei–Yang source bound.
+
+## 8 September 2026: neighborhood types and adaptive response groups
+
+**Source.** Michael Lampis,
+[*Algorithmic Meta-Theorems for Graphs of Bounded Vertex Cover*](https://arxiv.org/pdf/0910.0582v2),
+arXiv:0910.0582v2, 4 November 2009. Definitions 1-2 on PDF p.4 identify
+twins by their neighborhoods outside the pair and define neighborhood
+diversity. Theorem 5, pp.12-13, describes clique/independent types and
+complete/empty connections between types. These pages were rendered and
+read. PDF SHA256:
+`11da823f24399d1280d83053895f7a6fd9179d26d091bd0da4ba26f888b1c4cf`.
+The author-hosted URL returned 404; the checked arXiv title and version
+are retained without inferring later publication metadata.
+
+**Proved here / Open extension.** The incremental note now implements
+adaptive frontier groups, individual original-degree heaps, row-driven
+partition refinement and reverse aggregate reconstruction. Its exact
+ACL work depends on the squared transient group count. The source offers
+a candidate structural promise under which that count may stay small;
+the local no-supplied-partition bound is a separate next proof/audit target.
+No source partition-computation or logical model-checking algorithm enters
+the local producer or its work accounting. See
+`FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`; general OP3 remains Open.

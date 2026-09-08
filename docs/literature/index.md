@@ -123,6 +123,10 @@ methods whose work is intended to depend on local structure.
 These papers connect graph partitioning, spectral sparsification,
 preconditioning, and fast solution of graph-structured linear systems.
 
+- [*Algorithmic Meta-Theorems for Graphs of Bounded Vertex Cover*](https://arxiv.org/pdf/0910.0582v2)
+  (Lampis, arXiv:0910.0582v2, 2009) — neighborhood-type definitions and
+  structural comparison for local frontier response groups; source scope
+  in `lcp-solvers.md`. No local PageRank work theorem is imported.
 - [*Approximate Gaussian Elimination for Laplacians: Fast, Sparse, and Simple*](https://arxiv.org/abs/1605.02353)
   (Kyng and Sachdeva, arXiv:1605.02353v1, 2016) — source map in `lcp-solvers.md`.
 - [*Using Petal-Decompositions to Build a Low Stretch Spanning Tree*](https://www.cs.bgu.ac.il/~neimano/spanning-full1.pdf)

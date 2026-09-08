@@ -40,6 +40,44 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 16: shared frontier groups and reverse aggregates
+
+**Proved here, awaiting independent review:** The implemented grouped
+producer uses original adjacency into the admitted set to refine frontier
+response groups, while keeping every original degree. Degree heaps find
+eligible members; row entries pay for all membership moves. Shared Schur
+updates cost the square of the transient group count, and reverse split
+merges reconstruct all coordinates without expanding historical groups.
+Its total work/allocated words are
+`O((1+V+sum_i(b_i+1)^2)*log(2+V))`, with V<2/eps_appr and no target-alpha
+arithmetic dependence. Live state is O((1+V)^2). Read
+`thm:op3-frontier-response-groups`.
+
+**Proved here:** On a star with m leaves and a sufficiently long path tail,
+all alpha in (0,1/3] give at most two transient groups and O(m log m)
+local work at eps_appr=1/(4m). This repairs the explicit clique expansion
+in that example; trees were already covered by earlier fast algorithms.
+
+**Measured:** 7,311 original ACL outputs, 49,915 final residual rows,
+12,986 prefix states, 5,700 independently verified reverse coordinates
+and membership aggregates, 594 splits and 655 old-member moves. Exact
+ties, huge private hubs, unequal original degrees, arbitrary signed labels
+and alpha through 2^-1024 pass. The m=64 star case has 66 shared matrix
+updates and 66,793 charged units versus 45,760 fill updates and 17,313,546
+units in the explicit reference. These counters are not timing speedups.
+See `FRONTIER_GROUPS_AUDIT.json`.
+
+**Open / next:** Establish a structural neighborhood-type bound and test
+a binary-tree obstruction to this specific first-eligible-group order.
+Read `FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`. The group bound is
+not universally small; general OP3 remains Open. Formal dependencies are
+still `["problem_definitions"]`. The 177-page note builds without final
+warnings; new proof pages 171-173 were visually reviewed. All 86 own
+scripts and three registry tests pass. Broad checks retain the recorded
+baseline failures, with all five source hashes unchanged. Reproduction
+stops at the failed test prerequisite. See
+`OVERNIGHT_20260908_BLOCK16_AUDIT.json`.
+
 ## Third campaign, block 15: implemented exact frontier and explicit fill cost
 
 **Proved here, awaiting independent review:** `thm:op3-exact-frontier`

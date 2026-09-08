@@ -1,0 +1,176 @@
+\section{Adaptive response groups and aggregate reconstruction}
+\label{sec:op3-frontier-response-groups}
+
+The explicit star obstruction has a low-rank origin. The following
+implementation shares responses among frontier vertices with the same
+original adjacency into the admitted set. It discovers this partition
+locally, permits unequal original degrees within a group, and includes
+threshold reporting and reconstruction in its cost.
+
+\begin{theorem}[Paid adaptive frontier groups; \statusproved]
+\label{thm:op3-frontier-response-groups}
+Under the model and parameters of \cref{thm:op3-exact-frontier}, there is
+a deterministic local exact-real word producer of the same original ACL
+certificate, with original support volume $V<2/e$. Let $b_i$ be the maximum
+number of group records in its live list during pivot $i$, counting empty
+parents until that pivot retires them. Its work and total allocated words
+are
+\[
+ O\left(\left(1+V+\sum_i(b_i+1)^2\right)\log(2+V)\right),
+\]
+and its live state is $O((1+V)^2)$ words. Each admitted original row is read
+once, or skipped when $\gamma=0$, and each discovered degree is queried
+once. The original volume guard precedes each row buffer. One final reverse
+replay reconstructs all physical potentials and emits $\bar\alpha Dx$.
+No supplied partition, ambient scan or numerical oracle is used. In
+particular, if the realized group counts are bounded by $B$, the work is
+$O((1+V)(1+B)^2\log(2+V))$, with no target-$\alpha$ dependence in this
+arithmetic model. A graph-uniform small-$B$ claim is not made.
+\end{theorem}
+\begin{proof}
+After a completed pivot, partition the known unadmitted vertices into
+groups $T_t$ with equal original adjacency columns into the admitted set
+$S$. Maintain a scalar $q_t$ and symmetric nonnegative entries $C_{tu}$ so
+that for $j\in T_t$, $k\in T_u$, $j\ne k$,
+\[
+ h_j=-\lambda d_j+q_t,\qquad s_j=d_j-C_{tt},\qquad
+ \operatorname{fill}(j,k)=C_{tu}.
+\]
+These identities follow from the Schur expressions in
+\cref{thm:op3-exact-frontier}. Initially the seed is a singleton group with
+$q=1$ and $C=0$; after its removal every remaining source entry is zero.
+The grouping condition says nothing about individual original degrees or
+unread edges between unadmitted vertices.
+
+Each group stores its members in a binary heap ordered by original degree
+and then label. Stable vertex records retain their heap positions. Thus
+insertion and removal of any named member cost $O(\log(2+V))$. Some member
+is eligible precisely when the minimum-degree member satisfies
+$q_t>(\lambda+\kappa)d_j$. Scan the live group list and take the minimum
+member of its first eligible group. This scan costs the number of groups,
+not the total number of member vertices, and all failed checks are charged.
+
+Remove eligible $i$ from its group $p$ and save
+\[
+ \sigma=d_i-C_{pp}>0,\qquad
+ z_i=(-\lambda d_i+q_p)/\sigma>0.
+\]
+Expose its original row. For each previously known unadmitted original
+neighbor, move that member from its old group to a child group, creating
+one such child per old group in this row. A per-pivot marker and direct
+parent pointer identify that child. This separates neighbors and
+nonneighbors without scanning the unencountered members. A child copies
+its parent's $q$ and its interactions with the current groups, including
+the self entry. All newly discovered vertices form one fresh group with
+previous $q=0$, $C=0$: none could have had an earlier admitted original
+neighbor. Mark every child and fresh group as a neighbor group for this
+pivot. Empty old groups may now leave the live list; their scalar records
+remain available through saved references.
+
+For every remaining group $t$, the effective coupling from the removed
+pivot is
+\[
+ w_t=C_{pt}+\gamma\,\mathbf1\{t\text{ is a neighbor group of }i\}.
+\]
+Make one shared load update and one update for each unordered group pair,
+including diagonal pairs:
+\[
+ q_t\gets q_t+w_tz_i,
+ \qquad C_{tu}\gets C_{tu}+w_tw_u/\sigma.
+\]
+Each individual member then has exactly the scalar Schur update of
+\cref{thm:op3-exact-frontier}. The partition remains valid after adding
+$i$ to $S$, because its only new adjacency bit was used in the refinement.
+Therefore all positive-pivot, original residual, support-volume and
+pre-row safety arguments from that theorem apply, regardless of the new
+eligible-pivot order. The heap minima certify termination on every group,
+and unseen residuals are zero.
+
+The reconstruction needs more than mutable group names. Save $z_i$, one
+coefficient $w_t/\sigma$ per current group, each parent--child split, the
+fresh-discovery group if present, and the pivot's old parent. Start reverse
+replay with zero sums on all final groups; retired empty groups also have
+zero initial sums. At the reversed pivot, group sums refer to the member
+sets immediately after that forward pivot's removal and refinement, with
+later admitted physical values already known. Set
+\[
+ x_i=z_i+\sum_t(w_t/\sigma)\,\Sigma_t.
+\]
+This is the individual back-substitution formula, aggregated over groups.
+Undo the saved splits by adding each child sum into its old parent and
+clearing the child. Clear the fresh-discovery sum: those labels were absent
+from the earlier frontier and had zero coupling to its admitted set, while
+their already reconstructed individual output values remain stored. Finally
+add $x_i$ to its old parent's sum. The resulting aggregates describe exactly
+the known unadmitted sets before this pivot. Induction backward through the
+history proves every reconstruction and pays only for saved group
+coefficients, splits and pivot records. It does not expand a historical
+group into its member list.
+
+To charge discovery and representation, each old-member move is paid by
+one newly read original incidence. Each fresh discovery is also paid by
+such an incidence. There are $O(1+V)$ heap insertions and moves in total;
+geometrically grown heap arrays reserve $O(1+V)$ words even counting retired
+capacities. Every newly created group except the initial seed has an
+original incidence that pays for its creation, so there are at most $1+V$
+historical groups. Stable vertex labels use an AVL map. A second
+insertion-only AVL map indexes symmetric pairs of stable group indices,
+including retained historical entries, with $O(\log(2+V))$ lookup and
+update cost. Clone at most $b_i$ new groups against at most $b_i$ current
+records, then make $O((1+b_i)^2)$ shared Schur operations. Live-list scans,
+empty retirements, group gates and saved lifting records cost $O(1+b_i)$
+per pivot. The final unsuccessful group scan costs $O(1+V)$. All map
+frames, scalar temporaries, buffers and historical records are charged.
+This proves the total bound. There are $O((1+V)^2)$ historical matrix
+entries and at most $O((1+V)^2)$ saved group coefficients, proving the live
+state bound. Individual degrees are never replaced by group-average or
+induced degrees.
+\end{proof}
+
+\begin{proposition}[The star clique stays compressed; \statusproved]
+\label{prop:op3-grouped-star-tail}
+For the star with a path tail of length at least $8m$, $m\geq4$,
+$e=1/(4m)$ and any $0<\alpha\leq1/3$, the group producer uses
+$O(m\log(2+m))$ local work and total allocated words. Its support volume
+is $\Theta(m)$, and its transient group count is at most two. The tail
+length need not be supplied. This is a concrete representation improvement
+on a graph family already covered by the earlier tree results.
+\end{proposition}
+\begin{proof}
+The seed row puts its $m$ leaves and the first tail vertex into one fresh
+group. Its first face value is the $x_0$ in
+\cref{prop:op3-explicit-frontier-cubic}. Since $\gamma\geq1/2$, every leaf
+passes the same strict gate proved there. The heap selects all degree-one
+leaves before the degree-two tail vertex. Each leaf row only points back to
+the eliminated seed, so it causes no split or fresh group. The single
+shared Schur coefficient handles every leaf pivot. Thereafter the algorithm
+has at most one frontier vertex on the remaining endpoint path. Each such
+pivot retires its emptied group after creating at most one fresh group.
+Thus $b_i\leq2$ throughout. The seed and leaves contribute $2m+1$ to
+$V$, and the general volume bound gives $V<8m$; the far terminal endpoint
+cannot be reached within that budget. Apply
+\cref{thm:op3-frontier-response-groups}. Existing fast tree algorithms are
+not new consequences of this example.
+\end{proof}
+
+\paragraph{Exact audit and measured comparison.}
+\path{frontier_groups.py} implements the producer, degree heaps, paid
+partition refinement, shared matrix and reverse aggregates. The full audit
+passes 7,311 original ACL outputs, 49,915 final residual rows and 12,986
+prefix Schur/AVL/heap/partition checks. There are 5,700 independent checks
+of reverse coordinates and restored membership aggregates. Dense obstacles,
+face solves, inverse columns and historical membership snapshots are
+validators only. The audit includes 708 initial and 768 final exact gate
+ties, 594 actual partition splits, 655 old-member moves, arbitrary signed
+large labels, tiny teleportation through $2^{-1024}$ and three private
+huge hubs whose outside rows are not read.
+
+For $m=64$, the same star-and-tail parameter case has admitted volume 131.
+The explicit reference records 45,760 fill updates and 17,313,546 charged
+units; the grouped producer records 66 shared matrix updates and 66,793
+charged units. These are the implementations' operation ledgers, not wall
+time speedups. The grouped $m=256$ case has volume 515, 258 shared updates
+and 309,100 charged units. Graphs, parameters, hashes and all counters are
+in \path{FRONTIER_GROUPS_AUDIT.json}. General response diversity and OP3
+remain \statusopen; the next tests concern a structural type bound and a
+branching obstruction to this particular group-order rule.

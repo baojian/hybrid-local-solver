@@ -1,6 +1,10 @@
 # Adaptive response groups for exact frontier elimination
 
-**Open construction target; not yet a proved algorithm.** General OP3
+**Completed as a proved draft and implemented reference.** Read
+`sec:op3-frontier-response-groups`, `frontier_groups.py` and
+`FRONTIER_GROUPS_AUDIT.json`; 7,311 outputs and 5,700 reverse aggregate
+checks pass. The following original plan is retained as provenance.
+The structural continuation is `FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`. General OP3
 remains Open. The paid explicit reference and its cubic fill obstruction
 are now complete in `sec:op3-exact-frontier` and `FRONTIER_EXACT_AUDIT.json`.
 This proposal compresses vertices that share their current response to

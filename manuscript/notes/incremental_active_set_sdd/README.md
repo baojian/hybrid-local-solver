@@ -140,6 +140,17 @@ prefix Schur/map/queue states. Read `sec:op3-exact-frontier` and
 `FRONTIER_EXACT_AUDIT.json`; implicit fill with paid threshold reporting
 remains Open.
 
+The sixteenth checkpoint implements adaptive response groups with individual
+original degrees, degree heaps, row-driven partition refinement and one
+reverse aggregate reconstruction. Its work depends on the squared number
+of transient groups. A star with a long tail stays at at most two groups:
+the m=64 case drops from 45,760 explicit fill updates to 66 shared updates.
+The exact audit checks 7,311 original outputs, 12,986 prefix states and
+5,700 reverse coordinate/aggregate identities. Read
+`sec:op3-frontier-response-groups`, `FRONTIER_GROUPS_AUDIT.json`, and
+[the structural follow-up](FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md).
+No small-group guarantee on arbitrary graphs is claimed.
+
 The following second-campaign record is historical.
 
 
