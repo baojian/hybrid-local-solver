@@ -1,5 +1,13 @@
 # Weighted constructor: replace component stretch by rooted-piece stretch
 
+**Current progress:** the literal star obstruction and rooted-piece
+spectral comparison are now proof-drafted in
+`sections/op3_rooted_piece_comparison.tex`. The exact audit passes
+19,854 weighted cases and 59,562 PSD certificates. The independent
+weighted ownership/refinement implementation passes 9,042 cases;
+continue from `WEIGHTED_DECOMPOSITION_DESIGN_20260908.md` for the
+remaining proof and charged corridor-routing composition.
+
 **Open proof-development target, 8 September 2026.** The complete supplied
 constructor remains Conditional. This probe records the next argument to
 verify and implement; none of its uncompleted steps is a source import.

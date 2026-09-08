@@ -754,3 +754,38 @@ on p.29 use the consistent condition. A small unit-path routing example
 and the remaining constructor review map are recorded in
 `WEIGHTED_CONSTRUCTOR_REVIEW_20260908.md` in the incremental note.
 This display mismatch is not a claimed refutation of the final theorem.
+
+### Third-campaign rooted-piece correction (8 September 2026)
+
+**Source / Refuted intermediate claim.** CPW arXiv:2105.14629v2,
+Definitions 5.4/5.7 and Lemma 5.9, PDF pp.22–23 (p.23 rendered and
+visually checked), define local stretch over a whole forest component
+and include original edges retained in the forest. On a unit star with
+m leaves and at most j components, that maximum is at least m-j+1,
+with equality obtainable by rooting at the center and isolated leaves.
+Taking m=2^(2k), j=2^k contradicts the literal claimed
+O(m log n log log n/j) intermediate bound. The source proof on PDF p.27
+identifies a component with one decomposition piece; several pieces
+meeting at the same root can remain in one component. This observation
+does not refute the final spectral-constructor or diffusion theorem.
+
+**Proved here.** The incremental note instead proves
+`thm:op3-rooted-piece-spectral-comparison`: for edge-disjoint rooted
+pieces that meet only at a shared component root and have individual
+routed stretch at most kappa, scaling the forest by kappa and the
+resulting forest-plus-core graph by 3 gives G <= Q <= 21*kappa*G.
+It includes all original edges and explicitly charges core aggregation.
+The weighted ownership theorem in `sec:op3-weighted-tree-ownership`
+constructs pieces with at most two shared boundaries in linear supplied
+tree work, including high-degree roots, heavy singleton owners and all
+temporary allocations. The exact audits pass 19,854 spectral cases and
+9,042 ownership cases. These are note-local drafts awaiting review.
+
+**Open composition.** The global-congestion corridor choice needs a
+common-offset argument for edges with neither endpoint owned by a piece;
+the printed identification with restricted congestion should not be
+treated as literal equality. The charged tree-path implementation and
+corrected routed-load proof are the next target. The full weighted
+constructor and supplied recurrence remain Conditional; general OP3
+and local discovery remain Open. See the incremental note's
+`WEIGHTED_DECOMPOSITION_DESIGN_20260908.md` for the exact obligations.

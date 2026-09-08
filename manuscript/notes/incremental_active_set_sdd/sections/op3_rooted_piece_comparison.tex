@@ -1,0 +1,137 @@
+\section[Rooted-piece spectral comparison]{A repair using rooted pieces}
+\label{sec:op3-rooted-piece-comparison}
+
+\paragraph{Source issue and scope.}
+The following discussion concerns the actual definitions in
+\citet[Definitions 5.4/5.7 and Lemma 5.9, PDF pp.\ 22--23]{chen2021diffusion},
+arXiv:2105.14629v2. Their local stretch sums contributions of all
+original edges over an entire forest component. The following elementary
+obstruction shows that this particular intermediate claim cannot be
+imported literally. It does not refute their final spectral-constructor
+theorem or their diffusion result.
+
+\begin{proposition}[Literal component-stretch obstruction; \statusproved]
+\label{prop:op3-component-stretch-star}
+On a unit star with $m$ leaves, every rooted spanning subforest with
+at most $j$ components, $1\leq j\leq m+1$, has maximum component local
+stretch at least $m-j+1$ under the source definition. The minimum
+possible value is exactly $m-j+1$.
+Consequently an $O(m\log n\log\log n/j)$ bound on that quantity,
+uniform in $m$ and $j$, is false.
+\end{proposition}
+\begin{proof}
+A forest with $h\leq j$ components deletes $h-1$ star edges. The
+component containing the center retains $m-h+1\geq m-j+1$ edges.
+Each retained edge routes to itself and contributes one to that
+component's local stretch. Choosing exactly $j-1$ deletions, the center
+as its component root, and each isolated leaf as its own root attains
+equality: every deleted edge moves entirely into the core and contributes
+zero forest stretch. Put $m=2^{2k}$ and $j=2^k$. Since $n=m+1$ and
+$\log n\log\log n=O(k^2)$, the ratio of the lower bound to
+$m\log n\log\log n/j$ tends to infinity.
+\end{proof}
+
+On this family the original graph is itself a tree and hence an exact
+spectral preconditioner. The obstruction is to the intermediate
+whole-component quantity. A component can contain many smaller tree
+pieces meeting at the same root. We next prove the comparison that is
+needed when those pieces have bounded stretch separately.
+
+\paragraph{Rooted pieces.}
+Let $G$ be a supplied connected positive-weight graph, and let $F$ be a
+rooted spanning subforest with root set $C$. A collection $\mathcal B$
+of rooted pieces partitions the edges of $F$ into connected subtrees.
+Each piece contains exactly its forest component's root. Distinct pieces
+may intersect only at their common root; every nonroot forest vertex
+belongs to one piece. Singleton-root components have no nonempty piece.
+No restriction on the number of pieces sharing a root is imposed.
+
+Use original conductances $c_e>0$ and resistances $r_e=1/c_e$.
+An original edge in $F$ routes to itself. A nonforest edge with endpoints
+in the same component routes along their unique forest path. Otherwise
+it routes from its first endpoint to its root, across a new core edge,
+and from the second root to its endpoint. Denote this route by $P_F(e)$.
+It intersects at most two rooted pieces, with a connected path segment
+in each. Let $G_C$ aggregate all new core-edge conductances by root pair.
+
+\begin{theorem}[Spectral comparison from rooted-piece loads; \statusproved]
+\label{thm:op3-rooted-piece-spectral-comparison}
+Suppose $\kappa\geq1$ and every $B\in\mathcal B$ satisfies
+\[
+ \sum_{e\in E(G)} c_e\,r(P_F(e)\cap B)\leq\kappa.
+\]
+Let $H_0$ contain the forest edges scaled by $\kappa$, together with
+the core graph $G_C$, and set $Q=3H_0$ by scaling all conductances.
+Then
+\[
+ L(G)\preceq L(Q)\preceq21\kappa L(G).
+\]
+Given the forest, roots and a valid supplied $\kappa$, forming $Q$ costs
+$O(n+m\log(2+m))$ exact-real word work and $O(n+m)$ allocated words,
+including parallel-edge aggregation and output. This does not construct
+the bounded-load forest or sparsify its core.
+\end{theorem}
+\begin{proof}
+Write $\mathcal E_J(\bm x)=\sum_{ab\in E(J)}c_{ab}(x_a-x_b)^2$.
+For a forest path segment $P$,
+\[
+ (x_{\rm start}-x_{\rm end})^2
+ \leq r(P)\sum_{f=ab\in P}c_f(x_a-x_b)^2.
+\]
+Each original edge difference splits into at most two such segments
+and one core difference. Applying the three-term square bound and
+then summing, the load bound for each edge-disjoint piece gives
+\[
+ \mathcal E_G(\bm x)
+ \leq3\mathcal E_{G_C}(\bm x)+3\kappa\mathcal E_F(\bm x)
+ =3\mathcal E_{H_0}(\bm x).
+\]
+This includes retained tree edges and same-root nonforest edges; their
+routes merely use fewer segments.
+
+For the reverse direction, expand every core difference into its
+underlying original edge difference and its two endpoint-to-root
+differences. Conductance aggregation is an exact sum over those original
+edges. The same path inequality and the same piece loads imply
+\[
+ \mathcal E_{G_C}(\bm x)
+ \leq3\mathcal E_G(\bm x)+3\kappa\mathcal E_F(\bm x).
+\]
+As $F$ is an original subforest and $\kappa\geq1$,
+\[
+ \mathcal E_{H_0}(\bm x)
+ \leq3\mathcal E_G(\bm x)+4\kappa\mathcal E_F(\bm x)
+ \leq7\kappa\mathcal E_G(\bm x).
+\]
+These inequalities hold for every real $\bm x$, including constant
+vectors in the common nullspace, and prove the claimed Loewner bounds.
+
+For construction, label forest components and their roots by one DFS.
+Scan all original edges once. Retain and scale forest edges; move each
+cross-root edge into a root-pair record and discard other nonforest
+edges. A comparison sort and one merge scan aggregate the root pairs.
+All input scans, map arrays, edge records, sorting buffers, copies and
+emitted edges fit the stated work and storage bounds. No route path or
+Laplacian matrix is formed by this construction. The supplied load
+guarantee is an assumption, not a free numerical certificate.
+\end{proof}
+
+\paragraph{Exact audit and the remaining constructor.}
+\texttt{rooted\_piece\_spectral\_comparison.py} checks all 31 connected
+atlas graphs through five vertices, every spanning forest, every choice
+of one root per component, and three positive-weight profiles, including
+conductances $2^{-80}$ and $2^{80}$. It passes 19,854 comparisons,
+59,562 exact PSD certificates and 149,178 route-piece checks; 26,022
+parallel core records are aggregated. The audit also passes 5,116
+small-star component certificates and 65 asymptotic parameter cases.
+All dense matrices and enumerated path tables are explicitly validators.
+They do not implement the missing bounded-load forest construction.
+
+The next target is a charged weighted tree decomposition whose refined
+pieces produce this rooted-piece guarantee, including root sharing and
+singleton pieces. The minimum-congestion choice also needs a corrected
+common-offset argument for edges crossing a piece without having an
+endpoint there. These obligations are recorded in
+\texttt{WEIGHTED\_PIECE\_CONSTRUCTOR\_PROBE\_20260908.md}.
+The full supplied recurrence remains \statusconditional, and local OP3
+remains \statusopen.

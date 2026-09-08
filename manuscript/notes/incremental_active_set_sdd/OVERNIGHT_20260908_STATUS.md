@@ -12,8 +12,8 @@ fix the nonlazy teleportation probability and record a degree-normalized
 sparse-output lower-bound scale. Their hidden constant-alpha convention
 must not be imported as an alpha-uniform upper bound. The star output
 argument in the problem-definition note supports Omega(1/eps_appr) for
-our stronger original ACL certificate. Recheck its exact constants and
-representation before recording a note-local theorem.
+our stronger original ACL certificate. Its exact constants and representation have been checked and recorded in
+`cor:op3-uniform-output-lower-bound`.
 
 **Open:** General OP3 and removal of polynomial inverse-alpha dependence.
 A matching accuracy lower bound shows optimality if the conjectured upper
@@ -21,6 +21,15 @@ bound is achieved; it does not establish that upper bound.
 
 Read next: `LOWER_BOUND_LITERATURE_AUDIT_20260908.md` (completed initial
 audit) and `WEIGHTED_PIECE_CONSTRUCTOR_PROBE_20260908.md` (next proof target).
+The active second block has also implemented and audited rooted-piece
+spectral comparisons (19,854 cases) and weighted ownership/refinement
+(9,042 cases). Read `WEIGHTED_DECOMPOSITION_DESIGN_20260908.md` next
+for the remaining charged tree-path/routing construction. The rooted-piece
+comparison and weighted ownership now have note-local proofs, awaiting
+independent review, in `sec:op3-rooted-piece-comparison` and
+`sec:op3-weighted-tree-ownership`.
+The second checkpoint passed its focused checks and retains only the
+recorded broad-check baseline failures; see `OVERNIGHT_20260908_BLOCK2_AUDIT.json`.
 The exact lower-bound audit passes; it also refutes an instancewise
 mass-over-error interpretation while preserving existential worst-case
 optimality. New propositions are in `sec:op3-lower-bound-quantifiers`.

@@ -39,6 +39,36 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 2: rooted pieces and weighted ownership
+
+**Proved here, awaiting independent review:** a star obstruction to CPW's
+literal whole-component stretch lemma, a replacement spectral comparison
+`G <= Q <= 21*kappa*G` using rooted pieces, and a linear-work weighted
+tree decomposition with unique load ownership and at most two shared
+boundaries per piece. The source correction does not refute CPW's final
+spectral-constructor or diffusion theorem.
+
+**Measured:** 19,854 exact weighted comparisons, 59,562 PSD certificates,
+and 9,042 supplied-tree ownership cases. The latter validate 127,547
+pieces and 1,483,000 intersections while recording 10,486,152 charged
+construction units. Both audits include conductances or loads at 2^-80
+and 2^80. Validator matrices, complete paths and pairwise comparisons
+remain separate from charged construction. See the two new sections
+`sec:op3-rooted-piece-comparison` and `sec:op3-weighted-tree-ownership`.
+
+**Verification:** 130-page note builds without final warnings; pages
+123-127 were visually reviewed. All 67 own scripts and three registry
+tests pass. Required broad checks retain 231 passing tests, the same
+three baseline failures, two unrelated lint findings and two oversized
+AESP sources. The five baseline hashes are unchanged. Reproduction stops
+at its failed test prerequisite. See `OVERNIGHT_20260908_BLOCK2_AUDIT.json`.
+
+**Next / Open:** implement and prove the charged tree-path and corridor
+routing step in `WEIGHTED_DECOMPOSITION_DESIGN_20260908.md`. Its
+common-offset argument must cover edges that cross a piece with neither
+endpoint owned there. The full supplied recurrence remains Conditional,
+and general OP3 remains Open. Continue the ten NEW active hours.
+
 ## Historical second campaign completion
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).

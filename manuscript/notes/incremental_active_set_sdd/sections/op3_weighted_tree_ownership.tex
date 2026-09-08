@@ -1,0 +1,144 @@
+\section[Weighted tree ownership]{A charged weighted ownership decomposition}
+\label{sec:op3-weighted-tree-ownership}
+
+\begin{theorem}[Owned-load tree decomposition; \statusproved]
+\label{thm:op3-weighted-tree-ownership}
+Let $T$ be a supplied tree on $n\geq1$ vertices, with nonnegative
+vertex loads $a_v$ and a threshold $\theta>0$. Write
+$A_{\rm tot}=\sum_v a_v$. In $O(n)$ exact-real word work and total
+allocated words, one can construct connected pieces $W_1,\ldots,W_h$
+and an owner map $o:V\to\{1,\ldots,h\}$ such that:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+\item the pieces cover $V$, their tree edges partition $E(T)$, and any
+two distinct pieces intersect in at most one vertex;
+\item $v\in W_{o(v)}$, and each vertex has exactly one owner;
+\item each piece has at most two vertices occurring in other pieces;
+\item every nontrivial piece has owned load
+$\sum_{v:o(v)=i}a_v<2\theta$; singleton owner pieces may be heavier;
+\item either $h=1$ or $h\leq8A_{\rm tot}/\theta$.
+\end{enumerate}
+The construction makes no lower-bound assumption on a positive load or
+on its ratio to another load. Every scan, list splice, refinement,
+membership, allocation, temporary copy and output word is charged.
+\end{theorem}
+\begin{proof}
+Root $T$ arbitrarily and process it in postorder. An unfinished child
+bag is a connected subtree containing the child, together with the
+vertices whose load it owns. Its owned mass is strictly below $\theta$.
+Represent its edges and owners by two linked lists.
+
+At a vertex $v$ with $a_v<\theta$, begin a pending bag owning $v$.
+If $a_v\geq\theta$, first emit the singleton owner piece $\{v\}$
+and begin an empty-mass bag with connector $v$ instead. Attach each
+child bag by its parent edge and splice its two lists into the pending
+bag. As soon as its mass reaches $\theta$, emit that connected piece
+and reset the pending bag to connector $v$ with no second ownership.
+Before a merge both masses were below $\theta$, so every nontrivial
+flushed piece has mass in $[\theta,2\theta)$. Return the remaining
+bag to the parent. At the root, emit the final remainder if it has an
+edge or an owner; omit a redundant empty connector.
+
+Every vertex is owned once and every tree edge enters exactly one
+emitted piece. The only repeated vertex after a flush is its connector.
+The pieces are connected and edge-disjoint, so an intersection containing
+two vertices would duplicate their unique tree path, which is impossible.
+All emitted pieces except possibly the root remainder own mass at least
+$\theta$. Thus the initial number $h_0$ satisfies
+$h_0\leq A_{\rm tot}/\theta+1$; nontrivial initial pieces have owned
+mass below $2\theta$. A heavy singleton has no tree edge.
+
+It remains to limit boundary count without losing ownership. Let $q$
+be the number of shared vertices of the initial decomposition and $I$
+their total number of piece incidences. Each tree piece has one more
+vertex than edge, including singletons, so
+\[
+ \sum_i|W_i|=n-1+h_0,\qquad I=h_0+q-1.
+\]
+If $h_0>1$, every piece meets another one. Since every shared vertex
+has at least two incidences, $q\leq h_0-1$ and $I\leq2(h_0-1)$.
+
+Keep a piece with at most two boundaries intact. For a piece with
+$b>2$ boundaries, peel its nonboundary leaves to obtain the minimal
+Steiner tree spanning those boundaries. Mark the boundaries and the
+Steiner branching vertices. There are at most $b-2$ branching vertices
+outside the boundary set, hence at most $t\leq2b-2$ marked vertices.
+Make a piece from each maximal corridor between marked vertices,
+including every hanging subtree attached to an interior corridor vertex.
+At each marked vertex, group all its hanging branches into one additional
+piece if any exist. There are at most $(t-1)+t\leq4b-5$ new pieces.
+Every corridor piece has only its two marked endpoints as possible
+boundaries; every additional hanging piece has only its marked root.
+
+These pieces partition the old piece's tree edges and meet only at
+marked vertices. Assign every old owned vertex to one new piece
+containing it. No new piece acquires load from another old piece, so
+the strict $2\theta$ bound is preserved. Heavy singleton pieces are
+kept intact. When $h_0>1$, every old piece has at least one boundary,
+and its number of replacements is at most four times that boundary
+count. Therefore
+\[
+ h\leq4I\leq8(h_0-1)\leq8A_{\rm tot}/\theta.
+\]
+If $h_0=1$, no refinement is necessary and $h=1$.
+
+For the work bound, linked edge/owner lists are spliced in constant
+work; a subtree is never copied up its ancestor chain. There is one
+list node per tree edge and per vertex owner, and only $O(n)$ bag
+headers: a nontrivial flush owns a previously unassigned tree edge,
+while there is at most one heavy singleton per vertex. Materializing
+initial membership lists reads each edge and owner once, using one
+reusable stamp array. Their total size is $n-1+h_0=O(n)$.
+
+Build each old piece's local adjacency from its own edges. A reusable
+global-to-local index array is touched only at its members. Peeling,
+reverse attachment recovery, corridor traversal and hanging-edge
+assignment each scan those local records a constant number of times.
+Each old tree edge is copied into exactly one refined piece; each owner
+is reassigned once. The final membership size is $n-1+h=O(n)$, because
+every nontrivial final piece contains an edge and there are at most $n$
+singleton owner pieces. Reusable global arrays and all local temporary
+arrays, including their release work, total $O(n)$ over the call.
+Retaining both initial and final piece lists still occupies $O(n)$
+words; no discarded history is omitted from the allocation count.
+\end{proof}
+
+\begin{corollary}[Assigning original edge loads; \statusproved]
+\label{cor:op3-weighted-edge-ownership}
+Let an additional supplied graph have positive edge loads $w_e$ on the
+same vertices, with $W=\sum_e w_e>0$. Set
+$a_v=\sum_{e\ni v}w_e$ and apply
+\cref{thm:op3-weighted-tree-ownership} with
+$\theta=64W/j$, where $64\leq j\leq n$.
+Assign each original edge to its one or two endpoint owner pieces.
+The refined decomposition has at most $j/4$ pieces, and every
+nontrivial piece is assigned original edge load below $128W/j$.
+The additional load assembly and endpoint assignment cost $O(m+n)$.
+\end{corollary}
+\begin{proof}
+Total vertex load is $2W$, so the piece-count bound is
+$\max\{1,16W/\theta\}=j/4$. An original edge assigned to a piece
+has at least one endpoint owned there, so its load is included at least
+once in that piece's owned vertex load. Thus the assigned edge load is
+at most its owned load, which is below $2\theta=128W/j$ for nontrivial
+pieces. Every endpoint and ownership record is scanned once.
+\end{proof}
+
+\paragraph{Audit and uncompleted composition.}
+The implementation \texttt{weighted\_tree\_ownership.py} passes 9,042
+exact supplied-tree cases, including all unlabeled trees through nine
+vertices with every root and three load profiles, threshold ties,
+zero loads, heavy singletons, and larger stars, paths and random trees
+through 512 vertices. It validates 127,547 pieces and 1,483,000 pairwise
+intersections, and records 10,486,152 charged construction units.
+There are 6,562 actual Steiner refinements. The large-ratio profile
+contains $2^{-80}$ and $2^{80}$ without rounding. Validation graphs and
+pairwise intersection scans are independent audit work, not construction
+cost. Hashes and exact counts are in
+\texttt{WEIGHTED\_TREE\_OWNERSHIP\_AUDIT.json}.
+
+This supplies the decomposition and ownership part of the proposed
+weighted constructor. The charged tree-distance/congestion computation,
+corrected corridor-routing load bound, and source/confidence composition
+remain to be reconciled. In particular, the owned-load bound alone
+does not yet assert a bound on every resulting rooted piece's routed
+stretch. The supplied near-linear recurrence remains \statusconditional.

@@ -10,6 +10,16 @@ is supported; general OP3 remains Open. Formal dependencies now include
 The completed second campaign below is historical and is not counted
 toward the new ten-hour minimum.
 
+The second checkpoint proves a spectral comparison using rooted pieces
+and a linear-work weighted ownership decomposition with at most two
+shared boundaries per piece. Their exact audits pass 19,854 weighted
+comparisons and 9,042 supplied-tree cases. A unit-star obstruction shows
+why CPW's printed whole-component stretch lemma cannot be imported
+literally; this does not refute its final spectral theorem. Read
+`sec:op3-rooted-piece-comparison`, `sec:op3-weighted-tree-ownership`, and
+[the remaining construction design](WEIGHTED_DECOMPOSITION_DESIGN_20260908.md).
+Routed-load composition and the full supplied constructor remain Conditional.
+
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
 ## Second night, block 12: nested numerics and a sharper local target
