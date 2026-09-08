@@ -169,6 +169,16 @@ The following second-campaign record is historical.
 
 Completed **481.581 new active research minutes** across twelve blocks. The first night is excluded, as are 41.3 explicitly recorded unverified minutes and the gaps between active intervals. General OP3 remains Open. Read [the morning decision note](OP3_MORNING_DECISIONS_20260908.md).
 
+The eighteenth checkpoint changes only the exact-obstacle wrapper's gate,
+leaving the default ACL backend intact. It proves exact physical RPPR work
+under the same unsupplied type promise and emits dyadic canonical values
+with an additive objective guarantee. Output precision depends only on
+`eps_obj`; internal exact pivot bit lengths remain outside the word model.
+The audit checks 17,065 exact obstacles, 98,783 KKT rows and 51,195 canonical
+outputs against independent objective intervals. Read
+`sec:op3-exact-group-obstacle` and `EXACT_GROUP_OBSTACLE_AUDIT.json`.
+General OP3 remains Open; broader compositional compression is next.
+
 ## Second night, block 12: nested numerics and a sharper local target
 
 **General OP3 remains Open.** Start with

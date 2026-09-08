@@ -1,0 +1,187 @@
+\section{Exact obstacle gates and the canonical RPPR output}
+\label{sec:op3-exact-group-obstacle}
+
+This extension changes the grouped frontier's gate to strict positivity.
+It returns an exact physical obstacle response. A separate dyadic
+materialization step below addresses the project's canonical RPPR
+objective target; it does not reinterpret the ACL accuracy namespace.
+
+\begin{theorem}[Exact grouped obstacle; \statusproved]
+\label{thm:op3-exact-group-obstacle}
+On the original connected simple unweighted graph, for $0<\alpha\leq1$
+and every $\lambda>0$, a local deterministic exact-real word algorithm
+returns the unique minimizer
+\[
+ u=\argmin_{z\geq0}\left\{
+ \tfrac12 z^T(D-\gamma A)z-(e_v-\lambda d)^Tz\right\},
+ \qquad \gamma=\frac{1-\alpha}{1+\alpha}.
+\]
+Its positive support has original volume $V<1/\lambda$. For
+$0<\lambda<1/2$, its total work and allocated words are
+\[
+ O\left(\left(1+V+\sum_i(b_i+1)^2\right)\log(2+V)\right),
+\]
+with the same transient-group definition and $O((1+V)^2)$ live state as
+\cref{thm:op3-frontier-response-groups}. For $\lambda\geq1/2$ a degree
+query and constant arithmetic suffice, with no row read. Under an
+unsupplied $k$-neighborhood-type promise, the work/allocation bound is
+$O((1+V)(1+k)^2\log(2+V))$ for all $\lambda>0$. Graph access, gates,
+all history, reconstruction and physical output are included, without a
+target-$\alpha$ factor, an exact-positive-gap promise or a supplied support.
+\end{theorem}
+\begin{proof}
+For $\lambda<1/2$, initialize the grouped backend at its internal parameter
+$e=2\lambda$, then set $\kappa=0$ before the first eligibility query.
+The initializer has created only the seed group, with $q=1$, and has made
+no gate test or pivot. Thereafter a minimum-degree member is eligible
+precisely when $q_t>\lambda d_i$, equivalently $h_i>0$.
+Every Schur pivot is positive, all enlarged face values remain nonnegative,
+and the mass argument in \cref{thm:op3-exact-frontier} gives
+$\lambda\operatorname{vol}(S)<1$ at each nonempty prefix, including full
+support. The same bound certifies every row allocation in advance.
+There can be fewer than $1/\lambda$ admissions, irrespective of how small
+a positive transformed load is.
+
+At termination, active residuals are exactly $\lambda d_i$, while every
+unadmitted known load is nonpositive and unseen residuals are zero. Hence
+\[
+ u\geq0,\qquad M u\geq e_v-\lambda d,\qquad
+ u_i(Mu-e_v+\lambda d)_i=0.
+\]
+These are the full KKT conditions of the strictly convex obstacle, so the
+final reverse reconstruction is its unique solution. The grouping,
+individual-degree heap, partition-refinement and reverse-aggregate proofs
+do not require $\kappa>0$. Their work and type-count bounds therefore
+remain valid for this positive gate.
+
+For $\lambda\geq1/2$, query $d_v$ and put
+$u_v=(1/d_v-\lambda)_+$, zero elsewhere. If $d_v\geq2$ this is zero,
+and every entry of $e_v-\lambda d$ is nonpositive. Otherwise $d_v=1$;
+when $u_v>0$, its residual is $\lambda$, and its sole neighbor has residual
+$\gamma(1-\lambda)\leq\lambda d_j$. All other residuals are zero.
+Thus the same KKT conditions hold without any adjacency query. This covers
+$\lambda\geq1$ as well. A positive singleton has $V=1<1/\lambda$;
+zero output has $V=0$. The argument only uses arithmetic word operations,
+not a bound on the bit lengths of exact pivots or final values.
+\end{proof}
+
+\paragraph{Canonical coordinate map.}
+Set $\bar\alpha=2\alpha/(1+\alpha)$ and $\lambda=\rho$. Under the
+project convention, $X=\bar\alpha D^{1/2}u$ satisfies
+\[
+ F_\rho(X)=\alpha\bar\alpha\left[
+ \tfrac12u^TMu-e_v^Tu+\rho\sum_i d_i|u_i|\right].
+\]
+This follows by substituting
+$Q=(1+\alpha)D^{-1/2}MD^{-1/2}/2$ in the stated canonical objective.
+Replacing a vector by its absolute value cannot increase the bracketed
+objective: $M$ has nonpositive off-diagonal entries, the seed load is
+nonnegative, and the absolute-value penalty is unchanged. Strict convexity
+therefore makes its unique full minimizer nonnegative. The exact physical
+obstacle at $\lambda=\rho$ is consequently the canonical RPPR optimum in
+this coordinate chart.
+
+The exact physical implementation stores rational $u_i$ and the original
+degrees for rational input. Its factored canonical record
+$(\bar\alpha u_i,d_i)$ means $\bar\alpha u_i\sqrt{d_i}$; it is not
+reported as a rational canonical scalar. The following step instead emits
+ordinary dyadic canonical coordinates with the requested objective gap.
+
+\begin{theorem}[Dyadic canonical materialization; \statusproved]
+\label{thm:op3-rational-canonical-materialization}
+Given the exact physical $\rho$-obstacle, its original positive-support
+degrees and $\epsobj>0$, a deterministic arithmetic algorithm emits a
+nonnegative canonical vector $\widehat X$ satisfying
+\[
+ F_\rho(\widehat X)-F_\rho(X_\rho^*)\leq\epsobj
+\]
+in $O(1+|\operatorname{supp}u|\log(2+\epsobj^{-1}))$ work and total
+allocated words, using $O(1+|\operatorname{supp}u|)$ live words. It reads
+no additional graph rows or degrees and uses no square-root primitive.
+Each emitted value is dyadic and uses
+$O(1+\log(2+\epsobj^{-1}))$ bits, independently of $\alpha$ and support size;
+the internal exact arithmetic has no claimed bit-complexity bound.
+The cost has no dependence on target teleportation or on a minimum positive
+coordinate. It is a separate RPPR objective guarantee, not a claim that
+rounding preserves an original ACL certificate.
+\end{theorem}
+\begin{proof}
+Let $p_i=\bar\alpha d_i u_i$. The original physical residual is nonnegative:
+it equals $\rho d_i$ on positive coordinates and is directly nonnegative
+on zero coordinates. Thus
+\[
+ \sum_i p_i=1-\sum_i(e_v-Mu)_i\leq1,
+ \qquad p_i\geq0,
+ \qquad (X_\rho^*)_i=p_i/\sqrt{d_i},
+ \qquad \sum_i(X_\rho^*)_i\leq1.
+\]
+Put $\delta=\min\{1,\epsobj\}$. For each positive physical coordinate,
+bisect $[0,1]$ with the exact test $d_i y^2\leq p_i^2$ until the interval
+$[\ell_i,h_i]$ has width at most $\delta$. It contains $(X_\rho^*)_i$,
+because $p_i\leq1$ and $d_i\geq1$. Set $\widehat X_i=\ell_i$, omitting zero
+results, and leave all other coordinates zero. This uses at most
+$O(1+\log(1/\delta))$ constant-size arithmetic steps per coordinate,
+including all intervals, temporary scalars, comparisons and output words.
+After $L=\lceil\log_2(1/\delta)\rceil$ iterations the endpoints have
+denominator $2^L$ before reduction, which proves the output precision bound.
+
+Both vectors are nonnegative and the new support is contained in the
+exact positive support. On that orthant the $\ell_1$ term is linear,
+and the canonical smooth-plus-linear gradient vanishes on the exact
+positive support. For $\Delta=\widehat X-X_\rho^*$, the exact objective
+identity is therefore
+\[
+ F_\rho(\widehat X)-F_\rho(X_\rho^*)=\tfrac12\Delta^TQ\Delta.
+\]
+It remains true when a positive coordinate is rounded to zero, since the
+whole connecting segment stays nonnegative. The normalized Laplacian has
+spectrum in $[0,2]$, hence $0\prec Q\preceq I$. Finally
+\[
+ E_i:=(X_\rho^*)_i-\widehat X_i\in[0,\delta],\qquad
+ E_i\leq(X_\rho^*)_i,\qquad
+ \|\Delta\|_2^2=\sum_i E_i^2
+ \leq\delta\sum_i E_i\leq\delta.
+\]
+Consequently $\tfrac12\Delta^TQ\Delta\leq\delta/2\leq\epsobj$.
+The probability-mass bound pays for the coordinate errors together; no
+support-size-dependent accuracy or exact square root is needed. The dyadic
+output precision does not bound the internal pivot denominators.
+\end{proof}
+
+\begin{corollary}[Canonical RPPR on unsupplied bounded types; \statusproved]
+\label{cor:op3-canonical-rppr-neighborhood-types}
+On graphs with at most $k$ neighborhood types, for all $0<\alpha\leq1$,
+$\rho>0$ and $\epsobj>0$, there is a local deterministic algorithm
+emitting a canonical RPPR approximation of objective gap at most $\epsobj$
+in fully charged exact-real word work and total allocated words
+\[
+ O\left((1+\rho^{-1})(1+k)^2\log(2+\rho^{-1})
+       +(1+\rho^{-1})\log(2+\epsobj^{-1})\right).
+\]
+No type partition or support is supplied. This is a structural result;
+neither arbitrary-graph OP2 nor general OP3 is resolved.
+\end{corollary}
+\begin{proof}
+Apply \cref{thm:op3-exact-group-obstacle} with $\lambda=\rho$, retaining
+the original degrees already queried, then apply
+\cref{thm:op3-rational-canonical-materialization}. Use $V<1/\rho$ and
+$|\operatorname{supp}u|\leq V$. The high-penalty branch is included by
+the additive constant. Both algorithms are deterministic, so there is no
+failure branch or confidence composition to hide.
+\end{proof}
+
+\paragraph{Exact implementation audit; Measured.}
+\texttt{EXACT\_GROUP\_OBSTACLE\_AUDIT.json} records 17,065 independently
+solved exact physical obstacles and 98,783 original KKT rows, followed by
+51,195 emitted dyadic canonical RPPR vectors with independent rational
+objective-gap enclosures. The producer's 43,845 root/precision certificates
+also pass. The checks include 21,294 exact prefix states, 13,937 reverse
+coordinates and membership aggregates, 768 exact zero gate ties, and
+9,708 high-penalty degree-only cases. Mixed quotient blow-ups test the
+unsupplied type invariant; signed gate offsets and target teleportation
+reach $2^{-1024}$. Three private huge-hub cases read only the positive
+leaf row, while 18 high-penalty private cases use a single degree query
+and no row. The default ACL group backend is unchanged. Dense obstacles,
+independent inverse-root objective intervals and membership snapshots are
+validators, not hidden producer operations. This is an exact arithmetic
+audit, not a floating-point or internal bit-complexity experiment.

@@ -1,6 +1,6 @@
 # Exact obstacle gates after the neighborhood-type result
 
-**Next construction and audit target.** General OP3 remains Open.
+**Completed proof draft and exact audit.** General OP3 remains Open.
 The default grouped producer returns original ACL output using
 lambda=eps_appr/2 and kappa=lambda/2. The exact type-bound and four-type
 output lower bound are already proved drafts in
@@ -54,6 +54,49 @@ must not describe it as a rational scalar. Return the exact physical
 representation and verify the descaled canonical KKT identities. State
 any explicit square-root convention if claiming fully materialized exact
 canonical coordinates. No arbitrary-graph OP2 result is implied.
+
+### Earlier materialization proposal: rational canonical coordinates
+
+An exact square-root primitive may be unnecessary for the requested
+additive objective target. Let p_i=bar_alpha*d_i*u_i. Original residual
+nonnegativity gives sum_i p_i<=1, and the exact canonical optimum is
+X_i=p_i/sqrt(d_i). For delta=min(1,eps_obj), bisect [0,1] using the exact
+test d_i*y^2<=1 until its width is at most delta, and take the lower
+endpoint l_i. Emit Xhat_i=p_i*l_i, omitting zeros. This uses only rational
+arithmetic when the supplied data are rational, with
+O(1+log(1/delta)) operations per exact support coordinate.
+
+The candidate error proof is ||Xhat-X||_2<=delta*||p||_2<=delta. Both
+vectors stay in the nonnegative orthant and Xhat is supported inside the
+exact positive support, where the smooth-plus-linear canonical gradient
+vanishes. Hence F_rho(Xhat)-F_rho(X)=1/2*(Xhat-X)'Q*(Xhat-X)
+<=delta^2/2<=eps_obj, using Q<=I. This includes coordinates rounded to
+zero: the l1 term is still linear along their nonnegative segment.
+Verify this identity and the stopping count carefully. It would give an
+actually materialized canonical RPPR approximation with no exact square
+root, no inverse-alpha factor, and no minimum positive coordinate promise.
+
+### Final implemented refinement: dyadic canonical coordinates
+
+The final producer bisects the canonical coordinate itself. Test
+d_i*y^2<=p_i^2 on [0,1] until width is at most delta=min(1,eps_obj),
+and emit the lower endpoint. Its denominator is a power of two less than
+2/delta, so output precision is O(1+log(2+1/eps_obj)) bits independently
+of alpha and support size. Internal pivot bit lengths remain unbounded
+in the stated exact-real word model.
+
+For E_i=X_i-Xhat_i, 0<=E_i<=delta and E_i<=X_i. Hence
+sum_i E_i^2<=delta*sum_i X_i<=delta, and the same exact orthant identity
+gives an objective gap at most delta/2<=eps_obj. This replaces multiplication
+by the exact p_i after inverse-root approximation, which would inherit
+its denominator. The earlier proposal remains here as provenance only.
+
+`sections/op3_exact_group_obstacle.tex` proves the exact obstacle wrapper,
+the dyadic materialization and their unsupplied-type RPPR corollary.
+`EXACT_GROUP_OBSTACLE_AUDIT.json` records 17,065 independently checked
+exact obstacles, 98,783 KKT rows, and 51,195 dyadic canonical outputs
+with independent rational objective-gap enclosures. The default grouped
+ACL backend is unchanged. These are proof drafts awaiting independent review.
 
 ## Falsifiable checks and later questions
 

@@ -40,6 +40,41 @@ context/provenance only. The 127-page note builds without final warnings;
 recorded baseline failures, with all five baseline hashes unchanged.
 See `OVERNIGHT_20260908_BLOCK1_AUDIT.json`.
 
+## Third campaign, block 18: exact obstacles and dyadic canonical output
+
+**Proved here, awaiting independent review:** The grouped backend can use
+strict positive obstacle gates, with finite termination controlled by
+support volume rather than a minimum positive gate. Penalties rho>=1/2
+need only the seed degree. Under the unsupplied k-type promise, exact
+physical RPPR work/allocation is O((1+V)(1+k)^2 log(2+V)), V<1/rho,
+without target-alpha arithmetic dependence. Read `thm:op3-exact-group-obstacle`.
+
+**Proved here:** Direct bisection emits dyadic canonical coordinates with
+objective gap at most eps_obj, using O((1+V)log(2+1/eps_obj)) extra work
+and no graph access or square-root primitive. Total PageRank mass bounds
+all coordinate errors together. Each emitted value uses only
+O(1+log(2+1/eps_obj)) bits, but no internal pivot bit bound is claimed.
+This is a separate RPPR objective statement, not rounded ACL correctness.
+Read `thm:op3-rational-canonical-materialization` and
+`cor:op3-canonical-rppr-neighborhood-types`.
+
+**Measured:** 17,065 independently solved exact obstacles, 98,783 original
+KKT rows, 51,195 dyadic canonical outputs and independent rational objective
+enclosures, plus 43,845 root/precision certificates. Exact zero gates,
+signed gate offsets through 2^-1024, tiny alpha, mixed type blow-ups and
+private huge hubs pass. The default grouped ACL backend remains unchanged.
+See `EXACT_GROUP_OBSTACLE_AUDIT.json`.
+
+**Open / next:** A paid compositional or low-rank threshold reporter beyond
+a globally bounded type promise. The grouped binary-tree cubic obstruction
+still applies to its matrix/order. General OP3 remains Open and formal
+dependencies remain `["problem_definitions"]`. All 89 own scripts and three
+registry tests pass. The 183-page note builds without final warnings; pages
+177-179 were visually reviewed. Broad checks retain the unchanged baseline
+failures and five matching hashes; reproduction stops at its test prerequisite.
+See `OVERNIGHT_20260908_BLOCK18_AUDIT.json`. The next concrete target is
+`BATCH_TYPE_QUOTIENT_PROBE_20260908.md`.
+
 ## Third campaign, block 17: a tight type-bound result and a branching limit
 
 **Source / Proved here, awaiting independent review:** Lampis's uncolored
