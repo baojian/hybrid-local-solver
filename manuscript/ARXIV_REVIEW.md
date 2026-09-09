@@ -1,5 +1,36 @@
 # ArXiv manuscript preparation and review
 
+## Current revision: 9 September 2026
+
+Prepared **Accelerated Local Algorithms for Personalized and Regularized PageRank**, by Baojian Zhou: 41 pages, 29 cited references, and a self-contained 23-member source archive. The full deterministic and randomized proof files are preserved. The title, abstract, introduction, result overview and discussion now explicitly cover both project-defined contracts: OP1 semantic PPR and OP2 RPPR objective approximation. OP1 follows from the existing regularization-bias conversion, not an additional independent algorithm.
+
+The related-work review now covers same-accuracy ICDT 2024 results, local diffusion, the two closest 2026 papers and their latest versions, newer PPR estimation/centrality and asymmetric-system results, global flow/M-matrix optimization and constrained sparsity identification. No additional earlier theorem matching the full joint parameter/access/output contract was found in the searched public sources. This is not an exhaustive absence guarantee. The dated [literature review](../docs/literature/publication-review-20260909.md) retains primary URLs, exact pointers and search limits; `ARXIV_SOURCES.json` indexes the cited sources.
+
+### Current validation
+
+- Main PDF and bibliography compile; no undefined references/citations or overfull boxes. One harmless underfull bibliography paragraph was visually checked.
+- Extracted source archive independently compiles. Extracted and active PDF text are identical.
+- Focused exact proof checks: 21 passed. Full existing suite: 231 passed, the same three historical failures below; 15 warnings.
+- Coordination audit passed. Changed package builder passes Ruff. Full lint reports the same two older-note errors below.
+- Main PDFs use embedded fonts. All 41 pages passed visual inspection; see [the dated QA report](ARXIV_VISUAL_REVIEW_20260909.md).
+- No solver code, algorithm recurrence, benchmark result or original synced project source changed. No commit, push or arXiv upload was performed.
+
+### Current fingerprints
+
+- PDF SHA-256: `4cbc8e8906b21ce025153bd36b39957a394bbfeff22bf00034b2e6910cf4764d`.
+- Source archive SHA-256: `ed146f90157872814e9427f558467cf099280a8ef73e5bcc7bf9a2af2f61bfd0`.
+- Active/extracted PDF text SHA-256: `1f8114c23274d4206eeb1b5e1ed83784193bb7e6c76af87bc33701e5be259c1e`.
+
+### Submission status
+
+The PDF is `dist/accelerated-local-rppr.pdf`; the upload archive is `dist/arxiv-source.tar.gz`, with `main.tex` as its entry point. Submission metadata is in `dist/submission-metadata.txt`. Browser access to arXiv was blocked because the administrator-enforced security policy could not be verified. No alternate route was used and no article was uploaded. The package is prepared for the author's submission; author details and licensing remain the author's choices.
+
+The review below describes the earlier 39-page release. Its historical fingerprints and counts are preserved for provenance and do not describe the current files.
+
+---
+
+# Historical review: 6 September 2026
+
 Status: local submission package prepared on 2026-09-06. The author will
 submit to arXiv; no upload, publication, commit, or push was performed.
 Work began from clean `main` at

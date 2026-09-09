@@ -5,42 +5,44 @@
 \input{tex/shared/writing_commands}
 \input{tex/shared/research_commands}
 
-\title{Accelerated Local Algorithms for Regularized PageRank}
+\title{Accelerated Local Algorithms for Personalized and Regularized PageRank}
 \author{Baojian Zhou}
 \date{September 2026}
-\hypersetup{pdftitle={Accelerated Local Algorithms for Regularized PageRank},
+\hypersetup{pdftitle={Accelerated Local Algorithms for Personalized and Regularized PageRank},
             pdfauthor={Baojian Zhou}}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Can acceleration improve the condition-number dependence of local PageRank
-without losing locality? We give deterministic and randomized algorithms
-attaining the $\widetilde O(1/(\rho\sqrt\alpha))$ running-time target for
-$\ell_1$-regularized personalized PageRank posed by Fountoulakis and Yang at
-COLT 2022. Here $\alpha$ is the lazy PageRank parameter, $\rho$ is the
-regularization parameter, and optimization accuracy enters only
-polylogarithmically. The graph is given by local adjacency-list access;
-all discovery, repeated scans, arithmetic, state maintenance, and output are
-charged, with no graph-wide preprocessing or supplied solution support.
+We give deterministic and randomized local algorithms for two related
+PageRank tasks. For personalized PageRank, we attain degree-normalized
+maximum error $\epsppr$ in $\widetilde O(1/(\epsppr\sqrt\alpha))$ work.
+For $\ell_1$-regularized personalized PageRank, we attain additive objective
+accuracy $\epsobj$ in $\widetilde O(1/(\rho\sqrt\alpha))$ work, with
+only polylogarithmic dependence on $1/\epsobj$. Here $\alpha$ is the lazy
+PageRank parameter and $\rho$ is the regularization parameter. The second
+bound attains the algorithmic running-time target posed by Fountoulakis
+and Yang at COLT 2022; an explicit regularization-bias argument yields the
+first. All discovery, repeated adjacency scans, arithmetic, state
+maintenance, certification, and sparse output are charged, with no
+graph-wide preprocessing or supplied solution support.
 
-Our deterministic algorithm combines regularization continuation with
+The deterministic algorithm combines regularization continuation with
 accelerated corrections constrained by a degree-scaled box and a mass cap.
-One energy proves accelerated convergence. A second energy, obtained from
-the same recurrence in the PageRank metric, controls the response that can
-activate vertices outside a small analytical comparison set. A signed-flow
-argument then bounds cumulative scanned volume, including repeated visits.
-A deterministic threshold data structure realizes this bound. We also give
-a bounded-arithmetic realization with explicit encoding costs.
-
-Our randomized algorithm instead solves a sequence of support-safe principal
-systems. A block-Cholesky and Chebyshev argument bounds the number of
-threshold batches by $\widetilde O(1/\sqrt\alpha)$. Residual-certified SDD
-solves yield a Las Vegas algorithm. Both methods imply
-$\widetilde O(1/(\epsppr\sqrt\alpha))$ work for degree-normalized PPR
-error $\epsppr$. The main results hold for point sources on finite connected
-simple unweighted undirected graphs.
+Two energies from the same recurrence prove accelerated convergence and
+control the response outside a small analytical comparison set. A
+signed-flow argument bounds cumulative scanned volume, including repeated
+visits, and a deterministic threshold data structure realizes this bound.
+We also give a bounded-arithmetic realization with explicit encoding costs.
+The randomized algorithm uses support-safe principal solves; a
+block-Cholesky and Chebyshev argument limits the threshold-batch depth.
+Certified SDD solves give expected work
+$\widetilde O(V_*\min\{k_*,\alpha^{-1/2}\})$, where $k_*$ and $V_*$
+are the optimum's support cardinality and original-degree volume.
+The main results hold for point sources on finite connected simple
+unweighted undirected graphs. They concern the stated algorithms and do
+not require confinement of standard FISTA iterates.
 \end{abstract}
 
 \section{Introduction}\label{sec:introduction}

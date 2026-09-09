@@ -606,3 +606,7 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   regularizer agree. The active paper cites the source for monotonicity and
   path methods, then proves its own least-supersolution comparison and
   accelerated continuation work. The source does not supply the latter.
+
+## Publication comparison refresh, 9 September 2026
+
+See [the publication review](publication-review-20260909.md) for the added Bai, Wei--Wen--Yang, Bertram--Jensen, Jiang et al., and Kwok--Wei--Yang comparisons. In particular, the ICDT 2024 Section 1.4 Remark explicitly restores linear dependence on inverse teleportation, and Appendix D assumes the graph-wide RBS preprocessing is complete. The active manuscript now credits its matching degree-normalized accuracy rather than treating every SSPPR result as a different error contract.

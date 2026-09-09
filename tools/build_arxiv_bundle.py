@@ -31,7 +31,7 @@ SOURCE_SUFFIXES = {
     ".jpeg",
     ".eps",
 }
-README = """Accelerated Local Algorithms for Regularized PageRank
+README = """Accelerated Local Algorithms for Personalized and Regularized PageRank
 Baojian Zhou
 
 This archive is a self-contained source copy of the active manuscript.

@@ -964,3 +964,7 @@ teleportation.
 No source partition-computation or logical model-checking algorithm enters
 the local producer or its work accounting. See
 `FRONTIER_GROUP_STRUCTURE_PROBE_20260908.md`; general OP3 remains Open.
+
+## Publication comparison refresh, 9 September 2026
+
+See [the publication review](publication-review-20260909.md) for source-checked Chen--Peng--Wang FOCS 2021 and Vladu STOC 2025 global nonnegative-quadratic algorithms. The active paper credits their obstacle/flow and M-matrix optimization geometry; their full-input costs do not supply an OP1/OP2 local-discovery bound. Lin--Deng NeurIPS 2024 is also distinguished as a function-constrained sparse formulation with iteration/identification guarantees.

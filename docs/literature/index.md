@@ -419,3 +419,7 @@ downstream ranking requirements.
   preprint.
 - Update the Fountoulakis and Martínez-Rubio 2026 arXiv entry, filename, and
   BibTeX record after formal publication.
+
+## Publication review, 9 September 2026
+
+[OP1/OP2 novelty comparison](publication-review-20260909.md) integrates additional local-diffusion, SSPPR, scalar-query, flow-diffusion and M-matrix predecessors into the active paper. [Focused 2026 review](publication-review-20260909-rppr.md) and [broader search](publication-review-20260909-broad.md) retain source and search details. These sources are also indexed in `manuscript/ARXIV_SOURCES.json`.

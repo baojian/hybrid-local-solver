@@ -10,7 +10,7 @@ benefits of locality. The initial application is local PageRank from one seed
 vertex on a finite simple connected graph with unit edge weights. General
 seed distributions remain an explicitly separate extension.
 
-The active paper, *Accelerated Local Algorithms for Regularized PageRank*,
+The active paper, *Accelerated Local Algorithms for Personalized and Regularized PageRank*,
 contains two complete algorithms: deterministic accelerated regularization
 continuation and randomized threshold-batched active sets. Both attain the
 point-source `O_tilde(1/(rho sqrt(alpha)))` RPPR work target and imply

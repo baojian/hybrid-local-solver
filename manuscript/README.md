@@ -1,7 +1,7 @@
 # Manuscript workspace
 
 This directory contains the active arXiv theory paper, *Accelerated Local
-Algorithms for Regularized PageRank*, and preserves the independent research
+Algorithms for Personalized and Regularized PageRank*, and preserves the independent research
 notes and archives that led to it.
 
 ## Active manuscript
@@ -86,7 +86,10 @@ The second command writes `dist/arxiv-source.tar.gz` and
 transitive TeX dependencies, bibliography, generated `.bbl`, and a small
 build README. See [`ARXIV_REVIEW.md`](ARXIV_REVIEW.md) for the proof/source
 audit, baseline repository issues, independent-build check, and visual QA.
-The author will submit the archive; no external submission is performed.
+The 9 September revision makes both OP1 and OP2 prominent and expands the
+source comparisons beyond the two closest 2026 papers. See
+`ARXIV_REVIEW.md` and `../docs/literature/publication-review-20260909.md`.
+The author can submit the archive; no external submission has been performed.
 
 Project-wide mathematical definitions and research decisions belong in
 `docs/`. Keep the active manuscript consistent with those documents, the
