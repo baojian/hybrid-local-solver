@@ -70,6 +70,8 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   degree-normalized SSPPR-D, sparse output and probability `1-1/n`.
   Page 1 permits ambient polylog(n). Appendix D, p.22 assumes Theta(m)
   preprocessing for RBS; Theorem 20, p.24 states the query-time bound.
+  The manuscript bibliography explicitly links this full version, since the
+  cited appendices are absent from the 19-page conference version.
 - OP3 use: supports the worst-case accuracy-scale comparison, with the
   existing star proof supplying a parameter-explicit ACL output lower bound.
   The pointwise interpretation `work(G,s,eps)>=Omega(sum(pi/d)/eps)` is
@@ -102,7 +104,7 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 
 - Citation: Xinpeng Jiang, Haoyu Liu, Siqiang Luo and Xiaokui Xiao.
   *Near-Optimality for Single-Source Personalized PageRank*.
-  Proc. ACM Manag. Data 4(2), Article 110, May 2026, 55 pages,
+  Proc. ACM Manag. Data 4(2), Article 110, May 2026, pp. 110:1–110:55,
   DOI 10.1145/3801906. Metadata is printed on the checked primary PDF;
   the ACM page returned 403 on 8 September 2026.
 - Checked source: [arXiv:2507.14462v5](https://arxiv.org/pdf/2507.14462v5),
@@ -226,6 +228,10 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
   - PDF pages 15-17, equation (17) and Theorem 3: define restricted curvature
     and state the iteration and work bounds under the relative gradient
     stopping rule.
+  - PDF p. 17 (journal p. 569), the objective-gap recurrence immediately
+    after equation (23) in Theorem 3's proof: together with restricted
+    curvature at least alpha and O(k_*+V_*) local-step work, this supports
+    the active manuscript's additive-objective ISTA row O~(V_*/alpha).
   - PDF page 18: compare the source stopping rule with APPR's threshold.
 - Formulation differences: The source uses its own PageRank normalization and
   writes the relative accuracy with an undifferentiated epsilon. The active
@@ -610,3 +616,24 @@ APPR, evolving-set methods, AESP, LocGD, LocCH, and LocSOR.
 ## Publication comparison refresh, 9 September 2026
 
 See [the publication review](publication-review-20260909.md) for the added Bai, Wei--Wen--Yang, Bertram--Jensen, Jiang et al., and Kwok--Wei--Yang comparisons. In particular, the ICDT 2024 Section 1.4 Remark explicitly restores linear dependence on inverse teleportation, and Appendix D assumes the graph-wide RBS preprocessing is complete. The active manuscript now credits its matching degree-normalized accuracy rather than treating every SSPPR result as a different error contract.
+
+
+## August–September 2026 follow-up: scalar PageRank and regularized resistance
+
+### Citation key: `thorup2026instance`
+
+Mikkel Thorup and Hanzhi Wang, *Instance-Optimality of Bidirectional PageRank Estimation*, arXiv:2512.16087v6, revised 3 August 2026 (first submission 18 December 2025), to appear in FOCS 2026. [Primary version](https://arxiv.org/abs/2512.16087v6).
+
+The PDF's Section 1 (physical pp.2–3, printed pp.1–2) fixes alpha and defines scalar global PageRank pi(t) as the average of pi(v,t) over uniformly chosen starting vertices. Section 2 states the graph-query model; the upper bound uses in/out-neighbor and degree queries plus uniform random jumps. Theorem 4.1 (physical p.19, printed p.18) gives expected O(T* log n) work for probabilistic relative-error scalar estimation, where T* balances backward significant-contributor work with Monte Carlo work. Instance-optimality holds in the graph classes specified by their main results. Version 5 already states the scalar upper-bound contract; the August revision should not be presented as a new OP1 result.
+
+This is an important current PageRank complexity result, but it does not return the project OP1 sparse point-seed vector with degree-normalized additive error, does not expose the joint variable-alpha work target, and does not optimize RPPR. No lower bound is transferred to OP1 or OP2.
+
+### Citation key: `li2026resistance`
+
+Rong-Hua Li and Yichun Yang, *Improved Algorithm for Counting Spanning Trees by l1-Regularized Resistance*, arXiv:2609.03574v2, revised 4 September 2026 (first submission 3 September). [Primary version](https://arxiv.org/abs/2609.03574v2).
+
+Definition 3 (physical p.2) minimizes 1/2 z^T L z - e_s^T z + lambda 1^T z over z>=0, with 1/n<lambda<1/2, the unshifted graph Laplacian, and an unweighted penalty. Lemma 12 states support cardinality at most1/lambda. Theorem 13 (physical p.4) states randomized per-source soft-O(lambda^-3) work after soft-O(m) global graph preprocessing, returning a nonnegative support-safe potential with coordinatewise accuracy and residual bounded by2lambda. Lemma 14 (physical p.5) provides the preprocessed weighted-neighbor boundary oracle; Algorithm 1 (physical p.6) uses nested principal SDD solves. Theorem 1 gives the spanning-tree counting application.
+
+These are close methodological precedents that explicitly build on regularized PageRank work. They differ from the project's shifted normalized Hessian, degree-weighted penalty, point-seed no-preprocessing graph-access contract, and alpha-dependent target. The record belongs in related work and does not supply a direct replacement for OP1/OP2. This is a comparison of stated contracts, not an independent certification of every proof in the source.
+
+See [the dated sweep](arxiv-aug-sep-audit-20260909.md) for enumeration and screening coverage.

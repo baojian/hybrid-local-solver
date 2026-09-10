@@ -1,30 +1,36 @@
 Write the outside face residual as
-\begin{equation}
+\begin{equation*}
  \vr^\gU:=\vc_\rho-\mQ\vx^\gU=-\vw^\gU.
- \label{eq:outside-face-residual-main}
-\end{equation}
+\end{equation*}
 Fix $\vartheta\geq0$.  A nested sequence
 $\gU_k=\gB_0\mathbin{\dot\cup}\cdots\mathbin{\dot\cup}\gB_k$ is
-\emph{$\vartheta$-batched} if $\gB_0=\{v\}$, every later $\gB_k$ is a nonempty
-set with $r_i^{\gU_{k-1}}>0$, and, immediately before admitting $\gB_k$, every
-coordinate that will be admitted after $\gB_k$ has residual at most
-$\vartheta$.  Any finite sequence can be extended to partition
-$\gS_\rho^*$ by repeatedly admitting all exact positive residuals;
-after each such batch, every still-future coordinate had nonpositive residual
-on the preceding face, so the threshold condition is preserved.
+\emph{$\vartheta$-batched} if $\gB_0=\{v\}$, every later $\gB_k$ is nonempty
+and satisfies $r_i^{\gU_{k-1}}>0$ for every $i\in\gB_k$, and, immediately
+before admitting $\gB_k$,
+\[
+ r_i^{\gU_{k-1}}\leq\vartheta
+ \qquad\text{for every }i\in\gS_\rho^*\setminus\gU_k.
+\]
+The condition includes coordinates not yet assigned to a later block.
+Any finite such sequence can be extended to partition $\gS_\rho^*$ by
+repeatedly admitting all exact positive residuals. After each added batch,
+every remaining coordinate had nonpositive residual on the preceding face,
+so the threshold condition is preserved. This is an analytical condition;
+the algorithm need not know $\gS_\rho^*$. The residual certificate will
+establish it for all unreported coordinates in
+\cref{sec:threshold-batch-analysis}.
 
 \begin{lemma}[Chebyshev inverse approximation]
 \label{lem:chebyshev-inverse}
 Let $\alpha\mI\preceq\mM\preceq b_0\mI$, with $b_0\geq\alpha>0$.
 For each $j\geq1$, there is a polynomial $p_{j-1}$ of degree at most
 $j-1$ such that
-\begin{equation}
+\begin{equation*}
  \norm{\mM^{-1}-p_{j-1}(\mM)}_2
  \leq\frac2\alpha
        \left(\frac{\sqrt{b_0/\alpha}-1}
                   {\sqrt{b_0/\alpha}+1}\right)^j.
- \label{eq:generic-chebyshev-inverse}
-\end{equation}
+\end{equation*}
 The corresponding residual polynomial has absolute value at most twice
 the displayed geometric factor on $[\alpha,b_0]$.
 \end{lemma}
@@ -51,41 +57,46 @@ Diagonalizing the symmetric matrix proves the operator-norm bound.
 \label{thm:threshold-batch-depth}
 Let $\gU_0\subset \gU_1\subset\cdots$ be a $\vartheta$-batched reachable
 sequence, extended to the full optimal support.  Put
-\begin{equation}
+\begin{equation*}
  q_\alpha:=
  \frac{\sqrt{2/\alpha}-1}{\sqrt{2/\alpha}+1}.
- \label{eq:batch-decay-factor}
-\end{equation}
+\end{equation*}
 Then every included face $\gU_J$ satisfies
 \begin{equation}
  \phi_\rho(\vx^{\gU_J})-\phi_\rho(\vx_\rho^*)
  \leq8q_\alpha^{2J}+\frac{\vartheta^2}{\alpha\rho}.
  \label{eq:batch-depth-main}
 \end{equation}
-Thus, above the displayed threshold floor, a constant gap reduction needs
-only $O(1/\sqrt\alpha)$ batches up to logarithmic factors, independently of
+For $0<\epsobj<1$, the decaying term is at most $\epsobj/2$ after
+$O(\alpha^{-1/2}\log(2/\epsobj))$ batches. If the sequence ends sooner,
+its final face solution is exact. The estimate is independent of
 $|\gS_\rho^*|$, graph diameter, and any complementarity margin.
 \end{theorem}
+
+The proof has three steps. Block Cholesky elimination expresses the
+objective gap as a tail energy. A block-tridiagonal comparison system
+preserves spectral bounds and encodes delayed admissions. Chebyshev
+approximation then separates the decaying seed contribution from the
+threshold error. These factors are analytical objects and are not
+constructed by the local algorithm.
 
 \begin{proof}
 Let $\gS=\gS_\rho^*$ and order it by the blocks
 $\gB_0,\gB_1,\ldots,\gB_K$.  Block elimination gives
-\begin{equation}
+\begin{equation*}
  \mQ_{\gS\gS}=\mL\mDelta\mL^\trans,
  \qquad
  \mDelta=\operatorname{diag}(\mDelta_0,\ldots,\mDelta_K),
  \qquad
  \vg=\mL^{-1}(\vc_\rho)_\gS.
- \label{eq:batch-block-ldl}
-\end{equation}
+\end{equation*}
 Here $\mL$ is unit block lower triangular, every pivot $\mDelta_k$ is
 Stieltjes, and $\vg_k$ is the positive Schur residual on $\gB_k$ when it is
-admitted.  Let $\mDelta_k=\mR_k\mR_k^\trans$ be its lower Cholesky factor and
-set
-\begin{equation}
+admitted. Let $\mR_k$ be its lower Cholesky factor, so
+$\mDelta_k=\mR_k\mR_k^\trans$, and set
+\begin{equation*}
  \vz_k:=\mR_k^{-1}\vg_k.
- \label{eq:batch-elimination-vector}
-\end{equation}
+\end{equation*}
 Each $\mR_k$ is a triangular nonsingular M-matrix, so $\vz_k\geq\vzero$.
 Completion of squares in the block elimination gives the exact identity
 \begin{equation}
@@ -118,43 +129,38 @@ $|\widehat{\mC}^{-1}\vz|\leq\mC^{-1}|\vz|$ for every $\vz$.
 
 There is also a graph-independent upper bound.  The $k$th block row of
 $\mC$ satisfies
-\begin{equation}
+\begin{equation*}
  \sum_{i\leq k}\mC_{ki}\mC_{ki}^\trans
  =\mQ_{\gB_k\gB_k}\preceq\mI.
- \label{eq:batch-row-map}
-\end{equation}
+\end{equation*}
 Deleting all but two input blocks cannot increase its row-map norm, and each
 input block occurs in at most two retained rows.  Therefore
-\begin{equation}
+\begin{equation*}
  \norm{\widehat{\mC}}_2\leq\sqrt2.
- \label{eq:batch-bidiagonal-upper}
-\end{equation}
+\end{equation*}
 Consequently
-$\mH_{\rm ch}:=\widehat{\mC}\widehat{\mC}^\trans$ is block tridiagonal and
-\begin{equation}
- \alpha\mI\preceq\mH_{\rm ch}\preceq2\mI.
- \label{eq:batch-chain-spectrum}
-\end{equation}
+$\mH_{\mathrm{ch}}:=\widehat{\mC}\widehat{\mC}^\trans$ is block tridiagonal and
+\begin{equation*}
+ \alpha\mI\preceq\mH_{\mathrm{ch}}\preceq2\mI.
+\end{equation*}
 
 We next encode causality.  For $k\geq2$, immediately before $\gB_{k-1}$ is
 admitted, the still-future block $\gB_k$ has residual at most
 $\vartheta\one$; this is its residual after elimination through $\gB_{k-2}$.
 For $k=1$, the same bound follows from
-$(c_\rho)_i=-\alpha\rho\sqrt{d_i}<0$ away from the seed.  Eliminating
+$(\vc_\rho)_i=-\alpha\rho\sqrt{d_i}<0$ away from the seed.  Eliminating
 $\gB_{k-1}$ subtracts $\mL_{k,k-1}\vg_{k-1}$, so
-\begin{equation}
+\begin{equation*}
  \vg_k+\mL_{k,k-1}\vg_{k-1}\leq\vartheta\one
  \qquad(k\geq1).
- \label{eq:batch-causal-pivot}
-\end{equation}
+\end{equation*}
 Using
 $\mC_{k,k-1}=\mL_{k,k-1}\mR_{k-1}$, this becomes
-\begin{equation}
+\begin{equation*}
  (\widehat{\mC}\vz)_0=\vg_0,
  \qquad
  (\widehat{\mC}\vz)_k\leq\vartheta\one\quad(k\geq1).
- \label{eq:batch-chain-forcing}
-\end{equation}
+\end{equation*}
 Since $\widehat{\mC}^{-1}\geq\vzero$,
 \begin{equation}
  \vzero\leq\vz\leq
@@ -176,26 +182,26 @@ $|\gS|\leq\vol(\gS)\leq1/\rho$.
 For the seed source and $J\geq1$, use \cref{lem:chebyshev-inverse} to take a
 degree-$(J-1)$ polynomial
 $p_{J-1}$ for $1/t$ on $[\alpha,2]$, with
-\begin{equation}
- \norm{\mH_{\rm ch}^{-1}-p_{J-1}(\mH_{\rm ch})}_2
+\begin{equation*}
+ \norm{\mH_{\mathrm{ch}}^{-1}-p_{J-1}(\mH_{\mathrm{ch}})}_2
  \leq\frac2\alpha q_\alpha^J.
- \label{eq:batch-chebyshev-inverse}
-\end{equation}
-Because $\mH_{\rm ch}$ is block tridiagonal and $\vg_0$ is supported on
-block zero, $p_{J-1}(\mH_{\rm ch})\vg_0$ reaches only blocks through
-$J-1$.  Multiplication by the block upper-bidiagonal
+\end{equation*}
+Use $\widehat{\mC}^{-1}=\widehat{\mC}^{\trans}\mH_{\mathrm{ch}}^{-1}$.
+Because $\mH_{\mathrm{ch}}$ is block tridiagonal,
+$p_{J-1}(\mH_{\mathrm{ch}})[\vg_0;\vzero]$ reaches only blocks through
+$J-1$. Multiplication by the block upper-bidiagonal
 $\widehat{\mC}^\trans$ does not increase the largest block index.  If
 $\mPi_{>J}$ projects onto the block tail, then
 \begin{align}
  \norm{\mPi_{>J}\widehat{\mC}^{-1}[\vg_0;\vzero]}_2
  &\leq\norm{\widehat{\mC}}_2
-       \norm{\mH_{\rm ch}^{-1}-p_{J-1}(\mH_{\rm ch})}_2
+       \norm{\mH_{\mathrm{ch}}^{-1}-p_{J-1}(\mH_{\mathrm{ch}})}_2
        \norm{\vg_0}_2\notag\\
  &\leq2\sqrt2q_\alpha^J.
  \label{eq:batch-seed-tail}
 \end{align}
 Here
-$\vg_0=(c_\rho)_v=\alpha(1-\rho d_v)/\sqrt{d_v}\leq\alpha$.
+$\vg_0=(\vc_\rho)_v=\alpha(1-\rho d_v)/\sqrt{d_v}\leq\alpha$.
 For $J=0$, the same bound follows from
 \cref{eq:batch-bidiagonal-inverse} and $\alpha\leq1$.
 Combining

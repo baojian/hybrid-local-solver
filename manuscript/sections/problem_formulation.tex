@@ -6,12 +6,7 @@ induced-subgraph degrees changes the PageRank problem and its local work.
 
 \input{tex/shared/source_aligned_problem}
 
-For the main theorems we impose
-\begin{equation}
- \vs=\eunit{v},\qquad v\in\gV.
- \label{eq:point-source-contract}
-\end{equation}
-The nonzero point-source regime is
+For a point source $\vs=\eunit{v}$, the nonzero regime is
 \begin{equation}
  0<\rho<1/d_v.
  \label{eq:nonzero-rppr-regime}
@@ -20,9 +15,9 @@ Indeed, the optimum is zero exactly when
 $\vb\leq\alpha\rho\mD^{1/2}\one$, and the only possibly violated
 coordinate is the seed. A single degree query decides this case. At
 $\alpha=1$, the solution has only the seed coordinate
-$(x_\rho^*)_v=(1-\rho d_v)_+/\sqrt{d_v}$.
+$(\vx_\rho^*)_v=(1-\rho d_v)_+/\sqrt{d_v}$.
 
-\subsection{What is approximated?}
+\subsection{Accuracy guarantees}
 
 The RPPR task takes $\rho>0$ and a separate additive tolerance
 $\epsobj>0$, and asks for a sparse coordinate list satisfying
@@ -31,7 +26,8 @@ $\epsobj>0$, and asks for a sparse coordinate list satisfying
  \label{eq:rppr-output-target}
 \end{equation}
 Coordinates absent from the list mean zero. Both main algorithms can return
-nonnegative subsolutions lying coordinatewise below $\vx_\rho^*$.
+nonnegative subsolutions lying coordinatewise below $\vx_\rho^*$;
+a subsolution satisfies $\mQ\widehat\vx\leq\vb$.
 The raw threshold-batch output already has safe support; a certified repair
 gives this stronger coordinatewise and residual guarantee at the same
 asymptotic work bound.
@@ -49,13 +45,14 @@ objective gap, a coordinate activation threshold, or a relative error on
 every nonzero PageRank probability. This distinction matters in comparisons
 with push algorithms and with regularized optimization methods.
 
-Let $\vomega=\mD^{1/2}\one$. The Stieltjes identities
-\begin{equation}
+A symmetric positive-definite matrix with nonpositive off-diagonal entries
+is called a \emph{Stieltjes matrix}. The PageRank matrix $\mQ$ has this
+property. With $\vomega=\mD^{1/2}\one$, the identities
+\begin{equation*}
  \mQ\vomega=\alpha\vomega,\qquad
  \mQ^{-1}\geq\vzero,
  \qquad |\mQ|\vomega=\vomega
- \label{eq:constant-vector-inverse-positive}
-\end{equation}
+\end{equation*}
 will be used throughout; $|\mQ|$ denotes entrywise absolute values.
 The last identity follows by summing the absolute entries of the
 normalized PageRank operator against $\vomega$.
@@ -103,26 +100,21 @@ residual bounds. Our main RPPR algorithm uses its proved objective budget;
 it does not need to scan the whole graph to check this sufficient PPR
 certificate.
 
-\subsection{Local access and the meaning of running time}
+\subsection{Local access and computational cost}
 
-The graph is an adjacency-list oracle. A degree query on a known label
-costs one word operation. A row scan at $i$ reads all $d_i$ incident entries
-and exposes their endpoint labels; it costs $d_i$ even if the same row was
-scanned previously. The initial known label is $v$. All later labels are
-obtained from charged incident entries. The algorithm is not given the
+We use the adjacency-list and exact-real word model above. Initially, only
+$v$ is known. All other labels must be obtained from charged incident entries. The algorithm is not given the
 optimal support, a containing ball, a global connectivity certificate, or a
 preprocessed inverse.
 
 We also charge arithmetic, comparisons, random choices where applicable,
 state reads and writes, dictionary operations, candidate maintenance,
 principal-matrix construction, solver/preconditioner state, threshold
-reporting, verification, materialization, disposal, and output. Accessing a
-cached incidence still has a cost; caching is not a license to discard
-repeated work. The displayed graph matrices and unknown comparison vectors
+reporting, verification, materialization, disposal, and output. Repeated accesses to cached
+incidences are charged. The displayed graph matrices and unknown comparison vectors
 are mathematical objects, not freely supplied arrays.
 
-The main bounds count exact-real algebraic word operations. For rational
-inputs, degree densities avoid computing square roots: a listed density
+For rational inputs, degree densities avoid computing square roots: a listed density
 $f_i$ and original degree $d_i$ represent $x_i=f_i\sqrt{d_i}$ and
 $\pi_i=d_if_i$. The deterministic schedule uses only dyadic halving,
 arithmetic, and comparisons. A separate bounded-arithmetic theorem below
@@ -132,46 +124,45 @@ exact-arithmetic statement is not a guarantee for unchecked floating point.
 In soft bounds, $\widetilde O$ hides only polylogarithms in inverse numerical
 parameters, requested accuracy, explicitly supplied failure probability, and
 the number of exposed records. It hides no ambient graph-size factor, no
-unknown minimum sign margin, and no uncharged setup. Set
+unknown minimum sign margin, and no uncharged setup. In the nonzero regime
+\cref{eq:nonzero-rppr-regime}, set
 \begin{equation}
- L_{\rm par}:=\log\frac{2}{\alpha\rho\min\{1,\epsobj\}}.
+ L_{\mathrm{par}}:=\log\frac{2}{\alpha\rho\min\{1,\epsobj\}}.
  \label{eq:main-parameter-log}
 \end{equation}
-This is positive in the nonzero regime and is only a parameter-logarithm
-abbreviation, not a smoothness constant.
+The positive quantity $L_{\mathrm{par}}$ collects the parameter logarithms.
 
 \subsection{Main results}
 
-The next two theorems establish the RPPR task (OP2), and
-\cref{cor:main-ppr} establishes the PPR task (OP1). This numbering names
-the two problem contracts in this work; only the RPPR running-time target
-is attributed to the COLT 2022 open-problem paper.
+The next two theorems establish the RPPR guarantee, and
+\cref{cor:main-ppr} gives its PPR consequence.
 
 \begin{theorem}[Deterministic local acceleration]
 \label{thm:deterministic-rppr}
 For every graph and point source above, $0<\alpha\leq1$,
 $0<\rho<1/d_v$, and $\epsobj>0$, \cref{alg:deterministic-rppr} returns
-\begin{equation}
+\begin{equation*}
  \vzero\leq\widehat\vx\leq\vx_\rho^*,\qquad
  F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj,
  \qquad\vol(\supp\widehat\vx)\leq1/\rho.
- \label{eq:deterministic-main-guarantee}
-\end{equation}
+\end{equation*}
 Its fully charged deterministic work is
 \begin{equation}
- O\!\left(\frac{L_{\rm par}}{\rho\sqrt\alpha}
-           \log^2\!\left(2+\frac{L_{\rm par}}{\rho\sqrt\alpha}\right)\right)
+ O\!\left(\frac{L_{\mathrm{par}}}{\rho\sqrt\alpha}
+           \log^2\!\left(2+\frac{L_{\mathrm{par}}}{\rho\sqrt\alpha}\right)\right)
  =\softO\!\left(\frac1{\rho\sqrt\alpha}\right),
  \label{eq:deterministic-main-work}
 \end{equation}
-and its peak storage is $O(1+L_{\rm par}/(\rho\sqrt\alpha))$ words.
+and its peak storage is $O(1+L_{\mathrm{par}}/(\rho\sqrt\alpha))$ words.
 For $\rho\geq1/d_v$ it returns the exact zero solution in constant word
 work. It uses no randomized primitive or linear-system solver.
 \end{theorem}
 
-The proof occupies \cref{sec:deterministic-algorithm,sec:deterministic-analysis,sec:deterministic-implementation}.
-The principal new estimate bounds the cumulative kinetic volume of an
-entire stage, not the support of each accelerated primal iterate.
+The proof occupies \cref{sec:deterministic-method}. The bound improves
+the graph-independent worst-case work from
+$\softO(1/(\alpha\rho))$ to $\softO(1/(\rho\sqrt\alpha))$.
+The principal new estimate controls the cumulative kinetic volume of an
+entire stage while allowing accelerated updates outside the optimal support.
 
 \begin{theorem}[Randomized local acceleration, with support adaptation]
 \label{thm:randomized-rppr-main}
@@ -199,9 +190,11 @@ logarithmic objective-accuracy dependence in the batch count and in the SDD
 solves. The refined bound follows because every nonempty batch adds a new
 vertex, while \cref{thm:threshold-batch-depth} bounds the number of batches
 spectrally. Thus the randomized method retains the small-support bound as
-well as the accelerated worst-case envelope.
+well as the accelerated worst-case envelope: up to logarithmic factors,
+the smaller of support size and the inverse square root of the teleportation
+parameter determines how many restricted systems need to be solved.
 Its graph and boundary records have size $O(V_*)$; numerical workspace is
-that of one supplied-face SDD call. Allocation is charged, so expected peak
+that of one SDD call on the current active set. Allocation is charged, so expected peak
 space is in particular bounded by the displayed expected work.
 
 \begin{corollary}[Local PPR at semantic accuracy]

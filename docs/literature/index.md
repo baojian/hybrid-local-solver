@@ -100,14 +100,15 @@ methods whose work is intended to depend on local structure.
   (Wei, Wen and Yang, ICDT 2024, LIPIcs 290:9:1–9:19;
   DOI 10.4230/LIPIcs.ICDT.2024.9) — degree-normalized sparse-output
   comparison; fixed-alpha and preprocessing assumptions are audited in
-  `local-solvers.md` against arXiv:2401.01019v1.
+  `local-solvers.md` against [arXiv:2401.01019v1](https://arxiv.org/abs/2401.01019v1),
+  whose Theorem 20 and Appendix D are now linked explicitly in the manuscript bibliography.
 - [*Personalized PageRank Estimation in Undirected Graphs*](https://arxiv.org/abs/2602.10843)
   (Bertram and Jensen, arXiv:2602.10843v1, 11 February 2026 preprint) —
   undirected thresholded-relative estimation and graph-access lower bounds;
   its error, source-average and fixed-alpha scope are in `local-solvers.md`.
 - [*Near-Optimality for Single-Source Personalized PageRank*](https://arxiv.org/pdf/2507.14462v5)
   (Jiang, Liu, Luo and Xiao, Proc. ACM Manag. Data 4(2), Article 110,
-  May 2026, 55 pages; DOI 10.1145/3801906) — directed SSPPR absolute/relative
+  May 2026, pp. 110:1–110:55; DOI 10.1145/3801906) — directed SSPPR absolute/relative
   bounds. Checked v5 replaces the earlier title *Tighter Lower Bounds for
   Single Source Personalized PageRank*; see `local-solvers.md` for the
   accuracy/access barriers to OP3 transfer.
@@ -117,6 +118,13 @@ methods whose work is intended to depend on local structure.
 - *A Simple Active-Set Method for PageRank-Based Local Graph Clustering* (Wei
   and Yang, 2026) - growing active sets with nearly-linear SDD solves and
   polylogarithmic dependence on the inverse teleportation parameter.
+
+- [*Instance-Optimality of Bidirectional PageRank Estimation*](https://arxiv.org/abs/2512.16087v6)
+  (Thorup and Wang, v6, 3 August 2026; to appear in FOCS 2026) — scalar
+  global PageRank with fixed teleportation; see `local-solvers.md`.
+- [*Improved Algorithm for Counting Spanning Trees by l1-Regularized Resistance*](https://arxiv.org/abs/2609.03574v2)
+  (Li and Yang, v2, 4 September 2026) — unshifted-Laplacian obstacle potentials
+  with global preprocessing; see `local-solvers.md`.
 
 ### Spectral graph optimization
 
@@ -379,6 +387,13 @@ downstream ranking requirements.
 8. Zhou et al. (2024).
 9. Huang et al. (2025).
 
+- [*Instance-Optimality of Bidirectional PageRank Estimation*](https://arxiv.org/abs/2512.16087v6)
+  (Thorup and Wang, v6, 3 August 2026; to appear in FOCS 2026) — scalar
+  global PageRank with fixed teleportation; see `local-solvers.md`.
+- [*Improved Algorithm for Counting Spanning Trees by l1-Regularized Resistance*](https://arxiv.org/abs/2609.03574v2)
+  (Li and Yang, v2, 4 September 2026) — unshifted-Laplacian obstacle potentials
+  with global preprocessing; see `local-solvers.md`.
+
 ### Spectral graph optimization foundations
 
 1. Spielman and Teng (2004).
@@ -423,3 +438,7 @@ downstream ranking requirements.
 ## Publication review, 9 September 2026
 
 [OP1/OP2 novelty comparison](publication-review-20260909.md) integrates additional local-diffusion, SSPPR, scalar-query, flow-diffusion and M-matrix predecessors into the active paper. [Focused 2026 review](publication-review-20260909-rppr.md) and [broader search](publication-review-20260909-broad.md) retain source and search details. These sources are also indexed in `manuscript/ARXIV_SOURCES.json`.
+
+The [consolidated novelty report](publication-novelty-review-20260909.md) gives the final assessment and a numbered primary-source list.
+
+The [August–September arXiv sweep](arxiv-aug-sep-audit-20260909.md) supplements the earlier targeted review with recorded API result counts, new-submission and revision screening, and explicit coverage limits. It adds the Thorup–Wang and Li–Yang comparisons to the manuscript.

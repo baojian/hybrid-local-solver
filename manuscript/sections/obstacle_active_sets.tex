@@ -1,3 +1,9 @@
+The two algorithms use different consequences of the same Stieltjes
+structure. Order and mass bounds control deterministic continuation;
+reachable-face monotonicity and boundary certificates justify the
+randomized batches. We first establish these properties and relate the
+slack to a grounded electrical-flow dual.
+
 Define the shifted load and nonnegative quadratic
 \begin{equation}
  \vc_\rho:=\vb-\alpha\rho\mD^{1/2}\one,
@@ -25,7 +31,7 @@ Its KKT system is
  x_iw_i=0\quad(i\in[n]).
  \label{eq:obstacle-kkt}
 \end{equation}
-In the nontrivial regime \cref{eq:nonzero-rppr-regime}, the support
+In the nontrivial regime \eqref{eq:nonzero-rppr-regime}, the support
 $\mathcal S_\rho^*$ is connected and contains $v$.
 \end{theorem}
 
@@ -42,9 +48,9 @@ the KKT solution is unique.
 
 At the seed,
 \[
- (c_\rho)_v=\frac{\alpha}{\sqrt{d_v}}(1-\rho d_v)>0.
+ (\vc_\rho)_v=\frac{\alpha}{\sqrt{d_v}}(1-\rho d_v)>0.
 \]
-If $(x_\rho^*)_v=0$, its slack is strictly negative, contradicting
+If $(\vx_\rho^*)_v=0$, its slack is strictly negative, contradicting
 \cref{eq:obstacle-kkt}.  Thus $v\in\mathcal S_\rho^*$.  If an active connected
 component $\gC$ did not contain $v$, no support edge would join $\gC$ to the
 other active components.  Stationarity on $\gC$ would give
@@ -65,7 +71,7 @@ $\vx_\rho^*\leq\vz$. Consequently, for $0<r\leq r'$,
 In particular $\vol(\mathcal S_r^*)\leq1/r$.
 \end{lemma}
 \begin{proof}
-For the first assertion let $\gI=\{i:(x_\rho^*)_i>z_i\}$ and
+For the first assertion let $\gI=\{i:(\vx_\rho^*)_i>z_i\}$ and
 $\ve=\vx_\rho^*-\vz$. If $\gI$ is nonempty, stationarity on
 its positive optimum coordinates gives
 $\mQ_{\gI\gI}\ve_{\gI}
@@ -122,22 +128,22 @@ Its Fenchel dual, written as a minimum-energy problem, is
  \label{eq:grounded-flow-dual}
 \end{equation}
 The two minimum values have opposite signs.  At an optimal primal--dual pair,
-\begin{equation}
+\begin{equation*}
  \vf^*=\mW\mB\vy^*,
  \qquad
  \vlambda^*:=\mB^\trans\vf^*-\vc_\rho^{\mathrm d}
  =\mD^{1/2}\vw^*\geq\vzero,
  \qquad
  y_i^*\lambda_i^*=0.
- \label{eq:flow-slack-correspondence}
-\end{equation}
-More generally, for an exact reachable face $\gU$, the induced flow
-$\vf^\gU:=\mW\mB\vy^\gU$ is tight on $\gU$ and
-\begin{equation}
+\end{equation*}
+More generally, let $\vx^\gU$ be the zero-extended exact solution on a
+reachable face $\gU$, with slack $\vw^\gU$ as defined in
+\cref{subsec:reachable-faces}. Set $\vy^\gU:=\mD^{-1/2}\vx^\gU$.
+The induced flow $\vf^\gU:=\mW\mB\vy^\gU$ is tight on $\gU$ and
+\begin{equation*}
  (\mB^\trans\vf^\gU-\vc_\rho^{\mathrm d})_j=\sqrt{d_j}\,w_j^\gU
  \quad(j\notin \gU).
- \label{eq:face-dual-violation}
-\end{equation}
+\end{equation*}
 Consequently, $w_j^\gU<0$ is exactly a violated dual vertex constraint.
 \end{proposition}
 
@@ -189,9 +195,11 @@ support.  The challenge is to update these boundary keys after a face solve
 without scanning the ambient graph.
 
 \subsection{Reachable faces and safe batches}
+\label{subsec:reachable-faces}
 
-For $\gU\subseteq[n]$, define the zero-extended exact face solution and slack
-\begin{equation}
+In this subsection, assume the nonzero point-source regime in
+\cref{eq:nonzero-rppr-regime}. For $\gU\subseteq[n]$, define the zero-extended exact face solution and slack
+\begin{equation*}
  x_i^\gU=
  \begin{cases}
   (\mQ_{\gU\gU}^{-1}(\vc_\rho)_\gU)_i,&i\in \gU,\\
@@ -199,8 +207,7 @@ For $\gU\subseteq[n]$, define the zero-extended exact face solution and slack
  \end{cases}
  \qquad
  \vw^\gU:=\mQ\vx^\gU-\vc_\rho.
- \label{eq:exact-face}
-\end{equation}
+\end{equation*}
 The empty face means $\vx^\emptyset=\vzero$.  A face is \emph{reachable} if
 it is obtained by first admitting $v$ and thereafter adding only coordinates
 whose exact current slack is negative.
@@ -208,21 +215,19 @@ whose exact current slack is negative.
 \begin{theorem}[Safe batched Stieltjes pivots]
 \label{thm:safe-batched-pivots}
 For every reachable face $\gU$,
-\begin{equation}
+\begin{equation*}
  \gU\subseteq\mathcal S_\rho^*,
  \qquad
  \vzero<\vx_\gU^\gU\leq(\vx_\rho^*)_\gU.
- \label{eq:reachable-face-invariant}
-\end{equation}
+\end{equation*}
 Every $j\notin \gU$ with $w_j^\gU<0$ lies in
 $\mathcal S_\rho^*\setminus \gU$.  If $\gB$ is any nonempty collection of such
 coordinates, then $\gU\cup \gB$ is reachable and
-\begin{equation}
+\begin{equation*}
  \vx_{\gU\cup \gB}^{\gU\cup \gB}>\vzero,
  \qquad
  \vx_\gU^{\gU\cup \gB}\geq\vx_\gU^\gU.
- \label{eq:face-monotonicity}
-\end{equation}
+\end{equation*}
 If no outside slack is negative, $\vx^\gU=\vx_\rho^*$.
 \end{theorem}
 
@@ -230,36 +235,33 @@ If no outside slack is negative, $\vx^\gU=\vx_\rho^*$.
 The empty-face slack at the seed is negative, so the first scalar face is
 positive.  Suppose the claim holds at $\gU$.  Restricted stationarity and the
 optimal equations give
-\begin{equation}
+\begin{equation*}
  \mQ_{\gU\gU}\bigl((\vx_\rho^*)_\gU-\vx_\gU^\gU\bigr)
  =-\mQ_{\gU,\mathcal S_\rho^*\setminus \gU}
    (\vx_\rho^*)_{\mathcal S_\rho^*\setminus \gU}\geq\vzero.
- \label{eq:face-comparison-main}
-\end{equation}
+\end{equation*}
 Inverse positivity proves the coordinatewise comparison.  If
 $j\notin\mathcal S_\rho^*$, then
-\begin{align}
+\begin{align*}
  w_j^\gU-w_j^*
- &=\mQ_{jU}\bigl(\vx_\gU^\gU-(\vx_\rho^*)_\gU\bigr)
+ &=\mQ_{j\gU}\bigl(\vx_\gU^\gU-(\vx_\rho^*)_\gU\bigr)
    -\mQ_{j,\mathcal S_\rho^*\setminus \gU}
      (\vx_\rho^*)_{\mathcal S_\rho^*\setminus \gU}\geq0.
- \label{eq:no-false-pivot}
-\end{align}
+\end{align*}
 Hence a negative violator cannot be a false support coordinate.
 
 For $\gU'=\gU\cup \gB$, block elimination gives
-\begin{equation}
- \mH_\gB\vx_\gB^{\gU'}=-\vw_\gB^\gU,
+\begin{equation*}
+ \mS_\gB\vx_\gB^{\gU'}=-\vw_\gB^\gU,
  \qquad
- \mH_\gB:=\mQ_{\gB\gB}-\mQ_{\gB\gU}\mQ_{\gU\gU}^{-1}\mQ_{\gU\gB}.
- \label{eq:batch-schur}
-\end{equation}
+ \mS_\gB:=\mQ_{\gB\gB}-\mQ_{\gB\gU}\mQ_{\gU\gU}^{-1}\mQ_{\gU\gB}.
+\end{equation*}
 Moreover,
-\begin{equation}
+\begin{equation*}
  \vx_\gU^{\gU'}-\vx_\gU^\gU=-\mQ_{\gU\gU}^{-1}\mQ_{\gU\gB}\vx_\gB^{\gU'}.
- \label{eq:batch-old-correction}
-\end{equation}
-The Schur complement is Stieltjes and has a nonnegative inverse.  Since
+\end{equation*}
+The Schur complement is Stieltjes and has a nonnegative inverse with
+positive diagonal.  Since
 $-\vw_\gB^\gU>\vzero$, the new coordinates are positive; the second display and
 the off-diagonal sign make every old correction nonnegative.  This closes the
 induction.  If no outside slack is negative, inside stationarity, positivity,
@@ -277,7 +279,7 @@ must be scanned.
 
 \begin{proof}
 If $j\notin \gU\cup\partial \gU$ and $j\neq v$, sparsity gives
-$w_j^\gU=-(c_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
+$w_j^\gU=-(\vc_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
 The incidence count charges each exposed edge to its endpoint in $\gU$.
 \end{proof}
 
@@ -297,11 +299,10 @@ For feasible $\vx\geq\vzero$, let $\vw=\mQ\vx-\vc_\rho$ and define
 \label{lem:kkt-gap-certificate}
 The vector $\vg(\vx)$ is the minimum-Euclidean-norm subgradient of
 $\phi_\rho+I_{\R_+^n}$ at $\vx$, and
-\begin{equation}
+\begin{equation*}
  F_\rho(\vx)-F_\rho(\vx_\rho^*)
  \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
- \label{eq:kkt-gap-certificate}
-\end{equation}
+\end{equation*}
 If $\vx$ is supported on $\gU$ containing $v$, one scan of the rows in $\gU$
 computes every possibly nonzero entry of this certificate.
 \end{lemma}

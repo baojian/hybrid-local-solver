@@ -15,7 +15,7 @@ LATEXMK   := latexmk
 LATEXMKFLAGS := -pdf -interaction=nonstopmode -halt-on-error -file-line-error
 SOURCES   := $(MAIN).tex appendix.tex references.bib \
              $(wildcard sections/*.tex) $(wildcard tex/shared/*.tex) \
-             $(wildcard figures/*.pdf) $(wildcard *.sty)
+             $(wildcard figures/*.pdf) $(wildcard *.sty) $(wildcard *.cls)
 
 ifeq ($(shell uname -s),Darwin)
 OPEN := open

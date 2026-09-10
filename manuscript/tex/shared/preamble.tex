@@ -1,33 +1,46 @@
-% Publication preamble for the arXiv article. Notes use a separate shell.
-\usepackage[a4paper,margin=1in]{geometry}
+% COLT/PMLR single-column preprint layout. Notes use a separate shell.
+% jmlr.cls supplies page geometry, running heads, natbib, and hyperref.
+% The main document uses a plain title-page style, with no proceedings claim.
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{amsmath,amssymb,amsthm,mathtools,bm,mathrsfs}
+\usepackage{newtxtext}
+\usepackage{amsthm,mathtools}
+\usepackage{newtxmath}
+% Reserve these names for the manuscript's existing vector/operator macros.
+\let\vv\relax
+\let\rel\relax
+\usepackage{bm,mathrsfs}
 \usepackage{xcolor}
 \usepackage{graphicx}
-\usepackage{algorithm,algorithmic}
-\usepackage{booktabs,longtable,multirow,tabularx,array}
+\usepackage{algorithm,algorithmic,placeins}
+\usepackage{needspace}
+\usepackage{booktabs,longtable,multirow,array}
 \usepackage{pifont,enumitem,microtype,comment}
-\usepackage[round,authoryear]{natbib}
-\usepackage[hyphens]{url}
-\usepackage[colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue]{hyperref}
+\setcitestyle{round,authoryear}
+\hypersetup{colorlinks=true,citecolor=blue,linkcolor=black,urlcolor=blue}
 \usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+% jmlrutils theorem definitions are disabled before the class is loaded.
+% The manuscript retains amsthm for optional, cross-referenced proof titles.
+\jmlrSuppressPackageChecks
 
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
+\newtheoremstyle{coltplain}{6pt}{6pt}{\itshape}{}%
+  {\bfseries}{}{0.5em}{}
+\newtheoremstyle{coltdefinition}{6pt}{6pt}{\normalfont}{}%
+  {\bfseries}{}{0.5em}{}
+\theoremstyle{coltplain}
+\newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{conjecture}[theorem]{Conjecture}
-\theoremstyle{definition}
+\theoremstyle{coltdefinition}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{assumption}[theorem]{Assumption}
 \newtheorem{problem}[theorem]{Problem}
 \newtheorem{example}[theorem]{Example}
 \newtheorem{axiom}[theorem]{Axiom}
-\theoremstyle{remark}
+\theoremstyle{coltdefinition}
 \newtheorem{remark}[theorem]{Remark}
-\theoremstyle{plain}
+\theoremstyle{coltplain}
 
 \crefname{theorem}{Theorem}{Theorems}
 \crefname{example}{Example}{Examples}
@@ -35,4 +48,15 @@
 \crefname{problem}{Problem}{Problems}
 \setlength{\emergencystretch}{1em}
 \setcounter{tocdepth}{2}
-\bibliographystyle{plainnat}
+% The class selects plainnat, the official PMLR bibliography default.
+% Retain amsthm optional proof titles while matching COLT proof typography.
+\renewcommand{\qedsymbol}{\rule{1.5ex}{1.5ex}}
+\makeatletter
+\renewenvironment{proof}[1][\proofname]{%
+  \par\pushQED{\qed}\normalfont
+  \topsep6\p@\@plus6\p@\relax
+  \trivlist\item[\hskip\labelsep\bfseries #1]\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+\makeatother

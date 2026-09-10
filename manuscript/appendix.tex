@@ -39,12 +39,11 @@ $d_i\geq1$ and $\sum_i s_i^2\leq(\sum_i s_i)^2=1$.
 For the explicit seed list above, put
 $k_*=|\mathcal S_\rho^*|$ and $V_*=\vol(\mathcal S_\rho^*)$.
 There is a Las Vegas local algorithm with expected fully charged work
-\begin{equation}
+\begin{equation*}
  \softO\!\left(h+V_*\min\{k_*,\alpha^{-1/2}\}\right)
  \leq\softO\!\left(h+
           \min\{\rho^{-2},\rho^{-1}\alpha^{-1/2}\}\right)
- \label{eq:general-seed-randomized-work}
-\end{equation}
+\end{equation*}
 that returns $\vzero\leq\widehat\vx\leq\vx_\rho^*$ with objective
 gap at most $\epsobj$ and
 $\vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega$.
@@ -67,7 +66,7 @@ is required at later phases.
 
 The proof of \cref{thm:threshold-batch-depth} uses the singleton initial
 block at exactly two places. The causal inequality for block one needs
-$(c_\rho)_i\leq0$ outside the initial block. The seed-tail estimate needs
+$(\vc_\rho)_i\leq0$ outside the initial block. The seed-tail estimate needs
 $\norm{\vg_0}_2\leq\alpha$. Both hold by
 \cref{eq:general-seed-initial-block,eq:general-seed-initial-bounds}, with
 $\vg_0=(\vc_\rho)_{\gB_0}$. All other steps allow arbitrary block
@@ -118,8 +117,9 @@ for the same RPPR objective and safe-subsolution output guarantees.
 \begin{proof}
 Read the source list and compute
 $r_0=\max_i s_i/d_i$. If $\rho\geq r_0$, return the exact zero
-solution. Otherwise start the continuation schedule at $r_{\rm old}=r_0$
-and zero baseline. Its first stage has $r\geq r_0/2$, so
+solution. At $\alpha=1$, soft thresholding the explicit source list gives
+the exact solution in $O(h)$ work. Otherwise start the continuation schedule
+at $r_{\mathrm{old}}=r_0$ and zero baseline. Its first stage has $r\geq r_0/2$, so
 $\vb\leq2\alpha r\vomega$. All subsequent invariants follow as before.
 The correction domain, both energies, and the selected-flow argument use
 only nonnegativity and unit source mass. They therefore give the same
@@ -135,6 +135,9 @@ $K=\widetilde O(1/\sqrt\alpha)$, and
 $\sum_j1/r_j\leq4/\rho$. This proves
 \cref{eq:general-seed-deterministic-work}, including repeated source
 refreshes rather than assigning them an additive input charge.
+The terminal repair evaluates the supplied source records as well as the
+candidate support and boundary. This adds $O(h)$ scalar work without
+opening unselected source rows.
 For arbitrary requested accuracy, use the final repair schedule; if a
 positive residual upper bound is desired even at a loose objective target,
 run with tolerance $\min\{\epsobj,\alpha/4\}$ to omit the optional
@@ -154,25 +157,31 @@ $\widetilde O(1/(\sqrt\alpha\varepsilon_v))$, apart from constant
 input work. Then the mixture
 $\widehat\vpi=\sum_{v\in\gK}s_v\widehat\vpi^{(v)}$ has error at most
 $\sum_vs_v\varepsilon_v$. Optimizing these budgets gives work
-\begin{equation}
+\begin{equation*}
  \softO\!\left(h+
        \frac{(\sum_{v\in\gK}\sqrt{s_v})^2}
             {\sqrt\alpha\epsppr}\right).
- \label{eq:sparse-source-mixture-work}
-\end{equation}
+\end{equation*}
 The mixture factor lies in $[1,h]$ and equals $h$ for a uniform source.
+The work guarantee is deterministic or expected according to the
+point-source routine used.
 \end{proposition}
 \begin{proof}
 Linearity and the triangle inequality give the error estimate.
 Minimizing $\sum_v1/\varepsilon_v$ subject to
 $\sum_vs_v\varepsilon_v\leq\epsppr$ gives
 $\varepsilon_v=\epsppr/(\sqrt{s_v}\sum_u\sqrt{s_u})$.
-Cauchy--Schwarz gives the factor's range. Tolerances exceeding one use
-zero outputs; the per-source constant work is covered by $h$.
-Dyadic estimates of $\sqrt{s_v}$, found by squared comparisons, obtain
-the same bound within a constant factor using the stated arithmetic model.
-Merging sparse outputs costs only their total size and local dictionary
-logarithms.
+Cauchy--Schwarz gives the factor's range. If $\epsppr\geq1$, zero is
+sufficient. Otherwise discard weights at most $\epsppr/(2h)$ and allocate
+error budget $\epsppr/2$ among the retained terms, without renormalizing.
+The discarded terms contribute at most $\epsppr/2$, since every point-source
+PPR vector has degree-normalized maximum norm at most one. Each retained
+weight admits a dyadic upper estimate of its square root within a factor
+two using $O(\log(h/\epsppr))$ squared comparisons. Using these estimates
+in the budget formula preserves accuracy and increases work by at most a
+constant factor. Tolerances at least one use zero outputs; the per-source
+constant work is covered by $h$. Merging sparse outputs costs only their
+total size and local dictionary logarithms.
 \end{proof}
 
 RPPR itself is nonlinear in the source. At $\alpha=1$ its optimum is

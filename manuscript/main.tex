@@ -1,81 +1,85 @@
-\documentclass[11pt]{article}
+\PassOptionsToPackage{notheorems,nomaths}{jmlrutils}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[pmlr,11pt,twoside]{jmlr}
 
 \input{tex/shared/preamble}
 \input{tex/shared/math_commands}
 \input{tex/shared/writing_commands}
 \input{tex/shared/research_commands}
 
-\title{Accelerated Local Algorithms for Personalized and Regularized PageRank}
-\author{Baojian Zhou}
-\date{September 2026}
+\title[Accelerated Local Algorithms for PageRank]{Accelerated Local Algorithms for\\Personalized and Regularized PageRank}
+\author[Baojian Zhou]{%
+  \Name{Baojian Zhou} \Email{\href{mailto:bjzhou@fudan.edu.cn}{bjzhou@fudan.edu.cn}}\\
+  \addr School of Data Science, Fudan University\\
+  Shanghai, China
+}
 \hypersetup{pdftitle={Accelerated Local Algorithms for Personalized and Regularized PageRank},
             pdfauthor={Baojian Zhou}}
 
 \begin{document}
 \maketitle
+\thispagestyle{plain}
 
 \begin{abstract}
-We give deterministic and randomized local algorithms for two related
-PageRank tasks. For personalized PageRank, we attain degree-normalized
-maximum error $\epsppr$ in $\widetilde O(1/(\epsppr\sqrt\alpha))$ work.
-For $\ell_1$-regularized personalized PageRank, we attain additive objective
-accuracy $\epsobj$ in $\widetilde O(1/(\rho\sqrt\alpha))$ work, with
-only polylogarithmic dependence on $1/\epsobj$. Here $\alpha$ is the lazy
-PageRank parameter and $\rho$ is the regularization parameter. The second
-bound attains the algorithmic running-time target posed by Fountoulakis
-and Yang at COLT 2022; an explicit regularization-bias argument yields the
-first. All discovery, repeated adjacency scans, arithmetic, state
-maintenance, certification, and sparse output are charged, with no
-graph-wide preprocessing or supplied solution support.
-
+Local PageRank algorithms seek sparse approximations with work bounds
+independent of the graph size. Classical local push bounds scale as
+$1/\alpha$ in the teleportation parameter $\alpha$. We develop deterministic and
+randomized algorithms that achieve a $1/\sqrt\alpha$ dependence in total
+local work. For $\ell_1$-regularized personalized PageRank with regularization
+parameter $\rho$, both methods attain additive objective accuracy
+$\epsobj$ in $\widetilde O(1/(\rho\sqrt\alpha))$ work, in expectation
+for the randomized method, with only polylogarithmic dependence on
+$1/\epsobj$. This attains the algorithmic running-time target posed by
+Fountoulakis and Yang at COLT 2022. An explicit regularization-bias argument
+yields personalized PageRank approximations with degree-normalized maximum
+error $\epsppr$ in $\widetilde O(1/(\epsppr\sqrt\alpha))$ work,
+again in expectation for the randomized method.
 The deterministic algorithm combines regularization continuation with
-accelerated corrections constrained by a degree-scaled box and a mass cap.
-Two energies from the same recurrence prove accelerated convergence and
-control the response outside a small analytical comparison set. A
-signed-flow argument bounds cumulative scanned volume, including repeated
-visits, and a deterministic threshold data structure realizes this bound.
-We also give a bounded-arithmetic realization with explicit encoding costs.
-The randomized algorithm uses support-safe principal solves; a
-block-Cholesky and Chebyshev argument limits the threshold-batch depth.
-Certified SDD solves give expected work
-$\widetilde O(V_*\min\{k_*,\alpha^{-1/2}\})$, where $k_*$ and $V_*$
-are the optimum's support cardinality and original-degree volume.
-The main results hold for point sources on finite connected simple
-unweighted undirected graphs. They concern the stated algorithms and do
-not require confinement of standard FISTA iterates.
+constrained acceleration; its analysis bounds cumulative local work even
+when intermediate updates leave the optimal support. The randomized
+algorithm expands certified active sets in batches and controls their
+number through the PageRank spectrum. The results hold for point sources
+on finite connected simple unweighted undirected graphs. The bounds charge
+all graph access, computation, certification, and output, without graph-wide
+preprocessing.
 \end{abstract}
 
 \section{Introduction}\label{sec:introduction}
 \input{sections/introduction}
 
+\subsection{Related work}\label{sec:related-work}
+\input{sections/related_work_overview}
+
 \section{Problem Formulation and Main Results}\label{sec:problem-formulation}
 \input{sections/problem_formulation}
-
-\section{Related Work}\label{sec:related-work}
-\input{sections/related_work}
 
 \section{Stieltjes Geometry and Local Certificates}\label{sec:obstacle-active-sets}
 \input{sections/obstacle_active_sets}
 
-\section{Deterministic Accelerated Continuation}\label{sec:deterministic-algorithm}
+\section{Deterministic Accelerated Continuation}\label{sec:deterministic-method}
+\subsection{Algorithm and stage invariants}\label{sec:deterministic-algorithm}
 \input{sections/deterministic_algorithm}
 
-\section{Two Energies and Cumulative Local Work}\label{sec:deterministic-analysis}
+\subsection{Two energies and cumulative local work}\label{sec:deterministic-analysis}
 \input{sections/deterministic_analysis}
 
-\section{A Deterministic Sparse Implementation}\label{sec:deterministic-implementation}
+\subsection{Sparse implementation}\label{sec:deterministic-implementation}
 \input{sections/deterministic_implementation}
 
-\section{The Threshold-Batch Depth Theorem}\label{sec:threshold-batch-depth}
-\input{sections/threshold_batch_depth}
-
-\section{The Randomized Local Algorithm}\label{sec:threshold-batch-algorithm}
+\section{Randomized Threshold Batching}\label{sec:randomized-method}
+\subsection{Algorithm and guarantee}\label{sec:threshold-batch-algorithm}
 \input{sections/threshold_batch_algorithm}
 
-\section{Consequences for Personalized PageRank}\label{sec:two-stage-ppr}
+\subsection{Threshold-batch depth}\label{sec:threshold-batch-depth}
+\input{sections/threshold_batch_depth}
+
+\subsection{Correctness and total local work}\label{sec:threshold-batch-analysis}
+\input{sections/threshold_batch_analysis}
+
+\section{PPR Consequences and Discussion}\label{sec:two-stage-ppr}
 \input{sections/two_stage_ppr}
 
-\section{Discussion}\label{sec:conclusion}
+\subsection{Discussion}\label{sec:conclusion}
 \input{sections/conclusion}
 
 \section*{Research Assistance and Responsibility}
@@ -83,7 +87,12 @@ not require confinement of standard FISTA iterates.
 
 \bibliography{references}
 
+\clearpage
 \appendix
+\section{Detailed Related Work and Normalization Comparisons}
+\label{app:related-work}
+\input{sections/related_work}
+
 \section{Bounded Arithmetic for the Deterministic Algorithm}
 \label{app:bounded-arithmetic}
 \input{sections/deterministic_precision}

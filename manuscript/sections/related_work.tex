@@ -1,4 +1,4 @@
-\subsection{Local PageRank, regularization, and the accuracy contract}
+\subsection{Local PageRank, regularization, and accuracy criteria}
 
 The local-push work of \citet{andersen2006local,andersen2007using} is the
 basic numerical precedent. Its residual invariant and positive mass decrease
@@ -14,8 +14,12 @@ we do not infer a new conductance theorem merely from those numerical bounds.
 \citet{fountoulakis2019variational} connect local PageRank to a weighted
 $\ell_1$-regularized quadratic. Their KKT structure, nonnegative optimum,
 monotone ISTA trajectory, and support-volume theorem explain why an ordinary
-proximal method can be implemented locally. The stronger mass identity in
-\cref{eq:rppr-order-mass} is a direct consequence of the same structure.
+proximal method can be implemented locally. The objective-gap recurrence
+in the proof of their Theorem~3, after equation~(23), together with
+curvature at least $\alpha$ and $O(k_*+V_*)$ work per local step, gives
+the $\widetilde O(V_*/\alpha)$ row in \cref{tab:lineage}.
+The stronger mass identity in \cref{eq:rppr-order-mass} is a direct
+consequence of the same structure.
 \citet[Lemma~4 and Section~5]{ha2021statistical} study the regularization path and its statistical
 properties; monotonicity as the regularizer decreases is also central to
 our continuation argument. We provide the elementary order proof to fix
@@ -24,30 +28,28 @@ its precise role and normalization.
 Several PageRank conventions coexist. To compare with non-lazy formulations,
 let $\mP=\mA\mD^{-1}$ and set
 \begin{equation}
- \alpha_{\rm nl}=\frac{2\alpha}{1+\alpha},\qquad
- \mL_{\alpha_{\rm nl}}=\mD-(1-\alpha_{\rm nl})\mA,
+ \alpha_{\mathrm{nl}}=\frac{2\alpha}{1+\alpha},\qquad
+ \mL_{\alpha_{\mathrm{nl}}}=\mD-(1-\alpha_{\mathrm{nl}})\mA,
  \qquad \vy=\mD^{-1/2}\vx.
  \label{eq:related-nonlazy-map}
 \end{equation}
 The lazy and non-lazy systems then have the same PageRank vector, and
-\begin{equation}
+\begin{equation*}
  \mD^{1/2}\mQ\mD^{1/2}
-   =\frac{1+\alpha}{2}\mL_{\alpha_{\rm nl}}.
- \label{eq:related-degree-system-map}
-\end{equation}
+   =\frac{1+\alpha}{2}\mL_{\alpha_{\mathrm{nl}}}.
+\end{equation*}
 In particular, for the degree-coordinate objective used by
 \citet{wei2026simple},
-\begin{equation}
+\begin{equation*}
  \begin{aligned}
- \psi_{\alpha_{\rm nl},\rho}(\vy)
-   &:=\tfrac12\vy^\trans\mL_{\alpha_{\rm nl}}\vy
-      -\alpha_{\rm nl}\eunit{v}^\trans\vy
-      +\alpha_{\rm nl}\rho\norm{\mD\vy}_1,\\
+ \psi_{\alpha_{\mathrm{nl}},\rho}(\vy)
+   &:=\tfrac12\vy^\trans\mL_{\alpha_{\mathrm{nl}}}\vy
+      -\alpha_{\mathrm{nl}}\eunit{v}^\trans\vy
+      +\alpha_{\mathrm{nl}}\rho\norm{\mD\vy}_1,\\
  F_\rho(\mD^{1/2}\vy)
-   &=\tfrac{1+\alpha}{2}\psi_{\alpha_{\rm nl},\rho}(\vy).
+   &=\tfrac{1+\alpha}{2}\psi_{\alpha_{\mathrm{nl}},\rho}(\vy).
  \end{aligned}
- \label{eq:related-objective-map}
-\end{equation}
+\end{equation*}
 Thus $\rho$ is unchanged and objective tolerances differ by a factor in
 $[1/2,1]$. The rescaled symmetric lazy system of
 \citet{zhou2024iterative} instead multiplies both $\mQ$ and $\vb$ by
@@ -71,13 +73,15 @@ For a precise comparison, write $k_*=|\mathcal S_\rho^*|$,
 $V_*=\vol(\mathcal S_\rho^*)$, and
 $\widetilde V_*:=\nnz(\mQ_{\mathcal S_\rho^*,\mathcal S_\rho^*})$.
 Their external-volume convention counts nonzeros in full columns of the
-Hessian, including diagonals; on our graphs it is $V_*+k_*=\Theta(V_*)$.
-Their internal volume is $\widetilde V_*\leq2V_*$.
+Hessian, including diagonals; for $0<\alpha<1$ it is
+$V_*+k_*=\Theta(V_*)$ on our graphs. Their internal volume is
+$\widetilde V_*\leq2V_*$. At $\alpha=1$, the matrix is diagonal and the
+exact solution is handled separately.
 Theorem~8 of that paper gives ASPR work
 $\widetilde O(k_*\widetilde V_*/\sqrt\alpha+k_*V_*)$;
 Theorem~4 gives CDPR work $O(k_*^3+k_*V_*)$ and space $O(k_*^2)$.
-A bound for exact optimization and one for additive approximation should
-not be compared without retaining this difference in their outputs.
+The two bounds have different output guarantees: CDPR is exact,
+whereas ASPR permits a specified additive objective error.
 
 \citet[Theorem~1.3]{wei2026simple} (arXiv version~1, August~17, 2026) use nearly-linear SDD solves on growing
 active sets. Their RPPR work is
@@ -95,39 +99,11 @@ the distinction here is the particular
 $\widetilde O(1/(\rho\sqrt\alpha))$ bound with only polylogarithmic
 overhead, not the mere availability of a deterministic active-set method.
 
-\begin{table}[t]
-\centering
-\small
-\caption{RPPR work in the canonical graph normalization. Soft bounds hide
-accuracy and local-size logarithms. The first three methods are deterministic;
-SDD rows have the randomness qualifications in the text. The comparison
-retains both original-degree volume $V_*$ and internal nonzeros
-$\widetilde V_*$.}
-\label{tab:lineage}
-\begin{tabularx}{\textwidth}{@{}
- >{\raggedright\arraybackslash}p{0.35\textwidth}
- >{\raggedright\arraybackslash}p{0.23\textwidth}
- >{\raggedright\arraybackslash}X@{}}
-\toprule
-Method & Output & Work \\
-\midrule
-Local ISTA \citep{fountoulakis2019variational}
- & Additive approximation & $\softO(V_*/\alpha)$ \\
-CDPR \citep{martinezrubio2023accelerated}
- & Exact optimum & $O(k_*^3+k_*V_*)$ \\
-ASPR \citep{martinezrubio2023accelerated}
- & Additive approximation & $\softO(k_*\widetilde V_*/\sqrt\alpha+k_*V_*)$ \\
-SDD active set \citep{wei2026simple}
- & Additive approximation and ACL certificate & $\softO(k_*V_*)$ \\
-Threshold batching (this paper)
- & Additive approximation, safe support & $\softO(V_*\min\{k_*,\alpha^{-1/2}\})$ expected \\
-Deterministic continuation (this paper)
- & Additive approximation, safe subsolution & $\softO(1/(\rho\sqrt\alpha))$ \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\Cref{tab:lineage} summarizes these bounds under the stated output and
+work conventions.
 
-Our randomized analysis limits the number of complete faces that require
+
+Our randomized analysis limits the number of restricted systems that require
 processing. Threshold batching retains safe support expansion and replaces
 the cardinality-only count by a spectral depth bound, while still benefiting
 from a small $k_*$. All principal systems use original degrees, and every
@@ -160,11 +136,10 @@ The closest analysis of transient activity is
 slightly over-regularized objective $F_{2\rho}$ and use the support at
 $\rho$ to give a uniform margin outside an analytical core. Under an
 explicit confinement condition, their Theorem~4.3 gives
-\begin{equation}
+\begin{equation*}
  O\!\left(\frac1{\rho\sqrt\alpha}\log\frac\alpha{\epsobj}
        +\frac{\sqrt{\vol(\gB)}}{\rho\alpha^{3/2}}\right),
- \label{eq:related-fista-confinement}
-\end{equation}
+\end{equation*}
 where $\gB$ contains all spurious activations. Their Theorem~4.4 provides
 a graph-structural sufficient condition, and Proposition~4.7 exhibits
 seed-at-leaf stars on which standard FISTA activates a high-degree center.
@@ -181,13 +156,12 @@ residual-reduction quantities. AESP \citep{huang2025accelerated} combines
 local inexact proximal solves with an accelerated outer process in the
 spirit of Catalyst \citep{lin2018catalyst}. For $\alpha<1/2$, its
 Theorem~3.6 gives the semantic PPR guarantee with the bound
-\begin{equation}
+\begin{equation*}
  \softO\!\left(\min\left\{\frac m{\sqrt\alpha},
-                  \frac{R_{\rm A}^2}{\sqrt\alpha\,\epsppr^2}
+                  \frac{R_{\mathrm{A}}^2}{\sqrt\alpha\,\epsppr^2}
              \right\}\right),
- \label{eq:related-aesp-work}
-\end{equation}
-where $R_{\rm A}$ is the source paper's maximum ratio of initial
+\end{equation*}
+where $R_{\mathrm{A}}$ is the source paper's maximum ratio of initial
 weighted gradient masses across proximal subproblems (its equation~(7)).
 The source does not give a graph-independent constant bound for this ratio;
 its discussion proposes a simplex constraint as a way to control mass.
@@ -220,17 +194,17 @@ with $\alpha$ treated as constant. Their Section~1.4 remark restores a
 linear $1/\alpha$ factor when it varies, and Appendix~D explicitly assumes
 that the $\Theta(m)$ graph preprocessing required by Randomized Backward
 Search has already been performed. The source-dependent factor in
-\cref{eq:related-sspprd} can be valuable; its accuracy definition should
-not be dismissed as different. The relevant distinctions are teleportation
+\cref{eq:related-sspprd} can be valuable. This guarantee shares our
+solution-error criterion; the relevant distinctions are teleportation
 dependence, preprocessing, and Monte Carlo versus certified output.
 
-Recent PPR estimation bounds address additional contracts.
+Recent PPR estimation bounds use several other accuracy criteria.
 \citet[Section~1 and equation~(2)]{bertram2026undirected} characterize
 undirected PPR estimation with constant teleportation and thresholded
 relative error, with variants for optional random-vertex, sorted-neighbor,
 and adjacency queries. Their Theorem~4.2.2 gives a worst-graph,
 average-source $\Omega(\min\{m,1/\delta\})$ lower bound for that
-contract. It is not a lower bound with explicit $\alpha$ dependence for
+criterion. It is not a lower bound with explicit $\alpha$ dependence for
 \cref{eq:semantic-ppr-target}.
 \citet[Definitions~1.1--1.2]{jiang2026nearoptimality} study fixed-teleportation
 single-source absolute and relative error on directed graphs. Absolute
@@ -239,9 +213,14 @@ error on the same graph, but the directed lower-bound constructions do
 not transfer automatically to our undirected task. Similarly,
 \citet{wang2024revisiting} concern PageRank contributions and single-node
 centrality on directed graphs; \citet{thorup2026pagerank} sharpen the
-single-node bounds for bounded in-degree, again with fixed teleportation. These distinctions preclude importing a
-universal optimality claim for the joint $(\alpha,\rho,\epsppr)$
-dependence of our algorithms.
+single-node bounds for bounded in-degree, again with fixed teleportation.
+\citet{thorup2026instance} establish instance-optimality up to logarithmic
+factors for adaptive bidirectional estimation in specified directed graph
+classes. Their target is one vertex's global PageRank, averaged over uniform
+starting vertices, with fixed teleportation and probabilistic relative error
+(Sections~1--2 and Theorem~4.1 of arXiv version~6, August~3, 2026).
+These lower bounds do not determine the joint parameter dependence of
+either task studied here.
 
 \citet{kwok2026asymmetric} extend sublinear linear-system algorithms to
 asymmetric diagonally dominant matrices. Their Section~1.2 specifies a
@@ -272,18 +251,28 @@ does not supply local support discovery or boundary accounting. Our claim
 concerns those costs and the stated joint parameter bound, rather than a
 new obstacle formulation or the first acceleration of constrained diffusion.
 
+\citet{li2026resistance} apply related local obstacle ideas to
+$\ell_1$-regularized resistance and spanning-tree counting. Their
+Definition~3 uses the unshifted graph Laplacian and an unweighted linear
+penalty. Theorem~13 (arXiv version~2, September~4, 2026) gives
+$\widetilde O(\lambda^{-3})$ work per source after
+$\widetilde O(m)$ graph preprocessing, with a sparse potential and
+coordinatewise accuracy. Their nested SDD solves and preprocessed boundary
+oracle are close methodological precedents; the objective, preprocessing,
+and parameter bound differ from the RPPR problem studied here.
+
 Stieltjes obstacle problems and primal--dual active-set methods are classical
 \citep{karkkainen2003augmented}. Nonnegative principal inverses explain safe
 pivots, and standard Fenchel duality gives the grounded electrical-flow
 formulation in \cref{prop:grounded-flow-dual}. The outside obstacle slack is
 exactly a violated dual vertex inequality. In the non-lazy coordinates of
 \cref{eq:related-nonlazy-map}, the residual
-$\vr^{\rm nl}=\eunit{v}-\alpha_{\rm nl}^{-1}\mL_{\alpha_{\rm nl}}\vy$
+$\vr^{\mathrm{nl}}=\eunit{v}-\alpha_{\mathrm{nl}}^{-1}\mL_{\alpha_{\mathrm{nl}}}\vy$
 satisfies
 \[
- \mL_{\alpha_{\rm nl}}\vy
-       -\alpha_{\rm nl}(\eunit{v}-\rho\mD\one)
- =\alpha_{\rm nl}(\rho\mD\one-\vr^{\rm nl}).
+ \mL_{\alpha_{\mathrm{nl}}}\vy
+       -\alpha_{\mathrm{nl}}(\eunit{v}-\rho\mD\one)
+ =\alpha_{\mathrm{nl}}(\rho\mD\one-\vr^{\mathrm{nl}}).
 \]
 This directly identifies the residual activation used by the SDD active-set
 method with local separation of a dual inequality.

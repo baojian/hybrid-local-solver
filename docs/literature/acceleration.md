@@ -458,3 +458,12 @@ its claims; they are not changes to the implementation-wide residual choice.
   energy. The active paper's second PageRank-metric energy, capped-box
   projection comparison, and local-work reporter require their own proofs;
   they do not follow from a black-box iteration bound in this source.
+
+### Editorial comparison check, 10 September 2026
+
+For the active manuscript's table, the COLT 2023 external-volume identity
+`vol_ext(S*) = V_* + k_*` uses `0 < alpha < 1`, when every original edge
+produces a nonzero off-diagonal entry of Q. At `alpha = 1`, Q is diagonal
+and the exact endpoint solution is handled separately. The stated upper
+bounds remain valid there. The primary pointers are Theorems 3–4 (PDF p. 9),
+Theorems 7–8 (p. 11), and the ASPR work proof (p. 24).

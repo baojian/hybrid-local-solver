@@ -27,7 +27,7 @@ manuscript/
 └── dist/                  # generated PDF and arXiv source archive
 ```
 
-`main.tex` contains document structure only. Shared package configuration and
+`main.tex` contains document structure, author details, and the abstract. Shared package configuration and
 notation live under `tex/shared/`. The active command set preserves the
 author's recurring NeurIPS 2024 and 2025 writing conventions without importing
 archived scientific claims or the unrelated machine-learning boilerplate in
@@ -89,6 +89,11 @@ audit, baseline repository issues, independent-build check, and visual QA.
 The 9 September revision makes both OP1 and OP2 prominent and expands the
 source comparisons beyond the two closest 2026 papers. See
 `ARXIV_REVIEW.md` and `../docs/literature/publication-review-20260909.md`.
+The 10 September editorial revision has six main sections, three appendices,
+and 75 numbered equations in 48 pages. Its changes and validation are recorded
+in [`ARXIV_EDITORIAL_20260910.md`](ARXIV_EDITORIAL_20260910.md).
+Number equations when the paper refers to them or when they are central
+definitions or guarantees; use unnumbered displays for intermediate algebra.
 The author can submit the archive; no external submission has been performed.
 
 Project-wide mathematical definitions and research decisions belong in

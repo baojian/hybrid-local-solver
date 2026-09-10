@@ -1,0 +1,93 @@
+Local PageRank methods connect sparse graph diffusion to numerical
+optimization. The push algorithms of
+\citet{andersen2006local,andersen2007using} charge neighborhood scans to
+positive residual mass. The variational formulation of
+\citet{fountoulakis2019variational} gives a weighted $\ell_1$ objective,
+monotone local ISTA updates, and a bound on the optimum's support volume.
+The regularization-path results of \citet{ha2021statistical} provide
+a related foundation for continuation.
+
+\paragraph{The closest RPPR algorithms.}
+\citet{martinezrubio2023accelerated} introduced Conjugate Directions for
+PageRank (CDPR), an exact method, and Accelerated Sparse PageRank (ASPR),
+an approximate method, on expanding supports.
+\citet{wei2026simple} replaced the restricted numerical solve by a
+nearly-linear SDD solve, obtaining a bound proportional to the number
+of support discoveries. Their output also supplies the positive-residual
+certificate of Andersen, Chung, and Lang (ACL).
+For the comparison in \cref{tab:lineage}, write $\mathcal S_\rho^*:=\supp(\vx_\rho^*)$ for the RPPR optimum's
+support and let $k_*=|\mathcal S_\rho^*|$,
+$V_*=\vol(\mathcal S_\rho^*)$, and
+$\widetilde V_*=\nnz(\mQ_{\mathcal S_\rho^*,\mathcal S_\rho^*})$.
+The first volume uses original graph degrees; the last quantity counts
+internal nonzeros. \Cref{app:related-work} gives the exact normalization
+maps, theorem pointers, and output qualifications.
+
+\begin{table}[t]
+\centering
+\small
+\caption{RPPR work in the canonical graph normalization. Additive
+approximation refers to the RPPR objective gap. Soft bounds suppress the
+logarithmic factors specified in the access model; probability qualifications
+are shown explicitly. The comparison retains original-degree volume $V_*$
+and internal nonzeros $\widetilde V_*$.}
+\label{tab:lineage}
+\begin{tabular}{@{}
+ >{\raggedright\arraybackslash}p{0.35\textwidth}
+ >{\raggedright\arraybackslash}p{0.23\textwidth}
+ >{\raggedright\arraybackslash}p{\dimexpr0.42\textwidth-4\tabcolsep\relax}@{}}
+\toprule
+Method & Output & Work \\
+\midrule
+Local ISTA \citep{fountoulakis2019variational}
+ & Additive approximation & $\softO(V_*/\alpha)$ \\
+CDPR \citep{martinezrubio2023accelerated}
+ & Exact optimum & $O(k_*^3+k_*V_*)$ \\
+ASPR \citep{martinezrubio2023accelerated}
+ & Additive approximation & $\softO(k_*\widetilde V_*/\sqrt\alpha+k_*V_*)$ \\
+SDD active set \citep{wei2026simple}
+ & Additive approximation and ACL certificate & $\softO(k_*V_*)$ with high probability \\
+Threshold batching (this paper)
+ & Additive approximation, safe support & $\softO(V_*\min\{k_*,\alpha^{-1/2}\})$ expected \\
+Deterministic continuation (this paper)
+ & Additive approximation, safe subsolution & $\softO(1/(\rho\sqrt\alpha))$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Wei and Yang also discuss a deterministic SDD substitution with
+additional factors; the specific soft bound, rather than the existence
+of a deterministic active-set method, is the distinction here.
+The support-adaptive minimum also records that the existing
+$\widetilde O(\rho^{-2})$ bound can be smaller in some regimes.
+
+\paragraph{Classical acceleration and evolving sets.}
+The local iterative methods of
+\citet{zhou2024iterative} and the accelerated evolving
+set framework of \citet{huang2025accelerated} develop the link between
+numerical acceleration and changing local supports. Their guarantees and
+accuracy dependence differ from the graph-uniform RPPR bound studied here.
+\citet{fountoulakis2026complexity} give conditional guarantees for
+classical accelerated iterations together with a support-locality
+counterexample. Our result concerns the two algorithms specified in this
+paper and preserves that distinction.
+
+\Needspace{7\baselineskip}
+\paragraph{Other approximation and access models.}
+Some PPR estimators use the same output norm as our PPR corollary
+\citep{wei2024absolute}; teleportation dependence, preprocessing, and access
+assumptions also matter. Recent scalar PageRank estimation
+\citep{thorup2026instance} and $\ell_1$-regularized resistance
+\citep{li2026resistance} have different outputs or computational models.
+\Cref{app:related-work} gives detailed comparisons with these and other
+local diffusion, estimation, and obstacle methods.
+
+\paragraph{Organization.}
+\Cref{sec:problem-formulation} fixes the problem, access model, and main
+results. \Cref{sec:obstacle-active-sets} develops the common geometry and
+local certificates. \Cref{sec:deterministic-method} presents deterministic
+continuation, its two-energy analysis, and its sparse implementation.
+\Cref{sec:randomized-method} gives threshold batching and proves its depth
+and total-work bounds. \Cref{sec:two-stage-ppr} develops the PPR consequences
+and discusses further questions. Detailed literature comparisons, bounded
+arithmetic, and seed extensions appear in the appendices.
