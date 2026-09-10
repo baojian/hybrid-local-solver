@@ -1,38 +1,117 @@
-We use the lazy symmetric normalization of the COLT 2022 problem
-\citep[Section~2, equation~(3)]{fountoulakis2022open}, also used by
-\citet[Section~3]{fountoulakis2026complexity}. Original graph degrees are
-retained in every restricted system. This is essential: replacing them by
-induced-subgraph degrees changes the PageRank problem and its local work.
+We use the lazy symmetric normalization of \citet[Section~2, equation~(3)]{fountoulakis2022open}.
 
-\input{tex/shared/source_aligned_problem}
+\subsection{Graph and optimization problems}
+\label{subsec:shared-source-aligned-problem}
 
-For a point source $\vs=\eunit{v}$, the nonzero regime is
+We use boldface for vectors and matrices and regard vectors as columns.
+Let \(\mathcal{G}=(\mathcal{V},\mathcal{E})\) be a finite connected simple
+unweighted undirected graph with \(\mathcal{V}=[n]:=\{1,\ldots,n\}\),
+\(n\geq2\), and adjacency matrix \(\bm{A}\in\{0,1\}^{n\times n}\).
+For \(i\in\mathcal{V}\), define
+\[
+    \mathcal N(i):=\{j\in\mathcal{V}:\{i,j\}\in\mathcal{E}\},
+    \qquad
+    d_i:=|\mathcal N(i)|,
+    \qquad
+    \bm{D}:=\diag(d_1,\ldots,d_n).
+\]
+Degrees always refer to the original graph, including in restricted
+systems. Connectedness gives \(d_i\geq1\), so \(\bm{D}^{-1/2}\) is well
+defined. For \(\mathcal{S}\subseteq\mathcal{V}\), its neighborhood,
+external boundary, and volume are
+\begin{equation*}
+    \mathcal N(\mathcal{S}):=\bigcup_{i\in\mathcal{S}}\mathcal N(i),
+    \qquad
+    \partial\mathcal{S}:=\mathcal N(\mathcal{S})\setminus\mathcal{S},
+    \qquad
+    \vol(\mathcal{S}):=\sum_{i\in\mathcal{S}}d_i.
+\end{equation*}
+Write \(\supp(\bm{x}):=\{i\in\mathcal{V}:x_i\neq0\}\).
+We use \(\preceq,\succeq\) for Loewner order and \(\leq,\geq\) for
+entrywise inequalities between vectors or matrices. The seed distribution
+satisfies
+\begin{equation*}
+    \bm{s}\in\R_+^n,
+    \qquad
+    \inner{\one}{\bm{s}}=1.
+\end{equation*}
+Here \(\one\) is the all-ones vector. Our main results use a point source
+\(\bm{s}=\bm{e}_v\), where \(\bm{e}_v\) is the \(v\)-th standard basis
+vector; general seeds and their input and work costs are treated in
+\cref{app:seed-scope}. For a teleportation parameter \(\alpha\in(0,1]\),
+define
+\begin{equation}
+\begin{aligned}
+    \bm{\mathcal L}&:=\bm{I}-\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{Q}&:=\alpha\bm{I}+\frac{1-\alpha}{2}\bm{\mathcal L}
+      =\frac{1+\alpha}{2}\bm{I}
+       -\frac{1-\alpha}{2}\bm{D}^{-1/2}\bm{A}\bm{D}^{-1/2},\\
+    \bm{b}&:=\alpha\bm{D}^{-1/2}\bm{s}.
+\end{aligned}
+    \label{eq:shared-pagerank-matrices}
+\end{equation}
+The normalized Laplacian satisfies
+\(\bm{0}\preceq\bm{\mathcal L}\preceq2\bm{I}\), hence
+\(\alpha\bm{I}\preceq\bm{Q}\preceq\bm{I}\). The PageRank quadratic is
+\begin{equation}
+    f(\bm{x}):=\frac12\inner{\bm{x}}{\bm{Q}\bm{x}}-\inner{\bm{b}}{\bm{x}},
+    \qquad
+    \nabla f(\bm{x})=\bm{Q}\bm{x}-\bm{b}.
+    \label{eq:shared-pagerank-objective}
+\end{equation}
+Its unique minimizer and the corresponding lazy personalized PageRank
+(PPR) vector are
+\begin{equation*}
+    \bm{x}_0^*:=\bm{Q}^{-1}\bm{b},
+    \qquad
+    \bm{\pi}:=\bm{D}^{1/2}\bm{x}_0^*.
+\end{equation*}
+For \(\rho>0\), the regularized PageRank (RPPR) objective and its unique
+minimizer are defined by
+\begin{equation}
+    g_\rho(\bm{x}):=\alpha\rho\norm{\bm{D}^{1/2}\bm{x}}_1,
+    \qquad
+    F_\rho(\bm{x}):=f(\bm{x})+g_\rho(\bm{x}),
+    \qquad
+    \bm{x}_\rho^*:=\argmin_{\bm{x}\in\R^n}F_\rho(\bm{x}).
+    \label{eq:shared-rppr-objective}
+\end{equation}
+We abbreviate the minimizer as \(\bm{x}^*\) when the objective is clear.
+Writing \(\mathcal{S}_\rho^*:=\supp(\bm{x}_\rho^*)\), standard RPPR
+properties give \(\bm{x}_\rho^*\geq\bm{0}\),
+\(\vol(\mathcal{S}_\rho^*)\leq1/\rho\), and the coordinatewise
+optimality conditions
+\begin{equation}
+    \nabla_i f(\bm{x}_\rho^*)
+    \in
+    \begin{cases}
+        \{-\alpha\rho\sqrt{d_i}\}, & (\bm{x}_\rho^*)_i>0,\\
+        [-\alpha\rho\sqrt{d_i},0], & (\bm{x}_\rho^*)_i=0.
+    \end{cases}
+    \label{eq:shared-rppr-kkt}
+\end{equation}
+For a point source $\vs=\eunit{v}$, $\vx_\rho^*\neq\vzero$ exactly when
 \begin{equation}
  0<\rho<1/d_v.
  \label{eq:nonzero-rppr-regime}
 \end{equation}
-Indeed, the optimum is zero exactly when
-$\vb\leq\alpha\rho\mD^{1/2}\one$, and the only possibly violated
-coordinate is the seed. A single degree query decides this case. At
-$\alpha=1$, the solution has only the seed coordinate
-$(\vx_\rho^*)_v=(1-\rho d_v)_+/\sqrt{d_v}$.
+Indeed, the optimality condition at zero is
+$\vb\leq\alpha\rho\mD^{1/2}\one$, which reduces to $\rho\geq1/d_v$.
+A single degree query identifies the zero case. When $\alpha=1$, the
+solution is explicit:
+$\vx_\rho^*=((1-\rho d_v)_+/\sqrt{d_v})\eunit{v}$, where
+$(t)_+:=\max\{t,0\}$.
 
 \subsection{Accuracy guarantees}
 
-The RPPR task takes $\rho>0$ and a separate additive tolerance
-$\epsobj>0$, and asks for a sparse coordinate list satisfying
+The RPPR task takes $\rho>0$ and an additive tolerance
+$\epsobj>0$, and asks for a sparse vector $\widehat\vx$ satisfying
 \begin{equation}
  F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj.
  \label{eq:rppr-output-target}
 \end{equation}
-Coordinates absent from the list mean zero. Both main algorithms can return
-nonnegative subsolutions lying coordinatewise below $\vx_\rho^*$;
-a subsolution satisfies $\mQ\widehat\vx\leq\vb$.
-The raw threshold-batch output already has safe support; a certified repair
-gives this stronger coordinatewise and residual guarantee at the same
-asymptotic work bound.
-
-For PPR, an output $\widehat\vx$ represents
+The output lists the nonzero coordinates of $\widehat\vx$ and their values;
+unlisted coordinates are zero. For PPR, an output $\widehat\vx$ represents
 $\widehat\vpi=\mD^{1/2}\widehat\vx$. The semantic target is
 \begin{equation}
  \norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty
@@ -40,22 +119,22 @@ $\widehat\vpi=\mD^{1/2}\widehat\vx$. The semantic target is
  \leq\epsppr.
  \label{eq:semantic-ppr-target}
 \end{equation}
-Thus $\epsppr$ measures solution error per unit degree. It is not an
-objective gap, a coordinate activation threshold, or a relative error on
-every nonzero PageRank probability. This distinction matters in comparisons
-with push algorithms and with regularized optimization methods.
-
-A symmetric positive-definite matrix with nonpositive off-diagonal entries
-is called a \emph{Stieltjes matrix}. The PageRank matrix $\mQ$ has this
-property. With $\vomega=\mD^{1/2}\one$, the identities
+Thus $\epsppr$ measures solution error per unit degree. The PageRank matrix $\mQ$ is a \emph{Stieltjes matrix}: symmetric positive
+definite with nonpositive off-diagonal entries.
+With $\vomega=\mD^{1/2}\one$, the identities
 \begin{equation*}
  \mQ\vomega=\alpha\vomega,\qquad
  \mQ^{-1}\geq\vzero,
  \qquad |\mQ|\vomega=\vomega
 \end{equation*}
 will be used throughout; $|\mQ|$ denotes entrywise absolute values.
-The last identity follows by summing the absolute entries of the
-normalized PageRank operator against $\vomega$.
+Since $\mA\one=\mD\one$, we have
+$\mD^{-1/2}\mA\mD^{-1/2}\vomega=\vomega$, which gives the first identity
+and, using the zero diagonal of $\mA$, the third. Also,
+$\mI-\mQ\geq\vzero$ entrywise and
+$\norm{\mI-\mQ}_2\leq1-\alpha<1$, so the Neumann series
+$\mQ^{-1}=\sum_{k=0}^{\infty}(\mI-\mQ)^k$ converges and is entrywise
+nonnegative.
 
 \begin{proposition}[Regularization bias and objective-to-PPR conversion]
 \label{prop:rppr-ppr-bridge}
@@ -81,8 +160,7 @@ $\norm{\widehat\vx-\vx_\rho^*}_2\leq\sqrt{2\epsobj/\alpha}$.
 Since $d_i\geq1$, its degree-normalized maximum norm is no larger.
 The triangle inequality proves \cref{eq:objective-to-ppr}.
 \end{proof}
-
-For example,
+For example, to achieve the semantic PPR target \cref{eq:semantic-ppr-target}, it suffices to set
 \begin{equation}
  \rho=\epsppr/2,\qquad \epsobj=\alpha\epsppr^2/8
  \label{eq:direct-ppr-budgets}
@@ -102,26 +180,41 @@ certificate.
 
 \subsection{Local access and computational cost}
 
-We use the adjacency-list and exact-real word model above. Initially, only
-$v$ is known. All other labels must be obtained from charged incident entries. The algorithm is not given the
-optimal support, a containing ball, a global connectivity certificate, or a
-preprocessed inverse.
+The algorithms receive the seed label $v$, their numerical parameters, and
+degree and adjacency-list access to $\mathcal G$. All other vertex labels
+must be discovered through incident entries. No support information or
+auxiliary graph data are supplied, and both algorithms use no graph-wide
+preprocessing. Unless stated otherwise, we use an exact-real algebraic word model and
+define the \emph{total work} of a complete execution by
+\begin{equation}
+ \Work:=N_{\mathrm{adj}}+N_{\mathrm{deg}}+N_{\mathrm{op}}+N_{\mathrm{out}}.
+ \label{eq:total-work}
+\end{equation}
+Here $N_{\mathrm{adj}}$ counts adjacency-list entry inspections,
+$N_{\mathrm{deg}}$ degree queries, $N_{\mathrm{op}}$ all remaining scalar
+arithmetic operations, comparisons, random choices, and state reads or
+writes, and $N_{\mathrm{out}}$ the words written to return the output. Each such operation
+costs one unit. Composite operations, including dictionary updates,
+local matrix and solver construction, threshold reporting, certification,
+and cleanup, are charged for all their elementary operations.
 
-We also charge arithmetic, comparisons, random choices where applicable,
-state reads and writes, dictionary operations, candidate maintenance,
-principal-matrix construction, solver/preconditioner state, threshold
-reporting, verification, materialization, disposal, and output. Repeated accesses to cached
-incidences are charged. The displayed graph matrices and unknown comparison vectors
-are mathematical objects, not freely supplied arrays.
+Every inspection is counted, including repeated access to cached
+incidences. Scanning a set $\mathcal S$ reads only its vertices' lists and
+contributes $\vol(\mathcal S)$ to $N_{\mathrm{adj}}$. Full scans therefore
+contribute $\sum_j d_{u_j}$, where $u_j$ is the vertex scanned at the
+$j$th scan and repeated visits are included. For randomized algorithms,
+$\Work$ includes failed trials and restarts; expected bounds control
+$\E[\Work]$. Peak storage is reported separately.
 
-For rational inputs, degree densities avoid computing square roots: a listed density
-$f_i$ and original degree $d_i$ represent $x_i=f_i\sqrt{d_i}$ and
-$\pi_i=d_if_i$. The deterministic schedule uses only dyadic halving,
-arithmetic, and comparisons. A separate bounded-arithmetic theorem below
-charges numerical and label encoding lengths. In particular, an
-exact-arithmetic statement is not a guarantee for unchecked floating point.
+An exact scalar occupies one word regardless of its encoding length.
+For rational inputs, a density $f_i$ and original degree $d_i$ represent
+$x_i=f_i\sqrt{d_i}$ and $\pi_i=d_if_i$, avoiding square-root computations.
+The deterministic schedule uses dyadic halving, arithmetic, and comparisons.
+\Cref{app:bounded-arithmetic} separately charges numerical and label
+encoding costs for a specified bounded-arithmetic implementation;
+floating-point stability requires separate analysis.
 
-In soft bounds, $\widetilde O$ hides only polylogarithms in inverse numerical
+In soft bounds, $\widetilde{\mathcal{O}}$ hides only polylogarithms in inverse numerical
 parameters, requested accuracy, explicitly supplied failure probability, and
 the number of exposed records. It hides no ambient graph-size factor, no
 unknown minimum sign margin, and no uncharged setup. In the nonzero regime
@@ -130,12 +223,14 @@ unknown minimum sign margin, and no uncharged setup. In the nonzero regime
  L_{\mathrm{par}}:=\log\frac{2}{\alpha\rho\min\{1,\epsobj\}}.
  \label{eq:main-parameter-log}
 \end{equation}
-The positive quantity $L_{\mathrm{par}}$ collects the parameter logarithms.
 
 \subsection{Main results}
 
 The next two theorems establish the RPPR guarantee, and
 \cref{cor:main-ppr} gives its PPR consequence.
+A nonnegative vector $\widehat\vx$ satisfying $\mQ\widehat\vx\leq\vb$
+is called a \emph{subsolution}. Both algorithms can return subsolutions
+lying coordinatewise below $\vx_\rho^*$ at the stated work bounds.
 
 \begin{theorem}[Deterministic local acceleration]
 \label{thm:deterministic-rppr}
@@ -146,16 +241,15 @@ $0<\rho<1/d_v$, and $\epsobj>0$, \cref{alg:deterministic-rppr} returns
  F_\rho(\widehat\vx)-F_\rho(\vx_\rho^*)\leq\epsobj,
  \qquad\vol(\supp\widehat\vx)\leq1/\rho.
 \end{equation*}
-Its fully charged deterministic work is
+Its total work, defined in \cref{eq:total-work}, satisfies
 \begin{equation}
- O\!\left(\frac{L_{\mathrm{par}}}{\rho\sqrt\alpha}
+ \Work=\mathcal{O}\!\left(\frac{L_{\mathrm{par}}}{\rho\sqrt\alpha}
            \log^2\!\left(2+\frac{L_{\mathrm{par}}}{\rho\sqrt\alpha}\right)\right)
  =\softO\!\left(\frac1{\rho\sqrt\alpha}\right),
  \label{eq:deterministic-main-work}
 \end{equation}
-and its peak storage is $O(1+L_{\mathrm{par}}/(\rho\sqrt\alpha))$ words.
-For $\rho\geq1/d_v$ it returns the exact zero solution in constant word
-work. It uses no randomized primitive or linear-system solver.
+and its peak storage is $\mathcal{O}(1+L_{\mathrm{par}}/(\rho\sqrt\alpha))$ words.
+For $\rho\geq1/d_v$ it returns the exact zero solution in constant word work.
 \end{theorem}
 
 The proof occupies \cref{sec:deterministic-method}. The bound improves
@@ -171,9 +265,9 @@ For $0<\alpha\leq1$, $0<\rho<1/d_v$, and $\epsobj>0$, there is a Las
 Vegas local algorithm returning $\vzero\leq\widehat\vx\leq\vx_\rho^*$
 satisfying \cref{eq:rppr-output-target}. It can also guarantee
 $\vzero\leq\vb-\mQ\widehat\vx\leq2\alpha\rho\vomega$.
-Its expected fully charged work is
+Its expected total work satisfies
 \begin{equation}
- \softO\!\left(V_*\min\{k_*,\alpha^{-1/2}\}\right)
+ \E[\Work]=\softO\!\left(V_*\min\{k_*,\alpha^{-1/2}\}\right)
  \leq\softO\!\left(
        \min\left\{\frac1{\rho^2},\frac1{\rho\sqrt\alpha}\right\}\right).
  \label{eq:randomized-adaptive-work}
@@ -193,7 +287,7 @@ spectrally. Thus the randomized method retains the small-support bound as
 well as the accelerated worst-case envelope: up to logarithmic factors,
 the smaller of support size and the inverse square root of the teleportation
 parameter determines how many restricted systems need to be solved.
-Its graph and boundary records have size $O(V_*)$; numerical workspace is
+Its graph and boundary records have size $\mathcal{O}(V_*)$; numerical workspace is
 that of one SDD call on the current active set. Allocation is charged, so expected peak
 space is in particular bounded by the displayed expected work.
 

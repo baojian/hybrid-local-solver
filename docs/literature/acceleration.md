@@ -91,6 +91,38 @@ archive.
   not establish a lower bound for every local first-order method or under the
   repository's unresolved residual.
 
+### Section 3 attribution check, 10 September 2026
+
+Checked the active manuscript's nonnegative-reformulation and safe-expansion
+statements against the source papers. These are background geometry, not
+new algorithmic contributions:
+
+- The published COLT 2023 PDF, Section 2, p. 5, equations (2)-(3), explicitly
+  gives the nonnegative quadratic reformulation and equivalence of the
+  optimality conditions. The archived arXiv v1 has different equation
+  numbering; its printed expansion must not be copied into the active paper.
+- Fountoulakis et al. (2019), equation (10) and Theorem 1, establish
+  nonnegativity and the coordinatewise optimality conditions. Their p. 567
+  discussion following equation (16) also gives connected support for
+  connected seed sets. The active lemma retains a direct proof for the
+  nonzero point-source regime, including seed membership, without using the
+  additional volume assumption from that paper's surrounding Cheeger-bound
+  discussion.
+- COLT 2023, Proposition 2 and Section 3, provide monotonicity, positivity,
+  support containment, and negative-gradient active-set expansion. Setting
+  their quadratic to `phi_rho` identifies their gradient with the active
+  manuscript's slack. Their restricted-minimizer result applied to the old
+  solution on the enlarged set proves positivity and monotonicity for any
+  nonempty batch of negative-slack coordinates. The manuscript's Stieltjes
+  inverse / Schur-complement proof is an alternative proof of this geometry.
+
+The active Section 3 now cites these precedents immediately before the two
+statements. The nonnegative reformulation is presented as a background lemma;
+the safe-expansion theorem is explicitly a specialization of the 2023
+geometry. Existing labels and mathematical claims are preserved. The
+algorithm-specific continuation and threshold-batch depth/work arguments
+remain in Sections 4 and 5.
+
 ## Citation key: `fountoulakis2026complexity`
 
 - Citation: Kimon Fountoulakis and David Martínez-Rubio. “Complexity of
@@ -120,6 +152,16 @@ archive.
     and the boundary no-percolation condition.
   - PDF pages 18-23, Appendix D: construct the star-graph lower bound where
     FISTA activates a high-degree center while ISTA remains local.
+    Lemma D.1 (p. 19) sets
+    `rho_0 = (1-alpha)/(m(1+alpha)+(1-alpha))`; Proposition D.4
+    (pp. 22-23) proves at least `2m` FISTA work for every
+    `eps_obj <= eps_0(alpha)`, while ISTA takes
+    `O((1/alpha) log(1/eps_obj))` work independent of `m`.
+    Parameter-scaling check (2026-09-10): for fixed `alpha`,
+    `rho_0 = Theta(1/m)` and `1/(rho_0 sqrt(alpha)) = Theta(m)`.
+    Thus this is a genuine separation from ISTA and from bounds based only
+    on the optimum's degree volume (`V_* = 1`), but does not by itself
+    refute the `O_tilde(1/(rho sqrt(alpha)))` target for standard FISTA.
   - PDF page 24, Appendix E, “Stopping criterion”: define the unit-step
     proximal fixed-point residual used in all experiments.
 - Formulation differences: The paper uses plain italic vector/matrix symbols

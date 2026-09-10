@@ -2,7 +2,7 @@
 
 The local-push work of \citet{andersen2006local,andersen2007using} is the
 basic numerical precedent. Its residual invariant and positive mass decrease
-lead to $O(1/(\alpha\epsappr))$ adjacency work and a sparse approximation.
+lead to $\mathcal{O}(1/(\alpha\epsappr))$ adjacency work and a sparse approximation.
 The same diffusion supports local graph partitioning through degree-normalized
 sweep cuts. Earlier and complementary local clustering methods use truncated
 random walks or evolving random sets
@@ -16,8 +16,8 @@ $\ell_1$-regularized quadratic. Their KKT structure, nonnegative optimum,
 monotone ISTA trajectory, and support-volume theorem explain why an ordinary
 proximal method can be implemented locally. The objective-gap recurrence
 in the proof of their Theorem~3, after equation~(23), together with
-curvature at least $\alpha$ and $O(k_*+V_*)$ work per local step, gives
-the $\widetilde O(V_*/\alpha)$ row in \cref{tab:lineage}.
+curvature at least $\alpha$ and $\mathcal{O}(k_*+V_*)$ work per local step, gives
+the $\widetilde{\mathcal{O}}(V_*/\alpha)$ row in \cref{tab:lineage}.
 The stronger mass identity in \cref{eq:rppr-order-mass} is a direct
 consequence of the same structure.
 \citet[Lemma~4 and Section~5]{ha2021statistical} study the regularization path and its statistical
@@ -78,25 +78,25 @@ $V_*+k_*=\Theta(V_*)$ on our graphs. Their internal volume is
 $\widetilde V_*\leq2V_*$. At $\alpha=1$, the matrix is diagonal and the
 exact solution is handled separately.
 Theorem~8 of that paper gives ASPR work
-$\widetilde O(k_*\widetilde V_*/\sqrt\alpha+k_*V_*)$;
-Theorem~4 gives CDPR work $O(k_*^3+k_*V_*)$ and space $O(k_*^2)$.
+$\widetilde{\mathcal{O}}(k_*\widetilde V_*/\sqrt\alpha+k_*V_*)$;
+Theorem~4 gives CDPR work $\mathcal{O}(k_*^3+k_*V_*)$ and space $\mathcal{O}(k_*^2)$.
 The two bounds have different output guarantees: CDPR is exact,
 whereas ASPR permits a specified additive objective error.
 
 \citet[Theorem~1.3]{wei2026simple} (arXiv version~1, August~17, 2026) use nearly-linear SDD solves on growing
 active sets. Their RPPR work is
-$\widetilde O(k_*\widetilde V_*+k_*V_*)=\widetilde O(k_*V_*)$,
+$\widetilde{\mathcal{O}}(k_*\widetilde V_*+k_*V_*)=\widetilde{\mathcal{O}}(k_*V_*)$,
 with probability specified by the caller. This removes the explicit
 $1/\sqrt\alpha$ factor in the supplied-face solve. Their output additionally
 has a nonnegative residual bounded by $2\rho$ in degree-normalized units,
 which gives the ACL approximation property needed by their clustering
-application. They also obtain $\widetilde O(1/\epsappr^2)$ work for ACL
+application. They also obtain $\widetilde{\mathcal{O}}(1/\epsappr^2)$ work for ACL
 approximate PPR. This tradeoff can improve the teleportation dependence
 substantially when the requested locality scale is coarse.
 Their deterministic-solver remark on page~4 gives a deterministic version
 with additional $k_*^{o(1)}$ or $(1/\epsappr)^{o(1)}$ factors. Therefore
 the distinction here is the particular
-$\widetilde O(1/(\rho\sqrt\alpha))$ bound with only polylogarithmic
+$\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ bound with only polylogarithmic
 overhead, not the mere availability of a deterministic active-set method.
 
 \Cref{tab:lineage} summarizes these bounds under the stated output and
@@ -115,8 +115,8 @@ establishes the accelerated local bound through a separate recurrence,
 without requiring a deterministic nearly-linear SDD primitive.
 
 These results do not establish a universal lower bound with
-$1/\sqrt\alpha$ dependence. Even the existing $\widetilde O(\rho^{-2})$
-SDD bound is smaller than $\widetilde O(1/(\rho\sqrt\alpha))$ in
+$1/\sqrt\alpha$ dependence. Even the existing $\widetilde{\mathcal{O}}(\rho^{-2})$
+SDD bound is smaller than $\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ in
 some parameter regimes. The support-adaptive minimum in
 \cref{eq:randomized-adaptive-work} records this distinction.
 
@@ -137,17 +137,25 @@ slightly over-regularized objective $F_{2\rho}$ and use the support at
 $\rho$ to give a uniform margin outside an analytical core. Under an
 explicit confinement condition, their Theorem~4.3 gives
 \begin{equation*}
- O\!\left(\frac1{\rho\sqrt\alpha}\log\frac\alpha{\epsobj}
+ \mathcal{O}\!\left(\frac1{\rho\sqrt\alpha}\log\frac\alpha{\epsobj}
        +\frac{\sqrt{\vol(\gB)}}{\rho\alpha^{3/2}}\right),
 \end{equation*}
 where $\gB$ contains all spurious activations. Their Theorem~4.4 provides
-a graph-structural sufficient condition, and Proposition~4.7 exhibits
-seed-at-leaf stars on which standard FISTA activates a high-degree center.
+a graph-structural sufficient condition.
 The over-regularization comparison already avoids dependence on a global
 minimum complementarity margin. Our use of two regularizers builds on that
 idea. The further step is an unconditional cumulative-volume estimate for
 our constrained accelerated trajectory, using a diffuse source and the
 second energy; no containing boundary set $\gB$ is assumed.
+
+Their Proposition~D.4, summarized in Proposition~4.7, proves a worst-case
+slowdown for standard FISTA on $m$-edge stars seeded at a leaf. At
+$\rho_0=(1-\alpha)/(m(1+\alpha)+(1-\alpha))$, FISTA requires at least $2m$
+degree-weighted work for every sufficiently small objective tolerance
+depending only on $\alpha$, whereas ISTA reaches the same tolerance in
+$\mathcal{O}((1/\alpha)\log(1/\epsobj))$ work independent of $m$.
+For fixed $\alpha$, however, $\rho_0=\Theta(1/m)$, so this lower bound is
+compatible with the $\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ target.
 
 Locally evolving-set methods make the cumulative-volume viewpoint explicit
 \citep{zhou2024iterative}, including local gradient, Chebyshev, heavy-ball,
@@ -176,7 +184,7 @@ Catalyst-shifted quadratic objectives.
 
 \citet{bai2024faster} give a general local diffusion framework. Their
 Theorem~3.3 and Corollary~3.6 recover the unaccelerated
-$O(1/(\alpha\epsppr))$ PageRank scale; their Section~6 leaves accelerated
+$\mathcal{O}(1/(\alpha\epsppr))$ PageRank scale; their Section~6 leaves accelerated
 LocalSOR and LocalCH guarantees open. Thus a general local solver framework
 and practical acceleration are precedents, but do not supply the
 unconditional accelerated work estimate proved here.
@@ -186,7 +194,7 @@ A particularly close accuracy comparison is the SSPPR-D task of
 criterion as \cref{eq:semantic-ppr-target}. Theorem~20 of their full
 preprint gives expected query work
 \begin{equation}
- \widetilde O\!\left(\frac1{\epsppr}
+ \widetilde{\mathcal{O}}\!\left(\frac1{\epsppr}
        \sqrt{\sum_{t\in\gV}\frac{\pi(v,t)}{d_t}}\right)
  \label{eq:related-sspprd}
 \end{equation}
@@ -239,12 +247,12 @@ bound cumulative graph-row work for $F_\rho$.
 The nonnegative quadratic and its flow interpretation have substantial
 algorithmic precedents. \citet[Theorem~1.1]{chen2021diffusion} solve
 $\ell_2$ flow diffusion with nonnegativity constraints in randomized
-$O(m\log^8 n\log(1/\varepsilon))$ work on the supplied whole graph;
+$\mathcal{O}(m\log^8 n\log(1/\varepsilon))$ work on the supplied whole graph;
 their Section~1.4 identifies strong locality as a further direction.
 \citet[Theorem~2 and Corollary~3]{vladu2025barrier} give faster interior
 point methods for symmetric $M$-matrix quadratics over the nonnegative
 orthant, with work proportional to
-$\widetilde O(n^{1/3}\operatorname{nnz}(\mQ)\log(1/\varepsilon))$
+$\widetilde{\mathcal{O}}(n^{1/3}\operatorname{nnz}(\mQ)\log(1/\varepsilon))$
 including the stated norm and condition-number logarithms. These results
 apply to the relevant optimization geometry, but their input-scale work
 does not supply local support discovery or boundary accounting. Our claim
@@ -255,8 +263,8 @@ new obstacle formulation or the first acceleration of constrained diffusion.
 $\ell_1$-regularized resistance and spanning-tree counting. Their
 Definition~3 uses the unshifted graph Laplacian and an unweighted linear
 penalty. Theorem~13 (arXiv version~2, September~4, 2026) gives
-$\widetilde O(\lambda^{-3})$ work per source after
-$\widetilde O(m)$ graph preprocessing, with a sparse potential and
+$\widetilde{\mathcal{O}}(\lambda^{-3})$ work per source after
+$\widetilde{\mathcal{O}}(m)$ graph preprocessing, with a sparse potential and
 coordinatewise accuracy. Their nested SDD solves and preprocessed boundary
 oracle are close methodological precedents; the objective, preprocessing,
 and parameter bound differ from the RPPR problem studied here.

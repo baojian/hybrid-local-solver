@@ -209,6 +209,21 @@ coordinates a single iteration scans, not in the unit, so edge-operation
 counts are comparable without a unit conversion. Their stopping tolerances
 remain distinct.
 
+In the active arXiv paper, the complete exact-real word cost is explicitly
+denoted `Work = N_adj + N_deg + N_op + N_out`. The counters record
+adjacency-entry inspections (including repeated reads of cached incidences),
+degree queries, all remaining scalar arithmetic operations, comparisons,
+random choices and state reads/writes, and emitted output words,
+respectively. Each primitive has unit cost; composite dictionary, matrix,
+solver, certification, and cleanup operations are charged for all their
+primitives. The counters cover the entire execution, including failed trials
+and restarts. Full neighborhood scans contribute `sum_j d_(u_j)` to
+`N_adj`; additional computation and output remain part of `Work`.
+The main deterministic bound controls `Work`, and the randomized bound
+controls `E[Work]`. Peak storage and bounded-arithmetic encoding costs are
+reported separately. This makes the existing fully charged manuscript model
+explicit without changing the baseline scan counters above.
+
 ## Invariants
 
 - Experiments record graph, `alpha`, `epsilon`, random seed, stopping rule,

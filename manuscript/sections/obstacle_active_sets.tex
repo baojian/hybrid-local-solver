@@ -1,21 +1,36 @@
-The two algorithms use different consequences of the same Stieltjes
-structure. Order and mass bounds control deterministic continuation;
-reachable-face monotonicity and boundary certificates justify the
-randomized batches. We first establish these properties and relate the
-slack to a grounded electrical-flow dual.
+This section collects structural properties and local certificates used by
+the two algorithms.
+Monotonicity and mass bounds justify deterministic continuation in
+\cref{sec:deterministic-method}. Safe active-set expansion and a local
+objective certificate support the randomized method in
+\cref{sec:randomized-method}. An electrical-flow interpretation is given
+in \cref{app:grounded-flow-dual}.
 
-Define the shifted load and nonnegative quadratic
+\subsection{Nonnegative formulation and monotonicity}
+
+On nonnegative vectors, the weighted $\ell_1$ penalty is linear. Absorb it
+into the load by defining
 \begin{equation}
- \vc_\rho:=\vb-\alpha\rho\mD^{1/2}\one,
+ \vc_\rho:=\vb-\alpha\rho\vomega,
  \qquad
  \phi_\rho(\vx):=\frac12\vx^\trans\mQ\vx-\vc_\rho^\trans\vx.
  \label{eq:shifted-obstacle}
 \end{equation}
-The point-source load $\vc_\rho$ has at most one positive coordinate.  This
-is the first place where the single-source scope changes the geometry rather
-than merely shortening the input.
+Thus $F_\rho(\vx)=\phi_\rho(\vx)$ for $\vx\geq\vzero$.
+Only the seed coordinate of $\vc_\rho$ can be positive, which will imply
+connectivity of the optimal support.
+Principal submatrices inherit the spectral bounds and off-diagonal signs
+of $\mQ$, so the same Neumann-series argument gives nonnegative principal
+inverses.
 
-\begin{theorem}[Exact obstacle reduction]
+The reformulation and KKT conditions below follow
+\citet[Section~2]{martinezrubio2023accelerated}, building on the
+nonnegativity analysis of \citet[Theorem~1]{fountoulakis2019variational}.
+The latter paper also discusses connected support for connected seed sets
+(p.~567). We include a short proof in our point-source setting for
+completeness.
+
+\begin{lemma}[Nonnegative reformulation and connected support]
 \label{thm:obstacle-reduction}
 The RPPR problem has the same unique optimum and optimum value as
 \begin{equation}
@@ -33,18 +48,14 @@ Its KKT system is
 \end{equation}
 In the nontrivial regime \eqref{eq:nonzero-rppr-regime}, the support
 $\mathcal S_\rho^*$ is connected and contains $v$.
-\end{theorem}
+\end{lemma}
 
 \begin{proof}
-Replacing $\vx$ by $|\vx|$ leaves the diagonal quadratic and weighted
-$\ell_1$ terms unchanged.  Since $Q_{ij}\leq0$ for $i\neq j$ and
-$\vb\geq\vzero$, it cannot increase the off-diagonal quadratic or the linear
-term.  Strong convexity therefore makes $\vx_\rho^*\geq\vzero$.  On the
-nonnegative orthant the weighted $\ell_1$ term is linear, so
-$F_\rho=\phi_\rho$.  The normal-cone stationarity conditions are exactly
-\cref{eq:obstacle-kkt}.  The matrix $\mQ$ is symmetric positive definite with
-nonpositive off-diagonals, hence every principal inverse is nonnegative and
-the KKT solution is unique.
+The signs $Q_{ij}\leq0$ for $i\neq j$ and $\vb\geq\vzero$ give
+$F_\rho(|\vx|)\leq F_\rho(\vx)$. Uniqueness therefore implies
+$\vx_\rho^*\geq\vzero$. Equality of the objectives on the nonnegative
+orthant proves the reformulation. Its optimality conditions are
+\cref{eq:obstacle-kkt}, and strong convexity gives uniqueness.
 
 At the seed,
 \[
@@ -60,9 +71,9 @@ $\mQ_{\gC\gC}^{-1}\geq\vzero$ contradicts positivity on $\gC$.
 
 \begin{lemma}[Order, mass, and support volume]
 \label{lem:rppr-order-mass}
-The obstacle optimum is the least nonnegative supersolution: if
-$\vz\geq\vzero$ and $\mQ\vz\geq\vc_\rho$, then
-$\vx_\rho^*\leq\vz$. Consequently, for $0<r\leq r'$,
+If $\vz\geq\vzero$ and $\mQ\vz\geq\vc_\rho$, then
+$\vx_\rho^*\leq\vz$. Thus $\vx_\rho^*$ is the least nonnegative vector
+satisfying this shifted-load inequality. Consequently, for $0<r\leq r'$,
 \begin{equation}
  \vzero\leq\vx_{r'}^*\leq\vx_r^*\leq\vx_0^*,
  \qquad \vomega^\trans\vx_r^*+r\vol(\mathcal S_r^*)\leq1.
@@ -78,9 +89,9 @@ $\mQ_{\gI\gI}\ve_{\gI}
  \leq-\mQ_{\gI\gI^c}\ve_{\gI^c}\leq\vzero$.
 The last inequality uses $\ve_{\gI^c}\leq\vzero$ and Stieltjes signs.
 Multiplication by the nonnegative principal inverse contradicts
-$\ve_{\gI}>\vzero$. Since $\vc_r\geq\vc_{r'}$,
-$\vx_r^*$ is a supersolution at $r'$; $\vx_0^*$ is one at $r$.
-This proves the order.
+$\ve_{\gI}>\vzero$. Since
+$\mQ\vx_r^*\geq\vc_r\geq\vc_{r'}$ and
+$\mQ\vx_0^*=\vb\geq\vc_r$, the first assertion proves the order.
 
 The source deficit $\vb-\mQ\vx_r^*$ is nonnegative: it equals
 $\alpha r\omega_i$ on the positive support, and at a zero coordinate
@@ -92,113 +103,13 @@ Its contribution on the positive support alone is
 $\alpha r\vol(\mathcal S_r^*)$, proving the mass inequality.
 \end{proof}
 
-\subsection{The grounded electrical-flow dual}
-
-The KKT slack also has an exact network meaning.  Form an augmented graph by
-adding a ground vertex $\mathsf g$.  Give every original edge conductance
-$(1-\alpha)/2$ and connect each $i\in\gV$ to $\mathsf g$ with conductance
-$\alpha d_i$; when $\alpha=1$, omit the zero-conductance original edges.  Fix
-an orientation, let $\mB$ be the signed incidence matrix with the ground
-column deleted, and let $\mW$ be the diagonal matrix of positive
-conductances.  Define
-\begin{equation}
- \mH:=\mD^{1/2}\mQ\mD^{1/2}
- =\alpha\mD+\frac{1-\alpha}{2}(\mD-\mA),
- \qquad
- \vc_\rho^{\mathrm d}:=\mD^{1/2}\vc_\rho=\alpha(\vs-\rho\mD\one).
- \label{eq:grounded-system}
-\end{equation}
-Then $\mB^\trans\mW\mB=\mH$.
-
-\begin{proposition}[Grounded electrical-flow dual]
-\label{prop:grounded-flow-dual}
-Under the change of variables $\vy=\mD^{-1/2}\vx$, the obstacle problem is
-\begin{equation}
- \min_{\vy\geq\vzero}
- \left\{
-  \frac12\norm{\mW^{1/2}\mB\vy}_2^2-(\vc_\rho^{\mathrm d})^\trans\vy
- \right\}.
- \label{eq:grounded-flow-primal}
-\end{equation}
-Its Fenchel dual, written as a minimum-energy problem, is
-\begin{equation}
- \min_{\vf}\ \frac12\vf^\trans\mW^{-1}\vf
- \qquad\text{subject to}\qquad
- \mB^\trans\vf\geq\vc_\rho^{\mathrm d}.
- \label{eq:grounded-flow-dual}
-\end{equation}
-The two minimum values have opposite signs.  At an optimal primal--dual pair,
-\begin{equation*}
- \vf^*=\mW\mB\vy^*,
- \qquad
- \vlambda^*:=\mB^\trans\vf^*-\vc_\rho^{\mathrm d}
- =\mD^{1/2}\vw^*\geq\vzero,
- \qquad
- y_i^*\lambda_i^*=0.
-\end{equation*}
-More generally, let $\vx^\gU$ be the zero-extended exact solution on a
-reachable face $\gU$, with slack $\vw^\gU$ as defined in
-\cref{subsec:reachable-faces}. Set $\vy^\gU:=\mD^{-1/2}\vx^\gU$.
-The induced flow $\vf^\gU:=\mW\mB\vy^\gU$ is tight on $\gU$ and
-\begin{equation*}
- (\mB^\trans\vf^\gU-\vc_\rho^{\mathrm d})_j=\sqrt{d_j}\,w_j^\gU
- \quad(j\notin \gU).
-\end{equation*}
-Consequently, $w_j^\gU<0$ is exactly a violated dual vertex constraint.
-\end{proposition}
-
-\begin{proof}
-The identities in \cref{eq:grounded-system} give
-$\vy^\trans\mH\vy=\norm{\mW^{1/2}\mB\vy}_2^2$ and transform
-\cref{eq:obstacle-problem} into \cref{eq:grounded-flow-primal}.  The conjugate
-identity
-\[
- \frac12\norm{\mW^{1/2}\vz}_2^2
- =\max_{\vf}
- \left\{\vf^\trans\vz-\frac12\vf^\trans\mW^{-1}\vf\right\}
-\]
-and minimization over $\vy\geq\vzero$ make the inner value finite precisely
-when $\mB^\trans\vf-\vc_\rho^{\mathrm d}\geq\vzero$.  Fenchel--Rockafellar duality applies
-because the quadratic is continuous everywhere and the orthant is nonempty,
-with the sign reversal in the displayed minimization convention.  Stationarity in the conjugate pair
-gives $\vf^*=\mW\mB\vy^*$; minimization over the orthant gives
-complementarity.  Finally,
-\[
- \mB^\trans\mW\mB\vy-\vc_\rho^{\mathrm d}
- =\mH\vy-\vc_\rho^{\mathrm d}
- =\mD^{1/2}(\mQ\vx-\vc_\rho)
- =\mD^{1/2}\vw,
-\]
-which proves both slack identities.
-\end{proof}
-
-Thus the active-set method may be read as local constraint generation for
-\cref{eq:grounded-flow-dual}: a face solve constructs the electrical flow
-induced by the current potentials, and the boundary reporter separates
-violated vertex inequalities.  This interpretation does not by itself give
-a local algorithm---forming a global dual or checking all its inequalities
-would scan the graph.  The content needed below is that Stieltjes order makes
-every reported violation support-safe, boundary sparsity makes separation
-local, and threshold batching limits how often a complete induced flow must
-be rebuilt.
-
-For an inactive $j\neq v$, write $y_i=x_i/\sqrt{d_i}$.  Its normalized slack
-is
-\begin{equation}
- \frac{w_j}{\sqrt{d_j}}
- =\alpha\rho-\frac{1-\alpha}{2d_j}
-   \sum_{i\in\mathcal N(j)\cap\supp(\vx)}y_i.
- \label{eq:boundary-slack}
-\end{equation}
-Thus a violation can occur only on the graph boundary of the current
-support.  The challenge is to update these boundary keys after a face solve
-without scanning the ambient graph.
-
-\subsection{Reachable faces and safe batches}
+\subsection{Safe active-set expansion}
 \label{subsec:reachable-faces}
 
-In this subsection, assume the nonzero point-source regime in
-\cref{eq:nonzero-rppr-regime}. For $\gU\subseteq[n]$, define the zero-extended exact face solution and slack
+We now describe the exact active-set steps underlying the randomized
+method. Assume the nonzero point-source regime in
+\cref{eq:nonzero-rppr-regime}. For an active set $\gU\subseteq[n]$, define
+the restricted linear-system solution, extended by zero, and its slack by
 \begin{equation*}
  x_i^\gU=
  \begin{cases}
@@ -208,13 +119,17 @@ In this subsection, assume the nonzero point-source regime in
  \qquad
  \vw^\gU:=\mQ\vx^\gU-\vc_\rho.
 \end{equation*}
-The empty face means $\vx^\emptyset=\vzero$.  A face is \emph{reachable} if
-it is obtained by first admitting $v$ and thereafter adding only coordinates
-whose exact current slack is negative.
+Set $\vx^\emptyset=\vzero$. For an arbitrary $\gU$, the restricted
+solution need not be nonnegative. An active set is \emph{reachable} if it
+is obtained from $\{v\}$ by repeatedly adding one or more coordinates
+whose exact current slack is negative. The next theorem specializes the
+restricted-minimizer geometry of
+\citet[Proposition~2 and Section~3]{martinezrubio2023accelerated}.
+We give a direct proof using Stieltjes inverses and Schur complements.
 
-\begin{theorem}[Safe batched Stieltjes pivots]
+\begin{theorem}[Safe active-set expansion]
 \label{thm:safe-batched-pivots}
-For every reachable face $\gU$,
+For every reachable active set $\gU$,
 \begin{equation*}
  \gU\subseteq\mathcal S_\rho^*,
  \qquad
@@ -232,8 +147,8 @@ If no outside slack is negative, $\vx^\gU=\vx_\rho^*$.
 \end{theorem}
 
 \begin{proof}
-The empty-face slack at the seed is negative, so the first scalar face is
-positive.  Suppose the claim holds at $\gU$.  Restricted stationarity and the
+The initial seed slack is negative, so the first scalar solution is
+positive. Suppose the claim holds at $\gU$. Restricted stationarity and the
 optimal equations give
 \begin{equation*}
  \mQ_{\gU\gU}\bigl((\vx_\rho^*)_\gU-\vx_\gU^\gU\bigr)
@@ -269,22 +184,42 @@ and outside nonnegativity satisfy the global KKT system, whose solution is
 unique.
 \end{proof}
 
+Thus $\vx^\gU$ minimizes $\phi_\rho$ over nonnegative vectors supported
+on a reachable $\gU$. We also call this restricted computation a
+\emph{face solve}.
+
+For any $\vx\geq\vzero$, set $\vw=\mQ\vx-\vc_\rho$ and
+$y_i=x_i/\sqrt{d_i}$. At a coordinate $j\neq v$ with $x_j=0$,
+\begin{equation}
+ \frac{w_j}{\sqrt{d_j}}
+ =\alpha\rho-\frac{1-\alpha}{2d_j}
+   \sum_{i\in\mathcal N(j)\cap\supp(\vx)}y_i.
+ \label{eq:boundary-slack}
+\end{equation}
+This expression makes support discovery local.
+
 \begin{corollary}[Boundary-only discovery]
 \label{cor:boundary-only-discovery}
-At a nonempty reachable face, every negative slack lies in $\partial \gU$.
-Exposing the adjacency lists of admitted vertices creates at most
-$\vol(\gU)$ boundary incidences, and no adjacency list of a false candidate
-must be scanned.
+At a reachable active set $\gU$, every negative outside slack lies in
+$\partial\gU$. Exposing each admitted vertex's adjacency list once costs
+$\vol(\gU)$ entry inspections and creates at most $\vol(\gU)$ boundary
+incidences. No adjacency list outside $\gU$ is needed to evaluate the
+boundary slacks.
 \end{corollary}
 
 \begin{proof}
 If $j\notin \gU\cup\partial \gU$ and $j\neq v$, sparsity gives
 $w_j^\gU=-(\vc_\rho)_j=\alpha\rho\sqrt{d_j}>0$.  The seed is already active.
 The incidence count charges each exposed edge to its endpoint in $\gU$.
+Boundary degrees can be queried without opening their adjacency lists.
+Any later rescan is charged again under \cref{eq:total-work}.
 \end{proof}
 
-\subsection{A local objective certificate}
+\subsection{Local objective certification}
 
+We next turn slack values into a stopping test for
+\cref{eq:rppr-output-target}. Let $I_{\R_+^n}$ be the indicator function,
+equal to zero on $\R_+^n$ and $+\infty$ elsewhere.
 For feasible $\vx\geq\vzero$, let $\vw=\mQ\vx-\vc_\rho$ and define
 \begin{equation}
  g_i(\vx)=
@@ -297,14 +232,16 @@ For feasible $\vx\geq\vzero$, let $\vw=\mQ\vx-\vc_\rho$ and define
 
 \begin{lemma}[KKT subgradient certificate]
 \label{lem:kkt-gap-certificate}
-The vector $\vg(\vx)$ is the minimum-Euclidean-norm subgradient of
-$\phi_\rho+I_{\R_+^n}$ at $\vx$, and
+The vector $\vg(\vx)$ has the smallest Euclidean norm among the
+subgradients of $\phi_\rho+I_{\R_+^n}$ at $\vx$, and
 \begin{equation*}
  F_\rho(\vx)-F_\rho(\vx_\rho^*)
  \leq\frac{\norm{\vg(\vx)}_2^2}{2\alpha}.
 \end{equation*}
-If $\vx$ is supported on $\gU$ containing $v$, one scan of the rows in $\gU$
-computes every possibly nonzero entry of this certificate.
+If $\vx$ is supported on a known set $\gU$ containing $v$, the certificate
+and its squared norm can be computed with $\vol(\gU)$ adjacency-entry
+inspections and $\softO(\vol(\gU))$ total work under
+\cref{eq:total-work}.
 \end{lemma}
 
 \begin{proof}
@@ -313,11 +250,23 @@ At $x_i>0$ the normal cone is zero.  At $x_i=0$ it is $(-\infty,0]$, so
 coordinate subdifferential.  Strong convexity gives, for every subgradient
 $\vg$,
 \[
- (\phi_\rho+I)(\vy)\geq(\phi_\rho+I)(\vx)
+ (\phi_\rho+I_{\R_+^n})(\vy)\geq(\phi_\rho+I_{\R_+^n})(\vx)
  +\vg^\trans(\vy-\vx)+\frac\alpha2\norm{\vy-\vx}_2^2.
 \]
-Minimizing the right side and taking $\vy=\vx_\rho^*$ proves the bound.
-Locality follows from \cref{eq:boundary-slack}: a sparse row scan accumulates
-$\mQ\vx$ on $\gU\cup\partial \gU$, and every farther nonseed coordinate has
-positive slack.
+Taking $\vy=\vx_\rho^*$ and bounding the last two terms below by
+$-\norm{\vg}_2^2/(2\alpha)$ proves the objective bound.
+
+One scan of the rows in $\gU$ accumulates $\mQ\vx$ on
+$\gU\cup\partial\gU$. Every farther coordinate has positive slack by
+\cref{eq:boundary-slack}, so its certificate entry is zero.
+There are at most $|\gU|+\vol(\gU)\leq2\vol(\gU)$ records.
+Degree queries, diagonal and source contributions, clipping, the squared
+norm, and output take $\mathcal{O}(\vol(\gU))$ elementary operations.
+Accumulating entries in a balanced search tree adds a factor
+$\mathcal{O}(\log(2+\vol(\gU)))$, giving the stated total work.
+Degree densities permit the same computation without square roots:
+the squared norm is a degree-weighted sum of squared certificate densities.
 \end{proof}
+
+In particular, $\norm{\vg(\vx)}_2^2\leq2\alpha\epsobj$ certifies the
+requested RPPR accuracy using only the active set and its boundary.

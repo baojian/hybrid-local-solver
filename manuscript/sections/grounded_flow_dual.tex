@@ -1,0 +1,87 @@
+The KKT slack from \cref{sec:obstacle-active-sets} has an exact network
+interpretation. Form an augmented graph by
+adding a ground vertex $\mathsf g$.  Give every original edge conductance
+$(1-\alpha)/2$ and connect each $i\in\gV$ to $\mathsf g$ with conductance
+$\alpha d_i$; when $\alpha=1$, omit the zero-conductance original edges.  Fix
+an orientation, let $\mB$ be the signed incidence matrix with the ground
+column deleted, and let $\mW$ be the diagonal matrix of positive
+conductances.  Define
+\begin{equation}
+ \mH:=\mD^{1/2}\mQ\mD^{1/2}
+ =\alpha\mD+\frac{1-\alpha}{2}(\mD-\mA),
+ \qquad
+ \vc_\rho^{\mathrm d}:=\mD^{1/2}\vc_\rho=\alpha(\vs-\rho\mD\one).
+ \label{eq:grounded-system}
+\end{equation}
+Then $\mB^\trans\mW\mB=\mH$.
+
+\begin{proposition}[Grounded electrical-flow dual]
+\label{prop:grounded-flow-dual}
+Under the change of variables $\vy=\mD^{-1/2}\vx$, the obstacle problem is
+\begin{equation}
+ \min_{\vy\geq\vzero}
+ \left\{
+  \frac12\norm{\mW^{1/2}\mB\vy}_2^2-(\vc_\rho^{\mathrm d})^\trans\vy
+ \right\}.
+ \label{eq:grounded-flow-primal}
+\end{equation}
+Its Fenchel dual, written as a minimum-energy problem, is
+\begin{equation}
+ \min_{\vf}\ \frac12\vf^\trans\mW^{-1}\vf
+ \qquad\text{subject to}\qquad
+ \mB^\trans\vf\geq\vc_\rho^{\mathrm d}.
+ \label{eq:grounded-flow-dual}
+\end{equation}
+The two minimum values have opposite signs.  At an optimal primal--dual pair,
+\begin{equation*}
+ \vf^*=\mW\mB\vy^*,
+ \qquad
+ \vlambda^*:=\mB^\trans\vf^*-\vc_\rho^{\mathrm d}
+ =\mD^{1/2}\vw^*\geq\vzero,
+ \qquad
+ y_i^*\lambda_i^*=0.
+\end{equation*}
+More generally, let $\vx^\gU$ be the zero-extended exact solution on a
+reachable active set $\gU$, with slack $\vw^\gU$ as defined in
+\cref{subsec:reachable-faces}. Set $\vy^\gU:=\mD^{-1/2}\vx^\gU$.
+The induced flow $\vf^\gU:=\mW\mB\vy^\gU$ is tight on $\gU$ and
+\begin{equation*}
+ (\mB^\trans\vf^\gU-\vc_\rho^{\mathrm d})_j=\sqrt{d_j}\,w_j^\gU
+ \quad(j\notin \gU).
+\end{equation*}
+Consequently, $w_j^\gU<0$ is exactly a violated dual vertex constraint.
+\end{proposition}
+
+\begin{proof}
+The identities in \cref{eq:grounded-system} give
+$\vy^\trans\mH\vy=\norm{\mW^{1/2}\mB\vy}_2^2$ and transform
+\cref{eq:obstacle-problem} into \cref{eq:grounded-flow-primal}.  The conjugate
+identity
+\[
+ \frac12\norm{\mW^{1/2}\vz}_2^2
+ =\max_{\vf}
+ \left\{\vf^\trans\vz-\frac12\vf^\trans\mW^{-1}\vf\right\}
+\]
+and minimization over $\vy\geq\vzero$ make the inner value finite precisely
+when $\mB^\trans\vf-\vc_\rho^{\mathrm d}\geq\vzero$.  Fenchel--Rockafellar duality applies
+because the quadratic is continuous everywhere and the orthant is nonempty,
+with the sign reversal in the displayed minimization convention.  Stationarity in the conjugate pair
+gives $\vf^*=\mW\mB\vy^*$; minimization over the orthant gives
+complementarity.  Finally,
+\[
+ \mB^\trans\mW\mB\vy-\vc_\rho^{\mathrm d}
+ =\mH\vy-\vc_\rho^{\mathrm d}
+ =\mD^{1/2}(\mQ\vx-\vc_\rho)
+ =\mD^{1/2}\vw,
+\]
+which proves both slack identities.
+\end{proof}
+
+Thus the active-set method can be interpreted as local constraint
+generation for \cref{eq:grounded-flow-dual}: a restricted solve constructs
+the flow induced by the current potentials, and boundary slack tests identify
+violated vertex inequalities. The implementation uses the local support
+and certificate properties of \cref{sec:obstacle-active-sets} to perform
+these tests; the batch-depth bound in \cref{sec:threshold-batch-depth}
+controls the number of restricted solves. Constructing the full dual or
+testing every vertex would require graph-wide access.

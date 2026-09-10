@@ -1,98 +1,101 @@
 Personalized PageRank (PPR) measures the relevance of graph vertices to a
-seed through a geometrically stopped random walk. Its local computation
-supports graph clustering and diffusion without requiring access to the
-entire graph \citep{andersen2006local,andersen2007using}. Given a seed
-vertex $v$, we seek a sparse approximation $\widehat\vpi$ to the lazy
-PageRank vector $\vpi$ satisfying
-$\norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty\leq\epsppr$, where
-$\mD$ contains the original graph degrees. The central question is whether
-acceleration can improve the total work needed to compute this local
-approximation.
+seed through a geometrically stopped random walk. Local PPR algorithms
+produce sparse approximations and support graph clustering and diffusion
+without requiring access to the entire graph
+\citep{andersen2006local,andersen2007using}. The central question is whether
+acceleration can reduce total local work while preserving independence
+from the graph size.
 
 The classical push algorithm computes a sparse approximation in
-$O(1/(\alpha\epsappr))$ degree-weighted work, where $\alpha$ is the
+$\mathcal{O}(1/(\alpha\epsappr))$ degree-weighted work, where $\alpha$ is the
 teleportation parameter and $\epsappr$ is its normalized residual
 tolerance. Positive residual mass pays for each neighborhood scan. Global
-accelerated methods suggest a square-root improvement: the symmetric
-PageRank system has spectrum in $[\alpha,1]$, so accelerated gradient,
-conjugate gradient, and Chebyshev methods need only
-$\widetilde O(1/\sqrt\alpha)$ iterations. A full matrix-vector product,
-however, can read the entire graph. A local running-time bound must also
-control the vertices discovered and the cost of every repeated update.
+accelerated methods suggest a square-root improvement: the lazy symmetric
+PageRank system has spectrum in $[\alpha,1]$, so standard accelerated methods need only
+$\widetilde{\mathcal{O}}(1/\sqrt\alpha)$ iterations. These iteration bounds,
+however, do not control the cost of accessing the graph. A local
+running-time guarantee must charge both the vertices discovered and every
+repeated update.
 
 \paragraph{Regularized PageRank and the acceleration question.}
-Regularized personalized PageRank (RPPR) uses weighted $\ell_1$
-regularization to give a sparse optimization formulation:
-\begin{equation*}
+Weighted $\ell_1$ regularization gives a sparse optimization formulation
+called regularized personalized PageRank (RPPR). For a seed vertex $v$ in
+a graph with $n$ vertices, consider
+\begin{equation}
  \min_{\vx\in\R^n}
  F_\rho(\vx):=
  \tfrac12\vx^\trans\mQ\vx-\alpha\eunit{v}^\trans\mD^{-1/2}\vx
            +\alpha\rho\norm{\mD^{1/2}\vx}_1,
  \qquad
  \mQ=\alpha\mI+\tfrac{1-\alpha}{2}\bm{\mathcal L}.
-\end{equation*}
-Here $\bm{\mathcal L}$ is the symmetric normalized graph Laplacian and
-$\rho$ is the regularization parameter. The optimum is nonnegative and
-has support volume at most $1/\rho$
-\citep{fountoulakis2019variational}. Local proximal gradient exploits
-this structure in $\widetilde O(1/(\alpha\rho))$ work.
-\citet{fountoulakis2022open} asked for an accelerated local
-algorithm with running time
+ \label{eq:intro-rppr-objective}
+\end{equation}
+Here $\mD$ is the diagonal matrix of original graph degrees,
+$\bm{\mathcal L}$ is the symmetric normalized graph Laplacian, and $\rho>0$
+is the regularization parameter. The optimum is nonnegative and has
+support volume at most $1/\rho$ \citep{fountoulakis2019variational}.
+Local proximal gradient exploits this structure in
+$\widetilde{\mathcal{O}}(1/(\alpha\rho))$ work.
+\citet{fountoulakis2022open} asked whether a local algorithm can achieve
 \begin{equation*}
- \widetilde O\!\left(\frac1{\rho\sqrt\alpha}\right),
+ \widetilde{\mathcal{O}}\!\left(\frac1{\rho\sqrt\alpha}\right)
 \end{equation*}
-with only polylogarithmic dependence on objective accuracy and no dependence
-on the ambient graph size. We attain this algorithmic target by two
-different methods. An explicit accuracy conversion then gives the PPR
-approximation bound.
+work with only polylogarithmic dependence on the requested accuracy and no dependence on the ambient graph size.
+We attain this target with deterministic and randomized local algorithms.
 
 \paragraph{The obstacle to local acceleration.}
-Two costs have limited earlier approaches. Momentum can activate vertices
-outside the optimal support, including vertices of very large degree;
-standard FISTA can fail support confinement
-\citep{fountoulakis2026complexity}. Methods that preserve safe support
-expansion instead solve a sequence of restricted problems. The accelerated
-sparse algorithm of \citet{martinezrubio2023accelerated} retains a factor
-for the number of support discoveries. The recent active-set method of
-\citet{wei2026simple} uses nearly-linear symmetric diagonally dominant (SDD) system solves
-on each discovered set, but its total work still depends on the number of these sets.
-Our deterministic method bounds the cumulative cost of an accelerated
-trajectory. Our randomized method bounds how many restricted systems
-need to be processed.
+Earlier approaches face two computational difficulties: expensive updates
+outside the optimal support due to momentum and repeated solves on growing
+active sets. Momentum-based methods can activate vertices outside the
+optimal support, including vertices of very large degree; the fast iterative
+shrinkage-thresholding algorithm (FISTA) can fail support confinement
+\citep{fountoulakis2026complexity}. Meanwhile, methods that preserve safe
+support expansion avoid these excursions by solving a sequence of restricted
+problems, but their guarantees retain a factor for the number of support
+discoveries \citep{martinezrubio2023accelerated,wei2026simple}. The first
+difficulty calls for a bound on cumulative update volume; the second calls
+for a bound on the number of restricted systems that must be solved. Our two
+algorithms address these difficulties through different forms of local
+acceleration.
 
 \paragraph{Our contributions.}
-For a point source on a finite connected simple unweighted undirected
-graph, we establish the following results.
+We consider point sources on finite connected simple unweighted undirected
+graphs with at least two vertices, under the local-access model of
+\cref{sec:problem-formulation}. The RPPR work bounds below concern the
+nonzero regime $0<\rho<1/d_v$, where $d_v$ is the seed degree; for
+$\rho\geq1/d_v$, the exact zero solution is returned in constant work.
 \begin{itemize}[leftmargin=*]
 \item \textbf{Deterministic local acceleration.}
 Regularization continuation and constrained accelerated corrections
 attain additive RPPR objective accuracy $\epsobj$ in
-$\widetilde O(1/(\rho\sqrt\alpha))$ work
-(\cref{thm:deterministic-rppr}). The proof controls cumulative scanned
-volume, including repeated visits and excursions outside the optimal
-support. A sparse implementation realizes this bound, and a specified
-bounded-arithmetic version gives explicit encoding costs.
+$\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ work
+(\cref{thm:deterministic-rppr}). The algorithm decreases regularization in
+stages, accelerating each correction within a degree-scaled box under a
+mass constraint. The total work bound includes the cumulative scanning
+cost $\sum_j d_{u_j}$, where $u_j$ is the vertex scanned at the $j$th
+neighborhood scan, as well as all remaining operations.
 
 \item \textbf{Randomized acceleration with support adaptation.}
 Certified threshold batching attains the same objective guarantee with
 expected work
 \begin{equation}
- \widetilde O\!\left(V_*\min\{k_*,\alpha^{-1/2}\}\right)
- \leq\widetilde O\!\left(
-      \min\{\rho^{-2},\rho^{-1}\alpha^{-1/2}\}\right),
+ \widetilde{\mathcal{O}}\!\left(
+      V_*\min\left\{k_*,\frac1{\sqrt\alpha}\right\}\right)
+ \leq\widetilde{\mathcal{O}}\!\left(
+      \min\left\{\frac1{\rho^2},\frac1{\rho\sqrt\alpha}\right\}\right),
  \label{eq:intro-random-adaptive}
 \end{equation}
 where $k_*$ and $V_*$ are the cardinality and original-degree volume
-of the optimal support (\cref{thm:randomized-rppr-main}). This retains
-the small-support regime of the active-set bound while adding an
-accelerated bound on the number of batches. The algorithm is Las Vegas:
-every accepted result is certified.
+of the optimal support (\cref{thm:randomized-rppr-main}). The minimum
+retains the small-support regime of the active-set bound while adding an
+accelerated bound on the number of batches. Restarting after a reported
+failure gives a Las Vegas algorithm: every returned vector is certified.
 
 \item \textbf{A PPR approximation consequence.}
 Regularization bias and objective error together yield a sparse
-$\widehat\vpi$ with
+approximation $\widehat\vpi$ to the seed's lazy PPR vector $\vpi$ with
 $\norm{\mD^{-1}(\widehat\vpi-\vpi)}_\infty\leq\epsppr$ in
-$\widetilde O(1/(\epsppr\sqrt\alpha))$ deterministic work, or the
+$\widetilde{\mathcal{O}}(1/(\epsppr\sqrt\alpha))$ deterministic work, or the
 same expected work for the randomized method
 (\cref{cor:main-ppr}). The conversion specifies separate regularization
 and objective-accuracy budgets. We also give a certified conversion from
@@ -105,21 +108,21 @@ The deterministic algorithm solves a sequence of decreasing regularization
 levels. Each level starts from a safe sparse baseline and accelerates the
 remaining correction inside a degree-scaled box with a mass constraint.
 Two comparison energies for the same recurrence connect objective
-convergence to local work. A signed-flow argument then charges the total
-volume of the updated coordinates, rather than requiring every
-intermediate support to stay inside the optimum's support. The sparse
-implementation is part of the running-time analysis.
+convergence to local work. A signed-flow argument charges the cumulative
+volume of all updated coordinates, including repeated visits and updates
+outside the optimal support.
 
 The randomized algorithm repeatedly solves on its current active set,
 certifies the result, and admits boundary vertices whose violations exceed
 a common threshold. The sign structure of the PageRank matrix certifies
-that admitted vertices belong to the optimal support. The key question is how often this cycle repeats.
-A block-Cholesky and Chebyshev argument gives
-$\widetilde O(1/\sqrt\alpha)$ batches; the elementary cardinality
-bound gives at most $k_*$. Combining the smaller bound with charged
-SDD solves yields \cref{eq:intro-random-adaptive}.
+that admitted vertices belong to the optimal support. A block-Cholesky and
+Chebyshev argument bounds the number of batches by
+$\widetilde{\mathcal{O}}(1/\sqrt\alpha)$, while every nonempty batch adds a
+vertex and hence there are at most $k_*$ batches. Combining the smaller
+bound with fully charged solves of local symmetric diagonally dominant
+(SDD) systems yields
+\cref{eq:intro-random-adaptive}.
 
-Both methods count total local work under the access and arithmetic
-model in \cref{sec:problem-formulation}. These results concern the stated algorithms; the
-behavior of unmodified FISTA is a separate question. General seed inputs
-and their additional costs are treated in \cref{app:seed-scope}.
+All bounds count graph access, local computation, certification, and
+output under the model in \cref{sec:problem-formulation}. General seed
+inputs and their additional costs are treated in \cref{app:seed-scope}.
