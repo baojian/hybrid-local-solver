@@ -8,6 +8,38 @@ The public copy retains all 505 selected research commits, including 44 pull-req
 
 The notes include failed proof paths, corrections, conditional results, open problems, AI-assisted development, and limitations of computational checks. Publishing a historical claim does not make it correct. The active manuscript and each note's status record identify the intended current scope.
 
+## Proof reading guide
+
+Start with the two historical proof milestones cited in the [manuscript's development record](../../manuscript/sections/development_record.tex). Each source link below is pinned to the indicated commit, so later edits do not change the text it opens. The commit page shows the change; the source links show the complete argument at that revision.
+
+### Randomized threshold batching
+
+[Public commit `9ebb285da402`](https://github.com/baojian/hybrid-local-solver/commit/9ebb285da402e0ddf3cdc621240b5502a822b61f), originally `3fa8455`, committed August 30, 2026 at 01:22:06 UTC+8: **research: prove OP2 via threshold-batch LCP decay**.
+
+Read the `active_edge_lcp` note in this order:
+
+1. [Safe batched pivots](https://github.com/baojian/hybrid-local-solver/blob/9ebb285da402e0ddf3cdc621240b5502a822b61f/manuscript/notes/active_edge_lcp/sections/body/note_part1.tex#L324-L410), `thm:safe-pivots`: why admitted vertices belong to the optimal support.
+2. [Threshold-batch Cholesky decay](https://github.com/baojian/hybrid-local-solver/blob/9ebb285da402e0ddf3cdc621240b5502a822b61f/manuscript/notes/active_edge_lcp/sections/body/note_part1.tex#L673-L860), `thm:batch-depth`: the block-Cholesky/Chebyshev argument bounding the number of batches.
+3. [Algorithm, guarantee, and total-work proof](https://github.com/baojian/hybrid-local-solver/blob/9ebb285da402e0ddf3cdc621240b5502a822b61f/manuscript/notes/active_edge_lcp/sections/body/note_part2.tex#L1-L213), `alg:threshold-batch` and `thm:op2`: certified randomized SDD calls on discovered principal systems, objective accuracy, and the fully charged expected-work bound.
+
+The later conditional persistent-continuation contract in the same note is a separate, stronger interface; it is not a premise of `thm:op2`. For the current exposition, read the manuscript's [algorithm](../../manuscript/sections/threshold_batch_algorithm.tex), [batch-depth proof](../../manuscript/sections/threshold_batch_depth.tex), and [correctness/work analysis](../../manuscript/sections/threshold_batch_analysis.tex).
+
+### Deterministic accelerated continuation
+
+[Public commit `d97d280560ba`](https://github.com/baojian/hybrid-local-solver/commit/d97d280560ba8dd085813d11737dad96c2552221), originally `0f0ac32`, committed September 6, 2026 at 00:42:47 UTC+8: **Add independent deterministic OP2 acceleration note and proof archive**.
+
+Read the preserved original proof in `deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt`:
+
+1. [Statement and model](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L52-L97), `thm:main`: the deterministic local-work and safe-output guarantees in the exact-real arithmetic model.
+2. [Two comparison energies](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L151-L288), including `lem:comparison`, `lem:sector`, and `eq:response`.
+3. [Selected signed flow and cumulative work](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L290-L337), `eq:work`: the bound that charges repeated support scans.
+4. [Certified repair and continuation schedule](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L339-L393), `lem:repair` and `sec:schedule`.
+5. [Exact sparse reporter and complete work ledger](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L395-L463): the implementation argument completing the core theorem.
+
+The `.tex.txt` suffix preserves the readable original TeX source. The separately scoped [bounded-arithmetic refinements](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/practical_refinements_appendix.tex.txt) are also present at this commit. For the current exposition, read the manuscript's [algorithm](../../manuscript/sections/deterministic_algorithm.tex), [energy and work analysis](../../manuscript/sections/deterministic_analysis.tex), and [sparse implementation](../../manuscript/sections/deterministic_implementation.tex).
+
+Both arguments appear together in the [integrated manuscript snapshot](https://github.com/baojian/hybrid-local-solver/tree/cb67f5fd258e039fe931a1c99f6d98ec3ec3141f/manuscript) at public commit `cb67f5fd258e` (originally `7e1b4e7`, September 6, 2026). Later revisions refine the exposition and guarantees; the links above identify the historical proof records rather than asserting that every current statement already appeared there.
+
 ## Mapping the paper's original commit references
 
 Filtering changes commit IDs. The identifiers printed in the submitted manuscript refer to the original private history; use the links below to inspect their public counterparts. These copies preserve the retained research source bytes.

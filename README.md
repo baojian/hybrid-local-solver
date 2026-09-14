@@ -4,6 +4,19 @@ Research code, proof notes, and development history for *Accelerated Local Algor
 
 Start with the [active manuscript](manuscript/main.tex), [research-note index](manuscript/notes/README.md), and [public-history guide](docs/public-release/README.md). The guide maps the original commit IDs cited in the paper to their public counterparts and documents all exclusions. This is a filtered history with the original research chronology retained; the unfiltered repository is held privately.
 
+## Proof milestones for reviewers
+
+These are the two algorithm proof commits cited in the manuscript's development record. The proof links open the source at that historical commit.
+
+| Algorithm | Public proof commit | Original commit date (UTC+8) | Read the historical proof |
+| --- | --- | --- | --- |
+| Randomized threshold batching | [9ebb285da402](https://github.com/baojian/hybrid-local-solver/commit/9ebb285da402e0ddf3cdc621240b5502a822b61f) | August 30, 2026 | [Batch-depth theorem and proof](https://github.com/baojian/hybrid-local-solver/blob/9ebb285da402e0ddf3cdc621240b5502a822b61f/manuscript/notes/active_edge_lcp/sections/body/note_part1.tex#L673-L860); [algorithm and total-work proof](https://github.com/baojian/hybrid-local-solver/blob/9ebb285da402e0ddf3cdc621240b5502a822b61f/manuscript/notes/active_edge_lcp/sections/body/note_part2.tex#L1-L213) |
+| Deterministic accelerated continuation | [d97d280560ba](https://github.com/baojian/hybrid-local-solver/commit/d97d280560ba8dd085813d11737dad96c2552221) | September 6, 2026 | [Main theorem and complete core proof](https://github.com/baojian/hybrid-local-solver/blob/d97d280560ba8dd085813d11737dad96c2552221/manuscript/notes/deterministic_op2_independent_20260905/original_sources/deterministic_conjecture2.tex.txt#L52-L463) |
+
+The [proof reading guide](docs/public-release/README.md#proof-reading-guide) identifies the key lemmas, maps these snapshots to the current paper, and explains the original commit IDs. These dates are preserved development metadata; public release was September 14, 2026.
+
+## Project overview
+
 `hybrid-local-solver` develops and evaluates accelerated local solvers for
 large-scale graph optimization problems. The initial focus is local PageRank:
 obtaining an accurate solution near a seed set while avoiding work over the
