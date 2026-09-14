@@ -29,3 +29,5 @@ The required checks were run in the filtered checkout with the existing locked P
 The original repository, its old GitHub records, and all private backups must remain private. The replacement is prepared for the author to change visibility in GitHub; readiness of this copy does not clear the original repository for public disclosure.
 
 The final pre-commit scan of the filtered history reported 34 bibliographic-label matches; the working-tree scan reported 33. Each was individually classified, with no confirmed credentials. The four retained PNG figures were visually inspected; they contain research plots. The two corresponding PDF figures were retained unchanged. The updated development-record page was visually checked after compilation.
+
+The release-preparation commit `01d0801` was scanned separately after committing. Its single scanner match was another explicit citation key; no confirmed credentials were found. The exact commit and classification are recorded in `release-commit-scan-review.json`. The Git object-integrity check passed; no excluded historical paths or LFS pointer blobs were reachable.
