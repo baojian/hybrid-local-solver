@@ -1,0 +1,60 @@
+"""Bounded exact ABBA comparison; floating values are clocks only."""
+import json
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+from fast_exact_dyadic_rppr import solve_rppr_fast
+from integer_dyadic_rppr_solver import solve_rppr_integer
+from benchmark_fast_exact_dyadic import LocalPath
+
+
+def comparable(answer):
+    stages = []
+    for stage in answer.stages:
+        value = asdict(stage)
+        metrics = value.pop('corrector_metrics')
+        value['graph_work'] = {name:metrics[name] for name in
+            ('degree_replies', 'first_adjacency_entries', 'scanned_adjacency_entries',
+             'selected_adjacency_entries', 'baseline_adjacency_entries', 'rebase_adjacency_entries')}
+        stages.append(value)
+    return answer.output, answer.objective_gap_bound, answer.theta, stages, asdict(answer.metrics)
+
+
+def main():
+    functions = {'fraction_fast':solve_rppr_fast, 'integer':solve_rppr_integer}
+    parameters = (0, F(1, 100), F(1, 16), F(1, 10**6))
+    runs, expected = [], None
+    for mode in ('fraction_fast', 'integer', 'integer', 'fraction_fast'):
+        oracle = LocalPath()
+        wall, cpu = perf_counter(), process_time()
+        answer = functions[mode](oracle, *parameters)
+        wall, cpu = perf_counter()-wall, process_time()-cpu
+        actual = comparable(answer)
+        if expected is None:
+            expected = actual
+        else:
+            assert actual == expected
+        row = dict(mode=mode, wall_seconds=wall, process_seconds=cpu,
+            stages=len(answer.stages), iterations=sum(s.iterations for s in answer.stages),
+            corrector_adjacency_entries=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages),
+            pg_adjacency_entries=answer.metrics.repair_scanned_adjacency_entries,
+            degree_queries=oracle.degree_queries, first_adjacency_entries=oracle.first_adjacency_entries,
+            output_records=len(answer.output), exact_certificate=str(answer.objective_gap_bound))
+        runs.append(row)
+        print(json.dumps(row), flush=True)
+    wall = {m:median(row['wall_seconds'] for row in runs if row['mode']==m) for m in functions}
+    cpu = {m:median(row['process_seconds'] for row in runs if row['mode']==m) for m in functions}
+    report = dict(parameters=dict(implicit_vertices=10**9, seed=0, alpha='1/100', rho='1/16', epsilon='1/1000000'),
+        order='fraction_fast, integer, integer, fraction_fast', runs=runs,
+        exact_outputs_stage_summaries_and_graph_work_equal=True,
+        median_wall_seconds=wall, median_process_seconds=cpu,
+        wall_speedup=wall['fraction_fast']/wall['integer'],
+        process_speedup=cpu['fraction_fast']/cpu['integer'], optional_dependencies_used=False,
+        timing_note='Clocks only use floating point; all numerical decisions and outputs are exact.')
+    Path(__file__).with_name('integer_dyadic_rppr_benchmark.json').write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps({k:v for k,v in report.items() if k!='runs'}), flush=True)
+
+if __name__ == '__main__':
+    main()

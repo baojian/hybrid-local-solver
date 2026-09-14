@@ -1,0 +1,74 @@
+"""Huge incomplete retained component; exact symbolic full-graph audit."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+from component_fast_path_audit import exact_reference
+from independent_continuation_audit import dot, product, subtract
+from virtual_component_benchmark import VirtualLeakyPath
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve_fast, solve_with_source_energy
+
+
+def audit(result, alpha, rho, epsilon, leaves):
+    size = 64
+    degrees = [2] + [3] * (size - 1)
+    c = (1 - alpha) / 2
+    matrix = [[(1+alpha)/2 if i == j else -c/degrees[i] if abs(i-j) == 1 else F(0) for j in range(size)] for i in range(size)]
+    source = [alpha/2] + [F(0)] * (size-1)
+    optimum = exact_reference(matrix, source, alpha, rho)
+    assert optimum[-1] == 0
+    # Every omitted path vertex has zero incoming from the verified prefix;
+    # every omitted hub and leaf is covered by one symbolic KKT row class.
+    assert all(alpha*rho-c*value/(leaves+1) >= 0 for value in optimum)
+    values = [F(0)] * size
+    for i, value, degree in result.output:
+        assert i < size and degree == degrees[i]
+        values[i] = value
+    assert all(0 <= value <= target for value, target in zip(values, optimum))
+    error = subtract(values, optimum)
+    gap = dot(error, product(matrix, error), degrees)/2
+    initial = dot(optimum, product(matrix, optimum), degrees)/2
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon < initial/10**6
+    return float(gap/initial), float(epsilon/initial)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--alphas', nargs='+', default=['1/10000', '1/100000000', '1/1000000000000'])
+    parser.add_argument('--mode', choices=['fast', 'pilot', 'source-fixed', 'source-checkpoint'], default='fast')
+    args = parser.parse_args()
+    length, leaves, rho = 10**9, 2**100, F(1, 256)
+    output = ROOT/f'results/virtual-checkpoint-{args.mode}.jsonl'
+    with output.open('w') as stream:
+        for text in args.alphas:
+            alpha = F(text)
+            epsilon = alpha**2*rho**2/10000
+            oracle = VirtualLeakyPath(length, leaves, rho)
+            start = time.monotonic()
+            if args.mode in ('fast', 'pilot'):
+                result = solve_fast(oracle, 0, alpha, rho, epsilon, bounded_pilot=args.mode == 'pilot')
+                inner = result.continuation
+            else:
+                result = solve_with_source_energy(oracle, 0, alpha, rho, epsilon, early_certificate=args.mode == 'source-checkpoint')
+                inner = result
+            elapsed = time.monotonic()-start
+            gap_ratio, epsilon_ratio = audit(result, alpha, rho, epsilon, leaves)
+            record = dict(mode=args.mode, alpha=str(alpha), rho=str(rho), epsilon=str(epsilon), retained_path_length=length, ambient_vertices_external_only=str(length*(leaves+2)), wall_seconds=elapsed, iterations=sum(s.iterations for s in inner.stages) if inner else result.metrics.iterations, kinetic_volume=sum(s.kinetic_volume for s in inner.stages) if inner else None, stages=len(inner.stages) if inner else 0, checks=inner.metrics.checkpoint_checks if inner else result.metrics.global_pg_checks, early_stages=inner.metrics.checkpoint_early_stages if inner else None, original_entries=oracle.adjacency_entries, degree_replies=oracle.degree_replies, actual_gap_over_initial=gap_ratio, requested_gap_over_initial=epsilon_ratio, exact_global_kkt_audit=True, randomized=False)
+            if args.mode in ('fast', 'pilot'):
+                record.update(route=result.route, pilot_iterations=result.metrics.iterations, pilot_certified=result.metrics.pilot_certified, pilot_fallback=result.metrics.pilot_fallback, spectral_lower_bound=str(result.metrics.spectral_lower_bound))
+            stream.write(json.dumps(record)+'\n')
+            stream.flush()
+            print(json.dumps(record), flush=True)
+
+
+if __name__ == '__main__':
+    main()

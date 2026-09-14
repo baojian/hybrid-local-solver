@@ -21,21 +21,32 @@
 \thispagestyle{plain}
 
 \begin{abstract}
-Local PageRank algorithms seek sparse approximations with work bounds
-independent of the graph size. Classical local push work bounds scale as
-$1/\alpha$ in the teleportation parameter $\alpha$, but standard acceleration
-can lose locality by activating high-degree vertices outside the optimal
-support. We develop deterministic and randomized local algorithms for
-$\ell_1$-regularized personalized PageRank with regularization parameter
-$\rho$. By combining regularization continuation with constrained
-acceleration, we control cumulative local work without requiring support
-confinement. A complementary spectral argument bounds the number of
-certified active-set expansions, yielding the randomized guarantee through
-threshold batching. Both algorithms attain additive objective accuracy
-$\epsobj$ in $\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ local work
-(in expectation for the randomized algorithm), with only polylogarithmic
-dependence on $1/\epsobj$. Together, these results achieve the algorithmic
-running-time target posed by Fountoulakis and Yang at COLT 2022.
+Local PageRank algorithms seek sparse approximations with work independent
+of graph size. We give a deterministic algorithm for regularized
+personalized PageRank with additive objective accuracy $\epsobj$ in
+$\widetilde{\mathcal{O}}(1/(\rho\sqrt\alpha))$ local work, where $\alpha$
+is the lazy teleportation parameter and $\rho$ is the regularizer.
+Accuracy enters only polylogarithmically. The bound charges discovery,
+repeated neighborhood scans, numerical updates, certification, and output,
+without graph-wide preprocessing or a supplied solution support.
+
+The algorithm combines regularization continuation with accelerated
+corrections constrained by a degree-scaled box and a mass cap. Two energies
+for the same recurrence control objective convergence and the response
+that activates coordinates. A selected-flow argument bounds cumulative
+scanned volume, and a sparse threshold reporter realizes the bound.
+We also specify a bounded-arithmetic implementation for rational inputs.
+
+A second, randomized algorithm uses support-safe threshold batches.
+A block-Cholesky and Chebyshev argument bounds their depth, and certified
+SDD solves give expected work
+$\widetilde{\mathcal{O}}(V_*\min\{k_*,\alpha^{-1/2}\})$, where $k_*$
+and $V_*$ are the optimal support's cardinality and degree volume.
+Both methods imply the corresponding accelerated degree-normalized PPR
+approximation. The concurrent September 2026 preprint of Cui, Wei, and
+Yang also attains the randomized work scale. Our principal distinction
+is deterministic local acceleration with only polylogarithmic overhead
+and no SDD oracle.
 \end{abstract}
 
 \section{Introduction}\label{sec:introduction}
@@ -78,6 +89,8 @@ running-time target posed by Fountoulakis and Yang at COLT 2022.
 
 \section*{Research Assistance and Responsibility}
 \input{sections/ai_assistance}
+
+\input{sections/development_record}
 
 \bibliography{references}
 

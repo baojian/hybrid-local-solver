@@ -1,0 +1,83 @@
+"""Bounded paired timing of a trajectory-preserving reporter transition."""
+
+import hashlib
+import json
+import platform
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+
+from benchmark_practical_rppr import Case, VirtualGraph, CountingOracle, json_value
+from combined_certified_dyadic_rppr import CombinedDyadicCorrector, solve_rppr_combined
+from direct_exception_integer_rppr import DirectExceptionIntegerCorrector, _continuation
+from independent_sparse_certificate import certify_sparse_output
+
+
+class DirectCombinedCorrector(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    pass
+
+
+direct = _continuation(DirectCombinedCorrector)
+ROOT = Path(__file__).resolve().parent
+CASES = (
+    Case('standard-path', 'path', 10**9, 0, 1, F(1,100), F(1,16), F(1,10**6)),
+    Case('grid-local', 'grid', 10**4, 0, 5000*10**4+5001, F(1,16), F(1,256), F(1,10**8)),
+    Case('tree-clique-boundary', 'tree_clique', 5, 2**14, 1, F(1,64), F(1,512), F(1,10**8)),
+)
+
+
+def main():
+    report = dict(python=platform.python_version(), platform=platform.platform(),
+        order=['reference','direct','direct','reference'],
+        note='Clocks alone use floats. The timed region includes the counting oracle and internal certificates; independent final verification and serialization are outside it.',
+        source_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in (
+            'direct_exception_integer_rppr.py','combined_certified_dyadic_rppr.py',
+            'early_stop_source_energy_rppr.py','binomial_block_dyadic_rppr.py',
+            'source_energy_dyadic_rppr.py','integer_dyadic_rppr_solver.py','integer_clipped_reporter.py')},
+        runs=[], summaries=[])
+    for case in CASES:
+        expected = None
+        rows = []
+        for mode in report['order']:
+            graph = VirtualGraph(case.family, case.size, case.auxiliary)
+            oracle = CountingOracle(graph, 1000000)
+            function = solve_rppr_combined if mode == 'reference' else direct
+            wall, cpu = perf_counter(), process_time()
+            answer = function(oracle, case.seed, case.alpha, case.rho, case.epsilon)
+            wall, cpu = perf_counter()-wall, process_time()-cpu
+            checkpoint_counts = [s.corrector_metrics['checkpoints'] for s in answer.stages]
+            invariant = (answer.output, answer.objective_gap_bound, oracle.snapshot(),
+                [(s.regularization, s.iterations, s.corrector_metrics['scanned_adjacency_entries'],
+                  s.corrector_metrics['checkpoints']) for s in answer.stages])
+            if expected is None:
+                expected = invariant
+            else:
+                assert expected == invariant, 'Trajectory or graph-access mismatch'
+            certificate = certify_sparse_output(CountingOracle(graph, 1000000), case.seed,
+                                                  case.alpha, case.rho, answer.output)
+            assert certificate.meets(case.epsilon)
+            row = dict(case=case.name, mode=mode, wall_seconds=wall, cpu_seconds=cpu,
+                iterations=sum(s.iterations for s in answer.stages),
+                oracle_counts=oracle.snapshot(),
+                checkpoint_entries=sum(c['cached_adjacency_entries'] for c in checkpoint_counts),
+                reporter_metrics=[s.corrector_metrics['reporter'] for s in answer.stages],
+                independent_certificate=json_value(asdict(certificate)),
+                complete_answer=json_value(asdict(answer)))
+            rows.append(row); report['runs'].append(row)
+        summary = dict(case=case.name, medians={mode:{
+            'cpu_seconds':median(r['cpu_seconds'] for r in rows if r['mode']==mode),
+            'wall_seconds':median(r['wall_seconds'] for r in rows if r['mode']==mode)}
+            for mode in ('reference','direct')})
+        summary['cpu_speedup'] = summary['medians']['reference']['cpu_seconds']/summary['medians']['direct']['cpu_seconds']
+        report['summaries'].append(summary)
+        (ROOT/'direct_exception_transition_benchmark.json').write_text(json.dumps(report,indent=2)+'\n')
+        print(json.dumps(summary),flush=True)
+    report.update(complete=True, identical_endpoints_and_graph_access=True,
+                  all_independent_final_bounds_meet_requested=True)
+    (ROOT/'direct_exception_transition_benchmark.json').write_text(json.dumps(report,indent=2)+'\n')
+
+
+if __name__ == '__main__':
+    main()

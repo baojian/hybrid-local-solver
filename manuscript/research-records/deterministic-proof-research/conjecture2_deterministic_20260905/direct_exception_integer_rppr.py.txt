@@ -1,0 +1,140 @@
+"""Optional direct replacement of full exception numerators between queries.
+
+The ordered reporter is queried only at completed iteration boundaries.
+Its registry stores each old full numerator, so an exception can be replaced
+directly after the scale changes without an intermediate base-tree move.
+Numeric state and the exact rounded trajectory are unchanged.
+"""
+
+from dataclasses import asdict, dataclass
+from types import FunctionType
+
+from deterministic_avl_containers import AVLMap, AVLSet
+import integer_dyadic_rppr_solver as reference
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+
+
+@dataclass
+class DirectTransitionMetrics:
+    old_exception_membership_checks: int = 0
+    touched_membership_checks: int = 0
+    retired_exceptions: int = 0
+    ordinary_base_updates: int = 0
+    directly_refreshed_exceptions: int = 0
+    full_rebase_transitions: int = 0
+
+
+class DirectExceptionIntegerCorrector(reference.IntegerDyadicCorrector):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.direct_transition_metrics = DirectTransitionMetrics()
+
+    def _finish_direct_transition(self, touched, old_exceptions):
+        new_exceptions = AVLSet(self.z)
+        new_exceptions.update(self.M)
+        new_exceptions.update(self.source)
+        metrics = self.direct_transition_metrics
+        for i in old_exceptions:
+            metrics.old_exception_membership_checks += 1
+            if i not in new_exceptions:
+                self._set_base(i)
+                metrics.retired_exceptions += 1
+                self.metrics.exception_refresh_records += 1
+        for i in touched:
+            metrics.touched_membership_checks += 1
+            if i not in new_exceptions and i not in old_exceptions:
+                self._set_base(i)
+                metrics.ordinary_base_updates += 1
+        self.exceptions = new_exceptions
+        self.metrics.source_refresh_records += len(self.source)
+        for i in new_exceptions:
+            extra = ((self.D-self.A)*self.T*(self.degree[i]*self.z.get(i, 0)+self.M.get(i, 0))
+                     + self.T*(self.T+1)*self.source.get(i, 0))
+            self.tree.set_exception(i, self.S*self._base(i)+self.H*extra, self.degree[i])
+            self.metrics.exception_refresh_records += 1
+            metrics.directly_refreshed_exceptions += 1
+
+    def step(self):
+        if self.metrics.iterations >= self.target_iterations:
+            raise ValueError('The prescribed fixed-block stage is complete')
+        projection = self.tree.project_counts(base_scale=self.S, common_denominator=self.G,
+            shift=self.shift, upper=self.upper, cap=self.mass_cap, grid=self.grid)
+        old_exceptions = self.exceptions
+        # No reporter query occurs during the following state transition.
+        # Existing exception records retain their stored numerical key until
+        # direct replacement; removal never recomputes that key using new S.
+        scale_product = (self.T-1)*self.S
+        new_S = scale_product//self.T
+        self.metrics.state_integer_floors += 1
+        self.metrics.scale_rounding_steps += int(scale_product % self.T != 0)
+        if new_S <= 0:
+            raise ArithmeticError('Rounded scale became zero')
+        p, changes, touched = AVLMap(), AVLMap(), AVLSet()
+        for i, count, degree in projection.entries:
+            p[i] = count
+            numerator, denominator = self.H*count, self.T*new_S
+            change = numerator//denominator
+            self.metrics.state_integer_floors += 1
+            self.metrics.selected_update_rounding_records += int(numerator % denominator != 0)
+            if change:
+                self.X[i] = self.X.get(i, 0)+change
+                changes[i] = change
+                touched.add(i)
+                self.metrics.sparse_record_updates += 1
+        next_M = AVLMap()
+        for j, value in p.items():
+            change = changes.get(j, 0)
+            for i in self._row(j, 'selected'):
+                next_M[i] = next_M.get(i, 0)+value
+                self.metrics.sparse_record_updates += 1
+                if change:
+                    self.L[i] = self.L.get(i, 0)+change
+                    touched.add(i)
+                    self.metrics.sparse_record_updates += 1
+        self.S, self.z, self.M = new_S, p, next_M
+        rebased = 2*self.S < self.H
+        if rebased:
+            self._rebase()
+            self._install_exceptions()
+            self.direct_transition_metrics.full_rebase_transitions += 1
+        else:
+            self._finish_direct_transition(touched, old_exceptions)
+        volume = sum(degree for _, _, degree in projection.entries)
+        self.metrics.kinetic_volume += volume
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(projection.cap_active)
+        if self.metrics.iterations % self.T == 0:
+            self.decay_denominator *= 2
+            self.metrics.completed_blocks += 1
+        self.last_step = (volume, rebased, projection.multiplier, projection.cap_active)
+        return projection
+
+    @property
+    def diagnostic_metrics(self):
+        result = super().diagnostic_metrics
+        result['direct_exception_transitions'] = asdict(self.direct_transition_metrics)
+        return result
+
+
+class DirectSourceEnergyCorrector(SourceEnergyDyadicCorrector, DirectExceptionIntegerCorrector):
+    pass
+
+
+def _continuation(corrector):
+    namespace = reference.solve_rppr_integer.__globals__.copy()
+    namespace['IntegerDyadicCorrector'] = corrector
+    return FunctionType(reference.solve_rppr_integer.__code__, namespace,
+                        '_direct_transition_continuation', reference.solve_rppr_integer.__defaults__,
+                        reference.solve_rppr_integer.__closure__)
+
+
+_fixed = _continuation(DirectExceptionIntegerCorrector)
+_source = _continuation(DirectSourceEnergyCorrector)
+
+
+def solve_rppr_direct_integer(oracle, seed, alpha, rho, epsilon):
+    return _fixed(oracle, seed, alpha, rho, epsilon)
+
+
+def solve_rppr_direct_source(oracle, seed, alpha, rho, epsilon):
+    return _source(oracle, seed, alpha, rho, epsilon)

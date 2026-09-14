@@ -1,0 +1,169 @@
+"""Canonical unit-graph quotients with dense cells and long holding times.
+
+No quotient is offered as a free input oracle: counts and ambient degrees
+are used in every row-scan and projection ledger. All edge specifications
+below have explicit simple graph realizations.
+"""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import math
+import time
+from pathlib import Path
+
+import numpy as np
+from positive_linear_coupling import run
+
+
+def clique_chain(size: int, length: int, internal=True):
+    """One seed, then equal cliques connected by vertex-label matchings."""
+    counts = np.array([1] + [size] * length, dtype=float)
+    neighbors = np.zeros((length + 1, length + 1))
+    neighbors[0, 1], neighbors[1, 0] = size, 1
+    for i in range(1, length):
+        neighbors[i, i + 1] = neighbors[i + 1, i] = 1
+    if internal:
+        for i in range(1, length + 1):
+            neighbors[i, i] = size - 1
+    return counts, neighbors
+
+
+def clique_levels(branch: int, length: int):
+    """Regular rooted tree, with every level completed into a clique."""
+    counts = np.array([branch**i for i in range(length + 1)], dtype=float)
+    neighbors = np.zeros((length + 1, length + 1))
+    for i in range(length):
+        neighbors[i, i + 1], neighbors[i + 1, i] = branch, 1
+    for i in range(1, length + 1):
+        neighbors[i, i] = counts[i] - 1
+    return counts, neighbors
+
+
+def alternating_suns(leaf_counts):
+    """A path of singleton centers, each with a leaf cell attached."""
+    k = len(leaf_counts)
+    counts = np.array([1] * k + list(leaf_counts), dtype=float)
+    neighbors = np.zeros((2 * k, 2 * k))
+    for i in range(k - 1):
+        neighbors[i, i + 1] = neighbors[i + 1, i] = 1
+    for i, b in enumerate(leaf_counts):
+        neighbors[i, k + i], neighbors[k + i, i] = b, 1
+    return counts, neighbors
+
+
+def symmetric_model(counts, neighbors, alpha):
+    degrees = neighbors.sum(axis=1)
+    volume = counts * degrees
+    w = np.sqrt(volume)
+    normalized = (
+        np.sqrt(counts[:, None] / counts[None, :])
+        * neighbors
+        / np.sqrt(np.outer(degrees, degrees))
+    )
+    if not np.allclose(normalized, normalized.T, rtol=1e-13, atol=1e-15):
+        raise AssertionError("not an equitable undirected model")
+    q = (1 + alpha) / 2 * np.eye(len(counts)) - (1 - alpha) / 2 * normalized
+    source = np.zeros(len(counts))
+    source[0] = alpha / math.sqrt(degrees[0])
+    return q, source, w, volume
+
+
+def transitions(q, source, w, alpha):
+    active = {0}
+    result = [source[0] / (alpha * w[0])]
+    while len(active) < len(w):
+        indices = sorted(active)
+        exterior = sorted(set(range(len(w))) - active)
+        face = q[np.ix_(indices, indices)]
+        response = np.linalg.solve(face, source[indices])
+        slope = np.linalg.solve(face, alpha * w[indices])
+        cut = q[np.ix_(exterior, indices)]
+        values = (source[exterior] - cut @ response) / (
+            alpha * w[exterior] - cut @ slope
+        )
+        value = float(np.max(values))
+        if value <= 0:
+            raise AssertionError("positive connected threshold missing")
+        result.append(value)
+        active.update(
+            exterior[j] for j, a in enumerate(values) if a >= value * (1 - 1e-10)
+        )
+    return result
+
+
+def models():
+    for length, size in itertools.product((2, 4, 8, 16, 32), (2, 10, 100, 10000)):
+        yield (
+            {"family": "clique_chain", "size": size, "length": length},
+            clique_chain(size, length),
+        )
+    for length, branch in itertools.product((2, 4, 8, 16), (2, 4, 10)):
+        yield (
+            {"family": "clique_levels", "branch": branch, "length": length},
+            clique_levels(branch, length),
+        )
+    for length, large in itertools.product((4, 8, 16), (10, 1000, 100000)):
+        counts = [large if j % 2 else 1 for j in range(length)]
+        yield {"family": "alternating_suns", "leaves": counts}, alternating_suns(counts)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--seconds", type=float, default=3600)
+    args = parser.parse_args()
+    start = time.monotonic()
+    completed = 0
+    worst = 0.0
+    with args.output.open("w") as out:
+        for identity, (counts, neighbors) in models():
+            for alpha in (0.1, 0.01, 0.001, 0.0001, 0.000001):
+                q, source, w, volume = symmetric_model(counts, neighbors, alpha)
+                bounds = transitions(q, source, w, alpha)
+                for position in sorted({0, len(bounds) // 2, len(bounds) - 1}):
+                    for factor in (0.999, 1.001, 2, 8):
+                        rho = bounds[position] * factor
+                        if rho >= bounds[0]:
+                            continue
+                        for cap in (True, False):
+                            result = run(
+                                q,
+                                source - alpha * rho * w,
+                                w,
+                                volume,
+                                alpha,
+                                rho,
+                                mass_cap=cap,
+                                relative_gap=1e-12,
+                                counts=counts,
+                            )
+                            result.update(
+                                identity=identity,
+                                boundary_index=position,
+                                factor=factor,
+                            )
+                            out.write(json.dumps(result) + "\n")
+                            completed += 1
+                            worst = max(worst, result["rho_sqrt_alpha_volume_sum"])
+                            if completed % 50 == 0:
+                                out.flush()
+                                print(
+                                    json.dumps(
+                                        {
+                                            "completed": completed,
+                                            "elapsed_seconds": time.monotonic() - start,
+                                            "worst_normalized_work": worst,
+                                            "current": identity,
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                            if time.monotonic() - start >= args.seconds:
+                                return
+
+
+if __name__ == "__main__":
+    main()

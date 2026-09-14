@@ -1,0 +1,44 @@
+"""Optional source-adaptive stages, with both work ledgers reported."""
+from fractions import Fraction as F
+from pathlib import Path
+import sys
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from deterministic_rppr import solve_adaptive, certify_output
+
+
+class PathOracle:
+    def __init__(self,size):
+        self.size=size
+        self.degree_replies=0
+        self.entries=0
+    def degree(self,i):
+        assert 0 <= i < self.size
+        self.degree_replies+=1
+        return 1 if i==0 or i==self.size-1 else 2
+    def neighbors(self,i):
+        assert 0 <= i < self.size
+        if i:
+            self.entries+=1
+            yield i-1
+        if i+1 < self.size:
+            self.entries+=1
+            yield i+1
+
+
+if __name__ == '__main__':
+    alpha,rho,epsilon=F(13,97),F(1,64),F(1,1000000)
+    oracle=PathOracle(10**9)
+    outer=solve_adaptive(oracle,0,alpha,rho,epsilon)
+    result=outer.result
+    print('Regularization stages:',[str(s.regularization) for s in result.stages])
+    print('Sparse density output:',result.output)
+    print('Certified objective gap:',result.objective_gap_bound)
+    print('Correction iterations:',sum(s.iterations for s in result.stages))
+    print('Additional adaptive source scans:',outer.adaptive_metrics.scanned_adjacency_entries)
+    print('Additional adaptive degree replies:',outer.adaptive_metrics.degree_replies)
+    print('Total external degree replies:',oracle.degree_replies)
+    print('Total external adjacency entries:',oracle.entries)
+    check=certify_output(PathOracle(10**9),0,alpha,rho,result.output)
+    assert check.meets(epsilon)
+    print('Independent objective-gap certificate:',check.objective_gap_bound)

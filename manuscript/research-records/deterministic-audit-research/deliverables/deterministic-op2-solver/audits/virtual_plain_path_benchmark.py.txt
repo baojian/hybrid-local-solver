@@ -1,0 +1,94 @@
+"""Huge ordinary path, no high-degree pruning, exact active-prefix audit."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+from virtual_one_boundary_benchmark import product, tridiagonal_face
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve_fast
+
+
+class VirtualPath:
+    def __init__(self, length):
+        self.length, self.entries, self.replies = length, 0, 0
+
+    def __len__(self):
+        raise AssertionError('No ambient-size query is permitted')
+
+    def __iter__(self):
+        raise AssertionError('No global vertex enumeration is permitted')
+
+    def degree(self, i):
+        self.replies += 1
+        assert 0 <= i < self.length
+        return 1 if i in (0, self.length-1) else 2
+
+    def neighbors(self, i):
+        assert 0 <= i < self.length
+        if i:
+            self.entries += 1
+            yield i-1
+        if i+1 < self.length:
+            self.entries += 1
+            yield i+1
+
+
+def verify(result, alpha, rho, epsilon):
+    length = int(1/(2*rho))+2
+    degrees, optimum = [1]+[2]*(length-1), None
+    c = (1-alpha)/2
+    for size in range(1, length):
+        trial = tridiagonal_face(degrees, alpha, rho, size)
+        if alpha*rho-c*trial[-1]/2 >= 0:
+            optimum = trial + [F(0)]*(length-size)
+            break
+    assert optimum is not None and optimum[-1] == 0
+    qopt = product(optimum, degrees, alpha)
+    slack = [q-(alpha if i == 0 else 0)+alpha*rho for i, q in enumerate(qopt)]
+    assert all(s >= 0 and s*x == 0 for s, x in zip(slack, optimum))
+    # Every later vertex, including the far finite endpoint, has zero value
+    # and zero incoming mass, hence positive slack alpha*rho.
+    values = [F(0)]*length
+    for i, value, d in result.output:
+        assert i < length and d == degrees[i]
+        values[i] = value
+    assert all(0 <= v <= x for v, x in zip(values, optimum))
+    error = [v-x for v, x in zip(values, optimum)]
+    gap = sum((d*e*q for d, e, q in zip(degrees, error, product(error, degrees, alpha))), F(0))/2
+    initial = sum((d*x*q for d, x, q in zip(degrees, optimum, qopt)), F(0))/2
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon < initial/10**6
+    return dict(actual_gap_over_initial=float(gap/initial), requested_gap_over_initial=float(epsilon/initial), output_volume=sum(d for d, v in zip(degrees, values) if v))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--integer', action='store_true')
+    args = parser.parse_args()
+    configurations = [(F(1, 64), F(1, 10**k)) for k in (4, 8, 12)] + [(F(1, 256), F(1, 10**k)) for k in (4, 8)]
+    output = ROOT/('results/virtual-plain-path-integer-benchmark.jsonl' if args.integer else 'results/virtual-plain-path-benchmark.jsonl')
+    with output.open('w') as stream:
+        for rho, alpha in configurations:
+            epsilon = alpha**2*rho**2/10000
+            oracle = VirtualPath(10**12)
+            start = time.monotonic()
+            result = solve_fast(oracle, 0, alpha, rho, epsilon, integer_component=args.integer)
+            elapsed = time.monotonic()-start
+            checked = verify(result, alpha, rho, epsilon)
+            assert result.metrics.pilot_certified and result.continuation is None
+            assert oracle.entries <= 1/rho
+            record = dict(alpha=str(alpha), rho=str(rho), epsilon=str(epsilon), ambient_vertices_external_only=oracle.length, route=result.route, seconds=elapsed, iterations=result.metrics.iterations, prescribed_iterations=result.metrics.prescribed_iterations, original_entries=oracle.entries, degree_replies=oracle.replies, pilot_volume=result.metrics.component_volume, spectral_lower_bound=str(result.metrics.spectral_lower_bound), integer_component=args.integer, exact_global_kkt_audit=True, randomized=False, **checked)
+            stream.write(json.dumps(record)+'\n')
+            stream.flush()
+            print(json.dumps(record), flush=True)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,32 @@
+"""A closed tiny component with an extremely small alpha, no dense oracle."""
+
+import sys
+from fractions import Fraction as F
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pruned_rppr import solve_fast
+
+
+class PathOracle:
+    def __init__(self, length):
+        self.length = length
+
+    def degree(self, vertex):
+        return 1 if vertex in (0, self.length - 1) else 2
+
+    def neighbors(self, vertex):
+        if vertex > 0:
+            yield vertex - 1
+        if vertex + 1 < self.length:
+            yield vertex + 1
+
+
+answer = solve_fast(
+    PathOracle(16), seed=0, alpha=F(1, 10**80), rho=F(1, 120), epsilon=F(1, 10**180)
+)
+print("route:", answer.route)
+print("certified objective gap:", answer.objective_gap_bound)
+print("nonzero coordinates:", len(answer.output))
+print("original adjacency entries:", answer.metrics.first_adjacency_entries)
+print("exact pivots:", answer.metrics.tiny_exact_metrics["pivots"])

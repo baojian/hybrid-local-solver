@@ -509,3 +509,15 @@ produces a nonzero off-diagonal entry of Q. At `alpha = 1`, Q is diagonal
 and the exact endpoint solution is handled separately. The stated upper
 bounds remain valid there. The primary pointers are Theorems 3–4 (PDF p. 9),
 Theorems 7–8 (p. 11), and the ASPR work proof (p. 24).
+
+## September 14, 2026: directly overlapping accelerated local push
+
+Cui, Wei, and Yang, *Accelerating the Local Push Primitive for PageRank
+Computation*, arXiv:2609.12076v1 (September 10, 2026), proves the same
+randomized accelerated RPPR/PPR scale. Theorem 1.3 and its proof also
+imply the support-adaptive soft bound. The main remaining distinction
+is deterministic acceleration with only polylogarithmic overhead.
+See [the source comparison](publication-review-20260914.md) for the
+normalization map, exact PDF pointers, and claim boundaries. This update
+supersedes earlier absence/novelty statements for the randomized target;
+it does not close the separate AESP--LOCSOR locality gate.

@@ -637,3 +637,15 @@ Definition 3 (physical p.2) minimizes 1/2 z^T L z - e_s^T z + lambda 1^T z over 
 These are close methodological precedents that explicitly build on regularized PageRank work. They differ from the project's shifted normalized Hessian, degree-weighted penalty, point-seed no-preprocessing graph-access contract, and alpha-dependent target. The record belongs in related work and does not supply a direct replacement for OP1/OP2. This is a comparison of stated contracts, not an independent certification of every proof in the source.
 
 See [the dated sweep](arxiv-aug-sep-audit-20260909.md) for enumeration and screening coverage.
+
+## September 14, 2026: directly overlapping accelerated local push
+
+Cui, Wei, and Yang, *Accelerating the Local Push Primitive for PageRank
+Computation*, arXiv:2609.12076v1 (September 10, 2026), proves the same
+randomized accelerated RPPR/PPR scale. Theorem 1.3 and its proof also
+imply the support-adaptive soft bound. The main remaining distinction
+is deterministic acceleration with only polylogarithmic overhead.
+See [the source comparison](publication-review-20260914.md) for the
+normalization map, exact PDF pointers, and claim boundaries. This update
+supersedes earlier absence/novelty statements for the randomized target;
+it does not close the separate AESP--LOCSOR locality gate.

@@ -1,0 +1,52 @@
+"""Run with python -I: package-only imports and hash-forbidden graph labels."""
+from fractions import Fraction as F
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+assert str(ROOT) not in sys.path
+sys.path.insert(0, str(OUT))
+import deterministic_rppr as package
+
+
+class NoHashInt(int):
+    def __hash__(self): raise AssertionError('Graph label was hashed')
+
+
+class Oracle:
+    labels = (NoHashInt(2**100+37), NoHashInt(2**100+74))
+    def degree(self, i):
+        assert i == self.labels[0] or i == self.labels[1]
+        return 1
+    def neighbors(self, i):
+        self.degree(i)
+        return iter((self.labels[int(i == self.labels[0])],))
+
+
+def objective(f):
+    return F(5, 16)*(f[0]**2+f[1]**2)-F(3, 8)*f[0]*f[1]-F(1, 4)*f[0]+F(1, 16)*sum(f)
+
+
+records = []
+for name, function in (('default', package.solve), ('integer', package.solve_integer),
+                        ('source_energy', package.solve_source_energy)):
+    oracle = Oracle()
+    answer = function(oracle, oracle.labels[0], F(1, 4), F(1, 4), F(1, 100))
+    f = [F(0), F(0)]
+    for i, value, degree in answer.output:
+        assert degree == 1
+        f[int(i == oracle.labels[1])] = value
+    optimum = [F(3, 8), F(1, 8)]
+    gap = objective(f)-objective(optimum)
+    assert all(0 <= x <= y for x, y in zip(f, optimum))
+    assert 0 <= gap <= answer.objective_gap_bound <= F(1, 100)
+    records.append(dict(backend=name, exact_gap=str(gap), certificate=str(answer.objective_gap_bound)))
+for name in ('integer_dyadic_rppr_solver', 'source_energy_dyadic_rppr', 'practical_dyadic_rppr_solver',
+             'bounded_dyadic_corrector', 'deterministic_avl_containers', 'integer_clipped_reporter'):
+    assert name not in sys.modules
+result = dict(isolated_python=True, research_directory_not_on_import_path=True,
+              original_modules_loaded=False, hash_forbidden_label_runs=3, results=records)
+(ROOT/'integer_package_isolated_import_results.json').write_text(json.dumps(result, indent=2)+'\n')
+print(json.dumps(result, indent=2))

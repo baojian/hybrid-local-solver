@@ -1,0 +1,45 @@
+"""Optional mass-scaled precision with the same requested objective error."""
+from fractions import Fraction as F
+from pathlib import Path
+import sys
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from deterministic_rppr import solve_mass_scaled_grid,certify_output
+
+
+class PathOracle:
+    def __init__(self,size):
+        self.size=size
+        self.degree_replies=0
+        self.entries=0
+    def degree(self,i):
+        assert 0<=i<self.size
+        self.degree_replies+=1
+        return 1 if i==0 or i==self.size-1 else 2
+    def neighbors(self,i):
+        assert 0<=i<self.size
+        if i:
+            self.entries+=1
+            yield i-1
+        if i+1<self.size:
+            self.entries+=1
+            yield i+1
+
+
+if __name__=='__main__':
+    alpha,rho,epsilon=F(1,4),F(1,64),F(1,1000000)
+    oracle=PathOracle(5)
+    outer=solve_mass_scaled_grid(oracle,0,alpha,rho,epsilon)
+    result=outer.result
+    print('Sparse density output:',result.output)
+    print('Certified objective gap:',result.objective_gap_bound)
+    print('Stages (regularization, remaining mass, grid):')
+    for stage in result.stages:
+        print(' ',stage.regularization,stage.projection_mass_cap,stage.grid)
+    print('Additional mass-hint records:',outer.mass_hint_metrics.baseline_input_records)
+    print('Additional cached degree lookups:',outer.mass_hint_metrics.previous_degree_cache_lookups)
+    print('Total external degree replies:',oracle.degree_replies)
+    print('Total external adjacency entries:',oracle.entries)
+    check=certify_output(PathOracle(5),0,alpha,rho,result.output)
+    assert check.meets(epsilon)
+    print('Independent objective-gap certificate:',check.objective_gap_bound)

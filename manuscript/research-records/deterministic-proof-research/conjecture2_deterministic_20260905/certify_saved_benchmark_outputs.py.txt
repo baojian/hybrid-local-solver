@@ -1,0 +1,57 @@
+"""Apply an independent certificate to saved outputs; no solver is rerun."""
+
+import hashlib
+import json
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from benchmark_practical_rppr import VirtualGraph, CountingOracle
+from independent_sparse_certificate import certify_sparse_output
+
+
+ROOT = Path(__file__).resolve().parent
+
+
+def encode(value):
+    if isinstance(value, F): return str(value)
+    if isinstance(value, dict): return {str(k): encode(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)): return [encode(v) for v in value]
+    return value
+
+
+def main():
+    source = ROOT/'integer_rppr_performance_study.json'
+    study = json.loads(source.read_text())
+    rows = []
+    for record in study['runs']:
+        if record['status'] != 'completed' or record['backend'] != 'integer':
+            continue
+        case = record['case']
+        graph = VirtualGraph(case['family'], int(case['size']), int(case['auxiliary']))
+        oracle = CountingOracle(graph, entry_limit=1_000_000)
+        output = tuple((i, F(value), degree) for i, value, degree in record['sparse_output'])
+        certificate = certify_sparse_output(oracle, int(case['seed']),
+            F(case['alpha']), F(case['rho']), output)
+        assert certificate.first_adjacency_entries == oracle.adjacency_entries
+        assert certificate.degree_replies == oracle.degree_replies
+        epsilon = F(case['epsilon'])
+        row = dict(name=case['name'], graph_vertices=str(graph.n),
+            requested_epsilon=epsilon, independent_certificate=asdict(certificate),
+            certified_requested_accuracy=certificate.meets(epsilon),
+            solver_reported_bound=F(record['exact_returned_objective_certificate']),
+            verification_oracle=oracle.snapshot())
+        rows.append(row)
+        print(case['name'], 'CERTIFIED' if row['certified_requested_accuracy'] else 'INCONCLUSIVE',
+              'ratio=', float(certificate.objective_gap_bound/epsilon), flush=True)
+    assert rows
+    evidence = dict(source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+        certificate_source_sha256=hashlib.sha256((ROOT/'independent_sparse_certificate.py').read_bytes()).hexdigest(),
+        method='Exact local subgradient bound with upward common-denominator rounding; no solver calls',
+        outputs_checked=len(rows), certified=sum(row['certified_requested_accuracy'] for row in rows),
+        rows=rows)
+    (ROOT/'saved_benchmark_independent_certificates.json').write_text(json.dumps(encode(evidence), indent=2)+'\n')
+
+
+if __name__ == '__main__':
+    main()

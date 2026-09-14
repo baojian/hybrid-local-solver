@@ -1,0 +1,354 @@
+"""Deterministic diagnostic baseline for local RPPR, not the OP2 work bound.
+
+Degree coordinates: H = a D - c A, y = D^{-1/2} x. The exact Fraction
+mode certifies every comparison and the objective certificate. Float mode
+uses the same algorithm but its certificates are diagnostic, not rigorous
+floating-point error bounds. No randomized operation is used.
+
+Counters charge arithmetic/comparison primitives, persistent map accesses,
+loop events, graph replies, adjacency entries and output words. Arithmetic
+also charges its scalar operand reads and result write. They are logical
+word-model counters, not Python bytecode timings. Fraction bit complexity
+is outside that model. Integer-key dictionaries have deterministic hashes;
+the theory may substitute balanced trees for logarithmic lookup overhead.
+"""
+
+from dataclasses import dataclass, asdict
+from fractions import Fraction
+
+
+@dataclass
+class Counters:
+    adjacency_entries: int = 0
+    adjacency_queries: int = 0
+    degree_replies: int = 0
+    arithmetic: int = 0
+    comparisons: int = 0
+    state_reads: int = 0
+    state_writes: int = 0
+    control: int = 0
+    output_words: int = 0
+    cg_iterations: int = 0
+    restricted_solves: int = 0
+    boundary_tests: int = 0
+    cached_neighbor_reads: int = 0
+
+    def work(self):
+        return sum(getattr(self, k) for k in (
+            'adjacency_entries', 'adjacency_queries', 'degree_replies',
+            'arithmetic', 'comparisons', 'state_reads', 'state_writes',
+            'control', 'output_words'))
+
+    def report(self):
+        return dict(asdict(self), total_logical_work=self.work())
+
+
+class Arithmetic:
+    def __init__(self, counts):
+        self.c = counts
+
+    def op(self, x, y, kind):
+        self.c.arithmetic += 1
+        self.c.state_reads += 2
+        self.c.state_writes += 1
+        if kind == '+': return x + y
+        if kind == '-': return x - y
+        if kind == '*': return x * y
+        return x / y
+
+    def add(self, x, y): return self.op(x, y, '+')
+    def sub(self, x, y): return self.op(x, y, '-')
+    def mul(self, x, y): return self.op(x, y, '*')
+    def div(self, x, y): return self.op(x, y, '/')
+
+    def positive(self, x):
+        self.c.comparisons += 1
+        self.c.state_reads += 1
+        return x > 0
+
+    def le(self, x, y):
+        self.c.comparisons += 1
+        self.c.state_reads += 2
+        return x <= y
+
+    def absolute(self, x):
+        self.c.comparisons += 1
+        self.c.state_reads += 1
+        return x if x >= 0 else self.sub(0, x)
+
+
+class State:
+    def __init__(self, counts):
+        self.c = counts
+        self.data = {}
+
+    def __contains__(self, key):
+        self.c.state_reads += 1
+        self.c.comparisons += 1
+        return key in self.data
+
+    def __getitem__(self, key):
+        self.c.state_reads += 1
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.c.state_writes += 1
+        self.data[key] = value
+
+    def keys(self):
+        for key in self.data:
+            self.c.state_reads += 1
+            self.c.control += 1
+            yield key
+
+    def copy(self):
+        other = State(self.c)
+        for key in self.keys(): other[key] = self[key]
+        return other
+
+
+class AdjacencyOracle:
+    """Oracle-owned input is not globally traversed by the solver."""
+    def __init__(self, adjacency, counts=None):
+        self._adjacency = adjacency
+        self.counts = counts if counts is not None else Counters()
+        self.queried_vertices = set()
+
+    def degree(self, vertex):
+        self.counts.degree_replies += 1
+        self.counts.state_reads += 1
+        return len(self._adjacency[vertex])
+
+    def neighbors(self, vertex):
+        self.counts.adjacency_queries += 1
+        self.queried_vertices.add(vertex)
+        for neighbor in self._adjacency[vertex]:
+            self.counts.adjacency_entries += 1
+            self.counts.state_reads += 1
+            yield neighbor
+
+
+class LocalCache:
+    def __init__(self, oracle):
+        self.oracle = oracle
+        self.c = oracle.counts
+        self.degrees = State(self.c)
+        self.adjacency = State(self.c)
+
+    def degree(self, i):
+        if i not in self.degrees: self.degrees[i] = self.oracle.degree(i)
+        return self.degrees[i]
+
+    def admit(self, i):
+        self.degree(i)
+        if i not in self.adjacency:
+            row = []
+            for j in self.oracle.neighbors(i):
+                self.c.control += 1
+                self.c.state_writes += 1
+                row.append(j)
+            self.adjacency[i] = row
+
+    def neighbors(self, i):
+        row = self.adjacency[i]
+        for j in row:
+            self.c.control += 1
+            self.c.state_reads += 1
+            self.c.cached_neighbor_reads += 1
+            yield j
+
+
+@dataclass
+class Result:
+    y: dict
+    degrees: dict
+    objective_gap_bound: object
+    envelope_gap_bound: object
+    counts: dict
+    active_history: list
+    certificate_exact: bool
+
+    def x_radicals(self):
+        """Exact sparse x: each (i,y_i,d_i) represents y_i * sqrt(d_i)."""
+        return [(i, value, self.degrees[i]) for i, value in self.y.items()]
+
+
+def solve(oracle, seed, alpha, rho, epsilon, exact=True, max_cg=None):
+    """Safe lower-envelope CG baseline. Exact mode requires rational inputs.
+
+    The proven general bound is tilde O(1/(rho^2 sqrt(alpha))). This program
+    does not claim the conjectured accelerated total work. Fraction mode can
+    take n exact CG steps when epsilon is very small; arithmetic bit costs
+    can then be much larger than these exact-real logical counters suggest.
+    """
+    number = Fraction if exact else float
+    alpha, rho, epsilon = map(number, (alpha, rho, epsilon))
+    if not (0 < alpha <= 1 and rho > 0 and epsilon > 0):
+        raise ValueError('Need 0 < alpha <= 1, rho > 0, epsilon > 0')
+    cc = oracle.counts
+    op = Arithmetic(cc)
+    cache = LocalCache(oracle)
+    a = op.div(op.add(1, alpha), 2)
+    c = op.div(op.sub(1, alpha), 2)
+    ar = op.mul(alpha, rho)
+    threshold = op.div(op.mul(op.mul(op.mul(alpha, alpha), ar), epsilon), 2)
+    active = State(cc)
+    history = []
+    seed_degree = cache.degree(seed)
+    if op.le(1, op.mul(rho, seed_degree)):
+        return Result({}, {}, number(0), number(0), cc.report(), [], exact)
+
+    def append_active(vertices):
+        for i in vertices:
+            cc.control += 1
+            active[i] = True
+            cache.admit(i)
+
+    def zero_vector():
+        v = State(cc)
+        for i in active.keys(): v[i] = number(0)
+        return v
+
+    def matvec(v):
+        ans = State(cc)
+        for i in active.keys():
+            total = op.mul(op.mul(a, cache.degree(i)), v[i])
+            for j in cache.neighbors(i):
+                if j in active: total = op.sub(total, op.mul(c, v[j]))
+            ans[i] = total
+        return ans
+
+    def rhs():
+        ans = State(cc)
+        for i in active.keys():
+            cc.comparisons += 1
+            ans[i] = op.sub(alpha if i == seed else 0,
+                            op.mul(ar, cache.degree(i)))
+        return ans
+
+    def residual(v, g):
+        hv = matvec(v)
+        ans = State(cc)
+        for i in active.keys(): ans[i] = op.sub(g[i], hv[i])
+        return ans
+
+    def dot(v, w):
+        total = number(0)
+        for i in active.keys(): total = op.add(total, op.mul(v[i], w[i]))
+        return total
+
+    def precondition(r):
+        z = State(cc)
+        for i in active.keys(): z[i] = op.div(r[i], cache.degree(i))
+        return z
+
+    def eta(r):
+        maximum = number(0)
+        for i in active.keys():
+            value = op.div(op.absolute(r[i]), cache.degree(i))
+            if op.le(maximum, value): maximum = value
+        return maximum
+
+    def sufficiently_small(value):
+        return op.le(op.mul(value, value), threshold)
+
+    def cg(g):
+        cc.restricted_solves += 1
+        v = zero_vector()
+        r = g.copy()
+        current_eta = eta(r)
+        if sufficiently_small(current_eta): return v, current_eta
+        z = precondition(r)
+        p = z.copy()
+        rz = dot(r, z)
+        n = len(active.data)
+        limit = max_cg if max_cg is not None else (n if exact else 4*n + 4)
+        for _ in range(limit):
+            cc.control += 1
+            cc.cg_iterations += 1
+            hp = matvec(p)
+            denominator = dot(p, hp)
+            if not op.positive(denominator):
+                raise ArithmeticError('CG lost positive curvature')
+            step = op.div(rz, denominator)
+            for i in active.keys():
+                v[i] = op.add(v[i], op.mul(step, p[i]))
+                r[i] = op.sub(r[i], op.mul(step, hp[i]))
+            current_eta = eta(r)
+            if sufficiently_small(current_eta):
+                true_r = residual(v, g)
+                true_eta = eta(true_r)
+                if sufficiently_small(true_eta): return v, true_eta
+                # Deterministic residual replacement/restart in float mode.
+                r = true_r
+                z = precondition(r)
+                p = z.copy()
+                rz = dot(r, z)
+                continue
+            z = precondition(r)
+            next_rz = dot(r, z)
+            beta = op.div(next_rz, rz)
+            for i in active.keys(): p[i] = op.add(z[i], op.mul(beta, p[i]))
+            rz = next_rz
+        raise ArithmeticError('CG iteration limit before the residual target')
+
+    append_active([seed])
+    while True:
+        cc.control += 1
+        g = rhs()
+        v, residual_eta = cg(g)
+        delta = op.div(residual_eta, alpha)
+        lower = State(cc)
+        volume = 0
+        for i in active.keys():
+            value = op.sub(v[i], delta)
+            lower[i] = value if op.positive(value) else number(0)
+            volume = op.add(volume, cache.degree(i))
+        cc.state_writes += 1
+        history.append((len(active.data), volume, residual_eta))
+
+        cc.boundary_tests += 1
+        flux = State(cc)
+        for i in active.keys():
+            for j in cache.neighbors(i):
+                if j not in active:
+                    if j not in flux: flux[j] = number(0)
+                    flux[j] = op.add(flux[j], op.mul(c, lower[i]))
+        admitted = []
+        for j in flux.keys():
+            score = op.sub(flux[j], op.mul(ar, cache.degree(j)))
+            if op.positive(score):
+                cc.state_writes += 1
+                admitted.append(j)
+        if admitted:
+            append_active(admitted)
+            continue
+
+        # Direct minimal-subgradient certificate in degree coordinates.
+        r_lower = residual(lower, g)
+        norm_sq = number(0)
+        output = {}
+        output_degrees = {}
+        for i in active.keys():
+            ri = r_lower[i]
+            if not op.positive(lower[i]) and not op.positive(ri): ri = number(0)
+            norm_sq = op.add(norm_sq, op.div(op.mul(ri, ri), cache.degree(i)))
+            if op.positive(lower[i]):
+                output[i] = lower[i]
+                output_degrees[i] = cache.degree(i)
+                cc.state_writes += 2
+                cc.output_words += 3  # label, rational y coefficient, degree
+        direct = op.div(norm_sq, op.mul(2, alpha))
+        envelope = op.div(op.mul(op.mul(2, op.mul(delta, delta)), volume), alpha)
+        return Result(output, output_degrees, direct, envelope,
+                      cc.report(), history, exact)
+
+
+def degree_objective(adjacency, y, seed, alpha, rho):
+    """Independent utility for tests; intentionally outside solver counters."""
+    a, c = (1+alpha)/2, (1-alpha)/2
+    quadratic = sum(a*len(adjacency[i])*yi*yi for i, yi in y.items())
+    quadratic -= sum(c*yi*y.get(j, 0) for i, yi in y.items() for j in adjacency[i])
+    linear = alpha*y.get(seed, 0)
+    penalty = alpha*rho*sum(len(adjacency[i])*abs(yi) for i, yi in y.items())
+    return quadratic/2-linear+penalty

@@ -1,0 +1,173 @@
+"""Deterministic edge-perturbation search on explicit asymmetric graph shapes.
+
+This is a finite falsification experiment, not a solver or convergence proof.
+Every graph is simple, unit-weighted, connected, and seeded at vertex zero.
+"""
+
+import argparse
+import json
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+from mass_repair_energy_probe import probe
+
+
+def edge_key(graph):
+    return tuple(sorted(tuple(sorted(edge)) for edge in graph.edges()))
+
+
+def initial_graphs():
+    yield "complete24", nx.complete_graph(24)
+    yield "complete32", nx.complete_graph(32)
+    yield "bipartite24", nx.complete_bipartite_graph(12, 12)
+    yield "bipartite32", nx.complete_bipartite_graph(16, 16)
+    yield "unequal_bipartite32", nx.complete_bipartite_graph(8, 24)
+    yield "path24", nx.path_graph(24)
+    yield "cycle24", nx.cycle_graph(24)
+    yield "ladder24", nx.ladder_graph(12)
+    yield "grid24", nx.convert_node_labels_to_integers(nx.grid_2d_graph(4, 6))
+    yield "binary31", nx.balanced_tree(2, 4)
+    yield "barbell24", nx.barbell_graph(8, 8)
+    yield "lollipop24", nx.lollipop_graph(8, 16)
+    comb = nx.path_graph(12)
+    comb.add_edges_from((i, i + 12) for i in range(12))
+    yield "comb24", comb
+
+
+def evaluate(graph, alpha, rho):
+    degrees = np.array([graph.degree(i) for i in range(len(graph))], float)
+    if rho >= 1 / degrees[0]:
+        return None
+    w = np.sqrt(degrees)
+    adjacency = nx.to_numpy_array(graph, nodelist=list(range(len(graph))))
+    q = (1 + alpha) / 2 * np.eye(len(graph)) - (1 - alpha) / 2 * adjacency / np.outer(
+        w, w
+    )
+    c = -alpha * rho * w
+    c[0] += alpha / w[0]
+    return probe(q, c, w, alpha, rho)
+
+
+def score(result):
+    value = result["worst_repaired_relative_debit"]
+    return value if value is not None else -1e300
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--rounds", type=int, default=12)
+    parser.add_argument("--width", type=int, default=3)
+    args = parser.parse_args()
+    directory = args.directory.resolve()
+    directory.mkdir(parents=True, exist_ok=True)
+    start = last = time.monotonic()
+    completed = 0
+    global_best = -1e300
+    cache = {}
+    with (directory / "cases.jsonl").open("w") as output:
+        for alpha in (1 / 256, 1 / 1024, 1 / 4096):
+            frontier = []
+
+            def visit(graph, rho, origin, depth, alpha=alpha):
+                nonlocal completed, global_best, last
+                key = (alpha, rho, len(graph), edge_key(graph))
+                if key in cache:
+                    return cache[key]
+                result = evaluate(graph, alpha, rho)
+                if result is None:
+                    return None
+                compact = {k: v for k, v in result.items() if k not in ("x", "z")}
+                row = {
+                    "alpha": alpha,
+                    "rho": rho,
+                    "vertices": len(graph),
+                    "edges": len(graph.edges()),
+                    "origin": origin,
+                    "depth": depth,
+                    **compact,
+                }
+                output.write(json.dumps(row) + "\n")
+                output.flush()
+                completed += 1
+                ranking = score(result)
+                if ranking > global_best:
+                    global_best = ranking
+                    (directory / "worst.json").write_text(
+                        json.dumps({**row, "edge_list": key[-1]}, indent=2)
+                    )
+                cache[key] = (ranking, graph.copy(), rho, origin)
+                if time.monotonic() - last > 30:
+                    checkpoint = {
+                        "updated_at": datetime.now(UTC).isoformat(),
+                        "cases_completed": completed,
+                        "alpha": alpha,
+                        "depth": depth,
+                        "maximum_repaired_relative_energy_debit": global_best,
+                        "elapsed_seconds": time.monotonic() - start,
+                        "randomized": False,
+                    }
+                    (directory / "checkpoint.json").write_text(
+                        json.dumps(checkpoint, indent=2)
+                    )
+                    print(json.dumps(checkpoint), flush=True)
+                    last = time.monotonic()
+                return cache[key]
+
+            for name, graph in initial_graphs():
+                for factor in (0.001, 0.03, 0.3):
+                    item = visit(graph, factor / graph.degree(0), name, 0)
+                    if item:
+                        frontier.append(item)
+            frontier.sort(key=lambda item: (-item[0], edge_key(item[1]), item[2]))
+            frontier = frontier[: args.width]
+            if all(item[0] == -1e300 for item in frontier):
+                continue
+            for depth in range(1, args.rounds + 1):
+                candidates = list(frontier)
+                for _, graph, rho, origin in frontier:
+                    for i in range(len(graph)):
+                        for j in range(i + 1, len(graph)):
+                            changed = graph.copy()
+                            if changed.has_edge(i, j):
+                                changed.remove_edge(i, j)
+                                if not nx.is_connected(changed):
+                                    continue
+                            else:
+                                changed.add_edge(i, j)
+                            item = visit(changed, rho, origin, depth)
+                            if item:
+                                candidates.append(item)
+                candidates.sort(key=lambda item: (-item[0], edge_key(item[1]), item[2]))
+                next_frontier = []
+                seen = set()
+                for item in candidates:
+                    identity = (item[2], edge_key(item[1]))
+                    if identity not in seen:
+                        seen.add(identity)
+                        next_frontier.append(item)
+                    if len(next_frontier) == args.width:
+                        break
+                if [edge_key(item[1]) for item in next_frontier] == [
+                    edge_key(item[1]) for item in frontier
+                ]:
+                    break
+                frontier = next_frontier
+    (directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "maximum_repaired_relative_energy_debit": global_best,
+                "elapsed_seconds": time.monotonic() - start,
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,86 @@
+"""Bounded deterministic ABBA timing comparison; timing floats are diagnostic.
+
+The solver states, parameters, comparisons, and certificates remain exact
+Fractions. The implicit path is accessed only through local queries.
+"""
+
+import json
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+
+from fast_exact_dyadic_rppr import solve_rppr_fast
+from practical_dyadic_rppr_solver import solve_rppr_practical
+from test_fast_exact_dyadic_rppr import structural
+
+
+class LocalPath:
+    def __init__(self, vertices=10**9):
+        self.vertices = vertices
+        self.degree_queries = 0
+        self.first_adjacency_entries = 0
+
+    def degree(self, i):
+        if not 0 <= i < self.vertices:
+            raise IndexError(i)
+        self.degree_queries += 1
+        return 1 if i in (0, self.vertices-1) else 2
+
+    def neighbors(self, i):
+        if i:
+            self.first_adjacency_entries += 1
+            yield i-1
+        if i+1 < self.vertices:
+            self.first_adjacency_entries += 1
+            yield i+1
+
+
+def comparable(result):
+    stages = []
+    for stage in result.stages:
+        fields = asdict(stage)
+        fields['corrector_metrics'] = structural(fields['corrector_metrics'])
+        stages.append(fields)
+    return result.output, result.objective_gap_bound, result.theta, stages, asdict(result.metrics)
+
+
+def main():
+    parameters = 0, F(1, 100), F(1, 16), F(1, 10**6)
+    runs, expected = [], None
+    functions = {'reference':solve_rppr_practical, 'fast':solve_rppr_fast}
+    for mode in ('reference', 'fast', 'fast', 'reference'):
+        oracle = LocalPath()
+        wall_start, cpu_start = perf_counter(), process_time()
+        result = functions[mode](oracle, *parameters)
+        elapsed, cpu = perf_counter()-wall_start, process_time()-cpu_start
+        actual = comparable(result)
+        if expected is None:
+            expected = actual
+        else:
+            assert actual == expected
+        record = dict(mode=mode, wall_seconds=elapsed, process_seconds=cpu,
+            stages=len(result.stages), iterations=sum(stage.iterations for stage in result.stages),
+            corrector_adjacency_entries=sum(stage.corrector_metrics['scanned_adjacency_entries']
+                                           for stage in result.stages),
+            pg_adjacency_entries=result.metrics.repair_scanned_adjacency_entries,
+            degree_queries=oracle.degree_queries, first_adjacency_entries=oracle.first_adjacency_entries,
+            output_records=len(result.output), exact_certificate=str(result.objective_gap_bound))
+        runs.append(record)
+        print(json.dumps(record), flush=True)
+    medians = {mode:median(run['wall_seconds'] for run in runs if run['mode']==mode)
+               for mode in functions}
+    cpu_medians = {mode:median(run['process_seconds'] for run in runs if run['mode']==mode)
+                   for mode in functions}
+    report = dict(parameters=dict(implicit_vertices=10**9, seed=0, alpha='1/100', rho='1/16', epsilon='1/1000000'),
+        order='reference, fast, fast, reference', exact_outputs_and_structural_counts_equal=True,
+        optional_dependencies_used=False, runs=runs, median_wall_seconds=medians,
+        median_process_seconds=cpu_medians, wall_speedup=medians['reference']/medians['fast'],
+        process_speedup=cpu_medians['reference']/cpu_medians['fast'])
+    Path(__file__).with_name('fast_exact_dyadic_benchmark.json').write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps({k:v for k,v in report.items() if k!='runs'}), flush=True)
+
+
+if __name__ == '__main__':
+    main()

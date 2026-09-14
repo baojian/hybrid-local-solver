@@ -1,0 +1,184 @@
+"""Deterministic exact tests. No random graph or numerical oracle is used."""
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+
+from local_safe_solver import AdjacencyOracle, solve, degree_objective
+
+
+def graph(n, edges):
+    adjacency = {i: [] for i in range(n)}
+    for i, j in edges:
+        adjacency[i].append(j)
+        adjacency[j].append(i)
+    for i in adjacency: adjacency[i].sort()
+    return adjacency
+
+
+def path(n): return graph(n, [(i, i+1) for i in range(n-1)])
+def star(n): return graph(n, [(0, i) for i in range(1, n)])
+def tree(n): return graph(n, [((i-1)//2, i) for i in range(1, n)])
+
+
+def connected(adjacency):
+    seen, todo = {0}, [0]
+    while todo:
+        for j in adjacency[todo.pop()]:
+            if j not in seen: seen.add(j); todo.append(j)
+    return len(seen) == len(adjacency)
+
+
+def connected_graphs(n):
+    pairs = [(i, j) for i in range(n) for j in range(i+1, n)]
+    for mask in range(1 << len(pairs)):
+        adjacency = graph(n, [edge for k, edge in enumerate(pairs) if mask & (1 << k)])
+        if connected(adjacency): yield mask, adjacency
+
+
+def gaussian_elimination(matrix, rhs):
+    """Dense exact rational elimination; independent of PCG and its code."""
+    n = len(rhs)
+    augmented = [list(matrix[i]) + [rhs[i]] for i in range(n)]
+    for j in range(n):
+        pivot = next(i for i in range(j, n) if augmented[i][j] != 0)
+        augmented[j], augmented[pivot] = augmented[pivot], augmented[j]
+        denominator = augmented[j][j]
+        augmented[j] = [x / denominator for x in augmented[j]]
+        for i in range(n):
+            if i != j:
+                coefficient = augmented[i][j]
+                augmented[i] = [x-coefficient*y for x, y in zip(augmented[i], augmented[j])]
+    return [row[-1] for row in augmented]
+
+
+def dense_exact_obstacle_oracle(adjacency, seed, alpha, rho):
+    """Exhaustively test every support, using dense rational linear algebra."""
+    n = len(adjacency)
+    vertices = list(adjacency)
+    a, c = (1+alpha)/2, (1-alpha)/2
+    h = {i: alpha*(int(i == seed)-rho*len(adjacency[i])) for i in vertices}
+    if all(value <= 0 for value in h.values()): return {}
+    for mask in range(1 << n):
+        support = [i for k, i in enumerate(vertices) if mask & (1 << k)]
+        if seed not in support: continue
+        matrix = [[a*len(adjacency[i]) if i == j else
+                   (-c if j in adjacency[i] else F(0)) for j in support] for i in support]
+        values = gaussian_elimination(matrix, [h[i] for i in support])
+        if any(value < 0 for value in values): continue
+        y = dict(zip(support, values))
+        residual = {i: h[i]-a*len(adjacency[i])*y.get(i, 0)
+                    +c*sum(y.get(j, 0) for j in adjacency[i]) for i in vertices}
+        if all(residual[i] == 0 if y.get(i, 0) > 0 else residual[i] <= 0 for i in vertices):
+            return {i: value for i, value in y.items() if value > 0}
+    raise AssertionError('No exact KKT support found')
+
+
+LOG = {'exact_cases': 0, 'float_cases': 0, 'connected_graphs_enumerated': 0,
+       'largest_logical_work': 0, 'largest_cg_iterations': 0,
+       'largest_restricted_solve_count': 0, 'fixture_summaries': []}
+
+
+class SafeSolverTests(unittest.TestCase):
+    def verify_exact_case(self, adjacency, seed, alpha, rho, epsilon, label=None):
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        oracle = AdjacencyOracle(adjacency)
+        answer = solve(oracle, seed, alpha, rho, epsilon, exact=True)
+        gap = (degree_objective(adjacency, answer.y, seed, alpha, rho)
+               -degree_objective(adjacency, optimum, seed, alpha, rho))
+        self.assertTrue(answer.certificate_exact)
+        self.assertGreaterEqual(gap, 0)
+        self.assertLessEqual(gap, answer.objective_gap_bound)
+        self.assertLessEqual(answer.objective_gap_bound, answer.envelope_gap_bound)
+        self.assertLessEqual(answer.envelope_gap_bound, epsilon)
+        self.assertTrue(all(0 <= value <= optimum.get(i, 0) for i, value in answer.y.items()))
+        self.assertTrue(oracle.queried_vertices <= set(optimum))
+        self.assertEqual(answer.counts['adjacency_queries'], len(oracle.queried_vertices))
+        self.assertEqual(answer.counts['adjacency_entries'],
+                         sum(len(adjacency[i]) for i in oracle.queried_vertices))
+        self.assertLessEqual(answer.counts['adjacency_entries'], 1/rho)
+        LOG['exact_cases'] += 1
+        for key, source in [('largest_logical_work', 'total_logical_work'),
+                            ('largest_cg_iterations', 'cg_iterations'),
+                            ('largest_restricted_solve_count', 'restricted_solves')]:
+            LOG[key] = max(LOG[key], answer.counts[source])
+        if label:
+            LOG['fixture_summaries'].append(dict(label=label, n=len(adjacency),
+                gap=str(gap), certified_bound=str(answer.objective_gap_bound),
+                support_size=len(answer.y), **answer.counts))
+        return answer
+
+    def test_exhaustive_connected_graphs_through_four_vertices(self):
+        for n in range(2, 5):
+            for mask, adjacency in connected_graphs(n):
+                LOG['connected_graphs_enumerated'] += 1
+                for seed in adjacency:
+                    for alpha in (F(1, 5), F(1, 2), F(1)):
+                        for numerator in (1, 3):
+                            rho = F(numerator, 4*len(adjacency[seed]))
+                            with self.subTest(n=n, mask=mask, seed=seed, alpha=alpha, rho=rho):
+                                self.verify_exact_case(adjacency, seed, alpha, rho, F(1, 10**8))
+
+    def test_paths_stars_and_trees(self):
+        fixtures = [('path8', path(8), 0), ('star8-center', star(8), 0),
+                    ('star8-leaf', star(8), 1), ('binary-tree7', tree(7), 3)]
+        for name, adjacency, seed in fixtures:
+            for alpha in (F(1, 30), F(1, 2)):
+                rho = F(1, 30*len(adjacency[seed]))
+                for epsilon in (F(1, 10**4), F(1, 10**10)):
+                    self.verify_exact_case(adjacency, seed, alpha, rho, epsilon,
+                                           f'{name},alpha={alpha},eps={epsilon}')
+
+    def test_high_degree_boundary_is_not_scanned(self):
+        adjacency = star(101)
+        alpha, rho, epsilon = F(1, 10), F(1, 100), F(1, 10**12)
+        oracle = AdjacencyOracle(adjacency)
+        answer = solve(oracle, 1, alpha, rho, epsilon)
+        optimum = {1: alpha*(1-rho)/((1+alpha)/2)}
+        self.assertEqual(answer.y, optimum)
+        self.assertEqual(oracle.queried_vertices, {1})
+        self.assertEqual(answer.counts['adjacency_entries'], 1)
+        self.assertEqual(answer.counts['degree_replies'], 2)
+        self.assertEqual(answer.objective_gap_bound, 0)
+        LOG['exact_cases'] += 1
+        LOG['fixture_summaries'].append(dict(label='unscanned-degree100-hub', **answer.counts))
+
+    def test_zero_solution_regime_does_not_scan(self):
+        oracle = AdjacencyOracle(star(9))
+        answer = solve(oracle, 0, F(1, 7), F(1, 8), F(1, 10**10))
+        self.assertEqual(answer.y, {})
+        self.assertEqual(answer.counts['adjacency_entries'], 0)
+        self.assertEqual(answer.objective_gap_bound, 0)
+        LOG['exact_cases'] += 1
+
+    def test_floating_mode_against_dense_exact_small_oracle(self):
+        for name, adjacency, seed in [('path7', path(7), 0), ('star7', star(7), 1),
+                                      ('tree7', tree(7), 2)]:
+            alpha, rho, epsilon = F(1, 7), F(1, 50), F(1, 10**9)
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+            answer = solve(AdjacencyOracle(adjacency), seed, alpha, rho, epsilon, exact=False)
+            gap = (degree_objective(adjacency, answer.y, seed, float(alpha), float(rho))
+                   -float(degree_objective(adjacency, optimum, seed, alpha, rho)))
+            self.assertFalse(answer.certificate_exact)
+            self.assertGreaterEqual(gap, -1e-14)
+            self.assertLessEqual(gap, answer.objective_gap_bound+1e-14)
+            self.assertLessEqual(answer.envelope_gap_bound, float(epsilon)*(1+1e-10))
+            LOG['float_cases'] += 1
+            LOG['fixture_summaries'].append(dict(label='float-'+name, gap=gap,
+                certified=False, diagnostic_bound=answer.objective_gap_bound, **answer.counts))
+
+
+if __name__ == '__main__':
+    report = None
+    if '--report' in sys.argv:
+        index = sys.argv.index('--report')
+        report = Path(sys.argv[index+1])
+        del sys.argv[index:index+2]
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(SafeSolverTests)
+    outcome = unittest.TextTestRunner(verbosity=2).run(suite)
+    LOG['passed'] = outcome.wasSuccessful()
+    LOG['test_methods'] = outcome.testsRun
+    if report: report.write_text(json.dumps(LOG, indent=2)+'\n')
+    print(json.dumps({k: v for k, v in LOG.items() if k != 'fixture_summaries'}, indent=2))
+    sys.exit(0 if outcome.wasSuccessful() else 1)

@@ -1,0 +1,137 @@
+"""Local-oracle replay on enormous finite unit trees; no global graph arrays."""
+
+import bisect
+import json
+import math
+import time
+from pathlib import Path
+
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from cyclic_radial_audit import model
+from local_mass_repair import run_until_certificate
+
+
+class TreeOracle:
+    def __init__(self, branch, depth):
+        self.branch, self.depth = branch, depth
+        self.last = [
+            (branch ** (i + 1) - 1) // (branch - 1) - 1 for i in range(depth + 1)
+        ]
+        self.entries = self.degree_calls = 0
+
+    def degree(self, vertex):
+        self.degree_calls += 1
+        if not 0 <= vertex <= self.last[-1]:
+            raise ValueError("vertex outside the finite graph")
+        level = bisect.bisect_left(self.last, vertex)
+        return (vertex > 0) + (self.branch if level < self.depth else 0)
+
+    def neighbors(self, vertex):
+        if vertex:
+            self.entries += 1
+            yield (vertex - 1) // self.branch
+        first = self.branch * vertex + 1
+        if first <= self.last[-1]:
+            for child in range(first, first + self.branch):
+                self.entries += 1
+                yield child
+
+
+def main():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "results/local-mass-repair-implicit-trees.jsonl"
+    )
+    with path.open("w") as destination:
+        for branch, depth, alpha, rho, epsilon in (
+            (10, 40, 0.01, 0.005, 1e-14),
+            (2, 100, 0.0001, 0.005, 1e-18),
+            (4, 50, 0.001, 0.005, 1e-16),
+        ):
+            oracle = TreeOracle(branch, depth)
+            cap = 1 + math.ceil(
+                math.log(4 / (alpha * branch * epsilon)) / math.sqrt(alpha)
+            )
+            start = time.monotonic()
+            result = run_until_certificate(oracle, 0, alpha, rho, epsilon, cap)
+            elapsed = time.monotonic() - start
+            assert result["ledger"]["adjacency_entries"] == oracle.entries
+            assert result["ledger"]["degree_replies"] == oracle.degree_calls
+            assert (
+                rho * result["ledger"]["auxiliary_volume_sum"]
+                <= result["ledger"]["iterations"] + 1e-8
+            )
+            # This is external audit-only verification, separate from the
+            # solver's already-charged cached certificate.
+            output = {
+                vertex: (degree, density)
+                for vertex, degree, density in result["output"]
+            }
+            diagonal = (1 + alpha) / 2
+            edge_weight = (1 - alpha) / 2
+            mass = sum(degree * density for degree, density in output.values())
+            value = (
+                0.5
+                * diagonal
+                * sum(degree * density**2 for degree, density in output.values())
+            )
+            for vertex, (_, density) in output.items():
+                if vertex and (vertex - 1) // branch in output:
+                    value -= edge_weight * density * output[(vertex - 1) // branch][1]
+            value += alpha * rho * mass - alpha * output.get(0, (0, 0))[1]
+            k, b, w, volume, _bounds, ambient_n = model([branch] * depth, alpha)
+            q = k + alpha * np.eye(len(w))
+            c = b - alpha * rho * w
+            optimum = obstacle(q, c)
+            f_star = float(0.5 * optimum @ q @ optimum - c @ optimum)
+            gap = value - f_star
+            shell_mass = np.zeros(len(w))
+            shell_volume_seen = np.zeros(len(w))
+            for vertex, (degree, density) in output.items():
+                level = bisect.bisect_left(oracle.last, vertex)
+                shell_mass[level] += degree * density
+                shell_volume_seen[level] += degree
+            shell_density = shell_mass / volume
+            variance = float(
+                np.maximum(volume - shell_volume_seen, 0) @ shell_density**2
+            )
+            for vertex, (degree, density) in output.items():
+                level = bisect.bisect_left(oracle.last, vertex)
+                variance += degree * (density - shell_density[level]) ** 2
+            error = w * shell_density - optimum
+            slack = np.where(optimum == 0, np.maximum(q @ optimum - c, 0), 0)
+            stable_radial_gap = float(
+                0.5 * error @ q @ error + slack @ (w * shell_density)
+            )
+            # Q preserves the shell-average subspace and its orthogonal
+            # complement, and its spectral norm is at most one.
+            stable_gap_upper = stable_radial_gap + variance / 2
+            assert stable_gap_upper <= result[
+                "objective_gap_certificate"
+            ] + 1e-20 * abs(f_star), (
+                stable_gap_upper,
+                stable_radial_gap,
+                variance,
+                result["objective_gap_certificate"],
+            )
+            result.pop("output")
+            result.update(
+                branch=branch,
+                depth=depth,
+                ambient_vertices=ambient_n,
+                elapsed_seconds=elapsed,
+                externally_audited_objective_gap=gap,
+                stable_external_objective_gap_upper=stable_gap_upper,
+                shell_variance=variance,
+                source_of_global_reference="equitable quotient used only after solver returned",
+                global_graph_array_constructed=False,
+                output_nonzeros=len(output),
+            )
+            destination.write(json.dumps(result) + "\n")
+            destination.flush()
+            print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

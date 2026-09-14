@@ -1,0 +1,95 @@
+"""Optional exact singleton-support trial with a separate, explicit ledger.
+
+The fallback solver and its result are untouched. Trial graph accesses are
+not cached or hidden in fallback/repair metrics. No boundary adjacency is
+read by the trial, and its per-neighbor test uses integer products only.
+"""
+from dataclasses import dataclass
+from fractions import Fraction as F
+from ._fast import solve_rppr_fast
+
+@dataclass
+class SingletonTrialMetrics:
+    seed_degree_queries: int = 0
+    neighbor_degree_queries: int = 0
+    seed_row_requests: int = 0
+    adjacency_entries: int = 0
+    cutoff_comparisons: int = 0
+    neighbor_inequality_checks: int = 0
+    neighbor_inequality_failures: int = 0
+    completed_row_length_checks: int = 0
+    fallback_calls: int = 0
+    final_output_words: int = 0
+
+@dataclass(frozen=True)
+class SingletonPrecheckResult:
+    """Outcome is zero, alpha_one, singleton, failed_trial, or skipped_cutoff.
+
+For the latter two outcomes, fallback_result is the exact object returned
+by fallback_solver. Total work includes trial_metrics AND all fallback
+ledgers. Successful output can be rational rather than dyadic; its exact
+KKT certificate has objective gap zero.
+"""
+    output: tuple
+    objective_gap_bound: F
+    outcome: str
+    trial_metrics: SingletonTrialMetrics
+    fallback_result: object = None
+
+def solve_rppr_with_singleton_precheck(oracle, seed, alpha, rho, epsilon, *, seed_degree_cutoff=32, fallback_solver=solve_rppr_fast):
+    """Try a seed-only exact optimum before the supplied certified solver.
+
+On a failed inequality the trial stops reading the seed row immediately.
+The fallback then receives the original oracle and normalized exact input
+parameters. No graph size, boundary row, or support guess is requested.
+"""
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not isinstance(seed, int) or not 0 < alpha <= 1 or rho <= 0 or (epsilon <= 0):
+        raise ValueError('Need integer seed, 0<alpha<=1, rho>0, epsilon>0')
+    if not isinstance(seed_degree_cutoff, int) or seed_degree_cutoff < 0:
+        raise ValueError('The seed-degree cutoff must be a nonnegative integer')
+    metrics = SingletonTrialMetrics()
+    degree = oracle.degree(seed)
+    metrics.seed_degree_queries = 1
+    if not isinstance(degree, int) or degree <= 0:
+        raise ValueError('The seed must have positive integer degree')
+    A, D, P, R = (alpha.numerator, alpha.denominator, rho.numerator, rho.denominator)
+    weighted_rho = P * degree
+    if weighted_rho >= R:
+        return SingletonPrecheckResult((), F(0), 'zero', metrics)
+    if alpha == 1:
+        output = ((seed, F(1, degree) - rho, degree),)
+        metrics.final_output_words = 3
+        return SingletonPrecheckResult(output, F(0), 'alpha_one', metrics)
+    metrics.cutoff_comparisons = 1
+    outcome = 'skipped_cutoff'
+    if degree <= seed_degree_cutoff:
+        left = (D - A) * (R - weighted_rho)
+        coefficient = weighted_rho * (D + A)
+        metrics.seed_row_requests = 1
+        failed = False
+        for i in oracle.neighbors(seed):
+            metrics.adjacency_entries += 1
+            if not isinstance(i, int):
+                raise ValueError('Integer vertex labels are required')
+            neighbor_degree = oracle.degree(i)
+            metrics.neighbor_degree_queries += 1
+            if not isinstance(neighbor_degree, int) or neighbor_degree <= 0:
+                raise ValueError('Positive integer neighbor degrees are required')
+            metrics.neighbor_inequality_checks += 1
+            if left > coefficient * neighbor_degree:
+                metrics.neighbor_inequality_failures = 1
+                failed = True
+                break
+        if not failed:
+            metrics.completed_row_length_checks = 1
+            if metrics.adjacency_entries != degree:
+                raise ValueError('Seed degree and adjacency disagree')
+            density = F(2 * A * (R - weighted_rho), R * degree * (D + A))
+            output = ((seed, density, degree),)
+            metrics.final_output_words = 3
+            return SingletonPrecheckResult(output, F(0), 'singleton', metrics)
+        outcome = 'failed_trial'
+    metrics.fallback_calls = 1
+    answer = fallback_solver(oracle, seed, alpha, rho, epsilon)
+    return SingletonPrecheckResult(answer.output, answer.objective_gap_bound, outcome, metrics, answer)

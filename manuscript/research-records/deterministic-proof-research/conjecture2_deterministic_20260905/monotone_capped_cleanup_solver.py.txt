@@ -1,0 +1,136 @@
+"""Exact local relative-gradient cleanup of the monotone capped prototype.
+
+This is a validated framework, not a general OP2 solver theorem. Default
+cleanup parameters do not remove the known difficult initialized examples.
+See relative_gradient_cleanup.md and monotone_capped_cleanup_audit.md.
+Original parent solvers are unchanged. Counters are structural logical events,
+not complete Python-operation or Fraction bit-complexity instrumentation.
+"""
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+from lazy_capped_solver import WeightedAVL
+from monotone_capped_solver import MonotoneCappedSolver
+
+
+@dataclass
+class CleanupMetrics:
+    tree_visits: int = 0
+    rotations: int = 0
+    key_changes: int = 0
+    projection_emissions: int = 0  # AVL reports eligible coordinates here.
+    batches: int = 0
+    changed_vertices: int = 0
+    gradient_evaluations: int = 0
+    response_updates: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+
+
+class MonotoneCappedCleanupSolver(MonotoneCappedSolver):
+    def __init__(self, oracle, seed, theta, rho, beta=F(1,4), tau_scale=F(1,8)):
+        self.beta, self.tau_scale = F(beta), F(tau_scale)
+        if not 0 < self.beta < 1:
+            raise ValueError('beta must lie strictly between zero and one')
+        if self.tau_scale <= 0:
+            raise ValueError('tau_scale must be positive')
+        super().__init__(oracle, seed, theta, rho)
+        self.q0 = (1+self.alpha)/2
+        self.lam = self.alpha*self.rho
+        self.tau = self.tau_scale*self.lam
+        self.cleanup_metrics = CleanupMetrics()
+        self.cleanup_tree = WeightedAVL(self.cleanup_metrics)
+        self.cleanup_keys = {}
+        self.cleanup_history = []
+
+    def _refresh_cleanup_key(self, i):
+        positive = self.X.get(i,F(0)) > 0
+        old = self.cleanup_keys.get(i)
+        if not positive:
+            if old is not None:
+                self.cleanup_tree.delete((old,i))
+                del self.cleanup_keys[i]
+                self.cleanup_metrics.key_changes += 1
+            return
+        value = self.R.get(i,F(0))+(self.alpha-self.beta*self.q0)*self.X[i]
+        if i == self.seed:
+            value -= self.alpha/(self.sigma*self.degree[i])
+        if old is not None:
+            if old == value: return
+            self.cleanup_tree.delete((old,i))
+        self.cleanup_keys[i] = value
+        self.cleanup_tree.insert((value,i),self.degree[i])
+        self.cleanup_metrics.key_changes += 1
+
+    def _refresh_current_mirror_key(self, i):
+        """Refresh this response entry with its current kinetic exception."""
+        extra = self.a*self.z.get(i,F(0))-self.t.get(i,F(0))/(1+self.theta)
+        if i == self.seed:
+            extra += self.alpha/(self.theta*self.degree[i])
+        self._set_key(i,self._base_key(i)+extra/self.sigma)
+
+    def initialize_from_primal(self, degree_coordinates, certified_objective_gap):
+        super().initialize_from_primal(degree_coordinates,certified_objective_gap)
+        # Reading the explicitly supplied warm support is charged setup work.
+        for i in self.X: self._refresh_cleanup_key(i)
+
+    def cleanup(self):
+        """Simultaneous batches; only reported positives and their edges scan."""
+        while True:
+            threshold = (self.tau-self.lam)/self.sigma
+            eligible = [i for key,i in self.cleanup_tree.above(threshold)]
+            if not eligible: return
+            delta, cross, mass_delta = {},F(0),F(0)
+            old_objective = self.objective
+            for i in eligible:
+                value = self.sigma*self.X[i]
+                qx = self.sigma*(self.alpha*self.X[i]+self.R.get(i,F(0)))
+                gradient = qx+self.lam
+                if i == self.seed: gradient -= self.alpha/self.degree[i]
+                assert gradient > self.beta*self.q0*value+self.tau
+                change = max(F(0),value-gradient/self.q0)-value
+                assert change < 0
+                delta[i] = change
+                cross += self.degree[i]*change*qx
+                mass_delta += self.degree[i]*change
+                self.cleanup_metrics.gradient_evaluations += 1
+            old_scans = self.metrics.scanned_adjacency_entries
+            old_reads = self.metrics.first_adjacency_entries
+            response = self._laplacian(delta)
+            self.cleanup_metrics.scanned_adjacency_entries += self.metrics.scanned_adjacency_entries-old_scans
+            self.cleanup_metrics.first_adjacency_entries += self.metrics.first_adjacency_entries-old_reads
+            quadratic_delta = sum((self.degree[i]*change*(self.alpha*change+response.get(i,F(0)))
+                                   for i,change in delta.items()),F(0))
+            diagonal_delta = sum((self.degree[i]*change**2 for i,change in delta.items()),F(0))
+            for i,change in delta.items():
+                updated = self.X[i]+change/self.sigma
+                assert updated >= 0
+                if updated: self.X[i] = updated
+                else: del self.X[i]
+            for i,change in response.items():
+                updated = self.R.get(i,F(0))+change/self.sigma
+                if updated: self.R[i] = updated
+                else: self.R.pop(i,None)
+                self.cleanup_metrics.response_updates += 1
+                self._refresh_current_mirror_key(i)
+            for i in set(delta)|set(response): self._refresh_cleanup_key(i)
+            self.quadratic_x += 2*cross+quadratic_delta
+            self.mass_x += mass_delta
+            assert 0 <= self.mass_x <= 1
+            assert self.objective <= old_objective-self.q0*diagonal_delta/2
+            self.cleanup_metrics.batches += 1
+            self.cleanup_metrics.changed_vertices += len(eligible)
+            self.cleanup_history.append(dict(vertices=tuple(eligible),
+                volume=sum(self.degree[i] for i in eligible),
+                objective_before=old_objective,objective_after=self.objective,
+                diagonal_delta=diagonal_delta))
+
+    def step(self):
+        super().step()
+        # Only these normalized entries changed in the parent step. The seed
+        # also carries the sole source exception affected by global sigma.
+        for i in set(self.z)|set(self.t)|{self.seed}: self._refresh_cleanup_key(i)
+        self.cleanup()
+        self.objectives[-1] = self.objective
+        volume,_,mass_z,active = self.history[-1]
+        self.history[-1] = (volume,self.mass_x,mass_z,active)

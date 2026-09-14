@@ -1,0 +1,195 @@
+"""Bounded sequential deterministic performance/identity study.
+
+CPU and wall clocks cover solve only, including its counting oracle.
+Independent verification, graph setup, imports and JSON output are outside
+those clocks. Large-case objective bounds retain solver-certificate
+provenance; sparse source checks do not independently certify that bound.
+"""
+
+import argparse
+import hashlib
+import json
+import platform
+import signal
+import sys
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from time import perf_counter, process_time
+
+from benchmark_practical_rppr import (
+    CASES, Case, CountingOracle, VirtualGraph, independent_output_checks, json_value,
+)
+from integer_dyadic_rppr_solver import solve_rppr_integer
+from practical_dyadic_rppr_solver import solve_rppr_practical
+
+
+ROOT = Path(__file__).resolve().parent
+GRAPH_FIELDS = ('degree_replies', 'first_adjacency_entries', 'scanned_adjacency_entries',
+                'selected_adjacency_entries', 'baseline_adjacency_entries', 'rebase_adjacency_entries')
+MID = Case('barbell-mid-study', 'barbell', 8, 0, 1,
+           F(1, 16), F(1, 128), F(1, 10**6))
+COMPARISONS = (CASES[0], CASES[1], MID)
+LARGE_NAMES = ('star-billion', 'star-huge-labels', 'path-local', 'cycle-local',
+               'grid-local', 'cube-local', 'tree-clique-boundary', 'path-alpha-1e3')
+LARGE = tuple(case for name in LARGE_NAMES for case in CASES if case.name == name)
+
+
+def signature(answer):
+    stages = []
+    for stage in answer.stages:
+        row = asdict(stage)
+        metrics = row.pop('corrector_metrics')
+        row['graph_work'] = {name:metrics[name] for name in GRAPH_FIELDS}
+        stages.append(row)
+    return json_value(dict(output=answer.output, certificate=answer.objective_gap_bound,
+                           theta=answer.theta, stages=stages, metrics=asdict(answer.metrics)))
+
+
+def digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def prior_fraction_results():
+    result = {}
+    for name in ('practical_rppr_benchmarks_small.json', 'practical_rppr_benchmarks_local.json'):
+        for row in json.loads((ROOT/name).read_text())['results']:
+            result[row['case']['name']] = row
+    return result
+
+
+def run(case, mode, seconds, entry_limit):
+    graph = VirtualGraph(case.family, case.size, case.auxiliary)
+    oracle = CountingOracle(graph, entry_limit)
+    function = solve_rppr_integer if mode == 'integer' else solve_rppr_practical
+    def expired(signum, frame):
+        raise TimeoutError('Per-case benchmark wall-time limit reached; no solver output certified')
+    previous_handler = signal.signal(signal.SIGALRM, expired)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    wall_start, cpu_start = perf_counter(), process_time()
+    answer, failure = None, None
+    try:
+        answer = function(oracle, case.seed, case.alpha, case.rho, case.epsilon)
+    except (TimeoutError, RuntimeError) as error:
+        failure = dict(type=type(error).__name__, message=str(error))
+    finally:
+        cpu, wall = process_time()-cpu_start, perf_counter()-wall_start
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
+    result = dict(case=json_value(asdict(case)), backend=mode, graph_vertices=str(graph.n),
+                  solver_wall_seconds=wall, solver_process_cpu_seconds=cpu,
+                  solver_oracle=oracle.snapshot(), status='completed' if answer is not None else 'aborted')
+    if answer is None:
+        result['failure'] = failure
+        return result, None
+    structural = {name:sum(stage.corrector_metrics[name] for stage in answer.stages)
+                  for name in GRAPH_FIELDS}
+    kinetic = sum(stage.kinetic_volume for stage in answer.stages)
+    result.update(stages=len(answer.stages), iterations=sum(stage.iterations for stage in answer.stages),
+                  corrector_graph_work=structural, total_kinetic_volume=kinetic,
+                  terminal_pg_adjacency_entries=answer.metrics.repair_scanned_adjacency_entries,
+                  total_counted_cached_and_first_adjacency_reads=
+                    structural['scanned_adjacency_entries']+answer.metrics.repair_scanned_adjacency_entries,
+                  output_records=len(answer.output),
+                  exact_returned_objective_certificate=str(answer.objective_gap_bound),
+                  sparse_output=json_value(answer.output),
+                  exact_stage_summaries=signature(answer)['stages'],
+                  exact_comparison_signature_sha256=digest(signature(answer)))
+    if mode == 'integer':
+        result['reporter_tree_visits'] = sum(
+            stage.corrector_metrics['reporter']['tree_visits'] for stage in answer.stages)
+        result['reporter_point_updates'] = sum(
+            stage.corrector_metrics['reporter']['point_updates'] for stage in answer.stages)
+    verify_wall, verify_cpu = perf_counter(), process_time()
+    checks = independent_output_checks(graph, case, answer)
+    result.update(verification_wall_seconds=perf_counter()-verify_wall,
+                  verification_process_cpu_seconds=process_time()-verify_cpu,
+                  independent_checks=json_value(checks),
+                  certificate_provenance=('independent exhaustive exact KKT optimum and objective comparison'
+                      if checks['exact_optimum_comparison'] else
+                      'solver fixed-block/perturbed-energy/PG-grid-repair certificate; independent sparse source checks only'))
+    assert 0 <= answer.objective_gap_bound <= case.epsilon
+    return result, signature(answer)
+
+
+def compare_historical(result, prior):
+    if result['status'] != 'completed' or prior is None:
+        return
+    if 'sparse_output' in prior:
+        expected_output = [[int(row['vertex']), row['density'], int(row['degree'])]
+                           for row in prior['sparse_output']]
+        assert result['sparse_output'] == expected_output
+        result['historical_fraction_output_match'] = True
+    else:
+        result['historical_fraction_output_match'] = 'not stored in historical record'
+    for field in GRAPH_FIELDS:
+        assert result['corrector_graph_work'][field] == prior['corrector_totals'][field], field
+    assert result['exact_returned_objective_certificate'] == prior['independent_checks']['returned_objective_certificate']
+    assert result['terminal_pg_adjacency_entries'] == prior['continuation_metrics']['repair_scanned_adjacency_entries']
+    result['historical_fraction_local_graph_counts_match'] = True
+    result['historical_timing_used_for_speedup'] = False
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--phase', choices=('compare', 'large', 'all'), default='all')
+    parser.add_argument('--case', action='append')
+    parser.add_argument('--seconds-per-case', type=int, default=120)
+    parser.add_argument('--entry-limit', type=int, default=1000000)
+    parser.add_argument('--output', default='integer_rppr_performance_study.json')
+    args = parser.parse_args()
+    output = ROOT/args.output
+    source_names = ('study_integer_rppr_performance.py', 'integer_dyadic_rppr_solver.py',
+                    'integer_clipped_reporter.py', 'deterministic_avl_containers.py',
+                    'practical_dyadic_rppr_solver.py', 'bounded_dyadic_corrector.py',
+                    'benchmark_practical_rppr.py')
+    report = dict(deterministic_fixtures=True, numerical_arithmetic='exact integers and Fractions',
+                  execution='sequential, one timed solve at a time',
+                  clock_scope='solve plus counting oracle only; verification/setup/serialization excluded',
+                  cpu_clock='time.process_time', wall_clock='time.perf_counter',
+                  reference_backend='instrumented Fraction practical solver using Python point maps',
+                  timing_scope_note='Single samples per case/backend; not a statistical speedup claim or an asymptotic proof.',
+                  resource_limits=dict(seconds_per_case=args.seconds_per_case, first_oracle_entries=args.entry_limit),
+                  python=sys.version, platform=platform.platform(),
+                  source_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in source_names},
+                  runs=[], comparisons=[])
+    def save():
+        output.write_text(json.dumps(report, indent=2)+'\n')
+    previous = prior_fraction_results()
+    phases = []
+    if args.phase in ('compare', 'all'):
+        phases += [('compare', case) for case in COMPARISONS]
+    if args.phase in ('large', 'all'):
+        phases += [('large', case) for case in LARGE]
+    for index, (phase, case) in enumerate(phases):
+        if args.case and case.name not in args.case:
+            continue
+        modes = ('integer',) if phase == 'large' else (
+            ('fraction_reference', 'integer') if index % 2 == 0 else ('integer', 'fraction_reference'))
+        signatures, rows = {}, {}
+        for mode in modes:
+            print(f'START {case.name} {mode}', flush=True)
+            row, actual = run(case, mode, args.seconds_per_case, args.entry_limit)
+            if mode == 'integer':
+                compare_historical(row, previous.get(case.name))
+            report['runs'].append(row)
+            rows[mode], signatures[mode] = row, actual
+            save()
+            print(json.dumps(dict(case=case.name, backend=mode, status=row['status'],
+                                  wall=row['solver_wall_seconds'], cpu=row['solver_process_cpu_seconds'],
+                                  iterations=row.get('iterations'), reads=row.get('total_counted_cached_and_first_adjacency_reads'))), flush=True)
+        if phase == 'compare' and all(signatures.values()):
+            assert signatures['integer'] == signatures['fraction_reference'], case.name
+            report['comparisons'].append(dict(case=case.name,
+                exact_outputs_stages_and_local_work_equal=True,
+                single_sample_cpu_ratio_reference_over_integer=
+                  rows['fraction_reference']['solver_process_cpu_seconds']/rows['integer']['solver_process_cpu_seconds'],
+                single_sample_wall_ratio_reference_over_integer=
+                  rows['fraction_reference']['solver_wall_seconds']/rows['integer']['solver_wall_seconds']))
+            save()
+    report['finished'] = True
+    save()
+
+
+if __name__ == '__main__':
+    main()

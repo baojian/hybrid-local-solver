@@ -1,0 +1,263 @@
+"""Deterministic exact trajectory, obstacle, and locality checks for integer state."""
+
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+from deterministic_avl_containers import AVLMap, AVLSet
+from fast_exact_dyadic_rppr import FastPracticalDyadicCorrector, solve_rppr_fast
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector, solve_rppr_integer, _terminal_repair
+from test_practical_dyadic_rppr_solver import DenseScalarReference
+from test_deterministic_rppr_solver import objective, source_density
+from test_local_safe_solver import graph, path, star, tree, dense_exact_obstacle_oracle
+from test_monotone_capped_solver import CheckedOracle
+
+LOG = dict(stage_cases=0, exact_steps=0, dense_steps=0, rebases=0, nonzero_neighbor_errors=0,
+           nonzero_raw_errors=0, full_cases=0, full_stages=0, full_iterations=0,
+           max_stored_integer_bits=0, source_checks=0, cap_binding_cases=0, fixtures=[])
+
+
+def physical(mapping, H):
+    return {i:F(value, H) for i, value in mapping.items()}
+
+
+def summary_without_implementation_metrics(stage):
+    result = asdict(stage)
+    del result['corrector_metrics']
+    return result
+
+
+class IntegerDyadicTests(unittest.TestCase):
+    def check_stage(self, adjacency, seed, alpha, theta, rho, tolerance, baseline):
+        oracle, reference_oracle = CheckedOracle(adjacency), CheckedOracle(adjacency)
+        args = seed, alpha, theta, rho, tolerance, baseline
+        integer = IntegerDyadicCorrector(oracle, *args)
+        exact = FastPracticalDyadicCorrector(reference_oracle, *args)
+        dense = DenseScalarReference(adjacency, *args[:-2], baseline)
+        dense.neighbors = adjacency
+        self.assertEqual(integer.grid, exact.grid)
+        self.assertEqual(integer.target_iterations, exact.target_iterations)
+        self.assertEqual(integer.source_mass, exact.source_mass)
+        self.assertEqual(integer.mass_cap, exact.mass_cap)
+        for i in integer.degree:
+            self.assertEqual(F(integer.source.get(i, 0), 2*integer.D*integer.H*integer.degree[i]),
+                             exact.source.get(i, 0))
+            LOG['source_checks'] += 1
+        X, L, z, sigma = {}, {}, {}, F(1)
+        for _ in range(integer.target_iterations):
+            dense_next = dense.rounded_step(X, L, z, sigma, integer.grid, integer.mass_cap)
+            nX, nL, p, nscale, raw, ideal, rebased, active = dense_next
+            for i in integer.degree:
+                kind, numerator, degree = integer.tree.records[i]
+                actual_raw = F((integer.S if kind == 0 else 1)*numerator, integer.G*degree)-integer.shift
+                self.assertEqual(actual_raw, raw[i])
+                self.assertEqual(actual_raw, exact.sigma*exact.keys[i].value-exact.lam/exact.theta)
+                exact_neighbors = sum((X.get(j, 0) for j in adjacency[i]), F(0))
+                raw_error = (1-alpha)/2*sigma*(L.get(i, 0)-exact_neighbors)/(theta*(1+theta)*degree)
+                self.assertLessEqual(abs(raw_error), 2*integer.grid/theta)
+                LOG['nonzero_raw_errors'] += int(raw_error != 0)
+            before_scans = integer.metrics.scanned_adjacency_entries
+            integer.step(); exact.step()
+            state = tuple(physical(getattr(integer, name), integer.H) for name in ('X', 'L', 'z', 'M'))
+            self.assertEqual(state, (exact.X, exact.L, exact.z, exact.M))
+            self.assertEqual((state[0], state[1], state[2], integer.sigma), (nX, nL, p, nscale))
+            self.assertEqual(integer.last_step, exact.history[-1])
+            self.assertEqual(integer.last_step[1::2], (rebased, active))
+            self.assertEqual(integer.objective_gap_bound, exact.objective_gap_bound)
+            self.assertEqual(integer.metrics.scanned_adjacency_entries-before_scans,
+                             sum(len(adjacency[i]) for i in p))
+            for mapping in (integer.X, integer.L, integer.z, integer.M, integer.source, integer.baseline):
+                self.assertIsInstance(mapping, AVLMap)
+                self.assertTrue(all(isinstance(v, int) for v in mapping.values()))
+            self.assertIsInstance(integer.exceptions, AVLSet)
+            for i in adjacency:
+                true_sum = sum((nX.get(j, 0) for j in adjacency[i]), F(0))
+                error = nL.get(i, 0)-true_sum
+                self.assertLessEqual(abs(error)/len(adjacency[i]), 4*integer.grid)
+                self.assertEqual(state[3].get(i, 0), sum((p.get(j, 0) for j in adjacency[i]), F(0)))
+                LOG['nonzero_neighbor_errors'] += int(error != 0)
+            full_mass = sum((len(adjacency[i])*baseline.get(i, 0) for i in adjacency), F(0))
+            full_mass += nscale*sum((len(adjacency[i])*v for i, v in nX.items()), F(0))
+            self.assertLessEqual(full_mass, 1)
+            size = integer.integer_size_snapshot()
+            LOG['max_stored_integer_bits'] = max(LOG['max_stored_integer_bits'], size['stored_integer_bits'])
+            LOG['rebases'] += int(rebased)
+            LOG['exact_steps'] += 1
+            LOG['dense_steps'] += 1
+            X, L, z, sigma = nX, nL, p, nscale
+        self.assertEqual(integer.run(), exact.run())
+        self.assertEqual(integer.metrics.kinetic_volume, sum(row[0] for row in exact.history))
+        self.assertEqual(integer.metrics.rebase_adjacency_entries, 0)
+        self.assertEqual(sorted(oracle.degree_queries), sorted(reference_oracle.degree_queries))
+        self.assertEqual(sorted(oracle.neighbor_queries), sorted(reference_oracle.neighbor_queries))
+        for field in ('first_adjacency_entries', 'scanned_adjacency_entries', 'selected_adjacency_entries',
+                      'baseline_adjacency_entries', 'rebase_input_records', 'rebase_exposed_records',
+                      'scale_rounding_steps', 'selected_update_rounding_records', 'rebase_rounding_records',
+                      'source_refresh_records', 'exception_refresh_records', 'sparse_record_updates'):
+            self.assertEqual(getattr(integer.metrics, field), getattr(exact.metrics, field), field)
+        LOG['stage_cases'] += 1
+
+    def test_dense_and_reference_trajectories(self):
+        for case in [(path(3), 0, F(1, 4), F(1, 2), F(1, 4), F(1, 64), {}),
+                     (path(2), 0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {}),
+                     (path(3), 0, F(1, 4), F(1, 2), F(1, 16), F(1, 512),
+                      {0:F(3, 8), 1:F(1, 16)}),
+                     (graph(4, [(0, 1), (1, 2), (2, 0), (1, 3)]), 3,
+                      F(2, 5), F(1, 2), F(1, 4), F(1, 256), {})]:
+            self.check_stage(*case)
+        self.assertGreater(LOG['nonzero_neighbor_errors'], 0)
+        self.assertGreater(LOG['nonzero_raw_errors'], 0)
+
+    def test_injected_binding_cap(self):
+        adjacency, alpha, theta, rho = path(3), F(1, 16), F(1, 4), F(1, 4)
+        baseline = {0:F(1, 16)}
+        integer = IntegerDyadicCorrector(CheckedOracle(adjacency), 0, alpha, theta, rho, F(1, 1024), baseline)
+        exact = FastPracticalDyadicCorrector(CheckedOracle(adjacency), 0, alpha, theta, rho, F(1, 1024), baseline)
+        exact._expose(1)
+        exact.X = {1:exact.mass_cap/2}
+        exact.L = exact._neighbor_sums(exact.X, 'selected')
+        for i in exact.degree:
+            exact._set_key(i, exact._base_key(i))
+        exact._install_exceptions()
+        for i in adjacency:
+            integer._expose(i)
+        integer.X = AVLMap(((1, integer.cap_count//2),))
+        integer.L = AVLMap(((0, integer.cap_count//2), (2, integer.cap_count//2)))
+        for i in integer.degree:
+            integer._set_base(i)
+        integer._install_exceptions()
+        projection = integer.step(); exact.step()
+        self.assertTrue(projection.cap_active)
+        self.assertEqual(integer.last_step, exact.history[-1])
+        self.assertEqual(tuple(physical(getattr(integer, name), integer.H) for name in ('X', 'L', 'z', 'M')),
+                         (exact.X, exact.L, exact.z, exact.M))
+        self.assertEqual(sum(d*p for _, p, d in projection.entries), integer.cap_count)
+        LOG['cap_binding_cases'] += 1
+
+    def test_full_wrapper_and_exact_obstacle(self):
+        cases = [(path(3), 0, F(2, 5), F(3, 10), F(1, 2000)),
+                 (tree(5), 0, F(1, 8), F(1, 12), F(1, 200)),
+                 (path(2), 0, F(1, 100), F(1, 3), F(1, 100)),
+                 (graph(3, [(0, 1), (1, 2), (2, 0)]), 0, F(1, 3), F(1, 10), F(1, 1000)),
+                 (star(5), 1, F(1, 4), F(1, 6), F(1, 500)),
+                 (star(5), 0, F(1, 3), F(1, 4), F(1, 100)),
+                 (path(3), 1, F(1), F(1, 5), F(1, 100))]
+        for adjacency, seed, alpha, rho, epsilon in cases:
+            oracle = CheckedOracle(adjacency)
+            answer = solve_rppr_integer(oracle, seed, alpha, rho, epsilon)
+            exact = solve_rppr_fast(CheckedOracle(adjacency), seed, alpha, rho, epsilon)
+            self.assertEqual((answer.output, answer.objective_gap_bound, answer.theta),
+                             (exact.output, exact.objective_gap_bound, exact.theta))
+            self.assertEqual(asdict(answer.metrics), asdict(exact.metrics))
+            self.assertEqual([summary_without_implementation_metrics(s) for s in answer.stages],
+                             [summary_without_implementation_metrics(s) for s in exact.stages])
+            previous = {}
+            for stage in answer.stages:
+                current = {i:value for i, value, degree in stage.repaired_output}
+                optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, stage.regularization)
+                source = source_density(adjacency, seed, alpha, current)
+                for i in adjacency:
+                    self.assertLessEqual(previous.get(i, 0), current.get(i, 0))
+                    self.assertLessEqual(current.get(i, 0), optimum.get(i, 0))
+                    self.assertTrue(0 <= source[i] <= 2*alpha*stage.regularization)
+                self.assertEqual(stage.corrector_metrics['rebase_adjacency_entries'], 0)
+                self.assertEqual(stage.projection_mass_cap,
+                    1-sum((len(adjacency[i])*v for i, v in previous.items()), F(0)))
+                previous = current
+                LOG['full_stages'] += 1
+                LOG['full_iterations'] += stage.iterations
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+            final = {i:value for i, value, degree in answer.output}
+            gap = objective(adjacency, seed, alpha, rho, final)-objective(adjacency, seed, alpha, rho, optimum)
+            self.assertTrue(0 <= gap <= answer.objective_gap_bound <= epsilon)
+            self.assertEqual(len(oracle.degree_queries), 1+answer.metrics.repair_degree_replies+
+                sum(stage.corrector_metrics['degree_replies'] for stage in answer.stages))
+            self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),
+                answer.metrics.repair_first_adjacency_entries+
+                sum(stage.corrector_metrics['first_adjacency_entries'] for stage in answer.stages))
+            LOG['full_cases'] += 1
+
+    def test_high_degree_subgrid_and_scalar_rebase_locality(self):
+        class ImplicitStar:
+            def __init__(self):
+                self.degree_queries, self.neighbor_queries = [], []
+            def degree(self, i):
+                self.degree_queries.append(i)
+                return 2**80 if i == 0 else 1
+            def neighbors(self, i):
+                self.neighbor_queries.append(i)
+                if i == 0:
+                    raise AssertionError('Sub-grid high-degree hub adjacency was inspected')
+                yield 0
+        oracle = ImplicitStar()
+        stage = IntegerDyadicCorrector(oracle, 1, F(1, 4), F(1, 2), F(1, 8), F(1, 128), {1:F(1, 4)})
+        stage.run()
+        self.assertGreater(stage.metrics.rebases, 0)
+        self.assertEqual(stage.metrics.rebase_adjacency_entries, 0)
+        self.assertEqual(set(oracle.degree_queries), {0, 1})
+        self.assertEqual(set(oracle.neighbor_queries), {1})
+        self.assertNotIn(0, stage.z)
+        size = stage.integer_size_snapshot()
+        LOG['max_stored_integer_bits'] = max(LOG['max_stored_integer_bits'], size['stored_integer_bits'])
+        LOG['fixtures'].append(dict(label='degree 2^80 hub never scanned', **size,
+            selected_adjacency_entries=stage.metrics.selected_adjacency_entries,
+            rebase_adjacency_entries=stage.metrics.rebase_adjacency_entries))
+
+    def test_exact_terminal_pg_and_maximum(self):
+        adjacency, baseline = path(2), {0:F(3, 8), 1:F(1, 8)}
+        stage = IntegerDyadicCorrector(CheckedOracle(adjacency), 0, F(1, 4), F(1, 2),
+                                      F(1, 4), F(1, 1024), baseline)
+        candidate = stage.run()
+        repaired, pg, repair = _terminal_repair(stage, candidate, F(1, 32))
+        self.assertEqual({i:v for i,v,d in repaired}, baseline)
+        self.assertEqual(repair['baseline_max_preservations'], 2)
+        self.assertEqual(pg.scanned_adjacency_entries, 2)
+
+    def test_integer_only_state_updates_and_hash_free_labels(self):
+        # The reporter has its own explicitly permitted scalar Fraction work.
+        # Disabling this module's constructor detects any Fraction introduced
+        # into point/state updates or the scalar rebase implementation.
+        stage = IntegerDyadicCorrector(CheckedOracle(path(3)), 0, F(1, 4),
+                                      F(1, 2), F(1, 4), F(1, 64))
+        def forbidden_fraction(*args, **kwargs):
+            raise AssertionError('Fraction constructed in integer state update')
+        with patch('integer_dyadic_rppr_solver.F', forbidden_fraction):
+            for _ in range(10):
+                stage.step()
+        self.assertGreater(stage.metrics.rebases, 0)
+
+        class NoHash(int):
+            def __hash__(self):
+                raise AssertionError('A vertex label was hashed')
+        class HashFreePath:
+            def degree(self, i):
+                return 2 if i == 1 else 1
+            def neighbors(self, i):
+                if i:
+                    yield NoHash(i-1)
+                if i < 2:
+                    yield NoHash(i+1)
+        answer = solve_rppr_integer(HashFreePath(), NoHash(0), F(2, 5), F(3, 10), F(1, 2000))
+        ordinary = solve_rppr_integer(CheckedOracle(path(3)), 0, F(2, 5), F(3, 10), F(1, 2000))
+        self.assertEqual(answer.output, ordinary.output)
+        self.assertEqual(answer.objective_gap_bound, ordinary.objective_gap_bound)
+        LOG['integer_only_state_steps'] = 10
+        LOG['hash_free_complete_cases'] = 1
+
+    def test_validation(self):
+        for theta in (F(0), F(-1), F(1, 3)):
+            with self.assertRaises(ValueError):
+                IntegerDyadicCorrector(CheckedOracle(path(2)), 0, F(1, 4), theta, F(1, 4), F(1, 64))
+        with self.assertRaises(ValueError):
+            IntegerDyadicCorrector(CheckedOracle(path(2)), 0, F(1, 4), F(1, 2), F(1, 4), F(1, 64), {0:F(1, 3)})
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(IntegerDyadicTests))
+    LOG['tests_run'], LOG['successful'] = result.testsRun, result.wasSuccessful()
+    Path(__file__).with_name('integer_dyadic_rppr_verification.json').write_text(json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

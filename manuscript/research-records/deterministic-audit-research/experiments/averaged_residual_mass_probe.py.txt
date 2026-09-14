@@ -1,0 +1,89 @@
+"""Deterministic scaling audit of unregularized residual mass in plain APC."""
+
+import itertools
+import json
+import math
+import time
+from pathlib import Path
+
+import numpy as np
+from cyclic_radial_audit import model
+from positive_linear_coupling import mass_projection
+
+
+def probe(branches, alpha, position, factor):
+    k, b, w, volume, bounds, ambient_n = model(branches, alpha)
+    q_matrix = k + alpha * np.eye(len(w))
+    rho = float(bounds[position]) * factor
+    s, coef = math.sqrt(alpha), 1 - math.sqrt(alpha)
+    x, z = np.zeros(len(w)), np.zeros(len(w))
+    h_sum = residual_sum = debit_sum = volume_sum = 0.0
+    h_max = residual_max = 0.0
+    iterations = math.ceil(20 / s)
+    for _ in range(iterations):
+        y = (x + s * z) / (1 + s)
+        h = coef * z - k @ y / s + b / s
+        negative = float(w @ np.maximum(-h, 0))
+        residual = float(w @ np.maximum(q_matrix @ y - b, 0))
+        assert negative <= residual / s * (1 + 1e-9) + 1e-12
+        assert residual <= (1 + alpha) / 2 * float(w @ y) * (1 + 1e-9) + 1e-12
+        raw = h - s * rho * w
+        zn = mass_projection(raw, w)
+        positive = np.flatnonzero(zn > 0)
+        active_volume = float(np.sum(volume[positive]))
+        multiplier = 0.0
+        if len(positive):
+            j = positive[np.argmax(zn[positive] / w[positive])]
+            multiplier = max(0.0, float((raw[j] - zn[j]) / w[j]))
+        h_sum += negative
+        residual_sum += residual
+        debit_sum += negative - multiplier * active_volume
+        volume_sum += active_volume
+        h_max = max(h_max, negative)
+        residual_max = max(residual_max, residual)
+        x, z = coef * x + s * zn, zn
+    return {
+        "branches": branches,
+        "alpha": alpha,
+        "rho": rho,
+        "position": position,
+        "factor": factor,
+        "ambient_vertices": ambient_n,
+        "iterations": iterations,
+        "max_positive_residual_mass_over_alpha": residual_max / alpha,
+        "mean_positive_residual_mass_over_alpha": residual_sum / (alpha * iterations),
+        "max_H_over_sqrt_alpha": h_max / s,
+        "mean_H_over_sqrt_alpha": h_sum / (s * iterations),
+        "mean_signed_debit_over_sqrt_alpha": debit_sum / (s * iterations),
+        "rho_mean_auxiliary_volume": rho * volume_sum / iterations,
+        "randomized": False,
+        "mass_repair": False,
+        "stable_prethreshold_score": True,
+    }
+
+
+def main():
+    destination = (
+        Path(__file__).resolve().parents[1]
+        / "results/averaged-residual-mass-probe.jsonl"
+    )
+    start = time.monotonic()
+    with destination.open("w") as output:
+        for alpha, period, depth, fraction, factor in itertools.product(
+            (1e-2, 1e-4, 1e-6, 1e-8),
+            ([2], [100], [1, 100]),
+            (8, 32),
+            (0.5, 1.0),
+            (0.5, 1.001),
+        ):
+            branches = (period * depth)[:depth]
+            position = min(depth - 1, int(depth * fraction))
+            row = probe(branches, alpha, position, factor)
+            row["elapsed_seconds"] = time.monotonic() - start
+            output.write(json.dumps(row) + "\n")
+            output.flush()
+            print(json.dumps(row), flush=True)
+
+
+if __name__ == "__main__":
+    main()

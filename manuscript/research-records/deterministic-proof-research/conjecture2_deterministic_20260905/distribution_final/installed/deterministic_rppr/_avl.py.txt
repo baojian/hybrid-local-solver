@@ -1,0 +1,296 @@
+"""Deterministic ordered point maps and sets for integer graph labels.
+
+No hash table or randomized balancing is used. Point lookup, insertion,
+and deletion take O(log(n+1)) integer comparisons; length is O(1).
+Sorted key/item/value iteration takes O(n) total work with O(log(n+1))
+auxiliary stack space. Integer comparison bit cost is separate.
+
+clear() drops the root in constant explicit work, but reclaiming the old
+nodes can cost O(n); callers must charge that reclamation. Views are live.
+Iterators reject structural changes, while replacing an existing value is
+allowed. This module deliberately does not modify any active solver.
+"""
+
+from __future__ import annotations
+
+from collections.abc import ItemsView, Mapping, MutableMapping, MutableSet, Set, ValuesView
+from dataclasses import dataclass
+from typing import Generic, TypeVar
+
+
+V = TypeVar('V')
+
+
+@dataclass(slots=True)
+class _Node(Generic[V]):
+    key: int
+    value: V
+    left: _Node[V] | None = None
+    right: _Node[V] | None = None
+    height: int = 1
+    size: int = 1
+
+
+def _height(node):
+    return node.height if node is not None else 0
+
+
+def _size(node):
+    return node.size if node is not None else 0
+
+
+def _refresh(node):
+    node.height = 1 + max(_height(node.left), _height(node.right))
+    node.size = 1 + _size(node.left) + _size(node.right)
+    return node
+
+
+def _rotate_left(node):
+    top = node.right
+    node.right = top.left
+    top.left = _refresh(node)
+    return _refresh(top)
+
+
+def _rotate_right(node):
+    top = node.left
+    node.left = top.right
+    top.right = _refresh(node)
+    return _refresh(top)
+
+
+def _balance(node):
+    _refresh(node)
+    difference = _height(node.left) - _height(node.right)
+    if difference > 1:
+        if _height(node.left.left) < _height(node.left.right):
+            node.left = _rotate_left(node.left)
+        return _rotate_right(node)
+    if difference < -1:
+        if _height(node.right.right) < _height(node.right.left):
+            node.right = _rotate_right(node.right)
+        return _rotate_left(node)
+    return node
+
+
+def _require_integer(key):
+    if not isinstance(key, int):
+        raise TypeError('AVL containers require integer keys')
+
+
+class _AVLItemsView(ItemsView):
+    def __iter__(self):
+        yield from self._mapping._iter_items()
+
+
+class _AVLValuesView(ValuesView):
+    def __iter__(self):
+        for _, value in self._mapping._iter_items():
+            yield value
+
+
+class AVLMap(MutableMapping[int, V]):
+    """MutableMapping with sorted integer keys and worst-case AVL balancing.
+
+    Construction and update accept another mapping or an iterable of pairs.
+    Standard MutableMapping conveniences, including get, setdefault, pop,
+    popitem, keys, and update, are inherited. popitem removes an arbitrary
+    item (currently the smallest key), as the MutableMapping contract allows.
+    """
+
+    def __init__(self, source=()):
+        self._root = None
+        self._version = 0
+        self.update(source)
+
+    def __len__(self):
+        return _size(self._root)
+
+    def __getitem__(self, key):
+        _require_integer(key)
+        node = self._root
+        while node is not None:
+            if key < node.key:
+                node = node.left
+            elif key > node.key:
+                node = node.right
+            else:
+                return node.value
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        if not isinstance(key, int):
+            return False
+        try:
+            self[key]
+        except KeyError:
+            return False
+        return True
+
+    def __setitem__(self, key, value):
+        _require_integer(key)
+        inserted = False
+
+        def insert(node):
+            nonlocal inserted
+            if node is None:
+                inserted = True
+                return _Node(key, value)
+            if key < node.key:
+                node.left = insert(node.left)
+            elif key > node.key:
+                node.right = insert(node.right)
+            else:
+                node.value = value
+                return node
+            return _balance(node)
+
+        self._root = insert(self._root)
+        if inserted:
+            self._version += 1
+
+    def __delitem__(self, key):
+        _require_integer(key)
+
+        def delete(node, target):
+            if node is None:
+                raise KeyError(key)
+            if target < node.key:
+                node.left = delete(node.left, target)
+            elif target > node.key:
+                node.right = delete(node.right, target)
+            else:
+                if node.left is None:
+                    return node.right
+                if node.right is None:
+                    return node.left
+                successor = node.right
+                while successor.left is not None:
+                    successor = successor.left
+                node.key, node.value = successor.key, successor.value
+                node.right = delete(node.right, successor.key)
+            return _balance(node)
+
+        self._root = delete(self._root, key)
+        self._version += 1
+
+    def _iter_items(self, reverse=False):
+        version = self._version
+        stack = []
+        node = self._root
+        while stack or node is not None:
+            if self._version != version:
+                raise RuntimeError('AVLMap changed size or structure during iteration')
+            while node is not None:
+                stack.append(node)
+                node = node.right if reverse else node.left
+            node = stack.pop()
+            yield node.key, node.value
+            # Check before dereferencing a node whose links may have changed.
+            if self._version != version:
+                raise RuntimeError('AVLMap changed size or structure during iteration')
+            node = node.left if reverse else node.right
+
+    def __iter__(self):
+        for key, _ in self._iter_items():
+            yield key
+
+    def __reversed__(self):
+        for key, _ in self._iter_items(reverse=True):
+            yield key
+
+    def items(self):
+        return _AVLItemsView(self)
+
+    def values(self):
+        return _AVLValuesView(self)
+
+    def clear(self):
+        if self._root is not None:
+            self._root = None
+            self._version += 1
+
+    def copy(self):
+        return type(self)(self.items())
+
+    def __eq__(self, other):
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        if len(self) != len(other):
+            return False
+        for key, value in self.items():
+            try:
+                other_value = other[key]
+            except KeyError:
+                return False
+            if value != other_value:
+                return False
+        return True
+
+    def __repr__(self):
+        body = ', '.join(f'{key!r}: {value!r}' for key, value in self.items())
+        return f'{type(self).__name__}({{{body}}})'
+
+
+class AVLSet(MutableSet[int]):
+    """Mutable sorted integer set implemented by AVLMap, without hashing."""
+
+    def __init__(self, source=()):
+        self._map = AVLMap()
+        self.update(source)
+
+    def __len__(self):
+        return len(self._map)
+
+    def __contains__(self, value):
+        return value in self._map
+
+    def __iter__(self):
+        yield from self._map
+
+    def __reversed__(self):
+        yield from reversed(self._map)
+
+    def add(self, value):
+        self._map[value] = None
+
+    def discard(self, value):
+        if not isinstance(value, int):
+            return
+        try:
+            del self._map[value]
+        except KeyError:
+            pass
+
+    def clear(self):
+        self._map.clear()
+
+    def update(self, *sources):
+        for source in sources:
+            for value in source:
+                self.add(value)
+
+    def copy(self):
+        return type(self)(self)
+
+    def union(self, *sources):
+        result = self.copy()
+        result.update(*sources)
+        return result
+
+    def __or__(self, other):
+        if not isinstance(other, Set):
+            return NotImplemented
+        return self.union(other)
+
+    def __ror__(self, other):
+        if not isinstance(other, Set):
+            return NotImplemented
+        return self.union(other)
+
+    def __ior__(self, other):
+        self.update(other)
+        return self
+
+    def __repr__(self):
+        return f'{type(self).__name__}([{", ".join(repr(key) for key in self)}])'

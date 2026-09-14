@@ -1,0 +1,122 @@
+"""Exact finite verification of the separate sparse-output certificate."""
+
+import itertools
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT/'deliverables'/'deterministic-rppr'))
+from tests.test_solver import graph, exact_optimum, objective, source
+from independent_sparse_certificate import certify_sparse_output
+
+
+class OutputOracle:
+    def __init__(self, rows, seed, output):
+        self.rows = rows
+        self.output = {i for i, _, _ in output}
+        self.allowed = self.output | {seed}
+        self.entries = self.degree_calls = 0
+
+    def degree(self, i):
+        assert i in self.allowed
+        self.degree_calls += 1
+        return len(self.rows[i])
+
+    def neighbors(self, i):
+        assert i in self.output, 'A zero-output adjacency list was scanned'
+        for j in self.rows[i]:
+            self.allowed.add(j)
+            self.entries += 1
+            yield j
+
+
+class CertificateTests(unittest.TestCase):
+    records = []
+
+    def test_exact_dense_candidates(self):
+        cases = [
+            graph(2, [(1, 2)]),
+            graph(3, [(1, 2), (2, 3)]),
+            graph(3, [(1, 2), (2, 3), (3, 1)]),
+            graph(4, [(1, 2), (1, 3), (1, 4)]),
+            graph(5, [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)]),
+        ]
+        count, inconclusive, strict_rounding = 0, 0, 0
+        for rows in cases:
+            for alpha, rho in [(F(1, 7), F(1, 16)), (F(1, 16), F(3, 8)), (F(1), F(1, 4))]:
+                optimum = exact_optimum(rows, 1, alpha, rho)
+                minimum = objective(rows, 1, alpha, rho, optimum)
+                for values in itertools.product((F(0), F(1, 64), F(1, 4)), repeat=len(rows)):
+                    point = {i: value for i, value in zip(sorted(rows), values) if value}
+                    output = tuple((i, value, len(rows[i])) for i, value in point.items())
+                    oracle = OutputOracle(rows, 1, output)
+                    report = certify_sparse_output(oracle, 1, alpha, rho, output)
+                    residual = source(rows, 1, alpha, point)
+                    norm = sum((len(rows[i])*(alpha*rho-residual[i] if point.get(i, 0)
+                                  else min(alpha*rho-residual[i], F(0)))**2 for i in rows), F(0))
+                    actual = objective(rows, 1, alpha, rho, point)-minimum
+                    self.assertLessEqual(norm, report.subgradient_norm_squared_upper)
+                    excess = report.subgradient_norm_squared_upper-norm
+                    if report.nonzero_subgradient_records:
+                        self.assertLess(excess, report.norm_squared_rounding_excess_bound)
+                    else:
+                        self.assertEqual(excess, 0)
+                        self.assertEqual(report.norm_squared_rounding_excess_bound, 0)
+                    self.assertGreaterEqual(actual, 0)
+                    self.assertLessEqual(actual, report.objective_gap_bound)
+                    self.assertEqual(report.first_adjacency_entries, sum(len(rows[i]) for i in point))
+                    self.assertEqual(report.first_adjacency_entries, oracle.entries)
+                    self.assertEqual(report.degree_replies, oracle.degree_calls)
+                    count += 1
+                    strict_rounding += int(excess > 0)
+                    inconclusive += int(not report.meets(F(1, 10**6)))
+        self.records.append(dict(group='dense arbitrary candidates', cases=count,
+                                 strict_roundings=strict_rounding, inconclusive_at_1e6=inconclusive))
+
+    def test_huge_inactive_hub(self):
+        leaves, seed = 2**100, 2**100+1
+        class Star:
+            def degree(self, i):
+                assert i in (1, seed)
+                return leaves if i == 1 else 1
+            def neighbors(self, i):
+                assert i == seed
+                yield 1
+        alpha, rho = F(1, 100), F(1, 64)
+        exact = 2*alpha*(1-rho)/(1+alpha)
+        H = 2**60
+        value = F((exact.numerator*H)//exact.denominator, H)
+        report = certify_sparse_output(Star(), seed, alpha, rho, ((seed, value, 1),))
+        actual = (1+alpha)*(value-exact)**2/4
+        self.assertLessEqual(actual, report.objective_gap_bound)
+        self.assertTrue(report.meets(F(1, 10**12)))
+        self.assertEqual(report.first_adjacency_entries, 1)
+        self.assertEqual(report.degree_replies, 2)
+        self.records.append(dict(group='huge inactive hub', first_entries=1,
+                                 actual_gap=str(actual), independent_bound=str(report.objective_gap_bound)))
+
+    def test_input_contract_and_zero_certificate(self):
+        rows = graph(2, [(1, 2)])
+        empty = certify_sparse_output(OutputOracle(rows, 1, ()), 1, F(1, 7), F(1), ())
+        self.assertEqual(empty.objective_gap_bound, 0)
+        exact = ((1, F(3, 4), 1),)
+        report = certify_sparse_output(OutputOracle(rows, 1, exact), 1, F(1), F(1, 4), exact)
+        self.assertEqual(report.objective_gap_bound, 0)
+        for output in [((1, F(-1), 1),), ((1, F(1, 2), 2),),
+                       ((1, F(1, 2), 1), (1, F(1, 2), 1)),
+                       ((1, F(1, 3), 1), (2, F(1, 5), 1))]:
+            with self.assertRaises(ValueError):
+                certify_sparse_output(OutputOracle(rows, 1, output), 1, F(1, 7), F(1, 8), output)
+        self.records.append(dict(group='input contracts and exact zero', passed=True))
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(CertificateTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    (ROOT/'independent_sparse_certificate_verification.json').write_text(json.dumps(
+        dict(passed=result.wasSuccessful(), groups=CertificateTests.records), indent=2)+'\n')
+    if not result.wasSuccessful():
+        raise SystemExit(1)

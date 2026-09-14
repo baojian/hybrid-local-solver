@@ -1,0 +1,167 @@
+"""Deterministic positive linear-coupling audit on supplied symmetric models.
+
+Reference optima are falsification oracles. The degree work ledger represents
+row scans in the original graph; quotient dimensions are not charged as if
+they were free input compression.
+"""
+
+from __future__ import annotations
+
+import math
+
+import numpy as np
+from cyclic_dual_averaging import obstacle
+
+
+def mass_projection(vector, w):
+    positive = np.maximum(vector, 0)
+    if float(w @ positive) <= 1:
+        return positive
+    indices = np.flatnonzero(positive > 0)
+    ordered = indices[np.argsort(-(positive[indices] / w[indices]), kind="stable")]
+    weighted_sum = 0.0
+    squared_weights = 0.0
+    for pos, j in enumerate(ordered):
+        weighted_sum += w[j] * positive[j]
+        squared_weights += w[j] * w[j]
+        threshold = (weighted_sum - 1) / squared_weights
+        if (
+            pos == len(ordered) - 1
+            or threshold >= positive[ordered[pos + 1]] / w[ordered[pos + 1]]
+        ):
+            return np.maximum(positive - threshold * w, 0)
+    raise AssertionError("weighted projection did not find its threshold")
+
+
+def run(
+    q,
+    c,
+    w,
+    volume,
+    alpha,
+    rho,
+    *,
+    mass_cap=True,
+    relative_gap=1e-8,
+    maximum_iterations=None,
+    counts=None,
+):
+    n = len(c)
+    optimum = obstacle(q, c)
+    f_star = float(0.5 * optimum @ q @ optimum - c @ optimum)
+    initial_gap = -f_star
+    if initial_gap <= 0:
+        raise ValueError("audit requires a nonzero optimum")
+    epsilon = relative_gap * initial_gap
+    s = math.sqrt(alpha)
+    if maximum_iterations is None:
+        maximum_iterations = math.ceil(math.log(8 / (alpha * epsilon)) / s)
+    x = np.zeros(n)
+    z = x.copy()
+    energy = initial_gap + alpha * float(optimum @ optimum) / 2
+    initial_energy = energy
+    total_volume = 0.0
+    row_scan_volume = 0.0
+    projection_words = 0.0
+    dropped = 0.0
+    removed = 0.0
+    auxiliary_mass_sum = 0.0
+    max_contraction_violation = 0.0
+    max_ledger_violation = 0.0
+    max_rho_average_volume = 0.0
+    max_mass = 0.0
+    first_escape = None
+    max_rho_support = 0.0
+    final_certificate = math.inf
+    true_support = optimum > 0
+    if counts is None:
+        counts = np.ones(n)
+    for iteration in range(1, maximum_iterations + 1):
+        row_scan_volume += float(np.sum(volume[x > 0]))
+        y = (x + s * z) / (1 + s)
+        grad = q @ y - c
+        next_x = np.maximum(y - grad, 0)
+        mapping = y - next_x
+        raw = (next_x - (1 - s) * x) / s
+        positive_raw = np.maximum(raw, 0)
+        next_z = mass_projection(raw, w) if mass_cap else positive_raw
+        auxiliary_mass_sum += float(w @ z)
+        dropped += float(w @ np.maximum((1 - s) * x - next_x, 0))
+        removed += float(w @ (positive_raw - next_z))
+        threshold = 1e-11 * (np.abs(y) + np.abs(grad))
+        support = next_x > threshold
+        current_volume = float(np.sum(volume[next_x > 0]))
+        total_volume += current_volume
+        max_rho_support = max(max_rho_support, rho * current_volume)
+        max_rho_average_volume = max(
+            max_rho_average_volume, rho * total_volume / iteration
+        )
+        # Conservative actual-node sorting model; a local implementation may use linear selection.
+        candidate_count = float(np.sum(counts[positive_raw > 0]))
+        projection_words += (
+            candidate_count * math.log2(2 + candidate_count)
+            if mass_cap
+            else candidate_count
+        )
+        outside = np.flatnonzero(support & ~true_support)
+        if len(outside) and first_escape is None:
+            first_escape = {
+                "iteration": iteration,
+                "coordinate": int(outside[0]),
+                "value": float(next_x[outside[0]]),
+                "slack": float((q @ optimum - c)[outside[0]]),
+            }
+        next_energy = (
+            float(0.5 * next_x @ q @ next_x - c @ next_x)
+            - f_star
+            + alpha * float((next_z - optimum) @ (next_z - optimum)) / 2
+        )
+        contraction_debit = next_energy - (1 - s) * energy
+        max_contraction_violation = max(
+            max_contraction_violation, contraction_debit / initial_energy
+        )
+        ledger_right = (
+            alpha * iteration
+            + dropped
+            - s * removed
+            - alpha * auxiliary_mass_sum
+            - s * float(w @ next_z)
+        )
+        max_ledger_violation = max(
+            max_ledger_violation, alpha * rho * total_volume - ledger_right
+        )
+        x, z, energy = next_x, next_z, next_energy
+        max_mass = max(max_mass, float(w @ x), float(w @ z))
+        final_certificate = (1 - alpha) * float(mapping @ mapping) / (2 * alpha)
+        if final_certificate <= epsilon:
+            break
+    final_gap = float(0.5 * x @ q @ x - c @ x) - f_star
+    return {
+        "alpha": alpha,
+        "rho": rho,
+        "mass_cap": mass_cap,
+        "dimension": n,
+        "iterations": iteration,
+        "converged": final_certificate <= epsilon,
+        "relative_gap": final_gap / initial_gap,
+        "relative_certificate": final_certificate / initial_gap,
+        "volume_sum": total_volume,
+        "row_scan_volume": row_scan_volume,
+        "output_words": float(np.sum(counts[x > 0])),
+        "rho_volume_sum_over_iterations": rho * total_volume / iteration,
+        "max_rho_average_volume": max_rho_average_volume,
+        "max_rho_support_volume": max_rho_support,
+        "rho_sqrt_alpha_volume_sum": rho * s * total_volume,
+        "charged_projection_word_bound": projection_words,
+        "drop_mass": dropped,
+        "removed_auxiliary_mass": removed,
+        "signed_mass_debit": dropped - s * removed,
+        "max_state_mass": max_mass,
+        "max_contraction_violation_relative": max_contraction_violation,
+        "max_volume_ledger_violation": max_ledger_violation,
+        "first_escape": first_escape,
+        "initial_gap": initial_gap,
+        "epsilon_obj": epsilon,
+        "randomized": False,
+        "audit_only": True,
+    }

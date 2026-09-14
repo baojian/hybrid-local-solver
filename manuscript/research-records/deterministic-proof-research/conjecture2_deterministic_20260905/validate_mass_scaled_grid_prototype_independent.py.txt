@@ -1,0 +1,333 @@
+"""Fresh exact 183-case validation of the research mass-grid prototype only."""
+import hashlib
+import json
+import platform
+import signal
+import sys
+import time
+import traceback
+from dataclasses import asdict,fields
+from fractions import Fraction as F
+from pathlib import Path
+
+import mass_scaled_grid_rppr as prototype
+from validate_packaged_solver import make_manifest,serialize
+from tests.test_solver import validate_case
+from validate_adaptive_manifest_independent import Problem
+
+ROOT=Path(__file__).resolve().parent
+TARGET=ROOT/'research_mass_scaled_grid_183_validation.json'
+EXPECTED_SOURCE='3b8cfa4a8f0161101147573007e5ac4cbabb4c64e348ec702f90d977a37d7d8f'
+GUARDS=dict(iterations=250000,entries=10000000,degrees=10000000,
+            per_case_seconds=120,total_seconds=1800)
+BUDGET=dict(iterations=0,entries=0,degrees=0,started=time.monotonic())
+CONTEXT=None
+ORIGINAL_CORRECTOR=prototype.MassScaledGridCorrector
+ORIGINAL_FACTORY=prototype.MassCapHintFactory
+
+
+def guard():
+    assert BUDGET['iterations']<=GUARDS['iterations'],'Fixed iteration guard reached'
+    assert BUDGET['entries']<=GUARDS['entries'],'Fixed oracle-entry guard reached'
+    assert BUDGET['degrees']<=GUARDS['degrees'],'Fixed degree-reply guard reached'
+    if time.monotonic()-BUDGET['started']>GUARDS['total_seconds']:
+        raise TimeoutError('Fixed total-time guard reached')
+
+
+def timeout(signum,frame):
+    raise TimeoutError('Fixed per-case wall-time guard reached')
+
+
+class GuardOracle:
+    def __init__(self,inner,seed):
+        self.inner,self.seed=inner,seed
+        self.known={seed}
+        self.counts=dict(degrees=0,rows=0,entries=0)
+        self.row_vertices={}
+    def degree(self,i):
+        assert isinstance(i,int) and i in self.known,'Degree before local discovery'
+        self.counts['degrees']+=1;BUDGET['degrees']+=1;guard()
+        return self.inner.degree(i)
+    def neighbors(self,i):
+        assert isinstance(i,int) and i in self.known,'Row before local discovery'
+        self.counts['rows']+=1
+        self.row_vertices[i]=self.row_vertices.get(i,0)+1
+        for j in self.inner.neighbors(i):
+            self.known.add(j);self.counts['entries']+=1;BUDGET['entries']+=1;guard()
+            yield j
+
+
+def initial_checks(c):
+    eta,tau,r,h,T=c.mass_cap,c.tolerance,c.rho,c.grid,c.T
+    assert c.mass_cap_hint==eta and c.source_mass==c.alpha*eta
+    assert r<=eta<=1 and 0<tau<eta
+    assert c.relaxed_initialization_tolerance==tau/eta
+    assert c.gamma_bound==29*eta*h/c.theta<tau/8
+    assert h<=min(F(1,8),c.theta*tau/(256*eta),c.theta*c.alpha*c.alpha*r/29)
+    assert c.gamma_bound<=eta*c.alpha*c.alpha*r
+    assert c.metrics.iterations==c.metrics.completed_blocks==0
+    assert c._accepted_bound is None and c._accepted_iteration is None
+    assert c._next_checkpoint==T and not c._checker_containers
+    assert c.checkpoint_metrics.checkpoints==0
+    assert (c.block_power_numerator,c.block_power_denominator,c.decay_denominator)==(1,1,1)
+    assert c.objective_gap_bound==c.initial_energy_bound
+    q=0
+    while F(1,2**q)>tau/2:q+=1
+    assert c.original_target_iterations==T*q
+    original_blocks=q
+    q=0
+    while c.initial_energy_bound/F(2**q)>tau/2:q+=1
+    assert c.half_bound_blocks==q and c.half_bound_target_iterations==T*q
+    half_blocks=q
+    q,power=0,F(1)
+    while c.initial_energy_bound*power>tau/2:
+        q+=1;power*=c.block_bound.value
+    assert c.blocks==q and c.target_iterations==T*q
+    assert F(c.target_power_numerator,c.target_power_denominator)==power
+    assert c.target_iterations<=c.half_bound_target_iterations<=c.original_target_iterations
+    old=c.relaxed_horizons
+    for field in ('original_target_iterations','half_bound_target_iterations','target_iterations'):
+        assert old[field]<=getattr(c,field)
+    relaxed,extra=c.relaxed_schedule_work,asdict(c.retargeting_work)
+    assert c.metrics.bound_doublings==relaxed['bound_doublings']+extra['original_bound_doublings']
+    assert c.source_energy_schedule_checks==relaxed['source_checks']+extra['source_schedule_checks']
+    assert c.source_energy_schedule_doublings==relaxed['source_doublings']+extra['source_schedule_doublings']
+    assert c.binomial_schedule_checks==relaxed['binomial_checks']+extra['binomial_schedule_checks']
+    assert c.binomial_schedule_power_updates==relaxed['binomial_power_updates']+extra['binomial_schedule_power_updates']
+    return dict(eta=eta,tau=tau,grid=h,gamma=c.gamma_bound,
+                original_blocks=original_blocks,half_blocks=half_blocks,binomial_blocks=q,
+                target_iterations=c.target_iterations,target_power=power,
+                relaxed_horizons=c.relaxed_horizons,retargeting_work=extra)
+
+
+class ObservedCorrector(ORIGINAL_CORRECTOR):
+    def __init__(self,*args,**kwargs):
+        oracle=args[0]
+        CONTEXT['construction_oracle_counts'].append(dict(oracle.counts))
+        super().__init__(*args,**kwargs)
+        CONTEXT['initializations'].append(initial_checks(self))
+    def step(self):
+        BUDGET['iterations']+=1;guard()
+        return super().step()
+    def run(self):
+        answer=super().run()
+        CONTEXT['candidates'].append(dict(regularization=self.rho,output=answer,
+            certificate=self.objective_gap_bound))
+        return answer
+
+
+class ObservedFactory(ORIGINAL_FACTORY):
+    def __call__(self,*args,**kwargs):
+        oracle=args[0];before=dict(oracle.counts)
+        answer=super().__call__(*args,**kwargs)
+        assert before==CONTEXT['construction_oracle_counts'][-1]
+        CONTEXT['hint_zero_graph_access_checks']+=1
+        return answer
+    def release(self):
+        oracle=self.previous.oracle if self.previous is not None else None
+        before=dict(oracle.counts) if oracle is not None else None
+        super().release()
+        if oracle is not None:
+            assert before==oracle.counts
+            CONTEXT['release_zero_graph_access_checks']+=1
+
+
+def invoke(oracle,seed,alpha,rho,epsilon):
+    guarded=GuardOracle(oracle,seed)
+    CONTEXT['oracle']=guarded
+    outer=prototype.solve_rppr_mass_scaled_grid(guarded,seed,alpha,rho,epsilon)
+    CONTEXT['outer']=outer
+    return outer.result
+
+
+def validate_extra(case):
+    p=Problem(case)
+    if p.star:
+        class AnalyticStar:
+            def degree(self,i):return p.degree(i)
+            def neighbors(self,i):return iter(p.row(i))
+        answer=invoke(AnalyticStar(),p.seed,p.alpha,case['rho'],case['epsilon'])
+        base_checks=dict(analytic_star=True)
+    else:
+        answer,base_checks=validate_case(case['rows'],case['seed'],case['alpha'],case['rho'],
+            case['epsilon'],solve_function=invoke,reverse=case.get('reverse',False))
+    outer=CONTEXT['outer'];oracle=CONTEXT['oracle'];hm=outer.mass_hint_metrics
+    assert answer is outer.result
+    assert len(answer.stages)==len(outer.mass_hints)==len(CONTEXT['candidates'])==len(CONTEXT['initializations'])
+    previous,previous_r,previous_H={},F(1,p.degree(p.seed)),None
+    checks=[]
+    for stage,hint,init,candidate_record in zip(answer.stages,outer.mass_hints,
+                                               CONTEXT['initializations'],CONTEXT['candidates']):
+        r,eta,h,tau=stage.regularization,1-p.mass(previous),stage.grid,stage.requested_gap
+        assert r==max(case['rho'],previous_r/2)
+        assert hint.regularization==r and hint.mass_cap==eta==stage.projection_mass_cap
+        assert hint.baseline_records==len(previous)
+        assert hint.previous_grid_denominator==previous_H
+        assert all(h.denominator%value.denominator==0 for value in previous.values())
+        if previous_H is not None:
+            assert all(previous_H%value.denominator==0 for value in previous.values())
+        assert stage.source_mass==p.alpha*eta
+        assert p.volume(previous)==stage.baseline_volume<=eta/r
+        assert stage.source_records<=1+2*stage.baseline_volume
+        source_before=p.source(previous)
+        assert all(0<=v<=4*p.alpha*r for v in source_before.values())
+        assert sum((p.degree(i)*v for i,v in source_before.items()),F(0))==p.alpha*eta
+        gamma=29*eta*h/answer.theta
+        assert gamma<tau/8 and h<=answer.theta*tau/(256*eta)
+        assert gamma<=p.alpha*p.alpha*r*eta
+        assert h<=min(stage.delta/2,p.alpha*r/4)
+        assert init['gamma']==gamma and init['tau']==tau and init['eta']==eta
+        m=stage.corrector_metrics;mg=m['mass_scaled_grid']
+        assert mg['actual_tolerance']==tau and mg['gamma_bound']==gamma
+        assert mg['mass_cap_hint']==eta and mg['relaxed_initialization_tolerance']==tau/eta
+        assert mg['retargeting_work']==init['retargeting_work']
+        assert stage.iterations<=m['prescribed_target_iterations']==init['target_iterations']
+        assert m['prescribed_target_iterations']<=m['binomial_block']['half_bound_target_iterations']<=m['original_target_iterations']
+        old,extra=mg['relaxed_schedule_work'],mg['retargeting_work']
+        assert m['bound_doublings']==old['bound_doublings']+extra['original_bound_doublings']
+        assert m['source_energy_schedule_checks']==old['source_checks']+extra['source_schedule_checks']
+        assert m['source_energy_schedule_doublings']==old['source_doublings']+extra['source_schedule_doublings']
+        assert m['binomial_block']['schedule_checks']==old['binomial_checks']+extra['binomial_schedule_checks']
+        assert m['binomial_block']['schedule_power_updates']==old['binomial_power_updates']+extra['binomial_schedule_power_updates']
+        assert stage.kinetic_volume<=360*eta*stage.iterations/r
+        assert m['rebase_adjacency_entries']==0
+        cp=m['checkpoints']
+        assert cp['cache_misses']==0
+        assert cp['checker_containers']==cp['checker_reclaimed_containers']==6*cp['checkpoints']
+        assert cp['candidate_volume']==cp['cached_adjacency_entries']
+        assert cp['candidate_volume']<=eta*(cp['checkpoints']+360*cp['checkpoint_iteration_sum'])/r
+        if cp['checkpoints']:assert cp['checkpoint_iteration_sum']<2*stage.iterations
+        candidate=p.unpack(candidate_record['output']);current=p.unpack(stage.repaired_output)
+        exact=p.optimum(r);eta_star=1-p.mass(exact)
+        assert r<=eta<=4*eta_star
+        assert all(0<=previous.get(i,0)<=current.get(i,0)<=exact.get(i,0) for i in p.vertices)
+        assert all(exact.get(i,0)-current.get(i,0)<=2*stage.delta for i in p.vertices)
+        candidate_gap=p.objective(r,candidate)-p.objective(r,exact)
+        gap=p.objective(r,current)-p.objective(r,exact)
+        assert 0<=candidate_gap<=candidate_record['certificate']==stage.certified_gap<tau
+        assert 0<=gap<=2*stage.delta**2/r
+        assert p.mass(candidate)<=1 and p.mass(current)==stage.repaired_mass
+        assert p.volume(current)==stage.repaired_volume<=eta_star/r
+        assert all(h.denominator%value.denominator==0 for value in current.values())
+        source_after=p.source(current)
+        assert all(0<=v<=2*p.alpha*r for v in source_after.values())
+        checks.append(dict(regularization=r,eta=eta,eta_star=eta_star,gamma=gamma,
+            grid_ceiling=answer.theta*tau/(256*eta),exact_optimum=exact,
+            baseline_source=source_before,repaired_source=source_after,
+            actual_candidate_gap=candidate_gap,actual_repaired_gap=gap,
+            strengthened_kinetic_bound=360*eta*stage.iterations/r))
+        previous,previous_r,previous_H=current,r,h.denominator
+    count=len(answer.stages)
+    assert hm.factory_calls==hm.hint_interface_checks==hm.previous_references_released==count
+    assert hm.initial_unit_hints==int(count>0)
+    assert hm.rational_mass_hints==max(0,count-1)
+    records=sum(hint.baseline_records for hint in outer.mass_hints)
+    assert hm.baseline_input_records==hm.previous_degree_cache_lookups==hm.baseline_count_conversions==hm.mass_integer_updates==records
+    assert CONTEXT['hint_zero_graph_access_checks']==count
+    assert CONTEXT['release_zero_graph_access_checks']==int(count>0)
+    assert oracle.counts['degrees']==answer.metrics.seed_degree_queries+answer.metrics.repair_degree_replies+sum(
+        s.corrector_metrics['degree_replies'] for s in answer.stages)
+    assert oracle.counts['entries']==answer.metrics.repair_first_adjacency_entries+sum(
+        s.corrector_metrics['first_adjacency_entries'] for s in answer.stages)
+    values=p.unpack(answer.output);exact=p.optimum(case['rho'])
+    gap=p.objective(case['rho'],values)-p.objective(case['rho'],exact)
+    assert all(0<=values.get(i,0)<=exact.get(i,0) for i in p.vertices)
+    assert 0<=gap<=answer.objective_gap_bound<=case['epsilon']
+    assert p.volume(values)<=1/case['rho'] and 0<=p.mass(values)<=1
+    independent=p.independent_gap_bound(case['rho'],values)
+    assert gap<=independent
+    if count:
+        assert answer.stages[-1].regularization==case['rho']
+    else:
+        assert all(getattr(hm,f.name)==0 for f in fields(hm))
+        assert p.alpha==1 or case['rho']*p.degree(p.seed)>=1
+    return outer,dict(base_checks=base_checks,stages=checks,actual_gap=gap,exact_optimum=exact,
+        independent_subgradient_gap_bound=independent,independent_certificate_meets_epsilon=independent<=case['epsilon'],
+        oracle_counts=oracle.counts,oracle_rows=oracle.row_vertices,
+        initialization_checks=CONTEXT['initializations'],candidates=CONTEXT['candidates'],
+        factory_hint_zero_graph_access_checks=CONTEXT['hint_zero_graph_access_checks'],
+        factory_release_zero_graph_access_checks=CONTEXT['release_zero_graph_access_checks'])
+
+
+def hashes():
+    paths={Path(__file__).resolve()}
+    for module in tuple(sys.modules.values()):
+        filename=getattr(module,'__file__',None)
+        if filename:
+            p=Path(filename).resolve()
+            if p.suffix=='.py' and p.is_relative_to(ROOT):paths.add(p)
+    return {str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
+
+def encode(value):
+    if hasattr(value,'__dataclass_fields__'):return encode(asdict(value))
+    if isinstance(value,F):return str(value)
+    if isinstance(value,dict):return {str(k):encode(v) for k,v in value.items()}
+    if isinstance(value,(list,tuple)):return [encode(v) for v in value]
+    return value
+
+
+def save(evidence):
+    temporary=TARGET.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(encode(evidence),indent=2)+'\n');temporary.replace(TARGET)
+
+
+def main():
+    global CONTEXT
+    cases=make_manifest();before=hashes()
+    assert before['mass_scaled_grid_rppr.py']==EXPECTED_SOURCE
+    evidence=dict(status='running',scope='research mass-scaled-grid prototype, not a packaged-backend claim',
+        deterministic=True,case_count=len(cases),manifest=serialize(cases),
+        manifest_sha256=hashlib.sha256(json.dumps(serialize(cases),sort_keys=True).encode()).hexdigest(),
+        source_hashes_before=before,resource_guards=GUARDS,
+        runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform()),completed=[])
+    save(evidence)
+    prototype.MassScaledGridCorrector=ObservedCorrector;prototype.MassCapHintFactory=ObservedFactory
+    signal.signal(signal.SIGALRM,timeout)
+    old_answers={};case=None
+    try:
+        for number,case in enumerate(cases,1):
+            start=time.perf_counter();signal.setitimer(signal.ITIMER_REAL,GUARDS['per_case_seconds'])
+            CONTEXT=dict(construction_oracle_counts=[],initializations=[],candidates=[],
+                         hint_zero_graph_access_checks=0,release_zero_graph_access_checks=0)
+            outer,checks=validate_extra(case)
+            if 'compare_to' in case:
+                prior=old_answers[case['compare_to']];inverse=case['inverse']
+                normalized=lambda output:tuple(sorted((inverse[i],v,d) for i,v,d in output))
+                assert normalized(outer.output)==tuple(sorted(prior.output))
+                assert outer.objective_gap_bound==prior.objective_gap_bound
+                for new,old in zip(outer.stages,prior.stages):
+                    assert normalized(new.repaired_output)==tuple(sorted(old.repaired_output))
+                    for attr in ('regularization','grid','iterations','certified_gap','projection_mass_cap'):
+                        assert getattr(new,attr)==getattr(old,attr)
+                assert len(outer.stages)==len(prior.stages)
+                checks['label_reversed_row_invariance']=case['compare_to']
+            old_answers[case['name']]=outer
+            signal.setitimer(signal.ITIMER_REAL,0)
+            evidence['completed'].append(dict(name=case['name'],passed=True,result=outer,checks=checks,
+                                               elapsed_seconds=time.perf_counter()-start))
+            evidence['totals']=dict(cases=len(evidence['completed']),iterations=BUDGET['iterations'],
+                first_oracle_entries=BUDGET['entries'],degree_replies=BUDGET['degrees'],
+                stages=sum(len(answer.stages) for answer in old_answers.values()))
+            save(evidence)
+            print(f'PASS {number}/{len(cases)} {case["name"]}: '+
+                  f'{len(outer.stages)} stages, {sum(s.iterations for s in outer.stages)} iterations',flush=True)
+        evidence['status']='passed'
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        partial={k:v for k,v in (CONTEXT or {}).items() if k!='oracle'}
+        if CONTEXT and 'oracle' in CONTEXT:partial['oracle_counts']=CONTEXT['oracle'].counts
+        evidence.update(status='incomplete',failure=dict(case=None if case is None else case['name'],
+            exception=repr(error),traceback=traceback.format_exc(),partial_observations=partial))
+        raise
+    finally:
+        prototype.MassScaledGridCorrector=ORIGINAL_CORRECTOR;prototype.MassCapHintFactory=ORIGINAL_FACTORY
+        signal.setitimer(signal.ITIMER_REAL,0)
+        evidence['source_hashes_after']=hashes()
+        evidence['sources_unchanged']=before==evidence['source_hashes_after']
+        evidence['elapsed_seconds']=time.monotonic()-BUDGET['started'];save(evidence)
+    assert evidence['sources_unchanged']
+    print('ALL PASSED',json.dumps(evidence['totals']),flush=True)
+
+
+if __name__=='__main__':main()

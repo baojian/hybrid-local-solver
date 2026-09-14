@@ -1,3 +1,5 @@
+> Public-release note: compiled PDFs and the original opaque bundles described below are held privately. Build `main.tex` for the current note and see [the readable research records](../../research-records/README.md) for original proof/solver sources and checksums. `make verify-archives` applies to the private original bundles. The text below preserves their historical description.
+
 # Deterministic local RPPR by constrained accelerated continuation
 
 Saved into the repository on 2026-09-06. The research and verification were

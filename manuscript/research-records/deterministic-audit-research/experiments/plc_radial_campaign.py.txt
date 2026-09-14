@@ -1,0 +1,93 @@
+"""Deterministic radial-tree work audit, charging original-graph volumes."""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import time
+from pathlib import Path
+
+import numpy as np
+from cyclic_radial_audit import model
+from positive_linear_coupling import run
+
+
+def families():
+    for depth, branch in itertools.product((4, 8, 16, 32, 64), (1, 2, 4, 10, 100)):
+        yield [branch] * depth
+    for depth in (8, 16, 32):
+        for large, small in itertools.product((10, 100), (1, 2)):
+            for offset in (0, 1):
+                yield [large if j % 2 == offset else small for j in range(depth)]
+        for position in (0, depth // 2, depth - 1):
+            yield [1000 if j == position else 1 for j in range(depth)]
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--seconds", type=float, default=3600)
+    args = parser.parse_args()
+    start = time.monotonic()
+    completed = 0
+    worst = None
+    with args.output.open("w") as out:
+        for branches in families():
+            counts = np.array(
+                [1] + list(itertools.accumulate(branches, lambda a, b: a * b)),
+                dtype=float,
+            )
+            for alpha in (0.25, 0.1, 0.01, 0.001, 0.0001):
+                k_matrix, source, w, volume, transitions, ambient_n = model(
+                    branches, alpha
+                )
+                q = k_matrix + alpha * np.eye(len(w))
+                positions = sorted({0, len(branches) // 2, len(branches) - 1})
+                for position, factor in itertools.product(
+                    positions, (0.999, 1.001, 2, 8)
+                ):
+                    rho = transitions[position] * factor
+                    if rho >= 1 / branches[0]:
+                        continue
+                    for mass_cap in (True, False):
+                        result = run(
+                            q,
+                            source - alpha * rho * w,
+                            w,
+                            volume,
+                            alpha,
+                            rho,
+                            mass_cap=mass_cap,
+                            relative_gap=1e-12,
+                            counts=counts,
+                        )
+                        result.update(
+                            branches=branches,
+                            ambient_n=ambient_n,
+                            boundary_index=position,
+                            factor=factor,
+                        )
+                        out.write(json.dumps(result) + "\n")
+                        completed += 1
+                        score = result["rho_sqrt_alpha_volume_sum"]
+                        if worst is None or score > worst["rho_sqrt_alpha_volume_sum"]:
+                            worst = result
+                        if completed % 50 == 0:
+                            out.flush()
+                            print(
+                                json.dumps(
+                                    {
+                                        "completed": completed,
+                                        "elapsed_seconds": time.monotonic() - start,
+                                        "worst": worst,
+                                    }
+                                ),
+                                flush=True,
+                            )
+                        if time.monotonic() - start >= args.seconds:
+                            return
+
+
+if __name__ == "__main__":
+    main()

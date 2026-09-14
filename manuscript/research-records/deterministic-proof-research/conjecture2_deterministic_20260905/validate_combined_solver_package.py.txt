@@ -1,0 +1,111 @@
+"""Fixed exhaustive topology and boundary validation of packaged composition."""
+
+import hashlib
+import json
+import time
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+import validate_packaged_solver as manifest_source
+from validate_integer_solver_package import analytic_star
+from tests.test_solver import StrictOracle, validate_case
+from deterministic_rppr import solve_combined, certify_output
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = manifest_source.PACKAGE_ROOT
+
+
+def independent(case, output):
+    if 'star_leaves' in case:
+        leaves, seed = case['star_leaves'], case['star_leaves']+1
+        class Oracle:
+            def degree(self, i):
+                assert i in (1, seed)
+                return 1 if i == seed else leaves
+            def neighbors(self, i):
+                assert i == seed
+                yield 1
+        oracle = Oracle()
+    else:
+        seed = case['seed']
+        oracle = StrictOracle(case['rows'], seed)
+        oracle.known.update(i for i, _, _ in output)
+    return certify_output(oracle, seed, case['alpha'], case['rho'], output)
+
+
+def main(solver=solve_combined, backend='combined', reference_path=None):
+    cases = manifest_source.make_manifest()
+    hashes = {str(path.relative_to(PACKAGE_ROOT)):hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in sorted((PACKAGE_ROOT/'deterministic_rppr').glob('*.py'))}
+    output_path = ROOT/f'packaged_{backend}_solver_validation.json'
+    references = None
+    if reference_path is not None:
+        reference_raw = Path(reference_path).read_bytes()
+        reference = json.loads(reference_raw)
+        assert reference['status'] == 'passed'
+        references = {row['name']:row for row in reference['completed']}
+    evidence = dict(status='running', deterministic=True, case_count=len(cases),
+        package_hashes=hashes, manifest_sha256=hashlib.sha256(
+            json.dumps(manifest_source.serialize(cases),sort_keys=True).encode()).hexdigest(),
+        completed=[], total_iterations=0, total_first_entries=0, total_stages=0,
+        total_checkpoints=0, accepted_checkpoints=0, rejected_checkpoints=0,
+        independent_final_certified=0, independent_final_inconclusive=0)
+    evidence['backend'] = backend
+    if references is not None:
+        evidence['reference_sha256'] = hashlib.sha256(reference_raw).hexdigest()
+    saved_outputs = {}
+    for number, case in enumerate(cases,1):
+        start = time.perf_counter()
+        if 'star_leaves' in case:
+            answer, checked = analytic_star(case, solver)
+        else:
+            answer, checked = validate_case(case['rows'], case['seed'], case['alpha'],
+                case['rho'], case['epsilon'], solve_function=solver,
+                reverse=case.get('reverse',False))
+        if 'compare_to' in case:
+            inverse = case['inverse']
+            normalized = tuple((inverse[i],value,degree) for i,value,degree in answer.output)
+            assert normalized == saved_outputs[case['compare_to']]
+        saved_outputs[case['name']] = answer.output
+        certificate = independent(case,answer.output)
+        if certificate.meets(case['epsilon']):
+            evidence['independent_final_certified'] += 1
+        else:
+            evidence['independent_final_inconclusive'] += 1
+        evidence['total_iterations'] += checked['iterations']
+        evidence['total_first_entries'] += checked['first_adjacency_entries']
+        evidence['total_stages'] += checked['stages']
+        for stage in answer.stages:
+            ledger = stage.corrector_metrics['checkpoints']
+            evidence['total_checkpoints'] += ledger['checkpoints']
+            evidence['accepted_checkpoints'] += ledger['accepted_checkpoints']
+            evidence['rejected_checkpoints'] += ledger['rejected_checkpoints']
+            assert ledger['cache_misses'] == 0
+            assert ledger['checker_containers'] == ledger['checker_reclaimed_containers']
+            assert ledger['checkpoint_iteration_sum'] < 2*stage.iterations or not ledger['checkpoints']
+            assert stage.iterations <= stage.corrector_metrics['prescribed_target_iterations']
+        if evidence['total_iterations'] > 100000 or evidence['total_first_entries'] > 10000000:
+            raise RuntimeError('Fixed resource guard reached; validation remains incomplete')
+        row = manifest_source.serialize(dict(
+            name=case['name'], passed=True, elapsed_seconds=time.perf_counter()-start,
+            checks=checked, certificate=answer.objective_gap_bound, output=answer.output,
+            independent_certificate=asdict(certificate),
+            stage_iterations=[stage.iterations for stage in answer.stages],
+            stage_checkpoint_ledgers=[stage.corrector_metrics['checkpoints'] for stage in answer.stages]))
+        if references is not None:
+            old = references[case['name']]
+            for field in ('checks','certificate','output','independent_certificate',
+                          'stage_iterations','stage_checkpoint_ledgers'):
+                assert row[field] == old[field], (case['name'],field)
+            row['reference_exact_output_and_graph_access_match'] = True
+        evidence['completed'].append(row)
+        output_path.write_text(json.dumps(evidence,indent=2)+'\n')
+        print(f'PASS {number}/{len(cases)} {case["name"]} ({checked["iterations"]} iterations)',flush=True)
+    evidence['status'] = 'passed'
+    output_path.write_text(json.dumps(evidence,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in evidence.items() if k not in ('completed','package_hashes')}),flush=True)
+
+
+if __name__ == '__main__':
+    main()

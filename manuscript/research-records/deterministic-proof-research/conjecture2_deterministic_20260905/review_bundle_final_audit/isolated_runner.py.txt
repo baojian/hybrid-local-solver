@@ -1,0 +1,30 @@
+
+import builtins,json,runpy,sys
+from pathlib import Path
+bundle=Path(sys.argv[1]).resolve()
+target=bundle/sys.argv[2]
+sys.argv=[str(target),*sys.argv[3:]]
+allowed=set(sys.stdlib_module_names)|set(sys.builtin_module_names)|{'deterministic_rppr','tests','__main__'}
+original=builtins.__import__
+def guarded(name,globals=None,locals=None,fromlist=(),level=0):
+    if level==0 and name.split('.')[0] not in allowed:
+        raise AssertionError('Research or external import: '+name)
+    return original(name,globals,locals,fromlist,level)
+builtins.__import__=guarded
+def no_solver(frame,event,arg):
+    if event=='call' and '/deterministic_rppr/' in frame.f_code.co_filename:
+        if frame.f_code.co_name.startswith('solve_') or frame.f_code.co_name=='step':
+            raise AssertionError('Unexpected solver invocation during data/help audit')
+sys.setprofile(no_solver)
+try:
+    runpy.run_path(str(target),run_name='__main__')
+finally:
+    sys.setprofile(None)
+    origins={}
+    for name,module in tuple(sys.modules.items()):
+        if name=='deterministic_rppr' or name.startswith('deterministic_rppr.') or name=='tests' or name.startswith('tests.'):
+            path=Path(module.__file__).resolve()
+            assert path.is_relative_to(bundle),(name,path)
+            origins[name]=str(path.relative_to(bundle))
+    assert len([n for n in origins if n=='deterministic_rppr' or n.startswith('deterministic_rppr.')])==20
+    print('ISOLATION='+json.dumps(dict(origins=origins,solver_calls=0,research_imports_blocked=True)))

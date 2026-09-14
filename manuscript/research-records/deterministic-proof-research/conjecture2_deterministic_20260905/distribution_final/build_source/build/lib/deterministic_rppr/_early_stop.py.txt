@@ -1,0 +1,194 @@
+"""Optional independent residual checks at geometric cached-only checkpoints.
+
+The stable source-energy recurrence and terminal repair are unchanged.
+Failed certificates and candidate materializations are discarded before the
+next accelerated step. No certificate reads a new graph-oracle record.
+"""
+from dataclasses import dataclass, asdict
+from ._avl import AVLMap, AVLSet
+from ._certificate import certify_sparse_output
+from ._source_energy import SourceEnergyDyadicCorrector
+from . import _integer as reference
+
+@dataclass
+class CheckpointMetrics:
+    checkpoints: int = 0
+    accepted_checkpoints: int = 0
+    rejected_checkpoints: int = 0
+    checkpoint_iteration_sum: int = 0
+    candidate_materialization_input_records: int = 0
+    candidate_materialization_records: int = 0
+    candidate_materialization_words: int = 0
+    candidate_materialization_scalar_lookups: int = 0
+    candidate_materialization_reclaimed_union_records: int = 0
+    candidate_volume: int = 0
+    cache_degree_lookups: int = 0
+    cache_row_lookups: int = 0
+    cached_adjacency_entries: int = 0
+    cache_misses: int = 0
+    checker_point_lookups: int = 0
+    checker_point_writes: int = 0
+    checker_iteration_records: int = 0
+    checker_containers: int = 0
+    checker_reclaimed_records: int = 0
+    checker_reclaimed_containers: int = 0
+    checker_output_records: int = 0
+    checker_affected_records: int = 0
+    checker_nonzero_subgradient_records: int = 0
+    checker_accumulation_updates: int = 0
+    discarded_candidate_records: int = 0
+    discarded_candidate_words: int = 0
+    discarded_certificate_scalar_records: int = 0
+    invalidated_accepted_bounds: int = 0
+_MISSING = object()
+
+class CacheOnlyOracle:
+
+    def __init__(self, corrector, metrics):
+        self.degrees, self.adjacency = (corrector.degree, corrector.adjacency)
+        self.metrics = metrics
+
+    def degree(self, i):
+        self.metrics.cache_degree_lookups += 1
+        value = self.degrees.get(i, _MISSING)
+        if value is _MISSING:
+            self.metrics.cache_misses += 1
+            raise AssertionError('Checkpoint requested an unexposed degree')
+        return value
+
+    def neighbors(self, i):
+        self.metrics.cache_row_lookups += 1
+        row = self.adjacency.get(i, _MISSING)
+        if row is _MISSING:
+            self.metrics.cache_misses += 1
+            raise AssertionError('Checkpoint requested an unscanned candidate row')
+        for j in row:
+            self.metrics.cached_adjacency_entries += 1
+            yield j
+
+def _metered_checker(metrics, containers):
+
+    class MeteredMap(AVLMap):
+
+        def __init__(self, source=()):
+            super().__init__(source)
+            containers.append(self)
+            metrics.checker_containers += 1
+
+        def __getitem__(self, key):
+            metrics.checker_point_lookups += 1
+            return super().__getitem__(key)
+
+        def __setitem__(self, key, value):
+            metrics.checker_point_writes += 1
+            return super().__setitem__(key, value)
+
+        def _iter_items(self, reverse=False):
+            for item in super()._iter_items(reverse=reverse):
+                metrics.checker_iteration_records += 1
+                yield item
+
+    class MeteredSet(AVLSet):
+
+        def __init__(self, source=()):
+            self._map = MeteredMap()
+            self.update(source)
+
+    def check(*args, **kwargs):
+        return certify_sparse_output(*args, _map_factory=MeteredMap, _set_factory=MeteredSet, **kwargs)
+    return check
+
+class EarlyStopSourceEnergyCorrector(SourceEnergyDyadicCorrector):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.checkpoint_metrics = CheckpointMetrics()
+        self._next_checkpoint = self.T
+        self._accepted_bound = None
+        self._accepted_iteration = None
+        self._checker_containers = []
+        self._checkpoint_oracle = CacheOnlyOracle(self, self.checkpoint_metrics)
+        self._independent_checker = _metered_checker(self.checkpoint_metrics, self._checker_containers)
+
+    @property
+    def objective_gap_bound(self):
+        if self._accepted_bound is not None:
+            assert self._accepted_iteration == self.metrics.iterations
+            return self._accepted_bound
+        return super().objective_gap_bound
+
+    def step(self):
+        if self.metrics.iterations < self.target_iterations and self._accepted_bound is not None:
+            self._accepted_bound = self._accepted_iteration = None
+            self.checkpoint_metrics.invalidated_accepted_bounds += 1
+        return super().step()
+
+    def _checkpoint(self):
+        metrics = self.checkpoint_metrics
+        assert 0 < self.metrics.iterations < self.target_iterations
+        metrics.checkpoints += 1
+        metrics.checkpoint_iteration_sum += self.metrics.iterations
+        metrics.candidate_materialization_input_records += len(self.X) + len(self.baseline)
+        candidate = self.output()
+        records = len(candidate)
+        metrics.candidate_materialization_records += records
+        metrics.candidate_materialization_words += 3 * records
+        metrics.candidate_materialization_scalar_lookups += 3 * records
+        metrics.candidate_materialization_reclaimed_union_records += records
+        metrics.candidate_volume += sum((degree for _, _, degree in candidate))
+        before_entries, before_degrees = (metrics.cached_adjacency_entries, metrics.cache_degree_lookups)
+        try:
+            certificate = self._independent_checker(self._checkpoint_oracle, self.seed, self.alpha, self.rho, candidate)
+        finally:
+            for container in self._checker_containers:
+                metrics.checker_reclaimed_records += len(container)
+                container.clear()
+                metrics.checker_reclaimed_containers += 1
+            self._checker_containers.clear()
+        assert certificate.first_adjacency_entries == metrics.cached_adjacency_entries - before_entries
+        assert certificate.degree_replies == metrics.cache_degree_lookups - before_degrees
+        metrics.checker_output_records += certificate.output_records
+        metrics.checker_affected_records += certificate.affected_records
+        metrics.checker_nonzero_subgradient_records += certificate.nonzero_subgradient_records
+        metrics.checker_accumulation_updates += certificate.accumulation_updates
+        accepted = certificate.objective_gap_bound < self.tolerance
+        if accepted:
+            self._accepted_bound = certificate.objective_gap_bound
+            self._accepted_iteration = self.metrics.iterations
+            metrics.accepted_checkpoints += 1
+        else:
+            metrics.rejected_checkpoints += 1
+            metrics.discarded_candidate_records += records
+            metrics.discarded_candidate_words += 3 * records
+        metrics.discarded_certificate_scalar_records += len(certificate.__dataclass_fields__)
+        del certificate
+        if accepted:
+            return candidate
+        del candidate
+        return None
+
+    def run(self):
+        if self._accepted_bound is not None:
+            return self.output()
+        while self._next_checkpoint <= self.metrics.iterations:
+            self._next_checkpoint *= 2
+        while self.metrics.iterations < self.target_iterations:
+            self.step()
+            if self.metrics.iterations == self._next_checkpoint and self.metrics.iterations < self.target_iterations:
+                self._next_checkpoint *= 2
+                candidate = self._checkpoint()
+                if candidate is not None:
+                    return candidate
+        assert self.objective_gap_bound < self.tolerance
+        return self.output()
+
+    @property
+    def diagnostic_metrics(self):
+        result = super().diagnostic_metrics
+        result['checkpoints'] = asdict(self.checkpoint_metrics)
+        result['early_stopped'] = self._accepted_bound is not None
+        result['prescribed_target_iterations'] = self.target_iterations
+        return result
+
+def solve_rppr_early_stop(oracle, seed, alpha, rho, epsilon):
+    return reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class=EarlyStopSourceEnergyCorrector)

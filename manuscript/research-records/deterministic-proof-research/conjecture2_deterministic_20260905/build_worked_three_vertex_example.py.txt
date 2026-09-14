@@ -1,0 +1,203 @@
+"""Self-contained exact path example and one packaged solve; no random work."""
+from dataclasses import asdict
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+import json
+import sys
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE = ROOT/'deliverables'/'deterministic-rppr'
+sys.path.insert(0, str(PACKAGE))
+from deterministic_rppr import solve_fast, certify_output
+
+ALPHA, RHO, EPSILON = F(1, 4), F(1, 16), F(1, 1000000)
+ROWS = ((2,), (1, 3), (2,))
+DEGREES = (1, 2, 1)
+
+
+class PathOracle:
+    def __init__(self): self.degree_calls, self.row_calls, self.entries = [], [], 0
+    def degree(self, i):
+        assert type(i) is int and 1 <= i <= 3
+        self.degree_calls.append(i)
+        return DEGREES[i-1]
+    def neighbors(self, i):
+        assert type(i) is int and 1 <= i <= 3
+        self.row_calls.append(i)
+        for j in ROWS[i-1]:
+            self.entries += 1
+            yield j
+
+
+def exact_density(r):
+    if r >= 1: return (F(0), F(0), F(0))
+    if r >= F(3, 13): return (2*(1-r)/5, F(0), F(0))
+    if r >= F(9, 80): return ((20-32*r)/41, (6-26*r)/41, F(0))
+    return (F(41, 80)-r, F(3, 16)-r, F(9, 80)-r)
+
+
+def scaled_slack(f, r):
+    """8 sqrt(d_i) times the Euclidean nonnegative-objective gradient."""
+    return tuple(5*DEGREES[i-1]*f[i-1]-3*sum((f[j-1] for j in ROWS[i-1]), F(0))
+                 -2*int(i == 1)+2*r*DEGREES[i-1] for i in range(1, 4))
+
+
+def objective(f, r):
+    mass = sum((d*v for d, v in zip(DEGREES, f)), F(0))
+    return (ALPHA/2*sum((d*v*v for d, v in zip(DEGREES, f)), F(0))
+            +(1-ALPHA)/4*((f[0]-f[1])**2+(f[1]-f[2])**2)
+            -ALPHA*f[0]+ALPHA*r*mass)
+
+
+def source_density(f):
+    return tuple(ALPHA*int(i == 1)/DEGREES[i-1]-(1+ALPHA)/2*f[i-1]
+                 +(1-ALPHA)/2/DEGREES[i-1]*sum((f[j-1] for j in ROWS[i-1]), F(0))
+                 for i in range(1, 4))
+
+
+def encode(value):
+    if isinstance(value, F): return str(value)
+    if isinstance(value, dict): return {str(k):encode(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)): return [encode(v) for v in value]
+    return value
+
+
+def main():
+    # Symbolic affine coefficients (constant, slope) for all four regimes.
+    regimes = [dict(name='zero', lower=F(1), upper=None,
+                    density=((F(0), F(0)),)*3),
+               dict(name='seed_only', lower=F(3, 13), upper=F(1),
+                    density=((F(2, 5), F(-2, 5)), (F(0), F(0)), (F(0), F(0)))),
+               dict(name='first_two', lower=F(9, 80), upper=F(3, 13),
+                    density=((F(20, 41), F(-32, 41)), (F(6, 41), F(-26, 41)), (F(0), F(0)))),
+               dict(name='all_three', lower=F(0), upper=F(9, 80),
+                    density=((F(41, 80), F(-1)), (F(3, 16), F(-1)), (F(9, 80), F(-1))))]
+    expected_slacks = [((F(-2), F(2)), (F(0), F(4)), (F(0), F(2))),
+                       ((F(0), F(0)), (F(-6, 5), F(26, 5)), (F(0), F(2))),
+                       ((F(0), F(0)), (F(0), F(0)), (F(-18, 41), F(160, 41))),
+                       ((F(0), F(0)),)*3]
+    for regime, expected in zip(regimes, expected_slacks):
+        coefficients = regime['density']
+        constants = scaled_slack(tuple(a for a, b in coefficients), F(0))
+        at_one = scaled_slack(tuple(a+b for a, b in coefficients), F(1))
+        slopes = tuple(v-a for v, a in zip(at_one, constants))
+        slack_coefficients = tuple(zip(constants, slopes))
+        assert slack_coefficients == expected
+        regime['scaled_slack'] = slack_coefficients
+        endpoints = [regime['lower']] + ([regime['upper']] if regime['upper'] is not None else [])
+        for i, ((a, b), (c, d)) in enumerate(zip(coefficients, slack_coefficients)):
+            assert all(a+b*r >= 0 and c+d*r >= 0 for r in endpoints)
+            if regime['upper'] is None: assert b >= 0 and d >= 0
+            assert a*c == a*d+b*c == b*d == 0  # Identically complementary.
+    checked = sorted({F(k, 160) for k in range(0, 177)}
+                     | {F(3, 13), F(9, 80), F(1), RHO}
+                     | {r+sign*F(1, 100000) for r in (F(3, 13), F(9, 80), F(1)) for sign in (-1, 1)})
+    for r in checked:
+        f, slack = exact_density(r), scaled_slack(exact_density(r), r)
+        assert all(v >= 0 and g >= 0 and v*g == 0 for v, g in zip(f, slack))
+    assert exact_density(RHO) == (F(9, 20), F(1, 8), F(1, 20))
+    assert objective(exact_density(RHO), RHO) == F(-129, 2560)
+
+    oracle = PathOracle()
+    answer = solve_fast(oracle, 1, ALPHA, RHO, EPSILON)
+    stages, previous = [], (F(0),)*3
+    for summary in answer.stages:
+        r = summary.regularization
+        expected = exact_density(r)
+        records = {i:f for i, f, degree in summary.repaired_output}
+        repaired = tuple(records.get(i, F(0)) for i in range(1, 4))
+        old_source, new_source = source_density(previous), source_density(repaired)
+        mass = sum((d*f for d, f in zip(DEGREES, repaired)), F(0))
+        eta = 1-sum((d*f for d, f in zip(DEGREES, previous)), F(0))
+        gap = objective(repaired, r)-objective(expected, r)
+        repair_bound = 2*summary.delta**2/r
+        assert all(old <= new <= optimum for old, new, optimum in zip(previous, repaired, expected))
+        assert all(0 <= s <= 4*ALPHA*r for s in old_source)
+        assert all(0 <= s <= 2*ALPHA*r for s in new_source)
+        assert summary.projection_mass_cap == eta
+        assert summary.source_mass == ALPHA*eta
+        assert sum((d*s for d, s in zip(DEGREES, old_source)), F(0)) == summary.source_mass
+        assert mass == summary.repaired_mass
+        assert 0 <= gap <= repair_bound
+        assert all(expected[i-1] > 0 for i in records)
+        checkpoints = summary.corrector_metrics['checkpoints']
+        stages.append(dict(regularization=r, exact_optimum_density=expected,
+            repaired_density=repaired, coordinate_deficit=tuple(e-f for e, f in zip(expected, repaired)),
+            input_baseline_density=previous, input_source_density=old_source,
+            repaired_source_density=new_source, correction_mass_cap=eta,
+            source_mass=summary.source_mass, repaired_mass=mass, repaired_mass_deficit=1-mass,
+            exact_optimum_mass=sum((d*f for d, f in zip(DEGREES, expected)), F(0)),
+            repaired_support=tuple(records), repaired_volume=summary.repaired_volume,
+            actual_repaired_objective_gap=gap, repair_gap_bound=repair_bound,
+            delta=summary.delta, requested_candidate_gap=summary.requested_gap,
+            certified_candidate_gap=summary.certified_gap, iterations=summary.iterations,
+            kinetic_volume=summary.kinetic_volume, kinetic_volume_bound=summary.kinetic_volume_bound,
+            grid=summary.grid, early_stopped=summary.corrector_metrics['early_stopped'],
+            checkpoints=checkpoints))
+        previous = repaired
+    assert [s['regularization'] for s in stages] == [F(1, 2), F(1, 4), F(1, 8), F(1, 16)]
+    final = tuple(dict((i, f) for i, f, degree in answer.output).get(i, F(0)) for i in range(1, 4))
+    final_gap = objective(final, RHO)-objective(exact_density(RHO), RHO)
+    assert final == previous and final_gap <= answer.objective_gap_bound <= EPSILON
+    checker_oracle = PathOracle()
+    independent = certify_output(checker_oracle, 1, ALPHA, RHO, answer.output)
+    assert final_gap <= independent.objective_gap_bound <= EPSILON
+    evidence = dict(graph=dict(vertices=[1, 2, 3], edges=[[1, 2], [2, 3]], degrees=DEGREES, seed=1),
+        alpha=ALPHA, rho=RHO, epsilon=EPSILON, exact_regimes=regimes,
+        activation_thresholds=[F(1), F(3, 13), F(9, 80)], exact_kkt_sample_checks=len(checked),
+        stages=stages, final_exact_optimum_density=exact_density(RHO), final_density=final,
+        final_exact_optimum_objective=objective(exact_density(RHO), RHO),
+        final_actual_objective_gap=final_gap, final_solver_gap_bound=answer.objective_gap_bound,
+        final_independent_certificate=asdict(independent),
+        solver_oracle=dict(degree_replies=len(oracle.degree_calls), row_replies=len(oracle.row_calls),
+                           adjacency_entries=oracle.entries, degree_history=oracle.degree_calls, row_history=oracle.row_calls),
+        independent_certificate_oracle=dict(degree_replies=len(checker_oracle.degree_calls),
+            row_replies=len(checker_oracle.row_calls), adjacency_entries=checker_oracle.entries),
+        complete_solver_result=asdict(answer),
+        package_hashes={name:sha256((PACKAGE/'deterministic_rppr'/name).read_bytes()).hexdigest()
+                        for name in ('__init__.py', '_fast.py', '_combined.py', '_early_stop.py', '_binomial.py', '_integer.py')})
+    (ROOT/'worked_three_vertex_example.json').write_text(json.dumps(encode(evidence), indent=2)+'\n')
+
+    # Rendering alone converts exact values to floating coordinates.
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.lines import Line2D
+    plt.rcParams.update({'font.size':11, 'axes.spines.top':False, 'axes.spines.right':False})
+    fig, ax = plt.subplots(figsize=(8.6, 5.1), layout='constrained')
+    parameters = sorted({F(k, 1200) for k in range(1201)} | {F(3, 13), F(9, 80), RHO})
+    colors = ('#0072B2', '#D55E00', '#009E73')
+    for coordinate, color in enumerate(colors):
+        ax.plot([float(r) for r in parameters], [float(exact_density(r)[coordinate]) for r in parameters],
+                color=color, linewidth=2, label=rf'$f^*_{coordinate+1}(r)$')
+        ax.scatter([float(s['regularization']) for s in stages],
+                   [float(s['repaired_density'][coordinate]) for s in stages],
+                   color=color, marker=('o', 's', '^')[coordinate], s=46, edgecolors='white', linewidths=.6, zorder=4)
+    for value, label, height in ((F(3, 13), r'$3/13$', .48), (F(9, 80), r'$9/80$', .405)):
+        ax.axvline(float(value), color='#777777', linestyle=':', linewidth=1)
+        ax.text(float(value)+.008, height, label, color='#555555', ha='right', va='center')
+    ax.axvline(float(RHO), color='#333333', linestyle='--', linewidth=1, alpha=.7)
+    ax.text(float(RHO)-.008, .495, r'final $r=1/16$', ha='left', va='center', fontsize=10)
+    ax.set_xlim(1.02, -.04)
+    ax.set_ylim(-.015, .535)
+    ax.set_xlabel(r'Regularization $r$ (continuation moves right)')
+    ax.set_ylabel(r'Density $f_i=x_i/\sqrt{d_i}$')
+    ax.set_title('Three-vertex path: exact solution path and repaired stages', loc='left', pad=12)
+    ax.grid(axis='y', color='#dddddd', linewidth=.7)
+    handles, labels = ax.get_legend_handles_labels()
+    handles.append(Line2D([0], [0], marker='o', color='none', markerfacecolor='#555555', markeredgecolor='white', label='repaired stage values'))
+    labels.append('repaired stage values')
+    ax.legend(handles, labels, loc='upper left', frameon=False)
+    fig.savefig(ROOT/'worked_three_vertex_example.png', dpi=180)
+    fig.savefig(ROOT/'worked_three_vertex_example.pdf')
+    plt.close(fig)
+    print(json.dumps(dict(kkt_samples=len(checked), stages=[dict(r=str(s['regularization']),
+        exact=list(map(str, s['exact_optimum_density'])), repaired=[float(f) for f in s['repaired_density']],
+        actual_gap=float(s['actual_repaired_objective_gap']), delta=str(s['delta']),
+        iterations=s['iterations'], cap=float(s['correction_mass_cap']), source=list(map(float,s['repaired_source_density'])),
+        early=s['early_stopped']) for s in stages], final_gap=float(final_gap),
+        final_bound=str(answer.objective_gap_bound), independent_bound=float(independent.objective_gap_bound)), indent=2))
+
+
+if __name__ == '__main__': main()

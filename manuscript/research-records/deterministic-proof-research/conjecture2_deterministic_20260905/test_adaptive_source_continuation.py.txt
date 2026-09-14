@@ -1,0 +1,193 @@
+"""Bounded exact tests of the optional adaptive schedule; no timing study."""
+import hashlib
+import json
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from adaptive_source_continuation_rppr import (AdaptiveFastCorrector,
+    solve_rppr_adaptive, source_maximum)
+from deterministic_avl_containers import AVLMap
+from independent_sparse_certificate import certify_sparse_output
+from integer_dyadic_rppr_solver import _terminal_repair
+from test_local_safe_solver import dense_exact_obstacle_oracle, path, graph, star
+from test_deterministic_rppr_solver import objective, source_density
+from audit_singleton_package import Oracle
+from audit_singleton_precheck_independent import Spokes
+
+ROOT = Path(__file__).resolve().parent
+LOG = dict(cases=0, stages=0, dense_stage_comparisons=0, rational_stage_jumps=0,
+    clamps=0, source_passes=0, source_scanned_entries=0, direct_cases=0,
+    independent_final_certificates=0, stage_replays=0, zero_iteration_stages=0)
+SOURCE_NAMES = ('combined_certified_dyadic_rppr.py', 'direct_exception_integer_rppr.py',
+    'integer_dyadic_rppr_solver.py', 'early_stop_source_energy_rppr.py',
+    'binomial_block_dyadic_rppr.py', 'source_energy_dyadic_rppr.py')
+BEFORE = {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCE_NAMES}
+
+
+def rows_tuple(rows):
+    return tuple(tuple(rows[i]) for i in range(len(rows)))
+
+
+class AdaptiveTests(unittest.TestCase):
+    def verify(self, rows, seed, alpha, rho, epsilon):
+        oracle = Oracle(rows_tuple(rows))
+        result = solve_rppr_adaptive(oracle, oracle.label(seed), alpha, rho, epsilon)
+        old_baseline = {}
+        old_r = F(1, len(rows[seed]))
+        for index, (stage, record) in enumerate(zip(result.stages, result.schedule)):
+            source = source_density(rows, seed, alpha, old_baseline)
+            maximum = max(source.values())
+            self.assertEqual(record.source_maximum, maximum)
+            self.assertEqual(source[int(record.maximum_vertex)-oracle.offset], maximum)
+            self.assertEqual(record.previous_regularization, old_r)
+            self.assertEqual(record.proposed_regularization, maximum/(4*alpha))
+            self.assertEqual(stage.regularization, max(rho, maximum/(4*alpha)))
+            self.assertEqual(stage.regularization, record.chosen_regularization)
+            self.assertTrue(alpha*old_r <= maximum <= 2*alpha*old_r)
+            self.assertTrue(old_r/4 <= record.proposed_regularization <= old_r/2)
+            self.assertTrue(stage.regularization < old_r)
+            self.assertLess(stage.certified_gap, stage.requested_gap)
+            self.assertEqual(stage.requested_gap, alpha*stage.delta**2/8)
+            values = {int(i)-oracle.offset:value for i,value,_ in stage.repaired_output}
+            optimum = dense_exact_obstacle_oracle(rows, seed, alpha, stage.regularization)
+            self.assertTrue(all(0 <= values.get(i,0) <= optimum.get(i,0) for i in rows))
+            self.assertTrue(all(values.get(i,0) >= old_baseline.get(i,0) for i in rows))
+            gap = (objective(rows,seed,alpha,stage.regularization,values)
+                   -objective(rows,seed,alpha,stage.regularization,optimum))
+            self.assertTrue(0 <= gap <= 2*stage.delta**2/stage.regularization)
+            new_source = source_density(rows,seed,alpha,values)
+            self.assertTrue(all(0 <= s <= 2*alpha*stage.regularization for s in new_source.values()))
+            self.assertTrue(alpha*stage.regularization <= max(new_source.values()))
+            self.assertLessEqual(stage.repaired_volume, 1/stage.regularization)
+            self.assertEqual(record.source_metrics.source_passes, int(index > 0))
+            self.assertEqual(record.source_metrics.scanned_adjacency_entries,
+                             sum(len(rows[i]) for i in old_baseline))
+            self.assertEqual(record.source_metrics.temporary_records_reclaimed,
+                record.source_metrics.baseline_input_records+record.source_metrics.affected_records)
+            self.assertEqual(stage.corrector_metrics['checkpoints']['cache_misses'], 0)
+            LOG['rational_stage_jumps'] += int(stage.regularization.denominator & (stage.regularization.denominator-1) != 0)
+            LOG['clamps'] += int(record.target_clamped)
+            LOG['dense_stage_comparisons'] += 1
+            LOG['zero_iteration_stages'] += int(stage.iterations == 0)
+            old_baseline, old_r = values, stage.regularization
+        inner, am = result.result, result.adaptive_metrics
+        self.assertEqual(len(inner.stages), len(result.schedule))
+        if inner.stages:
+            self.assertEqual(inner.stages[-1].regularization, rho)
+            self.assertEqual(am.source_passes, len(inner.stages)-1)
+            self.assertEqual(am.initial_seed_source_evaluations, 1)
+            self.assertLess(sum((1/s.regularization for s in inner.stages),F(0)), 3/rho)
+        else:
+            self.assertEqual(am.source_passes, 0)
+        self.assertEqual(len(oracle.degree_queries), inner.metrics.seed_degree_queries
+            +sum(s.corrector_metrics['degree_replies'] for s in inner.stages)
+            +inner.metrics.repair_degree_replies+am.degree_replies)
+        self.assertEqual(oracle.entries,
+            sum(s.corrector_metrics['first_adjacency_entries'] for s in inner.stages)
+            +inner.metrics.repair_first_adjacency_entries+am.first_adjacency_entries)
+        certificate = certify_sparse_output(Oracle(rows_tuple(rows)), oracle.label(seed),
+                                             alpha, rho, result.output)
+        self.assertTrue(certificate.meets(epsilon))
+        self.assertLessEqual(result.objective_gap_bound, epsilon)
+        LOG['independent_final_certificates'] += 1
+        LOG['cases'] += 1
+        LOG['stages'] += len(inner.stages)
+        LOG['source_passes'] += am.source_passes
+        LOG['source_scanned_entries'] += am.scanned_adjacency_entries
+        return result
+
+    def test_tiny_dense_cases(self):
+        cases = ((path(2),0,F(1,4),F(1,64)),
+                 (path(5),0,F(13,97),F(1,64)),
+                 (graph(5,[(0,1),(0,2),(1,2),(1,3),(3,4)]),4,F(1,16),F(1,128)),
+                 (star(5),0,F(2,5),F(1,64)),
+                 (star(5),1,F(1,100),F(1,32)),
+                 (path(3),0,F(1,4),F(9,10)))
+        for rows,seed,alpha,rho in cases:
+            self.verify(rows,seed,alpha,rho,F(1,1000000))
+        self.assertGreater(LOG['rational_stage_jumps'], 0)
+        self.assertGreater(LOG['clamps'], 0)
+
+    def test_exact_corrector_and_repair_replay(self):
+        rows, alpha, rho = path(3), F(13,97), F(1,64)
+        answer = self.verify(rows,0,alpha,rho,F(1,1000000))
+        baseline = AVLMap()
+        for stage in answer.stages:
+            oracle = Oracle(rows_tuple(rows))
+            c = AdaptiveFastCorrector(oracle,oracle.label(0),alpha,answer.result.theta,
+                                     stage.regularization,stage.requested_gap,baseline)
+            candidate = c.run()
+            repaired,pgm,counts = _terminal_repair(c,candidate,stage.delta)
+            self.assertEqual(repaired,stage.repaired_output)
+            self.assertEqual(c.diagnostic_metrics,stage.corrector_metrics)
+            self.assertEqual(asdict(pgm),stage.projected_gradient_metrics)
+            self.assertEqual(c.objective_gap_bound,stage.certified_gap)
+            baseline = AVLMap((i,value) for i,value,_ in repaired)
+            LOG['stage_replays'] += 1
+
+    def test_zero_iteration_stage_still_repairs(self):
+        answer = self.verify(path(2),0,F(13,97),F((1<<20)-1,1<<20),F(1,16))
+        self.assertEqual(len(answer.stages),1)
+        self.assertEqual(answer.stages[0].iterations,0)
+        self.assertEqual(answer.stages[0].projected_gradient_metrics['affected_records'],1)
+        self.assertEqual(answer.result.metrics.repair_affected_records,1)
+        self.assertEqual(answer.adaptive_metrics.source_passes,0)
+
+    def test_fresh_and_cached_source_pass(self):
+        # A two-spoke graph with a very high-degree inactive boundary. The
+        # maximum occurs at the low-degree boundary, not at the seed.
+        oracle = Spokes([1,(1<<181)+19])
+        degrees, adjacency = AVLMap(), AVLMap()
+        repaired = ((oracle.seed,F(7,32),2),)
+        maximum,vertex,m = source_maximum(oracle,oracle.seed,F(1,3),repaired,32,
+                                          degree_cache=degrees,adjacency_cache=adjacency)
+        self.assertEqual(maximum,F(7,96))
+        self.assertEqual(vertex,oracle.offset)
+        self.assertEqual((m.degree_replies,m.first_row_requests,m.first_adjacency_entries), (3,1,2))
+        self.assertEqual((m.scanned_adjacency_entries,m.cached_row_hits), (2,0))
+        self.assertEqual(m.temporary_records_reclaimed,4)
+        self.assertEqual(list(adjacency),[oracle.seed])
+        before = (len(oracle.degree_queries),len(oracle.row_queries),oracle.entries)
+        again,v,cm = source_maximum(oracle,oracle.seed,F(1,3),repaired,32,
+                                    degree_cache=degrees,adjacency_cache=adjacency)
+        self.assertEqual((again,v),(maximum,vertex))
+        self.assertEqual(before,(len(oracle.degree_queries),len(oracle.row_queries),oracle.entries))
+        self.assertEqual((cm.degree_replies,cm.first_adjacency_entries,cm.cached_row_hits),(0,0,1))
+        self.assertEqual(cm.rational_maximum_constructions,1)
+        LOG['fresh_and_cached_source_passes'] = 2
+        LOG['boundary_source_maximum_verified'] = True
+
+    def test_direct_and_huge_hub(self):
+        for alpha,rho in ((F(1,3),F(1)),(F(1),F(1,4))):
+            oracle = Oracle(rows_tuple(path(2)))
+            answer = solve_rppr_adaptive(oracle,oracle.label(0),alpha,rho,F(1,1000000))
+            self.assertFalse(answer.stages)
+            self.assertFalse(answer.schedule)
+            self.assertFalse(oracle.row_queries)
+            self.assertEqual(len(oracle.degree_queries),1)
+            self.assertEqual(answer.objective_gap_bound,0)
+            LOG['direct_cases'] += 1
+        oracle = Spokes([10**30])
+        answer = solve_rppr_adaptive(oracle,oracle.seed,F(1,100),F(1,64),F(1,1000000))
+        self.assertEqual(len(answer.output),1)
+        self.assertEqual(answer.output[0][0],oracle.seed)
+        self.assertTrue(all(i==oracle.seed for i in oracle.row_queries))
+        self.assertTrue(all(s.repaired_volume==1 for s in answer.stages))
+        self.assertEqual(answer.adaptive_metrics.first_adjacency_entries,0)
+        self.assertEqual(answer.adaptive_metrics.degree_replies,0)
+        self.assertTrue(certify_sparse_output(Spokes([10**30]),oracle.seed,F(1,100),F(1,64),answer.output).meets(F(1,1000000)))
+        LOG['huge_hub_no_boundary_rows'] = True
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(AdaptiveTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    after = {name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCE_NAMES}
+    assert BEFORE == after
+    (ROOT/'adaptive_source_continuation_verification.json').write_text(json.dumps(
+        dict(passed=result.wasSuccessful(),evidence=LOG,unchanged_source_sha256=after,
+             adaptive_source_sha256=hashlib.sha256((ROOT/'adaptive_source_continuation_rppr.py').read_bytes()).hexdigest()),indent=2)+'\n')
+    if not result.wasSuccessful():
+        raise SystemExit(1)

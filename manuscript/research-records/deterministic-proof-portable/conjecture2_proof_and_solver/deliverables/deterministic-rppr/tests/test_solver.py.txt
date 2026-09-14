@@ -1,0 +1,198 @@
+"""Independent exact tests; the dense reference is never given to the solver."""
+
+import unittest
+from fractions import Fraction as F
+
+from deterministic_rppr import solve
+
+
+class StrictOracle:
+    def __init__(self, rows, seed, reverse=False):
+        self.rows = rows
+        self.known = {seed}
+        self.degree_calls = 0
+        self.entries = 0
+        self.row_calls = 0
+        self.reverse = reverse
+
+    def degree(self, vertex):
+        if vertex not in self.known:
+            raise AssertionError('Degree queried before local discovery')
+        self.degree_calls += 1
+        return len(self.rows[vertex])
+
+    def neighbors(self, vertex):
+        if vertex not in self.known:
+            raise AssertionError('Adjacency queried before local discovery')
+        self.row_calls += 1
+        row = self.rows[vertex]
+        for neighbor in reversed(row) if self.reverse else row:
+            self.entries += 1
+            self.known.add(neighbor)
+            yield neighbor
+
+
+def graph(n, edges):
+    rows = {i: [] for i in range(1, n+1)}
+    for i, j in edges:
+        rows[i].append(j)
+        rows[j].append(i)
+    return {i: tuple(sorted(row)) for i, row in rows.items()}
+
+
+def linear_solve(matrix, rhs):
+    rows = [[F(value) for value in row]+[F(value)]
+            for row, value in zip(matrix, rhs)]
+    n = len(rows)
+    for k in range(n):
+        pivot = next(i for i in range(k, n) if rows[i][k])
+        rows[k], rows[pivot] = rows[pivot], rows[k]
+        value = rows[k][k]
+        rows[k] = [entry/value for entry in rows[k]]
+        for i in range(n):
+            if i == k:
+                continue
+            value = rows[i][k]
+            if value:
+                rows[i] = [a-value*b for a, b in zip(rows[i], rows[k])]
+    return [row[-1] for row in rows]
+
+
+def exact_optimum(rows, seed, alpha, rho):
+    vertices = sorted(rows)
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    rhs = {i: alpha*(int(i == seed)-rho*len(rows[i])) for i in vertices}
+    if all(value <= 0 for value in rhs.values()):
+        return {}
+    seed_bit = 1 << vertices.index(seed)
+    for mask in range(1 << len(vertices)):
+        if not mask & seed_bit:
+            continue
+        active = [i for k, i in enumerate(vertices) if mask & (1 << k)]
+        matrix = [[q0*len(rows[i]) if i == j else
+                   -c if j in rows[i] else F(0) for j in active] for i in active]
+        vector = linear_solve(matrix, [rhs[i] for i in active])
+        if any(value < 0 for value in vector):
+            continue
+        values = dict(zip(active, vector))
+        residual = {i: rhs[i]-q0*len(rows[i])*values.get(i, 0)
+                       +c*sum(values.get(j, 0) for j in rows[i]) for i in vertices}
+        if all(residual[i] == 0 if values.get(i, 0) > 0 else residual[i] <= 0
+               for i in vertices):
+            return {i: value for i, value in values.items() if value}
+    raise AssertionError('The independent exhaustive KKT reference found no solution')
+
+
+def objective(rows, seed, alpha, rho, values):
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    diagonal = sum((len(rows[i])*value**2 for i, value in values.items()), F(0))
+    edges = sum((values.get(i, 0)*values.get(j, 0)
+                 for i in rows for j in rows[i]), F(0))
+    mass = sum((len(rows[i])*value for i, value in values.items()), F(0))
+    return (q0*diagonal-c*edges)/2-alpha*values.get(seed, 0)+alpha*rho*mass
+
+
+def source(rows, seed, alpha, values):
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    return {i: alpha*int(i == seed)/len(rows[i])-q0*values.get(i, 0)
+               +c*sum((values.get(j, 0) for j in rows[i]), F(0))/len(rows[i])
+            for i in rows}
+
+
+def validate_case(rows, seed, alpha, rho, epsilon, solve_function=solve, reverse=False):
+    oracle = StrictOracle(rows, seed, reverse)
+    answer = solve_function(oracle, seed, alpha, rho, epsilon)
+    optimum_cache = {}
+
+    def optimum(r):
+        if r not in optimum_cache:
+            optimum_cache[r] = exact_optimum(rows, seed, alpha, r)
+        return optimum_cache[r]
+
+    previous, previous_r = {}, F(1, len(rows[seed]))
+    previous_mass = F(0)
+    for stage in answer.stages:
+        r = stage.regularization
+        assert previous_r/2 <= r < previous_r
+        assert r >= rho
+        current = {i: value for i, value, degree in stage.repaired_output}
+        exact = optimum(r)
+        assert all(0 <= previous.get(i, 0) <= current.get(i, 0) <= exact.get(i, 0)
+                   for i in rows)
+        assert all(exact.get(i, 0)-current.get(i, 0) <= 2*stage.delta for i in rows)
+        residual_source = source(rows, seed, alpha, current)
+        assert all(0 <= value <= 2*alpha*r for value in residual_source.values())
+        assert stage.projection_mass_cap == 1-previous_mass
+        assert stage.source_mass == alpha*(1-previous_mass)
+        assert stage.corrector_metrics['rebase_adjacency_entries'] == 0
+        assert stage.grid.numerator == 1
+        assert stage.grid.denominator & (stage.grid.denominator-1) == 0
+        assert stage.requested_gap == alpha*stage.delta**2/8
+        assert 0 <= stage.certified_gap < stage.requested_gap
+        assert stage.kinetic_volume <= stage.kinetic_volume_bound
+        mass = sum((len(rows[i])*value for i, value in current.items()), F(0))
+        assert stage.repaired_mass == mass and previous_mass <= mass <= 1
+        assert stage.repaired_volume == sum(len(rows[i]) for i in current)
+        stage_gap = objective(rows, seed, alpha, r, current)-objective(
+            rows, seed, alpha, r, exact)
+        assert 0 <= stage_gap <= 2*stage.delta**2/r
+        previous, previous_r, previous_mass = current, r, mass
+    values = {i: value for i, value, degree in answer.output}
+    assert len(values) == len(answer.output)
+    assert all(value > 0 and degree == len(rows[i]) for i, value, degree in answer.output)
+    exact = optimum(rho)
+    assert all(0 <= values.get(i, 0) <= exact.get(i, 0) for i in rows)
+    gap = objective(rows, seed, alpha, rho, values)-objective(rows, seed, alpha, rho, exact)
+    assert 0 <= gap <= answer.objective_gap_bound <= epsilon
+    assert sum(len(rows[i]) for i in values) <= 1/rho
+    mass = sum((len(rows[i])*value for i, value in values.items()), F(0))
+    assert 0 <= mass <= 1
+    residual_source = source(rows, seed, alpha, values)
+    assert all(0 <= value <= 2*alpha*rho for value in residual_source.values())
+    assert sum((len(rows[i])*value for i, value in residual_source.items()), F(0)) == alpha*(1-mass)
+    assert oracle.degree_calls == 1+answer.metrics.repair_degree_replies+sum(
+        stage.corrector_metrics['degree_replies'] for stage in answer.stages)
+    assert oracle.entries == answer.metrics.repair_first_adjacency_entries+sum(
+        stage.corrector_metrics['first_adjacency_entries'] for stage in answer.stages)
+    assert answer.metrics.final_output_words == 3*len(values)
+    return answer, dict(actual_gap=gap, degree_calls=oracle.degree_calls,
+                        first_adjacency_entries=oracle.entries,
+                        iterations=sum(stage.iterations for stage in answer.stages),
+                        stages=len(answer.stages), volume=sum(len(rows[i]) for i in values))
+
+
+class SolverTests(unittest.TestCase):
+    def test_exact_small_graphs(self):
+        fixtures = [
+            (graph(2, [(1, 2)]), 1),
+            (graph(5, [(1, 2), (2, 3), (3, 4), (4, 5)]), 1),
+            (graph(5, [(1, 2), (1, 3), (1, 4), (1, 5)]), 2),
+            (graph(5, [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)]), 5),
+            (graph(5, [(i, j) for i in range(1, 6) for j in range(i+1, 6)]), 1),
+        ]
+        for rows, seed in fixtures:
+            for alpha, factor, epsilon in [(F(1, 7), F(3, 8), F(1, 10000)),
+                                            (F(1, 16), F(1, 16), F(1, 10**6))]:
+                with self.subTest(seed=seed, alpha=alpha, rows=rows):
+                    validate_case(rows, seed, alpha, factor/len(rows[seed]), epsilon)
+
+    def test_shortcuts(self):
+        rows = graph(5, [(1, 2), (1, 3), (1, 4), (1, 5)])
+        for seed in (1, 2):
+            for alpha, rho in [(F(1, 7), F(1, len(rows[seed]))),
+                               (F(1), F(3, 7*len(rows[seed])))]:
+                answer, counts = validate_case(rows, seed, alpha, rho, F(1, 2**60))
+                self.assertFalse(answer.stages)
+                self.assertEqual(counts['first_adjacency_entries'], 0)
+                self.assertEqual(answer.objective_gap_bound, 0)
+
+    def test_invalid_parameters(self):
+        rows = graph(2, [(1, 2)])
+        for alpha, rho, epsilon in [(0, F(1, 2), 1), (2, F(1, 2), 1),
+                                    (F(1, 2), 0, 1), (F(1, 2), F(1, 2), 0)]:
+            with self.assertRaises(ValueError):
+                solve(StrictOracle(rows, 1), 1, alpha, rho, epsilon)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,163 @@
+"""Deterministic beam search for large signed projection debit on unit trees.
+
+The search ranks explicit integer branching sequences. Its numerical optima
+and score rankings are falsification tools, not premises of a proof.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import itertools
+import json
+import math
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from cyclic_radial_audit import model
+from positive_linear_coupling import run
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--seconds", type=float, default=36000)
+    parser.add_argument("--width", type=int, default=16)
+    parser.add_argument("--depth", type=int, default=32)
+    parser.add_argument("--alphas", default="0.01,0.001,0.0001,0.00001,0.000001")
+    parser.add_argument("--cached-cases", type=Path)
+    args = parser.parse_args()
+    args.directory = args.directory.resolve()
+    alphas = [float(value) for value in args.alphas.split(",")]
+    cached = {}
+    if args.cached_cases:
+        with args.cached_cases.open() as source:
+            for line in source:
+                row = json.loads(line)
+                if row["alpha"] in alphas:
+                    key = (
+                        row["alpha"],
+                        tuple(row["branches"]),
+                        row["threshold_position"],
+                        row["factor"],
+                    )
+                    cached[key] = row["signed_debit_over_sqrt_alpha_log"]
+    args.directory.mkdir(parents=True, exist_ok=True)
+    metadata = {
+        "start_utc": datetime.now(UTC).isoformat(),
+        "randomized": False,
+        "time_limit_seconds": args.seconds,
+        "beam_width": args.width,
+        "maximum_depth": args.depth,
+        "alphas": alphas,
+        "cached_cases": str(args.cached_cases) if args.cached_cases else None,
+        "cached_result_keys": len(cached),
+        "sources": {},
+    }
+    for name in (
+        Path(__file__).name,
+        "positive_linear_coupling.py",
+        "cyclic_radial_audit.py",
+        "cyclic_dual_averaging.py",
+    ):
+        data = Path(__file__).with_name(name).read_bytes()
+        (args.directory / name).write_bytes(data)
+        metadata["sources"][name] = hashlib.sha256(data).hexdigest()
+    (args.directory / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    start = time.monotonic()
+    completed = 0
+    worst = None
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for alpha in alphas:
+            beam = [()]
+            for depth in range(1, args.depth + 1):
+                ranked = []
+                for prefix, branch in itertools.product(beam, (1, 2, 4, 16, 100)):
+                    branches = prefix + (branch,)
+                    k, b, w, volume, thresholds, ambient_n = model(branches, alpha)
+                    counts = np.array(
+                        [1] + list(itertools.accumulate(branches, lambda a, b: a * b)),
+                        dtype=float,
+                    )
+                    q = k + alpha * np.eye(len(w))
+                    best_score = 0.0
+                    for position in sorted({depth // 2, max(0, depth - 3), depth - 1}):
+                        for factor in (0.999, 1.001, 2, 8):
+                            rho = thresholds[position] * factor
+                            if rho >= 1 / branches[0]:
+                                continue
+                            key = (alpha, branches, position, factor)
+                            if key in cached:
+                                best_score = max(best_score, cached[key])
+                                continue
+                            result = run(
+                                q,
+                                b - alpha * rho * w,
+                                w,
+                                volume,
+                                alpha,
+                                rho,
+                                mass_cap=True,
+                                relative_gap=1e-12,
+                                counts=counts,
+                            )
+                            denominator = math.sqrt(alpha) * math.log(2 / rho)
+                            ratio = max(0.0, result["signed_mass_debit"]) / denominator
+                            result.update(
+                                branches=branches,
+                                ambient_n=ambient_n,
+                                threshold_position=position,
+                                factor=factor,
+                                signed_debit_over_sqrt_alpha_log=ratio,
+                            )
+                            output.write(json.dumps(result) + "\n")
+                            completed += 1
+                            best_score = max(best_score, ratio)
+                            if (
+                                worst is None
+                                or ratio > worst["signed_debit_over_sqrt_alpha_log"]
+                            ):
+                                worst = result
+                                (args.directory / "worst.json").write_text(
+                                    json.dumps(worst, indent=2)
+                                )
+                            if completed % 50 == 0:
+                                output.flush()
+                                checkpoint = {
+                                    "updated_at": datetime.now(UTC).isoformat(),
+                                    "completed": completed,
+                                    "elapsed_seconds": time.monotonic() - start,
+                                    "alpha": alpha,
+                                    "depth": depth,
+                                    "branches": branches,
+                                    "worst_ratio": worst[
+                                        "signed_debit_over_sqrt_alpha_log"
+                                    ],
+                                    "randomized": False,
+                                    "status": "running",
+                                }
+                                (args.directory / "checkpoint.json").write_text(
+                                    json.dumps(checkpoint, indent=2)
+                                )
+                            if time.monotonic() - start >= args.seconds:
+                                return
+                    ranked.append((best_score, branches))
+                ranked.sort(key=lambda row: (-row[0], row[1]))
+                beam = [branches for _, branches in ranked[: args.width]]
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "completed": completed,
+                "elapsed_seconds": time.monotonic() - start,
+                "status": "enumeration_complete",
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,142 @@
+"""Deterministic unequal-arm graph census for interacting transient modes."""
+
+import argparse
+import itertools
+import json
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from mass_repair_energy_probe import probe
+from plc_equitable_campaign import symmetric_model, transitions
+
+
+def forked(arms):
+    counts = [1]
+    entries = []
+    for start_count, branch, length, clique in arms:
+        first = len(counts)
+        counts.extend(start_count * branch**i for i in range(length))
+        entries.extend(((0, first, start_count), (first, 0, 1)))
+        for j in range(first, first + length - 1):
+            entries.extend(((j, j + 1, branch), (j + 1, j, 1)))
+        if clique:
+            entries.extend((j, j, counts[j] - 1) for j in range(first, first + length))
+    neighbors = np.zeros((len(counts), len(counts)))
+    for i, j, value in entries:
+        neighbors[i, j] = value
+    return np.array(counts, float), neighbors
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    args = parser.parse_args()
+    args.directory.mkdir(parents=True, exist_ok=True)
+    for name in (
+        Path(__file__).name,
+        "mass_repair_energy_probe.py",
+        "mass_repair_campaign.py",
+        "positive_linear_coupling.py",
+        "plc_equitable_campaign.py",
+        "cyclic_radial_audit.py",
+        "cyclic_dual_averaging.py",
+    ):
+        (args.directory / name).write_bytes(Path(__file__).with_name(name).read_bytes())
+    start = checkpoint = time.monotonic()
+    completed = repaired_cases = 0
+    maximum = -1e300
+    worst_repaired = -1e300
+    first_arms = [(1, 1, length, False) for length in (4, 16, 64)]
+    first_arms += [(1, 2, length, False) for length in (4, 8, 16)]
+    second_arms = [
+        (size, branch, length, clique)
+        for size, branch, length, clique in itertools.product(
+            (1, 4, 100), (1, 4), (2, 8, 24), (False, True)
+        )
+    ]
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for arms in itertools.product(first_arms, second_arms):
+            counts, neighbors = forked(arms)
+            for alpha in (0.01, 0.001, 0.0001, 0.000001):
+                q, b, w, _volume = symmetric_model(counts, neighbors, alpha)
+                bounds = transitions(q, b, w, alpha)
+                for position, factor in itertools.product(
+                    sorted(
+                        {1, len(bounds) // 3, 2 * len(bounds) // 3, len(bounds) - 1}
+                    ),
+                    (0.999, 1.001, 2, 8),
+                ):
+                    rho = bounds[position] * factor
+                    if rho >= bounds[0]:
+                        continue
+                    result = probe(q, b - alpha * rho * w, w, alpha, rho)
+                    result.update(
+                        arms=arms,
+                        alpha=alpha,
+                        rho=rho,
+                        boundary_index=position,
+                        factor=factor,
+                        randomized=False,
+                        canonical_zero_start=True,
+                    )
+                    completed += 1
+                    repaired_cases += result["substantial_repaired_steps"] > 0
+                    value = result["relative_to_s_energy"]
+                    if value > maximum:
+                        maximum = value
+                        (args.directory / "worst.json").write_text(
+                            json.dumps(result, indent=2)
+                        )
+                    repaired_value = result["worst_repaired_relative_debit"]
+                    if repaired_value is not None and repaired_value > worst_repaired:
+                        worst_repaired = repaired_value
+                        (args.directory / "worst_repaired.json").write_text(
+                            json.dumps(result, indent=2)
+                        )
+                    output.write(
+                        json.dumps(
+                            {k: v for k, v in result.items() if k not in ("x", "z")}
+                        )
+                        + "\n"
+                    )
+                    now = time.monotonic()
+                    if now - checkpoint > 20:
+                        output.flush()
+                        (args.directory / "checkpoint.json").write_text(
+                            json.dumps(
+                                {
+                                    "updated_at": datetime.now(UTC).isoformat(),
+                                    "cases_completed": completed,
+                                    "repaired_cases": repaired_cases,
+                                    "maximum_relative_debit": maximum,
+                                    "worst_repaired_relative_debit": worst_repaired,
+                                    "arms": arms,
+                                    "alpha": alpha,
+                                    "elapsed_seconds": now - start,
+                                    "randomized": False,
+                                    "status": "running",
+                                },
+                                indent=2,
+                            )
+                        )
+                        checkpoint = now
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "repaired_cases": repaired_cases,
+                "maximum_relative_debit": maximum,
+                "worst_repaired_relative_debit": worst_repaired,
+                "elapsed_seconds": time.monotonic() - start,
+                "randomized": False,
+                "status": "enumeration_complete",
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

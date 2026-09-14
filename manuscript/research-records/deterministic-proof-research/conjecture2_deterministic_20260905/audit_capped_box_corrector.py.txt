@@ -1,0 +1,106 @@
+"""Independent exact KKT and sparse-source adversarial checks; no randomness."""
+import itertools,json
+from fractions import Fraction as F
+from pathlib import Path
+from capped_box_corrector import RankedBoxAVL,BoxMetrics,CappedBoxCorrector,Oracle
+
+
+def check(raw,degree,upper,cap,sigma=F(3,17),shift=F(2,11)):
+ m=BoxMetrics();t=RankedBoxAVL(m)
+ order=sorted(raw,key=lambda i:((7*i+3)%max(1,len(raw)),i))
+ for i in order:t.insert(((raw[i]+shift)/sigma,i),degree[i])
+ answer,eta,active=t.project_box(sigma,shift,upper,cap)
+ expected={i:min(upper,max(F(0),raw[i]-eta)) for i in raw}
+ expected={i:x for i,x in expected.items() if x}
+ assert answer==expected
+ mass=sum((degree[i]*x for i,x in answer.items()),F(0))
+ mass0=sum((degree[i]*max(F(0),min(upper,raw[i])) for i in raw),F(0))
+ assert eta>=0 and mass<=cap
+ assert (eta==0 and mass0<=cap) or (eta>0 and mass==cap)
+ assert active==(mass0>cap)
+ for cut in (F(0),eta,eta+F(1,19)):
+  actual,slope=t.box_mass(cut,sigma,shift,upper)
+  direct=sum((degree[i]*max(F(0),min(upper,raw[i]-cut)) for i in raw),F(0))
+  derivative=sum(degree[i] for i in raw if 0<raw[i]-cut<=upper)
+  assert actual==direct and slope==derivative
+ assert m.projection_emissions==len(answer)
+ return int(active),m.tree_visits
+
+
+def projection_checks():
+ cases=active=visits=0
+ vals=(F(-3,7),F(-1,5),F(0),F(1,2),F(7,3))
+ degrees={0:1,1:2,2:101,3:10007}
+ for row in itertools.product(vals,repeat=4):
+  raw=dict(enumerate(row))
+  for upper in (F(2,9),F(4,3)):
+   caps={F(0),F(1,2),F(1),upper*sum(degrees.values())/2}
+   caps.add(upper*sum(degrees[i] for i,x in raw.items() if x==max(row)))
+   for cap in caps:
+    aa,vv=check(raw,degrees,upper,cap);active+=aa;visits+=vv;cases+=1
+ return dict(cases=cases,active=active,tree_visits=visits)
+
+
+def mutation_checks():
+ m=BoxMetrics();t=RankedBoxAVL(m);expected={};checks=0
+ # All values and operations are specified arithmetically and reproducible.
+ for epoch in range(7):
+  for i in range(37):
+   if i in expected:t.delete((expected[i],i))
+   if (i+epoch)%5==0:
+    expected.pop(i,None);continue
+   value=F(((i*19+epoch*23)%29)-14,1+(i%4))
+   expected[i]=value;t.insert((value,i),1+(i*17)%101)
+  ordered=sorted((v,i) for i,v in expected.items())
+  assert [t.rank_key(j) for j in range(len(ordered))]==ordered
+  for cap in (F(0),F(1),F(13,7),F(100000)):
+   z,eta,active=t.project_box(F(2,13),F(3,11),F(7,9),cap)
+   raw={i:F(2,13)*v-F(3,11) for i,v in expected.items()}
+   exp={i:min(F(7,9),max(F(0),v-eta)) for i,v in raw.items()}
+   assert z=={i:v for i,v in exp.items() if v}
+   mass=sum(((1+(i*17)%101)*v for i,v in z.items()),F(0))
+   assert mass<=cap and (eta==0 or mass==cap)
+   checks+=1
+ return dict(epochs=7,checks=checks)
+
+
+def source_checks():
+ # A six-cycle with an asymmetric pendant edge; exact old baseline from
+ # a principal rational solve, with dense source evaluated independently.
+ from warm_residual_exhaustive_probe import warm
+ edges=[(0,1),(1,2),(2,3),(3,4),(4,5),(5,0),(1,4),(2,6)]
+ n=7;A=[[0]*n for _ in range(n)];adj={i:[] for i in range(n)}
+ for i,j in edges:A[i][j]=A[j][i]=1;adj[i].append(j);adj[j].append(i)
+ cases=0
+ for alpha,theta in ((F(1,3),F(1,2)),(F(1,9),F(1,4)),(F(1,100),F(1,16))):
+  for rho in (F(1,32),F(1,16),F(1,8)):
+   star,old=warm(A,alpha,rho)
+   for repaired in (False,True):
+    delta=alpha*rho if repaired else F(0)
+    base={i:v-delta for i,v in enumerate(old) if v>delta}
+    solver=CappedBoxCorrector(Oracle(adj),0,alpha,theta,rho,base)
+    q0=(1+alpha)/2;c=(1-alpha)/2
+    exact={i:alpha*int(i==0)/len(adj[i])-q0*base.get(i,F(0))+
+           c*sum((base.get(j,F(0)) for j in adj[i]),F(0))/len(adj[i]) for i in adj}
+    assert solver.source=={i:v for i,v in exact.items() if v}
+    assert solver.source_mass==alpha*(1-sum((len(adj[i])*v for i,v in base.items()),F(0)))
+    assert solver.metrics.baseline_adjacency_entries==sum(len(adj[i]) for i in base)
+    for k in range(11):
+     solver.step()
+     x={i:solver.sigma*v for i,v in solver.X.items()}
+     # Exact dense response and raw-key identities at every vertex. Vertices
+     # not yet exposed must have a strictly negative raw density.
+     z=solver.z;y={i:(x.get(i,F(0))+theta*z.get(i,F(0)))/(1+theta) for i in adj}
+     for i in adj:
+      qy=q0*y[i]-c*sum((y[j] for j in adj[i]),F(0))/len(adj[i])
+      raw=(1-theta)*z.get(i,F(0))+theta*y[i]-(qy-exact[i]+alpha*rho)/theta
+      if i in solver.degree:
+       assert raw==solver.sigma*solver.keys[i]-alpha*rho/theta
+      else:assert raw<0
+    cases+=1
+ return dict(cases=cases,steps=11*cases)
+
+if __name__=='__main__':
+ result=dict(projection=projection_checks(),mutations=mutation_checks(),sources=source_checks(),successful=True)
+ print(json.dumps(result,indent=2))
+ Path(__file__).with_name('capped_box_independent_verification.json').write_text(json.dumps(result,indent=2)+'\n')

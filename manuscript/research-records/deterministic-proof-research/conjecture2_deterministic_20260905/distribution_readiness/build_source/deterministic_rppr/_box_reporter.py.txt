@@ -1,0 +1,135 @@
+"""AVL-backed solver component transcribed from capped_box_corrector.py.
+
+All graph-state maps and sets use deterministic balanced trees.
+See TRANSCRIPTION.json and the package verification tests.
+"""
+
+from ._avl import AVLMap, AVLSet
+from dataclasses import dataclass
+from fractions import Fraction as F
+from ._weighted_tree import Metrics, WeightedAVL, weight, weighted_sum
+
+@dataclass
+class BoxMetrics(Metrics):
+    mass_queries: int = 0
+    rank_queries: int = 0
+    breakpoint_candidates: int = 0
+    projection_queries: int = 0
+    box_saturated_emissions: int = 0
+    baseline_input_records: int = 0
+    baseline_adjacency_entries: int = 0
+    source_initialization_records: int = 0
+    source_refresh_records: int = 0
+    exception_refresh_records: int = 0
+    sparse_record_updates: int = 0
+
+def count(node):
+    return getattr(node, 'count', 1) if node else 0
+
+class RankedBoxAVL(WeightedAVL):
+    """One AVL, two translated breakpoint sequences; no rejected-tail scan."""
+
+    def refresh(self, node):
+        super().refresh(node)
+        node.count = 1 + count(node.left) + count(node.right)
+        return node
+
+    def rank_key(self, rank):
+        """Return the zero-based order statistic in O(log N) tree visits."""
+        self.metrics.rank_queries += 1
+        if not 0 <= rank < count(self.root):
+            raise IndexError(rank)
+        node = self.root
+        while node:
+            self.metrics.tree_visits += 1
+            left_count = count(node.left)
+            if rank < left_count:
+                node = node.left
+            elif rank == left_count:
+                return node.key
+            else:
+                rank -= left_count + 1
+                node = node.right
+        raise AssertionError('Corrupt order-statistic tree')
+
+    def tail_moments(self, threshold):
+        """Return sum d and sum d*K over STRICTLY larger keys."""
+        node, total_w, total_s = (self.root, 0, F(0))
+        while node:
+            self.metrics.tree_visits += 1
+            if node.key[0] <= threshold:
+                node = node.right
+            else:
+                total_w += node.weight + weight(node.right)
+                total_s += node.weight * node.key[0] + weighted_sum(node.right)
+                node = node.left
+        return (total_w, total_s)
+
+    def box_mass(self, multiplier, sigma, shift, upper):
+        """Mass and right derivative magnitude for clamp(sigma*K-shift-mu)."""
+        self.metrics.mass_queries += 1
+        lower = (shift + multiplier) / sigma
+        wl, sl = self.tail_moments(lower)
+        wh, sh = self.tail_moments(lower + upper / sigma)
+        mass = sigma * (sl - sh) - (shift + multiplier) * (wl - wh) + upper * wh
+        return (mass, wl - wh)
+
+    def box_threshold(self, sigma, shift, upper, cap=F(1)):
+        """Exact nonnegative mass multiplier, O(log^2(N+2)) tree work.
+
+        Each of sigma*K-shift and sigma*K-shift-upper is already sorted.
+        Binary-search both sequences for the mass root; the final bracket
+        contains no breakpoint, so one affine solve gives the exact root.
+        Equalities (including plateaus) return immediately. No list of keys,
+        positive raw coordinates, or breakpoints is materialized.
+        """
+        sigma, shift, upper, cap = map(F, (sigma, shift, upper, cap))
+        if sigma <= 0 or upper <= 0 or cap < 0:
+            raise ValueError('Need sigma>0, upper>0, cap>=0')
+        self.metrics.projection_queries += 1
+        mass0, _ = self.box_mass(F(0), sigma, shift, upper)
+        if mass0 <= cap:
+            return (F(0), False)
+        n = count(self.root)
+        high = sigma * self.rank_key(n - 1)[0] - shift
+        if cap == 0:
+            return (high, True)
+        low = F(0)
+        for translation in (F(0), upper):
+            left, right = (0, n)
+            while left < right:
+                middle = (left + right) // 2
+                pivot = sigma * self.rank_key(middle)[0] - shift - translation
+                self.metrics.breakpoint_candidates += 1
+                if pivot <= low:
+                    left = middle + 1
+                    continue
+                if pivot >= high:
+                    right = middle
+                    continue
+                mass, _ = self.box_mass(pivot, sigma, shift, upper)
+                if mass == cap:
+                    return (pivot, True)
+                if mass > cap:
+                    low = pivot
+                    left = middle + 1
+                else:
+                    high = pivot
+                    right = middle
+        mass, slope = self.box_mass(low, sigma, shift, upper)
+        if slope <= 0:
+            raise ArithmeticError('Invalid final affine water-fill interval')
+        multiplier = low + (mass - cap) / slope
+        if not low < multiplier <= high:
+            raise ArithmeticError('Water-fill root escaped its bracket')
+        return (multiplier, True)
+
+    def project_box(self, sigma, shift, upper, cap=F(1)):
+        multiplier, active = self.box_threshold(sigma, shift, upper, cap)
+        lower = (F(shift) + multiplier) / F(sigma)
+        selected = AVLMap(())
+        for key, vertex in self.above(lower):
+            value = min(F(upper), F(sigma) * (key - lower))
+            selected[vertex] = value
+            self.metrics.box_saturated_emissions += int(value == upper)
+        return (selected, multiplier, active)

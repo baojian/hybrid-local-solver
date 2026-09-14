@@ -1,0 +1,38 @@
+"""Exact fixed-face degree guard for the monotone capped prototype.
+
+See guarded_monotone_capped_acceleration.md for the allowed-face proof.
+The initial-phase cumulative work bound remains open. No OP2 claim is made.
+Only the reporter face and warm-start validation differ from the parent.
+"""
+from fractions import Fraction as F
+
+from monotone_capped_solver import MonotoneCappedSolver
+
+
+class GuardedMonotoneCappedSolver(MonotoneCappedSolver):
+    def _allowed(self, i):
+        """Check cached degrees; the seed is exposed before any other vertex."""
+        volume = self.degree[self.seed]
+        if i != self.seed:
+            volume += self.degree[i]
+        return self.rho*volume < 1
+
+    def _set_key(self, i, value):
+        # Every projection threshold is at least theta*rho/sigma > 0.
+        # A permanent zero key therefore fixes forbidden coordinates to zero.
+        super()._set_key(i, value if self._allowed(i) else F(0))
+
+    def initialize_from_primal(self, degree_coordinates, certified_objective_gap):
+        if self.metrics.iterations or self.X:
+            raise ValueError('Initialization requires a fresh zero-state solver')
+        values = {}
+        for i, value in degree_coordinates.items():
+            value = F(value)
+            if value < 0:
+                raise ValueError('The initial point must be nonnegative')
+            if value:
+                self._expose(i)  # The degree query is charged even on rejection.
+                if not self._allowed(i):
+                    raise ValueError('The initial point uses a forbidden coordinate')
+                values[i] = value
+        super().initialize_from_primal(values, certified_objective_gap)

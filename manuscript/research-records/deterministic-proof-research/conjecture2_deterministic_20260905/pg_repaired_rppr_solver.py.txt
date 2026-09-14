@@ -1,0 +1,195 @@
+"""Exact RPPR continuation with one projected-gradient step before repair.
+
+The accelerated stage remains ordinary capped-box averaging. Only its
+end-stage repair changes; see finite_precision_repair_and_scaling.md, section
+2, and pg_repaired_rppr_solver_audit.md. No original solver module is edited.
+Counters describe exact-real structural work, not Python hash or integer bit
+complexity. No floating-point or randomized primitive is used.
+"""
+
+from dataclasses import asdict, dataclass, field
+from fractions import Fraction as F
+
+from capped_box_corrector import CappedBoxCorrector
+from deterministic_rppr_solver import ContinuationMetrics, SolverResult, StageSummary
+
+
+@dataclass
+class PGRepairMetrics:
+    candidate_records: int = 0
+    candidate_volume: int = 0
+    degree_replies: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+    accumulation_updates: int = 0
+    affected_records: int = 0
+    positive_records: int = 0
+    positive_volume: int = 0
+    newly_positive_records: int = 0
+    newly_positive_volume: int = 0
+    truncated_positive_records: int = 0
+    retained_records: int = 0
+
+
+@dataclass
+class PGContinuationMetrics(ContinuationMetrics):
+    repair_degree_replies: int = 0
+    repair_first_adjacency_entries: int = 0
+    repair_scanned_adjacency_entries: int = 0
+    repair_accumulation_updates: int = 0
+    repair_affected_records: int = 0
+
+
+@dataclass(frozen=True)
+class PGStageSummary(StageSummary):
+    projected_gradient_metrics: dict = field(compare=False)
+
+
+def projected_gradient_truncate(oracle, seed, alpha, rho, delta, candidate,
+                                degree_cache=None, adjacency_cache=None):
+    """Scan candidate support once; truncate new PG neighbors before scanning.
+
+    Candidate entries are triples (vertex, positive degree density, degree)
+    from an already charged materialization. Optional caches are read and
+    extended locally. The helper does NOT check an objective-gap certificate;
+    its safe-repair theorem requires gap(candidate)<=alpha*delta²/2.
+    It never iterates a global input graph or scans a newly positive PG row.
+    """
+    alpha, rho, delta = map(F, (alpha, rho, delta))
+    if not (0 < alpha <= 1 and rho > 0 and 0 < delta <= alpha*rho/2):
+        raise ValueError('Need 0<alpha<=1, rho>0, 0<delta<=alpha*rho/2')
+    degrees = degree_cache if degree_cache is not None else {}
+    adjacency = adjacency_cache if adjacency_cache is not None else {}
+    metrics, values = PGRepairMetrics(), {}
+    for i, value, degree in candidate:
+        metrics.candidate_records += 1
+        value = F(value)
+        if value <= 0 or not isinstance(degree, int) or degree <= 0 or i in values:
+            raise ValueError('Candidate must have unique positive entries and integer degrees')
+        if i in degrees and degrees[i] != degree:
+            raise ValueError('Candidate degree disagrees with its cache')
+        degrees[i] = degree
+        values[i] = value
+        metrics.candidate_volume += degree
+
+    # This is d_i*((I-Q)x)_i/w_i + alpha*1(seed=i). Accumulating
+    # neighbor numerators avoids needing a new neighbor's adjacency or degree
+    # before its final scalar evaluation.
+    c, lam = (1-alpha)/2, alpha*rho
+    incoming = {seed:alpha}
+    metrics.accumulation_updates += 1
+    for j, value in values.items():
+        incoming[j] = incoming.get(j, F(0))+c*degrees[j]*value
+        metrics.accumulation_updates += 1
+        if j not in adjacency:
+            row = []
+            for i in oracle.neighbors(j):
+                row.append(i)
+                metrics.first_adjacency_entries += 1
+            if len(row) != degrees[j]:
+                raise ValueError('Inconsistent candidate degree and adjacency')
+            adjacency[j] = row
+        for i in adjacency[j]:
+            incoming[i] = incoming.get(i, F(0))+c*value
+            metrics.scanned_adjacency_entries += 1
+            metrics.accumulation_updates += 1
+
+    repaired = []
+    for i, numerator in incoming.items():
+        metrics.affected_records += 1
+        if i not in degrees:
+            degree = oracle.degree(i)
+            metrics.degree_replies += 1
+            if not isinstance(degree, int) or degree <= 0:
+                raise ValueError('Positive integer degrees are required')
+            degrees[i] = degree
+        degree = degrees[i]
+        pg_value = max(F(0), numerator/degree-lam)
+        if pg_value > 0:
+            metrics.positive_records += 1
+            metrics.positive_volume += degree
+            if i not in values:
+                metrics.newly_positive_records += 1
+                metrics.newly_positive_volume += degree
+        retained = max(F(0), pg_value-delta)
+        if retained:
+            repaired.append((i, retained, degree))
+            metrics.retained_records += 1
+        elif pg_value:
+            metrics.truncated_positive_records += 1
+    repaired.sort(key=lambda entry: entry[0])
+    return tuple(repaired), metrics
+
+
+def solve_rppr_pg(oracle, seed, alpha, rho, epsilon):
+    """Continuation with target alpha*delta²/2 and exact PG-then-shift repair."""
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not 0 < alpha <= 1 or rho <= 0 or epsilon <= 0:
+        raise ValueError('Need 0<alpha<=1, rho>0, epsilon>0')
+    metrics = PGContinuationMetrics()
+    seed_degree = oracle.degree(seed)
+    metrics.seed_degree_queries += 1
+    if not isinstance(seed_degree, int) or seed_degree <= 0:
+        raise ValueError('The seed must have positive integer degree')
+    if rho*seed_degree >= 1:
+        return SolverResult((), F(0), None, (), metrics)
+    if alpha == 1:
+        value = F(1, seed_degree)-rho
+        metrics.final_output_words = 3
+        return SolverResult(((seed, value, seed_degree),), F(0), None, (), metrics)
+
+    theta = F(1, 2)
+    while theta**2 > alpha:
+        theta /= 2
+        metrics.momentum_halvings += 1
+    baseline, summaries = {}, []
+    previous_rho = F(1, seed_degree)
+    final_output, final_gap = (), F(0)
+    while previous_rho > rho:
+        current_rho = max(rho, previous_rho/2)
+        metrics.schedule_operations += 1
+        final_stage = current_rho == rho
+        delta = alpha*current_rho/2
+        if final_stage:
+            while delta**2 > epsilon*current_rho/2:
+                delta /= 2
+                metrics.tolerance_halvings += 1
+        tolerance = alpha*delta**2/2
+        corrector = CappedBoxCorrector(oracle, seed, alpha, theta,
+                                      current_rho, baseline, source_constant=4)
+        corrector.initial_energy_bound = min(F(1), corrector.initial_energy_bound)
+        materialized = corrector.run(tolerance)
+        assert corrector.objective_gap_bound <= tolerance
+        repaired, pg_metrics = projected_gradient_truncate(
+            oracle, seed, alpha, current_rho, delta, materialized,
+            degree_cache=corrector.degree, adjacency_cache=corrector.adjacency)
+        metrics.repaired_input_records += pg_metrics.candidate_records
+        metrics.repaired_output_records += pg_metrics.retained_records
+        metrics.repair_degree_replies += pg_metrics.degree_replies
+        metrics.repair_first_adjacency_entries += pg_metrics.first_adjacency_entries
+        metrics.repair_scanned_adjacency_entries += pg_metrics.scanned_adjacency_entries
+        metrics.repair_accumulation_updates += pg_metrics.accumulation_updates
+        metrics.repair_affected_records += pg_metrics.affected_records
+        next_baseline = {i: value for i, value, degree in repaired}
+        volume = sum(degree for _, _, degree in repaired)
+        mass = sum((value*degree for _, value, degree in repaired), F(0))
+        kinetic_volume = sum(row[0] for row in corrector.history)
+        kinetic_bound = F(148*corrector.metrics.iterations)/current_rho
+        assert volume <= 1/current_rho and 0 <= mass <= 1
+        assert kinetic_volume <= kinetic_bound
+        summaries.append(PGStageSummary(
+            regularization=current_rho, delta=delta, requested_gap=tolerance,
+            certified_gap=corrector.objective_gap_bound,
+            iterations=corrector.metrics.iterations, kinetic_volume=kinetic_volume,
+            kinetic_volume_bound=kinetic_bound,
+            baseline_volume=sum(corrector.degree[i] for i in baseline),
+            source_records=len(corrector.source), source_mass=corrector.source_mass,
+            repaired_volume=volume, repaired_mass=mass, repaired_output=repaired,
+            corrector_metrics=asdict(corrector.metrics),
+            projected_gradient_metrics=asdict(pg_metrics)))
+        baseline, previous_rho = next_baseline, current_rho
+        if final_stage:
+            final_output, final_gap = repaired, 2*delta**2/current_rho
+            assert final_gap <= epsilon
+    metrics.final_output_words += 3*len(final_output)
+    return SolverResult(final_output, final_gap, theta, tuple(summaries), metrics)

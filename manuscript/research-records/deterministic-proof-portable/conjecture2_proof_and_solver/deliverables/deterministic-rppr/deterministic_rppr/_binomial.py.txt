@@ -1,0 +1,101 @@
+"""Separate source-energy schedule with a tight fixed-precision block bound.
+
+The numerical recurrence, grid, mass cap, repair, and original modules are
+unchanged. At most seven binomial terms bound (1-1/T)^T. The resulting
+contraction has 16 fractional bits, and its stored powers have O(q) bits.
+"""
+from dataclasses import dataclass
+from fractions import Fraction as F
+from . import _source_energy as source
+
+@dataclass(frozen=True)
+class DyadicBlockBound:
+    numerator: int
+    denominator: int
+    truncation_degree: int
+    sum_numerator: int
+    sum_denominator: int
+    setup_integer_divisions: int
+    max_setup_integer_bits: int
+
+    @property
+    def value(self):
+        return F(self.numerator, self.denominator)
+
+def dyadic_block_bound(T):
+    """Certify (1-1/T)^T <= beta <1/2 using constant-degree integers."""
+    if not isinstance(T, int) or T < 2:
+        raise ValueError('Need an integer T>=2')
+    m, denominator = (min(6, T), 1 << 16)
+    base = T - 1
+    sum_denominator = base ** m
+    total, choose, divisions = (0, 1, 0)
+    max_bits = max(T.bit_length(), denominator.bit_length(), sum_denominator.bit_length())
+    for k in range(m + 1):
+        term = choose * base ** (m - k)
+        total += term
+        max_bits = max(max_bits, choose.bit_length(), term.bit_length(), total.bit_length())
+        if k < m:
+            product = choose * (T - k)
+            max_bits = max(max_bits, product.bit_length())
+            choose = product // (k + 1)
+            divisions += 1
+    product = denominator * sum_denominator
+    numerator = (product + total - 1) // total
+    max_bits = max(max_bits, product.bit_length(), (product + total - 1).bit_length())
+    divisions += 1
+    assert 2 * numerator < denominator
+    assert numerator * total >= denominator * sum_denominator
+    return DyadicBlockBound(numerator, denominator, m, total, sum_denominator, divisions, max_bits)
+
+class BinomialBlockDyadicCorrector(source.SourceEnergyDyadicCorrector):
+    """The stable rounded trajectory with a tighter prescribed endpoint."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.half_bound_target_iterations = self.target_iterations
+        self.half_bound_blocks = self.blocks
+        self.block_bound = dyadic_block_bound(self.T)
+        self.binomial_schedule_checks = 0
+        self.binomial_schedule_power_updates = 0
+        self.binomial_completed_power_updates = 0
+        power_numerator, power_denominator, blocks = (1, 1, 0)
+        left = 2 * self.initial_energy_bound.numerator * self.tolerance.denominator
+        right = self.tolerance.numerator * self.initial_energy_bound.denominator
+        while True:
+            self.binomial_schedule_checks += 1
+            if left * power_numerator <= right * power_denominator:
+                break
+            power_numerator *= self.block_bound.numerator
+            power_denominator <<= 16
+            blocks += 1
+            self.binomial_schedule_power_updates += 1
+        self.target_power_numerator, self.target_power_denominator = (power_numerator, power_denominator)
+        self.block_power_numerator, self.block_power_denominator = (1, 1)
+        self.blocks, self.target_iterations = (blocks, self.T * blocks)
+        assert self.target_iterations <= self.half_bound_target_iterations
+
+    def step(self):
+        result = super().step()
+        if self.metrics.iterations % self.T == 0:
+            self.block_power_numerator *= self.block_bound.numerator
+            self.block_power_denominator <<= 16
+            self.binomial_completed_power_updates += 1
+        return result
+
+    @property
+    def objective_gap_bound(self):
+        if self.metrics.iterations == 0:
+            return self.initial_energy_bound
+        contraction = F(self.block_power_numerator, self.block_power_denominator)
+        return self.initial_energy_bound * contraction + self.gamma_bound
+
+    @property
+    def diagnostic_metrics(self):
+        result = super().diagnostic_metrics
+        result['binomial_block'] = dict(beta=self.block_bound.value, beta_grid_numerator=self.block_bound.numerator, beta_grid_denominator=self.block_bound.denominator, truncation_degree=self.block_bound.truncation_degree, setup_integer_divisions=self.block_bound.setup_integer_divisions, max_setup_integer_bits=self.block_bound.max_setup_integer_bits, schedule_checks=self.binomial_schedule_checks, schedule_power_updates=self.binomial_schedule_power_updates, completed_power_updates=self.binomial_completed_power_updates, target_power_numerator_bits=self.target_power_numerator.bit_length(), target_power_denominator_bits=self.target_power_denominator.bit_length(), current_power_numerator_bits=self.block_power_numerator.bit_length(), current_power_denominator_bits=self.block_power_denominator.bit_length(), half_bound_target_iterations=self.half_bound_target_iterations, half_bound_blocks=self.half_bound_blocks)
+        return result
+
+def solve_rppr_binomial_blocks(oracle, seed, alpha, rho, epsilon):
+    """Return the same certified result type with binomial block scheduling."""
+    return source.reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class=BinomialBlockDyadicCorrector)

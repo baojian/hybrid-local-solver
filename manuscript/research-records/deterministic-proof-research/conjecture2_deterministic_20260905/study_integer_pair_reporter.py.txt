@@ -1,0 +1,70 @@
+"""Exact trajectory/adaptor verification and small sequential ABBA timings."""
+import hashlib
+import json
+import statistics
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from time import perf_counter,process_time
+
+from benchmark_practical_rppr import VirtualGraph,CountingOracle,json_value
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector,solve_rppr_integer
+from integer_pair_dyadic_rppr import PairIntegerDyadicCorrector,PairSourceEnergyCorrector,solve_rppr_pair,solve_rppr_source_energy_pair
+from integer_pair_clipped_reporter import IntegerPairClippedReporter
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+
+
+def signature(answer):
+    return json_value(asdict(answer))
+
+
+def main():
+    report=dict(deterministic=True,exact_step_checks=0,nonzero_scalar_error_steps=0,
+                full_comparisons=0,timing_scope='solve plus counting oracle; graph setup and signature serialization excluded',runs=[])
+    graph=VirtualGraph('path',8,0)
+    args=(4,F(13,97),F(1,4),F(1,8),F(1,4096))
+    old=IntegerDyadicCorrector(CountingOracle(graph,100000),*args)
+    new=PairIntegerDyadicCorrector(CountingOracle(graph,100000),*args)
+    assert isinstance(new.tree,IntegerPairClippedReporter)
+    for step in range(48):
+        assert old.step()==new.step()
+        assert (old.S,list(old.X.items()),list(old.L.items()),list(old.z.items()),list(old.M.items()))==(new.S,list(new.X.items()),list(new.L.items()),list(new.z.items()),list(new.M.items()))
+        assert old.diagnostic_metrics==new.diagnostic_metrics
+        report['nonzero_scalar_error_steps']+=int(any(new.L.get(i,0)!=sum(new.X.get(j,0) for j in graph.neighbors(i)) for i in new.degree))
+        report['exact_step_checks']+=1
+    assert report['nonzero_scalar_error_steps']>0
+    # The optional shorter schedule must retain both its energy calculations
+    # and the new reporter through the subclass method-resolution order.
+    probe=PairSourceEnergyCorrector(CountingOracle(graph,100000),*args)
+    assert isinstance(probe.tree,IntegerPairClippedReporter)
+    fixtures=[('path',5,0,1,F(1,4),F(1,16),F(1,1000000)),
+              ('barbell',4,0,1,F(13,97),F(1,32),F(1,1000000)),
+              ('star',(1<<100)+1,0,(1<<100)+1,F(1,100),F(1,64),F(1,1000000))]
+    for family,size,aux,seed,alpha,rho,eps in fixtures:
+        for left,right in ((solve_rppr_integer,solve_rppr_pair),(solve_rppr_source_energy,solve_rppr_source_energy_pair)):
+            a,b=left(CountingOracle(VirtualGraph(family,size,aux),100000),seed,alpha,rho,eps),right(CountingOracle(VirtualGraph(family,size,aux),100000),seed,alpha,rho,eps)
+            assert signature(a)==signature(b)
+            report['full_comparisons']+=1
+    common=None
+    for name in ('integer','pair','pair','integer'):
+        graph=VirtualGraph('path',10**9,0)
+        oracle=CountingOracle(graph,100000)
+        function=solve_rppr_integer if name=='integer' else solve_rppr_pair
+        start_wall,start_cpu=perf_counter(),process_time()
+        answer=function(oracle,1,F(1,100),F(1,16),F(1,1000000))
+        cpu,wall=process_time()-start_cpu,perf_counter()-start_wall
+        current=signature(answer)
+        if common is None:common=current
+        else:assert common==current
+        report['runs'].append(dict(backend=name,cpu_seconds=cpu,wall_seconds=wall,
+            iterations=sum(s.iterations for s in answer.stages),
+            exact_output_stage_metrics_sha256=hashlib.sha256(json.dumps(current,sort_keys=True).encode()).hexdigest()))
+    medians={name:{clock:statistics.median(r[clock] for r in report['runs'] if r['backend']==name)
+                  for clock in ('cpu_seconds','wall_seconds')} for name in ('integer','pair')}
+    report['medians']=medians
+    report['median_ratio_integer_over_pair']={clock:medians['integer'][clock]/medians['pair'][clock] for clock in ('cpu_seconds','wall_seconds')}
+    report['successful']=True
+    Path(__file__).with_name('integer_pair_solver_study.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report,indent=2))
+
+if __name__=='__main__':main()

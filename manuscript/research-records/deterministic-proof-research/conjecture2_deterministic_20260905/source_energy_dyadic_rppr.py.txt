@@ -1,0 +1,93 @@
+"""Shorter certified fixed-block schedules for the stable integer solver.
+
+Only the initial-energy upper bound and number of prescribed blocks change.
+Source square sums are rounded upward with a common denominator, avoiding a
+sum of coprime degree denominators. The integer core remains unchanged.
+"""
+from fractions import Fraction as F
+from types import FunctionType
+
+import integer_dyadic_rppr_solver as reference
+
+
+class SourceEnergyDyadicCorrector(reference.IntegerDyadicCorrector):
+    """Same rounded recurrence, with a computable source-energy schedule."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_target_iterations = self.target_iterations
+        self.source_energy_records = 0
+        self.positive_source_energy_records = 0
+        self.source_energy_integer_divisions = 0
+        self.source_energy_schedule_doublings = 0
+        self.source_energy_schedule_checks = 0
+        R, P = self.rho.denominator, self.rho.numerator
+        self.source_energy_denominator = C = 2*self.D*self.H*R
+        h1_count, h2_upper_count = 0, 0
+        max_numerator, max_degree = 0, 1
+        for i, numerator in self.source.items():
+            self.source_energy_records += 1
+            degree = self.degree[i]
+            positive = max(R*numerator-2*self.A*self.H*P*degree, 0)
+            if positive:
+                self.positive_source_energy_records += 1
+                h1_count += positive
+                # ceil(positive^2/degree), with no Fraction accumulation.
+                h2_upper_count += (positive*positive+degree-1)//degree
+                self.source_energy_integer_divisions += 1
+                if positive*max_degree > max_numerator*degree:
+                    max_numerator, max_degree = positive, degree
+        self.source_h1 = F(h1_count, C)
+        self.source_hinf = F(max_numerator, C*max_degree)
+        self.source_h2_upper = F(h2_upper_count, C*C)
+        self.source_h2_excess_bound = F(self.positive_source_energy_records, C*C)
+        prefactor = (1+self.theta*self.theta/self.alpha)/2
+        self.source_energy_bounds = (4*self.rho*self.source_h1,
+                                     self.mass_cap*self.source_hinf,
+                                     self.source_h2_upper/self.alpha)
+        self.initial_energy_bound = min(F(1), prefactor*min(self.source_energy_bounds))
+        self.blocks, denominator = 0, 1
+        while True:
+            self.source_energy_schedule_checks += 1
+            if self.initial_energy_bound/denominator <= self.tolerance/2:
+                break
+            denominator *= 2
+            self.blocks += 1
+            self.source_energy_schedule_doublings += 1
+        self.target_iterations = self.T*self.blocks
+        assert self.target_iterations <= self.original_target_iterations
+
+    @property
+    def objective_gap_bound(self):
+        if self.metrics.iterations == 0:
+            return self.initial_energy_bound
+        return self.initial_energy_bound/self.decay_denominator+self.gamma_bound
+
+    @property
+    def diagnostic_metrics(self):
+        result = super().diagnostic_metrics
+        result['source_energy_records'] = self.source_energy_records
+        result['positive_source_energy_records'] = self.positive_source_energy_records
+        result['source_energy_integer_divisions'] = self.source_energy_integer_divisions
+        result['source_energy_schedule_doublings'] = self.source_energy_schedule_doublings
+        result['source_energy_schedule_checks'] = self.source_energy_schedule_checks
+        result['original_target_iterations'] = self.original_target_iterations
+        result['source_energy'] = dict(initial_energy_bound=self.initial_energy_bound,
+            h1=self.source_h1, hinf=self.source_hinf, h2_upper=self.source_h2_upper,
+            h2_excess_bound=self.source_h2_excess_bound,
+            common_denominator=self.source_energy_denominator)
+        return result
+
+
+# Reuse exactly the stable continuation code with an isolated class binding.
+# This avoids duplicating its repair and special-case branches or modifying
+# any original module global. Every algorithmic change is visible above.
+_globals = reference.solve_rppr_integer.__globals__.copy()
+_globals['IntegerDyadicCorrector'] = SourceEnergyDyadicCorrector
+_shortened_continuation = FunctionType(reference.solve_rppr_integer.__code__, _globals,
+    '_shortened_continuation', reference.solve_rppr_integer.__defaults__,
+    reference.solve_rppr_integer.__closure__)
+
+
+def solve_rppr_source_energy(oracle, seed, alpha, rho, epsilon):
+    """Return the same certified type, using source-dependent shorter stages."""
+    return _shortened_continuation(oracle, seed, alpha, rho, epsilon)

@@ -1,0 +1,160 @@
+"""Exact failure of a black-box one-step potential for score repair.
+
+The graph and optimum are canonical, but the tested state is prescribed;
+this is NOT a zero-start counterexample or a runtime lower bound.
+"""
+
+from __future__ import annotations
+
+import json
+from fractions import Fraction as F
+from pathlib import Path
+
+
+def tridiagonal(lower, diagonal, upper, rhs):
+    d = diagonal.copy()
+    b = rhs.copy()
+    for i in range(1, len(d)):
+        multiplier = lower[i - 1] / d[i - 1]
+        d[i] -= multiplier * upper[i - 1]
+        b[i] -= multiplier * b[i - 1]
+    x = [F(0)] * len(d)
+    x[-1] = b[-1] / d[-1]
+    for i in range(len(d) - 2, -1, -1):
+        x[i] = (b[i] - upper[i] * x[i + 1]) / d[i]
+    return x
+
+
+def weighted_projection(h, degrees, budget):
+    order = sorted(range(len(h)), key=lambda i: (-h[i], i))
+    if sum(degrees[i] * max(h[i], 0) for i in order) <= budget:
+        return [max(x, 0) for x in h], F(0)
+    total = weight = F(0)
+    for position, i in enumerate(order):
+        total += degrees[i] * h[i]
+        weight += degrees[i]
+        lam = (total - budget) / weight
+        if position == len(order) - 1 or lam >= h[order[position + 1]]:
+            assert lam >= 0
+            return [max(x - lam, 0) for x in h], lam
+    raise AssertionError("threshold not found")
+
+
+def main():
+    n = 128
+    alpha = F(1, 10000)
+    s = F(1, 100)
+    rho = F(1, 200)
+    q = 1 - s
+    a = (1 - alpha) / 2
+    degrees = [1] + [2] * (n - 2) + [1]
+    c = [alpha - alpha * rho] + [-alpha * rho] * (n - 1)
+    for length in range(1, n + 1):
+        diagonal = [1 - a] * length
+        lower = [-a / degrees[i] for i in range(1, length)]
+        upper = [-a / degrees[i] for i in range(length - 1)]
+        candidate = tridiagonal(lower, diagonal, upper, c[:length])
+        assert all(x > 0 for x in candidate)
+        if length == n or c[length] + a * candidate[-1] / degrees[length] <= 0:
+            optimum = candidate + [F(0)] * (n - length)
+            break
+
+    def multiply(v):
+        out = []
+        for i in range(n):
+            neighbors = (v[i - 1] if i else 0) + (v[i + 1] if i < n - 1 else 0)
+            out.append((1 - a) * v[i] - a * neighbors / degrees[i])
+        return out
+
+    def dot(u, v):
+        return sum(degrees[i] * u[i] * v[i] for i in range(n))
+
+    def objective(v):
+        return dot(v, multiply(v)) / 2 - dot(c, v)
+
+    slack = [v - c[i] for i, v in enumerate(multiply(optimum))]
+    assert all(value >= 0 for value in slack)
+    assert all(optimum[i] * slack[i] == 0 for i in range(n))
+    optimum_mass = sum(degrees[i] * optimum[i] for i in range(n))
+    delta = (1 - optimum_mass) / 10000
+    x = optimum.copy()
+    x[100] += delta / degrees[100]
+    z = [u / 2 for u in optimum]
+    y = [(x[i] + s * z[i]) / (1 + s) for i in range(n)]
+    ky = [v - alpha * y[i] for i, v in enumerate(multiply(y))]
+    h = [q * z[i] - ky[i] / s + (s / degrees[i] if i == 0 else 0) for i in range(n)]
+    budget = q * sum(degrees[i] * z[i] for i in range(n)) + s
+    assert sum(degrees[i] * h[i] for i in range(n)) == budget
+    repaired, lam = weighted_projection(h, degrees, budget)
+    assert sum(degrees[i] * repaired[i] for i in range(n)) == budget
+    zn = [max(value - s * rho, 0) for value in repaired]
+    xn = [q * x[i] + s * zn[i] for i in range(n)]
+    f_star = objective(optimum)
+
+    def energy(u, v):
+        error = [v[i] - optimum[i] for i in range(n)]
+        return objective(u) - f_star + alpha * dot(error, error) / 2
+
+    old = energy(x, z)
+    new = energy(xn, zn)
+    debit = new - q * old
+    assert debit > 0
+    volume = sum(degrees[i] for i in range(n) if zn[i] > 0)
+    new_mass = sum(degrees[i] * zn[i] for i in range(n))
+    assert s * rho * volume <= budget - new_mass
+    eta = [max(s * rho + lam - h[i], 0) for i in range(n)]
+    assert dot(eta, zn) == 0
+    segment = [q * x[i] + s * optimum[i] for i in range(n)]
+    zx = [z[i] - x[i] for i in range(n)]
+    py = [xn[i] - y[i] for i in range(n)]
+    ya = [y[i] - segment[i] for i in range(n)]
+    xe = [x[i] - optimum[i] for i in range(n)]
+    port = alpha * lam * (optimum_mass - new_mass)
+    dissipation_terms = {
+        "orthant_complementarity": alpha * dot(eta, optimum),
+        "coupling": alpha * s * q * dot(zx, zx) / (2 * (1 + s)),
+        "step_smoothness": (dot(py, py) - dot(py, multiply(py))) / 2,
+        "comparator_K": (dot(ya, multiply(ya)) - alpha * dot(ya, ya)) / 2,
+        "primal_K": s * q * (dot(xe, multiply(xe)) - alpha * dot(xe, xe)) / 2,
+    }
+    assert all(value >= 0 for value in dissipation_terms.values())
+    assert debit == port - sum(dissipation_terms.values())
+    result = {
+        "graph": "128-vertex unit path, seed 0",
+        "alpha": str(alpha),
+        "rho": str(rho),
+        "optimal_support_prefix_length": length,
+        "perturbed_vertex": 100,
+        "state": "x=x_star+delta/d_100 at vertex 100; z=x_star/2",
+        "delta": str(delta),
+        "projection_lambda": str(lam),
+        "old_energy": str(old),
+        "new_energy": str(new),
+        "positive_contraction_debit": str(debit),
+        "exact_quadratic_identity_verified": True,
+        "repair_port": str(port),
+        "dissipation_terms": {
+            name: str(value) for name, value in dissipation_terms.items()
+        },
+        "relative_debit": float(debit / old),
+        "arithmetic": "exact rational",
+        "randomized": False,
+        "scope": "black-box one-step potential only; prescribed state, not canonical zero-start history",
+    }
+    path = Path(__file__).parents[1] / "results/mass-repair-exact-state-witness.json"
+    path.write_text(json.dumps(result, indent=2))
+    print(
+        json.dumps(
+            {
+                "support_prefix_length": length,
+                "relative_debit": float(debit / old),
+                "positive_debit_certified": True,
+                "scope": result["scope"],
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

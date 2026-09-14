@@ -1,0 +1,240 @@
+"""Exact MRO, prefix, KKT, cache, and certificate tests for the combined solver."""
+import json
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import combined_certified_dyadic_rppr as production
+from early_stop_source_energy_rppr import EarlyStopSourceEnergyCorrector
+from binomial_block_dyadic_rppr import BinomialBlockDyadicCorrector
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector
+from test_binomial_block_dyadic_rppr import full_energy
+from independent_sparse_certificate import certify_sparse_output
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+from test_local_safe_solver import path,graph,dense_exact_obstacle_oracle
+from test_deterministic_rppr_solver import objective,source_density
+from test_monotone_capped_solver import CheckedOracle
+
+LOG=dict(exact_reference_steps=0, energy_prefix_checks=0, checkpoints_audited=0,accepted=0,rejected=0,full_cases=0,full_stages=0,
+         fallback_stages_with_failed_checkpoints=0,zero_step_stages=0,
+         stale_bound_invalidations=0,missing_cache_assertions=0,fixtures=[])
+
+
+def values(stage):
+    return {i:F(stage.S*stage.X.get(i,0),stage.H**2)+F(stage.baseline.get(i,0),stage.H)
+            for i in stage.degree if stage.X.get(i,0) or stage.baseline.get(i,0)}
+
+
+class CombinedTests(unittest.TestCase):
+    def test_full_exact_continuations_and_checkpoint_costs(self):
+        fixtures=[(path(5),0,F(1,4),F(1,64),F(1,1000000)),
+                  (path(5),0,F(1,100),F(1,64),F(1,1000000)),
+                  (graph(5,[(0,1),(1,2),(2,0),(1,3),(3,4)]),4,F(13,97),F(1,32),F(1,1000000)),
+                  (path(2),0,F(13,97),F(4095,4096),F(1,16))]
+        for adjacency,seed,alpha,rho,epsilon in fixtures:
+            observed=[]
+            test=self
+            class Observed(production.CombinedDyadicCorrector):
+                def __init__(self,*args,**kwargs):
+                    super().__init__(*args,**kwargs)
+                    self.test_optimum=dense_exact_obstacle_oracle(adjacency,self.seed,self.alpha,self.rho)
+                    self.test_checkpoints=[]
+                    baseline={i:F(v,self.H) for i,v in self.baseline.items()}
+                    self.test_reference=BinomialBlockDyadicCorrector(CheckedOracle(adjacency),self.seed,
+                        self.alpha,self.theta,self.rho,self.tolerance,baseline,self.grid)
+                    test.assertEqual(self.target_iterations,self.test_reference.target_iterations)
+                    observed.append(self)
+                def step(self):
+                    result=super().step()
+                    self.test_reference.step()
+                    reference=self.test_reference
+                    test.assertEqual((self.S,list(self.X.items()),list(self.L.items()),list(self.z.items()),list(self.M.items())),
+                                     (reference.S,list(reference.X.items()),list(reference.L.items()),list(reference.z.items()),list(reference.M.items())))
+                    test.assertEqual(self.last_step,reference.last_step)
+                    test.assertEqual(self.block_power_numerator,reference.block_power_numerator)
+                    test.assertEqual(self.block_power_denominator,reference.block_power_denominator)
+                    test.assertEqual(self.objective_gap_bound,reference.objective_gap_bound)
+                    energy,gap=full_energy(self,adjacency,self.test_optimum)
+                    test.assertTrue(0<=gap<=energy<=reference.objective_gap_bound)
+                    LOG['exact_reference_steps']+=1
+                    LOG['energy_prefix_checks']+=1
+                    return result
+                def _checkpoint(self):
+                    before=(len(self.oracle.degree_queries),len(self.oracle.neighbor_queries))
+                    candidate=values(self)
+                    actual=objective(adjacency,self.seed,self.alpha,self.rho,candidate)-objective(adjacency,self.seed,self.alpha,self.rho,self.test_optimum)
+                    captured=[]
+                    original_checker=self._independent_checker
+                    def capture(*args,**kwargs):
+                        certificate=original_checker(*args,**kwargs)
+                        captured.append(certificate.objective_gap_bound)
+                        return certificate
+                    self._independent_checker=capture
+                    try:
+                        returned=super()._checkpoint()
+                    finally:
+                        self._independent_checker=original_checker
+                    test.assertEqual(len(captured),1)
+                    test.assertTrue(0<=actual<=captured[0])
+                    test.assertEqual(returned is not None,captured[0]<self.tolerance)
+                    test.assertEqual(before,(len(self.oracle.degree_queries),len(self.oracle.neighbor_queries)))
+                    test.assertEqual(self._checker_containers,[])
+                    test.assertTrue(self.metrics.iterations<self.target_iterations)
+                    test.assertEqual(self.metrics.iterations%self.T,0)
+                    quotient=self.metrics.iterations//self.T
+                    test.assertEqual(quotient&(quotient-1),0)
+                    if returned is not None:
+                        test.assertTrue(0<=actual<=self.objective_gap_bound<self.tolerance)
+                        test.assertIsNotNone(self._accepted_bound)
+                        LOG['accepted']+=1
+                    else:
+                        test.assertIsNone(self._accepted_bound)
+                        LOG['rejected']+=1
+                    self.test_checkpoints.append(self.metrics.iterations)
+                    LOG['checkpoints_audited']+=1
+                    return returned
+            oracle=CheckedOracle(adjacency)
+            with patch.dict(production._combined_continuation.__globals__,{'IntegerDyadicCorrector':Observed}):
+                answer=production.solve_rppr_combined(oracle,seed,alpha,rho,epsilon)
+            previous={}
+            for summary,stage in zip(answer.stages,observed):
+                candidate=values(stage)
+                actual=objective(adjacency,seed,alpha,stage.rho,candidate)-objective(adjacency,seed,alpha,stage.rho,stage.test_optimum)
+                self.assertTrue(0<=actual<=summary.certified_gap<summary.requested_gap)
+                repaired={i:v for i,v,d in summary.repaired_output}
+                source=source_density(adjacency,seed,alpha,repaired)
+                for i in adjacency:
+                    self.assertTrue(previous.get(i,0)<=repaired.get(i,0)<=stage.test_optimum.get(i,0))
+                    self.assertTrue(0<=source[i]<=2*alpha*stage.rho)
+                previous=repaired
+                cm=stage.checkpoint_metrics
+                self.assertEqual(cm.cache_misses,0)
+                self.assertEqual(cm.cached_adjacency_entries,cm.candidate_volume)
+                self.assertEqual(cm.checker_containers,6*cm.checkpoints)
+                self.assertEqual(cm.checker_reclaimed_containers,cm.checker_containers)
+                self.assertEqual(cm.checker_output_records,cm.candidate_materialization_records)
+                self.assertEqual(cm.checker_accumulation_updates,cm.cached_adjacency_entries)
+                self.assertLessEqual(cm.checkpoint_iteration_sum,2*stage.metrics.iterations)
+                self.assertLessEqual(cm.candidate_volume,(cm.checkpoints+360*cm.checkpoint_iteration_sum)/stage.rho)
+                self.assertEqual(cm.discarded_candidate_words,3*cm.discarded_candidate_records)
+                self.assertEqual(cm.discarded_certificate_scalar_records,11*cm.checkpoints)
+                self.assertEqual(stage._checker_containers,[])
+                diagnostics=stage.diagnostic_metrics
+                self.assertIn('binomial_block',diagnostics)
+                self.assertIn('source_energy',diagnostics)
+                self.assertIn('checkpoints',diagnostics)
+                if stage._accepted_bound is None:
+                    self.assertEqual(summary.certified_gap,stage.test_reference.objective_gap_bound)
+                else:
+                    self.assertEqual(summary.certified_gap,stage._accepted_bound)
+                LOG['fallback_stages_with_failed_checkpoints']+=int(stage.metrics.iterations==stage.target_iterations and cm.rejected_checkpoints>0)
+                LOG['zero_step_stages']+=int(stage.metrics.iterations==0)
+                LOG['full_stages']+=1
+            opt=dense_exact_obstacle_oracle(adjacency,seed,alpha,rho)
+            final={i:v for i,v,d in answer.output}
+            gap=objective(adjacency,seed,alpha,rho,final)-objective(adjacency,seed,alpha,rho,opt)
+            self.assertTrue(0<=gap<=answer.objective_gap_bound<=epsilon)
+            self.assertEqual(len(oracle.degree_queries),1+answer.metrics.repair_degree_replies+sum(s.corrector_metrics['degree_replies'] for s in answer.stages))
+            self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),answer.metrics.repair_first_adjacency_entries+sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages))
+            LOG['fixtures'].append(dict(alpha=str(alpha),rho=str(rho),iterations=sum(s.iterations for s in answer.stages),
+                checkpoint_entries=sum(s.corrector_metrics['checkpoints']['cached_adjacency_entries'] for s in answer.stages)))
+            LOG['full_cases']+=1
+        self.assertGreater(LOG['fallback_stages_with_failed_checkpoints'],0)
+        self.assertGreater(LOG['zero_step_stages'],0)
+        self.assertGreater(LOG['accepted'],0)
+        self.assertGreater(LOG['rejected'],0)
+
+    def test_successful_bound_is_invalidated_before_manual_step(self):
+        stage=production.CombinedDyadicCorrector(CheckedOracle(path(3)),1,F(1,4),F(1,2),F(1,4),F(1,4096))
+        stage.run()
+        self.assertIsNotNone(stage._accepted_bound)
+        old_iteration=stage.metrics.iterations
+        stage.step()
+        self.assertEqual(stage.metrics.iterations,old_iteration+1)
+        self.assertIsNone(stage._accepted_bound)
+        self.assertEqual(stage.checkpoint_metrics.invalidated_accepted_bounds,1)
+        self.assertEqual(stage.objective_gap_bound,
+            stage.initial_energy_bound*F(stage.block_power_numerator,stage.block_power_denominator)+stage.gamma_bound)
+        optimum=dense_exact_obstacle_oracle(path(3),1,F(1,4),F(1,4))
+        energy,gap=full_energy(stage,path(3),optimum)
+        self.assertTrue(0<=gap<=energy<=stage.objective_gap_bound)
+        stage.run()
+        candidate=values(stage)
+        gap=objective(path(3),1,F(1,4),F(1,4),candidate)-objective(path(3),1,F(1,4),F(1,4),optimum)
+        self.assertTrue(0<=gap<=stage.objective_gap_bound<stage.tolerance)
+        LOG['stale_bound_invalidations']+=1
+
+    def test_cache_misses_assert_without_external_oracle_access(self):
+        stage=production.CombinedDyadicCorrector(CheckedOracle(path(3)),1,F(1,4),F(1,2),F(1,4),F(1,4096))
+        stage.step()
+        before=(len(stage.oracle.degree_queries),len(stage.oracle.neighbor_queries))
+        with self.assertRaises(AssertionError):stage._checkpoint_oracle.degree(999)
+        with self.assertRaises(AssertionError):tuple(stage._checkpoint_oracle.neighbors(999))
+        self.assertEqual(before,(len(stage.oracle.degree_queries),len(stage.oracle.neighbor_queries)))
+        LOG['missing_cache_assertions']+=2
+
+    def test_cooperative_mro_zero_energy_and_direct_branches(self):
+        expected=(production.CombinedDyadicCorrector,EarlyStopSourceEnergyCorrector,
+                  BinomialBlockDyadicCorrector,SourceEnergyDyadicCorrector,IntegerDyadicCorrector)
+        self.assertEqual(production.CombinedDyadicCorrector.__mro__[:5],expected)
+        self.assertIs(production.CombinedDyadicCorrector.run,EarlyStopSourceEnergyCorrector.run)
+        baseline={0:F(3,8),1:F(1,8)}
+        stage=production.CombinedDyadicCorrector(CheckedOracle(path(2)),0,F(1,4),F(1,2),F(1,4),F(1,1024),baseline)
+        self.assertEqual(stage.target_iterations,0)
+        self.assertEqual({i:v for i,v,d in stage.run()},baseline)
+        self.assertEqual(stage.objective_gap_bound,0)
+        self.assertEqual(stage.checkpoint_metrics.checkpoints,0)
+        self.assertEqual(stage.metrics.baseline_adjacency_entries,2)
+        self.assertEqual(stage.block_power_denominator,1)
+        for alpha,rho in ((F(1),F(1,5)),(F(1,4),F(1,2))):
+            adjacency=path(3)
+            answer=production.solve_rppr_combined(CheckedOracle(adjacency),1,alpha,rho,F(1,100))
+            optimum=dense_exact_obstacle_oracle(adjacency,1,alpha,rho)
+            self.assertEqual({i:v for i,v,d in answer.output},optimum)
+            self.assertEqual(answer.objective_gap_bound,0)
+        LOG['zero_energy_stages']=1
+        LOG['direct_branch_cases']=2
+
+    def test_high_degree_boundary_remains_cache_only(self):
+        class HugeStar:
+            def __init__(self):
+                self.degree_queries=[]
+                self.neighbor_queries=[]
+            def degree(self,i):
+                self.degree_queries.append(i)
+                return 10**9 if i==0 else 1
+            def neighbors(self,i):
+                self.neighbor_queries.append(i)
+                if i==0:
+                    raise AssertionError('Inactive hub row was scanned')
+                yield 0
+        oracle=HugeStar()
+        alpha,rho,epsilon=F(1,100),F(1,64),F(1,10**8)
+        answer=production.solve_rppr_combined(oracle,1,alpha,rho,epsilon)
+        optimum=alpha*(1-rho)/((1+alpha)/2)
+        self.assertEqual(set(oracle.neighbor_queries),{1})
+        self.assertEqual(set(oracle.degree_queries),{0,1})
+        self.assertEqual(len(answer.output),1)
+        self.assertEqual(answer.output[0][0],1)
+        self.assertTrue(0<=answer.output[0][1]<=optimum)
+        gap=(1+alpha)/4*(answer.output[0][1]-optimum)**2
+        self.assertTrue(gap<=answer.objective_gap_bound<=epsilon)
+        certificate=certify_sparse_output(HugeStar(),1,alpha,rho,answer.output)
+        self.assertTrue(certificate.meets(epsilon))
+        checkpoints=[s.corrector_metrics['checkpoints'] for s in answer.stages]
+        self.assertGreater(sum(c['accepted_checkpoints'] for c in checkpoints),0)
+        self.assertEqual(sum(c['cache_misses'] for c in checkpoints),0)
+        LOG['huge_boundary_cases']=1
+
+    def test_original_source_energy_code_remains_isolated(self):
+        self.assertIsNot(production._combined_continuation.__globals__,solve_rppr_source_energy.__globals__)
+        self.assertEqual(production._combined_continuation.__globals__['IntegerDyadicCorrector'],production.CombinedDyadicCorrector)
+
+if __name__=='__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CombinedTests))
+    LOG.update(successful=result.wasSuccessful(),tests_run=result.testsRun)
+    Path(__file__).with_name('combined_certified_dyadic_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    print(json.dumps(LOG,indent=2))
+    raise SystemExit(not result.wasSuccessful())

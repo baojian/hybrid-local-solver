@@ -1,0 +1,73 @@
+"""Bounded sequential timing/work study of optional cached certificates."""
+import hashlib
+import json
+import platform
+import statistics
+import sys
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from time import perf_counter,process_time
+
+from benchmark_practical_rppr import Case,VirtualGraph,CountingOracle,json_value
+from independent_sparse_certificate import certify_sparse_output
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+from early_stop_source_energy_rppr import solve_rppr_early_stop
+
+ROOT=Path(__file__).resolve().parent
+CASES=(Case('path-small-alpha1e2','path',10**9,0,1,F(1,100),F(1,16),F(1,10**6)),
+       Case('barbell-cyclic','barbell',8,0,1,F(13,97),F(1,128),F(1,10**6)),
+       Case('huge-hub-boundary','star',10**9+1,0,2,F(1,100),F(1,64),F(1,10**8)))
+
+
+def run(case,backend):
+    graph=VirtualGraph(case.family,case.size,case.auxiliary)
+    oracle=CountingOracle(graph,100000)
+    function=solve_rppr_early_stop if backend=='early' else solve_rppr_source_energy
+    start_wall,start_cpu=perf_counter(),process_time()
+    answer=function(oracle,case.seed,case.alpha,case.rho,case.epsilon)
+    cpu,wall=process_time()-start_cpu,perf_counter()-start_wall
+    checkpoints=[s.corrector_metrics.get('checkpoints',{}) for s in answer.stages]
+    sums={key:sum(row.get(key,0) for row in checkpoints) for key in checkpoints[0]} if checkpoints and checkpoints[0] else {}
+    corrector_reads=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages)
+    pg_reads=answer.metrics.repair_scanned_adjacency_entries
+    norm_oracle=CountingOracle(graph,100000)
+    certificate=certify_sparse_output(norm_oracle,case.seed,case.alpha,case.rho,answer.output)
+    return dict(case=json_value(asdict(case)),backend=backend,cpu_seconds=cpu,wall_seconds=wall,
+        iterations=sum(s.iterations for s in answer.stages),stages=len(answer.stages),
+        prescribed_iterations=sum(s.corrector_metrics.get('prescribed_target_iterations',s.iterations) for s in answer.stages),
+        corrector_adjacency_entries=corrector_reads,terminal_pg_adjacency_entries=pg_reads,
+        added_checkpoint_adjacency_entries=sums.get('cached_adjacency_entries',0),
+        total_adjacency_entries=corrector_reads+pg_reads+sums.get('cached_adjacency_entries',0),
+        checkpoint_counts=sums,oracle_counts=oracle.snapshot(),
+        returned_objective_certificate=str(answer.objective_gap_bound),
+        independently_recomputed_final_bound=str(certificate.objective_gap_bound),
+        independent_bound_meets_requested=certificate.meets(case.epsilon),
+        output_records=len(answer.output),exact_output=json_value(answer.output),
+        local_verification_oracle_counts=norm_oracle.snapshot(),
+        signature_sha256=hashlib.sha256(json.dumps(json_value(asdict(answer)),sort_keys=True).encode()).hexdigest())
+
+
+def main():
+    report=dict(deterministic=True,timing_scope='solve plus counting oracle only; no concurrent benchmark; setup and independent final certificate excluded',
+        comparison_note='ABBA, two samples per backend/fixture; early and fixed outputs need not equal',
+        python=sys.version,platform=platform.platform(),runs=[],summaries=[])
+    for case in CASES:
+        rows=[]
+        for name in ('fixed','early','early','fixed'):
+            row=run(case,name)
+            rows.append(row);report['runs'].append(row)
+        for name in ('fixed','early'):
+            signatures=[r['signature_sha256'] for r in rows if r['backend']==name]
+            assert signatures[0]==signatures[1]
+        med={name:{clock:statistics.median(r[clock] for r in rows if r['backend']==name)
+                   for clock in ('cpu_seconds','wall_seconds')} for name in ('fixed','early')}
+        report['summaries'].append(dict(case=case.name,medians=med,
+            ratio_fixed_over_early={clock:med['fixed'][clock]/med['early'][clock] for clock in ('cpu_seconds','wall_seconds')},
+            iterations={name:next(r['iterations'] for r in rows if r['backend']==name) for name in ('fixed','early')},
+            total_adjacency_entries={name:next(r['total_adjacency_entries'] for r in rows if r['backend']==name) for name in ('fixed','early')}))
+    report['completed']=True
+    (ROOT/'early_stop_source_energy_study.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report['summaries'],indent=2))
+
+if __name__=='__main__':main()

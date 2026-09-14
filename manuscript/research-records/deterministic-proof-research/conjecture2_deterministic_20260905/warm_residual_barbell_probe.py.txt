@@ -1,0 +1,79 @@
+"""Deterministic diagnostics of exact-principal dyadic warm starts; no proof."""
+import numpy as np
+import json
+import argparse
+
+def run(L, family, scale, variant, horizon=20):
+    dtype=np.longdouble
+    th=dtype(1)/L; al=th*th; a=1-th; c=(1-al)/2
+    seed=0
+    if family=='barbell':
+        R=L; h=max(1,int(np.log2(L))); n=h+4; seed=1
+        count=np.array([R-1]+[1.]*(h+2)+[R-1],dtype=dtype)
+        right=np.array([1.]*(h+2)+[R-1,0.],dtype=dtype)
+    elif family=='path':
+        n=4*L; count=np.ones(n,dtype=dtype); right=np.ones(n,dtype=dtype);right[-1]=0
+    elif family=='tree':
+        n=int(8*np.log2(L))+1;count=np.array([2.**j for j in range(n)],dtype=dtype);right=np.full(n,2,dtype=dtype);right[-1]=0
+    elif family=='clique':
+        h=int(4*np.log2(L)); R=L*L;n=h+3
+        count=np.array([2.**j for j in range(h+1)]+[2.**h,2.**h*(R-1)],dtype=dtype)
+        right=np.array([2.]*h+[1.,R-1,0.],dtype=dtype)
+    left=np.zeros(n,dtype=dtype);left[1:]=count[:-1]*right[:-1]/count[1:]
+    internal=np.zeros(n,dtype=dtype)
+    if family=='clique':internal[-1]=L*L-2
+    if family=='barbell':internal[0]=internal[-1]=L-2
+    degree=left+right+internal;w=count*degree;sw=np.sqrt(w);edges=count[:-1]*right[:-1]
+    def P(u):
+        r=internal/degree*u;r[1:]+=right[:-1]/degree[:-1]*u[:-1];r[:-1]+=left[1:]/degree[1:]*u[1:];return r
+    def residual(u):return al*u+c*(u-P(u))
+    def sol(rho):
+        off=-c*edges/(sw[:-1]*sw[1:]);lo=hi=seed
+        for stage in range(n):
+            m=hi-lo+1
+            piv=(al+c*(left[lo:hi+1]+right[lo:hi+1])/degree[lo:hi+1]).copy()
+            rhs=-al*rho*sw[lo:hi+1];rhs[seed-lo]+=al/sw[seed]
+            for j in range(1,m):
+                f=off[lo+j-1]/piv[j-1];piv[j]-=f*off[lo+j-1];rhs[j]-=f*rhs[j-1]
+            x=np.empty(m,dtype=dtype);x[-1]=rhs[-1]/piv[-1]
+            for j in range(m-2,-1,-1):x[j]=(rhs[j]-off[lo+j]*x[j+1])/piv[j]
+            moreleft=lo>0 and -off[lo-1]*x[0]>al*rho*sw[lo-1]
+            moreright=hi<n-1 and -off[hi]*x[-1]>al*rho*sw[hi+1]
+            if not moreleft and not moreright:
+                u=np.zeros(n,dtype=dtype);u[lo:hi+1]=x*sw[lo:hi+1];return u,hi+1
+            lo-=int(moreleft);hi+=int(moreright)
+    # rho relative to a chosen prefix volume, to exercise constrained faces.
+    prefix=(L if family=='path' else (2 if family=='barbell' else n//2))
+    rho=dtype(scale)/w[:prefix].sum();lam=al*rho
+    star,ns=sol(rho);u,nold=sol(2*rho);V=th*u;old=u.copy()
+    q0=residual(u-star);init=(q0*q0/w).sum()
+    l0=c*((u-star)-P(u-star));inL=(l0*l0/w).sum()
+    g=residual(u)+lam*w;g[seed]-=al;gm=np.minimum(u,g);initG=(gm*gm/w).sum()
+    sums=np.zeros(3,dtype=dtype);peaks=np.zeros(3,dtype=dtype);capcount=0;ghost=0
+    for k in range(int(horizon*L)):
+        err=u-star;q=residual(err);ll=c*(err-P(err));g=residual(u)+lam*w;g[seed]-=al;gm=np.minimum(u,g)
+        vals=np.array([(q*q/w).sum(),(ll*ll/w).sum(),(gm*gm/w).sum()]);sums+=vals;peaks=np.maximum(peaks,vals)
+        if variant=='pg':
+            beta=a/(1+th);y=u+beta*(u-old);r=residual(y)+lam*w;r[seed]-=al
+            unew=np.maximum(y-r,0);old=u;u=unew
+        else:
+            raw=a/2*(P(u+V)-u+V);raw[seed]+=al;raw-=lam*w;vn=np.maximum(raw,0)
+            if vn.sum()>th:
+                capcount+=1;idx=np.flatnonzero(vn>0);order=idx[np.argsort(vn[idx]/w[idx])[::-1]]
+                levels=(np.cumsum(vn[order])-th)/np.cumsum(w[order]);jj=np.flatnonzero(vn[order]/w[order]>levels)[-1];vn=np.maximum(raw-levels[jj]*w,0)
+            if variant=='aligned':
+                pg=a/2*(u+V+P(u+V))-lam*w;pg[seed]+=al;u=np.minimum(np.maximum(pg,0),a*u+vn)
+            elif variant=='monotone':
+                dire=vn-th*u;grad=residual(u)+lam*w;grad[seed]-=al;dot=(grad*dire/w).sum();den=(residual(dire)*dire/w).sum();s=np.clip(-dot/den,0,1) if den>0 else 0;u+=s*dire
+            else:u=a*u+vn
+            V=vn
+        ghost+=int(np.count_nonzero(u[ns:]))
+    return dict(L=L,family=family,scale=scale,variant=variant,n=n,ns=ns,nold=nold,rho=float(rho),init=float(init),initG=float(initG),ratioQ=float(th*sums[0]/init) if init else None,ratioL=float(th*sums[1]/init) if init else None,ratioG=float(th*sums[2]/initG) if initG else None,targetL=float(th*sums[1]/(al*al*rho)),peakQ=float(peaks[0]/init) if init else None,capcount=capcount,ghost=ghost)
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('--L',nargs='+',type=int,default=[16,32,64]);p.add_argument('--family',nargs='+',default=['barbell']);p.add_argument('--scale',nargs='+',type=float,default=[.125,.5,2]);p.add_argument('--variant',nargs='+',default=['lazy','monotone','aligned','pg']);p.add_argument('--horizon',type=int,default=20);args=p.parse_args()
+    for L in args.L:
+      for family in args.family:
+       for scale in args.scale:
+        for variant in args.variant:
+         print(json.dumps(run(L,family,scale,variant,args.horizon)),flush=True)

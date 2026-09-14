@@ -1,0 +1,149 @@
+"""Deterministic radial diagnostics, not proof certificates.
+
+The asymptotic theorem is proved independently in
+capped_total_flux_counterexample.md. Every variable here is a layer mass;
+there is no sampling and no explicit enumeration of the large tree.
+"""
+import argparse
+import json
+from pathlib import Path
+
+import numpy as np
+
+F = np.longdouble
+
+
+def transition(value):
+    result = np.zeros_like(value)
+    result[1] += value[0]
+    result[:-2] += value[1:-1] / 3
+    result[2:] += value[1:-1] * F(2) / 3
+    result[-2] += value[-1]
+    return result
+
+
+def project_mass(raw, degree_volume, theta):
+    positive = np.maximum(raw, 0)
+    if positive.sum() <= theta:
+        return positive, False
+    indices = np.flatnonzero(raw > 0)
+    keys = raw[indices] / degree_volume[indices]
+    order = np.argsort(keys)[::-1]
+    indices = indices[order]
+    keys = keys[order]
+    cumulative_raw = np.cumsum(raw[indices])
+    cumulative_weight = np.cumsum(degree_volume[indices])
+    candidates = (cumulative_raw - theta) / cumulative_weight
+    next_keys = np.r_[keys[1:], F(0)]
+    admissible = np.flatnonzero((candidates >= next_keys) & (candidates >= 0))
+    assert len(admissible), "Water-filling interval was not found."
+    multiplier = candidates[admissible[0]]
+    value = np.maximum(raw - multiplier * degree_volume, 0)
+    assert abs(value.sum() - theta) <= F("1e-12") * theta
+    return value, True
+
+
+def run(n, rho_power, depth_multiplier, horizon_multiplier):
+    L = 2 ** n
+    depth = depth_multiplier * n
+    finfo = np.finfo(F)
+    if depth + 2 >= finfo.maxexp or -(rho_power + 2) * n <= finfo.minexp:
+        raise ValueError("This family exceeds the available floating exponent range; use a smaller n.")
+    theta = F(1) / L
+    alpha = theta * theta
+    rho = np.ldexp(F(1), -rho_power * n)
+    lam = alpha * rho
+    a = 1 - theta
+    c = (1 - alpha) / 2
+    count = np.ldexp(np.ones(depth + 1, dtype=F), np.arange(depth + 1))
+    degree_volume = 3 * count
+    degree_volume[0] = 2
+    degree_volume[-1] = count[-1]
+    u = np.zeros(depth + 1, dtype=F)
+    velocity = np.zeros_like(u)
+    flux_sum = F(0)
+    normalized_work = F(0)
+    cap_count = 0
+    max_mass = F(0)
+    max_support = F(0)
+    maximum_active_depth = -1
+    mass_hitting_time = None
+    last_auxiliary_nonempty_time = 0
+    final_volume = F(0)
+    peak_flux = F(0)
+    max_leaf_mass = F(0)
+    steps = horizon_multiplier * L
+    for step in range(steps):
+        flow = c * np.abs(u - transition(u)).sum()
+        flux_sum += flow
+        peak_flux = max(peak_flux, flow)
+        raw = a / 2 * (transition(u + velocity) - (u - velocity))
+        raw -= lam * degree_volume
+        raw[0] += alpha
+        velocity, capped = project_mass(raw, degree_volume, theta)
+        cap_count += int(capped)
+        u = a * u + velocity
+        mask = velocity > 0
+        active = np.flatnonzero(mask)
+        final_volume = degree_volume[mask].sum()
+        normalized_work += rho * theta * final_volume
+        max_support = max(max_support, rho * final_volume)
+        if len(active):
+            maximum_active_depth = max(maximum_active_depth, int(active[-1]))
+            last_auxiliary_nonempty_time = step + 1
+        mass = u.sum()
+        max_mass = max(max_mass, mass)
+        max_leaf_mass = max(max_leaf_mass, u[-1])
+        if mass_hitting_time is None and mass >= theta:
+            mass_hitting_time = step + 1
+        assert mass <= 1 + F("1e-11")
+        assert np.all(u >= velocity)
+    return {
+        "n": n,
+        "L": L,
+        "alpha": float(alpha),
+        "rho_power": rho_power,
+        "log2_inverse_rho": rho_power * n,
+        "depth": depth,
+        "steps": steps,
+        "cumulative_c_total_flux": float(flux_sum),
+        "cumulative_flux_divided_by_theta": float(flux_sum / theta),
+        "peak_c_flux_divided_by_alpha": float(peak_flux / alpha),
+        "normalized_auxiliary_volume_work": float(normalized_work),
+        "cap_count": cap_count,
+        "final_auxiliary_nonempty": bool(final_volume > 0),
+        "final_auxiliary_volume_times_rho": float(final_volume * rho),
+        "final_auxiliary_mass_divided_by_theta": float(velocity.sum() / theta),
+        "last_auxiliary_nonempty_time": last_auxiliary_nonempty_time,
+        "maximum_auxiliary_depth": maximum_active_depth,
+        "peak_auxiliary_volume_times_rho": float(max_support),
+        "peak_position_mass_divided_by_theta": float(max_mass / theta),
+        "first_position_mass_at_least_theta": mass_hitting_time,
+        "maximum_leaf_position_mass": float(max_leaf_mass),
+        "final_position_mass_divided_by_theta": float(u.sum() / theta),
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n", type=int, nargs="+", default=[5, 6, 7, 8, 9, 10])
+    parser.add_argument("--rho-power", type=int, default=4)
+    parser.add_argument("--depth-multiplier", type=int, default=8)
+    parser.add_argument("--horizon-multiplier", type=int, default=8)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    rows = []
+    for n in args.n:
+        row = run(n, args.rho_power, args.depth_multiplier, args.horizon_multiplier)
+        rows.append(row)
+        print(json.dumps(row), flush=True)
+    payload = {
+        "status": "Deterministic floating-point diagnostics, not proof certificates",
+        "numpy_longdouble_bits": int(np.finfo(F).nmant),
+        "rows": rows,
+    }
+    args.output.write_text(json.dumps(payload, indent=2) + "\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,90 @@
+"""Select the audited fast backend and record the current package snapshot."""
+
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+
+
+def main():
+    required = ('fast_package_independent_verification.json',
+                'packaged_fast_solver_validation.json',
+                'singleton_package_independent_verification.json',
+                'adaptive_package_verification.json',
+                'adaptive_manifest_independent_validation.json',
+                'mass_grid_package_verification.json',
+                'mass_grid_package_independent_verification.json')
+    for name in required:
+        data = json.loads((ROOT/name).read_text())
+        assert (data.get('status') == 'passed' or data.get('passed') is True
+                or data.get('successful') is True), name
+    validated = json.loads((ROOT/'packaged_fast_solver_validation.json').read_text())
+    for relative, expected in validated['package_hashes'].items():
+        if relative != 'deterministic_rppr/__init__.py':
+            assert hashlib.sha256((OUT/relative).read_bytes()).hexdigest() == expected, relative
+    adaptive = json.loads((OUT/'ADAPTIVE_TRANSCRIPTION.json').read_text())
+    assert hashlib.sha256((PACKAGE/'_adaptive.py').read_bytes()).hexdigest() == adaptive['package_sha256']
+    assert hashlib.sha256((ROOT/adaptive['source']).read_bytes()).hexdigest() == adaptive['source_sha256']
+    mass_grid = json.loads((OUT/'MASS_GRID_TRANSCRIPTION.json').read_text())
+    assert hashlib.sha256((PACKAGE/'_mass_grid.py').read_bytes()).hexdigest() == mass_grid['package_sha256']
+    assert hashlib.sha256((ROOT/mass_grid['source']).read_bytes()).hexdigest() == mass_grid['source_sha256']
+    content = '''"""Deterministic local regularized personalized PageRank.
+
+Exact rational scalars, bounded dyadic state, deterministic AVL records,
+certified block schedules, and locally verified stopping checkpoints.
+"""
+
+from ._fast import solve_rppr_fast as solve
+from ._fast import solve_rppr_fast as solve_fast
+from ._fast import FastDyadicCorrector
+from ._combined import solve_rppr_combined as solve_combined
+from ._combined import CombinedDyadicCorrector
+from ._binomial import solve_rppr_binomial_blocks as solve_binomial
+from ._binomial import BinomialBlockDyadicCorrector
+from ._early_stop import solve_rppr_early_stop as solve_early_stop
+from ._early_stop import EarlyStopSourceEnergyCorrector
+from ._source_energy import solve_rppr_source_energy as solve_source_energy
+from ._source_energy import SourceEnergyDyadicCorrector
+from ._integer import solve_rppr_integer as solve_integer
+from ._integer import IntegerDyadicCorrector
+from .solver import solve_rppr_practical as solve_reference
+from .solver import PracticalDyadicCorrector
+from ._types import SolverResult
+from ._certificate import certify_sparse_output as certify_output
+from ._certificate import Certificate
+from ._singleton import solve_rppr_with_singleton_precheck as solve_with_singleton
+from ._singleton import SingletonPrecheckResult, SingletonTrialMetrics
+from ._adaptive import solve_rppr_adaptive as solve_adaptive
+from ._adaptive import AdaptiveContinuationResult, AdaptiveSourceMetrics, AdaptiveScheduleRecord
+from ._mass_grid import solve_rppr_mass_scaled_grid as solve_mass_scaled_grid
+from ._mass_grid import MassScaledGridCorrector, MassScaledGridResult, MassHintMetrics, MassHintRecord
+
+__all__ = ["solve", "solve_fast", "solve_combined", "solve_binomial",
+           "solve_early_stop", "solve_source_energy", "solve_integer",
+           "solve_reference", "FastDyadicCorrector", "CombinedDyadicCorrector",
+           "BinomialBlockDyadicCorrector", "EarlyStopSourceEnergyCorrector",
+           "SourceEnergyDyadicCorrector", "IntegerDyadicCorrector",
+           "PracticalDyadicCorrector", "SolverResult", "certify_output", "Certificate",
+           "solve_with_singleton", "SingletonPrecheckResult", "SingletonTrialMetrics",
+           "solve_adaptive", "AdaptiveContinuationResult", "AdaptiveSourceMetrics",
+           "AdaptiveScheduleRecord", "solve_mass_scaled_grid", "MassScaledGridCorrector",
+           "MassScaledGridResult", "MassHintMetrics", "MassHintRecord"]
+__version__ = "0.1.0"
+'''
+    compile(content,'<package exports>','exec')
+    (PACKAGE/'__init__.py').write_text(content)
+    manifest = dict(default='solve_fast', deterministic=True,
+        module_sha256={str(path.relative_to(OUT)):hashlib.sha256(path.read_bytes()).hexdigest()
+                       for path in sorted(PACKAGE.glob('*.py'))},
+        validation_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+                           for name in required},
+        note='Earlier transcription manifests record their audited historical snapshots. This manifest records the current modules and the final default export; no numerical module changes are made by finalization.')
+    (OUT/'PACKAGE_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    print(json.dumps(dict(default='solve_fast',modules=len(manifest['module_sha256'])),indent=2))
+
+
+if __name__ == '__main__':
+    main()

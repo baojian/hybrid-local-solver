@@ -1,0 +1,116 @@
+"""Fast exact adapter for the verified practical dyadic trajectory.
+
+All vector/grid values and comparisons still use standard-library Fraction.
+Only diagnostic rational measurement is disabled. The same iteration,
+projection tree, scalar rebase, stopping schedule, and repair code are used.
+Reference modules and the AVL-backed package are not modified.
+
+Public API: solve_rppr_fast(oracle, seed, alpha, rho, epsilon), plus
+FastPracticalDyadicCorrector with the reference stage constructor signature.
+No optional dependency, floating-point decision, or randomized primitive.
+"""
+
+from dataclasses import asdict
+from fractions import Fraction as F
+from types import FunctionType
+
+from bounded_dyadic_corrector import Tracked
+import practical_dyadic_rppr_solver as reference
+
+
+def _value(other):
+    return other.value if isinstance(other, Tracked) else other
+
+
+class LeanRational(Tracked):
+    """The same exact value adapter, without measurement or duplicate products."""
+    __slots__ = ()
+
+    def __init__(self, value, tracker):
+        self.value = _value(value)
+        if not isinstance(self.value, F):
+            self.value = F(self.value)
+        self.tracker = tracker
+
+    def __add__(self, other): return LeanRational(self.value+_value(other), self.tracker)
+    __radd__ = __add__
+    def __sub__(self, other): return LeanRational(self.value-_value(other), self.tracker)
+    def __rsub__(self, other): return LeanRational(_value(other)-self.value, self.tracker)
+    def __mul__(self, other): return LeanRational(self.value*_value(other), self.tracker)
+    __rmul__ = __mul__
+    def __truediv__(self, other): return LeanRational(self.value/_value(other), self.tracker)
+    def __rtruediv__(self, other): return LeanRational(_value(other)/self.value, self.tracker)
+    def __neg__(self): return LeanRational(-self.value, self.tracker)
+
+    def __eq__(self, other):
+        if not isinstance(other, (Tracked, F, int)):
+            return False
+        return self.value == _value(other)
+    def __lt__(self, other): return self.value < _value(other)
+    def __le__(self, other): return self.value <= _value(other)
+    def __gt__(self, other): return self.value > _value(other)
+    def __ge__(self, other): return self.value >= _value(other)
+    __hash__ = Tracked.__hash__
+
+
+class UnmeasuredExactArithmetic:
+    """Compatibility interface; no reduced-size diagnostic is collected."""
+    def __init__(self, metrics):
+        self.metrics = metrics
+
+    def measure(self, value, grid=False):
+        value = _value(value)
+        return value if isinstance(value, F) else F(value)
+
+    def integer(self, value):
+        return int(value)
+
+    def wrap(self, value):
+        if isinstance(value, LeanRational) and value.tracker is self:
+            return value
+        return LeanRational(value, self)
+
+
+class FastPracticalDyadicCorrector(reference.PracticalDyadicCorrector):
+    """Swap only the observer at the original constructor's first assignment."""
+
+    @property
+    def tracker(self):
+        return self._exact_arithmetic
+
+    @tracker.setter
+    def tracker(self, original_observer):
+        # Parent construction sets the observer before creating any raw keys,
+        # moments, or numerical state. Thus no old tracked values remain.
+        self._exact_arithmetic = UnmeasuredExactArithmetic(original_observer.metrics)
+
+    @property
+    def diagnostic_metrics(self):
+        result = asdict(self.metrics)
+        result['scalar_neighbor_rebase_records'] = self.scalar_neighbor_rebase_records
+        result['scalar_neighbor_rounding_records'] = self.scalar_neighbor_rounding_records
+        result['arithmetic_measurement_mode'] = 'disabled; exact Fraction arithmetic'
+        # Missing diagnostics mean unavailable, not zero-bit arithmetic.
+        for name in ('measured_rational_values', 'max_numerator_bits', 'max_denominator_bits',
+                     'max_integer_bits', 'max_comparison_product_bits',
+                     'max_grid_state_numerator_bits', 'max_grid_state_denominator_bits',
+                     'fraction_internal_arithmetic_bits_bound'):
+            result[name] = None
+        return result
+
+
+# Reuse precisely the verified continuation function's code with an isolated
+# globals mapping whose only algorithmic substitution is the corrector class.
+# This is not a monkeypatch: concurrent callers of the reference retain its
+# original class and globals. It avoids duplicating the schedule and repair.
+_fast_globals = dict(reference.solve_rppr_practical.__globals__)
+_fast_globals['PracticalDyadicCorrector'] = FastPracticalDyadicCorrector
+_exact_continuation = FunctionType(reference.solve_rppr_practical.__code__, _fast_globals,
+                                  name='_exact_continuation',
+                                  argdefs=reference.solve_rppr_practical.__defaults__,
+                                  closure=reference.solve_rppr_practical.__closure__)
+
+
+def solve_rppr_fast(oracle, seed, alpha, rho, epsilon):
+    """Return the identical exact output/certificate with measurement disabled."""
+    return _exact_continuation(oracle, seed, alpha, rho, epsilon)

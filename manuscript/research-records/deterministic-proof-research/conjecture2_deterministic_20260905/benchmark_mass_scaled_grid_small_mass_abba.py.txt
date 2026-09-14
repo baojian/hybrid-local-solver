@@ -1,0 +1,171 @@
+"""Supplementary small-mass ABBA benchmark; exact algorithms, timed end to end."""
+import gc
+import hashlib
+import json
+import platform
+import signal
+import sys
+import traceback
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter,process_time
+
+ROOT=Path(__file__).resolve().parent
+PACKAGE=ROOT/'deliverables/deterministic-rppr'
+sys.path.insert(0,str(PACKAGE))
+from deterministic_rppr import solve as default_solve,solve_fast
+from benchmark_practical_rppr import VirtualGraph,CountingOracle,json_value,Case
+CASES=(Case('small-mass-three-path','path',3,0,1,F(1,4),F(1,1<<20),F(1,1<<50)),)
+from mass_scaled_grid_rppr import solve_rppr_mass_scaled_grid
+from independent_sparse_certificate import certify_sparse_output
+
+TARGET=ROOT/'research_mass_scaled_grid_small_mass_abba.json'
+ORDER=('fast','mass_grid','mass_grid','fast')
+GUARDS=dict(oracle_entries_per_run=1000000,wall_seconds_per_solver_call=60,
+            wall_seconds_per_certificate=60,iterations_per_run=100000,total_seconds=600)
+
+
+def hashes():
+    paths={Path(__file__).resolve()}
+    for module in tuple(sys.modules.values()):
+        name=getattr(module,'__file__',None)
+        if name:
+            p=Path(name).resolve()
+            if p.suffix=='.py' and p.is_relative_to(ROOT):paths.add(p)
+    return {str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
+
+def timeout(signum,frame):
+    raise TimeoutError('Fixed benchmark wall-time guard reached')
+
+
+def save(report):
+    temporary=TARGET.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(report,indent=2)+'\n');temporary.replace(TARGET)
+
+
+def verify(case,outer,mode,oracle):
+    answer=outer if mode=='fast' else outer.result
+    hints=None if mode=='fast' else asdict(outer.mass_hint_metrics)
+    expected_degrees=answer.metrics.seed_degree_queries+answer.metrics.repair_degree_replies+sum(
+        s.corrector_metrics['degree_replies'] for s in answer.stages)
+    expected_entries=answer.metrics.repair_first_adjacency_entries+sum(
+        s.corrector_metrics['first_adjacency_entries'] for s in answer.stages)
+    observed=oracle.snapshot()
+    assert observed['degree_replies']==expected_degrees
+    assert observed['adjacency_entries']==expected_entries
+    assert 0<=answer.objective_gap_bound<=case.epsilon
+    assert sum(s.iterations for s in answer.stages)<=GUARDS['iterations_per_run']
+    for s in answer.stages:
+        c=s.corrector_metrics['checkpoints']
+        assert c['cache_misses']==0
+        assert c['checker_containers']==c['checker_reclaimed_containers']==6*c['checkpoints']
+        assert s.kinetic_volume<=360*s.projection_mass_cap*s.iterations/s.regularization
+        if mode=='mass_grid':
+            mg=s.corrector_metrics['mass_scaled_grid']
+            assert mg['gamma_bound']==29*s.projection_mass_cap*s.grid/answer.theta<s.requested_gap/8
+            assert mg['actual_tolerance']==s.requested_gap
+    if hints is not None:
+        assert hints['factory_calls']==hints['previous_references_released']==len(answer.stages)
+        assert hints['previous_degree_cache_lookups']==hints['baseline_input_records']
+        assert len(outer.mass_hints)==len(answer.stages)
+        previous_mass=F(0)
+        for s,hint in zip(answer.stages,outer.mass_hints):
+            assert hint.mass_cap==s.projection_mass_cap==1-previous_mass
+            previous_mass=s.repaired_mass
+    correction=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages)
+    checkpoints=sum(s.corrector_metrics['checkpoints']['cached_adjacency_entries'] for s in answer.stages)
+    scanned=correction+checkpoints+answer.metrics.repair_scanned_adjacency_entries
+    return answer,hints,observed,dict(corrector_scanned_entries=correction,
+        checkpoint_scanned_entries=checkpoints,terminal_scanned_entries=answer.metrics.repair_scanned_adjacency_entries,
+        repeated_scanned_entries=scanned)
+
+
+def main():
+    assert default_solve is solve_fast
+    before=hashes()
+    assert before['mass_scaled_grid_rppr.py']=='3b8cfa4a8f0161101147573007e5ac4cbabb4c64e348ec702f90d977a37d7d8f'
+    fixture_data=json_value([asdict(case) for case in CASES])
+    report=dict(status='running',scope='supplementary small-mass research-prototype comparison; package/default unchanged',
+        deterministic_algorithms=True,order=list(ORDER),cases=fixture_data,
+        fixture_canonical_sha256=hashlib.sha256(json.dumps(fixture_data,sort_keys=True).encode()).hexdigest(),
+        runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform(),
+                     gc_enabled=gc.isenabled(),python_implementation=platform.python_implementation()),
+        source_hashes_before=before,resource_guards=GUARDS,runs=[],summaries=[],
+        timed_scope='Entire solver call, including CountingOracle, all internal checkpoints, mass-hint factory, retargeting, terminal repair, and reference release.',
+        untimed_scope='Graph/oracle construction, gc.collect before each call, independent final certification, verification, and serialization.',
+        note='One ABBA block per fixture, two runs per backend. Only clocks and descriptive timing ratios use floating point. No cross-study timing is used.')
+    save(report)
+    started=perf_counter();signal.signal(signal.SIGALRM,timeout)
+    case=None;mode=None
+    try:
+        for case in CASES:
+            rows=[];repeated={}
+            for order_index,mode in enumerate(ORDER):
+                if perf_counter()-started>GUARDS['total_seconds']:
+                    raise TimeoutError('Fixed benchmark total-time guard reached')
+                graph=VirtualGraph(case.family,case.size,case.auxiliary)
+                oracle=CountingOracle(graph,GUARDS['oracle_entries_per_run'])
+                function=solve_fast if mode=='fast' else solve_rppr_mass_scaled_grid
+                outer=None;answer=None
+                gc.collect()
+                signal.setitimer(signal.ITIMER_REAL,GUARDS['wall_seconds_per_solver_call'])
+                wall_start,cpu_start=perf_counter(),process_time()
+                outer=function(oracle,case.seed,case.alpha,case.rho,case.epsilon)
+                cpu,wall=process_time()-cpu_start,perf_counter()-wall_start
+                signal.setitimer(signal.ITIMER_REAL,0)
+                answer,hints,observed,scan_metrics=verify(case,outer,mode,oracle)
+                complete=json_value(asdict(answer))
+                hint_records=[] if mode=='fast' else json_value([asdict(h) for h in outer.mass_hints])
+                invariant=dict(complete_answer=complete,mass_hint_metrics=hints,
+                               mass_hints=hint_records,oracle=observed)
+                if mode in repeated:
+                    assert invariant==repeated[mode],'Repeated deterministic result changed'
+                else:repeated[mode]=invariant
+                verifier=CountingOracle(graph,GUARDS['oracle_entries_per_run'])
+                signal.setitimer(signal.ITIMER_REAL,GUARDS['wall_seconds_per_certificate'])
+                certificate=certify_sparse_output(verifier,case.seed,case.alpha,case.rho,answer.output)
+                signal.setitimer(signal.ITIMER_REAL,0)
+                assert certificate.meets(case.epsilon)
+                row=dict(case=case.name,mode=mode,order_index=order_index,
+                    cpu_seconds=cpu,wall_seconds=wall,stages=len(answer.stages),
+                    iterations=sum(s.iterations for s in answer.stages),
+                    kinetic_volume=sum(s.kinetic_volume for s in answer.stages),
+                    **scan_metrics,oracle_counts=observed,mass_hint_metrics=hints,
+                    complete_answer=complete,mass_hints=hint_records,
+                    independent_certificate=json_value(asdict(certificate)),
+                    verifier_oracle_counts=verifier.snapshot())
+                rows.append(row);report['runs'].append(row);save(report)
+                print(f'{case.name}: {mode}, CPU {cpu:.6f}s, wall {wall:.6f}s, '+
+                      f'{row["iterations"]} iterations, {row["repeated_scanned_entries"]} scanned entries',flush=True)
+            summary=dict(case=case.name,medians={mode:{field:median(row[field] for row in rows if row['mode']==mode)
+                for field in ('cpu_seconds','wall_seconds','stages','iterations','kinetic_volume','repeated_scanned_entries')}
+                for mode in ('fast','mass_grid')})
+            summary['fast_over_mass_grid_cpu_ratio']=summary['medians']['fast']['cpu_seconds']/summary['medians']['mass_grid']['cpu_seconds']
+            summary['mass_grid_cpu_change_percent']=100*(summary['medians']['mass_grid']['cpu_seconds']/summary['medians']['fast']['cpu_seconds']-1)
+            fast_stages=repeated['fast']['complete_answer']['stages'];mass_stages=repeated['mass_grid']['complete_answer']['stages']
+            assert len(fast_stages)==len(mass_stages)
+            summary['stage_grid_ratios']=[str(F(m['grid'])/F(f['grid'])) for f,m in zip(fast_stages,mass_stages)]
+            assert all(f['regularization']==m['regularization'] for f,m in zip(fast_stages,mass_stages))
+            summary['mass_hint_metrics']=repeated['mass_grid']['mass_hint_metrics']
+            report['summaries'].append(summary);save(report)
+        report.update(status='passed',all_4_outputs_independently_certified=True,
+                      repeated_variant_results_identical=True)
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        report.update(status='incomplete',failure=dict(case=None if case is None else case.name,mode=mode,
+            exception=repr(error),traceback=traceback.format_exc()))
+        raise
+    finally:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        report['source_hashes_after']=hashes()
+        report['sources_unchanged']=before==report['source_hashes_after']
+        if not report['sources_unchanged']:report['status']='incomplete'
+        report['total_elapsed_seconds']=perf_counter()-started;save(report)
+    assert report['sources_unchanged']
+    print(json.dumps(report['summaries'],indent=2),flush=True)
+
+
+if __name__=='__main__':main()

@@ -1,0 +1,103 @@
+"""AVL-backed solver component transcribed from pg_repaired_rppr_solver.py.
+
+All graph-state maps and sets use deterministic balanced trees.
+See TRANSCRIPTION.json and the package verification tests.
+"""
+
+from ._avl import AVLMap, AVLSet
+from dataclasses import dataclass
+from fractions import Fraction as F
+from ._types import ContinuationMetrics
+
+@dataclass
+class PGRepairMetrics:
+    candidate_records: int = 0
+    candidate_volume: int = 0
+    degree_replies: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+    accumulation_updates: int = 0
+    affected_records: int = 0
+    positive_records: int = 0
+    positive_volume: int = 0
+    newly_positive_records: int = 0
+    newly_positive_volume: int = 0
+    truncated_positive_records: int = 0
+    retained_records: int = 0
+
+@dataclass
+class PGContinuationMetrics(ContinuationMetrics):
+    repair_degree_replies: int = 0
+    repair_first_adjacency_entries: int = 0
+    repair_scanned_adjacency_entries: int = 0
+    repair_accumulation_updates: int = 0
+    repair_affected_records: int = 0
+
+def projected_gradient_truncate(oracle, seed, alpha, rho, delta, candidate, degree_cache=None, adjacency_cache=None):
+    """Scan candidate support once; truncate new PG neighbors before scanning.
+
+    Candidate entries are triples (vertex, positive degree density, degree)
+    from an already charged materialization. Optional caches are read and
+    extended locally. The helper does NOT check an objective-gap certificate;
+    its safe-repair theorem requires gap(candidate)<=alpha*delta²/2.
+    It never iterates a global input graph or scans a newly positive PG row.
+    """
+    alpha, rho, delta = map(F, (alpha, rho, delta))
+    if not (0 < alpha <= 1 and rho > 0 and (0 < delta <= alpha * rho / 2)):
+        raise ValueError('Need 0<alpha<=1, rho>0, 0<delta<=alpha*rho/2')
+    degrees = degree_cache if degree_cache is not None else AVLMap(())
+    adjacency = adjacency_cache if adjacency_cache is not None else AVLMap(())
+    metrics, values = (PGRepairMetrics(), AVLMap(()))
+    for i, value, degree in candidate:
+        metrics.candidate_records += 1
+        value = F(value)
+        if value <= 0 or not isinstance(degree, int) or degree <= 0 or (i in values):
+            raise ValueError('Candidate must have unique positive entries and integer degrees')
+        if i in degrees and degrees[i] != degree:
+            raise ValueError('Candidate degree disagrees with its cache')
+        degrees[i] = degree
+        values[i] = value
+        metrics.candidate_volume += degree
+    c, lam = ((1 - alpha) / 2, alpha * rho)
+    incoming = AVLMap(((seed, alpha),))
+    metrics.accumulation_updates += 1
+    for j, value in values.items():
+        incoming[j] = incoming.get(j, F(0)) + c * degrees[j] * value
+        metrics.accumulation_updates += 1
+        if j not in adjacency:
+            row = []
+            for i in oracle.neighbors(j):
+                row.append(i)
+                metrics.first_adjacency_entries += 1
+            if len(row) != degrees[j]:
+                raise ValueError('Inconsistent candidate degree and adjacency')
+            adjacency[j] = row
+        for i in adjacency[j]:
+            incoming[i] = incoming.get(i, F(0)) + c * value
+            metrics.scanned_adjacency_entries += 1
+            metrics.accumulation_updates += 1
+    repaired = []
+    for i, numerator in incoming.items():
+        metrics.affected_records += 1
+        if i not in degrees:
+            degree = oracle.degree(i)
+            metrics.degree_replies += 1
+            if not isinstance(degree, int) or degree <= 0:
+                raise ValueError('Positive integer degrees are required')
+            degrees[i] = degree
+        degree = degrees[i]
+        pg_value = max(F(0), numerator / degree - lam)
+        if pg_value > 0:
+            metrics.positive_records += 1
+            metrics.positive_volume += degree
+            if i not in values:
+                metrics.newly_positive_records += 1
+                metrics.newly_positive_volume += degree
+        retained = max(F(0), pg_value - delta)
+        if retained:
+            repaired.append((i, retained, degree))
+            metrics.retained_records += 1
+        elif pg_value:
+            metrics.truncated_positive_records += 1
+    repaired.sort(key=lambda entry: entry[0])
+    return (tuple(repaired), metrics)

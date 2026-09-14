@@ -1,0 +1,314 @@
+"""Independent bounded exact audit; does not execute the author's suite."""
+import gc
+import hashlib
+import json
+import unittest
+import weakref
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import mass_scaled_grid_rppr as tested
+from combined_certified_dyadic_rppr import CombinedDyadicCorrector
+from direct_exception_integer_rppr import DirectExceptionIntegerCorrector, _continuation
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector
+from deterministic_avl_containers import AVLMap
+from test_local_safe_solver import graph, path, gaussian_elimination, dense_exact_obstacle_oracle
+from test_monotone_capped_solver import CheckedOracle
+
+ROOT=Path(__file__).resolve().parent
+EXPECTED='3b8cfa4a8f0161101147573007e5ac4cbabb4c64e348ec702f90d977a37d7d8f'
+FILES=('mass_scaled_grid_rppr.py','combined_certified_dyadic_rppr.py',
+       'direct_exception_integer_rppr.py','integer_dyadic_rppr_solver.py',
+       'source_energy_dyadic_rppr.py','binomial_block_dyadic_rppr.py',
+       'early_stop_source_energy_rppr.py')
+BEFORE={f:hashlib.sha256((ROOT/f).read_bytes()).hexdigest() for f in FILES}
+assert BEFORE[FILES[0]]==EXPECTED
+LOG=dict(prefixes=0,weighted_energy_inequalities=0,response_checks=0,
+         exact_dense_steps=0,nonzero_response_errors=0,rebases=0,
+         same_grid_oracle_prefixes=0,zero_step_cases=0,full_cases=0,
+         full_kkt_stages=0,negative_auxiliary_prefixes=0)
+
+
+class UnchangedFast(CombinedDyadicCorrector,DirectExceptionIntegerCorrector):
+    pass
+
+
+def mass(rows,v):
+    return sum((len(rows[i])*v.get(i,F(0)) for i in rows),F(0))
+
+
+def q(rows,alpha,v):
+    return {i:(1+alpha)*v.get(i,F(0))/2
+              -(1-alpha)*sum((v.get(j,F(0)) for j in rows[i]),F(0))/(2*len(rows[i]))
+            for i in rows}
+
+
+def inner(rows,u,v):
+    return sum((len(rows[i])*u.get(i,F(0))*v.get(i,F(0)) for i in rows),F(0))
+
+
+def sub(rows,u,v):
+    return {i:u.get(i,F(0))-v.get(i,F(0)) for i in rows}
+
+
+def objective(rows,seed,alpha,r,x):
+    return inner(rows,x,q(rows,alpha,x))/2-alpha*x.get(seed,F(0))+alpha*r*mass(rows,x)
+
+
+def projection(rows,raw,U,eta):
+    # Interpolate the mass function on its complete dense breakpoint list.
+    def at(t):
+        return {i:max(F(0),min(U,raw[i]-t)) for i in rows}
+    if mass(rows,at(F(0)))<=eta:
+        return at(F(0))
+    cuts=sorted({F(0)}|{v for i in rows for v in (raw[i],raw[i]-U) if v>0})
+    for l,r in zip(cuts,cuts[1:]):
+        ml,mr=mass(rows,at(l)),mass(rows,at(r))
+        if ml==eta:return at(l)
+        if ml>eta>=mr:
+            t=l+(r-l)*(ml-eta)/(ml-mr)
+            result=at(t)
+            assert mass(rows,result)==eta
+            return result
+    raise AssertionError('No dense affine threshold')
+
+
+class IndependentMassGridAudit(unittest.TestCase):
+    def horizons(self,c):
+        tau=c.tolerance
+        self.assertEqual(c.gamma_bound,29*c.mass_cap*c.grid/c.theta)
+        self.assertEqual(c.relaxed_initialization_tolerance,tau/c.mass_cap)
+        self.assertEqual(c.metrics.iterations,0)
+        self.assertIsNone(c._accepted_bound)
+        self.assertEqual(c._next_checkpoint,c.T)
+        self.assertEqual(c.objective_gap_bound,c.initial_energy_bound)
+        self.assertEqual(c.binomial_completed_power_updates,0)
+        self.assertEqual((c.block_power_numerator,c.block_power_denominator,c.decay_denominator),(1,1,1))
+        targets=[]
+        for e,beta in ((F(1),F(1,2)),(c.initial_energy_bound,F(1,2)),
+                       (c.initial_energy_bound,c.block_bound.value)):
+            n,p=0,F(1)
+            while e*p>tau/2:
+                n+=1;p*=beta
+            targets.append((n,p))
+        self.assertEqual(c.original_target_iterations,targets[0][0]*c.T)
+        self.assertEqual(c.half_bound_target_iterations,targets[1][0]*c.T)
+        self.assertEqual(c.target_iterations,targets[2][0]*c.T)
+        self.assertEqual(F(c.target_power_numerator,c.target_power_denominator),targets[2][1])
+        relaxed,new=c.relaxed_schedule_work,asdict(c.retargeting_work)
+        accumulated=(c.metrics.bound_doublings,c.source_energy_schedule_checks,
+                     c.source_energy_schedule_doublings,c.binomial_schedule_checks,
+                     c.binomial_schedule_power_updates)
+        before=tuple(relaxed[k] for k in ('bound_doublings','source_checks','source_doublings',
+                                        'binomial_checks','binomial_power_updates'))
+        after=tuple(new[k] for k in ('original_bound_doublings','source_schedule_checks',
+                                   'source_schedule_doublings','binomial_schedule_checks',
+                                   'binomial_schedule_power_updates'))
+        self.assertEqual(accumulated,tuple(x+y for x,y in zip(before,after)))
+        self.assertEqual(after,(targets[0][0],targets[1][0]+1,targets[1][0],
+                               targets[2][0]+1,targets[2][0]))
+        self.assertEqual(c.mass_grid_scalar_setup_passes,1)
+
+    def audit_stage(self,rows,seed,alpha,r,tau,baseline):
+        theta=F(1,2)
+        while theta**2>alpha:theta/=2
+        eta=1-mass(rows,baseline)
+        oracle,other=CheckedOracle(rows),CheckedOracle(rows)
+        c=tested.MassScaledGridCorrector(oracle,seed,alpha,theta,r,tau,
+                 AVLMap(baseline.items()),mass_cap_hint=eta)
+        self.horizons(c)
+        ref=UnchangedFast(other,seed,alpha,theta,r,tau/eta,
+                         AVLMap(baseline.items()),grid=c.grid)
+        # Extend only the test reference's stopping guard. Its recurrence is
+        # independent of every schedule/certificate scalar.
+        ref.target_iterations=c.target_iterations
+        self.assertEqual(oracle.degree_queries,other.degree_queries)
+        self.assertEqual(oracle.neighbor_queries,other.neighbor_queries)
+        self.assertEqual(c.initial_energy_bound,ref.initial_energy_bound)
+        self.assertIs(c.step.__func__,ref.step.__func__)
+        self.assertIs(c.run.__func__,ref.run.__func__)
+        self.assertIs(c._rebase.__func__,ref._rebase.__func__)
+        for i,f in baseline.items():
+            self.assertEqual(F(c.baseline[i],c.H),f)
+        true=dense_exact_obstacle_oracle(rows,seed,alpha,r)
+        e=sub(rows,true,baseline)
+        self.assertTrue(all(v>=0 for v in e.values()))
+        source={i:alpha*F(int(i==seed),len(rows[i]))-q(rows,alpha,baseline)[i] for i in rows}
+        matrix=[[((1+alpha)*len(rows[i])/2 if i==j else
+                  -(1-alpha)/2 if j in rows[i] else F(0)) for j in rows] for i in rows]
+        t=dict(zip(rows,gaussian_elimination(matrix,[len(rows[i])*source[i] for i in rows])))
+        self.assertEqual(mass(rows,t),eta)
+        mu,a,lam=theta**2,1-theta,alpha*r
+        def energies(x,z):
+            full={i:baseline.get(i,F(0))+x[i] for i in rows}
+            zerr=sub(rows,z,e)
+            E=objective(rows,seed,alpha,r,full)-objective(rows,seed,alpha,r,true)+mu*inner(rows,zerr,zerr)/2
+            residual=sub(rows,q(rows,alpha,x),source)
+            zt=sub(rows,z,t)
+            B=inner(rows,residual,residual)/2+alpha*lam*(mass(rows,x)-eta)+mu*inner(rows,zt,q(rows,alpha,zt))/2
+            return E,B
+        X,L,P={i:0 for i in rows},{i:0 for i in rows},{i:0 for i in rows}
+        S,H=c.H,c.H
+        x,z={i:F(0) for i in rows},{i:F(0) for i in rows}
+        E0,B0=energies(x,z);E,B=E0,B0;power=F(1)
+        self.assertLessEqual(B0,3*alpha**2*r*eta)
+        self.assertLessEqual(E0,c.initial_energy_bound)
+        zeta=eta*(4*theta*c.grid+25*c.grid+F(5,2)*(theta+mu)*c.grid)
+        for k in range(c.target_iterations):
+            y={i:(x[i]+theta*z[i])/(1+theta) for i in rows}
+            grad=q(rows,alpha,y)
+            u={i:(1-alpha)*F(S,H)*F(L[i]-sum(X[j] for j in rows[i]),H)/
+                       (2*theta*(1+theta)*len(rows[i])) for i in rows}
+            raw={i:a*z[i]+theta*y[i]-(grad[i]-source[i]+lam)/theta+u[i] for i in rows}
+            p0=projection(rows,raw,4*r,eta)
+            P={i:(p0[i]*H).numerator//(p0[i]*H).denominator for i in rows}
+            Sn=(c.T-1)*S//c.T
+            change={i:H*P[i]//(c.T*Sn) for i in rows}
+            X={i:X[i]+change[i] for i in rows}
+            L={i:L[i]+sum(change[j] for j in rows[i]) for i in rows}
+            rebased=2*Sn<H
+            if rebased:
+                X={i:Sn*X[i]//H for i in rows}
+                L={i:Sn*L[i]//H for i in rows}
+                Sn=H
+            c.step();ref.step()
+            self.assertEqual(c.S,Sn)
+            for name,expected in (('X',X),('L',L),('z',P)):
+                self.assertEqual([getattr(c,name).get(i,0) for i in rows],
+                                 [expected[i] for i in rows])
+                self.assertEqual(tuple(getattr(c,name).items()),tuple(getattr(ref,name).items()))
+            self.assertEqual(tuple(c.M.items()),tuple(ref.M.items()))
+            self.assertEqual([c.M.get(i,0) for i in rows],
+                             [sum(P[j] for j in rows[i]) for i in rows])
+            self.assertEqual(oracle.degree_queries,other.degree_queries)
+            self.assertEqual(oracle.neighbor_queries,other.neighbor_queries)
+            nx,nz={i:F(Sn*X[i],H*H) for i in rows},{i:F(P[i],H) for i in rows}
+            self.assertTrue(all(-10*c.grid<=nx[i]-a*x[i]-theta*nz[i]<=0 for i in rows))
+            self.assertTrue(all(abs(u[i])<=2*c.grid/theta for i in rows))
+            self.assertTrue(all(abs(L[i]-sum(X[j] for j in rows[i]))<=4*len(rows[i]) for i in rows))
+            self.assertLessEqual(mass(rows,nx),eta);self.assertLessEqual(mass(rows,nz),eta)
+            En,Bn=energies(nx,nz)
+            self.assertLessEqual(En,a*E+zeta);self.assertLessEqual(Bn,a*B+zeta)
+            power*=a
+            self.assertLessEqual(En,power*E0+c.gamma_bound*(1-power))
+            self.assertLessEqual(Bn,power*B0+c.gamma_bound*(1-power))
+            response=q(rows,alpha,sub(rows,nx,e))
+            self.assertLessEqual(inner(rows,response,response),18*alpha**2*r*eta+4*c.gamma_bound)
+            self.assertLessEqual(En,c.objective_gap_bound)
+            LOG['prefixes']+=1;LOG['weighted_energy_inequalities']+=4
+            LOG['response_checks']+=1;LOG['exact_dense_steps']+=1
+            LOG['same_grid_oracle_prefixes']+=1;LOG['rebases']+=int(rebased)
+            LOG['nonzero_response_errors']+=int(any(u.values()))
+            LOG['negative_auxiliary_prefixes']+=int(Bn<0)
+            S,x,z,E,B=Sn,nx,nz,En,Bn
+        answer=c.run()
+        values={i:f for i,f,_ in answer}
+        gap=objective(rows,seed,alpha,r,values)-objective(rows,seed,alpha,r,true)
+        self.assertTrue(0<=gap<=c.objective_gap_bound<tau)
+        self.assertLessEqual(c.metrics.kinetic_volume,360*eta*c.metrics.iterations/r)
+        self.assertEqual(c.metrics.rebase_adjacency_entries,0)
+        LOG['zero_step_cases']+=int(c.target_iterations==0)
+        return c
+
+    def test_independent_dense_prefixes(self):
+        expected_mro=('MassScaledGridCorrector','CombinedDyadicCorrector',
+                      'EarlyStopSourceEnergyCorrector','BinomialBlockDyadicCorrector',
+                      'SourceEnergyDyadicCorrector','DirectExceptionIntegerCorrector',
+                      'IntegerDyadicCorrector','object')
+        self.assertEqual(tuple(c.__name__ for c in tested.MassScaledGridCorrector.__mro__),expected_mro)
+        import integer_dyadic_rppr_solver as stable
+        self.assertIs(_continuation(tested.MassCapHintFactory()).__code__,stable.solve_rppr_integer.__code__)
+        alpha,r=F(3,8),F(1,8)
+        self.audit_stage(path(2),0,alpha,r,alpha**3*r*r/32,{0:F(1,2)})
+        alpha,r=F(5,32),F(1,16)
+        rows=graph(4,[(0,1),(1,2),(2,0),(2,3)])
+        self.audit_stage(rows,3,alpha,r,alpha**3*r*r/32,{3:F(7,32)})
+        self.assertGreater(LOG['nonzero_response_errors'],0)
+        self.assertGreater(LOG['negative_auxiliary_prefixes'],0)
+
+    def test_zero_stages(self):
+        zero=self.audit_stage(path(2),0,F(1,4),F(1,4),F(1,1024),{0:F(3,8),1:F(1,8)})
+        self.assertEqual(zero.initial_energy_bound,0)
+        positive=self.audit_stage(path(2),0,F(1,4),F(1,128),F(1,1024),{0:F(39,64),1:F(23,64)})
+        self.assertTrue(0<positive.initial_energy_bound<=positive.tolerance/2)
+        self.assertEqual(positive.metrics.iterations,0)
+
+    def test_factory_coarsening_release_and_cached_hint(self):
+        rows=path(2);oracle=CheckedOracle(rows);factory=tested.MassCapHintFactory()
+        first=factory(oracle,0,F(1,4),F(1,2),F(1,4),F(1,1<<17))
+        first.step() # Expose the only boundary degree.
+        old_H=first.H;old_reference=weakref.ref(first)
+        del first
+        before=(len(oracle.degree_queries),len(oracle.neighbor_queries))
+        real=tested.MassScaledGridCorrector
+        observed=[]
+        def construct(*args,**kwargs):
+            gc.collect()
+            self.assertIsNone(old_reference())
+            self.assertEqual((len(oracle.degree_queries),len(oracle.neighbor_queries)),before)
+            observed.append(kwargs['mass_cap_hint'])
+            return real(*args,**kwargs)
+        # This is a valid exact old optimum on the old grid, chosen to isolate
+        # the representability interface; it is not claimed to be first.run().
+        baseline=AVLMap(((0,F(3,8)),(1,F(1,8))))
+        with patch.object(tested,'MassScaledGridCorrector',construct):
+            second=factory(oracle,0,F(1,4),F(1,2),F(1,8),F(1,1<<17),baseline)
+        self.assertEqual(observed,[F(1,2)])
+        self.assertLess(second.H,old_H)
+        self.assertTrue(all(second.H%v.denominator==0 for v in baseline.values()))
+        self.horizons(second)
+        self.assertEqual(factory.metrics.previous_degree_cache_lookups,2)
+        self.assertEqual(factory.metrics.baseline_count_conversions,2)
+        self.assertEqual(factory.metrics.mass_integer_updates,2)
+        self.assertEqual(factory.metrics.rational_mass_hints,1)
+        self.assertEqual(factory.metrics.previous_references_released,1)
+        new_H=second.H
+        new_reference=weakref.ref(second);del second;factory.release();gc.collect()
+        self.assertIsNone(new_reference())
+        self.assertEqual(factory.metrics.previous_references_released,2)
+        LOG['allowed_grid_coarsening_factor']=str(F(old_H,new_H))
+        LOG['coarsened_old_H']=old_H
+        LOG['cached_hint_no_oracle_access']=True
+        LOG['previous_reference_reclaimed_before_new_constructor']=True
+
+    def test_two_full_continuations(self):
+        for rows,seed,alpha,rho,eps in (
+            (path(3),0,F(3,8),F(3,32),F(1,100000)),
+            (graph(4,[(0,1),(1,2),(2,0),(2,3)]),3,F(3,5),F(3,16),F(1,100000))):
+            oracle=CheckedOracle(rows)
+            outer=tested.solve_rppr_mass_scaled_grid(oracle,seed,alpha,rho,eps)
+            baseline={}
+            self.assertEqual(len(outer.mass_hints),len(outer.stages))
+            for stage,hint in zip(outer.stages,outer.mass_hints):
+                r=stage.regularization;opt=dense_exact_obstacle_oracle(rows,seed,alpha,r)
+                self.assertEqual(hint.mass_cap,1-mass(rows,baseline))
+                new={i:f for i,f,_ in stage.repaired_output}
+                self.assertTrue(all(baseline.get(i,0)<=new.get(i,0)<=opt.get(i,0) for i in rows))
+                src={i:alpha*F(int(i==seed),len(rows[i]))-q(rows,alpha,new)[i] for i in rows}
+                self.assertTrue(all(0<=v<=2*alpha*r for v in src.values()))
+                self.assertLessEqual(stage.grid,min(stage.delta/2,alpha*r/4))
+                self.assertLessEqual(stage.kinetic_volume,360*hint.mass_cap*stage.iterations/r)
+                self.assertEqual(stage.corrector_metrics['checkpoints']['cache_misses'],0)
+                baseline=new;LOG['full_kkt_stages']+=1
+            final={i:f for i,f,_ in outer.output};opt=dense_exact_obstacle_oracle(rows,seed,alpha,rho)
+            gap=objective(rows,seed,alpha,rho,final)-objective(rows,seed,alpha,rho,opt)
+            self.assertTrue(0<=gap<=outer.objective_gap_bound<=eps)
+            inner=outer.result
+            self.assertEqual(len(oracle.degree_queries),inner.metrics.seed_degree_queries
+                +inner.metrics.repair_degree_replies+sum(s.corrector_metrics['degree_replies'] for s in inner.stages))
+            self.assertEqual(sum(len(rows[i]) for i in oracle.neighbor_queries),
+                inner.metrics.repair_first_adjacency_entries+sum(s.corrector_metrics['first_adjacency_entries'] for s in inner.stages))
+            self.assertEqual(outer.mass_hint_metrics.factory_calls,len(inner.stages))
+            self.assertEqual(outer.mass_hint_metrics.previous_references_released,len(inner.stages))
+            LOG['full_cases']+=1
+
+
+if __name__=='__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(IndependentMassGridAudit))
+    after={f:hashlib.sha256((ROOT/f).read_bytes()).hexdigest() for f in FILES}
+    assert after==BEFORE
+    (ROOT/'mass_scaled_grid_independent_verification.json').write_text(
+        json.dumps(dict(passed=result.wasSuccessful(),evidence=LOG,source_sha256=after),indent=2)+'\n')
+    if not result.wasSuccessful():raise SystemExit(1)

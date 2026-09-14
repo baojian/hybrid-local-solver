@@ -1,0 +1,43 @@
+"""AVL-backed solver component transcribed from deterministic_rppr_solver.py.
+
+All graph-state maps and sets use deterministic balanced trees.
+See TRANSCRIPTION.json and the package verification tests.
+"""
+
+from dataclasses import dataclass, field
+from fractions import Fraction as F
+
+@dataclass
+class ContinuationMetrics:
+    seed_degree_queries: int = 0
+    momentum_halvings: int = 0
+    tolerance_halvings: int = 0
+    schedule_operations: int = 0
+    repaired_input_records: int = 0
+    repaired_output_records: int = 0
+    final_output_words: int = 0
+
+@dataclass(frozen=True)
+class StageSummary:
+    regularization: F
+    delta: F
+    requested_gap: F
+    certified_gap: F
+    iterations: int
+    kinetic_volume: int
+    kinetic_volume_bound: F
+    baseline_volume: int
+    source_records: int
+    source_mass: F
+    repaired_volume: int
+    repaired_mass: F
+    repaired_output: tuple
+    corrector_metrics: dict = field(compare=False)
+
+@dataclass(frozen=True)
+class SolverResult:
+    output: tuple
+    objective_gap_bound: F
+    theta: F | None
+    stages: tuple
+    metrics: ContinuationMetrics = field(compare=False)

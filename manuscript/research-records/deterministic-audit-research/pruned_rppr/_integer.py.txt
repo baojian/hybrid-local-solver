@@ -1,0 +1,741 @@
+"""Integer-state deterministic RPPR, separate from the verified references.
+
+Persistent correction, neighbor, baseline, and scale values are grid counts.
+All point maps and sets are deterministic AVL containers. Iterative point
+updates use integers; Fraction arithmetic is confined to scalar waterfill
+queries and stage setup/certificates. Terminal PG uses exact materialized
+Fractions once per stage. Scalar rebases never inspect adjacency.
+"""
+
+from dataclasses import asdict, dataclass
+from fractions import Fraction as F
+from ._avl import AVLMap, AVLSet
+from ._integer_reporter import IntegerClippedReporter
+from ._dyadic import DyadicMetrics
+from ._types import SolverResult
+from .solver import PracticalContinuationMetrics, PracticalStageSummary
+from ._repair import PGRepairMetrics
+
+
+@dataclass
+class IntegerMetrics(DyadicMetrics):
+    scalar_neighbor_rebase_records: int = 0
+    scalar_neighbor_rounding_records: int = 0
+    kinetic_volume: int = 0
+    materialized_candidate_records: int = 0
+    diagnostic_state_records: int = 0
+    state_integer_floors: int = 0
+
+
+class IntegerDyadicCorrector:
+    """Exactly the PracticalDyadicCorrector trajectory in integer grid units.
+
+    Public state: X counts normalized position, L counts approximate neighbor
+    sums, z counts kinetic position, M counts its *exact* neighbor sums.
+    Their physical values are count/H; sigma is S/H. All graph labels are
+    integers and degrees are positive integers. Baseline safety below the
+    obstacle optimum is the analytical input contract, as in the reference.
+    """
+
+    def __init__(
+        self,
+        oracle,
+        seed,
+        alpha,
+        theta,
+        rho,
+        tolerance,
+        baseline=None,
+        grid=None,
+        degree_limit=None,
+        adaptive_box=True,
+    ):
+        self.oracle, self.seed = (oracle, seed)
+        self.degree_limit = F(degree_limit) if degree_limit is not None else None
+        self.excluded_neighbor_entries = 0
+        self.alpha, self.theta, self.rho, self.tolerance = map(
+            F, (alpha, theta, rho, tolerance)
+        )
+        alpha, theta, rho, tolerance = (
+            self.alpha,
+            self.theta,
+            self.rho,
+            self.tolerance,
+        )
+        if not (
+            isinstance(seed, int)
+            and 0 < alpha < 1
+            and (0 < theta <= F(1, 2))
+            and (theta.numerator == 1)
+            and (theta.denominator & theta.denominator - 1 == 0)
+            and (theta**2 <= alpha < 4 * theta**2)
+            and (0 < rho < 1)
+            and (0 < tolerance < 1)
+        ):
+            raise ValueError("Invalid integer dyadic stage parameters")
+        if self.degree_limit is not None and self.degree_limit < 1 / rho:
+            raise ValueError(
+                "A fixed degree limit must be at least the reciprocal stage regularizer"
+            )
+        self.metrics = IntegerMetrics()
+        self.A, self.D, self.T = (alpha.numerator, alpha.denominator, theta.denominator)
+        ceiling = min(F(1, 8), theta * tolerance / 256, theta * alpha**2 * rho / 29)
+        converted = AVLMap()
+        for i, value in baseline.items() if baseline is not None else ():
+            self.metrics.baseline_input_records += 1
+            value = F(value)
+            if (
+                not isinstance(i, int)
+                or value < 0
+                or value.denominator & value.denominator - 1
+            ):
+                raise ValueError(
+                    "Baseline requires integer labels and nonnegative dyadic densities"
+                )
+            if value:
+                converted[i] = value
+                ceiling = min(ceiling, F(1, value.denominator))
+        chosen = F(grid) if grid is not None else F(1, 8)
+        if grid is None:
+            while chosen > ceiling:
+                chosen /= 2
+                self.metrics.grid_halvings += 1
+        if (
+            chosen <= 0
+            or chosen > ceiling
+            or chosen.numerator != 1
+            or chosen.denominator & chosen.denominator - 1
+        ):
+            raise ValueError("Grid must be a sufficiently fine reciprocal power of two")
+        self.grid, self.H = (chosen, chosen.denominator)
+        self.S = self.H
+        self.baseline = AVLMap(
+            (
+                (i, value.numerator * (self.H // value.denominator))
+                for i, value in converted.items()
+            )
+        )
+        self.gamma_bound = 29 * theta.denominator * chosen
+        self.block_size = self.T
+        self.blocks, block_bound = (0, 1)
+        while block_bound * tolerance < 2:
+            block_bound *= 2
+            self.blocks += 1
+            self.metrics.bound_doublings += 1
+        self.target_iterations = self.T * self.blocks
+        self.decay_denominator = 1
+        self.lam, self.upper = (alpha * rho, 4 * rho)
+        self.shift = self.lam * self.T
+        self.G = 2 * self.D * self.H * self.H * (self.T + 1)
+        self.base_neighbor_coefficient = (self.D - self.A) * self.T * self.T
+        self.base_position_coefficient = (
+            self.D + self.A
+        ) * self.T * self.T - 2 * self.D
+        self.tree = IntegerClippedReporter()
+        self.degree, self.adjacency = (AVLMap(), AVLMap())
+        self.X, self.L, self.z, self.M, self.source = (AVLMap() for _ in range(5))
+        self.exceptions = AVLSet()
+        self.last_step = None
+        self._expose(seed)
+        if self.degree_limit is not None and self.degree[seed] > self.degree_limit:
+            raise ValueError("The seed is outside the allowed set")
+        for i in self.baseline:
+            self._expose(i)
+            if self.degree_limit is not None and self.degree[i] > self.degree_limit:
+                raise ValueError("The baseline contains an excluded vertex")
+        baseline_mass_count = sum(
+            (self.degree[i] * value for i, value in self.baseline.items())
+        )
+        if baseline_mass_count > self.H:
+            raise ValueError("Baseline exceeds unit mass")
+        neighbors = AVLMap()
+        for j, value in self.baseline.items():
+            for i in self._row(j, "baseline"):
+                neighbors[i] = neighbors.get(i, 0) + value
+                self.metrics.sparse_record_updates += 1
+        support = AVLSet(self.baseline)
+        support.update(neighbors)
+        support.add(seed)
+        for i in support:
+            self.metrics.source_initialization_records += 1
+            numerator = (
+                2 * self.A * self.H * int(i == seed)
+                - (self.D + self.A) * self.degree[i] * self.baseline.get(i, 0)
+                + (self.D - self.A) * neighbors.get(i, 0)
+            )
+            if (
+                numerator < 0
+                or numerator * rho.denominator
+                > 8 * self.A * self.H * self.degree[i] * rho.numerator
+            ):
+                raise ValueError("Baseline source violates the stage interface")
+            if numerator:
+                self.source[i] = numerator
+        expected_cap_count = self.H - baseline_mass_count
+        source_sum = sum(self.source.values())
+        if self.degree_limit is None:
+            if source_sum != 2 * self.A * expected_cap_count:
+                raise ValueError("Source mass identity failed")
+        elif not 0 <= source_sum <= 2 * self.A * expected_cap_count:
+            raise ValueError("Restricted source mass inequality failed")
+        self.cap_count = F(source_sum, 2 * self.A)
+        self.mass_cap = F(source_sum, 2 * self.A * self.H)
+        self.source_mass = alpha * self.mass_cap
+        if adaptive_box:
+            maximum_source = max(
+                (
+                    F(value, 2 * self.A * self.H * self.degree[i])
+                    for i, value in self.source.items()
+                ),
+                default=F(0),
+            )
+            self.upper = max(self.grid, maximum_source)
+            assert self.grid <= self.upper <= 4 * rho
+        self._install_exceptions()
+
+    def _base(self, i):
+        return self.base_neighbor_coefficient * self.L.get(
+            i, 0
+        ) - self.base_position_coefficient * self.degree[i] * self.X.get(i, 0)
+
+    def _set_base(self, i):
+        if self.degree_limit is not None and self.degree[i] > self.degree_limit:
+            return
+        self.tree.set_base(i, self._base(i), self.degree[i])
+
+    def _expose(self, i):
+        if i in self.degree:
+            return
+        if not isinstance(i, int):
+            raise ValueError("Integer vertex labels are required")
+        degree = self.oracle.degree(i)
+        self.metrics.degree_replies += 1
+        if not isinstance(degree, int) or degree <= 0:
+            raise ValueError("Positive integer degrees are required")
+        self.degree[i] = degree
+        if self.degree_limit is None or degree <= self.degree_limit:
+            self.tree.set_base(i, 0, degree)
+
+    def _row(self, j, kind):
+        if self.degree_limit is not None and self.degree[j] > self.degree_limit:
+            raise AssertionError("An excluded vertex must never be scanned")
+        if j not in self.adjacency:
+            row = []
+            for i in self.oracle.neighbors(j):
+                row.append(i)
+                self.metrics.first_adjacency_entries += 1
+            if len(row) != self.degree[j]:
+                raise ValueError("Degree and adjacency disagree")
+            self.adjacency[j] = tuple(row)
+        for i in self.adjacency[j]:
+            self.metrics.scanned_adjacency_entries += 1
+            if kind == "baseline":
+                self.metrics.baseline_adjacency_entries += 1
+            elif kind == "selected":
+                self.metrics.selected_adjacency_entries += 1
+            else:
+                raise ValueError(kind)
+            self._expose(i)
+            if self.degree_limit is not None and self.degree[i] > self.degree_limit:
+                self.excluded_neighbor_entries += 1
+            else:
+                yield i
+
+    def _install_exceptions(self):
+        exceptions = AVLSet(self.z)
+        exceptions.update(self.M)
+        exceptions.update(self.source)
+        self.exceptions = exceptions
+        self.metrics.source_refresh_records += len(self.source)
+        for i in exceptions:
+            extra = (self.D - self.A) * self.T * (
+                self.degree[i] * self.z.get(i, 0) + self.M.get(i, 0)
+            ) + self.T * (self.T + 1) * self.source.get(i, 0)
+            self.tree.set_exception(
+                i, self.S * self._base(i) + self.H * extra, self.degree[i]
+            )
+            self.metrics.exception_refresh_records += 1
+
+    def _rebase(self):
+        next_X, next_L = (AVLMap(), AVLMap())
+        for i, value in self.X.items():
+            product = self.S * value
+            rounded = product // self.H
+            self.metrics.rebase_input_records += 1
+            self.metrics.state_integer_floors += 1
+            self.metrics.rebase_rounding_records += int(product % self.H != 0)
+            if rounded:
+                next_X[i] = rounded
+        for i, value in self.L.items():
+            product = self.S * value
+            rounded = product // self.H
+            self.metrics.scalar_neighbor_rebase_records += 1
+            self.metrics.state_integer_floors += 1
+            self.metrics.scalar_neighbor_rounding_records += int(product % self.H != 0)
+            if rounded:
+                next_L[i] = rounded
+        self.X, self.L, self.S = (next_X, next_L, self.H)
+        for i in self.degree:
+            self._set_base(i)
+            self.metrics.rebase_exposed_records += 1
+        self.metrics.rebases += 1
+
+    def step(self):
+        if self.metrics.iterations >= self.target_iterations:
+            raise ValueError("The prescribed fixed-block stage is complete")
+        projection = self.tree.project_counts(
+            base_scale=self.S,
+            common_denominator=self.G,
+            shift=self.shift,
+            upper=self.upper,
+            cap=self.mass_cap,
+            grid=self.grid,
+        )
+        for i in self.exceptions:
+            self._set_base(i)
+            self.metrics.exception_refresh_records += 1
+        scale_product = (self.T - 1) * self.S
+        new_S = scale_product // self.T
+        self.metrics.state_integer_floors += 1
+        self.metrics.scale_rounding_steps += int(scale_product % self.T != 0)
+        if new_S <= 0:
+            raise ArithmeticError("Rounded scale became zero")
+        p, changes, touched = (AVLMap(), AVLMap(), AVLSet())
+        for i, count, degree in projection.entries:
+            p[i] = count
+            numerator, denominator = (self.H * count, self.T * new_S)
+            change = numerator // denominator
+            self.metrics.state_integer_floors += 1
+            self.metrics.selected_update_rounding_records += int(
+                numerator % denominator != 0
+            )
+            if change:
+                self.X[i] = self.X.get(i, 0) + change
+                changes[i] = change
+                touched.add(i)
+                self.metrics.sparse_record_updates += 1
+        next_M = AVLMap()
+        for j, value in p.items():
+            change = changes.get(j, 0)
+            for i in self._row(j, "selected"):
+                next_M[i] = next_M.get(i, 0) + value
+                self.metrics.sparse_record_updates += 1
+                if change:
+                    self.L[i] = self.L.get(i, 0) + change
+                    touched.add(i)
+                    self.metrics.sparse_record_updates += 1
+        self.S, self.z, self.M = (new_S, p, next_M)
+        rebased = 2 * self.S < self.H
+        if rebased:
+            self._rebase()
+        else:
+            for i in touched:
+                self._set_base(i)
+        self._install_exceptions()
+        volume = sum((degree for _, _, degree in projection.entries))
+        self.metrics.kinetic_volume += volume
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(projection.cap_active)
+        if self.metrics.iterations % self.T == 0:
+            self.decay_denominator *= 2
+            self.metrics.completed_blocks += 1
+        self.last_step = (volume, rebased, projection.multiplier, projection.cap_active)
+        return projection
+
+    @property
+    def sigma(self):
+        return F(self.S, self.H)
+
+    @property
+    def objective_gap_bound(self):
+        return F(1, self.decay_denominator) + self.gamma_bound
+
+    def output(self, include_baseline=True):
+        support = AVLSet(self.X)
+        if include_baseline:
+            support.update(self.baseline)
+        result = []
+        for i in support:
+            numerator = self.S * self.X.get(i, 0)
+            if include_baseline:
+                numerator += self.H * self.baseline.get(i, 0)
+            if numerator:
+                result.append((i, F(numerator, self.H * self.H), self.degree[i]))
+                self.metrics.materialized_candidate_records += 1
+        return tuple(result)
+
+    def run(self):
+        while self.metrics.iterations < self.target_iterations:
+            self.step()
+        assert self.objective_gap_bound < self.tolerance
+        return self.output()
+
+    def integer_size_snapshot(self):
+        """Optional charged scan of stored integers, not an internal trace.
+
+        The default run does not collect this diagnostic. It records state
+        and reporter-node integers at the instant of this explicit call.
+        """
+        bits = max(
+            (
+                abs(v).bit_length()
+                for v in (self.A, self.D, self.T, self.H, self.S, self.G)
+            )
+        )
+        records = 0
+        for mapping in (
+            self.baseline,
+            self.degree,
+            self.X,
+            self.L,
+            self.z,
+            self.M,
+            self.source,
+        ):
+            for i, value in mapping.items():
+                bits = max(bits, abs(i).bit_length(), abs(value).bit_length())
+                records += 1
+        for tree in (self.tree.base, self.tree.exception):
+            stack = [tree.root] if tree.root else []
+            while stack:
+                node = stack.pop()
+                bits = max(
+                    bits,
+                    *(
+                        abs(v).bit_length()
+                        for v in (
+                            node.numerator,
+                            node.degree,
+                            node.numerator_sum,
+                            node.degree_sum,
+                        )
+                    ),
+                )
+                records += 1
+                if node.left:
+                    stack.append(node.left)
+                if node.right:
+                    stack.append(node.right)
+        self.metrics.diagnostic_state_records += records
+        return dict(
+            stored_integer_bits=bits,
+            scanned_records=records,
+            scope="stored state and tree moments at explicit snapshot; no temporary trace",
+        )
+
+    @property
+    def diagnostic_metrics(self):
+        result = asdict(self.metrics)
+        result["reporter"] = asdict(self.tree.metrics)
+        result["excluded_neighbor_entries"] = self.excluded_neighbor_entries
+        result["actual_box_upper_density"] = self.upper
+        result["arithmetic_measurement_mode"] = (
+            "integer state; no automatic bit-size measurement"
+        )
+        for field in (
+            "measured_rational_values",
+            "max_numerator_bits",
+            "max_denominator_bits",
+            "max_integer_bits",
+            "max_comparison_product_bits",
+            "max_grid_state_numerator_bits",
+            "max_grid_state_denominator_bits",
+        ):
+            result[field] = None
+        return result
+
+
+def _projected_gradient(corrector, candidate, *, compute_norm=False):
+    """Compute the exact PG point, opening only old candidate rows.
+
+    An optional squared displacement upper bound uses a common denominator,
+    so unrelated original degrees never create an LCM in the norm sum.
+    """
+    oracle, seed, alpha, rho = (
+        corrector.oracle,
+        corrector.seed,
+        corrector.alpha,
+        corrector.rho,
+    )
+    degrees, adjacency = (corrector.degree, corrector.adjacency)
+    metrics, values = (PGRepairMetrics(), AVLMap())
+    for i, value, degree in candidate:
+        values[i] = value
+        metrics.candidate_records += 1
+        metrics.candidate_volume += degree
+    incoming = AVLMap(((seed, alpha),))
+    metrics.accumulation_updates += 1
+    c, lam = ((1 - alpha) / 2, alpha * rho)
+    for j, value in values.items():
+        incoming[j] = incoming.get(j, F(0)) + c * degrees[j] * value
+        metrics.accumulation_updates += 1
+        if j not in adjacency:
+            row = tuple(oracle.neighbors(j))
+            metrics.first_adjacency_entries += len(row)
+            if len(row) != degrees[j]:
+                raise ValueError("Candidate degree and adjacency disagree")
+            adjacency[j] = row
+        for i in adjacency[j]:
+            incoming[i] = incoming.get(i, F(0)) + c * value
+            metrics.scanned_adjacency_entries += 1
+            metrics.accumulation_updates += 1
+    projected = []
+    norm_denominator = 2 * alpha.denominator * corrector.H**2 * rho.denominator
+    norm_sum, norm_records, norm_rounding_records = 0, 0, 0
+    for i, numerator in incoming.items():
+        metrics.affected_records += 1
+        if i not in degrees:
+            degree = oracle.degree(i)
+            metrics.degree_replies += 1
+            if not isinstance(i, int) or not isinstance(degree, int) or degree <= 0:
+                raise ValueError(
+                    "Integer labels and positive integer degrees are required"
+                )
+            degrees[i] = degree
+        degree = degrees[i]
+        if corrector.degree_limit is not None and degree > corrector.degree_limit:
+            continue
+        pg = max(F(0), numerator / degree - lam)
+        if compute_norm:
+            displacement = (values.get(i, F(0)) - pg) * norm_denominator * degree
+            assert displacement.denominator == 1
+            square = displacement.numerator**2
+            norm_sum += (square + degree - 1) // degree
+            norm_records += 1
+            norm_rounding_records += int(square % degree != 0)
+        if pg:
+            metrics.positive_records += 1
+            metrics.positive_volume += degree
+            if i not in values:
+                metrics.newly_positive_records += 1
+                metrics.newly_positive_volume += degree
+            projected.append((i, pg, degree))
+    upper = F(norm_sum, norm_denominator**2) if compute_norm else None
+    diagnostics = dict(
+        norm_records=norm_records,
+        norm_rounding_records=norm_rounding_records,
+        norm_denominator=norm_denominator if compute_norm else None,
+    )
+    return tuple(projected), metrics, upper, diagnostics
+
+
+def _terminal_repair(corrector, candidate, delta, *, projected_state=None):
+    """One exact PG pass, immediate clipping, grid floor, and safe maximum.
+
+    A successful checkpoint may supply its already computed PG point. Newly
+    positive PG neighbors never have their rows inspected.
+    """
+    if projected_state is None:
+        projected_state = _projected_gradient(corrector, candidate)
+    projected, metrics, _, _ = projected_state
+    degrees = corrector.degree
+    rounded = AVLMap()
+    rounding_records, rounding_changes = (0, 0)
+    for i, pg, degree in projected:
+        clipped = max(F(0), pg - delta)
+        if clipped:
+            metrics.retained_records += 1
+            rounding_records += 1
+            count = clipped.numerator * corrector.H // clipped.denominator
+            rounding_changes += int(
+                count * clipped.denominator != clipped.numerator * corrector.H
+            )
+            if count:
+                rounded[i] = count
+        elif pg:
+            metrics.truncated_positive_records += 1
+    support = AVLSet(rounded)
+    support.update(corrector.baseline)
+    repaired, preservations = ([], 0)
+    for i in support:
+        count = max(rounded.get(i, 0), corrector.baseline.get(i, 0))
+        preservations += int(corrector.baseline.get(i, 0) > rounded.get(i, 0))
+        if count:
+            repaired.append((i, F(count, corrector.H), degrees[i]))
+    return (
+        tuple(repaired),
+        metrics,
+        dict(
+            grid_repair_records=rounding_records,
+            grid_repair_rounding_records=rounding_changes,
+            baseline_max_records=len(support),
+            baseline_max_preservations=preservations,
+        ),
+    )
+
+
+def _run_with_checkpoints(corrector, delta, enabled):
+    """Stop on a certified PG point, or retain the prescribed energy horizon.
+
+    Checks occur at powers of two and never scan the PG point's new rows.
+    Failed checks are charged separately; the successful pass is reused and
+    charged as terminal repair. Its norm arithmetic is always charged here.
+    """
+    statistics = dict(
+        checks=[], failed_pg_metrics={}, norm_records=0, norm_rounding_records=0
+    )
+    if not enabled:
+        return corrector.run(), None, statistics
+    checkpoint = 1
+    threshold = corrector.alpha**2 * delta**2 / 4
+    while corrector.metrics.iterations < corrector.target_iterations:
+        corrector.step()
+        if (
+            corrector.metrics.iterations != checkpoint
+            or corrector.metrics.iterations == corrector.target_iterations
+        ):
+            continue
+        checkpoint *= 2
+        candidate = corrector.output()
+        projected_state = _projected_gradient(corrector, candidate, compute_norm=True)
+        _, pg_metrics, displacement_upper, norm_metrics = projected_state
+        residual_upper = (1 - corrector.alpha) ** 2 * displacement_upper
+        passed = residual_upper <= threshold
+        statistics["checks"].append(
+            dict(
+                iteration=corrector.metrics.iterations,
+                squared_subgradient_bound=residual_upper,
+                threshold=threshold,
+                passed=passed,
+            )
+        )
+        for key in ("norm_records", "norm_rounding_records"):
+            statistics[key] += norm_metrics[key]
+        if passed:
+            return candidate, projected_state, statistics
+        for key, value in asdict(pg_metrics).items():
+            statistics["failed_pg_metrics"][key] = (
+                statistics["failed_pg_metrics"].get(key, 0) + value
+            )
+    assert corrector.objective_gap_bound < corrector.tolerance
+    return corrector.output(), None, statistics
+
+
+def solve_rppr_integer(
+    oracle,
+    seed,
+    alpha,
+    rho,
+    epsilon,
+    *,
+    corrector_class=IntegerDyadicCorrector,
+    prune=True,
+    adaptive_box=True,
+    early_certificate=False,
+):
+    """Bounded integer-state continuation; public result matches the reference."""
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not isinstance(seed, int) or not 0 < alpha <= 1 or rho <= 0 or (epsilon <= 0):
+        raise ValueError("Need integer seed, 0<alpha<=1, rho>0, epsilon>0")
+    metrics = PracticalContinuationMetrics()
+    seed_degree = oracle.degree(seed)
+    metrics.seed_degree_queries = 1
+    if not isinstance(seed_degree, int) or seed_degree <= 0:
+        raise ValueError("The seed must have positive integer degree")
+    if rho * seed_degree >= 1:
+        return SolverResult((), F(0), None, (), metrics)
+    if alpha == 1:
+        metrics.final_output_words = 3
+        return SolverResult(
+            ((seed, F(1, seed_degree) - rho, seed_degree),), F(0), None, (), metrics
+        )
+    theta = F(1, 2)
+    while theta**2 > alpha:
+        theta /= 2
+        metrics.momentum_halvings += 1
+    baseline, summaries = (AVLMap(), [])
+    previous_rho = F(1, seed_degree)
+    final_output, final_gap = ((), F(0))
+    while previous_rho > rho:
+        current_rho = max(rho, previous_rho / 2)
+        metrics.schedule_operations += 1
+        final_stage = current_rho == rho
+        delta = alpha * current_rho / 2
+        if final_stage:
+            while delta**2 > epsilon * current_rho / 2:
+                delta /= 2
+                metrics.tolerance_halvings += 1
+        tolerance = alpha * delta**2 / 8
+        corrector = corrector_class(
+            oracle,
+            seed,
+            alpha,
+            theta,
+            current_rho,
+            tolerance,
+            baseline,
+            degree_limit=1 / rho if prune else None,
+            adaptive_box=adaptive_box,
+        )
+        candidate, prepared_pg, checkpoint_metrics = _run_with_checkpoints(
+            corrector, delta, early_certificate
+        )
+        assert corrector.grid <= min(delta / 2, alpha * current_rho / 4)
+        repaired, pgm, repair_counts = _terminal_repair(
+            corrector, candidate, delta, projected_state=prepared_pg
+        )
+        certified_point = (
+            "projected-gradient" if prepared_pg is not None else "candidate"
+        )
+        certified_gap = (
+            ((1 - alpha) ** 2 * prepared_pg[2] / (2 * alpha))
+            if prepared_pg is not None
+            else corrector.objective_gap_bound
+        )
+        assert certified_gap <= tolerance
+        metrics.checkpoint_checks += len(checkpoint_metrics["checks"])
+        metrics.checkpoint_early_stages += int(prepared_pg is not None)
+        metrics.checkpoint_norm_records += checkpoint_metrics["norm_records"]
+        metrics.checkpoint_norm_rounding_records += checkpoint_metrics[
+            "norm_rounding_records"
+        ]
+        for key, value in checkpoint_metrics["failed_pg_metrics"].items():
+            metrics.checkpoint_failed_pg_metrics[key] = (
+                metrics.checkpoint_failed_pg_metrics.get(key, 0) + value
+            )
+        metrics.repaired_input_records += pgm.candidate_records
+        metrics.repair_degree_replies += pgm.degree_replies
+        metrics.repair_first_adjacency_entries += pgm.first_adjacency_entries
+        metrics.repair_scanned_adjacency_entries += pgm.scanned_adjacency_entries
+        metrics.repair_accumulation_updates += pgm.accumulation_updates
+        metrics.repair_affected_records += pgm.affected_records
+        for key, value in repair_counts.items():
+            setattr(metrics, key, getattr(metrics, key) + value)
+        metrics.repaired_output_records += len(repaired)
+        volume = sum((degree for _, _, degree in repaired))
+        mass = sum((value * degree for _, value, degree in repaired), F(0))
+        kinetic_bound = F(360 * corrector.metrics.iterations) / current_rho
+        assert volume <= 1 / current_rho and 0 <= mass <= 1
+        assert corrector.metrics.kinetic_volume <= kinetic_bound
+        assert corrector.metrics.rebase_adjacency_entries == 0
+        summaries.append(
+            PracticalStageSummary(
+                regularization=current_rho,
+                delta=delta,
+                requested_gap=tolerance,
+                certified_gap=certified_gap,
+                iterations=corrector.metrics.iterations,
+                kinetic_volume=corrector.metrics.kinetic_volume,
+                kinetic_volume_bound=kinetic_bound,
+                baseline_volume=sum((corrector.degree[i] for i in baseline)),
+                source_records=len(corrector.source),
+                source_mass=corrector.source_mass,
+                repaired_volume=volume,
+                repaired_mass=mass,
+                repaired_output=repaired,
+                corrector_metrics=corrector.diagnostic_metrics,
+                grid=corrector.grid,
+                projection_mass_cap=corrector.mass_cap,
+                projected_gradient_metrics=asdict(pgm),
+                certified_point=certified_point,
+                checkpoint_metrics=checkpoint_metrics,
+                **repair_counts,
+            )
+        )
+        baseline = AVLMap(((i, value) for i, value, _ in repaired))
+        previous_rho = current_rho
+        if final_stage:
+            final_output, final_gap = (repaired, 2 * delta**2 / current_rho)
+            assert final_gap <= epsilon
+    metrics.final_output_words = 3 * len(final_output)
+    return SolverResult(final_output, final_gap, theta, tuple(summaries), metrics)

@@ -1,0 +1,409 @@
+"""Two disjoint integer-moment AVL trees for exact clipped waterfilling.
+
+Point updates construct no Fractions. A base record (b,d,i) has physical
+raw density S*b/(G*d)-shift; an exception (n,d,i) has n/(G*d)-shift.
+S and G are positive integers supplied to each query. Tree order and
+moments use integers only. project_counts returns positive integer grid
+counts, so even emitted-coordinate floors need no Fraction construction.
+Only the O(log^2(N+2)) root-query arithmetic uses exact rational values.
+"""
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+from ._avl import AVLMap
+
+
+@dataclass
+class ReporterMetrics:
+    point_updates: int = 0
+    point_removals: int = 0
+    moves: int = 0
+    cleared_records: int = 0
+    integer_key_comparisons: int = 0
+    tree_visits: int = 0
+    rotations: int = 0
+    rank_queries: int = 0
+    tail_queries: int = 0
+    mass_queries: int = 0
+    breakpoint_candidates: int = 0
+    projection_queries: int = 0
+    emissions: int = 0
+    emitted_integer_floors: int = 0
+
+
+@dataclass(slots=True)
+class _Node:
+    numerator: int
+    degree: int
+    vertex: int
+    left: object = None
+    right: object = None
+    height: int = 1
+    count: int = 1
+    degree_sum: int = 0
+    numerator_sum: int = 0
+
+    def __post_init__(self):
+        self.degree_sum = self.degree
+        self.numerator_sum = self.numerator
+
+
+def _height(node):
+    return node.height if node else 0
+
+
+def _count(node):
+    return node.count if node else 0
+
+
+def _degrees(node):
+    return node.degree_sum if node else 0
+
+
+def _numerators(node):
+    return node.numerator_sum if node else 0
+
+
+class IntegerMomentAVL:
+    """Keys numerator/degree, with integer vertex IDs breaking exact ties."""
+
+    def __init__(self, metrics=None):
+        self.root = None
+        self.metrics = metrics if metrics is not None else ReporterMetrics()
+
+    def __len__(self):
+        return _count(self.root)
+
+    def _compare(self, numerator, degree, vertex, node):
+        self.metrics.integer_key_comparisons += 1
+        left, right = (numerator * node.degree, node.numerator * degree)
+        if left != right:
+            return -1 if left < right else 1
+        if vertex == node.vertex:
+            return 0
+        return -1 if vertex < node.vertex else 1
+
+    def _refresh(self, node):
+        node.height = 1 + max(_height(node.left), _height(node.right))
+        node.count = 1 + _count(node.left) + _count(node.right)
+        node.degree_sum = node.degree + _degrees(node.left) + _degrees(node.right)
+        node.numerator_sum = (
+            node.numerator + _numerators(node.left) + _numerators(node.right)
+        )
+        return node
+
+    def _left(self, node):
+        self.metrics.rotations += 1
+        top = node.right
+        node.right = top.left
+        top.left = self._refresh(node)
+        return self._refresh(top)
+
+    def _right(self, node):
+        self.metrics.rotations += 1
+        top = node.left
+        node.left = top.right
+        top.right = self._refresh(node)
+        return self._refresh(top)
+
+    def _balance(self, node):
+        self._refresh(node)
+        difference = _height(node.left) - _height(node.right)
+        if difference > 1:
+            if _height(node.left.left) < _height(node.left.right):
+                node.left = self._left(node.left)
+            return self._right(node)
+        if difference < -1:
+            if _height(node.right.right) < _height(node.right.left):
+                node.right = self._right(node.right)
+            return self._left(node)
+        return node
+
+    def insert(self, numerator, degree, vertex):
+
+        def put(node):
+            self.metrics.tree_visits += 1
+            if node is None:
+                return _Node(numerator, degree, vertex)
+            comparison = self._compare(numerator, degree, vertex, node)
+            if comparison < 0:
+                node.left = put(node.left)
+            elif comparison > 0:
+                node.right = put(node.right)
+            else:
+                raise ValueError("Duplicate exact reporter record")
+            return self._balance(node)
+
+        self.root = put(self.root)
+
+    def remove(self, numerator, degree, vertex):
+
+        def erase(node, n, d, i):
+            self.metrics.tree_visits += 1
+            if node is None:
+                raise KeyError(i)
+            comparison = self._compare(n, d, i, node)
+            if comparison < 0:
+                node.left = erase(node.left, n, d, i)
+            elif comparison > 0:
+                node.right = erase(node.right, n, d, i)
+            else:
+                if node.left is None:
+                    return node.right
+                if node.right is None:
+                    return node.left
+                successor = node.right
+                while successor.left:
+                    self.metrics.tree_visits += 1
+                    successor = successor.left
+                node.numerator, node.degree, node.vertex = (
+                    successor.numerator,
+                    successor.degree,
+                    successor.vertex,
+                )
+                node.right = erase(
+                    node.right, successor.numerator, successor.degree, successor.vertex
+                )
+            return self._balance(node)
+
+        self.root = erase(self.root, numerator, degree, vertex)
+
+    def rank_record(self, rank):
+        self.metrics.rank_queries += 1
+        if not 0 <= rank < len(self):
+            raise IndexError(rank)
+        node = self.root
+        while node:
+            self.metrics.tree_visits += 1
+            left_count = _count(node.left)
+            if rank < left_count:
+                node = node.left
+            elif rank == left_count:
+                return (node.numerator, node.degree, node.vertex)
+            else:
+                rank -= left_count + 1
+                node = node.right
+        raise AssertionError("Corrupt rank metadata")
+
+    def tail_moments(self, threshold_numerator, threshold_denominator):
+        """Strict rational-key tail, returning (degree sum, numerator sum)."""
+        if threshold_denominator <= 0:
+            raise ValueError("Threshold denominator must be positive")
+        self.metrics.tail_queries += 1
+        total_d, total_n, node = (0, 0, self.root)
+        while node:
+            self.metrics.tree_visits += 1
+            self.metrics.integer_key_comparisons += 1
+            if (
+                node.numerator * threshold_denominator
+                <= threshold_numerator * node.degree
+            ):
+                node = node.right
+            else:
+                total_d += node.degree + _degrees(node.right)
+                total_n += node.numerator + _numerators(node.right)
+                node = node.left
+        return (total_d, total_n)
+
+    def at_least(self, threshold_numerator, threshold_denominator):
+        """Inclusive rational-key tail in deterministic key/vertex order."""
+        if threshold_denominator <= 0:
+            raise ValueError("Threshold denominator must be positive")
+
+        def visit(node):
+            if node is None:
+                return
+            self.metrics.tree_visits += 1
+            self.metrics.integer_key_comparisons += 1
+            if (
+                node.numerator * threshold_denominator
+                < threshold_numerator * node.degree
+            ):
+                yield from visit(node.right)
+            else:
+                yield from visit(node.left)
+                yield (node.numerator, node.degree, node.vertex)
+                yield from visit(node.right)
+
+        yield from visit(self.root)
+
+
+@dataclass(frozen=True)
+class ProjectionResult:
+    """Entries are (vertex, positive integer grid count, degree).
+
+    Entry density equals count*the caller's grid. Base-tree entries appear
+    first, then exception entries, each in its own key/vertex order.
+    """
+
+    entries: tuple
+    multiplier: F
+    cap_active: bool
+
+
+class IntegerClippedReporter:
+    def __init__(self):
+        self.metrics = ReporterMetrics()
+        self.base = IntegerMomentAVL(self.metrics)
+        self.exception = IntegerMomentAVL(self.metrics)
+        self.records = AVLMap()
+
+    def __len__(self):
+        return len(self.records)
+
+    def _set(self, kind, vertex, numerator, degree):
+        if (
+            not all((isinstance(value, int) for value in (vertex, numerator, degree)))
+            or degree <= 0
+        ):
+            raise ValueError(
+                "Need integer vertex/numerator and positive integer degree"
+            )
+        new = (kind, numerator, degree)
+        old = self.records.get(vertex)
+        if old == new:
+            return
+        if old is not None:
+            old_kind, old_n, old_d = old
+            (self.base if old_kind == 0 else self.exception).remove(
+                old_n, old_d, vertex
+            )
+            self.metrics.moves += int(old_kind != kind)
+        (self.base if kind == 0 else self.exception).insert(numerator, degree, vertex)
+        self.records[vertex] = new
+        self.metrics.point_updates += 1
+
+    def set_base(self, vertex, numerator, degree):
+        """Insert/replace base record, removing any old exception for vertex."""
+        self._set(0, vertex, numerator, degree)
+
+    def set_exception(self, vertex, numerator, degree):
+        """Insert/replace exception, removing any old base record for vertex."""
+        self._set(1, vertex, numerator, degree)
+
+    def remove(self, vertex):
+        kind, numerator, degree = self.records[vertex]
+        (self.base if kind == 0 else self.exception).remove(numerator, degree, vertex)
+        del self.records[vertex]
+        self.metrics.point_removals += 1
+
+    def discard(self, vertex):
+        if vertex not in self.records:
+            return False
+        self.remove(vertex)
+        return True
+
+    def clear(self):
+        self.metrics.cleared_records += len(self)
+        self.base.root = self.exception.root = None
+        self.records.clear()
+
+    @staticmethod
+    def _validate_globals(base_scale, common_denominator, shift, upper, cap):
+        if not isinstance(base_scale, int) or base_scale <= 0:
+            raise ValueError("base_scale must be a positive integer")
+        if not isinstance(common_denominator, int) or common_denominator <= 0:
+            raise ValueError("common_denominator must be a positive integer")
+        shift, upper, cap = map(F, (shift, upper, cap))
+        if upper <= 0 or cap < 0:
+            raise ValueError("Need positive upper box and nonnegative mass cap")
+        return (shift, upper, cap)
+
+    def _scaled_mass(self, q, S, width):
+        """G times clipped mass at q=(gamma+shift)*G; right slope."""
+        self.metrics.mass_queries += 1
+        lower, higher = (q, q + width)
+        dl = dh = nl = nh = 0
+        for tree, scale in ((self.base, S), (self.exception, 1)):
+            low_d, low_n = tree.tail_moments(lower.numerator, lower.denominator * scale)
+            high_d, high_n = tree.tail_moments(
+                higher.numerator, higher.denominator * scale
+            )
+            dl += low_d
+            dh += high_d
+            nl += scale * low_n
+            nh += scale * high_n
+        return (nl - nh - lower * (dl - dh) + width * dh, dl - dh)
+
+    def _threshold(self, S, initial_q, width, target):
+        mass0, _ = self._scaled_mass(initial_q, S, width)
+        if mass0 <= target:
+            return (initial_q, False)
+        maxima = []
+        for tree, scale in ((self.base, S), (self.exception, 1)):
+            if len(tree):
+                numerator, degree, _ = tree.rank_record(len(tree) - 1)
+                maxima.append(F(scale * numerator, degree))
+        high, low = (max(maxima), initial_q)
+        if target == 0:
+            return (high, True)
+        for tree, scale in ((self.base, S), (self.exception, 1)):
+            for translation in (F(0), width):
+                left, right = (0, len(tree))
+                while left < right:
+                    middle = (left + right) // 2
+                    numerator, degree, _ = tree.rank_record(middle)
+                    pivot = F(scale * numerator, degree) - translation
+                    self.metrics.breakpoint_candidates += 1
+                    if pivot <= low:
+                        left = middle + 1
+                        continue
+                    if pivot >= high:
+                        right = middle
+                        continue
+                    mass, _ = self._scaled_mass(pivot, S, width)
+                    if mass == target:
+                        return (pivot, True)
+                    if mass > target:
+                        low, left = (pivot, middle + 1)
+                    else:
+                        high, right = (pivot, middle)
+        mass, slope = self._scaled_mass(low, S, width)
+        if slope <= 0:
+            raise ArithmeticError("Invalid affine waterfill interval")
+        q = low + (mass - target) / slope
+        if not low < q <= high:
+            raise ArithmeticError("Root escaped its exact bracket")
+        return (q, True)
+
+    def project_counts(
+        self, *, base_scale, common_denominator, shift, upper, cap, grid
+    ):
+        """Project exactly, then floor densities to a dyadic grid.
+
+        Only entries at least one grid unit before rounding are visited.
+        Per-emitted-coordinate floor arithmetic uses integers only.
+        """
+        shift, upper, cap = self._validate_globals(
+            base_scale, common_denominator, shift, upper, cap
+        )
+        grid = F(grid)
+        if grid <= 0 or grid > upper or grid.denominator & grid.denominator - 1:
+            raise ValueError("Grid must be positive dyadic and at most upper")
+        self.metrics.projection_queries += 1
+        S, G = (base_scale, common_denominator)
+        q, active = self._threshold(S, shift * G, upper * G, cap * G)
+        gamma, cutoff = (q / G - shift, q + grid * G)
+        upper_count = (
+            upper.numerator * grid.denominator // (upper.denominator * grid.numerator)
+        )
+        result = []
+        for tree, scale in ((self.base, S), (self.exception, 1)):
+            tn, td = (cutoff.numerator, cutoff.denominator * scale)
+            for numerator, degree, vertex in tree.at_least(tn, td):
+                physical_numerator = (
+                    scale * numerator * q.denominator - q.numerator * degree
+                )
+                physical_denominator = G * degree * q.denominator
+                count = min(
+                    upper_count,
+                    physical_numerator
+                    * grid.denominator
+                    // (physical_denominator * grid.numerator),
+                )
+                if count <= 0:
+                    raise ArithmeticError("Closed tail emitted a zero grid count")
+                result.append((vertex, count, degree))
+                self.metrics.emissions += 1
+                self.metrics.emitted_integer_floors += 1
+        return ProjectionResult(tuple(result), gamma, active)

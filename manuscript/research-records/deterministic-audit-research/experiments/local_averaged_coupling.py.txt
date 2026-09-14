@@ -1,0 +1,268 @@
+"""Local averaged positive coupling with an ordered deterministic reporter.
+
+Accelerated convergence and O_tilde(T + cumulative auxiliary row volume)
+implementation are justified in notes/averaged-positive-coupling.md. The
+required bound on that volume remains OPEN; this is not an OP2 solver claim.
+"""
+
+from __future__ import annotations
+
+import math
+from dataclasses import dataclass
+
+from deterministic_avl import AVLMap
+
+
+@dataclass
+class VertexState:
+    degree: int
+    normalized_score: float = 0.0
+    normalized_primal: float = 0.0
+
+
+class Reporter:
+    def __init__(self, oracle, seed, alpha, rho):
+        if not 0 < alpha < 1:
+            raise ValueError("reporter requires 0 < alpha < 1")
+        self.oracle, self.seed, self.alpha, self.rho = oracle, seed, alpha, rho
+        self.s = math.sqrt(alpha)
+        self.q = 1 - self.s
+        self.a = (1 - alpha) / 2
+        self.scale = 1.0
+        self.scores = AVLMap()
+        self.vertices = AVLMap()
+        self.previous = []
+        self.iterations = 0
+        self.entries = 0
+        self.degree_replies = 0
+        self.records = 0
+        self.reported = 0
+        self.sort_comparisons = 0
+        self.rebase_visits = 0
+        self.rebases = 0
+        self.certificate_checks = 0
+        self.negative_score_mass_sum = 0.0
+        self.lambda_volume_sum = 0.0
+        self.auxiliary_volume_sum = 0.0
+        initial = self._ensure(seed)
+        if not 0 < rho < 1 / initial.degree:
+            raise ValueError("require 0 < rho < 1/d_seed")
+        self._add_score(seed, self.s / initial.degree)
+
+    def _ensure(self, vertex):
+        entry = self.vertices.get(vertex)
+        if entry is None:
+            degree = self.oracle.degree(vertex)
+            self.degree_replies += 1
+            entry = VertexState(degree)
+            self.vertices.set(vertex, entry)
+            self.scores.set((0.0, vertex), vertex, degree, 0.0)
+        return entry
+
+    def _add_score(self, vertex, increment):
+        entry = self._ensure(vertex)
+        self.scores.delete((entry.normalized_score, vertex))
+        entry.normalized_score += increment / self.scale
+        key = entry.normalized_score
+        self.scores.set((key, vertex), vertex, entry.degree, entry.degree * key)
+
+    def _sort_charge(self, length):
+        self.sort_comparisons += length * math.ceil(math.log2(max(2, length)))
+
+    def _project(self):
+        _, positive_score_sum = self.scores.sums_above_value(0.0)
+        negative_mass = self.scale * max(
+            0.0, positive_score_sum - self.scores.root.sum_value
+        )
+        self.negative_score_mass_sum += negative_mass
+        threshold = self.s * self.rho
+        weights, values = self.scores.sums_above_value(threshold / self.scale)
+        mass = self.scale * values - threshold * weights
+        if mass > 1:
+            left, right, best = 1, len(self.scores), 1
+            while left <= right:
+                middle = (left + right) // 2
+                weights, values = self.scores.prefix_largest(middle)
+                key, _ = self.scores.kth_largest(middle)
+                candidate = (self.scale * values - 1) / weights
+                if self.scale * key[0] > candidate:
+                    best = middle
+                    left = middle + 1
+                else:
+                    right = middle - 1
+            weights, values = self.scores.prefix_largest(best)
+            threshold = max(threshold, (self.scale * values - 1) / weights)
+        result = []
+        for key, vertex in self.scores.above_value(threshold / self.scale):
+            value = max(self.scale * key[0] - threshold, 0.0)
+            if value > 0:
+                entry = self.vertices.get(vertex)
+                result.append((vertex, entry.degree, value))
+        self.reported += len(result)
+        volume = sum(degree for _, degree, _ in result)
+        self.auxiliary_volume_sum += volume
+        self.lambda_volume_sum += max(0.0, threshold - self.s * self.rho) * volume
+        self._sort_charge(len(result))
+        result.sort(key=lambda row: row[0])
+        return result
+
+    def step(self):
+        current = self._project()
+        self.scale *= self.q
+        for vertex, _, value in current:
+            entry = self.vertices.get(vertex)
+            entry.normalized_primal += self.s * value / self.scale
+        source_degree = self.vertices.get(self.seed).degree
+        records = [(self.seed, self.alpha / source_degree, 0.0)]
+        old_index = new_index = 0
+        while old_index < len(self.previous) or new_index < len(current):
+            old_vertex = (
+                self.previous[old_index][0] if old_index < len(self.previous) else None
+            )
+            new_vertex = current[new_index][0] if new_index < len(current) else None
+            if new_vertex is None or (
+                old_vertex is not None and old_vertex < new_vertex
+            ):
+                vertex, degree, old = self.previous[old_index]
+                new = 0.0
+                old_index += 1
+            elif old_vertex is None or new_vertex < old_vertex:
+                vertex, degree, new = current[new_index]
+                old = 0.0
+                new_index += 1
+            else:
+                vertex, degree, old = self.previous[old_index]
+                new = current[new_index][2]
+                old_index += 1
+                new_index += 1
+            delta = 2 * new - self.q * old
+            own = self.q * new - self.q * self.q * old - self.a * delta / (1 + self.s)
+            records.append((vertex, own, 0.0))
+            if delta != 0:
+                scanned = 0
+                incoming = self.a * delta / (1 + self.s)
+                for neighbor in self.oracle.neighbors(vertex):
+                    self.entries += 1
+                    scanned += 1
+                    records.append((neighbor, 0.0, incoming))
+                if scanned != degree:
+                    raise ValueError("inconsistent graph oracle")
+        self.records += len(records)
+        self._sort_charge(len(records))
+        records.sort(key=lambda row: row[0])
+        cursor = 0
+        while cursor < len(records):
+            vertex = records[cursor][0]
+            own = incoming = 0.0
+            while cursor < len(records) and records[cursor][0] == vertex:
+                own += records[cursor][1]
+                incoming += records[cursor][2]
+                cursor += 1
+            entry = self._ensure(vertex)
+            self._add_score(vertex, own + incoming / entry.degree)
+        self.previous = current
+        self.iterations += 1
+        if self.scale < 1e-100:
+            self._rebase()
+        return current
+
+    def _rebase(self):
+        prior_visits = self.scores.visits
+        scores = AVLMap()
+        for vertex, entry in self.vertices.items():
+            entry.normalized_score *= self.scale
+            entry.normalized_primal *= self.scale
+            value = entry.normalized_score
+            scores.set((value, vertex), vertex, entry.degree, entry.degree * value)
+        self.rebase_visits += prior_visits
+        self.scores = scores
+        self.scale = 1.0
+        self.rebases += 1
+
+    def primal(self):
+        return [
+            (vertex, entry.degree, self.scale * entry.normalized_primal)
+            for vertex, entry in self.vertices.items()
+            if entry.normalized_primal > 0
+        ]
+
+    def output_and_certificate(self):
+        """Stable direct mapping norm from cached scores; no adjacency scan."""
+        auxiliary_cursor = 0
+        mapping_squared = 0.0
+        output = []
+        for vertex, entry in self.vertices.items():
+            degree = entry.degree
+            x = self.scale * entry.normalized_primal
+            h = self.scale * entry.normalized_score
+            z = 0.0
+            if (
+                auxiliary_cursor < len(self.previous)
+                and self.previous[auxiliary_cursor][0] == vertex
+            ):
+                z = self.previous[auxiliary_cursor][2]
+                auxiliary_cursor += 1
+            y = (x + self.s * z) / (1 + self.s)
+            p = max(self.q * x + self.s * h - self.alpha * self.rho, 0.0)
+            mapping_squared += degree * (y - p) ** 2
+            if p > 0:
+                output.append((vertex, degree, p))
+        self.records += len(self.vertices)
+        self.certificate_checks += 1
+        certificate = (1 - self.alpha) * mapping_squared / (2 * self.alpha)
+        return output, certificate
+
+    def ledger(self, output_words=0):
+        tree_visits = self.vertices.visits + self.scores.visits + self.rebase_visits
+        return {
+            "iterations": self.iterations,
+            "adjacency_entries": self.entries,
+            "degree_replies": self.degree_replies,
+            "contribution_records": self.records,
+            "reported_auxiliary_coordinates": self.reported,
+            "tree_visits": tree_visits,
+            "sort_comparison_upper_bound": self.sort_comparisons,
+            "rebases": self.rebases,
+            "certificate_checks": self.certificate_checks,
+            "auxiliary_volume_sum": self.auxiliary_volume_sum,
+            "negative_score_mass_sum": self.negative_score_mass_sum,
+            "lambda_volume_sum": self.lambda_volume_sum,
+            "signed_score_debit": self.negative_score_mass_sum - self.lambda_volume_sum,
+            "materialized_vertex_labels": len(self.vertices),
+            "output_words": output_words,
+            "algebraic_word_upper_bound": 256
+            * (tree_visits + self.records + self.reported + self.iterations)
+            + 16 * self.sort_comparisons
+            + self.entries
+            + self.degree_replies
+            + output_words,
+        }
+
+
+def solve(oracle, seed, alpha, rho, epsilon_obj):
+    if epsilon_obj <= 0:
+        raise ValueError("require epsilon_obj > 0")
+    reporter = Reporter(oracle, seed, alpha, rho)
+    degree = reporter.vertices.get(seed).degree
+    logarithm = max(
+        0.0, math.log(4) - math.log(alpha) - math.log(degree) - math.log(epsilon_obj)
+    )
+    iterations = 1 + math.ceil(logarithm / math.sqrt(alpha))
+    next_check = 1
+    for iteration in range(1, iterations + 1):
+        reporter.step()
+        if iteration == next_check or iteration == iterations:
+            output, certificate = reporter.output_and_certificate()
+            next_check *= 2
+            if certificate <= epsilon_obj:
+                break
+    return {
+        "state": output,
+        "objective_gap_certificate": certificate,
+        "epsilon_obj": epsilon_obj,
+        "converged": certificate <= epsilon_obj,
+        "ledger": reporter.ledger(3 * len(output)),
+        "algorithm_randomized": False,
+        "op2_work_theorem_proved": False,
+        "coordinate_convention": "u_i=x_i/sqrt(d_i); output triples are (vertex,d_i,u_i)",
+    }

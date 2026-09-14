@@ -1,0 +1,183 @@
+"""Exact tests against independent dense iteration and exhaustive KKT oracles."""
+import itertools
+import json
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from lazy_capped_solver import LazyCappedSolver, Metrics, Oracle, WeightedAVL
+from local_safe_solver import degree_objective
+from test_local_safe_solver import (connected_graphs, dense_exact_obstacle_oracle,
+                                    path, star, tree)
+
+
+def dense_project(raw, degrees):
+    positives = sorted(((value, i) for i, value in raw.items() if value > 0),
+                       reverse=True)
+    if sum((value*degrees[i] for value, i in positives), F(0)) <= 1:
+        return {i: value for value, i in positives}
+    total, w = F(0), 0
+    for j, (value, i) in enumerate(positives):
+        total += value*degrees[i]
+        w += degrees[i]
+        candidate = (total-1)/w
+        following = positives[j+1][0] if j+1 < len(positives) else F(0)
+        if candidate >= following:
+            return {i: value-candidate for value, i in positives if value > candidate}
+    raise AssertionError('Dense projection failed')
+
+
+def dense_step(adjacency, seed, theta, rho, x, z):
+    alpha = theta**2
+    y = {i: (x.get(i, 0)+theta*z.get(i, 0))/(1+theta) for i in adjacency}
+    gradient = {i: (1+alpha)/2*y[i] -(1-alpha)/2*sum(y[j] for j in adjacency[i])/len(adjacency[i])
+                   -alpha*int(i == seed)/len(adjacency[i])+alpha*rho for i in adjacency}
+    raw = {i: (1-theta)*z.get(i, 0)+theta*y[i]-gradient[i]/theta for i in adjacency}
+    znew = dense_project(raw, {i: len(row) for i, row in adjacency.items()})
+    xnew = {i: (1-theta)*x.get(i, 0)+theta*znew.get(i, 0) for i in adjacency}
+    return {i: value for i, value in xnew.items() if value}, znew
+
+
+LOG = {'dense_iteration_cases': 0, 'exact_iteration_comparisons': 0,
+       'objective_certificate_cases': 0, 'cap_active_state_checks': 0, 'fixtures': []}
+
+
+class LazyTests(unittest.TestCase):
+    def test_weighted_tree_all_insert_orders_and_deletions(self):
+        keys = [(F(-1), 0), (F(0), 1), (F(1, 3), 2), (F(1, 3), 3), (F(3), 4)]
+        for order in itertools.permutations(keys):
+            avl, current = WeightedAVL(Metrics()), {}
+            for key in order:
+                avl.insert(key, key[1]+1)
+                current[key] = key[1]+1
+            for remove_key in list(order)+[None]:
+                for low in (F(-2), F(0), F(1, 3), F(2), F(4)):
+                    for cap in (F(1, 7), F(1), F(7)):
+                        threshold, active = avl.threshold(low, cap)
+                        expected_tail = sum((w*max(key[0]-threshold, 0)
+                                             for key, w in current.items()), F(0))
+                        self.assertGreaterEqual(threshold, low)
+                        self.assertEqual(expected_tail, avl.tail_mass(threshold))
+                        self.assertTrue(expected_tail == cap if active else expected_tail <= cap)
+                        self.assertEqual(list(avl.above(threshold)),
+                                         sorted(key for key in current if key[0] > threshold))
+                if remove_key is not None:
+                    avl.delete(remove_key)
+                    del current[remove_key]
+
+    def compare(self, adjacency, seed, theta, rho, steps, label=None):
+        solver = LazyCappedSolver(Oracle(adjacency), seed, theta, rho)
+        x, z = {}, {}
+        for _ in range(steps):
+            x, z = dense_step(adjacency, seed, theta, rho, x, z)
+            solver.step()
+            actual_x = {i: solver.sigma*value for i, value in solver.X.items() if value}
+            self.assertEqual(actual_x, x)
+            self.assertEqual(solver.z, z)
+            for i in solver.degree:
+                actual_r = solver.c*(x.get(i, F(0))-sum((x.get(j, F(0)) for j in adjacency[i]), F(0))/len(adjacency[i]))
+                self.assertEqual(solver.sigma*solver.R.get(i, 0), actual_r)
+            self.assertEqual(solver.mass_x,
+                             sum((len(adjacency[i])*value for i, value in x.items()), F(0)))
+            LOG['exact_iteration_comparisons'] += 1
+        self.assertEqual(solver.metrics.scanned_adjacency_entries,
+                         sum(row[0] for row in solver.history))
+        self.assertLessEqual(solver.metrics.first_adjacency_entries,
+                             solver.metrics.scanned_adjacency_entries)
+        self.assertLessEqual(solver.metrics.degree_replies,
+                             solver.metrics.first_adjacency_entries+1)
+        LOG['dense_iteration_cases'] += 1
+        if label:
+            LOG['fixtures'].append(dict(label=label, n=len(adjacency),
+                                        x_support=len(x), z_support=len(z),
+                                        exposed=len(solver.degree), **asdict(solver.metrics)))
+        return solver
+
+    def test_all_connected_graphs_through_four_vertices(self):
+        for n in range(2, 5):
+            for mask, adjacency in connected_graphs(n):
+                for seed in adjacency:
+                    for theta in (F(1, 2), F(1, 4)):
+                        rho = F(1, 8*len(adjacency[seed]))
+                        with self.subTest(n=n, mask=mask, seed=seed, theta=theta):
+                            self.compare(adjacency, seed, theta, rho, 16)
+
+    def test_objective_certificate_against_exact_kkt(self):
+        for label, adjacency, seed in [('path8', path(8), 0), ('star8', star(8), 1),
+                                       ('tree7', tree(7), 0)]:
+            for theta in (F(1, 2), F(1, 4)):
+                rho, epsilon = F(1, 64), F(1, 10**7)
+                solver = LazyCappedSolver(Oracle(adjacency), seed, theta, rho)
+                result = {i: value for i, value, d in solver.run(epsilon)}
+                optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+                gap = (degree_objective(adjacency, result, seed, theta**2, rho)
+                       -degree_objective(adjacency, optimum, seed, theta**2, rho))
+                self.assertGreaterEqual(gap, 0)
+                self.assertLessEqual(gap, solver.objective_gap_bound)
+                self.assertLessEqual(solver.objective_gap_bound, epsilon)
+                LOG['objective_certificate_cases'] += 1
+
+    def test_larger_fronts_and_unscanned_hub(self):
+        for label, adjacency, seed, theta, rho, steps in [
+            ('tree127', tree(127), 0, F(1, 8), F(1, 4096), 60),
+            ('path65', path(65), 0, F(1, 8), F(1, 1024), 60),
+            ('degree1000-boundary', star(1001), 1, F(1, 4), F(1, 100), 50)]:
+            solver = self.compare(adjacency, seed, theta, rho, steps, label)
+            if label == 'degree1000-boundary':
+                self.assertEqual(set(solver.adjacency), {seed})
+                self.assertEqual(solver.metrics.first_adjacency_entries, 1)
+                self.assertEqual(solver.metrics.degree_replies, 2)
+
+    def test_cap_active_feasible_state_and_old_position_ghost(self):
+        # A feasible state with theta*z<=x tests a binding cap explicitly.
+        # It is injected for this one-step implementation test; it is not
+        # asserted to occur from the algorithm's zero initialization.
+        adjacency, seed, theta, rho = star(9), 0, F(1, 4), F(1, 100)
+        solver = LazyCappedSolver(Oracle(adjacency), seed, theta, rho)
+        x, z = {seed: F(1, 8)}, {}
+        for i in solver.exceptions: solver._set_key(i, solver._base_key(i))
+        solver.X = x.copy()
+        solver.R = solver._laplacian(x)
+        for i in solver.degree: solver._set_key(i, solver._base_key(i))
+        solver.mass_x = F(1)
+        solver._install_exceptions()
+        previous_scans = solver.metrics.scanned_adjacency_entries
+        expected_x, expected_z = dense_step(adjacency, seed, theta, rho, x, z)
+        solver.step()
+        self.assertEqual(solver.metrics.cap_active_iterations, 1)
+        self.assertEqual(solver.mass_z, 1)
+        self.assertEqual(solver.z, expected_z)
+        self.assertEqual({i: solver.sigma*f for i, f in solver.X.items()}, expected_x)
+        self.assertNotIn(seed, solver.z)
+        self.assertEqual(expected_x[seed], (1-theta)*x[seed])
+        self.assertEqual(solver.metrics.scanned_adjacency_entries-previous_scans,
+                         sum(len(adjacency[i]) for i in expected_z))
+        LOG['cap_active_state_checks'] += 1
+
+    def test_certified_warm_start_refinement(self):
+        from forest_batch_solver import AdjacencyOracle, solve
+        for adjacency, seed in [(path(8), 0), (tree(7), 0), (star(8), 1)]:
+            theta, rho = F(1, 4), F(1, 64)
+            coarse_tolerance = theta**4*rho/2
+            coarse = solve(AdjacencyOracle(adjacency), seed, theta**2, rho, coarse_tolerance)
+            solver = LazyCappedSolver(Oracle(adjacency), seed, theta, rho)
+            solver.initialize_from_primal(coarse.y, coarse.objective_gap_bound)
+            initial_scans = solver.metrics.scanned_adjacency_entries
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+            answer = {i: value for i, value, d in solver.run(F(1, 10**12))}
+            gap = (degree_objective(adjacency, answer, seed, theta**2, rho)
+                   -degree_objective(adjacency, optimum, seed, theta**2, rho))
+            self.assertLessEqual(gap, solver.objective_gap_bound)
+            self.assertLessEqual(solver.objective_gap_bound, F(1, 10**12))
+            self.assertLessEqual(solver.initial_energy_bound, theta**4*rho)
+            self.assertTrue(all(row[0] < 13/rho for row in solver.history))
+            self.assertEqual(solver.metrics.scanned_adjacency_entries-initial_scans,
+                             sum(row[0] for row in solver.history))
+
+
+if __name__ == '__main__':
+    result = unittest.main(exit=False)
+    LOG['passed'] = result.result.wasSuccessful()
+    Path(__file__).with_name('lazy_capped_verification.json').write_text(json.dumps(LOG, indent=2))
+    raise SystemExit(0 if LOG['passed'] else 1)

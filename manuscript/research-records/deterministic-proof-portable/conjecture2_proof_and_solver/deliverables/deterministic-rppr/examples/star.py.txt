@@ -1,0 +1,49 @@
+"""An exact local answer beside a large, unscanned hub."""
+
+from fractions import Fraction
+from pathlib import Path
+import sys
+
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from deterministic_rppr import solve_with_singleton, certify_output
+
+
+class StarOracle:
+    def __init__(self,leaves):
+        self.leaves = leaves
+        self.degree_replies = 0
+        self.adjacency_entries = 0
+
+    def degree(self,vertex):
+        if not 0 <= vertex <= self.leaves:
+            raise ValueError('Vertex is outside this star')
+        self.degree_replies += 1
+        return self.leaves if vertex == 0 else 1
+
+    def neighbors(self,vertex):
+        if not 0 <= vertex <= self.leaves:
+            raise ValueError('Vertex is outside this star')
+        if vertex == 0:
+            for neighbor in range(1,self.leaves+1):
+                self.adjacency_entries += 1
+                yield neighbor
+        else:
+            self.adjacency_entries += 1
+            yield 0
+
+
+if __name__ == '__main__':
+    leaves = 10**9
+    alpha,rho,epsilon = Fraction(1,100),Fraction(1,64),Fraction(1,10**20)
+    oracle = StarOracle(leaves)
+    result = solve_with_singleton(oracle,leaves,alpha,rho,epsilon)
+    assert result.outcome == 'singleton' and result.objective_gap_bound == 0
+    assert (oracle.degree_replies,oracle.adjacency_entries) == (2,1)
+    print('Outcome:',result.outcome)
+    print('Exact sparse density output:',result.output)
+    print('Certified objective gap:',result.objective_gap_bound)
+    print('Degree replies:',oracle.degree_replies)
+    print('Adjacency entries:',oracle.adjacency_entries)
+    check = certify_output(StarOracle(leaves),leaves,alpha,rho,result.output)
+    assert check.objective_gap_bound == 0
+    print('Independent objective-gap certificate:',check.objective_gap_bound)

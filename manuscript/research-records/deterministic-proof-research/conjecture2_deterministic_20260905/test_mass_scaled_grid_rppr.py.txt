@@ -1,0 +1,258 @@
+"""Exact mass-weighted energy, rounded-step, horizon, and continuation checks."""
+import hashlib
+import json
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from mass_scaled_grid_rppr import MassScaledGridCorrector, MassCapHintFactory, solve_rppr_mass_scaled_grid
+from combined_certified_dyadic_rppr import CombinedDyadicCorrector
+from direct_exception_integer_rppr import DirectExceptionIntegerCorrector, _continuation
+from deterministic_avl_containers import AVLMap
+from independent_sparse_certificate import certify_sparse_output
+from test_local_safe_solver import path, graph, dense_exact_obstacle_oracle, gaussian_elimination
+from test_deterministic_rppr_solver import objective, source_density
+from test_monotone_capped_solver import CheckedOracle
+from audit_singleton_precheck_independent import Spokes
+
+ROOT=Path(__file__).resolve().parent
+LOG=dict(stage_cases=0,prefix_energy_checks=0,dense_projection_checks=0,
+    larger_grid_cases=0,max_grid_ratio='1',nonzero_rounding_steps=0,
+    nonzero_raw_error_steps=0,zero_step_cases=0,full_cases=0,full_stages=0,
+    full_hint_records=0,independent_final_certificates=0)
+SOURCES=('combined_certified_dyadic_rppr.py','direct_exception_integer_rppr.py',
+    'integer_dyadic_rppr_solver.py','source_energy_dyadic_rppr.py',
+    'binomial_block_dyadic_rppr.py','early_stop_source_energy_rppr.py')
+BEFORE={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCES}
+
+
+class StandardFast(CombinedDyadicCorrector,DirectExceptionIntegerCorrector):
+    pass
+
+
+def mass(rows,v):
+    return sum((len(rows[i])*v.get(i,F(0)) for i in rows),F(0))
+
+
+def qdensity(rows,alpha,v):
+    return {i:(1+alpha)*v.get(i,F(0))/2-(1-alpha)*sum(
+        (v.get(j,F(0)) for j in rows[i]),F(0))/(2*len(rows[i])) for i in rows}
+
+
+def norm(rows,v):
+    return sum((len(rows[i])*v.get(i,F(0))**2 for i in rows),F(0))
+
+
+def qnorm(rows,alpha,v):
+    qv=qdensity(rows,alpha,v)
+    return sum((len(rows[i])*v.get(i,F(0))*qv[i] for i in rows),F(0))
+
+
+def dense_projection(rows,raw,upper,cap):
+    def point(shift):
+        return {i:min(upper,max(F(0),raw[i]-shift)) for i in rows}
+    if mass(rows,point(F(0)))<=cap:
+        return point(F(0))
+    cuts=sorted({F(0)}|{max(F(0),raw[i]-shift) for i in rows for shift in (F(0),upper)})
+    for left,right in zip(cuts,cuts[1:]):
+        midpoint=(left+right)/2
+        free=[i for i in rows if 0<raw[i]-midpoint<upper]
+        high=[i for i in rows if raw[i]-midpoint>=upper]
+        weight=sum(len(rows[i]) for i in free)
+        if not weight:continue
+        root=(sum((len(rows[i])*raw[i] for i in free),F(0))
+              +upper*sum(len(rows[i]) for i in high)-cap)/weight
+        if left<=root<=right:
+            answer=point(root)
+            assert mass(rows,answer)==cap
+            return answer
+    raise AssertionError('Dense projection found no affine mass root')
+
+
+class MassGridTests(unittest.TestCase):
+    def verify_horizons(self,c,tau):
+        self.assertEqual(c.tolerance,tau)
+        self.assertEqual(c.gamma_bound,29*c.mass_cap*c.grid/c.theta)
+        self.assertLess(c.gamma_bound,tau/8)
+        self.assertLessEqual(c.gamma_bound,c.mass_cap*c.alpha**2*c.rho)
+        self.assertIsNone(c._accepted_bound)
+        self.assertIsNone(c._accepted_iteration)
+        self.assertEqual(c._next_checkpoint,c.T)
+        self.assertEqual(c.checkpoint_metrics.checkpoints,0)
+        self.assertEqual(c.objective_gap_bound,c.initial_energy_bound)
+        self.assertEqual((c.block_power_numerator,c.block_power_denominator,c.decay_denominator),(1,1,1))
+        q=0
+        while F(1,2**q)>tau/2:q+=1
+        self.assertEqual(c.original_target_iterations,c.T*q)
+        q=0
+        while c.initial_energy_bound/F(2**q)>tau/2:q+=1
+        self.assertEqual((c.half_bound_blocks,c.half_bound_target_iterations),(q,c.T*q))
+        q,power=0,F(1)
+        while c.initial_energy_bound*power>tau/2:
+            power*=c.block_bound.value;q+=1
+        self.assertEqual((c.blocks,c.target_iterations),(q,c.T*q))
+        self.assertEqual(F(c.target_power_numerator,c.target_power_denominator),power)
+        old,new=c.relaxed_schedule_work,c.retargeting_work
+        self.assertEqual(c.metrics.bound_doublings,old['bound_doublings']+new.original_bound_doublings)
+        self.assertEqual(c.source_energy_schedule_checks,old['source_checks']+new.source_schedule_checks)
+        self.assertEqual(c.source_energy_schedule_doublings,old['source_doublings']+new.source_schedule_doublings)
+        self.assertEqual(c.binomial_schedule_checks,old['binomial_checks']+new.binomial_schedule_checks)
+        self.assertEqual(c.binomial_schedule_power_updates,old['binomial_power_updates']+new.binomial_schedule_power_updates)
+
+    def stage(self,rows,seed,alpha,theta,rho,tau,baseline):
+        eta=1-mass(rows,baseline)
+        c=MassScaledGridCorrector(CheckedOracle(rows),seed,alpha,theta,rho,tau,
+                                  AVLMap(baseline.items()),mass_cap_hint=eta)
+        old=StandardFast(CheckedOracle(rows),seed,alpha,theta,rho,tau,AVLMap(baseline.items()))
+        self.verify_horizons(c,tau)
+        self.assertGreaterEqual(c.grid,old.grid)
+        LOG['larger_grid_cases']+=int(c.grid>old.grid)
+        LOG['max_grid_ratio']=str(max(F(LOG['max_grid_ratio']),c.grid/old.grid))
+        self.assertIs(MassScaledGridCorrector.step,StandardFast.step)
+        self.assertIs(MassScaledGridCorrector.run,StandardFast.run)
+        self.assertIs(MassScaledGridCorrector._rebase,StandardFast._rebase)
+        source=source_density(rows,seed,alpha,baseline)
+        optimum=dense_exact_obstacle_oracle(rows,seed,alpha,rho)
+        error={i:optimum.get(i,F(0))-baseline.get(i,F(0)) for i in rows}
+        self.assertTrue(all(v>=0 for v in error.values()))
+        matrix=[[(1+alpha)*len(rows[i])/2 if i==j else
+                 -(1-alpha)/2 if j in rows[i] else F(0) for j in rows] for i in rows]
+        t_values=gaussian_elimination(matrix,[len(rows[i])*source[i] for i in rows])
+        comparator=dict(zip(rows,t_values))
+        self.assertEqual(mass(rows,comparator),eta)
+        self.assertEqual(qdensity(rows,alpha,comparator),source)
+        mu,a,lam=theta**2,1-theta,alpha*rho
+        def states():
+            return ({i:F(c.S*c.X.get(i,0),c.H*c.H) for i in rows},
+                    {i:F(c.z.get(i,0),c.H) for i in rows})
+        def energies(x,z):
+            total={i:baseline.get(i,F(0))+x[i] for i in rows}
+            first=objective(rows,seed,alpha,rho,total)-objective(rows,seed,alpha,rho,optimum)
+            first+=mu*norm(rows,{i:z[i]-error[i] for i in rows})/2
+            response=qdensity(rows,alpha,x)
+            second=norm(rows,{i:response[i]-source[i] for i in rows})/2
+            second+=alpha*lam*(mass(rows,x)-mass(rows,comparator))
+            second+=mu*qnorm(rows,alpha,{i:z[i]-comparator[i] for i in rows})/2
+            return first,second
+        x,z=states();E0,B0=energies(x,z);E,B=E0,B0
+        self.assertLessEqual(E0,c.initial_energy_bound)
+        power=F(1)
+        tight_zeta=eta*(2*mu*(2*c.grid/theta)+F(5,2)*10*c.grid
+                        +F(5,2)*(theta+mu)*c.grid)
+        self.assertLessEqual(tight_zeta,theta*c.gamma_bound)
+        for k in range(c.target_iterations):
+            y={i:(x[i]+theta*z[i])/(1+theta) for i in rows}
+            grad=qdensity(rows,alpha,y)
+            ideal_raw={i:a*z[i]+theta*y[i]-(grad[i]-source[i]+lam)/theta for i in rows}
+            raw_error={i:(1-alpha)*c.sigma*(F(c.L.get(i,0),c.H)-sum(
+                (F(c.X.get(j,0),c.H) for j in rows[i]),F(0)))/(2*theta*(1+theta)*len(rows[i])) for i in rows}
+            self.assertTrue(all(abs(v)<=2*c.grid/theta for v in raw_error.values()))
+            exact_projection=dense_projection(rows,{i:ideal_raw[i]+raw_error[i] for i in rows},4*rho,eta)
+            c.step()
+            nx,nz=states()
+            self.assertTrue(all(nz[i]==(exact_projection[i]//c.grid)*c.grid for i in rows))
+            self.assertTrue(all(-10*c.grid<=nx[i]-(a*x[i]+theta*nz[i])<=0 for i in rows))
+            self.assertTrue(all(0<=nx[i]<=4*rho and 0<=nz[i]<=4*rho for i in rows))
+            self.assertTrue(mass(rows,nx)<=eta and mass(rows,nz)<=eta)
+            newE,newB=energies(nx,nz)
+            self.assertLessEqual(newE,a*E+tight_zeta)
+            self.assertLessEqual(newB,a*B+tight_zeta)
+            power*=a
+            self.assertLessEqual(newE,power*E0+c.gamma_bound*(1-power))
+            self.assertLessEqual(newB,power*B0+c.gamma_bound*(1-power))
+            LOG['nonzero_rounding_steps']+=int(any(nz[i]!=exact_projection[i]
+                or nx[i]!=(a*x[i]+theta*nz[i]) for i in rows))
+            LOG['nonzero_raw_error_steps']+=int(any(raw_error.values()))
+            LOG['dense_projection_checks']+=1
+            LOG['prefix_energy_checks']+=1
+            x,z,E,B=nx,nz,newE,newB
+        candidate=c.run()
+        values={i:v for i,v,_ in candidate}
+        gap=objective(rows,seed,alpha,rho,values)-objective(rows,seed,alpha,rho,optimum)
+        self.assertTrue(0<=gap<=c.objective_gap_bound<tau)
+        LOG['zero_step_cases']+=int(c.target_iterations==0)
+        LOG['stage_cases']+=1
+        return c
+
+    def test_mass_scaled_prefix_energies_and_rounding(self):
+        self.stage(path(2),0,F(1,4),F(1,2),F(1,8),F(1,8192),{0:F(3,8),1:F(1,8)})
+        self.stage(path(2),0,F(1,4),F(1,2),F(1,128),F(1,33554432),{0:F(39,64),1:F(23,64)})
+        rows=path(3)
+        prior=_continuation(StandardFast)(CheckedOracle(rows),0,F(13,97),F(1,8),F(1,1000000))
+        baseline={i:v for i,v,_ in prior.output}
+        self.stage(rows,0,F(13,97),F(1,4),F(1,16),F(1,1<<24),baseline)
+        self.assertGreater(LOG['larger_grid_cases'],0)
+        self.assertGreaterEqual(F(LOG['max_grid_ratio']),32)
+        self.assertGreater(LOG['nonzero_rounding_steps'],0)
+        self.assertGreater(LOG['nonzero_raw_error_steps'],0)
+
+    def test_zero_step_and_zero_energy(self):
+        zero=self.stage(path(2),0,F(1,4),F(1,2),F(1,4),F(1,1024),{0:F(3,8),1:F(1,8)})
+        self.assertEqual(zero.objective_gap_bound,0)
+        positive=self.stage(path(2),0,F(1,4),F(1,2),F(1,128),F(1,1024),{0:F(39,64),1:F(23,64)})
+        self.assertTrue(0<positive.initial_energy_bound<=positive.tolerance/2)
+        self.assertEqual(positive.target_iterations,0)
+        self.assertEqual(positive.objective_gap_bound,positive.initial_energy_bound)
+
+    def test_fixed_continuation_and_factory_counts(self):
+        for rows,seed,alpha,rho,eps in ((path(3),0,F(1,4),F(1,64),F(1,1000000)),
+            (graph(4,[(0,1),(1,2),(2,0),(2,3)]),3,F(13,97),F(1,32),F(1,1000000)),
+            (path(2),0,F(13,97),F((1<<20)-1,1<<20),F(1,16)),
+            (path(2),0,F(1),F(1,4),F(1,1000000)),
+            (path(2),0,F(1,3),F(1),F(1,1000000))):
+            oracle=CheckedOracle(rows)
+            outer=solve_rppr_mass_scaled_grid(oracle,seed,alpha,rho,eps)
+            answer=outer.result
+            old,old_r={},F(1,len(rows[seed]))
+            for stage,hint in zip(answer.stages,outer.mass_hints):
+                self.assertEqual(stage.regularization,max(rho,old_r/2))
+                self.assertEqual(hint.mass_cap,1-mass(rows,old))
+                self.assertEqual(hint.baseline_records,len(old))
+                self.assertEqual(stage.projection_mass_cap,hint.mass_cap)
+                exact=dense_exact_obstacle_oracle(rows,seed,alpha,stage.regularization)
+                current={i:v for i,v,_ in stage.repaired_output}
+                self.assertTrue(all(0<=old.get(i,0)<=current.get(i,0)<=exact.get(i,0) for i in rows))
+                source=source_density(rows,seed,alpha,current)
+                self.assertTrue(all(0<=v<=2*alpha*stage.regularization for v in source.values()))
+                self.assertEqual(stage.corrector_metrics['checkpoints']['cache_misses'],0)
+                self.assertEqual(stage.corrector_metrics['mass_scaled_grid']['actual_tolerance'],stage.requested_gap)
+                old,old_r=current,stage.regularization
+            self.assertEqual(len(outer.mass_hints),len(answer.stages))
+            hm=outer.mass_hint_metrics
+            self.assertEqual(hm.factory_calls,len(answer.stages))
+            self.assertEqual(hm.previous_references_released,len(answer.stages))
+            self.assertEqual(hm.baseline_input_records,sum(h.baseline_records for h in outer.mass_hints))
+            self.assertEqual(hm.previous_degree_cache_lookups,hm.baseline_input_records)
+            self.assertEqual(len(oracle.degree_queries),answer.metrics.seed_degree_queries
+                +answer.metrics.repair_degree_replies+sum(s.corrector_metrics['degree_replies'] for s in answer.stages))
+            self.assertEqual(sum(len(rows[i]) for i in oracle.neighbor_queries),
+                answer.metrics.repair_first_adjacency_entries+sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages))
+            cert=certify_sparse_output(CheckedOracle(rows),seed,alpha,rho,answer.output)
+            self.assertTrue(cert.meets(eps))
+            self.assertLessEqual(answer.objective_gap_bound,eps)
+            LOG['independent_final_certificates']+=1
+            LOG['full_cases']+=1
+            LOG['full_stages']+=len(answer.stages)
+            LOG['full_hint_records']+=hm.baseline_input_records
+
+    def test_hint_checks_and_huge_hub(self):
+        with self.assertRaisesRegex(ValueError,'hint disagrees'):
+            MassScaledGridCorrector(CheckedOracle(path(2)),0,F(1,4),F(1,2),F(1,8),F(1,8192),
+                AVLMap(((0,F(3,8)),(1,F(1,8)))),mass_cap_hint=F(3,4))
+        oracle=Spokes([10**30])
+        outer=solve_rppr_mass_scaled_grid(oracle,oracle.seed,F(1,100),F(1,64),F(1,1000000))
+        self.assertTrue(all(i==oracle.seed for i in oracle.row_queries))
+        self.assertTrue(certify_sparse_output(Spokes([10**30]),oracle.seed,F(1,100),F(1,64),outer.output).meets(F(1,1000000)))
+        self.assertEqual(outer.mass_hint_metrics.factory_calls,outer.mass_hint_metrics.previous_references_released)
+        LOG['huge_no_hash_hub_boundary_unscanned']=True
+
+
+if __name__=='__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(MassGridTests))
+    after={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCES}
+    assert BEFORE==after
+    (ROOT/'mass_scaled_grid_verification.json').write_text(json.dumps(dict(passed=result.wasSuccessful(),
+        evidence=LOG,unchanged_source_sha256=after,
+        mass_scaled_grid_sha256=hashlib.sha256((ROOT/'mass_scaled_grid_rppr.py').read_bytes()).hexdigest()),indent=2)+'\n')
+    if not result.wasSuccessful():raise SystemExit(1)

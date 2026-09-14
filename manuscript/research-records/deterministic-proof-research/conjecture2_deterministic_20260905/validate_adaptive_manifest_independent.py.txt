@@ -1,0 +1,457 @@
+"""Independent exact validation of the fixed 183-case adaptive manifest.
+
+Only the adaptive solver is executed. Reference objectives/KKT are separate;
+guard/observation wrappers do not alter any numerical operation or source file.
+"""
+import hashlib
+import json
+import platform
+import signal
+import sys
+import time
+import traceback
+from dataclasses import asdict, fields, is_dataclass
+from fractions import Fraction as F
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+import validate_packaged_solver as manifest_module
+from tests.test_solver import exact_optimum, objective, source
+import tests.test_solver as reference_module
+import adaptive_source_continuation_rppr as adaptive
+
+TARGET = ROOT/'adaptive_manifest_independent_validation.json'
+GUARDS = dict(total_iterations=250000, total_oracle_entries=10000000,
+              total_degree_replies=10000000, per_case_seconds=120,
+              total_seconds=1800)
+BUDGET = dict(iterations=0, entries=0, degrees=0, started=time.monotonic())
+CONTEXT = None
+ORIGINAL_CORRECTOR = adaptive.AdaptiveFastCorrector
+ORIGINAL_SOURCE = adaptive.source_maximum
+
+
+def serialize(value):
+    if isinstance(value, F):
+        return str(value)
+    if is_dataclass(value):
+        return serialize(asdict(value))
+    if isinstance(value, dict):
+        return {str(k): serialize(v) for k,v in value.items()}
+    if isinstance(value, (tuple,list)):
+        return [serialize(v) for v in value]
+    return value
+
+
+def guard():
+    if time.monotonic()-BUDGET['started'] > GUARDS['total_seconds']:
+        raise RuntimeError('Fixed total wall-time guard reached')
+    for actual,limit in [('iterations','total_iterations'),('entries','total_oracle_entries'),
+                         ('degrees','total_degree_replies')]:
+        if BUDGET[actual] > GUARDS[limit]:
+            raise RuntimeError('Fixed resource guard reached: '+limit)
+
+
+def alarm_handler(signum, frame):
+    raise TimeoutError('Fixed per-case 120-second guard reached')
+
+
+class StrictLocalOracle:
+    def __init__(self, problem, reverse=False):
+        self.problem, self.reverse = problem, reverse
+        self.known = {problem.seed}
+        self.phase = 'solver'
+        self.counts = dict(degrees=0, rows=0, entries=0)
+        self.phases = {}
+        self.degree_vertices, self.row_vertices = {}, {}
+
+    def increment(self, kind, vertex):
+        self.counts[kind] += 1
+        self.phases.setdefault(self.phase,dict(degrees=0,rows=0,entries=0))[kind] += 1
+        if kind in ('degrees','entries'):
+            BUDGET[kind] += 1
+        if kind == 'degrees':
+            self.degree_vertices[vertex] = self.degree_vertices.get(vertex,0)+1
+        elif kind == 'rows':
+            self.row_vertices[vertex] = self.row_vertices.get(vertex,0)+1
+        guard()
+
+    def degree(self, vertex):
+        assert isinstance(vertex,int) and vertex in self.known, 'Degree before local discovery'
+        self.increment('degrees',vertex)
+        return self.problem.degree(vertex)
+
+    def neighbors(self, vertex):
+        assert isinstance(vertex,int) and vertex in self.known, 'Row before local discovery'
+        self.increment('rows',vertex)
+        row = self.problem.row(vertex)
+        for neighbor in reversed(row) if self.reverse else row:
+            self.increment('entries',vertex)
+            self.known.add(neighbor)
+            yield neighbor
+
+
+class Problem:
+    def __init__(self, case):
+        self.case, self.alpha = case, case['alpha']
+        self.star = 'star_leaves' in case
+        if self.star:
+            self.leaves = case['star_leaves']
+            self.seed = self.leaves+1
+            self.vertices = (1,self.seed)
+            self.rows = None
+        else:
+            self.seed, self.rows = case['seed'],case['rows']
+            self.vertices = tuple(sorted(self.rows))
+            assert self.seed in self.rows
+            for i,row in self.rows.items():
+                assert isinstance(i,int) and row and i not in row and len(set(row))==len(row)
+                assert all(j in self.rows and i in self.rows[j] for j in row)
+            reached, stack = {self.seed},[self.seed]
+            while stack:
+                for j in self.rows[stack.pop()]:
+                    if j not in reached:
+                        reached.add(j); stack.append(j)
+            assert reached==set(self.rows)
+        self.optima={}
+
+    def degree(self,i):
+        if not self.star:
+            return len(self.rows[i])
+        assert i in self.vertices
+        return self.leaves if i==1 else 1
+
+    def row(self,i):
+        if not self.star:
+            return self.rows[i]
+        assert i==self.seed, 'An inactive huge star hub was scanned'
+        return (1,)
+
+    def optimum(self,r):
+        if r not in self.optima:
+            if self.star:
+                value=max(F(0),2*self.alpha*(1-r)/(1+self.alpha))
+                values={self.seed:value} if value else {}
+                assert (1-self.alpha)*value/(2*self.leaves)<=self.alpha*r
+            else:
+                values=exact_optimum(self.rows,self.seed,self.alpha,r)
+            density=self.source(values)
+            assert all(0<=v<=self.alpha*r for v in density.values())
+            assert all(density[i]==self.alpha*r for i,v in values.items() if v)
+            self.optima[r]=values
+        return self.optima[r]
+
+    def source(self,values):
+        if not self.star:
+            return source(self.rows,self.seed,self.alpha,values)
+        assert set(values).issubset({self.seed})
+        value=values.get(self.seed,F(0))
+        return {self.seed:self.alpha-(1+self.alpha)*value/2,
+                1:(1-self.alpha)*value/(2*self.leaves)}
+
+    def objective(self,r,values):
+        if not self.star:
+            return objective(self.rows,self.seed,self.alpha,r,values)
+        assert set(values).issubset({self.seed})
+        value=values.get(self.seed,F(0))
+        return (1+self.alpha)*value**2/4-self.alpha*value+self.alpha*r*value
+
+    def mass(self,values):
+        return sum((self.degree(i)*v for i,v in values.items()),F(0))
+
+    def volume(self,values):
+        return sum(self.degree(i) for i,v in values.items() if v)
+
+    def unpack(self,output):
+        values={}
+        for i,value,degree in output:
+            assert i not in values and i in self.vertices
+            assert value>0 and degree==self.degree(i)
+            values[i]=value
+        return values
+
+    def independent_gap_bound(self,r,values):
+        s=self.source(values)
+        square=F(0)
+        for i,si in s.items():
+            g=self.alpha*r-si
+            if not values.get(i,0):
+                g=min(g,F(0))
+            square+=self.degree(i)*g*g
+        # Every other leaf in the analytic star has zero output and positive
+        # orthant gradient alpha*r, so contributes zero selected subgradient.
+        return square/(2*self.alpha)
+
+
+class ObservedCorrector(ORIGINAL_CORRECTOR):
+    def step(self):
+        BUDGET['iterations']+=1
+        guard()
+        return super().step()
+
+    def run(self):
+        candidate=super().run()
+        CONTEXT['candidates'].append(dict(regularization=self.rho,candidate=candidate,
+                                          certified_gap=self.objective_gap_bound))
+        return candidate
+
+
+def observed_source(oracle,*args,**kwargs):
+    before=dict(oracle.counts)
+    previous_phase=oracle.phase
+    oracle.phase='adaptive_source'
+    try:
+        returned=ORIGINAL_SOURCE(oracle,*args,**kwargs)
+    finally:
+        oracle.phase=previous_phase
+    after=oracle.counts
+    actual={key:after[key]-before[key] for key in before}
+    maximum,vertex,metrics=returned
+    assert actual['degrees']==metrics.degree_replies
+    assert actual['entries']==metrics.first_adjacency_entries
+    assert actual['rows']==metrics.first_row_requests
+    CONTEXT['observed_source_passes'].append(dict(maximum=maximum,vertex=vertex,
+                                                 actual_oracle=actual,metrics=asdict(metrics)))
+    return returned
+
+
+def verify_case(case):
+    global CONTEXT
+    problem=Problem(case)
+    oracle=StrictLocalOracle(problem,case.get('reverse',False))
+    CONTEXT=dict(candidates=[],observed_source_passes=[])
+    alpha,rho,epsilon=(case[k] for k in ('alpha','rho','epsilon'))
+    answer=adaptive.solve_rppr_adaptive(oracle,problem.seed,alpha,rho,epsilon)
+    CONTEXT['raw_result']=answer
+    inner,am=answer.result,answer.adaptive_metrics
+    assert len(inner.stages)==len(answer.schedule)==len(CONTEXT['candidates'])
+    previous,previous_r={},F(1,problem.degree(problem.seed))
+    previous_mass=F(0)
+    stage_checks=[]
+    global_max_outside=0
+    previous_grid=F(1)
+    for index,(stage,record,candidate_record) in enumerate(zip(
+            inner.stages,answer.schedule,CONTEXT['candidates'])):
+        r,delta,h=stage.regularization,stage.delta,stage.grid
+        full_source=problem.source(previous)
+        maximum=max(full_source.values())
+        assert record.previous_regularization==previous_r
+        assert record.source_maximum==maximum
+        assert full_source[record.maximum_vertex]==maximum
+        assert record.proposed_regularization==maximum/(4*alpha)
+        assert r==record.chosen_regularization==max(rho,maximum/(4*alpha))
+        assert record.target_clamped==(rho>maximum/(4*alpha))
+        assert alpha*previous_r<=maximum<=2*alpha*previous_r
+        assert previous_r/4<=record.proposed_regularization<=previous_r/2
+        assert previous_r/4<=r<previous_r and rho<=r
+        if r!=rho:
+            assert r<=previous_r/2
+        assert all(0<=v<=4*alpha*r for v in full_source.values())
+        outside=bool(index and previous and any(
+            v==maximum and i not in previous for i,v in full_source.items()))
+        global_max_outside+=int(outside)
+        exact=problem.optimum(r)
+        eta=1-previous_mass
+        eta_star=1-problem.mass(exact)
+        assert r<=eta<=4*eta_star
+        assert problem.volume(previous)==stage.baseline_volume<=eta/r
+        assert stage.source_records<=1+2*stage.baseline_volume
+        assert stage.projection_mass_cap==eta and stage.source_mass==alpha*eta
+        assert sum((problem.degree(i)*v for i,v in full_source.items()),F(0))==alpha*eta
+        assert stage.requested_gap==alpha*delta*delta/8
+        expected_delta=alpha*r/2
+        if r==rho:
+            while expected_delta**2>epsilon*r/2:
+                expected_delta/=2
+        assert delta==expected_delta
+        assert 0<=stage.certified_gap<stage.requested_gap
+        assert h.numerator==1 and not h.denominator&(h.denominator-1)
+        assert h<=previous_grid and h.denominator%previous_grid.denominator==0
+        assert inner.theta*stage.requested_gap/512<h<=inner.theta*stage.requested_gap/256
+        gamma=29*h/inner.theta
+        assert gamma<stage.requested_gap/8 and gamma<=alpha*alpha*r*eta
+        assert 2*h<=alpha*r/4 and h<=delta/2
+        assert stage.kinetic_volume<=360*eta*stage.iterations/r
+        assert stage.kinetic_volume<=stage.kinetic_volume_bound==360*F(stage.iterations)/r
+        cm=stage.corrector_metrics
+        assert cm['iterations']==stage.iterations and cm['kinetic_volume']==stage.kinetic_volume
+        assert cm['rebase_adjacency_entries']==0
+        cp=cm['checkpoints']
+        assert cp['cache_misses']==0
+        assert cp['checkpoints']==cp['accepted_checkpoints']+cp['rejected_checkpoints']
+        assert cp['candidate_volume']==cp['cached_adjacency_entries']
+        assert cp['candidate_volume']<=eta*(cp['checkpoints']+360*cp['checkpoint_iteration_sum'])/r
+        if cp['checkpoints']:
+            assert cp['checkpoint_iteration_sum']<2*stage.iterations
+        else:
+            assert cp['checkpoint_iteration_sum']==0
+        current=problem.unpack(stage.repaired_output)
+        candidate=problem.unpack(candidate_record['candidate'])
+        assert candidate_record['regularization']==r
+        assert candidate_record['certified_gap']==stage.certified_gap
+        pre_gap=problem.objective(r,candidate)-problem.objective(r,exact)
+        assert 0<=pre_gap<=stage.certified_gap
+        assert problem.mass(candidate)<=1
+        for i in problem.vertices:
+            assert 0<=previous.get(i,0)<=current.get(i,0)<=exact.get(i,0)
+            assert exact.get(i,0)-current.get(i,0)<=2*delta
+        current_source=problem.source(current)
+        assert all(0<=v<=2*alpha*r for v in current_source.values())
+        assert alpha*r<=max(current_source.values())<=2*alpha*r
+        mass=problem.mass(current)
+        assert previous_mass<=mass<=1 and stage.repaired_mass==mass
+        assert stage.repaired_volume==problem.volume(current)<=eta_star/r
+        assert eta_star<=1-mass<=(1+alpha)*eta_star
+        assert all(h.denominator%value.denominator==0 for value in current.values())
+        gap=problem.objective(r,current)-problem.objective(r,exact)
+        assert 0<=gap<=2*delta**2/r
+        sm=record.source_metrics
+        assert sm.source_passes==int(index>0)
+        assert sm.initial_seed_source_evaluations==int(index==0)
+        assert sm.scanned_adjacency_entries==problem.volume(previous)
+        assert sm.baseline_input_records==len(previous)
+        assert sm.baseline_input_volume==problem.volume(previous)
+        assert sm.temporary_records_reclaimed==sm.baseline_input_records+sm.affected_records
+        if index:
+            observed=CONTEXT['observed_source_passes'][index-1]
+            assert observed['maximum']==maximum and observed['vertex']==record.maximum_vertex
+            assert observed['metrics']==asdict(sm)
+            assert sm.affected_records<=1+2*problem.volume(previous)
+            assert sm.maximum_comparisons==sm.affected_records
+            assert sm.rational_maximum_constructions==1
+        stage_checks.append(dict(index=index,exact_optimum=exact,baseline_source=full_source,
+            repaired_source=current_source,source_maximum_outside_nonempty_baseline=outside,
+            actual_candidate_gap=pre_gap,actual_repaired_gap=gap,repair_gap_bound=2*delta**2/r,
+            eta=eta,eta_star=eta_star,gamma=gamma,
+            strengthened_kinetic_bound=360*eta*stage.iterations/r))
+        previous,previous_r,previous_mass,previous_grid=current,r,mass,h
+
+    if inner.stages:
+        assert inner.stages[-1].regularization==rho
+        assert am.source_passes==len(inner.stages)-1
+        assert am.initial_seed_source_evaluations==1
+        assert sum((1/stage.regularization for stage in inner.stages),F(0))<3/rho
+    else:
+        assert not answer.schedule and not CONTEXT['observed_source_passes']
+        assert all(getattr(am,f.name)==0 for f in fields(am))
+        assert inner.objective_gap_bound==0
+        assert alpha==1 or rho*problem.degree(problem.seed)>=1
+    for f in fields(am):
+        if f.name in ('scheduling_records','source_interface_checks'):
+            assert getattr(am,f.name)==len(inner.stages)
+        else:
+            assert getattr(am,f.name)==sum(getattr(rec.source_metrics,f.name) for rec in answer.schedule)
+    assert len(CONTEXT['observed_source_passes'])==am.source_passes
+    assert oracle.counts['degrees']==inner.metrics.seed_degree_queries+inner.metrics.repair_degree_replies+am.degree_replies+sum(
+        s.corrector_metrics['degree_replies'] for s in inner.stages)
+    assert oracle.counts['entries']==inner.metrics.repair_first_adjacency_entries+am.first_adjacency_entries+sum(
+        s.corrector_metrics['first_adjacency_entries'] for s in inner.stages)
+    assert oracle.phases.get('adaptive_source',{}).get('degrees',0)==am.degree_replies
+    assert oracle.phases.get('adaptive_source',{}).get('entries',0)==am.first_adjacency_entries
+    assert oracle.phases.get('adaptive_source',{}).get('rows',0)==am.first_row_requests
+    values=problem.unpack(answer.output)
+    exact=problem.optimum(rho)
+    assert all(0<=values.get(i,0)<=exact.get(i,0) for i in problem.vertices)
+    gap=problem.objective(rho,values)-problem.objective(rho,exact)
+    assert 0<=gap<=inner.objective_gap_bound<=epsilon
+    independent_bound=problem.independent_gap_bound(rho,values)
+    assert gap<=independent_bound
+    assert problem.volume(values)<=1/rho and 0<=problem.mass(values)<=1
+    assert inner.metrics.final_output_words==3*len(values)
+    if inner.stages:
+        assert answer.output==inner.stages[-1].repaired_output
+    final_source=problem.source(values)
+    assert all(0<=v<=2*alpha*rho for v in final_source.values())
+    assert sum((problem.degree(i)*v for i,v in final_source.items()),F(0))==alpha*(1-problem.mass(values))
+    if problem.star:
+        assert set(oracle.row_vertices).issubset({problem.seed})
+    return answer,dict(actual_gap=gap,exact_optimum=exact,final_source=final_source,
+        independent_subgradient_gap_bound=independent_bound,
+        independent_certificate_meets_epsilon=independent_bound<=epsilon,
+        stages=stage_checks,source_maxima_outside_nonempty_baseline=global_max_outside,
+        analytic_star=problem.star,oracle_counts=oracle.counts,oracle_phases=oracle.phases,
+        oracle_degree_vertices=oracle.degree_vertices,oracle_row_vertices=oracle.row_vertices,
+        discovered_vertices=sorted(oracle.known),
+        complete_candidates=CONTEXT['candidates'],observed_source_passes=CONTEXT['observed_source_passes'])
+
+
+def sources():
+    paths={Path(__file__).resolve(),Path(manifest_module.__file__).resolve(),
+           Path(reference_module.__file__).resolve()}
+    for module in tuple(sys.modules.values()):
+        file=getattr(module,'__file__',None)
+        if file:
+            p=Path(file).resolve()
+            if p.suffix=='.py' and p.is_relative_to(ROOT):
+                paths.add(p)
+    return {str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
+
+def write(evidence):
+    temporary=TARGET.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(serialize(evidence),indent=2)+'\n')
+    temporary.replace(TARGET)
+
+
+def main():
+    cases=manifest_module.make_manifest()
+    hashes=sources()
+    evidence=dict(status='running',deterministic=True,case_count=len(cases),
+        runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform()),
+        resource_guards=GUARDS,source_hashes_before=hashes,manifest=cases,completed=[],
+        observer_scope='Guard step counts; record returned actual stage candidates; meter exact helper source calls. No numerical changes.',
+        analytic_star_scope='Seed/hub exact formulas cover all remaining zero leaf coordinates; no hub row is read.')
+    write(evidence)
+    previous_results={}
+    adaptive.AdaptiveFastCorrector=ObservedCorrector
+    adaptive.source_maximum=observed_source
+    signal.signal(signal.SIGALRM,alarm_handler)
+    case=None
+    try:
+        for number,case in enumerate(cases,1):
+            start=time.perf_counter()
+            signal.setitimer(signal.ITIMER_REAL,GUARDS['per_case_seconds'])
+            guard()
+            answer,checks=verify_case(case)
+            if 'compare_to' in case:
+                old=previous_results[case['compare_to']]
+                inverse=case['inverse']
+                normalize=lambda out:tuple(sorted((inverse[i],v,d) for i,v,d in out))
+                assert normalize(answer.output)==tuple(sorted(old.output))
+                assert answer.objective_gap_bound==old.objective_gap_bound
+                assert len(answer.stages)==len(old.stages)
+                for new_stage,old_stage in zip(answer.stages,old.stages):
+                    assert normalize(new_stage.repaired_output)==tuple(sorted(old_stage.repaired_output))
+                    for key in ('regularization','delta','requested_gap','certified_gap','iterations','grid','projection_mass_cap'):
+                        assert getattr(new_stage,key)==getattr(old_stage,key)
+                checks['label_and_reversed_row_invariance']=case['compare_to']
+            signal.setitimer(signal.ITIMER_REAL,0)
+            previous_results[case['name']]=answer
+            evidence['completed'].append(dict(name=case['name'],passed=True,
+                elapsed_seconds=time.perf_counter()-start,result=answer,checks=checks))
+            evidence['totals']=dict(cases=len(evidence['completed']),iterations=BUDGET['iterations'],
+                oracle_entries=BUDGET['entries'],degree_replies=BUDGET['degrees'],
+                stages=sum(len(x['result'].stages) for x in evidence['completed']))
+            write(evidence)
+            print(f'PASS {number}/{len(cases)} {case["name"]}: '+
+                  f'{len(answer.stages)} stages, {sum(s.iterations for s in answer.stages)} iterations',flush=True)
+        evidence['status']='passed'
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        evidence['status']='failed_or_resource_guard'
+        evidence['failure']=dict(case=None if case is None else case['name'],
+            exception=repr(error),traceback=traceback.format_exc(),partial_observations=CONTEXT)
+        raise
+    finally:
+        adaptive.AdaptiveFastCorrector=ORIGINAL_CORRECTOR
+        adaptive.source_maximum=ORIGINAL_SOURCE
+        signal.setitimer(signal.ITIMER_REAL,0)
+        evidence['source_hashes_after']=sources()
+        evidence['sources_unchanged']=evidence['source_hashes_after']==hashes
+        evidence['elapsed_seconds']=time.monotonic()-BUDGET['started']
+        write(evidence)
+    assert evidence['sources_unchanged']
+    print('ALL PASSED',json.dumps(evidence['totals']),flush=True)
+
+
+if __name__=='__main__':
+    main()

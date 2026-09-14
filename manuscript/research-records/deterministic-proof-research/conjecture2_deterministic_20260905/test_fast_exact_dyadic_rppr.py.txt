@@ -1,0 +1,130 @@
+"""Exact arithmetic and trajectory equivalence for the diagnostic-free adapter."""
+
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+import fast_exact_dyadic_rppr as fast
+import practical_dyadic_rppr_solver as reference
+from bounded_dyadic_corrector import ArithmeticTracker, DyadicMetrics, MeasuredClosedBoxAVL
+from test_local_safe_solver import graph, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+
+
+DIAGNOSTICS = {'measured_rational_values', 'max_numerator_bits', 'max_denominator_bits',
+               'max_integer_bits', 'max_comparison_product_bits',
+               'max_grid_state_numerator_bits', 'max_grid_state_denominator_bits',
+               'fraction_internal_arithmetic_bits_bound', 'arithmetic_measurement_mode'}
+LOG = dict(arithmetic_cases=0, exact_stage_pairs=0, exact_step_pairs=0,
+           complete_solver_pairs=0, reporter_pairs=0, fixtures=[])
+
+
+def structural(metrics):
+    return {k:v for k, v in metrics.items() if k not in DIAGNOSTICS}
+
+
+class FastExactTests(unittest.TestCase):
+    def test_exact_value_adapter(self):
+        tracked = ArithmeticTracker(DyadicMetrics())
+        unmeasured = fast.UnmeasuredExactArithmetic(DyadicMetrics())
+        values = (F(0), F(1), F(-1), F(10402, 10403), F(1, 20604),
+                  F(2**127+1, 3**50), F(-7, 2**80))
+        for left in values:
+            for right in values:
+                a, b = unmeasured.wrap(left), unmeasured.wrap(right)
+                self.assertEqual((a+b).value, left+right)
+                self.assertEqual((a-b).value, left-right)
+                self.assertEqual((a*b).value, left*right)
+                if right:
+                    self.assertEqual((a/b).value, left/right)
+                self.assertEqual(a == b, left == right)
+                self.assertEqual(a < b, left < right)
+                self.assertEqual(a <= b, left <= right)
+                self.assertEqual(a > b, left > right)
+                self.assertEqual((a+tracked.wrap(right)).value, left+right)
+                self.assertEqual(hash(a), hash(left))
+                LOG['arithmetic_cases'] += 1
+
+    def test_reporter_equality_ties_and_large_weights(self):
+        rows = [({0:F(1, 16), 1:F(1, 32), 2:F(3, 16)}, {0:1, 1:2, 2:1}, F(1)),
+                ({0:F(5, 16), 1:F(3, 16), 2:F(1, 16)}, {0:1, 1:1, 2:1}, F(1, 4)),
+                ({0:F(1, 16), 1:F(1, 2**100)}, {0:1, 1:2**80}, F(1)),
+                ({0:F(3), 1:F(1)}, {0:2, 1:101}, F(1))]
+        for raw, degrees, cap in rows:
+            slow_m, fast_m = DyadicMetrics(), DyadicMetrics()
+            slow_t, fast_t = ArithmeticTracker(slow_m), fast.UnmeasuredExactArithmetic(fast_m)
+            reporters = (MeasuredClosedBoxAVL(slow_m, slow_t), MeasuredClosedBoxAVL(fast_m, fast_t))
+            for reporter, tracker in zip(reporters, (slow_t, fast_t)):
+                for i, value in raw.items():
+                    reporter.insert((tracker.wrap(value), i), degrees[i])
+            results = [r.project_grid(F(1), F(0), F(1), F(1, 16), cap) for r in reporters]
+            self.assertEqual(results[0], results[1])
+            self.assertEqual(structural(asdict(slow_m)), structural(asdict(fast_m)))
+            LOG['reporter_pairs'] += 1
+
+    def test_step_by_step_identity(self):
+        cases = [(path(3), 0, F(1, 4), F(1, 2), F(1, 16), F(1, 512), {0:F(3, 8), 1:F(1, 16)}),
+                 (path(2), 0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {}),
+                 (tree(5), 0, F(1, 8), F(1, 4), F(1, 4), F(1, 512), {})]
+        for adjacency, seed, alpha, theta, rho, tolerance, baseline in cases:
+            slow_o, fast_o = CheckedOracle(adjacency), CheckedOracle(adjacency)
+            args = seed, alpha, theta, rho, tolerance, baseline
+            slow = reference.PracticalDyadicCorrector(slow_o, *args)
+            quick = fast.FastPracticalDyadicCorrector(fast_o, *args)
+            self.assertEqual(slow.target_iterations, quick.target_iterations)
+            for _ in range(slow.target_iterations):
+                slow.step(); quick.step()
+                self.assertEqual((slow.X, slow.L, slow.z, slow.M, slow.sigma),
+                                 (quick.X, quick.L, quick.z, quick.M, quick.sigma))
+                self.assertEqual({i:value.value for i, value in slow.keys.items()},
+                                 {i:value.value for i, value in quick.keys.items()})
+                self.assertEqual(slow.history[-1], quick.history[-1])
+                self.assertEqual(structural(slow.diagnostic_metrics), structural(quick.diagnostic_metrics))
+                self.assertEqual(slow.objective_gap_bound, quick.objective_gap_bound)
+                LOG['exact_step_pairs'] += 1
+            self.assertEqual(slow.run(), quick.run())
+            self.assertEqual(slow_o.degree_queries, fast_o.degree_queries)
+            self.assertEqual(slow_o.neighbor_queries, fast_o.neighbor_queries)
+            self.assertIsNone(quick.diagnostic_metrics['max_numerator_bits'])
+            LOG['exact_stage_pairs'] += 1
+
+    def test_complete_continuation_and_reference_isolation(self):
+        original_class = reference.PracticalDyadicCorrector
+        self.assertIs(fast._exact_continuation.__code__, reference.solve_rppr_practical.__code__)
+        self.assertIsNot(fast._exact_continuation.__globals__, reference.solve_rppr_practical.__globals__)
+        cases = [(path(3), 0, F(2, 5), F(3, 10), F(1, 2000)),
+                 (tree(5), 0, F(1, 8), F(1, 12), F(1, 200)),
+                 (graph(3, [(0, 1), (1, 2), (2, 0)]), 0, F(1, 3), F(1, 10), F(1, 1000)),
+                 (star(5), 1, F(1, 4), F(1, 6), F(1, 500)),
+                 (star(5), 0, F(1, 3), F(1, 4), F(1, 100)),
+                 (path(3), 1, F(1), F(1, 5), F(1, 100))]
+        for adjacency, *args in cases:
+            slow_o, fast_o = CheckedOracle(adjacency), CheckedOracle(adjacency)
+            slow = reference.solve_rppr_practical(slow_o, *args)
+            quick = fast.solve_rppr_fast(fast_o, *args)
+            self.assertEqual(slow.output, quick.output)
+            self.assertEqual(slow.objective_gap_bound, quick.objective_gap_bound)
+            self.assertEqual(slow.theta, quick.theta)
+            self.assertEqual(asdict(slow.metrics), asdict(quick.metrics))
+            self.assertEqual(len(slow.stages), len(quick.stages))
+            for a, b in zip(slow.stages, quick.stages):
+                left, right = asdict(a), asdict(b)
+                left['corrector_metrics'] = structural(left['corrector_metrics'])
+                right['corrector_metrics'] = structural(right['corrector_metrics'])
+                self.assertEqual(left, right)
+            self.assertEqual(slow_o.degree_queries, fast_o.degree_queries)
+            self.assertEqual(slow_o.neighbor_queries, fast_o.neighbor_queries)
+            self.assertIs(reference.PracticalDyadicCorrector, original_class)
+            LOG['complete_solver_pairs'] += 1
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(FastExactTests))
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('fast_exact_dyadic_verification.json').write_text(json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

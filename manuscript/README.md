@@ -1,3 +1,5 @@
+> Public-release note: imported publication workspaces under `archive/` are held privately. Standalone research notes remain public. Readable original deterministic research excerpts are in [research-records/](research-records/README.md); the [release guide](../docs/public-release/README.md) documents all exclusions and commit mappings. References to omitted archive builds below describe the original private workspace.
+
 # Manuscript workspace
 
 This directory contains the active arXiv theory paper, *Accelerated Local

@@ -1,0 +1,128 @@
+"""Paired exact-solver comparison of fixed and source-adaptive continuation."""
+
+import hashlib
+import json
+import platform
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+
+from benchmark_practical_rppr import Case, VirtualGraph, CountingOracle, json_value
+from benchmark_direct_exception_transition import direct
+from adaptive_source_continuation_rppr import solve_rppr_adaptive
+from independent_sparse_certificate import certify_sparse_output
+
+ROOT = Path(__file__).resolve().parent
+CASES = (
+    Case('standard-path', 'path', 10**9, 0, 1, F(1,100), F(1,16), F(1,10**6)),
+    Case('grid-local', 'grid', 10**4, 0, 5000*10**4+5001,
+         F(1,16), F(1,256), F(1,10**8)),
+    Case('tree-clique-boundary', 'tree_clique', 5, 2**14, 1,
+         F(1,64), F(1,512), F(1,10**8)),
+    Case('hard-alpha-path', 'path', 10**9, 0, 1,
+         F(1,1000), F(1,64), F(1,10**8)),
+)
+SOURCE_NAMES = (
+    'adaptive_source_continuation_rppr.py', 'direct_exception_integer_rppr.py',
+    'combined_certified_dyadic_rppr.py', 'early_stop_source_energy_rppr.py',
+    'binomial_block_dyadic_rppr.py', 'source_energy_dyadic_rppr.py',
+    'integer_dyadic_rppr_solver.py', 'integer_clipped_reporter.py',
+)
+
+
+def hashes():
+    return {name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+            for name in SOURCE_NAMES}
+
+
+def main():
+    destination = ROOT/'adaptive_source_schedule_benchmark.json'
+    report = dict(status='running', deterministic=True,
+        python=platform.python_version(), platform=platform.platform(),
+        order=['fixed','adaptive','adaptive','fixed'],
+        cases=json_value([asdict(case) for case in CASES]),
+        source_sha256=hashes(), runs=[], summaries=[],
+        note=('Only clocks use floating point. Both variants use exact rational '
+              'parameters and the same correction and repair kernels. Timed work '
+              'includes counting-oracle overhead, internal objective checkpoints, '
+              'all adaptive source scans, and their temporary-state reclamation. '
+              'Independent final certification and serialization are outside the '
+              'timed region. No timing from another study is compared.'))
+    for case in CASES:
+        rows, repeated = [], {}
+        for mode in report['order']:
+            graph = VirtualGraph(case.family, case.size, case.auxiliary)
+            oracle = CountingOracle(graph, 1000000)
+            function = direct if mode == 'fixed' else solve_rppr_adaptive
+            wall, cpu = perf_counter(), process_time()
+            outer = function(oracle, case.seed, case.alpha, case.rho, case.epsilon)
+            wall, cpu = perf_counter()-wall, process_time()-cpu
+            answer = outer if mode == 'fixed' else outer.result
+            adaptive = None if mode == 'fixed' else asdict(outer.adaptive_metrics)
+            schedule = [] if mode == 'fixed' else [asdict(x) for x in outer.schedule]
+            assert answer.objective_gap_bound <= case.epsilon
+            expected_degree = (answer.metrics.seed_degree_queries
+                + answer.metrics.repair_degree_replies
+                + sum(s.corrector_metrics['degree_replies'] for s in answer.stages)
+                + (adaptive['degree_replies'] if adaptive else 0))
+            expected_entries = (answer.metrics.repair_first_adjacency_entries
+                + sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages)
+                + (adaptive['first_adjacency_entries'] if adaptive else 0))
+            snapshot = oracle.snapshot()
+            assert snapshot['degree_replies'] == expected_degree
+            assert snapshot['adjacency_entries'] == expected_entries
+            for stage in answer.stages:
+                cm = stage.corrector_metrics['checkpoints']
+                assert cm['cache_misses'] == 0
+                assert cm['checker_containers'] == cm['checker_reclaimed_containers']
+                assert stage.kinetic_volume <= 360*stage.projection_mass_cap*stage.iterations/stage.regularization
+            invariant = json_value(dict(answer=asdict(answer), adaptive=adaptive,
+                                        schedule=schedule, oracle=snapshot))
+            if mode in repeated:
+                assert invariant == repeated[mode], 'Repeated deterministic run changed'
+            else:
+                repeated[mode] = invariant
+            verifier = CountingOracle(graph, 1000000)
+            certificate = certify_sparse_output(verifier, case.seed, case.alpha,
+                                                 case.rho, answer.output)
+            assert certificate.meets(case.epsilon)
+            checkpoint_entries = sum(s.corrector_metrics['checkpoints']['cached_adjacency_entries']
+                                     for s in answer.stages)
+            correction_entries = sum(s.corrector_metrics['scanned_adjacency_entries']
+                                     for s in answer.stages)
+            counted_repeated_entries = (correction_entries + checkpoint_entries
+                + answer.metrics.repair_scanned_adjacency_entries
+                + (adaptive['scanned_adjacency_entries'] if adaptive else 0))
+            row = dict(case=case.name, mode=mode, wall_seconds=wall, cpu_seconds=cpu,
+                stages=len(answer.stages), iterations=sum(s.iterations for s in answer.stages),
+                repeated_scanned_entries=counted_repeated_entries,
+                oracle_counts=snapshot, adaptive_metrics=adaptive,
+                independent_certificate=json_value(asdict(certificate)),
+                verifier_oracle_counts=verifier.snapshot(),
+                complete_answer=json_value(asdict(answer)),
+                adaptive_schedule=json_value(schedule))
+            report['runs'].append(row)
+            rows.append(row)
+            destination.write_text(json.dumps(report, indent=2)+'\n')
+            print(f'{case.name}: {mode}, {len(answer.stages)} stages, '
+                  f'{row["iterations"]} iterations, {cpu:.6f} CPU seconds', flush=True)
+        summary = dict(case=case.name, medians={mode:{field:median(
+            row[field] for row in rows if row['mode']==mode)
+            for field in ('cpu_seconds','wall_seconds','stages','iterations',
+                          'repeated_scanned_entries')}
+            for mode in ('fixed','adaptive')})
+        summary['fixed_over_adaptive_cpu_ratio'] = (summary['medians']['fixed']['cpu_seconds']
+                                                   / summary['medians']['adaptive']['cpu_seconds'])
+        report['summaries'].append(summary)
+        destination.write_text(json.dumps(report, indent=2)+'\n')
+    assert hashes() == report['source_sha256']
+    report.update(status='passed', all_outputs_independently_certified=True,
+                  repeated_variant_results_identical=True)
+    destination.write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps(report['summaries'], indent=2), flush=True)
+
+
+if __name__ == '__main__':
+    main()

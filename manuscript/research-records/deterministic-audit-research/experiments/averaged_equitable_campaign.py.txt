@@ -1,0 +1,130 @@
+"""Deterministic work census for averaged coupling, with source snapshots."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import itertools
+import json
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from averaged_coupling import run
+from cyclic_radial_audit import model
+from plc_equitable_campaign import models, symmetric_model, transitions
+
+
+def instances(alpha):
+    for depth, branch in itertools.product((4, 8, 16, 32, 64), (1, 2, 4, 10, 100)):
+        branches = [branch] * depth
+        k, b, w, vol, bounds, n = model(branches, alpha)
+        counts = np.array([branch**i for i in range(depth + 1)], dtype=float)
+        yield (
+            {"family": "radial", "branch": branch, "depth": depth, "ambient_n": n},
+            k + alpha * np.eye(len(w)),
+            b,
+            w,
+            vol,
+            counts,
+            bounds,
+        )
+    for identity, (counts, neighbors) in models():
+        q, b, w, vol = symmetric_model(counts, neighbors, alpha)
+        yield identity, q, b, w, vol, counts, transitions(q, b, w, alpha)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--seconds", type=float, default=36000)
+    args = parser.parse_args()
+    args.directory.mkdir(parents=True, exist_ok=True)
+    metadata = {
+        "start_utc": datetime.now(UTC).isoformat(),
+        "randomized": False,
+        "time_limit_seconds": args.seconds,
+        "sources": {},
+    }
+    for name in (
+        Path(__file__).name,
+        "averaged_coupling.py",
+        "plc_equitable_campaign.py",
+        "cyclic_radial_audit.py",
+        "cyclic_dual_averaging.py",
+        "positive_linear_coupling.py",
+    ):
+        data = Path(__file__).with_name(name).read_bytes()
+        (args.directory / name).write_bytes(data)
+        metadata["sources"][name] = hashlib.sha256(data).hexdigest()
+    (args.directory / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    start = time.monotonic()
+    completed = 0
+    worst = None
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for alpha in (0.1, 0.01, 0.001, 0.0001, 0.000001):
+            for identity, q, b, w, vol, counts, bounds in instances(alpha):
+                for position in sorted({0, len(bounds) // 2, len(bounds) - 1}):
+                    for factor in (0.999, 1.001, 2, 8):
+                        rho = bounds[position] * factor
+                        if rho >= 1 / vol[0]:
+                            continue
+                        result = run(
+                            q,
+                            b - alpha * rho * w,
+                            w,
+                            vol,
+                            alpha,
+                            rho,
+                            counts=counts,
+                            mass_cap=True,
+                        )
+                        result.update(
+                            identity=identity, boundary_index=position, factor=factor
+                        )
+                        output.write(json.dumps(result) + "\n")
+                        completed += 1
+                        if (
+                            worst is None
+                            or result["rho_sqrt_alpha_auxiliary_volume"]
+                            > worst["rho_sqrt_alpha_auxiliary_volume"]
+                        ):
+                            worst = result
+                            (args.directory / "worst.json").write_text(
+                                json.dumps(worst, indent=2)
+                            )
+                        if completed % 50 == 0:
+                            output.flush()
+                            state = {
+                                "updated_at": datetime.now(UTC).isoformat(),
+                                "cases_completed": completed,
+                                "elapsed_seconds": time.monotonic() - start,
+                                "alpha": alpha,
+                                "identity": identity,
+                                "worst_normalized_work": worst[
+                                    "rho_sqrt_alpha_auxiliary_volume"
+                                ],
+                                "status": "running",
+                                "randomized": False,
+                            }
+                            (args.directory / "checkpoint.json").write_text(
+                                json.dumps(state, indent=2)
+                            )
+                        if time.monotonic() - start >= args.seconds:
+                            return
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "elapsed_seconds": time.monotonic() - start,
+                "status": "enumeration_complete",
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

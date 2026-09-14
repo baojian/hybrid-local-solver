@@ -1,0 +1,289 @@
+"""Bounded independent AST relocation and isolated-package verification."""
+import ast
+import copy
+import dataclasses
+from fractions import Fraction as F
+import hashlib
+import importlib.abc
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+
+ROOT=Path(__file__).resolve().parent
+PKG=ROOT/'deliverables'/'deterministic-rppr'
+EXPECTED_SOURCE='3b8cfa4a8f0161101147573007e5ac4cbabb4c64e348ec702f90d977a37d7d8f'
+EXPECTED_PACKAGE='94485eadc2fbbd1b2a9026e58e6c0bd19b792c3271130a12392463bd11da9402'
+
+
+def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+def dump(node):return ast.dump(node,include_attributes=False)
+
+
+def normalized(value):
+    if isinstance(value,F):return ['Fraction',str(value.numerator),str(value.denominator)]
+    if dataclasses.is_dataclass(value):return normalized(dataclasses.asdict(value))
+    if isinstance(value,dict):return {str(k):normalized(v) for k,v in value.items()}
+    if isinstance(value,(list,tuple)):return [normalized(v) for v in value]
+    return value
+
+
+def make_graph(n,edges):
+    rows={i:[] for i in range(1,n+1)}
+    for i,j in edges:rows[i].append(j);rows[j].append(i)
+    for row in rows.values():row.sort()
+    return rows
+
+
+class Oracle:
+    def __init__(self,rows,seed,known=()):
+        self.rows=rows;self.known=set((seed,*known));self.degrees=[];self.entries=[];self.calls=[]
+    def degree(self,i):
+        assert i in self.known
+        self.degrees.append(i);return len(self.rows[i])
+    def neighbors(self,i):
+        assert i in self.known
+        self.calls.append(i)
+        for j in self.rows[i]:
+            self.known.add(j);self.entries.append((i,j));yield j
+
+
+class NoHashLabel(int):
+    def __hash__(self):raise AssertionError('Unexpected label hashing')
+
+
+class HugeBoundary:
+    seed=NoHashLabel(1<<1025)
+    hub=NoHashLabel(-(1<<2051))
+    def __init__(self):self.exposed=False;self.degrees=[];self.entries=[];self.calls=[]
+    def degree(self,i):
+        self.degrees.append(i)
+        if i==self.seed:return 1
+        assert i==self.hub and self.exposed
+        return 10**30
+    def neighbors(self,i):
+        assert i==self.seed,'Inactive hub row was queried'
+        self.exposed=True;self.calls.append(i)
+        self.entries.append((i,self.hub));yield self.hub
+
+
+def objective(rows,seed,alpha,r,values):
+    diagonal=sum((len(rows[i])*values.get(i,F(0))**2 for i in rows),F(0))*(1+alpha)/4
+    edge=sum((values.get(i,F(0))*values.get(j,F(0)) for i in rows for j in rows[i]),F(0))*(1-alpha)/4
+    mass=sum((len(rows[i])*values.get(i,F(0)) for i in rows),F(0))
+    return diagonal-edge-alpha*values.get(seed,F(0))+alpha*r*mass
+
+
+def solve_dense(matrix,rhs):
+    a=[list(row)+[v] for row,v in zip(matrix,rhs)]
+    for j in range(len(a)):
+        pivot=next(i for i in range(j,len(a)) if a[i][j])
+        a[j],a[pivot]=a[pivot],a[j]
+        divisor=a[j][j];a[j]=[v/divisor for v in a[j]]
+        for i in range(len(a)):
+            if i!=j:
+                factor=a[i][j];a[i]=[x-factor*y for x,y in zip(a[i],a[j])]
+    return [row[-1] for row in a]
+
+
+def optimum(rows,seed,alpha,r):
+    vertices=list(rows)
+    for mask in range(1<<len(vertices)):
+        support=[i for k,i in enumerate(vertices) if mask&(1<<k)]
+        matrix=[[((1+alpha)*len(rows[i])/2 if i==j else
+                  -(1-alpha)/2 if j in rows[i] else F(0)) for j in support] for i in support]
+        rhs=[alpha*(int(i==seed)-r*len(rows[i])) for i in support]
+        values=dict(zip(support,solve_dense(matrix,rhs)))
+        if any(v<0 for v in values.values()):continue
+        slack={i:(1+alpha)*len(rows[i])*values.get(i,F(0))/2
+                 -(1-alpha)*sum((values.get(j,F(0)) for j in rows[i]),F(0))/2
+                 -alpha*int(i==seed)+alpha*r*len(rows[i]) for i in rows}
+        if all(slack[i]==0 if values.get(i,F(0))>0 else slack[i]>=0 for i in rows):
+            return values
+    raise AssertionError('No dense KKT optimum')
+
+
+def exercise(solve,Corrector,Map,certify):
+    records=[];dense_stages=0;certificates=0
+    path=make_graph(3,[(1,2),(2,3)])
+    tail=make_graph(4,[(1,2),(2,3),(3,1),(3,4)])
+    edge=make_graph(2,[(1,2)])
+    fixtures=((path,1,F(3,8),F(3,32),F(1,100000)),
+              (tail,4,F(3,5),F(3,16),F(1,100000)),
+              (edge,1,F(13,97),F((1<<20)-1,1<<20),F(1,16)),
+              (edge,1,F(1),F(1,4),F(1,1000000)),
+              (edge,1,F(1,3),F(1),F(1,1000000)))
+    for rows,seed,alpha,r,eps in fixtures:
+        oracle=Oracle(rows,seed);answer=solve(oracle,seed,alpha,r,eps)
+        old={}
+        for stage,hint in zip(answer.stages,answer.mass_hints):
+            exact=optimum(rows,seed,alpha,stage.regularization)
+            new={i:f for i,f,_ in stage.repaired_output}
+            assert all(old.get(i,F(0))<=new.get(i,F(0))<=exact.get(i,F(0)) for i in rows)
+            assert hint.mass_cap==1-sum((len(rows[i])*old.get(i,F(0)) for i in rows),F(0))
+            old=new;dense_stages+=1
+        full={i:f for i,f,_ in answer.output}
+        gap=objective(rows,seed,alpha,r,full)-objective(rows,seed,alpha,r,optimum(rows,seed,alpha,r))
+        assert 0<=gap<=answer.objective_gap_bound<=eps
+        certificate=certify(Oracle(rows,seed,known=full),seed,alpha,r,answer.output)
+        assert certificate.meets(eps);certificates+=1
+        assert answer.mass_hint_metrics.factory_calls==len(answer.stages)
+        assert answer.mass_hint_metrics.previous_references_released==len(answer.stages)
+        records.append(dict(answer=normalized(answer),degrees=oracle.degrees,
+                            entries=oracle.entries,calls=oracle.calls,
+                            certificate=normalized(certificate)))
+    oracle=HugeBoundary()
+    huge=solve(oracle,oracle.seed,F(1,100),F(1,64),F(1,1000000))
+    certificate=certify(HugeBoundary(),oracle.seed,F(1,100),F(1,64),huge.output)
+    assert certificate.meets(F(1,1000000));certificates+=1
+    assert all(i==oracle.seed for i in oracle.calls)
+    records.append(dict(answer=normalized(huge),degrees=oracle.degrees,
+                        entries=oracle.entries,calls=oracle.calls,
+                        certificate=normalized(certificate)))
+    prefixes=[];alpha,r=F(5,32),F(1,16);tau=alpha**3*r*r/32
+    c=Corrector(Oracle(tail,4),4,alpha,F(1,4),r,tau,
+                Map(((4,F(7,32)),)),mass_cap_hint=F(25,32))
+    for k in range(9):
+        prefixes.append(normalized(dict(k=k,X=tuple(c.X.items()),L=tuple(c.L.items()),
+            z=tuple(c.z.items()),M=tuple(c.M.items()),S=c.S,H=c.H,
+            gamma=c.gamma_bound,bound=c.objective_gap_bound,metrics=c.diagnostic_metrics)))
+        if k<8:c.step()
+    zero=Corrector(Oracle(edge,1,known=(2,)),1,F(1,4),F(1,2),F(1,4),F(1,1024),
+                   Map(((1,F(3,8)),(2,F(1,8)))),mass_cap_hint=F(1,2))
+    assert zero.target_iterations==0 and zero.objective_gap_bound==0
+    zero_output=normalized(zero.run())
+    return dict(records=records,prefixes=prefixes,zero_output=zero_output,
+                dense_kkt_stages=dense_stages,certificates=certificates)
+
+
+def isolated():
+    location=Path(sys.argv[2]).resolve()
+    assert all(str(ROOT) not in entry for entry in sys.path)
+    class Guard(importlib.abc.MetaPathFinder):
+        def find_spec(self,fullname,path=None,target=None):
+            if fullname in {'mass_scaled_grid_rppr','integer_dyadic_rppr_solver',
+                'combined_certified_dyadic_rppr','direct_exception_integer_rppr',
+                'source_energy_dyadic_rppr','binomial_block_dyadic_rppr',
+                'early_stop_source_energy_rppr','deterministic_avl_containers',
+                'test_mass_scaled_grid_rppr','test_local_safe_solver'}:
+                raise AssertionError('Research import in isolated package: '+fullname)
+            return None
+    sys.meta_path.insert(0,Guard())
+    sys.path.insert(0,str(location))
+    import deterministic_rppr as package
+    from deterministic_rppr._avl import AVLMap
+    from deterministic_rppr._mass_grid import solve_rppr_mass_scaled_grid
+    assert package.solve is package.solve_fast
+    assert package.solve.__module__=='deterministic_rppr._fast'
+    assert package.solve_mass_scaled_grid is solve_rppr_mass_scaled_grid
+    public=('solve_mass_scaled_grid','MassScaledGridCorrector','MassScaledGridResult',
+            'MassHintMetrics','MassHintRecord')
+    assert all(name in package.__all__ and hasattr(package,name) for name in public)
+    assert package.MassScaledGridCorrector.step is package.FastDyadicCorrector.step
+    assert package.MassScaledGridCorrector.run is package.FastDyadicCorrector.run
+    assert package.MassScaledGridCorrector._rebase is package.FastDyadicCorrector._rebase
+    result=exercise(package.solve_mass_scaled_grid,package.MassScaledGridCorrector,AVLMap,package.certify_output)
+    result['isolated_package_modules']={name:str(Path(module.__file__).resolve().relative_to(location))
+        for name,module in sys.modules.items() if name.startswith('deterministic_rppr')
+        and getattr(module,'__file__',None)}
+    print(json.dumps(result,separators=(',',':')))
+
+
+def main():
+    manifest=json.loads((PKG/'MASS_GRID_TRANSCRIPTION.json').read_text())
+    source=ROOT/'mass_scaled_grid_rppr.py';packaged=PKG/'deterministic_rppr'/'_mass_grid.py'
+    assert digest(source)==manifest['source_sha256']==EXPECTED_SOURCE
+    assert digest(packaged)==manifest['package_sha256']==EXPECTED_PACKAGE
+    assert digest(ROOT/manifest['approved_by'])==manifest['approval_sha256']
+    tree=ast.parse(packaged.read_text())
+    source_tree=ast.parse(source.read_text())
+    # Reverse only permitted imports and the one explicit injected factory call.
+    mapping={'_combined':'combined_certified_dyadic_rppr',
+             '_direct':'direct_exception_integer_rppr','_types':'deterministic_rppr_solver'}
+    kept=[];imports=0;removed=0
+    for node in tree.body:
+        if isinstance(node,ast.ImportFrom) and node.level==1:
+            if node.module is None:
+                assert [(x.name,x.asname) for x in node.names]==[('_integer','reference')]
+                removed+=1;continue
+            assert node.module in mapping
+            node.module,node.level=mapping[node.module],0;imports+=1
+            if node.module=='direct_exception_integer_rppr':
+                assert [(x.name,x.asname) for x in node.names]==[('DirectExceptionIntegerCorrector',None)]
+                node.names.append(ast.alias(name='_continuation'))
+        kept.append(node)
+    tree.body=kept;changes=0
+    for node in ast.walk(tree):
+        if isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute):
+            if isinstance(node.func.value,ast.Name) and node.func.value.id=='reference':
+                assert node.func.attr=='solve_rppr_integer'
+                assert [dump(x) for x in node.args]==[dump(ast.Name(id=x,ctx=ast.Load()))
+                    for x in ('oracle','seed','alpha','rho','epsilon')]
+                assert len(node.keywords)==1 and node.keywords[0].arg=='corrector_class'
+                assert isinstance(node.keywords[0].value,ast.Name) and node.keywords[0].value.id=='factory'
+                node.func=ast.Call(func=ast.Name(id='_continuation',ctx=ast.Load()),
+                                  args=[ast.Name(id='factory',ctx=ast.Load())],keywords=[])
+                node.keywords=[];changes+=1
+    assert (imports,removed,changes)==(3,1,1)
+    assert dump(tree)==dump(source_tree)
+    # Check the receiving wrapper by reversing only its private keyword and
+    # constructor-name substitution; every schedule/repair statement matches.
+    def function(path,name):
+        return next(x for x in ast.parse(path.read_text()).body if isinstance(x,ast.FunctionDef) and x.name==name)
+    receiving=function(PKG/'deterministic_rppr'/'_integer.py','solve_rppr_integer')
+    original=function(ROOT/'integer_dyadic_rppr_solver.py','solve_rppr_integer')
+    assert [a.arg for a in receiving.args.kwonlyargs]==['corrector_class']
+    assert dump(receiving.args.kw_defaults[0])==dump(ast.Name(id='IntegerDyadicCorrector',ctx=ast.Load()))
+    receiving.args.kwonlyargs=[];receiving.args.kw_defaults=[]
+    constructor_changes=0
+    for node in ast.walk(receiving):
+        if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='corrector_class':
+            node.func.id='IntegerDyadicCorrector';constructor_changes+=1
+    assert constructor_changes==1 and dump(receiving)==dump(original)
+    unchanged=[]
+    for name,expected in manifest['existing_module_sha256_at_build'].items():
+        if name=='__init__.py':continue # Intentional public export additions.
+        assert digest(PKG/'deterministic_rppr'/name)==expected
+        unchanged.append(name)
+    before={x.name:digest(x) for x in (PKG/'deterministic_rppr').glob('*.py')}
+    import mass_scaled_grid_rppr as research
+    from deterministic_avl_containers import AVLMap
+    from independent_sparse_certificate import certify_sparse_output
+    expected=exercise(research.solve_rppr_mass_scaled_grid,research.MassScaledGridCorrector,
+                      AVLMap,certify_sparse_output)
+    with tempfile.TemporaryDirectory(prefix='rppr-mass-grid-isolation-') as temp:
+        location=Path(temp)
+        shutil.copytree(PKG/'deterministic_rppr',location/'deterministic_rppr',
+                        ignore=shutil.ignore_patterns('__pycache__'))
+        driver=location/'audit_driver.py';shutil.copyfile(__file__,driver)
+        completed=subprocess.run([sys.executable,'-I',str(driver),'--isolated',str(location)],
+            cwd=location,text=True,capture_output=True,check=True,timeout=60)
+        observed=json.loads(completed.stdout)
+    imported=observed.pop('isolated_package_modules')
+    assert normalized(observed)==normalized(expected)
+    after={x.name:digest(x) for x in (PKG/'deterministic_rppr').glob('*.py')}
+    assert before==after
+    result=dict(passed=True,source_sha256=EXPECTED_SOURCE,package_sha256=EXPECTED_PACKAGE,
+                manifest_approval_hash_verified=True,relative_import_relocations=imports,
+                explicit_factory_call_rewrites=changes,
+                receiving_wrapper_constructor_rewrites=constructor_changes,
+                ast_otherwise_identical=True,existing_numerical_modules_unchanged=unchanged,
+                default_solve_unchanged=True,public_mass_grid_exports_checked=5,
+                isolated_mode=True,research_imports_blocked=True,
+                isolated_package_modules=imported,full_source_package_pairs=len(expected['records']),
+                full_kkt_stage_pairs=expected['dense_kkt_stages'],
+                independent_certificate_pairs=expected['certificates'],
+                exact_state_prefix_pairs=len(expected['prefixes']),zero_step_pair=True,
+                complete_result_and_graph_call_sequences_identical=True,
+                huge_inactive_hub_degree='1000000000000000000000000000000',
+                package_source_sha256=after)
+    (ROOT/'mass_grid_package_independent_verification.json').write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in result.items() if k not in ('package_source_sha256','isolated_package_modules')},indent=2))
+
+
+if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='--isolated':isolated()
+    else:main()
+

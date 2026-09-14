@@ -1,0 +1,299 @@
+"""Reproducible deterministic virtual-graph timings using only this package.
+
+The graph is implicit. Solver calls include metering and internal certificates;
+the separately recomputed final certificate is outside the timed region.
+"""
+import argparse
+import gc
+import hashlib
+import json
+import platform
+import signal
+import sys
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PACKAGE_ROOT))
+from deterministic_rppr import certify_output, solve_fast, solve_adaptive, solve_mass_scaled_grid
+from deterministic_rppr._avl import AVLSet
+
+
+@dataclass(frozen=True)
+class Case:
+    name: str
+    family: str
+    size: int
+    auxiliary: int
+    seed: int
+    alpha: F
+    rho: F
+    epsilon: F
+
+
+CASES = (
+    Case('smoke', 'path', 3, 0, 1, F(1,4), F(1,16), F(1,10**6)),
+    Case('standard-path', 'path', 10**9, 0, 1, F(1,100), F(1,16), F(1,10**6)),
+    Case('grid-local', 'grid', 10**4, 0, 5000*10**4+5001,
+         F(1,16), F(1,256), F(1,10**8)),
+    Case('tree-clique-boundary', 'tree_clique', 5, 2**14, 1,
+         F(1,64), F(1,512), F(1,10**8)),
+    Case('hard-alpha-path', 'path', 10**9, 0, 1,
+         F(1,1000), F(1,64), F(1,10**8)),
+    Case('small-mass', 'path', 3, 0, 1, F(1,4), F(1,2**20), F(1,2**50)),
+)
+BACKENDS = {'fast': solve_fast, 'adaptive': solve_adaptive,
+            'mass-grid': solve_mass_scaled_grid}
+
+
+class VirtualGraph:
+    """One-based labels; constant-space path, square grid, or tree/clique."""
+    def __init__(self, family, size, auxiliary=0):
+        if family not in ('path', 'grid', 'tree_clique') or size < 2:
+            raise ValueError('Invalid graph family or size')
+        self.family, self.size, self.auxiliary = family, size, auxiliary
+        self.tree_n = (1 << (size+1))-1 if family == 'tree_clique' else 0
+        self.leaf_start = 1 << size if family == 'tree_clique' else 0
+        if family == 'tree_clique' and auxiliary < self.leaf_start:
+            raise ValueError('The clique needs one distinct attachment per tree leaf')
+        self.n = size if family == 'path' else size*size if family == 'grid' else self.tree_n+auxiliary
+
+    def degree(self, vertex):
+        if not 1 <= vertex <= self.n:
+            raise ValueError('Vertex is outside the implicit graph')
+        if self.family == 'path':
+            return 1 if vertex in (1, self.size) else 2
+        if self.family == 'grid':
+            row, col = divmod(vertex-1, self.size)
+            return int(row>0)+int(col>0)+int(row<self.size-1)+int(col<self.size-1)
+        if vertex <= self.tree_n:
+            return 2 if vertex == 1 or vertex >= self.leaf_start else 3
+        offset = vertex-self.tree_n-1
+        return self.auxiliary-1+int(offset<self.leaf_start)
+
+    def neighbors(self, vertex):
+        self.degree(vertex)
+        if self.family == 'path':
+            if vertex>1:
+                yield vertex-1
+            if vertex<self.size:
+                yield vertex+1
+        elif self.family == 'grid':
+            row, col = divmod(vertex-1, self.size)
+            if row:
+                yield vertex-self.size
+            if col:
+                yield vertex-1
+            if col<self.size-1:
+                yield vertex+1
+            if row<self.size-1:
+                yield vertex+self.size
+        elif vertex <= self.tree_n:
+            if vertex>1:
+                yield vertex//2
+            if vertex<self.leaf_start:
+                yield 2*vertex
+                yield 2*vertex+1
+            else:
+                yield self.tree_n+1+vertex-self.leaf_start
+        else:
+            for other in range(self.tree_n+1,self.n+1):
+                if other != vertex:
+                    yield other
+            offset=vertex-self.tree_n-1
+            if offset<self.leaf_start:
+                yield self.leaf_start+offset
+
+
+class CountingOracle:
+    """Metered replies, bounded access, and deterministic vertex record sets."""
+    def __init__(self, graph, limit, seconds):
+        self.graph, self.limit = graph, limit
+        self.deadline = perf_counter()+seconds
+        self.degree_replies=self.row_requests=self.adjacency_entries=0
+        self.maximum_queried_degree=self.maximum_scanned_degree=0
+        self.queried, self.scanned = AVLSet(), AVLSet()
+
+    def check_time(self):
+        if perf_counter()>self.deadline:
+            raise TimeoutError('Benchmark per-call wall guard reached')
+
+    def degree(self, vertex):
+        self.check_time()
+        if self.degree_replies>=self.limit:
+            raise RuntimeError('Benchmark degree-reply guard reached')
+        value=self.graph.degree(vertex)
+        self.degree_replies+=1
+        self.maximum_queried_degree=max(self.maximum_queried_degree,value)
+        self.queried.add(vertex)
+        return value
+
+    def neighbors(self, vertex):
+        self.check_time()
+        self.row_requests+=1
+        self.maximum_scanned_degree=max(self.maximum_scanned_degree,self.graph.degree(vertex))
+        self.scanned.add(vertex)
+        for other in self.graph.neighbors(vertex):
+            self.check_time()
+            if self.adjacency_entries>=self.limit:
+                raise RuntimeError('Benchmark adjacency-entry guard reached')
+            self.adjacency_entries+=1
+            yield other
+
+    def snapshot(self):
+        return dict(degree_replies=self.degree_replies,row_requests=self.row_requests,
+                    adjacency_entries=self.adjacency_entries,
+                    maximum_queried_degree=self.maximum_queried_degree,
+                    maximum_scanned_degree=self.maximum_scanned_degree,
+                    unique_degree_vertices=len(self.queried),unique_scanned_vertices=len(self.scanned))
+
+
+def encode(value):
+    if isinstance(value,F):
+        return str(value)
+    if isinstance(value,dict):
+        return {str(key):encode(item) for key,item in value.items()}
+    if isinstance(value,(tuple,list)):
+        return [encode(item) for item in value]
+    return value
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+@contextmanager
+def wall_guard(seconds):
+    if not hasattr(signal,'setitimer'):
+        yield
+        return
+    def expired(signum,frame):
+        raise TimeoutError('Benchmark per-call wall guard reached')
+    previous=signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM,expired)
+    signal.setitimer(signal.ITIMER_REAL,seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        signal.signal(signal.SIGALRM,previous)
+
+
+def inspect_result(case,mode,outer,oracle):
+    result=outer if mode=='fast' else outer.result
+    extra=asdict(outer.adaptive_metrics) if mode=='adaptive' else (
+        asdict(outer.mass_hint_metrics) if mode=='mass-grid' else {})
+    schedule=asdict(outer) if mode!='fast' else None
+    metrics=result.metrics
+    degree_expected=metrics.seed_degree_queries+metrics.repair_degree_replies+sum(
+        stage.corrector_metrics['degree_replies'] for stage in result.stages)
+    entry_expected=metrics.repair_first_adjacency_entries+sum(
+        stage.corrector_metrics['first_adjacency_entries'] for stage in result.stages)
+    if mode=='adaptive':
+        degree_expected+=extra['degree_replies']
+        entry_expected+=extra['first_adjacency_entries']
+    assert oracle.degree_replies==degree_expected
+    assert oracle.adjacency_entries==entry_expected
+    assert 0<=result.objective_gap_bound<=case.epsilon
+    if mode=='mass-grid':
+        assert extra['factory_calls']==extra['previous_references_released']==len(result.stages)
+    for stage in result.stages:
+        check=stage.corrector_metrics['checkpoints']
+        assert check['cache_misses']==0
+        assert check['checker_containers']==check['checker_reclaimed_containers']
+        assert stage.kinetic_volume<=360*stage.projection_mass_cap*stage.iterations/stage.regularization
+    scans=metrics.repair_scanned_adjacency_entries+sum(
+        s.corrector_metrics['scanned_adjacency_entries']+
+        s.corrector_metrics['checkpoints']['cached_adjacency_entries'] for s in result.stages)
+    if mode=='adaptive':
+        scans+=extra['scanned_adjacency_entries']
+    return result,encode(dict(inner=asdict(result),outer=schedule,extra=extra)),scans
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--case',choices=[c.name for c in CASES]+['four'],default='smoke')
+    parser.add_argument('--backend',choices=BACKENDS,default='fast')
+    parser.add_argument('--compare',choices=('adaptive','mass-grid'))
+    parser.add_argument('--output',type=Path,default=Path('benchmark-results.json'))
+    parser.add_argument('--wall-seconds',type=int,default=60)
+    parser.add_argument('--oracle-limit',type=int,default=1000000)
+    args=parser.parse_args()
+    if not __debug__:
+        parser.error('Assertions must remain enabled; do not use Python -O')
+    if args.wall_seconds<=0 or args.oracle_limit<=0:
+        parser.error('Resource guards must be positive')
+    if args.compare and args.backend!='fast':
+        parser.error('--compare uses fast as its reference; omit --backend')
+    if args.output.exists():
+        parser.error('Choose a new output file; existing measurements are preserved')
+    cases=CASES[1:5] if args.case=='four' else tuple(c for c in CASES if c.name==args.case)
+    order=('fast',args.compare,args.compare,'fast') if args.compare else (args.backend,)
+    paths=sorted((PACKAGE_ROOT/'deterministic_rppr').glob('*.py'))
+    hashes={str(p.relative_to(PACKAGE_ROOT)):sha(p) for p in paths}
+    report=dict(status='running',complete=False,cases=encode([asdict(c) for c in cases]),
+                order=order,source_sha256=hashes,driver_sha256=sha(Path(__file__)),
+                runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform()),
+                guards=dict(per_call_wall_seconds=args.wall_seconds,oracle_limit=args.oracle_limit),
+                timing='Full solver call, including deterministic AVL metering, all internal certificates and optional extra work. External final certification, graph setup and serialization are untimed.',
+                scope='Bounded deterministic measurements; compare timings only within this run. A conservative external certificate can be inconclusive.',
+                runs=[],summaries=[])
+    def save():
+        temporary=args.output.with_suffix(args.output.suffix+'.tmp')
+        temporary.write_text(json.dumps(report,indent=2)+'\n')
+        temporary.replace(args.output)
+    save()
+    case=mode=None
+    try:
+        for case in cases:
+            repeated={}
+            for mode in order:
+                graph=VirtualGraph(case.family,case.size,case.auxiliary)
+                gc.collect()
+                oracle=CountingOracle(graph,args.oracle_limit,args.wall_seconds)
+                with wall_guard(args.wall_seconds):
+                    cpu,wall=process_time(),perf_counter()
+                    outer=BACKENDS[mode](oracle,case.seed,case.alpha,case.rho,case.epsilon)
+                    cpu,wall=process_time()-cpu,perf_counter()-wall
+                result,exact,scans=inspect_result(case,mode,outer,oracle)
+                signature=dict(result=exact,oracle=oracle.snapshot())
+                if mode in repeated:
+                    assert signature==repeated[mode], 'A repeated exact result changed'
+                repeated[mode]=signature
+                verifier=CountingOracle(graph,args.oracle_limit,args.wall_seconds)
+                with wall_guard(args.wall_seconds):
+                    check=certify_output(verifier,case.seed,case.alpha,case.rho,result.output)
+                row=dict(case=case.name,backend=mode,cpu_seconds=cpu,wall_seconds=wall,
+                         iterations=sum(s.iterations for s in result.stages),stages=len(result.stages),
+                         repeated_scanned_entries=scans,oracle=oracle.snapshot(),exact=exact,
+                         independent_certificate=encode(asdict(check)),
+                         independent_certificate_meets_target=check.meets(case.epsilon),
+                         verifier_oracle=verifier.snapshot())
+                report['runs'].append(row)
+                save()
+                print(f'{case.name}: {mode}, {row["iterations"]} iterations, {cpu:.6f}s CPU, external certificate {row["independent_certificate_meets_target"]}',flush=True)
+            summary=dict(case=case.name,backends={})
+            for backend in dict.fromkeys(order):
+                rows=[r for r in report['runs'] if r['case']==case.name and r['backend']==backend]
+                summary['backends'][backend]=dict(samples=len(rows),
+                    median_cpu_seconds=median(r['cpu_seconds'] for r in rows),
+                    median_wall_seconds=median(r['wall_seconds'] for r in rows),
+                    all_independent_certificates_meet_target=all(r['independent_certificate_meets_target'] for r in rows))
+            report['summaries'].append(summary)
+        assert hashes=={str(p.relative_to(PACKAGE_ROOT)):sha(p) for p in paths}
+        report.update(status='complete',complete=True)
+        save()
+    except BaseException as error:
+        report.update(status='incomplete',complete=False,
+                      failure=dict(type=type(error).__name__,message=str(error),
+                                   case=None if case is None else case.name,backend=mode))
+        save()
+        raise
+
+
+if __name__=='__main__':
+    main()

@@ -1,0 +1,118 @@
+"""Exact waterfilling with integer pairs throughout all root searches.
+
+The stable integer-moment AVL implementation is inherited without edits.
+Four rational globals are lifted to a common integer lattice once per query.
+No rational object or gcd is constructed inside breakpoint/tail searches or
+per-entry floors. Only scalar input normalization and the returned multiplier
+use Fraction. Pair denominators never accumulate across search iterations.
+"""
+from fractions import Fraction as F
+from math import gcd
+
+from integer_clipped_reporter import IntegerClippedReporter, ProjectionResult
+
+
+def _less(left, right):
+    return left[0]*right[1] < right[0]*left[1]
+
+
+class IntegerPairClippedReporter(IntegerClippedReporter):
+    def _pair_mass(self, q, base_scale, exception_scale, width):
+        """Return mass*qd, slope, intercept for mass=intercept-q*slope."""
+        self.metrics.mass_queries += 1
+        qn, qd = q
+        high_n = qn+width*qd
+        dl = dh = nl = nh = 0
+        for tree, scale in ((self.base, base_scale), (self.exception, exception_scale)):
+            low_d, low_n = tree.tail_moments(qn, qd*scale)
+            high_d, high_sum = tree.tail_moments(high_n, qd*scale)
+            dl += low_d
+            dh += high_d
+            nl += scale*low_n
+            nh += scale*high_sum
+        slope = dl-dh
+        intercept = nl-nh+width*dh
+        return intercept*qd-qn*slope, slope, intercept
+
+    def _pair_threshold(self, base_scale, exception_scale, initial, width, target):
+        low = (initial, 1)
+        mass0, _, _ = self._pair_mass(low, base_scale, exception_scale, width)
+        if mass0 <= target:
+            return low, False
+        high = None
+        for tree, scale in ((self.base, base_scale), (self.exception, exception_scale)):
+            if len(tree):
+                numerator, degree, _ = tree.rank_record(len(tree)-1)
+                candidate = (scale*numerator, degree)
+                if high is None or _less(high, candidate):
+                    high = candidate
+        if high is None:
+            raise ArithmeticError('Positive mass from empty reporter')
+        if target == 0:
+            return high, True
+        # No interpolation is used during these searches. Every pair has
+        # denominator 1 or a single record's positive integer degree.
+        for tree, scale in ((self.base, base_scale), (self.exception, exception_scale)):
+            for translation in (0, width):
+                left, right = 0, len(tree)
+                while left < right:
+                    middle = (left+right)//2
+                    numerator, degree, _ = tree.rank_record(middle)
+                    pivot = (scale*numerator-translation*degree, degree)
+                    self.metrics.breakpoint_candidates += 1
+                    if not _less(low, pivot):
+                        left = middle+1
+                        continue
+                    if not _less(pivot, high):
+                        right = middle
+                        continue
+                    mass, _, _ = self._pair_mass(pivot, base_scale, exception_scale, width)
+                    target_numerator = target*pivot[1]
+                    if mass == target_numerator:
+                        return pivot, True
+                    if mass > target_numerator:
+                        low, left = pivot, middle+1
+                    else:
+                        high, right = pivot, middle
+        _, slope, intercept = self._pair_mass(low, base_scale, exception_scale, width)
+        if slope <= 0:
+            raise ArithmeticError('Invalid affine waterfill interval')
+        # Construct directly from moments. Forming low+(mass-target)/slope
+        # using unreduced pairs would retain needless old denominators.
+        q = (intercept-target, slope)
+        if not _less(low, q) or _less(high, q):
+            raise ArithmeticError('Root escaped its exact bracket')
+        return q, True
+
+    def project_counts(self, *, base_scale, common_denominator, shift, upper, cap, grid):
+        shift, upper, cap = self._validate_globals(base_scale, common_denominator, shift, upper, cap)
+        grid = F(grid)
+        if grid <= 0 or grid > upper or grid.denominator & (grid.denominator-1):
+            raise ValueError('Grid must be positive dyadic and at most upper')
+        self.metrics.projection_queries += 1
+        # Lift only the four shared scalar denominators, never vertex degrees.
+        G, lift = common_denominator, 1
+        for value in (shift, upper, cap, grid):
+            needed = value.denominator//gcd(value.denominator, G)
+            lift = (lift//gcd(lift, needed))*needed
+        scaled_G = G*lift
+        initial, width, target, step = (
+            value.numerator*(scaled_G//value.denominator)
+            for value in (shift, upper, cap, grid))
+        base, exception = base_scale*lift, lift
+        q, active = self._pair_threshold(base, exception, initial, width, target)
+        qn, qd = q
+        cutoff_n = qn+step*qd
+        upper_count = width//step
+        result = []
+        for tree, scale in ((self.base, base), (self.exception, exception)):
+            for numerator, degree, vertex in tree.at_least(cutoff_n, qd*scale):
+                count = min(upper_count,
+                    (scale*numerator*qd-qn*degree)//(step*degree*qd))
+                if count <= 0:
+                    raise ArithmeticError('Closed tail emitted a zero grid count')
+                result.append((vertex, count, degree))
+                self.metrics.emissions += 1
+                self.metrics.emitted_integer_floors += 1
+        multiplier = F(qn-initial*qd, qd*scaled_G)
+        return ProjectionResult(tuple(result), multiplier, active)

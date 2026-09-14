@@ -1,0 +1,52 @@
+"""A local solve on a path represented without allocating its vertices."""
+
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from fractions import Fraction
+from deterministic_rppr import solve, certify_output
+
+
+class PathOracle:
+    def __init__(self, size):
+        if size < 2:
+            raise ValueError("The path needs at least two vertices")
+        self.size = size
+        self.degree_queries = 0
+        self.adjacency_entries = 0
+
+    def degree(self, vertex):
+        if not 0 <= vertex < self.size:
+            raise ValueError("Vertex is outside the path")
+        self.degree_queries += 1
+        return 1 if vertex == 0 or vertex == self.size - 1 else 2
+
+    def neighbors(self, vertex):
+        if not 0 <= vertex < self.size:
+            raise ValueError("Vertex is outside the path")
+        if vertex > 0:
+            self.adjacency_entries += 1
+            yield vertex - 1
+        if vertex + 1 < self.size:
+            self.adjacency_entries += 1
+            yield vertex + 1
+
+
+if __name__ == "__main__":
+    oracle = PathOracle(10**9)
+    result = solve(oracle, seed=0, alpha=Fraction(1, 5), rho=Fraction(1, 8),
+                   epsilon=Fraction(1, 1_000_000))
+    print("Sparse density output:")
+    for vertex, density, degree in result.output:
+        print(f"  vertex {vertex}: {density}, degree {degree}")
+    print("Certified objective gap:", result.objective_gap_bound)
+    print("Degree queries:", oracle.degree_queries)
+    print("First adjacency entries:", oracle.adjacency_entries)
+    print("Correction iterations:", sum(stage.iterations for stage in result.stages))
+    verification_oracle = PathOracle(10**9)
+    check = certify_output(verification_oracle, 0, Fraction(1, 5), Fraction(1, 8), result.output)
+    assert check.meets(Fraction(1, 1_000_000))
+    print("Independent residual certificate:", check.objective_gap_bound)
+    print("Additional verification adjacency entries:", check.first_adjacency_entries)

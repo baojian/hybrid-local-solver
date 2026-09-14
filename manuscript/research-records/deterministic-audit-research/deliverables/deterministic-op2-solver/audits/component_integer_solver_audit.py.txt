@@ -1,0 +1,53 @@
+"""Exact end-to-end equivalence of integer and rational component modes."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from bounded_pilot_audit import misleading_branch
+from component_fast_path_audit import leaky_pair
+from pruned_continuation_audit import Oracle
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve_fast
+
+
+def main():
+    start = time.monotonic()
+    records = []
+    for (name, graph, seed), alpha, ratio, early in itertools.product(
+        (('path6', nx.path_graph(6), 0), ('leaky_pair', leaky_pair(), 0),
+         ('misleading_branch', misleading_branch(), 0), ('star6', nx.star_graph(5), 1)),
+        (F(1, 16), F(1, 10000)), (F(1, 4), F(1, 16)), (False, True),
+    ):
+        rho = ratio/graph.degree(seed)
+        epsilon = min(F(1, 10**10), alpha**2*rho**2/10000)
+        old_oracle, new_oracle = Oracle(graph), Oracle(graph)
+        then = time.monotonic()
+        old = solve_fast(old_oracle, seed, alpha, rho, epsilon, early_certificate=early, integer_component=False, tiny_exact=False)
+        old_seconds = time.monotonic()-then
+        then = time.monotonic()
+        new = solve_fast(new_oracle, seed, alpha, rho, epsilon, early_certificate=early, integer_component=True, tiny_exact=False)
+        new_seconds = time.monotonic()-then
+        assert old.output == new.output and old.objective_gap_bound == new.objective_gap_bound
+        assert old.route == new.route and old.metrics.iterations == new.metrics.iterations
+        assert old.metrics.global_pg_checks == new.metrics.global_pg_checks
+        assert old_oracle.entries == new_oracle.entries and old_oracle.degree_calls == new_oracle.degree_calls
+        if old.continuation:
+            assert [s.repaired_output for s in old.continuation.stages] == [s.repaired_output for s in new.continuation.stages]
+        record = dict(graph=name, alpha=str(alpha), rho=str(rho), early=early, route=new.route, iterations=new.metrics.iterations, rational_seconds=old_seconds, integer_seconds=new_seconds)
+        records.append(record)
+        print(json.dumps(record), flush=True)
+    result = dict(cases=len(records), records=records, seconds=time.monotonic()-start, randomized=False, status='enumeration_complete')
+    (ROOT/'results/component-integer-solver-audit.json').write_text(json.dumps(result, indent=2))
+
+
+if __name__ == '__main__':
+    main()

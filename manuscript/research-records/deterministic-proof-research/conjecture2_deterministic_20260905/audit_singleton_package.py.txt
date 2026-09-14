@@ -1,0 +1,231 @@
+"""Independent final singleton transcription, routing, and isolation check."""
+import ast
+import hashlib
+import inspect
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parent
+PKGROOT = ROOT/'deliverables'/'deterministic-rppr'
+PKG = PKGROOT/'deterministic_rppr'
+LOG = {}
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def audit_ast():
+    manifest = json.loads((PKGROOT/'SINGLETON_TRANSCRIPTION.json').read_text())
+    assert manifest['source'] == 'singleton_precheck_rppr.py'
+    assert sha(ROOT/manifest['source']) == manifest['source_sha256']
+    assert sha(PKG/'_singleton.py') == manifest['package_sha256']
+    source = ast.parse((ROOT/manifest['source']).read_text())
+    packaged = ast.parse((PKG/'_singleton.py').read_text())
+    changed_imports = changed_names = 0
+    for node in packaged.body:
+        if isinstance(node, ast.ImportFrom) and node.module == '_fast':
+            assert node.level == 1 and len(node.names) == 1
+            assert node.names[0].name == 'solve_rppr_fast' and node.names[0].asname is None
+            node.level, node.module = 0, 'combined_certified_dyadic_rppr'
+            node.names[0].name = 'solve_rppr_combined'
+            changed_imports += 1
+    for node in ast.walk(packaged):
+        if isinstance(node, ast.Name) and node.id == 'solve_rppr_fast':
+            node.id = 'solve_rppr_combined'
+            changed_names += 1
+    assert changed_imports == changed_names == 1
+    assert ast.dump(source, include_attributes=False) == ast.dump(packaged, include_attributes=False)
+    LOG['whole_module_ast_equal_after_two_documented_rewrites'] = True
+    LOG['singleton_transcription'] = manifest
+
+    # Later transcription records override earlier entries for the same module.
+    previous = {}
+    for name in ('TRANSCRIPTION.json', 'INTEGER_TRANSCRIPTION.json',
+                 'ACCELERATED_TRANSCRIPTION.json', 'DIRECT_TRANSCRIPTION.json'):
+        previous.update(json.loads((PKGROOT/name).read_text()))
+    checked = []
+    for name, record in previous.items():
+        if name == '__init__':
+            continue
+        expected = record.get('package_sha256', record.get('source_sha256'))
+        assert sha(PKG/(name+'.py')) == expected, name
+        checked.append(name)
+    LOG['unchanged_existing_modules'] = sorted(checked)
+
+
+class NH(int):
+    def __hash__(self):
+        raise AssertionError('Vertex label hashing is forbidden')
+
+
+class Oracle:
+    def __init__(self, rows):
+        self.rows = rows
+        self.offset = -(1 << 2051)
+        self.degree_queries = []
+        self.row_queries = []
+        self.entries = 0
+
+    def label(self, i):
+        return NH(self.offset+i)
+
+    def degree(self, i):
+        self.degree_queries.append(i)
+        return len(self.rows[int(i)-self.offset])
+
+    def neighbors(self, i):
+        self.row_queries.append(i)
+        for j in self.rows[int(i)-self.offset]:
+            self.entries += 1
+            yield self.label(j)
+
+
+def audit_behavior():
+    sys.path.insert(0, str(PKGROOT))
+    import deterministic_rppr as package
+    from singleton_precheck_rppr import solve_rppr_with_singleton_precheck as source
+    signature = inspect.signature(package.solve_with_singleton)
+    assert signature.parameters['fallback_solver'].default is package.solve_fast
+    assert signature.parameters['seed_degree_cutoff'].default == 32
+    assert package.solve is package.solve_fast
+    assert package.solve is not package.solve_with_singleton
+    assert all(name in package.__all__ for name in
+        ('solve_with_singleton', 'SingletonPrecheckResult', 'SingletonTrialMetrics'))
+    path = ((1,), (0, 2), (1, 3), (2, 4), (3,))
+    edge = ((1,), (0,))
+    cases = (
+        (edge, F(1, 3), F(1, 3), 32, 'singleton'),
+        (path, F(1, 100), F(1, 16), 32, 'failed_trial'),
+        (path, F(1, 16), F(1, 32), 0, 'skipped_cutoff'),
+        (edge, F(1, 7), F(1), 0, 'zero'),
+        (path, F(1), F(1, 4), 0, 'alpha_one'),
+    )
+    LOG['cases'] = []
+    for rows, alpha, rho, cutoff, expected in cases:
+        a, b = Oracle(rows), Oracle(rows)
+        eps = F(1, 100000)
+        captured = []
+        def capture(*args):
+            result = package.solve_fast(*args)
+            captured.append(result)
+            return result
+        x = source(a, a.label(0), alpha, rho, eps,
+                   seed_degree_cutoff=cutoff, fallback_solver=package.solve_fast)
+        y = package.solve_with_singleton(b, b.label(0), alpha, rho, eps,
+                   seed_degree_cutoff=cutoff, fallback_solver=capture)
+        assert asdict(x) == asdict(y)
+        assert y.outcome == expected
+        assert a.degree_queries == b.degree_queries and a.row_queries == b.row_queries
+        assert a.entries == b.entries
+        trial = y.trial_metrics
+        evidence = dict(outcome=expected, trial=asdict(trial),
+                        total_actual_entries=b.entries)
+        if captured:
+            assert len(captured) == 1 and y.fallback_result is captured[0]
+            assert y.output is captured[0].output
+            assert y.objective_gap_bound is captured[0].objective_gap_bound
+            fresh = Oracle(rows)
+            reference = package.solve_fast(fresh, fresh.label(0), alpha, rho, eps)
+            assert asdict(reference) == asdict(captured[0])
+            skip = trial.seed_degree_queries+trial.neighbor_degree_queries
+            assert b.degree_queries[skip:] == fresh.degree_queries
+            assert b.row_queries[trial.seed_row_requests:] == fresh.row_queries
+            assert b.entries == trial.adjacency_entries+fresh.entries
+            evidence['unchanged_fallback_stages'] = len(reference.stages)
+            evidence['fallback_identity_and_additive_queries'] = True
+            # Also exercise the actual bound default, not just an injected callback.
+            default_oracle = Oracle(rows)
+            default = package.solve_with_singleton(default_oracle, default_oracle.label(0),
+                alpha, rho, eps, seed_degree_cutoff=cutoff)
+            assert asdict(default) == asdict(y)
+            assert default_oracle.degree_queries == b.degree_queries
+            assert default_oracle.row_queries == b.row_queries
+        else:
+            assert y.fallback_result is None and trial.fallback_calls == 0
+        certificate = package.certify_output(Oracle(rows), b.label(0), alpha, rho, y.output)
+        assert certificate.meets(eps)
+        if expected in ('zero', 'alpha_one', 'singleton'):
+            assert certificate.objective_gap_bound == 0
+        evidence['independent_gap_bound'] = str(certificate.objective_gap_bound)
+        LOG['cases'].append(evidence)
+    LOG['default_is_fast_without_singleton_trial'] = True
+
+
+def isolated():
+    with tempfile.TemporaryDirectory(prefix='singleton_package_audit_', dir=ROOT) as temp:
+        shutil.copytree(PKG, Path(temp)/'deterministic_rppr',
+                        ignore=shutil.ignore_patterns('__pycache__'))
+        code = r'''
+import builtins,json,sys
+from fractions import Fraction as F
+sys.path.insert(0,sys.argv[1])
+original=builtins.__import__
+def guarded(name,*args,**kwargs):
+    if name in ('singleton_precheck_rppr','combined_certified_dyadic_rppr',
+                'direct_exception_integer_rppr','integer_dyadic_rppr_solver',
+                'source_energy_dyadic_rppr','early_stop_source_energy_rppr',
+                'independent_sparse_certificate','deterministic_avl_containers'):
+        raise AssertionError('Research source import attempted: '+name)
+    return original(name,*args,**kwargs)
+builtins.__import__=guarded
+import deterministic_rppr as package
+assert package.solve is package.solve_fast
+class NH(int):
+    def __hash__(self):raise AssertionError('Vertex label hashed')
+seed,hub=NH((1<<2051)+3),NH(-(1<<4099)-7)
+class Hub:
+    def __init__(self):self.degrees=0;self.rows=0;self.entries=0
+    def degree(self,i):
+        self.degrees+=1
+        if i==seed:return 1
+        assert i==hub;return 10**30
+    def neighbors(self,i):
+        assert i==seed,'Boundary row requested'
+        self.rows+=1;self.entries+=1
+        yield hub
+oracle=Hub()
+answer=package.solve_with_singleton(oracle,seed,F(1,100),F(1,64),F(1,10**20))
+assert answer.outcome=='singleton' and answer.objective_gap_bound==0
+assert (oracle.degrees,oracle.rows,oracle.entries)==(2,1,1)
+assert answer.trial_metrics.adjacency_entries==1
+assert package.certify_output(Hub(),seed,F(1,100),F(1,64),answer.output).objective_gap_bound==0
+# A genuine isolated fallback on an edge, with hash-forbidden labels.
+class Edge(Hub):
+    def degree(self,i):
+        assert i==seed or i==hub;self.degrees+=1;return 1
+    def neighbors(self,i):
+        assert i==seed or i==hub
+        self.rows+=1;self.entries+=1
+        yield hub if i==seed else seed
+fallback=package.solve_with_singleton(Edge(),seed,F(1,100),F(1,16),F(1,100000))
+assert fallback.outcome=='failed_trial'
+assert fallback.fallback_result is not None
+assert package.certify_output(Edge(),seed,F(1,100),F(1,16),fallback.output).meets(F(1,100000))
+print(json.dumps(dict(success=True,hub_entries=oracle.entries,
+                     isolated_fallback_stages=len(fallback.fallback_result.stages))))
+'''
+        result = subprocess.run([sys.executable, '-I', '-S', '-B', '-c', code, temp],
+                                cwd='/', capture_output=True, text=True, check=True)
+        LOG['isolated_package_only'] = json.loads(result.stdout)
+
+
+def main():
+    audit_ast()
+    audit_behavior()
+    isolated()
+    LOG['passed'] = True
+    (ROOT/'singleton_package_independent_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    print(json.dumps(LOG, indent=2))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,78 @@
+"""Certified rational x-coordinates using arithmetic and comparisons only."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+from .component import FastResult, solve_fast
+
+
+@dataclass
+class ConversionMetrics:
+    accuracy_halvings: int = 0
+    root_interval_tests: int = 0
+    root_square_comparisons: int = 0
+    bisection_steps: int = 0
+    exact_roots: int = 0
+    converted_records: int = 0
+    output_words: int = 0
+    root_error_budget: F = F(0)
+
+
+@dataclass(frozen=True)
+class ExplicitResult:
+    coordinates: tuple
+    objective_gap_bound: F
+    density_result: FastResult
+    conversion: ConversionMetrics
+
+
+def solve_explicit(oracle, seed, alpha, rho, epsilon, **options):
+    """Return ordinary rational coordinates x_i with the requested gap.
+
+    The density solver uses epsilon/4. Square roots of emitted original
+    degrees are bounded from below by dyadic bisection, with no graph query
+    during conversion. The additional objective allowance is certified.
+    """
+    epsilon = F(epsilon)
+    if epsilon <= 0:
+        raise ValueError("The objective tolerance must be positive")
+    density_result = solve_fast(oracle, seed, alpha, rho, epsilon / 4, **options)
+    metrics = ConversionMetrics()
+    if not density_result.output:
+        return ExplicitResult(
+            (), density_result.objective_gap_bound, density_result, metrics
+        )
+    eta = F(1)
+    while 2 * eta * eta > epsilon:
+        eta /= 2
+        metrics.accuracy_halvings += 1
+    metrics.root_error_budget = eta
+    coordinates = []
+    for vertex, density, degree in density_result.output:
+        lower, upper = F(1), F(degree)
+        while True:
+            metrics.root_interval_tests += 1
+            if upper - lower <= eta:
+                break
+            midpoint = (lower + upper) / 2
+            square = midpoint * midpoint
+            metrics.bisection_steps += 1
+            metrics.root_square_comparisons += 1
+            if square == degree:
+                lower = upper = midpoint
+                break
+            metrics.root_square_comparisons += 1
+            if square < degree:
+                lower = midpoint
+            else:
+                upper = midpoint
+        metrics.root_square_comparisons += 1
+        metrics.exact_roots += int(lower * lower == degree)
+        coordinates.append((vertex, lower * density))
+        metrics.converted_records += 1
+    metrics.output_words = 2 * len(coordinates)
+    bound = 2 * density_result.objective_gap_bound + eta * eta
+    assert bound <= epsilon
+    return ExplicitResult(tuple(coordinates), bound, density_result, metrics)

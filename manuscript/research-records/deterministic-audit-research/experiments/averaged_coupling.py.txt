@@ -1,0 +1,159 @@
+"""Supplied-matrix audit of averaged coupling; graph work is separately charged."""
+
+from __future__ import annotations
+
+import math
+
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from positive_linear_coupling import mass_projection
+
+
+def run(
+    q,
+    c,
+    w,
+    volume,
+    alpha,
+    rho,
+    *,
+    counts=None,
+    relative_gap=1e-12,
+    mass_cap=True,
+    repair_mass=False,
+):
+    optimum = obstacle(q, c)
+    f_star = float(0.5 * optimum @ q @ optimum - c @ optimum)
+    epsilon = -f_star * relative_gap
+    if epsilon <= 0:
+        raise ValueError("nonzero optimum required for relative audit")
+    if counts is None:
+        counts = np.ones(len(c))
+    s = math.sqrt(alpha)
+    k_matrix = q - alpha * np.eye(len(c))
+    source_index = int(np.flatnonzero(c > 0)[0])
+    source_score = np.zeros(len(c))
+    source_score[source_index] = s / w[source_index]
+    maximum = 1 + math.ceil(
+        max(
+            0.0, math.log(4) - math.log(alpha) - math.log(volume[0]) - math.log(epsilon)
+        )
+        / s
+    )
+    x = np.zeros(len(c))
+    z = x.copy()
+    energy = -f_star + alpha * float(optimum @ optimum) / 2
+    initial_energy = energy
+    total_volume = 0.0
+    maximum_volume = 0.0
+    maximum_mass = 0.0
+    first_escape = None
+    violation = 0.0
+    projection_mass = 0.0
+    negative_score_mass = 0.0
+    maximum_negative_score_mass = 0.0
+    lambda_volume_sum = 0.0
+    next_check = 1
+    certificate = math.inf
+    output = x.copy()
+    checks = 0
+    history = np.zeros(len(c), dtype=bool)
+    previous_mass_sum = 0.0
+    max_repaired_volume_violation = 0.0
+    for iteration in range(1, maximum + 1):
+        y = (x + s * z) / (1 + s)
+        # Avoid cancellation of the regularization load on enormous cells.
+        h = (1 - s) * z - k_matrix @ y / s + source_score
+        raw = h - s * rho * w
+        negative = float(w @ np.maximum(-h, 0))
+        assert negative <= (1 - s) * float(w @ x) / (2 * s) * (1 + 1e-10) + 1e-12
+        negative_score_mass += negative
+        maximum_negative_score_mass = max(maximum_negative_score_mass, negative)
+        previous_mass = float(w @ z)
+        previous_mass_sum += previous_mass
+        if repair_mass:
+            budget = (1 - s) * previous_mass + s
+            repaired = budget * mass_projection(h / budget, w)
+            next_z = np.maximum(repaired - s * rho * w, 0)
+        else:
+            next_z = mass_projection(raw, w) if mass_cap else np.maximum(raw, 0)
+        next_x = (1 - s) * x + s * next_z
+        projection_mass += float(w @ (np.maximum(raw, 0) - next_z))
+        current_volume = float(np.sum(volume[next_z > 0]))
+        positive_indices = np.flatnonzero(next_z > 0)
+        lam = 0.0
+        if mass_cap and len(positive_indices):
+            j = positive_indices[0]
+            lam = max(0.0, float((raw[j] - next_z[j]) / w[j]))
+        lambda_volume_sum += lam * current_volume
+        total_volume += current_volume
+        if repair_mass:
+            max_repaired_volume_violation = max(
+                max_repaired_volume_violation,
+                s * rho * total_volume
+                - (s * iteration - s * previous_mass_sum - float(w @ next_z)),
+            )
+        maximum_volume = max(maximum_volume, current_volume)
+        maximum_mass = max(maximum_mass, float(w @ next_x), float(w @ next_z))
+        history |= next_z > 0
+        outside = np.flatnonzero(
+            (next_z > 1e-11 * (np.abs(raw) + np.abs(next_z))) & (optimum == 0)
+        )
+        if len(outside) and first_escape is None:
+            first_escape = {
+                "iteration": iteration,
+                "coordinate": int(outside[0]),
+                "value": float(next_z[outside[0]]),
+            }
+        next_energy = (
+            float(0.5 * next_x @ q @ next_x - c @ next_x)
+            - f_star
+            + alpha * float((next_z - optimum) @ (next_z - optimum)) / 2
+        )
+        violation = max(violation, (next_energy - (1 - s) * energy) / initial_energy)
+        x, z, energy = next_x, next_z, next_energy
+        if iteration == next_check or iteration == maximum:
+            y = (x + s * z) / (1 + s)
+            output = np.maximum(y - (q @ y - c), 0)
+            mapping = y - output
+            certificate = (1 - alpha) * float(mapping @ mapping) / (2 * alpha)
+            checks += 1
+            next_check *= 2
+            if certificate <= epsilon:
+                break
+    gap = float(0.5 * output @ q @ output - c @ output) - f_star
+    return {
+        "alpha": alpha,
+        "rho": rho,
+        "mass_cap": mass_cap,
+        "mass_preserving_score_repair": repair_mass,
+        "accelerated_potential_proved": not repair_mass,
+        "root_iteration_horizon_is_theorem": not repair_mass,
+        "max_repaired_volume_violation": max_repaired_volume_violation,
+        "dimension": len(c),
+        "iterations": iteration,
+        "converged": certificate <= epsilon,
+        "relative_gap": gap / (-f_star),
+        "relative_certificate": certificate / (-f_star),
+        "certificate_checks": checks,
+        "auxiliary_volume_sum": total_volume,
+        "adjacency_entry_upper_bound": 2 * total_volume,
+        "rho_sqrt_alpha_auxiliary_volume": rho * s * total_volume,
+        "max_rho_auxiliary_volume": rho * maximum_volume,
+        "rho_average_auxiliary_volume": rho * total_volume / iteration,
+        "max_state_mass": maximum_mass,
+        "removed_auxiliary_mass": projection_mass,
+        "negative_score_mass_sum": negative_score_mass,
+        "maximum_negative_score_mass": maximum_negative_score_mass,
+        "lambda_volume_sum": lambda_volume_sum,
+        "signed_score_debit": negative_score_mass - lambda_volume_sum,
+        "primal_history_volume": float(np.sum(volume[history])),
+        "output_words": float(np.sum(counts[output > 0])),
+        "max_contraction_violation_relative": violation,
+        "first_escape": first_escape,
+        "initial_gap": -f_star,
+        "epsilon_obj": epsilon,
+        "randomized": False,
+        "audit_only": True,
+        "stable_prethreshold_score": True,
+    }

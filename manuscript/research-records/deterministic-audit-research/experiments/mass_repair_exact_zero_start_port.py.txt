@@ -1,0 +1,147 @@
+"""Exact zero-start witness: the coarse two-term energy bound is insufficient."""
+
+import json
+from fractions import Fraction as F
+from pathlib import Path
+
+from mass_repair_exact_state_witness import tridiagonal, weighted_projection
+
+
+def main():
+    branches = [1, 4] * 4
+    n = len(branches) + 1
+    counts = [1]
+    for branch in branches:
+        counts.append(counts[-1] * branch)
+    degrees = [branches[0]] + [1 + b for b in branches[1:]] + [1]
+    volumes = [counts[i] * degrees[i] for i in range(n)]
+    alpha, s, rho = F(1, 1000000), F(1, 1000), F(29440925, 1000000000)
+    q, edge = 1 - s, (1 - alpha) / 2
+    c = [alpha / degrees[0] - alpha * rho] + [-alpha * rho] * (n - 1)
+
+    def multiply(v):
+        return [
+            (1 - edge) * v[i]
+            - edge
+            / degrees[i]
+            * ((v[i - 1] if i else 0) + (branches[i] * v[i + 1] if i < n - 1 else 0))
+            for i in range(n)
+        ]
+
+    def dot(u, v):
+        return sum(volumes[i] * u[i] * v[i] for i in range(n))
+
+    def mass(v):
+        return sum(volumes[i] * v[i] for i in range(n))
+
+    def objective(v):
+        return dot(v, multiply(v)) / 2 - dot(c, v)
+
+    for length in range(1, n + 1):
+        candidate = tridiagonal(
+            [-edge / degrees[i] for i in range(1, length)],
+            [1 - edge] * length,
+            [-edge * branches[i] / degrees[i] for i in range(length - 1)],
+            c[:length],
+        )
+        assert all(value > 0 for value in candidate)
+        if length == n or c[length] + edge * candidate[-1] / degrees[length] <= 0:
+            optimum = candidate + [F(0)] * (n - length)
+            break
+    slack = [value - c[i] for i, value in enumerate(multiply(optimum))]
+    assert all(value >= 0 for value in slack) and dot(slack, optimum) == 0
+    f_star, optimum_mass = objective(optimum), mass(optimum)
+
+    def energy(u, v):
+        error = [v[i] - optimum[i] for i in range(n)]
+        return objective(u) - f_star + alpha * dot(error, error) / 2
+
+    x, z = [F(0)] * n, [F(0)] * n
+    rows = []
+    for iteration in range(1, 57):
+        old = energy(x, z)
+        y = [(x[i] + s * z[i]) / (1 + s) for i in range(n)]
+        ky = [value - alpha * y[i] for i, value in enumerate(multiply(y))]
+        h = [q * z[i] - ky[i] / s + (s / degrees[i] if i == 0 else 0) for i in range(n)]
+        budget = q * mass(z) + s
+        assert mass(h) == budget
+        repaired, ell = weighted_projection(h, volumes, budget)
+        assert mass(repaired) == budget
+        zn = [max(value - s * rho, 0) for value in repaired]
+        xn = [q * x[i] + s * zn[i] for i in range(n)]
+        new = energy(xn, zn)
+        eta = [max(s * rho + ell - h[i], 0) for i in range(n)]
+        zx = [z[i] - x[i] for i in range(n)]
+        py = [xn[i] - y[i] for i in range(n)]
+        ya = [y[i] - q * x[i] - s * optimum[i] for i in range(n)]
+        xe = [x[i] - optimum[i] for i in range(n)]
+        port = alpha * ell * (optimum_mass - mass(zn))
+        dissipation = {
+            "coupling": alpha * s * q * dot(zx, zx) / (2 * (1 + s)),
+            "orthant_complementarity": alpha * dot(eta, optimum),
+            "step_smoothness": (dot(py, py) - dot(py, multiply(py))) / 2,
+            "comparator_K": (dot(ya, multiply(ya)) - alpha * dot(ya, ya)) / 2,
+            "primal_K": s * q * (dot(xe, multiply(xe)) - alpha * dot(xe, xe)) / 2,
+        }
+        assert all(value >= 0 for value in dissipation.values())
+        assert new - q * old == port - sum(dissipation.values())
+        assert new <= q * old
+        volume = sum(volumes[i] for i in range(n) if zn[i] > 0)
+        assert mass(zn) + s * rho * volume <= budget
+        if iteration == 56:
+            assert port > 3000 * dissipation["coupling"]
+            rows.append(
+                {
+                    "iteration": iteration,
+                    "port_over_coupling_dissipation": float(
+                        port / dissipation["coupling"]
+                    ),
+                    "relative_energy_debit": float((new - q * old) / (s * old)),
+                    "ell": str(ell),
+                    "port": str(port),
+                    "dissipation": {
+                        name: str(value) for name, value in dissipation.items()
+                    },
+                }
+            )
+        x, z = xn, zn
+    result = {
+        "graph": "finite radial unit tree",
+        "branches": branches,
+        "ambient_vertices": sum(counts),
+        "original_level_volumes": volumes,
+        "alpha": str(alpha),
+        "rho": str(rho),
+        "optimum_positive_levels": length,
+        "zero_start": True,
+        "arithmetic": "exact rational",
+        "randomized": False,
+        "verified_energy_identity_steps": 56,
+        "coarse_bound_failure_certified": True,
+        "scope": "coarse proof inequality only; actual energy contracts on these 56 steps",
+        "witnesses": rows,
+    }
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "results/mass-repair-exact-zero-start-port.json"
+    )
+    path.write_text(json.dumps(result, indent=2))
+    print(
+        json.dumps(
+            {key: value for key, value in result.items() if key != "witnesses"},
+            indent=2,
+        )
+    )
+    print(
+        json.dumps(
+            {
+                key: value
+                for key, value in rows[0].items()
+                if key not in ("ell", "port", "dissipation")
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

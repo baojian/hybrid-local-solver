@@ -1,0 +1,141 @@
+"""Exact integer-grid transcription of the known-region coupling step."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+from ._integer_reporter import IntegerClippedReporter, ProjectionResult
+
+
+@dataclass
+class ComponentIntegerMetrics:
+    iterations: int = 0
+    diagonal_records: int = 0
+    internal_adjacency_records: int = 0
+    point_key_records: int = 0
+    primal_integer_floors: int = 0
+    materialized_density_records: int = 0
+    maximum_grid_state_bits: int = 0
+    maximum_raw_key_bits: int = 0
+    mass_check_records: int = 0
+    inactive_cap_steps: int = 0
+    active_cap_steps: int = 0
+    direct_projection_integer_floors: int = 0
+    reporter_install_records: int = 0
+
+
+class IntegerComponentCoupling:
+    """Same exact projected/rounded trajectory as the rational component loop.
+
+    Original degrees are supplied explicitly; adjacency contains only the
+    known region's internal edges. Its spectral certificate is supplied by
+    the calling solver through theta. No graph query occurs in this class.
+    """
+
+    def __init__(self, degrees, adjacency, seed_index, alpha, rho, theta, grid):
+        self.degrees, self.adjacency = degrees, adjacency
+        self.seed_index = seed_index
+        self.alpha, self.rho, self.theta, self.grid = map(F, (alpha, rho, theta, grid))
+        alpha, rho, theta, grid = self.alpha, self.rho, self.theta, self.grid
+        if theta.numerator != 1 or theta.denominator & (theta.denominator - 1):
+            raise ValueError("Theta must be a reciprocal power of two")
+        if grid.numerator != 1 or grid.denominator & (grid.denominator - 1):
+            raise ValueError("The grid must be a reciprocal power of two")
+        self.T, self.H = theta.denominator, grid.denominator
+        A, D, T, H = alpha.numerator, alpha.denominator, self.T, self.H
+        self.common_denominator = 2 * D * H * T * (T + 1)
+        self.z_coefficient = 2 * D * (T * T - 1)
+        self.y_coefficient = 2 * D - (D + A) * T * T
+        self.neighbor_coefficient = (D - A) * T * T
+        self.seed_coefficient = 2 * A * H * T * T * (T + 1)
+        self.shift = alpha * rho * T
+        self.upper = F(1, degrees[seed_index])
+        self.shift_numerator, self.shift_denominator = (
+            self.shift.numerator,
+            self.shift.denominator,
+        )
+        self.raw_denominator = self.common_denominator * self.shift_denominator
+        self.upper_denominator = degrees[seed_index]
+        self.upper_grid_count = H // self.upper_denominator
+        self.X, self.Z = [0] * len(degrees), [0] * len(degrees)
+        self.reporter = IntegerClippedReporter()
+        self.metrics = ComponentIntegerMetrics(maximum_grid_state_bits=H.bit_length())
+
+    def step(self):
+        T = self.T
+        Y = [T * x + z for x, z in zip(self.X, self.Z)]
+        keys, raw_counts = [], []
+        free_sum, upper_degrees = 0, 0
+        for i, (degree, row) in enumerate(zip(self.degrees, self.adjacency)):
+            neighbor_sum = sum(Y[j] for j in row)
+            numerator = (
+                self.z_coefficient * degree * self.Z[i]
+                + self.y_coefficient * degree * Y[i]
+                + self.neighbor_coefficient * neighbor_sum
+                + (self.seed_coefficient if i == self.seed_index else 0)
+            )
+            keys.append(numerator)
+            raw = (
+                self.shift_denominator * numerator
+                - self.shift_numerator * self.common_denominator * degree
+            )
+            raw_counts.append(raw)
+            if raw * self.upper_denominator >= self.raw_denominator * degree:
+                upper_degrees += degree
+            elif raw > 0:
+                free_sum += raw
+            self.metrics.diagonal_records += 1
+            self.metrics.internal_adjacency_records += len(row)
+            self.metrics.point_key_records += 1
+            self.metrics.maximum_raw_key_bits = max(
+                self.metrics.maximum_raw_key_bits, abs(numerator).bit_length()
+            )
+            self.metrics.mass_check_records += 1
+        mass_numerator = (
+            self.upper_denominator * free_sum + self.raw_denominator * upper_degrees
+        )
+        if mass_numerator <= self.raw_denominator * self.upper_denominator:
+            entries = []
+            for i, (raw, degree) in enumerate(zip(raw_counts, self.degrees)):
+                if raw <= 0:
+                    continue
+                count = min(
+                    self.upper_grid_count,
+                    self.H * raw // (self.raw_denominator * degree),
+                )
+                self.metrics.direct_projection_integer_floors += 1
+                if count:
+                    entries.append((i, count, degree))
+            projected = ProjectionResult(tuple(entries), F(0), False)
+            self.metrics.inactive_cap_steps += 1
+        else:
+            for i, (numerator, degree) in enumerate(zip(keys, self.degrees)):
+                self.reporter.set_exception(i, numerator, degree)
+                self.metrics.reporter_install_records += 1
+            projected = self.reporter.project_counts(
+                base_scale=1,
+                common_denominator=self.common_denominator,
+                shift=self.shift,
+                upper=self.upper,
+                cap=F(1),
+                grid=self.grid,
+            )
+            self.metrics.active_cap_steps += 1
+        Z = [0] * len(self.degrees)
+        for i, count, _ in projected.entries:
+            Z[i] = count
+        self.X = [((T - 1) * value + point) // T for value, point in zip(self.X, Z)]
+        self.Z = Z
+        self.metrics.primal_integer_floors += len(Z)
+        self.metrics.iterations += 1
+        self.metrics.maximum_grid_state_bits = max(
+            self.metrics.maximum_grid_state_bits,
+            *(v.bit_length() for v in self.X),
+            *(v.bit_length() for v in self.Z),
+        )
+        return projected
+
+    def densities(self):
+        self.metrics.materialized_density_records += len(self.X)
+        return [F(value, self.H) for value in self.X]

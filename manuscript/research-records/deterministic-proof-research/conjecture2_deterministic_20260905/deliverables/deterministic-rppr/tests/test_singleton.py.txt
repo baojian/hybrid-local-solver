@@ -1,0 +1,95 @@
+"""Exact KKT and work-accounting tests for the optional local shortcut."""
+
+import unittest
+from fractions import Fraction as F
+
+from deterministic_rppr import solve_fast, solve_with_singleton, certify_output
+
+if __package__:
+    from .test_solver import StrictOracle, graph, exact_optimum, objective
+else:
+    from test_solver import StrictOracle, graph, exact_optimum, objective
+
+
+class SingletonTests(unittest.TestCase):
+    def check_case(self, rows, seed, alpha, rho, epsilon, cutoff=32):
+        oracle = StrictOracle(rows, seed)
+        returned = []
+        def fallback(*args):
+            answer = solve_fast(*args)
+            returned.append(answer)
+            return answer
+        result = solve_with_singleton(oracle, seed, alpha, rho, epsilon,
+                                     seed_degree_cutoff=cutoff, fallback_solver=fallback)
+        values = {i:value for i,value,degree in result.output}
+        optimum = exact_optimum(rows, seed, alpha, rho)
+        self.assertTrue(all(0 <= values.get(i,0) <= optimum.get(i,0) for i in rows))
+        gap = objective(rows,seed,alpha,rho,values)-objective(rows,seed,alpha,rho,optimum)
+        self.assertTrue(0 <= gap <= result.objective_gap_bound <= epsilon)
+        trial = result.trial_metrics
+        total_degrees = trial.seed_degree_queries+trial.neighbor_degree_queries
+        total_entries = trial.adjacency_entries
+        if returned:
+            answer = returned[0]
+            self.assertIs(result.fallback_result, answer)
+            self.assertIs(result.output, answer.output)
+            self.assertEqual(trial.fallback_calls,1)
+            total_degrees += 1+answer.metrics.repair_degree_replies+sum(
+                stage.corrector_metrics['degree_replies'] for stage in answer.stages)
+            total_entries += answer.metrics.repair_first_adjacency_entries+sum(
+                stage.corrector_metrics['first_adjacency_entries'] for stage in answer.stages)
+        else:
+            self.assertIsNone(result.fallback_result)
+            self.assertEqual(gap,0)
+            self.assertEqual(result.objective_gap_bound,0)
+        self.assertEqual(oracle.degree_calls,total_degrees)
+        self.assertEqual(oracle.entries,total_entries)
+        return result
+
+    def test_threshold_equality_and_both_sides(self):
+        rows = graph(2,[(1,2)])
+        for offset in (F(-1,2**20),F(0),F(1,2**20)):
+            result = self.check_case(rows,1,F(1,4),F(3,8)+offset,F(1,10**8))
+            self.assertEqual(result.outcome,'failed_trial' if offset < 0 else 'singleton')
+
+    def test_failure_cutoff_and_direct_branches(self):
+        rows = graph(3,[(1,2),(2,3)])
+        self.assertEqual(self.check_case(rows,1,F(1,4),F(1,16),F(1,10**6)).outcome,
+                         'failed_trial')
+        self.assertEqual(self.check_case(rows,1,F(1,4),F(1,16),F(1,10**6),cutoff=0).outcome,
+                         'skipped_cutoff')
+        self.assertEqual(self.check_case(rows,2,F(1,4),F(1,2),F(1,10**20)).outcome,'zero')
+        self.assertEqual(self.check_case(rows,2,F(1),F(1,8),F(1,10**20)).outcome,'alpha_one')
+
+    def test_unscanned_large_boundary_and_independent_exact_certificate(self):
+        class NoHash(int):
+            def __hash__(self):
+                raise AssertionError('Vertex hashing is forbidden')
+        seed, hub, leaves = NoHash(2**200+3), NoHash(0), 2**120
+        class Oracle:
+            def __init__(self):
+                self.exposed = False
+                self.entries = 0
+                self.degree_calls = 0
+            def degree(self,i):
+                self.degree_calls += 1
+                if i == seed:
+                    return 1
+                assert i == hub and self.exposed
+                return leaves
+            def neighbors(self,i):
+                assert i == seed, 'The inactive hub row was scanned'
+                self.exposed = True
+                self.entries += 1
+                yield hub
+        oracle = Oracle()
+        result = solve_with_singleton(oracle,seed,F(1,100),F(1,64),F(1,10**20))
+        self.assertEqual(result.outcome,'singleton')
+        self.assertEqual((oracle.degree_calls,oracle.entries),(2,1))
+        self.assertEqual(result.output,((seed,F(63,3232),1),))
+        check = certify_output(Oracle(),seed,F(1,100),F(1,64),result.output)
+        self.assertEqual(check.objective_gap_bound,0)
+
+
+if __name__ == '__main__':
+    unittest.main()

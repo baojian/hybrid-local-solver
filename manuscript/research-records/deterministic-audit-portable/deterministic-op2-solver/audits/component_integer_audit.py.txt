@@ -1,0 +1,57 @@
+"""Exact full-trajectory comparison for the integer region recurrence."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from independent_continuation_audit import projection
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr._component_integer import IntegerComponentCoupling
+
+
+def main():
+    start = time.monotonic()
+    cases = steps = 0
+    cap_steps = 0
+    for graph, killed, alpha, theta, seed, rho in itertools.product(
+        (nx.path_graph(4), nx.cycle_graph(4), nx.complete_graph(4)),
+        ((0, 0, 0, 0), (1, 2, 3, 5)),
+        (F(1, 16), F(3, 10)), (F(1, 2), F(1, 8)),
+        (0, 3), (F(1, 32), F(1, 128)),
+    ):
+        degrees = [graph.degree(i)+killed[i] for i in range(4)]
+        adjacency = [list(graph.neighbors(i)) for i in range(4)]
+        grid = F(1, 2**40)
+        integer = IntegerComponentCoupling(degrees, adjacency, seed, alpha, rho, theta, grid)
+        x, z = [F(0)]*4, [F(0)]*4
+        c, diagonal, a = (1-alpha)/2, (1+alpha)/2, 1-theta
+        for _ in range(64):
+            y = [(v+theta*w)/(1+theta) for v, w in zip(x, z)]
+            grad = [diagonal*y[i]-c*sum((y[j] for j in adjacency[i]), F(0))/degrees[i]-(alpha/degrees[i] if i == seed else 0)+alpha*rho for i in range(4)]
+            raw = [a*v+theta*w-g/theta for v, w, g in zip(z, y, grad)]
+            ideal, _ = projection(raw, degrees, F(1, degrees[seed]), F(1))
+            z = [F((p/grid).__floor__(), grid.denominator) for p in ideal]
+            x = [F(((a*v+theta*w)/grid).__floor__(), grid.denominator) for v, w in zip(x, z)]
+            observed = integer.step()
+            assert [F(v, integer.H) for v in integer.X] == x
+            assert [F(v, integer.H) for v in integer.Z] == z
+            assert sum(d*v for d, v in zip(degrees, integer.X)) <= integer.H
+            assert sum(d*v for d, v in zip(degrees, integer.Z)) <= integer.H
+            cap_steps += int(observed.cap_active)
+            steps += 1
+        cases += 1
+    result = dict(cases=cases, exact_steps=steps, cap_active_steps=cap_steps, seconds=time.monotonic()-start, randomized=False, status='enumeration_complete')
+    (ROOT/'results/component-integer-audit.json').write_text(json.dumps(result, indent=2))
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == '__main__':
+    main()

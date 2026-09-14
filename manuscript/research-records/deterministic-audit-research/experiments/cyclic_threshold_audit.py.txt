@@ -1,0 +1,86 @@
+"""Deterministic near-threshold graph-atlas audit; no randomized search."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+from pathlib import Path
+
+import networkx as nx
+from cyclic_dual_averaging import homotopy_thresholds, run
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-n", type=int, default=5)
+    parser.add_argument("--sweeps", type=int, default=500)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--stop-first", action="store_true")
+    args = parser.parse_args()
+    started = time.monotonic()
+    tested = 0
+    escapes = 0
+    volume_ratio = 0.0
+    with args.output.open("w") as output:
+        for graph in nx.graph_atlas_g():
+            if not (2 <= len(graph) <= args.max_n) or not nx.is_connected(graph):
+                continue
+            for alpha in (0.0001, 0.001, 0.01, 0.1, 0.3, 0.7):
+                for seed in range(len(graph)):
+                    for transition in homotopy_thresholds(graph, alpha, seed)[1:]:
+                        for perturbation in (0.01, 0.0001, 0.000001):
+                            fraction = (
+                                transition * (1 + perturbation) * graph.degree(seed)
+                            )
+                            if fraction >= 1:
+                                continue
+                            result = run(
+                                graph,
+                                alpha,
+                                fraction,
+                                seed,
+                                args.sweeps,
+                                stop_on_escape=args.stop_first,
+                            )
+                            result["transition"] = transition
+                            result["relative_perturbation"] = perturbation
+                            tested += 1
+                            escapes += result["first_escape"] is not None
+                            volume_ratio = max(
+                                volume_ratio, result["max_rho_union_volume"]
+                            )
+                            output.write(json.dumps(result) + "\n")
+                            if tested % 100 == 0:
+                                output.flush()
+                                print(
+                                    json.dumps(
+                                        {
+                                            "tested": tested,
+                                            "escapes": escapes,
+                                            "max_rho_union_volume": volume_ratio,
+                                            "elapsed_seconds": time.monotonic()
+                                            - started,
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                            if args.stop_first and result["first_escape"]:
+                                output.flush()
+                                print(json.dumps(result), flush=True)
+                                return
+    print(
+        json.dumps(
+            {
+                "tested": tested,
+                "escapes": escapes,
+                "max_rho_union_volume": volume_ratio,
+                "elapsed_seconds": time.monotonic() - started,
+            }
+        ),
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

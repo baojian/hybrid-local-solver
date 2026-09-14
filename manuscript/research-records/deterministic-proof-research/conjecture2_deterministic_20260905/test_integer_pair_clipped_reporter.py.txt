@@ -1,0 +1,75 @@
+"""Independent dense-equivalence and integer-only root-search diagnostics."""
+import json
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import integer_clipped_reporter as stable
+import integer_pair_clipped_reporter as production
+import test_integer_clipped_reporter as dense_suite
+
+LOG=dict(exact_reference_projections=0,integer_only_searches=0, checked_pair_denominators=0)
+
+class TracePair(production.IntegerPairClippedReporter):
+    def _pair_mass(self,q,*args):
+        assert isinstance(q[0],int) and isinstance(q[1],int) and q[1]>0
+        total=sum(record[2] for record in self.records.values())
+        assert q[1]<=max(total,1)
+        LOG['checked_pair_denominators']+=1
+        return super()._pair_mass(q,*args)
+
+class PairSpecificTests(unittest.TestCase):
+    def test_exact_reference_lifts_and_moves(self):
+        old,new=stable.IntegerClippedReporter(),TracePair()
+        degrees=(3,5,7,11,101,103,107,109,(1<<61)-1,(1<<127)-1)
+        for round_id in range(12):
+            for k,d in enumerate(degrees):
+                vertex=dense_suite.HashForbiddenInt(((-1)**k)*((1<<2048)+k))
+                kind=(k+round_id)%2
+                numerator=d*(k-2)+((round_id+3)*(k+1))
+                for reporter in (old,new):
+                    (reporter.set_base if kind==0 else reporter.set_exception)(vertex,numerator,d)
+            for scale,den in ((1,1),(7,30),(1<<50,1<<101),(37,101*103)):
+                for shift,upper,cap,grid in ((F(-13,17),F(5,19),F(7,23),F(3,64)),
+                    (F(1,101),F(7,103),F(11,107),F(1,256)),
+                    (F(0),F(1,4),F(0),F(1,64)),
+                    (F(1,2),F(1),F(1<<128),F(1,1<<20))):
+                    args=dict(base_scale=scale,common_denominator=den,shift=shift,upper=upper,cap=cap,grid=grid)
+                    left,right=old.project_counts(**args),new.project_counts(**args)
+                    self.assertEqual(left,right)
+                    self.assertEqual(asdict(old.metrics),asdict(new.metrics))
+                    expected,ideals,active,raw,mass=dense_suite.dense_projection(list(new.records.items()),scale,den,shift,upper,cap,grid)
+                    self.assertEqual({int(i):count for i,count,d in right.entries},expected)
+                    self.assertEqual(mass(right.multiplier),cap if active else mass(F(0)))
+                    LOG['exact_reference_projections']+=1
+
+    def test_no_fraction_or_gcd_inside_search(self):
+        old,new=stable.IntegerClippedReporter(),TracePair()
+        for i in range(64):
+            d=101+2*i
+            for reporter in (old,new):
+                (reporter.set_base if i%2 else reporter.set_exception)(i,(i-13)*d+i*i,d)
+        for shift,width,cap in ((3,9,5),(-7,2,1),(0,3,0),(1000,7,9)):
+            expected=old._threshold(7,F(shift),F(width),F(cap))
+            def forbidden(*args,**kwargs):
+                raise AssertionError('Fraction/gcd called inside integer-pair root search')
+            with patch.object(F,'__new__',forbidden),patch.object(production,'gcd',forbidden):
+                pair,active=new._pair_threshold(7,1,shift,width,cap)
+            self.assertEqual((F(*pair),active),expected)
+            LOG['integer_only_searches']+=1
+
+if __name__=='__main__':
+    # Reuse the independent dense tests, without changing files or original
+    # production behavior outside this process-scoped alias patch.
+    suite=unittest.TestSuite()
+    suite.addTests(unittest.defaultTestLoader.loadTestsFromTestCase(dense_suite.IntegerReporterTests))
+    with patch.object(stable,'IntegerClippedReporter',production.IntegerPairClippedReporter):
+        result1=unittest.TextTestRunner(verbosity=2).run(suite)
+    result2=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(PairSpecificTests))
+    LOG.update(dense_suite=dense_suite.LOG,tests_run=result1.testsRun+result2.testsRun,
+               successful=result1.wasSuccessful() and result2.wasSuccessful())
+    Path(__file__).with_name('integer_pair_reporter_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in LOG.items() if k!='dense_suite'},indent=2))
+    raise SystemExit(not LOG['successful'])

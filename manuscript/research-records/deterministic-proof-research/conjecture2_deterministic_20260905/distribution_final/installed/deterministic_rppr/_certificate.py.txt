@@ -1,0 +1,97 @@
+"""Local objective certificate independent of the accelerated algorithm."""
+from dataclasses import dataclass
+from fractions import Fraction as F
+from ._avl import AVLMap, AVLSet
+
+@dataclass(frozen=True)
+class Certificate:
+    objective_gap_bound: F
+    subgradient_norm_squared_upper: F
+    norm_squared_rounding_excess_bound: F
+    common_density_denominator: int
+    output_records: int
+    output_volume: int
+    affected_records: int
+    nonzero_subgradient_records: int
+    degree_replies: int
+    first_adjacency_entries: int
+    accumulation_updates: int
+
+    def meets(self, tolerance):
+        tolerance = F(tolerance)
+        if tolerance <= 0:
+            raise ValueError('Tolerance must be positive')
+        return self.objective_gap_bound <= tolerance
+
+def certify_sparse_output(oracle, seed, alpha, rho, output, *, _map_factory=AVLMap, _set_factory=AVLSet):
+    """Certify nonnegative densities by an independently recomputed residual.
+
+    Records are (integer vertex, exact density, positive integer degree).
+    Densities must have a common denominator equal to the largest reduced
+    denominator. All final outputs of the dyadic solver meet this contract.
+    A returned bound exceeding a tolerance is inconclusive, not a rejection.
+    """
+    alpha, rho = (F(alpha), F(rho))
+    if not isinstance(seed, int) or not 0 < alpha <= 1 or rho <= 0:
+        raise ValueError('Need integer seed, 0<alpha<=1, and positive rho')
+    values, claimed_degrees = (_map_factory(), _map_factory())
+    H, volume = (1, 0)
+    for i, value, degree in output:
+        value = F(value)
+        if not isinstance(i, int) or not isinstance(degree, int) or degree <= 0 or (value <= 0):
+            raise ValueError('Output records require integer labels/degrees and positive densities')
+        if i in values:
+            raise ValueError('Duplicate output vertex')
+        values[i], claimed_degrees[i] = (value, degree)
+        H = max(H, value.denominator)
+        volume += degree
+    counts = _map_factory()
+    for i, value in values.items():
+        if H % value.denominator:
+            raise ValueError('Output densities do not share the required common denominator')
+        counts[i] = value.numerator * (H // value.denominator)
+    degrees = _map_factory()
+    degree_replies, entries, updates = (0, 0, 0)
+
+    def degree(i):
+        nonlocal degree_replies
+        if not isinstance(i, int):
+            raise ValueError('Integer vertex labels are required')
+        if i not in degrees:
+            reply = oracle.degree(i)
+            degree_replies += 1
+            if not isinstance(reply, int) or reply <= 0:
+                raise ValueError('The oracle must return positive integer degrees')
+            degrees[i] = reply
+        return degrees[i]
+    for i in counts:
+        if degree(i) != claimed_degrees[i]:
+            raise ValueError('The output degree disagrees with the oracle')
+    neighbors = _map_factory()
+    affected = _set_factory(counts)
+    affected.add(seed)
+    for j, count in counts.items():
+        row_count = 0
+        for i in oracle.neighbors(j):
+            entries += 1
+            row_count += 1
+            if not isinstance(i, int):
+                raise ValueError('Integer vertex labels are required')
+            neighbors[i] = neighbors.get(i, 0) + count
+            affected.add(i)
+            updates += 1
+        if row_count != degrees[j]:
+            raise ValueError('The degree and adjacency length disagree')
+    A, D, P, R = (alpha.numerator, alpha.denominator, rho.numerator, rho.denominator)
+    C = 2 * D * H * R
+    square_upper_count, nonzero = (0, 0)
+    for i in affected:
+        di = degree(i)
+        count = counts.get(i, 0)
+        numerator = (D + A) * R * di * count - (D - A) * R * neighbors.get(i, 0) - 2 * A * H * R * int(i == seed) + 2 * A * H * P * di
+        selected = numerator if count else min(numerator, 0)
+        if selected:
+            square_upper_count += (selected * selected + di - 1) // di
+            nonzero += 1
+    norm_upper = F(square_upper_count, C * C)
+    return Certificate(objective_gap_bound=norm_upper / (2 * alpha), subgradient_norm_squared_upper=norm_upper, norm_squared_rounding_excess_bound=F(nonzero, C * C), common_density_denominator=H, output_records=len(counts), output_volume=volume, affected_records=len(affected), nonzero_subgradient_records=nonzero, degree_replies=degree_replies, first_adjacency_entries=entries, accumulation_updates=updates)

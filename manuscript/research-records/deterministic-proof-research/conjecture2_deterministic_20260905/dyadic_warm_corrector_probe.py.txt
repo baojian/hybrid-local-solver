@@ -1,0 +1,101 @@
+"""Deterministic floating-point diagnostic; not a proof or certified trajectory.
+Exact-principal mathematical old optimum is approximated by a radial solve.
+The quotient merely represents a specified graph; it is not an algorithm oracle.
+"""
+import argparse, json, math
+import numpy as np
+
+
+def run(L, p=16, s=2, gamma=1/16, horizon=8, clique=True, box=True):
+    theta, alpha = 1/L, 1/L**2
+    a, c = 1-theta, (1-alpha)/2
+    h, dim = int(p*math.log2(L)), int(s*math.log2(L))
+    W, R = 2.**h, L**s
+    if clique:
+        count=np.array([2.**j for j in range(h+1)]+[W,W*(R-1)])
+        right=np.array([2.]*h+[1.,R-1.,0.])
+    else:
+        count=np.array([2.**j for j in range(h+1)]+[W*math.comb(dim,j) for j in range(dim+1)])
+        right=np.array([2.]*h+[1.]+[float(dim-j) for j in range(dim+1)])
+    left=np.zeros(len(count));left[1:]=count[:-1]*right[:-1]/count[1:]
+    internal=np.zeros(len(count))
+    if clique: internal[-1]=R-2
+    degree=left+right+internal;weight=count*degree
+    edges=count[:-1]*right[:-1];sw=np.sqrt(weight)
+    rho=gamma*L/weight[h+1:].sum();lam=alpha*rho
+    def P(v):
+        o=internal/degree*v
+        o[1:]+=right[:-1]/degree[:-1]*v[:-1]
+        o[:-1]+=left[1:]/degree[1:]*v[1:]
+        return o
+    def optimum(reg):
+        off=-c*edges/(sw[:-1]*sw[1:])
+        for n in range(1,len(weight)+1):
+            piv=(alpha+c*(left[:n]+right[:n])/degree[:n]).copy()
+            rhs=-alpha*reg*sw[:n].copy();rhs[0]+=alpha/sw[0]
+            for j in range(1,n):
+                factor=off[j-1]/piv[j-1];piv[j]-=factor*off[j-1];rhs[j]-=factor*rhs[j-1]
+            x=np.zeros(n);x[-1]=rhs[-1]/piv[-1]
+            for j in range(n-2,-1,-1): x[j]=(rhs[j]-off[j]*x[j+1])/piv[j]
+            if x.min() < -1e-12*x.max(): raise ArithmeticError('unsafe principal diagnostic')
+            if n==len(weight) or -off[n-1]*x[-1]<=alpha*reg*sw[n]:
+                u=np.zeros(len(weight));u[:n]=sw[:n]*x;return u,n
+    old,no=optimum(2*rho);target,nt=optimum(rho);core,nc=optimum(rho/2)
+    forcing=-lam*weight+c*P(old)
+    forcing[:no]=lam*weight[:no] # exact old stationarity; avoids cancellation
+    u=np.zeros(len(weight));v=u.copy()
+    e0=old-target; qe0=alpha*e0+c*(e0-P(e0)); initial_qnorm=np.dot(qe0,qe0/weight)
+    gm0=np.maximum(forcing,0); initial_gnorm=np.dot(gm0,gm0/weight)
+    qnormsum=gnormsum=0.
+    capcount=boxcount=0;work=outsidework=0.;peakvol=0.;peakgrad=0.;peakkmass=0.
+    for k in range(int(horizon*L)):
+        y=(u+v)/(1+theta); ey=y+old-target
+        qey=alpha*ey+c*(ey-P(ey)); gy=alpha*y+c*(y-P(y))-forcing
+        gm=np.minimum(y,gy)
+        qnormsum+=np.dot(qey,qey/weight);gnormsum+=np.dot(gm,gm/weight)
+        raw=a/2*(P(u+v)-u+v)+forcing
+        vn=np.maximum(raw,0)
+        if box:
+            boxcount+=bool(np.any(vn>theta*rho*weight))
+            vn=np.minimum(vn,theta*rho*weight)
+        if vn.sum()>theta:
+            capcount+=1
+            lo,hi=0.,max(raw/weight)
+            for _ in range(70):
+                mid=(lo+hi)/2;test=np.maximum(raw-mid*weight,0)
+                if box:test=np.minimum(test,theta*rho*weight)
+                if test.sum()>theta:lo=mid
+                else:hi=mid
+            vn=np.maximum(raw-hi*weight,0)
+            if box:vn=np.minimum(vn,theta*rho*weight)
+        u=a*u+vn;v=vn
+        active=v>0;vol=weight[active].sum()
+        work+=vol;outsidework+=weight[nc:][active[nc:]].sum();peakvol=max(peakvol,vol)
+        grad=(alpha*u+c*(u-P(u))-forcing)/weight
+        peakgrad=max(peakgrad,max(np.maximum(grad,0))/lam)
+        peakkmass=max(peakkmass,v.sum())
+    diff=u-(target-old)
+    error=.5*(alpha*np.dot(diff,diff/weight)+c*np.dot(edges,np.diff(diff/weight)**2))
+    rtarget=alpha*target+c*(target-P(target));rtarget[0]-=alpha;rtarget+=lam*weight
+    error+=np.dot(np.maximum(rtarget,0),u/weight)
+    return dict(L=L,p=p,s=s,gamma=gamma,horizon=horizon,clique=clique,box=box,
+        old_support=no,target_support=nt,core_support=nc,rho=rho,
+        old_rho_volume=rho*weight[:no].sum(),core_rho_volume=rho*weight[:nc].sum(),
+        normalized_work=rho*theta*work,normalized_outside_work=rho*theta*outsidework,
+        peak_rho_volume=rho*peakvol,peak_positive_gradient_over_lambda=peakgrad,
+        capcount=capcount,boxcount=boxcount,peak_kinetic_mass_over_alpha=peakkmass/alpha,
+        final_gap_over_alpha_rho=error/(alpha*rho),
+        normalized_qerror_integral=theta*qnormsum/initial_qnorm,
+        normalized_gradient_mapping_integral=theta*gnormsum/initial_gnorm,
+        initial_qnorm_over_lambda_squared_core=initial_qnorm/(lam**2*weight[:nt].sum()))
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser();p.add_argument('--L',type=int,nargs='+',required=True)
+    p.add_argument('--p',type=int,default=16);p.add_argument('--s',type=int,default=2)
+    p.add_argument('--gamma',type=float,default=1/16);p.add_argument('--horizon',type=float,default=8)
+    p.add_argument('--cube',action='store_true');p.add_argument('--no-box',action='store_true')
+    p.add_argument('--output');args=p.parse_args()
+    result=[run(L,args.p,args.s,args.gamma,args.horizon,not args.cube,not args.no_box) for L in args.L]
+    if args.output:
+        with open(args.output,'w') as f:json.dump(result,f,indent=2)
+    for r in result:print(json.dumps(r),flush=True)

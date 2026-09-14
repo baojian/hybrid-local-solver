@@ -1,0 +1,209 @@
+"""Exact scalar, every-prefix energy, trajectory, and KKT schedule checks."""
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from math import comb
+from pathlib import Path
+from unittest.mock import patch
+
+import binomial_block_dyadic_rppr as production
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector, solve_rppr_source_energy
+from integer_dyadic_rppr_solver import solve_rppr_integer, _terminal_repair
+from test_deterministic_rppr_solver import objective, source_density
+from test_local_safe_solver import dense_exact_obstacle_oracle, graph, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+
+LOG = dict(scalar_full_power_checks=0, scalar_large_T_checks=0,
+    complete_energy_prefix_checks=0, nonblock_energy_prefix_checks=0, exact_trajectory_steps=0, stage_cases=0,
+    zero_step_cases=0, zero_energy_cases=0, full_cases=0, full_stages=0,
+    new_iterations=0, old_iterations=0, new_corrector_reads=0, old_corrector_reads=0,
+    max_target_power_bits=0, fixtures=[])
+
+
+def full_energy(stage, adjacency, optimum):
+    baseline = {i:F(v,stage.H) for i,v in stage.baseline.items()}
+    correction = {i:optimum.get(i,F(0))-baseline.get(i,F(0)) for i in adjacency}
+    actual = {i:baseline.get(i,F(0))+F(stage.S*stage.X.get(i,0),stage.H*stage.H) for i in adjacency}
+    gap = objective(adjacency,stage.seed,stage.alpha,stage.rho,actual)-objective(
+        adjacency,stage.seed,stage.alpha,stage.rho,optimum)
+    norm = sum((len(adjacency[i])*(F(stage.z.get(i,0),stage.H)-correction[i])**2 for i in adjacency),F(0))
+    return gap+stage.theta*stage.theta*norm/2, gap
+
+
+class BinomialBlockTests(unittest.TestCase):
+    def check_prefix(self, stage, adjacency, optimum):
+        energy,gap=full_energy(stage,adjacency,optimum)
+        self.assertTrue(0 <= gap <= energy <= stage.objective_gap_bound)
+        completed=stage.metrics.iterations//stage.T
+        self.assertEqual(stage.block_power_numerator,stage.block_bound.numerator**completed)
+        self.assertEqual(stage.block_power_denominator,1 << (16*completed))
+        self.assertLessEqual(stage.block_power_numerator.bit_length(),16*completed+1)
+        self.assertEqual(stage.block_power_denominator.bit_length(),16*completed+1)
+        if stage.metrics.iterations:
+            expected=stage.initial_energy_bound*stage.block_bound.value**completed+stage.gamma_bound
+        else:
+            expected=stage.initial_energy_bound
+        self.assertEqual(stage.objective_gap_bound,expected)
+        LOG['complete_energy_prefix_checks']+=1
+        LOG['nonblock_energy_prefix_checks']+=int(stage.metrics.iterations % stage.T != 0)
+        LOG['max_target_power_bits']=max(LOG['max_target_power_bits'],stage.target_power_denominator.bit_length())
+
+    def test_exact_scalar_bound(self):
+        for T in list(range(2,65))+[128,256]:
+            bound=production.dyadic_block_bound(T)
+            exact_sum=sum((F(comb(T,k),(T-1)**k) for k in range(min(6,T)+1)),F(0))
+            actual=F(T-1,T)**T
+            self.assertEqual(F(bound.sum_numerator,bound.sum_denominator),exact_sum)
+            self.assertTrue(actual <= 1/exact_sum <= bound.value < F(1,2))
+            self.assertGreater(exact_sum,F(5,2))
+            self.assertLess(F(bound.numerator-1,bound.denominator),1/exact_sum)
+            self.assertLessEqual(bound.setup_integer_divisions,7)
+            self.assertLessEqual(bound.max_setup_integer_bits,20+6*T.bit_length())
+            LOG['scalar_full_power_checks']+=1
+        self.assertEqual(production.dyadic_block_bound(2).value,F(1,4))
+        self.assertEqual(production.dyadic_block_bound(4).value,F(81,256))
+
+    def test_large_T_constant_degree_setup(self):
+        for exponent in (8,16,32,64,128,256):
+            T=1 << exponent
+            bound=production.dyadic_block_bound(T)
+            self.assertEqual(bound.truncation_degree,6)
+            self.assertLessEqual(bound.max_setup_integer_bits,20+6*T.bit_length())
+            self.assertTrue(F(0)<bound.value<F(1,2))
+            self.assertGreaterEqual(bound.numerator*bound.sum_numerator,
+                                    bound.denominator*bound.sum_denominator)
+            self.assertLess((bound.numerator-1)*bound.sum_numerator,
+                            bound.denominator*bound.sum_denominator)
+            LOG['scalar_large_T_checks']+=1
+        LOG['fixtures'].append(dict(label='T=2^256 setup',beta=str(bound.value),
+                                   max_setup_integer_bits=bound.max_setup_integer_bits))
+
+    def test_exact_prefixes_and_complete_energy(self):
+        fixtures=[(path(3),0,F(1,4),F(1,2),F(1,4),F(1,64),{}),
+                  (path(2),0,F(1,100),F(1,16),F(1,4),F(1,4096),{}),
+                  (path(2),0,F(1,1000),F(1,32),F(1,4),F(1,4096),{}),
+                  (path(3),0,F(1,4),F(1,2),F(1,16),F(1,512),{0:F(3,8),1:F(1,16)}),
+                  (tree(5),0,F(1,8),F(1,4),F(1,4),F(1,512),{}),
+                  (star(4),0,F(2,5),F(1,2),F(1,4),F(1,1024),{})]
+        for adjacency,*args in fixtures:
+            short=production.BinomialBlockDyadicCorrector(CheckedOracle(adjacency),*args)
+            old=SourceEnergyDyadicCorrector(CheckedOracle(adjacency),*args)
+            optimum=dense_exact_obstacle_oracle(adjacency,*args[:2],args[3])
+            self.assertEqual(short.grid,old.grid)
+            self.assertEqual(short.initial_energy_bound,old.initial_energy_bound)
+            self.assertLessEqual(short.target_iterations,old.target_iterations)
+            if short.T==2:
+                self.assertEqual(short.blocks,(old.blocks+1)//2)
+            self.assertLessEqual(short.initial_energy_bound*short.block_bound.value**short.blocks,
+                                 short.tolerance/2)
+            if short.blocks:
+                self.assertGreater(short.initial_energy_bound*short.block_bound.value**(short.blocks-1),
+                                   short.tolerance/2)
+            self.check_prefix(short,adjacency,optimum)
+            for _ in range(short.target_iterations):
+                short.step();old.step()
+                self.assertEqual((short.S,list(short.X.items()),list(short.L.items()),
+                                  list(short.z.items()),list(short.M.items())),
+                                 (old.S,list(old.X.items()),list(old.L.items()),
+                                  list(old.z.items()),list(old.M.items())))
+                self.assertEqual(short.last_step,old.last_step)
+                self.check_prefix(short,adjacency,optimum)
+                LOG['exact_trajectory_steps']+=1
+            short.run()
+            self.assertLess(short.objective_gap_bound,short.tolerance)
+            self.assertEqual(short.metrics.rebase_adjacency_entries,0)
+            self.assertEqual(short.binomial_completed_power_updates,short.blocks)
+            LOG['max_target_power_bits']=max(LOG['max_target_power_bits'],short.target_power_denominator.bit_length())
+            LOG['stage_cases']+=1
+
+    def test_zero_steps_and_zero_energy(self):
+        cases=[(path(2),0,F(1,4),F(1,2),F(1,4),F(1,1024),{0:F(3,8),1:F(1,8)}),
+               (path(3),0,F(1,4),F(1,2),F(255,256),F(1,128),{})]
+        for adjacency,*args in cases:
+            stage=production.BinomialBlockDyadicCorrector(CheckedOracle(adjacency),*args)
+            self.assertEqual(stage.target_iterations,0)
+            candidate=stage.run()
+            optimum=dense_exact_obstacle_oracle(adjacency,*args[:2],args[3])
+            self.check_prefix(stage,adjacency,optimum)
+            self.assertEqual(stage.objective_gap_bound,stage.initial_energy_bound)
+            self.assertEqual(stage.target_power_denominator,1)
+            self.assertGreater(stage.source_energy_records,0)
+            LOG['zero_step_cases']+=1
+            LOG['zero_energy_cases']+=int(stage.initial_energy_bound==0)
+        self.assertEqual(LOG['zero_energy_cases'],1)
+
+    def test_full_kkt_source_and_prefix_energy(self):
+        fixtures=[(path(3),0,F(2,5),F(3,10),F(1,2000)),
+                  (tree(5),0,F(1,8),F(1,12),F(1,200)),
+                  (path(2),0,F(1,100),F(1,3),F(1,100)),
+                  (graph(3,[(0,1),(1,2),(2,0)]),0,F(1,3),F(1,10),F(1,1000)),
+                  (star(5),1,F(1,4),F(1,6),F(1,500)),
+                  (star(5),0,F(1,3),F(1,4),F(1,100)),
+                  (path(3),1,F(1),F(1,5),F(1,100)),
+                  (path(3),0,F(1,4),F(1023,1024),F(1,16))]
+        outer=self
+        for adjacency,seed,alpha,rho,epsilon in fixtures:
+            observed=[]
+            class Observed(production.BinomialBlockDyadicCorrector):
+                def __init__(self,*args,**kwargs):
+                    super().__init__(*args,**kwargs)
+                    self.test_optimum=dense_exact_obstacle_oracle(adjacency,self.seed,self.alpha,self.rho)
+                    outer.check_prefix(self,adjacency,self.test_optimum)
+                    observed.append(self)
+                def step(self):
+                    result=super().step()
+                    outer.check_prefix(self,adjacency,self.test_optimum)
+                    return result
+            oracle=CheckedOracle(adjacency)
+            with patch.dict(production._binomial_continuation.__globals__,{'IntegerDyadicCorrector':Observed}):
+                short=production.solve_rppr_binomial_blocks(oracle,seed,alpha,rho,epsilon)
+            old=solve_rppr_source_energy(CheckedOracle(adjacency),seed,alpha,rho,epsilon)
+            self.assertEqual(short.objective_gap_bound,old.objective_gap_bound)
+            self.assertEqual(len(short.stages),len(observed))
+            previous={}
+            for summary,stage in zip(short.stages,observed):
+                values={i:v for i,v,d in summary.repaired_output}
+                source=source_density(adjacency,seed,alpha,values)
+                for i in adjacency:
+                    self.assertTrue(previous.get(i,0)<=values.get(i,0)<=stage.test_optimum.get(i,0))
+                    self.assertTrue(0<=source[i]<=2*alpha*summary.regularization)
+                self.assertEqual(summary.certified_gap,stage.objective_gap_bound)
+                self.assertLess(summary.certified_gap,summary.requested_gap)
+                self.assertEqual(stage.mass_cap,1-sum((len(adjacency[i])*v for i,v in previous.items()),F(0)))
+                previous=values
+                LOG['full_stages']+=1
+                LOG['zero_step_cases']+=int(stage.metrics.iterations==0)
+            optimum=dense_exact_obstacle_oracle(adjacency,seed,alpha,rho)
+            values={i:v for i,v,d in short.output}
+            gap=objective(adjacency,seed,alpha,rho,values)-objective(adjacency,seed,alpha,rho,optimum)
+            self.assertTrue(0<=gap<=short.objective_gap_bound<=epsilon)
+            self.assertEqual(len(oracle.degree_queries),1+short.metrics.repair_degree_replies+
+                sum(s.corrector_metrics['degree_replies'] for s in short.stages))
+            self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),
+                short.metrics.repair_first_adjacency_entries+
+                sum(s.corrector_metrics['first_adjacency_entries'] for s in short.stages))
+            new_K,old_K=sum(s.iterations for s in short.stages),sum(s.iterations for s in old.stages)
+            LOG['new_iterations']+=new_K
+            LOG['old_iterations']+=old_K
+            LOG['new_corrector_reads']+=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in short.stages)
+            LOG['old_corrector_reads']+=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in old.stages)
+            LOG['full_cases']+=1
+            LOG['fixtures'].append(dict(alpha=str(alpha),rho=str(rho),new_iterations=new_K,
+                                       old_iterations=old_K,certificate=str(short.objective_gap_bound)))
+        self.assertLess(LOG['new_iterations'],LOG['old_iterations'])
+
+    def test_validation_and_isolation(self):
+        for T in (0,1,-2,F(2)):
+            with self.assertRaises(ValueError):
+                production.dyadic_block_bound(T)
+        self.assertIs(production._binomial_continuation.__code__,solve_rppr_integer.__code__)
+        self.assertIsNot(production._binomial_continuation.__globals__,solve_rppr_integer.__globals__)
+        self.assertIs(solve_rppr_source_energy.__globals__['SourceEnergyDyadicCorrector'],SourceEnergyDyadicCorrector)
+
+
+if __name__=='__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(BinomialBlockTests))
+    LOG['tests_run'],LOG['successful']=result.testsRun,result.wasSuccessful()
+    Path(__file__).with_name('binomial_block_dyadic_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

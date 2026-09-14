@@ -1,0 +1,155 @@
+"""Deterministic falsification grid for an additive scalar-mass reserve.
+
+Prescribed feasible states, not zero-start histories. Passing is numerical
+evidence only; failure rejects only the particular coefficient grid.
+"""
+
+import itertools
+import json
+import math
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from positive_linear_coupling import mass_projection
+
+
+def cases(step_size=1.0):
+    graphs = [nx.path_graph(n) for n in (8, 32, 128)]
+    graphs += [nx.star_graph(n) for n in (8, 32)]
+    graphs += [nx.barbell_graph(8, 16), nx.lollipop_graph(8, 32)]
+    graphs += [nx.balanced_tree(2, 5)]
+    for index, graph in enumerate(graphs):
+        for seed in sorted({0, len(graph) // 2, len(graph) - 1}):
+            labels = [seed] + [i for i in range(len(graph)) if i != seed]
+            adjacency = nx.to_numpy_array(graph, nodelist=labels)
+            degrees = adjacency.sum(axis=1)
+            w = np.sqrt(degrees)
+            for alpha, fraction in itertools.product(
+                (0.01, 0.0001), (0.001, 0.03, 0.4)
+            ):
+                rho = fraction / degrees[0]
+                q = (1 + alpha) / 2 * np.eye(len(graph)) - (
+                    1 - alpha
+                ) / 2 * adjacency / np.outer(w, w)
+                c = -alpha * rho * w
+                c[0] += alpha / w[0]
+                optimum = obstacle(q, c)
+                slack = np.where(optimum == 0, np.maximum(q @ optimum - c, 0), 0)
+                mass_opt = float(w @ optimum)
+                s = math.sqrt(alpha * step_size)
+                coef = 1 - s
+                k = q - alpha * np.eye(len(graph))
+
+                def features(
+                    x,
+                    z,
+                    optimum=optimum,
+                    q=q,
+                    slack=slack,
+                    alpha=alpha,
+                    w=w,
+                    mass_opt=mass_opt,
+                ):
+                    e = x - optimum
+                    f = z - optimum
+                    base = float(0.5 * e @ q @ e + slack @ x + alpha * (f @ f) / 2)
+                    a = float(w @ x) - mass_opt
+                    b = float(w @ z) - mass_opt
+                    return np.array([base, alpha * a * a, alpha * a * b, alpha * b * b])
+
+                targets = sorted({len(graph) // 2, len(graph) - 1})
+                for xa, za, target, delta_fraction in itertools.product(
+                    (0, 0.25, 0.5, 1, 1.5),
+                    (0, 0.25, 0.5, 1, 1.5),
+                    targets,
+                    (0, 0.0001, 0.01, 0.3),
+                ):
+                    if max(xa, za) * mass_opt >= 1:
+                        continue
+                    x = xa * optimum
+                    z = za * optimum
+                    delta = (1 - max(xa, za) * mass_opt) * delta_fraction
+                    x[target] += delta / w[target]
+                    y = (x + s * z) / (1 + s)
+                    score = coef * z - step_size * (k @ y) / s
+                    score[0] += s / w[0]
+                    budget = coef * float(w @ z) + s
+                    repaired = budget * mass_projection(score / budget, w)
+                    zn = np.maximum(repaired - s * rho * w, 0)
+                    xn = coef * x + s * zn
+                    before = features(x, z)
+                    if before[0] < 1e-22:
+                        continue
+                    after = features(xn, zn)
+                    yield (
+                        before,
+                        after,
+                        s,
+                        {
+                            "graph_index": index,
+                            "n": len(graph),
+                            "seed": seed,
+                            "alpha": alpha,
+                            "rho": rho,
+                            "xa": xa,
+                            "za": za,
+                            "target_in_permuted_order": target,
+                            "delta_fraction": delta_fraction,
+                        },
+                    )
+
+
+def main():
+    data = list(cases())
+    before = np.array([row[0] for row in data])
+    after = np.array([row[1] for row in data])
+    roots = np.array([row[2] for row in data])
+    rows = []
+    for rate in (0.1, 0.25, 0.5, 1):
+        difference = (after - (1 - rate * roots[:, None]) * before) / before[:, :1]
+        best = None
+        feasible = []
+        for a, c, correlation in itertools.product(
+            (0, 1 / 16, 1 / 4, 1, 4, 16, 64),
+            (0, 1 / 16, 1 / 4, 1, 4, 16, 64),
+            (-1, -0.5, 0, 0.5, 1),
+        ):
+            b = 2 * correlation * math.sqrt(a * c)
+            coefficients = np.array([1, a, b, c])
+            violations = difference @ coefficients
+            worst_index = int(np.argmax(violations))
+            maximum = float(violations[worst_index])
+            result = {
+                "rate_constant": rate,
+                "mass_coefficients": [a, b, c],
+                "maximum_normalized_violation": maximum,
+                "worst_case": data[worst_index][3],
+            }
+            if best is None or maximum < best["maximum_normalized_violation"]:
+                best = result
+            if maximum <= 1e-12:
+                feasible.append(result)
+        rows.append(
+            {
+                "rate_constant": rate,
+                "best_grid_candidate": best,
+                "numerically_feasible_candidates": feasible,
+            }
+        )
+    result = {
+        "prescribed_state_cases": len(data),
+        "randomized": False,
+        "scope": "coefficient-grid falsification, not a convergence theorem",
+        "rates": rows,
+    }
+    destination = (
+        Path(__file__).resolve().parents[1] / "results/mass-repair-reserve-grid.json"
+    )
+    destination.write_text(json.dumps(result, indent=2))
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    main()

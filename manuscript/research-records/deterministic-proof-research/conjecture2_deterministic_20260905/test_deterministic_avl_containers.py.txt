@@ -1,0 +1,201 @@
+"""Exhaustive and structured deterministic checks for point AVL containers."""
+
+import json
+import unittest
+from itertools import permutations
+from pathlib import Path
+
+from deterministic_avl_containers import AVLMap, AVLSet
+
+
+COUNTS = dict(exhaustive_order_pairs=0, validated_states=0,
+              checked_nodes=0, structured_large_cases=0,
+              maximum_nodes=0, maximum_height=0, huge_key_bits=0)
+
+
+def validate(mapping, reference):
+    def visit(node, lower=None, upper=None):
+        if node is None:
+            return 0, 0, []
+        assert lower is None or lower < node.key
+        assert upper is None or node.key < upper
+        lh, ls, left = visit(node.left, lower, node.key)
+        rh, rs, right = visit(node.right, node.key, upper)
+        assert node.height == 1+max(lh, rh)
+        assert node.size == 1+ls+rs
+        assert abs(lh-rh) <= 1
+        assert node.key in reference and node.value == reference[node.key]
+        COUNTS['checked_nodes'] += 1
+        return node.height, node.size, left+[node.key]+right
+
+    height, size, keys = visit(mapping._root)
+    expected = sorted(reference)
+    assert size == len(mapping) == len(reference)
+    assert keys == list(mapping) == expected
+    assert list(reversed(mapping)) == list(reversed(expected))
+    assert list(mapping.items()) == [(key, reference[key]) for key in expected]
+    assert list(mapping.values()) == [reference[key] for key in expected]
+    assert dict(mapping) == reference
+    assert mapping == reference and reference == mapping
+    if size:
+        assert height <= 2*size.bit_length()
+    else:
+        assert height == 0
+    COUNTS['validated_states'] += 1
+    COUNTS['maximum_nodes'] = max(COUNTS['maximum_nodes'], size)
+    COUNTS['maximum_height'] = max(COUNTS['maximum_height'], height)
+
+
+class AVLContainerTests(unittest.TestCase):
+    def test_exhaustive_insert_delete_orders(self):
+        # Every insertion/deletion order pair for all labeled sizes <=5.
+        for n in range(6):
+            orders = list(permutations(range(n)))
+            for insertion in orders:
+                for deletion in orders:
+                    mapping, reference = AVLMap(), {}
+                    validate(mapping, reference)
+                    for key in insertion:
+                        mapping[key] = reference[key] = ('first', key)
+                        validate(mapping, reference)
+                    # Replacing all values preserves size and tree structure.
+                    original_version = mapping._version
+                    for key in insertion:
+                        mapping[key] = reference[key] = ('replacement', -key)
+                    self.assertEqual(mapping._version, original_version)
+                    validate(mapping, reference)
+                    for key in deletion:
+                        del mapping[key]
+                        del reference[key]
+                        validate(mapping, reference)
+                    self.assertIsNone(mapping._root)
+                    COUNTS['exhaustive_order_pairs'] += 1
+
+    def test_mapping_semantics_and_live_views(self):
+        mapping = AVLMap([(3, ['a']), (-2, ['b']), (3, ['c'])])
+        self.assertEqual(list(mapping), [-2, 3])
+        keys, items, values = mapping.keys(), mapping.items(), mapping.values()
+        mapping.update({8: ['d'], 1: ['e']})
+        mapping.update([(3, ['f']), (-9, ['g'])])
+        self.assertEqual(list(keys), [-9, -2, 1, 3, 8])
+        self.assertEqual(list(items), [(k, mapping[k]) for k in keys])
+        self.assertEqual(list(values), [mapping[k] for k in keys])
+        self.assertEqual(mapping.get(77), None)
+        self.assertEqual(mapping.get(77, 'default'), 'default')
+        self.assertEqual(mapping.setdefault(3, ['unused']), ['f'])
+        self.assertEqual(mapping.setdefault(4, ['new']), ['new'])
+        self.assertEqual(mapping.pop(77, 'absent'), 'absent')
+        with self.assertRaises(KeyError):
+            mapping.pop(77)
+        before = dict(mapping)
+        with self.assertRaises(KeyError):
+            del mapping[77]
+        validate(mapping, before)
+        popped, value = mapping.popitem()
+        self.assertEqual(value, before.pop(popped))
+        validate(mapping, before)
+        copied = mapping.copy()
+        self.assertIsNot(copied, mapping)
+        self.assertEqual(copied, mapping)
+        copied[100] = 'different'
+        self.assertNotEqual(copied, mapping)
+        mapping.update(mapping)
+        validate(mapping, before)
+        mapping.clear()
+        validate(mapping, {})
+        self.assertEqual(list(keys), [])
+        self.assertEqual(list(items), [])
+        self.assertEqual(list(values), [])
+        mapping.clear()
+        self.assertNotIn('wrong type', mapping)
+        with self.assertRaises(TypeError):
+            mapping['wrong type'] = 1
+        with self.assertRaises(TypeError):
+            _ = mapping['wrong type']
+
+    def test_iterator_mutation_contract(self):
+        mapping = AVLMap((i, i) for i in range(5))
+        iterator = iter(mapping.items())
+        self.assertEqual(next(iterator), (0, 0))
+        mapping[2] = 22
+        self.assertEqual(list(iterator), [(1, 1), (2, 22), (3, 3), (4, 4)])
+        for action in ('insert', 'delete', 'clear', 'delete_insert'):
+            mapping = AVLMap((i, i) for i in range(5))
+            iterator = iter(mapping)
+            self.assertEqual(next(iterator), 0)
+            if action == 'insert': mapping[8] = 8
+            if action == 'delete': del mapping[3]
+            if action == 'clear': mapping.clear()
+            if action == 'delete_insert':
+                del mapping[3]
+                mapping[3] = 3
+            with self.assertRaises(RuntimeError):
+                next(iterator)
+
+    def test_structured_large_and_huge_integer_keys(self):
+        n = 4096
+        base = 1 << 2048
+        keys = [base+i if i % 2 == 0 else -base-i for i in range(n)]
+        COUNTS['huge_key_bits'] = max(abs(key).bit_length() for key in keys)
+        ordered = sorted(keys)
+        orders = [ordered, list(reversed(ordered)),
+                  [ordered[(257*i+17) % n] for i in range(n)],
+                  [ordered[i//2] if i % 2 == 0 else ordered[-1-i//2] for i in range(n)]]
+        for insertion in orders:
+            mapping, reference = AVLMap(), {}
+            for index, key in enumerate(insertion):
+                mapping[key] = reference[key] = index
+                if (index+1) % 256 == 0:
+                    validate(mapping, reference)
+            validate(mapping, reference)
+            # Delete alternating low/high order, including repeated two-child
+            # root and interior removals under different insertion shapes.
+            deletion = [ordered[i//2] if i % 2 == 0 else ordered[-1-i//2] for i in range(n)]
+            for index, key in enumerate(deletion):
+                self.assertEqual(mapping.pop(key), reference.pop(key))
+                if (index+1) % 256 == 0:
+                    validate(mapping, reference)
+            validate(mapping, {})
+            COUNTS['structured_large_cases'] += 1
+
+    def test_set_construction_union_and_mutation(self):
+        for n in range(6):
+            for insertion in permutations(range(n)):
+                values = AVLSet(insertion)
+                expected = set(insertion)
+                self.assertEqual(list(values), sorted(expected))
+                validate(values._map, {key:None for key in expected})
+                for key in insertion:
+                    values.add(key)
+                self.assertEqual(len(values), len(expected))
+                combined = values.union([-3, 9], AVLSet([1, 11]))
+                expected_combined = expected | {-3, 9, 1, 11}
+                self.assertEqual(list(combined), sorted(expected_combined))
+                self.assertEqual(list(values | {-3, 9}), sorted(expected | {-3, 9}))
+                self.assertEqual(list({-3, 9} | values), sorted(expected | {-3, 9}))
+                values |= AVLSet([-8, 12])
+                expected |= {-8, 12}
+                values.update(values)
+                self.assertEqual(list(values), sorted(expected))
+                self.assertEqual(values, expected)
+                copied = values.copy()
+                self.assertEqual(copied, values)
+                values.discard(10000)
+                values.discard('wrong type')
+                for key in list(values):
+                    values.discard(key)
+                    expected.remove(key)
+                    validate(values._map, {j:None for j in expected})
+                self.assertEqual(len(values), 0)
+                copied.clear()
+                self.assertEqual(list(copied), [])
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(AVLContainerTests))
+    COUNTS.update(tests_run=result.testsRun, successful=result.wasSuccessful())
+    Path(__file__).with_name('deterministic_avl_containers_verification.json').write_text(
+        json.dumps(COUNTS, indent=2)+'\n')
+    print(json.dumps(COUNTS, indent=2))
+    raise SystemExit(not result.wasSuccessful())

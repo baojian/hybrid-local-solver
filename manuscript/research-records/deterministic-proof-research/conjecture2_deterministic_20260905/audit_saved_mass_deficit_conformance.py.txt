@@ -1,0 +1,192 @@
+"""Read-only exact conformance checks on saved complete outputs; no solvers."""
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+from collections import Counter
+import json
+
+ROOT = Path(__file__).resolve().parent
+FILES = ('final_combined_rppr_study.json', 'combined_certified_dyadic_study.json',
+         'direct_exception_transition_benchmark.json', 'worked_three_vertex_example.json')
+
+
+def rational(value):
+    assert type(value) in (str, int), 'A conformance input is not exact rational encoding'
+    return F(value)
+
+
+def encode(value):
+    if isinstance(value, F): return str(value)
+    if isinstance(value, dict): return {str(k):encode(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)): return [encode(v) for v in value]
+    return value
+
+
+def check_hashes(recorded, base):
+    results = []
+    for name, expected in recorded.items():
+        path = base/name
+        actual = sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        results.append(dict(file=name, recorded=expected, current=actual,
+                            matches_current=actual == expected))
+    return results
+
+
+def main():
+    sources = {name:json.loads((ROOT/name).read_text()) for name in FILES if (ROOT/name).exists()}
+    snapshots = {name:sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+    report = dict(read_only_saved_output_audit=True, solver_calls=0, graph_oracle_calls=0,
+                  random_algorithms=False, input_sha256=snapshots, source_files={}, runs=[],
+                  scope='Endpoint kinetic inequalities and aggregate checkpoint inequalities only; no missing prefixes reconstructed.')
+    ratios = {}
+    runtimes, backends = Counter(), Counter()
+    total_stages = total_checkpoint_stages = total_checkpoints = total_zero = known_reused = 0
+    for filename, data in sources.items():
+        worked = filename == 'worked_three_vertex_example.json'
+        hashes = data.get('package_hashes') if worked else data['source_sha256']
+        base = ROOT/'deliverables'/'deterministic-rppr'/'deterministic_rppr' if worked else ROOT
+        version_audit = check_hashes(hashes, base)
+        local_runs = [dict(case='three-vertex-worked-example', backend='packaged_fast',
+                           complete_answer=data['complete_solver_result'])] if worked else data['runs']
+        file_summary = dict(complete_records=0, stages=0, checkpoint_stages=0,
+            zero_step_stages=0, skipped_incomplete_records=0, source_hash_checks=version_audit)
+        case_labels = []
+        for index, record in enumerate(local_runs):
+            if record.get('status', 'completed') != 'completed':
+                file_summary['skipped_incomplete_records'] += 1
+                continue
+            answer = record.get('exact_solver_result', record.get('complete_answer'))
+            assert answer is not None and isinstance(answer['stages'], list)
+            provenance = record.get('provenance')
+            runtime = data.get('python', 'not recorded')
+            runtime_source = 'artifact top-level metadata' if not worked else 'not recorded in worked JSON'
+            reused = False
+            if isinstance(provenance, dict) and 'reused_from' in provenance:
+                reused = True
+                known_reused += 1
+                runtime, runtime_source = provenance['python'], 'per-record provenance; supersedes outer artifact runtime'
+                original_file = provenance['reused_from']
+                assert snapshots[original_file] == provenance['source_file_sha256']
+                original_record = sources[original_file]['runs'][provenance['run_index']]
+                assert answer == original_record['complete_answer']
+                assert provenance['source_sha256'] == sources[original_file]['source_sha256']
+            case = record['case']
+            label = case['name'] if isinstance(case, dict) else case
+            backend = record.get('backend', record.get('mode', 'unknown'))
+            stages = answer['stages']
+            if worked:
+                alpha, alpha_source = rational(data['alpha']), 'explicit worked-example input'
+            elif isinstance(case, dict):
+                alpha, alpha_source = rational(case['alpha']), 'explicit saved case input'
+            else:
+                # This artifact omits its case parameters. The recorded exact
+                # source mass/cap identify alpha; tau/delta independently agree.
+                assert stages
+                alpha = rational(stages[0]['source_mass'])/rational(stages[0]['projection_mass_cap'])
+                alpha_source = 'recovered from recorded source_mass/cap; cross-checked by 8*tau/delta^2 at every stage'
+            theta = rational(answer['theta']) if stages else None
+            run = dict(artifact=filename, run_index=index, case=label, backend=backend,
+                       runtime=runtime, runtime_source=runtime_source, known_reused_record=reused,
+                       alpha=alpha, alpha_source=alpha_source, theta=theta, stages=[])
+            previous_mass, previous_volume = F(0), 0
+            for stage_index, stage in enumerate(stages):
+                r, tau, h, delta, eta = map(rational, (stage['regularization'], stage['requested_gap'],
+                    stage['grid'], stage['delta'], stage['projection_mass_cap']))
+                K, W, baseline_volume = stage['iterations'], stage['kinetic_volume'], stage['baseline_volume']
+                assert all(type(v) is int and v >= 0 for v in (K, W, baseline_volume))
+                assert 0 < alpha < 1 and 0 < theta <= F(1, 2) and theta**2 <= alpha < 4*theta**2
+                assert eta == 1-previous_mass and stage['baseline_volume'] == previous_volume
+                assert r <= eta <= 1
+                assert baseline_volume <= eta/r
+                assert rational(stage['source_mass']) == alpha*eta
+                assert tau == alpha*delta**2/8 and 0 < delta <= alpha*r/2
+                assert tau <= alpha**3*r*r/32 and h <= theta*tau/256
+                gamma = 29*h/theta
+                assert gamma <= alpha*alpha*r*eta
+                assert 2*h <= alpha*r/4
+                kinetic_bound = 360*eta*K/r
+                assert W <= kinetic_bound
+                if K == 0: assert W == 0
+                assert stage['source_records'] <= 1+2*baseline_volume <= 3*eta/r
+                metrics = stage['corrector_metrics']
+                if 'source_initialization_records' in metrics:
+                    assert metrics['source_initialization_records'] <= 1+2*baseline_volume
+                checkpoint = metrics.get('checkpoints')
+                row = dict(stage=stage_index, r=r, eta=eta, K=K,
+                    baseline_volume=baseline_volume, baseline_volume_bound=eta/r,
+                    source_records=stage['source_records'], tau=tau, delta=delta, grid=h,
+                    gamma_upper=gamma, gamma_required_upper=alpha*alpha*r*eta,
+                    kinetic_volume=W, refined_kinetic_bound=kinetic_bound)
+                comparisons = dict(baseline_fraction=F(baseline_volume)*r/eta,
+                    gamma_fraction=gamma/(alpha*alpha*r*eta))
+                if K: comparisons['kinetic_fraction']=F(W)/kinetic_bound
+                if checkpoint is not None:
+                    J, time_sum, volume = (checkpoint[k] for k in ('checkpoints', 'checkpoint_iteration_sum', 'candidate_volume'))
+                    assert all(type(v) is int and v >= 0 for v in (J, time_sum, volume))
+                    if J:
+                        assert K > 0 and time_sum < 2*K
+                    else: assert time_sum == volume == 0
+                    cap_volume_bound = eta*(J+360*time_sum)/r
+                    assert volume <= cap_volume_bound
+                    assert checkpoint['cached_adjacency_entries'] == volume
+                    assert checkpoint['checker_accumulation_updates'] == volume
+                    assert checkpoint['cache_misses'] == 0
+                    assert checkpoint['checker_containers'] == checkpoint['checker_reclaimed_containers'] == 6*J
+                    row['checkpoint_aggregate'] = dict(checkpoints=J, iteration_sum=time_sum,
+                        candidate_volume=volume, refined_candidate_volume_bound=cap_volume_bound,
+                        per_checkpoint_volumes_recorded=False)
+                    if J: comparisons['checkpoint_volume_fraction']=F(volume)/cap_volume_bound
+                    total_checkpoint_stages += 1
+                    total_checkpoints += J
+                    file_summary['checkpoint_stages'] += 1
+                for key, ratio in comparisons.items():
+                    if key not in ratios or ratio > ratios[key]['value']:
+                        ratios[key] = dict(value=ratio, artifact=filename, run_index=index,
+                                           case=label, backend=backend, stage=stage_index, r=r)
+                repaired = stage['repaired_output']
+                previous_mass = sum((rational(f)*degree for i, f, degree in repaired), F(0))
+                previous_volume = sum(degree for i, f, degree in repaired)
+                assert previous_mass == rational(stage['repaired_mass']) <= 1
+                assert previous_volume == stage['repaired_volume']
+                run['stages'].append(row)
+                total_stages += 1
+                total_zero += K == 0
+                file_summary['stages'] += 1
+                file_summary['zero_step_stages'] += K == 0
+            run['final_stored_mass_deficit'] = 1-previous_mass
+            report['runs'].append(run)
+            file_summary['complete_records'] += 1
+            case_labels.append(label)
+            runtimes[runtime] += 1
+            backends[backend] += 1
+        file_summary['distinct_case_labels'] = sorted(set(case_labels))
+        report['source_files'][filename] = file_summary
+    assert snapshots == {name:sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+    report['totals'] = dict(complete_saved_output_records=len(report['runs']), stages=total_stages,
+        stages_with_checkpoint_metadata=total_checkpoint_stages, recorded_checkpoints=total_checkpoints,
+        zero_step_stages=total_zero, known_cross_artifact_reused_records=known_reused,
+        original_record_occurrences_excluding_known_cross_artifact_reuse=len(report['runs'])-known_reused,
+        known_cross_artifact_reused_stages=sum(len(r['stages']) for r in report['runs'] if r['known_reused_record']),
+        stage_occurrences_excluding_known_cross_artifact_reuse=sum(len(r['stages']) for r in report['runs'] if not r['known_reused_record']),
+        runtime_records=dict(runtimes), backend_records=dict(backends))
+    report['maximum_observed_fractions_of_refined_bounds'] = ratios
+    report['all_checks_passed'] = True
+    report['limitations'] = [
+        'Endpoint kinetic volumes are recorded; individual per-step kinetic volumes are not reconstructed.',
+        'Checkpoint metadata supplies count, sum of iteration indices, and aggregate candidate volume, not each checkpoint volume.',
+        'Gamma here is the theorem upper envelope 29h/theta, not a measured accumulation of actual rounding errors.',
+        'Direct-exception artifact omits explicit numerical case parameters; alpha is recovered and cross-checked from exact stage fields.',
+        'Worked-example JSON records package hashes but does not record its runtime version.',
+        'Source-version comparisons cover only filenames explicitly hashed in each artifact; unrecorded dependencies are not retroactively versioned.',
+        'Repeated timing samples and two explicitly reused records are counted transparently; they are not independent graph instances.',
+        'Saved stage records do not independently determine the unknown true optimum mass deficit except in the worked example.',
+        'These exact conformance checks supplement, and do not prove, the new universal work bound.']
+    destination = ROOT/'saved_mass_deficit_conformance.json'
+    destination.write_text(json.dumps(encode(report), indent=2)+'\n')
+    print(json.dumps(encode(dict(totals=report['totals'], per_file={name:{k:v for k,v in data.items() if k!='source_hash_checks'}
+        for name,data in report['source_files'].items()}, maxima=ratios,
+        mismatching_hashes=[dict(artifact=name, **row) for name,data in report['source_files'].items()
+            for row in data['source_hash_checks'] if not row['matches_current']])), indent=2))
+
+
+if __name__ == '__main__': main()

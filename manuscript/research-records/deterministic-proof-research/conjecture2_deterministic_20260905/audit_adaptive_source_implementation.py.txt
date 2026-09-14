@@ -1,0 +1,185 @@
+"""Independent source, cache-counter, and full adaptive KKT checks."""
+import hashlib
+import json
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import adaptive_source_continuation_rppr as production
+from deterministic_avl_containers import AVLMap
+from test_local_safe_solver import dense_exact_obstacle_oracle, graph, path, star
+from test_monotone_capped_solver import CheckedOracle
+from test_deterministic_rppr_solver import objective, source_density
+
+ROOT = Path(__file__).resolve().parent
+LOG = dict(helper_cases=0, helper_computed_maxima=0, fresh_rows=0, cached_rows=0,
+    boundary_maxima=0, full_cases=0, full_stages=0, full_source_probes=0,
+    nondyadic_parameters=0, actual_probe_new_rows=0, final_gaps_checked=0,
+    zero_iteration_stages=0)
+
+
+class LoggedOracle(CheckedOracle):
+    entries = 0
+    def neighbors(self, i):
+        for j in super().neighbors(i):
+            self.entries += 1
+            yield j
+
+
+class AdaptiveIndependentTests(unittest.TestCase):
+    def test_dense_source_and_every_cache_counter(self):
+        fixtures = (path(3), star(4), graph(4, [(0,1),(1,2),(2,0),(2,3)]))
+        H = 1 << 20
+        for rows in fixtures:
+            for seed in (0, max(rows)):
+                for alpha in (F(2,7), F(13,97)):
+                    old_r = F(1, 8*len(rows[seed]))
+                    optimum = dense_exact_obstacle_oracle(rows, seed, alpha, old_r)
+                    shift = alpha*old_r/4
+                    baseline = {i:F(int(max(F(0), value-shift)*H),H)
+                                for i,value in optimum.items() if max(F(0),value-shift)*H >= 1}
+                    source = source_density(rows, seed, alpha, baseline)
+                    self.assertTrue(all(value >= 0 for value in source.values()))
+                    repaired = tuple((i,value,len(rows[i])) for i,value in sorted(baseline.items()))
+                    affected = {seed} | set(baseline)
+                    for i in baseline:
+                        affected.update(rows[i])
+                    expected = max(source.values())
+                    maximum_vertices = [i for i in rows if source[i] == expected]
+                    for mode in ('fresh', 'partial', 'complete'):
+                        if mode == 'fresh':
+                            old_degrees, old_rows = {}, {}
+                        elif mode == 'complete':
+                            old_degrees = {i:len(rows[i]) for i in affected}
+                            old_rows = {i:tuple(rows[i]) for i in baseline}
+                        else:
+                            old_degrees = {i:len(rows[i]) for i in affected if i % 2 == 0}
+                            old_rows = {i:tuple(rows[i]) for i in baseline if i % 2 == 1}
+                        degree_cache, adjacency_cache = AVLMap(old_degrees), AVLMap(old_rows)
+                        oracle = LoggedOracle(rows)
+                        maximum, vertex, metrics = production.source_maximum(oracle, seed, alpha,
+                            repaired, H, degree_cache=degree_cache, adjacency_cache=adjacency_cache)
+                        self.assertEqual(maximum, expected)
+                        self.assertEqual(vertex, min(maximum_vertices))
+                        self.assertEqual(dict(degree_cache.items()), {i:len(rows[i]) for i in affected})
+                        self.assertEqual(dict(adjacency_cache.items()), {i:tuple(rows[i]) for i in baseline})
+                        volume = sum(len(rows[i]) for i in baseline)
+                        fresh = set(baseline)-set(old_rows)
+                        self.assertEqual(metrics.baseline_input_records, len(baseline))
+                        self.assertEqual(metrics.baseline_input_volume, volume)
+                        self.assertEqual(metrics.degree_cache_lookups, 2*len(baseline)+len(affected))
+                        self.assertEqual(metrics.degree_replies, len(affected-set(old_degrees)))
+                        self.assertEqual(metrics.degree_cache_writes, metrics.degree_replies)
+                        self.assertEqual(metrics.retained_row_requests, len(baseline))
+                        self.assertEqual(metrics.cached_row_hits, len(old_rows))
+                        self.assertEqual(metrics.first_row_requests, len(fresh))
+                        self.assertEqual(metrics.first_adjacency_entries, sum(len(rows[i]) for i in fresh))
+                        self.assertEqual(metrics.scanned_adjacency_entries, volume)
+                        self.assertEqual(metrics.adjacency_cache_lookups, len(baseline))
+                        self.assertEqual(metrics.adjacency_cache_writes, len(fresh))
+                        self.assertEqual(metrics.source_map_lookups, len(baseline)+volume)
+                        self.assertEqual(metrics.source_map_writes, 1+len(baseline)+volume)
+                        self.assertEqual(metrics.source_integer_updates, metrics.source_map_writes)
+                        self.assertEqual(metrics.affected_records, len(affected))
+                        self.assertEqual(metrics.maximum_comparisons, len(affected))
+                        self.assertEqual(metrics.rational_maximum_constructions, 1)
+                        self.assertEqual(metrics.temporary_records_reclaimed, len(baseline)+len(affected))
+                        self.assertEqual(oracle.entries, metrics.first_adjacency_entries)
+                        self.assertEqual(len(oracle.degree_queries), metrics.degree_replies)
+                        self.assertEqual(len(oracle.neighbor_queries), metrics.first_row_requests)
+                        LOG['helper_cases'] += 1
+                        LOG['helper_computed_maxima'] += 1
+                        LOG['fresh_rows'] += len(fresh)
+                        LOG['cached_rows'] += len(old_rows)
+                        LOG['boundary_maxima'] += vertex not in baseline
+
+    def test_empty_and_strict_boundary_maximum(self):
+        rows = path(3)
+        for baseline, alpha in (({},F(13,97)), ({1:F(7,32)},F(1,3))):
+            oracle = LoggedOracle(rows)
+            repaired = tuple((i,value,len(rows[i])) for i,value in baseline.items())
+            maximum, vertex, metrics = production.source_maximum(oracle,1,alpha,repaired,32,
+                degree_cache=AVLMap(),adjacency_cache=AVLMap())
+            source = source_density(rows,1,alpha,baseline)
+            self.assertEqual(maximum,max(source.values()))
+            self.assertEqual(source[vertex],maximum)
+            if baseline:
+                self.assertNotIn(vertex,baseline)
+                self.assertGreater(maximum,source[1])
+                LOG['boundary_maxima'] += 1
+            else:
+                self.assertEqual(oracle.neighbor_queries,[])
+                self.assertEqual(oracle.degree_queries,[1])
+            LOG['helper_cases'] += 1
+
+    def test_actual_repaired_probe_and_full_kkt(self):
+        fixtures = ((graph(4,[(0,1),(1,2),(2,0),(2,3)]),3,F(5,17),F(3,200)),
+                    (path(3),0,F(13,97),F((1<<22)-1,1<<22)))
+        original = production.source_maximum
+        for rows,seed,alpha,rho in fixtures:
+            oracle, calls = LoggedOracle(rows), []
+            def observe(oracle_arg, seed_arg, alpha_arg, repaired, H, **kwargs):
+                before_degrees = tuple(kwargs['degree_cache'].items())
+                before_rows = tuple(kwargs['adjacency_cache'].items())
+                values = {i:v for i,v,_ in repaired}
+                source = source_density(rows,seed_arg,alpha_arg,values)
+                result = original(oracle_arg,seed_arg,alpha_arg,repaired,H,**kwargs)
+                maximum,vertex,metrics = result
+                self.assertEqual(maximum,max(source.values()))
+                self.assertEqual(source[vertex],maximum)
+                # Certified truncation cannot retain a coordinate outside
+                # the candidate support, whose rows are already cached.
+                self.assertEqual(tuple(kwargs['degree_cache'].items()),before_degrees)
+                self.assertEqual(tuple(kwargs['adjacency_cache'].items()),before_rows)
+                self.assertEqual(metrics.first_row_requests,0)
+                self.assertEqual(metrics.degree_replies,0)
+                self.assertEqual(metrics.scanned_adjacency_entries,sum(len(rows[i]) for i in values))
+                A,D=alpha_arg.numerator,alpha_arg.denominator
+                B={i:int(v*H) for i,v in values.items()}
+                N=(2*A*H*int(vertex==seed_arg)-(D+A)*len(rows[vertex])*B.get(vertex,0)
+                   +(D-A)*sum(B.get(j,0) for j in rows[vertex]))
+                self.assertEqual(maximum/(4*alpha_arg),F(N,8*A*H*len(rows[vertex])))
+                calls.append((repaired,H,result))
+                LOG['actual_probe_new_rows'] += metrics.first_row_requests
+                return result
+            with patch.object(production,'source_maximum',observe):
+                answer=production.solve_rppr_adaptive(oracle,seed,alpha,rho,F(1,100000))
+            if rho>F(1,2):
+                self.assertEqual(len(answer.stages),1)
+                self.assertEqual(answer.stages[0].iterations,0)
+                self.assertGreater(answer.result.metrics.repair_affected_records,0)
+            self.assertEqual(len(calls),len(answer.stages)-1)
+            old={}
+            for j,stage in enumerate(answer.stages):
+                values={i:v for i,v,_ in stage.repaired_output}
+                optimum=dense_exact_obstacle_oracle(rows,seed,alpha,stage.regularization)
+                self.assertTrue(all(old.get(i,0)<=values.get(i,0)<=optimum.get(i,0) for i in rows))
+                self.assertTrue(all(0<=v<=2*alpha*stage.regularization for v in source_density(rows,seed,alpha,values).values()))
+                if j<len(calls): self.assertEqual(calls[j][0],stage.repaired_output)
+                LOG['nondyadic_parameters'] += bool(stage.regularization.denominator & (stage.regularization.denominator-1))
+                LOG['zero_iteration_stages'] += stage.iterations==0
+                old=values
+            optimum=dense_exact_obstacle_oracle(rows,seed,alpha,rho)
+            gap=objective(rows,seed,alpha,rho,old)-objective(rows,seed,alpha,rho,optimum)
+            self.assertTrue(0<=gap<=answer.objective_gap_bound<=F(1,100000))
+            self.assertEqual(oracle.entries,answer.adaptive_metrics.first_adjacency_entries+
+                answer.result.metrics.repair_first_adjacency_entries+
+                sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages))
+            self.assertEqual(len(oracle.degree_queries),answer.adaptive_metrics.degree_replies+
+                answer.result.metrics.seed_degree_queries+answer.result.metrics.repair_degree_replies+
+                sum(s.corrector_metrics['degree_replies'] for s in answer.stages))
+            LOG['full_cases']+=1
+            LOG['full_stages']+=len(answer.stages)
+            LOG['full_source_probes']+=len(calls)
+            LOG['final_gaps_checked']+=1
+
+
+if __name__=='__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(AdaptiveIndependentTests))
+    report=dict(passed=result.wasSuccessful(),evidence=LOG,
+        adaptive_source_sha256=hashlib.sha256((ROOT/'adaptive_source_continuation_rppr.py').read_bytes()).hexdigest())
+    (ROOT/'adaptive_source_independent_implementation_verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    if not result.wasSuccessful(): raise SystemExit(1)

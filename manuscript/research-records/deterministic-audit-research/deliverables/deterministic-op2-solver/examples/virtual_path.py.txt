@@ -1,0 +1,57 @@
+"""A local solve on an ordinary path with one trillion vertices."""
+
+from fractions import Fraction as F
+from pathlib import Path
+import sys
+import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pruned_rppr import solve_fast
+
+
+class PathOracle:
+    def __init__(self, length):
+        self.length = length
+        self.entries = 0
+        self.degree_replies = 0
+
+    def __iter__(self):
+        raise AssertionError("The solver must not enumerate the graph")
+
+    def __len__(self):
+        raise AssertionError("The solver must not query the graph size")
+
+    def degree(self, vertex):
+        self.degree_replies += 1
+        if not 0 <= vertex < self.length:
+            raise ValueError(vertex)
+        return 1 if vertex in (0, self.length - 1) else 2
+
+    def neighbors(self, vertex):
+        if vertex > 0:
+            self.entries += 1
+            yield vertex - 1
+        if vertex + 1 < self.length:
+            self.entries += 1
+            yield vertex + 1
+
+
+def main():
+    oracle = PathOracle(10**12)
+    started = time.perf_counter()
+    answer = solve_fast(oracle, 0, F(1, 10000), F(1, 64), F(1, 10**12))
+    elapsed = time.perf_counter() - started
+    print("Route:", answer.route)
+    print("Certified objective gap:", answer.objective_gap_bound)
+    print("Original adjacency entries inspected:", oracle.entries)
+    print("Original degree replies:", oracle.degree_replies)
+    print("Output vertices:", len(answer.output))
+    print("Output degree-volume:", sum(d for _, _, d in answer.output))
+    print("Measured seconds:", round(elapsed, 3))
+    print("First five output densities (decimal display only):")
+    for vertex, density, degree in answer.output[:5]:
+        print(vertex, float(density), "original degree", degree)
+
+
+if __name__ == "__main__":
+    main()

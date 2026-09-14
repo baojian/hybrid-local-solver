@@ -1,0 +1,797 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,amsmath,amssymb,amsthm,mathtools,booktabs,array}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\hypersetup{pdftitle={Deterministic Local Regularized PageRank: Proof Audit and Practical Refinements},pdfauthor={hybrid-local-solver research record},pdfsubject={Deterministic OP2 proof and fully charged local implementation}}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{Deterministic local RPPR}\fancyhead[R]{Proof audit and refinements}\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\ip}[2]{\langle#1,#2\rangle}
+\newcommand{\one}{\mathbf1}
+\newcommand{\Proj}{\operatorname{Proj}}
+\newcommand{\eps}{\epsilon_{\rm obj}}
+\title{Deterministic Local Regularized PageRank:\\Proof Audit and Practical Refinements}
+\author{Research record for the hybrid-local-solver project}
+\date{September 5, 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+We record an independent audit of a deterministic solution to OP2 in the
+supplied problem-definition note. The continuation and two-energy proof
+was developed by the parallel task \emph{Prove conjecture 2 deterministically};
+the present task checked its mathematical argument, local implementation
+ledger, and bounded-arithmetic extension. We restate the proof for a
+Dirichlet restriction, which justifies permanent degree pruning. We then
+give a bounded component prepass, a deterministic boundary-forest spectral
+certificate, and a directly certified accelerated component solver. The
+fully charged bound remains $\widetilde O(1/(\rho\sqrt\alpha))$ with
+polylogarithmic objective-accuracy dependence. No randomized primitive is
+used. Exact finite checks supplement the proof; this report is not a
+machine-checked formal verification.
+\end{abstract}
+
+\paragraph{Provenance and scope.}
+The main proof below is an audited restatement of the parallel task's
+continuation argument, not a claim that this task independently originated
+that argument. The degree-pruning and component refinements were developed
+privately during this audit. Earlier private candidate algorithms, including
+mass-preserving score repair, retain their original unresolved rate questions.
+The requested research-duration ledger is maintained separately from the
+mathematical verification record. Repository reference files were not edited.
+
+\section{The precise target}
+Let $G=(V,E)$ be finite, connected, simple, undirected and unweighted, with
+original degrees $d_i\ge1$ and parameter $0<\alpha\le1$.
+Put $D=\operatorname{diag}(d)$,
+$w=D^{1/2}\one$, $c=(1-\alpha)/2$, and
+\[
+ Q=\alpha I+c(I-D^{-1/2}AD^{-1/2}),\qquad
+ b=\alpha D^{-1/2}e_v.
+\]
+For $\rho>0$ define
+\[
+ F_\rho(x)=\tfrac12x^TQx-b^Tx+\alpha\rho\norm{D^{1/2}x}_1.
+\]
+Its unique optimum $x^*_\rho$ is nonnegative. On nonnegative vectors the
+last term is $\alpha\rho w^Tx$. Standard Stieltjes/KKT properties give
+\begin{equation}\label{eq:standard}
+ \alpha I\preceq Q\preceq I,\quad Q^{-1}\ge0,\quad Qw=\alpha w,
+ \quad w^Tx^*_\rho\le1,\quad \vol(\supp x^*_\rho)\le1/\rho.
+\end{equation}
+
+\begin{theorem}[Deterministic OP2]\label{thm:main}
+In the nonzero point-source regime $0<\rho<1/d_v$, there is a deterministic
+local algorithm returning a sparse vector $\widehat x$ such that
+\[
+ 0\le\widehat x\le x^*_\rho,\qquad
+ F_\rho(\widehat x)-F_\rho(x^*_\rho)\le\eps,
+ \qquad \vol(\supp\widehat x)\le1/\rho,
+\]
+with total work $\widetilde O(1/(\rho\sqrt\alpha))$. The suppressed factors
+are polylogarithmic in the displayed inverse parameters, inverse objective
+accuracy, and exposed or emitted words. No graph-wide preprocessing,
+supplied support, uncharged boundary oracle, or randomized algorithm is used.
+\end{theorem}
+
+The work model is the reference's exact-real algebraic word model: every
+scalar operation, comparison, state access/update, degree reply, adjacency
+incidence inspection (first or repeated), and output word is charged.
+For arbitrary $\rho>0$ include an additive constant in the work bound.
+If $\rho d_v\ge1$, zero is exact. If $\alpha=1$, only the seed can be
+nonzero, with degree density $(1/d_v-\rho)_+$.
+
+\section{A safe fixed Dirichlet restriction}
+Fix the final requested $\rho$ and define, only conceptually,
+\[
+ \mathcal A=\{i:d_i\le1/\rho\},\qquad M=Q_{\mathcal A\mathcal A}.
+\]
+The algorithm never enumerates $\mathcal A$. It classifies an encountered
+vertex using its charged degree reply. It retains original degrees in all
+formulas and never scans a row outside $\mathcal A$.
+
+Every continuation regularizer $r\ge\rho$ has
+$\supp(x^*_r)\subseteq\mathcal A$ by \eqref{eq:standard}; thus restricting
+to $\mathcal A$ does not change those optima or their objective gaps.
+Write $w=w_{\mathcal A}$ and $b=b_{\mathcal A}$. Then
+\begin{equation}\label{eq:dirichlet}
+ \alpha I\preceq M\preceq I,\quad M^{-1}\ge0,\quad
+ Mw\ge\alpha w,\quad |M|w\le w.
+\end{equation}
+The last inequality implies both
+$|Mu|\le\gamma w$ when $|u|\le\gamma w$, and
+$w^T|Mu|\le w^T|u|$. The degree-scaled adjacency on this restriction is
+substochastic, not renormalized. Its column sums in mass coordinates are
+at most one.
+
+Let $x_r$ denote the restricted optimum for any $r>0$. Its KKT slack obeys
+\begin{equation}\label{eq:kkt}
+ r^*=Mx_r-b+\alpha r w\ge0,\qquad r_i^*x_{r,i}=0,
+ \qquad 0\le b-Mx_r\le\alpha r w.
+\end{equation}
+For the last assertion, use stationarity on positive coordinates and
+nonpositive off-diagonals on zero coordinates. Weighted summation and
+\eqref{eq:dirichlet} give mass at most one and support volume at most $1/r$.
+Inverse positivity also proves $x_{r/2}\ge x_r$: if
+$S=\{i:x_{r,i}>x_{r/2,i}\}$ were nonempty, the KKT inequalities and
+Stieltjes signs would give
+$M_{SS}(x_r-x_{r/2})_S\le-\alpha r w_S/2$,
+contradicting $M_{SS}^{-1}\ge0$. Consequently the analytical
+set $C_r=\supp(x_{r/2})$ satisfies
+\begin{equation}\label{eq:margin}
+ \vol(C_r)\le2/r,\qquad i\notin C_r\Longrightarrow
+ x_{r,i}=0,\quad r_i^*\ge\alpha r w_i/2.
+\end{equation}
+Here $x_{r/2}$ is the \emph{restricted} optimum; it need not equal the full
+graph optimum when $r/2<\rho$. This distinction is necessary.
+
+\section{One continuation stage}
+At regularizer $r$, let $\lambda=\alpha r$. Assume the sparse baseline obeys
+\begin{equation}\label{eq:baseline}
+ 0\le\bar x\le x_r,\qquad s=b-M\bar x,
+ \qquad0\le s\le4\lambda w.
+\end{equation}
+Put $m_s=w^Ts\le\alpha$ and define analytical comparators
+\[
+ t=M^{-1}s,\qquad \xi^*=x_r-\bar x.
+\]
+By \eqref{eq:dirichlet},
+\begin{equation}\label{eq:comparators}
+ 0\le\xi^*\le t\le4r w,\qquad w^Tt\le m_s/\alpha\le1.
+\end{equation}
+Neither comparator is computed.
+
+Choose dyadic $\theta\le1/2$ by halving until $\theta^2\le\alpha$; then
+$\alpha/4\le\mu:=\theta^2\le\alpha$. Set $a=1-\theta$ and
+\[
+ \mathcal K=\{z:0\le z\le4r w,\ w^Tz\le m_s/\alpha\}.
+\]
+Starting at $\xi_0=z_0=0$, the exact stage is
+\begin{equation}\label{eq:iteration}
+ \begin{aligned}
+ y&=(\xi+\theta z)/(1+\theta),\\
+ q&=az+\theta y-(My-s+\lambda w)/\theta,\\
+ p&=\Proj_{\mathcal K}^{\rm Euclidean}(q),\\
+ \xi^+&=a\xi+\theta p,\qquad z^+=p.
+ \end{aligned}
+\end{equation}
+Its correction objective is $J(\xi)=\xi^TM\xi/2-(s-\lambda w)^T\xi$.
+Translation by $\bar x$ preserves the original objective gap.
+The implementation may replace $4r$ in the box by
+$U=\max\{h,\max_i s_i/(\alpha w_i)\}\le4r$.
+Indeed $M(Uw)\ge\alpha Uw\ge s$ still places $t$ and $\xi^*$ in the box
+and preserves its upper-face sector inequality. All estimates below retain
+the uniform upper bound $4r$.
+
+\subsection{A comparison lemma}
+\begin{lemma}\label{lem:comparison}
+In a Hilbert metric, let $f$ be one-smooth and $\mu$-strongly convex, with
+$\theta^2=\mu$, $a=1-\theta$, and $y=(x+\theta z)/(1+\theta)$.
+Set $q=az+\theta y-\nabla f(y)/\theta$ and $x^+=ax+\theta p$.
+For any comparator $u$ satisfying $\ip{p-u}{q-p}\ge0$,
+\[
+ f(x^+)-f(u)+\tfrac\mu2\norm{p-u}^2
+ \le a\{f(x)-f(u)+\tfrac\mu2\norm{z-u}^2\}
+ -\tfrac{\mu\theta(1-\mu)}2\norm{z-y}^2.
+\]
+The comparator need not minimize $f$.
+\end{lemma}
+\begin{proof}
+Write $g=\nabla f(y)$. Since $x^+=y-g+\theta(p-q)$, smoothness yields
+$f(x^+)\le f(y)-\norm g^2/2+\mu\norm{p-q}^2/2$.
+The sector condition implies
+$\norm{p-u}^2\le\norm{q-u}^2-\norm{p-q}^2$.
+After addition, expand
+$q-u=a(z-u)+\theta(y-u)-g/\theta$.
+Apply strong convexity at $x$ and $u$ with weights $a$ and $\theta$, using
+\[
+ a(x-y)+\theta(u-y)=-\theta\{a(z-u)+\theta(y-u)\}.
+\]
+Finally use the convex-combination squared-norm identity and
+$x-y=\theta(y-z)$. The remaining term is
+$-\mu a\theta(1+\theta)\norm{z-y}^2/2$, which is the asserted term.
+\end{proof}
+
+The Euclidean projection supplies the sector condition for $u=\xi^*$.
+Thus
+\begin{equation}\label{eq:ordinaryenergy}
+ E_k=J(\xi_k)-J(\xi^*)+\tfrac\mu2\norm{z_k-\xi^*}^2,
+ \qquad E_{k+1}\le aE_k.
+\end{equation}
+Complementarity gives
+$J(0)-J(\xi^*)=\tfrac12(\xi^*)^TM\xi^*$.
+Mass at most one, $w_i\ge1$, and $M\preceq I$ therefore give $E_0\le1$.
+Hence $O(\alpha^{-1/2}\log(1/\tau))$ steps suffice for gap $\tau$.
+
+\section{The second energy and the cumulative work theorem}
+The essential extra fact is a sector inequality in a different metric.
+
+\begin{lemma}\label{lem:sector}
+For the projection in \eqref{eq:iteration}, let $n=q-p$. Then
+\[
+ \ip{p-t}{Mn}=(Mp-s)^Tn\ge0.
+\]
+\end{lemma}
+\begin{proof}
+Write $n=\eta w+n^{\rm up}-n^{\rm low}$ with nonnegative multipliers.
+At a lower face, $p_i=0$ implies $(Mp-s)_i\le0$. At an upper face,
+Stieltjes signs and $p\le4rw$ give
+$(Mp)_i\ge4r(Mw)_i\ge4\lambda w_i\ge s_i$.
+If the mass multiplier is active, $w^Tp=m_s/\alpha$ and
+$w^T(Mp-s)\ge\alpha w^Tp-m_s=0$. Each normal contribution is nonnegative.
+\end{proof}
+
+Define the second objective and energy by
+\begin{equation}\label{eq:secondenergy}
+ \mathcal A(\xi)=\tfrac12\norm{M\xi-s}^2+\lambda(Mw)^T\xi,
+ \quad B_k=\mathcal A(\xi_k)-\mathcal A(t)
+               +\tfrac\mu2\norm{z_k-t}_M^2.
+\end{equation}
+Its gradient in the $M$ metric is $M\xi-s+\lambda w$ and its metric
+Hessian is $M$. Lemmas~\ref{lem:comparison}--\ref{lem:sector} yield
+$B_{k+1}\le aB_k$. This energy may be negative; the comparison lemma
+requires neither nonnegativity nor optimality of $t$.
+
+Since $\norm s^2\le4\lambda m_s$, $t^TMt=t^Ts\le4r m_s$, and
+$\mathcal A(t)=\lambda m_s$, we have $B_0\le3\lambda m_s$.
+The linear term in $\mathcal A$ is nonnegative, so
+$\norm{M\xi_k-s}^2\le8\lambda m_s$.
+Also $q^*=s-M\xi^*=b-Mx_r$ obeys
+$0\le q^*\le\lambda w$ and $w^Tq^*\le m_s$, giving
+\begin{equation}\label{eq:response}
+ \norm{M(\xi_k-\xi^*)}^2\le18\lambda m_s\le18\alpha^2r.
+\end{equation}
+This is a bound on the actual constrained trajectory. It is not an
+unproved general claim of matrix-metric nonexpansiveness of projection.
+
+\subsection{Selected signed flow}
+Use mass coordinates $V=\theta D^{1/2}z$ and
+$V^*=\theta D^{1/2}\xi^*$. Let $P=A_{\mathcal A\mathcal A}D_{\mathcal A}^{-1}$,
+$K_0=(I+P)/2$, and $\beta_0=(1-\alpha)/(1+\theta)\le a$.
+Direct substitution into \eqref{eq:iteration} gives
+\begin{equation}\label{eq:flow}
+ V^{\rm raw}-V^*=\beta_0K_0(V-V^*)+H-R^*,\quad
+ H=-\frac{D^{1/2}(M-\mu I)(\xi-\xi^*)}{1+\theta},\quad
+ R^*=D^{1/2}r^*.
+\end{equation}
+For $e=(V-V^*)_+$ select $S_k=\{i:V^+_i>V_i^*\}$.
+Lower normals vanish there; upper and mass normals only subtract.
+Nonnegativity and column sums at most one for $K_0$ imply
+\[
+ \norm{e_{k+1}}_1+\sum_{i\in S_k}R_i^*
+ \le\beta_0\norm{e_k}_1+\sum_{i\in S_k}H_{k,i}.
+\]
+Because $e_0=0$, telescoping and \eqref{eq:margin} yield
+\[
+ \tfrac\lambda2 D_{\rm out}\le\sum_k\sum_{i\in S_k}H_{k,i},\qquad
+ D_{\rm out}=\sum_{k<K}\vol(\supp z_{k+1}\setminus C_r).
+\]
+The selected degree-volume is at most $D_{\rm out}+2K/r$. Therefore
+\[
+ \frac{\lambda^2}{4}D_{\rm out}^2
+ \le(D_{\rm out}+2K/r)H_2,\qquad
+ H_2=\sum_{k<K}\norm{D^{-1/2}H_k}^2\le18\alpha^2rK.
+\]
+The last step uses $0\preceq M-\mu I\preceq M$, commutation, and
+\eqref{eq:response}. Solving this scalar inequality gives
+\begin{equation}\label{eq:work}
+ \boxed{\sum_{k<K}\vol(\supp z_{k+1})\le148K/r.}
+\end{equation}
+It charges every repeated kinetic row, even when the trajectory leaves
+the true support. The analytical core $C_r$ is never discovered by an oracle.
+
+\section{Safe stage completion and continuation}
+Choose $0<\delta\le\lambda/2$ and target
+$\tau=\alpha\delta^2/8$. Suppose the actual stored nonnegative candidate
+$\widetilde x$ has objective gap at most $\tau$. Compute one exact PG step
+\[
+ p=[\widetilde x-(M\widetilde x-b+\lambda w)]_+.
+\]
+Descent and strong convexity give
+$\norm{p-x_r}\le\delta/2$. Moreover
+$v=(I-M)(\widetilde x-p)$ is a valid orthant subgradient at $p$, with
+$\norm v\le\sqrt{2\tau}\le\delta/2$.
+
+For a dyadic density grid $h\le\min(\delta/2,\lambda/4)$, let
+\[
+ z_i=w_i\left\lfloor[p_i/w_i-\delta]_+\right\rfloor_h,
+ \qquad\bar x^+=\max(\bar x,z).
+\]
+Then $0\le z\le x_r$ and $0\le x_r-z\le2\delta w$.
+On a retained positive coordinate, uniform clipping decreases the matrix
+product by at least $\alpha\delta w_i$, and grid rounding can raise it
+by at most $hw_i$. Hence
+\[
+ (Mz-b)_i\le(-\lambda+\delta/2-\alpha\delta+h)w_i\le0.
+\]
+At zero coordinates the same conclusion follows from Stieltjes signs.
+The coordinatewise maximum of two nonnegative subsolutions of $Mu\le b$
+is again a subsolution. Thus
+\begin{equation}\label{eq:repair}
+ 0\le\bar x^+\le x_r,\quad
+ 0\le b-M\bar x^+\le2\alpha r w,\quad
+ F_r(\bar x^+)-F_r(x_r)\le2\delta^2/r.
+\end{equation}
+For the last inequality, support containment removes the KKT linear term,
+$M\preceq I$, and $\vol(\supp x_r)\le1/r$ bound the squared error.
+
+Start with $r_0=1/d_v$ and $\bar x=0$. Successive stages use
+$r_j=\max(\rho,r_{j-1}/2)$. The first source is diffuse because
+$r_1\ge r_0/2$. Equation~\eqref{eq:repair} implies
+$s\le2\alpha r_jw\le4\alpha r_{j+1}w$ at the next stage, while
+optimum monotonicity preserves the baseline order. At the final stage
+halve $\delta$ until $2\delta^2/\rho\le\eps$.
+There are logarithmically many stages and $\sum_j1/r_j=O(1/\rho)$.
+
+\section{A realizable local ledger and bounded arithmetic}
+In degree densities store the primal correction as a common scale times
+normalized records. Averaging changes those records only on newly emitted
+kinetic coordinates. Scanning their original rows updates the sparse matrix
+response. Source records are supported on the baseline, its neighbors, and
+the seed, with $O(1/r)$ records. Old kinetic exceptions are removed and new
+ones installed; their costs are paid by the old and new kinetic volumes.
+
+Euclidean projection onto the box and mass cap has density formula
+\[
+ z_i/w_i=\min\{U,(q_i/w_i-\eta)_+\}.
+\]
+Deterministic ordered trees store degree sums and weighted-key sums.
+Two tail queries express clipped mass; a finite ordered-breakpoint search
+finds an exact mass multiplier with polylogarithmic work per query.
+Unexposed coordinates have zero state/source and negative raw values.
+Only positive emitted coordinates cause row scans.
+
+More explicitly, a tail at $t$ returns
+$D(t)=\sum_{q_i/w_i>t}d_i$ and
+$S(t)=\sum_{q_i/w_i>t}d_iq_i/w_i$. The clipped mass at multiplier $\eta$ is
+\[
+ S(\eta)-\eta D(\eta)
+ -S(\eta+U)+(\eta+U)D(\eta+U).
+\]
+The two state trees induce at most four ordered breakpoint lists, accounting
+for the two clipping levels and their respective common affine scales.
+Binary searches using this mass evaluation identify adjacent breakpoints
+around the target mass. On the resulting interval, mass is affine, so one
+division gives the exact multiplier. Rank selection and tail evaluation
+use tree heights; no numerical bisection to unspecified precision is used.
+
+With dyadic rounding, query the \emph{closed} tail whose ideal density is
+at least $h$. This emits exactly coordinates that remain positive after
+rounding; tiny ideal outputs are not enumerated first. Scalar rebases scan
+only retained records, with no adjacency inspection, and occur only
+$O(\log(1/\tau))$ times per accelerated stage.
+
+The full stage ledger is, up to polylogarithmic factors,
+\[
+ K(1+|\supp s|)+\sum_{k<K}\vol(\supp z_{k+1})
+ +\vol(\supp\bar x)+1.
+\]
+It includes source construction, first and repeated incidences, state
+maintenance, final materialization, terminal PG, output, and discarded
+history. Summation with \eqref{eq:work} proves Theorem~\ref{thm:main}.
+
+\subsection{Why bounded dyadic arithmetic preserves the theorem}
+For actual stored states, model one step by a raw density error bounded by
+$\kappa_r$, downward projection density error $\kappa_p$, and downward
+primal density error $\kappa_x$. The two energies satisfy
+\[
+ E^+\le aE+\zeta,\qquad B^+\le aB+\zeta,\qquad
+ \zeta=2\mu\kappa_r+\tfrac52\kappa_x
+              +\tfrac52(\theta+\mu)\kappa_p.
+\]
+To check this, use mass at most one to pair uniform density errors with
+comparators, and $|M|w\le w$ for the residual terms. Downward errors
+preserve feasibility and decrease each positive linear mass penalty.
+
+Here are the error estimates explicitly. A raw error bounded by
+$\kappa_rw$ weakens either sector inequality by at most $2\kappa_r$, since
+both projected point and comparator have mass at most one; in the $M$ metric
+use $w^T|M(p-u)|\le w^T|p-u|\le2$. The comparison lemma therefore gains
+at most $2\mu\kappa_r$. For a feasible downward displacement
+$0\le d\le\eta w$, its mass is at most one and $\norm d^2\le\eta$.
+The increase in either positional objective is at most $5\eta/2$:
+the residual or gradient pairing is at most $2\eta$, the quadratic remainder
+is at most $\eta/2$, and the positive linear penalty decreases.
+Rounding the projected point changes the primal position by $\theta d$,
+costing at most $5\theta\kappa_p/2$, and its kinetic squared distance
+by at most $5\mu\kappa_p/2$. A subsequent primal floor costs at most
+$5\kappa_x/2$. These are the stated constants.
+
+The scalar-rebase implementation has
+$\kappa_r\le2h/\theta$, $\kappa_p\le h$, and $\kappa_x\le10h$.
+Indeed normalized neighbor-sum error is unchanged by point increments.
+At a scalar rebase with scale $\sigma<1/2$, its per-degree magnitude obeys
+$e^+\le\sigma e+2h$, so it stays below $4h$.
+Multiplication by $c/[\theta(1+\theta)]$ gives the raw-error bound.
+Before every step the retained scale is at least $1/2$, so normalized
+position densities are at most $2U\le8$. Flooring the new scale loses at
+most $8h$ in primal density, flooring its selected increment loses at most
+$h$, and the optional primal rebase loses at most another $h$.
+Thus $\Gamma:=\zeta/\theta\le29h/\theta$. Choose
+$h\le\min\{\theta\tau/256,\theta\alpha^2r/29\}$, in addition to
+terminal-repair bounds.
+Then the ordinary error is at most $a^KE_0+\Gamma<\tau$ for a block
+schedule with $a^KE_0\le\tau/2$. The squared-response bound gains only
+$4\Gamma$. For completeness, put $B_C=K\vol(C_r)\le2K/r$,
+let $D_o$ be the repeated kinetic volume outside $C_r$, and let
+$\nu=2h\le\lambda/4$. The perturbed selected-flow inequality is
+\[
+ (\lambda/2-\nu)D_o
+ \le\sqrt{H_2(D_o+B_C)}+\nu B_C,
+ \qquad H_2\le22\alpha^2rK.
+\]
+This charges raw error on the selected core as well as outside it.
+Young's inequality gives
+$D_o+B_C\le16H_2/\lambda^2+4B_C\le360K/r$.
+
+Persistent values can be integer grid counts. Weighted reporter keys have
+a common scalar denominator, so degree denominators cancel in subtree
+moments instead of accumulating an LCM. Source-energy sums can likewise be
+rounded upward on a common denominator. Intermediate integer lengths are
+polynomially bounded by logarithms of inverse parameters, inverse accuracy,
+and exposed counts, together with the bit lengths of rational inputs,
+labels, and degree replies. This is a bounded-rational
+extension, not a claim about unchecked ordinary floating-point execution.
+In an algebraic model without a unit-cost floor instruction, each bounded
+grid count can be found by integer binary search with arithmetic and
+comparisons; its additional cost is polylogarithmic in the same parameters.
+
+\subsection{A shorter computable initial-energy bound}
+Let $c_+=(s-\lambda w)_+$ and $m=m_s/\alpha$.
+Complementarity and strong convexity imply, for $u=\xi^*$,
+\[
+ u^TMu=(s-\lambda w)^Tu\le c_+^Tu,\qquad
+ E_0\le\frac{1+\mu/\alpha}{2}u^TMu.
+\]
+The bounds $u\le4rw$, $w^Tu\le m$, and
+$\alpha\norm u^2\le u^TMu$ give three independently valid estimates:
+\[
+ E_0\le\frac{1+\mu/\alpha}{2}
+ \min\left\{4r w^Tc_+,\;
+ m\max_i\frac{c_{+,i}}{w_i},\;
+ \frac{\norm{c_+}^2}{\alpha}\right\}.
+\]
+Taking the minimum with one shortens the certified block schedule while
+leaving its trajectory and work theorem unchanged. The last estimate uses
+Cauchy--Schwarz to solve $u^TMu\le\norm{c_+}\sqrt{u^TMu/\alpha}$.
+For integer source counts with common denominator $C$, replace each
+$a_i^2/d_i$ by its integer ceiling before summing; this rounds the squared
+source norm upward and avoids accumulating unrelated degree denominators.
+
+\subsection{Certified checkpoints without opening new PG rows}
+For an actual candidate $x$, compute the exact PG point $p$ by scanning only
+$\supp x$. In degree densities its affected records are the seed and
+neighbors of those rows. All other allowed coordinates have $x=p=0$.
+Although $p$ can activate vertices of very large total degree, their rows
+are not needed to bound the subgradient:
+\[
+ v=(I-M)(x-p)\in\partial(F_r+\iota_{\R_+})(p),\qquad
+ \norm v\le(1-\alpha)\norm{x-p}.
+\]
+If a computed upper bound $R^2\ge(1-\alpha)^2\norm{x-p}^2$ satisfies
+$R^2\le\alpha^2\delta^2/4$, strong convexity implies
+\[
+ \norm{p-x_r}\le\delta/2,\qquad
+ F_r(p)-F_r(x_r)\le R^2/(2\alpha)\le\tau.
+\]
+Consequently terminal clipping is already valid. This certificate concerns
+$p$, not necessarily the pre-PG candidate $x$; the stage record states the
+certified point explicitly.
+
+Check only at steps $1,2,4,\ldots$ before the fixed horizon. The candidate
+support at step $k$ is contained in the baseline and previously emitted
+kinetic supports, of total volume $O(k/r)$. Summing at these checkpoints
+costs $\widetilde O(K/r)$. Failed checks leave the trajectory unchanged;
+a successful PG pass is reused for terminal repair.
+
+To avoid a degree-denominator LCM in the norm, write each density displacement
+as $a_i/(C d_i)$ and use
+\[
+ U_2=\frac1{C^2}\sum_i\left\lceil\frac{a_i^2}{d_i}\right\rceil
+ \ge\norm{x-p}^2,\qquad R^2=(1-\alpha)^2U_2.
+\]
+The excess is at most the number of affected records divided by $C^2$.
+For grid denominator $H$ in the integer continuation, one choice is
+$C=2\operatorname{denom}(\alpha)H^2\operatorname{denom}(r)$.
+All numerator additions are then integer additions on one denominator.
+
+\section{Practical component acceleration}
+Before continuation, explore the seed component after fixed degree pruning,
+stopping before original scanned degree-volume exceeds $1/\rho$. A degree
+is queried before deciding to scan its row. The entire prepass costs
+$\widetilde O(1/\rho)$. If incomplete, continuation supplies the theorem.
+If complete, its component $C$ contains the full optimum and
+$\vol(C)\le1/\rho$. A singleton has an immediate exact diagonal solution.
+
+\subsection{An exact solve on a fixed-size component}
+If discovery completes and $|C|\le16$, the implementation optionally returns
+the exact obstacle optimum. In degree densities the symmetric energy matrix
+has $H_{ii}=(1+\alpha)d_i/2$, $H_{ij}=-c$ on internal edges, and load
+$q_i=\alpha\mathbf1_{i=v}-\alpha\rho d_i$. Start with empty active set.
+Whenever an inactive $j$ has $q_j-H_{jS}f_S>0$, append $j$ and extend an
+exact $LDL^T$ factorization of $H_{SS}$. Its Schur pivot is positive, and
+the new coordinate equals its positive violation divided by that pivot.
+Old coordinates change by $-H_{SS}^{-1}H_{Sj}f_j\ge0$. Thus every active
+coordinate stays positive and at most $|C|$ additions give the exact KKT
+solution. No support margin, square root, or random pivot is required.
+
+Incremental factorizations and triangular solves cost $O(|C|^3)$ in total,
+with $O(|C|^2)$ storage. The limit sixteen is an enforced absolute constant;
+discovery and assembly are separately charged. This preserves the main
+word bound and the rational encoding bound. It is a final exact output,
+not an intermediate nondyadic warm start. Larger or incomplete components
+continue through the following proved routes. This shortcut is especially
+useful for tiny closed graphs at extremely small $\alpha$.
+
+\subsection{A deterministic boundary-forest certificate}
+For a larger complete component, let $k_i=d_i-\deg_C(i)$. Each vertex
+with $k_i>0$ is a root at initial distance $1/k_i$. Run a deterministic
+shortest-path search with unit internal edge lengths. The parent forest
+assigns each vertex $i$ a root $r(i)$ and distance
+$\ell_i=\operatorname{depth}(i)+1/k_{r(i)}$. Define
+\[
+ L_r=\sum_{i:r(i)=r}d_i\ell_i,\qquad L=\max_r L_r.
+\]
+Weighted Cauchy--Schwarz on the parent path gives
+\[
+ f_i^2\le\ell_i\left\{
+ \sum_{\text{path edges}}(f_u-f_v)^2+k_{r(i)}f_{r(i)}^2\right\}.
+\]
+After multiplying by $d_i$ and summing, every edge coefficient is at most
+its root load. Therefore
+\[
+ \sum_i d_i f_i^2\le L\left\{
+ \sum_{\{i,j\}\in E(C)}(f_i-f_j)^2+\sum_i k_i f_i^2\right\}.
+\]
+This proves the computable spectral lower bound
+\begin{equation}\label{eq:forestbeta}
+ M_C\succeq\beta I,\qquad
+ \beta=\alpha+\frac{1-\alpha}{2L}.
+\end{equation}
+With no boundary roots use $\beta=\alpha$. The construction costs
+$\widetilde O(\vol(C))$ and uses neither randomization nor a linear solve.
+
+\subsection{The direct component solver}
+Use the same averaged coupling with dyadic $\theta^2\in(\beta/4,\beta]$,
+but project onto the known component's density box $U=1/d_v$ and mass cap
+one. These contain the optimum by inverse positivity. Full sparse products
+and sorted-event waterfilling cost $\widetilde O(\vol(C))$ per step.
+With exact raw products and downward density rounding $h$ in both states,
+the ordinary energy satisfies $E^+\le aE+5h$. Taking
+$h\le\theta\tau/16$ and $a^K\le\tau/2$ gives gap below $\tau$.
+Terminal PG and \eqref{eq:repair} preserve the safe final output.
+The total cost is
+\[
+ \widetilde O\left(\frac1\rho+\frac{\vol(C)}{\sqrt\beta}\right)
+ \le\widetilde O\left(\frac1{\rho\sqrt\alpha}\right).
+\]
+
+At geometrically spaced iterations, one exact PG point $p$ has subgradient
+norm at most $(1-\beta)\norm{x-p}$. If its squared bound is at most
+$\beta^2\delta^2/4$, then $\norm{p-x^*_\rho}\le\delta/2$ and safe
+terminal clipping is already valid. Otherwise continue to the certified
+fixed horizon. The extra checks add only a logarithmic factor.
+The norm uses the same rounded-up common-denominator sum as above, with
+$C=2\operatorname{denom}(\alpha)H\operatorname{denom}(\rho)$ for the
+component's directly stored grid states and with $1-\beta$ replacing
+$1-\alpha$. Thus these certificates also avoid degree-denominator growth.
+
+\subsection{A bounded region pilot with global acceptance}
+If component discovery reaches its budget before completion, let $C$ be
+exactly the scanned vertices. This is a connected seed-containing set with
+$\vol(C)\le1/\rho$. Perform at most one preliminary solve on $Q_{CC}$,
+treating all original edges leaving $C$ as Dirichlet boundary edges.
+The forest lower bound $\beta_C\ge\alpha$ applies to this restricted matrix.
+Its optimum has mass at most one and density at most $1/d_v$, so the same
+component solver is applicable. Use local gap target
+$\tau_C=\alpha^2\delta^2/16$ and additionally require
+$h\le\alpha\delta\rho/16$.
+
+Acceptance uses a \emph{global} PG point on $\mathcal A$, obtained by
+extending the candidate by zero outside $C$. Its affected records include
+neighbors in $\mathcal A\setminus C$. Use the previously proved test
+$(1-\alpha)^2U_2\le\alpha^2\delta^2/4$, with $\alpha$ rather than
+$\beta_C$. A passing test justifies the global clipping and objective
+guarantee, including any retained coordinates outside $C$.
+If no check passes by the prescribed local horizon, discard the pilot
+iterate and start the proved continuation from zero, retaining only the
+charged oracle cache.
+
+This adds at most
+$\widetilde O(\vol(C)/\sqrt{\beta_C})\le
+\widetilde O(1/(\rho\sqrt\alpha))$ work. All partial-region assembly,
+products, projections, global checks, discarded state, and fallback work
+are included. Thus one preliminary solve preserves the OP2 bound.
+
+If $C$ already contains the full optimum, its local objective gap is the
+global gap. PG descent at the pilot horizon then gives
+$\norm{x-p}^2\le2\tau_C=\alpha^2\delta^2/8$.
+There are at most $1+2\vol(C)\le3/\rho$ affected records; the norm rounding
+excess is at most $3h^2/(4\rho)\le3\alpha^2\delta^2/1024$.
+Hence the global test passes by that horizon. This implication needs no
+strict complementarity margin and does not assume in advance that $C$
+contains the optimum.
+
+\subsection{Integer component iterations}
+The packaged component and pilot loops store density counts
+$x_i/w_i=X_i/H$ and $z_i/w_i=Z_i/H$, with $\theta=1/T$.
+Write $\alpha=A_\alpha/D_\alpha$, set $Y_i=TX_i+Z_i$, and put
+$G=2D_\alpha HT(T+1)$. Direct substitution gives raw density
+\[
+ \frac{q_i}{w_i}=\frac{n_i}{Gd_i}-\alpha\rho T,
+\]
+where
+\[
+\begin{aligned}
+ n_i={}&2D_\alpha(T^2-1)d_iZ_i
+ +[2D_\alpha-(D_\alpha+A_\alpha)T^2]d_iY_i\\
+ &+(D_\alpha-A_\alpha)T^2\sum_{j\sim i,\,j\in C}Y_j
+ +2A_\alpha HT^2(T+1)\mathbf1_{i=v}.
+\end{aligned}
+\]
+After the exact box/cap projection is rounded to counts $Z_i^+$, update
+$X_i^+=\lfloor((T-1)X_i+Z_i^+)/T\rfloor$.
+This is algebraically the same trajectory as the rational component loop.
+
+An exact integer mass test avoids unnecessary ordered-tree updates. Clear
+the common shift into raw density $a_i/(Bd_i)$. The box projection mass is
+$\sum_{\rm free}a_i/B+U\sum_{\rm upper}d_i$.
+If this is at most one, direct integer floors give the rounded projection;
+otherwise the deterministic reporter finds the mass multiplier. This full
+region pass is charged because $\vol(C)\le1/\rho$. It is not applied to the
+possibly much larger accumulated history of local continuation.
+
+\subsection{Ordinary rational output without a square-root primitive}
+A sparse density triple $(i,f_i,d_i)$ represents $x_i=\sqrt{d_i}f_i$ in
+constant words. The optional \texttt{solve\_explicit} instead emits ordinary
+rational coordinates using only arithmetic and comparisons. Run the density
+solver with tolerance $\eps/4$, obtaining gap bound $B\le\eps/4$, and choose
+dyadic $\eta>0$ with $\eta^2\le\eps/2$. For each emitted vertex, bisect
+$[1,d_i]$ by squared-midpoint comparisons until its width is at most $\eta$.
+The lower endpoint $\ell_i$ satisfies
+$0\le\sqrt{d_i}-\ell_i\le\eta$; return $x'_i=\ell_i f_i$.
+Then $0\le x'\le\widehat x\le x^*_\rho$ and
+\[
+ \norm{\widehat x-x'}^2\le\eta^2\sum_i f_i^2\le\eta^2,
+\]
+because $d_i\ge1$ and $\sum_i d_i f_i\le1$. Both output supports lie in
+$\supp(x^*_\rho)$, so the KKT linear term vanishes. Therefore
+\[
+ F_\rho(x')-F_\rho(x^*_\rho)
+ =\tfrac12\norm{x'-x^*_\rho}_Q^2
+ \le2B+\norm{x'-\widehat x}_Q^2\le2B+\eta^2\le\eps.
+\]
+Every emitted degree is at most $1/\rho$, so conversion costs
+$O(\log(1/\rho)+\log(1+1/\eps))$ operations per emitted record and no
+additional graph query. Empty output needs no conversion. All interval
+endpoints have polylogarithmic bit length; the charged OP2 bound is preserved.
+
+\section{Relation to the previously explored obstacles}
+The prior note audit identified several failures that the present proof
+must address. The accelerated trajectory may leave the true support;
+its cumulative kinetic volume, rather than support containment, is proved.
+The second energy bounds the actual squared matrix response and does not
+use an assumed uniform $\ell_1$ bound for signed Chebyshev propagation.
+The Euclidean box/cap projection needs a matrix-metric sector only at the
+specific inverse-source comparator, not global nonexpansiveness.
+Sparse response records and deterministic ordered trees supply the charged
+threshold search. PG checks inspect candidate rows before clipping, so
+newly activated high-degree rows do not create an uncharged terminal scan.
+No randomized SDD solve or randomized retry is part of the algorithm.
+
+The supplied problem-definition conversion also yields OP1. In its distinct
+accuracy namespace, set $\rho=\epsilon_{\rm PPR}/2$ and
+$\eps\le\alpha\epsilon_{\rm PPR}^2/8$. Inverse positivity gives
+$0\le Q^{-1}b-x^*_\rho\le\rho w$, and strong convexity gives
+$\norm{\widehat x-x^*_\rho}\le\sqrt{2\eps/\alpha}$.
+Therefore the degree-scaled PPR coordinate error is at most
+$\rho+\sqrt{2\eps/\alpha}\le\epsilon_{\rm PPR}$ with work
+$\widetilde O(1/(\sqrt\alpha\,\epsilon_{\rm PPR}))$.
+This argument does not establish the separate nested-SDD reuse target OP3.
+
+\section{Verification record and limitations}
+All tests used deterministic inputs and exact rational checks where stated.
+Full-graph optima used to verify outputs were computed by external audit
+machinery. The implemented tiny component branch separately charges its
+own constant-size factorizations; no verification computation is free access
+for the local solver.
+\begin{center}
+\begin{tabular}{@{}p{.64\linewidth}r@{}}
+\toprule
+Independent check & Cases / steps\\
+\midrule
+Stage energies, selected flow, and prefix work & 576 / 18,432\\
+Projection-sector inequalities, including upper/mass activity & 16,100\\
+Perturbed energies and selected flow & 16,128\\
+Pruned continuation against exact full-graph optima & 72 / 17,652\\
+Independent sorted-projection comparisons & 5,184\\
+Complete fast-path objective audit, repeated after updates & 54\\
+Zero, diagonal, loose-accuracy and fixed-horizon branches & 5\\
+Integer/rational full-trajectory equivalence & 12 / 768\\
+Integer and source-energy wrapper comparisons & 32\\
+Exact forest spectral matrix checks & 5,652 + 6 paths\\
+Common-denominator norm / exact PG-point checks & 875 / 576\\
+Checkpoint solver cases / safe continuation stages & 126 / 294\\
+Certified checkpoint evaluations in those stages & 1,746\\
+Bounded pilot cases: accepted / rejected preliminary solves & 144: 74 / 4\\
+Integer component trajectory cases / exact steps & 96 / 6,144\\
+Complete integer/rational solver output comparisons & 32\\
+Ordinary rational output with independent objective intervals & 384\\
+Tiny exact obstacle against independent face enumeration & 3,699\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+On a virtual 32-vertex retained path with one enormous excluded hub at each
+vertex, the fast route inspected 94 original entries and took 64 iterations.
+Across $\alpha=10^{-2}$ through $10^{-10}$ it took approximately
+0.07--0.09 seconds in the measured Python process. At $\alpha=10^{-4}$ and
+the same nontrivial objective target, the rational continuation reference
+took about 192 seconds; integer continuation with source-energy scheduling
+took about 20 seconds. Exact KKT checks covered every omitted hub/leaf row
+symbolically. This structured example demonstrates the component refinement;
+it is not a general runtime prediction or a comparison with optimized
+third-party floating-point software.
+
+On a retained path attached to only one excluded hub, the forest gives
+$L=n^2$ for $n$ retained vertices. For $n=16$ and $64$, measured counts were
+1,024 and 4,096 iterations, respectively, across
+$\alpha=10^{-4},10^{-8},10^{-12}$; scanned original entries were 31 and 127.
+All six instances passed exact full-graph objective and KKT audits.
+This checks a boundary certificate that reaches interior vertices, where
+the minimum immediate boundary-to-degree ratio is zero.
+
+On a virtual retained path of one billion vertices, again with enormous
+excluded hubs, component discovery stops at 254 original incidences.
+The bounded region pilot passed full-problem certificates in 64, 128, and
+128 iterations for $\alpha=10^{-4},10^{-8},10^{-12}$, taking about
+0.19, 0.38, and 0.39 seconds. The earlier checkpoint-only continuation
+took about 191 seconds at $\alpha=10^{-8}$ on the same input and target.
+The candidate's omitted path tail, hubs, and leaves were checked through
+exact symbolic KKT row classes. Separate misleading-branch cases correctly
+rejected a pilot whose region missed part of the optimum and completed
+using continuation.
+
+Ordinary paths with one trillion vertices provide a case with no high-degree
+pruning. Five parameter choices passed exact active-prefix and omitted-tail
+KKT audits. At $\rho=1/256$ and $\alpha=10^{-8}$, the final integer component
+implementation took about 4.7 seconds for 8,192 iterations, inspecting 255
+original incidences. The rational component implementation took about 55
+seconds and produced the exact same output. The portable package's seventeen
+independent standard-library tests also passed.
+
+The tiny exact branch passed 3,699 independent active-face comparisons.
+Eight complete paths of size 2, 4, 8 and 16 at
+$\alpha=10^{-20}$ and $10^{-80}$ matched independent exact full solutions.
+For size 16 and $\alpha=10^{-80}$, it returned the exact optimum in sixteen
+pivots and about 0.19 seconds, inspecting thirty original incidences.
+The acceleration-trajectory audits and boundary-forest benchmark explicitly
+disable this shortcut to preserve their intended coverage.
+
+The copied continuation code is attributed by source hashes in
+\texttt{PROVENANCE.json}. The main proof's owning task continued editing
+its draft during this audit; recorded first-read hashes and later snapshots
+are distinguished. Finite tests do not replace the proof, and this report
+does not certify implementations or algorithms other than the stated ones.
+
+\begin{thebibliography}{9}
+\bibitem{definition} B. Zhou, \emph{Problem Definitions and Standard Properties
+for Local PageRank and Regularized PageRank}, supplied project reference,
+\texttt{problem\_definitions/main.tex}, August 2026.
+\bibitem{parallel} \emph{A Deterministic Local Algorithm for Regularized
+Personalized PageRank}, parallel-task research draft,
+\texttt{research/conjecture2\_deterministic\_20260905}, September 5, 2026.
+\bibitem{open} K. Fountoulakis and S. Yang,
+\emph{Open Problem: Running Time Complexity of Accelerated
+$\ell_1$-Regularized PageRank}, COLT 2022.
+\url{https://proceedings.mlr.press/v178/open-problem-fountoulakis22a.html}.
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,236 @@
+"""Offline final-wheel audit, separate from the historical readiness build.
+
+Run using the already installed bundled Python with setuptools/wheel/pip.
+No source or installed-global environment is modified. A repeat requires a
+new OUT directory rather than overwriting the original audit artifacts.
+"""
+import base64
+import csv
+import hashlib
+import importlib.metadata
+import io
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import zipfile
+from email.parser import Parser
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE = ROOT / 'deliverables' / 'deterministic-rppr'
+OUT = ROOT / 'distribution_final'
+EXAMPLES = ('path.py', 'star.py', 'adaptive_path.py', 'mass_grid_path.py')
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def verify_record(data, read_file, expected_files, record_name):
+    rows = list(csv.reader(io.StringIO(data.decode())))
+    assert all(len(row) == 3 for row in rows)
+    assert len(rows) == len({row[0] for row in rows})
+    assert {row[0] for row in rows} == set(expected_files)
+    for name, checksum, size in rows:
+        payload = read_file(name)
+        if name == record_name:
+            assert checksum == size == ''
+        else:
+            digest = base64.urlsafe_b64encode(hashlib.sha256(payload).digest()).decode().rstrip('=')
+            assert checksum == 'sha256=' + digest, name
+            assert size == str(len(payload)), name
+    return len(rows) - 1
+
+
+RUNNER = r'''
+import builtins,json,runpy,sys
+from pathlib import Path
+installed,examples=Path(sys.argv[1]).resolve(),Path(sys.argv[2]).resolve()
+sys.path.insert(0,str(installed))
+original=builtins.__import__
+allowed=set(sys.stdlib_module_names)|set(sys.builtin_module_names)|{'__main__','deterministic_rppr'}
+def guarded(name,globals=None,locals=None,fromlist=(),level=0):
+    if level==0 and name.split('.')[0] not in allowed:
+        raise AssertionError('Non-stdlib/non-package import attempted: '+name)
+    return original(name,globals,locals,fromlist,level)
+builtins.__import__=guarded
+import deterministic_rppr as package
+assert package.solve is package.solve_fast
+assert package.solve.__module__=='deterministic_rppr._fast'
+assert Path(package.__file__).resolve().is_relative_to(installed)
+required=('solve_with_singleton','solve_adaptive','solve_mass_scaled_grid',
+          'MassScaledGridResult','AdaptiveContinuationResult')
+assert all(name in package.__all__ and hasattr(package,name) for name in required)
+reports={}
+for filename in ('path.py','star.py','adaptive_path.py','mass_grid_path.py'):
+    scope=runpy.run_path(str(examples/filename),run_name='__main__')
+    result,check,oracle=scope['result'],scope['check'],scope['oracle']
+    from fractions import Fraction
+    epsilon=scope.get('epsilon',Fraction(1,1000000))
+    assert check.meets(epsilon)
+    assert result.objective_gap_bound<=epsilon
+    item=dict(output=[(int(i),str(f),int(d)) for i,f,d in result.output],
+              reported_gap_bound=str(result.objective_gap_bound),
+              independent_gap_bound=str(check.objective_gap_bound),
+              requested_epsilon=str(epsilon),
+              verification_adjacency_entries=check.first_adjacency_entries)
+    if filename=='path.py':
+        item.update(degree_queries=oracle.degree_queries,
+                    first_adjacency_entries=oracle.adjacency_entries,
+                    correction_iterations=sum(s.iterations for s in result.stages))
+    elif filename=='star.py':
+        assert result.outcome=='singleton' and check.objective_gap_bound==0
+        assert (oracle.degree_replies,oracle.adjacency_entries)==(2,1)
+        item.update(degree_queries=oracle.degree_replies,
+                    first_adjacency_entries=oracle.adjacency_entries,
+                    outcome=result.outcome)
+    else:
+        from dataclasses import asdict
+        outer=scope['outer']
+        assert outer.result is result
+        item.update(degree_queries=oracle.degree_replies,
+                    first_adjacency_entries=oracle.entries,
+                    correction_iterations=sum(s.iterations for s in result.stages),
+                    stage_regularizations=[str(s.regularization) for s in result.stages])
+        if filename=='adaptive_path.py':
+            item['additive_adaptive_metrics']=asdict(outer.adaptive_metrics)
+        else:
+            item['additive_mass_hint_metrics']=asdict(outer.mass_hint_metrics)
+            item['stage_grids']=[str(s.grid) for s in result.stages]
+    reports[filename]=item
+package_files={}
+for name,module in tuple(sys.modules.items()):
+    if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+        origin=Path(module.__file__).resolve()
+        assert origin.is_relative_to(installed), (name,origin)
+        package_files[name]=str(origin.relative_to(installed))
+assert len(package_files)==20
+print('DISTRIBUTION_RESULT='+json.dumps(dict(
+    isolated=True, import_guard='stdlib and installed package only',
+    imported_file=package.__file__, default='solve_fast',
+    imported_package_files=package_files, examples=reports)))
+'''
+
+
+def main():
+    assert sys.version_info[:3] == (3, 12, 14), sys.version
+    assert not OUT.exists(), 'Choose a fresh audit directory; preserve the existing final build'
+    manifest_bytes = (PACKAGE / 'PACKAGE_MANIFEST.json').read_bytes()
+    manifest = json.loads(manifest_bytes)
+    assert manifest['default'] == 'solve_fast' and manifest['deterministic'] is True
+    assert len(manifest['module_sha256']) == 20
+    for name, expected in manifest['module_sha256'].items():
+        assert sha((PACKAGE / name).read_bytes()) == expected, name
+    for name, expected in manifest['validation_sha256'].items():
+        assert sha((ROOT / name).read_bytes()) == expected, name
+    assert json.loads((ROOT / 'mass_grid_package_independent_verification.json').read_text())['passed']
+    metadata_bytes = {name: (PACKAGE / name).read_bytes() for name in ('pyproject.toml', 'README.md')}
+    example_bytes = {name: (PACKAGE / 'examples' / name).read_bytes() for name in EXAMPLES}
+    OUT.mkdir()
+    build_source, wheel_dir, installed, examples = (OUT / n for n in
+        ('build_source', 'wheels', 'installed', 'isolated_examples'))
+    build_source.mkdir()
+    wheel_dir.mkdir()
+    examples.mkdir()
+    for name in manifest['module_sha256']:
+        destination = build_source / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes((PACKAGE / name).read_bytes())
+    for name, data in metadata_bytes.items():
+        (build_source / name).write_bytes(data)
+    for name, data in example_bytes.items():
+        (examples / name).write_bytes(data)
+    (OUT / 'PACKAGE_MANIFEST.snapshot.json').write_bytes(manifest_bytes)
+    (OUT / 'isolated_example_runner.py').write_text(RUNNER)
+    report = dict(
+        python_executable=sys.executable, python_version=sys.version,
+        installed_build_tools={name: importlib.metadata.version(name) for name in ('setuptools','wheel','pip')},
+        package_manifest_sha256=sha(manifest_bytes),
+        metadata_sha256={name: sha(data) for name, data in metadata_bytes.items()},
+        example_sha256={name: sha(data) for name, data in example_bytes.items()},
+        auditor_sha256=sha(Path(__file__).read_bytes()), commands=[],
+        metadata_changed=False, numerical_modules_changed=False,
+        network_use='No indexes, dependencies, or build isolation; preinstalled build tools only',
+        global_installation_modified=False)
+    env = os.environ.copy()
+    env.update(PIP_DISABLE_PIP_VERSION_CHECK='1', PIP_NO_INDEX='1',
+        PIP_CONFIG_FILE=os.devnull, PIP_NO_CACHE_DIR='1',
+        PIP_CACHE_DIR=str(OUT / 'pip_cache'), SOURCE_DATE_EPOCH='315532800',
+        PYTHONDONTWRITEBYTECODE='1')
+    env.pop('PYTHONPATH', None)
+    env.pop('PYTHONHOME', None)
+    def run(command, cwd, filename):
+        start = time.perf_counter()
+        result = subprocess.run(command, cwd=cwd, env=env, capture_output=True, text=True, timeout=120)
+        report['commands'].append(dict(argv=command, cwd=str(cwd), returncode=result.returncode,
+                                       wall_seconds=time.perf_counter()-start))
+        (OUT / filename).write_text(result.stdout + result.stderr)
+        if result.returncode:
+            raise RuntimeError(f'{filename}: return code {result.returncode}\n{result.stdout}\n{result.stderr}')
+        return result
+    run([sys.executable, '-m', 'pip', 'wheel', '--no-deps', '--no-build-isolation',
+         '--no-index', '.', '-w', str(wheel_dir)], build_source, 'build.log')
+    wheels = list(wheel_dir.glob('*.whl'))
+    assert len(wheels) == 1
+    wheel = wheels[0]
+    report['wheel'] = dict(path=str(wheel), filename=wheel.name, size=wheel.stat().st_size,
+                           sha256=sha(wheel.read_bytes()))
+    dist_info = 'deterministic_rppr-0.1.0.dist-info/'
+    record_name = dist_info + 'RECORD'
+    with zipfile.ZipFile(wheel) as archive:
+        names = archive.namelist()
+        assert len(names) == len(set(names))
+        python_files = {name for name in names if name.endswith('.py')}
+        assert python_files == set(manifest['module_sha256'])
+        for name, expected in manifest['module_sha256'].items():
+            assert sha(archive.read(name)) == expected, name
+        expected_metadata = {dist_info + name for name in ('METADATA', 'WHEEL', 'top_level.txt', 'RECORD')}
+        assert set(names) - python_files == expected_metadata
+        metadata = Parser().parsestr(archive.read(dist_info + 'METADATA').decode())
+        wheel_metadata = Parser().parsestr(archive.read(dist_info + 'WHEEL').decode())
+        assert metadata['Name'] == 'deterministic-rppr' and metadata['Version'] == '0.1.0'
+        assert metadata['Requires-Python'] == '>=3.10' and not metadata.get_all('Requires-Dist')
+        assert wheel_metadata['Root-Is-Purelib'] == 'true'
+        assert wheel_metadata.get_all('Tag') == ['py3-none-any']
+        report['wheel_record_checksums_checked'] = verify_record(
+            archive.read(record_name), archive.read, names, record_name)
+        report['wheel_contents'] = names
+        report['module_hashes_checked'] = len(python_files)
+        report['wheel_metadata'] = dict(name=metadata['Name'], version=metadata['Version'],
+            requires_python=metadata['Requires-Python'], requires_dist=[], pure_python=True, tag='py3-none-any')
+    run([sys.executable, '-m', 'pip', 'install', '--no-deps', '--no-index', '--no-compile',
+         '--target', str(installed), str(wheel)], OUT, 'install.log')
+    installed_files = sorted(str(p.relative_to(installed)) for p in installed.rglob('*') if p.is_file())
+    for name, expected in manifest['module_sha256'].items():
+        assert sha((installed / name).read_bytes()) == expected, name
+    def installed_read(name):
+        path = (installed / name).resolve()
+        assert path.is_relative_to(installed.resolve()), name
+        return path.read_bytes()
+    report['installed_record_checksums_checked'] = verify_record(
+        installed_read(record_name), installed_read, installed_files, record_name)
+    report['installed_files'] = installed_files
+    result = run([sys.executable, '-I', '-S', '-B', str(OUT / 'isolated_example_runner.py'),
+                  str(installed), str(examples)], Path('/'), 'examples.log')
+    lines = [line for line in result.stdout.splitlines() if line.startswith('DISTRIBUTION_RESULT=')]
+    assert len(lines) == 1
+    report['isolated_examples'] = json.loads(lines[0].split('=', 1)[1])
+    assert (PACKAGE / 'PACKAGE_MANIFEST.json').read_bytes() == manifest_bytes
+    for name, expected in manifest['module_sha256'].items():
+        assert sha((PACKAGE / name).read_bytes()) == expected, name
+    for name, data in metadata_bytes.items():
+        assert (PACKAGE / name).read_bytes() == data, name
+    for name, data in example_bytes.items():
+        assert (PACKAGE / 'examples' / name).read_bytes() == data, name
+    assert not list(installed.rglob('*.pyc'))
+    report['successful'] = True
+    (ROOT / 'final_offline_wheel_independent_verification.json').write_text(json.dumps(report, indent=2) + '\n')
+    (OUT / 'verification.json').write_text(json.dumps(report, indent=2) + '\n')
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__':
+    main()

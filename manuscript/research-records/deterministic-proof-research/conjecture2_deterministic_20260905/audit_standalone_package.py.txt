@@ -1,0 +1,224 @@
+"""Bounded, independent package extraction/container equivalence audit.
+
+No package files are modified. No randomized inputs. Runtime graph labels
+can explicitly reject hashing, including 2,049-bit signed integer labels.
+"""
+
+import ast
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent
+PKGROOT = ROOT/'deliverables'/'deterministic-rppr'
+sys.path.insert(0, str(PKGROOT))
+
+from fractions import Fraction as F
+import practical_dyadic_rppr_solver as prototype
+import deterministic_rppr as package
+from deterministic_rppr._avl import AVLMap, AVLSet
+
+
+class HashForbiddenInt(int):
+    def __hash__(self):
+        raise AssertionError('A graph label was used as a hash-table key')
+
+
+class ListOracle:
+    """Small reference graph lookup uses equality scans, never label hashes."""
+    def __init__(self, labels, edges):
+        self.labels = list(labels)
+        self.rows = [[] for _ in labels]
+        for first, second in edges:
+            self.rows[first].append(self.labels[second])
+            self.rows[second].append(self.labels[first])
+        self.degree_queries = []
+        self.adjacency_queries = []
+
+    def _index(self, vertex):
+        for i, candidate in enumerate(self.labels):
+            if candidate == vertex:
+                return i
+        raise KeyError(vertex)
+
+    def degree(self, vertex):
+        self.degree_queries.append(int(vertex))
+        return len(self.rows[self._index(vertex)])
+
+    def neighbors(self, vertex):
+        self.adjacency_queries.append(int(vertex))
+        return iter(self.rows[self._index(vertex)])
+
+
+class RestoreGraphConstructors(ast.NodeTransformer):
+    """Independently undo only the manifest's constructor transcription."""
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if not isinstance(node.func, ast.Name):
+            return node
+        if node.func.id == 'AVLMap':
+            assert not node.keywords and len(node.args) == 1
+            source = node.args[0]
+            if isinstance(source, ast.Tuple):
+                assert all(isinstance(pair, ast.Tuple) and len(pair.elts) == 2
+                           for pair in source.elts)
+                return ast.Dict(keys=[pair.elts[0] for pair in source.elts],
+                                values=[pair.elts[1] for pair in source.elts])
+            assert isinstance(source, ast.GeneratorExp)
+            assert isinstance(source.elt, ast.Tuple) and len(source.elt.elts) == 2
+            return ast.DictComp(key=source.elt.elts[0], value=source.elt.elts[1],
+                                generators=source.generators)
+        if node.func.id == 'AVLSet':
+            assert not node.keywords
+            if len(node.args) == 1 and isinstance(node.args[0], ast.Tuple):
+                return ast.Set(elts=node.args[0].elts)
+            return ast.Call(func=ast.Name(id='set', ctx=ast.Load()),
+                            args=node.args, keywords=[])
+        return node
+
+
+def audit_extraction():
+    manifest = json.loads((PKGROOT/'TRANSCRIPTION.json').read_text())
+    definitions = 0
+    for module, entry in manifest.items():
+        source = (ROOT/entry['source']).read_bytes()
+        assert hashlib.sha256(source).hexdigest() == entry['source_sha256']
+        target = (PKGROOT/'deterministic_rppr'/(module+'.py')).read_bytes()
+        if module == '_avl':
+            assert target == source
+            continue
+        assert hashlib.sha256(target).hexdigest() == entry['package_sha256']
+        allowed = entry['selected_names']
+        source_tree = ast.parse(source)
+        target_tree = RestoreGraphConstructors().visit(ast.parse(target))
+        original = {node.name:node for node in source_tree.body
+                    if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                    and (allowed == 'all' or node.name in allowed)}
+        generated = {node.name:node for node in target_tree.body
+                     if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))}
+        assert original.keys() == generated.keys(), module
+        for name, definition in original.items():
+            assert ast.dump(definition, include_attributes=False) == ast.dump(
+                generated[name], include_attributes=False), (module, name)
+            definitions += 1
+    # Fixed-key diagnostic dictionaries and annotations may remain. There
+    # must be no runtime dict/set literal or comprehension in solver state.
+    fixed_dict_calls = []
+    for file in (PKGROOT/'deterministic_rppr').glob('*.py'):
+        if file.name == '_avl.py':
+            continue
+        tree = ast.parse(file.read_text())
+        for node in ast.walk(tree):
+            assert not isinstance(node, (ast.Dict, ast.Set, ast.DictComp, ast.SetComp)), (file.name, node.lineno)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                assert node.func.id != 'set', (file.name, node.lineno)
+                if node.func.id == 'dict':
+                    assert not node.args and len(node.keywords) == 4
+                    assert all(keyword.arg is not None for keyword in node.keywords)
+                    fixed_dict_calls.append((file.name, node.lineno))
+    assert len(fixed_dict_calls) == 1
+    return dict(component_hashes_verified=len(manifest),
+                definitions_identical_after_constructor_restore=definitions,
+                remaining_fixed_size_dict_calls=fixed_dict_calls)
+
+
+def items(mapping):
+    return tuple(sorted((int(i), value) for i, value in mapping.items()))
+
+
+def assert_state_containers(stage):
+    for name in ('baseline', 'degree', 'adjacency', 'keys', 'X', 'L', 'z', 'M', 'source'):
+        assert isinstance(getattr(stage, name), AVLMap), name
+    assert isinstance(stage.exceptions, AVLSet)
+
+
+def scalar_error_comparison():
+    normal = [-(1 << 2048)-19, 7, (1 << 2048)+101]
+    forbidden = list(map(HashForbiddenInt, normal))
+    edges = [(0, 1), (1, 2)]
+    proto_oracle, pkg_oracle = ListOracle(normal, edges), ListOracle(forbidden, edges)
+    pb = {normal[0]:F(3, 8), normal[1]:F(1, 16)}
+    kb = AVLMap([(forbidden[0], F(3, 8)), (forbidden[1], F(1, 16))])
+    args = (F(1, 4), F(1, 2), F(1, 16), F(1, 512))
+    ps = prototype.PracticalDyadicCorrector(proto_oracle, normal[0], *args, pb)
+    ks = package.PracticalDyadicCorrector(pkg_oracle, forbidden[0], *args, kb)
+    assert ks.target_iterations == ps.target_iterations
+    assert ks.mass_cap == ps.mass_cap == F(1, 2)
+    error_steps = 0
+    for _ in range(ks.target_iterations):
+        ps.step()
+        ks.step()
+        assert_state_containers(ks)
+        for name in ('baseline', 'degree', 'X', 'L', 'z', 'M', 'source'):
+            assert items(getattr(ks, name)) == items(getattr(ps, name)), name
+        assert ks.sigma == ps.sigma and ks.history[-1] == ps.history[-1]
+        assert ks.objective_gap_bound == ps.objective_gap_bound
+        step_error = False
+        for index, i in enumerate(forbidden):
+            true_sum = sum((ks.X.get(j, F(0)) for j in pkg_oracle.rows[index]), F(0))
+            difference = ks.L.get(i, F(0))-true_sum
+            assert abs(difference)/ks.degree[i] <= 4*ks.grid
+            step_error |= difference != 0
+        error_steps += int(step_error)
+    assert error_steps > 0
+    assert ks.metrics.rebase_adjacency_entries == ps.metrics.rebase_adjacency_entries == 0
+    assert tuple(ks.output()) == tuple(ps.output())
+    return dict(steps=ks.target_iterations, nonzero_scalar_neighbor_error_steps=error_steps,
+                scalar_rebases=ks.metrics.rebases,
+                hash_forbidden_label_bits=max(abs(i).bit_length() for i in normal),
+                selected_volume=ks.metrics.selected_adjacency_entries)
+
+
+def result_signature(result):
+    stage_fields = ('regularization', 'delta', 'requested_gap', 'certified_gap',
+                    'iterations', 'kinetic_volume', 'kinetic_volume_bound',
+                    'baseline_volume', 'source_records', 'source_mass',
+                    'repaired_volume', 'repaired_mass', 'repaired_output',
+                    'grid', 'projection_mass_cap', 'grid_repair_records',
+                    'grid_repair_rounding_records', 'baseline_max_records',
+                    'baseline_max_preservations')
+    return (result.output, result.objective_gap_bound, result.theta,
+            tuple(tuple(getattr(stage, name) for name in stage_fields) for stage in result.stages))
+
+
+def full_comparisons():
+    cases = [
+        ('asymmetric cyclic', [-21, 0, 4, 16, 90],
+         [(0,1), (0,2), (1,2), (1,3), (1,4), (2,3)], 0,
+         F(2,9), F(1,17), F(1,10000)),
+        ('huge signed labels', [-(1 << 2048)-3, 0, (1 << 2048)+5, 19],
+         [(0,1), (1,2), (2,3)], 0, F(1,4), F(3,80), F(1,4096)),
+        ('constant zero regime', [-99, 81], [(0,1)], 0, F(1,7), F(2), F(1,100)),
+        ('alpha one', [-99, 81], [(0,1)], 0, F(1), F(1,5), F(1,100)),
+    ]
+    results = []
+    for label, ids, edges, seed_index, alpha, rho, epsilon in cases:
+        pkg_ids = list(map(HashForbiddenInt, ids))
+        po, ko = ListOracle(ids, edges), ListOracle(pkg_ids, edges)
+        expected = prototype.solve_rppr_practical(po, ids[seed_index], alpha, rho, epsilon)
+        actual = package.solve(ko, pkg_ids[seed_index], alpha, rho, epsilon)
+        assert result_signature(actual) == result_signature(expected), label
+        for stage in actual.stages:
+            assert type(stage.corrector_metrics) is dict
+            assert type(stage.projected_gradient_metrics) is dict
+            assert all(type(key) is str for key in stage.corrector_metrics)
+            assert all(type(value) is int for value in stage.corrector_metrics.values())
+            assert stage.corrector_metrics['rebase_adjacency_entries'] == 0
+        # AVL ordering may change operation order or rotations, but exact
+        # decisions and paid query multiplicities must agree.
+        assert sorted(ko.degree_queries) == sorted(po.degree_queries), label
+        assert sorted(ko.adjacency_queries) == sorted(po.adjacency_queries), label
+        results.append(dict(label=label, stages=len(actual.stages),
+                            iterations=sum(stage.iterations for stage in actual.stages),
+                            output_records=len(actual.output), hash_forbidden=True))
+    return results
+
+
+if __name__ == '__main__':
+    report = dict(success=True, extraction=audit_extraction(),
+                  scalar_error=scalar_error_comparison(),
+                  full_comparisons=full_comparisons())
+    (ROOT/'standalone_package_independent_verification.json').write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps(report, indent=2))

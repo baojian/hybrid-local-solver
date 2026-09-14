@@ -1,0 +1,145 @@
+"""Exact deterministic RPPR continuation prototype for the proved algorithm.
+
+The graph is accessed only through degree(vertex) and neighbors(vertex).
+All state values are Fraction degree densities. This validates the exact
+algorithm, not finite-precision stability or worst-case Python hash-table
+and integer-bit complexity. The theorem uses balanced comparison maps.
+See deterministic_conjecture2_proof.md for the full charged word-model proof.
+"""
+
+from dataclasses import asdict, dataclass, field
+from fractions import Fraction as F
+
+from capped_box_corrector import CappedBoxCorrector
+
+
+@dataclass
+class ContinuationMetrics:
+    seed_degree_queries: int = 0
+    momentum_halvings: int = 0
+    tolerance_halvings: int = 0
+    schedule_operations: int = 0
+    repaired_input_records: int = 0
+    repaired_output_records: int = 0
+    final_output_words: int = 0
+
+
+@dataclass(frozen=True)
+class StageSummary:
+    regularization: F
+    delta: F
+    requested_gap: F
+    certified_gap: F
+    iterations: int
+    kinetic_volume: int
+    kinetic_volume_bound: F
+    baseline_volume: int
+    source_records: int
+    source_mass: F
+    repaired_volume: int
+    repaired_mass: F
+    repaired_output: tuple
+    corrector_metrics: dict = field(compare=False)
+
+
+@dataclass(frozen=True)
+class SolverResult:
+    # Each item represents x_i=density*sqrt(degree); absent coordinates are 0.
+    output: tuple
+    objective_gap_bound: F
+    theta: F | None
+    stages: tuple
+    metrics: ContinuationMetrics = field(compare=False)
+
+
+def solve_rppr(oracle, seed, alpha, rho, epsilon):
+    """Return the final repaired sparse vector with its analytic certificate.
+
+    No optimum, graph size, complete vertex list, randomized primitive,
+    numerical residual guess, or support margin is supplied or queried.
+    The tolerance rule intentionally matches the conservative audited proof.
+    """
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not 0 < alpha <= 1 or rho <= 0 or epsilon <= 0:
+        raise ValueError('Need 0<alpha<=1, rho>0, epsilon>0')
+    metrics = ContinuationMetrics()
+    seed_degree = oracle.degree(seed)
+    metrics.seed_degree_queries += 1
+    if not isinstance(seed_degree, int) or seed_degree <= 0:
+        raise ValueError('The seed must have positive integer degree')
+    if rho*seed_degree >= 1:
+        return SolverResult((), F(0), None, (), metrics)
+    if alpha == 1:
+        value = F(1, seed_degree)-rho
+        metrics.final_output_words += 3
+        return SolverResult(((seed, value, seed_degree),), F(0), None, (), metrics)
+
+    theta = F(1, 2)
+    while theta*theta > alpha:
+        theta /= 2
+        metrics.momentum_halvings += 1
+    assert theta*theta <= alpha < 4*theta*theta
+    baseline, summaries = {}, []
+    previous_rho = F(1, seed_degree)
+    final_output, final_gap = (), F(0)
+    while previous_rho > rho:
+        current_rho = max(rho, previous_rho/2)
+        metrics.schedule_operations += 1
+        final_stage = current_rho == rho
+        delta = alpha*current_rho/2
+        if final_stage:
+            while delta*delta > epsilon*current_rho/2:
+                delta /= 2
+                metrics.tolerance_halvings += 1
+        tolerance = alpha**3*delta**2/2
+        corrector = CappedBoxCorrector(
+            oracle, seed, alpha, theta, current_rho, baseline,
+            source_constant=4)
+        # E0<=1 follows from the safe correction's unit mass; the constructor
+        # also has a valid source-based estimate. Either may certify stopping.
+        corrector.initial_energy_bound = min(F(1), corrector.initial_energy_bound)
+        materialized = corrector.run(tolerance)
+        assert corrector.objective_gap_bound <= tolerance
+
+        repaired = []
+        next_baseline = {}
+        for vertex, value, degree in materialized:
+            metrics.repaired_input_records += 1
+            clipped = max(F(0), value-delta)
+            if clipped:
+                next_baseline[vertex] = clipped
+                repaired.append((vertex, clipped, degree))
+                metrics.repaired_output_records += 1
+        repaired = tuple(repaired)
+        volume = sum(degree for _, _, degree in repaired)
+        mass = sum((value*degree for _, value, degree in repaired), F(0))
+        kinetic_volume = sum(row[0] for row in corrector.history)
+        kinetic_bound = F(148*corrector.metrics.iterations, 1)/current_rho
+        # These are input-parameter certificates, not checks against an oracle
+        # optimum. The independent test suite verifies the stronger order fact.
+        assert volume <= 1/current_rho
+        assert 0 <= mass <= 1
+        assert kinetic_volume <= kinetic_bound
+        summaries.append(StageSummary(
+            regularization=current_rho,
+            delta=delta,
+            requested_gap=tolerance,
+            certified_gap=corrector.objective_gap_bound,
+            iterations=corrector.metrics.iterations,
+            kinetic_volume=kinetic_volume,
+            kinetic_volume_bound=kinetic_bound,
+            baseline_volume=sum(corrector.degree[i] for i in baseline),
+            source_records=len(corrector.source),
+            source_mass=corrector.source_mass,
+            repaired_volume=volume,
+            repaired_mass=mass,
+            repaired_output=repaired,
+            corrector_metrics=asdict(corrector.metrics)))
+        baseline = next_baseline
+        previous_rho = current_rho
+        if final_stage:
+            final_output = repaired
+            final_gap = 2*delta**2/current_rho
+            assert final_gap <= epsilon
+    metrics.final_output_words += 3*len(final_output)
+    return SolverResult(final_output, final_gap, theta, tuple(summaries), metrics)

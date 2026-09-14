@@ -1,0 +1,152 @@
+"""Add separately audited integer backends to the standalone package.
+
+The existing Fraction implementation is preserved. Transformations are
+limited to import relocation and explicit corrector-class injection in the
+copied continuation wrapper. Source and output hashes record the snapshot.
+"""
+
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+IMPORT_MAP = {
+    'deterministic_avl_containers': '_avl',
+    'integer_clipped_reporter': '_integer_reporter',
+    'bounded_dyadic_corrector': '_dyadic',
+    'deterministic_rppr_solver': '_types',
+    'practical_dyadic_rppr_solver': 'solver',
+    'pg_repaired_rppr_solver': '_repair',
+}
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def relocate_imports(tree):
+    changes = []
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module in IMPORT_MAP:
+            old = node.module
+            node.module, node.level = IMPORT_MAP[old], 1
+            changes.append({'from': old, 'to': '.'+node.module})
+    return changes
+
+
+def render(tree):
+    ast.fix_missing_locations(tree)
+    result = ast.unparse(tree)+'\n'
+    compile(result, '<packaged integer backend>', 'exec')
+    return result
+
+
+def write_module(source_name, destination, transform):
+    source = (ROOT/source_name).read_bytes()
+    tree = ast.parse(source.decode())
+    changes = relocate_imports(tree)
+    changes += transform(tree)
+    content = render(tree)
+    (PACKAGE/(destination+'.py')).write_text(content)
+    return dict(source=source_name, source_sha256=digest(source),
+                package_sha256=digest(content.encode()), transformations=changes)
+
+
+def unchanged(tree):
+    return []
+
+
+def inject_corrector(tree):
+    wrapper, = [node for node in tree.body if isinstance(node, ast.FunctionDef)
+               and node.name == 'solve_rppr_integer']
+    assert not wrapper.args.kwonlyargs
+    wrapper.args.kwonlyargs.append(ast.arg(arg='corrector_class'))
+    wrapper.args.kw_defaults.append(ast.Name(id='IntegerDyadicCorrector', ctx=ast.Load()))
+    replacements = 0
+    for node in ast.walk(wrapper):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'IntegerDyadicCorrector':
+            node.func.id = 'corrector_class'
+            replacements += 1
+    assert replacements == 1
+    return [dict(kind='explicit corrector class injection', wrapper=wrapper.name,
+                 original='IntegerDyadicCorrector', replacement='corrector_class', count=1)]
+
+
+def direct_source_wrapper(tree):
+    keep = []
+    removed = []
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module == 'types':
+            removed.append('types.FunctionType import')
+            continue
+        if isinstance(node, ast.Import) and any(alias.name == 'integer_dyadic_rppr_solver' for alias in node.names):
+            keep.append(ast.ImportFrom(module=None, level=1,
+                                       names=[ast.alias(name='_integer', asname='reference')]))
+            continue
+        if isinstance(node, ast.Assign):
+            names = [target.id for target in node.targets if isinstance(target, ast.Name)]
+            if names and all(name in ('_globals', '_shortened_continuation') for name in names):
+                removed.extend(names)
+                continue
+            if any(isinstance(target, ast.Subscript) and isinstance(target.value, ast.Name)
+                   and target.value.id == '_globals' for target in node.targets):
+                removed.append('_globals class binding')
+                continue
+        if isinstance(node, ast.FunctionDef) and node.name == 'solve_rppr_source_energy':
+            node.body = ast.parse('''
+def solve_rppr_source_energy(oracle, seed, alpha, rho, epsilon):
+    """Return a certified sparse solution with source-dependent stage lengths."""
+    return reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon,
+                                       corrector_class=SourceEnergyDyadicCorrector)
+''').body[0].body
+        keep.append(node)
+    tree.body = keep
+    assert set(removed) == {'types.FunctionType import', '_globals', '_globals class binding',
+                            '_shortened_continuation'}
+    return [dict(kind='direct class injection instead of FunctionType clone', removed=removed)]
+
+
+def main():
+    manifest = {
+        '_integer_reporter': write_module('integer_clipped_reporter.py', '_integer_reporter', unchanged),
+        '_integer': write_module('integer_dyadic_rppr_solver.py', '_integer', inject_corrector),
+        '_source_energy': write_module('source_energy_dyadic_rppr.py', '_source_energy', direct_source_wrapper),
+        '_certificate': write_module('independent_sparse_certificate.py', '_certificate', unchanged),
+    }
+    init = '''"""Deterministic local regularized personalized PageRank.
+
+Exact rational comparisons, bounded dyadic state, and deterministic AVL
+graph-state containers. The default uses the independently verified
+integer-state implementation with source-dependent certified stage lengths.
+"""
+
+from .solver import solve_rppr_practical as solve_reference
+from .solver import PracticalDyadicCorrector
+from ._integer import solve_rppr_integer as solve_integer
+from ._integer import IntegerDyadicCorrector
+from ._source_energy import solve_rppr_source_energy as solve_source_energy
+from ._source_energy import solve_rppr_source_energy as solve
+from ._source_energy import SourceEnergyDyadicCorrector
+from ._types import SolverResult
+from ._certificate import certify_sparse_output as certify_output
+from ._certificate import Certificate
+
+__all__ = ["solve", "solve_reference", "solve_integer", "solve_source_energy",
+           "PracticalDyadicCorrector", "IntegerDyadicCorrector",
+           "SourceEnergyDyadicCorrector", "SolverResult", "certify_output", "Certificate"]
+__version__ = "0.1.0"
+'''
+    (PACKAGE/'__init__.py').write_text(init)
+    manifest['__init__'] = dict(package_sha256=digest(init.encode()),
+        default='verified source-energy integer solver', additional_exports=['solve_reference', 'solve_integer'])
+    (OUT/'INTEGER_TRANSCRIPTION.json').write_text(json.dumps(manifest, indent=2)+'\n')
+    print(json.dumps(dict(package=str(PACKAGE), added_modules=4,
+                         default='verified source-energy integer solver'), indent=2))
+
+
+if __name__ == '__main__':
+    main()

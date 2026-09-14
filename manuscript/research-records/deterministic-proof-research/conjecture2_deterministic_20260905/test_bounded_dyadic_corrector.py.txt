@@ -1,0 +1,297 @@
+"""Exact dense rounded-reference and locality tests; no randomized input."""
+
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from bounded_dyadic_corrector import (ArithmeticTracker, BoundedDyadicCorrector,
+    DyadicMetrics, MeasuredClosedBoxAVL)
+from test_capped_box_corrector import DenseCorrector, dense_project
+from test_local_safe_solver import (dense_exact_obstacle_oracle, gaussian_elimination,
+                                   graph, path, star, tree)
+from test_monotone_capped_solver import CheckedOracle, NoFullScan
+
+
+def floor_exact(value, grid):
+    # Independent integer cross multiplication, not the production grid helper.
+    quotient_numerator = value.numerator*grid.denominator
+    quotient_denominator = value.denominator*grid.numerator
+    return (quotient_numerator//quotient_denominator)*grid
+
+
+class DenseRoundedReference(DenseCorrector):
+    def rounded_step(self, X, z, sigma, grid):
+        x = {i:sigma*value for i, value in X.items()}
+        y = {i:(x.get(i, F(0))+self.theta*z.get(i, F(0)))/(1+self.theta)
+             for i in self.vertices}
+        hy = self.multiply(y)
+        raw = {i:((1-self.theta)*z.get(i, F(0))+self.theta*y[i]
+                  -(hy[i]/self.d[i]-self.source[i]+self.lam)/self.theta)
+               for i in self.vertices}
+        p0, multiplier, active = dense_project(raw, self.d, self.upper)
+        p = {i:rounded for i, value in p0.items()
+             if (rounded := floor_exact(value, grid)) > 0}
+        new_sigma = floor_exact((1-self.theta)*sigma, grid)
+        new_X = dict(X)
+        for i, value in p.items():
+            updated = floor_exact(new_X.get(i, F(0))+self.theta*value/new_sigma, grid)
+            if updated:
+                new_X[i] = updated
+        rebased = new_sigma < F(1, 2)
+        if rebased:
+            new_X = {i:value for i, old in new_X.items()
+                     if (value := floor_exact(new_sigma*old, grid)) > 0}
+            new_sigma = F(1)
+        return new_X, p, new_sigma, rebased, p0, raw, active
+
+
+LOG = dict(trajectory_cases=0, exact_rounded_steps=0, error_interface_checks=0,
+           q_metric_checks=0, rebase_checks=0, reporter_cases=0,
+           scale_rounding_steps=0, selected_update_rounding_records=0,
+           rebase_rounding_records=0,
+           max_numerator_bits=0, max_denominator_bits=0, fixtures=[])
+
+
+class DyadicCorrectorTests(unittest.TestCase):
+    def check_reporter(self, raw, degrees, grid, upper, cap=F(1)):
+        metrics = DyadicMetrics()
+        tracker = ArithmeticTracker(metrics)
+        reporter = MeasuredClosedBoxAVL(metrics, tracker)
+        sigma, shift = F(3, 4), F(1, 8)
+        for i, value in raw.items():
+            reporter.insert((tracker.wrap((value+shift)/sigma), i), degrees[i])
+        ideal, _, active = dense_project(raw, degrees, upper, cap)
+        expected = {i:value for i, p in ideal.items()
+                    if (value := floor_exact(p, grid)) > 0}
+        before = metrics.tree_visits
+        actual, _, actual_active = reporter.project_grid(sigma, shift, upper, grid, cap)
+        self.assertEqual(actual, expected)
+        self.assertEqual(active, actual_active)
+        self.assertEqual(metrics.projection_emissions, len(actual))
+        self.assertTrue(all(0 <= ideal.get(i, 0)-actual.get(i, 0) < grid for i in raw))
+        LOG['reporter_cases'] += 1
+        return metrics, metrics.tree_visits-before
+
+    def test_closed_tail_ties_and_subgrid_entries(self):
+        h = F(1, 16)
+        self.check_reporter({0:h, 1:h/2, 2:3*h}, {0:1, 1:2, 2:1}, h, F(1))
+        self.check_reporter({0:5*h, 1:3*h, 2:h}, {0:1, 1:1, 2:1}, h, F(1), 4*h)
+        self.check_reporter({0:F(2), 1:F(1)}, {0:1, 1:1}, h, F(3, 10), F(1))
+        self.check_reporter({0:F(2), 1:F(1)}, {0:1, 1:1}, h, F(3, 10), F(2, 5))
+        self.check_reporter({}, {}, h, F(1))
+        for first in range(-2, 7):
+            for second in range(-2, 7):
+                self.check_reporter({0:first*h/2, 1:second*h/2}, {0:1, 1:3}, h, 4*h, 3*h)
+        enormous_degree, tiny = 2**80, F(1, 2**100)
+        metrics, visits = self.check_reporter({0:tiny, 1:tiny/2},
+            {0:1, 1:enormous_degree}, tiny, F(1))
+        self.assertEqual(metrics.projection_emissions, 1)
+        self.assertLess(visits, 100)
+        LOG['fixtures'].append(dict(label='degree-2^80 sub-grid projected coordinate is not emitted',
+                                    query_tree_visits=visits, **asdict(metrics)))
+
+    def checked_trajectory(self, adjacency, seed, alpha, theta, rho, tolerance,
+                           baseline=None, label=None):
+        baseline = baseline or {}
+        oracle = CheckedOracle(adjacency)
+        solver = BoundedDyadicCorrector(oracle, seed, alpha, theta, rho, tolerance, baseline)
+        reference = DenseRoundedReference(adjacency, seed, alpha, theta, rho, baseline)
+        total_optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        optimum = {i:value-baseline.get(i, 0) for i, value in total_optimum.items()
+                   if value > baseline.get(i, 0)}
+        self.assertTrue(all(baseline.get(i, 0) <= total_optimum.get(i, 0) for i in adjacency))
+        self.assertLessEqual(solver.gamma_bound, alpha**2*rho)
+        h = solver.grid
+        X, z, sigma = {}, {}, F(1)
+        source_rhs = [reference.d[i]*reference.source[i] for i in reference.vertices]
+        comparator_values = gaussian_elimination(
+            [[reference.H[i][j] for j in reference.vertices] for i in reference.vertices], source_rhs)
+        comparator = dict(zip(reference.vertices, comparator_values))
+        source_mass = sum(source_rhs, F(0))
+
+        def auxiliary_energy(x, kinetic):
+            hx = reference.multiply(x)
+            objective = sum(((hx[i]/reference.d[i]-reference.source[i])**2*reference.d[i]/2
+                             for i in reference.vertices), F(0))
+            objective += alpha**2*rho*reference.mass(x)
+            difference = {i:kinetic.get(i, F(0))-comparator[i] for i in reference.vertices}
+            return objective-alpha*rho*source_mass+theta**2*reference.quadratic(difference)/2
+
+        initial_energy = reference.energy({}, {}, optimum)
+        self.assertLessEqual(initial_energy, 1)
+        budget = F(5, 2)*10*h+F(5, 2)*(theta+theta**2)*h
+        total_selected = 0
+        for _ in range(solver.target_iterations):
+            old_x = {i:sigma*value for i, value in X.items()}
+            old_E = reference.energy(old_x, z, optimum)
+            old_B = auxiliary_energy(old_x, z)
+            next_X, p, next_sigma, rebased, p0, raw, active = reference.rounded_step(X, z, sigma, h)
+            for i in solver.degree:
+                raw_key = solver.sigma*solver.keys[i].value-solver.lam/solver.theta
+                self.assertEqual(raw_key, raw[i])
+            before_scans = solver.metrics.scanned_adjacency_entries
+            before_rebase_scans = solver.metrics.rebase_adjacency_entries
+            before_emissions = solver.metrics.projection_emissions
+            before_rebases = solver.metrics.rebases
+            solver.step()
+            self.assertEqual(solver.X, next_X)
+            self.assertEqual(solver.z, p)
+            self.assertEqual(solver.sigma, next_sigma)
+            self.assertEqual(solver.history[-1][1], rebased)
+            self.assertEqual(solver.history[-1][3], active)
+            self.assertEqual(solver.metrics.projection_emissions-before_emissions, len(p))
+            self.assertEqual(solver.metrics.rebases-before_rebases, int(rebased))
+            next_x = {i:next_sigma*value for i, value in next_X.items()}
+            for i in reference.vertices:
+                self.assertTrue(0 <= p0.get(i, 0)-p.get(i, 0) < h)
+                drop = (1-theta)*old_x.get(i, 0)+theta*p.get(i, 0)-next_x.get(i, 0)
+                self.assertTrue(0 <= drop <= 10*h)
+            self.assertLessEqual(reference.energy(next_x, p, optimum), (1-theta)*old_E+budget)
+            self.assertLessEqual(auxiliary_energy(next_x, p), (1-theta)*old_B+budget)
+            self.assertLessEqual(reference.mass(next_x), 1)
+            self.assertLessEqual(reference.mass(p), 1)
+            self.assertTrue(all(0 <= value <= solver.upper for value in next_x.values()))
+            self.assertTrue(F(1, 2) <= solver.sigma <= 1)
+            self.assertTrue(all(value/h == int(value/h) for value in list(next_X.values())+list(p.values())))
+            for i in solver.degree:
+                self.assertEqual(solver.L.get(i, 0), sum((next_X.get(j, 0) for j in adjacency[i]), F(0)))
+                self.assertEqual(solver.M.get(i, 0), sum((p.get(j, 0) for j in adjacency[i]), F(0)))
+            selected_volume = sum(reference.d[i] for i in p)
+            rebase_volume = sum(reference.d[i] for i in next_X) if rebased else 0
+            self.assertEqual(solver.metrics.scanned_adjacency_entries-before_scans,
+                             selected_volume+rebase_volume)
+            self.assertEqual(solver.metrics.rebase_adjacency_entries-before_rebase_scans, rebase_volume)
+            self.assertEqual(solver.decay_block_bound,
+                             F(1, 2**(solver.metrics.iterations//solver.block_size)))
+            difference = {i:next_x.get(i, 0)-optimum.get(i, 0) for i in reference.vertices}
+            qerror = reference.multiply(difference)
+            qerror2 = sum((qerror[i]**2/reference.d[i] for i in reference.vertices), F(0))
+            self.assertLessEqual(qerror2, 18*alpha**2*rho+4*solver.gamma_bound)
+            X, z, sigma = next_X, p, next_sigma
+            total_selected += selected_volume
+            LOG['exact_rounded_steps'] += 1
+            LOG['error_interface_checks'] += 1
+            LOG['q_metric_checks'] += 1
+            LOG['rebase_checks'] += int(rebased)
+        final = {i:sigma*value for i, value in X.items()}
+        gap = reference.objective(final)-reference.objective(optimum)
+        self.assertTrue(0 <= gap <= solver.objective_gap_bound < tolerance)
+        self.assertLessEqual(total_selected, 180*solver.target_iterations/rho)
+        self.assertLessEqual(solver.metrics.rebases, 4*theta*solver.target_iterations+1)
+        self.assertEqual(solver.metrics.selected_adjacency_entries, total_selected)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries,
+                         solver.metrics.baseline_adjacency_entries+total_selected+solver.metrics.rebase_adjacency_entries)
+        self.assertEqual(solver.metrics.first_adjacency_entries,
+                         sum(len(adjacency[i]) for i in oracle.neighbor_queries))
+        self.assertEqual(len(oracle.neighbor_queries), len(set(oracle.neighbor_queries)))
+        output = solver.run()
+        self.assertEqual({i:value for i, value, degree in output},
+                         {i:baseline.get(i, 0)+final.get(i, 0) for i in set(baseline)|set(final)})
+        precision = h.denominator.bit_length()-1
+        parameter_bits = max(alpha.denominator.bit_length(), rho.denominator.bit_length(),
+                             tolerance.denominator.bit_length())
+        degree_bits = max(solver.degree.values()).bit_length()
+        self.assertLessEqual(solver.metrics.max_grid_state_denominator_bits, precision+1)
+        # A generous independently checked finite envelope, not the theorem's
+        # optimized coefficient-size constant.
+        envelope = 20*(precision+parameter_bits+degree_bits+10)
+        self.assertLessEqual(solver.metrics.max_numerator_bits, envelope)
+        self.assertLessEqual(solver.metrics.max_denominator_bits, envelope)
+        LOG['trajectory_cases'] += 1
+        LOG['max_numerator_bits'] = max(LOG['max_numerator_bits'], solver.metrics.max_numerator_bits)
+        LOG['max_denominator_bits'] = max(LOG['max_denominator_bits'], solver.metrics.max_denominator_bits)
+        LOG['scale_rounding_steps'] += solver.metrics.scale_rounding_steps
+        LOG['selected_update_rounding_records'] += solver.metrics.selected_update_rounding_records
+        LOG['rebase_rounding_records'] += solver.metrics.rebase_rounding_records
+        if label:
+            LOG['fixtures'].append(dict(label=label, grid=str(h), planned_iterations=solver.target_iterations,
+                gap=str(gap), certificate=str(solver.objective_gap_bound), **asdict(solver.metrics)))
+        return solver, oracle
+
+    def test_dense_rounded_trajectories(self):
+        cases = [(path(3), 0, F(1, 4), F(1, 2), F(1, 4), F(1, 64), {}, 'path dyadic alpha'),
+                 (graph(3, [(0, 1), (1, 2), (2, 0)]), 0, F(1, 3), F(1, 2), F(1, 4), F(1, 64), {}, 'triangle nonsquare alpha'),
+                 (tree(5), 0, F(1, 8), F(1, 4), F(1, 4), F(1, 512), {}, 'tree frequent rounded rebases'),
+                 (path(4), 0, F(1, 4), F(1, 2), F(1, 8), F(1, 128), {0:F(1, 4)}, 'dyadic nonzero baseline'),
+                 (path(2), 0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {}, 'genuine scale rounding between rebases')]
+        for case in cases:
+            solver, _ = self.checked_trajectory(*case)
+            if case[-1] == 'genuine scale rounding between rebases':
+                self.assertGreater(solver.metrics.scale_rounding_steps, 0)
+                self.assertGreater(solver.metrics.selected_update_rounding_records, 0)
+                self.assertGreater(solver.metrics.rebase_rounding_records, 0)
+
+    def test_rebase_locality_and_no_normal_old_state_scan(self):
+        adjacency = star(1001)
+        oracle = CheckedOracle(adjacency)
+        solver = BoundedDyadicCorrector(oracle, 1, F(1, 4), F(1, 2),
+                                       F(1, 8), F(1, 128), {1:F(1, 4)})
+        output = {i:value for i, value, degree in solver.run()}
+        self.assertEqual(set(output), {1})
+        # Full KKT for this star reduces to the seed equation and one hub
+        # inequality; there is no dense 1001-by-1001 reference computation.
+        optimum_seed = F(7, 20)
+        self.assertLessEqual(F(3, 8)*optimum_seed/1000, F(1, 32))
+        gap = F(5, 16)*(output[1]-optimum_seed)**2
+        self.assertLessEqual(gap, solver.objective_gap_bound)
+        self.assertEqual(set(oracle.neighbor_queries), {1})
+        self.assertEqual(set(oracle.degree_queries), {0, 1})
+        self.assertGreater(solver.metrics.rebase_adjacency_entries, 0)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries,
+                         solver.metrics.baseline_adjacency_entries+
+                         solver.metrics.selected_adjacency_entries+solver.metrics.rebase_adjacency_entries)
+        LOG['fixtures'].append(dict(label='degree 1000 boundary never scanned by rebases', **asdict(solver.metrics)))
+        # A non-rebase step may touch only selected/source records and neighbors.
+        solver = BoundedDyadicCorrector(CheckedOracle(path(5)), 0, F(1, 8), F(1, 4),
+                                       F(1, 4), F(1, 512))
+        guarded = []
+        for name in ('X', 'L', 'degree', 'keys'):
+            value = NoFullScan(getattr(solver, name))
+            value.blocked = True
+            setattr(solver, name, value)
+            guarded.append(value)
+        solver.step()
+        for value in guarded:
+            value.blocked = False
+        self.assertEqual(solver.metrics.rebases, 0)
+
+    def test_injected_binding_cap_rounded_step(self):
+        # Feasible arithmetic fixture, not a zero-start reachability assertion.
+        adjacency = path(3)
+        alpha, theta, rho = F(1, 16), F(1, 4), F(1, 4)
+        solver = BoundedDyadicCorrector(CheckedOracle(adjacency), 0, alpha, theta,
+                                       rho, F(1, 1024))
+        solver._expose(1)
+        solver.X = {1:F(1, 2)}
+        solver.L = solver._neighbor_sums(solver.X, 'rebase')
+        for i in solver.degree:
+            solver._set_key(i, solver._base_key(i))
+        solver._install_exceptions()
+        reference = DenseRoundedReference(adjacency, 0, alpha, theta, rho, {})
+        expected_X, expected_p, expected_sigma, _, ideal, _, active = reference.rounded_step(
+            solver.X, {}, F(1), solver.grid)
+        self.assertTrue(active)
+        before = solver.metrics.scanned_adjacency_entries
+        solver.step()
+        self.assertEqual(solver.X, expected_X)
+        self.assertEqual(solver.z, expected_p)
+        self.assertEqual(solver.sigma, expected_sigma)
+        self.assertEqual(solver.metrics.cap_active_iterations, 1)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries-before,
+                         sum(len(adjacency[i]) for i in expected_p))
+        self.assertTrue(all(0 <= ideal.get(i, 0)-expected_p.get(i, 0) < solver.grid
+                            for i in adjacency))
+        LOG['fixtures'].append(dict(label='injected binding-cap rounded step', **asdict(solver.metrics)))
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(DyadicCorrectorTests))
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('bounded_dyadic_corrector_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

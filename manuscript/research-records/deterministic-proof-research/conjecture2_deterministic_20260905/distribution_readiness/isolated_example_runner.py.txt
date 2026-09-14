@@ -1,0 +1,34 @@
+
+import builtins,json,runpy,sys
+from pathlib import Path
+installed,examples=Path(sys.argv[1]),Path(sys.argv[2])
+sys.path.insert(0,str(installed))
+original=builtins.__import__
+def guarded(name,*args,**kwargs):
+    if name in ('singleton_precheck_rppr','combined_certified_dyadic_rppr',
+                'direct_exception_integer_rppr','integer_dyadic_rppr_solver',
+                'source_energy_dyadic_rppr','early_stop_source_energy_rppr',
+                'independent_sparse_certificate','deterministic_avl_containers'):
+        raise AssertionError('Research module import attempted: '+name)
+    return original(name,*args,**kwargs)
+builtins.__import__=guarded
+import deterministic_rppr as package
+assert package.solve is package.solve_fast
+assert Path(package.__file__).is_relative_to(installed)
+path=runpy.run_path(str(examples/'path.py'),run_name='__main__')
+star=runpy.run_path(str(examples/'star.py'),run_name='__main__')
+assert path['check'].meets(path['Fraction'](1,1000000))
+assert star['result'].outcome=='singleton' and star['check'].objective_gap_bound==0
+for name,module in tuple(sys.modules.items()):
+    if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+        assert Path(module.__file__).is_relative_to(installed)
+print('DISTRIBUTION_RESULT='+json.dumps(dict(
+    isolated=True, imported_file=package.__file__,
+    path=dict(output_records=len(path['result'].output),
+              correction_iterations=sum(s.iterations for s in path['result'].stages),
+              independent_gap_bound=str(path['check'].objective_gap_bound),
+              degree_queries=path['oracle'].degree_queries,
+              first_adjacency_entries=path['oracle'].adjacency_entries),
+    singleton=dict(output=str(star['result'].output),independent_gap_bound='0',
+                   degree_queries=star['oracle'].degree_replies,
+                   first_adjacency_entries=star['oracle'].adjacency_entries))))

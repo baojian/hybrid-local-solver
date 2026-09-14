@@ -1,0 +1,322 @@
+"""Exact deterministic local box-and-mass capped accelerated correction.
+
+This is a separately versioned ordinary lazy corrector, not the monotone or
+cleanup variant. See capped_box_reporter_audit.md and dyadic_q_metric_stability.md.
+All numerical values are Fraction degree densities; alpha is independent of
+the rational acceleration parameter theta. The caller provides a safe sparse
+baseline. Its source inequalities are checked, but being below the desired
+optimizer is an analytical precondition, not certified by this constructor.
+
+Counters report structural operations (tree visits, graph entries, source
+refreshes, and sparse record updates), not all Python operations or bit cost.
+The input graph is accessed only through degree and adjacency oracles.
+"""
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+from lazy_capped_solver import (Metrics, Node, Oracle, WeightedAVL,
+                                weight, weighted_sum)
+
+
+@dataclass
+class BoxMetrics(Metrics):
+    mass_queries: int = 0
+    rank_queries: int = 0
+    breakpoint_candidates: int = 0
+    projection_queries: int = 0
+    box_saturated_emissions: int = 0
+    baseline_input_records: int = 0
+    baseline_adjacency_entries: int = 0
+    source_initialization_records: int = 0
+    source_refresh_records: int = 0
+    exception_refresh_records: int = 0
+    sparse_record_updates: int = 0
+
+
+def count(node):
+    return getattr(node, 'count', 1) if node else 0
+
+
+class RankedBoxAVL(WeightedAVL):
+    """One AVL, two translated breakpoint sequences; no rejected-tail scan."""
+
+    def refresh(self, node):
+        super().refresh(node)
+        node.count = 1 + count(node.left) + count(node.right)
+        return node
+
+    def rank_key(self, rank):
+        """Return the zero-based order statistic in O(log N) tree visits."""
+        self.metrics.rank_queries += 1
+        if not 0 <= rank < count(self.root):
+            raise IndexError(rank)
+        node = self.root
+        while node:
+            self.metrics.tree_visits += 1
+            left_count = count(node.left)
+            if rank < left_count:
+                node = node.left
+            elif rank == left_count:
+                return node.key
+            else:
+                rank -= left_count + 1
+                node = node.right
+        raise AssertionError('Corrupt order-statistic tree')
+
+    def tail_moments(self, threshold):
+        """Return sum d and sum d*K over STRICTLY larger keys."""
+        node, total_w, total_s = self.root, 0, F(0)
+        while node:
+            self.metrics.tree_visits += 1
+            if node.key[0] <= threshold:
+                node = node.right
+            else:
+                total_w += node.weight + weight(node.right)
+                total_s += node.weight*node.key[0] + weighted_sum(node.right)
+                node = node.left
+        return total_w, total_s
+
+    def box_mass(self, multiplier, sigma, shift, upper):
+        """Mass and right derivative magnitude for clamp(sigma*K-shift-mu)."""
+        self.metrics.mass_queries += 1
+        lower = (shift + multiplier)/sigma
+        wl, sl = self.tail_moments(lower)
+        wh, sh = self.tail_moments(lower + upper/sigma)
+        mass = sigma*(sl-sh) - (shift+multiplier)*(wl-wh) + upper*wh
+        return mass, wl-wh
+
+    def box_threshold(self, sigma, shift, upper, cap=F(1)):
+        """Exact nonnegative mass multiplier, O(log^2(N+2)) tree work.
+
+        Each of sigma*K-shift and sigma*K-shift-upper is already sorted.
+        Binary-search both sequences for the mass root; the final bracket
+        contains no breakpoint, so one affine solve gives the exact root.
+        Equalities (including plateaus) return immediately. No list of keys,
+        positive raw coordinates, or breakpoints is materialized.
+        """
+        sigma, shift, upper, cap = map(F, (sigma, shift, upper, cap))
+        if sigma <= 0 or upper <= 0 or cap < 0:
+            raise ValueError('Need sigma>0, upper>0, cap>=0')
+        self.metrics.projection_queries += 1
+        mass0, _ = self.box_mass(F(0), sigma, shift, upper)
+        if mass0 <= cap:
+            return F(0), False
+        n = count(self.root)
+        high = sigma*self.rank_key(n-1)[0] - shift
+        if cap == 0:
+            return high, True
+        low = F(0)
+        for translation in (F(0), upper):
+            left, right = 0, n
+            while left < right:
+                middle = (left+right)//2
+                pivot = sigma*self.rank_key(middle)[0] - shift - translation
+                self.metrics.breakpoint_candidates += 1
+                if pivot <= low:
+                    left = middle+1
+                    continue
+                if pivot >= high:
+                    right = middle
+                    continue
+                mass, _ = self.box_mass(pivot, sigma, shift, upper)
+                if mass == cap:
+                    return pivot, True
+                if mass > cap:
+                    low = pivot
+                    left = middle+1
+                else:
+                    high = pivot
+                    right = middle
+        mass, slope = self.box_mass(low, sigma, shift, upper)
+        if slope <= 0:
+            raise ArithmeticError('Invalid final affine water-fill interval')
+        multiplier = low + (mass-cap)/slope
+        if not low < multiplier <= high:
+            raise ArithmeticError('Water-fill root escaped its bracket')
+        return multiplier, True
+
+    def project_box(self, sigma, shift, upper, cap=F(1)):
+        multiplier, active = self.box_threshold(sigma, shift, upper, cap)
+        lower = (F(shift)+multiplier)/F(sigma)
+        selected = {}
+        for key, vertex in self.above(lower):
+            value = min(F(upper), F(sigma)*(key-lower))
+            selected[vertex] = value
+            self.metrics.box_saturated_emissions += int(value == upper)
+        return selected, multiplier, active
+
+
+class CappedBoxCorrector:
+    """Sparse-baseline corrector with a fixed density box C*rho and mass <=1.
+
+    Required analytical interface: baseline <= x*_rho and its volume is
+    charged by the outer continuation scheme. This constructor checks
+    baseline>=0, mass<=1, and 0<=b-Q*baseline<=C*alpha*rho*w exactly.
+    No complete graph traversal or exact optimum is used by the algorithm.
+    """
+
+    def __init__(self, oracle, seed, alpha, theta, rho, baseline=None,
+                 source_constant=4):
+        self.oracle, self.seed = oracle, seed
+        self.alpha, self.theta, self.rho = map(F, (alpha, theta, rho))
+        self.mu = self.theta**2
+        if not (0 < self.theta <= F(1, 2) and self.mu <= self.alpha < 4*self.mu
+                and self.alpha < 1 and self.rho > 0):
+            raise ValueError('Need 0<theta<=1/2, theta²<=alpha<min(4theta²,1), rho>0')
+        self.source_constant = F(source_constant)
+        if self.source_constant < 1:
+            raise ValueError('Source constant must be at least one')
+        self.upper = self.source_constant*self.rho
+        self.a, self.c = 1-self.theta, (1-self.alpha)/2
+        self.lam = self.alpha*self.rho
+        self.metrics = BoxMetrics()
+        self.tree = RankedBoxAVL(self.metrics)
+        self.degree, self.adjacency, self.keys = {}, {}, {}
+        self.X, self.R, self.z, self.t = {}, {}, {}, {}
+        self.baseline, self.source, self.exceptions = {}, {}, set()
+        self.sigma, self.mass_x, self.mass_z = F(1), F(0), F(0)
+        self.history = []
+        self._expose(seed)
+        for i, value in (baseline or {}).items():
+            self.metrics.baseline_input_records += 1
+            value = F(value)
+            if value < 0:
+                raise ValueError('Baseline must be nonnegative')
+            if value:
+                self._expose(i)
+                self.baseline[i] = value
+                self.metrics.sparse_record_updates += 1
+        baseline_mass = sum((self.degree[i]*value
+                             for i, value in self.baseline.items()), F(0))
+        if baseline_mass > 1:
+            raise ValueError('Baseline exceeds unit mass')
+        response = self._response(self.baseline, baseline_setup=True)
+        for i in set(response) | set(self.baseline) | {seed}:
+            self.metrics.source_initialization_records += 1
+            value = (self.alpha/self.degree[i] if i == seed else F(0))
+            value -= self.mu*self.baseline.get(i, F(0)) + response.get(i, F(0))
+            if not 0 <= value <= self.source_constant*self.lam:
+                raise ValueError('Baseline source violates the certified stage interface')
+            if value:
+                self.source[i] = value
+                self.metrics.sparse_record_updates += 1
+        self.source_mass = sum((self.degree[i]*value
+                                for i, value in self.source.items()), F(0))
+        if self.source_mass != self.alpha*(1-baseline_mass):
+            raise ValueError('Source mass identity failed (requires an undirected graph)')
+        # gap(0) <= ||(s-lambda*w)_+||²/(2*mu) <= C*lambda*mass(s)/(2*mu).
+        # Initial acceleration energy is at most twice that gap.
+        self.initial_energy_bound = self.source_constant*self.lam*self.source_mass/self.mu
+        self._install_exceptions()
+
+    def _expose(self, i):
+        if i in self.degree:
+            return
+        d = self.oracle.degree(i)
+        self.metrics.degree_replies += 1
+        if not isinstance(d, int) or d <= 0:
+            raise ValueError('Positive integer degrees are required')
+        self.degree[i] = d
+        self.metrics.sparse_record_updates += 1
+        self._set_key(i, F(0))
+
+    def _set_key(self, i, value):
+        if i in self.keys:
+            if self.keys[i] == value:
+                return
+            self.tree.delete((self.keys[i], i))
+        self.keys[i] = value
+        self.tree.insert((value, i), self.degree[i])
+        self.metrics.key_changes += 1
+
+    def _base_key(self, i):
+        return -self.R.get(i, F(0))/(self.theta*(1+self.theta))
+
+    def _install_exceptions(self):
+        self.exceptions = set(self.z) | set(self.t) | set(self.source)
+        self.metrics.source_refresh_records += len(self.source)
+        for i in self.exceptions:
+            extra = (self.a*self.z.get(i, F(0))
+                     - self.t.get(i, F(0))/(1+self.theta)
+                     + self.source.get(i, F(0))/self.theta)
+            self._set_key(i, self._base_key(i)+extra/self.sigma)
+            self.metrics.exception_refresh_records += 1
+
+    def _response(self, values, baseline_setup=False):
+        """Density response of Q-mu*I, scattering only listed nonzero values."""
+        result = {}
+        for j, value in values.items():
+            if not value:
+                continue
+            result[j] = result.get(j, F(0))+(self.alpha-self.mu+self.c)*value
+            self.metrics.sparse_record_updates += 1
+            if j not in self.adjacency:
+                row = []
+                for i in self.oracle.neighbors(j):
+                    self.metrics.first_adjacency_entries += 1
+                    row.append(i)
+                if len(row) != self.degree[j]:
+                    raise ValueError('Inconsistent degree and adjacency replies')
+                self.adjacency[j] = row
+            for i in self.adjacency[j]:
+                self.metrics.scanned_adjacency_entries += 1
+                self.metrics.baseline_adjacency_entries += int(baseline_setup)
+                self._expose(i)
+                result[i] = result.get(i, F(0))-self.c*value/self.degree[i]
+                self.metrics.sparse_record_updates += 1
+        return {i: value for i, value in result.items() if value}
+
+    def step(self):
+        next_z, multiplier, active = self.tree.project_box(
+            self.sigma, self.lam/self.theta, self.upper)
+        next_mass_z = sum((self.degree[i]*value for i, value in next_z.items()), F(0))
+        if not 0 <= next_mass_z <= 1:
+            raise ArithmeticError('Projection violated its cap')
+        for i in self.exceptions:
+            self._set_key(i, self._base_key(i))
+            self.metrics.exception_refresh_records += 1
+        self.sigma *= self.a
+        for i, value in next_z.items():
+            self.X[i] = self.X.get(i, F(0))+self.theta*value/self.sigma
+            self.metrics.sparse_record_updates += 1
+        next_t = self._response(next_z)
+        for i, value in next_t.items():
+            self.R[i] = self.R.get(i, F(0))+self.theta*value/self.sigma
+            self.metrics.sparse_record_updates += 1
+            self._set_key(i, self._base_key(i))
+        self.z, self.t = next_z, next_t
+        self._install_exceptions()
+        self.mass_x = self.a*self.mass_x+self.theta*next_mass_z
+        self.mass_z = next_mass_z
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(active)
+        self.history.append((sum(self.degree[i] for i in next_z),
+                             self.mass_x, self.mass_z, active, multiplier))
+
+    @property
+    def objective_gap_bound(self):
+        return self.sigma*self.initial_energy_bound
+
+    def run(self, epsilon, max_iterations=None):
+        epsilon = F(epsilon)
+        if epsilon <= 0:
+            raise ValueError('epsilon must be positive')
+        while self.objective_gap_bound > epsilon:
+            if max_iterations is not None and self.metrics.iterations >= max_iterations:
+                break
+            self.step()
+        return self.output()
+
+    def output(self, include_baseline=True):
+        """Charge materialization; return (vertex, degree density, degree)."""
+        result = []
+        support = set(self.X) | (set(self.baseline) if include_baseline else set())
+        for i in sorted(support):
+            value = self.sigma*self.X.get(i, F(0))
+            if include_baseline:
+                value += self.baseline.get(i, F(0))
+            if value:
+                result.append((i, value, self.degree[i]))
+                self.metrics.output_words += 3
+        return result

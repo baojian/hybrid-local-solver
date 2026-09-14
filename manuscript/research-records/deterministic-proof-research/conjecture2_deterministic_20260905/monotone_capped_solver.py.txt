@@ -1,0 +1,92 @@
+"""Exact monotone segment-search variant of the local capped prototype.
+
+Convergence and late-phase work are proved in monotone_capped_acceleration_audit.md.
+The initial-phase work bound remains OPEN. This is not a proof of OP2.
+Fraction arithmetic certifies small experiments; its bit growth is not a
+practical large-instance implementation. The complexity claims elsewhere
+use the explicitly stated exact-real word model.
+"""
+
+from fractions import Fraction as F
+from lazy_capped_solver import LazyCappedSolver
+
+
+class MonotoneCappedSolver(LazyCappedSolver):
+    def __init__(self, oracle, seed, theta, rho):
+        super().__init__(oracle, seed, theta, rho)
+        self.quadratic_x = F(0)
+        self.energy_decay = F(1)
+        self.segment_fractions = []
+        self.objectives = [F(0)]
+
+    def initialize_from_primal(self, degree_coordinates, certified_objective_gap):
+        super().initialize_from_primal(degree_coordinates, certified_objective_gap)
+        self.quadratic_x = sum((self.degree[i]*value*(self.alpha*value
+                                + self.R.get(i, F(0)))
+                                for i, value in self.X.items()), F(0))
+        self.objectives = [self.objective]
+
+    @property
+    def objective(self):
+        return (self.quadratic_x/2-self.alpha*self.sigma*self.X.get(self.seed, F(0))
+                + self.alpha*self.rho*self.mass_x)
+
+    def step(self):
+        tau, active = self.tree.threshold(self.theta*self.rho/self.sigma,
+                                          1/self.sigma)
+        next_z = {i: self.sigma*(key-tau) for key, i in self.tree.above(tau)}
+        next_mass = sum((self.degree[i]*value for i, value in next_z.items()), F(0))
+        assert 0 <= next_mass <= 1
+        next_t = self._laplacian(next_z)
+        cross = sum((self.degree[i]*value*self.sigma
+                     *(self.alpha*self.X.get(i, F(0))+self.R.get(i, F(0)))
+                     for i, value in next_z.items()), F(0))
+        quadratic_z = sum((self.degree[i]*value*(self.alpha*value
+                           + next_t.get(i, F(0)))
+                           for i, value in next_z.items()), F(0))
+        linear = self.theta*(cross-self.quadratic_x
+                            - self.alpha*(next_z.get(self.seed, F(0))
+                                          - self.sigma*self.X.get(self.seed, F(0)))
+                            + self.alpha*self.rho*(next_mass-self.mass_x))
+        curvature = self.theta**2*(quadratic_z+self.quadratic_x-2*cross)
+        assert curvature >= 0
+        fraction = (max(F(0), min(F(1), -linear/curvature))
+                    if curvature else F(0))
+        beta, gamma = 1-fraction*self.theta, fraction*self.theta
+        old_objective = self.objective
+        for i in self.exceptions:
+            self._set_key(i, self._base_key(i))
+        self.sigma *= beta
+        if gamma:
+            for i, value in next_z.items():
+                self.X[i] = self.X.get(i, F(0))+gamma*value/self.sigma
+            for i, value in next_t.items():
+                self.R[i] = self.R.get(i, F(0))+gamma*value/self.sigma
+                self._set_key(i, self._base_key(i))
+        self.quadratic_x = (beta**2*self.quadratic_x+2*beta*gamma*cross
+                            + gamma**2*quadratic_z)
+        self.mass_x = beta*self.mass_x+gamma*next_mass
+        self.mass_z = next_mass
+        self.z, self.t = next_z, next_t
+        self._install_exceptions()
+        self.energy_decay *= self.a
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(active)
+        self.history.append((sum(self.degree[i] for i in next_z),
+                             self.mass_x, self.mass_z, active))
+        self.segment_fractions.append(fraction)
+        self.objectives.append(self.objective)
+        assert self.objective <= old_objective
+
+    def run(self, epsilon, max_iterations=None):
+        epsilon = F(epsilon)
+        if epsilon <= 0: raise ValueError('epsilon must be positive')
+        while self.objective_gap_bound > epsilon:
+            if max_iterations is not None and self.metrics.iterations >= max_iterations:
+                break
+            self.step()
+        return self.output()
+
+    @property
+    def objective_gap_bound(self):
+        return self.energy_decay*self.initial_energy_bound

@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Deterministic exact-arithmetic probe of feasible two-projection acceleration.
+
+This is a symmetry-reduced mathematical experiment, NOT a local solver:
+the d-dimensional hypercube has 2**d vertices but d+1 radial classes.
+No randomness, external graph data, or repository notes are used.
+
+Let theta=p/q, alpha=theta**2, rho=2**(c-d)/d.  For a single seed,
+the degree-mass variables divided by alpha*rho*d are constant on layers.
+If U,V have common denominator den, the next common denominator is
+2*q*d*den. Every support comparison below is exact integer arithmetic.
+The reported ratios use floats only AFTER exact active-set determination.
+"""
+
+import argparse
+import json
+from math import comb
+
+
+def run_exact(d, c, theta_num, theta_den, iterations):
+    if not (0 < theta_num <= theta_den and 0 <= c < d):
+        raise ValueError("Require 0 < theta <= 1 and 0 <= c < d")
+    p, q = theta_num, theta_den
+    a_num = q - p
+    base = 2 * q * d
+    source = 1 << (d - c)  # 1/(rho*d)
+    counts = [comb(d, j) for j in range(d + 1)]
+    denominator = 1
+    u = [0] * (d + 1)
+    v = [0] * (d + 1)
+    best_count = 0
+    best_iteration = 0
+    best_layers = []
+    summed_count = 0
+    for iteration in range(1, iterations + 1):
+        t = [u[j] + v[j] for j in range(d + 1)]
+        next_denominator = denominator * base
+        un, vn = [], []
+        for j in range(d + 1):
+            mixed = d * t[j]
+            if j:
+                mixed += j * t[j - 1]
+            if j < d:
+                mixed += (d - j) * t[j + 1]
+            raw = a_num * mixed - next_denominator
+            if j == 0:
+                raw += source * next_denominator
+            un.append(max(raw, 0))
+            vn.append(max(raw - 2 * a_num * d * u[j], 0))
+        u, v, denominator = un, vn, next_denominator
+        layers = [j for j in range(d + 1) if u[j] > 0]
+        count = sum(counts[j] for j in layers)
+        summed_count += count
+        if count > best_count:
+            best_count = count
+            best_iteration = iteration
+            best_layers = layers
+    return {
+        "status": "finite exact-arithmetic observation, not asymptotic theorem",
+        "dimension": d,
+        "theta_numerator": p,
+        "theta_denominator": q,
+        "alpha": f"({p}/{q})^2",
+        "rho": f"2^({c}-{d})/{d}",
+        "iterations": iterations,
+        "peak_iteration": best_iteration,
+        "peak_active_layers": best_layers,
+        "peak_vertex_count_exact": str(best_count),
+        "sum_vertex_count_exact": str(summed_count),
+        "rho_volume_denominator_exact": str(source),
+        "peak_rho_volume": best_count / source,
+        "mean_rho_volume": summed_count / (iterations * source),
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dimension", type=int, default=128)
+    parser.add_argument("--rho-exponent", type=int, default=16)
+    parser.add_argument("--theta-numerator", type=int, default=1)
+    parser.add_argument("--theta-denominator", type=int, default=100)
+    parser.add_argument("--iterations", type=int, default=1000)
+    args = parser.parse_args()
+    print(json.dumps(run_exact(args.dimension, args.rho_exponent,
+                               args.theta_numerator, args.theta_denominator,
+                               args.iterations), indent=2))
+
+
+if __name__ == "__main__":
+    main()

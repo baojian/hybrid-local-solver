@@ -1,0 +1,41 @@
+"""Separate solver bindings for the integer-pair query reporter.
+
+The stable integer recurrence and continuation code are reused exactly, with
+only their construction-time reporter/class names changed in private copies
+of fixed-size module namespaces. No existing module binding is mutated.
+"""
+from types import FunctionType
+import integer_dyadic_rppr_solver as reference
+import source_energy_dyadic_rppr as shortened
+from integer_pair_clipped_reporter import IntegerPairClippedReporter
+
+
+def _bind(function, name, replacements):
+    namespace=function.__globals__.copy()
+    namespace.update(replacements)
+    result=FunctionType(function.__code__,namespace,name,function.__defaults__,function.__closure__)
+    result.__kwdefaults__=function.__kwdefaults__
+    return result
+
+
+class PairIntegerDyadicCorrector(reference.IntegerDyadicCorrector):
+    __init__=_bind(reference.IntegerDyadicCorrector.__init__, '__init__',
+                  {'IntegerClippedReporter':IntegerPairClippedReporter})
+
+
+class PairSourceEnergyCorrector(shortened.SourceEnergyDyadicCorrector,PairIntegerDyadicCorrector):
+    pass
+
+
+_stable_continuation=_bind(reference.solve_rppr_integer,'_stable_continuation',
+                          {'IntegerDyadicCorrector':PairIntegerDyadicCorrector})
+_source_continuation=_bind(reference.solve_rppr_integer,'_source_continuation',
+                          {'IntegerDyadicCorrector':PairSourceEnergyCorrector})
+
+
+def solve_rppr_pair(oracle,seed,alpha,rho,epsilon):
+    return _stable_continuation(oracle,seed,alpha,rho,epsilon)
+
+
+def solve_rppr_source_energy_pair(oracle,seed,alpha,rho,epsilon):
+    return _source_continuation(oracle,seed,alpha,rho,epsilon)

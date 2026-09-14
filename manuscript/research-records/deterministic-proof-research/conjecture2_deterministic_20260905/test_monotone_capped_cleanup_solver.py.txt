@@ -1,0 +1,215 @@
+"""Deterministic Fraction comparison of sparse cleanup with dense batches."""
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from monotone_capped_cleanup_solver import MonotoneCappedCleanupSolver
+from test_monotone_capped_solver import DenseReference,CheckedOracle,NoFullScan
+from test_local_safe_solver import connected_graphs,dense_exact_obstacle_oracle,path
+
+
+LOG=dict(trajectories=0,exact_steps=0,cleanup_batches=0,cleanup_coordinate_events=0,fixtures=[])
+
+
+def dense_cleanup(reference,x,beta,tau):
+    """Full dense gradient recomputation; independent of either sparse AVL."""
+    q0=(1+reference.alpha)/2
+    history=[]
+    while True:
+        hx=reference.multiply(x)
+        gradient={i:(hx[i]-reference.h[i])/reference.degrees[i] for i in reference.vertices}
+        eligible=[i for i in reference.vertices if x.get(i,F(0))>0
+                  and gradient[i]>beta*q0*x[i]+tau]
+        if not eligible: return x,history
+        old=reference.objective(x)
+        updated=x.copy()
+        diagonal=F(0)
+        for i in eligible:
+            value=max(F(0),x[i]-gradient[i]/q0)
+            diagonal+=reference.degrees[i]*(value-x[i])**2
+            if value: updated[i]=value
+            else: del updated[i]
+        new=reference.objective(updated)
+        assert new<=old-q0*diagonal/2
+        history.append(dict(vertices=set(eligible),volume=sum(reference.degrees[i] for i in eligible),
+                            objective_before=old,objective_after=new,diagonal_delta=diagonal))
+        x=updated
+
+
+class NoIterSet(set):
+    def __iter__(self): raise AssertionError('Full kinetic exception scan during cleanup')
+
+
+class CleanupTests(unittest.TestCase):
+    def verify_state(self,solver,reference,x,z):
+        self.assertEqual({i:solver.sigma*value for i,value in solver.X.items()},x)
+        self.assertEqual(solver.z,z)
+        self.assertEqual(solver.quadratic_x,reference.quadratic(x))
+        self.assertEqual(solver.objective,reference.objective(x))
+        self.assertEqual(solver.mass_x,reference.mass(x))
+        self.assertEqual(set(solver.cleanup_keys),set(x))
+        hx=reference.multiply(x)
+        for i in solver.degree:
+            expected_r=hx[i]/reference.degrees[i]-solver.alpha*x.get(i,F(0))
+            self.assertEqual(solver.sigma*solver.R.get(i,F(0)),expected_r)
+            extra=solver.a*z.get(i,F(0))-solver.t.get(i,F(0))/(1+solver.theta)
+            if i==solver.seed: extra+=solver.alpha/(solver.theta*solver.degree[i])
+            self.assertEqual(solver.keys[i],solver._base_key(i)+extra/solver.sigma)
+            if i in x:
+                expected=solver.R.get(i,F(0))+(solver.alpha-solver.beta*solver.q0)*solver.X[i]
+                if i==solver.seed: expected-=solver.alpha/(solver.sigma*solver.degree[i])
+                self.assertEqual(solver.cleanup_keys[i],expected)
+                gradient=(hx[i]-reference.h[i])/reference.degrees[i]
+                self.assertLessEqual(gradient,solver.beta*solver.q0*x[i]+solver.tau)
+
+    def verify_batches(self,solver,old_length,expected):
+        actual=solver.cleanup_history[old_length:]
+        self.assertEqual(len(actual),len(expected))
+        for first,second in zip(actual,expected):
+            self.assertEqual(set(first['vertices']),second['vertices'])
+            for key in ('volume','objective_before','objective_after','diagonal_delta'):
+                self.assertEqual(first[key],second[key])
+            LOG['cleanup_batches']+=1
+            LOG['cleanup_coordinate_events']+=len(first['vertices'])
+
+    def test_small_initialized_trajectories(self):
+        for n in (2,3):
+            for mask,adjacency in connected_graphs(n):
+                for seed in adjacency:
+                    for theta in (F(1,2),F(1,4)):
+                        for numerator in (1,3):
+                            rho=F(numerator,8*len(adjacency[seed]))
+                            alpha=theta**2
+                            for beta,tau_scale in ((F(1,4),F(1,8)),(alpha/(2*(1+alpha)),F(1,4))):
+                                reference=DenseReference(adjacency,seed,theta,rho)
+                                optimum=dense_exact_obstacle_oracle(adjacency,seed,alpha,rho)
+                                solver=MonotoneCappedCleanupSolver(CheckedOracle(adjacency),seed,theta,rho,beta,tau_scale)
+                                x,z={},{}
+                                with self.subTest(n=n,mask=mask,seed=seed,theta=theta,rho=rho,beta=beta):
+                                    for _ in range(5):
+                                        energy=reference.energy(x,z,optimum)
+                                        old_objective=reference.objective(x)
+                                        old_scans=solver.metrics.scanned_adjacency_entries
+                                        old_cleanup_scans=solver.cleanup_metrics.scanned_adjacency_entries
+                                        old_length=len(solver.cleanup_history)
+                                        parent_x,next_z,fraction,cap,y=reference.step(x,z)
+                                        next_x,batches=dense_cleanup(reference,parent_x,beta,solver.tau)
+                                        solver.step()
+                                        self.verify_state(solver,reference,next_x,next_z)
+                                        self.verify_batches(solver,old_length,batches)
+                                        self.assertEqual(solver.segment_fractions[-1],fraction)
+                                        self.assertEqual(solver.history[-1][3],cap)
+                                        self.assertEqual(solver.history[-1][1],reference.mass(next_x))
+                                        self.assertEqual(solver.objectives[-1],reference.objective(next_x))
+                                        self.assertLessEqual(solver.objective,old_objective)
+                                        dissipation=alpha*theta*(1-alpha)/2*sum(
+                                            reference.degrees[i]*(z.get(i,F(0))-y[i])**2 for i in adjacency)
+                                        self.assertLessEqual(reference.energy(next_x,next_z,optimum),solver.a*energy-dissipation)
+                                        self.assertLessEqual(reference.energy(next_x,next_z,optimum),solver.objective_gap_bound)
+                                        volume=sum(reference.degrees[i] for i in next_z)
+                                        cleanup_volume=sum(record['volume'] for record in batches)
+                                        self.assertEqual(solver.metrics.scanned_adjacency_entries-old_scans,volume+cleanup_volume)
+                                        self.assertEqual(solver.cleanup_metrics.scanned_adjacency_entries-old_cleanup_scans,cleanup_volume)
+                                        self.assertEqual(solver.cleanup_metrics.first_adjacency_entries,0)
+                                        x,z=next_x,next_z
+                                        LOG['exact_steps']+=1
+                                LOG['trajectories']+=1
+
+    def test_three_simultaneous_cascade_batches(self):
+        adjacency=path(3)
+        reference=DenseReference(adjacency,0,F(1,2),F(1,8))
+        optimum=dense_exact_obstacle_oracle(adjacency,0,F(1,4),F(1,8))
+        x={0:F(1,10),1:F(3,20),2:F(3,5)}
+        solver=MonotoneCappedCleanupSolver(CheckedOracle(adjacency),0,F(1,2),F(1,8))
+        gap=reference.objective(x)-reference.objective(optimum)
+        solver.initialize_from_primal(x,gap)
+        expected,batches=dense_cleanup(reference,x,solver.beta,solver.tau)
+        self.assertEqual([record['vertices'] for record in batches],[{2},{1},{2}])
+        old_sigma,old_decay,old_z,old_t=solver.sigma,solver.energy_decay,solver.z.copy(),solver.t.copy()
+        solver.cleanup()
+        self.verify_state(solver,reference,expected,old_z)
+        self.verify_batches(solver,0,batches)
+        self.assertEqual(solver.sigma,old_sigma)
+        self.assertEqual(solver.energy_decay,old_decay)
+        self.assertEqual(solver.t,old_t)
+        self.assertEqual(expected,{0:F(1,10)})
+        LOG['fixtures'].append(dict(label='three-batch-response-cascade',**asdict(solver.cleanup_metrics)))
+
+    def test_warm_steps_with_nonempty_integrated_cleanup(self):
+        adjacency=path(3)
+        reference=DenseReference(adjacency,0,F(1,2),F(1,8))
+        optimum=dense_exact_obstacle_oracle(adjacency,0,F(1,4),F(1,8))
+        x={0:F(1,10),1:F(3,20),2:F(3,5)}
+        z=x.copy()
+        solver=MonotoneCappedCleanupSolver(CheckedOracle(adjacency),0,F(1,2),F(1,8))
+        solver.initialize_from_primal(x,reference.objective(x)-reference.objective(optimum))
+        total_batches=0
+        for _ in range(3):
+            energy=reference.energy(x,z,optimum)
+            old_length=len(solver.cleanup_history)
+            old_scans=solver.metrics.scanned_adjacency_entries
+            parent_x,next_z,fraction,cap,y=reference.step(x,z)
+            next_x,batches=dense_cleanup(reference,parent_x,solver.beta,solver.tau)
+            solver.step()
+            self.verify_state(solver,reference,next_x,next_z)
+            self.verify_batches(solver,old_length,batches)
+            self.assertEqual(solver.segment_fractions[-1],fraction)
+            self.assertEqual(solver.objectives[-1],reference.objective(next_x))
+            self.assertLessEqual(reference.energy(next_x,next_z,optimum),solver.a*energy)
+            self.assertLessEqual(reference.energy(next_x,next_z,optimum),solver.objective_gap_bound)
+            self.assertEqual(solver.metrics.scanned_adjacency_entries-old_scans,
+                sum(reference.degrees[i] for i in next_z)+sum(record['volume'] for record in batches))
+            total_batches+=len(batches)
+            x,z=next_x,next_z
+            LOG['exact_steps']+=1
+        self.assertGreater(total_batches,0)
+        LOG['fixtures'].append(dict(label='warm-integrated-monotone-cleanup',**asdict(solver.cleanup_metrics)))
+
+    def test_no_full_old_state_or_exception_scan(self):
+        adjacency=path(32)
+        reference=DenseReference(adjacency,0,F(1,4),F(1))
+        normalization=4*sum(len(adjacency[i])*(1+i%3) for i in adjacency)
+        x={i:F(1+i%3,normalization) for i in adjacency}
+        solver=MonotoneCappedCleanupSolver(CheckedOracle(adjacency),0,F(1,4),F(1))
+        solver.initialize_from_primal(x,reference.objective(x))
+        expected,batches=dense_cleanup(reference,x,solver.beta,solver.tau)
+        old_z=solver.z.copy()
+        solver.exceptions=NoIterSet(solver.exceptions)
+        for name in ('X','R','z','t','degree'):
+            setattr(solver,name,NoFullScan(getattr(solver,name)))
+            getattr(solver,name).blocked=True
+        solver.cleanup()
+        for name in ('X','R','z','t','degree'): getattr(solver,name).blocked=False
+        self.verify_state(solver,reference,expected,old_z)
+        self.verify_batches(solver,0,batches)
+        self.assertEqual(solver.cleanup_metrics.first_adjacency_entries,0)
+        self.assertEqual(solver.cleanup_metrics.scanned_adjacency_entries,
+                         sum(record['volume'] for record in batches))
+        LOG['fixtures'].append(dict(label='guarded-32-old-state-cleanup',**asdict(solver.cleanup_metrics)))
+
+    def test_parameter_validation_and_run_certificate(self):
+        for beta,tau_scale in ((F(0),F(1)),(F(1),F(1)),(F(1,4),F(0))):
+            with self.assertRaises(ValueError):
+                MonotoneCappedCleanupSolver(CheckedOracle(path(2)),0,F(1,2),F(1,8),beta,tau_scale)
+        adjacency=path(3)
+        reference=DenseReference(adjacency,0,F(1,2),F(1,8))
+        optimum=dense_exact_obstacle_oracle(adjacency,0,F(1,4),F(1,8))
+        solver=MonotoneCappedCleanupSolver(CheckedOracle(adjacency),0,F(1,2),F(1,8))
+        epsilon=solver.initial_energy_bound*solver.a**5
+        output=solver.run(epsilon,max_iterations=10)
+        x={i:value for i,value,d in output}
+        self.assertEqual(solver.metrics.iterations,5)
+        self.assertLessEqual(reference.objective(x)-reference.objective(optimum),solver.objective_gap_bound)
+        self.assertLessEqual(solver.objective_gap_bound,epsilon)
+        self.assertEqual(solver.metrics.output_words,3*len(x))
+
+
+if __name__=='__main__':
+    outcome=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(CleanupTests))
+    LOG['passed'],LOG['test_methods']=outcome.wasSuccessful(),outcome.testsRun
+    Path(__file__).with_name('monotone_capped_cleanup_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    print(json.dumps({key:value for key,value in LOG.items() if key!='fixtures'},indent=2))
+    sys.exit(0 if outcome.wasSuccessful() else 1)

@@ -1,0 +1,194 @@
+"""Independent exact energy bounds, shorter endpoints, and continuation checks."""
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import source_energy_dyadic_rppr as production
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector, solve_rppr_integer, _terminal_repair
+from test_deterministic_rppr_solver import objective, source_density
+from test_local_safe_solver import dense_exact_obstacle_oracle, graph, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+
+LOG = dict(stage_energy_checks=0, stage_endpoint_checks=0, full_cases=0,
+           full_stages=0, short_iterations=0, long_iterations=0,
+           short_corrector_reads=0, long_corrector_reads=0, zero_step_cases=0,
+           zero_energy_cases=0, positive_zero_step_cases=0, strict_square_rounding_cases=0, fixtures=[])
+
+
+def energy_terms(adjacency, seed, alpha, theta, rho, baseline):
+    optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+    error = {i:optimum.get(i, F(0))-baseline.get(i, F(0)) for i in adjacency}
+    assert all(v >= 0 for v in error.values())
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    norm = sum((len(adjacency[i])*value*value for i, value in error.items()), F(0))
+    quadratic = sum((value*(q0*len(adjacency[i])*value-c*sum((error[j] for j in adjacency[i]), F(0)))
+                     for i,value in error.items()), F(0))
+    initial = quadratic/2+theta*theta*norm/2
+    return optimum, initial, quadratic, norm
+
+
+def source_statistics(adjacency, seed, alpha, rho, baseline):
+    source = source_density(adjacency, seed, alpha, baseline)
+    positive = {i:max(source[i]-alpha*rho, F(0)) for i in adjacency}
+    return (sum((len(adjacency[i])*v for i,v in positive.items()), F(0)),
+            sum((len(adjacency[i])*v*v for i,v in positive.items()), F(0)),
+            max(positive.values(), default=F(0)))
+
+
+class SourceEnergyTests(unittest.TestCase):
+    def audit_stage(self, stage, adjacency, candidate=None):
+        baseline = {i:F(v, stage.H) for i,v in stage.baseline.items()}
+        optimum, initial, quadratic, norm = energy_terms(adjacency, stage.seed, stage.alpha,
+            stage.theta, stage.rho, baseline)
+        h1, h2, hinf = source_statistics(adjacency, stage.seed, stage.alpha, stage.rho, baseline)
+        self.assertEqual(stage.source_h1, h1)
+        self.assertEqual(stage.source_hinf, hinf)
+        self.assertLessEqual(h2, stage.source_h2_upper)
+        self.assertEqual((stage.source_energy_denominator**2) % stage.source_h2_upper.denominator, 0)
+        if stage.positive_source_energy_records:
+            self.assertLess(stage.source_h2_upper-h2, stage.source_h2_excess_bound)
+        else:
+            self.assertEqual(stage.source_h2_upper, h2)
+        LOG['strict_square_rounding_cases'] += int(stage.source_h2_upper > h2)
+        self.assertLessEqual(initial, stage.initial_energy_bound)
+        self.assertLessEqual(stage.initial_energy_bound, 3*stage.alpha*stage.rho*stage.mass_cap)
+        self.assertEqual(objective(adjacency, stage.seed, stage.alpha, stage.rho, baseline)
+                         -objective(adjacency, stage.seed, stage.alpha, stage.rho, optimum), quadratic/2)
+        self.assertLessEqual(stage.target_iterations, stage.original_target_iterations)
+        self.assertEqual(stage.source_energy_records, len(stage.source))
+        if stage.blocks:
+            self.assertGreater(stage.initial_energy_bound/F(2**(stage.blocks-1)), stage.tolerance/2)
+        self.assertLessEqual(stage.initial_energy_bound/F(2**stage.blocks), stage.tolerance/2)
+        if candidate is not None:
+            values = {i:v for i,v,d in candidate}
+            gap = (objective(adjacency, stage.seed, stage.alpha, stage.rho, values)
+                   -objective(adjacency, stage.seed, stage.alpha, stage.rho, optimum))
+            self.assertTrue(0 <= gap <= stage.objective_gap_bound < stage.tolerance)
+            LOG['stage_endpoint_checks'] += 1
+        LOG['stage_energy_checks'] += 1
+
+    def test_initial_energy_and_shorter_endpoints(self):
+        fixtures = [(path(3), 0, F(1,4), F(1,2), F(1,4), F(1,64), {}),
+                    (path(2), 0, F(1,100), F(1,16), F(1,4), F(1,4096), {}),
+                    (path(3), 0, F(1,4), F(1,2), F(1,16), F(1,512), {0:F(3,8),1:F(1,16)}),
+                    (graph(4, [(0,1),(1,2),(2,0),(1,3)]), 3,
+                     F(2,5), F(1,2), F(1,4), F(1,256), {}),
+                    (star(4), 0, F(1,4), F(1,2), F(1,4), F(1,128), {})]
+        for adjacency, *args in fixtures:
+            short = production.SourceEnergyDyadicCorrector(CheckedOracle(adjacency), *args)
+            long = IntegerDyadicCorrector(CheckedOracle(adjacency), *args)
+            # Same grid and exact trajectory prefix; only the endpoint changes.
+            self.assertEqual(short.grid, long.grid)
+            for _ in range(short.target_iterations):
+                short.step(); long.step()
+                self.assertEqual((short.S, list(short.X.items()), list(short.L.items()),
+                                  list(short.z.items()), list(short.M.items())),
+                                 (long.S, list(long.X.items()), list(long.L.items()),
+                                  list(long.z.items()), list(long.M.items())))
+            self.audit_stage(short, adjacency, short.run())
+            self.assertEqual(short.metrics.rebase_adjacency_entries, 0)
+        self.assertGreater(LOG['strict_square_rounding_cases'], 0)
+
+    def test_zero_energy_and_positive_zero_step(self):
+        adjacency, baseline = path(2), {0:F(3,8), 1:F(1,8)}
+        oracle = CheckedOracle(adjacency)
+        zero = production.SourceEnergyDyadicCorrector(oracle, 0, F(1,4), F(1,2), F(1,4), F(1,1024), baseline)
+        self.assertEqual(zero.initial_energy_bound, 0)
+        self.assertEqual(zero.target_iterations, 0)
+        self.assertEqual(zero.objective_gap_bound, 0)
+        candidate = zero.run()
+        self.assertEqual({i:v for i,v,d in candidate}, baseline)
+        self.assertEqual(zero.metrics.baseline_adjacency_entries, 2)
+        self.assertEqual(zero.source_energy_records, 2)
+        self.assertEqual(zero.metrics.iterations, 0)
+        repaired, pg, counts = _terminal_repair(zero, candidate, F(1,32))
+        self.assertEqual({i:v for i,v,d in repaired}, baseline)
+        self.assertEqual(pg.scanned_adjacency_entries, 2)
+        self.audit_stage(zero, adjacency, candidate)
+        LOG['zero_energy_cases'] += 1
+        LOG['zero_step_cases'] += 1
+
+        adjacency = path(3)
+        positive = production.SourceEnergyDyadicCorrector(CheckedOracle(adjacency), 0,
+            F(1,4), F(1,2), F(255,256), F(1,128))
+        self.assertTrue(0 < positive.initial_energy_bound <= positive.tolerance/2)
+        self.assertEqual(positive.target_iterations, 0)
+        self.assertEqual(positive.run(), ())
+        self.audit_stage(positive, adjacency, ())
+        self.assertEqual(positive.objective_gap_bound, positive.initial_energy_bound)
+        LOG['positive_zero_step_cases'] += 1
+        LOG['zero_step_cases'] += 1
+
+    def test_full_continuation_energy_source_and_kkt(self):
+        fixtures = [(path(3),0,F(2,5),F(3,10),F(1,2000)),
+                    (tree(5),0,F(1,8),F(1,12),F(1,200)),
+                    (path(2),0,F(1,100),F(1,3),F(1,100)),
+                    (graph(3,[(0,1),(1,2),(2,0)]),0,F(1,3),F(1,10),F(1,1000)),
+                    (star(5),1,F(1,4),F(1,6),F(1,500)),
+                    (star(5),0,F(1,3),F(1,4),F(1,100)),
+                    (path(3),1,F(1),F(1,5),F(1,100)),
+                    (path(3),0,F(1,4),F(1023,1024),F(1,16))]
+        for adjacency, seed, alpha, rho, epsilon in fixtures:
+            observed = []
+            class Observed(production.SourceEnergyDyadicCorrector):
+                def __init__(self,*args,**kwargs):
+                    super().__init__(*args,**kwargs)
+                    observed.append(self)
+                def run(self):
+                    self.test_candidate = super().run()
+                    return self.test_candidate
+            oracle = CheckedOracle(adjacency)
+            with patch.dict(production._shortened_continuation.__globals__, {'IntegerDyadicCorrector':Observed}):
+                short = production.solve_rppr_source_energy(oracle, seed, alpha, rho, epsilon)
+            long = solve_rppr_integer(CheckedOracle(adjacency), seed, alpha, rho, epsilon)
+            self.assertEqual(short.objective_gap_bound, long.objective_gap_bound)
+            previous = {}
+            self.assertEqual(len(short.stages), len(observed))
+            for summary, stage in zip(short.stages, observed):
+                self.audit_stage(stage, adjacency, stage.test_candidate)
+                optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, summary.regularization)
+                current = {i:v for i,v,d in summary.repaired_output}
+                source = source_density(adjacency, seed, alpha, current)
+                for i in adjacency:
+                    self.assertTrue(previous.get(i,0) <= current.get(i,0) <= optimum.get(i,0))
+                    self.assertTrue(0 <= source[i] <= 2*alpha*summary.regularization)
+                self.assertEqual(stage.mass_cap, 1-sum((len(adjacency[i])*v for i,v in previous.items()), F(0)))
+                self.assertEqual(summary.certified_gap, stage.objective_gap_bound)
+                previous = current
+                LOG['full_stages'] += 1
+                LOG['zero_step_cases'] += int(stage.metrics.iterations == 0)
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+            final = {i:v for i,v,d in short.output}
+            gap = objective(adjacency,seed,alpha,rho,final)-objective(adjacency,seed,alpha,rho,optimum)
+            self.assertTrue(0 <= gap <= short.objective_gap_bound <= epsilon)
+            self.assertEqual(len(oracle.degree_queries), 1+short.metrics.repair_degree_replies+
+                sum(s.corrector_metrics['degree_replies'] for s in short.stages))
+            self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),
+                short.metrics.repair_first_adjacency_entries+
+                sum(s.corrector_metrics['first_adjacency_entries'] for s in short.stages))
+            short_K, long_K = sum(s.iterations for s in short.stages), sum(s.iterations for s in long.stages)
+            self.assertLessEqual(short_K, long_K)
+            LOG['short_iterations'] += short_K
+            LOG['long_iterations'] += long_K
+            LOG['short_corrector_reads'] += sum(s.corrector_metrics['scanned_adjacency_entries'] for s in short.stages)
+            LOG['long_corrector_reads'] += sum(s.corrector_metrics['scanned_adjacency_entries'] for s in long.stages)
+            LOG['full_cases'] += 1
+            LOG['fixtures'].append(dict(alpha=str(alpha),rho=str(rho), short_iterations=short_K,long_iterations=long_K,
+                                       final_certificate=str(short.objective_gap_bound)))
+        self.assertGreater(LOG['long_iterations'], LOG['short_iterations'])
+
+    def test_original_module_isolation(self):
+        self.assertIs(production._shortened_continuation.__code__, solve_rppr_integer.__code__)
+        self.assertIsNot(production._shortened_continuation.__globals__, solve_rppr_integer.__globals__)
+        self.assertIs(solve_rppr_integer.__globals__['IntegerDyadicCorrector'], IntegerDyadicCorrector)
+
+
+if __name__ == '__main__':
+    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SourceEnergyTests))
+    LOG['successful'], LOG['tests_run'] = result.wasSuccessful(), result.testsRun
+    Path(__file__).with_name('source_energy_dyadic_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

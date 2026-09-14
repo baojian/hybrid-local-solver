@@ -1,0 +1,282 @@
+"""Independent exact checks of the full deterministic continuation wrapper.
+
+Dense exhaustive support enumeration is a test oracle only. The algorithm
+receives a query-only graph interface. No randomized or floating tests.
+"""
+
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import deterministic_rppr_solver as production
+from capped_box_corrector import CappedBoxCorrector
+from test_local_safe_solver import (connected_graphs, dense_exact_obstacle_oracle,
+                                   path, star, tree)
+from test_monotone_capped_solver import CheckedOracle
+
+
+def objective(adjacency, seed, alpha, rho, values):
+    """Dense quadratic independently assembled in degree coordinates."""
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    quadratic = sum((q0*len(adjacency[i])*values.get(i, F(0))**2
+                     - c*values.get(i, F(0))*sum((values.get(j, F(0))
+                                                for j in adjacency[i]), F(0))
+                     for i in adjacency), F(0))
+    mass = sum((len(adjacency[i])*values.get(i, F(0)) for i in adjacency), F(0))
+    return quadratic/2-alpha*values.get(seed, F(0))+alpha*rho*mass
+
+
+def source_density(adjacency, seed, alpha, values):
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    return {i: (alpha*int(i == seed)+c*sum((values.get(j, F(0))
+                                         for j in adjacency[i]), F(0)))/len(adjacency[i])
+               - q0*values.get(i, F(0)) for i in adjacency}
+
+
+def fraction_summary(value):
+    """Keep exact comparisons in memory without printing huge integer strings."""
+    bits = max(value.numerator.bit_length(), value.denominator.bit_length())
+    if bits <= 2048:
+        return str(value)
+    return dict(numerator_bits=value.numerator.bit_length(),
+                denominator_bits=value.denominator.bit_length(),
+                sign=(value > 0)-(value < 0), exact_certificate_comparison_passed=True)
+
+
+LOG = dict(exact_cases=0, repaired_stage_checks=0, pre_repair_gap_checks=0,
+           next_source_interface_checks=0, nonsquare_alpha_cases=0,
+           nondyadic_final_cases=0, zero_cases=0, alpha_one_cases=0,
+           total_corrector_iterations=0, final_extra_halvings=0, fixtures=[])
+
+
+class ContinuationTests(unittest.TestCase):
+    def checked_case(self, adjacency, seed, alpha, rho, epsilon, label=None,
+                     exact_optimum=None):
+        oracle = CheckedOracle(adjacency)
+        observed = []
+
+        class ObservedCorrector(CappedBoxCorrector):
+            def __init__(self, *args, **kwargs):
+                self.test_degree_start = len(oracle.degree_queries)
+                self.test_adjacency_start = len(oracle.neighbor_queries)
+                super().__init__(*args, **kwargs)
+                self.test_selected_counts = []
+                observed.append(self)
+
+            def step(self):
+                super().step()
+                self.test_selected_counts.append(len(self.z))
+
+            def run(self, *args, **kwargs):
+                result = super().run(*args, **kwargs)
+                self.test_materialized = tuple(result)
+                self.test_degree_end = len(oracle.degree_queries)
+                self.test_adjacency_end = len(oracle.neighbor_queries)
+                return result
+
+        with patch.object(production, 'CappedBoxCorrector', ObservedCorrector):
+            result = production.solve_rppr(oracle, seed, alpha, rho, epsilon)
+
+        # For the large star fixture only, an explicitly derived exact seed-only
+        # optimum avoids a meaningless exponential dense test-oracle traversal.
+        def optimum_at(r):
+            return (exact_optimum(r) if exact_optimum else
+                    dense_exact_obstacle_oracle(adjacency, seed, alpha, r))
+
+        output = {i: value for i, value, degree in result.output}
+        optimum = optimum_at(rho)
+        gap = objective(adjacency, seed, alpha, rho, output)-objective(
+            adjacency, seed, alpha, rho, optimum)
+        self.assertGreaterEqual(gap, 0)
+        self.assertLessEqual(gap, result.objective_gap_bound)
+        self.assertLessEqual(result.objective_gap_bound, epsilon)
+        self.assertTrue(all(0 <= output.get(i, 0) <= optimum.get(i, 0) for i in adjacency))
+        self.assertEqual(result.metrics.final_output_words, 3*len(result.output))
+        self.assertEqual(len(observed), len(result.stages))
+        self.assertEqual(result.metrics.seed_degree_queries, 1)
+        self.assertEqual(len(oracle.degree_queries), 1+sum(
+            stage.corrector_metrics['degree_replies'] for stage in result.stages))
+
+        if rho*len(adjacency[seed]) >= 1:
+            self.assertEqual(result.output, ())
+            self.assertEqual(result.objective_gap_bound, 0)
+            self.assertEqual(result.stages, ())
+            self.assertEqual(oracle.neighbor_queries, [])
+            LOG['zero_cases'] += 1
+        elif alpha == 1:
+            self.assertEqual(output, {seed:F(1, len(adjacency[seed]))-rho})
+            self.assertEqual(result.objective_gap_bound, 0)
+            self.assertEqual(result.stages, ())
+            self.assertEqual(oracle.neighbor_queries, [])
+        if alpha == 1:
+            LOG['alpha_one_cases'] += 1
+
+        previous_rho = F(1, len(adjacency[seed]))
+        previous = {}
+        previous_volume = 0
+        expected_halvings = 0
+        if result.theta is not None:
+            self.assertLessEqual(result.theta**2, alpha)
+            self.assertLess(alpha, 4*result.theta**2)
+            self.assertEqual(result.theta.numerator, 1)
+            self.assertEqual(result.theta.denominator & (result.theta.denominator-1), 0)
+            LOG['nonsquare_alpha_cases'] += int(result.theta**2 != alpha)
+
+        for index, (stage, corrector) in enumerate(zip(result.stages, observed)):
+            self.assertEqual(stage.regularization, max(rho, previous_rho/2))
+            self.assertEqual(corrector.baseline, previous)
+            self.assertEqual(stage.baseline_volume, previous_volume)
+            if stage.regularization == rho and rho != previous_rho/2:
+                LOG['nondyadic_final_cases'] += 1
+            r = stage.regularization
+            stage_optimum = optimum_at(r)
+            source_before = source_density(adjacency, seed, alpha, previous)
+            self.assertTrue(all(0 <= value <= 4*alpha*r for value in source_before.values()))
+            self.assertEqual(corrector.source,
+                             {i: value for i, value in source_before.items() if value})
+            self.assertEqual(stage.source_records, len(corrector.source))
+            self.assertLessEqual(stage.source_records, 2*previous_volume+1)
+            expected_source_mass = alpha*(1-sum((len(adjacency[i])*value
+                                                  for i, value in previous.items()), F(0)))
+            self.assertEqual(stage.source_mass, expected_source_mass)
+            self.assertTrue(0 <= stage.source_mass <= alpha)
+            LOG['next_source_interface_checks'] += 1
+
+            materialized = {i: value for i, value, degree in corrector.test_materialized}
+            before_gap = objective(adjacency, seed, alpha, r, materialized)-objective(
+                adjacency, seed, alpha, r, stage_optimum)
+            self.assertTrue(0 <= before_gap <= stage.certified_gap <= stage.requested_gap)
+            self.assertEqual(stage.requested_gap, alpha**3*stage.delta**2/2)
+            LOG['pre_repair_gap_checks'] += 1
+
+            expected_delta = alpha*r/2
+            if r == rho:
+                while expected_delta**2 > epsilon*r/2:
+                    expected_delta /= 2
+                    expected_halvings += 1
+            self.assertEqual(stage.delta, expected_delta)
+            repaired = {i: value for i, value, degree in stage.repaired_output}
+            expected_repaired = {i: value-stage.delta for i, value in materialized.items()
+                                 if value > stage.delta}
+            self.assertEqual(repaired, expected_repaired)
+            self.assertTrue(all(0 <= repaired.get(i, 0) <= stage_optimum.get(i, 0)
+                                for i in adjacency))
+            self.assertTrue(all(stage_optimum.get(i, 0)-repaired.get(i, 0)
+                                <= (1+alpha)*stage.delta for i in adjacency))
+            after_gap = objective(adjacency, seed, alpha, r, repaired)-objective(
+                adjacency, seed, alpha, r, stage_optimum)
+            self.assertTrue(0 <= after_gap <= 2*stage.delta**2/r)
+            source_after = source_density(adjacency, seed, alpha, repaired)
+            self.assertTrue(all(0 <= value <= 2*alpha*r for value in source_after.values()))
+            self.assertEqual(stage.repaired_volume, sum(len(adjacency[i]) for i in repaired))
+            self.assertLessEqual(stage.repaired_volume, 1/r)
+            self.assertEqual(stage.repaired_mass,
+                             sum((len(adjacency[i])*value for i, value in repaired.items()), F(0)))
+            self.assertLessEqual(stage.repaired_mass, 1)
+            self.assertLessEqual(stage.kinetic_volume, stage.kinetic_volume_bound)
+            self.assertEqual(stage.kinetic_volume_bound, 148*stage.iterations/r)
+
+            metrics = stage.corrector_metrics
+            degree_queries = oracle.degree_queries[corrector.test_degree_start:corrector.test_degree_end]
+            adjacency_queries = oracle.neighbor_queries[
+                corrector.test_adjacency_start:corrector.test_adjacency_end]
+            self.assertEqual(len(degree_queries), len(set(degree_queries)))
+            self.assertEqual(len(adjacency_queries), len(set(adjacency_queries)))
+            self.assertEqual(metrics['degree_replies'], len(degree_queries))
+            self.assertEqual(metrics['first_adjacency_entries'],
+                             sum(len(adjacency[i]) for i in adjacency_queries))
+            self.assertEqual(metrics['baseline_adjacency_entries'], previous_volume)
+            self.assertEqual(metrics['scanned_adjacency_entries'], previous_volume+stage.kinetic_volume)
+            self.assertEqual(metrics['projection_emissions'], sum(corrector.test_selected_counts))
+            self.assertEqual(metrics['projection_queries'], stage.iterations)
+            self.assertEqual(metrics['source_refresh_records'],
+                             (stage.iterations+1)*stage.source_records)
+            self.assertEqual(metrics['output_words'], 3*len(materialized))
+            LOG['repaired_stage_checks'] += 1
+            LOG['total_corrector_iterations'] += stage.iterations
+            previous_rho, previous, previous_volume = r, repaired, stage.repaired_volume
+
+        self.assertEqual(result.metrics.tolerance_halvings, expected_halvings)
+        self.assertEqual(result.metrics.schedule_operations, len(result.stages))
+        self.assertEqual(result.metrics.repaired_input_records,
+                         sum(len(c.test_materialized) for c in observed))
+        self.assertEqual(result.metrics.repaired_output_records,
+                         sum(len(stage.repaired_output) for stage in result.stages))
+        if result.stages:
+            self.assertEqual(result.output, result.stages[-1].repaired_output)
+            self.assertEqual(result.objective_gap_bound, 2*result.stages[-1].delta**2/rho)
+        LOG['final_extra_halvings'] += expected_halvings
+        LOG['exact_cases'] += 1
+        if label:
+            LOG['fixtures'].append(dict(label=label, vertices=len(adjacency), alpha=str(alpha),
+                rho=str(rho), epsilon=str(epsilon), actual_gap=fraction_summary(gap),
+                certificate=str(result.objective_gap_bound), stages=len(result.stages),
+                iterations=sum(stage.iterations for stage in result.stages),
+                degree_queries=len(oracle.degree_queries),
+                adjacency_queries=len(oracle.neighbor_queries), **asdict(result.metrics)))
+        return result, oracle
+
+    def test_all_small_connected_graphs_and_seeds(self):
+        for n in (2, 3):
+            for _, adjacency in connected_graphs(n):
+                for seed in adjacency:
+                    self.checked_case(adjacency, seed, F(1, 4), F(1, 4), F(1, 500))
+
+    def test_arbitrary_parameters_and_restarts(self):
+        fixtures = [
+            (path(3), 0, F(2, 5), F(3, 10), F(1, 2000), 'nondyadic final rho and extra final halving'),
+            (tree(5), 0, F(1, 8), F(1, 12), F(1, 200), 'multiple repaired dyadic stages'),
+            (path(2), 0, F(1, 100), F(1, 3), F(1, 100), 'small nonsquare alpha'),
+            (path(3), 1, F(17, 19), F(1, 5), F(1, 1000), 'alpha near one'),
+            (star(5), 1, F(1, 3), F(1, 6), F(1), 'loose requested final accuracy')]
+        for args in fixtures:
+            self.checked_case(*args[:-1], label=args[-1])
+
+    def test_zero_and_alpha_one(self):
+        self.checked_case(star(5), 0, F(2, 3), F(1, 4), F(1, 100), label='zero at equality')
+        self.checked_case(path(3), 1, F(1, 4), F(3, 4), F(1, 100), label='zero above threshold')
+        self.checked_case(star(5), 0, F(1), F(1, 8), F(1, 100), label='alpha one nonzero')
+        self.checked_case(path(3), 1, F(1), F(1, 2), F(1, 100), label='alpha one zero')
+
+    def test_inactive_high_degree_boundary(self):
+        adjacency = star(1001)
+        alpha, rho, seed = F(1, 4), F(1, 10), 1
+
+        def exact_seed_only(r):
+            value = max(F(0), 2*alpha*(1-r)/(1+alpha))
+            # Independent full KKT check of the closed-form optimum.
+            candidate = {seed:value} if value else {}
+            src = source_density(adjacency, seed, alpha, candidate)
+            self.assertEqual(src[seed], alpha*r)
+            self.assertTrue(all(src[i] <= alpha*r for i in adjacency if i != seed))
+            return candidate
+
+        result, oracle = self.checked_case(adjacency, seed, alpha, rho, F(1, 1000),
+            label='degree 1000 boundary remains inactive throughout continuation',
+            exact_optimum=exact_seed_only)
+        self.assertTrue(oracle.neighbor_queries)
+        self.assertEqual(set(oracle.neighbor_queries), {seed})
+        self.assertEqual(set(oracle.degree_queries), {0, seed})
+        self.assertTrue(all(stage.repaired_volume == 1 for stage in result.stages))
+
+    def test_invalid_parameters(self):
+        for alpha, rho, epsilon in ((F(0), F(1), F(1)), (F(2), F(1), F(1)),
+                                    (F(1, 2), F(0), F(1)), (F(1, 2), F(1), F(0))):
+            oracle = CheckedOracle(path(2))
+            with self.assertRaises(ValueError):
+                production.solve_rppr(oracle, 0, alpha, rho, epsilon)
+            self.assertEqual(oracle.degree_queries, [])
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(ContinuationTests))
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('deterministic_rppr_solver_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

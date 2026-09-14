@@ -1,0 +1,193 @@
+"""Optional mass-scaled grid; unchanged fixed continuation and integer kernel.
+
+Only initialization precision, its certified error floor, and the scheduling
+fields are adapted. Step, reporter, rebase, checkpoint and terminal repair
+implementations are inherited without modification. No timing claim is made.
+"""
+from dataclasses import asdict, dataclass
+from fractions import Fraction as F
+from ._combined import CombinedDyadicCorrector
+from ._direct import DirectExceptionIntegerCorrector
+from ._types import SolverResult
+from . import _integer as reference
+
+@dataclass(frozen=True)
+class RetargetingWork:
+    original_bound_doublings: int
+    source_schedule_checks: int
+    source_schedule_doublings: int
+    binomial_schedule_checks: int
+    binomial_schedule_power_updates: int
+
+class MassScaledGridCorrector(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    """The existing fast kernel, initialized with a verified mass-cap hint.
+
+    The hint is checked against the parent's exact assembled source cap.
+    The relaxed initialization horizon is never stepped: every horizon and
+    certificate field is restored for the requested tolerance beforehand.
+    """
+
+    def __init__(self, oracle, seed, alpha, theta, rho, tolerance, baseline=None, grid=None, *, mass_cap_hint):
+        actual_tolerance, eta, r = (F(tolerance), F(mass_cap_hint), F(rho))
+        if not 0 < eta <= 1 or eta < r:
+            raise ValueError('Need a positive mass-cap hint in [rho,1]')
+        if not 0 < actual_tolerance < eta:
+            raise ValueError('The actual stage tolerance must lie in (0,eta)')
+        relaxed_tolerance = actual_tolerance / eta
+        super().__init__(oracle, seed, alpha, theta, rho, relaxed_tolerance, baseline, grid)
+        if self.mass_cap != eta:
+            raise ValueError('Mass-cap hint disagrees with the assembled exact source')
+        assert self.metrics.iterations == self.metrics.completed_blocks == 0
+        assert self._accepted_bound is None and self._accepted_iteration is None
+        assert self._next_checkpoint == self.T and (not self._checker_containers)
+        assert self.checkpoint_metrics.checkpoints == 0
+        self.mass_cap_hint = eta
+        self.relaxed_initialization_tolerance = relaxed_tolerance
+        self.relaxed_horizons = dict(original_target_iterations=self.original_target_iterations, half_bound_target_iterations=self.half_bound_target_iterations, half_bound_blocks=self.half_bound_blocks, target_iterations=self.target_iterations, blocks=self.blocks)
+        self.relaxed_schedule_work = dict(bound_doublings=self.metrics.bound_doublings, source_checks=self.source_energy_schedule_checks, source_doublings=self.source_energy_schedule_doublings, binomial_checks=self.binomial_schedule_checks, binomial_power_updates=self.binomial_schedule_power_updates)
+        self.tolerance = actual_tolerance
+        self.gamma_bound = 29 * eta * self.grid / self.theta
+        assert self.grid <= min(F(1, 8), self.theta * actual_tolerance / (256 * eta), self.theta * self.alpha ** 2 * r / 29)
+        assert self.gamma_bound < actual_tolerance / 8
+        assert self.gamma_bound <= eta * self.alpha ** 2 * r
+        original_doublings, denominator = (0, 1)
+        while denominator * actual_tolerance < 2:
+            denominator *= 2
+            original_doublings += 1
+            self.metrics.bound_doublings += 1
+        self.original_target_iterations = self.T * original_doublings
+        half_blocks, denominator, source_checks = (0, 1, 0)
+        while True:
+            source_checks += 1
+            self.source_energy_schedule_checks += 1
+            if self.initial_energy_bound / denominator <= actual_tolerance / 2:
+                break
+            denominator *= 2
+            half_blocks += 1
+            self.source_energy_schedule_doublings += 1
+        self.half_bound_blocks = half_blocks
+        self.half_bound_target_iterations = self.T * half_blocks
+        power_numerator, power_denominator, blocks, binomial_checks = (1, 1, 0, 0)
+        left = 2 * self.initial_energy_bound.numerator * actual_tolerance.denominator
+        right = actual_tolerance.numerator * self.initial_energy_bound.denominator
+        while True:
+            binomial_checks += 1
+            self.binomial_schedule_checks += 1
+            if left * power_numerator <= right * power_denominator:
+                break
+            power_numerator *= self.block_bound.numerator
+            power_denominator <<= 16
+            blocks += 1
+            self.binomial_schedule_power_updates += 1
+        self.target_power_numerator, self.target_power_denominator = (power_numerator, power_denominator)
+        self.block_power_numerator, self.block_power_denominator = (1, 1)
+        self.decay_denominator = 1
+        self.blocks, self.target_iterations = (blocks, self.T * blocks)
+        assert self.target_iterations <= self.half_bound_target_iterations <= self.original_target_iterations
+        self.retargeting_work = RetargetingWork(original_doublings, source_checks, half_blocks, binomial_checks, blocks)
+        self.mass_grid_scalar_setup_passes = 1
+
+    @property
+    def diagnostic_metrics(self):
+        result = super().diagnostic_metrics
+        result['mass_scaled_grid'] = dict(mass_cap_hint=self.mass_cap_hint, actual_tolerance=self.tolerance, relaxed_initialization_tolerance=self.relaxed_initialization_tolerance, gamma_bound=self.gamma_bound, relaxed_horizons=self.relaxed_horizons, relaxed_schedule_work=self.relaxed_schedule_work, retargeting_work=asdict(self.retargeting_work), scalar_setup_passes=self.mass_grid_scalar_setup_passes, counter_contract='Retargeting loop work is already included in the ordinary accumulated schedule counters; do not add the displayed subsets twice.')
+        return result
+
+@dataclass
+class MassHintMetrics:
+    factory_calls: int = 0
+    initial_unit_hints: int = 0
+    baseline_input_records: int = 0
+    previous_degree_cache_lookups: int = 0
+    baseline_count_conversions: int = 0
+    mass_integer_updates: int = 0
+    rational_mass_hints: int = 0
+    hint_interface_checks: int = 0
+    previous_references_released: int = 0
+
+@dataclass(frozen=True)
+class MassHintRecord:
+    regularization: F
+    mass_cap: F
+    baseline_records: int
+    previous_grid_denominator: int | None
+
+class MassCapHintFactory:
+    """One preceding corrector supplies degrees; no new graph access is used."""
+
+    def __init__(self):
+        self.previous = None
+        self.metrics = MassHintMetrics()
+        self.records = []
+
+    def __call__(self, oracle, seed, alpha, theta, rho, tolerance, baseline=None, grid=None):
+        self.metrics.factory_calls += 1
+        if self.previous is None:
+            if baseline:
+                raise ValueError('An initial factory stage must have the zero baseline')
+            eta, previous_H, records = (F(1), None, 0)
+            self.metrics.initial_unit_hints += 1
+        else:
+            previous = self.previous
+            if previous.oracle is not oracle or previous.seed != seed:
+                raise ValueError('A factory must stay with one oracle and seed')
+            previous_H, mass, records = (previous.H, 0, 0)
+            for i, value in baseline.items() if baseline is not None else ():
+                self.metrics.baseline_input_records += 1
+                self.metrics.previous_degree_cache_lookups += 1
+                records += 1
+                degree = previous.degree.get(i)
+                if degree is None:
+                    raise ValueError('Incoming repaired baseline degree was not cached')
+                value = F(value)
+                if value < 0 or previous_H % value.denominator:
+                    raise ValueError('Incoming baseline must use the preceding dyadic grid')
+                count = value.numerator * (previous_H // value.denominator)
+                self.metrics.baseline_count_conversions += 1
+                mass += degree * count
+                self.metrics.mass_integer_updates += 1
+            eta = F(previous_H - mass, previous_H)
+            self.metrics.rational_mass_hints += 1
+            self.previous = None
+            self.metrics.previous_references_released += 1
+            del previous
+        self.metrics.hint_interface_checks += 1
+        if not F(rho) <= eta <= 1:
+            raise ValueError('Mass hint violates the regularized stage interface')
+        current = MassScaledGridCorrector(oracle, seed, alpha, theta, rho, tolerance, baseline, grid, mass_cap_hint=eta)
+        self.previous = current
+        self.records.append(MassHintRecord(F(rho), eta, records, previous_H))
+        return current
+
+    def release(self):
+        if self.previous is not None:
+            self.previous = None
+            self.metrics.previous_references_released += 1
+
+@dataclass(frozen=True)
+class MassScaledGridResult:
+    """Add mass_hint_metrics to the existing inner result's work ledgers."""
+    result: SolverResult
+    mass_hint_metrics: MassHintMetrics
+    mass_hints: tuple
+
+    @property
+    def output(self):
+        return self.result.output
+
+    @property
+    def objective_gap_bound(self):
+        return self.result.objective_gap_bound
+
+    @property
+    def stages(self):
+        return self.result.stages
+
+def solve_rppr_mass_scaled_grid(oracle, seed, alpha, rho, epsilon):
+    """Use unchanged fixed continuation with an exact cached mass-hint factory."""
+    factory = MassCapHintFactory()
+    try:
+        result = reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class=factory)
+    finally:
+        factory.release()
+    return MassScaledGridResult(result, factory.metrics, tuple(factory.records))

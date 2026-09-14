@@ -1,6 +1,8 @@
 # Hybrid Local Solver
 
-This is a numerical optimization repository.
+Research code, proof notes, and development history for *Accelerated Local Algorithms for Personalized and Regularized PageRank* by Baojian Zhou.
+
+Start with the [active manuscript](manuscript/main.tex), [research-note index](manuscript/notes/README.md), and [public-history guide](docs/public-release/README.md). The guide maps the original commit IDs cited in the paper to their public counterparts and documents all exclusions. This is a filtered history with the original research chronology retained; the unfiltered repository is held privately.
 
 `hybrid-local-solver` develops and evaluates accelerated local solvers for
 large-scale graph optimization problems. The initial focus is local PageRank:
@@ -42,8 +44,7 @@ than a universal optimality theorem.
 This repository supports venue-neutral manuscript development, with possible
 submissions to the *Journal of Machine Learning Research* (JMLR) and the
 *International Conference on Machine Learning* (ICML). Shared manuscript
-sources live in [`manuscript/`](manuscript/), while complete previous-paper
-projects are preserved separately under `manuscript/archive/`. Venue-specific
+sources live in [`manuscript/`](manuscript/), while imported previous-paper projects remain in the private archive. Readable original research records are preserved under `manuscript/research-records/`. Venue-specific
 formatting can be isolated in the manuscript workspace as submission targets
 are prepared. Mathematical conventions and evolving research decisions are
 recorded in [`docs/`](docs/).
@@ -57,8 +58,8 @@ recorded in [`docs/`](docs/).
 | [`results/`](results/) | Structured experiment records and provenance; transient raw runs remain ignored. |
 | [`tests/`](tests/) | Automated checks for graph loading, solver interfaces, and experiment entry points. |
 | [`docs/`](docs/) | Authoritative research context, mathematical conventions, decisions, and literature notes. |
-| [`manuscript/`](manuscript/) | Active LaTeX paper, independently buildable research notes, shared notation, and read-only archives. |
-| [`papers/`](papers/) | Source PDFs managed with Git LFS; annotations belong in `docs/literature/`. |
+| [`manuscript/`](manuscript/) | Active LaTeX paper, independently buildable research notes, shared notation, and readable original research records. |
+| [`papers/`](papers/) | Ignored local paper copies; public citations and annotations belong in `docs/literature/`. |
 | [`tools/`](tools/) | Machine-checkable repository coordination and maintenance commands. |
 
 Keep reusable computational logic in `src/`; experiment scripts should
@@ -108,9 +109,7 @@ current problem statement, intended contributions, open definitions, and
 documentation map. Curated notes and page-level pointers live in
 [`docs/literature/`](docs/literature/).
 
-Source PDFs may be added to [`papers/`](papers/), which is configured for Git
-LFS. See [`papers/README.md`](papers/README.md) before adding a paper; adding an
-unannotated collection of PDFs is intentionally discouraged.
+Source PDFs may be saved locally under [`papers/`](papers/) and are ignored by Git. Obtain them from the publisher/arXiv links in the literature index. See [`papers/README.md`](papers/README.md) for the public repository policy.
 
 ## Development setup
 
@@ -190,3 +189,7 @@ make full-experiments DATA_DIR=/absolute/path/to/graphs
 See [`docs/data-acquisition.md`](docs/data-acquisition.md) and
 [`experiments/README.md`](experiments/README.md) for selective retrieval,
 individual sweep commands, and structured outputs.
+
+## Release validation and rights
+
+The [release validation record](docs/public-release/VALIDATION.md) reports checks and known failures without treating computational checks as proof certification. [Rights and third-party notices](RIGHTS.md) explain existing license boundaries.

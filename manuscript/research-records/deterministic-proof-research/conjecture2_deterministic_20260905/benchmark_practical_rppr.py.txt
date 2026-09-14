@@ -1,0 +1,304 @@
+"""Deterministic virtual-graph benchmarks for the practical RPPR solver.
+
+Graph construction, fixture choice, numerical algorithms, and verification
+are deterministic. Wall times are measurements, not mathematical claims.
+Large graphs are accessed through their local oracle; they are never built.
+Verification has its own oracle and charges, separate from solver work.
+"""
+
+import argparse
+import importlib
+import json
+import math
+import time
+from dataclasses import asdict, dataclass
+from fractions import Fraction as F
+from pathlib import Path
+
+
+class VirtualGraph:
+    def __init__(self, family, size, auxiliary=0):
+        minimum = {'path': 2, 'cycle': 3, 'star': 2, 'grid': 2, 'cube': 1,
+                   'barbell': 1, 'tree_clique': 1}
+        if family not in minimum or not isinstance(size, int) or size < minimum[family]:
+            raise ValueError('Invalid family or graph-size parameter')
+        if not isinstance(auxiliary, int):
+            raise ValueError('Auxiliary graph size must be an integer')
+        self.family, self.size, self.auxiliary = family, size, auxiliary
+        if family in ('path', 'cycle', 'star'):
+            self.n = size
+        elif family == 'grid':
+            self.n = size*size
+        elif family == 'cube':
+            self.n = 1 << size
+        elif family == 'barbell':
+            self.n = 2*size
+        elif family == 'tree_clique':
+            self.tree_n = (1 << (size+1))-1
+            self.leaf_start = 1 << size
+            if auxiliary < self.leaf_start:
+                raise ValueError('Clique must have at least as many vertices as leaves')
+            self.n = self.tree_n+auxiliary
+        else:
+            raise ValueError(family)
+
+    def degree(self, i):
+        if not 1 <= i <= self.n:
+            raise ValueError('Vertex is outside this graph')
+        family, size = self.family, self.size
+        if family == 'path':
+            return 1 if i in (1, size) else 2
+        if family == 'cycle':
+            return 2
+        if family == 'star':
+            return size-1 if i == 1 else 1
+        if family == 'grid':
+            row, col = divmod(i-1, size)
+            return int(row > 0)+int(row < size-1)+int(col > 0)+int(col < size-1)
+        if family == 'cube':
+            return size
+        if family == 'barbell':
+            return size if i in (size, size+1) else size-1
+        if i <= self.tree_n:
+            return 2 if i == 1 or i >= self.leaf_start else 3
+        offset = i-self.tree_n-1
+        return self.auxiliary-1+int(offset < self.leaf_start)
+
+    def neighbors(self, i):
+        self.degree(i)
+        family, size = self.family, self.size
+        if family == 'path':
+            if i > 1:
+                yield i-1
+            if i < size:
+                yield i+1
+        elif family == 'cycle':
+            yield i-1 if i > 1 else size
+            yield i+1 if i < size else 1
+        elif family == 'star':
+            if i == 1:
+                yield from range(2, size+1)
+            else:
+                yield 1
+        elif family == 'grid':
+            row, col = divmod(i-1, size)
+            if row:
+                yield i-size
+            if col:
+                yield i-1
+            if col < size-1:
+                yield i+1
+            if row < size-1:
+                yield i+size
+        elif family == 'cube':
+            for bit in range(size):
+                yield ((i-1) ^ (1 << bit))+1
+        elif family == 'barbell':
+            first = 1 if i <= size else size+1
+            for j in range(first, first+size):
+                if j != i:
+                    yield j
+            if i == size:
+                yield size+1
+            elif i == size+1:
+                yield size
+        elif i <= self.tree_n:
+            if i > 1:
+                yield i//2
+            if i < self.leaf_start:
+                yield 2*i
+                yield 2*i+1
+            else:
+                yield self.tree_n+1+i-self.leaf_start
+        else:
+            for j in range(self.tree_n+1, self.n+1):
+                if j != i:
+                    yield j
+            offset = i-self.tree_n-1
+            if offset < self.leaf_start:
+                yield self.leaf_start+offset
+
+
+class CountingOracle:
+    def __init__(self, graph, entry_limit=None):
+        self.graph, self.entry_limit = graph, entry_limit
+        self.degree_replies = 0
+        self.row_requests = 0
+        self.adjacency_entries = 0
+        self.maximum_queried_degree = 0
+        self.maximum_scanned_degree = 0
+        self.queried_vertices = set()
+        self.scanned_vertices = set()
+
+    def degree(self, i):
+        degree = self.graph.degree(i)
+        self.degree_replies += 1
+        self.maximum_queried_degree = max(self.maximum_queried_degree, degree)
+        self.queried_vertices.add(i)
+        return degree
+
+    def neighbors(self, i):
+        self.row_requests += 1
+        self.maximum_scanned_degree = max(self.maximum_scanned_degree, self.graph.degree(i))
+        self.scanned_vertices.add(i)
+        for j in self.graph.neighbors(i):
+            if self.entry_limit is not None and self.adjacency_entries >= self.entry_limit:
+                raise RuntimeError('Benchmark adjacency-entry resource limit reached')
+            self.adjacency_entries += 1
+            yield j
+
+    def snapshot(self):
+        return dict(degree_replies=self.degree_replies, row_requests=self.row_requests,
+                    adjacency_entries=self.adjacency_entries,
+                    maximum_queried_degree=self.maximum_queried_degree,
+                    maximum_scanned_degree=self.maximum_scanned_degree,
+                    unique_degree_vertices=len(self.queried_vertices),
+                    unique_scanned_vertices=len(self.scanned_vertices))
+
+
+@dataclass(frozen=True)
+class Case:
+    name: str
+    family: str
+    size: int
+    auxiliary: int
+    seed: int
+    alpha: F
+    rho: F
+    epsilon: F
+    tier: str = 'quick'
+
+
+CASES = (
+    Case('path-small', 'path', 5, 0, 1, F(1, 4), F(1, 16), F(1, 10**6)),
+    Case('barbell-small', 'barbell', 3, 0, 1, F(1, 8), F(1, 32), F(1, 10**6)),
+    Case('star-billion', 'star', 10**9+1, 0, 2, F(1, 100), F(1, 64), F(1, 10**8)),
+    Case('star-huge-labels', 'star', 2**100+1, 0, 2**100+1,
+         F(1, 100), F(1, 64), F(1, 10**8)),
+    Case('path-local', 'path', 10**9, 0, 1, F(1, 100), F(1, 128), F(1, 10**8)),
+    Case('cycle-local', 'cycle', 10**9, 0, 1, F(1, 100), F(1, 128), F(1, 10**8)),
+    Case('grid-local', 'grid', 10**4, 0, 5000*10**4+5001, F(1, 16), F(1, 256), F(1, 10**8)),
+    Case('cube-local', 'cube', 20, 0, 1, F(1, 16), F(1, 256), F(1, 10**8)),
+    Case('barbell-medium', 'barbell', 32, 0, 1, F(1, 32), F(1, 512), F(1, 10**8), 'extended'),
+    Case('tree-clique-boundary', 'tree_clique', 5, 2**14, 1,
+         F(1, 64), F(1, 512), F(1, 10**8), 'extended'),
+    Case('path-alpha-1e3', 'path', 10**9, 0, 1,
+         F(1, 1000), F(1, 512), F(1, 10**8), 'extended'),
+    Case('grid-alpha-1e2', 'grid', 10**4, 0, 5000*10**4+5001,
+         F(1, 100), F(1, 1024), F(1, 10**8), 'extended'),
+)
+
+
+def json_value(value):
+    if isinstance(value, F):
+        return str(value)
+    if isinstance(value, dict):
+        return {str(k): json_value(v) for k, v in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [json_value(v) for v in value]
+    return value
+
+
+def independent_output_checks(graph, case, answer):
+    """Exact sparse source and optional full small-graph optimality checks."""
+    oracle = CountingOracle(graph)
+    values = {i: F(value) for i, value, degree in answer.output}
+    degrees = {i: degree for i, value, degree in answer.output}
+    assert len(values) == len(answer.output)
+    q0, c, lam = (1+case.alpha)/2, (1-case.alpha)/2, case.alpha*case.rho
+    source_numerator = {case.seed: case.alpha}
+    for i, value in values.items():
+        assert value > 0 and degrees[i] == oracle.degree(i)
+        source_numerator[i] = source_numerator.get(i, F(0))-q0*degrees[i]*value
+        for j in oracle.neighbors(i):
+            source_numerator[j] = source_numerator.get(j, F(0))+c*value
+    source = {}
+    for i, value in source_numerator.items():
+        degree = oracle.degree(i)
+        source[i] = value/degree
+        assert 0 <= source[i] <= 2*lam
+    volume = sum(degrees.values())
+    mass = sum((degrees[i]*value for i, value in values.items()), F(0))
+    assert volume <= 1/case.rho and 0 <= mass <= 1
+    assert sum(source_numerator.values(), F(0)) == case.alpha*(1-mass)
+    assert 0 <= answer.objective_gap_bound <= case.epsilon
+    checks = dict(exact_source_nonnegative=True, exact_source_upper_bound=True,
+                  exact_source_mass_identity=True, support_volume=volume, mass=mass,
+                  returned_objective_certificate=answer.objective_gap_bound)
+    if graph.n <= 7:
+        from test_local_safe_solver import dense_exact_obstacle_oracle
+        from test_deterministic_rppr_solver import objective
+        adjacency = {i: tuple(oracle.neighbors(i)) for i in range(1, graph.n+1)}
+        optimum = dense_exact_obstacle_oracle(adjacency, case.seed, case.alpha, case.rho)
+        gap = objective(adjacency, case.seed, case.alpha, case.rho, values)-objective(
+            adjacency, case.seed, case.alpha, case.rho, optimum)
+        assert 0 <= gap <= answer.objective_gap_bound
+        assert all(values.get(i, 0) <= optimum.get(i, 0) for i in adjacency)
+        checks.update(exact_optimum_comparison=True, actual_objective_gap=gap)
+    else:
+        checks['exact_optimum_comparison'] = False
+    checks['verification_oracle'] = oracle.snapshot()
+    return checks
+
+
+def run_case(case, entry_limit):
+    module = importlib.import_module('practical_dyadic_rppr_solver')
+    graph = VirtualGraph(case.family, case.size, case.auxiliary)
+    oracle = CountingOracle(graph, entry_limit)
+    started = time.perf_counter()
+    answer = module.solve_rppr_practical(oracle, case.seed, case.alpha, case.rho, case.epsilon)
+    elapsed = time.perf_counter()-started
+    algorithm_oracle = oracle.snapshot()
+    totals, maxima = {}, {}
+    stages = []
+    for stage in answer.stages:
+        sm = dict(stage.corrector_metrics)
+        for name, value in sm.items():
+            if isinstance(value, int):
+                target = maxima if name.startswith('max_') else totals
+                target[name] = max(target.get(name, 0), value) if target is maxima else target.get(name, 0)+value
+        stages.append(dict(regularization=stage.regularization, iterations=stage.iterations,
+                           kinetic_volume=stage.kinetic_volume,
+                           source_mass=stage.source_mass,
+                           source_records=stage.source_records,
+                           repaired_volume=stage.repaired_volume,
+                           repaired_mass=stage.repaired_mass,
+                           requested_gap=stage.requested_gap,
+                           certified_gap=stage.certified_gap))
+    checked = independent_output_checks(graph, case, answer)
+    result = dict(case=asdict(case), graph_vertices=graph.n, elapsed_seconds=elapsed,
+                  algorithm_oracle=algorithm_oracle, corrector_totals=totals,
+                  corrector_maxima=maxima, continuation_metrics=asdict(answer.metrics),
+                  stages=stages, independent_checks=checked,
+                  sparse_output=[dict(vertex=str(i), density=str(value), degree=str(degree))
+                                 for i, value, degree in answer.output])
+    charged_scans = totals.get('scanned_adjacency_entries', 0)
+    result['rho_sqrtalpha_scaled_corrector_scans'] = float(case.rho)*math.sqrt(float(case.alpha))*charged_scans
+    return json_value(result)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--case', action='append', choices=[case.name for case in CASES])
+    parser.add_argument('--tier', choices=('quick', 'extended', 'all'), default='quick')
+    parser.add_argument('--entry-limit', type=int, default=10**7)
+    parser.add_argument('--output', default='practical_rppr_benchmarks.json')
+    args = parser.parse_args()
+    chosen = [case for case in CASES if (case.name in args.case if args.case else
+              args.tier == 'all' or case.tier == args.tier)]
+    output = Path(args.output)
+    records = []
+    for case in chosen:
+        print(f'START {case.name}', flush=True)
+        result = run_case(case, args.entry_limit)
+        records.append(result)
+        output.write_text(json.dumps(dict(deterministic=True, results=records), indent=2)+'\n')
+        print(f'PASS {case.name}: {result["elapsed_seconds"]:.3f}s, '
+              f'{result["corrector_totals"].get("iterations", 0)} iterations, '
+              f'{result["corrector_totals"].get("scanned_adjacency_entries", 0)} '
+              f'corrector adjacency reads', flush=True)
+    return records
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,90 @@
+"""Bounded four-variant exact study, with complete reusable run artifacts."""
+import hashlib
+import json
+import platform
+from dataclasses import asdict
+from pathlib import Path
+from statistics import median
+from time import perf_counter,process_time
+
+from benchmark_practical_rppr import VirtualGraph,CountingOracle,json_value
+from study_early_stop_source_energy import CASES
+from independent_sparse_certificate import certify_sparse_output
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+from early_stop_source_energy_rppr import solve_rppr_early_stop
+from binomial_block_dyadic_rppr import solve_rppr_binomial_blocks
+from combined_certified_dyadic_rppr import solve_rppr_combined
+
+ROOT=Path(__file__).resolve().parent
+BACKENDS={'source':solve_rppr_source_energy,'early':solve_rppr_early_stop,
+          'binomial':solve_rppr_binomial_blocks,'combined':solve_rppr_combined}
+SOURCE_FILES=('integer_dyadic_rppr_solver.py','source_energy_dyadic_rppr.py',
+    'early_stop_source_energy_rppr.py','binomial_block_dyadic_rppr.py',
+    'combined_certified_dyadic_rppr.py','integer_clipped_reporter.py',
+    'deterministic_avl_containers.py','independent_sparse_certificate.py',
+    'benchmark_practical_rppr.py')
+
+
+def run(case,backend):
+    graph=VirtualGraph(case.family,case.size,case.auxiliary)
+    oracle=CountingOracle(graph,100000)
+    wall,cpu=perf_counter(),process_time()
+    answer=BACKENDS[backend](oracle,case.seed,case.alpha,case.rho,case.epsilon)
+    wall,cpu=perf_counter()-wall,process_time()-cpu
+    corrector_entries=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages)
+    checkpoints=[s.corrector_metrics.get('checkpoints',{}) for s in answer.stages]
+    checkpoint_entries=sum(c.get('cached_adjacency_entries',0) for c in checkpoints)
+    norm_oracle=CountingOracle(graph,100000)
+    certificate=certify_sparse_output(norm_oracle,case.seed,case.alpha,case.rho,answer.output)
+    assert certificate.meets(case.epsilon)
+    complete=json_value(asdict(answer))
+    record=dict(case=json_value(asdict(case)),backend=backend,wall_seconds=wall,cpu_seconds=cpu,
+        iterations=sum(s.iterations for s in answer.stages),stages=len(answer.stages),
+        corrector_adjacency_entries=corrector_entries,
+        checkpoint_adjacency_entries=checkpoint_entries,
+        terminal_pg_adjacency_entries=answer.metrics.repair_scanned_adjacency_entries,
+        total_adjacency_entries=corrector_entries+checkpoint_entries+answer.metrics.repair_scanned_adjacency_entries,
+        checkpoints=sum(c.get('checkpoints',0) for c in checkpoints),
+        accepted_checkpoints=sum(c.get('accepted_checkpoints',0) for c in checkpoints),
+        rejected_checkpoints=sum(c.get('rejected_checkpoints',0) for c in checkpoints),
+        oracle_counts=oracle.snapshot(),returned_certificate=str(answer.objective_gap_bound),
+        independent_final_certificate=json_value(asdict(certificate)),
+        independent_final_oracle_counts=norm_oracle.snapshot(),
+        output_records=len(answer.output),complete_answer=complete,
+        deterministic_signature=hashlib.sha256(json.dumps(complete,sort_keys=True).encode()).hexdigest())
+    return record
+
+
+def main():
+    order=('source','early','binomial','combined','combined','binomial','early','source')
+    report=dict(deterministic=True,order=order,python=platform.python_version(),platform=platform.platform(),
+        scope='Timed solve includes counting oracle, checkpoints, metering, and terminal repair. Graph construction, serialization, hashes, and independent final verification are outside timed region.',
+        note='Only timing clocks use floats. Exact outputs may differ across schedules. No strict improvement is claimed for arbitrary graphs.',
+        source_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCE_FILES},
+        runs=[],summaries=[])
+    for case in CASES:
+        rows=[]
+        for backend in order:
+            row=run(case,backend)
+            rows.append(row);report['runs'].append(row)
+        for backend in BACKENDS:
+            signatures=[r['deterministic_signature'] for r in rows if r['backend']==backend]
+            assert len(signatures)==2 and signatures[0]==signatures[1]
+        summary=dict(case=case.name,backends={})
+        for backend in BACKENDS:
+            relevant=[r for r in rows if r['backend']==backend]
+            summary['backends'][backend]=dict(
+                cpu_seconds=median(r['cpu_seconds'] for r in relevant),
+                wall_seconds=median(r['wall_seconds'] for r in relevant),
+                iterations=relevant[0]['iterations'],
+                total_adjacency_entries=relevant[0]['total_adjacency_entries'],
+                checkpoint_adjacency_entries=relevant[0]['checkpoint_adjacency_entries'],
+                accepted_checkpoints=relevant[0]['accepted_checkpoints'])
+        report['summaries'].append(summary)
+        print(json.dumps(summary),flush=True)
+    report['complete']=True
+    report['all_independent_final_bounds_meet_requested']=True
+    (ROOT/'combined_certified_dyadic_study.json').write_text(json.dumps(report,indent=2)+'\n')
+
+if __name__=='__main__':
+    main()

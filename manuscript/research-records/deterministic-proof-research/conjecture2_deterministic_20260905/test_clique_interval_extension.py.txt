@@ -1,0 +1,57 @@
+"""Independent full-graph Fraction checks of the clique quotient extension."""
+from fractions import Fraction as F
+from itertools import combinations
+import unittest
+
+from capped_tree_cube_interval import run
+from test_monotone_capped_solver import DenseReference
+from test_local_safe_solver import graph
+
+
+class CliqueExtensionTests(unittest.TestCase):
+    def test_full_eleven_vertex_graph(self):
+        adjacency = graph(11,[(0,1),(0,2),(1,3),(2,7)]
+                           +list(combinations(range(3,7),2))
+                           +list(combinations(range(7,11),2)))
+        layers = [[0],[1,2],[3,7],[4,5,6,8,9,10]]
+        degrees = {i:len(adjacency[i]) for i in adjacency}
+        weights = [sum(degrees[i] for i in layer) for layer in layers]
+        self.assertEqual(weights,[2,4,8,18])
+        theta,rho = F(1,2),F(1,208)
+        reference = DenseReference(adjacency,0,theta,rho)
+        for monotone in (False,True):
+            observed=[]
+            def observer(k,u,V,step,multiplier,count,weight):
+                observed.append((u,V,step,count,weight))
+            report=run(2,p=1,s=2,gamma=F(1,16),horizon=4,precision=100,
+                       monotone=monotone,trace=observer,clique=True)
+            self.assertEqual(int(report['cube_volume']),26)
+            self.assertEqual(F(report['rho']),rho)
+            x,z={},{}
+            exact_work,bulk_steps=0,0
+            for boxes_u,boxes_V,box_step,count,weight in observed:
+                if monotone:
+                    xn,zn,fraction,_,_=reference.step(x,z)
+                else:
+                    y={i:(x.get(i,F(0))+theta*z.get(i,F(0)))/(1+theta) for i in adjacency}
+                    hy=reference.multiply(y)
+                    raw={i:(1-theta)*z.get(i,F(0))+theta*y[i]
+                         -(hy[i]-reference.h[i])/(theta*degrees[i]) for i in adjacency}
+                    zn,_=reference.project(raw)
+                    xn={i:(1-theta)*x.get(i,F(0))+theta*zn.get(i,F(0)) for i in adjacency}
+                    fraction=F(1)
+                u=[sum(degrees[i]*xn.get(i,F(0)) for i in layer) for layer in layers]
+                V=[theta*sum(degrees[i]*zn.get(i,F(0)) for i in layer) for layer in layers]
+                for box,value in list(zip(boxes_u,u))+list(zip(boxes_V,V))+[(box_step,fraction)]:
+                    self.assertLessEqual(F(box.lo),value)
+                    self.assertLessEqual(value,F(box.hi))
+                self.assertEqual(weight,weights)
+                exact_work+=sum(w for w,value in zip(weights,V) if value>0)
+                bulk_steps+=int(V[-1]>0)
+                x,z=xn,zn
+            self.assertLessEqual(F(report['certified_normalized_work']),rho*exact_work/2)
+            self.assertLessEqual(rho*exact_work/2,F(report['possible_normalized_work']))
+            self.assertLessEqual(report['certified_bulk_steps'],bulk_steps)
+
+
+if __name__=='__main__': unittest.main()

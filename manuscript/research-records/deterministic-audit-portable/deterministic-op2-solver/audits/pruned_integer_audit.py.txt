@@ -1,0 +1,141 @@
+"""Exact trajectory equivalence and full-objective audit for integer fallback."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from component_fast_path_audit import exact_reference, leaky_pair
+from independent_continuation_audit import dot, graph_data, product, subtract
+from pruned_continuation_audit import Oracle
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr._integer import (
+    IntegerDyadicCorrector,
+    solve_rppr_integer,
+)
+from pruned_rppr._source_energy import solve_rppr_source_energy
+from pruned_rppr.solver import (
+    PracticalDyadicCorrector,
+    solve_rppr_practical,
+)
+
+
+def physical(mapping, denominator):
+    return {i: F(value, denominator) for i, value in mapping.items() if value}
+
+
+def verify(graph, seed, alpha, rho, epsilon, result):
+    degrees, matrix, source = graph_data(graph, seed, alpha)
+    optimum = exact_reference(matrix, source, alpha, rho)
+    x = [F(0)] * len(graph)
+    for i, value, degree in result.output:
+        assert degree == degrees[i]
+        x[i] = value
+    assert all(0 <= value <= target for value, target in zip(x, optimum))
+    error = subtract(x, optimum)
+    slack = [v - b + alpha * rho for v, b in zip(product(matrix, optimum), source)]
+    gap = dot(error, product(matrix, error), degrees) / 2 + dot(slack, x, degrees)
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon
+
+
+def main():
+    start = time.monotonic()
+    steps = cases = 0
+    graph = leaky_pair()
+    for alpha, baseline, adaptive in itertools.product(
+        (F(1, 16), F(3, 10), F(2, 7)), ({}, {0: F(1, 128)}), (False, True)
+    ):
+        theta = F(1, 2)
+        while theta**2 > alpha:
+            theta /= 2
+        kwargs = {"baseline": baseline, "degree_limit": 4, "adaptive_box": adaptive}
+        rational = PracticalDyadicCorrector(
+            Oracle(graph), 0, alpha, theta, F(1, 4), F(1, 10**12), **kwargs
+        )
+        integer = IntegerDyadicCorrector(
+            Oracle(graph), 0, alpha, theta, F(1, 4), F(1, 10**12), **kwargs
+        )
+        assert rational.grid == integer.grid and rational.mass_cap == integer.mass_cap
+        assert (
+            rational.upper == integer.upper
+            and rational.source_mass == integer.source_mass
+        )
+        for _ in range(64):
+            rational.step()
+            integer.step()
+            assert rational.sigma == integer.sigma
+            for field in ("X", "L", "z", "M"):
+                assert dict(getattr(rational, field)) == physical(
+                    getattr(integer, field), integer.H
+                )
+            assert rational.output() == integer.output()
+            assert rational.objective_gap_bound == integer.objective_gap_bound
+            assert rational.history[-1] == integer.last_step
+            steps += 1
+        cases += 1
+    rows = []
+    graphs = [
+        ("path6", nx.path_graph(6), 0),
+        ("star6", nx.star_graph(5), 1),
+        ("clique5", nx.complete_graph(5), 0),
+        ("leaky_pair", leaky_pair(), 0),
+    ]
+    for (name, graph, seed), alpha, ratio, adaptive in itertools.product(
+        graphs, (F(1, 16), F(3, 10)), (F(1, 4), F(1, 16)), (False, True)
+    ):
+        rho, epsilon = ratio / graph.degree(seed), F(1, 10**10)
+        then = time.monotonic()
+        rational = solve_rppr_practical(
+            Oracle(graph), seed, alpha, rho, epsilon, adaptive_box=adaptive
+        )
+        integer = solve_rppr_integer(
+            Oracle(graph), seed, alpha, rho, epsilon, adaptive_box=adaptive
+        )
+        assert rational.output == integer.output
+        assert rational.objective_gap_bound == integer.objective_gap_bound
+        assert [s.kinetic_volume for s in rational.stages] == [
+            s.kinetic_volume for s in integer.stages
+        ]
+        source_energy = solve_rppr_source_energy(
+            Oracle(graph), seed, alpha, rho, epsilon, adaptive_box=adaptive
+        )
+        verify(graph, seed, alpha, rho, epsilon, integer)
+        verify(graph, seed, alpha, rho, epsilon, source_energy)
+        record = {
+            "graph": name,
+            "alpha": str(alpha),
+            "rho": str(rho),
+            "adaptive_box": adaptive,
+            "full_iterations": sum(s.iterations for s in integer.stages),
+            "source_energy_iterations": sum(s.iterations for s in source_energy.stages),
+            "elapsed_seconds": time.monotonic() - then,
+        }
+        rows.append(record)
+        print(json.dumps(record), flush=True)
+    result = {
+        "exact_trajectory_cases": cases,
+        "exact_trajectory_steps": steps,
+        "wrapper_cases": len(rows),
+        "wrapper_records": rows,
+        "elapsed_seconds": time.monotonic() - start,
+        "randomized": False,
+        "status": "enumeration_complete",
+    }
+    (ROOT / "results/pruned-integer-audit.json").write_text(
+        json.dumps(result, indent=2)
+    )
+    print(
+        json.dumps({k: v for k, v in result.items() if k != "wrapper_records"}),
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,506 @@
+"""Budgeted component discovery and bounded-rational accelerated solving.
+
+This independently written fast path uses the reviewed continuation solver
+only when its bounded local component search does not finish. Original graph
+degrees and every exposed neighbor entry are retained in the accounting.
+"""
+
+from __future__ import annotations
+
+import heapq
+from dataclasses import asdict, dataclass, field
+from fractions import Fraction as F
+from types import SimpleNamespace
+
+from ._avl import AVLMap, AVLSet
+from ._component_integer import IntegerComponentCoupling
+from ._integer import _projected_gradient
+from ._source_energy import solve_rppr_source_energy
+from ._tiny_obstacle import MAX_TINY_VERTICES, solve_tiny_obstacle
+
+
+@dataclass
+class ComponentMetrics:
+    degree_reads: int = 0
+    degree_replies: int = 0
+    first_adjacency_entries: int = 0
+    cached_adjacency_reads: int = 0
+    prepass_scanned_volume: int = 0
+    excluded_neighbor_entries: int = 0
+    component_vertices: int = 0
+    component_volume: int = 0
+    assembly_neighbor_reads: int = 0
+    matrix_products: int = 0
+    internal_matrix_entry_reads: int = 0
+    projection_records: int = 0
+    projection_breakpoints: int = 0
+    iterations: int = 0
+    prescribed_iterations: int = 0
+    certificate_checks: int = 0
+    rounded_state_records: int = 0
+    maximum_state_bits: int = 0
+    output_words: int = 0
+    spectral_lower_bound: F | None = None
+    grid: F | None = None
+    forest_relaxations: int = 0
+    forest_roots: int = 0
+    forest_maximum_load: F | None = None
+    certificate_norm_records: int = 0
+    certificate_norm_rounding_records: int = 0
+    discovery_complete: bool | None = None
+    pilot_attempted: bool = False
+    pilot_certified: bool = False
+    pilot_fallback: bool = False
+    pilot_assembly_entries: int = 0
+    global_pg_checks: int = 0
+    global_pg_metrics: dict = field(default_factory=dict)
+    global_norm_records: int = 0
+    global_norm_rounding_records: int = 0
+    integer_component: bool = False
+    integer_state_metrics: dict = field(default_factory=dict)
+    integer_reporter_metrics: dict = field(default_factory=dict)
+    tiny_exact_metrics: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class FastResult:
+    output: tuple
+    objective_gap_bound: F
+    route: str
+    metrics: ComponentMetrics
+    continuation: object | None = None
+
+
+class CachedOracle:
+    def __init__(self, oracle, metrics):
+        self.oracle, self.metrics = oracle, metrics
+        self.degrees, self.rows = AVLMap(), AVLMap()
+
+    def degree(self, vertex):
+        if not isinstance(vertex, int):
+            raise ValueError("Integer vertex labels are required")
+        self.metrics.degree_reads += 1
+        if vertex not in self.degrees:
+            value = self.oracle.degree(vertex)
+            self.metrics.degree_replies += 1
+            if not isinstance(value, int) or value <= 0:
+                raise ValueError("Original degrees must be positive integers")
+            self.degrees[vertex] = value
+        return self.degrees[vertex]
+
+    def neighbors(self, vertex):
+        if vertex not in self.rows:
+            row = []
+            for neighbor in self.oracle.neighbors(vertex):
+                self.metrics.first_adjacency_entries += 1
+                row.append(neighbor)
+            if len(row) != self.degree(vertex):
+                raise ValueError("Original degree and neighbor list disagree")
+            self.rows[vertex] = tuple(row)
+        for neighbor in self.rows[vertex]:
+            self.metrics.cached_adjacency_reads += 1
+            yield neighbor
+
+
+def discover_component(cache, seed, rho):
+    """Return complete original-degree component rows, or None at budget."""
+    queue, queued, rows = [seed], AVLSet((seed,)), AVLMap()
+    head = 0
+    while head < len(queue):
+        vertex = queue[head]
+        degree = cache.degree(vertex)
+        if rho * (cache.metrics.prepass_scanned_volume + degree) > 1:
+            return None
+        head += 1
+        cache.metrics.prepass_scanned_volume += degree
+        inside = []
+        for neighbor in cache.neighbors(vertex):
+            if rho * cache.degree(neighbor) > 1:
+                cache.metrics.excluded_neighbor_entries += 1
+                continue
+            inside.append(neighbor)
+            if neighbor not in queued:
+                queued.add(neighbor)
+                queue.append(neighbor)
+        rows[vertex] = tuple(inside)
+    return rows
+
+
+def clipped_projection(raw, degrees, upper, metrics=None):
+    """Exact weighted box/simplex projection by one sorted breakpoint sweep."""
+    clipped = [min(upper, max(F(0), value)) for value in raw]
+    total = sum((d * value for d, value in zip(degrees, clipped)), F(0))
+    if metrics is not None:
+        metrics.projection_records += len(raw)
+    if total <= 1:
+        return clipped
+    events = []
+    free_weight = 0
+    for value, degree in zip(raw, degrees):
+        if 0 < value <= upper:
+            free_weight += degree
+        if value > upper:
+            events.append((value - upper, degree))
+        if value > 0:
+            events.append((value, -degree))
+    events.sort()
+    previous = F(0)
+    index = 0
+    while index < len(events):
+        level = events[index][0]
+        next_mass = total - free_weight * (level - previous)
+        if free_weight and next_mass <= 1:
+            multiplier = previous + (total - 1) / free_weight
+            answer = [min(upper, max(F(0), value - multiplier)) for value in raw]
+            assert sum((d * value for d, value in zip(degrees, answer)), F(0)) == 1
+            return answer
+        total, previous = next_mass, level
+        while index < len(events) and events[index][0] == level:
+            free_weight += events[index][1]
+            index += 1
+            if metrics is not None:
+                metrics.projection_breakpoints += 1
+    raise AssertionError("The finite waterfill sweep did not locate the cap")
+
+
+def _floor(value, grid):
+    return F(
+        (value.numerator * grid.denominator) // value.denominator, grid.denominator
+    )
+
+
+def displacement_norm_upper(values, projected, degrees, denominator, metrics=None):
+    """Bound a weighted squared displacement without accumulating degree LCMs.
+
+    Each density difference has denominator dividing denominator*d_i. The
+    exact contribution is a_i**2/(denominator**2*d_i); round its numerator
+    upward before summing. This is a certificate, not a floating estimate.
+    """
+    total = 0
+    for value, point, degree in zip(values, projected, degrees):
+        count = (value - point) * denominator * degree
+        if count.denominator != 1:
+            raise ValueError("The common PG denominator does not clear a coordinate")
+        square = count.numerator**2
+        total += (square + degree - 1) // degree
+        if metrics is not None:
+            metrics.certificate_norm_records += 1
+            metrics.certificate_norm_rounding_records += int(square % degree != 0)
+    return F(total, denominator**2)
+
+
+def forest_spectral_bound(degrees, adjacency, alpha, metrics=None):
+    """Certified Dirichlet lower eigenvalue bound from deterministic paths.
+
+    A root with b excluded incident edges starts at distance 1/b. Internal
+    edges have length one. The maximum root sum of d_i*distance_i is a
+    Poincare constant. All graph degrees remain the original degrees.
+    """
+    n = len(degrees)
+    distance, root, parent = [None] * n, [None] * n, [None] * n
+    queue = []
+    roots = 0
+    for i, (degree, row) in enumerate(zip(degrees, adjacency)):
+        outside = degree - len(row)
+        if outside < 0:
+            raise ValueError("Original degree is smaller than its internal row")
+        if outside:
+            distance[i], root[i] = F(1, outside), i
+            queue.append((distance[i], i, i))
+            roots += 1
+    if not roots:
+        return F(alpha)
+    heapq.heapify(queue)
+    while queue:
+        length, owner, i = heapq.heappop(queue)
+        if distance[i] != length or root[i] != owner:
+            continue
+        candidate = length + 1
+        for j in adjacency[i]:
+            if metrics is not None:
+                metrics.forest_relaxations += 1
+            if distance[j] is None or candidate < distance[j]:
+                distance[j], root[j] = candidate, owner
+                parent[j] = i
+                heapq.heappush(queue, (candidate, owner, j))
+    if any(value is None for value in distance):
+        raise ValueError("The component is disconnected from its boundary")
+    for i in range(n):
+        if root[i] != i:
+            assert parent[i] is not None
+            assert root[parent[i]] == root[i]
+            assert distance[parent[i]] + 1 == distance[i]
+    loads = [F(0)] * n
+    for degree, length, owner in zip(degrees, distance, root):
+        loads[owner] += degree * length
+    maximum = max(loads)
+    if metrics is not None:
+        metrics.forest_roots = roots
+        metrics.forest_maximum_load = maximum
+    return alpha + (1 - alpha) / (2 * maximum)
+
+
+def solve_fast(
+    oracle,
+    seed,
+    alpha,
+    rho,
+    epsilon,
+    *,
+    early_certificate=True,
+    bounded_pilot=True,
+    integer_component=True,
+    tiny_exact=True,
+):
+    """Return a certified safe sparse answer, with one bounded region pilot.
+
+    Inputs are rational; graph labels are integers and degrees are original
+    positive unit-graph degrees. No ambient size or global graph query is used.
+    A partial-region pilot is accepted only by a full-problem PG certificate;
+    one failed pilot falls back to the proved continuation. Disable optional
+    early checks or the pilot to reproduce the respective fixed schedules.
+    """
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not 0 < alpha <= 1 or rho <= 0 or epsilon <= 0:
+        raise ValueError("Need 0<alpha<=1, rho>0, epsilon>0")
+    metrics = ComponentMetrics()
+    cache = CachedOracle(oracle, metrics)
+    degree = cache.degree(seed)
+    if rho * degree >= 1:
+        return FastResult((), F(0), "zero-regime", metrics)
+    if alpha == 1:
+        metrics.output_words = 3
+        return FastResult(
+            ((seed, F(1, degree) - rho, degree),), F(0), "diagonal", metrics
+        )
+    zero_bound = alpha * (1 - rho * degree) ** 2 / (2 * degree)
+    if zero_bound <= epsilon:
+        return FastResult((), zero_bound, "zero-certificate", metrics)
+    rows = discover_component(cache, seed, rho)
+    complete = rows is not None
+    metrics.discovery_complete = complete
+
+    def fallback():
+        metrics.pilot_fallback = metrics.pilot_attempted
+        fallback = solve_rppr_source_energy(
+            cache, seed, alpha, rho, epsilon, early_certificate=early_certificate
+        )
+        return FastResult(
+            fallback.output,
+            fallback.objective_gap_bound,
+            "continuation",
+            metrics,
+            fallback,
+        )
+
+    if not complete:
+        if not bounded_pilot:
+            return fallback()
+        metrics.pilot_attempted = True
+        rows = AVLMap()
+        for vertex in cache.rows:
+            inside = []
+            for neighbor in cache.rows[vertex]:
+                metrics.pilot_assembly_entries += 1
+                if neighbor in cache.rows:
+                    inside.append(neighbor)
+            rows[vertex] = tuple(inside)
+    labels = list(rows)
+    metrics.component_vertices = len(labels)
+    metrics.component_volume = sum(cache.degrees[i] for i in labels)
+    if complete and len(labels) == 1:
+        value = alpha * (F(1, degree) - rho) / ((1 + alpha) / 2)
+        metrics.output_words = 3
+        return FastResult(
+            ((seed, value, degree),), F(0), "singleton-component", metrics
+        )
+    positions = AVLMap((label, index) for index, label in enumerate(labels))
+    degrees = [cache.degrees[i] for i in labels]
+    adjacency = []
+    for vertex in labels:
+        metrics.assembly_neighbor_reads += len(rows[vertex])
+        adjacency.append([positions[j] for j in rows[vertex]])
+    source_index = positions[seed]
+    if complete and tiny_exact and len(labels) <= MAX_TINY_VERTICES:
+        exact = solve_tiny_obstacle(degrees, adjacency, source_index, alpha, rho)
+        output = tuple(
+            (label, value, d)
+            for label, value, d in zip(labels, exact.densities, degrees)
+            if value
+        )
+        metrics.tiny_exact_metrics = asdict(exact.metrics)
+        metrics.output_words = 3 * len(output)
+        return FastResult(output, F(0), "tiny-exact-component", metrics)
+    c, diagonal, lam = (1 - alpha) / 2, (1 + alpha) / 2, alpha * rho
+    beta = forest_spectral_bound(degrees, adjacency, alpha, metrics)
+    metrics.spectral_lower_bound = beta
+    improved_zero_bound = alpha**2 * (1 - rho * degree) ** 2 / (2 * beta * degree)
+    if complete and improved_zero_bound <= epsilon:
+        return FastResult(
+            (), improved_zero_bound, "component-zero-certificate", metrics
+        )
+    theta = F(1, 2)
+    while theta**2 > beta:
+        theta /= 2
+    a = 1 - theta
+    delta = alpha * rho / 2
+    while 2 * delta**2 / rho > epsilon:
+        delta /= 2
+    tolerance = alpha * delta**2 / 8 if complete else alpha**2 * delta**2 / 16
+    upper = F(1, degree)
+    grid = F(1, 8)
+    ceiling = min(theta * tolerance / 16, delta / 2, lam / 4, upper)
+    if not complete:
+        ceiling = min(ceiling, alpha * delta * rho / 16)
+    while grid > ceiling:
+        grid /= 2
+    metrics.grid = grid
+    blocks, bound = 0, 1
+    while bound * tolerance < 2:
+        blocks += 1
+        bound *= 2
+    horizon = theta.denominator * blocks
+    metrics.prescribed_iterations = horizon
+
+    def matrix_product(values):
+        metrics.matrix_products += 1
+        answer = []
+        for value, d, row in zip(values, degrees, adjacency):
+            neighbor_sum = sum((values[j] for j in row), F(0))
+            metrics.internal_matrix_entry_reads += len(row) + 1
+            answer.append(diagonal * value - c * neighbor_sum / d)
+        return answer
+
+    def pg_point(values):
+        gradient = matrix_product(values)
+        gradient[source_index] -= alpha / degree
+        return [max(F(0), value - g - lam) for value, g in zip(values, gradient)]
+
+    def global_pg_point(values):
+        candidate = tuple(
+            (i, value, d) for i, value, d in zip(labels, values, degrees) if value
+        )
+        context = SimpleNamespace(
+            oracle=cache,
+            seed=seed,
+            alpha=alpha,
+            rho=rho,
+            degree=cache.degrees,
+            adjacency=cache.rows,
+            H=grid.denominator,
+            degree_limit=1 / rho,
+        )
+        points, pg_metrics, norm_upper, norm_metrics = _projected_gradient(
+            context, candidate, compute_norm=True
+        )
+        metrics.global_pg_checks += 1
+        for key, value in asdict(pg_metrics).items():
+            metrics.global_pg_metrics[key] = (
+                metrics.global_pg_metrics.get(key, 0) + value
+            )
+        metrics.global_norm_records += norm_metrics["norm_records"]
+        metrics.global_norm_rounding_records += norm_metrics["norm_rounding_records"]
+        passed = (1 - alpha) ** 2 * norm_upper <= alpha**2 * delta**2 / 4
+        return points, passed
+
+    x = [F(0)] * len(labels)
+    z = x.copy()
+    integer_state = (
+        IntegerComponentCoupling(
+            degrees, adjacency, source_index, alpha, rho, theta, grid
+        )
+        if integer_component
+        else None
+    )
+    metrics.integer_component = integer_state is not None
+    iteration_entry_count = len(labels) + sum(len(row) for row in adjacency)
+
+    def finish_integer_metrics():
+        if integer_state is not None:
+            metrics.integer_state_metrics = asdict(integer_state.metrics)
+            metrics.integer_reporter_metrics = asdict(integer_state.reporter.metrics)
+
+    checkpoint = 1
+    pg = None
+    global_points = None
+    early = False
+    for iteration in range(1, horizon + 1):
+        if integer_state is not None:
+            integer_state.step()
+            metrics.matrix_products += 1
+            metrics.internal_matrix_entry_reads += iteration_entry_count
+            metrics.projection_records += len(labels)
+            metrics.maximum_state_bits = integer_state.metrics.maximum_grid_state_bits
+        else:
+            y = [(v + theta * w) / (1 + theta) for v, w in zip(x, z)]
+            gradient = matrix_product(y)
+            gradient[source_index] -= alpha / degree
+            raw = [
+                a * v + theta * w - (g + lam) / theta for v, w, g in zip(z, y, gradient)
+            ]
+            ideal = clipped_projection(raw, degrees, upper, metrics)
+            z = [_floor(value, grid) for value in ideal]
+            x = [
+                _floor(a * value + theta * auxiliary, grid)
+                for value, auxiliary in zip(x, z)
+            ]
+            metrics.maximum_state_bits = max(
+                metrics.maximum_state_bits,
+                *(
+                    max(v.numerator.bit_length(), v.denominator.bit_length())
+                    for v in x + z
+                ),
+            )
+        metrics.rounded_state_records += 2 * len(labels)
+        metrics.iterations = iteration
+        if early_certificate and iteration == checkpoint:
+            if integer_state is not None:
+                x = integer_state.densities()
+            metrics.certificate_checks += 1
+            if complete:
+                pg = pg_point(x)
+                norm_denominator = (
+                    2 * alpha.denominator * grid.denominator * rho.denominator
+                )
+                norm_sq = displacement_norm_upper(
+                    x, pg, degrees, norm_denominator, metrics
+                )
+                passed = (1 - beta) ** 2 * norm_sq <= beta**2 * delta**2 / 4
+            else:
+                global_points, passed = global_pg_point(x)
+            if passed:
+                early = True
+                break
+            checkpoint *= 2
+    if not early:
+        assert F(1, bound) + 5 * grid / theta < tolerance
+        if integer_state is not None:
+            x = integer_state.densities()
+        if complete:
+            pg = pg_point(x)
+        else:
+            global_points, passed = global_pg_point(x)
+            if not passed:
+                finish_integer_metrics()
+                return fallback()
+    finish_integer_metrics()
+    output = []
+    points = zip(labels, pg, degrees) if complete else global_points
+    for label, value, d in points:
+        retained = _floor(max(F(0), value - delta), grid)
+        if retained:
+            output.append((label, retained, d))
+    metrics.output_words = 3 * len(output)
+    if not complete:
+        metrics.pilot_certified = True
+    route = (
+        ("component-early-certificate" if early else "component-accelerated")
+        if complete
+        else ("pilot-early-certificate" if early else "pilot-certificate")
+    )
+    return FastResult(
+        tuple(output),
+        2 * delta**2 / rho,
+        route,
+        metrics,
+    )

@@ -1,0 +1,368 @@
+"""Small exact checks against a separately coded dense Fraction recurrence.
+
+Injected states below are feasible implementation tests, not claims about
+states reached from zero. No randomized instances or floating arithmetic.
+"""
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from lazy_capped_solver import Oracle
+from monotone_capped_solver import MonotoneCappedSolver
+from test_local_safe_solver import (connected_graphs, dense_exact_obstacle_oracle,
+                                   graph, path, star)
+
+
+class QueryOnlyInput:
+    def __init__(self, adjacency): self.data = adjacency
+    def __getitem__(self, i): return self.data[i]
+    def __iter__(self): raise AssertionError('Global input traversal')
+    def __len__(self): raise AssertionError('Global input size query')
+    def keys(self): raise AssertionError('Global input keys query')
+
+
+class CheckedOracle(Oracle):
+    def __init__(self, adjacency):
+        super().__init__(QueryOnlyInput(adjacency))
+        self.degree_queries, self.neighbor_queries = [], []
+
+    def degree(self, i):
+        self.degree_queries.append(i)
+        return super().degree(i)
+
+    def neighbors(self, i):
+        self.neighbor_queries.append(i)
+        return super().neighbors(i)
+
+
+class NoFullScan(dict):
+    """Guard old numerical maps during a measured iteration."""
+    blocked = False
+
+    def __iter__(self):
+        if self.blocked: raise AssertionError('Full old-state iteration')
+        return super().__iter__()
+
+    def items(self):
+        if self.blocked: raise AssertionError('Full old-state items scan')
+        return super().items()
+
+    def values(self):
+        if self.blocked: raise AssertionError('Full old-state values scan')
+        return super().values()
+
+    def keys(self):
+        if self.blocked: raise AssertionError('Full old-state keys scan')
+        return super().keys()
+
+
+class DenseReference:
+    """Direct dense matrix arithmetic; no production projection or keys."""
+    def __init__(self, adjacency, seed, theta, rho):
+        self.vertices = list(adjacency)
+        self.degrees = {i: len(adjacency[i]) for i in self.vertices}
+        self.theta, self.alpha, self.rho = theta, theta**2, rho
+        self.h = {i: self.alpha*(int(i == seed)-rho*self.degrees[i])
+                  for i in self.vertices}
+        self.H = {i: {j: ((1+self.alpha)*self.degrees[i]/2 if i == j else
+                          (-(1-self.alpha)/2 if j in adjacency[i] else F(0)))
+                      for j in self.vertices} for i in self.vertices}
+
+    def multiply(self, x):
+        return {i: sum((self.H[i][j]*x.get(j, F(0)) for j in self.vertices), F(0))
+                for i in self.vertices}
+
+    def quadratic(self, x):
+        hx = self.multiply(x)
+        return sum((x.get(i, F(0))*hx[i] for i in self.vertices), F(0))
+
+    def objective(self, x):
+        return self.quadratic(x)/2-sum((self.h[i]*x.get(i, F(0))
+                                       for i in self.vertices), F(0))
+
+    def mass(self, x):
+        return sum((self.degrees[i]*x.get(i, F(0)) for i in self.vertices), F(0))
+
+    def project(self, raw):
+        ordered = sorted(((value, i) for i, value in raw.items() if value > 0),
+                         reverse=True)
+        mass = sum((value*self.degrees[i] for value, i in ordered), F(0))
+        if mass <= 1:
+            return {i: value for value, i in ordered}, False
+        weighted_total, degree_total = F(0), 0
+        for index, (value, i) in enumerate(ordered):
+            weighted_total += self.degrees[i]*value
+            degree_total += self.degrees[i]
+            shift = (weighted_total-1)/degree_total
+            following = ordered[index+1][0] if index+1 < len(ordered) else F(0)
+            if shift >= following:
+                return {i: value-shift for value, i in ordered if value > shift}, True
+        raise AssertionError('No dense water-fill threshold')
+
+    def step(self, x, z):
+        theta = self.theta
+        y = {i: (x.get(i, F(0))+theta*z.get(i, F(0)))/(1+theta)
+             for i in self.vertices}
+        hy = self.multiply(y)
+        raw = {i: (1-theta)*z.get(i, F(0))+theta*y[i]
+                  -(hy[i]-self.h[i])/(theta*self.degrees[i]) for i in self.vertices}
+        next_z, cap_active = self.project(raw)
+        direction = {i: theta*(next_z.get(i, F(0))-x.get(i, F(0)))
+                     for i in self.vertices}
+        hx, hd = self.multiply(x), self.multiply(direction)
+        linear = sum((direction[i]*(hx[i]-self.h[i]) for i in self.vertices), F(0))
+        curvature = sum((direction[i]*hd[i] for i in self.vertices), F(0))
+        if curvature < 0: raise AssertionError('Negative dense line curvature')
+        fraction = min(F(1), max(F(0), -linear/curvature)) if curvature else F(0)
+        next_x = {i: x.get(i, F(0))+fraction*direction[i] for i in self.vertices}
+        next_x = {i: value for i, value in next_x.items() if value}
+        return next_x, next_z, fraction, cap_active, y
+
+    def energy(self, x, z, optimum):
+        return (self.objective(x)-self.objective(optimum)+self.alpha/2*
+                sum((self.degrees[i]*(z.get(i, F(0))-optimum.get(i, F(0)))**2
+                     for i in self.vertices), F(0)))
+
+
+LOG = dict(trajectory_cases=0, exact_step_comparisons=0, injected_states=0,
+    zero_fraction_steps=0, interior_fraction_steps=0, full_fraction_steps=0,
+    cap_binding_steps=0, maximum_fraction_bit_length=0, fixtures=[])
+
+
+class MonotoneTests(unittest.TestCase):
+    def set_state(self, solver, reference, x, z, optimum, sigma=F(1)):
+        """Explicitly charge setup scans; no hidden post-setup full scans."""
+        self.assertLessEqual(reference.mass(x), 1)
+        self.assertLessEqual(reference.mass(z), 1)
+        self.assertTrue(all(value >= 0 for value in list(x.values())+list(z.values())))
+        for i in solver.exceptions: solver._set_key(i, solver._base_key(i))
+        for i in set(x) | set(z): solver._expose(i)
+        lx, lz = solver._laplacian(x), solver._laplacian(z)
+        solver.sigma = sigma
+        solver.X = {i: value/sigma for i, value in x.items() if value}
+        solver.R = {i: value/sigma for i, value in lx.items() if value}
+        solver.z, solver.t = z.copy(), lz
+        solver.mass_x, solver.mass_z = reference.mass(x), reference.mass(z)
+        solver.quadratic_x = reference.quadratic(x)
+        solver.energy_decay = F(1)
+        solver.initial_energy_bound = reference.energy(x, z, optimum)
+        for i in solver.degree: solver._set_key(i, solver._base_key(i))
+        solver._install_exceptions()
+        solver.objectives = [reference.objective(x)]
+
+    def compare_step(self, solver, reference, x, z, optimum):
+        before_sigma, before_decay = solver.sigma, solver.energy_decay
+        before_scans = solver.metrics.scanned_adjacency_entries
+        before_energy = reference.energy(x, z, optimum)
+        next_x, next_z, fraction, active, y = reference.step(x, z)
+        solver.step()
+        actual_x = {i: solver.sigma*value for i, value in solver.X.items() if value}
+        self.assertEqual(actual_x, next_x)
+        self.assertEqual(solver.z, next_z)
+        self.assertEqual(solver.segment_fractions[-1], fraction)
+        self.assertEqual(solver.history[-1][3], active)
+        self.assertEqual(solver.sigma, before_sigma*(1-fraction*solver.theta))
+        self.assertEqual(solver.energy_decay, before_decay*(1-solver.theta))
+        self.assertEqual(solver.objective_gap_bound,
+                         solver.initial_energy_bound*solver.energy_decay)
+        self.assertEqual(solver.quadratic_x, reference.quadratic(next_x))
+        self.assertEqual(solver.objective, reference.objective(next_x))
+        self.assertLessEqual(solver.objective, reference.objective(x))
+        self.assertEqual(solver.mass_x, reference.mass(next_x))
+        self.assertEqual(solver.mass_z, reference.mass(next_z))
+        self.assertGreaterEqual(solver.mass_x, 0)
+        self.assertLessEqual(solver.mass_x, 1)
+        hx = reference.multiply(next_x)
+        for i in solver.degree:
+            expected_lx = hx[i]/reference.degrees[i]-solver.alpha*next_x.get(i, F(0))
+            self.assertEqual(solver.sigma*solver.R.get(i, F(0)), expected_lx)
+        dissipation = (solver.alpha*solver.theta*(1-solver.alpha)/2*
+            sum((reference.degrees[i]*(z.get(i, F(0))-y[i])**2
+                 for i in reference.vertices), F(0)))
+        self.assertLessEqual(reference.energy(next_x, next_z, optimum),
+                             solver.a*before_energy-dissipation)
+        self.assertLessEqual(reference.energy(next_x, next_z, optimum), solver.objective_gap_bound)
+        next_volume = sum(reference.degrees[i] for i in next_z)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries-before_scans, next_volume)
+        self.assertEqual(solver.history[-1][0], next_volume)
+        LOG['exact_step_comparisons'] += 1
+        LOG['zero_fraction_steps'] += int(fraction == 0)
+        LOG['interior_fraction_steps'] += int(0 < fraction < 1)
+        LOG['full_fraction_steps'] += int(fraction == 1)
+        LOG['cap_binding_steps'] += int(active)
+        for value in [solver.sigma, solver.quadratic_x, fraction]+list(next_x.values())+list(next_z.values()):
+            self.assertIsInstance(value, F)
+            LOG['maximum_fraction_bit_length'] = max(LOG['maximum_fraction_bit_length'],
+                value.numerator.bit_length(), value.denominator.bit_length())
+        return next_x, next_z
+
+    def test_small_zero_initialized_trajectories(self):
+        for n in (2, 3):
+            for mask, adjacency in connected_graphs(n):
+                for seed in adjacency:
+                    for theta in (F(1, 2), F(1, 4)):
+                        for numerator in (1, 3):
+                            rho = F(numerator, 8*len(adjacency[seed]))
+                            reference = DenseReference(adjacency, seed, theta, rho)
+                            optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+                            oracle = CheckedOracle(adjacency)
+                            solver = MonotoneCappedSolver(oracle, seed, theta, rho)
+                            x, z = {}, {}
+                            with self.subTest(n=n, mask=mask, seed=seed, theta=theta, rho=rho):
+                                for _ in range(5): x, z = self.compare_step(solver, reference, x, z, optimum)
+                            self.assertEqual(len(oracle.neighbor_queries), len(set(oracle.neighbor_queries)))
+                            self.assertEqual(len(oracle.degree_queries), solver.metrics.degree_replies)
+                            LOG['trajectory_cases'] += 1
+
+    def test_exact_segment_endpoints_interior_and_scale_separation(self):
+        adjacency, seed, theta, rho = path(2), 0, F(1, 2), F(1, 8)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+        self.assertEqual(optimum, {0:F(1,2), 1:F(1,4)})
+        states = [('zero', optimum, {0:F(1)}, F(0)),
+                  ('interior', {0:F(9,20), 1:F(9,40)}, {0:F(1)}, F(4,5)),
+                  ('full', {}, {}, F(1))]
+        for label, x, z, expected in states:
+            solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+            self.set_state(solver, reference, x, z, optimum, sigma=F(2,3))
+            x, z = self.compare_step(solver, reference, x, z, optimum)
+            self.assertEqual(solver.segment_fractions[-1], expected)
+            if expected < 1:
+                self.assertNotEqual(solver.sigma/F(2,3), solver.energy_decay)
+            LOG['injected_states'] += 1
+            LOG['fixtures'].append(dict(label=label, fraction=str(expected),
+                sigma=str(solver.sigma), energy_decay=str(solver.energy_decay),
+                **asdict(solver.metrics)))
+
+    def test_binding_cap_and_old_position_ghost(self):
+        adjacency, seed, theta, rho = star(9), 0, F(1,4), F(1,100)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        x, z = {seed:F(1,8)}, {}
+        self.set_state(solver, reference, x, z, optimum)
+        x, z = self.compare_step(solver, reference, x, z, optimum)
+        self.assertEqual(solver.metrics.cap_active_iterations, 1)
+        self.assertEqual(solver.mass_z, 1)
+        self.assertNotIn(seed, z)
+        self.assertIn(seed, x)
+        LOG['injected_states'] += 1
+        LOG['fixtures'].append(dict(label='binding-cap-feasible-state',
+            fraction=str(solver.segment_fractions[-1]), **asdict(solver.metrics)))
+
+    def test_no_old_state_scan_when_new_auxiliary_support_is_empty(self):
+        adjacency, seed, theta, rho = path(32), 0, F(1,4), F(1)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = {}
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        x = {i:F(1, 2*sum(reference.degrees.values())) for i in adjacency}
+        self.set_state(solver, reference, x, {}, optimum)
+        initial_scans = solver.metrics.scanned_adjacency_entries
+        solver.X, solver.R, solver.degree = NoFullScan(solver.X), NoFullScan(solver.R), NoFullScan(solver.degree)
+        for mapping in (solver.X, solver.R, solver.degree): mapping.blocked = True
+        solver.step()
+        for mapping in (solver.X, solver.R, solver.degree): mapping.blocked = False
+        expected_x, expected_z, fraction, _, _ = reference.step(x, {})
+        self.assertEqual(solver.z, expected_z)
+        self.assertEqual(expected_z, {})
+        self.assertEqual({i:solver.sigma*value for i,value in solver.X.items()}, expected_x)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries, initial_scans)
+        self.assertEqual(solver.segment_fractions[-1], fraction)
+        LOG['injected_states'] += 1
+        LOG['fixtures'].append(dict(label='32-old-positions-zero-new-scans',
+            initial_scans=initial_scans, additional_scans=0, **asdict(solver.metrics)))
+
+    def test_warm_initialization_and_run_uses_energy_decay(self):
+        adjacency, seed, theta, rho = path(2), 0, F(1,2), F(1,8)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+        primal = {i:value/2 for i,value in optimum.items()}
+        gap = reference.objective(primal)-reference.objective(optimum)
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        solver.initialize_from_primal(primal, gap)
+        self.assertEqual(solver.objective, reference.objective(primal))
+        self.assertEqual(solver.quadratic_x, reference.quadratic(primal))
+        x, z = primal.copy(), primal.copy()
+        for _ in range(3): x,z = self.compare_step(solver, reference, x, z, optimum)
+        self.assertEqual(solver.objective_gap_bound, 2*gap*solver.a**3)
+
+        # At an optimal primal point the segment fraction is zero. Sigma
+        # stays fixed, but the valid energy bound still contracts by a.
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        self.set_state(solver, reference, optimum, {0:F(1)}, optimum)
+        initial = solver.initial_energy_bound
+        result = solver.run(initial*solver.a, max_iterations=3)
+        self.assertEqual(solver.metrics.iterations, 1)
+        self.assertEqual(solver.sigma, 1)
+        self.assertEqual(solver.energy_decay, solver.a)
+        self.assertEqual(solver.objective_gap_bound, initial*solver.a)
+        self.assertEqual({i:value for i,value,d in result}, optimum)
+        self.assertEqual(solver.metrics.output_words, 3*len(optimum))
+        LOG['fixtures'].append(dict(label='run-stops-by-energy-not-sigma',
+            sigma=str(solver.sigma), energy_decay=str(solver.energy_decay),
+            **asdict(solver.metrics)))
+
+    def test_transient_auxiliary_hub_matches_dense_recurrence(self):
+        # This unguarded algorithm may touch vertices outside the true support.
+        adjacency, seed, theta, rho = star(101), 1, F(1,4), F(1,100)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = {seed:F(99,850)}
+        gradient = reference.multiply(optimum)
+        for i in adjacency:
+            gradient[i] -= reference.h[i]
+            self.assertGreaterEqual(gradient[i], 0)
+            if i in optimum: self.assertEqual(gradient[i], 0)
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        x, z = {}, {}
+        for _ in range(5): x,z = self.compare_step(solver, reference, x, z, optimum)
+        self.assertIn(0, solver.adjacency)
+        self.assertIn(0, x)
+        self.assertNotIn(0, optimum)
+        self.assertEqual(solver.history[2][0], 101)
+        self.assertNotIn(0, z)
+        LOG['fixtures'].append(dict(label='transient-degree100-hub',
+            true_support=[seed], final_primal_support=sorted(x),
+            auxiliary_support_volumes=[record[0] for record in solver.history],
+            **asdict(solver.metrics)))
+
+    def test_zero_initialized_run_has_certified_objective_gap(self):
+        adjacency, seed, theta, rho = path(3), 0, F(1,2), F(1,8)
+        reference = DenseReference(adjacency, seed, theta, rho)
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, theta**2, rho)
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        epsilon = solver.initial_energy_bound*solver.a**5
+        output = solver.run(epsilon, max_iterations=10)
+        x = {i:value for i,value,d in output}
+        self.assertEqual(solver.metrics.iterations, 5)
+        self.assertLessEqual(reference.objective(x)-reference.objective(optimum),
+                             solver.objective_gap_bound)
+        self.assertLessEqual(solver.objective_gap_bound, epsilon)
+        self.assertEqual(solver.metrics.output_words, 3*len(x))
+        LOG['fixtures'].append(dict(label='certified-five-step-run',
+            epsilon=str(epsilon), exact_gap=str(reference.objective(x)-reference.objective(optimum)),
+            bound=str(solver.objective_gap_bound), **asdict(solver.metrics)))
+
+    def test_high_degree_boundary_never_scanned(self):
+        adjacency, seed, theta, rho = star(1001), 1, F(1,4), F(1,100)
+        solver = MonotoneCappedSolver(CheckedOracle(adjacency), seed, theta, rho)
+        for _ in range(5): solver.step()
+        self.assertEqual(set(solver.adjacency), {seed})
+        self.assertEqual(solver.metrics.first_adjacency_entries, 1)
+        self.assertEqual(solver.metrics.degree_replies, 2)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries,
+                         sum(record[0] for record in solver.history))
+        LOG['fixtures'].append(dict(label='unscanned-degree1000-boundary',
+            **asdict(solver.metrics)))
+
+
+if __name__ == '__main__':
+    outcome = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(MonotoneTests))
+    LOG['passed'], LOG['test_methods'] = outcome.wasSuccessful(), outcome.testsRun
+    target = Path(__file__).with_name('monotone_capped_verification.json')
+    target.write_text(json.dumps(LOG, indent=2)+'\n')
+    print(json.dumps({k:v for k,v in LOG.items() if k != 'fixtures'}, indent=2))
+    sys.exit(0 if outcome.wasSuccessful() else 1)

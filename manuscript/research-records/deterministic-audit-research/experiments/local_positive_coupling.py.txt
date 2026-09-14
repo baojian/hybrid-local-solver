@@ -1,0 +1,147 @@
+"""Fully local deterministic candidate; its OP2 work bound is still OPEN.
+
+Only degree(vertex) and neighbors(vertex) are used. States and contributions
+are sorted and merged, so no expected-time hash table is part of the claimed
+implementation. All vectors use degree coordinates u_i=x_i/sqrt(d_i).
+"""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass
+from typing import Protocol
+
+
+class GraphOracle(Protocol):
+    def degree(self, vertex: int) -> int: ...
+
+    def neighbors(self, vertex: int) -> Iterable[int]: ...
+
+
+@dataclass
+class Ledger:
+    adjacency_entries: int = 0
+    degree_replies: int = 0
+    contribution_records: int = 0
+    candidate_groups: int = 0
+    state_visits: int = 0
+    projection_candidates: int = 0
+    comparison_upper_bound: int = 0
+    iterations: int = 0
+    output_words: int = 0
+
+    def sort_charge(self, size: int):
+        # A standard deterministic mergesort realizes this asymptotic bound.
+        self.comparison_upper_bound += size * math.ceil(math.log2(max(2, size)))
+
+    def report(self):
+        result = asdict(self)
+        # Conservative primitive-operation envelope for the fixed loops below;
+        # Python interpreter costs are not equated with algebraic word costs.
+        result["algebraic_word_upper_bound"] = (
+            128
+            * (
+                self.contribution_records
+                + self.candidate_groups
+                + self.state_visits
+                + self.projection_candidates
+                + self.iterations
+            )
+            + 16 * self.comparison_upper_bound
+            + self.adjacency_entries
+            + self.degree_replies
+            + self.output_words
+        )
+        return result
+
+
+def solve(oracle: GraphOracle, seed: int, alpha: float, rho: float, epsilon_obj: float):
+    if not 0 < alpha <= 1 or epsilon_obj <= 0:
+        raise ValueError("require 0 < alpha <= 1 and epsilon_obj > 0")
+    seed_degree = oracle.degree(seed)
+    if not 0 < rho < 1 / seed_degree:
+        raise ValueError("require 0 < rho < 1/d_seed")
+    s = math.sqrt(alpha)
+    a = (1 - alpha) / 2
+    ledger = Ledger(degree_replies=1)
+    # Each state is (vertex, degree, primal_density, auxiliary_density).
+    state = []
+    log_bound = max(
+        0.0,
+        math.log(4) - math.log(alpha) - math.log(seed_degree) - math.log(epsilon_obj),
+    )
+    maximum_iterations = 1 + math.ceil(log_bound / s)
+    certificate = math.inf
+    for iteration in range(1, maximum_iterations + 1):
+        # (vertex, degree_if_known, old_x, old_z, diagonal_term, incoming_term)
+        records = [(seed, seed_degree, 0.0, 0.0, 0.0, 0.0)]
+        for vertex, degree, x, z in state:
+            ledger.state_visits += 1
+            y = (x + s * z) / (1 + s)
+            records.append((vertex, degree, x, z, a * y, 0.0))
+            scanned = 0
+            for neighbor in oracle.neighbors(vertex):
+                ledger.adjacency_entries += 1
+                scanned += 1
+                records.append((neighbor, 0, 0.0, 0.0, 0.0, a * y))
+            if scanned != degree:
+                raise ValueError("oracle changed or returned an inconsistent degree")
+        ledger.contribution_records += len(records)
+        ledger.sort_charge(len(records))
+        records.sort(key=lambda row: row[0])
+        candidates = []
+        mapping_squared = 0.0
+        cursor = 0
+        while cursor < len(records):
+            vertex = records[cursor][0]
+            degree = 0
+            old_x = old_z = diagonal = incoming = 0.0
+            while cursor < len(records) and records[cursor][0] == vertex:
+                _, d, x, z, diag, inc = records[cursor]
+                degree = max(degree, d)
+                old_x += x
+                old_z += z
+                diagonal += diag
+                incoming += inc
+                cursor += 1
+            if degree == 0:
+                degree = oracle.degree(vertex)
+                ledger.degree_replies += 1
+            ledger.candidate_groups += 1
+            source = alpha / degree if vertex == seed else 0.0
+            next_x = max(diagonal + incoming / degree + source - alpha * rho, 0.0)
+            y = (old_x + s * old_z) / (1 + s)
+            mapping_squared += degree * (y - next_x) ** 2
+            if next_x > 0:
+                raw = max((next_x - (1 - s) * old_x) / s, 0.0)
+                candidates.append((vertex, degree, next_x, raw))
+        ledger.projection_candidates += len(candidates)
+        mass = sum(degree * raw for _, degree, _, raw in candidates)
+        threshold = 0.0
+        if mass > 1:
+            ledger.sort_charge(len(candidates))
+            ordered = sorted(candidates, key=lambda row: (-row[3], row[0]))
+            cumulative_mass = cumulative_degree = 0.0
+            for pos, (_, degree, _, raw) in enumerate(ordered):
+                cumulative_mass += degree * raw
+                cumulative_degree += degree
+                threshold = (cumulative_mass - 1) / cumulative_degree
+                if pos == len(ordered) - 1 or threshold >= ordered[pos + 1][3]:
+                    break
+        state = [(v, d, x, max(raw - threshold, 0.0)) for v, d, x, raw in candidates]
+        ledger.iterations = iteration
+        certificate = (1 - alpha) * mapping_squared / (2 * alpha)
+        if certificate <= epsilon_obj:
+            break
+    ledger.output_words = 3 * len(state)
+    return {
+        "state": [(v, d, x) for v, d, x, _ in state],
+        "objective_gap_certificate": certificate,
+        "epsilon_obj": epsilon_obj,
+        "converged": certificate <= epsilon_obj,
+        "ledger": ledger.report(),
+        "algorithm_randomized": False,
+        "op2_work_theorem_proved": False,
+        "coordinate_convention": "u_i=x_i/sqrt(d_i); output triples are (vertex,d_i,u_i)",
+    }

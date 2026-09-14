@@ -1,0 +1,275 @@
+"""Independent rational check of the reported continuation proof's lemmas.
+
+No implementation from the proof's owning task is imported. Full graph
+enumeration and exact optima are external audit machinery, not local solver
+operations. Every graph and parameter choice is deterministic.
+"""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+
+
+def dot(x, y, degrees):
+    return sum((d * a * b for d, a, b in zip(degrees, x, y)), F(0))
+
+
+def mass(x, degrees):
+    return sum((d * a for d, a in zip(degrees, x)), F(0))
+
+
+def product(matrix, vector):
+    return [sum((a * b for a, b in zip(row, vector)), F(0)) for row in matrix]
+
+
+def subtract(x, y):
+    return [a - b for a, b in zip(x, y)]
+
+
+def solve(matrix, rhs):
+    n = len(rhs)
+    aug = [list(row) + [b] for row, b in zip(matrix, rhs)]
+    for k in range(n):
+        pivot = next(i for i in range(k, n) if aug[i][k])
+        aug[k], aug[pivot] = aug[pivot], aug[k]
+        factor = aug[k][k]
+        aug[k] = [x / factor for x in aug[k]]
+        for i in range(n):
+            if i != k:
+                factor = aug[i][k]
+                aug[i] = [a - factor * b for a, b in zip(aug[i], aug[k])]
+    return [row[-1] for row in aug]
+
+
+def obstacle(matrix, source, alpha, rho):
+    n = len(source)
+    rhs = [a - alpha * rho for a in source]
+    for mask in range(1 << n):
+        active = [i for i in range(n) if mask >> i & 1]
+        x = [F(0)] * n
+        if active:
+            face = [[matrix[i][j] for j in active] for i in active]
+            values = solve(face, [rhs[i] for i in active])
+            if any(v <= 0 for v in values):
+                continue
+            for i, value in zip(active, values):
+                x[i] = value
+        residual = subtract(product(matrix, x), rhs)
+        if all(v >= 0 for v in residual) and all(
+            x[i] * residual[i] == 0 for i in range(n)
+        ):
+            return x
+    raise AssertionError("No exact KKT face found")
+
+
+def projection(raw, degrees, upper, cap):
+    def point(eta):
+        return [min(upper, max(F(0), a - eta)) for a in raw]
+
+    p = point(F(0))
+    if mass(p, degrees) <= cap:
+        return p, F(0)
+    breaks = sorted({F(0)} | {b for a in raw for b in (a, a - upper) if b > 0})
+    for lo, hi in itertools.pairwise(breaks):
+        mid = (lo + hi) / 2
+        free = [i for i, a in enumerate(raw) if 0 < a - mid < upper]
+        saturated = [i for i, a in enumerate(raw) if a - mid >= upper]
+        if not free:
+            if mass(point(lo), degrees) == cap:
+                return point(lo), lo
+            continue
+        eta = (
+            sum((degrees[i] * raw[i] for i in free), F(0))
+            + upper * sum(degrees[i] for i in saturated)
+            - cap
+        ) / sum(degrees[i] for i in free)
+        if lo <= eta <= hi:
+            p = point(eta)
+            assert mass(p, degrees) == cap
+            return p, eta
+    if cap == 0:
+        return [F(0)] * len(raw), max(raw)
+    raise AssertionError("No exact waterfill interval")
+
+
+def graph_data(graph, seed, alpha):
+    n = len(graph)
+    degrees = [graph.degree(i) for i in range(n)]
+    c = (1 - alpha) / 2
+    q = [
+        [
+            (1 + alpha) / 2
+            if i == j
+            else -c / degrees[i]
+            if graph.has_edge(i, j)
+            else F(0)
+            for j in range(n)
+        ]
+        for i in range(n)
+    ]
+    b = [alpha / degrees[i] if i == seed else F(0) for i in range(n)]
+    return degrees, q, b
+
+
+def stage_audit(graph, seed, alpha, rho, cap_kind, steps):
+    degrees, q, b = graph_data(graph, seed, alpha)
+    n = len(degrees)
+    lam = alpha * rho
+    baseline = obstacle(q, b, alpha, 2 * rho)
+    optimum = obstacle(q, b, alpha, rho)
+    core_optimum = obstacle(q, b, alpha, rho / 2)
+    core = {i for i, v in enumerate(core_optimum) if v > 0}
+    source = subtract(b, product(q, baseline))
+    m_s = mass(source, degrees)
+    assert all(0 <= a <= 4 * lam for a in source)
+    target = subtract(optimum, baseline)
+    t = solve(q, source)
+    cap = F(1) if cap_kind == "unit" else m_s / alpha
+    assert all(0 <= a <= b <= 4 * rho for a, b in zip(target, t))
+    assert mass(t, degrees) <= cap
+    theta = F(1, 2)
+    while theta * theta > alpha:
+        theta /= 2
+    mu = theta * theta
+    a = 1 - theta
+    beta = (1 - alpha) / (1 + theta)
+    residual = [x - y + lam for x, y in zip(product(q, optimum), b)]
+    assert all(residual[i] >= lam / 2 for i in range(n) if i not in core)
+
+    def objective(x):
+        return dot(x, product(q, x), degrees) / 2 - dot(
+            [v - lam for v in source], x, degrees
+        )
+
+    def energy(x, z):
+        e = subtract(z, target)
+        return objective(x) - objective(target) + mu * dot(e, e, degrees) / 2
+
+    def auxiliary(x):
+        e = subtract(product(q, x), source)
+        return dot(e, e, degrees) / 2 + alpha * lam * mass(x, degrees)
+
+    def second_energy(x, z):
+        e = subtract(z, t)
+        return auxiliary(x) - auxiliary(t) + mu * dot(e, product(q, e), degrees) / 2
+
+    x = [F(0)] * n
+    z = x.copy()
+    old_e, old_b = energy(x, z), second_energy(x, z)
+    assert old_e <= 1 and old_b <= 3 * lam * m_s
+    volume = 0
+    max_response_ratio = F(0)
+    sectors = {"lower": 0, "upper": 0, "mass": 0}
+    for iteration in range(1, steps + 1):
+        y = [(v + theta * w) / (1 + theta) for v, w in zip(x, z)]
+        grad = [v - s + lam for v, s in zip(product(q, y), source)]
+        raw = [a * v + theta * w - g / theta for v, w, g in zip(z, y, grad)]
+        p, multiplier = projection(raw, degrees, 4 * rho, cap)
+        normal = subtract(raw, p)
+        assert dot(subtract(p, target), normal, degrees) >= 0
+        assert dot(subtract(product(q, p), source), normal, degrees) >= 0
+        sectors["lower"] += sum(v == 0 and r < multiplier for v, r in zip(p, raw))
+        sectors["upper"] += sum(
+            v == 4 * rho and r > v + multiplier for v, r in zip(p, raw)
+        )
+        sectors["mass"] += int(multiplier > 0)
+        xp = [a * v + theta * w for v, w in zip(x, p)]
+        next_e, next_b = energy(xp, p), second_energy(xp, p)
+        dissipation = (
+            mu * theta * (1 - mu) * dot(subtract(z, y), subtract(z, y), degrees) / 2
+        )
+        assert next_e <= a * old_e - dissipation
+        second_dissipation = (
+            mu
+            * theta
+            * (1 - mu)
+            * dot(subtract(z, y), product(q, subtract(z, y)), degrees)
+            / 2
+        )
+        assert next_b <= a * old_b - second_dissipation
+        error = subtract(x, target)
+        response = product(q, error)
+        response_square = dot(response, response, degrees)
+        assert response_square <= 18 * lam * m_s
+        if m_s:
+            max_response_ratio = max(max_response_ratio, response_square / (lam * m_s))
+        h = [-(r - mu * e) / (1 + theta) for r, e in zip(response, error)]
+        e_old = [theta * max(F(0), v - t0) for v, t0 in zip(z, target)]
+        e_new = [theta * max(F(0), v - t0) for v, t0 in zip(p, target)]
+        selected = [i for i in range(n) if p[i] > target[i]]
+        lhs = mass(e_new, degrees) + sum(degrees[i] * residual[i] for i in selected)
+        rhs = beta * mass(e_old, degrees) + sum(degrees[i] * h[i] for i in selected)
+        assert lhs <= rhs
+        volume += sum(degrees[i] for i, value in enumerate(p) if value)
+        assert rho * volume <= 148 * iteration
+        x, z, old_e, old_b = xp, p, next_e, next_b
+    return {
+        "steps": steps,
+        "volume": volume,
+        "rho_average_volume": float(rho * volume / steps),
+        "maximum_response_ratio": float(max_response_ratio),
+        "sector_counts": sectors,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--max-n", type=int, default=4)
+    parser.add_argument("--steps", type=int, default=32)
+    args = parser.parse_args()
+    output = args.output.resolve()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    start = last = time.monotonic()
+    total = steps = 0
+    maximum_response = maximum_volume = 0.0
+    sectors = {"lower": 0, "upper": 0, "mass": 0}
+    for index, graph in enumerate(nx.graph_atlas_g()):
+        if not 2 <= len(graph) <= args.max_n or not nx.is_connected(graph):
+            continue
+        for seed, alpha, ratio, cap in itertools.product(
+            range(len(graph)),
+            (F(1, 4), F(1, 3), F(1, 16)),
+            (F(1, 2), F(1, 4), F(1, 8)),
+            ("unit", "source"),
+        ):
+            rho = ratio / graph.degree(seed)
+            result = stage_audit(graph, seed, alpha, rho, cap, args.steps)
+            total += 1
+            steps += result["steps"]
+            maximum_response = max(maximum_response, result["maximum_response_ratio"])
+            maximum_volume = max(maximum_volume, result["rho_average_volume"])
+            for name, count in result["sector_counts"].items():
+                sectors[name] += count
+            state = {
+                "cases": total,
+                "exact_steps": steps,
+                "maximum_response_ratio": maximum_response,
+                "maximum_rho_average_volume": maximum_volume,
+                "sector_counts": sectors,
+                "current_atlas_index": index,
+                "elapsed_seconds": time.monotonic() - start,
+                "randomized": False,
+                "independent_implementation": True,
+                "full_graph_access_is_audit_only": True,
+            }
+            if time.monotonic() - last > 30:
+                output.with_suffix(".checkpoint.json").write_text(
+                    json.dumps(state, indent=2)
+                )
+                print(json.dumps(state), flush=True)
+                last = time.monotonic()
+    state["status"] = "enumeration_complete"
+    output.write_text(json.dumps(state, indent=2))
+    print(json.dumps(state), flush=True)
+
+
+if __name__ == "__main__":
+    main()

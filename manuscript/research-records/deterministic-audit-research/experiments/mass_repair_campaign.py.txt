@@ -1,0 +1,150 @@
+"""Deterministic root-horizon falsification census; rate is NOT proved."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import itertools
+import json
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from averaged_coupling import run
+from averaged_equitable_campaign import instances
+from plc_equitable_campaign import symmetric_model, transitions
+
+
+def barbell(left, right, length):
+    """Two cliques joined by a path; seed is an ordinary left-clique vertex."""
+    counts = np.array([1, left - 2, 1] + [1] * length + [1, right - 1], float)
+    neighbors = np.zeros((len(counts), len(counts)))
+    neighbors[0, 1], neighbors[1, 0] = left - 2, 1
+    neighbors[0, 2] = neighbors[2, 0] = 1
+    neighbors[1, 1] = left - 3
+    neighbors[1, 2], neighbors[2, 1] = 1, left - 2
+    for i in range(2, 3 + length):
+        neighbors[i, i + 1] = neighbors[i + 1, i] = 1
+    neighbors[-2, -1], neighbors[-1, -2] = right - 1, 1
+    neighbors[-1, -1] = right - 2
+    return counts, neighbors
+
+
+def all_cases():
+    for left, ratio, length in itertools.product(
+        (3, 8, 32, 128), (1, 10, "square"), (0, 4, 16, 64)
+    ):
+        right = left**2 if ratio == "square" else left * ratio
+        counts, neighbors = barbell(left, right, length)
+        for alpha in sorted({0.1 / left**2, 1 / left**2, 0.001, 0.0001}):
+            q, b, w, volume = symmetric_model(counts, neighbors, alpha)
+            identity = {
+                "family": "barbell",
+                "left": left,
+                "right": right,
+                "path": length,
+            }
+            yield alpha, identity, q, b, w, volume, counts, transitions(q, b, w, alpha)
+    for alpha in (0.1, 0.01, 0.001, 0.0001, 0.000001):
+        for identity, q, b, w, volume, counts, bounds in instances(alpha):
+            yield alpha, identity, q, b, w, volume, counts, bounds
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--seconds", type=float, default=36000)
+    args = parser.parse_args()
+    args.directory.mkdir(parents=True, exist_ok=True)
+    sources = {}
+    for name in (
+        Path(__file__).name,
+        "averaged_coupling.py",
+        "averaged_equitable_campaign.py",
+        "plc_equitable_campaign.py",
+        "cyclic_radial_audit.py",
+        "cyclic_dual_averaging.py",
+        "positive_linear_coupling.py",
+    ):
+        content = Path(__file__).with_name(name).read_bytes()
+        (args.directory / name).write_bytes(content)
+        sources[name] = hashlib.sha256(content).hexdigest()
+    (args.directory / "metadata.json").write_text(
+        json.dumps(
+            {
+                "start_utc": datetime.now(UTC).isoformat(),
+                "sources": sources,
+                "randomized": False,
+                "accelerated_rate_proved": False,
+            },
+            indent=2,
+        )
+    )
+    start = time.monotonic()
+    completed = failures = 0
+    worst = None
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for alpha, identity, q, b, w, volume, counts, bounds in all_cases():
+            positions = sorted({0, len(bounds) // 4, len(bounds) // 2, len(bounds) - 1})
+            for position, factor in itertools.product(positions, (0.999, 1.001, 2, 8)):
+                rho = bounds[position] * factor
+                if rho >= bounds[0]:
+                    continue
+                result = run(
+                    q,
+                    b - alpha * rho * w,
+                    w,
+                    volume,
+                    alpha,
+                    rho,
+                    counts=counts,
+                    repair_mass=True,
+                )
+                result.update(identity=identity, boundary_index=position, factor=factor)
+                output.write(json.dumps(result) + "\n")
+                completed += 1
+                failures += not result["converged"]
+                if (
+                    worst is None
+                    or result["relative_certificate"] > worst["relative_certificate"]
+                ):
+                    worst = result
+                    (args.directory / "worst.json").write_text(
+                        json.dumps(worst, indent=2)
+                    )
+                if completed % 25 == 0 or not result["converged"]:
+                    output.flush()
+                    (args.directory / "checkpoint.json").write_text(
+                        json.dumps(
+                            {
+                                "updated_at": datetime.now(UTC).isoformat(),
+                                "cases_completed": completed,
+                                "experimental_horizon_failures": failures,
+                                "identity": identity,
+                                "alpha": alpha,
+                                "elapsed_seconds": time.monotonic() - start,
+                                "randomized": False,
+                                "status": "running",
+                            },
+                            indent=2,
+                        )
+                    )
+                if time.monotonic() - start >= args.seconds:
+                    return
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "experimental_horizon_failures": failures,
+                "elapsed_seconds": time.monotonic() - start,
+                "status": "enumeration_complete",
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

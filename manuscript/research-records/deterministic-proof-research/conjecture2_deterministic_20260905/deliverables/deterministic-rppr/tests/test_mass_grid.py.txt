@@ -1,0 +1,100 @@
+"""Focused public checks for the optional mass-scaled precision adapter."""
+import unittest
+from fractions import Fraction as F
+
+from deterministic_rppr import (solve, solve_fast, solve_mass_scaled_grid,
+    MassScaledGridCorrector, FastDyadicCorrector, certify_output)
+from deterministic_rppr._avl import AVLMap
+
+if __package__:
+    from .test_solver import StrictOracle, graph, validate_case, exact_optimum, objective
+else:
+    from test_solver import StrictOracle, graph, validate_case, exact_optimum, objective
+
+
+class MassGridTests(unittest.TestCase):
+    def test_full_fixed_stages_and_additive_hint_ledger(self):
+        self.assertIs(solve,solve_fast)
+        fixtures=((graph(3,[(1,2),(2,3)]),1,F(1,4),F(1,64),F(1,1000000)),
+                  (graph(4,[(1,2),(2,3),(3,1),(3,4)]),4,F(13,97),F(1,32),F(1,1000000)),
+                  (graph(2,[(1,2)]),1,F(13,97),F((1<<20)-1,1<<20),F(1,16)),
+                  (graph(2,[(1,2)]),1,F(1),F(1,4),F(1,1000000)))
+        for rows,seed,alpha,rho,eps in fixtures:
+            captured=[]
+            def wrapped(*args):
+                outer=solve_mass_scaled_grid(*args)
+                captured.append(outer)
+                return outer.result
+            answer,_=validate_case(rows,seed,alpha,rho,eps,solve_function=wrapped)
+            outer=captured[0]
+            self.assertIs(answer,outer.result)
+            self.assertIs(outer.output,answer.output)
+            self.assertEqual(outer.mass_hint_metrics.factory_calls,len(answer.stages))
+            self.assertEqual(outer.mass_hint_metrics.previous_references_released,len(answer.stages))
+            self.assertEqual(outer.mass_hint_metrics.previous_degree_cache_lookups,
+                             sum(record.baseline_records for record in outer.mass_hints))
+            for stage,record in zip(answer.stages,outer.mass_hints):
+                diagnostic=stage.corrector_metrics['mass_scaled_grid']
+                self.assertEqual(record.mass_cap,stage.projection_mass_cap)
+                self.assertEqual(diagnostic['actual_tolerance'],stage.requested_gap)
+                self.assertEqual(diagnostic['gamma_bound'],29*record.mass_cap*stage.grid/answer.theta)
+                self.assertLess(diagnostic['gamma_bound'],stage.requested_gap/8)
+            verifier=StrictOracle(rows,seed)
+            verifier.known.update(i for i,_,_ in answer.output)
+            self.assertTrue(certify_output(verifier,seed,alpha,rho,answer.output).meets(eps))
+
+    def test_larger_grid_actual_tolerance_and_inherited_kernel(self):
+        rows=graph(2,[(1,2)])
+        baseline=AVLMap(((1,F(39,64)),(2,F(23,64))))
+        alpha,theta,rho,tau=F(1,4),F(1,2),F(1,128),F(1,33554432)
+        def oracle():
+            result=StrictOracle(rows,1)
+            result.known.update(baseline)
+            return result
+        current=MassScaledGridCorrector(oracle(),1,alpha,theta,rho,tau,baseline,
+                                        mass_cap_hint=F(1,32))
+        ordinary=FastDyadicCorrector(oracle(),1,alpha,theta,rho,tau,baseline)
+        self.assertEqual(current.grid,32*ordinary.grid)
+        self.assertEqual(current.tolerance,tau)
+        self.assertEqual(current.relaxed_initialization_tolerance,32*tau)
+        self.assertIsNone(current._accepted_bound)
+        self.assertEqual(current._next_checkpoint,current.T)
+        self.assertIs(MassScaledGridCorrector.step,FastDyadicCorrector.step)
+        self.assertIs(MassScaledGridCorrector.run,FastDyadicCorrector.run)
+        self.assertIs(MassScaledGridCorrector._rebase,FastDyadicCorrector._rebase)
+        values={i:value for i,value,_ in current.run()}
+        optimum=exact_optimum(rows,1,alpha,rho)
+        gap=objective(rows,1,alpha,rho,values)-objective(rows,1,alpha,rho,optimum)
+        self.assertTrue(0<=gap<=current.objective_gap_bound<tau)
+
+    def test_zero_step_bound_has_no_rounding_floor(self):
+        rows=graph(2,[(1,2)])
+        oracle=StrictOracle(rows,1)
+        oracle.known.add(2)
+        current=MassScaledGridCorrector(oracle,1,F(1,4),F(1,2),F(1,4),F(1,1024),
+            AVLMap(((1,F(3,8)),(2,F(1,8)))),mass_cap_hint=F(1,2))
+        self.assertEqual(current.target_iterations,0)
+        self.assertEqual(current.objective_gap_bound,current.initial_energy_bound)
+        self.assertEqual(current.objective_gap_bound,0)
+        self.assertEqual(len(current.run()),2)
+
+    def test_large_no_hash_boundary(self):
+        class Label(int):
+            def __hash__(self):raise AssertionError('Hashing is forbidden')
+        seed,hub=Label(1<<2051),Label(-(1<<4099))
+        class Oracle:
+            def __init__(self):self.exposed=False
+            def degree(self,i):
+                if i==seed:return 1
+                assert i==hub and self.exposed
+                return 10**30
+            def neighbors(self,i):
+                assert i==seed,'Inactive hub row was read'
+                self.exposed=True
+                yield hub
+        outer=solve_mass_scaled_grid(Oracle(),seed,F(1,100),F(1,64),F(1,1000000))
+        self.assertEqual(len(outer.output),1)
+        self.assertTrue(certify_output(Oracle(),seed,F(1,100),F(1,64),outer.output).meets(F(1,1000000)))
+
+
+if __name__=='__main__':unittest.main()

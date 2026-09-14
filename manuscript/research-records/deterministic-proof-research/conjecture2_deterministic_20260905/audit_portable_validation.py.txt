@@ -1,0 +1,156 @@
+"""Read-only record/transcription audit and five-case isolated CLI smoke runs."""
+import ast
+import hashlib
+import importlib.util
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+from fractions import Fraction as F
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent
+PACKAGE=ROOT/'deliverables/deterministic-rppr'
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def node_map(path):
+    return {node.name:ast.dump(node,include_attributes=False)
+            for node in ast.parse(Path(path).read_text()).body
+            if isinstance(node,(ast.FunctionDef,ast.ClassDef))}
+
+
+def main():
+    runner_path=PACKAGE/'validation/run_full.py'
+    spec=importlib.util.spec_from_file_location('portable_validation_runner',runner_path)
+    runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
+    cases,raw,digest=runner.load_manifest(PACKAGE/'validation/cases.json')
+    from validate_packaged_solver import make_manifest,serialize
+    assert serialize(make_manifest())==raw
+    old=ROOT/'validate_adaptive_manifest_independent.py'
+    previous,current=node_map(old),node_map(runner_path)
+    same=('serialize','alarm_handler','StrictLocalOracle','Problem','observed_source')
+    assert all(previous[name]==current[name] for name in same)
+    numeric_before={str(p.relative_to(PACKAGE)):sha(p)
+                    for folder in ('deterministic_rppr','tests') for p in (PACKAGE/folder).rglob('*.py')}
+    record_checks=[]
+    adaptive_stages=0
+    all_saved={}
+    for backend,file in [('fast','packaged_fast_solver_validation.json'),
+                         ('adaptive','adaptive_manifest_independent_validation.json')]:
+        data=json.loads((ROOT/file).read_text())
+        assert data['status']=='passed' and len(data['completed'])==183
+        if backend=='fast':
+            assert data['manifest_sha256']==digest
+        else:
+            assert data['manifest']==raw
+        rows={record['name']:record for record in data['completed']}
+        all_saved[backend]=rows
+        count=0
+        for case in cases:
+            p=runner.Problem(case);saved=rows[case['name']]
+            output=saved['output'] if backend=='fast' else saved['result']['result']['output']
+            values=p.unpack(tuple((i,F(value),degree) for i,value,degree in output))
+            exact=p.optimum(case['rho'])
+            assert all(0<=values.get(i,0)<=exact.get(i,0) for i in p.vertices)
+            gap=p.objective(case['rho'],values)-p.objective(case['rho'],exact)
+            certificate=F(saved['certificate'] if backend=='fast' else saved['result']['result']['objective_gap_bound'])
+            assert gap==F(saved['checks']['actual_gap'])
+            assert 0<=gap<=certificate<=case['epsilon']
+            assert p.independent_gap_bound(case['rho'],values)<=case['epsilon']
+            if backend=='adaptive':
+                previous_values={};previous_r=F(1,p.degree(p.seed))
+                full=saved['result']; stages=full['result']['stages']
+                for s,record,comparison,candidate_record in zip(stages,full['schedule'],
+                        saved['checks']['stages'],saved['checks']['complete_candidates']):
+                    r=F(s['regularization']); source=p.source(previous_values)
+                    maximum=max(source.values()); exact_stage=p.optimum(r)
+                    assert r==max(case['rho'],maximum/(4*p.alpha))
+                    assert F(record['source_maximum'])==maximum
+                    assert source[record['maximum_vertex']]==maximum
+                    assert F(record['previous_regularization'])==previous_r
+                    assert source=={int(i):F(v) for i,v in comparison['baseline_source'].items()}
+                    current_values=p.unpack(tuple((i,F(v),d) for i,v,d in s['repaired_output']))
+                    candidate=p.unpack(tuple((i,F(v),d) for i,v,d in candidate_record['candidate']))
+                    assert p.objective(r,current_values)-p.objective(r,exact_stage)==F(comparison['actual_repaired_gap'])
+                    assert p.objective(r,candidate)-p.objective(r,exact_stage)==F(comparison['actual_candidate_gap'])
+                    previous_values,previous_r=current_values,r
+                    adaptive_stages+=1
+            count+=1
+        record_checks.append(dict(backend=backend,saved_file=file,sha256=sha(ROOT/file),
+                                  checked_outputs=count))
+
+    smoke=[]
+    with tempfile.TemporaryDirectory(prefix='rppr-validation-portable-') as temporary:
+        isolated=Path(temporary)/'bundle'
+        isolated.mkdir()
+        for folder in ('deterministic_rppr','tests','validation'):
+            shutil.copytree(PACKAGE/folder,isolated/folder,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+        isolated_runner=isolated/'validation/run_full.py'
+        assert not (isolated/'validate_packaged_solver.py').exists()
+        for backend in ('fast','adaptive'):
+            output=Path(temporary)/(backend+'.json')
+            command=[sys.executable,'-I',str(isolated_runner),'--backend',backend,
+                     '--smoke','--output',str(output)]
+            completed=subprocess.run(command,cwd=temporary,capture_output=True,text=True,timeout=120)
+            assert completed.returncode==0,(completed.stdout,completed.stderr)
+            result=json.loads(output.read_text())
+            assert result['status']=='complete_subset'
+            assert result['selected_cases_completed'] and not result['full_manifest_completed']
+            assert len(result['completed'])==5 and result['sources_unchanged']
+            for checked in result['completed']:
+                old_result=all_saved[backend][checked['name']]
+                if backend=='fast':
+                    assert checked['result']['output']==old_result['output']
+                    assert checked['result']['objective_gap_bound']==old_result['certificate']
+                    assert [s['iterations'] for s in checked['result']['stages']]==old_result['stage_iterations']
+                else:
+                    assert checked['result']==old_result['result']
+                if checked['name']=='labels-n5-m15':
+                    assert checked['checks']['label_and_reversed_row_invariance']=='rooted-n5-m15-B'
+            target=ROOT/f'portable_validation_{backend}_smoke.json'
+            shutil.copyfile(output,target)
+            smoke.append(dict(backend=backend,case_count=5,returncode=completed.returncode,
+                              output=target.name,sha256=sha(target),stdout=completed.stdout,
+                              isolated=True,python_isolated_flag=True))
+
+        # Exercise failure persistence without completing or numerically stepping
+        # another solver case: the guard rejects its first attempted step.
+        failed=Path(temporary)/'guard.json'
+        command_code=("import importlib.util; s=importlib.util.spec_from_file_location('runner',"+
+                      repr(str(isolated_runner))+"); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+                      "m.GUARDS['total_iterations']=0; raise SystemExit(m.main(['--backend','adaptive','--smoke','--output',"+
+                      repr(str(failed))+"]))")
+        failure=subprocess.run([sys.executable,'-I','-c',command_code],cwd=temporary,
+                               capture_output=True,text=True,timeout=120)
+        assert failure.returncode==1
+        failed_result=json.loads(failed.read_text())
+        assert failed_result['status']=='incomplete'
+        assert not failed_result['full_manifest_completed'] and not failed_result['selected_cases_completed']
+        assert not failed_result['completed']
+        assert 'Fixed resource guard' in failed_result['failure']['exception']
+        assert failed_result['sources_unchanged']
+        shutil.copyfile(failed,ROOT/'portable_validation_forced_guard.json')
+
+    numeric_after={str(p.relative_to(PACKAGE)):sha(p)
+                  for folder in ('deterministic_rppr','tests') for p in (PACKAGE/folder).rglob('*.py')}
+    assert numeric_before==numeric_after
+    report=dict(passed=True,manifest_sha256=digest,canonical_case_count=len(cases),
+        unchanged_common_ast_nodes=list(same),read_only_saved_output_checks=record_checks,
+        read_only_saved_adaptive_stage_checks=adaptive_stages,
+        isolated_smoke_runs=smoke,forced_guard=dict(passed=True,complete_solver_cases=0,
+            numerical_steps_executed=0,output='portable_validation_forced_guard.json'),
+        full_solver_suites_rerun=0,complete_smoke_solver_cases=10,
+        numeric_modules_and_existing_tests_unchanged=True,
+        numeric_source_sha256=numeric_after,
+        validation_files={str(p.relative_to(PACKAGE)):sha(p) for p in (PACKAGE/'validation').glob('*') if p.is_file()})
+    (ROOT/'portable_validation_transcription_audit.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in report.items() if k not in ('numeric_source_sha256','isolated_smoke_runs')},indent=2))
+
+
+if __name__=='__main__':
+    main()

@@ -1,0 +1,456 @@
+"""Separately versioned local dyadic corrector with measured exact arithmetic.
+
+See bounded_dyadic_realization.md and bounded_dyadic_corrector_audit.md.
+Persistent vectors and scale are dyadic. Sparse raw keys and projection
+thresholds are exact bounded rational temporaries. The reporter never emits
+sub-grid projected positives. Rebases explicitly pay for historical rows.
+Python maps and Fraction internals are prototypes, not unit-bit operations.
+"""
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+from capped_box_corrector import BoxMetrics, RankedBoxAVL, count
+
+
+@dataclass
+class DyadicMetrics(BoxMetrics):
+    grid_halvings: int = 0
+    bound_doublings: int = 0
+    completed_blocks: int = 0
+    selected_adjacency_entries: int = 0
+    rebase_adjacency_entries: int = 0
+    rebase_input_records: int = 0
+    rebase_exposed_records: int = 0
+    rebases: int = 0
+    scale_rounding_steps: int = 0
+    selected_update_rounding_records: int = 0
+    rebase_rounding_records: int = 0
+    measured_rational_values: int = 0
+    max_numerator_bits: int = 0
+    max_denominator_bits: int = 0
+    max_integer_bits: int = 0
+    max_comparison_product_bits: int = 0
+    max_grid_state_numerator_bits: int = 0
+    max_grid_state_denominator_bits: int = 0
+
+
+class ArithmeticTracker:
+    def __init__(self, metrics):
+        self.metrics = metrics
+
+    def measure(self, value, grid=False):
+        value = value.value if isinstance(value, Tracked) else F(value)
+        m = self.metrics
+        m.measured_rational_values += 1
+        m.max_numerator_bits = max(m.max_numerator_bits, value.numerator.bit_length())
+        m.max_denominator_bits = max(m.max_denominator_bits, value.denominator.bit_length())
+        if grid:
+            m.max_grid_state_numerator_bits = max(m.max_grid_state_numerator_bits,
+                                                  value.numerator.bit_length())
+            m.max_grid_state_denominator_bits = max(m.max_grid_state_denominator_bits,
+                                                    value.denominator.bit_length())
+        return value
+
+    def integer(self, value):
+        self.metrics.max_integer_bits = max(self.metrics.max_integer_bits, int(value).bit_length())
+        return value
+
+    def wrap(self, value):
+        return Tracked(value, self)
+
+
+class Tracked:
+    """Measure every rational result in the explicit reporter arithmetic.
+
+    This records reduced rational operands/results and comparison products;
+    it does not instrument CPython's internal gcd or division algorithms.
+    """
+    __slots__ = ('value', 'tracker')
+
+    def __init__(self, value, tracker):
+        self.tracker = tracker
+        self.value = tracker.measure(value)
+
+    def _other(self, other):
+        return self.tracker.measure(other)
+
+    def __add__(self, other): return Tracked(self.value+self._other(other), self.tracker)
+    __radd__ = __add__
+    def __sub__(self, other): return Tracked(self.value-self._other(other), self.tracker)
+    def __rsub__(self, other): return Tracked(self._other(other)-self.value, self.tracker)
+    def __mul__(self, other): return Tracked(self.value*self._other(other), self.tracker)
+    __rmul__ = __mul__
+    def __truediv__(self, other): return Tracked(self.value/self._other(other), self.tracker)
+    def __rtruediv__(self, other): return Tracked(self._other(other)/self.value, self.tracker)
+    def __neg__(self): return Tracked(-self.value, self.tracker)
+    def __bool__(self): return bool(self.value)
+    def __hash__(self): return hash(self.value)
+    def __repr__(self): return f'Tracked({self.value!r})'
+
+    def _compare(self, other, operation):
+        other = self._other(other)
+        left = self.value.numerator*other.denominator
+        right = other.numerator*self.value.denominator
+        self.tracker.metrics.max_comparison_product_bits = max(
+            self.tracker.metrics.max_comparison_product_bits,
+            left.bit_length(), right.bit_length())
+        return operation(left, right)
+
+    def __eq__(self, other):
+        if not isinstance(other, (Tracked, F, int)):
+            return False
+        return self._compare(other, lambda a, b: a == b)
+    def __lt__(self, other): return self._compare(other, lambda a, b: a < b)
+    def __le__(self, other): return self._compare(other, lambda a, b: a <= b)
+    def __gt__(self, other): return self._compare(other, lambda a, b: a > b)
+    def __ge__(self, other): return self._compare(other, lambda a, b: a >= b)
+
+
+def floor_grid(value, grid, tracker):
+    quotient = tracker.wrap(value)/grid
+    integer = quotient.value.numerator//quotient.value.denominator
+    tracker.integer(integer)
+    answer = (tracker.wrap(integer)*grid).value
+    return tracker.measure(answer, grid=True)
+
+
+class MeasuredClosedBoxAVL(RankedBoxAVL):
+    def __init__(self, metrics, tracker):
+        super().__init__(metrics)
+        self.tracker = tracker
+
+    def refresh(self, node):
+        super().refresh(node)
+        self.tracker.integer(node.total_weight)
+        self.tracker.integer(node.count)
+        return node
+
+    def box_mass(self, multiplier, sigma, shift, upper):
+        t = self.tracker.wrap
+        multiplier, sigma, shift, upper = map(t, (multiplier, sigma, shift, upper))
+        self.metrics.mass_queries += 1
+        lower = (shift+multiplier)/sigma
+        wl, sl = self.tail_moments(lower)
+        wh, sh = self.tail_moments(lower+upper/sigma)
+        mass = sigma*(sl-sh)-(shift+multiplier)*(wl-wh)+upper*wh
+        self.tracker.integer(wl)
+        self.tracker.integer(wh)
+        return mass, wl-wh
+
+    def box_threshold(self, sigma, shift, upper, cap=F(1)):
+        t = self.tracker.wrap
+        sigma, shift, upper, cap = map(t, (sigma, shift, upper, cap))
+        if sigma <= 0 or upper <= 0 or cap < 0:
+            raise ValueError('Need sigma>0, upper>0, cap>=0')
+        self.metrics.projection_queries += 1
+        mass0, _ = self.box_mass(0, sigma, shift, upper)
+        if mass0 <= cap:
+            return t(0), False
+        n = count(self.root)
+        high = sigma*self.rank_key(n-1)[0]-shift
+        if cap == 0:
+            return high, True
+        low = t(0)
+        for translation in (t(0), upper):
+            left, right = 0, n
+            while left < right:
+                middle = (left+right)//2
+                pivot = sigma*self.rank_key(middle)[0]-shift-translation
+                self.metrics.breakpoint_candidates += 1
+                if pivot <= low:
+                    left = middle+1
+                    continue
+                if pivot >= high:
+                    right = middle
+                    continue
+                mass, _ = self.box_mass(pivot, sigma, shift, upper)
+                if mass == cap:
+                    return pivot, True
+                if mass > cap:
+                    low, left = pivot, middle+1
+                else:
+                    high, right = pivot, middle
+        mass, slope = self.box_mass(low, sigma, shift, upper)
+        if slope <= 0:
+            raise ArithmeticError('Invalid final affine interval')
+        multiplier = low+(mass-cap)/slope
+        if not low < multiplier <= high:
+            raise ArithmeticError('Invalid box root')
+        return multiplier, True
+
+    def at_least(self, threshold):
+        """Closed tail: exact ties at one grid unit must be emitted."""
+        def visit(node):
+            if node is None:
+                return
+            self.metrics.tree_visits += 1
+            if node.key[0] < threshold:
+                yield from visit(node.right)
+            else:
+                yield from visit(node.left)
+                self.metrics.projection_emissions += 1
+                yield node.key
+                yield from visit(node.right)
+        yield from visit(self.root)
+
+    def project_grid(self, sigma, shift, upper, grid, cap=F(1)):
+        if not 0 < grid <= upper:
+            raise ValueError('Grid must not exceed the density box')
+        t = self.tracker.wrap
+        multiplier, active = self.box_threshold(sigma, shift, upper, cap)
+        threshold = (t(shift)+multiplier+grid)/sigma
+        selected = {}
+        for key, vertex in self.at_least(threshold):
+            ideal = min(t(upper), t(sigma)*key-shift-multiplier)
+            value = floor_grid(ideal, grid, self.tracker)
+            if value <= 0:
+                raise ArithmeticError('Closed-tail reporter emitted a zero grid value')
+            selected[vertex] = value
+            self.metrics.box_saturated_emissions += int(ideal == upper)
+        return selected, multiplier.value, active
+
+
+class BoundedDyadicCorrector:
+    """Fixed-block ordinary acceleration with downward grid perturbations.
+
+    The analytical stage interface requires a safe dyadic baseline below the
+    optimum. The constructor checks the source bounds and unit baseline mass.
+    It does not solve an independent obstacle problem to certify containment.
+    """
+    def __init__(self, oracle, seed, alpha, theta, rho, tolerance, baseline=None, grid=None):
+        self.oracle, self.seed = oracle, seed
+        self.alpha, self.theta, self.rho, self.tolerance = map(F, (alpha, theta, rho, tolerance))
+        self.mu = self.theta**2
+        if not (0 < self.alpha < 1 and self.mu <= self.alpha < 4*self.mu
+                and 0 < self.theta <= F(1, 2) and self.theta.numerator == 1
+                and self.theta.denominator & (self.theta.denominator-1) == 0
+                and 0 < self.rho < 1 and 0 < self.tolerance < 1):
+            raise ValueError('Invalid dyadic momentum or stage parameters')
+        self.metrics = DyadicMetrics()
+        self.tracker = ArithmeticTracker(self.metrics)
+        self.a, self.c, self.q0 = 1-self.theta, (1-self.alpha)/2, (1+self.alpha)/2
+        self.lam, self.upper = self.alpha*self.rho, 4*self.rho
+        self.baseline = {}
+        for i, value in (baseline or {}).items():
+            self.metrics.baseline_input_records += 1
+            value = F(value)
+            if value < 0 or value.denominator & (value.denominator-1):
+                raise ValueError('Baseline densities must be nonnegative dyadics')
+            if value:
+                self.baseline[i] = value
+        # The second cap ensures Gamma<=alpha²*r even for a caller's loose
+        # standalone tolerance; prescribed continuation tolerances imply it.
+        ceiling = min(F(1, 8), self.theta*self.tolerance/256,
+                      self.theta*self.alpha**2*self.rho/27)
+        if self.baseline:
+            ceiling = min(ceiling, min(F(1, value.denominator) for value in self.baseline.values()))
+        self.grid = F(grid) if grid is not None else F(1, 8)
+        if grid is None:
+            while self.grid > ceiling:
+                self.grid /= 2
+                self.metrics.grid_halvings += 1
+        if self.grid.numerator != 1 or self.grid.denominator & (self.grid.denominator-1) or self.grid > ceiling:
+            raise ValueError('Grid must be a sufficiently fine reciprocal power of two')
+        self.gamma_bound = (self.tracker.wrap(27)*self.grid/self.theta).value
+        self.block_size = self.theta.denominator
+        bound = 1
+        self.blocks = 0
+        while bound*self.tolerance < 2:
+            bound *= 2
+            self.blocks += 1
+            self.metrics.bound_doublings += 1
+            self.tracker.integer(bound)
+        self.target_iterations = self.block_size*self.blocks
+        self.decay_block_bound = F(1)
+        self.tree = MeasuredClosedBoxAVL(self.metrics, self.tracker)
+        self.degree, self.adjacency, self.keys = {}, {}, {}
+        self.X, self.L, self.z, self.M, self.source = {}, {}, {}, {}, {}
+        self.exceptions = set()
+        self.sigma = F(1)
+        self.history = []
+        self._expose(seed)
+        for i in self.baseline:
+            self._expose(i)
+        t = self.tracker.wrap
+        baseline_mass = sum((t(self.degree[i])*v for i, v in self.baseline.items()), t(0))
+        if baseline_mass > 1:
+            raise ValueError('Baseline exceeds unit mass')
+        baseline_neighbors = self._neighbor_sums(self.baseline, 'baseline')
+        for i in set(self.baseline) | set(baseline_neighbors) | {seed}:
+            self.metrics.source_initialization_records += 1
+            source = ((t(self.alpha)*int(i == seed)+self.c*t(baseline_neighbors.get(i, 0)))/self.degree[i]
+                      -self.q0*t(self.baseline.get(i, 0))).value
+            if not 0 <= source <= 4*self.lam:
+                raise ValueError('Baseline source violates the stage interface')
+            if source:
+                self.source[i] = source
+        self.source_mass = sum((t(self.degree[i])*v for i, v in self.source.items()), t(0)).value
+        expected_mass = (t(self.alpha)*(1-baseline_mass)).value
+        if self.source_mass != expected_mass:
+            raise ValueError('Source mass identity failed')
+        for value in (self.alpha, self.theta, self.mu, self.a, self.c, self.q0,
+                      self.lam, self.upper, self.grid, self.tolerance, self.source_mass):
+            self.tracker.measure(value)
+        self._install_exceptions()
+
+    def _floor(self, value):
+        return floor_grid(value, self.grid, self.tracker)
+
+    def _expose(self, i):
+        if i in self.degree:
+            return
+        degree = self.oracle.degree(i)
+        self.metrics.degree_replies += 1
+        if not isinstance(degree, int) or degree <= 0:
+            raise ValueError('Positive integer degrees are required')
+        self.tracker.integer(degree)
+        self.tracker.integer(i)
+        self.degree[i] = degree
+        self._set_key(i, 0)
+
+    def _row(self, j, kind):
+        if j not in self.adjacency:
+            row = []
+            for i in self.oracle.neighbors(j):
+                row.append(i)
+                self.metrics.first_adjacency_entries += 1
+            if len(row) != self.degree[j]:
+                raise ValueError('Degree and adjacency disagree')
+            self.adjacency[j] = row
+        for i in self.adjacency[j]:
+            self.metrics.scanned_adjacency_entries += 1
+            if kind == 'baseline': self.metrics.baseline_adjacency_entries += 1
+            elif kind == 'selected': self.metrics.selected_adjacency_entries += 1
+            elif kind == 'rebase': self.metrics.rebase_adjacency_entries += 1
+            else: raise ValueError(kind)
+            self._expose(i)
+            yield i
+
+    def _neighbor_sums(self, values, kind):
+        answer = {}
+        for j, value in values.items():
+            for i in self._row(j, kind):
+                answer[i] = self.tracker.measure(self.tracker.wrap(answer.get(i, 0))+value, grid=True)
+                self.metrics.sparse_record_updates += 1
+        return answer
+
+    def _response(self, i, values, neighbors):
+        t = self.tracker.wrap
+        return (t(self.q0)-self.mu)*values.get(i, 0)-self.c*t(neighbors.get(i, 0))/self.degree[i]
+
+    def _base_key(self, i):
+        return -self._response(i, self.X, self.L)/(self.tracker.wrap(self.theta)*(1+self.theta))
+
+    def _set_key(self, i, value):
+        value = self.tracker.wrap(value)
+        if i in self.keys:
+            if self.keys[i] == value:
+                return
+            self.tree.delete((self.keys[i], i))
+        self.keys[i] = value
+        self.tree.insert((value, i), self.degree[i])
+        self.metrics.key_changes += 1
+
+    def _install_exceptions(self):
+        self.exceptions = set(self.z) | set(self.M) | set(self.source)
+        self.metrics.source_refresh_records += len(self.source)
+        t = self.tracker.wrap
+        for i in self.exceptions:
+            extra = (t(self.a)*self.z.get(i, 0)-self._response(i, self.z, self.M)/(1+self.theta)
+                     +t(self.source.get(i, 0))/self.theta)
+            self._set_key(i, self._base_key(i)+extra/self.sigma)
+            self.metrics.exception_refresh_records += 1
+
+    def _rebase(self):
+        # This is intentionally a charged historical-support pass.
+        old_X = self.X
+        rebuilt = {}
+        for i, value in old_X.items():
+            self.metrics.rebase_input_records += 1
+            intended = self.tracker.wrap(self.sigma)*value
+            rounded = self._floor(intended)
+            self.metrics.rebase_rounding_records += int(rounded != intended)
+            if rounded:
+                rebuilt[i] = rounded
+        self.X = rebuilt
+        self.L = self._neighbor_sums(rebuilt, 'rebase')
+        self.sigma = F(1)
+        # Previously exposed zero records must also lose obsolete response keys.
+        for i in self.degree:
+            self._set_key(i, self._base_key(i))
+            self.metrics.rebase_exposed_records += 1
+        self.metrics.rebases += 1
+
+    def step(self):
+        if self.metrics.iterations >= self.target_iterations:
+            raise ValueError('The prescribed fixed-block stage is complete')
+        p, multiplier, active = self.tree.project_grid(
+            self.sigma, self.lam/self.theta, self.upper, self.grid)
+        for i in self.exceptions:
+            self._set_key(i, self._base_key(i))
+            self.metrics.exception_refresh_records += 1
+        intended_scale = self.tracker.wrap(self.a)*self.sigma
+        new_sigma = self._floor(intended_scale)
+        self.metrics.scale_rounding_steps += int(new_sigma != intended_scale)
+        if new_sigma <= 0:
+            raise ArithmeticError('Rounded scale became zero')
+        changes, touched = {}, set()
+        for i, value in p.items():
+            old = self.X.get(i, F(0))
+            intended = self.tracker.wrap(old)+self.theta*self.tracker.wrap(value)/new_sigma
+            new = self._floor(intended)
+            self.metrics.selected_update_rounding_records += int(new != intended)
+            if new != old:
+                self.X[i] = new
+                changes[i] = self.tracker.measure(self.tracker.wrap(new)-old, grid=True)
+                touched.add(i)
+                self.metrics.sparse_record_updates += 1
+        next_M = {}
+        for j, value in p.items():
+            change = changes.get(j, F(0))
+            for i in self._row(j, 'selected'):
+                next_M[i] = self.tracker.measure(self.tracker.wrap(next_M.get(i, 0))+value, grid=True)
+                self.metrics.sparse_record_updates += 1
+                if change:
+                    self.L[i] = self.tracker.measure(self.tracker.wrap(self.L.get(i, 0))+change, grid=True)
+                    touched.add(i)
+                    self.metrics.sparse_record_updates += 1
+        self.sigma = new_sigma
+        self.z, self.M = p, next_M
+        rebased = self.sigma < F(1, 2)
+        if rebased:
+            self._rebase()
+        else:
+            for i in touched:
+                self._set_key(i, self._base_key(i))
+        self._install_exceptions()
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(active)
+        if self.metrics.iterations % self.block_size == 0:
+            self.decay_block_bound /= 2
+            self.tracker.measure(self.decay_block_bound)
+            self.metrics.completed_blocks += 1
+        self.history.append((sum(self.degree[i] for i in p), rebased, multiplier, active))
+
+    @property
+    def objective_gap_bound(self):
+        return (self.tracker.wrap(self.decay_block_bound)+self.gamma_bound).value
+
+    def output(self, include_baseline=True):
+        answer = []
+        for i in sorted(set(self.X) | (set(self.baseline) if include_baseline else set())):
+            value = (self.tracker.wrap(self.sigma)*self.X.get(i, 0)).value
+            if include_baseline:
+                value = (self.tracker.wrap(value)+self.baseline.get(i, 0)).value
+            if value:
+                answer.append((i, value, self.degree[i]))
+                self.metrics.output_words += 3
+        return tuple(answer)
+
+    def run(self):
+        while self.metrics.iterations < self.target_iterations:
+            self.step()
+        if self.objective_gap_bound >= self.tolerance:
+            raise ArithmeticError('Block certificate did not reach its tolerance')
+        return self.output()

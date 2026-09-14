@@ -1,0 +1,94 @@
+"""Deterministic local score repair: work proved, accelerated rate OPEN."""
+
+from local_averaged_coupling import Reporter
+
+
+class MassRepairReporter(Reporter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.previous_mass_sum = 0.0
+        self.maximum_volume_ledger_violation = 0.0
+        self.maximum_repair_multiplier = 0.0
+
+    def _project(self):
+        old_mass = sum(degree * value for _, degree, value in self.previous)
+        self.records += len(self.previous)
+        self.previous_mass_sum += old_mass
+        budget = self.q * old_mass + self.s
+        _, positive_score_sum = self.scores.sums_above_value(0.0)
+        negative_mass = self.scale * max(
+            0.0, positive_score_sum - self.scores.root.sum_value
+        )
+        self.negative_score_mass_sum += negative_mass
+        multiplier = 0.0
+        if self.scale * positive_score_sum > budget:
+            left, right, best = 1, len(self.scores), 1
+            while left <= right:
+                middle = (left + right) // 2
+                weights, values = self.scores.prefix_largest(middle)
+                key, _ = self.scores.kth_largest(middle)
+                candidate = (self.scale * values - budget) / weights
+                if self.scale * key[0] > candidate:
+                    best = middle
+                    left = middle + 1
+                else:
+                    right = middle - 1
+            weights, values = self.scores.prefix_largest(best)
+            multiplier = max(0.0, (self.scale * values - budget) / weights)
+        threshold = multiplier + self.s * self.rho
+        result = []
+        for key, vertex in self.scores.above_value(threshold / self.scale):
+            value = max(self.scale * key[0] - threshold, 0.0)
+            if value > 0:
+                entry = self.vertices.get(vertex)
+                result.append((vertex, entry.degree, value))
+        volume = sum(degree for _, degree, _ in result)
+        mass = sum(degree * value for _, degree, value in result)
+        self.reported += len(result)
+        self.auxiliary_volume_sum += volume
+        self.lambda_volume_sum += multiplier * volume
+        self.maximum_repair_multiplier = max(self.maximum_repair_multiplier, multiplier)
+        self.maximum_volume_ledger_violation = max(
+            self.maximum_volume_ledger_violation,
+            self.s * self.rho * self.auxiliary_volume_sum
+            - self.s * (self.iterations + 1)
+            + self.s * self.previous_mass_sum
+            + mass,
+        )
+        self._sort_charge(len(result))
+        result.sort(key=lambda row: row[0])
+        return result
+
+    def ledger(self, output_words=0):
+        result = super().ledger(output_words)
+        result.update(
+            maximum_volume_ledger_violation=self.maximum_volume_ledger_violation,
+            maximum_repair_multiplier=self.maximum_repair_multiplier,
+            accelerated_rate_proved=False,
+            cumulative_row_volume_bound="T/rho",
+        )
+        return result
+
+
+def run_until_certificate(oracle, seed, alpha, rho, epsilon_obj, max_iterations):
+    """An explicit experimental cap; there is no proved root-time horizon."""
+    if epsilon_obj <= 0 or max_iterations < 1:
+        raise ValueError("positive tolerance and iteration cap required")
+    reporter = MassRepairReporter(oracle, seed, alpha, rho)
+    next_check = 1
+    for iteration in range(1, max_iterations + 1):
+        reporter.step()
+        if iteration == next_check or iteration == max_iterations:
+            output, certificate = reporter.output_and_certificate()
+            next_check *= 2
+            if certificate <= epsilon_obj:
+                break
+    return {
+        "output": output,
+        "objective_gap_certificate": certificate,
+        "converged": certificate <= epsilon_obj,
+        "ledger": reporter.ledger(3 * len(output)),
+        "randomized": False,
+        "accelerated_rate_proved": False,
+        "experimental_iteration_cap": max_iterations,
+    }

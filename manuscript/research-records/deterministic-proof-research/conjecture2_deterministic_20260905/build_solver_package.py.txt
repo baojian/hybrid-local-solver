@@ -1,0 +1,167 @@
+"""Build an auditable standalone AVL-backed transcription of fresh prototypes.
+
+This is a development helper, not part of the solver's runtime. The package
+must be independently compared with the verified prototypes after building.
+Only graph-state map/set constructors are replaced; fixed-size diagnostic
+metadata dictionaries and ordinary Python runtime machinery are unchanged.
+"""
+
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+
+SPEC = {
+    '_weighted_tree': ('lazy_capped_solver.py',
+        {'Metrics', 'Node', 'height', 'weight', 'weighted_sum', 'WeightedAVL'}),
+    '_box_reporter': ('capped_box_corrector.py',
+        {'BoxMetrics', 'count', 'RankedBoxAVL'}),
+    '_types': ('deterministic_rppr_solver.py',
+        {'ContinuationMetrics', 'StageSummary', 'SolverResult'}),
+    '_repair': ('pg_repaired_rppr_solver.py',
+        {'PGRepairMetrics', 'PGContinuationMetrics', 'projected_gradient_truncate'}),
+    '_dyadic': ('bounded_dyadic_corrector.py', None),
+    'solver': ('practical_dyadic_rppr_solver.py', None),
+}
+
+IMPORT_MAP = {
+    'lazy_capped_solver': '_weighted_tree',
+    'capped_box_corrector': '_box_reporter',
+    'deterministic_rppr_solver': '_types',
+    'pg_repaired_rppr_solver': '_repair',
+    'bounded_dyadic_corrector': '_dyadic',
+}
+
+
+class GraphContainers(ast.NodeTransformer):
+    def __init__(self):
+        self.replacements = []
+
+    def _call(self, name, args, old):
+        self.replacements.append(dict(kind=type(old).__name__, line=old.lineno,
+                                      replacement=name))
+        return ast.copy_location(ast.Call(func=ast.Name(id=name, ctx=ast.Load()),
+                                          args=args, keywords=[]), old)
+
+    def visit_Dict(self, node):
+        node = self.generic_visit(node)
+        if node.keys and all(isinstance(key, ast.Constant) and isinstance(key.value, str)
+                             for key in node.keys):
+            return node
+        if any(key is None for key in node.keys):
+            raise ValueError('Review dictionary unpacking explicitly before transcribing')
+        pairs = [ast.Tuple(elts=[key, value], ctx=ast.Load())
+                 for key, value in zip(node.keys, node.values)]
+        return self._call('AVLMap', [ast.Tuple(elts=pairs, ctx=ast.Load())], node)
+
+    def visit_DictComp(self, node):
+        node = self.generic_visit(node)
+        values = ast.GeneratorExp(elt=ast.Tuple(elts=[node.key, node.value], ctx=ast.Load()),
+                                  generators=node.generators)
+        return self._call('AVLMap', [values], node)
+
+    def visit_Set(self, node):
+        node = self.generic_visit(node)
+        return self._call('AVLSet', [ast.Tuple(elts=node.elts, ctx=ast.Load())], node)
+
+    def visit_SetComp(self, node):
+        node = self.generic_visit(node)
+        return self._call('AVLSet', [ast.GeneratorExp(elt=node.elt,
+                          generators=node.generators)], node)
+
+    def visit_Call(self, node):
+        node = self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and not node.keywords:
+            if node.func.id == 'set':
+                return self._call('AVLSet', node.args, node)
+            if node.func.id == 'dict':
+                return self._call('AVLMap', node.args, node)
+        return node
+
+
+def selected_module(filename, allowed):
+    source = (ROOT/filename).read_text()
+    tree = ast.parse(source)
+    doc = ast.get_docstring(tree) or ''
+    body = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))
+            or allowed is None and not (isinstance(node, ast.Expr)
+                 and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str))
+            or isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                 and node.name in (allowed or set())]
+    loaded = {node.id for item in body if not isinstance(item, (ast.Import, ast.ImportFrom))
+              for node in ast.walk(item) if isinstance(node, ast.Name)
+              and isinstance(node.ctx, ast.Load)}
+    selected = []
+    for node in body:
+        if isinstance(node, ast.ImportFrom):
+            node.names = [alias for alias in node.names if (alias.asname or alias.name) in loaded]
+            if not node.names:
+                continue
+            if node.module in IMPORT_MAP:
+                node.module, node.level = IMPORT_MAP[node.module], 1
+        selected.append(node)
+    transformer = GraphContainers()
+    tree = transformer.visit(ast.Module(body=selected, type_ignores=[]))
+    if transformer.replacements:
+        tree.body.insert(0, ast.ImportFrom(module='_avl', level=1,
+                         names=[ast.alias(name='AVLMap'), ast.alias(name='AVLSet')]))
+    header = (
+        f'"""AVL-backed solver component transcribed from {filename}.\n\n'
+        'All graph-state maps and sets use deterministic balanced trees.\n'
+        'See TRANSCRIPTION.json and the package verification tests.\n'
+        '"""\n\n'
+    )
+    ast.fix_missing_locations(tree)
+    text = header+ast.unparse(tree)+'\n'
+    compile(text, filename, 'exec')
+    return text, dict(source=filename, selected_names=sorted(allowed) if allowed else 'all',
+                      source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+                      container_replacements=transformer.replacements)
+
+
+def build():
+    PACKAGE.mkdir(parents=True, exist_ok=True)
+    manifest = {}
+    for module, (filename, allowed) in SPEC.items():
+        text, record = selected_module(filename, allowed)
+        path = PACKAGE/(module+'.py')
+        path.write_text(text)
+        record['package_sha256'] = hashlib.sha256(text.encode()).hexdigest()
+        manifest[module] = record
+    container_source = ROOT/'deterministic_avl_containers.py'
+    (PACKAGE/'_avl.py').write_text(container_source.read_text())
+    manifest['_avl'] = dict(source=container_source.name,
+                            source_sha256=hashlib.sha256(container_source.read_bytes()).hexdigest())
+    (PACKAGE/'__init__.py').write_text(
+        '"""Deterministic local regularized personalized PageRank.\n\n'
+        'Standard-library implementation with bounded dyadic state,\n'
+        'exact rational comparisons, and AVL-backed graph-state containers.\n'
+        '"""\n\n'
+        'from .solver import solve_rppr_practical as solve\n'
+        'from .solver import PracticalDyadicCorrector\n'
+        'from ._types import SolverResult\n\n'
+        '__all__ = ["solve", "PracticalDyadicCorrector", "SolverResult"]\n'
+        '__version__ = "0.1.0"\n'
+    )
+    (OUT/'TRANSCRIPTION.json').write_text(json.dumps(manifest, indent=2)+'\n')
+    (OUT/'pyproject.toml').write_text(
+        '[build-system]\nrequires = ["setuptools>=61"]\n'
+        'build-backend = "setuptools.build_meta"\n\n'
+        '[project]\nname = "deterministic-rppr"\nversion = "0.1.0"\n'
+        'description = "Deterministic local regularized personalized PageRank"\n'
+        'requires-python = ">=3.10"\n'
+        'dependencies = []\n\n'
+        '[tool.setuptools.packages.find]\ninclude = ["deterministic_rppr*"]\n'
+    )
+    print(json.dumps(dict(package=str(PACKAGE), modules=len(manifest),
+                          replacements=sum(len(row.get('container_replacements', []))
+                                           for row in manifest.values())), indent=2))
+
+
+if __name__ == '__main__':
+    build()

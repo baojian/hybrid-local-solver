@@ -1,0 +1,221 @@
+"""Stable-gap zero-start falsification of the score-repair energy hypothesis."""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import math
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from cyclic_radial_audit import model
+from mass_repair_campaign import barbell
+from plc_equitable_campaign import alternating_suns, symmetric_model, transitions
+from positive_linear_coupling import mass_projection
+
+
+def probe(q, c, w, alpha, rho):
+    optimum = obstacle(q, c)
+    slack = np.where(optimum == 0, np.maximum(q @ optimum - c, 0), 0)
+    s = math.sqrt(alpha)
+    coef = 1 - s
+    k_matrix = q - alpha * np.eye(len(c))
+    source_index = int(np.flatnonzero(c > 0)[0])
+    source_score = np.zeros(len(c))
+    source_score[source_index] = s / w[source_index]
+
+    def energy(x, z):
+        error = x - optimum
+        auxiliary_error = z - optimum
+        return float(
+            0.5 * error @ q @ error
+            + slack @ x
+            + 0.5 * alpha * (auxiliary_error @ auxiliary_error)
+        )
+
+    x = np.zeros(len(c))
+    z = x.copy()
+    initial = old = energy(x, z)
+    worst = {"relative_to_s_energy": -1e300}
+    repaired_steps = 0
+    worst_repaired_debit = -1e300
+    for iteration in range(1, 1 + math.ceil(45 / s)):
+        y = (x + s * z) / (1 + s)
+        score = coef * z - k_matrix @ y / s + source_score
+        raw = score - s * rho * w
+        negative_mass = float(w @ np.maximum(-score, 0))
+        assert negative_mass <= coef * float(w @ x) / (2 * s) * (1 + 1e-10) + 1e-12
+        budget = coef * float(w @ z) + s
+        repaired = budget * mass_projection(score / budget, w)
+        next_z = np.maximum(repaired - s * rho * w, 0)
+        next_x = coef * x + s * next_z
+        new = energy(next_x, next_z)
+        relative = (new - coef * old) / (s * old)
+        positive = np.flatnonzero(next_z > 0)
+        multiplier = 0.0
+        if len(positive):
+            j = positive[0]
+            multiplier = max(0.0, float((raw[j] - next_z[j]) / w[j]))
+        if multiplier > 1e-9 * max(s * rho, float(np.max(np.abs(score) / w))):
+            repaired_steps += 1
+            worst_repaired_debit = max(worst_repaired_debit, relative)
+        if relative > worst["relative_to_s_energy"]:
+            worst = {
+                "relative_to_s_energy": relative,
+                "iteration": iteration,
+                "old_energy_over_initial": old / initial,
+                "repair_multiplier": multiplier,
+                "next_mass_minus_optimum": float(w @ (next_z - optimum)),
+                "x": x.tolist(),
+                "z": z.tolist(),
+            }
+        x, z, old = next_x, next_z, new
+        if old < initial * 1e-12:
+            break
+    return {
+        **worst,
+        "final_iteration": iteration,
+        "final_relative_energy": old / initial,
+        "substantial_repaired_steps": repaired_steps,
+        "stable_prethreshold_score": True,
+        "worst_repaired_relative_debit": worst_repaired_debit
+        if repaired_steps
+        else None,
+    }
+
+
+def cases():
+    for alpha, depth in itertools.product(
+        (0.1, 0.01, 0.001, 0.0001, 0.000001), (8, 16, 32)
+    ):
+        for period in (
+            [1],
+            [2],
+            [4],
+            [100],
+            [1, 4],
+            [1, 100],
+            [100, 1, 1],
+            [2, 4, 1, 16],
+        ):
+            branches = (period * depth)[:depth]
+            k, b, w, _volume, bounds, n = model(branches, alpha)
+            q = k + alpha * np.eye(len(w))
+            yield (
+                {"family": "radial", "branches": branches, "ambient_n": n},
+                alpha,
+                q,
+                b,
+                w,
+                bounds,
+            )
+    for alpha, left, length in itertools.product(
+        (0.01, 0.001, 0.0001), (3, 8, 32), (4, 16, 64)
+    ):
+        counts, neighbors = barbell(left, left**2, length)
+        q, b, w, _ = symmetric_model(counts, neighbors, alpha)
+        yield (
+            {"family": "barbell", "left": left, "right": left**2, "length": length},
+            alpha,
+            q,
+            b,
+            w,
+            transitions(q, b, w, alpha),
+        )
+    for alpha, length, large in itertools.product(
+        (0.01, 0.001, 0.0001, 0.000001), (4, 8, 16), (10, 1000, 100000)
+    ):
+        leaves = [large if i % 2 else 1 for i in range(length)]
+        counts, neighbors = alternating_suns(leaves)
+        q, b, w, _ = symmetric_model(counts, neighbors, alpha)
+        yield (
+            {"family": "alternating_suns", "leaves": leaves},
+            alpha,
+            q,
+            b,
+            w,
+            transitions(q, b, w, alpha),
+        )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    args = parser.parse_args()
+    args.directory.mkdir(parents=True, exist_ok=True)
+    for name in (
+        Path(__file__).name,
+        "mass_repair_campaign.py",
+        "positive_linear_coupling.py",
+        "plc_equitable_campaign.py",
+        "cyclic_radial_audit.py",
+        "cyclic_dual_averaging.py",
+    ):
+        (args.directory / name).write_bytes(Path(__file__).with_name(name).read_bytes())
+    start = checkpoint = time.monotonic()
+    maximum = -1e300
+    completed = 0
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for identity, alpha, q, b, w, bounds in cases():
+            positions = sorted({1, len(bounds) // 2, len(bounds) - 1})
+            for position, factor in itertools.product(positions, (0.999, 1.001, 2, 8)):
+                rho = bounds[position] * factor
+                if rho >= bounds[0]:
+                    continue
+                result = probe(q, b - alpha * rho * w, w, alpha, rho)
+                result.update(
+                    identity=identity,
+                    alpha=alpha,
+                    rho=rho,
+                    boundary_index=position,
+                    factor=factor,
+                    randomized=False,
+                    canonical_zero_start=True,
+                )
+                completed += 1
+                if result["relative_to_s_energy"] > maximum:
+                    maximum = result["relative_to_s_energy"]
+                    (args.directory / "worst.json").write_text(
+                        json.dumps(result, indent=2)
+                    )
+                compact = {k: v for k, v in result.items() if k not in ("x", "z")}
+                output.write(json.dumps(compact) + "\n")
+                now = time.monotonic()
+                if now - checkpoint > 20:
+                    output.flush()
+                    (args.directory / "checkpoint.json").write_text(
+                        json.dumps(
+                            {
+                                "updated_at": datetime.now(UTC).isoformat(),
+                                "cases_completed": completed,
+                                "maximum_relative_debit": maximum,
+                                "current": identity,
+                                "alpha": alpha,
+                                "elapsed_seconds": now - start,
+                                "randomized": False,
+                                "status": "running",
+                            },
+                            indent=2,
+                        )
+                    )
+                    checkpoint = now
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "maximum_relative_debit": maximum,
+                "elapsed_seconds": time.monotonic() - start,
+                "randomized": False,
+                "status": "enumeration_complete",
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

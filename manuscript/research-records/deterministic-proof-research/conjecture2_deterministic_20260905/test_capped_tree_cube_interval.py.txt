@@ -1,0 +1,208 @@
+"""Exact rational checks of a directed-rounding finite verifier.
+
+These tests certify small fixture enclosures; they establish no locality or
+asymptotic theorem. Every input is deterministic and no floating arithmetic
+is used by the references.
+"""
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+from itertools import product
+
+from capped_tree_cube_interval import Interval, project, run
+from test_monotone_capped_solver import DenseReference
+from test_local_safe_solver import graph
+
+
+LOG = dict(projection_cases=0, exact_trajectory_steps=0, interval_operation_cases=0)
+
+
+def exact_project(raw, weights, cap):
+    """Independent exact rational water fill by sorted positive breakpoints."""
+    if cap < 0: raise ValueError('Negative cap')
+    mass = sum(max(F(0),value) for value in raw)
+    if mass <= cap:
+        return [max(F(0),value) for value in raw], F(0)
+    ordered = sorted(range(len(raw)), key=lambda i:raw[i]/weights[i], reverse=True)
+    total, slope, multiplier = F(0), 0, F(0)
+    for i in ordered:
+        total += raw[i]
+        slope += weights[i]
+        multiplier = max(multiplier, (total-cap)/slope)
+    return [max(F(0),value-multiplier*w) for value,w in zip(raw,weights)], multiplier
+
+
+def endpoint_interval(lo, hi):
+    # Convert the two rational endpoints outward independently.
+    return Interval(Interval(lo).lo, Interval(hi).hi)
+
+
+class IntervalVerifierTests(unittest.TestCase):
+    def contains(self, interval, exact):
+        self.assertLessEqual(F(interval.lo), exact)
+        self.assertLessEqual(exact, F(interval.hi))
+        self.assertLessEqual(interval.lo, interval.hi)
+
+    def test_basic_interval_endpoints(self):
+        Interval.precision(11)
+        values = [F(-7,3), F(-1,7), F(0), F(1,11), F(9,2)]
+        for left,right in product(values, repeat=2):
+            a,b = Interval(left),Interval(right)
+            self.contains(a,left)
+            self.contains(a+b,left+right)
+            self.contains(a-b,left-right)
+            self.contains(a*b,left*right)
+            if right:
+                self.contains(a/b,left/right)
+            self.contains(a.square(),left*left)
+            LOG['interval_operation_cases'] += 1
+        box = endpoint_interval(F(-2,3),F(4,5))
+        self.contains(box.square(), F(0))
+        self.contains(box.square(), F(16,25))
+        self.contains(box.positive(),F(0))
+        self.contains(box.positive(),F(4,5))
+        with self.assertRaises(ZeroDivisionError): Interval(1)/box
+        # Explicit Fraction endpoints must not be interpreted as a point.
+        direct = Interval(F(1,7),F(2,7))
+        self.contains(direct,F(1,7))
+        self.contains(direct,F(2,7))
+
+    def test_projection_exact_ties_caps_and_zero(self):
+        values = (F(-1,3),F(0),F(1,3),F(1))
+        for precision in (12,30):
+            Interval.precision(precision)
+            for raw in product(values, repeat=3):
+                for weights in ([1,2,3],[3,1,2]):
+                    for cap in (F(0),F(1,7),F(1),F(3)):
+                        exact,multiplier = exact_project(raw,weights,cap)
+                        enclosed,eta = project([Interval(v) for v in raw],weights,Interval(cap))
+                        self.contains(eta,multiplier)
+                        for box,value in zip(enclosed,exact): self.contains(box,value)
+                        LOG['projection_cases'] += 1
+        # Tied raw/weight ratios and an exact zero at a positive threshold.
+        for raw,weights,cap in [([F(1),F(2),F(3)],[1,2,3],F(3)),
+                                ([F(1),F(1,2)],[1,1],F(1,2)),
+                                ([F(0),F(0)],[1,10**12],F(0)),
+                                ([F(2,7),F(2*10**12,7)],[1,10**12],F(1,3))]:
+            exact,multiplier = exact_project(raw,weights,cap)
+            enclosed,eta = project([Interval(v) for v in raw],weights,Interval(cap))
+            self.contains(eta,multiplier)
+            for box,value in zip(enclosed,exact): self.contains(box,value)
+            LOG['projection_cases'] += 1
+
+    def test_projection_uncertain_input_boxes(self):
+        Interval.precision(16)
+        bounds = [(F(-1,5),F(1,5)),(F(1,7),F(3,7)),(F(0),F(2,3))]
+        cap_bounds = (F(0),F(1,2))
+        weights = [1,2,11]
+        boxes = [endpoint_interval(*pair) for pair in bounds]
+        enclosed,eta = project(boxes,weights,endpoint_interval(*cap_bounds))
+        # Exact corners and midpoints exercise uncertainty in the cap status
+        # and in the local inverse-slope certificate, including the fallback.
+        choices = [(lo,(lo+hi)/2,hi) for lo,hi in bounds]
+        for raw in product(*choices):
+            for cap in (cap_bounds[0],sum(cap_bounds)/2,cap_bounds[1]):
+                exact,multiplier = exact_project(raw,weights,cap)
+                self.contains(eta,multiplier)
+                for box,value in zip(enclosed,exact): self.contains(box,value)
+                LOG['projection_cases'] += 1
+
+    def test_projection_fallback_and_stable_slope_tightening(self):
+        Interval.precision(20)
+        weights=[1,2,3]
+        bounds=[(F(-1),F(1)),(F(-2),F(2)),(F(-3),F(3))]
+        enclosed,eta=project([endpoint_interval(*pair) for pair in bounds],
+                             weights,endpoint_interval(F(0),F(1,2)))
+        for raw in product(*[(lo,F(0),hi) for lo,hi in bounds]):
+            for cap in (F(0),F(1,4),F(1,2)):
+                exact,multiplier=exact_project(raw,weights,cap)
+                self.contains(eta,multiplier)
+                for box,value in zip(enclosed,exact): self.contains(box,value)
+                LOG['projection_cases']+=1
+        # All three classes are certified active throughout the initial
+        # bracket. Their stable slope111 sharply improves the minweight1 bound.
+        weights=[1,10,100]
+        bounds=[(F(1999*w,1000),F(2001*w,1000)) for w in weights]
+        enclosed,eta=project([endpoint_interval(*pair) for pair in bounds],weights,Interval(100))
+        self.assertLess(F(eta.width()),F(1,100))
+        for raw in product(*bounds):
+            exact,multiplier=exact_project(raw,weights,F(100))
+            self.contains(eta,multiplier)
+            for box,value in zip(enclosed,exact): self.contains(box,value)
+            LOG['projection_cases']+=1
+
+    def test_zero_curvature_line_search_fallback(self):
+        observed=[]
+        def observer(k,u,V,step,multiplier,count,weight):
+            observed.append((u,V,step))
+        report=run(2,p=1,s=1,gamma=F(2),horizon=1,precision=30,
+                   monotone=True,trace=observer)
+        self.assertEqual(len(observed),2)
+        for u,V,step in observed:
+            for box in u+V:
+                self.assertEqual(box.lo,0)
+                self.assertEqual(box.hi,0)
+            self.assertEqual(step.lo,0)
+            self.assertEqual(step.hi,1)
+        self.assertEqual(F(report['certified_normalized_work']),0)
+        self.assertEqual(F(report['possible_normalized_work']),0)
+        LOG['zero_curvature_steps']=len(observed)
+
+    def test_exact_seven_vertex_trajectories(self):
+        adjacency = graph(7, [(0,1),(0,2),(1,3),(2,4),(3,5),(4,6)])
+        layers = [[0],[1,2],[3,4],[5,6]]
+        degrees = {i:len(adjacency[i]) for i in adjacency}
+        weights = [sum(degrees[i] for i in layer) for layer in layers]
+        self.assertEqual(weights,[2,4,4,2])
+        theta,rho = F(1,2),F(1,48)
+        reference = DenseReference(adjacency,0,theta,rho)
+        for monotone in (False,True):
+            observed = []
+            def observer(k,u,V,step,multiplier,count,weight):
+                observed.append(dict(k=k,u=u,V=V,step=step,multiplier=multiplier,count=count,weight=weight))
+            report = run(2,p=1,s=1,gamma=F(1,16),horizon=4,
+                         precision=80,monotone=monotone,trace=observer)
+            self.assertEqual(len(observed),8)
+            self.assertEqual(F(report['rho']),rho)
+            self.assertEqual(int(report['cube_volume']),6)
+            x,z = {},{}
+            exact_work,exact_half_steps = 0,0
+            for snapshot in observed:
+                if monotone:
+                    next_x,next_z,fraction,_,_ = reference.step(x,z)
+                else:
+                    y={i:(x.get(i,F(0))+theta*z.get(i,F(0)))/(1+theta) for i in adjacency}
+                    hy=reference.multiply(y)
+                    raw={i:(1-theta)*z.get(i,F(0))+theta*y[i]
+                         -(hy[i]-reference.h[i])/(theta*degrees[i]) for i in adjacency}
+                    next_z,_=reference.project(raw)
+                    next_x={i:(1-theta)*x.get(i,F(0))+theta*next_z.get(i,F(0)) for i in adjacency}
+                    next_x={i:value for i,value in next_x.items() if value}
+                    fraction=F(1)
+                u=[sum(degrees[i]*next_x.get(i,F(0)) for i in layer) for layer in layers]
+                V=[theta*sum(degrees[i]*next_z.get(i,F(0)) for i in layer) for layer in layers]
+                for box,value in zip(snapshot['u'],u): self.contains(box,value)
+                for box,value in zip(snapshot['V'],V): self.contains(box,value)
+                self.contains(snapshot['step'],fraction)
+                volume=sum(weight for weight,value in zip(weights,V) if value>0)
+                cube=sum(weight for weight,value in zip(weights[2:],V[2:]) if value>0)
+                exact_work+=volume
+                exact_half_steps+=int(2*cube>=6)
+                x,z=next_x,next_z
+                LOG['exact_trajectory_steps']+=1
+            self.assertLessEqual(F(report['certified_normalized_work']),rho*exact_work/2)
+            self.assertLessEqual(rho*exact_work/2,F(report['possible_normalized_work']))
+            self.assertLessEqual(report['certified_half_cube_steps'],exact_half_steps)
+            LOG['ordinary_report' if not monotone else 'monotone_report']=report
+
+
+if __name__ == '__main__':
+    outcome=unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(IntervalVerifierTests))
+    LOG['passed'],LOG['test_methods']=outcome.wasSuccessful(),outcome.testsRun
+    Path(__file__).with_name('capped_tree_cube_interval_verification.json').write_text(
+        json.dumps(LOG,indent=2)+'\n')
+    print(json.dumps({key:value for key,value in LOG.items() if not key.endswith('_report')},indent=2))
+    sys.exit(0 if outcome.wasSuccessful() else 1)

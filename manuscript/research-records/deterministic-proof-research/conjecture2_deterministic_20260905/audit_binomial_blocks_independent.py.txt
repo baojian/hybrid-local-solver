@@ -1,0 +1,130 @@
+"""Bounded deterministic audit of scalar bounds and exact solver prefixes."""
+from fractions import Fraction as F
+from hashlib import sha256
+from math import comb
+from pathlib import Path
+from unittest.mock import patch
+import json
+
+import binomial_block_dyadic_rppr as production
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+from audit_integer_solver_independent import StrictOracle, weighted_norm
+from audit_virtual_graphs_and_verifier import (VirtualGraph, structural_check,
+                                              exact_optimum, independent_objective)
+
+REPORT = dict(deterministic=True, scalar_exact_power_cases=0, scalar_large_encoding_cases=0,
+              stages=0, zero_step_stages=0, reference_prefixes=0, energy_prefixes=0,
+              final_gap_checks=0, stage_iterations=[], saved_half_bound_iterations=0)
+
+
+class AuditedBinomial(production.BinomialBlockDyadicCorrector):
+    def __init__(self, *args, **kwargs):
+        oracle = args[0] if args else kwargs['oracle']
+        self.audit_degree_offset = len(oracle.degree_calls)
+        self.audit_row_offset = len(oracle.row_calls)
+        super().__init__(*args, **kwargs)
+        rows = self.audit_rows = self.oracle.rows
+        self.audit_base = {i:F(v, self.H) for i, v in self.baseline.items()}
+        self.audit_opt = exact_optimum(rows, self.seed, self.alpha, self.rho)
+        self.audit_optimum_value = independent_objective(rows, self.seed, self.alpha, self.rho, self.audit_opt)
+        self.reference = SourceEnergyDyadicCorrector(StrictOracle(rows), self.seed, self.alpha,
+            self.theta, self.rho, self.tolerance, self.audit_base)
+        assert self.grid == self.reference.grid
+        assert self.initial_energy_bound == self.reference.initial_energy_bound
+        assert self.target_iterations <= self.reference.target_iterations
+        assert self.target_power_numerator == self.block_bound.numerator**self.blocks
+        assert self.target_power_denominator == 1 << (16*self.blocks)
+        assert self.target_power_numerator.bit_length() <= 16*self.blocks+1
+        assert self.target_power_denominator.bit_length() == 16*self.blocks+1
+        REPORT['stages'] += 1
+        REPORT['zero_step_stages'] += self.target_iterations == 0
+        REPORT['saved_half_bound_iterations'] += self.reference.target_iterations-self.target_iterations
+        REPORT['stage_iterations'].append([self.target_iterations, self.reference.target_iterations])
+        self.check_prefix()
+
+    def check_prefix(self):
+        other, rows = self.reference, self.audit_rows
+        for key in ('A', 'D', 'T', 'H', 'S', 'G', 'cap_count'):
+            assert getattr(self, key) == getattr(other, key)
+        for key in ('baseline', 'degree', 'X', 'L', 'z', 'M', 'source'):
+            assert list(getattr(self, key).items()) == list(getattr(other, key).items())
+        assert list(self.tree.records.items()) == list(other.tree.records.items())
+        assert list(self.exceptions) == list(other.exceptions)
+        assert self.oracle.degree_calls[self.audit_degree_offset:] == other.oracle.degree_calls
+        assert self.oracle.row_calls[self.audit_row_offset:] == other.oracle.row_calls
+        assert self.metrics.kinetic_volume == other.metrics.kinetic_volume
+        full = {i:self.audit_base.get(i, 0)+F(self.S*self.X.get(i, 0), self.H*self.H) for i in rows}
+        zerror = {i:F(self.z.get(i, 0), self.H)-self.audit_opt.get(i, 0)+self.audit_base.get(i, 0)
+                  for i in rows}
+        gap = independent_objective(rows, self.seed, self.alpha, self.rho, full)-self.audit_optimum_value
+        energy = gap+self.theta**2/2*weighted_norm(rows, zerror)
+        k, q = self.metrics.iterations, self.metrics.iterations//self.T
+        expected = self.initial_energy_bound*self.block_bound.value**q+self.gamma_bound if k else self.initial_energy_bound
+        assert self.objective_gap_bound == expected
+        assert 0 <= gap <= energy <= expected
+        assert self.block_power_numerator == self.block_bound.numerator**q
+        assert self.block_power_denominator == 1 << (16*q)
+        assert self.binomial_completed_power_updates == q
+        assert self.metrics.kinetic_volume <= 360*k/self.rho
+        REPORT['reference_prefixes'] += 1
+        REPORT['energy_prefixes'] += 1
+
+    def step(self):
+        result = super().step()
+        expected = self.reference.step()
+        assert result == expected
+        self.check_prefix()
+        return result
+
+
+def main():
+    REPORT['source_sha256'] = sha256(Path(__file__).with_name('binomial_block_dyadic_rppr.py').read_bytes()).hexdigest()
+    for T in range(2, 258):
+        bound = production.dyadic_block_bound(T)
+        m = min(6, T)
+        inverse_partial = sum((F(comb(T, k), (T-1)**k) for k in range(m+1)), F(0))
+        assert F(bound.sum_numerator, bound.sum_denominator) == inverse_partial
+        assert F(T-1, T)**T <= 1/inverse_partial <= bound.value < F(1, 2)
+        assert 0 <= bound.value-1/inverse_partial < F(1, 1 << 16)
+        assert bound.setup_integer_divisions == m+1
+        assert bound.max_setup_integer_bits <= 6*T.bit_length()+18
+        REPORT['scalar_exact_power_cases'] += 1
+    for exponent in (32, 128, 512, 2048):
+        T = 1 << exponent
+        bound = production.dyadic_block_bound(T)
+        inverse_partial = sum((F(comb(T, k), (T-1)**k) for k in range(7)), F(0))
+        assert F(bound.sum_numerator, bound.sum_denominator) == inverse_partial
+        assert F(5, 2) < inverse_partial and 1/inverse_partial <= bound.value < F(1, 2)
+        assert bound.max_setup_integer_bits <= 6*T.bit_length()+18
+        REPORT['scalar_large_encoding_cases'] += 1
+    fixtures = [('path', 5, 0, 3, F(1, 5), F(1, 32), F(1, 256)),
+                ('star', 6, 0, 2, F(1, 31), F(1, 16), F(1, 128)),
+                ('barbell', 2, 0, 2, F(3, 4), F(1, 12), F(1, 256)),
+                ('cycle', 4, 0, 1, F(1, 4), F(1, 2)-F(1, 1 << 30), F(1, 1000))]
+    for family, size, auxiliary, seed, alpha, rho, epsilon in fixtures:
+        rows = structural_check(VirtualGraph(family, size, auxiliary))
+        with patch.dict(production._globals, IntegerDyadicCorrector=AuditedBinomial):
+            result = production.solve_rppr_binomial_blocks(StrictOracle(rows), seed, alpha, rho, epsilon)
+        optimum = exact_optimum(rows, seed, alpha, rho)
+        output = {i:f for i, f, degree in result.output}
+        gap = independent_objective(rows, seed, alpha, rho, output)-independent_objective(rows, seed, alpha, rho, optimum)
+        assert 0 <= gap <= result.objective_gap_bound <= epsilon
+        REPORT['final_gap_checks'] += 1
+    # A genuine zero-energy stage, independently of the near-contact wrapper.
+    rows = structural_check(VirtualGraph('cycle', 4, 0))
+    stage = AuditedBinomial(StrictOracle(rows), 1, F(1, 4), F(1, 2), F(1, 2), F(1, 16))
+    assert stage.target_iterations == 0 and stage.initial_energy_bound == 0
+    assert stage.run() == () and stage.objective_gap_bound == 0
+    # Inherited exact direct and zero branches retain the result contract.
+    for alpha, rho in ((F(1), F(1, 8)), (F(1, 4), F(1, 2))):
+        result = production.solve_rppr_binomial_blocks(StrictOracle(rows), 1, alpha, rho, F(1, 1000))
+        optimum = exact_optimum(rows, 1, alpha, rho)
+        assert {i:f for i, f, degree in result.output} == optimum and not result.stages
+        assert result.objective_gap_bound == 0
+        REPORT['final_gap_checks'] += 1
+    destination = Path(__file__).with_name('binomial_blocks_independent_audit_results.json')
+    destination.write_text(json.dumps(REPORT, indent=2)+'\n')
+    print(json.dumps(REPORT, indent=2))
+
+
+if __name__ == '__main__': main()

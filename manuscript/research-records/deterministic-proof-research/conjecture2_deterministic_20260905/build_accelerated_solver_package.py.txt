@@ -1,0 +1,162 @@
+"""Transcribe audited schedules and cached checkpoints into the package.
+
+Keep source-energy as the public default while the new package transcription
+is independently checked. Production wrappers use explicit class injection;
+checkpoint metering uses explicit container factories, not cloned globals.
+"""
+
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+RELOCATIONS = {
+    'deterministic_avl_containers':'_avl',
+    'independent_sparse_certificate':'_certificate',
+    'source_energy_dyadic_rppr':'_source_energy',
+    'integer_dyadic_rppr_solver':'_integer',
+    'early_stop_source_energy_rppr':'_early_stop',
+    'binomial_block_dyadic_rppr':'_binomial',
+}
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def transform_imports(tree):
+    changes, nodes = [], []
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module == 'types':
+            assert [alias.name for alias in node.names] == ['FunctionType']
+            changes.append({'remove':'types.FunctionType import'})
+            continue
+        if isinstance(node, ast.ImportFrom) and node.module in RELOCATIONS:
+            old = node.module
+            node.module, node.level = RELOCATIONS[old], 1
+            changes.append({'from':old,'to':'.'+node.module})
+        elif isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+            if any(name in RELOCATIONS for name in names):
+                assert len(node.names) == 1
+                alias = node.names[0]
+                node = ast.ImportFrom(module=None,level=1,
+                    names=[ast.alias(name=RELOCATIONS[alias.name],asname=alias.asname)])
+                changes.append({'import':alias.name,'to':'.'+RELOCATIONS[alias.name]})
+        nodes.append(node)
+    tree.body = nodes
+    return changes
+
+
+def replace_wrapper(tree, wrapper_name, corrector_name, reference_name='reference'):
+    names = {'_globals','_namespace','_binomial_continuation','_continuation','_combined_continuation'}
+    nodes, removed, wrappers = [], [], 0
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets = [target.id for target in node.targets if isinstance(target, ast.Name)]
+            if targets and all(name in names for name in targets):
+                removed.extend(targets)
+                continue
+            if any(isinstance(target,ast.Subscript) and isinstance(target.value,ast.Name)
+                   and target.value.id in ('_globals','_namespace') for target in node.targets):
+                removed.append('isolated class binding')
+                continue
+        if isinstance(node,ast.FunctionDef) and node.name == wrapper_name:
+            doc = ast.get_docstring(node)
+            body = ast.parse(f'{reference_name}.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class={corrector_name})').body[0].value
+            node.body = ([ast.Expr(value=ast.Constant(value=doc))] if doc else [])+[ast.Return(value=body)]
+            wrappers += 1
+        nodes.append(node)
+    assert wrappers == 1 and removed
+    tree.body = nodes
+    return [{'kind':'explicit corrector-class wrapper','function':wrapper_name,
+             'corrector':corrector_name,'removed':removed}]
+
+
+def inject_certificate_factories(tree):
+    function, = [node for node in tree.body if isinstance(node,ast.FunctionDef)
+                 and node.name == 'certify_sparse_output']
+    assert not function.args.kwonlyargs
+    function.args.kwonlyargs.extend([ast.arg(arg='_map_factory'),ast.arg(arg='_set_factory')])
+    function.args.kw_defaults.extend([ast.Name(id='AVLMap',ctx=ast.Load()),
+                                     ast.Name(id='AVLSet',ctx=ast.Load())])
+    counts = {'AVLMap':0,'AVLSet':0}
+    for node in ast.walk(function):
+        if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id in counts:
+            old = node.func.id
+            counts[old] += 1
+            node.func.id = '_map_factory' if old == 'AVLMap' else '_set_factory'
+    assert counts == {'AVLMap':5,'AVLSet':1}
+    return [{'kind':'explicit optional certificate container factories','replacements':counts}]
+
+
+def explicit_metered_checker(tree):
+    function, = [node for node in tree.body if isinstance(node,ast.FunctionDef)
+                 and node.name == '_metered_checker']
+    assert len(function.body) == 5
+    assert all(isinstance(node,ast.ClassDef) for node in function.body[:2])
+    assert isinstance(function.body[-1],ast.Return)
+    assert isinstance(function.body[-1].value,ast.Call)
+    assert function.body[-1].value.func.id == 'FunctionType'
+    function.body = function.body[:2]+ast.parse('''
+def check(*args, **kwargs):
+    return certify_sparse_output(*args, _map_factory=MeteredMap,
+                                 _set_factory=MeteredSet, **kwargs)
+return check
+''').body
+    return [{'kind':'explicit metered checker factories','preserved_classes':['MeteredMap','MeteredSet']}]
+
+
+def write(source, destination, modifications):
+    raw = (ROOT/source).read_bytes()
+    tree = ast.parse(raw)
+    changes = transform_imports(tree)
+    for modification in modifications:
+        changes.extend(modification(tree))
+    ast.fix_missing_locations(tree)
+    rendered = ast.unparse(tree)+'\n'
+    compile(rendered,'<packaged schedules>','exec')
+    (PACKAGE/(destination+'.py')).write_text(rendered)
+    return dict(source=source,source_sha256=digest(raw),
+                package_sha256=digest(rendered.encode()),transformations=changes)
+
+
+def main():
+    manifest = {
+        '_certificate':write('independent_sparse_certificate.py','_certificate',[inject_certificate_factories]),
+        '_binomial':write('binomial_block_dyadic_rppr.py','_binomial',[
+            lambda tree:replace_wrapper(tree,'solve_rppr_binomial_blocks','BinomialBlockDyadicCorrector','source.reference')]),
+        '_early_stop':write('early_stop_source_energy_rppr.py','_early_stop',[
+            explicit_metered_checker,
+            lambda tree:replace_wrapper(tree,'solve_rppr_early_stop','EarlyStopSourceEnergyCorrector')]),
+        '_combined':write('combined_certified_dyadic_rppr.py','_combined',[
+            lambda tree:replace_wrapper(tree,'solve_rppr_combined','CombinedDyadicCorrector')]),
+    }
+    original = (PACKAGE/'__init__.py').read_text()
+    marker = '\n# Audited optional acceleration wrappers.\n'
+    original = original.split(marker)[0]
+    extra = '''
+# Audited optional acceleration wrappers.
+from ._binomial import solve_rppr_binomial_blocks as solve_binomial
+from ._binomial import BinomialBlockDyadicCorrector
+from ._early_stop import solve_rppr_early_stop as solve_early_stop
+from ._early_stop import EarlyStopSourceEnergyCorrector
+from ._combined import solve_rppr_combined as solve_combined
+from ._combined import CombinedDyadicCorrector
+__all__ += ["solve_binomial", "solve_early_stop", "solve_combined",
+            "BinomialBlockDyadicCorrector", "EarlyStopSourceEnergyCorrector",
+            "CombinedDyadicCorrector"]
+'''
+    (PACKAGE/'__init__.py').write_text(original+extra)
+    manifest['__init__'] = dict(package_sha256=digest((original+extra).encode()),
+        default='source-energy preserved pending package audit')
+    (OUT/'ACCELERATED_TRANSCRIPTION.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    print(json.dumps(dict(added_modules=3,modified_certificate='explicit container factories',
+                         default='source energy unchanged'),indent=2))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,92 @@
+"""Small symmetric paired exact precheck/fallback study, with explicit trial work."""
+import hashlib
+import json
+import platform
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+
+from benchmark_practical_rppr import VirtualGraph, CountingOracle, json_value
+from combined_certified_dyadic_rppr import solve_rppr_combined
+from singleton_precheck_rppr import solve_rppr_with_singleton_precheck
+from independent_sparse_certificate import certify_sparse_output
+
+ROOT = Path(__file__).resolve().parent
+CASES = (
+    ('hub', 'star', 10**9+1, 2, F(1, 100), F(1, 64), F(1, 10**8)),
+    ('path', 'path', 10**9, 1, F(1, 100), F(1, 16), F(1, 10**6)),
+    ('grid', 'grid', 10**6, 1, F(1, 100), F(1, 16), F(1, 10**6)),
+)
+SOURCES = ('singleton_precheck_rppr.py', 'combined_certified_dyadic_rppr.py',
+    'early_stop_source_energy_rppr.py', 'binomial_block_dyadic_rppr.py',
+    'source_energy_dyadic_rppr.py', 'integer_dyadic_rppr_solver.py',
+    'integer_clipped_reporter.py', 'independent_sparse_certificate.py')
+
+
+def run(case, mode):
+    name, family, size, seed, alpha, rho, epsilon = case
+    graph = VirtualGraph(family, size)
+    oracle = CountingOracle(graph, 100000)
+    wall, cpu = perf_counter(), process_time()
+    if mode == 'precheck':
+        answer = solve_rppr_with_singleton_precheck(oracle, seed, alpha, rho, epsilon)
+        fallback, trial = answer.fallback_result, asdict(answer.trial_metrics)
+        outcome = answer.outcome
+    else:
+        answer = fallback = solve_rppr_combined(oracle, seed, alpha, rho, epsilon)
+        trial, outcome = {}, 'reference'
+    cpu, wall = process_time()-cpu, perf_counter()-wall
+    stages = fallback.stages if fallback else ()
+    entries = trial.get('adjacency_entries', 0)
+    entries += sum(s.corrector_metrics['scanned_adjacency_entries']+
+        s.corrector_metrics.get('checkpoints', {}).get('cached_adjacency_entries', 0) for s in stages)
+    if fallback:
+        entries += fallback.metrics.repair_scanned_adjacency_entries
+    independent_oracle = CountingOracle(graph, 100000)
+    certificate = certify_sparse_output(independent_oracle, seed, alpha, rho, answer.output)
+    assert certificate.meets(epsilon)
+    complete = json_value(asdict(answer))
+    return dict(case=name, parameters=json_value(dict(family=family, size=size, seed=seed,
+        alpha=alpha, rho=rho, epsilon=epsilon)), mode=mode, outcome=outcome,
+        cpu_seconds=cpu, wall_seconds=wall, iterations=sum(s.iterations for s in stages),
+        total_adjacency_entries=entries, trial_metrics=trial, oracle_counts=oracle.snapshot(),
+        certificate=json_value(asdict(certificate)), independent_oracle_counts=independent_oracle.snapshot(),
+        complete_answer=complete, fallback_output=json_value(fallback.output) if fallback else None,
+        deterministic_signature=hashlib.sha256(json.dumps(complete, sort_keys=True).encode()).hexdigest())
+
+
+def main():
+    order = ('reference', 'precheck', 'precheck', 'reference')
+    report = dict(python=platform.python_version(), platform=platform.platform(), order=order,
+        scope='Only clocks use floats. Timed region includes trial, supplied fallback, counting oracle, internal certificates, and repair. Independent verification and serialization are outside timing.',
+        source_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCES},
+        runs=[], summaries=[])
+    for case in CASES:
+        rows = [run(case, mode) for mode in order]
+        report['runs'].extend(rows)
+        summary = dict(case=case[0], modes={})
+        for mode in ('reference', 'precheck'):
+            selected = [row for row in rows if row['mode'] == mode]
+            assert selected[0]['deterministic_signature'] == selected[1]['deterministic_signature']
+            summary['modes'][mode] = dict(cpu_seconds=median(r['cpu_seconds'] for r in selected),
+                wall_seconds=median(r['wall_seconds'] for r in selected),
+                outcome=selected[0]['outcome'], iterations=selected[0]['iterations'],
+                total_adjacency_entries=selected[0]['total_adjacency_entries'],
+                oracle_counts=selected[0]['oracle_counts'])
+        old, new = rows[0], rows[1]
+        if new['outcome'] == 'failed_trial':
+            assert old['complete_answer'] == new['complete_answer']['fallback_result']
+            assert new['total_adjacency_entries'] == old['total_adjacency_entries']+new['trial_metrics']['adjacency_entries']
+            assert new['oracle_counts']['degree_replies'] == old['oracle_counts']['degree_replies']+new['trial_metrics']['seed_degree_queries']+new['trial_metrics']['neighbor_degree_queries']
+            assert new['oracle_counts']['adjacency_entries'] == old['oracle_counts']['adjacency_entries']+new['trial_metrics']['adjacency_entries']
+        report['summaries'].append(summary)
+        print(json.dumps(summary), flush=True)
+    report['complete'] = True
+    report['all_independent_bounds_meet_requested'] = True
+    (ROOT/'singleton_precheck_study.json').write_text(json.dumps(report, indent=2)+'\n')
+
+
+if __name__ == '__main__':
+    main()

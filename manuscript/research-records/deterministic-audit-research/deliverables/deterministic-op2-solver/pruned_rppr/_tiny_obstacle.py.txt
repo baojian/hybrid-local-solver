@@ -1,0 +1,123 @@
+"""Exact monotone active-set solve, restricted to at most sixteen vertices."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from fractions import Fraction as F
+
+MAX_TINY_VERTICES = 16
+
+
+@dataclass
+class TinyObstacleMetrics:
+    matrix_cells: int = 0
+    internal_adjacency_records: int = 0
+    violation_checks: int = 0
+    residual_product_terms: int = 0
+    triangular_product_terms: int = 0
+    diagonal_divisions: int = 0
+    pivots: int = 0
+    maximum_rational_bits: int = 0
+
+
+@dataclass(frozen=True)
+class TinyObstacleResult:
+    densities: tuple
+    pivot_order: tuple
+    metrics: TinyObstacleMetrics
+
+
+def solve_tiny_obstacle(degrees, adjacency, seed_index, alpha, rho):
+    """Solve the supplied small Dirichlet obstacle exactly, without roots.
+
+    The caller must certify that this region contains the full optimum.
+    This routine never queries a graph and refuses larger regions. Its
+    matrix in density coordinates is symmetric with diagonal q0*d_i and
+    off-diagonal -c. Each violated inactive coordinate is added once.
+    """
+    n = len(degrees)
+    if not 1 <= n <= MAX_TINY_VERTICES:
+        raise ValueError("The exact component solve is limited to sixteen vertices")
+    alpha, rho = F(alpha), F(rho)
+    if not 0 < alpha <= 1 or rho <= 0 or not 0 <= seed_index < n:
+        raise ValueError("Invalid tiny obstacle parameters")
+    metrics = TinyObstacleMetrics(matrix_cells=n * n)
+    c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+    matrix = [[F(0)] * n for _ in range(n)]
+    for i, (degree, row) in enumerate(zip(degrees, adjacency)):
+        if degree <= 0 or degree < len(row):
+            raise ValueError("Invalid original degree")
+        matrix[i][i] = diagonal * degree
+        for j in row:
+            matrix[i][j] = -c
+            metrics.internal_adjacency_records += 1
+    rhs = [
+        alpha * int(i == seed_index) - alpha * rho * d for i, d in enumerate(degrees)
+    ]
+    active, lower, pivots = [], [], []
+    occupied = [False] * n
+    values = [F(0)] * n
+
+    def measured(value):
+        metrics.maximum_rational_bits = max(
+            metrics.maximum_rational_bits,
+            abs(value.numerator).bit_length(),
+            value.denominator.bit_length(),
+        )
+        return value
+
+    for _ in range(n + 1):
+        next_index = None
+        for i in range(n):
+            if occupied[i]:
+                continue
+            violation = rhs[i]
+            for j in active:
+                violation = measured(violation - matrix[i][j] * values[j])
+                metrics.residual_product_terms += 1
+            metrics.violation_checks += 1
+            if violation > 0:
+                next_index = i
+                break
+        if next_index is None:
+            return TinyObstacleResult(tuple(values), tuple(active), metrics)
+
+        k = len(active)
+        forward = []
+        for i, vertex in enumerate(active):
+            value = matrix[vertex][next_index]
+            for j in range(i):
+                value = measured(value - lower[i][j] * forward[j])
+                metrics.triangular_product_terms += 1
+            forward.append(value)
+        new_row = []
+        pivot = matrix[next_index][next_index]
+        for value, old_pivot in zip(forward, pivots):
+            factor = measured(value / old_pivot)
+            new_row.append(factor)
+            pivot = measured(pivot - factor * value)
+            metrics.diagonal_divisions += 1
+        assert pivot > 0
+        lower.append(new_row)
+        pivots.append(pivot)
+        active.append(next_index)
+        occupied[next_index] = True
+        metrics.pivots += 1
+
+        transformed = []
+        for i, vertex in enumerate(active):
+            value = rhs[vertex]
+            for j in range(i):
+                value = measured(value - lower[i][j] * transformed[j])
+                metrics.triangular_product_terms += 1
+            transformed.append(value)
+        solved = [measured(value / pivot) for value, pivot in zip(transformed, pivots)]
+        metrics.diagonal_divisions += k + 1
+        for i in range(k, -1, -1):
+            for j in range(i + 1, k + 1):
+                solved[i] = measured(solved[i] - lower[j][i] * solved[j])
+                metrics.triangular_product_terms += 1
+        for vertex, value in zip(active, solved):
+            assert value >= values[vertex] and value > 0
+            values[vertex] = value
+    raise AssertionError("The monotone active set exceeded the component size")

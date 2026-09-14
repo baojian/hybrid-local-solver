@@ -1,0 +1,239 @@
+"""Independent AST, exact-behavior, and isolated-import package audit."""
+import ast,copy,hashlib,json,shutil,subprocess,sys,tempfile
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+sys.dont_write_bytecode=True
+ROOT=Path(__file__).resolve().parent
+PKGROOT=ROOT/'deliverables'/'deterministic-rppr'
+PKG=PKGROOT/'deterministic_rppr'
+BACK={'_avl':'deterministic_avl_containers','_certificate':'independent_sparse_certificate',
+      '_source_energy':'source_energy_dyadic_rppr','_integer':'integer_dyadic_rppr_solver',
+      '_early_stop':'early_stop_source_energy_rppr','_binomial':'binomial_block_dyadic_rppr'}
+LOG=dict(ast_modules_equal=[],hash_records_checked=0,full_backend_comparisons=0,
+         exact_stage_comparisons=0,checkpoint_count=0,fallbacks_with_rejected_checks=0,
+         zero_iteration_stages=0,direct_alpha_one_cases=0,no_hash_backend_cases=0,
+         source_independent_import=False)
+
+def dump(node):return ast.dump(node,include_attributes=False)
+
+def definitions(tree):
+    return {node.name:node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef))}
+
+def clean_module(tree,package):
+    result=[]
+    for node in tree.body:
+        if isinstance(node,ast.ImportFrom) and node.module=='types':
+            assert [a.name for a in node.names]==['FunctionType'];continue
+        if isinstance(node,ast.ImportFrom) and node.level==1:
+            assert package
+            if node.module is None:
+                assert len(node.names)==1 and node.names[0].name in BACK
+                a=node.names[0]
+                node=ast.Import(names=[ast.alias(name=BACK[a.name],asname=a.asname)])
+            else:
+                assert node.module in BACK
+                node.module,node.level=BACK[node.module],0
+        if isinstance(node,ast.Assign):
+            if all(isinstance(t,ast.Name) and t.id in ('_globals','_namespace','_binomial_continuation','_continuation','_combined_continuation') for t in node.targets):
+                assert not package;continue
+            if any(isinstance(t,ast.Subscript) and isinstance(t.value,ast.Name) and t.value.id in ('_globals','_namespace') for t in node.targets):
+                assert not package;continue
+        result.append(node)
+    tree.body=result
+    return tree
+
+
+def audit_ast():
+    manifest=json.loads((PKGROOT/'ACCELERATED_TRANSCRIPTION.json').read_text())
+    for mod,record in manifest.items():
+        path=PKG/(mod+'.py')
+        assert hashlib.sha256(path.read_bytes()).hexdigest()==record['package_sha256']
+        if 'source' in record:
+            assert hashlib.sha256((ROOT/record['source']).read_bytes()).hexdigest()==record['source_sha256']
+        LOG['hash_records_checked']+=1
+    wrappers={'_binomial':('solve_rppr_binomial_blocks','source.reference','BinomialBlockDyadicCorrector'),
+              '_early_stop':('solve_rppr_early_stop','reference','EarlyStopSourceEnergyCorrector'),
+              '_combined':('solve_rppr_combined','reference','CombinedDyadicCorrector')}
+    for mod in ('_certificate','_binomial','_early_stop','_combined'):
+        source=ast.parse((ROOT/manifest[mod]['source']).read_text())
+        package=ast.parse((PKG/(mod+'.py')).read_text())
+        sd,pd=definitions(source),definitions(package)
+        assert set(sd)==set(pd)
+        if mod=='_certificate':
+            fn=pd['certify_sparse_output']
+            assert [a.arg for a in fn.args.kwonlyargs]==['_map_factory','_set_factory']
+            assert [dump(v) for v in fn.args.kw_defaults]==[dump(ast.Name(id=n,ctx=ast.Load())) for n in ('AVLMap','AVLSet')]
+            fn.args.kwonlyargs=[];fn.args.kw_defaults=[]
+            counts={'_map_factory':0,'_set_factory':0}
+            for node in ast.walk(fn):
+                if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id in counts:
+                    name=node.func.id;counts[name]+=1
+                    node.func.id='AVLMap' if name=='_map_factory' else 'AVLSet'
+            assert counts=={'_map_factory':5,'_set_factory':1}
+        if mod=='_early_stop':
+            src,pak=sd['_metered_checker'],pd['_metered_checker']
+            assert [dump(n) for n in src.body[:2]]==[dump(n) for n in pak.body[:2]]
+            expected=ast.parse('''
+def check(*args, **kwargs):
+    return certify_sparse_output(*args, _map_factory=MeteredMap, _set_factory=MeteredSet, **kwargs)
+return check
+''').body
+            assert [dump(n) for n in pak.body[2:]]==[dump(n) for n in expected]
+            pak.body=pak.body[:2]+copy.deepcopy(src.body[2:])
+        if mod in wrappers:
+            name,namespace,cls=wrappers[mod]
+            expected=ast.parse(f'{namespace}.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class={cls})').body[0].value
+            assert isinstance(pd[name].body[-1],ast.Return) and dump(pd[name].body[-1].value)==dump(expected)
+            assert ast.get_docstring(pd[name])==ast.get_docstring(sd[name])
+            pd[name].body[-1]=copy.deepcopy(sd[name].body[-1])
+        assert dump(clean_module(source,False))==dump(clean_module(package,True)),mod
+        LOG['ast_modules_equal'].append(mod)
+    # Check the common continuation's one explicit injection too.
+    src=definitions(ast.parse((ROOT/'integer_dyadic_rppr_solver.py').read_text()))['solve_rppr_integer']
+    pkg=definitions(ast.parse((PKG/'_integer.py').read_text()))['solve_rppr_integer']
+    assert [a.arg for a in pkg.args.kwonlyargs]==['corrector_class']
+    assert dump(pkg.args.kw_defaults[0])==dump(ast.Name(id='IntegerDyadicCorrector',ctx=ast.Load()))
+    pkg.args.kwonlyargs=[];pkg.args.kw_defaults=[]
+    count=0
+    for node in ast.walk(pkg):
+        if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='corrector_class':
+            node.func.id='IntegerDyadicCorrector';count+=1
+    assert count==1 and dump(src)==dump(pkg)
+    LOG['integer_continuation_injection_equal']=True
+
+
+class NoHashInt(int):
+    def __hash__(self):raise AssertionError('Numerical solver hashed a vertex label')
+
+class TinyOracle:
+    def __init__(self,rows,base=0):
+        self.rows=rows;self.base=base;self.degree_queries=[];self.row_queries=[]
+    def label(self,i):return NoHashInt(self.base+i)
+    def degree(self,label):
+        index=int(label)-self.base
+        assert 0<=index<len(self.rows)
+        self.degree_queries.append(label)
+        return len(self.rows[index])
+    def neighbors(self,label):
+        index=int(label)-self.base
+        assert 0<=index<len(self.rows)
+        self.row_queries.append(label)
+        return tuple(self.label(i) for i in self.rows[index])
+
+class HubOracle:
+    def __init__(self):
+        self.seed=NoHashInt((1<<2048)+7);self.hub=NoHashInt(-(1<<2048)-7)
+        self.degree_queries=[];self.row_queries=[]
+    def degree(self,i):
+        self.degree_queries.append(i)
+        if i==self.seed:return 1
+        assert i==self.hub
+        return 10**9
+    def neighbors(self,i):
+        assert i==self.seed,'High-degree boundary adjacency was scanned'
+        self.row_queries.append(i)
+        return (self.hub,)
+
+
+def exact_run_checks():
+    sys.path.insert(0,str(PKGROOT))
+    import deterministic_rppr as pkg
+    from binomial_block_dyadic_rppr import solve_rppr_binomial_blocks as source_binomial
+    from early_stop_source_energy_rppr import solve_rppr_early_stop as source_early
+    from combined_certified_dyadic_rppr import solve_rppr_combined as source_combined
+    assert pkg.solve is pkg.solve_source_energy
+    for name in ('solve_binomial','solve_early_stop','solve_combined'):
+        assert name in pkg.__all__
+    pairs=((source_binomial,pkg.solve_binomial),(source_early,pkg.solve_early_stop),(source_combined,pkg.solve_combined))
+    path5=((1,),(0,2),(1,3),(2,4),(3,))
+    cycle5=((1,2),(0,2,3),(0,1),(1,4),(3,))
+    fixtures=[(path5,0,F(1,100),F(1,64),F(1,1000000),0),
+              (cycle5,4,F(13,97),F(1,32),F(1,1000000),-(1<<2048)),
+              (path5,2,F(13,97),F(1,2),F(1,1000000),0),
+              (path5,0,F(1),F(1,4),F(1,1000000),0),
+              (((1,),(0,)),0,F(13,97),F(4095,4096),F(1,16),0)]
+    for source,packaged in pairs:
+        for rows,seed,alpha,rho,eps,base in fixtures:
+            a,b=TinyOracle(rows,base),TinyOracle(rows,base)
+            x=source(a,a.label(seed),alpha,rho,eps)
+            y=packaged(b,b.label(seed),alpha,rho,eps)
+            assert asdict(x)==asdict(y)
+            assert a.degree_queries==b.degree_queries and a.row_queries==b.row_queries
+            assert asdict(pkg.certify_output(TinyOracle(rows,base),b.label(seed),alpha,rho,y.output))['objective_gap_bound']<=eps
+            for stage in y.stages:
+                cm=stage.corrector_metrics.get('checkpoints',{})
+                LOG['checkpoint_count']+=cm.get('checkpoints',0)
+                LOG['fallbacks_with_rejected_checks']+=int(stage.iterations==stage.corrector_metrics.get('prescribed_target_iterations',-1) and cm.get('rejected_checkpoints',0)>0)
+                LOG['zero_iteration_stages']+=int(stage.iterations==0)
+                if cm:
+                    assert cm['cache_misses']==0
+                    assert cm['checker_containers']==cm['checker_reclaimed_containers']==6*cm['checkpoints']
+                LOG['exact_stage_comparisons']+=1
+            if alpha==1:
+                assert not b.row_queries and not y.stages
+                LOG['direct_alpha_one_cases']+=1
+            LOG['full_backend_comparisons']+=1
+            LOG['no_hash_backend_cases']+=1
+        a,b=HubOracle(),HubOracle()
+        x=source(a,a.seed,F(1,100),F(1,64),F(1,1000000))
+        y=packaged(b,b.seed,F(1,100),F(1,64),F(1,1000000))
+        assert asdict(x)==asdict(y)
+        assert a.degree_queries==b.degree_queries and a.row_queries==b.row_queries
+        assert all(i==b.seed for i in b.row_queries)
+        assert pkg.certify_output(HubOracle(),b.seed,F(1,100),F(1,64),y.output).meets(F(1,1000000))
+        for stage in y.stages:
+            cm=stage.corrector_metrics.get('checkpoints',{})
+            LOG['checkpoint_count']+=cm.get('checkpoints',0)
+            LOG['exact_stage_comparisons']+=1
+            if cm:
+                assert cm['cache_misses']==0
+                assert cm['checker_containers']==cm['checker_reclaimed_containers']==6*cm['checkpoints']
+        LOG['full_backend_comparisons']+=1;LOG['no_hash_backend_cases']+=1
+    assert LOG['fallbacks_with_rejected_checks']>0 and LOG['zero_iteration_stages']>0
+
+
+def isolated_check():
+    with tempfile.TemporaryDirectory(prefix='acceleration_import_audit_',dir=ROOT) as temp:
+        destination=Path(temp)/'deterministic_rppr'
+        shutil.copytree(PKG,destination,ignore=shutil.ignore_patterns('__pycache__'))
+        code=r'''
+import builtins,json,sys
+from fractions import Fraction as F
+sys.path.insert(0,sys.argv[1])
+for name in ('source_energy_dyadic_rppr','integer_dyadic_rppr_solver','early_stop_source_energy_rppr','binomial_block_dyadic_rppr','combined_certified_dyadic_rppr','independent_sparse_certificate','deterministic_avl_containers'):
+    assert name not in sys.modules
+original=builtins.__import__
+def guarded(name,*args,**kwargs):
+    if name.endswith('_dyadic_rppr') or name in ('integer_dyadic_rppr_solver','early_stop_source_energy_rppr','independent_sparse_certificate','deterministic_avl_containers'):
+        raise AssertionError('Research import attempted: '+name)
+    return original(name,*args,**kwargs)
+builtins.__import__=guarded
+import deterministic_rppr as pkg
+assert pkg.solve is pkg.solve_source_energy
+class NH(int):
+    def __hash__(self):raise AssertionError('Vertex hashing')
+class Oracle:
+    def degree(self,i):return 1
+    def neighbors(self,i):return (NH(1-int(i)),)
+results=[]
+for solver in (pkg.solve_binomial,pkg.solve_early_stop,pkg.solve_combined):
+    output=solver(Oracle(),NH(0),F(1,4),F(1,8),F(1,1000000))
+    assert pkg.certify_output(Oracle(),NH(0),F(1,4),F(1,8),output.output).meets(F(1,1000000))
+    results.append(dict(iterations=sum(stage.iterations for stage in output.stages),records=len(output.output)))
+assert not any(name.startswith('test_') or name.endswith('_dyadic_rppr') for name in sys.modules)
+assert all('FunctionType' not in open(module.__file__).read() for name,module in sys.modules.items() if name.startswith('deterministic_rppr') and getattr(module,'__file__','').endswith('.py'))
+print(json.dumps(dict(successful=True,backends=results)))
+'''
+        child=subprocess.run([sys.executable,'-I','-S','-B','-c',code,temp],cwd='/',capture_output=True,text=True,check=True)
+        LOG['isolated_process']=json.loads(child.stdout)
+        LOG['source_independent_import']=True
+
+
+def main():
+    audit_ast();exact_run_checks();isolated_check()
+    LOG['successful']=True
+    (ROOT/'accelerated_package_independent_verification.json').write_text(json.dumps(LOG,indent=2)+'\n')
+    print(json.dumps(LOG,indent=2))
+
+if __name__=='__main__':main()

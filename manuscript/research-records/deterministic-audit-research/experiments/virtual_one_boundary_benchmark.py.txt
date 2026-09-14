@@ -1,0 +1,147 @@
+"""Nontrivial exact tests of the forest certificate on one-boundary paths."""
+
+from __future__ import annotations
+
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr.component import solve_fast
+
+
+class OneBoundaryPath:
+    def __init__(self, length, leaves):
+        self.length, self.leaves = length, leaves
+        self.degree_replies = self.entries = 0
+
+    def degree(self, vertex):
+        self.degree_replies += 1
+        if 0 <= vertex < self.length:
+            return 1 if vertex == self.length - 1 else 2
+        if vertex == self.length:
+            return self.leaves + 1
+        if self.length < vertex <= self.length + self.leaves:
+            return 1
+        raise ValueError(vertex)
+
+    def neighbors(self, vertex):
+        assert 0 <= vertex < self.length, "An excluded row was inspected"
+        if vertex == 0:
+            self.entries += 1
+            yield self.length
+        if vertex > 0:
+            self.entries += 1
+            yield vertex - 1
+        if vertex + 1 < self.length:
+            self.entries += 1
+            yield vertex + 1
+
+
+def tridiagonal_face(degrees, alpha, rho, size):
+    c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+    upper, rhs = [], []
+    for i in range(size):
+        off = -c / degrees[i]
+        denominator = diagonal - (off * upper[i - 1] if i else 0)
+        load = (alpha / degrees[i] if i == 0 else F(0)) - alpha * rho
+        rhs.append((load - (off * rhs[i - 1] if i else 0)) / denominator)
+        upper.append(off / denominator)
+    solution = rhs.copy()
+    for i in range(size - 2, -1, -1):
+        solution[i] -= upper[i] * solution[i + 1]
+    assert all(v > 0 for v in solution)
+    return solution
+
+
+def exact_optimum(length, alpha, rho, leaves):
+    # Coordinate zero here is the seed, which is the far endpoint in the oracle.
+    degrees = [1] + [2] * (length - 1)
+    c = (1 - alpha) / 2
+    for size in range(1, length + 1):
+        x = tridiagonal_face(degrees, alpha, rho, size)
+        if size == length or alpha * rho - c * x[-1] / degrees[size] >= 0:
+            x += [F(0)] * (length - size)
+            assert alpha * rho - c * x[-1] / (leaves + 1) >= 0
+            return degrees, x
+    raise AssertionError("No exact active prefix")
+
+
+def product(x, degrees, alpha):
+    c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+    return [
+        diagonal * v
+        - c
+        * ((x[i - 1] if i else 0) + (x[i + 1] if i + 1 < len(x) else 0))
+        / degrees[i]
+        for i, v in enumerate(x)
+    ]
+
+
+def main():
+    records = []
+    for length in (16, 64):
+        for alpha in (F(1, 10000), F(1, 10**8), F(1, 10**12)):
+            leaves, rho = 2**100, F(1, 8 * length)
+            epsilon = alpha**2 * rho**2 / 10000
+            oracle = OneBoundaryPath(length, leaves)
+            start = time.monotonic()
+            result = solve_fast(oracle, length - 1, alpha, rho, epsilon, tiny_exact=False)
+            elapsed = time.monotonic() - start
+            degrees, optimum = exact_optimum(length, alpha, rho, leaves)
+            output = [F(0)] * length
+            for vertex, value, degree in result.output:
+                i = length - 1 - vertex
+                assert degree == degrees[i]
+                output[i] = value
+            assert all(0 <= v <= w for v, w in zip(output, optimum))
+            error = [v - w for v, w in zip(output, optimum)]
+            qerr = product(error, degrees, alpha)
+            gap = sum((d * e * q for d, e, q in zip(degrees, error, qerr)), F(0)) / 2
+            qopt = product(optimum, degrees, alpha)
+            slack = [
+                v - (alpha / degrees[i] if i == 0 else 0) + alpha * rho
+                for i, v in enumerate(qopt)
+            ]
+            assert all(s >= 0 and s * x == 0 for s, x in zip(slack, optimum))
+            gap += sum((d * s * x for d, s, x in zip(degrees, slack, output)), F(0))
+            assert 0 <= gap <= result.objective_gap_bound <= epsilon
+            assert result.metrics.forest_maximum_load == length**2
+            assert result.metrics.spectral_lower_bound == alpha + (1 - alpha) / (
+                2 * length**2
+            )
+            initial = (
+                sum((d * x * q for d, x, q in zip(degrees, optimum, qopt)), F(0)) / 2
+            )
+            assert epsilon < initial / 1000000
+            record = {
+                "length": length,
+                "alpha": str(alpha),
+                "rho": str(rho),
+                "epsilon": str(epsilon),
+                "ambient_vertices": str(length + 1 + leaves),
+                "route": result.route,
+                "wall_seconds": elapsed,
+                "iterations": result.metrics.iterations,
+                "prescribed_iterations": result.metrics.prescribed_iterations,
+                "beta": str(result.metrics.spectral_lower_bound),
+                "root_load": str(result.metrics.forest_maximum_load),
+                "original_graph_entries": oracle.entries,
+                "degree_replies": oracle.degree_replies,
+                "actual_gap_over_initial": float(gap / initial),
+                "requested_gap_over_initial": float(epsilon / initial),
+                "randomized": False,
+                "exact_global_kkt_audit": True,
+            }
+            records.append(record)
+            (ROOT / "results/virtual-one-boundary-benchmark.json").write_text(
+                json.dumps(records, indent=2)
+            )
+            print(json.dumps(record), flush=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,318 @@
+"""Exact deterministic lazy capped acceleration, with an unproved work bound.
+
+The implementation uses rational degree coordinates f_i=x_i/sqrt(d_i).
+theta must be rational and alpha=theta**2. Convergence and the reduction of
+work to cumulative auxiliary-support volume are proved in the accompanying
+notes. That cumulative bound is OPEN; this is not an OP2 solver theorem.
+
+Metrics count graph exposure, repeated scans, tree visits, rotations, key
+updates, projection emissions, and output. They are diagnostic structural
+counts, not an assertion that every Python operation has unit cost. The
+word-model complexity is the separate proved implementation reduction.
+No random number generator or randomized data structure is used.
+"""
+
+from dataclasses import dataclass, field
+from fractions import Fraction as F
+
+
+@dataclass
+class Metrics:
+    degree_replies: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+    tree_visits: int = 0
+    rotations: int = 0
+    key_changes: int = 0
+    projection_emissions: int = 0
+    output_words: int = 0
+    iterations: int = 0
+    cap_active_iterations: int = 0
+
+
+@dataclass
+class Node:
+    key: tuple
+    weight: int
+    left: object = None
+    right: object = None
+    height: int = 1
+    total_weight: int = field(init=False)
+    weighted_sum: object = field(init=False)
+
+    def __post_init__(self):
+        self.total_weight = self.weight
+        self.weighted_sum = self.weight * self.key[0]
+
+
+def height(n): return n.height if n else 0
+def weight(n): return n.total_weight if n else 0
+def weighted_sum(n): return n.weighted_sum if n else F(0)
+
+
+class WeightedAVL:
+    """Deterministic weighted breakpoint tree; duplicate values use vertex IDs."""
+
+    def __init__(self, metrics):
+        self.root = None
+        self.metrics = metrics
+
+    def refresh(self, n):
+        n.height = 1 + max(height(n.left), height(n.right))
+        n.total_weight = n.weight + weight(n.left) + weight(n.right)
+        n.weighted_sum = (n.weight*n.key[0] + weighted_sum(n.left)
+                          + weighted_sum(n.right))
+        return n
+
+    def rotate_right(self, n):
+        self.metrics.rotations += 1
+        top = n.left
+        n.left = top.right
+        top.right = self.refresh(n)
+        return self.refresh(top)
+
+    def rotate_left(self, n):
+        self.metrics.rotations += 1
+        top = n.right
+        n.right = top.left
+        top.left = self.refresh(n)
+        return self.refresh(top)
+
+    def balance(self, n):
+        self.refresh(n)
+        if height(n.left)-height(n.right) > 1:
+            if height(n.left.left) < height(n.left.right):
+                n.left = self.rotate_left(n.left)
+            return self.rotate_right(n)
+        if height(n.right)-height(n.left) > 1:
+            if height(n.right.right) < height(n.right.left):
+                n.right = self.rotate_right(n.right)
+            return self.rotate_left(n)
+        return n
+
+    def insert(self, key, w):
+        def put(n):
+            self.metrics.tree_visits += 1
+            if n is None: return Node(key, w)
+            if key < n.key: n.left = put(n.left)
+            elif key > n.key: n.right = put(n.right)
+            else: raise ValueError('Duplicate exact key and vertex')
+            return self.balance(n)
+        self.root = put(self.root)
+
+    def delete(self, key):
+        def remove(n, target):
+            self.metrics.tree_visits += 1
+            if n is None: raise KeyError(target)
+            if target < n.key: n.left = remove(n.left, target)
+            elif target > n.key: n.right = remove(n.right, target)
+            else:
+                if n.left is None: return n.right
+                if n.right is None: return n.left
+                successor = n.right
+                while successor.left:
+                    self.metrics.tree_visits += 1
+                    successor = successor.left
+                n.key, n.weight = successor.key, successor.weight
+                n.right = remove(n.right, successor.key)
+            return self.balance(n)
+        self.root = remove(self.root, key)
+
+    def tail_mass(self, tau):
+        n, total = self.root, F(0)
+        while n:
+            self.metrics.tree_visits += 1
+            if n.key[0] <= tau:
+                n = n.right
+            else:
+                total += (n.weight*(n.key[0]-tau) + weighted_sum(n.right)
+                          - tau*weight(n.right))
+                n = n.left
+        return total
+
+    def threshold(self, lower, cap):
+        if self.tail_mass(lower) <= cap:
+            return lower, False
+        n, suffix_w, suffix_s = self.root, 0, F(0)
+        while n:
+            self.metrics.tree_visits += 1
+            at_key = (suffix_s + weighted_sum(n.right)
+                      - n.key[0]*(suffix_w + weight(n.right)))
+            if at_key == cap:
+                return n.key[0], True
+            if at_key > cap:
+                n = n.right
+            else:
+                suffix_w += n.weight + weight(n.right)
+                suffix_s += n.weight*n.key[0] + weighted_sum(n.right)
+                n = n.left
+        if suffix_w == 0: raise ArithmeticError('Invalid water-fill bracket')
+        return (suffix_s-cap)/suffix_w, True
+
+    def above(self, tau):
+        def visit(n):
+            if n is None: return
+            self.metrics.tree_visits += 1
+            if n.key[0] <= tau:
+                yield from visit(n.right)
+            else:
+                yield from visit(n.left)
+                self.metrics.projection_emissions += 1
+                yield n.key
+                yield from visit(n.right)
+        yield from visit(self.root)
+
+
+class Oracle:
+    """Input ownership is separate; the solver never iterates the input map."""
+
+    def __init__(self, adjacency):
+        self._adjacency = adjacency
+
+    def degree(self, i): return len(self._adjacency[i])
+    def neighbors(self, i): return iter(self._adjacency[i])
+
+
+class LazyCappedSolver:
+    def __init__(self, oracle, seed, theta, rho):
+        self.oracle, self.seed = oracle, seed
+        self.theta, self.rho = F(theta), F(rho)
+        if not (0 < self.theta < 1 and self.rho > 0):
+            raise ValueError('This iterative prototype needs 0<theta<1, rho>0')
+        self.alpha = self.theta**2
+        self.a, self.c = 1-self.theta, (1-self.alpha)/2
+        self.metrics = Metrics()
+        self.tree = WeightedAVL(self.metrics)
+        self.degree, self.adjacency, self.keys = {}, {}, {}
+        self.X, self.R, self.z, self.t = {}, {}, {}, {}
+        self.exceptions = set()
+        self.sigma = F(1)
+        self.mass_x = F(0)
+        self.mass_z = F(0)
+        self.history = []
+        self._expose(seed)
+        self.initial_energy_bound = (F(0) if self.rho*self.degree[seed] >= 1
+                                     else self.alpha/self.degree[seed])
+        self._install_exceptions()
+
+    def initialize_from_primal(self, degree_coordinates, certified_objective_gap):
+        """Initialize a fresh solver at a feasible sparse point, with z=x.
+
+        The caller must supply a valid objective-gap bound for this rho;
+        this method does not certify that assertion. Strong convexity then
+        gives E0<=2*gap. Reading all initial support adjacency lists is charged.
+        In particular gap<=alpha**2*rho/2 establishes the proved cheap final
+        accuracy phase. Initial-support work is additional and explicit.
+        """
+        if self.metrics.iterations or self.X:
+            raise ValueError('Initialization requires a fresh zero-state solver')
+        gap = F(certified_objective_gap)
+        if gap < 0: raise ValueError('The supplied gap bound must be nonnegative')
+        values = {}
+        for i, value in degree_coordinates.items():
+            value = F(value)
+            if value < 0: raise ValueError('The initial point must be nonnegative')
+            if value:
+                self._expose(i)
+                values[i] = value
+        mass = sum((self.degree[i]*value for i, value in values.items()), F(0))
+        if mass > 1: raise ValueError('The initial point exceeds the unit mass cap')
+        for i in self.exceptions: self._set_key(i, self._base_key(i))
+        self.X, self.z = values.copy(), values.copy()
+        self.t = self._laplacian(values)
+        self.R = self.t.copy()
+        for i in self.degree: self._set_key(i, self._base_key(i))
+        self.mass_x = self.mass_z = mass
+        self.initial_energy_bound = 2*gap
+        self._install_exceptions()
+
+    def _expose(self, i):
+        if i in self.degree: return
+        d = self.oracle.degree(i)
+        self.metrics.degree_replies += 1
+        if d <= 0: raise ValueError('Positive degrees are required')
+        self.degree[i] = d
+        self._set_key(i, F(0))
+
+    def _set_key(self, i, value):
+        if i in self.keys:
+            if self.keys[i] == value: return
+            self.tree.delete((self.keys[i], i))
+        self.keys[i] = value
+        self.tree.insert((value, i), self.degree[i])
+        self.metrics.key_changes += 1
+
+    def _base_key(self, i):
+        return -self.R.get(i, F(0))/(self.theta*(1+self.theta))
+
+    def _install_exceptions(self):
+        self.exceptions = set(self.z) | set(self.t) | {self.seed}
+        for i in self.exceptions:
+            extra = self.a*self.z.get(i, F(0))-self.t.get(i, F(0))/(1+self.theta)
+            if i == self.seed:
+                extra += self.alpha/(self.theta*self.degree[i])
+            self._set_key(i, self._base_key(i)+extra/self.sigma)
+
+    def _laplacian(self, z):
+        result = {}
+        for j, value in z.items():
+            result[j] = result.get(j, F(0))+self.c*value
+            if j not in self.adjacency:
+                row = []
+                for i in self.oracle.neighbors(j):
+                    self.metrics.first_adjacency_entries += 1
+                    row.append(i)
+                self.adjacency[j] = row
+            for i in self.adjacency[j]:
+                self.metrics.scanned_adjacency_entries += 1
+                self._expose(i)
+                result[i] = result.get(i, F(0))-self.c*value/self.degree[i]
+        return {i: value for i, value in result.items() if value}
+
+    def step(self):
+        """One exact iteration; only z and its boundary receive local updates."""
+        tau, active = self.tree.threshold(self.theta*self.rho/self.sigma,
+                                          1/self.sigma)
+        next_z = {i: self.sigma*(key-tau) for key, i in self.tree.above(tau)}
+        next_mass_z = sum((self.degree[i]*z for i, z in next_z.items()), F(0))
+        assert 0 <= next_mass_z <= 1
+        for i in self.exceptions:
+            self._set_key(i, self._base_key(i))
+        self.sigma *= self.a
+        for i, value in next_z.items():
+            self.X[i] = self.X.get(i, F(0))+self.theta*value/self.sigma
+        next_t = self._laplacian(next_z)
+        for i, value in next_t.items():
+            self.R[i] = self.R.get(i, F(0))+self.theta*value/self.sigma
+            self._set_key(i, self._base_key(i))
+        self.z, self.t = next_z, next_t
+        self._install_exceptions()
+        self.mass_x = self.a*self.mass_x+self.theta*next_mass_z
+        self.mass_z = next_mass_z
+        assert 0 <= self.mass_x <= 1
+        self.metrics.iterations += 1
+        self.metrics.cap_active_iterations += int(active)
+        self.history.append((sum(self.degree[i] for i in next_z),
+                             self.mass_x, self.mass_z, active))
+
+    def run(self, epsilon, max_iterations=None):
+        epsilon = F(epsilon)
+        if epsilon <= 0: raise ValueError('epsilon must be positive')
+        while self.sigma*self.initial_energy_bound > epsilon:
+            if max_iterations is not None and self.metrics.iterations >= max_iterations:
+                break
+            self.step()
+        return self.output()
+
+    def output(self):
+        """Triples (vertex, degree-coordinate, degree) encode exact x radicals."""
+        result = []
+        for i, value in self.X.items():
+            if value:
+                result.append((i, self.sigma*value, self.degree[i]))
+                self.metrics.output_words += 3
+        return result
+
+    @property
+    def objective_gap_bound(self):
+        return self.sigma*self.initial_energy_bound

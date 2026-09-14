@@ -1,0 +1,209 @@
+"""Exact deterministic tests of PG-assisted continuation and its scan ledger."""
+
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import pg_repaired_rppr_solver as production
+from capped_box_corrector import CappedBoxCorrector
+from deterministic_rppr_solver import solve_rppr
+from test_deterministic_rppr_solver import objective, source_density, fraction_summary
+from test_local_safe_solver import dense_exact_obstacle_oracle, graph, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+
+
+def dense_pg(adjacency, seed, alpha, rho, candidate):
+    """Full gradient then orthant projection, independent of sparse scatter."""
+    source = source_density(adjacency, seed, alpha, candidate)
+    return {i: value for i in adjacency
+            if (value := max(F(0), candidate.get(i, F(0))+source[i]-alpha*rho)) > 0}
+
+
+LOG = dict(exact_cases=0, exact_stage_checks=0, accelerated_iterations=0,
+           conservative_iterations=0, repair_adjacency_entries=0,
+           newly_positive_pg_records=0, fixtures=[])
+
+
+class PGContinuationTests(unittest.TestCase):
+    def checked_case(self, adjacency, seed, alpha, rho, epsilon, label):
+        oracle, observed = CheckedOracle(adjacency), []
+
+        class ObservedCorrector(CappedBoxCorrector):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                observed.append(self)
+
+            def run(self, *args, **kwargs):
+                result = super().run(*args, **kwargs)
+                self.test_materialized = tuple(result)
+                return result
+
+        with patch.object(production, 'CappedBoxCorrector', ObservedCorrector):
+            answer = production.solve_rppr_pg(oracle, seed, alpha, rho, epsilon)
+        conservative = solve_rppr(CheckedOracle(adjacency), seed, alpha, rho, epsilon)
+        before_iterations = sum(stage.iterations for stage in conservative.stages)
+        after_iterations = sum(stage.iterations for stage in answer.stages)
+        # This is a fixture comparison, not a universal monotonicity theorem
+        # between two continuation trajectories with different repaired bases.
+        self.assertLessEqual(after_iterations, before_iterations)
+        self.assertEqual(len(answer.stages), len(observed))
+        self.assertEqual(len(answer.stages), len(conservative.stages))
+        previous = {}
+        for stage, old_stage, corrector in zip(answer.stages, conservative.stages, observed):
+            r, delta = stage.regularization, stage.delta
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, r)
+            candidate = {i: value for i, value, degree in corrector.test_materialized}
+            pg = dense_pg(adjacency, seed, alpha, r, candidate)
+            repaired = {i: value for i, value, degree in stage.repaired_output}
+            self.assertEqual(stage.regularization, old_stage.regularization)
+            self.assertEqual(stage.delta, old_stage.delta)
+            self.assertEqual(stage.requested_gap, alpha*delta**2/2)
+            self.assertEqual(stage.requested_gap*alpha**2, old_stage.requested_gap)
+            self.assertEqual(corrector.baseline, previous)
+            self.assertEqual(repaired, {i: value-delta for i, value in pg.items() if value > delta})
+
+            optimum_j = objective(adjacency, seed, alpha, r, optimum)
+            candidate_gap = objective(adjacency, seed, alpha, r, candidate)-optimum_j
+            pg_gap = objective(adjacency, seed, alpha, r, pg)-optimum_j
+            repair_gap = objective(adjacency, seed, alpha, r, repaired)-optimum_j
+            self.assertTrue(0 <= candidate_gap <= stage.certified_gap <= stage.requested_gap)
+            self.assertTrue(0 <= pg_gap <= candidate_gap)
+            displacement2 = sum((len(adjacency[i])*(candidate.get(i, F(0))-pg.get(i, F(0)))**2
+                                 for i in adjacency), F(0))
+            self.assertLessEqual(displacement2/2, candidate_gap-pg_gap)
+            self.assertTrue(all(0 <= repaired.get(i, 0) <= optimum.get(i, 0) for i in adjacency))
+            self.assertTrue(all(optimum.get(i, 0)-repaired.get(i, 0) <= 2*delta for i in adjacency))
+            self.assertTrue(0 <= repair_gap <= 2*delta**2/r)
+            self.assertTrue(all(value >= 0 for value in source_density(
+                adjacency, seed, alpha, pg).values()))
+            source = source_density(adjacency, seed, alpha, repaired)
+            self.assertTrue(all(0 <= value <= 2*alpha*r for value in source.values()))
+            source_before = source_density(adjacency, seed, alpha, previous)
+            self.assertTrue(all(0 <= value <= 4*alpha*r for value in source_before.values()))
+            self.assertEqual(corrector.source,
+                             {i: value for i, value in source_before.items() if value})
+            self.assertLessEqual(stage.repaired_volume, 1/r)
+
+            pgm = stage.projected_gradient_metrics
+            volume = sum(len(adjacency[i]) for i in candidate)
+            newly_positive = set(pg)-set(candidate)
+            self.assertEqual(pgm['candidate_records'], len(candidate))
+            self.assertEqual(pgm['candidate_volume'], volume)
+            self.assertEqual(pgm['scanned_adjacency_entries'], volume)
+            # Every positive ordinary primal coordinate previously came from
+            # a scanned mirror or baseline; its entire neighborhood is cached.
+            self.assertEqual(pgm['first_adjacency_entries'], 0)
+            self.assertEqual(pgm['degree_replies'], 0)
+            self.assertEqual(pgm['positive_records'], len(pg))
+            self.assertEqual(pgm['positive_volume'], sum(len(adjacency[i]) for i in pg))
+            self.assertEqual(pgm['newly_positive_records'], len(newly_positive))
+            self.assertEqual(pgm['newly_positive_volume'],
+                             sum(len(adjacency[i]) for i in newly_positive))
+            self.assertEqual(pgm['truncated_positive_records'], len(pg)-len(repaired))
+            self.assertEqual(stage.corrector_metrics['scanned_adjacency_entries'],
+                             stage.baseline_volume+stage.kinetic_volume)
+            LOG['exact_stage_checks'] += 1
+            LOG['repair_adjacency_entries'] += volume
+            LOG['newly_positive_pg_records'] += len(newly_positive)
+            previous = repaired
+
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        final = {i: value for i, value, degree in answer.output}
+        gap = objective(adjacency, seed, alpha, rho, final)-objective(
+            adjacency, seed, alpha, rho, optimum)
+        self.assertTrue(0 <= gap <= answer.objective_gap_bound <= epsilon)
+        self.assertTrue(all(0 <= final.get(i, 0) <= optimum.get(i, 0) for i in adjacency))
+        self.assertEqual(len(oracle.degree_queries), 1+answer.metrics.repair_degree_replies+
+                         sum(stage.corrector_metrics['degree_replies'] for stage in answer.stages))
+        self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),
+                         answer.metrics.repair_first_adjacency_entries+
+                         sum(stage.corrector_metrics['first_adjacency_entries'] for stage in answer.stages))
+        self.assertEqual(answer.metrics.repair_scanned_adjacency_entries,
+                         sum(stage.projected_gradient_metrics['candidate_volume'] for stage in answer.stages))
+        self.assertEqual(answer.metrics.final_output_words, 3*len(final))
+        LOG['exact_cases'] += 1
+        LOG['accelerated_iterations'] += after_iterations
+        LOG['conservative_iterations'] += before_iterations
+        LOG['fixtures'].append(dict(label=label, alpha=str(alpha), rho=str(rho), epsilon=str(epsilon),
+            stages=len(answer.stages), improved_iterations=after_iterations,
+            conservative_iterations=before_iterations,
+            final_gap=fraction_summary(gap), certificate=str(answer.objective_gap_bound),
+            repair_adjacency_entries=answer.metrics.repair_scanned_adjacency_entries))
+
+    def test_representative_full_continuations(self):
+        fixtures = [
+            (path(3), 0, F(2, 5), F(3, 10), F(1, 2000), 'nondyadic final and epsilon halving'),
+            (tree(5), 0, F(1, 8), F(1, 12), F(1, 200), 'multi-stage tree'),
+            (path(2), 0, F(1, 100), F(1, 3), F(1, 100), 'small nonsquare alpha'),
+            (graph(3, [(0, 1), (1, 2), (2, 0)]), 0, F(1, 3), F(1, 10), F(1, 1000), 'triangle'),
+            (star(5), 1, F(1, 4), F(1, 6), F(1, 500), 'leaf-seeded star')]
+        for args in fixtures:
+            self.checked_case(*args)
+
+    def test_zero_and_alpha_one(self):
+        self.checked_case(star(5), 0, F(1, 3), F(1, 4), F(1, 100), 'zero at equality')
+        self.checked_case(path(3), 1, F(1), F(1, 5), F(1, 100), 'alpha one')
+
+    def test_huge_new_pg_neighbor_is_truncated_before_scan(self):
+        degree, alpha = 10**12, F(1, 4)
+        rho = F(3, 5*degree+3)
+        delta, c, q0 = alpha*rho/2, (1-alpha)/2, (1+alpha)/2
+        optimum_seed = alpha*(1-rho)/q0
+        excess = delta/2
+        candidate_seed = optimum_seed+excess
+
+        class HugeStarOracle:
+            def __init__(self):
+                self.degree_queries, self.adjacency_queries = [], []
+
+            def degree(self, i):
+                self.degree_queries.append(i)
+                return degree if i == 0 else 1
+
+            def neighbors(self, i):
+                self.adjacency_queries.append(i)
+                if i == 0:
+                    raise AssertionError('New PG hub adjacency was scanned before truncation')
+                return iter((0,))
+
+        # This is an explicit certified repair input, not a claim about which
+        # zero-start accelerated step first produces the candidate.
+        self.assertEqual(c*optimum_seed/degree, alpha*rho)
+        self.assertLessEqual(q0*excess**2/2, alpha*delta**2/2)
+        oracle = HugeStarOracle()
+        repaired, metrics = production.projected_gradient_truncate(
+            oracle, 1, alpha, rho, delta, ((1, candidate_seed, 1),))
+        pg_seed, pg_hub = optimum_seed+c*excess, c*excess/degree
+        self.assertTrue(0 < pg_hub < delta)
+        self.assertEqual(repaired, ((1, pg_seed-delta, 1),))
+        self.assertTrue(0 <= repaired[0][1] <= optimum_seed)
+        self.assertEqual(oracle.adjacency_queries, [1])
+        self.assertEqual(oracle.degree_queries, [0])
+        self.assertEqual(metrics.scanned_adjacency_entries, 1)
+        self.assertEqual(metrics.first_adjacency_entries, 1)
+        self.assertEqual(metrics.positive_volume, degree+1)
+        self.assertEqual(metrics.newly_positive_volume, degree)
+        self.assertEqual(metrics.truncated_positive_records, 1)
+        self.assertEqual(metrics.retained_records, 1)
+        repair_error = optimum_seed-repaired[0][1]
+        self.assertLessEqual(q0*repair_error**2/2, 2*delta**2/rho)
+        repaired_source_seed = alpha-q0*repaired[0][1]
+        repaired_source_hub = c*repaired[0][1]/degree
+        self.assertTrue(0 <= repaired_source_seed <= 2*alpha*rho)
+        self.assertTrue(0 <= repaired_source_hub <= 2*alpha*rho)
+        LOG['fixtures'].append(dict(label='certified candidate births degree-10^12 PG hub, immediately truncated',
+                                    **asdict(metrics)))
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(PGContinuationTests))
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('pg_repaired_rppr_solver_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

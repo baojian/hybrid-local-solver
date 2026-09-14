@@ -1,0 +1,203 @@
+"""Certified dyadic-interval replay on a finite canonical binary tree.
+
+All enclosures use integer arithmetic with outward rounding; the reference
+obstacle solution and regularization threshold use exact Fractions. Thus a
+positive lower endpoint certifies a false support admission despite nested
+square roots in the published maximal A-CODER step schedule.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+from fractions import Fraction as F
+
+BITS = 220
+SCALE = 1 << BITS
+
+
+class Interval:
+    def __init__(self, lo: int, hi: int):
+        assert lo <= hi
+        self.lo, self.hi = lo, hi
+
+    @classmethod
+    def exact(cls, value):
+        value = F(value)
+        lo = (value.numerator * SCALE) // value.denominator
+        hi = -((-value.numerator * SCALE) // value.denominator)
+        return cls(lo, hi)
+
+    def __add__(self, other):
+        if not isinstance(other, Interval):
+            other = Interval.exact(other)
+        return Interval(self.lo + other.lo, self.hi + other.hi)
+
+    __radd__ = __add__
+
+    def __neg__(self):
+        return Interval(-self.hi, -self.lo)
+
+    def __sub__(self, other):
+        return self + (-other if isinstance(other, Interval) else -F(other))
+
+    def __rsub__(self, other):
+        return Interval.exact(other) - self
+
+    def __mul__(self, other):
+        if not isinstance(other, Interval):
+            other = Interval.exact(other)
+        products = [
+            self.lo * other.lo,
+            self.lo * other.hi,
+            self.hi * other.lo,
+            self.hi * other.hi,
+        ]
+        return Interval(min(products) // SCALE, -(-max(products) // SCALE))
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        if not isinstance(other, Interval):
+            other = Interval.exact(other)
+        assert other.lo > 0, (
+            "this verifier divides only by certified positive intervals"
+        )
+        fractions = [
+            F(a * SCALE, b) for a in (self.lo, self.hi) for b in (other.lo, other.hi)
+        ]
+        lower, upper = min(fractions), max(fractions)
+        return Interval(
+            lower.numerator // lower.denominator,
+            -(-upper.numerator // upper.denominator),
+        )
+
+    def sqrt(self):
+        assert self.lo >= 0
+        lo = math.isqrt(self.lo * SCALE)
+        hi = math.isqrt(self.hi * SCALE)
+        if hi * hi < self.hi * SCALE:
+            hi += 1
+        return Interval(lo, hi)
+
+    def positive(self):
+        return Interval(max(0, self.lo), max(0, self.hi))
+
+    def summary(self):
+        return {
+            "lo": str(F(self.lo, SCALE)),
+            "hi": str(F(self.hi, SCALE)),
+            "decimal_lo": float(F(self.lo, SCALE)),
+            "decimal_hi": float(F(self.hi, SCALE)),
+        }
+
+
+def solve(matrix, rhs):
+    rows = [list(row) + [b] for row, b in zip(matrix, rhs, strict=True)]
+    for j in range(len(rows)):
+        pivot = rows[j][j]
+        assert pivot > 0
+        for i in range(j + 1, len(rows)):
+            factor = rows[i][j] / pivot
+            for k in range(j, len(rows) + 1):
+                rows[i][k] -= factor * rows[j][k]
+    out = [F(0)] * len(rows)
+    for i in reversed(range(len(rows))):
+        out[i] = (
+            rows[i][-1] - sum(rows[i][j] * out[j] for j in range(i + 1, len(rows)))
+        ) / rows[i][i]
+    return out
+
+
+def dot(row, vector):
+    return sum((a * b for a, b in zip(row, vector, strict=True)), Interval.exact(0))
+
+
+def main():
+    branch, depth = 2, 7
+    alpha = F(1, 10)
+    damping = (1 - alpha) / 2
+    degrees = [branch] + [branch + 1] * (depth - 1) + [1]
+    n = depth + 1
+    K = [[F(0)] * n for _ in range(n)]
+    for i in range(n):
+        K[i][i] = damping
+        if i:
+            K[i][i - 1] = -damping / degrees[i]
+        if i < depth:
+            K[i][i + 1] = -damping * branch / degrees[i]
+    Q = [[K[i][j] + (alpha if i == j else 0) for j in range(n)] for i in range(n)]
+    face = [row[:depth] for row in Q[:depth]]
+    source = [alpha / branch] + [F(0)] * (depth - 1)
+    intercept = solve(face, source)
+    slope = solve(face, [alpha] * depth)
+    rho_transition = damping * intercept[-1] / (alpha + damping * slope[-1])
+    rho = rho_transition * F(10001, 10000)
+    optimum = [a - rho * b for a, b in zip(intercept, slope, strict=True)] + [F(0)]
+    c = [alpha / branch - alpha * rho] + [-alpha * rho] * depth
+    slack = [sum(Q[i][j] * optimum[j] for j in range(n)) - c[i] for i in range(n)]
+    assert all(x > 0 for x in optimum[:-1])
+    assert all(s == 0 for s in slack[:-1]) and slack[-1] > 0
+    L = 2 * (1 - alpha)
+    zero = Interval.exact(0)
+    y = [zero] * n
+    v = y.copy()
+    x = y.copy()
+    p = y.copy()
+    accumulated = y.copy()
+    inverse_A = zero
+    weight_previous = zero
+    first_positive = None
+    for iteration in range(1, 100):
+        if iteration == 1:
+            weight = Interval.exact(1)
+            inverse_A = Interval.exact(5 * L / 2)
+        else:
+            bound = 2 * (inverse_A + alpha) / (5 * L)
+            weight = 2 * bound / (bound + (bound * bound + 4 * bound).sqrt())
+            inverse_A = inverse_A * (1 - weight)
+        old_gradient = [dot(row, x) for row in K]
+        x = [(1 - weight) * yy + weight * vv for yy, vv in zip(y, v, strict=True)]
+        mixed = x.copy()
+        old_y, old_p = y.copy(), p.copy()
+        for j in reversed(range(n)):
+            p[j] = dot(K[j], mixed)
+            accumulated[j] = (
+                (1 - weight) * accumulated[j]
+                + weight * p[j]
+                + weight_previous * (1 - weight) * (old_gradient[j] - old_p[j])
+            )
+            v[j] = (
+                (Interval.exact(c[j]) - accumulated[j]) / (inverse_A + alpha)
+            ).positive()
+            y[j] = (1 - weight) * old_y[j] + weight * v[j]
+            mixed[j] = y[j]
+        if v[-1].lo > 0:
+            first_positive = {
+                "iteration": iteration,
+                "leaf_degree_auxiliary": v[-1].summary(),
+            }
+            break
+        assert v[-1].hi == 0, "increase precision before deciding an ambiguous sign"
+        weight_previous = weight
+    assert first_positive is not None
+    report = {
+        "status": "CERTIFIED_COUNTEREXAMPLE_TO_EXACT_SUPPORT_CONTAINMENT",
+        "graph": "complete rooted binary tree of depth seven; reverse level order",
+        "vertices": sum(branch**i for i in range(n)),
+        "edges": sum(branch**i for i in range(1, n)),
+        "alpha": str(alpha),
+        "rho_transition": str(rho_transition),
+        "rho": str(rho),
+        "optimal_leaf_coordinate": "0",
+        "exact_leaf_slack_degree_coordinates": str(slack[-1]),
+        "certificate": first_positive,
+        "interval_bits": BITS,
+        "randomized": False,
+        "scope": "A-CODER with the stated split and L; not every deterministic algorithm, nor a total-work lower bound",
+    }
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()

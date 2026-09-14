@@ -1,0 +1,90 @@
+"""Record completion only after both authorized duration thresholds are met."""
+import argparse
+import hashlib
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent
+START=datetime(2026,9,5,1,22,25,tzinfo=timezone.utc)
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--active-seconds',type=int,required=True)
+    parser.add_argument('--utc',required=True)
+    args=parser.parse_args()
+    now=datetime.strptime(args.utc,'%Y-%m-%d %H:%M:%S UTC').replace(tzinfo=timezone.utc)
+    wall=int((now-START).total_seconds())
+    if min(wall,args.active_seconds)<36000:
+        raise ValueError('Both ten-hour thresholds must be met before completion')
+    if (ROOT/'COMPLETION.json').exists():
+        raise FileExistsError('The completed research record already exists')
+    bundle=json.loads((ROOT/'review_bundle_independent_audit.json').read_text())
+    assert bundle['passed'] and not bundle['defects']
+    archive=Path(bundle['archive']['path'])
+    assert digest(archive)==bundle['archive']['sha256']
+    compiled=json.loads((ROOT/'proof_compile_manifest.json').read_text())
+    for name,expected in compiled['source_sha256'].items():
+        assert digest(ROOT/name)==expected,name
+    pdf=ROOT/'output/pdf/deterministic_conjecture2.pdf'
+    assert digest(pdf)==compiled['pdf_sha256']
+    visual=json.loads((ROOT/'proof_visual_review.json').read_text())
+    assert visual['status']=='passed' and visual['pdf_sha256']==digest(pdf)
+    assert visual['pages_reviewed']==list(range(1,compiled['pages']+1))
+    source=json.loads((ROOT/'final_authorized_source_check.json').read_text())
+    assert digest(Path(source['authorized_source']))==source['sha256']
+    record=dict(status='complete',completed_utc=args.utc,started_utc=START.isoformat(),
+        active_seconds=args.active_seconds,wall_seconds=wall,minimum_active_seconds=36000,
+        scheduling_gaps_excluded=True,parallel_time_not_added=True,
+        theorem='Deterministic OP2 in the supplied exact-real model, with fully charged soft-O(1/(rho sqrt(alpha))) work and polylogarithmic accuracy dependence.',
+        no_randomized_algorithm=True,other_manuscript_notes_not_read=True,
+        authorized_source_sha256=source['sha256'],source_unchanged=True,
+        unresolved_proof_gaps_found_in_internal_audits=[],external_peer_review_claimed=False,
+        proof=dict(path=str(pdf),sha256=digest(pdf),pages=compiled['pages'],
+                   tex_source_sha256=compiled['source_sha256']),
+        archive=bundle['archive'],
+        bundle_audit_sha256=digest(ROOT/'review_bundle_independent_audit.json'),
+        package_default='solve_fast',
+        note='The final archive is frozen. This closeout record and final administrative status are stored separately; no numerical solver or proof change is made here.')
+    (ROOT/'COMPLETION.json').write_text(json.dumps(record,indent=2)+'\n')
+    status=ROOT/'STATUS.md'
+    text=status.read_text()
+    current=text.index('## Current result (')
+    text=('# Deterministic Conjecture 2 research\n\n'
+          'Started: 2026-09-05 01:22:25 UTC (09:22:25 Asia/Shanghai).\n'
+          'Requested minimum: ten hours of substantive research, continuing until a proof.\n'
+          f'Completed: {args.utc}. Status: COMPLETE.\n'
+          f'Active research: {args.active_seconds:,} seconds; wall elapsed: {wall:,} seconds.\n'
+          'Both ten-hour thresholds are fulfilled; scheduling gaps and parallel agent\n'
+          'time are not added to active time. The deterministic proof and deliverables\n'
+          'are complete, with no remaining gap identified by the internal audits.\n\n'
+          +text[current:])
+    head_end=text.index(')',text.index('## Current result ('))
+    head_start=text.index('## Current result (')
+    text=text[:head_start]+f'## Current result ({args.utc})'+text[head_end+1:]
+    paragraph=text.index('At 11:39:02 UTC the goal service records')
+    paragraph_end=text.index('Entries below record the research history.',paragraph)
+    text=text[:paragraph]+(f'At completion, the goal service records {args.active_seconds:,} active seconds.\n'
+        'The requested minimum duration is fulfilled. The final read-only model and\n'
+        'state-encoding cross-check found no extra assumption or uncharged operation.\n'
+        '`COMPLETION.json` records the exact duration, source/proof/archive hashes,\n'
+        'and completed scope. The final independent archive audit is stored as\n'
+        '`review_bundle_independent_audit.md` and `.json`.\n\n')+text[paragraph_end:]
+    text+=(f'\n- {args.utc}: research COMPLETE after {args.active_seconds:,} active\n'
+           f'  seconds and {wall:,} wall seconds. The deterministic OP2 proof, encoded\n'
+           '  implementation, exact tests, final PDF and corrected portable archive\n'
+           '  have completed their audits. No randomized method or other manuscript\n'
+           '  notes were used; the authorized source hash is unchanged.\n')
+    status.write_text(text)
+    print(json.dumps(dict(status='complete',active_seconds=args.active_seconds,
+                          wall_seconds=wall,proof_pages=compiled['pages'],
+                          archive_sha256=record['archive']['sha256']),indent=2))
+
+
+if __name__=='__main__':
+    main()

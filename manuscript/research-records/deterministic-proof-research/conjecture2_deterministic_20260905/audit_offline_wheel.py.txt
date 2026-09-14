@@ -1,0 +1,164 @@
+"""Build, inspect, install, and run the standalone wheel without network use."""
+import base64
+import csv
+import hashlib
+import importlib.metadata
+import io
+import json
+import os
+import shutil
+import subprocess
+import sys
+import zipfile
+from email.parser import Parser
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE = ROOT/'deliverables'/'deterministic-rppr'
+OUT = ROOT/'distribution_readiness'
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def main():
+    OUT.mkdir(exist_ok=True)
+    build_source, wheel_dir, installed = (OUT/n for n in ('build_source', 'wheels', 'installed'))
+    # Repeating this diagnostic reuses identical source material but does not
+    # overwrite an installed distribution or a previous wheel silently.
+    assert not installed.exists(), 'Choose a new artifact directory for a repeat install'
+    assert not wheel_dir.exists(), 'Choose a new artifact directory for a repeat build'
+    build_source.mkdir(exist_ok=True)
+    wheel_dir.mkdir()
+    manifest_bytes = (PACKAGE/'PACKAGE_MANIFEST.json').read_bytes()
+    manifest = json.loads(manifest_bytes)
+    for name, expected in manifest['module_sha256'].items():
+        data = (PACKAGE/name).read_bytes()
+        assert sha(data) == expected, name
+        destination = build_source/name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(data)
+    for name in ('pyproject.toml', 'README.md'):
+        shutil.copy2(PACKAGE/name, build_source/name)
+    shutil.copy2(PACKAGE/'PACKAGE_MANIFEST.json', OUT/'PACKAGE_MANIFEST.snapshot.json')
+
+    report = dict(python_executable=sys.executable, python_version=sys.version,
+        installed_build_tools={name:importlib.metadata.version(name)
+                               for name in ('setuptools', 'wheel', 'pip')},
+        package_manifest_sha256=sha(manifest_bytes), commands=[],
+        metadata_changed=False, numerical_modules_changed=False,
+        network_disabled=True)
+    env = os.environ.copy()
+    env['PIP_DISABLE_PIP_VERSION_CHECK'] = '1'
+    env['PIP_NO_INDEX'] = '1'
+    env['SOURCE_DATE_EPOCH'] = '315532800'
+    def run(command, cwd, filename):
+        report['commands'].append(dict(argv=command, cwd=str(cwd)))
+        result = subprocess.run(command, cwd=cwd, env=env, capture_output=True, text=True)
+        (OUT/filename).write_text(result.stdout+result.stderr)
+        if result.returncode:
+            raise RuntimeError(f'{filename}: return code {result.returncode}\n{result.stdout}\n{result.stderr}')
+        return result
+
+    run([sys.executable, '-m', 'pip', 'wheel', '--no-deps', '--no-build-isolation',
+         '--no-index', '.', '-w', str(wheel_dir)], build_source, 'build.log')
+    wheels = list(wheel_dir.glob('*.whl'))
+    assert len(wheels) == 1
+    wheel = wheels[0]
+    report['wheel'] = dict(path=str(wheel), filename=wheel.name, size=wheel.stat().st_size,
+                           sha256=sha(wheel.read_bytes()))
+    with zipfile.ZipFile(wheel) as archive:
+        names = archive.namelist()
+        assert len(names) == len(set(names))
+        python_files = {name for name in names if name.endswith('.py')}
+        assert python_files == set(manifest['module_sha256'])
+        for name, expected in manifest['module_sha256'].items():
+            assert sha(archive.read(name)) == expected
+        dist_info = 'deterministic_rppr-0.1.0.dist-info/'
+        expected_metadata = {dist_info+name for name in ('METADATA', 'WHEEL', 'top_level.txt', 'RECORD')}
+        assert set(names)-python_files == expected_metadata
+        metadata = Parser().parsestr(archive.read(dist_info+'METADATA').decode())
+        wheel_metadata = Parser().parsestr(archive.read(dist_info+'WHEEL').decode())
+        assert metadata['Name'] == 'deterministic-rppr' and metadata['Version'] == '0.1.0'
+        assert metadata['Requires-Python'] == '>=3.10' and not metadata.get_all('Requires-Dist')
+        assert wheel_metadata['Root-Is-Purelib'] == 'true'
+        assert wheel_metadata.get_all('Tag') == ['py3-none-any']
+        records = list(csv.reader(io.StringIO(archive.read(dist_info+'RECORD').decode())))
+        assert {row[0] for row in records} == set(names)
+        for name, checksum, size in records:
+            data = archive.read(name)
+            if name.endswith('/RECORD'):
+                assert not checksum and not size
+            else:
+                assert size == str(len(data))
+                expected = 'sha256='+base64.urlsafe_b64encode(hashlib.sha256(data).digest()).decode().rstrip('=')
+                assert checksum == expected
+        report['wheel_contents'] = names
+        report['module_hashes_checked'] = len(python_files)
+        report['record_checksums_checked'] = len(records)-1
+        report['wheel_metadata'] = dict(name=metadata['Name'], version=metadata['Version'],
+            requires_python=metadata['Requires-Python'], requires_dist=[],
+            pure_python=True, tag='py3-none-any')
+
+    run([sys.executable, '-m', 'pip', 'install', '--no-deps', '--no-index', '--no-compile',
+         '--target', str(installed), str(wheel)], OUT, 'install.log')
+    installed_files = sorted(str(p.relative_to(installed)) for p in installed.rglob('*') if p.is_file())
+    for name, expected in manifest['module_sha256'].items():
+        assert sha((installed/name).read_bytes()) == expected
+    report['installed_files'] = installed_files
+    examples = OUT/'isolated_examples'
+    examples.mkdir(exist_ok=True)
+    for name in ('path.py', 'star.py'):
+        shutil.copy2(PACKAGE/'examples'/name, examples/name)
+    code = r'''
+import builtins,json,runpy,sys
+from pathlib import Path
+installed,examples=Path(sys.argv[1]),Path(sys.argv[2])
+sys.path.insert(0,str(installed))
+original=builtins.__import__
+def guarded(name,*args,**kwargs):
+    if name in ('singleton_precheck_rppr','combined_certified_dyadic_rppr',
+                'direct_exception_integer_rppr','integer_dyadic_rppr_solver',
+                'source_energy_dyadic_rppr','early_stop_source_energy_rppr',
+                'independent_sparse_certificate','deterministic_avl_containers'):
+        raise AssertionError('Research module import attempted: '+name)
+    return original(name,*args,**kwargs)
+builtins.__import__=guarded
+import deterministic_rppr as package
+assert package.solve is package.solve_fast
+assert Path(package.__file__).is_relative_to(installed)
+path=runpy.run_path(str(examples/'path.py'),run_name='__main__')
+star=runpy.run_path(str(examples/'star.py'),run_name='__main__')
+assert path['check'].meets(path['Fraction'](1,1000000))
+assert star['result'].outcome=='singleton' and star['check'].objective_gap_bound==0
+for name,module in tuple(sys.modules.items()):
+    if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+        assert Path(module.__file__).is_relative_to(installed)
+print('DISTRIBUTION_RESULT='+json.dumps(dict(
+    isolated=True, imported_file=package.__file__,
+    path=dict(output_records=len(path['result'].output),
+              correction_iterations=sum(s.iterations for s in path['result'].stages),
+              independent_gap_bound=str(path['check'].objective_gap_bound),
+              degree_queries=path['oracle'].degree_queries,
+              first_adjacency_entries=path['oracle'].adjacency_entries),
+    singleton=dict(output=str(star['result'].output),independent_gap_bound='0',
+                   degree_queries=star['oracle'].degree_replies,
+                   first_adjacency_entries=star['oracle'].adjacency_entries))))
+'''
+    (OUT/'isolated_example_runner.py').write_text(code)
+    result = run([sys.executable, '-I', '-S', '-B', str(OUT/'isolated_example_runner.py'),
+                  str(installed), str(examples)], Path('/'), 'examples.log')
+    lines = [line for line in result.stdout.splitlines() if line.startswith('DISTRIBUTION_RESULT=')]
+    assert len(lines) == 1
+    report['isolated_examples'] = json.loads(lines[0].split('=', 1)[1])
+    assert (PACKAGE/'PACKAGE_MANIFEST.json').read_bytes() == manifest_bytes
+    for name, expected in manifest['module_sha256'].items():
+        assert sha((PACKAGE/name).read_bytes()) == expected
+    report['successful'] = True
+    (ROOT/'offline_wheel_independent_verification.json').write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__':
+    main()

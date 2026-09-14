@@ -1,0 +1,91 @@
+"""Exact zero-start repair while both state masses are below the optimum."""
+
+import json
+from fractions import Fraction as F
+from pathlib import Path
+
+from mass_repair_exact_state_witness import tridiagonal, weighted_projection
+
+
+def main():
+    branch, depth = 100, 4
+    n = depth + 1
+    degrees = [branch] + [branch + 1] * (depth - 1) + [1]
+    counts = [branch**i for i in range(n)]
+    volumes = [degrees[i] * counts[i] for i in range(n)]
+    alpha, s, rho = F(1, 1000000), F(1, 1000), F(1, 400000000)
+    coef, edge = 1 - s, (1 - alpha) / 2
+    c = [alpha / degrees[0] - alpha * rho] + [-alpha * rho] * depth
+    optimum = tridiagonal(
+        [-edge / degrees[i] for i in range(1, n)],
+        [1 - edge] * n,
+        [-edge * branch / degrees[i] for i in range(depth)],
+        c,
+    )
+    assert all(value > 0 for value in optimum)
+
+    def mass(v):
+        return sum(volumes[i] * v[i] for i in range(n))
+
+    optimum_mass = mass(optimum)
+    assert optimum_mass == 1 - rho * sum(volumes)
+    x, z = [F(0)] * n, [F(0)] * n
+    for iteration in range(1, 6):
+        y = [(x[i] + s * z[i]) / (1 + s) for i in range(n)]
+        ky = [
+            edge
+            * (
+                y[i]
+                - ((y[i - 1] if i else 0) + (branch * y[i + 1] if i < depth else 0))
+                / degrees[i]
+            )
+            for i in range(n)
+        ]
+        h = [
+            coef * z[i] - ky[i] / s + (s / degrees[i] if i == 0 else 0)
+            for i in range(n)
+        ]
+        budget = coef * mass(z) + s
+        assert mass(h) == budget
+        repaired, ell = weighted_projection(h, volumes, budget)
+        zn = [max(value - s * rho, 0) for value in repaired]
+        xn = [coef * x[i] + s * zn[i] for i in range(n)]
+        if iteration == 5:
+            assert ell > 0
+            assert mass(x) < optimum_mass and mass(zn) < optimum_mass
+            result = {
+                "graph": "100-ary finite unit tree of depth 4, root seed",
+                "ambient_vertices": sum(counts),
+                "alpha": str(alpha),
+                "rho": str(rho),
+                "iteration": iteration,
+                "repair_threshold": str(ell),
+                "primal_mass_before": str(mass(x)),
+                "auxiliary_mass_after": str(mass(zn)),
+                "optimum_mass": str(optimum_mass),
+                "positive_repair_with_both_masses_below_optimum": True,
+                "zero_start": True,
+                "arithmetic": "exact rational",
+                "randomized": False,
+            }
+        x, z = xn, zn
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "results/mass-repair-exact-undershoot.json"
+    )
+    path.write_text(json.dumps(result, indent=2))
+    print(
+        json.dumps(
+            {
+                **result,
+                "repair_threshold": float(ell),
+                "primal_mass_before": float(F(result["primal_mass_before"])),
+                "auxiliary_mass_after": float(F(result["auxiliary_mass_after"])),
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,106 @@
+"""Exact trajectory and KKT checks for direct full-key replacement."""
+
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+
+from deterministic_avl_containers import AVLMap
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+from direct_exception_integer_rppr import DirectExceptionIntegerCorrector, solve_rppr_direct_source
+from test_local_safe_solver import path, graph
+from test_monotone_capped_solver import CheckedOracle
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT/'deliverables'/'deterministic-rppr'))
+from tests.test_solver import graph as named_graph, validate_case
+
+
+class DirectTransitionTests(unittest.TestCase):
+    records = []
+
+    def compare_stage(self, rows, seed, alpha, theta, rho, tolerance, baseline, inject=False):
+        old_oracle, new_oracle = CheckedOracle(rows), CheckedOracle(rows)
+        args = (seed, alpha, theta, rho, tolerance, baseline)
+        old = IntegerDyadicCorrector(old_oracle, *args)
+        new = DirectExceptionIntegerCorrector(new_oracle, *args)
+        if inject:
+            for current in (old, new):
+                for i in rows:
+                    current._expose(i)
+                current.X = AVLMap(((1, current.cap_count//2),))
+                current.L = AVLMap(((0, current.cap_count//2), (2, current.cap_count//2)))
+                for i in current.degree:
+                    current._set_base(i)
+                current._install_exceptions()
+        for _ in range(old.target_iterations):
+            before = tuple(old.tree.records.items())
+            self.assertEqual(before, tuple(new.tree.records.items()))
+            left, right = old.step(), new.step()
+            self.assertEqual(left, right)
+            self.assertEqual(old.last_step, new.last_step)
+            self.assertEqual(old.S, new.S)
+            for name in ('X', 'L', 'z', 'M', 'source', 'degree', 'adjacency'):
+                self.assertEqual(tuple(getattr(old, name).items()), tuple(getattr(new, name).items()))
+            self.assertEqual(tuple(old.exceptions), tuple(new.exceptions))
+            self.assertEqual(tuple(old.tree.records.items()), tuple(new.tree.records.items()))
+            self.assertEqual(old.objective_gap_bound, new.objective_gap_bound)
+        self.assertEqual(old.run(), new.run())
+        self.assertEqual(old_oracle.degree_queries, new_oracle.degree_queries)
+        self.assertEqual(old_oracle.neighbor_queries, new_oracle.neighbor_queries)
+        for field in ('kinetic_volume', 'iterations', 'rebases', 'scanned_adjacency_entries',
+                      'first_adjacency_entries', 'selected_adjacency_entries', 'source_refresh_records'):
+            self.assertEqual(getattr(old.metrics, field), getattr(new.metrics, field))
+        if inject:
+            self.assertGreater(new.metrics.cap_active_iterations, 0)
+        self.records.append(dict(steps=new.metrics.iterations, rebases=new.metrics.rebases,
+            binding=new.metrics.cap_active_iterations, old_tree_moves=old.tree.metrics.moves,
+            new_tree_moves=new.tree.metrics.moves, old_point_updates=old.tree.metrics.point_updates,
+            new_point_updates=new.tree.metrics.point_updates))
+
+    def test_exact_stage_keys_and_states(self):
+        fixtures = [
+            (path(3), 0, F(1, 4), F(1, 2), F(1, 4), F(1, 64), {}),
+            (path(2), 0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {}),
+            (path(3), 0, F(1, 4), F(1, 2), F(1, 16), F(1, 512), {0:F(3, 8), 1:F(1, 16)}),
+            (graph(4, [(0, 1), (1, 2), (2, 0), (1, 3)]), 3,
+                F(2, 5), F(1, 2), F(1, 4), F(1, 256), {}),
+        ]
+        for fixture in fixtures:
+            self.compare_stage(*fixture)
+
+    def test_binding_mass_cap(self):
+        self.compare_stage(path(3), 0, F(1, 16), F(1, 4), F(1, 4), F(1, 1024),
+                           {0:F(1, 16)}, inject=True)
+
+    def test_full_source_schedule_and_independent_kkt(self):
+        fixtures = [
+            (named_graph(5, [(1, 2), (2, 3), (3, 4), (4, 5)]), 1),
+            (named_graph(5, [(1, 2), (1, 3), (1, 4), (1, 5)]), 2),
+            (named_graph(5, [(1, 2), (2, 3), (3, 1), (3, 4), (4, 5)]), 5),
+            (named_graph(5, [(i, j) for i in range(1, 6) for j in range(i+1, 6)]), 1),
+        ]
+        total = 0
+        for rows, seed in fixtures:
+            for alpha, scale, epsilon in [(F(1, 7), F(3, 8), F(1, 10000)),
+                                         (F(1, 16), F(1, 16), F(1, 10**6))]:
+                rho = scale/len(rows[seed])
+                old, old_counts = validate_case(rows, seed, alpha, rho, epsilon,
+                                                solve_function=solve_rppr_source_energy)
+                new, new_counts = validate_case(rows, seed, alpha, rho, epsilon,
+                                                solve_function=solve_rppr_direct_source)
+                self.assertEqual(old, new)
+                self.assertEqual(old_counts, new_counts)
+                total += new_counts['iterations']
+        self.records.append(dict(full_cases=8, full_iterations=total))
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(DirectTransitionTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    (ROOT/'direct_exception_transition_verification.json').write_text(json.dumps(
+        dict(passed=result.wasSuccessful(), evidence=DirectTransitionTests.records), indent=2)+'\n')
+    if not result.wasSuccessful():
+        raise SystemExit(1)

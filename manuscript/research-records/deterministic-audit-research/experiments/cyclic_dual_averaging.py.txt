@@ -1,0 +1,299 @@
+"""Deterministic locality audit of cyclic accelerated dual averaging.
+
+Primary method: Lin--Song--Diakonikolas, ICML 2023, Algorithm 1.
+The algorithm is simulated on a supplied graph for falsification only.
+Reference optimum and full-graph array access are explicitly audit oracles,
+not a claimed local implementation. No randomized functions are used.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import time
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+
+
+def obstacle(q: np.ndarray, c: np.ndarray) -> np.ndarray:
+    n = len(c)
+    active = c > 0
+    x = np.zeros(n)
+    for _ in range(n + 1):
+        indices = np.flatnonzero(active)
+        if not len(indices):
+            return x
+        x[indices] = np.linalg.solve(q[np.ix_(indices, indices)], c[indices])
+        assert np.min(x[indices]) >= -1e-10
+        r = c - q @ x
+        residual_scale = np.abs(c) + np.abs(q) @ np.abs(x)
+        new = (~active) & (r > 1e-11 * residual_scale)
+        if not np.any(new):
+            return x
+        active |= new
+    raise AssertionError("active-set reference failed to terminate")
+
+
+def homotopy_thresholds(graph: nx.Graph, alpha: float, seed: int) -> list[float]:
+    """Supplied-graph audit oracle returning regularization support transitions."""
+    adjacency = nx.to_numpy_array(graph, nodelist=range(len(graph)))
+    degrees = adjacency.sum(axis=1)
+    w = np.sqrt(degrees)
+    q = (1 + alpha) / 2 * np.eye(len(graph)) - (1 - alpha) / 2 * adjacency / np.outer(
+        w, w
+    )
+    b = np.zeros(len(graph))
+    b[seed] = alpha / w[seed]
+    active = {seed}
+    transitions = [1.0 / degrees[seed]]
+    while len(active) < len(graph):
+        indices = sorted(active)
+        exterior = sorted(set(range(len(graph))) - active)
+        face = q[np.ix_(indices, indices)]
+        intercept = np.linalg.solve(face, b[indices])
+        slope = np.linalg.solve(face, alpha * w[indices])
+        cut = q[np.ix_(exterior, indices)]
+        values = (b[exterior] - cut @ intercept) / (alpha * w[exterior] - cut @ slope)
+        transition = float(np.max(values))
+        if transition <= 0:
+            raise AssertionError("connected graph lost a homotopy transition")
+        transitions.append(transition)
+        active.update(
+            exterior[j]
+            for j, value in enumerate(values)
+            if value >= transition * (1 - 1e-10)
+        )
+    return transitions
+
+
+def run(
+    graph: nx.Graph,
+    alpha: float,
+    rho_fraction: float,
+    seed: int,
+    sweeps: int,
+    *,
+    order: str = "reverse",
+    stop_on_escape: bool = False,
+) -> dict:
+    adjacency = nx.to_numpy_array(graph, nodelist=range(len(graph)))
+    degrees = adjacency.sum(axis=1)
+    w = np.sqrt(degrees)
+    rho = rho_fraction / degrees[seed]
+    k_matrix = (1 - alpha) / 2 * (np.eye(len(graph)) - adjacency / np.outer(w, w))
+    c = -alpha * rho * w
+    c[seed] += alpha / w[seed]
+    sequence = list(range(len(graph)))
+    if order == "reverse":
+        sequence.reverse()
+    elif order == "bfs":
+        sequence = list(nx.bfs_tree(graph, seed))
+    result = run_matrix(
+        k_matrix,
+        alpha,
+        rho,
+        c,
+        w,
+        degrees,
+        sweeps,
+        sequence=sequence,
+        stop_on_escape=stop_on_escape,
+    )
+    result.update(
+        {
+            "n": len(graph),
+            "edges": [list(e) for e in sorted(graph.edges())],
+            "rho_fraction": rho_fraction,
+            "seed": seed,
+            "order": order,
+        }
+    )
+    return result
+
+
+def run_matrix(
+    k_matrix, alpha, rho, c, w, degrees, sweeps, *, sequence=None, stop_on_escape=False
+):
+    """Run on symmetric quotient coordinates; degrees charges full class volume."""
+    n = len(c)
+    q = k_matrix + alpha * np.eye(n)
+    optimum = obstacle(q, c)
+    reference_gap = float(-0.5 * optimum @ q @ optimum + c @ optimum)
+    exact_support = optimum > 0
+    y = np.zeros(n)
+    v = y.copy()
+    x = y.copy()
+    p = y.copy()
+    accumulated = y.copy()
+    historical_average = y.copy()
+    inverse_A = 0.0
+    weight_previous = 0.0
+    union = np.zeros(n, dtype=bool)
+    previous_support = union.copy()
+    max_mass = 0.0
+    max_ratio = 0.0
+    first_escape = None
+    first_deletion = None
+    first_nonlower = None
+    first_average_nonlower = None
+    first_mixed_average_nonlower = None
+    if sequence is None:
+        sequence = list(reversed(range(n)))
+    smoothness = 2 * (1 - alpha)
+    for iteration in range(1, sweeps + 1):
+        if iteration == 1:
+            weight = 1.0
+            inverse_A = 5 * smoothness / 2
+        else:
+            bound = 2 * (inverse_A + alpha) / (5 * smoothness)
+            weight = 2 * bound / (bound + math.sqrt(bound * bound + 4 * bound))
+            inverse_A *= 1 - weight
+        old_full_gradient = k_matrix @ x
+        x = (1 - weight) * y + weight * v
+        mixed = x.copy()
+        y_old = y.copy()
+        p_old = p.copy()
+        for j in sequence:
+            mixed_average = (1 - weight) * historical_average + weight * mixed
+            average_excess = float(np.max(mixed_average - optimum))
+            if first_mixed_average_nonlower is None and average_excess > max(
+                1e-13, np.max(optimum) * 1e-8
+            ):
+                first_mixed_average_nonlower = {
+                    "iteration": iteration,
+                    "at_row": int(j),
+                    "excess": average_excess,
+                }
+            p[j] = k_matrix[j] @ mixed
+            accumulated[j] = (
+                (1 - weight) * accumulated[j]
+                + weight * p[j]
+                + weight_previous * (1 - weight) * (old_full_gradient[j] - p_old[j])
+            )
+            v[j] = max(0.0, (c[j] - accumulated[j]) / (alpha + inverse_A))
+            y[j] = (1 - weight) * y_old[j] + weight * v[j]
+            mixed[j] = y[j]
+        historical_average = (1 - weight) * historical_average + weight * x
+        average_excess = float(np.max(historical_average - optimum))
+        if first_average_nonlower is None and average_excess > max(
+            1e-13, np.max(optimum) * 1e-8
+        ):
+            first_average_nonlower = {"iteration": iteration, "excess": average_excess}
+        if not np.all(np.isfinite(v)):
+            raise AssertionError("nonfinite audit iterate")
+        coordinate_scale = (np.abs(c) + np.abs(accumulated)) / (alpha + inverse_A)
+        current = v > 1e-11 * coordinate_scale
+        union |= current
+        mass = float(w @ v)
+        max_mass = max(max_mass, mass)
+        max_ratio = max(max_ratio, float(rho * degrees[union].sum()))
+        outside = np.flatnonzero(current & ~exact_support)
+        if len(outside) and first_escape is None:
+            first_escape = {
+                "iteration": iteration,
+                "vertex": int(outside[0]),
+                "value": float(v[outside[0]]),
+                "optimum_slack": float((q @ optimum - c)[outside[0]]),
+                "union_volume": float(degrees[union].sum()),
+            }
+        deleted = np.flatnonzero(previous_support & ~current)
+        if len(deleted) and first_deletion is None:
+            first_deletion = {
+                "iteration": iteration,
+                "vertices": list(map(int, deleted)),
+            }
+        excess = v - optimum
+        if (
+            np.max(excess) > max(1e-13, np.max(optimum) * 1e-8)
+            and first_nonlower is None
+        ):
+            first_nonlower = {"iteration": iteration, "excess": float(np.max(excess))}
+        previous_support = current
+        weight_previous = weight
+        if first_escape is not None and stop_on_escape:
+            break
+    gap = float(0.5 * y @ q @ y - c @ y + reference_gap)
+    return {
+        "dimension": n,
+        "alpha": alpha,
+        "rho": rho,
+        "sweeps": iteration,
+        "sequence": sequence,
+        "first_escape": first_escape,
+        "first_deletion": first_deletion,
+        "first_nonlower": first_nonlower,
+        "first_average_nonlower": first_average_nonlower,
+        "first_mixed_average_nonlower": first_mixed_average_nonlower,
+        "max_auxiliary_mass": max_mass,
+        "max_rho_union_volume": max_ratio,
+        "reference_support_volume": float(degrees[exact_support].sum()),
+        "relative_gap": gap / reference_gap if reference_gap else 0,
+        "audit_only": True,
+        "randomized": False,
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-n", type=int, default=5)
+    parser.add_argument("--sweeps", type=int, default=200)
+    parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    start = time.monotonic()
+    graph_count = 0
+    tested = 0
+    escapes = 0
+    best_volume_ratio = 0.0
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open("w") as output:
+        for graph in nx.graph_atlas_g():
+            n = len(graph)
+            if n < 2 or n > args.max_n or not nx.is_connected(graph):
+                continue
+            graph_count += 1
+            for alpha in (0.001, 0.01, 0.1, 0.3):
+                for fraction in (0.001, 0.01, 0.1, 0.3, 0.7, 0.95):
+                    for seed in range(n):
+                        result = run(graph, alpha, fraction, seed, args.sweeps)
+                        tested += 1
+                        escapes += result["first_escape"] is not None
+                        best_volume_ratio = max(
+                            best_volume_ratio, result["max_rho_union_volume"]
+                        )
+                        output.write(json.dumps(result) + "\n")
+                        if tested % 100 == 0:
+                            output.flush()
+                            print(
+                                json.dumps(
+                                    {
+                                        "tested": tested,
+                                        "graphs": graph_count,
+                                        "escapes": escapes,
+                                        "max_rho_union_volume": best_volume_ratio,
+                                        "elapsed_seconds": time.monotonic() - start,
+                                    }
+                                ),
+                                flush=True,
+                            )
+                        if args.limit and tested >= args.limit:
+                            return
+    print(
+        json.dumps(
+            {
+                "tested": tested,
+                "graphs": graph_count,
+                "escapes": escapes,
+                "max_rho_union_volume": best_volume_ratio,
+                "elapsed_seconds": time.monotonic() - start,
+            }
+        ),
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

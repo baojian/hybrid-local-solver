@@ -1,0 +1,146 @@
+"""Deterministic zero-start audit of repair port versus coupling dissipation."""
+
+import argparse
+import json
+import math
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from mass_repair_energy_probe import cases
+from positive_linear_coupling import mass_projection
+
+
+def probe(q, c, w, alpha, rho):
+    optimum = obstacle(q, c)
+    slack = np.where(optimum == 0, np.maximum(q @ optimum - c, 0), 0)
+    s, coef = math.sqrt(alpha), 1 - math.sqrt(alpha)
+    k_matrix = q - alpha * np.eye(len(c))
+    source = np.zeros(len(c))
+    source_index = int(np.flatnonzero(c > 0)[0])
+    source[source_index] = s / w[source_index]
+    optimum_mass = float(w @ optimum)
+
+    def energy(x, z):
+        error, aux_error = x - optimum, z - optimum
+        return float(
+            0.5 * error @ q @ error + slack @ x + alpha / 2 * (aux_error @ aux_error)
+        )
+
+    x = np.zeros(len(c))
+    z = x.copy()
+    initial = old_energy = energy(x, z)
+    worst_ratio = -1e300
+    worst = None
+    previous_ell = 0.0
+    maximum_multiplier_variation_debit = -1e300
+    for iteration in range(1, 1 + math.ceil(40 / s)):
+        y = (x + s * z) / (1 + s)
+        h = coef * z - k_matrix @ y / s + source
+        budget = coef * float(w @ z) + s
+        repaired = budget * mass_projection(h / budget, w)
+        next_z = np.maximum(repaired - s * rho * w, 0)
+        repaired_positive = np.flatnonzero(repaired > 0)
+        j = repaired_positive[
+            np.argmax(repaired[repaired_positive] / w[repaired_positive])
+        ]
+        ell = max(0.0, float((h[j] - repaired[j]) / w[j]))
+        port = alpha * ell * (optimum_mass - float(w @ next_z))
+        dissipation = alpha * s * coef / (2 * (1 + s)) * float((z - x) @ (z - x))
+        next_x = coef * x + s * next_z
+        next_energy = energy(next_x, next_z)
+        if port > 1e-13 * s * old_energy and dissipation > 0:
+            ratio = port / dissipation
+            if ratio > worst_ratio:
+                worst_ratio = ratio
+                worst = {
+                    "iteration": iteration,
+                    "port_over_dissipation": ratio,
+                    "relative_energy_debit": (next_energy - coef * old_energy)
+                    / (s * old_energy),
+                    "energy_over_initial": old_energy / initial,
+                    "ell": ell,
+                    "primal_mass_error": optimum_mass - float(w @ x),
+                    "auxiliary_mass_error": optimum_mass - float(w @ next_z),
+                    "x": x.tolist(),
+                    "z": z.tolist(),
+                }
+        variation_debit = (
+            -s * coef * (ell - previous_ell) * (optimum_mass - float(w @ x))
+        )
+        maximum_multiplier_variation_debit = max(
+            maximum_multiplier_variation_debit, variation_debit / (s * old_energy)
+        )
+        x, z, old_energy, previous_ell = next_x, next_z, next_energy, ell
+        if old_energy < initial * 1e-10:
+            break
+    return {
+        "worst_positive_port": worst,
+        "maximum_multiplier_variation_debit": maximum_multiplier_variation_debit,
+        "iterations": iteration,
+        "stable_prethreshold_score": True,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    args = parser.parse_args()
+    directory = args.directory.resolve()
+    directory.mkdir(parents=True, exist_ok=True)
+    start = last = time.monotonic()
+    count = 0
+    worst_ratio = 0.0
+    with (directory / "cases.jsonl").open("w") as out:
+        for identity, alpha, q, b, w, bounds in cases():
+            for position in sorted(
+                {len(bounds) // 4, len(bounds) // 2, 3 * len(bounds) // 4}
+            ):
+                for factor in (0.999, 1.001):
+                    rho = bounds[position] * factor
+                    if rho >= bounds[0]:
+                        continue
+                    result = probe(q, b - alpha * rho * w, w, alpha, rho)
+                    case = {"case": identity, "alpha": alpha, "rho": rho, **result}
+                    witness = result["worst_positive_port"]
+                    if witness and witness["port_over_dissipation"] > worst_ratio:
+                        worst_ratio = witness["port_over_dissipation"]
+                        (directory / "worst.json").write_text(
+                            json.dumps(case, indent=2)
+                        )
+                    if witness:
+                        witness.pop("x")
+                        witness.pop("z")
+                    out.write(json.dumps(case) + "\n")
+                    out.flush()
+                    count += 1
+                    if time.monotonic() - last > 30:
+                        checkpoint = {
+                            "updated_at": datetime.now(UTC).isoformat(),
+                            "cases_completed": count,
+                            "maximum_port_over_dissipation": worst_ratio,
+                            "elapsed_seconds": time.monotonic() - start,
+                            "randomized": False,
+                        }
+                        (directory / "checkpoint.json").write_text(
+                            json.dumps(checkpoint, indent=2)
+                        )
+                        print(json.dumps(checkpoint), flush=True)
+                        last = time.monotonic()
+    (directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": count,
+                "maximum_port_over_dissipation": worst_ratio,
+                "elapsed_seconds": time.monotonic() - start,
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

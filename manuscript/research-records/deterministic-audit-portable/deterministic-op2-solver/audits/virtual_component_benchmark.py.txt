@@ -1,0 +1,167 @@
+"""Deterministic virtual-graph timing with exact external KKT verification."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+from component_fast_path_audit import exact_reference
+from independent_continuation_audit import dot, product, subtract
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve as continuation
+from pruned_rppr.component import solve_fast
+
+
+class VirtualLeakyPath:
+    def __init__(self, length, leaves, rho):
+        self.length, self.leaves, self.rho = length, leaves, rho
+        self.degree_replies = self.adjacency_entries = self.row_calls = 0
+        self.largest_scanned_degree = 0
+
+    def __len__(self):
+        raise AssertionError("The solver must not query ambient size")
+
+    def __iter__(self):
+        raise AssertionError("The solver must not enumerate the graph")
+
+    def degree(self, vertex):
+        self.degree_replies += 1
+        if 0 <= vertex < self.length:
+            return 1 + int(vertex > 0) + int(vertex + 1 < self.length)
+        if self.length <= vertex < 2 * self.length:
+            return self.leaves + 1
+        if 2 * self.length <= vertex < 2 * self.length + self.length * self.leaves:
+            return 1
+        raise ValueError(vertex)
+
+    def neighbors(self, vertex):
+        assert 0 <= vertex < self.length, "An excluded hub or unseen leaf was scanned"
+        self.row_calls += 1
+        degree = 1 + int(vertex > 0) + int(vertex + 1 < self.length)
+        assert self.rho * degree <= 1
+        self.largest_scanned_degree = max(self.largest_scanned_degree, degree)
+        if vertex > 0:
+            self.adjacency_entries += 1
+            yield vertex - 1
+        if vertex + 1 < self.length:
+            self.adjacency_entries += 1
+            yield vertex + 1
+        self.adjacency_entries += 1
+        yield self.length + vertex
+
+
+def reference(length, leaves, alpha, rho):
+    degrees = [2 if i in (0, length - 1) else 3 for i in range(length)]
+    c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+    matrix = [
+        [
+            diagonal if i == j else -c / degrees[i] if abs(i - j) == 1 else F(0)
+            for j in range(length)
+        ]
+        for i in range(length)
+    ]
+    source = [alpha / degrees[0]] + [F(0)] * (length - 1)
+    optimum = exact_reference(matrix, source, alpha, rho)
+    # These two symbolic row classes verify KKT on every omitted vertex.
+    assert all(alpha * rho - c * value / (leaves + 1) >= 0 for value in optimum)
+    assert alpha * rho > 0  # every omitted leaf has zero solution and this slack
+    return degrees, matrix, source, optimum
+
+
+def run_case(length, leaves, alpha, rho, epsilon, mode):
+    oracle = VirtualLeakyPath(length, leaves, rho)
+    start = time.monotonic()
+    result = (
+        solve_fast(oracle, 0, alpha, rho, epsilon)
+        if mode == "fast"
+        else continuation(oracle, 0, alpha, rho, epsilon)
+    )
+    elapsed = time.monotonic() - start
+    degrees, matrix, source, optimum = reference(length, leaves, alpha, rho)
+    output = [F(0)] * length
+    for vertex, value, degree in result.output:
+        assert vertex < length and degree == degrees[vertex]
+        output[vertex] = value
+    assert all(0 <= value <= target for value, target in zip(output, optimum))
+    error = subtract(output, optimum)
+    slack = [
+        value - b + alpha * rho for value, b in zip(product(matrix, optimum), source)
+    ]
+    gap = dot(error, product(matrix, error), degrees) / 2 + dot(slack, output, degrees)
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon
+    initial_gap = dot(optimum, product(matrix, optimum), degrees) / 2
+    assert epsilon < initial_gap / 1000000
+    record = {
+        "mode": mode,
+        "length": length,
+        "leaves_per_hub": str(leaves),
+        "ambient_vertices_external_only": str(2 * length + length * leaves),
+        "alpha": str(alpha),
+        "rho": str(rho),
+        "epsilon": str(epsilon),
+        "wall_seconds": elapsed,
+        "degree_replies": oracle.degree_replies,
+        "first_graph_entries": oracle.adjacency_entries,
+        "first_row_calls": oracle.row_calls,
+        "maximum_scanned_degree": oracle.largest_scanned_degree,
+        "output_volume": sum(degrees[i] for i, v in enumerate(output) if v),
+        "actual_gap_over_initial": float(gap / initial_gap),
+        "requested_gap_over_initial": float(epsilon / initial_gap),
+        "certificate": str(result.objective_gap_bound),
+        "exact_global_kkt_audit": True,
+        "randomized": False,
+    }
+    if mode == "fast":
+        record.update(
+            route=result.route,
+            iterations=result.metrics.iterations,
+            prescribed_iterations=result.metrics.prescribed_iterations,
+            beta=str(result.metrics.spectral_lower_bound),
+            matrix_entry_reads=result.metrics.internal_matrix_entry_reads,
+            state_bits=result.metrics.maximum_state_bits,
+        )
+    else:
+        record.update(
+            iterations=sum(stage.iterations for stage in result.stages),
+            kinetic_volume=sum(stage.kinetic_volume for stage in result.stages),
+            stages=len(result.stages),
+        )
+    return record
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--baseline-alpha", type=str)
+    args = parser.parse_args()
+    length, leaves = 32, 2**100
+    rho = F(1, 8 * length)
+    output = ROOT / "results/virtual-component-benchmark.jsonl"
+    with output.open("w") as stream:
+        for alpha in (F(1, 100), F(1, 10000), F(1, 10**6), F(1, 10**8), F(1, 10**10)):
+            result = run_case(
+                length, leaves, alpha, rho, alpha**2 * rho**2 / 10000, "fast"
+            )
+            stream.write(json.dumps(result) + "\n")
+            stream.flush()
+            print(json.dumps(result), flush=True)
+        if args.baseline_alpha:
+            alpha = F(args.baseline_alpha)
+            print(
+                json.dumps({"starting_continuation_baseline": str(alpha)}), flush=True
+            )
+            result = run_case(
+                length, leaves, alpha, rho, alpha**2 * rho**2 / 10000, "continuation"
+            )
+            stream.write(json.dumps(result) + "\n")
+            stream.flush()
+            print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

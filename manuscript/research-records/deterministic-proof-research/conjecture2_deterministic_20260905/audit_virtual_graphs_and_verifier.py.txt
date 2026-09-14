@@ -1,0 +1,192 @@
+"""Bounded deterministic audit of benchmark graphs and sparse verification.
+
+This does not call the practical solver or run a benchmark. Its small exact
+answers come from independently assembled matrices and support enumeration.
+"""
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+from types import SimpleNamespace
+import json
+
+from benchmark_practical_rppr import VirtualGraph, CASES, Case, independent_output_checks
+
+
+def explicit_edges(family, size, auxiliary):
+    """Independent edge-set definitions, not copied neighbor-row formulas."""
+    if family == 'path':
+        return {(i, i+1) for i in range(1, size)}
+    if family == 'cycle':
+        return {(i, i+1) for i in range(1, size)} | {(1, size)}
+    if family == 'star':
+        return {(1, i) for i in range(2, size+1)}
+    if family == 'grid':
+        edges = set()
+        for row in range(size):
+            for col in range(size):
+                i = row*size+col+1
+                if col+1 < size: edges.add((i, i+1))
+                if row+1 < size: edges.add((i, i+size))
+        return edges
+    if family == 'cube':
+        return {(i+1, j+1) for i in range(1 << size)
+                for j in range(i+1, 1 << size) if (i ^ j).bit_count() == 1}
+    if family == 'barbell':
+        return {(i, j) for start in (1, size+1)
+                for i in range(start, start+size)
+                for j in range(i+1, start+size)} | {(size, size+1)}
+    tree_n = (1 << (size+1))-1
+    first_leaf = 1 << size
+    return ({(i//2, i) for i in range(2, tree_n+1)}
+            | {(i, j) for i in range(tree_n+1, tree_n+auxiliary+1)
+               for j in range(i+1, tree_n+auxiliary+1)}
+            | {(leaf, tree_n+1+leaf-first_leaf)
+               for leaf in range(first_leaf, tree_n+1)})
+
+
+def structural_check(graph):
+    rows = {i: tuple(graph.neighbors(i)) for i in range(1, graph.n+1)}
+    for i, row in rows.items():
+        assert graph.degree(i) == len(row) > 0
+        assert len(row) == len(set(row)) and i not in row
+        assert all(1 <= j <= graph.n and i in rows[j] for j in row)
+    seen, todo = {1}, [1]
+    while todo:
+        for j in rows[todo.pop()]:
+            if j not in seen: seen.add(j); todo.append(j)
+    assert len(seen) == graph.n
+    edges = {(i, j) for i, row in rows.items() for j in row if i < j}
+    assert edges == explicit_edges(graph.family, graph.size, graph.auxiliary)
+    return rows
+
+
+def solve_linear(matrix, rhs):
+    """Exact forward elimination/back substitution (independent test oracle)."""
+    n = len(rhs)
+    a = [list(map(F, row))+[F(b)] for row, b in zip(matrix, rhs)]
+    for col in range(n):
+        pivot = next(row for row in range(col, n) if a[row][col])
+        a[col], a[pivot] = a[pivot], a[col]
+        for row in range(col+1, n):
+            factor = a[row][col]/a[col][col]
+            for j in range(col, n+1): a[row][j] -= factor*a[col][j]
+    x = [F(0)]*n
+    for row in reversed(range(n)):
+        x[row] = (a[row][n]-sum((a[row][j]*x[j]
+                                    for j in range(row+1, n)), F(0)))/a[row][row]
+    return x
+
+
+def exact_optimum(rows, seed, alpha, rho):
+    vertices = tuple(rows)
+    q0, c = (1+alpha)/2, (1-alpha)/2
+    matrix = [[q0*len(rows[i]) if i == j else -c*int(j in rows[i])
+               for j in vertices] for i in vertices]
+    rhs = [alpha*(int(i == seed)-rho*len(rows[i])) for i in vertices]
+    for mask in range(1 << len(vertices)):
+        ids = [k for k in range(len(vertices)) if mask & (1 << k)]
+        active = solve_linear([[matrix[i][j] for j in ids] for i in ids],
+                              [rhs[i] for i in ids])
+        x = [F(0)]*len(vertices)
+        for i, value in zip(ids, active): x[i] = value
+        if any(value < 0 for value in x): continue
+        gradient = [sum((matrix[i][j]*x[j] for j in range(len(vertices))), F(0))-rhs[i]
+                    for i in range(len(vertices))]
+        if all(g >= 0 and g*v == 0 for g, v in zip(gradient, x)):
+            return {i:v for i, v in zip(vertices, x) if v}
+    raise AssertionError('No KKT support found')
+
+
+def independent_objective(rows, seed, alpha, rho, x):
+    # Edge-form Laplacian energy gives a different expression from the checker.
+    mass = sum((len(rows[i])*x.get(i, 0) for i in rows), F(0))
+    diagonal = alpha/2*sum((len(rows[i])*x.get(i, 0)**2 for i in rows), F(0))
+    edge = (1-alpha)/4*sum(((x.get(i, 0)-x.get(j, 0))**2
+                          for i in rows for j in rows[i] if i < j), F(0))
+    return diagonal+edge-alpha*x.get(seed, 0)+alpha*rho*mass
+
+
+def answer_for(graph, values, certificate):
+    return SimpleNamespace(output=tuple((i, f, graph.degree(i)) for i, f in sorted(values.items())),
+                           objective_gap_bound=certificate)
+
+
+def main():
+    report = dict(benchmark_sha256=sha256(Path(__file__).with_name(
+        'benchmark_practical_rppr.py').read_bytes()).hexdigest(), deterministic=True,
+        practical_solver_called=False, structural_graphs=0, positive_and_zero_exact_answers=0,
+        nonzero_gap_answers=0, malformed_answers_rejected=0, families={}, constructor_gaps=[])
+    fixtures = ([(f, n, 0) for f, sizes in (
+        ('path', range(2, 10)), ('cycle', range(3, 10)), ('star', range(2, 10)),
+        ('grid', range(2, 5)), ('cube', range(1, 5)), ('barbell', range(1, 5))) for n in sizes]
+        + [('tree_clique', h, a) for h in range(1, 4) for a in (1 << h, (1 << h)+1, 2 << h)])
+    for family, n, auxiliary in fixtures:
+        structural_check(VirtualGraph(family, n, auxiliary))
+        report['structural_graphs'] += 1
+    report['benchmark_seed_checks'] = []
+    for case in CASES:
+        graph = VirtualGraph(case.family, case.size, case.auxiliary)
+        assert 1 <= case.seed <= graph.n and graph.degree(case.seed) > 0
+        report['benchmark_seed_checks'].append(dict(name=case.name, seed=case.seed,
+                                                    seed_degree=graph.degree(case.seed)))
+    small = [('path', 5, 0), ('cycle', 5, 0), ('star', 5, 0), ('grid', 2, 0),
+             ('cube', 2, 0), ('barbell', 3, 0), ('tree_clique', 1, 2)]
+    for family, size, auxiliary in small:
+        graph = VirtualGraph(family, size, auxiliary)
+        rows = structural_check(graph)
+        counts = dict(exact_answers=0, nonzero_gap_answers=0, malformed_answers_rejected=0)
+        for seed in sorted({1, (graph.n+1)//2, graph.n}):
+            for alpha in (F(1, 4), F(1, 7), F(1)):
+                for factor in (F(1, 4), F(3, 4), F(1)):
+                    rho = factor/len(rows[seed])
+                    case = Case('audit', family, size, auxiliary, seed, alpha, rho, F(1, 10**6))
+                    optimum = exact_optimum(rows, seed, alpha, rho)
+                    checked = independent_output_checks(graph, case, answer_for(graph, optimum, F(0)))
+                    assert checked['exact_optimum_comparison'] and checked['actual_objective_gap'] == 0
+                    counts['exact_answers'] += 1
+                    if not optimum: continue
+                    step = min(alpha*rho/4, F(1, 10**6))
+                    shrunk = {i: value-step for i, value in optimum.items() if value > step}
+                    gap = independent_objective(rows, seed, alpha, rho, shrunk)-independent_objective(
+                        rows, seed, alpha, rho, optimum)
+                    assert 0 < gap <= case.epsilon
+                    good = answer_for(graph, shrunk, gap)
+                    checked = independent_output_checks(graph, case, good)
+                    assert checked['actual_objective_gap'] == gap
+                    counts['nonzero_gap_answers'] += 1
+                    bad = SimpleNamespace(output=good.output, objective_gap_bound=F(0))
+                    try: independent_output_checks(graph, case, bad)
+                    except AssertionError: counts['malformed_answers_rejected'] += 1
+                    else: raise AssertionError('Small-graph false zero certificate was accepted')
+        report['families'][family] = counts
+        report['positive_and_zero_exact_answers'] += counts['exact_answers']
+        report['nonzero_gap_answers'] += counts['nonzero_gap_answers']
+        report['malformed_answers_rejected'] += counts['malformed_answers_rejected']
+    for family, size, aux in [('path', 1, 0), ('cycle', 1, 0), ('cycle', 2, 0),
+                              ('star', 1, 0), ('grid', 1, 0), ('cube', 0, 0),
+                              ('tree_clique', 0, 1)]:
+        try:
+            graph = VirtualGraph(family, size, aux)
+        except (ValueError, TypeError): continue
+        try: structural_check(graph)
+        except AssertionError:
+            report['constructor_gaps'].append(dict(family=family, size=size, auxiliary=aux))
+    # Establish precisely what the advertised optional small-graph check omits.
+    graph = VirtualGraph('path', 8)
+    rows = structural_check(graph)
+    case = Case('audit-large-verifier-scope', 'path', 8, 0, 1, F(1, 4), F(1, 32), F(1, 10**6))
+    unregularized = exact_optimum(rows, 1, case.alpha, F(0))
+    optimum = exact_optimum(rows, 1, case.alpha, case.rho)
+    checked = independent_output_checks(graph, case, answer_for(graph, unregularized, F(0)))
+    gap = independent_objective(rows, 1, case.alpha, case.rho, unregularized)-independent_objective(
+        rows, 1, case.alpha, case.rho, optimum)
+    assert not checked['exact_optimum_comparison'] and gap > case.epsilon
+    report['large_verifier_scope_witness'] = dict(n=8, accepts_false_zero_objective_bound=True,
+                                                  actual_gap=str(gap), epsilon=str(case.epsilon))
+    target = Path(__file__).with_name('virtual_graph_and_verifier_audit_results.json')
+    target.write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__':
+    main()

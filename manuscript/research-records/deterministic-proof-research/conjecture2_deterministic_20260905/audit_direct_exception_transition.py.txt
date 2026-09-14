@@ -1,0 +1,211 @@
+"""Independent mutation-level exact checks; production files remain untouched."""
+import hashlib
+import json
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+
+from deterministic_avl_containers import AVLMap, AVLSet
+from integer_clipped_reporter import IntegerClippedReporter
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector
+from direct_exception_integer_rppr import DirectExceptionIntegerCorrector, DirectSourceEnergyCorrector
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+from combined_certified_dyadic_rppr import CombinedDyadicCorrector
+from test_local_safe_solver import graph, path
+from test_monotone_capped_solver import CheckedOracle
+
+ROOT = Path(__file__).resolve().parent
+LOG = dict(mutation_checks=0, checked_tree_nodes=0, boundary_checks=0,
+    projection_queries=0, exact_steps=0, scalar_rebases=0, retired_exceptions=0,
+    persistent_exception_steps=0, new_exposures=0, synthetic_transitions=0,
+    combined_prefixes=0, huge_hub_steps=0)
+
+
+class MutationReporter(IntegerClippedReporter):
+    owner = None
+    def validate(self):
+        actual = {}
+        for kind, tree in enumerate((self.base, self.exception)):
+            def visit(node, lower=None, upper=None):
+                if node is None:
+                    return 0, 0, 0, 0
+                key = F(node.numerator, node.degree), node.vertex
+                assert lower is None or lower < key
+                assert upper is None or key < upper
+                lh, lc, ld, ln = visit(node.left, lower, key)
+                rh, rc, rd, rn = visit(node.right, key, upper)
+                assert abs(lh-rh) <= 1
+                assert node.height == 1+max(lh, rh)
+                assert node.count == 1+lc+rc
+                assert node.degree_sum == node.degree+ld+rd
+                assert node.numerator_sum == node.numerator+ln+rn
+                assert node.vertex not in actual
+                actual[node.vertex] = kind, node.numerator, node.degree
+                LOG['checked_tree_nodes'] += 1
+                return node.height, node.count, node.degree_sum, node.numerator_sum
+            visit(tree.root)
+        assert actual == dict(self.records.items())
+        LOG['mutation_checks'] += 1
+
+    def boundary(self):
+        stage = self.owner
+        expected_exceptions = set(stage.z) | set(stage.M) | set(stage.source)
+        assert set(stage.exceptions) == expected_exceptions
+        assert set(stage.degree) == set(self.records)
+        for i, d in stage.degree.items():
+            # Recompute coefficients independently from rational alpha/theta.
+            x, neighbor = F(stage.X.get(i, 0), stage.H), F(stage.L.get(i, 0), stage.H)
+            z, z_neighbor = F(stage.z.get(i, 0), stage.H), F(stage.M.get(i, 0), stage.H)
+            source = F(stage.source.get(i, 0), 2*stage.D*stage.H*d)
+            a, t = stage.alpha, stage.theta
+            raw = stage.sigma*((1-a)*neighbor/d-(1+a-2*t*t)*x)/(2*t*(1+t))
+            raw += (1-a)*(z+z_neighbor/d)/(2*(1+t))+source/t-stage.shift
+            kind, n, degree = self.records[i]
+            assert degree == d and kind == int(i in expected_exceptions)
+            assert F(n*(stage.S if kind == 0 else 1), stage.G*d)-stage.shift == raw
+        LOG['boundary_checks'] += 1
+
+    def _set(self, *args):
+        super()._set(*args)
+        self.validate()
+
+    def project_counts(self, **kwargs):
+        self.boundary()
+        assert self.owner.metrics.iterations == self.query_iteration
+        self.query_iteration += 1
+        LOG['projection_queries'] += 1
+        return super().project_counts(**kwargs)
+
+
+def instrument(stage):
+    reporter = MutationReporter()
+    for i, (kind, n, d) in stage.tree.records.items():
+        reporter._set(kind, i, n, d)
+    reporter.owner = stage
+    reporter.query_iteration = stage.metrics.iterations
+    stage.tree = reporter
+    reporter.boundary()
+
+
+class DirectCombined(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    pass
+
+
+class DirectMutationTests(unittest.TestCase):
+    def compare(self, rows, args, direct=DirectExceptionIntegerCorrector,
+                reference=IntegerDyadicCorrector, inject=False):
+        oa, ob = CheckedOracle(rows), CheckedOracle(rows)
+        left, right = reference(oa, *args), direct(ob, *args)
+        if inject:
+            for s in (left, right):
+                for i in rows:
+                    s._expose(i)
+                s.X = AVLMap(((1, s.cap_count//2),))
+                s.L = AVLMap(((0, s.cap_count//2), (2, s.cap_count//2)))
+                for i in s.degree:
+                    s._set_base(i)
+                s._install_exceptions()
+        instrument(right)
+        for _ in range(right.target_iterations):
+            old_e, old_n = set(right.exceptions), len(right.degree)
+            self.assertEqual(left.step(), right.step())
+            right.tree.boundary()
+            self.assertEqual(left.S, right.S)
+            for name in ('X', 'L', 'z', 'M', 'source', 'degree', 'adjacency'):
+                self.assertEqual(tuple(getattr(left, name).items()), tuple(getattr(right, name).items()))
+            self.assertEqual(tuple(left.tree.records.items()), tuple(right.tree.records.items()))
+            self.assertEqual(left.objective_gap_bound, right.objective_gap_bound)
+            self.assertEqual(left.last_step, right.last_step)
+            self.assertEqual(oa.degree_queries, ob.degree_queries)
+            self.assertEqual(oa.neighbor_queries, ob.neighbor_queries)
+            LOG['persistent_exception_steps'] += bool(old_e & set(right.exceptions))
+            LOG['new_exposures'] += len(right.degree)-old_n
+            LOG['exact_steps'] += 1
+            LOG['combined_prefixes'] += isinstance(right, DirectCombined)
+        self.assertEqual(left.output(), right.output())
+        self.assertEqual(right.direct_transition_metrics.ordinary_base_updates, 0)
+        self.assertEqual(right.metrics.rebase_adjacency_entries, 0)
+        LOG['retired_exceptions'] += right.direct_transition_metrics.retired_exceptions
+        LOG['scalar_rebases'] += right.metrics.rebases
+        if inject:
+            self.assertGreater(right.metrics.cap_active_iterations, 0)
+
+    def test_every_mutation_and_boundary(self):
+        fixtures = [
+            (path(7), (0, F(2, 7), F(1, 2), F(1, 4), F(1, 128), {})),
+            (graph(6, [(0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 5)]),
+                (5, F(1, 50), F(1, 8), F(1, 4), F(1, 128), {})),
+            (path(3), (0, F(1, 16), F(1, 4), F(1, 4), F(1, 1024), {0:F(1, 16)})),
+        ]
+        for rows, args in fixtures:
+            self.compare(rows, args, inject=(len(rows) == 3))
+        self.assertGreater(LOG['new_exposures'], 0)
+        self.assertGreater(LOG['scalar_rebases'], 0)
+        self.assertGreater(LOG['persistent_exception_steps'], 0)
+
+    def test_synthetic_set_partition(self):
+        # A representation unit test, explicitly not a cold-start trajectory.
+        rows = path(6)
+        stage = DirectExceptionIntegerCorrector(CheckedOracle(rows), 0,
+            F(1, 4), F(1, 2), F(1, 4), F(1, 128))
+        for i in rows:
+            stage._expose(i)
+        stage.source = AVLMap()
+        stage.z = AVLMap(((0, 3), (1, 5), (2, 7)))
+        stage._install_exceptions()
+        instrument(stage)
+        old = stage.exceptions
+        stage.S = stage.H*3//4
+        stage.z = AVLMap(((1, 13), (3, 17)))
+        stage.M = AVLMap(((2, 11),))
+        stage.X[0], stage.X[4], stage.L[3] = 19, 23, 29
+        calls = len(stage.oracle.degree_queries), len(stage.oracle.neighbor_queries)
+        query_count = LOG['projection_queries']
+        stage._finish_direct_transition(AVLSet((0, 3, 4)), old)
+        stage.tree.boundary()
+        self.assertEqual(calls, (len(stage.oracle.degree_queries), len(stage.oracle.neighbor_queries)))
+        self.assertEqual(query_count, LOG['projection_queries'])
+        self.assertEqual(stage.direct_transition_metrics.retired_exceptions, 1)
+        self.assertEqual(stage.direct_transition_metrics.ordinary_base_updates, 1)
+        self.assertEqual(stage.direct_transition_metrics.directly_refreshed_exceptions, 3)
+        LOG['synthetic_transitions'] += 1
+
+    def test_cooperative_schedule_mro(self):
+        args = (0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {})
+        self.compare(path(3), args, DirectSourceEnergyCorrector, SourceEnergyDyadicCorrector)
+        self.compare(path(3), args, DirectCombined, CombinedDyadicCorrector)
+        self.assertLess(DirectCombined.__mro__.index(DirectExceptionIntegerCorrector),
+                        DirectCombined.__mro__.index(IntegerDyadicCorrector))
+
+    def test_huge_unscanned_boundary(self):
+        class Hub:
+            def __init__(self): self.degree_queries, self.neighbor_queries = [], []
+            def degree(self, i):
+                self.degree_queries.append(i)
+                return 1 if i == 0 else 10**30
+            def neighbors(self, i):
+                self.neighbor_queries.append(i)
+                assert i == 0, 'Sub-grid high-degree hub must not be scanned'
+                return (1,)
+        oracle = Hub()
+        stage = DirectSourceEnergyCorrector(oracle, 0, F(1, 100), F(1, 16),
+                                            F(1, 4), F(1, 4096))
+        instrument(stage)
+        for _ in range(stage.target_iterations):
+            stage.step()
+            stage.tree.boundary()
+            LOG['huge_hub_steps'] += 1
+        self.assertEqual(oracle.neighbor_queries, [0])
+        self.assertEqual(oracle.degree_queries, [0, 1])
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(DirectMutationTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    names = ('direct_exception_integer_rppr.py', 'integer_dyadic_rppr_solver.py',
+             'integer_clipped_reporter.py', 'direct_exception_transition_proof.md')
+    report = dict(passed=result.wasSuccessful(), evidence=LOG,
+        source_sha256={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in names})
+    (ROOT/'direct_exception_independent_verification.json').write_text(json.dumps(report, indent=2)+'\n')
+    if not result.wasSuccessful():
+        raise SystemExit(1)

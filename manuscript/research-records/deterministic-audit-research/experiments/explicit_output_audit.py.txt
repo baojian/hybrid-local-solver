@@ -1,0 +1,86 @@
+"""Deterministic exhaustive small-graph audit of ordinary rational output."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+TESTS = ROOT / "tests"
+if not TESTS.exists():
+    TESTS = ROOT / "deliverables/deterministic-op2-solver/tests"
+sys.path.insert(0, str(TESTS))
+
+from pruned_rppr import solve_explicit
+from test_solver import Oracle, exact_problem, explicit_gap_upper
+
+
+def main():
+    start = time.monotonic()
+    cases = roots = bisections = 0
+    maximum_bisections = 0
+    routes = {}
+    for graph in nx.graph_atlas_g():
+        if not 2 <= len(graph) <= 4 or not nx.is_connected(graph):
+            continue
+        adjacency = {i: sorted(graph.neighbors(i)) for i in graph}
+        for seed, alpha, ratio, epsilon in itertools.product(
+            range(len(graph)),
+            (F(1, 3), F(1, 16), F(1)),
+            (F(1, 4), F(1, 8)),
+            (F(1, 10**8), F(1, 10**16)),
+        ):
+            rho = ratio / graph.degree(seed)
+            oracle = Oracle(adjacency)
+            answer = solve_explicit(oracle, seed, alpha, rho, epsilon)
+            labels, degrees, _, _, optimum = exact_problem(
+                adjacency, seed, alpha, rho
+            )
+            gap = explicit_gap_upper(
+                adjacency, labels, degrees, optimum, answer.coordinates, alpha
+            )
+            assert 0 <= gap <= answer.objective_gap_bound <= epsilon
+            density = answer.density_result
+            assert oracle.entries == density.metrics.first_adjacency_entries
+            assert oracle.replies == density.metrics.degree_replies
+            eta = answer.conversion.root_error_budget
+            emitted = dict(answer.coordinates)
+            for vertex, value, degree in density.output:
+                coordinate = emitted[vertex]
+                assert coordinate**2 <= degree * value**2
+                assert (coordinate + eta * value)**2 >= degree * value**2
+            assert sum(graph.degree(i) for i in emitted) <= 1 / rho
+            cases += 1
+            roots += answer.conversion.converted_records
+            bisections += answer.conversion.bisection_steps
+            maximum_bisections = max(
+                maximum_bisections, answer.conversion.bisection_steps
+            )
+            routes[density.route] = routes.get(density.route, 0) + 1
+    result = dict(
+        cases=cases,
+        converted_records=roots,
+        bisection_steps=bisections,
+        maximum_bisections_per_solve=maximum_bisections,
+        routes=routes,
+        seconds=time.monotonic() - start,
+        exact_rational_interval_objective_checks=True,
+        no_extra_graph_queries=True,
+        randomized=False,
+        status="enumeration_complete",
+    )
+    (ROOT / "results/explicit-output-audit.json").write_text(
+        json.dumps(result, indent=2)
+    )
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

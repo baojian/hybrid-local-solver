@@ -1,0 +1,255 @@
+"""Optional exact-source adaptive continuation; stable solvers stay unchanged.
+
+Only the regularization schedule changes. Every correction and terminal
+repair uses the previously audited Combined+Direct implementation. Extra
+source passes have a separate additive work ledger. No timing claim is made.
+"""
+from dataclasses import asdict, dataclass, fields
+from fractions import Fraction as F
+from ._combined import CombinedDyadicCorrector
+from ._direct import DirectExceptionIntegerCorrector
+from ._avl import AVLMap
+from ._types import SolverResult
+from ._integer import _terminal_repair
+from .solver import PracticalContinuationMetrics, PracticalStageSummary
+
+class AdaptiveFastCorrector(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    """The unchanged fast correction MRO; only its caller's schedule differs."""
+
+@dataclass
+class AdaptiveSourceMetrics:
+    initial_seed_source_evaluations: int = 0
+    source_passes: int = 0
+    baseline_input_records: int = 0
+    baseline_input_volume: int = 0
+    retained_row_requests: int = 0
+    cached_row_hits: int = 0
+    first_row_requests: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+    degree_cache_lookups: int = 0
+    degree_replies: int = 0
+    degree_cache_writes: int = 0
+    adjacency_cache_lookups: int = 0
+    adjacency_cache_writes: int = 0
+    baseline_map_lookups: int = 0
+    baseline_map_writes: int = 0
+    source_map_lookups: int = 0
+    source_map_writes: int = 0
+    source_integer_updates: int = 0
+    affected_records: int = 0
+    maximum_comparisons: int = 0
+    rational_maximum_constructions: int = 0
+    temporary_records_reclaimed: int = 0
+    scheduling_records: int = 0
+    source_interface_checks: int = 0
+
+    def add(self, other):
+        for field in fields(self):
+            setattr(self, field.name, getattr(self, field.name) + getattr(other, field.name))
+
+@dataclass(frozen=True)
+class AdaptiveScheduleRecord:
+    previous_regularization: F
+    source_maximum: F
+    maximum_vertex: int
+    proposed_regularization: F
+    chosen_regularization: F
+    target_clamped: bool
+    source_metrics: AdaptiveSourceMetrics
+
+@dataclass(frozen=True)
+class AdaptiveContinuationResult:
+    """Total work is result's ledgers PLUS adaptive_metrics, not either alone."""
+    result: SolverResult
+    adaptive_metrics: AdaptiveSourceMetrics
+    schedule: tuple
+
+    @property
+    def output(self):
+        return self.result.output
+
+    @property
+    def objective_gap_bound(self):
+        return self.result.objective_gap_bound
+
+    @property
+    def stages(self):
+        return self.result.stages
+
+def source_maximum(oracle, seed, alpha, repaired, grid_denominator, *, degree_cache, adjacency_cache):
+    """Compute max_i (b-Q*bar)_i/sqrt(d_i) from retained rows only.
+
+    If bar_i/sqrt(d_i)=count_i/H and alpha=A/D, the integer source
+    numerator is 2*A*H*[i=seed]-(D+A)*d_i*count_i
+    +(D-A)*sum_{j~i}count_j, with denominator 2*D*H*d_i.
+    Cache additions are allowed, explicitly charged, and do not modify the
+    completed corrector's own numeric metrics. The caller must not resume
+    that corrector after this final source pass.
+    """
+    alpha = F(alpha)
+    H = grid_denominator
+    if not isinstance(seed, int) or not 0 < alpha < 1:
+        raise ValueError('Source pass needs an integer seed and 0<alpha<1')
+    if not isinstance(H, int) or H <= 0 or H & H - 1:
+        raise ValueError('Source pass needs a dyadic grid denominator')
+    if not isinstance(degree_cache, AVLMap) or not isinstance(adjacency_cache, AVLMap):
+        raise TypeError('Graph caches must be deterministic AVL maps')
+    metrics = AdaptiveSourceMetrics(source_passes=1)
+    counts, numerators = (AVLMap(), AVLMap(((seed, 2 * alpha.numerator * H),)))
+    metrics.source_map_writes = 1
+    metrics.source_integer_updates = 1
+    A, D = (alpha.numerator, alpha.denominator)
+
+    def degree(i):
+        if not isinstance(i, int):
+            raise ValueError('Integer vertex labels are required')
+        metrics.degree_cache_lookups += 1
+        value = degree_cache.get(i)
+        if value is None:
+            value = oracle.degree(i)
+            metrics.degree_replies += 1
+            if not isinstance(value, int) or value <= 0:
+                raise ValueError('Positive integer degrees are required')
+            degree_cache[i] = value
+            metrics.degree_cache_writes += 1
+        return value
+
+    def update(i, change):
+        metrics.source_map_lookups += 1
+        numerators[i] = numerators.get(i, 0) + change
+        metrics.source_map_writes += 1
+        metrics.source_integer_updates += 1
+    try:
+        for i, value, declared_degree in repaired:
+            metrics.baseline_input_records += 1
+            metrics.baseline_map_lookups += 1
+            if i in counts:
+                raise ValueError('Duplicate repaired coordinate')
+            value = F(value)
+            if value <= 0 or H % value.denominator:
+                raise ValueError('Repaired density must be positive on the supplied grid')
+            di = degree(i)
+            if di != declared_degree:
+                raise ValueError('Repaired degree disagrees with the cache or oracle')
+            metrics.baseline_input_volume += di
+            counts[i] = value.numerator * (H // value.denominator)
+            metrics.baseline_map_writes += 1
+        for j, count in counts.items():
+            dj = degree(j)
+            update(j, -(D + A) * dj * count)
+            metrics.retained_row_requests += 1
+            metrics.adjacency_cache_lookups += 1
+            row = adjacency_cache.get(j)
+            if row is None:
+                metrics.first_row_requests += 1
+                collected = []
+                for i in oracle.neighbors(j):
+                    if not isinstance(i, int):
+                        raise ValueError('Integer vertex labels are required')
+                    collected.append(i)
+                    metrics.first_adjacency_entries += 1
+                row = tuple(collected)
+                if len(row) != dj:
+                    raise ValueError('Retained row degree and adjacency disagree')
+                adjacency_cache[j] = row
+                metrics.adjacency_cache_writes += 1
+            else:
+                metrics.cached_row_hits += 1
+                if len(row) != dj:
+                    raise ValueError('Cached row degree and adjacency disagree')
+            for i in row:
+                metrics.scanned_adjacency_entries += 1
+                update(i, (D - A) * count)
+        maximum_numerator, maximum_degree, vertex = (0, 1, seed)
+        for i, numerator in numerators.items():
+            metrics.affected_records += 1
+            di = degree(i)
+            if numerator < 0:
+                raise ValueError('Repaired vector has negative source')
+            metrics.maximum_comparisons += 1
+            if numerator * maximum_degree > maximum_numerator * di:
+                maximum_numerator, maximum_degree, vertex = (numerator, di, i)
+        metrics.rational_maximum_constructions += 1
+        maximum = F(maximum_numerator, 2 * D * H * maximum_degree)
+        return (maximum, vertex, metrics)
+    finally:
+        metrics.temporary_records_reclaimed += len(counts) + len(numerators)
+        counts.clear()
+        numerators.clear()
+
+def solve_rppr_adaptive(oracle, seed, alpha, rho, epsilon):
+    """Optional exact-source stage jumps, with the original terminal certificate."""
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not isinstance(seed, int) or not 0 < alpha <= 1 or rho <= 0 or (epsilon <= 0):
+        raise ValueError('Need integer seed, 0<alpha<=1, rho>0, epsilon>0')
+    metrics, adaptive = (PracticalContinuationMetrics(), AdaptiveSourceMetrics())
+    seed_degree = oracle.degree(seed)
+    metrics.seed_degree_queries = 1
+    if not isinstance(seed_degree, int) or seed_degree <= 0:
+        raise ValueError('The seed must have positive integer degree')
+    if rho * seed_degree >= 1:
+        return AdaptiveContinuationResult(SolverResult((), F(0), None, (), metrics), adaptive, ())
+    if alpha == 1:
+        metrics.final_output_words = 3
+        result = SolverResult(((seed, F(1, seed_degree) - rho, seed_degree),), F(0), None, (), metrics)
+        return AdaptiveContinuationResult(result, adaptive, ())
+    theta = F(1, 2)
+    while theta ** 2 > alpha:
+        theta /= 2
+        metrics.momentum_halvings += 1
+    baseline, summaries, schedule = (AVLMap(), [], [])
+    previous_rho = F(1, seed_degree)
+    maximum, maximum_vertex = (alpha / seed_degree, seed)
+    source_metrics = AdaptiveSourceMetrics(initial_seed_source_evaluations=1)
+    adaptive.add(source_metrics)
+    final_output, final_gap = ((), F(0))
+    while previous_rho > rho:
+        proposed_rho = maximum / (4 * alpha)
+        current_rho = max(rho, proposed_rho)
+        adaptive.source_interface_checks += 1
+        if not alpha * previous_rho <= maximum <= 2 * alpha * previous_rho:
+            raise ArithmeticError('Adaptive source maximum violates the repaired interface')
+        assert previous_rho / 4 <= proposed_rho <= previous_rho / 2
+        assert rho <= current_rho < previous_rho
+        schedule.append(AdaptiveScheduleRecord(previous_rho, maximum, maximum_vertex, proposed_rho, current_rho, rho > proposed_rho, source_metrics))
+        adaptive.scheduling_records += 1
+        metrics.schedule_operations += 1
+        final_stage = current_rho == rho
+        delta = alpha * current_rho / 2
+        if final_stage:
+            while delta ** 2 > epsilon * current_rho / 2:
+                delta /= 2
+                metrics.tolerance_halvings += 1
+        tolerance = alpha * delta ** 2 / 8
+        corrector = AdaptiveFastCorrector(oracle, seed, alpha, theta, current_rho, tolerance, baseline)
+        candidate = corrector.run()
+        assert corrector.grid <= min(delta / 2, alpha * current_rho / 4)
+        repaired, pgm, repair_counts = _terminal_repair(corrector, candidate, delta)
+        metrics.repaired_input_records += pgm.candidate_records
+        metrics.repair_degree_replies += pgm.degree_replies
+        metrics.repair_first_adjacency_entries += pgm.first_adjacency_entries
+        metrics.repair_scanned_adjacency_entries += pgm.scanned_adjacency_entries
+        metrics.repair_accumulation_updates += pgm.accumulation_updates
+        metrics.repair_affected_records += pgm.affected_records
+        for key, value in repair_counts.items():
+            setattr(metrics, key, getattr(metrics, key) + value)
+        metrics.repaired_output_records += len(repaired)
+        volume = sum((degree for _, _, degree in repaired))
+        mass = sum((value * degree for _, value, degree in repaired), F(0))
+        kinetic_bound = F(360 * corrector.metrics.iterations) / current_rho
+        assert volume <= 1 / current_rho and 0 <= mass <= 1
+        assert corrector.metrics.kinetic_volume <= kinetic_bound
+        assert corrector.metrics.rebase_adjacency_entries == 0
+        summaries.append(PracticalStageSummary(regularization=current_rho, delta=delta, requested_gap=tolerance, certified_gap=corrector.objective_gap_bound, iterations=corrector.metrics.iterations, kinetic_volume=corrector.metrics.kinetic_volume, kinetic_volume_bound=kinetic_bound, baseline_volume=sum((corrector.degree[i] for i in baseline)), source_records=len(corrector.source), source_mass=corrector.source_mass, repaired_volume=volume, repaired_mass=mass, repaired_output=repaired, corrector_metrics=corrector.diagnostic_metrics, grid=corrector.grid, projection_mass_cap=corrector.mass_cap, projected_gradient_metrics=asdict(pgm), **repair_counts))
+        baseline = AVLMap(((i, value) for i, value, _ in repaired))
+        previous_rho = current_rho
+        if final_stage:
+            final_output, final_gap = (repaired, 2 * delta ** 2 / current_rho)
+            assert final_gap <= epsilon
+        else:
+            maximum, maximum_vertex, source_metrics = source_maximum(oracle, seed, alpha, repaired, corrector.H, degree_cache=corrector.degree, adjacency_cache=corrector.adjacency)
+            adaptive.add(source_metrics)
+    metrics.final_output_words = 3 * len(final_output)
+    result = SolverResult(final_output, final_gap, theta, tuple(summaries), metrics)
+    return AdaptiveContinuationResult(result, adaptive, tuple(schedule))

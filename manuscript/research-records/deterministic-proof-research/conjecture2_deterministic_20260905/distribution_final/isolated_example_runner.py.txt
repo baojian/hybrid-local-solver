@@ -1,0 +1,67 @@
+
+import builtins,json,runpy,sys
+from pathlib import Path
+installed,examples=Path(sys.argv[1]).resolve(),Path(sys.argv[2]).resolve()
+sys.path.insert(0,str(installed))
+original=builtins.__import__
+allowed=set(sys.stdlib_module_names)|set(sys.builtin_module_names)|{'__main__','deterministic_rppr'}
+def guarded(name,globals=None,locals=None,fromlist=(),level=0):
+    if level==0 and name.split('.')[0] not in allowed:
+        raise AssertionError('Non-stdlib/non-package import attempted: '+name)
+    return original(name,globals,locals,fromlist,level)
+builtins.__import__=guarded
+import deterministic_rppr as package
+assert package.solve is package.solve_fast
+assert package.solve.__module__=='deterministic_rppr._fast'
+assert Path(package.__file__).resolve().is_relative_to(installed)
+required=('solve_with_singleton','solve_adaptive','solve_mass_scaled_grid',
+          'MassScaledGridResult','AdaptiveContinuationResult')
+assert all(name in package.__all__ and hasattr(package,name) for name in required)
+reports={}
+for filename in ('path.py','star.py','adaptive_path.py','mass_grid_path.py'):
+    scope=runpy.run_path(str(examples/filename),run_name='__main__')
+    result,check,oracle=scope['result'],scope['check'],scope['oracle']
+    from fractions import Fraction
+    epsilon=scope.get('epsilon',Fraction(1,1000000))
+    assert check.meets(epsilon)
+    assert result.objective_gap_bound<=epsilon
+    item=dict(output=[(int(i),str(f),int(d)) for i,f,d in result.output],
+              reported_gap_bound=str(result.objective_gap_bound),
+              independent_gap_bound=str(check.objective_gap_bound),
+              requested_epsilon=str(epsilon),
+              verification_adjacency_entries=check.first_adjacency_entries)
+    if filename=='path.py':
+        item.update(degree_queries=oracle.degree_queries,
+                    first_adjacency_entries=oracle.adjacency_entries,
+                    correction_iterations=sum(s.iterations for s in result.stages))
+    elif filename=='star.py':
+        assert result.outcome=='singleton' and check.objective_gap_bound==0
+        assert (oracle.degree_replies,oracle.adjacency_entries)==(2,1)
+        item.update(degree_queries=oracle.degree_replies,
+                    first_adjacency_entries=oracle.adjacency_entries,
+                    outcome=result.outcome)
+    else:
+        from dataclasses import asdict
+        outer=scope['outer']
+        assert outer.result is result
+        item.update(degree_queries=oracle.degree_replies,
+                    first_adjacency_entries=oracle.entries,
+                    correction_iterations=sum(s.iterations for s in result.stages),
+                    stage_regularizations=[str(s.regularization) for s in result.stages])
+        if filename=='adaptive_path.py':
+            item['additive_adaptive_metrics']=asdict(outer.adaptive_metrics)
+        else:
+            item['additive_mass_hint_metrics']=asdict(outer.mass_hint_metrics)
+            item['stage_grids']=[str(s.grid) for s in result.stages]
+    reports[filename]=item
+package_files={}
+for name,module in tuple(sys.modules.items()):
+    if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+        origin=Path(module.__file__).resolve()
+        assert origin.is_relative_to(installed), (name,origin)
+        package_files[name]=str(origin.relative_to(installed))
+assert len(package_files)==20
+print('DISTRIBUTION_RESULT='+json.dumps(dict(
+    isolated=True, import_guard='stdlib and installed package only',
+    imported_file=package.__file__, default='solve_fast',
+    imported_package_files=package_files, examples=reports)))

@@ -1,0 +1,24 @@
+
+import builtins,json,runpy,sys
+from pathlib import Path
+bundle=Path(sys.argv[1]).resolve()
+sys.argv=[str(bundle/'benchmarks'/'run.py'),*sys.argv[2:]]
+allowed=set(sys.stdlib_module_names)|set(sys.builtin_module_names)|{'deterministic_rppr','__main__'}
+original=builtins.__import__
+def guarded(name,globals=None,locals=None,fromlist=(),level=0):
+    if level==0 and name.split('.')[0] not in allowed:
+        raise AssertionError('External implementation import: '+name)
+    return original(name,globals,locals,fromlist,level)
+builtins.__import__=guarded
+try:
+    runpy.run_path(str(bundle/'benchmarks'/'run.py'),run_name='__main__')
+finally:
+    package_files={}
+    for name,module in tuple(sys.modules.items()):
+        if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+            path=Path(module.__file__).resolve()
+            assert path.is_relative_to(bundle)
+            package_files[name]=str(path.relative_to(bundle))
+    assert len(package_files)==20
+    print('ISOLATED_RESULT='+json.dumps(dict(package_files=package_files,
+          research_imports_blocked=True)),flush=True)

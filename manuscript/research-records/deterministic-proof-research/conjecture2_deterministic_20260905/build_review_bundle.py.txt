@@ -1,0 +1,195 @@
+"""Collect final, verified proof and solver artifacts without exploratory notes."""
+
+import argparse
+import hashlib
+import json
+import shutil
+from datetime import datetime, timezone
+from pathlib import Path
+from zipfile import ZIP_DEFLATED, ZipFile
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = ROOT/'deliverables'/'deterministic-rppr'
+PROOF_FILES = ('deterministic_conjecture2.tex',
+               'practical_refinements_appendix.tex',
+               'practical_schedules_appendix.tex')
+REVIEW_FILES = (
+    'proof_reading_guide.md',
+    'proof_to_implementation_map.md',
+    'core_algebra_walkthrough.md',
+    'core_algebra_walkthrough_audit.md',
+    'final_consolidated_tex_guide_audit.md',
+    'final_core_proof_dependency_audit.md',
+    'source_to_theorem_scope_audit.md',
+    'final_authorized_source_check.json',
+    'final_public_tests_verification.json',
+    'final_public_tests.log',
+    'deterministic_conjecture2_model_adversarial_audit.md',
+    'rounded_mass_deficit_complexity_audit.md',
+    'rounded_mass_deficit_independent_audit.md',
+    'adaptive_source_schedule_independent_audit.md',
+    'adaptive_source_implementation_independent_audit.md',
+    'adaptive_manifest_independent_audit.md',
+    'adaptive_package_transcription_audit.md',
+    'mass_scaled_rounding_precision_audit.md',
+    'mass_scaled_grid_independent_audit.md',
+    'mass_grid_package_independent_audit.md',
+    'research_mass_scaled_grid_183_independent_audit.md',
+    'research_mass_scaled_grid_183_validation.json',
+    'research_mass_scaled_grid_183_validation_summary.json',
+    'fast_package_independent_audit.md',
+    'singleton_package_independent_audit.md',
+    'worked_three_vertex_example.md',
+    'worked_three_vertex_example.json',
+    'worked_three_vertex_example.png',
+    'final_combined_rppr_report.md',
+    'final_combined_rppr_manifest.json',
+    'final_combined_rppr_study.json',
+    'adaptive_source_schedule_benchmark.md',
+    'adaptive_source_schedule_benchmark.json',
+    'packaged_fast_solver_validation.json',
+    'adaptive_manifest_independent_validation.json',
+    'adaptive_manifest_independent_validation_summary.json',
+    'research_mass_scaled_grid_abba_report.md',
+    'research_mass_scaled_grid_abba_benchmark.json',
+    'research_mass_scaled_grid_small_mass_report.md',
+    'research_mass_scaled_grid_small_mass_abba.json',
+    'final_offline_wheel_independent_audit.md',
+    'final_offline_wheel_independent_verification.json',
+    'portable_benchmark_independent_audit.md',
+    'portable_benchmark_independent_verification.json',
+    'portable_mass_grid_validation_transcription.md',
+    'portable_mass_grid_validation_transcription.json',
+    'frozen_default_hard_path_profile_report.md',
+    'frozen_default_hard_path_profile.json',
+    'frozen_default_hard_path.prof',
+)
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def passed(path):
+    data = json.loads(path.read_text())
+    assert (data.get('status') == 'passed' or data.get('passed') is True
+            or data.get('successful') is True), f'Incomplete verification: {path}'
+    return data
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name', default='conjecture2_review_bundle')
+    parser.add_argument('--wheel', type=Path, required=True)
+    args = parser.parse_args()
+    if Path(args.name).name != args.name or args.name in ('.', '..'):
+        raise ValueError('Bundle name must be one new directory name')
+    destination = ROOT/'deliverables'/args.name
+    archive = destination.with_suffix('.zip')
+    if destination.exists() or archive.exists():
+        raise FileExistsError('Choose a fresh bundle name; existing artifacts are preserved')
+    manifest = json.loads((PACKAGE_ROOT/'PACKAGE_MANIFEST.json').read_text())
+    assert manifest['default'] == 'solve_fast'
+    for relative, expected in manifest['module_sha256'].items():
+        assert sha(PACKAGE_ROOT/relative) == expected, relative
+    for name, expected in manifest['validation_sha256'].items():
+        assert sha(ROOT/name) == expected, name
+        passed(ROOT/name)
+    compiled = json.loads((ROOT/'proof_compile_manifest.json').read_text())
+    for name in PROOF_FILES:
+        assert sha(ROOT/name) == compiled['source_sha256'][name], 'Stale proof compilation'
+    pdf = ROOT/'output'/'pdf'/'deterministic_conjecture2.pdf'
+    assert sha(pdf) == compiled['pdf_sha256']
+    visual = json.loads((ROOT/'proof_visual_review.json').read_text())
+    assert visual['status'] == 'passed' and visual['pdf_sha256'] == sha(pdf)
+    assert visual['pages_reviewed'] == list(range(1,compiled['pages']+1))
+    with ZipFile(args.wheel) as wheel:
+        for relative, expected in manifest['module_sha256'].items():
+            assert hashlib.sha256(wheel.read(relative)).hexdigest() == expected, relative
+        modules = {name for name in wheel.namelist() if name.endswith('.py')}
+        assert modules == set(manifest['module_sha256']), 'Wheel/source module mismatch'
+
+    selections = {name: ROOT/name for name in (*PROOF_FILES, *REVIEW_FILES)}
+    selections['output/pdf/deterministic_conjecture2.pdf'] = pdf
+    selections['proof_compile_manifest.json'] = ROOT/'proof_compile_manifest.json'
+    selections['proof_visual_review.json'] = ROOT/'proof_visual_review.json'
+    for name in manifest['validation_sha256']:
+        selections[name] = ROOT/name
+    for path in PACKAGE_ROOT.rglob('*'):
+        if (path.is_file() and '__pycache__' not in path.parts
+                and path.suffix in ('.py', '.md', '.json', '.toml')):
+            selections[str(path.relative_to(ROOT))] = path
+    selections['install/'+args.wheel.name] = args.wheel
+    for relative, path in selections.items():
+        assert path.is_file(), relative
+        if path.is_symlink():
+            raise ValueError(f'Unexpected symlink in selected artifacts: {path}')
+    destination.mkdir(parents=True)
+    for relative, source in sorted(selections.items()):
+        target = destination/relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    start = '''# Deterministic Conjecture 2: proof and implementation
+
+The proof answers OP2 from the designated problem-definition note in its
+exact-real algebraic word model. It gives a deterministic local algorithm
+with additive objective accuracy and fully charged work
+`Otilde(1/(rho sqrt(alpha)))` in the nontrivial regime. It also gives a
+separate bounded-integer implementation for rational inputs.
+
+Start with [the reading guide](proof_reading_guide.md), then read
+[the complete proof](output/pdf/deterministic_conjecture2.pdf).
+The main [TeX file](deterministic_conjecture2.tex) includes the two adjacent
+appendix files. Compile it with a standard LaTeX installation.
+
+The standalone [solver package](deliverables/deterministic-rppr/README.md)
+contains code, examples, exact tests, and the package manifest. The wheel
+in `install/` contains the identical library modules. Its default is the
+fixed-stage fast solver; adaptive continuation, mass-scaled precision and the
+singleton precheck are optional and have their own charged work records.
+The [proof-to-code map](proof_to_implementation_map.md) identifies the actual
+methods implementing each invariant and the accounting categories.
+The [algebra walkthrough](core_algebra_walkthrough.md) expands the accelerated
+comparison and the selected-flow calculation underlying the local work bound.
+The package's `validation/` and `benchmarks/` directories provide standalone
+commands that do not depend on the original research workspace.
+
+[The three-vertex example](worked_three_vertex_example.md) provides an
+exact regularization path and a worked numerical comparison. The included
+audits and validation records are additional checks performed within this
+research task. They are not claims of external peer review. Paired timings
+are empirical results with runtime provenance, not substitutes for the
+graph-uniform proof.
+The historical timing reports preserve their original runtime and harness
+scope. Their research-directory reproduction commands refer to that original
+workspace; use the bundled portable runner for a new standalone comparison.
+
+Only final proof, implementation, validation, and explanatory artifacts are
+included here. The designated source note was not edited or copied into the
+bundle, and other manuscript notes were not inspected. The proof supplies
+its mathematical definitions and required standard properties directly.
+`BUNDLE_MANIFEST.json` records the copied artifact hashes and source paths.
+'''
+    (destination/'START_HERE.md').write_text(start)
+    record = dict(created_utc=datetime.now(timezone.utc).isoformat(),
+        default_solver='solve_fast', no_randomized_algorithm=True,
+        source_material_copied=False,
+        files={relative:dict(sha256=sha(destination/relative),
+                            bytes=(destination/relative).stat().st_size,
+                            source=str(source))
+               for relative,source in sorted(selections.items())})
+    record['files']['START_HERE.md'] = dict(sha256=sha(destination/'START_HERE.md'),
+                                         bytes=(destination/'START_HERE.md').stat().st_size,
+                                         source='generated by build_review_bundle.py')
+    (destination/'BUNDLE_MANIFEST.json').write_text(json.dumps(record, indent=2)+'\n')
+    with ZipFile(archive, 'w', compression=ZIP_DEFLATED, compresslevel=9) as output:
+        for path in sorted(destination.rglob('*')):
+            if path.is_file():
+                output.write(path, str(Path(args.name)/path.relative_to(destination)))
+    print(json.dumps(dict(bundle=str(destination), archive=str(archive),
+                         archive_sha256=sha(archive), files=len(record['files'])+1,
+                         archive_bytes=archive.stat().st_size), indent=2))
+
+
+if __name__ == '__main__':
+    main()

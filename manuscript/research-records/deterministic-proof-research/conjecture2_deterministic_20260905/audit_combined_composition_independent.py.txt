@@ -1,0 +1,107 @@
+"""Bounded independent MRO/composition checks; parent source is unchanged."""
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+import json
+
+import combined_certified_dyadic_rppr as production
+import audit_early_stop_independent as helper
+from binomial_block_dyadic_rppr import BinomialBlockDyadicCorrector
+from early_stop_source_energy_rppr import EarlyStopSourceEnergyCorrector
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+from integer_dyadic_rppr_solver import IntegerDyadicCorrector
+from audit_integer_solver_independent import q_density, weighted_norm
+from audit_virtual_graphs_and_verifier import (VirtualGraph, structural_check,
+                                              exact_optimum, independent_objective)
+
+
+class AuditedComposition(helper.AuditedEarly, production.CombinedDyadicCorrector):
+    """Use the independent checkpoint audit with a binomial reference core."""
+    def check_state(self):
+        super().check_state()
+        for key in ('block_power_numerator', 'block_power_denominator',
+                    'target_power_numerator', 'target_power_denominator'):
+            assert getattr(self, key) == getattr(self.reference, key)
+        q = self.metrics.iterations//self.T
+        assert self.block_power_denominator.bit_length() == 16*q+1
+        assert self.block_power_numerator.bit_length() <= 16*q+1
+        full = self.values()
+        gap = independent_objective(self.rows, self.seed, self.alpha, self.rho, full)-self.optimum_value
+        zerror = {i:F(self.z.get(i, 0)+self.baseline.get(i, 0), self.H)-self.optimum.get(i, 0)
+                  for i in self.rows}
+        energy = gap+self.theta**2/2*weighted_norm(self.rows, zerror)
+        assert 0 <= gap <= energy <= self.reference.objective_gap_bound
+        if self._accepted_bound is None:
+            assert self.objective_gap_bound == self.reference.objective_gap_bound
+
+
+def main():
+    expected = (production.CombinedDyadicCorrector, EarlyStopSourceEnergyCorrector,
+                BinomialBlockDyadicCorrector, SourceEnergyDyadicCorrector, IntegerDyadicCorrector)
+    assert production.CombinedDyadicCorrector.__mro__[:5] == expected
+    assert production.CombinedDyadicCorrector.run is EarlyStopSourceEnergyCorrector.run
+    assert production._combined_continuation.__code__ is production.reference.solve_rppr_integer.__code__
+    assert production._globals is not production.reference.solve_rppr_integer.__globals__
+    assert production._globals['IntegerDyadicCorrector'] is production.CombinedDyadicCorrector
+    fixtures = [('path', 5, 0, 1, F(1, 100), F(1, 64), F(1, 1000000)),
+                ('grid', 2, 0, 3, F(2, 11), F(1, 48), F(1, 65536)),
+                ('barbell', 2, 0, 1, F(3, 7), F(1, 24), F(1, 131072)),
+                ('cycle', 4, 0, 1, F(1, 4), F(1, 2)-F(1, 1 << 30), F(1, 1000))]
+    with patch.object(helper, 'SourceEnergyDyadicCorrector', BinomialBlockDyadicCorrector):
+        for family, size, auxiliary, seed, alpha, rho, epsilon in fixtures:
+            rows = structural_check(VirtualGraph(family, size, auxiliary))
+            offset = len(helper.OBSERVED)
+            with patch.dict(production._globals, IntegerDyadicCorrector=AuditedComposition):
+                result = production.solve_rppr_combined(helper.LockableOracle(rows), seed, alpha, rho, epsilon)
+            previous = {}
+            for summary, stage in zip(result.stages, helper.OBSERVED[offset:]):
+                helper.check_work(stage)
+                repaired = {i:f for i, f, degree in summary.repaired_output}
+                qr = q_density(rows, alpha, repaired)
+                for i in rows:
+                    assert previous.get(i, 0) <= repaired.get(i, 0) <= stage.optimum.get(i, 0)
+                    source = alpha*int(i == seed)/len(rows[i])-qr[i]
+                    assert 0 <= source <= 2*alpha*stage.rho
+                previous = repaired
+                diagnostics = stage.diagnostic_metrics
+                assert all(key in diagnostics for key in ('checkpoints', 'binomial_block', 'source_energy'))
+                assert summary.certified_gap == stage.objective_gap_bound < summary.requested_gap
+                helper.REPORT['full_stages'] += 1
+                helper.REPORT['zero_step_stages'] += stage.metrics.iterations == 0
+                helper.REPORT['fallback_after_failed_checks'] += stage.metrics.iterations == stage.target_iterations and stage.checkpoint_metrics.rejected_checkpoints > 0
+            output = {i:f for i, f, degree in result.output}
+            optimum = exact_optimum(rows, seed, alpha, rho)
+            gap = independent_objective(rows, seed, alpha, rho, output)-independent_objective(rows, seed, alpha, rho, optimum)
+            assert 0 <= gap <= result.objective_gap_bound <= epsilon
+            helper.REPORT['full_cases'] += 1
+
+        rows = structural_check(VirtualGraph('path', 3, 0))
+        stage = AuditedComposition(helper.LockableOracle(rows), 2, F(1, 4), F(1, 2), F(1, 4), F(1, 4096))
+        stage.run()
+        assert stage._accepted_bound is not None
+        stage.step()
+        assert stage._accepted_bound is None and stage.objective_gap_bound == stage.reference.objective_gap_bound
+        assert stage.checkpoint_metrics.invalidated_accepted_bounds == 1
+        stage.run()
+        assert stage.objective_gap_bound < stage.tolerance
+        helper.REPORT['manual_resume_checks'] += 1
+
+    direct_cases = 0
+    for alpha, rho in ((F(1), F(1, 8)), (F(1, 4), F(1, 2))):
+        rows = structural_check(VirtualGraph('cycle', 4, 0))
+        result = production.solve_rppr_combined(helper.LockableOracle(rows), 1, alpha, rho, F(1, 10000))
+        assert {i:f for i, f, d in result.output} == exact_optimum(rows, 1, alpha, rho)
+        assert result.objective_gap_bound == 0 and not result.stages
+        direct_cases += 1
+    assert helper.REPORT['accepted'] and helper.REPORT['rejected'] and helper.REPORT['fallback_after_failed_checks'] and helper.REPORT['zero_step_stages']
+    report = dict(helper.REPORT, direct_cases=direct_cases,
+        combined_source_sha256=sha256(Path(__file__).with_name('combined_certified_dyadic_rppr.py').read_bytes()).hexdigest(),
+        binomial_source_sha256=sha256(Path(__file__).with_name('binomial_block_dyadic_rppr.py').read_bytes()).hexdigest(),
+        checkpoint_source_sha256=sha256(Path(__file__).with_name('early_stop_source_energy_rppr.py').read_bytes()).hexdigest())
+    destination = Path(__file__).with_name('combined_composition_independent_audit_results.json')
+    destination.write_text(json.dumps(report, indent=2)+'\n')
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__': main()

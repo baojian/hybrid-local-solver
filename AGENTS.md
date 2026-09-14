@@ -110,7 +110,7 @@ map. Place changes according to these boundaries:
 - runnable experiment orchestration belongs in `experiments/`;
 - automated verification belongs in `tests/`;
 - repository coordination and maintenance commands belong in `tools/`;
-- source PDFs belong in `papers/` and must follow its Git LFS policy.
+- source PDFs are local-only under `papers/` and must follow its public-release exclusion policy.
 
 Keep reusable solver logic out of experiment entry points, and do not use the
 manuscript as the only record of a project-wide convention. Before changing

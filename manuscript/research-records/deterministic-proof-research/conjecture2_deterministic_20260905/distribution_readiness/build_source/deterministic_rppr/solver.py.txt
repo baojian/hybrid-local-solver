@@ -1,0 +1,195 @@
+"""AVL-backed solver component transcribed from practical_dyadic_rppr_solver.py.
+
+All graph-state maps and sets use deterministic balanced trees.
+See TRANSCRIPTION.json and the package verification tests.
+"""
+
+from ._avl import AVLMap, AVLSet
+from dataclasses import asdict, dataclass, field
+from fractions import Fraction as F
+from ._dyadic import BoundedDyadicCorrector, MeasuredClosedBoxAVL, floor_grid
+from ._types import SolverResult, StageSummary
+from ._repair import PGContinuationMetrics, projected_gradient_truncate
+
+class SourceMassReporter(MeasuredClosedBoxAVL):
+
+    def __init__(self, metrics, tracker, mass_cap):
+        super().__init__(metrics, tracker)
+        self.mass_cap = mass_cap
+
+    def project_grid(self, sigma, shift, upper, grid, cap=None):
+        return super().project_grid(sigma, shift, upper, grid, self.mass_cap if cap is None else cap)
+
+class PracticalDyadicCorrector(BoundedDyadicCorrector):
+    """Same stage API, with scalar-only rebases and the exact source-mass cap."""
+
+    def __init__(self, oracle, seed, alpha, theta, rho, tolerance, baseline=None, grid=None):
+        alpha, theta, rho, tolerance = map(F, (alpha, theta, rho, tolerance))
+        if not (0 < alpha < 1 and 0 < theta <= F(1, 2) and (theta.numerator == 1) and (theta.denominator & theta.denominator - 1 == 0) and (theta ** 2 <= alpha < 4 * theta ** 2) and (0 < rho < 1) and (0 < tolerance < 1)):
+            raise ValueError('Invalid practical dyadic stage parameters')
+        ceiling = min(F(1, 8), theta * tolerance / 256, theta * alpha ** 2 * rho / 29)
+        if baseline:
+            baseline_quanta = [F(1, F(value).denominator) for value in baseline.values() if value]
+            if baseline_quanta:
+                ceiling = min(ceiling, min(baseline_quanta))
+        chosen = F(grid) if grid is not None else F(1, 8)
+        halvings = 0
+        if grid is None:
+            while chosen > ceiling:
+                chosen /= 2
+                halvings += 1
+        if chosen <= 0 or chosen > ceiling:
+            raise ValueError('Grid is not fine enough for the practical error bound')
+        super().__init__(oracle, seed, alpha, theta, rho, tolerance, baseline, grid=chosen)
+        for value in (alpha ** 2, theta * alpha ** 2, theta * alpha ** 2 * rho, theta * alpha ** 2 * rho / 29, theta * alpha ** 2 * rho / 27, theta * tolerance, theta * tolerance / 256, ceiling):
+            self.tracker.measure(value)
+        self.metrics.grid_halvings += halvings
+        self.gamma_bound = (self.tracker.wrap(29) * self.grid / self.theta).value
+        self.mass_cap = (self.tracker.wrap(self.source_mass) / self.alpha).value
+        if not 0 <= self.mass_cap <= 1:
+            raise ValueError('Invalid source mass cap')
+        replacement = SourceMassReporter(self.metrics, self.tracker, self.mass_cap)
+        replacement.root = self.tree.root
+        self.tree = replacement
+        self.scalar_neighbor_rebase_records = 0
+        self.scalar_neighbor_rounding_records = 0
+
+    def _rebase(self):
+        scale = self.sigma
+        new_X, new_L = (AVLMap(()), AVLMap(()))
+        for i, value in self.X.items():
+            self.metrics.rebase_input_records += 1
+            intended = self.tracker.wrap(scale) * value
+            rounded = self._floor(intended)
+            self.metrics.rebase_rounding_records += int(rounded != intended)
+            if rounded:
+                new_X[i] = rounded
+        for i, value in self.L.items():
+            self.scalar_neighbor_rebase_records += 1
+            intended = self.tracker.wrap(scale) * value
+            rounded = self._floor(intended)
+            self.scalar_neighbor_rounding_records += int(rounded != intended)
+            if rounded:
+                new_L[i] = rounded
+        self.X, self.L, self.sigma = (new_X, new_L, F(1))
+        for i in self.degree:
+            self._set_key(i, self._base_key(i))
+            self.metrics.rebase_exposed_records += 1
+        self.metrics.rebases += 1
+
+    @property
+    def diagnostic_metrics(self):
+        result = asdict(self.metrics)
+        result['scalar_neighbor_rebase_records'] = self.scalar_neighbor_rebase_records
+        result['scalar_neighbor_rounding_records'] = self.scalar_neighbor_rounding_records
+        largest = max(self.metrics.max_numerator_bits, self.metrics.max_denominator_bits, self.metrics.max_integer_bits)
+        result['fraction_internal_arithmetic_bits_bound'] = 2 * largest + 1
+        return result
+
+@dataclass
+class PracticalContinuationMetrics(PGContinuationMetrics):
+    grid_repair_records: int = 0
+    grid_repair_rounding_records: int = 0
+    baseline_max_records: int = 0
+    baseline_max_preservations: int = 0
+
+@dataclass(frozen=True)
+class PracticalStageSummary(StageSummary):
+    grid: F
+    projection_mass_cap: F
+    projected_gradient_metrics: dict = field(compare=False)
+    grid_repair_records: int
+    grid_repair_rounding_records: int
+    baseline_max_records: int
+    baseline_max_preservations: int
+
+def round_and_preserve_baseline(clipped, grid, baseline, degrees, tracker):
+    """Round an already clipped PG point, then retain the prior safe baseline.
+
+    The caller supplies the PG/accuracy preconditions; this local helper
+    performs no graph scan and returns explicit scalar-work counts.
+    """
+    rounded, records, roundings = (AVLMap(()), 0, 0)
+    for i, value, degree in clipped:
+        records += 1
+        grid_value = floor_grid(value, grid, tracker)
+        roundings += int(grid_value != value)
+        if grid_value:
+            rounded[i] = grid_value
+    retained, preservations = (AVLMap(()), 0)
+    support = AVLSet(rounded) | AVLSet(baseline)
+    for i in support:
+        value = max(rounded.get(i, F(0)), baseline.get(i, F(0)))
+        preservations += int(baseline.get(i, F(0)) > rounded.get(i, F(0)))
+        if value:
+            retained[i] = value
+    repaired = tuple(((i, retained[i], degrees[i]) for i in sorted(retained)))
+    return (repaired, dict(grid_repair_records=records, grid_repair_rounding_records=roundings, baseline_max_records=len(support), baseline_max_preservations=preservations))
+
+def solve_rppr_practical(oracle, seed, alpha, rho, epsilon):
+    """Return a monotone-baseline dyadic solution and exact final certificate.
+
+    Public oracle interface: degree(vertex)->positive int and
+    neighbors(vertex)->iterable vertex labels. No graph-size query is used.
+    Returned densities and certificates are exact Fractions.
+    """
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not 0 < alpha <= 1 or rho <= 0 or epsilon <= 0:
+        raise ValueError('Need 0<alpha<=1, rho>0, epsilon>0')
+    metrics = PracticalContinuationMetrics()
+    seed_degree = oracle.degree(seed)
+    metrics.seed_degree_queries = 1
+    if not isinstance(seed_degree, int) or seed_degree <= 0:
+        raise ValueError('The seed must have positive integer degree')
+    if rho * seed_degree >= 1:
+        return SolverResult((), F(0), None, (), metrics)
+    if alpha == 1:
+        metrics.final_output_words = 3
+        return SolverResult(((seed, F(1, seed_degree) - rho, seed_degree),), F(0), None, (), metrics)
+    theta = F(1, 2)
+    while theta ** 2 > alpha:
+        theta /= 2
+        metrics.momentum_halvings += 1
+    baseline, summaries = (AVLMap(()), [])
+    previous_rho = F(1, seed_degree)
+    final_output, final_gap = ((), F(0))
+    while previous_rho > rho:
+        current_rho = max(rho, previous_rho / 2)
+        metrics.schedule_operations += 1
+        final_stage = current_rho == rho
+        delta = alpha * current_rho / 2
+        if final_stage:
+            while delta ** 2 > epsilon * current_rho / 2:
+                delta /= 2
+                metrics.tolerance_halvings += 1
+        tolerance = alpha * delta ** 2 / 8
+        corrector = PracticalDyadicCorrector(oracle, seed, alpha, theta, current_rho, tolerance, baseline)
+        candidate = corrector.run()
+        assert corrector.objective_gap_bound < tolerance
+        assert corrector.grid <= min(delta / 2, alpha * current_rho / 4)
+        clipped, pgm = projected_gradient_truncate(oracle, seed, alpha, current_rho, delta, candidate, degree_cache=corrector.degree, adjacency_cache=corrector.adjacency)
+        metrics.repaired_input_records += pgm.candidate_records
+        metrics.repair_degree_replies += pgm.degree_replies
+        metrics.repair_first_adjacency_entries += pgm.first_adjacency_entries
+        metrics.repair_scanned_adjacency_entries += pgm.scanned_adjacency_entries
+        metrics.repair_accumulation_updates += pgm.accumulation_updates
+        metrics.repair_affected_records += pgm.affected_records
+        repaired, repair_counts = round_and_preserve_baseline(clipped, corrector.grid, baseline, corrector.degree, corrector.tracker)
+        for key, value in repair_counts.items():
+            setattr(metrics, key, getattr(metrics, key) + value)
+        retained = AVLMap(((i, value) for i, value, degree in repaired))
+        metrics.repaired_output_records += len(repaired)
+        volume = sum((degree for _, _, degree in repaired))
+        mass = sum((value * degree for _, value, degree in repaired), F(0))
+        kinetic_volume = sum((row[0] for row in corrector.history))
+        kinetic_bound = F(360 * corrector.metrics.iterations) / current_rho
+        assert volume <= 1 / current_rho and 0 <= mass <= 1
+        assert kinetic_volume <= kinetic_bound
+        assert corrector.metrics.rebase_adjacency_entries == 0
+        summaries.append(PracticalStageSummary(regularization=current_rho, delta=delta, requested_gap=tolerance, certified_gap=corrector.objective_gap_bound, iterations=corrector.metrics.iterations, kinetic_volume=kinetic_volume, kinetic_volume_bound=kinetic_bound, baseline_volume=sum((corrector.degree[i] for i in baseline)), source_records=len(corrector.source), source_mass=corrector.source_mass, repaired_volume=volume, repaired_mass=mass, repaired_output=repaired, corrector_metrics=corrector.diagnostic_metrics, grid=corrector.grid, projection_mass_cap=corrector.mass_cap, projected_gradient_metrics=asdict(pgm), **repair_counts))
+        baseline, previous_rho = (retained, current_rho)
+        if final_stage:
+            final_output, final_gap = (repaired, 2 * delta ** 2 / current_rho)
+            assert final_gap <= epsilon
+    metrics.final_output_words = 3 * len(final_output)
+    return SolverResult(final_output, final_gap, theta, tuple(summaries), metrics)

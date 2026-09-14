@@ -1,3 +1,5 @@
+> Public-release note: recorded `papers/*.pdf` paths refer to local/private source copies. Obtain the papers from the publisher or arXiv links below; downloaded payloads are excluded from this public repository. See [the paper library guide](../../papers/README.md).
+
 # Research Paper Index
 
 This index organizes the project's paper library by research role. Use the
@@ -442,3 +444,15 @@ downstream ranking requirements.
 The [consolidated novelty report](publication-novelty-review-20260909.md) gives the final assessment and a numbered primary-source list.
 
 The [August–September arXiv sweep](arxiv-aug-sep-audit-20260909.md) supplements the earlier targeted review with recorded API result counts, new-submission and revision screening, and explicit coverage limits. It adds the Thorup–Wang and Li–Yang comparisons to the manuscript.
+
+## September 14, 2026: directly overlapping accelerated local push
+
+Cui, Wei, and Yang, *Accelerating the Local Push Primitive for PageRank
+Computation*, arXiv:2609.12076v1 (September 10, 2026), proves the same
+randomized accelerated RPPR/PPR scale. Theorem 1.3 and its proof also
+imply the support-adaptive soft bound. The main remaining distinction
+is deterministic acceleration with only polylogarithmic overhead.
+See [the source comparison](publication-review-20260914.md) for the
+normalization map, exact PDF pointers, and claim boundaries. This update
+supersedes earlier absence/novelty statements for the randomized target;
+it does not close the separate AESP--LOCSOR locality gate.

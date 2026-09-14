@@ -1,0 +1,157 @@
+"""Deterministic diagnostic, not a claimed local implementation or proof.
+
+Graphs and parameters are enumerated explicitly. No random calls. Dense/global
+state here belongs to the diagnostic oracle and is not charged as solver work.
+Reported scans are the simulated sparse algorithm's adjacency work, separate
+from the diagnostic's execution cost. Mass coordinates avoid sqrt(degree).
+"""
+from __future__ import annotations
+
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+from scipy.sparse import csr_matrix, diags, eye
+from scipy.sparse.linalg import spsolve
+
+
+def make_graph(n, edges):
+    edges = sorted(set(tuple(sorted(e)) for e in edges if e[0] != e[1]))
+    u = np.array([a for a, b in edges] + [b for a, b in edges], dtype=int)
+    v = np.array([b for a, b in edges] + [a for a, b in edges], dtype=int)
+    adj = csr_matrix((np.ones(len(u)), (u, v)), shape=(n, n))
+    d = np.asarray(adj.sum(axis=1)).ravel()
+    assert np.all(d > 0)
+    return adj, d
+
+
+def families():
+    for n in (31, 101, 301):
+        yield f"path_{n}", *make_graph(n, [(i, i + 1) for i in range(n - 1)]), 0
+        yield f"star_leaf_{n}", *make_graph(n, [(0, i) for i in range(1, n)]), 1
+        yield f"star_center_{n}", *make_graph(n, [(0, i) for i in range(1, n)]), 0
+    for side in (5, 11, 21):
+        edges = []
+        for i in range(side):
+            for j in range(side):
+                u = i * side + j
+                if i + 1 < side:
+                    edges.append((u, u + side))
+                if j + 1 < side:
+                    edges.append((u, u + 1))
+        yield f"grid_{side}", *make_graph(side * side, edges), 0
+    for arms, leaves in ((5, 20), (20, 20), (20, 100)):
+        edges = [(0, i + 1) for i in range(arms)]
+        for i in range(arms):
+            edges.extend((i + 1, 1 + arms + i * leaves + j) for j in range(leaves))
+        yield f"two_level_star_{arms}_{leaves}", *make_graph(1 + arms * (1 + leaves), edges), 0
+    for depth in (5, 7, 9):
+        n = 2 ** depth - 1
+        yield f"binary_tree_{depth}", *make_graph(n, [(i, (i - 1) // 2) for i in range(1, n)]), 0
+
+
+def exact_obstacle(adj, d, seed, alpha, rho):
+    """Numerical reference via deterministic all-violations principal pivots."""
+    h = ((1 + alpha) / 2) * diags(d) - ((1 - alpha) / 2) * adj
+    c = -alpha * rho * d
+    c[seed] += alpha
+    active = np.zeros(len(d), dtype=bool)
+    y = np.zeros(len(d))
+    stages = 0
+    while True:
+        r = c - h @ y
+        add = (~active) & (r > 1e-13 * max(alpha, 1e-10))
+        if not np.any(add):
+            break
+        active |= add
+        inds = np.flatnonzero(active)
+        y[inds] = spsolve(h[inds][:, inds], c[inds])
+        assert np.min(y) >= -1e-11
+        stages += 1
+        assert stages <= len(d)
+    return y * d, stages
+
+
+def objective(mass, adj, d, seed, alpha, rho):
+    y = mass / d
+    return ((1 + alpha) / 4 * np.dot(mass, y)
+            - (1 - alpha) / 4 * np.dot(y, adj @ y)
+            - alpha * y[seed] + alpha * rho * np.sum(mass))
+
+
+def probe(adj, d, seed, alpha, rho, method, iterations):
+    p = adj @ diags(1 / d)
+    root = math.sqrt(alpha)
+    beta = (1 - root) / (1 + root)
+    u = np.zeros(len(d))
+    old = u.copy()
+    velocity = u.copy()  # theta times auxiliary z in mass units
+    source = np.zeros(len(d))
+    source[seed] = alpha
+    volume_sum = 0.0
+    scan_work = 0.0
+    negative_mass_sum = 0.0
+    deficit_sum = 0.0
+    max_volume = 0.0
+    max_deficit = 0.0
+    mass_trace = []
+    seen = np.zeros(len(d), dtype=bool)
+    for k in range(iterations):
+        if method == "fista":
+            y = u + beta * (u - old)
+        elif method == "two_projection":
+            y = (u + velocity) / (1 + root)
+        else:
+            raise ValueError(method)
+        negative_mass_sum += float(np.maximum(-y, 0).sum())
+        scan_work += float(d[y != 0].sum())
+        fresh = np.maximum((1 - alpha) / 2 * (y + p @ y) + source - alpha * rho * d, 0)
+        deficit = float(np.maximum((1 - root) * u - fresh, 0).sum())
+        deficit_sum += deficit
+        max_deficit = max(max_deficit, deficit)
+        if method == "two_projection":
+            velocity = np.maximum(fresh - (1 - root) * u, 0)
+            assert np.all(velocity <= fresh + 1e-14)
+        old, u = u, fresh
+        support = u > 0
+        volume = float(d[support].sum())
+        seen |= support
+        volume_sum += volume
+        max_volume = max(max_volume, volume)
+        mass_trace.append(float(u.sum()))
+    optimum, pivot_stages = exact_obstacle(adj, d, seed, alpha, rho)
+    gap = objective(u, adj, d, seed, alpha, rho) - objective(optimum, adj, d, seed, alpha, rho)
+    return dict(method=method, alpha=alpha, rho=rho, iterations=iterations,
+                scan_work=scan_work, volume_sum=volume_sum, max_volume=max_volume,
+                seen_volume=float(d[seen].sum()), optimum_volume=float(d[optimum > 1e-13].sum()),
+                rho_average_volume=rho * volume_sum / iterations,
+                rho_max_volume=rho * max_volume,
+                negative_mass_sum=negative_mass_sum, deficit_sum=deficit_sum,
+                deficit_over_sqrt_alpha=deficit_sum / root,
+                max_deficit=max_deficit, final_mass=mass_trace[-1],
+                penultimate_mass=mass_trace[-2], objective_gap=float(gap),
+                exact_pivot_stages=pivot_stages)
+
+
+def main():
+    rows = []
+    for name, adj, d, seed in families():
+        for alpha in (0.25, 0.0625, 0.01, 0.001):
+            for relative_rho in (0.5, 0.1, 0.01):
+                rho = relative_rho / d[seed]
+                steps = math.ceil(12 / math.sqrt(alpha))
+                for method in ("fista", "two_projection"):
+                    result = probe(adj, d, seed, alpha, rho, method, steps)
+                    result["graph"] = name
+                    rows.append(result)
+    output = Path(__file__).with_name("mass_probe_results.json")
+    output.write_text(json.dumps(rows, indent=2) + "\n")
+    for key in ("rho_average_volume", "rho_max_volume", "deficit_over_sqrt_alpha"):
+        top = sorted(rows, key=lambda r: r[key], reverse=True)[:5]
+        print(json.dumps({"metric": key, "top": [{k: row[k] for k in ("graph", "method", "alpha", "rho", key, "objective_gap")} for row in top]}))
+    print(json.dumps({"cases": len(rows), "output": str(output)}))
+
+
+if __name__ == "__main__":
+    main()

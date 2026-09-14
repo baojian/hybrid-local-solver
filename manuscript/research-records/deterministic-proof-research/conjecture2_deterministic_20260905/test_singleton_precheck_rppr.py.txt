@@ -1,0 +1,157 @@
+"""Exact KKT, cutoff, fallback-identity, and access-ledger checks."""
+import json
+import unittest
+from dataclasses import dataclass
+from fractions import Fraction as F
+from pathlib import Path
+
+from singleton_precheck_rppr import solve_rppr_with_singleton_precheck
+from combined_certified_dyadic_rppr import solve_rppr_combined
+from test_local_safe_solver import connected_graphs, dense_exact_obstacle_oracle, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+from test_deterministic_rppr_solver import objective, source_density
+
+ROOT = Path(__file__).resolve().parent
+LOG = dict(exhaustive_cases=0, exact_singletons=0, failed_trials=0,
+    actual_fallback_cases=0, equality_cases=0, direct_cases=0, skipped_cases=0)
+
+
+@dataclass
+class DenseResult:
+    output: tuple
+    objective_gap_bound: F = F(0)
+
+
+class SingletonTests(unittest.TestCase):
+    def test_exhaustive_exact_kkt(self):
+        for n in range(2, 5):
+            for _, rows in connected_graphs(n):
+                for seed in rows:
+                    for alpha in (F(1, 9), F(2, 5)):
+                        for scale in (F(1, 4), F(3, 4)):
+                            rho = scale/len(rows[seed])
+                            optimum = dense_exact_obstacle_oracle(rows, seed, alpha, rho)
+                            exact = DenseResult(tuple((i, value, len(rows[i])) for i, value in sorted(optimum.items())))
+                            calls = []
+                            def fallback(*args):
+                                calls.append(args)
+                                return exact
+                            oracle = CheckedOracle(rows)
+                            answer = solve_rppr_with_singleton_precheck(oracle, seed, alpha, rho,
+                                F(1, 10**8), fallback_solver=fallback)
+                            self.assertEqual(answer.output, exact.output)
+                            if len(optimum) == 1:
+                                self.assertEqual(answer.outcome, 'singleton')
+                                self.assertFalse(calls)
+                                self.assertIsNone(answer.fallback_result)
+                                source = source_density(rows, seed, alpha, optimum)
+                                self.assertTrue(all(0 <= x <= alpha*rho for x in source.values()))
+                                self.assertLessEqual(len(rows[seed])*optimum[seed]+rho*len(rows[seed]), 1)
+                                LOG['exact_singletons'] += 1
+                            else:
+                                self.assertEqual(answer.outcome, 'failed_trial')
+                                self.assertEqual(len(calls), 1)
+                                self.assertIs(answer.fallback_result, exact)
+                                self.assertIs(calls[0][0], oracle)
+                                LOG['failed_trials'] += 1
+                            metrics = answer.trial_metrics
+                            self.assertEqual(len(oracle.degree_queries), metrics.seed_degree_queries+metrics.neighbor_degree_queries)
+                            self.assertEqual(len(oracle.neighbor_queries), metrics.seed_row_requests)
+                            self.assertLessEqual(metrics.adjacency_entries, len(rows[seed]))
+                            self.assertEqual(metrics.neighbor_inequality_checks, metrics.adjacency_entries)
+                            LOG['exhaustive_cases'] += 1
+
+    def test_exact_tie_and_one_sided_perturbations(self):
+        rows, alpha = path(2), F(1, 3)
+        for rho, outcome in ((F(1, 3), 'singleton'), (F(1, 3)+F(1, 300), 'singleton'),
+                             (F(1, 3)-F(1, 300), 'failed_trial')):
+            optimum = dense_exact_obstacle_oracle(rows, 0, alpha, rho)
+            exact = DenseResult(tuple((i, value, len(rows[i])) for i, value in sorted(optimum.items())))
+            answer = solve_rppr_with_singleton_precheck(CheckedOracle(rows), 0, alpha, rho,
+                F(1, 10000), fallback_solver=lambda *args: exact)
+            self.assertEqual(answer.outcome, outcome)
+            self.assertEqual(answer.output, exact.output)
+            LOG['equality_cases'] += 1
+
+    def test_actual_fallback_identity_and_separate_counts(self):
+        for rows, seed, alpha, rho in (
+                (path(5), 0, F(1, 100), F(1, 16)),
+                (tree(7), 0, F(1, 16), F(1, 32)),
+                (star(5), 0, F(1, 100), F(1, 64))):
+            epsilon = F(1, 10000)
+            old_oracle, trial_oracle = CheckedOracle(rows), CheckedOracle(rows)
+            old = solve_rppr_combined(old_oracle, seed, alpha, rho, epsilon)
+            captured = []
+            def fallback(*args):
+                answer = solve_rppr_combined(*args)
+                captured.append(answer)
+                return answer
+            new = solve_rppr_with_singleton_precheck(trial_oracle, seed, alpha, rho, epsilon,
+                                                   fallback_solver=fallback)
+            self.assertEqual(new.outcome, 'failed_trial')
+            self.assertIs(new.fallback_result, captured[0])
+            self.assertEqual(new.fallback_result, old)
+            count = new.trial_metrics.neighbor_degree_queries
+            self.assertEqual(trial_oracle.degree_queries[1+count:], old_oracle.degree_queries)
+            self.assertEqual(trial_oracle.neighbor_queries[1:], old_oracle.neighbor_queries)
+            optimum = dense_exact_obstacle_oracle(rows, seed, alpha, rho)
+            gap = objective(rows, seed, alpha, rho, dict((i,x) for i,x,_ in new.output))-objective(rows,seed,alpha,rho,optimum)
+            self.assertTrue(0 <= gap <= new.objective_gap_bound <= epsilon)
+            LOG['actual_fallback_cases'] += 1
+
+    def test_direct_cutoff_and_early_failed_prefix(self):
+        for alpha, rho, outcome in ((F(1, 10), F(1), 'zero'),
+                                   (F(1, 10), F(2), 'zero'),
+                                   (F(1), F(1, 4), 'alpha_one')):
+            oracle = CheckedOracle(path(2))
+            def forbidden(*args): raise AssertionError('Direct branch called fallback')
+            result = solve_rppr_with_singleton_precheck(oracle, 0, alpha, rho, F(1, 100),
+                                                      fallback_solver=forbidden)
+            self.assertEqual(result.outcome, outcome)
+            self.assertEqual(oracle.degree_queries, [0])
+            self.assertEqual(oracle.neighbor_queries, [])
+            LOG['direct_cases'] += 1
+        for cutoff, rows in ((0, path(2)), (32, star(34))):
+            oracle = CheckedOracle(rows)
+            sentinel = DenseResult(())  # Test delivery only, not an optimality claim.
+            result = solve_rppr_with_singleton_precheck(oracle, 0, F(1, 100), F(1, 100),
+                F(1, 100), seed_degree_cutoff=cutoff, fallback_solver=lambda *args: sentinel)
+            self.assertEqual(result.outcome, 'skipped_cutoff')
+            self.assertIs(result.fallback_result, sentinel)
+            self.assertEqual(oracle.neighbor_queries, [])
+            LOG['skipped_cases'] += 1
+        oracle = CheckedOracle(star(5))
+        answer = solve_rppr_with_singleton_precheck(oracle, 0, F(1, 100), F(1, 100),
+            F(1, 100), fallback_solver=lambda *args: DenseResult(()))
+        self.assertEqual(answer.outcome, 'failed_trial')
+        self.assertEqual(answer.trial_metrics.adjacency_entries, 1)
+
+    def test_huge_boundary_and_hash_forbidden_labels(self):
+        class Label(int):
+            def __hash__(self): raise AssertionError('No hashing needed')
+        seed, hub = Label(1 << 257), Label((1 << 257)+1)
+        class Oracle:
+            degree_queries, row_queries = 0, 0
+            def degree(self, i):
+                self.degree_queries += 1
+                return 1 if i == seed else 10**30
+            def neighbors(self, i):
+                assert i == seed, 'Boundary adjacency was requested'
+                self.row_queries += 1
+                yield hub
+        oracle = Oracle()
+        def forbidden(*args): raise AssertionError('Singleton called fallback')
+        answer = solve_rppr_with_singleton_precheck(oracle, seed, F(1, 100), F(1, 64),
+            F(1, 10**20), fallback_solver=forbidden)
+        self.assertEqual(answer.outcome, 'singleton')
+        self.assertEqual(answer.output, ((seed, F(63, 3232), 1),))
+        self.assertEqual((oracle.degree_queries, oracle.row_queries), (2, 1))
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(SingletonTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    (ROOT/'singleton_precheck_verification.json').write_text(json.dumps(
+        dict(passed=result.wasSuccessful(), evidence=LOG), indent=2)+'\n')
+    if not result.wasSuccessful():
+        raise SystemExit(1)

@@ -1,0 +1,62 @@
+"""Two bounded source-helper calls; no additional solver or backend runs."""
+import hashlib
+import json
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from validate_adaptive_manifest_independent import Problem,StrictLocalOracle,serialize
+from adaptive_source_continuation_rppr import source_maximum
+from deterministic_avl_containers import AVLMap
+
+ROOT=Path(__file__).resolve().parent
+
+
+def main():
+    case=dict(name='boundary-maximum-safe-path3',rows={1:(2,),2:(1,3),3:(2,)},
+              seed=2,alpha=F(1,3),rho=F(7,64),epsilon=F(1,1000000))
+    p=Problem(case)
+    baseline={2:F(7,32)}
+    exact=p.optimum(case['rho'])
+    assert all(baseline.get(i,0)<=exact.get(i,0) for i in p.vertices)
+    exact_source=p.source(baseline)
+    assert exact_source=={1:F(7,96),2:F(1,48),3:F(7,96)}
+    assert all(0<=v<=2*p.alpha*case['rho'] for v in exact_source.values())
+    assert max(exact_source.values())>exact_source[2]
+    oracle=StrictLocalOracle(p,reverse=True)
+    degrees,adjacency=AVLMap(),AVLMap()
+    before_hash=hashlib.sha256((ROOT/'adaptive_source_continuation_rppr.py').read_bytes()).hexdigest()
+    records=[]
+    for index in range(2):
+        before=dict(oracle.counts)
+        maximum,vertex,metrics=source_maximum(oracle,2,p.alpha,((2,F(7,32),2),),32,
+                                           degree_cache=degrees,adjacency_cache=adjacency)
+        actual={k:oracle.counts[k]-before[k] for k in before}
+        assert maximum==F(7,96) and vertex in (1,3)
+        assert maximum/(4*p.alpha)==F(7,128)==case['rho']/2
+        assert actual==dict(degrees=3 if index==0 else 0,rows=1 if index==0 else 0,
+                           entries=2 if index==0 else 0)
+        assert metrics.degree_replies==actual['degrees']
+        assert metrics.first_adjacency_entries==actual['entries']
+        assert metrics.first_row_requests==actual['rows']
+        assert metrics.scanned_adjacency_entries==2
+        assert metrics.affected_records==3
+        assert metrics.temporary_records_reclaimed==4
+        assert metrics.maximum_comparisons==3
+        assert metrics.rational_maximum_constructions==1
+        assert list(adjacency)==[2]
+        records.append(dict(index=index,maximum=maximum,maximum_vertex=vertex,
+                            actual_oracle=actual,metrics=asdict(metrics)))
+    after_hash=hashlib.sha256((ROOT/'adaptive_source_continuation_rppr.py').read_bytes()).hexdigest()
+    assert before_hash==after_hash
+    result=dict(passed=True,scope='Supplemental helper checks, separate from the 183 solver cases',
+                case=case,baseline=baseline,exact_old_optimum=exact,exact_source=exact_source,
+                calls=records,oracle_rows=oracle.row_vertices,source_sha256=before_hash,
+                sources_unchanged=True)
+    (ROOT/'adaptive_boundary_source_independent_validation.json').write_text(
+        json.dumps(serialize(result),indent=2)+'\n')
+    print(json.dumps(serialize(result),indent=2))
+
+
+if __name__=='__main__':
+    main()

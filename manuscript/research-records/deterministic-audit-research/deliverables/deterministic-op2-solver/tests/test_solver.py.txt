@@ -1,0 +1,320 @@
+"""Independent exact KKT and objective checks using only the standard library."""
+
+import unittest
+from fractions import Fraction as F
+from math import isqrt
+
+from pruned_rppr import solve_explicit, solve_fast
+from pruned_rppr.component import displacement_norm_upper
+from pruned_rppr._tiny_obstacle import solve_tiny_obstacle
+
+
+class Oracle:
+    def __init__(self, adjacency):
+        self.adjacency = adjacency
+        self.entries = 0
+        self.replies = 0
+
+    def __iter__(self):
+        raise AssertionError("No global enumeration")
+
+    def __len__(self):
+        raise AssertionError("No graph-size query")
+
+    def degree(self, vertex):
+        self.replies += 1
+        return len(self.adjacency[vertex])
+
+    def neighbors(self, vertex):
+        for neighbor in sorted(self.adjacency[vertex]):
+            self.entries += 1
+            yield neighbor
+
+
+def graph_from_edges(edges):
+    graph = {}
+    for u, v in edges:
+        graph.setdefault(u, []).append(v)
+        graph.setdefault(v, []).append(u)
+    return graph
+
+
+def linear_solve(matrix, rhs):
+    rows = [list(row) + [value] for row, value in zip(matrix, rhs)]
+    n = len(rows)
+    for i in range(n):
+        pivot = next(j for j in range(i, n) if rows[j][i])
+        rows[i], rows[pivot] = rows[pivot], rows[i]
+        scale = rows[i][i]
+        rows[i] = [value / scale for value in rows[i]]
+        for j in range(n):
+            if i != j:
+                factor = rows[j][i]
+                rows[j] = [a - factor * b for a, b in zip(rows[j], rows[i])]
+    return [row[-1] for row in rows]
+
+
+def exact_problem(graph, seed, alpha, rho):
+    labels = sorted(graph)
+    degrees = [len(graph[i]) for i in labels]
+    c = (1 - alpha) / 2
+    matrix = [
+        [
+            (1 + alpha) / 2 if i == j else -c / degrees[i] if v in graph[u] else F(0)
+            for j, v in enumerate(labels)
+        ]
+        for i, u in enumerate(labels)
+    ]
+    source = [alpha / d if i == seed else F(0) for i, d in zip(labels, degrees)]
+    rhs = [value - alpha * rho for value in source]
+    n = len(labels)
+    for mask in range(1 << n):
+        active = [i for i in range(n) if mask & (1 << i)]
+        values = [F(0)] * n
+        if active:
+            face = linear_solve(
+                [[matrix[i][j] for j in active] for i in active],
+                [rhs[i] for i in active],
+            )
+            if any(value < 0 for value in face):
+                continue
+            for i, value in zip(active, face):
+                values[i] = value
+        slack = [
+            sum((a * x for a, x in zip(row, values)), F(0)) - load
+            for row, load in zip(matrix, rhs)
+        ]
+        if all(s >= 0 and s * x == 0 for s, x in zip(slack, values)):
+            return labels, degrees, matrix, source, values
+    raise AssertionError("No exact KKT solution")
+
+
+def objective(values, degrees, matrix, source, alpha, rho):
+    product = [sum((a * x for a, x in zip(row, values)), F(0)) for row in matrix]
+    return sum(
+        (
+            d * x * q / 2 - d * b * x + alpha * rho * d * x
+            for d, x, q, b in zip(degrees, values, product, source)
+        ),
+        F(0),
+    )
+
+
+def explicit_gap_upper(graph, labels, degrees, optimum, coordinates, alpha):
+    """Independent rational interval enclosure of the true x-objective gap."""
+    values = dict(coordinates)
+    lower, upper = {}, {}
+    scale = 2**160
+    for vertex, degree, target in zip(labels, degrees, optimum):
+        value = values.get(vertex, F(0))
+        assert value >= 0 and value * value <= degree * target * target
+        integer = isqrt(degree * scale * scale)
+        lo = F(integer, scale)
+        hi = lo if integer * integer == degree * scale * scale else lo + F(1, scale)
+        lower[vertex] = max(F(0), target - value / lo)
+        upper[vertex] = max(F(0), target - value / hi)
+    diagonal = (1 + alpha) / 2
+    c = (1 - alpha) / 2
+    bound = (
+        diagonal
+        / 2
+        * sum(
+            (degree * upper[vertex] ** 2 for vertex, degree in zip(labels, degrees)),
+            F(0),
+        )
+    )
+    for vertex in labels:
+        for neighbor in graph[vertex]:
+            if vertex < neighbor:
+                bound -= c * lower[vertex] * lower[neighbor]
+    return bound
+
+
+class SolverTests(unittest.TestCase):
+    def verify(
+        self, graph, seed, alpha=F(1, 16), rho=F(1, 8), epsilon=F(1, 10**10), **options
+    ):
+        oracle = Oracle(graph)
+        result = solve_fast(oracle, seed, alpha, rho, epsilon, **options)
+        labels, degrees, matrix, source, optimum = exact_problem(
+            graph, seed, alpha, rho
+        )
+        output = {i: value for i, value, _ in result.output}
+        values = [output.get(i, F(0)) for i in labels]
+        self.assertTrue(all(0 <= x <= target for x, target in zip(values, optimum)))
+        self.assertTrue(all(d == len(graph[i]) for i, _, d in result.output))
+        gap = objective(values, degrees, matrix, source, alpha, rho) - objective(
+            optimum, degrees, matrix, source, alpha, rho
+        )
+        self.assertLessEqual(F(0), gap)
+        self.assertLessEqual(gap, result.objective_gap_bound)
+        self.assertLessEqual(result.objective_gap_bound, epsilon)
+        self.assertLessEqual(sum(d for _, _, d in result.output), 1 / rho)
+        self.assertEqual(oracle.entries, result.metrics.first_adjacency_entries)
+        self.assertEqual(oracle.replies, result.metrics.degree_replies)
+        return result
+
+    def test_exact_zero(self):
+        result = self.verify({0: [1], 1: [0]}, 0, rho=F(1))
+        self.assertEqual(result.output, ())
+        self.assertEqual(result.route, "zero-regime")
+        self.assertEqual(result.metrics.first_adjacency_entries, 0)
+
+    def test_diagonal_alpha_one(self):
+        result = self.verify({0: [1], 1: [0]}, 0, alpha=F(1), rho=F(1, 4))
+        self.assertEqual(result.output, ((0, F(3, 4), 1),))
+        self.assertEqual(result.metrics.first_adjacency_entries, 0)
+
+    def test_loose_zero_certificate(self):
+        result = self.verify({0: [1], 1: [0]}, 0, epsilon=F(1))
+        self.assertEqual(result.route, "zero-certificate")
+        self.assertEqual(result.metrics.first_adjacency_entries, 0)
+
+    def test_original_degrees_survive_pruning(self):
+        class SeedBetweenHubs:
+            def degree(self, i):
+                return 2 if i == 0 else 1000
+
+            def neighbors(self, i):
+                if i != 0:
+                    raise AssertionError("Excluded hubs must not be scanned")
+                yield 1
+                yield 2
+
+        alpha, rho = F(1, 16), F(1, 4)
+        result = solve_fast(SeedBetweenHubs(), 0, alpha, rho, F(1, 10**30))
+        expected = alpha * (F(1, 2) - rho) / ((1 + alpha) / 2)
+        self.assertEqual(result.output, ((0, expected, 2),))
+        self.assertEqual(result.route, "singleton-component")
+
+    def test_arbitrary_large_integer_labels(self):
+        a, b, c = -(2**80), 17, 2**120
+        graph = graph_from_edges(((a, b), (b, c)))
+        self.verify(graph, b, rho=F(1, 16))
+
+    def test_incomplete_pilot_accepted(self):
+        graph = graph_from_edges((i, i + 1) for i in range(5))
+        result = self.verify(graph, 0)
+        self.assertTrue(result.metrics.pilot_certified)
+        self.assertFalse(result.metrics.discovery_complete)
+
+    def test_incomplete_pilot_rejected(self):
+        graph = graph_from_edges(
+            ((0, 1), (0, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 7))
+        )
+        result = self.verify(graph, 0)
+        self.assertTrue(result.metrics.pilot_fallback)
+        self.assertEqual(result.route, "continuation")
+        self.assertIsNotNone(result.continuation)
+
+    def test_fixed_horizon_and_integer_trajectory(self):
+        graph = graph_from_edges((i, i + 1) for i in range(5))
+        reference = self.verify(
+            graph, 0, early_certificate=False, integer_component=False, tiny_exact=False
+        )
+        integer = self.verify(
+            graph, 0, early_certificate=False, integer_component=True, tiny_exact=False
+        )
+        self.assertEqual(reference.output, integer.output)
+        self.assertEqual(reference.metrics.iterations, integer.metrics.iterations)
+
+    def test_direct_fallback(self):
+        graph = graph_from_edges((i, i + 1) for i in range(5))
+        result = self.verify(graph, 0, bounded_pilot=False)
+        self.assertEqual(result.route, "continuation")
+
+    def test_common_denominator_norm_bound(self):
+        degrees, denominator = [101, 103, 107], 2**70
+        values = [F(n, denominator * d) for n, d in zip((5, -7, 11), degrees)]
+        upper = displacement_norm_upper(values, [F(0)] * 3, degrees, denominator)
+        exact = sum((d * x * x for d, x in zip(degrees, values)), F(0))
+        self.assertLessEqual(exact, upper)
+        self.assertLessEqual(upper - exact, F(3, denominator**2))
+        self.assertLessEqual(upper.denominator, denominator**2)
+
+    def test_explicit_rational_coordinates(self):
+        graph = graph_from_edges(((0, 1), (1, 2)))
+        alpha, rho, epsilon = F(1, 16), F(1, 16), F(1, 10**12)
+        oracle = Oracle(graph)
+        answer = solve_explicit(oracle, 1, alpha, rho, epsilon)
+        labels, degrees, _, _, optimum = exact_problem(graph, 1, alpha, rho)
+        gap_upper = explicit_gap_upper(
+            graph, labels, degrees, optimum, answer.coordinates, alpha
+        )
+        self.assertLessEqual(F(0), gap_upper)
+        self.assertLessEqual(gap_upper, answer.objective_gap_bound)
+        self.assertLessEqual(answer.objective_gap_bound, epsilon)
+        self.assertGreater(answer.conversion.bisection_steps, 0)
+        self.assertEqual(
+            oracle.entries, answer.density_result.metrics.first_adjacency_entries
+        )
+        self.assertEqual(oracle.replies, answer.density_result.metrics.degree_replies)
+        self.assertEqual(answer.conversion.output_words, 2 * len(answer.coordinates))
+
+    def test_explicit_rejected_pilot(self):
+        graph = graph_from_edges(
+            ((0, 1), (0, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 7))
+        )
+        alpha, rho, epsilon = F(1, 16), F(1, 8), F(1, 10**10)
+        answer = solve_explicit(Oracle(graph), 0, alpha, rho, epsilon)
+        labels, degrees, _, _, optimum = exact_problem(graph, 0, alpha, rho)
+        gap_upper = explicit_gap_upper(
+            graph, labels, degrees, optimum, answer.coordinates, alpha
+        )
+        self.assertTrue(answer.density_result.metrics.pilot_fallback)
+        self.assertLessEqual(F(0), gap_upper)
+        self.assertLessEqual(gap_upper, answer.objective_gap_bound)
+        self.assertLessEqual(answer.objective_gap_bound, epsilon)
+
+    def test_explicit_zero_and_diagonal(self):
+        graph = {0: [1], 1: [0]}
+        zero = solve_explicit(Oracle(graph), 0, F(1, 2), F(1), F(1, 100))
+        self.assertEqual(zero.coordinates, ())
+        self.assertEqual(zero.conversion.bisection_steps, 0)
+        diagonal = solve_explicit(Oracle(graph), 0, F(1), F(1, 4), F(1, 100))
+        self.assertEqual(diagonal.coordinates, ((0, F(3, 4)),))
+        self.assertEqual(diagonal.conversion.bisection_steps, 0)
+        with self.assertRaises(ValueError):
+            solve_explicit(Oracle(graph), 0, F(1), F(1, 4), 0)
+
+    def test_tiny_exact_extreme_alpha(self):
+        graph = graph_from_edges((i, i + 1) for i in range(3))
+        result = self.verify(
+            graph, 0, alpha=F(1, 10**80), rho=F(1, 24), epsilon=F(1, 10**180)
+        )
+        self.assertEqual(result.route, "tiny-exact-component")
+        self.assertEqual(result.objective_gap_bound, 0)
+        self.assertEqual(result.metrics.iterations, 0)
+        self.assertEqual(result.metrics.tiny_exact_metrics["pivots"], 4)
+
+    def test_tiny_exact_can_be_disabled(self):
+        graph = graph_from_edges(((0, 1), (1, 2)))
+        exact = self.verify(graph, 1, rho=F(1, 16))
+        accelerated = self.verify(graph, 1, rho=F(1, 16), tiny_exact=False)
+        self.assertEqual(exact.route, "tiny-exact-component")
+        self.assertGreater(accelerated.metrics.iterations, 0)
+        self.assertEqual(
+            exact.metrics.first_adjacency_entries,
+            accelerated.metrics.first_adjacency_entries,
+        )
+
+    def test_tiny_size_limit_is_enforced(self):
+        with self.assertRaises(ValueError):
+            solve_tiny_obstacle([1] * 17, [[]] * 17, 0, F(1, 2), F(1, 4))
+
+    def test_invalid_parameters(self):
+        oracle = Oracle({0: [1], 1: [0]})
+        for alpha, rho, epsilon in (
+            (0, F(1, 4), F(1, 100)),
+            (2, F(1, 4), F(1, 100)),
+            (F(1, 2), 0, F(1, 100)),
+            (F(1, 2), F(1, 4), 0),
+        ):
+            with self.assertRaises(ValueError):
+                solve_fast(oracle, 0, alpha, rho, epsilon)
+        with self.assertRaises(ValueError):
+            solve_fast(oracle, "zero", F(1, 2), F(1, 4), F(1, 100))
+
+
+if __name__ == "__main__":
+    unittest.main()

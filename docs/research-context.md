@@ -144,3 +144,13 @@ may make silently.
   and paper-intake workflow.
 - [`decisions/`](decisions/): accepted and open scientific decisions.
 - [`../papers/README.md`](../papers/README.md): shareable PDF library policy.
+
+## Publication update: September 14, 2026
+
+The randomized accelerated RPPR bound overlaps Cui--Wei--Yang,
+arXiv:2609.12076v1. Current publication framing emphasizes the deterministic
+polylog-only bound and distinguishes the two proof mechanisms. See
+[literature comparison](literature/publication-review-20260914.md) and
+[release/provenance audit](public-release-audit-20260914.md). Historical
+research-note statements retain their original dates; no AESP--LOCSOR
+promotion gate or mathematical convention is changed.

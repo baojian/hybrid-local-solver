@@ -1,0 +1,186 @@
+"""AVL-backed solver component transcribed from lazy_capped_solver.py.
+
+All graph-state maps and sets use deterministic balanced trees.
+See PROVENANCE.json for the copied source and the independent audit notes.
+"""
+
+from dataclasses import dataclass, field
+from fractions import Fraction as F
+
+
+@dataclass
+class Metrics:
+    degree_replies: int = 0
+    first_adjacency_entries: int = 0
+    scanned_adjacency_entries: int = 0
+    tree_visits: int = 0
+    rotations: int = 0
+    key_changes: int = 0
+    projection_emissions: int = 0
+    output_words: int = 0
+    iterations: int = 0
+    cap_active_iterations: int = 0
+
+
+@dataclass
+class Node:
+    key: tuple
+    weight: int
+    left: object = None
+    right: object = None
+    height: int = 1
+    total_weight: int = field(init=False)
+    weighted_sum: object = field(init=False)
+
+    def __post_init__(self):
+        self.total_weight = self.weight
+        self.weighted_sum = self.weight * self.key[0]
+
+
+def height(n):
+    return n.height if n else 0
+
+
+def weight(n):
+    return n.total_weight if n else 0
+
+
+def weighted_sum(n):
+    return n.weighted_sum if n else F(0)
+
+
+class WeightedAVL:
+    """Deterministic weighted breakpoint tree; duplicate values use vertex IDs."""
+
+    def __init__(self, metrics):
+        self.root = None
+        self.metrics = metrics
+
+    def refresh(self, n):
+        n.height = 1 + max(height(n.left), height(n.right))
+        n.total_weight = n.weight + weight(n.left) + weight(n.right)
+        n.weighted_sum = (
+            n.weight * n.key[0] + weighted_sum(n.left) + weighted_sum(n.right)
+        )
+        return n
+
+    def rotate_right(self, n):
+        self.metrics.rotations += 1
+        top = n.left
+        n.left = top.right
+        top.right = self.refresh(n)
+        return self.refresh(top)
+
+    def rotate_left(self, n):
+        self.metrics.rotations += 1
+        top = n.right
+        n.right = top.left
+        top.left = self.refresh(n)
+        return self.refresh(top)
+
+    def balance(self, n):
+        self.refresh(n)
+        if height(n.left) - height(n.right) > 1:
+            if height(n.left.left) < height(n.left.right):
+                n.left = self.rotate_left(n.left)
+            return self.rotate_right(n)
+        if height(n.right) - height(n.left) > 1:
+            if height(n.right.right) < height(n.right.left):
+                n.right = self.rotate_right(n.right)
+            return self.rotate_left(n)
+        return n
+
+    def insert(self, key, w):
+
+        def put(n):
+            self.metrics.tree_visits += 1
+            if n is None:
+                return Node(key, w)
+            if key < n.key:
+                n.left = put(n.left)
+            elif key > n.key:
+                n.right = put(n.right)
+            else:
+                raise ValueError("Duplicate exact key and vertex")
+            return self.balance(n)
+
+        self.root = put(self.root)
+
+    def delete(self, key):
+
+        def remove(n, target):
+            self.metrics.tree_visits += 1
+            if n is None:
+                raise KeyError(target)
+            if target < n.key:
+                n.left = remove(n.left, target)
+            elif target > n.key:
+                n.right = remove(n.right, target)
+            else:
+                if n.left is None:
+                    return n.right
+                if n.right is None:
+                    return n.left
+                successor = n.right
+                while successor.left:
+                    self.metrics.tree_visits += 1
+                    successor = successor.left
+                n.key, n.weight = (successor.key, successor.weight)
+                n.right = remove(n.right, successor.key)
+            return self.balance(n)
+
+        self.root = remove(self.root, key)
+
+    def tail_mass(self, tau):
+        n, total = (self.root, F(0))
+        while n:
+            self.metrics.tree_visits += 1
+            if n.key[0] <= tau:
+                n = n.right
+            else:
+                total += (
+                    n.weight * (n.key[0] - tau)
+                    + weighted_sum(n.right)
+                    - tau * weight(n.right)
+                )
+                n = n.left
+        return total
+
+    def threshold(self, lower, cap):
+        if self.tail_mass(lower) <= cap:
+            return (lower, False)
+        n, suffix_w, suffix_s = (self.root, 0, F(0))
+        while n:
+            self.metrics.tree_visits += 1
+            at_key = (
+                suffix_s
+                + weighted_sum(n.right)
+                - n.key[0] * (suffix_w + weight(n.right))
+            )
+            if at_key == cap:
+                return (n.key[0], True)
+            if at_key > cap:
+                n = n.right
+            else:
+                suffix_w += n.weight + weight(n.right)
+                suffix_s += n.weight * n.key[0] + weighted_sum(n.right)
+                n = n.left
+        if suffix_w == 0:
+            raise ArithmeticError("Invalid water-fill bracket")
+        return ((suffix_s - cap) / suffix_w, True)
+
+    def above(self, tau):
+
+        def visit(n):
+            if n is None:
+                return
+            self.metrics.tree_visits += 1
+            if n.key[0] <= tau:
+                yield from visit(n.right)
+            else:
+                yield from visit(n.left)
+                self.metrics.projection_emissions += 1
+                yield n.key
+                yield from visit(n.right)
+
+        yield from visit(self.root)

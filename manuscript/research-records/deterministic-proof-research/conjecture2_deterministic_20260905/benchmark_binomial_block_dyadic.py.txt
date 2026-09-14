@@ -1,0 +1,56 @@
+"""Bounded binomial-block scheduling comparison; clocks alone use floats."""
+import json
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+from statistics import median
+from time import perf_counter, process_time
+from binomial_block_dyadic_rppr import solve_rppr_binomial_blocks
+from source_energy_dyadic_rppr import solve_rppr_source_energy
+from benchmark_fast_exact_dyadic import LocalPath
+
+
+def main():
+    functions = {'half_block':solve_rppr_source_energy, 'binomial_block':solve_rppr_binomial_blocks}
+    params = (0,F(1,100),F(1,16),F(1,10**6))
+    expected, runs = {}, []
+    for mode in ('half_block','binomial_block','binomial_block','half_block'):
+        oracle = LocalPath()
+        wall,cpu = perf_counter(),process_time()
+        answer = functions[mode](oracle,*params)
+        wall,cpu = perf_counter()-wall,process_time()-cpu
+        content = (answer.output, answer.objective_gap_bound, answer.stages)
+        if mode in expected:
+            assert content == expected[mode]
+        else:
+            expected[mode] = content
+        assert answer.objective_gap_bound <= params[-1]
+        record = dict(mode=mode,wall_seconds=wall,process_seconds=cpu,
+            stages=len(answer.stages),iterations=sum(s.iterations for s in answer.stages),
+            corrector_adjacency_entries=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages),
+            pg_adjacency_entries=answer.metrics.repair_scanned_adjacency_entries,
+            degree_queries=oracle.degree_queries,first_adjacency_entries=oracle.first_adjacency_entries,
+            output_records=len(answer.output),exact_certificate=str(answer.objective_gap_bound),
+            stage_iterations=[s.iterations for s in answer.stages],
+            source_record_visits=sum(s.corrector_metrics.get('source_energy_records',0) for s in answer.stages))
+        runs.append(record)
+        print(json.dumps(record),flush=True)
+    medians = {mode:dict(wall_seconds=median(r['wall_seconds'] for r in runs if r['mode']==mode),
+                        process_seconds=median(r['process_seconds'] for r in runs if r['mode']==mode))
+               for mode in functions}
+    first,second=runs[:2]
+    report=dict(parameters=dict(implicit_vertices=10**9,seed=0,alpha='1/100',rho='1/16',epsilon='1/1000000'),
+        order='half_block,binomial_block,binomial_block,half_block',runs=runs,medians=medians,
+        iteration_reduction=first['iterations']-second['iterations'],
+        corrector_read_reduction=first['corrector_adjacency_entries']-second['corrector_adjacency_entries'],
+        process_speedup=medians['half_block']['process_seconds']/medians['binomial_block']['process_seconds'],
+        wall_speedup=medians['half_block']['wall_seconds']/medians['binomial_block']['wall_seconds'],
+        exact_repeatability_within_each_mode=True,
+        endpoints_differ_expected=expected['half_block'][0] != expected['binomial_block'][0],
+        certificates_equal=expected['half_block'][1] == expected['binomial_block'][1],
+        note='Endpoint equality between different schedules is not expected. All decisions and outputs are exact; clocks use floats.')
+    Path(__file__).with_name('binomial_block_dyadic_benchmark.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in report.items() if k!='runs'}),flush=True)
+
+if __name__=='__main__':
+    main()

@@ -1,0 +1,127 @@
+"""Deterministic Decimal diagnostics on hypercube radial recurrences.
+
+Symmetry reduction uses the whole prescribed graph; this is NOT a local
+solver. Decimal support signs are numerical observations, not certificates.
+No random graph, random number generator, or randomized operation is used.
+"""
+import argparse
+import json
+from decimal import Decimal as D, localcontext
+from math import comb
+
+
+def probe(d, rho_bits, steps, monotone, precision=100, theta_den=None):
+    with localcontext() as ctx:
+        ctx.prec = precision
+        theta_den = theta_den or d
+        theta = 1/D(theta_den)
+        alpha, a = theta*theta, 1-theta
+        c = (1-alpha)/2
+        rho = D(2)**(-rho_bits)/d
+        lam = alpha*rho
+        counts = [comb(d, j) for j in range(d+1)]
+        weights = [D(d*k) for k in counts]
+        edges = [D(counts[j]*(d-j)) for j in range(d)]
+        x, z = [D(0)]*(d+1), [D(0)]*(d+1)
+        def product(u, v):
+            return (alpha*sum((weights[j]*u[j]*v[j] for j in range(d+1)), D(0))
+                    + c*sum((edges[j]*(u[j]-u[j+1])*(v[j]-v[j+1])
+                             for j in range(d)), D(0)))
+        def mass(u): return sum((weights[j]*u[j] for j in range(d+1)), D(0))
+        def objective(u): return product(u,u)/2-alpha*u[0]+lam*mass(u)
+        # Independent safe prefix solves identify the half-rho reference core.
+        core_end = 0
+        for endpoint in range(d+1):
+            diagonal = [(alpha+c)*d]*(endpoint+1)
+            rhs = [alpha*(int(j==0)-rho*d/2) for j in range(endpoint+1)]
+            for j in range(1,endpoint+1):
+                ratio = -c*j/diagonal[j-1]
+                diagonal[j] -= ratio*(-c*(d-j+1))
+                rhs[j] -= ratio*rhs[j-1]
+            solution = [D(0)]*(endpoint+1)
+            for j in range(endpoint,-1,-1):
+                solution[j] = (rhs[j]+(c*(d-j)*solution[j+1]
+                                       if j<endpoint else 0))/diagonal[j]
+            if endpoint == d or c*(endpoint+1)*solution[-1] <= lam*d/2:
+                core_end = endpoint
+                break
+        max_outside_mass = D(0)
+        max_x = [D(0)]*(d+1)
+        peak, total, cap_count, line_short = 0, 0, 0, 0
+        peak_iteration, min_fraction, max_objective = 0, D(1), D(0)
+        max_laplacian, sum_laplacian = D(0), D(0)
+        for k in range(steps):
+            y = [(x[j]+theta*z[j])/(1+theta) for j in range(d+1)]
+            raw = []
+            for j in range(d+1):
+                neighbor = ((j*y[j-1] if j else 0)
+                            + ((d-j)*y[j+1] if j<d else 0))/d
+                gradient = alpha*y[j]+c*(y[j]-neighbor)+lam
+                if j == 0: gradient -= alpha/d
+                raw.append(a*z[j]+theta*y[j]-gradient/theta)
+            positive = [j for j in range(d+1) if raw[j]>0]
+            cap = sum((weights[j]*raw[j] for j in positive), D(0))>1
+            threshold = D(0)
+            if cap:
+                cap_count += 1
+                ordered = sorted(positive, key=lambda j: (-raw[j], j))
+                W, S = D(0), D(0)
+                for ix,j in enumerate(ordered):
+                    W += weights[j]
+                    S += weights[j]*raw[j]
+                    threshold = (S-1)/W
+                    if ix+1 == len(ordered) or threshold >= raw[ordered[ix+1]]:
+                        break
+            zn = [max(D(0), val-threshold) for val in raw]
+            volume = sum(d*counts[j] for j in range(d+1) if zn[j]>0)
+            total += volume
+            if volume > peak: peak, peak_iteration = volume, k+1
+            direction = [theta*(zn[j]-x[j]) for j in range(d+1)]
+            fraction = D(1)
+            if monotone:
+                linear = product(x,direction)-alpha*direction[0]+lam*mass(direction)
+                curvature = product(direction,direction)
+                fraction = max(D(0), min(D(1), -linear/curvature)) if curvature else D(0)
+                min_fraction = min(min_fraction, fraction)
+                line_short += int(fraction < 1)
+            x = [x[j]+fraction*direction[j] for j in range(d+1)]
+            z = zn
+            max_objective = max(max_objective, objective(x))
+            max_outside_mass = max(max_outside_mass,
+                                  sum((weights[j]*x[j] for j in range(core_end+1,d+1)),D(0)))
+            max_x = [max(max_x[j],x[j]) for j in range(d+1)]
+            variation = c*sum((weights[j]*abs(x[j]
+                                  - ((j*x[j-1] if j else 0)
+                                     + ((d-j)*x[j+1] if j<d else 0))/d)
+                                  for j in range(d+1)), D(0))
+            max_laplacian = max(max_laplacian, variation)
+            sum_laplacian += variation
+        return dict(status="finite Decimal diagnostic, no support-sign certificate",
+                    dimension=d, rho_bits=rho_bits, alpha=f"1/{theta_den**2}",
+                    rho=f"2^-{rho_bits}/{d}", steps=steps, monotone=monotone,
+                    precision=precision, peak_iteration=peak_iteration,
+                    peak_volume=str(peak), summed_volume=str(total),
+                    peak_rho_volume=str(rho*peak), mean_rho_volume=str(rho*total/steps),
+                    target_normalized_work=str(rho*theta*total),
+                    cap_iterations=cap_count, shortened_line_iterations=line_short,
+                    minimum_line_fraction=str(min_fraction),
+                    half_rho_core_last_layer=core_end,
+                    maximum_outside_mass_over_theta=str(max_outside_mass/theta),
+                    outside_sum_coordinate_maxima_over_theta=str(sum(
+                        (weights[j]*max_x[j] for j in range(core_end+1,d+1)),D(0))/theta),
+                    maximum_laplacian_over_alpha=str(max_laplacian/alpha),
+                    mean_laplacian_over_alpha=str(sum_laplacian/(alpha*steps)),
+                    maximum_objective=str(max_objective), final_objective=str(objective(x)))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--dimensions', type=int, nargs='+', default=[32,64,128])
+    parser.add_argument('--precision', type=int, default=100)
+    parser.add_argument('--theta-denominator', type=int)
+    parser.add_argument('--steps-multiplier', type=int, default=3)
+    args = parser.parse_args()
+    for d in args.dimensions:
+        for monotone in (False, True):
+            print(json.dumps(probe(d,7*d//8,args.steps_multiplier*d,monotone,
+                                   args.precision,args.theta_denominator)), flush=True)

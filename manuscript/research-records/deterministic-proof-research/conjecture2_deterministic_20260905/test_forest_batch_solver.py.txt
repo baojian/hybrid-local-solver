@@ -1,0 +1,166 @@
+"""Exhaustive and structured deterministic Fraction validation; no randomness."""
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+
+from forest_batch_solver import AdjacencyOracle, Cache, Map, PrincipalSystem, solve
+from local_safe_solver import degree_objective
+from test_local_safe_solver import (graph, path, star, tree, connected_graphs,
+    gaussian_elimination, dense_exact_obstacle_oracle)
+
+
+LOG = dict(exact_batch_cases=0, exact_principal_cases=0,
+    connected_graphs_enumerated=0, largest_logical_work=0,
+    largest_pcg_iterations_per_stage=0, largest_cycle_rank=0,
+    largest_batch_count=0, fixture_summaries=[])
+
+
+class QueryOnlyInput:
+    """The production solver must never enumerate input vertices."""
+    def __init__(self, adjacency): self.adjacency = adjacency
+    def __getitem__(self, i): return self.adjacency[i]
+    def __iter__(self): raise AssertionError('Global input enumeration')
+    def __len__(self): raise AssertionError('Global input size query')
+    def keys(self): raise AssertionError('Global input keys query')
+
+
+class ForestBatchTests(unittest.TestCase):
+    def verify_batch(self, adjacency, seed, alpha, rho, epsilon, label=None):
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        oracle = AdjacencyOracle(QueryOnlyInput(adjacency))
+        answer = solve(oracle, seed, alpha, rho, epsilon)
+        gap = degree_objective(adjacency, answer.y, seed, alpha, rho) - \
+              degree_objective(adjacency, optimum, seed, alpha, rho)
+        self.assertTrue(answer.certificate_exact)
+        self.assertGreaterEqual(gap, 0)
+        self.assertLessEqual(gap, answer.objective_gap_bound)
+        self.assertLessEqual(answer.objective_gap_bound, epsilon)
+        self.assertTrue(all(0 < value <= optimum.get(i, 0) for i, value in answer.y.items()))
+        self.assertTrue(oracle.queried_vertices <= set(optimum))
+        self.assertEqual(answer.counts['adjacency_queries'], len(oracle.queried_vertices))
+        self.assertEqual(answer.counts['adjacency_entries'],
+                         sum(len(adjacency[i]) for i in oracle.queried_vertices))
+        self.assertLessEqual(answer.counts['adjacency_entries'], 1/rho)
+        previous_volume = 0
+        for record in answer.history:
+            self.assertGreaterEqual(record['volume'], previous_volume)
+            self.assertLessEqual(record['pcg_iterations'], record['cycle_rank']+1)
+            if record['cycle_rank'] == 0: self.assertEqual(record['pcg_iterations'], 1)
+            previous_volume = record['volume']
+            LOG['largest_pcg_iterations_per_stage'] = max(
+                LOG['largest_pcg_iterations_per_stage'], record['pcg_iterations'])
+            LOG['largest_cycle_rank'] = max(LOG['largest_cycle_rank'], record['cycle_rank'])
+        LOG['exact_batch_cases'] += 1
+        LOG['largest_logical_work'] = max(LOG['largest_logical_work'],
+                                        answer.counts['total_logical_work'])
+        LOG['largest_batch_count'] = max(LOG['largest_batch_count'], len(answer.history))
+        if label:
+            LOG['fixture_summaries'].append(dict(label=label, gap=gap,
+                certified_bound=answer.objective_gap_bound, support_size=len(answer.y),
+                termination=answer.termination, history=answer.history, **answer.counts))
+        return answer
+
+    def test_all_connected_graphs_through_four_vertices(self):
+        for n in range(2, 5):
+            for mask, adjacency in connected_graphs(n):
+                LOG['connected_graphs_enumerated'] += 1
+                for seed in adjacency:
+                    for alpha in (F(1, 7), F(1, 2), F(1)):
+                        for numerator in (1, 3):
+                            rho = F(numerator, 4*len(adjacency[seed]))
+                            with self.subTest(n=n, mask=mask, seed=seed, alpha=alpha, rho=rho):
+                                self.verify_batch(adjacency, seed, alpha, rho, F(1, 10**12))
+
+    def test_tree_and_cyclic_fixtures(self):
+        fixtures = [('path9', path(9), 0), ('star9-leaf', star(9), 1),
+            ('binary-tree9', tree(9), 4),
+            ('cycle8', graph(8, [(i, (i+1) % 8) for i in range(8)]), 0),
+            ('two-triangles', graph(5, [(0,1),(1,2),(2,0),(0,3),(3,4),(4,0)]), 1),
+            ('wheel7', graph(7, [(0,i) for i in range(1,7)] +
+                          [(i, 1+i % 6) for i in range(1,7)]), 1),
+            ('clique6', graph(6, [(i,j) for i in range(6) for j in range(i+1,6)]), 0)]
+        for name, adjacency, seed in fixtures:
+            for alpha in (F(1, 30), F(1, 3)):
+                for epsilon in (F(1, 10**5), F(1, 10**14)):
+                    self.verify_batch(adjacency, seed, alpha, F(1, 300), epsilon,
+                                      f'{name},alpha={alpha},eps={epsilon}')
+
+    def test_arbitrary_principal_systems_and_tree_inverse(self):
+        fixtures = [path(5), tree(6),
+            graph(5, [(0,1),(1,2),(2,3),(3,4),(4,0),(0,2),(1,3)]),
+            graph(4, [(i,j) for i in range(4) for j in range(i+1,4)])]
+        for graph_index, adjacency in enumerate(fixtures):
+            vertices = list(adjacency)
+            for mask in range(1, 1 << len(vertices)):
+                support = [i for i in vertices if mask & (1 << i)]
+                for alpha in (F(1, 13), F(2, 3), F(1)):
+                    oracle = AdjacencyOracle(QueryOnlyInput(adjacency))
+                    cache, active = Cache(oracle), Map(oracle.counts)
+                    for i in support: active[i] = True; cache.admit(i)
+                    system = PrincipalSystem(cache, active, alpha)
+                    rhs, warm = Map(oracle.counts), Map(oracle.counts)
+                    for i in support:
+                        rhs[i] = F((-1)**i*(i+1), 7)
+                        warm[i] = F(i-1, 3)
+                    a, c = (1+alpha)/2, (1-alpha)/2
+                    matrix = [[a*len(adjacency[i]) if i == j else
+                               (-c if j in adjacency[i] else F(0))
+                               for j in support] for i in support]
+                    expected = gaussian_elimination(matrix, [rhs[i] for i in support])
+                    actual, iterations = system.solve(rhs, warm)
+                    with self.subTest(graph=graph_index, mask=mask, alpha=alpha):
+                        self.assertEqual([actual[i] for i in support], expected)
+                        self.assertLessEqual(iterations, system.rank_bound+1)
+                        if system.rank_bound == 0: self.assertLessEqual(iterations, 1)
+                    forest_edges = {frozenset((i, system.parent[i])) for i in support
+                                    if system.parent[i] is not None}
+                    forest_degree = {i: sum(i in edge for edge in forest_edges) for i in support}
+                    induced_degree = {i: sum(j in support for j in adjacency[i]) for i in support}
+                    tree_matrix = [[alpha*len(adjacency[i]) +
+                        c*(len(adjacency[i])-induced_degree[i]+forest_degree[i]) if i == j else
+                        (-c if frozenset((i,j)) in forest_edges else F(0))
+                        for j in support] for i in support]
+                    tree_expected = gaussian_elimination(tree_matrix, [rhs[i] for i in support])
+                    tree_actual = system.apply_tree_inverse(rhs)
+                    self.assertEqual([tree_actual[i] for i in support], tree_expected)
+                    self.assertEqual(oracle.queried_vertices, set(support))
+                    LOG['exact_principal_cases'] += 1
+
+    def test_unscanned_high_degree_boundary(self):
+        adjacency = star(101)
+        oracle = AdjacencyOracle(QueryOnlyInput(adjacency))
+        alpha, rho = F(1,10), F(1,100)
+        answer = solve(oracle, 1, alpha, rho, F(1, 10**14))
+        self.assertEqual(answer.y, {1: alpha*(1-rho)/((1+alpha)/2)})
+        self.assertEqual(oracle.queried_vertices, {1})
+        self.assertEqual(answer.counts['degree_replies'], 2)
+        self.assertEqual(answer.counts['adjacency_entries'], 1)
+        self.assertEqual(answer.objective_gap_bound, 0)
+        LOG['exact_batch_cases'] += 1
+        LOG['fixture_summaries'].append(dict(label='unscanned-degree100-hub', **answer.counts))
+
+    def test_zero_and_diagonal_regimes_need_no_adjacency(self):
+        adjacency = star(9)
+        for seed, alpha, rho, epsilon in [
+            (0,F(1,7),F(1,8),F(1,10**12)),
+            (1,F(1),F(1,10),F(1,10**12)),
+            (1,F(1,7),F(1,10),F(1))]:
+            answer = self.verify_batch(adjacency, seed, alpha, rho, epsilon)
+            self.assertEqual(answer.counts['adjacency_entries'], 0)
+            self.assertEqual(answer.counts['adjacency_queries'], 0)
+
+
+if __name__ == '__main__':
+    report = None
+    if '--report' in sys.argv:
+        index = sys.argv.index('--report')
+        report = Path(sys.argv[index+1])
+        del sys.argv[index:index+2]
+    outcome = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(ForestBatchTests))
+    LOG['passed'], LOG['test_methods'] = outcome.wasSuccessful(), outcome.testsRun
+    if report: report.write_text(json.dumps(LOG, indent=2, default=str)+'\n')
+    print(json.dumps({k:v for k,v in LOG.items() if k != 'fixture_summaries'}, indent=2))
+    sys.exit(0 if outcome.wasSuccessful() else 1)

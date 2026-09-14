@@ -1,0 +1,46 @@
+"""Transcribe the independently audited optional singleton precheck."""
+
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+
+
+def main():
+    source = (ROOT/'singleton_precheck_rppr.py').read_bytes()
+    tree = ast.parse(source)
+    imports = 0
+    for node in tree.body:
+        if isinstance(node,ast.ImportFrom) and node.module == 'combined_certified_dyadic_rppr':
+            assert len(node.names) == 1 and node.names[0].name == 'solve_rppr_combined'
+            node.module, node.level = '_fast', 1
+            node.names[0].name = 'solve_rppr_fast'
+            imports += 1
+    assert imports == 1
+    names = 0
+    for node in ast.walk(tree):
+        if isinstance(node,ast.Name) and node.id == 'solve_rppr_combined':
+            node.id = 'solve_rppr_fast'
+            names += 1
+    assert names == 1
+    ast.fix_missing_locations(tree)
+    rendered = ast.unparse(tree)+'\n'
+    compile(rendered,'<packaged singleton precheck>','exec')
+    (PACKAGE/'_singleton.py').write_text(rendered)
+    manifest = dict(source='singleton_precheck_rppr.py',
+        source_sha256=hashlib.sha256(source).hexdigest(),
+        package_sha256=hashlib.sha256(rendered.encode()).hexdigest(),
+        transformations=[dict(kind='relative import and default fallback binding',
+            old='combined_certified_dyadic_rppr.solve_rppr_combined',
+            new='._fast.solve_rppr_fast',changed_imports=imports,changed_names=names)],
+        note='The precheck function and dataclass bodies are unchanged. The default fallback uses the final audited fast representation of the identical combined trajectory.')
+    (OUT/'SINGLETON_TRANSCRIPTION.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    print(json.dumps(dict(added_modules=1,default_fallback='solve_fast'),indent=2))
+
+
+if __name__ == '__main__':
+    main()

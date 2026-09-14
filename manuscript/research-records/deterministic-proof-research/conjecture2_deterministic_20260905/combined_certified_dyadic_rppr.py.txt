@@ -1,0 +1,27 @@
+"""Composition of exact cached checkpoints and binomial fallback scheduling.
+
+The cooperative MRO is EarlyStop -> Binomial -> SourceEnergy -> Integer.
+No parent implementation is edited. Early checks use the independent
+original-objective certificate; fallback uses the tighter block bound.
+"""
+from types import FunctionType
+
+from early_stop_source_energy_rppr import EarlyStopSourceEnergyCorrector
+from binomial_block_dyadic_rppr import BinomialBlockDyadicCorrector
+import integer_dyadic_rppr_solver as reference
+
+
+class CombinedDyadicCorrector(EarlyStopSourceEnergyCorrector, BinomialBlockDyadicCorrector):
+    """Exact checkpoint stopping with a binomial-block certified fallback."""
+
+
+_globals = reference.solve_rppr_integer.__globals__.copy()
+_globals['IntegerDyadicCorrector'] = CombinedDyadicCorrector
+_combined_continuation = FunctionType(reference.solve_rppr_integer.__code__, _globals,
+    '_combined_continuation', reference.solve_rppr_integer.__defaults__,
+    reference.solve_rppr_integer.__closure__)
+
+
+def solve_rppr_combined(oracle, seed, alpha, rho, epsilon):
+    """Return a safe sparse solution with every checkpoint separately charged."""
+    return _combined_continuation(oracle, seed, alpha, rho, epsilon)

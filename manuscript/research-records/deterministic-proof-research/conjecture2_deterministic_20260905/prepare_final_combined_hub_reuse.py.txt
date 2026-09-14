@@ -1,0 +1,37 @@
+"""Normalize already completed hub runs, preserving their distinct runtime."""
+import hashlib,json
+from pathlib import Path
+from dataclasses import asdict
+from benchmark_practical_rppr import CASES,json_value
+ROOT=Path(__file__).resolve().parent
+source=ROOT/'combined_certified_dyadic_study.json'
+study=json.loads(source.read_text())
+assert study['complete']
+assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in study['source_sha256'].items())
+case=next(c for c in CASES if c.name=='star-billion')
+result=[]
+for index,old in enumerate(study['runs']):
+    if old['case']['name']!='huge-hub-boundary' or old['backend']!='combined':continue
+    for key,value in json_value(asdict(case)).items():
+        if key!='name':assert old['case'][key]==value
+    answer=old['complete_answer']
+    stages=answer['stages']
+    cps=[s['corrector_metrics']['checkpoints'] for s in stages]
+    cpsums={key:sum(c[key] for c in cps) for key in cps[0]}
+    numeric={key for s in stages for key,value in s['corrector_metrics'].items() if type(value)is int}
+    numeric_sums={key:sum(s['corrector_metrics'].get(key,0) for s in stages) for key in numeric}
+    reporter={key:sum(s['corrector_metrics']['reporter'][key] for s in stages) for key in stages[0]['corrector_metrics']['reporter']}
+    result.append(dict(case=json_value(asdict(case)),backend='combined',status='completed',graph_vertices=str(case.size),
+        solver_cpu_seconds=old['cpu_seconds'],solver_wall_seconds=old['wall_seconds'],solver_oracle_counts=old['oracle_counts'],
+        provenance=dict(reused_from=source.name,source_file_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),run_index=index,
+                        python=study['python'],platform=study['platform'],timing_scope=study['scope'],source_sha256=study['source_sha256']),
+        iterations=old['iterations'],stages=old['stages'],output_records=old['output_records'],output=answer['output'],
+        returned_objective_bound=old['returned_certificate'],exact_solver_result=answer,
+        signature_sha256=hashlib.sha256(json.dumps(answer,sort_keys=True).encode()).hexdigest(),
+        corrector_integer_metric_sums=numeric_sums,checkpoint_totals=cpsums,reporter_totals=reporter,
+        adjacency_work=dict(corrector=old['corrector_adjacency_entries'],terminal_pg=old['terminal_pg_adjacency_entries'],
+                            checkpoint_cached=old['checkpoint_adjacency_entries'],total=old['total_adjacency_entries']),
+        checkpoint_scalar_point_requests=sum(cpsums[key] for key in ('checker_point_lookups','checker_point_writes','cache_degree_lookups','cache_row_lookups','candidate_materialization_scalar_lookups'))))
+assert len(result)==2 and result[0]['signature_sha256']==result[1]['signature_sha256']
+(ROOT/'final_combined_hub_reused_records.json').write_text(json.dumps(result,indent=2)+'\n')
+print('Two complete hub records normalized; Python runtime provenance retained.')

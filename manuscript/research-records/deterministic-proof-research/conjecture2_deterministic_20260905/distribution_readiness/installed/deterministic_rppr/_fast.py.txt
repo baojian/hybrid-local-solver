@@ -1,0 +1,15 @@
+"""Certified schedules with exact direct exception-key replacement."""
+
+from ._combined import CombinedDyadicCorrector
+from ._direct import DirectExceptionIntegerCorrector
+from ._integer import solve_rppr_integer
+
+
+class FastDyadicCorrector(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    """The identical combined trajectory with fewer reporter mutations."""
+
+
+def solve_rppr_fast(oracle, seed, alpha, rho, epsilon):
+    """Return a certified sparse vector using all audited refinements."""
+    return solve_rppr_integer(oracle, seed, alpha, rho, epsilon,
+                             corrector_class=FastDyadicCorrector)

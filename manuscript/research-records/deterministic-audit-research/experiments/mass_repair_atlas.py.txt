@@ -1,0 +1,148 @@
+"""Exhaustive deterministic small-graph zero-start energy falsification."""
+
+import argparse
+import hashlib
+import json
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+from averaged_coupling import run
+from cyclic_dual_averaging import homotopy_thresholds
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory", type=Path, required=True)
+    parser.add_argument("--max-n", type=int, default=7)
+    parser.add_argument("--seconds", type=float, default=36000)
+    args = parser.parse_args()
+    args.directory.mkdir(parents=True, exist_ok=True)
+    sources = {}
+    for name in (
+        Path(__file__).name,
+        "averaged_coupling.py",
+        "positive_linear_coupling.py",
+        "cyclic_dual_averaging.py",
+    ):
+        content = Path(__file__).with_name(name).read_bytes()
+        (args.directory / name).write_bytes(content)
+        sources[name] = hashlib.sha256(content).hexdigest()
+    (args.directory / "metadata.json").write_text(
+        json.dumps(
+            {
+                "start_utc": datetime.now(UTC).isoformat(),
+                "sources": sources,
+                "randomized": False,
+                "accelerated_rate_proved": False,
+                "all_seeds_permuted_to_index_zero": True,
+            },
+            indent=2,
+        )
+    )
+    start = checkpoint = time.monotonic()
+    completed = failures = 0
+    maximum = 0.0
+    with (args.directory / "cases.jsonl").open("w") as output:
+        for atlas, graph in enumerate(nx.graph_atlas_g()):
+            if not 2 <= len(graph) <= args.max_n or not nx.is_connected(graph):
+                continue
+            for seed in range(len(graph)):
+                labels = [seed] + [i for i in range(len(graph)) if i != seed]
+                adjacency = nx.to_numpy_array(graph, nodelist=labels)
+                degrees = adjacency.sum(axis=1)
+                w = np.sqrt(degrees)
+                for m in (2, 4, 8, 16, 32, 64):
+                    alpha = 1 / m**2
+                    q = (1 + alpha) / 2 * np.eye(len(graph)) - (
+                        1 - alpha
+                    ) / 2 * adjacency / np.outer(w, w)
+                    bounds = homotopy_thresholds(graph, alpha, seed)
+                    rhos = [f / degrees[0] for f in (0.001, 0.1, 0.5, 0.95)]
+                    rhos += [
+                        t * factor
+                        for t in bounds[1:]
+                        for factor in (0.999999, 1.000001, 1.01)
+                    ]
+                    for rho in rhos:
+                        if rho >= 1 / degrees[0]:
+                            continue
+                        c = -alpha * rho * w
+                        c[0] += alpha / w[0]
+                        result = run(q, c, w, degrees, alpha, rho, repair_mass=True)
+                        identity = {
+                            "atlas": atlas,
+                            "seed": seed,
+                            "alpha": alpha,
+                            "rho": rho,
+                        }
+                        completed += 1
+                        failures += not result["converged"]
+                        value = result["max_contraction_violation_relative"]
+                        if value > maximum:
+                            maximum = value
+                            (args.directory / "worst.json").write_text(
+                                json.dumps(
+                                    {
+                                        "identity": identity,
+                                        "edges": list(graph.edges()),
+                                        "result": result,
+                                    },
+                                    indent=2,
+                                )
+                            )
+                        output.write(
+                            json.dumps(
+                                {
+                                    **identity,
+                                    "iterations": result["iterations"],
+                                    "converged": result["converged"],
+                                    "potential_violation": value,
+                                    "ledger_violation": result[
+                                        "max_repaired_volume_violation"
+                                    ],
+                                },
+                                separators=(",", ":"),
+                            )
+                            + "\n"
+                        )
+                        now = time.monotonic()
+                        if now - checkpoint > 15:
+                            output.flush()
+                            (args.directory / "checkpoint.json").write_text(
+                                json.dumps(
+                                    {
+                                        "updated_at": datetime.now(UTC).isoformat(),
+                                        "cases_completed": completed,
+                                        "current": identity,
+                                        "maximum_potential_violation": maximum,
+                                        "experimental_horizon_failures": failures,
+                                        "elapsed_seconds": now - start,
+                                        "randomized": False,
+                                        "status": "running",
+                                    },
+                                    indent=2,
+                                )
+                            )
+                            checkpoint = now
+                        if now - start >= args.seconds:
+                            return
+    (args.directory / "completed.json").write_text(
+        json.dumps(
+            {
+                "cases_completed": completed,
+                "experimental_horizon_failures": failures,
+                "maximum_potential_violation": maximum,
+                "elapsed_seconds": time.monotonic() - start,
+                "status": "enumeration_complete",
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

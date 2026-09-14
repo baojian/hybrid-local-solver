@@ -1,0 +1,111 @@
+"""Focused exact checks for the optional source-adaptive continuation."""
+import unittest
+from fractions import Fraction as F
+
+from deterministic_rppr import solve, solve_fast, solve_adaptive, certify_output
+from deterministic_rppr._adaptive import source_maximum
+from deterministic_rppr._avl import AVLMap
+
+if __package__:
+    from .test_solver import StrictOracle, graph, exact_optimum, objective, source
+else:
+    from test_solver import StrictOracle, graph, exact_optimum, objective, source
+
+
+class AdaptiveTests(unittest.TestCase):
+    def check_case(self, rows, seed, alpha, rho, epsilon):
+        oracle = StrictOracle(rows, seed)
+        outer = solve_adaptive(oracle, seed, alpha, rho, epsilon)
+        answer, adaptive = outer.result, outer.adaptive_metrics
+        self.assertIs(solve, solve_fast)
+        previous, old_r = {}, F(1,len(rows[seed]))
+        self.assertEqual(len(outer.schedule),len(answer.stages))
+        for record,stage in zip(outer.schedule,answer.stages):
+            maximum = max(source(rows,seed,alpha,previous).values())
+            self.assertEqual(record.source_maximum,maximum)
+            self.assertEqual(record.previous_regularization,old_r)
+            self.assertEqual(stage.regularization,max(rho,maximum/(4*alpha)))
+            self.assertTrue(old_r/4 <= record.proposed_regularization <= old_r/2)
+            current = {i:value for i,value,_ in stage.repaired_output}
+            optimum = exact_optimum(rows,seed,alpha,stage.regularization)
+            self.assertTrue(all(0 <= previous.get(i,0) <= current.get(i,0) <= optimum.get(i,0)
+                                for i in rows))
+            gap = objective(rows,seed,alpha,stage.regularization,current)-objective(
+                rows,seed,alpha,stage.regularization,optimum)
+            self.assertTrue(0 <= gap <= 2*stage.delta**2/stage.regularization)
+            previous,old_r = current,stage.regularization
+        self.assertEqual(oracle.degree_calls, answer.metrics.seed_degree_queries
+            +answer.metrics.repair_degree_replies+adaptive.degree_replies
+            +sum(s.corrector_metrics['degree_replies'] for s in answer.stages))
+        self.assertEqual(oracle.entries, answer.metrics.repair_first_adjacency_entries
+            +adaptive.first_adjacency_entries
+            +sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages))
+        self.assertEqual(adaptive.source_passes,max(0,len(answer.stages)-1))
+        self.assertLessEqual(answer.objective_gap_bound,epsilon)
+        verifier = StrictOracle(rows,seed)
+        # Output vertex identifiers are supplied inputs to the verifier.
+        verifier.known.update(i for i,_,_ in answer.output)
+        self.assertTrue(certify_output(verifier,seed,alpha,rho,answer.output).meets(epsilon))
+        return outer
+
+    def test_exact_stages_and_final_clamp(self):
+        for rows,seed in ((graph(5,[(1,2),(2,3),(3,4),(4,5)]),1),
+                          (graph(4,[(1,2),(2,3),(3,1),(3,4)]),4)):
+            result = self.check_case(rows,seed,F(13,97),F(1,64),F(1,1000000))
+            self.assertEqual(result.stages[0].regularization,F(1,4*len(rows[seed])))
+            self.assertTrue(result.schedule[-1].target_clamped)
+            self.assertTrue(any(s.regularization.denominator & (s.regularization.denominator-1)
+                                for s in result.stages))
+
+    def test_zero_step_and_direct_branches(self):
+        rows = graph(2,[(1,2)])
+        zero = self.check_case(rows,1,F(13,97),F((1<<20)-1,1<<20),F(1,16))
+        self.assertEqual(zero.stages[0].iterations,0)
+        self.assertEqual(zero.stages[0].projected_gradient_metrics['affected_records'],1)
+        for alpha,rho in ((F(1,3),F(1)),(F(1),F(1,4))):
+            result = self.check_case(rows,1,alpha,rho,F(1,1000000))
+            self.assertFalse(result.stages)
+            self.assertFalse(result.schedule)
+            self.assertEqual(result.objective_gap_bound,0)
+
+    def test_source_cache_and_no_boundary_row(self):
+        rows,seed = graph(3,[(1,2),(2,3)]),2
+        oracle = StrictOracle(rows,seed)
+        degrees,adjacency = AVLMap(),AVLMap()
+        repaired = ((seed,F(7,32),2),)
+        maximum,vertex,metrics = source_maximum(oracle,seed,F(1,3),repaired,32,
+            degree_cache=degrees,adjacency_cache=adjacency)
+        self.assertEqual((maximum,vertex),(F(7,96),1))
+        self.assertEqual((metrics.degree_replies,metrics.first_adjacency_entries),(3,2))
+        self.assertEqual(list(adjacency),[seed])
+        before = oracle.degree_calls,oracle.entries,oracle.row_calls
+        again,_,cached = source_maximum(oracle,seed,F(1,3),repaired,32,
+            degree_cache=degrees,adjacency_cache=adjacency)
+        self.assertEqual(again,maximum)
+        self.assertEqual(before,(oracle.degree_calls,oracle.entries,oracle.row_calls))
+        self.assertEqual((cached.cached_row_hits,cached.scanned_adjacency_entries),(1,2))
+
+    def test_huge_no_hash_labels(self):
+        class Label(int):
+            def __hash__(self):raise AssertionError('Vertex hashing is forbidden')
+        seed,hub = Label(1<<2051),Label(-(1<<4099))
+        class Oracle:
+            def __init__(self):self.exposed=False;self.rows=0
+            def degree(self,i):
+                if i==seed:return 1
+                assert i==hub and self.exposed
+                return 10**30
+            def neighbors(self,i):
+                assert i==seed,'Inactive boundary row was read'
+                self.exposed=True;self.rows+=1
+                yield hub
+        oracle = Oracle()
+        outer = solve_adaptive(oracle,seed,F(1,100),F(1,64),F(1,1000000))
+        self.assertEqual(len(outer.output),1)
+        self.assertEqual(outer.output[0][0],seed)
+        self.assertEqual(outer.adaptive_metrics.first_adjacency_entries,0)
+        self.assertTrue(certify_output(Oracle(),seed,F(1,100),F(1,64),outer.output).meets(F(1,1000000)))
+
+
+if __name__ == '__main__':
+    unittest.main()

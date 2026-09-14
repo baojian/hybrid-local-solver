@@ -1,0 +1,201 @@
+"""Read-only saved-record replay, then one isolated five-case mass-grid smoke.
+
+This does not execute any full solver suite or rerun another backend.
+"""
+import ast
+import hashlib
+import importlib.util
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+from fractions import Fraction as F
+from pathlib import Path
+from types import SimpleNamespace as NS
+
+DIR=Path(__file__).resolve().parent
+PACKAGE=DIR/'deliverables/deterministic-rppr'
+REPORT=DIR/'portable_mass_grid_validation_transcription.json'
+
+
+def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def decode(value):
+    if isinstance(value,str):
+        try:return F(value)
+        except (ValueError,ZeroDivisionError):return value
+    if isinstance(value,list):return [decode(v) for v in value]
+    if isinstance(value,dict):return {k:decode(v) for k,v in value.items()}
+    return value
+
+
+def outer_record(record):
+    data=decode(record['result'])
+    inner=data['result']
+    inner['metrics']=NS(**inner['metrics'])
+    inner['stages']=[NS(**s) for s in inner['stages']]
+    answer=NS(result=NS(**inner),mass_hint_metrics=NS(**data['mass_hint_metrics']),
+              mass_hints=[NS(**h) for h in data['mass_hints']])
+    for k in ('output','objective_gap_bound','stages'):
+        setattr(answer,k,getattr(answer.result,k))
+    return answer
+
+
+def function_ast(path,name):
+    node=next(n for n in ast.parse(Path(path).read_text()).body
+              if isinstance(n,(ast.FunctionDef,ast.ClassDef)) and n.name==name)
+    return ast.dump(node,include_attributes=False)
+
+
+def verify_saved_horizons(answer,initializations):
+    for stage,init in zip(answer.stages,initializations):
+        m=stage.corrector_metrics
+        T=1/answer.result.theta
+        assert T.denominator==1
+        E=m['source_energy']['initial_energy_bound']
+        tau=stage.requested_gap
+        beta=m['binomial_block']['beta']
+        q=0
+        while F(1,2**q)>tau/2:q+=1
+        assert q==init['original_blocks'] and T*q==m['original_target_iterations']
+        q=0
+        while E/F(2**q)>tau/2:q+=1
+        assert q==init['half_blocks'] and T*q==m['binomial_block']['half_bound_target_iterations']
+        q,power=0,F(1)
+        while E*power>tau/2:q+=1;power*=beta
+        assert q==init['binomial_blocks'] and power==init['target_power']
+        assert T*q==init['target_iterations']==m['prescribed_target_iterations']
+
+
+def main():
+    runner_path=PACKAGE/'validation/run_full.py'
+    spec=importlib.util.spec_from_file_location('portable_mass_grid_runner_audit',runner_path)
+    runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
+    cases,raw,digest=runner.load_manifest(PACKAGE/'validation/cases.json')
+    saved_file=DIR/'research_mass_scaled_grid_183_validation.json'
+    saved=json.loads(saved_file.read_text())
+    assert saved['status']=='passed' and len(saved['completed'])==183
+    assert saved['manifest']==raw
+    assert sha(PACKAGE/'validation/cases.json')=='d05538fd59877d6da94bb6477d780fdbdd930ac3a276a987ee46481e0b63681b'
+    prototype_validator=DIR/'validate_mass_scaled_grid_prototype_independent.py'
+    assert function_ast(runner_path,'initial_checks')==function_ast(prototype_validator,'initial_checks')
+    old_runner_source=DIR/'validate_adaptive_manifest_independent.py'
+    shared=('serialize','alarm_handler','StrictLocalOracle','Problem','observed_source')
+    assert all(function_ast(runner_path,n)==function_ast(old_runner_source,n) for n in shared)
+    original_package_files=json.loads((DIR/'portable_mass_grid_numeric_hashes_before.json').read_text())
+    current_numeric={str(p.relative_to(PACKAGE)):sha(p) for folder in ('deterministic_rppr','tests')
+                     for p in (PACKAGE/folder).rglob('*.py')}
+    assert original_package_files==current_numeric
+    records={r['name']:r for r in saved['completed']}
+    runner.BACKEND='mass-grid'
+    replayed=[];prior={}
+    for case in cases:
+        record=records[case['name']]
+        answer=outer_record(record)
+        old_checks=decode(record['checks'])
+        verify_saved_horizons(answer,old_checks['initialization_checks'])
+        # Replay saved outputs and observations through the portable assertions.
+        # The numerical backend is never called here. Historical access counts
+        # remain historical evidence, independently metered again only in smoke.
+        def replay(oracle,*args):
+            oracle.counts=dict(old_checks['oracle_counts'])
+            oracle.row_vertices={int(i):n for i,n in old_checks['oracle_rows'].items()}
+            oracle.known=set(oracle.problem.vertices)
+            oracle.phases={'solver':dict(oracle.counts)}
+            runner.CONTEXT['candidates']=[dict(regularization=c['regularization'],
+                candidate=c['output'],certified_gap=c['certificate']) for c in old_checks['candidates']]
+            runner.CONTEXT['initializations']=old_checks['initialization_checks']
+            runner.CONTEXT['hint_zero_graph_access_checks']=old_checks['factory_hint_zero_graph_access_checks']
+            runner.CONTEXT['release_zero_graph_access_checks']=old_checks['factory_release_zero_graph_access_checks']
+            return answer
+        runner.SOLVER=replay
+        replay_answer,checks=runner.verify_case(case)
+        assert replay_answer is answer
+        assert checks['actual_gap']==old_checks['actual_gap']
+        assert checks['independent_subgradient_gap_bound']==old_checks['independent_subgradient_gap_bound']
+        assert checks['independent_certificate_meets_epsilon']
+        for current,old in zip(checks['stages'],old_checks['stages']):
+            for key in ('eta','eta_star','gamma','actual_candidate_gap','actual_repaired_gap',
+                        'strengthened_kinetic_bound'):
+                assert current[key]==old[key]
+        if 'compare_to' in case:
+            old=prior[case['compare_to']]
+            inverse=case['inverse']
+            normalize=lambda out:tuple(sorted((inverse[i],v,d) for i,v,d in out))
+            assert normalize(answer.output)==tuple(sorted(tuple(v) for v in old.output))
+            for s,t in zip(answer.stages,old.stages):
+                assert normalize(s.repaired_output)==tuple(sorted(tuple(v) for v in t.repaired_output))
+                for field in ('regularization','delta','requested_gap','certified_gap','iterations','grid','projection_mass_cap'):
+                    assert getattr(s,field)==getattr(t,field)
+        prior[case['name']]=answer
+        replayed.append(dict(name=case['name'],stages=len(answer.stages),
+                             final_independent_certificate=True))
+    print('READ-ONLY REPLAY:',len(replayed),'cases',sum(r['stages'] for r in replayed),'stages',flush=True)
+    evidence=dict(passed=False,manifest_sha256=digest,canonical_case_count=len(cases),
+        manifest_file_sha256=sha(PACKAGE/'validation/cases.json'),
+        copied_initial_checks_ast_equal=True,unchanged_common_ast_nodes=list(shared),
+        saved_record_file=saved_file.name,saved_record_sha256=sha(saved_file),
+        read_only_replayed_cases=replayed,read_only_replayed_stages=sum(r['stages'] for r in replayed),
+        replay_scope='All portable stage/final assertions and exact horizon reconstructions use saved outputs. No solver is executed; access observations remain the saved observations.',
+        full_solver_suites_rerun=0,other_backends_rerun=0)
+    REPORT.write_text(json.dumps(evidence,indent=2)+'\n')
+    with tempfile.TemporaryDirectory(prefix='rppr-mass-grid-portable-') as temporary:
+        isolated=Path(temporary)/'bundle';isolated.mkdir()
+        for folder in ('deterministic_rppr','tests','validation'):
+            shutil.copytree(PACKAGE/folder,isolated/folder,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
+        run_path=isolated/'validation/run_full.py'
+        output=Path(temporary)/'mass-grid.json'
+        command=[sys.executable,'-I',str(run_path),'--backend','mass-grid','--smoke','--output',str(output)]
+        completed=subprocess.run(command,cwd=temporary,capture_output=True,text=True,timeout=120)
+        assert completed.returncode==0,(completed.stdout,completed.stderr)
+        smoke=json.loads(output.read_text())
+        assert smoke['status']=='complete_subset' and not smoke['full_manifest_completed']
+        assert smoke['selected_cases_completed'] and smoke['sources_unchanged']
+        assert len(smoke['completed'])==5
+        for row in smoke['completed']:
+            assert row['result']==records[row['name']]['result']
+            assert row['checks']['independent_certificate_meets_epsilon']
+            if row['name']=='labels-n5-m15':
+                assert row['checks']['label_and_reversed_row_invariance']=='rooted-n5-m15-B'
+        smoke_target=DIR/'portable_mass_grid_validation_smoke.json'
+        shutil.copyfile(output,smoke_target)
+        evidence['isolated_smoke']=dict(cases=5,returncode=0,output=smoke_target.name,
+            sha256=sha(smoke_target),stdout=completed.stdout,only_bundle_and_stdlib=True,
+            isolated_python_flag=True,complete_results_equal_saved_prototype=True)
+        # Reject before the first actual numerical step. The optional factory's
+        # finally-release still executes; incomplete output must survive.
+        failed=Path(temporary)/'guard.json'
+        command_code=("import importlib.util; s=importlib.util.spec_from_file_location('runner',"+
+            repr(str(run_path))+"); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+            "m.GUARDS['total_iterations']=0; raise SystemExit(m.main(['--backend','mass-grid','--smoke','--output',"+
+            repr(str(failed))+"]))")
+        failure=subprocess.run([sys.executable,'-I','-c',command_code],cwd=temporary,
+            capture_output=True,text=True,timeout=120)
+        assert failure.returncode==1
+        result=json.loads(failed.read_text())
+        assert result['status']=='incomplete' and not result['completed']
+        assert not result['full_manifest_completed'] and not result['selected_cases_completed']
+        assert 'Fixed resource guard' in result['failure']['exception']
+        assert result['sources_unchanged']
+        partial=result['failure']['partial_observations']
+        assert len(partial['initializations'])==1 and not partial['candidates']
+        assert partial['hint_zero_graph_access_checks']==partial['release_zero_graph_access_checks']==1
+        failure_target=DIR/'portable_mass_grid_validation_forced_guard.json'
+        shutil.copyfile(failed,failure_target)
+        evidence['forced_guard']=dict(passed=True,returncode=1,numerical_steps_executed=0,
+            complete_solver_cases=0,final_factory_release_checked=True,
+            output=failure_target.name,sha256=sha(failure_target))
+    after={str(p.relative_to(PACKAGE)):sha(p) for folder in ('deterministic_rppr','tests')
+           for p in (PACKAGE/folder).rglob('*.py')}
+    assert after==original_package_files
+    evidence.update(passed=True,complete_smoke_solver_cases=5,
+        numeric_modules_and_existing_tests_unchanged=True,numeric_source_sha256=after,
+        validation_files={str(p.relative_to(PACKAGE)):sha(p) for p in (PACKAGE/'validation').glob('*') if p.is_file()},
+        audit_script_sha256=sha(__file__))
+    REPORT.write_text(json.dumps(evidence,indent=2)+'\n')
+    print('PASSED: 183 saved cases replayed; 5 isolated mass-grid smoke cases; 0 numerical steps in forced guard.',flush=True)
+
+
+if __name__=='__main__':main()

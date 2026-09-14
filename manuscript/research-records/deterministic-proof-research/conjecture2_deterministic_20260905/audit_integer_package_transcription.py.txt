@@ -1,0 +1,228 @@
+"""Independent AST/import and bounded exact/no-hash package audit.
+
+Does not invoke a builder, change package files, or re-audit source-energy
+mathematics. It validates the declared additive transcription and fixtures.
+"""
+import ast
+import copy
+from dataclasses import asdict
+from fractions import Fraction as F
+from hashlib import sha256
+import importlib
+import json
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PKG = OUT/'deterministic_rppr'
+sys.path.insert(0, str(OUT))
+
+import deterministic_rppr as packaged
+import integer_dyadic_rppr_solver as original_integer
+import source_energy_dyadic_rppr as original_source
+from audit_virtual_graphs_and_verifier import exact_optimum, independent_objective
+
+
+def parsed(path): return ast.parse(path.read_text())
+def dump(node): return ast.dump(node, include_attributes=False)
+def digest(path): return sha256(path.read_bytes()).hexdigest()
+
+
+IMPORTS = {
+    'deterministic_avl_containers':'_avl',
+    'integer_clipped_reporter':'_integer_reporter',
+    'bounded_dyadic_corrector':'_dyadic',
+    'deterministic_rppr_solver':'_types',
+    'practical_dyadic_rppr_solver':'solver',
+    'pg_repaired_rppr_solver':'_repair',
+}
+
+
+def without_imports(tree):
+    return ast.Module(body=[node for node in tree.body if not isinstance(node, (ast.Import, ast.ImportFrom))],
+                      type_ignores=[])
+
+
+def check_import_relocation(source, destination):
+    si = [copy.deepcopy(n) for n in source.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+    di = [n for n in destination.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+    for node in si:
+        if isinstance(node, ast.ImportFrom) and node.module in IMPORTS:
+            assert node.level == 0
+            node.module, node.level = IMPORTS[node.module], 1
+    assert [dump(n) for n in si] == [dump(n) for n in di]
+
+
+def validate_ast():
+    manifest = json.loads((OUT/'INTEGER_TRANSCRIPTION.json').read_text())
+    result = dict(hash_records=0, exact_class_asts=0, exact_method_asts=0,
+                  dependency_class_asts=0, legacy_module_hashes_unchanged=0)
+    for target, record in manifest.items():
+        assert digest(PKG/(target+'.py')) == record['package_sha256']
+        if 'source' in record:
+            assert digest(ROOT/record['source']) == record['source_sha256']
+        result['hash_records'] += 1
+    for source_name, target in [('integer_clipped_reporter.py', '_integer_reporter'),
+                                ('integer_dyadic_rppr_solver.py', '_integer')]:
+        source, destination = parsed(ROOT/source_name), parsed(PKG/(target+'.py'))
+        check_import_relocation(source, destination)
+        for old in [n for n in source.body if isinstance(n, ast.ClassDef)]:
+            new, = [n for n in destination.body if isinstance(n, ast.ClassDef) and n.name == old.name]
+            assert dump(old) == dump(new)
+            result['exact_class_asts'] += 1
+            result['exact_method_asts'] += sum(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) for n in old.body)
+        if target == '_integer':
+            function, = [n for n in destination.body if isinstance(n, ast.FunctionDef) and n.name == 'solve_rppr_integer']
+            assert [n.arg for n in function.args.kwonlyargs] == ['corrector_class']
+            assert dump(function.args.kw_defaults[0]) == dump(ast.Name(id='IntegerDyadicCorrector', ctx=ast.Load()))
+            function.args.kwonlyargs.clear()
+            function.args.kw_defaults.clear()
+            changes = 0
+            for node in ast.walk(function):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'corrector_class':
+                    node.func.id = 'IntegerDyadicCorrector'
+                    changes += 1
+            assert changes == 1
+        assert dump(without_imports(source)) == dump(without_imports(destination))
+    old = parsed(ROOT/'source_energy_dyadic_rppr.py')
+    new = parsed(PKG/'_source_energy.py')
+    old_class, = [n for n in old.body if isinstance(n, ast.ClassDef)]
+    new_class, = [n for n in new.body if isinstance(n, ast.ClassDef)]
+    assert dump(old_class) == dump(new_class)
+    result['exact_class_asts'] += 1
+    result['exact_method_asts'] += sum(isinstance(n, ast.FunctionDef) for n in old_class.body)
+    new_fn, = [n for n in new.body if isinstance(n, ast.FunctionDef)]
+    expected_return = ast.parse('return reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class=SourceEnergyDyadicCorrector)').body[0]
+    assert len(new_fn.body) == 2 and dump(new_fn.body[1]) == dump(expected_return)
+    expected_imports = ast.parse('from fractions import Fraction as F\nfrom . import _integer as reference').body
+    assert [dump(n) for n in new.body if isinstance(n, (ast.Import, ast.ImportFrom))] == [dump(n) for n in expected_imports]
+    assert not any(isinstance(n, ast.Assign) for n in new.body)
+    # Verify the actual reference clone's semantics, not merely its spelling.
+    clone = original_source._shortened_continuation
+    assert clone.__code__ is original_integer.solve_rppr_integer.__code__
+    assert clone.__defaults__ == original_integer.solve_rppr_integer.__defaults__
+    assert clone.__closure__ == original_integer.solve_rppr_integer.__closure__
+    for name, value in original_integer.solve_rppr_integer.__globals__.items():
+        expected = original_source.SourceEnergyDyadicCorrector if name == 'IntegerDyadicCorrector' else value
+        assert clone.__globals__[name] is expected
+    # The imported dataclasses determine result fields and metric semantics.
+    dependency_pairs = [
+        ('bounded_dyadic_corrector.py', '_dyadic', ['DyadicMetrics']),
+        ('deterministic_rppr_solver.py', '_types', ['ContinuationMetrics', 'StageSummary', 'SolverResult']),
+        ('practical_dyadic_rppr_solver.py', 'solver', ['PracticalContinuationMetrics', 'PracticalStageSummary']),
+        ('pg_repaired_rppr_solver.py', '_repair', ['PGContinuationMetrics', 'PGRepairMetrics']),
+        ('capped_box_corrector.py', '_box_reporter', ['BoxMetrics']),
+        ('lazy_capped_solver.py', '_weighted_tree', ['Metrics']),
+    ]
+    for source, target, names in dependency_pairs:
+        src, dst = parsed(ROOT/source), parsed(PKG/(target+'.py'))
+        for name in names:
+            a, = [n for n in src.body if isinstance(n, ast.ClassDef) and n.name == name]
+            b, = [n for n in dst.body if isinstance(n, ast.ClassDef) and n.name == name]
+            assert dump(a) == dump(b)
+            result['dependency_class_asts'] += 1
+    legacy = json.loads((OUT/'TRANSCRIPTION.json').read_text())
+    for target, record in legacy.items():
+        expected = record.get('package_sha256', record['source_sha256'])
+        assert digest(PKG/(target+'.py')) == expected
+        result['legacy_module_hashes_unchanged'] += 1
+    assert packaged.solve is packaged.solve_reference
+    assert packaged.solve is importlib.import_module('deterministic_rppr.solver').solve_rppr_practical
+    return result
+
+
+class NoHashInt(int):
+    def __hash__(self):
+        raise AssertionError('A graph label was hashed')
+
+
+class Oracle:
+    def __init__(self, rows, no_hash=False):
+        self.plain_rows = rows
+        self.labels = [NoHashInt((1 << 100)+37*i) if no_hash else i for i in range(1, len(rows)+1)]
+        self.degree_calls, self.row_calls = [], []
+
+    def index(self, label):
+        for index, old in enumerate(self.labels, 1):
+            if old == label: return index
+        raise KeyError(label)
+
+    def degree(self, label):
+        i = self.index(label)
+        self.degree_calls.append(i)
+        return len(self.plain_rows[i])
+
+    def neighbors(self, label):
+        i = self.index(label)
+        self.row_calls.append(i)
+        return iter(self.labels[j-1] for j in self.plain_rows[i])
+
+    def normalized(self, obj):
+        if isinstance(obj, NoHashInt): return self.index(obj)
+        if isinstance(obj, dict): return {self.normalized(k):self.normalized(v) for k, v in obj.items()}
+        if isinstance(obj, tuple): return tuple(self.normalized(v) for v in obj)
+        if isinstance(obj, list): return [self.normalized(v) for v in obj]
+        return obj
+
+
+def result_for(function, rows, seed, alpha, rho, epsilon, no_hash=False):
+    oracle = Oracle(rows, no_hash)
+    answer = function(oracle, oracle.labels[seed-1], alpha, rho, epsilon)
+    normalized = oracle.normalized(asdict(answer))
+    values = {i:v for i, v, d in normalized['output']}
+    optimum = exact_optimum(rows, seed, alpha, rho)
+    gap = independent_objective(rows, seed, alpha, rho, values)-independent_objective(rows, seed, alpha, rho, optimum)
+    assert 0 <= gap <= answer.objective_gap_bound <= epsilon
+    assert all(0 <= values.get(i, 0) <= optimum.get(i, 0) for i in rows)
+    return normalized, oracle.degree_calls, oracle.row_calls
+
+
+def main():
+    result = dict(ast=validate_ast(), exact_backend_pairs=0, no_hash_runs=0, default_alias_checked=True,
+                  fixture_descriptions=[], label_encoding_metric_changes=[])
+    path3 = {1:(2,), 2:(1, 3), 3:(2,)}
+    star5 = {1:(2, 3, 4, 5), 2:(1,), 3:(1,), 4:(1,), 5:(1,)}
+    triangle = {1:(2, 3), 2:(1, 3), 3:(1, 2)}
+    fixtures = [(path3, 1, F(1, 7), F(1, 5), F(1, 1000)),
+                (star5, 2, F(1, 16), F(1, 6), F(1, 500)),
+                (triangle, 1, F(2, 5), F(3, 10), F(1, 1000)),
+                (path3, 2, F(1), F(1, 5), F(1, 1000)),
+                (star5, 1, F(1, 7), F(1, 4), F(1, 1000))]
+    for rows, seed, alpha, rho, epsilon in fixtures:
+        for original, copied, name in (
+            (original_integer.solve_rppr_integer, packaged.solve_integer, 'integer'),
+            (original_source.solve_rppr_source_energy, packaged.solve_source_energy, 'source_energy')):
+            lhs = result_for(original, rows, seed, alpha, rho, epsilon)
+            rhs = result_for(copied, rows, seed, alpha, rho, epsilon)
+            assert lhs == rhs
+            result['exact_backend_pairs'] += 1
+        result['fixture_descriptions'].append(dict(n=len(rows), seed=seed, alpha=str(alpha), rho=str(rho)))
+    # Same oracle contract, but every vertex key throws if any hash table uses it.
+    rows, seed, alpha, rho, epsilon = fixtures[0]
+    for function, name in ((packaged.solve, 'default_fraction'),
+                           (packaged.solve_integer, 'integer'),
+                           (packaged.solve_source_energy, 'source_energy')):
+        plain = result_for(function, rows, seed, alpha, rho, epsilon)
+        guarded = result_for(function, rows, seed, alpha, rho, epsilon, True)
+        # The measured Fraction backend correctly includes the larger labels
+        # in its encoding diagnostics. Numeric results and all access/operation
+        # counts must still match; these two explicit bit maxima may grow.
+        if name == 'default_fraction':
+            for stage_index, (left, right) in enumerate(zip(plain[0]['stages'], guarded[0]['stages'])):
+                for key in ('max_integer_bits', 'fraction_internal_arithmetic_bits_bound'):
+                    old = left['corrector_metrics'].pop(key)
+                    new = right['corrector_metrics'].pop(key)
+                    assert new >= old
+                    if old != new:
+                        result['label_encoding_metric_changes'].append(dict(stage=stage_index,
+                            metric=key, ordinary=old, large_labels=new))
+        assert plain == guarded
+        result['no_hash_runs'] += 1
+    result['manifest_sha256'] = digest(OUT/'INTEGER_TRANSCRIPTION.json')
+    target = ROOT/'integer_package_independent_transcription_results.json'
+    target.write_text(json.dumps(result, indent=2)+'\n')
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == '__main__': main()

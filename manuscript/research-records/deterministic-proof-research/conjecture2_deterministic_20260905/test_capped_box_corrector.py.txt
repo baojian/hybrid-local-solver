@@ -1,0 +1,299 @@
+"""Independent dense rational projection, recurrence, KKT, and locality checks.
+
+Every graph and value sequence is deterministic. Dense graph traversal is
+confined to the test oracle; the production solver gets query-only input.
+"""
+
+import itertools
+import json
+import sys
+import unittest
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+from capped_box_corrector import BoxMetrics, CappedBoxCorrector, RankedBoxAVL
+from test_local_safe_solver import (connected_graphs, dense_exact_obstacle_oracle,
+                                   gaussian_elimination, path, star, tree)
+from test_monotone_capped_solver import CheckedOracle, NoFullScan
+
+
+def dense_project(raw, degrees, upper, cap=F(1)):
+    """Explicitly sort all 2N breakpoints, then interpolate the root interval."""
+    def mass(shift):
+        return sum((degrees[i]*max(F(0), min(upper, r-shift))
+                    for i, r in raw.items()), F(0))
+    if mass(F(0)) <= cap:
+        shift, active = F(0), False
+    else:
+        previous, previous_mass = F(0), mass(F(0))
+        breaks = sorted({r-offset for r in raw.values() for offset in (0, upper)
+                         if r-offset > 0})
+        for point in breaks:
+            current = mass(point)
+            if current <= cap:
+                shift = point if current == cap else (
+                    previous + (previous_mass-cap)*(point-previous)/(previous_mass-current))
+                break
+            previous, previous_mass = point, current
+        else:
+            raise AssertionError('Dense box projection did not find its root')
+        active = True
+    answer = {i: min(upper, r-shift) for i, r in raw.items() if r > shift}
+    return answer, shift, active
+
+
+class DenseCorrector:
+    def __init__(self, adjacency, seed, alpha, theta, rho, baseline, constant=4):
+        self.vertices = list(adjacency)
+        self.d = {i: len(adjacency[i]) for i in self.vertices}
+        self.alpha, self.theta, self.rho = alpha, theta, rho
+        self.mu, self.lam, self.upper = theta**2, alpha*rho, constant*rho
+        self.H = {i: {j: ((1+alpha)*self.d[i]/2 if i == j else
+                          (-(1-alpha)/2 if j in adjacency[i] else F(0)))
+                      for j in self.vertices} for i in self.vertices}
+        hb = self.multiply(baseline)
+        self.source = {i: alpha*int(i == seed)/self.d[i]-hb[i]/self.d[i]
+                       for i in self.vertices}
+        self.baseline = baseline
+
+    def multiply(self, x):
+        return {i: sum((self.H[i][j]*x.get(j, F(0)) for j in self.vertices), F(0))
+                for i in self.vertices}
+
+    def quadratic(self, x):
+        hx = self.multiply(x)
+        return sum((x.get(i, F(0))*hx[i] for i in self.vertices), F(0))
+
+    def mass(self, x):
+        return sum((self.d[i]*x.get(i, F(0)) for i in self.vertices), F(0))
+
+    def objective(self, x):
+        return self.quadratic(x)/2-sum((self.d[i]*(self.source[i]-self.lam)*
+                                       x.get(i, F(0)) for i in self.vertices), F(0))
+
+    def energy(self, x, z, optimum):
+        return self.objective(x)-self.objective(optimum)+self.mu/2*sum(
+            (self.d[i]*(z.get(i, F(0))-optimum.get(i, F(0)))**2
+             for i in self.vertices), F(0))
+
+    def step(self, x, z):
+        y = {i: (x.get(i, F(0))+self.theta*z.get(i, F(0)))/(1+self.theta)
+             for i in self.vertices}
+        hy = self.multiply(y)
+        raw = {i: ((1-self.theta)*z.get(i, F(0))+self.theta*y[i]
+                   -(hy[i]/self.d[i]-self.source[i]+self.lam)/self.theta)
+               for i in self.vertices}
+        next_z, multiplier, active = dense_project(raw, self.d, self.upper)
+        next_x = {i: (1-self.theta)*x.get(i, F(0))+self.theta*next_z.get(i, F(0))
+                  for i in self.vertices}
+        return {i: value for i, value in next_x.items() if value}, next_z, multiplier, active
+
+
+LOG = dict(projection_cases=0, trajectory_cases=0, exact_step_comparisons=0,
+           q_metric_checks=0, nonsquare_alpha_steps=0, repaired_baseline_cases=0,
+           injected_cap_binding_steps=0, fixtures=[])
+
+
+class BoxCorrectorTests(unittest.TestCase):
+    def check_projection(self, raw, degrees, upper, cap, sigma=F(1), shift=F(0)):
+        metrics, avl = BoxMetrics(), None
+        avl = RankedBoxAVL(metrics)
+        for i, value in raw.items():
+            avl.insert(((value+shift)/sigma, i), degrees[i])
+        expected, _, expected_active = dense_project(raw, degrees, upper, cap)
+        actual, multiplier, active = avl.project_box(sigma, shift, upper, cap)
+        self.assertEqual(actual, expected)
+        self.assertEqual(active, expected_active)
+        self.assertGreaterEqual(multiplier, 0)
+        self.assertEqual(metrics.projection_emissions, len(actual))
+        self.assertTrue(all(0 < value <= upper for value in actual.values()))
+        if active:
+            self.assertEqual(sum((degrees[i]*value for i, value in actual.items()), F(0)), cap)
+        LOG['projection_cases'] += 1
+
+    def test_exhaustive_small_projection(self):
+        values = (F(-1), F(0), F(1, 4), F(1, 2), F(1), F(2))
+        for n in (1, 2, 3):
+            degrees = {i: i+1 for i in range(n)}
+            for row in itertools.product(values, repeat=n):
+                raw = dict(enumerate(row))
+                for upper in (F(1, 4), F(1)):
+                    for cap in (F(0), F(1, 2), F(1), F(3)):
+                        self.check_projection(raw, degrees, upper, cap,
+                                              sigma=F(2, 7), shift=F(1, 3))
+        # Entire intervals of valid thresholds, box ties, and cap equality.
+        fixtures = [({0:F(3), 1:F(1)}, {0:1, 1:1}, F(1), F(1)),
+                    ({0:F(2), 1:F(2)}, {0:1, 1:3}, F(1, 4), F(1)),
+                    ({0:F(3, 2), 1:F(1, 2)}, {0:2, 1:1}, F(1), F(2)),
+                    ({}, {}, F(1), F(0))]
+        for raw, degrees, upper, cap in fixtures:
+            self.check_projection(raw, degrees, upper, cap)
+
+    def test_rank_updates_and_output_only_query(self):
+        metrics = BoxMetrics()
+        avl = RankedBoxAVL(metrics)
+        expected = []
+        for i in range(127):
+            key = (F((53*i)%127, 7), i)
+            expected.append(key)
+            avl.insert(key, 1+i%3)
+        for key in expected[::3]:
+            avl.delete(key)
+        expected = sorted(set(expected)-set(expected[::3]))
+        self.assertEqual([avl.rank_key(j) for j in range(len(expected))], expected)
+        metrics = BoxMetrics()
+        avl = RankedBoxAVL(metrics)
+        n = 8192
+        for i in range(n):
+            avl.insert((F(10) if i == n-1 else F(9, 10), i), 1)
+        before = metrics.tree_visits
+        selected, multiplier, active = avl.project_box(F(1), F(0), F(1), F(1))
+        visits = metrics.tree_visits-before
+        self.assertEqual(selected, {n-1:F(1)})
+        self.assertTrue(active)
+        self.assertLess(visits, 1500)
+        self.assertEqual(metrics.projection_emissions, 1)
+        LOG['fixtures'].append(dict(label='8191 positive raw records rejected without scan',
+                                    records=n, selected=1, query_tree_visits=visits,
+                                    multiplier=str(multiplier)))
+
+    def compare_case(self, adjacency, seed, alpha, theta, rho, steps=7, repair=False):
+        baseline = dense_exact_obstacle_oracle(adjacency, seed, alpha, 2*rho)
+        if repair:
+            # Repair an exact old point; this is a valid special case of the
+            # approximate repair formula, not a claim to have computed it locally.
+            delta = alpha*rho
+            baseline = {i: value-delta for i, value in baseline.items() if value > delta}
+            LOG['repaired_baseline_cases'] += 1
+        optimum_total = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        optimum = {i: value-baseline.get(i, F(0)) for i, value in optimum_total.items()
+                   if value > baseline.get(i, F(0))}
+        reference = DenseCorrector(adjacency, seed, alpha, theta, rho, baseline)
+        solver = CappedBoxCorrector(CheckedOracle(adjacency), seed, alpha, theta, rho, baseline)
+        self.assertEqual(solver.source,
+                         {i: value for i, value in reference.source.items() if value})
+        self.assertEqual(solver.metrics.baseline_adjacency_entries,
+                         sum(len(adjacency[i]) for i in baseline))
+        x, z = {}, {}
+        self.assertLessEqual(reference.energy(x, z, optimum), solver.initial_energy_bound)
+        total_volume = 0
+        for _ in range(steps):
+            old_energy = reference.energy(x, z, optimum)
+            old_scans = solver.metrics.scanned_adjacency_entries
+            old_source_refresh = solver.metrics.source_refresh_records
+            x, z, multiplier, active = reference.step(x, z)
+            solver.step()
+            self.assertEqual({i: solver.sigma*value for i, value in solver.X.items() if value}, x)
+            self.assertEqual(solver.z, z)
+            self.assertEqual(solver.history[-1][3], active)
+            # Plateau multipliers need not be identical; the projected point is unique.
+            self.assertEqual(solver.mass_x, reference.mass(x))
+            self.assertEqual(solver.mass_z, reference.mass(z))
+            self.assertLessEqual(reference.energy(x, z, optimum), (1-theta)*old_energy)
+            self.assertLessEqual(reference.objective(x)-reference.objective(optimum),
+                                 solver.objective_gap_bound)
+            self.assertTrue(all(value <= solver.upper for value in x.values()))
+            hx = reference.multiply(x)
+            for i in solver.degree:
+                response = hx[i]/reference.d[i]-solver.mu*x.get(i, F(0))
+                self.assertEqual(solver.sigma*solver.R.get(i, F(0)), response)
+            volume = sum(reference.d[i] for i in z)
+            total_volume += volume
+            self.assertEqual(solver.metrics.scanned_adjacency_entries-old_scans, volume)
+            self.assertEqual(solver.metrics.source_refresh_records-old_source_refresh,
+                             len(solver.source))
+            error = {i: x.get(i, F(0))-optimum.get(i, F(0)) for i in reference.vertices}
+            qerror = reference.multiply(error)
+            qerror_norm2 = sum((qerror[i]**2/reference.d[i] for i in reference.vertices), F(0))
+            self.assertLessEqual(qerror_norm2, 18*alpha**2*rho)
+            LOG['q_metric_checks'] += 1
+            LOG['exact_step_comparisons'] += 1
+            LOG['nonsquare_alpha_steps'] += int(alpha != theta**2)
+        self.assertLessEqual(total_volume, 148*steps/rho)
+        self.assertEqual(solver.metrics.first_adjacency_entries,
+                         sum(len(adjacency[i]) for i in solver.adjacency))
+        result = {i: value for i, value, _ in solver.output()}
+        self.assertEqual(result, {i: baseline.get(i, F(0))+x.get(i, F(0))
+                                  for i in set(baseline)|set(x)})
+        LOG['trajectory_cases'] += 1
+
+    def test_exact_dense_trajectories(self):
+        cases = [adj for n in (2, 3, 4) for _, adj in connected_graphs(n)]
+        cases.extend((path(7), star(7), tree(7)))
+        for adjacency in cases:
+            for alpha, theta in ((F(1, 4), F(1, 2)), (F(1, 3), F(1, 2)),
+                                 (F(1, 8), F(1, 4))):
+                self.compare_case(adjacency, 0, alpha, theta, F(1, 16))
+        for adjacency in (path(6), star(6), tree(7)):
+            self.compare_case(adjacency, 1, F(1, 8), F(1, 4), F(1, 20), repair=True)
+
+    def test_baseline_boundary_and_no_old_state_scan(self):
+        adjacency = star(1001)
+        alpha, theta, rho, seed = F(1, 4), F(1, 2), F(1, 10), 1
+        baseline = {seed:F(8, 25)}
+        oracle = CheckedOracle(adjacency)
+        solver = CappedBoxCorrector(oracle, seed, alpha, theta, rho, baseline)
+        self.assertEqual(set(solver.source), {0, seed})
+        self.assertEqual(oracle.neighbor_queries, [seed])
+        for _ in range(8):
+            solver.step()
+        self.assertEqual(oracle.neighbor_queries, [seed])
+        self.assertEqual(set(solver.degree), {0, seed})
+        self.assertEqual(solver.metrics.baseline_adjacency_entries, 1)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries, 9)
+        # Ban full scans of persistent numerical maps. The explicitly charged
+        # source support and current sparse exception lists remain iterable.
+        guarded = []
+        for name in ('X', 'R', 'degree', 'keys', 'baseline'):
+            value = NoFullScan(getattr(solver, name))
+            value.blocked = True
+            setattr(solver, name, value)
+            guarded.append(value)
+        solver.step()
+        for value in guarded:
+            value.blocked = False
+        self.assertNotIn(0, solver.adjacency)
+        LOG['fixtures'].append(dict(label='degree-1000 source boundary never scanned',
+                                    **asdict(solver.metrics)))
+
+    def test_invalid_baseline_source_is_rejected(self):
+        for baseline in ({0:F(1)}, {0:F(-1)}, {}):
+            with self.assertRaises(ValueError):
+                CappedBoxCorrector(CheckedOracle(path(3)), 0, F(1, 4), F(1, 2),
+                                   F(1, 100), baseline)
+
+    def test_cap_binding_injected_feasible_state(self):
+        # An explicitly initialized feasible state, not a zero-start claim.
+        adjacency = path(3)
+        alpha, theta, rho = F(1, 16), F(1, 4), F(1, 4)
+        solver = CappedBoxCorrector(CheckedOracle(adjacency), 0, alpha, theta, rho)
+        reference = DenseCorrector(adjacency, 0, alpha, theta, rho, {})
+        x, z = {1:F(1, 2)}, {}
+        solver._expose(1)
+        solver.X = x.copy()
+        solver.R = solver._response(x)
+        solver.mass_x = F(1)
+        for i in solver.degree:
+            solver._set_key(i, solver._base_key(i))
+        solver._install_exceptions()
+        expected_x, expected_z, _, active = reference.step(x, z)
+        self.assertTrue(active)
+        before = solver.metrics.scanned_adjacency_entries
+        solver.step()
+        self.assertEqual(solver.z, expected_z)
+        self.assertEqual({i: solver.sigma*value for i, value in solver.X.items()}, expected_x)
+        self.assertEqual(solver.mass_z, 1)
+        self.assertEqual(solver.metrics.scanned_adjacency_entries-before,
+                         sum(reference.d[i] for i in expected_z))
+        LOG['injected_cap_binding_steps'] += 1
+
+
+if __name__ == '__main__':
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(BoxCorrectorTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('capped_box_corrector_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

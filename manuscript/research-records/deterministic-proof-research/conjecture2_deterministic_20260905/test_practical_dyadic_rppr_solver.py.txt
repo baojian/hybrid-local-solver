@@ -1,0 +1,310 @@
+"""Exact deterministic checks of scalar rebases and monotone continuation."""
+
+import json
+import sys
+import unittest
+from fractions import Fraction as F
+from pathlib import Path
+from unittest.mock import patch
+
+import practical_dyadic_rppr_solver as production
+from test_bounded_dyadic_corrector import floor_exact
+from test_capped_box_corrector import DenseCorrector, dense_project
+from test_deterministic_rppr_solver import objective, source_density, fraction_summary
+from test_local_safe_solver import dense_exact_obstacle_oracle, gaussian_elimination, graph, path, star, tree
+from test_monotone_capped_solver import CheckedOracle
+from test_pg_repaired_rppr_solver import dense_pg
+
+
+class DenseScalarReference(DenseCorrector):
+    def rounded_step(self, X, L, z, sigma, grid, cap):
+        y = {i:(sigma*X.get(i, F(0))+self.theta*z.get(i, F(0)))/(1+self.theta)
+             for i in self.vertices}
+        # Construct the approximate gradient from dense neighbor sums of y.
+        # Only its primal neighbor term uses the independently rounded L.
+        c, q0 = (1-self.alpha)/2, (1+self.alpha)/2
+        kinetic_neighbors = {i:sum((z.get(j, F(0)) for j in self.neighbors[i]), F(0))
+                              for i in self.vertices}
+        approximate_y_neighbors = {i:(sigma*L.get(i, F(0))+self.theta*kinetic_neighbors[i])/(1+self.theta)
+                                   for i in self.vertices}
+        raw = {i:((1-self.theta)*z.get(i, F(0))+self.theta*y[i]
+                  -(q0*y[i]-c*approximate_y_neighbors[i]/self.d[i]-self.source[i]+self.lam)/self.theta)
+               for i in self.vertices}
+        p0, _, active = dense_project(raw, self.d, self.upper, cap)
+        p = {i:value for i, ideal in p0.items() if (value := floor_exact(ideal, grid)) > 0}
+        scale = floor_exact((1-self.theta)*sigma, grid)
+        new_X = dict(X)
+        for i, value in p.items():
+            rounded = floor_exact(new_X.get(i, F(0))+self.theta*value/scale, grid)
+            if rounded:
+                new_X[i] = rounded
+        changes = {i:new_X.get(i, F(0))-X.get(i, F(0)) for i in self.vertices}
+        new_L = {i:L.get(i, F(0))+sum((changes[j] for j in self.neighbors[i]), F(0))
+                 for i in self.vertices}
+        new_L = {i:value for i, value in new_L.items() if value}
+        rebased = scale < F(1, 2)
+        if rebased:
+            new_X = {i:value for i, old in new_X.items() if (value := floor_exact(scale*old, grid)) > 0}
+            new_L = {i:value for i, old in new_L.items() if (value := floor_exact(scale*old, grid)) > 0}
+            scale = F(1)
+        return new_X, new_L, p, scale, raw, p0, rebased, active
+
+
+LOG = dict(dense_trajectory_cases=0, dense_rounded_steps=0, neighbor_error_checks=0,
+           raw_error_checks=0, scalar_rebases=0, full_cases=0, full_stages=0,
+           nonzero_neighbor_error_steps=0, nonzero_raw_error_steps=0,
+           full_iterations=0, monotone_baseline_checks=0, max_preservation_fixture_records=0,
+           max_reduced_numerator_bits=0, max_reduced_denominator_bits=0, fixtures=[])
+
+
+class PracticalTests(unittest.TestCase):
+    def check_scalar_trajectory(self, adjacency, seed, alpha, theta, rho, tolerance, baseline, label):
+        solver = production.PracticalDyadicCorrector(CheckedOracle(adjacency), seed, alpha, theta,
+                                                      rho, tolerance, baseline)
+        ref = DenseScalarReference(adjacency, seed, alpha, theta, rho, baseline)
+        ref.neighbors = adjacency
+        total_opt = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        optimum = {i:value-baseline.get(i, 0) for i, value in total_opt.items() if value > baseline.get(i, 0)}
+        self.assertTrue(all(baseline.get(i, 0) <= total_opt.get(i, 0) for i in adjacency))
+        baseline_mass = ref.mass(baseline)
+        self.assertEqual(solver.mass_cap, 1-baseline_mass)
+        X, L, z, sigma = {}, {}, {}, F(1)
+        error_steps = 0
+        t_values = gaussian_elimination([[ref.H[i][j] for j in ref.vertices] for i in ref.vertices],
+                                       [ref.d[i]*ref.source[i] for i in ref.vertices])
+        comparator = dict(zip(ref.vertices, t_values))
+
+        def auxiliary(x, kinetic):
+            hx = ref.multiply(x)
+            energy = sum(((hx[i]/ref.d[i]-ref.source[i])**2*ref.d[i]/2 for i in ref.vertices), F(0))
+            energy += alpha**2*rho*ref.mass(x)-alpha*rho*solver.source_mass
+            difference = {i:kinetic.get(i, 0)-comparator[i] for i in ref.vertices}
+            return energy+theta**2*ref.quadratic(difference)/2
+
+        for _ in range(solver.target_iterations):
+            x = {i:sigma*value for i, value in X.items()}
+            before_E, before_B = ref.energy(x, z, optimum), auxiliary(x, z)
+            nX, nL, p, nscale, raw, ideal, rebased, active = ref.rounded_step(
+                X, L, z, sigma, solver.grid, solver.mass_cap)
+            y = {i:(x.get(i, 0)+theta*z.get(i, 0))/(1+theta) for i in ref.vertices}
+            hy = ref.multiply(y)
+            exact_raw = {i:(1-theta)*z.get(i, 0)+theta*y[i]
+                         -(hy[i]/ref.d[i]-ref.source[i]+alpha*rho)/theta for i in ref.vertices}
+            for i in ref.vertices:
+                self.assertLessEqual(abs(raw[i]-exact_raw[i]), 2*solver.grid/theta)
+            LOG['nonzero_raw_error_steps'] += int(any(raw[i] != exact_raw[i] for i in ref.vertices))
+            for i in solver.degree:
+                self.assertEqual(sigma*solver.keys[i].value-solver.lam/theta, raw[i])
+            before_scans = solver.metrics.scanned_adjacency_entries
+            solver.step()
+            self.assertEqual((solver.X, solver.L, solver.z, solver.sigma), (nX, nL, p, nscale))
+            self.assertEqual(solver.history[-1][1], rebased)
+            self.assertEqual(solver.history[-1][3], active)
+            self.assertEqual(solver.metrics.rebase_adjacency_entries, 0)
+            self.assertEqual(solver.metrics.scanned_adjacency_entries-before_scans,
+                             sum(ref.d[i] for i in p))
+            nx = {i:nscale*value for i, value in nX.items()}
+            step_error = False
+            for i in ref.vertices:
+                true_sum = sum((nX.get(j, 0) for j in adjacency[i]), F(0))
+                self.assertLessEqual(abs(nL.get(i, 0)-true_sum)/ref.d[i], 4*solver.grid)
+                step_error |= nL.get(i, 0) != true_sum
+                self.assertEqual(solver.M.get(i, 0), sum((p.get(j, 0) for j in adjacency[i]), F(0)))
+                self.assertTrue(0 <= ideal.get(i, 0)-p.get(i, 0) < solver.grid)
+                loss = (1-theta)*x.get(i, 0)+theta*p.get(i, 0)-nx.get(i, 0)
+                self.assertTrue(0 <= loss <= 10*solver.grid)
+            self.assertLessEqual(ref.energy(nx, p, optimum), (1-theta)*before_E+29*solver.grid)
+            self.assertLessEqual(auxiliary(nx, p), (1-theta)*before_B+29*solver.grid)
+            self.assertLessEqual(ref.mass(p), solver.mass_cap)
+            self.assertLessEqual(ref.mass(nx), solver.mass_cap)
+            self.assertLessEqual(baseline_mass+ref.mass(nx), 1)
+            LOG['dense_rounded_steps'] += 1
+            LOG['neighbor_error_checks'] += 1
+            LOG['raw_error_checks'] += 1
+            LOG['scalar_rebases'] += int(rebased)
+            LOG['nonzero_neighbor_error_steps'] += int(step_error)
+            error_steps += int(step_error)
+            X, L, z, sigma = nX, nL, p, nscale
+        gap = ref.objective({i:sigma*v for i, v in X.items()})-ref.objective(optimum)
+        self.assertTrue(0 <= gap <= solver.objective_gap_bound < tolerance)
+        self.assertLessEqual(sum(row[0] for row in solver.history), 360*solver.target_iterations/rho)
+        self.assertGreater(solver.scalar_neighbor_rebase_records, 0)
+        LOG['dense_trajectory_cases'] += 1
+        LOG['fixtures'].append(dict(label=label, grid=str(solver.grid), mass_cap=str(solver.mass_cap),
+                                    **solver.diagnostic_metrics))
+        return error_steps
+
+    def test_dense_scalar_rebase_trajectories(self):
+        self.check_scalar_trajectory(path(3), 0, F(1, 4), F(1, 2), F(1, 4), F(1, 64), {}, 'zero-baseline scalar rebase')
+        self.check_scalar_trajectory(path(2), 0, F(1, 100), F(1, 16), F(1, 4), F(1, 4096), {}, 'rounded scalar scales')
+        self.check_scalar_trajectory(path(4), 0, F(1, 4), F(1, 2), F(1, 8), F(1, 128),
+                                     {0:F(1, 4)}, 'positive baseline shrinks mass cap')
+        error_steps = self.check_scalar_trajectory(path(3), 0, F(1, 4), F(1, 2), F(1, 16), F(1, 512),
+            {0:F(3, 8), 1:F(1, 16)}, 'multiple positive neighbors create actual scalar rebase error')
+        self.assertGreater(error_steps, 0)
+
+    def check_full_case(self, adjacency, seed, alpha, rho, epsilon, label):
+        observed, oracle = [], CheckedOracle(adjacency)
+        base_class = production.PracticalDyadicCorrector
+
+        class Observed(base_class):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                observed.append(self)
+
+            def step(self):
+                super().step()
+                full_mass = sum((self.degree[i]*value for i, value in self.baseline.items()), F(0))
+                full_mass += self.sigma*sum((self.degree[i]*value for i, value in self.X.items()), F(0))
+                if full_mass > 1:
+                    raise AssertionError('Full candidate exceeded mass one')
+
+            def run(self):
+                result = super().run()
+                self.test_candidate = tuple(result)
+                return result
+
+        with patch.object(production, 'PracticalDyadicCorrector', Observed):
+            answer = production.solve_rppr_practical(oracle, seed, alpha, rho, epsilon)
+        self.assertEqual(len(observed), len(answer.stages))
+        previous, previous_mass = {}, F(0)
+        for stage, corrector in zip(answer.stages, observed):
+            r, delta, h = stage.regularization, stage.delta, stage.grid
+            optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, r)
+            candidate = {i:value for i, value, degree in corrector.test_candidate}
+            pg = dense_pg(adjacency, seed, alpha, r, candidate)
+            rounded = {i:value for i, density in pg.items()
+                       if (value := floor_exact(max(F(0), density-delta), h)) > 0}
+            expected = {i:max(previous.get(i, 0), rounded.get(i, 0)) for i in set(previous)|set(rounded)}
+            repaired = {i:value for i, value, degree in stage.repaired_output}
+            self.assertEqual(repaired, expected)
+            self.assertEqual(corrector.baseline, previous)
+            self.assertEqual(stage.projection_mass_cap, 1-previous_mass)
+            self.assertEqual(stage.projection_mass_cap, stage.source_mass/alpha)
+            self.assertTrue(all(previous.get(i, 0) <= repaired.get(i, 0) <= optimum.get(i, 0) for i in adjacency))
+            self.assertTrue(all(optimum.get(i, 0)-repaired.get(i, 0) <= 2*delta for i in adjacency))
+            self.assertTrue(all(value/h == int(value/h) for value in repaired.values()))
+            source_before = source_density(adjacency, seed, alpha, previous)
+            source_after = source_density(adjacency, seed, alpha, repaired)
+            self.assertTrue(all(0 <= value <= 4*alpha*r for value in source_before.values()))
+            self.assertTrue(all(0 <= value <= 2*alpha*r for value in source_after.values()))
+            optimum_objective = objective(adjacency, seed, alpha, r, optimum)
+            candidate_gap = objective(adjacency, seed, alpha, r, candidate)-optimum_objective
+            repaired_gap = objective(adjacency, seed, alpha, r, repaired)-optimum_objective
+            self.assertTrue(0 <= candidate_gap <= stage.certified_gap < stage.requested_gap)
+            self.assertEqual(stage.requested_gap, alpha*delta**2/8)
+            self.assertTrue(0 <= repaired_gap <= 2*delta**2/r)
+            self.assertLessEqual(stage.repaired_volume, 1/r)
+            self.assertEqual(stage.corrector_metrics['rebase_adjacency_entries'], 0)
+            self.assertEqual(stage.corrector_metrics['scanned_adjacency_entries'],
+                             stage.baseline_volume+stage.kinetic_volume)
+            self.assertEqual(stage.projected_gradient_metrics['scanned_adjacency_entries'],
+                             sum(len(adjacency[i]) for i in candidate))
+            self.assertEqual(stage.projected_gradient_metrics['first_adjacency_entries'], 0)
+            self.assertEqual(stage.projected_gradient_metrics['degree_replies'], 0)
+            previous, previous_mass = repaired, stage.repaired_mass
+            self.assertLessEqual(previous_mass, 1)
+            LOG['full_stages'] += 1
+            LOG['full_iterations'] += stage.iterations
+            LOG['monotone_baseline_checks'] += 1
+            LOG['max_reduced_numerator_bits'] = max(LOG['max_reduced_numerator_bits'],
+                stage.corrector_metrics['max_numerator_bits'])
+            LOG['max_reduced_denominator_bits'] = max(LOG['max_reduced_denominator_bits'],
+                stage.corrector_metrics['max_denominator_bits'])
+        optimum = dense_exact_obstacle_oracle(adjacency, seed, alpha, rho)
+        final = {i:value for i, value, degree in answer.output}
+        gap = objective(adjacency, seed, alpha, rho, final)-objective(adjacency, seed, alpha, rho, optimum)
+        self.assertTrue(0 <= gap <= answer.objective_gap_bound <= epsilon)
+        self.assertTrue(all(0 <= final.get(i, 0) <= optimum.get(i, 0) for i in adjacency))
+        self.assertEqual(len(oracle.degree_queries), 1+answer.metrics.repair_degree_replies+
+                         sum(stage.corrector_metrics['degree_replies'] for stage in answer.stages))
+        self.assertEqual(sum(len(adjacency[i]) for i in oracle.neighbor_queries),
+                         answer.metrics.repair_first_adjacency_entries+
+                         sum(stage.corrector_metrics['first_adjacency_entries'] for stage in answer.stages))
+        self.assertEqual(answer.metrics.final_output_words, 3*len(final))
+        LOG['full_cases'] += 1
+        LOG['fixtures'].append(dict(label=label, stages=len(answer.stages),
+            iterations=sum(stage.iterations for stage in answer.stages),
+            actual_gap=fraction_summary(gap), certificate=str(answer.objective_gap_bound),
+            rebase_adjacency_entries=sum(stage.corrector_metrics['rebase_adjacency_entries'] for stage in answer.stages)))
+
+    def test_full_continuation(self):
+        fixtures = [(path(3), 0, F(2, 5), F(3, 10), F(1, 2000), 'nondyadic final parameter'),
+                    (tree(5), 0, F(1, 8), F(1, 12), F(1, 200), 'monotone tree continuation'),
+                    (path(2), 0, F(1, 100), F(1, 3), F(1, 100), 'small nonsquare alpha'),
+                    (graph(3, [(0, 1), (1, 2), (2, 0)]), 0, F(1, 3), F(1, 10), F(1, 1000), 'triangle'),
+                    (star(5), 1, F(1, 4), F(1, 6), F(1, 500), 'leaf seeded star'),
+                    (star(5), 0, F(1, 3), F(1, 4), F(1, 100), 'zero at equality'),
+                    (path(3), 1, F(1), F(1, 5), F(1, 100), 'alpha one')]
+        for fixture in fixtures:
+            self.check_full_case(*fixture)
+
+    def test_maximum_repair_really_preserves_old_coordinates(self):
+        adjacency, alpha, rho = path(2), F(1, 4), F(1, 4)
+        optimum = {0:F(3, 8), 1:F(1, 8)}
+        self.assertEqual(optimum, dense_exact_obstacle_oracle(adjacency, 0, alpha, rho))
+        solver = production.PracticalDyadicCorrector(CheckedOracle(adjacency), 0, alpha,
+                                                      F(1, 2), rho, F(1, 1024), optimum)
+        candidate = solver.run()
+        self.assertEqual({i:value for i, value, degree in candidate}, optimum)
+        delta = alpha*rho/2
+        clipped, _ = production.projected_gradient_truncate(solver.oracle, 0, alpha, rho,
+            delta, candidate, degree_cache=solver.degree, adjacency_cache=solver.adjacency)
+        repaired, counts = production.round_and_preserve_baseline(
+            clipped, solver.grid, optimum, solver.degree, solver.tracker)
+        self.assertEqual({i:value for i, value, degree in repaired}, optimum)
+        self.assertEqual(counts['baseline_max_preservations'], 2)
+        LOG['max_preservation_fixture_records'] = 2
+
+    def test_injected_binding_source_mass_cap(self):
+        # This checks a feasible state directly, not zero-start reachability.
+        adjacency = path(3)
+        alpha, theta, rho = F(1, 16), F(1, 4), F(1, 4)
+        baseline = {0:F(1, 16)}
+        solver = production.PracticalDyadicCorrector(CheckedOracle(adjacency), 0,
+            alpha, theta, rho, F(1, 1024), baseline)
+        ref = DenseScalarReference(adjacency, 0, alpha, theta, rho, baseline)
+        ref.neighbors = adjacency
+        solver._expose(1)
+        solver.X = {1:solver.mass_cap/2}
+        solver.L = solver._neighbor_sums(solver.X, 'selected')
+        for i in solver.degree:
+            solver._set_key(i, solver._base_key(i))
+        solver._install_exceptions()
+        nX, nL, p, scale, _, _, _, active = ref.rounded_step(
+            solver.X, solver.L, {}, F(1), solver.grid, solver.mass_cap)
+        self.assertTrue(active)
+        self.assertLess(solver.mass_cap, 1)
+        solver.step()
+        self.assertEqual((solver.X, solver.L, solver.z, solver.sigma), (nX, nL, p, scale))
+        self.assertEqual(ref.mass(p), solver.mass_cap)
+        self.assertEqual(ref.mass(baseline)+ref.mass({i:scale*v for i, v in nX.items()}), 1)
+        self.assertEqual(solver.metrics.rebase_adjacency_entries, 0)
+        LOG['fixtures'].append(dict(label='injected binding source-mass cap', mass_cap=str(solver.mass_cap),
+                                    **solver.diagnostic_metrics))
+
+    def test_parameter_validation_and_high_degree_rebase_locality(self):
+        for theta in (F(0), F(-1), F(1, 3)):
+            with self.assertRaises(ValueError):
+                production.PracticalDyadicCorrector(CheckedOracle(path(2)), 0,
+                    F(1, 4), theta, F(1, 4), F(1, 64))
+        oracle = CheckedOracle(star(1001))
+        solver = production.PracticalDyadicCorrector(oracle, 1, F(1, 4), F(1, 2),
+            F(1, 8), F(1, 128), {1:F(1, 4)})
+        solver.run()
+        self.assertGreater(solver.metrics.rebases, 0)
+        self.assertEqual(solver.metrics.rebase_adjacency_entries, 0)
+        self.assertEqual(set(oracle.neighbor_queries), {1})
+        self.assertEqual(set(oracle.degree_queries), {0, 1})
+        LOG['fixtures'].append(dict(label='degree-1000 hub remains unscanned with scalar rebases',
+                                    **solver.diagnostic_metrics))
+
+
+if __name__ == '__main__':
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(PracticalTests))
+    LOG['tests_run'] = result.testsRun
+    LOG['successful'] = result.wasSuccessful()
+    Path(__file__).with_name('practical_dyadic_rppr_solver_verification.json').write_text(
+        json.dumps(LOG, indent=2)+'\n')
+    sys.exit(not result.wasSuccessful())

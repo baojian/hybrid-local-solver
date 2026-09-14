@@ -1,0 +1,71 @@
+"""Exact projection-normal stress checks, independent of the solver package."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from independent_continuation_audit import (
+    dot,
+    graph_data,
+    product,
+    projection,
+    subtract,
+)
+
+
+def main():
+    start = time.monotonic()
+    output = (
+        Path(__file__).resolve().parents[1]
+        / "results/independent-projection-sector-audit.json"
+    )
+    count = 0
+    types = {"lower": 0, "upper": 0, "mass": 0, "upper_and_mass": 0}
+    largest_negative_euclidean_pair = F(0)
+    for graph in nx.graph_atlas_g():
+        if not 2 <= len(graph) <= 4 or not nx.is_connected(graph):
+            continue
+        for alpha, cap in itertools.product((F(1, 3), F(1, 16)), (F(1), F(1, 2))):
+            degrees, q, _ = graph_data(graph, 0, alpha)
+            volume = sum(degrees)
+            upper = F(1, 4)
+            t = [F(1, 2 * volume)] * len(graph)
+            source = [alpha * value for value in t]
+            for raw in itertools.product(
+                (-2 * upper, F(0), upper / 2, upper, 3 * upper), repeat=len(graph)
+            ):
+                p, eta = projection(raw, degrees, upper, cap)
+                normal = subtract(raw, p)
+                metric_pair = dot(subtract(product(q, p), source), normal, degrees)
+                ordinary_pair = dot(subtract(p, t), normal, degrees)
+                assert metric_pair >= 0 and ordinary_pair >= 0
+                has_lower = any(v == 0 and a < eta for v, a in zip(p, raw))
+                has_upper = any(v == upper and a > upper + eta for v, a in zip(p, raw))
+                types["lower"] += has_lower
+                types["upper"] += has_upper
+                types["mass"] += eta > 0
+                types["upper_and_mass"] += has_upper and eta > 0
+                count += 1
+                largest_negative_euclidean_pair = min(
+                    largest_negative_euclidean_pair, ordinary_pair
+                )
+    result = {
+        "projection_cases": count,
+        "normal_cases": types,
+        "all_sector_inequalities_exact": True,
+        "elapsed_seconds": time.monotonic() - start,
+        "randomized": False,
+        "independent_implementation": True,
+    }
+    assert all(value > 0 for value in types.values())
+    output.write_text(json.dumps(result, indent=2))
+    print(json.dumps(result))
+
+
+if __name__ == "__main__":
+    main()

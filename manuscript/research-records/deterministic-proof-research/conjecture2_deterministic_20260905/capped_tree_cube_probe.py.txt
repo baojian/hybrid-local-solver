@@ -1,0 +1,211 @@
+"""Deterministic floating-point diagnostics, not a certified lower bound.
+
+A rooted binary tree of depth p*log2(L), with one separate d-cube attached
+by one edge to each leaf; d=s*log2(L). The equitable quotient is used only
+for analysis of a specified graph, never granted to a local algorithm.
+"""
+import argparse
+import json
+import math
+import numpy as np
+
+
+def run(L, p=4, s=2, gamma=1/16, horizon=8, ordinary=False, clique=False,
+        aligned=False, cleanup=False, cleanup_beta=1/4):
+    theta = 1 / L
+    alpha, a, c = theta**2, 1-theta, (1-theta**2)/2
+    h, dim = int(p*math.log2(L)), int(s*math.log2(L))
+    width = 2.**h
+    chamber_order = L**s if clique else 2**dim
+    if clique:
+        count = np.array([2.**j for j in range(h+1)] +
+                         [width, width*(chamber_order-1)])
+        right = np.array([2.]*h+[1., float(chamber_order-1), 0.])
+    else:
+        count = np.array([2.**j for j in range(h+1)] +
+                         [width*math.comb(dim, j) for j in range(dim+1)])
+        right = np.array([2.]*h + [1.] + [float(dim-j) for j in range(dim+1)])
+    left = np.zeros(len(count))
+    left[1:] = count[:-1]*right[:-1]/count[1:]
+    internal = np.zeros(len(count))
+    if clique:
+        internal[-1] = chamber_order-2
+    degree = left+right+internal
+    weight, edges = count*degree, count[:-1]*right[:-1]
+    cube_volume = weight[h+1:].sum()
+    rho = gamma*L/cube_volume
+    lam = alpha*rho
+    root_weight = np.sqrt(weight)
+
+    def P(t):
+        out = np.zeros(len(count))
+        out[1:] += right[:-1]/degree[:-1]*t[:-1]
+        out[:-1] += left[1:]/degree[1:]*t[1:]
+        out += internal/degree*t
+        return out
+
+    def restricted_obstacle(reg):
+        off = -c*edges/(root_weight[:-1]*root_weight[1:])
+        for n in range(1, len(count)+1):
+            pivot = (alpha+c*(left[:n]+right[:n])/degree[:n]).copy()
+            rhs = -alpha*reg*root_weight[:n].copy()
+            rhs[0] += alpha/root_weight[0]
+            for j in range(1, n):
+                factor = off[j-1]/pivot[j-1]
+                pivot[j] -= factor*off[j-1]
+                rhs[j] -= factor*rhs[j-1]
+            x = np.zeros(n)
+            x[-1] = rhs[-1]/pivot[-1]
+            for j in range(n-2, -1, -1):
+                x[j] = (rhs[j]-off[j]*x[j+1])/pivot[j]
+            if np.min(x) < -1e-12*np.max(x):
+                raise ArithmeticError('Unsafe principal solve in diagnostic')
+            if n == len(count) or -off[n-1]*x[-1] <= alpha*reg*root_weight[n]:
+                u = np.zeros(len(count))
+                u[:n] = root_weight[:n]*x
+                return u, n
+        raise AssertionError
+
+    optimum, ns = restricted_obstacle(rho)
+    comparator, nc = restricted_obstacle(rho/2)
+    Vstar = theta*optimum
+    u, V = np.zeros(len(count)), np.zeros(len(count))
+    total_work = outside_work = primal_work = cleanup_work = cap_count = 0
+    cleanup_passes = 0
+    peak_volume = peak_outside_mass = peak_outside_V = 0.
+    peak_flux = flow_sum = selected_flow_sum = signed_flow_sum = 0.
+    support_half_count = support_quarter_count = 0
+    peak_step = None
+    snapshots = []
+    certificate = dict(t0=3*h, T=L//2, min_port=float('inf'),
+        min_bulk_V=float('inf'), max_outside_raw_positive=0., min_step=1.)
+    Kiter = int(horizon*L)
+    for k in range(Kiter):
+        raw = a/2*(P(u+V)-u+V)
+        raw[0] += alpha
+        raw -= lam*weight
+        if clique and certificate['t0'] <= k < certificate['t0']+certificate['T']:
+            certificate['min_port'] = min(certificate['min_port'], u[h+1]/theta)
+            certificate['min_bulk_V'] = min(certificate['min_bulk_V'], V[-1]/theta)
+            certificate['max_outside_raw_positive'] = max(
+                certificate['max_outside_raw_positive'], np.maximum(raw[:-1], 0).sum()/theta)
+        Vnew = np.maximum(raw, 0)
+        cap_gamma = 0.
+        if Vnew.sum() > theta:
+            cap_count += 1
+            idx = np.flatnonzero(Vnew > 0)
+            order = idx[np.argsort(Vnew[idx]/weight[idx])[::-1]]
+            levels = (np.cumsum(Vnew[order])-theta)/np.cumsum(weight[order])
+            j = np.flatnonzero(Vnew[order]/weight[order] > levels)[-1]
+            cap_gamma = levels[j]
+            Vnew = np.maximum(raw-cap_gamma*weight, 0)
+        E = Vnew > Vstar
+        hflow = a/2*(P(u-optimum)-(u-optimum))
+        selected_flow_sum += np.maximum(hflow, 0)[E].sum()
+        signed_flow_sum += hflow[E].sum()-cap_gamma*weight[E].sum()
+        direction = Vnew-theta*u
+        uy, dy = u/weight, direction/weight
+        dot = (alpha*np.dot(direction, uy) +
+               c*np.dot(edges, np.diff(uy)*np.diff(dy)) -
+               alpha*direction[0]/degree[0] + lam*direction.sum())
+        den = (alpha*np.dot(direction, dy) +
+               c*np.dot(edges, np.diff(dy)**2))
+        step = 1. if ordinary or aligned else (float(np.clip(-dot/den, 0., 1.)) if den else 0.)
+        if clique and certificate['t0'] <= k < certificate['t0']+certificate['T']:
+            certificate['min_step'] = min(certificate['min_step'], step)
+        if aligned:
+            pg = a/2*((u+V)+P(u+V))-lam*weight
+            pg[0] += alpha
+            u = np.minimum(np.maximum(pg, 0), a*u+Vnew)
+        else:
+            u += step*direction
+        if cleanup:
+            q0, beta, tau = (1+alpha)/2, cleanup_beta, lam/8
+            for cleanup_iteration in range(10000):
+                density = u/weight
+                grad = alpha*density+c*(u-P(u))/weight+lam
+                grad[0] -= alpha/degree[0]
+                eligible = (u > 0) & (grad > beta*q0*density+tau)
+                if not np.any(eligible):
+                    break
+                cleanup_passes += 1
+                cleanup_work += weight[eligible].sum()
+                u[eligible] = weight[eligible]*np.maximum(
+                    0, density[eligible]-grad[eligible]/q0)
+            else:
+                raise ArithmeticError('Cleanup failed to stop')
+        V = Vnew
+        selected = V > 0
+        volume = weight[selected].sum()
+        outside_volume = weight[nc:][selected[nc:]].sum()
+        cube_selected_volume = weight[h+1:][selected[h+1:]].sum()
+        total_work += volume
+        primal_work += weight[u>0].sum()
+        outside_work += outside_volume
+        support_half_count += cube_selected_volume >= cube_volume/2
+        support_quarter_count += cube_selected_volume >= cube_volume/4
+        if volume > peak_volume:
+            peak_volume, peak_step = volume, k
+        outside_mass = u[nc:].sum()
+        outside_V = V[nc:].sum()
+        peak_outside_mass = max(peak_outside_mass, outside_mass)
+        peak_outside_V = max(peak_outside_V, outside_V)
+        flux = c*np.abs(u-P(u)).sum()
+        flow_sum += flux
+        peak_flux = max(peak_flux, flux)
+        if k % max(1, L//16) == 0:
+            # Signed mass inflow from the tree into the attached cubes.
+            influx = c*(u[h]/degree[h]-u[h+1]/degree[h+1])
+            snapshots.append(dict(k=k, step=step, mass=u.sum(), Vmass=V.sum(),
+                cube_mass=u[h+1:].sum(), cube_V=V[h+1:].sum(),
+                outside_mass=outside_mass, outside_V=outside_V,
+                rho_volume=rho*volume, rho_outside_volume=rho*outside_volume,
+                cube_volume_fraction=cube_selected_volume/cube_volume,
+                cap_gamma=cap_gamma, cap_charge=cap_gamma*volume,
+                tree_to_cube_flux=influx, tree_leaf_mass=u[h],
+                cube_port_mass=u[h+1], tree_leaf_V=V[h], cube_port_V=V[h+1]))
+    return dict(L=L, p=p, s=s, h=h, dim=dim, clique=clique,
+        chamber_order=chamber_order, gamma=gamma, rho=rho,
+        horizon=horizon, ordinary=ordinary, aligned=aligned, cleanup=cleanup,
+        cleanup_beta=cleanup_beta,
+        Kiter=Kiter, principal_size=ns, comparator_size=nc,
+        comparator_rho_volume=rho*weight[:nc].sum(),
+        normalized_work=rho*theta*total_work,
+        normalized_primal_work=rho*theta*primal_work,
+        normalized_both_work=rho*theta*(primal_work+total_work),
+        normalized_cleanup_work=rho*theta*cleanup_work,
+        normalized_kinetic_plus_cleanup_work=rho*theta*(cleanup_work+total_work),
+        cleanup_passes=cleanup_passes,
+        normalized_outside_work=rho*theta*outside_work,
+        peak_rho_volume=rho*peak_volume, peak_step=peak_step,
+        half_cube_steps=int(support_half_count), quarter_cube_steps=int(support_quarter_count),
+        peak_outside_mass=peak_outside_mass, peak_outside_V=peak_outside_V,
+        flux_over_theta=flow_sum/theta, peak_flux_over_alpha=peak_flux/alpha,
+        selected_positive_flow_over_theta=selected_flow_sum/theta,
+        selected_signed_flow_less_cap_over_theta=signed_flow_sum/theta,
+        cap_count=cap_count, certificate=certificate, snapshots=snapshots)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--L', type=int, nargs='+', required=True)
+    parser.add_argument('--p', type=int, default=4)
+    parser.add_argument('--s', type=int, default=2)
+    parser.add_argument('--gamma', type=float, default=1/16)
+    parser.add_argument('--horizon', type=float, default=8)
+    parser.add_argument('--output')
+    parser.add_argument('--ordinary', action='store_true')
+    parser.add_argument('--clique', action='store_true')
+    parser.add_argument('--aligned', action='store_true')
+    parser.add_argument('--cleanup', action='store_true')
+    parser.add_argument('--cleanup-beta', type=float, default=1/4)
+    args = parser.parse_args()
+    for L in args.L:
+        record = run(L, args.p, args.s, args.gamma, args.horizon,
+                     args.ordinary, args.clique, args.aligned, args.cleanup,
+                     args.cleanup_beta)
+        if args.output:
+            with open(args.output, 'a') as f:
+                f.write(json.dumps(record)+'\n')
+        record.pop('snapshots')
+        print(json.dumps(record), flush=True)

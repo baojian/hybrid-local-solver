@@ -1,0 +1,86 @@
+"""Add the independently audited direct reporter transition and composition."""
+
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+from build_accelerated_solver_package import transform_imports, digest
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+
+
+def main():
+    source = (ROOT/'direct_exception_integer_rppr.py').read_bytes()
+    tree = ast.parse(source)
+    changes = transform_imports(tree)
+    nodes, removed, wrappers = [], [], []
+    replacements = {'solve_rppr_direct_integer':'DirectExceptionIntegerCorrector',
+                    'solve_rppr_direct_source':'DirectSourceEnergyCorrector'}
+    for node in tree.body:
+        if isinstance(node,ast.FunctionDef) and node.name == '_continuation':
+            removed.append(node.name)
+            continue
+        if isinstance(node,ast.Assign):
+            names = [target.id for target in node.targets if isinstance(target,ast.Name)]
+            if names and all(name in ('_fixed','_source') for name in names):
+                removed.extend(names)
+                continue
+        if isinstance(node,ast.FunctionDef) and node.name in replacements:
+            corrector = replacements[node.name]
+            node.body = ast.parse(f'return reference.solve_rppr_integer(oracle, seed, alpha, rho, epsilon, corrector_class={corrector})').body
+            wrappers.append({'function':node.name,'corrector':corrector})
+        nodes.append(node)
+    assert set(removed) == {'_continuation','_fixed','_source'} and len(wrappers) == 2
+    tree.body = nodes
+    ast.fix_missing_locations(tree)
+    content = ast.unparse(tree)+'\n'
+    compile(content,'<direct transition package>','exec')
+    (PACKAGE/'_direct.py').write_text(content)
+    fast = '''"""Certified schedules with exact direct exception-key replacement."""
+
+from ._combined import CombinedDyadicCorrector
+from ._direct import DirectExceptionIntegerCorrector
+from ._integer import solve_rppr_integer
+
+
+class FastDyadicCorrector(CombinedDyadicCorrector, DirectExceptionIntegerCorrector):
+    """The identical combined trajectory with fewer reporter mutations."""
+
+
+def solve_rppr_fast(oracle, seed, alpha, rho, epsilon):
+    """Return a certified sparse vector using all audited refinements."""
+    return solve_rppr_integer(oracle, seed, alpha, rho, epsilon,
+                             corrector_class=FastDyadicCorrector)
+'''
+    (PACKAGE/'_fast.py').write_text(fast)
+    init = (PACKAGE/'__init__.py').read_text()
+    marker = '\n# Exact direct-transition composition.\n'
+    init = init.split(marker)[0]
+    extra = '''
+# Exact direct-transition composition.
+from ._fast import solve_rppr_fast as solve_fast
+from ._fast import FastDyadicCorrector
+__all__ += ["solve_fast", "FastDyadicCorrector"]
+'''
+    (PACKAGE/'__init__.py').write_text(init+extra)
+    manifest = {
+        '_direct':dict(source='direct_exception_integer_rppr.py',source_sha256=digest(source),
+            package_sha256=digest(content.encode()),transformations=changes+[
+                {'kind':'explicit class-injection wrappers','removed':removed,'wrappers':wrappers}]),
+        '_fast':dict(package_sha256=digest(fast.encode()),
+            composition=['CombinedDyadicCorrector','DirectExceptionIntegerCorrector'],
+            independently_audited_source='direct_exception_independent_audit.md',
+            source_composition='benchmark_direct_exception_transition.py',
+            source_composition_sha256=digest((ROOT/'benchmark_direct_exception_transition.py').read_bytes())),
+        '__init__':dict(package_sha256=digest((init+extra).encode()),
+            default='source-energy preserved pending final package audit'),
+    }
+    (OUT/'DIRECT_TRANSCRIPTION.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    print(json.dumps(dict(added_modules=2,default='source energy unchanged'),indent=2))
+
+
+if __name__ == '__main__':
+    main()

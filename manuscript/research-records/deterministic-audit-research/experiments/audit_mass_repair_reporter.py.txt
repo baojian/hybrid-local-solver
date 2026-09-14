@@ -1,0 +1,154 @@
+"""Deterministic structural and recurrence audit of the local score reporter."""
+
+from __future__ import annotations
+
+import itertools
+import json
+
+import networkx as nx
+import numpy as np
+from audit_local_positive_coupling import CountedOracle
+from cyclic_dual_averaging import obstacle
+from deterministic_avl import AVLMap
+from local_mass_repair import MassRepairReporter as Reporter
+from positive_linear_coupling import mass_projection
+
+
+def audit_avl():
+    tested = 0
+    for permutation in itertools.permutations(range(6)):
+        tree = AVLMap()
+        for key in permutation:
+            tree.set((key, key), key, key + 1, (key + 1) * key)
+            tree.validate()
+        for count in range(7):
+            subset = list(range(6 - count, 6))
+            assert tree.prefix_largest(count) == (
+                sum(i + 1 for i in subset),
+                sum((i + 1) * i for i in subset),
+            )
+        for threshold in (-1, 0, 2.5, 5, 6):
+            subset = [i for i in range(6) if i > threshold]
+            assert [data for _, data in tree.above_value(threshold)] == subset
+            assert tree.sums_above_value(threshold) == (
+                sum(i + 1 for i in subset),
+                sum((i + 1) * i for i in subset),
+            )
+        for key in permutation[::2] + permutation[1::2]:
+            tree.delete((key, key))
+            tree.validate()
+        assert len(tree) == 0
+        tested += 1
+    return tested
+
+
+def main():
+    trees = audit_avl()
+    cases = steps = 0
+    worst = 0.0
+    all_rebases = 0
+    for graph in nx.graph_atlas_g():
+        if not 2 <= len(graph) <= 5 or not nx.is_connected(graph):
+            continue
+        labels = list(range(len(graph)))
+        adjacency = nx.to_numpy_array(graph, nodelist=labels)
+        degrees = adjacency.sum(axis=1)
+        w = np.sqrt(degrees)
+        for alpha, seed, fraction in itertools.product(
+            (0.9801, 0.1, 0.001), labels, (0.001, 0.4)
+        ):
+            rho = fraction / degrees[seed]
+            s = np.sqrt(alpha)
+            qcoef = 1 - s
+            q = (1 + alpha) / 2 * np.eye(len(labels)) - (
+                1 - alpha
+            ) / 2 * adjacency / np.outer(w, w)
+            k = q - alpha * np.eye(len(labels))
+            c = -alpha * rho * w
+            c[seed] += alpha / w[seed]
+            optimum = obstacle(q, c)
+            scale = max(float(np.linalg.norm(optimum)), 1e-100)
+            f_star = float(0.5 * optimum @ q @ optimum - c @ optimum)
+            x = np.zeros(len(labels))
+            z = x.copy()
+            oracle = CountedOracle(graph)
+            reporter = Reporter(oracle, seed, alpha, rho)
+            total_auxiliary_volume = 0.0
+            for iteration in range(160):
+                y = (x + s * z) / (1 + s)
+                budget = qcoef * float(w @ z) + s
+                score_before = qcoef * z + s * y - (q @ y - c) / s + s * rho * w
+                repaired = budget * mass_projection(score_before / budget, w)
+                z = np.maximum(repaired - s * rho * w, 0)
+                x = qcoef * x + s * z
+                local = reporter.step()
+                local_x = np.zeros(len(labels))
+                local_z = local_x.copy()
+                for vertex, degree, density in reporter.primal():
+                    local_x[vertex] = np.sqrt(degree) * density
+                for vertex, degree, density in local:
+                    local_z[vertex] = np.sqrt(degree) * density
+                    total_auxiliary_volume += degree
+                difference = (
+                    max(
+                        float(np.linalg.norm(local_x - x)),
+                        float(np.linalg.norm(local_z - z)),
+                    )
+                    / scale
+                )
+                worst = max(worst, difference)
+                assert difference < 1e-8, (difference, alpha, seed, fraction, iteration)
+                score = qcoef * z - k @ ((x + s * z) / (1 + s)) / s
+                score[seed] += s / w[seed]
+                score /= w
+                for vertex in labels:
+                    entry = reporter.vertices.get(vertex)
+                    actual = (
+                        0 if entry is None else reporter.scale * entry.normalized_score
+                    )
+                    assert abs(actual - score[vertex]) < 1e-9 * (
+                        scale + np.linalg.norm(score)
+                    ), (actual, score[vertex])
+                assert float(w @ local_z) <= 1 + 1e-9
+                assert float(w @ local_x) <= 1 + 1e-9
+                reporter.scores.validate()
+                reporter.vertices.validate()
+                steps += 1
+            before = oracle.entries
+            output, certificate = reporter.output_and_certificate()
+            assert oracle.entries == before
+            out = np.zeros(len(labels))
+            for vertex, degree, density in output:
+                out[vertex] = np.sqrt(degree) * density
+            y = (x + s * z) / (1 + s)
+            direct_output = np.maximum(y - (q @ y - c), 0)
+            assert np.linalg.norm(out - direct_output) < 1e-9 * scale
+            gap = float(0.5 * out @ q @ out - c @ out) - f_star
+            assert gap <= certificate + 1e-11 * (-f_star), (gap, certificate)
+            assert reporter.maximum_volume_ledger_violation < 1e-9
+            assert rho * reporter.auxiliary_volume_sum <= reporter.iterations + 1e-8
+            assert reporter.entries <= 2 * reporter.auxiliary_volume_sum
+            assert reporter.entries == oracle.entries
+            assert reporter.degree_replies == oracle.degree_calls
+            all_rebases += reporter.rebases
+            cases += 1
+    print(
+        json.dumps(
+            {
+                "avl_permutations": trees,
+                "graph_parameter_cases": cases,
+                "recurrence_steps": steps,
+                "worst_optimum_scaled_iterate_difference": worst,
+                "rebases_checked": all_rebases,
+                "candidate": "mass-preserving score repair",
+                "accelerated_rate_proved": False,
+                "all_passed": True,
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,342 @@
+"""Bounded independent integer-solver audit; no implementation modifications.
+
+Checks the theorem interface directly, with exhaustive rational small-graph
+optima, both energy inequalities, exact raw projection, integer state, and
+separate graph access reconciliation. All choices are deterministic.
+"""
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+import json
+
+import integer_dyadic_rppr_solver as production
+from deterministic_avl_containers import AVLMap
+from benchmark_practical_rppr import VirtualGraph
+from audit_virtual_graphs_and_verifier import (structural_check, exact_optimum,
+                                              independent_objective, solve_linear)
+
+
+FLAGS = dict(in_step=False, in_projection=False)
+REPORT = dict(deterministic=True, cases=0, stage_checks=0, step_checks=0,
+              energy_checks=0, integer_state_checks=0, reporter_record_checks=0,
+              rebases=0, cap_active=0, maximum_stored_bits=0, fixtures=[],
+              standalone_reporter_cases=0, standalone_binding_reporter_cases=0)
+
+
+class StrictOracle:
+    def __init__(self, rows):
+        self.rows = rows
+        self.degree_calls, self.row_calls = [], []
+
+    def degree(self, i):
+        assert type(i) is int and i in self.rows
+        self.degree_calls.append(i)
+        return len(self.rows[i])
+
+    def neighbors(self, i):
+        assert type(i) is int and i in self.rows
+        self.row_calls.append(i)
+        return iter(self.rows[i])
+
+
+def q_density(rows, alpha, x):
+    return {i: (1+alpha)/2*x.get(i, 0)-(1-alpha)/2/len(rows[i])
+            *sum((x.get(j, 0) for j in rows[i]), F(0)) for i in rows}
+
+
+def weighted_norm(rows, x):
+    return sum((len(rows[i])*x.get(i, 0)**2 for i in rows), F(0))
+
+
+def q_norm(rows, alpha, x):
+    qx = q_density(rows, alpha, x)
+    return sum((len(rows[i])*x.get(i, 0)*qx[i] for i in rows), F(0))
+
+
+def dense_projection(rows, raw, upper, cap):
+    def mass(gamma):
+        return sum((len(rows[i])*min(upper, max(F(0), raw[i]-gamma)) for i in rows), F(0))
+    if mass(F(0)) <= cap:
+        gamma = F(0)
+    else:
+        points = sorted({F(0)} | {v for x in raw.values() for v in (x, x-upper) if v >= 0})
+        gamma = None
+        for left, right in zip(points, points[1:]):
+            ml, mr = mass(left), mass(right)
+            if ml == cap:
+                gamma = left
+                break
+            if ml > cap >= mr:
+                middle = (left+right)/2
+                free = [i for i in rows if 0 < raw[i]-middle < upper]
+                slope = sum(len(rows[i]) for i in free)
+                gamma = left+(ml-cap)/slope
+                break
+        assert gamma is not None
+    return {i: min(upper, max(F(0), raw[i]-gamma)) for i in rows}, gamma
+
+
+def tree_invariants(tree):
+    records = []
+    def visit(node):
+        if node is None: return 0, 0, 0, 0
+        lh, ln, ld, ls = visit(node.left)
+        records.append((node.numerator, node.degree, node.vertex))
+        rh, rn, rd, rs = visit(node.right)
+        assert all(type(v) is int for v in (node.numerator, node.degree, node.vertex,
+                   node.height, node.count, node.degree_sum, node.numerator_sum))
+        REPORT['maximum_stored_bits'] = max(REPORT['maximum_stored_bits'],
+            *(abs(v).bit_length() for v in (node.numerator, node.degree, node.vertex,
+              node.height, node.count, node.degree_sum, node.numerator_sum)))
+        assert abs(lh-rh) <= 1 and node.height == 1+max(lh, rh)
+        assert node.count == 1+ln+rn
+        assert node.degree_sum == node.degree+ld+rd
+        assert node.numerator_sum == node.numerator+ls+rs
+        return node.height, node.count, node.degree_sum, node.numerator_sum
+    visit(tree.root)
+    for (n1, d1, i1), (n2, d2, i2) in zip(records, records[1:]):
+        assert n1*d2 < n2*d1 or (n1*d2 == n2*d1 and i1 < i2)
+    return records
+
+
+class AuditedCorrector(production.IntegerDyadicCorrector):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.audit_rows = self.oracle.rows
+        self.audit_base = {i:F(value, self.H) for i, value in self.baseline.items()}
+        optimum = exact_optimum(self.audit_rows, self.seed, self.alpha, self.rho)
+        self.audit_opt = optimum
+        self.audit_opt_corr = {i:optimum.get(i, 0)-self.audit_base.get(i, 0) for i in self.audit_rows}
+        assert all(value >= 0 for value in self.audit_opt_corr.values())
+        unregularized = exact_optimum(self.audit_rows, self.seed, self.alpha, F(0))
+        self.audit_t = {i:unregularized.get(i, 0)-self.audit_base.get(i, 0) for i in self.audit_rows}
+        qb = q_density(self.audit_rows, self.alpha, self.audit_base)
+        self.audit_source = {i:self.alpha*int(i == self.seed)/len(self.audit_rows[i])-qb[i]
+                             for i in self.audit_rows}
+        assert all(0 <= v <= 4*self.lam for v in self.audit_source.values())
+        assert self.mass_cap == 1-sum((len(self.audit_rows[i])*v for i, v in self.audit_base.items()), F(0))
+        assert self.source_mass == self.alpha*self.mass_cap
+        for i, value in self.audit_source.items():
+            assert self.source.get(i, 0) == value*2*self.D*self.H*len(self.audit_rows[i])
+        original_project = self.tree.project_counts
+        def wrapped_project(**kw):
+            FLAGS['in_projection'] = True
+            try: return original_project(**kw)
+            finally: FLAGS['in_projection'] = False
+        self.tree.project_counts = wrapped_project
+        self.check_state()
+        REPORT['stage_checks'] += 1
+
+    def vectors(self):
+        return ({i:F(self.S*self.X.get(i, 0), self.H*self.H) for i in self.audit_rows},
+                {i:F(self.z.get(i, 0), self.H) for i in self.audit_rows})
+
+    def energies(self):
+        rows, x, z = self.audit_rows, *self.vectors()
+        full = {i:self.audit_base.get(i, 0)+x[i] for i in rows}
+        e = (independent_objective(rows, self.seed, self.alpha, self.rho, full)
+             -independent_objective(rows, self.seed, self.alpha, self.rho, self.audit_opt)
+             +self.theta**2/2*weighted_norm(rows, {i:z[i]-self.audit_opt_corr[i] for i in rows}))
+        qx = q_density(rows, self.alpha, x)
+        residual = {i:qx[i]-self.audit_source[i] for i in rows}
+        auxiliary = weighted_norm(rows, residual)/2+self.alpha*self.lam*sum(
+            (len(rows[i])*x[i] for i in rows), F(0))
+        b = (auxiliary-self.lam*self.source_mass+self.theta**2/2*q_norm(
+            rows, self.alpha, {i:z[i]-self.audit_t[i] for i in rows}))
+        return e, b
+
+    def check_state(self):
+        rows = self.audit_rows
+        for mapping in (self.baseline, self.degree, self.X, self.L, self.z, self.M, self.source):
+            assert isinstance(mapping, AVLMap)
+            for i, value in mapping.items():
+                assert type(i) is int and type(value) is int
+                REPORT['maximum_stored_bits'] = max(REPORT['maximum_stored_bits'],
+                                                    abs(i).bit_length(), abs(value).bit_length())
+        assert all(type(v) is int for v in (self.A, self.D, self.T, self.H, self.S, self.G))
+        REPORT['maximum_stored_bits'] = max(REPORT['maximum_stored_bits'],
+            *(abs(v).bit_length() for v in (self.A, self.D, self.T, self.H, self.S, self.G)))
+        assert self.H//2 <= self.S <= self.H
+        x, z = self.vectors()
+        for f in (x, z):
+            assert all(0 <= v <= self.upper for v in f.values())
+            assert sum((len(rows[i])*v for i, v in f.items()), F(0)) <= self.mass_cap
+        for i in rows:
+            assert self.M.get(i, 0) == sum(self.z.get(j, 0) for j in rows[i])
+            neighbor_error = self.L.get(i, 0)-sum(self.X.get(j, 0) for j in rows[i])
+            assert abs(neighbor_error) <= 4*len(rows[i])
+        expected_exception = set(self.z) | set(self.M) | set(self.source)
+        assert set(self.exceptions) == expected_exception
+        base_records = tree_invariants(self.tree.base)
+        exception_records = tree_invariants(self.tree.exception)
+        assert {i for _, _, i in base_records}.isdisjoint(i for _, _, i in exception_records)
+        assert {i for _, _, i in base_records+exception_records} == set(self.degree)
+        assert len(self.tree.records) == len(self.degree)
+        for i in self.degree:
+            b = ((self.D-self.A)*self.T**2*self.L.get(i, 0)
+                 -((self.D+self.A)*self.T**2-2*self.D)*self.degree[i]*self.X.get(i, 0))
+            if i in expected_exception:
+                e = ((self.D-self.A)*self.T*(self.degree[i]*self.z.get(i, 0)+self.M.get(i, 0))
+                     +self.T*(self.T+1)*self.source.get(i, 0))
+                expected = (1, self.S*b+self.H*e, self.degree[i])
+            else: expected = (0, b, self.degree[i])
+            assert self.tree.records[i] == expected
+            REPORT['reporter_record_checks'] += 1
+        REPORT['integer_state_checks'] += 1
+
+    def step(self):
+        rows, old_x, old_z = self.audit_rows, *self.vectors()
+        e_before, b_before = self.energies()
+        y = {i:(old_x[i]+self.theta*old_z[i])/(1+self.theta) for i in rows}
+        qy = q_density(rows, self.alpha, y)
+        raw = {}
+        for i in rows:
+            exact = ((1-self.theta)*old_z[i]+self.theta*y[i]
+                     -(qy[i]-self.audit_source[i]+self.lam)/self.theta)
+            neighbor_error = F(self.L.get(i, 0)-sum(self.X.get(j, 0) for j in rows[i]), self.H)
+            response_error = F(self.S, self.H)*(1-self.alpha)/2*neighbor_error/(
+                self.theta*(1+self.theta)*len(rows[i]))
+            assert abs(response_error) <= 2*self.grid/self.theta
+            raw[i] = exact+response_error
+            if i in self.tree.records:
+                kind, numerator, degree = self.tree.records[i]
+                computed = F((self.S if kind == 0 else 1)*numerator, self.G*degree)-self.shift
+                assert computed == raw[i]
+            else: assert raw[i] == -self.shift
+        ideal, _ = dense_projection(rows, raw, self.upper, self.mass_cap)
+        expected_counts = {i:(value.numerator*self.H)//value.denominator
+                           for i, value in ideal.items() if value >= self.grid}
+        FLAGS['in_step'] = True
+        try: result = super().step()
+        finally: FLAGS['in_step'] = False
+        assert {i:v for i, v, d in result.entries} == expected_counts
+        assert all(d == len(rows[i]) for i, v, d in result.entries)
+        assert all(min(self.upper, max(F(0), raw[i]-result.multiplier)) == ideal[i] for i in rows)
+        x, z = self.vectors()
+        for i in rows:
+            assert 0 <= ideal[i]-z[i] < self.grid
+            assert 0 <= (1-self.theta)*old_x[i]+self.theta*z[i]-x[i] <= 10*self.grid
+        self.check_state()
+        e_after, b_after = self.energies()
+        zeta = (2*self.theta**2*(2*self.grid/self.theta)
+                +F(5, 2)*10*self.grid+F(5, 2)*(self.theta+self.theta**2)*self.grid)
+        assert e_after <= (1-self.theta)*e_before+zeta
+        assert b_after <= (1-self.theta)*b_before+zeta
+        error = {i:x[i]-self.audit_opt_corr[i] for i in rows}
+        assert weighted_norm(rows, q_density(rows, self.alpha, error)) <= (
+            18*self.lam*self.source_mass+4*self.gamma_bound)
+        REPORT['energy_checks'] += 2
+        REPORT['step_checks'] += 1
+        REPORT['rebases'] += int(self.last_step[1])
+        REPORT['cap_active'] += int(result.cap_active)
+        return result
+
+
+def check_case(family, size, auxiliary, seed, alpha, rho, epsilon):
+    graph = VirtualGraph(family, size, auxiliary)
+    rows = structural_check(graph)
+    oracle = StrictOracle(rows)
+    with patch.object(production, 'IntegerDyadicCorrector', AuditedCorrector):
+        result = production.solve_rppr_integer(oracle, seed, alpha, rho, epsilon)
+    optimum = exact_optimum(rows, seed, alpha, rho)
+    output = {i:v for i, v, d in result.output}
+    gap = independent_objective(rows, seed, alpha, rho, output)-independent_objective(rows, seed, alpha, rho, optimum)
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon
+    assert all(0 <= output.get(i, 0) <= optimum.get(i, 0) for i in rows)
+    assert len(oracle.degree_calls) == (result.metrics.seed_degree_queries+result.metrics.repair_degree_replies
+        +sum(stage.corrector_metrics['degree_replies'] for stage in result.stages))
+    first_entries = sum(len(rows[i]) for i in oracle.row_calls)
+    assert first_entries == (result.metrics.repair_first_adjacency_entries
+        +sum(stage.corrector_metrics['first_adjacency_entries'] for stage in result.stages))
+    previous = {}
+    for stage in result.stages:
+        repaired = {i:v for i, v, d in stage.repaired_output}
+        r, q_repaired = stage.regularization, q_density(rows, alpha, repaired)
+        opt = exact_optimum(rows, seed, alpha, r)
+        assert all(previous.get(i, 0) <= repaired.get(i, 0) <= opt.get(i, 0) for i in rows)
+        assert all(0 <= alpha*int(i == seed)/len(rows[i])-q_repaired[i] <= 2*alpha*r for i in rows)
+        assert stage.corrector_metrics['selected_adjacency_entries'] == stage.kinetic_volume
+        assert stage.corrector_metrics['scanned_adjacency_entries'] == (
+            stage.corrector_metrics['baseline_adjacency_entries']+stage.kinetic_volume)
+        assert stage.corrector_metrics['rebase_adjacency_entries'] == 0
+        eta_opt = 1-sum((len(rows[i])*opt.get(i, 0) for i in rows), F(0))
+        assert eta_opt <= 1-stage.repaired_mass <= (1+alpha)*eta_opt
+        previous = repaired
+    REPORT['cases'] += 1
+    REPORT['fixtures'].append(dict(family=family, size=size, seed=seed, alpha=str(alpha), rho=str(rho),
+                                  stages=len(result.stages), gap=str(gap), certificate=str(result.objective_gap_bound)))
+
+
+def check_reporter_roots():
+    # Generic reporter weights, not an asserted graph or reachable solver state.
+    # These cases independently cover binding roots absent in the six warm runs.
+    degrees = {1:1, 2:2, 3:3, 4:4, 5:5, 6:7}
+    rows = {i:range(d) for i, d in degrees.items()}
+    base = {1:-4, 2:0, 3:6, 4:18, 5:21, 6:63}
+    tree = production.IntegerClippedReporter()
+    for S in (1, 3, 8):
+        for i in degrees:
+            if i % 2:
+                tree.set_base(i, base[i], degrees[i])
+            else:
+                tree.set_exception(i, S*base[i]+16*(i-1), degrees[i])
+        raw = {i:F((S*base[i] if i % 2 else S*base[i]+16*(i-1)), 16*degrees[i])-F(1, 7)
+               for i in degrees}
+        for cap in (F(0), F(1, 64), F(3, 8), F(1), F(4)):
+            ideal, _ = dense_projection(rows, raw, F(5, 8), cap)
+            result = tree.project_counts(base_scale=S, common_denominator=16,
+                shift=F(1, 7), upper=F(5, 8), cap=cap, grid=F(1, 32))
+            expected = {i:(v.numerator*32)//v.denominator for i, v in ideal.items() if v >= F(1, 32)}
+            assert {i:v for i, v, d in result.entries} == expected
+            assert all(min(F(5, 8), max(F(0), raw[i]-result.multiplier)) == ideal[i] for i in degrees)
+            REPORT['standalone_reporter_cases'] += 1
+            REPORT['standalone_binding_reporter_cases'] += int(result.cap_active)
+    # Closed-tail equality at one grid unit in both trees; exact ratio ties
+    # at different degrees and a transition between tree owners.
+    for i, d in degrees.items():
+        if i % 2: tree.set_exception(i, d, d)
+        else: tree.set_base(i, d, d)
+    result = tree.project_counts(base_scale=1, common_denominator=32,
+        shift=F(0), upper=F(1, 4), cap=F(10), grid=F(1, 32))
+    assert {i:v for i, v, d in result.entries} == {i:1 for i in degrees}
+    assert len(tree_invariants(tree.base))+len(tree_invariants(tree.exception)) == len(degrees)
+    REPORT['standalone_reporter_cases'] += 1
+
+
+def main():
+    # During iterative point updates, no Fraction arithmetic or comparison is
+    # allowed outside the one scalar projection query. Reference checks run
+    # outside the guarded step and may freely use exact rational arithmetic.
+    methods = ('__add__', '__radd__', '__sub__', '__rsub__', '__mul__', '__rmul__',
+               '__truediv__', '__rtruediv__', '__floordiv__', '__rfloordiv__',
+               '__neg__', '__pow__', '__lt__', '__le__', '__gt__', '__ge__', '__eq__')
+    originals = {name:getattr(F, name) for name in methods}
+    for name, original in originals.items():
+        def guarded(self, *args, _original=original, _name=name, **kwargs):
+            if FLAGS['in_step'] and not FLAGS['in_projection']:
+                raise AssertionError('Fraction operation outside scalar query: '+_name)
+            return _original(self, *args, **kwargs)
+        setattr(F, name, guarded)
+    try:
+        fixtures = [
+            ('path', 3, 0, 1, F(1, 7), F(1, 5), F(1, 5000)),
+            ('star', 5, 0, 2, F(1, 16), F(1, 6), F(1, 2000)),
+            ('cycle', 4, 0, 1, F(2, 5), F(3, 16), F(1, 2000)),
+            ('barbell', 3, 0, 1, F(1, 8), F(1, 12), F(1, 500)),
+            ('grid', 2, 0, 4, F(63, 1024), F(3, 20), F(1, 1000)),
+            ('tree_clique', 1, 2, 1, F(1, 7), F(1, 8), F(1, 1000)),
+        ]
+        for fixture in fixtures: check_case(*fixture)
+        check_reporter_roots()
+    finally:
+        for name, original in originals.items(): setattr(F, name, original)
+    files = ('integer_dyadic_rppr_solver.py', 'integer_clipped_reporter.py', 'deterministic_avl_containers.py')
+    REPORT['source_sha256'] = {name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in files}
+    REPORT['fraction_point_update_guard_passed'] = True
+    path = Path(__file__).with_name('integer_solver_independent_audit_results.json')
+    path.write_text(json.dumps(REPORT, indent=2)+'\n')
+    print(json.dumps(REPORT, indent=2))
+
+
+if __name__ == '__main__': main()

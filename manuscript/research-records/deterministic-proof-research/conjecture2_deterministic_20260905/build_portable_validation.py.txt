@@ -1,0 +1,269 @@
+"""Create a portable validation transcription, without touching numeric code."""
+import ast
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parent
+SOURCE=ROOT/'validate_adaptive_manifest_independent.py'
+DEST=ROOT/'deliverables/deterministic-rppr/validation/run_full.py'
+text=SOURCE.read_text(); tree=ast.parse(text)
+nodes={n.name:ast.get_source_segment(text,n) for n in tree.body
+       if isinstance(n,(ast.FunctionDef,ast.ClassDef))}
+
+header='''#!/usr/bin/env python3
+"""Exact, deterministic 183-case integration validation for the source bundle.
+
+Only the selected installed/bundled backend is executed. Tests and manifest
+are bundled here; no research-directory import or network access is used.
+"""
+import argparse
+import hashlib
+import json
+import platform
+import signal
+import sys
+import time
+import traceback
+from dataclasses import asdict, fields, is_dataclass
+from fractions import Fraction as F
+from pathlib import Path
+from types import SimpleNamespace
+
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from deterministic_rppr import solve_fast,solve_adaptive
+from tests.test_solver import exact_optimum,objective,source
+import tests.test_solver as reference_module
+
+MANIFEST_HASH='e02485273de4bc1b615530518ac9db60ae5d7beee0140e0e787f6f4320ed0434'
+GUARDS=dict(total_iterations=250000,total_oracle_entries=10000000,
+            total_degree_replies=10000000,per_case_seconds=120,total_seconds=1800)
+BUDGET=dict(iterations=0,entries=0,degrees=0,started=time.monotonic())
+CONTEXT=None
+CASE_STARTED=None
+BACKEND=None
+SOLVER=None
+ORIGINAL_SOURCE=None
+SMOKE_NAMES=('rooted-n5-m15-B','zero-path-0','alpha-one-edge',
+             'labels-n5-m15','access-star-1000000')
+'''
+
+verify=nodes['verify_case']
+def replace(old,new):
+    global verify
+    assert old in verify,old[:100]
+    verify=verify.replace(old,new,1)
+
+replace('answer=adaptive.solve_rppr_adaptive(oracle,problem.seed,alpha,rho,epsilon)',
+        'answer=SOLVER(oracle,problem.seed,alpha,rho,epsilon)')
+replace("inner,am=answer.result,answer.adaptive_metrics\n    assert len(inner.stages)==len(answer.schedule)==len(CONTEXT['candidates'])",
+'''inner=answer.result if BACKEND=='adaptive' else answer
+    am=answer.adaptive_metrics if BACKEND=='adaptive' else SimpleNamespace(
+        source_passes=0,initial_seed_source_evaluations=0,degree_replies=0,
+        first_adjacency_entries=0,first_row_requests=0)
+    schedule=answer.schedule if BACKEND=='adaptive' else [None]*len(inner.stages)
+    assert len(inner.stages)==len(schedule)==len(CONTEXT['candidates'])''')
+replace('inner.stages,answer.schedule,CONTEXT[\'candidates\']','inner.stages,schedule,CONTEXT[\'candidates\']')
+start=verify.index('        assert record.previous_regularization==previous_r')
+end=verify.index('        assert previous_r/4<=r<previous_r and rho<=r',start)
+verify=verify[:start]+'''        if BACKEND=='adaptive':
+            assert record.previous_regularization==previous_r
+            assert record.source_maximum==maximum
+            assert full_source[record.maximum_vertex]==maximum
+            assert record.proposed_regularization==maximum/(4*alpha)
+            assert r==record.chosen_regularization==max(rho,maximum/(4*alpha))
+            assert record.target_clamped==(rho>maximum/(4*alpha))
+            assert previous_r/4<=record.proposed_regularization<=previous_r/2
+        else:
+            assert r==max(rho,previous_r/2)
+        assert alpha*previous_r<=maximum<=2*alpha*previous_r
+'''+verify[end:]
+start=verify.index('        sm=record.source_metrics')
+end=verify.index('        stage_checks.append(',start)
+block=verify[start:end]
+verify=verify[:start]+"        if BACKEND=='adaptive':\n"+''.join('    '+line if line.strip() else line for line in block.splitlines(True))+verify[end:]
+replace('''        assert am.source_passes==len(inner.stages)-1
+        assert am.initial_seed_source_evaluations==1''','''        if BACKEND=='adaptive':
+            assert am.source_passes==len(inner.stages)-1
+            assert am.initial_seed_source_evaluations==1''')
+replace("        assert not answer.schedule and not CONTEXT['observed_source_passes']\n        assert all(getattr(am,f.name)==0 for f in fields(am))",
+'''        assert not schedule and not CONTEXT['observed_source_passes']
+        if BACKEND=='adaptive':
+            assert all(getattr(am,f.name)==0 for f in fields(am))''')
+start=verify.index('    for f in fields(am):')
+end=verify.index("    assert len(CONTEXT['observed_source_passes'])==am.source_passes",start)
+block=verify[start:end]
+verify=verify[:start]+"    if BACKEND=='adaptive':\n"+''.join('    '+line if line.strip() else line for line in block.splitlines(True))+verify[end:]
+
+helpers='''
+def load_manifest(path):
+    raw=json.loads(Path(path).read_text())
+    digest=hashlib.sha256(json.dumps(raw,sort_keys=True).encode()).hexdigest()
+    if digest!=MANIFEST_HASH or len(raw)!=183:
+        raise ValueError('cases.json does not match the fixed audited 183-case manifest')
+    cases=[]
+    for item in raw:
+        case=dict(item)
+        for name in ('alpha','rho','epsilon'):
+            case[name]=F(case[name])
+        if 'rows' in case:
+            case['rows']={int(i):tuple(row) for i,row in case['rows'].items()}
+        if 'inverse' in case:
+            case['inverse']={int(i):v for i,v in case['inverse'].items()}
+        cases.append(case)
+    names={case['name'] for case in cases}
+    if len(names)!=183:
+        raise ValueError('Duplicate case names')
+    for case in cases:
+        if 'compare_to' in case and case['compare_to'] not in names:
+            raise ValueError('Missing invariance reference case')
+    return cases,raw,digest
+
+
+def set_alarm(seconds):
+    if hasattr(signal,'setitimer'):
+        signal.setitimer(signal.ITIMER_REAL,seconds)
+
+
+def sources():
+    paths={Path(__file__).resolve(),Path(reference_module.__file__).resolve()}
+    for module in tuple(sys.modules.values()):
+        file=getattr(module,'__file__',None)
+        if file:
+            p=Path(file).resolve()
+            if p.suffix=='.py' and p.is_relative_to(ROOT):
+                paths.add(p)
+    return {str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(paths)}
+
+
+def write(target,evidence):
+    target=Path(target)
+    temporary=target.with_name(target.name+'.tmp')
+    temporary.write_text(json.dumps(serialize(evidence),indent=2)+'\\n')
+    temporary.replace(target)
+
+
+def main(argv=None):
+    global BACKEND,SOLVER,ORIGINAL_SOURCE,CASE_STARTED
+    if not __debug__:
+        raise RuntimeError('Run validation without Python -O: assertions are required')
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--backend',choices=('fast','adaptive'),default='fast')
+    parser.add_argument('--smoke',action='store_true',help='Run the fixed five-case smoke subset only')
+    parser.add_argument('--check-data',action='store_true',help='Check case transcription/hash without running a solver')
+    parser.add_argument('--output',type=Path,help='JSON result path; completed records are saved after every case')
+    args=parser.parse_args(argv)
+    BACKEND=args.backend
+    SOLVER=solve_fast if BACKEND=='fast' else solve_adaptive
+    all_cases,raw,digest=load_manifest(Path(__file__).with_name('cases.json'))
+    cases=[case for case in all_cases if case['name'] in SMOKE_NAMES] if args.smoke else all_cases
+    selected_names={case['name'] for case in cases}
+    assert all(case.get('compare_to',case['name']) in selected_names for case in cases)
+    target=args.output or Path.cwd()/('validation_'+BACKEND+('_smoke' if args.smoke else '')+'.json')
+    hashes=sources()
+    evidence=dict(status='running',backend=BACKEND,deterministic=True,
+        scope='smoke_subset' if args.smoke else 'full_183_case_manifest',
+        full_manifest_completed=False,selected_cases_completed=False,
+        manifest_case_count=183,selected_case_count=len(cases),manifest_sha256=digest,
+        selected_names=[case['name'] for case in cases],manifest=raw,
+        runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform()),
+        resource_guards=GUARDS,alarm_preemption_available=hasattr(signal,'setitimer'),
+        source_hashes_before=hashes,completed=[],
+        observer_scope='Guard steps, record returned stage candidates, and meter adaptive helper calls; numerical operations unchanged.',
+        analytic_star_scope='Seed/hub formulas cover the omitted zero leaf class; no hub row is read.')
+    write(target,evidence)
+    if args.check_data:
+        evidence.update(status='data_verified',solver_cases_run=0,source_hashes_after=sources())
+        write(target,evidence)
+        print('DATA VERIFIED:',digest)
+        return 0
+    namespace=SOLVER.__globals__
+    key='FastDyadicCorrector' if BACKEND=='fast' else 'AdaptiveFastCorrector'
+    original_corrector=namespace[key]
+    class GuardCorrector(original_corrector):
+        def step(self):
+            BUDGET['iterations']+=1
+            guard()
+            return super().step()
+        def run(self):
+            candidate=super().run()
+            CONTEXT['candidates'].append(dict(regularization=self.rho,candidate=candidate,
+                                              certified_gap=self.objective_gap_bound))
+            return candidate
+    namespace[key]=GuardCorrector
+    if BACKEND=='adaptive':
+        ORIGINAL_SOURCE=namespace['source_maximum']
+        namespace['source_maximum']=observed_source
+    if hasattr(signal,'SIGALRM'):
+        signal.signal(signal.SIGALRM,alarm_handler)
+    previous_results={}
+    case=None
+    exit_code=0
+    try:
+        for number,case in enumerate(cases,1):
+            CASE_STARTED=time.monotonic()
+            set_alarm(GUARDS['per_case_seconds'])
+            guard()
+            answer,checks=verify_case(case)
+            if 'compare_to' in case:
+                old=previous_results[case['compare_to']]
+                inverse=case['inverse']
+                normalize=lambda out:tuple(sorted((inverse[i],v,d) for i,v,d in out))
+                assert normalize(answer.output)==tuple(sorted(old.output))
+                assert answer.objective_gap_bound==old.objective_gap_bound
+                assert len(answer.stages)==len(old.stages)
+                for new_stage,old_stage in zip(answer.stages,old.stages):
+                    assert normalize(new_stage.repaired_output)==tuple(sorted(old_stage.repaired_output))
+                    for field in ('regularization','delta','requested_gap','certified_gap','iterations','grid','projection_mass_cap'):
+                        assert getattr(new_stage,field)==getattr(old_stage,field)
+                checks['label_and_reversed_row_invariance']=case['compare_to']
+            set_alarm(0)
+            previous_results[case['name']]=answer
+            evidence['completed'].append(dict(name=case['name'],passed=True,
+                elapsed_seconds=time.monotonic()-CASE_STARTED,result=answer,checks=checks))
+            CASE_STARTED=None
+            evidence['totals']=dict(cases=len(evidence['completed']),iterations=BUDGET['iterations'],
+                oracle_entries=BUDGET['entries'],degree_replies=BUDGET['degrees'],
+                stages=sum(len(previous_results[name].stages) for name in previous_results))
+            write(target,evidence)
+            print(f'PASS {number}/{len(cases)} {case["name"]}: '+
+                  f'{len(answer.stages)} stages, {sum(s.iterations for s in answer.stages)} iterations',flush=True)
+        evidence.update(status='complete_subset' if args.smoke else 'complete',
+                        full_manifest_completed=not args.smoke,selected_cases_completed=True)
+    except BaseException as error:
+        set_alarm(0)
+        evidence['status']='incomplete'
+        evidence['failure']=dict(case=None if case is None else case['name'],
+            exception=repr(error),traceback=traceback.format_exc(),partial_observations=CONTEXT)
+        print('INCOMPLETE:',repr(error),file=sys.stderr)
+        exit_code=1
+    finally:
+        namespace[key]=original_corrector
+        if BACKEND=='adaptive':
+            namespace['source_maximum']=ORIGINAL_SOURCE
+        set_alarm(0)
+        CASE_STARTED=None
+        evidence['source_hashes_after']=sources()
+        evidence['sources_unchanged']=evidence['source_hashes_after']==hashes
+        if not evidence['sources_unchanged']:
+            evidence['status']='incomplete'
+            evidence['full_manifest_completed']=False
+            exit_code=1
+        evidence['elapsed_seconds']=time.monotonic()-BUDGET['started']
+        write(target,evidence)
+    print(evidence['status'].upper(),json.dumps(evidence.get('totals',{})),flush=True)
+    return exit_code
+
+
+if __name__=='__main__':
+    raise SystemExit(main())
+'''
+
+guard=nodes['guard'].replace("    if time.monotonic()-BUDGET['started']", "    if CASE_STARTED is not None and time.monotonic()-CASE_STARTED>GUARDS['per_case_seconds']:\n        raise TimeoutError('Fixed per-case wall-time guard reached')\n    if time.monotonic()-BUDGET['started']",1)
+parts=[header,nodes['serialize'],guard,nodes['alarm_handler'],nodes['StrictLocalOracle'],
+       nodes['Problem'],nodes['observed_source'],verify,helpers]
+rendered='\n\n'.join(parts)+'\n'
+ast.parse(rendered)
+assert '/Users/' not in rendered and 'validate_packaged_solver' not in rendered
+DEST.write_text(rendered)
+print(DEST)

@@ -1,0 +1,403 @@
+"""Exact deterministic local RPPR batches with forest-preconditioned PCG.
+
+Only Fraction arithmetic is used. The structural bound contains r*+1,
+where r* is the cyclomatic number of the final optimal induced support.
+This is not a general OP2 solver bound.
+
+Counters describe the displayed exact-real algorithm: scalar arithmetic,
+comparisons, explicit scalar/container accesses, iteration events, oracle
+replies, copied adjacency entries, and output materialization. They are
+logical counters, not Python bytecode counts or Fraction bit complexity.
+Python integer-key maps implement the prototype; deterministic balanced
+maps can replace them with an additional logarithmic factor.
+"""
+
+from dataclasses import dataclass, asdict
+from fractions import Fraction as F
+
+
+@dataclass
+class Counts:
+    arithmetic: int = 0
+    comparisons: int = 0
+    state_reads: int = 0
+    state_writes: int = 0
+    control: int = 0
+    degree_replies: int = 0
+    adjacency_queries: int = 0
+    adjacency_entries: int = 0
+    cached_neighbor_reads: int = 0
+    internal_neighbor_reads: int = 0
+    boundary_tests: int = 0
+    forest_builds: int = 0
+    tree_applications: int = 0
+    pcg_iterations: int = 0
+    principal_solves: int = 0
+    output_words: int = 0
+
+    def report(self):
+        result = asdict(self)
+        result['total_logical_work'] = sum(result[k] for k in (
+            'arithmetic', 'comparisons', 'state_reads', 'state_writes',
+            'control', 'degree_replies', 'adjacency_queries',
+            'adjacency_entries', 'output_words'))
+        return result
+
+
+class Ops:
+    def __init__(self, counts): self.c = counts
+
+    def binary(self, a, b, kind):
+        self.c.arithmetic += 1
+        self.c.state_reads += 2
+        self.c.state_writes += 1
+        if kind == '+': return a+b
+        if kind == '-': return a-b
+        if kind == '*': return a*b
+        return a/b
+
+    def add(self, a, b): return self.binary(a, b, '+')
+    def sub(self, a, b): return self.binary(a, b, '-')
+    def mul(self, a, b): return self.binary(a, b, '*')
+    def div(self, a, b): return self.binary(F(a), F(b), '/')
+
+    def compare(self, a, b, kind):
+        self.c.comparisons += 1
+        self.c.state_reads += 2
+        if kind == '>': return a > b
+        if kind == '<=': return a <= b
+        return a == b
+
+    def positive(self, a): return self.compare(a, 0, '>')
+    def le(self, a, b): return self.compare(a, b, '<=')
+    def equal(self, a, b): return self.compare(a, b, '=')
+
+
+class Map:
+    def __init__(self, counts): self.c, self.data = counts, {}
+
+    def __contains__(self, key):
+        self.c.state_reads += 1
+        self.c.comparisons += 1
+        return key in self.data
+
+    def __getitem__(self, key):
+        self.c.state_reads += 1
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.c.state_writes += 1
+        self.data[key] = value
+
+    def keys(self):
+        for key in self.data:
+            self.c.control += 1
+            self.c.state_reads += 1
+            yield key
+
+    def copy(self):
+        result = Map(self.c)
+        for i in self.keys(): result[i] = self[i]
+        return result
+
+
+class AdjacencyOracle:
+    """The caller supplies input storage; the algorithm sees only two queries."""
+    def __init__(self, adjacency):
+        self._adjacency = adjacency
+        self.counts = Counts()
+        self.queried_vertices = set()  # Validation instrumentation only.
+
+    def degree(self, i):
+        self.counts.degree_replies += 1
+        return len(self._adjacency[i])
+
+    def neighbors(self, i):
+        self.counts.adjacency_queries += 1
+        self.queried_vertices.add(i)
+        for j in self._adjacency[i]:
+            self.counts.adjacency_entries += 1
+            yield j
+
+
+class Cache:
+    def __init__(self, oracle):
+        self.oracle, self.c = oracle, oracle.counts
+        self.degrees, self.rows = Map(self.c), Map(self.c)
+
+    def degree(self, i):
+        if i not in self.degrees: self.degrees[i] = self.oracle.degree(i)
+        return self.degrees[i]
+
+    def admit(self, i):
+        self.degree(i)
+        if i not in self.rows:
+            row = []
+            for j in self.oracle.neighbors(i):
+                self.c.control += 1
+                self.c.state_writes += 1
+                row.append(j)
+            self.rows[i] = row
+
+    def neighbors(self, i):
+        for j in self.rows[i]:
+            self.c.control += 1
+            self.c.state_reads += 1
+            self.c.cached_neighbor_reads += 1
+            yield j
+
+
+class PrincipalSystem:
+    """Materialize only the currently admitted induced graph and its forest."""
+    def __init__(self, cache, active, alpha):
+        alpha = F(alpha)
+        self.cache, self.active, self.cc = cache, active, cache.c
+        self.op = op = Ops(self.cc)
+        self.alpha = alpha
+        self.c = op.div(op.sub(1, alpha), 2)
+        self.a = op.div(op.add(1, alpha), 2)
+        self.rows, self.inside_degree = Map(self.cc), Map(self.cc)
+        self.size = self.volume = directed_edges = 0
+        for i in active.keys():
+            self.size = op.add(self.size, 1)
+            self.volume = op.add(self.volume, cache.degree(i))
+            row, count = [], 0
+            for j in cache.neighbors(i):
+                if j in active:
+                    self.cc.state_writes += 1
+                    row.append(j)
+                    count = op.add(count, 1)
+            self.rows[i], self.inside_degree[i] = row, count
+            directed_edges = op.add(directed_edges, count)
+        self.edge_count = op.div(directed_edges, F(2))
+        self._factor_forest()
+
+    def neighbors(self, i):
+        for j in self.rows[i]:
+            self.cc.control += 1
+            self.cc.state_reads += 1
+            self.cc.internal_neighbor_reads += 1
+            yield j
+
+    def _factor_forest(self):
+        cc, op = self.cc, self.op
+        cc.forest_builds += 1
+        self.parent, forest_degree = Map(cc), Map(cc)
+        self.order = []
+        components = 0
+        for i in self.active.keys(): forest_degree[i] = 0
+        for root in self.active.keys():
+            if root in self.parent: continue
+            components = op.add(components, 1)
+            self.parent[root] = None
+            stack = [root]
+            cc.state_writes += 1
+            while stack:
+                cc.control += 1
+                cc.state_reads += 1
+                cc.state_writes += 2
+                i = stack.pop()
+                self.order.append(i)
+                for j in self.neighbors(i):
+                    if j in self.parent: continue
+                    self.parent[j] = i
+                    forest_degree[i] = op.add(forest_degree[i], 1)
+                    forest_degree[j] = op.add(forest_degree[j], 1)
+                    cc.state_writes += 1
+                    stack.append(j)
+        self.rank_bound = int(op.add(op.sub(self.edge_count, self.size), components))
+        self.pivot, self.factor = Map(cc), Map(cc)
+        for i in self.active.keys():
+            grounding = op.add(op.mul(self.alpha, self.cache.degree(i)),
+                op.mul(self.c, op.sub(self.cache.degree(i), self.inside_degree[i])))
+            self.pivot[i] = op.add(grounding, op.mul(self.c, forest_degree[i]))
+        for i in self.order_values(reverse=True):
+            if not op.positive(self.pivot[i]): raise ArithmeticError('Nonpositive tree pivot')
+            p = self.parent[i]
+            cc.comparisons += 1
+            if p is not None:
+                self.factor[i] = op.div(self.c, self.pivot[i])
+                self.pivot[p] = op.sub(self.pivot[p], op.mul(self.c, self.factor[i]))
+
+    def order_values(self, reverse=False):
+        iterator = reversed(self.order) if reverse else iter(self.order)
+        for i in iterator:
+            self.cc.control += 1
+            self.cc.state_reads += 1
+            yield i
+
+    def apply_tree_inverse(self, rhs):
+        self.cc.tree_applications += 1
+        op, cc = self.op, self.cc
+        work, result = rhs.copy(), Map(cc)
+        for i in self.order_values(reverse=True):
+            p = self.parent[i]
+            cc.comparisons += 1
+            if p is not None:
+                work[p] = op.add(work[p], op.mul(self.factor[i], work[i]))
+        for i in self.order_values():
+            value = op.div(work[i], self.pivot[i])
+            p = self.parent[i]
+            cc.comparisons += 1
+            if p is not None: value = op.add(value, op.mul(self.factor[i], result[p]))
+            result[i] = value
+        return result
+
+    def matvec(self, vector):
+        result, op = Map(self.cc), self.op
+        for i in self.active.keys():
+            value = op.mul(op.mul(self.a, self.cache.degree(i)), vector[i])
+            for j in self.neighbors(i): value = op.sub(value, op.mul(self.c, vector[j]))
+            result[i] = value
+        return result
+
+    def dot(self, left, right):
+        value = F(0)
+        for i in self.active.keys(): value = self.op.add(value, self.op.mul(left[i], right[i]))
+        return value
+
+    def is_zero(self, vector):
+        for i in self.active.keys():
+            if not self.op.equal(vector[i], 0): return False
+        return True
+
+    def solve(self, rhs, warm=None):
+        """Exact PCG; a fresh tree factor was built once in __init__."""
+        cc, op = self.cc, self.op
+        cc.principal_solves += 1
+        y = Map(cc)
+        for i in self.active.keys(): y[i] = warm[i] if warm is not None and i in warm else F(0)
+        hy, residual = self.matvec(y), Map(cc)
+        for i in self.active.keys(): residual[i] = op.sub(rhs[i], hy[i])
+        iterations = 0
+        if not self.is_zero(residual):
+            z = self.apply_tree_inverse(residual)
+            direction, rz = z.copy(), self.dot(residual, z)
+            rank_limit = op.add(self.rank_bound, 1)
+            limit = self.size if op.le(self.size, rank_limit) else rank_limit
+            while True:
+                cc.control += 1
+                image = self.matvec(direction)
+                denominator = self.dot(direction, image)
+                if not op.positive(denominator): raise ArithmeticError('PCG curvature is not positive')
+                step = op.div(rz, denominator)
+                for i in self.active.keys():
+                    y[i] = op.add(y[i], op.mul(step, direction[i]))
+                    residual[i] = op.sub(residual[i], op.mul(step, image[i]))
+                iterations = op.add(iterations, 1)
+                cc.pcg_iterations += 1
+                if self.is_zero(residual): break
+                if op.le(limit, iterations): raise ArithmeticError('Exact PCG exceeded the rank bound')
+                z = self.apply_tree_inverse(residual)
+                next_rz = self.dot(residual, z)
+                beta = op.div(next_rz, rz)
+                for i in self.active.keys(): direction[i] = op.add(z[i], op.mul(beta, direction[i]))
+                rz = next_rz
+        actual = self.matvec(y)
+        for i in self.active.keys():
+            if not op.equal(actual[i], rhs[i]): raise ArithmeticError('Nonzero actual principal residual')
+        return y, iterations
+
+
+@dataclass
+class Result:
+    y: dict
+    degrees: dict
+    radicals: list
+    objective_gap_bound: F
+    termination: str
+    history: list
+    counts: dict
+    certificate_exact: bool = True
+
+    def x_radicals(self):
+        """Already charged output records; (i,y,d) represents y*sqrt(d)."""
+        return self.radicals
+
+
+def solve(oracle, seed, alpha, rho, epsilon):
+    """Exact all-violations batches, with no traversal of the oracle's input."""
+    alpha, rho, epsilon = map(F, (alpha, rho, epsilon))
+    if not (0 < alpha <= 1 and rho > 0 and epsilon > 0):
+        raise ValueError('Need 0<alpha<=1, rho>0, epsilon>0')
+    cc, op = oracle.counts, Ops(oracle.counts)
+    cache, active = Cache(oracle), Map(cc)
+    d_seed = cache.degree(seed)
+    if not op.positive(d_seed): raise ValueError('Positive graph degrees are required')
+    ar, history = op.mul(alpha, rho), []
+
+    def finish(y, bound, reason):
+        values, degrees, radicals = {}, {}, []
+        for i in y.keys():
+            values[i], degrees[i] = y[i], cache.degree(i)
+            radicals.append((i, values[i], degrees[i]))
+            cc.state_reads += 2
+            cc.state_writes += 6
+            cc.output_words += 3
+        cc.output_words += 3  # Bound, termination flag, history reference.
+        return Result(values, degrees, radicals, bound, reason, history, cc.report())
+
+    if op.le(1, op.mul(rho, d_seed)):
+        return finish(Map(cc), F(0), 'zero optimum')
+    zero_bound = op.div(alpha, op.mul(2, d_seed))
+    if op.le(zero_bound, epsilon):
+        return finish(Map(cc), zero_bound, 'zero objective certificate')
+    if op.equal(alpha, 1):
+        y = Map(cc)
+        y[seed] = op.div(op.sub(1, op.mul(rho, d_seed)), d_seed)
+        return finish(y, F(0), 'diagonal optimum')
+
+    ell = F(1)
+    while not op.le(op.mul(ell, ell), alpha):
+        cc.control += 1
+        ell = op.div(ell, 2)
+    q_bar = op.div(op.sub(2, ell), op.add(2, ell))
+    decay_factor = op.mul(q_bar, q_bar)
+    decay_bound = op.mul(2, alpha)
+    new_vertices, y = [seed], None
+    cc.state_writes += 1
+    while True:
+        cc.control += 1
+        for i in new_vertices:
+            cc.control += 1
+            cc.state_reads += 1
+            active[i] = True
+            cache.admit(i)
+        system = PrincipalSystem(cache, active, alpha)
+        rhs = Map(cc)
+        for i in active.keys():
+            rhs[i] = op.sub(alpha if op.equal(i, seed) else 0, op.mul(ar, cache.degree(i)))
+        y, iterations = system.solve(rhs, y)
+        for i in active.keys():
+            if not op.positive(y[i]): raise ArithmeticError('Unsafe or nonpositive admitted solution')
+
+        incoming = Map(cc)
+        for i in active.keys():
+            value = op.mul(system.c, y[i])
+            for j in cache.neighbors(i):
+                if j in active: continue
+                cache.degree(j)
+                if j not in incoming: incoming[j] = F(0)
+                incoming[j] = op.add(incoming[j], value)
+        new_vertices, squared = [], F(0)
+        for j in incoming.keys():
+            cc.boundary_tests += 1
+            residual = op.sub(incoming[j], op.mul(ar, cache.degree(j)))
+            if op.positive(residual):
+                cc.state_writes += 1
+                new_vertices.append(j)
+                squared = op.add(squared, op.div(op.mul(residual, residual), cache.degree(j)))
+        certificate = op.div(squared, op.mul(2, alpha))
+        record = dict(size=system.size, volume=system.volume, cycle_rank=system.rank_bound,
+            pcg_iterations=iterations, boundary_certificate=certificate,
+            batch_decay_bound=decay_bound)
+        cc.state_reads += 6
+        cc.state_writes += 7
+        cc.output_words += 6
+        history.append(record)
+        if op.le(certificate, epsilon):
+            reason = 'exact optimum' if op.equal(certificate, 0) else 'boundary certificate'
+            return finish(y, certificate, reason)
+        if op.le(decay_bound, epsilon):
+            return finish(y, decay_bound, 'batch decay certificate')
+        decay_bound = op.mul(decay_bound, decay_factor)

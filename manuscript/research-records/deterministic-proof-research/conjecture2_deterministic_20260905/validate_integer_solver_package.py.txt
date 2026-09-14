@@ -1,0 +1,130 @@
+"""Exact validation of both packaged integer backends on a fixed manifest."""
+
+import hashlib
+import json
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import validate_packaged_solver as manifest_source
+from tests.test_solver import validate_case
+from deterministic_rppr import solve_integer, solve_source_energy
+
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE_ROOT = manifest_source.PACKAGE_ROOT
+
+
+def analytic_star(case, solver):
+    leaves = case['star_leaves']
+    alpha, rho, epsilon = (case[k] for k in ('alpha', 'rho', 'epsilon'))
+    seed, q0, c = leaves+1, (1+alpha)/2, (1-alpha)/2
+
+    class Oracle:
+        def __init__(self):
+            self.degree_calls = self.entries = 0
+            self.discovered = False
+        def degree(self, i):
+            assert i == seed or i == 1 and self.discovered
+            self.degree_calls += 1
+            return 1 if i == seed else leaves
+        def neighbors(self, i):
+            assert i == seed, 'The inactive hub adjacency was scanned'
+            self.entries += 1
+            self.discovered = True
+            yield 1
+
+    oracle = Oracle()
+    result = solver(oracle, seed, alpha, rho, epsilon)
+    previous = F(0)
+    for stage in result.stages:
+        r = stage.regularization
+        exact = alpha*(1-r)/q0
+        assert c*exact/leaves <= alpha*r
+        assert len(stage.repaired_output) == 1
+        vertex, value, degree = stage.repaired_output[0]
+        assert vertex == seed and degree == 1
+        assert 0 <= previous <= value <= exact
+        assert exact-value <= 2*stage.delta
+        assert 0 <= alpha-q0*value <= 2*alpha*r
+        assert 0 <= c*value/leaves <= 2*alpha*r
+        assert stage.projection_mass_cap == 1-previous
+        assert stage.source_mass == alpha*(1-previous)
+        assert stage.repaired_mass == value
+        assert stage.repaired_volume == 1
+        assert 0 <= stage.certified_gap < stage.requested_gap
+        assert stage.kinetic_volume <= stage.kinetic_volume_bound
+        assert stage.corrector_metrics['rebase_adjacency_entries'] == 0
+        assert q0*(value-exact)**2/2 <= 2*stage.delta**2/r
+        previous = value
+    exact = alpha*(1-rho)/q0
+    assert c*exact/leaves <= alpha*rho
+    assert result.output == ((seed, previous, 1),)
+    gap = q0*(previous-exact)**2/2
+    assert 0 <= gap <= result.objective_gap_bound <= epsilon
+    assert oracle.degree_calls == 1+result.metrics.repair_degree_replies+sum(
+        stage.corrector_metrics['degree_replies'] for stage in result.stages)
+    assert oracle.entries == result.metrics.repair_first_adjacency_entries+sum(
+        stage.corrector_metrics['first_adjacency_entries'] for stage in result.stages)
+    return result, dict(actual_gap=gap, degree_calls=oracle.degree_calls,
+        first_adjacency_entries=oracle.entries,
+        iterations=sum(stage.iterations for stage in result.stages),
+        stages=len(result.stages), volume=1)
+
+
+def main():
+    cases = manifest_source.make_manifest()
+    previous = json.loads((ROOT/'packaged_solver_validation.json').read_text())
+    assert previous['status'] == 'passed'
+    old = {row['name']: row for row in previous['completed']}
+    hashes = {str(path.relative_to(PACKAGE_ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in sorted((PACKAGE_ROOT/'deterministic_rppr').glob('*.py'))}
+    output = ROOT/'packaged_integer_solver_validation.json'
+    evidence = dict(status='running', deterministic=True, case_count=2*len(cases),
+        package_hashes=hashes, original_manifest_sha256=hashlib.sha256(
+            (ROOT/'packaged_solver_validation.json').read_bytes()).hexdigest(),
+        completed=[], total_iterations=0, total_first_entries=0)
+    output.write_text(json.dumps(evidence, indent=2)+'\n')
+    number = 0
+    for backend, solver in [('integer', solve_integer), ('source_energy', solve_source_energy)]:
+        outputs = {}
+        for case in cases:
+            number += 1
+            start = time.perf_counter()
+            if 'star_leaves' in case:
+                answer, checked = analytic_star(case, solver)
+            else:
+                answer, checked = validate_case(case['rows'], case['seed'], case['alpha'],
+                    case['rho'], case['epsilon'], solve_function=solver,
+                    reverse=case.get('reverse', False))
+            if backend == 'integer':
+                reference = old[case['name']]
+                assert answer.output == tuple((i, F(value), degree)
+                                              for i, value, degree in reference['output'])
+                assert answer.objective_gap_bound == F(reference['certificate'])
+                for key in ('iterations', 'stages', 'degree_calls', 'first_adjacency_entries'):
+                    assert checked[key] == reference['checks'][key]
+            if 'compare_to' in case:
+                inverse = case['inverse']
+                normalized = tuple((inverse[i], value, degree) for i, value, degree in answer.output)
+                assert normalized == outputs[case['compare_to']]
+            outputs[case['name']] = answer.output
+            evidence['total_iterations'] += checked['iterations']
+            evidence['total_first_entries'] += checked['first_adjacency_entries']
+            if evidence['total_iterations'] > 250000 or evidence['total_first_entries'] > 10000000:
+                raise RuntimeError('Fixed resource guard reached; validation is incomplete')
+            evidence['completed'].append(manifest_source.serialize(dict(
+                name=case['name'], backend=backend, passed=True,
+                elapsed_seconds=time.perf_counter()-start, checks=checked,
+                certificate=answer.objective_gap_bound, output=answer.output,
+                stage_iterations=[stage.iterations for stage in answer.stages])))
+            output.write_text(json.dumps(evidence, indent=2)+'\n')
+            print(f'PASS {number}/{2*len(cases)} {backend} {case["name"]} '
+                  f'({checked["iterations"]} iterations)', flush=True)
+    evidence['status'] = 'passed'
+    output.write_text(json.dumps(evidence, indent=2)+'\n')
+    print(f'ALL PASSED: {number} cases, {evidence["total_iterations"]} iterations', flush=True)
+
+
+if __name__ == '__main__':
+    main()

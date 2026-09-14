@@ -1,0 +1,127 @@
+"""Large canonical unit trees audited by an exact equitable quotient.
+
+Vertices are ordered level by level. Independent vertices within a level
+have identical histories, so singleton A-CODER sweeps reduce to the displayed
+symmetric quotient recurrence. Counts are actual unit-graph vertex counts.
+The quotient is an audit compression, not free information for a local solver.
+"""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import json
+import time
+from pathlib import Path
+
+import numpy as np
+from cyclic_dual_averaging import run_matrix
+
+
+def model(branches, alpha):
+    size = [1]
+    for b in branches:
+        size.append(size[-1] * b)
+    degree = [branches[0]] + [1 + b for b in branches[1:]] + [1]
+    volume = np.array([s * d for s, d in zip(size, degree, strict=True)], dtype=float)
+    w = np.sqrt(volume)
+    normalized = np.zeros((len(size), len(size)))
+    for i, b in enumerate(branches):
+        normalized[i, i + 1] = normalized[i + 1, i] = np.sqrt(
+            b / (degree[i] * degree[i + 1])
+        )
+    k_matrix = (1 - alpha) / 2 * (np.eye(len(size)) - normalized)
+    source = np.zeros(len(size))
+    source[0] = alpha / np.sqrt(degree[0])
+    q = k_matrix + alpha * np.eye(len(size))
+    transitions = []
+    for length in range(1, len(size)):
+        p = np.linalg.solve(q[:length, :length], source[:length])
+        h = np.linalg.solve(q[:length, :length], alpha * w[:length])
+        cut = q[length, :length]
+        transitions.append(float((-cut @ p) / (alpha * w[length] - cut @ h)))
+    return k_matrix, source, w, volume, transitions, sum(size)
+
+
+def families():
+    for depth in (3, 5, 7, 9, 12):
+        for branch in (1, 2, 4, 10, 100):
+            yield [branch] * depth
+        for large, small in itertools.product((4, 20, 100), (1, 2)):
+            yield [large if j % 2 == 0 else small for j in range(depth)]
+            yield [small if j % 2 == 0 else large for j in range(depth)]
+        for position in range(depth):
+            yield [100 if j == position else 1 for j in range(depth)]
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--sweeps", type=int, default=2000)
+    parser.add_argument("--stop-first", action="store_true")
+    args = parser.parse_args()
+    tested = 0
+    escapes = 0
+    start = time.monotonic()
+    with args.output.open("w") as output:
+        for branches in families():
+            for alpha in (1e-6, 1e-4, 1e-2, 0.1):
+                k_matrix, source, w, volume, transitions, n = model(branches, alpha)
+                for rho0 in transitions:
+                    for perturbation in (0.001, 0.000001):
+                        rho = rho0 * (1 + perturbation)
+                        for reverse in (True, False):
+                            sequence = list(range(len(w)))
+                            if reverse:
+                                sequence.reverse()
+                            result = run_matrix(
+                                k_matrix,
+                                alpha,
+                                rho,
+                                source - alpha * rho * w,
+                                w,
+                                volume,
+                                args.sweeps,
+                                sequence=sequence,
+                                stop_on_escape=args.stop_first,
+                            )
+                            result.update(
+                                {
+                                    "branches": branches,
+                                    "ambient_n": n,
+                                    "rho_transition": rho0,
+                                    "perturbation": perturbation,
+                                }
+                            )
+                            tested += 1
+                            escapes += result["first_escape"] is not None
+                            output.write(json.dumps(result) + "\n")
+                            if tested % 50 == 0:
+                                output.flush()
+                                print(
+                                    json.dumps(
+                                        {
+                                            "tested": tested,
+                                            "escapes": escapes,
+                                            "elapsed_seconds": time.monotonic() - start,
+                                        }
+                                    ),
+                                    flush=True,
+                                )
+                            if args.stop_first and result["first_escape"]:
+                                print(json.dumps(result), flush=True)
+                                return
+    print(
+        json.dumps(
+            {
+                "tested": tested,
+                "escapes": escapes,
+                "elapsed_seconds": time.monotonic() - start,
+            }
+        ),
+        flush=True,
+    )
+
+
+if __name__ == "__main__":
+    main()

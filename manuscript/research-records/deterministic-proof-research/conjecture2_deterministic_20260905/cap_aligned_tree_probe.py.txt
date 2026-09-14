@@ -1,0 +1,106 @@
+"""Exact radial diagnostic for cap-aligned accelerated RPPR on binary trees.
+
+The whole tree quotient is supplied only to this experiment, never claimed
+as free local solver input. All support signs and volume counts use integers.
+No randomized algorithm occurs. Floating ratios are presentation only.
+"""
+import argparse
+import json
+from fractions import Fraction
+
+
+def probe(p, steps=None):
+    if p <= 0 or p % 2: raise ValueError('p must be positive and even')
+    steps = 100*p if steps is None else steps
+    depth = 4*p
+    theta_inverse = 1 << (p//2)
+    rho_inverse = 1 << (2*p)
+    alpha_inverse = 1 << p
+    target = rho_inverse*theta_inverse
+    weights = [(2 if j == 0 else 1 if j == depth else 3)*(1 << j)
+               for j in range(depth+1)]
+    u, v = [0]*(depth+1), [0]*(depth+1)
+    denominator = 1
+    total_x_volume = total_z_volume = 0
+    peak_x_volume = peak_z_volume = 0
+    peak_step = 0
+    cap_count = 0
+    max_mass_numerator = 0
+    max_mass_denominator = 1
+    for k in range(steps):
+        joined = [x+y for x, y in zip(u, v)]
+        base = 6*theta_inverse*denominator
+        raw = []
+        for j in range(depth+1):
+            if j == 0: value = 3*(theta_inverse-1)*(joined[0]+joined[1])
+            elif j == depth: value = 3*(theta_inverse-1)*(joined[j]+joined[j-1])
+            else: value = (theta_inverse-1)*(3*joined[j]+joined[j-1]+2*joined[j+1])
+            value -= base
+            if j == 0: value += (rho_inverse//2)*base
+            raw.append(value)
+        old_scaled = [6*(theta_inverse-1)*x for x in u]
+        mirror_raw = [r-old for r, old in zip(raw, old_scaled)]
+        positive = [j for j, value in enumerate(mirror_raw) if value > 0]
+        mass_raw = sum(weights[j]*mirror_raw[j] for j in positive)
+        if mass_raw <= target*base:
+            v = [max(value, 0) for value in mirror_raw]
+            u = [min(max(r, 0), old+z) for r, old, z in zip(raw, old_scaled, v)]
+            denominator = base
+        else:
+            cap_count += 1
+            positive.sort(key=lambda j: mirror_raw[j], reverse=True)
+            weight_sum = weighted_sum = 0
+            gamma_numerator = None
+            for index, j in enumerate(positive):
+                weight_sum += weights[j]
+                weighted_sum += weights[j]*mirror_raw[j]
+                proposed = weighted_sum-target*base
+                next_value = mirror_raw[positive[index+1]] if index+1 < len(positive) else 0
+                if proposed >= next_value*weight_sum and proposed < mirror_raw[j]*weight_sum:
+                    gamma_numerator = proposed
+                    break
+            if gamma_numerator is None: raise AssertionError('No waterfill threshold')
+            v = [max(value*weight_sum-gamma_numerator, 0) for value in mirror_raw]
+            u = [min(max(r, 0)*weight_sum, old*weight_sum+z)
+                 for r, old, z in zip(raw, old_scaled, v)]
+            denominator = base*weight_sum
+        x_volume = sum(weights[j] for j, value in enumerate(u) if value > 0)
+        z_volume = sum(weights[j] for j, value in enumerate(v) if value > 0)
+        total_x_volume += x_volume
+        total_z_volume += z_volume
+        if x_volume > peak_x_volume: peak_x_volume, peak_step = x_volume, k+1
+        peak_z_volume = max(peak_z_volume, z_volume)
+        mass_numerator = sum(weight*value for weight, value in zip(weights, u))
+        mass_denominator = alpha_inverse*rho_inverse*denominator
+        if mass_numerator > mass_denominator: raise AssertionError('x mass cap failed')
+        if sum(weight*value for weight, value in zip(weights, v)) > target*denominator:
+            raise AssertionError('z mass cap failed')
+        if mass_numerator*max_mass_denominator > max_mass_numerator*mass_denominator:
+            max_mass_numerator, max_mass_denominator = mass_numerator, mass_denominator
+    return dict(p=p, alpha=f'2^-{p}', rho=f'2^-{2*p}', depth=depth, steps=steps,
+                exact=True, cap_count=cap_count, peak_step=peak_step,
+                total_x_volume=str(total_x_volume), total_z_volume=str(total_z_volume),
+                target=str(target), peak_x_volume=str(peak_x_volume), peak_z_volume=str(peak_z_volume),
+                total_x_over_target=float(Fraction(total_x_volume, target)),
+                total_z_over_target=float(Fraction(total_z_volume, target)),
+                peak_x_over_target=float(Fraction(peak_x_volume, target)),
+                peak_z_over_target=float(Fraction(peak_z_volume, target)),
+                maximum_x_mass=float(Fraction(max_mass_numerator, max_mass_denominator)),
+                final_active_x_layers=[j for j, value in enumerate(u) if value > 0],
+                final_active_z_layers=[j for j, value in enumerate(v) if value > 0],
+                final_denominator_bits=denominator.bit_length())
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('p', type=int, nargs='+')
+    parser.add_argument('--steps', type=int)
+    parser.add_argument('--output')
+    args = parser.parse_args()
+    records = []
+    for p in args.p:
+        result = probe(p, args.steps)
+        records.append(result)
+        print(json.dumps({k: v for k, v in result.items() if not k.startswith('final_active')}, indent=2), flush=True)
+    if args.output:
+        with open(args.output, 'w') as out: json.dump(records, out, indent=2); out.write('\n')

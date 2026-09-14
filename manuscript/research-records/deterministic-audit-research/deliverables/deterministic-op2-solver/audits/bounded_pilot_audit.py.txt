@@ -1,0 +1,81 @@
+"""Exact full-graph audit of accepted and rejected bounded pilot solves."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from component_fast_path_audit import exact_reference, leaky_pair
+from independent_continuation_audit import dot, graph_data, product, subtract
+from pruned_continuation_audit import Oracle
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve_fast
+
+
+def misleading_branch():
+    graph = nx.Graph()
+    graph.add_edges_from(((0, 1), (0, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 7)))
+    return graph
+
+
+def main():
+    start = time.monotonic()
+    graphs = [
+        ('path6', nx.path_graph(6), 0), ('star6', nx.star_graph(5), 1),
+        ('clique5', nx.complete_graph(5), 0), ('barbell6', nx.barbell_graph(3, 0), 0),
+        ('leaky_pair', leaky_pair(), 0), ('cycle7', nx.cycle_graph(7), 0),
+        ('wheel7', nx.wheel_graph(7), 1), ('misleading_branch', misleading_branch(), 0),
+    ]
+    records = []
+    for (name, graph, seed), alpha, ratio, early in itertools.product(
+        graphs, (F(1, 16), F(3, 10), F(1, 10000)),
+        (F(3, 4), F(1, 4), F(1, 16)), (False, True),
+    ):
+        rho = ratio / graph.degree(seed)
+        epsilon = min(F(1, 10**10), alpha**2*rho**2/10000)
+        oracle = Oracle(graph)
+        before = time.monotonic()
+        result = solve_fast(oracle, seed, alpha, rho, epsilon, early_certificate=early, bounded_pilot=True)
+        degrees, matrix, source = graph_data(graph, seed, alpha)
+        optimum = exact_reference(matrix, source, alpha, rho)
+        values = [F(0)] * len(graph)
+        for i, value, degree in result.output:
+            assert degree == degrees[i]
+            values[i] = value
+        assert all(0 <= value <= target for value, target in zip(values, optimum))
+        error = subtract(values, optimum)
+        gap = dot(error, product(matrix, error), degrees)/2
+        assert 0 <= gap <= result.objective_gap_bound <= epsilon
+        assert rho*result.metrics.prepass_scanned_volume <= 1
+        assert rho*sum(d for d, value in zip(degrees, values) if value) <= 1
+        assert all(rho*graph.degree(i) <= 1 for i in oracle.rows)
+        assert oracle.entries == result.metrics.first_adjacency_entries
+        assert oracle.degree_calls == result.metrics.degree_replies
+        if result.metrics.pilot_attempted:
+            assert not result.metrics.discovery_complete
+            assert result.metrics.pilot_certified != result.metrics.pilot_fallback
+            assert result.metrics.global_pg_checks > 0
+            assert result.metrics.component_volume <= 1/rho
+            assert result.metrics.global_pg_metrics['scanned_adjacency_entries'] == result.metrics.global_pg_metrics['candidate_volume']
+            if result.metrics.pilot_fallback:
+                assert result.route == 'continuation' and result.continuation is not None
+            else:
+                assert result.route.startswith('pilot-') and result.continuation is None
+        record = dict(graph=name, alpha=str(alpha), rho=str(rho), early=early, route=result.route, pilot_attempted=result.metrics.pilot_attempted, pilot_certified=result.metrics.pilot_certified, pilot_fallback=result.metrics.pilot_fallback, pilot_iterations=result.metrics.iterations, global_checks=result.metrics.global_pg_checks, continuation_iterations=sum(s.iterations for s in result.continuation.stages) if result.continuation else 0, wall_seconds=time.monotonic()-before)
+        records.append(record)
+        print(json.dumps(record), flush=True)
+    assert any(r['pilot_certified'] for r in records)
+    assert any(r['pilot_fallback'] for r in records)
+    result = dict(cases=len(records), accepted_pilots=sum(r['pilot_certified'] for r in records), rejected_pilots=sum(r['pilot_fallback'] for r in records), records=records, elapsed_seconds=time.monotonic()-start, randomized=False, status='enumeration_complete')
+    (ROOT/'results/bounded-pilot-audit.json').write_text(json.dumps(result, indent=2))
+
+
+if __name__ == '__main__':
+    main()

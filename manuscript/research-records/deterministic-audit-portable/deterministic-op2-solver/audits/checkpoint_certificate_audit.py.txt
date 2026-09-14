@@ -1,0 +1,160 @@
+"""Deterministic exact checks of checkpoint safety and all graph replies."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+from types import SimpleNamespace
+
+import networkx as nx
+from component_fast_path_audit import exact_reference, leaky_pair
+from independent_continuation_audit import dot, graph_data, product, subtract
+from pruned_continuation_audit import Oracle
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr._avl import AVLMap
+from pruned_rppr._integer import IntegerDyadicCorrector, _projected_gradient
+from pruned_rppr._source_energy import solve_rppr_source_energy
+from pruned_rppr.component import displacement_norm_upper
+
+
+def check_norms():
+    cases = 0
+    for degrees in ((2, 3, 5, 7), (11, 13, 17), (1, 1, 1)):
+        denominator = 2**47
+        for numerators in itertools.product((-17, -1, 0, 1, 23), repeat=len(degrees)):
+            values = [F(n, denominator * d) for n, d in zip(numerators, degrees)]
+            upper = displacement_norm_upper(values, [F(0)] * len(values), degrees, denominator)
+            exact = sum((d * v**2 for d, v in zip(degrees, values)), F(0))
+            assert exact <= upper <= exact + F(len(degrees), denominator**2)
+            assert upper.denominator <= denominator**2
+            cases += 1
+    return cases
+
+
+def check_overshoot():
+    class VirtualStar:
+        degree_hub = 2**100
+        entries = 0
+        rows = []
+
+        def degree(self, i):
+            return self.degree_hub if i == 0 else 1
+
+        def neighbors(self, i):
+            assert i == 1, "A newly positive hub row must not be opened"
+            self.rows.append(i)
+            self.entries += 1
+            yield 0
+
+    oracle = VirtualStar()
+    state = SimpleNamespace(
+        oracle=oracle, seed=1, alpha=F(1, 16), rho=F(1, 10 * oracle.degree_hub),
+        degree=AVLMap(((1, 1),)), adjacency=AVLMap(), H=8, degree_limit=None,
+    )
+    projected, metrics, upper, details = _projected_gradient(state, ((1, F(1), 1),), compute_norm=True)
+    points = {i: value for i, value, _ in projected}
+    assert points[0] > 0 and metrics.newly_positive_volume == oracle.degree_hub
+    assert oracle.entries == metrics.scanned_adjacency_entries == 1
+    assert oracle.rows == [1]
+    exact = (1 - points[1])**2 + oracle.degree_hub * points[0]**2
+    assert exact <= upper <= exact + F(details['norm_records'], details['norm_denominator']**2)
+    return dict(new_pg_degree_volume=str(metrics.newly_positive_volume), scanned_entries=1)
+
+
+def check_pg_points():
+    count = 0
+    for graph, alpha, limit in itertools.product(
+        (nx.path_graph(6), nx.star_graph(5), leaky_pair()),
+        (F(1, 16), F(3, 10)),
+        (None, F(4)),
+    ):
+        seed, rho, theta = 0, F(1, 4), F(1, 2)
+        while theta**2 > alpha:
+            theta /= 2
+        oracle = Oracle(graph)
+        if graph.degree(seed) > 1 / rho:
+            seed = 1
+        corrector = IntegerDyadicCorrector(oracle, seed, alpha, theta, rho, F(1, 10**14), degree_limit=limit)
+        degrees, matrix, source = graph_data(graph, seed, alpha)
+        for _ in range(48):
+            corrector.step()
+            candidate = corrector.output()
+            values = [F(0)] * len(graph)
+            for i, value, _ in candidate:
+                values[i] = value
+            expected = [max(F(0), v - g + b - alpha*rho) for v, g, b in zip(values, product(matrix, values), source)]
+            if limit is not None:
+                expected = [v if d <= limit else F(0) for v, d in zip(expected, degrees)]
+            projected, metrics, upper, details = _projected_gradient(corrector, candidate, compute_norm=True)
+            actual = [F(0)] * len(graph)
+            for i, value, d in projected:
+                assert d == degrees[i]
+                actual[i] = value
+            assert actual == expected
+            exact = dot(subtract(values, expected), subtract(values, expected), degrees)
+            assert exact <= upper <= exact + F(details['norm_records'], details['norm_denominator']**2)
+            assert metrics.scanned_adjacency_entries == metrics.candidate_volume
+            count += 1
+    return count
+
+
+def main():
+    start = time.monotonic()
+    norms, overshoot, pg_points = check_norms(), check_overshoot(), check_pg_points()
+    graphs = [
+        ('path6', nx.path_graph(6), 0), ('star6', nx.star_graph(5), 1),
+        ('clique5', nx.complete_graph(5), 0), ('barbell6', nx.barbell_graph(3, 0), 0),
+        ('leaky_pair', leaky_pair(), 0), ('cycle7', nx.cycle_graph(7), 0),
+        ('wheel7', nx.wheel_graph(7), 1),
+    ]
+    records = []
+    for (name, graph, seed), alpha, ratio, adaptive in itertools.product(
+        graphs, (F(1, 16), F(3, 10), F(1, 10000)),
+        (F(3, 4), F(1, 4), F(1, 16)), (False, True),
+    ):
+        rho = ratio / graph.degree(seed)
+        epsilon = min(F(1, 10**10), alpha**2 * rho**2 / 10000)
+        oracle = Oracle(graph)
+        before = time.monotonic()
+        result = solve_rppr_source_energy(oracle, seed, alpha, rho, epsilon, adaptive_box=adaptive, early_certificate=True)
+        degrees, matrix, source = graph_data(graph, seed, alpha)
+        previous = [F(0)] * len(graph)
+        for stage in result.stages:
+            optimum = exact_reference(matrix, source, alpha, stage.regularization)
+            values = [F(0)] * len(graph)
+            for i, value, degree in stage.repaired_output:
+                assert degree == degrees[i]
+                values[i] = value
+            assert all(old <= value <= target for old, value, target in zip(previous, values, optimum))
+            residual = subtract(source, product(matrix, values))
+            assert all(0 <= value <= 2*alpha*stage.regularization for value, d in zip(residual, degrees) if d <= 1/rho)
+            error = subtract(values, optimum)
+            gap = dot(error, product(matrix, error), degrees) / 2
+            assert gap <= 2*stage.delta**2 / stage.regularization
+            assert stage.certified_gap <= stage.requested_gap
+            assert stage.projected_gradient_metrics['scanned_adjacency_entries'] == stage.projected_gradient_metrics['candidate_volume']
+            failed = stage.checkpoint_metrics['failed_pg_metrics']
+            assert failed.get('scanned_adjacency_entries', 0) == failed.get('candidate_volume', 0)
+            previous = values
+        optimum = exact_reference(matrix, source, alpha, rho)
+        error = subtract(previous, optimum)
+        assert dot(error, product(matrix, error), degrees)/2 <= result.objective_gap_bound <= epsilon
+        replies = 1 + sum(s.corrector_metrics['degree_replies'] for s in result.stages) + result.metrics.repair_degree_replies + result.metrics.checkpoint_failed_pg_metrics.get('degree_replies', 0)
+        entries = sum(s.corrector_metrics['first_adjacency_entries'] for s in result.stages) + result.metrics.repair_first_adjacency_entries + result.metrics.checkpoint_failed_pg_metrics.get('first_adjacency_entries', 0)
+        assert oracle.degree_calls == replies and oracle.entries == entries
+        assert all(graph.degree(i) <= 1/rho for i in oracle.rows)
+        record = dict(graph=name, alpha=str(alpha), rho=str(rho), adaptive=adaptive, stages=len(result.stages), iterations=sum(s.iterations for s in result.stages), checks=result.metrics.checkpoint_checks, early_stages=result.metrics.checkpoint_early_stages, wall_seconds=time.monotonic()-before)
+        records.append(record)
+        print(json.dumps(record), flush=True)
+    result = dict(norm_cases=norms, exact_pg_points=pg_points, virtual_overshoot=overshoot, solver_cases=len(records), records=records, elapsed_seconds=time.monotonic()-start, randomized=False, status='enumeration_complete')
+    (ROOT/'results/checkpoint-certificate-audit.json').write_text(json.dumps(result, indent=2))
+
+
+if __name__ == '__main__':
+    main()

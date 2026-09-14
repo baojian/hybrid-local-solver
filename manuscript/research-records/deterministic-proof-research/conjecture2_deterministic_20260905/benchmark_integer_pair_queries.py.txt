@@ -1,0 +1,41 @@
+"""Deterministic binding-cap query microbenchmark; excludes tree construction."""
+import json
+import statistics
+from fractions import Fraction as F
+from pathlib import Path
+from time import perf_counter,process_time
+from integer_clipped_reporter import IntegerClippedReporter
+from integer_pair_clipped_reporter import IntegerPairClippedReporter
+
+
+def main():
+    nodes=2048
+    old,new=IntegerClippedReporter(),IntegerPairClippedReporter()
+    for i in range(nodes):
+        degree=1009+2*i
+        numerator=degree*(i-1024)*(1<<60)+(7*i+1)
+        for reporter in (old,new):
+            (reporter.set_base if i%2 else reporter.set_exception)(i,numerator,degree)
+    params=[dict(base_scale=7+j%3,common_denominator=1<<60,shift=F(j,13),
+        upper=F(3,7),cap=F(17+j%11,19),grid=F(1,1<<20)) for j in range(256)]
+    reference=tuple(old.project_counts(**p) for p in params)
+    assert all(result.cap_active for result in reference)
+    assert reference==tuple(new.project_counts(**p) for p in params)
+    runs=[]
+    for name,reporter in (('integer',old),('pair',new),('pair',new),('integer',old)):
+        start_visits=reporter.metrics.tree_visits
+        start_wall,start_cpu=perf_counter(),process_time()
+        results=tuple(reporter.project_counts(**p) for p in params)
+        cpu,wall=process_time()-start_cpu,perf_counter()-start_wall
+        assert results==reference
+        runs.append(dict(backend=name,cpu_seconds=cpu,wall_seconds=wall,
+                         tree_visits=reporter.metrics.tree_visits-start_visits))
+    med={name:{clock:statistics.median(r[clock] for r in runs if r['backend']==name)
+               for clock in ('cpu_seconds','wall_seconds')} for name in ('integer','pair')}
+    report=dict(deterministic=True,nodes=nodes,queries_per_timed_run=len(params),all_caps_binding=True,
+                exact_results_equal=True,scope='projection queries only; initialized synthetic trees, no graph solver',
+                runs=runs,medians=med,median_ratio_integer_over_pair={clock:med['integer'][clock]/med['pair'][clock] for clock in ('cpu_seconds','wall_seconds')})
+    Path(__file__).with_name('integer_pair_query_benchmark.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report,indent=2))
+
+if __name__=='__main__':main()

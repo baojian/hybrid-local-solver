@@ -1,0 +1,180 @@
+"""Independent exact audit of both perturbed energies and selected flow."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from independent_continuation_audit import (
+    dot,
+    mass,
+    obstacle,
+    product,
+    projection,
+    solve,
+    subtract,
+)
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def floor_grid(value, grid):
+    return (value // grid) * grid
+
+
+def main():
+    start = time.monotonic()
+    cases = caps = upper_faces = 0
+    minimum_ordinary_slack = minimum_auxiliary_slack = None
+    for graph in (nx.path_graph(2), nx.path_graph(3), nx.complete_graph(3)):
+        n = len(graph)
+        for boundary, alpha, seed, ratio in itertools.product(
+            (0, 1), (F(1, 3), F(1, 16)), range(n), (F(1, 4), F(1, 8))
+        ):
+            degrees = [graph.degree(i) + boundary for i in range(n)]
+            c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+            matrix = [
+                [
+                    diagonal
+                    if i == j
+                    else -c / degrees[i]
+                    if graph.has_edge(i, j)
+                    else F(0)
+                    for j in range(n)
+                ]
+                for i in range(n)
+            ]
+            b = [alpha / degrees[i] if i == seed else F(0) for i in range(n)]
+            r = ratio / degrees[seed]
+            lam, upper = alpha * r, 4 * r
+            baseline = obstacle(matrix, b, alpha, 2 * r)
+            optimum = obstacle(matrix, b, alpha, r)
+            source = subtract(b, product(matrix, baseline))
+            target = subtract(optimum, baseline)
+            inverse_source = solve(matrix, source)
+            cap = mass(source, degrees) / alpha
+            assert all(0 <= v <= 4 * lam for v in source)
+            assert all(0 <= v <= upper for v in inverse_source)
+            assert mass(inverse_source, degrees) <= cap
+            theta = F(1, 2)
+            while theta**2 > alpha:
+                theta /= 2
+            mu, a = theta**2, 1 - theta
+            beta = (1 - alpha) / (1 + theta)
+            rowsums = product(matrix, [F(1)] * n)
+            grid = F(1, 4096)
+            raw_error = 2 * grid / theta
+            allowance = (
+                2 * mu * raw_error + F(5, 2) * grid + F(5, 2) * (theta + mu) * grid
+            )
+            raw_states = (
+                [F(0)] * n,
+                [upper] * n,
+                [upper * int(i == seed) for i in range(n)],
+                [upper * F(i + 1, n) for i in range(n)],
+            )
+            states = [projection(v, degrees, upper, cap)[0] for v in raw_states]
+            states += [target, inverse_source]
+            slack_star = [v - s + lam for v, s in zip(product(matrix, target), source)]
+
+            def objective(x):
+                return dot(x, product(matrix, x), degrees) / 2 - dot(
+                    x, [v - lam for v in source], degrees
+                )
+
+            def energy(x, z):
+                dz = subtract(z, target)
+                return objective(x) - objective(target) + mu * dot(dz, dz, degrees) / 2
+
+            def auxiliary(x):
+                residual = subtract(product(matrix, x), source)
+                return dot(residual, residual, degrees) / 2 + lam * dot(
+                    rowsums, x, degrees
+                )
+
+            def second(x, z):
+                dz = subtract(z, inverse_source)
+                return (
+                    auxiliary(x)
+                    - auxiliary(inverse_source)
+                    + mu * dot(dz, product(matrix, dz), degrees) / 2
+                )
+
+            for x, z, signs in itertools.product(
+                states, states, itertools.product((-1, 1), repeat=n)
+            ):
+                y = [(u + theta * v) / (1 + theta) for u, v in zip(x, z)]
+                gradient = [v - s + lam for v, s in zip(product(matrix, y), source)]
+                raw = [
+                    a * v + theta * u - g / theta + sign * raw_error
+                    for u, v, g, sign in zip(y, z, gradient, signs)
+                ]
+                ideal, eta = projection(raw, degrees, upper, cap)
+                p = [floor_grid(v, grid) for v in ideal]
+                next_x = [floor_grid(a * u + theta * v, grid) for u, v in zip(x, p)]
+                ordinary_slack = a * energy(x, z) + allowance - energy(next_x, p)
+                auxiliary_slack = a * second(x, z) + allowance - second(next_x, p)
+                assert ordinary_slack >= 0 and auxiliary_slack >= 0
+                minimum_ordinary_slack = (
+                    ordinary_slack
+                    if minimum_ordinary_slack is None
+                    else min(minimum_ordinary_slack, ordinary_slack)
+                )
+                minimum_auxiliary_slack = (
+                    auxiliary_slack
+                    if minimum_auxiliary_slack is None
+                    else min(minimum_auxiliary_slack, auxiliary_slack)
+                )
+                excess = [
+                    max(F(0), theta * d * (v - u))
+                    for d, v, u in zip(degrees, z, target)
+                ]
+                next_excess = [
+                    max(F(0), theta * d * (v - u))
+                    for d, v, u in zip(degrees, p, target)
+                ]
+                selected = [i for i in range(n) if next_excess[i] > 0]
+                error = subtract(x, target)
+                response = product(matrix, error)
+                forcing = [
+                    -d * (value - mu * e) / (1 + theta)
+                    for d, value, e in zip(degrees, response, error)
+                ]
+                lhs = sum(next_excess, F(0)) + sum(
+                    (degrees[i] * slack_star[i] for i in selected), F(0)
+                )
+                rhs = (
+                    beta * sum(excess, F(0))
+                    + sum((forcing[i] for i in selected), F(0))
+                    + theta * raw_error * sum(degrees[i] for i in selected)
+                )
+                assert lhs <= rhs
+                caps += eta > 0
+                upper_faces += any(v == upper for v in ideal)
+                cases += 1
+    result = dict(
+        cases=cases,
+        active_caps=caps,
+        upper_face_cases=upper_faces,
+        minimum_ordinary_slack=str(minimum_ordinary_slack),
+        minimum_auxiliary_slack=str(minimum_auxiliary_slack),
+        both_perturbed_energies=True,
+        selected_flow_with_raw_error=True,
+        dirichlet_and_full_graph_matrices=True,
+        seconds=time.monotonic() - start,
+        randomized=False,
+        status="enumeration_complete",
+    )
+    assert caps > 0 and upper_faces > 0
+    (ROOT / "results/rounding-perturbation-audit.json").write_text(
+        json.dumps(result, indent=2)
+    )
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

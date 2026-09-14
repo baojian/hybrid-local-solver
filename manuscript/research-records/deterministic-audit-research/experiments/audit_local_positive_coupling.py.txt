@@ -1,0 +1,93 @@
+"""Compare local access, dense recurrence, and independent obstacle optima."""
+
+from __future__ import annotations
+
+import itertools
+import json
+
+import networkx as nx
+import numpy as np
+from cyclic_dual_averaging import obstacle
+from local_positive_coupling import solve
+from positive_linear_coupling import mass_projection
+
+
+class CountedOracle:
+    def __init__(self, graph):
+        self._graph = graph
+        self.entries = 0
+        self.degree_calls = 0
+
+    def degree(self, vertex):
+        self.degree_calls += 1
+        return self._graph.degree(vertex)
+
+    def neighbors(self, vertex):
+        for neighbor in self._graph.neighbors(vertex):
+            self.entries += 1
+            yield neighbor
+
+
+def main():
+    tested = 0
+    worst_relative_iterate_difference = 0.0
+    for graph in nx.graph_atlas_g():
+        if not 2 <= len(graph) <= 5 or not nx.is_connected(graph):
+            continue
+        graph = nx.relabel_nodes(graph, {i: 17 * i - 23 for i in graph})
+        labels = sorted(graph)
+        adjacency = nx.to_numpy_array(graph, nodelist=labels)
+        degrees = adjacency.sum(axis=1)
+        w = np.sqrt(degrees)
+        for alpha, fraction, seed in itertools.product(
+            (1.0, 0.1, 0.001), (0.001, 0.2, 0.95), labels
+        ):
+            q = (1 + alpha) / 2 * np.eye(len(labels)) - (
+                1 - alpha
+            ) / 2 * adjacency / np.outer(w, w)
+            source = labels.index(seed)
+            rho = fraction / degrees[source]
+            c = -alpha * rho * w
+            c[source] += alpha / w[source]
+            exact = obstacle(q, c)
+            f_star = float(0.5 * exact @ q @ exact - c @ exact)
+            epsilon = -f_star * 1e-9
+            oracle = CountedOracle(graph)
+            result = solve(oracle, seed, alpha, rho, epsilon)
+            assert result["converged"], result
+            assert result["ledger"]["adjacency_entries"] == oracle.entries
+            assert result["ledger"]["degree_replies"] == oracle.degree_calls
+            x = np.zeros(len(labels))
+            for vertex, degree, density in result["state"]:
+                x[labels.index(vertex)] = np.sqrt(degree) * density
+            gap = float(0.5 * x @ q @ x - c @ x) - f_star
+            assert gap <= epsilon + 1e-12 * (-f_star), (gap, epsilon, result)
+            dense = np.zeros(len(labels))
+            z = dense.copy()
+            s = np.sqrt(alpha)
+            for _ in range(result["ledger"]["iterations"]):
+                y = (dense + s * z) / (1 + s)
+                update = np.maximum(y - (q @ y - c), 0)
+                z = mass_projection((update - (1 - s) * dense) / s, w)
+                dense = update
+            difference = float(np.linalg.norm(dense - x) / (np.linalg.norm(x) + 1e-100))
+            worst_relative_iterate_difference = max(
+                worst_relative_iterate_difference, difference
+            )
+            assert difference < 1e-9, (difference, result)
+            tested += 1
+    print(
+        json.dumps(
+            {
+                "cases": tested,
+                "all_passed": True,
+                "worst_relative_iterate_difference": worst_relative_iterate_difference,
+                "randomized": False,
+            },
+            indent=2,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

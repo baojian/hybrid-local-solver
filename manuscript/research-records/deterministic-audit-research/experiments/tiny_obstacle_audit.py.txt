@@ -1,0 +1,117 @@
+"""Independent exact face-enumeration checks of the fixed-size LCP branch."""
+
+from __future__ import annotations
+
+import itertools
+import json
+import sys
+import time
+from fractions import Fraction as F
+from pathlib import Path
+
+import networkx as nx
+from independent_continuation_audit import obstacle, product, solve
+from pruned_continuation_audit import Oracle
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from pruned_rppr import solve_fast
+from pruned_rppr._tiny_obstacle import solve_tiny_obstacle
+
+
+def main():
+    start = time.monotonic()
+    cases = maximum_bits = maximum_pivots = 0
+    alpha_values = (F(1, 3), F(1, 10**40), 1 - F(1, 2**128))
+    for graph in nx.graph_atlas_g():
+        n = len(graph)
+        if not 2 <= n <= 5 or not nx.is_connected(graph):
+            continue
+        adjacency = [sorted(graph.neighbors(i)) for i in range(n)]
+        boundaries = ([0] * n, [1] * n, [2, 3, 5, 7, 11][:n])
+        for extra, alpha, seed, ratio in itertools.product(
+            boundaries, alpha_values, range(n), (F(1, 4), F(3, 4), F(1))
+        ):
+            degrees = [graph.degree(i) + extra[i] for i in range(n)]
+            rho = ratio / degrees[seed]
+            diagonal, c = (1 + alpha) / 2, (1 - alpha) / 2
+            matrix = [
+                [
+                    diagonal
+                    if i == j
+                    else -c / degrees[i]
+                    if graph.has_edge(i, j)
+                    else F(0)
+                    for j in range(n)
+                ]
+                for i in range(n)
+            ]
+            source = [alpha / degrees[i] if i == seed else F(0) for i in range(n)]
+            expected = obstacle(matrix, source, alpha, rho)
+            answer = solve_tiny_obstacle(degrees, adjacency, seed, alpha, rho)
+            assert answer.densities == tuple(expected)
+            assert len(answer.pivot_order) == len(set(answer.pivot_order)) <= n
+            slack = [
+                v - b + alpha * rho for v, b in zip(product(matrix, expected), source)
+            ]
+            assert all(v >= 0 and v * f == 0 for v, f in zip(slack, expected))
+            maximum_bits = max(maximum_bits, answer.metrics.maximum_rational_bits)
+            maximum_pivots = max(maximum_pivots, answer.metrics.pivots)
+            cases += 1
+    extreme = []
+    for n, alpha in itertools.product((2, 4, 8, 16), (F(1, 10**20), F(1, 10**80))):
+        graph = nx.path_graph(n)
+        degrees = [graph.degree(i) for i in range(n)]
+        rho = F(1, 4 * sum(degrees))
+        epsilon = alpha**2 * rho**2 / 10000
+        oracle = Oracle(graph)
+        then = time.monotonic()
+        answer = solve_fast(oracle, 0, alpha, rho, epsilon)
+        seconds = time.monotonic() - then
+        c, diagonal = (1 - alpha) / 2, (1 + alpha) / 2
+        matrix = [
+            [
+                diagonal
+                if i == j
+                else -c / degrees[i]
+                if graph.has_edge(i, j)
+                else F(0)
+                for j in range(n)
+            ]
+            for i in range(n)
+        ]
+        rhs = [alpha / degrees[i] * int(i == 0) - alpha * rho for i in range(n)]
+        expected = solve(matrix, rhs)
+        assert all(v > 0 for v in expected)
+        assert answer.output == tuple(
+            (i, value, degrees[i]) for i, value in enumerate(expected)
+        )
+        assert (
+            answer.objective_gap_bound == 0 and answer.route == "tiny-exact-component"
+        )
+        assert oracle.entries == answer.metrics.first_adjacency_entries == 2 * (n - 1)
+        assert oracle.degree_calls == answer.metrics.degree_replies == n
+        extreme.append(
+            dict(
+                n=n,
+                alpha=str(alpha),
+                seconds=seconds,
+                pivots=answer.metrics.tiny_exact_metrics["pivots"],
+                original_entries=oracle.entries,
+            )
+        )
+    result = dict(
+        cases=cases,
+        maximum_rational_bits=maximum_bits,
+        maximum_pivots=maximum_pivots,
+        extreme_complete_components=extreme,
+        seconds=time.monotonic() - start,
+        randomized=False,
+        status="enumeration_complete",
+    )
+    (ROOT / "results/tiny-obstacle-audit.json").write_text(json.dumps(result, indent=2))
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

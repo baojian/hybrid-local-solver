@@ -1,0 +1,251 @@
+"""Independent, bounded checks of the portable benchmark harness."""
+import hashlib
+import importlib.util
+import json
+import shutil
+import subprocess
+import sys
+from fractions import Fraction as F
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+PACKAGE = ROOT/'deliverables'/'deterministic-rppr'
+DRIVER = PACKAGE/'benchmarks'/'run.py'
+OUT = ROOT/'portable_benchmark_audit'
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+ISOLATED = r'''
+import builtins,json,runpy,sys
+from pathlib import Path
+bundle=Path(sys.argv[1]).resolve()
+sys.argv=[str(bundle/'benchmarks'/'run.py'),*sys.argv[2:]]
+allowed=set(sys.stdlib_module_names)|set(sys.builtin_module_names)|{'deterministic_rppr','__main__'}
+original=builtins.__import__
+def guarded(name,globals=None,locals=None,fromlist=(),level=0):
+    if level==0 and name.split('.')[0] not in allowed:
+        raise AssertionError('External implementation import: '+name)
+    return original(name,globals,locals,fromlist,level)
+builtins.__import__=guarded
+try:
+    runpy.run_path(str(bundle/'benchmarks'/'run.py'),run_name='__main__')
+finally:
+    package_files={}
+    for name,module in tuple(sys.modules.items()):
+        if name=='deterministic_rppr' or name.startswith('deterministic_rppr.'):
+            path=Path(module.__file__).resolve()
+            assert path.is_relative_to(bundle)
+            package_files[name]=str(path.relative_to(bundle))
+    assert len(package_files)==20
+    print('ISOLATED_RESULT='+json.dumps(dict(package_files=package_files,
+          research_imports_blocked=True)),flush=True)
+'''
+
+
+def graph_checks(new, old):
+    counts=dict(fixtures=0,vertices=0,directed_entries=0,invalid_vertices=0)
+    fixtures=[('path',n,0) for n in range(2,33)]
+    fixtures += [('grid',n,0) for n in range(2,13)]
+    fixtures += [('tree_clique',h,q) for h in range(2,6) for q in range(1<<h,(1<<h)+5)]
+    for family,size,aux in fixtures:
+        graph, reference=new.VirtualGraph(family,size,aux),old.VirtualGraph(family,size,aux)
+        assert graph.n==reference.n
+        rows={i:tuple(graph.neighbors(i)) for i in range(1,graph.n+1)}
+        for i,row in rows.items():
+            assert graph.degree(i)==reference.degree(i)==len(row)
+            assert row==tuple(reference.neighbors(i)), (family,size,aux,i)
+            assert i not in row and len(set(row))==len(row)
+            assert all(1<=j<=graph.n and i in rows[j] for j in row)
+        seen={1}
+        stack=[1]
+        while stack:
+            for j in rows[stack.pop()]:
+                if j not in seen:
+                    seen.add(j)
+                    stack.append(j)
+        assert len(seen)==graph.n
+        edges=(size-1 if family=='path' else 2*size*(size-1) if family=='grid'
+               else graph.tree_n-1+graph.leaf_start+aux*(aux-1)//2)
+        assert sum(map(len,rows.values()))==2*edges
+        for bad in (0,graph.n+1):
+            for operation in (graph.degree,lambda i:tuple(graph.neighbors(i))):
+                try:
+                    operation(bad)
+                except ValueError:
+                    counts['invalid_vertices']+=1
+                else:
+                    raise AssertionError('Invalid vertex accepted')
+        counts['fixtures']+=1
+        counts['vertices']+=graph.n
+        counts['directed_entries']+=2*edges
+    graph=new.VirtualGraph('path',3)
+    oracle=new.CountingOracle(graph,1,60)
+    assert oracle.degree(1)==1
+    try:
+        oracle.degree(2)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError('Degree guard failed')
+    assert oracle.degree_replies==1
+    oracle=new.CountingOracle(graph,1,60)
+    iterator=oracle.neighbors(2)
+    assert next(iterator)==1
+    try:
+        next(iterator)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError('Entry guard failed')
+    assert oracle.row_requests==1 and oracle.adjacency_entries==1
+    oracle=new.CountingOracle(graph,1,-1)
+    try:
+        oracle.degree(1)
+    except TimeoutError:
+        pass
+    else:
+        raise AssertionError('Time guard failed')
+    counts['meter_guards_checked']=3
+    return counts
+
+
+def dense_smoke_check(row):
+    inner=row['exact']['inner']
+    values={int(i):F(f) for i,f,d in inner['output']}
+    degrees={1:1,2:2,3:1}
+    adjacency={1:(2,),2:(1,3),3:(2,)}
+    alpha,rho=F(1,4),F(1,16)
+    q0,c,lam=(1+alpha)/2,(1-alpha)/2,alpha*rho
+    # Direct rational optimum for the three-vertex path; all entries positive.
+    matrix=[[q0*degrees[i]*(i==j)-c*(j in adjacency[i]) for j in range(1,4)]
+            for i in range(1,4)]
+    rhs=[alpha*(i==1)-lam*degrees[i] for i in range(1,4)]
+    augmented=[r+[b] for r,b in zip(matrix,rhs)]
+    for pivot in range(3):
+        scale=augmented[pivot][pivot]
+        assert scale
+        augmented[pivot]=[v/scale for v in augmented[pivot]]
+        for i in range(3):
+            if i!=pivot:
+                scale=augmented[i][pivot]
+                augmented[i]=[u-scale*v for u,v in zip(augmented[i],augmented[pivot])]
+    optimum={i+1:row[-1] for i,row in enumerate(augmented)}
+    assert all(value>0 for value in optimum.values())
+    def objective(f):
+        return sum(F(1,2)*q0*degrees[i]*f.get(i,0)**2 for i in degrees)-sum(
+            c*f.get(i,0)*f.get(j,0) for i in degrees for j in adjacency[i] if i<j
+        )-alpha*f.get(1,0)+lam*sum(degrees[i]*f.get(i,0) for i in degrees)
+    gap=objective(values)-objective(optimum)
+    certificate=row['independent_certificate']
+    assert 0<=gap<=F(inner['objective_gap_bound'])<=F(1,10**6)
+    residual={i:q0*values.get(i,0)-c*sum(values.get(j,0) for j in adjacency[i])/degrees[i]
+              -alpha*(i==1)/degrees[i]+lam for i in degrees}
+    norm=sum(degrees[i]*(residual[i] if i in values else min(residual[i],0))**2 for i in degrees)
+    assert norm<=F(certificate['subgradient_norm_squared_upper'])
+    assert F(certificate['subgradient_norm_squared_upper'])-norm<=F(certificate['norm_squared_rounding_excess_bound'])
+    assert F(certificate['objective_gap_bound'])==F(certificate['subgradient_norm_squared_upper'])/(2*alpha)
+    assert gap<=F(certificate['objective_gap_bound'])<=F(1,10**6)
+    assert row['independent_certificate_meets_target']
+    assert certificate['degree_replies']==row['verifier_oracle']['degree_replies']
+    assert certificate['first_adjacency_entries']==row['verifier_oracle']['adjacency_entries']
+    assert row['cpu_seconds']>=0 and row['wall_seconds']>=0
+    expected_scans=inner['metrics']['repair_scanned_adjacency_entries']
+    checkpoints=0
+    for stage in inner['stages']:
+        cm=stage['corrector_metrics']
+        expected_scans+=cm['scanned_adjacency_entries']+cm['checkpoints']['cached_adjacency_entries']
+        checkpoints+=cm['checkpoints']['checkpoints']
+    if row['backend']=='adaptive':
+        expected_scans+=row['exact']['extra']['scanned_adjacency_entries']
+        assert row['exact']['outer']['result']==inner
+    elif row['backend']=='mass-grid':
+        extra=row['exact']['extra']
+        assert extra['factory_calls']==extra['previous_references_released']==len(inner['stages'])
+        assert extra['baseline_input_records']==extra['previous_degree_cache_lookups']
+        assert row['exact']['outer']['result']==inner
+    assert row['repeated_scanned_entries']==expected_scans
+    return dict(actual_objective_gap=str(gap),minimum_subgradient_norm_squared=str(norm),
+                backend=row['backend'],checkpoint_checks=checkpoints,
+                cumulative_scanned_entries=expected_scans)
+
+
+def main():
+    assert not OUT.exists(), 'Preserve existing audit artifacts; use a new directory'
+    OUT.mkdir()
+    manifest=json.loads((PACKAGE/'PACKAGE_MANIFEST.json').read_text())
+    original_hashes={name:sha(PACKAGE/name) for name in manifest['module_sha256']}
+    assert original_hashes==manifest['module_sha256']
+    wheel=ROOT/'distribution_final'/'wheels'/'deterministic_rppr-0.1.0-py3-none-any.whl'
+    wheel_hash=sha(wheel)
+    driver_hash=sha(DRIVER)
+    new=load('portable_benchmark_under_audit',DRIVER)
+    old=load('earlier_virtual_graph_reference',ROOT/'benchmark_practical_rppr.py')
+    report=dict(driver_sha256=driver_hash,reference_sha256=sha(ROOT/'benchmark_practical_rppr.py'),
+                module_sha256=original_hashes,graph_checks=graph_checks(new,old),commands=[],runs=[],
+                smoke_scope='Eight tiny completed solver calls only; no performance claim or larger fixture run')
+    bundle=OUT/'bundle'
+    for name in original_hashes:
+        target=bundle/name
+        target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(PACKAGE/name,target)
+    (bundle/'benchmarks').mkdir()
+    shutil.copy2(DRIVER,bundle/'benchmarks'/'run.py')
+    runner=OUT/'isolated_runner.py'
+    runner.write_text(ISOLATED)
+    for mode in ('adaptive','mass-grid'):
+        output=OUT/(mode+'.json')
+        command=[sys.executable,'-I','-S','-B',str(runner),str(bundle),
+                 '--case','smoke','--compare',mode,'--output',str(output),
+                 '--wall-seconds','10','--oracle-limit','10000']
+        result=subprocess.run(command,cwd='/',capture_output=True,text=True,timeout=60)
+        (OUT/(mode+'.log')).write_text(result.stdout+result.stderr)
+        report['commands'].append(dict(argv=command,returncode=result.returncode))
+        assert result.returncode==0,result.stdout+result.stderr
+        record=json.loads(output.read_text())
+        assert record['complete'] is True and record['status']=='complete'
+        assert record['order']==['fast',mode,mode,'fast'] and len(record['runs'])==4
+        assert record['source_sha256']==original_hashes and record['driver_sha256']==driver_hash
+        assert not output.with_suffix('.json.tmp').exists()
+        for row in record['runs']:
+            report['runs'].append(dense_smoke_check(row))
+        for backend in ('fast',mode):
+            rows=[r for r in record['runs'] if r['backend']==backend]
+            assert rows[0]['exact']==rows[1]['exact'] and rows[0]['oracle']==rows[1]['oracle']
+        isolation=[line for line in result.stdout.splitlines() if line.startswith('ISOLATED_RESULT=')]
+        assert len(isolation)==1 and json.loads(isolation[0].split('=',1)[1])['research_imports_blocked']
+    output=OUT/'forced-guard.json'
+    command=[sys.executable,'-I','-S','-B',str(runner),str(bundle),
+             '--case','smoke','--backend','fast','--output',str(output),'--oracle-limit','1']
+    result=subprocess.run(command,cwd='/',capture_output=True,text=True,timeout=30)
+    (OUT/'forced-guard.log').write_text(result.stdout+result.stderr)
+    report['commands'].append(dict(argv=command,returncode=result.returncode))
+    failure=json.loads(output.read_text())
+    assert result.returncode!=0
+    assert failure['complete'] is False and failure['status']=='incomplete'
+    assert failure['failure']['type']=='RuntimeError' and 'guard reached' in failure['failure']['message']
+    assert failure['failure']['case']=='smoke' and failure['failure']['backend']=='fast'
+    assert failure['runs']==failure['summaries']==[]
+    assert not output.with_suffix('.json.tmp').exists()
+    report['forced_guard']=dict(returncode=result.returncode,atomic_json=True,failure=failure['failure'],
+                                completed_runs=0,temporary_file_absent=True)
+    assert {name:sha(PACKAGE/name) for name in original_hashes}==original_hashes
+    assert sha(wheel)==wheel_hash and sha(DRIVER)==driver_hash
+    report.update(passed=True,completed_smoke_calls=len(report['runs']),isolated_package_imports=True,
+                  research_imports_blocked=True,numerical_modules_unchanged=True,wheel_unchanged=True)
+    (ROOT/'portable_benchmark_independent_verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report,indent=2))
+
+
+if __name__=='__main__':
+    main()

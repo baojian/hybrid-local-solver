@@ -1,0 +1,59 @@
+"""Transcribe the optional adaptive wrapper; do not change exports or defaults."""
+import ast
+import hashlib
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+OUT = ROOT/'deliverables'/'deterministic-rppr'
+PACKAGE = OUT/'deterministic_rppr'
+IMPORTS = {
+    'combined_certified_dyadic_rppr': ('_combined', ['CombinedDyadicCorrector']),
+    'direct_exception_integer_rppr': ('_direct', ['DirectExceptionIntegerCorrector']),
+    'deterministic_avl_containers': ('_avl', ['AVLMap']),
+    'deterministic_rppr_solver': ('_types', ['SolverResult']),
+    'integer_dyadic_rppr_solver': ('_integer', ['_terminal_repair']),
+    'practical_dyadic_rppr_solver': ('solver', ['PracticalContinuationMetrics', 'PracticalStageSummary']),
+}
+
+
+def main():
+    source = (ROOT/'adaptive_source_continuation_rppr.py').read_bytes()
+    original = ast.parse(source)
+    tree = ast.parse(source)
+    transformations = []
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module in IMPORTS:
+            old = node.module
+            new, names = IMPORTS[old]
+            assert node.level == 0
+            assert [n.name for n in node.names] == names
+            assert all(n.asname is None for n in node.names)
+            node.level, node.module = 1, new
+            transformations.append(dict(kind='relative import', old=old, new='.'+new, names=names))
+    assert len(transformations) == len(IMPORTS)
+    rendered = ast.unparse(ast.fix_missing_locations(tree))+'\n'
+    compile(rendered, '<packaged adaptive wrapper>', 'exec')
+    restored = ast.parse(rendered)
+    reverse = {new:old for old,(new,_) in IMPORTS.items()}
+    for node in restored.body:
+        if isinstance(node, ast.ImportFrom) and node.level == 1:
+            node.module, node.level = reverse[node.module], 0
+    assert ast.dump(restored, include_attributes=False) == ast.dump(original, include_attributes=False)
+    previous = {p.name:hashlib.sha256(p.read_bytes()).hexdigest()
+                for p in PACKAGE.glob('*.py') if p.name != '_adaptive.py'}
+    (PACKAGE/'_adaptive.py').write_text(rendered)
+    manifest = dict(source='adaptive_source_continuation_rppr.py',
+        source_sha256=hashlib.sha256(source).hexdigest(),
+        package_sha256=hashlib.sha256(rendered.encode()).hexdigest(),
+        transformations=transformations,
+        existing_module_sha256_at_build=previous,
+        export_policy='Builder does not edit __init__.py. Add solve_adaptive only after independent implementation audit approval; solve and solve_fast stay unchanged.',
+        note='Entire module AST is unchanged except the six listed import relocations. No numeric class/function body or wrapper dispatch is rewritten.')
+    (OUT/'ADAPTIVE_TRANSCRIPTION.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    print(json.dumps(dict(added_modules=1, changed_imports=len(transformations),
+                         source_sha256=manifest['source_sha256'], package_sha256=manifest['package_sha256']),indent=2))
+
+
+if __name__ == '__main__':
+    main()

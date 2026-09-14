@@ -1,0 +1,215 @@
+"""Directed-rounding enclosures for deterministic tree-to-cube trajectories.
+
+This is a symmetry-reduced verification experiment, not a local algorithm.
+All interval operations use Decimal contexts rounded outward. A positive
+lower endpoint certifies an actual nonzero kinetic coordinate in the exact
+recurrence. Work upper bounds also count undecided signs. No asymptotic
+lower bound is inferred from finite certificates. No randomness is used.
+"""
+import argparse
+import json
+from decimal import Context, Decimal, ROUND_FLOOR, ROUND_CEILING, ROUND_HALF_EVEN
+from fractions import Fraction
+from math import comb
+
+
+class Interval:
+    down = up = near = None
+
+    @classmethod
+    def precision(cls, digits):
+        cls.down = Context(prec=digits, rounding=ROUND_FLOOR)
+        cls.up = Context(prec=digits, rounding=ROUND_CEILING)
+        cls.near = Context(prec=digits, rounding=ROUND_HALF_EVEN)
+
+    def __init__(self, lo=0, hi=None):
+        if isinstance(lo, Interval):
+            self.lo, self.hi = lo.lo, lo.hi
+        elif isinstance(lo, Fraction):
+            self.lo = self.down.divide(Decimal(lo.numerator), Decimal(lo.denominator))
+            upper = lo if hi is None else hi
+            self.hi = (self.up.divide(Decimal(upper.numerator),Decimal(upper.denominator))
+                       if isinstance(upper,Fraction) else Decimal(upper))
+        else:
+            self.lo, self.hi = Decimal(lo), Decimal(lo if hi is None else hi)
+
+    def __add__(self, other):
+        other = Interval(other)
+        return Interval(self.down.add(self.lo,other.lo),self.up.add(self.hi,other.hi))
+    __radd__ = __add__
+
+    def __neg__(self): return Interval(self.hi.copy_negate(),self.lo.copy_negate())
+    def __sub__(self, other): return self+-Interval(other)
+    def __rsub__(self, other): return Interval(other)+-self
+
+    def __mul__(self, other):
+        other = Interval(other)
+        pairs = [(x,y) for x in (self.lo,self.hi) for y in (other.lo,other.hi)]
+        return Interval(min(self.down.multiply(x,y) for x,y in pairs),
+                        max(self.up.multiply(x,y) for x,y in pairs))
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        other = Interval(other)
+        if other.lo <= 0 <= other.hi: raise ZeroDivisionError('Interval contains zero')
+        pairs = [(x,y) for x in (self.lo,self.hi) for y in (other.lo,other.hi)]
+        return Interval(min(self.down.divide(x,y) for x,y in pairs),
+                        max(self.up.divide(x,y) for x,y in pairs))
+
+    def square(self):
+        low = 0 if self.lo <= 0 <= self.hi else min(self.lo.copy_abs(),self.hi.copy_abs())
+        high = max(self.lo.copy_abs(),self.hi.copy_abs())
+        return Interval(self.down.multiply(Decimal(low),Decimal(low)),
+                        self.up.multiply(high,high))
+
+    def positive(self): return Interval(max(Decimal(0),self.lo),max(Decimal(0),self.hi))
+    def clip_unit(self):
+        return Interval(max(Decimal(0),min(Decimal(1),self.lo)),
+                        max(Decimal(0),min(Decimal(1),self.hi)))
+    def midpoint(self): return self.near.divide(self.near.add(self.lo,self.hi),Decimal(2))
+    def width(self): return self.up.subtract(self.hi,self.lo)
+    def bounds(self): return [str(self.lo),str(self.hi)]
+
+
+def project(raw, weight, cap):
+    """Enclose weighted projection using a residual-certified scalar root.
+
+    The nominal sorted calculation only chooses a candidate. Certification
+    comes from an outward residual evaluation. Wherever the tail mass is
+    positive, its negative slope has magnitude >=min(weight), which bounds
+    the distance from the candidate to the exact cap threshold.
+    """
+    positive = [v.positive() for v in raw]
+    mass = sum(positive,Interval())
+    if mass.hi <= cap.lo: return positive, Interval(0)
+    nominal = [v.midpoint() for v in raw]
+    order = sorted(range(len(raw)), key=lambda j: Interval.near.divide(nominal[j],Decimal(weight[j])),reverse=True)
+    running, W, candidate = Decimal(0), 0, Decimal(0)
+    for j in order:
+        running = Interval.near.add(running,nominal[j])
+        W += weight[j]
+        value = Interval.near.divide(Interval.near.subtract(running,cap.midpoint()),Decimal(W))
+        candidate = max(candidate,value)
+    tail = sum(((v-Interval(candidate)*w).positive() for v,w in zip(raw,weight)),Interval())
+    if tail.lo > 0:
+        residual = tail-cap
+        residual_bound = max(residual.lo.copy_abs(),residual.hi.copy_abs())
+        error = Interval.up.divide(residual_bound,Decimal(min(weight)))
+        # The first radius is certified. Coordinates positive even at its
+        # upper threshold stay active throughout the bracket, giving a much
+        # stronger certified lower slope without assuming a fixed active set.
+        for _ in range(3):
+            upper_threshold = Interval.up.add(candidate,error)
+            stable_weight = sum(w for v,w in zip(raw,weight)
+                                if (v-Interval(upper_threshold)*w).lo>0)
+            if not stable_weight: break
+            error = min(error,Interval.up.divide(residual_bound,Decimal(stable_weight)))
+        multiplier = Interval(max(Decimal(0),Interval.down.subtract(candidate,error)),
+                              Interval.up.add(candidate,error))
+    else:
+        # A wide interval may not certify the local inverse-slope condition.
+        upper = max(Interval.up.divide(v.hi,Decimal(w)) for v,w in zip(raw,weight))
+        multiplier = Interval(0,max(Decimal(0),upper))
+    return [(v-multiplier*w).positive() for v,w in zip(raw,weight)], multiplier
+
+
+def run(L,p=4,s=2,gamma=Fraction(1,16),horizon=4,precision=600,monotone=True,trace=None,clique=False):
+    if L < 2 or L & (L-1): raise ValueError('L must be a power of two >=2')
+    Interval.precision(precision)
+    logarithm = L.bit_length()-1
+    h, dimension = p*logarithm,s*logarithm
+    width = 2**h
+    if clique:
+        chamber_size = L**s
+        count = [2**j for j in range(h+1)]+[width,width*(chamber_size-1)]
+        right = [2]*h+[1]+[chamber_size-1,0]
+        self_neighbors = [0]*(len(count)-1)+[chamber_size-2]
+    else:
+        count = [2**j for j in range(h+1)]+[width*comb(dimension,j) for j in range(dimension+1)]
+        right = [2]*h+[1]+[dimension-j for j in range(dimension+1)]
+        self_neighbors = [0]*len(count)
+    left = [0]+[count[j-1]*right[j-1]//count[j] for j in range(1,len(count))]
+    assert all(count[j-1]*right[j-1] == count[j]*left[j] for j in range(1,len(count)))
+    degree = [l+r+inside for l,r,inside in zip(left,right,self_neighbors)]
+    weight = [n*d for n,d in zip(count,degree)]
+    edges = [count[j]*right[j] for j in range(len(count)-1)]
+    cube_volume = sum(weight[h+1:])
+    theta = Interval(Fraction(1,L))
+    alpha, a = theta.square(),1-theta
+    c = (1-alpha)/2
+    rho_fraction = gamma*L/cube_volume
+    rho, lam = Interval(rho_fraction),alpha*Interval(rho_fraction)
+    u, V = [Interval() for _ in count],[Interval() for _ in count]
+    def transition(values):
+        answer = [values[j]*Fraction(self_neighbors[j],degree[j]) for j in range(len(count))]
+        for j in range(len(count)-1):
+            answer[j+1] += values[j]*Fraction(right[j],degree[j])
+            answer[j] += values[j+1]*Fraction(left[j+1],degree[j+1])
+        return answer
+    certified_work, possible_work, certified_half_steps, certified_bulk_steps = 0,0,0,0
+    snapshots = []
+    for k in range(horizon*L):
+        incoming = transition([x+y for x,y in zip(u,V)])
+        raw = [a*(incoming[j]-u[j]+V[j])/2-lam*weight[j] for j in range(len(count))]
+        raw[0] += alpha
+        next_V,multiplier = project(raw,weight,theta)
+        direction = [next_V[j]-theta*u[j] for j in range(len(count))]
+        step = Interval(1)
+        if monotone:
+            density = [u[j]/weight[j] for j in range(len(count))]
+            drift = [direction[j]/weight[j] for j in range(len(count))]
+            linear = alpha*sum((direction[j]*density[j] for j in range(len(count))),Interval())
+            linear += c*sum((edges[j]*(density[j]-density[j+1])*(drift[j]-drift[j+1])
+                             for j in range(len(edges))),Interval())
+            linear += -alpha*direction[0]/degree[0]+lam*sum(direction,Interval())
+            curvature = alpha*sum((direction[j].square()/weight[j] for j in range(len(count))),Interval())
+            curvature += c*sum((edges[j]*(drift[j]-drift[j+1]).square()
+                                for j in range(len(edges))),Interval())
+            step = (-linear/curvature).clip_unit() if curvature.lo>0 else Interval(0,1)
+        # This convex form preserves nonnegative enclosures even when a sign
+        # of the movement itself is uncertain.
+        u = [(1-step*theta)*u[j]+step*next_V[j] for j in range(len(count))]
+        # Valid global mass caps also bound every aggregate coordinate.
+        u = [Interval(max(Decimal(0),x.lo),min(Decimal(1),x.hi)) for x in u]
+        V = [Interval(max(Decimal(0),x.lo),min(theta.hi,x.hi)) for x in next_V]
+        assert all(x.lo <= x.hi for x in u+V)
+        if trace is not None:
+            trace(k,u,V,step,multiplier,count,weight)
+        low_volume = sum(weight[j] for j in range(len(count)) if V[j].lo>0)
+        high_volume = sum(weight[j] for j in range(len(count)) if V[j].hi>0)
+        certified_work += low_volume
+        possible_work += high_volume
+        low_cube = sum(weight[j] for j in range(h+1,len(count)) if V[j].lo>0)
+        certified_half_steps += int(2*low_cube >= cube_volume)
+        if clique: certified_bulk_steps += int(V[-1].lo>0)
+        if k % max(1,L//8) == 0:
+            snapshots.append(dict(k=k,step=step.bounds(),mass=sum(u,Interval()).bounds(),
+                cube_mass=sum(u[h+1:],Interval()).bounds(),
+                certified_cube_volume_fraction=str(Fraction(low_cube,cube_volume)),
+                multiplier=multiplier.bounds(),maximum_state_width=str(max(x.width() for x in u+V))))
+    return dict(status='directed-rounding finite trajectory certificate; no asymptotic claim',
+        L=L,p=p,s=s,gamma=str(gamma),horizon=horizon,precision=precision,monotone=monotone,
+        chamber_kind='clique' if clique else 'hypercube',
+        rho=str(rho_fraction),cube_volume=str(cube_volume),
+        certified_normalized_work=str(rho_fraction*certified_work/L),
+        possible_normalized_work=str(rho_fraction*possible_work/L),
+        certified_half_cube_steps=certified_half_steps,
+        certified_bulk_steps=certified_bulk_steps if clique else None,
+        certified_normalized_bulk_work=(str(rho_fraction*weight[-1]*certified_bulk_steps/L)
+                                        if clique else None),
+        maximum_final_state_width=str(max(x.width() for x in u+V)),snapshots=snapshots)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--L',type=int,default=128)
+    parser.add_argument('--p',type=int,default=4)
+    parser.add_argument('--s',type=int,default=2)
+    parser.add_argument('--gamma',default='1/16')
+    parser.add_argument('--horizon',type=int,default=4)
+    parser.add_argument('--precision',type=int,default=600)
+    parser.add_argument('--ordinary',action='store_true')
+    parser.add_argument('--clique',action='store_true')
+    args=parser.parse_args()
+    print(json.dumps(run(args.L,args.p,args.s,Fraction(args.gamma),args.horizon,
+                         args.precision,not args.ordinary,clique=args.clique),indent=2))

@@ -1,0 +1,225 @@
+"""Checkpointed deterministic census of canonical PLC histories.
+
+The time limit bounds useful, nonrepeated enumeration. It is never padded by
+sleeping or repeating finished cases. Every run snapshots its exact sources.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+from cyclic_dual_averaging import homotopy_thresholds
+from positive_linear_coupling import run
+
+
+def utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--max-n", type=int, default=7)
+    parser.add_argument("--seconds", type=float, default=36000)
+    parser.add_argument("--output-directory", type=Path, required=True)
+    parser.add_argument("--relative-gap", type=float, default=1e-12)
+    parser.add_argument("--start-after", type=str)
+    args = parser.parse_args()
+    output_directory = args.output_directory.resolve()
+    resume = json.loads(args.start_after) if args.start_after else None
+    resume_key = (
+        (
+            resume["atlas_index"],
+            resume["m"],
+            resume["seed"],
+            resume["rho_index"],
+            0 if resume["mass_cap"] else 1,
+        )
+        if resume
+        else None
+    )
+    output_directory.mkdir(parents=True, exist_ok=True)
+    snapshot = output_directory / "source_snapshot"
+    snapshot.mkdir(exist_ok=True)
+    hashes = {}
+    for name in (
+        "plc_atlas_campaign.py",
+        "positive_linear_coupling.py",
+        "cyclic_dual_averaging.py",
+    ):
+        data = Path(__file__).with_name(name).read_bytes()
+        (snapshot / name).write_bytes(data)
+        hashes[name] = hashlib.sha256(data).hexdigest()
+    metadata = {
+        "started_at": utc_now(),
+        "seconds_budget": args.seconds,
+        "source_sha256": hashes,
+        "max_n": args.max_n,
+        "relative_gap": args.relative_gap,
+        "start_after": resume,
+        "randomized": False,
+        "numpy_version": np.__version__,
+        "networkx_version": nx.__version__,
+        "model": "canonical simple connected unit graphs; every seed; exact homotopy transitions approximated for audit sampling",
+    }
+    (output_directory / "metadata.json").write_text(
+        json.dumps(metadata, indent=2) + "\n"
+    )
+    start = time.monotonic()
+    last_checkpoint = start
+    tested = 0
+    worst_ratio = 0.0
+    worst = None
+    worst_contraction = 0.0
+    maximum_signed_debit_ratio = 0.0
+    finished = False
+    with (output_directory / "cases.jsonl").open("w") as output:
+        for atlas_index, graph in enumerate(nx.graph_atlas_g()):
+            n = len(graph)
+            if not 2 <= n <= args.max_n or not nx.is_connected(graph):
+                continue
+            adjacency = nx.to_numpy_array(graph, nodelist=range(n))
+            degrees = adjacency.sum(axis=1)
+            w = np.sqrt(degrees)
+            for m in (2, 4, 8, 16, 32, 64):
+                alpha = 1 / (m * m)
+                q = (1 + alpha) / 2 * np.eye(n) - (
+                    1 - alpha
+                ) / 2 * adjacency / np.outer(w, w)
+                for seed in range(n):
+                    transitions = homotopy_thresholds(graph, alpha, seed)
+                    rho_values = [f / degrees[seed] for f in (0.001, 0.1, 0.5, 0.95)]
+                    rho_values += [
+                        t * factor
+                        for t in transitions[1:]
+                        for factor in (0.999999, 1.000001, 1.01)
+                    ]
+                    for rho_index, rho in enumerate(rho_values):
+                        if rho >= 1 / degrees[seed]:
+                            continue
+                        c = -alpha * rho * w
+                        c[seed] += alpha / w[seed]
+                        for mass_cap in (True, False):
+                            key = (
+                                atlas_index,
+                                m,
+                                seed,
+                                rho_index,
+                                0 if mass_cap else 1,
+                            )
+                            if resume_key is not None and key <= resume_key:
+                                continue
+                            result = run(
+                                q,
+                                c,
+                                w,
+                                degrees,
+                                alpha,
+                                rho,
+                                mass_cap=mass_cap,
+                                relative_gap=args.relative_gap,
+                            )
+                            tested += 1
+                            ratio = result["max_rho_average_volume"]
+                            debit_ratio = result["signed_mass_debit"] / (
+                                alpha * result["iterations"]
+                            )
+                            maximum_signed_debit_ratio = max(
+                                maximum_signed_debit_ratio, debit_ratio
+                            )
+                            worst_contraction = max(
+                                worst_contraction,
+                                result["max_contraction_violation_relative"],
+                            )
+                            identity = {
+                                "atlas_index": atlas_index,
+                                "seed": seed,
+                                "m": m,
+                                "rho_index": rho_index,
+                                "mass_cap": mass_cap,
+                            }
+                            if ratio > worst_ratio:
+                                worst_ratio = ratio
+                                worst = {
+                                    "identity": identity,
+                                    "edges": [list(e) for e in graph.edges()],
+                                    "result": result,
+                                }
+                            compact = {
+                                **identity,
+                                "rho": rho,
+                                "iterations": result["iterations"],
+                                "converged": result["converged"],
+                                "ratio": ratio,
+                                "row_scan_volume": result["row_scan_volume"],
+                                "debit_ratio": debit_ratio,
+                                "potential_violation": result[
+                                    "max_contraction_violation_relative"
+                                ],
+                                "ledger_violation": result[
+                                    "max_volume_ledger_violation"
+                                ],
+                            }
+                            output.write(
+                                json.dumps(compact, separators=(",", ":")) + "\n"
+                            )
+                            now = time.monotonic()
+                            if now - last_checkpoint >= 10 or tested == 1:
+                                state = {
+                                    "updated_at": utc_now(),
+                                    "cases_completed": tested,
+                                    "elapsed_compute_seconds": now - start,
+                                    "current": identity,
+                                    "max_rho_average_volume": worst_ratio,
+                                    "maximum_signed_debit_ratio": maximum_signed_debit_ratio,
+                                    "maximum_potential_violation": worst_contraction,
+                                    "status": "running",
+                                    "randomized": False,
+                                }
+                                output.flush()
+                                temporary = output_directory / "checkpoint.new.json"
+                                temporary.write_text(json.dumps(state, indent=2) + "\n")
+                                temporary.replace(output_directory / "checkpoint.json")
+                                (output_directory / "worst.json").write_text(
+                                    json.dumps(worst, indent=2) + "\n"
+                                )
+                                print(
+                                    json.dumps(state, separators=(",", ":")), flush=True
+                                )
+                                last_checkpoint = now
+                            if now - start >= args.seconds:
+                                finished = True
+                                break
+                        if finished:
+                            break
+                    if finished:
+                        break
+                if finished:
+                    break
+            if finished:
+                break
+    state = {
+        "updated_at": utc_now(),
+        "cases_completed": tested,
+        "elapsed_compute_seconds": time.monotonic() - start,
+        "max_rho_average_volume": worst_ratio,
+        "maximum_signed_debit_ratio": maximum_signed_debit_ratio,
+        "maximum_potential_violation": worst_contraction,
+        "status": "time_budget_reached" if finished else "enumeration_complete",
+        "randomized": False,
+    }
+    (output_directory / "checkpoint.json").write_text(
+        json.dumps(state, indent=2) + "\n"
+    )
+    (output_directory / "worst.json").write_text(json.dumps(worst, indent=2) + "\n")
+    print(json.dumps(state), flush=True)
+
+
+if __name__ == "__main__":
+    main()

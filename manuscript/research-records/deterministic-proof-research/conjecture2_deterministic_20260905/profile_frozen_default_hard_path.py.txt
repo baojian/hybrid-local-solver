@@ -1,0 +1,166 @@
+"""One bounded cProfile call on the frozen default, with untimed exact checks."""
+import cProfile
+import gc
+import hashlib
+import json
+import platform
+import pstats
+import signal
+import sys
+import traceback
+from dataclasses import asdict
+from fractions import Fraction as F
+from pathlib import Path
+
+DIR=Path(__file__).resolve().parent
+PACKAGE=DIR/'deliverables/deterministic-rppr'
+sys.path.insert(0,str(PACKAGE))
+from deterministic_rppr import solve,solve_fast
+from benchmark_practical_rppr import VirtualGraph,CountingOracle,json_value
+from benchmark_adaptive_source_schedule import CASES
+from independent_sparse_certificate import certify_sparse_output
+
+TARGET=DIR/'frozen_default_hard_path_profile.json'
+PROFILE=DIR/'frozen_default_hard_path.prof'
+SAVED=DIR/'research_mass_scaled_grid_abba_benchmark.json'
+GUARDS=dict(profiled_call_wall_seconds=120,independent_certificate_wall_seconds=120,
+            oracle_entries_per_call=1000000)
+
+
+def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def canonical_sha(data):
+    return hashlib.sha256(json.dumps(data,sort_keys=True).encode()).hexdigest()
+
+
+def sources():
+    paths={Path(__file__).resolve()}
+    for module in tuple(sys.modules.values()):
+        file=getattr(module,'__file__',None)
+        if file:
+            p=Path(file).resolve()
+            if p.suffix=='.py' and p.is_relative_to(DIR):paths.add(p)
+    return {str(p.relative_to(DIR)):sha(p) for p in sorted(paths)}
+
+
+def save(data):
+    temporary=TARGET.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(data,indent=2)+'\n');temporary.replace(TARGET)
+
+
+def timeout(signum,frame):
+    raise TimeoutError('Fixed 120-second profiling/certificate guard reached')
+
+
+def profile_summary(stats):
+    rows=[];modules={}
+    for (filename,line,name),(primitive,total,self_time,cumulative,callers) in stats.stats.items():
+        p=Path(filename)
+        label=str(p.relative_to(DIR)) if p.is_absolute() and p.is_relative_to(DIR) else filename
+        row=dict(file=label,line=line,function=name,primitive_calls=primitive,total_calls=total,
+                 self_seconds=self_time,cumulative_seconds=cumulative)
+        rows.append(row)
+        aggregate=modules.setdefault(label,dict(file=label,self_seconds=0.0,total_function_calls=0))
+        aggregate['self_seconds']+=self_time
+        aggregate['total_function_calls']+=total
+    return dict(total_calls=stats.total_calls,primitive_calls=stats.prim_calls,
+        instrumented_total_seconds=stats.total_tt,
+        top_self=sorted(rows,key=lambda r:r['self_seconds'],reverse=True)[:35],
+        top_cumulative=sorted(rows,key=lambda r:r['cumulative_seconds'],reverse=True)[:35],
+        modules_by_disjoint_self_time=sorted(modules.values(),key=lambda r:r['self_seconds'],reverse=True),
+        all_function_records=sorted(rows,key=lambda r:(r['file'],r['line'],r['function'])))
+
+
+def main():
+    assert solve is solve_fast
+    case=next(c for c in CASES if c.name=='hard-alpha-path')
+    assert (case.alpha,case.rho,case.epsilon)==(F(1,1000),F(1,64),F(1,10**8))
+    saved=json.loads(SAVED.read_text())
+    old=[r for r in saved['runs'] if r['case']==case.name and r['mode']=='fast']
+    assert saved['status']=='passed' and len(old)==2
+    assert old[0]['complete_answer']==old[1]['complete_answer']
+    assert old[0]['oracle_counts']==old[1]['oracle_counts']
+    before=sources()
+    saved_hashes=saved['source_hashes_before']
+    shared={p:h for p,h in before.items() if p in saved_hashes}
+    assert all(h==saved_hashes[p] for p,h in shared.items())
+    numerical={str(p.relative_to(DIR)):sha(p) for p in (PACKAGE/'deterministic_rppr').glob('*.py')}
+    assert all(saved_hashes[p]==h for p,h in numerical.items())
+    report=dict(status='running',scope='One cProfile call, frozen default only; no benchmark comparison.',
+        deterministic_arithmetic=True,case=json_value(asdict(case)),resource_guards=GUARDS,
+        runtime=dict(python=sys.version,executable=sys.executable,platform=platform.platform(),
+                     implementation=platform.python_implementation(),gc_enabled=gc.isenabled()),
+        source_hashes_before=before,saved_reference=SAVED.name,saved_reference_sha256=sha(SAVED),
+        saved_default_matching_run_indices=[r['order_index'] for r in old],
+        all_numerical_hashes_match_saved_reference=True,
+        profiled_scope='Exactly the solver call, including its CountingOracle, all internal checkpoints, and terminal repair.',
+        unprofiled_scope='Imports/setup, graph construction, gc.collect, independent final certificate, exact saved-record comparisons, serialization and report generation.',
+        interpretation='cProfile changes runtime and records interpreter call attribution. Neither relative speed nor an asymptotic claim is inferred.')
+    save(report)
+    profiler=cProfile.Profile()
+    graph=VirtualGraph(case.family,case.size,case.auxiliary)
+    oracle=CountingOracle(graph,GUARDS['oracle_entries_per_call'])
+    signal.signal(signal.SIGALRM,timeout)
+    try:
+        gc.collect()
+        signal.setitimer(signal.ITIMER_REAL,GUARDS['profiled_call_wall_seconds'])
+        try:
+            profiler.enable()
+            answer=solve(oracle,case.seed,case.alpha,case.rho,case.epsilon)
+        finally:
+            profiler.disable()
+            signal.setitimer(signal.ITIMER_REAL,0)
+            profiler.dump_stats(PROFILE)
+        complete=json_value(asdict(answer))
+        counts=oracle.snapshot()
+        assert complete==old[0]['complete_answer']
+        assert counts==old[0]['oracle_counts']
+        expected_degrees=answer.metrics.seed_degree_queries+answer.metrics.repair_degree_replies+sum(
+            s.corrector_metrics['degree_replies'] for s in answer.stages)
+        expected_entries=answer.metrics.repair_first_adjacency_entries+sum(
+            s.corrector_metrics['first_adjacency_entries'] for s in answer.stages)
+        assert counts['degree_replies']==expected_degrees and counts['adjacency_entries']==expected_entries
+        correction=sum(s.corrector_metrics['scanned_adjacency_entries'] for s in answer.stages)
+        checkpoint=sum(s.corrector_metrics['checkpoints']['cached_adjacency_entries'] for s in answer.stages)
+        repair=answer.metrics.repair_scanned_adjacency_entries
+        for key,value in (('corrector_scanned_entries',correction),('checkpoint_scanned_entries',checkpoint),
+                          ('terminal_scanned_entries',repair),('repeated_scanned_entries',correction+checkpoint+repair)):
+            assert value==old[0][key]
+        verifier=CountingOracle(graph,GUARDS['oracle_entries_per_call'])
+        signal.setitimer(signal.ITIMER_REAL,GUARDS['independent_certificate_wall_seconds'])
+        try:certificate=certify_sparse_output(verifier,case.seed,case.alpha,case.rho,answer.output)
+        finally:signal.setitimer(signal.ITIMER_REAL,0)
+        assert certificate.meets(case.epsilon)
+        assert json_value(asdict(certificate))==old[0]['independent_certificate']
+        assert verifier.snapshot()==old[0]['verifier_oracle_counts']
+        stats=pstats.Stats(profiler)
+        summary=profile_summary(stats)
+        report.update(status='passed',complete_answer=complete,oracle_counts=counts,
+            stages=len(answer.stages),iterations=sum(s.iterations for s in answer.stages),
+            kinetic_volume=sum(s.kinetic_volume for s in answer.stages),
+            scanned_entries=dict(corrector=correction,checkpoints=checkpoint,terminal=repair,total=correction+checkpoint+repair),
+            exact_complete_answer_matches_saved=True,exact_counts_match_saved=True,
+            complete_answer_canonical_sha256=canonical_sha(complete),
+            output_canonical_sha256=canonical_sha(complete['output']),
+            independent_certificate=json_value(asdict(certificate)),
+            independent_certificate_matches_saved=True,verifier_oracle_counts=verifier.snapshot(),
+            profile_file=PROFILE.name,profile_sha256=sha(PROFILE),profile=summary)
+    except BaseException as error:
+        signal.setitimer(signal.ITIMER_REAL,0)
+        report.update(status='incomplete',failure=dict(exception=repr(error),traceback=traceback.format_exc()),
+                      oracle_counts=oracle.snapshot())
+        raise
+    finally:
+        profiler.disable();signal.setitimer(signal.ITIMER_REAL,0)
+        report['source_hashes_after']=sources()
+        report['sources_unchanged']=before==report['source_hashes_after']
+        if not report['sources_unchanged']:report['status']='incomplete'
+        save(report)
+    assert report['sources_unchanged']
+    print('PASSED: one profiled call; complete result/counts/certificate equal saved default.',flush=True)
+    print(json.dumps({k:report[k] for k in ('stages','iterations','oracle_counts','scanned_entries','complete_answer_canonical_sha256','output_canonical_sha256')},indent=2),flush=True)
+    print('Top self-time functions:',json.dumps(summary['top_self'][:12],indent=2),flush=True)
+
+
+if __name__=='__main__':main()

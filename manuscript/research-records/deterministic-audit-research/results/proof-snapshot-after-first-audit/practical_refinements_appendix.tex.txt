@@ -1,0 +1,485 @@
+% Input after the main proof, optionally after the caller's \appendix.
+% This file has no preamble and does not change the original theorem.
+\section{Practical refinements and bounded arithmetic}\label{app:refinements}
+
+The exact-real theorem admits several useful refinements. We first give
+a less conservative repair and a smaller correction mass cap. We then
+prove a perturbation lemma and realize its hypotheses using bounded
+rational arithmetic with explicit downward rounding. This last result
+requires rational numerical inputs and accounts for their encoding lengths;
+it is a separate extension of Theorem~\ref{thm:main}, not an assertion about
+unchecked floating-point arithmetic or a completed software implementation.
+
+Throughout, $0<\alpha<1$, $0<r<1/d_v$, $\lambda=\alpha r$,
+$\theta,\mu,a$ are as in \eqref{eq:theta}, and the baseline satisfies
+\eqref{eq:baseline}. Write
+\[
+ x^*=x^*_r,\quad \xi^*=x^*-\xb,\quad
+ s=b-Q\xb,\quad m_s=w^Ts,\quad t=Q^{-1}s.
+\]
+The quadratic $J_r$ denotes the full objective on the nonnegative orthant;
+$J(\xi)=J_r(\xb+\xi)-J_r(\xb)$ denotes the correction objective.
+
+\subsection{An end-stage projected-gradient repair}\label{app:pg}
+
+\begin{lemma}\label{app:pg-repair}
+Let $\widetilde x\ge0$ have objective gap at most $\tau$, and choose
+$0<\delta\le\lambda/2$. If $\tau\le\alpha\delta^2/2$, the two operations
+\[
+ y=[\widetilde x-\nabla J_r(\widetilde x)]_+,
+ \qquad z=[y-\delta w]_+
+\]
+give
+\begin{equation}\label{app:repair-invariant}
+ 0\le z\le x^*,\quad Qz\le b,\quad
+ 0\le x^*-z\le2\delta w,\quad 0\le b-Qz\le2\lambda w.
+\end{equation}
+Consequently $\vol(\supp z)\le1/r$ and
+$J_r(z)-J_r(x^*)\le2\delta^2/r$.
+\end{lemma}
+\begin{proof}
+Put $\Delta=\widetilde x-y$. Projection optimality and $Q\preceq I$ give
+\[
+ J_r(\widetilde x)-J_r(y)\ge\tfrac12\norm\Delta^2,
+ \qquad v=(I-Q)\Delta\in\partial(J_r+I_{\R_+^V})(y).
+\]
+Indeed the projection normal is
+$\Delta-\nabla J_r(\widetilde x)$; adding it to $\nabla J_r(y)$ gives $v$.
+Thus $y$ retains gap at most $\tau$,
+$\norm{y-x^*}\le\sqrt{2\tau/\alpha}\le\delta$, and
+$\norm v\le\sqrt{2\tau}\le\sqrt\alpha\delta\le\lambda/2$.
+On $y_i>0$ the normal vanishes, so
+$(Qy-b)_i=v_i-\lambda w_i\le0$. On $y_i=0$, Stieltjes signs give the
+same conclusion. Since $w_i\ge1$, clipping by $\delta w$ puts $z$ below
+$x^*$ with error at most $2\delta w$. On a positive retained coordinate,
+$z\ge y-\delta w$ and nonpositive off-diagonals imply
+$(Qz)_i\le(Qy)_i-\alpha\delta w_i\le b_i$; zero coordinates are immediate.
+Equation~\eqref{eq:infty} and KKT now give the source upper bound.
+Finally, $z-x^*$ is supported where the KKT slack vanishes, so its
+objective error is $\norm{z-x^*}_Q^2/2\le2\delta^2/r$.
+\end{proof}
+
+At an intermediate stage, $\delta=\alpha r/2$ permits
+$\tau=\alpha^3r^2/8$. The PG step is performed only after the accelerated
+stage; inserting it inside the recurrence would require a new auxiliary
+energy proof. Its local charge is one scan of the full candidate support,
+whose volume is bounded by the baseline and emitted history. Compute $y$
+on the exposed records and truncate immediately. Do not scan adjacency
+lists of newly positive PG neighbors before this truncation.
+
+There is also an independent certificate for an inexact terminal PG step.
+For actual stored $x,y\ge0$ and an approximate gradient $\widetilde g$, set
+\[
+ \Delta=x-y,\quad e_g=\widetilde g-\nabla J_r(x),\quad
+ e_p=\Delta-\widetilde g-n,
+\]
+where $n_i=0$ on $y_i>0$ and $n_i\le0$ on $y_i=0$.
+Then $(I-Q)\Delta-e_g-e_p$ is a valid subgradient at $y$. Certified bounds
+$D_0\ge\norm\Delta$, $E_g\ge\norm{e_g}$, and $E_p\ge\norm{e_p}$ give
+\begin{equation}\label{app:terminal-certificate}
+ R=(1-\alpha)D_0+E_g+E_p,
+ \quad J_r(y)-J_r(x^*)\le\frac{R^2}{2\alpha},
+ \quad \norm{y-x^*}\le\frac R\alpha.
+\end{equation}
+These are statements about the stored point. They require no new
+$Q$-product on its positive support. A choice
+$n_i=\min(\Delta_i-\widetilde g_i,0)$ at zero coordinates is explicit.
+Unexposed zero coordinates have symbolically known positive gradient,
+zero projected value, and zero certificate defect; they are not assigned
+fictitious independently rounded errors.
+
+\subsection{Source mass, monotone baselines, and a stronger work bound}
+\label{app:mass}
+
+The known scalar
+\begin{equation}\label{app:eta}
+ \eta=\frac{m_s}{\alpha}=1-w^T\xb
+\end{equation}
+is an exact correction mass budget. Replace the unit cap by
+\[
+ \calK_{r,\eta}=\{z:0\le z\le4rw,\ w^Tz\le\eta\}.
+\]
+Both $\xi^*$ and $t$ remain feasible, and $w^Tt=\eta$. The lower and upper
+normal signs in Lemma~\ref{lem:sector} are unchanged. A mass normal
+$\gamma w$ contributes exactly
+$\gamma(\alpha\eta-m_s)=0$ when active. Hence both energy inequalities
+and $\norm{Q(\xi_k-\xi^*)}^2\le18\lambda m_s$ remain valid. In particular,
+the full iterate $\xb+\xi_k$ now has mass at most one.
+
+Define the optimum's mass deficit by
+$\eta_*(q)=1-w^Tx_q^*$. KKT and $Qw=\alpha w$ imply
+\begin{equation}\label{app:deficit-volume}
+ \vol(\supp x_q^*)\le\frac{\eta_*(q)}q,\qquad q>0.
+\end{equation}
+To see this, $b-Qx_q^*$ is nonnegative, equals $\alpha q w_i$ on the
+positive support, and has weighted mass $\alpha\eta_*(q)$. Since
+$\xb\le x_r^*\le x_{r/2}^*$, the same analytical comparison set as before
+satisfies $\vol(C_r)\le2\eta/r$. Its outside residual margin remains
+$\lambda w_i/2$. No new support oracle is introduced. If one instead
+defines a correction core, it gives the identical set
+$\supp(x_{r/2}^*-\xb)=C_r$: equality of an allegedly missing positive
+coordinate would force $x_{r,i}^*=x_{r/2,i}^*>0$, contradicting their
+stationarity equations and the Stieltjes comparison at that coordinate.
+
+For $K$ steps let $D_{\rm out}$ be the kinetic volume outside $C_r$,
+$B_0=K\vol(C_r)$, and let $H_2$ be the squared response sum used in the
+selected-flow proof. Then
+\[
+ \frac\lambda2D_{\rm out}
+ \le\sqrt{(D_{\rm out}+B_0)H_2},\qquad
+ B_0\le\frac{2\eta K}r,\qquad H_2\le18\lambda m_sK.
+\]
+Writing $Y=D_{\rm out}+B_0$, Young's inequality gives
+\begin{equation}\label{app:mass-work}
+ Y\le B_0+\frac{2\sqrt{YH_2}}\lambda
+ \le B_0+\frac Y2+\frac{2H_2}{\lambda^2},
+ \qquad
+ \sum_k\vol(\supp z_{k+1})\le Y\le\frac{76\eta K}r.
+\end{equation}
+The other local operations inherit this factor:
+$\vol(\supp\xb)\le\eta/r$ by \eqref{app:deficit-volume}, and the fixed
+source has $O(1+\eta/r)$ exposed records. In the nonzero regime
+$\eta/r\ge1$, so source refreshes, baseline scans, and materialization
+are all covered by $\widetilde O(\eta K/r)$.
+
+A safe repair can be made monotone by replacing its result $z$ with
+\begin{equation}\label{app:max-repair}
+ \xb_{\rm new}=\max(\xb,z).
+\end{equation}
+The maximum of two nonnegative Stieltjes subsolutions $Qx\le b$ is a
+subsolution: at a coordinate selected from one vector, the diagonal
+coordinate is unchanged and all other coordinates increase. Both vectors
+lie below $x_r^*$, so \eqref{app:repair-invariant} and its error bound remain
+valid. The quadratic gap bound follows again from $Q\preceq I$, not from
+an unwarranted coordinatewise monotonicity of the $Q$-norm. Moreover,
+\begin{equation}\label{app:repair-deficit}
+ \eta_*(r)\le\eta_{\rm new}
+ \le\eta_*(r)+2\delta\vol(\supp x_r^*)
+ \le(1+\alpha)\eta_*(r).
+\end{equation}
+
+Each coordinate of $x_q^*$ is convex in $q$: a convex combination of
+optimizers is a nonnegative supersolution at the interpolated parameter,
+and therefore dominates its least supersolution. Thus $\eta_*$ is concave,
+nondecreasing, and $\eta_*(0)=0$. In particular,
+$\eta_*(R)/R\le\eta_*(r)/r$ for $R\ge r>0$.
+For a stage at $r_j$ following repair at
+$r_{j-1}\in[r_j,2r_j]$, equation~\eqref{app:repair-deficit} yields
+\[
+ \frac{\eta_j}{r_j}
+ \le2(1+\alpha)\frac{\eta_*(r_{j-1})}{r_{j-1}}
+ \le4\frac{\eta_*(\rho)}\rho.
+\]
+The initial zero baseline satisfies the same statement because
+$x^*_{1/d_v}=0$ and $\eta_*(1/d_v)=1$.
+Summing over the logarithmically many stages proves the refinement
+\begin{equation}\label{app:strong-work}
+ \widetilde O\!\left(\frac{\eta_*(\rho)}{\rho\sqrt\alpha}\right)
+\end{equation}
+for exact arithmetic, with the stage-count logarithm included. The final
+returned mass deficit estimates $\eta_*(\rho)$ within factor $1+\alpha$.
+
+\subsection{A dimension-independent two-energy perturbation lemma}
+\label{app:perturbation}
+
+The following lemma permits changes of support caused by rounding. It
+applies to either mass cap, using the conservative bound $w^Tz\le1$.
+At the actual stored states $(\xi,z)$, form $y$ and $q=z^{\rm raw}$ by
+\eqref{eq:iteration}. Model an iteration as
+\begin{equation}\label{app:error-model}
+ p_0=\Proj_{\calK}(q+u),\quad p=p_0+e_p,\quad
+ \xi^+=a\xi+\theta p+e_x,
+ \quad
+ \begin{cases}
+ |u|\le\kappa_r w,\\
+ -\kappa_p w\le e_p\le0,\\
+ -\kappa_x w\le e_x\le0,
+ \end{cases}
+\end{equation}
+with $p,\xi^+\ge0$. Downward errors ensure feasibility. The ideal $p_0$
+is analytical and need not be materialized on all its positive coordinates.
+
+\begin{lemma}\label{app:two-energy}
+For the energies $E,B$ of the main proof, the actual states in
+\eqref{app:error-model} satisfy
+\begin{equation}\label{app:zeta}
+\begin{gathered}
+ E^+\le aE+\zeta,\qquad B^+\le aB+\zeta,\\
+ \zeta=2\mu\kappa_r+\frac52\kappa_x
+                  +\frac52(\theta+\mu)\kappa_p.
+\end{gathered}
+\end{equation}
+For uniform bounds put $\Gamma=\zeta/\theta$. Starting from zero,
+\begin{equation}\label{app:perturbed-response}
+ J(\xi_k)-J(\xi^*)\le a^k+\Gamma,
+ \qquad \norm{Q(\xi_k-\xi^*)}^2\le18\alpha^2r+4\Gamma.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Besides \eqref{eq:infty}, symmetry and $|Q|w=w$ imply
+$w^T|Qv|\le w^T|v|$. Since $p_0,\xi^*,t$ have mass at most one,
+\[
+ |\ip{p_0-\xi^*}{u}|\le2\kappa_r,
+ \qquad |\ip{p_0-t}{Qu}|\le2\kappa_r.
+\]
+The projection normal of $q+u$ has the usual sector signs in both
+comparison metrics. Replacing it by $q-p_0$ therefore costs at most
+$2\mu\kappa_r$ in Lemma~\ref{lem:comparison}.
+
+Set $\xi_0^+=a\xi+\theta p_0$ and
+$d=\xi^+-\xi_0^+=\theta e_p+e_x\le0$, with
+$|d|\le\kappa_d w$, $\kappa_d=\theta\kappa_p+\kappa_x$.
+Its lost mass is at most one, so $\norm d^2\le\kappa_d$.
+Also $w^T|Q\xi_0^+-s|\le1+\alpha\le2$.
+Quadratic expansion, $|Qd|\le\kappa_dw$, and $Q\preceq I$ show that
+each of $J$ and $\mathcal A$ increases by at most $5\kappa_d/2$;
+their positive mass penalties decrease under $d\le0$.
+The mirror error has $\norm{e_p}^2\le\kappa_p$. Expanding either
+mirror-distance term costs at most $5\mu\kappa_p/2$, because the
+absolute weighted mass of the difference from its comparator is at most
+two. Adding these bounds proves \eqref{app:zeta}. Summing the geometric
+recurrences gives the first assertion in \eqref{app:perturbed-response}.
+The auxiliary proof of \eqref{eq:response}, with its added energy
+$\Gamma$, gives the second.
+\end{proof}
+
+For varying errors, $\Gamma$ is replaced by the explicitly maintained
+convolution $\Gamma_{k+1}=a\Gamma_k+\zeta_k$, $\Gamma_0=0$.
+The lemma uses mass bounds rather than a Euclidean sum of uniform errors
+over unknown vertices.
+
+To preserve the work bound, set $\nu=\theta\kappa_r$. On a selected
+coordinate $p_i>\xi_i^*$ one has $p_{0,i}>\xi_i^*$; its lower normal is
+absent, while upper normals, the mass normal, and downward $e_p$ only
+subtract from the selected flow. The raw error contributes at most
+$\nu d_i$. Thus, with $B_0=K\vol(C_r)\le2K/r$,
+\begin{equation}\label{app:perturbed-flow}
+ \frac\lambda2D_{\rm out}
+ \le\sqrt{(D_{\rm out}+B_0)H_2}
+       +\nu(D_{\rm out}+B_0),\quad
+ H_2\le K(18\alpha^2r+4\Gamma).
+\end{equation}
+If $\nu\le\lambda/4$, absorb its outside term and apply Young's
+inequality to obtain
+\begin{equation}\label{app:rounded-work}
+ \sum_k\vol(\supp p_k)
+ \le\frac{16H_2}{\lambda^2}+\frac{8K}r
+ \le\frac{360K}r\qquad(\Gamma\le\alpha^2r).
+\end{equation}
+No minimum positive activation margin is assumed. Downward primal error
+affects the response through \eqref{app:perturbed-response} and introduces
+no separate term into the raw flow identity.
+
+\subsection{A bounded dyadic realization with scalar rebases}
+\label{app:dyadic}
+
+Let $0<\tau\le\alpha^2r$, and choose a dyadic grid $h$ such that
+\begin{equation}\label{app:grid-block}
+ 0<h\le\min\{1/8,\theta\tau/256\},\qquad
+ K=Tq,\quad T=1/\theta,\quad 2^q\ge2/\tau.
+\end{equation}
+Take the smallest suitable integer $q$. Since
+$(1-\theta)^T<1/2$, this gives $a^K\le\tau/2$ without retaining a
+growing exact power. Additional conditions $h\le\delta/2,\lambda/4$
+may be imposed explicitly for terminal repair.
+
+Store degree densities as $\xi_i/w_i=\sigma X_i$ and $Z_i=z_i/w_i$,
+where $\sigma,X_i,Z_i$ are nonnegative multiples of $h$. At iteration
+boundaries $1/2\le\sigma\le1$. Maintain primal neighbor records $L_i$,
+initially $L_i=\sum_{j\sim i}X_j$, and exact current-kinetic and baseline
+neighbor sums. A changed $X_j$ scatters its \emph{actual dyadic increment}
+to all $L_i$ with $i\sim j$. The response density is evaluated as
+\begin{equation}\label{app:neighbor-response}
+ (q_0-\mu)X_i-cL_i/d_i,\qquad q_0=(1+\alpha)/2.
+\end{equation}
+It equals $[D^{-1/2}(Q-\mu I)D^{1/2}X]_i$ when $L$ is exact. The source
+is always computed exactly from the dyadic baseline, using
+\[
+ s_i/w_i=\alpha\mathbf1_{i=v}/d_i-q_0\xb_i/w_i
+                +(c/d_i)\sum_{j\sim i}\xb_j/w_j.
+\]
+
+Use the exact ordered reporter with these response records to determine
+the box/mass multiplier. If the computed raw density is
+$\sigma k_i-\lambda/\theta$ and the multiplier is $\gamma$, emit only
+the \emph{closed} tail
+\begin{equation}\label{app:closed-tail}
+ k_i\ge(\lambda/\theta+\gamma+h)/\sigma.
+\end{equation}
+For each emitted vertex set $p_i/w_i=\lfloor p_{0,i}/w_i\rfloor_h$.
+Here $\lfloor t\rfloor_h=h\lfloor t/h\rfloor$, and the ideal projection
+is onto the chosen box and mass cap. Since $h\le4r$, condition
+\eqref{app:closed-tail} is exactly the condition for a positive stored
+output, including equality at $h$. Enumerating all positive ideal outputs
+before rounding would incur uncharged work and is not the algorithm.
+
+Remove the old kinetic/source exceptions, put
+$\sigma'=\lfloor a\sigma\rfloor_h$, and on emitted coordinates update
+\begin{equation}\label{app:dyadic-update}
+ X_i\longleftarrow
+ \left\lfloor X_i+\frac{\theta(p_i/w_i)}{\sigma'}\right\rfloor_h.
+\end{equation}
+Scatter the resulting changes to $L$. The scale is positive because
+$a\sigma\ge1/4$ and $h\le1/8$. At the old iteration boundary
+$X_i\le2U$, $U=4r\le4$. Scale rounding loses at most $2Uh$ in physical
+density; \eqref{app:dyadic-update} loses at most another $h$.
+Set $z\leftarrow p$ and form its exact neighbor sums by the same charged
+scan of the emitted support.
+
+If $\sigma'<1/2$, independently replace all exposed primal records by
+\begin{equation}\label{app:scalar-rebase}
+ X_i\longleftarrow\lfloor\sigma'X_i\rfloor_h,
+ \qquad L_i\longleftarrow\lfloor\sigma'L_i\rfloor_h,
+ \qquad \sigma\longleftarrow1.
+\end{equation}
+Both replacements use their old values. Do not scatter the $X$ changes
+in this rebase: that would count the transformation twice. Do not scale
+the current-kinetic or baseline neighbor sums. Rebuild keys and their
+exceptions from the resulting records. If $\sigma'\ge1/2$, instead set
+$\sigma\leftarrow\sigma'$, refresh all touched base keys, and then install
+the new kinetic/source exceptions. The rebase adds at most $h$ of
+downward primal density error, so altogether
+\begin{equation}\label{app:rounding-constants}
+ \kappa_p=h,\qquad \kappa_x\le(2U+2)h\le10h.
+\end{equation}
+Nonnegativity of the construction and downward errors preserve feasibility.
+
+The neighbor records now have a controlled error
+$e_i^L=L_i-\sum_{j\sim i}X_j$. Exact scattered increments preserve this
+error between rebases. At a rebase the individual floor losses give
+\[
+ e_i^{L,+}=\sigma'e_i^L+
+       \sum_{j\sim i}\ell_j-\ell_i^L,
+ \qquad 0\le\ell_j,\ell_i^L<h.
+\]
+Since $\sigma'<1/2$, the invariant
+$|e_i^L|/d_i\le4h$ follows from
+$|e_i^{L,+}|/d_i\le\sigma'|e_i^L|/d_i+2h$.
+The only approximate response term is the primal neighbor sum, so its
+raw density error is bounded by
+\begin{equation}\label{app:raw-rounding}
+ \frac{|u_i|}{w_i}
+ \le\frac{\sigma c|e_i^L|}{\theta(1+\theta)d_i}
+ \le\frac{2h}{\theta}=\kappa_r.
+\end{equation}
+Every state needed by this argument remains represented through the stage;
+unexposed coordinates have zero state and source and cannot be emitted.
+
+Equations~\eqref{app:zeta}, \eqref{app:rounding-constants}, and
+\eqref{app:raw-rounding} imply
+\[
+ \Gamma\le\frac{29h}{\theta}<\frac\tau8,
+ \qquad \theta\kappa_r=2h\le\lambda/4.
+\]
+Thus \eqref{app:grid-block} certifies gap below $\tau$ for the actual
+stored candidate and the kinetic bound \eqref{app:rounded-work}.
+This conclusion permits approximate primal neighbor sums; it does not
+silently treat them as exact products.
+
+All rebase operations are charged scalar/tree passes over exposed records.
+A scale interval starts at one and each step decreases scale by at most
+$\theta+h$; crossing below $1/2$ needs at least $1/[2(\theta+h)]$ steps.
+There are therefore at most $4\theta K+1=O(1+\log(1/\tau))$ rebases.
+The number of retained records is bounded by source exposure and the
+cumulative emitted adjacency volume. Consequently the passes cost only
+an additional allowed logarithmic factor. They inspect no adjacency lists.
+Ordinary scatters and the final full-candidate scan remain separately paid.
+
+\subsection{Encoding lengths and completion of continuation}
+\label{app:encoding}
+
+For completeness, the rational implementation does not accumulate an
+iteration-dependent product denominator. Write
+\[
+ \alpha=A_0/B_\alpha,\qquad\theta=1/T,\qquad
+ h=1/H,\qquad\sigma=S/H,
+\]
+and express dyadic densities and neighbor records as integers over $H$.
+Let $M_i=\sum_{j\sim i}Z_j$. Multiplying the lazy key by its degree gives
+\begin{equation}\label{app:weighted-key}
+ \begin{split}
+ W_i:=d_i k_i={}&-
+ \frac{(q_0-\mu)d_iX_i-cL_i}{\theta(1+\theta)}\\
+ &+\frac1\sigma\left\{
+ a d_iZ_i-\frac{(q_0-\mu)d_iZ_i-cM_i}{1+\theta}
+                  +\frac{d_i s_i/w_i}{\theta}\right\}.
+ \end{split}
+\end{equation}
+The degree denominator cancels in every term. All $W_i$ have denominators
+dividing the common integer $2B_\alpha HT(T+1)S$. Their physical values
+$\sigma W_i$ have a common denominator dividing
+$2B_\alpha H^2T(T+1)$. Include the represented denominator of $r$ for
+the common shift and box height. Thus weighted subtree moments do not
+form an accumulated least common multiple of vertex degrees. Comparisons
+of unweighted keys $W_i/d_i$ use only the additional encoding of one degree.
+Remove all old exceptions before installing new ones, so only the current
+scale denominator is retained.
+
+On an affine interval of the clipped waterfill, if $I$ is the free set
+and $U_0$ the saturated set, its mass multiplier is
+\[
+ \gamma=
+ \frac{\sum_{i\in I}d_i q_i^{\rm den}
+                  +U\sum_{i\in U_0}d_i-M}{\sum_{i\in I}d_i},
+\]
+where $q_i^{\rm den}$ is raw density and $M$ is either $1$ or $\eta$.
+Empty free sets are handled by the exact breakpoint comparison. The
+division introduces only the encoding length of a degree sum. Ideal
+projected coordinates are immediately rounded to the dyadic grid, so
+this denominator never enters the next stored vector. The reporter uses
+the finite ordered breakpoint search of the main proof; it does not
+bisect until an unknown activation margin is resolved.
+
+The stored normalized densities are bounded (at most $32$ even before
+rebase); neighbor sums add at most the encoding lengths of exposed counts
+and degrees. Across stages take nested nonincreasing dyadic grids, so an
+old baseline is represented exactly on the new grid. Therefore all
+integer temporaries have bit length bounded by
+\[
+ O\!\left(L_{\rm input}+\log H+\log T+
+          \log(N+2)+\log(d_{\max}+2)\right),
+\]
+up to fixed constant factors for intermediate products. Here
+$L_{\rm input}$ includes numerical parameter and vertex-label encodings,
+$N$ is the number of exposed records, and $d_{\max}$ the largest exposed
+degree. There is no linear growth in the number of iterations. Exact
+integer arithmetic and deterministic comparison trees thus add only
+polynomial factors in these logarithmic encoding lengths to the charged
+operation count.
+
+Finally choose, at each continuation stage,
+\begin{equation}\label{app:final-budgets}
+ 0<\delta\le\alpha r/2,\qquad
+ \tau=\alpha\delta^2/8,\qquad
+ h\le\min\{1/8,\theta\tau/256,\delta/2,\lambda/4\}.
+\end{equation}
+At the final stage also require $2\delta^2/r\le\epsilon$.
+Run the block schedule and compute an \emph{exact} end-stage PG step from
+the actual materialized full candidate. This one terminal scan must not
+reuse approximate $L$ as an exact gradient. Its PG point $y$ has
+$\norm{y-x^*}\le\delta/2$ and a valid subgradient of norm at most
+$\sqrt{2\tau}\le\delta/2$. Set
+\[
+ z_i/w_i=\left\lfloor[y_i/w_i-\delta]_+\right\rfloor_h,
+ \qquad \xb_{\rm new}=\max(\xb,z).
+\]
+The loss is at most $\delta/2+\delta+h\le2\delta$ in density. On a
+retained positive coordinate,
+\[
+ (Qz-b)_i\le(-\lambda+\delta/2-\alpha\delta+h)w_i\le0;
+\]
+here uniform clipping helps and additional downward grid rounding raises
+the $Q$-product by at most $hw_i$. Zero coordinates follow from Stieltjes
+signs. Thus \eqref{app:repair-invariant} and the monotone maximum argument
+hold for the actual dyadic baseline. It supplies a source in
+$[0,4\alpha r_{\rm next}w]$ for every factor-two next stage and the
+required final objective error.
+
+This bounded-rational construction retains the original
+$\widetilde O(1/(\rho\sqrt\alpha))$ local operation count, with the
+additional explicitly described encoding factors in a bit model. The
+sharper bound \eqref{app:strong-work} was proved above for the exact
+trajectory; the conservative rounded ledger \eqref{app:rounded-work}
+already suffices for the original bound. These arithmetic arguments are
+distinct from tests of any particular implementation and do not certify
+ordinary fixed-precision floating-point execution.

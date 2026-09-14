@@ -1,0 +1,96 @@
+"""Independent exact two-vertex energy/prefix audit; no dense solver import."""
+import json
+from fractions import Fraction as F
+from pathlib import Path
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector, solve_rppr_source_energy
+
+class TwoVertexOracle:
+    def __init__(self): self.degree_replies=0; self.rows=0
+    def degree(self,i):
+        assert i in (0,1)
+        self.degree_replies+=1
+        return 1
+    def neighbors(self,i):
+        assert i in (0,1)
+        self.rows+=1
+        return (1-i,)
+
+def optimum(alpha,rho):
+    q0,c=(1+alpha)/2,(1-alpha)/2
+    if rho>=1: return (F(0),F(0))
+    if rho>=c: return (alpha*(1-rho)/q0,F(0))
+    return (q0-rho,c-rho)
+
+def objective(values,alpha,rho):
+    u,v=values
+    q0,c=(1+alpha)/2,(1-alpha)/2
+    return q0*(u*u+v*v)/2-c*u*v-alpha*u+alpha*rho*(u+v)
+
+def theta_for(alpha):
+    theta=F(1,2)
+    while theta*theta>alpha: theta/=2
+    return theta
+
+def main():
+    report=dict(initial_energy_cases=0, exact_energy_prefixes=0, zero_step_cases=0,
+                positive_zero_step_cases=0, zero_energy_cases=0, full_zero_step_cases=0,
+                oracle_query_reconciliation=True, fixtures=[])
+    fixtures=[(F(13,97),F(1,3),{},F(1,2048)),
+              (F(1,100),F(3,4),{},F(1,2048)),
+              (F(65,1024),F(1,3),{},F(1,2048)),
+              (F(63,1024),F(1,3),{},F(1,2048)),
+              (F(1,4),F(1,4),{0:F(3,16),1:F(1,16)},F(1,2048)),
+              (F(1,4),F(1,4),{0:F(3,8),1:F(1,8)},F(1,2048)),
+              (F(13,97),F(4095,4096),{},F(1,2048))]
+    for alpha,rho,baseline,tau in fixtures:
+        oracle=TwoVertexOracle()
+        stage=SourceEnergyDyadicCorrector(oracle,0,alpha,theta_for(alpha),rho,tau,baseline)
+        opt=optimum(alpha,rho)
+        e=tuple(opt[i]-baseline.get(i,F(0)) for i in (0,1))
+        q0,c=(1+alpha)/2,(1-alpha)/2
+        quadratic=q0*sum(v*v for v in e)-2*c*e[0]*e[1]
+        initial=quadratic/2+stage.theta**2*sum(v*v for v in e)/2
+        assert 0<=initial<=stage.initial_energy_bound<=min(F(1),3*alpha*rho*stage.mass_cap)
+        assert objective(tuple(baseline.get(i,F(0)) for i in (0,1)),alpha,rho)-objective(opt,alpha,rho)==quadratic/2
+        # Every prefix, including non-block endpoints, is checked against the
+        # energy itself rather than only the objective gap.
+        for k in range(stage.target_iterations+1):
+            candidate=tuple(F(stage.S*stage.X.get(i,0),stage.H**2)+baseline.get(i,F(0)) for i in (0,1))
+            z=tuple(F(stage.z.get(i,0),stage.H) for i in (0,1))
+            energy=objective(candidate,alpha,rho)-objective(opt,alpha,rho)+stage.theta**2*sum((z[i]-e[i])**2 for i in (0,1))/2
+            assert 0<=energy<=stage.objective_gap_bound
+            assert stage.metrics.iterations==k
+            assert stage.decay_denominator==2**(k//stage.T)
+            report['exact_energy_prefixes']+=1
+            if k<stage.target_iterations: stage.step()
+        assert stage.objective_gap_bound<tau
+        assert oracle.degree_replies==stage.metrics.degree_replies
+        assert oracle.rows==stage.metrics.first_adjacency_entries
+        assert stage.metrics.source_initialization_records>=stage.source_energy_records
+        assert stage.source_energy_records==len(stage.source)
+        assert stage.source_energy_schedule_doublings==stage.blocks
+        assert stage.source_energy_schedule_checks==stage.blocks+1
+        report['initial_energy_cases']+=1
+        report['zero_step_cases']+=int(stage.target_iterations==0)
+        report['zero_energy_cases']+=int(stage.initial_energy_bound==0)
+        report['positive_zero_step_cases']+=int(stage.target_iterations==0 and stage.initial_energy_bound>0)
+        report['fixtures'].append(dict(alpha=str(alpha),rho=str(rho),initial_energy=str(initial),
+            initial_bound=str(stage.initial_energy_bound),iterations=stage.target_iterations,
+            original_iterations=stage.original_target_iterations))
+    # A public continuation with a positive-error, zero-step final stage.
+    alpha,rho,epsilon=F(13,97),F(4095,4096),F(1,16)
+    oracle=TwoVertexOracle()
+    answer=solve_rppr_source_energy(oracle,0,alpha,rho,epsilon)
+    assert len(answer.stages)==1 and answer.stages[0].iterations==0
+    values={i:v for i,v,d in answer.output}
+    actual=objective(tuple(values.get(i,F(0)) for i in (0,1)),alpha,rho)-objective(optimum(alpha,rho),alpha,rho)
+    assert 0<=actual<=answer.objective_gap_bound<=epsilon
+    assert all(values.get(i,F(0))<=optimum(alpha,rho)[i] for i in (0,1))
+    assert oracle.degree_replies==answer.metrics.seed_degree_queries+answer.metrics.repair_degree_replies+sum(s.corrector_metrics['degree_replies'] for s in answer.stages)
+    assert oracle.rows==answer.metrics.repair_first_adjacency_entries+sum(s.corrector_metrics['first_adjacency_entries'] for s in answer.stages)
+    report['full_zero_step_cases']+=1
+    report['successful']=True
+    Path(__file__).with_name('source_energy_independent_verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(report,indent=2))
+
+if __name__=='__main__': main()

@@ -1,0 +1,48 @@
+"""Public certificate tests against independently computed exact optima."""
+
+import itertools
+import unittest
+from fractions import Fraction as F
+
+from deterministic_rppr import certify_output
+from test_solver import graph, exact_optimum, objective
+
+
+class CertificateTests(unittest.TestCase):
+    def test_arbitrary_nonnegative_outputs(self):
+        rows = graph(3, [(1, 2), (2, 3)])
+        alpha, rho = F(1, 7), F(1, 16)
+        optimum = exact_optimum(rows, 1, alpha, rho)
+        minimum = objective(rows, 1, alpha, rho, optimum)
+        for candidate in itertools.product((F(0), F(1, 4), F(1)), repeat=3):
+            point = {i: value for i, value in zip(rows, candidate) if value}
+            output = tuple((i, value, len(rows[i])) for i, value in point.items())
+            scanned = []
+
+            class Oracle:
+                def degree(self, i):
+                    return len(rows[i])
+                def neighbors(self, i):
+                    assert i in point
+                    scanned.append(i)
+                    return iter(rows[i])
+
+            check = certify_output(Oracle(), 1, alpha, rho, output)
+            actual = objective(rows, 1, alpha, rho, point)-minimum
+            self.assertLessEqual(actual, check.objective_gap_bound)
+            self.assertEqual(sorted(scanned), sorted(point))
+            self.assertEqual(check.first_adjacency_entries, sum(len(rows[i]) for i in point))
+
+    def test_zero_and_inconclusive_results(self):
+        class Edge:
+            def degree(self, i): return 1
+            def neighbors(self, i): return iter((3-i,))
+        zero = certify_output(Edge(), 1, F(1), F(1, 4), ((1, F(3, 4), 1),))
+        self.assertEqual(zero.objective_gap_bound, 0)
+        loose = certify_output(Edge(), 1, F(1, 7), F(1, 16), ())
+        self.assertFalse(loose.meets(F(1, 10**9)))
+        self.assertEqual(loose.first_adjacency_entries, 0)
+
+
+if __name__ == '__main__':
+    unittest.main()

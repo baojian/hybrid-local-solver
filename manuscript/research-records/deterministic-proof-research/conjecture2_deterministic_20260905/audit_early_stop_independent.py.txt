@@ -1,0 +1,215 @@
+"""Independent deterministic checkpoint/state/work audit, with exact optima."""
+from fractions import Fraction as F
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+import json
+
+import early_stop_source_energy_rppr as production
+from source_energy_dyadic_rppr import SourceEnergyDyadicCorrector
+from audit_integer_solver_independent import StrictOracle, q_density
+from audit_independent_sparse_certificate import direct_norm
+from audit_virtual_graphs_and_verifier import (VirtualGraph, structural_check,
+                                              exact_optimum, independent_objective)
+
+REPORT = dict(deterministic=True, full_cases=0, full_stages=0, reference_prefixes=0,
+              checkpoints=0, accepted=0, rejected=0, zero_step_stages=0,
+              fallback_after_failed_checks=0, cache_locked_checks=0,
+              checker_containers_reclaimed=0, manual_resume_checks=0,
+              manual_checkpoint_skip_checks=0, exception_cleanup_checks=0)
+OBSERVED = []
+
+
+class LockableOracle(StrictOracle):
+    blocked = False
+    def degree(self, i):
+        assert not self.blocked, 'Checkpoint requested a new graph degree'
+        return super().degree(i)
+    def neighbors(self, i):
+        assert not self.blocked, 'Checkpoint requested a new graph row'
+        return super().neighbors(i)
+
+
+def state(corrector):
+    return (corrector.S, *(tuple(getattr(corrector, name).items()) for name in
+        ('baseline', 'degree', 'X', 'L', 'z', 'M', 'source')),
+        tuple(corrector.tree.records.items()), tuple(corrector.exceptions))
+
+
+class AuditedEarly(production.EarlyStopSourceEnergyCorrector):
+    def __init__(self, *args, **kwargs):
+        oracle = args[0] if args else kwargs['oracle']
+        self.degree_offset, self.row_offset = len(oracle.degree_calls), len(oracle.row_calls)
+        super().__init__(*args, **kwargs)
+        self.rows = self.oracle.rows
+        self.optimum = exact_optimum(self.rows, self.seed, self.alpha, self.rho)
+        self.optimum_value = independent_objective(self.rows, self.seed, self.alpha, self.rho, self.optimum)
+        baseline = {i:F(v, self.H) for i, v in self.baseline.items()}
+        self.reference = SourceEnergyDyadicCorrector(StrictOracle(self.rows), self.seed,
+            self.alpha, self.theta, self.rho, self.tolerance, baseline)
+        self.checkpoint_times = []
+        self.check_state()
+        OBSERVED.append(self)
+
+    def values(self):
+        return {i:F(self.S*self.X.get(i, 0)+self.H*self.baseline.get(i, 0), self.H**2)
+                for i in self.rows if self.X.get(i, 0) or self.baseline.get(i, 0)}
+
+    def check_state(self):
+        assert state(self) == state(self.reference)
+        assert self.grid == self.reference.grid
+        assert self.target_iterations == self.reference.target_iterations
+        assert self.oracle.degree_calls[self.degree_offset:] == self.reference.oracle.degree_calls
+        assert self.oracle.row_calls[self.row_offset:] == self.reference.oracle.row_calls
+        assert self.metrics.kinetic_volume == self.reference.metrics.kinetic_volume
+        REPORT['reference_prefixes'] += 1
+
+    def step(self):
+        result = super().step()
+        expected = self.reference.step()
+        assert result == expected
+        self.check_state()
+        return result
+
+    def _checkpoint(self):
+        original_checker = self._independent_checker
+        expected_values = self.values()
+        before = state(self)
+        core_volume = self.metrics.kinetic_volume
+        calls = (len(self.oracle.degree_calls), len(self.oracle.row_calls))
+        containers_before = self.checkpoint_metrics.checker_reclaimed_containers
+        reclaimed_before = self.checkpoint_metrics.checker_reclaimed_records
+        norm, _ = direct_norm(self.rows, self.seed, self.alpha, self.rho, expected_values)
+        actual_gap = independent_objective(self.rows, self.seed, self.alpha, self.rho, expected_values)-self.optimum_value
+        captured = {}
+        def inspect_checker(oracle, seed, alpha, rho, candidate):
+            assert {i:f for i, f, d in candidate} == expected_values
+            assert all(self.H**2 % f.denominator == 0 for i, f, d in candidate)
+            result = original_checker(oracle, seed, alpha, rho, candidate)
+            assert len(self._checker_containers) == 6
+            captured['records'] = sum(len(c) for c in self._checker_containers)
+            captured['bound'] = result.objective_gap_bound
+            assert 0 <= actual_gap <= norm/(2*alpha) <= result.objective_gap_bound
+            return result
+        self._independent_checker = inspect_checker
+        self.oracle.blocked = True
+        try: result = super()._checkpoint()
+        finally:
+            self.oracle.blocked = False
+            self._independent_checker = original_checker
+        assert state(self) == before and self.metrics.kinetic_volume == core_volume
+        assert calls == (len(self.oracle.degree_calls), len(self.oracle.row_calls))
+        assert self._checker_containers == []
+        assert self.checkpoint_metrics.checker_reclaimed_containers-containers_before == 6
+        assert self.checkpoint_metrics.checker_reclaimed_records-reclaimed_before == captured['records']
+        self.checkpoint_times.append(self.metrics.iterations)
+        assert result is not None if captured['bound'] < self.tolerance else result is None
+        if result is not None:
+            assert self._accepted_iteration == self.metrics.iterations
+            assert self.objective_gap_bound == captured['bound'] < self.tolerance
+            assert {i:f for i, f, d in result} == expected_values
+            REPORT['accepted'] += 1
+        else:
+            assert self._accepted_bound is None and self._accepted_iteration is None
+            REPORT['rejected'] += 1
+        REPORT['checkpoints'] += 1
+        REPORT['cache_locked_checks'] += 1
+        REPORT['checker_containers_reclaimed'] += 6
+        return result
+
+
+def check_work(stage):
+    metrics = stage.checkpoint_metrics
+    assert all(k % stage.T == 0 and ((k//stage.T) & ((k//stage.T)-1)) == 0
+               for k in stage.checkpoint_times)
+    assert sum(stage.checkpoint_times) == metrics.checkpoint_iteration_sum < 2*max(1, stage.metrics.iterations)
+    assert metrics.cached_adjacency_entries == metrics.candidate_volume
+    assert metrics.checker_accumulation_updates == metrics.cached_adjacency_entries
+    assert metrics.checker_output_records == metrics.candidate_materialization_records
+    assert metrics.checker_containers == metrics.checker_reclaimed_containers == 6*metrics.checkpoints
+    assert metrics.cache_misses == 0
+    assert metrics.candidate_volume <= (metrics.checkpoints+360*metrics.checkpoint_iteration_sum)/stage.rho
+    assert metrics.discarded_certificate_scalar_records == 11*metrics.checkpoints
+    assert metrics.discarded_candidate_words == 3*metrics.discarded_candidate_records
+
+
+def main():
+    REPORT['source_sha256'] = sha256(Path(__file__).with_name('early_stop_source_energy_rppr.py').read_bytes()).hexdigest()
+    fixtures = [('path', 5, 0, 1, F(1, 100), F(1, 64), F(1, 1000000)),
+                ('barbell', 3, 0, 2, F(1, 5), F(1, 40), F(1, 65536)),
+                ('star', 7, 0, 4, F(3, 17), F(1, 32), F(1, 131072)),
+                ('cycle', 4, 0, 1, F(1, 4), F(1, 2)-F(1, 1 << 30), F(1, 1000))]
+    for family, size, aux, seed, alpha, rho, epsilon in fixtures:
+        rows = structural_check(VirtualGraph(family, size, aux))
+        offset = len(OBSERVED)
+        with patch.dict(production._namespace, IntegerDyadicCorrector=AuditedEarly):
+            answer = production.solve_rppr_early_stop(LockableOracle(rows), seed, alpha, rho, epsilon)
+        previous = {}
+        for stage, summary in zip(OBSERVED[offset:], answer.stages):
+            values = stage.values()
+            gap = independent_objective(rows, seed, alpha, stage.rho, values)-stage.optimum_value
+            assert 0 <= gap <= summary.certified_gap < summary.requested_gap
+            repaired = {i:f for i, f, d in summary.repaired_output}
+            qr = q_density(rows, alpha, repaired)
+            for i in rows:
+                assert previous.get(i, 0) <= repaired.get(i, 0) <= stage.optimum.get(i, 0)
+                source = alpha*int(i == seed)/len(rows[i])-qr[i]
+                assert 0 <= source <= 2*alpha*stage.rho
+            previous = repaired
+            check_work(stage)
+            REPORT['full_stages'] += 1
+            REPORT['zero_step_stages'] += stage.metrics.iterations == 0
+            REPORT['fallback_after_failed_checks'] += stage.metrics.iterations == stage.target_iterations and stage.checkpoint_metrics.rejected_checkpoints > 0
+        optimum = exact_optimum(rows, seed, alpha, rho)
+        final = {i:f for i, f, d in answer.output}
+        gap = independent_objective(rows, seed, alpha, rho, final)-independent_objective(rows, seed, alpha, rho, optimum)
+        assert 0 <= gap <= answer.objective_gap_bound <= epsilon
+        REPORT['full_cases'] += 1
+
+    rows = structural_check(VirtualGraph('path', 3, 0))
+    stage = AuditedEarly(LockableOracle(rows), 2, F(1, 4), F(1, 2), F(1, 4), F(1, 4096))
+    stage.run()
+    assert stage._accepted_bound is not None
+    before = stage.metrics.iterations
+    stage.step()
+    assert stage.metrics.iterations == before+1 and stage._accepted_bound is None
+    assert stage.objective_gap_bound == stage.reference.objective_gap_bound
+    stage.run()
+    frozen_state, frozen_iteration = state(stage), stage.metrics.iterations
+    stage.run()
+    assert state(stage) == frozen_state and stage.metrics.iterations == frozen_iteration
+    assert stage.checkpoint_metrics.invalidated_accepted_bounds == 1
+    REPORT['manual_resume_checks'] += 1
+
+    stage = AuditedEarly(LockableOracle(rows), 2, F(1, 4), F(1, 2), F(1, 4), F(1, 4096))
+    for _ in range(2*stage.T+1): stage.step()
+    stage.run()
+    assert all(k >= 4*stage.T for k in stage.checkpoint_times)
+    assert 0 <= independent_objective(rows, stage.seed, stage.alpha, stage.rho, stage.values())-stage.optimum_value <= stage.objective_gap_bound
+    REPORT['manual_checkpoint_skip_checks'] += 1
+
+    # Fault injection exercises finally reclamation after all checker maps exist.
+    stage = production.EarlyStopSourceEnergyCorrector(LockableOracle(rows), 2,
+        F(1, 4), F(1, 2), F(1, 4), F(1, 4096))
+    for _ in range(stage.T): stage.step()
+    checker = stage._independent_checker
+    def fail_after_check(*args, **kwargs):
+        checker(*args, **kwargs)
+        assert len(stage._checker_containers) == 6
+        raise RuntimeError('Injected post-check exception')
+    stage._independent_checker = fail_after_check
+    stage.oracle.blocked = True
+    try: stage._checkpoint()
+    except RuntimeError as error: assert str(error) == 'Injected post-check exception'
+    else: raise AssertionError('Expected injected exception')
+    finally: stage.oracle.blocked = False
+    assert not stage._checker_containers and stage.checkpoint_metrics.checker_reclaimed_containers == 6
+    assert stage._accepted_bound is None
+    REPORT['exception_cleanup_checks'] += 1
+    assert REPORT['accepted'] and REPORT['rejected'] and REPORT['fallback_after_failed_checks'] and REPORT['zero_step_stages']
+    destination = Path(__file__).with_name('early_stop_independent_audit_results.json')
+    destination.write_text(json.dumps(REPORT, indent=2)+'\n')
+    print(json.dumps(REPORT, indent=2))
+
+
+if __name__ == '__main__': main()
